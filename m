@@ -1,163 +1,127 @@
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 440FB2C9C
-	for <nvdimm@lists.linux.dev>; Tue,  1 Feb 2022 12:59:59 +0000 (UTC)
-Received: from fraeml735-chm.china.huawei.com (unknown [172.18.147.226])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Jp4fH0CtNz67xDg;
-	Tue,  1 Feb 2022 20:55:19 +0800 (CST)
-Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
- fraeml735-chm.china.huawei.com (10.206.15.216) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.21; Tue, 1 Feb 2022 13:59:56 +0100
-Received: from localhost (10.202.226.41) by lhreml710-chm.china.huawei.com
- (10.201.108.61) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2308.21; Tue, 1 Feb
- 2022 12:59:56 +0000
-Date: Tue, 1 Feb 2022 12:59:54 +0000
-From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9C3F2C82;
+	Tue,  1 Feb 2022 14:59:45 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1643727585; x=1675263585;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=joQcQ0jFgjnT4KqUU0fnP+eX2kKna5YdK/rGnaHrhGE=;
+  b=blDsMUVQ3a+BcfLC5cghu7oIx4LUJnfU6Ke4MoR7EJX78nKq85p7MnJw
+   EE9cuJQj1FgRud8D0U0qEal1hYSoIn3x0F1oMSH23SUAtsy2MgCN7wsGs
+   c4ZTLXiVGmlDlPGuXe4Lyff+tmXARyuHUa5DiXw8Kmbvf0YAkP2VhRHRZ
+   vAQoDfxoum3rvAblMPgmYoUHice5FwhWeStrshB3jDdcxXZm6yi2CCPBr
+   e05AIQEY6x0chmhoDN6TCxPujXpGByuMUOiiSjNAF/x7Z6Lr1wvD6C+X9
+   5IGTv34DNgIposSnTgDN4c45q35kdR3dd4Ht6hRUbEHX1gaTxje4qcYQf
+   Q==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10244"; a="227678153"
+X-IronPort-AV: E=Sophos;i="5.88,334,1635231600"; 
+   d="scan'208";a="227678153"
+Received: from fmsmga003.fm.intel.com ([10.253.24.29])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Feb 2022 06:59:45 -0800
+X-IronPort-AV: E=Sophos;i="5.88,334,1635231600"; 
+   d="scan'208";a="619812929"
+Received: from rashmigh-mobl.amr.corp.intel.com (HELO intel.com) ([10.252.132.8])
+  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Feb 2022 06:59:44 -0800
+Date: Tue, 1 Feb 2022 06:59:43 -0800
+From: Ben Widawsky <ben.widawsky@intel.com>
 To: Dan Williams <dan.j.williams@intel.com>
-CC: <linux-cxl@vger.kernel.org>, <linux-pci@vger.kernel.org>,
-	<nvdimm@lists.linux.dev>, <ben.widawsky@intel.com>
-Subject: Re: [PATCH 2/2] cxl/core/port: Handle invalid decoders
-Message-ID: <20220201125954.000038c4@Huawei.com>
-In-Reply-To: <164317464918.3438644.12371149695618136198.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <164317463887.3438644.4087819721493502301.stgit@dwillia2-desk3.amr.corp.intel.com>
-	<164317464918.3438644.12371149695618136198.stgit@dwillia2-desk3.amr.corp.intel.com>
-Organization: Huawei Technologies Research and Development (UK) Ltd.
-X-Mailer: Claws Mail 4.0.0 (GTK+ 3.24.29; i686-w64-mingw32)
+Cc: linux-cxl@vger.kernel.org, patches@lists.linux.dev,
+	kernel test robot <lkp@intel.com>,
+	Alison Schofield <alison.schofield@intel.com>,
+	Ira Weiny <ira.weiny@intel.com>,
+	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Bjorn Helgaas <helgaas@kernel.org>,
+	Linux NVDIMM <nvdimm@lists.linux.dev>,
+	Linux PCI <linux-pci@vger.kernel.org>
+Subject: Re: [PATCH v3 02/14] cxl/region: Introduce concept of region
+ configuration
+Message-ID: <20220201145943.mevjv3rygo43o2lf@intel.com>
+References: <20220128002707.391076-1-ben.widawsky@intel.com>
+ <20220128002707.391076-3-ben.widawsky@intel.com>
+ <CAPcyv4hHJcPLRJM-7z+wKhjBhp9HH2qXuEeC0VfDnD6yU9H-Wg@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.202.226.41]
-X-ClientProxiedBy: lhreml733-chm.china.huawei.com (10.201.108.84) To
- lhreml710-chm.china.huawei.com (10.201.108.61)
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4hHJcPLRJM-7z+wKhjBhp9HH2qXuEeC0VfDnD6yU9H-Wg@mail.gmail.com>
 
-On Tue, 25 Jan 2022 21:24:09 -0800
-Dan Williams <dan.j.williams@intel.com> wrote:
+I will cut to the part that effects ABI so tool development can continue. I'll
+get back to the other bits later.
 
-> In case init_hdm_decoder() finds invalid settings, skip to the next
-> valid decoder. Only fail port enumeration if zero valid decoders are
-> found. This protects the driver init against broken hardware and / or
-> future interleave capabilities.
+On 22-01-28 16:25:34, Dan Williams wrote:
+
+[snip]
+
 > 
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-One comment inline, but I'm fine with this as it is.
-
-Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-
-> ---
->  drivers/cxl/core/hdm.c |   36 ++++++++++++++++++++++++++++++------
->  1 file changed, 30 insertions(+), 6 deletions(-)
+> > +
+> > +       return ret;
+> > +}
+> > +
+> > +static size_t set_targetN(struct cxl_region *cxlr, const char *buf, int n,
+> > +                         size_t len)
+> > +{
+> > +       struct device *memdev_dev;
+> > +       struct cxl_memdev *cxlmd;
+> > +
+> > +       device_lock(&cxlr->dev);
+> > +
+> > +       if (len == 1 || cxlr->config.targets[n])
+> > +               remove_target(cxlr, n);
+> > +
+> > +       /* Remove target special case */
+> > +       if (len == 1) {
+> > +               device_unlock(&cxlr->dev);
+> > +               return len;
+> > +       }
+> > +
+> > +       memdev_dev = bus_find_device_by_name(&cxl_bus_type, NULL, buf);
 > 
-> diff --git a/drivers/cxl/core/hdm.c b/drivers/cxl/core/hdm.c
-> index c966ab0d51fe..4955ba16c9c8 100644
-> --- a/drivers/cxl/core/hdm.c
-> +++ b/drivers/cxl/core/hdm.c
-> @@ -150,8 +150,8 @@ static int to_interleave_ways(u32 ctrl)
->  	}
->  }
->  
-> -static void init_hdm_decoder(struct cxl_decoder *cxld, int *target_map,
-> -			     void __iomem *hdm, int which)
-> +static int init_hdm_decoder(struct cxl_port *port, struct cxl_decoder *cxld,
-> +			    int *target_map, void __iomem *hdm, int which)
->  {
->  	u64 size, base;
->  	u32 ctrl;
-> @@ -167,6 +167,11 @@ static void init_hdm_decoder(struct cxl_decoder *cxld, int *target_map,
->  
->  	if (!(ctrl & CXL_HDM_DECODER0_CTRL_COMMITTED))
->  		size = 0;
-> +	if (base == U64_MAX || size == U64_MAX) {
-> +		dev_warn(&port->dev, "decoder%d.%d: Invalid resource range\n",
-> +			 port->id, cxld->id);
-> +		return -ENXIO;
-> +	}
->  
->  	cxld->decoder_range = (struct range) {
->  		.start = base,
-> @@ -180,6 +185,12 @@ static void init_hdm_decoder(struct cxl_decoder *cxld, int *target_map,
->  			cxld->flags |= CXL_DECODER_F_LOCK;
->  	}
->  	cxld->interleave_ways = to_interleave_ways(ctrl);
-> +	if (!cxld->interleave_ways) {
-> +		dev_warn(&port->dev,
-> +			 "decoder%d.%d: Invalid interleave ways (ctrl: %#x)\n",
-> +			 port->id, cxld->id, ctrl);
-> +		return -ENXIO;
-> +	}
->  	cxld->interleave_granularity = to_interleave_granularity(ctrl);
->  
->  	if (FIELD_GET(CXL_HDM_DECODER0_CTRL_TYPE, ctrl))
-> @@ -188,12 +199,14 @@ static void init_hdm_decoder(struct cxl_decoder *cxld, int *target_map,
->  		cxld->target_type = CXL_DECODER_ACCELERATOR;
->  
->  	if (is_cxl_endpoint(to_cxl_port(cxld->dev.parent)))
-> -		return;
-> +		return 0;
->  
->  	target_list.value =
->  		ioread64_hi_lo(hdm + CXL_HDM_DECODER0_TL_LOW(which));
->  	for (i = 0; i < cxld->interleave_ways; i++)
->  		target_map[i] = target_list.target_id[i];
-> +
-> +	return 0;
->  }
->  
->  /**
-> @@ -204,7 +217,7 @@ int devm_cxl_enumerate_decoders(struct cxl_hdm *cxlhdm)
->  {
->  	void __iomem *hdm = cxlhdm->regs.hdm_decoder;
->  	struct cxl_port *port = cxlhdm->port;
-> -	int i, committed;
-> +	int i, committed, failed;
->  	u32 ctrl;
->  
->  	/*
-> @@ -224,7 +237,7 @@ int devm_cxl_enumerate_decoders(struct cxl_hdm *cxlhdm)
->  	if (committed != cxlhdm->decoder_count)
->  		msleep(20);
->  
-> -	for (i = 0; i < cxlhdm->decoder_count; i++) {
-> +	for (i = 0, failed = 0; i < cxlhdm->decoder_count; i++) {
->  		int target_map[CXL_DECODER_MAX_INTERLEAVE] = { 0 };
->  		int rc, target_count = cxlhdm->target_count;
->  		struct cxl_decoder *cxld;
-> @@ -239,7 +252,13 @@ int devm_cxl_enumerate_decoders(struct cxl_hdm *cxlhdm)
->  			return PTR_ERR(cxld);
->  		}
->  
-> -		init_hdm_decoder(cxld, target_map, cxlhdm->regs.hdm_decoder, i);
-> +		rc = init_hdm_decoder(port, cxld, target_map,
-> +				      cxlhdm->regs.hdm_decoder, i);
-> +		if (rc) {
-> +			put_device(&cxld->dev);
-> +			failed++;
-Not sure I'd have done it this way around, as opposed to
-inited++ or similar, but up to you.
-> +			continue;
-> +		}
->  		rc = add_hdm_decoder(port, cxld, target_map);
->  		if (rc) {
->  			dev_warn(&port->dev,
-> @@ -248,6 +267,11 @@ int devm_cxl_enumerate_decoders(struct cxl_hdm *cxlhdm)
->  		}
->  	}
->  
-> +	if (failed == cxlhdm->decoder_count) {
-> +		dev_err(&port->dev, "No valid decoders found\n");
-> +		return -ENXIO;
-> +	}
-> +
->  	return 0;
->  }
->  EXPORT_SYMBOL_NS_GPL(devm_cxl_enumerate_decoders, CXL);
+> I think this wants to be an endpoint decoder, not a memdev. Because
+> it's the decoder that joins a memdev to a region, or at least a
+> decoder should be picked when the memdev is assigned so that the DPA
+> mapping can be registered. If all the decoders are allocated then fail
+> here.
 > 
 
+You've put two points in here:
+
+1. Handle decoder allocation at sysfs boundary. I'll respond to this when I come
+back around to the rest of the review comments.
+
+2. Take a decoder for target instead of a memdev. I don't agree with this
+direction as it's asymmetric to how LSA processing works. The goal was to model
+the LSA for configuration. The kernel will have to be in the business of
+reserving and enumerating decoders out of memdevs for both LSA (where we have a
+list of memdevs) and volatile (where we use the memdevs in the system to
+enumerate populated decoders). I don't see much value in making userspace do the
+same.
+
+I'd like to ask you reconsider if you still think it's preferable to use
+decoders as part of the ABI and if you still feel that way I can go change it
+since it has minimal impact overall.
+
+> > +       if (!memdev_dev) {
+> > +               device_unlock(&cxlr->dev);
+> > +               return -ENOENT;
+> > +       }
+> > +
+> > +       /* reference to memdev held until target is unset or region goes away */
+> > +
+> > +       cxlmd = to_cxl_memdev(memdev_dev);
+> > +       cxlr->config.targets[n] = cxlmd;
+> > +
+> > +       device_unlock(&cxlr->dev);
+> > +
+> > +       return len;
+> > +}
+> > +
+
+[snip]
