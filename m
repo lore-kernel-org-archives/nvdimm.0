@@ -1,119 +1,406 @@
-Received: from mail-pj1-f43.google.com (mail-pj1-f43.google.com [209.85.216.43])
+Received: from mail-pl1-f177.google.com (mail-pl1-f177.google.com [209.85.214.177])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E25E2CA5
-	for <nvdimm@lists.linux.dev>; Tue,  1 Feb 2022 01:32:08 +0000 (UTC)
-Received: by mail-pj1-f43.google.com with SMTP id h12so15630055pjq.3
-        for <nvdimm@lists.linux.dev>; Mon, 31 Jan 2022 17:32:08 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B174F2CA5
+	for <nvdimm@lists.linux.dev>; Tue,  1 Feb 2022 01:58:23 +0000 (UTC)
+Received: by mail-pl1-f177.google.com with SMTP id y17so14130742plg.7
+        for <nvdimm@lists.linux.dev>; Mon, 31 Jan 2022 17:58:23 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20210112.gappssmtp.com; s=20210112;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=XRLAa5TR3EHkLrr6oIGYc+Zb7vJHNpVte3URB1U9ueY=;
-        b=zKyYFVyU81epyr6OHJTOSiyb6PsiTtrJTCVhwrmPXcj0knLWiDmoq1hNrfqvy3e+BX
-         ZoivvcPqEfvtZj9Pvbd7GVotp5WoGIYiTe9o6t8UMWi1f/575/L2PBTyUmfrUm6L8syn
-         iWn3uMJL+1EDykBBQbO/4Wp5dn81yc0AoGrR24XgmgZEMVb6fi6FTcUF06OGYxV3TvlV
-         ZwsyWEP2vME8ViVZKyR9xQjzCkz8aURUBCtvQwA+XNqJJmvuwjgfKU53/SpDNzN1r49A
-         kwtt78SSsmz18x/fueuQh56IhDaE6mdzOEcXnkqKRy28BzAzBOCaW/9YWOgR3MtxYsir
-         hXJw==
+        bh=NOq85vyV7CEqxLkhtpykRtk2yfShEJ0VxEv5X412Ne8=;
+        b=eUmkZWU0j+YUfFcXcw4K3Rcm+zSTqChKzk2bVbvqXE2ikhXbFj7w9s3S9MipKcP+nF
+         iMqAbcqxw6zEEvd+lEA1AAMn0El/62sbzV+wvuO49//mkglx7MKGEkcJAyy+k2n3hopr
+         IEDLFTPU0dRW/gTL9dzm2WZbBW7qKJfRo44xE90TNRsSLFAoGgK0490sYz4T2ebwnsZ7
+         54HeF1cK3OWhTZCG9bzTMBBTGVfVUcJlV0I8p1sRr5Eq22ERFbFP8S0/K6utv7REyv4O
+         Kn79JYLemj7tszs/WFyl5mTU/ax+1v+AO/foSTq/D4IHtyiQf7D0xxLmk4cX7ud0DiV5
+         2rjw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=XRLAa5TR3EHkLrr6oIGYc+Zb7vJHNpVte3URB1U9ueY=;
-        b=JdQ/xeAnN+M5D4j6xTPnzmWgjzAjha+QDN+xRXHwaNR8OwM6vTK21dlO5jHLDOlTSM
-         OxqrRnmxcAhAk1uPG0HFX3XrbHS2MWe8PY0Z9FwGM/e2Az7xp7O+szQZMLxjoncViAM4
-         kaDwCQusR4kZN/ZJ2S86Q1VsmsPHirvYq6gksIOtc1/164d4j72zm45b4tyslrm3znBK
-         xX5U1WjlsppTpFhQez3KR1zkdVJgXLsb7deFi8tMQWKe2737k/jxWTz5WY9S0K7Tr8S0
-         dYHl33Sm/YLQQcL/3aGyZAacEHk77ziJWYEbmc59Ht6uMraiMJoaC6isMYPgG0zU5X25
-         bpwA==
-X-Gm-Message-State: AOAM532VBt6D98+iS3v9+kthOeRKuyRQLQU6be6oUNjCr7JmXhaDxYH+
-	CCqOCzZRQf99Y1Hn5kqYca4T5x5QN+N5H6CDoiY/PxJCsClWNA==
-X-Google-Smtp-Source: ABdhPJyH62To2f39TJHPMQD+PmPnu3hOx6CJ9lnIfxcmZ+5Y+itByJr22t1wkvb4MTSNqEGhcGZ4Ees/OP1/BE9bd5o=
-X-Received: by 2002:a17:902:b20a:: with SMTP id t10mr23263040plr.132.1643679127836;
- Mon, 31 Jan 2022 17:32:07 -0800 (PST)
+        bh=NOq85vyV7CEqxLkhtpykRtk2yfShEJ0VxEv5X412Ne8=;
+        b=aqr98AmnGdDmYWLYWaAsKLbDOqKnFnWovX0eijsw2Pw8iXfiuGhJ8RV1qba3WHhl3d
+         7tzUFQHK04k82ABiI4k34H/Hxg2cpVtr8XuDzdgKgNSvbe2RkR9mAR5+qgQav/vyyNod
+         lAPjvY+JPjDh4ZhSws72XE1H+LAUuFpOIrxeT9fjj91m/QVosVXOloJAMoGmjT6V/FPY
+         0AsqmOLowvWejzki8exnstvpZt5iUeW3Te/14hTxF6Qw/gbKm2M6q7ZYmUcwZNomSwrM
+         +URjYpi/1YjjpiDfYIVm42s+8wcjzu9FbBt1I1VqKSZTs/RZxKJVH0cFi1qBMBum2oBV
+         yBjA==
+X-Gm-Message-State: AOAM532nIJVOvxLwpbFqLwWFqezc90ln4HUsOL0bppYn66x3QeVw3qc4
+	FHvrUwVl5I3RrGQGy2Gro04oDmHI0biDVPFsAVSO+w==
+X-Google-Smtp-Source: ABdhPJzwVe4IbDDLvO3pys2V+fygYFcLuCXv4HXPMiTd6DZAXslMsvWR6R7ubiqSbEmQ0fqe215OpMe2rwJb43y9TMU=
+X-Received: by 2002:a17:902:7c15:: with SMTP id x21mr23956442pll.147.1643680702985;
+ Mon, 31 Jan 2022 17:58:22 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <cover.1642535478.git.alison.schofield@intel.com>
- <e98fa18538c42c40b120d5c22da655d199d0329d.1642535478.git.alison.schofield@intel.com>
- <CAPcyv4j4Nq1AAxH2CybQCH3pcBpCWgCsnY5i=OfKQXd_C_3xWA@mail.gmail.com> <20220201012509.GA913535@alison-desk>
-In-Reply-To: <20220201012509.GA913535@alison-desk>
+References: <164298411792.3018233.7493009997525360044.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <164298423047.3018233.6769866347542494809.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20220131170226.00003bac@Huawei.com>
+In-Reply-To: <20220131170226.00003bac@Huawei.com>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 31 Jan 2022 17:32:00 -0800
-Message-ID: <CAPcyv4imtsKLm8BqYOh53hGh46T0BLeUROb8BJWbGzGyPpzJJQ@mail.gmail.com>
-Subject: Re: [ndctl PATCH v3 5/6] libcxl: add interfaces for
- SET_PARTITION_INFO mailbox command
-To: Alison Schofield <alison.schofield@intel.com>
-Cc: Ben Widawsky <ben.widawsky@intel.com>, Ira Weiny <ira.weiny@intel.com>, 
-	Vishal Verma <vishal.l.verma@intel.com>, Linux NVDIMM <nvdimm@lists.linux.dev>, 
-	linux-cxl@vger.kernel.org
+Date: Mon, 31 Jan 2022 17:58:14 -0800
+Message-ID: <CAPcyv4iHXch0Fri03zYJDfCVePvFodETEVa7nwSWYikit=cDhw@mail.gmail.com>
+Subject: Re: [PATCH v3 21/40] cxl/core: Generalize dport enumeration in the core
+To: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: linux-cxl@vger.kernel.org, Linux PCI <linux-pci@vger.kernel.org>, 
+	Linux NVDIMM <nvdimm@lists.linux.dev>
 Content-Type: text/plain; charset="UTF-8"
 
-On Mon, Jan 31, 2022 at 5:20 PM Alison Schofield
-<alison.schofield@intel.com> wrote:
+On Mon, Jan 31, 2022 at 9:03 AM Jonathan Cameron
+<Jonathan.Cameron@huawei.com> wrote:
 >
-> Dan, One follow up below...
+> On Sun, 23 Jan 2022 16:30:30 -0800
+> Dan Williams <dan.j.williams@intel.com> wrote:
 >
-> On Wed, Jan 26, 2022 at 03:41:14PM -0800, Dan Williams wrote:
-> > On Tue, Jan 18, 2022 at 12:20 PM <alison.schofield@intel.com> wrote:
-> > >
-> > > From: Alison Schofield <alison.schofield@intel.com>
-> > >
-> > > Users may want the ability to change the partition layout of a CXL
-> > > memory device.
-> > >
-> > > Add interfaces to libcxl to allocate and send a SET_PARTITION_INFO
-> > > mailbox as defined in the CXL 2.0 specification.
-> > >
-> > > Signed-off-by: Alison Schofield <alison.schofield@intel.com>
-> > > ---
-> > >  cxl/lib/libcxl.c   | 50 ++++++++++++++++++++++++++++++++++++++++++++++
-> > >  cxl/lib/libcxl.sym |  5 +++++
-> > >  cxl/lib/private.h  |  8 ++++++++
-> > >  cxl/libcxl.h       |  5 +++++
-> > >  4 files changed, 68 insertions(+)
-> > >
-> > > diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
-> > > index 5b1fc32..5a5b189 100644
-> > > --- a/cxl/lib/libcxl.c
-> > > +++ b/cxl/lib/libcxl.c
-> > > @@ -1230,6 +1230,21 @@ cxl_cmd_partition_info_get_next_persistent_bytes(struct cxl_cmd *cmd)
-> > >         cmd_partition_get_capacity_field(cmd, next_persistent_cap);
-> > >  }
-> > >
-> > > +CXL_EXPORT struct cxl_cmd *cxl_cmd_new_set_partition_info(struct cxl_memdev *memdev,
-> > > +               unsigned long long volatile_capacity, int flags)
-> > > +{
-> > > +       struct cxl_cmd_set_partition_info *set_partition;
-> > > +       struct cxl_cmd *cmd;
-> > > +
-> > > +       cmd = cxl_cmd_new_generic(memdev,
-> > > +                       CXL_MEM_COMMAND_ID_SET_PARTITION_INFO);
-> > > +
-> > > +       set_partition = (struct cxl_cmd_set_partition_info *)cmd->send_cmd->in.payload;
+> > The core houses infrastructure for decoder resources. A CXL port's
+> > dports are more closely related to decoder infrastructure than topology
+> > enumeration. Implement generic PCI based dport enumeration in the core,
+> > i.e. arrange for existing root port enumeration from cxl_acpi to share
+> > code with switch port enumeration which is just amounts to a small
+>
+> which just amounts
+
+Yup, thanks.
+
+>
+> > difference in a pci_walk_bus() invocation once the appropriate 'struct
+> > pci_bus' has been retrieved.
 > >
-> > ->in.payload is a 'void *', no casting required.
+> > This also simplifies assumptions about the state of a cxl_port relative
+> > to when its dports are populated. Previously threads racing enumeration
+> > and port lookup could find the port in partially initialized state with
+> > respect to its dports. Now it can assume that the arrival of decoder
+> > objects indicates the dport description is stable.
+>
+> Possibly worth clarifying if that race caused any known bugs, or
+> if you just mean it's removal leads to simplifications
+
+Yeah, that point is a bit confusing because what I am comparing is the
+difference between this patch series and earlier versions. Upstream
+has not enumerated switch ports up to this point, so the difference
+between how cxl_acpi registered dports relative to decoders vs this
+new common way is not something upstream ever dealt with.
+
+>
+> A few additional comment inline.
+>
+> Jonathan
+>
 > >
+> > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> > ---
+> >  drivers/cxl/acpi.c            |   71 ++++------------------------
+> >  drivers/cxl/core/Makefile     |    1
+> >  drivers/cxl/core/pci.c        |  104 +++++++++++++++++++++++++++++++++++++++++
+> >  drivers/cxl/core/port.c       |   91 +++++++++++++++++++++---------------
+> >  drivers/cxl/cxl.h             |   16 ++----
+> >  drivers/cxl/cxlpci.h          |    1
+> >  tools/testing/cxl/Kbuild      |    3 +
+> >  tools/testing/cxl/mock_acpi.c |   78 -------------------------------
+> >  tools/testing/cxl/test/cxl.c  |   67 ++++++++++++++++++--------
+> >  tools/testing/cxl/test/mock.c |   45 +++++++-----------
+> >  tools/testing/cxl/test/mock.h |    6 ++
+> >  11 files changed, 243 insertions(+), 240 deletions(-)
+> >  create mode 100644 drivers/cxl/core/pci.c
+> >
+> > diff --git a/drivers/cxl/acpi.c b/drivers/cxl/acpi.c
+> > index 3485ae9d3baf..259441245687 100644
+> > --- a/drivers/cxl/acpi.c
+> > +++ b/drivers/cxl/acpi.c
+> > @@ -130,48 +130,6 @@ static int cxl_parse_cfmws(union acpi_subtable_headers *header, void *arg,
+> >       return 0;
+> >  }
+> >
+> > -__mock int match_add_root_ports(struct pci_dev *pdev, void *data)
+> > -{
+> > -     resource_size_t creg = CXL_RESOURCE_NONE;
+> > -     struct cxl_walk_context *ctx = data;
+> > -     struct pci_bus *root_bus = ctx->root;
+> > -     struct cxl_port *port = ctx->port;
+> > -     int type = pci_pcie_type(pdev);
+> > -     struct device *dev = ctx->dev;
+> > -     struct cxl_register_map map;
+> > -     u32 lnkcap, port_num;
+> > -     int rc;
+> > -
+> > -     if (pdev->bus != root_bus)
+> > -             return 0;
+> > -     if (!pci_is_pcie(pdev))
+> > -             return 0;
+> > -     if (type != PCI_EXP_TYPE_ROOT_PORT)
+> > -             return 0;
+> > -     if (pci_read_config_dword(pdev, pci_pcie_cap(pdev) + PCI_EXP_LNKCAP,
+> > -                               &lnkcap) != PCIBIOS_SUCCESSFUL)
+> > -             return 0;
+> > -
+> > -     /* The driver doesn't rely on component registers for Root Ports yet. */
+> > -     rc = cxl_find_regblock(pdev, CXL_REGLOC_RBI_COMPONENT, &map);
+> > -     if (!rc)
+> > -             dev_info(&pdev->dev, "No component register block found\n");
+> > -
+> > -     creg = cxl_regmap_to_base(pdev, &map);
+> > -
+> > -     port_num = FIELD_GET(PCI_EXP_LNKCAP_PN, lnkcap);
+> > -     rc = cxl_add_dport(port, &pdev->dev, port_num, creg);
+> > -     if (rc) {
+> > -             ctx->error = rc;
+> > -             return rc;
+> > -     }
+> > -     ctx->count++;
+> > -
+> > -     dev_dbg(dev, "add dport%d: %s\n", port_num, dev_name(&pdev->dev));
+> > -
+> > -     return 0;
+> > -}
+> > -
+> >  static struct cxl_dport *find_dport_by_dev(struct cxl_port *port, struct device *dev)
+> >  {
+> >       struct cxl_dport *dport;
+> > @@ -210,7 +168,6 @@ static int add_host_bridge_uport(struct device *match, void *arg)
+> >       struct device *host = root_port->dev.parent;
+> >       struct acpi_device *bridge = to_cxl_host_bridge(host, match);
+> >       struct acpi_pci_root *pci_root;
+> > -     struct cxl_walk_context ctx;
+> >       int single_port_map[1], rc;
+> >       struct cxl_decoder *cxld;
+> >       struct cxl_dport *dport;
+> > @@ -240,18 +197,10 @@ static int add_host_bridge_uport(struct device *match, void *arg)
+> >               return PTR_ERR(port);
+> >       dev_dbg(host, "%s: add: %s\n", dev_name(match), dev_name(&port->dev));
+> >
+> > -     ctx = (struct cxl_walk_context){
+> > -             .dev = host,
+> > -             .root = pci_root->bus,
+> > -             .port = port,
+> > -     };
+> > -     pci_walk_bus(pci_root->bus, match_add_root_ports, &ctx);
+> > -
+> > -     if (ctx.count == 0)
+> > -             return -ENODEV;
+> > -     if (ctx.error)
+> > -             return ctx.error;
+> > -     if (ctx.count > 1)
+> > +     rc = devm_cxl_port_enumerate_dports(host, port);
+> > +     if (rc < 0)
+> > +             return rc;
+> > +     if (rc > 1)
+> >               return 0;
+> >
+> >       /* TODO: Scan CHBCR for HDM Decoder resources */
+> > @@ -311,9 +260,9 @@ static int cxl_get_chbcr(union acpi_subtable_headers *header, void *arg,
+> >
+> >  static int add_host_bridge_dport(struct device *match, void *arg)
+> >  {
+> > -     int rc;
+> >       acpi_status status;
+> >       unsigned long long uid;
+> > +     struct cxl_dport *dport;
+> >       struct cxl_chbs_context ctx;
+> >       struct cxl_port *root_port = arg;
+> >       struct device *host = root_port->dev.parent;
+> > @@ -342,13 +291,13 @@ static int add_host_bridge_dport(struct device *match, void *arg)
+> >               return 0;
+> >       }
+> >
+> > -     device_lock(&root_port->dev);
+> > -     rc = cxl_add_dport(root_port, match, uid, ctx.chbcr);
+> > -     device_unlock(&root_port->dev);
+> > -     if (rc) {
+> > +     cxl_device_lock(&root_port->dev);
 >
-> send_cmd->in.payload is a __u64 so this cast is needed.
+> Ah.  This is putting back the cxl_device_lock dropped in previous patch I think...
+
+Correct, rebase error now fixed up.
+
 >
-> Of course, I wondered what Dan was thinking ;) and I see that struct
-> cxl_cmd's input_payload is indeed a 'void *'.
+> > +     dport = devm_cxl_add_dport(host, root_port, match, uid, ctx.chbcr);
+> > +     cxl_device_unlock(&root_port->dev);
+> > +     if (IS_ERR(dport)) {
+> >               dev_err(host, "failed to add downstream port: %s\n",
+> >                       dev_name(match));
+> > -             return rc;
+> > +             return PTR_ERR(dport);
+> >       }
+> >       dev_dbg(host, "add dport%llu: %s\n", uid, dev_name(match));
+> >       return 0;
+> > diff --git a/drivers/cxl/core/Makefile b/drivers/cxl/core/Makefile
+> > index a90202ac88d2..91057f0ec763 100644
+> > --- a/drivers/cxl/core/Makefile
+> > +++ b/drivers/cxl/core/Makefile
+> > @@ -7,3 +7,4 @@ cxl_core-y += pmem.o
+> >  cxl_core-y += regs.o
+> >  cxl_core-y += memdev.o
+> >  cxl_core-y += mbox.o
+> > +cxl_core-y += pci.o
+> > diff --git a/drivers/cxl/core/pci.c b/drivers/cxl/core/pci.c
+> > new file mode 100644
+> > index 000000000000..48c9a004ae8e
+> > --- /dev/null
+> > +++ b/drivers/cxl/core/pci.c
+> > @@ -0,0 +1,104 @@
+> > +// SPDX-License-Identifier: GPL-2.0-only
+> > +/* Copyright(c) 2021 Intel Corporation. All rights reserved. */
+> > +#include <linux/device.h>
+> > +#include <linux/pci.h>
+> > +#include <cxlpci.h>
+> > +#include <cxl.h>
+> > +#include "core.h"
+> > +
+> > +/**
+> > + * DOC: cxl core pci
+> > + *
+> > + * Compute Express Link protocols are layered on top of PCIe. CXL core provides
+> > + * a set of helpers for CXL interactions which occur via PCIe.
+> > + */
+> > +
+> > +struct cxl_walk_context {
+> > +     struct pci_bus *bus;
+> > +     struct device *host;
+> > +     struct cxl_port *port;
+> > +     int type;
+> > +     int error;
+> > +     int count;
+> > +};
+> > +
+> > +static int match_add_dports(struct pci_dev *pdev, void *data)
+> > +{
+> > +     struct cxl_walk_context *ctx = data;
+> > +     struct cxl_port *port = ctx->port;
+> > +     struct device *host = ctx->host;
+> > +     struct pci_bus *bus = ctx->bus;
+> > +     int type = pci_pcie_type(pdev);
+> > +     struct cxl_register_map map;
+> > +     int match_type = ctx->type;
+> > +     struct cxl_dport *dport;
+> > +     u32 lnkcap, port_num;
+> > +     int rc;
+> > +
+> > +     if (pdev->bus != bus)
+> if (pdev->bus != ctx->bus) seems just as clear to me and the local
+> variable bus isn't used elsewhere.
 >
-> I believe this is the correct payload here, umm..  because it works ;)
+> > +             return 0;
+> > +     if (!pci_is_pcie(pdev))
+> > +             return 0;
+> > +     if (type != match_type)
 >
-> But - let me know if you suspect something is off here.
+>         if (pci_pcie_type(pdev) != ctx->type)
+>
+> is probably easier to follow than with the local variables.
+> (note I've not read the rest of the series yet so this might make
+> sense if there are additional changes in here)
 
-You're right...
+No, I think the local variables can go.
 
-...however :), I think this casting is what the core
-cxl_cmd_alloc_send() helper is doing for everyone when it does:
+>
+> > +             return 0;
+> > +     if (pci_read_config_dword(pdev, pci_pcie_cap(pdev) + PCI_EXP_LNKCAP,
+> > +                               &lnkcap) != PCIBIOS_SUCCESSFUL)
+>
+> We could take this opportunity to just compare with 0 as we do in lots
+> of other places.
 
-cmd->send_cmd->in.payload = (u64)cmd->input_payload;
+Sure.
 
-...so cxl_cmd_new_set_partition_info() can safely switch to the
-shorter cmd->input_payload and drop its own redundant local casting.
+>
+> > +             return 0;
+> > +
+> > +     rc = cxl_find_regblock(pdev, CXL_REGLOC_RBI_COMPONENT, &map);
+> > +     if (rc)
+> > +             dev_dbg(&port->dev, "failed to find component registers\n");
+> > +
+> > +     port_num = FIELD_GET(PCI_EXP_LNKCAP_PN, lnkcap);
+> > +     cxl_device_lock(&port->dev);
+> > +     dport = devm_cxl_add_dport(host, port, &pdev->dev, port_num,
+> > +                                cxl_regmap_to_base(pdev, &map));
+> > +     cxl_device_unlock(&port->dev);
+> > +     if (IS_ERR(dport)) {
+> > +             ctx->error = PTR_ERR(dport);
+> > +             return PTR_ERR(dport);
+> > +     }
+> > +     ctx->count++;
+> > +
+> > +     dev_dbg(&port->dev, "add dport%d: %s\n", port_num, dev_name(&pdev->dev));
+> > +
+> > +     return 0;
+> > +}
+> > +
+> > +/**
+> > + * devm_cxl_port_enumerate_dports - enumerate downstream ports of the upstream port
+> > + * @host: devm context
+> > + * @port: cxl_port whose ->uport is the upstream of dports to be enumerated
+> > + *
+> > + * Returns a positive number of dports enumerated or a negative error
+> > + * code.
+> > + */
+> > +int devm_cxl_port_enumerate_dports(struct device *host, struct cxl_port *port)
+> > +{
+> > +     struct pci_bus *bus = cxl_port_to_pci_bus(port);
+> > +     struct cxl_walk_context ctx;
+> > +     int type;
+> > +
+> > +     if (!bus)
+> > +             return -ENXIO;
+> > +
+> > +     if (pci_is_root_bus(bus))
+> > +             type = PCI_EXP_TYPE_ROOT_PORT;
+> > +     else
+> > +             type = PCI_EXP_TYPE_DOWNSTREAM;
+> > +
+> > +     ctx = (struct cxl_walk_context) {
+> > +             .host = host,
+> > +             .port = port,
+> > +             .bus = bus,
+> > +             .type = type,
+> > +     };
+> > +     pci_walk_bus(bus, match_add_dports, &ctx);
+> > +
+> > +     if (ctx.count == 0)
+> > +             return -ENODEV;
+> > +     if (ctx.error)
+> > +             return ctx.error;
+> > +     return ctx.count;
+> > +}
+> > +EXPORT_SYMBOL_NS_GPL(devm_cxl_port_enumerate_dports, CXL);
+> > diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
+> > index c51a10154e29..777de6d91dde 100644
+> > --- a/drivers/cxl/core/port.c
+> > +++ b/drivers/cxl/core/port.c
+>
+> ...
+>
+> >
+> > @@ -529,51 +506,87 @@ static int add_dport(struct cxl_port *port, struct cxl_dport *new)
+> >       return dup ? -EEXIST : 0;
+> >  }
+> >
+> > +static void cxl_dport_remove(void *data)
+> > +{
+> > +     struct cxl_dport *dport = data;
+> > +     struct cxl_port *port = dport->port;
+> > +
+> > +     cxl_device_lock(&port->dev);
+> > +     list_del_init(&dport->list);
+>
+> Why _init?
+
+I think at some point I rebased this from something that would look at
+the state of ->list at release time, so I wanted to make sure that
+list_empty() returned true, but that got simplified along the way, so
+this can become plain list_del().
+
+>
+> > +     cxl_device_unlock(&port->dev);
+> > +     put_device(dport->dport);
+>
+> For this unwinding, could we do the put_device(dport->dport)
+> before the rest.  I don't think we need to hold the reference
+> whilst doing the rest of this unwinding and it would more closely
+> 'reverse' the setup order below.
+
+True, and ok.
