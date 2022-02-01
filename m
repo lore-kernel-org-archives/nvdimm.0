@@ -1,48 +1,39 @@
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9C3F2C82;
-	Tue,  1 Feb 2022 14:59:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D39502C82
+	for <nvdimm@lists.linux.dev>; Tue,  1 Feb 2022 15:11:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1643727585; x=1675263585;
+  t=1643728264; x=1675264264;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=joQcQ0jFgjnT4KqUU0fnP+eX2kKna5YdK/rGnaHrhGE=;
-  b=blDsMUVQ3a+BcfLC5cghu7oIx4LUJnfU6Ke4MoR7EJX78nKq85p7MnJw
-   EE9cuJQj1FgRud8D0U0qEal1hYSoIn3x0F1oMSH23SUAtsy2MgCN7wsGs
-   c4ZTLXiVGmlDlPGuXe4Lyff+tmXARyuHUa5DiXw8Kmbvf0YAkP2VhRHRZ
-   vAQoDfxoum3rvAblMPgmYoUHice5FwhWeStrshB3jDdcxXZm6yi2CCPBr
-   e05AIQEY6x0chmhoDN6TCxPujXpGByuMUOiiSjNAF/x7Z6Lr1wvD6C+X9
-   5IGTv34DNgIposSnTgDN4c45q35kdR3dd4Ht6hRUbEHX1gaTxje4qcYQf
-   Q==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10244"; a="227678153"
+  bh=NdLePjmH/RJmxdRZVM8XpVi1qx4upTKlYfI9sEoHNeA=;
+  b=SK74whqe2tA/dNqxocRczY4lNdNLofKpCpqgpvogvx1hYpidHhX0hy0V
+   w7Sy9bTzwEqmO4rtfniBS1wg2X4acLPntIvAvL3gfG0QO9idzU3KqFaVM
+   Up8wSo5qIxjMWHZaSHem6qCcfVKG4b32/SR+VnnELTqWJawE0Ds50R9xv
+   CTH9O0vSBiAD09PJLlTr5CxoT5n20yBbG3vZggc7i9hHvxSc/E2/uCSGO
+   X5RvDQ5nfFZeQnsf6C2MXevnNs9NBqPAQNlplIm0exGaXIXOWMADCWoox
+   s8RsPXjhdLkT+8YVnqZewTXIVZCgHEPjEWa2d0R4Zn4v14jbzE5GcFHXX
+   A==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10244"; a="272187998"
 X-IronPort-AV: E=Sophos;i="5.88,334,1635231600"; 
-   d="scan'208";a="227678153"
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Feb 2022 06:59:45 -0800
+   d="scan'208";a="272187998"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Feb 2022 07:11:03 -0800
 X-IronPort-AV: E=Sophos;i="5.88,334,1635231600"; 
-   d="scan'208";a="619812929"
+   d="scan'208";a="537842390"
 Received: from rashmigh-mobl.amr.corp.intel.com (HELO intel.com) ([10.252.132.8])
-  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Feb 2022 06:59:44 -0800
-Date: Tue, 1 Feb 2022 06:59:43 -0800
+  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Feb 2022 07:11:03 -0800
+Date: Tue, 1 Feb 2022 07:11:02 -0800
 From: Ben Widawsky <ben.widawsky@intel.com>
 To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-cxl@vger.kernel.org, patches@lists.linux.dev,
-	kernel test robot <lkp@intel.com>,
-	Alison Schofield <alison.schofield@intel.com>,
-	Ira Weiny <ira.weiny@intel.com>,
-	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Bjorn Helgaas <helgaas@kernel.org>,
-	Linux NVDIMM <nvdimm@lists.linux.dev>,
-	Linux PCI <linux-pci@vger.kernel.org>
-Subject: Re: [PATCH v3 02/14] cxl/region: Introduce concept of region
- configuration
-Message-ID: <20220201145943.mevjv3rygo43o2lf@intel.com>
-References: <20220128002707.391076-1-ben.widawsky@intel.com>
- <20220128002707.391076-3-ben.widawsky@intel.com>
- <CAPcyv4hHJcPLRJM-7z+wKhjBhp9HH2qXuEeC0VfDnD6yU9H-Wg@mail.gmail.com>
+Cc: linux-cxl@vger.kernel.org, linux-pci@vger.kernel.org,
+	nvdimm@lists.linux.dev
+Subject: Re: [PATCH v3 23/40] cxl/core: Emit modalias for CXL devices
+Message-ID: <20220201151102.czrykjrqdb6vddzk@intel.com>
+References: <164298411792.3018233.7493009997525360044.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <164298424120.3018233.15611905873808708542.stgit@dwillia2-desk3.amr.corp.intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -51,77 +42,14 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAPcyv4hHJcPLRJM-7z+wKhjBhp9HH2qXuEeC0VfDnD6yU9H-Wg@mail.gmail.com>
+In-Reply-To: <164298424120.3018233.15611905873808708542.stgit@dwillia2-desk3.amr.corp.intel.com>
 
-I will cut to the part that effects ABI so tool development can continue. I'll
-get back to the other bits later.
-
-On 22-01-28 16:25:34, Dan Williams wrote:
-
-[snip]
-
+On 22-01-23 16:30:41, Dan Williams wrote:
+> In order to enable libkmod lookups for CXL device objects to their
+> corresponding module, add 'modalias' to the base attribute of CXL
+> devices.
 > 
-> > +
-> > +       return ret;
-> > +}
-> > +
-> > +static size_t set_targetN(struct cxl_region *cxlr, const char *buf, int n,
-> > +                         size_t len)
-> > +{
-> > +       struct device *memdev_dev;
-> > +       struct cxl_memdev *cxlmd;
-> > +
-> > +       device_lock(&cxlr->dev);
-> > +
-> > +       if (len == 1 || cxlr->config.targets[n])
-> > +               remove_target(cxlr, n);
-> > +
-> > +       /* Remove target special case */
-> > +       if (len == 1) {
-> > +               device_unlock(&cxlr->dev);
-> > +               return len;
-> > +       }
-> > +
-> > +       memdev_dev = bus_find_device_by_name(&cxl_bus_type, NULL, buf);
-> 
-> I think this wants to be an endpoint decoder, not a memdev. Because
-> it's the decoder that joins a memdev to a region, or at least a
-> decoder should be picked when the memdev is assigned so that the DPA
-> mapping can be registered. If all the decoders are allocated then fail
-> here.
-> 
-
-You've put two points in here:
-
-1. Handle decoder allocation at sysfs boundary. I'll respond to this when I come
-back around to the rest of the review comments.
-
-2. Take a decoder for target instead of a memdev. I don't agree with this
-direction as it's asymmetric to how LSA processing works. The goal was to model
-the LSA for configuration. The kernel will have to be in the business of
-reserving and enumerating decoders out of memdevs for both LSA (where we have a
-list of memdevs) and volatile (where we use the memdevs in the system to
-enumerate populated decoders). I don't see much value in making userspace do the
-same.
-
-I'd like to ask you reconsider if you still think it's preferable to use
-decoders as part of the ABI and if you still feel that way I can go change it
-since it has minimal impact overall.
-
-> > +       if (!memdev_dev) {
-> > +               device_unlock(&cxlr->dev);
-> > +               return -ENOENT;
-> > +       }
-> > +
-> > +       /* reference to memdev held until target is unset or region goes away */
-> > +
-> > +       cxlmd = to_cxl_memdev(memdev_dev);
-> > +       cxlr->config.targets[n] = cxlmd;
-> > +
-> > +       device_unlock(&cxlr->dev);
-> > +
-> > +       return len;
-> > +}
-> > +
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Ben Widawsky <ben.widawsky@intel.com>
 
 [snip]
