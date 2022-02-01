@@ -1,64 +1,65 @@
-Received: from mail-pj1-f53.google.com (mail-pj1-f53.google.com [209.85.216.53])
+Received: from mail-pj1-f43.google.com (mail-pj1-f43.google.com [209.85.216.43])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E342E2C9E
-	for <nvdimm@lists.linux.dev>; Tue,  1 Feb 2022 04:58:56 +0000 (UTC)
-Received: by mail-pj1-f53.google.com with SMTP id b1-20020a17090a990100b001b14bd47532so1304778pjp.0
-        for <nvdimm@lists.linux.dev>; Mon, 31 Jan 2022 20:58:56 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2CCD62C9E
+	for <nvdimm@lists.linux.dev>; Tue,  1 Feb 2022 05:10:46 +0000 (UTC)
+Received: by mail-pj1-f43.google.com with SMTP id z10-20020a17090acb0a00b001b520826011so1470020pjt.5
+        for <nvdimm@lists.linux.dev>; Mon, 31 Jan 2022 21:10:46 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20210112.gappssmtp.com; s=20210112;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=UW73ADbyQLu7YdYQIibXelAkLmUMMebCP4sdSICcX1s=;
-        b=W5cZBVlDlTzyUznoAbCZuAxmNhytQ0VrSYt+y6aV80CF8oLBDDgdTWlHMYalldOymM
-         xWLWxw3m+N2QPIlcznS+C3QMDqvYGO9fhNUmXs8xIpPb5a4wOpEH13S5y5/yB7IPu8Vj
-         VJTBFztuzky0tzoHMUMAgBZnJJXDKls+VQlBsOrSzyUHtp0QsGLloZxr1i2U/XZsv6ps
-         0QQh1UIBm2ih8aj3jopb+SDPkgdJdOtaOcD+RAA3mJuccYJxyLMJnO8NEjWvpX+lnyzR
-         SuLV2DoYW3qzJ6XqAV6oAAvIbpBjB1WoHmnvGebYU5cGhY1ex1mZZ8JXiJfdQEYCsjUZ
-         7gSQ==
+        bh=zERJMJPBpohrP2OBXDhHeMNlTlvak+q9cq9xkLiq8cs=;
+        b=Q7p0+fZRtjBpmrqg7yoZiXmzq7FfO/5CVGMmaEQ5y8m6HF3302/Bd+d2ezzYvoGXuR
+         CBdblKqJYmZvq82bremm7D+yQollQTFy1CyBJyRHUDuRRdC0/b9Rj3XNq9CroLQsCxME
+         iMjtFcH7qSGLdZpegl28C/TTqK51dl0/2sGnLoW73SUWv67kX7swbmPmJ03YBkT+WRkC
+         vcak5hTYwmULKKR/lUGV5Dc3HtwALjt7B4BaHLqPyPZD6jGUXvvmXVOfcw5hTtnBaNnu
+         pbokaUO7NTdW5UjTaxVygugmb1Q1koSJ9Ds6ks6yrfkhexM7LPXZJCbmHeu3vNRJ4o/o
+         17LA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=UW73ADbyQLu7YdYQIibXelAkLmUMMebCP4sdSICcX1s=;
-        b=kK1Ao0Rty943rGdRF+N05c0VhErZrhnHDCZVsx4g5aMoTznbJpMv7TfAYWqNVxw6Xx
-         LAoT5JNjTzbmV4A7rYPlA2P1vy6wjMbd0H27PlNvCLi9eoH5z/1YWyzICFDf1mk2nOod
-         W7V5TLaenjCYQAwAB6Ix4A3DQfJ8R2YzIS7wzKT2oXAQvgk3p2hFAld8nL8jAh4SeNBv
-         sl2XbYJU547Wt+LthMhcE7/G7y2S5mk3RkLWIbYp0wU8GrQSc5yQodPKHfgMO8aPUWjc
-         A029A2ECTyVfG6yIIjzDqpUzi3YpQMlZuXYEe+OvBIagJ1+YS57r5KmSCN/hHpHmDVcs
-         Tp0A==
-X-Gm-Message-State: AOAM530yFWoGc/fKPZpbwVgvG+9dhwoEko/nD2yui2CQLHuDRGNiAsLd
-	AGE5xmwMIQ1sL61Ur0S0LksnvDFJHV/Wp3HQY8Woxw==
-X-Google-Smtp-Source: ABdhPJyXOeR3KzFnohpu/h7369f2N3sAwM5T+C3fTeNJLfoM+jyNK53+wVDUevl69CbdlcEIkhsxbI3PQyruYug5KEM=
-X-Received: by 2002:a17:902:d705:: with SMTP id w5mr23413046ply.34.1643691536088;
- Mon, 31 Jan 2022 20:58:56 -0800 (PST)
+        bh=zERJMJPBpohrP2OBXDhHeMNlTlvak+q9cq9xkLiq8cs=;
+        b=KwTLu7PjAXhSfLVDqSdshlAn0X3lmGnTr9qqEcjjJrkqtK1tRR+fpwb5rx9xmTcHg5
+         ZsfoS9ygFlANJ5ApoSO22e9C0A+4y4tgBnmCMyXpvw+JgzPhie6Jby7GOXjvXB4OQK51
+         lRRn8iI7Kkp/m8dVw576CWGXAAEDQeEkdBm4trwi9EWLINrduZJ8CfAgpo6XpNT25xaY
+         7e4NlkUbXrZ89Nn0ttdfWd/DIcIpLEpL+gVQGvFFdrrAjdVacdvD/yHqscsjJRF1gE3B
+         /Ij265220FGg3rkJ5w8xSy7wXCuWjzcRoiTe/JY1ncNeMnarDuRdQdBt2nrGMPTDqBOQ
+         c/Uw==
+X-Gm-Message-State: AOAM533S7DV/lMbIcf2F0AfD+a4K+yXGpwxla4rCPpv1yp2XaLUvS80w
+	1IGfqCpx41ehFJRvy2zPof7gAppc8kHUpUrsVWQiaQ==
+X-Google-Smtp-Source: ABdhPJxgY6Cc29jss7BazwLtJXT9yMAR83l9do4jRuSf73vp02djQpT6psSdBHq5yiTwZhKqmfbeb3s9NJU9RKL7ef0=
+X-Received: by 2002:a17:902:7c15:: with SMTP id x21mr24503898pll.147.1643692245630;
+ Mon, 31 Jan 2022 21:10:45 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <164298411792.3018233.7493009997525360044.stgit@dwillia2-desk3.amr.corp.intel.com>
- <164298423561.3018233.8938479363856921038.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20220201002435.oodbf3xuhb7xknus@intel.com>
-In-Reply-To: <20220201002435.oodbf3xuhb7xknus@intel.com>
+References: <164298423561.3018233.8938479363856921038.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <164316647461.3437452.7695738236907745246.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20220131175159.00006d3d@Huawei.com>
+In-Reply-To: <20220131175159.00006d3d@Huawei.com>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 31 Jan 2022 20:58:48 -0800
-Message-ID: <CAPcyv4heQk4LyTOQmU_orK97xgwY4s1fDBsQZv_bqCHwLah4zQ@mail.gmail.com>
-Subject: Re: [PATCH v3 22/40] cxl/core/hdm: Add CXL standard decoder
+Date: Mon, 31 Jan 2022 21:10:38 -0800
+Message-ID: <CAPcyv4gxeKEq93h1dC7noRPANnQRxT0xAgpJyR9ecJWLb-hewQ@mail.gmail.com>
+Subject: Re: [PATCH v4 22/40] cxl/core/hdm: Add CXL standard decoder
  enumeration to the core
-To: Ben Widawsky <ben.widawsky@intel.com>
+To: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Cc: linux-cxl@vger.kernel.org, Linux PCI <linux-pci@vger.kernel.org>, 
 	Linux NVDIMM <nvdimm@lists.linux.dev>
 Content-Type: text/plain; charset="UTF-8"
 
-On Mon, Jan 31, 2022 at 4:24 PM Ben Widawsky <ben.widawsky@intel.com> wrote:
+On Mon, Jan 31, 2022 at 9:52 AM Jonathan Cameron
+<Jonathan.Cameron@huawei.com> wrote:
 >
-> On 22-01-23 16:30:35, Dan Williams wrote:
+> On Tue, 25 Jan 2022 19:09:25 -0800
+> Dan Williams <dan.j.williams@intel.com> wrote:
+>
 > > Unlike the decoder enumeration for "root decoders" described by platform
 > > firmware, standard coders can be enumerated from the component registers
->                      ^ decoders
->
 > > space once the base address has been identified (via PCI, ACPI, or
 > > another mechanism).
 > >
@@ -71,26 +72,22 @@ On Mon, Jan 31, 2022 at 4:24 PM Ben Widawsky <ben.widawsky@intel.com> wrote:
 > > enumeration to a 'port' driver. For now, the only enumerator of decoder
 > > resources is the cxl_acpi root driver.
 > >
+> > [ben: fixup kdoc]
 > > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> Mostly looks nice.  A couple of queries inline.
 >
-> I authored some parts of this patch, not sure how much percentage-wise. If it
-> was intentional to drop me, that's fine - just checking.
-
-It was a patch that was not original to the first series, but yeah I
-copied some bits out of that series. I'll add you as Co-developed-by
-on the resend.
-
->
-> Some comments below.
->
-> Reviewed-by: Ben Widawsky <ben.widawsky@intel.com>
+> Jonathan
 >
 > > ---
+> > Changes since v3:
+> > - Fixup kdoc for devm_cxl_enumerate_decoders() (Ben)
+> > - Cleanup a sparse warning around __iomem usage (Ben)
+> >
 > >  drivers/cxl/acpi.c            |   43 ++-----
 > >  drivers/cxl/core/Makefile     |    1
 > >  drivers/cxl/core/core.h       |    2
-> >  drivers/cxl/core/hdm.c        |  247 +++++++++++++++++++++++++++++++++++++++++
-> >  drivers/cxl/core/port.c       |   65 ++++++++---
+> >  drivers/cxl/core/hdm.c        |  248 +++++++++++++++++++++++++++++++++++++++++
+> >  drivers/cxl/core/port.c       |   57 +++++++--
 > >  drivers/cxl/core/regs.c       |    5 -
 > >  drivers/cxl/cxl.h             |   33 ++++-
 > >  drivers/cxl/cxlmem.h          |    8 +
@@ -98,7 +95,7 @@ on the resend.
 > >  tools/testing/cxl/test/cxl.c  |   29 +++++
 > >  tools/testing/cxl/test/mock.c |   50 ++++++++
 > >  tools/testing/cxl/test/mock.h |    3
-> >  12 files changed, 436 insertions(+), 54 deletions(-)
+> >  12 files changed, 434 insertions(+), 49 deletions(-)
 > >  create mode 100644 drivers/cxl/core/hdm.c
 > >
 > > diff --git a/drivers/cxl/acpi.c b/drivers/cxl/acpi.c
@@ -137,7 +134,7 @@ on the resend.
 > > -      */
 > > -     cxld = cxl_switch_decoder_alloc(port, 1);
 > > -     if (IS_ERR(cxld))
-> > -             return PTR_ERR(cxl);
+> > -             return PTR_ERR(cxld);
 > > -
 > >       cxl_device_lock(&port->dev);
 > > -     dport = list_first_entry(&port->dports, typeof(*dport), list);
@@ -169,124 +166,34 @@ on the resend.
 > >       return rc;
 > >  }
 > >
-> > diff --git a/drivers/cxl/core/Makefile b/drivers/cxl/core/Makefile
-> > index 91057f0ec763..6d37cd78b151 100644
-> > --- a/drivers/cxl/core/Makefile
-> > +++ b/drivers/cxl/core/Makefile
-> > @@ -8,3 +8,4 @@ cxl_core-y += regs.o
-> >  cxl_core-y += memdev.o
-> >  cxl_core-y += mbox.o
-> >  cxl_core-y += pci.o
-> > +cxl_core-y += hdm.o
-> > diff --git a/drivers/cxl/core/core.h b/drivers/cxl/core/core.h
-> > index e0c9aacc4e9c..1a50c0fc399c 100644
-> > --- a/drivers/cxl/core/core.h
-> > +++ b/drivers/cxl/core/core.h
-> > @@ -14,6 +14,8 @@ struct cxl_mem_query_commands;
-> >  int cxl_query_cmd(struct cxl_memdev *cxlmd,
-> >                 struct cxl_mem_query_commands __user *q);
-> >  int cxl_send_cmd(struct cxl_memdev *cxlmd, struct cxl_send_command __user *s);
-> > +void __iomem *devm_cxl_iomap_block(struct device *dev, resource_size_t addr,
-> > +                                resource_size_t length);
-> >
-> >  int cxl_memdev_init(void);
-> >  void cxl_memdev_exit(void);
+>
+> ...
+>
 > > diff --git a/drivers/cxl/core/hdm.c b/drivers/cxl/core/hdm.c
 > > new file mode 100644
-> > index 000000000000..802048dc2046
+> > index 000000000000..fd9782269c56
 > > --- /dev/null
 > > +++ b/drivers/cxl/core/hdm.c
-> > @@ -0,0 +1,247 @@
-> > +// SPDX-License-Identifier: GPL-2.0-only
-> > +/* Copyright(c) 2022 Intel Corporation. All rights reserved. */
-> > +#include <linux/io-64-nonatomic-hi-lo.h>
-> > +#include <linux/device.h>
-> > +#include <linux/delay.h>
-> > +
-> > +#include "cxlmem.h"
-> > +#include "core.h"
-> > +
-> > +/**
-> > + * DOC: cxl core hdm
-> > + *
-> > + * Compute Express Link Host Managed Device Memory, starting with the
-> > + * CXL 2.0 specification, is managed by an array of HDM Decoder register
-> > + * instances per CXL port and per CXL endpoint. Define common helpers
-> > + * for enumerating these registers and capabilities.
-> > + */
-> > +
-> > +static int add_hdm_decoder(struct cxl_port *port, struct cxl_decoder *cxld,
-> > +                        int *target_map)
-> > +{
-> > +     int rc;
-> > +
-> > +     rc = cxl_decoder_add_locked(cxld, target_map);
-> > +     if (rc) {
-> > +             put_device(&cxld->dev);
-> > +             dev_err(&port->dev, "Failed to add decoder\n");
-> > +             return rc;
-> > +     }
-> > +
-> > +     rc = cxl_decoder_autoremove(&port->dev, cxld);
-> > +     if (rc)
-> > +             return rc;
-> > +
-> > +     dev_dbg(&cxld->dev, "Added to port %s\n", dev_name(&port->dev));
-> > +
-> > +     return 0;
-> > +}
-> > +
-> > +/*
-> > + * Per the CXL specification (8.2.5.12 CXL HDM Decoder Capability Structure)
-> > + * single ported host-bridges need not publish a decoder capability when a
-> > + * passthrough decode can be assumed, i.e. all transactions that the uport sees
-> > + * are claimed and passed to the single dport. Disable the range until the first
-> > + * CXL region is enumerated / activated.
-> > + */
-> > +int devm_cxl_add_passthrough_decoder(struct device *host, struct cxl_port *port)
-> > +{
-> > +     struct cxl_decoder *cxld;
-> > +     struct cxl_dport *dport;
-> > +     int single_port_map[1];
-> > +
-> > +     cxld = cxl_switch_decoder_alloc(port, 1);
-> > +     if (IS_ERR(cxld))
-> > +             return PTR_ERR(cxld);
-> > +
-> > +     device_lock_assert(&port->dev);
-> > +
-> > +     dport = list_first_entry(&port->dports, typeof(*dport), list);
-> > +     single_port_map[0] = dport->port_id;
-> > +
-> > +     return add_hdm_decoder(port, cxld, single_port_map);
-> > +}
-> > +EXPORT_SYMBOL_NS_GPL(devm_cxl_add_passthrough_decoder, CXL);
+> > @@ -0,0 +1,248 @@
 >
-> Hmm, this makes me realize I need to modify the region driver to not care about
-> finding decoder resources for a passthrough decoder.
-
-Why would a passthrough decoder not have passthrough resources?
-
-> > +
-> > +static void parse_hdm_decoder_caps(struct cxl_hdm *cxlhdm)
-> > +{
-> > +     u32 hdm_cap;
-> > +
-> > +     hdm_cap = readl(cxlhdm->regs.hdm_decoder + CXL_HDM_DECODER_CAP_OFFSET);
-> > +     cxlhdm->decoder_count = cxl_hdm_decoder_count(hdm_cap);
-> > +     cxlhdm->target_count =
-> > +             FIELD_GET(CXL_HDM_DECODER_TARGET_COUNT_MASK, hdm_cap);
-> > +     if (FIELD_GET(CXL_HDM_DECODER_INTERLEAVE_11_8, hdm_cap))
-> > +             cxlhdm->interleave_mask |= GENMASK(11, 8);
-> > +     if (FIELD_GET(CXL_HDM_DECODER_INTERLEAVE_14_12, hdm_cap))
-> > +             cxlhdm->interleave_mask |= GENMASK(14, 12);
-> > +}
+>
+> ...
+>
 > > +
 > > +static void __iomem *map_hdm_decoder_regs(struct cxl_port *port,
 > > +                                       void __iomem *crb)
 > > +{
 > > +     struct cxl_register_map map;
 > > +     struct cxl_component_reg_map *comp_map = &map.component_map;
+>
+> Why can't we use a cxl_register_map directly in here?
+> Doesn't seem to make use of the containing structure.
+
+Yeah, I don't see a reason for cxl_register_map to be used here since
+that was built for cxl_find_regblock(). The cxl_find_regblock() work
+was already done.
+
+>
 > > +
 > > +     cxl_probe_component_regs(&port->dev, crb, comp_map);
 > > +     if (!comp_map->hdm_decoder.valid) {
@@ -301,40 +208,9 @@ Why would a passthrough decoder not have passthrough resources?
 > > + * devm_cxl_setup_hdm - map HDM decoder component registers
 > > + * @port: cxl_port to map
 > > + */
->
-> This got messed up on the fixup. You need @host and @port at this point. It'd be
-> pretty cool if we could skip straight to not @host arg.
-
-I'll fixup the inter-patch dpc breakage again, I think I may have
-edited a local copy of this file as part of the rebase, and botched
-the resend.
-
-I otherwise could not see a way to skip the temporary state without
-shipping devm abuse in the middle of series (leaking object
-allocations until release)
-
->
 > > +struct cxl_hdm *devm_cxl_setup_hdm(struct device *host, struct cxl_port *port)
-> > +{
-> > +     void __iomem *crb, __iomem *hdm;
-> > +     struct device *dev = &port->dev;
-> > +     struct cxl_hdm *cxlhdm;
-> > +
-> > +     cxlhdm = devm_kzalloc(host, sizeof(*cxlhdm), GFP_KERNEL);
-> > +     if (!cxlhdm)
-> > +             return ERR_PTR(-ENOMEM);
-> > +
-> > +     cxlhdm->port = port;
-> > +     crb = devm_cxl_iomap_block(host, port->component_reg_phys,
-> > +                                CXL_COMPONENT_REG_BLOCK_SIZE);
-> > +     if (!crb) {
-> > +             dev_err(dev, "No component registers mapped\n");
-> > +             return ERR_PTR(-ENXIO);
-> > +     }
 >
-> Does this work if the port is operating in passthrough decoder mode? Is the idea
-> to just not call this thing if so?
+> Mentioned this in earlier reply, but good to keep docs in sync with
+> code even if going to change it shortly.
 
-Per the spec there are always component registers in a CXL port, there
-just may not be an HDM Decoder Capability structure in that set of
-component registers. See 8.2.5.12.
+Yeah, I meant to fix that up, looks like I didn't commit the hunk on the resend.
