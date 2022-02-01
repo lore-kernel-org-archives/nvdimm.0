@@ -1,108 +1,123 @@
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f51.google.com (mail-pj1-f51.google.com [209.85.216.51])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EBB42CA5
-	for <nvdimm@lists.linux.dev>; Tue,  1 Feb 2022 01:20:48 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1643678448; x=1675214448;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=Ez1ylP5/sNE3AQI7W7ZP7EPQXvQjhhiANmtj/NRaI9c=;
-  b=gUVsYczKq1rLfzLwnq91ftAr1q2LHgMFQ8vKzZ1N6/886eAqeYdQqdcP
-   vN2O8ZH835GwdkIS89Zr5dbjDLuUodhGHsjBuE3lxveR6wB+SfbCc/EXe
-   h20x5zWnXOItFMUX8iUbhfb7t46jimaWCWIMxNncjqV0viyUUO+dsfPk3
-   2AX6ee2Huw+ouKRm5SlF1iCuxAd5iIRGDhSpI7Kn9X8kQwvpVhHUvZu/g
-   k9H3ybBjeF3cBbBAO3zxpuASw90uDRbfdBfX9t3HJ7cy4FOU9Cu7hm+tT
-   oz7mblJICJoSI5WfNJD9gc+a4zJc5m4iiDsAFtzS9cOHnh2imtaiR0CEl
-   w==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10244"; a="247551666"
-X-IronPort-AV: E=Sophos;i="5.88,332,1635231600"; 
-   d="scan'208";a="247551666"
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Jan 2022 17:20:48 -0800
-X-IronPort-AV: E=Sophos;i="5.88,332,1635231600"; 
-   d="scan'208";a="482016312"
-Received: from alison-desk.jf.intel.com (HELO alison-desk) ([10.54.74.41])
-  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Jan 2022 17:20:48 -0800
-Date: Mon, 31 Jan 2022 17:25:09 -0800
-From: Alison Schofield <alison.schofield@intel.com>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Ben Widawsky <ben.widawsky@intel.com>, Ira Weiny <ira.weiny@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Linux NVDIMM <nvdimm@lists.linux.dev>, linux-cxl@vger.kernel.org
-Subject: Re: [ndctl PATCH v3 5/6] libcxl: add interfaces for
- SET_PARTITION_INFO mailbox command
-Message-ID: <20220201012509.GA913535@alison-desk>
-References: <cover.1642535478.git.alison.schofield@intel.com>
- <e98fa18538c42c40b120d5c22da655d199d0329d.1642535478.git.alison.schofield@intel.com>
- <CAPcyv4j4Nq1AAxH2CybQCH3pcBpCWgCsnY5i=OfKQXd_C_3xWA@mail.gmail.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D07F2CA5
+	for <nvdimm@lists.linux.dev>; Tue,  1 Feb 2022 01:24:53 +0000 (UTC)
+Received: by mail-pj1-f51.google.com with SMTP id g15-20020a17090a67cf00b001b7d5b6bedaso868180pjm.4
+        for <nvdimm@lists.linux.dev>; Mon, 31 Jan 2022 17:24:53 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20210112.gappssmtp.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=/dGCfVhT++w2Hx6ftbIxEvafxuyl5d8bN85+m8dx7Do=;
+        b=ALizp1nMToyERVLAdtQUpuvW9hHW54sIRjRqkGkxl7slbPNJWO9kWHV2rJarN+LcUF
+         kHYDpxCO543iNRyFf3PSnmM+bQ78hurdlNhyyj/4LSTLBX0pSe5ShFbaX+P7HbQMIBQl
+         jXbMLQUWynkgxd39dfuiJRZ6n9SJRYPTJLwE4JNNA6fXc90IRQXfBVXKGFYehiZJuo8l
+         MVhLYnqOtBcY51vBN37vLClOmiuGNW++hEHetc5jBzGUSERAqsVU0UKjytKQAf8Ktz1U
+         9s6oIivd15l5jO1HTW8HYy3J8WaWULPGsDALKE9nvhrPWACZS3yy2ktI0dcwktsjx/0Q
+         lcjA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=/dGCfVhT++w2Hx6ftbIxEvafxuyl5d8bN85+m8dx7Do=;
+        b=TcfD4OC14II5UTzZkcumbWV4KiwN5ARwUjRDSyU51R3L6BfiBul53IvtqQr1m4M7+6
+         BbPZ+YMKklPVyxe69buW8rtjye7roKYVwaqaBMTyJYI+RA/0qZzS3bQhMPNprwFMc/1r
+         MvEtLeL2T9J+bUxuy/Cvwp9RKAH+W+DHOjDVNilgnwbCBP+RMmO9KjPJNXT4djtvBZGO
+         7I8GA227f1bMm9d/BWN9CU9vOqBWAIOc0FKllR8cIXuiTGXQBI0JEPW+bH5zb9/a1pbA
+         Cyl2Wy4DghHn4ASuvLFcbO6lE10udoJD5oT0yJtOdOloQ9IPVIanpPBNo8qXhbor8bmQ
+         /SBQ==
+X-Gm-Message-State: AOAM533BXRaYiNoGNa8ZxUKSe+zLlzfH6P2eq949uniyEOp6TlF1Qbpc
+	W1lExV1Aj1A+HbP4UVQXtsPgVTIGzK48RdCbghWr3w==
+X-Google-Smtp-Source: ABdhPJxe/2hpc7fujLSVasJiSX0gGlYlsr511Vqqs9RbMsZiRIzL79paSdVBIbTKCeel09/v3Hse5yDJDcAZ2piVT/I=
+X-Received: by 2002:a17:902:7c15:: with SMTP id x21mr23855697pll.147.1643678693035;
+ Mon, 31 Jan 2022 17:24:53 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4j4Nq1AAxH2CybQCH3pcBpCWgCsnY5i=OfKQXd_C_3xWA@mail.gmail.com>
+References: <cover.1642535478.git.alison.schofield@intel.com>
+ <e98fa18538c42c40b120d5c22da655d199d0329d.1642535478.git.alison.schofield@intel.com>
+ <CAPcyv4j4Nq1AAxH2CybQCH3pcBpCWgCsnY5i=OfKQXd_C_3xWA@mail.gmail.com> <20220127205009.GA894403@alison-desk>
+In-Reply-To: <20220127205009.GA894403@alison-desk>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 31 Jan 2022 17:24:45 -0800
+Message-ID: <CAPcyv4h5+sMSKh-seNbmmTVuNzs5-8FTWUoYHw=LWtSrSNq1=g@mail.gmail.com>
+Subject: Re: [ndctl PATCH v3 5/6] libcxl: add interfaces for
+ SET_PARTITION_INFO mailbox command
+To: Alison Schofield <alison.schofield@intel.com>
+Cc: Ben Widawsky <ben.widawsky@intel.com>, Ira Weiny <ira.weiny@intel.com>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Linux NVDIMM <nvdimm@lists.linux.dev>, 
+	linux-cxl@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-Dan, One follow up below...
-
-On Wed, Jan 26, 2022 at 03:41:14PM -0800, Dan Williams wrote:
-> On Tue, Jan 18, 2022 at 12:20 PM <alison.schofield@intel.com> wrote:
-> >
-> > From: Alison Schofield <alison.schofield@intel.com>
-> >
-> > Users may want the ability to change the partition layout of a CXL
-> > memory device.
-> >
-> > Add interfaces to libcxl to allocate and send a SET_PARTITION_INFO
-> > mailbox as defined in the CXL 2.0 specification.
-> >
-> > Signed-off-by: Alison Schofield <alison.schofield@intel.com>
-> > ---
-> >  cxl/lib/libcxl.c   | 50 ++++++++++++++++++++++++++++++++++++++++++++++
-> >  cxl/lib/libcxl.sym |  5 +++++
-> >  cxl/lib/private.h  |  8 ++++++++
-> >  cxl/libcxl.h       |  5 +++++
-> >  4 files changed, 68 insertions(+)
-> >
-> > diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
-> > index 5b1fc32..5a5b189 100644
-> > --- a/cxl/lib/libcxl.c
-> > +++ b/cxl/lib/libcxl.c
-> > @@ -1230,6 +1230,21 @@ cxl_cmd_partition_info_get_next_persistent_bytes(struct cxl_cmd *cmd)
-> >         cmd_partition_get_capacity_field(cmd, next_persistent_cap);
-> >  }
-> >
-> > +CXL_EXPORT struct cxl_cmd *cxl_cmd_new_set_partition_info(struct cxl_memdev *memdev,
-> > +               unsigned long long volatile_capacity, int flags)
-> > +{
-> > +       struct cxl_cmd_set_partition_info *set_partition;
-> > +       struct cxl_cmd *cmd;
-> > +
-> > +       cmd = cxl_cmd_new_generic(memdev,
-> > +                       CXL_MEM_COMMAND_ID_SET_PARTITION_INFO);
-> > +
-> > +       set_partition = (struct cxl_cmd_set_partition_info *)cmd->send_cmd->in.payload;
-> 
-> ->in.payload is a 'void *', no casting required.
-> 
-
-send_cmd->in.payload is a __u64 so this cast is needed.
-
-Of course, I wondered what Dan was thinking ;) and I see that struct
-cxl_cmd's input_payload is indeed a 'void *'.
-
-I believe this is the correct payload here, umm..  because it works ;)
-
-But - let me know if you suspect something is off here.
-
-Thanks!
-
-
-
-
-snip
+On Thu, Jan 27, 2022 at 12:46 PM Alison Schofield
+<alison.schofield@intel.com> wrote:
 >
+> Hi Dan,
+> Thanks for the review. I'm still working thru this, but a clarifying
+> question below...
+>
+> On Wed, Jan 26, 2022 at 03:41:14PM -0800, Dan Williams wrote:
+> > On Tue, Jan 18, 2022 at 12:20 PM <alison.schofield@intel.com> wrote:
+> > >
+> > > From: Alison Schofield <alison.schofield@intel.com>
+> > >
+> > > Users may want the ability to change the partition layout of a CXL
+> > > memory device.
+> > >
+> > > Add interfaces to libcxl to allocate and send a SET_PARTITION_INFO
+> > > mailbox as defined in the CXL 2.0 specification.
+> > >
+> > > Signed-off-by: Alison Schofield <alison.schofield@intel.com>
+> > > ---
+> > >  cxl/lib/libcxl.c   | 50 ++++++++++++++++++++++++++++++++++++++++++++++
+> > >  cxl/lib/libcxl.sym |  5 +++++
+> > >  cxl/lib/private.h  |  8 ++++++++
+> > >  cxl/libcxl.h       |  5 +++++
+> > >  4 files changed, 68 insertions(+)
+> > >
+> snip
+> >
+> >
+> > I don't understand what this is for?
+> >
+> > Let's back up. In order to future proof against spec changes, and
+> > endianness, struct packing and all other weird things that make struct
+> > ABIs hard to maintain compatibility the ndctl project adopts the
+> > libabc template of just not letting library consumers see any raw data
+> > structures or bit fields by default [1]. For a situation like this
+> > since the command only has one flag that affects the mode of operation
+> > I would just go ahead and define an enum for that explicitly.
+> >
+> > enum cxl_setpartition_mode {
+> >     CXL_SETPART_NONE,
+> >     CXL_SETPART_NEXTBOOT,
+> >     CXL_SETPART_IMMEDIATE,
+> > };
+> >
+> > Then the main function prototype becomes:
+> >
+> > int cxl_cmd_new_setpartition(struct cxl_memdev *memdev, unsigned long
+> > long volatile_capacity);
+> >
+> > ...with a new:
+> >
+> > int cxl_cmd_setpartition_set_mode(struct cxl_cmd *cmd, enum
+> > cxl_setpartition_mode mode);
+> >
+>
+> I don't understand setting of the mode separately. Can it be:
+>
+> int cxl_cmd_new_setpartition(struct cxl_memdev *memdev,
+>                              unsigned long long volatile_capacity,
+>                              enum cxl_setpartition_mode mode);
+
+It could be, but what happens when the specification defines a new
+flag for this command? Then we would have cxl_cmd_new_setpartition()
+and cxl_cmd_new_setpartition2()  to add the new parameters. A helper
+function after establishing the cxl_cmd context lets you have
+flexibility to extend the base command by as many new flags and modes
+that come along... hopefully none, but you never know.
