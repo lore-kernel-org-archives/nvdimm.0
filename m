@@ -1,677 +1,363 @@
-Received: from mail-pl1-f178.google.com (mail-pl1-f178.google.com [209.85.214.178])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 875702F21
-	for <nvdimm@lists.linux.dev>; Wed,  2 Feb 2022 06:04:04 +0000 (UTC)
-Received: by mail-pl1-f178.google.com with SMTP id h14so17345061plf.1
-        for <nvdimm@lists.linux.dev>; Tue, 01 Feb 2022 22:04:04 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=T3gpZL/kRMPUrYclU8rJ5X+a6CzAPFGL0NPFRfytNQM=;
-        b=uvtjBbcBuGru2IgQrJbx7k0ZwFfHS7yBefGRejIiN081uBfQa9G/eBdboJvc9crUUn
-         DzOzsfpKpDQ3jWUDDLS2D6AmhVIVmNDmlFpFfUygx/tUBptjsZru6qXKTEutVAu6BQQj
-         Mc4U/w5i2hVnyfoED7an4b2I07jZ2FE+wQ75ujC0bGjtu5IqwuoFA/ExanE3YHkj9o/w
-         FKAu5ZCp8pVnW3JTnH8vGOskfyFgvvZZtLp/l/RYBWZFGSWrS76ZsBfv+XfcVfLJnBFg
-         E1Gkx4TqBF0qdd0Xk87ycOWZ0l1aIv0X79fRQx4df7b31LzKSmjCXyBmuwqK0yXxdwbd
-         BpKQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=T3gpZL/kRMPUrYclU8rJ5X+a6CzAPFGL0NPFRfytNQM=;
-        b=XnO12B0kK856Js6BJomsCjw8Li0Cr0psJC+M6zLYo2nu2nMSlUQw0r7sTKFGG9ENiD
-         LquhOXQFcuw93JOW2Lcb3Ma+PQjbSFXKJfgVsjKfKoWCUdU1Uf2m1G1hAy1TyiHwmXfc
-         2a6GBvLL7odsFBFA9t3WlsPnKKxE6vf7zboiQ72CztJe9zMhSG/VuOiIzi7VNomZIxQV
-         4V+i1phxr4ZS/1bwIxGqmLFvyjIt+WJMZZvqjm6K9258ZjCtIxnKCO2AEKr6NYOIYg1C
-         iorlq/vY2ghqaYlLB47dZg8Yg/NjVH7ioxI+ktdyAWMKSRqHq52jusnkKxBR+3knhOJw
-         M+SA==
-X-Gm-Message-State: AOAM530JzRm9Zl3pf7wbbnw6/tLmk3/kSxZJeN3XUv21hYRtVtPlEB0d
-	BOYmChZRs7rVqX2JI1XKX+d+vh8L6UkOZABsgcwePw==
-X-Google-Smtp-Source: ABdhPJwvLEgSmb3qD40298L9Bu+cOdnE0KIPS9gwnJkGlbIFxymIe0Wb/GDae8JpVSwIz3sbYWALInzDc9gQ62Zt4wI=
-X-Received: by 2002:a17:902:7c15:: with SMTP id x21mr29611676pll.147.1643781843670;
- Tue, 01 Feb 2022 22:04:03 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1E7F2F25
+	for <nvdimm@lists.linux.dev>; Wed,  2 Feb 2022 09:03:35 +0000 (UTC)
+Received: from pps.filterd (m0098410.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 2127BaA9003119;
+	Wed, 2 Feb 2022 09:03:19 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
+ : in-reply-to : references : date : message-id : mime-version :
+ content-type; s=pp1; bh=o6CASbL39jGOvJT/f4lnwIj4vwO5HWj+YmtE/MIN+/8=;
+ b=WYfQroQl5G4ACT9/5kKlH2UVVk7Au7kqa8aX975j6Y8Kd5QKNKKSzyK5BNJ+6Ltd8xkN
+ 7ayo3/Cn3DA95LA3x8tx69XDwC9oJgPEEEXSkVbuJ4eg59LG3zJncs2iApWLEy4PSx9z
+ sXQDe7vMtok01sR529Vta9U6fJGl0B+nS3kKsckYVEqX48+48PzcbfbWnIJvBU1wcJks
+ h+zDkPH//OD4jXUDbns1k0+PzR6IRzmyW0KH72p3U7XdnLhdMSZITbizDEjeWbOc7gqL
+ YyD2gwNDZ49mZiuClfbvb0z63d5cEPNb9Rz429rNr9UhboLcfEMu1vO47CYtsqJLLPsd PQ== 
+Received: from ppma02dal.us.ibm.com (a.bd.3ea9.ip4.static.sl-reverse.com [169.62.189.10])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 3dynbmsty9-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Wed, 02 Feb 2022 09:03:18 +0000
+Received: from pps.filterd (ppma02dal.us.ibm.com [127.0.0.1])
+	by ppma02dal.us.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 21292dkn030654;
+	Wed, 2 Feb 2022 09:03:18 GMT
+Received: from b03cxnp07029.gho.boulder.ibm.com (b03cxnp07029.gho.boulder.ibm.com [9.17.130.16])
+	by ppma02dal.us.ibm.com with ESMTP id 3dvw7b9uwe-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Wed, 02 Feb 2022 09:03:17 +0000
+Received: from b03ledav006.gho.boulder.ibm.com (b03ledav006.gho.boulder.ibm.com [9.17.130.237])
+	by b03cxnp07029.gho.boulder.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 21293Gsq21168398
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Wed, 2 Feb 2022 09:03:16 GMT
+Received: from b03ledav006.gho.boulder.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 44BDEC605D;
+	Wed,  2 Feb 2022 09:03:16 +0000 (GMT)
+Received: from b03ledav006.gho.boulder.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 6A3BCC605A;
+	Wed,  2 Feb 2022 09:03:13 +0000 (GMT)
+Received: from skywalker.linux.ibm.com (unknown [9.43.57.115])
+	by b03ledav006.gho.boulder.ibm.com (Postfix) with ESMTP;
+	Wed,  2 Feb 2022 09:03:12 +0000 (GMT)
+X-Mailer: emacs 29.0.50 (via feedmail 11-beta-1 I)
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+To: Vaibhav Jain <vaibhav@linux.ibm.com>, nvdimm@lists.linux.dev,
+        linuxppc-dev@lists.ozlabs.org
+Cc: Vaibhav Jain <vaibhav@linux.ibm.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Shivaprasad G Bhat <sbhat@linux.ibm.com>,
+        Ira Weiny <ira.weiny@intel.com>
+Subject: Re: [PATCH v4] powerpc/papr_scm: Implement initial support for
+ injecting smart errors
+In-Reply-To: <20220124202204.1488346-1-vaibhav@linux.ibm.com>
+References: <20220124202204.1488346-1-vaibhav@linux.ibm.com>
+Date: Wed, 02 Feb 2022 14:33:10 +0530
+Message-ID: <8735l18wtt.fsf@linux.ibm.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <164298411792.3018233.7493009997525360044.stgit@dwillia2-desk3.amr.corp.intel.com>
- <164298428940.3018233.18042207990919432824.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20220201173709.jswrzluy6a4lji3m@intel.com>
-In-Reply-To: <20220201173709.jswrzluy6a4lji3m@intel.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 1 Feb 2022 22:03:51 -0800
-Message-ID: <CAPcyv4g1G8CZRcqw5ccv2Jo-KoJdNg=yLSRwMLpi6eJs2DB7+w@mail.gmail.com>
-Subject: Re: [PATCH v3 32/40] cxl/core/port: Add switch port enumeration
-To: Ben Widawsky <ben.widawsky@intel.com>
-Cc: linux-cxl@vger.kernel.org, Linux PCI <linux-pci@vger.kernel.org>, 
-	Linux NVDIMM <nvdimm@lists.linux.dev>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: 4F-1E3cGoWwhB0NOCyo5jc1fCFPdV1_i
+X-Proofpoint-ORIG-GUID: 4F-1E3cGoWwhB0NOCyo5jc1fCFPdV1_i
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.205,Aquarius:18.0.816,Hydra:6.0.425,FMLib:17.11.62.513
+ definitions=2022-02-02_03,2022-02-01_01,2021-12-02_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 impostorscore=0
+ mlxlogscore=999 phishscore=0 lowpriorityscore=0 bulkscore=0
+ priorityscore=1501 mlxscore=0 malwarescore=0 clxscore=1015 spamscore=0
+ adultscore=0 suspectscore=0 classifier=spam adjust=0 reason=mlx
+ scancount=1 engine=8.12.0-2201110000 definitions=main-2202020047
 
-On Tue, Feb 1, 2022 at 9:37 AM Ben Widawsky <ben.widawsky@intel.com> wrote:
+Vaibhav Jain <vaibhav@linux.ibm.com> writes:
+
+> Presently PAPR doesn't support injecting smart errors on an
+> NVDIMM. This makes testing the NVDIMM health reporting functionality
+> difficult as simulating NVDIMM health related events need a hacked up
+> qemu version.
 >
-> On 22-01-23 16:31:29, Dan Williams wrote:
-> > So far the platorm level CXL resources have been enumerated by the
-> > cxl_acpi driver, and cxl_pci has gathered all the pre-requisite
-> > information it needs to fire up a cxl_mem driver. However, the first
-> > thing the cxl_mem driver will be tasked to do is validate that all the
-> > PCIe Switches in its ancestry also have CXL capabilities and an CXL.mem
-> > link established.
-> >
-> > Provide a common mechanism for a CXL.mem endpoint driver to enumerate
-> > all the ancestor CXL ports in the topology and validate CXL.mem
-> > connectivity.
-> >
-> > Multiple endpoints may end up racing to establish a shared port in the
-> > topology. This race is resolved via taking the device-lock on a parent
-> > CXL Port before establishing a new child. The winner of the race
-> > establishes the port, the loser simply registers its interest in the
-> > port via 'struct cxl_ep' place-holder reference.
-> >
-> > At endpoint teardown the same parent port lock is taken as 'struct
-> > cxl_ep' references are deleted. Last endpoint to drop its reference
-> > unregisters the port.
-> >
-> > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> > ---
-> >  drivers/cxl/acpi.c      |   17 --
-> >  drivers/cxl/core/port.c |  379 +++++++++++++++++++++++++++++++++++++++++++++++
-> >  drivers/cxl/cxl.h       |   20 ++
-> >  3 files changed, 400 insertions(+), 16 deletions(-)
-> >
-> > diff --git a/drivers/cxl/acpi.c b/drivers/cxl/acpi.c
-> > index 683f2ca32c97..7bd53dc691ec 100644
-> > --- a/drivers/cxl/acpi.c
-> > +++ b/drivers/cxl/acpi.c
-> > @@ -130,21 +130,6 @@ static int cxl_parse_cfmws(union acpi_subtable_headers *header, void *arg,
-> >       return 0;
-> >  }
-> >
-> > -static struct cxl_dport *find_dport_by_dev(struct cxl_port *port, struct device *dev)
-> > -{
-> > -     struct cxl_dport *dport;
-> > -
-> > -     cxl_device_lock(&port->dev);
-> > -     list_for_each_entry(dport, &port->dports, list)
-> > -             if (dport->dport == dev) {
-> > -                     cxl_device_unlock(&port->dev);
-> > -                     return dport;
-> > -             }
-> > -
-> > -     cxl_device_unlock(&port->dev);
-> > -     return NULL;
-> > -}
-> > -
-> >  __mock struct acpi_device *to_cxl_host_bridge(struct device *host,
-> >                                             struct device *dev)
-> >  {
-> > @@ -175,7 +160,7 @@ static int add_host_bridge_uport(struct device *match, void *arg)
-> >       if (!bridge)
-> >               return 0;
-> >
-> > -     dport = find_dport_by_dev(root_port, match);
-> > +     dport = cxl_find_dport_by_dev(root_port, match);
-> >       if (!dport) {
-> >               dev_dbg(host, "host bridge expected and not found\n");
-> >               return 0;
-> > diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
-> > index 26c3eb9180cd..cd95d9f8c624 100644
-> > --- a/drivers/cxl/core/port.c
-> > +++ b/drivers/cxl/core/port.c
-> > @@ -7,6 +7,7 @@
-> >  #include <linux/slab.h>
-> >  #include <linux/idr.h>
-> >  #include <cxlmem.h>
-> > +#include <cxlpci.h>
-> >  #include <cxl.h>
-> >  #include "core.h"
-> >
-> > @@ -267,10 +268,24 @@ struct cxl_decoder *to_cxl_decoder(struct device *dev)
-> >  }
-> >  EXPORT_SYMBOL_NS_GPL(to_cxl_decoder, CXL);
-> >
-> > +static void cxl_ep_release(struct cxl_ep *ep)
-> > +{
-> > +     if (!ep)
-> > +             return;
-> > +     list_del(&ep->list);
-> > +     put_device(ep->ep);
-> > +     kfree(ep);
-> > +}
-> > +
-> >  static void cxl_port_release(struct device *dev)
-> >  {
-> >       struct cxl_port *port = to_cxl_port(dev);
-> > +     struct cxl_ep *ep, *_e;
-> >
-> > +     cxl_device_lock(dev);
-> > +     list_for_each_entry_safe(ep, _e, &port->endpoints, list)
-> > +             cxl_ep_release(ep);
-> > +     cxl_device_unlock(dev);
-> >       ida_free(&cxl_port_ida, port->id);
-> >       kfree(port);
-> >  }
-> > @@ -361,6 +376,7 @@ static struct cxl_port *cxl_port_alloc(struct device *uport,
-> >       port->component_reg_phys = component_reg_phys;
-> >       ida_init(&port->decoder_ida);
-> >       INIT_LIST_HEAD(&port->dports);
-> > +     INIT_LIST_HEAD(&port->endpoints);
-> >
-> >       device_initialize(dev);
-> >       device_set_pm_not_required(dev);
-> > @@ -639,6 +655,369 @@ struct cxl_dport *devm_cxl_add_dport(struct cxl_port *port,
-> >  }
-> >  EXPORT_SYMBOL_NS_GPL(devm_cxl_add_dport, CXL);
-> >
-> > +static struct cxl_ep *find_ep(struct cxl_port *port, struct device *ep_dev)
-> > +{
-> > +     struct cxl_ep *ep;
-> > +
-> > +     device_lock_assert(&port->dev);
-> > +     list_for_each_entry(ep, &port->endpoints, list)
-> > +             if (ep->ep == ep_dev)
-> > +                     return ep;
-> > +     return NULL;
-> > +}
-> > +
-> > +static int add_ep(struct cxl_port *port, struct cxl_ep *new)
-> > +{
-> > +     struct cxl_ep *dup;
-> > +
-> > +     cxl_device_lock(&port->dev);
-> > +     if (port->dead) {
-> > +             cxl_device_unlock(&port->dev);
-> > +             return -ENXIO;
-> > +     }
-> > +     dup = find_ep(port, new->ep);
-> > +     if (!dup)
-> > +             list_add_tail(&new->list, &port->endpoints);
-> > +     cxl_device_unlock(&port->dev);
-> > +
-> > +     return dup ? -EEXIST : 0;
-> > +}
-> > +
-> > +/**
-> > + * cxl_add_ep - register an endpoint's interest in a port
-> > + * @port: a port in the endpoint's topology ancestry
-> > + * @ep_dev: device representing the endpoint
-> > + *
-> > + * Intermediate CXL ports are scanned based on the arrival of endpoints.
-> > + * When those endpoints depart the port can be destroyed once all
-> > + * endpoints that care about that port have been removed.
-> > + */
-> > +static int cxl_add_ep(struct cxl_port *port, struct device *ep_dev)
-> > +{
-> > +     struct cxl_ep *ep;
-> > +     int rc;
-> > +
-> > +     ep = kzalloc(sizeof(*ep), GFP_KERNEL);
-> > +     if (!ep)
-> > +             return -ENOMEM;
-> > +
-> > +     INIT_LIST_HEAD(&ep->list);
-> > +     ep->ep = get_device(ep_dev);
-> > +
-> > +     rc = add_ep(port, ep);
-> > +     if (rc)
-> > +             cxl_ep_release(ep);
-> > +     return rc;
-> > +}
-> > +
-> > +struct cxl_find_port_ctx {
-> > +     const struct device *dport_dev;
-> > +     const struct cxl_port *parent_port;
-> > +};
-> > +
-> > +static int match_port_by_dport(struct device *dev, const void *data)
-> > +{
-> > +     const struct cxl_find_port_ctx *ctx = data;
-> > +     struct cxl_port *port;
-> > +
-> > +     if (!is_cxl_port(dev))
-> > +             return 0;
-> > +     if (ctx->parent_port && dev->parent != &ctx->parent_port->dev)
-> > +             return 0;
-> > +
-> > +     port = to_cxl_port(dev);
-> > +     return cxl_find_dport_by_dev(port, ctx->dport_dev) != NULL;
-> > +}
-> > +
-> > +static struct cxl_port *__find_cxl_port(struct cxl_find_port_ctx *ctx)
-> > +{
-> > +     struct device *dev;
-> > +
-> > +     if (!ctx->dport_dev)
-> > +             return NULL;
-> > +
-> > +     dev = bus_find_device(&cxl_bus_type, NULL, ctx, match_port_by_dport);
-> > +     if (dev)
-> > +             return to_cxl_port(dev);
-> > +     return NULL;
-> > +}
-> > +
-> > +static struct cxl_port *find_cxl_port(struct device *dport_dev)
-> > +{
-> > +     struct cxl_find_port_ctx ctx = {
-> > +             .dport_dev = dport_dev,
-> > +     };
-> > +
-> > +     return __find_cxl_port(&ctx);
-> > +}
-> > +
-> > +static struct cxl_port *find_cxl_port_at(struct cxl_port *parent_port,
-> > +                                      struct device *dport_dev)
-> > +{
-> > +     struct cxl_find_port_ctx ctx = {
-> > +             .dport_dev = dport_dev,
-> > +             .parent_port = parent_port,
-> > +     };
-> > +
-> > +     return __find_cxl_port(&ctx);
-> > +}
-> > +
-> > +static struct device *grandparent(struct device *dev)
-> > +{
-> > +     if (dev && dev->parent)
-> > +             return dev->parent->parent;
-> > +     return NULL;
-> > +}
-> > +
-> > +static void delete_switch_port(struct cxl_memdev *cxlmd, struct cxl_port *port,
-> > +                            struct list_head *dports)
-> > +{
-> > +     struct cxl_dport *dport, *_d;
-> > +
-> > +     dev_dbg(&cxlmd->dev, "delete %s\n", dev_name(&port->dev));
-> > +     list_for_each_entry_safe(dport, _d, dports, list) {
-> > +             devm_release_action(&port->dev, cxl_dport_unlink, dport);
-> > +             devm_release_action(&port->dev, cxl_dport_remove, dport);
-> > +             devm_kfree(&port->dev, dport);
-> > +     }
-> > +     devm_release_action(port->dev.parent, cxl_unlink_uport, port);
-> > +     devm_release_action(port->dev.parent, unregister_port, port);
-> > +}
+> To solve this problem this patch proposes simulating certain set of
+> NVDIMM health related events in papr_scm. Specifically 'fatal' health
+> state and 'dirty' shutdown state. These error can be injected via the
+> user-space 'ndctl-inject-smart(1)' command. With the proposed patch and
+> corresponding ndctl patches following command flow is expected:
 >
-> I'd drop the cxlmd argument here. Let the caller print the dev_dbg if it wants.
-
-Ok.
-
+> $ sudo ndctl list -DH -d nmem0
+> ...
+>       "health_state":"ok",
+>       "shutdown_state":"clean",
+> ...
+>  # inject unsafe shutdown and fatal health error
+> $ sudo ndctl inject-smart nmem0 -Uf
+> ...
+>       "health_state":"fatal",
+>       "shutdown_state":"dirty",
+> ...
+>  # uninject all errors
+> $ sudo ndctl inject-smart nmem0 -N
+> ...
+>       "health_state":"ok",
+>       "shutdown_state":"clean",
+> ...
 >
-> > +
-> > +static void cxl_remove_ep(void *data)
-> > +{
-> > +     struct cxl_memdev *cxlmd = data;
-> > +     struct device *iter;
-> > +
-> > +     for (iter = &cxlmd->dev; iter; iter = grandparent(iter)) {
-> > +             struct device *dport_dev = grandparent(iter);
-> > +             struct cxl_port *port, *parent_port;
-> > +             LIST_HEAD(reap_dports);
-> > +             struct cxl_ep *ep;
-> > +
-> > +             if (!dport_dev)
-> > +                     break;
-> > +
-> > +             port = find_cxl_port(dport_dev);
-> > +             if (!port || is_cxl_root(port)) {
-> > +                     put_device(&port->dev);
-> > +                     continue;
+> The patch adds a new member 'health_bitmap_inject_mask' inside struct
+> papr_scm_priv which is then bitwise ANDed to the health bitmap fetched from the
+> hypervisor. The value for 'health_bitmap_inject_mask' is accessible from sysfs
+> at nmemX/papr/health_bitmap_inject.
 >
-> Is there ever a case that continue != break for this case? It seems to be this
-> deserves a WARN_ON(grandparent(iter)) or some such, but I'd be curious to see if
-> my understanding is off.
-
-Recall that while outside the lock we have top-down removal racing
-potentially multiple bottom-up removals. So the "!port" case can just
-be a race loss, but needs to continue up the chain. The root check
-does assume that grandparent goes NULL. WARN_ON() would be a nop here
-because if grandparent() for a root dport resolves to !NULL the port
-registration would not have worked in the first instance.
-
-I added a comment to delete_switch_port() about the races that can be
-happening in this function.
-
+> A new PDSM named 'SMART_INJECT' is proposed that accepts newly
+> introduced 'struct nd_papr_pdsm_smart_inject' as payload thats
+> exchanged between libndctl and papr_scm to indicate the requested
+> smart-error states.
 >
-> > +             }
-> > +
-> > +             parent_port = to_cxl_port(port->dev.parent);
-> > +             cxl_device_lock(&parent_port->dev);
-> > +             if (!parent_port->dev.driver) {
-> > +                     cxl_device_unlock(&parent_port->dev);
-> > +                     put_device(&port->dev);
-> > +                     continue;
+> When the processing the PDSM 'SMART_INJECT', papr_pdsm_smart_inject()
+> constructs a pair or 'inject_mask' and 'clear_mask' bitmaps from the payload
+> and bit-blt it to the 'health_bitmap_inject_mask'. This ensures the after being
+> fetched from the hypervisor, the health_bitmap reflects requested smart-error
+> states.
 >
-> Similar to above, the parent_port must still exist at this point and have a
-> driver bound, correct?
 
-Not necessarily.
+ Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 
+> Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
+> Signed-off-by: Shivaprasad G Bhat <sbhat@linux.ibm.com>
+> ---
+> Changelog:
 >
-> > +             }
-> > +
-> > +             cxl_device_lock(&port->dev);
-> > +             ep = find_ep(port, &cxlmd->dev);
-> > +             dev_dbg(&cxlmd->dev, "disconnect %s from %s\n",
-> > +                     ep ? dev_name(ep->ep) : "", dev_name(&port->dev));
-> > +             cxl_ep_release(ep);
-> > +             if (ep && !port->dead && list_empty(&port->endpoints) &&
-> > +                 !is_cxl_root(parent_port)) {
-> > +                     /*
-> > +                      * This was the last ep attached to a dynamically
-> > +                      * enumerated port. Block new cxl_add_ep() and garbage
-> > +                      * collect the port.
-> > +                      */
-> > +                     port->dead = true;
-> > +                     list_splice_init(&port->dports, &reap_dports);
-> > +             }
-> > +             cxl_device_unlock(&port->dev);
-> > +
-> > +             if (!list_empty(&reap_dports))
-> > +                     delete_switch_port(cxlmd, port, &reap_dports);
+> Since v3:
+> * Renamed the sysfs entry from 'health_bitmap_override' to
+> 'health_bitmap_inject'.
+> * Simplified the variable names and removed the 'health_bitmap_{mask,override}'
+> members. Instead replaced them with a single 'health_bitmap_inject_mask'
+> member. [Aneesh]
+> * Updated the sysfs documentations and commit description.
+> * Used READ/WRITE_ONCE macros at places where 'health_bitmap_inject_mask' may be
+> accessed concurrently.
 >
-> I admit I tried to make all this simpler and couldn't figure anything better
-> out.
-
-I am working on a unit test to try to stress the above races.
-
+> Since v2:
+> * Rebased the patch to ppc-next
+> * Added documentation for newly introduced sysfs attribute 'health_bitmap_override'
 >
-> > +             put_device(&port->dev);
-> > +             cxl_device_unlock(&parent_port->dev);
-> > +     }
-> > +}
-> > +
-> > +static resource_size_t find_component_registers(struct device *dev)
-> > +{
-> > +     struct cxl_register_map map;
-> > +     struct pci_dev *pdev;
-> > +
-> > +     /*
-> > +      * Theoretically, CXL component registers can be hosted on a
+> Since v1:
+> * Updated the patch description.
+> * Removed dependency of a header movement patch.
+> * Removed '__packed' attribute for 'struct nd_papr_pdsm_smart_inject' [Aneesh]
+> ---
+>  Documentation/ABI/testing/sysfs-bus-papr-pmem | 12 +++
+>  arch/powerpc/include/uapi/asm/papr_pdsm.h     | 18 ++++
+>  arch/powerpc/platforms/pseries/papr_scm.c     | 90 ++++++++++++++++++-
+>  3 files changed, 117 insertions(+), 3 deletions(-)
 >
-> I believe this is factually incorrect. The spec requires it be on a PCIe device.
-> Does it make sense to introduce a dev_is_cxltest()?
-
-I also consider ACPI devices non-PCIe CXL devices. The ACPI CFMWS
-already shows how to bridge PCI enumerable resources into PCIe
-enumerable CXL domain, so it's not just cxl_test in that
-"Theoretical".
-
->
-> > +      * non-PCI device, in practice, only cxl_test hits this case.
-> > +      */
-> > +     if (!dev_is_pci(dev))
-> > +             return CXL_RESOURCE_NONE;
-> > +
-> > +     pdev = to_pci_dev(dev);
-> > +
-> > +     cxl_find_regblock(pdev, CXL_REGLOC_RBI_COMPONENT, &map);
-> > +     return cxl_regmap_to_base(pdev, &map);
-> > +}
-> > +
-> > +static int add_port_register_ep(struct cxl_memdev *cxlmd,
-> > +                             struct device *uport_dev,
-> > +                             struct device *dport_dev)
-> > +{
-> > +     struct cxl_port *port, *parent_port;
-> > +     resource_size_t component_reg_phys;
-> > +     int rc;
-> > +
-> > +     parent_port = find_cxl_port(grandparent(dport_dev));
->
-> This is confusing (thought correct). dport's parent is a port, and port's parent
-> is a port. Logically though, I'd expect a grandparent of a device to be of the
-> same type. I wonder if there is some way to straighten that out, or if I'm the
-> only one that finds it confusing.
-
-You jumped from PCIe to CXL hierarchy. A dport does not exist on the
-cxl_bus_type, it is non-device metadata / a link over to a downstream
-switch port device in the PCIe domain. The parent of a downstream
-switch port is an upstream switch port. the parent of an upstream
-switch port is another downstream switch port.
-
->
-> > +     if (!parent_port) {
-> > +             /*
-> > +              * The root CXL port is added by the CXL platform driver, fail
-> > +              * for now to be re-probed after platform driver attaches.
-> > +              */
-> > +             if (!grandparent(dport_dev)) {
-> > +                     dev_dbg(&cxlmd->dev, "%s is a root dport\n",
-> > +                             dev_name(dport_dev));
-> > +                     return -ENXIO;
-> > +             }
-> > +             /* ...otherwise, iterate to create this parent_port */
-> > +             return -EAGAIN;
-> > +     }
-> > +
-> > +     cxl_device_lock(&parent_port->dev);
-> > +     if (!parent_port->dev.driver) {
-> > +             dev_warn(&cxlmd->dev,
-> > +                      "port %s:%s disabled, failed to enumerate CXL.mem\n",
-> > +                      dev_name(&parent_port->dev), dev_name(uport_dev));
-> > +             rc = -ENXIO;
-> > +             goto out;
-> > +     }
-> > +
-> > +     port = find_cxl_port_at(parent_port, dport_dev);
->
-> Again this is a bit tough on the terminology. A dport's parent is a port, but
-> not parent_port. I'd definitely suggest a comment for clarifying that.
-
-A dport_dev's parent is not a cxl_port. CXL devices can't parent PCI
-devices. I'll add a comment to levelset what some of these variables
-are representing and how "grandparent()" works in that context.
-
->
-> > +     if (!port) {
-> > +             component_reg_phys = find_component_registers(uport_dev);
-> > +             port = devm_cxl_add_port(&parent_port->dev, uport_dev,
-> > +                                      component_reg_phys, parent_port);
-> > +             if (!IS_ERR(port))
-> > +                     get_device(&port->dev);
-> > +     }
-> > +out:
-> > +     cxl_device_unlock(&parent_port->dev);
-> > +
-> > +     if (IS_ERR(port))
-> > +             rc = PTR_ERR(port);
-> > +     else {
-> > +             dev_dbg(&cxlmd->dev, "add to new port %s:%s\n",
-> > +                     dev_name(&port->dev), dev_name(port->uport));
-> > +             rc = cxl_add_ep(port, &cxlmd->dev);
-> > +             if (rc == -EEXIST) {
-> > +                     /*
-> > +                      * "can't" happen, but this error code means
-> > +                      * something to the caller, so translate it.
-> > +                      */
-> > +                     rc = -ENXIO;
->
-> "can't" should translate to a WARN IMHO.
-
-WARNs are effectively BUG_ONs in some sites. I wouldn't crash the
-kernel for this, a driver load error is sufficient.
-
->
-> > +             }
-> > +             put_device(&port->dev);
-> > +     }
-> > +
-> > +     put_device(&parent_port->dev);
-> > +     return rc;
-> > +}
-> > +
-> > +int devm_cxl_enumerate_ports(struct cxl_memdev *cxlmd)
-> > +{
-> > +     struct device *dev = &cxlmd->dev;
-> > +     struct device *iter;
-> > +     int rc;
-> > +
-> > +     rc = devm_add_action_or_reset(&cxlmd->dev, cxl_remove_ep, cxlmd);
-> > +     if (rc)
-> > +             return rc;
-> > +
-> > +     /*
-> > +      * Scan for and add all cxl_ports in this device's ancestry.
-> > +      * Repeat until no more ports are added. Abort if a port add
-> > +      * attempt fails.
-> > +      */
-> > +retry:
-> > +     for (iter = dev; iter; iter = grandparent(iter)) {
-> > +             struct device *dport_dev = grandparent(iter);
-> > +             struct device *uport_dev;
-> > +             struct cxl_port *port;
-> > +
-> > +             if (!dport_dev)
-> > +                     break;
-> > +             uport_dev = dport_dev->parent;
-> > +             dev_dbg(dev, "scan: iter: %s dport_dev: %s parent: %s\n",
-> > +                     dev_name(iter), dev_name(dport_dev),
-> > +                     uport_dev ? dev_name(uport_dev) : "'none'");
-> > +             if (!uport_dev) {
-> > +                     dev_warn(dev, "unexpected topology, no parent for %s\n",
-> > +                              dev_name(dport_dev));
-> > +                     rc = -ENXIO;
-> > +                     break;
-> > +             }
-> > +
-> > +             port = find_cxl_port(dport_dev);
-> > +             if (port) {
-> > +                     dev_dbg(&cxlmd->dev,
-> > +                             "found already registered port %s:%s\n",
-> > +                             dev_name(&port->dev), dev_name(port->uport));
-> > +                     rc = cxl_add_ep(port, &cxlmd->dev);
-> > +
-> > +                     /*
-> > +                      * If the endpoint already exists in the port's list,
-> > +                      * that's ok, it was added on a previous pass.
-> > +                      * Otherwise, retry in add_port_register_ep() after
-> > +                      * taking the parent_port lock as the current port may
-> > +                      * be being reaped.
-> > +                      */
-> > +                     if (rc && rc != -EEXIST) {
-> > +                             put_device(&port->dev);
-> > +                             return rc;
-> > +                     }
->
-> I could use an explanation on how an endpoint could have been added on a
-> previous pass. It seems like !list_empty(&ep->list) here would be a bug.
-
-There's a goto retry after every successful port addition, so
-subsequent iterations might find some already completed work.
-
->
-> > +
-> > +                     if (is_cxl_port(port->dev.parent) &&
-> > +                         !is_cxl_root(to_cxl_port(port->dev.parent))) {
-> > +                             put_device(&port->dev);
-> > +                             continue;
-> > +                     }
-> > +
-> > +                     put_device(&port->dev);
-> > +                     break;
-> > +             }
-> > +
-> > +             rc = add_port_register_ep(cxlmd, uport_dev, dport_dev);
-> > +             /* port missing, try to add parent */
-> > +             if (rc == -EAGAIN)
-> > +                     continue;
-> > +             /* failed to add ep or port */
-> > +             if (rc)
-> > +                     return rc;
-> > +             /* port added, new descendants possible, start over */
-> > +             goto retry;
-> > +     }
-> > +
-> > +     return 0;
-> > +}
-> > +EXPORT_SYMBOL_NS_GPL(devm_cxl_enumerate_ports, CXL);
-> > +
-> > +struct cxl_port *cxl_mem_find_port(struct cxl_memdev *cxlmd)
-> > +{
-> > +     return find_cxl_port(grandparent(&cxlmd->dev));
-> > +}
-> > +EXPORT_SYMBOL_NS_GPL(cxl_mem_find_port, CXL);
-> > +
-> > +struct cxl_dport *cxl_find_dport_by_dev(struct cxl_port *port,
-> > +                                     const struct device *dev)
-> > +{
-> > +     struct cxl_dport *dport;
-> > +
-> > +     cxl_device_lock(&port->dev);
-> > +     list_for_each_entry(dport, &port->dports, list)
-> > +             if (dport->dport == dev) {
-> > +                     cxl_device_unlock(&port->dev);
-> > +                     return dport;
-> > +             }
-> > +
-> > +     cxl_device_unlock(&port->dev);
-> > +     return NULL;
-> > +}
-> > +EXPORT_SYMBOL_NS_GPL(cxl_find_dport_by_dev, CXL);
-> > +
-> >  static int decoder_populate_targets(struct cxl_decoder *cxld,
-> >                                   struct cxl_port *port, int *target_map)
-> >  {
-> > diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
-> > index 7c714e559e95..b71d40b68ccd 100644
-> > --- a/drivers/cxl/cxl.h
-> > +++ b/drivers/cxl/cxl.h
-> > @@ -262,8 +262,10 @@ struct cxl_nvdimm {
-> >   * @uport: PCI or platform device implementing the upstream port capability
-> >   * @id: id for port device-name
-> >   * @dports: cxl_dport instances referenced by decoders
-> > + * @endpoints: cxl_ep instances, endpoints that are a descendant of this port
-> >   * @decoder_ida: allocator for decoder ids
-> >   * @component_reg_phys: component register capability base address (optional)
-> > + * @dead: last ep has been removed, force port re-creation
-> >   * @depth: How deep this port is relative to the root. depth 0 is the root.
-> >   */
-> >  struct cxl_port {
-> > @@ -271,8 +273,10 @@ struct cxl_port {
-> >       struct device *uport;
-> >       int id;
-> >       struct list_head dports;
-> > +     struct list_head endpoints;
-> >       struct ida decoder_ida;
-> >       resource_size_t component_reg_phys;
-> > +     bool dead;
-> >       unsigned int depth;
-> >  };
-> >
-> > @@ -292,6 +296,16 @@ struct cxl_dport {
-> >       struct list_head list;
-> >  };
-> >
-> > +/**
-> > + * struct cxl_ep - track an endpoint's interest in a port
-> > + * @ep: device that hosts a generic CXL endpoint (expander or accelerator)
-> > + * @list: node on port->endpoints list
-> > + */
-> > +struct cxl_ep {
-> > +     struct device *ep;
-> > +     struct list_head list;
-> > +};
-> > +
-> >  static inline bool is_cxl_root(struct cxl_port *port)
-> >  {
-> >       return port->uport == port->dev.parent;
-> > @@ -307,9 +321,15 @@ struct cxl_port *devm_cxl_add_port(struct device *host, struct device *uport,
-> >                                  resource_size_t component_reg_phys,
-> >                                  struct cxl_port *parent_port);
-> >  struct cxl_port *find_cxl_root(struct device *dev);
-> > +int devm_cxl_enumerate_ports(struct cxl_memdev *cxlmd);
-> > +int cxl_bus_rescan(void);
-> > +
-> >  struct cxl_dport *devm_cxl_add_dport(struct cxl_port *port,
-> >                                    struct device *dport, int port_id,
-> >                                    resource_size_t component_reg_phys);
-> > +struct cxl_dport *cxl_find_dport_by_dev(struct cxl_port *port,
-> > +                                     const struct device *dev);
-> > +
-> >  struct cxl_decoder *to_cxl_decoder(struct device *dev);
-> >  bool is_root_decoder(struct device *dev);
-> >  bool is_cxl_decoder(struct device *dev);
-> >
+> diff --git a/Documentation/ABI/testing/sysfs-bus-papr-pmem b/Documentation/ABI/testing/sysfs-bus-papr-pmem
+> index 95254cec92bf..4ac0673901e7 100644
+> --- a/Documentation/ABI/testing/sysfs-bus-papr-pmem
+> +++ b/Documentation/ABI/testing/sysfs-bus-papr-pmem
+> @@ -61,3 +61,15 @@ Description:
+>  		* "CchRHCnt" : Cache Read Hit Count
+>  		* "CchWHCnt" : Cache Write Hit Count
+>  		* "FastWCnt" : Fast Write Count
+> +
+> +What:		/sys/bus/nd/devices/nmemX/papr/health_bitmap_inject
+> +Date:		Jan, 2022
+> +KernelVersion:	v5.17
+> +Contact:	linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, nvdimm@lists.linux.dev,
+> +Description:
+> +		(RO) Reports the health bitmap inject bitmap that is applied to
+> +		bitmap received from PowerVM via the H_SCM_HEALTH. This is used
+> +		to forcibly set specific bits returned from Hcall. These is then
+> +		used to simulate various health or shutdown states for an nvdimm
+> +		and are set by user-space tools like ndctl by issuing a PAPR DSM.
+> +
+> diff --git a/arch/powerpc/include/uapi/asm/papr_pdsm.h b/arch/powerpc/include/uapi/asm/papr_pdsm.h
+> index 82488b1e7276..17439925045c 100644
+> --- a/arch/powerpc/include/uapi/asm/papr_pdsm.h
+> +++ b/arch/powerpc/include/uapi/asm/papr_pdsm.h
+> @@ -116,6 +116,22 @@ struct nd_papr_pdsm_health {
+>  	};
+>  };
+>  
+> +/* Flags for injecting specific smart errors */
+> +#define PDSM_SMART_INJECT_HEALTH_FATAL		(1 << 0)
+> +#define PDSM_SMART_INJECT_BAD_SHUTDOWN		(1 << 1)
+> +
+> +struct nd_papr_pdsm_smart_inject {
+> +	union {
+> +		struct {
+> +			/* One or more of PDSM_SMART_INJECT_ */
+> +			__u32 flags;
+> +			__u8 fatal_enable;
+> +			__u8 unsafe_shutdown_enable;
+> +		};
+> +		__u8 buf[ND_PDSM_PAYLOAD_MAX_SIZE];
+> +	};
+> +};
+> +
+>  /*
+>   * Methods to be embedded in ND_CMD_CALL request. These are sent to the kernel
+>   * via 'nd_cmd_pkg.nd_command' member of the ioctl struct
+> @@ -123,12 +139,14 @@ struct nd_papr_pdsm_health {
+>  enum papr_pdsm {
+>  	PAPR_PDSM_MIN = 0x0,
+>  	PAPR_PDSM_HEALTH,
+> +	PAPR_PDSM_SMART_INJECT,
+>  	PAPR_PDSM_MAX,
+>  };
+>  
+>  /* Maximal union that can hold all possible payload types */
+>  union nd_pdsm_payload {
+>  	struct nd_papr_pdsm_health health;
+> +	struct nd_papr_pdsm_smart_inject smart_inject;
+>  	__u8 buf[ND_PDSM_PAYLOAD_MAX_SIZE];
+>  } __packed;
+>  
+> diff --git a/arch/powerpc/platforms/pseries/papr_scm.c b/arch/powerpc/platforms/pseries/papr_scm.c
+> index f48e87ac89c9..20aafd387840 100644
+> --- a/arch/powerpc/platforms/pseries/papr_scm.c
+> +++ b/arch/powerpc/platforms/pseries/papr_scm.c
+> @@ -120,6 +120,10 @@ struct papr_scm_priv {
+>  
+>  	/* length of the stat buffer as expected by phyp */
+>  	size_t stat_buffer_len;
+> +
+> +	/* The bits which needs to be overridden */
+> +	u64 health_bitmap_inject_mask;
+> +
+>  };
+>  
+>  static int papr_scm_pmem_flush(struct nd_region *nd_region,
+> @@ -347,19 +351,29 @@ static ssize_t drc_pmem_query_stats(struct papr_scm_priv *p,
+>  static int __drc_pmem_query_health(struct papr_scm_priv *p)
+>  {
+>  	unsigned long ret[PLPAR_HCALL_BUFSIZE];
+> +	u64 bitmap = 0;
+>  	long rc;
+>  
+>  	/* issue the hcall */
+>  	rc = plpar_hcall(H_SCM_HEALTH, ret, p->drc_index);
+> -	if (rc != H_SUCCESS) {
+> +	if (rc == H_SUCCESS)
+> +		bitmap = ret[0] & ret[1];
+> +	else if (rc == H_FUNCTION)
+> +		dev_info_once(&p->pdev->dev,
+> +			      "Hcall H_SCM_HEALTH not implemented, assuming empty health bitmap");
+> +	else {
+> +
+>  		dev_err(&p->pdev->dev,
+>  			"Failed to query health information, Err:%ld\n", rc);
+>  		return -ENXIO;
+>  	}
+>  
+>  	p->lasthealth_jiffies = jiffies;
+> -	p->health_bitmap = ret[0] & ret[1];
+> -
+> +	/* Allow injecting specific health bits via inject mask. */
+> +	if (p->health_bitmap_inject_mask)
+> +		bitmap = (bitmap & ~p->health_bitmap_inject_mask) |
+> +			p->health_bitmap_inject_mask;
+> +	WRITE_ONCE(p->health_bitmap, bitmap);
+>  	dev_dbg(&p->pdev->dev,
+>  		"Queried dimm health info. Bitmap:0x%016lx Mask:0x%016lx\n",
+>  		ret[0], ret[1]);
+> @@ -669,6 +683,56 @@ static int papr_pdsm_health(struct papr_scm_priv *p,
+>  	return rc;
+>  }
+>  
+> +/* Inject a smart error Add the dirty-shutdown-counter value to the pdsm */
+> +static int papr_pdsm_smart_inject(struct papr_scm_priv *p,
+> +				  union nd_pdsm_payload *payload)
+> +{
+> +	int rc;
+> +	u32 supported_flags = 0;
+> +	u64 inject_mask = 0, clear_mask = 0;
+> +	u64 mask;
+> +
+> +	/* Check for individual smart error flags and update inject/clear masks */
+> +	if (payload->smart_inject.flags & PDSM_SMART_INJECT_HEALTH_FATAL) {
+> +		supported_flags |= PDSM_SMART_INJECT_HEALTH_FATAL;
+> +		if (payload->smart_inject.fatal_enable)
+> +			inject_mask |= PAPR_PMEM_HEALTH_FATAL;
+> +		else
+> +			clear_mask |= PAPR_PMEM_HEALTH_FATAL;
+> +	}
+> +
+> +	if (payload->smart_inject.flags & PDSM_SMART_INJECT_BAD_SHUTDOWN) {
+> +		supported_flags |= PDSM_SMART_INJECT_BAD_SHUTDOWN;
+> +		if (payload->smart_inject.unsafe_shutdown_enable)
+> +			inject_mask |= PAPR_PMEM_SHUTDOWN_DIRTY;
+> +		else
+> +			clear_mask |= PAPR_PMEM_SHUTDOWN_DIRTY;
+> +	}
+> +
+> +	dev_dbg(&p->pdev->dev, "[Smart-inject] inject_mask=%#llx clear_mask=%#llx\n",
+> +		inject_mask, clear_mask);
+> +
+> +	/* Prevent concurrent access to dimm health bitmap related members */
+> +	rc = mutex_lock_interruptible(&p->health_mutex);
+> +	if (rc)
+> +		return rc;
+> +
+> +	/* Use inject/clear masks to set health_bitmap_inject_mask */
+> +	mask = READ_ONCE(p->health_bitmap_inject_mask);
+> +	mask = (mask & ~clear_mask) | inject_mask;
+> +	WRITE_ONCE(p->health_bitmap_inject_mask, mask);
+> +
+> +	/* Invalidate cached health bitmap */
+> +	p->lasthealth_jiffies = 0;
+> +
+> +	mutex_unlock(&p->health_mutex);
+> +
+> +	/* Return the supported flags back to userspace */
+> +	payload->smart_inject.flags = supported_flags;
+> +
+> +	return sizeof(struct nd_papr_pdsm_health);
+> +}
+> +
+>  /*
+>   * 'struct pdsm_cmd_desc'
+>   * Identifies supported PDSMs' expected length of in/out payloads
+> @@ -702,6 +766,12 @@ static const struct pdsm_cmd_desc __pdsm_cmd_descriptors[] = {
+>  		.size_out = sizeof(struct nd_papr_pdsm_health),
+>  		.service = papr_pdsm_health,
+>  	},
+> +
+> +	[PAPR_PDSM_SMART_INJECT] = {
+> +		.size_in = sizeof(struct nd_papr_pdsm_smart_inject),
+> +		.size_out = sizeof(struct nd_papr_pdsm_smart_inject),
+> +		.service = papr_pdsm_smart_inject,
+> +	},
+>  	/* Empty */
+>  	[PAPR_PDSM_MAX] = {
+>  		.size_in = 0,
+> @@ -838,6 +908,19 @@ static int papr_scm_ndctl(struct nvdimm_bus_descriptor *nd_desc,
+>  	return 0;
+>  }
+>  
+> +static ssize_t health_bitmap_inject_show(struct device *dev,
+> +					 struct device_attribute *attr,
+> +					 char *buf)
+> +{
+> +	struct nvdimm *dimm = to_nvdimm(dev);
+> +	struct papr_scm_priv *p = nvdimm_provider_data(dimm);
+> +
+> +	return sprintf(buf, "%#llx\n",
+> +		       READ_ONCE(p->health_bitmap_inject_mask));
+> +}
+> +
+> +static DEVICE_ATTR_ADMIN_RO(health_bitmap_inject);
+> +
+>  static ssize_t perf_stats_show(struct device *dev,
+>  			       struct device_attribute *attr, char *buf)
+>  {
+> @@ -952,6 +1035,7 @@ static struct attribute *papr_nd_attributes[] = {
+>  	&dev_attr_flags.attr,
+>  	&dev_attr_perf_stats.attr,
+>  	&dev_attr_dirty_shutdown.attr,
+> +	&dev_attr_health_bitmap_inject.attr,
+>  	NULL,
+>  };
+>  
+> -- 
+> 2.34.1
