@@ -1,81 +1,102 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f176.google.com (mail-pf1-f176.google.com [209.85.210.176])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBEB32CA5
-	for <nvdimm@lists.linux.dev>; Wed,  2 Feb 2022 13:44:07 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
-	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=g4vUH6EzyLT2vaGYwlen5+OHvw9Zb7oDiztQ44k8gOY=; b=taz5SADOs9Pfi14hGDnEcDNHDC
-	qPdeN8oYaj1zKm1GTA8AvbbszJ99pctasgAt+q64guHYT/RAxDVg1543f4Fkgb64xN1y7CYxxfR/z
-	X/WEwPUQmi/0ZWKYb9iSzDz2OHM1dxmGFYDQ+67c8IZ4ZNdPTQ/t7zhx5KrHrFPEgk4YqIbmeITIG
-	/iNDlc2pDVeJXerurYMgHnhflHW1/wZRcXuX5c8LGZjufWsrG593L6XNNCwmawN2pdoQ3EvjXD+j+
-	5rliuRKcexGGJexwyWQz4oDlGocfsFbHyFPEijUawPGjyE8Oe0G5Vyg07U4/rmtLwKJA1TDwAC+6l
-	mQE48Q3Q==;
-Received: from hch by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-	id 1nFFvW-00FNmE-0j; Wed, 02 Feb 2022 13:44:02 +0000
-Date: Wed, 2 Feb 2022 05:44:01 -0800
-From: Christoph Hellwig <hch@infradead.org>
-To: Jane Chu <jane.chu@oracle.com>
-Cc: david@fromorbit.com, djwong@kernel.org, dan.j.williams@intel.com,
-	hch@infradead.org, vishal.l.verma@intel.com, dave.jiang@intel.com,
-	agk@redhat.com, snitzer@redhat.com, dm-devel@redhat.com,
-	ira.weiny@intel.com, willy@infradead.org, vgoyal@redhat.com,
-	linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org
-Subject: Re: [PATCH v5 6/7] dax: add recovery_write to dax_iomap_iter in
- failure path
-Message-ID: <YfqKoZ79CqvW8eLq@infradead.org>
-References: <20220128213150.1333552-1-jane.chu@oracle.com>
- <20220128213150.1333552-7-jane.chu@oracle.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B1102F29
+	for <nvdimm@lists.linux.dev>; Wed,  2 Feb 2022 14:34:19 +0000 (UTC)
+Received: by mail-pf1-f176.google.com with SMTP id a19so12988096pfx.4
+        for <nvdimm@lists.linux.dev>; Wed, 02 Feb 2022 06:34:19 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=bytedance-com.20210112.gappssmtp.com; s=20210112;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=16vqX60UmjqWNFm7zG92JTmfSodESNq7kHVS1cy34iA=;
+        b=pIE1avRsIxoQ5fVb4NSUe2Fxzd41PZOYVQWoiDsv0TjH20bhHYZ6DaMZU98/la6pab
+         Ys6Qj3meDpkxL4odhvTHC3NKoSceGl6HCEEbjCFCljQyHx5pq0eXnKt4rhvwLEM0WPdN
+         jxHZWknT/IImkOgRBUgIUSkYo1p5IUWAten8PDNxyfwCOk0eIpxZlep6r6Cv3FkTx58R
+         WtJuO/aQKel4Hjwnsn33aCyWIn6ru+9Fc/xQZ459ZpfYNxVWtVIg2Gi0IwMANRRV4wML
+         QMzxLkfQltwAIg0/1hSHN0+y8MX9A61/sDEgQ5LaKetiS2+zr6uC64oWPnFzQ3mwsGs8
+         mgeA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=16vqX60UmjqWNFm7zG92JTmfSodESNq7kHVS1cy34iA=;
+        b=pnCG3IAyPMdHtrLHkNqpwPv+9iHLzulGBJf4EswyM9eqm4vp91i91h6BHHFUBV+E1Z
+         pRKXaShkuLtc57n/sobrMatCqAtuWnIvfDekOgdJu1ec0XUAWlF+aaOWuLv8umEntPll
+         vAMb2JxuYaJPy37MMVSK9lwtIH28A5GLxOg+PN7SDXtrqiCLaEL7gPHkjEdTcK1sMkA6
+         AqryG5Ue/rXPGc3LsRcNjbBdTEkr+O0truYja7OuHKtd+V5tXuLMlx+I0okppNT7nmdZ
+         BX/Ulo+nF14fopfILTj3DxmFIf+tZUXVYfAIFFpdt0S3K0/p7fVLXzXA5/1A8TuTKRXk
+         tunw==
+X-Gm-Message-State: AOAM5320gYFaXgC79NXbX26Q3PcwfVBPnCpjxZlv+oT/ZgVPPVWMDasc
+	/wDsP5/6uddbuP5KxOKchTmghg==
+X-Google-Smtp-Source: ABdhPJxOdQap8/4HoWdm4i8JqHFqRS1d4ylTDNP39+aW3pX5NvYo3r+I5ODTVwdlAGTqeidAEK+lQQ==
+X-Received: by 2002:a62:7650:: with SMTP id r77mr29703773pfc.85.1643812458488;
+        Wed, 02 Feb 2022 06:34:18 -0800 (PST)
+Received: from FVFYT0MHHV2J.tiktokcdn.com ([139.177.225.241])
+        by smtp.gmail.com with ESMTPSA id s9sm29079268pgm.76.2022.02.02.06.34.11
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 02 Feb 2022 06:34:18 -0800 (PST)
+From: Muchun Song <songmuchun@bytedance.com>
+To: dan.j.williams@intel.com,
+	willy@infradead.org,
+	jack@suse.cz,
+	viro@zeniv.linux.org.uk,
+	akpm@linux-foundation.org,
+	apopple@nvidia.com,
+	shy828301@gmail.com,
+	rcampbell@nvidia.com,
+	hughd@google.com,
+	xiyuyang19@fudan.edu.cn,
+	kirill.shutemov@linux.intel.com,
+	zwisler@kernel.org,
+	hch@infradead.org
+Cc: linux-fsdevel@vger.kernel.org,
+	nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org,
+	linux-mm@kvack.org,
+	duanxiongchun@bytedance.com,
+	Muchun Song <songmuchun@bytedance.com>
+Subject: [PATCH v2 0/6] Fix some bugs related to ramp and dax
+Date: Wed,  2 Feb 2022 22:33:01 +0800
+Message-Id: <20220202143307.96282-1-songmuchun@bytedance.com>
+X-Mailer: git-send-email 2.32.0 (Apple Git-132)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220128213150.1333552-7-jane.chu@oracle.com>
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
+Content-Transfer-Encoding: 8bit
 
-On Fri, Jan 28, 2022 at 02:31:49PM -0700, Jane Chu wrote:
-> +typedef size_t (*iter_func_t)(struct dax_device *dax_dev, pgoff_t pgoff,
-> +		void *addr, size_t bytes, struct iov_iter *i);
->  static loff_t dax_iomap_iter(const struct iomap_iter *iomi,
->  		struct iov_iter *iter)
->  {
-> @@ -1210,6 +1212,7 @@ static loff_t dax_iomap_iter(const struct iomap_iter *iomi,
->  	ssize_t ret = 0;
->  	size_t xfer;
->  	int id;
-> +	iter_func_t write_func = dax_copy_from_iter;
+Patch 1-2 fix a cache flush bug, because subsequent patches depend on
+those on those changes, there are placed in this series.  Patch 3-4
+are preparation for fixing a dax bug in patch 5.  Patch 6 is code cleanup
+since the previous patch remove the usage of follow_invalidate_pte().
 
-This use of a function pointer causes indirect call overhead.  A simple
-"bool in_recovery" or do_recovery does the trick in a way that is
-both more readable and generates faster code.
+Changes in v2:
+  - Avoid the overly long line in lots of places suggested by Christoph.
+  - Fix a compiler warning reported by kernel test robot since pmd_pfn()
+    is not defined when !CONFIG_TRANSPARENT_HUGEPAGE on powerpc architecture.
+  - Split a new patch 4 for preparation of fixing the dax bug.
 
-> +		if ((map_len == -EIO) && (iov_iter_rw(iter) == WRITE)) {
+Muchun Song (6):
+  mm: rmap: fix cache flush on THP pages
+  dax: fix cache flush on PMD-mapped pages
+  mm: page_vma_mapped: support checking if a pfn is mapped into a vma
+  mm: rmap: introduce pfn_mkclean_range() to cleans PTEs
+  dax: fix missing writeprotect the pte entry
+  mm: remove range parameter from follow_invalidate_pte()
 
-No need for the braces.
+ fs/dax.c                | 82 ++++------------------------------------------
+ include/linux/mm.h      |  3 --
+ include/linux/rmap.h    | 17 ++++++++--
+ include/linux/swapops.h | 13 +++++---
+ mm/internal.h           | 52 +++++++++++++++++++----------
+ mm/memory.c             | 23 ++-----------
+ mm/page_vma_mapped.c    | 68 ++++++++++++++++++++++++--------------
+ mm/rmap.c               | 87 ++++++++++++++++++++++++++++++++++++++-----------
+ 8 files changed, 180 insertions(+), 165 deletions(-)
 
->  		if (iov_iter_rw(iter) == WRITE)
-> -			xfer = dax_copy_from_iter(dax_dev, pgoff, kaddr,
-> -					map_len, iter);
-> +			xfer = write_func(dax_dev, pgoff, kaddr, map_len, iter);
->  		else
->  			xfer = dax_copy_to_iter(dax_dev, pgoff, kaddr,
->  					map_len, iter);
+-- 
+2.11.0
 
-i.e.
-
-		if (iov_iter_rw(iter) == READ)
-			xfer = dax_copy_to_iter(dax_dev, pgoff, kaddr,
-					map_len, iter);
-		else if (unlikely(do_recovery))
-			xfer = dax_recovery_write(dax_dev, pgoff, kaddr,
-					map_len, iter);
-		else
-			xfer = dax_copy_from_iter(dax_dev, pgoff, kaddr,
-					map_len, iter);
