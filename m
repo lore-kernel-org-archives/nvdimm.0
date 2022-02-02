@@ -1,41 +1,41 @@
-Received: from mail-pj1-f47.google.com (mail-pj1-f47.google.com [209.85.216.47])
+Received: from mail-pg1-f174.google.com (mail-pg1-f174.google.com [209.85.215.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D80C2F29
-	for <nvdimm@lists.linux.dev>; Wed,  2 Feb 2022 14:34:40 +0000 (UTC)
-Received: by mail-pj1-f47.google.com with SMTP id cq9-20020a17090af98900b001b8262fe2d5so2157932pjb.0
-        for <nvdimm@lists.linux.dev>; Wed, 02 Feb 2022 06:34:40 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B9852F29
+	for <nvdimm@lists.linux.dev>; Wed,  2 Feb 2022 14:34:47 +0000 (UTC)
+Received: by mail-pg1-f174.google.com with SMTP id s16so18346003pgs.13
+        for <nvdimm@lists.linux.dev>; Wed, 02 Feb 2022 06:34:47 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=bytedance-com.20210112.gappssmtp.com; s=20210112;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=CF0auyXfFKE1IEYVq03Jkg+soFc4skAhc1lxx6fAtcg=;
-        b=zOnd2QjsWbes5CPtqMDtzwXXx4Qnh1nB96Y73gx80JMX1YjE5DYvNj1kR9Rf3wf1Px
-         wPuL2t4JGGdjFrn3XZwBVG9F97cAQb8RsouQZBjVNVlljY0CH7I4qVCxJPzanyQSnmuI
-         z71LOW9oAQWGsSJ1NUqzh5Vrqxv/E0Jt45Av/0yEAyBFuJciQZXRDGzQkl/3ilBDl5vR
-         jKsqrChDzxht2TufcoW2BxuBTd7zqUeVt/m99Tym+LFF8zmYzhKc1GWZowCKaAWNH6FN
-         Y8Sz6J6ClIh39VVIbK6GaQ6pwV6GArpJpzIClZo9pXpaDCVMFxz9DSlMeibVUkc8PRwG
-         9kZw==
+        bh=mmPXIembDYUQZdiojpjRF6icQ2WPRb2Yss79vxHhOMc=;
+        b=w0K0g72cMCrNdP/NHtVjGHimcUtWez4Q0dbbJwob2g29Qm+MKRkXJKsAMPMbvPgiw+
+         1YbaDoKvlgrKcV/gNFOt3KX2lNiiWw25pDlU8mCVcAWxtAMLpRxMy8NP4E38IpJl8FSg
+         TUtczFKyIKLmpq6xL9Etr29Cyvfj+GoPMjs7AlkoEOTKC+ArBaIROC/64ZODgijemBWU
+         xRHE63dtPn+HU71VPAlFooNZcCNJ43alHiCHXv5BXrakTtEXbJv9pWijrQIGmbUJ7pSV
+         MRuJPgs/gXVmZkIWpm/BkfpG2RSz5s2MNXzkSHG+fZycTFIEVeTTW6IyU9ny2eL2OoGf
+         vL5Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=CF0auyXfFKE1IEYVq03Jkg+soFc4skAhc1lxx6fAtcg=;
-        b=ZFdxLTdzjkNr6/4CseyHuqjz7+ZjnnBmNPx+IkX75NH59zEKaKfYKesfEVjxxY7Kmt
-         lZhWNoLEmpbaeOfvdNjwGB4w61Qrtrjd/rGyCyL/O0TQFPNIPyxj0EGSNeLdrczsQFAW
-         2mFVUWZKgVulgbQY85Tb4kAzfgeGOoNPPmOPirIRJ2+841iic14vCiNKlpxCAokJOLcX
-         y+BumsHzQgeQC+x6YrQLS3bEAchmREMomPZ6IRM3Z4RhiB08osz4FNPkC4TNqs8V9zv9
-         xNLwVIN4glv2lkNDJTdgWYBxs7VdwdVWplZ2TU7J42JOGYVX4u93d/6fLnpU1Cfho6H/
-         BKWA==
-X-Gm-Message-State: AOAM530S98vsq3B+F240n6d8mXiZGfPHzE2YLxRKPKGwDYKh1AP4VAtZ
-	l+sdmFqfo0NfYBuUUnJsYAm50Q==
-X-Google-Smtp-Source: ABdhPJzKJWYQyKWHxR8pIvNPFkTCP1Kls8SRhFx7AdpdZ5ZMRZ5hqgrfl3+Hv7AKQVSi09LI0EwDXA==
-X-Received: by 2002:a17:90a:94cc:: with SMTP id j12mr8341153pjw.39.1643812479607;
-        Wed, 02 Feb 2022 06:34:39 -0800 (PST)
+        bh=mmPXIembDYUQZdiojpjRF6icQ2WPRb2Yss79vxHhOMc=;
+        b=u4YrkgOy4MBqOTobwh0PdcwVrHI8OyArElr8yIXBnPcfb/Ayu25DMNtUEQHaQZK1vM
+         l1qSEWOhmQOmo1G/hkEy4BV14/ZrG6lPYUonZLMdbM5Z8qNten2IVFfY4LRUcm9lNy78
+         obznza/uFtweOGr/1rZXeGGC8pvCFS+xDTwx/D4wXmFBbBOFavIKw7PlBBRwJlGDDF6m
+         DX5D+CwqTXpwmvLX2/jhtw3bHINvP78Rm/QEV586SPkOCc6cohBw0eTw+5Vk/4ovuBem
+         mlAnwF5xbJiJIAjw3qpp7BnxGkSh9MUGTERS+2fx0lu+q/iJbtwYUOx8aYltpxsVYEYp
+         YAoQ==
+X-Gm-Message-State: AOAM530a6m5Gl0m+ZpYhfbRxRcTll9lkiBYHijd9CFejPmTNbBlK8xOl
+	6uWdNdj/m+gS879wnjGekKJ0tQ==
+X-Google-Smtp-Source: ABdhPJwtEKR0kboEHhouJDRLQjjqdXwqy8VsDDw7NR+0RyLEXV/5vfpSBnHEVq3onHxjnGD5YWze7Q==
+X-Received: by 2002:a63:496:: with SMTP id 144mr25240840pge.380.1643812486551;
+        Wed, 02 Feb 2022 06:34:46 -0800 (PST)
 Received: from FVFYT0MHHV2J.tiktokcdn.com ([139.177.225.241])
-        by smtp.gmail.com with ESMTPSA id s9sm29079268pgm.76.2022.02.02.06.34.32
+        by smtp.gmail.com with ESMTPSA id s9sm29079268pgm.76.2022.02.02.06.34.39
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 02 Feb 2022 06:34:39 -0800 (PST)
+        Wed, 02 Feb 2022 06:34:46 -0800 (PST)
 From: Muchun Song <songmuchun@bytedance.com>
 To: dan.j.williams@intel.com,
 	willy@infradead.org,
@@ -56,9 +56,9 @@ Cc: linux-fsdevel@vger.kernel.org,
 	linux-mm@kvack.org,
 	duanxiongchun@bytedance.com,
 	Muchun Song <songmuchun@bytedance.com>
-Subject: [PATCH v2 3/6] mm: page_vma_mapped: support checking if a pfn is mapped into a vma
-Date: Wed,  2 Feb 2022 22:33:04 +0800
-Message-Id: <20220202143307.96282-4-songmuchun@bytedance.com>
+Subject: [PATCH v2 4/6] mm: rmap: introduce pfn_mkclean_range() to cleans PTEs
+Date: Wed,  2 Feb 2022 22:33:05 +0800
+Message-Id: <20220202143307.96282-5-songmuchun@bytedance.com>
 X-Mailer: git-send-email 2.32.0 (Apple Git-132)
 In-Reply-To: <20220202143307.96282-1-songmuchun@bytedance.com>
 References: <20220202143307.96282-1-songmuchun@bytedance.com>
@@ -70,289 +70,221 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-page_vma_mapped_walk() is supposed to check if a page is mapped into a vma.
-However, not all page frames (e.g. PFN_DEV) have a associated struct page
-with it. There is going to be some duplicate codes similar with this function
-if someone want to check if a pfn (without a struct page) is mapped into a
-vma. So add support for checking if a pfn is mapped into a vma. In the next
-patch, the dax will use this new feature.
+The page_mkclean_one() is supposed to be used with the pfn that has a
+associated struct page, but not all the pfns (e.g. DAX) have a struct
+page. Introduce a new function pfn_mkclean_range() to cleans the PTEs
+(including PMDs) mapped with range of pfns which has no struct page
+associated with them. This helper will be used by DAX device in the
+next patch to make pfns clean.
 
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 ---
- include/linux/rmap.h    | 14 ++++++++--
- include/linux/swapops.h | 13 +++++++---
- mm/internal.h           | 28 +++++++++++++-------
- mm/page_vma_mapped.c    | 68 +++++++++++++++++++++++++++++++------------------
- 4 files changed, 83 insertions(+), 40 deletions(-)
+ include/linux/rmap.h |  3 ++
+ mm/internal.h        | 26 ++++++++++------
+ mm/rmap.c            | 84 +++++++++++++++++++++++++++++++++++++++++-----------
+ 3 files changed, 86 insertions(+), 27 deletions(-)
 
 diff --git a/include/linux/rmap.h b/include/linux/rmap.h
-index 221c3c6438a7..78373935ad49 100644
+index 78373935ad49..668a1e81b442 100644
 --- a/include/linux/rmap.h
 +++ b/include/linux/rmap.h
-@@ -204,9 +204,18 @@ int make_device_exclusive_range(struct mm_struct *mm, unsigned long start,
- #define PVMW_SYNC		(1 << 0)
- /* Look for migarion entries rather than present PTEs */
- #define PVMW_MIGRATION		(1 << 1)
-+/* Walk the page table by checking the pfn instead of a struct page */
-+#define PVMW_PFN_WALK		(1 << 2)
+@@ -241,6 +241,9 @@ bool page_vma_mapped_walk(struct page_vma_mapped_walk *pvmw);
+  */
+ unsigned long page_address_in_vma(struct page *, struct vm_area_struct *);
  
- struct page_vma_mapped_walk {
--	struct page *page;
-+	union {
-+		struct page *page;
-+		struct {
-+			unsigned long pfn;
-+			unsigned int nr;
-+			pgoff_t index;
-+		};
-+	};
- 	struct vm_area_struct *vma;
- 	unsigned long address;
- 	pmd_t *pmd;
-@@ -218,7 +227,8 @@ struct page_vma_mapped_walk {
- static inline void page_vma_mapped_walk_done(struct page_vma_mapped_walk *pvmw)
- {
- 	/* HugeTLB pte is set to the relevant page table entry without pte_mapped. */
--	if (pvmw->pte && !PageHuge(pvmw->page))
-+	if (pvmw->pte && (pvmw->flags & PVMW_PFN_WALK ||
-+			  !PageHuge(pvmw->page)))
- 		pte_unmap(pvmw->pte);
- 	if (pvmw->ptl)
- 		spin_unlock(pvmw->ptl);
-diff --git a/include/linux/swapops.h b/include/linux/swapops.h
-index d356ab4047f7..d28bf65fd6a5 100644
---- a/include/linux/swapops.h
-+++ b/include/linux/swapops.h
-@@ -247,17 +247,22 @@ static inline int is_writable_migration_entry(swp_entry_t entry)
- 
- #endif
- 
--static inline struct page *pfn_swap_entry_to_page(swp_entry_t entry)
-+static inline unsigned long pfn_swap_entry_to_pfn(swp_entry_t entry)
- {
--	struct page *p = pfn_to_page(swp_offset(entry));
-+	unsigned long pfn = swp_offset(entry);
- 
- 	/*
- 	 * Any use of migration entries may only occur while the
- 	 * corresponding page is locked
- 	 */
--	BUG_ON(is_migration_entry(entry) && !PageLocked(p));
-+	BUG_ON(is_migration_entry(entry) && !PageLocked(pfn_to_page(pfn)));
++int pfn_mkclean_range(unsigned long pfn, int npfn, pgoff_t pgoff,
++		      struct vm_area_struct *vma);
 +
-+	return pfn;
-+}
- 
--	return p;
-+static inline struct page *pfn_swap_entry_to_page(swp_entry_t entry)
-+{
-+	return pfn_to_page(pfn_swap_entry_to_pfn(entry));
- }
- 
  /*
+  * Cleans the PTEs of shared mappings.
+  * (and since clean PTEs should also be readonly, write protects them too)
 diff --git a/mm/internal.h b/mm/internal.h
-index deb9bda18e59..5458cd08df33 100644
+index 5458cd08df33..dc71256e568f 100644
 --- a/mm/internal.h
 +++ b/mm/internal.h
-@@ -478,25 +478,35 @@ vma_address(struct page *page, struct vm_area_struct *vma)
- }
+@@ -449,26 +449,22 @@ extern void clear_page_mlock(struct page *page);
+ extern pmd_t maybe_pmd_mkwrite(pmd_t pmd, struct vm_area_struct *vma);
  
  /*
-- * Then at what user virtual address will none of the page be found in vma?
-- * Assumes that vma_address() already returned a good starting address.
+- * At what user virtual address is page expected in vma?
+- * Returns -EFAULT if all of the page is outside the range of vma.
 - * If page is a compound head, the entire compound page is considered.
-+ * Return the end of user virtual address at the specific offset within
++ * Return the start of user virtual address at the specific offset within
 + * a vma.
   */
  static inline unsigned long
--vma_address_end(struct page *page, struct vm_area_struct *vma)
-+vma_pgoff_address_end(pgoff_t pgoff, unsigned long nr_pages,
-+		      struct vm_area_struct *vma)
+-vma_address(struct page *page, struct vm_area_struct *vma)
++vma_pgoff_address(pgoff_t pgoff, unsigned long nr_pages,
++		  struct vm_area_struct *vma)
  {
 -	pgoff_t pgoff;
--	unsigned long address;
-+	unsigned long address = vma->vm_start;
+ 	unsigned long address;
  
 -	VM_BUG_ON_PAGE(PageKsm(page), page);	/* KSM page->index unusable */
--	pgoff = page_to_pgoff(page) + compound_nr(page);
--	address = vma->vm_start + ((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
-+	address += (pgoff + nr_pages - vma->vm_pgoff) << PAGE_SHIFT;
- 	/* Check for address beyond vma (or wrapped through 0?) */
- 	if (address < vma->vm_start || address > vma->vm_end)
- 		address = vma->vm_end;
- 	return address;
+-	pgoff = page_to_pgoff(page);
+ 	if (pgoff >= vma->vm_pgoff) {
+ 		address = vma->vm_start +
+ 			((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
+ 		/* Check for address beyond vma (or wrapped through 0?) */
+ 		if (address < vma->vm_start || address >= vma->vm_end)
+ 			address = -EFAULT;
+-	} else if (PageHead(page) &&
+-		   pgoff + compound_nr(page) - 1 >= vma->vm_pgoff) {
++	} else if (pgoff + nr_pages - 1 >= vma->vm_pgoff) {
+ 		/* Test above avoids possibility of wrap to 0 on 32-bit */
+ 		address = vma->vm_start;
+ 	} else {
+@@ -478,6 +474,18 @@ vma_address(struct page *page, struct vm_area_struct *vma)
  }
  
-+/*
-+ * Return the end of user virtual address of a page within a vma. Assumes that
-+ * vma_address() already returned a good starting address. If page is a compound
-+ * head, the entire compound page is considered.
+ /*
++ * Return the start of user virtual address of a page within a vma.
++ * Returns -EFAULT if all of the page is outside the range of vma.
++ * If page is a compound head, the entire compound page is considered.
 + */
 +static inline unsigned long
-+vma_address_end(struct page *page, struct vm_area_struct *vma)
++vma_address(struct page *page, struct vm_area_struct *vma)
 +{
 +	VM_BUG_ON_PAGE(PageKsm(page), page);	/* KSM page->index unusable */
-+	return vma_pgoff_address_end(page_to_pgoff(page), compound_nr(page),
-+				     vma);
++	return vma_pgoff_address(page_to_pgoff(page), compound_nr(page), vma);
 +}
 +
- static inline struct file *maybe_unlock_mmap_for_io(struct vm_fault *vmf,
- 						    struct file *fpin)
++/*
+  * Return the end of user virtual address at the specific offset within
+  * a vma.
+  */
+diff --git a/mm/rmap.c b/mm/rmap.c
+index 0ba12dc9fae3..8f1860dc22bc 100644
+--- a/mm/rmap.c
++++ b/mm/rmap.c
+@@ -928,34 +928,33 @@ int page_referenced(struct page *page,
+ 	return pra.referenced;
+ }
+ 
+-static bool page_mkclean_one(struct page *page, struct vm_area_struct *vma,
+-			    unsigned long address, void *arg)
++static int page_vma_mkclean_one(struct page_vma_mapped_walk *pvmw)
  {
-diff --git a/mm/page_vma_mapped.c b/mm/page_vma_mapped.c
-index f7b331081791..bd172268084f 100644
---- a/mm/page_vma_mapped.c
-+++ b/mm/page_vma_mapped.c
-@@ -53,10 +53,17 @@ static bool map_pte(struct page_vma_mapped_walk *pvmw)
+-	struct page_vma_mapped_walk pvmw = {
+-		.page = page,
+-		.vma = vma,
+-		.address = address,
+-		.flags = PVMW_SYNC,
+-	};
++	int cleaned = 0;
++	struct vm_area_struct *vma = pvmw->vma;
+ 	struct mmu_notifier_range range;
+-	int *cleaned = arg;
++	unsigned long end;
++
++	if (pvmw->flags & PVMW_PFN_WALK)
++		end = vma_pgoff_address_end(pvmw->index, pvmw->nr, vma);
++	else
++		end = vma_address_end(pvmw->page, vma);
+ 
+ 	/*
+ 	 * We have to assume the worse case ie pmd for invalidation. Note that
+ 	 * the page can not be free from this function.
+ 	 */
+-	mmu_notifier_range_init(&range, MMU_NOTIFY_PROTECTION_PAGE,
+-				0, vma, vma->vm_mm, address,
+-				vma_address_end(page, vma));
++	mmu_notifier_range_init(&range, MMU_NOTIFY_PROTECTION_PAGE, 0, vma,
++				vma->vm_mm, pvmw->address, end);
+ 	mmu_notifier_invalidate_range_start(&range);
+ 
+-	while (page_vma_mapped_walk(&pvmw)) {
++	while (page_vma_mapped_walk(pvmw)) {
+ 		int ret = 0;
++		unsigned long address = pvmw->address;
+ 
+-		address = pvmw.address;
+-		if (pvmw.pte) {
++		if (pvmw->pte) {
+ 			pte_t entry;
+-			pte_t *pte = pvmw.pte;
++			pte_t *pte = pvmw->pte;
+ 
+ 			if (!pte_dirty(*pte) && !pte_write(*pte))
+ 				continue;
+@@ -968,7 +967,7 @@ static bool page_mkclean_one(struct page *page, struct vm_area_struct *vma,
+ 			ret = 1;
+ 		} else {
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-			pmd_t *pmd = pvmw.pmd;
++			pmd_t *pmd = pvmw->pmd;
+ 			pmd_t entry;
+ 
+ 			if (!pmd_dirty(*pmd) && !pmd_write(*pmd))
+@@ -995,11 +994,27 @@ static bool page_mkclean_one(struct page *page, struct vm_area_struct *vma,
+ 		 * See Documentation/vm/mmu_notifier.rst
+ 		 */
+ 		if (ret)
+-			(*cleaned)++;
++			cleaned++;
+ 	}
+ 
+ 	mmu_notifier_invalidate_range_end(&range);
+ 
++	return cleaned;
++}
++
++static bool page_mkclean_one(struct page *page, struct vm_area_struct *vma,
++			    unsigned long address, void *arg)
++{
++	struct page_vma_mapped_walk pvmw = {
++		.page		= page,
++		.vma		= vma,
++		.address	= address,
++		.flags		= PVMW_SYNC,
++	};
++	int *cleaned = arg;
++
++	*cleaned += page_vma_mkclean_one(&pvmw);
++
  	return true;
  }
  
--static inline bool pfn_is_match(struct page *page, unsigned long pfn)
-+static inline bool pfn_is_match(struct page_vma_mapped_walk *pvmw,
-+				unsigned long pfn)
- {
--	unsigned long page_pfn = page_to_pfn(page);
-+	struct page *page;
-+	unsigned long page_pfn;
- 
-+	if (pvmw->flags & PVMW_PFN_WALK)
-+		return pfn >= pvmw->pfn && pfn - pvmw->pfn < pvmw->nr;
-+
-+	page = pvmw->page;
-+	page_pfn = page_to_pfn(page);
- 	/* normal page and hugetlbfs page */
- 	if (!PageTransCompound(page) || PageHuge(page))
- 		return page_pfn == pfn;
-@@ -116,7 +123,7 @@ static bool check_pte(struct page_vma_mapped_walk *pvmw)
- 		pfn = pte_pfn(*pvmw->pte);
- 	}
- 
--	return pfn_is_match(pvmw->page, pfn);
-+	return pfn_is_match(pvmw, pfn);
- }
- 
- static void step_forward(struct page_vma_mapped_walk *pvmw, unsigned long size)
-@@ -127,24 +134,24 @@ static void step_forward(struct page_vma_mapped_walk *pvmw, unsigned long size)
- }
+@@ -1037,6 +1052,39 @@ int folio_mkclean(struct folio *folio)
+ EXPORT_SYMBOL_GPL(folio_mkclean);
  
  /**
-- * page_vma_mapped_walk - check if @pvmw->page is mapped in @pvmw->vma at
-- * @pvmw->address
-- * @pvmw: pointer to struct page_vma_mapped_walk. page, vma, address and flags
-- * must be set. pmd, pte and ptl must be NULL.
-+ * page_vma_mapped_walk - check if @pvmw->page or @pvmw->pfn is mapped in
-+ * @pvmw->vma at @pvmw->address
-+ * @pvmw: pointer to struct page_vma_mapped_walk. page (or pfn and nr and
-+ * index), vma, address and flags must be set. pmd, pte and ptl must be NULL.
-  *
-- * Returns true if the page is mapped in the vma. @pvmw->pmd and @pvmw->pte point
-- * to relevant page table entries. @pvmw->ptl is locked. @pvmw->address is
-- * adjusted if needed (for PTE-mapped THPs).
-+ * Returns true if the page or pfn is mapped in the vma. @pvmw->pmd and
-+ * @pvmw->pte point to relevant page table entries. @pvmw->ptl is locked.
-+ * @pvmw->address is adjusted if needed (for PTE-mapped THPs).
-  *
-  * If @pvmw->pmd is set but @pvmw->pte is not, you have found PMD-mapped page
-- * (usually THP). For PTE-mapped THP, you should run page_vma_mapped_walk() in
-- * a loop to find all PTEs that map the THP.
-+ * (usually THP or Huge DEVMAP). For PMD-mapped page, you should run
-+ * page_vma_mapped_walk() in a loop to find all PTEs that map the huge page.
-  *
-  * For HugeTLB pages, @pvmw->pte is set to the relevant page table entry
-  * regardless of which page table level the page is mapped at. @pvmw->pmd is
-  * NULL.
-  *
-- * Returns false if there are no more page table entries for the page in
-+ * Returns false if there are no more page table entries for the page or pfn in
-  * the vma. @pvmw->ptl is unlocked and @pvmw->pte is unmapped.
-  *
-  * If you need to stop the walk before page_vma_mapped_walk() returned false,
-@@ -153,8 +160,9 @@ static void step_forward(struct page_vma_mapped_walk *pvmw, unsigned long size)
- bool page_vma_mapped_walk(struct page_vma_mapped_walk *pvmw)
- {
- 	struct mm_struct *mm = pvmw->vma->vm_mm;
--	struct page *page = pvmw->page;
-+	struct page *page = NULL;
- 	unsigned long end;
-+	unsigned long pfn;
- 	pgd_t *pgd;
- 	p4d_t *p4d;
- 	pud_t *pud;
-@@ -164,7 +172,11 @@ bool page_vma_mapped_walk(struct page_vma_mapped_walk *pvmw)
- 	if (pvmw->pmd && !pvmw->pte)
- 		return not_found(pvmw);
- 
--	if (unlikely(PageHuge(page))) {
-+	if (!(pvmw->flags & PVMW_PFN_WALK))
-+		page = pvmw->page;
-+	pfn = page ? page_to_pfn(page) : pvmw->pfn;
++ * pfn_mkclean_range - Cleans the PTEs (including PMDs) mapped with range of
++ *                     [@pfn, @pfn + @npfn) at the specific offset (@pgoff)
++ *                     within the @vma of shared mappings. And since clean PTEs
++ *                     should also be readonly, write protects them too.
++ * @pfn: start pfn.
++ * @npfn: number of physically contiguous pfns srarting with @pfn.
++ * @pgoff: page offset that the @pfn mapped with.
++ * @vma: vma that @pfn mapped within.
++ *
++ * Returns the number of cleaned PTEs (including PMDs).
++ */
++int pfn_mkclean_range(unsigned long pfn, int npfn, pgoff_t pgoff,
++		      struct vm_area_struct *vma)
++{
++	unsigned long address = vma_pgoff_address(pgoff, npfn, vma);
++	struct page_vma_mapped_walk pvmw = {
++		.pfn		= pfn,
++		.nr		= npfn,
++		.index		= pgoff,
++		.vma		= vma,
++		.address	= address,
++		.flags		= PVMW_SYNC | PVMW_PFN_WALK,
++	};
 +
-+	if (unlikely(page && PageHuge(page))) {
- 		/* The only possible mapping was handled on last iteration */
- 		if (pvmw->pte)
- 			return not_found(pvmw);
-@@ -187,9 +199,13 @@ bool page_vma_mapped_walk(struct page_vma_mapped_walk *pvmw)
- 	 * any PageKsm page: whose page->index misleads vma_address()
- 	 * and vma_address_end() to disaster.
- 	 */
--	end = PageTransCompound(page) ?
--		vma_address_end(page, pvmw->vma) :
--		pvmw->address + PAGE_SIZE;
-+	if (page)
-+		end = PageTransCompound(page) ?
-+		      vma_address_end(page, pvmw->vma) :
-+		      pvmw->address + PAGE_SIZE;
-+	else
-+		end = vma_pgoff_address_end(pvmw->index, pvmw->nr, pvmw->vma);
++	if (invalid_mkclean_vma(vma, NULL))
++		return 0;
 +
- 	if (pvmw->pte)
- 		goto next_pte;
- restart:
-@@ -217,14 +233,14 @@ bool page_vma_mapped_walk(struct page_vma_mapped_walk *pvmw)
- 		 * subsequent update.
- 		 */
- 		pmde = READ_ONCE(*pvmw->pmd);
--
--		if (pmd_trans_huge(pmde) || is_pmd_migration_entry(pmde)) {
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+		if (pmd_leaf(pmde) || is_pmd_migration_entry(pmde)) {
- 			pvmw->ptl = pmd_lock(mm, pvmw->pmd);
- 			pmde = *pvmw->pmd;
--			if (likely(pmd_trans_huge(pmde))) {
-+			if (likely(pmd_leaf(pmde))) {
- 				if (pvmw->flags & PVMW_MIGRATION)
- 					return not_found(pvmw);
--				if (pmd_page(pmde) != page)
-+				if (pmd_pfn(pmde) != pfn)
- 					return not_found(pvmw);
- 				return true;
- 			}
-@@ -236,20 +252,22 @@ bool page_vma_mapped_walk(struct page_vma_mapped_walk *pvmw)
- 					return not_found(pvmw);
- 				entry = pmd_to_swp_entry(pmde);
- 				if (!is_migration_entry(entry) ||
--				    pfn_swap_entry_to_page(entry) != page)
-+				    pfn_swap_entry_to_pfn(entry) != pfn)
- 					return not_found(pvmw);
- 				return true;
- 			}
- 			/* THP pmd was split under us: handle on pte level */
- 			spin_unlock(pvmw->ptl);
- 			pvmw->ptl = NULL;
--		} else if (!pmd_present(pmde)) {
-+		} else
-+#endif
-+		if (!pmd_present(pmde)) {
- 			/*
- 			 * If PVMW_SYNC, take and drop THP pmd lock so that we
- 			 * cannot return prematurely, while zap_huge_pmd() has
- 			 * cleared *pmd but not decremented compound_mapcount().
- 			 */
--			if ((pvmw->flags & PVMW_SYNC) &&
-+			if ((pvmw->flags & PVMW_SYNC) && page &&
- 			    PageTransCompound(page)) {
- 				spinlock_t *ptl = pmd_lock(mm, pvmw->pmd);
- 
++	VM_BUG_ON_VMA(address == -EFAULT, vma);
++
++	return page_vma_mkclean_one(&pvmw);
++}
++
++/**
+  * page_move_anon_rmap - move a page to our anon_vma
+  * @page:	the page to move to our anon_vma
+  * @vma:	the vma the page belongs to
 -- 
 2.11.0
 
