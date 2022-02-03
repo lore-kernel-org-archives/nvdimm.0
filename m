@@ -1,155 +1,282 @@
-Received: from mail-pj1-f45.google.com (mail-pj1-f45.google.com [209.85.216.45])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C61A2F23
-	for <nvdimm@lists.linux.dev>; Thu,  3 Feb 2022 05:06:53 +0000 (UTC)
-Received: by mail-pj1-f45.google.com with SMTP id cq9-20020a17090af98900b001b8262fe2d5so3295724pjb.0
-        for <nvdimm@lists.linux.dev>; Wed, 02 Feb 2022 21:06:53 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=1JHTwPLvgnSdOvlUJPxurry7jIgozOgrWp88o7ApzHU=;
-        b=AImR9zJ8OCzu9bnDTiEZfXEseEPGFUn05Zvepykpqlqvc7RbeCSp/6iFOcJwPh3ez+
-         mDzMWl8Ox2lVLXTIQBCLACcbdQUsEpZLb5ojevv6AIVNO8tr8j7hKr9WjmyVXnG58cpl
-         A89iTphpwTxZOuOIrayeZTiGDs6sHmRWimjAwiJ4LNmeBCW2mDZIywU3PKdtN4mQxggj
-         JV4nzC4yN2pcQvLlsE2+r2Olgl40ix4pYgT0n9/atZn8deGCRee0ulyBlmfzvUhOCGm1
-         SehZ0KEnjS34j2Ni/SdCmznHupRuOgWnY9p5PBoW3CfbDjm422am9J9EXUSUGrhNAdwW
-         kRpQ==
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 347842F21
+	for <nvdimm@lists.linux.dev>; Thu,  3 Feb 2022 08:19:12 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1643876352;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=Ga3a+cNqPUZbMV6ngpquicZKi+kYXvf5VDW1pb/74NM=;
+	b=QlgVGD9calJB0klqNM2gDF2Cq7loULw5rV6MfnXJ/ozdobpwHjhjNIOrHn0hh7qy3Q4cmO
+	65Fsoxx1w5fdLolbsqZ18PIjl04yQ/GdbZ/PMoyeVm8GsvVdUqmq9bzZssIeK+lVHmzUWH
+	KOF27Pe0lRmZO9OeUd5ek6Ujdqh6SUk=
+Received: from mail-wm1-f71.google.com (mail-wm1-f71.google.com
+ [209.85.128.71]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-245-M-2snSpKMkayMfImHRjfpQ-1; Thu, 03 Feb 2022 03:19:11 -0500
+X-MC-Unique: M-2snSpKMkayMfImHRjfpQ-1
+Received: by mail-wm1-f71.google.com with SMTP id m18-20020a7bca52000000b003552c4e2550so864324wml.0
+        for <nvdimm@lists.linux.dev>; Thu, 03 Feb 2022 00:19:10 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=1JHTwPLvgnSdOvlUJPxurry7jIgozOgrWp88o7ApzHU=;
-        b=sYdKcdCtjCMcJdcBMWcl3omCcFzP/R2a/Dt5G08sVCE7XI4WBwoTJ77sElZP7mxkYi
-         MYN7bN+xCfA1Fhov+aGVrzHci0BJrEulGktwK4PPNAs0F7tkFOm8zRDYk0WN0d9+XxAs
-         ch4eTXlTmiuI/FdO7VGleeVgPCISBfW+Ub9d8jA1XBtH1i5ckGrmPtKYiLO2RBYhGTFE
-         hwQi7h4NDihOLHJyunStuA8MysAt4R+KVeCpO+Ryjd5KHOHqusetimKI4jqFq1NqYcBR
-         8Ubiz13ViCBFzEObKB6yZ7/Hsz49U9Q3YV7BYBrxVxbv6o0XpRoKCwB8s0dwK0c/IQVB
-         NRVA==
-X-Gm-Message-State: AOAM531ISS9UKKaClAPQiSuRN+kT9L+J9AKczpJASCOQ47tWdfZSsppD
-	extYqS2clJ5utIHiS5B9T2zGDExDk8szRjNy+Eq7zA==
-X-Google-Smtp-Source: ABdhPJxqM77is0yFSyX0KGpP8UcSw0l8m3YOfuSF4sUAAILJspUd73S24QbhCyeq0gImKi2X1JHSEnWeU5sIcL9wz+g=
-X-Received: by 2002:a17:902:b20a:: with SMTP id t10mr33736247plr.132.1643864812773;
- Wed, 02 Feb 2022 21:06:52 -0800 (PST)
+        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
+         :content-language:to:cc:references:from:organization:in-reply-to
+         :content-transfer-encoding;
+        bh=Ga3a+cNqPUZbMV6ngpquicZKi+kYXvf5VDW1pb/74NM=;
+        b=kOrApu9xmJ5gIfMp01iD6R3GEv65kmRZp3aYZiFEpSQQYw9RSIDFjXRUTSPzlX7WK4
+         rFcv4LFsQOb0RHeLSnXRxJjPrQHtIFvATxfJTpiyPvPqcpWnxJL/lwVG5XgwEa11z7vt
+         7p8IZjLOnlEq1FM2ZIX/heAhPCrWdo4YTWJEsRpT791R1+Oljh/r10dmK4KfLmy+BjWR
+         rYnHCHn+TsAulSh/GCDPujVD+GRTVAKXGndWiLoSfySoD1nkasotgDA1CACf+CJboySd
+         7edLL+QEljNJD+1cI+2zd5G9XAXgfqbg78NGfw4EcTaeYP8BK6qaNJfpuNQTI0LTvYMx
+         tO3g==
+X-Gm-Message-State: AOAM532clI5gcvffOAkpBoQFe2MpM0rRc5S/yRWgw/E+pj70SamPds8m
+	5b9xjgQJNa73eLm49UI+1+E61U4JSK2QTwGOaH5ZnDEWG5Tt22CaR1olEWiTqsqWHQwmUkN0m6z
+	sRGhhU6gxBgEIG+Ix
+X-Received: by 2002:adf:f8c6:: with SMTP id f6mr28298302wrq.290.1643876349729;
+        Thu, 03 Feb 2022 00:19:09 -0800 (PST)
+X-Google-Smtp-Source: ABdhPJwd+aMUkquNhN3Wzj/b5dtgge/VtJYB/HzKVRpX+1yo3QIeT8CNocEG2VPINgEJ78SzLBILFg==
+X-Received: by 2002:adf:f8c6:: with SMTP id f6mr28298281wrq.290.1643876349377;
+        Thu, 03 Feb 2022 00:19:09 -0800 (PST)
+Received: from ?IPV6:2003:d8:2f11:9700:838c:3860:6500:5284? (p200300d82f119700838c386065005284.dip0.t-ipconnect.de. [2003:d8:2f11:9700:838c:3860:6500:5284])
+        by smtp.gmail.com with ESMTPSA id n5sm7530303wmq.43.2022.02.03.00.19.08
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 03 Feb 2022 00:19:08 -0800 (PST)
+Message-ID: <50158895-0bde-7c13-097e-f8c2f9bdfe10@redhat.com>
+Date: Thu, 3 Feb 2022 09:19:08 +0100
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20220128002707.391076-1-ben.widawsky@intel.com>
- <20220128002707.391076-3-ben.widawsky@intel.com> <CAPcyv4hHJcPLRJM-7z+wKhjBhp9HH2qXuEeC0VfDnD6yU9H-Wg@mail.gmail.com>
- <20220201145943.mevjv3rygo43o2lf@intel.com>
-In-Reply-To: <20220201145943.mevjv3rygo43o2lf@intel.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 2 Feb 2022 21:06:40 -0800
-Message-ID: <CAPcyv4jNDRwgOFKtaVf2KZtMOWag2=zTbiUq=R-5UJ_BV6kNmA@mail.gmail.com>
-Subject: Re: [PATCH v3 02/14] cxl/region: Introduce concept of region configuration
-To: Ben Widawsky <ben.widawsky@intel.com>
-Cc: linux-cxl@vger.kernel.org, patches@lists.linux.dev, 
-	kernel test robot <lkp@intel.com>, Alison Schofield <alison.schofield@intel.com>, 
-	Ira Weiny <ira.weiny@intel.com>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, 
-	Vishal Verma <vishal.l.verma@intel.com>, Bjorn Helgaas <helgaas@kernel.org>, 
-	Linux NVDIMM <nvdimm@lists.linux.dev>, Linux PCI <linux-pci@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.4.0
+Subject: Re: [PATCH 1/2] mm/memory_hotplug: Export shrink span functions for
+ zone and node
+To: Jonghyeon Kim <tome01@ajou.ac.kr>
+Cc: dan.j.williams@intel.com, vishal.l.verma@intel.com, dave.jiang@intel.com,
+ akpm@linux-foundation.org, nvdimm@lists.linux.dev,
+ linux-kernel@vger.kernel.org, linux-mm@kvack.org
+References: <20220126170002.19754-1-tome01@ajou.ac.kr>
+ <5d02ea0e-aca6-a64b-23de-bc9307572d17@redhat.com>
+ <20220127094142.GA31409@swarm08>
+ <696b782f-0b50-9861-a34d-cf750d4244bd@redhat.com>
+ <20220128041959.GA20345@swarm08>
+ <df613a5e-bf32-a03e-e06f-5dcb3444c3d4@redhat.com>
+ <20220203022241.GA27120@swarm08>
+From: David Hildenbrand <david@redhat.com>
+Organization: Red Hat
+In-Reply-To: <20220203022241.GA27120@swarm08>
+Authentication-Results: relay.mimecast.com;
+	auth=pass smtp.auth=CUSA124A263 smtp.mailfrom=david@redhat.com
+X-Mimecast-Spam-Score: 0
+X-Mimecast-Originator: redhat.com
+Content-Language: en-US
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Tue, Feb 1, 2022 at 6:59 AM Ben Widawsky <ben.widawsky@intel.com> wrote:
->
-> I will cut to the part that effects ABI so tool development can continue. I'll
-> get back to the other bits later.
->
-> On 22-01-28 16:25:34, Dan Williams wrote:
->
-> [snip]
->
-> >
-> > > +
-> > > +       return ret;
-> > > +}
-> > > +
-> > > +static size_t set_targetN(struct cxl_region *cxlr, const char *buf, int n,
-> > > +                         size_t len)
-> > > +{
-> > > +       struct device *memdev_dev;
-> > > +       struct cxl_memdev *cxlmd;
-> > > +
-> > > +       device_lock(&cxlr->dev);
-> > > +
-> > > +       if (len == 1 || cxlr->config.targets[n])
-> > > +               remove_target(cxlr, n);
-> > > +
-> > > +       /* Remove target special case */
-> > > +       if (len == 1) {
-> > > +               device_unlock(&cxlr->dev);
-> > > +               return len;
-> > > +       }
-> > > +
-> > > +       memdev_dev = bus_find_device_by_name(&cxl_bus_type, NULL, buf);
-> >
-> > I think this wants to be an endpoint decoder, not a memdev. Because
-> > it's the decoder that joins a memdev to a region, or at least a
-> > decoder should be picked when the memdev is assigned so that the DPA
-> > mapping can be registered. If all the decoders are allocated then fail
-> > here.
-> >
->
-> You've put two points in here:
->
-> 1. Handle decoder allocation at sysfs boundary. I'll respond to this when I come
-> back around to the rest of the review comments.
->
-> 2. Take a decoder for target instead of a memdev. I don't agree with this
-> direction as it's asymmetric to how LSA processing works. The goal was to model
-> the LSA for configuration. The kernel will have to be in the business of
-> reserving and enumerating decoders out of memdevs for both LSA (where we have a
-> list of memdevs) and volatile (where we use the memdevs in the system to
-> enumerate populated decoders). I don't see much value in making userspace do the
-> same.
->
-> I'd like to ask you reconsider if you still think it's preferable to use
-> decoders as part of the ABI and if you still feel that way I can go change it
-> since it has minimal impact overall.
+On 03.02.22 03:22, Jonghyeon Kim wrote:
+> On Fri, Jan 28, 2022 at 09:10:21AM +0100, David Hildenbrand wrote:
+>> On 28.01.22 05:19, Jonghyeon Kim wrote:
+>>> On Thu, Jan 27, 2022 at 10:54:23AM +0100, David Hildenbrand wrote:
+>>>> On 27.01.22 10:41, Jonghyeon Kim wrote:
+>>>>> On Wed, Jan 26, 2022 at 06:04:50PM +0100, David Hildenbrand wrote:
+>>>>>> On 26.01.22 18:00, Jonghyeon Kim wrote:
+>>>>>>> Export shrink_zone_span() and update_pgdat_span() functions to head
+>>>>>>> file. We need to update real number of spanned pages for NUMA nodes and
+>>>>>>> zones when we add memory device node such as device dax memory.
+>>>>>>>
+>>>>>>
+>>>>>> Can you elaborate a bit more what you intend to fix?
+>>>>>>
+>>>>>> Memory onlining/offlining is reponsible for updating the node/zone span,
+>>>>>> and that's triggered when the dax/kmem mamory gets onlined/offlined.
+>>>>>>
+>>>>> Sure, sorry for the lack of explanation of the intended fix.
+>>>>>
+>>>>> Before onlining nvdimm memory using dax(devdax or fsdax), these memory belong to
+>>>>> cpu NUMA nodes, which extends span pages of node/zone as a ZONE_DEVICE. So there
+>>>>> is no problem because node/zone contain these additional non-visible memory
+>>>>> devices to the system.
+>>>>> But, if we online dax-memory, zone[ZONE_DEVICE] of CPU NUMA node is hot-plugged
+>>>>> to new NUMA node(but CPU-less). I think there is no need to hold
+>>>>> zone[ZONE_DEVICE] pages on the original node.
+>>>>>
+>>>>> Additionally, spanned pages are also used to calculate the end pfn of a node.
+>>>>> Thus, it is needed to maintain accurate page stats for node/zone.
+>>>>>
+>>>>> My machine contains two CPU-socket consisting of DRAM and Intel DCPMM
+>>>>> (DC persistent memory modules) with App-Direct mode.
+>>>>>
+>>>>> Below are my test results.
+>>>>>
+>>>>> Before memory onlining:
+>>>>>
+>>>>> 	# ndctl create-namespace --mode=devdax
+>>>>> 	# ndctl create-namespace --mode=devdax
+>>>>> 	# cat /proc/zoneinfo | grep -E "Node|spanned" | paste - -
+>>>>> 	Node 0, zone      DMA	        spanned  4095
+>>>>> 	Node 0, zone    DMA32	        spanned  1044480
+>>>>> 	Node 0, zone   Normal	        spanned  7864320
+>>>>> 	Node 0, zone  Movable	        spanned  0
+>>>>> 	Node 0, zone   Device	        spanned  66060288
+>>>>> 	Node 1, zone      DMA	        spanned  0
+>>>>> 	Node 1, zone    DMA32	        spanned  0
+>>>>> 	Node 1, zone   Normal	        spanned  8388608
+>>>>> 	Node 1, zone  Movable	        spanned  0
+>>>>> 	Node 1, zone   Device	        spanned  66060288
+>>>>>
+>>>>> After memory onlining:
+>>>>>
+>>>>> 	# daxctl reconfigure-device --mode=system-ram --no-online dax0.0
+>>>>> 	# daxctl reconfigure-device --mode=system-ram --no-online dax1.0
+>>>>>
+>>>>> 	# cat /proc/zoneinfo | grep -E "Node|spanned" | paste - -
+>>>>> 	Node 0, zone      DMA	        spanned  4095
+>>>>> 	Node 0, zone    DMA32	        spanned  1044480
+>>>>> 	Node 0, zone   Normal	        spanned  7864320
+>>>>> 	Node 0, zone  Movable	        spanned  0
+>>>>> 	Node 0, zone   Device	        spanned  66060288
+>>>>> 	Node 1, zone      DMA	        spanned  0
+>>>>> 	Node 1, zone    DMA32	        spanned  0
+>>>>> 	Node 1, zone   Normal	        spanned  8388608
+>>>>> 	Node 1, zone  Movable	        spanned  0
+>>>>> 	Node 1, zone   Device	        spanned  66060288
+>>>>> 	Node 2, zone      DMA	        spanned  0
+>>>>> 	Node 2, zone    DMA32	        spanned  0
+>>>>> 	Node 2, zone   Normal	        spanned  65011712
+>>>>> 	Node 2, zone  Movable	        spanned  0
+>>>>> 	Node 2, zone   Device	        spanned  0
+>>>>> 	Node 3, zone      DMA	        spanned  0
+>>>>> 	Node 3, zone    DMA32	        spanned  0
+>>>>> 	Node 3, zone   Normal	        spanned  65011712
+>>>>> 	Node 3, zone  Movable	        spanned  0
+>>>>> 	Node 3, zone   Device	        spanned  0
+>>>>>
+>>>>> As we can see, Node 0 and 1 still have zone_device pages after memory onlining.
+>>>>> This causes problem that Node 0 and Node 2 have same end of pfn values, also 
+>>>>> Node 1 and Node 3 have same problem.
+>>>>
+>>>> Thanks for the information, that makes it clearer.
+>>>>
+>>>> While this unfortunate, the node/zone span is something fairly
+>>>> unreliable/unusable for user space. Nodes and zones can overlap just easily.
+>>>>
+>>>> What counts are present/managed pages in the node/zone.
+>>>>
+>>>> So at least I don't count this as something that "needs fixing",
+>>>> it's more something that's nice to handle better if easily possible.
+>>>>
+>>>> See below.
+>>>>
+>>>>>
+>>>>>>> Signed-off-by: Jonghyeon Kim <tome01@ajou.ac.kr>
+>>>>>>> ---
+>>>>>>>  include/linux/memory_hotplug.h | 3 +++
+>>>>>>>  mm/memory_hotplug.c            | 6 ++++--
+>>>>>>>  2 files changed, 7 insertions(+), 2 deletions(-)
+>>>>>>>
+>>>>>>> diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
+>>>>>>> index be48e003a518..25c7f60c317e 100644
+>>>>>>> --- a/include/linux/memory_hotplug.h
+>>>>>>> +++ b/include/linux/memory_hotplug.h
+>>>>>>> @@ -337,6 +337,9 @@ extern void move_pfn_range_to_zone(struct zone *zone, unsigned long start_pfn,
+>>>>>>>  extern void remove_pfn_range_from_zone(struct zone *zone,
+>>>>>>>  				       unsigned long start_pfn,
+>>>>>>>  				       unsigned long nr_pages);
+>>>>>>> +extern void shrink_zone_span(struct zone *zone, unsigned long start_pfn,
+>>>>>>> +			     unsigned long end_pfn);
+>>>>>>> +extern void update_pgdat_span(struct pglist_data *pgdat);
+>>>>>>>  extern bool is_memblock_offlined(struct memory_block *mem);
+>>>>>>>  extern int sparse_add_section(int nid, unsigned long pfn,
+>>>>>>>  		unsigned long nr_pages, struct vmem_altmap *altmap);
+>>>>>>> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+>>>>>>> index 2a9627dc784c..38f46a9ef853 100644
+>>>>>>> --- a/mm/memory_hotplug.c
+>>>>>>> +++ b/mm/memory_hotplug.c
+>>>>>>> @@ -389,7 +389,7 @@ static unsigned long find_biggest_section_pfn(int nid, struct zone *zone,
+>>>>>>>  	return 0;
+>>>>>>>  }
+>>>>>>>  
+>>>>>>> -static void shrink_zone_span(struct zone *zone, unsigned long start_pfn,
+>>>>>>> +void shrink_zone_span(struct zone *zone, unsigned long start_pfn,
+>>>>>>>  			     unsigned long end_pfn)
+>>>>>>>  {
+>>>>>>>  	unsigned long pfn;
+>>>>>>> @@ -428,8 +428,9 @@ static void shrink_zone_span(struct zone *zone, unsigned long start_pfn,
+>>>>>>>  		}
+>>>>>>>  	}
+>>>>>>>  }
+>>>>>>> +EXPORT_SYMBOL_GPL(shrink_zone_span);
+>>>>>>
+>>>>>> Exporting both as symbols feels very wrong. This is memory
+>>>>>> onlining/offlining internal stuff.
+>>>>>
+>>>>> I agree with you that your comment. I will find another approach to avoid
+>>>>> directly using onlining/offlining internal stuff while updating node/zone span.
+>>>>
+>>>> IIRC, to handle what you intend to handle properly want to look into teaching
+>>>> remove_pfn_range_from_zone() to handle zone_is_zone_device().
+>>>>
+>>>> There is a big fat comment:
+>>>>
+>>>> 	/*
+>>>> 	 * Zone shrinking code cannot properly deal with ZONE_DEVICE. So
+>>>> 	 * we will not try to shrink the zones - which is okay as
+>>>> 	 * set_zone_contiguous() cannot deal with ZONE_DEVICE either way.
+>>>> 	 */
+>>>> 	if (zone_is_zone_device(zone))
+>>>> 		return;
+>>>>
+>>>>
+>>>> Similarly, try_offline_node() spells this out:
+>>>>
+>>>> 	/*
+>>>> 	 * If the node still spans pages (especially ZONE_DEVICE), don't
+>>>> 	 * offline it. A node spans memory after move_pfn_range_to_zone(),
+>>>> 	 * e.g., after the memory block was onlined.
+>>>> 	 */
+>>>> 	if (pgdat->node_spanned_pages)
+>>>> 		return;
+>>>>
+>>>>
+>>>> So once you handle remove_pfn_range_from_zone() cleanly, you'll cleanly handle
+>>>> try_offline_node() implicitly.
+>>>>
+>>>> Trying to update the node span manually without teaching node/zone shrinking code how to
+>>>> handle ZONE_DEVICE properly is just a hack that will only sometimes work. Especially, it
+>>>> won't work if the range of interest is still surrounded by other ranges.
+>>>>
+>>>
+>>> Thanks for your pointing out, I missed those comments.
+>>> I will keep trying to handle node/zone span updating process.
+>>
+>> The only safe thing right now for on ZONE_DEVICE in
+>> remove_pfn_range_from_zone() would be removing the given range from the
+>> start/end of the zone range, but we must not scan using the existing
+>> functions.
+>>
+>> As soon as we start actual *scanning* via find_smallest...
+>> find_biggest... in shrink_zone_span() we would mistakenly skip other
+>> ZONE_DEVICE ranges and mess up.
+>>
+>> Assume you would have a ZONE_DEVICE layout like
+>>
+>> [  DEV 0 | Hole | DEV 1 | Hole | DEV 2 ]
+>>
+> 
+> IIUC, you assumed situation that multiple ZONE_DEVICE in single node, and there
+> are holes among them, right?
 
-It's more than a preference. I think there are fundamental recovery
-scenarios where the kernel needs userspace help to resolve decoder /
-DPA assignment and conflicts.
+Exactly. But the holes are just an example to show what we'd have to do
+when holes are around. Having multiple devices is the important part.
 
-PMEM interleaves behave similarly to RAID where you have multiple
-devices in a set that can each fail independently, and because they
-are hotplug capable the chances of migrating devices from one system
-to another are higher than PMEM devices today where hotplug is mostly
-non-existent. If you lurk on linux-raid long enough you will
-inevitably encounter someone coming to the list saying, "help a drive
-in my RAID array was dying. I managed to save it off, help me
-reassemble my array". The story often gets worse when they say "I
-managed to corrupt my metadata block, so I don't know what order the
-drives are supposed to be in". There are several breadcrumbs and trial
-and error steps that one takes to try to get the data back online:
-https://raid.wiki.kernel.org/index.php/RAID_Recovery.
 
-Now imagine that scenario with CXL where there are additional
-complicating factors like label-storage-area can fail independently of
-the data area, there are region labels with HPA fields that mandate
-assembly at a given address, decoders must be programmed in increasing
-DPA order, volatile memory and locked/fixed decoders complicate
-decoder selection. Considering all the ways that CXL region assembly
-can fail it seems inevitable that someone will get into a situation
-where they need to pick the decoder and the DPA to map while also not
-clobbering the LSA. I.e. I see a "CXL Recovery" wiki in our future.
+-- 
+Thanks,
 
-The requirements that I think fall out from that are:
+David / dhildenb
 
-1/ Region assembly needs to be possible without updating labels. So,
-in contrast to the way that nvdimm does it, instead of updating the
-region label on every attribute write there would be a commit step
-that realizes the current region configuration in the labels, or is
-ommitted in recovery scenarios where you are not ready to clobber the
-labels.
-
-2/ Userspace needs the flexibility to be able to select/override which
-DPA gets mapped in which decoder (kernel would handle DPA skip).
-
-All the ways I can think of to augment the ABI to allow for this style
-of recovery devolve to just assigning decoders to regions in the first
-instance.
