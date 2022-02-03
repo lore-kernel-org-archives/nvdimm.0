@@ -1,94 +1,80 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA30E2CA1
-	for <nvdimm@lists.linux.dev>; Thu,  3 Feb 2022 10:17:05 +0000 (UTC)
-Received: from relay2.suse.de (relay2.suse.de [149.44.160.134])
-	by smtp-out1.suse.de (Postfix) with ESMTP id 2DA36210F5;
-	Thu,  3 Feb 2022 10:17:04 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1643883424; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=kuei1RsrZ1XayODHiwABNR6bsWtBgImk04EOWC1VWlw=;
-	b=cn0dkVNM6a8g6Q5J0snibEzl61eXoeHCLqGgnEDSLadhko8wMC5ZdfG9sqC5Qx59j09VjU
-	vzmmLMmpf1iH834oQmWBLtJiO13ekk281MzWcZcWLrgNGWIJ6F24AQwbdC3bC0o2v3ZpIe
-	KNKr4s2a3KK+AGsxswUdZzLFa17FqyY=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1643883424;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=kuei1RsrZ1XayODHiwABNR6bsWtBgImk04EOWC1VWlw=;
-	b=ZMfqE1Cx+GaUDCKmrFbxZ4gEbxAzrQ4RwUrkbNizGFVSQBh0KEBOj6liQLr5mwDS0cloIY
-	FzOCiBf/grZyuEAA==
-Received: from quack3.suse.cz (unknown [10.100.200.198])
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by relay2.suse.de (Postfix) with ESMTPS id 1B315A3B8F;
-	Thu,  3 Feb 2022 10:17:04 +0000 (UTC)
-Received: by quack3.suse.cz (Postfix, from userid 1000)
-	id D489AA05B6; Thu,  3 Feb 2022 11:17:03 +0100 (CET)
-Date: Thu, 3 Feb 2022 11:17:03 +0100
-From: Jan Kara <jack@suse.cz>
-To: Muchun Song <songmuchun@bytedance.com>
-Cc: dan.j.williams@intel.com, willy@infradead.org, jack@suse.cz,
-	viro@zeniv.linux.org.uk, akpm@linux-foundation.org,
-	apopple@nvidia.com, shy828301@gmail.com, rcampbell@nvidia.com,
-	hughd@google.com, xiyuyang19@fudan.edu.cn,
-	kirill.shutemov@linux.intel.com, zwisler@kernel.org,
-	hch@infradead.org, linux-fsdevel@vger.kernel.org,
-	nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org,
-	linux-mm@kvack.org, duanxiongchun@bytedance.com
-Subject: Re: [PATCH v2 2/6] dax: fix cache flush on PMD-mapped pages
-Message-ID: <20220203101703.a7ixac6h7kit4wng@quack3.lan>
-References: <20220202143307.96282-1-songmuchun@bytedance.com>
- <20220202143307.96282-3-songmuchun@bytedance.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FC6D2F24
+	for <nvdimm@lists.linux.dev>; Thu,  3 Feb 2022 12:07:26 +0000 (UTC)
+Received: from fraeml737-chm.china.huawei.com (unknown [172.18.147.207])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4JqHTN5srwz67bcp;
+	Thu,  3 Feb 2022 20:06:48 +0800 (CST)
+Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
+ fraeml737-chm.china.huawei.com (10.206.15.218) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2308.21; Thu, 3 Feb 2022 13:07:23 +0100
+Received: from localhost (10.47.78.15) by lhreml710-chm.china.huawei.com
+ (10.201.108.61) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2308.21; Thu, 3 Feb
+ 2022 12:07:22 +0000
+Date: Thu, 3 Feb 2022 12:07:18 +0000
+From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+To: Dan Williams <dan.j.williams@intel.com>
+CC: <linux-cxl@vger.kernel.org>, Randy Dunlap <rdunlap@infradead.org>, "Ben
+ Widawsky" <ben.widawsky@intel.com>, <linux-pci@vger.kernel.org>,
+	<nvdimm@lists.linux.dev>
+Subject: Re: [PATCH v5 33/40] cxl/mem: Add the cxl_mem driver
+Message-ID: <20220203120718.00004fce@Huawei.com>
+In-Reply-To: <164386009471.764789.4921759340860835924.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <164316691403.3437657.5374419213236572727.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<164386009471.764789.4921759340860835924.stgit@dwillia2-desk3.amr.corp.intel.com>
+Organization: Huawei Technologies Research and Development (UK) Ltd.
+X-Mailer: Claws Mail 4.0.0 (GTK+ 3.24.29; i686-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220202143307.96282-3-songmuchun@bytedance.com>
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.47.78.15]
+X-ClientProxiedBy: lhreml731-chm.china.huawei.com (10.201.108.82) To
+ lhreml710-chm.china.huawei.com (10.201.108.61)
+X-CFilter-Loop: Reflected
 
-On Wed 02-02-22 22:33:03, Muchun Song wrote:
-> The flush_cache_page() only remove a PAGE_SIZE sized range from the cache.
-> However, it does not cover the full pages in a THP except a head page.
-> Replace it with flush_cache_range() to fix this issue.
+On Wed, 02 Feb 2022 19:56:14 -0800
+Dan Williams <dan.j.williams@intel.com> wrote:
+
+> From: Ben Widawsky <ben.widawsky@intel.com>
 > 
-> Fixes: f729c8c9b24f ("dax: wrprotect pmd_t in dax_mapping_entry_mkclean")
-> Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-
-Looks good. Feel free to add:
-
-Reviewed-by: Jan Kara <jack@suse.cz>
-
-								Honza
-
-> ---
->  fs/dax.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
+> At this point the subsystem can enumerate all CXL ports (CXL.mem decode
+> resources in upstream switch ports and host bridges) in a system. The
+> last mile is connecting those ports to endpoints.
 > 
-> diff --git a/fs/dax.c b/fs/dax.c
-> index 88be1c02a151..e031e4b6c13c 100644
-> --- a/fs/dax.c
-> +++ b/fs/dax.c
-> @@ -857,7 +857,8 @@ static void dax_entry_mkclean(struct address_space *mapping, pgoff_t index,
->  			if (!pmd_dirty(*pmdp) && !pmd_write(*pmdp))
->  				goto unlock_pmd;
->  
-> -			flush_cache_page(vma, address, pfn);
-> +			flush_cache_range(vma, address,
-> +					  address + HPAGE_PMD_SIZE);
->  			pmd = pmdp_invalidate(vma, address, pmdp);
->  			pmd = pmd_wrprotect(pmd);
->  			pmd = pmd_mkclean(pmd);
-> -- 
-> 2.11.0
+> The cxl_mem driver connects an endpoint device to the platform CXL.mem
+> protoctol decode-topology. At ->probe() time it walks its
+> device-topology-ancestry and adds a CXL Port object at every Upstream
+> Port hop until it gets to CXL root. The CXL root object is only present
+> after a platform firmware driver registers platform CXL resources. For
+> ACPI based platform this is managed by the ACPI0017 device and the
+> cxl_acpi driver.
 > 
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+> The ports are registered such that disabling a given port automatically
+> unregisters all descendant ports, and the chain can only be registered
+> after the root is established.
+> 
+> Given ACPI device scanning may run asynchronously compared to PCI device
+> scanning the root driver is tasked with rescanning the bus after the
+> root successfully probes.
+> 
+> Conversely if any ports in a chain between the root and an endpoint
+> becomes disconnected it subsequently triggers the endpoint to
+> unregister. Given lock dependencies the endpoint unregistration happens
+> in a workqueue asynchronously. If userspace cares about synchronizing
+> delayed work after port events the /sys/bus/cxl/flush attribute is
+> available for that purpose.
+> 
+> Reported-by: Randy Dunlap <rdunlap@infradead.org>
+> Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
+> [djbw: clarify changelog, rework hotplug support]
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
