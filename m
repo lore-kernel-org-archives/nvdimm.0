@@ -1,50 +1,49 @@
-Received: from mail-pg1-f180.google.com (mail-pg1-f180.google.com [209.85.215.180])
+Received: from mail-pj1-f42.google.com (mail-pj1-f42.google.com [209.85.216.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 418A82F21
-	for <nvdimm@lists.linux.dev>; Fri,  4 Feb 2022 06:03:49 +0000 (UTC)
-Received: by mail-pg1-f180.google.com with SMTP id h125so4235362pgc.3
-        for <nvdimm@lists.linux.dev>; Thu, 03 Feb 2022 22:03:49 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 252912F21
+	for <nvdimm@lists.linux.dev>; Fri,  4 Feb 2022 06:21:29 +0000 (UTC)
+Received: by mail-pj1-f42.google.com with SMTP id m7so4644979pjk.0
+        for <nvdimm@lists.linux.dev>; Thu, 03 Feb 2022 22:21:29 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20210112.gappssmtp.com; s=20210112;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=6l4Se70qE+syqGJMrB/AsP3g/MR2GzyK9H999D6OCfQ=;
-        b=twPrCIMqWtmqtJsfNPwMsDsagV0gpq4f/8DzAU4geJD+UGyGQgOqnMEBqrAHSi3ysi
-         OZFSBTZO5Scr/Eb4sDzoWZKuO22QYO5PJeDNB1xNcD9U488BQ2Q3VPKA36Ehsd517Ilg
-         pc8yNaoLDB9uzx1gwGShF90NNYCooU++3EoqDWqYITqP6Y7KjmGWoLjSM2XlV4M0zrvI
-         xrlWbjtiknXe9msgZUmE1ZHfB3bxHcqzJ4oiS782bN9s3p2OCIzwRnTXNMGbJMuilLeF
-         NkfoSjXMv/9pHRyF+Qt9n6thJRR4Iw1FmFt0llnpocTri/ZiS91bSirzeyBt8FQ96JpR
-         WN/g==
+        bh=4pCg5LRiqmbI3TAMDbxbNyx17A118iw1ZgmwbQZNhZc=;
+        b=3V3KExznjp8wESoZXltleisSjwaUOua+bzzCIMq/fH/eo3G/62yVKSbNMwWWHQ156X
+         +ZhOVGRPeRzxJPDdiVJ8BmEWgh51BDK2dVYjq2Rh/3WelKHpJtScg+IkPbKfTun++/4Y
+         aXCY78xBIVe4k15srEh1t8FyOZ396mIU707Zcru78W3FGmItRp11+pgzL3GxHlTghRU6
+         YOdEqPV0uFkx0h5+BpLgQNPEjjSNoFxb4xijJHK5iL1sdLiUrWAESrkp3RumVt+1HDn+
+         qLWQbOB/sSLN0GIfOd/65rVWK1cqr8+H76F54LT1YbOtW0ZS92GKJOhr1IB8Ic/qcfSh
+         SnTQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=6l4Se70qE+syqGJMrB/AsP3g/MR2GzyK9H999D6OCfQ=;
-        b=cdigiDDZ96iE3ajFy/57NEE13KLQvlCKzR3H/w4EkPSa7J1fjl/YzR/pTcGrlpIAaI
-         SSmV/eh2kDIbB9IGpg+G4DsC4Y8Li5z61i3aOGIfS2klu7zuSpZb3H5OMt+0YC0vLq7b
-         YpslPMgjwsLh27hdxqkLSyiMdF+xn4NkN+ta92WjAyRHdv8xtvA9zUUTnpfIrzwM2W+v
-         1TVFDyMFPgAYs4aZu8aAJryhpOmbkp4krLWy2SX4yY5ToFFb2bAUZQrGFv8jZ1TMelFw
-         /4J8jQZjR1liyZEn6hkfv9ceXB6fmJGZFRlBtZXP4Ds5iZWvCBZVSZLKCpnidhBhbo9c
-         DFEg==
-X-Gm-Message-State: AOAM530SEXwXaDMAo8CzLf3wHpBJw5d0c1RQjX/GnOU3QyjuXlWFqv/I
-	q0l2OApohMjNap9jD3oq2Ivv/LrU6PyCRkDYGEUxDA==
-X-Google-Smtp-Source: ABdhPJzjeIgvLiv+7Q+Z36tObcCbqLcIUwq8r4zgIpIDVk4uTWYWTdh9zto49CaVa1EjbgHgLmkXgdhhNjk2Px33Rsw=
-X-Received: by 2002:a63:550f:: with SMTP id j15mr1228156pgb.40.1643954628595;
- Thu, 03 Feb 2022 22:03:48 -0800 (PST)
+        bh=4pCg5LRiqmbI3TAMDbxbNyx17A118iw1ZgmwbQZNhZc=;
+        b=urKNZGtxw2kgFYHeja+wbo2lWrlg7aCvjqwgsZeN4JYkmYN2gwQvwRslXPpSHbWCXs
+         fiNK4qxQkB3VGSHmnRipLJA1rSrch7dG7bR8bzHf09CvYmIkONBPHdmyTFNyOo1ZnRiQ
+         kTKLpz9MxE7hKZJ/68jLFx2S900p3So2OjF/UkXrM7gdJlrotbNKoaeTQx81KArSLDrZ
+         dHhIgAhdIn7ztkmduuJrr9osGJF89ak/USnKQuYhgT9n/SHryozrMgkY7FiuYcTJSBsz
+         d+Kf7nsI/2ImOtpMTciSM99vFDmgo44PHvXj+JhvZTzXNpw0uAyLfWoAzHtPdj5ezj4t
+         6PaQ==
+X-Gm-Message-State: AOAM5314WXygDHXhKsgY6TIxjlYMHRKP3lFkiOwyG4OTwC66xShJKPFU
+	cv+XTgvgcT02pKs+YW+fTlGsZaB6DSqmjdnDGFA/UA==
+X-Google-Smtp-Source: ABdhPJxJdrprINds/3WPI72ybQtRLDGdXlGnE/VTYi5U2aLnedO5jvJlRA9psGdrpnDvDKM0rxpfae7Zs/uG9uBsBds=
+X-Received: by 2002:a17:902:bcca:: with SMTP id o10mr1673853pls.147.1643955689386;
+ Thu, 03 Feb 2022 22:21:29 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20220128213150.1333552-1-jane.chu@oracle.com> <20220128213150.1333552-5-jane.chu@oracle.com>
-In-Reply-To: <20220128213150.1333552-5-jane.chu@oracle.com>
+References: <20220128213150.1333552-1-jane.chu@oracle.com> <20220128213150.1333552-6-jane.chu@oracle.com>
+In-Reply-To: <20220128213150.1333552-6-jane.chu@oracle.com>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 3 Feb 2022 22:03:36 -0800
-Message-ID: <CAPcyv4hFyoHgX9mo=NwOj_FPnfD8zkg_svM1sJZLn41vBm4Z8w@mail.gmail.com>
-Subject: Re: [PATCH v5 4/7] dax: add dax_recovery_write to dax_op and dm
- target type
+Date: Thu, 3 Feb 2022 22:21:17 -0800
+Message-ID: <CAPcyv4ip=JZXcQkDOtjcSsD=y7wRJEA0GdYSbx9+UrGCg8BNvQ@mail.gmail.com>
+Subject: Re: [PATCH v5 5/7] pmem: add pmem_recovery_write() dax op
 To: Jane Chu <jane.chu@oracle.com>
 Cc: david <david@fromorbit.com>, "Darrick J. Wong" <djwong@kernel.org>, 
 	Christoph Hellwig <hch@infradead.org>, Vishal L Verma <vishal.l.verma@intel.com>, 
@@ -57,97 +56,172 @@ Content-Type: text/plain; charset="UTF-8"
 
 On Fri, Jan 28, 2022 at 1:32 PM Jane Chu <jane.chu@oracle.com> wrote:
 >
-> dax_recovery_write() dax op is only required for DAX device that
-> export DAXDEV_RECOVERY indicating its capability to recover from
-> poisons.
+> pmem_recovery_write() consists of clearing poison via DSM,
+> clearing page HWPoison bit, re-state _PAGE_PRESENT bit,
+> cacheflush, write, and finally clearing bad-block record.
 >
-> DM may be nested, if part of the base dax devices forming a DM
-> device support dax recovery, the DM device is marked with such
-> capability.
+> A competing pread thread is held off during recovery write
+> by the presence of bad-block record. A competing recovery_write
+> thread is serialized by a lock.
 >
 > Signed-off-by: Jane Chu <jane.chu@oracle.com>
-[..]
-> diff --git a/include/linux/dax.h b/include/linux/dax.h
-> index 2fc776653c6e..1b3d6ebf3e49 100644
-> --- a/include/linux/dax.h
-> +++ b/include/linux/dax.h
-> @@ -30,6 +30,9 @@ struct dax_operations {
->                         sector_t, sector_t);
->         /* zero_page_range: required operation. Zero page range   */
->         int (*zero_page_range)(struct dax_device *, pgoff_t, size_t);
-> +       /* recovery_write: optional operation. */
-> +       size_t (*recovery_write)(struct dax_device *, pgoff_t, void *, size_t,
-> +                               struct iov_iter *);
+> ---
+>  drivers/nvdimm/pmem.c | 82 +++++++++++++++++++++++++++++++++++++++----
+>  drivers/nvdimm/pmem.h |  1 +
+>  2 files changed, 77 insertions(+), 6 deletions(-)
+>
+> diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+> index 638e64681db9..f2d6b34d48de 100644
+> --- a/drivers/nvdimm/pmem.c
+> +++ b/drivers/nvdimm/pmem.c
+> @@ -69,6 +69,14 @@ static void hwpoison_clear(struct pmem_device *pmem,
+>         }
+>  }
+>
+> +static void pmem_clear_badblocks(struct pmem_device *pmem, sector_t sector,
+> +                               long cleared_blks)
+> +{
+> +       badblocks_clear(&pmem->bb, sector, cleared_blks);
+> +       if (pmem->bb_state)
+> +               sysfs_notify_dirent(pmem->bb_state);
+> +}
+> +
+>  static blk_status_t pmem_clear_poison(struct pmem_device *pmem,
+>                 phys_addr_t offset, unsigned int len)
+>  {
+> @@ -88,9 +96,7 @@ static blk_status_t pmem_clear_poison(struct pmem_device *pmem,
+>                 dev_dbg(dev, "%#llx clear %ld sector%s\n",
+>                                 (unsigned long long) sector, cleared,
+>                                 cleared > 1 ? "s" : "");
+> -               badblocks_clear(&pmem->bb, sector, cleared);
+> -               if (pmem->bb_state)
+> -                       sysfs_notify_dirent(pmem->bb_state);
+> +               pmem_clear_badblocks(pmem, sector, cleared);
+>         }
+>
+>         arch_invalidate_pmem(pmem->virt_addr + offset, len);
+> @@ -257,10 +263,15 @@ static int pmem_rw_page(struct block_device *bdev, sector_t sector,
+>  __weak long __pmem_direct_access(struct pmem_device *pmem, pgoff_t pgoff,
+>                 long nr_pages, void **kaddr, pfn_t *pfn)
+>  {
+> +       bool bad_pmem;
+> +       bool do_recovery = false;
+>         resource_size_t offset = PFN_PHYS(pgoff) + pmem->data_offset;
+>
+> -       if (unlikely(is_bad_pmem(&pmem->bb, PFN_PHYS(pgoff) / 512,
+> -                                       PFN_PHYS(nr_pages))))
+> +       bad_pmem = is_bad_pmem(&pmem->bb, PFN_PHYS(pgoff) / 512,
+> +                               PFN_PHYS(nr_pages));
+> +       if (bad_pmem && kaddr)
+> +               do_recovery = dax_recovery_started(pmem->dax_dev, kaddr);
+> +       if (bad_pmem && !do_recovery)
+>                 return -EIO;
+>
+>         if (kaddr)
+> @@ -301,10 +312,68 @@ static long pmem_dax_direct_access(struct dax_device *dax_dev,
+>         return __pmem_direct_access(pmem, pgoff, nr_pages, kaddr, pfn);
+>  }
+>
+> +/*
+> + * The recovery write thread started out as a normal pwrite thread and
+> + * when the filesystem was told about potential media error in the
+> + * range, filesystem turns the normal pwrite to a dax_recovery_write.
+> + *
+> + * The recovery write consists of clearing poison via DSM, clearing page
+> + * HWPoison bit, reenable page-wide read-write permission, flush the
+> + * caches and finally write.  A competing pread thread needs to be held
+> + * off during the recovery process since data read back might not be valid.
+> + * And that's achieved by placing the badblock records clearing after
+> + * the completion of the recovery write.
+> + *
+> + * Any competing recovery write thread needs to be serialized, and this is
+> + * done via pmem device level lock .recovery_lock.
+> + */
+>  static size_t pmem_recovery_write(struct dax_device *dax_dev, pgoff_t pgoff,
+>                 void *addr, size_t bytes, struct iov_iter *i)
+>  {
+> -       return 0;
+> +       size_t rc, len, off;
+> +       phys_addr_t pmem_off;
+> +       struct pmem_device *pmem = dax_get_private(dax_dev);
+> +       struct device *dev = pmem->bb.dev;
+> +       sector_t sector;
+> +       long cleared, cleared_blk;
+> +
+> +       mutex_lock(&pmem->recovery_lock);
+> +
+> +       /* If no poison found in the range, go ahead with write */
+> +       off = (unsigned long)addr & ~PAGE_MASK;
+> +       len = PFN_PHYS(PFN_UP(off + bytes));
+> +       if (!is_bad_pmem(&pmem->bb, PFN_PHYS(pgoff) / 512, len)) {
+> +               rc = _copy_from_iter_flushcache(addr, bytes, i);
+> +               goto write_done;
+> +       }
 
-The removal of the ->copy_{to,from}_iter() operations set the
-precedent that dax ops should not be needed when the operation can be
-carried out generically. The only need to call back to the pmem driver
-is so that it can call nvdimm_clear_poison(). nvdimm_clear_poison() in
-turn only needs the 'struct device' hosting the pmem and the physical
-address to be cleared. The physical address is already returned by
-dax_direct_access(). The device is something that could be added to
-dax_device, and the pgmap could host the callback that pmem fills in.
-Something like:
+is_bad_pmem() takes a seqlock so it should be safe to move the
+recovery_lock below this point.
+
+> +
+> +       /* Not page-aligned range cannot be recovered */
+> +       if (off || !(PAGE_ALIGNED(bytes))) {
+> +               dev_warn(dev, "Found poison, but addr(%p) or bytes(%#lx) not page aligned\n",
+> +                       addr, bytes);
+
+fs/dax.c will prevent this from happening, right? It seems like an
+upper layer bug if we get this far into the recovery process without
+checking if a full page is being overwritten.
+
+> +               rc = (size_t) -EIO;
+> +               goto write_done;
+> +       }
+> +
+> +       pmem_off = PFN_PHYS(pgoff) + pmem->data_offset;
+> +       sector = (pmem_off - pmem->data_offset) / 512;
+> +       cleared = nvdimm_clear_poison(dev, pmem->phys_addr + pmem_off, len);
+> +       cleared_blk = cleared / 512;
+> +       if (cleared_blk > 0) {
+> +               hwpoison_clear(pmem, pmem->phys_addr + pmem_off, cleared);
+> +       } else {
+> +               dev_warn(dev, "pmem_recovery_write: cleared_blk: %ld\n",
+> +                       cleared_blk);
+> +               rc = (size_t) -EIO;
+> +               goto write_done;
+> +       }
+> +       arch_invalidate_pmem(pmem->virt_addr + pmem_off, bytes);
+> +       rc = _copy_from_iter_flushcache(addr, bytes, i);
+> +       pmem_clear_badblocks(pmem, sector, cleared_blk);
+
+This duplicates pmem_clear_poison() can more code be shared between
+the 2 functions?
 
 
-diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
-index 58eda16f5c53..36486ba4753a 100644
---- a/drivers/nvdimm/pfn_devs.c
-+++ b/drivers/nvdimm/pfn_devs.c
-@@ -694,6 +694,7 @@ static int __nvdimm_setup_pfn(struct nd_pfn
-*nd_pfn, struct dev_pagemap *pgmap)
-                .end = nsio->res.end - end_trunc,
-        };
-        pgmap->nr_range = 1;
-+       pgmap->owner = &nd_pfn->dev;
-        if (nd_pfn->mode == PFN_MODE_RAM) {
-                if (offset < reserve)
-                        return -EINVAL;
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 58d95242a836..95e1b6326f88 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -481,6 +481,7 @@ static int pmem_attach_disk(struct device *dev,
-        }
-        set_dax_nocache(dax_dev);
-        set_dax_nomc(dax_dev);
-+       set_dax_pgmap(dax_dev, &pmem->pgmap);
-        if (is_nvdimm_sync(nd_region))
-                set_dax_synchronous(dax_dev);
-        rc = dax_add_host(dax_dev, disk);
-diff --git a/include/linux/memremap.h b/include/linux/memremap.h
-index 1fafcc38acba..8cb59b5df38b 100644
---- a/include/linux/memremap.h
-+++ b/include/linux/memremap.h
-@@ -81,6 +81,11 @@ struct dev_pagemap_ops {
-
- #define PGMAP_ALTMAP_VALID     (1 << 0)
-
-+struct dev_pagemap_operations {
-+       size_t (*recovery_write)(struct dev_pagemap *pgmap, void *, size_t,
-+                                struct iov_iter *);
-+};
-+
- /**
-  * struct dev_pagemap - metadata for ZONE_DEVICE mappings
-  * @altmap: pre-allocated/reserved memory for vmemmap allocations
-@@ -111,12 +116,15 @@ struct dev_pagemap {
-        const struct dev_pagemap_ops *ops;
-        void *owner;
-        int nr_range;
-+       struct dev_pagemap_operations ops;
-        union {
-                struct range range;
-                struct range ranges[0];
-        };
- };
-
-...then DM does not need to be involved in the recovery path, fs/dax.c
-just does dax_direct_access(..., DAX_RECOVERY, ...) and then looks up
-the pgmap to generically coordinate the recovery_write(). The pmem
-driver would be responsible for setting pgmap->recovery_write() to a
-function that calls nvdimm_clear_poison().
-
-This arch works for anything that can be described by a pgmap, and
-supports error clearing, it need not be limited to the pmem block
-driver.
+> +
+> +write_done:
+> +       mutex_unlock(&pmem->recovery_lock);
+> +       return rc;
+>  }
+>
+>  static const struct dax_operations pmem_dax_ops = {
+> @@ -495,6 +564,7 @@ static int pmem_attach_disk(struct device *dev,
+>                 goto out_cleanup_dax;
+>         dax_write_cache(dax_dev, nvdimm_has_cache(nd_region));
+>         set_dax_recovery(dax_dev);
+> +       mutex_init(&pmem->recovery_lock);
+>         pmem->dax_dev = dax_dev;
+>
+>         rc = device_add_disk(dev, disk, pmem_attribute_groups);
+> diff --git a/drivers/nvdimm/pmem.h b/drivers/nvdimm/pmem.h
+> index 59cfe13ea8a8..971bff7552d6 100644
+> --- a/drivers/nvdimm/pmem.h
+> +++ b/drivers/nvdimm/pmem.h
+> @@ -24,6 +24,7 @@ struct pmem_device {
+>         struct dax_device       *dax_dev;
+>         struct gendisk          *disk;
+>         struct dev_pagemap      pgmap;
+> +       struct mutex            recovery_lock;
+>  };
+>
+>  long __pmem_direct_access(struct pmem_device *pmem, pgoff_t pgoff,
+> --
+> 2.18.4
+>
