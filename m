@@ -1,227 +1,202 @@
-Received: from mail-pj1-f42.google.com (mail-pj1-f42.google.com [209.85.216.42])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 252912F21
-	for <nvdimm@lists.linux.dev>; Fri,  4 Feb 2022 06:21:29 +0000 (UTC)
-Received: by mail-pj1-f42.google.com with SMTP id m7so4644979pjk.0
-        for <nvdimm@lists.linux.dev>; Thu, 03 Feb 2022 22:21:29 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=4pCg5LRiqmbI3TAMDbxbNyx17A118iw1ZgmwbQZNhZc=;
-        b=3V3KExznjp8wESoZXltleisSjwaUOua+bzzCIMq/fH/eo3G/62yVKSbNMwWWHQ156X
-         +ZhOVGRPeRzxJPDdiVJ8BmEWgh51BDK2dVYjq2Rh/3WelKHpJtScg+IkPbKfTun++/4Y
-         aXCY78xBIVe4k15srEh1t8FyOZ396mIU707Zcru78W3FGmItRp11+pgzL3GxHlTghRU6
-         YOdEqPV0uFkx0h5+BpLgQNPEjjSNoFxb4xijJHK5iL1sdLiUrWAESrkp3RumVt+1HDn+
-         qLWQbOB/sSLN0GIfOd/65rVWK1cqr8+H76F54LT1YbOtW0ZS92GKJOhr1IB8Ic/qcfSh
-         SnTQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=4pCg5LRiqmbI3TAMDbxbNyx17A118iw1ZgmwbQZNhZc=;
-        b=urKNZGtxw2kgFYHeja+wbo2lWrlg7aCvjqwgsZeN4JYkmYN2gwQvwRslXPpSHbWCXs
-         fiNK4qxQkB3VGSHmnRipLJA1rSrch7dG7bR8bzHf09CvYmIkONBPHdmyTFNyOo1ZnRiQ
-         kTKLpz9MxE7hKZJ/68jLFx2S900p3So2OjF/UkXrM7gdJlrotbNKoaeTQx81KArSLDrZ
-         dHhIgAhdIn7ztkmduuJrr9osGJF89ak/USnKQuYhgT9n/SHryozrMgkY7FiuYcTJSBsz
-         d+Kf7nsI/2ImOtpMTciSM99vFDmgo44PHvXj+JhvZTzXNpw0uAyLfWoAzHtPdj5ezj4t
-         6PaQ==
-X-Gm-Message-State: AOAM5314WXygDHXhKsgY6TIxjlYMHRKP3lFkiOwyG4OTwC66xShJKPFU
-	cv+XTgvgcT02pKs+YW+fTlGsZaB6DSqmjdnDGFA/UA==
-X-Google-Smtp-Source: ABdhPJxJdrprINds/3WPI72ybQtRLDGdXlGnE/VTYi5U2aLnedO5jvJlRA9psGdrpnDvDKM0rxpfae7Zs/uG9uBsBds=
-X-Received: by 2002:a17:902:bcca:: with SMTP id o10mr1673853pls.147.1643955689386;
- Thu, 03 Feb 2022 22:21:29 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B0522F2B
+	for <nvdimm@lists.linux.dev>; Fri,  4 Feb 2022 08:15:44 +0000 (UTC)
+Received: from pps.filterd (m0187473.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 21477nnA005870;
+	Fri, 4 Feb 2022 08:15:32 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=subject : from : to : cc
+ : date : message-id : content-type : content-transfer-encoding :
+ mime-version; s=pp1; bh=DWU69EpMOz/s1BMj8sfp7YPLhDQ54xoGuDg1600kSxE=;
+ b=mWJwi1qxVT9BwoT0zMKU/3B0WtlwXiwEJ6vCGg5iTyUURq6EZqeli3TMmSpln+bRHfUa
+ ZGPpPBtFwAtJICfGCEmusZAjeeLXOuK8MsnnRGHupY7T1v8IrGhYOnoh9BcLNeprj/Vl
+ IVoGALa9FFlqS3u9QlhFpV0e4pFyzwD56gYEeS6Vb3U2zjcyr/gdQBiT8SM2ycJ2FI6m
+ ID87j5as7ZfTNmnfURXrjKjaPZZtQKB7cgb3FNuDH1TTcGOeFf9bJtt2YJJ9VP/JWD8l
+ f38KCFPXXmmcILdYyaTNoXjaGfs3TxlkHx3XD8PHslZVeEIQuUI8qLVWGoLgqqYMFWgm Hg== 
+Received: from pps.reinject (localhost [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 3e0qx403ke-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 04 Feb 2022 08:15:32 +0000
+Received: from m0187473.ppops.net (m0187473.ppops.net [127.0.0.1])
+	by pps.reinject (8.16.0.43/8.16.0.43) with SMTP id 21487K6r040780;
+	Fri, 4 Feb 2022 08:15:32 GMT
+Received: from ppma06ams.nl.ibm.com (66.31.33a9.ip4.static.sl-reverse.com [169.51.49.102])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 3e0qx403jh-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 04 Feb 2022 08:15:31 +0000
+Received: from pps.filterd (ppma06ams.nl.ibm.com [127.0.0.1])
+	by ppma06ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 21487Kli011027;
+	Fri, 4 Feb 2022 08:15:29 GMT
+Received: from b06avi18878370.portsmouth.uk.ibm.com (b06avi18878370.portsmouth.uk.ibm.com [9.149.26.194])
+	by ppma06ams.nl.ibm.com with ESMTP id 3e0r0u2mst-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 04 Feb 2022 08:15:29 +0000
+Received: from d06av21.portsmouth.uk.ibm.com (d06av21.portsmouth.uk.ibm.com [9.149.105.232])
+	by b06avi18878370.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 2148FQ4o37683624
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Fri, 4 Feb 2022 08:15:26 GMT
+Received: from d06av21.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 6A75B52059;
+	Fri,  4 Feb 2022 08:15:26 +0000 (GMT)
+Received: from ltczzess4.aus.stglabs.ibm.com (unknown [9.40.194.150])
+	by d06av21.portsmouth.uk.ibm.com (Postfix) with ESMTP id 8B07052057;
+	Fri,  4 Feb 2022 08:15:24 +0000 (GMT)
+Subject: [PATCH v7 0/3] spapr: nvdimm: Introduce spapr-nvdimm device
+From: Shivaprasad G Bhat <sbhat@linux.ibm.com>
+To: clg@kaod.org, mst@redhat.com, ani@anisinha.ca, danielhb413@gmail.com,
+        david@gibson.dropbear.id.au, groug@kaod.org, imammedo@redhat.com,
+        xiaoguangrong.eric@gmail.com, david@gibson.dropbear.id.au,
+        qemu-ppc@nongnu.org
+Cc: qemu-devel@nongnu.org, aneesh.kumar@linux.ibm.com, nvdimm@lists.linux.dev,
+        kvm-ppc@vger.kernel.org
+Date: Fri, 04 Feb 2022 08:15:24 +0000
+Message-ID: 
+ <164396252398.109112.13436924292537517470.stgit@ltczzess4.aus.stglabs.ibm.com>
+User-Agent: StGit/1.1
+Content-Type: text/plain; charset="utf-8"
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: 11J2ybFcl5TPX6oXqPTSrsupSuL2fptt
+X-Proofpoint-ORIG-GUID: 03y2vwQDQDwhRoUylA1PVCJ7IzVdnTZE
+Content-Transfer-Encoding: 7bit
+X-Proofpoint-UnRewURL: 0 URL was un-rewritten
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20220128213150.1333552-1-jane.chu@oracle.com> <20220128213150.1333552-6-jane.chu@oracle.com>
-In-Reply-To: <20220128213150.1333552-6-jane.chu@oracle.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 3 Feb 2022 22:21:17 -0800
-Message-ID: <CAPcyv4ip=JZXcQkDOtjcSsD=y7wRJEA0GdYSbx9+UrGCg8BNvQ@mail.gmail.com>
-Subject: Re: [PATCH v5 5/7] pmem: add pmem_recovery_write() dax op
-To: Jane Chu <jane.chu@oracle.com>
-Cc: david <david@fromorbit.com>, "Darrick J. Wong" <djwong@kernel.org>, 
-	Christoph Hellwig <hch@infradead.org>, Vishal L Verma <vishal.l.verma@intel.com>, 
-	Dave Jiang <dave.jiang@intel.com>, Alasdair Kergon <agk@redhat.com>, Mike Snitzer <snitzer@redhat.com>, 
-	device-mapper development <dm-devel@redhat.com>, "Weiny, Ira" <ira.weiny@intel.com>, 
-	Matthew Wilcox <willy@infradead.org>, Vivek Goyal <vgoyal@redhat.com>, 
-	linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux NVDIMM <nvdimm@lists.linux.dev>, 
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.205,Aquarius:18.0.816,Hydra:6.0.425,FMLib:17.11.62.513
+ definitions=2022-02-04_03,2022-02-03_01,2021-12-02_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 clxscore=1015 adultscore=0
+ bulkscore=0 phishscore=0 spamscore=0 mlxscore=0 priorityscore=1501
+ mlxlogscore=999 malwarescore=0 suspectscore=0 lowpriorityscore=0
+ impostorscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2201110000 definitions=main-2202040041
 
-On Fri, Jan 28, 2022 at 1:32 PM Jane Chu <jane.chu@oracle.com> wrote:
->
-> pmem_recovery_write() consists of clearing poison via DSM,
-> clearing page HWPoison bit, re-state _PAGE_PRESENT bit,
-> cacheflush, write, and finally clearing bad-block record.
->
-> A competing pread thread is held off during recovery write
-> by the presence of bad-block record. A competing recovery_write
-> thread is serialized by a lock.
->
-> Signed-off-by: Jane Chu <jane.chu@oracle.com>
-> ---
->  drivers/nvdimm/pmem.c | 82 +++++++++++++++++++++++++++++++++++++++----
->  drivers/nvdimm/pmem.h |  1 +
->  2 files changed, 77 insertions(+), 6 deletions(-)
->
-> diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-> index 638e64681db9..f2d6b34d48de 100644
-> --- a/drivers/nvdimm/pmem.c
-> +++ b/drivers/nvdimm/pmem.c
-> @@ -69,6 +69,14 @@ static void hwpoison_clear(struct pmem_device *pmem,
->         }
->  }
->
-> +static void pmem_clear_badblocks(struct pmem_device *pmem, sector_t sector,
-> +                               long cleared_blks)
-> +{
-> +       badblocks_clear(&pmem->bb, sector, cleared_blks);
-> +       if (pmem->bb_state)
-> +               sysfs_notify_dirent(pmem->bb_state);
-> +}
-> +
->  static blk_status_t pmem_clear_poison(struct pmem_device *pmem,
->                 phys_addr_t offset, unsigned int len)
->  {
-> @@ -88,9 +96,7 @@ static blk_status_t pmem_clear_poison(struct pmem_device *pmem,
->                 dev_dbg(dev, "%#llx clear %ld sector%s\n",
->                                 (unsigned long long) sector, cleared,
->                                 cleared > 1 ? "s" : "");
-> -               badblocks_clear(&pmem->bb, sector, cleared);
-> -               if (pmem->bb_state)
-> -                       sysfs_notify_dirent(pmem->bb_state);
-> +               pmem_clear_badblocks(pmem, sector, cleared);
->         }
->
->         arch_invalidate_pmem(pmem->virt_addr + offset, len);
-> @@ -257,10 +263,15 @@ static int pmem_rw_page(struct block_device *bdev, sector_t sector,
->  __weak long __pmem_direct_access(struct pmem_device *pmem, pgoff_t pgoff,
->                 long nr_pages, void **kaddr, pfn_t *pfn)
->  {
-> +       bool bad_pmem;
-> +       bool do_recovery = false;
->         resource_size_t offset = PFN_PHYS(pgoff) + pmem->data_offset;
->
-> -       if (unlikely(is_bad_pmem(&pmem->bb, PFN_PHYS(pgoff) / 512,
-> -                                       PFN_PHYS(nr_pages))))
-> +       bad_pmem = is_bad_pmem(&pmem->bb, PFN_PHYS(pgoff) / 512,
-> +                               PFN_PHYS(nr_pages));
-> +       if (bad_pmem && kaddr)
-> +               do_recovery = dax_recovery_started(pmem->dax_dev, kaddr);
-> +       if (bad_pmem && !do_recovery)
->                 return -EIO;
->
->         if (kaddr)
-> @@ -301,10 +312,68 @@ static long pmem_dax_direct_access(struct dax_device *dax_dev,
->         return __pmem_direct_access(pmem, pgoff, nr_pages, kaddr, pfn);
->  }
->
-> +/*
-> + * The recovery write thread started out as a normal pwrite thread and
-> + * when the filesystem was told about potential media error in the
-> + * range, filesystem turns the normal pwrite to a dax_recovery_write.
-> + *
-> + * The recovery write consists of clearing poison via DSM, clearing page
-> + * HWPoison bit, reenable page-wide read-write permission, flush the
-> + * caches and finally write.  A competing pread thread needs to be held
-> + * off during the recovery process since data read back might not be valid.
-> + * And that's achieved by placing the badblock records clearing after
-> + * the completion of the recovery write.
-> + *
-> + * Any competing recovery write thread needs to be serialized, and this is
-> + * done via pmem device level lock .recovery_lock.
-> + */
->  static size_t pmem_recovery_write(struct dax_device *dax_dev, pgoff_t pgoff,
->                 void *addr, size_t bytes, struct iov_iter *i)
->  {
-> -       return 0;
-> +       size_t rc, len, off;
-> +       phys_addr_t pmem_off;
-> +       struct pmem_device *pmem = dax_get_private(dax_dev);
-> +       struct device *dev = pmem->bb.dev;
-> +       sector_t sector;
-> +       long cleared, cleared_blk;
-> +
-> +       mutex_lock(&pmem->recovery_lock);
-> +
-> +       /* If no poison found in the range, go ahead with write */
-> +       off = (unsigned long)addr & ~PAGE_MASK;
-> +       len = PFN_PHYS(PFN_UP(off + bytes));
-> +       if (!is_bad_pmem(&pmem->bb, PFN_PHYS(pgoff) / 512, len)) {
-> +               rc = _copy_from_iter_flushcache(addr, bytes, i);
-> +               goto write_done;
-> +       }
+If the device backend is not persistent memory for the nvdimm, there
+is need for explicit IO flushes to ensure persistence.
 
-is_bad_pmem() takes a seqlock so it should be safe to move the
-recovery_lock below this point.
+On SPAPR, the issue is addressed by adding a new hcall to request for
+an explicit flush from the guest when the backend is not pmem.
+So, the approach here is to convey when the hcall flush is required
+in a device tree property. The guest once it knows the device needs
+explicit flushes, makes the hcall as and when required.
 
-> +
-> +       /* Not page-aligned range cannot be recovered */
-> +       if (off || !(PAGE_ALIGNED(bytes))) {
-> +               dev_warn(dev, "Found poison, but addr(%p) or bytes(%#lx) not page aligned\n",
-> +                       addr, bytes);
+It was suggested to create a new device type to address the
+explicit flush for such backends on PPC instead of extending the
+generic nvdimm device with new property. So, the patch introduces
+the spapr-nvdimm device. The new device inherits the nvdimm device
+with the new bahviour such that if the backend has pmem=no, the
+device tree property is set by default.
 
-fs/dax.c will prevent this from happening, right? It seems like an
-upper layer bug if we get this far into the recovery process without
-checking if a full page is being overwritten.
+The below demonstration shows the map_sync behavior for non-pmem
+backends.
+(https://github.com/avocado-framework-tests/avocado-misc-tests/blob/master/memory/ndctl.py.data/map_sync.c)
 
-> +               rc = (size_t) -EIO;
-> +               goto write_done;
-> +       }
-> +
-> +       pmem_off = PFN_PHYS(pgoff) + pmem->data_offset;
-> +       sector = (pmem_off - pmem->data_offset) / 512;
-> +       cleared = nvdimm_clear_poison(dev, pmem->phys_addr + pmem_off, len);
-> +       cleared_blk = cleared / 512;
-> +       if (cleared_blk > 0) {
-> +               hwpoison_clear(pmem, pmem->phys_addr + pmem_off, cleared);
-> +       } else {
-> +               dev_warn(dev, "pmem_recovery_write: cleared_blk: %ld\n",
-> +                       cleared_blk);
-> +               rc = (size_t) -EIO;
-> +               goto write_done;
-> +       }
-> +       arch_invalidate_pmem(pmem->virt_addr + pmem_off, bytes);
-> +       rc = _copy_from_iter_flushcache(addr, bytes, i);
-> +       pmem_clear_badblocks(pmem, sector, cleared_blk);
+The pmem0 is from spapr-nvdimm with with backend pmem=on, and pmem1 is
+from spapr-nvdimm with pmem=off, mounted as
+/dev/pmem0 on /mnt1 type xfs (rw,relatime,attr2,dax=always,inode64,logbufs=8,logbsize=32k,noquota)
+/dev/pmem1 on /mnt2 type xfs (rw,relatime,attr2,dax=always,inode64,logbufs=8,logbsize=32k,noquota)
 
-This duplicates pmem_clear_poison() can more code be shared between
-the 2 functions?
+[root@atest-guest ~]# ./mapsync /mnt1/newfile ----> When pmem=on
+[root@atest-guest ~]# ./mapsync /mnt2/newfile ----> when pmem=off
+Failed to mmap  with Operation not supported
+
+First patch adds the realize/unrealize call backs to the generic device
+for the new device's vmstate registration. The second patch implements
+the hcall, adds the necessary vmstate properties to spapr machine structure
+for carrying the hcall status during save-restore. The nature of the hcall
+being asynchronus, the patch uses aio utilities to offload the flush. The
+third patch introduces the spapr-nvdimm device, adds the device tree
+property for the guest when spapr-nvdimm is used with pmem=no on the
+backend. Also adds new property pmem-override(?, suggest if you have better
+name) to the spapr-nvdimm which hints at forcing the hcall based flushes even
+on pmem backed devices.
+
+The kernel changes to exploit this hcall is at
+https://github.com/linuxppc/linux/commit/75b7c05ebf9026.patch
+
+---
+v6 - https://lists.gnu.org/archive/html/qemu-devel/2022-02/msg00322.html
+Changes from v6:
+      - Addressed commen from Daniel.
+        Fixed a typo
+        Fetch the memory backend FD in the flush_worker_cb(), updated hcall
+        return values in the comments description)
+      - Updated the signatures.
+
+v5 - https://lists.gnu.org/archive/html/qemu-devel/2021-07/msg01741.html
+Changes from v5:
+      - Taken care of all comments from David
+      - Moved the flush lists from spapr machine into the spapr-nvdimm device
+        state structures. So, all corresponding data structures adjusted
+	accordingly as required.
+      - New property pmem-overrride is added to the spapr-nvdimm device. The
+        hcall flushes are allowed when pmem-override is set for the device.
+      - The flush for pmem backend devices are made to use pmem_persist().
+      - The vmstate structures are also made part of device state instead of
+        global spapr.
+      - Passing the flush token to destination during migration, I think its
+        better than finding, deriving it from the outstanding ones.
+
+v4 - https://lists.gnu.org/archive/html/qemu-devel/2021-04/msg05982.html
+Changes from v4:
+      - Introduce spapr-nvdimm device with nvdimm device as the parent.
+      - The new spapr-nvdimm has no new properties. As this is a new
+        device and there is no migration related dependencies to be
+        taken care of, the device behavior is made to set the device tree
+        property and enable hcall when the device type spapr-nvdimm is
+        used with pmem=off
+      - Fixed commit messages
+      - Added checks to ensure the backend is actualy file and not memory
+      - Addressed things pointed out by Eric
+
+v3 - https://lists.gnu.org/archive/html/qemu-devel/2021-03/msg07916.html
+Changes from v3:
+      - Fixed the forward declaration coding guideline violations in 1st patch.
+      - Removed the code waiting for the flushes to complete during migration,
+        instead restart the flush worker on destination qemu in post load.
+      - Got rid of the randomization of the flush tokens, using simple
+        counter.
+      - Got rid of the redundant flush state lock, relying on the BQL now.
+      - Handling the memory-backend-ram usage
+      - Changed the sync-dax symantics from on/off to 'unsafe','writeback' and 'direct'.
+	Added prevention code using 'writeback' on arm and x86_64.
+      - Fixed all the miscellaneous comments.
+
+v2 - https://lists.gnu.org/archive/html/qemu-devel/2020-11/msg07031.html
+Changes from v2:
+      - Using the thread pool based approach as suggested
+      - Moved the async hcall handling code to spapr_nvdimm.c along
+        with some simplifications
+      - Added vmstate to preserve the hcall status during save-restore
+        along with pre_save handler code to complete all ongoning flushes.
+      - Added hw_compat magic for sync-dax 'on' on previous machines.
+      - Miscellanious minor fixes.
+
+v1 - https://lists.gnu.org/archive/html/qemu-devel/2020-11/msg06330.html
+Changes from v1
+      - Fixed a missed-out unlock
+      - using QLIST_FOREACH instead of QLIST_FOREACH_SAFE while generating token
+
+Shivaprasad G Bhat (3):
+      nvdimm: Add realize, unrealize callbacks to NVDIMMDevice class
+      spapr: nvdimm: Implement H_SCM_FLUSH hcall
+      spapr: nvdimm: Introduce spapr-nvdimm device
 
 
-> +
-> +write_done:
-> +       mutex_unlock(&pmem->recovery_lock);
-> +       return rc;
->  }
->
->  static const struct dax_operations pmem_dax_ops = {
-> @@ -495,6 +564,7 @@ static int pmem_attach_disk(struct device *dev,
->                 goto out_cleanup_dax;
->         dax_write_cache(dax_dev, nvdimm_has_cache(nd_region));
->         set_dax_recovery(dax_dev);
-> +       mutex_init(&pmem->recovery_lock);
->         pmem->dax_dev = dax_dev;
->
->         rc = device_add_disk(dev, disk, pmem_attribute_groups);
-> diff --git a/drivers/nvdimm/pmem.h b/drivers/nvdimm/pmem.h
-> index 59cfe13ea8a8..971bff7552d6 100644
-> --- a/drivers/nvdimm/pmem.h
-> +++ b/drivers/nvdimm/pmem.h
-> @@ -24,6 +24,7 @@ struct pmem_device {
->         struct dax_device       *dax_dev;
->         struct gendisk          *disk;
->         struct dev_pagemap      pgmap;
-> +       struct mutex            recovery_lock;
->  };
->
->  long __pmem_direct_access(struct pmem_device *pmem, pgoff_t pgoff,
-> --
-> 2.18.4
->
+ hw/mem/nvdimm.c               |  16 ++
+ hw/mem/pc-dimm.c              |   5 +
+ hw/ppc/spapr.c                |   2 +
+ hw/ppc/spapr_nvdimm.c         | 394 ++++++++++++++++++++++++++++++++++
+ include/hw/mem/nvdimm.h       |   2 +
+ include/hw/mem/pc-dimm.h      |   1 +
+ include/hw/ppc/spapr.h        |   4 +-
+ include/hw/ppc/spapr_nvdimm.h |   1 +
+ 8 files changed, 424 insertions(+), 1 deletion(-)
+
+--
+Signature
+
