@@ -1,790 +1,305 @@
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mx0a-00069f02.pphosted.com (mx0a-00069f02.pphosted.com [205.220.165.32])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D39DA2F29
-	for <nvdimm@lists.linux.dev>; Fri,  4 Feb 2022 15:18:31 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1643987911; x=1675523911;
-  h=subject:from:to:cc:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=0Dzq+c7O8Qeju6JvC6OqTggeEd+xoVg9FMD4pP0dgf8=;
-  b=GYoroDgT/oEqQ1pejT0fLBNwZPsaKwJI0rKyUZqjTpqzHZO+2HrtbjKF
-   a2eSkRdJN4uOpbVN1pGd3DMlEBDFfxQVzOImiZaA/qoo21lwcbz7WlqTS
-   Dg9WY36Gm5SjrmGRBXX/xFHjQbazku6U6K2r5rhOkj2ZjS7Mwe12/6TcB
-   dJ0sga5vsGuCScdgxM+WO08XyfrZI4ETX7CLWkBwVMDVkPNESDC+tdmwn
-   sAvCxAOKvZQYwafVhbmR2Zj0A3Hk90XEzwDoLIG7wVFe2om35KGtj8Ezf
-   d5g6IfUuhfl5cNYZvORkggUw97Q8iQq8AAeOoHD2GXir56y+CrQ5HgE12
-   g==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10247"; a="235782640"
-X-IronPort-AV: E=Sophos;i="5.88,343,1635231600"; 
-   d="scan'208";a="235782640"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Feb 2022 07:18:31 -0800
-X-IronPort-AV: E=Sophos;i="5.88,343,1635231600"; 
-   d="scan'208";a="539197009"
-Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Feb 2022 07:18:31 -0800
-Subject: [PATCH v6 33/40] cxl/mem: Add the cxl_mem driver
-From: Dan Williams <dan.j.williams@intel.com>
-To: linux-cxl@vger.kernel.org
-Cc: Randy Dunlap <rdunlap@infradead.org>, Ben Widawsky <ben.widawsky@intel.com>,
- Jonathan Cameron <Jonathan.Cameron@huawei.com>, linux-pci@vger.kernel.org,
- nvdimm@lists.linux.dev
-Date: Fri, 04 Feb 2022 07:18:31 -0800
-Message-ID: <164398782997.903003.9725273241627693186.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <164386009471.764789.4921759340860835924.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <164386009471.764789.4921759340860835924.stgit@dwillia2-desk3.amr.corp.intel.com>
-User-Agent: StGit/0.18-3-g996c
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 366B52F25
+	for <nvdimm@lists.linux.dev>; Sun,  6 Feb 2022 08:09:25 +0000 (UTC)
+Received: from pps.filterd (m0246629.ppops.net [127.0.0.1])
+	by mx0b-00069f02.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 2167Co1n027523;
+	Sun, 6 Feb 2022 08:08:56 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
+ subject : date : message-id : references : in-reply-to : content-type :
+ content-id : content-transfer-encoding : mime-version; s=corp-2021-07-09;
+ bh=ZUr+peSrHcMd1Nmr1Gw9tQ4Ei4QfgqW70Mfp5wXUg3s=;
+ b=blVNlMrSQFuaYLHoUXy6lo9qXt+giWk2bsaaiXIRoTDW8tN+1eXpOlEyttAoD6/BqkhU
+ unkRzeQqpmd215mkw5taFaPeBUXoOpOJGcp5ifefoeasLEPqM+ZzGiGY1nPQSZVGLAUZ
+ hKV90e7DMRuNBRnMNsx25HiXcr36vHgjqBeV8DhHB7usvBFomA8evs20X7Vt5SSTJunW
+ MNtuQLVcmSHpX+d8n/rA1Fqiq8Bn4cVVT3tPZBjiBLDJDUU+DNUZ3kcJHyzMHBlNV6Pm
+ nXda7PGwDxnqhXDHTIAa+qfwHz0/tjvXw54jqtwls+YxFZe51h8QoZhC6th9zMvmS0Sq mA== 
+Received: from userp3030.oracle.com (userp3030.oracle.com [156.151.31.80])
+	by mx0b-00069f02.pphosted.com with ESMTP id 3e1h4b2jjx-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Sun, 06 Feb 2022 08:08:55 +0000
+Received: from pps.filterd (userp3030.oracle.com [127.0.0.1])
+	by userp3030.oracle.com (8.16.1.2/8.16.1.2) with SMTP id 21685ehS134146;
+	Sun, 6 Feb 2022 08:08:43 GMT
+Received: from nam04-mw2-obe.outbound.protection.outlook.com (mail-mw2nam08lp2172.outbound.protection.outlook.com [104.47.73.172])
+	by userp3030.oracle.com with ESMTP id 3e1ebv44dk-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Sun, 06 Feb 2022 08:08:43 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=ScWwGOt/w5cgVMb6JG8mPXAoRMwYHZ4zjYGCEVI9jets0AAC4Sg7I3wNHjZVGKYSmDFJiRB8cOoKY0//ctSMeQPQCdP8TDsOG5wbQPCqt3UdY4latQQ1QKSL9MhU0Au11R6CfFiapuuWoayi4md/5r+EIHwGafAc0Jyz7MWvXsbI94gAyRp7+YxeNeXBh7imbWN3aviYGZYrGa/VqRhAVOv1KoL1Humf6zEX3Plo4OnL6t5OGCECm9AiisVF9ub7BLuPWxuRvbA3GFlDUbjFg5N67glU9Eii9xyXRW35ktoIVn0Fw5cQDUQ+jb+sNff6G/83tLTX4eRR+lH59rlGIw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=ZUr+peSrHcMd1Nmr1Gw9tQ4Ei4QfgqW70Mfp5wXUg3s=;
+ b=b+WmDvs/TgEnI5F65hj31q/7L2l3UKG9+rbrGiMdmrgeKG11ebk8aexSSaAfP4us+sTOhoo1sYUHhJLuOBbR247jrX1B244AOoJiYfTRY26SYaegTki4JkIxLIQM2uVMOLvMkcmn9qtLmpki1r6AF+LdAEWoW/xLUdPKDtBWRReoXqff0obcHh/U89wyYsLBM2eho/tKWPS8KzfICCLGYYCvmd7UvpyI+K0qGjASHb5BdFSBbz9cKRHXczmg9lWzhTPi0XjGW0PBh53CCB6JSSQMmRPe6SzsHIeJYqUh+K/5VfGDwug8SHRFx8L6zwUcTI2UVwkeNLb4UU425aDATg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=none; dmarc=none;
+ dkim=none; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=ZUr+peSrHcMd1Nmr1Gw9tQ4Ei4QfgqW70Mfp5wXUg3s=;
+ b=jAatuSkywQb+/KvKLazhXGe6CCYs3Dx7hCFrsofTuv8yE9TIK/4edH7V3O9aDhuSIVyuJRilF1MQmIyFOx8J7+miaKUDyOqZorNXnalHjBrkCuoBN8f1/8RmZMqEEq09TF+DJTm9B5i42D5Z1T8oM9dubJHwJBXfw703X+5c9bo=
+Received: from SJ0PR10MB4429.namprd10.prod.outlook.com (2603:10b6:a03:2d1::14)
+ by BY5PR10MB3873.namprd10.prod.outlook.com (2603:10b6:a03:1b0::12) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4951.11; Sun, 6 Feb
+ 2022 08:08:40 +0000
+Received: from SJ0PR10MB4429.namprd10.prod.outlook.com
+ ([fe80::d034:a8db:9e32:acde]) by SJ0PR10MB4429.namprd10.prod.outlook.com
+ ([fe80::d034:a8db:9e32:acde%5]) with mapi id 15.20.4951.018; Sun, 6 Feb 2022
+ 08:08:39 +0000
+From: Jane Chu <jane.chu@oracle.com>
+To: Dan Williams <dan.j.williams@intel.com>
+CC: david <david@fromorbit.com>, "Darrick J. Wong" <djwong@kernel.org>,
+        Christoph Hellwig <hch@infradead.org>,
+        Vishal L Verma
+	<vishal.l.verma@intel.com>,
+        Dave Jiang <dave.jiang@intel.com>, Alasdair
+ Kergon <agk@redhat.com>,
+        Mike Snitzer <snitzer@redhat.com>,
+        device-mapper
+ development <dm-devel@redhat.com>,
+        "Weiny, Ira" <ira.weiny@intel.com>,
+        Matthew Wilcox <willy@infradead.org>, Vivek Goyal <vgoyal@redhat.com>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        Linux NVDIMM
+	<nvdimm@lists.linux.dev>,
+        Linux Kernel Mailing List
+	<linux-kernel@vger.kernel.org>,
+        linux-xfs <linux-xfs@vger.kernel.org>
+Subject: Re: [PATCH v5 5/7] pmem: add pmem_recovery_write() dax op
+Thread-Topic: [PATCH v5 5/7] pmem: add pmem_recovery_write() dax op
+Thread-Index: AQHYFI6Ncz9/iVrSZU2vUZQLJAd6lqyC9biAgANCqYA=
+Date: Sun, 6 Feb 2022 08:08:39 +0000
+Message-ID: <06c5595c-45b3-a58b-74f9-6d2956d61113@oracle.com>
+References: <20220128213150.1333552-1-jane.chu@oracle.com>
+ <20220128213150.1333552-6-jane.chu@oracle.com>
+ <CAPcyv4ip=JZXcQkDOtjcSsD=y7wRJEA0GdYSbx9+UrGCg8BNvQ@mail.gmail.com>
+In-Reply-To: 
+ <CAPcyv4ip=JZXcQkDOtjcSsD=y7wRJEA0GdYSbx9+UrGCg8BNvQ@mail.gmail.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.5.1
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-correlation-id: a2c0dd95-567d-4f0d-71e7-08d9e947e254
+x-ms-traffictypediagnostic: BY5PR10MB3873:EE_
+x-microsoft-antispam-prvs: 
+ <BY5PR10MB3873E62F167F2953C9740D6FF32B9@BY5PR10MB3873.namprd10.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:2657;
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: 
+ lDxd7c2FeMWEz3+W6T+QBNsvi47w04R1N2FTESSvnVF69wCg3HF/M9Z49ECke9V9uv7XE4qJbimQHmdmzS3CijnE2xQuSibXLWEBIxzqpkQ/vlBah7PreRq73hY+rd9+XQwZBd2/3dFwoEPRffclWwvBg4ruHD/5yHg1rnoCtKqaDq/lQSw3WIqC0Y2S+kUT4wdp04jeChHR+qQ/Jz/AuasIYS4gtgkRfZFW9eAnxkJMfPe8UIO7D8YU8mhw5oPvIA+DjL5vQqLOXuZKMLe/VVGr3u9dVzv+rUdZ+Z2TEW9ap5VPpDErTTWMZGAkDnjP8FgQqLEZ48/39eaCHlq16mQULwiwEOnwW2ZRpbYpKl1KxJ5pPj3H0YS6uWUUmOKDADrDgL3RQWF7jgaBpZflaEWlDs4nTKBruAyDyYHGgyHyJObAia81iSyeIa1/xcoYgjudET7luJIcinrXgegASYx7yzku2h9tJuMRJL3oU4+AT/pK6/ocbpTpFXsl4NV0U/MaFydTL6VsTfCmhTBrNFChFNffwlCW687rFp2pVAptya7rdzKTUL8Pzs6XBSSZbLNN/A+5DJuNu3e0uy8YSyzHbfP3ucIDcbW8e4N6gTGArQXuQskr9qn6/MfVVF1zhEbBae83HMDSpq3OLGfSCevnFKW3Alpp4ItBDmPI5KtkE6QLngh3eLvbbqLjTnmp2H1jX6+FGopaD4e/lTcWFeSawa+obi4niwz6zrdhrjHfq3v/QCWR3gQ1OoQcn9oKCgps+Gvlw2NB0S15bMEWbQ==
+x-forefront-antispam-report: 
+ CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SJ0PR10MB4429.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230001)(366004)(38100700002)(186003)(76116006)(66476007)(66946007)(5660300002)(66556008)(66446008)(64756008)(26005)(7416002)(4326008)(83380400001)(8936002)(8676002)(44832011)(54906003)(36756003)(53546011)(508600001)(31696002)(6916009)(6512007)(71200400001)(122000001)(38070700005)(6486002)(2906002)(2616005)(86362001)(6506007)(31686004)(316002)(45980500001)(43740500002);DIR:OUT;SFP:1101;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0: 
+ =?utf-8?B?OERPSmd4VnBZSEVFdFQzSHNDQVlBNEdySDE4bGJxK0ROU3ZZUE1rYWlhK2tt?=
+ =?utf-8?B?ek1ESHJTT2NKNnZudUVTbXoxSGJHWDI1RmMzUm1wVDkzbjBFM2p5cVpCbEJQ?=
+ =?utf-8?B?NkZRS3VYUmdoYWZNQjF2K0ZXdmJQcWRBUWl5MlNDeVRVMEpVQ0xNTUlwWE5E?=
+ =?utf-8?B?THRVZit0d0ZkTHA5ZDRHLzMwd0w0d1Z5V3NXc3d6eVhuR3BKclpzMGorZ2wz?=
+ =?utf-8?B?RCtRSFVibDVBbDZlemVVb1JGR0swNFd6MDJwWWtzK2NXMnAxNVRsREIyaXJs?=
+ =?utf-8?B?QllyMWo0d3NQY05veVQ4Z1VKZmV2aEM0OEErVm9tNDB5clVXL0Z3c0IrQ0VS?=
+ =?utf-8?B?WXJ6NnUyMzBKM0NaUXBZbGhBcStLUnVoMVlxd0RsaFpEell3RDJUaFZ2SjRx?=
+ =?utf-8?B?K1JzY1AvUzZxUVBRTkhoZ3FYSE82REZNR0FQRGV2MEVNODUzN01JeVJ1NEhP?=
+ =?utf-8?B?QUxFZktwSGJMdzNqRU04cWh4OWJveVRqeXhGNGJkWUtCaW5FclNJOENDa1Vn?=
+ =?utf-8?B?aUtyZGhOYUhvQlNwUUtjMU9tTkY3SzM0OXR0RXFJVzRiZDhTeGRoNnVTQnhu?=
+ =?utf-8?B?dlpUbmtqYWJ0Z0krME5sOVhwRUZoNlZ4MUFKTzFjQjB4ZEdWNi9iZ0RhdnVS?=
+ =?utf-8?B?aVIwbVlhaDNKL2pxb0gzb3Z4eFp2Y0dxMEc4a3VQWkF1ZzRjVjRBSTBHTFFT?=
+ =?utf-8?B?bnZ6SkEySWFwMEVYMEhBcG95QUk2QkRnTFl5dUtCd1ZBQXNEUUpTRHJyVmRH?=
+ =?utf-8?B?V0UyamRsaHpNbU93bnNCK2tjenlwZmFxcXJPZXhMQ0pLR3JxVmRiL1NaUjEr?=
+ =?utf-8?B?cjVrNVdSSDBsQldSbEhFZjFsZWxXcFhGejhQZUpuWThJMDNGYUhCVEl6d0pH?=
+ =?utf-8?B?MzFMcWZWREZtZ0dlMFphcTBPcEJZU0Joci9jQm1LNVkxTUhUTTFSK0tqY0Nq?=
+ =?utf-8?B?UDFJUTUrM2NQMWlmanNKaXoyWlpLa2d6cW9vTTVGaUFub3V4aFJhVnB2ZGZY?=
+ =?utf-8?B?UEYzL1hSTjduWnNWMDIrRVAxQUlCZ0JaNEgrVHU2SlZyZU9CTW9SVmIyR2Qr?=
+ =?utf-8?B?MkJoWUIveGdjeWpTdHMxcG9hNmpwOTRGc2J4QlA3WVdHLzFsRERZQ0hGbUMw?=
+ =?utf-8?B?c1dnbWRGMUJ4a3Zicmdua2NPZlJpNVUvcEdyVlZwbExxaTFyUTVvZUNkWFl3?=
+ =?utf-8?B?Yklwb1B0R1Z4bEUzWnV5QkNXUElpNXF6aEx6MVJzc0ZpOXg4dmEzbHJhMERN?=
+ =?utf-8?B?OUFMSGtjT01PejlBTVZBRnRQNWR2Y2E3WHl6cnJtSXU0VndsTlB4REJ3U2dI?=
+ =?utf-8?B?WG9Ua0Q4WDRIQU5zaUdHZ2c5RTFWalRHbmt6bjA3di9QUDZETHY1VnhVU08y?=
+ =?utf-8?B?Yy8rSGxTQ1hwbVJ0dTVoWERnb09EYi9iV2MwdHV6bElsVHpNRkc4aytKYlh4?=
+ =?utf-8?B?WWNTSys3Z0hOeUpWZVJTa0lmMG8zRFAzT3RMcFNZZHdJT28xNi91aHpNY1Fl?=
+ =?utf-8?B?YldjVXhCTzU0Zm5uWEVhT2lGL1lTWGR4bk93VEVCSnl1c2F4NFhhanhDdnpp?=
+ =?utf-8?B?aytQWjkwbDNLeDZRdjREZmJBV0toUHI2dUVlK0ttbHFQMk5rQWFoUE15c1Jq?=
+ =?utf-8?B?UXpEWjBKdU9CZFdIK2I0Z2RucTNqekdnSmVNNGdoTVhwVXdxQ1RPcTlTOGN4?=
+ =?utf-8?B?QUM5elh6YnZERTdUbXlTNmRDMTk1eXgrSmtDZ1hHWjdlVGJ6ZXE4NE85M0NH?=
+ =?utf-8?B?L0N1M0xwZU12OWRxOTRMWVJHNGwxc0tIdFl2ZGpteWhzQ1lod2ZaTC9rTHV1?=
+ =?utf-8?B?cnE1WVdNcFNuK1VEUkxuQXZFVGZyOVAxNVhLVm94RHNrVmd3Q0pCY2Zia1pH?=
+ =?utf-8?B?U2dzSmdFK09uSTJZZzl3NmI3djFucEhJazZrNURQSEVKaDRIYTNUaXY4a3lP?=
+ =?utf-8?B?aFB1Q045eEM0QUc3V1oza1IrSjRGVTgxdXhzZXNZcUpkZVlUaXhoVlh6YnFX?=
+ =?utf-8?B?MGVYcHVSNjV4akxqZ1BvNjkrZVhhMXlBTVdMZzlUWGtwVkFTNk5DL2hGcEhI?=
+ =?utf-8?B?eUJ1MDNZang0dmtGeVJXc2FGV0ZxT0xqSU9vM0JaZVJDcEl2L2YzZ2dUNy9F?=
+ =?utf-8?B?Ny9KS1Q3V2luL3hNUzYxUGtXUzM3NVpUd0xTN3VDR3RGTHRyMDYvVTQ1eVNL?=
+ =?utf-8?B?Vmc9PQ==?=
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <683FFC8FE6CB0D428CF89FA9B3B5797A@namprd10.prod.outlook.com>
+Content-Transfer-Encoding: base64
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+X-OriginatorOrg: oracle.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: SJ0PR10MB4429.namprd10.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: a2c0dd95-567d-4f0d-71e7-08d9e947e254
+X-MS-Exchange-CrossTenant-originalarrivaltime: 06 Feb 2022 08:08:39.7676
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: pOdIJrQRPp62xW6K+oLc2PldhLTAotVVCzD8f+YD4zTcp/IK1f3arRwzBZVxKipCzh1XznyFSJw22SRhHxa5Kw==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BY5PR10MB3873
+X-Proofpoint-Virus-Version: vendor=nai engine=6300 definitions=10249 signatures=673430
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 phishscore=0 bulkscore=0 suspectscore=0
+ mlxlogscore=999 mlxscore=0 adultscore=0 malwarescore=0 spamscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2201110000
+ definitions=main-2202060059
+X-Proofpoint-GUID: V6P1lQQa9iPUl6bNxhWhKYn9Do5n0C3Y
+X-Proofpoint-ORIG-GUID: V6P1lQQa9iPUl6bNxhWhKYn9Do5n0C3Y
 
-From: Ben Widawsky <ben.widawsky@intel.com>
-
-At this point the subsystem can enumerate all CXL ports (CXL.mem decode
-resources in upstream switch ports and host bridges) in a system. The
-last mile is connecting those ports to endpoints.
-
-The cxl_mem driver connects an endpoint device to the platform CXL.mem
-protoctol decode-topology. At ->probe() time it walks its
-device-topology-ancestry and adds a CXL Port object at every Upstream
-Port hop until it gets to CXL root. The CXL root object is only present
-after a platform firmware driver registers platform CXL resources. For
-ACPI based platform this is managed by the ACPI0017 device and the
-cxl_acpi driver.
-
-The ports are registered such that disabling a given port automatically
-unregisters all descendant ports, and the chain can only be registered
-after the root is established.
-
-Given ACPI device scanning may run asynchronously compared to PCI device
-scanning the root driver is tasked with rescanning the bus after the
-root successfully probes.
-
-Conversely if any ports in a chain between the root and an endpoint
-becomes disconnected it subsequently triggers the endpoint to
-unregister. Given lock depenedencies the endpoint unregistration happens
-in a workqueue asynchronously. If userspace cares about synchronizing
-delayed work after port events the /sys/bus/cxl/flush attribute is
-available for that purpose.
-
-Reported-by: Randy Dunlap <rdunlap@infradead.org>
-Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
-Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-[djbw: clarify changelog, rework hotplug support]
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
-Changes since v5:
-- Move cxl_bus_rescan() declaration into this patch (Jonathan)
-- Move cxl_mem_find_port() declaration and definition into this patch
-  (Jonathan)
-
- Documentation/ABI/testing/sysfs-bus-cxl         |    9 +
- Documentation/driver-api/cxl/memory-devices.rst |    9 +
- drivers/cxl/Kconfig                             |   16 ++
- drivers/cxl/Makefile                            |    2 
- drivers/cxl/acpi.c                              |    3 
- drivers/cxl/core/memdev.c                       |   16 ++
- drivers/cxl/core/port.c                         |  105 ++++++++++-
- drivers/cxl/cxl.h                               |    6 +
- drivers/cxl/cxlmem.h                            |    8 +
- drivers/cxl/mem.c                               |  228 +++++++++++++++++++++++
- drivers/cxl/port.c                              |   12 +
- tools/testing/cxl/Kbuild                        |    6 +
- tools/testing/cxl/mock_mem.c                    |   10 +
- 13 files changed, 425 insertions(+), 5 deletions(-)
- create mode 100644 drivers/cxl/mem.c
- create mode 100644 tools/testing/cxl/mock_mem.c
-
-diff --git a/Documentation/ABI/testing/sysfs-bus-cxl b/Documentation/ABI/testing/sysfs-bus-cxl
-index 0b51cfec0c66..7c2b846521f3 100644
---- a/Documentation/ABI/testing/sysfs-bus-cxl
-+++ b/Documentation/ABI/testing/sysfs-bus-cxl
-@@ -1,3 +1,12 @@
-+What:		/sys/bus/cxl/flush
-+Date:		Januarry, 2022
-+KernelVersion:	v5.18
-+Contact:	linux-cxl@vger.kernel.org
-+Description:
-+		(WO) If userspace manually unbinds a port the kernel schedules
-+		all descendant memdevs for unbind. Writing '1' to this attribute
-+		flushes that work.
-+
- What:		/sys/bus/cxl/devices/memX/firmware_version
- Date:		December, 2020
- KernelVersion:	v5.12
-diff --git a/Documentation/driver-api/cxl/memory-devices.rst b/Documentation/driver-api/cxl/memory-devices.rst
-index 3498d38d7cbd..db476bb170b6 100644
---- a/Documentation/driver-api/cxl/memory-devices.rst
-+++ b/Documentation/driver-api/cxl/memory-devices.rst
-@@ -325,6 +325,9 @@ CXL Memory Device
- .. kernel-doc:: drivers/cxl/pci.c
-    :internal:
- 
-+.. kernel-doc:: drivers/cxl/mem.c
-+   :doc: cxl mem
-+
- CXL Port
- --------
- .. kernel-doc:: drivers/cxl/port.c
-@@ -344,6 +347,12 @@ CXL Core
- .. kernel-doc:: drivers/cxl/core/port.c
-    :identifiers:
- 
-+.. kernel-doc:: drivers/cxl/core/pci.c
-+   :doc: cxl core pci
-+
-+.. kernel-doc:: drivers/cxl/core/pci.c
-+   :identifiers:
-+
- .. kernel-doc:: drivers/cxl/core/pmem.c
-    :doc: cxl pmem
- 
-diff --git a/drivers/cxl/Kconfig b/drivers/cxl/Kconfig
-index 4f4f7587f6ca..b88ab956bb7c 100644
---- a/drivers/cxl/Kconfig
-+++ b/drivers/cxl/Kconfig
-@@ -78,6 +78,22 @@ config CXL_PMEM
- 
- 	  If unsure say 'm'.
- 
-+config CXL_MEM
-+	tristate "CXL: Memory Expansion"
-+	depends on CXL_PCI
-+	default CXL_BUS
-+	help
-+	  The CXL.mem protocol allows a device to act as a provider of "System
-+	  RAM" and/or "Persistent Memory" that is fully coherent as if the
-+	  memory were attached to the typical CPU memory controller. This is
-+	  known as HDM "Host-managed Device Memory".
-+
-+	  Say 'y/m' to enable a driver that will attach to CXL.mem devices for
-+	  memory expansion and control of HDM. See Chapter 9.13 in the CXL 2.0
-+	  specification for a detailed description of HDM.
-+
-+	  If unsure say 'm'.
-+
- config CXL_PORT
- 	default CXL_BUS
- 	tristate
-diff --git a/drivers/cxl/Makefile b/drivers/cxl/Makefile
-index 56fcac2323cb..ce267ef11d93 100644
---- a/drivers/cxl/Makefile
-+++ b/drivers/cxl/Makefile
-@@ -1,10 +1,12 @@
- # SPDX-License-Identifier: GPL-2.0
- obj-$(CONFIG_CXL_BUS) += core/
- obj-$(CONFIG_CXL_PCI) += cxl_pci.o
-+obj-$(CONFIG_CXL_MEM) += cxl_mem.o
- obj-$(CONFIG_CXL_ACPI) += cxl_acpi.o
- obj-$(CONFIG_CXL_PMEM) += cxl_pmem.o
- obj-$(CONFIG_CXL_PORT) += cxl_port.o
- 
-+cxl_mem-y := mem.o
- cxl_pci-y := pci.o
- cxl_acpi-y := acpi.o
- cxl_pmem-y := pmem.o
-diff --git a/drivers/cxl/acpi.c b/drivers/cxl/acpi.c
-index 7bd53dc691ec..d8295572bde9 100644
---- a/drivers/cxl/acpi.c
-+++ b/drivers/cxl/acpi.c
-@@ -314,7 +314,8 @@ static int cxl_acpi_probe(struct platform_device *pdev)
- 	if (rc < 0)
- 		return rc;
- 
--	return 0;
-+	/* In case PCI is scanned before ACPI re-trigger memdev attach */
-+	return cxl_bus_rescan();
- }
- 
- static const struct acpi_device_id cxl_acpi_ids[] = {
-diff --git a/drivers/cxl/core/memdev.c b/drivers/cxl/core/memdev.c
-index b2773664e407..1f76b28f9826 100644
---- a/drivers/cxl/core/memdev.c
-+++ b/drivers/cxl/core/memdev.c
-@@ -162,6 +162,12 @@ static const struct device_type cxl_memdev_type = {
- 	.groups = cxl_memdev_attribute_groups,
- };
- 
-+bool is_cxl_memdev(struct device *dev)
-+{
-+	return dev->type == &cxl_memdev_type;
-+}
-+EXPORT_SYMBOL_NS_GPL(is_cxl_memdev, CXL);
-+
- /**
-  * set_exclusive_cxl_commands() - atomically disable user cxl commands
-  * @cxlds: The device state to operate on
-@@ -213,6 +219,15 @@ static void cxl_memdev_unregister(void *_cxlmd)
- 	put_device(dev);
- }
- 
-+static void detach_memdev(struct work_struct *work)
-+{
-+	struct cxl_memdev *cxlmd;
-+
-+	cxlmd = container_of(work, typeof(*cxlmd), detach_work);
-+	device_release_driver(&cxlmd->dev);
-+	put_device(&cxlmd->dev);
-+}
-+
- static struct cxl_memdev *cxl_memdev_alloc(struct cxl_dev_state *cxlds,
- 					   const struct file_operations *fops)
- {
-@@ -237,6 +252,7 @@ static struct cxl_memdev *cxl_memdev_alloc(struct cxl_dev_state *cxlds,
- 	dev->devt = MKDEV(cxl_mem_major, cxlmd->id);
- 	dev->type = &cxl_memdev_type;
- 	device_set_pm_not_required(dev);
-+	INIT_WORK(&cxlmd->detach_work, detach_memdev);
- 
- 	cdev = &cxlmd->cdev;
- 	cdev_init(cdev, fops);
-diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
-index c5779c982c80..f460460b12b3 100644
---- a/drivers/cxl/core/port.c
-+++ b/drivers/cxl/core/port.c
-@@ -1,6 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0-only
- /* Copyright(c) 2020 Intel Corporation. All rights reserved. */
- #include <linux/io-64-nonatomic-lo-hi.h>
-+#include <linux/workqueue.h>
- #include <linux/device.h>
- #include <linux/module.h>
- #include <linux/pci.h>
-@@ -46,6 +47,8 @@ static int cxl_device_id(struct device *dev)
- 			return CXL_DEVICE_ROOT;
- 		return CXL_DEVICE_PORT;
- 	}
-+	if (is_cxl_memdev(dev))
-+		return CXL_DEVICE_MEMORY_EXPANDER;
- 	return 0;
- }
- 
-@@ -318,8 +321,10 @@ static void unregister_port(void *_port)
- {
- 	struct cxl_port *port = _port;
- 
--	if (!is_cxl_root(port))
-+	if (!is_cxl_root(port)) {
- 		device_lock_assert(port->dev.parent);
-+		port->uport = NULL;
-+	}
- 
- 	device_unregister(&port->dev);
- }
-@@ -410,7 +415,9 @@ struct cxl_port *devm_cxl_add_port(struct device *host, struct device *uport,
- 	if (parent_port)
- 		port->depth = parent_port->depth + 1;
- 	dev = &port->dev;
--	if (parent_port)
-+	if (is_cxl_memdev(uport))
-+		rc = dev_set_name(dev, "endpoint%d", port->id);
-+	else if (parent_port)
- 		rc = dev_set_name(dev, "port%d", port->id);
- 	else
- 		rc = dev_set_name(dev, "root%d", port->id);
-@@ -790,6 +797,38 @@ static struct device *grandparent(struct device *dev)
- 	return NULL;
- }
- 
-+static void delete_endpoint(void *data)
-+{
-+	struct cxl_memdev *cxlmd = data;
-+	struct cxl_port *endpoint = dev_get_drvdata(&cxlmd->dev);
-+	struct cxl_port *parent_port;
-+	struct device *parent;
-+
-+	parent_port = cxl_mem_find_port(cxlmd);
-+	if (!parent_port)
-+		return;
-+	parent = &parent_port->dev;
-+
-+	cxl_device_lock(parent);
-+	if (parent->driver && endpoint->uport) {
-+		devm_release_action(parent, cxl_unlink_uport, endpoint);
-+		devm_release_action(parent, unregister_port, endpoint);
-+	}
-+	cxl_device_unlock(parent);
-+	put_device(parent);
-+	put_device(&endpoint->dev);
-+}
-+
-+int cxl_endpoint_autoremove(struct cxl_memdev *cxlmd, struct cxl_port *endpoint)
-+{
-+	struct device *dev = &cxlmd->dev;
-+
-+	get_device(&endpoint->dev);
-+	dev_set_drvdata(dev, endpoint);
-+	return devm_add_action_or_reset(dev, delete_endpoint, cxlmd);
-+}
-+EXPORT_SYMBOL_NS_GPL(cxl_endpoint_autoremove, CXL);
-+
- /*
-  * The natural end of life of a non-root 'cxl_port' is when its parent port goes
-  * through a ->remove() event ("top-down" unregistration). The unnatural trigger
-@@ -1034,6 +1073,12 @@ int devm_cxl_enumerate_ports(struct cxl_memdev *cxlmd)
- }
- EXPORT_SYMBOL_NS_GPL(devm_cxl_enumerate_ports, CXL);
- 
-+struct cxl_port *cxl_mem_find_port(struct cxl_memdev *cxlmd)
-+{
-+	return find_cxl_port(grandparent(&cxlmd->dev));
-+}
-+EXPORT_SYMBOL_NS_GPL(cxl_mem_find_port, CXL);
-+
- struct cxl_dport *cxl_find_dport_by_dev(struct cxl_port *port,
- 					const struct device *dev)
- {
-@@ -1352,12 +1397,54 @@ static void cxl_bus_remove(struct device *dev)
- 	cxl_nested_unlock(dev);
- }
- 
-+static struct workqueue_struct *cxl_bus_wq;
-+
-+int cxl_bus_rescan(void)
-+{
-+	return bus_rescan_devices(&cxl_bus_type);
-+}
-+EXPORT_SYMBOL_NS_GPL(cxl_bus_rescan, CXL);
-+
-+bool schedule_cxl_memdev_detach(struct cxl_memdev *cxlmd)
-+{
-+	return queue_work(cxl_bus_wq, &cxlmd->detach_work);
-+}
-+EXPORT_SYMBOL_NS_GPL(schedule_cxl_memdev_detach, CXL);
-+
-+/* for user tooling to ensure port disable work has completed */
-+static ssize_t flush_store(struct bus_type *bus, const char *buf, size_t count)
-+{
-+	if (sysfs_streq(buf, "1")) {
-+		flush_workqueue(cxl_bus_wq);
-+		return count;
-+	}
-+
-+	return -EINVAL;
-+}
-+
-+static BUS_ATTR_WO(flush);
-+
-+static struct attribute *cxl_bus_attributes[] = {
-+	&bus_attr_flush.attr,
-+	NULL,
-+};
-+
-+static struct attribute_group cxl_bus_attribute_group = {
-+	.attrs = cxl_bus_attributes,
-+};
-+
-+static const struct attribute_group *cxl_bus_attribute_groups[] = {
-+	&cxl_bus_attribute_group,
-+	NULL,
-+};
-+
- struct bus_type cxl_bus_type = {
- 	.name = "cxl",
- 	.uevent = cxl_bus_uevent,
- 	.match = cxl_bus_match,
- 	.probe = cxl_bus_probe,
- 	.remove = cxl_bus_remove,
-+	.bus_groups = cxl_bus_attribute_groups,
- };
- EXPORT_SYMBOL_NS_GPL(cxl_bus_type, CXL);
- 
-@@ -1371,12 +1458,21 @@ static __init int cxl_core_init(void)
- 	if (rc)
- 		return rc;
- 
-+	cxl_bus_wq = alloc_ordered_workqueue("cxl_port", 0);
-+	if (!cxl_bus_wq) {
-+		rc = -ENOMEM;
-+		goto err_wq;
-+	}
-+
- 	rc = bus_register(&cxl_bus_type);
- 	if (rc)
--		goto err;
-+		goto err_bus;
-+
- 	return 0;
- 
--err:
-+err_bus:
-+	destroy_workqueue(cxl_bus_wq);
-+err_wq:
- 	cxl_memdev_exit();
- 	cxl_mbox_exit();
- 	return rc;
-@@ -1385,6 +1481,7 @@ static __init int cxl_core_init(void)
- static void cxl_core_exit(void)
- {
- 	bus_unregister(&cxl_bus_type);
-+	destroy_workqueue(cxl_bus_wq);
- 	cxl_memdev_exit();
- 	cxl_mbox_exit();
- }
-diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
-index de4fbe7cbf42..f5e5b4ac8228 100644
---- a/drivers/cxl/cxl.h
-+++ b/drivers/cxl/cxl.h
-@@ -328,6 +328,9 @@ struct cxl_port *devm_cxl_add_port(struct device *host, struct device *uport,
- 				   struct cxl_port *parent_port);
- struct cxl_port *find_cxl_root(struct device *dev);
- int devm_cxl_enumerate_ports(struct cxl_memdev *cxlmd);
-+int cxl_bus_rescan(void);
-+struct cxl_port *cxl_mem_find_port(struct cxl_memdev *cxlmd);
-+bool schedule_cxl_memdev_detach(struct cxl_memdev *cxlmd);
- 
- struct cxl_dport *devm_cxl_add_dport(struct cxl_port *port,
- 				     struct device *dport, int port_id,
-@@ -345,6 +348,8 @@ struct cxl_decoder *cxl_switch_decoder_alloc(struct cxl_port *port,
- int cxl_decoder_add(struct cxl_decoder *cxld, int *target_map);
- int cxl_decoder_add_locked(struct cxl_decoder *cxld, int *target_map);
- int cxl_decoder_autoremove(struct device *host, struct cxl_decoder *cxld);
-+int cxl_endpoint_autoremove(struct cxl_memdev *cxlmd, struct cxl_port *endpoint);
-+
- struct cxl_hdm;
- struct cxl_hdm *devm_cxl_setup_hdm(struct cxl_port *port);
- int devm_cxl_enumerate_decoders(struct cxl_hdm *cxlhdm);
-@@ -377,6 +382,7 @@ void cxl_driver_unregister(struct cxl_driver *cxl_drv);
- #define CXL_DEVICE_NVDIMM		2
- #define CXL_DEVICE_PORT			3
- #define CXL_DEVICE_ROOT			4
-+#define CXL_DEVICE_MEMORY_EXPANDER	5
- 
- #define MODULE_ALIAS_CXL(type) MODULE_ALIAS("cxl:t" __stringify(type) "*")
- #define CXL_MODALIAS_FMT "cxl:t%d"
-diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
-index 0ba0cf8dcdbc..5d33ce24fe09 100644
---- a/drivers/cxl/cxlmem.h
-+++ b/drivers/cxl/cxlmem.h
-@@ -34,12 +34,14 @@
-  * @dev: driver core device object
-  * @cdev: char dev core object for ioctl operations
-  * @cxlds: The device state backing this device
-+ * @detach_work: active memdev lost a port in its ancestry
-  * @id: id number of this memdev instance.
-  */
- struct cxl_memdev {
- 	struct device dev;
- 	struct cdev cdev;
- 	struct cxl_dev_state *cxlds;
-+	struct work_struct detach_work;
- 	int id;
- };
- 
-@@ -48,6 +50,12 @@ static inline struct cxl_memdev *to_cxl_memdev(struct device *dev)
- 	return container_of(dev, struct cxl_memdev, dev);
- }
- 
-+bool is_cxl_memdev(struct device *dev);
-+static inline bool is_cxl_endpoint(struct cxl_port *port)
-+{
-+	return is_cxl_memdev(port->uport);
-+}
-+
- struct cxl_memdev *devm_cxl_add_memdev(struct cxl_dev_state *cxlds);
- 
- /**
-diff --git a/drivers/cxl/mem.c b/drivers/cxl/mem.c
-new file mode 100644
-index 000000000000..49a4b1c47299
---- /dev/null
-+++ b/drivers/cxl/mem.c
-@@ -0,0 +1,228 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/* Copyright(c) 2022 Intel Corporation. All rights reserved. */
-+#include <linux/device.h>
-+#include <linux/module.h>
-+#include <linux/pci.h>
-+
-+#include "cxlmem.h"
-+#include "cxlpci.h"
-+
-+/**
-+ * DOC: cxl mem
-+ *
-+ * CXL memory endpoint devices and switches are CXL capable devices that are
-+ * participating in CXL.mem protocol. Their functionality builds on top of the
-+ * CXL.io protocol that allows enumerating and configuring components via
-+ * standard PCI mechanisms.
-+ *
-+ * The cxl_mem driver owns kicking off the enumeration of this CXL.mem
-+ * capability. With the detection of a CXL capable endpoint, the driver will
-+ * walk up to find the platform specific port it is connected to, and determine
-+ * if there are intervening switches in the path. If there are switches, a
-+ * secondary action is to enumerate those (implemented in cxl_core). Finally the
-+ * cxl_mem driver adds the device it is bound to as a CXL endpoint-port for use
-+ * in higher level operations.
-+ */
-+
-+static int wait_for_media(struct cxl_memdev *cxlmd)
-+{
-+	struct cxl_dev_state *cxlds = cxlmd->cxlds;
-+	struct cxl_endpoint_dvsec_info *info = &cxlds->info;
-+	int rc;
-+
-+	if (!info->mem_enabled)
-+		return -EBUSY;
-+
-+	rc = cxlds->wait_media_ready(cxlds);
-+	if (rc)
-+		return rc;
-+
-+	/*
-+	 * We know the device is active, and enabled, if any ranges are non-zero
-+	 * we'll need to check later before adding the port since that owns the
-+	 * HDM decoder registers.
-+	 */
-+	return 0;
-+}
-+
-+static int create_endpoint(struct cxl_memdev *cxlmd,
-+			   struct cxl_port *parent_port)
-+{
-+	struct cxl_dev_state *cxlds = cxlmd->cxlds;
-+	struct cxl_port *endpoint;
-+
-+	endpoint = devm_cxl_add_port(&parent_port->dev, &cxlmd->dev,
-+				     cxlds->component_reg_phys, parent_port);
-+	if (IS_ERR(endpoint))
-+		return PTR_ERR(endpoint);
-+
-+	dev_dbg(&cxlmd->dev, "add: %s\n", dev_name(&endpoint->dev));
-+
-+	if (!endpoint->dev.driver) {
-+		dev_err(&cxlmd->dev, "%s failed probe\n",
-+			dev_name(&endpoint->dev));
-+		return -ENXIO;
-+	}
-+
-+	return cxl_endpoint_autoremove(cxlmd, endpoint);
-+}
-+
-+/**
-+ * cxl_dvsec_decode_init() - Setup HDM decoding for the endpoint
-+ * @cxlds: Device state
-+ *
-+ * Additionally, enables global HDM decoding. Warning: don't call this outside
-+ * of probe. Once probe is complete, the port driver owns all access to the HDM
-+ * decoder registers.
-+ *
-+ * Returns: false if DVSEC Ranges are being used instead of HDM
-+ * decoders, or if it can not be determined if DVSEC Ranges are in use.
-+ * Otherwise, returns true.
-+ */
-+__mock bool cxl_dvsec_decode_init(struct cxl_dev_state *cxlds)
-+{
-+	struct cxl_endpoint_dvsec_info *info = &cxlds->info;
-+	struct cxl_register_map map;
-+	struct cxl_component_reg_map *cmap = &map.component_map;
-+	bool global_enable, do_hdm_init = false;
-+	void __iomem *crb;
-+	u32 global_ctrl;
-+
-+	/* map hdm decoder */
-+	crb = ioremap(cxlds->component_reg_phys, CXL_COMPONENT_REG_BLOCK_SIZE);
-+	if (!crb) {
-+		dev_dbg(cxlds->dev, "Failed to map component registers\n");
-+		return false;
-+	}
-+
-+	cxl_probe_component_regs(cxlds->dev, crb, cmap);
-+	if (!cmap->hdm_decoder.valid) {
-+		dev_dbg(cxlds->dev, "Invalid HDM decoder registers\n");
-+		goto out;
-+	}
-+
-+	global_ctrl = readl(crb + cmap->hdm_decoder.offset +
-+			    CXL_HDM_DECODER_CTRL_OFFSET);
-+	global_enable = global_ctrl & CXL_HDM_DECODER_ENABLE;
-+	if (!global_enable && info->ranges) {
-+		dev_dbg(cxlds->dev,
-+			"DVSEC ranges already programmed and HDM decoders not enabled.\n");
-+		goto out;
-+	}
-+
-+	do_hdm_init = true;
-+
-+	/*
-+	 * Permanently (for this boot at least) opt the device into HDM
-+	 * operation. Individual HDM decoders still need to be enabled after
-+	 * this point.
-+	 */
-+	if (!global_enable) {
-+		dev_dbg(cxlds->dev, "Enabling HDM decode\n");
-+		writel(global_ctrl | CXL_HDM_DECODER_ENABLE,
-+		       crb + cmap->hdm_decoder.offset +
-+			       CXL_HDM_DECODER_CTRL_OFFSET);
-+	}
-+
-+out:
-+	iounmap(crb);
-+	return do_hdm_init;
-+}
-+
-+static int cxl_mem_probe(struct device *dev)
-+{
-+	struct cxl_memdev *cxlmd = to_cxl_memdev(dev);
-+	struct cxl_dev_state *cxlds = cxlmd->cxlds;
-+	struct cxl_port *parent_port;
-+	int rc;
-+
-+	/*
-+	 * Someone is trying to reattach this device after it lost its port
-+	 * connection (an endpoint port previously registered by this memdev was
-+	 * disabled). This racy check is ok because if the port is still gone,
-+	 * no harm done, and if the port hierarchy comes back it will re-trigger
-+	 * this probe. Port rescan and memdev detach work share the same
-+	 * single-threaded workqueue.
-+	 */
-+	if (work_pending(&cxlmd->detach_work))
-+		return -EBUSY;
-+
-+	rc = wait_for_media(cxlmd);
-+	if (rc) {
-+		dev_err(dev, "Media not active (%d)\n", rc);
-+		return rc;
-+	}
-+
-+	/*
-+	 * If DVSEC ranges are being used instead of HDM decoder registers there
-+	 * is no use in trying to manage those.
-+	 */
-+	if (!cxl_dvsec_decode_init(cxlds)) {
-+		struct cxl_endpoint_dvsec_info *info = &cxlds->info;
-+		int i;
-+
-+		/* */
-+		for (i = 0; i < 2; i++) {
-+			u64 base, size;
-+
-+			/*
-+			 * Give a nice warning to the user that BIOS has really
-+			 * botched things for them if it didn't place DVSEC
-+			 * ranges in the memory map.
-+			 */
-+			base = info->dvsec_range[i].start;
-+			size = range_len(&info->dvsec_range[i]);
-+			if (size && !region_intersects(base, size,
-+						       IORESOURCE_SYSTEM_RAM,
-+						       IORES_DESC_NONE)) {
-+				dev_err(dev,
-+					"DVSEC range %#llx-%#llx must be reserved by BIOS, but isn't\n",
-+					base, base + size - 1);
-+			}
-+		}
-+		dev_err(dev,
-+			"Active DVSEC range registers in use. Will not bind.\n");
-+		return -EBUSY;
-+	}
-+
-+	rc = devm_cxl_enumerate_ports(cxlmd);
-+	if (rc)
-+		return rc;
-+
-+	parent_port = cxl_mem_find_port(cxlmd);
-+	if (!parent_port) {
-+		dev_err(dev, "CXL port topology not found\n");
-+		return -ENXIO;
-+	}
-+
-+	cxl_device_lock(&parent_port->dev);
-+	if (!parent_port->dev.driver) {
-+		dev_err(dev, "CXL port topology %s not enabled\n",
-+			dev_name(&parent_port->dev));
-+		rc = -ENXIO;
-+		goto out;
-+	}
-+
-+	rc = create_endpoint(cxlmd, parent_port);
-+out:
-+	cxl_device_unlock(&parent_port->dev);
-+	put_device(&parent_port->dev);
-+	return rc;
-+}
-+
-+static struct cxl_driver cxl_mem_driver = {
-+	.name = "cxl_mem",
-+	.probe = cxl_mem_probe,
-+	.id = CXL_DEVICE_MEMORY_EXPANDER,
-+};
-+
-+module_cxl_driver(cxl_mem_driver);
-+
-+MODULE_LICENSE("GPL v2");
-+MODULE_IMPORT_NS(CXL);
-+MODULE_ALIAS_CXL(CXL_DEVICE_MEMORY_EXPANDER);
-+/*
-+ * create_endpoint() wants to validate port driver attach immediately after
-+ * endpoint registration.
-+ */
-+MODULE_SOFTDEP("pre: cxl_port");
-diff --git a/drivers/cxl/port.c b/drivers/cxl/port.c
-index 5a1aec28dc46..4d4e23b9adff 100644
---- a/drivers/cxl/port.c
-+++ b/drivers/cxl/port.c
-@@ -25,12 +25,24 @@
-  * PCIe topology.
-  */
- 
-+static void schedule_detach(void *cxlmd)
-+{
-+	schedule_cxl_memdev_detach(cxlmd);
-+}
-+
- static int cxl_port_probe(struct device *dev)
- {
- 	struct cxl_port *port = to_cxl_port(dev);
- 	struct cxl_hdm *cxlhdm;
- 	int rc;
- 
-+	if (is_cxl_endpoint(port)) {
-+		struct cxl_memdev *cxlmd = to_cxl_memdev(port->uport);
-+
-+		get_device(&cxlmd->dev);
-+		return devm_add_action_or_reset(dev, schedule_detach, cxlmd);
-+	}
-+
- 	rc = devm_cxl_port_enumerate_dports(port);
- 	if (rc < 0)
- 		return rc;
-diff --git a/tools/testing/cxl/Kbuild b/tools/testing/cxl/Kbuild
-index 27ae13e23e79..82e49ab0937d 100644
---- a/tools/testing/cxl/Kbuild
-+++ b/tools/testing/cxl/Kbuild
-@@ -31,6 +31,12 @@ obj-m += cxl_port.o
- cxl_port-y := $(CXL_SRC)/port.o
- cxl_port-y += config_check.o
- 
-+obj-m += cxl_mem.o
-+
-+cxl_mem-y := $(CXL_SRC)/mem.o
-+cxl_mem-y += mock_mem.o
-+cxl_mem-y += config_check.o
-+
- obj-m += cxl_core.o
- 
- cxl_core-y := $(CXL_CORE_SRC)/port.o
-diff --git a/tools/testing/cxl/mock_mem.c b/tools/testing/cxl/mock_mem.c
-new file mode 100644
-index 000000000000..d1dec5845139
---- /dev/null
-+++ b/tools/testing/cxl/mock_mem.c
-@@ -0,0 +1,10 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/* Copyright(c) 2022 Intel Corporation. All rights reserved. */
-+
-+#include <linux/types.h>
-+
-+struct cxl_dev_state;
-+bool cxl_dvsec_decode_init(struct cxl_dev_state *cxlds)
-+{
-+	return true;
-+}
-
+T24gMi8zLzIwMjIgMTA6MjEgUE0sIERhbiBXaWxsaWFtcyB3cm90ZToNCj4gT24gRnJpLCBKYW4g
+MjgsIDIwMjIgYXQgMTozMiBQTSBKYW5lIENodSA8amFuZS5jaHVAb3JhY2xlLmNvbT4gd3JvdGU6
+DQo+Pg0KPj4gcG1lbV9yZWNvdmVyeV93cml0ZSgpIGNvbnNpc3RzIG9mIGNsZWFyaW5nIHBvaXNv
+biB2aWEgRFNNLA0KPj4gY2xlYXJpbmcgcGFnZSBIV1BvaXNvbiBiaXQsIHJlLXN0YXRlIF9QQUdF
+X1BSRVNFTlQgYml0LA0KPj4gY2FjaGVmbHVzaCwgd3JpdGUsIGFuZCBmaW5hbGx5IGNsZWFyaW5n
+IGJhZC1ibG9jayByZWNvcmQuDQo+Pg0KPj4gQSBjb21wZXRpbmcgcHJlYWQgdGhyZWFkIGlzIGhl
+bGQgb2ZmIGR1cmluZyByZWNvdmVyeSB3cml0ZQ0KPj4gYnkgdGhlIHByZXNlbmNlIG9mIGJhZC1i
+bG9jayByZWNvcmQuIEEgY29tcGV0aW5nIHJlY292ZXJ5X3dyaXRlDQo+PiB0aHJlYWQgaXMgc2Vy
+aWFsaXplZCBieSBhIGxvY2suDQo+Pg0KPj4gU2lnbmVkLW9mZi1ieTogSmFuZSBDaHUgPGphbmUu
+Y2h1QG9yYWNsZS5jb20+DQo+PiAtLS0NCj4+ICAgZHJpdmVycy9udmRpbW0vcG1lbS5jIHwgODIg
+KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrLS0tLQ0KPj4gICBkcml2ZXJz
+L252ZGltbS9wbWVtLmggfCAgMSArDQo+PiAgIDIgZmlsZXMgY2hhbmdlZCwgNzcgaW5zZXJ0aW9u
+cygrKSwgNiBkZWxldGlvbnMoLSkNCj4+DQo+PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9udmRpbW0v
+cG1lbS5jIGIvZHJpdmVycy9udmRpbW0vcG1lbS5jDQo+PiBpbmRleCA2MzhlNjQ2ODFkYjkuLmYy
+ZDZiMzRkNDhkZSAxMDA2NDQNCj4+IC0tLSBhL2RyaXZlcnMvbnZkaW1tL3BtZW0uYw0KPj4gKysr
+IGIvZHJpdmVycy9udmRpbW0vcG1lbS5jDQo+PiBAQCAtNjksNiArNjksMTQgQEAgc3RhdGljIHZv
+aWQgaHdwb2lzb25fY2xlYXIoc3RydWN0IHBtZW1fZGV2aWNlICpwbWVtLA0KPj4gICAgICAgICAg
+fQ0KPj4gICB9DQo+Pg0KPj4gK3N0YXRpYyB2b2lkIHBtZW1fY2xlYXJfYmFkYmxvY2tzKHN0cnVj
+dCBwbWVtX2RldmljZSAqcG1lbSwgc2VjdG9yX3Qgc2VjdG9yLA0KPj4gKyAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICBsb25nIGNsZWFyZWRfYmxrcykNCj4+ICt7DQo+PiArICAgICAgIGJh
+ZGJsb2Nrc19jbGVhcigmcG1lbS0+YmIsIHNlY3RvciwgY2xlYXJlZF9ibGtzKTsNCj4+ICsgICAg
+ICAgaWYgKHBtZW0tPmJiX3N0YXRlKQ0KPj4gKyAgICAgICAgICAgICAgIHN5c2ZzX25vdGlmeV9k
+aXJlbnQocG1lbS0+YmJfc3RhdGUpOw0KPj4gK30NCj4+ICsNCj4+ICAgc3RhdGljIGJsa19zdGF0
+dXNfdCBwbWVtX2NsZWFyX3BvaXNvbihzdHJ1Y3QgcG1lbV9kZXZpY2UgKnBtZW0sDQo+PiAgICAg
+ICAgICAgICAgICAgIHBoeXNfYWRkcl90IG9mZnNldCwgdW5zaWduZWQgaW50IGxlbikNCj4+ICAg
+ew0KPj4gQEAgLTg4LDkgKzk2LDcgQEAgc3RhdGljIGJsa19zdGF0dXNfdCBwbWVtX2NsZWFyX3Bv
+aXNvbihzdHJ1Y3QgcG1lbV9kZXZpY2UgKnBtZW0sDQo+PiAgICAgICAgICAgICAgICAgIGRldl9k
+YmcoZGV2LCAiJSNsbHggY2xlYXIgJWxkIHNlY3RvciVzXG4iLA0KPj4gICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgKHVuc2lnbmVkIGxvbmcgbG9uZykgc2VjdG9yLCBjbGVhcmVkLA0K
+Pj4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgY2xlYXJlZCA+IDEgPyAicyIgOiAi
+Iik7DQo+PiAtICAgICAgICAgICAgICAgYmFkYmxvY2tzX2NsZWFyKCZwbWVtLT5iYiwgc2VjdG9y
+LCBjbGVhcmVkKTsNCj4+IC0gICAgICAgICAgICAgICBpZiAocG1lbS0+YmJfc3RhdGUpDQo+PiAt
+ICAgICAgICAgICAgICAgICAgICAgICBzeXNmc19ub3RpZnlfZGlyZW50KHBtZW0tPmJiX3N0YXRl
+KTsNCj4+ICsgICAgICAgICAgICAgICBwbWVtX2NsZWFyX2JhZGJsb2NrcyhwbWVtLCBzZWN0b3Is
+IGNsZWFyZWQpOw0KPj4gICAgICAgICAgfQ0KPj4NCj4+ICAgICAgICAgIGFyY2hfaW52YWxpZGF0
+ZV9wbWVtKHBtZW0tPnZpcnRfYWRkciArIG9mZnNldCwgbGVuKTsNCj4+IEBAIC0yNTcsMTAgKzI2
+MywxNSBAQCBzdGF0aWMgaW50IHBtZW1fcndfcGFnZShzdHJ1Y3QgYmxvY2tfZGV2aWNlICpiZGV2
+LCBzZWN0b3JfdCBzZWN0b3IsDQo+PiAgIF9fd2VhayBsb25nIF9fcG1lbV9kaXJlY3RfYWNjZXNz
+KHN0cnVjdCBwbWVtX2RldmljZSAqcG1lbSwgcGdvZmZfdCBwZ29mZiwNCj4+ICAgICAgICAgICAg
+ICAgICAgbG9uZyBucl9wYWdlcywgdm9pZCAqKmthZGRyLCBwZm5fdCAqcGZuKQ0KPj4gICB7DQo+
+PiArICAgICAgIGJvb2wgYmFkX3BtZW07DQo+PiArICAgICAgIGJvb2wgZG9fcmVjb3ZlcnkgPSBm
+YWxzZTsNCj4+ICAgICAgICAgIHJlc291cmNlX3NpemVfdCBvZmZzZXQgPSBQRk5fUEhZUyhwZ29m
+ZikgKyBwbWVtLT5kYXRhX29mZnNldDsNCj4+DQo+PiAtICAgICAgIGlmICh1bmxpa2VseShpc19i
+YWRfcG1lbSgmcG1lbS0+YmIsIFBGTl9QSFlTKHBnb2ZmKSAvIDUxMiwNCj4+IC0gICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICBQRk5fUEhZUyhucl9wYWdlcykpKSkNCj4+ICsg
+ICAgICAgYmFkX3BtZW0gPSBpc19iYWRfcG1lbSgmcG1lbS0+YmIsIFBGTl9QSFlTKHBnb2ZmKSAv
+IDUxMiwNCj4+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgUEZOX1BIWVMobnJfcGFn
+ZXMpKTsNCj4+ICsgICAgICAgaWYgKGJhZF9wbWVtICYmIGthZGRyKQ0KPj4gKyAgICAgICAgICAg
+ICAgIGRvX3JlY292ZXJ5ID0gZGF4X3JlY292ZXJ5X3N0YXJ0ZWQocG1lbS0+ZGF4X2Rldiwga2Fk
+ZHIpOw0KPj4gKyAgICAgICBpZiAoYmFkX3BtZW0gJiYgIWRvX3JlY292ZXJ5KQ0KPj4gICAgICAg
+ICAgICAgICAgICByZXR1cm4gLUVJTzsNCj4+DQo+PiAgICAgICAgICBpZiAoa2FkZHIpDQo+PiBA
+QCAtMzAxLDEwICszMTIsNjggQEAgc3RhdGljIGxvbmcgcG1lbV9kYXhfZGlyZWN0X2FjY2Vzcyhz
+dHJ1Y3QgZGF4X2RldmljZSAqZGF4X2RldiwNCj4+ICAgICAgICAgIHJldHVybiBfX3BtZW1fZGly
+ZWN0X2FjY2VzcyhwbWVtLCBwZ29mZiwgbnJfcGFnZXMsIGthZGRyLCBwZm4pOw0KPj4gICB9DQo+
+Pg0KPj4gKy8qDQo+PiArICogVGhlIHJlY292ZXJ5IHdyaXRlIHRocmVhZCBzdGFydGVkIG91dCBh
+cyBhIG5vcm1hbCBwd3JpdGUgdGhyZWFkIGFuZA0KPj4gKyAqIHdoZW4gdGhlIGZpbGVzeXN0ZW0g
+d2FzIHRvbGQgYWJvdXQgcG90ZW50aWFsIG1lZGlhIGVycm9yIGluIHRoZQ0KPj4gKyAqIHJhbmdl
+LCBmaWxlc3lzdGVtIHR1cm5zIHRoZSBub3JtYWwgcHdyaXRlIHRvIGEgZGF4X3JlY292ZXJ5X3dy
+aXRlLg0KPj4gKyAqDQo+PiArICogVGhlIHJlY292ZXJ5IHdyaXRlIGNvbnNpc3RzIG9mIGNsZWFy
+aW5nIHBvaXNvbiB2aWEgRFNNLCBjbGVhcmluZyBwYWdlDQo+PiArICogSFdQb2lzb24gYml0LCBy
+ZWVuYWJsZSBwYWdlLXdpZGUgcmVhZC13cml0ZSBwZXJtaXNzaW9uLCBmbHVzaCB0aGUNCj4+ICsg
+KiBjYWNoZXMgYW5kIGZpbmFsbHkgd3JpdGUuICBBIGNvbXBldGluZyBwcmVhZCB0aHJlYWQgbmVl
+ZHMgdG8gYmUgaGVsZA0KPj4gKyAqIG9mZiBkdXJpbmcgdGhlIHJlY292ZXJ5IHByb2Nlc3Mgc2lu
+Y2UgZGF0YSByZWFkIGJhY2sgbWlnaHQgbm90IGJlIHZhbGlkLg0KPj4gKyAqIEFuZCB0aGF0J3Mg
+YWNoaWV2ZWQgYnkgcGxhY2luZyB0aGUgYmFkYmxvY2sgcmVjb3JkcyBjbGVhcmluZyBhZnRlcg0K
+Pj4gKyAqIHRoZSBjb21wbGV0aW9uIG9mIHRoZSByZWNvdmVyeSB3cml0ZS4NCj4+ICsgKg0KPj4g
+KyAqIEFueSBjb21wZXRpbmcgcmVjb3Zlcnkgd3JpdGUgdGhyZWFkIG5lZWRzIHRvIGJlIHNlcmlh
+bGl6ZWQsIGFuZCB0aGlzIGlzDQo+PiArICogZG9uZSB2aWEgcG1lbSBkZXZpY2UgbGV2ZWwgbG9j
+ayAucmVjb3ZlcnlfbG9jay4NCj4+ICsgKi8NCj4+ICAgc3RhdGljIHNpemVfdCBwbWVtX3JlY292
+ZXJ5X3dyaXRlKHN0cnVjdCBkYXhfZGV2aWNlICpkYXhfZGV2LCBwZ29mZl90IHBnb2ZmLA0KPj4g
+ICAgICAgICAgICAgICAgICB2b2lkICphZGRyLCBzaXplX3QgYnl0ZXMsIHN0cnVjdCBpb3ZfaXRl
+ciAqaSkNCj4+ICAgew0KPj4gLSAgICAgICByZXR1cm4gMDsNCj4+ICsgICAgICAgc2l6ZV90IHJj
+LCBsZW4sIG9mZjsNCj4+ICsgICAgICAgcGh5c19hZGRyX3QgcG1lbV9vZmY7DQo+PiArICAgICAg
+IHN0cnVjdCBwbWVtX2RldmljZSAqcG1lbSA9IGRheF9nZXRfcHJpdmF0ZShkYXhfZGV2KTsNCj4+
+ICsgICAgICAgc3RydWN0IGRldmljZSAqZGV2ID0gcG1lbS0+YmIuZGV2Ow0KPj4gKyAgICAgICBz
+ZWN0b3JfdCBzZWN0b3I7DQo+PiArICAgICAgIGxvbmcgY2xlYXJlZCwgY2xlYXJlZF9ibGs7DQo+
+PiArDQo+PiArICAgICAgIG11dGV4X2xvY2soJnBtZW0tPnJlY292ZXJ5X2xvY2spOw0KPj4gKw0K
+Pj4gKyAgICAgICAvKiBJZiBubyBwb2lzb24gZm91bmQgaW4gdGhlIHJhbmdlLCBnbyBhaGVhZCB3
+aXRoIHdyaXRlICovDQo+PiArICAgICAgIG9mZiA9ICh1bnNpZ25lZCBsb25nKWFkZHIgJiB+UEFH
+RV9NQVNLOw0KPj4gKyAgICAgICBsZW4gPSBQRk5fUEhZUyhQRk5fVVAob2ZmICsgYnl0ZXMpKTsN
+Cj4+ICsgICAgICAgaWYgKCFpc19iYWRfcG1lbSgmcG1lbS0+YmIsIFBGTl9QSFlTKHBnb2ZmKSAv
+IDUxMiwgbGVuKSkgew0KPj4gKyAgICAgICAgICAgICAgIHJjID0gX2NvcHlfZnJvbV9pdGVyX2Zs
+dXNoY2FjaGUoYWRkciwgYnl0ZXMsIGkpOw0KPj4gKyAgICAgICAgICAgICAgIGdvdG8gd3JpdGVf
+ZG9uZTsNCj4+ICsgICAgICAgfQ0KPiANCj4gaXNfYmFkX3BtZW0oKSB0YWtlcyBhIHNlcWxvY2sg
+c28gaXQgc2hvdWxkIGJlIHNhZmUgdG8gbW92ZSB0aGUNCj4gcmVjb3ZlcnlfbG9jayBiZWxvdyB0
+aGlzIHBvaW50Lg0KDQpPa2F5LCB0aGFua3MhDQoNCj4gDQo+PiArDQo+PiArICAgICAgIC8qIE5v
+dCBwYWdlLWFsaWduZWQgcmFuZ2UgY2Fubm90IGJlIHJlY292ZXJlZCAqLw0KPj4gKyAgICAgICBp
+ZiAob2ZmIHx8ICEoUEFHRV9BTElHTkVEKGJ5dGVzKSkpIHsNCj4+ICsgICAgICAgICAgICAgICBk
+ZXZfd2FybihkZXYsICJGb3VuZCBwb2lzb24sIGJ1dCBhZGRyKCVwKSBvciBieXRlcyglI2x4KSBu
+b3QgcGFnZSBhbGlnbmVkXG4iLA0KPj4gKyAgICAgICAgICAgICAgICAgICAgICAgYWRkciwgYnl0
+ZXMpOw0KPiANCj4gZnMvZGF4LmMgd2lsbCBwcmV2ZW50IHRoaXMgZnJvbSBoYXBwZW5pbmcsIHJp
+Z2h0PyBJdCBzZWVtcyBsaWtlIGFuDQo+IHVwcGVyIGxheWVyIGJ1ZyBpZiB3ZSBnZXQgdGhpcyBm
+YXIgaW50byB0aGUgcmVjb3ZlcnkgcHJvY2VzcyB3aXRob3V0DQo+IGNoZWNraW5nIGlmIGEgZnVs
+bCBwYWdlIGlzIGJlaW5nIG92ZXJ3cml0dGVuLg0KDQpZZXMsIGF0IHRoZSBzdGFydCBvZiBlYWNo
+IGRheF9pb21hcF9pdGVyLCB0aGUgYnVmZmVyIGlzIHBhZ2UgYWxpZ25lZC4gDQpIb3dldmVyLCB0
+aGUgdW5kZXJseWluZyBkYXhfY29weV9mcm9tX2l0ZXIgaXMgYWxsb3dlZCB0byByZXR1cm4gcGFy
+dGlhbCANCnJlc3VsdHMsIGNhdXNpbmcgdGhlIHN1YnNlcXVlbnQgJ3doaWxlJyBsb29wIHdpdGhp
+biBkYXhfaW9tYXBfaXRlciB0byANCmNvbnRpbnVlIGF0IG5vdCBwYWdlIGFsaWduZWQgYWRkcmVz
+cy4gSSByYW4gaW50byB0aGUgc2l0dWF0aW9uIHdoZW4gSSANCnBsYXllZCBhcm91bmQgZGF4X2Nv
+cHlfZnJvbV9pdGVyLCBub3Qgc3VyZSBpbiByZWFsaXR5LCBwYXJ0aWFsIHJlc3VsdCBpcyANCmxl
+Z2l0aW1hdGUsIGp1c3QgdGhvdWdodCB0byBpc3N1ZSBhIHdhcm5pbmcgc2hvdWxkIHRoZSBzaXR1
+YXRpb24gaGFwcGVuLg0KDQo+IA0KPj4gKyAgICAgICAgICAgICAgIHJjID0gKHNpemVfdCkgLUVJ
+TzsNCj4+ICsgICAgICAgICAgICAgICBnb3RvIHdyaXRlX2RvbmU7DQo+PiArICAgICAgIH0NCj4+
+ICsNCj4+ICsgICAgICAgcG1lbV9vZmYgPSBQRk5fUEhZUyhwZ29mZikgKyBwbWVtLT5kYXRhX29m
+ZnNldDsNCj4+ICsgICAgICAgc2VjdG9yID0gKHBtZW1fb2ZmIC0gcG1lbS0+ZGF0YV9vZmZzZXQp
+IC8gNTEyOw0KPj4gKyAgICAgICBjbGVhcmVkID0gbnZkaW1tX2NsZWFyX3BvaXNvbihkZXYsIHBt
+ZW0tPnBoeXNfYWRkciArIHBtZW1fb2ZmLCBsZW4pOw0KPj4gKyAgICAgICBjbGVhcmVkX2JsayA9
+IGNsZWFyZWQgLyA1MTI7DQo+PiArICAgICAgIGlmIChjbGVhcmVkX2JsayA+IDApIHsNCj4+ICsg
+ICAgICAgICAgICAgICBod3BvaXNvbl9jbGVhcihwbWVtLCBwbWVtLT5waHlzX2FkZHIgKyBwbWVt
+X29mZiwgY2xlYXJlZCk7DQo+PiArICAgICAgIH0gZWxzZSB7DQo+PiArICAgICAgICAgICAgICAg
+ZGV2X3dhcm4oZGV2LCAicG1lbV9yZWNvdmVyeV93cml0ZTogY2xlYXJlZF9ibGs6ICVsZFxuIiwN
+Cj4+ICsgICAgICAgICAgICAgICAgICAgICAgIGNsZWFyZWRfYmxrKTsNCj4+ICsgICAgICAgICAg
+ICAgICByYyA9IChzaXplX3QpIC1FSU87DQo+PiArICAgICAgICAgICAgICAgZ290byB3cml0ZV9k
+b25lOw0KPj4gKyAgICAgICB9DQo+PiArICAgICAgIGFyY2hfaW52YWxpZGF0ZV9wbWVtKHBtZW0t
+PnZpcnRfYWRkciArIHBtZW1fb2ZmLCBieXRlcyk7DQo+PiArICAgICAgIHJjID0gX2NvcHlfZnJv
+bV9pdGVyX2ZsdXNoY2FjaGUoYWRkciwgYnl0ZXMsIGkpOw0KPj4gKyAgICAgICBwbWVtX2NsZWFy
+X2JhZGJsb2NrcyhwbWVtLCBzZWN0b3IsIGNsZWFyZWRfYmxrKTsNCj4gDQo+IFRoaXMgZHVwbGlj
+YXRlcyBwbWVtX2NsZWFyX3BvaXNvbigpIGNhbiBtb3JlIGNvZGUgYmUgc2hhcmVkIGJldHdlZW4N
+Cj4gdGhlIDIgZnVuY3Rpb25zPw0KDQpJJ2xsIGxvb2sgaW50byByZWZhY3RvcmluZyBwbWVtX2Ns
+ZWFyX3BvaXNvbigpLg0KPiANCj4gDQo+PiArDQo+PiArd3JpdGVfZG9uZToNCj4+ICsgICAgICAg
+bXV0ZXhfdW5sb2NrKCZwbWVtLT5yZWNvdmVyeV9sb2NrKTsNCj4+ICsgICAgICAgcmV0dXJuIHJj
+Ow0KPj4gICB9DQo+Pg0KPj4gICBzdGF0aWMgY29uc3Qgc3RydWN0IGRheF9vcGVyYXRpb25zIHBt
+ZW1fZGF4X29wcyA9IHsNCj4+IEBAIC00OTUsNiArNTY0LDcgQEAgc3RhdGljIGludCBwbWVtX2F0
+dGFjaF9kaXNrKHN0cnVjdCBkZXZpY2UgKmRldiwNCj4+ICAgICAgICAgICAgICAgICAgZ290byBv
+dXRfY2xlYW51cF9kYXg7DQo+PiAgICAgICAgICBkYXhfd3JpdGVfY2FjaGUoZGF4X2RldiwgbnZk
+aW1tX2hhc19jYWNoZShuZF9yZWdpb24pKTsNCj4+ICAgICAgICAgIHNldF9kYXhfcmVjb3Zlcnko
+ZGF4X2Rldik7DQo+PiArICAgICAgIG11dGV4X2luaXQoJnBtZW0tPnJlY292ZXJ5X2xvY2spOw0K
+Pj4gICAgICAgICAgcG1lbS0+ZGF4X2RldiA9IGRheF9kZXY7DQo+Pg0KPj4gICAgICAgICAgcmMg
+PSBkZXZpY2VfYWRkX2Rpc2soZGV2LCBkaXNrLCBwbWVtX2F0dHJpYnV0ZV9ncm91cHMpOw0KPj4g
+ZGlmZiAtLWdpdCBhL2RyaXZlcnMvbnZkaW1tL3BtZW0uaCBiL2RyaXZlcnMvbnZkaW1tL3BtZW0u
+aA0KPj4gaW5kZXggNTljZmUxM2VhOGE4Li45NzFiZmY3NTUyZDYgMTAwNjQ0DQo+PiAtLS0gYS9k
+cml2ZXJzL252ZGltbS9wbWVtLmgNCj4+ICsrKyBiL2RyaXZlcnMvbnZkaW1tL3BtZW0uaA0KPj4g
+QEAgLTI0LDYgKzI0LDcgQEAgc3RydWN0IHBtZW1fZGV2aWNlIHsNCj4+ICAgICAgICAgIHN0cnVj
+dCBkYXhfZGV2aWNlICAgICAgICpkYXhfZGV2Ow0KPj4gICAgICAgICAgc3RydWN0IGdlbmRpc2sg
+ICAgICAgICAgKmRpc2s7DQo+PiAgICAgICAgICBzdHJ1Y3QgZGV2X3BhZ2VtYXAgICAgICBwZ21h
+cDsNCj4+ICsgICAgICAgc3RydWN0IG11dGV4ICAgICAgICAgICAgcmVjb3ZlcnlfbG9jazsNCj4+
+ICAgfTsNCj4+DQo+PiAgIGxvbmcgX19wbWVtX2RpcmVjdF9hY2Nlc3Moc3RydWN0IHBtZW1fZGV2
+aWNlICpwbWVtLCBwZ29mZl90IHBnb2ZmLA0KPj4gLS0NCj4+IDIuMTguNA0KPj4NCg0KdGhhbmtz
+IQ0KLWphbmUNCg==
