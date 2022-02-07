@@ -1,44 +1,44 @@
-Received: from mail-oo1-f41.google.com (mail-oo1-f41.google.com [209.85.161.41])
+Received: from mail-ot1-f42.google.com (mail-ot1-f42.google.com [209.85.210.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 199142F21
-	for <nvdimm@lists.linux.dev>; Mon,  7 Feb 2022 11:49:02 +0000 (UTC)
-Received: by mail-oo1-f41.google.com with SMTP id u25-20020a4ad0d9000000b002e8d4370689so13274436oor.12
-        for <nvdimm@lists.linux.dev>; Mon, 07 Feb 2022 03:49:01 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 274DF2F21
+	for <nvdimm@lists.linux.dev>; Mon,  7 Feb 2022 11:54:03 +0000 (UTC)
+Received: by mail-ot1-f42.google.com with SMTP id n6-20020a9d6f06000000b005a0750019a7so10678190otq.5
+        for <nvdimm@lists.linux.dev>; Mon, 07 Feb 2022 03:54:03 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=message-id:date:mime-version:user-agent:subject:content-language:to
          :cc:references:from:in-reply-to:content-transfer-encoding;
-        bh=1T+9r8JiQTlFktwP5lYbVIIc3wa4xrqW1uuaEzSajmU=;
-        b=CmVZeMxwIn+w7e3Thy9pcxxl8RsGs3mNcgSkhJrRaYid6U6NKHg22coq/8dYGSaTiR
-         JBotA3f/8yZurex16PUBgjTg8AoPxa9nCvs1JFXlnkLoi+LXCNNSu8WRAJWcVHKRxLaW
-         2S5c8+0MRBdEdPV1mgN7wxtcbYpjNOQ/fTtU49fFgkFj0qFl7xS89u3ZY5W1pXOfNzUx
-         G7bmtpVrLMZeYyM3g1CL02/zgxAIjlqgHXRfdvgXqtaVr5L2egT5QX9MywhHfjY/YpGI
-         fZPdOmVTAXKgzU8eFvl+eWc+mlgDMb88LrsoQmvFjds52h/cwPNZVH1L2yfD8RkCMKvq
-         IhTA==
+        bh=0wPDtA/8dQY/zt6gEOJb8muHJfhFJHLN9w+AJsq2qv8=;
+        b=Yq2ZfuDnaCP7+Zjic66gYVOgXET4dQYW6dH+Mb63R/XwoD3Ju1QLZWom1oF+pljSMe
+         G+1VACKUSZ4Kgm9BmF1Vs7Ghq6Yh9PCKT/OiTMrJ/ZlxIGZzgjTUK3ACURS/i9Y1nG4d
+         /lDsVTb+14gtrmFwugTl47Uv54fBCtKBP6akpwUGmXe1+AomIj488INIXhl4ci/4LPkd
+         NwRabfaO5HczGWGc5bT/rYGYWrG7u/LbEi/pS/QBT0inrDbiNk+qHtdFulMR+l9p1dLu
+         vWhaRlMycI80TXwUiMrevIHb8lbpg7uXmulW0Tgn7in5bv+C6gWtfEGgy49eZK4Sle1e
+         zkfg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
          :content-language:to:cc:references:from:in-reply-to
          :content-transfer-encoding;
-        bh=1T+9r8JiQTlFktwP5lYbVIIc3wa4xrqW1uuaEzSajmU=;
-        b=aYxtf+q4GWzOyjnRA/s3CNRbhuyDeNcoO/8QqHwYnmiXXRi9HMg25m4NCWkEsjxsYS
-         kvwW8rjEVkg7dJaXGIjtLn+GnjVMgqS+fYap4cWx4UJ8vTtBkLXvk5+A3QKBswI2RU9j
-         mcuoYjkyHMknfaNFoXkFE5zrlFbY1Z3GEi7M9vBHWDKT6/lJoueAE8sKNq3DDHxMyiv8
-         sB4Y86Gp/gWq0gQKAPcF/oW02TfvQPJ27o8QbrDLV6Bpy3r4rexTfqcVEbAi1IIml16Z
-         hqM4FRh3iPVC3KQY+1k5pTp6tQEMnpPR2BXdY+7wNXp5XrYUcjMILg2yldKOG0/lg+1G
-         72IQ==
-X-Gm-Message-State: AOAM531nR6dPdQNKHD75t21+EHRXeQAQE/BBXvtbkwr5XNG8NiyxwXil
-	RvkzR5RDHris+KtO0Cbdzow=
-X-Google-Smtp-Source: ABdhPJxB1cKvN/s7eEDV/dpdtLy+jK4FcTb2qwzwZhDnYEMzZHIJqxjk/lHFXBgMKwOJNhHTaumwuw==
-X-Received: by 2002:a05:6870:b303:: with SMTP id a3mr4088359oao.280.1644234541125;
-        Mon, 07 Feb 2022 03:49:01 -0800 (PST)
+        bh=0wPDtA/8dQY/zt6gEOJb8muHJfhFJHLN9w+AJsq2qv8=;
+        b=qKIrl96O4FeJEmFxeqLX6fLzsD9fugHTYvFK+BfjBs6r+UVXISI/hAR5lMnPsw/kDv
+         o4rXE2tx/JT4X62OsmEhvpqaC5XMwvVomZtf1ztFLwBdApAL+j4KxSV6y9p5PI0C0Cpg
+         CCN2McWvNROAZDiwul6pBY+rEmqHpzFuC7pu0ZIoO0Ytow2C0D/Wly82vZ/5UYndqYaT
+         8RVdqfsAUYLqA8JlGPIEOg+1zocG8rmJ/MxLVPiatDU8FnTS1ncvESIIZc+7JKRaepHr
+         OdGpQaDlS4zig5Ymd4070Ph7HUPGlRe3K3xGdYLbRavJetpJDtEQlIDXbyHiQVapaofq
+         tuNg==
+X-Gm-Message-State: AOAM5300YhVb9Ooi55BTEK/SV7NvF6HgszUuJHy8FcAIWNxPb4wmWb7e
+	WrcisaHSeMiaAlFbnZI4QWQ=
+X-Google-Smtp-Source: ABdhPJyK2ZOF1n2ZjcUVDShZFG9nZhSBCVpygtRGNJQFmjrqt3pYzHAHUGhB1NKJEMsdBCu0nwcWpQ==
+X-Received: by 2002:a05:6830:1084:: with SMTP id y4mr3858234oto.42.1644234842231;
+        Mon, 07 Feb 2022 03:54:02 -0800 (PST)
 Received: from [192.168.10.222] ([191.193.0.12])
-        by smtp.gmail.com with ESMTPSA id o144sm3883869ooo.25.2022.02.07.03.48.57
+        by smtp.gmail.com with ESMTPSA id d22sm3748614otp.79.2022.02.07.03.53.58
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 07 Feb 2022 03:49:00 -0800 (PST)
-Message-ID: <649a176e-63ed-885b-9f70-b28ed858dd27@gmail.com>
-Date: Mon, 7 Feb 2022 08:48:56 -0300
+        Mon, 07 Feb 2022 03:54:01 -0800 (PST)
+Message-ID: <6768501a-0cf8-a2d9-df73-5e8185b433fb@gmail.com>
+Date: Mon, 7 Feb 2022 08:53:57 -0300
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -47,7 +47,7 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
  Thunderbird/91.5.0
-Subject: Re: [PATCH v7 2/3] spapr: nvdimm: Implement H_SCM_FLUSH hcall
+Subject: Re: [PATCH v7 0/3] spapr: nvdimm: Introduce spapr-nvdimm device
 Content-Language: en-US
 To: Shivaprasad G Bhat <sbhat@linux.ibm.com>, clg@kaod.org, mst@redhat.com,
  ani@anisinha.ca, david@gibson.dropbear.id.au, groug@kaod.org,
@@ -55,393 +55,147 @@ To: Shivaprasad G Bhat <sbhat@linux.ibm.com>, clg@kaod.org, mst@redhat.com,
 Cc: qemu-devel@nongnu.org, aneesh.kumar@linux.ibm.com,
  nvdimm@lists.linux.dev, kvm-ppc@vger.kernel.org
 References: <164396252398.109112.13436924292537517470.stgit@ltczzess4.aus.stglabs.ibm.com>
- <164396254862.109112.16675611182159105748.stgit@ltczzess4.aus.stglabs.ibm.com>
 From: Daniel Henrique Barboza <danielhb413@gmail.com>
-In-Reply-To: <164396254862.109112.16675611182159105748.stgit@ltczzess4.aus.stglabs.ibm.com>
+In-Reply-To: <164396252398.109112.13436924292537517470.stgit@ltczzess4.aus.stglabs.ibm.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
 
 
 On 2/4/22 05:15, Shivaprasad G Bhat wrote:
-> The patch adds support for the SCM flush hcall for the nvdimm devices.
-> To be available for exploitation by guest through the next patch. The
-> hcall is applicable only for new SPAPR specific device class which is
-> also introduced in this patch.
+> If the device backend is not persistent memory for the nvdimm, there
+> is need for explicit IO flushes to ensure persistence.
 > 
-> The hcall expects the semantics such that the flush to return with
-> H_LONG_BUSY_ORDER_10_MSEC when the operation is expected to take longer
-> time along with a continue_token. The hcall to be called again by providing
-> the continue_token to get the status. So, all fresh requests are put into
-> a 'pending' list and flush worker is submitted to the thread pool. The
-> thread pool completion callbacks move the requests to 'completed' list,
-> which are cleaned up after collecting the return status for the guest
-> in subsequent hcall from the guest.
+> On SPAPR, the issue is addressed by adding a new hcall to request for
+> an explicit flush from the guest when the backend is not pmem.
+> So, the approach here is to convey when the hcall flush is required
+> in a device tree property. The guest once it knows the device needs
+> explicit flushes, makes the hcall as and when required.
 > 
-> The semantics makes it necessary to preserve the continue_tokens and
-> their return status across migrations. So, the completed flush states
-> are forwarded to the destination and the pending ones are restarted
-> at the destination in post_load. The necessary nvdimm flush specific
-> vmstate structures are also introduced in this patch which are to be
-> saved in the new SPAPR specific nvdimm device to be introduced in the
-> following patch.
+> It was suggested to create a new device type to address the
+> explicit flush for such backends on PPC instead of extending the
+> generic nvdimm device with new property. So, the patch introduces
+> the spapr-nvdimm device. The new device inherits the nvdimm device
+> with the new bahviour such that if the backend has pmem=no, the
+> device tree property is set by default.
 > 
-> Signed-off-by: Shivaprasad G Bhat <sbhat@linux.ibm.com>
+> The below demonstration shows the map_sync behavior for non-pmem
+> backends.
+> (https://github.com/avocado-framework-tests/avocado-misc-tests/blob/master/memory/ndctl.py.data/map_sync.c)
+> 
+> The pmem0 is from spapr-nvdimm with with backend pmem=on, and pmem1 is
+> from spapr-nvdimm with pmem=off, mounted as
+> /dev/pmem0 on /mnt1 type xfs (rw,relatime,attr2,dax=always,inode64,logbufs=8,logbsize=32k,noquota)
+> /dev/pmem1 on /mnt2 type xfs (rw,relatime,attr2,dax=always,inode64,logbufs=8,logbsize=32k,noquota)
+> 
+> [root@atest-guest ~]# ./mapsync /mnt1/newfile ----> When pmem=on
+> [root@atest-guest ~]# ./mapsync /mnt2/newfile ----> when pmem=off
+> Failed to mmap  with Operation not supported
+> 
+> First patch adds the realize/unrealize call backs to the generic device
+> for the new device's vmstate registration. The second patch implements
+> the hcall, adds the necessary vmstate properties to spapr machine structure
+> for carrying the hcall status during save-restore. The nature of the hcall
+> being asynchronus, the patch uses aio utilities to offload the flush. The
+> third patch introduces the spapr-nvdimm device, adds the device tree
+> property for the guest when spapr-nvdimm is used with pmem=no on the
+> backend. Also adds new property pmem-override(?, suggest if you have better
+> name) to the spapr-nvdimm which hints at forcing the hcall based flushes even
+> on pmem backed devices.
+> 
+> The kernel changes to exploit this hcall is at
+> https://github.com/linuxppc/linux/commit/75b7c05ebf9026.patch
+> 
 > ---
 
-Reviewed-by: Daniel Henrique Barboza <danielhb413@gmail.com>
+I noted that we have only two nvdimm tests in QEMU, both in tests/qtest/bios-tables-test.c.
+It would be a good future improvement to add some spapr-nvdimm tests there as well.
 
->   hw/ppc/spapr.c                |    2
->   hw/ppc/spapr_nvdimm.c         |  260 +++++++++++++++++++++++++++++++++++++++++
->   include/hw/ppc/spapr.h        |    4 -
->   include/hw/ppc/spapr_nvdimm.h |    1
->   4 files changed, 266 insertions(+), 1 deletion(-)
+
+Thanks,
+
+
+Daniel
+
+
+> v6 - https://lists.gnu.org/archive/html/qemu-devel/2022-02/msg00322.html
+> Changes from v6:
+>        - Addressed commen from Daniel.
+>          Fixed a typo
+>          Fetch the memory backend FD in the flush_worker_cb(), updated hcall
+>          return values in the comments description)
+>        - Updated the signatures.
 > 
-> diff --git a/hw/ppc/spapr.c b/hw/ppc/spapr.c
-> index 3d6ec309dd..9263985663 100644
-> --- a/hw/ppc/spapr.c
-> +++ b/hw/ppc/spapr.c
-> @@ -1634,6 +1634,8 @@ static void spapr_machine_reset(MachineState *machine)
->           spapr->ov5_cas = spapr_ovec_clone(spapr->ov5);
->       }
->   
-> +    spapr_nvdimm_finish_flushes();
-> +
->       /* DRC reset may cause a device to be unplugged. This will cause troubles
->        * if this device is used by another device (eg, a running vhost backend
->        * will crash QEMU if the DIMM holding the vring goes away). To avoid such
-> diff --git a/hw/ppc/spapr_nvdimm.c b/hw/ppc/spapr_nvdimm.c
-> index 91de1052f2..ac44e00153 100644
-> --- a/hw/ppc/spapr_nvdimm.c
-> +++ b/hw/ppc/spapr_nvdimm.c
-> @@ -22,6 +22,7 @@
->    * THE SOFTWARE.
->    */
->   #include "qemu/osdep.h"
-> +#include "qemu/cutils.h"
->   #include "qapi/error.h"
->   #include "hw/ppc/spapr_drc.h"
->   #include "hw/ppc/spapr_nvdimm.h"
-> @@ -30,6 +31,9 @@
->   #include "hw/ppc/fdt.h"
->   #include "qemu/range.h"
->   #include "hw/ppc/spapr_numa.h"
-> +#include "block/thread-pool.h"
-> +#include "migration/vmstate.h"
-> +#include "qemu/pmem.h"
->   
->   /* DIMM health bitmap bitmap indicators. Taken from kernel's papr_scm.c */
->   /* SCM device is unable to persist memory contents */
-> @@ -47,6 +51,14 @@
->   /* Have an explicit check for alignment */
->   QEMU_BUILD_BUG_ON(SPAPR_MINIMUM_SCM_BLOCK_SIZE % SPAPR_MEMORY_BLOCK_SIZE);
->   
-> +#define TYPE_SPAPR_NVDIMM "spapr-nvdimm"
-> +OBJECT_DECLARE_TYPE(SpaprNVDIMMDevice, SPAPRNVDIMMClass, SPAPR_NVDIMM)
-> +
-> +struct SPAPRNVDIMMClass {
-> +    /* private */
-> +    NVDIMMClass parent_class;
-> +};
-> +
->   bool spapr_nvdimm_validate(HotplugHandler *hotplug_dev, NVDIMMDevice *nvdimm,
->                              uint64_t size, Error **errp)
->   {
-> @@ -375,6 +387,253 @@ static target_ulong h_scm_bind_mem(PowerPCCPU *cpu, SpaprMachineState *spapr,
->       return H_SUCCESS;
->   }
->   
-> +typedef struct SpaprNVDIMMDeviceFlushState {
-> +    uint64_t continue_token;
-> +    int64_t hcall_ret;
-> +    uint32_t drcidx;
-> +
-> +    QLIST_ENTRY(SpaprNVDIMMDeviceFlushState) node;
-> +} SpaprNVDIMMDeviceFlushState;
-> +
-> +typedef struct SpaprNVDIMMDevice SpaprNVDIMMDevice;
-> +struct SpaprNVDIMMDevice {
-> +    NVDIMMDevice parent_obj;
-> +
-> +    uint64_t nvdimm_flush_token;
-> +    QLIST_HEAD(, SpaprNVDIMMDeviceFlushState) pending_nvdimm_flush_states;
-> +    QLIST_HEAD(, SpaprNVDIMMDeviceFlushState) completed_nvdimm_flush_states;
-> +};
-> +
-> +static int flush_worker_cb(void *opaque)
-> +{
-> +    SpaprNVDIMMDeviceFlushState *state = opaque;
-> +    SpaprDrc *drc = spapr_drc_by_index(state->drcidx);
-> +    PCDIMMDevice *dimm = PC_DIMM(drc->dev);
-> +    HostMemoryBackend *backend = MEMORY_BACKEND(dimm->hostmem);
-> +    int backend_fd = memory_region_get_fd(&backend->mr);
-> +
-> +    if (object_property_get_bool(OBJECT(backend), "pmem", NULL)) {
-> +        MemoryRegion *mr = host_memory_backend_get_memory(dimm->hostmem);
-> +        void *ptr = memory_region_get_ram_ptr(mr);
-> +        size_t size = object_property_get_uint(OBJECT(dimm), PC_DIMM_SIZE_PROP,
-> +                                               NULL);
-> +
-> +        /* flush pmem backend */
-> +        pmem_persist(ptr, size);
-> +    } else {
-> +        /* flush raw backing image */
-> +        if (qemu_fdatasync(backend_fd) < 0) {
-> +            error_report("papr_scm: Could not sync nvdimm to backend file: %s",
-> +                         strerror(errno));
-> +            return H_HARDWARE;
-> +        }
-> +    }
-> +
-> +    return H_SUCCESS;
-> +}
-> +
-> +static void spapr_nvdimm_flush_completion_cb(void *opaque, int hcall_ret)
-> +{
-> +    SpaprNVDIMMDeviceFlushState *state = opaque;
-> +    SpaprDrc *drc = spapr_drc_by_index(state->drcidx);
-> +    SpaprNVDIMMDevice *s_nvdimm = SPAPR_NVDIMM(drc->dev);
-> +
-> +    state->hcall_ret = hcall_ret;
-> +    QLIST_REMOVE(state, node);
-> +    QLIST_INSERT_HEAD(&s_nvdimm->completed_nvdimm_flush_states, state, node);
-> +}
-> +
-> +static int spapr_nvdimm_flush_post_load(void *opaque, int version_id)
-> +{
-> +    SpaprNVDIMMDevice *s_nvdimm = (SpaprNVDIMMDevice *)opaque;
-> +    SpaprNVDIMMDeviceFlushState *state;
-> +    ThreadPool *pool = aio_get_thread_pool(qemu_get_aio_context());
-> +
-> +    QLIST_FOREACH(state, &s_nvdimm->pending_nvdimm_flush_states, node) {
-> +        thread_pool_submit_aio(pool, flush_worker_cb, state,
-> +                               spapr_nvdimm_flush_completion_cb, state);
-> +    }
-> +
-> +    return 0;
-> +}
-> +
-> +static const VMStateDescription vmstate_spapr_nvdimm_flush_state = {
-> +     .name = "spapr_nvdimm_flush_state",
-> +     .version_id = 1,
-> +     .minimum_version_id = 1,
-> +     .fields = (VMStateField[]) {
-> +         VMSTATE_UINT64(continue_token, SpaprNVDIMMDeviceFlushState),
-> +         VMSTATE_INT64(hcall_ret, SpaprNVDIMMDeviceFlushState),
-> +         VMSTATE_UINT32(drcidx, SpaprNVDIMMDeviceFlushState),
-> +         VMSTATE_END_OF_LIST()
-> +     },
-> +};
-> +
-> +const VMStateDescription vmstate_spapr_nvdimm_states = {
-> +    .name = "spapr_nvdimm_states",
-> +    .version_id = 1,
-> +    .minimum_version_id = 1,
-> +    .post_load = spapr_nvdimm_flush_post_load,
-> +    .fields = (VMStateField[]) {
-> +        VMSTATE_UINT64(nvdimm_flush_token, SpaprNVDIMMDevice),
-> +        VMSTATE_QLIST_V(completed_nvdimm_flush_states, SpaprNVDIMMDevice, 1,
-> +                        vmstate_spapr_nvdimm_flush_state,
-> +                        SpaprNVDIMMDeviceFlushState, node),
-> +        VMSTATE_QLIST_V(pending_nvdimm_flush_states, SpaprNVDIMMDevice, 1,
-> +                        vmstate_spapr_nvdimm_flush_state,
-> +                        SpaprNVDIMMDeviceFlushState, node),
-> +        VMSTATE_END_OF_LIST()
-> +    },
-> +};
-> +
-> +/*
-> + * Assign a token and reserve it for the new flush state.
-> + */
-> +static SpaprNVDIMMDeviceFlushState *spapr_nvdimm_init_new_flush_state(
-> +                                                SpaprNVDIMMDevice *spapr_nvdimm)
-> +{
-> +    SpaprNVDIMMDeviceFlushState *state;
-> +
-> +    state = g_malloc0(sizeof(*state));
-> +
-> +    spapr_nvdimm->nvdimm_flush_token++;
-> +    /* Token zero is presumed as no job pending. Assert on overflow to zero */
-> +    g_assert(spapr_nvdimm->nvdimm_flush_token != 0);
-> +
-> +    state->continue_token = spapr_nvdimm->nvdimm_flush_token;
-> +
-> +    QLIST_INSERT_HEAD(&spapr_nvdimm->pending_nvdimm_flush_states, state, node);
-> +
-> +    return state;
-> +}
-> +
-> +/*
-> + * spapr_nvdimm_finish_flushes
-> + *      Waits for all pending flush requests to complete
-> + *      their execution and free the states
-> + */
-> +void spapr_nvdimm_finish_flushes(void)
-> +{
-> +    SpaprNVDIMMDeviceFlushState *state, *next;
-> +    GSList *list, *nvdimms;
-> +
-> +    /*
-> +     * Called on reset path, the main loop thread which calls
-> +     * the pending BHs has gotten out running in the reset path,
-> +     * finally reaching here. Other code path being guest
-> +     * h_client_architecture_support, thats early boot up.
-> +     */
-> +    nvdimms = nvdimm_get_device_list();
-> +    for (list = nvdimms; list; list = list->next) {
-> +        NVDIMMDevice *nvdimm = list->data;
-> +        if (object_dynamic_cast(OBJECT(nvdimm), TYPE_SPAPR_NVDIMM)) {
-> +            SpaprNVDIMMDevice *s_nvdimm = SPAPR_NVDIMM(nvdimm);
-> +            while (!QLIST_EMPTY(&s_nvdimm->pending_nvdimm_flush_states)) {
-> +                aio_poll(qemu_get_aio_context(), true);
-> +            }
-> +
-> +            QLIST_FOREACH_SAFE(state, &s_nvdimm->completed_nvdimm_flush_states,
-> +                               node, next) {
-> +                QLIST_REMOVE(state, node);
-> +                g_free(state);
-> +            }
-> +        }
-> +    }
-> +    g_slist_free(nvdimms);
-> +}
-> +
-> +/*
-> + * spapr_nvdimm_get_flush_status
-> + *      Fetches the status of the hcall worker and returns
-> + *      H_LONG_BUSY_ORDER_10_MSEC if the worker is still running.
-> + */
-> +static int spapr_nvdimm_get_flush_status(SpaprNVDIMMDevice *s_nvdimm,
-> +                                         uint64_t token)
-> +{
-> +    SpaprNVDIMMDeviceFlushState *state, *node;
-> +
-> +    QLIST_FOREACH(state, &s_nvdimm->pending_nvdimm_flush_states, node) {
-> +        if (state->continue_token == token) {
-> +            return H_LONG_BUSY_ORDER_10_MSEC;
-> +        }
-> +    }
-> +
-> +    QLIST_FOREACH_SAFE(state, &s_nvdimm->completed_nvdimm_flush_states,
-> +                       node, node) {
-> +        if (state->continue_token == token) {
-> +            int ret = state->hcall_ret;
-> +            QLIST_REMOVE(state, node);
-> +            g_free(state);
-> +            return ret;
-> +        }
-> +    }
-> +
-> +    /* If not found in complete list too, invalid token */
-> +    return H_P2;
-> +}
-> +
-> +/*
-> + * H_SCM_FLUSH
-> + * Input: drc_index, continue-token
-> + * Out: continue-token
-> + * Return Value: H_SUCCESS, H_Parameter, H_P2, H_LONG_BUSY_ORDER_10_MSEC,
-> + *               H_UNSUPPORTED
-> + *
-> + * Given a DRC Index Flush the data to backend NVDIMM device. The hcall returns
-> + * H_LONG_BUSY_ORDER_10_MSEC when the flush takes longer time and the hcall
-> + * needs to be issued multiple times in order to be completely serviced. The
-> + * continue-token from the output to be passed in the argument list of
-> + * subsequent hcalls until the hcall is completely serviced at which point
-> + * H_SUCCESS or other error is returned.
-> + */
-> +static target_ulong h_scm_flush(PowerPCCPU *cpu, SpaprMachineState *spapr,
-> +                                target_ulong opcode, target_ulong *args)
-> +{
-> +    int ret;
-> +    uint32_t drc_index = args[0];
-> +    uint64_t continue_token = args[1];
-> +    SpaprDrc *drc = spapr_drc_by_index(drc_index);
-> +    PCDIMMDevice *dimm;
-> +    HostMemoryBackend *backend = NULL;
-> +    SpaprNVDIMMDeviceFlushState *state;
-> +    ThreadPool *pool = aio_get_thread_pool(qemu_get_aio_context());
-> +    int fd;
-> +
-> +    if (!drc || !drc->dev ||
-> +        spapr_drc_type(drc) != SPAPR_DR_CONNECTOR_TYPE_PMEM) {
-> +        return H_PARAMETER;
-> +    }
-> +
-> +    dimm = PC_DIMM(drc->dev);
-> +    if (continue_token == 0) {
-> +        backend = MEMORY_BACKEND(dimm->hostmem);
-> +        fd = memory_region_get_fd(&backend->mr);
-> +
-> +        if (fd < 0) {
-> +            return H_UNSUPPORTED;
-> +        }
-> +
-> +        state = spapr_nvdimm_init_new_flush_state(SPAPR_NVDIMM(dimm));
-> +        if (!state) {
-> +            return H_HARDWARE;
-> +        }
-> +
-> +        state->drcidx = drc_index;
-> +
-> +        thread_pool_submit_aio(pool, flush_worker_cb, state,
-> +                               spapr_nvdimm_flush_completion_cb, state);
-> +
-> +        continue_token = state->continue_token;
-> +    }
-> +
-> +    ret = spapr_nvdimm_get_flush_status(SPAPR_NVDIMM(dimm), continue_token);
-> +    if (H_IS_LONG_BUSY(ret)) {
-> +        args[0] = continue_token;
-> +    }
-> +
-> +    return ret;
-> +}
-> +
->   static target_ulong h_scm_unbind_mem(PowerPCCPU *cpu, SpaprMachineState *spapr,
->                                        target_ulong opcode, target_ulong *args)
->   {
-> @@ -523,6 +782,7 @@ static void spapr_scm_register_types(void)
->       spapr_register_hypercall(H_SCM_UNBIND_MEM, h_scm_unbind_mem);
->       spapr_register_hypercall(H_SCM_UNBIND_ALL, h_scm_unbind_all);
->       spapr_register_hypercall(H_SCM_HEALTH, h_scm_health);
-> +    spapr_register_hypercall(H_SCM_FLUSH, h_scm_flush);
->   }
->   
->   type_init(spapr_scm_register_types)
-> diff --git a/include/hw/ppc/spapr.h b/include/hw/ppc/spapr.h
-> index ee7504b976..727b2a0e7f 100644
-> --- a/include/hw/ppc/spapr.h
-> +++ b/include/hw/ppc/spapr.h
-> @@ -341,6 +341,7 @@ struct SpaprMachineState {
->   #define H_P7              -60
->   #define H_P8              -61
->   #define H_P9              -62
-> +#define H_UNSUPPORTED     -67
->   #define H_OVERLAP         -68
->   #define H_UNSUPPORTED_FLAG -256
->   #define H_MULTI_THREADS_ACTIVE -9005
-> @@ -559,8 +560,9 @@ struct SpaprMachineState {
->   #define H_SCM_UNBIND_ALL        0x3FC
->   #define H_SCM_HEALTH            0x400
->   #define H_RPT_INVALIDATE        0x448
-> +#define H_SCM_FLUSH             0x44C
->   
-> -#define MAX_HCALL_OPCODE        H_RPT_INVALIDATE
-> +#define MAX_HCALL_OPCODE        H_SCM_FLUSH
->   
->   /* The hcalls above are standardized in PAPR and implemented by pHyp
->    * as well.
-> diff --git a/include/hw/ppc/spapr_nvdimm.h b/include/hw/ppc/spapr_nvdimm.h
-> index 764f999f54..e9436cb6ef 100644
-> --- a/include/hw/ppc/spapr_nvdimm.h
-> +++ b/include/hw/ppc/spapr_nvdimm.h
-> @@ -21,5 +21,6 @@ void spapr_dt_persistent_memory(SpaprMachineState *spapr, void *fdt);
->   bool spapr_nvdimm_validate(HotplugHandler *hotplug_dev, NVDIMMDevice *nvdimm,
->                              uint64_t size, Error **errp);
->   void spapr_add_nvdimm(DeviceState *dev, uint64_t slot);
-> +void spapr_nvdimm_finish_flushes(void);
->   
->   #endif
+> v5 - https://lists.gnu.org/archive/html/qemu-devel/2021-07/msg01741.html
+> Changes from v5:
+>        - Taken care of all comments from David
+>        - Moved the flush lists from spapr machine into the spapr-nvdimm device
+>          state structures. So, all corresponding data structures adjusted
+> 	accordingly as required.
+>        - New property pmem-overrride is added to the spapr-nvdimm device. The
+>          hcall flushes are allowed when pmem-override is set for the device.
+>        - The flush for pmem backend devices are made to use pmem_persist().
+>        - The vmstate structures are also made part of device state instead of
+>          global spapr.
+>        - Passing the flush token to destination during migration, I think its
+>          better than finding, deriving it from the outstanding ones.
 > 
+> v4 - https://lists.gnu.org/archive/html/qemu-devel/2021-04/msg05982.html
+> Changes from v4:
+>        - Introduce spapr-nvdimm device with nvdimm device as the parent.
+>        - The new spapr-nvdimm has no new properties. As this is a new
+>          device and there is no migration related dependencies to be
+>          taken care of, the device behavior is made to set the device tree
+>          property and enable hcall when the device type spapr-nvdimm is
+>          used with pmem=off
+>        - Fixed commit messages
+>        - Added checks to ensure the backend is actualy file and not memory
+>        - Addressed things pointed out by Eric
+> 
+> v3 - https://lists.gnu.org/archive/html/qemu-devel/2021-03/msg07916.html
+> Changes from v3:
+>        - Fixed the forward declaration coding guideline violations in 1st patch.
+>        - Removed the code waiting for the flushes to complete during migration,
+>          instead restart the flush worker on destination qemu in post load.
+>        - Got rid of the randomization of the flush tokens, using simple
+>          counter.
+>        - Got rid of the redundant flush state lock, relying on the BQL now.
+>        - Handling the memory-backend-ram usage
+>        - Changed the sync-dax symantics from on/off to 'unsafe','writeback' and 'direct'.
+> 	Added prevention code using 'writeback' on arm and x86_64.
+>        - Fixed all the miscellaneous comments.
+> 
+> v2 - https://lists.gnu.org/archive/html/qemu-devel/2020-11/msg07031.html
+> Changes from v2:
+>        - Using the thread pool based approach as suggested
+>        - Moved the async hcall handling code to spapr_nvdimm.c along
+>          with some simplifications
+>        - Added vmstate to preserve the hcall status during save-restore
+>          along with pre_save handler code to complete all ongoning flushes.
+>        - Added hw_compat magic for sync-dax 'on' on previous machines.
+>        - Miscellanious minor fixes.
+> 
+> v1 - https://lists.gnu.org/archive/html/qemu-devel/2020-11/msg06330.html
+> Changes from v1
+>        - Fixed a missed-out unlock
+>        - using QLIST_FOREACH instead of QLIST_FOREACH_SAFE while generating token
+> 
+> Shivaprasad G Bhat (3):
+>        nvdimm: Add realize, unrealize callbacks to NVDIMMDevice class
+>        spapr: nvdimm: Implement H_SCM_FLUSH hcall
+>        spapr: nvdimm: Introduce spapr-nvdimm device
+> 
+> 
+>   hw/mem/nvdimm.c               |  16 ++
+>   hw/mem/pc-dimm.c              |   5 +
+>   hw/ppc/spapr.c                |   2 +
+>   hw/ppc/spapr_nvdimm.c         | 394 ++++++++++++++++++++++++++++++++++
+>   include/hw/mem/nvdimm.h       |   2 +
+>   include/hw/mem/pc-dimm.h      |   1 +
+>   include/hw/ppc/spapr.h        |   4 +-
+>   include/hw/ppc/spapr_nvdimm.h |   1 +
+>   8 files changed, 424 insertions(+), 1 deletion(-)
+> 
+> --
+> Signature
 > 
