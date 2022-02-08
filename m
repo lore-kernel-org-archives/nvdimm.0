@@ -1,96 +1,155 @@
-Received: from mail-pf1-f171.google.com (mail-pf1-f171.google.com [209.85.210.171])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08A5F2F24
-	for <nvdimm@lists.linux.dev>; Tue,  8 Feb 2022 20:39:09 +0000 (UTC)
-Received: by mail-pf1-f171.google.com with SMTP id z35so549076pfw.2
-        for <nvdimm@lists.linux.dev>; Tue, 08 Feb 2022 12:39:09 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=8z1UZ+NMGTJbrhhy8yl4Lu6kb8svRF/BgAyYUwsEQck=;
-        b=JCplgkUiO0PqXEIAJctgsTHYuyQcLQD9TAxvLBFbCOx/ffKySRHbjX3hMHycW9DbzW
-         c3tnEXiCa93KHVdCd4LaxXUberXsBLk0De/HQxNR94sxJR+LYpG1H+4h5wEQFjF9dV2m
-         Ve94cbvDFFFLJaV65Y5EWshPOG4Cxb/yAGlZ+TZDbkux52MS4LFtR0RPRZMj6N+tp+qP
-         7ZIB4vYAsoGSKj4Z/8CFeuEwI28Uo1X1yG5mr2rw2Cm4+OBsVarMUtrEJkDmJ7vcbbYy
-         C4BlUIhEu6jYWmwvGa0rtkI9VFM74pLkwjmff5pD8vU7QIwdOtfilLEDL5YQk8QE223G
-         rUOQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=8z1UZ+NMGTJbrhhy8yl4Lu6kb8svRF/BgAyYUwsEQck=;
-        b=AP/OQN7QW9tol+O01YGVx4jsYMuSfhzVvNxKXZanW3K0qwJavi3v+U3uYVxOH08PV/
-         zcJM/NHgd/cc7ezHBqHVzfhxZxEWPUm2lwiuK2osTjWaDZLi4wz2OfVNeS1snKBlnWZY
-         dpQhk2HGjPpSuK5HgGb1OiO0JgckdyivIqsUZc007insPEzJ3Oa8ghHRf+bB1Gt9SGGY
-         A8xFaFcH5nde8a5IUewCtuUIoptKa8RHYUn3J2RP5foTT0JDAnoggvs3KmNqK8p2GZce
-         U1N9uOY5LduHPTGxr1EE7Es31hvXTyFPzjyZVidvVNuVZsoniZ9nx5Lqcm+JoJU5Z4XW
-         eo6w==
-X-Gm-Message-State: AOAM530eyet39Lmrx3kc0AYv645Ahgpe+b7inpW8c6hx0sbyxHGsuLPU
-	PmwStHV2LiZy2R6wnsgQK0VgVgVjHNQ6N/lpkGiQ+RDgrws=
-X-Google-Smtp-Source: ABdhPJy9d+7BY3Bsjz2Hj3HgFNIB1RuqdywF3tAVcSEa8HJnwuAdoazt07ZbmQJoFKi544/yr+Z+PUXG0INlvVDBKZ8=
-X-Received: by 2002:a63:4717:: with SMTP id u23mr5001209pga.74.1644352749567;
- Tue, 08 Feb 2022 12:39:09 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E2642F24
+	for <nvdimm@lists.linux.dev>; Tue,  8 Feb 2022 20:42:30 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1644352951; x=1675888951;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=6Hbe7SCFFi7aOilBmY9Td8U0nHyoptevwpwaEl6teRU=;
+  b=mBMa64DQydoAkJ623i5pnE2JxBeIORwNBSWGToKahHj7Vq6Q/2fJqTlE
+   99bSjXCmlykd7PZn8/y7NDvYWPCTJ47kXr08ckrmtTZ9BsdvnZYk6DPpU
+   pvFCEby3Bh7I3D10xkjoIGU5tGB6gvW+IwLt1I3JDuxRoTcbUJlUjQgH6
+   e+VLKtKNGNEtLAR33Eheec8Sq53A0qYQzn+3kuPgfvZOK3WCSlVjHb08m
+   by+68d2pbfPT2Cjl+9V+c7SicmA7BDrKsw1TTPUeSHp3gVZVUA5Zl7iFU
+   My8HWV7sA5SXwEVHxHM1671Jam2zDYq55EzArNnbQ1EHVGm7zNNqa0Gz/
+   w==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10252"; a="229019993"
+X-IronPort-AV: E=Sophos;i="5.88,353,1635231600"; 
+   d="scan'208";a="229019993"
+Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Feb 2022 12:42:30 -0800
+X-IronPort-AV: E=Sophos;i="5.88,353,1635231600"; 
+   d="scan'208";a="601370783"
+Received: from alison-desk.jf.intel.com (HELO alison-desk) ([10.54.74.41])
+  by fmsmga004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Feb 2022 12:42:30 -0800
+Date: Tue, 8 Feb 2022 12:46:36 -0800
+From: Alison Schofield <alison.schofield@intel.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Ben Widawsky <ben.widawsky@intel.com>, Ira Weiny <ira.weiny@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Linux NVDIMM <nvdimm@lists.linux.dev>, linux-cxl@vger.kernel.org
+Subject: Re: [ndctl PATCH v4 1/6] libcxl: add GET_PARTITION_INFO mailbox
+ command and accessors
+Message-ID: <20220208204636.GA950445@alison-desk>
+References: <cover.1644271559.git.alison.schofield@intel.com>
+ <396ccc39525b3eb829acd4e06f704f6fb57a94a8.1644271559.git.alison.schofield@intel.com>
+ <CAPcyv4gYbLGkd99fvKixAmLAhpkfQU8gNJ0e0BHrmVUZ3wWA_A@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <cover.1644271559.git.alison.schofield@intel.com> <fad634a7912265e87a8e7f3c3c9db21c1494d9ad.1644271559.git.alison.schofield@intel.com>
-In-Reply-To: <fad634a7912265e87a8e7f3c3c9db21c1494d9ad.1644271559.git.alison.schofield@intel.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 8 Feb 2022 12:38:58 -0800
-Message-ID: <CAPcyv4iA-491r-c+j_-vuxRvkOB0vhW=Sm74Fa+M4WsVLUobGw@mail.gmail.com>
-Subject: Re: [ndctl PATCH v4 3/6] libcxl: return the partition alignment field
- in bytes
-To: "Schofield, Alison" <alison.schofield@intel.com>
-Cc: Ben Widawsky <ben.widawsky@intel.com>, Ira Weiny <ira.weiny@intel.com>, 
-	Vishal Verma <vishal.l.verma@intel.com>, Linux NVDIMM <nvdimm@lists.linux.dev>, 
-	linux-cxl@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4gYbLGkd99fvKixAmLAhpkfQU8gNJ0e0BHrmVUZ3wWA_A@mail.gmail.com>
 
-On Mon, Feb 7, 2022 at 3:06 PM <alison.schofield@intel.com> wrote:
->
-> From: Alison Schofield <alison.schofield@intel.com>
->
-> Per the CXL specification, the partition alignment field reports
-> the alignment value in multiples of 256MB. In the libcxl API, values
-> for all capacity fields are defined to return bytes.
->
-> Update the partition alignment accessor to return bytes so that it
-> is in sync with other capacity related fields.
+Thanks Dan! Got it all.
+<eom>
 
-Perhaps a note that the expectation is that this early in the
-development cycle the expectation is that no third party consumers of
-this library have come to depend on the encoded capacity field.
-
-
->
-> Signed-off-by: Alison Schofield <alison.schofield@intel.com>
-> ---
->  cxl/lib/libcxl.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
-> index e9d7762..307e5c4 100644
-> --- a/cxl/lib/libcxl.c
-> +++ b/cxl/lib/libcxl.c
-> @@ -2306,7 +2306,7 @@ CXL_EXPORT unsigned long long cxl_cmd_identify_get_partition_align(
->         if (cmd->status < 0)
->                 return cmd->status;
-
-Hmm, I like that this function does "if ()" instead of "? :", however,
-it seems it also needs to be fixed to return ULLONG_MAX in the error
-case. The status will otherwise be misinterpreted as the alignment.
-
->
-> -       return le64_to_cpu(id->partition_align);
-> +       return capacity_to_bytes(id->partition_align);
->  }
->
->  CXL_EXPORT unsigned int cxl_cmd_identify_get_label_size(struct cxl_cmd *cmd)
-> --
-> 2.31.1
->
+On Tue, Feb 08, 2022 at 12:20:56PM -0800, Dan Williams wrote:
+> On Mon, Feb 7, 2022 at 3:06 PM <alison.schofield@intel.com> wrote:
+> >
+> > From: Alison Schofield <alison.schofield@intel.com>
+> >
+> > Users need access to the CXL GET_PARTITION_INFO mailbox command
+> > to inspect and confirm changes to the partition layout of a memory
+> > device.
+> >
+> > Add libcxl APIs to create a new GET_PARTITION_INFO mailbox command,
+> > the command output data structure (privately), and accessor APIs to
+> > return the different fields in the partition info output.
+> >
+> > Per the CXL 2.0 specification, devices report partition capacities
+> > as multiples of 256MB. Define and use a capacity multiplier to
+> > convert the raw data into bytes for user consumption. Use byte
+> > format as the norm for all capacity values produced or consumed
+> > using CXL Mailbox commands.
+> >
+> > Signed-off-by: Alison Schofield <alison.schofield@intel.com>
+> > ---
+> >  Documentation/cxl/lib/libcxl.txt |  1 +
+> >  cxl/lib/libcxl.c                 | 57 ++++++++++++++++++++++++++++++++
+> >  cxl/lib/libcxl.sym               |  5 +++
+> >  cxl/lib/private.h                | 10 ++++++
+> >  cxl/libcxl.h                     |  5 +++
+> >  util/size.h                      |  1 +
+> >  6 files changed, 79 insertions(+)
+> >
+> > diff --git a/Documentation/cxl/lib/libcxl.txt b/Documentation/cxl/lib/libcxl.txt
+> > index 4392b47..a6986ab 100644
+> > --- a/Documentation/cxl/lib/libcxl.txt
+> > +++ b/Documentation/cxl/lib/libcxl.txt
+> > @@ -131,6 +131,7 @@ int cxl_memdev_read_label(struct cxl_memdev *memdev, void *buf, size_t length,
+> >                           size_t offset);
+> >  int cxl_memdev_write_label(struct cxl_memdev *memdev, void *buf, size_t length,
+> >                            size_t offset);
+> > +struct cxl_cmd *cxl_cmd_new_get_partition(struct cxl_memdev *memdev);
+> >
+> >  ----
+> >
+> > diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
+> > index e0b443f..33cf06b 100644
+> > --- a/cxl/lib/libcxl.c
+> > +++ b/cxl/lib/libcxl.c
+> > @@ -1985,6 +1985,12 @@ static int cxl_cmd_validate_status(struct cxl_cmd *cmd, u32 id)
+> >         return 0;
+> >  }
+> >
+> > +static unsigned long long
+> > +capacity_to_bytes(unsigned long long size)
+> 
+> If this helper converts an encoded le64 to bytes then the function
+> signature should reflect that:
+> 
+> static uint64_t cxl_capacity_to_bytes(leint64_t size)
+> 
+> > +{
+> > +       return le64_to_cpu(size) * CXL_CAPACITY_MULTIPLIER;
+> > +}
+> > +
+> >  /* Helpers for health_info fields (no endian conversion) */
+> >  #define cmd_get_field_u8(cmd, n, N, field)                             \
+> >  do {                                                                   \
+> > @@ -2371,6 +2377,57 @@ CXL_EXPORT ssize_t cxl_cmd_read_label_get_payload(struct cxl_cmd *cmd,
+> >         return length;
+> >  }
+> >
+> > +CXL_EXPORT struct cxl_cmd *cxl_cmd_new_get_partition(struct cxl_memdev *memdev)
+> > +{
+> > +       return cxl_cmd_new_generic(memdev,
+> > +                                  CXL_MEM_COMMAND_ID_GET_PARTITION_INFO);
+> > +}
+> > +
+> > +static struct cxl_cmd_get_partition *
+> > +cmd_to_get_partition(struct cxl_cmd *cmd)
+> > +{
+> 
+> This could also check for cmd == NULL just to be complete.
+> 
+> > +       if (cxl_cmd_validate_status(cmd, CXL_MEM_COMMAND_ID_GET_PARTITION_INFO))
+> > +               return NULL;
+> > +
+> > +       return cmd->output_payload;
+> > +}
+> > +
+> > +CXL_EXPORT unsigned long long
+> > +cxl_cmd_partition_get_active_volatile_size(struct cxl_cmd *cmd)
+> > +{
+> > +       struct cxl_cmd_get_partition *c;
+> > +
+> > +       c = cmd_to_get_partition(cmd);
+> > +       return c ? capacity_to_bytes(c->active_volatile) : ULLONG_MAX;
+> 
+> I'd prefer kernel coding style which wants:
+> 
+> if (!c)
+>     return ULLONG_MAX;
+> return cxl_capacity_to_bytes(c->active_volatile);
+> 
+> Otherwise, looks good to me:
+> 
+> Reviewed-by: Dan Williams <dan.j.williams@intel.com>
