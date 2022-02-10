@@ -1,21 +1,21 @@
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 344412F22
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3665D2C9C
 	for <nvdimm@lists.linux.dev>; Thu, 10 Feb 2022 07:28:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-	MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender
-	:Reply-To:Content-Type:Content-ID:Content-Description;
-	bh=L7OGejZbRu+QgE+4KbqRy4msYJogVFzOR8WFdCl8/80=; b=eKKKgKkuaE01+Nvoo8eKckwrla
-	uHDvbQKsY1I+8rHUnmKTrANleI/peq39kFDeuY9tfC/pAUZX9+6Gh58/9sMa16SA31DFT/DHHENpA
-	wB44giC+sRhFyvdNFVP150JQjHDq4ASoixuwQ+cJain6eH0Zdy5DudB1ke6SlJbIedExUtLO5vqmv
-	qYigZr+KlRbUSfyG4YzU4u0fld+gt+XTEqror/Gjkqn5JzjKh6RYbq1mBq8PHl5lg0T0vZz0Cuoc/
-	b87JAs/e+UYwAe7PWl2Tn7sLUeRU+VtT8yM7wXK7xM+5cuAJK4WWiFz4DBXUjNTK06Z70+5fWunTx
-	pmaHhCvw==;
+	MIME-Version:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:
+	Content-ID:Content-Description:In-Reply-To:References;
+	bh=fKwV65Fx615k5LuIXkLcfiAVy//BhvLpTdyb0R61khg=; b=UBIrT7SYvmrOGapKs/IMJGZMJP
+	rULomygyaaC55QDvs3eY68CeMZN8/C+Un5dhwOktX57xJXfoja7le1xanp8IT24T92jgKNogsi73U
+	Vs9CL78FLc7OFzeln9OiPi/7vaiOEWqV6C55F6pZVXdbLeEo8ldf619JOUh2kLdEvFbEbfs4LZxZ3
+	5qvQi9MVLtXFESagqUxWxaF5WV+V5JcZMy4pHRWVG/clCxw7rfcEHb30WuSh5pYSBuzRIj8PeF+Sn
+	rhE6DpzHH+K5CChoU7tggXhlh61KLf/GmLxZLyL2cNDul5XrR+6rl7Cq4CkAIe4DZ9r8zj1m7ij2G
+	Wyu4LoIQ==;
 Received: from [2001:4bb8:188:3efc:8014:b2f2:fdfd:57ea] (helo=localhost)
 	by bombadil.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-	id 1nI3sY-002rl0-02; Thu, 10 Feb 2022 07:28:34 +0000
+	id 1nI3sV-002rks-4y; Thu, 10 Feb 2022 07:28:31 +0000
 From: Christoph Hellwig <hch@lst.de>
 To: Andrew Morton <akpm@linux-foundation.org>,
 	Dan Williams <dan.j.williams@intel.com>
@@ -35,16 +35,11 @@ Cc: Felix Kuehling <Felix.Kuehling@amd.com>,
 	dri-devel@lists.freedesktop.org,
 	nouveau@lists.freedesktop.org,
 	nvdimm@lists.linux.dev,
-	linux-mm@kvack.org,
-	Jason Gunthorpe <jgg@nvidia.com>,
-	Chaitanya Kulkarni <kch@nvidia.com>,
-	Muchun Song <songmuchun@bytedance.com>
-Subject: [PATCH 01/27] mm: remove a pointless CONFIG_ZONE_DEVICE check in memremap_pages
-Date: Thu, 10 Feb 2022 08:28:02 +0100
-Message-Id: <20220210072828.2930359-2-hch@lst.de>
+	linux-mm@kvack.org
+Subject: start sorting out the ZONE_DEVICE refcount mess v2
+Date: Thu, 10 Feb 2022 08:28:01 +0100
+Message-Id: <20220210072828.2930359-1-hch@lst.de>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20220210072828.2930359-1-hch@lst.de>
-References: <20220210072828.2930359-1-hch@lst.de>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -54,33 +49,65 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 
-memremap.c is only built when CONFIG_ZONE_DEVICE is set, so remove
-the superflous extra check.
+Hi all,
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
-Reviewed-by: Chaitanya Kulkarni <kch@nvidia.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
----
- mm/memremap.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+this series removes the offset by one refcount for ZONE_DEVICE pages
+that are freed back to the driver owning them, which is just device
+private ones for now, but also the planned device coherent pages
+and the ehanced p2p ones pending.
 
-diff --git a/mm/memremap.c b/mm/memremap.c
-index 6aa5f0c2d11fda..5f04a0709e436e 100644
---- a/mm/memremap.c
-+++ b/mm/memremap.c
-@@ -328,8 +328,7 @@ void *memremap_pages(struct dev_pagemap *pgmap, int nid)
- 		}
- 		break;
- 	case MEMORY_DEVICE_FS_DAX:
--		if (!IS_ENABLED(CONFIG_ZONE_DEVICE) ||
--		    IS_ENABLED(CONFIG_FS_DAX_LIMITED)) {
-+		if (IS_ENABLED(CONFIG_FS_DAX_LIMITED)) {
- 			WARN(1, "File system DAX not supported\n");
- 			return ERR_PTR(-EINVAL);
- 		}
--- 
-2.30.2
+It does not address the fsdax pages yet, which will be attacked in a
+follow on series.
 
+Note that if we want to get the p2p series rebased on top of this
+we'll need a git branch for this series.  I could offer to host one.
+
+A git tree is available here:
+
+    git://git.infradead.org/users/hch/misc.git pgmap-refcount
+
+Gitweb:
+
+    http://git.infradead.org/users/hch/misc.git/shortlog/refs/heads/pgmap-refcount
+
+Changes since v1:
+ - add a missing memremap.h include in memcontrol.c
+ - include rebased versions of the device coherent support and
+   device coherent migration support series as well as additional
+   cleanup patches
+
+Diffstt:
+ arch/arm64/mm/mmu.c                      |    1 
+ arch/powerpc/kvm/book3s_hv_uvmem.c       |    1 
+ drivers/gpu/drm/amd/amdkfd/kfd_migrate.c |   35 -
+ drivers/gpu/drm/amd/amdkfd/kfd_priv.h    |    1 
+ drivers/gpu/drm/drm_cache.c              |    2 
+ drivers/gpu/drm/nouveau/nouveau_dmem.c   |    3 
+ drivers/gpu/drm/nouveau/nouveau_svm.c    |    1 
+ drivers/infiniband/core/rw.c             |    1 
+ drivers/nvdimm/pmem.h                    |    1 
+ drivers/nvme/host/pci.c                  |    1 
+ drivers/nvme/target/io-cmd-bdev.c        |    1 
+ fs/Kconfig                               |    2 
+ fs/fuse/virtio_fs.c                      |    1 
+ include/linux/hmm.h                      |    9 
+ include/linux/memremap.h                 |   36 +
+ include/linux/migrate.h                  |    1 
+ include/linux/mm.h                       |   59 --
+ lib/test_hmm.c                           |  353 ++++++++++---
+ lib/test_hmm_uapi.h                      |   22 
+ mm/Kconfig                               |    7 
+ mm/Makefile                              |    1 
+ mm/gup.c                                 |  127 +++-
+ mm/internal.h                            |    3 
+ mm/memcontrol.c                          |   19 
+ mm/memory-failure.c                      |    8 
+ mm/memremap.c                            |   75 +-
+ mm/migrate.c                             |  763 ----------------------------
+ mm/migrate_device.c                      |  822 +++++++++++++++++++++++++++++++
+ mm/rmap.c                                |    5 
+ mm/swap.c                                |   49 -
+ tools/testing/selftests/vm/Makefile      |    2 
+ tools/testing/selftests/vm/hmm-tests.c   |  204 ++++++-
+ tools/testing/selftests/vm/test_hmm.sh   |   24 
+ 33 files changed, 1552 insertions(+), 1088 deletions(-)
