@@ -1,125 +1,93 @@
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f180.google.com (mail-pl1-f180.google.com [209.85.214.180])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF49E7C
-	for <nvdimm@lists.linux.dev>; Fri, 11 Feb 2022 18:00:05 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1644602405; x=1676138405;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=fDDGny/iyeoFOJHXpPTmtGt49foHBaYF7butWicdaLY=;
-  b=NtpTrI4N+Hpk789eydyjDPgZcDl0sSs9K3g2CG6WTOgkjtD4F97eWFcj
-   5fE++VLcsB9KLsqDAx26TWNMtodEM6zKskH9UMINm6OUMofHX7LY0/q0X
-   I466JMdxtFh62AnxoG5hz8jRH73fUPJwaXAMlq5yhn8DBdIeLZPu7HfJK
-   HBMnBhdNKwWj1CyKU3s0kU2M2DZTWDye4qe1pKsgGyj7nGvvOb2RASvCF
-   sD+TnGUC7vlwcM5x1u/JY7Sh+61nb5XUq27CxRStJfZYLevSPqiJzKA+i
-   JRftkYM++Kxt2LXNKzfcnQq1Nfgv0t/arU2N6rlWpNAuaXdMb0JTHRNIQ
-   Q==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10255"; a="274337649"
-X-IronPort-AV: E=Sophos;i="5.88,361,1635231600"; 
-   d="scan'208";a="274337649"
-Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Feb 2022 10:00:05 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.88,361,1635231600"; 
-   d="scan'208";a="500850554"
-Received: from lkp-server01.sh.intel.com (HELO d95dc2dabeb1) ([10.239.97.150])
-  by orsmga002.jf.intel.com with ESMTP; 11 Feb 2022 10:00:01 -0800
-Received: from kbuild by d95dc2dabeb1 with local (Exim 4.92)
-	(envelope-from <lkp@intel.com>)
-	id 1nIaDB-0004vo-8s; Fri, 11 Feb 2022 18:00:01 +0000
-Date: Sat, 12 Feb 2022 01:59:07 +0800
-From: kernel test robot <lkp@intel.com>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-	Hui Wang <hui.wang@canonical.com>, linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev
-Cc: kbuild-all@lists.01.org, Len Brown <lenb@kernel.org>,
-	Dan Williams <dan.j.williams@intel.com>,
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED1457E
+	for <nvdimm@lists.linux.dev>; Sat, 12 Feb 2022 07:11:35 +0000 (UTC)
+Received: by mail-pl1-f180.google.com with SMTP id w20so6385500plq.12
+        for <nvdimm@lists.linux.dev>; Fri, 11 Feb 2022 23:11:35 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=xJWv4+1FQbvdMw4wXNISW5YNlFR3GL+Z3R6+p6cC0cc=;
+        b=lBgkmU2opob3nAv4YJBAi7Ijhve5HmiVL/lIxW0/7P6OzFU0/Mh7ex2JlOG8luGs9H
+         vpjykZkjt7W94Ni7KqUspWHtN0L5VfYJUQ6phxdGKl9TOmkLonCs/8g3SxsKgxnXkgg/
+         98AuFJIy06P4vmrsYPVECQD6zZr2m0qsGsckeq7Gm07FVolyL+RUyS+S7sZO//Mogi0I
+         c7NLtPpNMxJPNtdtESHGMhmKK1WUwjRkY+w+bo3Muco4+Uqmh5sgxfbAqEVlDOKbhPHq
+         un2XdxIQXPyIezyPpk0phRyLImFAy8rDceBn5Mzvr3Hk1YuuCGpDpNYxuxOi5/HeyHDR
+         vpfg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=xJWv4+1FQbvdMw4wXNISW5YNlFR3GL+Z3R6+p6cC0cc=;
+        b=IOCBqRyL8X2BLBMcoZ0S+xgQ4GGlm+I3IHYr8ME9sILf/DxSQuFkBzbv/uV8vuf3xX
+         JxZ55Q20sIU9cKPj9VGWomGF9dv0R7/Ko6MlYCCi+hJptbSNq39aeyWRmiQxmYlW8c16
+         3FN52jr0yFPuIuyovbk+OxBXxRAzAc8SO36XQAz2eGXpQ3UDwvQ/Ffvd6sB1ASyvJJFk
+         1tRnt9JexgtpUrGaj3+2fMb4ioq26XDrw/40RUMBrDj8hrPjW3zEF6s5u74DVo2cTgKW
+         udGVXhnETYi0WrEAKxq1KWcRalHv64DLrlUB4z7Xe7+3i/iKqJlexzr3uApOJSi5SW+z
+         20yQ==
+X-Gm-Message-State: AOAM5307uezQdNQdR9QoXpjQzaUP7CRmoi1zEJp7HdAVMnOLEEAjY1qu
+	uAO5vBQSZFUIimkAPrIpByk=
+X-Google-Smtp-Source: ABdhPJwTA48YczQpfo6bhiUx1wcqZqvTgPvQut2lcZVm/LMuAOj6LdjJVrgHXf106G9P5rpFlGKCZQ==
+X-Received: by 2002:a17:90b:4c06:: with SMTP id na6mr4015192pjb.62.1644649895097;
+        Fri, 11 Feb 2022 23:11:35 -0800 (PST)
+Received: from tong-desktop.local (99-105-211-126.lightspeed.sntcca.sbcglobal.net. [99.105.211.126])
+        by smtp.googlemail.com with ESMTPSA id l14sm7773309pjf.1.2022.02.11.23.11.34
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 11 Feb 2022 23:11:34 -0800 (PST)
+From: Tong Zhang <ztong0001@gmail.com>
+To: Dan Williams <dan.j.williams@intel.com>,
 	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>
-Subject: Re: [PATCH v1 1/1] ACPI: Switch to use list_entry_is_head() helper
-Message-ID: <202202120054.idhiETlD-lkp@intel.com>
-References: <20220211110423.22733-1-andriy.shevchenko@linux.intel.com>
+	Dave Jiang <dave.jiang@intel.com>,
+	nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org
+Cc: Tong Zhang <ztong0001@gmail.com>
+Subject: [PATCH] dax: make sure inodes are flushed before destroy cache
+Date: Fri, 11 Feb 2022 23:11:11 -0800
+Message-Id: <20220212071111.148575-1-ztong0001@gmail.com>
+X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220211110423.22733-1-andriy.shevchenko@linux.intel.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 
-Hi Andy,
+A bug can be triggered by following command
 
-I love your patch! Yet something to improve:
+$ modprobe nd_pmem && modprobe -r nd_pmem
 
-[auto build test ERROR on rafael-pm/linux-next]
-[also build test ERROR on nvdimm/libnvdimm-for-next v5.17-rc3 next-20220211]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch]
+[   10.060014] BUG dax_cache (Not tainted): Objects remaining in dax_cache on __kmem_cache_shutdown()
+[   10.060938] Slab 0x0000000085b729ac objects=9 used=1 fp=0x000000004f5ae469 flags=0x200000000010200(slab|head|node)
+[   10.062433] Call Trace:
+[   10.062673]  dump_stack_lvl+0x34/0x44
+[   10.062865]  slab_err+0x90/0xd0
+[   10.063619]  __kmem_cache_shutdown+0x13b/0x2f0
+[   10.063848]  kmem_cache_destroy+0x4a/0x110
+[   10.064058]  __x64_sys_delete_module+0x265/0x300
 
-url:    https://github.com/0day-ci/linux/commits/Andy-Shevchenko/ACPI-Switch-to-use-list_entry_is_head-helper/20220211-190438
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
-config: ia64-allmodconfig (https://download.01.org/0day-ci/archive/20220212/202202120054.idhiETlD-lkp@intel.com/config)
-compiler: ia64-linux-gcc (GCC) 11.2.0
-reproduce (this is a W=1 build):
-        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        # https://github.com/0day-ci/linux/commit/95f7c8c71bb18e505f5399a87cbb192f481c86fe
-        git remote add linux-review https://github.com/0day-ci/linux
-        git fetch --no-tags linux-review Andy-Shevchenko/ACPI-Switch-to-use-list_entry_is_head-helper/20220211-190438
-        git checkout 95f7c8c71bb18e505f5399a87cbb192f481c86fe
-        # save the config file to linux build tree
-        mkdir build_dir
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-11.2.0 make.cross O=build_dir ARCH=ia64 SHELL=/bin/bash drivers/
+This is caused by dax_fs_exit() not flushing inodes before destroy cache.
+To fix this issue, call rcu_barrier() before destroy cache.
 
-If you fix the issue, kindly add following tag as appropriate
-Reported-by: kernel test robot <lkp@intel.com>
-
-All errors (new ones prefixed by >>):
-
-   drivers/acpi/acpi_ipmi.c: In function 'ipmi_cancel_tx_msg':
->> drivers/acpi/acpi_ipmi.c:369:17: error: expected ')' before 'return'
-     369 |                 return;
-         |                 ^~~~~~
-   drivers/acpi/acpi_ipmi.c:368:12: note: to match this '('
-     368 |         if (list_entry_is_head(tx_msg, &ipmi->tx_msg_list, head)
-         |            ^
->> drivers/acpi/acpi_ipmi.c:372:1: error: expected expression before '}' token
-     372 | }
-         | ^
-
-
-vim +369 drivers/acpi/acpi_ipmi.c
-
-   352	
-   353	static void ipmi_cancel_tx_msg(struct acpi_ipmi_device *ipmi,
-   354				       struct acpi_ipmi_msg *msg)
-   355	{
-   356		struct acpi_ipmi_msg *tx_msg, *temp;
-   357		unsigned long flags;
-   358	
-   359		spin_lock_irqsave(&ipmi->tx_msg_lock, flags);
-   360		list_for_each_entry_safe(tx_msg, temp, &ipmi->tx_msg_list, head) {
-   361			if (msg == tx_msg) {
-   362				list_del(&tx_msg->head);
-   363				break;
-   364			}
-   365		}
-   366		spin_unlock_irqrestore(&ipmi->tx_msg_lock, flags);
-   367	
-   368		if (list_entry_is_head(tx_msg, &ipmi->tx_msg_list, head)
- > 369			return;
-   370	
-   371		acpi_ipmi_msg_put(tx_msg);
- > 372	}
-   373	
-
+Signed-off-by: Tong Zhang <ztong0001@gmail.com>
 ---
-0-DAY CI Kernel Test Service, Intel Corporation
-https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
+ drivers/dax/super.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+index e3029389d809..6bd565fe2e63 100644
+--- a/drivers/dax/super.c
++++ b/drivers/dax/super.c
+@@ -476,6 +476,7 @@ static int dax_fs_init(void)
+ static void dax_fs_exit(void)
+ {
+ 	kern_unmount(dax_mnt);
++	rcu_barrier();
+ 	kmem_cache_destroy(dax_cache);
+ }
+ 
+-- 
+2.25.1
+
