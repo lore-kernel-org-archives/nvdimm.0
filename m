@@ -1,37 +1,37 @@
-Received: from mail-yb1-f181.google.com (mail-yb1-f181.google.com [209.85.219.181])
+Received: from mail-yb1-f171.google.com (mail-yb1-f171.google.com [209.85.219.171])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32DA0211E
-	for <nvdimm@lists.linux.dev>; Sat, 12 Feb 2022 10:09:15 +0000 (UTC)
-Received: by mail-yb1-f181.google.com with SMTP id 124so3772118ybn.11
-        for <nvdimm@lists.linux.dev>; Sat, 12 Feb 2022 02:09:15 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A46097D
+	for <nvdimm@lists.linux.dev>; Sat, 12 Feb 2022 11:11:50 +0000 (UTC)
+Received: by mail-yb1-f171.google.com with SMTP id 124so4059602ybn.11
+        for <nvdimm@lists.linux.dev>; Sat, 12 Feb 2022 03:11:50 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=bytedance-com.20210112.gappssmtp.com; s=20210112;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=uY1QGZxvGJNV1jQzuanAqMu3WZtLOvsmLZnn0LbatKM=;
-        b=FvtDkCYKqTsbh24ngYPII58GTtKLRiNNrwb9D+4lHh2yDSyJflk5IOHe/2Pz50gszB
-         5+YhYc/POsGXJWz71gKctIlk2CC3NqaHnP+sWwAugLGyA0G/89+Fj/YxRWfL07IvADAu
-         w550p0TJcrAcQHtjd4OSjbYQNY2cfsyJ1CmekQApWcmAagHnJM+CJVEvtoDG/yGkWdyh
-         wr1tJAPNEXQdIgyaHbUqjNepODQHsQQrA/BlwTfTNiAg9pJw7BgLaJzx0eagMcX/Hp7g
-         uemiY0fS7TobC04DACyRdjzDFvUe9+dUgJ2RnmK+tDcr2rx2uQ9Ta4tgRGY9lakN2+Kl
-         c5aA==
+        bh=xrTak1VFmwYfWi/5C91pgPU3GcQuoEOjal0LN32/VtE=;
+        b=CRBUDFDPb5R16DSAWpwZf/x5195N0j/8r4hfLE0UbeTlIlNE3JMq8vFj1Q0xmCztG4
+         //BPPIY5FfbLE5Eu0N9UygveVJF8xWRZk7QxsM0kgu27NVucgdp9qSa9ZPuMkNhpgRaH
+         q2T626YECEwJgtidwqOSiRLVOBFTT6KIAaLqEMkFy83d8ETDdgwc6p9FxhcTuM+ux7JR
+         4N1n71TM2ra90WWyzsUKko7/RLvyFLJ5ZFh3UH9IlTc5MS5obNGOWXeWp+mvnNmRIK5y
+         AlDE3jIpjcr07RN0LwEZN7KwU/5QW8+vMNgkC7mrDpkWZgmOf9Qlzo3mHR+rY/PAy/8O
+         XW/Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=uY1QGZxvGJNV1jQzuanAqMu3WZtLOvsmLZnn0LbatKM=;
-        b=4DHuaUzQs086XR3hrp1r20fowo53jFsu7aVsxrXZbCwgNs3fdzIFcSKfrxt+7LV95l
-         Jwi2m5pH0sqeT6ywMgYAdxgAs0pTONhQ59hh9rqEnxuJPL5J7fYQBSplW7OOWTpZlAqS
-         elI+5oQdtxNUz1O7QM9aA3DPFRntF/+CAx5HgLzH3FkhsWdz9xcLD1bidp4UhDH4cVil
-         eANL9gOE/pgSaMbMPh2clijyjIbO2cUE0tqvYh/2chpYNjSJgzb4sYVlLiTu0Sg87qMo
-         ptQ0msoz+AdBPLWt/t8l5nD7JyeG2EkB128tr9r/RP5o/s+nACo0+lISKKgQ5/MGkgj4
-         sNfA==
-X-Gm-Message-State: AOAM533ggGG16dTudZRRMlRyoBi4W/Cuyu+lOYobW+/crvlX6Xf4YZHJ
-	qa/hK1j7Hs3kQKoauf1tnKXBQ4a0hSdcoDrFleKg/Q==
-X-Google-Smtp-Source: ABdhPJzYQpbf+Roqjp0GzTDpkzICPMdHmyElZzFdRcACcJ2hhbApUPi2w9MF5msS2pnfs6Amy4uo8UyalDQKMw0zp5Y=
-X-Received: by 2002:a25:4742:: with SMTP id u63mr4863670yba.523.1644660554886;
- Sat, 12 Feb 2022 02:09:14 -0800 (PST)
+        bh=xrTak1VFmwYfWi/5C91pgPU3GcQuoEOjal0LN32/VtE=;
+        b=L35NacdDuX5SVig99z/SAbToBY7/KBnG/E5CS/3sSFxAlmXnbdwLZaWepjTkEtjgVb
+         rEkD3f19EkSDA+q3ThROis4um8NsIRi86N+p3NKHRCQY/ZQLdOeh2knbuK0V/QAqQXZG
+         C0NvVyNjQhBPhdoIK4HscgF2fBZCcxmj1DOfA/l88vR4ThcI3sp5eFy76MbeHfbNUL8h
+         Xb7GkhOi4sQ6p2Qhw/FXztvkCHG+xNku5R8uZ+AwkLO+bb7n0tEHYRZ42caf/0DOTzDo
+         jxt0M+FvwU+a+1H/UK7VSyGAkkKRdg3t3HeBq6507VO2RfRmQOkg5SVRV0XkH7EVRa4L
+         aL8A==
+X-Gm-Message-State: AOAM532piqcdqXgoyDpCxrb60OjFV+dJaLmciGX7iTHZhCdp5U+JRSpu
+	Oc9zSo2d4Mh3OzgZMdhe+PRwzs/3phzU/CwWPMn3fA==
+X-Google-Smtp-Source: ABdhPJyzi0DB9toSCVpkfD/oWJTS16ZkfcTvJtuyuZj4HY/NlpJ3rJtNI3SnPC60K5CR6cLB+J1EoQsHVS4+JnYv398=
+X-Received: by 2002:a25:1e82:: with SMTP id e124mr2221807ybe.485.1644664309419;
+ Sat, 12 Feb 2022 03:11:49 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -39,13 +39,13 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 References: <20220210193345.23628-1-joao.m.martins@oracle.com>
- <20220210193345.23628-5-joao.m.martins@oracle.com> <CAMZfGtUEaFg=CGLRJomyumsZzcyn8O0JE1+De2Vd3a5remcH6w@mail.gmail.com>
- <d258c471-1291-e0c7-f1b3-a495b4d40bb9@oracle.com>
-In-Reply-To: <d258c471-1291-e0c7-f1b3-a495b4d40bb9@oracle.com>
+ <20220210193345.23628-6-joao.m.martins@oracle.com> <CAMZfGtXRPn3MPDpDEyFJJ98E3xTB65Q8_C+P92_XKsL-q8ah=w@mail.gmail.com>
+ <cfd0690f-bbc5-0fba-e085-1385041c470d@oracle.com>
+In-Reply-To: <cfd0690f-bbc5-0fba-e085-1385041c470d@oracle.com>
 From: Muchun Song <songmuchun@bytedance.com>
-Date: Sat, 12 Feb 2022 18:08:38 +0800
-Message-ID: <CAMZfGtWUHRRfowwPf1o-SycKZMDzMdeGdahaR2OEJZzLhLioNg@mail.gmail.com>
-Subject: Re: [PATCH v5 4/5] mm/sparse-vmemmap: improve memory savings for
+Date: Sat, 12 Feb 2022 19:11:13 +0800
+Message-ID: <CAMZfGtUSH9cKWmQpsD2BzvVMAjQJCpyO_p7sFchEVx6ywxDEyw@mail.gmail.com>
+Subject: Re: [PATCH v5 5/5] mm/page_alloc: reuse tail struct pages for
  compound devmaps
 To: Joao Martins <joao.m.martins@oracle.com>
 Cc: Linux Memory Management List <linux-mm@kvack.org>, Dan Williams <dan.j.williams@intel.com>, 
@@ -56,81 +56,55 @@ Cc: Linux Memory Management List <linux-mm@kvack.org>, Dan Williams <dan.j.willi
 	Linux Doc Mailing List <linux-doc@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 
-On Fri, Feb 11, 2022 at 8:37 PM Joao Martins <joao.m.martins@oracle.com> wrote:
+On Fri, Feb 11, 2022 at 8:48 PM Joao Martins <joao.m.martins@oracle.com> wrote:
 >
-> On 2/11/22 07:54, Muchun Song wrote:
+> On 2/11/22 05:07, Muchun Song wrote:
 > > On Fri, Feb 11, 2022 at 3:34 AM Joao Martins <joao.m.martins@oracle.com> wrote:
-> > [...]
-> >>  pte_t * __meminit vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node,
-> >> -                                      struct vmem_altmap *altmap)
-> >> +                                      struct vmem_altmap *altmap,
-> >> +                                      struct page *block)
-> >
-> > Why not use the name of "reuse" instead of "block"?
-> > Seems like "reuse" is more clear.
-> >
-> Good idea, let me rename that to @reuse.
->
-> >>  {
-> >>         pte_t *pte = pte_offset_kernel(pmd, addr);
-> >>         if (pte_none(*pte)) {
-> >>                 pte_t entry;
-> >>                 void *p;
-> >>
-> >> -               p = vmemmap_alloc_block_buf(PAGE_SIZE, node, altmap);
-> >> -               if (!p)
-> >> -                       return NULL;
-> >> +               if (!block) {
-> >> +                       p = vmemmap_alloc_block_buf(PAGE_SIZE, node, altmap);
-> >> +                       if (!p)
-> >> +                               return NULL;
-> >> +               } else {
-> >> +                       /*
-> >> +                        * When a PTE/PMD entry is freed from the init_mm
-> >> +                        * there's a a free_pages() call to this page allocated
-> >> +                        * above. Thus this get_page() is paired with the
-> >> +                        * put_page_testzero() on the freeing path.
-> >> +                        * This can only called by certain ZONE_DEVICE path,
-> >> +                        * and through vmemmap_populate_compound_pages() when
-> >> +                        * slab is available.
-> >> +                        */
-> >> +                       get_page(block);
-> >> +                       p = page_to_virt(block);
-> >> +               }
-> >>                 entry = pfn_pte(__pa(p) >> PAGE_SHIFT, PAGE_KERNEL);
-> >>                 set_pte_at(&init_mm, addr, pte, entry);
+> >> diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+> >> index cface1d38093..c10df2fd0ec2 100644
+> >> --- a/mm/page_alloc.c
+> >> +++ b/mm/page_alloc.c
+> >> @@ -6666,6 +6666,20 @@ static void __ref __init_zone_device_page(struct page *page, unsigned long pfn,
 > >>         }
-> >> @@ -609,7 +624,8 @@ pgd_t * __meminit vmemmap_pgd_populate(unsigned long addr, int node)
 > >>  }
 > >>
-> >>  static int __meminit vmemmap_populate_address(unsigned long addr, int node,
-> >> -                                             struct vmem_altmap *altmap)
-> >> +                                             struct vmem_altmap *altmap,
-> >> +                                             struct page *reuse, struct page **page)
+> >> +/*
+> >> + * With compound page geometry and when struct pages are stored in ram most
+> >> + * tail pages are reused. Consequently, the amount of unique struct pages to
+> >> + * initialize is a lot smaller that the total amount of struct pages being
+> >> + * mapped. This is a paired / mild layering violation with explicit knowledge
+> >> + * of how the sparse_vmemmap internals handle compound pages in the lack
+> >> + * of an altmap. See vmemmap_populate_compound_pages().
+> >> + */
+> >> +static inline unsigned long compound_nr_pages(struct vmem_altmap *altmap,
+> >> +                                             unsigned long nr_pages)
+> >> +{
+> >> +       return !altmap ? 2 * (PAGE_SIZE/sizeof(struct page)) : nr_pages;
+> >> +}
+> >> +
 > >
-> > We can remove the last argument (struct page **page) if we change
-> > the return type to "pte_t *".  More simple, don't you think?
+> > This means only the first 2 pages will be modified, the reset 6 or 4094 pages
+> > do not.  In the HugeTLB case, those tail pages are mapped with read-only
+> > to catch invalid usage on tail pages (e.g. write operations). Quick question:
+> > should we also do similar things on DAX?
 > >
+> What's sort of in the way of marking deduplicated pages as read-only is one
+> particular CONFIG_DEBUG_VM feature, particularly page_init_poison(). HugeTLB
+> gets its memory from the page allocator of already has pre-populated (at boot)
+> system RAM sections and needs those to be 'given back' before they can be
+> hotunplugged. So I guess it never goes through page_init_poison(). Although
+> device-dax, the sections are populated and dedicated to device-dax when
+> hotplugged, and then on hotunplug when the last user devdax user drops the page
+> reference.
 >
-> Hmmm, perhaps it is simpler, specially provided the only error code is ENOMEM.
->
-> Albeit perhaps what we want is a `struct page *` rather than a pte.
+> So page_init_poison() is called on those two occasions. It actually writes to
+> whole sections of memmap, not just one page. So either I gate read-only page
+> protection when CONFIG_DEBUG_VM=n (which feels very wrong), or I detect inside
+> page_init_poison() that the caller is trying to init compound devmap backed
+> struct pages that were already watermarked (i.e. essentially when pfn offset
+> between passed page and head page is bigger than 128).
 
-The caller can extract `struct page` from a pte.
-
-[...]
-
-> >> -       if (vmemmap_populate(start, end, nid, altmap))
-> >> +       if (pgmap && pgmap_vmemmap_nr(pgmap) > 1 && !altmap)
-> >
-> > Should we add a judgment like "is_power_of_2(sizeof(struct page))" since
-> > this optimization is only applied when the size of the struct page does not
-> > cross page boundaries?
->
-> Totally miss that -- let me make that adjustment.
->
-> Can I ask which architectures/conditions this happens?
-
-E.g. arm64 when !CONFIG_MEMCG.
+Got it. I haven't realized page_init_poison() will poison the struct pages.
+I agree with you that mapping with read-only is wrong.
 
 Thanks.
