@@ -1,93 +1,136 @@
-Received: from mail-pl1-f180.google.com (mail-pl1-f180.google.com [209.85.214.180])
+Received: from mail-yb1-f181.google.com (mail-yb1-f181.google.com [209.85.219.181])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED1457E
-	for <nvdimm@lists.linux.dev>; Sat, 12 Feb 2022 07:11:35 +0000 (UTC)
-Received: by mail-pl1-f180.google.com with SMTP id w20so6385500plq.12
-        for <nvdimm@lists.linux.dev>; Fri, 11 Feb 2022 23:11:35 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32DA0211E
+	for <nvdimm@lists.linux.dev>; Sat, 12 Feb 2022 10:09:15 +0000 (UTC)
+Received: by mail-yb1-f181.google.com with SMTP id 124so3772118ybn.11
+        for <nvdimm@lists.linux.dev>; Sat, 12 Feb 2022 02:09:15 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=xJWv4+1FQbvdMw4wXNISW5YNlFR3GL+Z3R6+p6cC0cc=;
-        b=lBgkmU2opob3nAv4YJBAi7Ijhve5HmiVL/lIxW0/7P6OzFU0/Mh7ex2JlOG8luGs9H
-         vpjykZkjt7W94Ni7KqUspWHtN0L5VfYJUQ6phxdGKl9TOmkLonCs/8g3SxsKgxnXkgg/
-         98AuFJIy06P4vmrsYPVECQD6zZr2m0qsGsckeq7Gm07FVolyL+RUyS+S7sZO//Mogi0I
-         c7NLtPpNMxJPNtdtESHGMhmKK1WUwjRkY+w+bo3Muco4+Uqmh5sgxfbAqEVlDOKbhPHq
-         un2XdxIQXPyIezyPpk0phRyLImFAy8rDceBn5Mzvr3Hk1YuuCGpDpNYxuxOi5/HeyHDR
-         vpfg==
+        d=bytedance-com.20210112.gappssmtp.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=uY1QGZxvGJNV1jQzuanAqMu3WZtLOvsmLZnn0LbatKM=;
+        b=FvtDkCYKqTsbh24ngYPII58GTtKLRiNNrwb9D+4lHh2yDSyJflk5IOHe/2Pz50gszB
+         5+YhYc/POsGXJWz71gKctIlk2CC3NqaHnP+sWwAugLGyA0G/89+Fj/YxRWfL07IvADAu
+         w550p0TJcrAcQHtjd4OSjbYQNY2cfsyJ1CmekQApWcmAagHnJM+CJVEvtoDG/yGkWdyh
+         wr1tJAPNEXQdIgyaHbUqjNepODQHsQQrA/BlwTfTNiAg9pJw7BgLaJzx0eagMcX/Hp7g
+         uemiY0fS7TobC04DACyRdjzDFvUe9+dUgJ2RnmK+tDcr2rx2uQ9Ta4tgRGY9lakN2+Kl
+         c5aA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=xJWv4+1FQbvdMw4wXNISW5YNlFR3GL+Z3R6+p6cC0cc=;
-        b=IOCBqRyL8X2BLBMcoZ0S+xgQ4GGlm+I3IHYr8ME9sILf/DxSQuFkBzbv/uV8vuf3xX
-         JxZ55Q20sIU9cKPj9VGWomGF9dv0R7/Ko6MlYCCi+hJptbSNq39aeyWRmiQxmYlW8c16
-         3FN52jr0yFPuIuyovbk+OxBXxRAzAc8SO36XQAz2eGXpQ3UDwvQ/Ffvd6sB1ASyvJJFk
-         1tRnt9JexgtpUrGaj3+2fMb4ioq26XDrw/40RUMBrDj8hrPjW3zEF6s5u74DVo2cTgKW
-         udGVXhnETYi0WrEAKxq1KWcRalHv64DLrlUB4z7Xe7+3i/iKqJlexzr3uApOJSi5SW+z
-         20yQ==
-X-Gm-Message-State: AOAM5307uezQdNQdR9QoXpjQzaUP7CRmoi1zEJp7HdAVMnOLEEAjY1qu
-	uAO5vBQSZFUIimkAPrIpByk=
-X-Google-Smtp-Source: ABdhPJwTA48YczQpfo6bhiUx1wcqZqvTgPvQut2lcZVm/LMuAOj6LdjJVrgHXf106G9P5rpFlGKCZQ==
-X-Received: by 2002:a17:90b:4c06:: with SMTP id na6mr4015192pjb.62.1644649895097;
-        Fri, 11 Feb 2022 23:11:35 -0800 (PST)
-Received: from tong-desktop.local (99-105-211-126.lightspeed.sntcca.sbcglobal.net. [99.105.211.126])
-        by smtp.googlemail.com with ESMTPSA id l14sm7773309pjf.1.2022.02.11.23.11.34
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 11 Feb 2022 23:11:34 -0800 (PST)
-From: Tong Zhang <ztong0001@gmail.com>
-To: Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org
-Cc: Tong Zhang <ztong0001@gmail.com>
-Subject: [PATCH] dax: make sure inodes are flushed before destroy cache
-Date: Fri, 11 Feb 2022 23:11:11 -0800
-Message-Id: <20220212071111.148575-1-ztong0001@gmail.com>
-X-Mailer: git-send-email 2.25.1
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=uY1QGZxvGJNV1jQzuanAqMu3WZtLOvsmLZnn0LbatKM=;
+        b=4DHuaUzQs086XR3hrp1r20fowo53jFsu7aVsxrXZbCwgNs3fdzIFcSKfrxt+7LV95l
+         Jwi2m5pH0sqeT6ywMgYAdxgAs0pTONhQ59hh9rqEnxuJPL5J7fYQBSplW7OOWTpZlAqS
+         elI+5oQdtxNUz1O7QM9aA3DPFRntF/+CAx5HgLzH3FkhsWdz9xcLD1bidp4UhDH4cVil
+         eANL9gOE/pgSaMbMPh2clijyjIbO2cUE0tqvYh/2chpYNjSJgzb4sYVlLiTu0Sg87qMo
+         ptQ0msoz+AdBPLWt/t8l5nD7JyeG2EkB128tr9r/RP5o/s+nACo0+lISKKgQ5/MGkgj4
+         sNfA==
+X-Gm-Message-State: AOAM533ggGG16dTudZRRMlRyoBi4W/Cuyu+lOYobW+/crvlX6Xf4YZHJ
+	qa/hK1j7Hs3kQKoauf1tnKXBQ4a0hSdcoDrFleKg/Q==
+X-Google-Smtp-Source: ABdhPJzYQpbf+Roqjp0GzTDpkzICPMdHmyElZzFdRcACcJ2hhbApUPi2w9MF5msS2pnfs6Amy4uo8UyalDQKMw0zp5Y=
+X-Received: by 2002:a25:4742:: with SMTP id u63mr4863670yba.523.1644660554886;
+ Sat, 12 Feb 2022 02:09:14 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20220210193345.23628-1-joao.m.martins@oracle.com>
+ <20220210193345.23628-5-joao.m.martins@oracle.com> <CAMZfGtUEaFg=CGLRJomyumsZzcyn8O0JE1+De2Vd3a5remcH6w@mail.gmail.com>
+ <d258c471-1291-e0c7-f1b3-a495b4d40bb9@oracle.com>
+In-Reply-To: <d258c471-1291-e0c7-f1b3-a495b4d40bb9@oracle.com>
+From: Muchun Song <songmuchun@bytedance.com>
+Date: Sat, 12 Feb 2022 18:08:38 +0800
+Message-ID: <CAMZfGtWUHRRfowwPf1o-SycKZMDzMdeGdahaR2OEJZzLhLioNg@mail.gmail.com>
+Subject: Re: [PATCH v5 4/5] mm/sparse-vmemmap: improve memory savings for
+ compound devmaps
+To: Joao Martins <joao.m.martins@oracle.com>
+Cc: Linux Memory Management List <linux-mm@kvack.org>, Dan Williams <dan.j.williams@intel.com>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Matthew Wilcox <willy@infradead.org>, 
+	Jason Gunthorpe <jgg@ziepe.ca>, Jane Chu <jane.chu@oracle.com>, 
+	Mike Kravetz <mike.kravetz@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, 
+	Jonathan Corbet <corbet@lwn.net>, Christoph Hellwig <hch@lst.de>, nvdimm@lists.linux.dev, 
+	Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 
-A bug can be triggered by following command
+On Fri, Feb 11, 2022 at 8:37 PM Joao Martins <joao.m.martins@oracle.com> wrote:
+>
+> On 2/11/22 07:54, Muchun Song wrote:
+> > On Fri, Feb 11, 2022 at 3:34 AM Joao Martins <joao.m.martins@oracle.com> wrote:
+> > [...]
+> >>  pte_t * __meminit vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node,
+> >> -                                      struct vmem_altmap *altmap)
+> >> +                                      struct vmem_altmap *altmap,
+> >> +                                      struct page *block)
+> >
+> > Why not use the name of "reuse" instead of "block"?
+> > Seems like "reuse" is more clear.
+> >
+> Good idea, let me rename that to @reuse.
+>
+> >>  {
+> >>         pte_t *pte = pte_offset_kernel(pmd, addr);
+> >>         if (pte_none(*pte)) {
+> >>                 pte_t entry;
+> >>                 void *p;
+> >>
+> >> -               p = vmemmap_alloc_block_buf(PAGE_SIZE, node, altmap);
+> >> -               if (!p)
+> >> -                       return NULL;
+> >> +               if (!block) {
+> >> +                       p = vmemmap_alloc_block_buf(PAGE_SIZE, node, altmap);
+> >> +                       if (!p)
+> >> +                               return NULL;
+> >> +               } else {
+> >> +                       /*
+> >> +                        * When a PTE/PMD entry is freed from the init_mm
+> >> +                        * there's a a free_pages() call to this page allocated
+> >> +                        * above. Thus this get_page() is paired with the
+> >> +                        * put_page_testzero() on the freeing path.
+> >> +                        * This can only called by certain ZONE_DEVICE path,
+> >> +                        * and through vmemmap_populate_compound_pages() when
+> >> +                        * slab is available.
+> >> +                        */
+> >> +                       get_page(block);
+> >> +                       p = page_to_virt(block);
+> >> +               }
+> >>                 entry = pfn_pte(__pa(p) >> PAGE_SHIFT, PAGE_KERNEL);
+> >>                 set_pte_at(&init_mm, addr, pte, entry);
+> >>         }
+> >> @@ -609,7 +624,8 @@ pgd_t * __meminit vmemmap_pgd_populate(unsigned long addr, int node)
+> >>  }
+> >>
+> >>  static int __meminit vmemmap_populate_address(unsigned long addr, int node,
+> >> -                                             struct vmem_altmap *altmap)
+> >> +                                             struct vmem_altmap *altmap,
+> >> +                                             struct page *reuse, struct page **page)
+> >
+> > We can remove the last argument (struct page **page) if we change
+> > the return type to "pte_t *".  More simple, don't you think?
+> >
+>
+> Hmmm, perhaps it is simpler, specially provided the only error code is ENOMEM.
+>
+> Albeit perhaps what we want is a `struct page *` rather than a pte.
 
-$ modprobe nd_pmem && modprobe -r nd_pmem
+The caller can extract `struct page` from a pte.
 
-[   10.060014] BUG dax_cache (Not tainted): Objects remaining in dax_cache on __kmem_cache_shutdown()
-[   10.060938] Slab 0x0000000085b729ac objects=9 used=1 fp=0x000000004f5ae469 flags=0x200000000010200(slab|head|node)
-[   10.062433] Call Trace:
-[   10.062673]  dump_stack_lvl+0x34/0x44
-[   10.062865]  slab_err+0x90/0xd0
-[   10.063619]  __kmem_cache_shutdown+0x13b/0x2f0
-[   10.063848]  kmem_cache_destroy+0x4a/0x110
-[   10.064058]  __x64_sys_delete_module+0x265/0x300
+[...]
 
-This is caused by dax_fs_exit() not flushing inodes before destroy cache.
-To fix this issue, call rcu_barrier() before destroy cache.
+> >> -       if (vmemmap_populate(start, end, nid, altmap))
+> >> +       if (pgmap && pgmap_vmemmap_nr(pgmap) > 1 && !altmap)
+> >
+> > Should we add a judgment like "is_power_of_2(sizeof(struct page))" since
+> > this optimization is only applied when the size of the struct page does not
+> > cross page boundaries?
+>
+> Totally miss that -- let me make that adjustment.
+>
+> Can I ask which architectures/conditions this happens?
 
-Signed-off-by: Tong Zhang <ztong0001@gmail.com>
----
- drivers/dax/super.c | 1 +
- 1 file changed, 1 insertion(+)
+E.g. arm64 when !CONFIG_MEMCG.
 
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index e3029389d809..6bd565fe2e63 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -476,6 +476,7 @@ static int dax_fs_init(void)
- static void dax_fs_exit(void)
- {
- 	kern_unmount(dax_mnt);
-+	rcu_barrier();
- 	kmem_cache_destroy(dax_cache);
- }
- 
--- 
-2.25.1
-
+Thanks.
