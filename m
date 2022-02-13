@@ -1,141 +1,290 @@
-Received: from mail-yb1-f181.google.com (mail-yb1-f181.google.com [209.85.219.181])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94E502118
-	for <nvdimm@lists.linux.dev>; Sat, 12 Feb 2022 14:50:27 +0000 (UTC)
-Received: by mail-yb1-f181.google.com with SMTP id c6so33341908ybk.3
-        for <nvdimm@lists.linux.dev>; Sat, 12 Feb 2022 06:50:27 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bytedance-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=Su7AQ/5xwTbM+10TxtxCdpVbmI06ysx1kE8vo59J6GE=;
-        b=J2RdaV7sbB5sJNP4qFBdwADQQDjK3aTvY8zLZx/JDCUvMr+p330G43ATMom+WfAOs7
-         OtGAQZnlVRFBgL/RTQjKL1TIgcOSPQrVRTX7uvsDcJ7B4NcUHLR2PXUAJbs/PLZYuhaF
-         Fz2H2G5tDtAT35ha9NnAh50b+YFVLk1DN272G4SEVgHuBRV+ohNZOlDsLSNyViS4sMme
-         PeGfb/YCmR2ZxHNa2eaNU2RYAK7HEJHD8EM4a0NacLt2IAu5vAN/mpe+jgSArEZeIp1X
-         /FnFZOeHlGxk3gTYW8kbJiM6rN/NPC6L8Aduu+PJn8n0be/u5DL0ACECJshrljToWjSS
-         CCLg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=Su7AQ/5xwTbM+10TxtxCdpVbmI06ysx1kE8vo59J6GE=;
-        b=IA4AdEU4pLr+0evROryc/e+F+4NVDQeCqo62NN5j0P+8roBJOqTx+08mwHlBu0IOeM
-         /4VPUnCXZtBjln65hD/ziZ6LvVd3CemDS8PNYy0DHIoYuWhlBS9FKHVaewyTwR6p7rIq
-         8E30XDmdteQFfP9v+hi/moiE401JshxsaKGxisIU+xy5NJZj2CfBt/te1lD0hCD1M/L2
-         qka6qhnXb3PJqO/JWkf9bXBbk7KUIsovtdOE6Sjvd6isaQlHf4adTG4WU9Uqlay37ZNk
-         mxv7CFMzCKc8mBdnTIutt12m/KI4nuHIZXKtSwVOli7/6sxGtA6j9MNBciUsgmBxWMic
-         zLhw==
-X-Gm-Message-State: AOAM533hGa455XxU0UYEIMG89nGj9Wv7meLfp6ykQz+DBPjoK9OKDOMc
-	fqrxozgzomtZHZ7I+2kSIprqKwkDzJfyeqL8cjunuw==
-X-Google-Smtp-Source: ABdhPJwDUzQBxTRtxWwNY46Xv0JADh+f52XG44YUT4SrXJT3uIPLD0F239DDRKnvV/V4eRppK/aM7bAbaAEunNnv7Sw=
-X-Received: by 2002:a25:4742:: with SMTP id u63mr5594569yba.523.1644677426443;
- Sat, 12 Feb 2022 06:50:26 -0800 (PST)
+Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id A09E1365
+	for <nvdimm@lists.linux.dev>; Sun, 13 Feb 2022 12:59:51 +0000 (UTC)
+IronPort-Data: =?us-ascii?q?A9a23=3AtdpGoq2hW/Ry+r0Y5/bD5bhwkn2cJEfYwER7XOP?=
+ =?us-ascii?q?LsXnJ12920zIOyWccXjuDOq3eZ2D8fo1wPt638RwHu8KDmN82QQE+nZ1PZygU8?=
+ =?us-ascii?q?JKaX7x1DatR0xu6d5SFFAQ+hyknQoGowPscEzmM9n9BDpC79SMmjfvQH+KlYAL?=
+ =?us-ascii?q?5EnsZqTFMGX5JZS1Ly7ZRbr5A2bBVMivV0T/Ai5S31GyNh1aYBlkpB5er83uDi?=
+ =?us-ascii?q?hhdVAQw5TTSbdgT1LPXeuJ84Jg3fcldJFOgKmVY83LTegrN8F251juxExYFAdX?=
+ =?us-ascii?q?jnKv5c1ERX/jZOg3mZnh+AvDk20Yd4HdplPtT2Pk0MC+7jx2Tgtl308QLu5qrV?=
+ =?us-ascii?q?S8nI6/NhP8AFRJfFkmSOIUfouabfynj6J37I0ruNiGEL+9VJE0/I4wU0uhtBmR?=
+ =?us-ascii?q?J7/YZNHYGaRXrr+K9wJq6TOd2j8guJcWtO5kQ0llsxDefD7A5QJTHQqzP/vdZ2?=
+ =?us-ascii?q?is9goZFGvO2T8Ybdj1pYzzDbgdJN1NRD4gx9M+sh3/iY3hdrXqWu6M84C7U1gM?=
+ =?us-ascii?q?Z+L7zPNvQf/SORN5JhQCcp2Tb7yL1Dw9yHN6WzzfD+XKxrujVlCj/VcQZE7jQ3?=
+ =?us-ascii?q?vprhkCDg2IIBBAIWF+Tv/a0kAi9VshZJkhS/TAhxYA29Uq2Xpz+Uge+rXqsoBE?=
+ =?us-ascii?q?RQZxTHvc85QXLzbDbiy6dB24ZXntRZscOqsA7X3op20WPktevAiZg2IB541r1G?=
+ =?us-ascii?q?qy89Gv0YHZKazRZI3JscOfM2PG7yKlbs/4FZo8L/HaJs+DI?=
+IronPort-HdrOrdr: =?us-ascii?q?A9a23=3AZCsgAqhGJWnWRItFyewITUkRQnBQXuYji2hC?=
+ =?us-ascii?q?6mlwRA09TyX4rbHLoB1/73LJYVkqNk3I5urrBEDtexLhHP1OkOws1NWZLWrbUQ?=
+ =?us-ascii?q?KTRekM0WKI+UyDJ8SRzI5g/JYlW61/Jfm1NlJikPv9iTPSL/8QhPWB74Ck7N2z?=
+ =?us-ascii?q?80tQ?=
+X-IronPort-AV: E=Sophos;i="5.88,333,1635177600"; 
+   d="scan'208";a="121469419"
+Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
+  by heian.cn.fujitsu.com with ESMTP; 13 Feb 2022 20:58:38 +0800
+Received: from G08CNEXMBPEKD04.g08.fujitsu.local (unknown [10.167.33.201])
+	by cn.fujitsu.com (Postfix) with ESMTP id 3C2374D169D8;
+	Sun, 13 Feb 2022 20:58:34 +0800 (CST)
+Received: from G08CNEXJMPEKD02.g08.fujitsu.local (10.167.33.202) by
+ G08CNEXMBPEKD04.g08.fujitsu.local (10.167.33.201) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.23; Sun, 13 Feb 2022 20:58:36 +0800
+Received: from G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.85) by
+ G08CNEXJMPEKD02.g08.fujitsu.local (10.167.33.202) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.23; Sun, 13 Feb 2022 20:58:35 +0800
+Received: from irides.mr.mr (10.167.225.141) by
+ G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
+ id 15.0.1497.23 via Frontend Transport; Sun, 13 Feb 2022 20:58:33 +0800
+From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+To: <hch@infradead.org>
+CC: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
+	<nvdimm@lists.linux.dev>, <linux-mm@kvack.org>,
+	<linux-fsdevel@vger.kernel.org>, <djwong@kernel.org>,
+	<dan.j.williams@intel.com>, <david@fromorbit.com>, <jane.chu@oracle.com>
+Subject: [PATCH v10.1 1/9] dax: Introduce holder for dax_device
+Date: Sun, 13 Feb 2022 20:58:32 +0800
+Message-ID: <20220213125832.2722009-1-ruansy.fnst@fujitsu.com>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <YfqBLxjr5zz1TU91@infradead.org>
+References: <YfqBLxjr5zz1TU91@infradead.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20220210193345.23628-1-joao.m.martins@oracle.com>
- <20220210193345.23628-5-joao.m.martins@oracle.com> <CAMZfGtUEaFg=CGLRJomyumsZzcyn8O0JE1+De2Vd3a5remcH6w@mail.gmail.com>
- <d258c471-1291-e0c7-f1b3-a495b4d40bb9@oracle.com> <CAMZfGtWUHRRfowwPf1o-SycKZMDzMdeGdahaR2OEJZzLhLioNg@mail.gmail.com>
-In-Reply-To: <CAMZfGtWUHRRfowwPf1o-SycKZMDzMdeGdahaR2OEJZzLhLioNg@mail.gmail.com>
-From: Muchun Song <songmuchun@bytedance.com>
-Date: Sat, 12 Feb 2022 22:49:49 +0800
-Message-ID: <CAMZfGtUSxtnrY3Vkn8gP2T2jUjWdfVXu7+zt5Ny4VBi7ZDkWAg@mail.gmail.com>
-Subject: Re: [PATCH v5 4/5] mm/sparse-vmemmap: improve memory savings for
- compound devmaps
-To: Joao Martins <joao.m.martins@oracle.com>
-Cc: Linux Memory Management List <linux-mm@kvack.org>, Dan Williams <dan.j.williams@intel.com>, 
-	Vishal Verma <vishal.l.verma@intel.com>, Matthew Wilcox <willy@infradead.org>, 
-	Jason Gunthorpe <jgg@ziepe.ca>, Jane Chu <jane.chu@oracle.com>, 
-	Mike Kravetz <mike.kravetz@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, 
-	Jonathan Corbet <corbet@lwn.net>, Christoph Hellwig <hch@lst.de>, nvdimm@lists.linux.dev, 
-	Linux Doc Mailing List <linux-doc@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-yoursite-MailScanner-ID: 3C2374D169D8.A0F17
+X-yoursite-MailScanner: Found to be clean
+X-yoursite-MailScanner-From: ruansy.fnst@fujitsu.com
+X-Spam-Status: No
 
-On Sat, Feb 12, 2022 at 6:08 PM Muchun Song <songmuchun@bytedance.com> wrote:
->
-> On Fri, Feb 11, 2022 at 8:37 PM Joao Martins <joao.m.martins@oracle.com> wrote:
-> >
-> > On 2/11/22 07:54, Muchun Song wrote:
-> > > On Fri, Feb 11, 2022 at 3:34 AM Joao Martins <joao.m.martins@oracle.com> wrote:
-> > > [...]
-> > >>  pte_t * __meminit vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node,
-> > >> -                                      struct vmem_altmap *altmap)
-> > >> +                                      struct vmem_altmap *altmap,
-> > >> +                                      struct page *block)
-> > >
-> > > Why not use the name of "reuse" instead of "block"?
-> > > Seems like "reuse" is more clear.
-> > >
-> > Good idea, let me rename that to @reuse.
-> >
-> > >>  {
-> > >>         pte_t *pte = pte_offset_kernel(pmd, addr);
-> > >>         if (pte_none(*pte)) {
-> > >>                 pte_t entry;
-> > >>                 void *p;
-> > >>
-> > >> -               p = vmemmap_alloc_block_buf(PAGE_SIZE, node, altmap);
-> > >> -               if (!p)
-> > >> -                       return NULL;
-> > >> +               if (!block) {
-> > >> +                       p = vmemmap_alloc_block_buf(PAGE_SIZE, node, altmap);
-> > >> +                       if (!p)
-> > >> +                               return NULL;
-> > >> +               } else {
-> > >> +                       /*
-> > >> +                        * When a PTE/PMD entry is freed from the init_mm
-> > >> +                        * there's a a free_pages() call to this page allocated
-> > >> +                        * above. Thus this get_page() is paired with the
-> > >> +                        * put_page_testzero() on the freeing path.
-> > >> +                        * This can only called by certain ZONE_DEVICE path,
-> > >> +                        * and through vmemmap_populate_compound_pages() when
-> > >> +                        * slab is available.
-> > >> +                        */
-> > >> +                       get_page(block);
-> > >> +                       p = page_to_virt(block);
-> > >> +               }
-> > >>                 entry = pfn_pte(__pa(p) >> PAGE_SHIFT, PAGE_KERNEL);
-> > >>                 set_pte_at(&init_mm, addr, pte, entry);
-> > >>         }
-> > >> @@ -609,7 +624,8 @@ pgd_t * __meminit vmemmap_pgd_populate(unsigned long addr, int node)
-> > >>  }
-> > >>
-> > >>  static int __meminit vmemmap_populate_address(unsigned long addr, int node,
-> > >> -                                             struct vmem_altmap *altmap)
-> > >> +                                             struct vmem_altmap *altmap,
-> > >> +                                             struct page *reuse, struct page **page)
-> > >
-> > > We can remove the last argument (struct page **page) if we change
-> > > the return type to "pte_t *".  More simple, don't you think?
-> > >
-> >
-> > Hmmm, perhaps it is simpler, specially provided the only error code is ENOMEM.
-> >
-> > Albeit perhaps what we want is a `struct page *` rather than a pte.
->
-> The caller can extract `struct page` from a pte.
->
-> [...]
->
-> > >> -       if (vmemmap_populate(start, end, nid, altmap))
-> > >> +       if (pgmap && pgmap_vmemmap_nr(pgmap) > 1 && !altmap)
-> > >
-> > > Should we add a judgment like "is_power_of_2(sizeof(struct page))" since
-> > > this optimization is only applied when the size of the struct page does not
-> > > cross page boundaries?
-> >
-> > Totally miss that -- let me make that adjustment.
-> >
-> > Can I ask which architectures/conditions this happens?
->
-> E.g. arm64 when !CONFIG_MEMCG.
+v10.1 update:
+ - Fix build error reported by kernel test robot
+ - Add return code to dax_register_holder()
+ - Add write lock to prevent concurrent registrations
+ - Rename dax_get_holder() to dax_holder()
+ - Add kernel doc for new added functions
 
-Plus !CONFIG_SLUB even on x86_64.
+To easily track filesystem from a pmem device, we introduce a holder for
+dax_device structure, and also its operation.  This holder is used to
+remember who is using this dax_device:
+ - When it is the backend of a filesystem, the holder will be the
+   instance of this filesystem.
+ - When this pmem device is one of the targets in a mapped device, the
+   holder will be this mapped device.  In this case, the mapped device
+   has its own dax_device and it will follow the first rule.  So that we
+   can finally track to the filesystem we needed.
 
->
-> Thanks.
+The holder and holder_ops will be set when filesystem is being mounted,
+or an target device is being activated.
+
+Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+---
+ drivers/dax/super.c | 95 +++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/dax.h | 30 ++++++++++++++
+ 2 files changed, 125 insertions(+)
+
+diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+index e3029389d809..d7fb4c36bf16 100644
+--- a/drivers/dax/super.c
++++ b/drivers/dax/super.c
+@@ -21,6 +21,9 @@
+  * @cdev: optional character interface for "device dax"
+  * @private: dax driver private data
+  * @flags: state and boolean properties
++ * @ops: operations for dax_device
++ * @holder_data: holder of a dax_device: could be filesystem or mapped device
++ * @holder_ops: operations for the inner holder
+  */
+ struct dax_device {
+ 	struct inode inode;
+@@ -28,6 +31,9 @@ struct dax_device {
+ 	void *private;
+ 	unsigned long flags;
+ 	const struct dax_operations *ops;
++	void *holder_data;
++	struct percpu_rw_semaphore holder_rwsem;
++	const struct dax_holder_operations *holder_ops;
+ };
+ 
+ static dev_t dax_devt;
+@@ -193,6 +199,29 @@ int dax_zero_page_range(struct dax_device *dax_dev, pgoff_t pgoff,
+ }
+ EXPORT_SYMBOL_GPL(dax_zero_page_range);
+ 
++int dax_holder_notify_failure(struct dax_device *dax_dev, u64 off,
++			      u64 len, int mf_flags)
++{
++	int rc, id;
++
++	id = dax_read_lock();
++	if (!dax_alive(dax_dev)) {
++		rc = -ENXIO;
++		goto out;
++	}
++
++	if (!dax_dev->holder_ops) {
++		rc = -EOPNOTSUPP;
++		goto out;
++	}
++
++	rc = dax_dev->holder_ops->notify_failure(dax_dev, off, len, mf_flags);
++out:
++	dax_read_unlock(id);
++	return rc;
++}
++EXPORT_SYMBOL_GPL(dax_holder_notify_failure);
++
+ #ifdef CONFIG_ARCH_HAS_PMEM_API
+ void arch_wb_cache_pmem(void *addr, size_t size);
+ void dax_flush(struct dax_device *dax_dev, void *addr, size_t size)
+@@ -268,6 +297,13 @@ void kill_dax(struct dax_device *dax_dev)
+ 
+ 	clear_bit(DAXDEV_ALIVE, &dax_dev->flags);
+ 	synchronize_srcu(&dax_srcu);
++
++	/* Lock to prevent concurrent registrations. */
++	percpu_down_write(&dax_dev->holder_rwsem);
++	/* clear holder data */
++	dax_dev->holder_ops = NULL;
++	dax_dev->holder_data = NULL;
++	percpu_up_write(&dax_dev->holder_rwsem);
+ }
+ EXPORT_SYMBOL_GPL(kill_dax);
+ 
+@@ -393,6 +429,7 @@ struct dax_device *alloc_dax(void *private, const struct dax_operations *ops)
+ 
+ 	dax_dev->ops = ops;
+ 	dax_dev->private = private;
++	percpu_init_rwsem(&dax_dev->holder_rwsem);
+ 	return dax_dev;
+ 
+  err_dev:
+@@ -409,6 +446,64 @@ void put_dax(struct dax_device *dax_dev)
+ }
+ EXPORT_SYMBOL_GPL(put_dax);
+ 
++/**
++ * dax_holder() - obtain the holder of a dax device
++ * @dax_dev: a dax_device instance
++
++ * Return: the holder's data which represents the holder if registered,
++ * otherwize NULL.
++ */
++void *dax_holder(struct dax_device *dax_dev)
++{
++	if (!dax_alive(dax_dev))
++		return NULL;
++
++	return dax_dev->holder_data;
++}
++EXPORT_SYMBOL_GPL(dax_holder);
++
++/**
++ * dax_register_holder() - register a holder to a dax device
++ * @dax_dev: a dax_device instance
++ * @holder: a pointer to a holder's data which represents the holder
++ * @ops: operations of this holder
++
++ * Return: negative errno if an error occurs, otherwise 0.
++ */
++int dax_register_holder(struct dax_device *dax_dev, void *holder,
++		const struct dax_holder_operations *ops)
++{
++	if (!dax_alive(dax_dev))
++		return -ENXIO;
++
++	/* Already registered */
++	if (dax_holder(dax_dev))
++		return -EBUSY;
++
++	/* Lock to prevent concurrent registrations. */
++	percpu_down_write(&dax_dev->holder_rwsem);
++	dax_dev->holder_data = holder;
++	dax_dev->holder_ops = ops;
++	percpu_up_write(&dax_dev->holder_rwsem);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(dax_register_holder);
++
++/**
++ * dax_unregister_holder() - unregister the holder for a dax device
++ * @dax_dev: a dax_device instance
++ */
++void dax_unregister_holder(struct dax_device *dax_dev)
++{
++	if (!dax_alive(dax_dev))
++		return;
++
++	dax_dev->holder_data = NULL;
++	dax_dev->holder_ops = NULL;
++}
++EXPORT_SYMBOL_GPL(dax_unregister_holder);
++
+ /**
+  * inode_dax: convert a public inode into its dax_dev
+  * @inode: An inode with i_cdev pointing to a dax_dev
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index 9fc5f99a0ae2..9800d84e5b7d 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -32,8 +32,24 @@ struct dax_operations {
+ 	int (*zero_page_range)(struct dax_device *, pgoff_t, size_t);
+ };
+ 
++struct dax_holder_operations {
++	/*
++	 * notify_failure - notify memory failure into inner holder device
++	 * @dax_dev: the dax device which contains the holder
++	 * @offset: offset on this dax device where memory failure occurs
++	 * @len: length of this memory failure event
++	 * @flags: action flags for memory failure handler
++	 */
++	int (*notify_failure)(struct dax_device *dax_dev, u64 offset,
++			u64 len, int mf_flags);
++};
++
+ #if IS_ENABLED(CONFIG_DAX)
+ struct dax_device *alloc_dax(void *private, const struct dax_operations *ops);
++int dax_register_holder(struct dax_device *dax_dev, void *holder,
++		const struct dax_holder_operations *ops);
++void dax_unregister_holder(struct dax_device *dax_dev);
++void *dax_holder(struct dax_device *dax_dev);
+ void put_dax(struct dax_device *dax_dev);
+ void kill_dax(struct dax_device *dax_dev);
+ void dax_write_cache(struct dax_device *dax_dev, bool wc);
+@@ -53,6 +69,18 @@ static inline bool daxdev_mapping_supported(struct vm_area_struct *vma,
+ 	return dax_synchronous(dax_dev);
+ }
+ #else
++static inline int dax_register_holder(struct dax_device *dax_dev, void *holder,
++		const struct dax_holder_operations *ops)
++{
++	return 0;
++}
++static inline void dax_unregister_holder(struct dax_device *dax_dev)
++{
++}
++static inline void *dax_holder(struct dax_device *dax_dev)
++{
++	return NULL;
++}
+ static inline struct dax_device *alloc_dax(void *private,
+ 		const struct dax_operations *ops)
+ {
+@@ -185,6 +213,8 @@ size_t dax_copy_to_iter(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
+ 		size_t bytes, struct iov_iter *i);
+ int dax_zero_page_range(struct dax_device *dax_dev, pgoff_t pgoff,
+ 			size_t nr_pages);
++int dax_holder_notify_failure(struct dax_device *dax_dev, u64 off, u64 len,
++		int mf_flags);
+ void dax_flush(struct dax_device *dax_dev, void *addr, size_t size);
+ 
+ ssize_t dax_iomap_rw(struct kiocb *iocb, struct iov_iter *iter,
+-- 
+2.34.1
+
+
+
