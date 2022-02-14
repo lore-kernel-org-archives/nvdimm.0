@@ -1,103 +1,127 @@
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68AC0A2C
-	for <nvdimm@lists.linux.dev>; Mon, 14 Feb 2022 17:59:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1644861546; x=1676397546;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=XU044oh5pka0fxROuzgo8HhltCN2bfo2cOcsKP44lsc=;
-  b=UFob9vU5aqHOzv70A8oMeFPtMCJLnc5JtWNm7TB/1o3BY0qhqz/ADW4F
-   zThb+8Wtg3O2kng/3C4VgKYMDitaSVylpSvTneRUo9adpS1n8lLIg+PE+
-   W60dPw3uLgtYeP5+ssp/BoTdPFQSKv9KUfj3c+RWTUqpLEH9xrwN0o3Nw
-   OWVE17shDRRFheTWVmYFzfz5iHkCMnIYl3MRVQhDAL5d+3ucHXAL+v3qK
-   YKmFeRE6R3gArkMA9UpZqh7VtCT3g4cXjnPVrBKWxqL1bgQqp0a21J3aB
-   zXr5EZq+olDOt3Orx7mrTDkVN6d3fr+6xIyojjFwN/tEvLfPrKaQ+AeGD
-   g==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10258"; a="237558574"
-X-IronPort-AV: E=Sophos;i="5.88,368,1635231600"; 
-   d="scan'208";a="237558574"
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Feb 2022 09:59:06 -0800
-X-IronPort-AV: E=Sophos;i="5.88,368,1635231600"; 
-   d="scan'208";a="703210078"
-Received: from iweiny-desk2.sc.intel.com (HELO localhost) ([10.3.52.147])
-  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Feb 2022 09:59:05 -0800
-Date: Mon, 14 Feb 2022 09:59:05 -0800
-From: Ira Weiny <ira.weiny@intel.com>
-To: Tong Zhang <ztong0001@gmail.com>
-Cc: Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>, nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] dax: make sure inodes are flushed before destroy cache
-Message-ID: <20220214175905.GV785175@iweiny-DESK2.sc.intel.com>
-Mail-Followup-To: Tong Zhang <ztong0001@gmail.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>, nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org
-References: <20220212071111.148575-1-ztong0001@gmail.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12612A2C;
+	Mon, 14 Feb 2022 18:09:15 +0000 (UTC)
+Received: from fraeml736-chm.china.huawei.com (unknown [172.18.147.207])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4JyBzV1Dqxz67N27;
+	Tue, 15 Feb 2022 02:08:22 +0800 (CST)
+Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
+ fraeml736-chm.china.huawei.com (10.206.15.217) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2308.21; Mon, 14 Feb 2022 19:09:12 +0100
+Received: from localhost (10.202.226.41) by lhreml710-chm.china.huawei.com
+ (10.201.108.61) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2308.21; Mon, 14 Feb
+ 2022 18:09:11 +0000
+Date: Mon, 14 Feb 2022 18:09:10 +0000
+From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+To: Ben Widawsky <ben.widawsky@intel.com>
+CC: <linux-cxl@vger.kernel.org>, <patches@lists.linux.dev>, Alison Schofield
+	<alison.schofield@intel.com>, Dan Williams <dan.j.williams@intel.com>, "Ira
+ Weiny" <ira.weiny@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, "Bjorn
+ Helgaas" <helgaas@kernel.org>, <nvdimm@lists.linux.dev>,
+	<linux-pci@vger.kernel.org>
+Subject: Re: [PATCH v3 08/14] cxl/region: HB port config verification
+Message-ID: <20220214180910.00005690@Huawei.com>
+In-Reply-To: <20220214175155.uufw4dd77ol4vtwf@intel.com>
+References: <20220128002707.391076-1-ben.widawsky@intel.com>
+	<20220128002707.391076-9-ben.widawsky@intel.com>
+	<20220214162037.0000104b@Huawei.com>
+	<20220214175155.uufw4dd77ol4vtwf@intel.com>
+Organization: Huawei Technologies Research and Development (UK) Ltd.
+X-Mailer: Claws Mail 4.0.0 (GTK+ 3.24.29; i686-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220212071111.148575-1-ztong0001@gmail.com>
-User-Agent: Mutt/1.11.1 (2018-12-01)
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.202.226.41]
+X-ClientProxiedBy: lhreml718-chm.china.huawei.com (10.201.108.69) To
+ lhreml710-chm.china.huawei.com (10.201.108.61)
+X-CFilter-Loop: Reflected
 
-On Fri, Feb 11, 2022 at 11:11:11PM -0800, Tong Zhang wrote:
-> A bug can be triggered by following command
-> 
-> $ modprobe nd_pmem && modprobe -r nd_pmem
-> 
-> [   10.060014] BUG dax_cache (Not tainted): Objects remaining in dax_cache on __kmem_cache_shutdown()
-> [   10.060938] Slab 0x0000000085b729ac objects=9 used=1 fp=0x000000004f5ae469 flags=0x200000000010200(slab|head|node)
-> [   10.062433] Call Trace:
-> [   10.062673]  dump_stack_lvl+0x34/0x44
-> [   10.062865]  slab_err+0x90/0xd0
-> [   10.063619]  __kmem_cache_shutdown+0x13b/0x2f0
-> [   10.063848]  kmem_cache_destroy+0x4a/0x110
-> [   10.064058]  __x64_sys_delete_module+0x265/0x300
-> 
-> This is caused by dax_fs_exit() not flushing inodes before destroy cache.
-> To fix this issue, call rcu_barrier() before destroy cache.
+On Mon, 14 Feb 2022 09:51:55 -0800
+Ben Widawsky <ben.widawsky@intel.com> wrote:
 
-I don't doubt that this fixes the bug.  However, I can't help but think this is
-hiding a bug, or perhaps a missing step, in the kmem_cache layer?  As far as I
-can see dax does not call call_rcu() and only uses srcu not rcu?  I was tempted
-to suggest srcu_barrier() but dax does not call call_srcu() either.
+> On 22-02-14 16:20:37, Jonathan Cameron wrote:
+> > On Thu, 27 Jan 2022 16:27:01 -0800
+> > Ben Widawsky <ben.widawsky@intel.com> wrote:
+> >   
+> > > Host bridge root port verification determines if the device ordering in
+> > > an interleave set can be programmed through the host bridges and
+> > > switches.
+> > > 
+> > > The algorithm implemented here is based on the CXL Type 3 Memory Device
+> > > Software Guide, chapter 2.13.15. The current version of the guide does
+> > > not yet support x3 interleave configurations, and so that's not
+> > > supported here either.
+> > > 
+> > > Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>  
+> > 
+> >   
+> > > +static struct cxl_dport *get_rp(struct cxl_memdev *ep)
+> > > +{
+> > > +	struct cxl_port *port, *parent_port = port = ep->port;
+> > > +	struct cxl_dport *dport;
+> > > +
+> > > +	while (!is_cxl_root(port)) {
+> > > +		parent_port = to_cxl_port(port->dev.parent);
+> > > +		if (parent_port->depth == 1)
+> > > +			list_for_each_entry(dport, &parent_port->dports, list)
+> > > +				if (dport->dport == port->uport->parent->parent)
+> > > +					return dport;
+> > > +		port = parent_port;
+> > > +	}
+> > > +
+> > > +	BUG();  
+> > 
+> > I know you mentioned you were reworking this patch set anyway, but
+> > I thought I'd give some quick debugging related feedback.
+> > 
+> > When running against a single switch in qemu (patches out once
+> > things are actually working), I hit this BUG()
+> > printing dev_name for the port->uport->parent->parent gives
+> > pci0000:0c but the matches are sort against
+> > 0000:0c:00.0 etc
+> > 
+> > So looks like one too many levels of parent in this case at least.  
+> 
+> Hmm. This definitely looks dubious now that I see it again. Let me try to figure
+> out how to rework it. I think it would be good to ask Dan as well. Much of the
+> topology relationship works from bottom up, but top down is less easy.
+> Previously I had used pci-isms to do this but Dan has been working on keeping
+> the two domains isolated, which I agree is a good idea.
+> 
+> > 
+> > The other bug I haven't chased down yet is that if we happen
+> > to have downstream ports of the switch with duplicate ids
+> > (far too easy to do in QEMU as port_num is an optional
+> > parameter for switch DS ports) it's detected and the probe fails
+> > - but then it tries again and we get an infinite loop of new
+> > ports being created and failing to probe...  
+> 
+> Is this allowed by spec? We shouldn't infinite loop, but I can't imagine the
+> driver could do anything saner than fail to probe for such a case.
 
-So I'm not clear about what is really going on and why this fixes it.  I know
-that dax is not using srcu is a standard way so perhaps this helps in a way I
-don't quite grok?  If so perhaps a comment here would be in order?
+It would be a hardware bug, however I suspect any failure to probe will
+cause it rather that this specific case.  I'll inject another failure
+when I get back to this properly.
 
-Ira
+Jonathan
 
 > 
-> Signed-off-by: Tong Zhang <ztong0001@gmail.com>
-> ---
->  drivers/dax/super.c | 1 +
->  1 file changed, 1 insertion(+)
+> > I'll get back this one once I have it working with
+> > a valid switch config.  
 > 
-> diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-> index e3029389d809..6bd565fe2e63 100644
-> --- a/drivers/dax/super.c
-> +++ b/drivers/dax/super.c
-> @@ -476,6 +476,7 @@ static int dax_fs_init(void)
->  static void dax_fs_exit(void)
->  {
->  	kern_unmount(dax_mnt);
-> +	rcu_barrier();
->  	kmem_cache_destroy(dax_cache);
->  }
->  
-> -- 
-> 2.25.1
+> Thanks.
 > 
-> 
+> > 
+> > Jonathan
+> >   
+> > > +	return NULL;
+> > > +}  
+
