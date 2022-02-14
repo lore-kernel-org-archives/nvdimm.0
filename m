@@ -1,138 +1,86 @@
-Received: from mail-pl1-f173.google.com (mail-pl1-f173.google.com [209.85.214.173])
+Received: from mail-pf1-f175.google.com (mail-pf1-f175.google.com [209.85.210.175])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D11BDA35
-	for <nvdimm@lists.linux.dev>; Mon, 14 Feb 2022 19:14:20 +0000 (UTC)
-Received: by mail-pl1-f173.google.com with SMTP id 10so11309743plj.1
-        for <nvdimm@lists.linux.dev>; Mon, 14 Feb 2022 11:14:20 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7BC5EC80
+	for <nvdimm@lists.linux.dev>; Mon, 14 Feb 2022 20:10:02 +0000 (UTC)
+Received: by mail-pf1-f175.google.com with SMTP id e17so11622092pfv.5
+        for <nvdimm@lists.linux.dev>; Mon, 14 Feb 2022 12:10:02 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=LNIIAz3zQQaMmzK3Lz7n5biZPq3E2euYGu1gGCUEiUU=;
-        b=e+9/aIcapobLzUjuzWwCgjtrECD4Nz67ZklJZLlhaJiox8qfEoUy+GU7FMZlc9tQKf
-         70XobxmHxms3p+b3cX1vPLmpMzFtT4TUxGpxDFVgIsD1tIcgAidU7NyTOhAPOvtWOOOL
-         trGD4b8Z6qqdEiHjjhgqr21N2vFoaCE3/fgG4Wh6mNqpZLb+OIGpnaXP37C5FH3V44Nc
-         3SxQUaw7z7VJb3t8wRiidTg9AXs/QyF4FNIIvKuYzseQDibK2D4jwHdkgpSqWN1+UJ6C
-         7PaeNPx+1C6E06lXbGybY0/do0xzLQHhRBwrNTxzgB3KagOb9AUR7u2K0azCw4YX3nvJ
-         hDwg==
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to;
+        bh=17Bsz2tDR9cv+r6+yn7G+p/1ar4tciGH3rzRstCpvzk=;
+        b=j+pDsEQOlVPYsxzQ1X2T7ellEP2v/3Rap3g71hqa2HH9Snz9hF+a/BLY2uP2SUiOAL
+         KaCv200/N6QR02DB0RkW6K2XaSg047kyLVbW9kGPiOieblI3bV715SxDOnunt6rJsxa1
+         JvJV6XVgw/jSyDHhPnZ8aUrYJ1EkuFG/Ual94yrXo8DkHc/MNs48epBWLHc8QYScxIo9
+         k+M/cZX/QPlGKGhZrKa1R4RGfmv7K5uJAB8OPuH3jYezUe6iVk1q82ruEg8Ib/d1rymi
+         rZhREHlJ2A0OK8+l+lGlHtYS2aFUVhOytLVkUgMoDXHWQdgUvo1kzklV1fwBgvuBky60
+         rPrg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=LNIIAz3zQQaMmzK3Lz7n5biZPq3E2euYGu1gGCUEiUU=;
-        b=b5Y2CQrqDhOUjO625i/NOb1TJndUC1RSqJI9YUZB27RmCtxtLWIw7LL9u4/Ebpjmvj
-         YeECq8tNRhl5RlhVG7eO3ydGX45Rf7mVn+Q6TbY+2smuY1722G5EQ8vyhcgLLQ4FusUB
-         pu2XBNWzN+xCM+HXyK9XyWqZcwghxz/1oFFfgUtFOO70RVkZ/36XgzUn0YtHI+lqTE7N
-         dbGWSpLJX77BDt+39l+lVdpIGqY2los+YmIQl58avBZJ8DU7L5jOoNgaTy2F1f3aKwr2
-         JuxvrC5jz8HqYCapWVeskCVoUFmi9QH8Nw/dkkg4U8BxAeTMTeotWFc/sdfQvt0cNT/A
-         +AoA==
-X-Gm-Message-State: AOAM5328DTHJ9zwhM/5pQKA/f/Gp5Ami7RpVQDzqUkLyS/yQ/trmElsh
-	+/H79VdH6YdEJPF4Cng/VuEQ3fWHlkQt0yySKdMNfw==
-X-Google-Smtp-Source: ABdhPJxVTF5h08NSNXTHrXWdDbPywfICYCIAA4dvceyfHnC11SOo3zAin7e+e2W6f7vCUWzlvI+mSWTgxqtkOna79vk=
-X-Received: by 2002:a17:90a:e7cb:: with SMTP id kb11mr94342pjb.220.1644866060312;
- Mon, 14 Feb 2022 11:14:20 -0800 (PST)
+         :message-id:subject:to;
+        bh=17Bsz2tDR9cv+r6+yn7G+p/1ar4tciGH3rzRstCpvzk=;
+        b=jgtkNbq+ggXm1Yf843Yc/B2NeEaAuSimcODv0zjIbX3hmw8CB4UombX8EH64QT3XYD
+         p0eAUEtHVJnkaxiQTPiDps3V2/JajMdyfTEhBpwlefhpYqggwulQVU7dPvtiikV564u+
+         YVl4Xo5KUczv6/f8nWqBY7Pwilh4bcFTLYOWLF3X475MuNhaJkqd0ATomATZ/luWhEPu
+         +vXrw9i24ojiUHQnqGu0/u6CosFfAoNbmQX0DqKSbqcWXiIrQ7nKo1Pw5bqJqDpXivEk
+         jUyx923UrwNhkjW4SbxbyyWJMGBtqcSMkBR+K4l99aFo5JqOZEDXnWoou/pgoZchTjq6
+         xa5A==
+X-Gm-Message-State: AOAM530igdg+234I0xhuQOq/Oqs+Cjm4Y1EX2K5kuT0agFZfhKlU+xhG
+	cF1oPweuaQIcqx4E4eIfR/slYiH1V4SMRHgmn0EZNw==
+X-Google-Smtp-Source: ABdhPJz0Oy/JgAUdiZIwNaa8W2W0mJGvuMr99W2I9UeRvepCocWgHMmOer0izZmus6n4NKI4NDsPxZZe9MeKAxdZ1p0=
+X-Received: by 2002:a62:e907:: with SMTP id j7mr753345pfh.3.1644869401968;
+ Mon, 14 Feb 2022 12:10:01 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <164298430609.3018233.3860765171749496117.stgit@dwillia2-desk3.amr.corp.intel.com>
- <164386092069.765089.14895687988217608642.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20220214174521.00003b84@Huawei.com>
-In-Reply-To: <20220214174521.00003b84@Huawei.com>
+References: <20220212071111.148575-1-ztong0001@gmail.com> <20220214175905.GV785175@iweiny-DESK2.sc.intel.com>
+In-Reply-To: <20220214175905.GV785175@iweiny-DESK2.sc.intel.com>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 14 Feb 2022 11:14:13 -0800
-Message-ID: <CAPcyv4g++ishMNkSLYAq3ss_qMXv-gabubVG_q2H9ed+C7KW-A@mail.gmail.com>
-Subject: Re: [PATCH v4 35/40] cxl/core/port: Add endpoint decoders
-To: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: linux-cxl@vger.kernel.org, Ben Widawsky <ben.widawsky@intel.com>, 
-	Linux PCI <linux-pci@vger.kernel.org>, Linux NVDIMM <nvdimm@lists.linux.dev>
+Date: Mon, 14 Feb 2022 12:09:54 -0800
+Message-ID: <CAPcyv4jrh5Xr3AnOj-YrOr3i4HTm=wVBuaQ1VBAxCoszHjHdfA@mail.gmail.com>
+Subject: Re: [PATCH] dax: make sure inodes are flushed before destroy cache
+To: Tong Zhang <ztong0001@gmail.com>, Dan Williams <dan.j.williams@intel.com>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Linux NVDIMM <nvdimm@lists.linux.dev>, 
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Mon, Feb 14, 2022 at 9:47 AM Jonathan Cameron
-<Jonathan.Cameron@huawei.com> wrote:
+On Mon, Feb 14, 2022 at 9:59 AM Ira Weiny <ira.weiny@intel.com> wrote:
 >
-> On Wed, 02 Feb 2022 20:02:06 -0800
-> Dan Williams <dan.j.williams@intel.com> wrote:
->
-> > From: Ben Widawsky <ben.widawsky@intel.com>
+> On Fri, Feb 11, 2022 at 11:11:11PM -0800, Tong Zhang wrote:
+> > A bug can be triggered by following command
 > >
-> > Recall that a CXL Port is any object that publishes a CXL HDM Decoder
-> > Capability structure. That is Host Bridge and Switches that have been
-> > enabled so far. Now, add decoder support to the 'endpoint' CXL Ports
-> > registered by the cxl_mem driver. They mostly share the same enumeratio=
-n
-> > as Bridges and Switches, but witout a target list. The target of
-> > endpoint decode is device-internal DPA space, not another downstream
-> > port.
+> > $ modprobe nd_pmem && modprobe -r nd_pmem
 > >
-> > Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
-> > Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-> > [djbw: clarify changelog, hookup enumeration in the port driver]
-> > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
->
-> ...
->
-> > index f5e5b4ac8228..990b6670222e 100644
-> > --- a/drivers/cxl/cxl.h
-> > +++ b/drivers/cxl/cxl.h
-> > @@ -346,6 +346,7 @@ struct cxl_decoder *cxl_root_decoder_alloc(struct c=
-xl_port *port,
-> >  struct cxl_decoder *cxl_switch_decoder_alloc(struct cxl_port *port,
-> >                                            unsigned int nr_targets);
-> >  int cxl_decoder_add(struct cxl_decoder *cxld, int *target_map);
-> > +struct cxl_decoder *cxl_endpoint_decoder_alloc(struct cxl_port *port);
-> >  int cxl_decoder_add_locked(struct cxl_decoder *cxld, int *target_map);
-> >  int cxl_decoder_autoremove(struct device *host, struct cxl_decoder *cx=
-ld);
-> >  int cxl_endpoint_autoremove(struct cxl_memdev *cxlmd, struct cxl_port =
-*endpoint);
-> > diff --git a/drivers/cxl/port.c b/drivers/cxl/port.c
-> > index 4d4e23b9adff..d420da5fc39c 100644
-> > --- a/drivers/cxl/port.c
-> > +++ b/drivers/cxl/port.c
-> > @@ -40,16 +40,17 @@ static int cxl_port_probe(struct device *dev)
-> >               struct cxl_memdev *cxlmd =3D to_cxl_memdev(port->uport);
+> > [   10.060014] BUG dax_cache (Not tainted): Objects remaining in dax_cache on __kmem_cache_shutdown()
+> > [   10.060938] Slab 0x0000000085b729ac objects=9 used=1 fp=0x000000004f5ae469 flags=0x200000000010200(slab|head|node)
+> > [   10.062433] Call Trace:
+> > [   10.062673]  dump_stack_lvl+0x34/0x44
+> > [   10.062865]  slab_err+0x90/0xd0
+> > [   10.063619]  __kmem_cache_shutdown+0x13b/0x2f0
+> > [   10.063848]  kmem_cache_destroy+0x4a/0x110
+> > [   10.064058]  __x64_sys_delete_module+0x265/0x300
 > >
-> >               get_device(&cxlmd->dev);
-> > -             return devm_add_action_or_reset(dev, schedule_detach, cxl=
-md);
-> > +             rc =3D devm_add_action_or_reset(dev, schedule_detach, cxl=
-md);
-> > +             if (rc)
-> > +                     return rc;
-> > +     } else {
-> > +             rc =3D devm_cxl_port_enumerate_dports(port);
-> > +             if (rc < 0)
-> > +                     return rc;
-> > +             if (rc =3D=3D 1)
-> > +                     return devm_cxl_add_passthrough_decoder(port);
+> > This is caused by dax_fs_exit() not flushing inodes before destroy cache.
+> > To fix this issue, call rcu_barrier() before destroy cache.
 >
-> This is just a convenient place to ask a question rather that really bein=
-g
-> connected to this patch.
->
-> 8.2.5.12 in CXL r2.0
->
-> "A CXL Host Bridge is identified as an ACPI device with Host Interface ID=
- (HID) of
-> =E2=80=9CACPI0016=E2=80=9D and is associated with one or more CXL Root po=
-rts. Any CXL 2.0 Host
-> Bridge that is associated with more than one CXL Root Port must contain o=
-ne instance
-> of this capability structure in the CHBCR. This capability structure reso=
-lves the target
-> CXL Root Ports for a given memory address."
->
-> Suggests to me that there may be an HDM decoder in the one port case and =
-it may need
-> programming.
->
-> Hitting this in QEMU but I suspect it'll occur in real systems as well.
+> I don't doubt that this fixes the bug.  However, I can't help but think this is
+> hiding a bug, or perhaps a missing step, in the kmem_cache layer?  As far as I
+> can see dax does not call call_rcu() and only uses srcu not rcu?  I was tempted
+> to suggest srcu_barrier() but dax does not call call_srcu() either.
 
-It seems reasonable to wait for a real system like that to arrive. If
-someone is cheap enough to build a one-port host bridge would they
-spend the silicon gates on these unnecessary registers?
+This rcu_barrier() is associated with the call_rcu() in destroy_inode().
+
+While kern_unmount() does a full sycnrhonize_rcu() after clearing
+->mnt_ns. Any pending destroy_inode() callbacks need to be flushed
+before the kmem_cache is destroyed.
+
+> So I'm not clear about what is really going on and why this fixes it.  I know
+> that dax is not using srcu is a standard way so perhaps this helps in a way I
+> don't quite grok?  If so perhaps a comment here would be in order?
+
+Looks like a common pattern I missed that all filesystem exit paths implement.
