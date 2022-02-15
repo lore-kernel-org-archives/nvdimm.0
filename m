@@ -1,278 +1,121 @@
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f48.google.com (mail-pj1-f48.google.com [209.85.216.48])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C62F158E;
-	Tue, 15 Feb 2022 16:35:51 +0000 (UTC)
-Received: from fraeml703-chm.china.huawei.com (unknown [172.18.147.200])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Jymsh197Pz67j34;
-	Wed, 16 Feb 2022 00:35:20 +0800 (CST)
-Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
- fraeml703-chm.china.huawei.com (10.206.15.52) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.2308.21; Tue, 15 Feb 2022 17:35:42 +0100
-Received: from localhost (10.202.226.41) by lhreml710-chm.china.huawei.com
- (10.201.108.61) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id 15.1.2308.21; Tue, 15 Feb
- 2022 16:35:41 +0000
-Date: Tue, 15 Feb 2022 16:35:40 +0000
-From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-To: Ben Widawsky <ben.widawsky@intel.com>
-CC: <linux-cxl@vger.kernel.org>, <patches@lists.linux.dev>, Alison Schofield
-	<alison.schofield@intel.com>, Dan Williams <dan.j.williams@intel.com>, "Ira
- Weiny" <ira.weiny@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, "Bjorn
- Helgaas" <helgaas@kernel.org>, <nvdimm@lists.linux.dev>,
-	<linux-pci@vger.kernel.org>
-Subject: Re: [PATCH v3 08/14] cxl/region: HB port config verification
-Message-ID: <20220215163540.00003c5a@Huawei.com>
-In-Reply-To: <20220128002707.391076-9-ben.widawsky@intel.com>
-References: <20220128002707.391076-1-ben.widawsky@intel.com>
-	<20220128002707.391076-9-ben.widawsky@intel.com>
-Organization: Huawei Technologies Research and Development (UK) Ltd.
-X-Mailer: Claws Mail 4.0.0 (GTK+ 3.24.29; i686-w64-mingw32)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 229821876
+	for <nvdimm@lists.linux.dev>; Tue, 15 Feb 2022 21:51:16 +0000 (UTC)
+Received: by mail-pj1-f48.google.com with SMTP id om7so446873pjb.5
+        for <nvdimm@lists.linux.dev>; Tue, 15 Feb 2022 13:51:16 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20210112.gappssmtp.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=UF22wzNFpm2IeXFXPkRt/7QTNpA2ZS3NNacg1G/BHTA=;
+        b=aLkLiUl2q3+S6eeMXpypsrxoD5fjO9umu93awZL2f4DtK7iBq9t1st5HRP4P9rgAKQ
+         vbbbxGJdWSs0YTXYqaQOXspsbJuV/Ut61sGZKXIhgZ+Ao1l2oLI2a3lopePAqvNg0AM/
+         kDMZ1kpGbiLtcFI4B2ZqtAbaAHRBWRiCwoQbOyqM63uY3euR9sdAmumj5oYMSCVi95Ns
+         1sW4wxDTlXLSh9B6p0n0D3UkJbjeDvFRKeSYt2Q+/kQzExnf7VeE2lpE7rMUEQZ5fScV
+         u6euyIJCEvIB0kJrnAAehROqriwI5p8Dq4L2NbjbKWOUOEKsNVQpkAWi+LR6NKEvikDK
+         GEWA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=UF22wzNFpm2IeXFXPkRt/7QTNpA2ZS3NNacg1G/BHTA=;
+        b=lPZ1f4RFPhTk00Ej6FpbOpASxD/FXWR4fAvdCHl+AowTrOOepnUuW7gKdvigDjrbmW
+         SRRwUdtOeKoYUCdTHMImUfc84dO1xO2ne4rhlJ/VkXcpIX+/rUlzN2NIKMrFmHB2/Ads
+         L9XNZ3M4vdJLGezbq7Ra647vvXLELaSBaExLoPO2cOLFCVpYqk4QDHapi3QX25Ulq6ws
+         KXScWhYS8avYmrAzm9uR0ytZ1Mk5MRSpWX0/bsnASdcyQPr05svu38nFw0iZjBeY7lRo
+         /6AUvqo6qeoRvh38WINcqBErVXGf9zej6p3coICs02khue53GS168x3n1ECctpSK0ex1
+         0X1A==
+X-Gm-Message-State: AOAM531HVEl0eakwD9wWI0VrMnWK1NER2YLL6yzZg6K8z+6BJ36gxfpI
+	dONtT0fq386oiLMFF8Q0YKgtW/69r1/gID9m/vX7QQ==
+X-Google-Smtp-Source: ABdhPJwiWSTwvDiLHvEHx5jVlkEcfKkWS636fiMP5bezJwAkxTbJWDUQr5zyAmugPr7yn16pxbnRwJ5XVgTvcXGjjUQ=
+X-Received: by 2002:a17:902:b20a:: with SMTP id t10mr753705plr.132.1644961876547;
+ Tue, 15 Feb 2022 13:51:16 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.202.226.41]
-X-ClientProxiedBy: lhreml701-chm.china.huawei.com (10.201.108.50) To
- lhreml710-chm.china.huawei.com (10.201.108.61)
-X-CFilter-Loop: Reflected
+References: <20220105181230.GC398655@magnolia> <CAPcyv4iTaneUgdBPnqcvLr4Y_nAxQp31ZdUNkSRPsQ=9CpMWHg@mail.gmail.com>
+ <20220105185626.GE398655@magnolia> <CAPcyv4h3M9f1-C5e9kHTfPaRYR_zN4gzQWgR+ZyhNmG_SL-u+A@mail.gmail.com>
+ <20220105224727.GG398655@magnolia> <CAPcyv4iZ88FPeZC1rt_bNdWHDZ5oh7ua31NuET2-oZ1UcMrH2Q@mail.gmail.com>
+ <20220105235407.GN656707@magnolia> <CAPcyv4gUmpDnGkhd+WdhcJVMP07u+CT8NXRjzcOTp5KF-5Yo5g@mail.gmail.com>
+ <YekhXENAEYJJNy7e@infradead.org> <76f5ed28-2df9-890e-0674-3ef2f18e2c2f@fujitsu.com>
+ <20220121022200.GG13563@magnolia>
+In-Reply-To: <20220121022200.GG13563@magnolia>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 15 Feb 2022 13:51:10 -0800
+Message-ID: <CAPcyv4gXp66bc6dkN+F8pUdxwCj=wmkOebjmPdALyKKZSOczoQ@mail.gmail.com>
+Subject: Re: [PATCH v9 02/10] dax: Introduce holder for dax_device
+To: "Darrick J. Wong" <djwong@kernel.org>
+Cc: Shiyang Ruan <ruansy.fnst@fujitsu.com>, Christoph Hellwig <hch@infradead.org>, 
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, 
+	Linux NVDIMM <nvdimm@lists.linux.dev>, Linux MM <linux-mm@kvack.org>, 
+	linux-fsdevel <linux-fsdevel@vger.kernel.org>, david <david@fromorbit.com>, 
+	Jane Chu <jane.chu@oracle.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, 27 Jan 2022 16:27:01 -0800
-Ben Widawsky <ben.widawsky@intel.com> wrote:
+On Thu, Jan 20, 2022 at 6:22 PM Darrick J. Wong <djwong@kernel.org> wrote:
+>
+> On Fri, Jan 21, 2022 at 09:26:52AM +0800, Shiyang Ruan wrote:
+> >
+> >
+> > =E5=9C=A8 2022/1/20 16:46, Christoph Hellwig =E5=86=99=E9=81=93:
+> > > On Wed, Jan 05, 2022 at 04:12:04PM -0800, Dan Williams wrote:
+> > > > We ended up with explicit callbacks after hch balked at a notifier
+> > > > call-chain, but I think we're back to that now. The partition mista=
+ke
+> > > > might be unfixable, but at least bdev_dax_pgoff() is dead. Notifier
+> > > > call chains have their own locking so, Ruan, this still does not ne=
+ed
+> > > > to touch dax_read_lock().
+> > >
+> > > I think we have a few options here:
+> > >
+> > >   (1) don't allow error notifications on partitions.  And error retur=
+n from
+> > >       the holder registration with proper error handling in the file
+> > >       system would give us that
+>
+> Hm, so that means XFS can only support dax+pmem when there aren't
+> partitions in use?  Ew.
+>
+> > >   (2) extent the holder mechanism to cover a rangeo
+>
+> I don't think I was around for the part where "hch balked at a notifier
+> call chain" -- what were the objections there, specifically?  I would
+> hope that pmem problems would be infrequent enough that the locking
+> contention (or rcu expiration) wouldn't be an issue...?
+>
+> > >   (3) bite the bullet and create a new stacked dax_device for each
+> > >       partition
+> > >
+> > > I think (1) is the best option for now.  If people really do need
+> > > partitions we'll have to go for (3)
+> >
+> > Yes, I agree.  I'm doing it the first way right now.
+> >
+> > I think that since we can use namespace to divide a big NVDIMM into mul=
+tiple
+> > pmems, partition on a pmem seems not so meaningful.
+>
+> I'll try to find out what will happen if pmem suddenly stops supporting
+> partitions...
 
-> Host bridge root port verification determines if the device ordering in
-> an interleave set can be programmed through the host bridges and
-> switches.
-> 
-> The algorithm implemented here is based on the CXL Type 3 Memory Device
-> Software Guide, chapter 2.13.15. The current version of the guide does
-> not yet support x3 interleave configurations, and so that's not
-> supported here either.
-> 
-> Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
-> ---
->  .clang-format           |   1 +
->  drivers/cxl/core/port.c |   1 +
->  drivers/cxl/cxl.h       |   2 +
->  drivers/cxl/region.c    | 127 +++++++++++++++++++++++++++++++++++++++-
->  4 files changed, 130 insertions(+), 1 deletion(-)
-> 
-> diff --git a/.clang-format b/.clang-format
-> index 1221d53be90b..5e20206f905e 100644
-> --- a/.clang-format
-> +++ b/.clang-format
-> @@ -171,6 +171,7 @@ ForEachMacros:
->    - 'for_each_cpu_wrap'
->    - 'for_each_cxl_decoder_target'
->    - 'for_each_cxl_endpoint'
-> +  - 'for_each_cxl_endpoint_hb'
->    - 'for_each_dapm_widgets'
->    - 'for_each_dev_addr'
->    - 'for_each_dev_scope'
-> diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
-> index 0847e6ce19ef..1d81c5f56a3e 100644
-> --- a/drivers/cxl/core/port.c
-> +++ b/drivers/cxl/core/port.c
-> @@ -706,6 +706,7 @@ struct cxl_dport *devm_cxl_add_dport(struct cxl_port *port,
->  		return ERR_PTR(-ENOMEM);
->  
->  	INIT_LIST_HEAD(&dport->list);
-> +	INIT_LIST_HEAD(&dport->verify_link);
->  	dport->dport = dport_dev;
->  	dport->port_id = port_id;
->  	dport->component_reg_phys = component_reg_phys;
-> diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
-> index a291999431c7..ed984465b59c 100644
-> --- a/drivers/cxl/cxl.h
-> +++ b/drivers/cxl/cxl.h
-> @@ -350,6 +350,7 @@ struct cxl_port {
->   * @component_reg_phys: downstream port component registers
->   * @port: reference to cxl_port that contains this downstream port
->   * @list: node for a cxl_port's list of cxl_dport instances
-> + * @verify_link: node used for hb root port verification
->   */
->  struct cxl_dport {
->  	struct device *dport;
-> @@ -357,6 +358,7 @@ struct cxl_dport {
->  	resource_size_t component_reg_phys;
->  	struct cxl_port *port;
->  	struct list_head list;
-> +	struct list_head verify_link;
->  };
->  
->  /**
-> diff --git a/drivers/cxl/region.c b/drivers/cxl/region.c
-> index 562c8720da56..d2f6c990c8a8 100644
-> --- a/drivers/cxl/region.c
-> +++ b/drivers/cxl/region.c
-> @@ -4,6 +4,7 @@
->  #include <linux/genalloc.h>
->  #include <linux/device.h>
->  #include <linux/module.h>
-> +#include <linux/sort.h>
->  #include <linux/pci.h>
->  #include "cxlmem.h"
->  #include "region.h"
-> @@ -36,6 +37,12 @@
->  	for (idx = 0, ep = (region)->config.targets[idx];                      \
->  	     idx < region_ways(region); ep = (region)->config.targets[++idx])
->  
-> +#define for_each_cxl_endpoint_hb(ep, region, hb, idx)                          \
-> +	for (idx = 0, (ep) = (region)->config.targets[idx];                    \
-> +	     idx < region_ways(region);                                        \
-> +	     idx++, (ep) = (region)->config.targets[idx])                      \
-> +		if (get_hostbridge(ep) == (hb))
-> +
->  #define for_each_cxl_decoder_target(dport, decoder, idx)                       \
->  	for (idx = 0, dport = (decoder)->target[idx];                          \
->  	     idx < (decoder)->nr_targets - 1;                                  \
-> @@ -299,6 +306,59 @@ static bool region_xhb_config_valid(const struct cxl_region *cxlr,
->  	return true;
->  }
->  
-> +static struct cxl_dport *get_rp(struct cxl_memdev *ep)
-> +{
-> +	struct cxl_port *port, *parent_port = port = ep->port;
-> +	struct cxl_dport *dport;
-> +
-> +	while (!is_cxl_root(port)) {
-> +		parent_port = to_cxl_port(port->dev.parent);
-> +		if (parent_port->depth == 1)
-> +			list_for_each_entry(dport, &parent_port->dports, list)
-> +				if (dport->dport == port->uport->parent->parent)
-> +					return dport;
-> +		port = parent_port;
-> +	}
-> +
-> +	BUG();
-> +	return NULL;
-> +}
-> +
-> +static int get_num_root_ports(const struct cxl_region *cxlr)
-> +{
-> +	struct cxl_memdev *endpoint;
-> +	struct cxl_dport *dport, *tmp;
-> +	int num_root_ports = 0;
-> +	LIST_HEAD(root_ports);
-> +	int idx;
-> +
-> +	for_each_cxl_endpoint(endpoint, cxlr, idx) {
-> +		struct cxl_dport *root_port = get_rp(endpoint);
-> +
-> +		if (list_empty(&root_port->verify_link)) {
-> +			list_add_tail(&root_port->verify_link, &root_ports);
-> +			num_root_ports++;
-> +		}
-> +	}
-> +
-> +	list_for_each_entry_safe(dport, tmp, &root_ports, verify_link)
-> +		list_del_init(&dport->verify_link);
-> +
-> +	return num_root_ports;
-> +}
-> +
-> +static bool has_switch(const struct cxl_region *cxlr)
-> +{
-> +	struct cxl_memdev *ep;
-> +	int i;
-> +
-> +	for_each_cxl_endpoint(ep, cxlr, i)
-> +		if (ep->port->depth > 2)
-> +			return true;
-> +
-> +	return false;
-> +}
-> +
->  /**
->   * region_hb_rp_config_valid() - determine root port ordering is correct
->   * @cxlr: Region to validate
-> @@ -312,7 +372,72 @@ static bool region_xhb_config_valid(const struct cxl_region *cxlr,
->  static bool region_hb_rp_config_valid(const struct cxl_region *cxlr,
->  				      const struct cxl_decoder *rootd)
->  {
-> -	/* TODO: */
-> +	const int num_root_ports = get_num_root_ports(cxlr);
-> +	struct cxl_port *hbs[CXL_DECODER_MAX_INTERLEAVE];
-> +	int hb_count, i;
-> +
-> +	hb_count = get_unique_hostbridges(cxlr, hbs);
-> +
-> +	/* TODO: Switch support */
-> +	if (has_switch(cxlr))
-> +		return false;
-> +
-> +	/*
-> +	 * Are all devices in this region on the same CXL Host Bridge
-> +	 * Root Port?
-> +	 */
-> +	if (num_root_ports == 1 && !has_switch(cxlr))
-> +		return true;
-> +
-> +	for (i = 0; i < hb_count; i++) {
-> +		int idx, position_mask;
-> +		struct cxl_dport *rp;
-> +		struct cxl_port *hb;
-> +
-> +		/* Get next CXL Host Bridge this region spans */
-> +		hb = hbs[i];
-> +
-> +		/*
-> +		 * Calculate the position mask: NumRootPorts = 2^PositionMask
-> +		 * for this region.
-> +		 *
-> +		 * XXX: pos_mask is actually (1 << PositionMask)  - 1
-> +		 */
-> +		position_mask = (1 << (ilog2(num_root_ports))) - 1;
+Finally catching up with this thread...
 
-Needs to account for the root ports potentially being spread over multiple host
-bridges.  For now I'm assuming some symmetry to move my own testing forwards
-but that's not strictly required if we want to be really flexible.
+Given that XFS already has the policy of disabling DAX rather than
+failing the mount in some cases, I think it is workable for XFS to
+fail a DAX mount if reflink is enabled on a partition. This should not
+regress anyone's current setup since the FS will not even mount with
+dax+reflink today. As to the specific concern about registering
+failure handlers for other purposes I expect that can be done by
+registering failure notification handlers on block devices, not dax
+devices.
 
-So I've been using
-
-		position_mask = (1 << (ilog2(num_root_ports/hb_count)) - 1;
-
-
-> +
-> +		/*
-> +		 * Calculate the PortGrouping for each device on this CXL Host
-> +		 * Bridge Root Port:
-> +		 * PortGrouping = RegionLabel.Position & PositionMask
-> +		 *
-> +		 * The following nest iterators effectively iterate over each
-> +		 * root port in the region.
-> +		 *   for_each_unique_rootport(rp, cxlr)
-> +		 */
-> +		list_for_each_entry(rp, &hb->dports, list) {
-> +			struct cxl_memdev *ep;
-> +			int port_grouping = -1;
-> +
-> +			for_each_cxl_endpoint_hb(ep, cxlr, hb, idx) {
-> +				if (get_rp(ep) != rp)
-> +					continue;
-> +
-> +				if (port_grouping == -1)
-> +					port_grouping = idx & position_mask;
-> +
-> +				/*
-> +				 * Do all devices in the region connected to this CXL
-> +				 * Host Bridge Root Port have the same PortGrouping?
-> +				 */
-> +				if ((idx & position_mask) != port_grouping) {
-> +					dev_dbg(&cxlr->dev,
-> +						"One or more devices are not connected to the correct Host Bridge Root Port\n");
-> +					return false;
-> +				}
-> +			}
-> +		}
-> +	}
-> +
->  	return true;
->  }
->  
-
+So it's not that pmem will suddenly stop supporting partitions, dax
+will simply never gain support for reflink in the presence of
+partitions.
