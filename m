@@ -1,49 +1,50 @@
-Received: from mail-pj1-f46.google.com (mail-pj1-f46.google.com [209.85.216.46])
+Received: from mail-pf1-f179.google.com (mail-pf1-f179.google.com [209.85.210.179])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2755E1B64
-	for <nvdimm@lists.linux.dev>; Tue, 15 Feb 2022 22:11:49 +0000 (UTC)
-Received: by mail-pj1-f46.google.com with SMTP id v13-20020a17090ac90d00b001b87bc106bdso4498197pjt.4
-        for <nvdimm@lists.linux.dev>; Tue, 15 Feb 2022 14:11:49 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58FA61360
+	for <nvdimm@lists.linux.dev>; Tue, 15 Feb 2022 22:38:18 +0000 (UTC)
+Received: by mail-pf1-f179.google.com with SMTP id i21so474851pfd.13
+        for <nvdimm@lists.linux.dev>; Tue, 15 Feb 2022 14:38:18 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20210112.gappssmtp.com; s=20210112;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=dg8Bbqo8xrTURRSZr1gbJA1kXH+dR6Cfw/CPc1vh5OA=;
-        b=JWDZBiIvBXJ+xyw/ssMlbLaY+HL0dGj6fRKKopQM/zAdOrPiEpBBbN0hIHBWPjTwv7
-         phWt006J1z/OGnlE0pZ1IAr4MBG61MAESVtMLCJJLdN03Qgw5ph3ybjNDcm5KLD4H/Bn
-         dWXl2k4tg6j6b6r3iLke/JjQOqtAWGhWjmz+5X/AmIsbrRbdPwocCDW6gnbjWLV+8CGP
-         6XBgMZj2Vbtv7WovHLG8U9O+XTiFW1Esdpsq5PDNf7YwiqhlubKB9tjZcJrQw+cD3SxG
-         3OYRHWmQVG+2jcAaW9y66JUIwQHgJwy+IQgpES3zBB50Hn7Ps4/BtqJ1QikahSxmXMbV
-         ZLTQ==
+        bh=83N6jbrz7Nk3njK8ABDKRljMA2AS3yoeVqMaJxkbwE4=;
+        b=NZcAstJ9fEDIrozklG+RC9EQnCGd5vnNAmljBzFj7Frwp93akfK3W5JC/0w/lZ18dD
+         MYqN+YgMBuM/nKcjfD2aeojlmtsQHT2+Be4zWWUs2s6SZLdqRp6AVGU1oryJJeClc7Kt
+         XtHnfx8AOWkte0H2aoUZtq0u17D5yDLE3VhNbvYCHpY7QmFnYpsfRHTkw9EV1u+7l2yC
+         JmubuJ1AB28ViO/8hEO0kHPsixIW9HU4iwOXN+/f6B4W4+9OHIHZcRTrv/eeN/Z6zSwS
+         WAIwsOTjCBT/cguKvVlDE+i1V2yXum0gE9hA8+qaxza2iGH1wIlB8bXWrlVlVNHdSIRX
+         k7Tw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=dg8Bbqo8xrTURRSZr1gbJA1kXH+dR6Cfw/CPc1vh5OA=;
-        b=zHK0JhpSKDnkiX2MFdEX8a4Q9Va4dN5tBGDa5GQgUs/Hc5ooNOcVY3AI4FRaQPugJx
-         SIRJ8YoKNCx65RMG57D4D4FV2QlvKsGMu6cL/BehbPdptVLTnTsh+jIHZ86h+HzO+3y4
-         SsI8wMAbFnA1zD4Z7/5G11rado5OwTv0EYlMWs/5iK1Nw23ObGh9sJuJIalUsuIPWEya
-         nUi4k/TxhOT10KHyzIf7LyjOlZMppShPZG9zxzCHvRYlZsD9V28mlXzpMHcRDp8b1/PL
-         8MUTcQZI7rf6UpJpJaS5PjJNec32fo3q0JX0ewWJ8MO5kJ8yrP3lOrNEfTOnEQIB2ipj
-         J3AQ==
-X-Gm-Message-State: AOAM533eYnLnQ8ZKgY19Wv6QAlbbCzVKXtJG7PsRfPMKHOvyKDIJ4AWB
-	HqFDJdIWHekybEvvTmgF8DyicwJteKw1DC3h+aIPWQ==
-X-Google-Smtp-Source: ABdhPJyiswDhX6qkwwQts1SFepTHj/P5w6WGlYQlgTjrpG3xns33VOfe9EvdjD9DCBoIscPBLRLRybo05bZTeUzOoys=
-X-Received: by 2002:a17:90a:e7cb:: with SMTP id kb11mr1046139pjb.220.1644963108677;
- Tue, 15 Feb 2022 14:11:48 -0800 (PST)
+        bh=83N6jbrz7Nk3njK8ABDKRljMA2AS3yoeVqMaJxkbwE4=;
+        b=yZ2XEdJL2wIOkoOzLvQHtfYOSNEDzarXIBw8NVtrQKEt3mA1fcGIZQFe2KxxFCZf96
+         c5jKi9Z9EtzAqdS2T9DeTdRjDEz23W/KI0PbvZIvN02MTR/uPDhrX4mznbJUo2jozd0I
+         MZenoZGHvH6DYBkzWokgS0IcdcbDCSlTvrqITH6WEH38MDb8xHRqmmUZypPpGwCIPmhm
+         IvDFcWPforDv2tp5aJN5du5E2Ra2MA82I4Nks3VNNCyKUzZGOxJICkETOWRGpcrExJZh
+         aT+FndVJmhfKE1n0mi1rFP/ErswZlcouRu72uEdDXyBmrlkXnNN42ass24FWXFa/zPf1
+         CJFg==
+X-Gm-Message-State: AOAM530LLD5FAnhWSnCHYL2E8ZmoUZnCYKSZtxR85or5g/3Ya4neTAJK
+	fj1lkRouxfR/VUt82y89isMFiVr8XLG0EVHqijkJdw==
+X-Google-Smtp-Source: ABdhPJwyiOHriZYIH+JGn4mCV9FeAMpy8ae1cYWDts5xxcI1rDCUtkY8xoI1fwtyNIRCDQmS/O9n6n/LNqhqdjINLRE=
+X-Received: by 2002:a05:6a00:8ca:b0:4e0:2ed3:5630 with SMTP id
+ s10-20020a056a0008ca00b004e02ed35630mr30392pfu.3.1644964697734; Tue, 15 Feb
+ 2022 14:38:17 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20220127124058.1172422-1-ruansy.fnst@fujitsu.com> <20220127124058.1172422-3-ruansy.fnst@fujitsu.com>
-In-Reply-To: <20220127124058.1172422-3-ruansy.fnst@fujitsu.com>
+References: <20220127124058.1172422-1-ruansy.fnst@fujitsu.com> <20220127124058.1172422-4-ruansy.fnst@fujitsu.com>
+In-Reply-To: <20220127124058.1172422-4-ruansy.fnst@fujitsu.com>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 15 Feb 2022 14:11:42 -0800
-Message-ID: <CAPcyv4jMBm3ewWeQX7eZDaHT4aD8eOPcxYBiiZT1ZmaV9z-A2g@mail.gmail.com>
-Subject: Re: [PATCH v10 2/9] mm: factor helpers for memory_failure_dev_pagemap
+Date: Tue, 15 Feb 2022 14:38:11 -0800
+Message-ID: <CAPcyv4i0FSjfd1vYFBj6DMq4dG36JPzvuUFw3yjJweNqsHNNPw@mail.gmail.com>
+Subject: Re: [PATCH v10 3/9] pagemap,pmem: Introduce ->memory_failure()
 To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
 Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, 
 	Linux NVDIMM <nvdimm@lists.linux.dev>, Linux MM <linux-mm@kvack.org>, 
@@ -54,14 +55,89 @@ Content-Type: text/plain; charset="UTF-8"
 
 On Thu, Jan 27, 2022 at 4:41 AM Shiyang Ruan <ruansy.fnst@fujitsu.com> wrote:
 >
-> memory_failure_dev_pagemap code is a bit complex before introduce RMAP
-> feature for fsdax.  So it is needed to factor some helper functions to
-> simplify these code.
+> When memory-failure occurs, we call this function which is implemented
+> by each kind of devices.  For the fsdax case, pmem device driver
+> implements it.  Pmem device driver will find out the filesystem in which
+> the corrupted page located in.
+>
+> With dax_holder notify support, we are able to notify the memory failure
+> from pmem driver to upper layers.  If there is something not support in
+> the notify routine, memory_failure will fall back to the generic hanlder.
 >
 > Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-> Reviewed-by: Darrick J. Wong <djwong@kernel.org>
 > Reviewed-by: Christoph Hellwig <hch@lst.de>
+> ---
+>  drivers/nvdimm/pmem.c    | 16 ++++++++++++++++
+>  include/linux/memremap.h | 12 ++++++++++++
+>  mm/memory-failure.c      | 14 ++++++++++++++
+>  3 files changed, 42 insertions(+)
+>
+> diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+> index 58d95242a836..0a6e8698d086 100644
+> --- a/drivers/nvdimm/pmem.c
+> +++ b/drivers/nvdimm/pmem.c
+> @@ -366,6 +366,20 @@ static void pmem_release_disk(void *__pmem)
+>         blk_cleanup_disk(pmem->disk);
+>  }
+>
+> +static int pmem_pagemap_memory_failure(struct dev_pagemap *pgmap,
+> +               unsigned long pfn, u64 len, int mf_flags)
+> +{
+> +       struct pmem_device *pmem =
+> +                       container_of(pgmap, struct pmem_device, pgmap);
+> +       u64 offset = PFN_PHYS(pfn) - pmem->phys_addr - pmem->data_offset;
+> +
+> +       return dax_holder_notify_failure(pmem->dax_dev, offset, len, mf_flags);
+> +}
+> +
+> +static const struct dev_pagemap_ops fsdax_pagemap_ops = {
+> +       .memory_failure         = pmem_pagemap_memory_failure,
+> +};
+> +
+>  static int pmem_attach_disk(struct device *dev,
+>                 struct nd_namespace_common *ndns)
+>  {
+> @@ -427,6 +441,7 @@ static int pmem_attach_disk(struct device *dev,
+>         pmem->pfn_flags = PFN_DEV;
+>         if (is_nd_pfn(dev)) {
+>                 pmem->pgmap.type = MEMORY_DEVICE_FS_DAX;
+> +               pmem->pgmap.ops = &fsdax_pagemap_ops;
+>                 addr = devm_memremap_pages(dev, &pmem->pgmap);
+>                 pfn_sb = nd_pfn->pfn_sb;
+>                 pmem->data_offset = le64_to_cpu(pfn_sb->dataoff);
+> @@ -440,6 +455,7 @@ static int pmem_attach_disk(struct device *dev,
+>                 pmem->pgmap.range.end = res->end;
+>                 pmem->pgmap.nr_range = 1;
+>                 pmem->pgmap.type = MEMORY_DEVICE_FS_DAX;
+> +               pmem->pgmap.ops = &fsdax_pagemap_ops;
+>                 addr = devm_memremap_pages(dev, &pmem->pgmap);
+>                 pmem->pfn_flags |= PFN_MAP;
+>                 bb_range = pmem->pgmap.range;
+> diff --git a/include/linux/memremap.h b/include/linux/memremap.h
+> index 1fafcc38acba..f739318b496f 100644
+> --- a/include/linux/memremap.h
+> +++ b/include/linux/memremap.h
+> @@ -77,6 +77,18 @@ struct dev_pagemap_ops {
+>          * the page back to a CPU accessible page.
+>          */
+>         vm_fault_t (*migrate_to_ram)(struct vm_fault *vmf);
+> +
+> +       /*
+> +        * Handle the memory failure happens on a range of pfns.  Notify the
+> +        * processes who are using these pfns, and try to recover the data on
+> +        * them if necessary.  The mf_flags is finally passed to the recover
+> +        * function through the whole notify routine.
+> +        *
+> +        * When this is not implemented, or it returns -EOPNOTSUPP, the caller
+> +        * will fall back to a common handler called mf_generic_kill_procs().
+> +        */
+> +       int (*memory_failure)(struct dev_pagemap *pgmap, unsigned long pfn,
+> +                             u64 len, int mf_flags);
 
-Looks good,
+I think it is odd to have the start address be in terms of pfns and
+the length by in terms of bytes. I would either change @len to
+@nr_pages, or change @pfn to @phys and make it a phys_addr_t.
+
+Otherwise you can add,
 
 Reviewed-by: Dan Williams <dan.j.williams@intel.com>
