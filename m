@@ -1,38 +1,38 @@
-Received: from mail-pl1-f170.google.com (mail-pl1-f170.google.com [209.85.214.170])
+Received: from mail-pf1-f181.google.com (mail-pf1-f181.google.com [209.85.210.181])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D1321844
-	for <nvdimm@lists.linux.dev>; Wed, 16 Feb 2022 01:47:26 +0000 (UTC)
-Received: by mail-pl1-f170.google.com with SMTP id 10so838254plj.1
-        for <nvdimm@lists.linux.dev>; Tue, 15 Feb 2022 17:47:26 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA5F31844
+	for <nvdimm@lists.linux.dev>; Wed, 16 Feb 2022 01:49:39 +0000 (UTC)
+Received: by mail-pf1-f181.google.com with SMTP id y5so885178pfe.4
+        for <nvdimm@lists.linux.dev>; Tue, 15 Feb 2022 17:49:39 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20210112.gappssmtp.com; s=20210112;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=nlq8z2arOhNkxaYYwLaD3RpZ3GoR+UWwTLLnfnZTXnY=;
-        b=DMFJ896b0Vz97kUGCM8E2K0r8djjVIJRIYsuIAYOAkaBkfNx2QQREloFJCf8CCj90h
-         nKbD8u01PBQSSUY4vqTZ47YDWw/7PCDnAZR43J2UUhOWiepjRATef/AE87HO4hR7J2nz
-         GU11Ftko5mrJ93140D/KkqH3K/LZp7UXoU/O7KYuYnti1rfi+dGGasqbL8Ese5rf7bo9
-         0zlx0b2y45jW/cov0X+AFCz60VpwmqGu+eu6OeJ6DLRZRoZejU+362F7o9KjYYX+BWaK
-         Z6uEVIvEuOOUm7Sj5OgLhqGQtk5FGMlS5mNoa//ff5PaLIM4owD5EtniIIHFb0scDZ9e
-         EWmA==
+        bh=JqjP6+knVxmjPk+6TmXifMsYagmkY7dGlbu+Cp4tVhU=;
+        b=bqoqzVAheRcyp+ejCrtXym4Z2mkOqeEcWbPXTP4OrhtoSvFe6qeX8Z+qPcG8we/1WU
+         6vbAyx7hqOvrJBnqbsp1sqSNf3F5Sh0/8KdLZhBDYN+20l/T4GsRKpeDia0wfTPIn6h8
+         tAcUGMCYG7vXuKkQnHZAv8O0VoFaWE7ZhzTDN26+PdBRy2vEI0dd6kyetaKcI9xcwcOZ
+         EHP8wxlTGOhAUvtsP7NY3Th5mcnzS+6y2h696Ho+CKjG6t2zUnbt27OQo5fpX0o6+oQW
+         DarJKZu/sVNRGQqf04WmgOdeeT/+QOnl2oPtPQCo18HBMl/o7HhW9fz1Vs0mkfLOXX+D
+         Ig/w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=nlq8z2arOhNkxaYYwLaD3RpZ3GoR+UWwTLLnfnZTXnY=;
-        b=IrEpdtQdrRvU6JyG09AC0YhwyaY5MIWMW1D9+JkRGUIDyo1iFSj6mNip/P6ujEK0b3
-         1w9AfVQCyPQaQMa8G5Sta23sAvs6+9iROWFBNYjqY5ApXfPC2gC16sGEe2CiyunxAs8+
-         JmNCP+U6JbiLus3E0Ggm419AWoTn7ETa77+iG08a77o2N2sFzq01O7YS59tIh4LtOvjX
-         zqsBhC8aZWYwuYdPSI1xSdwXc2WcqsP5ss02FQnhqL+j5QNTzHNvxL3ssLKfFXEErRmF
-         iA5J4r0foS3l4oMnVUX7tHIYCoWK/tXk9OsFzPVsLxuQIdUjj7a8n4VbxoMis/6Vw0oC
-         6Urg==
-X-Gm-Message-State: AOAM531lan0rSV5WCgZowP7F+BMmThQG0NTbAEMFQicXAriIUK7En7TC
-	5dm7gL+axOAoYE3t/fRjrPGe1243qSiTFECM04g0xA==
-X-Google-Smtp-Source: ABdhPJwT3hvSagc3TEPzllcZbvtit0z9Qok37GmkfTUSfHMWGioDKT1cQ4/685zOQu/6xCOe6mcuODN03F7rGWAFZWg=
-X-Received: by 2002:a17:902:7296:b0:14b:4bc6:e81 with SMTP id
- d22-20020a170902729600b0014b4bc60e81mr636363pll.132.1644976045685; Tue, 15
- Feb 2022 17:47:25 -0800 (PST)
+        bh=JqjP6+knVxmjPk+6TmXifMsYagmkY7dGlbu+Cp4tVhU=;
+        b=FfC8a/CwhN1gkJJxZ2GrCaTDtZA3T5UbA5KI7c4txd4Co0PX1H+48DH3DHJmonw/0z
+         U1ISH5DdPHugtaTCkrBM3CQ1mxJVg8YE149X/tj3b7DOU+NOO2NCAvdEo350p3o2/CbH
+         LV52ULk3BItGey69eGZfppvKZ4wwUaIoVjOhc7//lQEsKjWYDNdIn+UfjKtS+rpeOXEW
+         HoNkGlkt+aVEN0XTAJrJF/wb3L3vQ30YArl/gq92puzhNRkgcXf4KhjvBcPcZs6AYX2/
+         Vzgb9NS40bRszKfGod4JS8FX4BVdmINJaLBU1i/fAbFPt89LlKdla0nOlWis1S7e8llT
+         XHmA==
+X-Gm-Message-State: AOAM531l2OozU9WPFD1mJSABRhL53fSc0lXp5kJGB2R91Skq0BFxXj0x
+	3rUNtGfhXp4yclHvcU6LWY9mpjzYh8JSJkHH1mpfpg==
+X-Google-Smtp-Source: ABdhPJzBpx1jse2xbj8mriAE5IRH5N45DhXrywujvPaUi9rvoKWGSdtDsmmftwEW/BKqPOTy/zsrvgbsO0oqrb+xe0E=
+X-Received: by 2002:a05:6a02:283:b0:342:703e:1434 with SMTP id
+ bk3-20020a056a02028300b00342703e1434mr411493pgb.74.1644976179422; Tue, 15 Feb
+ 2022 17:49:39 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -42,8 +42,8 @@ MIME-Version: 1.0
 References: <20220127124058.1172422-1-ruansy.fnst@fujitsu.com> <20220127124058.1172422-8-ruansy.fnst@fujitsu.com>
 In-Reply-To: <20220127124058.1172422-8-ruansy.fnst@fujitsu.com>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 15 Feb 2022 17:47:19 -0800
-Message-ID: <CAPcyv4i_mGFO4z3sVYShhhvBO_WASee-EfZK0U+qWw5usDWzxQ@mail.gmail.com>
+Date: Tue, 15 Feb 2022 17:49:33 -0800
+Message-ID: <CAPcyv4h+jQcwSo-CHUhy98xVvjJzvK74-s4uH+Qu-jCr1+zKjw@mail.gmail.com>
 Subject: Re: [PATCH v10 7/9] mm: Introduce mf_dax_kill_procs() for fsdax case
 To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
 Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, 
@@ -136,11 +136,86 @@ On Thu, Jan 27, 2022 at 4:41 AM Shiyang Ruan <ruansy.fnst@fujitsu.com> wrote:
 >                         if (vma->vm_mm == t->mm)
 > -                               add_to_kill(t, page, vma, to_kill);
 > +                               add_to_kill(t, page, 0, vma, to_kill);
+>                 }
+>         }
+>         read_unlock(&tasklist_lock);
+> @@ -546,12 +550,40 @@ static void collect_procs_file(struct page *page, struct list_head *to_kill,
+>                          * to be informed of all such data corruptions.
+>                          */
+>                         if (vma->vm_mm == t->mm)
+> -                               add_to_kill(t, page, vma, to_kill);
+> +                               add_to_kill(t, page, 0, vma, to_kill);
+> +               }
+> +       }
+> +       read_unlock(&tasklist_lock);
+> +       i_mmap_unlock_read(mapping);
+> +}
+> +
+> +#if IS_ENABLED(CONFIG_FS_DAX)
+> +/*
+> + * Collect processes when the error hit a fsdax page.
+> + */
+> +static void collect_procs_fsdax(struct page *page,
+> +               struct address_space *mapping, pgoff_t pgoff,
+> +               struct list_head *to_kill)
+> +{
+> +       struct vm_area_struct *vma;
+> +       struct task_struct *tsk;
+> +
+> +       i_mmap_lock_read(mapping);
+> +       read_lock(&tasklist_lock);
+> +       for_each_process(tsk) {
+> +               struct task_struct *t = task_early_kill(tsk, true);
+> +
+> +               if (!t)
+> +                       continue;
+> +               vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff, pgoff) {
+> +                       if (vma->vm_mm == t->mm)
+> +                               add_to_kill(t, page, pgoff, vma, to_kill);
+>                 }
+>         }
+>         read_unlock(&tasklist_lock);
+>         i_mmap_unlock_read(mapping);
+>  }
+> +#endif /* CONFIG_FS_DAX */
+>
+>  /*
+>   * Collect the processes who have the corrupted page mapped to kill.
+> @@ -1574,6 +1606,43 @@ static int mf_generic_kill_procs(unsigned long long pfn, int flags,
+>         return 0;
+>  }
+>
+> +#if IS_ENABLED(CONFIG_FS_DAX)
+> +/**
+> + * mf_dax_kill_procs - Collect and kill processes who are using this file range
+> + * @mapping:   the file in use
+> + * @index:     start pgoff of the range within the file
+> + * @count:     length of the range, in unit of PAGE_SIZE
+> + * @mf_flags:  memory failure flags
+> + */
+> +int mf_dax_kill_procs(struct address_space *mapping, pgoff_t index,
+> +               unsigned long count, int mf_flags)
+> +{
+> +       LIST_HEAD(to_kill);
+> +       int rc;
+> +       struct page *page;
+> +       size_t end = index + count;
+> +
+> +       mf_flags |= MF_ACTION_REQUIRED | MF_MUST_KILL;
+> +
+> +       for (; index < end; index++) {
+> +               page = NULL;
+> +               rc = dax_load_page(mapping, index, &page);
+> +               if (rc)
+> +                       return rc;
+> +               if (!page)
+> +                       continue;
+> +
+> +               SetPageHWPoison(page);
+> +
+> +               collect_procs_fsdax(page, mapping, index, &to_kill);
+> +               unmap_and_kill(&to_kill, page_to_pfn(page), mapping,
+> +                               index, mf_flags);
 
-Why is the @pgoff argument 0? @pgoff is available. Not that I expect
-dax pages will ever be anonymous, might as well not leave that land
-mine for future refactoring.
-
-Other than that you can add:
-
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Depending on the answer to the question in patch5 there may need to be
+a put_page() or dax_unlock_page() here.
