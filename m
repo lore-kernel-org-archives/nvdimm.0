@@ -1,266 +1,267 @@
-Received: from mail-pl1-f173.google.com (mail-pl1-f173.google.com [209.85.214.173])
+Received: from mail-pf1-f175.google.com (mail-pf1-f175.google.com [209.85.210.175])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 064331B69
-	for <nvdimm@lists.linux.dev>; Wed, 16 Feb 2022 03:09:12 +0000 (UTC)
-Received: by mail-pl1-f173.google.com with SMTP id y18so924465plb.11
-        for <nvdimm@lists.linux.dev>; Tue, 15 Feb 2022 19:09:12 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50E491FB6
+	for <nvdimm@lists.linux.dev>; Wed, 16 Feb 2022 03:21:35 +0000 (UTC)
+Received: by mail-pf1-f175.google.com with SMTP id i6so1013010pfc.9
+        for <nvdimm@lists.linux.dev>; Tue, 15 Feb 2022 19:21:35 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20210112.gappssmtp.com; s=20210112;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=k7acGQ+aoEgDpTruS21+hEnSk9frdpzFJnwztD0cF2g=;
-        b=hNE5p/Jo5xvwKQMU14u/yTNHol24XinfEBPd0Xnkxx8ckko4WXoFz8bpeB/FIumjPj
-         vCYmfonysPB1PYbjzSO8rGqKsshAXZl+chAocxjI/LgI+ScIrFr1zVkj9o6FHx2QLqcU
-         MZpp/uX3NB6q3uSF+zs0RUw8FgNRIDAvUDfBMb9xplYZ+DMkaUzDvPqkJ3DmUp4yxBpx
-         YHBa7WvldPJF321ZSnrRJGCNkeQFvKbacsQoZdjjc/nCNkR0TsapOD+/7ExjAEbdD3Ow
-         1+uNI99qHAm2pHuLdJuysPYCQcc2to7OVPDLrq02dFyiziZ54eFI/aIf8H3oJH307IW/
-         QIIA==
+         :cc;
+        bh=vw8qsUjrvsewVRkefqUfPybP+5Z8VVwo22NfPcxFm0A=;
+        b=dgO7FhOY2JfQ2IuLfOG2+6uYTThsWgKj/hMrjHToVTKPrHe2y7HZPfgQon5t2nJupZ
+         xE/6oPFfV6H6vhhYCOlncyNL7KmQGjDkC0fK1cN3YOKHm0dC4BT4/WN6CmIIOMNERuHA
+         uMVsZRX/f02HrDzFwhUtgY/LAoFOjBHXHOpI3xbcwFnM3HgpTJj/ldRGYzC++aMpFIay
+         rwequSDABGFWuBzkdYLmFvdqk3kistFZ9YZce6p+KpDSUs/r5AMaOhO6NgRJNBLoXsJL
+         Q4wdnDkA9AJXGBNuFZSCvpC11uUZFWl7dwdCdZk2q5/xG+ErbjgqoFLTJkzOmivOCSr1
+         DwrQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=k7acGQ+aoEgDpTruS21+hEnSk9frdpzFJnwztD0cF2g=;
-        b=1+CClNCwBFE1Pcn7SABcQa/JaSzGGF59eXzb/IdtLow5stOVoCmPTjb6QgtWlguk35
-         YOTt/AwJuOg3NF9SbcBT36HHUyoUcD12WJfRwhSebfQTho1xJkGsto41kpvHktAwvrEI
-         3I+99p8ZT685JbysbgkMpwbEE+M31Wx+oBSwMTxaRldwyb9xgIb7zp+flhXjTZJ+kl4Y
-         IfrzzVMHNJe429Hj6viIRyBn1qm+hVWWpsEkiAdTthpBLp//QBFqVlPMZqURACG154/X
-         zQJDnXZJR/CMDnC9L2nzNpQeFsSlyOUcb+Pmg5AjX5VDsQ3p+W1BIRsUZYEYqo/qOZvL
-         lIGw==
-X-Gm-Message-State: AOAM531P2zcqvjCeZXnLdxNWQXvj80R4DW3Bbmp165OgKvWnHu4s5YhV
-	j/AZExryt5z2RcaRNiBBF3I7y7o79XBU4XRTfolP1w==
-X-Google-Smtp-Source: ABdhPJxAp+sSnyv767mDuMDX/8tJW2jOYmiVjf2IgQHEv02eYqaN3IQQZHeRuIl68bmli9Ok0+bdx7i1Re2Il51WFsw=
-X-Received: by 2002:a17:90a:f28d:b0:1b9:975f:1a9f with SMTP id
- fs13-20020a17090af28d00b001b9975f1a9fmr591684pjb.220.1644980952458; Tue, 15
- Feb 2022 19:09:12 -0800 (PST)
+         :message-id:subject:to:cc;
+        bh=vw8qsUjrvsewVRkefqUfPybP+5Z8VVwo22NfPcxFm0A=;
+        b=Pg8GTD9CFeECjLLO6RTNChapsB9zhun8BR8ekMQ/QgVPSf3LHg6NbDfjrygUnhKQlh
+         u/UtOiLpZdZTYqxV8aiaD9wgHpBy11FogMRBnAggkFbkyOjW2fiWTxzSg+M0ySC5GP34
+         aRBvB9/+q4/geQdTB9Hhm7eOELrR7G8EcMHRHZxrm9u15c+69jcbPmd6ftNElwDqMRRa
+         fdWLB6lEGv0f/Z1Wd3mU1YKavwGW+HLonohOgXgQodBAum1ggfWNlsWdQikoSuo3nX5s
+         FcoTIWyKWn8MnlOPvVvkeBHzQzcK0HPjXODyta8iEEZ0uyW/HpnUcs78FZmQ6C7UfUNq
+         8/eg==
+X-Gm-Message-State: AOAM5320xw8RyVmHfGaD1pCfPQ0KQpib9ae7l3PYg7bPfO0/PJ5SJgrv
+	ZLxsI0yrIn+g/ZU54dnL37pdgMhCCWfKyYYeVfNv/w==
+X-Google-Smtp-Source: ABdhPJyuuPzOEwmW+m5vEZBdWxTnv9HwCvggPR3Bu976gqtuMVGeBifHYjgGPdwjgVlUgB3HcMqCsBka29+qh7hOs/k=
+X-Received: by 2002:a63:f011:0:b0:36c:2da3:32bc with SMTP id
+ k17-20020a63f011000000b0036c2da332bcmr661337pgh.40.1644981694745; Tue, 15 Feb
+ 2022 19:21:34 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20220127124058.1172422-1-ruansy.fnst@fujitsu.com>
- <20220127124058.1172422-10-ruansy.fnst@fujitsu.com> <CAPcyv4iTO55BX+_v2yHRBjSppPgT23JsHg-Oagb6RwHMj-W+Ug@mail.gmail.com>
- <ff0f0d8c-a4a3-6dbf-8358-67c3bb11c2d6@fujitsu.com>
-In-Reply-To: <ff0f0d8c-a4a3-6dbf-8358-67c3bb11c2d6@fujitsu.com>
+References: <20220111161937.56272-1-pankaj.gupta.linux@gmail.com> <20220111161937.56272-2-pankaj.gupta.linux@gmail.com>
+In-Reply-To: <20220111161937.56272-2-pankaj.gupta.linux@gmail.com>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 15 Feb 2022 19:09:01 -0800
-Message-ID: <CAPcyv4h7zVYu7K3j2JNEd7jTHJRvVDwqhhRCBbq6ru4+QGY9Hg@mail.gmail.com>
-Subject: Re: [PATCH v10 9/9] fsdax: set a CoW flag when associate reflink mappings
-To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, 
-	Linux NVDIMM <nvdimm@lists.linux.dev>, Linux MM <linux-mm@kvack.org>, 
-	linux-fsdevel <linux-fsdevel@vger.kernel.org>, "Darrick J. Wong" <djwong@kernel.org>, 
-	david <david@fromorbit.com>, Christoph Hellwig <hch@infradead.org>, Jane Chu <jane.chu@oracle.com>
+Date: Tue, 15 Feb 2022 19:21:23 -0800
+Message-ID: <CAPcyv4jrVJ_B0N_-vtqgXaOMovUgnSLCNj228nWMRhGAC5PDhA@mail.gmail.com>
+Subject: Re: [RFC v3 1/2] virtio-pmem: Async virtio-pmem flush
+To: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Cc: Linux NVDIMM <nvdimm@lists.linux.dev>, virtualization@lists.linux-foundation.org, 
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, jmoyer <jmoyer@redhat.com>, 
+	Stefan Hajnoczi <stefanha@redhat.com>, David Hildenbrand <david@redhat.com>, 
+	"Michael S. Tsirkin" <mst@redhat.com>, Cornelia Huck <cohuck@redhat.com>, 
+	Vishal L Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	"Weiny, Ira" <ira.weiny@intel.com>, Pankaj Gupta <pankaj.gupta@ionos.com>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Tue, Feb 15, 2022 at 6:55 PM Shiyang Ruan <ruansy.fnst@fujitsu.com> wrot=
-e:
+On Tue, Jan 11, 2022 at 8:23 AM Pankaj Gupta
+<pankaj.gupta.linux@gmail.com> wrote:
 >
+> Enable asynchronous flush for virtio pmem using work queue. Also,
+> coalesce the flush requests when a flush is already in process.
+> This functionality is copied from md/RAID code.
 >
->
-> =E5=9C=A8 2022/2/16 10:09, Dan Williams =E5=86=99=E9=81=93:
-> > On Thu, Jan 27, 2022 at 4:41 AM Shiyang Ruan <ruansy.fnst@fujitsu.com> =
-wrote:
-> >>
-> >> Introduce a PAGE_MAPPING_DAX_COW flag to support association with CoW =
-file
-> >> mappings.  In this case, the dax-RMAP already takes the responsibility
-> >> to look up for shared files by given dax page.  The page->mapping is n=
-o
-> >> longer to used for rmap but for marking that this dax page is shared.
-> >> And to make sure disassociation works fine, we use page->index as
-> >> refcount, and clear page->mapping to the initial state when page->inde=
-x
-> >> is decreased to 0.
-> >>
-> >> With the help of this new flag, it is able to distinguish normal case
-> >> and CoW case, and keep the warning in normal case.
-> >>
-> >> Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-> >> ---
-> >>   fs/dax.c                   | 65 ++++++++++++++++++++++++++++++++----=
---
-> >>   include/linux/page-flags.h |  6 ++++
-> >>   2 files changed, 62 insertions(+), 9 deletions(-)
-> >>
-> >> diff --git a/fs/dax.c b/fs/dax.c
-> >> index 250794a5b789..88879c579c1f 100644
-> >> --- a/fs/dax.c
-> >> +++ b/fs/dax.c
-> >> @@ -334,13 +334,46 @@ static unsigned long dax_end_pfn(void *entry)
-> >>          for (pfn =3D dax_to_pfn(entry); \
-> >>                          pfn < dax_end_pfn(entry); pfn++)
-> >>
-> >> +static inline void dax_mapping_set_cow_flag(struct address_space *map=
-ping)
-> >> +{
-> >> +       mapping =3D (struct address_space *)PAGE_MAPPING_DAX_COW;
-> >> +}
-> >> +
-> >> +static inline bool dax_mapping_is_cow(struct address_space *mapping)
-> >> +{
-> >> +       return (unsigned long)mapping =3D=3D PAGE_MAPPING_DAX_COW;
-> >> +}
-> >> +
-> >>   /*
-> >> - * TODO: for reflink+dax we need a way to associate a single page wit=
-h
-> >> - * multiple address_space instances at different linear_page_index()
-> >> - * offsets.
-> >> + * Set or Update the page->mapping with FS_DAX_MAPPING_COW flag.
-> >> + * Return true if it is an Update.
-> >> + */
-> >> +static inline bool dax_mapping_set_cow(struct page *page)
-> >> +{
-> >> +       if (page->mapping) {
-> >> +               /* flag already set */
-> >> +               if (dax_mapping_is_cow(page->mapping))
-> >> +                       return false;
-> >> +
-> >> +               /*
-> >> +                * This page has been mapped even before it is shared,=
- just
-> >> +                * need to set this FS_DAX_MAPPING_COW flag.
-> >> +                */
-> >> +               dax_mapping_set_cow_flag(page->mapping);
-> >> +               return true;
-> >> +       }
-> >> +       /* Newly associate CoW mapping */
-> >> +       dax_mapping_set_cow_flag(page->mapping);
-> >> +       return false;
-> >> +}
-> >> +
-> >> +/*
-> >> + * When it is called in dax_insert_entry(), the cow flag will indicat=
-e that
-> >> + * whether this entry is shared by multiple files.  If so, set the pa=
-ge->mapping
-> >> + * to be FS_DAX_MAPPING_COW, and use page->index as refcount.
-> >>    */
-> >>   static void dax_associate_entry(void *entry, struct address_space *m=
-apping,
-> >> -               struct vm_area_struct *vma, unsigned long address)
-> >> +               struct vm_area_struct *vma, unsigned long address, boo=
-l cow)
-> >>   {
-> >>          unsigned long size =3D dax_entry_size(entry), pfn, index;
-> >>          int i =3D 0;
-> >> @@ -352,9 +385,17 @@ static void dax_associate_entry(void *entry, stru=
-ct address_space *mapping,
-> >>          for_each_mapped_pfn(entry, pfn) {
-> >>                  struct page *page =3D pfn_to_page(pfn);
-> >>
-> >> -               WARN_ON_ONCE(page->mapping);
-> >> -               page->mapping =3D mapping;
-> >> -               page->index =3D index + i++;
-> >> +               if (cow) {
-> >> +                       if (dax_mapping_set_cow(page)) {
-> >> +                               /* Was normal, now updated to CoW */
-> >> +                               page->index =3D 2;
-> >> +                       } else
-> >> +                               page->index++;
-> >> +               } else {
-> >> +                       WARN_ON_ONCE(page->mapping);
-> >> +                       page->mapping =3D mapping;
-> >> +                       page->index =3D index + i++;
-> >> +               }
-> >>          }
-> >>   }
-> >>
-> >> @@ -370,7 +411,12 @@ static void dax_disassociate_entry(void *entry, s=
-truct address_space *mapping,
-> >>                  struct page *page =3D pfn_to_page(pfn);
-> >>
-> >>                  WARN_ON_ONCE(trunc && page_ref_count(page) > 1);
-> >> -               WARN_ON_ONCE(page->mapping && page->mapping !=3D mappi=
-ng);
-> >> +               if (!dax_mapping_is_cow(page->mapping)) {
-> >> +                       /* keep the CoW flag if this page is still sha=
-red */
-> >> +                       if (page->index-- > 0)
-> >> +                               continue;
-> >> +               } else
-> >> +                       WARN_ON_ONCE(page->mapping && page->mapping !=
-=3D mapping);
-> >>                  page->mapping =3D NULL;
-> >>                  page->index =3D 0;
-> >>          }
-> >> @@ -810,7 +856,8 @@ static void *dax_insert_entry(struct xa_state *xas=
-,
-> >>                  void *old;
-> >>
-> >>                  dax_disassociate_entry(entry, mapping, false);
-> >> -               dax_associate_entry(new_entry, mapping, vmf->vma, vmf-=
->address);
-> >> +               dax_associate_entry(new_entry, mapping, vmf->vma, vmf-=
->address,
-> >> +                               false);
-> >
-> > Where is the caller that passes 'true'? Also when that caller arrives
-> > introduce a separate dax_associate_cow_entry() as that's easier to
-> > read than dax_associate_entry(..., true) in case someone does not
-> > remember what that boolean flag means.
->
-> This flag is supposed to be used when CoW support is introduced.
+> When a flush is already in process, new flush requests wait till
+> previous flush completes in another context (work queue). For all
+> the requests come between ongoing flush and new flush start time, only
+> single flush executes, thus adhers to flush coalscing logic. This is
 
-Ok, so should this patch wait and be a part of that series? It's
-otherwise confusing to introduce a new capability in a patch set and
-not take advantage of it until a separate / later patch set.
+s/adhers/adheres/
 
-> When
-> it is a CoW operation, which is decided by iomap & srcmap's flag, this
-> flag will be set true.
->
-> I think I should describe it in detail in the commit message.
+s/coalscing/coalescing/
 
-That could help, or move it to the COW support series.
+> important for maintaining the flush request order with request coalscing.
 
-> > However, it's not clear to me that this approach is a good idea given
-> > that the filesystem is the source of truth for how many address_spaces
-> > this page mapping might be duplicated. What about a iomap_page_ops for
-> > fsdax to ask the filesystem when it is ok to clear the mapping
-> > association for a page?
+s/coalscing/coalescing/
+
 >
-> I'll think how to implement it in this way.
+> Signed-off-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+> ---
+>  drivers/nvdimm/nd_virtio.c   | 74 +++++++++++++++++++++++++++---------
+>  drivers/nvdimm/virtio_pmem.c | 10 +++++
+>  drivers/nvdimm/virtio_pmem.h | 16 ++++++++
+>  3 files changed, 83 insertions(+), 17 deletions(-)
 >
+> diff --git a/drivers/nvdimm/nd_virtio.c b/drivers/nvdimm/nd_virtio.c
+> index 10351d5b49fa..179ea7a73338 100644
+> --- a/drivers/nvdimm/nd_virtio.c
+> +++ b/drivers/nvdimm/nd_virtio.c
+> @@ -100,26 +100,66 @@ static int virtio_pmem_flush(struct nd_region *nd_region)
+>  /* The asynchronous flush callback function */
+>  int async_pmem_flush(struct nd_region *nd_region, struct bio *bio)
+>  {
+> -       /*
+> -        * Create child bio for asynchronous flush and chain with
+> -        * parent bio. Otherwise directly call nd_region flush.
+> +       /* queue asynchronous flush and coalesce the flush requests */
+> +       struct virtio_device *vdev = nd_region->provider_data;
+> +       struct virtio_pmem *vpmem  = vdev->priv;
+> +       ktime_t req_start = ktime_get_boottime();
+> +       int ret = -EINPROGRESS;
+> +
+> +       spin_lock_irq(&vpmem->lock);
+
+Why a new lock and not continue to use ->pmem_lock?
+
+Have you tested this with CONFIG_PROVE_LOCKING?
+
+Along those lines do you have a selftest that can be added to the
+kernel as well so that 0day or other bots could offer early warnings
+on regressions?
+
+> +       /* flush requests wait until ongoing flush completes,
+> +        * hence coalescing all the pending requests.
+>          */
+> -       if (bio && bio->bi_iter.bi_sector != -1) {
+> -               struct bio *child = bio_alloc(GFP_ATOMIC, 0);
+> -
+> -               if (!child)
+> -                       return -ENOMEM;
+> -               bio_copy_dev(child, bio);
+> -               child->bi_opf = REQ_PREFLUSH;
+> -               child->bi_iter.bi_sector = -1;
+> -               bio_chain(child, bio);
+> -               submit_bio(child);
+> -               return 0;
+> +       wait_event_lock_irq(vpmem->sb_wait,
+> +                           !vpmem->flush_bio ||
+> +                           ktime_before(req_start, vpmem->prev_flush_start),
+> +                           vpmem->lock);
+> +       /* new request after previous flush is completed */
+> +       if (ktime_after(req_start, vpmem->prev_flush_start)) {
+> +               WARN_ON(vpmem->flush_bio);
+> +               vpmem->flush_bio = bio;
+> +               bio = NULL;
+> +       }
+> +       spin_unlock_irq(&vpmem->lock);
+> +
+> +       if (!bio)
+> +               queue_work(vpmem->pmem_wq, &vpmem->flush_work);
+> +       else {
+> +       /* flush completed in other context while we waited */
+> +               if (bio && (bio->bi_opf & REQ_PREFLUSH))
+> +                       bio->bi_opf &= ~REQ_PREFLUSH;
+> +               else if (bio && (bio->bi_opf & REQ_FUA))
+> +                       bio->bi_opf &= ~REQ_FUA;
+> +
+> +               ret = vpmem->prev_flush_err;
+>         }
+> -       if (virtio_pmem_flush(nd_region))
+> -               return -EIO;
 >
+> -       return 0;
+> +       return ret;
+>  };
+>  EXPORT_SYMBOL_GPL(async_pmem_flush);
+> +
+> +void submit_async_flush(struct work_struct *ws)
+
+This name is too generic to be exported from drivers/nvdimm/nd_virtio.c
+
+...it strikes me that there is little reason for nd_virtio and
+virtio_pmem to be separate modules. They are both enabled by the same
+Kconfig, so why not combine them into one module and drop the exports?
+
+> +{
+> +       struct virtio_pmem *vpmem = container_of(ws, struct virtio_pmem, flush_work);
+> +       struct bio *bio = vpmem->flush_bio;
+> +
+> +       vpmem->start_flush = ktime_get_boottime();
+> +       vpmem->prev_flush_err = virtio_pmem_flush(vpmem->nd_region);
+> +       vpmem->prev_flush_start = vpmem->start_flush;
+> +       vpmem->flush_bio = NULL;
+> +       wake_up(&vpmem->sb_wait);
+> +
+> +       if (vpmem->prev_flush_err)
+> +               bio->bi_status = errno_to_blk_status(-EIO);
+> +
+> +       /* Submit parent bio only for PREFLUSH */
+> +       if (bio && (bio->bi_opf & REQ_PREFLUSH)) {
+> +               bio->bi_opf &= ~REQ_PREFLUSH;
+> +               submit_bio(bio);
+> +       } else if (bio && (bio->bi_opf & REQ_FUA)) {
+> +               bio->bi_opf &= ~REQ_FUA;
+> +               bio_endio(bio);
+> +       }
+> +}
+> +EXPORT_SYMBOL_GPL(submit_async_flush);
+>  MODULE_LICENSE("GPL");
+> diff --git a/drivers/nvdimm/virtio_pmem.c b/drivers/nvdimm/virtio_pmem.c
+> index 726c7354d465..75ed9b7ddea1 100644
+> --- a/drivers/nvdimm/virtio_pmem.c
+> +++ b/drivers/nvdimm/virtio_pmem.c
+> @@ -24,6 +24,7 @@ static int init_vq(struct virtio_pmem *vpmem)
+>                 return PTR_ERR(vpmem->req_vq);
+>
+>         spin_lock_init(&vpmem->pmem_lock);
+> +       spin_lock_init(&vpmem->lock);
+>         INIT_LIST_HEAD(&vpmem->req_list);
+>
+>         return 0;
+> @@ -57,7 +58,14 @@ static int virtio_pmem_probe(struct virtio_device *vdev)
+>                 dev_err(&vdev->dev, "failed to initialize virtio pmem vq's\n");
+>                 goto out_err;
+>         }
+> +       vpmem->pmem_wq = alloc_workqueue("vpmem_wq", WQ_MEM_RECLAIM, 0);
+> +       if (!vpmem->pmem_wq) {
+> +               err = -ENOMEM;
+> +               goto out_err;
+> +       }
+>
+> +       INIT_WORK(&vpmem->flush_work, submit_async_flush);
+> +       init_waitqueue_head(&vpmem->sb_wait);
+>         virtio_cread_le(vpmem->vdev, struct virtio_pmem_config,
+>                         start, &vpmem->start);
+>         virtio_cread_le(vpmem->vdev, struct virtio_pmem_config,
+> @@ -90,10 +98,12 @@ static int virtio_pmem_probe(struct virtio_device *vdev)
+>                 goto out_nd;
+>         }
+>         nd_region->provider_data = dev_to_virtio(nd_region->dev.parent->parent);
+> +       vpmem->nd_region = nd_region;
+>         return 0;
+>  out_nd:
+>         nvdimm_bus_unregister(vpmem->nvdimm_bus);
+>  out_vq:
+> +       destroy_workqueue(vpmem->pmem_wq);
+>         vdev->config->del_vqs(vdev);
+>  out_err:
+>         return err;
+> diff --git a/drivers/nvdimm/virtio_pmem.h b/drivers/nvdimm/virtio_pmem.h
+> index 0dddefe594c4..495dc20e1cdb 100644
+> --- a/drivers/nvdimm/virtio_pmem.h
+> +++ b/drivers/nvdimm/virtio_pmem.h
+> @@ -35,9 +35,24 @@ struct virtio_pmem {
+>         /* Virtio pmem request queue */
+>         struct virtqueue *req_vq;
+>
+> +       struct bio *flush_bio;
+> +       /* last_flush is when the last completed flush was started */
+> +       ktime_t prev_flush_start, start_flush;
+> +       int prev_flush_err;
+> +
+> +       /* work queue for deferred flush */
+> +       struct work_struct flush_work;
+> +       struct workqueue_struct *pmem_wq;
+> +
+> +       /* Synchronize flush wait queue data */
+> +       spinlock_t lock;
+> +       /* for waiting for previous flush to complete */
+> +       wait_queue_head_t sb_wait;
+> +
+>         /* nvdimm bus registers virtio pmem device */
+>         struct nvdimm_bus *nvdimm_bus;
+>         struct nvdimm_bus_descriptor nd_desc;
+> +       struct nd_region *nd_region;
+>
+>         /* List to store deferred work if virtqueue is full */
+>         struct list_head req_list;
+> @@ -52,4 +67,5 @@ struct virtio_pmem {
+>
+>  void virtio_pmem_host_ack(struct virtqueue *vq);
+>  int async_pmem_flush(struct nd_region *nd_region, struct bio *bio);
+> +void submit_async_flush(struct work_struct *ws);
+>  #endif
 > --
-> Thanks,
-> Ruan.
->
-> >
-> >>                  /*
-> >>                   * Only swap our new entry into the page cache if the=
- current
-> >>                   * entry is a zero page or an empty entry.  If a norm=
-al PTE or
-> >> diff --git a/include/linux/page-flags.h b/include/linux/page-flags.h
-> >> index 1c3b6e5c8bfd..6370d279795a 100644
-> >> --- a/include/linux/page-flags.h
-> >> +++ b/include/linux/page-flags.h
-> >> @@ -572,6 +572,12 @@ __PAGEFLAG(Reported, reported, PF_NO_COMPOUND)
-> >>   #define PAGE_MAPPING_KSM       (PAGE_MAPPING_ANON | PAGE_MAPPING_MOV=
-ABLE)
-> >>   #define PAGE_MAPPING_FLAGS     (PAGE_MAPPING_ANON | PAGE_MAPPING_MOV=
-ABLE)
-> >>
-> >> +/*
-> >> + * Different with flags above, this flag is used only for fsdax mode.=
-  It
-> >> + * indicates that this page->mapping is now under reflink case.
-> >> + */
-> >> +#define PAGE_MAPPING_DAX_COW   0x1
-> >> +
-> >>   static __always_inline int PageMappingFlags(struct page *page)
-> >>   {
-> >>          return ((unsigned long)page->mapping & PAGE_MAPPING_FLAGS) !=
-=3D 0;
-> >> --
-> >> 2.34.1
-> >>
-> >>
-> >>
+> 2.25.1
 >
 >
