@@ -1,62 +1,63 @@
-Received: from mail-pl1-f179.google.com (mail-pl1-f179.google.com [209.85.214.179])
+Received: from mail-pg1-f173.google.com (mail-pg1-f173.google.com [209.85.215.173])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02C5E1B8F
-	for <nvdimm@lists.linux.dev>; Tue, 15 Feb 2022 23:51:41 +0000 (UTC)
-Received: by mail-pl1-f179.google.com with SMTP id c3so632750pls.5
-        for <nvdimm@lists.linux.dev>; Tue, 15 Feb 2022 15:51:41 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D75A1844
+	for <nvdimm@lists.linux.dev>; Wed, 16 Feb 2022 01:34:20 +0000 (UTC)
+Received: by mail-pg1-f173.google.com with SMTP id z4so737860pgh.12
+        for <nvdimm@lists.linux.dev>; Tue, 15 Feb 2022 17:34:20 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20210112.gappssmtp.com; s=20210112;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=eOQl//KosZ4qvPRlYricOYzhur4w9CDxToybs/1HwUw=;
-        b=n0fGEseKpeTJVBRLcU6aOW671FkkrGG1F12nn1nnKRlJSzRZlYdwGVuHrmkdAKwDsH
-         2cgJ5x2nv5213DNiH3E5nWepZkSaeaQKiuoAqOILeyvtCV8UCAoqLCu7atcHC0pXWnJR
-         x2tovGc4IH5J1oixDaAKekf3001ZtzDQDBFHrtmqFm1lHS1VVhV9AE4yNHV++T1KOkrq
-         iIMPbPYw42SG+YdhpVwAMKgFAfvopVFbd2r/lUHxnzCyTokFTZHp7i43RcoioymXx936
-         ywuUZN1RyKYYOnf6usErLJkp+q/V3IzojWctav49gN1CbN8yk8vRuUOmjEtrZfhnAGYx
-         UYTw==
+        bh=vvTayVguxhrumT3w+R+Kjfmd3diECndIkorPQyxblp0=;
+        b=NFjoQ+hOdtNnkcduj0LnOAfr0t13qJU0g+H3qDYhxHXNY2kSOBhjJ57id3nggkZ63z
+         bd+0no5Sz1hfOpOM7FqU7/lcj3mw/zA9iIJGXn1/3gABVkhTJwDuVFXiLCiF+AoiAuvP
+         xzHa0AMAlBDyRB3g8rVKOe7JL6peWAms2JmtnTljT+4i1CykaarkkcY2Phufrs+l4f98
+         tIBmQaYCJwnUN4p1EvcyxZr3Y2TIDezPhrxlygMSyqcqJutwde5Wmrbzs8FUsbjeBtAE
+         KAXJkvUlQ4SnUi7Ml0QZWal8mO29LLZbB5qS5ZaYGR1b1d2ZM10qVKD8leaATzhRe6MQ
+         OvXg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=eOQl//KosZ4qvPRlYricOYzhur4w9CDxToybs/1HwUw=;
-        b=PUqWCNbtm6LP7zdZKBbBBUkMD+Z0gf1SIAahOkrrpXicVGvHmbQcrxn03bDaehTNX7
-         aXVBtWtEAeQ/fq/WOChCfUJ40F0rcsjydml3I5SFhFlLXjrJ+RdHVs5goOFPYg8CrOtj
-         RAWhF1fhG6XrtUHwgmg10MGuwz2s/Jn8CeaInyHS0Zb92qEz9gXOCqAx4ZwCPKXQ4HU8
-         awcR6CJ6s7Qzhem6PJ16Me0Jun2dMZSxgrHTnXgb3R0O8m4YJU5nf3efsL7G4a3Z+xiV
-         nfOJGy3Zo5VYptzqB5NelBfkuinuf2R/1qn28EgOAcpGecHMf1V6hUaGnIwAwVi4a3Yo
-         QoKA==
-X-Gm-Message-State: AOAM532ayyxukfufJrMtVTle0IufqwnWS865/mSsZCgIMhjrSWvhSPCB
-	IhWxN1jSxhSLoxUYApG1m2fETP66ROWBrIJhYfnZEQ==
-X-Google-Smtp-Source: ABdhPJzxjD3vKy3YyT+OCGwXU78ebjUah2EKpMfMibU0VWDXa+asOUJ5+9r/BPJajQyQWY0zQRe+xjGaYgcQFwMYr/U=
-X-Received: by 2002:a17:902:7296:b0:14b:4bc6:e81 with SMTP id
- d22-20020a170902729600b0014b4bc60e81mr251082pll.132.1644969101356; Tue, 15
- Feb 2022 15:51:41 -0800 (PST)
+        bh=vvTayVguxhrumT3w+R+Kjfmd3diECndIkorPQyxblp0=;
+        b=E/qoNOqRt6q3QZyoWpnGjFMDRuOFrxm1FjZlxkWEMB1Wa3Q0/HyOTOc0vOu6HgHsOF
+         M3JmpSrGwxqVDlns2ht5pLR4WsLGp2NsIOC0C5tvcsypWc2ZY6AhclYi3LNphcNGcnbF
+         2Ijo/VW4MjMNRU4mqPMx1jmYW79aKZ09CqqL3mMq7nd/4E2P9QuozXJ4l/iGiSK0ULZO
+         3KHzSAYZRnSJHpLXLz39iuXWSdGZPJ4g6bxoq+H3mmKAuKVZXofDRjWyivtW6MDZrylz
+         o5fjEUhlKRCBahrW65uclhHqlfqesTqKiA99Qye3d+MTusl0MprqhH6TX4N7v2MpER8i
+         U9jQ==
+X-Gm-Message-State: AOAM530v3uj1eQeBsHeM15lpmd609HdcDhRD+zbPP/h4iUvTekZELLq7
+	dN9zyZ72E6zdgc+J7AmQtXHaWMbTShaNu6Bve63sxQ==
+X-Google-Smtp-Source: ABdhPJzAqkHS4nuPDQC4F8eXmkoN7S6evLhsGsn+9OiK2Onw6wqEebsZdEzEmmlrTDiHX9fR4bL6Yj1AYLHUkW1bqes=
+X-Received: by 2002:a05:6a02:283:b0:342:703e:1434 with SMTP id
+ bk3-20020a056a02028300b00342703e1434mr370669pgb.74.1644975259581; Tue, 15 Feb
+ 2022 17:34:19 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20220127124058.1172422-1-ruansy.fnst@fujitsu.com>
- <20220127124058.1172422-5-ruansy.fnst@fujitsu.com> <YfqBTDp0XEbExOyy@infradead.org>
-In-Reply-To: <YfqBTDp0XEbExOyy@infradead.org>
+References: <20220127124058.1172422-1-ruansy.fnst@fujitsu.com> <20220127124058.1172422-6-ruansy.fnst@fujitsu.com>
+In-Reply-To: <20220127124058.1172422-6-ruansy.fnst@fujitsu.com>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 15 Feb 2022 15:51:35 -0800
-Message-ID: <CAPcyv4jFMf_YSSgxoHJk=-0UMZeNO+PHP1sjkvXUmKfXvGaw1A@mail.gmail.com>
-Subject: Re: [PATCH v10 4/9] fsdax: fix function description
-To: Christoph Hellwig <hch@infradead.org>
-Cc: Shiyang Ruan <ruansy.fnst@fujitsu.com>, 
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, 
+Date: Tue, 15 Feb 2022 17:34:12 -0800
+Message-ID: <CAPcyv4jWuWWWBAEesMorK+LL6GVyqf-=VSChdw6P8txtckC=aw@mail.gmail.com>
+Subject: Re: [PATCH v10 5/9] fsdax: Introduce dax_load_page()
+To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, 
 	Linux NVDIMM <nvdimm@lists.linux.dev>, Linux MM <linux-mm@kvack.org>, 
 	linux-fsdevel <linux-fsdevel@vger.kernel.org>, "Darrick J. Wong" <djwong@kernel.org>, 
-	david <david@fromorbit.com>, Jane Chu <jane.chu@oracle.com>, 
+	david <david@fromorbit.com>, Christoph Hellwig <hch@infradead.org>, Jane Chu <jane.chu@oracle.com>, 
 	Christoph Hellwig <hch@lst.de>
 Content-Type: text/plain; charset="UTF-8"
 
-On Wed, Feb 2, 2022 at 5:04 AM Christoph Hellwig <hch@infradead.org> wrote:
+On Thu, Jan 27, 2022 at 4:41 AM Shiyang Ruan <ruansy.fnst@fujitsu.com> wrote:
 >
-> Dan, can you send this to Linus for 5.17 to get it out of the queue?
+> The current dax_lock_page() locks dax entry by obtaining mapping and
+> index in page.  To support 1-to-N RMAP in NVDIMM, we need a new function
+> to lock a specific dax entry
 
-Sure.
+I do not see a call to dax_lock_entry() in this function, what keeps
+this lookup valid after xas_unlock_irq()?
