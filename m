@@ -1,38 +1,38 @@
-Received: from mail-io1-f45.google.com (mail-io1-f45.google.com [209.85.166.45])
+Received: from mail-io1-f41.google.com (mail-io1-f41.google.com [209.85.166.41])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88905187D
-	for <nvdimm@lists.linux.dev>; Wed, 16 Feb 2022 17:01:39 +0000 (UTC)
-Received: by mail-io1-f45.google.com with SMTP id z2so412443iow.8
-        for <nvdimm@lists.linux.dev>; Wed, 16 Feb 2022 09:01:39 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FCCC23D2
+	for <nvdimm@lists.linux.dev>; Wed, 16 Feb 2022 17:04:31 +0000 (UTC)
+Received: by mail-io1-f41.google.com with SMTP id q8so458116iod.2
+        for <nvdimm@lists.linux.dev>; Wed, 16 Feb 2022 09:04:30 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=I5FGz9UopDmOr/sS+hUAyFgI3PwHIeG5FXWhjwGlyJI=;
-        b=GcZdvidaiUJh4QJe+8knJfUEKZ0kHu1Ekr7Fo/prc3WQlwk5azLOhn2N99tiJ9KyqC
-         BRkRSS3c9Dqv7LlyetYkHxm1DUijOeBruzahYgv4QAUclx4iFN1jef3U+Lv1YU6WveS2
-         0LyiMYhUsTil26XK8Vw7ZyqH/3QPg21CoHIHEW97CgZzYZacGpLar/wPlxeUgji34ELu
-         cc3fNOn8UudSzs1eZT9yUYDDcL31fxZyor0Hly0uxoXwxw548ce+RVQ+SQdanEzwrFRn
-         PCsU77mVX/1LvHrMZs8uieuHXsc7loALHhc7rZu06F+9nuAPHEMkizvNdmela1m/Uzf5
-         Jy1w==
+        bh=0ebPURKf0/zwBkSiUOG+tDveD/Pc8B6gk0N6+zX/eOg=;
+        b=caoErfXVMhneOKUMlH+nxW0INIgrQ6Nixn6Vi1TMYKcG/GLqZqDmKTDkIvgsRkeaD/
+         D23NXdh9zJO3y9F+AUOh0pdkVYWp97CEqabIdSuNSwmPY2KhgQOKl9abEnjygdbzg99P
+         E6SBxO32A89HTTbx9T25u753a5gO/G32bKzFmNSMSMmCaSiEcAZs5aFpsiN58JDbngj5
+         vnsEUBUX5yYACAWkw/+xSiUT8cNiAtZLMaI7HBppC4OMvDGzV9d505sF/S4jqimQ5ifB
+         /ow4wkKuqMsNRWj3gWER0cRP8hIeYPd5ohPLztTOaXC4IyOARvq/awhPGOlZRi72fLBz
+         NwNw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=I5FGz9UopDmOr/sS+hUAyFgI3PwHIeG5FXWhjwGlyJI=;
-        b=kjBxeAfyExl4Rt5V2hCQWFTrPQfCjHoTv/MR4BcjxzqDVa7PCei1z8FBL240+7JLZk
-         sDtDD3Z0KCqDVAty2iA26kQWDMWkCebsGysVO2cGvJVBOYYPPyApFRfb1yLteWq0JuJM
-         LBS9CFTYHBdRFJRt+pFhw0M3o/2nxDvEgFiRQDf6Ytz+ZPdqB9HSdFtY2iOz1O16xBre
-         gniQelZd81Akf279aeFZ/Rd/T5FmVREYTpZgfQ0cv5Pk6L7a2tu8feBNscmc+mmDZiV4
-         2wc7VhpVoaWabJ4VPiDTrzhPW31kcgFvWG/hY+M5skDclecAfcED9JfIo87ZYd37dWjr
-         C9zg==
-X-Gm-Message-State: AOAM532f9tjKRxLDVWOrqjhG1je06Gq7e6h/jP7lxKCmmsg26C9QMnAO
-	pUJ/2/oDCe0rTwCo6YGJBCcAiBYBD1B+mXDL4dU=
-X-Google-Smtp-Source: ABdhPJzr7cU4QtjSQruJcWOgXa70ZC97Rs4vkdBEVjN4FdiXcQIJTnXQyNRfRuCN+qgNR3EKTpFdrSCgTjHah089l7E=
+        bh=0ebPURKf0/zwBkSiUOG+tDveD/Pc8B6gk0N6+zX/eOg=;
+        b=B4tN1rzjXEMoa09SUo4iObTLpvf6dPblnujkCGD0n8U+aBOK0QNvaqa91O8pE/NcNt
+         EiQvsKCu4oqhqU4ljQxshrhvlyas2x1M+w0rZjf6ZMGeoDW8GcY5c6QOn+g+4WKtLBt+
+         LaRRLAdND7uzXMaJHQ6V+v+uDuGKM86v/hdIejaS7ouClG9k4aUIdwvnmnnlR9fsvfCj
+         P0VdezCNJA+qijuWKY+FQPCdAHx84vZbbIfCwZaUrlHCx+aauTH0dSAnS1aYoqbH+1+t
+         tNutbvNGPpyaYqVBOgMvv63MLXWj5nP7zWH+PO3yXCG2Uw051gJctXgUT0LIJq+9l92o
+         OFeA==
+X-Gm-Message-State: AOAM53218CtwkhIzttZZsI2e63T3Hv0/fLlu5TuzxGsAvYJ/l/iQIIsH
+	aMdZ/W50aWOIRakKuSl8loJssumJ6aeA1fPZCuc=
+X-Google-Smtp-Source: ABdhPJx1pOzGdJ0I5ZGWUdukwje0VchP9Q2Dpzte/hebLd/x02Xsa9rd474WbNtX+50nkoXg8naKRuuHmHa3wNyQnkM=
 X-Received: by 2002:a5e:8c15:0:b0:634:478e:450e with SMTP id
- n21-20020a5e8c15000000b00634478e450emr2495232ioj.56.1645030898651; Wed, 16
- Feb 2022 09:01:38 -0800 (PST)
+ n21-20020a5e8c15000000b00634478e450emr2504490ioj.56.1645031070215; Wed, 16
+ Feb 2022 09:04:30 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -40,13 +40,13 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 References: <20220111161937.56272-1-pankaj.gupta.linux@gmail.com>
- <20220111161937.56272-3-pankaj.gupta.linux@gmail.com> <CAPcyv4gM99M8Waw9uEZefvpK0BsTkjGznLxUOMcMkGpk6SuHyA@mail.gmail.com>
- <CAM9Jb+iYXn+Diq-vou+_hXdxXLR9rEXm6GOsd2tZpAg9zXn1Fw@mail.gmail.com> <CAPcyv4iPhtbhAfpjCtbt9RGFOXuGCj-q3Gm_y7zaNk44Z7uq9Q@mail.gmail.com>
-In-Reply-To: <CAPcyv4iPhtbhAfpjCtbt9RGFOXuGCj-q3Gm_y7zaNk44Z7uq9Q@mail.gmail.com>
+ <20220111161937.56272-2-pankaj.gupta.linux@gmail.com> <CAPcyv4jrVJ_B0N_-vtqgXaOMovUgnSLCNj228nWMRhGAC5PDhA@mail.gmail.com>
+ <CAM9Jb+i0B2jZ0uCEDyiz8ujuMkioFgOA0r7Lz9wDK026Vq1Hxg@mail.gmail.com> <CAPcyv4gJGB8+acXKXbpEpMck_y=XBMR0B0c255MaSyLsH4+eZA@mail.gmail.com>
+In-Reply-To: <CAPcyv4gJGB8+acXKXbpEpMck_y=XBMR0B0c255MaSyLsH4+eZA@mail.gmail.com>
 From: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
-Date: Wed, 16 Feb 2022 18:01:27 +0100
-Message-ID: <CAM9Jb+i_p44q=sS4P=B3Pr-T_jsM9Q-mUHg6i657dT7bSqKULw@mail.gmail.com>
-Subject: Re: [RFC v3 2/2] pmem: enable pmem_submit_bio for asynchronous flush
+Date: Wed, 16 Feb 2022 18:04:19 +0100
+Message-ID: <CAM9Jb+hbds3b+nY9APU40Fpd9pt4CyFuZ3SU4ZB05subnaJQvQ@mail.gmail.com>
+Subject: Re: [RFC v3 1/2] virtio-pmem: Async virtio-pmem flush
 To: Dan Williams <dan.j.williams@intel.com>
 Cc: Linux NVDIMM <nvdimm@lists.linux.dev>, virtualization@lists.linux-foundation.org, 
 	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, jmoyer <jmoyer@redhat.com>, 
@@ -56,87 +56,65 @@ Cc: Linux NVDIMM <nvdimm@lists.linux.dev>, virtualization@lists.linux-foundation
 	"Weiny, Ira" <ira.weiny@intel.com>, Pankaj Gupta <pankaj.gupta@ionos.com>
 Content-Type: text/plain; charset="UTF-8"
 
-> > > > Return from "pmem_submit_bio" when asynchronous flush is
-> > > > still in progress in other context.
+> >
+> > > >
+> > > > Enable asynchronous flush for virtio pmem using work queue. Also,
+> > > > coalesce the flush requests when a flush is already in process.
+> > > > This functionality is copied from md/RAID code.
+> > > >
+> > > > When a flush is already in process, new flush requests wait till
+> > > > previous flush completes in another context (work queue). For all
+> > > > the requests come between ongoing flush and new flush start time, only
+> > > > single flush executes, thus adhers to flush coalscing logic. This is
+> > >
+> > > s/adhers/adheres/
+> > >
+> > > s/coalscing/coalescing/
+> > >
+> > > > important for maintaining the flush request order with request coalscing.
+> > >
+> > > s/coalscing/coalescing/
+> >
+> > o.k. Sorry for the spelling mistakes.
+> >
+> > >
 > > > >
 > > > > Signed-off-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
 > > > > ---
-> > > >  drivers/nvdimm/pmem.c        | 15 ++++++++++++---
-> > > >  drivers/nvdimm/region_devs.c |  4 +++-
-> > > >  2 files changed, 15 insertions(+), 4 deletions(-)
+> > > >  drivers/nvdimm/nd_virtio.c   | 74 +++++++++++++++++++++++++++---------
+> > > >  drivers/nvdimm/virtio_pmem.c | 10 +++++
+> > > >  drivers/nvdimm/virtio_pmem.h | 16 ++++++++
+> > > >  3 files changed, 83 insertions(+), 17 deletions(-)
 > > > >
-> > > > diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-> > > > index fe7ece1534e1..f20e30277a68 100644
-> > > > --- a/drivers/nvdimm/pmem.c
-> > > > +++ b/drivers/nvdimm/pmem.c
-> > > > @@ -201,8 +201,12 @@ static void pmem_submit_bio(struct bio *bio)
-> > > >         struct pmem_device *pmem = bio->bi_bdev->bd_disk->private_data;
-> > > >         struct nd_region *nd_region = to_region(pmem);
-> > > >
-> > > > -       if (bio->bi_opf & REQ_PREFLUSH)
-> > > > +       if (bio->bi_opf & REQ_PREFLUSH) {
-> > > >                 ret = nvdimm_flush(nd_region, bio);
-> > > > +               /* asynchronous flush completes in other context */
+> > > > diff --git a/drivers/nvdimm/nd_virtio.c b/drivers/nvdimm/nd_virtio.c
+> > > > index 10351d5b49fa..179ea7a73338 100644
+> > > > --- a/drivers/nvdimm/nd_virtio.c
+> > > > +++ b/drivers/nvdimm/nd_virtio.c
+> > > > @@ -100,26 +100,66 @@ static int virtio_pmem_flush(struct nd_region *nd_region)
+> > > >  /* The asynchronous flush callback function */
+> > > >  int async_pmem_flush(struct nd_region *nd_region, struct bio *bio)
+> > > >  {
+> > > > -       /*
+> > > > -        * Create child bio for asynchronous flush and chain with
+> > > > -        * parent bio. Otherwise directly call nd_region flush.
+> > > > +       /* queue asynchronous flush and coalesce the flush requests */
+> > > > +       struct virtio_device *vdev = nd_region->provider_data;
+> > > > +       struct virtio_pmem *vpmem  = vdev->priv;
+> > > > +       ktime_t req_start = ktime_get_boottime();
+> > > > +       int ret = -EINPROGRESS;
+> > > > +
+> > > > +       spin_lock_irq(&vpmem->lock);
 > > >
-> > > I think a negative error code is a confusing way to capture the case
-> > > of "bio successfully coalesced to previously pending flush request.
-> > > Perhaps reserve negative codes for failure, 0 for synchronously
-> > > completed, and > 0 for coalesced flush request.
+> > > Why a new lock and not continue to use ->pmem_lock?
 > >
-> > Yes. I implemented this way previously, will revert it to. Thanks!
-> >
-> > >
-> > > > +               if (ret == -EINPROGRESS)
-> > > > +                       return;
-> > > > +       }
-> > > >
-> > > >         do_acct = blk_queue_io_stat(bio->bi_bdev->bd_disk->queue);
-> > > >         if (do_acct)
-> > > > @@ -222,13 +226,18 @@ static void pmem_submit_bio(struct bio *bio)
-> > > >         if (do_acct)
-> > > >                 bio_end_io_acct(bio, start);
-> > > >
-> > > > -       if (bio->bi_opf & REQ_FUA)
-> > > > +       if (bio->bi_opf & REQ_FUA) {
-> > > >                 ret = nvdimm_flush(nd_region, bio);
-> > > > +               /* asynchronous flush completes in other context */
-> > > > +               if (ret == -EINPROGRESS)
-> > > > +                       return;
-> > > > +       }
-> > > >
-> > > >         if (ret)
-> > > >                 bio->bi_status = errno_to_blk_status(ret);
-> > > >
-> > > > -       bio_endio(bio);
-> > > > +       if (bio)
-> > > > +               bio_endio(bio);
-> > > >  }
-> > > >
-> > > >  static int pmem_rw_page(struct block_device *bdev, sector_t sector,
-> > > > diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-> > > > index 9ccf3d608799..8512d2eaed4e 100644
-> > > > --- a/drivers/nvdimm/region_devs.c
-> > > > +++ b/drivers/nvdimm/region_devs.c
-> > > > @@ -1190,7 +1190,9 @@ int nvdimm_flush(struct nd_region *nd_region, struct bio *bio)
-> > > >         if (!nd_region->flush)
-> > > >                 rc = generic_nvdimm_flush(nd_region);
-> > > >         else {
-> > > > -               if (nd_region->flush(nd_region, bio))
-> > > > +               rc = nd_region->flush(nd_region, bio);
-> > > > +               /* ongoing flush in other context */
-> > > > +               if (rc && rc != -EINPROGRESS)
-> > > >                         rc = -EIO;
-> > >
-> > > Why change this to -EIO vs just let the error code through untranslated?
-> >
-> > The reason was to be generic error code instead of returning host side
-> > return codes to guest?
+> > This spinlock is to protect entry in 'wait_event_lock_irq'
+> > and the Other spinlock is to protect virtio queue data.
 >
-> Ok, maybe a comment to indicate the need to avoid exposing these error
-> codes toa guest so someone does not ask the same question in the
-> future?
+> Understood, but md shares the mddev->lock for both purposes, so I
+> would ask that you either document what motivates the locking split,
+> or just reuse the lock until a strong reason to split them arises.
 
-Sure.
+O.k. Will check again if we could use same lock Or document it.
 
 Thanks,
 Pankaj
