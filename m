@@ -1,120 +1,64 @@
-Received: from mail-io1-f41.google.com (mail-io1-f41.google.com [209.85.166.41])
+Received: from mail-pj1-f52.google.com (mail-pj1-f52.google.com [209.85.216.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FCCC23D2
-	for <nvdimm@lists.linux.dev>; Wed, 16 Feb 2022 17:04:31 +0000 (UTC)
-Received: by mail-io1-f41.google.com with SMTP id q8so458116iod.2
-        for <nvdimm@lists.linux.dev>; Wed, 16 Feb 2022 09:04:30 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 326A538E9
+	for <nvdimm@lists.linux.dev>; Thu, 17 Feb 2022 01:20:40 +0000 (UTC)
+Received: by mail-pj1-f52.google.com with SMTP id m7so4144302pjk.0
+        for <nvdimm@lists.linux.dev>; Wed, 16 Feb 2022 17:20:40 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
+        d=intel-com.20210112.gappssmtp.com; s=20210112;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=0ebPURKf0/zwBkSiUOG+tDveD/Pc8B6gk0N6+zX/eOg=;
-        b=caoErfXVMhneOKUMlH+nxW0INIgrQ6Nixn6Vi1TMYKcG/GLqZqDmKTDkIvgsRkeaD/
-         D23NXdh9zJO3y9F+AUOh0pdkVYWp97CEqabIdSuNSwmPY2KhgQOKl9abEnjygdbzg99P
-         E6SBxO32A89HTTbx9T25u753a5gO/G32bKzFmNSMSMmCaSiEcAZs5aFpsiN58JDbngj5
-         vnsEUBUX5yYACAWkw/+xSiUT8cNiAtZLMaI7HBppC4OMvDGzV9d505sF/S4jqimQ5ifB
-         /ow4wkKuqMsNRWj3gWER0cRP8hIeYPd5ohPLztTOaXC4IyOARvq/awhPGOlZRi72fLBz
-         NwNw==
+        bh=i7cadtmmQLWpqnDfNO/7BqDxIT7kznXIolyywHVAbf4=;
+        b=sS4wdzZnPrT37CjCYgWCu8TLp11Ei7CFxuIjGDv44Mt2ivHoti/wY6MSdwNP0cKoXs
+         Z21zfBugMb1CY2vsjABdEjflXhE4sdqTYSfDLkoAWfYWucbo1M7uHtiAqtTpogLYrl0T
+         Bny4tAEmHxEn1N7T6sp5A5zMZsLgdkoxEdNhQMBVzalmJx54O6aDMEOdT2Io7FbEn8kA
+         36+YLJcNQWtJzG2nJiiiuLwlw2U0p7FhhKvp6vg923Gz/g7rsu250azpMQiZTwABpqnr
+         uPRpauBD6c9T+s5+i/bFlkwQZ/rM3RoYv8gkX6G0ez0kJPNKL/hqyrwrK3Wz+5D7lGGk
+         Ol4w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=0ebPURKf0/zwBkSiUOG+tDveD/Pc8B6gk0N6+zX/eOg=;
-        b=B4tN1rzjXEMoa09SUo4iObTLpvf6dPblnujkCGD0n8U+aBOK0QNvaqa91O8pE/NcNt
-         EiQvsKCu4oqhqU4ljQxshrhvlyas2x1M+w0rZjf6ZMGeoDW8GcY5c6QOn+g+4WKtLBt+
-         LaRRLAdND7uzXMaJHQ6V+v+uDuGKM86v/hdIejaS7ouClG9k4aUIdwvnmnnlR9fsvfCj
-         P0VdezCNJA+qijuWKY+FQPCdAHx84vZbbIfCwZaUrlHCx+aauTH0dSAnS1aYoqbH+1+t
-         tNutbvNGPpyaYqVBOgMvv63MLXWj5nP7zWH+PO3yXCG2Uw051gJctXgUT0LIJq+9l92o
-         OFeA==
-X-Gm-Message-State: AOAM53218CtwkhIzttZZsI2e63T3Hv0/fLlu5TuzxGsAvYJ/l/iQIIsH
-	aMdZ/W50aWOIRakKuSl8loJssumJ6aeA1fPZCuc=
-X-Google-Smtp-Source: ABdhPJx1pOzGdJ0I5ZGWUdukwje0VchP9Q2Dpzte/hebLd/x02Xsa9rd474WbNtX+50nkoXg8naKRuuHmHa3wNyQnkM=
-X-Received: by 2002:a5e:8c15:0:b0:634:478e:450e with SMTP id
- n21-20020a5e8c15000000b00634478e450emr2504490ioj.56.1645031070215; Wed, 16
- Feb 2022 09:04:30 -0800 (PST)
+        bh=i7cadtmmQLWpqnDfNO/7BqDxIT7kznXIolyywHVAbf4=;
+        b=NPW7Ij1T5VSccJ9aSfCVStB8xJEK/coSiLrtSEFkMTW+JxQtE+pbMZtBaiSvqe9HeH
+         hr/vOozG2aOOIZiXfSiiT0PnfBdlxiW1sVVbUOqUkw5jYQw9ZGcEvTO8+qM392MUYxnz
+         lUJ8OdSebBSC+kPaWi/9M6txD2XAAtIFNJmeNEZKwdVY8tN6SSZRPuK4JcaQZ9bev5fl
+         dLxC7eftu6BObRQzGPgNpGsllF0dVFdvJ8phwrAl3y7NR8XEn9YJWzB61ONPxZr9vGkE
+         jmoFtsoGXkKoAqGf4j5J3YJU5GQWHRaMkaD+nCE4c9V8OEuwZ+ybVucsHBh51OjzqcSl
+         KhGA==
+X-Gm-Message-State: AOAM5328oJC2gEKOgzSaDIHZNfqcnEYDpL45I8V0RCge6PPyEUONSYHC
+	X5ow/Fte7iAqbQOzlpWjkm0s708/Wi6zjJq/Oer5bQ==
+X-Google-Smtp-Source: ABdhPJwGogsHvhC8P7qOIe64MKrYPXZoUlX6w2MClweVcGHPqJw7K83Y/KeKSJi0yGjqpvs9L6OgDsIEYrhg9zspKmA=
+X-Received: by 2002:a17:90a:f28d:b0:1b9:975f:1a9f with SMTP id
+ fs13-20020a17090af28d00b001b9975f1a9fmr598286pjb.220.1645060839612; Wed, 16
+ Feb 2022 17:20:39 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20220111161937.56272-1-pankaj.gupta.linux@gmail.com>
- <20220111161937.56272-2-pankaj.gupta.linux@gmail.com> <CAPcyv4jrVJ_B0N_-vtqgXaOMovUgnSLCNj228nWMRhGAC5PDhA@mail.gmail.com>
- <CAM9Jb+i0B2jZ0uCEDyiz8ujuMkioFgOA0r7Lz9wDK026Vq1Hxg@mail.gmail.com> <CAPcyv4gJGB8+acXKXbpEpMck_y=XBMR0B0c255MaSyLsH4+eZA@mail.gmail.com>
-In-Reply-To: <CAPcyv4gJGB8+acXKXbpEpMck_y=XBMR0B0c255MaSyLsH4+eZA@mail.gmail.com>
-From: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
-Date: Wed, 16 Feb 2022 18:04:19 +0100
-Message-ID: <CAM9Jb+hbds3b+nY9APU40Fpd9pt4CyFuZ3SU4ZB05subnaJQvQ@mail.gmail.com>
-Subject: Re: [RFC v3 1/2] virtio-pmem: Async virtio-pmem flush
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Linux NVDIMM <nvdimm@lists.linux.dev>, virtualization@lists.linux-foundation.org, 
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, jmoyer <jmoyer@redhat.com>, 
-	Stefan Hajnoczi <stefanha@redhat.com>, David Hildenbrand <david@redhat.com>, 
-	"Michael S. Tsirkin" <mst@redhat.com>, Cornelia Huck <cohuck@redhat.com>, 
-	Vishal L Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
-	"Weiny, Ira" <ira.weiny@intel.com>, Pankaj Gupta <pankaj.gupta@ionos.com>
+References: <20220128002707.391076-1-ben.widawsky@intel.com> <20220128002707.391076-4-ben.widawsky@intel.com>
+In-Reply-To: <20220128002707.391076-4-ben.widawsky@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 16 Feb 2022 17:20:27 -0800
+Message-ID: <CAPcyv4idjxVE=U8wQJj+7cZ+ZxP79q6GqCdQG4GQZ8pRX3fb+A@mail.gmail.com>
+Subject: Re: [PATCH v3 03/14] cxl/mem: Cache port created by the mem dev
+To: Ben Widawsky <ben.widawsky@intel.com>
+Cc: linux-cxl@vger.kernel.org, patches@lists.linux.dev, 
+	Alison Schofield <alison.schofield@intel.com>, Ira Weiny <ira.weiny@intel.com>, 
+	Jonathan Cameron <Jonathan.Cameron@huawei.com>, Vishal Verma <vishal.l.verma@intel.com>, 
+	Bjorn Helgaas <helgaas@kernel.org>, Linux NVDIMM <nvdimm@lists.linux.dev>, 
+	Linux PCI <linux-pci@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 
-> >
-> > > >
-> > > > Enable asynchronous flush for virtio pmem using work queue. Also,
-> > > > coalesce the flush requests when a flush is already in process.
-> > > > This functionality is copied from md/RAID code.
-> > > >
-> > > > When a flush is already in process, new flush requests wait till
-> > > > previous flush completes in another context (work queue). For all
-> > > > the requests come between ongoing flush and new flush start time, only
-> > > > single flush executes, thus adhers to flush coalscing logic. This is
-> > >
-> > > s/adhers/adheres/
-> > >
-> > > s/coalscing/coalescing/
-> > >
-> > > > important for maintaining the flush request order with request coalscing.
-> > >
-> > > s/coalscing/coalescing/
-> >
-> > o.k. Sorry for the spelling mistakes.
-> >
-> > >
-> > > >
-> > > > Signed-off-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
-> > > > ---
-> > > >  drivers/nvdimm/nd_virtio.c   | 74 +++++++++++++++++++++++++++---------
-> > > >  drivers/nvdimm/virtio_pmem.c | 10 +++++
-> > > >  drivers/nvdimm/virtio_pmem.h | 16 ++++++++
-> > > >  3 files changed, 83 insertions(+), 17 deletions(-)
-> > > >
-> > > > diff --git a/drivers/nvdimm/nd_virtio.c b/drivers/nvdimm/nd_virtio.c
-> > > > index 10351d5b49fa..179ea7a73338 100644
-> > > > --- a/drivers/nvdimm/nd_virtio.c
-> > > > +++ b/drivers/nvdimm/nd_virtio.c
-> > > > @@ -100,26 +100,66 @@ static int virtio_pmem_flush(struct nd_region *nd_region)
-> > > >  /* The asynchronous flush callback function */
-> > > >  int async_pmem_flush(struct nd_region *nd_region, struct bio *bio)
-> > > >  {
-> > > > -       /*
-> > > > -        * Create child bio for asynchronous flush and chain with
-> > > > -        * parent bio. Otherwise directly call nd_region flush.
-> > > > +       /* queue asynchronous flush and coalesce the flush requests */
-> > > > +       struct virtio_device *vdev = nd_region->provider_data;
-> > > > +       struct virtio_pmem *vpmem  = vdev->priv;
-> > > > +       ktime_t req_start = ktime_get_boottime();
-> > > > +       int ret = -EINPROGRESS;
-> > > > +
-> > > > +       spin_lock_irq(&vpmem->lock);
-> > >
-> > > Why a new lock and not continue to use ->pmem_lock?
-> >
-> > This spinlock is to protect entry in 'wait_event_lock_irq'
-> > and the Other spinlock is to protect virtio queue data.
+On Thu, Jan 27, 2022 at 4:27 PM Ben Widawsky <ben.widawsky@intel.com> wrote:
 >
-> Understood, but md shares the mddev->lock for both purposes, so I
-> would ask that you either document what motivates the locking split,
-> or just reuse the lock until a strong reason to split them arises.
+> Since region programming sees all components in the topology as a port,
+> it's required that endpoints are treated equally. The easiest way to go
+> from endpoint to port is to simply cache it at creation time.
 
-O.k. Will check again if we could use same lock Or document it.
-
-Thanks,
-Pankaj
+As of 8dd2bc0f8e02 ("cxl/mem: Add the cxl_mem driver"),
+cxl_endpoint_autoremove() already sets cxlmd drvdata to @endpoint, so
+this patch isn't needed.
