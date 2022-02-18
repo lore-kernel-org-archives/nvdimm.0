@@ -1,434 +1,153 @@
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oo1-f47.google.com (mail-oo1-f47.google.com [209.85.161.47])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CCD44AA9;
-	Fri, 18 Feb 2022 16:41:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1645202481; x=1676738481;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=WL3GOj2IXEOVr2W/EHt34nmS+xA/ho34n4j2b4QRx0o=;
-  b=jq2rViRxMidLwMmaf1N8MxRNwG2kltGk3vmBiY1/nT/iglktMR9ZOXc3
-   N1GSgiSSfCBWgHaSeeN1/gJw9D6L1H1l+eCV+v2zJ6Eduxj7a9JjQBE4u
-   B0oOwhRPNWokAqdKiQar9MxXGS+bSd8fENs6/kyLvT2y1k2UxyEB8FJ5D
-   LqT7TQf+9Dm1sbkCnn0sghCbAbZSs/bTKKYp/Po4QiOgx7UdybKb6dMyM
-   PNkNhvNwqMr/VSY6ejifoOrGyIa3uQ8NdNu1lER/rhizZWhzoDs/oomGH
-   6+ZbXy1c788e3b34uVmzZERJBNubfr7CglPItEpMcnGkAAWGfhhQvXwFw
-   Q==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10262"; a="251359997"
-X-IronPort-AV: E=Sophos;i="5.88,379,1635231600"; 
-   d="scan'208";a="251359997"
-Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Feb 2022 08:41:20 -0800
-X-IronPort-AV: E=Sophos;i="5.88,379,1635231600"; 
-   d="scan'208";a="635884043"
-Received: from reddingx-mobl2.amr.corp.intel.com (HELO intel.com) ([10.252.138.64])
-  by fmsmga002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Feb 2022 08:41:19 -0800
-Date: Fri, 18 Feb 2022 08:41:18 -0800
-From: Ben Widawsky <ben.widawsky@intel.com>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-cxl@vger.kernel.org, patches@lists.linux.dev,
-	Alison Schofield <alison.schofield@intel.com>,
-	Ira Weiny <ira.weiny@intel.com>,
-	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Bjorn Helgaas <helgaas@kernel.org>,
-	Linux NVDIMM <nvdimm@lists.linux.dev>,
-	Linux PCI <linux-pci@vger.kernel.org>
-Subject: Re: [PATCH v5 01/15] cxl/region: Add region creation ABI
-Message-ID: <20220218164118.t5fvk2fie7ktzpdy@intel.com>
-References: <20220217171057.685705-1-ben.widawsky@intel.com>
- <20220217171931.740926-1-ben.widawsky@intel.com>
- <CAPcyv4i83TxCN_-Y3a5CuM2ng9bCAyLm53=wcHWutASd434gkg@mail.gmail.com>
- <20220217222208.f5krwchjljrzjieg@intel.com>
- <CAPcyv4jURh0DbJpDjEwTn-_9WtkSokJN5R3PG5tuwJSMMu_Xcw@mail.gmail.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B0084ABB
+	for <nvdimm@lists.linux.dev>; Fri, 18 Feb 2022 18:06:49 +0000 (UTC)
+Received: by mail-oo1-f47.google.com with SMTP id y15-20020a4a650f000000b0031c19e9fe9dso1449537ooc.12
+        for <nvdimm@lists.linux.dev>; Fri, 18 Feb 2022 10:06:49 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20210112.gappssmtp.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=j28LsEyKO8fhnvouEfWy5wWPWcngh3hdC6d0wPRNOHw=;
+        b=Tc8NRnRggxrDmjg3L2ct4nrSkx07K06UkPIviAKlfLFrk2ctwl541YfpN2b5ABGjUa
+         SV0RYScbzN6Zc8aMKLpBaAxWZabKT3hxdcPEcpVaTDDNvwzpXIfffQALwlnyq6akvrFl
+         t2lRsZUYVLw9ZrGs7O8NABu51Rjth5d1zxUDpTg5C4OUZB5/BXk/WVeYaKw5Plhgz+b3
+         8x+6AgPxBNh4D0iRXP7U8/9+S+N0OdzmPfL39gS6ki3gWldvwWXbblz6MkiUSUX+Bq+A
+         3Ho+J1w0Ja0CRzoonVgBKrJi1Eakch0KYaabCiSVl8+TI3ljw3jVmhK/kycCPwu72/V3
+         Yiuw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=j28LsEyKO8fhnvouEfWy5wWPWcngh3hdC6d0wPRNOHw=;
+        b=I5/TYVT605qY6DxEq4ZMNHb+doiyquxdzv/aVpKJLyj8hYcvuiHzBCRU+q13Jr2I93
+         nqJ2/fv7qX0Iwdnmr2gd9AMWWRUZp5d7vX1Z+lJqm6+5BSMGgwcyMaCrKc1ETOBqdRaA
+         sD7OIzuhIzEm0YvDomzL89csUqq9fqpZ6YVZhSM582aaYD3QYCiOhuVkZuKHN6SbQY3d
+         e0vDfApmxhZBrM1zjQL6ej6wtjxlBPZGjGQVGamDN2TwMUGus8nBcUXLc7BsWksis9ff
+         Rvs8Hy02cc57ZNEWlPRhjriivXf6t/dXMYbprpweh+/NHFIeF/qd7zXd2bykhzemkgsM
+         srNQ==
+X-Gm-Message-State: AOAM533hz6nTXi/0Pszrv3ApXLHZVDkl0UhbWEMzD87XjOBUARSPW0hI
+	Zonadv7uM7bdHmBJyAtZshH205ICPiEKubgTqdBKmw==
+X-Google-Smtp-Source: ABdhPJzXHeMUfUpHFz9cX4KAvTQ8Kr6vcAte/GQmMLl8KbpIaHiH9oO/JX/8xW2dkD2gcjeaiGq0I+RIHUNxzzDNqno=
+X-Received: by 2002:a05:6871:586:b0:d2:672a:8dd with SMTP id
+ u6-20020a056871058600b000d2672a08ddmr3618682oan.16.1645207607939; Fri, 18 Feb
+ 2022 10:06:47 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4jURh0DbJpDjEwTn-_9WtkSokJN5R3PG5tuwJSMMu_Xcw@mail.gmail.com>
+References: <20220217163357.276036-1-kjain@linux.ibm.com>
+In-Reply-To: <20220217163357.276036-1-kjain@linux.ibm.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 18 Feb 2022 10:06:36 -0800
+Message-ID: <CAPcyv4jwpMbz0woftSfm3EO05pr3ZG9rVMJCkYVsapKYSOn3xw@mail.gmail.com>
+Subject: Re: [PATCH v6 0/4] Add perf interface to expose nvdimm
+To: Kajol Jain <kjain@linux.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, 
+	Linux NVDIMM <nvdimm@lists.linux.dev>, 
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, 
+	"Weiny, Ira" <ira.weiny@intel.com>, Vishal L Verma <vishal.l.verma@intel.com>, 
+	Santosh Sivaraj <santosh@fossix.org>, maddy@linux.ibm.com, rnsastry@linux.ibm.com, 
+	"Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, atrajeev@linux.vnet.ibm.com, 
+	Vaibhav Jain <vaibhav@linux.ibm.com>, Thomas Gleixner <tglx@linutronix.de>
+Content-Type: text/plain; charset="UTF-8"
 
-On 22-02-17 15:32:44, Dan Williams wrote:
-> On Thu, Feb 17, 2022 at 2:22 PM Ben Widawsky <ben.widawsky@intel.com> wrote:
-> >
-> > On 22-02-17 09:58:04, Dan Williams wrote:
-> > > On Thu, Feb 17, 2022 at 9:19 AM Ben Widawsky <ben.widawsky@intel.com> wrote:
-> > > >
-> > > > Regions are created as a child of the decoder that encompasses an
-> > > > address space with constraints. Regions have a number of attributes that
-> > > > must be configured before the region can be activated.
-> > > >
-> > > > The ABI is not meant to be secure, but is meant to avoid accidental
-> > > > races. As a result, a buggy process may create a region by name that was
-> > > > allocated by a different process. However, multiple processes which are
-> > > > trying not to race with each other shouldn't need special
-> > > > synchronization to do so.
-> > > >
-> > > > // Allocate a new region name
-> > > > region=$(cat /sys/bus/cxl/devices/decoder0.0/create_region)
-> > > >
-> > > > // Create a new region by name
-> > > > while
-> > > > region=$(cat /sys/bus/cxl/devices/decoder0.0/create_region)
-> > > > ! echo $region > /sys/bus/cxl/devices/decoder0.0/create_region
-> > > > do true; done
-> > > >
-> > > > // Region now exists in sysfs
-> > > > stat -t /sys/bus/cxl/devices/decoder0.0/$region
-> > > >
-> > > > // Delete the region, and name
-> > > > echo $region > /sys/bus/cxl/devices/decoder0.0/delete_region
-> > > >
-> > > > Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
-> > >
-> > > Looking good, a few more fixes and cleanups identified below.
-> > >
-> > > >
-> > > > ---
-> > > > Changes since v4:
-> > > > - Add the missed base attributes addition
-> > > >
-> > > > ---
-> > > >  Documentation/ABI/testing/sysfs-bus-cxl       |  23 ++
-> > > >  .../driver-api/cxl/memory-devices.rst         |  11 +
-> > > >  drivers/cxl/core/Makefile                     |   1 +
-> > > >  drivers/cxl/core/core.h                       |   3 +
-> > > >  drivers/cxl/core/port.c                       |  11 +
-> > > >  drivers/cxl/core/region.c                     | 213 ++++++++++++++++++
-> > > >  drivers/cxl/cxl.h                             |   5 +
-> > > >  drivers/cxl/region.h                          |  23 ++
-> > > >  tools/testing/cxl/Kbuild                      |   1 +
-> > > >  9 files changed, 291 insertions(+)
-> > > >  create mode 100644 drivers/cxl/core/region.c
-> > > >  create mode 100644 drivers/cxl/region.h
-> > > >
-> > > > diff --git a/Documentation/ABI/testing/sysfs-bus-cxl b/Documentation/ABI/testing/sysfs-bus-cxl
-> > > > index 7c2b846521f3..e5db45ea70ad 100644
-> > > > --- a/Documentation/ABI/testing/sysfs-bus-cxl
-> > > > +++ b/Documentation/ABI/testing/sysfs-bus-cxl
-> > > > @@ -163,3 +163,26 @@ Description:
-> > > >                 memory (type-3). The 'target_type' attribute indicates the
-> > > >                 current setting which may dynamically change based on what
-> > > >                 memory regions are activated in this decode hierarchy.
-> > > > +
-> > > > +What:          /sys/bus/cxl/devices/decoderX.Y/create_region
-> > > > +Date:          January, 2022
-> > > > +KernelVersion: v5.18
-> > > > +Contact:       linux-cxl@vger.kernel.org
-> > > > +Description:
-> > > > +               Write a value of the form 'regionX.Y:Z' to instantiate a new
-> > > > +               region within the decode range bounded by decoderX.Y. The value
-> > > > +               written must match the current value returned from reading this
-> > > > +               attribute. This behavior lets the kernel arbitrate racing
-> > > > +               attempts to create a region. The thread that fails to write
-> > > > +               loops and tries the next value. Regions must be created for root
-> > > > +               decoders, and must subsequently configured and bound to a region
-> > > > +               driver before they can be used.
-> > > > +
-> > > > +What:          /sys/bus/cxl/devices/decoderX.Y/delete_region
-> > > > +Date:          January, 2022
-> > > > +KernelVersion: v5.18
-> > > > +Contact:       linux-cxl@vger.kernel.org
-> > > > +Description:
-> > > > +               Deletes the named region.  The attribute expects a region in the
-> > > > +               form "regionX.Y:Z". The region's name, allocated by reading
-> > > > +               create_region, will also be released.
-> > > > diff --git a/Documentation/driver-api/cxl/memory-devices.rst b/Documentation/driver-api/cxl/memory-devices.rst
-> > > > index db476bb170b6..66ddc58a21b1 100644
-> > > > --- a/Documentation/driver-api/cxl/memory-devices.rst
-> > > > +++ b/Documentation/driver-api/cxl/memory-devices.rst
-> > > > @@ -362,6 +362,17 @@ CXL Core
-> > > >  .. kernel-doc:: drivers/cxl/core/mbox.c
-> > > >     :doc: cxl mbox
-> > > >
-> > > > +CXL Regions
-> > > > +-----------
-> > > > +.. kernel-doc:: drivers/cxl/region.h
-> > > > +   :identifiers:
-> > > > +
-> > > > +.. kernel-doc:: drivers/cxl/core/region.c
-> > > > +   :doc: cxl core region
-> > > > +
-> > > > +.. kernel-doc:: drivers/cxl/core/region.c
-> > > > +   :identifiers:
-> > > > +
-> > > >  External Interfaces
-> > > >  ===================
-> > > >
-> > > > diff --git a/drivers/cxl/core/Makefile b/drivers/cxl/core/Makefile
-> > > > index 6d37cd78b151..39ce8f2f2373 100644
-> > > > --- a/drivers/cxl/core/Makefile
-> > > > +++ b/drivers/cxl/core/Makefile
-> > > > @@ -4,6 +4,7 @@ obj-$(CONFIG_CXL_BUS) += cxl_core.o
-> > > >  ccflags-y += -I$(srctree)/drivers/cxl
-> > > >  cxl_core-y := port.o
-> > > >  cxl_core-y += pmem.o
-> > > > +cxl_core-y += region.o
-> > > >  cxl_core-y += regs.o
-> > > >  cxl_core-y += memdev.o
-> > > >  cxl_core-y += mbox.o
-> > > > diff --git a/drivers/cxl/core/core.h b/drivers/cxl/core/core.h
-> > > > index 1a50c0fc399c..adfd42370b28 100644
-> > > > --- a/drivers/cxl/core/core.h
-> > > > +++ b/drivers/cxl/core/core.h
-> > > > @@ -9,6 +9,9 @@ extern const struct device_type cxl_nvdimm_type;
-> > > >
-> > > >  extern struct attribute_group cxl_base_attribute_group;
-> > > >
-> > > > +extern struct device_attribute dev_attr_create_region;
-> > > > +extern struct device_attribute dev_attr_delete_region;
-> > > > +
-> > > >  struct cxl_send_command;
-> > > >  struct cxl_mem_query_commands;
-> > > >  int cxl_query_cmd(struct cxl_memdev *cxlmd,
-> > > > diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
-> > > > index 1e785a3affaa..860e91cae29b 100644
-> > > > --- a/drivers/cxl/core/port.c
-> > > > +++ b/drivers/cxl/core/port.c
-> > > > @@ -213,6 +213,8 @@ static struct attribute_group cxl_decoder_base_attribute_group = {
-> > > >  };
-> > > >
-> > > >  static struct attribute *cxl_decoder_root_attrs[] = {
-> > > > +       &dev_attr_create_region.attr,
-> > > > +       &dev_attr_delete_region.attr,
-> > > >         &dev_attr_cap_pmem.attr,
-> > > >         &dev_attr_cap_ram.attr,
-> > > >         &dev_attr_cap_type2.attr,
-> > > > @@ -270,6 +272,8 @@ static void cxl_decoder_release(struct device *dev)
-> > > >         struct cxl_decoder *cxld = to_cxl_decoder(dev);
-> > > >         struct cxl_port *port = to_cxl_port(dev->parent);
-> > > >
-> > > > +       ida_free(&cxld->region_ida, cxld->next_region_id);
-> > > > +       ida_destroy(&cxld->region_ida);
-> > > >         ida_free(&port->decoder_ida, cxld->id);
-> > > >         kfree(cxld);
-> > > >  }
-> > > > @@ -1244,6 +1248,13 @@ static struct cxl_decoder *cxl_decoder_alloc(struct cxl_port *port,
-> > > >         cxld->target_type = CXL_DECODER_EXPANDER;
-> > > >         cxld->platform_res = (struct resource)DEFINE_RES_MEM(0, 0);
-> > > >
-> > > > +       mutex_init(&cxld->id_lock);
-> > > > +       ida_init(&cxld->region_ida);
-> > > > +       rc = ida_alloc(&cxld->region_ida, GFP_KERNEL);
-> > > > +       if (rc < 0)
-> > > > +               goto err;
-> > > > +
-> > > > +       cxld->next_region_id = rc;
-> > > >         return cxld;
-> > > >  err:
-> > > >         kfree(cxld);
-> > > > diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
-> > > > new file mode 100644
-> > > > index 000000000000..5576952e4aa1
-> > > > --- /dev/null
-> > > > +++ b/drivers/cxl/core/region.c
-> > > > @@ -0,0 +1,213 @@
-> > > > +// SPDX-License-Identifier: GPL-2.0-only
-> > > > +/* Copyright(c) 2022 Intel Corporation. All rights reserved. */
-> > > > +#include <linux/device.h>
-> > > > +#include <linux/module.h>
-> > > > +#include <linux/slab.h>
-> > > > +#include <linux/idr.h>
-> > > > +#include <region.h>
-> > > > +#include <cxl.h>
-> > > > +#include "core.h"
-> > > > +
-> > > > +/**
-> > > > + * DOC: cxl core region
-> > > > + *
-> > > > + * CXL Regions represent mapped memory capacity in system physical address
-> > > > + * space. Whereas the CXL Root Decoders identify the bounds of potential CXL
-> > > > + * Memory ranges, Regions represent the active mapped capacity by the HDM
-> > > > + * Decoder Capability structures throughout the Host Bridges, Switches, and
-> > > > + * Endpoints in the topology.
-> > > > + */
-> > > > +
-> > > > +static void cxl_region_release(struct device *dev);
-> > >
-> > > Why forward declare this versus move cxl_region_type after the definition?
-> > >
-> > > No other CXL object release functions are forward declared.
-> > >
-> > > > +
-> > > > +static const struct device_type cxl_region_type = {
-> > > > +       .name = "cxl_region",
-> > > > +       .release = cxl_region_release,
-> > > > +};
-> > > > +
-> > > > +static struct cxl_region *to_cxl_region(struct device *dev)
-> > > > +{
-> > > > +       if (dev_WARN_ONCE(dev, dev->type != &cxl_region_type,
-> > > > +                         "not a cxl_region device\n"))
-> > > > +               return NULL;
-> > > > +
-> > > > +       return container_of(dev, struct cxl_region, dev);
-> > > > +}
-> > > > +
-> > > > +static struct cxl_region *cxl_region_alloc(struct cxl_decoder *cxld)
-> > > > +{
-> > > > +       struct cxl_region *cxlr;
-> > > > +       struct device *dev;
-> > > > +
-> > > > +       cxlr = kzalloc(sizeof(*cxlr), GFP_KERNEL);
-> > > > +       if (!cxlr)
-> > > > +               return ERR_PTR(-ENOMEM);
-> > > > +
-> > > > +       dev = &cxlr->dev;
-> > > > +       device_initialize(dev);
-> > > > +       dev->parent = &cxld->dev;
-> > > > +       device_set_pm_not_required(dev);
-> > > > +       dev->bus = &cxl_bus_type;
-> > > > +       dev->type = &cxl_region_type;
-> > > > +
-> > > > +       return cxlr;
-> > > > +}
-> > > > +
-> > > > +static void unregister_region(void *_cxlr)
-> > > > +{
-> > > > +       struct cxl_region *cxlr = _cxlr;
-> > > > +
-> > > > +       if (!test_and_set_bit(REGION_DEAD, &cxlr->flags))
-> > > > +               device_unregister(&cxlr->dev);
-> > >
-> > > I thought REGION_DEAD was needed to prevent double
-> > > devm_release_action(), not double unregister?
-> > >
-> > > > +}
-> > > > +
-> > > > +/**
-> > > > + * devm_cxl_add_region - Adds a region to a decoder
-> > > > + * @cxld: Parent decoder.
-> > > > + * @cxlr: Region to be added to the decoder.
-> > > > + *
-> > > > + * This is the second step of region initialization. Regions exist within an
-> > > > + * address space which is mapped by a @cxld. That @cxld must be a root decoder,
-> > > > + * and it enforces constraints upon the region as it is configured.
-> > > > + *
-> > > > + * Return: 0 if the region was added to the @cxld, else returns negative error
-> > > > + * code. The region will be named "regionX.Y.Z" where X is the port, Y is the
-> > > > + * decoder id, and Z is the region number.
-> > > > + */
-> > > > +static struct cxl_region *devm_cxl_add_region(struct cxl_decoder *cxld)
-> > > > +{
-> > > > +       struct cxl_port *port = to_cxl_port(cxld->dev.parent);
-> > > > +       struct cxl_region *cxlr;
-> > > > +       struct device *dev;
-> > > > +       int rc;
-> > > > +
-> > > > +       cxlr = cxl_region_alloc(cxld);
-> > > > +       if (IS_ERR(cxlr))
-> > > > +               return cxlr;
-> > > > +
-> > > > +       dev = &cxlr->dev;
-> > > > +
-> > > > +       cxlr->id = cxld->next_region_id;
-> > > > +       rc = dev_set_name(dev, "region%d.%d:%d", port->id, cxld->id, cxlr->id);
-> > > > +       if (rc)
-> > > > +               goto err_out;
-> > > > +
-> > > > +       /* affirm that release will have access to the decoder's region ida  */
-> > > > +       get_device(&cxld->dev);
-> > > > +
-> > > > +       rc = device_add(dev);
-> > > > +       if (!rc)
-> > > > +               rc = devm_add_action_or_reset(port->uport, unregister_region,
-> > > > +                                             cxlr);
-> > > > +       if (rc)
-> > > > +               goto err_out;
-> > >
-> > > All the other usages in device_add() in the subsystem follow the style of:
-> > >
-> > > rc = device_add(dev);
-> > > if (rc)
-> > >     goto err;
-> > >
-> > > ...any reason to be unique here and indent the success case?
-> > >
-> > >
-> > > > +
-> > > > +       return cxlr;
-> > > > +
-> > > > +err_out:
-> > > > +       put_device(dev);
-> > > > +       kfree(cxlr);
-> > >
-> > > This is a double-free of cxlr;
-> > >
-> > > > +       return ERR_PTR(rc);
-> > > > +}
-> > > > +
-> > > > +static ssize_t create_region_show(struct device *dev,
-> > > > +                                 struct device_attribute *attr, char *buf)
-> > > > +{
-> > > > +       struct cxl_port *port = to_cxl_port(dev->parent);
-> > > > +       struct cxl_decoder *cxld = to_cxl_decoder(dev);
-> > > > +
-> > > > +       return sysfs_emit(buf, "region%d.%d:%d\n", port->id, cxld->id,
-> > > > +                         cxld->next_region_id);
-> > > > +}
-> > > > +
-> > > > +static ssize_t create_region_store(struct device *dev,
-> > > > +                                  struct device_attribute *attr,
-> > > > +                                  const char *buf, size_t len)
-> > > > +{
-> > > > +       struct cxl_port *port = to_cxl_port(dev->parent);
-> > > > +       struct cxl_decoder *cxld = to_cxl_decoder(dev);
-> > > > +       struct cxl_region *cxlr;
-> > > > +       int d, p, r, rc = 0;
-> > > > +
-> > > > +       if (sscanf(buf, "region%d.%d:%d", &p, &d, &r) != 3)
-> > > > +               return -EINVAL;
-> > > > +
-> > > > +       if (port->id != p || cxld->id != d)
-> > > > +               return -EINVAL;
-> > > > +
-> > > > +       rc = mutex_lock_interruptible(&cxld->id_lock);
-> > > > +       if (rc)
-> > > > +               return rc;
-> > > > +
-> > > > +       if (cxld->next_region_id != r) {
-> > > > +               rc = -EINVAL;
-> > > > +               goto out;
-> > > > +       }
-> > > > +
-> > > > +       rc = ida_alloc(&cxld->region_ida, GFP_KERNEL);
-> > > > +       if (rc < 0) {
-> > > > +               dev_dbg(dev, "Failed to get next cached id (%d)\n", rc);
-> > > > +               goto out;
-> > > > +       }
-> > > > +
-> > > > +       cxlr = devm_cxl_add_region(cxld);
-> > > > +       if (IS_ERR(cxlr)) {
-> > > > +               rc = PTR_ERR(cxlr);
-> > > > +               goto out;
-> > > > +       }
-> > > > +
-> > > > +       cxld->next_region_id = rc;
-> > >
-> > > This looks like a leak in the case when devm_cxl_add_region() fails,
-> > > so just move it above that call.
-> > >
-> >
-> > It's not super simple with the current pre-caching. If you move this above
-> > devm_cxl_add_region(), then you lose the previously pre-cached region. I think
-> > the cleaner solution is to just free the ida on failure. Pretty sure no matter
-> > what method you go, you need an ida_free in there somewhere. Do you see another
-> > way?
-> 
-> As soon as one thread has successfully acquired the next_region_id
-> then it is safe to advance and assume that the devm_cxl_add_region()
-> owns releasing that id.
-> 
-> In fact, just make that implicit. Move the ida_alloc() and the
-> next_region_id advancement internal to cxl_region_alloc() with a
-> device_lock_assert() for the id_lock. Then the recovery of the
-> allocated id happens naturally like all the other ids in the subsystem
-> i.e. at release time.
+On Thu, Feb 17, 2022 at 8:34 AM Kajol Jain <kjain@linux.ibm.com> wrote:
+>
+> Patchset adds performance stats reporting support for nvdimm.
+> Added interface includes support for pmu register/unregister
+> functions. A structure is added called nvdimm_pmu to be used for
+> adding arch/platform specific data such as cpumask, nvdimm device
+> pointer and pmu event functions like event_init/add/read/del.
+> User could use the standard perf tool to access perf events
+> exposed via pmu.
+>
+> Interface also defines supported event list, config fields for the
+> event attributes and their corresponding bit values which are exported
+> via sysfs. Patch 3 exposes IBM pseries platform nmem* device
+> performance stats using this interface.
+>
+> Result from power9 pseries lpar with 2 nvdimm device:
+>
+> Ex: List all event by perf list
+>
+> command:# perf list nmem
+>
+>   nmem0/cache_rh_cnt/                                [Kernel PMU event]
+>   nmem0/cache_wh_cnt/                                [Kernel PMU event]
+>   nmem0/cri_res_util/                                [Kernel PMU event]
+>   nmem0/ctl_res_cnt/                                 [Kernel PMU event]
+>   nmem0/ctl_res_tm/                                  [Kernel PMU event]
+>   nmem0/fast_w_cnt/                                  [Kernel PMU event]
+>   nmem0/host_l_cnt/                                  [Kernel PMU event]
+>   nmem0/host_l_dur/                                  [Kernel PMU event]
+>   nmem0/host_s_cnt/                                  [Kernel PMU event]
+>   nmem0/host_s_dur/                                  [Kernel PMU event]
+>   nmem0/med_r_cnt/                                   [Kernel PMU event]
+>   nmem0/med_r_dur/                                   [Kernel PMU event]
+>   nmem0/med_w_cnt/                                   [Kernel PMU event]
+>   nmem0/med_w_dur/                                   [Kernel PMU event]
+>   nmem0/mem_life/                                    [Kernel PMU event]
+>   nmem0/poweron_secs/                                [Kernel PMU event]
+>   ...
+>   nmem1/mem_life/                                    [Kernel PMU event]
+>   nmem1/poweron_secs/                                [Kernel PMU event]
+>
+> Patch1:
+>         Introduces the nvdimm_pmu structure
+> Patch2:
+>         Adds common interface to add arch/platform specific data
+>         includes nvdimm device pointer, pmu data along with
+>         pmu event functions. It also defines supported event list
+>         and adds attribute groups for format, events and cpumask.
+>         It also adds code for cpu hotplug support.
+> Patch3:
+>         Add code in arch/powerpc/platform/pseries/papr_scm.c to expose
+>         nmem* pmu. It fills in the nvdimm_pmu structure with pmu name,
+>         capabilities, cpumask and event functions and then registers
+>         the pmu by adding callbacks to register_nvdimm_pmu.
+> Patch4:
+>         Sysfs documentation patch
+>
+> Changelog
+> ---
+> Resend v5 -> v6
+> - No logic change, just a rebase to latest upstream and
+>   tested the patchset.
+>
+> - Link to the patchset Resend v5: https://lkml.org/lkml/2021/11/15/3979
+>
+> v5 -> Resend v5
+> - Resend the patchset
+>
+> - Link to the patchset v5: https://lkml.org/lkml/2021/9/28/643
+>
+> v4 -> v5:
+> - Remove multiple variables defined in nvdimm_pmu structure include
+>   name and pmu functions(event_int/add/del/read) as they are just
+>   used to copy them again in pmu variable. Now we are directly doing
+>   this step in arch specific code as suggested by Dan Williams.
+>
+> - Remove attribute group field from nvdimm pmu structure and
+>   defined these attribute groups in common interface which
+>   includes format, event list along with cpumask as suggested by
+>   Dan Williams.
+>   Since we added static defination for attrbute groups needed in
+>   common interface, removes corresponding code from papr.
+>
+> - Add nvdimm pmu event list with event codes in the common interface.
+>
+> - Remove Acked-by/Reviewed-by/Tested-by tags as code is refactored
+>   to handle review comments from Dan.
 
-This is the right answer. Regions created from LSA/BIOS will need this anyway.
+I don't think review comments should invalidate the Acked-by tags in
+this case. Nothing fundamentally changed in the approach, and I would
+like to have the perf ack before taking this through the nvdimm tree.
 
+Otherwise this looks good to me.
+
+Peter, might you have a chance to re-Ack this series, or any concerns
+about me retrieving those Acks from the previous postings?
