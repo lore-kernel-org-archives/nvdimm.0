@@ -1,85 +1,98 @@
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from 1.mo548.mail-out.ovh.net (1.mo548.mail-out.ovh.net [178.32.121.110])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A39AC321D
-	for <nvdimm@lists.linux.dev>; Fri, 18 Feb 2022 05:50:25 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1645163425; x=1676699425;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=5CY7VAzvb6gzDCLC67LWv5lOMoaOh+t+Oo+4r8gvnHE=;
-  b=L4//mvahaodgEPUjIwSsBrpfQeCnGXGk/w58r+wZN6WBgSOI10RvLwz6
-   jdSWnyY09PtJXftpcejkJRpQeHKiwKggKXBBlpLzdt0C8A/auB4mGHzV+
-   1NESLqiJcJSFF/X1h9e3bxZR5zvToIbAUlPYNXbuesWWuV9RrHH7GTXZa
-   Xt2+ZCdEsDLrZbKXXVIt2jojHDKXMiYv3CtN+ApinD1yQACZQg+iZS5eE
-   hEiCoeg29CpF9nbmOIQPlgWj+qN7ml9K3f9M9uJUthHNfr+Vbx0IUCQ94
-   4WltJSLV7CYDLl7o881rgVVYGbwrbMQa9dOqlMVuOqMPAtEcnSllmV2Ng
-   A==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10261"; a="248652781"
-X-IronPort-AV: E=Sophos;i="5.88,377,1635231600"; 
-   d="scan'208";a="248652781"
-Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Feb 2022 21:49:50 -0800
-X-IronPort-AV: E=Sophos;i="5.88,377,1635231600"; 
-   d="scan'208";a="530783595"
-Received: from gdhowell-mobl2.amr.corp.intel.com (HELO vverma7-desk.amr.corp.intel.com) ([10.212.78.189])
-  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Feb 2022 21:49:49 -0800
-From: Vishal Verma <vishal.l.verma@intel.com>
-To: <nvdimm@lists.linux.dev>
-Cc: Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH] ndctl/test: make inject-smart.sh more tolerant of decimal fields
-Date: Thu, 17 Feb 2022 22:49:46 -0700
-Message-Id: <20220218054946.535014-1-vishal.l.verma@intel.com>
-X-Mailer: git-send-email 2.34.1
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 007072F2E
+	for <nvdimm@lists.linux.dev>; Fri, 18 Feb 2022 12:33:50 +0000 (UTC)
+Received: from mxplan5.mail.ovh.net (unknown [10.108.4.141])
+	by mo548.mail-out.ovh.net (Postfix) with ESMTPS id 61E4A2312C;
+	Fri, 18 Feb 2022 07:44:09 +0000 (UTC)
+Received: from kaod.org (37.59.142.96) by DAG4EX1.mxp5.local (172.16.2.31)
+ with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.18; Fri, 18 Feb
+ 2022 08:44:08 +0100
+Authentication-Results: garm.ovh; auth=pass (GARM-96R001aec2483b-258d-44f3-8f80-6200557211f5,
+                    2ADC5E975130A5AC73D526B447F5AC0F6E2F692A) smtp.auth=clg@kaod.org
+X-OVh-ClientIp: 82.64.250.170
+Message-ID: <66c4c578-d8ac-8a2c-91d0-9c6b26ed39eb@kaod.org>
+Date: Fri, 18 Feb 2022 08:44:02 +0100
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1240; h=from:subject; bh=5CY7VAzvb6gzDCLC67LWv5lOMoaOh+t+Oo+4r8gvnHE=; b=owGbwMvMwCXGf25diOft7jLG02pJDEn8xlWigre6WBU55q28zKr3xUafLzG6IOONVmy80NQJCdcf 3M/rKGVhEONikBVTZPm75yPjMbnt+TyBCY4wc1iZQIYwcHEKwETOTWX4K6HeE+7ANm8D82SW4F2bvg spP0hpM8qszzc5+0TeN9vdhZHhhtaUsoYd/lYORzR3VtpXqPYEibduN+OcmT3H5diZxBw2AA==
-X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp; fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.5.0
+Subject: Re: [PATCH v7 0/3] spapr: nvdimm: Introduce spapr-nvdimm device
+Content-Language: en-US
+To: Shivaprasad G Bhat <sbhat@linux.ibm.com>, <mst@redhat.com>,
+	<ani@anisinha.ca>, <danielhb413@gmail.com>, <david@gibson.dropbear.id.au>,
+	<groug@kaod.org>, <imammedo@redhat.com>, <xiaoguangrong.eric@gmail.com>,
+	<qemu-ppc@nongnu.org>
+CC: <qemu-devel@nongnu.org>, <aneesh.kumar@linux.ibm.com>,
+	<nvdimm@lists.linux.dev>, <kvm-ppc@vger.kernel.org>
+References: <164396252398.109112.13436924292537517470.stgit@ltczzess4.aus.stglabs.ibm.com>
+From: =?UTF-8?Q?C=c3=a9dric_Le_Goater?= <clg@kaod.org>
+In-Reply-To: <164396252398.109112.13436924292537517470.stgit@ltczzess4.aus.stglabs.ibm.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [37.59.142.96]
+X-ClientProxiedBy: DAG2EX1.mxp5.local (172.16.2.11) To DAG4EX1.mxp5.local
+ (172.16.2.31)
+X-Ovh-Tracer-GUID: f1b63f11-3ead-4642-8ee1-f9060d60f342
+X-Ovh-Tracer-Id: 5641040012273814459
+X-VR-SPAMSTATE: OK
+X-VR-SPAMSCORE: -100
+X-VR-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvvddrjeelgdduudduucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecuqfggjfdpvefjgfevmfevgfenuceurghilhhouhhtmecuhedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhepkfffgggfuffvfhfhjggtgfhisehtjeertddtfeejnecuhfhrohhmpeevrogurhhitggpnfgvpgfiohgrthgvrhcuoegtlhhgsehkrghougdrohhrgheqnecuggftrfgrthhtvghrnhepueetveejhffgvedvueejleefgeetkeduvedugfeitdelfeeitefghedukeetuedtnecuffhomhgrihhnpehgihhthhhusgdrtghomhdpphihrdgurghtrgenucfkpheptddrtddrtddrtddpfeejrdehledrudegvddrleeinecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmohguvgepshhmthhpohhuthdphhgvlhhopehmgihplhgrnhehrdhmrghilhdrohhvhhdrnhgvthdpihhnvghtpedtrddtrddtrddtpdhmrghilhhfrhhomheptghlgheskhgrohgurdhorhhgpdhnsggprhgtphhtthhopedupdhrtghpthhtohepghhrohhugheskhgrohgurdhorhhg
 
-Some combinations of json-c/jq/other libraries seem to produce differing
-outputs for the final jq-filtered smart fields, in that some have a
-decimal "42.0" numeric field, where as in other combinations it is a
-simple "42" (still a numeric field, not string).
+On 2/4/22 09:15, Shivaprasad G Bhat wrote:
+> If the device backend is not persistent memory for the nvdimm, there
+> is need for explicit IO flushes to ensure persistence.
+> 
+> On SPAPR, the issue is addressed by adding a new hcall to request for
+> an explicit flush from the guest when the backend is not pmem.
+> So, the approach here is to convey when the hcall flush is required
+> in a device tree property. The guest once it knows the device needs
+> explicit flushes, makes the hcall as and when required.
+> 
+> It was suggested to create a new device type to address the
+> explicit flush for such backends on PPC instead of extending the
+> generic nvdimm device with new property. So, the patch introduces
+> the spapr-nvdimm device. The new device inherits the nvdimm device
+> with the new bahviour such that if the backend has pmem=no, the
+> device tree property is set by default.
+> 
+> The below demonstration shows the map_sync behavior for non-pmem
+> backends.
+> (https://github.com/avocado-framework-tests/avocado-misc-tests/blob/master/memory/ndctl.py.data/map_sync.c)
+> 
+> The pmem0 is from spapr-nvdimm with with backend pmem=on, and pmem1 is
+> from spapr-nvdimm with pmem=off, mounted as
+> /dev/pmem0 on /mnt1 type xfs (rw,relatime,attr2,dax=always,inode64,logbufs=8,logbsize=32k,noquota)
+> /dev/pmem1 on /mnt2 type xfs (rw,relatime,attr2,dax=always,inode64,logbufs=8,logbsize=32k,noquota)
+> 
+> [root@atest-guest ~]# ./mapsync /mnt1/newfile ----> When pmem=on
+> [root@atest-guest ~]# ./mapsync /mnt2/newfile ----> when pmem=off
+> Failed to mmap  with Operation not supported
+> 
+> First patch adds the realize/unrealize call backs to the generic device
+> for the new device's vmstate registration. The second patch implements
+> the hcall, adds the necessary vmstate properties to spapr machine structure
+> for carrying the hcall status during save-restore. The nature of the hcall
+> being asynchronus, the patch uses aio utilities to offload the flush. The
+> third patch introduces the spapr-nvdimm device, adds the device tree
+> property for the guest when spapr-nvdimm is used with pmem=no on the
+> backend. Also adds new property pmem-override(?, suggest if you have better
+> name) to the spapr-nvdimm which hints at forcing the hcall based flushes even
+> on pmem backed devices.
+> 
+> The kernel changes to exploit this hcall is at
+> https://github.com/linuxppc/linux/commit/75b7c05ebf9026.patch
 
-This shouldn't matter in practice, but for this contrived test case, we
-need to make sure that "42" is treated the same as "42.0"
 
-Normalize all fields before comparing them to "%0.0f" so that the
-comparison doesn't result in superfluous failures.
 
-Reported-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- test/inject-smart.sh | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Applied for ppc-7.0
 
-diff --git a/test/inject-smart.sh b/test/inject-smart.sh
-index 8b91360..046322b 100755
---- a/test/inject-smart.sh
-+++ b/test/inject-smart.sh
-@@ -105,13 +105,13 @@ get_field()
- 	json="$($NDCTL list -b $bus -d $dimm -H)"
- 	val="$(jq -r ".[].dimms[].health.$smart_listing" <<< $json)"
- 	val="$(translate_val $val)"
--	echo $val
-+	printf "%0.0f\n" "$val"
- }
- 
- verify()
- {
- 	local field="$1"
--	local val="$2"
-+	local val="$(printf "%0.0f\n" "$2")"
- 
- 	[[ "$val" == "$(get_field $field)" ]]
- }
--- 
-2.34.1
+Thanks,
 
+C.
