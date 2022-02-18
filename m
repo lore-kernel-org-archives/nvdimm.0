@@ -1,227 +1,193 @@
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi1-f172.google.com (mail-oi1-f172.google.com [209.85.167.172])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8875F4ABF;
-	Fri, 18 Feb 2022 18:23:59 +0000 (UTC)
-Received: from fraeml737-chm.china.huawei.com (unknown [172.18.147.200])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4K0g6t5L7cz687YQ;
-	Sat, 19 Feb 2022 02:23:18 +0800 (CST)
-Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
- fraeml737-chm.china.huawei.com (10.206.15.218) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.21; Fri, 18 Feb 2022 19:23:50 +0100
-Received: from localhost (10.47.75.241) by lhreml710-chm.china.huawei.com
- (10.201.108.61) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2308.21; Fri, 18 Feb
- 2022 18:23:49 +0000
-Date: Fri, 18 Feb 2022 18:23:48 +0000
-From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-To: Ben Widawsky <ben.widawsky@intel.com>
-CC: <linux-cxl@vger.kernel.org>, <patches@lists.linux.dev>, Alison Schofield
-	<alison.schofield@intel.com>, Dan Williams <dan.j.williams@intel.com>, "Ira
- Weiny" <ira.weiny@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, "Bjorn
- Helgaas" <helgaas@kernel.org>, <nvdimm@lists.linux.dev>,
-	<linux-pci@vger.kernel.org>
-Subject: Re: [PATCH v3 11/14] cxl/region: Add support for single switch
- level
-Message-ID: <20220218182348.00002226@Huawei.com>
-In-Reply-To: <20220215161014.00001c68@Huawei.com>
-References: <20220128002707.391076-1-ben.widawsky@intel.com>
-	<20220128002707.391076-12-ben.widawsky@intel.com>
-	<20220215161014.00001c68@Huawei.com>
-Organization: Huawei Technologies Research and Development (UK) Ltd.
-X-Mailer: Claws Mail 4.0.0 (GTK+ 3.24.29; i686-w64-mingw32)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B402A4C72
+	for <nvdimm@lists.linux.dev>; Fri, 18 Feb 2022 19:17:40 +0000 (UTC)
+Received: by mail-oi1-f172.google.com with SMTP id p15so4141104oip.3
+        for <nvdimm@lists.linux.dev>; Fri, 18 Feb 2022 11:17:40 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20210112.gappssmtp.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=E9geZ6V1OCH5IWuqEcnOKzRalIIo8ZYcKWBho59xOqw=;
+        b=2zXw3BO6j3yVM7TM79UDrovnwoHpbyrRxm9V1HOLIextxCVpHv0yqygiYXkTcKqjkF
+         E8qfumLWxz+NhWGkZFjpuonuVsZ1FiFd4+MVZX29UHWlF3HzjODh7Cah5cmPnRy/tVFA
+         cD4tGn16dZbVUy+7/RdsfLlq+Ka9rZHk4LpOar+lebuAF/Cc8fLRrBRfpcKfF1SFE77U
+         Tf8xOIEfTdAe4fQzokNOKCS5rXiAcool6/PJvq6TWvoX90gFASOQluIL9X8rgeIZ4CGb
+         VbFFAkDvk9sXElx39g5NPsHp4qYGvrXuoXWOBDrv7ulxcOEoAOwQYkT1Iy4Di9nW0vEr
+         9gzw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=E9geZ6V1OCH5IWuqEcnOKzRalIIo8ZYcKWBho59xOqw=;
+        b=u5fAHpTSVNtUM4VPeJc/aACjhQKAULOLvqOELN+UMvR8HP3wOowvkalQ0kTx7a6OQq
+         2Kr5cdh7t2sSJCK1DeGHZ7R1o7v3DYIKs/lmDZ/XlD2+OA/5VYfQwopAlES7icxn3Qdm
+         ZAV5v8/kJUTi+nUr2+ZWuRaPIAR5IkTNVw9nPTiUNXybXEEiXZA4jDEYfC6R/PDVWoSE
+         r8fUARPUq+Z3aKzfCM+K1bL+Z6Vawxl3fYatYGKM9jkhPPna3FH4uPRvRYeKx831wyXl
+         opXlS9zAW7/9ouHW36HBo5aZtDuvdZoW5saE/gTwbxKZzyCIDoxLxpJhDg77KI8Ml8zO
+         jZFA==
+X-Gm-Message-State: AOAM531JzYPyHQDLyAdGxl2ydz11QQEE4Nz2FjYmvqkY0MRUfz0/ml4L
+	81a6UdjbYeW+b6cYV2cwATRKfKSMzXy7tjODwZdiEg==
+X-Google-Smtp-Source: ABdhPJx2XZdVKoxu9zm+U2XcVUQ1AIWSITh9BllZe/C789i0yWRjU6koLQ66x68Zr5JHQW0cMWUW1wjHNbBTBdQ4kEw=
+X-Received: by 2002:a54:4f9b:0:b0:2c9:852b:7bdf with SMTP id
+ g27-20020a544f9b000000b002c9852b7bdfmr5686212oiy.52.1645211859803; Fri, 18
+ Feb 2022 11:17:39 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.47.75.241]
-X-ClientProxiedBy: lhreml726-chm.china.huawei.com (10.201.108.77) To
- lhreml710-chm.china.huawei.com (10.201.108.61)
-X-CFilter-Loop: Reflected
+References: <20220128002707.391076-1-ben.widawsky@intel.com> <20220128002707.391076-6-ben.widawsky@intel.com>
+In-Reply-To: <20220128002707.391076-6-ben.widawsky@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 18 Feb 2022 11:17:28 -0800
+Message-ID: <CAPcyv4jq470iFeqXPVftSwomcf=aC_eLZUMhMK1JZkOxekkGxQ@mail.gmail.com>
+Subject: Re: [PATCH v3 05/14] cxl/acpi: Handle address space allocation
+To: Ben Widawsky <ben.widawsky@intel.com>
+Cc: linux-cxl@vger.kernel.org, patches@lists.linux.dev, 
+	Alison Schofield <alison.schofield@intel.com>, Ira Weiny <ira.weiny@intel.com>, 
+	Jonathan Cameron <Jonathan.Cameron@huawei.com>, Vishal Verma <vishal.l.verma@intel.com>, 
+	Bjorn Helgaas <helgaas@kernel.org>, Linux NVDIMM <nvdimm@lists.linux.dev>, 
+	Linux PCI <linux-pci@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 
-On Tue, 15 Feb 2022 16:10:14 +0000
-Jonathan Cameron <Jonathan.Cameron@Huawei.com> wrote:
+On Thu, Jan 27, 2022 at 4:27 PM Ben Widawsky <ben.widawsky@intel.com> wrote:
+>
+> Regions are carved out of an addresses space which is claimed by top
+> level decoders, and subsequently their children decoders. Regions are
 
-> On Thu, 27 Jan 2022 16:27:04 -0800
-> Ben Widawsky <ben.widawsky@intel.com> wrote:
-> 
-> > CXL switches have HDM decoders just like host bridges and endpoints.
-> > Their programming works in a similar fashion.
-> > 
-> > The spec does not prohibit multiple levels of switches, however, those
-> > are not implemented at this time.
-> > 
-> > Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>  
-> Hi Ben,
-> 
-> I'm still hammering away at trying to bring up qemu switch emulation.
-> Even though I know you are reworking this, seems only sensible to point
-> out issues when I hit them.  If no longer relevant you can ignore them!
-> 
-> With these bits and a few other minor tweaks the decoders now look
-> to be right - I just need to wire up the QEMU side so that
-> I don't get hardware exceptions on actually reading and writing once
-> the region is bound :) 
+s/children/descendant/
 
-QEMU emulation of a very basic CXL switch at:
-https://gitlab.com/jic23/qemu/-/commits/cxl-v7-draft-for-test
+> created with a size and therefore must fit, with proper alignment, in
+> that address space. The support for doing this fitting is handled by the
+> driver automatically.
+>
+> As an example, a platform might configure a top level decoder to claim
+> 1TB of address space @ 0x800000000 -> 0x10800000000; it would be
+> possible to create M regions with appropriate alignment to occupy that
+> address space. Each of those regions would have a host physical address
+> somewhere in the range between 32G and 1.3TB, and the location will be
+> determined by the logic added here.
+>
+> The request_region() usage is not strictly mandatory at this point as
+> the actual handling of the address space is done with genpools. It is
+> highly likely however that the resource/region APIs will become useful
+> in the not too distant future.
 
-Hope that is helpful for testing next version of this.
-I've been testing with a 4 port switch and 4 type 3 devices
-and with a few hacks/fixes as mentioned in review feedback it all
-works (well devmem2 gives me what I expect. :)
+More on this below, but I think resource APIs are critical for the
+pre-existing / BIOS created region case and I have a feeling gen_pool
+is not a good fit.
 
-Jonathan
+> All decoders manage a host physical address space while active. Only the
+> root decoder has constraints on location and size. As a result, it makes
+> most sense for the root decoder to be responsible for managing the
+> entire address space, and mid-level decoders and endpoints can ask the
+> root decoder for suballocations.
+>
+> Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
+> ---
+>  drivers/cxl/acpi.c | 30 ++++++++++++++++++++++++++++++
+>  drivers/cxl/cxl.h  |  2 ++
+>  2 files changed, 32 insertions(+)
+>
+> diff --git a/drivers/cxl/acpi.c b/drivers/cxl/acpi.c
+> index d6dcb2b6af48..74681bfbf53c 100644
+> --- a/drivers/cxl/acpi.c
+> +++ b/drivers/cxl/acpi.c
+> @@ -1,6 +1,7 @@
+>  // SPDX-License-Identifier: GPL-2.0-only
+>  /* Copyright(c) 2021 Intel Corporation. All rights reserved. */
+>  #include <linux/platform_device.h>
+> +#include <linux/genalloc.h>
+>  #include <linux/module.h>
+>  #include <linux/device.h>
+>  #include <linux/kernel.h>
+> @@ -73,6 +74,27 @@ static int cxl_acpi_cfmws_verify(struct device *dev,
+>         return 0;
+>  }
+>
+> +/*
+> + * Every decoder while active has an address space that it is decoding. However,
+> + * only the root level decoders have fixed host physical address space ranges.
+> + */
+> +static int cxl_create_cfmws_address_space(struct cxl_decoder *cxld,
+> +                                         struct acpi_cedt_cfmws *cfmws)
+> +{
+> +       const int order = ilog2(SZ_256M * cxld->interleave_ways);
+> +       struct device *dev = &cxld->dev;
+> +       struct gen_pool *pool;
+> +
+> +       pool = devm_gen_pool_create(dev, order, NUMA_NO_NODE, dev_name(dev));
 
-> 
-> Thanks,
-> 
-> J
-> > ---
-> >  drivers/cxl/cxl.h    |  5 ++++
-> >  drivers/cxl/region.c | 61 ++++++++++++++++++++++++++++++++++++++++++--
-> >  2 files changed, 64 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
-> > index 8ace6cca0776..d70d8c85d05f 100644
-> > --- a/drivers/cxl/cxl.h
-> > +++ b/drivers/cxl/cxl.h
-> > @@ -96,6 +96,11 @@ static inline u8 cxl_to_ig(u16 g)
-> >  	return ilog2(g) - 8;
-> >  }
-> >  
-> > +static inline int cxl_to_ways(u8 ways)
-> > +{
-> > +	return 1 << ways;
-> > +}
-> > +
-> >  static inline bool cxl_is_interleave_ways_valid(int iw)
-> >  {
-> >  	switch (iw) {
-> > diff --git a/drivers/cxl/region.c b/drivers/cxl/region.c
-> > index b8982be13bfe..f748060733dd 100644
-> > --- a/drivers/cxl/region.c
-> > +++ b/drivers/cxl/region.c
-> > @@ -359,6 +359,23 @@ static bool has_switch(const struct cxl_region *cxlr)
-> >  	return false;
-> >  }
-> >  
-> > +static bool has_multi_switch(const struct cxl_region *cxlr)
-> > +{
-> > +	struct cxl_memdev *ep;
-> > +	int i;
-> > +
-> > +	for_each_cxl_endpoint(ep, cxlr, i)
-> > +		if (ep->port->depth > 3)
-> > +			return true;
-> > +
-> > +	return false;
-> > +}
-> > +
-> > +static struct cxl_port *get_switch(struct cxl_memdev *ep)
-> > +{
-> > +	return to_cxl_port(ep->port->dev.parent);
-> > +}
-> > +
-> >  static struct cxl_decoder *get_decoder(struct cxl_region *cxlr,
-> >  				       struct cxl_port *p)
-> >  {
-> > @@ -409,6 +426,8 @@ static bool region_hb_rp_config_valid(struct cxl_region *cxlr,
-> >  				      const struct cxl_decoder *rootd,
-> >  				      bool state_update)
-> >  {
-> > +	const int region_ig = cxl_to_ig(cxlr->config.interleave_granularity);
-> > +	const int region_eniw = cxl_to_eniw(cxlr->config.interleave_ways);
-> >  	const int num_root_ports = get_num_root_ports(cxlr);
-> >  	struct cxl_port *hbs[CXL_DECODER_MAX_INTERLEAVE];
-> >  	struct cxl_decoder *cxld, *c;
-> > @@ -416,8 +435,12 @@ static bool region_hb_rp_config_valid(struct cxl_region *cxlr,
-> >  
-> >  	hb_count = get_unique_hostbridges(cxlr, hbs);
-> >  
-> > -	/* TODO: Switch support */
-> > -	if (has_switch(cxlr))
-> > +	/* TODO: support multiple levels of switches */
-> > +	if (has_multi_switch(cxlr))
-> > +		return false;
-> > +
-> > +	/* TODO: x3 interleave for switches is hard. */
-> > +	if (has_switch(cxlr) && !is_power_of_2(region_ways(cxlr)))
-> >  		return false;
-> >  
-> >  	/*
-> > @@ -470,8 +493,14 @@ static bool region_hb_rp_config_valid(struct cxl_region *cxlr,
-> >  		list_for_each_entry(rp, &hb->dports, list) {
-> >  			struct cxl_memdev *ep;
-> >  			int port_grouping = -1;
-> > +			int target_ndx;  
-> As things currently stand, with a switch connected below a single port
-> of a host bridge (4 type 3 off the switch) this will program the HB
-> decoder to have 4 targets, all routed to the switch USP.
-> 
-> There is an argument that this is correct but its not what I'd expect.
-> I'd expect to see 1 target only.  It's not a problem for small cases, but
-> with enough rp and switches we can run out of targets.
-> 
-> >  
-> >  			for_each_cxl_endpoint_hb(ep, cxlr, hb, idx) {
-> > +				struct cxl_decoder *switch_cxld;
-> > +				struct cxl_dport *target;
-> > +				struct cxl_port *switch_port;
-> > +				bool found = false;
-> > +
-> >  				if (get_rp(ep) != rp)
-> >  					continue;
-> >  
-> > @@ -499,6 +528,34 @@ static bool region_hb_rp_config_valid(struct cxl_region *cxlr,
-> >  
-> >  				cxld->interleave_ways++;
-> >  				cxld->target[port_grouping] = get_rp(ep);
-> > +
-> > +				/*
-> > +				 * At least one switch is connected here if the endpoint
-> > +				 * has a depth > 2
-> > +				 */
-> > +				if (ep->port->depth == 2)
-> > +					continue;
-> > +
-> > +				/* Check the staged list to see if this
-> > +				 * port has already been added
-> > +				 */
-> > +				switch_port = get_switch(ep);
-> > +				list_for_each_entry(switch_cxld, &cxlr->staged_list, region_link) {
-> > +					if (to_cxl_port(switch_cxld->dev.parent) == switch_port)
-> > +						found = true;  
-> 
-> break;
-> 
-> > +				}
-> > +
-> > +				if (found) {
-> > +					target = cxl_find_dport_by_dev(switch_port, ep->dev.parent->parent);
-> > +					switch_cxld->target[target_ndx++] = target;
-> > +					continue;
-> > +				}
-> > +
-> > +				target_ndx = 0;
-> > +
-> > +				switch_cxld = get_decoder(cxlr, switch_port);
-> > +				switch_cxld->interleave_ways++;
-> > +				switch_cxld->interleave_granularity = cxl_to_ways(region_ig + region_eniw);  
-> 
-> I'm not following this.  Perhaps comment on why this particular maths?  I was assuming the switch
-> interleave granularity would that of the region as the switch is last level of decode.
-> 
-> Need to do the equivalent here of what you do in the if (found) or the first target is missed.
-> Also need to be updating interleave_ways only in the found path, not here (as the default is 1)
-> 
-> >  			}
-> >  		}
-> >  	}  
-> 
+The cxld dev is not a suitable devm host.
 
+Moreover, the address space is a generic property of root decoders, it
+belongs in the core not in cxl_acpi.
+
+As for the data structure / APIs to manage the address space I'm not
+sure gen_pool is the right answer, because the capacity tracking will
+be done in terms of __request_region() and resource trees. The
+infrastructure to keep the gen_pool aligned with the resource tree
+drops away if there was an interface for allocating free space out of
+a resource tree to augment the base API of requesting space with known
+addresses. In fact, there is already the request_free_mem_region()
+helper. Did you consider that vs gen_pool? Otherwise, how to solve the
+problem of pre-populating the busy areas of the gen_pool relative to
+capacity that the BIOS may have consumed out of the decoder range?
+That comes for free with just walking decoders at boot and doing
+__request_region() against the root decoders. Then the allocation
+helper can just walk that free space similar to
+request_free_mem_region().
+
+> +       if (IS_ERR(pool))
+> +               return PTR_ERR(pool);
+> +
+> +       cxld->address_space = pool;
+> +
+> +       return gen_pool_add(cxld->address_space, cfmws->base_hpa,
+> +                           cfmws->window_size, NUMA_NO_NODE);
+> +}
+> +
+>  struct cxl_cfmws_context {
+>         struct device *dev;
+>         struct cxl_port *root_port;
+> @@ -113,6 +135,14 @@ static int cxl_parse_cfmws(union acpi_subtable_headers *header, void *arg,
+>         cxld->interleave_ways = CFMWS_INTERLEAVE_WAYS(cfmws);
+>         cxld->interleave_granularity = CFMWS_INTERLEAVE_GRANULARITY(cfmws);
+>
+> +       rc = cxl_create_cfmws_address_space(cxld, cfmws);
+> +       if (rc) {
+> +               dev_err(dev,
+> +                       "Failed to create CFMWS address space for decoder\n");
+> +               put_device(&cxld->dev);
+> +               return 0;
+> +       }
+> +
+>         rc = cxl_decoder_add(cxld, target_map);
+>         if (rc)
+>                 put_device(&cxld->dev);
+> diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
+> index d1a8ca19c9ea..b300673072f5 100644
+> --- a/drivers/cxl/cxl.h
+> +++ b/drivers/cxl/cxl.h
+> @@ -251,6 +251,7 @@ enum cxl_decoder_type {
+>   * @flags: memory type capabilities and locking
+>   * @target_lock: coordinate coherent reads of the target list
+>   * @region_ida: allocator for region ids.
+> + * @address_space: Used/free address space for regions.
+>   * @nr_targets: number of elements in @target
+>   * @target: active ordered target list in current decoder configuration
+>   */
+> @@ -267,6 +268,7 @@ struct cxl_decoder {
+>         unsigned long flags;
+>         seqlock_t target_lock;
+>         struct ida region_ida;
+> +       struct gen_pool *address_space;
+>         int nr_targets;
+>         struct cxl_dport *target[];
+>  };
+> --
+> 2.35.0
+>
