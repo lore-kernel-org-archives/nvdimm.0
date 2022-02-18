@@ -1,50 +1,50 @@
-Received: from mail-ot1-f51.google.com (mail-ot1-f51.google.com [209.85.210.51])
+Received: from mail-pg1-f171.google.com (mail-pg1-f171.google.com [209.85.215.171])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68BFA4C79
-	for <nvdimm@lists.linux.dev>; Fri, 18 Feb 2022 19:51:45 +0000 (UTC)
-Received: by mail-ot1-f51.google.com with SMTP id b17-20020a9d4791000000b005a17fc2dfc1so2679245otf.1
-        for <nvdimm@lists.linux.dev>; Fri, 18 Feb 2022 11:51:45 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 548794C7C
+	for <nvdimm@lists.linux.dev>; Fri, 18 Feb 2022 20:23:46 +0000 (UTC)
+Received: by mail-pg1-f171.google.com with SMTP id 195so8797200pgc.6
+        for <nvdimm@lists.linux.dev>; Fri, 18 Feb 2022 12:23:46 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20210112.gappssmtp.com; s=20210112;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=mFvG05Uw2C2DK3JJHa3oaPRwbA16TTWZsXYfxs4nKwQ=;
-        b=zhrkYnZh/i56D/sXZlOYx/x8qshCSMWZJkV79by3NK+jdA6mxMtjy2cyWt46NwpnbN
-         L+O9kcPum78LQWMyK+CnCYuKloXfyQlujK7JXXibBlA4tq+BUoqTiO6SacqdgNxGM1XF
-         9MmTg9ZyD2l+0P1MgIOLC8dXEKhfMrkOm+NIKjLsVGy5J8ekWSWNbIGIlhF3NnJtl/ck
-         +lOQmHUU1ShSWE8vkaVOlv8Un/XCkU7JhezFQ+q4uyW4F5DS+ZurF646wBO6fUBKBYFr
-         pMMEVAxxafiIhW2WO4zh43b844xaiHoQqy/AjMMPD1q/tNG3MDQcTllLSb9pXC/2jZdi
-         0VQA==
+        bh=GyqkxaZxl73TqFha4nD8IMbHVF8tfQHRwYUPfxNvUcU=;
+        b=GXHbSOxiCTn+hCpMAxL5Mp9N0hk5yrn8bjBJtigPwOdmVcfx9vr3TcZVrnkxEEelY5
+         qZoZkwi2rAZSQ13I0fT51F/Z+GGkxByRmMWOm77tkKM1cMpbEBUhAunEVbt6rLH+UIx0
+         rsh77i3UrTa/MmBYAQmSf2XF3BzmEvyo/yOFxKn6gQzqDHkKl9pN9lMAdYo3exHmxlPm
+         XrLS7kzIWK411UMMIPsdVqAkwq22t+IocQe925lWA5zsajEfrF7VM4Cqe1aAwrZGKLR3
+         HXJu8BAqFhy7gZ1GTy+qtqOywY9jycxA9EsZtRNFWSSvhXj9qtPwTWQfqHv76l5LnRSS
+         hlug==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=mFvG05Uw2C2DK3JJHa3oaPRwbA16TTWZsXYfxs4nKwQ=;
-        b=xQE6zCc75UTV7TmOfh2hcuSDXDRZu6Qa8nWT9KuAOZzgEU+s2Ytw4XLRIiSNdNaxE+
-         0qnE0M94R/SupCFcVAhLSNcJq1x/gIBSdE1NpKyEKB33fLz/+1lLbULY728NK0S9HUzT
-         vZTk0eKkPwVADt8ez4oc1NRcqTsVyA9ctwx/1TxKqDdt91BbD7tlZ+2QxoCbW5eC9vYb
-         pUAYPSYYBICAJS43MtgBzTAIFld91Owpqev0jZfNZ96MhuvTf45HT2dh/ZzMkC4kIqzV
-         INcKwYZc5+lzWRTi63X6c5BAxAFONVDyGbd/22RXDCGLnljG3ibFWFTkJxMSlxn8AOVD
-         GFow==
-X-Gm-Message-State: AOAM530JP3xJwyk2UAQRZpfipni3wAZp7XqlVUwdUkYipYcTUFNNr1xB
-	HmJiZyNqiDx67sbZGh6ZvsK/KCVtgAlJ0p5XSQLoQQ==
-X-Google-Smtp-Source: ABdhPJxpKJmKmDEWzxGfg2GfINo3iBeWaQdSVVkO5ixhiSSVccuJzQslePaoTDc/ltFMTNdaWErNDrzQGtn8XgODxEk=
-X-Received: by 2002:a05:6830:910:b0:5a2:a81f:e5e1 with SMTP id
- v16-20020a056830091000b005a2a81fe5e1mr3088204ott.24.1645213904521; Fri, 18
- Feb 2022 11:51:44 -0800 (PST)
+        bh=GyqkxaZxl73TqFha4nD8IMbHVF8tfQHRwYUPfxNvUcU=;
+        b=J2x3ZfQO0K9E5NJs4yihQDaP5EdoA//vaSPdjXonnIefy/He3j3l8ddy/1ZZ14D7rs
+         5BXsZysBc9Mvce+/iLG/f8/3Lew7QrHvruGv3iKYRiRRSY3UkZVSfCLG3or6OqMrQKWS
+         hV1xS0QJuAysX3d0f7bPq+FOcXqv4LE3y0gzYrLSXRKnh43l+EfOnwbDbqebj/xvKTyO
+         9yEeVUt6h03TfqyoOLoT6tr7XwuEjR1f/2156knhKD21MtZg4K/KIyn8IlUmxIyERTPI
+         BvXLBCnlxffMPZNcBZKPnvXZVbXhNFg+Cp3CmlevlloGaDeFqJlJGODA6siqmCAV+oGo
+         8zBA==
+X-Gm-Message-State: AOAM5302rVpiYuYwGaiylGF1rbk/1aDqxaSOpIK6GhAdv4Z3NCB77lv1
+	QIuwxbhBnxr09LC56GlJXrrJDKjiblf/BQlaFlrqww==
+X-Google-Smtp-Source: ABdhPJzixhQyIw1tn6LwQvktyhGOjkKda6ppQ+LSCyqOBgZdCojip1jmRw5NbgXbCarC8LVTGH4gcemK3zeOBnlfCQU=
+X-Received: by 2002:a05:6a02:283:b0:342:703e:1434 with SMTP id
+ bk3-20020a056a02028300b00342703e1434mr7792614pgb.74.1645215825608; Fri, 18
+ Feb 2022 12:23:45 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20220128002707.391076-1-ben.widawsky@intel.com> <20220128002707.391076-7-ben.widawsky@intel.com>
-In-Reply-To: <20220128002707.391076-7-ben.widawsky@intel.com>
+References: <20220128002707.391076-1-ben.widawsky@intel.com> <20220128002707.391076-8-ben.widawsky@intel.com>
+In-Reply-To: <20220128002707.391076-8-ben.widawsky@intel.com>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 18 Feb 2022 11:51:33 -0800
-Message-ID: <CAPcyv4jnbch=LdyNwMJ9WWQNGNnE3gqC5msLUBc3ncUXE6+15w@mail.gmail.com>
-Subject: Re: [PATCH v3 06/14] cxl/region: Address space allocation
+Date: Fri, 18 Feb 2022 12:23:34 -0800
+Message-ID: <CAPcyv4jn+kF-7qBXny_MBCCF9OdDFmVNaRx=sK+TWGTmkWgeww@mail.gmail.com>
+Subject: Re: [PATCH v3 07/14] cxl/region: Implement XHB verification
 To: Ben Widawsky <ben.widawsky@intel.com>
 Cc: linux-cxl@vger.kernel.org, patches@lists.linux.dev, 
 	Alison Schofield <alison.schofield@intel.com>, Ira Weiny <ira.weiny@intel.com>, 
@@ -55,107 +55,229 @@ Content-Type: text/plain; charset="UTF-8"
 
 On Thu, Jan 27, 2022 at 4:27 PM Ben Widawsky <ben.widawsky@intel.com> wrote:
 >
-> When a region is not assigned a host physical address,
+> Cross host bridge verification primarily determines if the requested
+> interleave ordering can be achieved by the root decoder, which isn't as
+> programmable as other decoders.
 
-Curious, is there a way to pick one in the current ABI? Not that I
-want one, in fact I think Linux should make it as difficult as
-possible to create a region with a fixed address (per the 'HPA' field
-of the region label) given all the problems it can cause with decoder
-allocation ordering. Unless and until someone identifies a solid use
-case for that capability it should be de-emphasized.
+I don't understand that comment. Are you talking about the CFMWS
+static decoders that can not be programmed at all, or the 1st level
+decoders beneath that.
 
-> one is picked by
-> the driver. As the address will determine which CFMWS contains the
-> region, it's usually a better idea to let the driver make this
-> determination.
+> The algorithm implemented here is based on the CXL Type 3 Memory Device
+> Software Guide, chapter 2.13.14
+
+Just spell out the support here and don't require the reader to read
+that other doc to understand if it follows it exactly, or takes some
+liberties. I.e. the assumptions and tradeoffs built into the design
+choices in the patch need to be spelled out here.
+
 >
 > Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
 > ---
->  drivers/cxl/region.c | 40 ++++++++++++++++++++++++++++++++++++++--
->  1 file changed, 38 insertions(+), 2 deletions(-)
+> Changes since v2:
+> - Fail earlier on lack of host bridges. This should only be capable as
+>   of now with cxl_test memdevs.
+> ---
+>  .clang-format        |  2 +
+>  drivers/cxl/cxl.h    | 13 +++++++
+>  drivers/cxl/region.c | 89 +++++++++++++++++++++++++++++++++++++++++++-
+>  3 files changed, 103 insertions(+), 1 deletion(-)
 >
-> diff --git a/drivers/cxl/region.c b/drivers/cxl/region.c
-> index cc41939a2f0a..5588873dd250 100644
-> --- a/drivers/cxl/region.c
-> +++ b/drivers/cxl/region.c
-> @@ -1,6 +1,7 @@
->  // SPDX-License-Identifier: GPL-2.0-only
->  /* Copyright(c) 2021 Intel Corporation. All rights reserved. */
->  #include <linux/platform_device.h>
-> +#include <linux/genalloc.h>
->  #include <linux/device.h>
->  #include <linux/module.h>
->  #include <linux/pci.h>
-> @@ -64,6 +65,20 @@ static struct cxl_port *get_root_decoder(const struct cxl_memdev *endpoint)
->         return NULL;
+> diff --git a/.clang-format b/.clang-format
+> index fa959436bcfd..1221d53be90b 100644
+> --- a/.clang-format
+> +++ b/.clang-format
+> @@ -169,6 +169,8 @@ ForEachMacros:
+>    - 'for_each_cpu_and'
+>    - 'for_each_cpu_not'
+>    - 'for_each_cpu_wrap'
+> +  - 'for_each_cxl_decoder_target'
+> +  - 'for_each_cxl_endpoint'
+>    - 'for_each_dapm_widgets'
+>    - 'for_each_dev_addr'
+>    - 'for_each_dev_scope'
+> diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
+> index b300673072f5..a291999431c7 100644
+> --- a/drivers/cxl/cxl.h
+> +++ b/drivers/cxl/cxl.h
+> @@ -81,6 +81,19 @@ static inline int cxl_to_interleave_ways(u8 eniw)
+>         }
 >  }
 >
-> +static void release_cxl_region(void *r)
+> +static inline u8 cxl_to_eniw(u8 ways)
 > +{
-> +       struct cxl_region *cxlr = (struct cxl_region *)r;
-> +       struct cxl_decoder *rootd = rootd_from_region(cxlr);
-> +       struct resource *res = &rootd->platform_res;
-> +       resource_size_t start, size;
+> +       if (is_power_of_2(ways))
+> +               return ilog2(ways);
 > +
-> +       start = cxlr->res->start;
-> +       size = resource_size(cxlr->res);
+> +       return ways / 3 + 8;
+> +}
 > +
-> +       __release_region(res, start, size);
-> +       gen_pool_free(rootd->address_space, start, size);
+> +static inline u8 cxl_to_ig(u16 g)
+> +{
+> +       return ilog2(g) - 8;
+> +}
 
-If the need to keep the gen_pool in sync is dropped then this
-open-coded devm release handler can be replaced with
-__devm_request_region().
+These need better names to not be confused with the reverse helpers.
+How about interleave_ways_to_cxl_iw() and
+interleave_granularity_to_cxl_ig()?
 
+> +
+>  static inline bool cxl_is_interleave_ways_valid(int iw)
+>  {
+>         switch (iw) {
+> diff --git a/drivers/cxl/region.c b/drivers/cxl/region.c
+> index 5588873dd250..562c8720da56 100644
+> --- a/drivers/cxl/region.c
+> +++ b/drivers/cxl/region.c
+> @@ -29,6 +29,17 @@
+>
+>  #define region_ways(region) ((region)->config.interleave_ways)
+>  #define region_granularity(region) ((region)->config.interleave_granularity)
+> +#define region_eniw(region) (cxl_to_eniw(region_ways(region)))
+> +#define region_ig(region) (cxl_to_ig(region_granularity(region)))
+
+This feels like too much indirection...
+
+> +
+> +#define for_each_cxl_endpoint(ep, region, idx)                                 \
+> +       for (idx = 0, ep = (region)->config.targets[idx];                      \
+> +            idx < region_ways(region); ep = (region)->config.targets[++idx])
+
+Is the macro really buying anything in terms of readability?
+
+for (i = 0; i < region->interleave_ways; i++)
+
+...looks ok to me.
+
+> +
+> +#define for_each_cxl_decoder_target(dport, decoder, idx)                       \
+> +       for (idx = 0, dport = (decoder)->target[idx];                          \
+> +            idx < (decoder)->nr_targets - 1;                                  \
+> +            dport = (decoder)->target[++idx])
+
+Doesn't this need locking to protect against target array updates?
+Another detail that might be less obfuscated with an open coded loop.
+I would only expect a new for_each() macro when the iterator is a
+function call, not a simple array de-reference with an incremented
+index.
+
+>
+>  static struct cxl_decoder *rootd_from_region(struct cxl_region *cxlr)
+>  {
+> @@ -195,6 +206,30 @@ static bool qtg_match(const struct cxl_decoder *rootd,
+>         return true;
+>  }
+>
+> +static int get_unique_hostbridges(const struct cxl_region *cxlr,
+> +                                 struct cxl_port **hbs)
+> +{
+> +       struct cxl_memdev *ep;
+> +       int i, hb_count = 0;
+> +
+> +       for_each_cxl_endpoint(ep, cxlr, i) {
+> +               struct cxl_port *hb = get_hostbridge(ep);
+> +               bool found = false;
+> +               int j;
+> +
+> +               BUG_ON(!hb);
+
+Doesn't seem like a reason to crash the kernel.
+
+> +
+> +               for (j = 0; j < hb_count; j++) {
+> +                       if (hbs[j] == hb)
+> +                               found = true;
+> +               }
+> +               if (!found)
+> +                       hbs[hb_count++] = hb;
+> +       }
+> +
+> +       return hb_count;
 > +}
 > +
 >  /**
->   * sanitize_region() - Check is region is reasonably configured
->   * @cxlr: The region to check
-> @@ -129,8 +144,29 @@ static int sanitize_region(const struct cxl_region *cxlr)
->   */
->  static int allocate_address_space(struct cxl_region *cxlr)
+>   * region_xhb_config_valid() - determine cross host bridge validity
+>   * @cxlr: The region being programmed
+> @@ -208,7 +243,59 @@ static bool qtg_match(const struct cxl_decoder *rootd,
+>  static bool region_xhb_config_valid(const struct cxl_region *cxlr,
+>                                     const struct cxl_decoder *rootd)
 >  {
-> -       /* TODO */
+> -       /* TODO: */
+> +       const int rootd_eniw = cxl_to_eniw(rootd->interleave_ways);
+> +       const int rootd_ig = cxl_to_ig(rootd->interleave_granularity);
+> +       const int cxlr_ig = region_ig(cxlr);
+> +       const int cxlr_iw = region_ways(cxlr);
+> +       struct cxl_port *hbs[CXL_DECODER_MAX_INTERLEAVE];
 
-The problem with TODOs is now I forget which context calls
-allocate_address_space(). If the caller was added in this patch it
-would be reviewable, as is, I need to go to another window to search
-"allocate_address_space" to recall that it is called from
-cxl_region_probe(). That's too late as someone defining a region
-should know upfront a region creation time that space has been
-reserved, or not.
+I'm worried about the stack usage of this. 0day has not complained
+yet, but is it necessary to collect everything into an array versus
+having a helper that does the lookup based on an index? It's not like
+cxl_region_probe() is a fast path.
 
-> -       return 0;
-> +       struct cxl_decoder *rootd = rootd_from_region(cxlr);
-> +       unsigned long start;
+> +       struct cxl_dport *target;
+> +       int i;
+> +
+> +       i = get_unique_hostbridges(cxlr, hbs);
+> +       if (dev_WARN_ONCE(&cxlr->dev, i == 0, "Cannot find a valid host bridge\n"))
 
-s/unsigned long/resource_size_t/?
+Doesn't seem like a reason to crash the kernel. At least the topology
+basics like this can be validated at target assignment time.
+
+> +               return false;
+> +
+> +       /* Are all devices in this region on the same CXL host bridge */
+> +       if (i == 1)
+> +               return true;
+
+Doesn't this also need to check that the decoder is not interleaved
+across host bridges?
 
 > +
-> +       start = gen_pool_alloc(rootd->address_space, cxlr->config.size);
-> +       if (!start) {
-> +               dev_dbg(&cxlr->dev, "Couldn't allocate %lluM of address space",
-> +                       cxlr->config.size >> 20);
-> +               return -ENOMEM;
+> +       /* CFMWS.HBIG >= Device.Label.IG */
+> +       if (rootd_ig < cxlr_ig) {
+> +               dev_dbg(&cxlr->dev,
+> +                       "%s HBIG must be greater than region IG (%d < %d)\n",
+> +                       dev_name(&rootd->dev), rootd_ig, cxlr_ig);
+> +               return false;
 > +       }
 > +
-> +       cxlr->res =
-> +               __request_region(&rootd->platform_res, start, cxlr->config.size,
-> +                                dev_name(&cxlr->dev), IORESOURCE_MEM);
-> +       if (!cxlr->res) {
-> +               dev_dbg(&cxlr->dev, "Couldn't obtain region from %s (%pR)\n",
-> +                       dev_name(&rootd->dev), &rootd->platform_res);
-> +               gen_pool_free(rootd->address_space, start, cxlr->config.size);
-> +               return -ENOMEM;
+> +       /*
+> +        * ((2^(CFMWS.HBIG - Device.RLabel.IG) * (2^CFMWS.ENIW)) > Device.RLabel.NLabel)
+> +        *
+> +        * XXX: 2^CFMWS.ENIW is trying to decode the NIW. Instead, use the look
+> +        * up function which supports non power of 2 interleave configurations.
+> +        */
+> +       if (((1 << (rootd_ig - cxlr_ig)) * (1 << rootd_eniw)) > cxlr_iw) {
+
+Now here is where some helper macros could make things more readable.
+This looks like an acronym soup despite me being familiar with the CXL
+spec.
+
+> +               dev_dbg(&cxlr->dev,
+> +                       "granularity ratio requires a larger number of devices (%d) than currently configured (%d)\n",
+> +                       ((1 << (rootd_ig - cxlr_ig)) * (1 << rootd_eniw)),
+> +                       cxlr_iw);
+> +               return false;
 > +       }
 > +
-> +       dev_dbg(&cxlr->dev, "resource %pR", cxlr->res);
+> +       /*
+> +        * CFMWS.InterleaveTargetList[n] must contain all devices, x where:
+> +        *      (Device[x],RegionLabel.Position >> (CFMWS.HBIG -
+> +        *      Device[x].RegionLabel.InterleaveGranularity)) &
+> +        *      ((2^CFMWS.ENIW) - 1) = n
+> +        */
+> +       for_each_cxl_decoder_target(target, rootd, i) {
+> +               if (((i >> (rootd_ig - cxlr_ig))) &
+> +                   (((1 << rootd_eniw) - 1) != target->port_id)) {
+> +                       dev_dbg(&cxlr->dev,
+> +                               "One or more devices are not connected to the correct hostbridge.\n");
+> +                       return false;
+> +               }
+> +       }
 > +
-> +       return devm_add_action_or_reset(&cxlr->dev, release_cxl_region, cxlr);
+>         return true;
 >  }
 >
->  /**
 > --
 > 2.35.0
 >
