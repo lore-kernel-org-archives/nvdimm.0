@@ -1,50 +1,50 @@
-Received: from mail-pf1-f180.google.com (mail-pf1-f180.google.com [209.85.210.180])
+Received: from mail-pf1-f177.google.com (mail-pf1-f177.google.com [209.85.210.177])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD03F4C94
-	for <nvdimm@lists.linux.dev>; Fri, 18 Feb 2022 21:53:35 +0000 (UTC)
-Received: by mail-pf1-f180.google.com with SMTP id u16so3344707pfg.12
-        for <nvdimm@lists.linux.dev>; Fri, 18 Feb 2022 13:53:35 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 11D6B4C9C
+	for <nvdimm@lists.linux.dev>; Fri, 18 Feb 2022 23:43:01 +0000 (UTC)
+Received: by mail-pf1-f177.google.com with SMTP id y5so3557186pfe.4
+        for <nvdimm@lists.linux.dev>; Fri, 18 Feb 2022 15:43:01 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20210112.gappssmtp.com; s=20210112;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=PZXhaWbIOXPQuT8HgBVIhKVVo55naTZ6jyJBspy9kt4=;
-        b=CDiKJo+2jkhA827OSKNjg9iykVaGNhfa9oxg5fwXUWWCNQZOjLGAix7tO5YjzkL/Ss
-         XMwD5IMw3t94TowotEMldgov1lqUr7dMrANeViPK8j0yxC1/vaiydq+2+98UMRxbBHbH
-         fo3VqEeFUT3gyEFZXrIfl9rPjZDjZl/ITsoiPu1h8fgAep1fK3WuFDq0jsudLZM6eSZk
-         M32r6xV4d3PfvU+pD5osbN2GgyZkkHunjiUp9WGAvtN//QK/o2WIkWCvm46q5zhaKm51
-         Nay0QA1OOLi/CLSCOOGaeSyQzqPPgaydnbGIhQS4WjZ1JLu3MQmn3HCXr34rAVyzIH8p
-         xr5w==
+        bh=whNrfqumba6KC2p9V6Pih5sz382GhTFok83j4GryLwE=;
+        b=CUnXvna/nzoToDBNZHEzzpgX9e9lvq6R5InCaM/8HF+c7M9qkefrBPgyeiu5SgKjwk
+         jEZEUbXNb6amnFGNQzFKtKgy4IJ10aeKpa8wfzSW2C6y+Vd/+2SiGAjXMB3g2sFwqHSo
+         Za+If67L34iRq0VJSFjud16DUVXwrH4EtEpl8mWvfxEbPF3dHM64vQ+DAqaPBwVjZJ8R
+         Keeq+HV319aTYJohVMKRB7mh+p5elAQIdI1oNh2ZqwV8wtajiKftYdDj/AttAHquQqDu
+         N5vpefmxuZHO6pcjQRG5aDIGXR/EqqNOUTLUKQCTC3vCo6VPyV7pW49Omlz2eqRGqdGO
+         iyhA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=PZXhaWbIOXPQuT8HgBVIhKVVo55naTZ6jyJBspy9kt4=;
-        b=o33lb1bNWk07VyU2nphRNZUWilSkaJummhiZQ+kM6Ul+xnak9kgfMx38KUVvA3US8E
-         qzjE0QYDW02aOxhQkn7WHkF6LeYK+zSQDfzIdxk8UJxQpCi3OIZiVrLs85ZiSE2LNG6h
-         9vUg6jkTn5UbJ4vPFEqUuau4t5l9HbFcWAIyDXpxO9Jf7pTMpc+1XvC6iWu4I/Hbwvu9
-         kX2+XnnquNb71RTCbmWE3zQHyM6/ePt8kb8yF3v67a0U/r9+GB7fqc/h9mdrRuZfXagi
-         V0mya/uzHF1x2QZavjZ+f2yhivmvo7UaycRMm1M3VZBWcmex96j7BpgeUdj9HbF7IBrt
-         V3gA==
-X-Gm-Message-State: AOAM533fWIrkrIEYiDCgoRIm2beKY36FOVERRYiN00FlkB3iSXE+LBJ3
-	9nQJURBr5O5fKJEy20IMDeIP5TkNXn+lGjKePrim3g==
-X-Google-Smtp-Source: ABdhPJy5ssiXYUNonyfu/HjJBCdDQCLxCIw8UJpjcjS1wK2sHSvuZZeBneLbc0kOqNe87wUfmX2j7YIiihiYLa2Igmo=
-X-Received: by 2002:a05:6a00:8ca:b0:4e0:2ed3:5630 with SMTP id
- s10-20020a056a0008ca00b004e02ed35630mr9561872pfu.3.1645221215341; Fri, 18 Feb
- 2022 13:53:35 -0800 (PST)
+        bh=whNrfqumba6KC2p9V6Pih5sz382GhTFok83j4GryLwE=;
+        b=3+UUzJ/R2lvn6r6izAkI30hyJ0mlYAldriflMLFdpS86hYQDNqPd/MehTI3SfQ49ej
+         Hn/psOXEdQpCEHttr8pRTp29jwjuhNQenVGxnpB1jdA7oWNhp1nHq88VG9afTtjid3G1
+         Qw5K/kexkXdi/4alF1LjQMfqlF7+i1FO2g7P6JM6urobPmO137nIERees6Oqkoc/duHs
+         npuYP5UlI2cOg8nMDiRuH4U6rOEggswIxW2ooQx20wnN3JmjNYPPkkdVfSaf1iAcOhoS
+         HmiFj9TJaPnu3j+wrDL+1Jx+it+pg4ux1n/MQN7ilVKOSyYPxUECphV2RwgQo7OPEqRR
+         wfUA==
+X-Gm-Message-State: AOAM531DGLTVM76kYJXnPIKy3SDz2OYn3AdgYVhgBN/Qtcm3tk+FxIUQ
+	t2bylx/+DuUdQgTQNLM/s5gIrWzzxLG5U6WUjJ9bkg==
+X-Google-Smtp-Source: ABdhPJzZmMN0+mLLFV6zFhJAgugkrkGZAZ9hJGF12JTGW372UotC0sF+5W85WXQp3DLcCjcKKLEsii9H7AGCDkc/R9o=
+X-Received: by 2002:a62:ab09:0:b0:4e0:d967:318f with SMTP id
+ p9-20020a62ab09000000b004e0d967318fmr10148714pff.86.1645227781372; Fri, 18
+ Feb 2022 15:43:01 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20220128002707.391076-1-ben.widawsky@intel.com> <20220128002707.391076-10-ben.widawsky@intel.com>
-In-Reply-To: <20220128002707.391076-10-ben.widawsky@intel.com>
+References: <20220128002707.391076-1-ben.widawsky@intel.com> <20220128002707.391076-11-ben.widawsky@intel.com>
+In-Reply-To: <20220128002707.391076-11-ben.widawsky@intel.com>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 18 Feb 2022 13:53:24 -0800
-Message-ID: <CAPcyv4gA+iimMxGay2ri9eceOrYr_5Hhjfomzh910rQExOtoKg@mail.gmail.com>
-Subject: Re: [PATCH v3 09/14] cxl/region: Add infrastructure for decoder programming
+Date: Fri, 18 Feb 2022 15:42:50 -0800
+Message-ID: <CAPcyv4hF=DWWszAhrOTiBLFxm5s8gcJ_TcdVz9UNfYEuXNiJTw@mail.gmail.com>
+Subject: Re: [PATCH v3 10/14] cxl/region: Collect host bridge decoders
 To: Ben Widawsky <ben.widawsky@intel.com>
 Cc: linux-cxl@vger.kernel.org, patches@lists.linux.dev, 
 	Alison Schofield <alison.schofield@intel.com>, Ira Weiny <ira.weiny@intel.com>, 
@@ -55,19 +55,78 @@ Content-Type: text/plain; charset="UTF-8"
 
 On Thu, Jan 27, 2022 at 4:27 PM Ben Widawsky <ben.widawsky@intel.com> wrote:
 >
-> There are 3 steps in handling region programming once it has been
-> configured by userspace.
-> 1. Sanitize the parameters against the system.
-> 2. Collect decoder resources from the topology
-> 3. Program decoder resources
+> Part of host bridge verification in the CXL Type 3 Memory Device
+> Software Guide calculates the host bridge interleave target list (6th
+> step in the flow chart), ie. verification and state update are done in
+> the same step. Host bridge verification is already in place, so go ahead
+> and store the decoders with their target lists.
 >
-> The infrastructure added here addresses #2. Two new APIs are introduced
-> to allow collecting and returning decoder resources. Additionally the
-> infrastructure includes two lists managed by the region driver, a staged
-> list, and a commit list. The staged list contains those collected in
-> step #2, and the commit list are all the decoders programmed in step #3.
+> Switches are implemented in a separate patch.
+>
+> Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
+> ---
+>  drivers/cxl/region.c | 17 +++++++++++++++--
+>  1 file changed, 15 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/cxl/region.c b/drivers/cxl/region.c
+> index 145d7bb02714..b8982be13bfe 100644
+> --- a/drivers/cxl/region.c
+> +++ b/drivers/cxl/region.c
+> @@ -428,6 +428,7 @@ static bool region_hb_rp_config_valid(struct cxl_region *cxlr,
+>                 return simple_config(cxlr, hbs[0]);
+>
+>         for (i = 0; i < hb_count; i++) {
+> +               struct cxl_decoder *cxld;
+>                 int idx, position_mask;
+>                 struct cxl_dport *rp;
+>                 struct cxl_port *hb;
+> @@ -486,6 +487,18 @@ static bool region_hb_rp_config_valid(struct cxl_region *cxlr,
+>                                                 "One or more devices are not connected to the correct Host Bridge Root Port\n");
+>                                         goto err;
+>                                 }
+> +
+> +                               if (!state_update)
+> +                                       continue;
+> +
+> +                               if (dev_WARN_ONCE(&cxld->dev,
+> +                                                 port_grouping >= cxld->nr_targets,
+> +                                                 "Invalid port grouping %d/%d\n",
+> +                                                 port_grouping, cxld->nr_targets))
+> +                                       goto err;
+> +
+> +                               cxld->interleave_ways++;
+> +                               cxld->target[port_grouping] = get_rp(ep);
 
-I expect this patch will see significant rewrites with the ABI change
-to register endpoint decoders with regions. It's otherwise redundant
-to have a 'targets' array and then yet mosre linked lists to walk the
-decoders associated with a region.
+There is not enough context in the changelog to understand what this
+code is doing, but I do want to react to all this caching of objects
+without references. I'd prefer helpers that walk the device that are
+already synced with device_del() events than worry about these caches
+and when to invalidate their references.
+
+>                         }
+>                 }
+>         }
+> @@ -538,7 +551,7 @@ static bool rootd_valid(const struct cxl_region *cxlr,
+>
+>  struct rootd_context {
+>         const struct cxl_region *cxlr;
+> -       struct cxl_port *hbs[CXL_DECODER_MAX_INTERLEAVE];
+> +       const struct cxl_port *hbs[CXL_DECODER_MAX_INTERLEAVE];
+>         int count;
+>  };
+>
+> @@ -564,7 +577,7 @@ static struct cxl_decoder *find_rootd(const struct cxl_region *cxlr,
+>         struct rootd_context ctx;
+>         struct device *ret;
+>
+> -       ctx.cxlr = cxlr;
+> +       ctx.cxlr = (struct cxl_region *)cxlr;
+
+If const requires casting then don't use const.
+
+>
+>         ret = device_find_child((struct device *)&root->dev, &ctx, rootd_match);
+>         if (ret)
+> --
+> 2.35.0
+>
