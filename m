@@ -1,298 +1,331 @@
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B1814F21
-	for <nvdimm@lists.linux.dev>; Sat, 19 Feb 2022 00:25:19 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1645230320; x=1676766320;
-  h=from:to:cc:subject:date:message-id:references:
-   in-reply-to:content-id:content-transfer-encoding:
-   mime-version;
-  bh=YnzD9K76zDnuiF2eqvKbwhl9OYAtwJUYMO05uTX4l3U=;
-  b=hB6oQ5lR42gNjvi8r4pQjTgrE62fB11Q6ruzfd3tFASIQPZ+zqILL3oq
-   ShLe20VsM7zqClHCJmuCBxW6tRLTUilaz9ZUBMhrFkqxhNA1r4GlxOU6z
-   vjGKjXrsKC02zSC9FS1fZa8eib9bK9y0H/Go3tE1mriSXCkw5fE6HigGF
-   kTsq1QBkbNOI514MiT+37L9uSSGaYGHfuriKX9mgxSjJ9O+clidFzRkmu
-   Jgv55cdqmZRaWbLK7RBw4vPzbvUBa4SnbKAkZO0Ga19dXOuIY3qoWn/4m
-   2h3ZuI3IWbLRZZTWEk2VPE8rkjvI9+2J8l5QKwWbvmVd9iZm0aKYYJCJo
-   A==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10262"; a="275837603"
-X-IronPort-AV: E=Sophos;i="5.88,380,1635231600"; 
-   d="scan'208";a="275837603"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Feb 2022 16:25:19 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.88,380,1635231600"; 
-   d="scan'208";a="546553422"
-Received: from orsmsx606.amr.corp.intel.com ([10.22.229.19])
-  by orsmga008.jf.intel.com with ESMTP; 18 Feb 2022 16:25:18 -0800
-Received: from orsmsx610.amr.corp.intel.com (10.22.229.23) by
- ORSMSX606.amr.corp.intel.com (10.22.229.19) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.20; Fri, 18 Feb 2022 16:25:18 -0800
-Received: from orsmsx610.amr.corp.intel.com (10.22.229.23) by
- ORSMSX610.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.20; Fri, 18 Feb 2022 16:25:18 -0800
-Received: from orsedg603.ED.cps.intel.com (10.7.248.4) by
- orsmsx610.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.20 via Frontend Transport; Fri, 18 Feb 2022 16:25:18 -0800
-Received: from NAM12-MW2-obe.outbound.protection.outlook.com (104.47.66.49) by
- edgegateway.intel.com (134.134.137.100) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2308.20; Fri, 18 Feb 2022 16:25:17 -0800
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=jd4aiGWMf1+bkAYPikj3Rd3hljI5OfMdFDPQzCtZlo1wbFBa7D7opy1C72VdII8Ksis86cVqwBwJHAWA6WYxtLEwhkBqlNchlbszpW9lL46c+XGYeVwkPKQ/oO+cHDg5sfPCt73Ypq92AiAueKkLCNj2GlWTubiqiPOevN2dQOKWDAdkuTzvEiueexnxcXkywWr1twBZjZsan7kjtHwIULcNEIUe+ZkLHDSWYl1l5gjz+2V6tpk43ftrEg32o+q4EPkJaSAlHY7LXrdbXaFFJG53YcyWYwslCOqJdn2mP/OogOUjcfhkD4DiWvH7wj3poi+pk1iQzsCkqssBQhj7JQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=YnzD9K76zDnuiF2eqvKbwhl9OYAtwJUYMO05uTX4l3U=;
- b=RuTkTeVIRBUeKgQoxJIj4ggGyY8rFC6ApFh1dCe0IoXC9WNym7rHw6/UxImCIw4JIVUQrFZ8EqAmJnPnzgg4jXeQza7z9fgrUENbzomTnfHprfJnKTFkzFo8GxyX7aXc8wJP38TiAkp6H+4EhcSF1IFThnwy++eOV544mXf04Ly1CNQ/AVHI/dLoVGDq1uc55xi+w79InljhmtJCa46DWe5NVGtg78uafPCT6yhcUIH4eUFUvclTF4JinkzN3rQX6OdZnmSBfjszVLljWbUTNhyYVgmd3Qo7rIEIJJNTjXyeJ6R4vBSpss48VoB54lucz0ar68q/FNHSvOm5EWXjIQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Received: from MN2PR11MB3999.namprd11.prod.outlook.com (2603:10b6:208:154::32)
- by MWHPR11MB1630.namprd11.prod.outlook.com (2603:10b6:301:e::7) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4995.17; Sat, 19 Feb
- 2022 00:25:16 +0000
-Received: from MN2PR11MB3999.namprd11.prod.outlook.com
- ([fe80::d02d:976f:9b4b:4058]) by MN2PR11MB3999.namprd11.prod.outlook.com
- ([fe80::d02d:976f:9b4b:4058%7]) with mapi id 15.20.4995.024; Sat, 19 Feb 2022
- 00:25:15 +0000
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-To: "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, "vaibhav@linux.ibm.com"
-	<vaibhav@linux.ibm.com>
-CC: "Williams, Dan J" <dan.j.williams@intel.com>, "aneesh.kumar@linux.ibm.com"
-	<aneesh.kumar@linux.ibm.com>, "sbhat@linux.ibm.com" <sbhat@linux.ibm.com>,
-	"Weiny, Ira" <ira.weiny@intel.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8F905393
+	for <nvdimm@lists.linux.dev>; Sat, 19 Feb 2022 12:40:07 +0000 (UTC)
+Received: from pps.filterd (m0098419.ppops.net [127.0.0.1])
+	by mx0b-001b2d01.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 21JCGipa004231;
+	Sat, 19 Feb 2022 12:39:58 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
+ : in-reply-to : references : date : message-id : mime-version :
+ content-type; s=pp1; bh=peZXfNjMfPySnYJNhjOpCUNPLlJABAnFhtuiRRHqwvw=;
+ b=A2BbjuZzfGYktMm80aGlwDmdp56uFfH2dFI27PVChAzqKFgmF2v2D4gxUqT3nwvP/Wam
+ KDlYpg29CA7J6XTOlRPa6ZgQ3M1eYRnfUbsHAgYvj9EivnsGTl7peUQVGFFiGFXBfK1E
+ fvysg/Oqqs3YwmuB+DxzVR7xZrgbaKDxYMqLXXuPNDXzhpZxSPCACX+6N1m0oOTw2zXa
+ yOe/aLGZRj7RGZFjNvFMYL1gMZAXh1u/vTYHnPWp024h4agiRXB60lM0jLpLG69nMzRN
+ 819Guqfjo5UMyvTtkdLuzU4vzxB4cKtCJp2fTlWH/75MqIOpU8uut5bIDk029AUJWpTI 6w== 
+Received: from ppma01fra.de.ibm.com (46.49.7a9f.ip4.static.sl-reverse.com [159.122.73.70])
+	by mx0b-001b2d01.pphosted.com with ESMTP id 3eb0dt894h-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Sat, 19 Feb 2022 12:39:57 +0000
+Received: from pps.filterd (ppma01fra.de.ibm.com [127.0.0.1])
+	by ppma01fra.de.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 21JCWZOH009817;
+	Sat, 19 Feb 2022 12:39:56 GMT
+Received: from b06cxnps3074.portsmouth.uk.ibm.com (d06relay09.portsmouth.uk.ibm.com [9.149.109.194])
+	by ppma01fra.de.ibm.com with ESMTP id 3ear68hj1n-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Sat, 19 Feb 2022 12:39:56 +0000
+Received: from d06av24.portsmouth.uk.ibm.com (mk.ibm.com [9.149.105.60])
+	by b06cxnps3074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 21JCdmHl56689110
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Sat, 19 Feb 2022 12:39:48 GMT
+Received: from d06av24.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 661A042045;
+	Sat, 19 Feb 2022 12:39:48 +0000 (GMT)
+Received: from d06av24.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id A95024203F;
+	Sat, 19 Feb 2022 12:39:45 +0000 (GMT)
+Received: from vajain21.in.ibm.com (unknown [9.43.28.28])
+	by d06av24.portsmouth.uk.ibm.com (Postfix) with SMTP;
+	Sat, 19 Feb 2022 12:39:45 +0000 (GMT)
+Received: by vajain21.in.ibm.com (sSMTP sendmail emulation); Sat, 19 Feb 2022 18:09:44 +0530
+From: Vaibhav Jain <vaibhav@linux.ibm.com>
+To: "Verma, Vishal L" <vishal.l.verma@intel.com>,
+        "nvdimm@lists.linux.dev"
+ <nvdimm@lists.linux.dev>
+Cc: "Williams, Dan J" <dan.j.williams@intel.com>,
+        "aneesh.kumar@linux.ibm.com" <aneesh.kumar@linux.ibm.com>,
+        "sbhat@linux.ibm.com" <sbhat@linux.ibm.com>,
+        "Weiny, Ira"
+ <ira.weiny@intel.com>
 Subject: Re: [ndctl PATCH v4] libndctl: Update nvdimm flags in
  ndctl_cmd_submit()
-Thread-Topic: [ndctl PATCH v4] libndctl: Update nvdimm flags in
- ndctl_cmd_submit()
-Thread-Index: AQHYEWUquHiSWKDHeEyEG94NPf2YAKyaK4gA
-Date: Sat, 19 Feb 2022 00:25:15 +0000
-Message-ID: <555f5d150e4d55dce788bf0ebfbc029409b21260.camel@intel.com>
+In-Reply-To: <555f5d150e4d55dce788bf0ebfbc029409b21260.camel@intel.com>
 References: <20220124205822.1492702-1-vaibhav@linux.ibm.com>
-In-Reply-To: <20220124205822.1492702-1-vaibhav@linux.ibm.com>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-user-agent: Evolution 3.42.3 (3.42.3-1.fc35) 
-authentication-results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: b5cca2c8-f089-43b1-bf1d-08d9f33e4d57
-x-ms-traffictypediagnostic: MWHPR11MB1630:EE_
-x-ld-processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr,ExtFwd
-x-microsoft-antispam-prvs: <MWHPR11MB16309D8ED0AEA6A2E8BA5C35C7389@MWHPR11MB1630.namprd11.prod.outlook.com>
-x-ms-oob-tlc-oobclassifiers: OLM:551;
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: Hw5QrioPGu6uARVcAUkyBo6BU2gtWaohJGs3m5JJnXcBXo1RnPYK404mgJVSBmqQMSIE0Bknfrs29twta73pmX2+hzMWMBFvjq1iHr3EbhdN1SvHbDrKceHPjLKY0L6Zfhy/z83emhd9+3VSn8HK6wBLMDeSxQJc6wp48L/3lgSoWRmdYz+RkSpNmOVN6uB1IsRFcyHjFIQ+GQQex1lf10MR7TNRknJqgJ6lZmAJ3IWdhYS7b0dI+RgA7Ih9iy3SDvOg+laL0tjnDRTnBEczTTMgOTm2Q9H89B7MlLc0BMG78u0nFWa2qIeq51yYphnHW4nvQmzQHJwlZBnpu4WTnEJal4Vr4AFRlkWQrYv88MQSr5H2+4CLqUCL8lchqVyMI+VFn1vcbDCz0yRsdIICHzqTJYRKjpSwMnsZFd/aP9OBQU5Q+y62qPniiVln1KqUykHqXj9ATPlq0JhuzjCYzyESXaLJNHzTAYkdKidMOWyJ64wWdFVn7/zFYDAfvmvtKDx5T4xpPp1Ucpzj0B2kM7obie/Kzm2+SYm/b4j05yUXqFaQbNVd4WASvILAVGJGKLOCDMwAx2k/LAZPAb7UnPBOy3ZkB9l97Pq68+G5aPD7tvj3XDEY85Bgz2iK8Gjfc17NiNvJZT63121MRAjA3Y5li+nAgAakiaAMZGD5RQaBvB2tSwIfdpZA5dJ5qeW3lRkppABSsK38puTZapJ6Gg==
-x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MN2PR11MB3999.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230001)(366004)(316002)(54906003)(110136005)(5660300002)(8936002)(4326008)(71200400001)(8676002)(91956017)(66476007)(76116006)(66946007)(66556008)(66446008)(64756008)(86362001)(2616005)(36756003)(83380400001)(186003)(26005)(6512007)(38100700002)(15650500001)(508600001)(2906002)(6506007)(6486002)(38070700005)(82960400001)(122000001);DIR:OUT;SFP:1102;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0: =?utf-8?B?cGdORUFneTJZUG9SZ1NTRzF2RzlNdVFkc2VlczVyRms2bmpHT3ZZS3JXMWlL?=
- =?utf-8?B?WVk5QXRNb1paREtSRmV5WTZKNVNZQ3NzelJjMFhKSElSVm8vUEhFVVR6SEpK?=
- =?utf-8?B?bDU0dW9CTS93RTFWQmdPWEp0aFVyZzI5Y25qTkNDZGJndVVWeXRyMHdxTWM2?=
- =?utf-8?B?M3JPcEljVlduUjd4cjJmTXpBdHdNSG9NUjJHaENYUlpJLzlCWktKMW5pQUNj?=
- =?utf-8?B?Snl5M0lKK3J1M2JRSkMvWFBmM2JQeWVvaXU3YUsreUx0NVh2bFk5UFE4VEh3?=
- =?utf-8?B?SVBtSUF6bkwzWEREUnlDZ0Fpa0luRVFTU0pIZkZXeHdZVkQ1Z2FFdWNIZmxo?=
- =?utf-8?B?VUZzYTJpdmhGMkZCTEh3dkFXcHNnRHUzYjNpenA4MEhQTGJjcTc1QlVXck5n?=
- =?utf-8?B?MjFMdWJCZzVBMWNTZG4zMTB1b21aSWFreTZablhOeG5YR0FXSDVKVWxjd0Zt?=
- =?utf-8?B?RGlzS0w1ZHJjRXc2WGF2ZVo3TGdPQnRtL2RGaTdIWndNRmQvMW5wdDcrU0hs?=
- =?utf-8?B?RWxUdUVHcVVNK25nNm4ycEd6MzAvNENKUnQyam1LYTdDMjdhbG1RUWVWcEpQ?=
- =?utf-8?B?YmFIRzVHSlVXQnhhMm1ySjl4WjBZUGNvNFh0cXpJb0dKSFRZRzYrbFord1pi?=
- =?utf-8?B?T1JtMjJkdFBXaG1wd0o0Zk1vQ3E4U01WUFhkYTFHTmQzME5qZnR2cmVzcTFG?=
- =?utf-8?B?QTduSjBRdUlUNEgxc3JEWFRhUDZ6ZHg2dk5zNkcvQVlxUWpKMHFqRkJ6R3h2?=
- =?utf-8?B?ckErUjNyMzJsOXJSb3VwTFQ5cm44L3JSek5OcWZxVThJRmhORGRsQnZoNk1t?=
- =?utf-8?B?VGFYYWE5bjNyWU0xUENMUEE2UUpIeTl4bVByMVRpRnZ2Sk9McFNzNjN2b0R5?=
- =?utf-8?B?bUxZQ01vWVUvOVdMZUh5NElpS2N6S3hVcFlDbmNxZmE5WjYzR3l5a1dNUVdY?=
- =?utf-8?B?S0FDYzRuT2xXaTVSYjg1ZmpNMEdpRDZsd3FIbHZNT2R0YW0yVytDbjJDMEJq?=
- =?utf-8?B?eFNKOTBKQTAzNTJKcCsxcmxkUUFqNGNucWdtTkc0c0UrajI3d2FHdDR0SG1W?=
- =?utf-8?B?QkRNMHhuRm1mbGpRbm53WXgwUWJSKzRycGJtNU50SXRjMGt3LzRDSmY5cnhV?=
- =?utf-8?B?Z0tSdDhqRHNLVWkrUVEzUW5oZGVTODN6WUNYclRYalRzVHNrNFA5cmJZWmRS?=
- =?utf-8?B?VUNjQVp0Ny96Wkk0anQxRzNCYlZvenN1S3RseDBHbWNrejdjaENwYXcxdGlY?=
- =?utf-8?B?ZlRHR3NRdTYzUTFVaFRIUFdrOG5Ed1VvWlJLaG81ZTFzb1lQRUJ2ZlgvdWFp?=
- =?utf-8?B?RzVUZ2dGN0tTdWxkcERHd0lQWWhMeHNlUExaTEMvbkd1YndLcGdVV0RjS2pB?=
- =?utf-8?B?WVk4WjhkVUhaYXpUZlFFL2NJQzNsLysyQXFQMGlHRi9yZEswYktVbVFxK0xI?=
- =?utf-8?B?ZmNhOEMxS2VZTVJpeS9NS3NWd296eW1kNURVUkZ4SldvaTBNV05wOU9jdnJN?=
- =?utf-8?B?clI0Q1FlRURiaFhqWDNJTkhsVzgyakdlMTdWSEtJNWVORHpaN2FsRmt1L2tP?=
- =?utf-8?B?cFRGQmd1MHFmUXNHa1BNUG53UUJaUExHQnZneG02dlhJb21hYmVJeU9MWXlD?=
- =?utf-8?B?dlliamwzbERaTDZQdDl2bUQ2NXY1TGxIbCttOHFKaE83VWlCRklrQnJFWE5a?=
- =?utf-8?B?dWRPck1YMTBSZzJHdStXZU10MDRCQzFZSWJ4cStGbVYxT0p6NUNuRTFGaG9F?=
- =?utf-8?B?U3FVU0VSWmFBSHZNMUYwTUtqKzNQQTFEdVRuNVBRZThOMmptMzJEdS9rRk5K?=
- =?utf-8?B?TTlNRDMybWJENjFNMFZFVTRGT2ZicDQxRUZGYm1Gc2xyamtaTyt2Vm9JUjQy?=
- =?utf-8?B?S1JWbXhtVXZxWWJFUU50RURGNWM0aC9xZWd4Mlg2eFBmdVRlT2MzU2RtZit5?=
- =?utf-8?B?NmZ2WFJNdW1IM2FrelNGTDdKWGJhT0FNMW4rNzRiUWd0YU9abWdRdUpXNVk5?=
- =?utf-8?B?bHYvZzdxaVk1eWRrWXA5L3F1aHl4TEFGSzltQTRwZzV4WkR1MVFmbVVsZTRD?=
- =?utf-8?B?N0tJTVYxTTZsV0lCNndvMVZKOGw4Y2NHajZkOVpHN0h1ZjZQUUF5c2pUZDFB?=
- =?utf-8?B?dVBoeFZ3ZCtjWXpMQnBjN1lqN0dteDhKWk1lOUQwYnpMNXMwQWxWT3dnbU0r?=
- =?utf-8?B?QWlGMFlaRzQ4WWtUTEJleFppVUgzN2o1S01HV09vWG8wRnhqU3ZtOU5Xb0ZI?=
- =?utf-8?Q?sIKOLGaaNyz9J+vSBglwOvcNp5vtocRo61d4HlrH5E=3D?=
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <933202F5A0D12C41AC4AE791BED121A5@namprd11.prod.outlook.com>
-Content-Transfer-Encoding: base64
+ <555f5d150e4d55dce788bf0ebfbc029409b21260.camel@intel.com>
+Date: Sat, 19 Feb 2022 18:09:44 +0530
+Message-ID: <87h78v9gj3.fsf@vajain21.in.ibm.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: MN2PR11MB3999.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: b5cca2c8-f089-43b1-bf1d-08d9f33e4d57
-X-MS-Exchange-CrossTenant-originalarrivaltime: 19 Feb 2022 00:25:15.7941
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: cIxoIUTkCZLC5ZJT3fZ101yHxCYvimViEQhUGJH42ftpGOXNMhHpv+qVlWzeIt2nUh1tjFlL3A93C1N6gcjSzbc0tSZv0u8DI6rpPDQKYrc=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MWHPR11MB1630
-X-OriginatorOrg: intel.com
+Content-Type: text/plain
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: eepu8abOaUKulzwXQOI_WpVHb62B0olM
+X-Proofpoint-ORIG-GUID: eepu8abOaUKulzwXQOI_WpVHb62B0olM
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.205,Aquarius:18.0.816,Hydra:6.0.425,FMLib:17.11.62.513
+ definitions=2022-02-19_04,2022-02-18_01,2021-12-02_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
+ malwarescore=0 mlxscore=0 adultscore=0 clxscore=1011 mlxlogscore=999
+ phishscore=0 spamscore=0 lowpriorityscore=0 impostorscore=0 bulkscore=0
+ suspectscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2201110000 definitions=main-2202190081
 
-T24gVHVlLCAyMDIyLTAxLTI1IGF0IDAyOjI4ICswNTMwLCBWYWliaGF2IEphaW4gd3JvdGU6DQo+
-IFByZXNlbnRseSBhZnRlciBwZXJmb3JtaW5nIGFuIGluamVjdC1zbWFydCB0aGUgbnZkaW1tIGZs
-YWdzIHJlcG9ydGVkIGFyZQ0KPiBvdXQgb2YgZGF0ZSBhcyBzaG93biBiZWxvdyB3aGVyZSBubyAn
-c21hcnRfbm90aWZ5JyBvciAnZmx1c2hfZmFpbCcgZmxhZ3MNCj4gd2VyZSByZXBvcnRlZCBldmVu
-IHRob3VnaCB0aGV5IGFyZSBzZXQgYWZ0ZXIgaW5qZWN0aW5nIHRoZSBzbWFydCBlcnJvcjoNCj4g
-DQo+ICQgc3VkbyBpbmplY3Qtc21hcnQgLWZVIG5tZW0wDQo+IFsNCj4gICB7DQo+ICAgICAiZGV2
-Ijoibm1lbTAiLA0KPiAgICAgImhlYWx0aCI6ew0KPiAgICAgICAiaGVhbHRoX3N0YXRlIjoiZmF0
-YWwiLA0KPiAgICAgICAic2h1dGRvd25fc3RhdGUiOiJkaXJ0eSIsDQo+ICAgICAgICJzaHV0ZG93
-bl9jb3VudCI6MA0KPiAgICAgfQ0KPiAgIH0NCj4gXQ0KPiAkIHN1ZG8gY2F0IC9zeXMvY2xhc3Mv
-bmQvbmRjdGwwL2RldmljZS9ubWVtMC9wYXByL2ZsYWdzDQo+IGZsdXNoX2ZhaWwgc21hcnRfbm90
-aWZ5DQo+IA0KPiBUaGlzIGhhcHBlbnMgYmVjYXVzZSBudmRpbW0gZmxhZ3MgYXJlIG9ubHkgcGFy
-c2VkIG9uY2UgZHVyaW5nIGl0cyBwcm9iZQ0KPiBhbmQgbm90IHJlZnJlc2hlZCBldmVuIGFmdGVy
-IGEgaW5qZWN0LXNtYXJ0IG9wZXJhdGlvbiBtYWtlcyB0aGVtIG91dCBvZg0KPiBkYXRlLiBUbyBm
-aXggdGhpcyB0aGUgcGF0Y2ggZm9yY2VzIGFuIHVwZGF0ZSBvZiBudmRpbW0gZmxhZ3MgdmlhIG5l
-d2x5DQo+IGludHJvZHVjZWQgbmRjdGxfcmVmcmVzaF9kaW1tX2ZsYWdzKCkgdGhhdHMgY2FsbGVk
-IHN1Y2Nlc3NmdWxseSBzdWJtaXR0aW5nDQo+IGEgJ3N0cnVjdCBuZGN0bF9jbWQnIGluIG5kY3Rs
-X2NtZF9zdWJtaXQoKS4gVGhpcyBlbnN1cmVzIHRoYXQgY29ycmVjdA0KPiBudmRpbW0gZmxhZ3Mg
-YXJlIHJlcG9ydGVkIGFmdGVyIGFuIGludGVyYWN0aW9uIHdpdGggdGhlIGtlcm5lbCBtb2R1bGUg
-d2hpY2gNCj4gbWF5IHRyaWdnZXIgYSBjaGFuZ2UgbnZkaW1tLWZsYWdzLiBXaXRoIHRoaXMgaW1w
-bGVtZW50ZWQgY29ycmVjdCBudmRpbW0NCj4gZmxhZ3MgYXJlIHJlcG9ydGVkIGFmdGVyIGEgaW5q
-ZWN0LXNtYXJ0IG9wZXJhdGlvbjoNCj4gDQo+ICQgc3VkbyBuZGN0bCBpbmplY3Qtc21hcnQgLWZV
-IG5tZW0wDQo+IFsNCj4gICB7DQo+ICAgICAiZGV2Ijoibm1lbTAiLA0KPiAgICAgImZsYWdfZmFp
-bGVkX2ZsdXNoIjp0cnVlLA0KPiAgICAgImZsYWdfc21hcnRfZXZlbnQiOnRydWUsDQo+ICAgICAi
-aGVhbHRoIjp7DQo+ICAgICAgICJoZWFsdGhfc3RhdGUiOiJmYXRhbCIsDQo+ICAgICAgICJzaHV0
-ZG93bl9zdGF0ZSI6ImRpcnR5IiwNCj4gICAgICAgInNodXRkb3duX2NvdW50IjowDQo+ICAgICB9
-DQo+ICAgfQ0KPiBdDQo+IA0KPiBUaGUgcGF0Y2ggcmVmYWN0b3JzIHBvcHVsYXRlX2RpbW1fYXR0
-cmlidXRlcygpIHRvIG1vdmUgdGhlIG52ZGltbSBmbGFncw0KPiBwYXJzaW5nIGNvZGUgdG8gdGhl
-IG5ld2x5IGludHJvZHVjZWQgbmRjdGxfcmVmcmVzaF9kaW1tX2ZsYWdzKCkNCj4gZXhwb3J0LiBT
-aW5jZSByZWFkaW5nIG52ZGltbSBmbGFncyByZXF1aXJlcyBjb25zdHJ1Y3RpbmcgcGF0aCB1c2lu
-Zw0KPiAnYnVzX3ByZWZpeCcgd2hpY2ggaXMgb25seSBhdmFpbGFibGUgZHVyaW5nIGFkZF9kaW1t
-KCksIHRoZSBwYXRjaA0KPiBpbnRyb2R1Y2VzIGEgbmV3IG1lbWJlciAnc3RydWN0IG5kY3RsX2Rp
-bW0uYnVzX3ByZWZpeCcgdG8gY2FjaGUgaXRzDQo+IHZhbHVlLiBEdXJpbmcgbmRjdGxfcmVmcmVz
-aF9kaW1tX2ZsYWdzKCkgdGhlIGNhY2hlZCBidXNfcHJlZml4IGlzIHVzZWQgdG8NCj4gcmVhZCB0
-aGUgY29udGVudHMgb2YgdGhlIG52ZGltbSBmbGFnIGZpbGUgYW5kIHBhc3MgaXQgb24gdG8gdGhl
-IGFwcHJvcHJpYXRlDQo+IGZsYWcgcGFyc2luZyBmdW5jdGlvbi4gRmluYWxseSBuZGN0bF9yZWZy
-ZXNoX2RpbW1fZmxhZ3MoKSBpcyBpbnZva2VkIGF0IHRoZQ0KPiBlbmQgb2YgbmRjdGxfY21kX3N1
-Ym1pdCgpIGlmIG5kLWNvbW1hbmQgc3VibWlzc2lvbiBzdWNjZWVkcy4NCg0KSSB0aGluayBpbnN0
-ZWFkIG9mIG1ha2luZyBpdCBuZGN0bF9jbWRfc3VibWl0KCkncyByZXNwb25zaWJpbGl0eSB0bw0K
-dXBkYXRlIGFueSBzdGFsZSBzdGF0ZSwgd2Ugc2hvdWxkIHNpbXBseSBORENUTF9FWFBPUlQgdGhl
-IHJlZnJlc2gNCmZ1bmN0aW9uIChhbHNvIHJlbmFtZSBpdCB0byBjb25mb3JtIHRvIG90aGVyIG5k
-Y3RsX2RpbW0gZnVuY3Rpb25zIC0NCm5kY3RsX2RpbW1fcmVmcmVzaF9mbGFncygpKS4gVGhlbiBp
-ZiBhbnkgb3BlcmF0aW9uIGV4cGVjdHMgdG8gY2hhbmdlDQpzdGF0ZSwgaXQgY2FuIGNhbGwgdGhl
-IHJlZnJlc2ggQVBJIGRpcmVjdGx5Lg0KDQpJbiB0aGlzIGNhc2UsIG5kY3RsL2luamVjdC1zbWFy
-dC5jIHdvdWxkIGNhbGwNCm5kY3RsX2RpbW1fcmVmcmVzaF9mbGFncygpIGlmIGl0cyBjb21tYW5k
-IHN1Ym1pc3Npb24gc3VjY2VlZGVkLg0KDQpBbHNvIHNvbWUgbWlub3IgY29tbWVudHMgYmVsb3cu
-DQoNCj4gDQo+IFNpZ25lZC1vZmYtYnk6IFZhaWJoYXYgSmFpbiA8dmFpYmhhdkBsaW51eC5pYm0u
-Y29tPg0KPiBTaWduZWQtb2ZmLWJ5OiBTaGl2YXByYXNhZCBHIEJoYXQgPHNiaGF0QGxpbnV4Lmli
-bS5jb20+DQo+IC0tLQ0KPiBDaGFuZ2Vsb2c6DQo+IA0KPiBTaW5jZSB2My1SZXNlbmQ6DQo+IDE2
-NDAwOTc4OTgxNi43NDQxMzkuMjg3MDc3OTAxNjUxMTI4MzkwNy5zdGdpdEBsZXA4Yy5hdXMuc3Rn
-bGFicy5pYm0uY29tDQo+ICogUmViYXNlZCB0aGlzIG9uIHRvcCBvZiBsYXRlc3QgbmRjdGwtcGVu
-ZGluZyB0cmVlIHRoYXQgaW5jbHVkZXMgY2hhbmdlcyB0bw0KPiBzd2l0Y2ggdG8gbWVzb24gYnVp
-bGQgc3lzdGVtLg0KPiAtLS0NCj4gIG5kY3RsL2xpYi9saWJuZGN0bC5jIHwgNTIgKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKysrKystLS0tLS0tLS0tLS0NCj4gIG5kY3RsL2xpYi9wcml2YXRl
-LmggIHwgIDEgKw0KPiAgbmRjdGwvbGlibmRjdGwuaCAgICAgfCAgMSArDQo+ICAzIGZpbGVzIGNo
-YW5nZWQsIDQwIGluc2VydGlvbnMoKyksIDE0IGRlbGV0aW9ucygtKQ0KPiANCj4gZGlmZiAtLWdp
-dCBhL25kY3RsL2xpYi9saWJuZGN0bC5jIGIvbmRjdGwvbGliL2xpYm5kY3RsLmMNCj4gaW5kZXgg
-NTk3OWE5MmMxMTNjLi5hYmZmNGVjZWNhMjcgMTAwNjQ0DQo+IC0tLSBhL25kY3RsL2xpYi9saWJu
-ZGN0bC5jDQo+ICsrKyBiL25kY3RsL2xpYi9saWJuZGN0bC5jDQo+IEBAIC02MDgsNiArNjA4LDcg
-QEAgc3RhdGljIHZvaWQgZnJlZV9kaW1tKHN0cnVjdCBuZGN0bF9kaW1tICpkaW1tKQ0KPiAgCWZy
-ZWUoZGltbS0+dW5pcXVlX2lkKTsNCj4gIAlmcmVlKGRpbW0tPmRpbW1fYnVmKTsNCj4gIAlmcmVl
-KGRpbW0tPmRpbW1fcGF0aCk7DQo+ICsJZnJlZShkaW1tLT5idXNfcHJlZml4KTsNCj4gIAlpZiAo
-ZGltbS0+bW9kdWxlKQ0KPiAgCQlrbW9kX21vZHVsZV91bnJlZihkaW1tLT5tb2R1bGUpOw0KPiAg
-CWlmIChkaW1tLT5oZWFsdGhfZXZlbnRmZCA+IC0xKQ0KPiBAQCAtMTY3MCwxNCArMTY3MSwzNCBA
-QCBzdGF0aWMgaW50IG5kY3RsX2JpbmQoc3RydWN0IG5kY3RsX2N0eCAqY3R4LCBzdHJ1Y3Qga21v
-ZF9tb2R1bGUgKm1vZHVsZSwNCj4gIHN0YXRpYyBpbnQgbmRjdGxfdW5iaW5kKHN0cnVjdCBuZGN0
-bF9jdHggKmN0eCwgY29uc3QgY2hhciAqZGV2cGF0aCk7DQo+ICBzdGF0aWMgc3RydWN0IGttb2Rf
-bW9kdWxlICp0b19tb2R1bGUoc3RydWN0IG5kY3RsX2N0eCAqY3R4LCBjb25zdCBjaGFyICphbGlh
-cyk7DQo+ICANCj4gK3ZvaWQgbmRjdGxfcmVmcmVzaF9kaW1tX2ZsYWdzKHN0cnVjdCBuZGN0bF9k
-aW1tICpkaW1tKQ0KPiArew0KPiArCXN0cnVjdCBuZGN0bF9jdHggKmN0eCA9IGRpbW0tPmJ1cy0+
-Y3R4Ow0KPiArCWNoYXIgKnBhdGggPSBkaW1tLT5kaW1tX2J1ZjsNCj4gKwljaGFyIGJ1ZltTWVNG
-U19BVFRSX1NJWkVdOw0KPiArDQo+ICsJLyogQ29uc3RydWN0IHBhdGggdG8gZGltbSBmbGFncyBz
-eXNmcyBmaWxlICovDQo+ICsJc3ByaW50ZihwYXRoLCAiJXMvJXMvZmxhZ3MiLCBkaW1tLT5kaW1t
-X3BhdGgsIGRpbW0tPmJ1c19wcmVmaXgpOw0KPiArDQo+ICsJaWYgKHN5c2ZzX3JlYWRfYXR0cihj
-dHgsIHBhdGgsIGJ1ZikgPCAwKQ0KPiArCQlyZXR1cm47DQo+ICsNCj4gKwkvKiBSZXNldCB0aGUg
-ZmxhZ3MgKi8NCj4gKwlkaW1tLT5mbGFncy5mbGFncyA9IDA7DQo+ICsJaWYgKG5kY3RsX2J1c19o
-YXNfbmZpdChkaW1tLT5idXMpKQ0KPiArCQlwYXJzZV9uZml0X21lbV9mbGFncyhkaW1tLCBidWYp
-Ow0KPiArCWVsc2UgaWYgKG5kY3RsX2J1c19pc19wYXByX3NjbShkaW1tLT5idXMpKQ0KPiArCQlw
-YXJzZV9wYXByX2ZsYWdzKGRpbW0sIGJ1Zik7DQo+ICt9DQo+ICsNCj4gIHN0YXRpYyBpbnQgcG9w
-dWxhdGVfZGltbV9hdHRyaWJ1dGVzKHN0cnVjdCBuZGN0bF9kaW1tICpkaW1tLA0KPiAtCQkJCSAg
-ICBjb25zdCBjaGFyICpkaW1tX2Jhc2UsDQo+IC0JCQkJICAgIGNvbnN0IGNoYXIgKmJ1c19wcmVm
-aXgpDQo+ICsJCQkJICAgIGNvbnN0IGNoYXIgKmRpbW1fYmFzZSkNCj4gIHsNCj4gIAlpbnQgaSwg
-cmMgPSAtMTsNCj4gIAljaGFyIGJ1ZltTWVNGU19BVFRSX1NJWkVdOw0KPiAgCXN0cnVjdCBuZGN0
-bF9jdHggKmN0eCA9IGRpbW0tPmJ1cy0+Y3R4Ow0KPiAgCWNoYXIgKnBhdGggPSBjYWxsb2MoMSwg
-c3RybGVuKGRpbW1fYmFzZSkgKyAxMDApOw0KPiArCWNvbnN0IGNoYXIgKmJ1c19wcmVmaXggPSBk
-aW1tLT5idXNfcHJlZml4Ow0KPiAgDQo+ICAJaWYgKCFwYXRoKQ0KPiAgCQlyZXR1cm4gLUVOT01F
-TTsNCj4gQEAgLTE3NjEsMTYgKzE3ODIsMTAgQEAgc3RhdGljIGludCBwb3B1bGF0ZV9kaW1tX2F0
-dHJpYnV0ZXMoc3RydWN0IG5kY3RsX2RpbW0gKmRpbW0sDQo+ICAJfQ0KPiAgDQo+ICAJc3ByaW50
-ZihwYXRoLCAiJXMvJXMvZmxhZ3MiLCBkaW1tX2Jhc2UsIGJ1c19wcmVmaXgpOw0KPiAtCWlmIChz
-eXNmc19yZWFkX2F0dHIoY3R4LCBwYXRoLCBidWYpID09IDApIHsNCj4gLQkJaWYgKG5kY3RsX2J1
-c19oYXNfbmZpdChkaW1tLT5idXMpKQ0KPiAtCQkJcGFyc2VfbmZpdF9tZW1fZmxhZ3MoZGltbSwg
-YnVmKTsNCj4gLQkJZWxzZSBpZiAobmRjdGxfYnVzX2lzX3BhcHJfc2NtKGRpbW0tPmJ1cykpIHsN
-Cj4gLQkJCWRpbW0tPmNtZF9mYW1pbHkgPSBOVkRJTU1fRkFNSUxZX1BBUFI7DQo+IC0JCQlwYXJz
-ZV9wYXByX2ZsYWdzKGRpbW0sIGJ1Zik7DQo+IC0JCX0NCj4gLQl9DQo+IC0NCj4gIAlkaW1tLT5o
-ZWFsdGhfZXZlbnRmZCA9IG9wZW4ocGF0aCwgT19SRE9OTFl8T19DTE9FWEVDKTsNCj4gKw0KPiAr
-CW5kY3RsX3JlZnJlc2hfZGltbV9mbGFncyhkaW1tKTsNCj4gKw0KPiAgCXJjID0gMDsNCj4gICBl
-cnJfcmVhZDoNCj4gIA0KPiBAQCAtMTgyNiw4ICsxODQxLDkgQEAgc3RhdGljIGludCBhZGRfcGFw
-cl9kaW1tKHN0cnVjdCBuZGN0bF9kaW1tICpkaW1tLCBjb25zdCBjaGFyICpkaW1tX2Jhc2UpDQo+
-ICANCj4gIAkJcmMgPSAwOw0KPiAgCX0gZWxzZSBpZiAoc3RyY21wKGJ1ZiwgIm52ZGltbV90ZXN0
-IikgPT0gMCkgew0KPiArCQlkaW1tLT5jbWRfZmFtaWx5ID0gTlZESU1NX0ZBTUlMWV9QQVBSOw0K
-PiAgCQkvKiBwcm9iZSB2aWEgY29tbW9uIHBvcHVsYXRlX2RpbW1fYXR0cmlidXRlcygpICovDQo+
-IC0JCXJjID0gcG9wdWxhdGVfZGltbV9hdHRyaWJ1dGVzKGRpbW0sIGRpbW1fYmFzZSwgInBhcHIi
-KTsNCj4gKwkJcmMgPSBwb3B1bGF0ZV9kaW1tX2F0dHJpYnV0ZXMoZGltbSwgZGltbV9iYXNlKTsN
-Cj4gIAl9DQo+ICBvdXQ6DQo+ICAJZnJlZShwYXRoKTsNCj4gQEAgLTE5MjQsOSArMTk0MCwxMyBA
-QCBzdGF0aWMgdm9pZCAqYWRkX2RpbW0odm9pZCAqcGFyZW50LCBpbnQgaWQsIGNvbnN0IGNoYXIg
-KmRpbW1fYmFzZSkNCj4gIAlkaW1tLT5mb3JtYXRzID0gZm9ybWF0czsNCj4gIAkvKiBDaGVjayBp
-ZiB0aGUgZ2l2ZW4gZGltbSBzdXBwb3J0cyBuZml0ICovDQo+ICAJaWYgKG5kY3RsX2J1c19oYXNf
-bmZpdChidXMpKSB7DQo+IC0JCXJjID0gcG9wdWxhdGVfZGltbV9hdHRyaWJ1dGVzKGRpbW0sIGRp
-bW1fYmFzZSwgIm5maXQiKTsNCj4gKwkJZGltbS0+YnVzX3ByZWZpeCA9IHN0cmR1cCgibmZpdCIp
-Ow0KPiArCQlyYyA9IGRpbW0tPmJ1c19wcmVmaXggPw0KPiArCQkJcG9wdWxhdGVfZGltbV9hdHRy
-aWJ1dGVzKGRpbW0sIGRpbW1fYmFzZSkgOiAtRU5PTUVNDQo+ICAJfSBlbHNlIGlmIChuZGN0bF9i
-dXNfaGFzX29mX25vZGUoYnVzKSkgew0KPiAtCQlyYyA9IGFkZF9wYXByX2RpbW0oZGltbSwgZGlt
-bV9iYXNlKTsNCj4gKwkJZGltbS0+YnVzX3ByZWZpeCA9IHN0cmR1cCgicGFwciIpOw0KPiArCQly
-YyA9IGRpbW0tPmJ1c19wcmVmaXggPw0KPiArCQkJYWRkX3BhcHJfZGltbShkaW1tLCBkaW1tX2Jh
-c2UpIDogLUVOT01FTTsNCg0KRm9yIGJvdGggb2YgdGhlIGFib3ZlLCBpdCB3b3VsZCBiZSBhIGJp
-dCBtb3JlIHJlYWRhYmxlIHRvIGp1c3QgcmV0dXJuDQpFTk9NRU0gZGlyZWN0bHkgYWZ0ZXIgc3Ry
-ZHVwKCkgaWYgaXQgZmFpbHMsIGFuZCB0aGVuIGNhcnJ5IG9uIHdpdGgNCmFkZF88Zm9vPl9kaW1t
-KCkuDQoNCglkaW1tLT5idXNfcHJlZml4ID0gc3RyZHVwKCJwYXByIik7DQoJaWYgKCFkaW1tLT5i
-dXNfcHJlZml4KQ0KCQlyZXR1cm4gLUVOT01FTTsNCglyYyA9IGFkZF9wYXByX2RpbW0oZGltbSwg
-ZGltbV9iYXNlKTsNCgkuLi4NCg0KPiAgCX0NCj4gIA0KPiAgCWlmIChyYyA9PSAtRU5PREVWKSB7
-DQo+IEBAIC0zNTA2LDYgKzM1MjYsMTAgQEAgTkRDVExfRVhQT1JUIGludCBuZGN0bF9jbWRfc3Vi
-bWl0KHN0cnVjdCBuZGN0bF9jbWQgKmNtZCkNCj4gIAkJcmMgPSAtRU5YSU87DQo+ICAJfQ0KPiAg
-CWNsb3NlKGZkKTsNCj4gKw0KPiArCS8qIHVwZGF0ZSBkaW1tLWZsYWdzIGlmIGNvbW1hbmQgc3Vi
-bWl0dGVkIHN1Y2Nlc3NmdWxseSAqLw0KPiArCWlmICghcmMgJiYgY21kLT5kaW1tKQ0KPiArCQlu
-ZGN0bF9yZWZyZXNoX2RpbW1fZmxhZ3MoY21kLT5kaW1tKTsNCj4gICBvdXQ6DQo+ICAJY21kLT5z
-dGF0dXMgPSByYzsNCj4gIAlyZXR1cm4gcmM7DQo+IGRpZmYgLS1naXQgYS9uZGN0bC9saWIvcHJp
-dmF0ZS5oIGIvbmRjdGwvbGliL3ByaXZhdGUuaA0KPiBpbmRleCA0ZDg2MjI5Nzg3OTAuLmU1YzU2
-Mjk1NTU2ZCAxMDA2NDQNCj4gLS0tIGEvbmRjdGwvbGliL3ByaXZhdGUuaA0KPiArKysgYi9uZGN0
-bC9saWIvcHJpdmF0ZS5oDQo+IEBAIC03NSw2ICs3NSw3IEBAIHN0cnVjdCBuZGN0bF9kaW1tIHsN
-Cj4gIAljaGFyICp1bmlxdWVfaWQ7DQo+ICAJY2hhciAqZGltbV9wYXRoOw0KPiAgCWNoYXIgKmRp
-bW1fYnVmOw0KPiArCWNoYXIgKmJ1c19wcmVmaXg7DQo+ICAJaW50IGhlYWx0aF9ldmVudGZkOw0K
-PiAgCWludCBidWZfbGVuOw0KPiAgCWludCBpZDsNCj4gZGlmZiAtLWdpdCBhL25kY3RsL2xpYm5k
-Y3RsLmggYi9uZGN0bC9saWJuZGN0bC5oDQo+IGluZGV4IDRkNWNkYmY2ZjYxOS4uYjFiYWZkNmQ5
-Nzg4IDEwMDY0NA0KPiAtLS0gYS9uZGN0bC9saWJuZGN0bC5oDQo+ICsrKyBiL25kY3RsL2xpYm5k
-Y3RsLmgNCj4gQEAgLTIyMyw2ICsyMjMsNyBAQCBpbnQgbmRjdGxfZGltbV9pc19hY3RpdmUoc3Ry
-dWN0IG5kY3RsX2RpbW0gKmRpbW0pOw0KPiAgaW50IG5kY3RsX2RpbW1faXNfZW5hYmxlZChzdHJ1
-Y3QgbmRjdGxfZGltbSAqZGltbSk7DQo+ICBpbnQgbmRjdGxfZGltbV9kaXNhYmxlKHN0cnVjdCBu
-ZGN0bF9kaW1tICpkaW1tKTsNCj4gIGludCBuZGN0bF9kaW1tX2VuYWJsZShzdHJ1Y3QgbmRjdGxf
-ZGltbSAqZGltbSk7DQo+ICt2b2lkIG5kY3RsX3JlZnJlc2hfZGltbV9mbGFncyhzdHJ1Y3QgbmRj
-dGxfZGltbSAqZGltbSk7DQo+ICANCj4gIHN0cnVjdCBuZGN0bF9jbWQ7DQo+ICBzdHJ1Y3QgbmRj
-dGxfY21kICpuZGN0bF9idXNfY21kX25ld19hcnNfY2FwKHN0cnVjdCBuZGN0bF9idXMgKmJ1cywN
-Cg0K
+
+Hi Vishal,
+
+Thanks for reviewing this patch,
+
+"Verma, Vishal L" <vishal.l.verma@intel.com> writes:
+
+> On Tue, 2022-01-25 at 02:28 +0530, Vaibhav Jain wrote:
+>> Presently after performing an inject-smart the nvdimm flags reported are
+>> out of date as shown below where no 'smart_notify' or 'flush_fail' flags
+>> were reported even though they are set after injecting the smart error:
+>> 
+>> $ sudo inject-smart -fU nmem0
+>> [
+>>   {
+>>     "dev":"nmem0",
+>>     "health":{
+>>       "health_state":"fatal",
+>>       "shutdown_state":"dirty",
+>>       "shutdown_count":0
+>>     }
+>>   }
+>> ]
+>> $ sudo cat /sys/class/nd/ndctl0/device/nmem0/papr/flags
+>> flush_fail smart_notify
+>> 
+>> This happens because nvdimm flags are only parsed once during its probe
+>> and not refreshed even after a inject-smart operation makes them out of
+>> date. To fix this the patch forces an update of nvdimm flags via newly
+>> introduced ndctl_refresh_dimm_flags() thats called successfully submitting
+>> a 'struct ndctl_cmd' in ndctl_cmd_submit(). This ensures that correct
+>> nvdimm flags are reported after an interaction with the kernel module which
+>> may trigger a change nvdimm-flags. With this implemented correct nvdimm
+>> flags are reported after a inject-smart operation:
+>> 
+>> $ sudo ndctl inject-smart -fU nmem0
+>> [
+>>   {
+>>     "dev":"nmem0",
+>>     "flag_failed_flush":true,
+>>     "flag_smart_event":true,
+>>     "health":{
+>>       "health_state":"fatal",
+>>       "shutdown_state":"dirty",
+>>       "shutdown_count":0
+>>     }
+>>   }
+>> ]
+>> 
+>> The patch refactors populate_dimm_attributes() to move the nvdimm flags
+>> parsing code to the newly introduced ndctl_refresh_dimm_flags()
+>> export. Since reading nvdimm flags requires constructing path using
+>> 'bus_prefix' which is only available during add_dimm(), the patch
+>> introduces a new member 'struct ndctl_dimm.bus_prefix' to cache its
+>> value. During ndctl_refresh_dimm_flags() the cached bus_prefix is used to
+>> read the contents of the nvdimm flag file and pass it on to the appropriate
+>> flag parsing function. Finally ndctl_refresh_dimm_flags() is invoked at the
+>> end of ndctl_cmd_submit() if nd-command submission succeeds.
+>
+> I think instead of making it ndctl_cmd_submit()'s responsibility to
+> update any stale state, we should simply NDCTL_EXPORT the refresh
+> function (also rename it to conform to other ndctl_dimm functions -
+> ndctl_dimm_refresh_flags()). Then if any operation expects to change
+> state, it can call the refresh API directly.
+>
+> In this case, ndctl/inject-smart.c would call
+> ndctl_dimm_refresh_flags() if its command submission succeeded.
+Agree and will update v5 of the patch to
+s/ndctl_refresh_dimm_flags/ndctl_dimm_refresh_flags/g
+
+Also will make it a libndctl export that can be called after
+smart-inject and before the nvdimm flags are reported.
+
+>
+> Also some minor comments below.
+>
+>> 
+>> Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
+>> Signed-off-by: Shivaprasad G Bhat <sbhat@linux.ibm.com>
+>> ---
+>> Changelog:
+>> 
+>> Since v3-Resend:
+>> 164009789816.744139.2870779016511283907.stgit@lep8c.aus.stglabs.ibm.com
+>> * Rebased this on top of latest ndctl-pending tree that includes changes to
+>> switch to meson build system.
+>> ---
+>>  ndctl/lib/libndctl.c | 52 ++++++++++++++++++++++++++++++++------------
+>>  ndctl/lib/private.h  |  1 +
+>>  ndctl/libndctl.h     |  1 +
+>>  3 files changed, 40 insertions(+), 14 deletions(-)
+>> 
+>> diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+>> index 5979a92c113c..abff4ececa27 100644
+>> --- a/ndctl/lib/libndctl.c
+>> +++ b/ndctl/lib/libndctl.c
+>> @@ -608,6 +608,7 @@ static void free_dimm(struct ndctl_dimm *dimm)
+>>  	free(dimm->unique_id);
+>>  	free(dimm->dimm_buf);
+>>  	free(dimm->dimm_path);
+>> +	free(dimm->bus_prefix);
+>>  	if (dimm->module)
+>>  		kmod_module_unref(dimm->module);
+>>  	if (dimm->health_eventfd > -1)
+>> @@ -1670,14 +1671,34 @@ static int ndctl_bind(struct ndctl_ctx *ctx, struct kmod_module *module,
+>>  static int ndctl_unbind(struct ndctl_ctx *ctx, const char *devpath);
+>>  static struct kmod_module *to_module(struct ndctl_ctx *ctx, const char *alias);
+>>  
+>> +void ndctl_refresh_dimm_flags(struct ndctl_dimm *dimm)
+>> +{
+>> +	struct ndctl_ctx *ctx = dimm->bus->ctx;
+>> +	char *path = dimm->dimm_buf;
+>> +	char buf[SYSFS_ATTR_SIZE];
+>> +
+>> +	/* Construct path to dimm flags sysfs file */
+>> +	sprintf(path, "%s/%s/flags", dimm->dimm_path, dimm->bus_prefix);
+>> +
+>> +	if (sysfs_read_attr(ctx, path, buf) < 0)
+>> +		return;
+>> +
+>> +	/* Reset the flags */
+>> +	dimm->flags.flags = 0;
+>> +	if (ndctl_bus_has_nfit(dimm->bus))
+>> +		parse_nfit_mem_flags(dimm, buf);
+>> +	else if (ndctl_bus_is_papr_scm(dimm->bus))
+>> +		parse_papr_flags(dimm, buf);
+>> +}
+>> +
+>>  static int populate_dimm_attributes(struct ndctl_dimm *dimm,
+>> -				    const char *dimm_base,
+>> -				    const char *bus_prefix)
+>> +				    const char *dimm_base)
+>>  {
+>>  	int i, rc = -1;
+>>  	char buf[SYSFS_ATTR_SIZE];
+>>  	struct ndctl_ctx *ctx = dimm->bus->ctx;
+>>  	char *path = calloc(1, strlen(dimm_base) + 100);
+>> +	const char *bus_prefix = dimm->bus_prefix;
+>>  
+>>  	if (!path)
+>>  		return -ENOMEM;
+>> @@ -1761,16 +1782,10 @@ static int populate_dimm_attributes(struct ndctl_dimm *dimm,
+>>  	}
+>>  
+>>  	sprintf(path, "%s/%s/flags", dimm_base, bus_prefix);
+>> -	if (sysfs_read_attr(ctx, path, buf) == 0) {
+>> -		if (ndctl_bus_has_nfit(dimm->bus))
+>> -			parse_nfit_mem_flags(dimm, buf);
+>> -		else if (ndctl_bus_is_papr_scm(dimm->bus)) {
+>> -			dimm->cmd_family = NVDIMM_FAMILY_PAPR;
+>> -			parse_papr_flags(dimm, buf);
+>> -		}
+>> -	}
+>> -
+>>  	dimm->health_eventfd = open(path, O_RDONLY|O_CLOEXEC);
+>> +
+>> +	ndctl_refresh_dimm_flags(dimm);
+>> +
+>>  	rc = 0;
+>>   err_read:
+>>  
+>> @@ -1826,8 +1841,9 @@ static int add_papr_dimm(struct ndctl_dimm *dimm, const char *dimm_base)
+>>  
+>>  		rc = 0;
+>>  	} else if (strcmp(buf, "nvdimm_test") == 0) {
+>> +		dimm->cmd_family = NVDIMM_FAMILY_PAPR;
+>>  		/* probe via common populate_dimm_attributes() */
+>> -		rc = populate_dimm_attributes(dimm, dimm_base, "papr");
+>> +		rc = populate_dimm_attributes(dimm, dimm_base);
+>>  	}
+>>  out:
+>>  	free(path);
+>> @@ -1924,9 +1940,13 @@ static void *add_dimm(void *parent, int id, const char *dimm_base)
+>>  	dimm->formats = formats;
+>>  	/* Check if the given dimm supports nfit */
+>>  	if (ndctl_bus_has_nfit(bus)) {
+>> -		rc = populate_dimm_attributes(dimm, dimm_base, "nfit");
+>> +		dimm->bus_prefix = strdup("nfit");
+>> +		rc = dimm->bus_prefix ?
+>> +			populate_dimm_attributes(dimm, dimm_base) : -ENOMEM
+>>  	} else if (ndctl_bus_has_of_node(bus)) {
+>> -		rc = add_papr_dimm(dimm, dimm_base);
+>> +		dimm->bus_prefix = strdup("papr");
+>> +		rc = dimm->bus_prefix ?
+>> +			add_papr_dimm(dimm, dimm_base) : -ENOMEM;
+>
+> For both of the above, it would be a bit more readable to just return
+> ENOMEM directly after strdup() if it fails, and then carry on with
+> add_<foo>_dimm().
+>
+> 	dimm->bus_prefix = strdup("papr");
+> 	if (!dimm->bus_prefix)
+> 		return -ENOMEM;
+> 	rc = add_papr_dimm(dimm, dimm_base);
+> 	...
+>
+Agree on the readability part but returning from there right away would
+prevent the allocated 'struct ndctl_dimm *dimm' from being freed in the
+error path. Also the function add_dimm() returns a 'void *' to 'struct
+ndctl_dimm*' right now rather than an 'int'.
+
+I propose updating the code as:
+
+	if (ndctl_bus_has_nfit(bus)) {
+		dimm->bus_prefix = strdup("nfit");
+		if (!dimm->bus_prefix) {
+			rc = -ENOMEM;
+			goto out;
+		}
+		rc =  populate_dimm_attributes(dimm, dimm_base);
+         }
+
+>>  	}
+>>  
+>>  	if (rc == -ENODEV) {
+>> @@ -3506,6 +3526,10 @@ NDCTL_EXPORT int ndctl_cmd_submit(struct ndctl_cmd *cmd)
+>>  		rc = -ENXIO;
+>>  	}
+>>  	close(fd);
+>> +
+>> +	/* update dimm-flags if command submitted successfully */
+>> +	if (!rc && cmd->dimm)
+>> +		ndctl_refresh_dimm_flags(cmd->dimm);
+>>   out:
+>>  	cmd->status = rc;
+>>  	return rc;
+>> diff --git a/ndctl/lib/private.h b/ndctl/lib/private.h
+>> index 4d8622978790..e5c56295556d 100644
+>> --- a/ndctl/lib/private.h
+>> +++ b/ndctl/lib/private.h
+>> @@ -75,6 +75,7 @@ struct ndctl_dimm {
+>>  	char *unique_id;
+>>  	char *dimm_path;
+>>  	char *dimm_buf;
+>> +	char *bus_prefix;
+>>  	int health_eventfd;
+>>  	int buf_len;
+>>  	int id;
+>> diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
+>> index 4d5cdbf6f619..b1bafd6d9788 100644
+>> --- a/ndctl/libndctl.h
+>> +++ b/ndctl/libndctl.h
+>> @@ -223,6 +223,7 @@ int ndctl_dimm_is_active(struct ndctl_dimm *dimm);
+>>  int ndctl_dimm_is_enabled(struct ndctl_dimm *dimm);
+>>  int ndctl_dimm_disable(struct ndctl_dimm *dimm);
+>>  int ndctl_dimm_enable(struct ndctl_dimm *dimm);
+>> +void ndctl_refresh_dimm_flags(struct ndctl_dimm *dimm);
+>>  
+>>  struct ndctl_cmd;
+>>  struct ndctl_cmd *ndctl_bus_cmd_new_ars_cap(struct ndctl_bus *bus,
+>
+
+-- 
+Cheers
+~ Vaibhav
