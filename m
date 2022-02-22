@@ -1,21 +1,21 @@
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2464D66A8
-	for <nvdimm@lists.linux.dev>; Tue, 22 Feb 2022 15:52:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8681D66AA
+	for <nvdimm@lists.linux.dev>; Tue, 22 Feb 2022 15:52:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
 	MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender
 	:Reply-To:Content-Type:Content-ID:Content-Description;
-	bh=uybeJmrsOhYNyYw6JuTBsmhNCkwuMOHtglR2JjFNKIQ=; b=h/VY5ZyBUj2q/fYwi4v3BW0Bm3
-	ejGl3SxqCsQ/PlggoKd1s6AkYUm5njHRilhhFnkjozFUd4SHU28Mu21fHScvDxICH1plE6xVqew9Y
-	3l1j6G7pWAhFwacuDy9dTnr5k9moMtPtfPuIpxoHKKCbhMQCSE2h50m8ZRctcvv75AxI0ME4yljRu
-	F7Hj11mV8OkXiabX3KTHbujeGELLnp7bmLX4mfYV9YVIw6tvxqAPsbCn0gkDTZR4xL63sM/nr0AZc
-	+wKSytIZRrIvvR7W5J78ih9qcdIkECsFSDD0TzwCUbJmr3X+KybeGwd5L3siel7RF8BBlwhjrpuNd
-	iApc2ETw==;
+	bh=S8+4S3H0UDzuRr7Ri+YrsH/T52KS45+3M/mJXJ1lDz4=; b=u6BHbjkrjI9nVGrOchcq76/SSQ
+	je48CtuVFE3/xb8Ni2UAW//vQ5vcj6gIWiRaOkjwy7XBxtOqepLlCzveme9E/3UETUyFIRgaTKwlY
+	/WlyIlIQvqaNXwxZvvFWlfP9lTuTfCbGs66YZo50d2MeersSpvzkv/eD0Dk2TukzekCDR1LhmQLiS
+	dl9KPrlw+/NzFsgfaV/fXP0REElbMOTDkplElq9yaFieHC2qMNyXYF43ykp+jZm0xjzN45WYRyJaN
+	acOnoXVl0PeKl8BON27DJ93h3t8sjblsvfBrELXJ3lfN6+joud3zPH0vH3Q6t0YotP1iRAxjFUv0W
+	KvSOPW1g==;
 Received: from [2001:4bb8:198:f8fc:c22a:ebfc:be8d:63c2] (helo=localhost)
 	by bombadil.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-	id 1nMXSU-00APtE-4o; Tue, 22 Feb 2022 15:52:10 +0000
+	id 1nMXSW-00APue-Ss; Tue, 22 Feb 2022 15:52:13 +0000
 From: Christoph Hellwig <hch@lst.de>
 To: Jens Axboe <axboe@kernel.dk>
 Cc: Chris Zankel <chris@zankel.net>,
@@ -34,9 +34,9 @@ Cc: Chris Zankel <chris@zankel.net>,
 	drbd-dev@lists.linbit.com,
 	linux-bcache@vger.kernel.org,
 	nvdimm@lists.linux.dev
-Subject: [PATCH 04/10] zram: use memcpy_from_bvec in zram_bvec_write
-Date: Tue, 22 Feb 2022 16:51:50 +0100
-Message-Id: <20220222155156.597597-5-hch@lst.de>
+Subject: [PATCH 05/10] nvdimm-blk: use bvec_kmap_local in nd_blk_rw_integrity
+Date: Tue, 22 Feb 2022 16:51:51 +0100
+Message-Id: <20220222155156.597597-6-hch@lst.de>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20220222155156.597597-1-hch@lst.de>
 References: <20220222155156.597597-1-hch@lst.de>
@@ -49,38 +49,32 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 
-Use memcpy_from_bvec instead of open coding the logic.
+Using local kmaps slightly reduces the chances to stray writes, and
+the bvec interface cleans up the code a little bit.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- drivers/block/zram/zram_drv.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/nvdimm/blk.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/block/zram/zram_drv.c b/drivers/block/zram/zram_drv.c
-index 14becdf2815df..e9474b02012de 100644
---- a/drivers/block/zram/zram_drv.c
-+++ b/drivers/block/zram/zram_drv.c
-@@ -1465,7 +1465,6 @@ static int zram_bvec_write(struct zram *zram, struct bio_vec *bvec,
- {
- 	int ret;
- 	struct page *page = NULL;
--	void *src;
- 	struct bio_vec vec;
+diff --git a/drivers/nvdimm/blk.c b/drivers/nvdimm/blk.c
+index c1db43524d755..0a38738335941 100644
+--- a/drivers/nvdimm/blk.c
++++ b/drivers/nvdimm/blk.c
+@@ -88,10 +88,9 @@ static int nd_blk_rw_integrity(struct nd_namespace_blk *nsblk,
+ 		 */
  
- 	vec = *bvec;
-@@ -1483,11 +1482,9 @@ static int zram_bvec_write(struct zram *zram, struct bio_vec *bvec,
- 		if (ret)
- 			goto out;
+ 		cur_len = min(len, bv.bv_len);
+-		iobuf = kmap_atomic(bv.bv_page);
+-		err = ndbr->do_io(ndbr, dev_offset, iobuf + bv.bv_offset,
+-				cur_len, rw);
+-		kunmap_atomic(iobuf);
++		iobuf = bvec_kmap_local(&bv);
++		err = ndbr->do_io(ndbr, dev_offset, iobuf, cur_len, rw);
++		kunmap_local(iobuf);
+ 		if (err)
+ 			return err;
  
--		src = kmap_atomic(bvec->bv_page);
- 		dst = kmap_atomic(page);
--		memcpy(dst + offset, src + bvec->bv_offset, bvec->bv_len);
-+		memcpy_from_bvec(dst + offset, bvec);
- 		kunmap_atomic(dst);
--		kunmap_atomic(src);
- 
- 		vec.bv_page = page;
- 		vec.bv_len = PAGE_SIZE;
 -- 
 2.30.2
 
