@@ -1,245 +1,177 @@
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B06D72F5C
-	for <nvdimm@lists.linux.dev>; Tue, 22 Feb 2022 18:48:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08F3C66D8
+	for <nvdimm@lists.linux.dev>; Tue, 22 Feb 2022 19:52:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1645555734; x=1677091734;
-  h=from:to:cc:subject:date:message-id:references:
-   in-reply-to:content-id:content-transfer-encoding:
-   mime-version;
-  bh=0XzsOVdwfeLjYG4j7pH07FxajZss4Za3OxxFfKMu8XQ=;
-  b=Ivuu26dTKR1tag23SZqNL/RU/elCspAPqF6hYRE/YYnt/ZNLqeV68vBG
-   WzJlzlAInQNPWTDm7AJ6DTBHkfWGKQ8VUvyin5eM5v5flTy3i7B3DuUed
-   6M7GqSSonc/TuffnzVwfwi4qHXWMMhDBmQ5Z7nF3HTZspDnGjeoqB+yJp
-   RaxAtj4Wam2rqRvNaq+peCZ6A+utyQ3a3DNkskveo84fX0LT1NqTw+S4k
-   gE1xSTZfKByCR7Tz2N5NbyjSKwCo2I6teJLSdyO1n0rLoavyAlpBcgKF7
-   Z1Hh8xRVabgvTXbfeI2+eugKt97Ltmiu36Pis3EzaGDhrrRz2lrUwX8jt
-   A==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10266"; a="312496863"
+  t=1645559556; x=1677095556;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=2I17YK2f88geQJ89QLHbYDCujV4U7HntV3UWi6Gxq1E=;
+  b=VLJAZq27sWfLGFxtWdEooddqDfmf8f2/Q45BqwO66/AV6M/W2QZFiDPy
+   Jd6o4QdmJyaHI2tFl2Flh6vb3CRrCqBrOgqqKJRVH+klZbzsf1/IDgtCT
+   Q9PVKOEyVQjgfTgK2MXpLNfSOLWzrmHX00rVRdRS9HHTDieHYO05+xAXI
+   vLZLaXsjS3QpGDemhEKP58S+hg8KT8hT9KKEahfd9VKUFXD4wwmZu817I
+   sfGuxszOpt99FpbEJqqRT69GpI68rlvwFK8qKTV2sibXSolP5z0TFC53X
+   wOeCabqLQASQz0VZAZamiHvDdXPr6LXtX4HVk4M3jroIx/CtwadBOGC4S
+   w==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10266"; a="276408461"
 X-IronPort-AV: E=Sophos;i="5.88,387,1635231600"; 
-   d="scan'208";a="312496863"
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Feb 2022 10:48:54 -0800
-X-ExtLoop1: 1
+   d="scan'208";a="276408461"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Feb 2022 11:52:35 -0800
 X-IronPort-AV: E=Sophos;i="5.88,387,1635231600"; 
-   d="scan'208";a="508103528"
-Received: from fmsmsx606.amr.corp.intel.com ([10.18.126.86])
-  by orsmga006.jf.intel.com with ESMTP; 22 Feb 2022 10:48:54 -0800
-Received: from fmsmsx610.amr.corp.intel.com (10.18.126.90) by
- fmsmsx606.amr.corp.intel.com (10.18.126.86) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.20; Tue, 22 Feb 2022 10:48:54 -0800
-Received: from fmsmsx610.amr.corp.intel.com (10.18.126.90) by
- fmsmsx610.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.20; Tue, 22 Feb 2022 10:48:53 -0800
-Received: from FMSEDG603.ED.cps.intel.com (10.1.192.133) by
- fmsmsx610.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.20 via Frontend Transport; Tue, 22 Feb 2022 10:48:53 -0800
-Received: from NAM12-BN8-obe.outbound.protection.outlook.com (104.47.55.170)
- by edgegateway.intel.com (192.55.55.68) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2308.20; Tue, 22 Feb 2022 10:48:53 -0800
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=aBaHBOB94qaitGY4s3+G/h6mUzr+qYKufcUR5EtztaG6QyxKmtJ0oTYhT7/en9A8dtY0x//aH5rW+TTPRCHUlpLCGiFoerUfJY9ciEFTKYGBzT3BybrcaElYKf/7JnDg/330S4iYTWOSOexPH56u3mOeoiY9v1xOr4MkF+r7xXAmru/Hk03W44MG/uHvJgZyV4CX+u33vr9w7ZiakYO6qh179sH94uc4uIC/eNRD7ThL2WV7v/Xj3YQ2Z9LZ9ViqvOyf1ODjzBTQ1MlgtWwdnkpVCVsvTF+3RuVzOrq1dqgbEj0/GU6OaKRftQg5iFendbfzoL7oNdMFbW8B/k121w==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=0XzsOVdwfeLjYG4j7pH07FxajZss4Za3OxxFfKMu8XQ=;
- b=V5/+bnGT1/a1GL2MHSyQZr7PgSbV+M2jtVJepUYiLAcTiWKJfyLe/xVzJRqJ9/ee4n5saODI96BoYy5y2d+MxsIGOd8z9fX6xkpr+4iSV1UVuzAJYykWBIPyu11SQNMKt2HZXaxMEeCA2MrfNOaD4y4evDpVlLZmIzdV9hzLzszzJiMKqB608xj3h6rqN28YQNMnSjseuaVNT7yS4i5DeTCqIA0vaaSXtcrR18G36Cdws1hM47M9059UdBjsRFtDMzwRv6CyTn1uNLQFDHQRfELb8iyEvFfleYSUYuCCEYZYeugPp5caBlPPJd9VTZsna987+AxbcMRE/18R9bLnrg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Received: from MN2PR11MB3999.namprd11.prod.outlook.com (2603:10b6:208:154::32)
- by CY4PR11MB1813.namprd11.prod.outlook.com (2603:10b6:903:127::7) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4995.17; Tue, 22 Feb
- 2022 18:48:50 +0000
-Received: from MN2PR11MB3999.namprd11.prod.outlook.com
- ([fe80::d02d:976f:9b4b:4058]) by MN2PR11MB3999.namprd11.prod.outlook.com
- ([fe80::d02d:976f:9b4b:4058%7]) with mapi id 15.20.4995.027; Tue, 22 Feb 2022
- 18:48:50 +0000
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-To: "Williams, Dan J" <dan.j.williams@intel.com>, "Schofield, Alison"
-	<alison.schofield@intel.com>, "Widawsky, Ben" <ben.widawsky@intel.com>,
-	"Weiny, Ira" <ira.weiny@intel.com>
-CC: "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
-	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>
-Subject: Re: [ndctl PATCH] cxl/list: Handle GET_PARTITION_INFO command as
- optional
-Thread-Topic: [ndctl PATCH] cxl/list: Handle GET_PARTITION_INFO command as
- optional
-Thread-Index: AQHYKBjakVBcDXCdOUWkYg0ZpxWSLqyf6XaA
-Date: Tue, 22 Feb 2022 18:48:50 +0000
-Message-ID: <1e4be0ba70b9840348aa0eecea1c2307343ea33b.camel@intel.com>
-References: <20220222182328.1009333-1-alison.schofield@intel.com>
-In-Reply-To: <20220222182328.1009333-1-alison.schofield@intel.com>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-user-agent: Evolution 3.42.3 (3.42.3-1.fc35) 
-authentication-results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: beedafe8-c7c6-468a-1afb-08d9f633f777
-x-ms-traffictypediagnostic: CY4PR11MB1813:EE_
-x-ld-processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr,ExtFwd
-x-microsoft-antispam-prvs: <CY4PR11MB1813E893ADDF7C14E2B0A987C73B9@CY4PR11MB1813.namprd11.prod.outlook.com>
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: V6eWz3EC/zzL2oljoVfXKMKqalJlh242iKKp+ICHiQuK7euIzBqr9Ou6RidY3BnF5bfEy3QdDG1eYVYJonFsIQeIyBMFXG6I3tQrzQmI5xsrxHUTtmu50w8TnZuXB1kH+GoW1EV6nfW3a6J/lNxJZI6I3Y2r3UoOkg1DCgCjEYmg9GoZlIGKLmyjHXQoQuQzjwkWXrUjeFW9XIVUR0a8GeOFcr+kyTjFL/+TgyOnPn8ZXRCdesBOByZ7b5cus77it6xBBZw5ujLB3o16YfOQAkYE6ODqGR+owV1K+w18U9TKzfS8qgCmaVRLZRC4Cn/Y6K6gQ7zwzNmBwisdabh7W9IAap1xp8NGAtgk1dDVenTJtMHn9vmzHFSN26zPxIKSWNS+//G51zS6zuu9dU7OhEJSG+lHYMvxAw9liK4JewlGGM1aReyp/jPZziIR5oZjlm2wJbNS7SCW7N5k9xCqDjTsFfBZF91CwkRQ0zf2CmmBY7FoJ/3Itm2IAvyEXvuChjWPU6cjlo3ZwdtAIbHMyau0hYeyF+8ZtpETwYGUixVx+pOH7cOYyPE5pV7ojLG22MtcJ2qKG+GUTsxY/3vR+0rBb5G+ZuoNR8Em4JwD+dDvcnSKtFh39jFD7/PbIIgVX4VYiPOGU2zZh7bke5WqY2kB7mzrT6nHXJXwDMdaE7Jm4GKi40O/YO1JU0JknB4DsS5fuluhoLDMnGOkV/6eXQ==
-x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MN2PR11MB3999.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230001)(366004)(83380400001)(110136005)(2906002)(54906003)(6636002)(2616005)(36756003)(6486002)(6512007)(316002)(186003)(5660300002)(76116006)(4326008)(66556008)(66446008)(8936002)(6506007)(64756008)(71200400001)(38100700002)(8676002)(26005)(122000001)(66946007)(508600001)(82960400001)(86362001)(91956017)(38070700005)(66476007);DIR:OUT;SFP:1102;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0: =?utf-8?B?cFA4UGFYNnhTNW95QVBqb1llclZZZ0c4RVFsWlZMZnlRY3dyazJkbGYvZURs?=
- =?utf-8?B?TFk5U3d2THIvdTV1aGo0S1hDdGV0US9MTzJJelpUdDFjQkFFM3BsaW9WRCtn?=
- =?utf-8?B?TlpoWkg4TGE5NHN5aFVUdjBDMEJTWEtzVlpKc1FVaHRiRFYrUlJPS2Y0TFF2?=
- =?utf-8?B?Mjk0bGR2b01TM0dERm1Vcktwc3dmOXdQRjNydllEZ3RGSk1tM3VJYllKOXN5?=
- =?utf-8?B?TG1ZOS96SEw4R3FMWDJJYy9TSFY2RFdxaldla1p5OFlmTmZTS3FlYkJrdS9Q?=
- =?utf-8?B?VkFPakZKanBsMWFJVUp0ZUlMN3dWbzNVeXRCUEZkSHlReDUxQW1Od0ZZMkJs?=
- =?utf-8?B?b2xiVStqYWhMNG1DcVFaeS9TRGZDSnJFbWRKajJkOWdFRnZqODdoVzBoUk5q?=
- =?utf-8?B?YnNQUTExQ1dzZmlJYklXMzZpVkxFOFl6MEFQSjlDSGpKd3VXQ0E4b256Rzk5?=
- =?utf-8?B?RHZjYWdsRDkwcEJOWlpLdGU3c3d5V2ZPZGM2Z1Z4V1B2eFFsYTZ5cWtlTm9j?=
- =?utf-8?B?dTI1Mi9jSnlJQjljd2JmRGdpWEI5Zy9pUmtpZFk0VW1ZMFFBMXQrUVIrMmdz?=
- =?utf-8?B?djVkMGI3Nnp4QktIQTZ0WEpyUnBRUFY5V09ydnE4R3VETnJGMjZnZHIrV2dz?=
- =?utf-8?B?MzFvcnpmQnZsMWlqUU5Uc1pveC93cnJ3bVBMVU9VT1dDVkRXODBSZHVERlVW?=
- =?utf-8?B?VHlORVpiWHREMXQ4Z0gvd1ZhNEVWRW82Rk5tVGFGTXoycDJ3MzZpUE5QL2Ns?=
- =?utf-8?B?VDhnR3pmTWVBZGloYVYvMzRvaDBxaUZOaS9QWkcveFIzdmlxYnVlYUlLTlAv?=
- =?utf-8?B?dzI0bmdlSHlrUkxiL3BCaFlzRE5HdDNRbmErNXZlUE1yWWk4aHhneVpGcERy?=
- =?utf-8?B?aUpYSHRFWU15Q2g3dENNYlc1ODFqVEJod1VmOTVOYUpXbEpWSkJnbWlsZkw5?=
- =?utf-8?B?YnZ6dXBPWGRVSVlGdjhRbFdzaTk3WmtQaFphRUpPNXpORCsxYmM4RnFjYVlv?=
- =?utf-8?B?OFZlUlczRWplMmRWVjFDdFM0YzNTZWEvYzc5RG9CYThJUXVBTTA0c2FoMUhr?=
- =?utf-8?B?ZlFqZEIydW1JVlcyZUkyVElEbWNvUlpkS2Q1UURDSytvRXpLK3ZXNGFWTG1y?=
- =?utf-8?B?TTFabFd6V043cFJ6dnVXMW44QU9vaXkxSFd1eGxrRG44NUplMXNoSEJMZzkz?=
- =?utf-8?B?Z0F1OEpINVF4UitJSm00RVN6TTJFK1pJejZ6Q282VExWRFNhVTdVS3UzU2tm?=
- =?utf-8?B?OHFwbmYrbXhlMitQSnhSMU53N3B5L3hTTEpuQWxvNS9lY0pFdEhlNmMwdVgz?=
- =?utf-8?B?Z1NUZVVoQUFLbklmclY5eG1BKzhRVldjQUZ3ZFpQNW51d1B5SjlFZE9TS0Zr?=
- =?utf-8?B?VnFRSVU2VEJPLy9NN294eUNUeFc1citqK2dLblp4NGhjMmxPME9aOXozQmM4?=
- =?utf-8?B?LzhYclUrd3VyZWJoQmNsaCtxTG96MVE3YnZ4VXo5N2RVK0VwRzVlQ2Z4RUhp?=
- =?utf-8?B?dXJselhYbW1RaTZDMVJDeWprSXUwU2VzK1lZRUcyTUl0WlVOYTQxSG5tbmwr?=
- =?utf-8?B?SUZSaEFZQjc1TkpCM2c3NFpQWTJaVzZnM0dxbjdENGhZZFoweVh6MXlYYWVl?=
- =?utf-8?B?VVowTmNON0RYak83OVlRWXY3d2Y1NEJ1eHVDUVU2SHNCOTZzcGtVRmtEY294?=
- =?utf-8?B?SUZ4ZlVYVmpiVlI2M1ZFNDB2ckhueHFKYXVJVlgwVzQ3eXNCZmdqbm5vWnpW?=
- =?utf-8?B?M3JFYlVlakFjbFNlcTBISTJYQjkzREtOVTA1MDh3L0ZZQ3RSN0tBbWR6N2F2?=
- =?utf-8?B?SFBqQmdocWlDZEIrSlJDRmNkdWhTQXVlL2ZveVpiSE1RSStrYTRvV1UvdVJp?=
- =?utf-8?B?byswelV3RE1pSFdhcnVORU5uYlF5MU84aFJWODZaaUpwSVJzQ1gyZVYwekg0?=
- =?utf-8?B?TFNhUlFtcEgrQmc0aE01MGg1WkJsSFIvMVFmcWVVR3ZqY0dhMVp5VjRQTHpv?=
- =?utf-8?B?Z3hVMld6ajhVZk5TcklkZVQwbFRMY1Y2Q21JL2ZjSU1nUXVEUDNyL0ttdXRi?=
- =?utf-8?B?ckQvV2xCRUczck5DR1VaOFkzSGhqUEg1cWdXbEJOOE90ajJNbGRYanhLSmhD?=
- =?utf-8?B?aUI1M0VUQjdtbm04c3IrbG11dERUQ254b1ZCcDhWREZpTlMvb1dONm9UZzhR?=
- =?utf-8?B?OTRwMGpsRXBMbHJaWWRIclBKbWROTlRFQXdOMTRZV1diWEVYZlpVOVhBSno3?=
- =?utf-8?Q?QzdEAPZ/1YUGcfHLqSWT771f6y0d+9W0XhjkCyzN7E=3D?=
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <CCB7DF56C0E94C4FB72BFBB36B02D3B9@namprd11.prod.outlook.com>
-Content-Transfer-Encoding: base64
+   d="scan'208";a="547904480"
+Received: from alison-desk.jf.intel.com (HELO localhost) ([10.54.74.41])
+  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Feb 2022 11:52:35 -0800
+From: alison.schofield@intel.com
+To: Ben Widawsky <ben.widawsky@intel.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Ira Weiny <ira.weiny@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>
+Cc: Alison Schofield <alison.schofield@intel.com>,
+	nvdimm@lists.linux.dev,
+	linux-cxl@vger.kernel.org
+Subject: [ndctl PATCH v6 0/6] Add partitioning support for CXL memdevs
+Date: Tue, 22 Feb 2022 11:56:02 -0800
+Message-Id: <cover.1645558189.git.alison.schofield@intel.com>
+X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: MN2PR11MB3999.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: beedafe8-c7c6-468a-1afb-08d9f633f777
-X-MS-Exchange-CrossTenant-originalarrivaltime: 22 Feb 2022 18:48:50.3616
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: yZufrAJjKplrf3l7jefZrYYPExybPiDbjIw/NUfrDy7hXm4AzL6zqs8cfOiLBKBdR4OjYn2XyUF7I56gJnKfU5Eqgdmbof1McI4nNCLu5T4=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY4PR11MB1813
-X-OriginatorOrg: intel.com
+Content-Transfer-Encoding: 8bit
 
-T24gVHVlLCAyMDIyLTAyLTIyIGF0IDEwOjIzIC0wODAwLCBhbGlzb24uc2Nob2ZpZWxkQGludGVs
-LmNvbSB3cm90ZToNCj4gRnJvbTogQWxpc29uIFNjaG9maWVsZCA8YWxpc29uLnNjaG9maWVsZEBp
-bnRlbC5jb20+DQo+IA0KPiBDWEwgc3BlY2lmaWVzIEdFVF9QQVJUSVRJT05fSU5GTyBtYWlsYm94
-IGNvbW1hbmQgYXMgb3B0aW9uYWwuIEEgZGV2aWNlDQo+IG1heSBub3Qgc3VwcG9ydCB0aGUgY29t
-bWFuZCB3aGVuIGl0IGhhcyBubyBwYXJ0aXRpb25hYmxlIHNwYWNlLg0KPiANCj4gRmxpcCB0aGUg
-b3JkZXIgaW4gd2hpY2ggdGhlIGNvbW1hbmQgY3hsLWxpc3QgcmV0cmlldmVzIHRoZSBwYXJ0aXRp
-b24NCj4gaW5mbyBzbyB0aGF0IHRoZSBmaWVsZHMgcmVwb3J0ZWQgYnkgdGhlIElERU5USUZZIG1h
-aWxib3ggY29tbWFuZCBhcmUNCj4gYWx3YXlzIHJlcG9ydGVkLCBhbmQgdGhlbiB0aGUgZmllbGRz
-IHJlcG9ydGVkIGJ5IHRoZSBHRVRfUEFSVElUSU9OX0lORk8NCj4gbWFpbGJveCBjb21tYW5kIGFy
-ZSBvcHRpb25hbGx5IHJlcG9ydGVkLg0KPiANCj4gRml4ZXM6IDc1ODFhYmE1MmRhMCAoImN4bDog
-YWRkIG1lbWRldiBwYXJ0aXRpb24gaW5mb3JtYXRpb24gdG8gY3hsLWxpc3QiKQ0KPiBTaWduZWQt
-b2ZmLWJ5OiBBbGlzb24gU2Nob2ZpZWxkIDxhbGlzb24uc2Nob2ZpZWxkQGludGVsLmNvbT4NCj4g
-LS0tDQo+IA0KPiBWaXNoYWwsIEkgd2Fzbid0IHN1cmUgd2hldGhlciB0byByZXYgdGhlIG9yaWdp
-bmFsIHBhdGNoc2V0IG9yIHBvc3QgYXMgYQ0KPiBmaXguIExldCBtZSBrbm93Lg0KDQpIZXkgQWxp
-c29uLA0KDQpJIGhhZG4ndCBwdWxsZWQgaW4gdGhlIG9yaWdpbmFsIHBhdGNoc2V0IHRvIHBlbmRp
-bmcgeWV0LCBzbyByZXYnaW5nIGl0DQp3b3VsZCBiZSBiZXR0ZXIuIFRoZSBGaXhlcyBsaW5lIGFi
-b3ZlIGRvZXNuJ3QgcG9pbnQgdG8gYW55dGhpbmcgc3RhYmxlDQplaXRoZXIgLSBnZW5lcmFsbHks
-IHRoYXQgc2hvdWxkIG9ubHkgZXZlciBwb2ludCB0byBjb21taXRzIHRoYXQgaGF2ZQ0KYXBwZWFy
-ZWQgaW4gJ21hc3Rlcicgb3IgJ3BlbmRpbmcnLiBBbnkgb3RoZXIgYnJhbmNoIGlzIGZyZWUgdG8g
-cmViYXNlDQphdCB3aWxsLg0KDQo+IA0KPiANCj4gIGN4bC9qc29uLmMgfCA5NyArKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCj4gIDEgZmlsZSBj
-aGFuZ2VkLCA1MiBpbnNlcnRpb25zKCspLCA0NSBkZWxldGlvbnMoLSkNCj4gDQo+IGRpZmYgLS1n
-aXQgYS9jeGwvanNvbi5jIGIvY3hsL2pzb24uYw0KPiBpbmRleCA2OTY3MWIzZTdmZTkuLmZkYzZm
-NzNhODZjMSAxMDA2NDQNCj4gLS0tIGEvY3hsL2pzb24uYw0KPiArKysgYi9jeGwvanNvbi5jDQo+
-IEBAIC0yMDQsNDggKzIwNCw2IEBAIHN0YXRpYyBzdHJ1Y3QganNvbl9vYmplY3QgKnV0aWxfY3hs
-X21lbWRldl9wYXJ0aXRpb25fdG9fanNvbihzdHJ1Y3QgY3hsX21lbWRldiAqDQo+ICAJaWYgKCFt
-ZW1kZXYpDQo+ICAJCWdvdG8gZXJyX2pvYmo7DQo+ICANCj4gLQkvKiBSZXRyaWV2ZSBwYXJ0aXRp
-b24gaW5mbyBpbiBHRVRfUEFSVElUSU9OX0lORk8gbWJveCBjbWQgKi8NCj4gLQljbWQgPSBjeGxf
-Y21kX25ld19nZXRfcGFydGl0aW9uKG1lbWRldik7DQo+IC0JaWYgKCFjbWQpDQo+IC0JCWdvdG8g
-ZXJyX2pvYmo7DQo+IC0NCj4gLQlyYyA9IGN4bF9jbWRfc3VibWl0KGNtZCk7DQo+IC0JaWYgKHJj
-IDwgMCkNCj4gLQkJZ290byBlcnJfY21kOw0KPiAtCXJjID0gY3hsX2NtZF9nZXRfbWJveF9zdGF0
-dXMoY21kKTsNCj4gLQlpZiAocmMgIT0gMCkNCj4gLQkJZ290byBlcnJfY21kOw0KPiAtDQo+IC0J
-Y2FwID0gY3hsX2NtZF9wYXJ0aXRpb25fZ2V0X2FjdGl2ZV92b2xhdGlsZV9zaXplKGNtZCk7DQo+
-IC0JaWYgKGNhcCAhPSBVTExPTkdfTUFYKSB7DQo+IC0JCWpvYmogPSB1dGlsX2pzb25fb2JqZWN0
-X3NpemUoY2FwLCBmbGFncyk7DQo+IC0JCWlmIChqb2JqKQ0KPiAtCQkJanNvbl9vYmplY3Rfb2Jq
-ZWN0X2FkZChqcGFydCwNCj4gLQkJCQkJImFjdGl2ZV92b2xhdGlsZV9zaXplIiwgam9iaik7DQo+
-IC0JfQ0KPiAtCWNhcCA9IGN4bF9jbWRfcGFydGl0aW9uX2dldF9hY3RpdmVfcGVyc2lzdGVudF9z
-aXplKGNtZCk7DQo+IC0JaWYgKGNhcCAhPSBVTExPTkdfTUFYKSB7DQo+IC0JCWpvYmogPSB1dGls
-X2pzb25fb2JqZWN0X3NpemUoY2FwLCBmbGFncyk7DQo+IC0JCWlmIChqb2JqKQ0KPiAtCQkJanNv
-bl9vYmplY3Rfb2JqZWN0X2FkZChqcGFydCwNCj4gLQkJCQkJImFjdGl2ZV9wZXJzaXN0ZW50X3Np
-emUiLCBqb2JqKTsNCj4gLQl9DQo+IC0JY2FwID0gY3hsX2NtZF9wYXJ0aXRpb25fZ2V0X25leHRf
-dm9sYXRpbGVfc2l6ZShjbWQpOw0KPiAtCWlmIChjYXAgIT0gVUxMT05HX01BWCkgew0KPiAtCQlq
-b2JqID0gdXRpbF9qc29uX29iamVjdF9zaXplKGNhcCwgZmxhZ3MpOw0KPiAtCQlpZiAoam9iaikN
-Cj4gLQkJCWpzb25fb2JqZWN0X29iamVjdF9hZGQoanBhcnQsDQo+IC0JCQkJCSJuZXh0X3ZvbGF0
-aWxlX3NpemUiLCBqb2JqKTsNCj4gLQl9DQo+IC0JY2FwID0gY3hsX2NtZF9wYXJ0aXRpb25fZ2V0
-X25leHRfcGVyc2lzdGVudF9zaXplKGNtZCk7DQo+IC0JaWYgKGNhcCAhPSBVTExPTkdfTUFYKSB7
-DQo+IC0JCWpvYmogPSB1dGlsX2pzb25fb2JqZWN0X3NpemUoY2FwLCBmbGFncyk7DQo+IC0JCWlm
-IChqb2JqKQ0KPiAtCQkJanNvbl9vYmplY3Rfb2JqZWN0X2FkZChqcGFydCwNCj4gLQkJCQkJIm5l
-eHRfcGVyc2lzdGVudF9zaXplIiwgam9iaik7DQo+IC0JfQ0KPiAtCWN4bF9jbWRfdW5yZWYoY21k
-KTsNCj4gLQ0KPiAgCS8qIFJldHJpZXZlIHBhcnRpdGlvbiBpbmZvIGluIHRoZSBJREVOVElGWSBt
-Ym94IGNtZCAqLw0KPiAgCWNtZCA9IGN4bF9jbWRfbmV3X2lkZW50aWZ5KG1lbWRldik7DQo+ICAJ
-aWYgKCFjbWQpDQo+IEBAIC0yNTMsMTAgKzIxMSwxMCBAQCBzdGF0aWMgc3RydWN0IGpzb25fb2Jq
-ZWN0ICp1dGlsX2N4bF9tZW1kZXZfcGFydGl0aW9uX3RvX2pzb24oc3RydWN0IGN4bF9tZW1kZXYg
-Kg0KPiAgDQo+ICAJcmMgPSBjeGxfY21kX3N1Ym1pdChjbWQpOw0KPiAgCWlmIChyYyA8IDApDQo+
-IC0JCWdvdG8gZXJyX2NtZDsNCj4gKwkJZ290byBlcnJfaWRlbnRpZnk7DQo+ICAJcmMgPSBjeGxf
-Y21kX2dldF9tYm94X3N0YXR1cyhjbWQpOw0KPiAgCWlmIChyYyAhPSAwKQ0KPiAtCQlnb3RvIGVy
-cl9jbWQ7DQo+ICsJCWdvdG8gZXJyX2lkZW50aWZ5Ow0KPiAgDQo+ICAJY2FwID0gY3hsX2NtZF9p
-ZGVudGlmeV9nZXRfdG90YWxfc2l6ZShjbWQpOw0KPiAgCWlmIChjYXAgIT0gVUxMT05HX01BWCkg
-ew0KPiBAQCAtMjg0LDEwICsyNDIsNTkgQEAgc3RhdGljIHN0cnVjdCBqc29uX29iamVjdCAqdXRp
-bF9jeGxfbWVtZGV2X3BhcnRpdGlvbl90b19qc29uKHN0cnVjdCBjeGxfbWVtZGV2ICoNCj4gIAkJ
-anNvbl9vYmplY3Rfb2JqZWN0X2FkZChqcGFydCwgInBhcnRpdGlvbl9hbGlnbm1lbnRfc2l6ZSIs
-IGpvYmopOw0KPiAgDQo+ICAJY3hsX2NtZF91bnJlZihjbWQpOw0KPiArDQo+ICsJLyogUmV0dXJu
-IG5vdyBpZiB0aGVyZSBpcyBubyBwYXJ0aXRpb24gaW5mbyB0byBnZXQuICovDQo+ICsJaWYgKCFj
-YXApDQo+ICsJCXJldHVybiBqcGFydDsNCj4gKw0KPiArCS8qIFJldHJpZXZlIHBhcnRpdGlvbiBp
-bmZvIGluIEdFVF9QQVJUSVRJT05fSU5GTyBtYm94IGNtZCAqLw0KPiArCWNtZCA9IGN4bF9jbWRf
-bmV3X2dldF9wYXJ0aXRpb24obWVtZGV2KTsNCj4gKwlpZiAoIWNtZCkNCj4gKwkJcmV0dXJuIGpw
-YXJ0Ow0KPiArDQo+ICsJcmMgPSBjeGxfY21kX3N1Ym1pdChjbWQpOw0KPiArCWlmIChyYyA8IDAp
-DQo+ICsJCWdvdG8gZXJyX2dldDsNCj4gKwlyYyA9IGN4bF9jbWRfZ2V0X21ib3hfc3RhdHVzKGNt
-ZCk7DQo+ICsJaWYgKHJjICE9IDApDQo+ICsJCWdvdG8gZXJyX2dldDsNCj4gKw0KPiArCWNhcCA9
-IGN4bF9jbWRfcGFydGl0aW9uX2dldF9hY3RpdmVfdm9sYXRpbGVfc2l6ZShjbWQpOw0KPiArCWlm
-IChjYXAgIT0gVUxMT05HX01BWCkgew0KPiArCQlqb2JqID0gdXRpbF9qc29uX29iamVjdF9zaXpl
-KGNhcCwgZmxhZ3MpOw0KPiArCQlpZiAoam9iaikNCj4gKwkJCWpzb25fb2JqZWN0X29iamVjdF9h
-ZGQoanBhcnQsDQo+ICsJCQkJCSJhY3RpdmVfdm9sYXRpbGVfc2l6ZSIsIGpvYmopOw0KPiArCX0N
-Cj4gKwljYXAgPSBjeGxfY21kX3BhcnRpdGlvbl9nZXRfYWN0aXZlX3BlcnNpc3RlbnRfc2l6ZShj
-bWQpOw0KPiArCWlmIChjYXAgIT0gVUxMT05HX01BWCkgew0KPiArCQlqb2JqID0gdXRpbF9qc29u
-X29iamVjdF9zaXplKGNhcCwgZmxhZ3MpOw0KPiArCQlpZiAoam9iaikNCj4gKwkJCWpzb25fb2Jq
-ZWN0X29iamVjdF9hZGQoanBhcnQsDQo+ICsJCQkJCSJhY3RpdmVfcGVyc2lzdGVudF9zaXplIiwg
-am9iaik7DQo+ICsJfQ0KPiArCWNhcCA9IGN4bF9jbWRfcGFydGl0aW9uX2dldF9uZXh0X3ZvbGF0
-aWxlX3NpemUoY21kKTsNCj4gKwlpZiAoY2FwICE9IFVMTE9OR19NQVgpIHsNCj4gKwkJam9iaiA9
-IHV0aWxfanNvbl9vYmplY3Rfc2l6ZShjYXAsIGZsYWdzKTsNCj4gKwkJaWYgKGpvYmopDQo+ICsJ
-CQlqc29uX29iamVjdF9vYmplY3RfYWRkKGpwYXJ0LA0KPiArCQkJCQkibmV4dF92b2xhdGlsZV9z
-aXplIiwgam9iaik7DQo+ICsJfQ0KPiArCWNhcCA9IGN4bF9jbWRfcGFydGl0aW9uX2dldF9uZXh0
-X3BlcnNpc3RlbnRfc2l6ZShjbWQpOw0KPiArCWlmIChjYXAgIT0gVUxMT05HX01BWCkgew0KPiAr
-CQlqb2JqID0gdXRpbF9qc29uX29iamVjdF9zaXplKGNhcCwgZmxhZ3MpOw0KPiArCQlpZiAoam9i
-aikNCj4gKwkJCWpzb25fb2JqZWN0X29iamVjdF9hZGQoanBhcnQsDQo+ICsJCQkJCSJuZXh0X3Bl
-cnNpc3RlbnRfc2l6ZSIsIGpvYmopOw0KPiArCX0NCj4gKw0KPiArZXJyX2dldDoNCj4gKwljeGxf
-Y21kX3VucmVmKGNtZCk7DQo+ICAJcmV0dXJuIGpwYXJ0Ow0KPiAgDQo+IC1lcnJfY21kOg0KPiAr
-ZXJyX2lkZW50aWZ5Og0KPiAgCWN4bF9jbWRfdW5yZWYoY21kKTsNCj4gKw0KPiAgZXJyX2pvYmo6
-DQo+ICAJanNvbl9vYmplY3RfcHV0KGpwYXJ0KTsNCj4gIAlyZXR1cm4gTlVMTDsNCg0K
+From: Alison Schofield <alison.schofield@intel.com>
+
+Provisioning PMEM over CXL requires the ability to view and change
+partition layouts of CXL memory devices that support partitioning.
+Provide access to these capabilities as defined in the CXL 2.0
+specification.
+
+The first 4 patches add accessors for all the information needed
+to formulate a new partition layout. This info is accessible via
+the libcxl API and a new option in the 'cxl list' command:
+
+Example:
+    "partition_info":{
+      "total_size":273535729664,
+      "volatile_only_size":0,
+      "persistent_only_size":0,
+      "partition_alignment_size":268435456
+      "active_volatile_size":273535729664,
+      "active_persistent_size":0,
+      "next_volatile_size":0,
+      "next_persistent_size":0,
+    }
+
+Patch 5 introduces the libcxl interfaces for the CXL SET_PARTITION_INFO
+mailbox command and Patch 6 adds the cxl set-partition command.
+
+ Usage: cxl set-partition <mem0> [<mem1>..<memN>] [<options>]
+
+    -v, --verbose         turn on debug
+    -S, --serial          use serial numbers to id memdevs
+    -t, --type <type>     'pmem' or 'volatile' (Default: 'pmem')
+    -s, --size <size>     size in bytes (Default: all available capacity)
+    -a, --align           auto-align --size per device's requirement
+
+
+The cxl set-partition command does not offer the IMMEDIATE mode option
+defined in the CXL 2.0 spec because the CXL kernel driver does not
+support immediate mode yet. Since userspace could use the libcxl API
+to send a SET_PARTITION_INFO mailbox command with immediate mode
+selected, a kernel patch that rejects such requests is in review for
+the CXL driver.
+
+Changes in v6:
+- Patch 4/cxl-list: Handle GET_PARTITION_INFO command as optional
+  by flipping the order retrieved: IDENTIFY first, followed by
+  GET_PARTITION_INFO if partitionable capacity exists. Update
+  cxl-list examples in the man page, commit log, and cover letter.
+- Apply Dan Reviewed-by tags to Patch #3. All patches now tagged.
+
+Changes in v5: (from Dan's review)
+- Applied Dan Reviewed-by tags to all except Patch #3
+- Cover letter: update the cxl list, and synopsis output.
+- Cover letter: s/CXL/'cxl set-partition'/ for clarity.
+- Redefine capacity_to_bytes helper to reflect that it converts
+  the le64 to uint64_t.
+- Add NULL checks (!cmd) in cmd_to_get_partition() and cmd_to_identify().
+- replace ?: statements with if() in libcxl get_<field> helpers.
+- replace ?: statements with if() in param_to_volatile_size() helper.
+- Add a note in Patch 3 log about this early API behavior change.
+- Use the cmd_to_identify() and cxl_capacity_to_bytes() pair for
+  retrieving partition_align_size.
+- Add note about role of cxl_cmd_partition_set_mode() to libcxl.txt
+- Updated cxl-set-partition man page.
+- command synopsis: update align description to say 'auto-align...'
+- command synopsis: update size default by s/partitionable/available
+- add and use an enum for param.type
+- s/partitionable/available in many places when referring to size available
+  to be partitioned.
+
+Changes in v4: (from Dan's review)
+- cxl set-partition command: add type (pmem | volatile),
+  add defaults for type and size, and add an align option.
+- Replace macros with return statements with functions.
+- Add cxl_set_partition_set_mode() to the libcxl API.
+- Add API documentation to Documentation/cxl/lib/libcxl.txt.
+- Use log_err/info mechanism.
+- Display memdev JSON info upon completion of set-partition command.
+- Remove unneeded casts when accessing command payloads.
+- Name changes - like drop _info suffix, use _size instead of _bytes.
+
+Changes in v3:
+- Back out the API name change to the partition align accessor.
+  The API was already released in v72.
+- Man page: collapse into one .txt file. 
+- Man page: add to Documentation/meson.build 
+
+Changes in v2:
+- Rebase onto https://github.com/pmem/ndctl.git djbw/meson.
+- Clarify that capacities are reported in bytes. (Ira)
+  This led to renaming accessors like *_capacity to  *_bytes and 
+  a spattering of changes in the man pages and commit messages.
+- Add missing cxl_cmd_unref() when creating json objects. (Ira)
+- Change the cxl list option to: -I --partition (Dan) 
+- Use OPT_STRING for the --volatile_size parameter (Dan, Vishal)
+- Drop extra _get_ in accessor names. (Vishal)
+- Add an accessor for the SET_PARTITION_INFO mbox cmd flag.
+- Display usage_with_options if size parameter is missing.
+- Drop the OPT64 define patch. Use OPT_STRING instead.
+
+Alison Schofield (6):
+  libcxl: add GET_PARTITION_INFO mailbox command and accessors
+  libcxl: add accessors for capacity fields of the IDENTIFY command
+  libcxl: return the partition alignment field in bytes
+  cxl: add memdev partition information to cxl-list
+  libcxl: add interfaces for SET_PARTITION_INFO mailbox command
+  cxl: add command 'cxl set-partition'
+
+ Documentation/cxl/cxl-list.txt          |  23 +++
+ Documentation/cxl/cxl-set-partition.txt |  68 ++++++++
+ Documentation/cxl/lib/libcxl.txt        |  12 ++
+ Documentation/cxl/meson.build           |   1 +
+ cxl/builtin.h                           |   1 +
+ cxl/cxl.c                               |   1 +
+ cxl/filter.c                            |   2 +
+ cxl/filter.h                            |   1 +
+ cxl/json.c                              | 120 ++++++++++++++
+ cxl/lib/libcxl.c                        | 151 ++++++++++++++++-
+ cxl/lib/libcxl.sym                      |  10 ++
+ cxl/lib/private.h                       |  18 +++
+ cxl/libcxl.h                            |  18 +++
+ cxl/list.c                              |   2 +
+ cxl/memdev.c                            | 206 ++++++++++++++++++++++++
+ util/json.h                             |   1 +
+ util/size.h                             |   1 +
+ 17 files changed, 628 insertions(+), 8 deletions(-)
+ create mode 100644 Documentation/cxl/cxl-set-partition.txt
+
+-- 
+2.31.1
+
