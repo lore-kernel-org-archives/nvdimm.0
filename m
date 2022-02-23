@@ -1,175 +1,157 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f170.google.com (mail-pl1-f170.google.com [209.85.214.170])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6491800
-	for <nvdimm@lists.linux.dev>; Wed, 23 Feb 2022 05:36:22 +0000 (UTC)
-Received: from pps.filterd (m0098414.ppops.net [127.0.0.1])
-	by mx0b-001b2d01.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 21N5Gf39003838;
-	Wed, 23 Feb 2022 05:36:20 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
- : in-reply-to : references : date : message-id : content-type :
- mime-version; s=pp1; bh=bLT4Smv1hy4NCUBiYWVB4HDs+Dj5+wnSXRlqrKPPvNw=;
- b=n5cRw/MpZb/PfO5/aCjXsu1qSFaPNR65drHR8IE5jIj3nLTR6CZ104g28FxwF1bugVqY
- TBP5GfSUIMTR1OxfbQQyYXva/4Yji7kSqOgAleJHFij5yrkHUxr8ng4+hDGwmWwUaWD/
- kJFbhp4w60kd8uo2NtFmjNJhzwiO7RQxobIYMozbiEkHbKaGT1+NMr+UTXX3qoVygTvz
- J2K49+KGGuOJUxoLXyIH27ZTDTIuIYkmqpkNffz6TdIEO7y3I/dpxlFAqdy7dZD7fmg8
- S//TJMScaF7S8EM7HNwEKczCty3drewlUgKDObV8UMnGsO6VbTJtl4rx4LVbk5ZpnIQa rw== 
-Received: from ppma04ams.nl.ibm.com (63.31.33a9.ip4.static.sl-reverse.com [169.51.49.99])
-	by mx0b-001b2d01.pphosted.com with ESMTP id 3edemwg8cv-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Wed, 23 Feb 2022 05:36:20 +0000
-Received: from pps.filterd (ppma04ams.nl.ibm.com [127.0.0.1])
-	by ppma04ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 21N5Xk6x000834;
-	Wed, 23 Feb 2022 05:36:18 GMT
-Received: from b06cxnps3074.portsmouth.uk.ibm.com (d06relay09.portsmouth.uk.ibm.com [9.149.109.194])
-	by ppma04ams.nl.ibm.com with ESMTP id 3ear697amw-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Wed, 23 Feb 2022 05:36:18 +0000
-Received: from d06av21.portsmouth.uk.ibm.com (d06av21.portsmouth.uk.ibm.com [9.149.105.232])
-	by b06cxnps3074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 21N5aD1l57409802
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 23 Feb 2022 05:36:13 GMT
-Received: from d06av21.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 95C0B52051;
-	Wed, 23 Feb 2022 05:36:13 +0000 (GMT)
-Received: from vajain21.in.ibm.com (unknown [9.43.30.90])
-	by d06av21.portsmouth.uk.ibm.com (Postfix) with SMTP id 218735204E;
-	Wed, 23 Feb 2022 05:36:10 +0000 (GMT)
-Received: by vajain21.in.ibm.com (sSMTP sendmail emulation); Wed, 23 Feb 2022 11:06:10 +0530
-From: Vaibhav Jain <vaibhav@linux.ibm.com>
-To: "Verma, Vishal L" <vishal.l.verma@intel.com>,
-        "nvdimm@lists.linux.dev"
- <nvdimm@lists.linux.dev>
-Cc: "Williams, Dan J" <dan.j.williams@intel.com>,
-        "aneesh.kumar@linux.ibm.com" <aneesh.kumar@linux.ibm.com>,
-        "sbhat@linux.ibm.com" <sbhat@linux.ibm.com>,
-        "Weiny, Ira"
- <ira.weiny@intel.com>
-Subject: Re: [ndctl PATCH v4] libndctl: Update nvdimm flags in
- ndctl_cmd_submit()
-In-Reply-To: <5e159e75b9ff3dfdaa46a7cbcb1c251786294f0b.camel@intel.com>
-References: <20220124205822.1492702-1-vaibhav@linux.ibm.com>
- <555f5d150e4d55dce788bf0ebfbc029409b21260.camel@intel.com>
- <87h78v9gj3.fsf@vajain21.in.ibm.com>
- <5e159e75b9ff3dfdaa46a7cbcb1c251786294f0b.camel@intel.com>
-Date: Wed, 23 Feb 2022 11:06:10 +0530
-Message-ID: <87tucqdu0l.fsf@vajain21.in.ibm.com>
-Content-Type: text/plain
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: njgUfpTFjbzrD3qSovu5en0pjxQluBnD
-X-Proofpoint-ORIG-GUID: njgUfpTFjbzrD3qSovu5en0pjxQluBnD
-X-Proofpoint-UnRewURL: 0 URL was un-rewritten
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B0A66AA3
+	for <nvdimm@lists.linux.dev>; Wed, 23 Feb 2022 19:08:03 +0000 (UTC)
+Received: by mail-pl1-f170.google.com with SMTP id c9so7672971pll.0
+        for <nvdimm@lists.linux.dev>; Wed, 23 Feb 2022 11:08:03 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20210112.gappssmtp.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=s5kpUzxnrVzEuxJL9YdhAPavDhDEx3huwZzW3QhMnqc=;
+        b=oOBuralfQkRqJWEG6w3RE13fM87S4Bdw+VaWFv6W0Tbu+D/QPJMcbmtJv4uAhVSD5q
+         pBuHfW73zvDqJ4Nglp7r8ruPaHFT/vEyOhuapkzxExi1NLkhKjU7uVr5gIopZMBoWWzY
+         g6esTKz5FreNqArsjrHzMTmfLlBifKZdqyAHRqEra5OS35E8dn9j3FXhLL9ZFvlimty9
+         ERaCqlFGR+j8PzpXswl6kgQfEhYY3XtCT4v425MgCKDhoWRCcl+xBnI8ZAU/5Nj1AgSV
+         6k2ExjHuFWfxWhgt6nJK2ZXjCjTGO1XRNV8t7wGz5+dY52NWGX/TA+63KYTmcepcS7N+
+         TdDg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=s5kpUzxnrVzEuxJL9YdhAPavDhDEx3huwZzW3QhMnqc=;
+        b=06sOzqT/GS+xpLQU8PzHDCiL+8tX2vvvl+veAqM25yIVeiTnbEhBPRxmKQHp44lmwb
+         fJTR+4MFM7uptaHXLxJvFNuGNExzEu8uAmuyfJU2e+Ev55jafJCBdSnBw2cU0qJd6/z9
+         T5nbVO9/mk40EpJD0rlwUa6x9Tswz8fo1TrIXuek9HamPZc4G3r5jMgTME4hME+puGZ1
+         SMuNTDCRxWl6j8eHUlPFsxJdNh6AQksXQQNYedufITkZb+9GXG6DKzqjgjpHoh4cFXFa
+         mSuRBGDsF1b9dv62HPUaXQt607zSFsvqik7gkW+EP6vJCJmKFL3x006RoS6tAtZD0SnF
+         okLg==
+X-Gm-Message-State: AOAM531ZgVOTOQOawLLsaR1UvD4LDWlwZQBiIDwHp1Y+gv9bAqQEDl8R
+	OoOOq1Yn0+sit+IUawDvYvPhl/Mfra50+uuN8ZdFSQ==
+X-Google-Smtp-Source: ABdhPJzhtUBaBdesBQ5pwR9+dzHt8CxKBDk+IB3hd3lqfzeO01k3FItoDCHj4NIADGDpXtkD3/zVT/o5qkswbWwGdHI=
+X-Received: by 2002:a17:903:32c1:b0:14f:8ba2:2326 with SMTP id
+ i1-20020a17090332c100b0014f8ba22326mr420585plr.34.1645643282781; Wed, 23 Feb
+ 2022 11:08:02 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.205,Aquarius:18.0.816,Hydra:6.0.425,FMLib:17.11.62.513
- definitions=2022-02-23_01,2022-02-21_02,2021-12-02_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 phishscore=0 spamscore=0
- mlxscore=0 bulkscore=0 impostorscore=0 malwarescore=0 mlxlogscore=999
- clxscore=1015 priorityscore=1501 suspectscore=0 adultscore=0
- lowpriorityscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2201110000 definitions=main-2202230026
+References: <20220217163357.276036-1-kjain@linux.ibm.com> <CAPcyv4jwpMbz0woftSfm3EO05pr3ZG9rVMJCkYVsapKYSOn3xw@mail.gmail.com>
+In-Reply-To: <CAPcyv4jwpMbz0woftSfm3EO05pr3ZG9rVMJCkYVsapKYSOn3xw@mail.gmail.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 23 Feb 2022 11:07:52 -0800
+Message-ID: <CAPcyv4hkLA_KJsKO_avTDZCVL2zGhcRNxVc+2P2uR6-5b2uwVA@mail.gmail.com>
+Subject: Re: [PATCH v6 0/4] Add perf interface to expose nvdimm
+To: Kajol Jain <kjain@linux.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, 
+	Linux NVDIMM <nvdimm@lists.linux.dev>, 
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, 
+	"Weiny, Ira" <ira.weiny@intel.com>, Vishal L Verma <vishal.l.verma@intel.com>, 
+	Santosh Sivaraj <santosh@fossix.org>, maddy@linux.ibm.com, rnsastry@linux.ibm.com, 
+	"Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, atrajeev@linux.vnet.ibm.com, 
+	Vaibhav Jain <vaibhav@linux.ibm.com>, Thomas Gleixner <tglx@linutronix.de>
+Content-Type: text/plain; charset="UTF-8"
 
-Thanks Vishal,
-
-I have addressed your review comments in v5 of the patch here at
-https://lore.kernel.org/nvdimm/20220222121519.1674117-1-vaibhav@linux.ibm.com
-
-~ Vaibhav
-
-"Verma, Vishal L" <vishal.l.verma@intel.com> writes:
-
-> On Sat, 2022-02-19 at 18:09 +0530, Vaibhav Jain wrote:
->> 
->> > > @@ -1924,9 +1940,13 @@ static void *add_dimm(void *parent, int id, const char *dimm_base)
->> > >  	dimm->formats = formats;
->> > >  	/* Check if the given dimm supports nfit */
->> > >  	if (ndctl_bus_has_nfit(bus)) {
->> > > -		rc = populate_dimm_attributes(dimm, dimm_base, "nfit");
->> > > +		dimm->bus_prefix = strdup("nfit");
->> > > +		rc = dimm->bus_prefix ?
->> > > +			populate_dimm_attributes(dimm, dimm_base) : -ENOMEM
->> > >  	} else if (ndctl_bus_has_of_node(bus)) {
->> > > -		rc = add_papr_dimm(dimm, dimm_base);
->> > > +		dimm->bus_prefix = strdup("papr");
->> > > +		rc = dimm->bus_prefix ?
->> > > +			add_papr_dimm(dimm, dimm_base) : -ENOMEM;
->> > 
->> > For both of the above, it would be a bit more readable to just return
->> > ENOMEM directly after strdup() if it fails, and then carry on with
->> > add_<foo>_dimm().
->> > 
->> > 	dimm->bus_prefix = strdup("papr");
->> > 	if (!dimm->bus_prefix)
->> > 		return -ENOMEM;
->> > 	rc = add_papr_dimm(dimm, dimm_base);
->> > 	...
->> > 
->> Agree on the readability part but returning from there right away would
->> prevent the allocated 'struct ndctl_dimm *dimm' from being freed in the
->> error path. Also the function add_dimm() returns a 'void *' to 'struct
->> ndctl_dimm*' right now rather than an 'int'.
->> 
->> I propose updating the code as:
->> 
->> 	if (ndctl_bus_has_nfit(bus)) {
->> 		dimm->bus_prefix = strdup("nfit");
->> 		if (!dimm->bus_prefix) {
->> 			rc = -ENOMEM;
->> 			goto out;
->> 		}
->> 		rc =  populate_dimm_attributes(dimm, dimm_base);
->>          }
+On Fri, Feb 18, 2022 at 10:06 AM Dan Williams <dan.j.williams@intel.com> wrote:
 >
-> Yes, that looks good, thanks!
+> On Thu, Feb 17, 2022 at 8:34 AM Kajol Jain <kjain@linux.ibm.com> wrote:
+> >
+> > Patchset adds performance stats reporting support for nvdimm.
+> > Added interface includes support for pmu register/unregister
+> > functions. A structure is added called nvdimm_pmu to be used for
+> > adding arch/platform specific data such as cpumask, nvdimm device
+> > pointer and pmu event functions like event_init/add/read/del.
+> > User could use the standard perf tool to access perf events
+> > exposed via pmu.
+> >
+> > Interface also defines supported event list, config fields for the
+> > event attributes and their corresponding bit values which are exported
+> > via sysfs. Patch 3 exposes IBM pseries platform nmem* device
+> > performance stats using this interface.
+> >
+> > Result from power9 pseries lpar with 2 nvdimm device:
+> >
+> > Ex: List all event by perf list
+> >
+> > command:# perf list nmem
+> >
+> >   nmem0/cache_rh_cnt/                                [Kernel PMU event]
+> >   nmem0/cache_wh_cnt/                                [Kernel PMU event]
+> >   nmem0/cri_res_util/                                [Kernel PMU event]
+> >   nmem0/ctl_res_cnt/                                 [Kernel PMU event]
+> >   nmem0/ctl_res_tm/                                  [Kernel PMU event]
+> >   nmem0/fast_w_cnt/                                  [Kernel PMU event]
+> >   nmem0/host_l_cnt/                                  [Kernel PMU event]
+> >   nmem0/host_l_dur/                                  [Kernel PMU event]
+> >   nmem0/host_s_cnt/                                  [Kernel PMU event]
+> >   nmem0/host_s_dur/                                  [Kernel PMU event]
+> >   nmem0/med_r_cnt/                                   [Kernel PMU event]
+> >   nmem0/med_r_dur/                                   [Kernel PMU event]
+> >   nmem0/med_w_cnt/                                   [Kernel PMU event]
+> >   nmem0/med_w_dur/                                   [Kernel PMU event]
+> >   nmem0/mem_life/                                    [Kernel PMU event]
+> >   nmem0/poweron_secs/                                [Kernel PMU event]
+> >   ...
+> >   nmem1/mem_life/                                    [Kernel PMU event]
+> >   nmem1/poweron_secs/                                [Kernel PMU event]
+> >
+> > Patch1:
+> >         Introduces the nvdimm_pmu structure
+> > Patch2:
+> >         Adds common interface to add arch/platform specific data
+> >         includes nvdimm device pointer, pmu data along with
+> >         pmu event functions. It also defines supported event list
+> >         and adds attribute groups for format, events and cpumask.
+> >         It also adds code for cpu hotplug support.
+> > Patch3:
+> >         Add code in arch/powerpc/platform/pseries/papr_scm.c to expose
+> >         nmem* pmu. It fills in the nvdimm_pmu structure with pmu name,
+> >         capabilities, cpumask and event functions and then registers
+> >         the pmu by adding callbacks to register_nvdimm_pmu.
+> > Patch4:
+> >         Sysfs documentation patch
+> >
+> > Changelog
+> > ---
+> > Resend v5 -> v6
+> > - No logic change, just a rebase to latest upstream and
+> >   tested the patchset.
+> >
+> > - Link to the patchset Resend v5: https://lkml.org/lkml/2021/11/15/3979
+> >
+> > v5 -> Resend v5
+> > - Resend the patchset
+> >
+> > - Link to the patchset v5: https://lkml.org/lkml/2021/9/28/643
+> >
+> > v4 -> v5:
+> > - Remove multiple variables defined in nvdimm_pmu structure include
+> >   name and pmu functions(event_int/add/del/read) as they are just
+> >   used to copy them again in pmu variable. Now we are directly doing
+> >   this step in arch specific code as suggested by Dan Williams.
+> >
+> > - Remove attribute group field from nvdimm pmu structure and
+> >   defined these attribute groups in common interface which
+> >   includes format, event list along with cpumask as suggested by
+> >   Dan Williams.
+> >   Since we added static defination for attrbute groups needed in
+> >   common interface, removes corresponding code from papr.
+> >
+> > - Add nvdimm pmu event list with event codes in the common interface.
+> >
+> > - Remove Acked-by/Reviewed-by/Tested-by tags as code is refactored
+> >   to handle review comments from Dan.
 >
->> 
->> > >  	}
->> > >  
->> > >  	if (rc == -ENODEV) {
->> > > @@ -3506,6 +3526,10 @@ NDCTL_EXPORT int ndctl_cmd_submit(struct ndctl_cmd *cmd)
->> > >  		rc = -ENXIO;
->> > >  	}
->> > >  	close(fd);
->> > > +
->> > > +	/* update dimm-flags if command submitted successfully */
->> > > +	if (!rc && cmd->dimm)
->> > > +		ndctl_refresh_dimm_flags(cmd->dimm);
->> > >   out:
->> > >  	cmd->status = rc;
->> > >  	return rc;
->> > > diff --git a/ndctl/lib/private.h b/ndctl/lib/private.h
->> > > index 4d8622978790..e5c56295556d 100644
->> > > --- a/ndctl/lib/private.h
->> > > +++ b/ndctl/lib/private.h
->> > > @@ -75,6 +75,7 @@ struct ndctl_dimm {
->> > >  	char *unique_id;
->> > >  	char *dimm_path;
->> > >  	char *dimm_buf;
->> > > +	char *bus_prefix;
->> > >  	int health_eventfd;
->> > >  	int buf_len;
->> > >  	int id;
->> > > diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
->> > > index 4d5cdbf6f619..b1bafd6d9788 100644
->> > > --- a/ndctl/libndctl.h
->> > > +++ b/ndctl/libndctl.h
->> > > @@ -223,6 +223,7 @@ int ndctl_dimm_is_active(struct ndctl_dimm *dimm);
->> > >  int ndctl_dimm_is_enabled(struct ndctl_dimm *dimm);
->> > >  int ndctl_dimm_disable(struct ndctl_dimm *dimm);
->> > >  int ndctl_dimm_enable(struct ndctl_dimm *dimm);
->> > > +void ndctl_refresh_dimm_flags(struct ndctl_dimm *dimm);
->> > >  
->> > >  struct ndctl_cmd;
->> > >  struct ndctl_cmd *ndctl_bus_cmd_new_ars_cap(struct ndctl_bus *bus,
->> > 
->> 
+> I don't think review comments should invalidate the Acked-by tags in
+> this case. Nothing fundamentally changed in the approach, and I would
+> like to have the perf ack before taking this through the nvdimm tree.
 >
+> Otherwise this looks good to me.
+>
+> Peter, might you have a chance to re-Ack this series, or any concerns
+> about me retrieving those Acks from the previous postings?
 
--- 
-Cheers
-~ Vaibhav
+Reached Peter offline and he refreshed his Acked-by.
