@@ -1,258 +1,119 @@
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yw1-f175.google.com (mail-yw1-f175.google.com [209.85.128.175])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D70AC1373
-	for <nvdimm@lists.linux.dev>; Thu, 24 Feb 2022 05:28:21 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1645680501; x=1677216501;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=/zZ7yTw1hHT2Ai7RyNEMmpKKL7pXVpOZD3bbYkTy+zI=;
-  b=YvrqY8CYabnVzgkrRg+jBOlJJkoIhYYl3ewhnzkFVekpnpti5E4YcXsd
-   rjNgO71kZX48hwmVYkuUIz2wAHgLTT2dC3qXPE+rjimRpWWpBvogYTM/5
-   biJr7VHW/4KCh9VYCw6U4zaxKPPN2Hr5CQEhnJiPUIQRak506UZ+SLy01
-   I6Qta2BDny7crkGByL9c6CA9MRQkoDwGoK5fqTwFjfeHRVm+KzSOKUx7b
-   Hsz1gIDYBJRUQCS4LIHt/0yVRJoQLd81S3pi7H4NqidXMwGQIcQt7/z0R
-   4zhledNEHUVu0e0/C0rOlf/jJRsPeVONKverW4hiZgBhACgi3H0fxL9LV
-   w==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10267"; a="249734786"
-X-IronPort-AV: E=Sophos;i="5.88,393,1635231600"; 
-   d="scan'208";a="249734786"
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Feb 2022 21:28:19 -0800
-X-IronPort-AV: E=Sophos;i="5.88,393,1635231600"; 
-   d="scan'208";a="508733769"
-Received: from mmgiotto-mobl.amr.corp.intel.com (HELO vverma7-desk.amr.corp.intel.com) ([10.212.17.173])
-  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Feb 2022 21:28:15 -0800
-From: Vishal Verma <vishal.l.verma@intel.com>
-To: <nvdimm@lists.linux.dev>
-Cc: Joao Martins <joao.m.martins@oracle.com>,
-	<linux-cxl@vger.kernel.org>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH] util/size.h: fix build for older compilers
-Date: Wed, 23 Feb 2022 22:28:05 -0700
-Message-Id: <20220224052805.2462449-1-vishal.l.verma@intel.com>
-X-Mailer: git-send-email 2.34.1
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6355D1373
+	for <nvdimm@lists.linux.dev>; Thu, 24 Feb 2022 05:55:33 +0000 (UTC)
+Received: by mail-yw1-f175.google.com with SMTP id 00721157ae682-2d66f95f1d1so14038367b3.0
+        for <nvdimm@lists.linux.dev>; Wed, 23 Feb 2022 21:55:33 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=bytedance-com.20210112.gappssmtp.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=kvhU+1d1xBuiwuTvVQmOP1FBfYrMuzDuvR5ypoAEjro=;
+        b=CEt6WoNPJExnK4pZ3D56UCeA564FCpoElTbHUG7guQrxewH8Ef4bcrKv615NXBRlGg
+         vBtPBeEeoQNZU2567HdocwW4qpALbKec2QFSlYDInWSsnOW9/wYQI+frra60lxHZ7ej6
+         KA492jINm/YiiL6pOlnXDFLQiP7GcwKeFrkBl20tJ3fcDCto8o94c472V781OracUOuN
+         UBhtq3m3eMFoVLMR7ZohfgfjkR04+UvHT35hf/wePMDEOiF2kkqpub3oDeKVbp51W+Wn
+         BnexbEPlDwQhzil3kFMp4DDSV2lqRwKClXc4VIDKzeyVgImJeXRENSj9cnUzXqXJnxun
+         uY2g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=kvhU+1d1xBuiwuTvVQmOP1FBfYrMuzDuvR5ypoAEjro=;
+        b=2+vSBUiQztFtf3d3rKyIOi5GKxf+ST7DVWje0Ooxse/OYFIE43Vtn+1sYWsKKe9qEK
+         6lwaTchSbr7YsMhMfiUUs8xBWQWTiFMYmdc7YWiRpfMngrZuLDMKj8eUmlAnIz+mTRRc
+         4Nlqjp5wJ7GGLo+XsJ0HAWYBQih7j5LoI5RauJCXAHypWKf4xluNbqnga4ri2Gl3miFh
+         fTzBh4zhwdZap/dDuSwk2RxV2KYuuUqUi76NtJx2tDq82PI9ee7RlrcHya/duve1gZfe
+         i1mJ4L8ra6+WyBQPsCrFQIAhSgUbvMyzg0VEqzT1fCqdYjym7fAH/VapworuiGVWhor7
+         4fZw==
+X-Gm-Message-State: AOAM53217esJqX+XrCIauTp/FLNJVAvK9vBdbpDRRS8noZ6sEVs5K62E
+	eN+fXL0u7IXewmDSN/uqFr+P/ULQ0bK6p01Gf/wuJg==
+X-Google-Smtp-Source: ABdhPJxQBX3Dc+MjzYS5ebkRBFbDibF6wIJL7Bn+424LeZUsSwel/NdC9XRIpxfLvof5dstbTtuwpAn4KzhMnTIfxz8=
+X-Received: by 2002:a81:5dd6:0:b0:2d6:3041:12e0 with SMTP id
+ r205-20020a815dd6000000b002d6304112e0mr976524ywb.331.1645682132153; Wed, 23
+ Feb 2022 21:55:32 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=6909; h=from:subject; bh=/zZ7yTw1hHT2Ai7RyNEMmpKKL7pXVpOZD3bbYkTy+zI=; b=owGbwMvMwCXGf25diOft7jLG02pJDEni4hFxa4PXSU2MeVymy/rc0nBZFPPs8h+tj+c8rJymZj2l dPrejlIWBjEuBlkxRZa/ez4yHpPbns8TmOAIM4eVCWQIAxenAEzEWZfhf42G6sS+lRGGbw/s2m/F+7 5+ff17bvOXWX+KXyfuj9I9+Z2RYXKB+/RnB5hOhzK8Ljyx1V13/VMNpxns2/W/ObIlP+E0ZAAA
-X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp; fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
-Content-Transfer-Encoding: 8bit
+References: <20220223194807.12070-1-joao.m.martins@oracle.com> <20220223194807.12070-5-joao.m.martins@oracle.com>
+In-Reply-To: <20220223194807.12070-5-joao.m.martins@oracle.com>
+From: Muchun Song <songmuchun@bytedance.com>
+Date: Thu, 24 Feb 2022 13:54:54 +0800
+Message-ID: <CAMZfGtXm5pLbTnzMCrWPg8Vm3gykB8XEg5DHFm0z1p1x2fhySQ@mail.gmail.com>
+Subject: Re: [PATCH v6 4/5] mm/sparse-vmemmap: improve memory savings for
+ compound devmaps
+To: Joao Martins <joao.m.martins@oracle.com>
+Cc: Linux Memory Management List <linux-mm@kvack.org>, Dan Williams <dan.j.williams@intel.com>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Matthew Wilcox <willy@infradead.org>, 
+	Jason Gunthorpe <jgg@ziepe.ca>, Jane Chu <jane.chu@oracle.com>, 
+	Mike Kravetz <mike.kravetz@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, 
+	Jonathan Corbet <corbet@lwn.net>, Christoph Hellwig <hch@lst.de>, nvdimm@lists.linux.dev, 
+	Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 
-Add a fallback for older compilers that lack __builtin_add_overflow()
-and friends. Commit 7aa7c7be6e80 ("util: add the struct_size() helper from the
-kernel") which added these helpers from the kernel neglected to copy
-over the fallback code.
+On Thu, Feb 24, 2022 at 3:48 AM Joao Martins <joao.m.martins@oracle.com> wrote:
+>
+> A compound devmap is a dev_pagemap with @vmemmap_shift > 0 and it
+> means that pages are mapped at a given huge page alignment and utilize
+> uses compound pages as opposed to order-0 pages.
+>
+> Take advantage of the fact that most tail pages look the same (except
+> the first two) to minimize struct page overhead. Allocate a separate
+> page for the vmemmap area which contains the head page and separate for
+> the next 64 pages. The rest of the subsections then reuse this tail
+> vmemmap page to initialize the rest of the tail pages.
+>
+> Sections are arch-dependent (e.g. on x86 it's 64M, 128M or 512M) and
+> when initializing compound devmap with big enough @vmemmap_shift (e.g.
+> 1G PUD) it may cross multiple sections. The vmemmap code needs to
+> consult @pgmap so that multiple sections that all map the same tail
+> data can refer back to the first copy of that data for a given
+> gigantic page.
+>
+> On compound devmaps with 2M align, this mechanism lets 6 pages be
+> saved out of the 8 necessary PFNs necessary to set the subsection's
+> 512 struct pages being mapped. On a 1G compound devmap it saves
+> 4094 pages.
+>
+> Altmap isn't supported yet, given various restrictions in altmap pfn
+> allocator, thus fallback to the already in use vmemmap_populate().  It
+> is worth noting that altmap for devmap mappings was there to relieve the
+> pressure of inordinate amounts of memmap space to map terabytes of pmem.
+> With compound pages the motivation for altmaps for pmem gets reduced.
+>
+> Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
+[...]
+> diff --git a/include/linux/mm.h b/include/linux/mm.h
+> index 5f549cf6a4e8..b0798b9c6a6a 100644
+> --- a/include/linux/mm.h
+> +++ b/include/linux/mm.h
+> @@ -3118,7 +3118,7 @@ p4d_t *vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node);
+>  pud_t *vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node);
+>  pmd_t *vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node);
+>  pte_t *vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node,
+> -                           struct vmem_altmap *altmap);
+> +                           struct vmem_altmap *altmap, struct page *block);
 
-Fixes: 7aa7c7be6e80 ("util: add the struct_size() helper from the kernel")
-Reported-by: Joao Martins <joao.m.martins@oracle.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- util/size.h | 163 ++++++++++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 159 insertions(+), 4 deletions(-)
+Have forgotten to update @block to @reuse here.
 
-diff --git a/util/size.h b/util/size.h
-index e72467f..1cb0669 100644
---- a/util/size.h
-+++ b/util/size.h
-@@ -6,6 +6,7 @@
- #include <stdbool.h>
- #include <stdint.h>
- #include <util/util.h>
-+#include <ccan/short_types/short_types.h>
- 
- #define SZ_1K     0x00000400
- #define SZ_4K     0x00001000
-@@ -43,23 +44,177 @@ static inline bool is_power_of_2(unsigned long long v)
-  * alias for __builtin_add_overflow, but add type checks similar to
-  * below.
-  */
--#define check_add_overflow(a, b, d) (({	\
-+#define is_signed_type(type)       (((type)(-1)) < (type)1)
-+#define __type_half_max(type) ((type)1 << (8*sizeof(type) - 1 - is_signed_type(type)))
-+#define type_max(T) ((T)((__type_half_max(T) - 1) + __type_half_max(T)))
-+#define type_min(T) ((T)((T)-type_max(T)-(T)1))
-+
-+#if GCC_VERSION >= 50100
-+#define COMPILER_HAS_GENERIC_BUILTIN_OVERFLOW 1
-+#endif
-+
-+#if __clang__ && \
-+    __has_builtin(__builtin_mul_overflow) && \
-+    __has_builtin(__builtin_add_overflow)
-+#define COMPILER_HAS_GENERIC_BUILTIN_OVERFLOW 1
-+#endif
-+
-+#if COMPILER_HAS_GENERIC_BUILTIN_OVERFLOW
-+
-+#define check_add_overflow(a, b, d) ({		\
- 	typeof(a) __a = (a);			\
- 	typeof(b) __b = (b);			\
- 	typeof(d) __d = (d);			\
- 	(void) (&__a == &__b);			\
- 	(void) (&__a == __d);			\
- 	__builtin_add_overflow(__a, __b, __d);	\
--}))
-+})
- 
--#define check_mul_overflow(a, b, d) (({	\
-+#define check_sub_overflow(a, b, d) ({		\
-+	typeof(a) __a = (a);			\
-+	typeof(b) __b = (b);			\
-+	typeof(d) __d = (d);			\
-+	(void) (&__a == &__b);			\
-+	(void) (&__a == __d);			\
-+	__builtin_sub_overflow(__a, __b, __d);	\
-+})
-+
-+#define check_mul_overflow(a, b, d) ({		\
- 	typeof(a) __a = (a);			\
- 	typeof(b) __b = (b);			\
- 	typeof(d) __d = (d);			\
- 	(void) (&__a == &__b);			\
- 	(void) (&__a == __d);			\
- 	__builtin_mul_overflow(__a, __b, __d);	\
--}))
-+})
-+
-+
-+#else /* !COMPILER_HAS_GENERIC_BUILTIN_OVERFLOW */
-+
-+/* Checking for unsigned overflow is relatively easy without causing UB. */
-+#define __unsigned_add_overflow(a, b, d) ({	\
-+	typeof(a) __a = (a);			\
-+	typeof(b) __b = (b);			\
-+	typeof(d) __d = (d);			\
-+	(void) (&__a == &__b);			\
-+	(void) (&__a == __d);			\
-+	*__d = __a + __b;			\
-+	*__d < __a;				\
-+})
-+#define __unsigned_sub_overflow(a, b, d) ({	\
-+	typeof(a) __a = (a);			\
-+	typeof(b) __b = (b);			\
-+	typeof(d) __d = (d);			\
-+	(void) (&__a == &__b);			\
-+	(void) (&__a == __d);			\
-+	*__d = __a - __b;			\
-+	__a < __b;				\
-+})
-+/*
-+ * If one of a or b is a compile-time constant, this avoids a division.
-+ */
-+#define __unsigned_mul_overflow(a, b, d) ({		\
-+	typeof(a) __a = (a);				\
-+	typeof(b) __b = (b);				\
-+	typeof(d) __d = (d);				\
-+	(void) (&__a == &__b);				\
-+	(void) (&__a == __d);				\
-+	*__d = __a * __b;				\
-+	__builtin_constant_p(__b) ?			\
-+	  __b > 0 && __a > type_max(typeof(__a)) / __b : \
-+	  __a > 0 && __b > type_max(typeof(__b)) / __a;	 \
-+})
-+
-+/*
-+ * For signed types, detecting overflow is much harder, especially if
-+ * we want to avoid UB. But the interface of these macros is such that
-+ * we must provide a result in *d, and in fact we must produce the
-+ * result promised by gcc's builtins, which is simply the possibly
-+ * wrapped-around value. Fortunately, we can just formally do the
-+ * operations in the widest relevant unsigned type (u64) and then
-+ * truncate the result - gcc is smart enough to generate the same code
-+ * with and without the (u64) casts.
-+ */
-+
-+/*
-+ * Adding two signed integers can overflow only if they have the same
-+ * sign, and overflow has happened iff the result has the opposite
-+ * sign.
-+ */
-+#define __signed_add_overflow(a, b, d) ({	\
-+	typeof(a) __a = (a);			\
-+	typeof(b) __b = (b);			\
-+	typeof(d) __d = (d);			\
-+	(void) (&__a == &__b);			\
-+	(void) (&__a == __d);			\
-+	*__d = (u64)__a + (u64)__b;		\
-+	(((~(__a ^ __b)) & (*__d ^ __a))	\
-+		& type_min(typeof(__a))) != 0;	\
-+})
-+
-+/*
-+ * Subtraction is similar, except that overflow can now happen only
-+ * when the signs are opposite. In this case, overflow has happened if
-+ * the result has the opposite sign of a.
-+ */
-+#define __signed_sub_overflow(a, b, d) ({	\
-+	typeof(a) __a = (a);			\
-+	typeof(b) __b = (b);			\
-+	typeof(d) __d = (d);			\
-+	(void) (&__a == &__b);			\
-+	(void) (&__a == __d);			\
-+	*__d = (u64)__a - (u64)__b;		\
-+	((((__a ^ __b)) & (*__d ^ __a))		\
-+		& type_min(typeof(__a))) != 0;	\
-+})
-+
-+/*
-+ * Signed multiplication is rather hard. gcc always follows C99, so
-+ * division is truncated towards 0. This means that we can write the
-+ * overflow check like this:
-+ *
-+ * (a > 0 && (b > MAX/a || b < MIN/a)) ||
-+ * (a < -1 && (b > MIN/a || b < MAX/a) ||
-+ * (a == -1 && b == MIN)
-+ *
-+ * The redundant casts of -1 are to silence an annoying -Wtype-limits
-+ * (included in -Wextra) warning: When the type is u8 or u16, the
-+ * __b_c_e in check_mul_overflow obviously selects
-+ * __unsigned_mul_overflow, but unfortunately gcc still parses this
-+ * code and warns about the limited range of __b.
-+ */
-+
-+#define __signed_mul_overflow(a, b, d) ({				\
-+	typeof(a) __a = (a);						\
-+	typeof(b) __b = (b);						\
-+	typeof(d) __d = (d);						\
-+	typeof(a) __tmax = type_max(typeof(a));				\
-+	typeof(a) __tmin = type_min(typeof(a));				\
-+	(void) (&__a == &__b);						\
-+	(void) (&__a == __d);						\
-+	*__d = (u64)__a * (u64)__b;					\
-+	(__b > 0   && (__a > __tmax/__b || __a < __tmin/__b)) ||	\
-+	(__b < (typeof(__b))-1  && (__a > __tmin/__b || __a < __tmax/__b)) || \
-+	(__b == (typeof(__b))-1 && __a == __tmin);			\
-+})
-+
-+
-+#define check_add_overflow(a, b, d)					\
-+	__builtin_choose_expr(is_signed_type(typeof(a)),		\
-+			__signed_add_overflow(a, b, d),			\
-+			__unsigned_add_overflow(a, b, d))
-+
-+#define check_sub_overflow(a, b, d)					\
-+	__builtin_choose_expr(is_signed_type(typeof(a)),		\
-+			__signed_sub_overflow(a, b, d),			\
-+			__unsigned_sub_overflow(a, b, d))
-+
-+#define check_mul_overflow(a, b, d)					\
-+	__builtin_choose_expr(is_signed_type(typeof(a)),		\
-+			__signed_mul_overflow(a, b, d),			\
-+			__unsigned_mul_overflow(a, b, d))
-+
-+#endif
- 
- /*
-  * Compute a*b+c, returning SIZE_MAX on overflow. Internal helper for
+[...]
+> +
+> +static int __meminit vmemmap_populate_range(unsigned long start,
+> +                                           unsigned long end,
+> +                                           int node, struct page *page)
 
-base-commit: 3e4a66f0dfb02046f6d3375d637840b6da9c71d1
--- 
-2.34.1
+All of the users are passing a valid parameter of @page. This function
+will populate the vmemmap with the @page and without memory
+allocations. So the @node parameter seems to be unnecessary.
 
+If you want to make this function more generic like
+vmemmap_populate_address() to handle memory allocations
+(the case of @page == NULL). I think vmemmap_populate_range()
+should add another parameter of `struct vmem_altmap *altmap`.
+Otherwise, is it better to remove @node and rename @page to @reuse?
+
+Thanks.
