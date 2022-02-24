@@ -1,68 +1,80 @@
 Received: from mx0b-00069f02.pphosted.com (mx0b-00069f02.pphosted.com [205.220.177.32])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AC90184D
-	for <nvdimm@lists.linux.dev>; Thu, 24 Feb 2022 10:09:38 +0000 (UTC)
-Received: from pps.filterd (m0246630.ppops.net [127.0.0.1])
-	by mx0b-00069f02.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 21O7iKlj014635;
-	Thu, 24 Feb 2022 10:09:36 GMT
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 269FFA3D
+	for <nvdimm@lists.linux.dev>; Thu, 24 Feb 2022 10:38:51 +0000 (UTC)
+Received: from pps.filterd (m0246632.ppops.net [127.0.0.1])
+	by mx0b-00069f02.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 21O7iKVT025428;
+	Thu, 24 Feb 2022 10:38:45 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=message-id : date :
  subject : to : cc : references : from : in-reply-to : content-type :
  content-transfer-encoding : mime-version; s=corp-2021-07-09;
- bh=80STcLBOAxrzJlqhZiLGrtPMeT0NbjJfUrvROYqse0c=;
- b=mryXM/HggMS4/uLE9BNQHJBD2IFpy0CceCEzZdnDPnKBQYeY5kbxyvQFlANsmYcn5ScK
- Jt7KhCYj9wvVobWRNIrrJ2WfmR393Kr5Fw807ToXRmj8mo1XWGkGGEFAjob75Lv/M1f2
- kJuwS0zzeVLiYspCqlrz2MEAjy4ZbIkdq7Mbs/dFkm/POWbExEqXUwXHiZdepfjP8tfN
- Lg5s+eHnC0r3HjPAJ5TtMGY7U6acVweQuWCpfBByjm5Pwl9OgGD+Rz2fM8FVX0vYN/bp
- 45F0/oCXaDvUB+f02w50cgb6yrm6Nx7o7uYu+0gGffphI6zpMcqAsPJBdp6CunQyEojS 6Q== 
-Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
-	by mx0b-00069f02.pphosted.com with ESMTP id 3ecvar6j0f-1
+ bh=AmUKurYKjXRX0nI2zTMb1GW48Y3FD9Sf8aNVSaXTjvw=;
+ b=Qi6cAAQ8GLx6Al/ebhbawf0x24axxNlZuJ5UlSW9m//4p1Bf4gXCtRQgZT3cpPPzFlp+
+ q1c41JYzyr6nCYrqXiOuxuPW6lms8JaFZfSNtxj6MB9b+d/QpfA4KrVXWKiNa+o6kZyb
+ QhAwPg03hsnQMSqany2voNqozTfB5/Zx4TqcD7gJg4iUW6KER0zUmqFAo6SO+hhLzwl6
+ vuIRhxHDTvr9Co1mo1tjZoezJ2SHwjTa+B8ZxpJIOHlkKVd9CRuRcDQl1W4Rh+ft/AzI
+ BrVZ/+MHoH28nS7tK96PINqDtFCpBDwYtq+Aki280ldsRLDpl2H7GDJgyN7qaQ1bPNzy 2Q== 
+Received: from aserp3020.oracle.com (aserp3020.oracle.com [141.146.126.70])
+	by mx0b-00069f02.pphosted.com with ESMTP id 3ectsx71a8-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Thu, 24 Feb 2022 10:09:35 +0000
-Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
-	by userp3020.oracle.com (8.16.1.2/8.16.1.2) with SMTP id 21OA6wmG034870;
-	Thu, 24 Feb 2022 10:09:34 GMT
-Received: from nam12-bn8-obe.outbound.protection.outlook.com (mail-bn8nam12lp2168.outbound.protection.outlook.com [104.47.55.168])
-	by userp3020.oracle.com with ESMTP id 3eat0qjm5u-1
+	Thu, 24 Feb 2022 10:38:44 +0000
+Received: from pps.filterd (aserp3020.oracle.com [127.0.0.1])
+	by aserp3020.oracle.com (8.16.1.2/8.16.1.2) with SMTP id 21OAb5Eb048169;
+	Thu, 24 Feb 2022 10:38:44 GMT
+Received: from nam10-bn7-obe.outbound.protection.outlook.com (mail-bn7nam10lp2101.outbound.protection.outlook.com [104.47.70.101])
+	by aserp3020.oracle.com with ESMTP id 3eb483e76d-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Thu, 24 Feb 2022 10:09:34 +0000
+	Thu, 24 Feb 2022 10:38:44 +0000
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=GdOHOTZEK7aHVqYgz+F7z67G9gf3zXmWccaWmO4mHP0BYBALUgchHQkytftfXHXU6u9xG2Eow2pSZCKmI/cYFie7iQuqEn90CTcS9lY/yFwvj3GCgp6gsI47llcBtFTxN5/761Ug0XADNyQ6l/TtOk7O8kiiHKH0bVsa6YMfpETr/8mpEvfIwy+wAkx/xkUTYqnKMkMihPAhrN+pEbJn40GoamKGNTx2TURlaKluDaQzwlAOExvkoUZE6LKlHzmJ1MMJ8CSJpC5MDGtxYHndPQa9xgaCSVHBEyevILiFCxCQyja+EuxhXAMT8lgZkKy1deVEMRvfoSdCxPG45oXYUQ==
+ b=drkiJycIZR/ZcmzlaCgXQb+FWNdKK1bGOiCtwFpbK/sykkTLQs4iflEdzuuD2SiOH6IMOSKlJ21ddmsnY7um8fKKLbDBqYTLZ5PJlk5AKNfyC3YtCKpUJp3aH43Z6ZdVxHxtMQyA/W2PRY7fktUlRu2Nvl2kRdY3AEcqiQ0uiEk2V0+WJ4r7rIA7FRKRh/5kljP6WCTH0T0xYX8XW21mXwGqlTT1AHkmxh38KUfBisGNy3GKbgOZD87Xx+xiz7tc1+c84zRDsafZtXvjsaKanrF3meLMuIpABXNafjVj30qP1WVZ4gmuDv9P2t8YnwN3QYVuNoDLmGqoFxK2zJixsw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=80STcLBOAxrzJlqhZiLGrtPMeT0NbjJfUrvROYqse0c=;
- b=OwDbGzBD7Y0LR8+D42mskPEwnH6OpST/NQ6nAzm/KRmxx0lMAd1OrDfthCC6x1UHzOa7wUwTQs52Ajyc8Jo5eKuUAU9T1L0jGohw6T/J5u8y5cOEFcjZgvv0WMFYPYXqrlSUfd7u2LrsgCHQ4yucQEDSVqlGs0SLryLCz6pG3QONtU9ALh6tl4Zpn7pg3hW/CxPo/yR4n1DLnzybuencyx8d0I+14WkQRfvsmteILYsgTfQnCp4iw9yjv7RxGl5rMJVMa2OAp01wP8YUm0Mu6hBq+4K6+IyQgjFSxx8PDwhEwUnx3aVZXD/I3Wk26iFyrOBcKgFG94xa61B3GZCwMA==
+ bh=AmUKurYKjXRX0nI2zTMb1GW48Y3FD9Sf8aNVSaXTjvw=;
+ b=jg1YoU1PwbIfXlIuKkxR6WoB0fUvBnw0IsPtiHXW++Wb73GNxDVNKigy8ci8J8RehLNOtrChXwIx3fOkdHpzMjv+T1XE85G1oB0wbrLtsaBN/S8dYXDEEEVuPp1dvjCFYbmNeXOEoC9xUoMmkFhMSWXI/cxyEtQ8xbKpr2IMxN6xCJuQVdOOtzsbHeJhJ0B19OZRpdvY4QPGSrRpXrPcMPLJF+S0bUog1F8Ru2omtfjAfQ4rurigvLjZSZS7SKowtd4q+ASyI53AlE/tYTDlTgssboyum2D9r7dmO/jPADAVEINHpW+9SnDHnQIewBy3fnYKK5B0cFjn/Koh+VGuwQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
  dkim=pass header.d=oracle.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
  d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=80STcLBOAxrzJlqhZiLGrtPMeT0NbjJfUrvROYqse0c=;
- b=GeLFO1FctX/1pD8VxmrTJFe6BuAecK01KblTVQL57VpO5Pk2jOJQ3UjmJj467RKprm7UWNJNkSh9WMbthoXiVTZHAeurLgJkRcGn5Ab0yPZ7bcLq1yCDWVfWhOIm8uYlu1MoDIcJLyucTRsY2tcZYSe5HL37bkwdffcmahbPtKY=
+ bh=AmUKurYKjXRX0nI2zTMb1GW48Y3FD9Sf8aNVSaXTjvw=;
+ b=idEBbmzF775IaEC1v+zEZnkNlC3etIISjBN5l6CokfbKEw6joGhm38rPOjcZiG59VUAbIIe94lDFytsvXXR/YntkkfXQCmmBt0wHQ8nHrWpyMwe7MHD1HbyPxmJHqY8+Q5Q93l5rLBFwosWfRHxerC1vJ1qFktp0mYMmdE0H0v8=
 Received: from BLAPR10MB4835.namprd10.prod.outlook.com (2603:10b6:208:331::11)
- by BLAPR10MB4948.namprd10.prod.outlook.com (2603:10b6:208:307::21) with
+ by BYAPR10MB3125.namprd10.prod.outlook.com (2603:10b6:a03:14c::15) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5017.22; Thu, 24 Feb
- 2022 10:09:31 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5017.23; Thu, 24 Feb
+ 2022 10:38:41 +0000
 Received: from BLAPR10MB4835.namprd10.prod.outlook.com
  ([fe80::750f:bf1d:1599:3406]) by BLAPR10MB4835.namprd10.prod.outlook.com
  ([fe80::750f:bf1d:1599:3406%6]) with mapi id 15.20.5017.024; Thu, 24 Feb 2022
- 10:09:31 +0000
-Message-ID: <961d9b1f-2012-ea30-0d3c-f797b222ae72@oracle.com>
-Date: Thu, 24 Feb 2022 10:09:25 +0000
-Subject: Re: [ndctl PATCH] util/size.h: fix build for older compilers
+ 10:38:41 +0000
+Message-ID: <50eb28ff-6b8e-7366-f3a8-661ded73a26c@oracle.com>
+Date: Thu, 24 Feb 2022 10:38:33 +0000
+Subject: Re: [PATCH v6 1/5] mm/sparse-vmemmap: add a pgmap argument to section
+ activation
 Content-Language: en-US
-To: Vishal Verma <vishal.l.verma@intel.com>, nvdimm@lists.linux.dev
-Cc: linux-cxl@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>
-References: <20220224052805.2462449-1-vishal.l.verma@intel.com>
+To: Muchun Song <songmuchun@bytedance.com>
+Cc: Linux Memory Management List <linux-mm@kvack.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Vishal Verma <vishal.l.verma@intel.com>,
+        Matthew Wilcox
+ <willy@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>,
+        Jane Chu <jane.chu@oracle.com>, Mike Kravetz <mike.kravetz@oracle.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Jonathan Corbet <corbet@lwn.net>, Christoph Hellwig <hch@lst.de>,
+        nvdimm@lists.linux.dev,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>
+References: <20220223194807.12070-1-joao.m.martins@oracle.com>
+ <20220223194807.12070-2-joao.m.martins@oracle.com>
+ <CAMZfGtXejFZhfs8hUB9MM-oozPhG-TO1PK4p8Z9o4QzmGtWp5Q@mail.gmail.com>
 From: Joao Martins <joao.m.martins@oracle.com>
-In-Reply-To: <20220224052805.2462449-1-vishal.l.verma@intel.com>
+In-Reply-To: <CAMZfGtXejFZhfs8hUB9MM-oozPhG-TO1PK4p8Z9o4QzmGtWp5Q@mail.gmail.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: LO4P123CA0462.GBRP123.PROD.OUTLOOK.COM
- (2603:10a6:600:1aa::17) To BLAPR10MB4835.namprd10.prod.outlook.com
+X-ClientProxiedBy: LO2P265CA0117.GBRP265.PROD.OUTLOOK.COM
+ (2603:10a6:600:c::33) To BLAPR10MB4835.namprd10.prod.outlook.com
  (2603:10b6:208:331::11)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -71,291 +83,110 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 60bed72b-7155-46a9-b644-08d9f77dbfca
-X-MS-TrafficTypeDiagnostic: BLAPR10MB4948:EE_
+X-MS-Office365-Filtering-Correlation-Id: da4d2a5d-279b-450a-1f5e-08d9f781d323
+X-MS-TrafficTypeDiagnostic: BYAPR10MB3125:EE_
 X-Microsoft-Antispam-PRVS: 
-	<BLAPR10MB4948F3029245FE9449540940BB3D9@BLAPR10MB4948.namprd10.prod.outlook.com>
+	<BYAPR10MB3125F41CD3033E12E103E950BB3D9@BYAPR10MB3125.namprd10.prod.outlook.com>
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
 X-Microsoft-Antispam-Message-Info: 
-	GO7YE7afxr0Jwue7FnFD0tUwJC6re1pg/5G+SWa1x4IuMMi1mplpJTHMGZNoUKmyRnxKXuE3lJwpBMGfxrV0BZLE/q/Fzj0yeB6DbYzYt86pTAouCMTBvSynuq04dsETzM/ZJMuiQuJQrpuJkqDr1gl+2bdv6y0h+6lTG06NYA+ucwJdDprGD7Rx9En3R0XVRjr+WRYl6a4JwLpvlMObfWHTE+cptbhvhb0SUgAqeSaH1m5u63B50SI4KlyjRGgQPWFCfAArAbYLA/99gpQk3F7hCPELohFz/+VaosswsdgKbDvYSjITzL8ftWySZO2uGBLzWeQqQcPJbWbU9n22p3E6G8HtBCmQ6XLPK9totLZ+2e2iyZQQDORMXbQip6VCEaWV6IbOMocTBnl19BppNh+uB4bPnz5PFEY7Wr8pDZ+p8PVNN2UtIuJ4wK60zU93BVYH6kJ5pso63e6CEZVYZv8DbZiDKjAi0KhrAggzMGI7COdPu9xVleD9qzVMIhAWy4chondLmz4wleSvkLNqQAXuo3Z8LtG/mUg8FVDB4Losp4E194YoCzdbcb3vQFjYX4j/TJWxLXH3GRRGwJTTgo2UEDsD+1fT+OxXdxAN14Rj+ORmc5/2F/ZX/p7y5UDakxBRBHcstHg7jOzRh0e6UgX6FxzzFWyt6HBqC7wMeekpIXe5F2PkbiA4Y8dmHnHoHvQjCiaYvYPVOYGw/44r3g==
+	lR9BzZA1c2Uzp8kPcDt0sD5TZQQDm8R3wpDQFOX2ap+y0Q+LmWzJVST6yfalUgihfA50rjjqfcOJ3ufiN0y/vqdjTfulbOKJKOmSrlxurR2OazgooX02UCSsyrCNV2pSpLiKC5mq85ZGIjdRycIZZVutHXPu8WnaRHFknlv3eHRUeCcDq+CPop8o/yKdckJppmMcxYeaLQFwLmG0aNje32vhMYfzu2repoZP4TiOjI6v1JifFBVm+3O8+OAv5zAWq61mgysN70mmk/uUJEdb7p9Ffgfg1eeG5AFH8l4rjavnu8MH6VUIpEa49XWhr7DyvcprBK8AZl2qtmLS1cOLvM6mIyWh9Vd1uN5chKfyUL6PcgTJD8LQWLB3r/mCQtViYUNWIcTm56pPOE+Wo/a8akbd/6pQbycNcR9PfvFaLfzOzG18L6+deL2uEgf0quovguVPBqeVzl22vVsvlQ3karTyVurpNS8kRYloLE//RRF/QzVa8kE7O2IZBjhhB8H2lLBa8D7pFOB6s9jUlZDjzeetW2kpf30nUUfLhn+Oza4RoMbewcEixLoCi7LY0x0YKKqSSQcoZ6ewSJSH8gPNS00fIqf3NSIF2nBaW9gW5k7eWkS/ZsyGUHJBdoAXyjU9flnNekU4I0w+GmdRpRYO8LThIwjkW5QZYvnpze3VFEqvvv3r10TKXWvQPPQ8A7LfHTjz99dbbSCQrMHhgAE8IT+RqDkx3mGU8u7XOREeX0ktNC5rw3AWdGuwoR03ve/HwBw4Nooo+KH/WOLQrt01WqyUsY3pzZdHzW5932wDkM4=
 X-Forefront-Antispam-Report: 
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BLAPR10MB4835.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230001)(366004)(66556008)(66476007)(53546011)(6512007)(86362001)(4326008)(6666004)(66946007)(6506007)(8676002)(8936002)(508600001)(6486002)(83380400001)(5660300002)(36756003)(26005)(316002)(186003)(2906002)(31686004)(31696002)(38100700002)(2616005)(45980500001);DIR:OUT;SFP:1101;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BLAPR10MB4835.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230001)(366004)(83380400001)(36756003)(38100700002)(31696002)(316002)(66946007)(86362001)(8676002)(66476007)(4326008)(66556008)(2616005)(6512007)(53546011)(6506007)(6666004)(7416002)(31686004)(508600001)(26005)(186003)(966005)(5660300002)(6486002)(2906002)(6916009)(54906003)(8936002)(45980500001);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0: 
-	=?utf-8?B?d1BtNnVyTTQ4OEpyRTVRdUJGUG1USTBJbnUwNjZxZHlxRHdreHMzdzUzLzhG?=
- =?utf-8?B?bUdEMW1WcVBYbmtJMnNwYkxMTGg2UHpMZzJCYzV5ZUJUOUZiS1pGeTByRFJp?=
- =?utf-8?B?aWxjd01jL0hZWS9YQXZlUmxRZzlDMWc4Q1JiNTRIVklUaDhDaUZDZDVBL09R?=
- =?utf-8?B?WVZIaXBUQmdBeWZhZEdtWHNxWEF1SWhWU1pFR0J0aVpmM1JOUy9GRURWYUVs?=
- =?utf-8?B?M3kyUHZsamFlQkRrVVBYMC9LVlkyUENNblh3MWlHS1kvSjJVU1ZDS2pnTTc5?=
- =?utf-8?B?VkVSbTBsMy9lQmFRQzR4MjdtUktQUjdQUzFGSDc1WnNVc0psblBjOGlhUGFN?=
- =?utf-8?B?RVc1VHJ5V0gyN3hSUmd6R2gvZFcvaWhRanVSY0hsNnRwSWlDZ0RJTGtrd3Vq?=
- =?utf-8?B?eWVxcnU1N3hQMEZORXhRaExKZ0xwaWFrRDM1SncyMGluTFczZlZjRzZCUkhp?=
- =?utf-8?B?TGNiVHArc2tMSFBsd0x2QTk2MCtXYXN5UllpbHVzVGU1c280czhsRmhmbWVM?=
- =?utf-8?B?YWh2alplMWVUVWNaUkEyZ015NFE0S1JRSTgzVWRTVXpURm9pNTlzM09PbmZM?=
- =?utf-8?B?bGIwVkxLZHZNZExhRExkRWZIL2NoeGprZFRFWTkxcUtOM1dodnBZdWxmRFd5?=
- =?utf-8?B?eVB5WEV5SU8xUDRVc1lFNUROcVNMSS9IelZwQmFqTmpGZ3p0cVJHQUlUZ0NN?=
- =?utf-8?B?Zkk2UFozSG9wR3FMVXdQd2tBbnZGZXFkazZqSFVrR3BGcWVybzhVdHAyVldl?=
- =?utf-8?B?Ty9TTlB1dmZyeVFKVDZsWEpDY0twblF3MHZTNzZZVFM3Z3NNaG9VSVRCS1J4?=
- =?utf-8?B?M2hXbXFRbk12WldwajZUQ2hYV05DLzVuN1prMFo3Tmt4TGtHdHVKTERVdk5Y?=
- =?utf-8?B?Qis5WTFmM1NPRU51d3ZhZkl5TyszNHJZVms0ZGRzOGUvWjg2WXVyQURDN055?=
- =?utf-8?B?ZEpkREVIZGJ2NWlvQlptM25mRmM4aTVZc1lPbGR1bVUxZVJ0dWhvMTV0NjV6?=
- =?utf-8?B?d1VWa0gzRUhGQStCZ0ZLVmtoWml4cDFiU05WTjk3Wk54NkJaWEJGM3FjQk5Y?=
- =?utf-8?B?d3NLaFVsY0hSRXk1eTZDTnE2WTBMbjNyQXFqWGM1K2FPNzd0WkZsM0VLVTdx?=
- =?utf-8?B?ZlAwMG02blV6b21ucUQxMWdvOEI3TElJZjRjM1F3a2o2VkwzTVdyRVJ4US9h?=
- =?utf-8?B?VjVzU25SUnVhQ0gxTlZLL2JiOStSNGJlcjJIRkZ1bmswZGVjaGtOd3NXWmlz?=
- =?utf-8?B?Y2RmZlRBSFFnY0pGWFhYa083Qkd6TE5NYnpkNDlhemw4YmN6VEhwNUZtdW1i?=
- =?utf-8?B?QnpFZVNPa0l4eFdtTVNydEMzUThuUVlaYVUrNzYzd1N3R21nTjBMYVFUMzRr?=
- =?utf-8?B?S3gvZDdmK1pqanFUZHBpL3V4aGtIdE5NZXdBaEJwd1R5YnZad1FRU0REQlRK?=
- =?utf-8?B?eWZVRnk5Y3VTaUs4TUFCeGRYa0FHc0x1emFIbGtVSHRreWFkNVZoZzN0dzlK?=
- =?utf-8?B?NVZtMDdzRFFEcGtVMTVsRy9UKzlibkFUOWZGTm83dWJzSDFGVGV3VHVtWFVr?=
- =?utf-8?B?SS9Hb1AxeVVaMU1GQXd1OTY5em5FeXNrM2cwWG43dnA5dG5ZZWNWVjl0NGdD?=
- =?utf-8?B?R25JN2xXaHVxZXR2Mk4wRWJMOGw5R1FvQmVFcnZTM2VuTmc2b3V4QVNwSW1K?=
- =?utf-8?B?Z09MWHo3Q2dRdXI0c280YlNOWjdxNE5jQVZrQWpCT2lKNGx0YVAzMzBWWmlq?=
- =?utf-8?B?V0htaEpyWUtCWTVmVUNRcWxDWlhlWkkwMzltcHBXbDZKYVJOMkhZaytuR1RV?=
- =?utf-8?B?cXBjbGRaR2lMTWVxc05uWFFEZnZSYWpzU2xmL2VHSFc4OEthQmR6Wlh5azhO?=
- =?utf-8?B?Y2dVU3EzRXVzMkxjYi9sL0dUWk04SnpKeVVqQ0xlMWpvNjZZbGpkUGg4UHNq?=
- =?utf-8?B?cHlZTGN4TkFkTW9GSFZFOURlZG41T3RYNEZTZ3d6cFFvWDNNVERJZmszWnVY?=
- =?utf-8?B?NTIxOXJpTE9EUGxyS3kyRHRmb2IwWVZ1dncrN1gweGVzenllL0tPamlpUmxh?=
- =?utf-8?B?ZWpZWXBMY3N5cjJzS3cwdFRIUkVUM3ZjWnVsdFdkQ0g5UndvWGpsaDl0MHd1?=
- =?utf-8?B?S25vcTZXVHBlV2tHNkk5anp2UlJCemNaSzFmZmdTVWNONVRBNnNUczI2NnBw?=
- =?utf-8?B?VW94Y3dYaXFaem9CclY2bVoreVEzeUFTYUtXaWtESGg1UkljRU5EQTB3TXBk?=
- =?utf-8?Q?0KqfgFgV9x0BSnZMXepevEd2pPG747wuT9vA7VsQZE=3D?=
+	=?utf-8?B?Y3psS09GMFFadEcvbWplTEJQY2xxTTVKeTVGS3F1YzJJU04waGpjMnZvQjJH?=
+ =?utf-8?B?ZlRnOGhBcDg4ZW80eWxUM09WVlU3ZHUydGJyRmVIOEhYT2FwY2dya1hVdlpt?=
+ =?utf-8?B?c2ptL3BvU2Z6M3RVSTJzNDY2aU5vRVZrOTA0VnVBYmszL2tJODRyem1XNytt?=
+ =?utf-8?B?M1ZsVnkzZkRVUzF4WVg2bUE2eXY3d0ZqU3pEVDU4SEhma2d2K2xnSFlISGtz?=
+ =?utf-8?B?bnd0bEJ0VUozekpzQXNhMEtrSzhFVVNvYy9EWWttaUIxbUhDSG5zTWJvYmJR?=
+ =?utf-8?B?aWxXRkE1L082dCtqWUxtblFOdkJqL2srU2FOUlhJbkRud1FkZzlYbXByRHpG?=
+ =?utf-8?B?UTlXREdDVGJNeVRGZ0o0OGQ1VDFVbVJhenhwZ2JHQVJuRXArbWlmY3ZUdDMx?=
+ =?utf-8?B?dURXeGl0QnFIZ2xtY3dMaXArYVpVUkxsNWtJcjkyS3BKUk9xTWlvK3ZBVUpq?=
+ =?utf-8?B?Zk1yQnVGVFBPUEtLNEhzV3FnMlFuTERUaVNmREZucDVwenYvL3JFMEQ1dTcw?=
+ =?utf-8?B?SktNTjRlTHRMOEpXa2p2ZHJ6VUtWRE9sRkYwQWtZWlZ1WE5kUzk3LytzYldM?=
+ =?utf-8?B?Z01RVzNKTnVheUhwdmdsV3dZQnRIMDc5NWg1SHFXY1Bnbk83RkRDSTAwdWts?=
+ =?utf-8?B?TFYxYTFFZ2pPY2p4ZE91akJhc1ZjcS9kTURSUFVCMjR6OWh6MTNkc0xxeWFS?=
+ =?utf-8?B?dC8vN2RDVkNkK2RSOWhYSDkxMXlYd1Jhd3ZQYkxBZXBIMjI0azRHZVBoeC9L?=
+ =?utf-8?B?NzluaVZSK2tkVzArbXlYc0N6aFJLSEg4L1NMaExlNERNSXpDeTdPdFpqR2hi?=
+ =?utf-8?B?Ymo5T0Z6VTVtNHNJY3cwSCtZejFMRFhiQ2RIZ1ZvdXdEdW5SMTZBUVJYd2RO?=
+ =?utf-8?B?cHV2NUVtZkdNc2FPYjd6QmxSdkw5dk1LYnk5NWdFZ1NDcHhvMUNQNVBwNEFY?=
+ =?utf-8?B?aVdSSmREdGFSVGM3cFlsRXFEUjMyWU90a0dScm1GbGoxRVNaY01iWm0yMkdP?=
+ =?utf-8?B?dmFEdm14aWZ3NDRPaitLbEtnellja3pLQnNUendlclFZVmN5V3B5c2tEei9T?=
+ =?utf-8?B?endVbkVxTjdKYU5Vc3JmNEJqeWJEbXJVU2lNdFZjVDlkRFdXZFBPdTI0bXR6?=
+ =?utf-8?B?Ky85VmMwTzhXUHVRL3ZBcCtDZ1MrVm5VY3JDd1FFVWNUUGhPSkFmZ0l6ZFNJ?=
+ =?utf-8?B?ZGtNaTVvMVQ5eklxbXVHbk9qNWp1eGsvZTlSUWgxNDdYeWd6eDFxRlQ5NzFm?=
+ =?utf-8?B?OUlIbmd0L3FJWWxpMmJpT0VJeHVubSthNkhyaFJWWnk1UUM1dDA2U1NwSm0r?=
+ =?utf-8?B?NitBWWhoRnEvb0xsUXpWTitqYVhuenVHOTlabnhkSzAyK3ZsNmt1TjFWVyty?=
+ =?utf-8?B?MUNYRGxqN1dLUzZkQVczUU9YdDR1YXdDZnlqQnJTcTVBekpaMEtMd1NIVXhD?=
+ =?utf-8?B?WTBiMGxVZkdqQWN3Mm8zV0hVOHpQYjM5eWE1MFQ2UXNlRGU4cERyUkhseHZs?=
+ =?utf-8?B?d0JTa3Z4Z2tKRDNPZm9laC9KU0g4N0F1ZUVXUG1jQUQxb21veUxiMkY5bzFu?=
+ =?utf-8?B?TjdheHUwRGZaU1lUUUFLRzRSSW9zU2JkQnN2aVoyVnlaK3pSWHk3blhzNmRD?=
+ =?utf-8?B?VVVGWXFOdkdJaWlBclVJd2UwWU9jY3pJM3hGS1U3ZW9ZUTAzNDF3SmxSY0ND?=
+ =?utf-8?B?bVZQYkZVaUUyZDdBMjFJc3hLdnAzTlg2aVFmVjdCZHA4MHZreUhCTDQyaFlC?=
+ =?utf-8?B?SkxxOWFTWm5nRG8rUGNmVXVRNVVVMjBWQjdwZ2czUDRCVzViK3JXTWlCQXYv?=
+ =?utf-8?B?dU1lb0Zkem05THV4bUx5eFdGVUN0TTlIRjRlbmFBbUtNc0xiY3VBYTdhT25F?=
+ =?utf-8?B?M1FZcFY2RGFtbjM0T0pwazQ4MkNtZzZhYjVuMWhZVVRSczRsak1pbHdPRkti?=
+ =?utf-8?B?QnlDa1UyZVVYd3ZOd0dRQXFubmZ2M1lqNEpQRUFaSjRLOUtKZGFvMFNmdzFO?=
+ =?utf-8?B?R0hpM3FuYTIzOUM1UThhVmNObXlscnhtVHEzcTRzVWhuNkFzKytLeWtTNWNN?=
+ =?utf-8?B?dFFKejQvL0piUnVBUmd0K3UxTkNFOWFDZmpvY2w4Qk9pZlFsVTdFWSsvNzBJ?=
+ =?utf-8?B?aFRaNGZTc0c3L2R3UHVKMHhLYWRtbHAreWR5enA1TUtodzd3a2dpNTRRMUhT?=
+ =?utf-8?B?LzBOUVRNTG91OWp0ZE1SS01wMzNkcDNXT1o3OWFtS1RDbkJYRUt4a1RKb2JV?=
+ =?utf-8?Q?vP8yFFTDonYV+t3Uup8aLDxMXZCz9olxldFzosI8ic=3D?=
 X-OriginatorOrg: oracle.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 60bed72b-7155-46a9-b644-08d9f77dbfca
+X-MS-Exchange-CrossTenant-Network-Message-Id: da4d2a5d-279b-450a-1f5e-08d9f781d323
 X-MS-Exchange-CrossTenant-AuthSource: BLAPR10MB4835.namprd10.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 24 Feb 2022 10:09:31.4403
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 24 Feb 2022 10:38:41.6802
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 4UxaV79b8twykYosziDbg50V2TLXs1B7QMaZSEsMCHK7SP+xBEZpa6RZEyw9rrTBExUTDURHxaLTXVSpp4kP2JH5MWciKUIe4UTi4WFTjb0=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BLAPR10MB4948
+X-MS-Exchange-CrossTenant-UserPrincipalName: CPoAm0uX3UiOnEXB52AJ3nLjg3I1yGdMJhwkn8whVEJNuBuUKELKU+BCjybrtCBgVMXHmry9TPoFI0dsdNdLh6gv2u31cG42LnFZ60qt9kE=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BYAPR10MB3125
 X-Proofpoint-Virus-Version: vendor=nai engine=6300 definitions=10267 signatures=681306
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 phishscore=0 bulkscore=0 spamscore=0
- mlxscore=0 adultscore=0 mlxlogscore=999 suspectscore=0 malwarescore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2201110000
- definitions=main-2202240060
-X-Proofpoint-GUID: 9cF-pzhiieeTWWT6yllf-Cnzk-qZHZgj
-X-Proofpoint-ORIG-GUID: 9cF-pzhiieeTWWT6yllf-Cnzk-qZHZgj
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxscore=0 malwarescore=0
+ mlxlogscore=999 adultscore=0 bulkscore=0 phishscore=0 suspectscore=0
+ spamscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2201110000 definitions=main-2202240062
+X-Proofpoint-ORIG-GUID: IVRi-GDurwK2EHs4TuQPZ3hgtfqsbENB
+X-Proofpoint-GUID: IVRi-GDurwK2EHs4TuQPZ3hgtfqsbENB
 
 
 
-On 2/24/22 05:28, Vishal Verma wrote:
-> Add a fallback for older compilers that lack __builtin_add_overflow()
-> and friends. Commit 7aa7c7be6e80 ("util: add the struct_size() helper from the
-> kernel") which added these helpers from the kernel neglected to copy
-> over the fallback code.
+On 2/24/22 03:02, Muchun Song wrote:
+> On Thu, Feb 24, 2022 at 3:48 AM Joao Martins <joao.m.martins@oracle.com> wrote:
+>>
+>> In support of using compound pages for devmap mappings, plumb the pgmap
+>> down to the vmemmap_populate implementation. Note that while altmap is
+>> retrievable from pgmap the memory hotplug code passes altmap without
+>> pgmap[*], so both need to be independently plumbed.
+>>
+>> So in addition to @altmap, pass @pgmap to sparse section populate
+>> functions namely:
+>>
+>>         sparse_add_section
+>>           section_activate
+>>             populate_section_memmap
+>>               __populate_section_memmap
+>>
+>> Passing @pgmap allows __populate_section_memmap() to both fetch the
+>> vmemmap_shift in which memmap metadata is created for and also to let
+>> sparse-vmemmap fetch pgmap ranges to co-relate to a given section and pick
+>> whether to just reuse tail pages from past onlined sections.
+>>
+>> While at it, fix the kdoc for @altmap for sparse_add_section().
+>>
+>> [*] https://lore.kernel.org/linux-mm/20210319092635.6214-1-osalvador@suse.de/
+>>
+>> Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
+>> Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 > 
-> Fixes: 7aa7c7be6e80 ("util: add the struct_size() helper from the kernel")
-> Reported-by: Joao Martins <joao.m.martins@oracle.com>
-> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+> Missed my Reviewed-by from previous version.
 
-Reviewed-by: Joao Martins <joao.m.martins@oracle.com>
+Sorry my distration, I was sure I had that added in.
 
-You might wanna want this to get to v72.y branch considering the breakage exists
-there. Thanks for the followup!
+Anyways, I've fixed now for real.
 
-
-> ---
->  util/size.h | 163 ++++++++++++++++++++++++++++++++++++++++++++++++++--
->  1 file changed, 159 insertions(+), 4 deletions(-)
-> 
-> diff --git a/util/size.h b/util/size.h
-> index e72467f..1cb0669 100644
-> --- a/util/size.h
-> +++ b/util/size.h
-> @@ -6,6 +6,7 @@
->  #include <stdbool.h>
->  #include <stdint.h>
->  #include <util/util.h>
-> +#include <ccan/short_types/short_types.h>
->  
->  #define SZ_1K     0x00000400
->  #define SZ_4K     0x00001000
-> @@ -43,23 +44,177 @@ static inline bool is_power_of_2(unsigned long long v)
->   * alias for __builtin_add_overflow, but add type checks similar to
->   * below.
->   */
-> -#define check_add_overflow(a, b, d) (({	\
-> +#define is_signed_type(type)       (((type)(-1)) < (type)1)
-> +#define __type_half_max(type) ((type)1 << (8*sizeof(type) - 1 - is_signed_type(type)))
-> +#define type_max(T) ((T)((__type_half_max(T) - 1) + __type_half_max(T)))
-> +#define type_min(T) ((T)((T)-type_max(T)-(T)1))
-> +
-> +#if GCC_VERSION >= 50100
-> +#define COMPILER_HAS_GENERIC_BUILTIN_OVERFLOW 1
-> +#endif
-> +
-> +#if __clang__ && \
-> +    __has_builtin(__builtin_mul_overflow) && \
-> +    __has_builtin(__builtin_add_overflow)
-> +#define COMPILER_HAS_GENERIC_BUILTIN_OVERFLOW 1
-> +#endif
-> +
-> +#if COMPILER_HAS_GENERIC_BUILTIN_OVERFLOW
-> +
-> +#define check_add_overflow(a, b, d) ({		\
->  	typeof(a) __a = (a);			\
->  	typeof(b) __b = (b);			\
->  	typeof(d) __d = (d);			\
->  	(void) (&__a == &__b);			\
->  	(void) (&__a == __d);			\
->  	__builtin_add_overflow(__a, __b, __d);	\
-> -}))
-> +})
->  
-> -#define check_mul_overflow(a, b, d) (({	\
-> +#define check_sub_overflow(a, b, d) ({		\
-> +	typeof(a) __a = (a);			\
-> +	typeof(b) __b = (b);			\
-> +	typeof(d) __d = (d);			\
-> +	(void) (&__a == &__b);			\
-> +	(void) (&__a == __d);			\
-> +	__builtin_sub_overflow(__a, __b, __d);	\
-> +})
-> +
-> +#define check_mul_overflow(a, b, d) ({		\
->  	typeof(a) __a = (a);			\
->  	typeof(b) __b = (b);			\
->  	typeof(d) __d = (d);			\
->  	(void) (&__a == &__b);			\
->  	(void) (&__a == __d);			\
->  	__builtin_mul_overflow(__a, __b, __d);	\
-> -}))
-> +})
-> +
-> +
-> +#else /* !COMPILER_HAS_GENERIC_BUILTIN_OVERFLOW */
-> +
-> +/* Checking for unsigned overflow is relatively easy without causing UB. */
-> +#define __unsigned_add_overflow(a, b, d) ({	\
-> +	typeof(a) __a = (a);			\
-> +	typeof(b) __b = (b);			\
-> +	typeof(d) __d = (d);			\
-> +	(void) (&__a == &__b);			\
-> +	(void) (&__a == __d);			\
-> +	*__d = __a + __b;			\
-> +	*__d < __a;				\
-> +})
-> +#define __unsigned_sub_overflow(a, b, d) ({	\
-> +	typeof(a) __a = (a);			\
-> +	typeof(b) __b = (b);			\
-> +	typeof(d) __d = (d);			\
-> +	(void) (&__a == &__b);			\
-> +	(void) (&__a == __d);			\
-> +	*__d = __a - __b;			\
-> +	__a < __b;				\
-> +})
-> +/*
-> + * If one of a or b is a compile-time constant, this avoids a division.
-> + */
-> +#define __unsigned_mul_overflow(a, b, d) ({		\
-> +	typeof(a) __a = (a);				\
-> +	typeof(b) __b = (b);				\
-> +	typeof(d) __d = (d);				\
-> +	(void) (&__a == &__b);				\
-> +	(void) (&__a == __d);				\
-> +	*__d = __a * __b;				\
-> +	__builtin_constant_p(__b) ?			\
-> +	  __b > 0 && __a > type_max(typeof(__a)) / __b : \
-> +	  __a > 0 && __b > type_max(typeof(__b)) / __a;	 \
-> +})
-> +
-> +/*
-> + * For signed types, detecting overflow is much harder, especially if
-> + * we want to avoid UB. But the interface of these macros is such that
-> + * we must provide a result in *d, and in fact we must produce the
-> + * result promised by gcc's builtins, which is simply the possibly
-> + * wrapped-around value. Fortunately, we can just formally do the
-> + * operations in the widest relevant unsigned type (u64) and then
-> + * truncate the result - gcc is smart enough to generate the same code
-> + * with and without the (u64) casts.
-> + */
-> +
-> +/*
-> + * Adding two signed integers can overflow only if they have the same
-> + * sign, and overflow has happened iff the result has the opposite
-> + * sign.
-> + */
-> +#define __signed_add_overflow(a, b, d) ({	\
-> +	typeof(a) __a = (a);			\
-> +	typeof(b) __b = (b);			\
-> +	typeof(d) __d = (d);			\
-> +	(void) (&__a == &__b);			\
-> +	(void) (&__a == __d);			\
-> +	*__d = (u64)__a + (u64)__b;		\
-> +	(((~(__a ^ __b)) & (*__d ^ __a))	\
-> +		& type_min(typeof(__a))) != 0;	\
-> +})
-> +
-> +/*
-> + * Subtraction is similar, except that overflow can now happen only
-> + * when the signs are opposite. In this case, overflow has happened if
-> + * the result has the opposite sign of a.
-> + */
-> +#define __signed_sub_overflow(a, b, d) ({	\
-> +	typeof(a) __a = (a);			\
-> +	typeof(b) __b = (b);			\
-> +	typeof(d) __d = (d);			\
-> +	(void) (&__a == &__b);			\
-> +	(void) (&__a == __d);			\
-> +	*__d = (u64)__a - (u64)__b;		\
-> +	((((__a ^ __b)) & (*__d ^ __a))		\
-> +		& type_min(typeof(__a))) != 0;	\
-> +})
-> +
-> +/*
-> + * Signed multiplication is rather hard. gcc always follows C99, so
-> + * division is truncated towards 0. This means that we can write the
-> + * overflow check like this:
-> + *
-> + * (a > 0 && (b > MAX/a || b < MIN/a)) ||
-> + * (a < -1 && (b > MIN/a || b < MAX/a) ||
-> + * (a == -1 && b == MIN)
-> + *
-> + * The redundant casts of -1 are to silence an annoying -Wtype-limits
-> + * (included in -Wextra) warning: When the type is u8 or u16, the
-> + * __b_c_e in check_mul_overflow obviously selects
-> + * __unsigned_mul_overflow, but unfortunately gcc still parses this
-> + * code and warns about the limited range of __b.
-> + */
-> +
-> +#define __signed_mul_overflow(a, b, d) ({				\
-> +	typeof(a) __a = (a);						\
-> +	typeof(b) __b = (b);						\
-> +	typeof(d) __d = (d);						\
-> +	typeof(a) __tmax = type_max(typeof(a));				\
-> +	typeof(a) __tmin = type_min(typeof(a));				\
-> +	(void) (&__a == &__b);						\
-> +	(void) (&__a == __d);						\
-> +	*__d = (u64)__a * (u64)__b;					\
-> +	(__b > 0   && (__a > __tmax/__b || __a < __tmin/__b)) ||	\
-> +	(__b < (typeof(__b))-1  && (__a > __tmin/__b || __a < __tmax/__b)) || \
-> +	(__b == (typeof(__b))-1 && __a == __tmin);			\
-> +})
-> +
-> +
-> +#define check_add_overflow(a, b, d)					\
-> +	__builtin_choose_expr(is_signed_type(typeof(a)),		\
-> +			__signed_add_overflow(a, b, d),			\
-> +			__unsigned_add_overflow(a, b, d))
-> +
-> +#define check_sub_overflow(a, b, d)					\
-> +	__builtin_choose_expr(is_signed_type(typeof(a)),		\
-> +			__signed_sub_overflow(a, b, d),			\
-> +			__unsigned_sub_overflow(a, b, d))
-> +
-> +#define check_mul_overflow(a, b, d)					\
-> +	__builtin_choose_expr(is_signed_type(typeof(a)),		\
-> +			__signed_mul_overflow(a, b, d),			\
-> +			__unsigned_mul_overflow(a, b, d))
-> +
-> +#endif
->  
->  /*
->   * Compute a*b+c, returning SIZE_MAX on overflow. Internal helper for
-> 
-> base-commit: 3e4a66f0dfb02046f6d3375d637840b6da9c71d1
+	Joao
