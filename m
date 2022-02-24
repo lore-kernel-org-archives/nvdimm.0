@@ -1,83 +1,86 @@
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yw1-f179.google.com (mail-yw1-f179.google.com [209.85.128.179])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCC4EC89
-	for <nvdimm@lists.linux.dev>; Thu, 24 Feb 2022 02:41:48 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1645670508; x=1677206508;
-  h=subject:from:to:cc:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=x1Zf3E7qb/6C3DdDY2qCz7OEq48gX4VkHwan2faS2oo=;
-  b=Exp3iLqJ449eUE/9Ech5Fuos9SCfVU2zFPvUlYUsUraitgx84g+IqVVg
-   QvQQLKAVJF0OtcNz9F/OUNJ2kdTRMsw475zW6AsrDk9hi6b0jZxR5K2C4
-   b6aDfn4o02UKyjnC702ygssfr+18F585Y/1LFZuERDQEwfV/kbVcr7Zu4
-   6OXW+VANazDg5zbNIab3TMJeHI3yTHfeE1upiWM/xHzXMJuydzQ8SpplC
-   2fGRsGphGoPOOhNVnhqcE/QWqYkuPsK0Ci9gVPaZTJYjJlBckor9sY5MB
-   1zPyJIgUwNbz+1S8bp6HEkgUcRED7W8EEqfHGsvBv1yGtBWjrqvd8jR3w
-   Q==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10267"; a="251870012"
-X-IronPort-AV: E=Sophos;i="5.88,392,1635231600"; 
-   d="scan'208";a="251870012"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Feb 2022 18:41:46 -0800
-X-IronPort-AV: E=Sophos;i="5.88,392,1635231600"; 
-   d="scan'208";a="548544548"
-Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Feb 2022 18:41:45 -0800
-Subject: [ndctl PATCH] build: Automate rpmbuild.sh
-From: Dan Williams <dan.j.williams@intel.com>
-To: vishal.l.verma@intel.com
-Cc: Jane Chu <jane.chu@oracle.com>, nvdimm@lists.linux.dev
-Date: Wed, 23 Feb 2022 18:41:45 -0800
-Message-ID: <164567050589.2266739.68846452427328787.stgit@dwillia2-desk3.amr.corp.intel.com>
-User-Agent: StGit/0.18-3-g996c
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62473ED6
+	for <nvdimm@lists.linux.dev>; Thu, 24 Feb 2022 03:03:17 +0000 (UTC)
+Received: by mail-yw1-f179.google.com with SMTP id 00721157ae682-2d625082ae2so11019227b3.1
+        for <nvdimm@lists.linux.dev>; Wed, 23 Feb 2022 19:03:17 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=bytedance-com.20210112.gappssmtp.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=LBjw731gOZAZX11izjBDJpMfyEuV5GyF58y13CmjgQI=;
+        b=WCSX7/V63Tb5YJ/PxU+KniB8C1Khw0+KR+ynZIbN1J62sE3rn9lOMkIK1u21L5m/Wu
+         7IGQyDtJmH0r9tZfIjBsJvXZVpGv9cThH1BPWzrdG/fRzT5CxWhUQUfSxfIJ+36FWv/T
+         +fbdnl8jfw6XCmqU2C1Az2GRLN/9bwb8wqp6JCopXfQvVWRK+yBbVN5yhL/lw5D9NlU2
+         67UMFEVxKWVXXCBFmVXk3IGYMajUoqN85/eCbgQsMp9rD1PyjZ/7cD1w7VZtYXqup3mg
+         SQFgHY041XA52HrXwHG3kfkM9VfoorWaT3r/9b9J9KXy1m9GFCBZ3kMh7WuhGH4qmzHb
+         sNDA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=LBjw731gOZAZX11izjBDJpMfyEuV5GyF58y13CmjgQI=;
+        b=kD0YLzXrak0aXYpQkSWNlhRtdgJWq0gF50ex5saC+Pyvpaz7JvqPAn+wkCzBNnKT6h
+         ZVsBJSZhoOJf+/U7tOTXNc8buLg8WgF4+x7mqF4dnN31DC+rA2dQZ2/c38SDEVQRrLkl
+         sLguop713CQI04a9pesDJt+67yfY/ZbQX8RjMRAY4rXCJK92Oq19uP666U69t/74NDAS
+         7UUJe8SnEztWu734/+pIbVT0JeLBbHTosjyA/yIHre8cWfSECXt3SYvbSrlhPlIYkuT9
+         mgTvHCLgPoXnSD7HzRFqKWXOUUmWn4YKWMco5sH2acv4ohSuVWdvlMalnQ7yOxHKg7Sb
+         fxjw==
+X-Gm-Message-State: AOAM5329DFq6lEbmEQdxWd93NLocIOAkpcx5aeXtvknZBJ/6XR0UujNe
+	04YLYe7UfPhTPLL2NWtC2AWOtq9H7G6De118bMib8Q==
+X-Google-Smtp-Source: ABdhPJz2AQ9wlEoioUOpPwIgSwQcN0ZkHflGDqUQfNbL2z/finOeSUCgBTkwVIhrEnBxK44ehL9YfcYLmYISvGb+fx8=
+X-Received: by 2002:a0d:e609:0:b0:2d6:b8b0:8608 with SMTP id
+ p9-20020a0de609000000b002d6b8b08608mr551938ywe.31.1645671796086; Wed, 23 Feb
+ 2022 19:03:16 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+References: <20220223194807.12070-1-joao.m.martins@oracle.com> <20220223194807.12070-2-joao.m.martins@oracle.com>
+In-Reply-To: <20220223194807.12070-2-joao.m.martins@oracle.com>
+From: Muchun Song <songmuchun@bytedance.com>
+Date: Thu, 24 Feb 2022 11:02:38 +0800
+Message-ID: <CAMZfGtXejFZhfs8hUB9MM-oozPhG-TO1PK4p8Z9o4QzmGtWp5Q@mail.gmail.com>
+Subject: Re: [PATCH v6 1/5] mm/sparse-vmemmap: add a pgmap argument to section activation
+To: Joao Martins <joao.m.martins@oracle.com>
+Cc: Linux Memory Management List <linux-mm@kvack.org>, Dan Williams <dan.j.williams@intel.com>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Matthew Wilcox <willy@infradead.org>, 
+	Jason Gunthorpe <jgg@ziepe.ca>, Jane Chu <jane.chu@oracle.com>, 
+	Mike Kravetz <mike.kravetz@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, 
+	Jonathan Corbet <corbet@lwn.net>, Christoph Hellwig <hch@lst.de>, nvdimm@lists.linux.dev, 
+	Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 
-Prior to the meson conversion rpmbuild.sh with no arguments would find a
-pre-created ndctl.spec file relative to the script. Restore that
-behavior by looking for the script in the build/ directory, and try to
-create it if not there.
+On Thu, Feb 24, 2022 at 3:48 AM Joao Martins <joao.m.martins@oracle.com> wrote:
+>
+> In support of using compound pages for devmap mappings, plumb the pgmap
+> down to the vmemmap_populate implementation. Note that while altmap is
+> retrievable from pgmap the memory hotplug code passes altmap without
+> pgmap[*], so both need to be independently plumbed.
+>
+> So in addition to @altmap, pass @pgmap to sparse section populate
+> functions namely:
+>
+>         sparse_add_section
+>           section_activate
+>             populate_section_memmap
+>               __populate_section_memmap
+>
+> Passing @pgmap allows __populate_section_memmap() to both fetch the
+> vmemmap_shift in which memmap metadata is created for and also to let
+> sparse-vmemmap fetch pgmap ranges to co-relate to a given section and pick
+> whether to just reuse tail pages from past onlined sections.
+>
+> While at it, fix the kdoc for @altmap for sparse_add_section().
+>
+> [*] https://lore.kernel.org/linux-mm/20210319092635.6214-1-osalvador@suse.de/
+>
+> Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
+> Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 
-Yes, this fails if someone picks a directory other than build/ for the
-output directory, but build/ is conventional.
+Missed my Reviewed-by from previous version.
 
-Another regression from autotools is the loss of support for building
-"dirty" rpms i.e. rpms from git source trees with uncommitted changes.
-At least provide a coherent error message for that case.
-
-Reported-by: Jane Chu <jane.chu@oracle.com>
-Reported-by: Vishal Verma <vishal.l.verma@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- rpmbuild.sh |    9 +++++++++
- 1 file changed, 9 insertions(+)
-
-diff --git a/rpmbuild.sh b/rpmbuild.sh
-index b1f4d9e5c0f3..d9823e5eda61 100755
---- a/rpmbuild.sh
-+++ b/rpmbuild.sh
-@@ -4,6 +4,15 @@ spec=${1:-$(dirname $0)/rhel/ndctl.spec)}
- 
- pushd $(dirname $0) >/dev/null
- [ ! -d ~/rpmbuild/SOURCES ] && echo "rpmdev tree not found" && exit 1
-+if ./git-version | grep -q dirty; then
-+	echo "Uncommitted changes detected, commit or undo them to proceed"
-+	git status -uno --short
-+	exit 1
-+fi
-+if [ ! -f $spec ]; then
-+	meson compile -C build rhel/ndctl.spec
-+	spec=$(dirname $0)/build/rhel/ndctl.spec
-+fi
- ./make-git-snapshot.sh
- popd > /dev/null
- rpmbuild --nocheck -ba $spec
-
+Thanks.
