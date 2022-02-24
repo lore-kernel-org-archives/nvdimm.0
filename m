@@ -1,50 +1,50 @@
-Received: from mail-yw1-f175.google.com (mail-yw1-f175.google.com [209.85.128.175])
+Received: from mail-yb1-f176.google.com (mail-yb1-f176.google.com [209.85.219.176])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6355D1373
-	for <nvdimm@lists.linux.dev>; Thu, 24 Feb 2022 05:55:33 +0000 (UTC)
-Received: by mail-yw1-f175.google.com with SMTP id 00721157ae682-2d66f95f1d1so14038367b3.0
-        for <nvdimm@lists.linux.dev>; Wed, 23 Feb 2022 21:55:33 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5415F1373
+	for <nvdimm@lists.linux.dev>; Thu, 24 Feb 2022 05:58:09 +0000 (UTC)
+Received: by mail-yb1-f176.google.com with SMTP id bt13so1824522ybb.2
+        for <nvdimm@lists.linux.dev>; Wed, 23 Feb 2022 21:58:09 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=bytedance-com.20210112.gappssmtp.com; s=20210112;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=kvhU+1d1xBuiwuTvVQmOP1FBfYrMuzDuvR5ypoAEjro=;
-        b=CEt6WoNPJExnK4pZ3D56UCeA564FCpoElTbHUG7guQrxewH8Ef4bcrKv615NXBRlGg
-         vBtPBeEeoQNZU2567HdocwW4qpALbKec2QFSlYDInWSsnOW9/wYQI+frra60lxHZ7ej6
-         KA492jINm/YiiL6pOlnXDFLQiP7GcwKeFrkBl20tJ3fcDCto8o94c472V781OracUOuN
-         UBhtq3m3eMFoVLMR7ZohfgfjkR04+UvHT35hf/wePMDEOiF2kkqpub3oDeKVbp51W+Wn
-         BnexbEPlDwQhzil3kFMp4DDSV2lqRwKClXc4VIDKzeyVgImJeXRENSj9cnUzXqXJnxun
-         uY2g==
+        bh=aZRlDF8hWNRYQY9pK6CTd02SSyMoTN/lFolx1y0wAt4=;
+        b=5U57mpz8cHyPxqbNyydMgJINUZ6JPYutw2vLH9XEsfFf1KtY4MwXRKrW0fEAb2sOLR
+         KN9NjNlXKrGrlmKcqKNpWCq4P8K3v0wniPhnPeTKcZ6ndkP+27NgvY7bhAapWs1csev1
+         yLaIE5pPyF9OjQ1OSyhKX2j4ST3k9HFqIq7NWubDkeefk+rIYzOM8U8jYJolwxTXjhU+
+         PSF118d8xYQSwWzk26vpszyxw2HToe/WtSKzDVsWd39wlKKGv9Zjpk1zPyYgobWhMsQw
+         c5OVp7YpmfN4J3KO4mKhKNOvIBBJ9c3bKYhLvEeXZNz7dM+6j5iL/8onn8XGpgfwPe2M
+         HEgw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=kvhU+1d1xBuiwuTvVQmOP1FBfYrMuzDuvR5ypoAEjro=;
-        b=2+vSBUiQztFtf3d3rKyIOi5GKxf+ST7DVWje0Ooxse/OYFIE43Vtn+1sYWsKKe9qEK
-         6lwaTchSbr7YsMhMfiUUs8xBWQWTiFMYmdc7YWiRpfMngrZuLDMKj8eUmlAnIz+mTRRc
-         4Nlqjp5wJ7GGLo+XsJ0HAWYBQih7j5LoI5RauJCXAHypWKf4xluNbqnga4ri2Gl3miFh
-         fTzBh4zhwdZap/dDuSwk2RxV2KYuuUqUi76NtJx2tDq82PI9ee7RlrcHya/duve1gZfe
-         i1mJ4L8ra6+WyBQPsCrFQIAhSgUbvMyzg0VEqzT1fCqdYjym7fAH/VapworuiGVWhor7
-         4fZw==
-X-Gm-Message-State: AOAM53217esJqX+XrCIauTp/FLNJVAvK9vBdbpDRRS8noZ6sEVs5K62E
-	eN+fXL0u7IXewmDSN/uqFr+P/ULQ0bK6p01Gf/wuJg==
-X-Google-Smtp-Source: ABdhPJxQBX3Dc+MjzYS5ebkRBFbDibF6wIJL7Bn+424LeZUsSwel/NdC9XRIpxfLvof5dstbTtuwpAn4KzhMnTIfxz8=
-X-Received: by 2002:a81:5dd6:0:b0:2d6:3041:12e0 with SMTP id
- r205-20020a815dd6000000b002d6304112e0mr976524ywb.331.1645682132153; Wed, 23
- Feb 2022 21:55:32 -0800 (PST)
+        bh=aZRlDF8hWNRYQY9pK6CTd02SSyMoTN/lFolx1y0wAt4=;
+        b=ROzdpZ9bXX0nuFFyrnaFPrwxtF23tc0g3QXX+TF7some3SlzMJHGm36fJM3UTB9K3m
+         mI3hN0KFUl4b4fkw5ibFEt+Uz28FdkIZuJPOsb8ub47Eac9t+c0OI85xP6qZxd2PCUzw
+         Q1LmWpa+mPcjGw4kjmbzCKIr9774WyFrG0hzzM+RFMbzXd6caSMqEv6cxE0vTeQTr7tu
+         KwqoT+WECHHwNNH69efHW2oOSvfWpCdZhkS2/8xjsrKjatO81wOvWxBARMF+aOxbksZw
+         z831YWIM2tqXKmfLNw36+RSIfqTXziTfxdSx2ASf/UtExoyB8tmh+2zRYrTYuXMLPShW
+         Vorw==
+X-Gm-Message-State: AOAM5309LkX/P8pv1qCq6I2v2bqDj/l78RdRQa2HSA6GDQIvGtwwineG
+	WIK47PE9bFJNcG4I9R2SAmoEGszwokC8T0+ut9lX8A==
+X-Google-Smtp-Source: ABdhPJxj92w4OLuJgUtu5oDa3uKzHyY/QkH+o6gXG7Vt0gJW3V64WOAMsC3/biXjaU5LVT7b8gCx6yPGtav8NBjybHE=
+X-Received: by 2002:a25:d2cd:0:b0:61d:6a33:8129 with SMTP id
+ j196-20020a25d2cd000000b0061d6a338129mr1101624ybg.246.1645682288360; Wed, 23
+ Feb 2022 21:58:08 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20220223194807.12070-1-joao.m.martins@oracle.com> <20220223194807.12070-5-joao.m.martins@oracle.com>
-In-Reply-To: <20220223194807.12070-5-joao.m.martins@oracle.com>
+References: <20220223194807.12070-1-joao.m.martins@oracle.com> <20220223194807.12070-6-joao.m.martins@oracle.com>
+In-Reply-To: <20220223194807.12070-6-joao.m.martins@oracle.com>
 From: Muchun Song <songmuchun@bytedance.com>
-Date: Thu, 24 Feb 2022 13:54:54 +0800
-Message-ID: <CAMZfGtXm5pLbTnzMCrWPg8Vm3gykB8XEg5DHFm0z1p1x2fhySQ@mail.gmail.com>
-Subject: Re: [PATCH v6 4/5] mm/sparse-vmemmap: improve memory savings for
+Date: Thu, 24 Feb 2022 13:57:30 +0800
+Message-ID: <CAMZfGtWBtoygDbU+qdUswdz1K5=86+eCt11Ffeyvw2e0z+xrzw@mail.gmail.com>
+Subject: Re: [PATCH v6 5/5] mm/page_alloc: reuse tail struct pages for
  compound devmaps
 To: Joao Martins <joao.m.martins@oracle.com>
 Cc: Linux Memory Management List <linux-mm@kvack.org>, Dan Williams <dan.j.williams@intel.com>, 
@@ -57,63 +57,55 @@ Content-Type: text/plain; charset="UTF-8"
 
 On Thu, Feb 24, 2022 at 3:48 AM Joao Martins <joao.m.martins@oracle.com> wrote:
 >
-> A compound devmap is a dev_pagemap with @vmemmap_shift > 0 and it
-> means that pages are mapped at a given huge page alignment and utilize
-> uses compound pages as opposed to order-0 pages.
+> Currently memmap_init_zone_device() ends up initializing 32768 pages
+> when it only needs to initialize 128 given tail page reuse. That
+> number is worse with 1GB compound pages, 262144 instead of 128. Update
+> memmap_init_zone_device() to skip redundant initialization, detailed
+> below.
 >
-> Take advantage of the fact that most tail pages look the same (except
-> the first two) to minimize struct page overhead. Allocate a separate
-> page for the vmemmap area which contains the head page and separate for
-> the next 64 pages. The rest of the subsections then reuse this tail
-> vmemmap page to initialize the rest of the tail pages.
+> When a pgmap @vmemmap_shift is set, all pages are mapped at a given
+> huge page alignment and use compound pages to describe them as opposed
+> to a struct per 4K.
 >
-> Sections are arch-dependent (e.g. on x86 it's 64M, 128M or 512M) and
-> when initializing compound devmap with big enough @vmemmap_shift (e.g.
-> 1G PUD) it may cross multiple sections. The vmemmap code needs to
-> consult @pgmap so that multiple sections that all map the same tail
-> data can refer back to the first copy of that data for a given
-> gigantic page.
+> With @vmemmap_shift > 0 and when struct pages are stored in ram
+> (!altmap) most tail pages are reused. Consequently, the amount of
+> unique struct pages is a lot smaller that the total amount of struct
+> pages being mapped.
 >
-> On compound devmaps with 2M align, this mechanism lets 6 pages be
-> saved out of the 8 necessary PFNs necessary to set the subsection's
-> 512 struct pages being mapped. On a 1G compound devmap it saves
-> 4094 pages.
->
-> Altmap isn't supported yet, given various restrictions in altmap pfn
-> allocator, thus fallback to the already in use vmemmap_populate().  It
-> is worth noting that altmap for devmap mappings was there to relieve the
-> pressure of inordinate amounts of memmap space to map terabytes of pmem.
-> With compound pages the motivation for altmaps for pmem gets reduced.
+> The altmap path is left alone since it does not support memory savings
+> based on compound pages devmap.
 >
 > Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
-[...]
-> diff --git a/include/linux/mm.h b/include/linux/mm.h
-> index 5f549cf6a4e8..b0798b9c6a6a 100644
-> --- a/include/linux/mm.h
-> +++ b/include/linux/mm.h
-> @@ -3118,7 +3118,7 @@ p4d_t *vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node);
->  pud_t *vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node);
->  pmd_t *vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node);
->  pte_t *vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node,
-> -                           struct vmem_altmap *altmap);
-> +                           struct vmem_altmap *altmap, struct page *block);
-
-Have forgotten to update @block to @reuse here.
-
-[...]
+> ---
+>  mm/page_alloc.c | 16 +++++++++++++++-
+>  1 file changed, 15 insertions(+), 1 deletion(-)
+>
+> diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+> index e0c1e6bb09dd..01f10b5a4e47 100644
+> --- a/mm/page_alloc.c
+> +++ b/mm/page_alloc.c
+> @@ -6653,6 +6653,20 @@ static void __ref __init_zone_device_page(struct page *page, unsigned long pfn,
+>         }
+>  }
+>
+> +/*
+> + * With compound page geometry and when struct pages are stored in ram most
+> + * tail pages are reused. Consequently, the amount of unique struct pages to
+> + * initialize is a lot smaller that the total amount of struct pages being
+> + * mapped. This is a paired / mild layering violation with explicit knowledge
+> + * of how the sparse_vmemmap internals handle compound pages in the lack
+> + * of an altmap. See vmemmap_populate_compound_pages().
+> + */
+> +static inline unsigned long compound_nr_pages(struct vmem_altmap *altmap,
+> +                                             unsigned long nr_pages)
+> +{
+> +       return !altmap ? 2 * (PAGE_SIZE/sizeof(struct page)) : nr_pages;
+> +}
 > +
-> +static int __meminit vmemmap_populate_range(unsigned long start,
-> +                                           unsigned long end,
-> +                                           int node, struct page *page)
 
-All of the users are passing a valid parameter of @page. This function
-will populate the vmemmap with the @page and without memory
-allocations. So the @node parameter seems to be unnecessary.
+Should be:
 
-If you want to make this function more generic like
-vmemmap_populate_address() to handle memory allocations
-(the case of @page == NULL). I think vmemmap_populate_range()
-should add another parameter of `struct vmem_altmap *altmap`.
-Otherwise, is it better to remove @node and rename @page to @reuse?
+return is_power_of_2(sizeof(struct page)) &&
+       !altmap ? 2 * (PAGE_SIZE/sizeof(struct page)) : nr_pages;
 
 Thanks.
