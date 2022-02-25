@@ -1,43 +1,44 @@
 Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDB5E23AF
-	for <nvdimm@lists.linux.dev>; Fri, 25 Feb 2022 14:31:11 +0000 (UTC)
-Received: from pps.filterd (m0098393.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 21PDDcmB002808;
-	Fri, 25 Feb 2022 14:31:02 GMT
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B740C23AF
+	for <nvdimm@lists.linux.dev>; Fri, 25 Feb 2022 14:31:14 +0000 (UTC)
+Received: from pps.filterd (m0187473.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 21PE6p45033151;
+	Fri, 25 Feb 2022 14:31:05 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
- : date : message-id : content-transfer-encoding : mime-version; s=pp1;
- bh=KDwFp4dSnsUHo1ivwnOGfSoBp69V2QJcMPdFOYvncOg=;
- b=i+LgPoHDLy7JCjEWuR4d8qdoJG4JTmIyTyjfiFblqlyNDWnD6mIy480l7SzgevKbInhN
- spOBaLODbyj9MYfXrcVMsc6Jl8nNt39eS5jr/J3ruHRo9Y3D5sVVYdYVCRfGHBXkkuvt
- 1uY9+cFM9TCneFyJKANszPBQi9Aa3K3ZVU55QMspB6fScujGb6hLl+mRFcP6xR0rIsi1
- RPOHTGND/1jZ6B0iIV9efYo6Nfk4h6c1fLJvQebFaTMkOkJhs7VkxjzieLTBRFy+NttA
- W4ewevyv2iLTrqy7zmFWl+wfU/Z7ni6PR3/WBPbifQj7EeiVZUA3AensTnxors9G2A4e 2g== 
-Received: from ppma06ams.nl.ibm.com (66.31.33a9.ip4.static.sl-reverse.com [169.51.49.102])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 3eeytf21mt-1
+ : date : message-id : in-reply-to : references : mime-version :
+ content-transfer-encoding; s=pp1;
+ bh=JemyLK2wfsbFAv7bCm2qTicnwBldrH9JePZ3G1+WTjI=;
+ b=k60z/rTKEWe4Xx1RpZ0hU2RFfgHc6BaZWN433WwSbgm2JYPqDjqceFQ9bF3nnDBCs3tY
+ aAwPPLj21k8PKY/LOKoOmQxqtnNHwa719lo75KZl9XLA6NYWqwhnBTGFfQNOXqFp9Kdv
+ q1U0fW8iF71ROaRYvEYLtByGMcxLWuSmeWFDQVu3nvcaom8Yxb8r7JrB7iiduPnK9p5u
+ N6Oj/OKuIlrhx4+jmVaOVEV0psOjYImzfFQ0Uuhii2bpWCdck6T78nwLfCPFBwZQrcPX
+ Ff0UH2+pkQjHYORNvuXn3ghg0/7je0ua8jHp85w4zqCENkb2MBxiOPoFJGZye9ToUbV3 xg== 
+Received: from ppma03ams.nl.ibm.com (62.31.33a9.ip4.static.sl-reverse.com [169.51.49.98])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 3eewpn5nj4-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 25 Feb 2022 14:31:05 +0000
+Received: from pps.filterd (ppma03ams.nl.ibm.com [127.0.0.1])
+	by ppma03ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 21PESx0f023200;
+	Fri, 25 Feb 2022 14:31:03 GMT
+Received: from b06avi18878370.portsmouth.uk.ibm.com (b06avi18878370.portsmouth.uk.ibm.com [9.149.26.194])
+	by ppma03ams.nl.ibm.com with ESMTP id 3ear69sav2-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
 	Fri, 25 Feb 2022 14:31:02 +0000
-Received: from pps.filterd (ppma06ams.nl.ibm.com [127.0.0.1])
-	by ppma06ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 21PESk2p008028;
-	Fri, 25 Feb 2022 14:30:40 GMT
-Received: from b06cxnps4075.portsmouth.uk.ibm.com (d06relay12.portsmouth.uk.ibm.com [9.149.109.197])
-	by ppma06ams.nl.ibm.com with ESMTP id 3eaqtjsbgw-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 25 Feb 2022 14:30:40 +0000
 Received: from d06av22.portsmouth.uk.ibm.com (d06av22.portsmouth.uk.ibm.com [9.149.105.58])
-	by b06cxnps4075.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 21PEUavt49283470
+	by b06avi18878370.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 21PEUxkC47644996
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 25 Feb 2022 14:30:37 GMT
+	Fri, 25 Feb 2022 14:30:59 GMT
 Received: from d06av22.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id CB9214C059;
-	Fri, 25 Feb 2022 14:30:36 +0000 (GMT)
+	by IMSVA (Postfix) with ESMTP id 8B58C4C046;
+	Fri, 25 Feb 2022 14:30:59 +0000 (GMT)
 Received: from d06av22.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 692BD4C058;
-	Fri, 25 Feb 2022 14:30:32 +0000 (GMT)
+	by IMSVA (Postfix) with ESMTP id 1FD884C044;
+	Fri, 25 Feb 2022 14:30:55 +0000 (GMT)
 Received: from li-e8dccbcc-2adc-11b2-a85c-bc1f33b9b810.ibm.com.com (unknown [9.43.81.177])
 	by d06av22.portsmouth.uk.ibm.com (Postfix) with ESMTP;
-	Fri, 25 Feb 2022 14:30:32 +0000 (GMT)
+	Fri, 25 Feb 2022 14:30:54 +0000 (GMT)
 From: Kajol Jain <kjain@linux.ibm.com>
 To: mpe@ellerman.id.au, linuxppc-dev@lists.ozlabs.org, nvdimm@lists.linux.dev,
         linux-kernel@vger.kernel.org, peterz@infradead.org,
@@ -46,44 +47,45 @@ To: mpe@ellerman.id.au, linuxppc-dev@lists.ozlabs.org, nvdimm@lists.linux.dev,
 Cc: santosh@fossix.org, maddy@linux.ibm.com, rnsastry@linux.ibm.com,
         aneesh.kumar@linux.ibm.com, atrajeev@linux.vnet.ibm.com,
         vaibhav@linux.ibm.com, tglx@linutronix.de, kjain@linux.ibm.com
-Subject: [PATCH v7 0/4] Add perf interface to expose nvdimm
-Date: Fri, 25 Feb 2022 20:00:20 +0530
-Message-Id: <20220225143024.47947-1-kjain@linux.ibm.com>
+Subject: [PATCH v7 3/4] powerpc/papr_scm: Add perf interface support
+Date: Fri, 25 Feb 2022 20:00:23 +0530
+Message-Id: <20220225143024.47947-4-kjain@linux.ibm.com>
 X-Mailer: git-send-email 2.27.0
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: Hw8wQiXlk_YQQ30l3U6V_C_b1YzN4_8r
-X-Proofpoint-ORIG-GUID: Hw8wQiXlk_YQQ30l3U6V_C_b1YzN4_8r
-Content-Transfer-Encoding: 8bit
-X-Proofpoint-UnRewURL: 0 URL was un-rewritten
+In-Reply-To: <20220225143024.47947-1-kjain@linux.ibm.com>
+References: <20220225143024.47947-1-kjain@linux.ibm.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: euNWP3FD49ZrgByC2VteFK4vtG-GAi0B
+X-Proofpoint-ORIG-GUID: euNWP3FD49ZrgByC2VteFK4vtG-GAi0B
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.205,Aquarius:18.0.816,Hydra:6.0.425,FMLib:17.11.64.514
  definitions=2022-02-25_08,2022-02-25_01,2022-02-23_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 bulkscore=0 clxscore=1015
- spamscore=0 lowpriorityscore=0 suspectscore=0 impostorscore=0
- malwarescore=0 priorityscore=1501 mlxlogscore=956 phishscore=0 mlxscore=0
- adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
+ impostorscore=0 lowpriorityscore=0 suspectscore=0 phishscore=0 spamscore=0
+ clxscore=1015 mlxscore=0 adultscore=0 malwarescore=0 bulkscore=0
+ mlxlogscore=999 classifier=spam adjust=0 reason=mlx scancount=1
  engine=8.12.0-2201110000 definitions=main-2202250084
 
-Patchset adds performance stats reporting support for nvdimm.
-Added interface includes support for pmu register/unregister
-functions. A structure is added called nvdimm_pmu to be used for
-adding arch/platform specific data such as cpumask, nvdimm device
-pointer and pmu event functions like event_init/add/read/del.
-User could use the standard perf tool to access perf events
-exposed via pmu.
+Performance monitoring support for papr-scm nvdimm devices
+via perf interface is added which includes addition of pmu
+functions like add/del/read/event_init for nvdimm_pmu struture.
 
-Interface also defines supported event list, config fields for the
-event attributes and their corresponding bit values which are exported
-via sysfs. Patch 3 exposes IBM pseries platform nmem* device
-performance stats using this interface.
+A new parameter 'priv' in added to the pdev_archdata structure to save
+nvdimm_pmu device pointer, to handle the unregistering of pmu device.
 
-Result from power9 pseries lpar with 2 nvdimm device:
+papr_scm_pmu_register function populates the nvdimm_pmu structure
+with name, capabilities, cpumask along with event handling
+functions. Finally the populated nvdimm_pmu structure is passed to
+register the pmu device. Event handling functions internally uses
+hcall to get events and counter data.
+
+Result in power9 machine with 2 nvdimm device:
 
 Ex: List all event by perf list
 
@@ -109,117 +111,313 @@ command:# perf list nmem
   nmem1/mem_life/                                    [Kernel PMU event]
   nmem1/poweron_secs/                                [Kernel PMU event]
 
-Patch1:
-        Introduces the nvdimm_pmu structure
-Patch2:
-        Adds common interface to add arch/platform specific data
-        includes nvdimm device pointer, pmu data along with
-        pmu event functions. It also defines supported event list
-        and adds attribute groups for format, events and cpumask.
-        It also adds code for cpu hotplug support.
-Patch3:
-        Add code in arch/powerpc/platform/pseries/papr_scm.c to expose
-        nmem* pmu. It fills in the nvdimm_pmu structure with pmu name,
-        capabilities, cpumask and event functions and then registers
-        the pmu by adding callbacks to register_nvdimm_pmu.
-Patch4:
-        Sysfs documentation patch
 
-Changelog
+Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Tested-by: Nageswara R Sastry <rnsastry@linux.ibm.com>
+Signed-off-by: Kajol Jain <kjain@linux.ibm.com>
+[Add numa_map_to_online_node function call to get online node id]
+Reported-by: Nageswara R Sastry <rnsastry@linux.ibm.com>
 ---
-v6 -> v7
+Changelog:
+Resend v6 -> v7
 - Add function call to numa_map_to_online_node function inorder to
   get online numa node. As the node id returned by function dev_to_node
-  can be offline in some scenarios and can create issue in hotplug code
-  as reported by Nageswara R Sastry.
+  can be offline in some scenarios and create issue in hotplug code.
 
-- Add function declaration of perf_pmu_register, perf_pmu_unregister
-  and  perf_pmu_migrate_context functions in nd.h file to resolve
-  the implicit-function-declaration warning as reported by kernel test
-  robot.
-  Link: https://lore.kernel.org/all/202202241242.zqzGkguy-lkp@intel.com/
-
-- Add Tested-by, Acked-by and Reported-by tags from Peter Zijlstra
+- Add Acked-by, Tested-by and Reported-by tags from Peter Zijlstra
   and Nageswara R Sastry.
 
-- Link to the patchset v6: https://lkml.org/lkml/2022/2/17/857
+ arch/powerpc/include/asm/device.h         |   5 +
+ arch/powerpc/platforms/pseries/papr_scm.c | 225 ++++++++++++++++++++++
+ 2 files changed, 230 insertions(+)
 
-Resend v5 -> v6
-- No logic change, just a rebase to latest upstream and
-  tested the patchset.
-
-- Link to the patchset Resend v5: https://lkml.org/lkml/2021/11/15/3979
-
-v5 -> Resend v5
-- Resend the patchset
-
-- Link to the patchset v5: https://lkml.org/lkml/2021/9/28/643
-
-v4 -> v5:
-- Remove multiple variables defined in nvdimm_pmu structure include
-  name and pmu functions(event_int/add/del/read) as they are just
-  used to copy them again in pmu variable. Now we are directly doing
-  this step in arch specific code as suggested by Dan Williams.
-
-- Remove attribute group field from nvdimm pmu structure and
-  defined these attribute groups in common interface which
-  includes format, event list along with cpumask as suggested by
-  Dan Williams.
-  Since we added static defination for attrbute groups needed in
-  common interface, removes corresponding code from papr.
-
-- Add nvdimm pmu event list with event codes in the common interface.
-
-- Remove Acked-by/Reviewed-by/Tested-by tags as code is refactored
-  to handle review comments from Dan.
-
-- Make nvdimm_pmu_free_hotplug_memory function static as reported
-  by kernel test robot, also add corresponding Reported-by tag.
-
-- Link to the patchset v4: https://lkml.org/lkml/2021/9/3/45
-
-v3 -> v4
-- Rebase code on top of current papr_scm code without any logical
-  changes.
-
-- Added Acked-by tag from Peter Zijlstra and Reviewed by tag
-  from Madhavan Srinivasan.
-
-- Link to the patchset v3: https://lkml.org/lkml/2021/6/17/605
-
-v2 -> v3
-- Added Tested-by tag.
-
-- Fix nvdimm mailing list in the ABI Documentation.
-
-- Link to the patchset v2: https://lkml.org/lkml/2021/6/14/25
-
-v1 -> v2
-- Fix hotplug code by adding pmu migration call
-  incase current designated cpu got offline. As
-  pointed by Peter Zijlstra.
-
-- Removed the retun -1 part from cpu hotplug offline
-  function.
-
-- Link to the patchset v1: https://lkml.org/lkml/2021/6/8/500
-
-Kajol Jain (4):
-  drivers/nvdimm: Add nvdimm pmu structure
-  drivers/nvdimm: Add perf interface to expose nvdimm performance stats
-  powerpc/papr_scm: Add perf interface support
-  docs: ABI: sysfs-bus-nvdimm: Document sysfs event format entries for
-    nvdimm pmu
-
- Documentation/ABI/testing/sysfs-bus-nvdimm |  35 +++
- arch/powerpc/include/asm/device.h          |   5 +
- arch/powerpc/platforms/pseries/papr_scm.c  | 225 ++++++++++++++
- drivers/nvdimm/Makefile                    |   1 +
- drivers/nvdimm/nd_perf.c                   | 328 +++++++++++++++++++++
- include/linux/nd.h                         |  44 +++
- 6 files changed, 638 insertions(+)
- create mode 100644 drivers/nvdimm/nd_perf.c
-
+diff --git a/arch/powerpc/include/asm/device.h b/arch/powerpc/include/asm/device.h
+index 219559d65864..47ed639f3b8f 100644
+--- a/arch/powerpc/include/asm/device.h
++++ b/arch/powerpc/include/asm/device.h
+@@ -48,6 +48,11 @@ struct dev_archdata {
+ 
+ struct pdev_archdata {
+ 	u64 dma_mask;
++	/*
++	 * Pointer to nvdimm_pmu structure, to handle the unregistering
++	 * of pmu device
++	 */
++	void *priv;
+ };
+ 
+ #endif /* _ASM_POWERPC_DEVICE_H */
+diff --git a/arch/powerpc/platforms/pseries/papr_scm.c b/arch/powerpc/platforms/pseries/papr_scm.c
+index f48e87ac89c9..4dd513d7c029 100644
+--- a/arch/powerpc/platforms/pseries/papr_scm.c
++++ b/arch/powerpc/platforms/pseries/papr_scm.c
+@@ -19,6 +19,7 @@
+ #include <asm/papr_pdsm.h>
+ #include <asm/mce.h>
+ #include <asm/unaligned.h>
++#include <linux/perf_event.h>
+ 
+ #define BIND_ANY_ADDR (~0ul)
+ 
+@@ -68,6 +69,8 @@
+ #define PAPR_SCM_PERF_STATS_EYECATCHER __stringify(SCMSTATS)
+ #define PAPR_SCM_PERF_STATS_VERSION 0x1
+ 
++#define to_nvdimm_pmu(_pmu)	container_of(_pmu, struct nvdimm_pmu, pmu)
++
+ /* Struct holding a single performance metric */
+ struct papr_scm_perf_stat {
+ 	u8 stat_id[8];
+@@ -120,6 +123,9 @@ struct papr_scm_priv {
+ 
+ 	/* length of the stat buffer as expected by phyp */
+ 	size_t stat_buffer_len;
++
++	 /* array to have event_code and stat_id mappings */
++	char **nvdimm_events_map;
+ };
+ 
+ static int papr_scm_pmem_flush(struct nd_region *nd_region,
+@@ -340,6 +346,218 @@ static ssize_t drc_pmem_query_stats(struct papr_scm_priv *p,
+ 	return 0;
+ }
+ 
++static int papr_scm_pmu_get_value(struct perf_event *event, struct device *dev, u64 *count)
++{
++	struct papr_scm_perf_stat *stat;
++	struct papr_scm_perf_stats *stats;
++	struct papr_scm_priv *p = (struct papr_scm_priv *)dev->driver_data;
++	int rc, size;
++
++	/* Allocate request buffer enough to hold single performance stat */
++	size = sizeof(struct papr_scm_perf_stats) +
++		sizeof(struct papr_scm_perf_stat);
++
++	if (!p || !p->nvdimm_events_map)
++		return -EINVAL;
++
++	stats = kzalloc(size, GFP_KERNEL);
++	if (!stats)
++		return -ENOMEM;
++
++	stat = &stats->scm_statistic[0];
++	memcpy(&stat->stat_id,
++	       p->nvdimm_events_map[event->attr.config],
++		sizeof(stat->stat_id));
++	stat->stat_val = 0;
++
++	rc = drc_pmem_query_stats(p, stats, 1);
++	if (rc < 0) {
++		kfree(stats);
++		return rc;
++	}
++
++	*count = be64_to_cpu(stat->stat_val);
++	kfree(stats);
++	return 0;
++}
++
++static int papr_scm_pmu_event_init(struct perf_event *event)
++{
++	struct nvdimm_pmu *nd_pmu = to_nvdimm_pmu(event->pmu);
++	struct papr_scm_priv *p;
++
++	if (!nd_pmu)
++		return -EINVAL;
++
++	/* test the event attr type for PMU enumeration */
++	if (event->attr.type != event->pmu->type)
++		return -ENOENT;
++
++	/* it does not support event sampling mode */
++	if (is_sampling_event(event))
++		return -EOPNOTSUPP;
++
++	/* no branch sampling */
++	if (has_branch_stack(event))
++		return -EOPNOTSUPP;
++
++	p = (struct papr_scm_priv *)nd_pmu->dev->driver_data;
++	if (!p)
++		return -EINVAL;
++
++	/* Invalid eventcode */
++	if (event->attr.config == 0 || event->attr.config > 16)
++		return -EINVAL;
++
++	return 0;
++}
++
++static int papr_scm_pmu_add(struct perf_event *event, int flags)
++{
++	u64 count;
++	int rc;
++	struct nvdimm_pmu *nd_pmu = to_nvdimm_pmu(event->pmu);
++
++	if (!nd_pmu)
++		return -EINVAL;
++
++	if (flags & PERF_EF_START) {
++		rc = papr_scm_pmu_get_value(event, nd_pmu->dev, &count);
++		if (rc)
++			return rc;
++
++		local64_set(&event->hw.prev_count, count);
++	}
++
++	return 0;
++}
++
++static void papr_scm_pmu_read(struct perf_event *event)
++{
++	u64 prev, now;
++	int rc;
++	struct nvdimm_pmu *nd_pmu = to_nvdimm_pmu(event->pmu);
++
++	if (!nd_pmu)
++		return;
++
++	rc = papr_scm_pmu_get_value(event, nd_pmu->dev, &now);
++	if (rc)
++		return;
++
++	prev = local64_xchg(&event->hw.prev_count, now);
++	local64_add(now - prev, &event->count);
++}
++
++static void papr_scm_pmu_del(struct perf_event *event, int flags)
++{
++	papr_scm_pmu_read(event);
++}
++
++static int papr_scm_pmu_check_events(struct papr_scm_priv *p, struct nvdimm_pmu *nd_pmu)
++{
++	struct papr_scm_perf_stat *stat;
++	struct papr_scm_perf_stats *stats;
++	char *statid;
++	int index, rc, count;
++	u32 available_events;
++
++	if (!p->stat_buffer_len)
++		return -ENOENT;
++
++	available_events = (p->stat_buffer_len  - sizeof(struct papr_scm_perf_stats))
++			/ sizeof(struct papr_scm_perf_stat);
++
++	/* Allocate the buffer for phyp where stats are written */
++	stats = kzalloc(p->stat_buffer_len, GFP_KERNEL);
++	if (!stats) {
++		rc = -ENOMEM;
++		return rc;
++	}
++
++	/* Allocate memory to nvdimm_event_map */
++	p->nvdimm_events_map = kcalloc(available_events, sizeof(char *), GFP_KERNEL);
++	if (!p->nvdimm_events_map) {
++		rc = -ENOMEM;
++		goto out_stats;
++	}
++
++	/* Called to get list of events supported */
++	rc = drc_pmem_query_stats(p, stats, 0);
++	if (rc)
++		goto out_nvdimm_events_map;
++
++	for (index = 0, stat = stats->scm_statistic, count = 0;
++		     index < available_events; index++, ++stat) {
++		statid = kzalloc(strlen(stat->stat_id) + 1, GFP_KERNEL);
++		if (!statid) {
++			rc = -ENOMEM;
++			goto out_nvdimm_events_map;
++		}
++
++		strcpy(statid, stat->stat_id);
++		p->nvdimm_events_map[count] = statid;
++		count++;
++	}
++	p->nvdimm_events_map[count] = NULL;
++	kfree(stats);
++	return 0;
++
++out_nvdimm_events_map:
++	kfree(p->nvdimm_events_map);
++out_stats:
++	kfree(stats);
++	return rc;
++}
++
++static void papr_scm_pmu_register(struct papr_scm_priv *p)
++{
++	struct nvdimm_pmu *nd_pmu;
++	int rc, nodeid;
++
++	nd_pmu = kzalloc(sizeof(*nd_pmu), GFP_KERNEL);
++	if (!nd_pmu) {
++		rc = -ENOMEM;
++		goto pmu_err_print;
++	}
++
++	rc = papr_scm_pmu_check_events(p, nd_pmu);
++	if (rc)
++		goto pmu_check_events_err;
++
++	nd_pmu->pmu.task_ctx_nr = perf_invalid_context;
++	nd_pmu->pmu.name = nvdimm_name(p->nvdimm);
++	nd_pmu->pmu.event_init = papr_scm_pmu_event_init;
++	nd_pmu->pmu.read = papr_scm_pmu_read;
++	nd_pmu->pmu.add = papr_scm_pmu_add;
++	nd_pmu->pmu.del = papr_scm_pmu_del;
++
++	nd_pmu->pmu.capabilities = PERF_PMU_CAP_NO_INTERRUPT |
++				PERF_PMU_CAP_NO_EXCLUDE;
++
++	/*updating the cpumask variable */
++	nodeid = numa_map_to_online_node(dev_to_node(&p->pdev->dev));
++	nd_pmu->arch_cpumask = *cpumask_of_node(nodeid);
++
++	rc = register_nvdimm_pmu(nd_pmu, p->pdev);
++	if (rc)
++		goto pmu_register_err;
++
++	/*
++	 * Set archdata.priv value to nvdimm_pmu structure, to handle the
++	 * unregistering of pmu device.
++	 */
++	p->pdev->archdata.priv = nd_pmu;
++	return;
++
++pmu_register_err:
++	kfree(p->nvdimm_events_map);
++pmu_check_events_err:
++	kfree(nd_pmu);
++pmu_err_print:
++	dev_info(&p->pdev->dev, "nvdimm pmu didn't register rc=%d\n", rc);
++}
++
+ /*
+  * Issue hcall to retrieve dimm health info and populate papr_scm_priv with the
+  * health information.
+@@ -1236,6 +1454,7 @@ static int papr_scm_probe(struct platform_device *pdev)
+ 		goto err2;
+ 
+ 	platform_set_drvdata(pdev, p);
++	papr_scm_pmu_register(p);
+ 
+ 	return 0;
+ 
+@@ -1254,6 +1473,12 @@ static int papr_scm_remove(struct platform_device *pdev)
+ 
+ 	nvdimm_bus_unregister(p->bus);
+ 	drc_pmem_unbind(p);
++
++	if (pdev->archdata.priv)
++		unregister_nvdimm_pmu(pdev->archdata.priv);
++
++	pdev->archdata.priv = NULL;
++	kfree(p->nvdimm_events_map);
+ 	kfree(p->bus_desc.provider_name);
+ 	kfree(p);
+ 
 -- 
 2.31.1
 
