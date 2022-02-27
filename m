@@ -1,45 +1,54 @@
 Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id CD1B47B
-	for <nvdimm@lists.linux.dev>; Sun, 27 Feb 2022 12:09:02 +0000 (UTC)
-IronPort-Data: =?us-ascii?q?A9a23=3AFZDV6K/sIaRalZdNFs+tDrUD63+TJUtcMsCJ2f8?=
- =?us-ascii?q?bfWQNrUojgTVRnWJOXjyBOfuCZWbwftx3ao7g804OsZ6EyYRjHldlrnsFo1Bi8?=
- =?us-ascii?q?5ScXYvDRqvT04J+FuWaFQQ/qZx2huDodKjYdVeB4Ef9WlTdhSMkj/vQHOKlULe?=
- =?us-ascii?q?s1h1ZHmeIdg9w0HqPpMZp2uaEsfDha++8kYuaT//3YTdJ6BYoWo4g0J9vnTs01?=
- =?us-ascii?q?BjEVJz0iXRlDRxDlAe2e3D4l/vzL4npR5fzatE88uJX24/+IL+FEmPxp3/BC/u?=
- =?us-ascii?q?ulPD1b08LXqXPewOJjxK6WYD72l4b+HN0if19aZLwam8O49mNt8pswdNWpNq+T?=
- =?us-ascii?q?xw1FqPRmuUBSAQeGCZ7VUFD0OadeyDk7pLDlCUqdFOpmZ2CFnoeMYQG++pfD3t?=
- =?us-ascii?q?J8PsCIjERKBuEgoqewLm7YuhqiN4qIMTiMMUYoH4I5T3QC7AkB4/CR6HL7NpD9?=
- =?us-ascii?q?DY2ms1KW/3ZYqIxZThwaxLPSx5CIFEaDNQ5hujArn3+dSBI7VeQjakp6mPQigt?=
- =?us-ascii?q?r39DFNsTZe9mPbcFUhVqD4GbH+XnpRB0XKrS3yzOD/zSnhvLnmjnyU4YfUra/8?=
- =?us-ascii?q?5ZChFyV23xWBgYaWEW2pdGnhUOkHdFSMUoZ/mwpt6da3EiqSMTtGh61uniJujY?=
- =?us-ascii?q?CVNdKVe438geAzuzT+QnxLmwFSCNRLcwor+coSjEwkFyEhdXkAXpoqrL9dJ433?=
- =?us-ascii?q?t94thvrYW5MczBEPnRCEGM4DxDYiNlbpnryohxLTcZZVuHIJAw=3D?=
-IronPort-HdrOrdr: =?us-ascii?q?A9a23=3AQDDhVKs89yhQaqrvakNmYn8o7skDStV00zEX?=
- =?us-ascii?q?/kB9WHVpm62j5qSTdZEguCMc5wx+ZJheo7q90cW7IE80lqQFhLX5X43SPzUO0V?=
- =?us-ascii?q?HARO5fBODZsl/d8kPFltJ15ONJdqhSLJnKB0FmsMCS2mKFOudl7N6Z0K3Av4vj?=
- =?us-ascii?q?80s=3D?=
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id EB33A7B
+	for <nvdimm@lists.linux.dev>; Sun, 27 Feb 2022 12:09:04 +0000 (UTC)
+IronPort-Data: =?us-ascii?q?A9a23=3AoihylqIzAzMKJtFvFE+RrpQlxSXFcZb7ZxGrkP8?=
+ =?us-ascii?q?bfHDs1jom1mNTy2QaDGGAaPbcZDP3eIojOomxoxsPv5OGn4NqS1BcGVNFFSwT8?=
+ =?us-ascii?q?ZWfbTi6wuYcBwvLd4ubChsPA/w2MrEsF+hpCC+MzvuRGuK59yMkj/nRHuOU5NP?=
+ =?us-ascii?q?sYUideyc1EU/Ntjozw4bVsqYw6TSIK1vlVeHa+qUzC3f5s9JACV/43orYwP9ZU?=
+ =?us-ascii?q?FsejxtD1rA2TagjUFYzDBD5BrpHTU26ByOQroW5goeHq+j/ILGRpgs1/j8mDJW?=
+ =?us-ascii?q?rj7T6blYXBLXVOGBiiFIPA+773EcE/Xd0j87XN9JFAatToy+UltZq2ZNDs4esY?=
+ =?us-ascii?q?Qk0PKzQg/lbWB5de817FfQcouecfibv7aR/yGWDKRMA2c5GAEgoPIEw9PxwBGZ?=
+ =?us-ascii?q?U//0EbjsKa3irh+m26LO9RPNliskqII/sJox3kn1py3fbS+knRZTCSqDRzd5ew?=
+ =?us-ascii?q?Do0wMtJGJ72a8gGbjxgRBfNeRtCPhEQEp1WtOOpgGTvNjhdgFGLrKE0pW/Jw2R?=
+ =?us-ascii?q?Z1qbhMd/QUtiLXtlO2EKZoH/WuWj0HHkyNNef4T6e7jSgi4fnnyr9VcQZFKCQ8?=
+ =?us-ascii?q?eRji1megGcUDXU+UVq9vOn8hFWyVsxSL2QK9Sc066s/7kqmSp/6RRLQiHqFuAM?=
+ =?us-ascii?q?MHtldCes37CmTxafOpQWUHG4JSnhGctNOnMs3QyE6k0+HhPv3CjF19r6YU3SQ8?=
+ =?us-ascii?q?vGTtzzaBMS/BQfufgddFU1cvYal+9p103ryoh9YOPbdprXI9fvYnlhmdBQDuog?=
+ =?us-ascii?q?=3D?=
+IronPort-HdrOrdr: =?us-ascii?q?A9a23=3Ay1DMO6tCJ8KxxxpMoZCf2uqu7skCW4Mji2hC?=
+ =?us-ascii?q?6mlwRA09TyXGra2TdaUgvyMc1gx7ZJhBo7+90ci7MBfhHPtOjbX5Uo3SOTUO1F?=
+ =?us-ascii?q?HYTr2KjrGSuwEIeReOj9K1vJ0IG8YeNDSZNykdsS+Q2mmF+rgbsbq6GPfCv5a4?=
+ =?us-ascii?q?854hd3AbV4hQqyNCTiqLGEx/QwdLQbI/CZqn/8JC4x6tY24eYMiXDmQMG7Grna?=
+ =?us-ascii?q?y4qLvWJTo9QzI34giHij2lrJb8Dhijxx8bFxdC260r/2TpmxHwoo+jr/a44BnB?=
+ =?us-ascii?q?0HK71eUkpPLRjv94QOCcgMkcLTvhziyyYp56ZrGEtDcp5Mmy9VcDirD30mEdFv?=
+ =?us-ascii?q?U2z0mUUnC+oBPr1QWl+i0p8WXexViRhmamidDlRQg9F9FKietiA2zkAnIbzZlB?=
+ =?us-ascii?q?OZ9wrimkX8I9N2KLoM293am9a/hSrDv8nZJ4+tRjwkC2UuMlGcBsRMIkjQ9o+a?=
+ =?us-ascii?q?w7bVjHAbAcYZJT5f7nlYtrmHOhHg7kVzpUsa2RtkpaJGb7fqFFgL3h7wRr?=
 X-IronPort-AV: E=Sophos;i="5.88,333,1635177600"; 
-   d="scan'208";a="122037683"
+   d="scan'208";a="122037684"
 Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
   by heian.cn.fujitsu.com with ESMTP; 27 Feb 2022 20:07:51 +0800
-Received: from G08CNEXMBPEKD04.g08.fujitsu.local (unknown [10.167.33.201])
-	by cn.fujitsu.com (Postfix) with ESMTP id 837564D169F1;
-	Sun, 27 Feb 2022 20:07:49 +0800 (CST)
+Received: from G08CNEXMBPEKD05.g08.fujitsu.local (unknown [10.167.33.204])
+	by cn.fujitsu.com (Postfix) with ESMTP id 1074E4D169F3;
+	Sun, 27 Feb 2022 20:07:51 +0800 (CST)
+Received: from G08CNEXJMPEKD02.g08.fujitsu.local (10.167.33.202) by
+ G08CNEXMBPEKD05.g08.fujitsu.local (10.167.33.204) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.23; Sun, 27 Feb 2022 20:07:53 +0800
 Received: from G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.85) by
- G08CNEXMBPEKD04.g08.fujitsu.local (10.167.33.201) with Microsoft SMTP Server
- (TLS) id 15.0.1497.23; Sun, 27 Feb 2022 20:07:51 +0800
+ G08CNEXJMPEKD02.g08.fujitsu.local (10.167.33.202) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.23; Sun, 27 Feb 2022 20:07:52 +0800
 Received: from irides.mr.mr (10.167.225.141) by
  G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
- id 15.0.1497.23 via Frontend Transport; Sun, 27 Feb 2022 20:07:48 +0800
+ id 15.0.1497.23 via Frontend Transport; Sun, 27 Feb 2022 20:07:50 +0800
 From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
 To: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
 	<nvdimm@lists.linux.dev>, <linux-mm@kvack.org>,
 	<linux-fsdevel@vger.kernel.org>
 CC: <djwong@kernel.org>, <dan.j.williams@intel.com>, <david@fromorbit.com>,
-	<hch@infradead.org>, <jane.chu@oracle.com>
-Subject: [PATCH v11 1/8] dax: Introduce holder for dax_device
-Date: Sun, 27 Feb 2022 20:07:40 +0800
-Message-ID: <20220227120747.711169-2-ruansy.fnst@fujitsu.com>
+	<hch@infradead.org>, <jane.chu@oracle.com>, Christoph Hellwig <hch@lst.de>
+Subject: [PATCH v11 3/8] pagemap,pmem: Introduce ->memory_failure()
+Date: Sun, 27 Feb 2022 20:07:42 +0800
+Message-ID: <20220227120747.711169-4-ruansy.fnst@fujitsu.com>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <20220227120747.711169-1-ruansy.fnst@fujitsu.com>
 References: <20220227120747.711169-1-ruansy.fnst@fujitsu.com>
@@ -51,217 +60,119 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-yoursite-MailScanner-ID: 837564D169F1.A27BF
+X-yoursite-MailScanner-ID: 1074E4D169F3.A5262
 X-yoursite-MailScanner: Found to be clean
 X-yoursite-MailScanner-From: ruansy.fnst@fujitsu.com
 X-Spam-Status: No
 
-To easily track filesystem from a pmem device, we introduce a holder for
-dax_device structure, and also its operation.  This holder is used to
-remember who is using this dax_device:
- - When it is the backend of a filesystem, the holder will be the
-   instance of this filesystem.
- - When this pmem device is one of the targets in a mapped device, the
-   holder will be this mapped device.  In this case, the mapped device
-   has its own dax_device and it will follow the first rule.  So that we
-   can finally track to the filesystem we needed.
+When memory-failure occurs, we call this function which is implemented
+by each kind of devices.  For the fsdax case, pmem device driver
+implements it.  Pmem device driver will find out the filesystem in which
+the corrupted page located in.
 
-The holder and holder_ops will be set when filesystem is being mounted,
-or an target device is being activated.
+With dax_holder notify support, we are able to notify the memory failure
+from pmem driver to upper layers.  If there is something not support in
+the notify routine, memory_failure will fall back to the generic hanlder.
 
 Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/dax/super.c | 89 +++++++++++++++++++++++++++++++++++++++++++++
- include/linux/dax.h | 32 ++++++++++++++++
- 2 files changed, 121 insertions(+)
+ drivers/nvdimm/pmem.c    | 16 ++++++++++++++++
+ include/linux/memremap.h | 12 ++++++++++++
+ mm/memory-failure.c      | 15 +++++++++++++++
+ 3 files changed, 43 insertions(+)
 
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index e3029389d809..da5798e19d57 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -21,6 +21,9 @@
-  * @cdev: optional character interface for "device dax"
-  * @private: dax driver private data
-  * @flags: state and boolean properties
-+ * @ops: operations for dax_device
-+ * @holder_data: holder of a dax_device: could be filesystem or mapped device
-+ * @holder_ops: operations for the inner holder
-  */
- struct dax_device {
- 	struct inode inode;
-@@ -28,6 +31,8 @@ struct dax_device {
- 	void *private;
- 	unsigned long flags;
- 	const struct dax_operations *ops;
-+	void *holder_data;
-+	const struct dax_holder_operations *holder_ops;
- };
- 
- static dev_t dax_devt;
-@@ -193,6 +198,29 @@ int dax_zero_page_range(struct dax_device *dax_dev, pgoff_t pgoff,
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 58d95242a836..cb915d144244 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -366,6 +366,20 @@ static void pmem_release_disk(void *__pmem)
+ 	blk_cleanup_disk(pmem->disk);
  }
- EXPORT_SYMBOL_GPL(dax_zero_page_range);
  
-+int dax_holder_notify_failure(struct dax_device *dax_dev, u64 off,
-+			      u64 len, int mf_flags)
++static int pmem_pagemap_memory_failure(struct dev_pagemap *pgmap,
++		phys_addr_t addr, u64 len, int mf_flags)
 +{
-+	int rc, id;
++	struct pmem_device *pmem =
++			container_of(pgmap, struct pmem_device, pgmap);
++	u64 offset = addr - pmem->phys_addr - pmem->data_offset;
 +
-+	id = dax_read_lock();
-+	if (!dax_alive(dax_dev)) {
-+		rc = -ENXIO;
-+		goto out;
-+	}
-+
-+	if (!dax_dev->holder_ops) {
-+		rc = -EOPNOTSUPP;
-+		goto out;
-+	}
-+
-+	rc = dax_dev->holder_ops->notify_failure(dax_dev, off, len, mf_flags);
-+out:
-+	dax_read_unlock(id);
-+	return rc;
++	return dax_holder_notify_failure(pmem->dax_dev, offset, len, mf_flags);
 +}
-+EXPORT_SYMBOL_GPL(dax_holder_notify_failure);
 +
- #ifdef CONFIG_ARCH_HAS_PMEM_API
- void arch_wb_cache_pmem(void *addr, size_t size);
- void dax_flush(struct dax_device *dax_dev, void *addr, size_t size)
-@@ -268,6 +296,10 @@ void kill_dax(struct dax_device *dax_dev)
- 
- 	clear_bit(DAXDEV_ALIVE, &dax_dev->flags);
- 	synchronize_srcu(&dax_srcu);
-+
-+	/* clear holder data */
-+	dax_dev->holder_ops = NULL;
-+	dax_dev->holder_data = NULL;
- }
- EXPORT_SYMBOL_GPL(kill_dax);
- 
-@@ -409,6 +441,63 @@ void put_dax(struct dax_device *dax_dev)
- }
- EXPORT_SYMBOL_GPL(put_dax);
- 
-+/**
-+ * dax_holder() - obtain the holder of a dax device
-+ * @dax_dev: a dax_device instance
-+
-+ * Return: the holder's data which represents the holder if registered,
-+ * otherwize NULL.
-+ */
-+void *dax_holder(struct dax_device *dax_dev)
-+{
-+	if (!dax_alive(dax_dev))
-+		return NULL;
-+
-+	return dax_dev->holder_data;
-+}
-+EXPORT_SYMBOL_GPL(dax_holder);
-+
-+/**
-+ * dax_register_holder() - register a holder to a dax device
-+ * @dax_dev: a dax_device instance
-+ * @holder: a pointer to a holder's data which represents the holder
-+ * @ops: operations of this holder
-+
-+ * Return: negative errno if an error occurs, otherwise 0.
-+ */
-+int dax_register_holder(struct dax_device *dax_dev, void *holder,
-+		const struct dax_holder_operations *ops)
-+{
-+	if (!dax_alive(dax_dev))
-+		return -ENXIO;
-+
-+	if (cmpxchg(&dax_dev->holder_data, NULL, holder))
-+		return -EBUSY;
-+
-+	dax_dev->holder_ops = ops;
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(dax_register_holder);
-+
-+/**
-+ * dax_unregister_holder() - unregister the holder for a dax device
-+ * @dax_dev: a dax_device instance
-+ * @holder: the holder to be unregistered
-+ *
-+ * Return: negative errno if an error occurs, otherwise 0.
-+ */
-+int dax_unregister_holder(struct dax_device *dax_dev, void *holder)
-+{
-+	if (!dax_alive(dax_dev))
-+		return -ENXIO;
-+
-+	if (cmpxchg(&dax_dev->holder_data, holder, NULL) != holder)
-+		return -EBUSY;
-+	dax_dev->holder_ops = NULL;
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(dax_unregister_holder);
-+
- /**
-  * inode_dax: convert a public inode into its dax_dev
-  * @inode: An inode with i_cdev pointing to a dax_dev
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 9fc5f99a0ae2..262d7bad131a 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -32,8 +32,24 @@ struct dax_operations {
- 	int (*zero_page_range)(struct dax_device *, pgoff_t, size_t);
- };
- 
-+struct dax_holder_operations {
-+	/*
-+	 * notify_failure - notify memory failure into inner holder device
-+	 * @dax_dev: the dax device which contains the holder
-+	 * @offset: offset on this dax device where memory failure occurs
-+	 * @len: length of this memory failure event
-+	 * @flags: action flags for memory failure handler
-+	 */
-+	int (*notify_failure)(struct dax_device *dax_dev, u64 offset,
-+			u64 len, int mf_flags);
++static const struct dev_pagemap_ops fsdax_pagemap_ops = {
++	.memory_failure		= pmem_pagemap_memory_failure,
 +};
 +
- #if IS_ENABLED(CONFIG_DAX)
- struct dax_device *alloc_dax(void *private, const struct dax_operations *ops);
-+int dax_register_holder(struct dax_device *dax_dev, void *holder,
-+		const struct dax_holder_operations *ops);
-+int dax_unregister_holder(struct dax_device *dax_dev, void *holder);
-+void *dax_holder(struct dax_device *dax_dev);
- void put_dax(struct dax_device *dax_dev);
- void kill_dax(struct dax_device *dax_dev);
- void dax_write_cache(struct dax_device *dax_dev, bool wc);
-@@ -53,6 +69,20 @@ static inline bool daxdev_mapping_supported(struct vm_area_struct *vma,
- 	return dax_synchronous(dax_dev);
- }
- #else
-+static inline int dax_register_holder(struct dax_device *dax_dev, void *holder,
-+		const struct dax_holder_operations *ops)
-+{
-+	return 0;
-+}
-+static inline int dax_unregister_holder(struct dax_device *dax_dev,
-+		void *holder)
-+{
-+	return 0;
-+}
-+static inline void *dax_holder(struct dax_device *dax_dev)
-+{
-+	return NULL;
-+}
- static inline struct dax_device *alloc_dax(void *private,
- 		const struct dax_operations *ops)
+ static int pmem_attach_disk(struct device *dev,
+ 		struct nd_namespace_common *ndns)
  {
-@@ -185,6 +215,8 @@ size_t dax_copy_to_iter(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
- 		size_t bytes, struct iov_iter *i);
- int dax_zero_page_range(struct dax_device *dax_dev, pgoff_t pgoff,
- 			size_t nr_pages);
-+int dax_holder_notify_failure(struct dax_device *dax_dev, u64 off, u64 len,
-+		int mf_flags);
- void dax_flush(struct dax_device *dax_dev, void *addr, size_t size);
+@@ -427,6 +441,7 @@ static int pmem_attach_disk(struct device *dev,
+ 	pmem->pfn_flags = PFN_DEV;
+ 	if (is_nd_pfn(dev)) {
+ 		pmem->pgmap.type = MEMORY_DEVICE_FS_DAX;
++		pmem->pgmap.ops = &fsdax_pagemap_ops;
+ 		addr = devm_memremap_pages(dev, &pmem->pgmap);
+ 		pfn_sb = nd_pfn->pfn_sb;
+ 		pmem->data_offset = le64_to_cpu(pfn_sb->dataoff);
+@@ -440,6 +455,7 @@ static int pmem_attach_disk(struct device *dev,
+ 		pmem->pgmap.range.end = res->end;
+ 		pmem->pgmap.nr_range = 1;
+ 		pmem->pgmap.type = MEMORY_DEVICE_FS_DAX;
++		pmem->pgmap.ops = &fsdax_pagemap_ops;
+ 		addr = devm_memremap_pages(dev, &pmem->pgmap);
+ 		pmem->pfn_flags |= PFN_MAP;
+ 		bb_range = pmem->pgmap.range;
+diff --git a/include/linux/memremap.h b/include/linux/memremap.h
+index 1fafcc38acba..50d57118d935 100644
+--- a/include/linux/memremap.h
++++ b/include/linux/memremap.h
+@@ -77,6 +77,18 @@ struct dev_pagemap_ops {
+ 	 * the page back to a CPU accessible page.
+ 	 */
+ 	vm_fault_t (*migrate_to_ram)(struct vm_fault *vmf);
++
++	/*
++	 * Handle the memory failure happens on a range of pfns.  Notify the
++	 * processes who are using these pfns, and try to recover the data on
++	 * them if necessary.  The mf_flags is finally passed to the recover
++	 * function through the whole notify routine.
++	 *
++	 * When this is not implemented, or it returns -EOPNOTSUPP, the caller
++	 * will fall back to a common handler called mf_generic_kill_procs().
++	 */
++	int (*memory_failure)(struct dev_pagemap *pgmap, phys_addr_t addr,
++			      u64 len, int mf_flags);
+ };
  
- ssize_t dax_iomap_rw(struct kiocb *iocb, struct iov_iter *iter,
+ #define PGMAP_ALTMAP_VALID	(1 << 0)
+diff --git a/mm/memory-failure.c b/mm/memory-failure.c
+index 98b6144e4b9b..8dd2f58c1aa8 100644
+--- a/mm/memory-failure.c
++++ b/mm/memory-failure.c
+@@ -1663,6 +1663,21 @@ static int memory_failure_dev_pagemap(unsigned long pfn, int flags,
+ 	if (!pgmap_pfn_valid(pgmap, pfn))
+ 		goto out;
+ 
++	/*
++	 * Call driver's implementation to handle the memory failure, otherwise
++	 * fall back to generic handler.
++	 */
++	if (pgmap->ops->memory_failure) {
++		rc = pgmap->ops->memory_failure(pgmap, PFN_PHYS(pfn), PAGE_SIZE,
++				flags);
++		/*
++		 * Fall back to generic handler too if operation is not
++		 * supported inside the driver/device/filesystem.
++		 */
++		if (rc != -EOPNOTSUPP)
++			goto out;
++	}
++
+ 	rc = mf_generic_kill_procs(pfn, flags, pgmap);
+ out:
+ 	/* drop pgmap ref acquired in caller */
 -- 
 2.35.1
 
