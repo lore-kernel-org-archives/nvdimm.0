@@ -1,87 +1,88 @@
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09F197A
-	for <nvdimm@lists.linux.dev>; Mon, 28 Feb 2022 17:37:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1646069842; x=1677605842;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=otMrQcJF+SpZJz5Bqs02HUjndBH02zw57A9ihjLnzBE=;
-  b=OIAZgkVYhH7a5FasoeqAGX+ol0afbHj+JQ3/jNmDAvmhdBqxoiyjbRhx
-   +2JtMAFeH6ahcHIDI4M1Gclu+W9ezB8T5rBZnTWQrlkYIpsPXeWVU9Yg5
-   m6xaXn3Neb7w2aovtth2/G8mqoF0oT2gNTX+XofzPLzHDgtw0NaDj8Re7
-   LFDdTF3325TyiV65YPBC78IibCra2nqBo79qoFp9VTcAu42sYMxvTdaRX
-   D2RJh9FCGB+Y7bQggcXkfAeSaauCoQ3B4j38O7NZR4nqa4WmpK0cArBW/
-   r2NDqInhvtwEY0WOjqYv7MTScDd3YZN8mdBIKkUN435IYEqJQJ/542zBD
-   g==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10272"; a="236446255"
-X-IronPort-AV: E=Sophos;i="5.90,144,1643702400"; 
-   d="scan'208";a="236446255"
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Feb 2022 09:37:22 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.90,144,1643702400"; 
-   d="scan'208";a="629712522"
-Received: from lkp-server01.sh.intel.com (HELO 788b1cd46f0d) ([10.239.97.150])
-  by FMSMGA003.fm.intel.com with ESMTP; 28 Feb 2022 09:37:20 -0800
-Received: from kbuild by 788b1cd46f0d with local (Exim 4.92)
-	(envelope-from <lkp@intel.com>)
-	id 1nOjxS-0007cR-LK; Mon, 28 Feb 2022 17:37:14 +0000
-Date: Tue, 1 Mar 2022 01:36:43 +0800
-From: kernel test robot <lkp@intel.com>
-To: Zhenguo Yao <yaozhenguo1@gmail.com>, dan.j.williams@intel.com,
-	vishal.l.verma@intel.com, dave.jiang@intel.com
-Cc: kbuild-all@lists.01.org, nvdimm@lists.linux.dev, yaozhenguo@jd.com,
-	linux-kernel@vger.kernel.org, Zhenguo Yao <yaozhenguo1@gmail.com>
-Subject: Re: [PATCH v1] device-dax: Adding match parameter to select which
- driver to match dax devices
-Message-ID: <202203010043.CdGByjRQ-lkp@intel.com>
-References: <20220228094938.32153-1-yaozhenguo1@gmail.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D42C5382
+	for <nvdimm@lists.linux.dev>; Mon, 28 Feb 2022 21:26:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 374C1C340F2;
+	Mon, 28 Feb 2022 21:26:07 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1646083567;
+	bh=dTA7ZB6h2lpmfaVrirJXf8jiBWbprTlco10h8RcWxQ0=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=lnwE6a/P2L0p0ZkSFA/1hxsJvhdst69cgomzj0eS5+yqaRaX5vE0bomZ+yfyXb/PU
+	 N/hpDUj8WgaKcnKHQqj76lXCQxMQNnkWcno8K0wT0BxrykeMaXnkGm0XsdQ6Ey13Hi
+	 rNxbQAqYehxIQ5wqbkpLEnWaTkNUK05JraSP88ms=
+Date: Mon, 28 Feb 2022 13:26:06 -0800
+From: Andrew Morton <akpm@linux-foundation.org>
+To: Muchun Song <songmuchun@bytedance.com>
+Cc: dan.j.williams@intel.com, willy@infradead.org, jack@suse.cz,
+ viro@zeniv.linux.org.uk, apopple@nvidia.com, shy828301@gmail.com,
+ rcampbell@nvidia.com, hughd@google.com, xiyuyang19@fudan.edu.cn,
+ kirill.shutemov@linux.intel.com, zwisler@kernel.org, hch@infradead.org,
+ linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
+ linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+ duanxiongchun@bytedance.com, smuchun@gmail.com
+Subject: Re: [PATCH v3 4/6] mm: pvmw: add support for walking devmap pages
+Message-Id: <20220228132606.7a9c2bc2d38c70604da98275@linux-foundation.org>
+In-Reply-To: <20220228063536.24911-5-songmuchun@bytedance.com>
+References: <20220228063536.24911-1-songmuchun@bytedance.com>
+	<20220228063536.24911-5-songmuchun@bytedance.com>
+X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-redhat-linux-gnu)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220228094938.32153-1-yaozhenguo1@gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-Hi Zhenguo,
+On Mon, 28 Feb 2022 14:35:34 +0800 Muchun Song <songmuchun@bytedance.com> wrote:
 
-Thank you for the patch! Yet something to improve:
+> The devmap pages can not use page_vma_mapped_walk() to check if a huge
+> devmap page is mapped into a vma.  Add support for walking huge devmap
+> pages so that DAX can use it in the next patch.
+> 
 
-[auto build test ERROR on linus/master]
-[also build test ERROR on v5.17-rc6 next-20220225]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch]
+x86_64 allnoconfig:
 
-url:    https://github.com/0day-ci/linux/commits/Zhenguo-Yao/device-dax-Adding-match-parameter-to-select-which-driver-to-match-dax-devices/20220228-175040
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git 7e57714cd0ad2d5bb90e50b5096a0e671dec1ef3
-config: arm64-randconfig-r006-20220227 (https://download.01.org/0day-ci/archive/20220301/202203010043.CdGByjRQ-lkp@intel.com/config)
-compiler: aarch64-linux-gcc (GCC) 11.2.0
-reproduce (this is a W=1 build):
-        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        # https://github.com/0day-ci/linux/commit/5be3350fe78893555785550e6fdf382715c2dca9
-        git remote add linux-review https://github.com/0day-ci/linux
-        git fetch --no-tags linux-review Zhenguo-Yao/device-dax-Adding-match-parameter-to-select-which-driver-to-match-dax-devices/20220228-175040
-        git checkout 5be3350fe78893555785550e6fdf382715c2dca9
-        # save the config file to linux build tree
-        mkdir build_dir
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-11.2.0 make.cross O=build_dir ARCH=arm64 SHELL=/bin/bash
+In file included from <command-line>:
+In function 'check_pmd',
+    inlined from 'page_vma_mapped_walk' at mm/page_vma_mapped.c:219:10:
+././include/linux/compiler_types.h:347:45: error: call to '__compiletime_assert_232' declared with attribute error: BUILD_BUG failed
+  347 |         _compiletime_assert(condition, msg, __compiletime_assert_, __COUNTER__)
+      |                                             ^
+././include/linux/compiler_types.h:328:25: note: in definition of macro '__compiletime_assert'
+  328 |                         prefix ## suffix();                             \
+      |                         ^~~~~~
+././include/linux/compiler_types.h:347:9: note: in expansion of macro '_compiletime_assert'
+  347 |         _compiletime_assert(condition, msg, __compiletime_assert_, __COUNTER__)
+      |         ^~~~~~~~~~~~~~~~~~~
+./include/linux/build_bug.h:39:37: note: in expansion of macro 'compiletime_assert'
+   39 | #define BUILD_BUG_ON_MSG(cond, msg) compiletime_assert(!(cond), msg)
+      |                                     ^~~~~~~~~~~~~~~~~~
+./include/linux/build_bug.h:59:21: note: in expansion of macro 'BUILD_BUG_ON_MSG'
+   59 | #define BUILD_BUG() BUILD_BUG_ON_MSG(1, "BUILD_BUG failed")
+      |                     ^~~~~~~~~~~~~~~~
+./include/linux/huge_mm.h:307:28: note: in expansion of macro 'BUILD_BUG'
+  307 | #define HPAGE_PMD_SHIFT ({ BUILD_BUG(); 0; })
+      |                            ^~~~~~~~~
+./include/linux/huge_mm.h:104:26: note: in expansion of macro 'HPAGE_PMD_SHIFT'
+  104 | #define HPAGE_PMD_ORDER (HPAGE_PMD_SHIFT-PAGE_SHIFT)
+      |                          ^~~~~~~~~~~~~~~
+./include/linux/huge_mm.h:105:26: note: in expansion of macro 'HPAGE_PMD_ORDER'
+  105 | #define HPAGE_PMD_NR (1<<HPAGE_PMD_ORDER)
+      |                          ^~~~~~~~~~~~~~~
+mm/page_vma_mapped.c:113:20: note: in expansion of macro 'HPAGE_PMD_NR'
+  113 |         if ((pfn + HPAGE_PMD_NR - 1) < pvmw->pfn)
+      |                    ^~~~~~~~~~~~
+make[1]: *** [scripts/Makefile.build:288: mm/page_vma_mapped.o] Error 1
+make: *** [Makefile:1971: mm] Error 2
 
-If you fix the issue, kindly add following tag as appropriate
-Reported-by: kernel test robot <lkp@intel.com>
 
-All errors (new ones prefixed by >>):
+because check_pmd() uses HPAGE_PMD_NR and
 
->> aarch64-linux-ld: drivers/dax/kmem.o:(.bss+0x10): multiple definition of `match'; drivers/dax/device.o:(.data+0xb8): first defined here
+#else /* CONFIG_TRANSPARENT_HUGEPAGE */
+#define HPAGE_PMD_SHIFT ({ BUILD_BUG(); 0; })
 
----
-0-DAY CI Kernel Test Service, Intel Corporation
-https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
+I don't immediately see why this patch triggers it...
