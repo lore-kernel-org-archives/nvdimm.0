@@ -1,68 +1,53 @@
-Received: from mail-pf1-f169.google.com (mail-pf1-f169.google.com [209.85.210.169])
+Received: from mail-pl1-f173.google.com (mail-pl1-f173.google.com [209.85.214.173])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 214C1512D
-	for <nvdimm@lists.linux.dev>; Mon, 28 Feb 2022 06:36:38 +0000 (UTC)
-Received: by mail-pf1-f169.google.com with SMTP id y11so10215367pfa.6
-        for <nvdimm@lists.linux.dev>; Sun, 27 Feb 2022 22:36:38 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0DF248CD
+	for <nvdimm@lists.linux.dev>; Mon, 28 Feb 2022 09:49:56 +0000 (UTC)
+Received: by mail-pl1-f173.google.com with SMTP id z2so10221911plg.8
+        for <nvdimm@lists.linux.dev>; Mon, 28 Feb 2022 01:49:56 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bytedance-com.20210112.gappssmtp.com; s=20210112;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=4hzepAOQTsZTnVcr4QPZkWOiCoYklQmYHIbKFxu1/40=;
-        b=6HLgk72Kdglyxsw+8BlARvezx741uWUej3+BnNBrAZfWtuioeXLnCZw+qyBFJRBK+m
-         B/IsH1CvI0L08PqX7H7DvZ8vijJppm4uGyOD/GyeVzlZn2M3vR/G6fysXE2TfEv8e50J
-         3SN77OfLp05Re90/fV2IVGp39pqSfAcY6XapPh81hqbgrd/+qsxV5w+MjnulORgnDBd9
-         LTslegwrEHzpQVz5ZS/HPDqlRyhFvu3Ez/v1XqbF4dIMbYVDAQryr+wl2iYb3MX2oLQ4
-         c7GHk+VsgfesZ1iveu5a6GVroAqH4FT0xKFMAMgkm4eJkrLsvbb2EdUuRNtaFgCYP2qr
-         zZDA==
+        d=gmail.com; s=20210112;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=KY+0Ivg1vSA1XaXQW6vtJsA4AuBXBDOS2j2Lb69bvkg=;
+        b=lZmlnIMB1KDy7LvolDubvkcCurb9xuAnKdl+OxMKIbygv6rqnQlHsILNhi6QVW2O8/
+         SJA7d8a67r7WxA3LU+Z2OA7gD71N/768nJABlTt44CdK6kMdagWENKPn9jVhLegs3EJo
+         8bAZzFFzcxCwx0EDJZJQHGnYS88Nqpil3ObHBgTvvGi39Dyg4qsQUe4s0cuw4M5pti1D
+         Cz7lqnHBf7pq0BPtluW/Tz5wEcLC+2nstdQDEIlC+cfsv9P9673wgLxoWxW5BD38Vt5i
+         VgBgiwp92q+m8bNF7DTEBcrtlqiDlXjvxHKGGEh64aL+Yy3WbS56FeyZchD0r3dZbTYU
+         lpFg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=4hzepAOQTsZTnVcr4QPZkWOiCoYklQmYHIbKFxu1/40=;
-        b=3ueD75zlj42qYg6bjxC6XOuNZHjtpYxZJ+CVS1OpuEfeUj2E0AUEjW+FxkFz5G/02U
-         c8TWY/ssUePTITEndgpp1iCSt8RIylkjBbI5J2nsJIPUp5vGu3fYrPD5ewujRINGLpzz
-         W4gWNWq2cGn/GmTrX56Z3z+Y39Sl1ywGbHBNa2NZaHrDXtT1Q3Wwlv8VLGOiM0oo98d5
-         jqbNPIrznX4FQwi18IWNisp3bvxCXwPl+zBaL4brGB7sGCsDNomnYL7C5Dr4/Fi7c6z0
-         sS5QvEHI1E+0yrA4JM0/OQfHuxWriR86J3ZIFnt0d1EEPFqCwErgataWJVWnmBbKfx9e
-         idyw==
-X-Gm-Message-State: AOAM533rLyEs20FCjYxd2Hr3ChVJTLogQzmyiG9D1aN48TBUx4Mlj4UC
-	hphSggAeRXhh/cvW8ivaGP8sXA==
-X-Google-Smtp-Source: ABdhPJzCQ653yZEIMrePVZZJFf43neOT6NZL3StlhvT4ynURMlRYilCnkzsv6UTG5+zZqXW071qNng==
-X-Received: by 2002:a05:6a00:248c:b0:4ce:1932:80dd with SMTP id c12-20020a056a00248c00b004ce193280ddmr20084253pfv.48.1646030197701;
-        Sun, 27 Feb 2022 22:36:37 -0800 (PST)
-Received: from FVFYT0MHHV2J.tiktokcdn.com ([139.177.225.227])
-        by smtp.gmail.com with ESMTPSA id q13-20020aa7960d000000b004f13804c100sm11126472pfg.165.2022.02.27.22.36.30
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 27 Feb 2022 22:36:37 -0800 (PST)
-From: Muchun Song <songmuchun@bytedance.com>
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=KY+0Ivg1vSA1XaXQW6vtJsA4AuBXBDOS2j2Lb69bvkg=;
+        b=ja3SiczBrMqkOpJOv0G1zxPgnq0fdf0hjeUREdJam8Z/PbgeSPTW5AYPGyOBLLAnz7
+         63h5jIJd0mCxHgEKmov30aHZ6reIxoIRCDdLCbME6VO9Bu7d7qgrIB0j+/hCBmy/Nc7N
+         MnLnCfBMAintnhErMe1fa4QYLAp4pSPtQ2Hg2rKvk5v63Q96dFtTjYGQ101xIpwJriNh
+         MHFGeDpUA29iW6vFMYGpP1jheUs7Zj2vUyDVFLJblRIDB1hiSZSkt7eTgNaGQB3uyYiP
+         p00FOiIgHk07YMRHQwETDtDl6NATZ3YRhkI/jaXB+6Gll7tLEzRSW4YQ5PDWU+AnXN/H
+         Pg7Q==
+X-Gm-Message-State: AOAM531GQYVgrJGgGVVtg/dn4kcR5vxr5n0ehLgChRa4M0105cy+V2nF
+	4nKvFEk8OFEIYlxnxuIxU4s=
+X-Google-Smtp-Source: ABdhPJwGzJ330n6ZAg/LXU5qOTuJRrtSbstxXYxrFqS3j7oOxt4hgVOU1dlCt/sDyAihPht4SFu7oQ==
+X-Received: by 2002:a17:90a:9408:b0:1b5:3908:d3d1 with SMTP id r8-20020a17090a940800b001b53908d3d1mr15782855pjo.188.1646041796388;
+        Mon, 28 Feb 2022 01:49:56 -0800 (PST)
+Received: from localhost.localdomain (5e.8a.38a9.ip4.static.sl-reverse.com. [169.56.138.94])
+        by smtp.gmail.com with ESMTPSA id 2-20020a631342000000b0037487b6b018sm9802638pgt.0.2022.02.28.01.49.54
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 28 Feb 2022 01:49:56 -0800 (PST)
+From: Zhenguo Yao <yaozhenguo1@gmail.com>
 To: dan.j.williams@intel.com,
-	willy@infradead.org,
-	jack@suse.cz,
-	viro@zeniv.linux.org.uk,
-	akpm@linux-foundation.org,
-	apopple@nvidia.com,
-	shy828301@gmail.com,
-	rcampbell@nvidia.com,
-	hughd@google.com,
-	xiyuyang19@fudan.edu.cn,
-	kirill.shutemov@linux.intel.com,
-	zwisler@kernel.org,
-	hch@infradead.org
-Cc: linux-fsdevel@vger.kernel.org,
-	nvdimm@lists.linux.dev,
+	vishal.l.verma@intel.com,
+	dave.jiang@intel.com
+Cc: nvdimm@lists.linux.dev,
+	yaozhenguo@jd.com,
 	linux-kernel@vger.kernel.org,
-	linux-mm@kvack.org,
-	duanxiongchun@bytedance.com,
-	smuchun@gmail.com,
-	Muchun Song <songmuchun@bytedance.com>
-Subject: [PATCH v3 6/6] mm: remove range parameter from follow_invalidate_pte()
-Date: Mon, 28 Feb 2022 14:35:36 +0800
-Message-Id: <20220228063536.24911-7-songmuchun@bytedance.com>
-X-Mailer: git-send-email 2.32.0 (Apple Git-132)
-In-Reply-To: <20220228063536.24911-1-songmuchun@bytedance.com>
-References: <20220228063536.24911-1-songmuchun@bytedance.com>
+	Zhenguo Yao <yaozhenguo1@gmail.com>
+Subject: [PATCH v1] device-dax: Adding match parameter to select which driver to match dax devices
+Date: Mon, 28 Feb 2022 17:49:38 +0800
+Message-Id: <20220228094938.32153-1-yaozhenguo1@gmail.com>
+X-Mailer: git-send-email 2.32.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -71,96 +56,77 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The only user (DAX) of range parameter of follow_invalidate_pte()
-is gone, it safe to remove the range paramter and make it static
-to simlify the code.
+device_dax driver always match dax devices by default. The other
+drivers only match devices by dax_id. There are situations which
+need kmem drvier match all the dax device at boot time. So
+adding a parameter to support this function.
 
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Signed-off-by: Zhenguo Yao <yaozhenguo1@gmail.com>
 ---
- include/linux/mm.h |  3 ---
- mm/memory.c        | 23 +++--------------------
- 2 files changed, 3 insertions(+), 23 deletions(-)
+ drivers/dax/device.c | 3 +++
+ drivers/dax/kmem.c   | 4 ++++
+ 2 files changed, 7 insertions(+)
 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index c9bada4096ac..be7ec4c37ebe 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -1871,9 +1871,6 @@ void free_pgd_range(struct mmu_gather *tlb, unsigned long addr,
- 		unsigned long end, unsigned long floor, unsigned long ceiling);
- int
- copy_page_range(struct vm_area_struct *dst_vma, struct vm_area_struct *src_vma);
--int follow_invalidate_pte(struct mm_struct *mm, unsigned long address,
--			  struct mmu_notifier_range *range, pte_t **ptepp,
--			  pmd_t **pmdpp, spinlock_t **ptlp);
- int follow_pte(struct mm_struct *mm, unsigned long address,
- 	       pte_t **ptepp, spinlock_t **ptlp);
- int follow_pfn(struct vm_area_struct *vma, unsigned long address,
-diff --git a/mm/memory.c b/mm/memory.c
-index cc6968dc8e4e..278ab6d62b54 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -4964,9 +4964,8 @@ int __pmd_alloc(struct mm_struct *mm, pud_t *pud, unsigned long address)
+diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+index dd8222a..a974cc1 100644
+--- a/drivers/dax/device.c
++++ b/drivers/dax/device.c
+@@ -452,6 +452,7 @@ int dev_dax_probe(struct dev_dax *dev_dax)
  }
- #endif /* __PAGETABLE_PMD_FOLDED */
+ EXPORT_SYMBOL_GPL(dev_dax_probe);
  
--int follow_invalidate_pte(struct mm_struct *mm, unsigned long address,
--			  struct mmu_notifier_range *range, pte_t **ptepp,
--			  pmd_t **pmdpp, spinlock_t **ptlp)
-+static int follow_invalidate_pte(struct mm_struct *mm, unsigned long address,
-+				 pte_t **ptepp, pmd_t **pmdpp, spinlock_t **ptlp)
++unsigned int match = 1;
+ static struct dax_device_driver device_dax_driver = {
+ 	.probe = dev_dax_probe,
+ 	/* all probe actions are unwound by devm, so .remove isn't necessary */
+@@ -460,6 +461,7 @@ int dev_dax_probe(struct dev_dax *dev_dax)
+ 
+ static int __init dax_init(void)
  {
- 	pgd_t *pgd;
- 	p4d_t *p4d;
-@@ -4993,31 +4992,17 @@ int follow_invalidate_pte(struct mm_struct *mm, unsigned long address,
- 		if (!pmdpp)
- 			goto out;
- 
--		if (range) {
--			mmu_notifier_range_init(range, MMU_NOTIFY_CLEAR, 0,
--						NULL, mm, address & PMD_MASK,
--						(address & PMD_MASK) + PMD_SIZE);
--			mmu_notifier_invalidate_range_start(range);
--		}
- 		*ptlp = pmd_lock(mm, pmd);
- 		if (pmd_huge(*pmd)) {
- 			*pmdpp = pmd;
- 			return 0;
- 		}
- 		spin_unlock(*ptlp);
--		if (range)
--			mmu_notifier_invalidate_range_end(range);
- 	}
- 
- 	if (pmd_none(*pmd) || unlikely(pmd_bad(*pmd)))
- 		goto out;
- 
--	if (range) {
--		mmu_notifier_range_init(range, MMU_NOTIFY_CLEAR, 0, NULL, mm,
--					address & PAGE_MASK,
--					(address & PAGE_MASK) + PAGE_SIZE);
--		mmu_notifier_invalidate_range_start(range);
--	}
- 	ptep = pte_offset_map_lock(mm, pmd, address, ptlp);
- 	if (!pte_present(*ptep))
- 		goto unlock;
-@@ -5025,8 +5010,6 @@ int follow_invalidate_pte(struct mm_struct *mm, unsigned long address,
- 	return 0;
- unlock:
- 	pte_unmap_unlock(ptep, *ptlp);
--	if (range)
--		mmu_notifier_invalidate_range_end(range);
- out:
- 	return -EINVAL;
++	device_dax_driver.match_always = match;
+ 	return dax_driver_register(&device_dax_driver);
  }
-@@ -5055,7 +5038,7 @@ int follow_invalidate_pte(struct mm_struct *mm, unsigned long address,
- int follow_pte(struct mm_struct *mm, unsigned long address,
- 	       pte_t **ptepp, spinlock_t **ptlp)
- {
--	return follow_invalidate_pte(mm, address, NULL, ptepp, NULL, ptlp);
-+	return follow_invalidate_pte(mm, address, ptepp, NULL, ptlp);
- }
- EXPORT_SYMBOL_GPL(follow_pte);
  
+@@ -468,6 +470,7 @@ static void __exit dax_exit(void)
+ 	dax_driver_unregister(&device_dax_driver);
+ }
+ 
++module_param(match, uint, 0644);
+ MODULE_AUTHOR("Intel Corporation");
+ MODULE_LICENSE("GPL v2");
+ module_init(dax_init);
+diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
+index a376220..41ba713 100644
+--- a/drivers/dax/kmem.c
++++ b/drivers/dax/kmem.c
+@@ -214,9 +214,11 @@ static void dev_dax_kmem_remove(struct dev_dax *dev_dax)
+ }
+ #endif /* CONFIG_MEMORY_HOTREMOVE */
+ 
++unsigned int match;
+ static struct dax_device_driver device_dax_kmem_driver = {
+ 	.probe = dev_dax_kmem_probe,
+ 	.remove = dev_dax_kmem_remove,
++	.match_always = 0,
+ };
+ 
+ static int __init dax_kmem_init(void)
+@@ -228,6 +230,7 @@ static int __init dax_kmem_init(void)
+ 	if (!kmem_name)
+ 		return -ENOMEM;
+ 
++	device_dax_kmem_driver.match_always = match;
+ 	rc = dax_driver_register(&device_dax_kmem_driver);
+ 	if (rc)
+ 		kfree_const(kmem_name);
+@@ -241,6 +244,7 @@ static void __exit dax_kmem_exit(void)
+ 		kfree_const(kmem_name);
+ }
+ 
++module_param(match, uint, 0644);
+ MODULE_AUTHOR("Intel Corporation");
+ MODULE_LICENSE("GPL v2");
+ module_init(dax_kmem_init);
 -- 
-2.11.0
+1.8.3.1
 
