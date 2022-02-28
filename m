@@ -1,111 +1,107 @@
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f176.google.com (mail-pf1-f176.google.com [209.85.210.176])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 661D14A83;
-	Sun, 27 Feb 2022 15:57:40 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1645977460; x=1677513460;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=uZVNRO0qfhvL5YBVwTKw1rTCJwkow3/0UaHUBIhgeNU=;
-  b=R/sTjaU4nao55nvyZ9Gpe5XuZD2kXNyWNklRfMOkgrXwLVrVy3h0Ykr/
-   PHYY1sDYevagtXK6mfDVYsqRO2MR2Ba1mCouUTwplC5DRvdFChQKYxH4B
-   bfbPwwDaIVEJMreWfEBS9VKAOx9Fx1GqsTUlr+ROlcMgMxeLA1rRRyEBs
-   Zls94BcMYCbxOr19BZUjUMUnPJXGHhq1kmMODHQaMUV0JLsJXuCvVck78
-   7icC502il0hXM+rKnMdp7Gi8hQaTSfrPDQEFun8bNhyah5Z/lA3DH7yD1
-   f/XohKvUehmmZ5G/wmghGvn0mP9cV7XeAX/lNyCWqAJjps7Fwz8ZutOk6
-   Q==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10271"; a="236250292"
-X-IronPort-AV: E=Sophos;i="5.90,141,1643702400"; 
-   d="scan'208";a="236250292"
-Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Feb 2022 07:57:39 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.90,141,1643702400"; 
-   d="scan'208";a="777852020"
-Received: from lkp-server01.sh.intel.com (HELO 788b1cd46f0d) ([10.239.97.150])
-  by fmsmga006.fm.intel.com with ESMTP; 27 Feb 2022 07:57:36 -0800
-Received: from kbuild by 788b1cd46f0d with local (Exim 4.92)
-	(envelope-from <lkp@intel.com>)
-	id 1nOLvT-0006bd-Qq; Sun, 27 Feb 2022 15:57:35 +0000
-Date: Sun, 27 Feb 2022 23:57:18 +0800
-From: kernel test robot <lkp@intel.com>
-To: Shiyang Ruan <ruansy.fnst@fujitsu.com>, linux-kernel@vger.kernel.org,
-	linux-xfs@vger.kernel.org, nvdimm@lists.linux.dev,
-	linux-mm@kvack.org, linux-fsdevel@vger.kernel.org
-Cc: llvm@lists.linux.dev, kbuild-all@lists.01.org, djwong@kernel.org,
-	dan.j.williams@intel.com, david@fromorbit.com, hch@infradead.org,
-	jane.chu@oracle.com
-Subject: Re: [PATCH v11 8/8] fsdax: set a CoW flag when associate reflink
- mappings
-Message-ID: <202202272359.2aizNPgB-lkp@intel.com>
-References: <20220227120747.711169-9-ruansy.fnst@fujitsu.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B370B2F29
+	for <nvdimm@lists.linux.dev>; Mon, 28 Feb 2022 06:35:57 +0000 (UTC)
+Received: by mail-pf1-f176.google.com with SMTP id p8so10202006pfh.8
+        for <nvdimm@lists.linux.dev>; Sun, 27 Feb 2022 22:35:57 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=bytedance-com.20210112.gappssmtp.com; s=20210112;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=gir+3TzfRrR4lUGuNtpX6IanjDHuvIa4YBDHCeSrYTM=;
+        b=U4WTDdkDu/m+18FZjAfoYKwWYSJgf2GebNR7tlo2J5Ws/MwDCFwh7rMXQx5q917ATJ
+         Jh07wWkQO93U72bllHBrmsBQ6RJEd7VhhRdaHI+FhN2hPsYXosIZbd8EpBNACQeM4TsR
+         P2XJgmJ6qtHKjNspVx3ECmiH3cUlA81aFGBo2+D0pztKHxbDuNdfWP72LyPgSB/d9k6P
+         qCW/oe8t2+gdYmCj3hiNeSENb3ZGV+dLl8PIq1SDghR3oQvZd6Fv5wURkt0b1Jq85RQw
+         k1sfseZYkW/L04DkmzQ8tv4Odm5PA+uN9diNyRVqnxNgYOaofM2G3IPfKok2I2CG73sG
+         7WYQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=gir+3TzfRrR4lUGuNtpX6IanjDHuvIa4YBDHCeSrYTM=;
+        b=gHnT3MBPyIu7pY0UJUfXw/6ximPuIaakFoi/X2JDrCWJigkBHtdIm20VPLaY44CTQv
+         0BgA1YY1Y0OnZqA+eKwmZsjroTb7ErjgVvR+mUxVRLMxbBaY85ew3YKy4mJE7fesAJPK
+         W43LxqJx0bMaRSvj2p1pdm9VVyvmRSgKSYAR3/fC7K6KNemHnPR5bPDWHRfQKoJoIICz
+         jrx+QagvfvXXt4f24IBEsZppW7utXt5I+T+inrMJIrnAou1P9Dq61uFz8z27hDmnxoQL
+         KdjEpdY1DaGAUj5NJYX4stE3nI8p6k7hc0BX0fDotR4vCfa3iDhkNo32FW5JmAoV4oZe
+         gN8w==
+X-Gm-Message-State: AOAM530jmRXM1CWKcSI4jzfqYom4ap4+7aZa3Oe5y4Px1txkIMwFP711
+	UDZqFxj0gVtmA9WVdLnVbvb6ZQ==
+X-Google-Smtp-Source: ABdhPJwmHsIW4ie8Q+S5U3vmmxqNz17eiRrlLlRl8QPqeQV/CdrZCVTHPizyx7mRkra580xz4wWnuA==
+X-Received: by 2002:a63:517:0:b0:36c:6d37:55ae with SMTP id 23-20020a630517000000b0036c6d3755aemr16179228pgf.424.1646030157059;
+        Sun, 27 Feb 2022 22:35:57 -0800 (PST)
+Received: from FVFYT0MHHV2J.tiktokcdn.com ([139.177.225.227])
+        by smtp.gmail.com with ESMTPSA id q13-20020aa7960d000000b004f13804c100sm11126472pfg.165.2022.02.27.22.35.50
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 27 Feb 2022 22:35:56 -0800 (PST)
+From: Muchun Song <songmuchun@bytedance.com>
+To: dan.j.williams@intel.com,
+	willy@infradead.org,
+	jack@suse.cz,
+	viro@zeniv.linux.org.uk,
+	akpm@linux-foundation.org,
+	apopple@nvidia.com,
+	shy828301@gmail.com,
+	rcampbell@nvidia.com,
+	hughd@google.com,
+	xiyuyang19@fudan.edu.cn,
+	kirill.shutemov@linux.intel.com,
+	zwisler@kernel.org,
+	hch@infradead.org
+Cc: linux-fsdevel@vger.kernel.org,
+	nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org,
+	linux-mm@kvack.org,
+	duanxiongchun@bytedance.com,
+	smuchun@gmail.com,
+	Muchun Song <songmuchun@bytedance.com>
+Subject: [PATCH v3 0/6] Fix some bugs related to ramp and dax
+Date: Mon, 28 Feb 2022 14:35:30 +0800
+Message-Id: <20220228063536.24911-1-songmuchun@bytedance.com>
+X-Mailer: git-send-email 2.32.0 (Apple Git-132)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220227120747.711169-9-ruansy.fnst@fujitsu.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 
-Hi Shiyang,
+This series is based on next-20220225.
 
-Thank you for the patch! Perhaps something to improve:
+Patch 1-2 fix a cache flush bug, because subsequent patches depend on
+those on those changes, there are placed in this series.  Patch 3-4
+are preparation for fixing a dax bug in patch 5.  Patch 6 is code cleanup
+since the previous patch remove the usage of follow_invalidate_pte().
 
-[auto build test WARNING on xfs-linux/for-next]
-[also build test WARNING on linux/master]
-[cannot apply to hnaz-mm/master linus/master v5.17-rc5 next-20220225]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch]
+v3:
+- Based on next-20220225.
 
-url:    https://github.com/0day-ci/linux/commits/Shiyang-Ruan/fsdax-introduce-fs-query-to-support-reflink/20220227-200849
-base:   https://git.kernel.org/pub/scm/fs/xfs/xfs-linux.git for-next
-config: i386-randconfig-a013 (https://download.01.org/0day-ci/archive/20220227/202202272359.2aizNPgB-lkp@intel.com/config)
-compiler: clang version 15.0.0 (https://github.com/llvm/llvm-project d271fc04d5b97b12e6b797c6067d3c96a8d7470e)
-reproduce (this is a W=1 build):
-        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        # https://github.com/0day-ci/linux/commit/a0ac78065bbb4fbb3e5477c32686eca3b9f0e1ef
-        git remote add linux-review https://github.com/0day-ci/linux
-        git fetch --no-tags linux-review Shiyang-Ruan/fsdax-introduce-fs-query-to-support-reflink/20220227-200849
-        git checkout a0ac78065bbb4fbb3e5477c32686eca3b9f0e1ef
-        # save the config file to linux build tree
-        mkdir build_dir
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=clang make.cross W=1 O=build_dir ARCH=i386 SHELL=/bin/bash
+v2:
+- Avoid the overly long line in lots of places suggested by Christoph.
+- Fix a compiler warning reported by kernel test robot since pmd_pfn()
+  is not defined when !CONFIG_TRANSPARENT_HUGEPAGE on powerpc architecture.
+- Split a new patch 4 for preparation of fixing the dax bug.
 
-If you fix the issue, kindly add following tag as appropriate
-Reported-by: kernel test robot <lkp@intel.com>
+Muchun Song (6):
+  mm: rmap: fix cache flush on THP pages
+  dax: fix cache flush on PMD-mapped pages
+  mm: rmap: introduce pfn_mkclean_range() to cleans PTEs
+  mm: pvmw: add support for walking devmap pages
+  dax: fix missing writeprotect the pte entry
+  mm: remove range parameter from follow_invalidate_pte()
 
-All warnings (new ones prefixed by >>):
+ fs/dax.c             | 82 +++++-----------------------------------------------
+ include/linux/mm.h   |  3 --
+ include/linux/rmap.h |  3 ++
+ mm/internal.h        | 26 +++++++++++------
+ mm/memory.c          | 23 ++-------------
+ mm/page_vma_mapped.c |  4 +--
+ mm/rmap.c            | 68 +++++++++++++++++++++++++++++++++++--------
+ 7 files changed, 88 insertions(+), 121 deletions(-)
 
->> fs/dax.c:337:67: warning: parameter 'mapping' set but not used [-Wunused-but-set-parameter]
-   static inline void dax_mapping_set_cow_flag(struct address_space *mapping)
-                                                                     ^
-   1 warning generated.
+-- 
+2.11.0
 
-
-vim +/mapping +337 fs/dax.c
-
-   328	
-   329	/*
-   330	 * Iterate through all mapped pfns represented by an entry, i.e. skip
-   331	 * 'empty' and 'zero' entries.
-   332	 */
-   333	#define for_each_mapped_pfn(entry, pfn) \
-   334		for (pfn = dax_to_pfn(entry); \
-   335				pfn < dax_end_pfn(entry); pfn++)
-   336	
- > 337	static inline void dax_mapping_set_cow_flag(struct address_space *mapping)
-   338	{
-   339		mapping = (struct address_space *)PAGE_MAPPING_DAX_COW;
-   340	}
-   341	
-
----
-0-DAY CI Kernel Test Service, Intel Corporation
-https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
