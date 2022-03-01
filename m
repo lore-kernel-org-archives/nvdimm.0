@@ -1,35 +1,15 @@
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from verein.lst.de (verein.lst.de [213.95.11.211])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C233217E4
-	for <nvdimm@lists.linux.dev>; Tue,  1 Mar 2022 04:11:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1646107876; x=1677643876;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=qltwIc937Uu5ijgl7gEV8QkFm9r0IMF7rI6cefmccNg=;
-  b=M6i/D8mcSzertUgoZedoD2ZstrLGCCTGRxA7uO6UBU7QgXeEd11RYcJs
-   V6ee1QP1z99YCinMvfQDdQrE3XjHVBWIP5StE7FNhRTPyNgZoL34ltusE
-   p8pMONrkYdSFzNcUXNVKSYb+kHTismkd+tQT6TYwEUl0537PIZu0YKfh0
-   mq9eAXB9AkQoXgqfJOq7mHmoh5tcXhGoz6tugCfr/W9WSm5OCKP20v3HS
-   mXElobuZiJOsCZFz6bfn673RQ+uEIWWhPnIBNkcHHhtf91+0R0OcqPb67
-   EGpkMghHDT3nzGNy4KkydcReTvYd4HvD1a/mYFJZv/IFkUeihMA5V5D10
-   Q==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10272"; a="313771457"
-X-IronPort-AV: E=Sophos;i="5.90,144,1643702400"; 
-   d="scan'208";a="313771457"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Feb 2022 20:11:16 -0800
-X-IronPort-AV: E=Sophos;i="5.90,144,1643702400"; 
-   d="scan'208";a="550543648"
-Received: from chunhanz-mobl.amr.corp.intel.com (HELO localhost) ([10.212.29.175])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Feb 2022 20:11:15 -0800
-Date: Mon, 28 Feb 2022 20:11:15 -0800
-From: Ira Weiny <ira.weiny@intel.com>
-To: Christoph Hellwig <hch@lst.de>
-Cc: Jens Axboe <axboe@kernel.dk>, Chris Zankel <chris@zankel.net>,
-	Max Filippov <jcmvbkbc@gmail.com>,
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C4A35A12
+	for <nvdimm@lists.linux.dev>; Tue,  1 Mar 2022 12:20:46 +0000 (UTC)
+Received: by verein.lst.de (Postfix, from userid 2407)
+	id DB11D68BEB; Tue,  1 Mar 2022 13:20:42 +0100 (CET)
+Date: Tue, 1 Mar 2022 13:20:42 +0100
+From: Christoph Hellwig <hch@lst.de>
+To: Ira Weiny <ira.weiny@intel.com>
+Cc: Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>,
+	Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>,
 	Justin Sanders <justin@coraid.com>,
 	Philipp Reisner <philipp.reisner@linbit.com>,
 	Lars Ellenberg <lars.ellenberg@linbit.com>,
@@ -40,10 +20,10 @@ Cc: Jens Axboe <axboe@kernel.dk>, Chris Zankel <chris@zankel.net>,
 	linux-xtensa@linux-xtensa.org, linux-block@vger.kernel.org,
 	drbd-dev@lists.linbit.com, linux-bcache@vger.kernel.org,
 	nvdimm@lists.linux.dev
-Subject: Re: [PATCH 10/10] floppy: use memcpy_{to,from}_bvec
-Message-ID: <Yh2c41kEWmmGgWLG@iweiny-desk3>
-References: <20220222155156.597597-1-hch@lst.de>
- <20220222155156.597597-11-hch@lst.de>
+Subject: Re: [PATCH 06/10] nvdimm-btt: use bvec_kmap_local in
+ btt_rw_integrity
+Message-ID: <20220301122042.GB3405@lst.de>
+References: <20220222155156.597597-1-hch@lst.de> <20220222155156.597597-7-hch@lst.de> <Yh2aCi6gtG0naC1r@iweiny-desk3>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -52,38 +32,35 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20220222155156.597597-11-hch@lst.de>
+In-Reply-To: <Yh2aCi6gtG0naC1r@iweiny-desk3>
+User-Agent: Mutt/1.5.17 (2007-11-01)
 
-On Tue, Feb 22, 2022 at 04:51:56PM +0100, Christoph Hellwig wrote:
-> Use the helpers instead of open coding them.
+On Mon, Feb 28, 2022 at 07:59:06PM -0800, Ira Weiny wrote:
+> On Tue, Feb 22, 2022 at 04:51:52PM +0100, Christoph Hellwig wrote:
+> > Using local kmaps slightly reduces the chances to stray writes, and
+> > the bvec interface cleans up the code a little bit.
+> > 
+> > Signed-off-by: Christoph Hellwig <hch@lst.de>
+> > ---
+> >  drivers/nvdimm/btt.c | 10 ++++------
+> >  1 file changed, 4 insertions(+), 6 deletions(-)
+> > 
+> > diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+> > index cbd994f7f1fe6..9613e54c7a675 100644
+> > --- a/drivers/nvdimm/btt.c
+> > +++ b/drivers/nvdimm/btt.c
+> > @@ -1163,17 +1163,15 @@ static int btt_rw_integrity(struct btt *btt, struct bio_integrity_payload *bip,
+> >  		 */
+> >  
+> >  		cur_len = min(len, bv.bv_len);
+> > -		mem = kmap_atomic(bv.bv_page);
+> > +		mem = bvec_kmap_local(&bv);
+> >  		if (rw)
+> > -			ret = arena_write_bytes(arena, meta_nsoff,
+> > -					mem + bv.bv_offset, cur_len,
+> > +			ret = arena_write_bytes(arena, meta_nsoff, mem, cur_len,
 > 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> Why drop bv.bv_offset here and below?
 
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
-
-> ---
->  drivers/block/floppy.c | 6 ++----
->  1 file changed, 2 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/block/floppy.c b/drivers/block/floppy.c
-> index 19c2d0327e157..8c647532e3ce9 100644
-> --- a/drivers/block/floppy.c
-> +++ b/drivers/block/floppy.c
-> @@ -2485,11 +2485,9 @@ static void copy_buffer(int ssize, int max_sector, int max_sector_2)
->  		}
->  
->  		if (CT(raw_cmd->cmd[COMMAND]) == FD_READ)
-> -			memcpy_to_page(bv.bv_page, bv.bv_offset, dma_buffer,
-> -				       size);
-> +			memcpy_to_bvec(&bv, dma_buffer);
->  		else
-> -			memcpy_from_page(dma_buffer, bv.bv_page, bv.bv_offset,
-> -					 size);
-> +			memcpy_from_bvec(dma_buffer, &bv);
->  
->  		remaining -= size;
->  		dma_buffer += size;
-> -- 
-> 2.30.2
-> 
-> 
+Because bvec_kmap_local includes bv_offset in the pointer that it
+returns.
