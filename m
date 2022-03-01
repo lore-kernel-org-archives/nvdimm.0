@@ -1,125 +1,91 @@
-Received: from mail-yb1-f175.google.com (mail-yb1-f175.google.com [209.85.219.175])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3433217E4
-	for <nvdimm@lists.linux.dev>; Tue,  1 Mar 2022 03:15:34 +0000 (UTC)
-Received: by mail-yb1-f175.google.com with SMTP id g6so24563292ybe.12
-        for <nvdimm@lists.linux.dev>; Mon, 28 Feb 2022 19:15:34 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bytedance-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=T0AjxvjFrHR6fu2oGFLcKZSFRRlXKq1Dcqtae0GYicM=;
-        b=zI7OFwma/V9whbuWLP6/dekw2Ef4XO1BHT/odjfXiqqBSBN3wNRSaGlW2e5S3DMHh7
-         6nafsyPBh4XZpyLf2y8+bx1wiOP4m/XVyOhznsE0nDLtBWURJEZWY5eN+FSlXebfO/aq
-         MwUsslVUGDBvCplLbj0DodURsvuHlZKfRKRtG0HI9/Ohu/g8Fmg0lYEl7PCIAzTcnaWE
-         Up6KvQB5PLEdim8+dqyWUZVrTMjwU+YF2tRj6Iur3Wzj7yuugcJee25X7gymnZVLr5Q2
-         EiswuU88iHSTSH58Nu6p49kDjlzAq1dGIhw6LjEOdmlf7xGuc1AM4V3PFzyIodKR2Uzv
-         nGpw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=T0AjxvjFrHR6fu2oGFLcKZSFRRlXKq1Dcqtae0GYicM=;
-        b=TPe20PNEe6YQ67ZQR9h1tE5nyKfO21r7myz2okTGKZR7L/cD/24x6/hr1+r0jeOwrD
-         ZNPSq60tzQppcK1h1J71QEEfMYzDToIsHUCY8weSoKL0qRINF4wY7FjSPFH8+uzYvJYx
-         0KnyqqWkWBCo+vQrED6cc0L0lk6hEXK4x8l17u2E0/vtZmBm8GgozBSJdPLIQZiqKXUY
-         SGWC46uA8XTgc2ocWLhRNQcPxW3IsTpDwzMH4pnllvs1bSXPfIw4aFsIeVVgjd+sZWgF
-         33IUwiigbfD8PzUoNGamf5yI5FaViVzFD3TczGSJMQxbrN9D3uhLWOBd2K5OsFIBVn9O
-         mSsw==
-X-Gm-Message-State: AOAM531ZHCtgyt3k+gIHW6zYb+dNK6xTOnoAF1dIP3oYC8F1g0VN/KMl
-	2i/I5Df0CIo3Fmnf4QXHML13ulbNdPvU51DNrWAUTQ==
-X-Google-Smtp-Source: ABdhPJyLlgGIyou+wAfEaWXmEmFOpM1Brk7yD9bDbyrwHm7wvg19Gmdb28Sqk2YKeULEgdNtRu+P34JXz4ZnYeV1Fww=
-X-Received: by 2002:a25:3d87:0:b0:61e:170c:aa9 with SMTP id
- k129-20020a253d87000000b0061e170c0aa9mr21333575yba.89.1646104533214; Mon, 28
- Feb 2022 19:15:33 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B34717E4
+	for <nvdimm@lists.linux.dev>; Tue,  1 Mar 2022 03:54:26 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1646106866; x=1677642866;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=VS6fmfe+veXdqFV0QkiV3wt3rSbkw9JdxwIlqxaie1k=;
+  b=nGDCaHN/iV9ISvQe8aRKYlP1WuvPCZ0/qvhcz46cbLUstC2vUG1bKwQd
+   +zLVTgxbORpe9HGpw4bwv9omxZWJ3y49j2LJ/kt1/3Tx+2q2TA4hYfnhC
+   jh/qmDoJdnYqBv8naJW4QGMihUyz8PNPVFeETQhTH5dmFREoHMiWJBgUG
+   jsd2cxHpqqn5okeZNyEju8Z/MBz4yZMCIh4cV2ESzFpJBleiVddBEtmkN
+   a8H2Df668pU868KOzuuvb5EBoHRqvG0ELdpfw1f1Xe7D27KUUMVobowrF
+   /OxwaGzmSohypGtHISkBVM+vWaAbffW+WrA5kfnBRPE4poVtvsjiPyrFA
+   Q==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10272"; a="233018818"
+X-IronPort-AV: E=Sophos;i="5.90,144,1643702400"; 
+   d="scan'208";a="233018818"
+Received: from orsmga004.jf.intel.com ([10.7.209.38])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Feb 2022 19:54:25 -0800
+X-IronPort-AV: E=Sophos;i="5.90,144,1643702400"; 
+   d="scan'208";a="641118781"
+Received: from chunhanz-mobl.amr.corp.intel.com (HELO localhost) ([10.212.29.175])
+  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Feb 2022 19:54:24 -0800
+Date: Mon, 28 Feb 2022 19:54:23 -0800
+From: Ira Weiny <ira.weiny@intel.com>
+To: Christoph Hellwig <hch@lst.de>
+Cc: Jens Axboe <axboe@kernel.dk>, Chris Zankel <chris@zankel.net>,
+	Max Filippov <jcmvbkbc@gmail.com>,
+	Justin Sanders <justin@coraid.com>,
+	Philipp Reisner <philipp.reisner@linbit.com>,
+	Lars Ellenberg <lars.ellenberg@linbit.com>,
+	Denis Efremov <efremov@linux.com>, Minchan Kim <minchan@kernel.org>,
+	Nitin Gupta <ngupta@vflare.org>, Coly Li <colyli@suse.de>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	linux-xtensa@linux-xtensa.org, linux-block@vger.kernel.org,
+	drbd-dev@lists.linbit.com, linux-bcache@vger.kernel.org,
+	nvdimm@lists.linux.dev
+Subject: Re: [PATCH 05/10] nvdimm-blk: use bvec_kmap_local in
+ nd_blk_rw_integrity
+Message-ID: <Yh2Y76PZxSHF1stE@iweiny-desk3>
+References: <20220222155156.597597-1-hch@lst.de>
+ <20220222155156.597597-6-hch@lst.de>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20220228063536.24911-1-songmuchun@bytedance.com>
- <20220228063536.24911-5-songmuchun@bytedance.com> <20220228132606.7a9c2bc2d38c70604da98275@linux-foundation.org>
-In-Reply-To: <20220228132606.7a9c2bc2d38c70604da98275@linux-foundation.org>
-From: Muchun Song <songmuchun@bytedance.com>
-Date: Tue, 1 Mar 2022 11:14:53 +0800
-Message-ID: <CAMZfGtWrHCdE9PfUK2MGHfujBU=o1Dxv=ztdFwhXpjcTPCxnPw@mail.gmail.com>
-Subject: Re: [PATCH v3 4/6] mm: pvmw: add support for walking devmap pages
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <willy@infradead.org>, 
-	Jan Kara <jack@suse.cz>, Alexander Viro <viro@zeniv.linux.org.uk>, 
-	Alistair Popple <apopple@nvidia.com>, Yang Shi <shy828301@gmail.com>, 
-	Ralph Campbell <rcampbell@nvidia.com>, Hugh Dickins <hughd@google.com>, 
-	Xiyu Yang <xiyuyang19@fudan.edu.cn>, 
-	"Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, zwisler@kernel.org, 
-	Christoph Hellwig <hch@infradead.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, 
-	nvdimm@lists.linux.dev, LKML <linux-kernel@vger.kernel.org>, 
-	Linux Memory Management List <linux-mm@kvack.org>, Xiongchun duan <duanxiongchun@bytedance.com>, 
-	Muchun Song <smuchun@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220222155156.597597-6-hch@lst.de>
 
-On Tue, Mar 1, 2022 at 5:26 AM Andrew Morton <akpm@linux-foundation.org> wrote:
->
-> On Mon, 28 Feb 2022 14:35:34 +0800 Muchun Song <songmuchun@bytedance.com> wrote:
->
-> > The devmap pages can not use page_vma_mapped_walk() to check if a huge
-> > devmap page is mapped into a vma.  Add support for walking huge devmap
-> > pages so that DAX can use it in the next patch.
-> >
->
-> x86_64 allnoconfig:
->
-> In file included from <command-line>:
-> In function 'check_pmd',
->     inlined from 'page_vma_mapped_walk' at mm/page_vma_mapped.c:219:10:
-> ././include/linux/compiler_types.h:347:45: error: call to '__compiletime_assert_232' declared with attribute error: BUILD_BUG failed
->   347 |         _compiletime_assert(condition, msg, __compiletime_assert_, __COUNTER__)
->       |                                             ^
-> ././include/linux/compiler_types.h:328:25: note: in definition of macro '__compiletime_assert'
->   328 |                         prefix ## suffix();                             \
->       |                         ^~~~~~
-> ././include/linux/compiler_types.h:347:9: note: in expansion of macro '_compiletime_assert'
->   347 |         _compiletime_assert(condition, msg, __compiletime_assert_, __COUNTER__)
->       |         ^~~~~~~~~~~~~~~~~~~
-> ./include/linux/build_bug.h:39:37: note: in expansion of macro 'compiletime_assert'
->    39 | #define BUILD_BUG_ON_MSG(cond, msg) compiletime_assert(!(cond), msg)
->       |                                     ^~~~~~~~~~~~~~~~~~
-> ./include/linux/build_bug.h:59:21: note: in expansion of macro 'BUILD_BUG_ON_MSG'
->    59 | #define BUILD_BUG() BUILD_BUG_ON_MSG(1, "BUILD_BUG failed")
->       |                     ^~~~~~~~~~~~~~~~
-> ./include/linux/huge_mm.h:307:28: note: in expansion of macro 'BUILD_BUG'
->   307 | #define HPAGE_PMD_SHIFT ({ BUILD_BUG(); 0; })
->       |                            ^~~~~~~~~
-> ./include/linux/huge_mm.h:104:26: note: in expansion of macro 'HPAGE_PMD_SHIFT'
->   104 | #define HPAGE_PMD_ORDER (HPAGE_PMD_SHIFT-PAGE_SHIFT)
->       |                          ^~~~~~~~~~~~~~~
-> ./include/linux/huge_mm.h:105:26: note: in expansion of macro 'HPAGE_PMD_ORDER'
->   105 | #define HPAGE_PMD_NR (1<<HPAGE_PMD_ORDER)
->       |                          ^~~~~~~~~~~~~~~
-> mm/page_vma_mapped.c:113:20: note: in expansion of macro 'HPAGE_PMD_NR'
->   113 |         if ((pfn + HPAGE_PMD_NR - 1) < pvmw->pfn)
->       |                    ^~~~~~~~~~~~
-> make[1]: *** [scripts/Makefile.build:288: mm/page_vma_mapped.o] Error 1
-> make: *** [Makefile:1971: mm] Error 2
->
->
-> because check_pmd() uses HPAGE_PMD_NR and
->
-> #else /* CONFIG_TRANSPARENT_HUGEPAGE */
-> #define HPAGE_PMD_SHIFT ({ BUILD_BUG(); 0; })
->
-> I don't immediately see why this patch triggers it...
+On Tue, Feb 22, 2022 at 04:51:51PM +0100, Christoph Hellwig wrote:
+> Using local kmaps slightly reduces the chances to stray writes, and
+> the bvec interface cleans up the code a little bit.
+> 
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
 
-Maybe the reason is as follows.
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
 
-The first check_pmd() is wrapped inside `if (pmd_trans_huge(pmde))`
-block, since pmd_trans_huge() just returns 0, check_pmd() will be
-optimized out.  There is a `if (!thp_migration_supported()) return;` block
-before the second check_pmd(), however, thp_migration_supported()
-returns 0 on riscv. So the second check_pmd() can be optimized out as
-well.  I think I should replace `pmd_leaf` with `pmd_trans_huge() ||
-pmd_devmap()`
-to fix it.
-
-Thanks.
+> ---
+>  drivers/nvdimm/blk.c | 7 +++----
+>  1 file changed, 3 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/nvdimm/blk.c b/drivers/nvdimm/blk.c
+> index c1db43524d755..0a38738335941 100644
+> --- a/drivers/nvdimm/blk.c
+> +++ b/drivers/nvdimm/blk.c
+> @@ -88,10 +88,9 @@ static int nd_blk_rw_integrity(struct nd_namespace_blk *nsblk,
+>  		 */
+>  
+>  		cur_len = min(len, bv.bv_len);
+> -		iobuf = kmap_atomic(bv.bv_page);
+> -		err = ndbr->do_io(ndbr, dev_offset, iobuf + bv.bv_offset,
+> -				cur_len, rw);
+> -		kunmap_atomic(iobuf);
+> +		iobuf = bvec_kmap_local(&bv);
+> +		err = ndbr->do_io(ndbr, dev_offset, iobuf, cur_len, rw);
+> +		kunmap_local(iobuf);
+>  		if (err)
+>  			return err;
+>  
+> -- 
+> 2.30.2
+> 
+> 
