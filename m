@@ -1,48 +1,70 @@
-Received: from gandalf.ozlabs.org (gandalf.ozlabs.org [150.107.74.76])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 278D32C9D
-	for <nvdimm@lists.linux.dev>; Wed,  2 Mar 2022 12:57:52 +0000 (UTC)
-Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mail.ozlabs.org (Postfix) with ESMTPSA id 4K7v592ptmz4xvc;
-	Wed,  2 Mar 2022 23:46:53 +1100 (AEDT)
-From: Michael Ellerman <patch-notifications@ellerman.id.au>
-To: linuxppc-dev@lists.ozlabs.org, nvdimm@lists.linux.dev, Vaibhav Jain <vaibhav@linux.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>, Dan Williams <dan.j.williams@intel.com>, Ira Weiny <ira.weiny@intel.com>, "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Shivaprasad G Bhat <sbhat@linux.ibm.com>
-In-Reply-To: <20220124202204.1488346-1-vaibhav@linux.ibm.com>
-References: <20220124202204.1488346-1-vaibhav@linux.ibm.com>
-Subject: Re: [PATCH v4] powerpc/papr_scm: Implement initial support for injecting smart errors
-Message-Id: <164622488229.2052779.17094749231331915996.b4-ty@ellerman.id.au>
-Date: Wed, 02 Mar 2022 23:41:22 +1100
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E46A47A
+	for <nvdimm@lists.linux.dev>; Wed,  2 Mar 2022 15:50:45 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1646236245; x=1677772245;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=D1uiCJhxBtjA4oR6+KrFSQrnollkmcJKddeu5cuEKpA=;
+  b=NOMHmvMMm/eXUeh8uOrm0K+SQH7Jfy8/ETAWfbc/yIwjh9vFXyJ9C7GM
+   9LxdeCibf85NrJfZSR9IESvrjDffk8wYcXBktIJECAjazMMyhj7Ia+Hw/
+   H9GBaK6tzByBpKI5Ribta9g1V7jjilyRJ2q9wPWcA0K+CX7KChUuFsYj2
+   ddUrDYhZ2W/2C1qhRRBHBxKFlO7669Jl5QeS0rwaFh19Mz59NDS97NN5w
+   utg1guIBZKwTyvITiEdQAsSh3MXdWQRZeFdGwn6TgoihwAgPa6M/hDn45
+   UVtNmtY9iSiBHl8VOPOlU6fi2j6HoTDJuqIfvb51gNU4Qfmwpx4QeR5m8
+   g==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10274"; a="234048576"
+X-IronPort-AV: E=Sophos;i="5.90,149,1643702400"; 
+   d="scan'208";a="234048576"
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Mar 2022 07:50:40 -0800
+X-IronPort-AV: E=Sophos;i="5.90,149,1643702400"; 
+   d="scan'208";a="709553789"
+Received: from smile.fi.intel.com ([10.237.72.59])
+  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Mar 2022 07:50:37 -0800
+Received: from andy by smile.fi.intel.com with local (Exim 4.95)
+	(envelope-from <andriy.shevchenko@linux.intel.com>)
+	id 1nPREc-00AMq2-Dc;
+	Wed, 02 Mar 2022 17:49:50 +0200
+Date: Wed, 2 Mar 2022 17:49:50 +0200
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+	Hui Wang <hui.wang@canonical.com>, linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>
+Subject: Re: [PATCH v1 1/1] ACPI: Switch to use list_entry_is_head() helper
+Message-ID: <Yh+SHs4CEWkiLxAe@smile.fi.intel.com>
+References: <20220211110423.22733-1-andriy.shevchenko@linux.intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220211110423.22733-1-andriy.shevchenko@linux.intel.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 
-On Tue, 25 Jan 2022 01:52:04 +0530, Vaibhav Jain wrote:
-> Presently PAPR doesn't support injecting smart errors on an
-> NVDIMM. This makes testing the NVDIMM health reporting functionality
-> difficult as simulating NVDIMM health related events need a hacked up
-> qemu version.
-> 
-> To solve this problem this patch proposes simulating certain set of
-> NVDIMM health related events in papr_scm. Specifically 'fatal' health
-> state and 'dirty' shutdown state. These error can be injected via the
-> user-space 'ndctl-inject-smart(1)' command. With the proposed patch and
-> corresponding ndctl patches following command flow is expected:
-> 
-> [...]
+On Fri, Feb 11, 2022 at 01:04:23PM +0200, Andy Shevchenko wrote:
+> Since we got list_entry_is_head() helper in the generic header,
+> we may switch the ACPI modules to use it. This eliminates the
+> need in additional variable. In some cases it reduces critical
+> sections as well.
 
-Applied to powerpc/next.
+Besides the work required in a couple of cases (LKP) there is an
+ongoing discussion about list loops (and this particular API).
 
-[1/1] powerpc/papr_scm: Implement initial support for injecting smart errors
-      https://git.kernel.org/powerpc/c/bbbca72352bb9484bc057c91a408332b35ee8f4c
+Rafael, what do you think is the best course of action here?
 
-cheers
+-- 
+With Best Regards,
+Andy Shevchenko
+
+
