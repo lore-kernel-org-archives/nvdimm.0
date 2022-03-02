@@ -1,62 +1,91 @@
-Received: from mail-yb1-f173.google.com (mail-yb1-f173.google.com [209.85.219.173])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71A9120E9
-	for <nvdimm@lists.linux.dev>; Wed,  2 Mar 2022 16:36:32 +0000 (UTC)
-Received: by mail-yb1-f173.google.com with SMTP id t7so985435ybi.8
-        for <nvdimm@lists.linux.dev>; Wed, 02 Mar 2022 08:36:32 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=fvGAdBIf+bhILkDwd1RAEBaMeGjQHU2I0tTcLA9pmuw=;
-        b=aAyu5bHKJqIp441YF2+QuC3yiYQFcCb1oCHNWez7DsaiiA7c5mNyBbh2KvkB4Y8+Ee
-         pnfqzHo3e0UzW587YQEIk6iXMFh+bg0TmoxZt800kdB2iUP2zzBNEw4Q6TrcT6y9UIwU
-         sd2Ln1X9Vaa2UM87qy8i5rb8QJDDzhtKIWBYwc/bWnE0Vp8RlLV0u4r9/6wBCu/zYQJS
-         CDv9obfQ+YiE2DQrQIchgSxBiN9MF9XkJVuPxg28sfQjkd3lUZ3vBqQBd6WqSHlcjff9
-         N6YdfDOXvtBOKfWd6Dy7qNb2AaCAjWl9drulVp6ncGs+xdez7B7NtDtreFNum6YySDR7
-         rLnw==
-X-Gm-Message-State: AOAM530PCbwOxkl1HKLpjDkxb/QJR9UWI982IRj1whR4NfC7rxWbYjxH
-	cNxPNiKoZ3nEzUezG4+RcLIvHrZuNRwH2U6MtpM=
-X-Google-Smtp-Source: ABdhPJxn9LMC8lwWO4YmbVkZlEVT1jBmWUWdBg1cMfWRsu7mg1BUeW+rNNGEaSftaTVtMzJb7bwJ16HO+lMGdkKcQfA=
-X-Received: by 2002:a25:6649:0:b0:628:a0c0:f0e0 with SMTP id
- z9-20020a256649000000b00628a0c0f0e0mr3022520ybm.81.1646238991427; Wed, 02 Mar
- 2022 08:36:31 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CBFC33FE
+	for <nvdimm@lists.linux.dev>; Wed,  2 Mar 2022 17:06:20 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1646240780; x=1677776780;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=ZDYri7lCowU3GJr6M0z1hSFUZr0wdNpx1kXCi+W+DLY=;
+  b=MqE0DNwEmwtfpTeySFLdXWki/BYJiIjQ/NiIrXvk+CtXuq0ZI+Iz5FgB
+   fipM+FVl8HlDhmRsOTRjZMhSMRju5juXothKStkWvB2Q6ZTfv7/A4Sp48
+   OCwJwx47fZ+EUbOqaAthCUZedmry497XoJ2ymxU4iAS1GpgeMjJdJLUG1
+   2rI06p2lrzGz+b6tDh0vxZuL8C6F2eO5aTy4AUg4z5hLXMPP3lcfDb286
+   ATKeN10rwU57kLLAW0E9iHIOrb5ai86BfVEbGBtbLKS5UqNRkw3olAfL6
+   h3LqWmBXx8t29M7GUtgr+R3kWtH7zTgWhzUV1lAar0A0+zOW4TfzITgMx
+   w==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10274"; a="236963386"
+X-IronPort-AV: E=Sophos;i="5.90,149,1643702400"; 
+   d="scan'208";a="236963386"
+Received: from orsmga003.jf.intel.com ([10.7.209.27])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Mar 2022 09:04:52 -0800
+X-IronPort-AV: E=Sophos;i="5.90,149,1643702400"; 
+   d="scan'208";a="493606916"
+Received: from akshatak-mobl.amr.corp.intel.com (HELO localhost) ([10.212.41.96])
+  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Mar 2022 09:04:51 -0800
+Date: Wed, 2 Mar 2022 09:04:50 -0800
+From: Ira Weiny <ira.weiny@intel.com>
+To: Christoph Hellwig <hch@lst.de>
+Cc: Jens Axboe <axboe@kernel.dk>, Chris Zankel <chris@zankel.net>,
+	Max Filippov <jcmvbkbc@gmail.com>,
+	Justin Sanders <justin@coraid.com>,
+	Philipp Reisner <philipp.reisner@linbit.com>,
+	Lars Ellenberg <lars.ellenberg@linbit.com>,
+	Denis Efremov <efremov@linux.com>, Minchan Kim <minchan@kernel.org>,
+	Nitin Gupta <ngupta@vflare.org>, Coly Li <colyli@suse.de>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	linux-xtensa@linux-xtensa.org, linux-block@vger.kernel.org,
+	drbd-dev@lists.linbit.com, linux-bcache@vger.kernel.org,
+	nvdimm@lists.linux.dev
+Subject: Re: [PATCH 06/10] nvdimm-btt: use bvec_kmap_local in btt_rw_integrity
+Message-ID: <Yh+jshFsKMt+iI55@iweiny-desk3>
+References: <20220222155156.597597-1-hch@lst.de>
+ <20220222155156.597597-7-hch@lst.de>
+ <Yh2aCi6gtG0naC1r@iweiny-desk3>
+ <20220301122042.GB3405@lst.de>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20220211110423.22733-1-andriy.shevchenko@linux.intel.com> <Yh+SHs4CEWkiLxAe@smile.fi.intel.com>
-In-Reply-To: <Yh+SHs4CEWkiLxAe@smile.fi.intel.com>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Wed, 2 Mar 2022 17:36:20 +0100
-Message-ID: <CAJZ5v0g_3a7A5aFab6ZsM8nPDmivoTeNgdSG17Lt71mFKmNxmg@mail.gmail.com>
-Subject: Re: [PATCH v1 1/1] ACPI: Switch to use list_entry_is_head() helper
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Hui Wang <hui.wang@canonical.com>, 
-	ACPI Devel Maling List <linux-acpi@vger.kernel.org>, 
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, nvdimm@lists.linux.dev, 
-	"Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
-	Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, 
-	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220301122042.GB3405@lst.de>
 
-On Wed, Mar 2, 2022 at 4:50 PM Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
->
-> On Fri, Feb 11, 2022 at 01:04:23PM +0200, Andy Shevchenko wrote:
-> > Since we got list_entry_is_head() helper in the generic header,
-> > we may switch the ACPI modules to use it. This eliminates the
-> > need in additional variable. In some cases it reduces critical
-> > sections as well.
->
-> Besides the work required in a couple of cases (LKP) there is an
-> ongoing discussion about list loops (and this particular API).
->
-> Rafael, what do you think is the best course of action here?
+On Tue, Mar 01, 2022 at 01:20:42PM +0100, Christoph Hellwig wrote:
+> On Mon, Feb 28, 2022 at 07:59:06PM -0800, Ira Weiny wrote:
+> > On Tue, Feb 22, 2022 at 04:51:52PM +0100, Christoph Hellwig wrote:
+> > > Using local kmaps slightly reduces the chances to stray writes, and
+> > > the bvec interface cleans up the code a little bit.
+> > > 
+> > > Signed-off-by: Christoph Hellwig <hch@lst.de>
+> > > ---
+> > >  drivers/nvdimm/btt.c | 10 ++++------
+> > >  1 file changed, 4 insertions(+), 6 deletions(-)
+> > > 
+> > > diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+> > > index cbd994f7f1fe6..9613e54c7a675 100644
+> > > --- a/drivers/nvdimm/btt.c
+> > > +++ b/drivers/nvdimm/btt.c
+> > > @@ -1163,17 +1163,15 @@ static int btt_rw_integrity(struct btt *btt, struct bio_integrity_payload *bip,
+> > >  		 */
+> > >  
+> > >  		cur_len = min(len, bv.bv_len);
+> > > -		mem = kmap_atomic(bv.bv_page);
+> > > +		mem = bvec_kmap_local(&bv);
+> > >  		if (rw)
+> > > -			ret = arena_write_bytes(arena, meta_nsoff,
+> > > -					mem + bv.bv_offset, cur_len,
+> > > +			ret = arena_write_bytes(arena, meta_nsoff, mem, cur_len,
+> > 
+> > Why drop bv.bv_offset here and below?
+> 
+> Because bvec_kmap_local includes bv_offset in the pointer that it
+> returns.
 
-I think the current approach is to do the opposite of what this patch
-is attempting to do: avoid using the list iterator outside of the
-loop.
+Ah I missed that.  Thanks,
+Ira
