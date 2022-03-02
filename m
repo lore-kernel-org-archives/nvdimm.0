@@ -1,189 +1,375 @@
-Received: from mx0b-00069f02.pphosted.com (mx0b-00069f02.pphosted.com [205.220.177.32])
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E85B07C
-	for <nvdimm@lists.linux.dev>; Wed,  2 Mar 2022 10:57:52 +0000 (UTC)
-Received: from pps.filterd (m0246631.ppops.net [127.0.0.1])
-	by mx0b-00069f02.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 2227rW1A016190;
-	Wed, 2 Mar 2022 10:57:48 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=message-id : date :
- subject : to : cc : references : from : in-reply-to : content-type :
- content-transfer-encoding : mime-version; s=corp-2021-07-09;
- bh=a/xxjHZ5uZeIbNOkR4wp5DjV0/d5E0n3+ktZvq0c8dw=;
- b=RswhWb8Fpjv2hxSCzeULRdbZ3k/i3qjEpvlMZDdO7YqfmwPscgJQwO5up7v08mEtaoWk
- wq3eZ/43jdo5uWFzDLsjaC258/zQMV202Zq5JB0tPMbj9mr19WC+Dlj3uxNWxcufJwJd
- PPmruOz3mOobh2CWU24Oyd9J+fl4PvssWZA5W5i8pr5JTbZGZJmD+HN6KuNThWXWcCkf
- K0xIntHlJoI/QdB+7XBhQnfmxfwsRntnV6+gI7tKeVuLHwIBS+GDoxB6dernkzZktQxi
- N3K8o42ZS62riQx2vfwBF0DBlNHp/FRSn4anijCv5+fu/iB/9iwWXygxhmFZ5CJGe40H CA== 
-Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
-	by mx0b-00069f02.pphosted.com with ESMTP id 3ehbk9c1v3-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 02 Mar 2022 10:57:48 +0000
-Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
-	by userp3020.oracle.com (8.16.1.2/8.16.1.2) with SMTP id 222AtNlh128238;
-	Wed, 2 Mar 2022 10:57:47 GMT
-Received: from nam12-dm6-obe.outbound.protection.outlook.com (mail-dm6nam12lp2176.outbound.protection.outlook.com [104.47.59.176])
-	by userp3020.oracle.com with ESMTP id 3efdnq0pwv-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 02 Mar 2022 10:57:47 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=S8VVNFLfa3GsA0SH+PMwS0N8wRpKqHq5e5AkNrc1bL1WHewHvS/LiFW45qScnh6O9oUtevwNh2A73vW5hT/KMvaVx/vfsdeWDVDdba1ocPxeFRPPz48bMQeJBqIQc6ZVtrnDOK9WqVvxOEER4UE5K+dcSvyQOQr/aWfwDU6Tgm7cTEgTgp1hbkfkTE2Rfd/CVTT9pmySWS3YSyU6xyg04wEi34+yghSPkwdGXT1H7igNubTQC7rLEq6LGvKUwWZJMkVz3/Wi3EdPu2e6Jdp+07OdheYWQRYLl61PVSOiBk+XZaRKgrPWYKVLi2h6qnEqMEfGAGxb9DzqK2JEyVwIQg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=a/xxjHZ5uZeIbNOkR4wp5DjV0/d5E0n3+ktZvq0c8dw=;
- b=QT/5e5hTbBESRsj0tq/DaMZEQrl2CalDqJj8FJvwYOYfqRw+kRmm4mmdphZ++Xyny7Dj5QPJR7YCjhsy/EhnV4eAfRgFAmy1OLDjztTW235/ETV769O9KSVHWZTQYxz+cpSL2qVUOMKkCTfZvkYDxhjMLjUJG7FJh934q27zeUtnMOunOW2Mz/IdH6tgoPdr46Zh+asoD56zCLh75uvgRAXCxWyqHoEl7z+Iabz07cYY1TkeU3k5aFZ/koXU3UklREoTCMnD7LV9qt1YAUP2zoIVyQwpNpiaXxv3uP4+tb+/MjoWk9ncVO7Yuev0exUZs6CA+erBG1VLU9QaZ/LgjA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
- dkim=pass header.d=oracle.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=a/xxjHZ5uZeIbNOkR4wp5DjV0/d5E0n3+ktZvq0c8dw=;
- b=cF5mM3sPHNwcJLhikyg7zxDs41Tu1ZkexEuAX8IvGXa3Y1TK7e/P/v3CL3+7lHfhjRYIDUiIU53/iezpISpYSIfOh4d84F/1NVyrfEwwMs0VGK8YkwGZYeTkf4OpvzTGSwTLwWMHfSbEK72TD/gNzRxtiG8alImeT2mrKS3fpxk=
-Received: from BLAPR10MB4835.namprd10.prod.outlook.com (2603:10b6:208:331::11)
- by DM6PR10MB2540.namprd10.prod.outlook.com (2603:10b6:5:b9::29) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5017.24; Wed, 2 Mar
- 2022 10:57:45 +0000
-Received: from BLAPR10MB4835.namprd10.prod.outlook.com
- ([fe80::750f:bf1d:1599:3406]) by BLAPR10MB4835.namprd10.prod.outlook.com
- ([fe80::750f:bf1d:1599:3406%5]) with mapi id 15.20.5038.014; Wed, 2 Mar 2022
- 10:57:45 +0000
-Message-ID: <e8be0c0b-a74f-1e19-9a67-082d014ef4c1@oracle.com>
-Date: Wed, 2 Mar 2022 10:57:35 +0000
-Subject: Re: [ndctl PATCH] util/size.h: Fix build error for GCC < 10
-Content-Language: en-US
-To: Vaibhav Jain <vaibhav@linux.ibm.com>, nvdimm@lists.linux.dev,
-        Vishal Verma <vishal.l.verma@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>,
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6BA9D7C
+	for <nvdimm@lists.linux.dev>; Wed,  2 Mar 2022 11:41:59 +0000 (UTC)
+Received: from pps.filterd (m0127361.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 222BQY6o031248;
+	Wed, 2 Mar 2022 11:41:55 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=date : from : to : cc :
+ subject : message-id : references : content-type : in-reply-to :
+ mime-version; s=pp1; bh=ZxtSJ7XC6ezmylp5YAAkzXk5tckyp7IaiPZSrZxCH7U=;
+ b=Z0SWthH9J4vMrVzs558srqOj70UbQTTzrIGBV6fh2GhT+NDR/ax5LO5vPKC4z1bauOIM
+ cTSkTgVVzSH9d0f+c0x2S6aksTt4gMyWU0jNbL7RpmBiK7izq7rih9D2CLp++SaNdbe9
+ 66+b+SONZSk2kFH5m6RxrBvu68JmqeoVBLz8qHr1EV+USJpfErNjCgWi75mTUOHqiqpR
+ qRGEer+GYetoebOxe0IDmlubxJtboaQkdR12WJKSMP1ohm/dA4K8BziKZg7EWzfz/Ziq
+ PBgYH/FnPBtbq6N+lrg2LHUbrleH07SpTKMNDpJlJCJ2Qq+Rt72GvQfXepVYi/o3w0dM SA== 
+Received: from ppma03ams.nl.ibm.com (62.31.33a9.ip4.static.sl-reverse.com [169.51.49.98])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 3ej5cccefr-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Wed, 02 Mar 2022 11:41:55 +0000
+Received: from pps.filterd (ppma03ams.nl.ibm.com [127.0.0.1])
+	by ppma03ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 222BYlBX019817;
+	Wed, 2 Mar 2022 11:41:53 GMT
+Received: from b06avi18626390.portsmouth.uk.ibm.com (b06avi18626390.portsmouth.uk.ibm.com [9.149.26.192])
+	by ppma03ams.nl.ibm.com with ESMTP id 3efbu9ej7b-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Wed, 02 Mar 2022 11:41:53 +0000
+Received: from b06wcsmtp001.portsmouth.uk.ibm.com (b06wcsmtp001.portsmouth.uk.ibm.com [9.149.105.160])
+	by b06avi18626390.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 222BUrDW52494822
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Wed, 2 Mar 2022 11:30:53 GMT
+Received: from b06wcsmtp001.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id E12B4A405B;
+	Wed,  2 Mar 2022 11:41:48 +0000 (GMT)
+Received: from b06wcsmtp001.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 34982A405F;
+	Wed,  2 Mar 2022 11:41:46 +0000 (GMT)
+Received: from li-efb8054c-3504-11b2-a85c-ca10df28279e.ibm.com (unknown [9.43.3.237])
+	by b06wcsmtp001.portsmouth.uk.ibm.com (Postfix) with ESMTPS;
+	Wed,  2 Mar 2022 11:41:45 +0000 (GMT)
+Date: Wed, 2 Mar 2022 17:11:42 +0530
+From: Tarun Sahu <tsahu@linux.ibm.com>
+To: Vaibhav Jain <vaibhav@linux.ibm.com>
+Cc: nvdimm@lists.linux.dev, Dan Williams <dan.j.williams@intel.com>,
+        Vishal Verma <vishal.l.verma@intel.com>,
         "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>,
         Ira Weiny <ira.weiny@intel.com>,
-        Shivaprasad G Bhat <sbhat@linux.ibm.com>,
-        Tarun Sahu <tsahu@linux.ibm.com>
-References: <20220226113955.526036-1-vaibhav@linux.ibm.com>
-From: Joao Martins <joao.m.martins@oracle.com>
-In-Reply-To: <20220226113955.526036-1-vaibhav@linux.ibm.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: LO4P123CA0291.GBRP123.PROD.OUTLOOK.COM
- (2603:10a6:600:196::8) To BLAPR10MB4835.namprd10.prod.outlook.com
- (2603:10b6:208:331::11)
+        Shivaprasad G Bhat <sbhat@linux.ibm.com>
+Subject: Re: [ndctl PATCH v5] ndctl,libndctl: Update nvdimm flags after
+ smart-inject
+Message-ID: <Yh9X9iP6WbhvErCe@li-efb8054c-3504-11b2-a85c-ca10df28279e.ibm.com>
+References: <20220222121519.1674117-1-vaibhav@linux.ibm.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220222121519.1674117-1-vaibhav@linux.ibm.com>
+X-TM-AS-GCONF: 00
+X-Proofpoint-ORIG-GUID: MIgPnPkxnM-WrQSJqej04Vt6MeV25tSt
+X-Proofpoint-GUID: MIgPnPkxnM-WrQSJqej04Vt6MeV25tSt
+X-Proofpoint-UnRewURL: 0 URL was un-rewritten
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: c6910036-798e-4d9b-5451-08d9fc3b7b38
-X-MS-TrafficTypeDiagnostic: DM6PR10MB2540:EE_
-X-Microsoft-Antispam-PRVS: 
-	<DM6PR10MB254061FC5D997C7EAB7BF5EBBB039@DM6PR10MB2540.namprd10.prod.outlook.com>
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: 
-	Wsy4WrrOrKNUGMNtUWENeGjk/+TDsjLINfoCczLPw2DK1QJdguQ0oVLDBxe1lSqj/O7ObzZEpxrizZ5f0I2unYL4yhjOC5X67CJ7fl1ZL6zj2hhs7mNJlh6OsB22H0WkA3lMDwIw6zxCo8MK8cWJrhQZ1Ghv22Y99TQsGzXKq53kp6PwvG73i00pWXyxNHewe+iVk6lu5TG3YblNKtVl1JSrunIaUogkzOPRtZbg7Eene6UU8K8gY/SM2JNTWw9kkRG0auQlqjhAdo31/tdXGeZPWwy5jyCDOMvrCqGF4KryGdYW0MmLqsuL+18Fzb0//PF8qSpBh1mmAOKDbhFR/+4R7l8MshzRZ4k/mN5Nl3J7QO9EIIsZfFvioV9X35SHN96KnUnvs6Y1Pd3TG3z3cXl8LV/4SnAHTFN3pJPdwfV45wxNa6Q24kFHqW/d969tO9Vzm/qaIe2nJJx0sDD6IY5r5rw/h3LcYBJvhZlnMOG71ubRG1rg3lN9rT4JpaaC/42aJ8vgE16nDFjtWJ6pdjkpg8omInd6lSX3dcQD3MbzyvaIvPGwRrNiE+XLfpW7rDJjIbapil3UsCteEYk2mxB0hEtooHg5wfNCM0EwM5OwPa6SZEwVRbcA73UgydW842XkVFxoUf/jwneMZYf9oHmjn4s58xv9NsMBM2E2z9dKiTB9ikrY4Rps6o3J7q3+/Mn4hmifyjLqngVo7sdQhg==
-X-Forefront-Antispam-Report: 
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BLAPR10MB4835.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230001)(366004)(6486002)(6666004)(53546011)(4326008)(38100700002)(36756003)(6512007)(31686004)(508600001)(83380400001)(110136005)(54906003)(316002)(86362001)(8936002)(2616005)(5660300002)(2906002)(66946007)(26005)(186003)(66556008)(66476007)(8676002)(31696002)(6506007)(45980500001);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: 
-	=?utf-8?B?Y0NMazdjaEJmcG42QVJnRkE5dEIrZkJ5dmw4VDI5dUlsTWFtM2V1UVZ1ZjRY?=
- =?utf-8?B?NXIvSU93ZmR0eGROT21paTFYazN5SFlzTENSMGZqaUlOb1QrV25IUTdWY2Za?=
- =?utf-8?B?S1hoYUJkSTNZWSt3NVRnMTFJbk4wWnpzQ1FxcUw4UFNhTmpqQnoyV2hRWFRY?=
- =?utf-8?B?L0hHMHZmKzN0K2VUdmhMVmhRNWFPNjlJSHN5RjRpSldhaXB3WHgyMzJWM2NO?=
- =?utf-8?B?STRtb245dFZRUWJVVWdWN2x4Y0YweGJrVFlSTFVuOTRrNXJVN0p3eHIxSjF3?=
- =?utf-8?B?SThCamhKak4rb0Fsb0p4Z1JwSkhoUTJIVkFzTUdOWFk0NGVCMHVsNEdRbURD?=
- =?utf-8?B?THRKMGY4bVVlVXdYeTZKRTQrbFk2T1F6eUk0bFZyYnZoSnRUaE5pNmFDKzBi?=
- =?utf-8?B?UUdGbzUvUlZQd3JIOGs0UFlST2N2a01UZWQzSDlTOGRvSmxPOHE3MWltNnMv?=
- =?utf-8?B?bXJJL3VHS212b2l2T0t6bEM1dXpZMHF1NzRtYThFVXUxaHk2RTF3YnVpM29Y?=
- =?utf-8?B?K3NqR3UvV0xqbzI5S1ZEbXllbmtoZVpzMzU4QjRKUUlRdUZGaGwwMXVET0Zr?=
- =?utf-8?B?S0RWOUdrYUlSOHVWSm41MmNFZlVXck1tSHBsRVJMaXVUYmpXc1V0TTV4bXVB?=
- =?utf-8?B?SmhQQ2RYRWxYUVFKNHRZQUYvZG42bGFEYjdqWkNIdzdrSlNsT2NMNXZKVCtE?=
- =?utf-8?B?b1RLYlRneko5MDBhTFVvTXQ3dC9QU1E4ZkorSk02WXNRN21lbFRPTlVSaGdT?=
- =?utf-8?B?WjFlOWlJVS9KelYwM2hva0VuU1BoVXJaNzJzV1hjL1JRcFBLbGxYc3VxeXc2?=
- =?utf-8?B?RnBCdGVJcHcxanlCMUdtTjRyemFaeURHd29ZVW4rYTJrVWFMTzRMd3pKTm1h?=
- =?utf-8?B?cFhvSFhVQU5ObklvanBBeWtCUWVESW5vdnFQQmRuaHA4RldtNEI1aGd1NnZv?=
- =?utf-8?B?dnQ0L1FiQ1YzUkh1YUZQYzRQTDZLeHR1WlNGYmlxaFBqTUdtOElyRldqQUpV?=
- =?utf-8?B?b1F3MFRWNDV5WTNJUk9pQ0lXTjE3U2RBbWZzK2ZvZHlCNkJ3aDhqd2pqUVJ4?=
- =?utf-8?B?WjNVTCtjZDBZL3NBb0ZxeFhlT2dDZmx4L1ZFdXBxOFBJanI2R0k4emhiQTEv?=
- =?utf-8?B?OGg5cXdWVzBiS2lhaStwZi84dmxyUkhWaUVCMno0T25hb0l1WTVOTFJrVUpW?=
- =?utf-8?B?WjRXQXhzRmdXejllRW81b2hHSzB4N2NKS0QzaktVT0toTWt5S2srZ2tweStM?=
- =?utf-8?B?UFQvN2p6NXRLblBHQ1g1ZmVFbXpsdjUwSy9pZ1lDN09UcEpUeUphTDdjb2Ew?=
- =?utf-8?B?NE41S3FuSnF0SW1oaVdqblM4VWEzNFI0bWhDdVhrMUJNb0N3bnhVa0ttam1B?=
- =?utf-8?B?bkVPOFdNQjQ3VWluRlBCeTV5SyttQ0VCb3o5RzBmTU9FaTQ0eVlPd1plL1Zs?=
- =?utf-8?B?UnBHUGNnUWtCVFhzQUUrek1FbnBJYzJJeE1Gb2Y2NDFxaVkyNStGWHFTSUc3?=
- =?utf-8?B?VWV5a0VrNUhvU1pXMVArVTdvcTZWdkZPWHgrNTNzamYxVlRISGNuUC9wWXdB?=
- =?utf-8?B?V2MvTEJOaWVyWlhJb0pZK3VUc0JmZHJOVXo2d3BDWitiQVZpazl5YTJTQUt2?=
- =?utf-8?B?ZHA4WDRjSmVhWXJneVVqUW1uUXVsZ2VTVVhRSkl2NExJVlh0YkExdllBMTl2?=
- =?utf-8?B?VmxFQnJVSHFWNUFadm1sRCtVWm1YRk9EWFA0c1ViOVF3NXVSTkNhSDcycmJu?=
- =?utf-8?B?YWJQRlFTL2ovNndidkJ0QzExNEhlcXoremJJK2xmMjFlVVg0aTAzTnR6ZHRU?=
- =?utf-8?B?cEl5SjU3UHRlTEt4SmY2NXg1RGJEbWJQVk8zYVQyaEJjcEdkMjNpc1BzWmVT?=
- =?utf-8?B?MUpNNTRnVUppYnZUTFR3Mi9FSXRNUnNmUjRKQkFOUTh6T3Y2czRPTEsxLzBR?=
- =?utf-8?B?WlJoOEc3d0pOOE42YWVER2VxSTY2ZSs1aFdMSzdQKytacGkwMkZWOHpuQmdL?=
- =?utf-8?B?ZlJlMTNFNkRwbjE0QlBvbWVUVmVBdUM5YVZWaTZrMGJHYUpSck10eXV0TWhk?=
- =?utf-8?B?ZFVia1NzQnMwTktRdXdWRThwYUJRSDBoOFpkY0puckNJV0wxMEkyaHc3Tnc2?=
- =?utf-8?B?aTFEYlVlcTlJYjA3NWJQaWs5WnNQaWFkT01hQ3Jtd0c1NS9CZ08xR1NpaDlW?=
- =?utf-8?B?MEMxT21PcjdrNW0za2xlT3FLYnZqbk1Xd3RWTnZtbi9yMjBJbHkrSXNIQyt1?=
- =?utf-8?B?NlExSHpVSkFQMnZxcjk2RDNReUNRPT0=?=
-X-OriginatorOrg: oracle.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: c6910036-798e-4d9b-5451-08d9fc3b7b38
-X-MS-Exchange-CrossTenant-AuthSource: BLAPR10MB4835.namprd10.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 02 Mar 2022 10:57:45.2382
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: alcbJ7CPKeJoPZ2smFF8bwnC8rCeMj40DqLhXwzHUxoMFezEK0aH7DbgDmysqPLcafhRnIzQ68lcRX3dCtZF76rltH3e8a3tsv5W8rvcEDs=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR10MB2540
-X-Proofpoint-Virus-Version: vendor=nai engine=6300 definitions=10273 signatures=685966
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxlogscore=999 bulkscore=0
- adultscore=0 phishscore=0 spamscore=0 suspectscore=0 malwarescore=0
- mlxscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2201110000 definitions=main-2203020046
-X-Proofpoint-GUID: 1eftwYgonMFqaUsZnCnhthXsKDdIXGTq
-X-Proofpoint-ORIG-GUID: 1eftwYgonMFqaUsZnCnhthXsKDdIXGTq
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.205,Aquarius:18.0.816,Hydra:6.0.425,FMLib:17.11.64.514
+ definitions=2022-03-02_01,2022-02-26_01,2022-02-23_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 lowpriorityscore=0
+ malwarescore=0 suspectscore=0 phishscore=0 clxscore=1011 bulkscore=0
+ mlxlogscore=999 adultscore=0 mlxscore=0 priorityscore=1501 impostorscore=0
+ spamscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2201110000 definitions=main-2203020049
 
-On 2/26/22 11:39, Vaibhav Jain wrote:
-> Building with GCC 8.4.1 results in following build error for 'util/size.c':
+I have tested the patch, which is working on the system
+Kernel Version: 5.17.0 + patch (https://patchwork.ozlabs.org/project/linuxppc-dev/patch/20220124202204.1488346-1-vaibhav@linux.ibm.com/)
+System: Power-9, PPC64le, RHEL 8.1
+
+Results:
+Without this patch, building ndctl on base commit: 6e85cac1958f920f231b94ff570ac0e434595b7d
+
+$ sudo ndctl inject-smart -fU nmem0
+[
+  {
+    "dev":"nmem0",
+    "health":{
+      "health_state":"fatal",
+      "shutdown_state":"dirty",
+      "shutdown_count":0
+    }
+  }
+]
+
+With the patch applied,
+
+$ sudo ndctl inject-smart -fU nmem0
+[
+  {
+    "dev":"nmem0",
+    "flag_failed_flush":true,
+    "flag_smart_event":true,
+    "health":{
+      "health_state":"fatal",
+      "shutdown_state":"dirty",
+      "shutdown_count":0
+    }
+  }
+]
+
+it update flags also when flags are unset (implies flags get removed from the output):
+
+$ ./builddir/ndctl/ndctl inject-smart -fU nmem0
+[
+  {
+    "dev":"nmem0",
+    "flag_failed_flush":true,
+    "flag_smart_event":true,
+    "health":{
+      "health_state":"fatal",
+      "shutdown_state":"dirty",
+      "shutdown_count":0
+    }
+  }
+]
+
+$ ./ndctl inject-smart --fatal-uninject nmem0
+[
+  {
+    "dev":"nmem0",
+    "flag_failed_flush":true,
+    "health":{
+      "health_state":"ok",
+      "shutdown_state":"dirty",
+      "shutdown_count":0
+    }
+  }
+]
+
+
+Tested-by: Tarun Sahu <tsahu@linux.ibm.com>
+
+
+On Tue, Feb 22, 2022 at 05:45:19PM +0530, Vaibhav Jain wrote:
+> Presently after performing an inject-smart command the nvdimm flags reported are
+> out of date as shown below where no 'smart_notify' or 'flush_fail' flags were
+> reported even though they are set after injecting the smart error:
 > 
-> ../util/size.h:57:16: error: missing binary operator before token "("
->    __has_builtin(__builtin_mul_overflow) && \
+> $ sudo ndctl inject-smart -fU nmem0
+> [
+>   {
+>     "dev":"nmem0",
+>     "health":{
+>       "health_state":"fatal",
+>       "shutdown_state":"dirty",
+>       "shutdown_count":0
+>     }
+>   }
+> ]
+> $ sudo cat /sys/class/nd/ndctl0/device/nmem0/papr/flags
+> flush_fail smart_notify
 > 
-> This is caused due to missing '__has_builtin' preprocessor operator in GCC
-> versions < 10.0.0. The patch updates the check for CLANG's availability of
-> __builtin_{mul,add}_overflow to prevent preprocessor from evaluating the
-> expression "___has_builtin(__builtin_mul_overflow) &&
-> __has_builtin(__builtin_add_overflow)".
+> This happens because nvdimm flags are only parsed once during its probe
+> and not refreshed even after a inject-smart operation makes them out of
+> date. To fix this the patch forces an update of nvdimm flags via newly
+> introduced export from libndctl named ndctl_dimm_refresh_flags() thats called
+> from dimm_inject_smart() after inject-smart command is successfully
+> submitted. This ensures that correct nvdimm flags are displayed later in that
+> function. With this implemented correct nvdimm flags are reported after a
+> inject-smart operation:
 > 
-> Fixes:10653a171bc0("util/size.h: fix build for older compilers")
-> Reported-by: Tarun Sahu <tsahu@linux.ibm.com>
+> $ sudo ndctl inject-smart -fU nmem0
+> [
+>   {
+>     "dev":"nmem0",
+>     "flag_failed_flush":true,
+>     "flag_smart_event":true,
+>     "health":{
+>       "health_state":"fatal",
+>       "shutdown_state":"dirty",
+>       "shutdown_count":0
+>     }
+>   }
+> ]
+> 
+> The patch refactors populate_dimm_attributes() to move the nvdimm flags
+> parsing code to the newly introduced ndctl_dimm_refresh_flags()
+> export. Since reading nvdimm flags requires constructing path using
+> 'bus_prefix' which is only available during add_dimm(), the patch
+> introduces a new member 'struct ndctl_dimm.bus_prefix' to cache its
+> value. During ndctl_dimm_refresh_flags() the cached bus_prefix is used to
+> read the contents of the nvdimm flag file and pass it on to the appropriate
+> flag parsing function. Finally dimm_inject_smart() is updated to issue call to
+> ndctl_dimm_refresh_flags() before generating json output of the nvdimm status
+> 
 > Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
-
-Reviewed-by: Joao Martins <joao.m.martins@oracle.com>
-
+> Signed-off-by: Shivaprasad G Bhat <sbhat@linux.ibm.com>
 > ---
->  util/size.h | 5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
+> Changelog:
 > 
-> diff --git a/util/size.h b/util/size.h
-> index 1cb06690261b..02baa77fe649 100644
-> --- a/util/size.h
-> +++ b/util/size.h
-> @@ -53,11 +53,12 @@ static inline bool is_power_of_2(unsigned long long v)
->  #define COMPILER_HAS_GENERIC_BUILTIN_OVERFLOW 1
->  #endif
+> Since v4:
+> https://lore.kernel.org/nvdimm/20220124205822.1492702-1-vaibhav@linux.ibm.com
+> 
+> * Instead of updating nvdimm flags in cmd_submit() only refresh when for
+> inject-smart command [ Vishal ]
+> * Added the export of ndctl_dimm_refresh_flags() to libndctl exports [ Vishal ]
+> * Updated changes to add_dimm() to make then more readable [ Vishal ]
+> * Updated patch description.
+> ---
+>  ndctl/inject-smart.c   |  4 +++
+>  ndctl/lib/libndctl.c   | 55 +++++++++++++++++++++++++++++++-----------
+>  ndctl/lib/libndctl.sym |  4 +++
+>  ndctl/lib/private.h    |  1 +
+>  ndctl/libndctl.h       |  1 +
+>  5 files changed, 51 insertions(+), 14 deletions(-)
+> 
+> diff --git a/ndctl/inject-smart.c b/ndctl/inject-smart.c
+> index bd8c01e000d4..d7da5ad8c425 100644
+> --- a/ndctl/inject-smart.c
+> +++ b/ndctl/inject-smart.c
+> @@ -467,6 +467,10 @@ static int dimm_inject_smart(struct ndctl_dimm *dimm)
+>  		jdimms = json_object_new_array();
+>  		if (!jdimms)
+>  			goto out;
+> +
+> +		/* Ensure the dimm flags are upto date before reporting them */
+> +		ndctl_dimm_refresh_flags(dimm);
+> +
+>  		jdimm = util_dimm_to_json(dimm, sctx.flags);
+>  		if (!jdimm)
+>  			goto out;
+> diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+> index 5979a92c113c..8b92d0419871 100644
+> --- a/ndctl/lib/libndctl.c
+> +++ b/ndctl/lib/libndctl.c
+> @@ -608,6 +608,7 @@ static void free_dimm(struct ndctl_dimm *dimm)
+>  	free(dimm->unique_id);
+>  	free(dimm->dimm_buf);
+>  	free(dimm->dimm_path);
+> +	free(dimm->bus_prefix);
+>  	if (dimm->module)
+>  		kmod_module_unref(dimm->module);
+>  	if (dimm->health_eventfd > -1)
+> @@ -1670,14 +1671,34 @@ static int ndctl_bind(struct ndctl_ctx *ctx, struct kmod_module *module,
+>  static int ndctl_unbind(struct ndctl_ctx *ctx, const char *devpath);
+>  static struct kmod_module *to_module(struct ndctl_ctx *ctx, const char *alias);
 >  
-> -#if __clang__ && \
-> -    __has_builtin(__builtin_mul_overflow) && \
-> +#if __clang__
-> +#if __has_builtin(__builtin_mul_overflow) && \
->      __has_builtin(__builtin_add_overflow)
->  #define COMPILER_HAS_GENERIC_BUILTIN_OVERFLOW 1
->  #endif
-> +#endif
+> +NDCTL_EXPORT void ndctl_dimm_refresh_flags(struct ndctl_dimm *dimm)
+> +{
+> +	struct ndctl_ctx *ctx = dimm->bus->ctx;
+> +	char *path = dimm->dimm_buf;
+> +	char buf[SYSFS_ATTR_SIZE];
+> +
+> +	/* Construct path to dimm flags sysfs file */
+> +	sprintf(path, "%s/%s/flags", dimm->dimm_path, dimm->bus_prefix);
+> +
+> +	if (sysfs_read_attr(ctx, path, buf) < 0)
+> +		return;
+> +
+> +	/* Reset the flags */
+> +	dimm->flags.flags = 0;
+> +	if (ndctl_bus_has_nfit(dimm->bus))
+> +		parse_nfit_mem_flags(dimm, buf);
+> +	else if (ndctl_bus_is_papr_scm(dimm->bus))
+> +		parse_papr_flags(dimm, buf);
+> +}
+> +
+>  static int populate_dimm_attributes(struct ndctl_dimm *dimm,
+> -				    const char *dimm_base,
+> -				    const char *bus_prefix)
+> +				    const char *dimm_base)
+>  {
+>  	int i, rc = -1;
+>  	char buf[SYSFS_ATTR_SIZE];
+>  	struct ndctl_ctx *ctx = dimm->bus->ctx;
+>  	char *path = calloc(1, strlen(dimm_base) + 100);
+> +	const char *bus_prefix = dimm->bus_prefix;
 >  
->  #if COMPILER_HAS_GENERIC_BUILTIN_OVERFLOW
+>  	if (!path)
+>  		return -ENOMEM;
+> @@ -1761,16 +1782,10 @@ static int populate_dimm_attributes(struct ndctl_dimm *dimm,
+>  	}
 >  
+>  	sprintf(path, "%s/%s/flags", dimm_base, bus_prefix);
+> -	if (sysfs_read_attr(ctx, path, buf) == 0) {
+> -		if (ndctl_bus_has_nfit(dimm->bus))
+> -			parse_nfit_mem_flags(dimm, buf);
+> -		else if (ndctl_bus_is_papr_scm(dimm->bus)) {
+> -			dimm->cmd_family = NVDIMM_FAMILY_PAPR;
+> -			parse_papr_flags(dimm, buf);
+> -		}
+> -	}
+> -
+>  	dimm->health_eventfd = open(path, O_RDONLY|O_CLOEXEC);
+> +
+> +	ndctl_dimm_refresh_flags(dimm);
+> +
+>  	rc = 0;
+>   err_read:
+>  
+> @@ -1826,8 +1841,9 @@ static int add_papr_dimm(struct ndctl_dimm *dimm, const char *dimm_base)
+>  
+>  		rc = 0;
+>  	} else if (strcmp(buf, "nvdimm_test") == 0) {
+> +		dimm->cmd_family = NVDIMM_FAMILY_PAPR;
+>  		/* probe via common populate_dimm_attributes() */
+> -		rc = populate_dimm_attributes(dimm, dimm_base, "papr");
+> +		rc = populate_dimm_attributes(dimm, dimm_base);
+>  	}
+>  out:
+>  	free(path);
+> @@ -1924,9 +1940,20 @@ static void *add_dimm(void *parent, int id, const char *dimm_base)
+>  	dimm->formats = formats;
+>  	/* Check if the given dimm supports nfit */
+>  	if (ndctl_bus_has_nfit(bus)) {
+> -		rc = populate_dimm_attributes(dimm, dimm_base, "nfit");
+> +		dimm->bus_prefix = strdup("nfit");
+> +		if (!dimm->bus_prefix) {
+> +			rc = -ENOMEM;
+> +			goto out;
+> +		}
+> +		rc =  populate_dimm_attributes(dimm, dimm_base);
+> +
+>  	} else if (ndctl_bus_has_of_node(bus)) {
+> -		rc = add_papr_dimm(dimm, dimm_base);
+> +		dimm->bus_prefix = strdup("papr");
+> +		if (!dimm->bus_prefix) {
+> +			rc = -ENOMEM;
+> +			goto out;
+> +		}
+> +		rc =  add_papr_dimm(dimm, dimm_base);
+>  	}
+>  
+>  	if (rc == -ENODEV) {
+> diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
+> index 3557b32c50ea..f1f9edd4b6ff 100644
+> --- a/ndctl/lib/libndctl.sym
+> +++ b/ndctl/lib/libndctl.sym
+> @@ -458,3 +458,7 @@ LIBNDCTL_26 {
+>  	ndctl_set_config_path;
+>  	ndctl_get_config_path;
+>  } LIBNDCTL_25;
+> +
+> +LIBNDCTL_27 {
+> +	ndctl_dimm_refresh_flags;
+> +} LIBNDCTL_26;
+> diff --git a/ndctl/lib/private.h b/ndctl/lib/private.h
+> index 4d8622978790..e5c56295556d 100644
+> --- a/ndctl/lib/private.h
+> +++ b/ndctl/lib/private.h
+> @@ -75,6 +75,7 @@ struct ndctl_dimm {
+>  	char *unique_id;
+>  	char *dimm_path;
+>  	char *dimm_buf;
+> +	char *bus_prefix;
+>  	int health_eventfd;
+>  	int buf_len;
+>  	int id;
+> diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
+> index 4d5cdbf6f619..57cf93d8d151 100644
+> --- a/ndctl/libndctl.h
+> +++ b/ndctl/libndctl.h
+> @@ -223,6 +223,7 @@ int ndctl_dimm_is_active(struct ndctl_dimm *dimm);
+>  int ndctl_dimm_is_enabled(struct ndctl_dimm *dimm);
+>  int ndctl_dimm_disable(struct ndctl_dimm *dimm);
+>  int ndctl_dimm_enable(struct ndctl_dimm *dimm);
+> +void ndctl_dimm_refresh_flags(struct ndctl_dimm *dimm);
+>  
+>  struct ndctl_cmd;
+>  struct ndctl_cmd *ndctl_bus_cmd_new_ars_cap(struct ndctl_bus *bus,
+> 
+> base-commit: 6e85cac1958f920f231b94ff570ac0e434595b7d
+> -- 
+> 2.35.1
+> 
+> 
