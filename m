@@ -1,83 +1,137 @@
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f174.google.com (mail-pf1-f174.google.com [209.85.210.174])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70D5A3FE3
-	for <nvdimm@lists.linux.dev>; Wed,  2 Mar 2022 17:09:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1646240956; x=1677776956;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=ARu95SNjYvUW6s+dQ5hSBTaIXLn2LgPc0xfUHeJLPZ8=;
-  b=bf9F9WgAoG2pQ42jr2jO6XYUdvWctKZJFMLdzp6cIcS6ixXLoLSq+vG7
-   hDlNZ2X2w5FO363H4wLdQhgKJYPXHJsXipxGqFEfio37/Z2Flm+QSvdCk
-   gKGk+SgYI/qy2g1cEmzSciCxKqCsnSc+RWXW0U89VHNZuqtcGVBvsfFCw
-   xgRz9v00D6Ux+6wfRXuyO7azS0uwRlthNrptwWzXAQxkAu9z5Gqjs6RDv
-   Oxn2RUdAbRH44eQJ/kwoZYmOMiasjdTu8YRPwlwPDpMUfAhqt2KZWZXI5
-   pA0l5I05ItA4o30PSX0c0FPP2UiiuATumHWZEjqikAJMFWxTNmB4yu2jf
-   w==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10274"; a="233420753"
-X-IronPort-AV: E=Sophos;i="5.90,149,1643702400"; 
-   d="scan'208";a="233420753"
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Mar 2022 09:09:15 -0800
-X-IronPort-AV: E=Sophos;i="5.90,149,1643702400"; 
-   d="scan'208";a="511078765"
-Received: from smile.fi.intel.com ([10.237.72.59])
-  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Mar 2022 09:09:12 -0800
-Received: from andy by smile.fi.intel.com with local (Exim 4.95)
-	(envelope-from <andriy.shevchenko@linux.intel.com>)
-	id 1nPSSf-00APUi-LB;
-	Wed, 02 Mar 2022 19:08:25 +0200
-Date: Wed, 2 Mar 2022 19:08:25 +0200
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-	Hui Wang <hui.wang@canonical.com>,
-	ACPI Devel Maling List <linux-acpi@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	nvdimm@lists.linux.dev, Len Brown <lenb@kernel.org>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>
-Subject: Re: [PATCH v1 1/1] ACPI: Switch to use list_entry_is_head() helper
-Message-ID: <Yh+kiSMZPleBcOXh@smile.fi.intel.com>
-References: <20220211110423.22733-1-andriy.shevchenko@linux.intel.com>
- <Yh+SHs4CEWkiLxAe@smile.fi.intel.com>
- <CAJZ5v0g_3a7A5aFab6ZsM8nPDmivoTeNgdSG17Lt71mFKmNxmg@mail.gmail.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8F8536A
+	for <nvdimm@lists.linux.dev>; Thu,  3 Mar 2022 03:31:50 +0000 (UTC)
+Received: by mail-pf1-f174.google.com with SMTP id k1so3685019pfu.2
+        for <nvdimm@lists.linux.dev>; Wed, 02 Mar 2022 19:31:50 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=RZtUvw3ZALmibfhioe1cE1cnVZR/Sbit8bfsFXqhXpk=;
+        b=R889e/UhGXgW9S0vzeC67QxDykTwNM796kvjr+1ckA60LLU5z7oOpoFl7sZYJ/tfbX
+         wcHDWmT0mADRl21Gss+yBSksjIeKQCthjIIhaL64IWZ6tjiSHBr1Vr/s9/knMqEfirdP
+         6wmXbhc3wVCh5eNkp8vT2b4DNpWCGO2HJS9qv+7CFIWI7RMU6Y2L4u2GyFd1M7P1v2i2
+         yRGc4+j/hioGlpxNYyD+lJIdq80qqSn6zOdNUnojOcuXnQuUoVPh725lNe//9Vb8277L
+         0vtQ2hsqKYZeEshvvHthxwk/kfSuLzvTxxbNmg31gIwuFMXAEqqS6+BvcvYom7llqRbc
+         Xx4Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=RZtUvw3ZALmibfhioe1cE1cnVZR/Sbit8bfsFXqhXpk=;
+        b=qi9BYrd9FT9cMzVQMLqHRluGvLXnUoR3Eh6tMTuZvzdg4oRkWlMkxL7Tfg9gPmwp/c
+         VS48nYDTd1iq77Dp2PQ6gCccQjc6HVd6sn3xqYGnRfUoN7il5UXwirYS5c9Bm7rUwfz5
+         hPwG/YOyaZb/95hF08nJh+d/dpmLhkWzCqZRm/BhiuD8iDofNiB1dWJ6Dj0boKHDPoBB
+         EVILty2p3aAmi7wIRGfrp2piaCo5TVanHTgTOBuZ02TwJV6dsczV42HzeW5MsFNX8GdA
+         PqocBXW8fKPMiA+49UGmpMa3FBFSnNIvk1kZdNPqkCWscHhx/usUO4VJLmgrrBFSKE9V
+         2PcQ==
+X-Gm-Message-State: AOAM533hHVJtq9yQYJOYoeM8pHW45uniFU/UmjQ2KVFfl4NSHw/BVQs2
+	C4bqNwGNkMduk2CcrDkLIzc=
+X-Google-Smtp-Source: ABdhPJwah2kbQNm59hmoFB1LFxz1aX5pX+VgN7aUlOeSs1kAzVW0ZJUqmjy0WCf0givJuFhU4mWDDw==
+X-Received: by 2002:a63:e74d:0:b0:372:645d:d9ee with SMTP id j13-20020a63e74d000000b00372645dd9eemr28697178pgk.228.1646278310304;
+        Wed, 02 Mar 2022 19:31:50 -0800 (PST)
+Received: from localhost.localdomain (5e.8a.38a9.ip4.static.sl-reverse.com. [169.56.138.94])
+        by smtp.gmail.com with ESMTPSA id t12-20020a056a0021cc00b004e105f259e8sm626785pfj.152.2022.03.02.19.31.48
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 02 Mar 2022 19:31:49 -0800 (PST)
+From: Zhenguo Yao <yaozhenguo1@gmail.com>
+To: dan.j.williams@intel.com,
+	vishal.l.verma@intel.com,
+	dave.jiang@intel.com
+Cc: nvdimm@lists.linux.dev,
+	yaozhenguo@jd.com,
+	linux-kernel@vger.kernel.org,
+	Zhenguo Yao <yaozhenguo1@gmail.com>
+Subject: [PATCH v2] device-dax: Adding match parameter to select which driver to match dax devices
+Date: Thu,  3 Mar 2022 11:31:32 +0800
+Message-Id: <20220303033132.27750-1-yaozhenguo1@gmail.com>
+X-Mailer: git-send-email 2.32.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0g_3a7A5aFab6ZsM8nPDmivoTeNgdSG17Lt71mFKmNxmg@mail.gmail.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+Content-Transfer-Encoding: 8bit
 
-On Wed, Mar 02, 2022 at 05:36:20PM +0100, Rafael J. Wysocki wrote:
-> On Wed, Mar 2, 2022 at 4:50 PM Andy Shevchenko
-> <andriy.shevchenko@linux.intel.com> wrote:
-> > On Fri, Feb 11, 2022 at 01:04:23PM +0200, Andy Shevchenko wrote:
-> > > Since we got list_entry_is_head() helper in the generic header,
-> > > we may switch the ACPI modules to use it. This eliminates the
-> > > need in additional variable. In some cases it reduces critical
-> > > sections as well.
-> >
-> > Besides the work required in a couple of cases (LKP) there is an
-> > ongoing discussion about list loops (and this particular API).
-> >
-> > Rafael, what do you think is the best course of action here?
-> 
-> I think the current approach is to do the opposite of what this patch
-> is attempting to do: avoid using the list iterator outside of the
-> loop.
+device_dax driver always match dax devices by default. The other
+drivers only match devices by dax_id. There is situations which
+need kmem drvier match all the dax device at boot time. So
+adding a parameter to support this function.
 
-OK, let's drop this change.
+Signed-off-by: Zhenguo Yao <yaozhenguo1@gmail.com>
+---
 
+Changes:
+	- v1->v2 fix build errors report by kernel test robot <lkp@intel.com>
+---
+
+ drivers/dax/device.c | 3 +++
+ drivers/dax/kmem.c   | 4 ++++
+ 2 files changed, 7 insertions(+)
+
+diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+index dd8222a..3d228b2 100644
+--- a/drivers/dax/device.c
++++ b/drivers/dax/device.c
+@@ -452,6 +452,7 @@ int dev_dax_probe(struct dev_dax *dev_dax)
+ }
+ EXPORT_SYMBOL_GPL(dev_dax_probe);
+ 
++unsigned int dax_match = 1;
+ static struct dax_device_driver device_dax_driver = {
+ 	.probe = dev_dax_probe,
+ 	/* all probe actions are unwound by devm, so .remove isn't necessary */
+@@ -460,6 +461,7 @@ int dev_dax_probe(struct dev_dax *dev_dax)
+ 
+ static int __init dax_init(void)
+ {
++	device_dax_driver.match_always = dax_match;
+ 	return dax_driver_register(&device_dax_driver);
+ }
+ 
+@@ -468,6 +470,7 @@ static void __exit dax_exit(void)
+ 	dax_driver_unregister(&device_dax_driver);
+ }
+ 
++module_param(dax_match, uint, 0644);
+ MODULE_AUTHOR("Intel Corporation");
+ MODULE_LICENSE("GPL v2");
+ module_init(dax_init);
+diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
+index a376220..2f1fb98 100644
+--- a/drivers/dax/kmem.c
++++ b/drivers/dax/kmem.c
+@@ -214,9 +214,11 @@ static void dev_dax_kmem_remove(struct dev_dax *dev_dax)
+ }
+ #endif /* CONFIG_MEMORY_HOTREMOVE */
+ 
++unsigned int kmem_match;
+ static struct dax_device_driver device_dax_kmem_driver = {
+ 	.probe = dev_dax_kmem_probe,
+ 	.remove = dev_dax_kmem_remove,
++	.match_always = 0,
+ };
+ 
+ static int __init dax_kmem_init(void)
+@@ -228,6 +230,7 @@ static int __init dax_kmem_init(void)
+ 	if (!kmem_name)
+ 		return -ENOMEM;
+ 
++	device_dax_kmem_driver.match_always = kmem_match;
+ 	rc = dax_driver_register(&device_dax_kmem_driver);
+ 	if (rc)
+ 		kfree_const(kmem_name);
+@@ -241,6 +244,7 @@ static void __exit dax_kmem_exit(void)
+ 		kfree_const(kmem_name);
+ }
+ 
++module_param(kmem_match, uint, 0644);
+ MODULE_AUTHOR("Intel Corporation");
+ MODULE_LICENSE("GPL v2");
+ module_init(dax_kmem_init);
 -- 
-With Best Regards,
-Andy Shevchenko
-
+1.8.3.1
 
