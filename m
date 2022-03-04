@@ -1,89 +1,85 @@
-Received: from mail-pl1-f171.google.com (mail-pl1-f171.google.com [209.85.214.171])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FF557C
-	for <nvdimm@lists.linux.dev>; Fri,  4 Mar 2022 19:29:38 +0000 (UTC)
-Received: by mail-pl1-f171.google.com with SMTP id ay5so8651922plb.1
-        for <nvdimm@lists.linux.dev>; Fri, 04 Mar 2022 11:29:38 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=kernel-dk.20210112.gappssmtp.com; s=20210112;
-        h=from:to:cc:in-reply-to:references:subject:message-id:date
-         :mime-version:content-transfer-encoding;
-        bh=ngnYdHqHX0ob26fBskLNuWtCgUWkLmLTIT0t9WbICL4=;
-        b=Rnbcg4cjSLMt35FRWfDoCNwLG8yqIEcNC/4CDuqOeWUL2UbhD5icci+r2Vs6F+oKhv
-         Dm/P2jTtoALbDOce0IyLxnV8wEwzldwUNzUPSlySLaTJ19yqxQq+RGOiGpGrynEfk5gY
-         9tmt52DxY7GoyUlHxtomylt6F+cJdeiwaGHaspEoiRImWbfOqPglCdayEgI0ElKkMIyW
-         qtpd7NFyo8640nNaWdjrLgIJBNVGdwKCwS9yqD3zx4MgtHstP9TlXS3cUCKxGI88CTJZ
-         EEiFM/Lnz9ee2vdwEll1E5aN0rWTm0fqNv8DEwiAJn8YTbqzl+wE3dG3W6oPutlaw/SW
-         f5DQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:in-reply-to:references:subject
-         :message-id:date:mime-version:content-transfer-encoding;
-        bh=ngnYdHqHX0ob26fBskLNuWtCgUWkLmLTIT0t9WbICL4=;
-        b=KYQoyh/SR1I2CuT8FPx0IycyYYWXeplvVs8GJbDWhIfgpJInDTu4QEJzSXGTqTBThQ
-         fH3D9GL36oo20AnesJJbtHwyLeXtyabSq1sivGp0UFHgPjOO8n2IWiEix37gbFzxEONS
-         wRRt458cp8M48cuq3BrcLG7SaSNnxcUeHzsuS+KlyQ9EmNHHO4sv+EObW20l3IpgCFb/
-         9sYntUlHvxx3kZwyHZ9ukcSPM0A2DimJK/miY9dHS6p/VUcnbPZaRryXp9zLT4S680wS
-         r/Z9bT4ytFY1T5qs9ZJBatEVy4yNZJdssI6ENSvPh4FwPJ1Tof2zk1iSxfAFUIGKSuKd
-         dbaA==
-X-Gm-Message-State: AOAM530bGaZ3yp4pmLFaMkCYxQkZLi0SAzMQCdoZ5VeA0lLIolVsUiL2
-	EVANbz47ZOZP7O7mD4L9OaEE2g==
-X-Google-Smtp-Source: ABdhPJxOOPisoZmDfj6F3/n1EIPu2+rUEXchMh8/8sGgVHx2B8DfMALx8wwjZbLjjoqkE4MjHXrmVQ==
-X-Received: by 2002:a17:90b:1c8e:b0:1bf:364c:dd7a with SMTP id oo14-20020a17090b1c8e00b001bf364cdd7amr173281pjb.103.1646422177250;
-        Fri, 04 Mar 2022 11:29:37 -0800 (PST)
-Received: from [127.0.1.1] ([198.8.77.157])
-        by smtp.gmail.com with ESMTPSA id mu1-20020a17090b388100b001bedddf2000sm5521490pjb.14.2022.03.04.11.29.35
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 04 Mar 2022 11:29:36 -0800 (PST)
-From: Jens Axboe <axboe@kernel.dk>
-To: Christoph Hellwig <hch@lst.de>
-Cc: Justin Sanders <justin@coraid.com>, Nitin Gupta <ngupta@vflare.org>, nvdimm@lists.linux.dev, Vishal Verma <vishal.l.verma@intel.com>, linux-bcache@vger.kernel.org, Ira Weiny <ira.weiny@intel.com>, drbd-dev@lists.linbit.com, Philipp Reisner <philipp.reisner@linbit.com>, Minchan Kim <minchan@kernel.org>, linux-block@vger.kernel.org, linux-xtensa@linux-xtensa.org, Coly Li <colyli@suse.de>, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, Lars Ellenberg <lars.ellenberg@linbit.com>, Denis Efremov <efremov@linux.com>, Dan Williams <dan.j.williams@intel.com>
-In-Reply-To: <20220303111905.321089-2-hch@lst.de>
-References: <20220303111905.321089-1-hch@lst.de> <20220303111905.321089-2-hch@lst.de>
-Subject: Re: [PATCH 01/10] iss-simdisk: use bvec_kmap_local in simdisk_submit_bio
-Message-Id: <164642217510.204397.18145743592419266706.b4-ty@kernel.dk>
-Date: Fri, 04 Mar 2022 12:29:35 -0700
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A45B67C
+	for <nvdimm@lists.linux.dev>; Fri,  4 Mar 2022 20:06:49 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1646424409; x=1677960409;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=2wFb4XORpN4X8F27ESFc+Wqe0C3768OwOF1qujeQbM8=;
+  b=Ud08Nv3ja7MS8qYV180jx2bosM5katnN5Ubp/D3bNq32LLEe1q8Dbr70
+   F5ZXzKhsH9nD4EzCXBZbRpXOTtfzKTNPXDrkT7pjpYNPX0vCvgSq+H4LQ
+   RCMoGGSQywGmtFokM5lN2KDagziksQNQSw8iw/Ap+L3SBBdwKS7zgNtO1
+   eMmROMjuq5zXtL8jDoN85p9IvvHYMb2Y6bVuJoAGJyUa+jr5S3ntn5ILO
+   qvV4AXzY6QDXWTir6iCnMYUBN3x34mAZg2MmpMDj0o0+SuPXC5FTcNk5y
+   O0puAxRE3/RXJ7WHNwJ2otUopO0C7UZaPXbI2kP9R5mSezLie227xvusC
+   g==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10276"; a="251627921"
+X-IronPort-AV: E=Sophos;i="5.90,156,1643702400"; 
+   d="scan'208";a="251627921"
+Received: from orsmga006.jf.intel.com ([10.7.209.51])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Mar 2022 12:06:48 -0800
+X-IronPort-AV: E=Sophos;i="5.90,156,1643702400"; 
+   d="scan'208";a="511968298"
+Received: from rastinge-mobl1.amr.corp.intel.com (HELO vverma7-desk.amr.corp.intel.com) ([10.212.108.172])
+  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Mar 2022 12:06:48 -0800
+From: Vishal Verma <vishal.l.verma@intel.com>
+To: <nvdimm@lists.linux.dev>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH] scripts/docsurgeon: Fix document header for section 1 man pages
+Date: Fri,  4 Mar 2022 13:06:43 -0700
+Message-Id: <20220304200643.1626110-1-vishal.l.verma@intel.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1233; h=from:subject; bh=2wFb4XORpN4X8F27ESFc+Wqe0C3768OwOF1qujeQbM8=; b=owGbwMvMwCXGf25diOft7jLG02pJDElKhS7Fpdq2ogl5liqchkVy5pXicnLz8/SCl8/SeJDfx9Kt 2NlRysIgxsUgK6bI8nfPR8ZjctvzeQITHGHmsDKBDGHg4hSAicjfYmTYcWZjxeXEV+VbTnC94DVWki 21yL06xeolb87EWHnLZLafDH+F7jplLwoMFOjNaXf+u1Nf6USKLMvZrffuZG423FXDO5cRAA==
+X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp; fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
 Content-Transfer-Encoding: 8bit
 
-On Thu, 3 Mar 2022 14:18:56 +0300, Christoph Hellwig wrote:
-> Using local kmaps slightly reduces the chances to stray writes, and
-> the bvec interface cleans up the code a little bit.
-> 
-> 
+Document header generation for section 1 man pages (cxl-foo commands) was
+missing the section number in parenthesis, i.e. it would generate:
 
-Applied, thanks!
+  cxl-foo
+  =======
 
-[01/10] iss-simdisk: use bvec_kmap_local in simdisk_submit_bio
-        commit: 143a70b8b4300faa92ad82468f65dccd440e7957
-[02/10] aoe: use bvec_kmap_local in bvcpy
-        commit: b7ab4611b6c793100197abc93e069d6f9aab7960
-[03/10] zram: use memcpy_to_bvec in zram_bvec_read
-        commit: b3bd0a8a74ab970cc1cf0849e66bd0906741105b
-[04/10] zram: use memcpy_from_bvec in zram_bvec_write
-        commit: bd3d3203eb84d08a6daef805efe9316b79d3bf3c
-[05/10] nvdimm-blk: use bvec_kmap_local in nd_blk_rw_integrity
-        commit: 20072ec828640b7d23a0cfdbccf0dea48e77ba3e
-[06/10] nvdimm-btt: use bvec_kmap_local in btt_rw_integrity
-        commit: 3205190655ea56ea5e00815eeff4dab2bde0af80
-[07/10] bcache: use bvec_kmap_local in bio_csum
-        commit: 07fee7aba5472d0e65345146a68b4bd1a8b656c3
-[08/10] drbd: use bvec_kmap_local in drbd_csum_bio
-        commit: 472278508dce25316e806e45778658c3e4b353b3
-[09/10] drbd: use bvec_kmap_local in recv_dless_read
-        commit: 3eddaa60b8411c135d1c71090dea9b59ff3f2e26
-[10/10] floppy: use memcpy_{to,from}_bvec
-        commit: 13d4ef0f66b7ee9415e101e213acaf94a0cb28ee
+instead of:
 
-Best regards,
+  cxl-foo(1)
+  ==========
+
+resulting in asciidoc(tor) warnings.
+
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+ scripts/docsurgeon | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/scripts/docsurgeon b/scripts/docsurgeon
+index ca0ad78..1421ef7 100755
+--- a/scripts/docsurgeon
++++ b/scripts/docsurgeon
+@@ -244,7 +244,7 @@ gen_cli()
+ 
+ 	# Start template generation
+ 	printf "%s\n" "$copyright_cli" > "$tmp"
+-	gen_header "$name" >> "$tmp"
++	gen_header "$name($_arg_section)" >> "$tmp"
+ 	gen_section_name "$name" >> "$tmp"
+ 	gen_section_synopsis_1 "$name" >> "$tmp"
+ 	gen_section "DESCRIPTION" >> "$tmp"
+
+base-commit: 55f36387ee8a88c489863103347ae275b1bc9191
+prerequisite-patch-id: 24c7dc0c646c21238e4741a9432739788c908de7
+prerequisite-patch-id: 2f5ab7c9c5b30aa585956e8a43dd2ec4d92d6afb
+prerequisite-patch-id: 6ffa6ce0ea258fec17fa6066e4ee437ffd26307c
+prerequisite-patch-id: 98f586353f89820d0b0e294c165dbbd7306cdd40
+prerequisite-patch-id: 83f078f0afe936dc6f0e172f59da14412981a030
 -- 
-Jens Axboe
-
+2.34.1
 
