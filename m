@@ -1,38 +1,38 @@
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 813A47E
-	for <nvdimm@lists.linux.dev>; Fri,  4 Mar 2022 00:51:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04F677E
+	for <nvdimm@lists.linux.dev>; Fri,  4 Mar 2022 01:33:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1646355066; x=1677891066;
+  t=1646357616; x=1677893616;
   h=from:to:cc:subject:date:message-id:mime-version:
    content-transfer-encoding;
-  bh=bOlSA7wYoXhVYBU+aB/Iuek6BOIGklB9faL2KaZETpE=;
-  b=W4YChKVH6E3JNaMS8Je4Uhv0jAzcy7SBQ/97SZEWk3rpzCgp5sHFAcY4
-   VHAu/3rgl7lpb/MCPYusmdXBYN4fBPGrNgflBScr7G6vrX/XuBy8BkpXt
-   0X+QEw9uRjPtFfNs94bPXPl6miBqSnpd/8eZCbazYv3yAR7q8FZhsIggG
-   HUs5jZaTuo/w5MxKFtL/y7aks3Zb7rKXdSx9AeOVlAyIal00iDqq5e1ej
-   C6Q6HPiHvzMhCZs//Vj3zTA58Yb2K+nPXI358L/zMJBdIwToCw1mulZ4g
-   7S+va8yjqzeu9IeCtYpuq4N1206/xu31+YT9uKvfe0BwiRgNse+FJpFj4
+  bh=miLJJtPTRQFnJT9FxHFesNYqykx3c18f0yF6o+aSLsA=;
+  b=UlHH73R37C56TqF9Xx1y/bJbZdt9rJjj635VD0uIGnBZL5+N0LKPVvBG
+   xjOwS+67a6ruTu3FCqEBzZnhvOQaOpUijqoKk8jUuKpBZMZljrimX4YFx
+   Tc3XcTVXgWdbNKLuBGeF/AgAQU1EvY9/JcHnl+4Nl6oENnLjhTXnPkdpW
+   nSNy46+UGC6h+Q/fV2D2JNs8nCyZE2XZ6GeEDwSNgfflbN0sbOaa0KI0H
+   aWiqQy6QJl5wUP02pdkao+Q7vxRiStcJMCOMupyk0ZvYN111Fa/WGVzlu
+   zXjLhY7F2zKAopP6raGUuzLrWhEJfVtIZXCIx9F7AfhnwtWy0iTP45IS5
    g==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10275"; a="234467746"
+X-IronPort-AV: E=McAfee;i="6200,9189,10275"; a="233827058"
 X-IronPort-AV: E=Sophos;i="5.90,153,1643702400"; 
-   d="scan'208";a="234467746"
-Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Mar 2022 16:51:05 -0800
+   d="scan'208";a="233827058"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Mar 2022 17:33:35 -0800
 X-IronPort-AV: E=Sophos;i="5.90,153,1643702400"; 
-   d="scan'208";a="536082701"
+   d="scan'208";a="552020142"
 Received: from alison-desk.jf.intel.com (HELO localhost) ([10.54.74.41])
-  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Mar 2022 16:51:05 -0800
+  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Mar 2022 17:33:35 -0800
 From: alison.schofield@intel.com
 To: Vishal Verma <vishal.l.verma@intel.com>,
 	Dan Williams <dan.j.williams@intel.com>
 Cc: Alison Schofield <alison.schofield@intel.com>,
 	nvdimm@lists.linux.dev
-Subject: [ndctl PATCH] cxl/list: tidy the error path in add_cxl_decoder()
-Date: Thu,  3 Mar 2022 16:54:23 -0800
-Message-Id: <20220304005423.1054282-1-alison.schofield@intel.com>
+Subject: [ndctl PATCH] cxl/list: always free the path var in add_cxl_decoder()
+Date: Thu,  3 Mar 2022 17:36:43 -0800
+Message-Id: <20220304013643.1054605-1-alison.schofield@intel.com>
 X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -44,47 +44,33 @@ Content-Transfer-Encoding: 8bit
 
 From: Alison Schofield <alison.schofield@intel.com>
 
-Static analysis reported this NULL pointer dereference during
-cleanup on error in add_cxl_decoder().
+Static analysis reported a resource leak where the 'path' variable was
+not always freed before returns.
 
 Fixes: 46564977afb7 ("cxl/list: Add decoder support")
 Signed-off-by: Alison Schofield <alison.schofield@intel.com>
 ---
- cxl/lib/libcxl.c | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ cxl/lib/libcxl.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
 diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
-index daa2bbc5a299..27c9e2ef8bc5 100644
+index daa2bbc5a299..aad7559daba2 100644
 --- a/cxl/lib/libcxl.c
 +++ b/cxl/lib/libcxl.c
-@@ -919,11 +919,11 @@ static void *add_cxl_decoder(void *parent, int id, const char *cxldecoder_base)
+@@ -1018,11 +1018,13 @@ static void *add_cxl_decoder(void *parent, int id, const char *cxldecoder_base)
+ 	cxl_decoder_foreach(port, decoder_dup)
+ 		if (decoder_dup->id == decoder->id) {
+ 			free_decoder(decoder, NULL);
++			free(path);
+ 			return decoder_dup;
+ 		}
  
- 	decoder->dev_path = strdup(cxldecoder_base);
- 	if (!decoder->dev_path)
--		goto err;
-+		goto err_decoder;
- 
- 	decoder->dev_buf = calloc(1, strlen(cxldecoder_base) + 50);
- 	if (!decoder->dev_buf)
--		goto err;
-+		goto err_decoder;
- 	decoder->buf_len = strlen(cxldecoder_base) + 50;
- 
- 	sprintf(path, "%s/start", cxldecoder_base);
-@@ -1024,10 +1024,12 @@ static void *add_cxl_decoder(void *parent, int id, const char *cxldecoder_base)
  	list_add(&port->decoders, &decoder->list);
  
++	free(path);
  	return decoder;
--err:
-+
-+err_decoder:
+ err:
  	free(decoder->dev_path);
- 	free(decoder->dev_buf);
- 	free(decoder);
-+err:
- 	free(path);
- 	return NULL;
- }
 
 base-commit: 3b5fb8b6428dfaab39bab58d67412427f514c1f4
 -- 
