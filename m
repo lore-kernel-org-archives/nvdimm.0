@@ -1,145 +1,89 @@
-Received: from ms.lwn.net (ms.lwn.net [45.79.88.28])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f171.google.com (mail-pl1-f171.google.com [209.85.214.171])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99EDAC7C
-	for <nvdimm@lists.linux.dev>; Fri,  4 Mar 2022 15:30:53 +0000 (UTC)
-Received: from localhost (unknown [IPv6:2601:281:8300:104d::5f6])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by ms.lwn.net (Postfix) with ESMTPSA id 458762B2;
-	Fri,  4 Mar 2022 15:21:29 +0000 (UTC)
-DKIM-Filter: OpenDKIM Filter v2.11.0 ms.lwn.net 458762B2
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=lwn.net; s=20201203;
-	t=1646407289; bh=AhHVtg/426WKGFSGTFlnmzgHgc/rCgdo3CzDRsHi0+U=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
-	b=I3ux9Nk937rQeghegNLHqwynXlUDCPBjc6XCc5xU2k9JBfKg23znK5PB2A7+q5Sb1
-	 wi/IqKiBgXGlqHy8fWTkBD0R3cmC7B79cgCjsiYX3N3voagDXFFhX6ugQAYH6cz1WB
-	 GLULLzOYIYtaLmHWI+8sGYicc8t/uZ9/0r08F2YFoVH8og07/Fb5QLvPvCX+6OfUgk
-	 M2RXgXqAbkRwUQNm+JBxUw0gZ2JaTkWFQb75GREUjc1T5i8loQXva/A+M+yE2dXbo4
-	 1ZtWBAJ5zXMT+frhWE8LP5FmBN7VPxeRT64AgHtBge4eiT6R1dRPxPH6moli6eiy+h
-	 bzSfHxwdaAZPw==
-From: Jonathan Corbet <corbet@lwn.net>
-To: Joao Martins <joao.m.martins@oracle.com>, linux-mm@kvack.org
-Cc: Dan Williams <dan.j.williams@intel.com>, Vishal Verma
- <vishal.l.verma@intel.com>, Matthew Wilcox <willy@infradead.org>, Jason
- Gunthorpe <jgg@ziepe.ca>, Jane Chu <jane.chu@oracle.com>, Muchun Song
- <songmuchun@bytedance.com>, Mike Kravetz <mike.kravetz@oracle.com>, Andrew
- Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@lst.de>,
- nvdimm@lists.linux.dev, linux-doc@vger.kernel.org, Joao Martins
- <joao.m.martins@oracle.com>
-Subject: Re: [PATCH v7 3/5] mm/hugetlb_vmemmap: move comment block to
- Documentation/vm
-In-Reply-To: <20220303213252.28593-4-joao.m.martins@oracle.com>
-References: <20220303213252.28593-1-joao.m.martins@oracle.com>
- <20220303213252.28593-4-joao.m.martins@oracle.com>
-Date: Fri, 04 Mar 2022 08:21:28 -0700
-Message-ID: <87r17hhhfr.fsf@meer.lwn.net>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FF557C
+	for <nvdimm@lists.linux.dev>; Fri,  4 Mar 2022 19:29:38 +0000 (UTC)
+Received: by mail-pl1-f171.google.com with SMTP id ay5so8651922plb.1
+        for <nvdimm@lists.linux.dev>; Fri, 04 Mar 2022 11:29:38 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=kernel-dk.20210112.gappssmtp.com; s=20210112;
+        h=from:to:cc:in-reply-to:references:subject:message-id:date
+         :mime-version:content-transfer-encoding;
+        bh=ngnYdHqHX0ob26fBskLNuWtCgUWkLmLTIT0t9WbICL4=;
+        b=Rnbcg4cjSLMt35FRWfDoCNwLG8yqIEcNC/4CDuqOeWUL2UbhD5icci+r2Vs6F+oKhv
+         Dm/P2jTtoALbDOce0IyLxnV8wEwzldwUNzUPSlySLaTJ19yqxQq+RGOiGpGrynEfk5gY
+         9tmt52DxY7GoyUlHxtomylt6F+cJdeiwaGHaspEoiRImWbfOqPglCdayEgI0ElKkMIyW
+         qtpd7NFyo8640nNaWdjrLgIJBNVGdwKCwS9yqD3zx4MgtHstP9TlXS3cUCKxGI88CTJZ
+         EEiFM/Lnz9ee2vdwEll1E5aN0rWTm0fqNv8DEwiAJn8YTbqzl+wE3dG3W6oPutlaw/SW
+         f5DQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:in-reply-to:references:subject
+         :message-id:date:mime-version:content-transfer-encoding;
+        bh=ngnYdHqHX0ob26fBskLNuWtCgUWkLmLTIT0t9WbICL4=;
+        b=KYQoyh/SR1I2CuT8FPx0IycyYYWXeplvVs8GJbDWhIfgpJInDTu4QEJzSXGTqTBThQ
+         fH3D9GL36oo20AnesJJbtHwyLeXtyabSq1sivGp0UFHgPjOO8n2IWiEix37gbFzxEONS
+         wRRt458cp8M48cuq3BrcLG7SaSNnxcUeHzsuS+KlyQ9EmNHHO4sv+EObW20l3IpgCFb/
+         9sYntUlHvxx3kZwyHZ9ukcSPM0A2DimJK/miY9dHS6p/VUcnbPZaRryXp9zLT4S680wS
+         r/Z9bT4ytFY1T5qs9ZJBatEVy4yNZJdssI6ENSvPh4FwPJ1Tof2zk1iSxfAFUIGKSuKd
+         dbaA==
+X-Gm-Message-State: AOAM530bGaZ3yp4pmLFaMkCYxQkZLi0SAzMQCdoZ5VeA0lLIolVsUiL2
+	EVANbz47ZOZP7O7mD4L9OaEE2g==
+X-Google-Smtp-Source: ABdhPJxOOPisoZmDfj6F3/n1EIPu2+rUEXchMh8/8sGgVHx2B8DfMALx8wwjZbLjjoqkE4MjHXrmVQ==
+X-Received: by 2002:a17:90b:1c8e:b0:1bf:364c:dd7a with SMTP id oo14-20020a17090b1c8e00b001bf364cdd7amr173281pjb.103.1646422177250;
+        Fri, 04 Mar 2022 11:29:37 -0800 (PST)
+Received: from [127.0.1.1] ([198.8.77.157])
+        by smtp.gmail.com with ESMTPSA id mu1-20020a17090b388100b001bedddf2000sm5521490pjb.14.2022.03.04.11.29.35
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 04 Mar 2022 11:29:36 -0800 (PST)
+From: Jens Axboe <axboe@kernel.dk>
+To: Christoph Hellwig <hch@lst.de>
+Cc: Justin Sanders <justin@coraid.com>, Nitin Gupta <ngupta@vflare.org>, nvdimm@lists.linux.dev, Vishal Verma <vishal.l.verma@intel.com>, linux-bcache@vger.kernel.org, Ira Weiny <ira.weiny@intel.com>, drbd-dev@lists.linbit.com, Philipp Reisner <philipp.reisner@linbit.com>, Minchan Kim <minchan@kernel.org>, linux-block@vger.kernel.org, linux-xtensa@linux-xtensa.org, Coly Li <colyli@suse.de>, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, Lars Ellenberg <lars.ellenberg@linbit.com>, Denis Efremov <efremov@linux.com>, Dan Williams <dan.j.williams@intel.com>
+In-Reply-To: <20220303111905.321089-2-hch@lst.de>
+References: <20220303111905.321089-1-hch@lst.de> <20220303111905.321089-2-hch@lst.de>
+Subject: Re: [PATCH 01/10] iss-simdisk: use bvec_kmap_local in simdisk_submit_bio
+Message-Id: <164642217510.204397.18145743592419266706.b4-ty@kernel.dk>
+Date: Fri, 04 Mar 2022 12:29:35 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 
-Joao Martins <joao.m.martins@oracle.com> writes:
+On Thu, 3 Mar 2022 14:18:56 +0300, Christoph Hellwig wrote:
+> Using local kmaps slightly reduces the chances to stray writes, and
+> the bvec interface cleans up the code a little bit.
+> 
+> 
 
-> In preparation for device-dax for using hugetlbfs compound page tail
-> deduplication technique, move the comment block explanation into a
-> common place in Documentation/vm.
->
-> Cc: Muchun Song <songmuchun@bytedance.com>
-> Cc: Mike Kravetz <mike.kravetz@oracle.com>
-> Suggested-by: Dan Williams <dan.j.williams@intel.com>
-> Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
-> Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-> Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-> ---
->  Documentation/vm/index.rst         |   1 +
->  Documentation/vm/vmemmap_dedup.rst | 175 +++++++++++++++++++++++++++++
->  mm/hugetlb_vmemmap.c               | 168 +--------------------------
->  3 files changed, 177 insertions(+), 167 deletions(-)
->  create mode 100644 Documentation/vm/vmemmap_dedup.rst
+Applied, thanks!
 
-Thanks for remembering to add this to the index.rst file!  That said, I
-get the impression you didn't actually build the docs afterward and look
-at the result; there are a number of things here that won't render the
-way you might like.
+[01/10] iss-simdisk: use bvec_kmap_local in simdisk_submit_bio
+        commit: 143a70b8b4300faa92ad82468f65dccd440e7957
+[02/10] aoe: use bvec_kmap_local in bvcpy
+        commit: b7ab4611b6c793100197abc93e069d6f9aab7960
+[03/10] zram: use memcpy_to_bvec in zram_bvec_read
+        commit: b3bd0a8a74ab970cc1cf0849e66bd0906741105b
+[04/10] zram: use memcpy_from_bvec in zram_bvec_write
+        commit: bd3d3203eb84d08a6daef805efe9316b79d3bf3c
+[05/10] nvdimm-blk: use bvec_kmap_local in nd_blk_rw_integrity
+        commit: 20072ec828640b7d23a0cfdbccf0dea48e77ba3e
+[06/10] nvdimm-btt: use bvec_kmap_local in btt_rw_integrity
+        commit: 3205190655ea56ea5e00815eeff4dab2bde0af80
+[07/10] bcache: use bvec_kmap_local in bio_csum
+        commit: 07fee7aba5472d0e65345146a68b4bd1a8b656c3
+[08/10] drbd: use bvec_kmap_local in drbd_csum_bio
+        commit: 472278508dce25316e806e45778658c3e4b353b3
+[09/10] drbd: use bvec_kmap_local in recv_dless_read
+        commit: 3eddaa60b8411c135d1c71090dea9b59ff3f2e26
+[10/10] floppy: use memcpy_{to,from}_bvec
+        commit: 13d4ef0f66b7ee9415e101e213acaf94a0cb28ee
 
-> diff --git a/Documentation/vm/index.rst b/Documentation/vm/index.rst
-> index 44365c4574a3..2fb612bb72c9 100644
-> --- a/Documentation/vm/index.rst
-> +++ b/Documentation/vm/index.rst
-> @@ -37,5 +37,6 @@ algorithms.  If you are looking for advice on simply allocating memory, see the
->     transhuge
->     unevictable-lru
->     vmalloced-kernel-stacks
-> +   vmemmap_dedup
->     z3fold
->     zsmalloc
-> diff --git a/Documentation/vm/vmemmap_dedup.rst b/Documentation/vm/vmemmap_dedup.rst
-> new file mode 100644
-> index 000000000000..8143b2ce414d
-> --- /dev/null
-> +++ b/Documentation/vm/vmemmap_dedup.rst
-> @@ -0,0 +1,175 @@
-> +.. SPDX-License-Identifier: GPL-2.0
-> +
-> +.. _vmemmap_dedup:
+Best regards,
+-- 
+Jens Axboe
 
-This label isn't needed, I'd take it out.
 
-> +==================================
-> +Free some vmemmap pages of HugeTLB
-> +==================================
-> +
-> +The struct page structures (page structs) are used to describe a physical
-> +page frame. By default, there is a one-to-one mapping from a page frame to
-> +it's corresponding page struct.
-> +
-> +HugeTLB pages consist of multiple base page size pages and is supported by
-> +many architectures. See hugetlbpage.rst in the Documentation directory for
-> +more details. On the x86-64 architecture, HugeTLB pages of size 2MB and 1GB
-> +are currently supported. Since the base page size on x86 is 4KB, a 2MB
-> +HugeTLB page consists of 512 base pages and a 1GB HugeTLB page consists of
-> +4096 base pages. For each base page, there is a corresponding page struct.
-> +
-> +Within the HugeTLB subsystem, only the first 4 page structs are used to
-> +contain unique information about a HugeTLB page. __NR_USED_SUBPAGE provides
-> +this upper limit. The only 'useful' information in the remaining page structs
-> +is the compound_head field, and this field is the same for all tail pages.
-> +
-> +By removing redundant page structs for HugeTLB pages, memory can be returned
-> +to the buddy allocator for other uses.
-> +
-> +Different architectures support different HugeTLB pages. For example, the
-> +following table is the HugeTLB page size supported by x86 and arm64
-> +architectures. Because arm64 supports 4k, 16k, and 64k base pages and
-> +supports contiguous entries, so it supports many kinds of sizes of HugeTLB
-> +page.
-> +
-> ++--------------+-----------+-----------------------------------------------+
-> +| Architecture | Page Size |                HugeTLB Page Size              |
-> ++--------------+-----------+-----------+-----------+-----------+-----------+
-> +|    x86-64    |    4KB    |    2MB    |    1GB    |           |           |
-> ++--------------+-----------+-----------+-----------+-----------+-----------+
-> +|              |    4KB    |   64KB    |    2MB    |    32MB   |    1GB    |
-> +|              +-----------+-----------+-----------+-----------+-----------+
-> +|    arm64     |   16KB    |    2MB    |   32MB    |     1GB   |           |
-> +|              +-----------+-----------+-----------+-----------+-----------+
-> +|              |   64KB    |    2MB    |  512MB    |    16GB   |           |
-> ++--------------+-----------+-----------+-----------+-----------+-----------+
-> +
-> +When the system boot up, every HugeTLB page has more than one struct page
-> +structs which size is (unit: pages):
-> +
-> +   struct_size = HugeTLB_Size / PAGE_SIZE * sizeof(struct page) / PAGE_SIZE
-
-This, for example, needs to be in a literal block or you won't get what
-you expect; that's true of all of the code samples and ascii-art
-sections.  Easiest way to do that is to end the preceding text line with
-:: instead of :
-
-Thanks,
-
-jon
