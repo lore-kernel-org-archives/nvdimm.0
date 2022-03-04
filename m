@@ -1,85 +1,72 @@
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A45B67C
-	for <nvdimm@lists.linux.dev>; Fri,  4 Mar 2022 20:06:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80F5F7C
+	for <nvdimm@lists.linux.dev>; Fri,  4 Mar 2022 20:38:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1646424409; x=1677960409;
+  t=1646426307; x=1677962307;
   h=from:to:cc:subject:date:message-id:mime-version:
    content-transfer-encoding;
-  bh=2wFb4XORpN4X8F27ESFc+Wqe0C3768OwOF1qujeQbM8=;
-  b=Ud08Nv3ja7MS8qYV180jx2bosM5katnN5Ubp/D3bNq32LLEe1q8Dbr70
-   F5ZXzKhsH9nD4EzCXBZbRpXOTtfzKTNPXDrkT7pjpYNPX0vCvgSq+H4LQ
-   RCMoGGSQywGmtFokM5lN2KDagziksQNQSw8iw/Ap+L3SBBdwKS7zgNtO1
-   eMmROMjuq5zXtL8jDoN85p9IvvHYMb2Y6bVuJoAGJyUa+jr5S3ntn5ILO
-   qvV4AXzY6QDXWTir6iCnMYUBN3x34mAZg2MmpMDj0o0+SuPXC5FTcNk5y
-   O0puAxRE3/RXJ7WHNwJ2otUopO0C7UZaPXbI2kP9R5mSezLie227xvusC
-   g==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10276"; a="251627921"
+  bh=Qs3a6PKS/vw255yCbjn82naIiLf6goziVSIh6w6iGzQ=;
+  b=BSWOvMw82E4N27P9ZYG1cnNznJYFK70Vz77x/OIhfSGCpCQdqedMLg8o
+   38m14SRZfn3y/uRjoSSNpWPLXTdqeUfwwAX3HPijKDSJj+6237PMZl8ok
+   RxM9r/s9aqSzeSkA9gSn51Ujszyki+iuy0RmuYI/Wr7JxI/KMMWuKMKqG
+   t09C9NEn6jgEA4UVuAAevY8j+S/ktEyjKOxWGQ+Ot+EPvCwF1+KlvbkKr
+   FgyFq+DUohr+5ulBdN2IJDuHaAs7bWzElEf29KteEgTliPv78ml5WGHbf
+   BM2BNktw0vQnaTalpugHbbDvSKHYAXjCTemw1cIqHvdnat0FF/E/x6fQO
+   w==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10276"; a="317290878"
 X-IronPort-AV: E=Sophos;i="5.90,156,1643702400"; 
-   d="scan'208";a="251627921"
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Mar 2022 12:06:48 -0800
+   d="scan'208";a="317290878"
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Mar 2022 12:38:26 -0800
 X-IronPort-AV: E=Sophos;i="5.90,156,1643702400"; 
-   d="scan'208";a="511968298"
-Received: from rastinge-mobl1.amr.corp.intel.com (HELO vverma7-desk.amr.corp.intel.com) ([10.212.108.172])
-  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Mar 2022 12:06:48 -0800
-From: Vishal Verma <vishal.l.verma@intel.com>
-To: <nvdimm@lists.linux.dev>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH] scripts/docsurgeon: Fix document header for section 1 man pages
-Date: Fri,  4 Mar 2022 13:06:43 -0700
-Message-Id: <20220304200643.1626110-1-vishal.l.verma@intel.com>
-X-Mailer: git-send-email 2.34.1
+   d="scan'208";a="536399443"
+Received: from fushengl-mobl1.amr.corp.intel.com (HELO localhost) ([10.212.64.239])
+  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Mar 2022 12:38:26 -0800
+From: ira.weiny@intel.com
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>,
+	Ira Weiny <ira.weiny@intel.com>,
+	nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] fs/dax: Fix run_dax() missing prototype
+Date: Fri,  4 Mar 2022 12:37:56 -0800
+Message-Id: <20220304203756.3487910-1-ira.weiny@intel.com>
+X-Mailer: git-send-email 2.35.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1233; h=from:subject; bh=2wFb4XORpN4X8F27ESFc+Wqe0C3768OwOF1qujeQbM8=; b=owGbwMvMwCXGf25diOft7jLG02pJDElKhS7Fpdq2ogl5liqchkVy5pXicnLz8/SCl8/SeJDfx9Kt 2NlRysIgxsUgK6bI8nfPR8ZjctvzeQITHGHmsDKBDGHg4hSAicjfYmTYcWZjxeXEV+VbTnC94DVWki 21yL06xeolb87EWHnLZLafDH+F7jplLwoMFOjNaXf+u1Nf6USKLMvZrffuZG423FXDO5cRAA==
-X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp; fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
 Content-Transfer-Encoding: 8bit
 
-Document header generation for section 1 man pages (cxl-foo commands) was
-missing the section number in parenthesis, i.e. it would generate:
+From: Ira Weiny <ira.weiny@intel.com>
 
-  cxl-foo
-  =======
+The function run_dax() was missing a prototype when compiling with
+warnings.
 
-instead of:
+Add bus.h to fix this.
 
-  cxl-foo(1)
-  ==========
-
-resulting in asciidoc(tor) warnings.
-
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 ---
- scripts/docsurgeon | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/dax/super.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/scripts/docsurgeon b/scripts/docsurgeon
-index ca0ad78..1421ef7 100755
---- a/scripts/docsurgeon
-+++ b/scripts/docsurgeon
-@@ -244,7 +244,7 @@ gen_cli()
+diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+index e3029389d809..5c003cc73d04 100644
+--- a/drivers/dax/super.c
++++ b/drivers/dax/super.c
+@@ -14,6 +14,7 @@
+ #include <linux/dax.h>
+ #include <linux/fs.h>
+ #include "dax-private.h"
++#include "bus.h"
  
- 	# Start template generation
- 	printf "%s\n" "$copyright_cli" > "$tmp"
--	gen_header "$name" >> "$tmp"
-+	gen_header "$name($_arg_section)" >> "$tmp"
- 	gen_section_name "$name" >> "$tmp"
- 	gen_section_synopsis_1 "$name" >> "$tmp"
- 	gen_section "DESCRIPTION" >> "$tmp"
-
-base-commit: 55f36387ee8a88c489863103347ae275b1bc9191
-prerequisite-patch-id: 24c7dc0c646c21238e4741a9432739788c908de7
-prerequisite-patch-id: 2f5ab7c9c5b30aa585956e8a43dd2ec4d92d6afb
-prerequisite-patch-id: 6ffa6ce0ea258fec17fa6066e4ee437ffd26307c
-prerequisite-patch-id: 98f586353f89820d0b0e294c165dbbd7306cdd40
-prerequisite-patch-id: 83f078f0afe936dc6f0e172f59da14412981a030
+ /**
+  * struct dax_device - anchor object for dax services
 -- 
-2.34.1
+2.35.1
 
