@@ -1,88 +1,92 @@
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yb1-f181.google.com (mail-yb1-f181.google.com [209.85.219.181])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E73407C
-	for <nvdimm@lists.linux.dev>; Fri,  4 Mar 2022 03:06:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1646363190; x=1677899190;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=Lc9qHdOlafcJNOz8evKbREjH7xRoVMfzT76IGNVrBPY=;
-  b=QBlfF2LJyC3Lrs/hHEruWOhPtIN/MUm85E9FkM73I5fTKdG7DciwLr6L
-   SKC9fv8rOYAFIwvZ7t9VnSR3gPA3g8JKXSZrIEfnHdwPBZ5XLnhaJjS62
-   Jcb2V/gCqnnuLKx1n/OQUp0AuUQURu32hGRHWx0gdbMxRNVnByQOmPvjr
-   H3GeoQNhl5AqcJ1FxgH5ro5/dxPI2t5jS5mWKNYkrBdEh83Eif9sKK/Ze
-   kH3uf0gDb41VZ7PTNUpuOJku3v06+HNQmz45k9hnBOEqHy5TW1P/m7Gjx
-   khOt/T/L6njIiyZYGDez3dVlS65E7vEpAtttzBYxhCjxUO1pvEtccHC7A
-   Q==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10275"; a="314595013"
-X-IronPort-AV: E=Sophos;i="5.90,154,1643702400"; 
-   d="scan'208";a="314595013"
-Received: from fmsmga007.fm.intel.com ([10.253.24.52])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Mar 2022 19:06:12 -0800
-X-IronPort-AV: E=Sophos;i="5.90,154,1643702400"; 
-   d="scan'208";a="546100598"
-Received: from harikara-mobl.amr.corp.intel.com (HELO localhost) ([10.212.33.238])
-  by fmsmga007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Mar 2022 19:06:11 -0800
-Date: Thu, 3 Mar 2022 19:06:11 -0800
-From: Ira Weiny <ira.weiny@intel.com>
-To: Christoph Hellwig <hch@lst.de>
-Cc: Jens Axboe <axboe@kernel.dk>, Chris Zankel <chris@zankel.net>,
-	Max Filippov <jcmvbkbc@gmail.com>,
-	Justin Sanders <justin@coraid.com>,
-	Philipp Reisner <philipp.reisner@linbit.com>,
-	Lars Ellenberg <lars.ellenberg@linbit.com>,
-	Denis Efremov <efremov@linux.com>, Minchan Kim <minchan@kernel.org>,
-	Nitin Gupta <ngupta@vflare.org>, Coly Li <colyli@suse.de>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	linux-xtensa@linux-xtensa.org, linux-block@vger.kernel.org,
-	drbd-dev@lists.linbit.com, linux-bcache@vger.kernel.org,
-	nvdimm@lists.linux.dev
-Subject: Re: [PATCH 07/10] bcache: use bvec_kmap_local in bio_csum
-Message-ID: <YiGCIzAwEO+o9pEj@iweiny-desk3>
-References: <20220303111905.321089-1-hch@lst.de>
- <20220303111905.321089-8-hch@lst.de>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09C647C
+	for <nvdimm@lists.linux.dev>; Fri,  4 Mar 2022 03:09:58 +0000 (UTC)
+Received: by mail-yb1-f181.google.com with SMTP id f5so14212775ybg.9
+        for <nvdimm@lists.linux.dev>; Thu, 03 Mar 2022 19:09:58 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=bytedance-com.20210112.gappssmtp.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=6q+ly/u39xYyKacUqKnY0+oHLRpmW1dHHfAGkiJCu1Y=;
+        b=u3huWPeiz+Oe7K8PoY56nQ1fGZIlx5pbI1hIo7DmXRqmm88lM/h9wHq5wPisneW+3a
+         i0lkATj0Tl5U90bQYe/pVgB9s3qNBIbZ5Idd8JZycguC0ViPbTVWGAkt4uXfvY9xdTHU
+         GewXmlMYyrX+Jn38s7VSvnoEE0CU8K1ZcpP7EQDdaTlD2P6rIcAMF2MeCHJQobwlqX5s
+         jIj6tX9ZiYJfiq68xVLTy/F5Wy0d3KKdnDgOiHcoih7x9LRQu18KasD4umDe5Mr5SWuc
+         hIEKFs4kHra0W1WxYTsB3lG77rF080+GqLkMKeIXC/7C14sC4/Qe+oXSb5tqMofwU/Bd
+         xukQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=6q+ly/u39xYyKacUqKnY0+oHLRpmW1dHHfAGkiJCu1Y=;
+        b=Oe8zLYxtvguqKqxgULehgliroBQwOiTa86vYDd5svfyMe9ZR86dfzFgPDylWrhPHt3
+         s6ne4WdxR/0Y+vTlBjLxVI/rgt6AVv6xlIS2oTU3eCFnL+e1bO6nE11ua4VECTqryUQg
+         1MuNga8RIeY1huN58vd0xrmNJ2TP90fNiiFVudgjpvM1MiyVTyHZArp5ZrfTt/jnrZeb
+         jq0sZcl4AqA01GLLimAbRpQmDWxTD0rWghTViW+R1YE7XID2bItu2R5hlIzDiamckepC
+         bGu7sAQFLzPhIWZ8mdzPQLCEze6tmN23AN1CwPUH6u1jnS/v02fE/wh0MkPzsw324nAX
+         YxIg==
+X-Gm-Message-State: AOAM533NUwahP5W9R1zeAB3cmUx5YQT5l6Go9pPUTL8rcTXLMh4bqT1T
+	6c+8nrezX9kqFN1i/6umyDAtGQVs8KQlIe0/xcuNSA==
+X-Google-Smtp-Source: ABdhPJwn1/iKslLrd8kE67UZS3lsvCoC1aQ/in9KlZnkDOoOUsMSdpG+WvlGFvaQ1Sn1SoK7DfyY1+ZgFIwe/+lG8Bg=
+X-Received: by 2002:a25:3d87:0:b0:61e:170c:aa9 with SMTP id
+ k129-20020a253d87000000b0061e170c0aa9mr35759918yba.89.1646363397800; Thu, 03
+ Mar 2022 19:09:57 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220303111905.321089-8-hch@lst.de>
+References: <20220303213252.28593-1-joao.m.martins@oracle.com> <20220303213252.28593-5-joao.m.martins@oracle.com>
+In-Reply-To: <20220303213252.28593-5-joao.m.martins@oracle.com>
+From: Muchun Song <songmuchun@bytedance.com>
+Date: Fri, 4 Mar 2022 11:09:10 +0800
+Message-ID: <CAMZfGtWmRfSzN+U-jxVXu6x3nRxHB2Wxse5y5835ezGzSqAQpA@mail.gmail.com>
+Subject: Re: [PATCH v7 4/5] mm/sparse-vmemmap: improve memory savings for
+ compound devmaps
+To: Joao Martins <joao.m.martins@oracle.com>
+Cc: Linux Memory Management List <linux-mm@kvack.org>, Dan Williams <dan.j.williams@intel.com>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Matthew Wilcox <willy@infradead.org>, 
+	Jason Gunthorpe <jgg@ziepe.ca>, Jane Chu <jane.chu@oracle.com>, 
+	Mike Kravetz <mike.kravetz@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, 
+	Jonathan Corbet <corbet@lwn.net>, Christoph Hellwig <hch@lst.de>, nvdimm@lists.linux.dev, 
+	Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 
-On Thu, Mar 03, 2022 at 02:19:02PM +0300, Christoph Hellwig wrote:
-> Using local kmaps slightly reduces the chances to stray writes, and
-> the bvec interface cleans up the code a little bit.
-> 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
+On Fri, Mar 4, 2022 at 5:33 AM Joao Martins <joao.m.martins@oracle.com> wrote:
+>
+> A compound devmap is a dev_pagemap with @vmemmap_shift > 0 and it
+> means that pages are mapped at a given huge page alignment and utilize
+> uses compound pages as opposed to order-0 pages.
+>
+> Take advantage of the fact that most tail pages look the same (except
+> the first two) to minimize struct page overhead. Allocate a separate
+> page for the vmemmap area which contains the head page and separate for
+> the next 64 pages. The rest of the subsections then reuse this tail
+> vmemmap page to initialize the rest of the tail pages.
+>
+> Sections are arch-dependent (e.g. on x86 it's 64M, 128M or 512M) and
+> when initializing compound devmap with big enough @vmemmap_shift (e.g.
+> 1G PUD) it may cross multiple sections. The vmemmap code needs to
+> consult @pgmap so that multiple sections that all map the same tail
+> data can refer back to the first copy of that data for a given
+> gigantic page.
+>
+> On compound devmaps with 2M align, this mechanism lets 6 pages be
+> saved out of the 8 necessary PFNs necessary to set the subsection's
+> 512 struct pages being mapped. On a 1G compound devmap it saves
+> 4094 pages.
+>
+> Altmap isn't supported yet, given various restrictions in altmap pfn
+> allocator, thus fallback to the already in use vmemmap_populate().  It
+> is worth noting that altmap for devmap mappings was there to relieve the
+> pressure of inordinate amounts of memmap space to map terabytes of pmem.
+> With compound pages the motivation for altmaps for pmem gets reduced.
+>
+> Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
 
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
 
-> ---
->  drivers/md/bcache/request.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/md/bcache/request.c b/drivers/md/bcache/request.c
-> index 6869e010475a3..fdd0194f84dd0 100644
-> --- a/drivers/md/bcache/request.c
-> +++ b/drivers/md/bcache/request.c
-> @@ -44,10 +44,10 @@ static void bio_csum(struct bio *bio, struct bkey *k)
->  	uint64_t csum = 0;
->  
->  	bio_for_each_segment(bv, bio, iter) {
-> -		void *d = kmap(bv.bv_page) + bv.bv_offset;
-> +		void *d = bvec_kmap_local(&bv);
->  
->  		csum = crc64_be(csum, d, bv.bv_len);
-> -		kunmap(bv.bv_page);
-> +		kunmap_local(d);
->  	}
->  
->  	k->ptr[KEY_PTRS(k)] = csum & (~0ULL >> 1);
-> -- 
-> 2.30.2
-> 
+Thanks.
