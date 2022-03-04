@@ -1,78 +1,97 @@
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04F677E
-	for <nvdimm@lists.linux.dev>; Fri,  4 Mar 2022 01:33:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 018587C
+	for <nvdimm@lists.linux.dev>; Fri,  4 Mar 2022 03:05:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1646357616; x=1677893616;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=miLJJtPTRQFnJT9FxHFesNYqykx3c18f0yF6o+aSLsA=;
-  b=UlHH73R37C56TqF9Xx1y/bJbZdt9rJjj635VD0uIGnBZL5+N0LKPVvBG
-   xjOwS+67a6ruTu3FCqEBzZnhvOQaOpUijqoKk8jUuKpBZMZljrimX4YFx
-   Tc3XcTVXgWdbNKLuBGeF/AgAQU1EvY9/JcHnl+4Nl6oENnLjhTXnPkdpW
-   nSNy46+UGC6h+Q/fV2D2JNs8nCyZE2XZ6GeEDwSNgfflbN0sbOaa0KI0H
-   aWiqQy6QJl5wUP02pdkao+Q7vxRiStcJMCOMupyk0ZvYN111Fa/WGVzlu
-   zXjLhY7F2zKAopP6raGUuzLrWhEJfVtIZXCIx9F7AfhnwtWy0iTP45IS5
-   g==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10275"; a="233827058"
-X-IronPort-AV: E=Sophos;i="5.90,153,1643702400"; 
-   d="scan'208";a="233827058"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Mar 2022 17:33:35 -0800
-X-IronPort-AV: E=Sophos;i="5.90,153,1643702400"; 
-   d="scan'208";a="552020142"
-Received: from alison-desk.jf.intel.com (HELO localhost) ([10.54.74.41])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Mar 2022 17:33:35 -0800
-From: alison.schofield@intel.com
-To: Vishal Verma <vishal.l.verma@intel.com>,
-	Dan Williams <dan.j.williams@intel.com>
-Cc: Alison Schofield <alison.schofield@intel.com>,
+  t=1646363115; x=1677899115;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=NGtX8x+qRt4S4GlNdmZaoqv+f3P3AFsYWBvI67NNPak=;
+  b=GpaAOreTY4fMHkJPX9LwW12dUhJbnVxcDg7SSGbilNxtuDXSP7jTNgZ2
+   fI0I2AznkoA4+0E5gfPNYhkw+jtjDF08bVQKpJO2D9XpMn2jZRWFjulcu
+   5O702xe0zvOtfL+vlOCjbxzwIC5cWO+UA//eXAk2Guyt7LCWS039YAq5K
+   xL8qR6S7l/qHkSnPy7JBMm6i0Cn6X+K6/zsFlTGBa//se0mgVGIrql4Nt
+   +BEnKtR02afR8Faw19iuQAsQK0JaWvDZLHuCQjGjtmHKpqaH6nCCJTAJG
+   +gF0CdZVO1t76YIDbckQAyJ9Y8Yfo4+I23/vg2EtuMyLN3c1Isal9Zv+8
+   Q==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10275"; a="251455949"
+X-IronPort-AV: E=Sophos;i="5.90,154,1643702400"; 
+   d="scan'208";a="251455949"
+Received: from orsmga001.jf.intel.com ([10.7.209.18])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Mar 2022 19:05:15 -0800
+X-IronPort-AV: E=Sophos;i="5.90,154,1643702400"; 
+   d="scan'208";a="576746893"
+Received: from harikara-mobl.amr.corp.intel.com (HELO localhost) ([10.212.33.238])
+  by orsmga001-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Mar 2022 19:05:13 -0800
+Date: Thu, 3 Mar 2022 19:05:13 -0800
+From: Ira Weiny <ira.weiny@intel.com>
+To: Christoph Hellwig <hch@lst.de>
+Cc: Jens Axboe <axboe@kernel.dk>, Chris Zankel <chris@zankel.net>,
+	Max Filippov <jcmvbkbc@gmail.com>,
+	Justin Sanders <justin@coraid.com>,
+	Philipp Reisner <philipp.reisner@linbit.com>,
+	Lars Ellenberg <lars.ellenberg@linbit.com>,
+	Denis Efremov <efremov@linux.com>, Minchan Kim <minchan@kernel.org>,
+	Nitin Gupta <ngupta@vflare.org>, Coly Li <colyli@suse.de>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	linux-xtensa@linux-xtensa.org, linux-block@vger.kernel.org,
+	drbd-dev@lists.linbit.com, linux-bcache@vger.kernel.org,
 	nvdimm@lists.linux.dev
-Subject: [ndctl PATCH] cxl/list: always free the path var in add_cxl_decoder()
-Date: Thu,  3 Mar 2022 17:36:43 -0800
-Message-Id: <20220304013643.1054605-1-alison.schofield@intel.com>
-X-Mailer: git-send-email 2.25.1
+Subject: Re: [PATCH 06/10] nvdimm-btt: use bvec_kmap_local in btt_rw_integrity
+Message-ID: <YiGB6bQGr4Yq6vpn@iweiny-desk3>
+References: <20220303111905.321089-1-hch@lst.de>
+ <20220303111905.321089-7-hch@lst.de>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220303111905.321089-7-hch@lst.de>
 
-From: Alison Schofield <alison.schofield@intel.com>
+On Thu, Mar 03, 2022 at 02:19:01PM +0300, Christoph Hellwig wrote:
+> Using local kmaps slightly reduces the chances to stray writes, and
+> the bvec interface cleans up the code a little bit.
+> 
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
 
-Static analysis reported a resource leak where the 'path' variable was
-not always freed before returns.
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
 
-Fixes: 46564977afb7 ("cxl/list: Add decoder support")
-Signed-off-by: Alison Schofield <alison.schofield@intel.com>
----
- cxl/lib/libcxl.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
-index daa2bbc5a299..aad7559daba2 100644
---- a/cxl/lib/libcxl.c
-+++ b/cxl/lib/libcxl.c
-@@ -1018,11 +1018,13 @@ static void *add_cxl_decoder(void *parent, int id, const char *cxldecoder_base)
- 	cxl_decoder_foreach(port, decoder_dup)
- 		if (decoder_dup->id == decoder->id) {
- 			free_decoder(decoder, NULL);
-+			free(path);
- 			return decoder_dup;
- 		}
- 
- 	list_add(&port->decoders, &decoder->list);
- 
-+	free(path);
- 	return decoder;
- err:
- 	free(decoder->dev_path);
-
-base-commit: 3b5fb8b6428dfaab39bab58d67412427f514c1f4
--- 
-2.31.1
-
+> ---
+>  drivers/nvdimm/btt.c | 10 ++++------
+>  1 file changed, 4 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+> index cbd994f7f1fe6..9613e54c7a675 100644
+> --- a/drivers/nvdimm/btt.c
+> +++ b/drivers/nvdimm/btt.c
+> @@ -1163,17 +1163,15 @@ static int btt_rw_integrity(struct btt *btt, struct bio_integrity_payload *bip,
+>  		 */
+>  
+>  		cur_len = min(len, bv.bv_len);
+> -		mem = kmap_atomic(bv.bv_page);
+> +		mem = bvec_kmap_local(&bv);
+>  		if (rw)
+> -			ret = arena_write_bytes(arena, meta_nsoff,
+> -					mem + bv.bv_offset, cur_len,
+> +			ret = arena_write_bytes(arena, meta_nsoff, mem, cur_len,
+>  					NVDIMM_IO_ATOMIC);
+>  		else
+> -			ret = arena_read_bytes(arena, meta_nsoff,
+> -					mem + bv.bv_offset, cur_len,
+> +			ret = arena_read_bytes(arena, meta_nsoff, mem, cur_len,
+>  					NVDIMM_IO_ATOMIC);
+>  
+> -		kunmap_atomic(mem);
+> +		kunmap_local(mem);
+>  		if (ret)
+>  			return ret;
+>  
+> -- 
+> 2.30.2
+> 
