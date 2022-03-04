@@ -1,31 +1,31 @@
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 018587C
-	for <nvdimm@lists.linux.dev>; Fri,  4 Mar 2022 03:05:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E73407C
+	for <nvdimm@lists.linux.dev>; Fri,  4 Mar 2022 03:06:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1646363115; x=1677899115;
+  t=1646363190; x=1677899190;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=NGtX8x+qRt4S4GlNdmZaoqv+f3P3AFsYWBvI67NNPak=;
-  b=GpaAOreTY4fMHkJPX9LwW12dUhJbnVxcDg7SSGbilNxtuDXSP7jTNgZ2
-   fI0I2AznkoA4+0E5gfPNYhkw+jtjDF08bVQKpJO2D9XpMn2jZRWFjulcu
-   5O702xe0zvOtfL+vlOCjbxzwIC5cWO+UA//eXAk2Guyt7LCWS039YAq5K
-   xL8qR6S7l/qHkSnPy7JBMm6i0Cn6X+K6/zsFlTGBa//se0mgVGIrql4Nt
-   +BEnKtR02afR8Faw19iuQAsQK0JaWvDZLHuCQjGjtmHKpqaH6nCCJTAJG
-   +gF0CdZVO1t76YIDbckQAyJ9Y8Yfo4+I23/vg2EtuMyLN3c1Isal9Zv+8
+  bh=Lc9qHdOlafcJNOz8evKbREjH7xRoVMfzT76IGNVrBPY=;
+  b=QBlfF2LJyC3Lrs/hHEruWOhPtIN/MUm85E9FkM73I5fTKdG7DciwLr6L
+   SKC9fv8rOYAFIwvZ7t9VnSR3gPA3g8JKXSZrIEfnHdwPBZ5XLnhaJjS62
+   Jcb2V/gCqnnuLKx1n/OQUp0AuUQURu32hGRHWx0gdbMxRNVnByQOmPvjr
+   H3GeoQNhl5AqcJ1FxgH5ro5/dxPI2t5jS5mWKNYkrBdEh83Eif9sKK/Ze
+   kH3uf0gDb41VZ7PTNUpuOJku3v06+HNQmz45k9hnBOEqHy5TW1P/m7Gjx
+   khOt/T/L6njIiyZYGDez3dVlS65E7vEpAtttzBYxhCjxUO1pvEtccHC7A
    Q==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10275"; a="251455949"
+X-IronPort-AV: E=McAfee;i="6200,9189,10275"; a="314595013"
 X-IronPort-AV: E=Sophos;i="5.90,154,1643702400"; 
-   d="scan'208";a="251455949"
-Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Mar 2022 19:05:15 -0800
+   d="scan'208";a="314595013"
+Received: from fmsmga007.fm.intel.com ([10.253.24.52])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Mar 2022 19:06:12 -0800
 X-IronPort-AV: E=Sophos;i="5.90,154,1643702400"; 
-   d="scan'208";a="576746893"
+   d="scan'208";a="546100598"
 Received: from harikara-mobl.amr.corp.intel.com (HELO localhost) ([10.212.33.238])
-  by orsmga001-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Mar 2022 19:05:13 -0800
-Date: Thu, 3 Mar 2022 19:05:13 -0800
+  by fmsmga007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Mar 2022 19:06:11 -0800
+Date: Thu, 3 Mar 2022 19:06:11 -0800
 From: Ira Weiny <ira.weiny@intel.com>
 To: Christoph Hellwig <hch@lst.de>
 Cc: Jens Axboe <axboe@kernel.dk>, Chris Zankel <chris@zankel.net>,
@@ -40,10 +40,10 @@ Cc: Jens Axboe <axboe@kernel.dk>, Chris Zankel <chris@zankel.net>,
 	linux-xtensa@linux-xtensa.org, linux-block@vger.kernel.org,
 	drbd-dev@lists.linbit.com, linux-bcache@vger.kernel.org,
 	nvdimm@lists.linux.dev
-Subject: Re: [PATCH 06/10] nvdimm-btt: use bvec_kmap_local in btt_rw_integrity
-Message-ID: <YiGB6bQGr4Yq6vpn@iweiny-desk3>
+Subject: Re: [PATCH 07/10] bcache: use bvec_kmap_local in bio_csum
+Message-ID: <YiGCIzAwEO+o9pEj@iweiny-desk3>
 References: <20220303111905.321089-1-hch@lst.de>
- <20220303111905.321089-7-hch@lst.de>
+ <20220303111905.321089-8-hch@lst.de>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -52,9 +52,9 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20220303111905.321089-7-hch@lst.de>
+In-Reply-To: <20220303111905.321089-8-hch@lst.de>
 
-On Thu, Mar 03, 2022 at 02:19:01PM +0300, Christoph Hellwig wrote:
+On Thu, Mar 03, 2022 at 02:19:02PM +0300, Christoph Hellwig wrote:
 > Using local kmaps slightly reduces the chances to stray writes, and
 > the bvec interface cleans up the code a little bit.
 > 
@@ -63,35 +63,26 @@ On Thu, Mar 03, 2022 at 02:19:01PM +0300, Christoph Hellwig wrote:
 Reviewed-by: Ira Weiny <ira.weiny@intel.com>
 
 > ---
->  drivers/nvdimm/btt.c | 10 ++++------
->  1 file changed, 4 insertions(+), 6 deletions(-)
+>  drivers/md/bcache/request.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 > 
-> diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-> index cbd994f7f1fe6..9613e54c7a675 100644
-> --- a/drivers/nvdimm/btt.c
-> +++ b/drivers/nvdimm/btt.c
-> @@ -1163,17 +1163,15 @@ static int btt_rw_integrity(struct btt *btt, struct bio_integrity_payload *bip,
->  		 */
+> diff --git a/drivers/md/bcache/request.c b/drivers/md/bcache/request.c
+> index 6869e010475a3..fdd0194f84dd0 100644
+> --- a/drivers/md/bcache/request.c
+> +++ b/drivers/md/bcache/request.c
+> @@ -44,10 +44,10 @@ static void bio_csum(struct bio *bio, struct bkey *k)
+>  	uint64_t csum = 0;
 >  
->  		cur_len = min(len, bv.bv_len);
-> -		mem = kmap_atomic(bv.bv_page);
-> +		mem = bvec_kmap_local(&bv);
->  		if (rw)
-> -			ret = arena_write_bytes(arena, meta_nsoff,
-> -					mem + bv.bv_offset, cur_len,
-> +			ret = arena_write_bytes(arena, meta_nsoff, mem, cur_len,
->  					NVDIMM_IO_ATOMIC);
->  		else
-> -			ret = arena_read_bytes(arena, meta_nsoff,
-> -					mem + bv.bv_offset, cur_len,
-> +			ret = arena_read_bytes(arena, meta_nsoff, mem, cur_len,
->  					NVDIMM_IO_ATOMIC);
+>  	bio_for_each_segment(bv, bio, iter) {
+> -		void *d = kmap(bv.bv_page) + bv.bv_offset;
+> +		void *d = bvec_kmap_local(&bv);
 >  
-> -		kunmap_atomic(mem);
-> +		kunmap_local(mem);
->  		if (ret)
->  			return ret;
+>  		csum = crc64_be(csum, d, bv.bv_len);
+> -		kunmap(bv.bv_page);
+> +		kunmap_local(d);
+>  	}
 >  
+>  	k->ptr[KEY_PTRS(k)] = csum & (~0ULL >> 1);
 > -- 
 > 2.30.2
 > 
