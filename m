@@ -1,55 +1,55 @@
 Received: from mx0b-00069f02.pphosted.com (mx0b-00069f02.pphosted.com [205.220.177.32])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 938A63B3A
-	for <nvdimm@lists.linux.dev>; Mon,  7 Mar 2022 12:25:40 +0000 (UTC)
-Received: from pps.filterd (m0246631.ppops.net [127.0.0.1])
-	by mx0b-00069f02.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 227BtcK4006652;
-	Mon, 7 Mar 2022 12:25:21 GMT
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDC193B38
+	for <nvdimm@lists.linux.dev>; Mon,  7 Mar 2022 12:25:39 +0000 (UTC)
+Received: from pps.filterd (m0246632.ppops.net [127.0.0.1])
+	by mx0b-00069f02.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 227Btv9U028756;
+	Mon, 7 Mar 2022 12:25:19 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : content-type :
  mime-version; s=corp-2021-07-09;
- bh=PfV+ptT9CU8LgEDYYu4UlxE6bjm418W8DR94/bGF/C4=;
- b=v/0pjBFCUbuB6O14jHwzs8z3xRnklOieXuy9ZfNVIejDhB8vIauuUb9Lxe5vXBCsT431
- CWAHsZzhlTeqzoGEPanuPWSWbHSJSr2mG7tkGVNWF+eljkwf6Z8rZnsxTQqAQ4ZMvtFx
- yYkCu2C6x5BF2Y2OnkdwLKvMEBBIl8r9KWQPbR1luCyiad1M5bmPSLcSpoHe35VILGX3
- vZPwQy5OEjWvdCKLGNxZ2yNXBBEIujDSXSJsdABQBPkCJsJAlxkSmHUOYZGtsR8DMQlq
- epQFqE3aixw1mqTwf6Kr/AXbpAS5E5qrZTcnwDY2V98NU8h8gSyVxL8PXBOFpgrpNeP0 fw== 
-Received: from userp3030.oracle.com (userp3030.oracle.com [156.151.31.80])
-	by mx0b-00069f02.pphosted.com with ESMTP id 3ekxn2bn3t-1
+ bh=9NzCFt1Ozy2mhawUz8VK277naG0+CSyaJzZL6gsG9F0=;
+ b=BzRK7aNG02zS2EilykdZGa1YCqW696dyNYTpuH+Sck2gCoDCsizj6ORdddAnSetXfYOP
+ pFQETYKpvJ7qesbN1K2LIE1QERnVh7FEBAHmNzNmaUnTG/j24uLpqcysrLW42ukhQBll
+ VPmlcRIXNK8B7woBIQhNYx35PSsTkeXfaQ7tW6uYAvRNN8F8Gc6FyszA1frinOhnMFMv
+ Zia8MGM8wwQE52bxUpC5LkZuGR6aQYT7VLQaTqIOEKTyDfuT3KNeMat5ymQME+z9wvyJ
+ 7OjIWOuL5OXezzS4TcElmNXOjnoSRfp4jMacUdRePcj85iqP3d/nUsmGxgo3pDK9qgtG rA== 
+Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
+	by mx0b-00069f02.pphosted.com with ESMTP id 3ekyfsbkc2-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 07 Mar 2022 12:25:21 +0000
-Received: from pps.filterd (userp3030.oracle.com [127.0.0.1])
-	by userp3030.oracle.com (8.16.1.2/8.16.1.2) with SMTP id 227CCHbW029583;
-	Mon, 7 Mar 2022 12:25:20 GMT
-Received: from nam12-mw2-obe.outbound.protection.outlook.com (mail-mw2nam12lp2049.outbound.protection.outlook.com [104.47.66.49])
-	by userp3030.oracle.com with ESMTP id 3ekvyter28-1
+	Mon, 07 Mar 2022 12:25:18 +0000
+Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
+	by userp3020.oracle.com (8.16.1.2/8.16.1.2) with SMTP id 227CBrRl143497;
+	Mon, 7 Mar 2022 12:25:17 GMT
+Received: from nam11-dm6-obe.outbound.protection.outlook.com (mail-dm6nam11lp2173.outbound.protection.outlook.com [104.47.57.173])
+	by userp3020.oracle.com with ESMTP id 3em1ahx9b3-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 07 Mar 2022 12:25:20 +0000
+	Mon, 07 Mar 2022 12:25:17 +0000
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=G/t30j/WA4DzBGntRimtkAnBybWsbR1tyGNcErrwVATyGGW+T1E6cLbA0AXbhYIYEfzUuE+bc20HIhCBlm3dbzyftLAS2oewdGq7Wvomooyv7qkejmHKZWSPS89ILXGa2m5Np86UpYVuxZ4vUNFVmYtGUK56NaUWrOLahZB0N1jis48yIeLATgt15jnDC24vJE+SHvdgZJszd72yB/58TAuekVum1LHC/DZ7SUiRXt6u3a77lpzQr5S7lil8hX82gxZtwaYVrezyUYvjaaGd42aerXpHR/0v462SISQDHIyJ4mLhczg0Vc/FcC3lryw8Xvgt8KKCQH7Xim+d2jQ7cw==
+ b=bFknRgvnz25DmtfMbUg9TtwVHBqs2n/3ouR0AUQiyshku3yGIjbfWDR+ovC55dnfs2qwf4kiAkDA0K3ar4SpRfr+gy18d28EWD8O+AICuS0FCmt1N8KpAG7diXKVWru0cpH3lV8EiaxB0ZEsR7tn9nvRwx+z8SA2zR7slNNUucZobgtCXws5k9ygWgdSLUKY0hDgOUEZVCGA16k8slK/LQFnyUqObrzEx2gtA+TOh1Z1LEU3J0nDXfguoeVXGSYsCB6robYaj6K4gtyWmnB73FB6qqu3yS8me5zIEYaME2Oeu9d/dfVn9R9RyA63BZOoqfpKhvU/592tNAJ/86/8UQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=PfV+ptT9CU8LgEDYYu4UlxE6bjm418W8DR94/bGF/C4=;
- b=icc+BkrnV6tU85ZC05uNd2SXiQHLd54fULDM9+IPcfzQeYRqSyJCY84K+TXCzy90X6SpAawZ0Y9M//VPNXMlnlURFoukcrXgFoN3Qgtym03O35LX+QOGYisoL7Z1Cyt8GmNyyvfcB+3SA/iDo0Odxw+/Bt9cqqPAsacONkV7qaY9bJoMuSntfGWWqsG551A+VDQDTCExvpKma1G0FCh897jud7ZYmUt87oQ6zjJbZDEahQlfEwJGW4a5K6Ms4Sy8zoV/5kppjJxQ3ZRqCWEK4GRH3ayOHkXe/m7uuq3+f3e4BENeALRnMMGr+5hj5KUUJmJ+xx6+a+KpOLg/LlpFfg==
+ bh=9NzCFt1Ozy2mhawUz8VK277naG0+CSyaJzZL6gsG9F0=;
+ b=AEZ6vX7VmuM6QYMKGwAeToVuS6uxIr+HCiOyhC5cdNa09lF6DxvtqceRzkTe3VQnGWnDoTnAPnwdN8qX5M9qlXU6w2FUZ39A+bH8H5o8uvbVqFfeSHijZLkEV8n41FumWNUGGctIDIoc1H+lsyyMZmA4b53iZmY8qsvNuDyQiSRpmX9926JS7Mjv1AG5spgZPEfL4uGldTBjYm96EkHqQqjUYeEcllWv7uMaQSolxwcygLJ6YrikeIgP/7ymakhiU1LGDUVzf28LuuyCd+257zT6UePlEAkIom3Od+r9bW/w8s/BybEFZpcUE63UNGH/s46wo4Cq9XnDIQONwJbj7Q==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
  dkim=pass header.d=oracle.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
  d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=PfV+ptT9CU8LgEDYYu4UlxE6bjm418W8DR94/bGF/C4=;
- b=gDQMEhX+SyZPZGF2CUs+h0/+SnVMUCNxnH9fZzJd4kP29b5tOv66UTcxtnr8mRc7AlmhvjlBj175k/HB2CHfhvPPR3DvvzHvGMtrlEBFDmhu7rYmp9y4lflWILUVa+oxYOgxBW+xYknCj0A3hRZkJq7PCqnGAnnxJE+slR4lTdA=
+ bh=9NzCFt1Ozy2mhawUz8VK277naG0+CSyaJzZL6gsG9F0=;
+ b=n1Fw+jraVA7RPLbGWr9z5f2h9C7EudImWh+PdlnH7dD+hdlIURlZQGth+OQJRJlltTuetUj4B+TCiCodfft2d4Yevzf4g4U5n6ezpV332xvHxcARv4PZBtG7Vd7B+bGNOoxf52bNDUSRATiPOP9F2RbHDQng2DJLLjUDBaDq2IU=
 Received: from BLAPR10MB4835.namprd10.prod.outlook.com (2603:10b6:208:331::11)
- by DM6PR10MB3451.namprd10.prod.outlook.com (2603:10b6:5:61::33) with
+ by DM5PR1001MB2284.namprd10.prod.outlook.com (2603:10b6:4:30::25) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5038.15; Mon, 7 Mar
- 2022 12:25:17 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5038.19; Mon, 7 Mar
+ 2022 12:25:15 +0000
 Received: from BLAPR10MB4835.namprd10.prod.outlook.com
  ([fe80::750f:bf1d:1599:3406]) by BLAPR10MB4835.namprd10.prod.outlook.com
  ([fe80::750f:bf1d:1599:3406%5]) with mapi id 15.20.5038.027; Mon, 7 Mar 2022
- 12:25:17 +0000
+ 12:25:15 +0000
 From: Joao Martins <joao.m.martins@oracle.com>
 To: linux-mm@kvack.org
 Cc: Dan Williams <dan.j.williams@intel.com>,
@@ -61,9 +61,9 @@ Cc: Dan Williams <dan.j.williams@intel.com>,
         Jonathan Corbet <corbet@lwn.net>, Christoph Hellwig <hch@lst.de>,
         nvdimm@lists.linux.dev, linux-doc@vger.kernel.org,
         Joao Martins <joao.m.martins@oracle.com>
-Subject: [PATCH v8 4/5] mm/sparse-vmemmap: improve memory savings for compound devmaps
-Date: Mon,  7 Mar 2022 12:24:56 +0000
-Message-Id: <20220307122457.10066-5-joao.m.martins@oracle.com>
+Subject: [PATCH v8 3/5] mm/hugetlb_vmemmap: move comment block to Documentation/vm
+Date: Mon,  7 Mar 2022 12:24:55 +0000
+Message-Id: <20220307122457.10066-4-joao.m.martins@oracle.com>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20220307122457.10066-1-joao.m.martins@oracle.com>
 References: <20220307122457.10066-1-joao.m.martins@oracle.com>
@@ -78,393 +78,453 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 12aad827-83ca-48db-e330-08da003589f9
-X-MS-TrafficTypeDiagnostic: DM6PR10MB3451:EE_
+X-MS-Office365-Filtering-Correlation-Id: cf492a30-26e4-433e-2133-08da00358894
+X-MS-TrafficTypeDiagnostic: DM5PR1001MB2284:EE_
 X-Microsoft-Antispam-PRVS: 
-	<DM6PR10MB3451E333EF7AB4A379976554BB089@DM6PR10MB3451.namprd10.prod.outlook.com>
+	<DM5PR1001MB2284B8FA391BC1F7ACC5ED21BB089@DM5PR1001MB2284.namprd10.prod.outlook.com>
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
 X-Microsoft-Antispam-Message-Info: 
-	++Gqo33g3goHY589bm1f4m5lDxuUneekPYAd2jWoxi2+lTZrlzQ4x8PHEoPPy57XmI+tuO0Qc8Zzq7o0JLbZyiPa335sI/LwVlnvlEI5Q6JyjVBMmDrHP//XoJfNS0RBwG3rJzkcTuodf5EjgZ9XyhhAyuGAFJl7cY/L91E3S38soEnKfmenlDudpnKNQ+DmiVNh/XjCG5FYm6IRWW6DikttyJfXGOxfwHchiWJl50SwPVcUCs4UpzXxLUjGeaaadaFkoWXXlCQku/YU/cN9MILv4KDrFGM8QdsQqijUU0sgjnxZxnXQT89FLLf/Ggze6APdGlynH+0JrP98R1dOPGjEN0W5+A2/Jj3w3fS00WYcn6mFuqs2/cec8Nzp6pnGFmqZnbWfefhMEX9nu0evUwbixlzo/FaFaTqYyH+CNW1vDZX4frR1sbItZhwEQyjwIDGO+Sf8Rr85lnsgB259b+RBxe4sWc7htqzilU3EhW3HioZhXlGpP6r7/zI5vNu4+Sh3stCZ6fBvs7YxU463pz2pZCnCH762zLeUE5bIznehwuyuu48aL8q7IV6Bdqh/nfnFkEEAjnEW32/eyJkitdx/ySP16ezeQa0IcRL7dGQpeLRcjOonwEglzo6JbxctGb+1nUttfSLCK0JQz2SvfO6x6YNBQjXRA0yh9NTUhnek12JXv9286D11fVanmArR3sm8Ss4bRFSLY/NAv/a+KEgof3nKph3/udjd2tqJj0o=
+	SMt1wePKKoXjAdiPZjI9fARNTi88BwsO44ppLA/nCneujoQgnY1XMLvdxSwop43Y8Pz63/V4ybY8bp5EC6gbC1FArB13XUFK7tldexKFiurmhgrkvGD6YeAqdOc7ukQIAeU0vsG8ryA3UoaGnxlGGM0Hw7of+7tyyJLp/X0OzdePd5z3zO/woPRReCaHD/ZIimuv3Jl6CDWVjoeYGIoFZT3GpfH1Gr27DATSSB5zeWZ23s5k8spSG8Dck25yH4wgtHKpK/5j9QeJhcvsDpa6F+8Wf8lv5/ZJAsVZAs5Z/+FboBTV22WYHkVWny5hMMqcFZZvQp84fxBaAYlAWnX8toKGLfl5pF5khImuWZh+zyvoDmiJU287Wwka4wx6uCu0wtF9Xgzc3cx3Z6iRBVeA0mKeDeToHQ1VsFMcg1y+jzL05Q6IYXN3Qspa6GzGDkEv3kBxDHpqw5DGLDYHI9lrq1PwMC/OH4G6s7/VeUW5SMcR3T4sK+HdTpFNeT7oMDl7VFjQncm8kIm2qxs26XTjhBdDYlCIVs0BTLcGxmu8U5Nn7FGlKQ7n/JUPHMfXIQYM7uBkhNtHTCcyY2tIjP3Eu6cS4NdnQgwWEhsC2kVmuG9ZQilgY18DDpBQFdKELZv7vas/WnMYCG+NxkFUG3I8ZoT3/nzXOdQoWiMLKhqDphOhocwJk+ARUJYAXDwtR0BP7WciWlCe0+UU8FP+sKYi6g==
 X-Forefront-Antispam-Report: 
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BLAPR10MB4835.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230001)(366004)(6486002)(26005)(508600001)(6666004)(1076003)(107886003)(2616005)(186003)(6512007)(52116002)(86362001)(6506007)(83380400001)(38100700002)(8936002)(103116003)(5660300002)(7416002)(66946007)(8676002)(66476007)(66556008)(4326008)(30864003)(38350700002)(36756003)(2906002)(54906003)(6916009)(316002)(25903002);DIR:OUT;SFP:1101;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BLAPR10MB4835.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230001)(366004)(2906002)(4326008)(103116003)(316002)(30864003)(7416002)(5660300002)(8676002)(6916009)(66946007)(54906003)(36756003)(8936002)(52116002)(6506007)(6666004)(6512007)(6486002)(508600001)(66476007)(66556008)(186003)(1076003)(38350700002)(26005)(107886003)(38100700002)(86362001)(2616005)(83380400001);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0: 
-	=?us-ascii?Q?DLelZITmikSFMpWfS4e+LpGV+W8lWYET7X4FzPa3fzUAIsyqBJ8taqUxhmY0?=
- =?us-ascii?Q?l69l1iAQkwiGIZPmwdDg8mrn1S7NJrCIT4C4IMzqKOqBZ/YSx2QRmtOjdbf4?=
- =?us-ascii?Q?hs6nlGkUrke1xnhZxj4jOP66PHPg5GIWM4p6z3Tk26P/Hj8JsA8bIjaCQyZf?=
- =?us-ascii?Q?skwIEOLXzlho+06xOQKYcKYvgs4lQ/BJEE862y2qSJefYU3186FuD+EpkYH3?=
- =?us-ascii?Q?u807Q6PYjW2uNjnd21+2DN2jmiVz6i7LftfEiInWWvoZL8Gg+llYDo/6F561?=
- =?us-ascii?Q?2ljMhLlAHH5ay5RS+MdDi6K+bW9H6d+PyPjCSWyWDqd8Zpl1krvgrhYzPxzv?=
- =?us-ascii?Q?zpFHI5rnWxbTaKUTIt9U+AJDnB6FQd3PI0Tntprke+R10kHbD3019b3wNrVk?=
- =?us-ascii?Q?HTBmAynSAqy/mTxDQw0cKsFGsqjdTlGYphyAgR1JIPUAwBJ8xNFvnLKQfkzA?=
- =?us-ascii?Q?2L+elTtawLmc1H4WP7Hot3yB68qJRfnUqtYq/lcBxuoeBwP3Ex5+wESGT56q?=
- =?us-ascii?Q?zhWtn7EwKWbTWlmVmHQoItWIcDe8MCBUPEvcpg9CwI7pvgvIoiKVY/45tEvl?=
- =?us-ascii?Q?1wTMe+811IhQ/OCeKNTSylIsJXHmbcOSVUg0xRa3ULg4X4gERPVeUs2fWBep?=
- =?us-ascii?Q?eWG7Br8+DklyTZuMu55SZ5uI6XpZzF2NexJanIoBxMXbCIVgS0pBG7EHHhPg?=
- =?us-ascii?Q?aV4/ZDhVH5947kw4xjEepqoJxqd4bIxYkbubaQJrtAPPgJAw7JHWkIjfSY3Z?=
- =?us-ascii?Q?r5uWF8WSP6M9zd6xaS33ciDuskVHTELky0UrRmO/Ze5R5PrPZvI7CLkoKIWr?=
- =?us-ascii?Q?wwunLkwbAuV0Q3JUiCkjzAFPuTKhIlvlYGRtG0RamVim9Z/NlCe2Wk39l+K4?=
- =?us-ascii?Q?mquL7+7r1PN0dA2i3sK7qQFjUs5oTYPYCRg/BC/pCiNm1rrz90fSH67ryAEp?=
- =?us-ascii?Q?MFgc7arHkotZy0b7EVj2y5XVeIiYc78TjfZ+9VMSWWvX0sDVNEHSSYbdBTHF?=
- =?us-ascii?Q?fddwvmDH/8kt6oJqA/XbZ3AiXbOHIvcoQ/xatek7YKL6wkScesttv9wWdrHN?=
- =?us-ascii?Q?ZRxb4TgbZdR7//an0+BAhMKXTmkaf3HjZ8MkNYLZ+G60yqs8SL8Uk8o/2ym7?=
- =?us-ascii?Q?nVNQ3U+zJ37jvtx4Y9L56kJWI7vm9xHzj7Ay6bUyY/tiykdYvosbXPCVnu25?=
- =?us-ascii?Q?crQPpldftHrcoUbAH0AVXRWnDcxumGogzJFZCJ/baWYkZ5kJvwys2IjV7nQU?=
- =?us-ascii?Q?Jef5Lf9ON5jxB3b+2D17ECOmxP8QTipQJ4pfd6wJc27ewWKzCdodxWwpVLOE?=
- =?us-ascii?Q?nLCpD+YjxbvitwBsHIvaR+HF+BShyGW4u1grA747GutmcUK58dWoJiQP+ZyL?=
- =?us-ascii?Q?dTJ5NT7BtexqMcgjuTqizLnWf9Jnlkk0wCsPV7STQMsVcMdYVTC8jfpWN2zh?=
- =?us-ascii?Q?6c6v4WSLWR3JYTRKzPuHDd5XfWjQezA3SXWkZWxEDoeL+6PfB1ZMyqi5LuSt?=
- =?us-ascii?Q?0ujCIF15hdLlrQrCsPriq2UqKgXbvsccufpuU7HRyTu29Wkcw3yfD6sOwpat?=
- =?us-ascii?Q?OhL6bx/L+CjvXXvkedlVnjnFvj1H5OHOjclOJsbcnS/Oct2yd+EkQnyuU5Ce?=
- =?us-ascii?Q?GItsD2oJi/3rM8g2FEEIqnNsbNSLMh4M1/eLo21EFEEW2AOh09nt7l32OHtN?=
- =?us-ascii?Q?7gcvWw=3D=3D?=
+	=?us-ascii?Q?//7kRJ9Pm+lnxoH9fMOpGgrXXsY+PNiBj/9KKlq46Ut0wDgqmh273OiZKHi/?=
+ =?us-ascii?Q?zmUXb60oUAhizMFWc6FWB3sG0HCY2jjAiD3VZnDX521dqMkRJAG9UQ4NfwsD?=
+ =?us-ascii?Q?g5+xNvq4Q9L00fK5Uoi1Pe1kXcYup13IEP/7bPRcoAa9n3j9s0Fqw8yxzpta?=
+ =?us-ascii?Q?qOJBNy//uuTKjpQKmpA3UKaGDR5vZPUPlH22el+3mvzsjuRhd4p57J9tCnvN?=
+ =?us-ascii?Q?xRhdy5g5VGjvM9n7Yd7Qvs8yVch2E252teWsFrpREaY26zcDn17BEq9w4th8?=
+ =?us-ascii?Q?muTClC92T+38SYY8q08lqgP9YWA+tDNu0M1JwAEIdMAY28yATuAaP/+CIbpV?=
+ =?us-ascii?Q?17Rr2J8geI8s/9ICXFOmsPXPHni97PBXXDvG8j0AuWTOBjF3Qajr0ldhZFct?=
+ =?us-ascii?Q?erSN8/jtbmXvqsJ3QAcglezrGXR+D4j6KN5QuTOuYjqYd3/psWTotu1+XU0h?=
+ =?us-ascii?Q?pUojbzoqr97kTj26YcCUyh5G4FZh7FxBAJMefxuEGpzalrP0xKBZ+J6SahFI?=
+ =?us-ascii?Q?8Zt6tuRp1NBckq02+CogBbfB7VGKgzlfTyXDVGouKtx/sHYI5oLUuxZhCeWR?=
+ =?us-ascii?Q?xFAtaS13O2S032DP599k7d5+kpjXH+ErkUqYnnScT5C2ZgSNCksqIGVyw3iT?=
+ =?us-ascii?Q?iYqIGrMb8k94c8mPecuWHTczbNIg2jdrPNVVeun5TU+W3WCBvifDDwRPSgTK?=
+ =?us-ascii?Q?edFkFltwAU0iL4kApb71uaFUMJKAZC7/IGPb0pPDDFrmTyJipJDe6hT8rFZr?=
+ =?us-ascii?Q?ld9jYo5JZ8bqxM5/J7M0PoQ23fCXn0IKaR4cPT0pS9AsJ/TeotArG0fjM4hD?=
+ =?us-ascii?Q?891qmVbHq/mZF2uFPZnlLdu98m3CfBLyzfvbomvcQ1ZoY7HjMxlFfKuDNv3G?=
+ =?us-ascii?Q?P4YU8CwRPxb5bjW8dC3PxbfIMvi48RTEWIjmwbFpRo33AayrPF6CdqEqBh+Q?=
+ =?us-ascii?Q?tc7JLJwwclth+TLePi8x75j2ttMD6WmFE1pBbNLMH1bcZO17vWiF41bSBhUL?=
+ =?us-ascii?Q?K6jG9LafQaH42cYTmd2JTav1EVRIz3sEnIkce4mzn1bj22n0EPnwJlIISBmJ?=
+ =?us-ascii?Q?kYn4Jqrgc8nf5omSEZ66kcpfv9V005zujtPQXixZCc7wbeVNRd08mbBEXrW1?=
+ =?us-ascii?Q?p6DSH+Ftu63dIOrtzpV56KNm/RVzYZX1pTTVtCUNVTZyF2ZMxMgfFk3wLSMv?=
+ =?us-ascii?Q?4ut7AbF35N/m7fmIIzFnMSI1VlORlNx0bprk7/egTLzYu3fNqmzsEqzHnrs+?=
+ =?us-ascii?Q?VWttzP477MtJdyLIGGtcI4zZbWJqVyyFDiFmsXPkwGp2QZWdBP2ZYn/Euq98?=
+ =?us-ascii?Q?ajM7dX8qMO98P1m2BTh91TngWPyxD7VZZ5yEwwIRsAF+Z1CZr6/Xk3ND+/YT?=
+ =?us-ascii?Q?OdO7VRTWS8fsSPZdV1hAUrCGZJGGDmgUk4e/4XVNoGUfeX+zMX4bQMjywQUp?=
+ =?us-ascii?Q?8EgCGy0pT+EWSJUnfHjh6Z6gMcS42A9ZjH27xOqzgQT2diReyPw9i++EX37y?=
+ =?us-ascii?Q?UmC9F6RTxh1DzPAXXiPFxFr1qqyVnwPxWsN6CWxc5mdiLWgjoV5gbeuX4kVS?=
+ =?us-ascii?Q?Q5/IILisOpb2y2evaKkVs8KLDc9ZKnaHLjM04lAFJ9pF2A6G8W+sOtqlvKY6?=
+ =?us-ascii?Q?+wSnGE8+X4BA/o5PCwLxdUjJdlW08Tn3ACX2NRk3w6NoQBp/ppWYtLIuNwUP?=
+ =?us-ascii?Q?H6vWiw=3D=3D?=
 X-OriginatorOrg: oracle.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 12aad827-83ca-48db-e330-08da003589f9
+X-MS-Exchange-CrossTenant-Network-Message-Id: cf492a30-26e4-433e-2133-08da00358894
 X-MS-Exchange-CrossTenant-AuthSource: BLAPR10MB4835.namprd10.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Mar 2022 12:25:17.6967
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Mar 2022 12:25:15.3209
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 58FhGayHNYued726hRIYGPdQ86MS6ropbi4wUSWCLYYj0W7DlvICLvzTxviA7ApQwJubiEyWpybOEnLOmnpVFvAnO3vI9klLoxW61gBe1xQ=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR10MB3451
+X-MS-Exchange-CrossTenant-UserPrincipalName: 2wx6rm9QbyWIGrGINod+RaOvF35EBX35giyMJfz1BqVN5hpzd2ELrolKMosWqb4gf19gFScml6aDs+7+UkyIhVoL5GiTHPIlKsUYA1dgNXM=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM5PR1001MB2284
 X-Proofpoint-Virus-Version: vendor=nai engine=6300 definitions=10278 signatures=690470
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 malwarescore=0 mlxscore=0
- suspectscore=0 bulkscore=0 mlxlogscore=999 adultscore=0 spamscore=0
- phishscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2202240000 definitions=main-2203070071
-X-Proofpoint-ORIG-GUID: iI5c2Cj8UHVO-UNMTJooo-v3qt__kGUG
-X-Proofpoint-GUID: iI5c2Cj8UHVO-UNMTJooo-v3qt__kGUG
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxscore=0 phishscore=0 bulkscore=0
+ malwarescore=0 spamscore=0 adultscore=0 mlxlogscore=999 suspectscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2202240000
+ definitions=main-2203070071
+X-Proofpoint-GUID: OBS4tgCPlCzbeGSZKAL71KJbi73rAJiQ
+X-Proofpoint-ORIG-GUID: OBS4tgCPlCzbeGSZKAL71KJbi73rAJiQ
 
-A compound devmap is a dev_pagemap with @vmemmap_shift > 0 and it
-means that pages are mapped at a given huge page alignment and utilize
-uses compound pages as opposed to order-0 pages.
+In preparation for device-dax for using hugetlbfs compound page tail
+deduplication technique, move the comment block explanation into a
+common place in Documentation/vm.
 
-Take advantage of the fact that most tail pages look the same (except
-the first two) to minimize struct page overhead. Allocate a separate
-page for the vmemmap area which contains the head page and separate for
-the next 64 pages. The rest of the subsections then reuse this tail
-vmemmap page to initialize the rest of the tail pages.
-
-Sections are arch-dependent (e.g. on x86 it's 64M, 128M or 512M) and
-when initializing compound devmap with big enough @vmemmap_shift (e.g.
-1G PUD) it may cross multiple sections. The vmemmap code needs to
-consult @pgmap so that multiple sections that all map the same tail
-data can refer back to the first copy of that data for a given
-gigantic page.
-
-On compound devmaps with 2M align, this mechanism lets 6 pages be
-saved out of the 8 necessary PFNs necessary to set the subsection's
-512 struct pages being mapped. On a 1G compound devmap it saves
-4094 pages.
-
-Altmap isn't supported yet, given various restrictions in altmap pfn
-allocator, thus fallback to the already in use vmemmap_populate().  It
-is worth noting that altmap for devmap mappings was there to relieve the
-pressure of inordinate amounts of memmap space to map terabytes of pmem.
-With compound pages the motivation for altmaps for pmem gets reduced.
-
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Suggested-by: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 ---
- Documentation/vm/vmemmap_dedup.rst |  56 +++++++++++-
- include/linux/mm.h                 |   2 +-
- mm/memremap.c                      |   1 +
- mm/sparse-vmemmap.c                | 132 ++++++++++++++++++++++++++---
- 4 files changed, 177 insertions(+), 14 deletions(-)
+ Documentation/vm/index.rst         |   1 +
+ Documentation/vm/vmemmap_dedup.rst | 173 +++++++++++++++++++++++++++++
+ mm/hugetlb_vmemmap.c               | 168 +---------------------------
+ 3 files changed, 175 insertions(+), 167 deletions(-)
+ create mode 100644 Documentation/vm/vmemmap_dedup.rst
 
+diff --git a/Documentation/vm/index.rst b/Documentation/vm/index.rst
+index 44365c4574a3..2fb612bb72c9 100644
+--- a/Documentation/vm/index.rst
++++ b/Documentation/vm/index.rst
+@@ -37,5 +37,6 @@ algorithms.  If you are looking for advice on simply allocating memory, see the
+    transhuge
+    unevictable-lru
+    vmalloced-kernel-stacks
++   vmemmap_dedup
+    z3fold
+    zsmalloc
 diff --git a/Documentation/vm/vmemmap_dedup.rst b/Documentation/vm/vmemmap_dedup.rst
-index 485ccf4f7b10..c9c495f62d12 100644
---- a/Documentation/vm/vmemmap_dedup.rst
+new file mode 100644
+index 000000000000..485ccf4f7b10
+--- /dev/null
 +++ b/Documentation/vm/vmemmap_dedup.rst
-@@ -1,8 +1,11 @@
- .. SPDX-License-Identifier: GPL-2.0
- 
--==================================
--Free some vmemmap pages of HugeTLB
--==================================
-+=========================================
-+A vmemmap diet for HugeTLB and Device DAX
-+=========================================
+@@ -0,0 +1,173 @@
++.. SPDX-License-Identifier: GPL-2.0
 +
-+HugeTLB
-+=======
- 
- The struct page structures (page structs) are used to describe a physical
- page frame. By default, there is a one-to-one mapping from a page frame to
-@@ -171,3 +174,50 @@ tail vmemmap pages are mapped to the head vmemmap page frame. So we can see
- more than one struct page struct with PG_head (e.g. 8 per 2 MB HugeTLB page)
- associated with each HugeTLB page. The compound_head() can handle this
- correctly (more details refer to the comment above compound_head()).
++==================================
++Free some vmemmap pages of HugeTLB
++==================================
 +
-+Device DAX
-+==========
++The struct page structures (page structs) are used to describe a physical
++page frame. By default, there is a one-to-one mapping from a page frame to
++it's corresponding page struct.
 +
-+The device-dax interface uses the same tail deduplication technique explained
-+in the previous chapter, except when used with the vmemmap in
-+the device (altmap).
++HugeTLB pages consist of multiple base page size pages and is supported by many
++architectures. See Documentation/admin-guide/mm/hugetlbpage.rst for more
++details. On the x86-64 architecture, HugeTLB pages of size 2MB and 1GB are
++currently supported. Since the base page size on x86 is 4KB, a 2MB HugeTLB page
++consists of 512 base pages and a 1GB HugeTLB page consists of 4096 base pages.
++For each base page, there is a corresponding page struct.
 +
-+The following page sizes are supported in DAX: PAGE_SIZE (4K on x86_64),
-+PMD_SIZE (2M on x86_64) and PUD_SIZE (1G on x86_64).
++Within the HugeTLB subsystem, only the first 4 page structs are used to
++contain unique information about a HugeTLB page. __NR_USED_SUBPAGE provides
++this upper limit. The only 'useful' information in the remaining page structs
++is the compound_head field, and this field is the same for all tail pages.
 +
-+The differences with HugeTLB are relatively minor.
++By removing redundant page structs for HugeTLB pages, memory can be returned
++to the buddy allocator for other uses.
 +
-+It only use 3 page structs for storing all information as opposed
-+to 4 on HugeTLB pages.
++Different architectures support different HugeTLB pages. For example, the
++following table is the HugeTLB page size supported by x86 and arm64
++architectures. Because arm64 supports 4k, 16k, and 64k base pages and
++supports contiguous entries, so it supports many kinds of sizes of HugeTLB
++page.
 +
-+There's no remapping of vmemmap given that device-dax memory is not part of
-+System RAM ranges initialized at boot. Thus the tail page deduplication
-+happens at a later stage when we populate the sections. HugeTLB reuses the
-+the head vmemmap page representing, whereas device-dax reuses the tail
-+vmemmap page. This results in only half of the savings compared to HugeTLB.
+++--------------+-----------+-----------------------------------------------+
++| Architecture | Page Size |                HugeTLB Page Size              |
+++--------------+-----------+-----------+-----------+-----------+-----------+
++|    x86-64    |    4KB    |    2MB    |    1GB    |           |           |
+++--------------+-----------+-----------+-----------+-----------+-----------+
++|              |    4KB    |   64KB    |    2MB    |    32MB   |    1GB    |
++|              +-----------+-----------+-----------+-----------+-----------+
++|    arm64     |   16KB    |    2MB    |   32MB    |     1GB   |           |
++|              +-----------+-----------+-----------+-----------+-----------+
++|              |   64KB    |    2MB    |  512MB    |    16GB   |           |
+++--------------+-----------+-----------+-----------+-----------+-----------+
 +
-+Deduplicated tail pages are not mapped read-only.
++When the system boot up, every HugeTLB page has more than one struct page
++structs which size is (unit: pages)::
 +
-+Here's how things look like on device-dax after the sections are populated::
++   struct_size = HugeTLB_Size / PAGE_SIZE * sizeof(struct page) / PAGE_SIZE
 +
++Where HugeTLB_Size is the size of the HugeTLB page. We know that the size
++of the HugeTLB page is always n times PAGE_SIZE. So we can get the following
++relationship::
++
++   HugeTLB_Size = n * PAGE_SIZE
++
++Then::
++
++   struct_size = n * PAGE_SIZE / PAGE_SIZE * sizeof(struct page) / PAGE_SIZE
++               = n * sizeof(struct page) / PAGE_SIZE
++
++We can use huge mapping at the pud/pmd level for the HugeTLB page.
++
++For the HugeTLB page of the pmd level mapping, then::
++
++   struct_size = n * sizeof(struct page) / PAGE_SIZE
++               = PAGE_SIZE / sizeof(pte_t) * sizeof(struct page) / PAGE_SIZE
++               = sizeof(struct page) / sizeof(pte_t)
++               = 64 / 8
++               = 8 (pages)
++
++Where n is how many pte entries which one page can contains. So the value of
++n is (PAGE_SIZE / sizeof(pte_t)).
++
++This optimization only supports 64-bit system, so the value of sizeof(pte_t)
++is 8. And this optimization also applicable only when the size of struct page
++is a power of two. In most cases, the size of struct page is 64 bytes (e.g.
++x86-64 and arm64). So if we use pmd level mapping for a HugeTLB page, the
++size of struct page structs of it is 8 page frames which size depends on the
++size of the base page.
++
++For the HugeTLB page of the pud level mapping, then::
++
++   struct_size = PAGE_SIZE / sizeof(pmd_t) * struct_size(pmd)
++               = PAGE_SIZE / 8 * 8 (pages)
++               = PAGE_SIZE (pages)
++
++Where the struct_size(pmd) is the size of the struct page structs of a
++HugeTLB page of the pmd level mapping.
++
++E.g.: A 2MB HugeTLB page on x86_64 consists in 8 page frames while 1GB
++HugeTLB page consists in 4096.
++
++Next, we take the pmd level mapping of the HugeTLB page as an example to
++show the internal implementation of this optimization. There are 8 pages
++struct page structs associated with a HugeTLB page which is pmd mapped.
++
++Here is how things look before optimization::
++
++    HugeTLB                  struct pages(8 pages)         page frame(8 pages)
 + +-----------+ ---virt_to_page---> +-----------+   mapping to   +-----------+
 + |           |                     |     0     | -------------> |     0     |
 + |           |                     +-----------+                +-----------+
 + |           |                     |     1     | -------------> |     1     |
 + |           |                     +-----------+                +-----------+
-+ |           |                     |     2     | ----------------^ ^ ^ ^ ^ ^
-+ |           |                     +-----------+                   | | | | |
-+ |           |                     |     3     | ------------------+ | | | |
-+ |           |                     +-----------+                     | | | |
-+ |           |                     |     4     | --------------------+ | | |
-+ |    PMD    |                     +-----------+                       | | |
-+ |   level   |                     |     5     | ----------------------+ | |
-+ |  mapping  |                     +-----------+                         | |
-+ |           |                     |     6     | ------------------------+ |
-+ |           |                     +-----------+                           |
-+ |           |                     |     7     | --------------------------+
++ |           |                     |     2     | -------------> |     2     |
++ |           |                     +-----------+                +-----------+
++ |           |                     |     3     | -------------> |     3     |
++ |           |                     +-----------+                +-----------+
++ |           |                     |     4     | -------------> |     4     |
++ |    PMD    |                     +-----------+                +-----------+
++ |   level   |                     |     5     | -------------> |     5     |
++ |  mapping  |                     +-----------+                +-----------+
++ |           |                     |     6     | -------------> |     6     |
++ |           |                     +-----------+                +-----------+
++ |           |                     |     7     | -------------> |     7     |
++ |           |                     +-----------+                +-----------+
++ |           |
++ |           |
++ |           |
++ +-----------+
++
++The value of page->compound_head is the same for all tail pages. The first
++page of page structs (page 0) associated with the HugeTLB page contains the 4
++page structs necessary to describe the HugeTLB. The only use of the remaining
++pages of page structs (page 1 to page 7) is to point to page->compound_head.
++Therefore, we can remap pages 1 to 7 to page 0. Only 1 page of page structs
++will be used for each HugeTLB page. This will allow us to free the remaining
++7 pages to the buddy allocator.
++
++Here is how things look after remapping::
++
++    HugeTLB                  struct pages(8 pages)         page frame(8 pages)
++ +-----------+ ---virt_to_page---> +-----------+   mapping to   +-----------+
++ |           |                     |     0     | -------------> |     0     |
++ |           |                     +-----------+                +-----------+
++ |           |                     |     1     | ---------------^ ^ ^ ^ ^ ^ ^
++ |           |                     +-----------+                  | | | | | |
++ |           |                     |     2     | -----------------+ | | | | |
++ |           |                     +-----------+                    | | | | |
++ |           |                     |     3     | -------------------+ | | | |
++ |           |                     +-----------+                      | | | |
++ |           |                     |     4     | ---------------------+ | | |
++ |    PMD    |                     +-----------+                        | | |
++ |   level   |                     |     5     | -----------------------+ | |
++ |  mapping  |                     +-----------+                          | |
++ |           |                     |     6     | -------------------------+ |
++ |           |                     +-----------+                            |
++ |           |                     |     7     | ---------------------------+
 + |           |                     +-----------+
 + |           |
 + |           |
 + |           |
 + +-----------+
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 5f549cf6a4e8..ad7a845f15b8 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -3118,7 +3118,7 @@ p4d_t *vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node);
- pud_t *vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node);
- pmd_t *vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node);
- pte_t *vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node,
--			    struct vmem_altmap *altmap);
-+			    struct vmem_altmap *altmap, struct page *reuse);
- void *vmemmap_alloc_block(unsigned long size, int node);
- struct vmem_altmap;
- void *vmemmap_alloc_block_buf(unsigned long size, int node,
-diff --git a/mm/memremap.c b/mm/memremap.c
-index 2e9148a3421a..a6be2f5bf443 100644
---- a/mm/memremap.c
-+++ b/mm/memremap.c
-@@ -307,6 +307,7 @@ void *memremap_pages(struct dev_pagemap *pgmap, int nid)
- {
- 	struct mhp_params params = {
- 		.altmap = pgmap_altmap(pgmap),
-+		.pgmap = pgmap,
- 		.pgprot = PAGE_KERNEL,
- 	};
- 	const int nr_range = pgmap->nr_range;
-diff --git a/mm/sparse-vmemmap.c b/mm/sparse-vmemmap.c
-index 1b30a82f285e..642e4c8467b6 100644
---- a/mm/sparse-vmemmap.c
-+++ b/mm/sparse-vmemmap.c
-@@ -533,16 +533,31 @@ void __meminit vmemmap_verify(pte_t *pte, int node,
- }
++
++When a HugeTLB is freed to the buddy system, we should allocate 7 pages for
++vmemmap pages and restore the previous mapping relationship.
++
++For the HugeTLB page of the pud level mapping. It is similar to the former.
++We also can use this approach to free (PAGE_SIZE - 1) vmemmap pages.
++
++Apart from the HugeTLB page of the pmd/pud level mapping, some architectures
++(e.g. aarch64) provides a contiguous bit in the translation table entries
++that hints to the MMU to indicate that it is one of a contiguous set of
++entries that can be cached in a single TLB entry.
++
++The contiguous bit is used to increase the mapping size at the pmd and pte
++(last) level. So this type of HugeTLB page can be optimized only when its
++size of the struct page structs is greater than 1 page.
++
++Notice: The head vmemmap page is not freed to the buddy allocator and all
++tail vmemmap pages are mapped to the head vmemmap page frame. So we can see
++more than one struct page struct with PG_head (e.g. 8 per 2 MB HugeTLB page)
++associated with each HugeTLB page. The compound_head() can handle this
++correctly (more details refer to the comment above compound_head()).
+diff --git a/mm/hugetlb_vmemmap.c b/mm/hugetlb_vmemmap.c
+index 791626983c2e..dbaa837b19c6 100644
+--- a/mm/hugetlb_vmemmap.c
++++ b/mm/hugetlb_vmemmap.c
+@@ -6,173 +6,7 @@
+  *
+  *     Author: Muchun Song <songmuchun@bytedance.com>
+  *
+- * The struct page structures (page structs) are used to describe a physical
+- * page frame. By default, there is a one-to-one mapping from a page frame to
+- * it's corresponding page struct.
+- *
+- * HugeTLB pages consist of multiple base page size pages and is supported by
+- * many architectures. See hugetlbpage.rst in the Documentation directory for
+- * more details. On the x86-64 architecture, HugeTLB pages of size 2MB and 1GB
+- * are currently supported. Since the base page size on x86 is 4KB, a 2MB
+- * HugeTLB page consists of 512 base pages and a 1GB HugeTLB page consists of
+- * 4096 base pages. For each base page, there is a corresponding page struct.
+- *
+- * Within the HugeTLB subsystem, only the first 4 page structs are used to
+- * contain unique information about a HugeTLB page. __NR_USED_SUBPAGE provides
+- * this upper limit. The only 'useful' information in the remaining page structs
+- * is the compound_head field, and this field is the same for all tail pages.
+- *
+- * By removing redundant page structs for HugeTLB pages, memory can be returned
+- * to the buddy allocator for other uses.
+- *
+- * Different architectures support different HugeTLB pages. For example, the
+- * following table is the HugeTLB page size supported by x86 and arm64
+- * architectures. Because arm64 supports 4k, 16k, and 64k base pages and
+- * supports contiguous entries, so it supports many kinds of sizes of HugeTLB
+- * page.
+- *
+- * +--------------+-----------+-----------------------------------------------+
+- * | Architecture | Page Size |                HugeTLB Page Size              |
+- * +--------------+-----------+-----------+-----------+-----------+-----------+
+- * |    x86-64    |    4KB    |    2MB    |    1GB    |           |           |
+- * +--------------+-----------+-----------+-----------+-----------+-----------+
+- * |              |    4KB    |   64KB    |    2MB    |    32MB   |    1GB    |
+- * |              +-----------+-----------+-----------+-----------+-----------+
+- * |    arm64     |   16KB    |    2MB    |   32MB    |     1GB   |           |
+- * |              +-----------+-----------+-----------+-----------+-----------+
+- * |              |   64KB    |    2MB    |  512MB    |    16GB   |           |
+- * +--------------+-----------+-----------+-----------+-----------+-----------+
+- *
+- * When the system boot up, every HugeTLB page has more than one struct page
+- * structs which size is (unit: pages):
+- *
+- *    struct_size = HugeTLB_Size / PAGE_SIZE * sizeof(struct page) / PAGE_SIZE
+- *
+- * Where HugeTLB_Size is the size of the HugeTLB page. We know that the size
+- * of the HugeTLB page is always n times PAGE_SIZE. So we can get the following
+- * relationship.
+- *
+- *    HugeTLB_Size = n * PAGE_SIZE
+- *
+- * Then,
+- *
+- *    struct_size = n * PAGE_SIZE / PAGE_SIZE * sizeof(struct page) / PAGE_SIZE
+- *                = n * sizeof(struct page) / PAGE_SIZE
+- *
+- * We can use huge mapping at the pud/pmd level for the HugeTLB page.
+- *
+- * For the HugeTLB page of the pmd level mapping, then
+- *
+- *    struct_size = n * sizeof(struct page) / PAGE_SIZE
+- *                = PAGE_SIZE / sizeof(pte_t) * sizeof(struct page) / PAGE_SIZE
+- *                = sizeof(struct page) / sizeof(pte_t)
+- *                = 64 / 8
+- *                = 8 (pages)
+- *
+- * Where n is how many pte entries which one page can contains. So the value of
+- * n is (PAGE_SIZE / sizeof(pte_t)).
+- *
+- * This optimization only supports 64-bit system, so the value of sizeof(pte_t)
+- * is 8. And this optimization also applicable only when the size of struct page
+- * is a power of two. In most cases, the size of struct page is 64 bytes (e.g.
+- * x86-64 and arm64). So if we use pmd level mapping for a HugeTLB page, the
+- * size of struct page structs of it is 8 page frames which size depends on the
+- * size of the base page.
+- *
+- * For the HugeTLB page of the pud level mapping, then
+- *
+- *    struct_size = PAGE_SIZE / sizeof(pmd_t) * struct_size(pmd)
+- *                = PAGE_SIZE / 8 * 8 (pages)
+- *                = PAGE_SIZE (pages)
+- *
+- * Where the struct_size(pmd) is the size of the struct page structs of a
+- * HugeTLB page of the pmd level mapping.
+- *
+- * E.g.: A 2MB HugeTLB page on x86_64 consists in 8 page frames while 1GB
+- * HugeTLB page consists in 4096.
+- *
+- * Next, we take the pmd level mapping of the HugeTLB page as an example to
+- * show the internal implementation of this optimization. There are 8 pages
+- * struct page structs associated with a HugeTLB page which is pmd mapped.
+- *
+- * Here is how things look before optimization.
+- *
+- *    HugeTLB                  struct pages(8 pages)         page frame(8 pages)
+- * +-----------+ ---virt_to_page---> +-----------+   mapping to   +-----------+
+- * |           |                     |     0     | -------------> |     0     |
+- * |           |                     +-----------+                +-----------+
+- * |           |                     |     1     | -------------> |     1     |
+- * |           |                     +-----------+                +-----------+
+- * |           |                     |     2     | -------------> |     2     |
+- * |           |                     +-----------+                +-----------+
+- * |           |                     |     3     | -------------> |     3     |
+- * |           |                     +-----------+                +-----------+
+- * |           |                     |     4     | -------------> |     4     |
+- * |    PMD    |                     +-----------+                +-----------+
+- * |   level   |                     |     5     | -------------> |     5     |
+- * |  mapping  |                     +-----------+                +-----------+
+- * |           |                     |     6     | -------------> |     6     |
+- * |           |                     +-----------+                +-----------+
+- * |           |                     |     7     | -------------> |     7     |
+- * |           |                     +-----------+                +-----------+
+- * |           |
+- * |           |
+- * |           |
+- * +-----------+
+- *
+- * The value of page->compound_head is the same for all tail pages. The first
+- * page of page structs (page 0) associated with the HugeTLB page contains the 4
+- * page structs necessary to describe the HugeTLB. The only use of the remaining
+- * pages of page structs (page 1 to page 7) is to point to page->compound_head.
+- * Therefore, we can remap pages 1 to 7 to page 0. Only 1 page of page structs
+- * will be used for each HugeTLB page. This will allow us to free the remaining
+- * 7 pages to the buddy allocator.
+- *
+- * Here is how things look after remapping.
+- *
+- *    HugeTLB                  struct pages(8 pages)         page frame(8 pages)
+- * +-----------+ ---virt_to_page---> +-----------+   mapping to   +-----------+
+- * |           |                     |     0     | -------------> |     0     |
+- * |           |                     +-----------+                +-----------+
+- * |           |                     |     1     | ---------------^ ^ ^ ^ ^ ^ ^
+- * |           |                     +-----------+                  | | | | | |
+- * |           |                     |     2     | -----------------+ | | | | |
+- * |           |                     +-----------+                    | | | | |
+- * |           |                     |     3     | -------------------+ | | | |
+- * |           |                     +-----------+                      | | | |
+- * |           |                     |     4     | ---------------------+ | | |
+- * |    PMD    |                     +-----------+                        | | |
+- * |   level   |                     |     5     | -----------------------+ | |
+- * |  mapping  |                     +-----------+                          | |
+- * |           |                     |     6     | -------------------------+ |
+- * |           |                     +-----------+                            |
+- * |           |                     |     7     | ---------------------------+
+- * |           |                     +-----------+
+- * |           |
+- * |           |
+- * |           |
+- * +-----------+
+- *
+- * When a HugeTLB is freed to the buddy system, we should allocate 7 pages for
+- * vmemmap pages and restore the previous mapping relationship.
+- *
+- * For the HugeTLB page of the pud level mapping. It is similar to the former.
+- * We also can use this approach to free (PAGE_SIZE - 1) vmemmap pages.
+- *
+- * Apart from the HugeTLB page of the pmd/pud level mapping, some architectures
+- * (e.g. aarch64) provides a contiguous bit in the translation table entries
+- * that hints to the MMU to indicate that it is one of a contiguous set of
+- * entries that can be cached in a single TLB entry.
+- *
+- * The contiguous bit is used to increase the mapping size at the pmd and pte
+- * (last) level. So this type of HugeTLB page can be optimized only when its
+- * size of the struct page structs is greater than 1 page.
+- *
+- * Notice: The head vmemmap page is not freed to the buddy allocator and all
+- * tail vmemmap pages are mapped to the head vmemmap page frame. So we can see
+- * more than one struct page struct with PG_head (e.g. 8 per 2 MB HugeTLB page)
+- * associated with each HugeTLB page. The compound_head() can handle this
+- * correctly (more details refer to the comment above compound_head()).
++ * See Documentation/vm/vmemmap_dedup.rst
+  */
+ #define pr_fmt(fmt)	"HugeTLB: " fmt
  
- pte_t * __meminit vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node,
--				       struct vmem_altmap *altmap)
-+				       struct vmem_altmap *altmap,
-+				       struct page *reuse)
- {
- 	pte_t *pte = pte_offset_kernel(pmd, addr);
- 	if (pte_none(*pte)) {
- 		pte_t entry;
- 		void *p;
- 
--		p = vmemmap_alloc_block_buf(PAGE_SIZE, node, altmap);
--		if (!p)
--			return NULL;
-+		if (!reuse) {
-+			p = vmemmap_alloc_block_buf(PAGE_SIZE, node, altmap);
-+			if (!p)
-+				return NULL;
-+		} else {
-+			/*
-+			 * When a PTE/PMD entry is freed from the init_mm
-+			 * there's a a free_pages() call to this page allocated
-+			 * above. Thus this get_page() is paired with the
-+			 * put_page_testzero() on the freeing path.
-+			 * This can only called by certain ZONE_DEVICE path,
-+			 * and through vmemmap_populate_compound_pages() when
-+			 * slab is available.
-+			 */
-+			get_page(reuse);
-+			p = page_to_virt(reuse);
-+		}
- 		entry = pfn_pte(__pa(p) >> PAGE_SHIFT, PAGE_KERNEL);
- 		set_pte_at(&init_mm, addr, pte, entry);
- 	}
-@@ -609,7 +624,8 @@ pgd_t * __meminit vmemmap_pgd_populate(unsigned long addr, int node)
- }
- 
- static pte_t * __meminit vmemmap_populate_address(unsigned long addr, int node,
--					      struct vmem_altmap *altmap)
-+					      struct vmem_altmap *altmap,
-+					      struct page *reuse)
- {
- 	pgd_t *pgd;
- 	p4d_t *p4d;
-@@ -629,7 +645,7 @@ static pte_t * __meminit vmemmap_populate_address(unsigned long addr, int node,
- 	pmd = vmemmap_pmd_populate(pud, addr, node);
- 	if (!pmd)
- 		return NULL;
--	pte = vmemmap_pte_populate(pmd, addr, node, altmap);
-+	pte = vmemmap_pte_populate(pmd, addr, node, altmap, reuse);
- 	if (!pte)
- 		return NULL;
- 	vmemmap_verify(pte, node, addr, addr + PAGE_SIZE);
-@@ -639,13 +655,14 @@ static pte_t * __meminit vmemmap_populate_address(unsigned long addr, int node,
- 
- static int __meminit vmemmap_populate_range(unsigned long start,
- 					    unsigned long end, int node,
--					    struct vmem_altmap *altmap)
-+					    struct vmem_altmap *altmap,
-+					    struct page *reuse)
- {
- 	unsigned long addr = start;
- 	pte_t *pte;
- 
- 	for (; addr < end; addr += PAGE_SIZE) {
--		pte = vmemmap_populate_address(addr, node, altmap);
-+		pte = vmemmap_populate_address(addr, node, altmap, reuse);
- 		if (!pte)
- 			return -ENOMEM;
- 	}
-@@ -656,7 +673,95 @@ static int __meminit vmemmap_populate_range(unsigned long start,
- int __meminit vmemmap_populate_basepages(unsigned long start, unsigned long end,
- 					 int node, struct vmem_altmap *altmap)
- {
--	return vmemmap_populate_range(start, end, node, altmap);
-+	return vmemmap_populate_range(start, end, node, altmap, NULL);
-+}
-+
-+/*
-+ * For compound pages bigger than section size (e.g. x86 1G compound
-+ * pages with 2M subsection size) fill the rest of sections as tail
-+ * pages.
-+ *
-+ * Note that memremap_pages() resets @nr_range value and will increment
-+ * it after each range successful onlining. Thus the value or @nr_range
-+ * at section memmap populate corresponds to the in-progress range
-+ * being onlined here.
-+ */
-+static bool __meminit reuse_compound_section(unsigned long start_pfn,
-+					     struct dev_pagemap *pgmap)
-+{
-+	unsigned long nr_pages = pgmap_vmemmap_nr(pgmap);
-+	unsigned long offset = start_pfn -
-+		PHYS_PFN(pgmap->ranges[pgmap->nr_range].start);
-+
-+	return !IS_ALIGNED(offset, nr_pages) && nr_pages > PAGES_PER_SUBSECTION;
-+}
-+
-+static pte_t * __meminit compound_section_tail_page(unsigned long addr)
-+{
-+	pte_t *pte;
-+
-+	addr -= PAGE_SIZE;
-+
-+	/*
-+	 * Assuming sections are populated sequentially, the previous section's
-+	 * page data can be reused.
-+	 */
-+	pte = pte_offset_kernel(pmd_off_k(addr), addr);
-+	if (!pte)
-+		return NULL;
-+
-+	return pte;
-+}
-+
-+static int __meminit vmemmap_populate_compound_pages(unsigned long start_pfn,
-+						     unsigned long start,
-+						     unsigned long end, int node,
-+						     struct dev_pagemap *pgmap)
-+{
-+	unsigned long size, addr;
-+	pte_t *pte;
-+	int rc;
-+
-+	if (reuse_compound_section(start_pfn, pgmap)) {
-+		pte = compound_section_tail_page(start);
-+		if (!pte)
-+			return -ENOMEM;
-+
-+		/*
-+		 * Reuse the page that was populated in the prior iteration
-+		 * with just tail struct pages.
-+		 */
-+		return vmemmap_populate_range(start, end, node, NULL,
-+					      pte_page(*pte));
-+	}
-+
-+	size = min(end - start, pgmap_vmemmap_nr(pgmap) * sizeof(struct page));
-+	for (addr = start; addr < end; addr += size) {
-+		unsigned long next = addr, last = addr + size;
-+
-+		/* Populate the head page vmemmap page */
-+		pte = vmemmap_populate_address(addr, node, NULL, NULL);
-+		if (!pte)
-+			return -ENOMEM;
-+
-+		/* Populate the tail pages vmemmap page */
-+		next = addr + PAGE_SIZE;
-+		pte = vmemmap_populate_address(next, node, NULL, NULL);
-+		if (!pte)
-+			return -ENOMEM;
-+
-+		/*
-+		 * Reuse the previous page for the rest of tail pages
-+		 * See layout diagram in Documentation/vm/vmemmap_dedup.rst
-+		 */
-+		next += PAGE_SIZE;
-+		rc = vmemmap_populate_range(next, last, node, NULL,
-+					    pte_page(*pte));
-+		if (rc)
-+			return -ENOMEM;
-+	}
-+
-+	return 0;
- }
- 
- struct page * __meminit __populate_section_memmap(unsigned long pfn,
-@@ -665,12 +770,19 @@ struct page * __meminit __populate_section_memmap(unsigned long pfn,
- {
- 	unsigned long start = (unsigned long) pfn_to_page(pfn);
- 	unsigned long end = start + nr_pages * sizeof(struct page);
-+	int r;
- 
- 	if (WARN_ON_ONCE(!IS_ALIGNED(pfn, PAGES_PER_SUBSECTION) ||
- 		!IS_ALIGNED(nr_pages, PAGES_PER_SUBSECTION)))
- 		return NULL;
- 
--	if (vmemmap_populate(start, end, nid, altmap))
-+	if (is_power_of_2(sizeof(struct page)) &&
-+	    pgmap && pgmap_vmemmap_nr(pgmap) > 1 && !altmap)
-+		r = vmemmap_populate_compound_pages(pfn, start, end, nid, pgmap);
-+	else
-+		r = vmemmap_populate(start, end, nid, altmap);
-+
-+	if (r < 0)
- 		return NULL;
- 
- 	return pfn_to_page(pfn);
 -- 
 2.17.2
 
