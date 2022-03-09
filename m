@@ -1,86 +1,116 @@
-Received: from mail-pf1-f175.google.com (mail-pf1-f175.google.com [209.85.210.175])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D7385107
-	for <nvdimm@lists.linux.dev>; Wed,  9 Mar 2022 18:34:33 +0000 (UTC)
-Received: by mail-pf1-f175.google.com with SMTP id s11so3014128pfu.13
-        for <nvdimm@lists.linux.dev>; Wed, 09 Mar 2022 10:34:33 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=12MTmTpu13hq53lEoH6MFWeYg7xR2/fBkzr+0Z6u0Ck=;
-        b=MRRIsrlb2tD1c03r1HRBl9H3yV2f6E76atCl9PpgIr+Y1r8mp8mEEz3g6AjnN0F/AB
-         Riqw5V8wHiW0NirwZWoSeYLXhojIBGQceu/lx7Dy2Hxr+1RJUihoh0a8Tm6gHHTdj7OJ
-         UAlf0bjJIMErj04+OidGI99baw9exx5hBg3kKm2hhQOJ9bBEA9p8gZowZeZOZqTMyZHW
-         NExOBYafwY7M/GnHpOE1vm6V3TracFbCMj24rDko7OyJfM0JBrukvNRzwFPziGnwht8/
-         +jBrE2BRn+YBlHlf8l9xRD5om2A6tgGqCzzl+7tWAOAmzW+trkose8cdfzWG0BDp2g4W
-         YiVw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=12MTmTpu13hq53lEoH6MFWeYg7xR2/fBkzr+0Z6u0Ck=;
-        b=PxwvUOegjPMhyNY8st87Ouc5nvEudaEjUMIUBsM2nahAIWwipPpTSU7K7uCFpIREQo
-         3wwXW9nHOrbi5mnUHRi1bsIBamYnWPOGVAi+l7W4CfUOp07uWsnm8Z6osKGVqZVn68yh
-         io7hSrB5bI0RALIhjGljZk/pD3CAimIvey7m6645e4rYhMU6PmpmGYY1SpIa6QZHNQfk
-         ky/AFUswgOIxd/o8ee9D9/6/zDDsm06OhJsTRTlQodyk7+xHBepklRbRnSZx2ux+vZNA
-         d47pOjPxtDrt8uvVcfYeQbBc0VH4GfViDfHkzJHEtjltnIAFZ+BOTtlOFX6eZQbyIQAo
-         Y38A==
-X-Gm-Message-State: AOAM532XVdVhTnUR7m/CuLgrBne4chIU3flUR8kaLhZtNrxlvMUfC6vv
-	xj8tpL1Zk/s7en5muiDgk+iuMvEE00jaLpZ2fWOwMw==
-X-Google-Smtp-Source: ABdhPJyY9Pzhn8MeMgK0ZEOtq9SIHuzHEgfHwVIwVHOYoOPZHQJfQ5DNisp4IqmBvfdFAK/GaG0qA7iLFovv2I5S3Cs=
-X-Received: by 2002:a05:6a02:283:b0:342:703e:1434 with SMTP id
- bk3-20020a056a02028300b00342703e1434mr897536pgb.74.1646850872623; Wed, 09 Mar
- 2022 10:34:32 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 648135107
+	for <nvdimm@lists.linux.dev>; Wed,  9 Mar 2022 18:37:44 +0000 (UTC)
+Received: from fraeml703-chm.china.huawei.com (unknown [172.18.147.226])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4KDL5K3dbKz67LM6;
+	Thu, 10 Mar 2022 02:17:25 +0800 (CST)
+Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
+ fraeml703-chm.china.huawei.com (10.206.15.52) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
+ 15.1.2308.21; Wed, 9 Mar 2022 19:18:48 +0100
+Received: from localhost (10.47.72.217) by lhreml710-chm.china.huawei.com
+ (10.201.108.61) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2308.21; Wed, 9 Mar
+ 2022 18:18:47 +0000
+Date: Wed, 9 Mar 2022 18:18:43 +0000
+From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+To: Dan Williams <dan.j.williams@intel.com>
+CC: <gregkh@linuxfoundation.org>, <rafael.j.wysocki@intel.com>, "Alison
+ Schofield" <alison.schofield@intel.com>, Vishal Verma
+	<vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>, Ben Widawsky
+	<ben.widawsky@intel.com>, <linux-kernel@vger.kernel.org>,
+	<linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>
+Subject: Re: [PATCH 02/11] cxl/core: Refactor a cxl_lock_class() out of
+ cxl_nested_lock()
+Message-ID: <20220309181843.000003fe@Huawei.com>
+In-Reply-To: <164610294030.2682974.642590821548098371.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <164610292916.2682974.12924748003366352335.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<164610294030.2682974.642590821548098371.stgit@dwillia2-desk3.amr.corp.intel.com>
+Organization: Huawei Technologies Research and Development (UK) Ltd.
+X-Mailer: Claws Mail 4.0.0 (GTK+ 3.24.29; i686-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <164610292916.2682974.12924748003366352335.stgit@dwillia2-desk3.amr.corp.intel.com>
- <164610294030.2682974.642590821548098371.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20220309181843.000003fe@Huawei.com>
-In-Reply-To: <20220309181843.000003fe@Huawei.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 9 Mar 2022 10:34:21 -0800
-Message-ID: <CAPcyv4g+++6oc8RQf2vRChR+Utk08r7AhQ9Ma_JOyojz1adTqw@mail.gmail.com>
-Subject: Re: [PATCH 02/11] cxl/core: Refactor a cxl_lock_class() out of cxl_nested_lock()
-To: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Greg KH <gregkh@linuxfoundation.org>, 
-	Rafael J Wysocki <rafael.j.wysocki@intel.com>, Alison Schofield <alison.schofield@intel.com>, 
-	Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>, 
-	Ben Widawsky <ben.widawsky@intel.com>, 
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-cxl@vger.kernel.org, 
-	Linux NVDIMM <nvdimm@lists.linux.dev>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.47.72.217]
+X-ClientProxiedBy: lhreml733-chm.china.huawei.com (10.201.108.84) To
+ lhreml710-chm.china.huawei.com (10.201.108.61)
+X-CFilter-Loop: Reflected
 
-On Wed, Mar 9, 2022 at 10:19 AM Jonathan Cameron
-<Jonathan.Cameron@huawei.com> wrote:
->
-> On Mon, 28 Feb 2022 18:49:00 -0800
-> Dan Williams <dan.j.williams@intel.com> wrote:
->
-> > In preparation for upleveling device_lock() lockdep annotation support into
-> > the core, provide a helper to retrieve the lock class. This lock_class
-> > will be used with device_set_lock_class() to idenify the CXL nested
->
-> idenify?
+On Mon, 28 Feb 2022 18:49:00 -0800
+Dan Williams <dan.j.williams@intel.com> wrote:
 
-Indeed.
+> In preparation for upleveling device_lock() lockdep annotation support into
+> the core, provide a helper to retrieve the lock class. This lock_class
+> will be used with device_set_lock_class() to idenify the CXL nested
 
->
-> > locking rules.
-> >
-> > Cc: Alison Schofield <alison.schofield@intel.com>
-> > Cc: Vishal Verma <vishal.l.verma@intel.com>
-> > Cc: Ira Weiny <ira.weiny@intel.com>
-> > Cc: Ben Widawsky <ben.widawsky@intel.com>
-> > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
->
-> Otherwise looks fine to me.
->
-> Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+idenify?
 
-Thanks!
+> locking rules.
+> 
+> Cc: Alison Schofield <alison.schofield@intel.com>
+> Cc: Vishal Verma <vishal.l.verma@intel.com>
+> Cc: Ira Weiny <ira.weiny@intel.com>
+> Cc: Ben Widawsky <ben.widawsky@intel.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+
+Otherwise looks fine to me.
+
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+
+> ---
+>  drivers/cxl/cxl.h |   19 +++++++++++--------
+>  1 file changed, 11 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
+> index 5486fb6aebd4..ca8a61a623b7 100644
+> --- a/drivers/cxl/cxl.h
+> +++ b/drivers/cxl/cxl.h
+> @@ -509,13 +509,12 @@ enum cxl_lock_class {
+>  	 */
+>  };
+>  
+> -static inline void cxl_nested_lock(struct device *dev)
+> +static inline int cxl_lock_class(struct device *dev)
+>  {
+>  	if (is_cxl_port(dev)) {
+>  		struct cxl_port *port = to_cxl_port(dev);
+>  
+> -		mutex_lock_nested(&dev->lockdep_mutex,
+> -				  CXL_PORT_LOCK + port->depth);
+> +		return CXL_PORT_LOCK + port->depth;
+>  	} else if (is_cxl_decoder(dev)) {
+>  		struct cxl_port *port = to_cxl_port(dev->parent);
+>  
+> @@ -523,14 +522,18 @@ static inline void cxl_nested_lock(struct device *dev)
+>  		 * A decoder is the immediate child of a port, so set
+>  		 * its lock class equal to other child device siblings.
+>  		 */
+> -		mutex_lock_nested(&dev->lockdep_mutex,
+> -				  CXL_PORT_LOCK + port->depth + 1);
+> +		return CXL_PORT_LOCK + port->depth + 1;
+>  	} else if (is_cxl_nvdimm_bridge(dev))
+> -		mutex_lock_nested(&dev->lockdep_mutex, CXL_NVDIMM_BRIDGE_LOCK);
+> +		return CXL_NVDIMM_BRIDGE_LOCK;
+>  	else if (is_cxl_nvdimm(dev))
+> -		mutex_lock_nested(&dev->lockdep_mutex, CXL_NVDIMM_LOCK);
+> +		return CXL_NVDIMM_LOCK;
+>  	else
+> -		mutex_lock_nested(&dev->lockdep_mutex, CXL_ANON_LOCK);
+> +		return CXL_ANON_LOCK;
+> +}
+> +
+> +static inline void cxl_nested_lock(struct device *dev)
+> +{
+> +	mutex_lock_nested(&dev->lockdep_mutex, cxl_lock_class(dev));
+>  }
+>  
+>  static inline void cxl_nested_unlock(struct device *dev)
+> 
+
