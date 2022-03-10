@@ -1,51 +1,50 @@
-Received: from mail-pj1-f51.google.com (mail-pj1-f51.google.com [209.85.216.51])
+Received: from mail-pj1-f47.google.com (mail-pj1-f47.google.com [209.85.216.47])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB1D57A
-	for <nvdimm@lists.linux.dev>; Thu, 10 Mar 2022 00:40:36 +0000 (UTC)
-Received: by mail-pj1-f51.google.com with SMTP id kx6-20020a17090b228600b001bf859159bfso6828873pjb.1
-        for <nvdimm@lists.linux.dev>; Wed, 09 Mar 2022 16:40:36 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F9957A
+	for <nvdimm@lists.linux.dev>; Thu, 10 Mar 2022 00:59:13 +0000 (UTC)
+Received: by mail-pj1-f47.google.com with SMTP id mv5-20020a17090b198500b001bf2a039831so6813109pjb.5
+        for <nvdimm@lists.linux.dev>; Wed, 09 Mar 2022 16:59:13 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20210112.gappssmtp.com; s=20210112;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=RzBwZmXuL2mtDGId2fRGQ9cdH48yHESLY1EUls+Y0mA=;
-        b=3fblK4Lx9eyAfaGQJ50OJygXLr3+yngV/09AYMG9DMOQXco1UvGBl0AA0tGjTcpBuL
-         qHt6ZCzQlf8sISB0V93pZihkUafr9czsnHqjVeIJB64e7Odk4gEDbBLGV7HMcnb4CNqe
-         2ZNlLK9eCP8cYoVJIeqOzgqErWYFpZzaGGpTl6YSYDkjL3SmiSahCh+xtHEDjO0njdJK
-         1yi1kqR3uM1lGNvzVBUU6G3FKCEUFo9CWrmmN/lwTOnG6fRdAzpVscQ6LsXIDFtDZ9nk
-         89nyYEbe1yTf8OUZXOg10LSsxznBJiSXMT/KFTyNyCSDq5UlCiSA4eUHry3XcY/oaIw4
-         Fcdw==
+        bh=NQaSIZIxO5KOdOicjkb1cFrwib5bGbIpCqk65gAppCI=;
+        b=VS2xx8r9PIGwCLa64CuDfWCjlfdzMZcrNjPDuGSm77clH/PVMaEZN2pFx9+sRO7bqW
+         NT6d5L8XGp5XpSuR6KuMouThtrdyDHbkITw+k9eisuQJylQgdSTzNjL6hXN+HdOsOAiQ
+         cpFH7NrpzwaP8f7q7dqp322hrR0wM5RwN+VGHbpilCz8ADGA8IPs2ZX55ZR+0G7xPGsC
+         CSwwKUf//3X1p7hREN0WgucPZ5yZc7YRbwvGPR1udtiTEZJao3XE/m/Hn1NBh7rCglRm
+         fbhq4iAW9AUvr0m7gEOlYSgkuwWgsA4XYTxNaspmnJFzTOItrpijpGdy7OsrHpvYytSU
+         Da9w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=RzBwZmXuL2mtDGId2fRGQ9cdH48yHESLY1EUls+Y0mA=;
-        b=hRBGpSdnJiF6rElIK7tMffzFVLoHqZ7KRpz8xBWVKlTaw7Z8M8zpjc+AJei1PEPpup
-         qUYsM3DFtaU9GgA5byLkDkYuOTr3BojtWQBub+D9OjM+Oqa0z5mmnkU7W7g+UijGmKRW
-         +K8OGcxi810TfoTZbWdh6DM1M9+T+r1Nynt76sTUFjZepzWaqTSdBgWLcOKFCnk9WgOo
-         EXBye6B6UhFO2Fh+PL+LBRRqsNMpU/rLJ9iaBSf6CSi5pBpknWXzA0PLnmYrzPIpacyQ
-         eDHsS90h7SjAYJH3vEKR18dvt2iib6hD6jWE2/AuxP6uf6whgtLrRa1+3ay43v8NDN73
-         8OEA==
-X-Gm-Message-State: AOAM531ADcPA9ttF3dF6lEFRjWIORJw+pA3LV3jJEGq49QuXmGmzDCVO
-	M9CFWbxixeYoS9VB8K2cny1FvwDpM2D7ercy8lKn9w==
-X-Google-Smtp-Source: ABdhPJwFz17SQgb4pCOtnBdy5++/qwKC6LSIgtrRreuv2Nn2kEZn09A8yZqo+ZyLEO0m2rhpRcsK1XX++GWIEmAQt2U=
-X-Received: by 2002:a17:90a:990c:b0:1bc:3c9f:2abe with SMTP id
- b12-20020a17090a990c00b001bc3c9f2abemr2235610pjp.220.1646872836330; Wed, 09
- Mar 2022 16:40:36 -0800 (PST)
+        bh=NQaSIZIxO5KOdOicjkb1cFrwib5bGbIpCqk65gAppCI=;
+        b=SaFpyGhXhW5p7MXRRqwMGXRYinG1O3prrVDnZEvjB+tJzliB0LqmC2vA1FgdbL0tLy
+         lE2i5TaJK+FuryqKPH5sJgsxsK+OJvu74ZaFJqa0VI9p+HEaHlPjhwptqfj8ZX9aekE6
+         aFtke67TZ6gWpRWqMaJ9LOZ06swLtyQaC8cW1+xRg13Ajg8lw38hPtu7MTqxAZ6XdW8V
+         kUPzBw/LoCJZ7xLUJyjnyzYL96tAe0q0DCtuIJ+oWyZ74GprSMG+N8q09lOZoLsTFGDZ
+         zSnHGeFkrdB9HQS6l/uzKlpEJqZFG6qkawaUVoMBdprg0fRJa9+qFOFcXTUWwg6YfaTh
+         4o3g==
+X-Gm-Message-State: AOAM5326tmy+/zltVZXP3eR5KKOI9qfDJ4RTP+fXOHfC/TOmPMr4JxmI
+	mwvt5zdGkeyid36HddmeNlow0wtmkyXN6/61nkOx+w==
+X-Google-Smtp-Source: ABdhPJw96a/Eq6dU3OeebKd8y0NUTDNVyL9MKec/ynBgpi4ejJZav6ILrpB7Vds7D2x6nUx/OKPBrD3KR+tlbTRAg84=
+X-Received: by 2002:a17:902:7296:b0:14b:4bc6:e81 with SMTP id
+ d22-20020a170902729600b0014b4bc60e81mr2486890pll.132.1646873952956; Wed, 09
+ Mar 2022 16:59:12 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20220302082718.32268-1-songmuchun@bytedance.com>
- <20220302082718.32268-4-songmuchun@bytedance.com> <CAPcyv4iv4LXLbmj=O0ugzo7yju1ePbEWWrs5VQ3t3VgAgOLYyw@mail.gmail.com>
-In-Reply-To: <CAPcyv4iv4LXLbmj=O0ugzo7yju1ePbEWWrs5VQ3t3VgAgOLYyw@mail.gmail.com>
+References: <20220302082718.32268-1-songmuchun@bytedance.com> <20220302082718.32268-6-songmuchun@bytedance.com>
+In-Reply-To: <20220302082718.32268-6-songmuchun@bytedance.com>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 9 Mar 2022 16:40:25 -0800
-Message-ID: <CAPcyv4hSg8tZdKSxZtk_iqm=8h-iVyWA_Qj+aqL5aEddnsXEDg@mail.gmail.com>
-Subject: Re: [PATCH v4 3/6] mm: rmap: introduce pfn_mkclean_range() to cleans PTEs
+Date: Wed, 9 Mar 2022 16:59:02 -0800
+Message-ID: <CAPcyv4hsMWe1AreVVhGJD-St3FGtGBMeA-BX7XbA_kVX97tw4Q@mail.gmail.com>
+Subject: Re: [PATCH v4 5/6] dax: fix missing writeprotect the pte entry
 To: Muchun Song <songmuchun@bytedance.com>
 Cc: Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, Al Viro <viro@zeniv.linux.org.uk>, 
 	Andrew Morton <akpm@linux-foundation.org>, Alistair Popple <apopple@nvidia.com>, 
@@ -58,24 +57,51 @@ Cc: Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, Al Viro <viro
 	duanxiongchun@bytedance.com, Muchun Song <smuchun@gmail.com>
 Content-Type: text/plain; charset="UTF-8"
 
-On Wed, Mar 9, 2022 at 4:26 PM Dan Williams <dan.j.williams@intel.com> wrote:
+On Wed, Mar 2, 2022 at 12:30 AM Muchun Song <songmuchun@bytedance.com> wrote:
 >
-> On Wed, Mar 2, 2022 at 12:29 AM Muchun Song <songmuchun@bytedance.com> wrote:
-> >
-> > The page_mkclean_one() is supposed to be used with the pfn that has a
-> > associated struct page, but not all the pfns (e.g. DAX) have a struct
-> > page. Introduce a new function pfn_mkclean_range() to cleans the PTEs
-> > (including PMDs) mapped with range of pfns which has no struct page
-> > associated with them. This helper will be used by DAX device in the
-> > next patch to make pfns clean.
+> Currently dax_mapping_entry_mkclean() fails to clean and write protect
+> the pte entry within a DAX PMD entry during an *sync operation. This
+> can result in data loss in the following sequence:
 >
-> This seems unfortunate given the desire to kill off
-> CONFIG_FS_DAX_LIMITED which is the only way to get DAX without 'struct
-> page'.
->
-> I would special case these helpers behind CONFIG_FS_DAX_LIMITED such
-> that they can be deleted when that support is finally removed.
+>   1) process A mmap write to DAX PMD, dirtying PMD radix tree entry and
+>      making the pmd entry dirty and writeable.
+>   2) process B mmap with the @offset (e.g. 4K) and @length (e.g. 4K)
+>      write to the same file, dirtying PMD radix tree entry (already
+>      done in 1)) and making the pte entry dirty and writeable.
+>   3) fsync, flushing out PMD data and cleaning the radix tree entry. We
+>      currently fail to mark the pte entry as clean and write protected
+>      since the vma of process B is not covered in dax_entry_mkclean().
+>   4) process B writes to the pte. These don't cause any page faults since
+>      the pte entry is dirty and writeable. The radix tree entry remains
+>      clean.
+>   5) fsync, which fails to flush the dirty PMD data because the radix tree
+>      entry was clean.
+>   6) crash - dirty data that should have been fsync'd as part of 5) could
+>      still have been in the processor cache, and is lost.
 
-...unless this support is to be used for other PFN_MAP scenarios where
-a 'struct page' is not available? If so then the "(e.g. DAX)" should
-be clarified to those other cases.
+Excellent description.
+
+>
+> Just to use pfn_mkclean_range() to clean the pfns to fix this issue.
+
+So the original motivation for CONFIG_FS_DAX_LIMITED was for archs
+that do not have spare PTE bits to indicate pmd_devmap(). So this fix
+can only work in the CONFIG_FS_DAX_LIMITED=n case and in that case it
+seems you can use the current page_mkclean_one(), right? So perhaps
+the fix is to skip patch 3, keep patch 4 and make this patch use
+page_mkclean_one() along with this:
+
+diff --git a/fs/Kconfig b/fs/Kconfig
+index 7a2b11c0b803..42108adb7a78 100644
+--- a/fs/Kconfig
++++ b/fs/Kconfig
+@@ -83,6 +83,7 @@ config FS_DAX_PMD
+        depends on FS_DAX
+        depends on ZONE_DEVICE
+        depends on TRANSPARENT_HUGEPAGE
++       depends on !FS_DAX_LIMITED
+
+ # Selected by DAX drivers that do not expect filesystem DAX to support
+ # get_user_pages() of DAX mappings. I.e. "limited" indicates no support
+
+...to preclude the pmd conflict in that case?
