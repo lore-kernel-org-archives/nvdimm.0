@@ -1,102 +1,247 @@
-Received: from mail-yb1-f170.google.com (mail-yb1-f170.google.com [209.85.219.170])
+Received: from mail-pg1-f169.google.com (mail-pg1-f169.google.com [209.85.215.169])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB8FE7E
-	for <nvdimm@lists.linux.dev>; Fri, 11 Mar 2022 09:05:53 +0000 (UTC)
-Received: by mail-yb1-f170.google.com with SMTP id u61so15906725ybi.11
-        for <nvdimm@lists.linux.dev>; Fri, 11 Mar 2022 01:05:53 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77975258E
+	for <nvdimm@lists.linux.dev>; Fri, 11 Mar 2022 23:35:25 +0000 (UTC)
+Received: by mail-pg1-f169.google.com with SMTP id t14so8694151pgr.3
+        for <nvdimm@lists.linux.dev>; Fri, 11 Mar 2022 15:35:25 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bytedance-com.20210112.gappssmtp.com; s=20210112;
+        d=intel-com.20210112.gappssmtp.com; s=20210112;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=m4uZHfd5TEknERkFPf+I/joPh8Butuy4Qgst4A1Cqjw=;
-        b=pF6htef8BElDLh5mKnFuCbURvy+T/DgtLXd1OrtoV5iZB/kuFmt74asVUCwjaEiP1W
-         VvVb0/uyuvzAHsaOwfvAPUbNjLLi/4O+SisK77Z/w6dLGflRJWAcnwFg8SMYxuEzUtm9
-         Kn0yMKbWtwRnmtRjIb/fgaiA5s9Zib6MbM6LijkloeJGFeDoxalPAyalbbC5Vvm4edYz
-         fKO5lHEqYrZVhfKCrzgSemS8X69xLKp4tDnuTSv1x4AULBBK4IQkDR+YI9t12YnNKIli
-         OXfoMRM7zpWFlX+2+hnO36gI1Xv1n89u0KcNlYLC4ioZEqwTkHNfcCLxhOk5rKKtlYoP
-         icDw==
+        bh=13t7T+1H2gbtDRvuwDVr1bm3a+2J2xIzpet95fdBuh4=;
+        b=RIgXQdVfVb6lODawzvdTxr4kAtwLPsRjREsyVUC9K9FXvakpJNymy17e6FkbZx5Gvv
+         LeDcUKOKw2VoVa83HdzrEPE+n4lq8xuCULunoupKYxugg5JDuOq5trFf3fm42gMytdUt
+         ERkjzkjwpAU0zoJJj8eO/F2dpsyBXR6QjMjtDGcOsDfDr2CJipG41gyKlmh4HlNGNwWJ
+         vwkcU6O57nxaJWLRTl+0Hya9nMI7GHfWxpWRkjw+wUNIj2S8tgExKh9huQ4lWfIYS5K0
+         A8C1eX/+5cBiho3K4ItispCSGtWUy9zYfhJ3aJCa4TY2pJ8nVxCb77Wvrz7OmBeIoOjA
+         1QIQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=m4uZHfd5TEknERkFPf+I/joPh8Butuy4Qgst4A1Cqjw=;
-        b=X3t3PRzXgrTUOxihwGi5MhyPMdaXZVKFD2KcpFey4g9002QW52SSWv96ZbxIFSho+1
-         6Rd/i5l4/E8WjiSswmRNRIr1jeUrNO6FRF53Ml2zOTOyz+v9lRDFQv803QyUqM5esyPZ
-         T5Gu+Ok9lkGfsZIGbqvK+HDcZC1ZAmff//d4akGc3ZSU9vd8aFr7UGpd9DUNxKY19yuV
-         PRnI6uOcVHgREhiXVSLua791VauAtolh5qwxFpzNpN9vfRmHndkPn3Ds2FviPQ1UXz4j
-         Q4p/W4HVBY224CVyWlTAncJ3uAC0SuYA/LyYm31RdZ7VLrXFT6c3jpwdMETQ4vT5LUW9
-         hljw==
-X-Gm-Message-State: AOAM531ov/sOQ4oe0/AAJQwLogguLkY0TwQyUAeQTWF6nJRrjiLhjgjA
-	wWfFt9xFgJB7q2V0t6dU9cYPK4P6ReYbU/VQt4Eo2w==
-X-Google-Smtp-Source: ABdhPJw9qo6/6qA17qt3SommKl5Kt2eGwf1GjUaS4QRzcq/DenqfvaHGIbgh5aqK7drz/IJ4KLgY2d7lQMruWIN46Do=
-X-Received: by 2002:a25:d188:0:b0:628:ba86:ee68 with SMTP id
- i130-20020a25d188000000b00628ba86ee68mr7040760ybg.427.1646989552644; Fri, 11
- Mar 2022 01:05:52 -0800 (PST)
+        bh=13t7T+1H2gbtDRvuwDVr1bm3a+2J2xIzpet95fdBuh4=;
+        b=wrxYuZigLqpznEuETRYPoTylfQx4/3Gn0Rkmjc2cMEOd/nCCjnfgIlBufZMSrJHt4X
+         FiPwl2QfD22Ao9wM0TH5yAVqDguKHH+NexiKXYX5+q+hdUZUMtEfi/JnFUyCO1qVH7nT
+         IPJ8nBFzF5KSNJdBpMWzoYK4tWDWgBnIYwSDm2gv023gSZz8f9z3fEgciO+KuLSDdx1G
+         uf37MNaMYDRTHav8U6D1srYASYA4LVrV4XbnOoAdzgZmpJG7hwHjkESTzFbhmpPL/moC
+         TecKuAFhoYv9oUx4YR4J/v5IF01tmEImwveWWr6ro1j3DdYAoB6O8SKT1961m4pZN0jw
+         Og8Q==
+X-Gm-Message-State: AOAM53019Ma1X5G0eeIpIQJsuxLa3fJuH7dD2jE8Ydo00LdYA7Rc87sm
+	KfDY2fe8oU1iYl4AkShk+j7rrls8pIomZbAbVTiHRA==
+X-Google-Smtp-Source: ABdhPJy2YDPTfdvIBlgNDhr+xnU7i87kZGa7MwrAaA3nvXLDFGkcmuMWf5/eMsJKEsCu2BWW9StjfFYHKRuRIZXl8BI=
+X-Received: by 2002:a62:1481:0:b0:4f6:38c0:ed08 with SMTP id
+ 123-20020a621481000000b004f638c0ed08mr12796868pfu.86.1647041724808; Fri, 11
+ Mar 2022 15:35:24 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20220302082718.32268-1-songmuchun@bytedance.com>
- <20220302082718.32268-6-songmuchun@bytedance.com> <CAPcyv4hsMWe1AreVVhGJD-St3FGtGBMeA-BX7XbA_kVX97tw4Q@mail.gmail.com>
-In-Reply-To: <CAPcyv4hsMWe1AreVVhGJD-St3FGtGBMeA-BX7XbA_kVX97tw4Q@mail.gmail.com>
-From: Muchun Song <songmuchun@bytedance.com>
-Date: Fri, 11 Mar 2022 17:04:06 +0800
-Message-ID: <CAMZfGtUmhcryboPdRC7ZhWVuV3TX0rLcKUxhvamAGbHUoATaow@mail.gmail.com>
-Subject: Re: [PATCH v4 5/6] dax: fix missing writeprotect the pte entry
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, Al Viro <viro@zeniv.linux.org.uk>, 
-	Andrew Morton <akpm@linux-foundation.org>, Alistair Popple <apopple@nvidia.com>, 
-	Yang Shi <shy828301@gmail.com>, Ralph Campbell <rcampbell@nvidia.com>, 
-	Hugh Dickins <hughd@google.com>, Xiyu Yang <xiyuyang19@fudan.edu.cn>, 
-	"Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Ross Zwisler <zwisler@kernel.org>, 
-	Christoph Hellwig <hch@infradead.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, 
-	Linux NVDIMM <nvdimm@lists.linux.dev>, 
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, 
-	Xiongchun duan <duanxiongchun@bytedance.com>, Muchun Song <smuchun@gmail.com>
+References: <20220227120747.711169-1-ruansy.fnst@fujitsu.com> <20220227120747.711169-2-ruansy.fnst@fujitsu.com>
+In-Reply-To: <20220227120747.711169-2-ruansy.fnst@fujitsu.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 11 Mar 2022 15:35:13 -0800
+Message-ID: <CAPcyv4jAqV7dZdmGcKrG=f8sYmUXaL7YCQtME6GANywncwd+zg@mail.gmail.com>
+Subject: Re: [PATCH v11 1/8] dax: Introduce holder for dax_device
+To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, 
+	Linux NVDIMM <nvdimm@lists.linux.dev>, Linux MM <linux-mm@kvack.org>, 
+	linux-fsdevel <linux-fsdevel@vger.kernel.org>, "Darrick J. Wong" <djwong@kernel.org>, 
+	david <david@fromorbit.com>, Christoph Hellwig <hch@infradead.org>, Jane Chu <jane.chu@oracle.com>
 Content-Type: text/plain; charset="UTF-8"
 
-On Thu, Mar 10, 2022 at 8:59 AM Dan Williams <dan.j.williams@intel.com> wrote:
+On Sun, Feb 27, 2022 at 4:08 AM Shiyang Ruan <ruansy.fnst@fujitsu.com> wrote:
 >
-> On Wed, Mar 2, 2022 at 12:30 AM Muchun Song <songmuchun@bytedance.com> wrote:
-> >
-> > Currently dax_mapping_entry_mkclean() fails to clean and write protect
-> > the pte entry within a DAX PMD entry during an *sync operation. This
-> > can result in data loss in the following sequence:
-> >
-> >   1) process A mmap write to DAX PMD, dirtying PMD radix tree entry and
-> >      making the pmd entry dirty and writeable.
-> >   2) process B mmap with the @offset (e.g. 4K) and @length (e.g. 4K)
-> >      write to the same file, dirtying PMD radix tree entry (already
-> >      done in 1)) and making the pte entry dirty and writeable.
-> >   3) fsync, flushing out PMD data and cleaning the radix tree entry. We
-> >      currently fail to mark the pte entry as clean and write protected
-> >      since the vma of process B is not covered in dax_entry_mkclean().
-> >   4) process B writes to the pte. These don't cause any page faults since
-> >      the pte entry is dirty and writeable. The radix tree entry remains
-> >      clean.
-> >   5) fsync, which fails to flush the dirty PMD data because the radix tree
-> >      entry was clean.
-> >   6) crash - dirty data that should have been fsync'd as part of 5) could
-> >      still have been in the processor cache, and is lost.
+> To easily track filesystem from a pmem device, we introduce a holder for
+> dax_device structure, and also its operation.  This holder is used to
+> remember who is using this dax_device:
+>  - When it is the backend of a filesystem, the holder will be the
+>    instance of this filesystem.
+>  - When this pmem device is one of the targets in a mapped device, the
+>    holder will be this mapped device.  In this case, the mapped device
+>    has its own dax_device and it will follow the first rule.  So that we
+>    can finally track to the filesystem we needed.
 >
-> Excellent description.
+> The holder and holder_ops will be set when filesystem is being mounted,
+> or an target device is being activated.
 >
-> >
-> > Just to use pfn_mkclean_range() to clean the pfns to fix this issue.
+> Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+> ---
+>  drivers/dax/super.c | 89 +++++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/dax.h | 32 ++++++++++++++++
+>  2 files changed, 121 insertions(+)
 >
-> So the original motivation for CONFIG_FS_DAX_LIMITED was for archs
-> that do not have spare PTE bits to indicate pmd_devmap(). So this fix
-> can only work in the CONFIG_FS_DAX_LIMITED=n case and in that case it
-> seems you can use the current page_mkclean_one(), right?
+> diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+> index e3029389d809..da5798e19d57 100644
+> --- a/drivers/dax/super.c
+> +++ b/drivers/dax/super.c
+> @@ -21,6 +21,9 @@
+>   * @cdev: optional character interface for "device dax"
+>   * @private: dax driver private data
+>   * @flags: state and boolean properties
+> + * @ops: operations for dax_device
+> + * @holder_data: holder of a dax_device: could be filesystem or mapped device
+> + * @holder_ops: operations for the inner holder
+>   */
+>  struct dax_device {
+>         struct inode inode;
+> @@ -28,6 +31,8 @@ struct dax_device {
+>         void *private;
+>         unsigned long flags;
+>         const struct dax_operations *ops;
+> +       void *holder_data;
+> +       const struct dax_holder_operations *holder_ops;
+>  };
+>
+>  static dev_t dax_devt;
+> @@ -193,6 +198,29 @@ int dax_zero_page_range(struct dax_device *dax_dev, pgoff_t pgoff,
+>  }
+>  EXPORT_SYMBOL_GPL(dax_zero_page_range);
+>
+> +int dax_holder_notify_failure(struct dax_device *dax_dev, u64 off,
+> +                             u64 len, int mf_flags)
+> +{
+> +       int rc, id;
+> +
+> +       id = dax_read_lock();
+> +       if (!dax_alive(dax_dev)) {
+> +               rc = -ENXIO;
+> +               goto out;
+> +       }
+> +
+> +       if (!dax_dev->holder_ops) {
+> +               rc = -EOPNOTSUPP;
 
-I don't know the history of CONFIG_FS_DAX_LIMITED.
-page_mkclean_one() need a struct page associated with
-the pfn,  do the struct pages exist when CONFIG_FS_DAX_LIMITED
-and ! FS_DAX_PMD? If yes, I think you are right. But I don't
-see this guarantee. I am not familiar with DAX code, so what am
-I missing here?
+I think it is ok to return success (0) for this case. All the caller
+of dax_holder_notify_failure() wants to know is if the notification
+was successfully delivered to the holder. If there is no holder
+present then there is nothing to report. This is minor enough for me
+to fix up locally if nothing else needs to be changed.
 
-Thanks.
+> +               goto out;
+> +       }
+> +
+> +       rc = dax_dev->holder_ops->notify_failure(dax_dev, off, len, mf_flags);
+> +out:
+> +       dax_read_unlock(id);
+> +       return rc;
+> +}
+> +EXPORT_SYMBOL_GPL(dax_holder_notify_failure);
+> +
+>  #ifdef CONFIG_ARCH_HAS_PMEM_API
+>  void arch_wb_cache_pmem(void *addr, size_t size);
+>  void dax_flush(struct dax_device *dax_dev, void *addr, size_t size)
+> @@ -268,6 +296,10 @@ void kill_dax(struct dax_device *dax_dev)
+>
+>         clear_bit(DAXDEV_ALIVE, &dax_dev->flags);
+>         synchronize_srcu(&dax_srcu);
+> +
+> +       /* clear holder data */
+> +       dax_dev->holder_ops = NULL;
+> +       dax_dev->holder_data = NULL;
+
+Isn't this another failure scenario? If kill_dax() is called while a
+holder is still holding the dax_device that seems to be another
+->notify_failure scenario to tell the holder that the device is going
+away and the holder has not released the device yet.
+
+>  }
+>  EXPORT_SYMBOL_GPL(kill_dax);
+>
+> @@ -409,6 +441,63 @@ void put_dax(struct dax_device *dax_dev)
+>  }
+>  EXPORT_SYMBOL_GPL(put_dax);
+>
+> +/**
+> + * dax_holder() - obtain the holder of a dax device
+> + * @dax_dev: a dax_device instance
+> +
+> + * Return: the holder's data which represents the holder if registered,
+> + * otherwize NULL.
+> + */
+> +void *dax_holder(struct dax_device *dax_dev)
+> +{
+> +       if (!dax_alive(dax_dev))
+> +               return NULL;
+
+It's safe for the holder to assume that it can de-reference
+->holder_data freely in its notify_handler callback because
+dax_holder_notify_failure() arranges for the callback to run in
+dax_read_lock() context.
+
+This is another minor detail that I can fixup locally.
+
+> +
+> +       return dax_dev->holder_data;
+> +}
+> +EXPORT_SYMBOL_GPL(dax_holder);
+> +
+> +/**
+> + * dax_register_holder() - register a holder to a dax device
+> + * @dax_dev: a dax_device instance
+> + * @holder: a pointer to a holder's data which represents the holder
+> + * @ops: operations of this holder
+> +
+> + * Return: negative errno if an error occurs, otherwise 0.
+> + */
+> +int dax_register_holder(struct dax_device *dax_dev, void *holder,
+> +               const struct dax_holder_operations *ops)
+> +{
+> +       if (!dax_alive(dax_dev))
+> +               return -ENXIO;
+> +
+> +       if (cmpxchg(&dax_dev->holder_data, NULL, holder))
+> +               return -EBUSY;
+> +
+> +       dax_dev->holder_ops = ops;
+> +       return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(dax_register_holder);
+> +
+> +/**
+> + * dax_unregister_holder() - unregister the holder for a dax device
+> + * @dax_dev: a dax_device instance
+> + * @holder: the holder to be unregistered
+> + *
+> + * Return: negative errno if an error occurs, otherwise 0.
+> + */
+> +int dax_unregister_holder(struct dax_device *dax_dev, void *holder)
+> +{
+> +       if (!dax_alive(dax_dev))
+> +               return -ENXIO;
+> +
+> +       if (cmpxchg(&dax_dev->holder_data, holder, NULL) != holder)
+> +               return -EBUSY;
+> +       dax_dev->holder_ops = NULL;
+> +       return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(dax_unregister_holder);
+> +
+>  /**
+>   * inode_dax: convert a public inode into its dax_dev
+>   * @inode: An inode with i_cdev pointing to a dax_dev
+> diff --git a/include/linux/dax.h b/include/linux/dax.h
+> index 9fc5f99a0ae2..262d7bad131a 100644
+> --- a/include/linux/dax.h
+> +++ b/include/linux/dax.h
+> @@ -32,8 +32,24 @@ struct dax_operations {
+>         int (*zero_page_range)(struct dax_device *, pgoff_t, size_t);
+>  };
+>
+> +struct dax_holder_operations {
+> +       /*
+> +        * notify_failure - notify memory failure into inner holder device
+> +        * @dax_dev: the dax device which contains the holder
+> +        * @offset: offset on this dax device where memory failure occurs
+> +        * @len: length of this memory failure event
+
+Forgive me if this has been discussed before, but since dax_operations
+are in terms of pgoff and nr pages and memory_failure() is in terms of
+pfns what was the rationale for making the function signature byte
+based?
+
+I want to get this series merged into linux-next shortly after
+v5.18-rc1. Then we can start working on incremental fixups rather
+resending the full series with these long reply cycles.
