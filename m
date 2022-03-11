@@ -1,85 +1,67 @@
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9B677E
-	for <nvdimm@lists.linux.dev>; Thu, 10 Mar 2022 23:12:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45A677E
+	for <nvdimm@lists.linux.dev>; Fri, 11 Mar 2022 03:35:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1646953944; x=1678489944;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:content-transfer-encoding:in-reply-to;
-  bh=5QC0vRgugCINeAXN4k7EQqlRq0XcViaqPzPIXBZvqNY=;
-  b=htnEhMgB/8JX18HehPurEwiwuR7bpyQElbA3JAT6VyT1UkBDaAt1LsSO
-   VLtqkk+2h2qEt2dK7K2/MbNW5TVFSHtjLhpqn/Bs57qyaG1ecR4OJUl0K
-   kp+ui/4Ykd/KCnoKpBeUY3AqyHPwjSyCLTZ9+HXcjVfav6txTR1gLdcPJ
-   2W5bzdecHa791czprIESRQZvClDoIstYPJDw1F5B1kra1PNOK6Q/3bQEs
-   Fs9rrqaBAOxUqFChd9roeCYSGWYF1gLRr3k292lBtHI8yeSNL7j00yUfn
-   sm2kmco4zU3CmLLq4WbbHJkJTrzWlYcWQNAsI4dvJ0SYRhfuzsvsklhko
+  t=1646969720; x=1678505720;
+  h=subject:from:to:cc:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=jmNDiTDvf5Zgv6pKXlS3AQ/GF1OW6tlYhIy5xMQQxtY=;
+  b=iiFJ0na00qCpSsWx/3ZXwo7E2LTILUz+OMnf8XBCnKDmA1NFFTFd9zW0
+   eARUrEOz/Irv+BRvfn8n91Reode9byRVvX+fczxzXb/Rk7lYqMF0qZBEn
+   nHg98j+eai9TDXQ82l+pQIHc6gQKrk+rqYoWdkBvB6QM5CXW+yLjQRYz/
+   tPFdx1ENOtVbHLA2pXFBVkWfWFN5wz5RA2ByAB0JKDJPaCNX//JI9eWBb
+   65xGO3I8w4SIgOjykVLm4jmulFfqV4PUIpLWi2m7pR0J6E4AEX1gEvw1Z
+   incv3uVeWHKr2waubCDu+qneUA4P3ErF0szQ6Q3bNyhaMmH5v9RHCRTYq
    w==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10282"; a="236009238"
-X-IronPort-AV: E=Sophos;i="5.90,171,1643702400"; 
-   d="scan'208";a="236009238"
-Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Mar 2022 15:12:23 -0800
-X-IronPort-AV: E=Sophos;i="5.90,171,1643702400"; 
-   d="scan'208";a="642757104"
-Received: from gdavids1-mobl.amr.corp.intel.com (HELO localhost) ([10.212.65.108])
-  by fmsmga002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Mar 2022 15:12:21 -0800
-Date: Thu, 10 Mar 2022 15:12:21 -0800
-From: Ira Weiny <ira.weiny@intel.com>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>,
-	Linux NVDIMM <nvdimm@lists.linux.dev>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] fs/dax: Fix run_dax() missing prototype
-Message-ID: <YiqF1a9VNiSWI5j0@iweiny-desk3>
-References: <20220304203756.3487910-1-ira.weiny@intel.com>
- <CAPcyv4juDzD4W_xAff2CdTFzKQhqfFkn93Zo_4Mw23v+Rq=1+g@mail.gmail.com>
+X-IronPort-AV: E=McAfee;i="6200,9189,10282"; a="237664333"
+X-IronPort-AV: E=Sophos;i="5.90,172,1643702400"; 
+   d="scan'208";a="237664333"
+Received: from orsmga003.jf.intel.com ([10.7.209.27])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Mar 2022 19:35:19 -0800
+X-IronPort-AV: E=Sophos;i="5.90,172,1643702400"; 
+   d="scan'208";a="496621036"
+Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
+  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Mar 2022 19:35:19 -0800
+Subject: [ndctl PATCH] build: Fix test timeouts
+From: Dan Williams <dan.j.williams@intel.com>
+To: vishal.l.verma@intel.com
+Cc: nvdimm@lists.linux.dev
+Date: Thu, 10 Mar 2022 19:35:19 -0800
+Message-ID: <164696971934.3344888.14976446737826853353.stgit@dwillia2-desk3.amr.corp.intel.com>
+User-Agent: StGit/0.18-3-g996c
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAPcyv4juDzD4W_xAff2CdTFzKQhqfFkn93Zo_4Mw23v+Rq=1+g@mail.gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 
-On Wed, Mar 09, 2022 at 09:08:36PM -0800, Dan Williams wrote:
-> On Fri, Mar 4, 2022 at 12:38 PM <ira.weiny@intel.com> wrote:
-> >
-> > From: Ira Weiny <ira.weiny@intel.com>
-> >
-> > The function run_dax() was missing a prototype when compiling with
-> > warnings.
-> >
-> > Add bus.h to fix this.
-> >
-> 
-> Always include the warning and the compiler in the changelog.
+Older versions of meson, like the version that ships in CentOS Stream
+interpret a timeout of 0 as immediately fail, rather than infinite test
+run. Specify a 10 minute timeout by default instead.
 
-Sorry.
+Fixes: 4e5faa1726d2 ("build: Add meson build infrastructure")
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ test/meson.build |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> I
-> suspect you hit this with LLVM and not gcc?
+diff --git a/test/meson.build b/test/meson.build
+index 07a5bb6e7f62..7ccd45195236 100644
+--- a/test/meson.build
++++ b/test/meson.build
+@@ -227,7 +227,7 @@ foreach t : tests
+       mmap,
+     ],
+     suite: t[2],
+-    timeout : 0,
++    timeout : 600,
+     env : [
+       'NDCTL=@0@'.format(ndctl_tool.full_path()),
+       'DAXCTL=@0@'.format(daxctl_tool.full_path()),
 
-No this was with gcc.
-
-gcc -Wp,-MMD,drivers/dax/.super.o.d -nostdinc -I./arch/x86/include
-...
-  -D__KBUILD_MODNAME=kmod_dax -c -o drivers/dax/super.o drivers/dax/super.c  ;
-  ./tools/objtool/objtool orc generate   --no-fp   --retpoline  --uaccess drivers/dax/super.o
-drivers/dax/super.c:276:6: warning: no previous prototype for ‘run_dax’ [-Wmissing-prototypes]
-    276 | void run_dax(struct dax_device *dax_dev)
-          |      ^~~~~~~
-
-> 
-> super.c has no business including bus.h. If the bots are tripping over
-> this a better fix is to move it into dax-private.h.
-
-It was not a bot just me using W=1.
-
-I can ignore it or move the prototype to dax-private.h.
-
-Ira
