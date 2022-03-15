@@ -1,141 +1,146 @@
-Received: from mail-yb1-f180.google.com (mail-yb1-f180.google.com [209.85.219.180])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8EF351B75
-	for <nvdimm@lists.linux.dev>; Tue, 15 Mar 2022 07:53:21 +0000 (UTC)
-Received: by mail-yb1-f180.google.com with SMTP id u103so316898ybi.9
-        for <nvdimm@lists.linux.dev>; Tue, 15 Mar 2022 00:53:21 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bytedance-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=9fx9f/dGI0jG5qMZR80BsY4AEIW3adegKwssDhY/VxU=;
-        b=X3kXd8IgVsb6phSuLDtCPMN6ZSj5LyxjrsIZNHgQ1y74uWx+8ke/pSvk5/wrAfN+AV
-         lwpxSb95g8tsy1IKUKROLcWljPhTXP8G8CdfQvYCYBCD4WKDaNM1W7gd26JURACTcKTK
-         U3+872+E2nf2ZnX6YFLLKzHo1LqglmwIRHhnzsh/9xpK3F76XwIov/1a/2/lc3AjvK3y
-         WJ3CsWyLfDSnxyYDTEkXFcjTEtAy0l249WxSCqLrNslHL2R5ohpXwQGVELyaSdGfbjGW
-         r8S2HA/zPdzeDW0xO6HOu5NqHdJUdjPlrWCCjkMuxlduawfSy2iACKrnAHZi4WI2RqB9
-         NLBg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=9fx9f/dGI0jG5qMZR80BsY4AEIW3adegKwssDhY/VxU=;
-        b=tX46ZJ4E6E8ziXtVvrpuAVXvyWuiihnfDBTTP/vZJA9IJkUl8SeIzZAS6tgFJTFsAU
-         gF4MHIu1V8MfJUZnlLjBupmGvh0hLPtRwM8Zc76X8zOxhLzGFE2wLfb4np1CYMkFWeOc
-         bgbxhoxzSFSOCozohMnsKAeaQnno04WzQOLT1zapsKdf448jYS+NIseBIN03j6TUsMCd
-         hYSyR3HgQfPHwEfShMBcFKQ53JibABK8lboTBT24+pINHVcCNcmx3Gduqkpins/c5KnN
-         dWZeeTQyxzp4ky0I3H+ZlXmUIgGixKeVNyP7UwW1CchKZzLtTxP/grXK1czRPEF4OXHS
-         3r8g==
-X-Gm-Message-State: AOAM5309c4engT/N3g898vV+5DwDHqSex/H7sYGJm2X/x7nyjZOCMwPr
-	ghGTRVz1J2+XnP+9M2Ql2YO6kRLJqs56bhCRhR+A5A==
-X-Google-Smtp-Source: ABdhPJxOY+Gd7fbyVQ1ZM8TF+hRcSWHjS8y0g3Rs/rRlJp/i6LSmbPejo0CMOLJoPxKwDrAWMN6zwhZl7EOhjTmKxxw=
-X-Received: by 2002:a25:dc4:0:b0:629:2337:f9ea with SMTP id
- 187-20020a250dc4000000b006292337f9eamr21531864ybn.6.1647330800437; Tue, 15
- Mar 2022 00:53:20 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB2441FA1
+	for <nvdimm@lists.linux.dev>; Tue, 15 Mar 2022 09:23:13 +0000 (UTC)
+Received: from pps.filterd (m0098419.ppops.net [127.0.0.1])
+	by mx0b-001b2d01.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 22F8JsxN030599;
+	Tue, 15 Mar 2022 08:56:02 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
+ : in-reply-to : references : date : message-id : content-type :
+ mime-version; s=pp1; bh=ahBFhmLZvFLDFTz8Iw8Oeeye0KhytFveVGf4jLSJdew=;
+ b=KRD7Ltd5RZmSypILlYH794+/N1wsn4uiOnF46/awdjd/FzXPOiyn9gKuH7WLm6SagVeN
+ TZUl6/Gt2hBCFSRgLNvZqDc1WMdGF8HRVFQRrPwjDMgv8f7KOavAo5LnH2eGv0sRataX
+ sM+qinZOQDUPm+/WlIl/WUyeY+3LB+uGh6R8LldST+XQ7+I+QK1iLSH+18q/IALgIY7p
+ BDhc9qWsdTeL2oOnCfYjqbOBTJeBSAN6dbNhLJyb/io7iZLOaDIo/iH2X2cgEvCeBHC4
+ Mt/s9oSv2FvA/0atj7i27BGivDfvwk5lY5uf/0es9qw0+iLghye1rwPfJ7437vAzwFs6 Vg== 
+Received: from ppma04ams.nl.ibm.com (63.31.33a9.ip4.static.sl-reverse.com [169.51.49.99])
+	by mx0b-001b2d01.pphosted.com with ESMTP id 3etq6s8kus-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 15 Mar 2022 08:56:02 +0000
+Received: from pps.filterd (ppma04ams.nl.ibm.com [127.0.0.1])
+	by ppma04ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 22F8rDLD015018;
+	Tue, 15 Mar 2022 08:56:00 GMT
+Received: from b06avi18878370.portsmouth.uk.ibm.com (b06avi18878370.portsmouth.uk.ibm.com [9.149.26.194])
+	by ppma04ams.nl.ibm.com with ESMTP id 3erk58x3sd-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 15 Mar 2022 08:56:00 +0000
+Received: from d06av25.portsmouth.uk.ibm.com (d06av25.portsmouth.uk.ibm.com [9.149.105.61])
+	by b06avi18878370.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 22F8u0BI32637426
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Tue, 15 Mar 2022 08:56:00 GMT
+Received: from d06av25.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 8964C11C050;
+	Tue, 15 Mar 2022 08:55:58 +0000 (GMT)
+Received: from d06av25.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id CF7BB11C04C;
+	Tue, 15 Mar 2022 08:55:54 +0000 (GMT)
+Received: from vajain21.in.ibm.com (unknown [9.211.32.147])
+	by d06av25.portsmouth.uk.ibm.com (Postfix) with SMTP;
+	Tue, 15 Mar 2022 08:55:54 +0000 (GMT)
+Received: by vajain21.in.ibm.com (sSMTP sendmail emulation); Tue, 15 Mar 2022 14:25:52 +0530
+From: Vaibhav Jain <vaibhav@linux.ibm.com>
+To: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, nvdimm@lists.linux.dev,
+        dan.j.williams@intel.com, vishal.l.verma@intel.com
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: Re: [PATCH] util/parse: Fix build error on ubuntu
+In-Reply-To: <20220315060426.140201-1-aneesh.kumar@linux.ibm.com>
+References: <20220315060426.140201-1-aneesh.kumar@linux.ibm.com>
+Date: Tue, 15 Mar 2022 14:25:52 +0530
+Message-ID: <874k3zd27b.fsf@vajain21.in.ibm.com>
+Content-Type: text/plain
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: xnXI4dRnu9VE3_sc-c5Hv9JYN7gwV22r
+X-Proofpoint-ORIG-GUID: xnXI4dRnu9VE3_sc-c5Hv9JYN7gwV22r
+X-Proofpoint-UnRewURL: 0 URL was un-rewritten
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20220302082718.32268-1-songmuchun@bytedance.com>
- <20220302082718.32268-6-songmuchun@bytedance.com> <CAPcyv4hsMWe1AreVVhGJD-St3FGtGBMeA-BX7XbA_kVX97tw4Q@mail.gmail.com>
- <CAMZfGtUmhcryboPdRC7ZhWVuV3TX0rLcKUxhvamAGbHUoATaow@mail.gmail.com> <CAPcyv4gdP+FSsQW2+W3+NKNGnM3fAfF3d=ZxuCDc+r_AnRBCUg@mail.gmail.com>
-In-Reply-To: <CAPcyv4gdP+FSsQW2+W3+NKNGnM3fAfF3d=ZxuCDc+r_AnRBCUg@mail.gmail.com>
-From: Muchun Song <songmuchun@bytedance.com>
-Date: Tue, 15 Mar 2022 15:51:31 +0800
-Message-ID: <CAMZfGtX1tgMQX3iCMO_x=HG1y2c21038YQUWuSzhaO2miUTLcA@mail.gmail.com>
-Subject: Re: [PATCH v4 5/6] dax: fix missing writeprotect the pte entry
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, Al Viro <viro@zeniv.linux.org.uk>, 
-	Andrew Morton <akpm@linux-foundation.org>, Alistair Popple <apopple@nvidia.com>, 
-	Yang Shi <shy828301@gmail.com>, Ralph Campbell <rcampbell@nvidia.com>, 
-	Hugh Dickins <hughd@google.com>, Xiyu Yang <xiyuyang19@fudan.edu.cn>, 
-	"Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Ross Zwisler <zwisler@kernel.org>, 
-	Christoph Hellwig <hch@infradead.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, 
-	Linux NVDIMM <nvdimm@lists.linux.dev>, 
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, 
-	Xiongchun duan <duanxiongchun@bytedance.com>, Muchun Song <smuchun@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.205,Aquarius:18.0.850,Hydra:6.0.425,FMLib:17.11.64.514
+ definitions=2022-03-14_14,2022-03-14_02,2022-02-23_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 lowpriorityscore=0
+ suspectscore=0 phishscore=0 adultscore=0 impostorscore=0 mlxlogscore=999
+ mlxscore=0 malwarescore=0 spamscore=0 priorityscore=1501 clxscore=1015
+ bulkscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2202240000 definitions=main-2203150055
 
-On Tue, Mar 15, 2022 at 4:50 AM Dan Williams <dan.j.williams@intel.com> wrote:
+
+Second hunk of this diff seems to be a revert of [1]  which might
+break the ndctl build on Arch Linux.
+
+AFAIS for Centos/Fedora/RHEL etc the iniparser.h file is present in the
+default include path('/usr/include') as a softlink to
+'/usr/include/iniparser/iniparser.h' . Ubuntu/Debian seems to an
+exception where path '/usr/include/iniparser.h' is not present.
+
+I guess thats primarily due to no 'make install' target available in
+iniparser makefiles [1] that fixes a single include patch. This may have led
+to differences across distros where to place these header files.
+
+I would suggest changing to this in meson.build to atleast catch if the
+iniparser.h is not present at the expected path during meson setup:
+
+    iniparser = cc.find_library('iniparser', required : true, has_headers: 'iniparser.h')
+
+[1] addc5fd8511('Fix iniparser.h include')
+[2] https://github.com/ndevilla/iniparser/blob/master/Makefile
+
+"Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com> writes:
+
+> Fix the below build error on ubuntu:
+> ../util/parse-configs.c:7:10: fatal error: iniparser.h: No such file or directory
+>     7 | #include <iniparser.h>
+>       |          ^~~~~~~~~~~~~
 >
-> On Fri, Mar 11, 2022 at 1:06 AM Muchun Song <songmuchun@bytedance.com> wrote:
-> >
-> > On Thu, Mar 10, 2022 at 8:59 AM Dan Williams <dan.j.williams@intel.com> wrote:
-> > >
-> > > On Wed, Mar 2, 2022 at 12:30 AM Muchun Song <songmuchun@bytedance.com> wrote:
-> > > >
-> > > > Currently dax_mapping_entry_mkclean() fails to clean and write protect
-> > > > the pte entry within a DAX PMD entry during an *sync operation. This
-> > > > can result in data loss in the following sequence:
-> > > >
-> > > >   1) process A mmap write to DAX PMD, dirtying PMD radix tree entry and
-> > > >      making the pmd entry dirty and writeable.
-> > > >   2) process B mmap with the @offset (e.g. 4K) and @length (e.g. 4K)
-> > > >      write to the same file, dirtying PMD radix tree entry (already
-> > > >      done in 1)) and making the pte entry dirty and writeable.
-> > > >   3) fsync, flushing out PMD data and cleaning the radix tree entry. We
-> > > >      currently fail to mark the pte entry as clean and write protected
-> > > >      since the vma of process B is not covered in dax_entry_mkclean().
-> > > >   4) process B writes to the pte. These don't cause any page faults since
-> > > >      the pte entry is dirty and writeable. The radix tree entry remains
-> > > >      clean.
-> > > >   5) fsync, which fails to flush the dirty PMD data because the radix tree
-> > > >      entry was clean.
-> > > >   6) crash - dirty data that should have been fsync'd as part of 5) could
-> > > >      still have been in the processor cache, and is lost.
-> > >
-> > > Excellent description.
-> > >
-> > > >
-> > > > Just to use pfn_mkclean_range() to clean the pfns to fix this issue.
-> > >
-> > > So the original motivation for CONFIG_FS_DAX_LIMITED was for archs
-> > > that do not have spare PTE bits to indicate pmd_devmap(). So this fix
-> > > can only work in the CONFIG_FS_DAX_LIMITED=n case and in that case it
-> > > seems you can use the current page_mkclean_one(), right?
-> >
-> > I don't know the history of CONFIG_FS_DAX_LIMITED.
-> > page_mkclean_one() need a struct page associated with
-> > the pfn,  do the struct pages exist when CONFIG_FS_DAX_LIMITED
-> > and ! FS_DAX_PMD?
+> The same error is not observed on other OS because they do create symlinks as
+> below
 >
-> CONFIG_FS_DAX_LIMITED was created to preserve some DAX use for S390
-> which does not have CONFIG_ARCH_HAS_PTE_DEVMAP. Without PTE_DEVMAP
-> then get_user_pages() for DAX mappings fails.
+> lrwxrwxrwx. 1 root root 21 Jul 22  2021 /usr/include/iniparser.h -> iniparser/iniparser.h
 >
-> To your question, no, there are no pages at all in the
-> CONFIG_FS_DAX_LIMITED=y case. So page_mkclean_one() could only be
-> deployed for PMD mappings, but I think it is reasonable to just
-> disable PMD mappings for the CONFIG_FS_DAX_LIMITED=y case.
+> the error can be avoided by using the correct include path. Also, catch the error
+> during setup instead of the build by adding the check for meson.build
 >
-> Going forward the hope is to remove the ARCH_HAS_PTE_DEVMAP
-> requirement for DAX, and use PTE_SPECIAL for the S390 case. However,
-> that still wants to have 'struct page' availability as an across the
-> board requirement.
-
-Got it. Thanks for your patient explanation.
-
+> Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+> ---
+>  meson.build          | 2 +-
+>  util/parse-configs.c | 2 +-
+>  2 files changed, 2 insertions(+), 2 deletions(-)
 >
-> > If yes, I think you are right. But I don't
-> > see this guarantee. I am not familiar with DAX code, so what am
-> > I missing here?
+> diff --git a/meson.build b/meson.build
+> index 42e11aa25cba..a4c4c1cd3df3 100644
+> --- a/meson.build
+> +++ b/meson.build
+> @@ -160,7 +160,7 @@ cc = meson.get_compiler('c')
+>  
+>  # keyutils and iniparser lack pkgconfig
+>  keyutils = cc.find_library('keyutils', required : get_option('keyutils'))
+> -iniparser = cc.find_library('iniparser', required : true)
+> +iniparser = cc.find_library('iniparser', required : true, has_headers: 'iniparser/iniparser.h')
+>  
+>  conf = configuration_data()
+>  check_headers = [
+> diff --git a/util/parse-configs.c b/util/parse-configs.c
+> index c834a07011e5..1b7ffa69f05f 100644
+> --- a/util/parse-configs.c
+> +++ b/util/parse-configs.c
+> @@ -4,7 +4,7 @@
+>  #include <dirent.h>
+>  #include <errno.h>
+>  #include <fcntl.h>
+> -#include <iniparser.h>
+> +#include <iniparser/iniparser.h>
+>  #include <sys/stat.h>
+>  #include <util/parse-configs.h>
+>  #include <util/strbuf.h>
+> -- 
+> 2.35.1
 >
-> Perhaps I missed a 'struct page' dependency? I thought the bug you are
-> fixing only triggers in the presence of PMDs. The
+>
 
-Right.
-
-> CONFIG_FS_DAX_LIMITED=y case can still use the current "page-less"
-> mkclean path for PTEs.
-
-But I think introducing pfn_mkclean_range() could make the code
-simple and easy to maintain here since it could handle both PTE
-and PMD mappings.  And page_vma_mapped_walk() could work
-on PFNs since commit [1], which is the case here, we do not need
-extra code to handle the page-less case here.  What do you
-think?
-
-[1] https://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git/commit/?id=b786e44a4dbfe64476e7120ec7990b89a37be37d
+-- 
+Cheers
+~ Vaibhav
