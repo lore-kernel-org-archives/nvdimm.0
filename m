@@ -1,172 +1,130 @@
-Received: from mail-pj1-f51.google.com (mail-pj1-f51.google.com [209.85.216.51])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 911AD23CC
-	for <nvdimm@lists.linux.dev>; Tue, 15 Mar 2022 17:19:27 +0000 (UTC)
-Received: by mail-pj1-f51.google.com with SMTP id o6-20020a17090a9f8600b001c6562049d9so24244pjp.3
-        for <nvdimm@lists.linux.dev>; Tue, 15 Mar 2022 10:19:27 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=2/NbvozXgzELSJbiLwxeEgDceY55yt5YGuDnXHyt8IY=;
-        b=gyjW2yLMeGxlNQMcQi+FfWeQeqq9v7kw/hKE3kXBEMAPZs+Q66KfhdnkTV0hrxApgX
-         ewsGANR8gQvwFUORwxt6JzYJjAlXe+xg9JeMEvHcfXED5O7pxMRViNMyD858t5RYeL8t
-         pbiB9yxU/ot1868qxfFOTIfbziC97fWjn08sWuMW44RYKyCoD4E/OlWmqW0azdv3jJ8z
-         j0D4aSJCB7maf/IVIBzVWYwowShfybXZ/rneO1UBYNuasKlMsBPrO4LEG/p0+wkI/xKw
-         vUo1/SxceB9uuraMH7nXfizir+KOPWY7MmjrJ1+4vilg1DsANvmI62A8wPMfPJWd+bdb
-         +UHg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=2/NbvozXgzELSJbiLwxeEgDceY55yt5YGuDnXHyt8IY=;
-        b=w5zy9AP8A0B9ETdbkHBkytOFsHgYy+gOzTywcAxP53EPszaSiw557GOAUnDTh2GLsV
-         iMit7aiFyf3+jQFzfr9k/ZjPK+Rey9Mmd4f2BDcRmwewfGx95DnQLQRwSJtbTWLCvwZo
-         boA1JSAji9XGVM/8geOESxIWu6xSK4cd5T2ou9je92Olesl5N9F86nfD6zz8CPZScfHf
-         H3DY8Gz33C4JzIZbXi7pyZjSafleI2UhTXDyr3tK68vm6onxGPn4bJRS/YSNVXx0A9kN
-         6vhfvF9ZLNg7HNShQvs9eXgUDu/OzY9bbXT+pygmCP733zWlMexFdmcGHSriinoo8L4f
-         DSXA==
-X-Gm-Message-State: AOAM531+KImByyCz57JWTQYywvMCh9fbdXnzqtFPzSh/1OG/csYLnCa1
-	vnBWU9OX2UBRge/1WScBGXZO4Gsrlgee9IMehvlTvQ==
-X-Google-Smtp-Source: ABdhPJwWwyLOyIIhmYYkkvDoUgb8xcknhcVoev+ZIjufq9gbjewmFBfvwHYoUOMFRxFWeoSxcUm6cKXI08MYXvJxaAg=
-X-Received: by 2002:a17:902:d511:b0:153:a664:bb3b with SMTP id
- b17-20020a170902d51100b00153a664bb3bmr2519056plg.147.1647364766940; Tue, 15
- Mar 2022 10:19:26 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFB9846AB
+	for <nvdimm@lists.linux.dev>; Wed, 16 Mar 2022 03:43:07 +0000 (UTC)
+Received: from pps.filterd (m0098409.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 22G2tOpS029133;
+	Wed, 16 Mar 2022 03:43:04 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
+ : date : message-id : mime-version : content-transfer-encoding; s=pp1;
+ bh=YCH0sgojhqkYaZFJmKjhVuCtGejBbAlU/yqsabvjeVc=;
+ b=oPeg2Qt13PVEzbVKDk5gKw9A5vMJmYNga9ymSkhgVpxJ0PbNZkJqkPSQKGxtXO6ItSMp
+ t8xsCm93yRfbDMZrDrgGwmVMxPaw6GltKDEdPmsf6xgwA9lHOGPB7Qk8z+GSYp0w5mDY
+ y6Fyvtg1+7pyA2GCucPcg8Q2Iih3yFvtG9ySDYmJxYWOuDkOTPhShY2bBhO+M0lW4Wum
+ QEW5w6WpkHHWv7NJsCmJSnoGU3zo8Y+fFZ1iXKGErJWVJlJC0w/xswDuWXXl1n9LYtY9
+ 72/5KFXUE6s4HcCSqx9FNkTVIDUUR9d4ixSLRO211M+igL2UHJji/XObgu0INQ+12Iqv +Q== 
+Received: from ppma05fra.de.ibm.com (6c.4a.5195.ip4.static.sl-reverse.com [149.81.74.108])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 3eu7hnrn72-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Wed, 16 Mar 2022 03:43:04 +0000
+Received: from pps.filterd (ppma05fra.de.ibm.com [127.0.0.1])
+	by ppma05fra.de.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 22G3XkHP017439;
+	Wed, 16 Mar 2022 03:43:02 GMT
+Received: from b06cxnps3074.portsmouth.uk.ibm.com (d06relay09.portsmouth.uk.ibm.com [9.149.109.194])
+	by ppma05fra.de.ibm.com with ESMTP id 3erk58pr1k-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Wed, 16 Mar 2022 03:43:01 +0000
+Received: from d06av26.portsmouth.uk.ibm.com (d06av26.portsmouth.uk.ibm.com [9.149.105.62])
+	by b06cxnps3074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 22G3gwLI24248828
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Wed, 16 Mar 2022 03:42:58 GMT
+Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 66CE6AE055;
+	Wed, 16 Mar 2022 03:42:58 +0000 (GMT)
+Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id CBE80AE04D;
+	Wed, 16 Mar 2022 03:42:53 +0000 (GMT)
+Received: from vajain21.in.ibm.com (unknown [9.163.24.100])
+	by d06av26.portsmouth.uk.ibm.com (Postfix) with SMTP;
+	Wed, 16 Mar 2022 03:42:53 +0000 (GMT)
+Received: by vajain21.in.ibm.com (sSMTP sendmail emulation); Wed, 16 Mar 2022 09:12:51 +0530
+From: Vaibhav Jain <vaibhav@linux.ibm.com>
+To: nvdimm@lists.linux.dev
+Cc: Vaibhav Jain <vaibhav@linux.ibm.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Vishal Verma <vishal.l.verma@intel.com>,
+        "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>,
+        Ira Weiny <ira.weiny@intel.com>,
+        Shivaprasad G Bhat <sbhat@linux.ibm.com>
+Subject: [ndctl PATCH v2] ndctl,daxctl,util/build: Reconcile 'iniparser' dependency
+Date: Wed, 16 Mar 2022 09:12:50 +0530
+Message-Id: <20220316034250.2792732-1-vaibhav@linux.ibm.com>
+X-Mailer: git-send-email 2.35.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20220315060426.140201-1-aneesh.kumar@linux.ibm.com>
- <874k3zd27b.fsf@vajain21.in.ibm.com> <87v8wfcyht.fsf@linux.ibm.com> <87zglrb1tu.fsf@vajain21.in.ibm.com>
-In-Reply-To: <87zglrb1tu.fsf@vajain21.in.ibm.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 15 Mar 2022 10:19:15 -0700
-Message-ID: <CAPcyv4gZAK5fgGGyeQTiM_6=1rFGNciHjnOJZExqecre7Dbobw@mail.gmail.com>
-Subject: Re: [PATCH] util/parse: Fix build error on ubuntu
-To: Vaibhav Jain <vaibhav@linux.ibm.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, Linux NVDIMM <nvdimm@lists.linux.dev>, 
-	Vishal L Verma <vishal.l.verma@intel.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: YM5InEwkyewHlrD5YBmnojQdD4P40JJD
+X-Proofpoint-ORIG-GUID: YM5InEwkyewHlrD5YBmnojQdD4P40JJD
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.205,Aquarius:18.0.850,Hydra:6.0.425,FMLib:17.11.64.514
+ definitions=2022-03-16_01,2022-03-15_01,2022-02-23_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
+ impostorscore=0 phishscore=0 mlxscore=0 malwarescore=0 lowpriorityscore=0
+ adultscore=0 suspectscore=0 mlxlogscore=986 spamscore=0 clxscore=1015
+ bulkscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2202240000 definitions=main-2203160021
 
-On Tue, Mar 15, 2022 at 9:47 AM Vaibhav Jain <vaibhav@linux.ibm.com> wrote:
->
-> "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com> writes:
->
-> > Vaibhav Jain <vaibhav@linux.ibm.com> writes:
-> >
-> >> Second hunk of this diff seems to be a revert of [1]  which might
-> >> break the ndctl build on Arch Linux.
-> >>
-> >> AFAIS for Centos/Fedora/RHEL etc the iniparser.h file is present in the
-> >> default include path('/usr/include') as a softlink to
-> >> '/usr/include/iniparser/iniparser.h' . Ubuntu/Debian seems to an
-> >> exception where path '/usr/include/iniparser.h' is not present.
-> >>
-> >> I guess thats primarily due to no 'make install' target available in
-> >> iniparser makefiles [1] that fixes a single include patch. This may have led
-> >> to differences across distros where to place these header files.
-> >>
-> >> I would suggest changing to this in meson.build to atleast catch if the
-> >> iniparser.h is not present at the expected path during meson setup:
-> >>
-> >>     iniparser = cc.find_library('iniparser', required : true, has_headers: 'iniparser.h')
-> >>
-> >> [1] addc5fd8511('Fix iniparser.h include')
-> >> [2] https://github.com/ndevilla/iniparser/blob/master/Makefile
-> >
-> >
-> > We can do this.
-> >
-> > diff --git a/config.h.meson b/config.h.meson
-> > index 2852f1e9cd8b..b070df96cf4a 100644
-> > --- a/config.h.meson
-> > +++ b/config.h.meson
-> > @@ -82,6 +82,9 @@
-> >  /* Define to 1 if you have the <unistd.h> header file. */
-> >  #mesondefine HAVE_UNISTD_H
-> >
-> > +/* Define to 1 if you have the <iniparser/iniparser.h> header file. */
-> > +#mesondefine HAVE_INIPARSER_INCLUDE_H
-> > +
-> >  /* Define to 1 if using libuuid */
-> >  #mesondefine HAVE_UUID
-> >
-> > diff --git a/meson.build b/meson.build
-> > index 42e11aa25cba..893f70c22270 100644
-> > --- a/meson.build
-> > +++ b/meson.build
-> > @@ -176,6 +176,7 @@ check_headers = [
-> >    ['HAVE_SYS_STAT_H', 'sys/stat.h'],
-> >    ['HAVE_SYS_TYPES_H', 'sys/types.h'],
-> >    ['HAVE_UNISTD_H', 'unistd.h'],
-> > +  ['HAVE_INIPARSER_INCLUDE_H', 'iniparser/iniparser.h'],
-> >  ]
-> >
-> >  foreach h : check_headers
-> > diff --git a/util/parse-configs.c b/util/parse-configs.c
-> > index c834a07011e5..8bdc9d18cbf3 100644
-> > --- a/util/parse-configs.c
-> > +++ b/util/parse-configs.c
-> > @@ -4,7 +4,11 @@
-> >  #include <dirent.h>
-> >  #include <errno.h>
-> >  #include <fcntl.h>
-> > +#ifdef HAVE_INIPARSER_INCLUDE_H
-> > +#include <iniparser/iniparser.h>
-> > +#else
-> >  #include <iniparser.h>
-> > +#endif
-> >  #include <sys/stat.h>
-> >  #include <util/parse-configs.h>
-> >  #include <util/strbuf.h>
->
-> Agree, above patch can fix this issue. Though I really wanted to avoid
-> trickling changes to the parse-configs.c since the real problem is with
-> non consistent location for iniparser.h header across distros.
->
-> I gave it some thought and came up with this patch to meson.build that can
-> pick up appropriate '/usr/include' or '/usr/include/iniparser' directory
-> as include path to the compiler.
->
-> Also since there seems to be no standard location for this header file
-> I have included a meson build option named 'iniparser-includedir' that
-> can point to the dir where 'iniparser.h' can be found.
->
-> diff --git a/meson.build b/meson.build
-> index 42e11aa25cba..8c347e64ca2d 100644
-> --- a/meson.build
-> +++ b/meson.build
-> @@ -158,9 +158,27 @@ endif
->
->  cc = meson.get_compiler('c')
->
-> -# keyutils and iniparser lack pkgconfig
-> +# keyutils lack pkgconfig
->  keyutils = cc.find_library('keyutils', required : get_option('keyutils'))
-> -iniparser = cc.find_library('iniparser', required : true)
-> +
-> +# iniparser lacks pkgconfig and its header files are either at '/usr/include' or '/usr/include/iniparser'
-> +# First use the path provided by user via meson configure -Diniparser-includedir=<somepath>
-> +# if thats not provided than try searching for 'iniparser.h' in default system include path
-> +# and if that not found than as a last resort try looking at '/usr/include/iniparser'
-> +
-> +if get_option('iniparser-includedir') == ''
+This trivial patch updates 'meson.build' files for daxctl, ndctl to remove
+explicit dependency on 'iniparser'. Instead util/meson.build is updated to add a
+dependency to 'iniparser' which than gets trickled to daxctl, ndctl via 'util_dep'
+dependency.
 
-Approach looks good, but I think I would change this to be relative to
-includedir as in:
+Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
+---
+Changelog:
 
-iniparserdir = get_option(iniparserdir)
-iniparser = cc.find_library('iniparser', required : false, has_headers
-: 'iniparser.h', dirs : includedir / iniparserdir)
-if not iniparser.found()
-    initparserdir = 'iniparser'
-    iniparser = cc.find_library('iniparser', required : true,
-has_headers : 'iniparser.h', dirs : includedir / iniparserdir)
-endif
-iniparser = declare_dependency(include_directories : includedir /
-iniparserdir, dependencies:iniparser)
+v2..v1:
+- Spell fix in patch description [ Vishal ]
+---
+ daxctl/meson.build | 1 -
+ ndctl/meson.build  | 1 -
+ util/meson.build   | 1 +
+ 3 files changed, 1 insertion(+), 2 deletions(-)
 
-...just in case someone has already overridden @prefix and / or @includedir.
+diff --git a/daxctl/meson.build b/daxctl/meson.build
+index ec2e2b648d40..8474d02f2c0d 100644
+--- a/daxctl/meson.build
++++ b/daxctl/meson.build
+@@ -15,7 +15,6 @@ daxctl_tool = executable('daxctl',
+   dependencies : [
+     daxctl_dep,
+     ndctl_dep,
+-    iniparser,
+     util_dep,
+     uuid,
+     kmod,
+diff --git a/ndctl/meson.build b/ndctl/meson.build
+index 6a3d0e5348c2..c7889af36084 100644
+--- a/ndctl/meson.build
++++ b/ndctl/meson.build
+@@ -27,7 +27,6 @@ deps = [
+   uuid,
+   kmod,
+   json,
+-  iniparser,
+   versiondep,
+ ]
+ 
+diff --git a/util/meson.build b/util/meson.build
+index 784b27915649..695037a924b9 100644
+--- a/util/meson.build
++++ b/util/meson.build
+@@ -11,6 +11,7 @@ util = static_library('util', [
+   'abspath.c',
+   'iomem.c',
+   ],
++  dependencies: iniparser,
+   include_directories : root_inc,
+ )
+ util_dep = declare_dependency(link_with : util)
+
+base-commit: dd58d43458943d20ff063850670bf54a5242c9c5
+-- 
+2.35.1
+
