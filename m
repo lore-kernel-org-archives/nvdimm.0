@@ -1,219 +1,291 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DAB6123B2
-	for <nvdimm@lists.linux.dev>; Wed, 16 Mar 2022 05:34:02 +0000 (UTC)
-Received: from pps.filterd (m0098420.ppops.net [127.0.0.1])
-	by mx0b-001b2d01.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 22G5QZrV031038;
-	Wed, 16 Mar 2022 05:34:00 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : subject :
- in-reply-to : references : date : message-id : content-type :
- mime-version; s=pp1; bh=ZhZuJi1nzX1R99wE3TmYzNP4rDvmuJqQ1ksAyENer/4=;
- b=NQs/S/Ba86roIvouCn4qA4VivfVSJF/qRZCHg/yd4Q5rGbGXWfxGQ5ihnmVvIgfWt1Zz
- 5vyMSQjhik2bNBPW+8s7/PPGAlbW3b3AeqV8KtKfoP7aA0qX579J2MDH8mAPPRjDM4BO
- 6ip9jlarPqYLIvJWBGbZtbgKcmcDXnthWP2CrFOM8zdSL/DaBXG1pAgUSO323AbwnvSZ
- XfvfUHxScHSRgjErZ5wsKdtDR8rai5VAh0lgPRmpgAAzjUXIut3IRFkWvWgHOPcUZnnM
- jTmtdssSIJdvxTo06DFCmROKsCaBafWngt4siMey0Zmxrfi/kmDY6g4x+UUyfD4w2tRq hA== 
-Received: from ppma06fra.de.ibm.com (48.49.7a9f.ip4.static.sl-reverse.com [159.122.73.72])
-	by mx0b-001b2d01.pphosted.com with ESMTP id 3eu9rf02v2-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Wed, 16 Mar 2022 05:34:00 +0000
-Received: from pps.filterd (ppma06fra.de.ibm.com [127.0.0.1])
-	by ppma06fra.de.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 22G5Xphc032404;
-	Wed, 16 Mar 2022 05:33:58 GMT
-Received: from b06avi18626390.portsmouth.uk.ibm.com (b06avi18626390.portsmouth.uk.ibm.com [9.149.26.192])
-	by ppma06fra.de.ibm.com with ESMTP id 3erjshpy05-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Wed, 16 Mar 2022 05:33:58 +0000
-Received: from d06av25.portsmouth.uk.ibm.com (d06av25.portsmouth.uk.ibm.com [9.149.105.61])
-	by b06avi18626390.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 22G5MT6U46989776
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 16 Mar 2022 05:22:29 GMT
-Received: from d06av25.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 588B011C052;
-	Wed, 16 Mar 2022 05:33:56 +0000 (GMT)
-Received: from d06av25.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 0BBB311C04C;
-	Wed, 16 Mar 2022 05:33:53 +0000 (GMT)
-Received: from vajain21.in.ibm.com (unknown [9.163.24.100])
-	by d06av25.portsmouth.uk.ibm.com (Postfix) with SMTP;
-	Wed, 16 Mar 2022 05:33:52 +0000 (GMT)
-Received: by vajain21.in.ibm.com (sSMTP sendmail emulation); Wed, 16 Mar 2022 11:03:50 +0530
-From: Vaibhav Jain <vaibhav@linux.ibm.com>
-To: Aneesh Kumar K V <aneesh.kumar@linux.ibm.com>, nvdimm@lists.linux.dev,
-        dan.j.williams@intel.com, vishal.l.verma@intel.com
-Subject: Re: [PATCH] util/parse: Fix build error on ubuntu
-In-Reply-To: <3cada8ec-82aa-33b7-1c10-11a065d9e122@linux.ibm.com>
-References: <20220315060426.140201-1-aneesh.kumar@linux.ibm.com>
- <874k3zd27b.fsf@vajain21.in.ibm.com> <87v8wfcyht.fsf@linux.ibm.com>
- <87zglrb1tu.fsf@vajain21.in.ibm.com>
- <3cada8ec-82aa-33b7-1c10-11a065d9e122@linux.ibm.com>
-Date: Wed, 16 Mar 2022 11:03:50 +0530
-Message-ID: <87mthqbgw1.fsf@vajain21.in.ibm.com>
-Content-Type: text/plain
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: N1lyp4DUz0UqxoHHJ4hQ_7Bv2FDRmzFr
-X-Proofpoint-ORIG-GUID: N1lyp4DUz0UqxoHHJ4hQ_7Bv2FDRmzFr
-X-Proofpoint-UnRewURL: 0 URL was un-rewritten
+Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 8080938C2
+	for <nvdimm@lists.linux.dev>; Wed, 16 Mar 2022 13:46:19 +0000 (UTC)
+IronPort-Data: =?us-ascii?q?A9a23=3ARC8MSKm+Gx15ewHA4EoSTyro5gzqJ0RdPkR7XQ2?=
+ =?us-ascii?q?eYbTBsI5bp2MEmmMcWWyPaa2CZ2D1KthxbYm/8EgDv5LTm9Y3HlRl+CA2RRqmi?=
+ =?us-ascii?q?+KfW43BcR2Y0wB+jyH7ZBs+qZ1YM7EsFehsJpPnjkrrYuiJQUVUj/nSHOKmULe?=
+ =?us-ascii?q?cY0ideCc/IMsfoUM68wIGqt4w6TSJK1vlVeLa+6UzCnf8s9JHGj58B5a4lf9al?=
+ =?us-ascii?q?K+aVAX0EbAJTasjUFf2zxH5BX+ETE27ByOQroJ8RoZWSwtfpYxV8F81/z91Yj+?=
+ =?us-ascii?q?kur39NEMXQL/OJhXIgX1TM0SgqkEa4HVsjeBgb7xBAatUo2zhc9RZ0shEs4ehD?=
+ =?us-ascii?q?wkvJbHklvkfUgVDDmd1OqguFLrveCLl7pfIkhSZG5fr67A0ZK0sBqUU8/h2DUl?=
+ =?us-ascii?q?A7/sdLyoHbwzFjOWzqJq7QelEh8ItNsDnMYoT/HZ6wlnxAf8gB5KFXKTO4d5R2?=
+ =?us-ascii?q?SwYh8ZSEPKYbM0cARJjbgvHZRJnOVoNDp862uCyiRHXdzxetULQoK8f4Hbaxw8?=
+ =?us-ascii?q?316LiWPLTZNCLQMB9mkeDunmA+2X/HwFcONGBoRKH+3ShwOTPgAv8QosZELD+/?=
+ =?us-ascii?q?flv6HWXx2oOGFgYTle2v/S9olCxVsgZKEEO/Ccq668o+ySDStj7Qg39o3OeuBM?=
+ =?us-ascii?q?Yc8RfHvd86wyXzKfQpQGDCQAsSj9HdcxjpMEtbSIl20XPnN7zAzFr9rqPRhqgG?=
+ =?us-ascii?q?h28xd+pEXFNazZcOmlfFk1Yi+QPabob1nrnJuuP2obs5jEtJQzN/g=3D=3D?=
+IronPort-HdrOrdr: =?us-ascii?q?A9a23=3AVUg6hKlM/KmWHn+NaQObFCc54BzpDfIQ3DAb?=
+ =?us-ascii?q?v31ZSRFFG/Fw9vre+MjzsCWYtN9/Yh8dcK+7UpVoLUm8yXcX2/h1AV7BZniEhI?=
+ =?us-ascii?q?LAFugLgrcKqAeQeREWmNQ86Y5QN4B6CPDVSWNxlNvG5mCDeOoI8Z2q97+JiI7l?=
+ =?us-ascii?q?o0tQcQ=3D=3D?=
+X-IronPort-AV: E=Sophos;i="5.88,333,1635177600"; 
+   d="scan'208";a="122733517"
+Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
+  by heian.cn.fujitsu.com with ESMTP; 16 Mar 2022 21:46:09 +0800
+Received: from G08CNEXMBPEKD06.g08.fujitsu.local (unknown [10.167.33.206])
+	by cn.fujitsu.com (Postfix) with ESMTP id 3582E4D16FC7;
+	Wed, 16 Mar 2022 21:46:09 +0800 (CST)
+Received: from G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.80) by
+ G08CNEXMBPEKD06.g08.fujitsu.local (10.167.33.206) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.23; Wed, 16 Mar 2022 21:46:08 +0800
+Received: from [10.167.201.9] (10.167.201.9) by
+ G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
+ id 15.0.1497.23 via Frontend Transport; Wed, 16 Mar 2022 21:46:08 +0800
+Message-ID: <4fd95f0b-106f-6933-7bc6-9f0890012b53@fujitsu.com>
+Date: Wed, 16 Mar 2022 21:46:07 +0800
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.205,Aquarius:18.0.850,Hydra:6.0.425,FMLib:17.11.64.514
- definitions=2022-03-16_01,2022-03-15_01,2022-02-23_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxlogscore=999 spamscore=0
- adultscore=0 clxscore=1015 priorityscore=1501 impostorscore=0 phishscore=0
- malwarescore=0 lowpriorityscore=0 bulkscore=0 mlxscore=0 suspectscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2202240000
- definitions=main-2203160036
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.6.0
+Subject: Re: [PATCH v11 1/8] dax: Introduce holder for dax_device
+To: Dan Williams <dan.j.williams@intel.com>
+CC: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-xfs
+	<linux-xfs@vger.kernel.org>, Linux NVDIMM <nvdimm@lists.linux.dev>, Linux MM
+	<linux-mm@kvack.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, "Darrick
+ J. Wong" <djwong@kernel.org>, david <david@fromorbit.com>, Christoph Hellwig
+	<hch@infradead.org>, Jane Chu <jane.chu@oracle.com>
+References: <20220227120747.711169-1-ruansy.fnst@fujitsu.com>
+ <20220227120747.711169-2-ruansy.fnst@fujitsu.com>
+ <CAPcyv4jAqV7dZdmGcKrG=f8sYmUXaL7YCQtME6GANywncwd+zg@mail.gmail.com>
+From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+In-Reply-To: <CAPcyv4jAqV7dZdmGcKrG=f8sYmUXaL7YCQtME6GANywncwd+zg@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-yoursite-MailScanner-ID: 3582E4D16FC7.A3D86
+X-yoursite-MailScanner: Found to be clean
+X-yoursite-MailScanner-From: ruansy.fnst@fujitsu.com
+X-Spam-Status: No
 
 
-Thanks for the feedback Vishal, Dan and Aneesh
 
-I have sent out a patch based Dan's suggestion at
-https://lore.kernel.org/nvdimm/20220316053030.2954642-1-vaibhav@linux.ibm.com
-
-
-Aneesh Kumar K V <aneesh.kumar@linux.ibm.com> writes:
-
-> On 3/15/22 10:16 PM, Vaibhav Jain wrote:
->> "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com> writes:
->> 
->>> Vaibhav Jain <vaibhav@linux.ibm.com> writes:
->>>
->>>> Second hunk of this diff seems to be a revert of [1]  which might
->>>> break the ndctl build on Arch Linux.
->>>>
->>>> AFAIS for Centos/Fedora/RHEL etc the iniparser.h file is present in the
->>>> default include path('/usr/include') as a softlink to
->>>> '/usr/include/iniparser/iniparser.h' . Ubuntu/Debian seems to an
->>>> exception where path '/usr/include/iniparser.h' is not present.
->>>>
->>>> I guess thats primarily due to no 'make install' target available in
->>>> iniparser makefiles [1] that fixes a single include patch. This may have led
->>>> to differences across distros where to place these header files.
->>>>
->>>> I would suggest changing to this in meson.build to atleast catch if the
->>>> iniparser.h is not present at the expected path during meson setup:
->>>>
->>>>      iniparser = cc.find_library('iniparser', required : true, has_headers: 'iniparser.h')
->>>>
->>>> [1] addc5fd8511('Fix iniparser.h include')
->>>> [2] https://github.com/ndevilla/iniparser/blob/master/Makefile
->>>
->>>
->>> We can do this.
->>>
->>> diff --git a/config.h.meson b/config.h.meson
->>> index 2852f1e9cd8b..b070df96cf4a 100644
->>> --- a/config.h.meson
->>> +++ b/config.h.meson
->>> @@ -82,6 +82,9 @@
->>>   /* Define to 1 if you have the <unistd.h> header file. */
->>>   #mesondefine HAVE_UNISTD_H
->>>   
->>> +/* Define to 1 if you have the <iniparser/iniparser.h> header file. */
->>> +#mesondefine HAVE_INIPARSER_INCLUDE_H
->>> +
->>>   /* Define to 1 if using libuuid */
->>>   #mesondefine HAVE_UUID
->>>   
->>> diff --git a/meson.build b/meson.build
->>> index 42e11aa25cba..893f70c22270 100644
->>> --- a/meson.build
->>> +++ b/meson.build
->>> @@ -176,6 +176,7 @@ check_headers = [
->>>     ['HAVE_SYS_STAT_H', 'sys/stat.h'],
->>>     ['HAVE_SYS_TYPES_H', 'sys/types.h'],
->>>     ['HAVE_UNISTD_H', 'unistd.h'],
->>> +  ['HAVE_INIPARSER_INCLUDE_H', 'iniparser/iniparser.h'],
->>>   ]
->>>   
->>>   foreach h : check_headers
->>> diff --git a/util/parse-configs.c b/util/parse-configs.c
->>> index c834a07011e5..8bdc9d18cbf3 100644
->>> --- a/util/parse-configs.c
->>> +++ b/util/parse-configs.c
->>> @@ -4,7 +4,11 @@
->>>   #include <dirent.h>
->>>   #include <errno.h>
->>>   #include <fcntl.h>
->>> +#ifdef HAVE_INIPARSER_INCLUDE_H
->>> +#include <iniparser/iniparser.h>
->>> +#else
->>>   #include <iniparser.h>
->>> +#endif
->>>   #include <sys/stat.h>
->>>   #include <util/parse-configs.h>
->>>   #include <util/strbuf.h>
->> 
->> Agree, above patch can fix this issue. Though I really wanted to avoid
->> trickling changes to the parse-configs.c since the real problem is with
->> non consistent location for iniparser.h header across distros.
->> 
->> I gave it some thought and came up with this patch to meson.build that can
->> pick up appropriate '/usr/include' or '/usr/include/iniparser' directory
->> as include path to the compiler.
->> 
->> Also since there seems to be no standard location for this header file
->> I have included a meson build option named 'iniparser-includedir' that
->> can point to the dir where 'iniparser.h' can be found.
->> 
->> diff --git a/meson.build b/meson.build
->> index 42e11aa25cba..8c347e64ca2d 100644
->> --- a/meson.build
->> +++ b/meson.build
->> @@ -158,9 +158,27 @@ endif
->>   
->>   cc = meson.get_compiler('c')
->>   
->> -# keyutils and iniparser lack pkgconfig
->> +# keyutils lack pkgconfig
->>   keyutils = cc.find_library('keyutils', required : get_option('keyutils'))
->> -iniparser = cc.find_library('iniparser', required : true)
+在 2022/3/12 7:35, Dan Williams 写道:
+> On Sun, Feb 27, 2022 at 4:08 AM Shiyang Ruan <ruansy.fnst@fujitsu.com> wrote:
+>>
+>> To easily track filesystem from a pmem device, we introduce a holder for
+>> dax_device structure, and also its operation.  This holder is used to
+>> remember who is using this dax_device:
+>>   - When it is the backend of a filesystem, the holder will be the
+>>     instance of this filesystem.
+>>   - When this pmem device is one of the targets in a mapped device, the
+>>     holder will be this mapped device.  In this case, the mapped device
+>>     has its own dax_device and it will follow the first rule.  So that we
+>>     can finally track to the filesystem we needed.
+>>
+>> The holder and holder_ops will be set when filesystem is being mounted,
+>> or an target device is being activated.
+>>
+>> Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+>> ---
+>>   drivers/dax/super.c | 89 +++++++++++++++++++++++++++++++++++++++++++++
+>>   include/linux/dax.h | 32 ++++++++++++++++
+>>   2 files changed, 121 insertions(+)
+>>
+>> diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+>> index e3029389d809..da5798e19d57 100644
+>> --- a/drivers/dax/super.c
+>> +++ b/drivers/dax/super.c
+>> @@ -21,6 +21,9 @@
+>>    * @cdev: optional character interface for "device dax"
+>>    * @private: dax driver private data
+>>    * @flags: state and boolean properties
+>> + * @ops: operations for dax_device
+>> + * @holder_data: holder of a dax_device: could be filesystem or mapped device
+>> + * @holder_ops: operations for the inner holder
+>>    */
+>>   struct dax_device {
+>>          struct inode inode;
+>> @@ -28,6 +31,8 @@ struct dax_device {
+>>          void *private;
+>>          unsigned long flags;
+>>          const struct dax_operations *ops;
+>> +       void *holder_data;
+>> +       const struct dax_holder_operations *holder_ops;
+>>   };
+>>
+>>   static dev_t dax_devt;
+>> @@ -193,6 +198,29 @@ int dax_zero_page_range(struct dax_device *dax_dev, pgoff_t pgoff,
+>>   }
+>>   EXPORT_SYMBOL_GPL(dax_zero_page_range);
+>>
+>> +int dax_holder_notify_failure(struct dax_device *dax_dev, u64 off,
+>> +                             u64 len, int mf_flags)
+>> +{
+>> +       int rc, id;
 >> +
->> +# iniparser lacks pkgconfig and its header files are either at '/usr/include' or '/usr/include/iniparser'
->> +# First use the path provided by user via meson configure -Diniparser-includedir=<somepath>
->> +# if thats not provided than try searching for 'iniparser.h' in default system include path
->> +# and if that not found than as a last resort try looking at '/usr/include/iniparser'
+>> +       id = dax_read_lock();
+>> +       if (!dax_alive(dax_dev)) {
+>> +               rc = -ENXIO;
+>> +               goto out;
+>> +       }
 >> +
->> +if get_option('iniparser-includedir') == ''
->> +  iniparser = cc.find_library('iniparser', required : false, has_headers : 'iniparser.h')
->> +  # if not available at the default path try '/usr/include/iniparser'
->> +  if not iniparser.found()
->> +    iniparser = cc.find_library('iniparser', required : true, has_headers : 'iniparser/iniparser.h')
->> +    iniparser = declare_dependency(include_directories:'/usr/include/iniparser', dependencies:iniparser)
->> +  endif
->> +else
->> +  iniparser_incdir = include_directories(get_option('iniparser-includedir'))
->> +  iniparser = cc.find_library('iniparser', required : true, has_headers : 'iniparser.h',
->> +                                            header_include_directories:iniparser_incdir)
->> +  iniparser = declare_dependency(include_directories:iniparser_incdir, dependencies:iniparser)
->> +endif
->>   
->>   conf = configuration_data()
->>   check_headers = [
->> diff --git a/meson_options.txt b/meson_options.txt
->> index aa4a6dc8e12a..d08151691553 100644
->> --- a/meson_options.txt
->> +++ b/meson_options.txt
->> @@ -23,3 +23,5 @@ option('pkgconfiglibdir', type : 'string', value : '',
->>          description : 'directory for standard pkg-config files')
->>   option('bashcompletiondir', type : 'string',
->>          description : '''${datadir}/bash-completion/completions''')
->> +option('iniparser-includedir', type : 'string',
->> +       description : '''Path containing the iniparser header files''')
->> 
->> 
->
->
-> Looks good. Can you send this as a patch?
->
-> -aneesh
+>> +       if (!dax_dev->holder_ops) {
+>> +               rc = -EOPNOTSUPP;
+> 
+> I think it is ok to return success (0) for this case. All the caller
+> of dax_holder_notify_failure() wants to know is if the notification
+> was successfully delivered to the holder. If there is no holder
+> present then there is nothing to report. This is minor enough for me
+> to fix up locally if nothing else needs to be changed.
 
--- 
-Cheers
-~ Vaibhav
+I thought it could fall back to generic memory failure handler: 
+mf_generic_kill_procs(), if holder_ops not exists.
+
+> 
+>> +               goto out;
+>> +       }
+>> +
+>> +       rc = dax_dev->holder_ops->notify_failure(dax_dev, off, len, mf_flags);
+>> +out:
+>> +       dax_read_unlock(id);
+>> +       return rc;
+>> +}
+>> +EXPORT_SYMBOL_GPL(dax_holder_notify_failure);
+>> +
+>>   #ifdef CONFIG_ARCH_HAS_PMEM_API
+>>   void arch_wb_cache_pmem(void *addr, size_t size);
+>>   void dax_flush(struct dax_device *dax_dev, void *addr, size_t size)
+>> @@ -268,6 +296,10 @@ void kill_dax(struct dax_device *dax_dev)
+>>
+>>          clear_bit(DAXDEV_ALIVE, &dax_dev->flags);
+>>          synchronize_srcu(&dax_srcu);
+>> +
+>> +       /* clear holder data */
+>> +       dax_dev->holder_ops = NULL;
+>> +       dax_dev->holder_data = NULL;
+> 
+> Isn't this another failure scenario? If kill_dax() is called while a
+> holder is still holding the dax_device that seems to be another
+> ->notify_failure scenario to tell the holder that the device is going
+> away and the holder has not released the device yet.
+
+Yes.  I should call dax_holder_notify_failure() and then unregister the 
+holder.
+
+> 
+>>   }
+>>   EXPORT_SYMBOL_GPL(kill_dax);
+>>
+>> @@ -409,6 +441,63 @@ void put_dax(struct dax_device *dax_dev)
+>>   }
+>>   EXPORT_SYMBOL_GPL(put_dax);
+>>
+>> +/**
+>> + * dax_holder() - obtain the holder of a dax device
+>> + * @dax_dev: a dax_device instance
+>> +
+>> + * Return: the holder's data which represents the holder if registered,
+>> + * otherwize NULL.
+>> + */
+>> +void *dax_holder(struct dax_device *dax_dev)
+>> +{
+>> +       if (!dax_alive(dax_dev))
+>> +               return NULL;
+> 
+> It's safe for the holder to assume that it can de-reference
+> ->holder_data freely in its notify_handler callback because
+> dax_holder_notify_failure() arranges for the callback to run in
+> dax_read_lock() context.
+> 
+> This is another minor detail that I can fixup locally.
+> 
+>> +
+>> +       return dax_dev->holder_data;
+>> +}
+>> +EXPORT_SYMBOL_GPL(dax_holder);
+>> +
+>> +/**
+>> + * dax_register_holder() - register a holder to a dax device
+>> + * @dax_dev: a dax_device instance
+>> + * @holder: a pointer to a holder's data which represents the holder
+>> + * @ops: operations of this holder
+>> +
+>> + * Return: negative errno if an error occurs, otherwise 0.
+>> + */
+>> +int dax_register_holder(struct dax_device *dax_dev, void *holder,
+>> +               const struct dax_holder_operations *ops)
+>> +{
+>> +       if (!dax_alive(dax_dev))
+>> +               return -ENXIO;
+>> +
+>> +       if (cmpxchg(&dax_dev->holder_data, NULL, holder))
+>> +               return -EBUSY;
+>> +
+>> +       dax_dev->holder_ops = ops;
+>> +       return 0;
+>> +}
+>> +EXPORT_SYMBOL_GPL(dax_register_holder);
+>> +
+>> +/**
+>> + * dax_unregister_holder() - unregister the holder for a dax device
+>> + * @dax_dev: a dax_device instance
+>> + * @holder: the holder to be unregistered
+>> + *
+>> + * Return: negative errno if an error occurs, otherwise 0.
+>> + */
+>> +int dax_unregister_holder(struct dax_device *dax_dev, void *holder)
+>> +{
+>> +       if (!dax_alive(dax_dev))
+>> +               return -ENXIO;
+>> +
+>> +       if (cmpxchg(&dax_dev->holder_data, holder, NULL) != holder)
+>> +               return -EBUSY;
+>> +       dax_dev->holder_ops = NULL;
+>> +       return 0;
+>> +}
+>> +EXPORT_SYMBOL_GPL(dax_unregister_holder);
+>> +
+>>   /**
+>>    * inode_dax: convert a public inode into its dax_dev
+>>    * @inode: An inode with i_cdev pointing to a dax_dev
+>> diff --git a/include/linux/dax.h b/include/linux/dax.h
+>> index 9fc5f99a0ae2..262d7bad131a 100644
+>> --- a/include/linux/dax.h
+>> +++ b/include/linux/dax.h
+>> @@ -32,8 +32,24 @@ struct dax_operations {
+>>          int (*zero_page_range)(struct dax_device *, pgoff_t, size_t);
+>>   };
+>>
+>> +struct dax_holder_operations {
+>> +       /*
+>> +        * notify_failure - notify memory failure into inner holder device
+>> +        * @dax_dev: the dax device which contains the holder
+>> +        * @offset: offset on this dax device where memory failure occurs
+>> +        * @len: length of this memory failure event
+> 
+> Forgive me if this has been discussed before, but since dax_operations
+> are in terms of pgoff and nr pages and memory_failure() is in terms of
+> pfns what was the rationale for making the function signature byte
+> based?
+
+Maybe I didn't describe it clearly...  The @offset and @len here are 
+byte-based.  And so is ->memory_failure().
+
+You can find the implementation of ->memory_failure() in 3rd patch:
+
++static int pmem_pagemap_memory_failure(struct dev_pagemap *pgmap,
++		phys_addr_t addr, u64 len, int mf_flags)
++{
++	struct pmem_device *pmem =
++			container_of(pgmap, struct pmem_device, pgmap);
++	u64 offset = addr - pmem->phys_addr - pmem->data_offset;
++
++	return dax_holder_notify_failure(pmem->dax_dev, offset, len, mf_flags);
++}
+
+> 
+> I want to get this series merged into linux-next shortly after
+> v5.18-rc1. Then we can start working on incremental fixups rather
+> resending the full series with these long reply cycles.
+
+
+Thanks.  That really helps.
+
+
+--
+Ruan.
+
+
