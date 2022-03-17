@@ -1,291 +1,173 @@
-Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 8080938C2
-	for <nvdimm@lists.linux.dev>; Wed, 16 Mar 2022 13:46:19 +0000 (UTC)
-IronPort-Data: =?us-ascii?q?A9a23=3ARC8MSKm+Gx15ewHA4EoSTyro5gzqJ0RdPkR7XQ2?=
- =?us-ascii?q?eYbTBsI5bp2MEmmMcWWyPaa2CZ2D1KthxbYm/8EgDv5LTm9Y3HlRl+CA2RRqmi?=
- =?us-ascii?q?+KfW43BcR2Y0wB+jyH7ZBs+qZ1YM7EsFehsJpPnjkrrYuiJQUVUj/nSHOKmULe?=
- =?us-ascii?q?cY0ideCc/IMsfoUM68wIGqt4w6TSJK1vlVeLa+6UzCnf8s9JHGj58B5a4lf9al?=
- =?us-ascii?q?K+aVAX0EbAJTasjUFf2zxH5BX+ETE27ByOQroJ8RoZWSwtfpYxV8F81/z91Yj+?=
- =?us-ascii?q?kur39NEMXQL/OJhXIgX1TM0SgqkEa4HVsjeBgb7xBAatUo2zhc9RZ0shEs4ehD?=
- =?us-ascii?q?wkvJbHklvkfUgVDDmd1OqguFLrveCLl7pfIkhSZG5fr67A0ZK0sBqUU8/h2DUl?=
- =?us-ascii?q?A7/sdLyoHbwzFjOWzqJq7QelEh8ItNsDnMYoT/HZ6wlnxAf8gB5KFXKTO4d5R2?=
- =?us-ascii?q?SwYh8ZSEPKYbM0cARJjbgvHZRJnOVoNDp862uCyiRHXdzxetULQoK8f4Hbaxw8?=
- =?us-ascii?q?316LiWPLTZNCLQMB9mkeDunmA+2X/HwFcONGBoRKH+3ShwOTPgAv8QosZELD+/?=
- =?us-ascii?q?flv6HWXx2oOGFgYTle2v/S9olCxVsgZKEEO/Ccq668o+ySDStj7Qg39o3OeuBM?=
- =?us-ascii?q?Yc8RfHvd86wyXzKfQpQGDCQAsSj9HdcxjpMEtbSIl20XPnN7zAzFr9rqPRhqgG?=
- =?us-ascii?q?h28xd+pEXFNazZcOmlfFk1Yi+QPabob1nrnJuuP2obs5jEtJQzN/g=3D=3D?=
-IronPort-HdrOrdr: =?us-ascii?q?A9a23=3AVUg6hKlM/KmWHn+NaQObFCc54BzpDfIQ3DAb?=
- =?us-ascii?q?v31ZSRFFG/Fw9vre+MjzsCWYtN9/Yh8dcK+7UpVoLUm8yXcX2/h1AV7BZniEhI?=
- =?us-ascii?q?LAFugLgrcKqAeQeREWmNQ86Y5QN4B6CPDVSWNxlNvG5mCDeOoI8Z2q97+JiI7l?=
- =?us-ascii?q?o0tQcQ=3D=3D?=
-X-IronPort-AV: E=Sophos;i="5.88,333,1635177600"; 
-   d="scan'208";a="122733517"
-Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
-  by heian.cn.fujitsu.com with ESMTP; 16 Mar 2022 21:46:09 +0800
-Received: from G08CNEXMBPEKD06.g08.fujitsu.local (unknown [10.167.33.206])
-	by cn.fujitsu.com (Postfix) with ESMTP id 3582E4D16FC7;
-	Wed, 16 Mar 2022 21:46:09 +0800 (CST)
-Received: from G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.80) by
- G08CNEXMBPEKD06.g08.fujitsu.local (10.167.33.206) with Microsoft SMTP Server
- (TLS) id 15.0.1497.23; Wed, 16 Mar 2022 21:46:08 +0800
-Received: from [10.167.201.9] (10.167.201.9) by
- G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
- id 15.0.1497.23 via Frontend Transport; Wed, 16 Mar 2022 21:46:08 +0800
-Message-ID: <4fd95f0b-106f-6933-7bc6-9f0890012b53@fujitsu.com>
-Date: Wed, 16 Mar 2022 21:46:07 +0800
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A90CF3D79
+	for <nvdimm@lists.linux.dev>; Thu, 17 Mar 2022 09:32:54 +0000 (UTC)
+Received: from pps.filterd (m0098396.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 22H67vPb022742
+	for <nvdimm@lists.linux.dev>; Thu, 17 Mar 2022 09:32:48 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=subject : from : to :
+ date : message-id : mime-version : content-type :
+ content-transfer-encoding; s=pp1;
+ bh=38WIjNblhQEZgp13ZnPpBD6QNjQZQCBeu2jYZTfCrbI=;
+ b=LFD34ZTH/b+T0WYNSRyTEriFeJg7c9f26qMWciHNHdZYPe5nKDGCduesz0FUuKsWCI9Y
+ JDflYn7AYMZYDTU5ldDHkuuBHNKERt0IgSwhtIHsZNpPv+xIW51/0+6bXlZAIcjKsTWY
+ lYhV+okElHzNP2CKtornQAxY5XTVv7EaZPhdp5okqpES3h7K5fJAWmgrUZRJjXKkZw8k
+ HTGrl2cbErH7xow4D3XSJpBe9gqXPZMPk+djqJwfhZvfTOf8/bKxy+Ef/bZNUE6WccJm
+ i/reF5BfcVhoZ39SEjM5T6dZhMZRjZyqxPGbtWuOtt/0JIgKCq0aT875aT3vwZVksgH/ jg== 
+Received: from ppma03ams.nl.ibm.com (62.31.33a9.ip4.static.sl-reverse.com [169.51.49.98])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 3euv2y6na8-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT)
+	for <nvdimm@lists.linux.dev>; Thu, 17 Mar 2022 09:32:48 +0000
+Received: from pps.filterd (ppma03ams.nl.ibm.com [127.0.0.1])
+	by ppma03ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 22H9Deic016475
+	for <nvdimm@lists.linux.dev>; Thu, 17 Mar 2022 09:32:45 GMT
+Received: from b06cxnps3075.portsmouth.uk.ibm.com (d06relay10.portsmouth.uk.ibm.com [9.149.109.195])
+	by ppma03ams.nl.ibm.com with ESMTP id 3et95wx8kp-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT)
+	for <nvdimm@lists.linux.dev>; Thu, 17 Mar 2022 09:32:45 +0000
+Received: from d06av25.portsmouth.uk.ibm.com (d06av25.portsmouth.uk.ibm.com [9.149.105.61])
+	by b06cxnps3075.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 22H9WhYL44630476
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK)
+	for <nvdimm@lists.linux.dev>; Thu, 17 Mar 2022 09:32:43 GMT
+Received: from d06av25.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 99FD611C04A
+	for <nvdimm@lists.linux.dev>; Thu, 17 Mar 2022 09:32:43 +0000 (GMT)
+Received: from d06av25.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 21EA111C04C
+	for <nvdimm@lists.linux.dev>; Thu, 17 Mar 2022 09:32:43 +0000 (GMT)
+Received: from [192.168.29.61] (unknown [9.43.89.117])
+	by d06av25.portsmouth.uk.ibm.com (Postfix) with ESMTP
+	for <nvdimm@lists.linux.dev>; Thu, 17 Mar 2022 09:32:42 +0000 (GMT)
+Subject: [ndctl PATCH] monitor: Fix the monitor config file parsing
+From: Shivaprasad G Bhat <sbhat@linux.ibm.com>
+To: nvdimm@lists.linux.dev
+Date: Thu, 17 Mar 2022 15:02:41 +0530
+Message-ID: <164750955519.2000193.16903542741359443926.stgit@LAPTOP-TBQTPII8>
+User-Agent: StGit/1.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.6.0
-Subject: Re: [PATCH v11 1/8] dax: Introduce holder for dax_device
-To: Dan Williams <dan.j.williams@intel.com>
-CC: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-xfs
-	<linux-xfs@vger.kernel.org>, Linux NVDIMM <nvdimm@lists.linux.dev>, Linux MM
-	<linux-mm@kvack.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, "Darrick
- J. Wong" <djwong@kernel.org>, david <david@fromorbit.com>, Christoph Hellwig
-	<hch@infradead.org>, Jane Chu <jane.chu@oracle.com>
-References: <20220227120747.711169-1-ruansy.fnst@fujitsu.com>
- <20220227120747.711169-2-ruansy.fnst@fujitsu.com>
- <CAPcyv4jAqV7dZdmGcKrG=f8sYmUXaL7YCQtME6GANywncwd+zg@mail.gmail.com>
-From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-In-Reply-To: <CAPcyv4jAqV7dZdmGcKrG=f8sYmUXaL7YCQtME6GANywncwd+zg@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-X-yoursite-MailScanner-ID: 3582E4D16FC7.A3D86
-X-yoursite-MailScanner: Found to be clean
-X-yoursite-MailScanner-From: ruansy.fnst@fujitsu.com
-X-Spam-Status: No
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: bHh1SlE-iIOcrGX1Z8bWYUqjlqZcqOQ4
+X-Proofpoint-ORIG-GUID: bHh1SlE-iIOcrGX1Z8bWYUqjlqZcqOQ4
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.205,Aquarius:18.0.850,Hydra:6.0.425,FMLib:17.11.64.514
+ definitions=2022-03-17_03,2022-03-15_01,2022-02-23_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 clxscore=1011 phishscore=0
+ malwarescore=0 mlxscore=0 lowpriorityscore=0 suspectscore=0 adultscore=0
+ mlxlogscore=999 spamscore=0 bulkscore=0 impostorscore=0 priorityscore=1501
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2202240000
+ definitions=main-2203170056
 
+Presently, ndctl monitor is not parsing both the default and user specified
+config files. The behaviour is quitely masked with the recent iniparser
+parsing code without any signs until you remove the /etc/ndctl.conf.d
+directory when the command fails as,
 
+ #ndctl monitor -d nmem0
+ iniparser: cannot open /etc/ndctl.conf.d
 
-在 2022/3/12 7:35, Dan Williams 写道:
-> On Sun, Feb 27, 2022 at 4:08 AM Shiyang Ruan <ruansy.fnst@fujitsu.com> wrote:
->>
->> To easily track filesystem from a pmem device, we introduce a holder for
->> dax_device structure, and also its operation.  This holder is used to
->> remember who is using this dax_device:
->>   - When it is the backend of a filesystem, the holder will be the
->>     instance of this filesystem.
->>   - When this pmem device is one of the targets in a mapped device, the
->>     holder will be this mapped device.  In this case, the mapped device
->>     has its own dax_device and it will follow the first rule.  So that we
->>     can finally track to the filesystem we needed.
->>
->> The holder and holder_ops will be set when filesystem is being mounted,
->> or an target device is being activated.
->>
->> Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
->> ---
->>   drivers/dax/super.c | 89 +++++++++++++++++++++++++++++++++++++++++++++
->>   include/linux/dax.h | 32 ++++++++++++++++
->>   2 files changed, 121 insertions(+)
->>
->> diff --git a/drivers/dax/super.c b/drivers/dax/super.c
->> index e3029389d809..da5798e19d57 100644
->> --- a/drivers/dax/super.c
->> +++ b/drivers/dax/super.c
->> @@ -21,6 +21,9 @@
->>    * @cdev: optional character interface for "device dax"
->>    * @private: dax driver private data
->>    * @flags: state and boolean properties
->> + * @ops: operations for dax_device
->> + * @holder_data: holder of a dax_device: could be filesystem or mapped device
->> + * @holder_ops: operations for the inner holder
->>    */
->>   struct dax_device {
->>          struct inode inode;
->> @@ -28,6 +31,8 @@ struct dax_device {
->>          void *private;
->>          unsigned long flags;
->>          const struct dax_operations *ops;
->> +       void *holder_data;
->> +       const struct dax_holder_operations *holder_ops;
->>   };
->>
->>   static dev_t dax_devt;
->> @@ -193,6 +198,29 @@ int dax_zero_page_range(struct dax_device *dax_dev, pgoff_t pgoff,
->>   }
->>   EXPORT_SYMBOL_GPL(dax_zero_page_range);
->>
->> +int dax_holder_notify_failure(struct dax_device *dax_dev, u64 off,
->> +                             u64 len, int mf_flags)
->> +{
->> +       int rc, id;
->> +
->> +       id = dax_read_lock();
->> +       if (!dax_alive(dax_dev)) {
->> +               rc = -ENXIO;
->> +               goto out;
->> +       }
->> +
->> +       if (!dax_dev->holder_ops) {
->> +               rc = -EOPNOTSUPP;
-> 
-> I think it is ok to return success (0) for this case. All the caller
-> of dax_holder_notify_failure() wants to know is if the notification
-> was successfully delivered to the holder. If there is no holder
-> present then there is nothing to report. This is minor enough for me
-> to fix up locally if nothing else needs to be changed.
+The error is coming from the libiniparser when the monitor parser is
+initialised with MONITOR_CALLBACK type with parse_monitor_config() as the
+callback. The configs->key is set to the NDCTL_CONF_FILE for this.
+The parse_config_file() compares the filename with the key before
+calling the custom callback. The current code calls the
+parse_config_prefix() with either the default directory path or the
+custom config filepath(i.e -c <XYZ>) while the configs->key is set to
+the NDCTL_CONF_FILE. Since both these strings don't match the
+NDCTL_CONF_FILE, parse_monitor_config() is not called at all and instead
+generic iniparser code path is taken.
 
-I thought it could fall back to generic memory failure handler: 
-mf_generic_kill_procs(), if holder_ops not exists.
+The patch sets the config key to the correct filename before the calls to
+parse_config_prefix().
 
-> 
->> +               goto out;
->> +       }
->> +
->> +       rc = dax_dev->holder_ops->notify_failure(dax_dev, off, len, mf_flags);
->> +out:
->> +       dax_read_unlock(id);
->> +       return rc;
->> +}
->> +EXPORT_SYMBOL_GPL(dax_holder_notify_failure);
->> +
->>   #ifdef CONFIG_ARCH_HAS_PMEM_API
->>   void arch_wb_cache_pmem(void *addr, size_t size);
->>   void dax_flush(struct dax_device *dax_dev, void *addr, size_t size)
->> @@ -268,6 +296,10 @@ void kill_dax(struct dax_device *dax_dev)
->>
->>          clear_bit(DAXDEV_ALIVE, &dax_dev->flags);
->>          synchronize_srcu(&dax_srcu);
->> +
->> +       /* clear holder data */
->> +       dax_dev->holder_ops = NULL;
->> +       dax_dev->holder_data = NULL;
-> 
-> Isn't this another failure scenario? If kill_dax() is called while a
-> holder is still holding the dax_device that seems to be another
-> ->notify_failure scenario to tell the holder that the device is going
-> away and the holder has not released the device yet.
+The previous behaviour for missing monitor.conf file in the default path
+was to ignore and continue. The current callback parse_monitor_config()
+reports an error as e889fa5e removed the chunk taking care of this case.
 
-Yes.  I should call dax_holder_notify_failure() and then unregister the 
-holder.
+So the patch gets the "current" config directory and checks if the default
+monitor.conf file exists, dont attempt to parse if the file is missing.
 
-> 
->>   }
->>   EXPORT_SYMBOL_GPL(kill_dax);
->>
->> @@ -409,6 +441,63 @@ void put_dax(struct dax_device *dax_dev)
->>   }
->>   EXPORT_SYMBOL_GPL(put_dax);
->>
->> +/**
->> + * dax_holder() - obtain the holder of a dax device
->> + * @dax_dev: a dax_device instance
->> +
->> + * Return: the holder's data which represents the holder if registered,
->> + * otherwize NULL.
->> + */
->> +void *dax_holder(struct dax_device *dax_dev)
->> +{
->> +       if (!dax_alive(dax_dev))
->> +               return NULL;
-> 
-> It's safe for the holder to assume that it can de-reference
-> ->holder_data freely in its notify_handler callback because
-> dax_holder_notify_failure() arranges for the callback to run in
-> dax_read_lock() context.
-> 
-> This is another minor detail that I can fixup locally.
-> 
->> +
->> +       return dax_dev->holder_data;
->> +}
->> +EXPORT_SYMBOL_GPL(dax_holder);
->> +
->> +/**
->> + * dax_register_holder() - register a holder to a dax device
->> + * @dax_dev: a dax_device instance
->> + * @holder: a pointer to a holder's data which represents the holder
->> + * @ops: operations of this holder
->> +
->> + * Return: negative errno if an error occurs, otherwise 0.
->> + */
->> +int dax_register_holder(struct dax_device *dax_dev, void *holder,
->> +               const struct dax_holder_operations *ops)
->> +{
->> +       if (!dax_alive(dax_dev))
->> +               return -ENXIO;
->> +
->> +       if (cmpxchg(&dax_dev->holder_data, NULL, holder))
->> +               return -EBUSY;
->> +
->> +       dax_dev->holder_ops = ops;
->> +       return 0;
->> +}
->> +EXPORT_SYMBOL_GPL(dax_register_holder);
->> +
->> +/**
->> + * dax_unregister_holder() - unregister the holder for a dax device
->> + * @dax_dev: a dax_device instance
->> + * @holder: the holder to be unregistered
->> + *
->> + * Return: negative errno if an error occurs, otherwise 0.
->> + */
->> +int dax_unregister_holder(struct dax_device *dax_dev, void *holder)
->> +{
->> +       if (!dax_alive(dax_dev))
->> +               return -ENXIO;
->> +
->> +       if (cmpxchg(&dax_dev->holder_data, holder, NULL) != holder)
->> +               return -EBUSY;
->> +       dax_dev->holder_ops = NULL;
->> +       return 0;
->> +}
->> +EXPORT_SYMBOL_GPL(dax_unregister_holder);
->> +
->>   /**
->>    * inode_dax: convert a public inode into its dax_dev
->>    * @inode: An inode with i_cdev pointing to a dax_dev
->> diff --git a/include/linux/dax.h b/include/linux/dax.h
->> index 9fc5f99a0ae2..262d7bad131a 100644
->> --- a/include/linux/dax.h
->> +++ b/include/linux/dax.h
->> @@ -32,8 +32,24 @@ struct dax_operations {
->>          int (*zero_page_range)(struct dax_device *, pgoff_t, size_t);
->>   };
->>
->> +struct dax_holder_operations {
->> +       /*
->> +        * notify_failure - notify memory failure into inner holder device
->> +        * @dax_dev: the dax device which contains the holder
->> +        * @offset: offset on this dax device where memory failure occurs
->> +        * @len: length of this memory failure event
-> 
-> Forgive me if this has been discussed before, but since dax_operations
-> are in terms of pgoff and nr pages and memory_failure() is in terms of
-> pfns what was the rationale for making the function signature byte
-> based?
+Fixes: e889fa5ef7ff ("ndctl, monitor: refator monitor for supporting multiple config files")
+Signed-off-by: Shivaprasad G Bhat <sbhat@linux.ibm.com>
+Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
+---
+ ndctl/monitor.c |   29 ++++++++++++++++++++---------
+ 1 file changed, 20 insertions(+), 9 deletions(-)
 
-Maybe I didn't describe it clearly...  The @offset and @len here are 
-byte-based.  And so is ->memory_failure().
-
-You can find the implementation of ->memory_failure() in 3rd patch:
-
-+static int pmem_pagemap_memory_failure(struct dev_pagemap *pgmap,
-+		phys_addr_t addr, u64 len, int mf_flags)
-+{
-+	struct pmem_device *pmem =
-+			container_of(pgmap, struct pmem_device, pgmap);
-+	u64 offset = addr - pmem->phys_addr - pmem->data_offset;
+diff --git a/ndctl/monitor.c b/ndctl/monitor.c
+index 3e6a425..54678d6 100644
+--- a/ndctl/monitor.c
++++ b/ndctl/monitor.c
+@@ -14,6 +14,7 @@
+ #include <ndctl/ndctl.h>
+ #include <ndctl/libndctl.h>
+ #include <sys/epoll.h>
++#include <sys/stat.h>
+ #define BUF_SIZE 2048
+ 
+ /* reuse the core log helpers for the monitor logger */
+@@ -588,7 +589,7 @@ int cmd_monitor(int argc, const char **argv, struct ndctl_ctx *ctx)
+ 		"ndctl monitor [<options>]",
+ 		NULL
+ 	};
+-	const struct config configs[] = {
++	struct config configs[] = {
+ 		CONF_MONITOR(NDCTL_CONF_FILE, parse_monitor_config),
+ 		CONF_STR("core:bus", &param.bus, NULL),
+ 		CONF_STR("core:region", &param.region, NULL),
+@@ -604,7 +605,9 @@ int cmd_monitor(int argc, const char **argv, struct ndctl_ctx *ctx)
+ 	const char *prefix = "./", *ndctl_configs;
+ 	struct ndctl_filter_ctx fctx = { 0 };
+ 	struct monitor_filter_arg mfa = { 0 };
+-	int i, rc;
++	int i, rc = 0;
++	struct stat st;
++	char *path = NULL;
+ 
+ 	argc = parse_options_prefix(argc, argv, prefix, options, u, 0);
+ 	for (i = 0; i < argc; i++) {
+@@ -622,14 +625,20 @@ int cmd_monitor(int argc, const char **argv, struct ndctl_ctx *ctx)
+ 		monitor.ctx.log_priority = LOG_INFO;
+ 
+ 	ndctl_configs = ndctl_get_config_path(ctx);
+-	if (monitor.configs)
++	if (!monitor.configs && ndctl_configs) {
++		rc = asprintf(&path, "%s/monitor.conf", ndctl_configs);
++		if (rc < 0)
++			goto out;
 +
-+	return dax_holder_notify_failure(pmem->dax_dev, offset, len, mf_flags);
-+}
-
-> 
-> I want to get this series merged into linux-next shortly after
-> v5.18-rc1. Then we can start working on incremental fixups rather
-> resending the full series with these long reply cycles.
-
-
-Thanks.  That really helps.
-
-
---
-Ruan.
++		if (stat(path, &st) == 0)
++			monitor.configs = path;
++	}
++	if (monitor.configs) {
++		configs[0].key = monitor.configs;
+ 		rc = parse_configs_prefix(monitor.configs, prefix, configs);
+-	else if (ndctl_configs)
+-		rc = parse_configs_prefix(ndctl_configs, prefix, configs);
+-	else
+-		rc = 0;
+-	if (rc)
+-		goto out;
++		if (rc)
++			goto out;
++	}
+ 
+ 	if (monitor.log) {
+ 		if (strncmp(monitor.log, "./", 2) != 0)
+@@ -687,5 +696,7 @@ int cmd_monitor(int argc, const char **argv, struct ndctl_ctx *ctx)
+ out:
+ 	if (monitor.log_file)
+ 		fclose(monitor.log_file);
++	if (path)
++		free(path);
+ 	return rc;
+ }
 
 
