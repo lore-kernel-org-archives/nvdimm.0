@@ -1,41 +1,41 @@
-Received: from mail-pl1-f178.google.com (mail-pl1-f178.google.com [209.85.214.178])
+Received: from mail-pf1-f182.google.com (mail-pf1-f182.google.com [209.85.210.182])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0FF64350
-	for <nvdimm@lists.linux.dev>; Fri, 18 Mar 2022 07:47:36 +0000 (UTC)
-Received: by mail-pl1-f178.google.com with SMTP id q13so6375208plk.12
-        for <nvdimm@lists.linux.dev>; Fri, 18 Mar 2022 00:47:36 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 975154350
+	for <nvdimm@lists.linux.dev>; Fri, 18 Mar 2022 07:47:45 +0000 (UTC)
+Received: by mail-pf1-f182.google.com with SMTP id z16so8839597pfh.3
+        for <nvdimm@lists.linux.dev>; Fri, 18 Mar 2022 00:47:45 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=bytedance-com.20210112.gappssmtp.com; s=20210112;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=NuRXQ/E55v0tYD0et/dnDN8T47JEbNkSk7dguxnQZEo=;
-        b=f56NKbZr0fS7dQ3Aad0mMvcBmfIop5dHmXc9y5u9PueUTvDmpaNUdl3yP56cDmqCi5
-         bpv8yWaeoMHx2uC7jXuuQFAzjdLIqY+nwy5oE4BmobwP637kHe+q4sWMEJaPaKAPuqUo
-         MgTV5yXwMqTYdXeTDikj07OxMWnlP/maWDLeb7ewDwzrluxmUrOTlgFvjf0XTXGKe720
-         x+kIdO0LLQb01mRllWxCAeZHD5s7NF98hfhaDWa+3hp/HWQcRuSy5X1f5Fpcg+A8N4oa
-         1aT3QUOx2EmEWgIZwZ1a1m0MR6iK8ZKmXXFqk5MD11TVJo2jrxzpXMfJzUqazbiS7TqX
-         2r0Q==
+        bh=5g/0QWFd98PH+GDbIHxo8Dsrvq3fGfzY+G57IkW5WS4=;
+        b=dg9UAhNpOr6o3y5UonmoPElMtjhoOZitlzXpRB+XIF5Y8MxAwu62mOkmwX6QLytp+O
+         ppOlIAS8ky3iN7gnlfGRJ5kTMGZ5GDAQMiY5M/76ReiR34lJtNuDnIS+LaVCf8fLfOWf
+         ZGa+AzxsqH4J4nMDpXJ6woWlss1m9eHuGwhKWLSW0aE+bKO7Esv178sRPcvI+Sq5Cae0
+         qKRy9151sKYdmBtjG3VxYMOIgkN5dYtYOO6XufWJFsURfyhqevBJw12xZlfrAZq9LzLJ
+         wJppZKBeS6G7JacPr/H+nPChDeKjTSlWqrCCJtWNsVzJpvo3rfWoteYP1/RvS/mnhPc4
+         tN4Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=NuRXQ/E55v0tYD0et/dnDN8T47JEbNkSk7dguxnQZEo=;
-        b=WgaQ0tnVHuwbg//S4cGN677YFTKOpW7u4QT3C3yXr69gTrZYUU8X1kes2IxgXIrfkS
-         F97hMzBrN8fEP5On6djTzmedq4d+kWB67su99IWYJNzsEGcgpPmGPLF068K+ZgWpPMIY
-         pINf/wrPILIYbr4zF4tLhLkEJsWGEV2j1lMrnuBWykD/2zkh/IHBWEEQl7rUfJNKfhro
-         Ml+cpVIL/apudL9uHMZEYRkde4CaGO4ctGdIsUtZUhTc2Qlyom9rJJJxcLdA8VCyLNSu
-         U4++/cgGfVmpKcuMveerO0H/6aCAaGmdDRAc1Rhs6uRNvn5AZ6rHj/Zp47a2ubgvy7yw
-         TF6g==
-X-Gm-Message-State: AOAM530yWU3e4VTrQM4ZZjEB5T0M4zJChjgtK1327e6SH4PYawo9fWGl
-	azAw0sXNCPgyAqHpCMChqtcXlw==
-X-Google-Smtp-Source: ABdhPJya/68onNzuV2mkq//V4WOdU9M2a18pUc69NLpou9mxKv7f/CTZ8VDDrvE+h2qT4ssg3AnNLQ==
-X-Received: by 2002:a17:902:8b87:b0:14b:47b3:c0a2 with SMTP id ay7-20020a1709028b8700b0014b47b3c0a2mr8718964plb.51.1647589656310;
-        Fri, 18 Mar 2022 00:47:36 -0700 (PDT)
+        bh=5g/0QWFd98PH+GDbIHxo8Dsrvq3fGfzY+G57IkW5WS4=;
+        b=AU/Jt6B9GpxCeC18lvMJt5OLEjp/xRFRjxPcnpJtarfVXQso+GEi6Z0t7BQEwku/63
+         M1X24ixT1JRCaB21exixLPsYgWZAevNFK9dsmKKMZac5FTeOZIJD1J1v4ZNo/L+/WvVo
+         K3EHHUgUgww8GUXNeDzN1XoDPIY+SR7JMubBOlH+JiL350DuMJgEv/5hdmPIRS7wMMSn
+         agISunfI8dvGy3mQir7sXjFVX4Lrn/CH30ttp0q7gt720u3DzfjVc/+R4F8vf9Hp87+7
+         ZYqNO1RUsbI057qk8RD/0Gx9CS5Xufba4H+VKSPEAUljD58bm7xYdxZ6ottH2whJoqY/
+         jBBA==
+X-Gm-Message-State: AOAM530q2GgYA4Xq9XuuRBenGVpjZagSNWGAKqvIuDljn7P0mouohTFW
+	v/8cS3BprvKWJkpCSyHCgRs2kQ==
+X-Google-Smtp-Source: ABdhPJxmFtyXPIV41wp/GHfrz2vvaMZoXbbFj5/OvRKMGpF3ljaujoML+9vyTu1GnrcnRAgsr6q6FQ==
+X-Received: by 2002:aa7:8211:0:b0:4f7:8b7:239b with SMTP id k17-20020aa78211000000b004f708b7239bmr8426959pfi.64.1647589665060;
+        Fri, 18 Mar 2022 00:47:45 -0700 (PDT)
 Received: from localhost.localdomain ([139.177.225.233])
-        by smtp.gmail.com with ESMTPSA id a38-20020a056a001d2600b004f72acd4dadsm8770941pfx.81.2022.03.18.00.47.27
+        by smtp.gmail.com with ESMTPSA id a38-20020a056a001d2600b004f72acd4dadsm8770941pfx.81.2022.03.18.00.47.36
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 18 Mar 2022 00:47:36 -0700 (PDT)
+        Fri, 18 Mar 2022 00:47:44 -0700 (PDT)
 From: Muchun Song <songmuchun@bytedance.com>
 To: dan.j.williams@intel.com,
 	willy@infradead.org,
@@ -57,9 +57,9 @@ Cc: linux-fsdevel@vger.kernel.org,
 	duanxiongchun@bytedance.com,
 	smuchun@gmail.com,
 	Muchun Song <songmuchun@bytedance.com>
-Subject: [PATCH v5 2/6] dax: fix cache flush on PMD-mapped pages
-Date: Fri, 18 Mar 2022 15:45:25 +0800
-Message-Id: <20220318074529.5261-3-songmuchun@bytedance.com>
+Subject: [PATCH v5 3/6] mm: rmap: introduce pfn_mkclean_range() to cleans PTEs
+Date: Fri, 18 Mar 2022 15:45:26 +0800
+Message-Id: <20220318074529.5261-4-songmuchun@bytedance.com>
 X-Mailer: git-send-email 2.32.0 (Apple Git-132)
 In-Reply-To: <20220318074529.5261-1-songmuchun@bytedance.com>
 References: <20220318074529.5261-1-songmuchun@bytedance.com>
@@ -71,37 +71,204 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The flush_cache_page() only remove a PAGE_SIZE sized range from the cache.
-However, it does not cover the full pages in a THP except a head page.
-Replace it with flush_cache_range() to fix this issue.  This is just a
-documentation issue with the respect to properly documenting the expected
-usage of cache flushing before modifying the pmd.  However, in practice
-this is not a problem due to the fact that DAX is not available on
-architectures with virtually indexed caches per:
+The page_mkclean_one() is supposed to be used with the pfn that has a
+associated struct page, but not all the pfns (e.g. DAX) have a struct
+page. Introduce a new function pfn_mkclean_range() to cleans the PTEs
+(including PMDs) mapped with range of pfns which has no struct page
+associated with them. This helper will be used by DAX device in the
+next patch to make pfns clean.
 
-  commit d92576f1167c ("dax: does not work correctly with virtual aliasing caches")
-
-Fixes: f729c8c9b24f ("dax: wrprotect pmd_t in dax_mapping_entry_mkclean")
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/dax.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/rmap.h |  3 +++
+ mm/internal.h        | 26 +++++++++++++--------
+ mm/rmap.c            | 65 +++++++++++++++++++++++++++++++++++++++++++---------
+ 3 files changed, 74 insertions(+), 20 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 67a08a32fccb..a372304c9695 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -845,7 +845,8 @@ static void dax_entry_mkclean(struct address_space *mapping, pgoff_t index,
- 			if (!pmd_dirty(*pmdp) && !pmd_write(*pmdp))
- 				goto unlock_pmd;
+diff --git a/include/linux/rmap.h b/include/linux/rmap.h
+index b58ddb8b2220..a6ec0d3e40c1 100644
+--- a/include/linux/rmap.h
++++ b/include/linux/rmap.h
+@@ -263,6 +263,9 @@ unsigned long page_address_in_vma(struct page *, struct vm_area_struct *);
+  */
+ int folio_mkclean(struct folio *);
  
--			flush_cache_page(vma, address, pfn);
-+			flush_cache_range(vma, address,
-+					  address + HPAGE_PMD_SIZE);
- 			pmd = pmdp_invalidate(vma, address, pmdp);
- 			pmd = pmd_wrprotect(pmd);
- 			pmd = pmd_mkclean(pmd);
++int pfn_mkclean_range(unsigned long pfn, unsigned long nr_pages, pgoff_t pgoff,
++		      struct vm_area_struct *vma);
++
+ void remove_migration_ptes(struct folio *src, struct folio *dst, bool locked);
+ 
+ /*
+diff --git a/mm/internal.h b/mm/internal.h
+index f45292dc4ef5..ff873944749f 100644
+--- a/mm/internal.h
++++ b/mm/internal.h
+@@ -516,26 +516,22 @@ void mlock_page_drain(int cpu);
+ extern pmd_t maybe_pmd_mkwrite(pmd_t pmd, struct vm_area_struct *vma);
+ 
+ /*
+- * At what user virtual address is page expected in vma?
+- * Returns -EFAULT if all of the page is outside the range of vma.
+- * If page is a compound head, the entire compound page is considered.
++ * * Return the start of user virtual address at the specific offset within
++ * a vma.
+  */
+ static inline unsigned long
+-vma_address(struct page *page, struct vm_area_struct *vma)
++vma_pgoff_address(pgoff_t pgoff, unsigned long nr_pages,
++		  struct vm_area_struct *vma)
+ {
+-	pgoff_t pgoff;
+ 	unsigned long address;
+ 
+-	VM_BUG_ON_PAGE(PageKsm(page), page);	/* KSM page->index unusable */
+-	pgoff = page_to_pgoff(page);
+ 	if (pgoff >= vma->vm_pgoff) {
+ 		address = vma->vm_start +
+ 			((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
+ 		/* Check for address beyond vma (or wrapped through 0?) */
+ 		if (address < vma->vm_start || address >= vma->vm_end)
+ 			address = -EFAULT;
+-	} else if (PageHead(page) &&
+-		   pgoff + compound_nr(page) - 1 >= vma->vm_pgoff) {
++	} else if (pgoff + nr_pages - 1 >= vma->vm_pgoff) {
+ 		/* Test above avoids possibility of wrap to 0 on 32-bit */
+ 		address = vma->vm_start;
+ 	} else {
+@@ -545,6 +541,18 @@ vma_address(struct page *page, struct vm_area_struct *vma)
+ }
+ 
+ /*
++ * Return the start of user virtual address of a page within a vma.
++ * Returns -EFAULT if all of the page is outside the range of vma.
++ * If page is a compound head, the entire compound page is considered.
++ */
++static inline unsigned long
++vma_address(struct page *page, struct vm_area_struct *vma)
++{
++	VM_BUG_ON_PAGE(PageKsm(page), page);	/* KSM page->index unusable */
++	return vma_pgoff_address(page_to_pgoff(page), compound_nr(page), vma);
++}
++
++/*
+  * Then at what user virtual address will none of the range be found in vma?
+  * Assumes that vma_address() already returned a good starting address.
+  */
+diff --git a/mm/rmap.c b/mm/rmap.c
+index 723682ddb9e8..ad5cf0e45a73 100644
+--- a/mm/rmap.c
++++ b/mm/rmap.c
+@@ -929,12 +929,12 @@ int folio_referenced(struct folio *folio, int is_locked,
+ 	return pra.referenced;
+ }
+ 
+-static bool page_mkclean_one(struct folio *folio, struct vm_area_struct *vma,
+-			    unsigned long address, void *arg)
++static int page_vma_mkclean_one(struct page_vma_mapped_walk *pvmw)
+ {
+-	DEFINE_FOLIO_VMA_WALK(pvmw, folio, vma, address, PVMW_SYNC);
++	int cleaned = 0;
++	struct vm_area_struct *vma = pvmw->vma;
+ 	struct mmu_notifier_range range;
+-	int *cleaned = arg;
++	unsigned long address = pvmw->address;
+ 
+ 	/*
+ 	 * We have to assume the worse case ie pmd for invalidation. Note that
+@@ -942,16 +942,16 @@ static bool page_mkclean_one(struct folio *folio, struct vm_area_struct *vma,
+ 	 */
+ 	mmu_notifier_range_init(&range, MMU_NOTIFY_PROTECTION_PAGE,
+ 				0, vma, vma->vm_mm, address,
+-				vma_address_end(&pvmw));
++				vma_address_end(pvmw));
+ 	mmu_notifier_invalidate_range_start(&range);
+ 
+-	while (page_vma_mapped_walk(&pvmw)) {
++	while (page_vma_mapped_walk(pvmw)) {
+ 		int ret = 0;
+ 
+-		address = pvmw.address;
+-		if (pvmw.pte) {
++		address = pvmw->address;
++		if (pvmw->pte) {
+ 			pte_t entry;
+-			pte_t *pte = pvmw.pte;
++			pte_t *pte = pvmw->pte;
+ 
+ 			if (!pte_dirty(*pte) && !pte_write(*pte))
+ 				continue;
+@@ -964,7 +964,7 @@ static bool page_mkclean_one(struct folio *folio, struct vm_area_struct *vma,
+ 			ret = 1;
+ 		} else {
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-			pmd_t *pmd = pvmw.pmd;
++			pmd_t *pmd = pvmw->pmd;
+ 			pmd_t entry;
+ 
+ 			if (!pmd_dirty(*pmd) && !pmd_write(*pmd))
+@@ -991,11 +991,22 @@ static bool page_mkclean_one(struct folio *folio, struct vm_area_struct *vma,
+ 		 * See Documentation/vm/mmu_notifier.rst
+ 		 */
+ 		if (ret)
+-			(*cleaned)++;
++			cleaned++;
+ 	}
+ 
+ 	mmu_notifier_invalidate_range_end(&range);
+ 
++	return cleaned;
++}
++
++static bool page_mkclean_one(struct folio *folio, struct vm_area_struct *vma,
++			     unsigned long address, void *arg)
++{
++	DEFINE_FOLIO_VMA_WALK(pvmw, folio, vma, address, PVMW_SYNC);
++	int *cleaned = arg;
++
++	*cleaned += page_vma_mkclean_one(&pvmw);
++
+ 	return true;
+ }
+ 
+@@ -1033,6 +1044,38 @@ int folio_mkclean(struct folio *folio)
+ EXPORT_SYMBOL_GPL(folio_mkclean);
+ 
+ /**
++ * pfn_mkclean_range - Cleans the PTEs (including PMDs) mapped with range of
++ *                     [@pfn, @pfn + @nr_pages) at the specific offset (@pgoff)
++ *                     within the @vma of shared mappings. And since clean PTEs
++ *                     should also be readonly, write protects them too.
++ * @pfn: start pfn.
++ * @nr_pages: number of physically contiguous pages srarting with @pfn.
++ * @pgoff: page offset that the @pfn mapped with.
++ * @vma: vma that @pfn mapped within.
++ *
++ * Returns the number of cleaned PTEs (including PMDs).
++ */
++int pfn_mkclean_range(unsigned long pfn, unsigned long nr_pages, pgoff_t pgoff,
++		      struct vm_area_struct *vma)
++{
++	struct page_vma_mapped_walk pvmw = {
++		.pfn		= pfn,
++		.nr_pages	= nr_pages,
++		.pgoff		= pgoff,
++		.vma		= vma,
++		.flags		= PVMW_SYNC,
++	};
++
++	if (invalid_mkclean_vma(vma, NULL))
++		return 0;
++
++	pvmw.address = vma_pgoff_address(pgoff, nr_pages, vma);
++	VM_BUG_ON_VMA(pvmw.address == -EFAULT, vma);
++
++	return page_vma_mkclean_one(&pvmw);
++}
++
++/**
+  * page_move_anon_rmap - move a page to our anon_vma
+  * @page:	the page to move to our anon_vma
+  * @vma:	the vma the page belongs to
 -- 
 2.11.0
 
