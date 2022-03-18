@@ -1,218 +1,156 @@
-Received: from mail-pj1-f53.google.com (mail-pj1-f53.google.com [209.85.216.53])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2DDF04350
-	for <nvdimm@lists.linux.dev>; Fri, 18 Mar 2022 07:48:11 +0000 (UTC)
-Received: by mail-pj1-f53.google.com with SMTP id mj15-20020a17090b368f00b001c637aa358eso9801659pjb.0
-        for <nvdimm@lists.linux.dev>; Fri, 18 Mar 2022 00:48:11 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bytedance-com.20210112.gappssmtp.com; s=20210112;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=CiqL2201i/r2h3p8KI/NBkw6WGqzhDfT//6vVp9Lies=;
-        b=bXFvZFfrI9C/L+NvtlIM0LtbMc9OI6fpHgmIV5gvdFRnQP6DfETLgq8COcZHL9qIFx
-         5bzIBwfZrjgZShT0Nv6dg54gHhhnaS+mQfdF2z26zWuGr24FPRLmgQBRSiE0LFYz4OhI
-         z1C9H8HtntVzRG07BglBrccoNz4ssJmAHMPjGfWDGQ35UoQhAlnZMSDwyGW2Ku/yFday
-         2pQYFWEWfQKrVCP9HKKBqVxFgdWYlk4mjpKHgnJTbiluPaEdXtrU+2B9lJCccSPLEgEG
-         NnoeI7zIaBwYpcQe+ULKS1L4X7Ikmta5Nes7W+xQB3j8evY6Uj7EXtFPq9iaiwoqA4Oh
-         AVnA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=CiqL2201i/r2h3p8KI/NBkw6WGqzhDfT//6vVp9Lies=;
-        b=cV8pYsUT9zz2f5YEh2N8BJ/BzPyvIz9PpcI6LDL9FetA9Cvs1J7q4iYB7LXjb9V7Ws
-         FriPEPP8Prlrr9lkvCHinyodt0MhU3KlO1xQJEMbJ9a/1ChYbU6M0Jt2A80EAGqKEBOz
-         IxVzL6XJrlXioUoONQR4G3LeHxSshAud3UpGNJlK/0G4rRmgcGsIJyadgs/SvMykI7XJ
-         CUWl5xuQrAldLQHGl1rSWA0PEN/W5SR4/F5TfdIarcBpPh/5Ask3CUbUWwTRDfNSEeOr
-         YCZnGldG01h0oEe2EZjLxHgK9b6MwRDdEFGep7PAzGunKuJ6DgE+02/hgu6RPKA2eqE+
-         sm0w==
-X-Gm-Message-State: AOAM533V0KRcKcqjyg6OYMJM+GdQ0KSC1MEc2SFJYNTAHDBWAMcsnjgE
-	I/3f1qjqFE2ON78ptclEQpmNug==
-X-Google-Smtp-Source: ABdhPJx6Gb2cl0kaRKMvmsLEzJyKu4bc+A6kr/eo/U8JztFBvDzyQCyUtAKxuHv1+XJWl0bol5r0fw==
-X-Received: by 2002:a17:902:cf02:b0:14f:e0c2:1514 with SMTP id i2-20020a170902cf0200b0014fe0c21514mr8557186plg.90.1647589690731;
-        Fri, 18 Mar 2022 00:48:10 -0700 (PDT)
-Received: from localhost.localdomain ([139.177.225.233])
-        by smtp.gmail.com with ESMTPSA id a38-20020a056a001d2600b004f72acd4dadsm8770941pfx.81.2022.03.18.00.48.02
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 18 Mar 2022 00:48:10 -0700 (PDT)
-From: Muchun Song <songmuchun@bytedance.com>
-To: dan.j.williams@intel.com,
-	willy@infradead.org,
-	jack@suse.cz,
-	viro@zeniv.linux.org.uk,
-	akpm@linux-foundation.org,
-	apopple@nvidia.com,
-	shy828301@gmail.com,
-	rcampbell@nvidia.com,
-	hughd@google.com,
-	xiyuyang19@fudan.edu.cn,
-	kirill.shutemov@linux.intel.com,
-	zwisler@kernel.org,
-	hch@infradead.org
-Cc: linux-fsdevel@vger.kernel.org,
-	nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org,
-	linux-mm@kvack.org,
-	duanxiongchun@bytedance.com,
-	smuchun@gmail.com,
-	Muchun Song <songmuchun@bytedance.com>
-Subject: [PATCH v5 6/6] mm: simplify follow_invalidate_pte()
-Date: Fri, 18 Mar 2022 15:45:29 +0800
-Message-Id: <20220318074529.5261-7-songmuchun@bytedance.com>
-X-Mailer: git-send-email 2.32.0 (Apple Git-132)
-In-Reply-To: <20220318074529.5261-1-songmuchun@bytedance.com>
-References: <20220318074529.5261-1-songmuchun@bytedance.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40F2748B7
+	for <nvdimm@lists.linux.dev>; Fri, 18 Mar 2022 11:42:36 +0000 (UTC)
+Received: from pps.filterd (m0098420.ppops.net [127.0.0.1])
+	by mx0b-001b2d01.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 22I8Gk00009380;
+	Fri, 18 Mar 2022 11:42:00 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
+ : date : message-id : content-transfer-encoding : mime-version; s=pp1;
+ bh=etN1PDHz/2z4Sz/gbJNqm+0duzQA2/2HC6BdCXipIGM=;
+ b=iouByIowKClLcp2sjbCcOAcBjOO09vWASv4XNIygZl6tPKex/48hDjtZIyewM4OetgH8
+ jozKoPv2GuUaahjAd3XMRd1AzvaKAhonOmlUX4qn255AEQsSGjQkdyMYXFhFNZKyKdtZ
+ QJGOasYedz/cMSfNxBB9LPFIEEQruV/838rTsUYEtjO0K4Z7yaTE35kAimzCKB4yH3lJ
+ IYgzdlhmI8J28hWXlNKL7rZTQtV49DMh2SCs2VJW0mgrZq/KyU7NekGU7iUwbFWJRGcF
+ j+dy7s1LarmGc1oZqppYVMYgd4coTfYEBN0jMK+8a4ddoU/6H5ioM5KTwdKfTQ5ox070 jg== 
+Received: from ppma03fra.de.ibm.com (6b.4a.5195.ip4.static.sl-reverse.com [149.81.74.107])
+	by mx0b-001b2d01.pphosted.com with ESMTP id 3ev10dc9d4-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 18 Mar 2022 11:41:59 +0000
+Received: from pps.filterd (ppma03fra.de.ibm.com [127.0.0.1])
+	by ppma03fra.de.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 22IBXO8O030585;
+	Fri, 18 Mar 2022 11:41:58 GMT
+Received: from b06cxnps4076.portsmouth.uk.ibm.com (d06relay13.portsmouth.uk.ibm.com [9.149.109.198])
+	by ppma03fra.de.ibm.com with ESMTP id 3erk58ue5w-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 18 Mar 2022 11:41:57 +0000
+Received: from d06av21.portsmouth.uk.ibm.com (d06av21.portsmouth.uk.ibm.com [9.149.105.232])
+	by b06cxnps4076.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 22IBfsOI49349100
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Fri, 18 Mar 2022 11:41:54 GMT
+Received: from d06av21.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 7A6D95204F;
+	Fri, 18 Mar 2022 11:41:54 +0000 (GMT)
+Received: from li-e8dccbcc-2adc-11b2-a85c-bc1f33b9b810.ibm.com.com (unknown [9.43.108.37])
+	by d06av21.portsmouth.uk.ibm.com (Postfix) with ESMTP id E234C5204E;
+	Fri, 18 Mar 2022 11:41:48 +0000 (GMT)
+From: Kajol Jain <kjain@linux.ibm.com>
+To: mpe@ellerman.id.au, linuxppc-dev@lists.ozlabs.org, nvdimm@lists.linux.dev,
+        linux-kernel@vger.kernel.org, linux-next@vger.kernel.org,
+        peterz@infradead.org, dan.j.williams@intel.com, ira.weiny@intel.com,
+        vishal.l.verma@intel.com, sfr@canb.auug.org.au
+Cc: santosh@fossix.org, maddy@linux.ibm.com, rnsastry@linux.ibm.com,
+        aneesh.kumar@linux.ibm.com, atrajeev@linux.vnet.ibm.com,
+        vaibhav@linux.ibm.com, tglx@linutronix.de, kjain@linux.ibm.com,
+        linux-mm@kvack.org, kernel test robot <lkp@intel.com>
+Subject: [PATCH 1/2] drivers/nvdimm: Fix build failure when CONFIG_PERF_EVENTS is not set
+Date: Fri, 18 Mar 2022 17:11:32 +0530
+Message-Id: <20220318114133.113627-1-kjain@linux.ibm.com>
+X-Mailer: git-send-email 2.27.0
+X-TM-AS-GCONF: 00
+X-Proofpoint-ORIG-GUID: v-BlhMt60iwjTiL1t2iLUciFcC3xcbsO
+X-Proofpoint-GUID: v-BlhMt60iwjTiL1t2iLUciFcC3xcbsO
+Content-Transfer-Encoding: 8bit
+X-Proofpoint-UnRewURL: 0 URL was un-rewritten
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.205,Aquarius:18.0.850,Hydra:6.0.425,FMLib:17.11.64.514
+ definitions=2022-03-18_08,2022-03-15_01,2022-02-23_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 impostorscore=0
+ lowpriorityscore=0 mlxlogscore=999 suspectscore=0 phishscore=0
+ adultscore=0 spamscore=0 priorityscore=1501 clxscore=1011 bulkscore=0
+ malwarescore=0 mlxscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2202240000 definitions=main-2203180064
 
-The only user (DAX) of range and pmdpp parameters of follow_invalidate_pte()
-is gone, it is safe to remove them and make it static to simlify the code.
-This is revertant of the following commits:
+The following build failure occures when CONFIG_PERF_EVENTS is not set
+as generic pmu functions are not visible in that scenario.
 
-  097963959594 ("mm: add follow_pte_pmd()")
-  a4d1a8852513 ("dax: update to new mmu_notifier semantic")
+|-- s390-randconfig-r044-20220313
+|   |-- nd_perf.c:(.text):undefined-reference-to-perf_pmu_migrate_context
+|   |-- nd_perf.c:(.text):undefined-reference-to-perf_pmu_register
+|   `-- nd_perf.c:(.text):undefined-reference-to-perf_pmu_unregister
 
-There is only one caller of the follow_invalidate_pte().  So just fold it
-into follow_pte() and remove it.
+Similar build failure in nds32 architecture:
+nd_perf.c:(.text+0x21e): undefined reference to `perf_pmu_migrate_context'
+nd_perf.c:(.text+0x434): undefined reference to `perf_pmu_register'
+nd_perf.c:(.text+0x57c): undefined reference to `perf_pmu_unregister'
 
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Fix this issue by adding check for CONFIG_PERF_EVENTS config option
+and disabling the nvdimm perf interface incase this config is not set.
+
+Also removed function declaration of perf_pmu_migrate_context,
+perf_pmu_register, perf_pmu_unregister functions from nd.h as these are
+common pmu functions which are part of perf_event.h and since we
+are disabling nvdimm perf interface incase CONFIG_PERF_EVENTS option
+is not set, we not need to declare them in nd.h
+
+Fixes: 0fab1ba6ad6b ("drivers/nvdimm: Add perf interface to expose
+nvdimm performance stats") (Commit id based on linux-next tree)
+Signed-off-by: Kajol Jain <kjain@linux.ibm.com>
+Link: https://lore.kernel.org/all/62317124.YBQFU33+s%2FwdvWGj%25lkp@intel.com/
+Reported-by: kernel test robot <lkp@intel.com>
 ---
- include/linux/mm.h |  3 --
- mm/memory.c        | 81 ++++++++++++++++--------------------------------------
- 2 files changed, 23 insertions(+), 61 deletions(-)
+ drivers/nvdimm/Makefile | 2 +-
+ include/linux/nd.h      | 7 ++++---
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index c9bada4096ac..be7ec4c37ebe 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -1871,9 +1871,6 @@ void free_pgd_range(struct mmu_gather *tlb, unsigned long addr,
- 		unsigned long end, unsigned long floor, unsigned long ceiling);
- int
- copy_page_range(struct vm_area_struct *dst_vma, struct vm_area_struct *src_vma);
--int follow_invalidate_pte(struct mm_struct *mm, unsigned long address,
--			  struct mmu_notifier_range *range, pte_t **ptepp,
--			  pmd_t **pmdpp, spinlock_t **ptlp);
- int follow_pte(struct mm_struct *mm, unsigned long address,
- 	       pte_t **ptepp, spinlock_t **ptlp);
- int follow_pfn(struct vm_area_struct *vma, unsigned long address,
-diff --git a/mm/memory.c b/mm/memory.c
-index cc6968dc8e4e..84f7250e6cd1 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -4964,9 +4964,29 @@ int __pmd_alloc(struct mm_struct *mm, pud_t *pud, unsigned long address)
- }
- #endif /* __PAGETABLE_PMD_FOLDED */
+---
+- This fix patch changes are added and tested on top of linux-next tree
+  on the 'next-20220315' branch.
+---
+diff --git a/drivers/nvdimm/Makefile b/drivers/nvdimm/Makefile
+index 3fb806748716..ba0296dca9db 100644
+--- a/drivers/nvdimm/Makefile
++++ b/drivers/nvdimm/Makefile
+@@ -15,7 +15,7 @@ nd_e820-y := e820.o
+ libnvdimm-y := core.o
+ libnvdimm-y += bus.o
+ libnvdimm-y += dimm_devs.o
+-libnvdimm-y += nd_perf.o
++libnvdimm-$(CONFIG_PERF_EVENTS) += nd_perf.o
+ libnvdimm-y += dimm.o
+ libnvdimm-y += region_devs.o
+ libnvdimm-y += region.o
+diff --git a/include/linux/nd.h b/include/linux/nd.h
+index 7b2ccbdc1cbc..a4265eaf5ae8 100644
+--- a/include/linux/nd.h
++++ b/include/linux/nd.h
+@@ -8,8 +8,10 @@
+ #include <linux/ndctl.h>
+ #include <linux/device.h>
+ #include <linux/badblocks.h>
++#ifdef CONFIG_PERF_EVENTS
+ #include <linux/perf_event.h>
+ #include <linux/platform_device.h>
++#endif
  
--int follow_invalidate_pte(struct mm_struct *mm, unsigned long address,
--			  struct mmu_notifier_range *range, pte_t **ptepp,
--			  pmd_t **pmdpp, spinlock_t **ptlp)
-+/**
-+ * follow_pte - look up PTE at a user virtual address
-+ * @mm: the mm_struct of the target address space
-+ * @address: user virtual address
-+ * @ptepp: location to store found PTE
-+ * @ptlp: location to store the lock for the PTE
-+ *
-+ * On a successful return, the pointer to the PTE is stored in @ptepp;
-+ * the corresponding lock is taken and its location is stored in @ptlp.
-+ * The contents of the PTE are only stable until @ptlp is released;
-+ * any further use, if any, must be protected against invalidation
-+ * with MMU notifiers.
-+ *
-+ * Only IO mappings and raw PFN mappings are allowed.  The mmap semaphore
-+ * should be taken for read.
-+ *
-+ * KVM uses this function.  While it is arguably less bad than ``follow_pfn``,
-+ * it is not a good general-purpose API.
-+ *
-+ * Return: zero on success, -ve otherwise.
-+ */
-+int follow_pte(struct mm_struct *mm, unsigned long address,
-+	       pte_t **ptepp, spinlock_t **ptlp)
- {
- 	pgd_t *pgd;
- 	p4d_t *p4d;
-@@ -4989,35 +5009,9 @@ int follow_invalidate_pte(struct mm_struct *mm, unsigned long address,
- 	pmd = pmd_offset(pud, address);
- 	VM_BUG_ON(pmd_trans_huge(*pmd));
+ enum nvdimm_event {
+ 	NVDIMM_REVALIDATE_POISON,
+@@ -25,6 +27,7 @@ enum nvdimm_claim_class {
+ 	NVDIMM_CCLASS_UNKNOWN,
+ };
  
--	if (pmd_huge(*pmd)) {
--		if (!pmdpp)
--			goto out;
--
--		if (range) {
--			mmu_notifier_range_init(range, MMU_NOTIFY_CLEAR, 0,
--						NULL, mm, address & PMD_MASK,
--						(address & PMD_MASK) + PMD_SIZE);
--			mmu_notifier_invalidate_range_start(range);
--		}
--		*ptlp = pmd_lock(mm, pmd);
--		if (pmd_huge(*pmd)) {
--			*pmdpp = pmd;
--			return 0;
--		}
--		spin_unlock(*ptlp);
--		if (range)
--			mmu_notifier_invalidate_range_end(range);
--	}
--
- 	if (pmd_none(*pmd) || unlikely(pmd_bad(*pmd)))
- 		goto out;
++#ifdef CONFIG_PERF_EVENTS
+ #define NVDIMM_EVENT_VAR(_id)  event_attr_##_id
+ #define NVDIMM_EVENT_PTR(_id)  (&event_attr_##_id.attr.attr)
  
--	if (range) {
--		mmu_notifier_range_init(range, MMU_NOTIFY_CLEAR, 0, NULL, mm,
--					address & PAGE_MASK,
--					(address & PAGE_MASK) + PAGE_SIZE);
--		mmu_notifier_invalidate_range_start(range);
--	}
- 	ptep = pte_offset_map_lock(mm, pmd, address, ptlp);
- 	if (!pte_present(*ptep))
- 		goto unlock;
-@@ -5025,38 +5019,9 @@ int follow_invalidate_pte(struct mm_struct *mm, unsigned long address,
- 	return 0;
- unlock:
- 	pte_unmap_unlock(ptep, *ptlp);
--	if (range)
--		mmu_notifier_invalidate_range_end(range);
- out:
- 	return -EINVAL;
- }
--
--/**
-- * follow_pte - look up PTE at a user virtual address
-- * @mm: the mm_struct of the target address space
-- * @address: user virtual address
-- * @ptepp: location to store found PTE
-- * @ptlp: location to store the lock for the PTE
-- *
-- * On a successful return, the pointer to the PTE is stored in @ptepp;
-- * the corresponding lock is taken and its location is stored in @ptlp.
-- * The contents of the PTE are only stable until @ptlp is released;
-- * any further use, if any, must be protected against invalidation
-- * with MMU notifiers.
-- *
-- * Only IO mappings and raw PFN mappings are allowed.  The mmap semaphore
-- * should be taken for read.
-- *
-- * KVM uses this function.  While it is arguably less bad than ``follow_pfn``,
-- * it is not a good general-purpose API.
-- *
-- * Return: zero on success, -ve otherwise.
-- */
--int follow_pte(struct mm_struct *mm, unsigned long address,
--	       pte_t **ptepp, spinlock_t **ptlp)
--{
--	return follow_invalidate_pte(mm, address, NULL, ptepp, NULL, ptlp);
--}
- EXPORT_SYMBOL_GPL(follow_pte);
+@@ -63,9 +66,7 @@ extern ssize_t nvdimm_events_sysfs_show(struct device *dev,
  
- /**
+ int register_nvdimm_pmu(struct nvdimm_pmu *nvdimm, struct platform_device *pdev);
+ void unregister_nvdimm_pmu(struct nvdimm_pmu *nd_pmu);
+-void perf_pmu_migrate_context(struct pmu *pmu, int src_cpu, int dst_cpu);
+-int perf_pmu_register(struct pmu *pmu, const char *name, int type);
+-void perf_pmu_unregister(struct pmu *pmu);
++#endif
+ 
+ struct nd_device_driver {
+ 	struct device_driver drv;
 -- 
-2.11.0
+2.31.1
 
