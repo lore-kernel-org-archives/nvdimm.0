@@ -1,35 +1,35 @@
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EFC14C60
-	for <nvdimm@lists.linux.dev>; Sat, 19 Mar 2022 08:14:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88D555386;
+	Sat, 19 Mar 2022 08:25:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1647677648; x=1679213648;
+  t=1647678308; x=1679214308;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=5/j8SFIJOg+tuUIcMYd0AoAB00s/OJZR63GPCgz2T7U=;
-  b=U4YSrE5Mg0nx1Wq/o9WH+DwwFaVml/4l3pxQVuzp7JdZb7uKR9IxDEoJ
-   5FNCAnxBeWHZ8/0cNVdnhiCMY7SQqQaoTMjgdOX914n4ZGiDJG2pHu21n
-   WMf8Yq3CsfZsoMq38GL68bO7lJ0kg3p8cJvItHZ4YcFpcfRdpuP8FmKYC
-   fwYJPMHBwJbJyLhinsssercLcg5tz3s3T/4ZflY45p+hPMlysZxSHy4eK
-   DP2iq8lt8JjYGHZqVhrvhzpBJsVWNjV2ojBaAVLsGzbB8JcIzAe9d6nyg
-   KbRFn/hXQYFNeNHYZFpTgdupAGtaiy0naCVNX1KXnY5Rqa6gpjpIhZW9M
-   g==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10290"; a="237893098"
+  bh=cU11GNeosPZBQkVRru6KUOZgbrqb9oXf2R1mmb41wX8=;
+  b=nUbblIjBgh5iYzbCT8+H9R0bogbl5Mjdn8yD1xCPy1Fi7Ub4N3mkVxMa
+   FN80DRtYvvJYgYS4VcGcMm3zOJcUhjTVQ3yxTZLDRgQmeuf1n0VTAtxqw
+   YlbKWdIyVtRd1EWFd4BO+TAbSCRO2njdfIa4528zPB+nlUlzqMLUvFqQb
+   TFeFLhCA5dpMmpulaDuO1Qn6MWFL73Xd6iEmWAhpxeU6ilSr528mB3UKr
+   XDW/Y9g4msxUC08b91LltEezmKQgOX15VX5i0tUiFV2PiP+a/DTFyU80E
+   OI4l+ke5YucHsZRFxkRYUQ5D3Ckmx3kTi3HapXolAXtyTO1WBKFrbN5Ug
+   w==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10290"; a="237229519"
 X-IronPort-AV: E=Sophos;i="5.90,194,1643702400"; 
-   d="scan'208";a="237893098"
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Mar 2022 01:14:07 -0700
+   d="scan'208";a="237229519"
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Mar 2022 01:25:07 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.90,194,1643702400"; 
-   d="scan'208";a="691598370"
+   d="scan'208";a="822924166"
 Received: from lkp-server02.sh.intel.com (HELO 89b41b6ae01c) ([10.239.97.151])
-  by fmsmga001.fm.intel.com with ESMTP; 19 Mar 2022 01:14:04 -0700
+  by fmsmga005.fm.intel.com with ESMTP; 19 Mar 2022 01:25:04 -0700
 Received: from kbuild by 89b41b6ae01c with local (Exim 4.92)
 	(envelope-from <lkp@intel.com>)
-	id 1nVUDr-000Fiu-9z; Sat, 19 Mar 2022 08:14:03 +0000
-Date: Sat, 19 Mar 2022 16:13:44 +0800
+	id 1nVUOV-000FjU-HW; Sat, 19 Mar 2022 08:25:03 +0000
+Date: Sat, 19 Mar 2022 16:24:07 +0800
 From: kernel test robot <lkp@intel.com>
 To: Jane Chu <jane.chu@oracle.com>, david@fromorbit.com, djwong@kernel.org,
 	dan.j.williams@intel.com, hch@infradead.org,
@@ -38,10 +38,10 @@ To: Jane Chu <jane.chu@oracle.com>, david@fromorbit.com, djwong@kernel.org,
 	willy@infradead.org, vgoyal@redhat.com,
 	linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
 	linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org
-Cc: kbuild-all@lists.01.org
+Cc: llvm@lists.linux.dev, kbuild-all@lists.01.org
 Subject: Re: [PATCH v6 2/6] x86/mce: relocate set{clear}_mce_nospec()
  functions
-Message-ID: <202203191637.PK2oJUeq-lkp@intel.com>
+Message-ID: <202203191603.mQUQZZV5-lkp@intel.com>
 References: <20220319062833.3136528-3-jane.chu@oracle.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -67,28 +67,39 @@ https://git-scm.com/docs/git-format-patch]
 
 url:    https://github.com/0day-ci/linux/commits/Jane-Chu/DAX-poison-recovery/20220319-143144
 base:   https://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git libnvdimm-for-next
-config: x86_64-randconfig-a015 (https://download.01.org/0day-ci/archive/20220319/202203191637.PK2oJUeq-lkp@intel.com/config)
-compiler: gcc-9 (Ubuntu 9.4.0-1ubuntu1~20.04) 9.4.0
+config: x86_64-randconfig-a012 (https://download.01.org/0day-ci/archive/20220319/202203191603.mQUQZZV5-lkp@intel.com/config)
+compiler: clang version 15.0.0 (https://github.com/llvm/llvm-project a6e70e4056dff962ec634c5bd4f2f4105a0bef71)
 reproduce (this is a W=1 build):
+        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
+        chmod +x ~/bin/make.cross
         # https://github.com/0day-ci/linux/commit/71b9b09529b207ce15667c1f5fba4b727b6754e6
         git remote add linux-review https://github.com/0day-ci/linux
         git fetch --no-tags linux-review Jane-Chu/DAX-poison-recovery/20220319-143144
         git checkout 71b9b09529b207ce15667c1f5fba4b727b6754e6
         # save the config file to linux build tree
         mkdir build_dir
-        make W=1 O=build_dir ARCH=x86_64 SHELL=/bin/bash arch/x86/mm/pat/ fs/fuse/
+        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=clang make.cross W=1 O=build_dir ARCH=x86_64 SHELL=/bin/bash arch/x86/mm/pat/ fs/fuse/
 
 If you fix the issue, kindly add following tag as appropriate
 Reported-by: kernel test robot <lkp@intel.com>
 
 All warnings (new ones prefixed by >>):
 
->> arch/x86/mm/pat/set_memory.c:1935:5: warning: no previous prototype for 'set_mce_nospec' [-Wmissing-prototypes]
-    1935 | int set_mce_nospec(unsigned long pfn, bool unmap)
-         |     ^~~~~~~~~~~~~~
->> arch/x86/mm/pat/set_memory.c:1968:5: warning: no previous prototype for 'clear_mce_nospec' [-Wmissing-prototypes]
-    1968 | int clear_mce_nospec(unsigned long pfn)
-         |     ^~~~~~~~~~~~~~~~
+>> arch/x86/mm/pat/set_memory.c:1935:5: warning: no previous prototype for function 'set_mce_nospec' [-Wmissing-prototypes]
+   int set_mce_nospec(unsigned long pfn, bool unmap)
+       ^
+   arch/x86/mm/pat/set_memory.c:1935:1: note: declare 'static' if the function is not intended to be used outside of this translation unit
+   int set_mce_nospec(unsigned long pfn, bool unmap)
+   ^
+   static 
+>> arch/x86/mm/pat/set_memory.c:1968:5: warning: no previous prototype for function 'clear_mce_nospec' [-Wmissing-prototypes]
+   int clear_mce_nospec(unsigned long pfn)
+       ^
+   arch/x86/mm/pat/set_memory.c:1968:1: note: declare 'static' if the function is not intended to be used outside of this translation unit
+   int clear_mce_nospec(unsigned long pfn)
+   ^
+   static 
+   2 warnings generated.
 
 
 vim +/set_mce_nospec +1935 arch/x86/mm/pat/set_memory.c
