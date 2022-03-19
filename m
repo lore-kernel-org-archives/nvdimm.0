@@ -1,35 +1,35 @@
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D9A45391
-	for <nvdimm@lists.linux.dev>; Sat, 19 Mar 2022 08:25:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0E3917CF;
+	Sat, 19 Mar 2022 08:45:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1647678309; x=1679214309;
+  t=1647679515; x=1679215515;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=i+1zm1x8DRcSoIN75++M5iWMiGIew0eux02TG+zKjXU=;
-  b=lCAyfGQKb1EYRJ3s0T/pZv/U4CH9c9HCROuuzrfGGH8x9LTX3hJ0buU9
-   cxRW/tzUmhpY6j2+/FKl4kKhoydkLDXkY0a5iYbm8RMQCVrCexAdu53Nb
-   mYSRd5JwQZodfZAL59IRSgOaqDU3QxIn08gpaS1xPQfkeulGzOFAUq02t
-   DhVVQCtOp50IVZsUHK9Yt+TBw1xMIlHLq1GHi5JlI72vUblP2orjK6MjG
-   KgCmy9T/b4kC5u4yhLTgQqgEIRUKBwwRnvIw75P86ogX+5u+/QhqjCNg8
-   tL3Ha9kQ8mY+cOey9vdbCE4J8F0LVgM/Ceq1Wu71mv695dSbPvx5L3m6n
-   Q==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10290"; a="237893611"
+  bh=k5pfSFVTly+M3cSKghoKNsmKVoZp5T4ZrPis3GmwE5I=;
+  b=PNG2O5BgTOPF7GvoshkAcQRaoCUd+r1t0WPz3mwimpzDCBoypPhL/LgR
+   EYY0bNxuUtmEPcHHu+WvozW+1chFUmhex6FJhJVCsVAWiKHOcZ2rdxwm+
+   CWvxj+CkA2r5bskBipUoCcainhBBJn4bwzebvIlRe855pkaZM9BwNHhlW
+   o3LY77BGj5SqAbmOkw066syaBAEH705YAUDrAdn2Pm73EgDYoPjuWMGXM
+   RrAhu/UQcj0Z+5PezqSaxgdJQcv2tVjtJ6aifnVmkb1rQN5VQFpZN8VcL
+   9qzOQ5AOtBraNQ8ONvh5S1PYWYHRlmWJ+Y2VdwBw3afk7TWATR2R1/uAK
+   w==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10290"; a="244759663"
 X-IronPort-AV: E=Sophos;i="5.90,194,1643702400"; 
-   d="scan'208";a="237893611"
-Received: from orsmga004.jf.intel.com ([10.7.209.38])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Mar 2022 01:25:08 -0700
+   d="scan'208";a="244759663"
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Mar 2022 01:45:15 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.90,194,1643702400"; 
-   d="scan'208";a="647829406"
+   d="scan'208";a="542300135"
 Received: from lkp-server02.sh.intel.com (HELO 89b41b6ae01c) ([10.239.97.151])
-  by orsmga004.jf.intel.com with ESMTP; 19 Mar 2022 01:25:04 -0700
+  by orsmga007.jf.intel.com with ESMTP; 19 Mar 2022 01:45:10 -0700
 Received: from kbuild by 89b41b6ae01c with local (Exim 4.92)
 	(envelope-from <lkp@intel.com>)
-	id 1nVUOV-000FjS-DO; Sat, 19 Mar 2022 08:25:03 +0000
-Date: Sat, 19 Mar 2022 16:24:04 +0800
+	id 1nVUhw-000FmU-IK; Sat, 19 Mar 2022 08:45:08 +0000
+Date: Sat, 19 Mar 2022 16:44:44 +0800
 From: kernel test robot <lkp@intel.com>
 To: Jane Chu <jane.chu@oracle.com>, david@fromorbit.com, djwong@kernel.org,
 	dan.j.williams@intel.com, hch@infradead.org,
@@ -38,10 +38,10 @@ To: Jane Chu <jane.chu@oracle.com>, david@fromorbit.com, djwong@kernel.org,
 	willy@infradead.org, vgoyal@redhat.com,
 	linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
 	linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org
-Cc: kbuild-all@lists.01.org
+Cc: llvm@lists.linux.dev, kbuild-all@lists.01.org
 Subject: Re: [PATCH v6 4/6] dax: add DAX_RECOVERY flag and .recovery_write
  dev_pgmap_ops
-Message-ID: <202203191610.umg0CGkh-lkp@intel.com>
+Message-ID: <202203191635.vyoiL17f-lkp@intel.com>
 References: <20220319062833.3136528-5-jane.chu@oracle.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -56,10 +56,10 @@ User-Agent: Mutt/1.10.1 (2018-07-13)
 
 Hi Jane,
 
-Thank you for the patch! Perhaps something to improve:
+Thank you for the patch! Yet something to improve:
 
-[auto build test WARNING on nvdimm/libnvdimm-for-next]
-[also build test WARNING on device-mapper-dm/for-next linus/master v5.17-rc8 next-20220318]
+[auto build test ERROR on nvdimm/libnvdimm-for-next]
+[also build test ERROR on device-mapper-dm/for-next linus/master v5.17-rc8 next-20220318]
 [cannot apply to tip/x86/mm]
 [If your patch is applied to the wrong git tree, kindly drop us a note.
 And when submitting patch, we suggest to use '--base' as documented in
@@ -67,66 +67,106 @@ https://git-scm.com/docs/git-format-patch]
 
 url:    https://github.com/0day-ci/linux/commits/Jane-Chu/DAX-poison-recovery/20220319-143144
 base:   https://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git libnvdimm-for-next
-config: s390-randconfig-r044-20220317 (https://download.01.org/0day-ci/archive/20220319/202203191610.umg0CGkh-lkp@intel.com/config)
-compiler: s390-linux-gcc (GCC) 11.2.0
+config: s390-randconfig-r044-20220318 (https://download.01.org/0day-ci/archive/20220319/202203191635.vyoiL17f-lkp@intel.com/config)
+compiler: clang version 15.0.0 (https://github.com/llvm/llvm-project a6e70e4056dff962ec634c5bd4f2f4105a0bef71)
 reproduce (this is a W=1 build):
         wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
         chmod +x ~/bin/make.cross
+        # install s390 cross compiling tool for clang build
+        # apt-get install binutils-s390x-linux-gnu
         # https://github.com/0day-ci/linux/commit/203570f765a6ad07eb5809850478a25a5257f7e2
         git remote add linux-review https://github.com/0day-ci/linux
         git fetch --no-tags linux-review Jane-Chu/DAX-poison-recovery/20220319-143144
         git checkout 203570f765a6ad07eb5809850478a25a5257f7e2
         # save the config file to linux build tree
         mkdir build_dir
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-11.2.0 make.cross O=build_dir ARCH=s390 SHELL=/bin/bash fs/fuse/
+        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=clang make.cross W=1 O=build_dir ARCH=s390 SHELL=/bin/bash drivers/s390/block/
 
 If you fix the issue, kindly add following tag as appropriate
 Reported-by: kernel test robot <lkp@intel.com>
 
-All warnings (new ones prefixed by >>):
+All errors (new ones prefixed by >>):
 
-   fs/fuse/virtio_fs.c: In function 'virtio_fs_zero_page_range':
->> fs/fuse/virtio_fs.c:774:58: warning: passing argument 4 of 'dax_direct_access' makes integer from pointer without a cast [-Wint-conversion]
-     774 |         rc = dax_direct_access(dax_dev, pgoff, nr_pages, &kaddr, NULL);
-         |                                                          ^~~~~~
-         |                                                          |
-         |                                                          void **
-   In file included from fs/fuse/virtio_fs.c:8:
-   include/linux/dax.h:187:21: note: expected 'int' but argument is of type 'void **'
-     187 |                 int flags, void **kaddr, pfn_t *pfn);
-         |                 ~~~~^~~~~
-   fs/fuse/virtio_fs.c:774:14: error: too few arguments to function 'dax_direct_access'
-     774 |         rc = dax_direct_access(dax_dev, pgoff, nr_pages, &kaddr, NULL);
-         |              ^~~~~~~~~~~~~~~~~
-   In file included from fs/fuse/virtio_fs.c:8:
-   include/linux/dax.h:186:6: note: declared here
-     186 | long dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff, long nr_pages,
-         |      ^~~~~~~~~~~~~~~~~
-   fs/fuse/virtio_fs.c: At top level:
-   fs/fuse/virtio_fs.c:783:26: error: initialization of 'long int (*)(struct dax_device *, long unsigned int,  long int,  int,  void **, pfn_t *)' from incompatible pointer type 'long int (*)(struct dax_device *, long unsigned int,  long int,  void **, pfn_t *)' [-Werror=incompatible-pointer-types]
-     783 |         .direct_access = virtio_fs_direct_access,
-         |                          ^~~~~~~~~~~~~~~~~~~~~~~
-   fs/fuse/virtio_fs.c:783:26: note: (near initialization for 'virtio_fs_dax_ops.direct_access')
-   cc1: some warnings being treated as errors
+   In file included from drivers/s390/block/dcssblk.c:24:
+   In file included from arch/s390/include/asm/io.h:75:
+   include/asm-generic/io.h:464:31: warning: performing pointer arithmetic on a null pointer has undefined behavior [-Wnull-pointer-arithmetic]
+           val = __raw_readb(PCI_IOBASE + addr);
+                             ~~~~~~~~~~ ^
+   include/asm-generic/io.h:477:61: warning: performing pointer arithmetic on a null pointer has undefined behavior [-Wnull-pointer-arithmetic]
+           val = __le16_to_cpu((__le16 __force)__raw_readw(PCI_IOBASE + addr));
+                                                           ~~~~~~~~~~ ^
+   include/uapi/linux/byteorder/big_endian.h:37:59: note: expanded from macro '__le16_to_cpu'
+   #define __le16_to_cpu(x) __swab16((__force __u16)(__le16)(x))
+                                                             ^
+   include/uapi/linux/swab.h:102:54: note: expanded from macro '__swab16'
+   #define __swab16(x) (__u16)__builtin_bswap16((__u16)(x))
+                                                        ^
+   In file included from drivers/s390/block/dcssblk.c:24:
+   In file included from arch/s390/include/asm/io.h:75:
+   include/asm-generic/io.h:490:61: warning: performing pointer arithmetic on a null pointer has undefined behavior [-Wnull-pointer-arithmetic]
+           val = __le32_to_cpu((__le32 __force)__raw_readl(PCI_IOBASE + addr));
+                                                           ~~~~~~~~~~ ^
+   include/uapi/linux/byteorder/big_endian.h:35:59: note: expanded from macro '__le32_to_cpu'
+   #define __le32_to_cpu(x) __swab32((__force __u32)(__le32)(x))
+                                                             ^
+   include/uapi/linux/swab.h:115:54: note: expanded from macro '__swab32'
+   #define __swab32(x) (__u32)__builtin_bswap32((__u32)(x))
+                                                        ^
+   In file included from drivers/s390/block/dcssblk.c:24:
+   In file included from arch/s390/include/asm/io.h:75:
+   include/asm-generic/io.h:501:33: warning: performing pointer arithmetic on a null pointer has undefined behavior [-Wnull-pointer-arithmetic]
+           __raw_writeb(value, PCI_IOBASE + addr);
+                               ~~~~~~~~~~ ^
+   include/asm-generic/io.h:511:59: warning: performing pointer arithmetic on a null pointer has undefined behavior [-Wnull-pointer-arithmetic]
+           __raw_writew((u16 __force)cpu_to_le16(value), PCI_IOBASE + addr);
+                                                         ~~~~~~~~~~ ^
+   include/asm-generic/io.h:521:59: warning: performing pointer arithmetic on a null pointer has undefined behavior [-Wnull-pointer-arithmetic]
+           __raw_writel((u32 __force)cpu_to_le32(value), PCI_IOBASE + addr);
+                                                         ~~~~~~~~~~ ^
+   include/asm-generic/io.h:609:20: warning: performing pointer arithmetic on a null pointer has undefined behavior [-Wnull-pointer-arithmetic]
+           readsb(PCI_IOBASE + addr, buffer, count);
+                  ~~~~~~~~~~ ^
+   include/asm-generic/io.h:617:20: warning: performing pointer arithmetic on a null pointer has undefined behavior [-Wnull-pointer-arithmetic]
+           readsw(PCI_IOBASE + addr, buffer, count);
+                  ~~~~~~~~~~ ^
+   include/asm-generic/io.h:625:20: warning: performing pointer arithmetic on a null pointer has undefined behavior [-Wnull-pointer-arithmetic]
+           readsl(PCI_IOBASE + addr, buffer, count);
+                  ~~~~~~~~~~ ^
+   include/asm-generic/io.h:634:21: warning: performing pointer arithmetic on a null pointer has undefined behavior [-Wnull-pointer-arithmetic]
+           writesb(PCI_IOBASE + addr, buffer, count);
+                   ~~~~~~~~~~ ^
+   include/asm-generic/io.h:643:21: warning: performing pointer arithmetic on a null pointer has undefined behavior [-Wnull-pointer-arithmetic]
+           writesw(PCI_IOBASE + addr, buffer, count);
+                   ~~~~~~~~~~ ^
+   include/asm-generic/io.h:652:21: warning: performing pointer arithmetic on a null pointer has undefined behavior [-Wnull-pointer-arithmetic]
+           writesl(PCI_IOBASE + addr, buffer, count);
+                   ~~~~~~~~~~ ^
+>> drivers/s390/block/dcssblk.c:53:63: error: too few arguments to function call, expected 6, have 5
+           rc = dax_direct_access(dax_dev, pgoff, nr_pages, &kaddr, NULL);
+                ~~~~~~~~~~~~~~~~~                                       ^
+   include/linux/dax.h:186:6: note: 'dax_direct_access' declared here
+   long dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff, long nr_pages,
+        ^
+   12 warnings and 1 error generated.
 
 
-vim +/dax_direct_access +774 fs/fuse/virtio_fs.c
+vim +53 drivers/s390/block/dcssblk.c
 
-22f3787e9d95e7 Stefan Hajnoczi 2020-08-19  767  
-22f3787e9d95e7 Stefan Hajnoczi 2020-08-19  768  static int virtio_fs_zero_page_range(struct dax_device *dax_dev,
-22f3787e9d95e7 Stefan Hajnoczi 2020-08-19  769  				     pgoff_t pgoff, size_t nr_pages)
-22f3787e9d95e7 Stefan Hajnoczi 2020-08-19  770  {
-22f3787e9d95e7 Stefan Hajnoczi 2020-08-19  771  	long rc;
-22f3787e9d95e7 Stefan Hajnoczi 2020-08-19  772  	void *kaddr;
-22f3787e9d95e7 Stefan Hajnoczi 2020-08-19  773  
-22f3787e9d95e7 Stefan Hajnoczi 2020-08-19 @774  	rc = dax_direct_access(dax_dev, pgoff, nr_pages, &kaddr, NULL);
-22f3787e9d95e7 Stefan Hajnoczi 2020-08-19  775  	if (rc < 0)
-22f3787e9d95e7 Stefan Hajnoczi 2020-08-19  776  		return rc;
-22f3787e9d95e7 Stefan Hajnoczi 2020-08-19  777  	memset(kaddr, 0, nr_pages << PAGE_SHIFT);
-22f3787e9d95e7 Stefan Hajnoczi 2020-08-19  778  	dax_flush(dax_dev, kaddr, nr_pages << PAGE_SHIFT);
-22f3787e9d95e7 Stefan Hajnoczi 2020-08-19  779  	return 0;
-22f3787e9d95e7 Stefan Hajnoczi 2020-08-19  780  }
-22f3787e9d95e7 Stefan Hajnoczi 2020-08-19  781  
+7a2765f6e82063f Dan Williams 2017-01-26  46  
+79fa974ff6bc3f7 Vivek Goyal  2020-02-28  47  static int dcssblk_dax_zero_page_range(struct dax_device *dax_dev,
+79fa974ff6bc3f7 Vivek Goyal  2020-02-28  48  				       pgoff_t pgoff, size_t nr_pages)
+79fa974ff6bc3f7 Vivek Goyal  2020-02-28  49  {
+79fa974ff6bc3f7 Vivek Goyal  2020-02-28  50  	long rc;
+79fa974ff6bc3f7 Vivek Goyal  2020-02-28  51  	void *kaddr;
+79fa974ff6bc3f7 Vivek Goyal  2020-02-28  52  
+79fa974ff6bc3f7 Vivek Goyal  2020-02-28 @53  	rc = dax_direct_access(dax_dev, pgoff, nr_pages, &kaddr, NULL);
+79fa974ff6bc3f7 Vivek Goyal  2020-02-28  54  	if (rc < 0)
+79fa974ff6bc3f7 Vivek Goyal  2020-02-28  55  		return rc;
+79fa974ff6bc3f7 Vivek Goyal  2020-02-28  56  	memset(kaddr, 0, nr_pages << PAGE_SHIFT);
+79fa974ff6bc3f7 Vivek Goyal  2020-02-28  57  	dax_flush(dax_dev, kaddr, nr_pages << PAGE_SHIFT);
+79fa974ff6bc3f7 Vivek Goyal  2020-02-28  58  	return 0;
+79fa974ff6bc3f7 Vivek Goyal  2020-02-28  59  }
+79fa974ff6bc3f7 Vivek Goyal  2020-02-28  60  
 
 ---
 0-DAY CI Kernel Test Service
