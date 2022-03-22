@@ -1,88 +1,98 @@
-Received: from mail-yb1-f179.google.com (mail-yb1-f179.google.com [209.85.219.179])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90F3FA31
-	for <nvdimm@lists.linux.dev>; Tue, 22 Mar 2022 08:48:55 +0000 (UTC)
-Received: by mail-yb1-f179.google.com with SMTP id h126so32467099ybc.1
-        for <nvdimm@lists.linux.dev>; Tue, 22 Mar 2022 01:48:55 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bytedance-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=QUKbEll3B3MyYDyon4P+rDcqkN3F18MECGrGkqKUuno=;
-        b=rm2us6OKRLqK7uRSyjF58yCfkJFOuUQJ9OiT0aRPlGY+hdgxdLxevBebqmkYxi7Kvp
-         dYYnA0yznikOIfcp94kmvCoHwd3eBaIBjlxJ5Ao8gBTwrcNcKI6+UrEemVYlvx+6/UVx
-         xQVQLCPAuf2wJfSSvaL+r0brkUh5rLAurDIX9UxgFBAzX35pIb/O7NdcUgsovcWiJygc
-         +F4Hmk9ymVELB1ruVF0OKDyHW3I9h6mok5rpFm1I/Rmx2oeIeTvKOXwH/USeLye/E6CX
-         mVxSVtQpis0R05ccolu21RU+dA8oYht1hQDmNtryYzocmi033mHBJGcf8CtqqD9ukgUX
-         BV2A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=QUKbEll3B3MyYDyon4P+rDcqkN3F18MECGrGkqKUuno=;
-        b=50KMHL4RAOkj0dvm3Yk0+//tQ4wOowZb7nSw5k6FZhuKgKsyj/pkRcy9HDV3IIhFcL
-         K4vXVjCzpZpcxaZ84A+r2pVPykR0Zqxiu8K0biurLUfG1FBnpoTI5gX9+VXhL9yQVeTV
-         eG2WTREICTZiGGquzPfvwDnMrGfxApvj/VGOEiRv3Sv/+vFOTNECx4J5/26GbUYBESEE
-         IWc6L7hPvXaDxVJie4jg3evEsCAyQ/1Av791I9SdhTJFbHY/EZWbPxgQOyOjfSQILNpr
-         cZRl4bxfbr/vtxPTeSq4++zJvxdP/Lh25i6RFOhL6RB3fvyJOTikSugZnWSyRZ/cNG+0
-         Ohdg==
-X-Gm-Message-State: AOAM530rZBX+2TxlCuBPpwad2Jr0AyEsuo1PQ2KE/50SSR+bKFPaDDEA
-	/7oFCyzCATadmXPpYxZPQCVnik9ACna+ubrHGTvCpg==
-X-Google-Smtp-Source: ABdhPJwub/NwJPB45j1iuLmm89NuZIw9wFdhV28CEQ33EGCiwtZ2hoVGFhhKU2aj/mWUCkmcesq4ImawnosiJZEkcZo=
-X-Received: by 2002:a25:8390:0:b0:629:2839:9269 with SMTP id
- t16-20020a258390000000b0062928399269mr25658972ybk.246.1647938934543; Tue, 22
- Mar 2022 01:48:54 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB362A31
+	for <nvdimm@lists.linux.dev>; Tue, 22 Mar 2022 08:53:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
+	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=uJdzlcEvij5Ft5CrLtuSMWt2NhA+02RXJxJray9JMj4=; b=M9YAGf4DfLFxhrF5jVExSCvkEh
+	F5kzgwhWOl5Rhw1rx8z0Q1Tk614exWnNSewldl9jMIQzc5LkF+IK4YWl5o1M8da8g6a3+uEReKaod
+	r5/OvpYjZUkLj6pqAIS8MdtWHq813xsfM01oCqrQ8Lkh4hInX2nfBYj87F9y1bQ/Zbe+Og8lYPy2Z
+	ticSqIplcnJBoCCPg7jSYPfZ2qc9u0dQe5qoOxTYE9ugxK8ywSK6Uzrp7EzxHPM9d9cr0wR9Q5BBL
+	R0/JmZJihfa3SxFUqAIfCSdBIoXY7cR0rP8Ds0Q9z0xu/nq6HUZDFVO5qbbMwetDdyls+5ZhfyYPU
+	/y5sUiig==;
+Received: from hch by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
+	id 1nWaGF-00AVAX-ND; Tue, 22 Mar 2022 08:53:03 +0000
+Date: Tue, 22 Mar 2022 01:53:03 -0700
+From: Christoph Hellwig <hch@infradead.org>
+To: Jane Chu <jane.chu@oracle.com>
+Cc: david@fromorbit.com, djwong@kernel.org, dan.j.williams@intel.com,
+	hch@infradead.org, vishal.l.verma@intel.com, dave.jiang@intel.com,
+	agk@redhat.com, snitzer@redhat.com, dm-devel@redhat.com,
+	ira.weiny@intel.com, willy@infradead.org, vgoyal@redhat.com,
+	linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org
+Subject: Re: [PATCH v6 5/6] pmem: refactor pmem_clear_poison()
+Message-ID: <YjmOb0dSY9GG/Q6r@infradead.org>
+References: <20220319062833.3136528-1-jane.chu@oracle.com>
+ <20220319062833.3136528-6-jane.chu@oracle.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20220318074529.5261-1-songmuchun@bytedance.com>
- <20220318074529.5261-6-songmuchun@bytedance.com> <YjmK0aaCu/FI/t7T@infradead.org>
-In-Reply-To: <YjmK0aaCu/FI/t7T@infradead.org>
-From: Muchun Song <songmuchun@bytedance.com>
-Date: Tue, 22 Mar 2022 16:46:59 +0800
-Message-ID: <CAMZfGtVBqVwHpoaotp+HF8+Sh-U3onKBBbQY69UT9SrGGOKVtQ@mail.gmail.com>
-Subject: Re: [PATCH v5 5/6] dax: fix missing writeprotect the pte entry
-To: Christoph Hellwig <hch@infradead.org>
-Cc: Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <willy@infradead.org>, 
-	Jan Kara <jack@suse.cz>, Alexander Viro <viro@zeniv.linux.org.uk>, 
-	Andrew Morton <akpm@linux-foundation.org>, Alistair Popple <apopple@nvidia.com>, 
-	Yang Shi <shy828301@gmail.com>, Ralph Campbell <rcampbell@nvidia.com>, 
-	Hugh Dickins <hughd@google.com>, Xiyu Yang <xiyuyang19@fudan.edu.cn>, 
-	"Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Ross Zwisler <zwisler@kernel.org>, 
-	linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux NVDIMM <nvdimm@lists.linux.dev>, 
-	LKML <linux-kernel@vger.kernel.org>, 
-	Linux Memory Management List <linux-mm@kvack.org>, Xiongchun duan <duanxiongchun@bytedance.com>, 
-	Muchun Song <smuchun@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220319062833.3136528-6-jane.chu@oracle.com>
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 
-On Tue, Mar 22, 2022 at 4:37 PM Christoph Hellwig <hch@infradead.org> wrote:
->
-> > +static void dax_entry_mkclean(struct address_space *mapping, unsigned long pfn,
-> > +                           unsigned long npfn, pgoff_t start)
-> >  {
-> >       struct vm_area_struct *vma;
-> > +     pgoff_t end = start + npfn - 1;
-> >
-> >       i_mmap_lock_read(mapping);
-> > +     vma_interval_tree_foreach(vma, &mapping->i_mmap, start, end) {
-> > +             pfn_mkclean_range(pfn, npfn, start, vma);
-> >               cond_resched();
-> >       }
-> >       i_mmap_unlock_read(mapping);
->
->
-> Is there any point in even keeping this helper vs just open coding it
-> in the only caller below?
+> -static void hwpoison_clear(struct pmem_device *pmem,
+> -		phys_addr_t phys, unsigned int len)
+> +static phys_addr_t to_phys(struct pmem_device *pmem, phys_addr_t offset)
+>  {
+> +	return pmem->phys_addr + offset;
+> +}
+> +
+> +static sector_t to_sect(struct pmem_device *pmem, phys_addr_t offset)
+> +{
+> +	return (offset - pmem->data_offset) / 512;
+> +}
+> +
+> +static phys_addr_t to_offset(struct pmem_device *pmem, sector_t sector)
+> +{
+> +	return sector * 512 + pmem->data_offset;
+> +}
 
-Good point. I'll fold dax_entry_mkclean() into the caller.
+The multiplicate / divison using 512 could use shifts using
+SECTOR_SHIFT.
 
->
-> Otherwise looks good:
->
-> Reviewed-by: Christoph Hellwig <hch@lst.de>
+> +
+> +static void clear_hwpoison(struct pmem_device *pmem, phys_addr_t offset,
+> +		unsigned int len)
 
-Thanks.
+> +static void clear_bb(struct pmem_device *pmem, sector_t sector, long blks)
+
+All these functions lack a pmem_ prefix.
+
+> +static blk_status_t __pmem_clear_poison(struct pmem_device *pmem,
+> +		phys_addr_t offset, unsigned int len,
+> +		unsigned int *blks)
+> +{
+> +	phys_addr_t phys = to_phys(pmem, offset);
+>  	long cleared;
+> +	blk_status_t rc;
+>  
+> +	cleared = nvdimm_clear_poison(to_dev(pmem), phys, len);
+> +	*blks = cleared / 512;
+> +	rc = (cleared < len) ? BLK_STS_IOERR : BLK_STS_OK;
+> +	if (cleared <= 0 || *blks == 0)
+> +		return rc;
+
+This look odd.  I think just returing the cleared byte value would
+make much more sense:
+
+static long __pmem_clear_poison(struct pmem_device *pmem,
+		phys_addr_t offset, unsigned int len)
+{
+	long cleared = nvdimm_clear_poison(to_dev(pmem), phys, len);
+
+	if (cleared > 0) {
+		clear_hwpoison(pmem, offset, cleared);
+		arch_invalidate_pmem(pmem->virt_addr + offset, len);
+	}
+
+	return cleared;
+}
