@@ -1,66 +1,36 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+Received: from gandalf.ozlabs.org (gandalf.ozlabs.org [150.107.74.76])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54559138A
-	for <nvdimm@lists.linux.dev>; Wed, 23 Mar 2022 07:49:13 +0000 (UTC)
-Received: from pps.filterd (m0098420.ppops.net [127.0.0.1])
-	by mx0b-001b2d01.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 22N6gimV012427;
-	Wed, 23 Mar 2022 07:48:50 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
- : in-reply-to : references : date : message-id : mime-version :
- content-type : content-transfer-encoding; s=pp1;
- bh=esyvE9d47G4eT5PCtsnWcq/crKLziOOj6fAWWtqcXMs=;
- b=l/kmsX1uWIepF15zc1p3+kBP4g9PqvWl8xd3FoiVGuX3IKnXfRUWDDwgOf4sWlAEffKY
- RoCsynmNM74nGsOa15gw2DqAS61rDrWHDPOzhdSVMz4hIWpFJ3pa72ikOwHHBaUl8NcM
- nTP1KTbYI+zbVb5Dd3cYzJaykmvsYkNiV0olqzV+p4k6BJeoJ8G3pVKgcAOkfkbrcJo/
- 2HItxT74rfmwYrn1kxXTWdK595uf1BSVMbikEyvstgSJmNLFe9yNlIqTlDqZYCdh4zf8
- WKkMh3FBPcmhHo8QdNQDMH319th6YxGcmzApeeEY+bGBV5qVWdv2w3E+mTidw82GbU2u kA== 
-Received: from ppma05fra.de.ibm.com (6c.4a.5195.ip4.static.sl-reverse.com [149.81.74.108])
-	by mx0b-001b2d01.pphosted.com with ESMTP id 3eywmn20ed-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Wed, 23 Mar 2022 07:48:49 +0000
-Received: from pps.filterd (ppma05fra.de.ibm.com [127.0.0.1])
-	by ppma05fra.de.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 22N7juZ0004242;
-	Wed, 23 Mar 2022 07:48:47 GMT
-Received: from b06cxnps3074.portsmouth.uk.ibm.com (d06relay09.portsmouth.uk.ibm.com [9.149.109.194])
-	by ppma05fra.de.ibm.com with ESMTP id 3ew6t9etqq-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Wed, 23 Mar 2022 07:48:47 +0000
-Received: from d06av23.portsmouth.uk.ibm.com (d06av23.portsmouth.uk.ibm.com [9.149.105.59])
-	by b06cxnps3074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 22N7mib836438486
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 23 Mar 2022 07:48:44 GMT
-Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 5ED64A4040;
-	Wed, 23 Mar 2022 07:48:44 +0000 (GMT)
-Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 786DEA405E;
-	Wed, 23 Mar 2022 07:48:35 +0000 (GMT)
-Received: from vajain21.in.ibm.com (unknown [9.211.147.181])
-	by d06av23.portsmouth.uk.ibm.com (Postfix) with SMTP;
-	Wed, 23 Mar 2022 07:48:35 +0000 (GMT)
-Received: by vajain21.in.ibm.com (sSMTP sendmail emulation); Wed, 23 Mar 2022 13:18:33 +0530
-From: Vaibhav Jain <vaibhav@linux.ibm.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9042B1391
+	for <nvdimm@lists.linux.dev>; Wed, 23 Mar 2022 10:05:12 +0000 (UTC)
+Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mail.ozlabs.org (Postfix) with ESMTPSA id 4KNkVg0wsYz4xc3;
+	Wed, 23 Mar 2022 21:04:59 +1100 (AEDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ellerman.id.au;
+	s=201909; t=1648029904;
+	bh=TnQ5wsxyVAGgIDqyTCVQtPFJ+SPrs/6MaUbQuhN/DUw=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
+	b=rBixC8p0PkivEvxa7o1L3zMq0K5Cu/hu9x6+WtdtKaRQsAE40Bzwztum4x6OtyAdm
+	 /bd4Fp1TS3gr/VEV/32apsTWCgIr20zBG9wLEdpJG5+MsJIWWjyMRelu8/Kjr0V3xR
+	 sQuJmokWuZ/N8cxlRzUGxsD1o4qyVot29ud73GMqllKPfjyf+UrSE2LIjRBAYXZY6+
+	 sTdM5fTO4LCRiW1Eka7kpZ5C6ULMe/f/oxd9qXTk/k+iwAb81TcyMxEOwVIl9SPUX8
+	 7bdtP2Cf/GxkppARAjSCZTVrrhp3viS8hWcoN2YKMb3DXgaAThqE4JHwOGbQ8zhMhQ
+	 dIn8J+MUDcN4A==
+From: Michael Ellerman <mpe@ellerman.id.au>
 To: Dan Williams <dan.j.williams@intel.com>, kajoljain <kjain@linux.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>,
-        linuxppc-dev
- <linuxppc-dev@lists.ozlabs.org>,
-        Linux NVDIMM <nvdimm@lists.linux.dev>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linux-Next
- Mailing List <linux-next@vger.kernel.org>,
-        Peter Zijlstra
- <peterz@infradead.org>,
-        "Weiny, Ira" <ira.weiny@intel.com>,
-        Vishal L Verma
- <vishal.l.verma@intel.com>,
-        Stephen Rothwell <sfr@canb.auug.org.au>,
-        Santosh Sivaraj <santosh@fossix.org>, maddy@linux.ibm.com,
-        rnsastry@linux.ibm.com,
-        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
-        atrajeev@linux.vnet.ibm.com, Thomas Gleixner <tglx@linutronix.de>,
-        Linux
- MM <linux-mm@kvack.org>
+Cc: linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, Linux NVDIMM
+ <nvdimm@lists.linux.dev>, Linux Kernel Mailing List
+ <linux-kernel@vger.kernel.org>, Linux-Next Mailing List
+ <linux-next@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>,
+ "Weiny, Ira" <ira.weiny@intel.com>, Vishal L Verma
+ <vishal.l.verma@intel.com>, Stephen Rothwell <sfr@canb.auug.org.au>,
+ Santosh Sivaraj <santosh@fossix.org>, maddy@linux.ibm.com,
+ rnsastry@linux.ibm.com, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
+ atrajeev@linux.vnet.ibm.com, Vaibhav Jain <vaibhav@linux.ibm.com>, Thomas
+ Gleixner <tglx@linutronix.de>, Linux MM <linux-mm@kvack.org>
 Subject: Re: [PATCH 2/2] powerpc/papr_scm: Fix build failure when
  CONFIG_PERF_EVENTS is not set
 In-Reply-To: <CAPcyv4j9NQ-Msr6JCp95QWAdDyTfYr65fXCoHHtjipLA=oJeHA@mail.gmail.com>
@@ -69,8 +39,8 @@ References: <20220318114133.113627-1-kjain@linux.ibm.com>
  <CAPcyv4iqpTn89WLOW1XjFXGZEYG_MmPg+VQbcDJ9ygJ4Jaybtw@mail.gmail.com>
  <c198a1b5-cc7e-4e51-533b-a5794f506b17@linux.ibm.com>
  <CAPcyv4j9NQ-Msr6JCp95QWAdDyTfYr65fXCoHHtjipLA=oJeHA@mail.gmail.com>
-Date: Wed, 23 Mar 2022 13:18:33 +0530
-Message-ID: <87a6dh3y9a.fsf@vajain21.in.ibm.com>
+Date: Wed, 23 Mar 2022 21:04:57 +1100
+Message-ID: <877d8lgf1y.fsf@mpe.ellerman.id.au>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -79,24 +49,9 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
-X-TM-AS-GCONF: 00
-X-Proofpoint-ORIG-GUID: TFr3gJPNI2gWBR5RzZV2Oj1ONwN3lgOL
-X-Proofpoint-GUID: TFr3gJPNI2gWBR5RzZV2Oj1ONwN3lgOL
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.205,Aquarius:18.0.850,Hydra:6.0.425,FMLib:17.11.64.514
- definitions=2022-03-22_08,2022-03-22_01,2022-02-23_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 adultscore=0
- lowpriorityscore=0 phishscore=0 clxscore=1011 mlxscore=0 spamscore=0
- impostorscore=0 priorityscore=1501 mlxlogscore=999 malwarescore=0
- suspectscore=0 bulkscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2202240000 definitions=main-2203230042
 
 Dan Williams <dan.j.williams@intel.com> writes:
-
 > On Tue, Mar 22, 2022 at 7:30 AM kajoljain <kjain@linux.ibm.com> wrote:
->>
->>
->>
 >> On 3/22/22 03:09, Dan Williams wrote:
 >> > On Fri, Mar 18, 2022 at 4:42 AM Kajol Jain <kjain@linux.ibm.com> wrote:
 >> >>
@@ -213,12 +168,29 @@ rc);
 > arch/powerpc/platforms/pseries/papr_scm.c is effectively papr_scm.h
 > content and may move there in the future, or something like that.
 
-Great suggestion Dan and incidently we are already working on a patchset
-to reconcile this by moving a bunch of these defines from papr_scm.c to a
-header. That work is primarily done to towards remove the redundancy
-between papr_scm and generic ndtest module that we have today. We will
-post the patches in next few days.
+IMHO the only thing that belongs in a header is content that's needed by
+other C files. As long as those types/declarations are only used in
+papr_scm.c then they should stay in the C file, and there's no need for
+a header.
 
---=20
-Cheers
-~ Vaibhav
+I know the coding style rule is "avoid ifdefs in .c files", but I'd
+argue that rule should be ignored if you're creating a header file
+purely so that you can use an ifdef :)
+
+Coding style also says:
+
+  Prefer to compile out entire functions, rather than portions of functions=
+ or
+  portions of expressions.  Rather than putting an ifdef in an expression, =
+factor
+  out part or all of the expression into a separate helper function and app=
+ly the
+  conditional to that function.
+
+Which is what we're doing here with eg. papr_scm_pmu_register().
+
+Certainly for this merge window I think introducing a header is likely
+to cause more problems than it solves, so let's not do that for now. We
+can revisit it for the next merge window.
+
+cheers
