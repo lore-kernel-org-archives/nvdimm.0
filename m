@@ -1,67 +1,53 @@
-Received: from szxga08-in.huawei.com (szxga08-in.huawei.com [45.249.212.255])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB2D51B60
-	for <nvdimm@lists.linux.dev>; Thu, 24 Mar 2022 08:10:13 +0000 (UTC)
-Received: from kwepemi500015.china.huawei.com (unknown [172.30.72.55])
-	by szxga08-in.huawei.com (SkyGuard) with ESMTP id 4KPHVT0SKWz1GCxN;
-	Thu, 24 Mar 2022 15:51:45 +0800 (CST)
-Received: from huawei.com (10.175.127.227) by kwepemi500015.china.huawei.com
- (7.221.188.92) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2308.21; Thu, 24 Mar
- 2022 15:51:53 +0800
-From: Zheng Bin <zhengbin13@huawei.com>
-To: <dan.j.williams@intel.com>, <vishal.l.verma@intel.com>,
-	<dave.jiang@intel.com>, <ira.weiny@intel.com>, <nvdimm@lists.linux.dev>,
-	<linux-kernel@vger.kernel.org>
-CC: <tangyizhou@huawei.com>, <zhengbin13@huawei.com>
-Subject: [PATCH -next] drivers/nvdimm: Fix build error without PERF_EVENTS
-Date: Thu, 24 Mar 2022 16:06:53 +0800
-Message-ID: <20220324080653.1364201-1-zhengbin13@huawei.com>
-X-Mailer: git-send-email 2.31.1
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCF4C468E
+	for <nvdimm@lists.linux.dev>; Fri, 25 Mar 2022 01:35:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 6EA61C340EC;
+	Fri, 25 Mar 2022 01:35:45 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1648172145;
+	bh=qnYmc4wng3z+TmJTuaCD8cdv/mTfl1AiPWkurwWbx9M=;
+	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+	b=j9nktIyOzwQW+BpmtjNQwETRSgrTERAMndYY76QB9LcRO6/2X53OoHdwOd3yQVF5A
+	 aKc86OZr2vs2nPiy4oHm1jcZ1Su0GaHI/f/mTTWQikkHIbElWujvLAr0oYrtaO0arn
+	 5tnBw/E8KrcDX9szu629bxXpu9tNiKEhi1wGMNUymJX+oULw4s1aNzZu4Hp8ng0jyk
+	 1H6p+dArgqM5rEcS6h3lQuF/yrQEG3lpIw8VKI+b6nOfps95+OhQg+gsrTp1ejwoJp
+	 MZyefvtQttWzIkfXUA4Z9HWp7+v0Ali2o2CXvFNsKVJzjlg0LiRwqfke/QVujodmpf
+	 KZQSVymbU25Pw==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 5D145E7BB0B;
+	Fri, 25 Mar 2022 01:35:45 +0000 (UTC)
+Subject: Re: [GIT PULL] DAX update for 5.18
+From: pr-tracker-bot@kernel.org
+In-Reply-To: <CAPcyv4iOwM+qaKdw-BPkDe9Fpc19YVezVVurZ0n0o7OsRsEuJw@mail.gmail.com>
+References: <CAPcyv4iOwM+qaKdw-BPkDe9Fpc19YVezVVurZ0n0o7OsRsEuJw@mail.gmail.com>
+X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
+X-PR-Tracked-Message-Id: <CAPcyv4iOwM+qaKdw-BPkDe9Fpc19YVezVVurZ0n0o7OsRsEuJw@mail.gmail.com>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/dax-for-5.18
+X-PR-Tracked-Commit-Id: db8cd5efeebc4904df1653926102413d088a5c7e
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: f0614eefbf829a2914ac9a82cb8bbeaf1af28f9d
+Message-Id: <164817214537.9489.14898749761150938874.pr-tracker-bot@kernel.org>
+Date: Fri, 25 Mar 2022 01:35:45 +0000
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Linux NVDIMM <nvdimm@lists.linux.dev>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-Originating-IP: [10.175.127.227]
-X-ClientProxiedBy: dggems705-chm.china.huawei.com (10.3.19.182) To
- kwepemi500015.china.huawei.com (7.221.188.92)
-X-CFilter-Loop: Reflected
 
-If PERF_EVENTS is not set, bulding fails:
+The pull request you sent on Tue, 22 Mar 2022 18:39:49 -0700:
 
-drivers/nvdimm/nd_perf.o: In function `nvdimm_pmu_cpu_offline':
-nd_perf.c:(.text+0x12c): undefined reference to `perf_pmu_migrate_context'
-drivers/nvdimm/nd_perf.o: In function `register_nvdimm_pmu':
-nd_perf.c:(.text+0x3c4): undefined reference to `perf_pmu_register'
-drivers/nvdimm/nd_perf.o: In function `unregister_nvdimm_pmu':
-nd_perf.c:(.text+0x4c0): undefined reference to `perf_pmu_unregister'
+> git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/dax-for-5.18
 
-Make LIBNVDIMM depends on PERF_EVENTS to fix this.
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/f0614eefbf829a2914ac9a82cb8bbeaf1af28f9d
 
-Fixes: 0fab1ba6ad6b ("drivers/nvdimm: Add perf interface to expose nvdimm performance stats")
-Reported-by: Hulk Robot <hulkci@huawei.com>
-Signed-off-by: Zheng Bin <zhengbin13@huawei.com>
----
- drivers/nvdimm/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
+Thank you!
 
-diff --git a/drivers/nvdimm/Kconfig b/drivers/nvdimm/Kconfig
-index 5a29046e3319..e93bd0b787e9 100644
---- a/drivers/nvdimm/Kconfig
-+++ b/drivers/nvdimm/Kconfig
-@@ -4,6 +4,7 @@ menuconfig LIBNVDIMM
- 	depends on PHYS_ADDR_T_64BIT
- 	depends on HAS_IOMEM
- 	depends on BLK_DEV
-+	depends on PERF_EVENTS
- 	select MEMREGION
- 	help
- 	  Generic support for non-volatile memory devices including
---
-2.31.1
-
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
