@@ -1,38 +1,38 @@
 Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 366F27C
-	for <nvdimm@lists.linux.dev>; Wed, 30 Mar 2022 10:58:29 +0000 (UTC)
-IronPort-Data: =?us-ascii?q?A9a23=3AgNM4v69uJjWCds008lY+DrUD63+TJUtcMsCJ2f8?=
- =?us-ascii?q?bfWQNrUog1TAPymEXX2+EOv6PYjP9KNokaYqy8UwPvZHdzYIwTVdlrnsFo1Bi8?=
- =?us-ascii?q?5ScXYvDRqvT04J+FuWaFQQ/qZx2huDodKjYdVeB4Ef9WlTdhSMkj/vQHOKlULe?=
- =?us-ascii?q?s1h1ZHmeIdg9w0HqPpMZp2uaEsfDha++8kYuaT//3YTdJ6BYoWo4g0J9vnTs01?=
- =?us-ascii?q?BjEVJz0iXRlDRxDlAe2e3D4l/vzL4npR5fzatE88uJX24/+IL+FEmPxp3/BC/u?=
- =?us-ascii?q?ulPD1b08LXqXPewOJjxK6WYD72l4b+HN0if19aZLwam8O49mNt8pswdNWpNq+T?=
- =?us-ascii?q?xw1FqPRmuUBSAQeGCZ7VUFD0OadeiDu6JzNnyUqdFOpmZ2CFnoeMYQG++pfD3t?=
- =?us-ascii?q?J8PsCIjERKBuEgoqewLm7YuhqiN4qIMTiMMUYoH4I5T3QC7AkB4/CR6HL7NpD9?=
- =?us-ascii?q?DY2ms1KW/3ZYqIxZThwaxLPSx5CIFEaDNQ5hujArn3+dSBI7VeQjakp6mPQigt?=
- =?us-ascii?q?r39DFNsTZe9mPbcFUhVqD4GbH+XnpRB0XKrS3yzOD/zSnhvLnmjnyU4YfUra/8?=
- =?us-ascii?q?5ZChFyV23xWBgYaWEW2pdGnhUOkHdFSMUoZ/mwpt6da3EiqSMTtGh61uniJujY?=
- =?us-ascii?q?CVNdKVe438geAzuzT+QnxLmwFSCNRLcwor+coSjEwkFyEhdXkAXpoqrL9dJ433?=
- =?us-ascii?q?t94thvrYW5MczBEPnRCEGM4DxDYiNlbpnryohxLScZZVuHIJAw=3D?=
-IronPort-HdrOrdr: =?us-ascii?q?A9a23=3A7pXWoarUc0yRRXUzYrKOZWAaV5oUeYIsimQD?=
- =?us-ascii?q?101hICG9vPbo7vxG/c5rrSMc7Qx6ZJhOo6HkBEDtewK/yXcx2/hzAV7AZmjbUQ?=
- =?us-ascii?q?mTXeVfBOLZqlWKJ8S9zI5gPMxbAs9D4bPLfD5HZAXBjDVQ0exM/DBKys+VbC7l?=
- =?us-ascii?q?oUtQcQ=3D=3D?=
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 8A0A37B
+	for <nvdimm@lists.linux.dev>; Wed, 30 Mar 2022 15:16:18 +0000 (UTC)
+IronPort-Data: =?us-ascii?q?A9a23=3AtwvaI6h4vvUoVt85m0RQnGMKX161CxEKZh0ujC4?=
+ =?us-ascii?q?5NGQNrF6WrkUEmGUWCmHVOa6OZTCnKNAnPovk908P7ZPRndZqHAtsrHw8FHgiR?=
+ =?us-ascii?q?ejtX4rAdhiqV8+xwmwvdGo+toNGLICowPkcFhcwnT/wdOixxZVA/fvQHOCkUra?=
+ =?us-ascii?q?dYnkZqTJME0/NtzoywobVvaY42bBVMyvV0T/Di5W31G2NglaYAUpIg063ky6Di?=
+ =?us-ascii?q?dyp0N8uUvPSUtgQ1LPWvyF94JvyvshdJVOgKmVfNrbSq+ouUNiEEm3lExcFUrt?=
+ =?us-ascii?q?Jk57wdAsEX7zTIROTzHFRXsBOgDAb/mprjPl9b6FaNC+7iB3Q9zx14M9QvJqrW?=
+ =?us-ascii?q?EEnOLbQsOoAURhECDw4NqpDkFPCCSHl6pTCnx2XIhMAxN0rVinaJ7Yw9u9pAG1?=
+ =?us-ascii?q?m++YfLTcXZBGfwemxxdqTSuJsrsUlItPiMI4Wtjdn1z6xJfovR9bBBbrL4dtZ1?=
+ =?us-ascii?q?TIrrsFIAfvaIcEebFJHYBbfZBtAElQaEpQzmKGvnHaXWzlZrk+F4K8yy2vNxQd?=
+ =?us-ascii?q?ylr/3P7L9fMKGRMBQtkKZvX7duWD4BAwKctCS11Kt8Huqi6nEnT7TX5gbH7m1s?=
+ =?us-ascii?q?PVthTW7wm0VFQ1TW0C3rOe0jmagVN9FbU8Z4Cwjqe417kPDZt38WQCo5X2JpBg?=
+ =?us-ascii?q?RX/JOHOAgrgKA0KzZ50CeHGdsZjpAbsE28d84XhQ02VKT2dDkHzpitPuSU331y?=
+ =?us-ascii?q?1s+hVteIgBMdSlbO3BCFlBDvrHeTEgIpkqnZr5e/GSd17UZwQ3N/g0=3D?=
+IronPort-HdrOrdr: =?us-ascii?q?A9a23=3AMHdCR6lcfaT+oQuP8yxoprJboKPpDfIQ3DAb?=
+ =?us-ascii?q?v31ZSRFFG/Fw9vre+MjzsCWYtN9/Yh8dcK+7UpVoLUm8yXcX2/h1AV7BZniEhI?=
+ =?us-ascii?q?LAFugLgrcKqAeQeREWmNQ86Y5QN4B6CPDVSWNxlNvG5mCDeOoI8Z2q97+JiI7l?=
+ =?us-ascii?q?o0tQcQ=3D=3D?=
 X-IronPort-AV: E=Sophos;i="5.88,333,1635177600"; 
-   d="scan'208";a="123091868"
+   d="scan'208";a="123098899"
 Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
-  by heian.cn.fujitsu.com with ESMTP; 30 Mar 2022 18:58:28 +0800
+  by heian.cn.fujitsu.com with ESMTP; 30 Mar 2022 23:16:14 +0800
 Received: from G08CNEXMBPEKD05.g08.fujitsu.local (unknown [10.167.33.204])
-	by cn.fujitsu.com (Postfix) with ESMTP id E2D7E4D17160;
-	Wed, 30 Mar 2022 18:58:22 +0800 (CST)
+	by cn.fujitsu.com (Postfix) with ESMTP id AEC9B4D16FF5;
+	Wed, 30 Mar 2022 23:16:11 +0800 (CST)
 Received: from G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.85) by
  G08CNEXMBPEKD05.g08.fujitsu.local (10.167.33.204) with Microsoft SMTP Server
- (TLS) id 15.0.1497.23; Wed, 30 Mar 2022 18:58:22 +0800
+ (TLS) id 15.0.1497.23; Wed, 30 Mar 2022 23:16:11 +0800
 Received: from [10.167.201.8] (10.167.201.8) by
  G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
- id 15.0.1497.23 via Frontend Transport; Wed, 30 Mar 2022 18:58:22 +0800
-Message-ID: <4ed8baf7-7eb9-71e5-58ea-7c73b7e5bb73@fujitsu.com>
-Date: Wed, 30 Mar 2022 18:58:21 +0800
+ id 15.0.1497.23 via Frontend Transport; Wed, 30 Mar 2022 23:16:11 +0800
+Message-ID: <894ed00b-b174-6a10-ee45-320007957ea4@fujitsu.com>
+Date: Wed, 30 Mar 2022 23:16:10 +0800
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -41,58 +41,150 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
  Thunderbird/91.7.0
-Subject: Re: [PATCH v11 1/8] dax: Introduce holder for dax_device
+Subject: Re: [PATCH v11 7/8] xfs: Implement ->notify_failure() for XFS
 To: Christoph Hellwig <hch@infradead.org>
-CC: Dan Williams <dan.j.williams@intel.com>, Linux Kernel Mailing List
-	<linux-kernel@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, Linux
- NVDIMM <nvdimm@lists.linux.dev>, Linux MM <linux-mm@kvack.org>, linux-fsdevel
-	<linux-fsdevel@vger.kernel.org>, "Darrick J. Wong" <djwong@kernel.org>, david
-	<david@fromorbit.com>, Jane Chu <jane.chu@oracle.com>
+CC: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
+	<nvdimm@lists.linux.dev>, <linux-mm@kvack.org>,
+	<linux-fsdevel@vger.kernel.org>, <djwong@kernel.org>,
+	<dan.j.williams@intel.com>, <david@fromorbit.com>, <jane.chu@oracle.com>
 References: <20220227120747.711169-1-ruansy.fnst@fujitsu.com>
- <20220227120747.711169-2-ruansy.fnst@fujitsu.com>
- <CAPcyv4jAqV7dZdmGcKrG=f8sYmUXaL7YCQtME6GANywncwd+zg@mail.gmail.com>
- <4fd95f0b-106f-6933-7bc6-9f0890012b53@fujitsu.com>
- <YkPtptNljNcJc1g/@infradead.org>
- <15a635d6-2069-2af5-15f8-1c0513487a2f@fujitsu.com>
- <YkQtOO/Z3SZ2Pksg@infradead.org>
+ <20220227120747.711169-8-ruansy.fnst@fujitsu.com>
+ <YkPyBQer+KRiregd@infradead.org>
 From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-In-Reply-To: <YkQtOO/Z3SZ2Pksg@infradead.org>
+In-Reply-To: <YkPyBQer+KRiregd@infradead.org>
 Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
-X-yoursite-MailScanner-ID: E2D7E4D17160.A1BE2
+X-yoursite-MailScanner-ID: AEC9B4D16FF5.A4774
 X-yoursite-MailScanner: Found to be clean
 X-yoursite-MailScanner-From: ruansy.fnst@fujitsu.com
 X-Spam-Status: No
 
 
 
-在 2022/3/30 18:13, Christoph Hellwig 写道:
-> On Wed, Mar 30, 2022 at 06:03:01PM +0800, Shiyang Ruan wrote:
->>
->> Because I am not sure if the offset between each layer is page aligned.  For
->> example, when pmem dirver handles ->memory_failure(), it should subtract its
->> ->data_offset when it calls dax_holder_notify_failure().
+在 2022/3/30 14:00, Christoph Hellwig 写道:
+>> @@ -1892,6 +1893,8 @@ xfs_free_buftarg(
+>>   	list_lru_destroy(&btp->bt_lru);
+>>   
+>>   	blkdev_issue_flush(btp->bt_bdev);
+>> +	if (btp->bt_daxdev)
+>> +		dax_unregister_holder(btp->bt_daxdev, btp->bt_mount);
+>>   	fs_put_dax(btp->bt_daxdev);
+>>   
+>>   	kmem_free(btp);
+>> @@ -1939,6 +1942,7 @@ xfs_alloc_buftarg(
+>>   	struct block_device	*bdev)
+>>   {
+>>   	xfs_buftarg_t		*btp;
+>> +	int			error;
+>>   
+>>   	btp = kmem_zalloc(sizeof(*btp), KM_NOFS);
+>>   
+>> @@ -1946,6 +1950,14 @@ xfs_alloc_buftarg(
+>>   	btp->bt_dev =  bdev->bd_dev;
+>>   	btp->bt_bdev = bdev;
+>>   	btp->bt_daxdev = fs_dax_get_by_bdev(bdev, &btp->bt_dax_part_off);
+>> +	if (btp->bt_daxdev) {
+>> +		error = dax_register_holder(btp->bt_daxdev, mp,
+>> +				&xfs_dax_holder_operations);
+>> +		if (error) {
+>> +			xfs_err(mp, "DAX device already in use?!");
+>> +			goto error_free;
+>> +		}
+>> +	}
 > 
-> If they aren't, none of the DAX machinery would work.
+> It seems to me that just passing the holder and holder ops to
+> fs_dax_get_by_bdev and the holder to dax_unregister_holder would
+> significantly simply the interface here.
+> 
+> Dan, what do you think?
+> 
+>> +#if IS_ENABLED(CONFIG_MEMORY_FAILURE) && IS_ENABLED(CONFIG_FS_DAX)
+> 
+> No real need for the IS_ENABLED.  Also any reason to even build this
+> file if the options are not set?  It seems like
+> xfs_dax_holder_operations should just be defined to NULL and the
+> whole file not supported if we can't support the functionality.
 
-OK. Got it.
+Got it.  These two CONFIG seem not related for now.  So, I think I 
+should wrap these code with #ifdef CONFIG_MEMORY_FAILURE here, and add 
+`xfs-$(CONFIG_FS_DAX) += xfs_notify_failure.o` in the makefile.
 
-So, use page-based function signature for ->memory_failure():
+> 
+> Dan: not for this series, but is there any reason not to require
+> MEMORY_FAILURE for DAX to start with?
+> 
+>> +
+>> +	ddev_start = mp->m_ddev_targp->bt_dax_part_off;
+>> +	ddev_end = ddev_start +
+>> +		(mp->m_ddev_targp->bt_bdev->bd_nr_sectors << SECTOR_SHIFT) - 1;
+> 
+> This should use bdev_nr_bytes.
 
-int (*memory_failure)(struct dev_pagemap *pgmap, unsigned long pfn,
-		      unsigned long nr_pfns, int flags);
+OK.
 
+> 
+> But didn't we say we don't want to support notifications on partitioned
+> devices and thus don't actually need all this?
+> 
+>> +
+>> +	/* Ignore the range out of filesystem area */
+>> +	if ((offset + len) < ddev_start)
+> 
+> No need for the inner braces.
+> 
+>> +	if ((offset + len) > ddev_end)
+> 
+> No need for the braces either.
 
-As the code I pasted before, pmem driver will subtract its 
-->data_offset, which is byte-based. And the filesystem who implements 
-->notify_failure() will calculate the offset in unit of byte again.
+Really no need?  It is to make sure the range to be handled won't out of 
+the filesystem area.  And make sure the @offset and @len are valid and 
+correct after subtract the bbdev_start.
 
-So, leave its function signature byte-based, to avoid repeated conversions.
+> 
+>> diff --git a/fs/xfs/xfs_notify_failure.h b/fs/xfs/xfs_notify_failure.h
+>> new file mode 100644
+>> index 000000000000..76187b9620f9
+>> --- /dev/null
+>> +++ b/fs/xfs/xfs_notify_failure.h
+>> @@ -0,0 +1,10 @@
+>> +// SPDX-License-Identifier: GPL-2.0
+>> +/*
+>> + * Copyright (c) 2022 Fujitsu.  All Rights Reserved.
+>> + */
+>> +#ifndef __XFS_NOTIFY_FAILURE_H__
+>> +#define __XFS_NOTIFY_FAILURE_H__
+>> +
+>> +extern const struct dax_holder_operations xfs_dax_holder_operations;
+>> +
+>> +#endif  /* __XFS_NOTIFY_FAILURE_H__ */
+> 
+> Dowe really need a new header for this vs just sequeezing it into
+> xfs_super.h or something like that?
 
-int (*notify_failure)(struct dax_device *dax_dev, u64 offset,
-		      u64 len, int mf_flags);
+Yes, I'll move it into xfs_super.h.  The xfs_notify_failure.c was 
+splitted from xfs_super.c in the old patch.  There is no need to create 
+a header file for only single line of code.
 
-What do you think?
+> 
+>> diff --git a/fs/xfs/xfs_super.c b/fs/xfs/xfs_super.c
+>> index e8f37bdc8354..b8de6ed2c888 100644
+>> --- a/fs/xfs/xfs_super.c
+>> +++ b/fs/xfs/xfs_super.c
+>> @@ -353,6 +353,12 @@ xfs_setup_dax_always(
+>>   		return -EINVAL;
+>>   	}
+>>   
+>> +	if (xfs_has_reflink(mp) && !xfs_has_rmapbt(mp)) {
+>> +		xfs_alert(mp,
+>> +			"need rmapbt when both DAX and reflink enabled.");
+>> +		return -EINVAL;
+>> +	}
+> 
+> Right now we can't even enable reflink with DAX yet, so adding this
+> here seems premature - it should go into the patch allowing DAX+reflink.
+> 
+
+Yes.  I'll remove it for now.
 
 
 --
