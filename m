@@ -1,41 +1,41 @@
-Received: from mail-pf1-f171.google.com (mail-pf1-f171.google.com [209.85.210.171])
+Received: from mail-pl1-f171.google.com (mail-pl1-f171.google.com [209.85.214.171])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1189C1FBD
-	for <nvdimm@lists.linux.dev>; Sun,  3 Apr 2022 05:41:17 +0000 (UTC)
-Received: by mail-pf1-f171.google.com with SMTP id z16so6142275pfh.3
-        for <nvdimm@lists.linux.dev>; Sat, 02 Apr 2022 22:41:17 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D1AA1FBD
+	for <nvdimm@lists.linux.dev>; Sun,  3 Apr 2022 05:41:25 +0000 (UTC)
+Received: by mail-pl1-f171.google.com with SMTP id x2so5692098plm.7
+        for <nvdimm@lists.linux.dev>; Sat, 02 Apr 2022 22:41:25 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=bytedance-com.20210112.gappssmtp.com; s=20210112;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=Xp6qCxwTnE0C1FxChih956SdBv3W6L+dQXT7C0J3Dts=;
-        b=2ABETFqdsMhesFHDHhEUmJyVsW7RZ5Js5waMUtu7AgAnw7NQJE9KF6VPHqmSdvMej+
-         2OJl2yUuMkKlsJntBOzaVw6h3FbkNTEtAUb7NgwTf/4KS8Unjkp0AkIDihqOM4AQy0E9
-         b0D1cmPFHN/ZT3IC0qJD0E+WI024G3g/JHnvtyGmSNaBRaaNOf62Cjctp4an9NRZ9b6z
-         vPzjHQqLtX8FSAzX5BdZbUx0QSmSsl5esFSgUJJfPkwZ9OBGd+Ki5S02q7b/3idXLY9Q
-         v3WBGcPbhY5PtafSU0qiWng1lLj8uoWDT3H3wd0bwa2IQYzXzlExfT+r6ROb2/HljUOo
-         gBaw==
+        bh=qCp2b48ULThIjDs7kZ69Cjh0BLYiJwB01qLpS62xP+w=;
+        b=lwrBARs+/7DTDJPCPDkO87hzSIKPt6GQ3BJuVqyr1LMMRf0ELecQkoLiSNJjbiZdpd
+         OOw8+jdaEjkrKEkQOCmLvwQJzHLz27JTlGJ5zE2dn5Jip53qlttwM0FkCYZueUeb7zeF
+         RVGdSY44kEkFd3NNdpkbB9EPEooKpn6V9VAwbVH27fUkD5jUhTGJPGtIrzGx+IUgXU/O
+         uu1GRfpRmgRGEwvWhRZtaM7CW/f27In9HxOfBsluDtGcV56/sxLL1FJ//gEuOidep45r
+         /RAHUxBOsm5BUtauhEFj88JE1ydBVybi1r2rzExNbwhHo6EWG1darzCFI36vXEKt9WKC
+         z0qQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=Xp6qCxwTnE0C1FxChih956SdBv3W6L+dQXT7C0J3Dts=;
-        b=AVJu+wF/KOix6bXUYJHk/acc/S0XPj7wOWfChdYpPDJcTmS1nCbnNg8W9phbI1n4uW
-         Jam8HLSbJzZ5+m01WCvGfGTS6oXk2wtwvAX77X23TkKpyRBXGnLgBHnxOg/J5bxi7OHe
-         W/w0vAANUsjehCmERCvZ0ZPhgH3a5ChwYS9LACQ9MMWSRyi80UiFD89C6MsMMibb6hVA
-         /jGlngT4As4FGUnIykNRe0xbMfoTTS7GT8r+cKFmYa9AURbt+UozCLWCTViIdAkekE88
-         OAp8JcHgCpr2vctH31do2BJlA3BthCQkJIme/rFwhz3WzJ5Ub1ogPFyyA/iQvWT84wiY
-         lgiQ==
-X-Gm-Message-State: AOAM533gXRGN+vxvCSnOBWKe6sldSsBehtMz+YZdAPfHRdO+hf8mX02Z
-	zrjjpSmkHWux1H96HjHTVzmmOA==
-X-Google-Smtp-Source: ABdhPJyZBSv2yEKXE7ELYRPowq8GlcSVl+mBvyh+Dr/+2j3dfmhbMmgifEOf+lzxBO7utJytI2ZQWA==
-X-Received: by 2002:a05:6a00:b95:b0:4fa:ec15:7eb7 with SMTP id g21-20020a056a000b9500b004faec157eb7mr18416062pfj.74.1648964477478;
-        Sat, 02 Apr 2022 22:41:17 -0700 (PDT)
+        bh=qCp2b48ULThIjDs7kZ69Cjh0BLYiJwB01qLpS62xP+w=;
+        b=jwIM+E6Wd4nbMKvvGQ4yJbcczQ322EUzJYydst8e0/xDNaG75fPiQtH1SD9qnS4b+h
+         u0E/pOZU8G+ffiE4y2gRFvNvp/+JxU3lLo/6Zu8CKzK1nT+o9PogwP66OZajG0/Oniys
+         58XiXOh17ur1uBL1OhUYBGLZj675iIyicYmRpbhIVNUyTw6UtWZqX6Pyd+2LLqYh7uGZ
+         Spqc2ENv3e5ocH5We4cPkTQHB+3M1Rq+doyoMYTXoi4CZGtJeth1CXoVIrpFgi3LA0an
+         viZJuruZKz9ey9DG+1ZoN1sDPe8UkujFd4qt+uNxM+qixuC3dVrzE7EMeLwoYG7qPkid
+         2WsA==
+X-Gm-Message-State: AOAM531xUT8NwLyicuruUPWox/7LERiQ5YEt9U2hzk6aWSWvnLRh0PkS
+	2sOFYtyCDvc8jvRmxr1Q+x28WA==
+X-Google-Smtp-Source: ABdhPJwPE+R5M1c944zWgzZX/rK39iXrxGm2KhaVKut5BUEWAAHDPdGQ5lQJXH1Kcs/14QSL7BveZw==
+X-Received: by 2002:a17:90b:4b42:b0:1c7:3f6a:5d97 with SMTP id mi2-20020a17090b4b4200b001c73f6a5d97mr19591035pjb.27.1648964484666;
+        Sat, 02 Apr 2022 22:41:24 -0700 (PDT)
 Received: from FVFYT0MHHV2J.bytedance.net ([139.177.225.245])
-        by smtp.gmail.com with ESMTPSA id a38-20020a056a001d2600b004f70d5e92basm8262479pfx.34.2022.04.02.22.41.10
+        by smtp.gmail.com with ESMTPSA id a38-20020a056a001d2600b004f70d5e92basm8262479pfx.34.2022.04.02.22.41.17
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 02 Apr 2022 22:41:17 -0700 (PDT)
+        Sat, 02 Apr 2022 22:41:24 -0700 (PDT)
 From: Muchun Song <songmuchun@bytedance.com>
 To: dan.j.williams@intel.com,
 	willy@infradead.org,
@@ -58,9 +58,9 @@ Cc: linux-fsdevel@vger.kernel.org,
 	smuchun@gmail.com,
 	Muchun Song <songmuchun@bytedance.com>,
 	Christoph Hellwig <hch@lst.de>
-Subject: [PATCH v7 1/6] mm: rmap: fix cache flush on THP pages
-Date: Sun,  3 Apr 2022 13:39:52 +0800
-Message-Id: <20220403053957.10770-2-songmuchun@bytedance.com>
+Subject: [PATCH v7 2/6] dax: fix cache flush on PMD-mapped pages
+Date: Sun,  3 Apr 2022 13:39:53 +0800
+Message-Id: <20220403053957.10770-3-songmuchun@bytedance.com>
 X-Mailer: git-send-email 2.32.0 (Apple Git-132)
 In-Reply-To: <20220403053957.10770-1-songmuchun@bytedance.com>
 References: <20220403053957.10770-1-songmuchun@bytedance.com>
@@ -74,33 +74,36 @@ Content-Transfer-Encoding: 8bit
 
 The flush_cache_page() only remove a PAGE_SIZE sized range from the cache.
 However, it does not cover the full pages in a THP except a head page.
-Replace it with flush_cache_range() to fix this issue. At least, no
-problems were found due to this. Maybe because the architectures that
-have virtual indexed caches is less.
+Replace it with flush_cache_range() to fix this issue.  This is just a
+documentation issue with the respect to properly documenting the expected
+usage of cache flushing before modifying the pmd.  However, in practice
+this is not a problem due to the fact that DAX is not available on
+architectures with virtually indexed caches per:
 
-Fixes: f27176cfc363 ("mm: convert page_mkclean_one() to use page_vma_mapped_walk()")
+  commit d92576f1167c ("dax: does not work correctly with virtual aliasing caches")
+
+Fixes: f729c8c9b24f ("dax: wrprotect pmd_t in dax_mapping_entry_mkclean")
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
 Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 ---
- mm/rmap.c | 3 ++-
+ fs/dax.c | 3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/mm/rmap.c b/mm/rmap.c
-index fc46a3d7b704..723682ddb9e8 100644
---- a/mm/rmap.c
-+++ b/mm/rmap.c
-@@ -970,7 +970,8 @@ static bool page_mkclean_one(struct folio *folio, struct vm_area_struct *vma,
- 			if (!pmd_dirty(*pmd) && !pmd_write(*pmd))
- 				continue;
+diff --git a/fs/dax.c b/fs/dax.c
+index 67a08a32fccb..a372304c9695 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -845,7 +845,8 @@ static void dax_entry_mkclean(struct address_space *mapping, pgoff_t index,
+ 			if (!pmd_dirty(*pmdp) && !pmd_write(*pmdp))
+ 				goto unlock_pmd;
  
--			flush_cache_page(vma, address, folio_pfn(folio));
+-			flush_cache_page(vma, address, pfn);
 +			flush_cache_range(vma, address,
 +					  address + HPAGE_PMD_SIZE);
- 			entry = pmdp_invalidate(vma, address, pmd);
- 			entry = pmd_wrprotect(entry);
- 			entry = pmd_mkclean(entry);
+ 			pmd = pmdp_invalidate(vma, address, pmdp);
+ 			pmd = pmd_wrprotect(pmd);
+ 			pmd = pmd_mkclean(pmd);
 -- 
 2.11.0
 
