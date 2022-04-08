@@ -1,181 +1,126 @@
-Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id D316E366
-	for <nvdimm@lists.linux.dev>; Fri,  8 Apr 2022 06:05:04 +0000 (UTC)
-IronPort-Data: =?us-ascii?q?A9a23=3AGYlHna/+/oaHGwtkw4IODrUD63+TJUtcMsCJ2f8?=
- =?us-ascii?q?bfWQNrUor1DECympJXmGDOfaLYGLzctBzPdzg80oH6JHXnd5gG1dlrnsFo1Bi8?=
- =?us-ascii?q?5ScXYvDRqvT04J+FuWaFQQ/qZx2huDodKjYdVeB4Ef9WlTdhSMkj/vQHOKlULe?=
- =?us-ascii?q?s1h1ZHmeIdg9w0HqPpMZp2uaEsfDha++8kYuaT//3YTdJ6BYoWo4g0J9vnTs01?=
- =?us-ascii?q?BjEVJz0iXRlDRxDlAe2e3D4l/vzL4npR5fzatE88uJX24/+IL+FEmPxp3/BC/u?=
- =?us-ascii?q?ulPD1b08LXqXPewOJjxK6WYD72l4b+HN0if19aZLwam8O49mNt8pswdNWpNq+T?=
- =?us-ascii?q?xw1FqPRmuUBSAQeGCZ7VUFD0OadeiTm65XIkSUqdFOpmZ2CFnoeMYQG++pfD3t?=
- =?us-ascii?q?J8PsCIjERKBuEgoqewLm7YuhqiN4qIMTiMMUYoH4I5T3QC7AkB4/CR6HL7NpD9?=
- =?us-ascii?q?DY2ms1KW/3ZYqIxZThwaxLPSx5CIFEaDNQ5hujArn3+dSBI7VeQjakp6mPQigt?=
- =?us-ascii?q?r39DFNsTZe9mPbcFUhVqD4GbH+XnpRB0XKrS3yzOD/zSnhvLnmjnyU4YfUra/8?=
- =?us-ascii?q?5ZChFyV23xWBgYaWEW2pdGnhUOkHdFSMUoZ/mwpt6da3EiqSMTtGh61uniJujY?=
- =?us-ascii?q?CVNdKVe438geAzuzT+QnxLmwFSCNRLcwor+coSjEwkFyEhdXkAXpoqrL9dJ433?=
- =?us-ascii?q?t94thvrYW5MczBEPnRCEGM4DxDYiNlbpnryohxLTcZZVuHIJAw=3D?=
-IronPort-HdrOrdr: =?us-ascii?q?A9a23=3AClRFn6rdr0epIOf70T8LNP4aV5rPeYIsimQD?=
- =?us-ascii?q?101hICG8cqSj5qKTdZMgpGbJYVcqKRcdcL+7V5VoLUmskaKdpLNhWotKPzOJhI?=
- =?us-ascii?q?LLFu1fBOLZqlWKcUDDH6xmpMJdmsNFaOEYY2IK7voSrDPYLz8/+qj7zImYwffZ?=
- =?us-ascii?q?02x2TRxnL4Vp7wJCAA6dFUFsLTM2fqYRJd6N4NZdvTq8dTAyZsS/PHMMWO/OvJ?=
- =?us-ascii?q?nlj5TjCCR2fSIP2U2fiy+y8r7mH1y91hcaaTlGxrAv6izkvmXCl92ej80=3D?=
-X-IronPort-AV: E=Sophos;i="5.88,333,1635177600"; 
-   d="scan'208";a="123412136"
-Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
-  by heian.cn.fujitsu.com with ESMTP; 08 Apr 2022 14:05:03 +0800
-Received: from G08CNEXMBPEKD04.g08.fujitsu.local (unknown [10.167.33.201])
-	by cn.fujitsu.com (Postfix) with ESMTP id 455684D17163;
-	Fri,  8 Apr 2022 14:04:59 +0800 (CST)
-Received: from G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.85) by
- G08CNEXMBPEKD04.g08.fujitsu.local (10.167.33.201) with Microsoft SMTP Server
- (TLS) id 15.0.1497.23; Fri, 8 Apr 2022 14:05:01 +0800
-Received: from [192.168.22.28] (10.167.225.141) by
- G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
- id 15.0.1497.23 via Frontend Transport; Fri, 8 Apr 2022 14:04:57 +0800
-Message-ID: <8f1931d2-b224-de98-4593-df136f397eb4@fujitsu.com>
-Date: Fri, 8 Apr 2022 14:04:58 +0800
+Received: from mail-pl1-f173.google.com (mail-pl1-f173.google.com [209.85.214.173])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BDEC366
+	for <nvdimm@lists.linux.dev>; Fri,  8 Apr 2022 06:25:17 +0000 (UTC)
+Received: by mail-pl1-f173.google.com with SMTP id j8so7034044pll.11
+        for <nvdimm@lists.linux.dev>; Thu, 07 Apr 2022 23:25:17 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20210112.gappssmtp.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=gpTt04knjFi7/r4rdhBFpeWlnWTTiUe1d93mQq2Do3I=;
+        b=MAz6RPib3bcwbnw7VOzDKsX4M+0+QU+QgCQSRlXjmf8Y1j5E82C3MrTGAgpPQP7x2/
+         7b9XV/2KcaXsvw+GrapP/fImELYl5GNzN9cbv9exuPksDfOeysAV7CzrjAFcCFLdpyD4
+         cv20aVQbMuVGhrrBsMZl3Y8jzXtJorYiwaZ6s95JJpE0/CNVsbKtdGQ2lozCaCX2Z2jj
+         aCCws8x6/Q4nlxvNHMQu8EzHC848KqfeK37XWl/JO83aKLXIaLW6At4fR5a2AYuvw90o
+         YBWxQySI3dDSIpAkhSAUDAIqcG8Am5xjHEv3dQvB8v6T2tmLMTp34RjSYln0W0Mrb2aR
+         fI4Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=gpTt04knjFi7/r4rdhBFpeWlnWTTiUe1d93mQq2Do3I=;
+        b=Y8/uf885ARLLIcjwzxSYzx9vuvLAiFNgDG3emRJUmXl9WMMKEYMmIWRRPw+57IhotV
+         8+tu5Q7NC9mrb08eO6+nErxsbncB2friOfFt6ArM5on47BH7fnzvsx5mrC5qoHp1QH+Q
+         fAgKYC710bmafSlk3ilIJin2WACzV57g4P3Nn34j3TABVl1RJU0k2A67UOVsho8RR1R3
+         tmstj49xICUCtJWCS7eqTVqlUxYSJskQJCHx7tPhwLYr19UuVoQsMsNDfidP38r/VYFw
+         S4pFBMOUeAZRiPV1UvqQ1jdV0CTWRhM358OlCKaQ+ppHBPI3g5pmYx3qatPyicuWAd0r
+         lVag==
+X-Gm-Message-State: AOAM5301U23Pkmk7hyppxvcH1/c5TjSZHZ40sKBeh+kiDXYFNAzlI1pQ
+	lRGf9gDtlhGblGNEen+ko59QuO/VVMqiFKqOUECLOw==
+X-Google-Smtp-Source: ABdhPJzID/VraWAFCvRtOjZrpYKIIRqJ1ed+REfBAOD4Tjags0hA+q9Oe2WNNyfILt9xFCTGNazEpbsu/uJg2gJ2j9Y=
+X-Received: by 2002:a17:90a:c083:b0:1c6:a164:fd5d with SMTP id
+ o3-20020a17090ac08300b001c6a164fd5dmr20043007pjs.8.1649399116938; Thu, 07 Apr
+ 2022 23:25:16 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.7.0
-Subject: Re: [PATCH v11 7/8] xfs: Implement ->notify_failure() for XFS
-To: <dan.j.williams@intel.com>
-CC: Christoph Hellwig <hch@infradead.org>, <linux-kernel@vger.kernel.org>,
-	<linux-xfs@vger.kernel.org>, <nvdimm@lists.linux.dev>, <linux-mm@kvack.org>,
-	<linux-fsdevel@vger.kernel.org>, <djwong@kernel.org>, <david@fromorbit.com>,
-	<jane.chu@oracle.com>
 References: <20220227120747.711169-1-ruansy.fnst@fujitsu.com>
- <20220227120747.711169-8-ruansy.fnst@fujitsu.com>
- <YkPyBQer+KRiregd@infradead.org>
-From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+ <20220227120747.711169-8-ruansy.fnst@fujitsu.com> <YkPyBQer+KRiregd@infradead.org>
 In-Reply-To: <YkPyBQer+KRiregd@infradead.org>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-X-yoursite-MailScanner-ID: 455684D17163.A03E3
-X-yoursite-MailScanner: Found to be clean
-X-yoursite-MailScanner-From: ruansy.fnst@fujitsu.com
-X-Spam-Status: No
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 7 Apr 2022 23:25:06 -0700
+Message-ID: <CAPcyv4g5V-0bUXQEJjqxLg=Q-t4jzgx5XNO--iRuHiLkUvgcBQ@mail.gmail.com>
+Subject: Re: [PATCH v11 7/8] xfs: Implement ->notify_failure() for XFS
+To: Christoph Hellwig <hch@infradead.org>
+Cc: Shiyang Ruan <ruansy.fnst@fujitsu.com>, 
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, 
+	Linux NVDIMM <nvdimm@lists.linux.dev>, Linux MM <linux-mm@kvack.org>, 
+	linux-fsdevel <linux-fsdevel@vger.kernel.org>, "Darrick J. Wong" <djwong@kernel.org>, 
+	david <david@fromorbit.com>, Jane Chu <jane.chu@oracle.com>
+Content-Type: text/plain; charset="UTF-8"
 
-
-
-在 2022/3/30 14:00, Christoph Hellwig 写道:
->> @@ -1892,6 +1893,8 @@ xfs_free_buftarg(
->>   	list_lru_destroy(&btp->bt_lru);
->>   
->>   	blkdev_issue_flush(btp->bt_bdev);
->> +	if (btp->bt_daxdev)
->> +		dax_unregister_holder(btp->bt_daxdev, btp->bt_mount);
->>   	fs_put_dax(btp->bt_daxdev);
->>   
->>   	kmem_free(btp);
->> @@ -1939,6 +1942,7 @@ xfs_alloc_buftarg(
->>   	struct block_device	*bdev)
->>   {
->>   	xfs_buftarg_t		*btp;
->> +	int			error;
->>   
->>   	btp = kmem_zalloc(sizeof(*btp), KM_NOFS);
->>   
->> @@ -1946,6 +1950,14 @@ xfs_alloc_buftarg(
->>   	btp->bt_dev =  bdev->bd_dev;
->>   	btp->bt_bdev = bdev;
->>   	btp->bt_daxdev = fs_dax_get_by_bdev(bdev, &btp->bt_dax_part_off);
->> +	if (btp->bt_daxdev) {
->> +		error = dax_register_holder(btp->bt_daxdev, mp,
->> +				&xfs_dax_holder_operations);
->> +		if (error) {
->> +			xfs_err(mp, "DAX device already in use?!");
->> +			goto error_free;
->> +		}
->> +	}
-> 
+On Tue, Mar 29, 2022 at 11:01 PM Christoph Hellwig <hch@infradead.org> wrote:
+>
+> > @@ -1892,6 +1893,8 @@ xfs_free_buftarg(
+> >       list_lru_destroy(&btp->bt_lru);
+> >
+> >       blkdev_issue_flush(btp->bt_bdev);
+> > +     if (btp->bt_daxdev)
+> > +             dax_unregister_holder(btp->bt_daxdev, btp->bt_mount);
+> >       fs_put_dax(btp->bt_daxdev);
+> >
+> >       kmem_free(btp);
+> > @@ -1939,6 +1942,7 @@ xfs_alloc_buftarg(
+> >       struct block_device     *bdev)
+> >  {
+> >       xfs_buftarg_t           *btp;
+> > +     int                     error;
+> >
+> >       btp = kmem_zalloc(sizeof(*btp), KM_NOFS);
+> >
+> > @@ -1946,6 +1950,14 @@ xfs_alloc_buftarg(
+> >       btp->bt_dev =  bdev->bd_dev;
+> >       btp->bt_bdev = bdev;
+> >       btp->bt_daxdev = fs_dax_get_by_bdev(bdev, &btp->bt_dax_part_off);
+> > +     if (btp->bt_daxdev) {
+> > +             error = dax_register_holder(btp->bt_daxdev, mp,
+> > +                             &xfs_dax_holder_operations);
+> > +             if (error) {
+> > +                     xfs_err(mp, "DAX device already in use?!");
+> > +                     goto error_free;
+> > +             }
+> > +     }
+>
 > It seems to me that just passing the holder and holder ops to
 > fs_dax_get_by_bdev and the holder to dax_unregister_holder would
 > significantly simply the interface here.
-> 
+>
 > Dan, what do you think?
 
-Hi Dan,
+Yes, makes sense, just like the optional holder arguments to blkdev_get_by_*().
 
-Could you give some advise on this API?  Is it needed to move 
-dax_register_holder's job into fs_dax_get_by_bdev()?
-
-
---
-Thanks,
-Ruan
-
-> 
->> +#if IS_ENABLED(CONFIG_MEMORY_FAILURE) && IS_ENABLED(CONFIG_FS_DAX)
-> 
+>
+> > +#if IS_ENABLED(CONFIG_MEMORY_FAILURE) && IS_ENABLED(CONFIG_FS_DAX)
+>
 > No real need for the IS_ENABLED.  Also any reason to even build this
 > file if the options are not set?  It seems like
 > xfs_dax_holder_operations should just be defined to NULL and the
 > whole file not supported if we can't support the functionality.
-> 
+>
 > Dan: not for this series, but is there any reason not to require
 > MEMORY_FAILURE for DAX to start with?
-> 
->> +
->> +	ddev_start = mp->m_ddev_targp->bt_dax_part_off;
->> +	ddev_end = ddev_start +
->> +		(mp->m_ddev_targp->bt_bdev->bd_nr_sectors << SECTOR_SHIFT) - 1;
-> 
+
+Given that DAX ties some storage semantics to memory and storage
+supports EIO I can see an argument to require memory_failure() for
+DAX, and especially for DAX on CXL where hotplug is supported it will
+be necessary. Linux currently has no facility to consult PCI drivers
+about removal actions, so the only recourse for a force removed CXL
+device is mass memory_failure().
+
+>
+> > +
+> > +     ddev_start = mp->m_ddev_targp->bt_dax_part_off;
+> > +     ddev_end = ddev_start +
+> > +             (mp->m_ddev_targp->bt_bdev->bd_nr_sectors << SECTOR_SHIFT) - 1;
+>
 > This should use bdev_nr_bytes.
-> 
+>
 > But didn't we say we don't want to support notifications on partitioned
 > devices and thus don't actually need all this?
-> 
->> +
->> +	/* Ignore the range out of filesystem area */
->> +	if ((offset + len) < ddev_start)
-> 
-> No need for the inner braces.
-> 
->> +	if ((offset + len) > ddev_end)
-> 
-> No need for the braces either.
-> 
->> diff --git a/fs/xfs/xfs_notify_failure.h b/fs/xfs/xfs_notify_failure.h
->> new file mode 100644
->> index 000000000000..76187b9620f9
->> --- /dev/null
->> +++ b/fs/xfs/xfs_notify_failure.h
->> @@ -0,0 +1,10 @@
->> +// SPDX-License-Identifier: GPL-2.0
->> +/*
->> + * Copyright (c) 2022 Fujitsu.  All Rights Reserved.
->> + */
->> +#ifndef __XFS_NOTIFY_FAILURE_H__
->> +#define __XFS_NOTIFY_FAILURE_H__
->> +
->> +extern const struct dax_holder_operations xfs_dax_holder_operations;
->> +
->> +#endif  /* __XFS_NOTIFY_FAILURE_H__ */
-> 
-> Dowe really need a new header for this vs just sequeezing it into
-> xfs_super.h or something like that?
-> 
->> diff --git a/fs/xfs/xfs_super.c b/fs/xfs/xfs_super.c
->> index e8f37bdc8354..b8de6ed2c888 100644
->> --- a/fs/xfs/xfs_super.c
->> +++ b/fs/xfs/xfs_super.c
->> @@ -353,6 +353,12 @@ xfs_setup_dax_always(
->>   		return -EINVAL;
->>   	}
->>   
->> +	if (xfs_has_reflink(mp) && !xfs_has_rmapbt(mp)) {
->> +		xfs_alert(mp,
->> +			"need rmapbt when both DAX and reflink enabled.");
->> +		return -EINVAL;
->> +	}
-> 
-> Right now we can't even enable reflink with DAX yet, so adding this
-> here seems premature - it should go into the patch allowing DAX+reflink.
-> 
 
-
+Right.
