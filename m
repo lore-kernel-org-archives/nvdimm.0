@@ -1,108 +1,86 @@
-Received: from mail-pf1-f172.google.com (mail-pf1-f172.google.com [209.85.210.172])
+Received: from mail-pf1-f175.google.com (mail-pf1-f175.google.com [209.85.210.175])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5394C366
-	for <nvdimm@lists.linux.dev>; Fri,  8 Apr 2022 06:26:19 +0000 (UTC)
-Received: by mail-pf1-f172.google.com with SMTP id s2so7577890pfh.6
-        for <nvdimm@lists.linux.dev>; Thu, 07 Apr 2022 23:26:19 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D99222F5B
+	for <nvdimm@lists.linux.dev>; Sat,  9 Apr 2022 23:47:07 +0000 (UTC)
+Received: by mail-pf1-f175.google.com with SMTP id f3so11550679pfe.2
+        for <nvdimm@lists.linux.dev>; Sat, 09 Apr 2022 16:47:07 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=g35dmgX32k/R7TxnuKRf02cyb1nmI23wQu6jsuLVbVU=;
-        b=wlSIBbbSFHb+JhPPPwZhYXbD7WTAYzJ9ooeCOJ4TJorGTR9S6YbwY6kt+RuyigO524
-         kMvXQrASEbH6rcmScjaHvcogjfqkb8NJlfaBW2HLpnN56HWsI5uwggQ+dYV/aoIepw/E
-         nURCc8MnNjmA0kvJ5xVOTCAndDTK2kjR54OW2WJBfuINbnBPEn1OXIKcmO1sLyaob2Ed
-         9WV7jQkkHpFjZGrAf5cVdT00/H55NyENNDR9ohZpO6Hq09QYEVUxnOtII9fZ0Q0VRD+x
-         sv0Gji5mFmzwSVQRwIxHosZoXz1DCVg7lzTFeipG8MZ1kmYnGngZUkUnKri1pi1o27UQ
-         FLEg==
+        h=mime-version:from:date:message-id:subject:to:cc;
+        bh=MUbqjqroWUSuaCOjxZ4xcA3Ff9DzHo03eSpcfQTH7xs=;
+        b=jd+dwSeiQNDcvKJh2B6IY6Tk/lOz864fH4P0sxe5iJIo67C/PpEHyeb4rvZ1TYblNz
+         oyVI9ZXbEiaATFabXvynDPUOr5MarzmNgfogKr/e2hzv50KKXj+3Zi3UFjT0R+iPqZGR
+         vFShBM7h6Sjyl2B9z5uow5OBCl5b63L8Dq1WSBzr6iZ7uwyOHjFPhYvrdICCv1j2135j
+         f6JKaxvY62B8b/UwN+rOqJm8CgT84K6Q7bg9SDUOwc3OXMJgfm/QvM8iPOXK5Ul/8g/M
+         91xmV6Gvnxe4zKxSdtxJ229slvTSjap6EucN0yzNBBH6B/ouVnl9b3AlE4G/Yn1/uD+p
+         Fwgw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=g35dmgX32k/R7TxnuKRf02cyb1nmI23wQu6jsuLVbVU=;
-        b=UzC0n1kNaiR6zdrCrCld74hOHe486iguSQN7iBXlepV9fxSTF4Ni+2zmwiXTsT6zbX
-         L5+9gMbGKKFzSx0R0jRg9ooQxyUn06fPf1szXYPfjmJbmj3OIoDuAuKuf0TmTqKxQQeL
-         TSUo+3qD3j3ihTBQ2IfCcRzzBcCckfLR/ZrWO8F0mrKJcvtpqX6qnMOku9kIgDQO6FFd
-         8K58ouANHxNxiYwaNnVYaev0I3NnmtXaCJyoQVR7z+/6IVeCuNw04sKls/CLYd2WyUXM
-         +YKL9Jd9E8hSYEkTmBglnPYnbLQpmywFxMKXSg7ZEfmW5+4rX5QE81FzLYSoy6HY1Qs3
-         JVOQ==
-X-Gm-Message-State: AOAM533ZR2jtnhbGUml2Cj2dN1YNrkGgfbwNrl2cYi8brDoF4ROsZPfX
-	78ShXgJHUz1RE4Pk9glurUQBDH7eD5ZIO5B99nC8iw==
-X-Google-Smtp-Source: ABdhPJwZpPAQGEBsOe2H4Ew1tYOWqLCmIf5LQhtcpsvQh/Ztm9JTK+n38+TDSeB0NMkBLck/NVWRLJvt/A/qt2vd7YI=
-X-Received: by 2002:a05:6a00:8c5:b0:4fe:134d:30d3 with SMTP id
- s5-20020a056a0008c500b004fe134d30d3mr18016783pfu.3.1649399178836; Thu, 07 Apr
- 2022 23:26:18 -0700 (PDT)
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc;
+        bh=MUbqjqroWUSuaCOjxZ4xcA3Ff9DzHo03eSpcfQTH7xs=;
+        b=mcVn60fX4n7TF2w/R8gitvsqmLtpAOFGd8zdj9c+HuKbAwaTz3ZzbWFoKCQEsct2AA
+         5GTqSMvChbu1DG0u+RfGeH1pxrd9YQun4U3ZMTDPciCSdB6+x8OWfcqdK7TI/V4mePct
+         KRiZaCmZxPy1S8lQpgoR2MC1oeSXw7B+zCd9/zW8jc56eCgnmhZzfbIirZXoQ1WYOcOg
+         uU40eRw7wZl4kxH0LrByW2dOZUzxsadnFa2yPs10KBOCIKraSCAWYnNFu5cgsJsRvzBP
+         LUqHTxi/+MlJS9k2dEex08BPQYLyp0lgXDSGQIgzAm3gu+TaasTF67J6+Rtxum4BljL6
+         ZGXg==
+X-Gm-Message-State: AOAM533ma9gLZTvyyLORdEGci7Pc2RP7q+QYASzmmRwh1JRNDv3M6vo6
+	jDltqxzQCScYkJlHFZIMspgRBeplq0JK3N70pn9z475unAd9Zw==
+X-Google-Smtp-Source: ABdhPJz86brASdkpVzG2YkHEjnR4KziiLzs3+/7QlKPE4XvQD/ceEaQo/bpzGu2sg4zmcjVzHdKPij9WgcSkJea0IeQ=
+X-Received: by 2002:a05:6a00:e14:b0:4fe:3cdb:23f with SMTP id
+ bq20-20020a056a000e1400b004fe3cdb023fmr26408877pfb.86.1649548027242; Sat, 09
+ Apr 2022 16:47:07 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20220227120747.711169-1-ruansy.fnst@fujitsu.com>
- <20220227120747.711169-8-ruansy.fnst@fujitsu.com> <YkPyBQer+KRiregd@infradead.org>
- <8f1931d2-b224-de98-4593-df136f397eb4@fujitsu.com>
-In-Reply-To: <8f1931d2-b224-de98-4593-df136f397eb4@fujitsu.com>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 7 Apr 2022 23:26:08 -0700
-Message-ID: <CAPcyv4jO+-JkRcwZk0ZuYaGy0NDx2iZg-GjnDLWqVFYvciFF4g@mail.gmail.com>
-Subject: Re: [PATCH v11 7/8] xfs: Implement ->notify_failure() for XFS
-To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Cc: Christoph Hellwig <hch@infradead.org>, 
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, 
-	Linux NVDIMM <nvdimm@lists.linux.dev>, Linux MM <linux-mm@kvack.org>, 
-	linux-fsdevel <linux-fsdevel@vger.kernel.org>, "Darrick J. Wong" <djwong@kernel.org>, 
-	david <david@fromorbit.com>, Jane Chu <jane.chu@oracle.com>
+Date: Sat, 9 Apr 2022 16:46:56 -0700
+Message-ID: <CAPcyv4gLVHZSJNPcxcb6tDD3z8DO_X49OvV-cudeziKfG_08mw@mail.gmail.com>
+Subject: [GIT PULL] NVDIMM + CXL fixes for v5.18-rc2
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Linux NVDIMM <nvdimm@lists.linux.dev>, linux-cxl@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Thu, Apr 7, 2022 at 11:05 PM Shiyang Ruan <ruansy.fnst@fujitsu.com> wrot=
-e:
->
->
->
-> =E5=9C=A8 2022/3/30 14:00, Christoph Hellwig =E5=86=99=E9=81=93:
-> >> @@ -1892,6 +1893,8 @@ xfs_free_buftarg(
-> >>      list_lru_destroy(&btp->bt_lru);
-> >>
-> >>      blkdev_issue_flush(btp->bt_bdev);
-> >> +    if (btp->bt_daxdev)
-> >> +            dax_unregister_holder(btp->bt_daxdev, btp->bt_mount);
-> >>      fs_put_dax(btp->bt_daxdev);
-> >>
-> >>      kmem_free(btp);
-> >> @@ -1939,6 +1942,7 @@ xfs_alloc_buftarg(
-> >>      struct block_device     *bdev)
-> >>   {
-> >>      xfs_buftarg_t           *btp;
-> >> +    int                     error;
-> >>
-> >>      btp =3D kmem_zalloc(sizeof(*btp), KM_NOFS);
-> >>
-> >> @@ -1946,6 +1950,14 @@ xfs_alloc_buftarg(
-> >>      btp->bt_dev =3D  bdev->bd_dev;
-> >>      btp->bt_bdev =3D bdev;
-> >>      btp->bt_daxdev =3D fs_dax_get_by_bdev(bdev, &btp->bt_dax_part_off=
-);
-> >> +    if (btp->bt_daxdev) {
-> >> +            error =3D dax_register_holder(btp->bt_daxdev, mp,
-> >> +                            &xfs_dax_holder_operations);
-> >> +            if (error) {
-> >> +                    xfs_err(mp, "DAX device already in use?!");
-> >> +                    goto error_free;
-> >> +            }
-> >> +    }
-> >
-> > It seems to me that just passing the holder and holder ops to
-> > fs_dax_get_by_bdev and the holder to dax_unregister_holder would
-> > significantly simply the interface here.
-> >
-> > Dan, what do you think?
->
-> Hi Dan,
->
-> Could you give some advise on this API?  Is it needed to move
-> dax_register_holder's job into fs_dax_get_by_bdev()?
+Hi Linus, please pull from:
 
+  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm
+tags/cxl+nvdimm-for-5.18-rc2
 
-Yes, works for me to just add them as optional arguments.
+...to pick up a couple fixups for code that went in during the merge
+window. These did not appear in -next yet, but they have seen kbuild
+robot exposure.
+
+---
+
+The following changes since commit 3123109284176b1532874591f7c81f3837bbdc17:
+
+  Linux 5.18-rc1 (2022-04-03 14:08:21 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm
+tags/cxl+nvdimm-for-5.18-rc2
+
+for you to fetch changes up to d28820419ca332f856cdf8bef0cafed79c29ed05:
+
+  cxl/pci: Drop shadowed variable (2022-04-08 12:59:43 -0700)
+
+----------------------------------------------------------------
+cxl + nvdimm fixes for v5.18-rc2
+
+- Fix a compile error in the nvdimm unit tests
+
+- Fix a shadowed variable warning in the CXL PCI driver
+
+----------------------------------------------------------------
+Dan Williams (2):
+      tools/testing/nvdimm: Fix security_init() symbol collision
+      cxl/pci: Drop shadowed variable
+
+ drivers/cxl/pci.c                | 1 -
+ tools/testing/nvdimm/test/nfit.c | 4 ++--
+ 2 files changed, 2 insertions(+), 3 deletions(-)
