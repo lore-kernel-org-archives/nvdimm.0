@@ -1,50 +1,50 @@
-Received: from mail-pj1-f52.google.com (mail-pj1-f52.google.com [209.85.216.52])
+Received: from mail-pj1-f48.google.com (mail-pj1-f48.google.com [209.85.216.48])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 684B11FA6
-	for <nvdimm@lists.linux.dev>; Mon, 11 Apr 2022 22:07:21 +0000 (UTC)
-Received: by mail-pj1-f52.google.com with SMTP id 2so16522117pjw.2
-        for <nvdimm@lists.linux.dev>; Mon, 11 Apr 2022 15:07:21 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A8491FA6
+	for <nvdimm@lists.linux.dev>; Mon, 11 Apr 2022 22:20:22 +0000 (UTC)
+Received: by mail-pj1-f48.google.com with SMTP id h15-20020a17090a054f00b001cb7cd2b11dso729778pjf.5
+        for <nvdimm@lists.linux.dev>; Mon, 11 Apr 2022 15:20:22 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20210112.gappssmtp.com; s=20210112;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=uGTALhbZONK07EnTqNzLb5OFo7sOJ1WnH/JS/fksxZ4=;
-        b=qW44w090em7gPbYvbMftkAX4Kvke2EP4xsZopvyQYxJet+uD2q9FrkvME10M9tUtmO
-         X0ArALnU4GOM4RpFLYtr4bx0MpBZA554kHWbufBfTUNaqHhLHDjr51XHQdOPMxkQgCXg
-         NV0mdNXOuzxeZUNmauE//Xw4ily3/UjO/MvX7UN7+CVRdmJUV6HF15N4VgrrGumDREwQ
-         mQr7NBQxJVjAKI7QuaN+TbxUCnrDwve7/GDCashxgzsy+utUcS00v8RMdQzi18ZQO+sj
-         C3gytJIJs+P+LCAmm5F7B8ZgvVAvSUSOeGPK1NcM/2jE17EGM2aXjbAO22u5NH5fWlQJ
-         NrxA==
+        bh=ilC4hsjkYuKv6ebyejb/hqupiLMdVX0htffDOmrd7F4=;
+        b=FxqMOl+LQRjm4xHV3WMTnaWUoHHNIwNG2iGvDbblMfZ8JddwTKg3ZpTCrlFkBB6rBu
+         rSWbPPe9GjWLrChgxM3IBRCmVz5THofbIx0GGXctZmol6NievamWm9zkyAkJ24Cm0K9A
+         DCtKBvlvzxZRb7YquzNbT2PdlI832d7CHnSCwf1bN5nHFuq8QnFM4JqEliGFJoIQQMbh
+         jlPIO+ne9Hb8R7Ba1ZEnAjMWmLA+Qo6v4RY8WcEEkyOVuQrUjq+FZs7b6JFMuvp4LYVK
+         7gQv7b3itG0nRglCi6Aiz7vPQL4cblVgmQ9M0dGACks264GbH5DuU0YIA9ydPmcdahOM
+         Hryw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=uGTALhbZONK07EnTqNzLb5OFo7sOJ1WnH/JS/fksxZ4=;
-        b=SgBWGlNgIF8FPFfSZ/ApfEIG/vFmvbShJsk8RgyDnwcsPTipaD2F1XoyiOc/YRrRZ2
-         Bm9x/4Hy642KKjW0tUvbVA2b+D83gTw/QxVb3zTXjkHbRJUGcc1OZlTgGu0817yjCysU
-         4tAITG/4nqVGGplimAdVlWQC/dmzCa10SntTqOSmyFisrFbFf8PsQ/pTBjgtgY3PElSe
-         uawuv7MH9cEo4NAlhsKrqHpGeKHWPIrzlOrrFH+i4RWF1Nzi11KdQ55KvmilW/C4MLFE
-         0W+jX6+tKL0a86nOgq/7NlAzC6zMl9xK5YM+YQXEsZPl/eonIKP7gC48obvC0YVmTA3m
-         oYog==
-X-Gm-Message-State: AOAM533KEr5HmOgmsgK6ikLBEX9aYU4CH+WPOOvtBB0V1sGCqKWZLNki
-	xC/s483dZWOSZAg55pjVFlWKRbBQ1g6kzsDgFsVxPw==
-X-Google-Smtp-Source: ABdhPJynx2l3cB2Gnxdh26yL6kd+AAVfXhzzqC3Ft2s9qeSNSOaR3yfL83lS+0+wlt4mWc4yp2miJE+sHJq1HcNQSls=
-X-Received: by 2002:a17:902:eb92:b0:158:4cc9:698e with SMTP id
- q18-20020a170902eb9200b001584cc9698emr11070951plg.147.1649714840717; Mon, 11
- Apr 2022 15:07:20 -0700 (PDT)
+        bh=ilC4hsjkYuKv6ebyejb/hqupiLMdVX0htffDOmrd7F4=;
+        b=KdNkPL1DAy1fHYC2zXS7AN9XDFK7vn+p1TIXPO6vgoR/5u8oNIrNDhrTS9IFuqP1ip
+         UZsY0HcSKEI39T2v7pwXKdBY+KouY9YMMtgy3TwJkY5IdkVMnqUEEI/bpj2fZ8OPqTF6
+         KmjrImyD8amemkgKKnOLzzql4LWUMupO9qnAP5V1HHSWS3b7s3L3VCaejXdUVWJGFZW8
+         Egx5/DFH+aRkBm5WlX/nC4Z/5oByxpWkPIBp4rV+xJwgxywFfgySZlII67rToUItCkmr
+         5XelGqDQXCjZ7JgdicdyIP+TN1j+oe2j+zSweXVAG5qisV5YusDHINAcH1s8im5+p+2F
+         iNew==
+X-Gm-Message-State: AOAM532l5MsnBvJoTtbEhA4YftZ8Gpcg0GAFrIiXTU9vKd4Hj3cdNx/T
+	F5CVW+IzyaWH4YtkC5eg3ry0dISIzOBEe5wu4OKfsQ==
+X-Google-Smtp-Source: ABdhPJwobl8Twz9/+FJGw8iwZ7aqkX15fxktugOjY8lPoNQzuoJOzcOfQ2MMC/mpkqomhSOO2S1HZ/lhTWtwo8KT1ZQ=
+X-Received: by 2002:a17:90a:ca:b0:1ca:5253:b625 with SMTP id
+ v10-20020a17090a00ca00b001ca5253b625mr1484772pjd.220.1649715621869; Mon, 11
+ Apr 2022 15:20:21 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20220405194747.2386619-1-jane.chu@oracle.com> <20220405194747.2386619-2-jane.chu@oracle.com>
-In-Reply-To: <20220405194747.2386619-2-jane.chu@oracle.com>
+References: <20220405194747.2386619-1-jane.chu@oracle.com> <20220405194747.2386619-3-jane.chu@oracle.com>
+In-Reply-To: <20220405194747.2386619-3-jane.chu@oracle.com>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 11 Apr 2022 15:07:10 -0700
-Message-ID: <CAPcyv4gr7YzrmqNhA-S8h-nRhpr8OHhUkn16c8jiL1U3ypp1wQ@mail.gmail.com>
-Subject: Re: [PATCH v7 1/6] x86/mm: fix comment
+Date: Mon, 11 Apr 2022 15:20:10 -0700
+Message-ID: <CAPcyv4iUWLsZRV4StCzHuVUhEsOB5WURD2r_w3L+LEjoQEheog@mail.gmail.com>
+Subject: Re: [PATCH v7 2/6] x86/mce: relocate set{clear}_mce_nospec() functions
 To: Jane Chu <jane.chu@oracle.com>
 Cc: david <david@fromorbit.com>, "Darrick J. Wong" <djwong@kernel.org>, 
 	Christoph Hellwig <hch@infradead.org>, Vishal L Verma <vishal.l.verma@intel.com>, 
@@ -53,38 +53,103 @@ Cc: david <david@fromorbit.com>, "Darrick J. Wong" <djwong@kernel.org>,
 	Matthew Wilcox <willy@infradead.org>, Vivek Goyal <vgoyal@redhat.com>, 
 	linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux NVDIMM <nvdimm@lists.linux.dev>, 
 	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, 
-	X86 ML <x86@kernel.org>
+	X86 ML <x86@kernel.org>, Dave Hansen <dave.hansen@intel.com>, 
+	Peter Zijlstra <peterz@infradead.org>, Andy Lutomirski <luto@kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 
-On Tue, Apr 5, 2022 at 12:48 PM Jane Chu <jane.chu@oracle.com> wrote:
+I notice that none of the folks from "X86 MM" are on the cc, added.
+
+On Tue, Apr 5, 2022 at 12:49 PM Jane Chu <jane.chu@oracle.com> wrote:
 >
-> There is no _set_memory_prot internal helper, while coming across
-> the code, might as well fix the comment.
-
-Looks good,
-
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-
+> Relocate the twin mce functions to arch/x86/mm/pat/set_memory.c
+> file where they belong.
 >
-> Reviewed-by: Christoph Hellwig <hch@lst.de>
 > Signed-off-by: Jane Chu <jane.chu@oracle.com>
 > ---
->  arch/x86/mm/pat/set_memory.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  arch/x86/include/asm/set_memory.h | 52 -------------------------------
+>  arch/x86/mm/pat/set_memory.c      | 47 ++++++++++++++++++++++++++++
+>  include/linux/set_memory.h        |  9 +++---
+>  3 files changed, 52 insertions(+), 56 deletions(-)
 >
+> diff --git a/arch/x86/include/asm/set_memory.h b/arch/x86/include/asm/set_memory.h
+> index 78ca53512486..b45c4d27fd46 100644
+> --- a/arch/x86/include/asm/set_memory.h
+> +++ b/arch/x86/include/asm/set_memory.h
+> @@ -86,56 +86,4 @@ bool kernel_page_present(struct page *page);
+>
+>  extern int kernel_set_to_readonly;
+>
+> -#ifdef CONFIG_X86_64
+> -/*
+> - * Prevent speculative access to the page by either unmapping
+> - * it (if we do not require access to any part of the page) or
+> - * marking it uncacheable (if we want to try to retrieve data
+> - * from non-poisoned lines in the page).
+> - */
+> -static inline int set_mce_nospec(unsigned long pfn, bool unmap)
+> -{
+> -       unsigned long decoy_addr;
+> -       int rc;
+> -
+> -       /* SGX pages are not in the 1:1 map */
+> -       if (arch_is_platform_page(pfn << PAGE_SHIFT))
+> -               return 0;
+> -       /*
+> -        * We would like to just call:
+> -        *      set_memory_XX((unsigned long)pfn_to_kaddr(pfn), 1);
+> -        * but doing that would radically increase the odds of a
+> -        * speculative access to the poison page because we'd have
+> -        * the virtual address of the kernel 1:1 mapping sitting
+> -        * around in registers.
+> -        * Instead we get tricky.  We create a non-canonical address
+> -        * that looks just like the one we want, but has bit 63 flipped.
+> -        * This relies on set_memory_XX() properly sanitizing any __pa()
+> -        * results with __PHYSICAL_MASK or PTE_PFN_MASK.
+> -        */
+> -       decoy_addr = (pfn << PAGE_SHIFT) + (PAGE_OFFSET ^ BIT(63));
+> -
+> -       if (unmap)
+> -               rc = set_memory_np(decoy_addr, 1);
+> -       else
+> -               rc = set_memory_uc(decoy_addr, 1);
+> -       if (rc)
+> -               pr_warn("Could not invalidate pfn=0x%lx from 1:1 map\n", pfn);
+> -       return rc;
+> -}
+> -#define set_mce_nospec set_mce_nospec
+> -
+> -/* Restore full speculative operation to the pfn. */
+> -static inline int clear_mce_nospec(unsigned long pfn)
+> -{
+> -       return set_memory_wb((unsigned long) pfn_to_kaddr(pfn), 1);
+> -}
+> -#define clear_mce_nospec clear_mce_nospec
+> -#else
+> -/*
+> - * Few people would run a 32-bit kernel on a machine that supports
+> - * recoverable errors because they have too much memory to boot 32-bit.
+> - */
+> -#endif
+> -
+>  #endif /* _ASM_X86_SET_MEMORY_H */
 > diff --git a/arch/x86/mm/pat/set_memory.c b/arch/x86/mm/pat/set_memory.c
-> index abf5ed76e4b7..38af155aaba9 100644
+> index 38af155aaba9..93dde949f224 100644
 > --- a/arch/x86/mm/pat/set_memory.c
 > +++ b/arch/x86/mm/pat/set_memory.c
-> @@ -1816,7 +1816,7 @@ static inline int cpa_clear_pages_array(struct page **pages, int numpages,
+> @@ -1925,6 +1925,53 @@ int set_memory_wb(unsigned long addr, int numpages)
 >  }
+>  EXPORT_SYMBOL(set_memory_wb);
 >
->  /*
-> - * _set_memory_prot is an internal helper for callers that have been passed
-> + * __set_memory_prot is an internal helper for callers that have been passed
->   * a pgprot_t value from upper layers and a reservation has already been taken.
->   * If you want to set the pgprot to a specific page protocol, use the
->   * set_memory_xx() functions.
-> --
-> 2.18.4
->
+> +#ifdef CONFIG_X86_64
+
+It seems like the only X86_64 dependency in this routine is the
+address bit 63 usage, so how about:
+
+if (!IS_ENABLED(CONFIG_64BIT))
+    return 0;
+
+...and drop the ifdef?
+
+Other than that you can add:
+
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
