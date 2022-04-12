@@ -1,23 +1,23 @@
 Received: from mail.skyhub.de (mail.skyhub.de [5.9.137.197])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF4367B
-	for <nvdimm@lists.linux.dev>; Tue, 12 Apr 2022 09:54:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCE377B
+	for <nvdimm@lists.linux.dev>; Tue, 12 Apr 2022 10:07:51 +0000 (UTC)
 Received: from zn.tnic (p200300ea97156149329c23fffea6a903.dip0.t-ipconnect.de [IPv6:2003:ea:9715:6149:329c:23ff:fea6:a903])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.skyhub.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id 3135C1EC04EC;
-	Tue, 12 Apr 2022 11:53:54 +0200 (CEST)
+	by mail.skyhub.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id 9608C1EC04EC;
+	Tue, 12 Apr 2022 12:07:45 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=dkim;
-	t=1649757234;
+	t=1649758065;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:in-reply-to:in-reply-to:  references:references;
-	bh=juw7VzB56UKaB4KslRsPqKcKyA9IXYjsuIL6qC0OH24=;
-	b=IudAycwHR56V9u9XIIOAyDIMIL7rNI2FMyxnlVozrhoGkeqneIef3NdEUTbhXv6NK0xjP9
-	7CKVVuL+XcOPs8bZ6fV2nDhOY8dIZmvoOSpGmDN/xP+79eC2a01UgC2Ekv182YyGX1r+VW
-	U+fOdZ9IYB+WeMkhUgTqBjwyw6NQT2I=
-Date: Tue, 12 Apr 2022 11:53:54 +0200
+	bh=o3lXO1BKF/S5AzldA58rjm6HBnn56CuwTB6uiL2Y1Ag=;
+	b=MnAIT7Er8JwAM4b0GD9rgLkDQyjcarmya9EyILrxMvNLKZ0HrhcSex/LUG4qj5DimKo4xp
+	FUSPF+Ow9Iqn/lR66hENQLYudzalsAfqsYDdVNCEP3UQRqaJ97IASCFGZJ0A5WCoQftN+r
+	A6Lci8BJ2YNNbYwSUe5vjOAJqh086DM=
+Date: Tue, 12 Apr 2022 12:07:46 +0200
 From: Borislav Petkov <bp@alien8.de>
 To: Jane Chu <jane.chu@oracle.com>
 Cc: david@fromorbit.com, djwong@kernel.org, dan.j.williams@intel.com,
@@ -27,10 +27,11 @@ Cc: david@fromorbit.com, djwong@kernel.org, dan.j.williams@intel.com,
 	linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
 	linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org,
 	x86@kernel.org
-Subject: Re: [PATCH v7 1/6] x86/mm: fix comment
-Message-ID: <YlVMMmTbaTqipwM9@zn.tnic>
+Subject: Re: [PATCH v7 3/6] mce: fix set_mce_nospec to always unmap the whole
+ page
+Message-ID: <YlVPcrK4SSXyPx+Y@zn.tnic>
 References: <20220405194747.2386619-1-jane.chu@oracle.com>
- <20220405194747.2386619-2-jane.chu@oracle.com>
+ <20220405194747.2386619-4-jane.chu@oracle.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -39,37 +40,80 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20220405194747.2386619-2-jane.chu@oracle.com>
+In-Reply-To: <20220405194747.2386619-4-jane.chu@oracle.com>
 
-On Tue, Apr 05, 2022 at 01:47:42PM -0600, Jane Chu wrote:
-> There is no _set_memory_prot internal helper, while coming across
-> the code, might as well fix the comment.
+On Tue, Apr 05, 2022 at 01:47:44PM -0600, Jane Chu wrote:
+> The set_memory_uc() approach doesn't work well in all cases.
+> For example, when "The VMM unmapped the bad page from guest
+> physical space and passed the machine check to the guest."
+> "The guest gets virtual #MC on an access to that page.
+>  When the guest tries to do set_memory_uc() and instructs
+>  cpa_flush() to do clean caches that results in taking another
+>  fault / exception perhaps because the VMM unmapped the page
+>  from the guest."
+
+I presume this is quoting someone...
+
+> Since the driver has special knowledge to handle NP or UC,
+> let's mark the poisoned page with NP and let driver handle it
+
+s/let's mark/mark/
+
+> when it comes down to repair.
 > 
-> Reviewed-by: Christoph Hellwig <hch@lst.de>
+> Please refer to discussions here for more details.
+> https://lore.kernel.org/all/CAPcyv4hrXPb1tASBZUg-GgdVs0OOFKXMXLiHmktg_kFi7YBMyQ@mail.gmail.com/
+> 
+> Now since poisoned page is marked as not-present, in order to
+> avoid writing to a 'np' page and trigger kernel Oops, also fix
+
+You can write it out: "non-present page..."
+
+> pmem_do_write().
+> 
+> Fixes: 284ce4011ba6 ("x86/memory_failure: Introduce {set, clear}_mce_nospec()")
 > Signed-off-by: Jane Chu <jane.chu@oracle.com>
 > ---
->  arch/x86/mm/pat/set_memory.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/arch/x86/mm/pat/set_memory.c b/arch/x86/mm/pat/set_memory.c
-> index abf5ed76e4b7..38af155aaba9 100644
-> --- a/arch/x86/mm/pat/set_memory.c
-> +++ b/arch/x86/mm/pat/set_memory.c
-> @@ -1816,7 +1816,7 @@ static inline int cpa_clear_pages_array(struct page **pages, int numpages,
->  }
+>  arch/x86/kernel/cpu/mce/core.c |  6 +++---
+>  arch/x86/mm/pat/set_memory.c   | 18 ++++++------------
+>  drivers/nvdimm/pmem.c          | 31 +++++++------------------------
+>  include/linux/set_memory.h     |  4 ++--
+>  4 files changed, 18 insertions(+), 41 deletions(-)
+
+For such mixed subsystem patches we probably should talk about who picks
+them up, eventually...
+
+> diff --git a/arch/x86/kernel/cpu/mce/core.c b/arch/x86/kernel/cpu/mce/core.c
+> index 981496e6bc0e..fa67bb9d1afe 100644
+> --- a/arch/x86/kernel/cpu/mce/core.c
+> +++ b/arch/x86/kernel/cpu/mce/core.c
+> @@ -579,7 +579,7 @@ static int uc_decode_notifier(struct notifier_block *nb, unsigned long val,
 >  
->  /*
-> - * _set_memory_prot is an internal helper for callers that have been passed
-> + * __set_memory_prot is an internal helper for callers that have been passed
->   * a pgprot_t value from upper layers and a reservation has already been taken.
->   * If you want to set the pgprot to a specific page protocol, use the
->   * set_memory_xx() functions.
-> -- 
+>  	pfn = mce->addr >> PAGE_SHIFT;
+>  	if (!memory_failure(pfn, 0)) {
+> -		set_mce_nospec(pfn, whole_page(mce));
+> +		set_mce_nospec(pfn);
+>  		mce->kflags |= MCE_HANDLED_UC;
+>  	}
+>  
+> @@ -1316,7 +1316,7 @@ static void kill_me_maybe(struct callback_head *cb)
+>  
+>  	ret = memory_failure(p->mce_addr >> PAGE_SHIFT, flags);
+>  	if (!ret) {
+> -		set_mce_nospec(p->mce_addr >> PAGE_SHIFT, p->mce_whole_page);
+> +		set_mce_nospec(p->mce_addr >> PAGE_SHIFT);
+>  		sync_core();
+>  		return;
+>  	}
+> @@ -1342,7 +1342,7 @@ static void kill_me_never(struct callback_head *cb)
+>  	p->mce_count = 0;
+>  	pr_err("Kernel accessed poison in user space at %llx\n", p->mce_addr);
+>  	if (!memory_failure(p->mce_addr >> PAGE_SHIFT, 0))
+> -		set_mce_nospec(p->mce_addr >> PAGE_SHIFT, p->mce_whole_page);
+> +		set_mce_nospec(p->mce_addr >> PAGE_SHIFT);
+>  }
 
-This is such a trivial change so that having it as a separate patch is
-probably not needed - might as well merge it with patch 3...
-
-Thx.
+Both that ->mce_whole_page and whole_page() look unused after this.
 
 -- 
 Regards/Gruss,
