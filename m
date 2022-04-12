@@ -1,122 +1,76 @@
-Received: from mail.skyhub.de (mail.skyhub.de [5.9.137.197])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi1-f169.google.com (mail-oi1-f169.google.com [209.85.167.169])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCE377B
-	for <nvdimm@lists.linux.dev>; Tue, 12 Apr 2022 10:07:51 +0000 (UTC)
-Received: from zn.tnic (p200300ea97156149329c23fffea6a903.dip0.t-ipconnect.de [IPv6:2003:ea:9715:6149:329c:23ff:fea6:a903])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by mail.skyhub.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id 9608C1EC04EC;
-	Tue, 12 Apr 2022 12:07:45 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=dkim;
-	t=1649758065;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:in-reply-to:in-reply-to:  references:references;
-	bh=o3lXO1BKF/S5AzldA58rjm6HBnn56CuwTB6uiL2Y1Ag=;
-	b=MnAIT7Er8JwAM4b0GD9rgLkDQyjcarmya9EyILrxMvNLKZ0HrhcSex/LUG4qj5DimKo4xp
-	FUSPF+Ow9Iqn/lR66hENQLYudzalsAfqsYDdVNCEP3UQRqaJ97IASCFGZJ0A5WCoQftN+r
-	A6Lci8BJ2YNNbYwSUe5vjOAJqh086DM=
-Date: Tue, 12 Apr 2022 12:07:46 +0200
-From: Borislav Petkov <bp@alien8.de>
-To: Jane Chu <jane.chu@oracle.com>
-Cc: david@fromorbit.com, djwong@kernel.org, dan.j.williams@intel.com,
-	hch@infradead.org, vishal.l.verma@intel.com, dave.jiang@intel.com,
-	agk@redhat.com, snitzer@redhat.com, dm-devel@redhat.com,
-	ira.weiny@intel.com, willy@infradead.org, vgoyal@redhat.com,
-	linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org,
-	x86@kernel.org
-Subject: Re: [PATCH v7 3/6] mce: fix set_mce_nospec to always unmap the whole
- page
-Message-ID: <YlVPcrK4SSXyPx+Y@zn.tnic>
-References: <20220405194747.2386619-1-jane.chu@oracle.com>
- <20220405194747.2386619-4-jane.chu@oracle.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AA1623A6
+	for <nvdimm@lists.linux.dev>; Tue, 12 Apr 2022 23:22:46 +0000 (UTC)
+Received: by mail-oi1-f169.google.com with SMTP id 12so313080oix.12
+        for <nvdimm@lists.linux.dev>; Tue, 12 Apr 2022 16:22:46 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20210112.gappssmtp.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=cXG2uBz6lRa6SmsxOh4UHnvAS1v6j3gtk2oaRONS+x4=;
+        b=VPl1Lq9jWUOfdQHl/1KZuWWM6wCjlya9ZIm56mGgKOGxFiC5BaCc1BSVeUdc1pyItB
+         BIIRsGb7m/uTTFP7EQ9bwdIRf6Qc2mw3gELQG2VwZAg2xJ2tVel9MI1+ME9SUoGaJ8Ck
+         Z8ts0Cz8Sv7S9Fzd/Im/JfbGqbs45u5Dpd4A8hT36LVn0vEKF5gJNhz9Xj3HxeT5GFx9
+         3orzrVLxvjY3XUMpiLuJPsctZxiLUWVgCZp6UZHqMNblOrfxFCYbsUPAtL6PjFLKvIYv
+         yR16Pm/ZW/nafNyxKUqk8z/2UQ0ECbaF4NEyEpOJWqi+m9FgHi5wKcizOSX3GGI9F65b
+         O8Bw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=cXG2uBz6lRa6SmsxOh4UHnvAS1v6j3gtk2oaRONS+x4=;
+        b=iVcILUR8hyCjBI/QpJHRih6tGGwENCO/ze1pGbSWcItrJo9vkSNYBbetZJzpUmdUQm
+         Ue1ae1SW5x95kLyke9HmuHfvYMBmtjRpyj73hfXddgrfpGdM7mkEHb6eWVxnAk0M3zbT
+         GMW7o0k9yrCIoNu2krNWTGTWF8ge8nDrJ3k9YCRTYx9LuOjj6IfW2XwCBnu7/8Q5hZAX
+         dNBeRad1kXRF0bDPlsuyzsS7x5OLbGpgMaoV6CvWcg99MVrDU40vcUzy3SJ4dM0nCn04
+         RV8qDCsbjLAgvVSDF1KzdvGezxt1dhTMaxUwUqYwVLKxRLMka0C51ValugapbwMc8jam
+         2Ehg==
+X-Gm-Message-State: AOAM5300KDCVDTjLLyUdHTR6up6+QuqTsa1DH4q4BkzXJZB3Jh/1bV/U
+	ekyoOuaQqIMAMZWmqPdLkmGvZ3c4ccRtEUNASTle9Q==
+X-Google-Smtp-Source: ABdhPJzEsDa0QPWqZoKnqzlrHygJjKtOSvpADAV6Jhisjm10RxdCfr8ioS/LCXNm6BQQZeX47QnFzwejPCzwj9rtzOk=
+X-Received: by 2002:a05:6808:1154:b0:2da:2fbd:eba9 with SMTP id
+ u20-20020a056808115400b002da2fbdeba9mr2979048oiu.133.1649805765445; Tue, 12
+ Apr 2022 16:22:45 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20220405194747.2386619-4-jane.chu@oracle.com>
+References: <20220410160904.3758789-1-ruansy.fnst@fujitsu.com> <20220410160904.3758789-2-ruansy.fnst@fujitsu.com>
+In-Reply-To: <20220410160904.3758789-2-ruansy.fnst@fujitsu.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 12 Apr 2022 16:22:34 -0700
+Message-ID: <CAPcyv4iqHMR4Pee0Mjca2iM6Vhht8s=56-ZefYvpBmxuEi0Q6A@mail.gmail.com>
+Subject: Re: [PATCH v12 1/7] dax: Introduce holder for dax_device
+To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, 
+	Linux NVDIMM <nvdimm@lists.linux.dev>, Linux MM <linux-mm@kvack.org>, 
+	linux-fsdevel <linux-fsdevel@vger.kernel.org>, "Darrick J. Wong" <djwong@kernel.org>, 
+	david <david@fromorbit.com>, Christoph Hellwig <hch@infradead.org>, Jane Chu <jane.chu@oracle.com>
+Content-Type: text/plain; charset="UTF-8"
 
-On Tue, Apr 05, 2022 at 01:47:44PM -0600, Jane Chu wrote:
-> The set_memory_uc() approach doesn't work well in all cases.
-> For example, when "The VMM unmapped the bad page from guest
-> physical space and passed the machine check to the guest."
-> "The guest gets virtual #MC on an access to that page.
->  When the guest tries to do set_memory_uc() and instructs
->  cpa_flush() to do clean caches that results in taking another
->  fault / exception perhaps because the VMM unmapped the page
->  from the guest."
+On Sun, Apr 10, 2022 at 9:09 AM Shiyang Ruan <ruansy.fnst@fujitsu.com> wrote:
+>
+> To easily track filesystem from a pmem device, we introduce a holder for
+> dax_device structure, and also its operation.  This holder is used to
+> remember who is using this dax_device:
+>  - When it is the backend of a filesystem, the holder will be the
+>    instance of this filesystem.
+>  - When this pmem device is one of the targets in a mapped device, the
+>    holder will be this mapped device.  In this case, the mapped device
+>    has its own dax_device and it will follow the first rule.  So that we
+>    can finally track to the filesystem we needed.
+>
+> The holder and holder_ops will be set when filesystem is being mounted,
+> or an target device is being activated.
+>
 
-I presume this is quoting someone...
+Looks good to me:
 
-> Since the driver has special knowledge to handle NP or UC,
-> let's mark the poisoned page with NP and let driver handle it
+Reviewed-by: Dan Williams <dan.j.wiliams@intel.com>
 
-s/let's mark/mark/
-
-> when it comes down to repair.
-> 
-> Please refer to discussions here for more details.
-> https://lore.kernel.org/all/CAPcyv4hrXPb1tASBZUg-GgdVs0OOFKXMXLiHmktg_kFi7YBMyQ@mail.gmail.com/
-> 
-> Now since poisoned page is marked as not-present, in order to
-> avoid writing to a 'np' page and trigger kernel Oops, also fix
-
-You can write it out: "non-present page..."
-
-> pmem_do_write().
-> 
-> Fixes: 284ce4011ba6 ("x86/memory_failure: Introduce {set, clear}_mce_nospec()")
-> Signed-off-by: Jane Chu <jane.chu@oracle.com>
-> ---
->  arch/x86/kernel/cpu/mce/core.c |  6 +++---
->  arch/x86/mm/pat/set_memory.c   | 18 ++++++------------
->  drivers/nvdimm/pmem.c          | 31 +++++++------------------------
->  include/linux/set_memory.h     |  4 ++--
->  4 files changed, 18 insertions(+), 41 deletions(-)
-
-For such mixed subsystem patches we probably should talk about who picks
-them up, eventually...
-
-> diff --git a/arch/x86/kernel/cpu/mce/core.c b/arch/x86/kernel/cpu/mce/core.c
-> index 981496e6bc0e..fa67bb9d1afe 100644
-> --- a/arch/x86/kernel/cpu/mce/core.c
-> +++ b/arch/x86/kernel/cpu/mce/core.c
-> @@ -579,7 +579,7 @@ static int uc_decode_notifier(struct notifier_block *nb, unsigned long val,
->  
->  	pfn = mce->addr >> PAGE_SHIFT;
->  	if (!memory_failure(pfn, 0)) {
-> -		set_mce_nospec(pfn, whole_page(mce));
-> +		set_mce_nospec(pfn);
->  		mce->kflags |= MCE_HANDLED_UC;
->  	}
->  
-> @@ -1316,7 +1316,7 @@ static void kill_me_maybe(struct callback_head *cb)
->  
->  	ret = memory_failure(p->mce_addr >> PAGE_SHIFT, flags);
->  	if (!ret) {
-> -		set_mce_nospec(p->mce_addr >> PAGE_SHIFT, p->mce_whole_page);
-> +		set_mce_nospec(p->mce_addr >> PAGE_SHIFT);
->  		sync_core();
->  		return;
->  	}
-> @@ -1342,7 +1342,7 @@ static void kill_me_never(struct callback_head *cb)
->  	p->mce_count = 0;
->  	pr_err("Kernel accessed poison in user space at %llx\n", p->mce_addr);
->  	if (!memory_failure(p->mce_addr >> PAGE_SHIFT, 0))
-> -		set_mce_nospec(p->mce_addr >> PAGE_SHIFT, p->mce_whole_page);
-> +		set_mce_nospec(p->mce_addr >> PAGE_SHIFT);
->  }
-
-Both that ->mce_whole_page and whole_page() look unused after this.
-
--- 
-Regards/Gruss,
-    Boris.
-
-https://people.kernel.org/tglx/notes-about-netiquette
+I am assuming this will be staged in a common DAX branch, but holler
+now if this should go through the XFS tree.
