@@ -1,50 +1,50 @@
-Received: from mail-pl1-f172.google.com (mail-pl1-f172.google.com [209.85.214.172])
+Received: from mail-pj1-f46.google.com (mail-pj1-f46.google.com [209.85.216.46])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D92610EE
-	for <nvdimm@lists.linux.dev>; Tue, 12 Apr 2022 00:08:32 +0000 (UTC)
-Received: by mail-pl1-f172.google.com with SMTP id j8so15240122pll.11
-        for <nvdimm@lists.linux.dev>; Mon, 11 Apr 2022 17:08:32 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 21FB47B
+	for <nvdimm@lists.linux.dev>; Tue, 12 Apr 2022 04:26:47 +0000 (UTC)
+Received: by mail-pj1-f46.google.com with SMTP id h15-20020a17090a054f00b001cb7cd2b11dso1530054pjf.5
+        for <nvdimm@lists.linux.dev>; Mon, 11 Apr 2022 21:26:46 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20210112.gappssmtp.com; s=20210112;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=2wEkt+Fl5QHii5v8XtDT8LMRWz6S8eR3qRxTt2Sw5V4=;
-        b=O5GYMczRyjp9uULNTyB4HDTn7FN9FuUeovnT56eEy6ngCmuYvzf1umOPz47prHSQNf
-         sjm/mmaBMH9kX3OdAcZ7e/mJAQAcMPie9u2zSpjWdnb1xMYgeQIiHu/x3QzFfgMPwLcn
-         ChcH10leiDHwQJUEVJeAwZiwajcffDTsWWV8oFMN6dAi0MmppUO+1s4Tub7/W9P9bpJo
-         C/zenybAGnDMDQP2ii5SwFJs5SuLp7PIFO7OKXo4uROOns9yBTBle9VJuXUdM3HT/PBz
-         G5aoKrJ8LlOqXpDBI/i4othZBimrMI7KGMfeW3P4doPTZZLtAGAaKDecV9y6sDmmSnos
-         PvTg==
+        bh=UCrOTwn1Apaa4uQLVmk5UD3cOc527xiwJT4PNuBWV0U=;
+        b=qj1azZVRiLRWoOmK62O5jlUS3eBsOBIqGZrTPkVTrhXug25XR9RPlwdGNSyUk6Cn4Q
+         O2h7oNKaIwwR0F/KAXVsmKOmZQHsE4nq+VcPu6FVr2QkdlsNenKN4YVbKRVtAVD7u7b4
+         I3TXIiz7RmEJHBwtR9BUhZjSikRfkKsP2qKeq9uIwnIe5tR2LVuM+/vMUI/GaRim758K
+         qpLoQglwz9v9mBUy4ZF8OIj7vFFvKFSsACWjKZnX/zRinYHwXhHZ8rpo2gkwmxTBjBjs
+         SyNSru4EiN82wpRW3gwhJCjwubkugBNJd5Ve8Thx53DS0elOAsHJVybqbBJhleyoy6f0
+         XOqw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=2wEkt+Fl5QHii5v8XtDT8LMRWz6S8eR3qRxTt2Sw5V4=;
-        b=znomWxmyQqg1FFosYwkyIhLNQsTLNa34hMzlDHzKHZiRVt+KAjx/8+mcbs5BhFqbi8
-         PHGTfbLbzPFmV0K8raFCLuDzT3e5bjQKhxJoUTdWN4ZYeEGtzZEd1ybi/0O6oeIFa5i7
-         DiA+pNotE2G5okph00UgR5lAcGaZjucN/7V14iuDovfH1p64/DM64COsdAsfKxSHNj4r
-         7wWBuC7SVdn8ay1d2GcjDlL4dUAr1WUFaDFV1Ii+ctNtoBmoYdcSqNLagcO9bISmAvjD
-         smWnHKZSrZj50Q6fsTve4HGmgGhMj5pbqSf85oxqbeYVmRCV0+0fOQVV3ZzP7vrHfeQL
-         cCdg==
-X-Gm-Message-State: AOAM532JpA0a40uNdm8aMhXZqQl/umkvkoKySHQ3n7C5YJ6tqA6fIM5j
-	qTKzgWPzoY+CwihVeIhioJbnsMpPAG74SIveayFDcg==
-X-Google-Smtp-Source: ABdhPJwiqEMeg1D9j4J0Y+o8ZfMSN8ekDMHy7Zw5j+2VdEX4b8YSMIxWQgkLUtHS84yYy4GAXTgkQnH5MT/1f7wCXo8=
-X-Received: by 2002:a17:903:32c5:b0:156:b466:c8ed with SMTP id
- i5-20020a17090332c500b00156b466c8edmr34561265plr.34.1649722112368; Mon, 11
- Apr 2022 17:08:32 -0700 (PDT)
+        bh=UCrOTwn1Apaa4uQLVmk5UD3cOc527xiwJT4PNuBWV0U=;
+        b=xFlTFsB3uJ7CFSLE7xORbP19Tpf0QPdCu5YCzkKMM0mc0aQH8yihDA1v0pKGa9rRFb
+         3cRZkoWEA3qu52hr/gPtcMcR4Q2Xk9CUDzRwRaHUB+O5k1Bn4LOV6QvWsx/wxC0jPH8Q
+         R/3b4Tblu1HPAFWj3M7KcdbpqFGEOAr7f/uyNrSDpDmERGD0PrL/hDCxIfdRCwhoza3P
+         Uu37G7Zhb794Tma9xw6B3ltF9ujSgfHsL98AFc8zKHvqaSjAAc/V57VNX5WDTMOqaAgx
+         cElhaVdBtsiVNjfA08hquJINPjFlPb9tFXqJ2vjbYC4GRnC98qQMsi5OFp6ZuqvxD/Oa
+         oNiA==
+X-Gm-Message-State: AOAM532FJaS2c/bx9l2Mr0E6d4Jlmpjt/9jkYvuHnMqEXxvG4lbgz2bw
+	VJ4zeszr/XPV2d4snUAKx5xk7icdv6gyGH3T41n9lA==
+X-Google-Smtp-Source: ABdhPJykgObq290XUnROGzq2QfTK7LzFthT5iMS5THy+7CybmACgJItes+F9wWuzrX+7pufyRJ0OO61OHh/NWBRaQSs=
+X-Received: by 2002:a17:90b:1804:b0:1cb:82e3:5cd0 with SMTP id
+ lw4-20020a17090b180400b001cb82e35cd0mr2859224pjb.8.1649737606512; Mon, 11 Apr
+ 2022 21:26:46 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20220405194747.2386619-1-jane.chu@oracle.com> <20220405194747.2386619-5-jane.chu@oracle.com>
-In-Reply-To: <20220405194747.2386619-5-jane.chu@oracle.com>
+References: <20220405194747.2386619-1-jane.chu@oracle.com> <20220405194747.2386619-6-jane.chu@oracle.com>
+In-Reply-To: <20220405194747.2386619-6-jane.chu@oracle.com>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 11 Apr 2022 17:08:21 -0700
-Message-ID: <CAPcyv4ij8VxaeosTsRFgUTnSpRRaxWnxWK6xvUJrhmT-7ae+-Q@mail.gmail.com>
-Subject: Re: [PATCH v7 4/6] dax: add DAX_RECOVERY flag and .recovery_write dev_pgmap_ops
+Date: Mon, 11 Apr 2022 21:26:35 -0700
+Message-ID: <CAPcyv4h4NGa7_mTrrY0EqXdGny5p9JtQZx+CVBcHxX6_ZuO9pg@mail.gmail.com>
+Subject: Re: [PATCH v7 5/6] pmem: refactor pmem_clear_poison()
 To: Jane Chu <jane.chu@oracle.com>
 Cc: david <david@fromorbit.com>, "Darrick J. Wong" <djwong@kernel.org>, 
 	Christoph Hellwig <hch@infradead.org>, Vishal L Verma <vishal.l.verma@intel.com>, 
@@ -58,281 +58,157 @@ Content-Type: text/plain; charset="UTF-8"
 
 On Tue, Apr 5, 2022 at 12:48 PM Jane Chu <jane.chu@oracle.com> wrote:
 >
-> Introduce DAX_RECOVERY flag to dax_direct_access(). The flag is
-> not set by default in dax_direct_access() such that the helper
-> does not translate a pmem range to kernel virtual address if the
-> range contains uncorrectable errors.  When the flag is set,
-> the helper ignores the UEs and return kernel virtual adderss so
-> that the caller may get on with data recovery via write.
+> Refactor the pmem_clear_poison() in order to share common code
+> later.
 >
-> Also introduce a new dev_pagemap_ops .recovery_write function.
-> The function is applicable to FSDAX device only. The device
-> page backend driver provides .recovery_write function if the
-> device has underlying mechanism to clear the uncorrectable
-> errors on the fly.
->
+
+I would just add a note here about why, i.e. to factor out the common
+shared code between the typical write path and the recovery write
+path.
+
 > Signed-off-by: Jane Chu <jane.chu@oracle.com>
 > ---
->  drivers/dax/super.c             | 17 ++++++++--
->  drivers/md/dm-linear.c          |  4 +--
->  drivers/md/dm-log-writes.c      |  5 +--
->  drivers/md/dm-stripe.c          |  4 +--
->  drivers/md/dm-target.c          |  2 +-
->  drivers/md/dm-writecache.c      |  5 +--
->  drivers/md/dm.c                 |  5 +--
->  drivers/nvdimm/pmem.c           | 57 +++++++++++++++++++++++++++------
->  drivers/nvdimm/pmem.h           |  2 +-
->  drivers/s390/block/dcssblk.c    |  4 +--
->  fs/dax.c                        | 24 ++++++++++----
->  fs/fuse/dax.c                   |  4 +--
->  include/linux/dax.h             | 11 +++++--
->  include/linux/device-mapper.h   |  2 +-
->  include/linux/memremap.h        |  7 ++++
->  tools/testing/nvdimm/pmem-dax.c |  2 +-
->  16 files changed, 116 insertions(+), 39 deletions(-)
+>  drivers/nvdimm/pmem.c | 78 ++++++++++++++++++++++++++++---------------
+>  1 file changed, 52 insertions(+), 26 deletions(-)
 >
-> diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-> index 0211e6f7b47a..8252858cd25a 100644
-> --- a/drivers/dax/super.c
-> +++ b/drivers/dax/super.c
-> @@ -13,6 +13,7 @@
->  #include <linux/uio.h>
->  #include <linux/dax.h>
->  #include <linux/fs.h>
-> +#include <linux/memremap.h>
->  #include "dax-private.h"
->
->  /**
-> @@ -117,6 +118,7 @@ enum dax_device_flags {
->   * @dax_dev: a dax_device instance representing the logical memory range
->   * @pgoff: offset in pages from the start of the device to translate
->   * @nr_pages: number of consecutive pages caller can handle relative to @pfn
-> + * @flags: by default 0, set to DAX_RECOVERY to kick start dax recovery
->   * @kaddr: output parameter that returns a virtual address mapping of pfn
->   * @pfn: output parameter that returns an absolute pfn translation of @pgoff
->   *
-> @@ -124,7 +126,7 @@ enum dax_device_flags {
->   * pages accessible at the device relative @pgoff.
->   */
->  long dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff, long nr_pages,
-> -               void **kaddr, pfn_t *pfn)
-> +               int flags, void **kaddr, pfn_t *pfn)
->  {
->         long avail;
->
-> @@ -137,7 +139,7 @@ long dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff, long nr_pages,
->         if (nr_pages < 0)
->                 return -EINVAL;
->
-> -       avail = dax_dev->ops->direct_access(dax_dev, pgoff, nr_pages,
-> +       avail = dax_dev->ops->direct_access(dax_dev, pgoff, nr_pages, flags,
->                         kaddr, pfn);
->         if (!avail)
->                 return -ERANGE;
-> @@ -194,6 +196,17 @@ int dax_zero_page_range(struct dax_device *dax_dev, pgoff_t pgoff,
->  }
->  EXPORT_SYMBOL_GPL(dax_zero_page_range);
->
-> +size_t dax_recovery_write(struct dax_device *dax_dev, pgoff_t pgoff,
-> +               pfn_t pfn, void *addr, size_t bytes, struct iov_iter *iter)
-> +{
-> +       struct dev_pagemap *pgmap = get_dev_pagemap(pfn_t_to_pfn(pfn), NULL);
-> +
-> +       if (!pgmap || !pgmap->ops || !pgmap->ops->recovery_write)
-> +               return 0;
-> +       return pgmap->ops->recovery_write(pgmap, pgoff, addr, bytes, iter);
-> +}
-> +EXPORT_SYMBOL_GPL(dax_recovery_write);
-> +
->  #ifdef CONFIG_ARCH_HAS_PMEM_API
->  void arch_wb_cache_pmem(void *addr, size_t size);
->  void dax_flush(struct dax_device *dax_dev, void *addr, size_t size)
-> diff --git a/drivers/md/dm-linear.c b/drivers/md/dm-linear.c
-> index 76b486e4d2be..9e6d8bdf3b2a 100644
-> --- a/drivers/md/dm-linear.c
-> +++ b/drivers/md/dm-linear.c
-> @@ -172,11 +172,11 @@ static struct dax_device *linear_dax_pgoff(struct dm_target *ti, pgoff_t *pgoff)
->  }
->
->  static long linear_dax_direct_access(struct dm_target *ti, pgoff_t pgoff,
-> -               long nr_pages, void **kaddr, pfn_t *pfn)
-> +               long nr_pages, int flags, void **kaddr, pfn_t *pfn)
->  {
->         struct dax_device *dax_dev = linear_dax_pgoff(ti, &pgoff);
->
-> -       return dax_direct_access(dax_dev, pgoff, nr_pages, kaddr, pfn);
-> +       return dax_direct_access(dax_dev, pgoff, nr_pages, flags, kaddr, pfn);
->  }
->
->  static int linear_dax_zero_page_range(struct dm_target *ti, pgoff_t pgoff,
-> diff --git a/drivers/md/dm-log-writes.c b/drivers/md/dm-log-writes.c
-> index c9d036d6bb2e..e23f062ade5f 100644
-> --- a/drivers/md/dm-log-writes.c
-> +++ b/drivers/md/dm-log-writes.c
-> @@ -889,11 +889,12 @@ static struct dax_device *log_writes_dax_pgoff(struct dm_target *ti,
->  }
->
->  static long log_writes_dax_direct_access(struct dm_target *ti, pgoff_t pgoff,
-> -                                        long nr_pages, void **kaddr, pfn_t *pfn)
-> +                                        long nr_pages, int flags,
-> +                                        void **kaddr, pfn_t *pfn)
->  {
->         struct dax_device *dax_dev = log_writes_dax_pgoff(ti, &pgoff);
->
-> -       return dax_direct_access(dax_dev, pgoff, nr_pages, kaddr, pfn);
-> +       return dax_direct_access(dax_dev, pgoff, nr_pages, flags, kaddr, pfn);
->  }
->
->  static int log_writes_dax_zero_page_range(struct dm_target *ti, pgoff_t pgoff,
-> diff --git a/drivers/md/dm-stripe.c b/drivers/md/dm-stripe.c
-> index c81d331d1afe..b89339c78702 100644
-> --- a/drivers/md/dm-stripe.c
-> +++ b/drivers/md/dm-stripe.c
-> @@ -315,11 +315,11 @@ static struct dax_device *stripe_dax_pgoff(struct dm_target *ti, pgoff_t *pgoff)
->  }
->
->  static long stripe_dax_direct_access(struct dm_target *ti, pgoff_t pgoff,
-> -               long nr_pages, void **kaddr, pfn_t *pfn)
-> +               long nr_pages, int flags, void **kaddr, pfn_t *pfn)
->  {
->         struct dax_device *dax_dev = stripe_dax_pgoff(ti, &pgoff);
->
-> -       return dax_direct_access(dax_dev, pgoff, nr_pages, kaddr, pfn);
-> +       return dax_direct_access(dax_dev, pgoff, nr_pages, flags, kaddr, pfn);
->  }
->
->  static int stripe_dax_zero_page_range(struct dm_target *ti, pgoff_t pgoff,
-> diff --git a/drivers/md/dm-target.c b/drivers/md/dm-target.c
-> index 64dd0b34fcf4..24b1e5628f3a 100644
-> --- a/drivers/md/dm-target.c
-> +++ b/drivers/md/dm-target.c
-> @@ -142,7 +142,7 @@ static void io_err_release_clone_rq(struct request *clone,
->  }
->
->  static long io_err_dax_direct_access(struct dm_target *ti, pgoff_t pgoff,
-> -               long nr_pages, void **kaddr, pfn_t *pfn)
-> +               long nr_pages, int flags, void **kaddr, pfn_t *pfn)
->  {
->         return -EIO;
->  }
-> diff --git a/drivers/md/dm-writecache.c b/drivers/md/dm-writecache.c
-> index 5630b470ba42..180ca8fa383e 100644
-> --- a/drivers/md/dm-writecache.c
-> +++ b/drivers/md/dm-writecache.c
-> @@ -286,7 +286,8 @@ static int persistent_memory_claim(struct dm_writecache *wc)
->
->         id = dax_read_lock();
->
-> -       da = dax_direct_access(wc->ssd_dev->dax_dev, offset, p, &wc->memory_map, &pfn);
-> +       da = dax_direct_access(wc->ssd_dev->dax_dev, offset, p, 0,
-> +                       &wc->memory_map, &pfn);
->         if (da < 0) {
->                 wc->memory_map = NULL;
->                 r = da;
-> @@ -309,7 +310,7 @@ static int persistent_memory_claim(struct dm_writecache *wc)
->                 do {
->                         long daa;
->                         daa = dax_direct_access(wc->ssd_dev->dax_dev, offset + i, p - i,
-> -                                               NULL, &pfn);
-> +                                               0, NULL, &pfn);
->                         if (daa <= 0) {
->                                 r = daa ? daa : -EINVAL;
->                                 goto err3;
-> diff --git a/drivers/md/dm.c b/drivers/md/dm.c
-> index ad2e0bbeb559..a8c697bb6603 100644
-> --- a/drivers/md/dm.c
-> +++ b/drivers/md/dm.c
-> @@ -1087,7 +1087,8 @@ static struct dm_target *dm_dax_get_live_target(struct mapped_device *md,
->  }
->
->  static long dm_dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff,
-> -                                long nr_pages, void **kaddr, pfn_t *pfn)
-> +                                long nr_pages, int flags, void **kaddr,
-> +                                pfn_t *pfn)
->  {
->         struct mapped_device *md = dax_get_private(dax_dev);
->         sector_t sector = pgoff * PAGE_SECTORS;
-> @@ -1105,7 +1106,7 @@ static long dm_dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff,
->         if (len < 1)
->                 goto out;
->         nr_pages = min(len, nr_pages);
-> -       ret = ti->type->direct_access(ti, pgoff, nr_pages, kaddr, pfn);
-> +       ret = ti->type->direct_access(ti, pgoff, nr_pages, flags, kaddr, pfn);
->
->   out:
->         dm_put_live_table(md, srcu_idx);
 > diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-> index 30c71a68175b..0400c5a7ba39 100644
+> index 0400c5a7ba39..56596be70400 100644
 > --- a/drivers/nvdimm/pmem.c
 > +++ b/drivers/nvdimm/pmem.c
-> @@ -238,12 +238,23 @@ static int pmem_rw_page(struct block_device *bdev, sector_t sector,
+> @@ -45,10 +45,27 @@ static struct nd_region *to_region(struct pmem_device *pmem)
+>         return to_nd_region(to_dev(pmem)->parent);
+>  }
 >
->  /* see "strong" declaration in tools/testing/nvdimm/pmem-dax.c */
->  __weak long __pmem_direct_access(struct pmem_device *pmem, pgoff_t pgoff,
-> -               long nr_pages, void **kaddr, pfn_t *pfn)
-> +               long nr_pages, int flags, void **kaddr, pfn_t *pfn)
+> -static void hwpoison_clear(struct pmem_device *pmem,
+> -               phys_addr_t phys, unsigned int len)
+> +static phys_addr_t to_phys(struct pmem_device *pmem, phys_addr_t offset)
 >  {
->         resource_size_t offset = PFN_PHYS(pgoff) + pmem->data_offset;
-> +       sector_t sector = PFN_PHYS(pgoff) >> SECTOR_SHIFT;
-> +       unsigned int num = PFN_PHYS(nr_pages) >> SECTOR_SHIFT;
-> +       struct badblocks *bb = &pmem->bb;
-> +       sector_t first_bad;
-> +       int num_bad;
-> +       bool bad_in_range;
-> +       long actual_nr;
+> +       return (pmem->phys_addr + offset);
+
+Christoph already mentioned dropping the unnecessary parenthesis.
+
+> +}
 > +
-> +       if (!bb->count)
-> +               bad_in_range = false;
-> +       else
-> +               bad_in_range = !!badblocks_check(bb, sector, num, &first_bad, &num_bad);
-
-Why all this change...
-
->
-> -       if (unlikely(is_bad_pmem(&pmem->bb, PFN_PHYS(pgoff) / 512,
-> -                                       PFN_PHYS(nr_pages))))
-
-...instead of adding "&& !(flags & DAX_RECOVERY)" to this statement?
-
-> +       if (bad_in_range && !(flags & DAX_RECOVERY))
->                 return -EIO;
->
->         if (kaddr)
-> @@ -251,13 +262,26 @@ __weak long __pmem_direct_access(struct pmem_device *pmem, pgoff_t pgoff,
->         if (pfn)
->                 *pfn = phys_to_pfn_t(pmem->phys_addr + offset, pmem->pfn_flags);
->
-> +       if (!bad_in_range) {
-> +               /*
-> +                * If badblock is present but not in the range, limit known good range
-> +                * to the requested range.
-> +                */
-> +               if (bb->count)
-> +                       return nr_pages;
-> +               return PHYS_PFN(pmem->size - pmem->pfn_pad - offset);
-> +       }
+> +static sector_t to_sect(struct pmem_device *pmem, phys_addr_t offset)
+> +{
+> +       return (offset - pmem->data_offset) >> SECTOR_SHIFT;
+> +}
 > +
->         /*
-> -        * If badblocks are present, limit known good range to the
-> -        * requested range.
-> +        * In case poison is found in the given range and DAX_RECOVERY flag is set,
-> +        * recovery stride is set to kernel page size because the underlying driver and
-> +        * firmware clear poison functions don't appear to handle large chunk (such as
-> +        * 2MiB) reliably.
->          */
-> -       if (unlikely(pmem->bb.count))
-> -               return nr_pages;
-> -       return PHYS_PFN(pmem->size - pmem->pfn_pad - offset);
-> +       actual_nr = PHYS_PFN(PAGE_ALIGN((first_bad - sector) << SECTOR_SHIFT));
-> +       dev_dbg(pmem->bb.dev, "start sector(%llu), nr_pages(%ld), first_bad(%llu), actual_nr(%ld)\n",
-> +                       sector, nr_pages, first_bad, actual_nr);
-> +       return (actual_nr == 0) ? 1 : actual_nr;
+> +static phys_addr_t to_offset(struct pmem_device *pmem, sector_t sector)
+> +{
+> +       return ((sector << SECTOR_SHIFT) + pmem->data_offset);
+> +}
+> +
+> +static void pmem_clear_hwpoison(struct pmem_device *pmem, phys_addr_t offset,
+> +               unsigned int len)
 
-Similar feedback as above that this is more change than I would expect.
+Perhaps now is a good time to rename this to something else like
+pmem_clear_mce_nospec()? Just to make it more distinct from
+pmem_clear_poison(). While "hwpoison" is the page flag name
+pmem_clear_poison() is the function that's actually clearing the
+poison in hardware ("hw") and the new pmem_clear_mce_nospec() is
+toggling the page back into service.
 
-I think just adding...
+> +{
+> +       phys_addr_t phys = to_phys(pmem, offset);
+>         unsigned long pfn_start, pfn_end, pfn;
+> +       unsigned int blks = len >> SECTOR_SHIFT;
+>
+>         /* only pmem in the linear map supports HWPoison */
+>         if (is_vmalloc_addr(pmem->virt_addr))
+> @@ -67,35 +84,44 @@ static void hwpoison_clear(struct pmem_device *pmem,
+>                 if (test_and_clear_pmem_poison(page))
+>                         clear_mce_nospec(pfn);
+>         }
+> +
+> +       dev_dbg(to_dev(pmem), "%#llx clear %u sector%s\n",
+> +               (unsigned long long) to_sect(pmem, offset), blks,
+> +               blks > 1 ? "s" : "");
 
-if (flags & DAX_RECOVERY)
-   return 1;
+In anticipation of better tracing support and the fact that this is no
+longer called from pmem_clear_poison() let's drop it for now.
 
-...before the typical return path is enough.
+>  }
+>
+> -static blk_status_t pmem_clear_poison(struct pmem_device *pmem,
+> +static void pmem_clear_bb(struct pmem_device *pmem, sector_t sector, long blks)
+> +{
+> +       if (blks == 0)
+> +               return;
+> +       badblocks_clear(&pmem->bb, sector, blks);
+> +       if (pmem->bb_state)
+> +               sysfs_notify_dirent(pmem->bb_state);
+> +}
+> +
+> +static long __pmem_clear_poison(struct pmem_device *pmem,
+>                 phys_addr_t offset, unsigned int len)
+>  {
+> -       struct device *dev = to_dev(pmem);
+> -       sector_t sector;
+> -       long cleared;
+> -       blk_status_t rc = BLK_STS_OK;
+> -
+> -       sector = (offset - pmem->data_offset) / 512;
+> -
+> -       cleared = nvdimm_clear_poison(dev, pmem->phys_addr + offset, len);
+> -       if (cleared < len)
+> -               rc = BLK_STS_IOERR;
+> -       if (cleared > 0 && cleared / 512) {
+> -               hwpoison_clear(pmem, pmem->phys_addr + offset, cleared);
+> -               cleared /= 512;
+> -               dev_dbg(dev, "%#llx clear %ld sector%s\n",
+> -                               (unsigned long long) sector, cleared,
+> -                               cleared > 1 ? "s" : "");
+> -               badblocks_clear(&pmem->bb, sector, cleared);
+> -               if (pmem->bb_state)
+> -                       sysfs_notify_dirent(pmem->bb_state);
+> +       phys_addr_t phys = to_phys(pmem, offset);
+> +       long cleared = nvdimm_clear_poison(to_dev(pmem), phys, len);
+> +
+> +       if (cleared > 0) {
+> +               pmem_clear_hwpoison(pmem, offset, cleared);
+> +               arch_invalidate_pmem(pmem->virt_addr + offset, len);
+>         }
+> +       return cleared;
+> +}
+>
+> -       arch_invalidate_pmem(pmem->virt_addr + offset, len);
+> +static blk_status_t pmem_clear_poison(struct pmem_device *pmem,
+> +               phys_addr_t offset, unsigned int len)
+> +{
+> +       long cleared = __pmem_clear_poison(pmem, offset, len);
+>
+> -       return rc;
+> +       if (cleared < 0)
+> +               return BLK_STS_IOERR;
+> +
+> +       pmem_clear_bb(pmem, to_sect(pmem, offset), cleared >> SECTOR_SHIFT);
+> +       return (cleared < len) ? BLK_STS_IOERR : BLK_STS_OK;
+
+I prefer "if / else" syntax instead of a ternary conditional.
+
+>  }
+>
+>  static void write_pmem(void *pmem_addr, struct page *page,
+> @@ -143,7 +169,7 @@ static blk_status_t pmem_do_read(struct pmem_device *pmem,
+>                         sector_t sector, unsigned int len)
+>  {
+>         blk_status_t rc;
+> -       phys_addr_t pmem_off = sector * 512 + pmem->data_offset;
+> +       phys_addr_t pmem_off = to_offset(pmem, sector);
+>         void *pmem_addr = pmem->virt_addr + pmem_off;
+>
+>         if (unlikely(is_bad_pmem(&pmem->bb, sector, len)))
+> @@ -158,7 +184,7 @@ static blk_status_t pmem_do_write(struct pmem_device *pmem,
+>                         struct page *page, unsigned int page_off,
+>                         sector_t sector, unsigned int len)
+>  {
+> -       phys_addr_t pmem_off = sector * 512 + pmem->data_offset;
+> +       phys_addr_t pmem_off = to_offset(pmem, sector);
+>         void *pmem_addr = pmem->virt_addr + pmem_off;
+>
+>         if (unlikely(is_bad_pmem(&pmem->bb, sector, len))) {
+
+With those small fixups you can add:
+
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
