@@ -1,57 +1,80 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CD377B
-	for <nvdimm@lists.linux.dev>; Wed, 13 Apr 2022 17:12:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
-	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=rmaub1Fg6680Gb6loNmi4m+L/azuwzRdA8BbFTNNmAg=; b=sgs3KDtvSKxVoaXFni+5K4bL8q
-	mx32Tw9M8zH06IGPbQyswfwg7yK/WNYXRQRS7FGFpMvWLw+cDVDfvMSCYDa7/+IT3hpgy3pLpuUZ1
-	0QKt4gdsqmHuRgEltJFYLeppuPccld2519EU/iP8um3PGO8cA1OdmeF+aIj0yzhLayoJtpouozLsM
-	GGJIhlXaZ9kBskq1eNS2S/rBFbJmG7gdvGdJSv3B8lNOkoNLvosgYI4exa6soIAFjyMy+XLEW5KyY
-	E5QgZmTotNf30ZsKfv3DoLGPFkp8I73R6mGW/YDjm5WJl033DLY3JrA8v6dwOzLffBwqg9iZwB2FG
-	eu8gf94g==;
-Received: from hch by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-	id 1negXa-001url-0C; Wed, 13 Apr 2022 17:12:26 +0000
-Date: Wed, 13 Apr 2022 10:12:25 -0700
-From: Christoph Hellwig <hch@infradead.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Chinner <david@fromorbit.com>,
-	Shiyang Ruan <ruansy.fnst@fujitsu.com>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	linux-xfs <linux-xfs@vger.kernel.org>,
-	Linux NVDIMM <nvdimm@lists.linux.dev>,
-	Linux MM <linux-mm@kvack.org>,
-	linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-	"Darrick J. Wong" <djwong@kernel.org>,
-	Christoph Hellwig <hch@infradead.org>,
-	Jane Chu <jane.chu@oracle.com>
-Subject: Re: [PATCH v12 6/7] xfs: Implement ->notify_failure() for XFS
-Message-ID: <YlcEeZbYOOIYln3s@infradead.org>
-References: <20220410160904.3758789-1-ruansy.fnst@fujitsu.com>
- <20220410160904.3758789-7-ruansy.fnst@fujitsu.com>
- <20220413000423.GK1544202@dread.disaster.area>
- <CAPcyv4jKLZhcCiSEU+O+OJ2e+y9_B2CvaEfAKyBnhhSd+da=Zg@mail.gmail.com>
- <20220413060946.GL1544202@dread.disaster.area>
- <CAPcyv4jPgX3w2e1dENJvKjhCpiB7GMZURXWMoGUNNcOQFotb3A@mail.gmail.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B9B9323AD;
+	Wed, 13 Apr 2022 18:38:10 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1649875090; x=1681411090;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=9JmB6oJKPBBDOztp/9A53kUt0HnYQkAsrrNo+Sut5u0=;
+  b=WDK14tT7Uk3Knm4zUL8vpuFVJGonlK3WOJC3k9UTlhLxk/l0aR8tRxhU
+   p19YMHBYSzp15gzhyMBNm5hGkNmyJAlMtADpoxlRnX3shGr8c7Szn9RJH
+   /ktu6hSP2R9D1MnpS/GASaSC718jIQtdUOfHmrxAl6u9tTRPc00O+pEAb
+   y3Xt4Up/U0qTrwKFjIsnfOPEzS+IotEva+knmX4tVHb3n5zPpRErLb9dY
+   UPiLRvvPXWQqMomSnkHPvmGZuX8gMFD81+vk7eV0MayACx4sWIAHB22yw
+   zl27XX3qswQgUImPqSx1aK2aoG+L6M+i+8q5xeOnZuGNCDXWkV1sjG7aV
+   Q==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10316"; a="244631839"
+X-IronPort-AV: E=Sophos;i="5.90,257,1643702400"; 
+   d="scan'208";a="244631839"
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Apr 2022 11:37:48 -0700
+X-IronPort-AV: E=Sophos;i="5.90,257,1643702400"; 
+   d="scan'208";a="725013569"
+Received: from sushobhi-mobl.amr.corp.intel.com (HELO localhost.localdomain) ([10.252.131.238])
+  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Apr 2022 11:37:47 -0700
+From: Ben Widawsky <ben.widawsky@intel.com>
+To: linux-cxl@vger.kernel.org,
+	nvdimm@lists.linux.dev
+Cc: patches@lists.linux.dev,
+	Ben Widawsky <ben.widawsky@intel.com>,
+	Alison Schofield <alison.schofield@intel.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Ira Weiny <ira.weiny@intel.com>,
+	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+	Vishal Verma <vishal.l.verma@intel.com>
+Subject: [RFC PATCH 02/15] cxl/core/hdm: Bail on endpoint init fail
+Date: Wed, 13 Apr 2022 11:37:07 -0700
+Message-Id: <20220413183720.2444089-3-ben.widawsky@intel.com>
+X-Mailer: git-send-email 2.35.1
+In-Reply-To: <20220413183720.2444089-1-ben.widawsky@intel.com>
+References: <20220413183720.2444089-1-ben.widawsky@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4jPgX3w2e1dENJvKjhCpiB7GMZURXWMoGUNNcOQFotb3A@mail.gmail.com>
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
+Content-Transfer-Encoding: 8bit
 
-On Wed, Apr 13, 2022 at 10:09:40AM -0700, Dan Williams wrote:
-> Yes, sounds like we're on the same page. I had mistakenly interpreted
-> "Hence these notifications need to be delayed until after the
-> filesystem is mounted" as something the producer would need to handle,
-> but yes, consumer is free to drop if the notification arrives at an
-> inopportune time.
+Endpoint decoder enumeration is the only way in which we can determine
+Device Physical Address (DPA) -> Host Physical Address (HPA) mappings.
+Information is obtained only when the register state can be read
+sequentially. If when enumerating the decoders a failure occurs, all
+other decoders must also fail since the decoders can no longer be
+accurately managed (unless it's the last decoder in which case it can
+still work).
 
-A SB_BORN check might be all that we need.
+Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
+---
+ drivers/cxl/core/hdm.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/cxl/core/hdm.c b/drivers/cxl/core/hdm.c
+index bfc8ee876278..c3c021b54079 100644
+--- a/drivers/cxl/core/hdm.c
++++ b/drivers/cxl/core/hdm.c
+@@ -255,6 +255,8 @@ int devm_cxl_enumerate_decoders(struct cxl_hdm *cxlhdm)
+ 				      cxlhdm->regs.hdm_decoder, i);
+ 		if (rc) {
+ 			put_device(&cxld->dev);
++			if (is_endpoint_decoder(&cxld->dev))
++				return rc;
+ 			failed++;
+ 			continue;
+ 		}
+-- 
+2.35.1
+
