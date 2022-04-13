@@ -1,43 +1,43 @@
 Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50A35320B;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0A873D8D;
 	Wed, 13 Apr 2022 18:38:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
   t=1649875097; x=1681411097;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=ueQH3WwkSvY8y69EXKcXNLoaONnTPsnAVGBYWnEIn+E=;
-  b=DdG60cki6n9rlDEuEN92LDlNMMBQKC3aciNSB9A+HI2bPbDCBp0qBxel
-   YyTkEbTJobpW+ttMvN+FxlWEvumtDzPtipuxtqLL37mQnazTGEB783xMb
-   rLpPm5/VM5jP1pGDIGEDoahWmpVrMjnjSVxuJuFWglna1TFpccoWklwC8
-   3xoF/jqoHgGrbne0LTplVbkaZQAnXIXUl1jksYF0vBZCvMYszV5MTEPUd
-   PocrMdQKZ+lFPFlPWZIOs0V6Hq8ofdNcRykw85edMogr4VnMIdFEf5/CY
-   xuHBCHUenaS2GXZkSn+YPVC0lQdKXDNvEvIcyCF96T6hoOcGZWpzMeRzi
+  bh=A08ZtqBkpxmYlMioCtWhkKAwbN/JwTf6N/V87wbOrSU=;
+  b=FE6VXa4tpdGKY1egNPoVGBHzdid3IrEViD3z8ijoPHSCYMyO3Hb7y1do
+   KUpeHS+Z8SaM2TfgDNnL7xfSC6ZwIxs1ItQVYyzMtRAmgP3RjHiMmUcku
+   54QBDrA40MN8H9aqzxFwTPRBhHx7g/DkJkzWwS1x6uTb5rEFBD33Anlbz
+   88UBBaA2NdNPLdTIhi7UBnFIpHclSh+jBGlz4+Wk8G/LWJYWCl44E9CQP
+   zRSetTq869bf77uaVPqIZygqD1JgX1tEvuEqJmOEHcSI+871NcuemiiX6
+   c1btpRh2ZurG0YKScn9v7t3s7nkxKvF6GtiaF/iRqIVcv3Cmqh+4Ekh94
    g==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10316"; a="244631844"
+X-IronPort-AV: E=McAfee;i="6400,9594,10316"; a="244631858"
 X-IronPort-AV: E=Sophos;i="5.90,257,1643702400"; 
-   d="scan'208";a="244631844"
+   d="scan'208";a="244631858"
 Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Apr 2022 11:37:49 -0700
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Apr 2022 11:37:51 -0700
 X-IronPort-AV: E=Sophos;i="5.90,257,1643702400"; 
-   d="scan'208";a="725013586"
+   d="scan'208";a="725013626"
 Received: from sushobhi-mobl.amr.corp.intel.com (HELO localhost.localdomain) ([10.252.131.238])
-  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Apr 2022 11:37:48 -0700
+  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Apr 2022 11:37:51 -0700
 From: Ben Widawsky <ben.widawsky@intel.com>
 To: linux-cxl@vger.kernel.org,
 	nvdimm@lists.linux.dev
 Cc: patches@lists.linux.dev,
 	Ben Widawsky <ben.widawsky@intel.com>,
-	Dan Williams <dan.j.williams@intel.com>,
 	Alison Schofield <alison.schofield@intel.com>,
+	Dan Williams <dan.j.williams@intel.com>,
 	Ira Weiny <ira.weiny@intel.com>,
 	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
 	Vishal Verma <vishal.l.verma@intel.com>
-Subject: [RFC PATCH 05/15] cxl/acpi: Reserve CXL resources from request_free_mem_region
-Date: Wed, 13 Apr 2022 11:37:10 -0700
-Message-Id: <20220413183720.2444089-6-ben.widawsky@intel.com>
+Subject: [RFC PATCH 12/15] cxl/region: Add region creation ABI
+Date: Wed, 13 Apr 2022 11:37:17 -0700
+Message-Id: <20220413183720.2444089-13-ben.widawsky@intel.com>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <20220413183720.2444089-1-ben.widawsky@intel.com>
 References: <20220413183720.2444089-1-ben.widawsky@intel.com>
@@ -49,172 +49,550 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Define an API which allows CXL drivers to manage CXL address space.
-CXL is unique in that the address space and various properties are only
-known after CXL drivers come up, and therefore cannot be part of core
-memory enumeration.
+Regions are created as a child of the decoder that encompasses an
+address space with constraints. Regions have a number of attributes that
+must be configured before the region can be activated.
 
-Compute Express Link 2.0 [ECN] defines a concept called CXL Fixed Memory
-Window Structures (CFMWS). Each CFMWS conveys a region of host physical
-address (HPA) space which has certain properties that are familiar to
-CXL, mainly interleave properties, and restrictions, such as
-persistence. The HPA ranges therefore should be owned, or at least
-guided by the relevant CXL driver, cxl_acpi [1].
+Multiple processes which are trying not to race with each other
+shouldn't need special userspace synchronization to do so.
 
-It would be desirable to simply insert this address space into
-iomem_resource with a new flag to denote this is CXL memory. This would
-permit request_free_mem_region() to be reused for CXL memory provided it
-learned some new tricks. For that, it is tempting to simply use
-insert_resource(). The API was designed specifically for cases where new
-devices may offer new address space. This cannot work in the general
-case. Boot firmware can pass, some, none, or all of the CFMWS range as
-various types of memory to the kernel, and this may be left alone,
-merged, or even expanded. As a result iomem_resource may intersect CFMWS
-regions in ways insert_resource cannot handle [2]. Similar reasoning
-applies to allocate_resource().
+// Allocate a new region name
+region=$(cat /sys/bus/cxl/devices/decoder0.0/create_pmem_region)
 
-With the insert_resource option out, the only reasonable approach left
-is to let the CXL driver manage the address space independently of
-iomem_resource and attempt to prevent users of device private memory
-APIs from using CXL memory. In the case where cxl_acpi comes up first,
-the new API allows cxl to block use of any CFMWS defined address space
-by assuming everything above the highest CFMWS entry is fair game. It is
-expected that this effectively will prevent usage of device private
-memory, but if such behavior is undesired, cxl_acpi can be blocked from
-loading, or unloaded. When device private memory is used before CXL
-comes up, or, there are intersections as described above, the CXL driver
-will have to make sure to not reuse sysram that is BUSY.
+// Create a new region by name
+while
+region=$(cat /sys/bus/cxl/devices/decoder0.0/create_pmem_region)
+! echo $region > /sys/bus/cxl/devices/decoder0.0/create_pmem_region
+do true; done
 
-[1]: The specification defines enumeration via ACPI, however, one could
-envision devicetree, or some other hardcoded mechanisms for doing the
-same thing.
+// Region now exists in sysfs
+stat -t /sys/bus/cxl/devices/decoder0.0/$region
 
-[2]: A common way to hit this case is when BIOS creates a volatile
-region with extra space for hotplug. In this case, you're likely to have
+// Delete the region, and name
+echo $region > /sys/bus/cxl/devices/decoder0.0/delete_region
 
-|<--------------HPA space---------------------->|
-|<---iomem_resource -->|
-| DDR  | CXL Volatile  |
-|      | CFMWS for volatile w/ hotplug |
-
-Suggested-by: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
 ---
- drivers/cxl/acpi.c     | 26 ++++++++++++++++++++++++++
- include/linux/ioport.h |  1 +
- kernel/resource.c      | 11 ++++++++++-
- 3 files changed, 37 insertions(+), 1 deletion(-)
+ Documentation/ABI/testing/sysfs-bus-cxl       |  23 ++
+ .../driver-api/cxl/memory-devices.rst         |  11 +
+ drivers/cxl/Kconfig                           |   5 +
+ drivers/cxl/core/Makefile                     |   1 +
+ drivers/cxl/core/port.c                       |  39 ++-
+ drivers/cxl/core/region.c                     | 234 ++++++++++++++++++
+ drivers/cxl/cxl.h                             |   7 +
+ drivers/cxl/region.h                          |  29 +++
+ tools/testing/cxl/Kbuild                      |   1 +
+ 9 files changed, 347 insertions(+), 3 deletions(-)
+ create mode 100644 drivers/cxl/core/region.c
+ create mode 100644 drivers/cxl/region.h
 
-diff --git a/drivers/cxl/acpi.c b/drivers/cxl/acpi.c
-index 9b69955b90cb..0870904fe4b5 100644
---- a/drivers/cxl/acpi.c
-+++ b/drivers/cxl/acpi.c
-@@ -76,6 +76,7 @@ static int cxl_acpi_cfmws_verify(struct device *dev,
- struct cxl_cfmws_context {
- 	struct device *dev;
- 	struct cxl_port *root_port;
-+	struct acpi_cedt_cfmws *high_cfmws;
+diff --git a/Documentation/ABI/testing/sysfs-bus-cxl b/Documentation/ABI/testing/sysfs-bus-cxl
+index 01fee09b8473..5229f4bd109a 100644
+--- a/Documentation/ABI/testing/sysfs-bus-cxl
++++ b/Documentation/ABI/testing/sysfs-bus-cxl
+@@ -174,3 +174,26 @@ Description:
+ 		Provide a knob to set/get whether the desired media is volatile
+ 		or persistent. This applies only to decoders of devtype
+ 		"cxl_decoder_endpoint",
++
++What:		/sys/bus/cxl/devices/decoderX.Y/create_pmem_region
++Date:		January, 2022
++KernelVersion:	v5.19
++Contact:	linux-cxl@vger.kernel.org
++Description:
++		Write an integer value to instantiate a new region to be named
++		regionZ within the decode range bounded by decoderX.Y. Where X,
++		Y, and Z are unsigned integers, and where decoderX.Y exists in
++		the CXL sysfs topology. The value written must match the current
++		value returned from reading this attribute. This behavior lets
++		the kernel arbitrate racing attempts to create a region. The
++		thread that fails to write loops and tries the next value.
++		Regions must subsequently configured and bound to a region
++		driver before they can be used.
++
++What:		/sys/bus/cxl/devices/decoderX.Y/delete_region
++Date:		January, 2022
++KernelVersion:	v5.19
++Contact:	linux-cxl@vger.kernel.org
++Description:
++		Deletes the named region. The attribute expects a region number
++		as an integer.
+diff --git a/Documentation/driver-api/cxl/memory-devices.rst b/Documentation/driver-api/cxl/memory-devices.rst
+index db476bb170b6..66ddc58a21b1 100644
+--- a/Documentation/driver-api/cxl/memory-devices.rst
++++ b/Documentation/driver-api/cxl/memory-devices.rst
+@@ -362,6 +362,17 @@ CXL Core
+ .. kernel-doc:: drivers/cxl/core/mbox.c
+    :doc: cxl mbox
+ 
++CXL Regions
++-----------
++.. kernel-doc:: drivers/cxl/region.h
++   :identifiers:
++
++.. kernel-doc:: drivers/cxl/core/region.c
++   :doc: cxl core region
++
++.. kernel-doc:: drivers/cxl/core/region.c
++   :identifiers:
++
+ External Interfaces
+ ===================
+ 
+diff --git a/drivers/cxl/Kconfig b/drivers/cxl/Kconfig
+index 8796fd4b22bc..7ce86eee8bda 100644
+--- a/drivers/cxl/Kconfig
++++ b/drivers/cxl/Kconfig
+@@ -99,4 +99,9 @@ config CXL_PORT
+ 	default CXL_BUS
+ 	select DEVICE_PRIVATE
+ 
++config CXL_REGION
++	tristate
++	default CXL_BUS
++	select MEMREGION
++
+ endif
+diff --git a/drivers/cxl/core/Makefile b/drivers/cxl/core/Makefile
+index 6d37cd78b151..39ce8f2f2373 100644
+--- a/drivers/cxl/core/Makefile
++++ b/drivers/cxl/core/Makefile
+@@ -4,6 +4,7 @@ obj-$(CONFIG_CXL_BUS) += cxl_core.o
+ ccflags-y += -I$(srctree)/drivers/cxl
+ cxl_core-y := port.o
+ cxl_core-y += pmem.o
++cxl_core-y += region.o
+ cxl_core-y += regs.o
+ cxl_core-y += memdev.o
+ cxl_core-y += mbox.o
+diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
+index bdafdec80d98..5ef8a6e1ea23 100644
+--- a/drivers/cxl/core/port.c
++++ b/drivers/cxl/core/port.c
+@@ -1,6 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+ /* Copyright(c) 2020 Intel Corporation. All rights reserved. */
+ #include <linux/io-64-nonatomic-lo-hi.h>
++#include <linux/memregion.h>
+ #include <linux/workqueue.h>
+ #include <linux/genalloc.h>
+ #include <linux/device.h>
+@@ -11,6 +12,7 @@
+ #include <linux/idr.h>
+ #include <cxlmem.h>
+ #include <cxlpci.h>
++#include <region.h>
+ #include <cxl.h>
+ #include "core.h"
+ 
+@@ -328,6 +330,8 @@ static struct attribute_group cxl_decoder_base_attribute_group = {
  };
  
- static int cxl_parse_cfmws(union acpi_subtable_headers *header, void *arg,
-@@ -126,6 +127,14 @@ static int cxl_parse_cfmws(union acpi_subtable_headers *header, void *arg,
- 			cfmws->base_hpa + cfmws->window_size - 1);
- 		return 0;
- 	}
+ static struct attribute *cxl_decoder_root_attrs[] = {
++	&dev_attr_create_pmem_region.attr,
++	&dev_attr_delete_region.attr,
+ 	&dev_attr_cap_pmem.attr,
+ 	&dev_attr_cap_ram.attr,
+ 	&dev_attr_cap_type2.attr,
+@@ -375,6 +379,8 @@ static void cxl_decoder_release(struct device *dev)
+ 	struct cxl_decoder *cxld = to_cxl_decoder(dev);
+ 	struct cxl_port *port = to_cxl_port(dev->parent);
+ 
++	if (is_root_decoder(dev))
++		memregion_free(to_cxl_root_decoder(cxld)->next_region_id);
+ 	ida_free(&port->decoder_ida, cxld->id);
+ 	kfree(cxld);
+ 	put_device(&port->dev);
+@@ -1414,12 +1420,22 @@ static struct cxl_decoder *cxl_decoder_alloc(struct cxl_port *port,
+ 	device_set_pm_not_required(dev);
+ 	dev->parent = &port->dev;
+ 	dev->bus = &cxl_bus_type;
+-	if (is_cxl_root(port))
++	if (is_cxl_root(port)) {
++		struct cxl_root_decoder *cxlrd = to_cxl_root_decoder(cxld);
 +
-+	if (ctx->high_cfmws) {
-+		if (cfmws->base_hpa > ctx->high_cfmws->base_hpa)
-+			ctx->high_cfmws = cfmws;
+ 		cxld->dev.type = &cxl_decoder_root_type;
+-	else if (is_cxl_endpoint(port))
++		mutex_init(&cxlrd->id_lock);
++		rc = memregion_alloc(GFP_KERNEL);
++		if (rc < 0)
++			goto err;
++
++		cxlrd->next_region_id = rc;
++		cxld->dev.type = &cxl_decoder_root_type;
++	} else if (is_cxl_endpoint(port)) {
+ 		cxld->dev.type = &cxl_decoder_endpoint_type;
+-	else
 +	} else {
-+		ctx->high_cfmws = cfmws;
+ 		cxld->dev.type = &cxl_decoder_switch_type;
 +	}
-+
- 	dev_dbg(dev, "add: %s node: %d range %#llx-%#llx\n",
- 		dev_name(&cxld->dev), phys_to_target_node(cxld->range.start),
- 		cfmws->base_hpa, cfmws->base_hpa + cfmws->window_size - 1);
-@@ -299,6 +308,7 @@ static int cxl_acpi_probe(struct platform_device *pdev)
- 	ctx = (struct cxl_cfmws_context) {
- 		.dev = host,
- 		.root_port = root_port,
-+		.high_cfmws = NULL,
- 	};
- 	acpi_table_parse_cedt(ACPI_CEDT_TYPE_CFMWS, cxl_parse_cfmws, &ctx);
  
-@@ -317,10 +327,25 @@ static int cxl_acpi_probe(struct platform_device *pdev)
- 	if (rc < 0)
- 		return rc;
+ 	/* Pre initialize an "empty" decoder */
+ 	cxld->interleave_ways = 1;
+@@ -1582,6 +1598,17 @@ EXPORT_SYMBOL_NS_GPL(cxl_decoder_add, CXL);
  
-+	if (ctx.high_cfmws) {
-+		resource_size_t end =
-+			ctx.high_cfmws->base_hpa + ctx.high_cfmws->window_size;
-+		dev_dbg(host,
-+			"Disabling free device private regions below %#llx\n",
-+			end);
-+		set_request_free_min_base(end);
-+	}
+ static void cxld_unregister(void *dev)
+ {
++	struct cxl_decoder *cxld = to_cxl_decoder(dev);
++	struct cxl_endpoint_decoder *cxled;
 +
- 	/* In case PCI is scanned before ACPI re-trigger memdev attach */
- 	return cxl_bus_rescan();
++	if (!is_endpoint_decoder(&cxld->dev))
++		goto out;
++
++	mutex_lock(&cxled->cxlr->remove_lock);
++	device_release_driver(&cxled->cxlr->dev);
++	mutex_unlock(&cxled->cxlr->remove_lock);
++
++out:
+ 	device_unregister(dev);
  }
  
-+static int cxl_acpi_remove(struct platform_device *pdev)
+@@ -1681,6 +1708,12 @@ bool schedule_cxl_memdev_detach(struct cxl_memdev *cxlmd)
+ }
+ EXPORT_SYMBOL_NS_GPL(schedule_cxl_memdev_detach, CXL);
+ 
++bool schedule_cxl_region_unregister(struct cxl_region *cxlr)
 +{
-+	set_request_free_min_base(0);
-+	return 0;
++	return queue_work(cxl_bus_wq, &cxlr->detach_work);
 +}
++EXPORT_SYMBOL_NS_GPL(schedule_cxl_region_unregister, CXL);
 +
- static const struct acpi_device_id cxl_acpi_ids[] = {
- 	{ "ACPI0017" },
- 	{ },
-@@ -329,6 +354,7 @@ MODULE_DEVICE_TABLE(acpi, cxl_acpi_ids);
- 
- static struct platform_driver cxl_acpi_driver = {
- 	.probe = cxl_acpi_probe,
-+	.remove = cxl_acpi_remove,
- 	.driver = {
- 		.name = KBUILD_MODNAME,
- 		.acpi_match_table = cxl_acpi_ids,
-diff --git a/include/linux/ioport.h b/include/linux/ioport.h
-index ec5f71f7135b..dc41e4be5635 100644
---- a/include/linux/ioport.h
-+++ b/include/linux/ioport.h
-@@ -325,6 +325,7 @@ extern int
- walk_iomem_res_desc(unsigned long desc, unsigned long flags, u64 start, u64 end,
- 		    void *arg, int (*func)(struct resource *, void *));
- 
-+void set_request_free_min_base(resource_size_t val);
- struct resource *devm_request_free_mem_region(struct device *dev,
- 		struct resource *base, unsigned long size);
- struct resource *request_free_mem_region(struct resource *base,
-diff --git a/kernel/resource.c b/kernel/resource.c
-index 34eaee179689..a4750689e529 100644
---- a/kernel/resource.c
-+++ b/kernel/resource.c
-@@ -1774,6 +1774,14 @@ void resource_list_free(struct list_head *head)
- EXPORT_SYMBOL(resource_list_free);
- 
- #ifdef CONFIG_DEVICE_PRIVATE
-+static resource_size_t request_free_min_base;
-+
-+void set_request_free_min_base(resource_size_t val)
-+{
-+	request_free_min_base = val;
-+}
-+EXPORT_SYMBOL_GPL(set_request_free_min_base);
-+
- static struct resource *__request_free_mem_region(struct device *dev,
- 		struct resource *base, unsigned long size, const char *name)
+ /* for user tooling to ensure port disable work has completed */
+ static ssize_t flush_store(struct bus_type *bus, const char *buf, size_t count)
  {
-@@ -1799,7 +1807,8 @@ static struct resource *__request_free_mem_region(struct device *dev,
- 	}
+diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
+new file mode 100644
+index 000000000000..16829bf2f73a
+--- /dev/null
++++ b/drivers/cxl/core/region.c
+@@ -0,0 +1,234 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/* Copyright(c) 2022 Intel Corporation. All rights reserved. */
++#include <linux/memregion.h>
++#include <linux/genalloc.h>
++#include <linux/device.h>
++#include <linux/module.h>
++#include <linux/slab.h>
++#include <linux/idr.h>
++#include <region.h>
++#include <cxl.h>
++#include "core.h"
++
++/**
++ * DOC: cxl core region
++ *
++ * CXL Regions represent mapped memory capacity in system physical address
++ * space. Whereas the CXL Root Decoders identify the bounds of potential CXL
++ * Memory ranges, Regions represent the active mapped capacity by the HDM
++ * Decoder Capability structures throughout the Host Bridges, Switches, and
++ * Endpoints in the topology.
++ */
++
++static struct cxl_region *to_cxl_region(struct device *dev);
++
++static void cxl_region_release(struct device *dev)
++{
++	struct cxl_region *cxlr = to_cxl_region(dev);
++
++	memregion_free(cxlr->id);
++	kfree(cxlr);
++}
++
++static const struct device_type cxl_region_type = {
++	.name = "cxl_region",
++	.release = cxl_region_release,
++};
++
++bool is_cxl_region(struct device *dev)
++{
++	return dev->type == &cxl_region_type;
++}
++EXPORT_SYMBOL_NS_GPL(is_cxl_region, CXL);
++
++static struct cxl_region *to_cxl_region(struct device *dev)
++{
++	if (dev_WARN_ONCE(dev, dev->type != &cxl_region_type,
++			  "not a cxl_region device\n"))
++		return NULL;
++
++	return container_of(dev, struct cxl_region, dev);
++}
++
++static void unregister_region(struct work_struct *work)
++{
++	struct cxl_region *cxlr;
++
++	cxlr = container_of(work, typeof(*cxlr), detach_work);
++	device_unregister(&cxlr->dev);
++}
++
++static void schedule_unregister(void *cxlr)
++{
++	schedule_cxl_region_unregister(cxlr);
++}
++
++static struct cxl_region *cxl_region_alloc(struct cxl_decoder *cxld)
++{
++	struct cxl_root_decoder *cxlrd = to_cxl_root_decoder(cxld);
++	struct cxl_region *cxlr;
++	struct device *dev;
++	int rc;
++
++	lockdep_assert_held(&cxlrd->id_lock);
++
++	rc = memregion_alloc(GFP_KERNEL);
++	if (rc < 0) {
++		dev_dbg(dev, "Failed to get next cached id (%d)\n", rc);
++		return ERR_PTR(rc);
++	}
++
++	cxlr = kzalloc(sizeof(*cxlr), GFP_KERNEL);
++	if (!cxlr) {
++		memregion_free(rc);
++		return ERR_PTR(-ENOMEM);
++	}
++
++	cxlr->id = cxlrd->next_region_id;
++	cxlrd->next_region_id = rc;
++
++	dev = &cxlr->dev;
++	device_initialize(dev);
++	dev->parent = &cxld->dev;
++	device_set_pm_not_required(dev);
++	dev->bus = &cxl_bus_type;
++	dev->type = &cxl_region_type;
++	INIT_WORK(&cxlr->detach_work, unregister_region);
++	mutex_init(&cxlr->remove_lock);
++
++	return cxlr;
++}
++
++/**
++ * devm_cxl_add_region - Adds a region to a decoder
++ * @cxld: Parent decoder.
++ *
++ * This is the second step of region initialization. Regions exist within an
++ * address space which is mapped by a @cxld. That @cxld must be a root decoder,
++ * and it enforces constraints upon the region as it is configured.
++ *
++ * Return: 0 if the region was added to the @cxld, else returns negative error
++ * code. The region will be named "regionX.Y.Z" where X is the port, Y is the
++ * decoder id, and Z is the region number.
++ */
++static struct cxl_region *devm_cxl_add_region(struct cxl_decoder *cxld)
++{
++	struct cxl_port *port = to_cxl_port(cxld->dev.parent);
++	struct cxl_region *cxlr;
++	struct device *dev;
++	int rc;
++
++	cxlr = cxl_region_alloc(cxld);
++	if (IS_ERR(cxlr))
++		return cxlr;
++
++	dev = &cxlr->dev;
++
++	rc = dev_set_name(dev, "region%d", cxlr->id);
++	if (rc)
++		goto err_out;
++
++	rc = device_add(dev);
++	if (rc)
++		goto err_put;
++
++	rc = devm_add_action_or_reset(port->uport, schedule_unregister, cxlr);
++	if (rc)
++		goto err_put;
++
++	return cxlr;
++
++err_put:
++	put_device(&cxld->dev);
++
++err_out:
++	put_device(dev);
++	return ERR_PTR(rc);
++}
++
++static ssize_t create_pmem_region_show(struct device *dev,
++				       struct device_attribute *attr, char *buf)
++{
++	struct cxl_decoder *cxld = to_cxl_decoder(dev);
++	struct cxl_root_decoder *cxlrd = to_cxl_root_decoder(cxld);
++	size_t rc;
++
++	/*
++	 * There's no point in returning known bad answers when the lock is held
++	 * on the store side, even though the answer given here may be
++	 * immediately invalidated as soon as the lock is dropped it's still
++	 * useful to throttle readers in the presence of writers.
++	 */
++	rc = mutex_lock_interruptible(&cxlrd->id_lock);
++	if (rc)
++		return rc;
++	rc = sysfs_emit(buf, "%d\n", cxlrd->next_region_id);
++	mutex_unlock(&cxlrd->id_lock);
++
++	return rc;
++}
++
++static ssize_t create_pmem_region_store(struct device *dev,
++					struct device_attribute *attr,
++					const char *buf, size_t len)
++{
++	struct cxl_decoder *cxld = to_cxl_decoder(dev);
++	struct cxl_root_decoder *cxlrd = to_cxl_root_decoder(cxld);
++	struct cxl_region *cxlr;
++	size_t id, rc;
++
++	rc = kstrtoul(buf, 10, &id);
++	if (rc)
++		return rc;
++
++	rc = mutex_lock_interruptible(&cxlrd->id_lock);
++	if (rc)
++		return rc;
++
++	if (cxlrd->next_region_id != id) {
++		rc = -EINVAL;
++		goto out;
++	}
++
++	cxlr = devm_cxl_add_region(cxld);
++	rc = 0;
++	dev_dbg(dev, "Created %s\n", dev_name(&cxlr->dev));
++
++out:
++	mutex_unlock(&cxlrd->id_lock);
++	if (rc)
++		return rc;
++	return len;
++}
++DEVICE_ATTR_RW(create_pmem_region);
++
++static struct cxl_region *cxl_find_region_by_name(struct cxl_decoder *cxld,
++						  const char *name)
++{
++	struct device *region_dev;
++
++	region_dev = device_find_child_by_name(&cxld->dev, name);
++	if (!region_dev)
++		return ERR_PTR(-ENOENT);
++
++	return to_cxl_region(region_dev);
++}
++
++static ssize_t delete_region_store(struct device *dev,
++				   struct device_attribute *attr,
++				   const char *buf, size_t len)
++{
++	struct cxl_port *port = to_cxl_port(dev->parent);
++	struct cxl_decoder *cxld = to_cxl_decoder(dev);
++	struct cxl_region *cxlr;
++
++	cxlr = cxl_find_region_by_name(cxld, buf);
++	if (IS_ERR(cxlr))
++		return PTR_ERR(cxlr);
++
++	/* Reference held for wq */
++	devm_release_action(port->uport, schedule_unregister, cxlr);
++
++	return len;
++}
++DEVICE_ATTR_WO(delete_region);
+diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
+index 0586c3d4592c..3abc8b0cf8f4 100644
+--- a/drivers/cxl/cxl.h
++++ b/drivers/cxl/cxl.h
+@@ -249,6 +249,7 @@ struct cxl_decoder {
+  * @skip: The skip count as specified in the CXL specification.
+  * @res_lock: Synchronize device's resource usage
+  * @volatil: Configuration param. Decoder target is non-persistent mem
++ * @cxlr: Region this decoder belongs to.
+  */
+ struct cxl_endpoint_decoder {
+ 	struct cxl_decoder base;
+@@ -256,6 +257,7 @@ struct cxl_endpoint_decoder {
+ 	u64 skip;
+ 	struct mutex res_lock; /* sync access to decoder's resource */
+ 	bool volatil;
++	struct cxl_region *cxlr;
+ };
  
- 	write_lock(&resource_lock);
--	for (; addr > size && addr >= base->start; addr -= size) {
-+	for (; addr > size && addr >= max(base->start, request_free_min_base);
-+	     addr -= size) {
- 		if (__region_intersects(addr, size, 0, IORES_DESC_NONE) !=
- 				REGION_DISJOINT)
- 			continue;
+ /**
+@@ -454,6 +456,8 @@ struct cxl_hdm *devm_cxl_setup_hdm(struct cxl_port *port);
+ int devm_cxl_enumerate_decoders(struct cxl_hdm *cxlhdm);
+ int devm_cxl_add_passthrough_decoder(struct cxl_port *port);
+ 
++bool is_cxl_region(struct device *dev);
++
+ extern struct bus_type cxl_bus_type;
+ 
+ struct cxl_driver {
+@@ -508,6 +512,7 @@ enum cxl_lock_class {
+ 	CXL_ANON_LOCK,
+ 	CXL_NVDIMM_LOCK,
+ 	CXL_NVDIMM_BRIDGE_LOCK,
++	CXL_REGION_LOCK,
+ 	CXL_PORT_LOCK,
+ 	/*
+ 	 * Be careful to add new lock classes here, CXL_PORT_LOCK is
+@@ -536,6 +541,8 @@ static inline void cxl_nested_lock(struct device *dev)
+ 		mutex_lock_nested(&dev->lockdep_mutex, CXL_NVDIMM_BRIDGE_LOCK);
+ 	else if (is_cxl_nvdimm(dev))
+ 		mutex_lock_nested(&dev->lockdep_mutex, CXL_NVDIMM_LOCK);
++	else if (is_cxl_region(dev))
++		mutex_lock_nested(&dev->lockdep_mutex, CXL_REGION_LOCK);
+ 	else
+ 		mutex_lock_nested(&dev->lockdep_mutex, CXL_ANON_LOCK);
+ }
+diff --git a/drivers/cxl/region.h b/drivers/cxl/region.h
+new file mode 100644
+index 000000000000..66d9ba195c34
+--- /dev/null
++++ b/drivers/cxl/region.h
+@@ -0,0 +1,29 @@
++/* SPDX-License-Identifier: GPL-2.0-only */
++/* Copyright(c) 2021 Intel Corporation. */
++#ifndef __CXL_REGION_H__
++#define __CXL_REGION_H__
++
++#include <linux/uuid.h>
++
++#include "cxl.h"
++
++/**
++ * struct cxl_region - CXL region
++ * @dev: This region's device.
++ * @id: This region's id. Id is globally unique across all regions.
++ * @flags: Flags representing the current state of the region.
++ * @detach_work: Async unregister to allow attrs to take device_lock.
++ * @remove_lock: Coordinates region removal against decoder removal
++ */
++struct cxl_region {
++	struct device dev;
++	int id;
++	unsigned long flags;
++#define REGION_DEAD 0
++	struct work_struct detach_work;
++	struct mutex remove_lock; /* serialize region removal */
++};
++
++bool schedule_cxl_region_unregister(struct cxl_region *cxlr);
++
++#endif
+diff --git a/tools/testing/cxl/Kbuild b/tools/testing/cxl/Kbuild
+index 82e49ab0937d..3fe6d34e6d59 100644
+--- a/tools/testing/cxl/Kbuild
++++ b/tools/testing/cxl/Kbuild
+@@ -46,6 +46,7 @@ cxl_core-y += $(CXL_CORE_SRC)/memdev.o
+ cxl_core-y += $(CXL_CORE_SRC)/mbox.o
+ cxl_core-y += $(CXL_CORE_SRC)/pci.o
+ cxl_core-y += $(CXL_CORE_SRC)/hdm.o
++cxl_core-y += $(CXL_CORE_SRC)/region.o
+ cxl_core-y += config_check.o
+ 
+ obj-m += test/
 -- 
 2.35.1
 
