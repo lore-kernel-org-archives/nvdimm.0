@@ -1,76 +1,175 @@
-Received: from mail-oi1-f169.google.com (mail-oi1-f169.google.com [209.85.167.169])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5AA1623A6
-	for <nvdimm@lists.linux.dev>; Tue, 12 Apr 2022 23:22:46 +0000 (UTC)
-Received: by mail-oi1-f169.google.com with SMTP id 12so313080oix.12
-        for <nvdimm@lists.linux.dev>; Tue, 12 Apr 2022 16:22:46 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=cXG2uBz6lRa6SmsxOh4UHnvAS1v6j3gtk2oaRONS+x4=;
-        b=VPl1Lq9jWUOfdQHl/1KZuWWM6wCjlya9ZIm56mGgKOGxFiC5BaCc1BSVeUdc1pyItB
-         BIIRsGb7m/uTTFP7EQ9bwdIRf6Qc2mw3gELQG2VwZAg2xJ2tVel9MI1+ME9SUoGaJ8Ck
-         Z8ts0Cz8Sv7S9Fzd/Im/JfbGqbs45u5Dpd4A8hT36LVn0vEKF5gJNhz9Xj3HxeT5GFx9
-         3orzrVLxvjY3XUMpiLuJPsctZxiLUWVgCZp6UZHqMNblOrfxFCYbsUPAtL6PjFLKvIYv
-         yR16Pm/ZW/nafNyxKUqk8z/2UQ0ECbaF4NEyEpOJWqi+m9FgHi5wKcizOSX3GGI9F65b
-         O8Bw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=cXG2uBz6lRa6SmsxOh4UHnvAS1v6j3gtk2oaRONS+x4=;
-        b=iVcILUR8hyCjBI/QpJHRih6tGGwENCO/ze1pGbSWcItrJo9vkSNYBbetZJzpUmdUQm
-         Ue1ae1SW5x95kLyke9HmuHfvYMBmtjRpyj73hfXddgrfpGdM7mkEHb6eWVxnAk0M3zbT
-         GMW7o0k9yrCIoNu2krNWTGTWF8ge8nDrJ3k9YCRTYx9LuOjj6IfW2XwCBnu7/8Q5hZAX
-         dNBeRad1kXRF0bDPlsuyzsS7x5OLbGpgMaoV6CvWcg99MVrDU40vcUzy3SJ4dM0nCn04
-         RV8qDCsbjLAgvVSDF1KzdvGezxt1dhTMaxUwUqYwVLKxRLMka0C51ValugapbwMc8jam
-         2Ehg==
-X-Gm-Message-State: AOAM5300KDCVDTjLLyUdHTR6up6+QuqTsa1DH4q4BkzXJZB3Jh/1bV/U
-	ekyoOuaQqIMAMZWmqPdLkmGvZ3c4ccRtEUNASTle9Q==
-X-Google-Smtp-Source: ABdhPJzEsDa0QPWqZoKnqzlrHygJjKtOSvpADAV6Jhisjm10RxdCfr8ioS/LCXNm6BQQZeX47QnFzwejPCzwj9rtzOk=
-X-Received: by 2002:a05:6808:1154:b0:2da:2fbd:eba9 with SMTP id
- u20-20020a056808115400b002da2fbdeba9mr2979048oiu.133.1649805765445; Tue, 12
- Apr 2022 16:22:45 -0700 (PDT)
+Received: from mail104.syd.optusnet.com.au (mail104.syd.optusnet.com.au [211.29.132.246])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 3C23B1FD9
+	for <nvdimm@lists.linux.dev>; Wed, 13 Apr 2022 00:26:23 +0000 (UTC)
+Received: from dread.disaster.area (pa49-181-115-138.pa.nsw.optusnet.com.au [49.181.115.138])
+	by mail104.syd.optusnet.com.au (Postfix) with ESMTPS id 6345553451E;
+	Wed, 13 Apr 2022 10:04:24 +1000 (AEST)
+Received: from dave by dread.disaster.area with local (Exim 4.92.3)
+	(envelope-from <david@fromorbit.com>)
+	id 1neQUh-00H19U-LP; Wed, 13 Apr 2022 10:04:23 +1000
+Date: Wed, 13 Apr 2022 10:04:23 +1000
+From: Dave Chinner <david@fromorbit.com>
+To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Cc: linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org,
+	nvdimm@lists.linux.dev, linux-mm@kvack.org,
+	linux-fsdevel@vger.kernel.org, djwong@kernel.org,
+	dan.j.williams@intel.com, hch@infradead.org, jane.chu@oracle.com
+Subject: Re: [PATCH v12 6/7] xfs: Implement ->notify_failure() for XFS
+Message-ID: <20220413000423.GK1544202@dread.disaster.area>
+References: <20220410160904.3758789-1-ruansy.fnst@fujitsu.com>
+ <20220410160904.3758789-7-ruansy.fnst@fujitsu.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20220410160904.3758789-1-ruansy.fnst@fujitsu.com> <20220410160904.3758789-2-ruansy.fnst@fujitsu.com>
-In-Reply-To: <20220410160904.3758789-2-ruansy.fnst@fujitsu.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 12 Apr 2022 16:22:34 -0700
-Message-ID: <CAPcyv4iqHMR4Pee0Mjca2iM6Vhht8s=56-ZefYvpBmxuEi0Q6A@mail.gmail.com>
-Subject: Re: [PATCH v12 1/7] dax: Introduce holder for dax_device
-To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, 
-	Linux NVDIMM <nvdimm@lists.linux.dev>, Linux MM <linux-mm@kvack.org>, 
-	linux-fsdevel <linux-fsdevel@vger.kernel.org>, "Darrick J. Wong" <djwong@kernel.org>, 
-	david <david@fromorbit.com>, Christoph Hellwig <hch@infradead.org>, Jane Chu <jane.chu@oracle.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220410160904.3758789-7-ruansy.fnst@fujitsu.com>
+X-Optus-CM-Score: 0
+X-Optus-CM-Analysis: v=2.4 cv=deDjYVbe c=1 sm=1 tr=0 ts=6256138a
+	a=/kVtbFzwtM2bJgxRVb+eeA==:117 a=/kVtbFzwtM2bJgxRVb+eeA==:17
+	a=kj9zAlcOel0A:10 a=z0gMJWrwH1QA:10 a=omOdbC7AAAAA:8 a=7-415B0cAAAA:8
+	a=4dCMZFeZnbfWj20spA0A:9 a=CjuIK1q_8ugA:10 a=biEYGPWJfzWAr4FL6Ov7:22
 
-On Sun, Apr 10, 2022 at 9:09 AM Shiyang Ruan <ruansy.fnst@fujitsu.com> wrote:
->
-> To easily track filesystem from a pmem device, we introduce a holder for
-> dax_device structure, and also its operation.  This holder is used to
-> remember who is using this dax_device:
->  - When it is the backend of a filesystem, the holder will be the
->    instance of this filesystem.
->  - When this pmem device is one of the targets in a mapped device, the
->    holder will be this mapped device.  In this case, the mapped device
->    has its own dax_device and it will follow the first rule.  So that we
->    can finally track to the filesystem we needed.
->
-> The holder and holder_ops will be set when filesystem is being mounted,
-> or an target device is being activated.
->
+On Mon, Apr 11, 2022 at 12:09:03AM +0800, Shiyang Ruan wrote:
+> Introduce xfs_notify_failure.c to handle failure related works, such as
+> implement ->notify_failure(), register/unregister dax holder in xfs, and
+> so on.
+> 
+> If the rmap feature of XFS enabled, we can query it to find files and
+> metadata which are associated with the corrupt data.  For now all we do
+> is kill processes with that file mapped into their address spaces, but
+> future patches could actually do something about corrupt metadata.
+> 
+> After that, the memory failure needs to notify the processes who are
+> using those files.
+> 
+> Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+> ---
+>  fs/xfs/Makefile             |   5 +
+>  fs/xfs/xfs_buf.c            |   7 +-
+>  fs/xfs/xfs_fsops.c          |   3 +
+>  fs/xfs/xfs_mount.h          |   1 +
+>  fs/xfs/xfs_notify_failure.c | 219 ++++++++++++++++++++++++++++++++++++
+>  fs/xfs/xfs_super.h          |   1 +
+>  6 files changed, 233 insertions(+), 3 deletions(-)
+>  create mode 100644 fs/xfs/xfs_notify_failure.c
+> 
+> diff --git a/fs/xfs/Makefile b/fs/xfs/Makefile
+> index 04611a1068b4..09f5560e29f2 100644
+> --- a/fs/xfs/Makefile
+> +++ b/fs/xfs/Makefile
+> @@ -128,6 +128,11 @@ xfs-$(CONFIG_SYSCTL)		+= xfs_sysctl.o
+>  xfs-$(CONFIG_COMPAT)		+= xfs_ioctl32.o
+>  xfs-$(CONFIG_EXPORTFS_BLOCK_OPS)	+= xfs_pnfs.o
+>  
+> +# notify failure
+> +ifeq ($(CONFIG_MEMORY_FAILURE),y)
+> +xfs-$(CONFIG_FS_DAX)		+= xfs_notify_failure.o
+> +endif
+> +
+>  # online scrub/repair
+>  ifeq ($(CONFIG_XFS_ONLINE_SCRUB),y)
+>  
+> diff --git a/fs/xfs/xfs_buf.c b/fs/xfs/xfs_buf.c
+> index f9ca08398d32..9064b8dfbc66 100644
+> --- a/fs/xfs/xfs_buf.c
+> +++ b/fs/xfs/xfs_buf.c
+> @@ -5,6 +5,7 @@
+>   */
+>  #include "xfs.h"
+>  #include <linux/backing-dev.h>
+> +#include <linux/dax.h>
+>  
+>  #include "xfs_shared.h"
+>  #include "xfs_format.h"
+> @@ -1911,7 +1912,7 @@ xfs_free_buftarg(
+>  	list_lru_destroy(&btp->bt_lru);
+>  
+>  	blkdev_issue_flush(btp->bt_bdev);
+> -	fs_put_dax(btp->bt_daxdev, NULL);
+> +	fs_put_dax(btp->bt_daxdev, btp->bt_mount);
+>  
+>  	kmem_free(btp);
+>  }
+> @@ -1964,8 +1965,8 @@ xfs_alloc_buftarg(
+>  	btp->bt_mount = mp;
+>  	btp->bt_dev =  bdev->bd_dev;
+>  	btp->bt_bdev = bdev;
+> -	btp->bt_daxdev = fs_dax_get_by_bdev(bdev, &btp->bt_dax_part_off, NULL,
+> -					    NULL);
+> +	btp->bt_daxdev = fs_dax_get_by_bdev(bdev, &btp->bt_dax_part_off, mp,
+> +					    &xfs_dax_holder_operations);
 
-Looks good to me:
+I see a problem with this: we are setting up notify callbacks before
+we've even read in the superblock during mount. i.e. we don't even
+kow yet if we've got an XFS filesystem on this block device.
 
-Reviewed-by: Dan Williams <dan.j.wiliams@intel.com>
+Hence if we get a notification immediately after registering this
+notification callback....
 
-I am assuming this will be staged in a common DAX branch, but holler
-now if this should go through the XFS tree.
+[...]
+
+> +
+> +static int
+> +xfs_dax_notify_ddev_failure(
+> +	struct xfs_mount	*mp,
+> +	xfs_daddr_t		daddr,
+> +	xfs_daddr_t		bblen,
+> +	int			mf_flags)
+> +{
+> +	struct xfs_trans	*tp = NULL;
+> +	struct xfs_btree_cur	*cur = NULL;
+> +	struct xfs_buf		*agf_bp = NULL;
+> +	int			error = 0;
+> +	xfs_fsblock_t		fsbno = XFS_DADDR_TO_FSB(mp, daddr);
+> +	xfs_agnumber_t		agno = XFS_FSB_TO_AGNO(mp, fsbno);
+> +	xfs_fsblock_t		end_fsbno = XFS_DADDR_TO_FSB(mp, daddr + bblen);
+> +	xfs_agnumber_t		end_agno = XFS_FSB_TO_AGNO(mp, end_fsbno);
+
+.... none of this code is going to function correctly because it
+is dependent on the superblock having been read, validated and
+copied to the in-memory superblock.
+
+> +	error = xfs_trans_alloc_empty(mp, &tp);
+> +	if (error)
+> +		return error;
+
+... and it's not valid to use transactions (even empty ones) before
+log recovery has completed and set the log up correctly.
+
+> +
+> +	for (; agno <= end_agno; agno++) {
+> +		struct xfs_rmap_irec	ri_low = { };
+> +		struct xfs_rmap_irec	ri_high;
+> +		struct failure_info	notify;
+> +		struct xfs_agf		*agf;
+> +		xfs_agblock_t		agend;
+> +
+> +		error = xfs_alloc_read_agf(mp, tp, agno, 0, &agf_bp);
+> +		if (error)
+> +			break;
+> +
+> +		cur = xfs_rmapbt_init_cursor(mp, tp, agf_bp, agf_bp->b_pag);
+
+... and none of the structures this rmapbt walk is dependent on
+(e.g. perag structures) have been initialised yet so there's null
+pointer dereferences going to happen here.
+
+Perhaps even worse is that the rmapbt is not guaranteed to be in
+consistent state until after log recovery has completed, so this
+walk could get stuck forever in a stale on-disk cycle that
+recovery would have corrected....
+
+Hence these notifications need to be delayed until after the
+filesystem is mounted, all the internal structures have been set up
+and log recovery has completed.
+
+Cheers,
+
+Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
