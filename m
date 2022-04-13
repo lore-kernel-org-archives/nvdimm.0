@@ -1,42 +1,42 @@
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF0F223CA
-	for <nvdimm@lists.linux.dev>; Wed, 13 Apr 2022 06:01:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED37E23CA
+	for <nvdimm@lists.linux.dev>; Wed, 13 Apr 2022 06:01:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1649829699; x=1681365699;
+  t=1649829710; x=1681365710;
   h=subject:from:to:cc:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=6f5NDzNq7ZkGie/x3qcHs7RbkZ14iszEa1ADUciL4uE=;
-  b=hPmcf6e4R3qKgVpJBDIhY6Iy6NURjNQv9TMWDHtMrgj6eR3ext5oebO9
-   Redy3SJ8N4+XB6c7zHtY0UMfbcENzSpSspvH/1kA8Nc/hHdbK2QPUVxJa
-   SA+W9mjxRBi9K9PqBIk07DctGuJHMzTwG1fE75mH9Vaka2kfnW2LKRDHz
-   2ypgv1P0yXlYz+/prRPM9PoB4ebSVt2/HSZTVqsd6QVP9/XoDzCc8Z9b7
-   EplvGFrM1RK0ZGBQTNaSCi7eTyZyHzEmTvUuEnQWHjXU4Ze5GE8ZJau/S
-   0bZfQw8C4+GuU+lKDjAsqWm+GMuabpPMHlpN/VdrGDTjUBUo7jiPFco96
+  bh=vtmksge+PxxfmYNS5fXJl4pdxkZNhem2rCAEcMLmAY4=;
+  b=Vvwh2z/57j12jkG1xB+kE4A4e2EmyYGCCN71jGIHyb/ppnGDbDIPnEdc
+   azX681coxCjVgI3bY5c7vN+IRiHL5ZDpFhdI8IUzervTbDZvwY992YpLd
+   /GVlsMXt78vKw8PFh91g8sL5sMLCOGsdsJtANVDUR8T00nueWhPsnlLIF
+   WqP3zgTRylq/380wy1xpbaaS4uizjF3aK7ZQVXjW2FnwfEfpcCGFS6K9z
+   qpsvKmHo67+nVaxUprYT8FeSQMPvuJfbp9EW7e3izgVFfSRz6O9SWBzQz
+   dWyv553exCTva8swb1eBEZZmemrAmyURQyHC83gsR+BsIxUrvPNSG2ajJ
    g==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10315"; a="261430787"
-X-IronPort-AV: E=Sophos;i="5.90,256,1643702400"; 
-   d="scan'208";a="261430787"
-Received: from fmsmga007.fm.intel.com ([10.253.24.52])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Apr 2022 23:01:39 -0700
+X-IronPort-AV: E=McAfee;i="6400,9594,10315"; a="287608119"
 X-IronPort-AV: E=Sophos;i="5.90,255,1643702400"; 
-   d="scan'208";a="559626138"
+   d="scan'208";a="287608119"
+Received: from fmsmga003.fm.intel.com ([10.253.24.29])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Apr 2022 23:01:50 -0700
+X-IronPort-AV: E=Sophos;i="5.90,255,1643702400"; 
+   d="scan'208";a="645039160"
 Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
-  by fmsmga007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Apr 2022 23:01:38 -0700
-Subject: [PATCH v2 02/12] device-core: Add dev->lock_class to enable
- device_lock() lockdep validation
+  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Apr 2022 23:01:50 -0700
+Subject: [PATCH v2 04/12] cxl/core: Remove cxl_device_lock()
 From: Dan Williams <dan.j.williams@intel.com>
 To: linux-cxl@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- "Rafael J. Wysocki" <rafael@kernel.org>, Dave Jiang <dave.jiang@intel.com>,
- Kevin Tian <kevin.tian@intel.com>, peterz@infradead.org,
- vishal.l.verma@intel.com, alison.schofield@intel.com,
- gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org,
+Cc: Alison Schofield <alison.schofield@intel.com>,
+ Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>,
+ Ben Widawsky <ben.widawsky@intel.com>,
+ Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+ Dave Jiang <dave.jiang@intel.com>, Kevin Tian <kevin.tian@intel.com>,
+ peterz@infradead.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org,
  nvdimm@lists.linux.dev
-Date: Tue, 12 Apr 2022 23:01:38 -0700
-Message-ID: <164982969858.684294.17819743973041389492.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 12 Apr 2022 23:01:49 -0700
+Message-ID: <164982970986.684294.11190977495722089239.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <164982968798.684294.15817853329823976469.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <164982968798.684294.15817853329823976469.stgit@dwillia2-desk3.amr.corp.intel.com>
 User-Agent: StGit/0.18-3-g996c
@@ -49,208 +49,390 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 
-The device_lock() is hidden from lockdep by default because, for
-example, a device subsystem may do something like:
+In preparation for moving lockdep_mutex nested lock acquisition into the
+core, remove the cxl_device_lock() wrapper, but preserve
+cxl_lock_class() that will be used to inform the core of the subsystem's
+lock ordering rules.
 
----
-device_add(dev1);
-...in driver core...
-device_lock(dev1);
-bus->probe(dev1); /* where bus->probe() calls driver1_probe() */
+Note that this reverts back to the default state of unvalidated
+device_lock(). A follow-on change to use the new dev->lock_class
+facility re-enables lockdep validation.
 
-driver1_probe(struct device *dev)
-{
-	...do some enumeration...
-	dev2->parent = dev;
-	/* this triggers probe under device_lock(dev2); */
-	device_add(dev2);
-}
----
-
-To lockdep, that device_lock(dev2) looks like a deadlock because lockdep
-only sees lock classes, not individual lock instances. All device_lock()
-instances across the entire kernel are the same class. However, this is
-not a deadlock in practice because the locking is strictly hierarchical.
-I.e. device_lock(dev1) is held over device_lock(dev2), but never the
-reverse. In order for lockdep to be satisfied and see that it is
-hierarchical in practice the mutex_lock() call in device_lock() needs to
-be moved to mutex_lock_nested() where the @subclass argument to
-mutex_lock_nested() represents the nesting level, i.e.:
-
-s/device_lock(dev1)/mutex_lock_nested(&dev1->mutex, 1)/
-
-s/device_lock(dev2)/mutex_lock_nested(&dev2->mutex, 2)/
-
-Now, what if the internals of the device_lock() could be annotated with
-the right @subclass argument to call mutex_lock_nested()?
-
-With device_set_lock_class() a subsystem can optionally add that
-metadata. The device_lock() still takes dev->mutex, but when
-dev->lock_class is >= 0 it additionally takes dev->lockdep_mutex with
-the proper nesting. Unlike dev->mutex, dev->lockdep_mutex is not marked
-lockdep_set_novalidate_class() and lockdep will become useful... at
-least for one subsystem at a time.
-
-It is still the case that only one subsystem can be using lockdep with
-lockdep_mutex at a time because different subsystems will collide class
-numbers. You might say "well, how about subsystem1 gets class ids 0 to 9
-and subsystem2 gets class ids 10 to 20?". MAX_LOCKDEP_SUBCLASSES is 8,
-and 8 is just enough class ids for one subsystem of moderate complexity.
-
-Fixing that problem needs deeper changes, but for now moving the ability
-to set a lock class into the core lets the NVDIMM and CXL subsystems
-drop their incomplete solutions which attempt to set the lock class and
-take the lockdep mutex after the fact.
-
-This approach has prevented at least one deadlock scenario from making
-its way upstream that was not caught by the current "local /
-after-the-fact" usage of dev->lockdep_mutex (commit 87a30e1f05d7
-("driver-core, libnvdimm: Let device subsystems add local lockdep
-coverage")).
-
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Alison Schofield <alison.schofield@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Ben Widawsky <ben.widawsky@intel.com>
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Reviewed-by: Dave Jiang <dave.jiang@intel.com>
 Reviewed-by: Kevin Tian <kevin.tian@intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- include/linux/device.h |   92 ++++++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 88 insertions(+), 4 deletions(-)
+ drivers/cxl/core/pmem.c |    4 ++-
+ drivers/cxl/core/port.c |   54 ++++++++++++++++++++---------------------------
+ drivers/cxl/cxl.h       |   46 ----------------------------------------
+ drivers/cxl/mem.c       |    4 ++-
+ drivers/cxl/pmem.c      |   12 +++++-----
+ lib/Kconfig.debug       |    2 +-
+ 6 files changed, 34 insertions(+), 88 deletions(-)
 
-diff --git a/include/linux/device.h b/include/linux/device.h
-index af2576ace130..6083e757e804 100644
---- a/include/linux/device.h
-+++ b/include/linux/device.h
-@@ -402,6 +402,7 @@ struct dev_msi_info {
-  * @mutex:	Mutex to synchronize calls to its driver.
-  * @lockdep_mutex: An optional debug lock that a subsystem can use as a
-  * 		peer lock to gain localized lockdep coverage of the device_lock.
-+ * @lock_class: per-subsystem annotated device lock class
-  * @bus:	Type of bus device is on.
-  * @driver:	Which driver has allocated this
-  * @platform_data: Platform data specific to the device.
-@@ -501,6 +502,7 @@ struct device {
- 					   dev_set_drvdata/dev_get_drvdata */
- #ifdef CONFIG_PROVE_LOCKING
- 	struct mutex		lockdep_mutex;
-+	int			lock_class;
- #endif
- 	struct mutex		mutex;	/* mutex to synchronize calls to
- 					 * its driver.
-@@ -762,18 +764,100 @@ static inline bool dev_pm_test_driver_flags(struct device *dev, u32 flags)
- 	return !!(dev->power.driver_flags & flags);
+diff --git a/drivers/cxl/core/pmem.c b/drivers/cxl/core/pmem.c
+index 8de240c4d96b..60f71caa5dbd 100644
+--- a/drivers/cxl/core/pmem.c
++++ b/drivers/cxl/core/pmem.c
+@@ -121,10 +121,10 @@ static void unregister_nvb(void *_cxl_nvb)
+ 	 * work to flush. Once the state has been changed to 'dead' then no new
+ 	 * work can be queued by user-triggered bind.
+ 	 */
+-	cxl_device_lock(&cxl_nvb->dev);
++	device_lock(&cxl_nvb->dev);
+ 	flush = cxl_nvb->state != CXL_NVB_NEW;
+ 	cxl_nvb->state = CXL_NVB_DEAD;
+-	cxl_device_unlock(&cxl_nvb->dev);
++	device_unlock(&cxl_nvb->dev);
+ 
+ 	/*
+ 	 * Even though the device core will trigger device_release_driver()
+diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
+index 2ab1ba4499b3..437e8a71e5dc 100644
+--- a/drivers/cxl/core/port.c
++++ b/drivers/cxl/core/port.c
+@@ -312,10 +312,10 @@ static void cxl_port_release(struct device *dev)
+ 	struct cxl_port *port = to_cxl_port(dev);
+ 	struct cxl_ep *ep, *_e;
+ 
+-	cxl_device_lock(dev);
++	device_lock(dev);
+ 	list_for_each_entry_safe(ep, _e, &port->endpoints, list)
+ 		cxl_ep_release(ep);
+-	cxl_device_unlock(dev);
++	device_unlock(dev);
+ 	ida_free(&cxl_port_ida, port->id);
+ 	kfree(port);
+ }
+@@ -554,7 +554,7 @@ static int match_root_child(struct device *dev, const void *match)
+ 		return 0;
+ 
+ 	port = to_cxl_port(dev);
+-	cxl_device_lock(dev);
++	device_lock(dev);
+ 	list_for_each_entry(dport, &port->dports, list) {
+ 		iter = match;
+ 		while (iter) {
+@@ -564,7 +564,7 @@ static int match_root_child(struct device *dev, const void *match)
+ 		}
+ 	}
+ out:
+-	cxl_device_unlock(dev);
++	device_unlock(dev);
+ 
+ 	return !!iter;
+ }
+@@ -623,13 +623,13 @@ static int add_dport(struct cxl_port *port, struct cxl_dport *new)
+ static void cond_cxl_root_lock(struct cxl_port *port)
+ {
+ 	if (is_cxl_root(port))
+-		cxl_device_lock(&port->dev);
++		device_lock(&port->dev);
  }
  
-+static inline void device_lock_assert(struct device *dev)
-+{
-+	lockdep_assert_held(&dev->mutex);
-+}
-+
- #ifdef CONFIG_PROVE_LOCKING
- static inline void device_lockdep_init(struct device *dev)
+ static void cond_cxl_root_unlock(struct cxl_port *port)
  {
- 	mutex_init(&dev->lockdep_mutex);
-+	dev->lock_class = -1;
- 	lockdep_set_novalidate_class(&dev->mutex);
+ 	if (is_cxl_root(port))
+-		cxl_device_unlock(&port->dev);
++		device_unlock(&port->dev);
  }
+ 
+ static void cxl_dport_remove(void *data)
+@@ -736,15 +736,15 @@ static int add_ep(struct cxl_port *port, struct cxl_ep *new)
+ {
+ 	struct cxl_ep *dup;
+ 
+-	cxl_device_lock(&port->dev);
++	device_lock(&port->dev);
+ 	if (port->dead) {
+-		cxl_device_unlock(&port->dev);
++		device_unlock(&port->dev);
+ 		return -ENXIO;
+ 	}
+ 	dup = find_ep(port, new->ep);
+ 	if (!dup)
+ 		list_add_tail(&new->list, &port->endpoints);
+-	cxl_device_unlock(&port->dev);
++	device_unlock(&port->dev);
+ 
+ 	return dup ? -EEXIST : 0;
+ }
+@@ -854,12 +854,12 @@ static void delete_endpoint(void *data)
+ 		goto out;
+ 	parent = &parent_port->dev;
+ 
+-	cxl_device_lock(parent);
++	device_lock(parent);
+ 	if (parent->driver && endpoint->uport) {
+ 		devm_release_action(parent, cxl_unlink_uport, endpoint);
+ 		devm_release_action(parent, unregister_port, endpoint);
+ 	}
+-	cxl_device_unlock(parent);
++	device_unlock(parent);
+ 	put_device(parent);
+ out:
+ 	put_device(&endpoint->dev);
+@@ -920,7 +920,7 @@ static void cxl_detach_ep(void *data)
+ 		}
+ 
+ 		parent_port = to_cxl_port(port->dev.parent);
+-		cxl_device_lock(&parent_port->dev);
++		device_lock(&parent_port->dev);
+ 		if (!parent_port->dev.driver) {
+ 			/*
+ 			 * The bottom-up race to delete the port lost to a
+@@ -928,12 +928,12 @@ static void cxl_detach_ep(void *data)
+ 			 * parent_port ->remove() will have cleaned up all
+ 			 * descendants.
+ 			 */
+-			cxl_device_unlock(&parent_port->dev);
++			device_unlock(&parent_port->dev);
+ 			put_device(&port->dev);
+ 			continue;
+ 		}
+ 
+-		cxl_device_lock(&port->dev);
++		device_lock(&port->dev);
+ 		ep = find_ep(port, &cxlmd->dev);
+ 		dev_dbg(&cxlmd->dev, "disconnect %s from %s\n",
+ 			ep ? dev_name(ep->ep) : "", dev_name(&port->dev));
+@@ -948,7 +948,7 @@ static void cxl_detach_ep(void *data)
+ 			port->dead = true;
+ 			list_splice_init(&port->dports, &reap_dports);
+ 		}
+-		cxl_device_unlock(&port->dev);
++		device_unlock(&port->dev);
+ 
+ 		if (!list_empty(&reap_dports)) {
+ 			dev_dbg(&cxlmd->dev, "delete %s\n",
+@@ -956,7 +956,7 @@ static void cxl_detach_ep(void *data)
+ 			delete_switch_port(port, &reap_dports);
+ 		}
+ 		put_device(&port->dev);
+-		cxl_device_unlock(&parent_port->dev);
++		device_unlock(&parent_port->dev);
+ 	}
+ }
+ 
+@@ -1004,7 +1004,7 @@ static int add_port_attach_ep(struct cxl_memdev *cxlmd,
+ 		return -EAGAIN;
+ 	}
+ 
+-	cxl_device_lock(&parent_port->dev);
++	device_lock(&parent_port->dev);
+ 	if (!parent_port->dev.driver) {
+ 		dev_warn(&cxlmd->dev,
+ 			 "port %s:%s disabled, failed to enumerate CXL.mem\n",
+@@ -1022,7 +1022,7 @@ static int add_port_attach_ep(struct cxl_memdev *cxlmd,
+ 			get_device(&port->dev);
+ 	}
+ out:
+-	cxl_device_unlock(&parent_port->dev);
++	device_unlock(&parent_port->dev);
+ 
+ 	if (IS_ERR(port))
+ 		rc = PTR_ERR(port);
+@@ -1133,14 +1133,14 @@ struct cxl_dport *cxl_find_dport_by_dev(struct cxl_port *port,
+ {
+ 	struct cxl_dport *dport;
+ 
+-	cxl_device_lock(&port->dev);
++	device_lock(&port->dev);
+ 	list_for_each_entry(dport, &port->dports, list)
+ 		if (dport->dport == dev) {
+-			cxl_device_unlock(&port->dev);
++			device_unlock(&port->dev);
+ 			return dport;
+ 		}
+ 
+-	cxl_device_unlock(&port->dev);
++	device_unlock(&port->dev);
+ 	return NULL;
+ }
+ EXPORT_SYMBOL_NS_GPL(cxl_find_dport_by_dev, CXL);
+@@ -1379,9 +1379,9 @@ int cxl_decoder_add(struct cxl_decoder *cxld, int *target_map)
+ 
+ 	port = to_cxl_port(cxld->dev.parent);
+ 
+-	cxl_device_lock(&port->dev);
++	device_lock(&port->dev);
+ 	rc = cxl_decoder_add_locked(cxld, target_map);
+-	cxl_device_unlock(&port->dev);
++	device_unlock(&port->dev);
+ 
+ 	return rc;
+ }
+@@ -1452,13 +1452,7 @@ static int cxl_bus_probe(struct device *dev)
+ {
+ 	int rc;
+ 
+-	/*
+-	 * Take the CXL nested lock since the driver core only holds
+-	 * @dev->mutex and not @dev->lockdep_mutex.
+-	 */
+-	cxl_nested_lock(dev);
+ 	rc = to_cxl_drv(dev->driver)->probe(dev);
+-	cxl_nested_unlock(dev);
+ 
+ 	dev_dbg(dev, "probe: %d\n", rc);
+ 	return rc;
+@@ -1468,10 +1462,8 @@ static void cxl_bus_remove(struct device *dev)
+ {
+ 	struct cxl_driver *cxl_drv = to_cxl_drv(dev->driver);
+ 
+-	cxl_nested_lock(dev);
+ 	if (cxl_drv->remove)
+ 		cxl_drv->remove(dev);
+-	cxl_nested_unlock(dev);
+ }
+ 
+ static struct workqueue_struct *cxl_bus_wq;
+diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
+index c9fda9304c54..a6c1a027e389 100644
+--- a/drivers/cxl/cxl.h
++++ b/drivers/cxl/cxl.h
+@@ -439,51 +439,5 @@ static inline int cxl_lock_class(struct device *dev)
+ 	else
+ 		return CXL_ANON_LOCK;
+ }
+-
+-static inline void cxl_nested_lock(struct device *dev)
+-{
+-	mutex_lock_nested(&dev->lockdep_mutex, cxl_lock_class(dev));
+-}
+-
+-static inline void cxl_nested_unlock(struct device *dev)
+-{
+-	mutex_unlock(&dev->lockdep_mutex);
+-}
+-
+-static inline void cxl_device_lock(struct device *dev)
+-{
+-	/*
+-	 * For double lock errors the lockup will happen before lockdep
+-	 * warns at cxl_nested_lock(), so assert explicitly.
+-	 */
+-	lockdep_assert_not_held(&dev->lockdep_mutex);
+-
+-	device_lock(dev);
+-	cxl_nested_lock(dev);
+-}
+-
+-static inline void cxl_device_unlock(struct device *dev)
+-{
+-	cxl_nested_unlock(dev);
+-	device_unlock(dev);
+-}
 -#else
-+
-+static inline void device_lock(struct device *dev)
-+{
-+	/*
-+	 * For double-lock programming errors the kernel will hang
-+	 * trying to acquire @dev->mutex before lockdep can report the
-+	 * problem acquiring @dev->lockdep_mutex, so manually assert
-+	 * before that hang.
-+	 */
-+	lockdep_assert_not_held(&dev->lockdep_mutex);
-+
-+	mutex_lock(&dev->mutex);
-+	if (dev->lock_class >= 0)
-+		mutex_lock_nested(&dev->lockdep_mutex, dev->lock_class);
-+}
-+
-+static inline int device_lock_interruptible(struct device *dev)
-+{
-+	int rc;
-+
-+	lockdep_assert_not_held(&dev->lockdep_mutex);
-+
-+	rc = mutex_lock_interruptible(&dev->mutex);
-+	if (rc || dev->lock_class < 0)
-+		return rc;
-+
-+	return mutex_lock_interruptible_nested(&dev->lockdep_mutex,
-+					       dev->lock_class);
-+}
-+
-+static inline int device_trylock(struct device *dev)
-+{
-+	if (mutex_trylock(&dev->mutex)) {
-+		if (dev->lock_class >= 0)
-+			mutex_lock_nested(&dev->lockdep_mutex, dev->lock_class);
-+		return 1;
-+	}
-+
-+	return 0;
-+}
-+
-+static inline void device_unlock(struct device *dev)
-+{
-+	if (dev->lock_class >= 0)
-+		mutex_unlock(&dev->lockdep_mutex);
-+	mutex_unlock(&dev->mutex);
-+}
-+
-+/*
-+ * Note: this routine expects that the state of @dev->mutex is stable
-+ * from entry to exit. There is no support for changing lockdep
-+ * validation classes, only enabling and disabling validation.
-+ */
-+static inline void device_set_lock_class(struct device *dev, int lock_class)
-+{
-+	/*
-+	 * Allow for setting or clearing the lock class while the
-+	 * device_lock() is held, in which case the paired nested lock
-+	 * might need to be acquired or released now to accommodate the
-+	 * next device_unlock().
-+	 */
-+	if (dev->lock_class < 0 && lock_class >= 0) {
-+		/* Enabling lockdep validation... */
-+		if (mutex_is_locked(&dev->mutex))
-+			mutex_lock_nested(&dev->lockdep_mutex, lock_class);
-+	} else if (dev->lock_class >= 0 && lock_class < 0) {
-+		/* Disabling lockdep validation... */
-+		if (mutex_is_locked(&dev->mutex))
-+			mutex_unlock(&dev->lockdep_mutex);
-+	} else {
-+		dev_warn(dev,
-+			 "%s: failed to change lock_class from: %d to %d\n",
-+			 __func__, dev->lock_class, lock_class);
-+		return;
-+	}
-+	dev->lock_class = lock_class;
-+}
-+#else /* !CONFIG_PROVE_LOCKING */
- static inline void device_lockdep_init(struct device *dev)
- {
- 	lockdep_set_novalidate_class(&dev->mutex);
- }
--#endif
+-static inline void cxl_nested_lock(struct device *dev)
+-{
+-}
+-
+-static inline void cxl_nested_unlock(struct device *dev)
+-{
+-}
+-
+-static inline void cxl_device_lock(struct device *dev)
+-{
+-	device_lock(dev);
+-}
+-
+-static inline void cxl_device_unlock(struct device *dev)
+-{
+-	device_unlock(dev);
+-}
+ #endif
+ #endif /* __CXL_H__ */
+diff --git a/drivers/cxl/mem.c b/drivers/cxl/mem.c
+index 49a4b1c47299..91fb8d5b21a7 100644
+--- a/drivers/cxl/mem.c
++++ b/drivers/cxl/mem.c
+@@ -195,7 +195,7 @@ static int cxl_mem_probe(struct device *dev)
+ 		return -ENXIO;
+ 	}
  
- static inline void device_lock(struct device *dev)
- {
-@@ -795,10 +879,10 @@ static inline void device_unlock(struct device *dev)
- 	mutex_unlock(&dev->mutex);
- }
+-	cxl_device_lock(&parent_port->dev);
++	device_lock(&parent_port->dev);
+ 	if (!parent_port->dev.driver) {
+ 		dev_err(dev, "CXL port topology %s not enabled\n",
+ 			dev_name(&parent_port->dev));
+@@ -205,7 +205,7 @@ static int cxl_mem_probe(struct device *dev)
  
--static inline void device_lock_assert(struct device *dev)
-+static inline void device_set_lock_class(struct device *dev, int lock_class)
- {
--	lockdep_assert_held(&dev->mutex);
+ 	rc = create_endpoint(cxlmd, parent_port);
+ out:
+-	cxl_device_unlock(&parent_port->dev);
++	device_unlock(&parent_port->dev);
+ 	put_device(&parent_port->dev);
+ 	return rc;
  }
-+#endif /* CONFIG_PROVE_LOCKING */
+diff --git a/drivers/cxl/pmem.c b/drivers/cxl/pmem.c
+index 15ad666ab03e..b65a272a2d6d 100644
+--- a/drivers/cxl/pmem.c
++++ b/drivers/cxl/pmem.c
+@@ -43,7 +43,7 @@ static int cxl_nvdimm_probe(struct device *dev)
+ 	if (!cxl_nvb)
+ 		return -ENXIO;
  
- static inline struct device_node *dev_of_node(struct device *dev)
- {
+-	cxl_device_lock(&cxl_nvb->dev);
++	device_lock(&cxl_nvb->dev);
+ 	if (!cxl_nvb->nvdimm_bus) {
+ 		rc = -ENXIO;
+ 		goto out;
+@@ -68,7 +68,7 @@ static int cxl_nvdimm_probe(struct device *dev)
+ 	dev_set_drvdata(dev, nvdimm);
+ 	rc = devm_add_action_or_reset(dev, unregister_nvdimm, nvdimm);
+ out:
+-	cxl_device_unlock(&cxl_nvb->dev);
++	device_unlock(&cxl_nvb->dev);
+ 	put_device(&cxl_nvb->dev);
+ 
+ 	return rc;
+@@ -233,7 +233,7 @@ static void cxl_nvb_update_state(struct work_struct *work)
+ 	struct nvdimm_bus *victim_bus = NULL;
+ 	bool release = false, rescan = false;
+ 
+-	cxl_device_lock(&cxl_nvb->dev);
++	device_lock(&cxl_nvb->dev);
+ 	switch (cxl_nvb->state) {
+ 	case CXL_NVB_ONLINE:
+ 		if (!online_nvdimm_bus(cxl_nvb)) {
+@@ -251,7 +251,7 @@ static void cxl_nvb_update_state(struct work_struct *work)
+ 	default:
+ 		break;
+ 	}
+-	cxl_device_unlock(&cxl_nvb->dev);
++	device_unlock(&cxl_nvb->dev);
+ 
+ 	if (release)
+ 		device_release_driver(&cxl_nvb->dev);
+@@ -327,9 +327,9 @@ static int cxl_nvdimm_bridge_reset(struct device *dev, void *data)
+ 		return 0;
+ 
+ 	cxl_nvb = to_cxl_nvdimm_bridge(dev);
+-	cxl_device_lock(dev);
++	device_lock(dev);
+ 	cxl_nvb->state = CXL_NVB_NEW;
+-	cxl_device_unlock(dev);
++	device_unlock(dev);
+ 
+ 	return 0;
+ }
+diff --git a/lib/Kconfig.debug b/lib/Kconfig.debug
+index 075cd25363ac..333d41da7621 100644
+--- a/lib/Kconfig.debug
++++ b/lib/Kconfig.debug
+@@ -1563,7 +1563,7 @@ config PROVE_CXL_LOCKING
+ 	bool "CXL"
+ 	depends on CXL_BUS
+ 	help
+-	  Enable lockdep to validate cxl_device_lock() usage.
++	  Enable lockdep to validate CXL subsystem usage of the device lock.
+ 
+ endchoice
+ 
 
