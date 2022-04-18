@@ -1,296 +1,159 @@
-Received: from mail-pj1-f54.google.com (mail-pj1-f54.google.com [209.85.216.54])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mailout1.w2.samsung.com (mailout1.w2.samsung.com [211.189.100.11])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C744A2B
-	for <nvdimm@lists.linux.dev>; Mon, 18 Apr 2022 16:42:11 +0000 (UTC)
-Received: by mail-pj1-f54.google.com with SMTP id n11-20020a17090a73cb00b001d1d3a7116bso295414pjk.0
-        for <nvdimm@lists.linux.dev>; Mon, 18 Apr 2022 09:42:11 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=PA+FG4DowT86tBEUQdZQxInwa+G/wK3+5JMw8jztpe0=;
-        b=iLcygDQcv6dCXAGjg8o5JOwk4+1eafoTm6hZR7IT+fSHKRwdRFrMWuG6L8jfLXGygT
-         Gt9qC0ObTp8dH4d/7KbufLiAd9/TJFKdBANPcP0XT48foYFlB9eH1ztg0ToIvfnuKQhC
-         b6ZImG6QXTd7bmUBJinf6qjsahpenBYarvzy9JKFnmKM3bdF1wwMzROVCF6n8HJg5AtN
-         0VxTdBwHnHcU0Gi2K+4I0wXjlnLQtWzijvNOhbz82ukyxf22HCUaJ9T1D89d9BvTa1wA
-         x87ZYA7gYwc5ErlfwT7mIi1eV1dvYuPoULNNUQK9dQUwA8v3FTR5Lf+ohL6QKiJF7aRf
-         TiiQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=PA+FG4DowT86tBEUQdZQxInwa+G/wK3+5JMw8jztpe0=;
-        b=CJMveSor44VumCsS6NmdW7M4YZaJENg64NXwFXwIZn+T1LQ3KJzc9guvXz1ck7sdH3
-         gTMoSMzAEvvbecTGrXlKXFIDqYIoR38cKu7pMiQVXuAWzUfCBFXIeFT4YuRzkZRa8Bi2
-         PgRgLrU6dssc1WfQClVoLb7wz26cWqUK+Ha/bHEOYc4vZciopyiFdmUMwf+142d4+AXn
-         WK9EhsTtMRCwCQtue6u8129k2LJ3vCPZW3L3dFv/av6vCYJOxsr5mDhWlSBJSkpWaUGd
-         A6jYUA9aA3mg+9bxTdetncdhZnUHMXBDerwSKrEm4COsq3MgpEUgSSHsEJlyzk6yvzFc
-         yXSA==
-X-Gm-Message-State: AOAM5300TMfqaQLNCTq56+lxhyiRizI4B+4Kw8tT3/qlWNmSd1Ww0UgZ
-	m0r0QonZoPBTIgM+7EZq5mESyKEMrbPktwDzs+nV3Q==
-X-Google-Smtp-Source: ABdhPJwpvOzKsRR6iAaCZR9rRdAPrqY+UVLyqBgacn735htTjXt45+Pu4uTkGhLn7gZjsOHVXD2SFa2+Rhlvfezwl/A=
-X-Received: by 2002:a17:902:e885:b0:158:e564:8992 with SMTP id
- w5-20020a170902e88500b00158e5648992mr11596738plg.34.1650300131412; Mon, 18
- Apr 2022 09:42:11 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B06FFA29;
+	Mon, 18 Apr 2022 16:46:50 +0000 (UTC)
+Received: from uscas1p1.samsung.com (unknown [182.198.245.206])
+	by mailout1.w2.samsung.com (KnoxPortal) with ESMTP id 20220418163713usoutp01b4f5998fb2dee5945068d8fd3683dbe1~nCvSFfe2h0440104401usoutp01f;
+	Mon, 18 Apr 2022 16:37:13 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout1.w2.samsung.com 20220418163713usoutp01b4f5998fb2dee5945068d8fd3683dbe1~nCvSFfe2h0440104401usoutp01f
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
+	s=mail20170921; t=1650299833;
+	bh=Z0wvz+w3MM7V1gqBpZNdd8vqXrtxWYIC+eAFu1GlgMo=;
+	h=From:To:CC:Subject:Date:In-Reply-To:References:From;
+	b=Qk9jQzcQ3rjMqaSWT4JUhGUkv8t+oULyiPN4fAHAGFNE9AyjsDrXnrEPQAKApHFV5
+	 qRz9Mg4NB+lz1d/wuhz13rGmPFCUPcyvbF+qGL42katElqIMnfMkbtbx1UdQPqLrzi
+	 o6H3k7pTXtQbn5tBFo9Jp5qFXlyvTjyzrPLurT6E=
+Received: from ussmges1new.samsung.com (u109.gpu85.samsung.co.kr
+	[203.254.195.109]) by uscas1p1.samsung.com (KnoxPortal) with ESMTP id
+	20220418163713uscas1p1308663154db1a06390013f6b48d9150c~nCvR5nZK-2934229342uscas1p1q;
+	Mon, 18 Apr 2022 16:37:13 +0000 (GMT)
+Received: from uscas1p2.samsung.com ( [182.198.245.207]) by
+	ussmges1new.samsung.com (USCPEMTA) with SMTP id D6.4B.09760.9B39D526; Mon,
+	18 Apr 2022 12:37:13 -0400 (EDT)
+Received: from ussmgxs2new.samsung.com (u91.gpu85.samsung.co.kr
+	[203.254.195.91]) by uscas1p1.samsung.com (KnoxPortal) with ESMTP id
+	20220418163713uscas1p17b3b1b45c7d27e54e3ecb62eb8af2469~nCvRmzjVZ3041230412uscas1p1o;
+	Mon, 18 Apr 2022 16:37:13 +0000 (GMT)
+X-AuditID: cbfec36d-51bff70000002620-11-625d93b9a164
+Received: from SSI-EX4.ssi.samsung.com ( [105.128.2.145]) by
+	ussmgxs2new.samsung.com (USCPEXMTA) with SMTP id A3.D7.09672.8B39D526; Mon,
+	18 Apr 2022 12:37:13 -0400 (EDT)
+Received: from SSI-EX3.ssi.samsung.com (105.128.2.228) by
+	SSI-EX4.ssi.samsung.com (105.128.2.229) with Microsoft SMTP Server
+	(version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
+	15.1.2375.7; Mon, 18 Apr 2022 09:37:12 -0700
+Received: from SSI-EX3.ssi.samsung.com ([fe80::ddc9:3655:8940:70fb]) by
+	SSI-EX3.ssi.samsung.com ([fe80::ddc9:3655:8940:70fb%4]) with mapi id
+	15.01.2375.007; Mon, 18 Apr 2022 09:37:12 -0700
+From: Adam Manzanares <a.manzanares@samsung.com>
+To: Dan Williams <dan.j.williams@intel.com>
+CC: Ben Widawsky <ben.widawsky@intel.com>, "linux-cxl@vger.kernel.org"
+	<linux-cxl@vger.kernel.org>, Linux NVDIMM <nvdimm@lists.linux.dev>,
+	"patches@lists.linux.dev" <patches@lists.linux.dev>, Alison Schofield
+	<alison.schofield@intel.com>, Ira Weiny <ira.weiny@intel.com>, "Jonathan
+ Cameron" <Jonathan.Cameron@huawei.com>, Vishal Verma
+	<vishal.l.verma@intel.com>, "mcgrof@kernel.org" <mcgrof@kernel.org>
+Subject: Re: [RFC PATCH 02/15] cxl/core/hdm: Bail on endpoint init fail
+Thread-Topic: [RFC PATCH 02/15] cxl/core/hdm: Bail on endpoint init fail
+Thread-Index: AQHYU0KNF8z/Gs91PkuWbFzC2yfYtA==
+Date: Mon, 18 Apr 2022 16:37:12 +0000
+Message-ID: <20220418163702.GA85141@bgt-140510-bm01>
+In-Reply-To: <CAPcyv4hKGEy_0dMQWfJAVVsGu364NjfNeup7URb7ORUYLSZncw@mail.gmail.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-originating-ip: [105.128.2.176]
+Content-Type: text/plain; charset="us-ascii"
+Content-ID: <469CE4F1A4A8F344B33B1C8385464CAA@ssi.samsung.com>
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20220413183720.2444089-1-ben.widawsky@intel.com> <20220413183720.2444089-6-ben.widawsky@intel.com>
-In-Reply-To: <20220413183720.2444089-6-ben.widawsky@intel.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 18 Apr 2022 09:42:00 -0700
-Message-ID: <CAPcyv4iM13nzCpnF5S4oHSWF769t4Av96gQM_3n4E=RAPSnSig@mail.gmail.com>
-Subject: Re: [RFC PATCH 05/15] cxl/acpi: Reserve CXL resources from request_free_mem_region
-To: Ben Widawsky <ben.widawsky@intel.com>
-Cc: linux-cxl@vger.kernel.org, Linux NVDIMM <nvdimm@lists.linux.dev>, 
-	patches@lists.linux.dev, Alison Schofield <alison.schofield@intel.com>, 
-	Ira Weiny <ira.weiny@intel.com>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, 
-	Vishal Verma <vishal.l.verma@intel.com>, Christoph Hellwig <hch@infradead.org>, 
-	Jason Gunthorpe <jgg@nvidia.com>, John Hubbard <jhubbard@nvidia.com>
-Content-Type: text/plain; charset="UTF-8"
+X-CFilter-Loop: Reflected
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFtrDKsWRmVeSWpSXmKPExsWy7djX87o7J8cmGaybpWBx9/EFNouuZ/3M
+	FtOnXmC02P/0OYvFqoXX2CzOzzrFYnFjwlNGi5U//rBaXD5xidHi1oRjTA5cHi1H3rJ6LN7z
+	kslj06pONo8Xm2cyenzeJBfAGsVlk5Kak1mWWqRvl8CV0X9jN2NBo0DF75P9TA2Ml7i7GDk5
+	JARMJP7fPcTexcjFISSwklGi6eR7JginlUmi4fEpIIcDrKrjZTlEfC2jxPWuXkYI5yOjxIvW
+	AywQzgFGiS03ZrCAzGUTMJD4fXwjM4gtIqAtMXHOQTCbWWAOs8TEi6IgtrCAu8SJvg5GiBoP
+	iS//jrBC2HoSm/9dZQOxWQRUJS4/usAEYvMCXfH7ez9YPadAIFDvEbCZjAJiEt9PrWGCmC8u
+	cevJfCaI3wQlFs3ewwxhi0n82/WQDcJWlLj//SU7RL2OxILdn9ggbDuJ7/+WMELY2hLLFr5m
+	htgrKHFy5hMWiF5JiYMrbkDZLzgkGh9pQdguErvXrISKS0v8vbsMHIwSAu2MEh8m7GOFcCYw
+	Stx5+xPqCmuJf53X2CcwqsxCcvgsJEfNQnLULCRHzUJy1AJG1lWM4qXFxbnpqcWGeanlesWJ
+	ucWleel6yfm5mxiBCez0v8O5Oxh33Pqod4iRiYPxEKMEB7OSCG/PkugkId6UxMqq1KL8+KLS
+	nNTiQ4zSHCxK4rzLMjckCgmkJ5akZqemFqQWwWSZODilGpiWV//n3CZjsCLlwW3vvzzM1Sk/
+	/uTXBOZunNjPI5p8hsv+Xc2fe3cc2+v4Aw6/P8Z0Mi3u+zXXXQ8syq48T7po/ppPZ9MbmTPa
+	wQevvLzDs+pVXYXGJoNdtfKni+rVI2WfB1zLOy4n2mi+76vnC7YWxhRjh9smHyvibUVEQpuj
+	b3Ue/L0319BOIYY538w268jMy5umJF6XlHYosb+16emJ78vnTtr3ui5XPNX8X5fsq9ZP9u58
+	yqdjrviszalJqos1Sby4KUtF3DxwLmv4ysMfH9fE6v/Ju1/2K9SfJWlBQvpkloAdvGnu5fmN
+	ra/jdM9OnLLZNPHGo+d7U/1uHkgNnm0yMU+ixWPWjbTqXiWW4oxEQy3mouJEADm9jSXPAwAA
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFrrJIsWRmVeSWpSXmKPExsWS2cA0UXfn5Ngkg44fHBZ3H19gs+h61s9s
+	MX3qBUaL/U+fs1isWniNzeL8rFMsFjcmPGW0WPnjD6vF5ROXGC1uTTjG5MDl0XLkLavH4j0v
+	mTw2repk83ixeSajx+dNcgGsUVw2Kak5mWWpRfp2CVwZ/Td2MxY0ClT8PtnP1MB4ibuLkYND
+	QsBEouNleRcjF4eQwGpGiRUTf7NCOB8ZJX6tvQ3lHAByPuxl7mLk5GATMJD4fXwjmC0ioC0x
+	cc5BMJtZYA6zxMSLoiC2sIC7xIm+DkaIGg+JL/+OsELYehKb/11lA7FZBFQlLj+6wARi8wJd
+	8ft7PyPEsh2MEv3bb4I1cAoEAg06AraAUUBM4vupNUwQy8Qlbj2ZD2ZLCAhILNlznhnCFpV4
+	+fgfK4StKHH/+0t2iHodiQW7P7FB2HYS3/8tYYSwtSWWLXzNDHGEoMTJmU9YIHolJQ6uuMEy
+	gVFiFpJ1s5CMmoVk1Cwko2YhGbWAkXUVo3hpcXFuekWxUV5quV5xYm5xaV66XnJ+7iZGYOyf
+	/nc4egfj7Vsf9Q4xMnEwHmKU4GBWEuHtWRKdJMSbklhZlVqUH19UmpNafIhRmoNFSZz3ZdTE
+	eCGB9MSS1OzU1ILUIpgsEwenVAMTg45ibifv5usbeWTrX2v1mGrc/zsjfp7P/5nv5Pe7zSnZ
+	zWVQM/vFYebJ6eULPhyzuapkIdO8/k7AgXdOl87NFGdS/3jmYPThpkaJrGknYu18fZ2vfc0T
+	63Jkm9cueOdYxYLwspU/Dt7o2yc837iqc+7krlw5we959iJpnmLfJ7cpK4rZ74hsyt/+dePV
+	nke8uyMcXazcujtuv0stuHqoNcXYODNDZtk2c+tNwvsk31TmqG47KZswJX/Nm2easSZyye/3
+	vJ2z+tmf+WfntNyVeek0N2SFQ8G86T+WnHF4mbQ4WXmDi7ntr+pr6xlvJfLNUGDQO7SwlFNm
+	f8Qnfp/zjnVPrq7daHfOz8Np+awrSizFGYmGWsxFxYkAdOfDS2wDAAA=
+X-CMS-MailID: 20220418163713uscas1p17b3b1b45c7d27e54e3ecb62eb8af2469
+CMS-TYPE: 301P
+X-CMS-RootMailID: 20220418163713uscas1p17b3b1b45c7d27e54e3ecb62eb8af2469
+References: <20220413183720.2444089-1-ben.widawsky@intel.com>
+	<20220413183720.2444089-3-ben.widawsky@intel.com>
+	<CAPcyv4hKGEy_0dMQWfJAVVsGu364NjfNeup7URb7ORUYLSZncw@mail.gmail.com>
+	<CGME20220418163713uscas1p17b3b1b45c7d27e54e3ecb62eb8af2469@uscas1p1.samsung.com>
 
-[ add the usual HMM suspects Christoph, Jason, and John ]
+On Wed, Apr 13, 2022 at 02:31:42PM -0700, Dan Williams wrote:
+> On Wed, Apr 13, 2022 at 11:38 AM Ben Widawsky <ben.widawsky@intel.com> wr=
+ote:
+> >
+> > Endpoint decoder enumeration is the only way in which we can determine
+> > Device Physical Address (DPA) -> Host Physical Address (HPA) mappings.
+> > Information is obtained only when the register state can be read
+> > sequentially. If when enumerating the decoders a failure occurs, all
+> > other decoders must also fail since the decoders can no longer be
+> > accurately managed (unless it's the last decoder in which case it can
+> > still work).
+>=20
+> I think this should be expanded to fail if any decoder fails to
+> allocate anywhere in the topology otherwise it leaves a mess for
+> future address translation code to work through cases where decoder
+> information is missing.
+>=20
+> The current approach is based around the current expectation that
+> nothing is enumerating pre-existing regions, and nothing is performing
+> address translation.
 
-On Wed, Apr 13, 2022 at 11:38 AM Ben Widawsky <ben.widawsky@intel.com> wrote:
->
-> Define an API which allows CXL drivers to manage CXL address space.
-> CXL is unique in that the address space and various properties are only
-> known after CXL drivers come up, and therefore cannot be part of core
-> memory enumeration.
+Does the qemu support currently allow testing of this patch? If so, it woul=
+d=20
+be good to reference qemu configurations. Any other alternatives would be=20
+welcome as well.=20
 
-I think this buries the lead on the problem introduced by
-MEMORY_DEVICE_PRIVATE in the first place. Let's revisit that history
-before diving into what CXL needs.
++Luis on cc.
 
----
-
-Commit 4ef589dc9b10 ("mm/hmm/devmem: device memory hotplug using
-ZONE_DEVICE") introduced the concept of MEMORY_DEVICE_PRIVATE. At its
-core MEMORY_DEVICE_PRIVATE uses the ZONE_DEVICE capability to annotate
-an "unused" physical address range with 'struct page' for the purpose
-of coordinating migration of buffers onto and off of a GPU /
-accelerator. The determination of "unused" was based on a heuristic,
-not a guarantee, that any address range not expressly conveyed in the
-platform firmware map of the system can be repurposed for software
-use. The CXL Fixed Memory Windows Structure  (CFMWS) definition
-explicitly breaks the assumptions of that heuristic.
-
----
-
-...and then jump into what CFMWS is and the proposal to coordinate
-with request_free_mem_region().
-
-
->
-> Compute Express Link 2.0 [ECN] defines a concept called CXL Fixed Memory
-> Window Structures (CFMWS). Each CFMWS conveys a region of host physical
-> address (HPA) space which has certain properties that are familiar to
-> CXL, mainly interleave properties, and restrictions, such as
-> persistence. The HPA ranges therefore should be owned, or at least
-> guided by the relevant CXL driver, cxl_acpi [1].
->
-> It would be desirable to simply insert this address space into
-> iomem_resource with a new flag to denote this is CXL memory. This would
-> permit request_free_mem_region() to be reused for CXL memory provided it
-> learned some new tricks. For that, it is tempting to simply use
-> insert_resource(). The API was designed specifically for cases where new
-> devices may offer new address space. This cannot work in the general
-> case. Boot firmware can pass, some, none, or all of the CFMWS range as
-> various types of memory to the kernel, and this may be left alone,
-> merged, or even expanded.
-
-s/expanded/expanded as the memory map is parsed and reconciled/
-
-> As a result iomem_resource may intersect CFMWS
-> regions in ways insert_resource cannot handle [2]. Similar reasoning
-> applies to allocate_resource().
->
-> With the insert_resource option out, the only reasonable approach left
-> is to let the CXL driver manage the address space independently of
-> iomem_resource and attempt to prevent users of device private memory
-
-s/device private memory/MEMORY_DEVICE_PRIVATE/
-
-> APIs from using CXL memory. In the case where cxl_acpi comes up first,
-> the new API allows cxl to block use of any CFMWS defined address space
-> by assuming everything above the highest CFMWS entry is fair game. It is
-> expected that this effectively will prevent usage of device private
-> memory,
-
-No, only if CFMWS consumes the full 64-bit address space which is
-unlikely. It's also unlikely going forward to need
-MEMORY_DEVICE_PRIVATE when hardware supports CXL for fully coherent
-migration of buffers onto and off of an accelearator.
-
-> but if such behavior is undesired, cxl_acpi can be blocked from
-> loading, or unloaded.
-
-I would just say if MEMORY_DEVICE_PRIVATE needs exceed the memory
-space left over by CXL then the loading of the dynamic CXL address
-space allocation infrastructure can be deferred until after
-MEMORY_DEVICE_PRIVATE consumers have
-
-> When device private memory is used before CXL
-> comes up, or, there are intersections as described above, the CXL driver
-> will have to make sure to not reuse sysram that is BUSY.
->
-> [1]: The specification defines enumeration via ACPI, however, one could
-> envision devicetree, or some other hardcoded mechanisms for doing the
-> same thing.
->
-> [2]: A common way to hit this case is when BIOS creates a volatile
-> region with extra space for hotplug. In this case, you're likely to have
->
-> |<--------------HPA space---------------------->|
-> |<---iomem_resource -->|
-> | DDR  | CXL Volatile  |
-> |      | CFMWS for volatile w/ hotplug |
->
-> Suggested-by: Dan Williams <dan.j.williams@intel.com>
-> Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
-> ---
->  drivers/cxl/acpi.c     | 26 ++++++++++++++++++++++++++
->  include/linux/ioport.h |  1 +
->  kernel/resource.c      | 11 ++++++++++-
->  3 files changed, 37 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/cxl/acpi.c b/drivers/cxl/acpi.c
-> index 9b69955b90cb..0870904fe4b5 100644
-> --- a/drivers/cxl/acpi.c
-> +++ b/drivers/cxl/acpi.c
-> @@ -76,6 +76,7 @@ static int cxl_acpi_cfmws_verify(struct device *dev,
->  struct cxl_cfmws_context {
->         struct device *dev;
->         struct cxl_port *root_port;
-> +       struct acpi_cedt_cfmws *high_cfmws;
-
-Seems more straightforward to track the max 'end' address seen so far
-rather than the "highest" cfmws entry.
-
->  };
->
->  static int cxl_parse_cfmws(union acpi_subtable_headers *header, void *arg,
-> @@ -126,6 +127,14 @@ static int cxl_parse_cfmws(union acpi_subtable_headers *header, void *arg,
->                         cfmws->base_hpa + cfmws->window_size - 1);
->                 return 0;
->         }
-> +
-> +       if (ctx->high_cfmws) {
-> +               if (cfmws->base_hpa > ctx->high_cfmws->base_hpa)
-> +                       ctx->high_cfmws = cfmws;
-
-I'd expect:
-
-end = cfmws->base_hpa + window_size;
-if (ctx->cfmws_max < end)
-   ctx->cfmws_max = end;
-
-> +       } else {
-> +               ctx->high_cfmws = cfmws;
-> +       }
-> +
->         dev_dbg(dev, "add: %s node: %d range %#llx-%#llx\n",
->                 dev_name(&cxld->dev), phys_to_target_node(cxld->range.start),
->                 cfmws->base_hpa, cfmws->base_hpa + cfmws->window_size - 1);
-> @@ -299,6 +308,7 @@ static int cxl_acpi_probe(struct platform_device *pdev)
->         ctx = (struct cxl_cfmws_context) {
->                 .dev = host,
->                 .root_port = root_port,
-> +               .high_cfmws = NULL,
->         };
->         acpi_table_parse_cedt(ACPI_CEDT_TYPE_CFMWS, cxl_parse_cfmws, &ctx);
->
-> @@ -317,10 +327,25 @@ static int cxl_acpi_probe(struct platform_device *pdev)
->         if (rc < 0)
->                 return rc;
->
-> +       if (ctx.high_cfmws) {
-
-Even if there are zero CFMWS entries there will always be a max end
-address to call set_request_free_min_base().
-
-> +               resource_size_t end =
-> +                       ctx.high_cfmws->base_hpa + ctx.high_cfmws->window_size;
-> +               dev_dbg(host,
-> +                       "Disabling free device private regions below %#llx\n",
-> +                       end);
-> +               set_request_free_min_base(end);
-> +       }
-> +
->         /* In case PCI is scanned before ACPI re-trigger memdev attach */
->         return cxl_bus_rescan();
->  }
->
-> +static int cxl_acpi_remove(struct platform_device *pdev)
-
-No need for a .remove() method, just use devm_add_action_or_reset() to
-unreserve CXL address space as cxl_acpi unloads.
-
-> +{
-> +       set_request_free_min_base(0);
-> +       return 0;
-> +}
-> +
->  static const struct acpi_device_id cxl_acpi_ids[] = {
->         { "ACPI0017" },
->         { },
-> @@ -329,6 +354,7 @@ MODULE_DEVICE_TABLE(acpi, cxl_acpi_ids);
->
->  static struct platform_driver cxl_acpi_driver = {
->         .probe = cxl_acpi_probe,
-> +       .remove = cxl_acpi_remove,
->         .driver = {
->                 .name = KBUILD_MODNAME,
->                 .acpi_match_table = cxl_acpi_ids,
-> diff --git a/include/linux/ioport.h b/include/linux/ioport.h
-> index ec5f71f7135b..dc41e4be5635 100644
-> --- a/include/linux/ioport.h
-> +++ b/include/linux/ioport.h
-> @@ -325,6 +325,7 @@ extern int
->  walk_iomem_res_desc(unsigned long desc, unsigned long flags, u64 start, u64 end,
->                     void *arg, int (*func)(struct resource *, void *));
->
-> +void set_request_free_min_base(resource_size_t val);
-
-Shouldn't there also be a static inline empty routine in the
-CONFIG_DEVICE_PRIVATE=n case?
-
->  struct resource *devm_request_free_mem_region(struct device *dev,
->                 struct resource *base, unsigned long size);
->  struct resource *request_free_mem_region(struct resource *base,
-> diff --git a/kernel/resource.c b/kernel/resource.c
-> index 34eaee179689..a4750689e529 100644
-> --- a/kernel/resource.c
-> +++ b/kernel/resource.c
-> @@ -1774,6 +1774,14 @@ void resource_list_free(struct list_head *head)
->  EXPORT_SYMBOL(resource_list_free);
->
->  #ifdef CONFIG_DEVICE_PRIVATE
-> +static resource_size_t request_free_min_base;
-> +
-> +void set_request_free_min_base(resource_size_t val)
-> +{
-> +       request_free_min_base = val;
-> +}
-> +EXPORT_SYMBOL_GPL(set_request_free_min_base);
-> +
->  static struct resource *__request_free_mem_region(struct device *dev,
->                 struct resource *base, unsigned long size, const char *name)
->  {
-> @@ -1799,7 +1807,8 @@ static struct resource *__request_free_mem_region(struct device *dev,
->         }
->
->         write_lock(&resource_lock);
-> -       for (; addr > size && addr >= base->start; addr -= size) {
-> +       for (; addr > size && addr >= max(base->start, request_free_min_base);
-> +            addr -= size) {
->                 if (__region_intersects(addr, size, 0, IORES_DESC_NONE) !=
->                                 REGION_DISJOINT)
->                         continue;
-> --
-> 2.35.1
->
+>=20
+> >
+> > Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
+> > ---
+> >  drivers/cxl/core/hdm.c | 2 ++
+> >  1 file changed, 2 insertions(+)
+> >
+> > diff --git a/drivers/cxl/core/hdm.c b/drivers/cxl/core/hdm.c
+> > index bfc8ee876278..c3c021b54079 100644
+> > --- a/drivers/cxl/core/hdm.c
+> > +++ b/drivers/cxl/core/hdm.c
+> > @@ -255,6 +255,8 @@ int devm_cxl_enumerate_decoders(struct cxl_hdm *cxl=
+hdm)
+> >                                       cxlhdm->regs.hdm_decoder, i);
+> >                 if (rc) {
+> >                         put_device(&cxld->dev);
+> > +                       if (is_endpoint_decoder(&cxld->dev))
+> > +                               return rc;
+> >                         failed++;
+> >                         continue;
+> >                 }
+> > --
+> > 2.35.1
+> >
+> =
