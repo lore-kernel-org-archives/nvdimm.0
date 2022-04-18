@@ -1,345 +1,296 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f54.google.com (mail-pj1-f54.google.com [209.85.216.54])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13CD77EC
-	for <nvdimm@lists.linux.dev>; Mon, 18 Apr 2022 08:59:52 +0000 (UTC)
-Received: from pps.filterd (m0098414.ppops.net [127.0.0.1])
-	by mx0b-001b2d01.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 23I8aJha026680;
-	Mon, 18 Apr 2022 08:59:45 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=subject : from : to : cc
- : date : message-id : content-type : content-transfer-encoding :
- mime-version; s=pp1; bh=52CwmVijshxv1LdNsgXLaoCdAvAXSvAqZmScIf8Wpn4=;
- b=X+dc62MyLm6Zyp9A436tn9cJGWF5wDis1KGeDPDUOew/Gy1AVeSu99me8XKRoXay8uPF
- aB7I++mBM93tzpLOG5u8JEmCfaSE99rtkMMlBAzAYQDQRR34VC59jeG+hpovPJjZKK8K
- pE9r3GPBfmhN88FvhpumOOMe9FZF4U1W+WuB5vzkSOQeLNpQ/PP6aZdhktEhP/vhxNpZ
- pY7vSD6DMp4tJiiSuqYk+h7cso+cOULTQNyswmkVz3s+hXDSTysJWvseGbRIFiu1Ld8H
- qmuAy/KHwGBaCkVIOnTZHmFZIGW8kGd5E1oG0rpnZZZtPCTteDH6AHfMccZ4D1LQMbmA 3Q== 
-Received: from ppma01fra.de.ibm.com (46.49.7a9f.ip4.static.sl-reverse.com [159.122.73.70])
-	by mx0b-001b2d01.pphosted.com with ESMTP id 3ffpdxdkg2-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 18 Apr 2022 08:59:45 +0000
-Received: from pps.filterd (ppma01fra.de.ibm.com [127.0.0.1])
-	by ppma01fra.de.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 23I8wnM4008703;
-	Mon, 18 Apr 2022 08:59:43 GMT
-Received: from b06cxnps4076.portsmouth.uk.ibm.com (d06relay13.portsmouth.uk.ibm.com [9.149.109.198])
-	by ppma01fra.de.ibm.com with ESMTP id 3ffne8t03h-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 18 Apr 2022 08:59:43 +0000
-Received: from d06av21.portsmouth.uk.ibm.com (d06av21.portsmouth.uk.ibm.com [9.149.105.232])
-	by b06cxnps4076.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 23I8xe4W27066850
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 18 Apr 2022 08:59:40 GMT
-Received: from d06av21.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 0389C5204F;
-	Mon, 18 Apr 2022 08:59:40 +0000 (GMT)
-Received: from lep8c.aus.stglabs.ibm.com (unknown [9.40.192.207])
-	by d06av21.portsmouth.uk.ibm.com (Postfix) with ESMTP id D4BE05204E;
-	Mon, 18 Apr 2022 08:59:38 +0000 (GMT)
-Subject: [PATCH v3] tests/nvdimm/ndtest: Simulate nvdimm health,
- DSC and smart-inject
-From: Shivaprasad G Bhat <sbhat@linux.ibm.com>
-To: nvdimm@lists.linux.dev
-Cc: linuxppc-dev@lists.ozlabs.org, aneesh.kumar@linux.ibm.com,
-        sbhat@linux.ibm.com, vaibhav@linux.ibm.com, dan.j.williams@intel.com,
-        ira.weiny@intel.com, mpe@ellerman.id.au
-Date: Mon, 18 Apr 2022 03:59:38 -0500
-Message-ID: 
- <165027233876.3035289.4353747702027907365.stgit@lep8c.aus.stglabs.ibm.com>
-User-Agent: StGit/1.1+40.g1b20
-Content-Type: text/plain; charset="utf-8"
-X-TM-AS-GCONF: 00
-X-Proofpoint-ORIG-GUID: LGBvn_YfmMP9kq9rvHRS4VfuY6mQCcTw
-X-Proofpoint-GUID: LGBvn_YfmMP9kq9rvHRS4VfuY6mQCcTw
-Content-Transfer-Encoding: 7bit
-X-Proofpoint-UnRewURL: 0 URL was un-rewritten
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C744A2B
+	for <nvdimm@lists.linux.dev>; Mon, 18 Apr 2022 16:42:11 +0000 (UTC)
+Received: by mail-pj1-f54.google.com with SMTP id n11-20020a17090a73cb00b001d1d3a7116bso295414pjk.0
+        for <nvdimm@lists.linux.dev>; Mon, 18 Apr 2022 09:42:11 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20210112.gappssmtp.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=PA+FG4DowT86tBEUQdZQxInwa+G/wK3+5JMw8jztpe0=;
+        b=iLcygDQcv6dCXAGjg8o5JOwk4+1eafoTm6hZR7IT+fSHKRwdRFrMWuG6L8jfLXGygT
+         Gt9qC0ObTp8dH4d/7KbufLiAd9/TJFKdBANPcP0XT48foYFlB9eH1ztg0ToIvfnuKQhC
+         b6ZImG6QXTd7bmUBJinf6qjsahpenBYarvzy9JKFnmKM3bdF1wwMzROVCF6n8HJg5AtN
+         0VxTdBwHnHcU0Gi2K+4I0wXjlnLQtWzijvNOhbz82ukyxf22HCUaJ9T1D89d9BvTa1wA
+         x87ZYA7gYwc5ErlfwT7mIi1eV1dvYuPoULNNUQK9dQUwA8v3FTR5Lf+ohL6QKiJF7aRf
+         TiiQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=PA+FG4DowT86tBEUQdZQxInwa+G/wK3+5JMw8jztpe0=;
+        b=CJMveSor44VumCsS6NmdW7M4YZaJENg64NXwFXwIZn+T1LQ3KJzc9guvXz1ck7sdH3
+         gTMoSMzAEvvbecTGrXlKXFIDqYIoR38cKu7pMiQVXuAWzUfCBFXIeFT4YuRzkZRa8Bi2
+         PgRgLrU6dssc1WfQClVoLb7wz26cWqUK+Ha/bHEOYc4vZciopyiFdmUMwf+142d4+AXn
+         WK9EhsTtMRCwCQtue6u8129k2LJ3vCPZW3L3dFv/av6vCYJOxsr5mDhWlSBJSkpWaUGd
+         A6jYUA9aA3mg+9bxTdetncdhZnUHMXBDerwSKrEm4COsq3MgpEUgSSHsEJlyzk6yvzFc
+         yXSA==
+X-Gm-Message-State: AOAM5300TMfqaQLNCTq56+lxhyiRizI4B+4Kw8tT3/qlWNmSd1Ww0UgZ
+	m0r0QonZoPBTIgM+7EZq5mESyKEMrbPktwDzs+nV3Q==
+X-Google-Smtp-Source: ABdhPJwpvOzKsRR6iAaCZR9rRdAPrqY+UVLyqBgacn735htTjXt45+Pu4uTkGhLn7gZjsOHVXD2SFa2+Rhlvfezwl/A=
+X-Received: by 2002:a17:902:e885:b0:158:e564:8992 with SMTP id
+ w5-20020a170902e88500b00158e5648992mr11596738plg.34.1650300131412; Mon, 18
+ Apr 2022 09:42:11 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.205,Aquarius:18.0.858,Hydra:6.0.486,FMLib:17.11.64.514
- definitions=2022-04-18_02,2022-04-15_01,2022-02-23_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 clxscore=1015 mlxscore=0
- priorityscore=1501 suspectscore=0 adultscore=0 spamscore=0 bulkscore=0
- mlxlogscore=741 malwarescore=0 lowpriorityscore=0 impostorscore=0
- phishscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2202240000 definitions=main-2204180051
+References: <20220413183720.2444089-1-ben.widawsky@intel.com> <20220413183720.2444089-6-ben.widawsky@intel.com>
+In-Reply-To: <20220413183720.2444089-6-ben.widawsky@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 18 Apr 2022 09:42:00 -0700
+Message-ID: <CAPcyv4iM13nzCpnF5S4oHSWF769t4Av96gQM_3n4E=RAPSnSig@mail.gmail.com>
+Subject: Re: [RFC PATCH 05/15] cxl/acpi: Reserve CXL resources from request_free_mem_region
+To: Ben Widawsky <ben.widawsky@intel.com>
+Cc: linux-cxl@vger.kernel.org, Linux NVDIMM <nvdimm@lists.linux.dev>, 
+	patches@lists.linux.dev, Alison Schofield <alison.schofield@intel.com>, 
+	Ira Weiny <ira.weiny@intel.com>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Christoph Hellwig <hch@infradead.org>, 
+	Jason Gunthorpe <jgg@nvidia.com>, John Hubbard <jhubbard@nvidia.com>
+Content-Type: text/plain; charset="UTF-8"
 
-The 'papr_scm' module and 'papr' implementation in libndctl supports
-PDSMs for reporting PAPR NVDIMM health, dirty-shutdown-count and
-injecting smart-errors. This patch adds support for those PDSMs in
-ndtest module so that PDSM specific paths in libndctl can be exercised.
+[ add the usual HMM suspects Christoph, Jason, and John ]
 
-Signed-off-by: Shivaprasad G Bhat <sbhat@linux.ibm.com>
-Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
+On Wed, Apr 13, 2022 at 11:38 AM Ben Widawsky <ben.widawsky@intel.com> wrote:
+>
+> Define an API which allows CXL drivers to manage CXL address space.
+> CXL is unique in that the address space and various properties are only
+> known after CXL drivers come up, and therefore cannot be part of core
+> memory enumeration.
+
+I think this buries the lead on the problem introduced by
+MEMORY_DEVICE_PRIVATE in the first place. Let's revisit that history
+before diving into what CXL needs.
+
 ---
-Changelog:
-Since v2:
-Link: https://patchwork.kernel.org/project/linux-nvdimm/patch/163454437514.431245.15482985237822269917.stgit@lep8c.aus.stglabs.ibm.com/
-* Made it like v1 which had the patches based on the moved header files.
-  So, this patch depends on the patch moving the header files posted at -
-  https://patchwork.kernel.org/project/linux-nvdimm/patch/165025666388.2927278.9540058958498766114.stgit@lep8c.aus.stglabs.ibm.com/
 
-Since v1:
-Link: https://patchwork.kernel.org/project/linux-nvdimm/list/?series=521767
-* Removed the dependency on a header movement patch
- tools/testing/nvdimm/test/ndtest.c |  146 ++++++++++++++++++++++++++++++++++++
- tools/testing/nvdimm/test/ndtest.h |    7 ++
- 2 files changed, 153 insertions(+)
+Commit 4ef589dc9b10 ("mm/hmm/devmem: device memory hotplug using
+ZONE_DEVICE") introduced the concept of MEMORY_DEVICE_PRIVATE. At its
+core MEMORY_DEVICE_PRIVATE uses the ZONE_DEVICE capability to annotate
+an "unused" physical address range with 'struct page' for the purpose
+of coordinating migration of buffers onto and off of a GPU /
+accelerator. The determination of "unused" was based on a heuristic,
+not a guarantee, that any address range not expressly conveyed in the
+platform firmware map of the system can be repurposed for software
+use. The CXL Fixed Memory Windows Structure  (CFMWS) definition
+explicitly breaks the assumptions of that heuristic.
 
-diff --git a/tools/testing/nvdimm/test/ndtest.c b/tools/testing/nvdimm/test/ndtest.c
-index 5eb946a02c95..b07cbdd1952d 100644
---- a/tools/testing/nvdimm/test/ndtest.c
-+++ b/tools/testing/nvdimm/test/ndtest.c
-@@ -50,6 +50,10 @@ static struct ndtest_dimm dimm_group1[] = {
- 		.uuid_str = "1e5c75d2-b618-11ea-9aa3-507b9ddc0f72",
- 		.physical_id = 0,
- 		.num_formats = 2,
-+		.flags = PAPR_PMEM_HEALTH_NON_CRITICAL,
-+		.extension_flags = PDSM_DIMM_DSC_VALID | PDSM_DIMM_HEALTH_RUN_GAUGE_VALID,
-+		.dimm_fuel_gauge = 95,
-+		.dimm_dsc = 42,
- 	},
- 	{
- 		.size = DIMM_SIZE,
-@@ -57,6 +61,10 @@ static struct ndtest_dimm dimm_group1[] = {
- 		.uuid_str = "1c4d43ac-b618-11ea-be80-507b9ddc0f72",
- 		.physical_id = 1,
- 		.num_formats = 2,
-+		.flags = PAPR_PMEM_HEALTH_NON_CRITICAL,
-+		.extension_flags = PDSM_DIMM_DSC_VALID | PDSM_DIMM_HEALTH_RUN_GAUGE_VALID,
-+		.dimm_fuel_gauge = 95,
-+		.dimm_dsc = 42,
- 	},
- 	{
- 		.size = DIMM_SIZE,
-@@ -64,6 +72,10 @@ static struct ndtest_dimm dimm_group1[] = {
- 		.uuid_str = "a9f17ffc-b618-11ea-b36d-507b9ddc0f72",
- 		.physical_id = 2,
- 		.num_formats = 2,
-+		.flags = PAPR_PMEM_HEALTH_NON_CRITICAL,
-+		.extension_flags = PDSM_DIMM_DSC_VALID | PDSM_DIMM_HEALTH_RUN_GAUGE_VALID,
-+		.dimm_fuel_gauge = 95,
-+		.dimm_dsc = 42,
- 	},
- 	{
- 		.size = DIMM_SIZE,
-@@ -71,6 +83,10 @@ static struct ndtest_dimm dimm_group1[] = {
- 		.uuid_str = "b6b83b22-b618-11ea-8aae-507b9ddc0f72",
- 		.physical_id = 3,
- 		.num_formats = 2,
-+		.flags = PAPR_PMEM_HEALTH_NON_CRITICAL,
-+		.extension_flags = PDSM_DIMM_DSC_VALID | PDSM_DIMM_HEALTH_RUN_GAUGE_VALID,
-+		.dimm_fuel_gauge = 95,
-+		.dimm_dsc = 42,
- 	},
- 	{
- 		.size = DIMM_SIZE,
-@@ -237,6 +253,103 @@ static int ndtest_get_config_size(struct ndtest_dimm *dimm, unsigned int buf_len
- 	return 0;
- }
- 
-+static int ndtest_pdsm_health(struct ndtest_dimm *dimm,
-+			union nd_pdsm_payload *payload,
-+			unsigned int buf_len)
-+{
-+	struct nd_papr_pdsm_health *health = &payload->health;
-+
-+	if (buf_len < sizeof(health))
-+		return -EINVAL;
-+
-+	health->extension_flags = 0;
-+	health->dimm_unarmed = !!(dimm->flags & PAPR_PMEM_UNARMED_MASK);
-+	health->dimm_bad_shutdown = !!(dimm->flags & PAPR_PMEM_BAD_SHUTDOWN_MASK);
-+	health->dimm_bad_restore = !!(dimm->flags & PAPR_PMEM_BAD_RESTORE_MASK);
-+	health->dimm_health = PAPR_PDSM_DIMM_HEALTHY;
-+
-+	if (dimm->flags & PAPR_PMEM_HEALTH_FATAL)
-+		health->dimm_health = PAPR_PDSM_DIMM_FATAL;
-+	else if (dimm->flags & PAPR_PMEM_HEALTH_CRITICAL)
-+		health->dimm_health = PAPR_PDSM_DIMM_CRITICAL;
-+	else if (dimm->flags & PAPR_PMEM_HEALTH_UNHEALTHY ||
-+		 dimm->flags & PAPR_PMEM_HEALTH_NON_CRITICAL)
-+		health->dimm_health = PAPR_PDSM_DIMM_UNHEALTHY;
-+
-+	health->extension_flags = 0;
-+	if (dimm->extension_flags & PDSM_DIMM_HEALTH_RUN_GAUGE_VALID) {
-+		health->dimm_fuel_gauge = dimm->dimm_fuel_gauge;
-+		health->extension_flags |= PDSM_DIMM_HEALTH_RUN_GAUGE_VALID;
-+	}
-+	if (dimm->extension_flags & PDSM_DIMM_DSC_VALID) {
-+		health->dimm_dsc = dimm->dimm_dsc;
-+		health->extension_flags |= PDSM_DIMM_DSC_VALID;
-+	}
-+
-+	return 0;
-+}
-+
-+static void smart_notify(struct ndtest_dimm *dimm)
-+{
-+	struct device *bus = dimm->dev->parent;
-+
-+	if (!(dimm->flags & PAPR_PMEM_HEALTH_NON_CRITICAL) ||
-+	    (dimm->flags & PAPR_PMEM_BAD_SHUTDOWN_MASK)) {
-+		device_lock(bus);
-+		/* send smart notification */
-+		if (dimm->notify_handle)
-+			sysfs_notify_dirent(dimm->notify_handle);
-+		device_unlock(bus);
-+	}
-+}
-+
-+static int ndtest_pdsm_smart_inject(struct ndtest_dimm *dimm,
-+				union nd_pdsm_payload *payload,
-+				unsigned int buf_len)
-+{
-+	struct nd_papr_pdsm_smart_inject *inj = &payload->smart_inject;
-+
-+	if (buf_len < sizeof(inj))
-+		return -EINVAL;
-+
-+	if (inj->flags & PDSM_SMART_INJECT_HEALTH_FATAL) {
-+		if (inj->fatal_enable)
-+			dimm->flags |= PAPR_PMEM_HEALTH_FATAL;
-+		else
-+			dimm->flags &= ~PAPR_PMEM_HEALTH_FATAL;
-+	}
-+	if (inj->flags & PDSM_SMART_INJECT_BAD_SHUTDOWN) {
-+		if (inj->unsafe_shutdown_enable)
-+			dimm->flags |= PAPR_PMEM_SHUTDOWN_DIRTY;
-+		else
-+			dimm->flags &= ~PAPR_PMEM_SHUTDOWN_DIRTY;
-+	}
-+	smart_notify(dimm);
-+
-+	return 0;
-+}
-+
-+static int ndtest_dimm_cmd_call(struct ndtest_dimm *dimm, unsigned int buf_len,
-+			   void *buf)
-+{
-+	struct nd_cmd_pkg *call_pkg = buf;
-+	unsigned int len = call_pkg->nd_size_in + call_pkg->nd_size_out;
-+	struct nd_pkg_pdsm *pdsm = (struct nd_pkg_pdsm *) call_pkg->nd_payload;
-+	union nd_pdsm_payload *payload = &(pdsm->payload);
-+	unsigned int func = call_pkg->nd_command;
-+
-+	switch (func) {
-+	case PAPR_PDSM_HEALTH:
-+		return ndtest_pdsm_health(dimm, payload, len);
-+	case PAPR_PDSM_SMART_INJECT:
-+		return ndtest_pdsm_smart_inject(dimm, payload, len);
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
- static int ndtest_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 		      struct nvdimm *nvdimm, unsigned int cmd, void *buf,
- 		      unsigned int buf_len, int *cmd_rc)
-@@ -266,6 +379,9 @@ static int ndtest_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 	case ND_CMD_SET_CONFIG_DATA:
- 		*cmd_rc = ndtest_config_set(dimm, buf_len, buf);
- 		break;
-+	case ND_CMD_CALL:
-+		*cmd_rc = ndtest_dimm_cmd_call(dimm, buf_len, buf);
-+		break;
- 	default:
- 		return -EINVAL;
- 	}
-@@ -482,6 +598,8 @@ static void put_dimms(void *data)
- 
- 	for (i = 0; i < p->config->dimm_count; i++)
- 		if (p->config->dimms[i].dev) {
-+			if (p->config->dimms[i].notify_handle)
-+				sysfs_put(p->config->dimms[i].notify_handle);
- 			device_unregister(p->config->dimms[i].dev);
- 			p->config->dimms[i].dev = NULL;
- 		}
-@@ -694,6 +812,16 @@ static ssize_t flags_show(struct device *dev,
- }
- static DEVICE_ATTR_RO(flags);
- 
-+#define PAPR_PMEM_DIMM_CMD_MASK	 ((1U << PAPR_PDSM_HEALTH) | (1U << PAPR_PDSM_SMART_INJECT))
-+
-+static ssize_t dsm_mask_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	return sprintf(buf, "%#x\n", PAPR_PMEM_DIMM_CMD_MASK);
-+}
-+
-+static DEVICE_ATTR_RO(dsm_mask);
-+
- static struct attribute *ndtest_nvdimm_attributes[] = {
- 	&dev_attr_nvdimm_show_handle.attr,
- 	&dev_attr_vendor.attr,
-@@ -705,6 +833,7 @@ static struct attribute *ndtest_nvdimm_attributes[] = {
- 	&dev_attr_format.attr,
- 	&dev_attr_format1.attr,
- 	&dev_attr_flags.attr,
-+	&dev_attr_dsm_mask.attr,
- 	NULL,
- };
- 
-@@ -724,6 +853,7 @@ static int ndtest_dimm_register(struct ndtest_priv *priv,
- {
- 	struct device *dev = &priv->pdev.dev;
- 	unsigned long dimm_flags = dimm->flags;
-+	struct kernfs_node *papr_kernfs;
- 
- 	if (dimm->num_formats > 1)
- 		set_bit(NDD_LABELING, &dimm_flags);
-@@ -748,6 +878,20 @@ static int ndtest_dimm_register(struct ndtest_priv *priv,
- 		return -ENOMEM;
- 	}
- 
-+	nd_synchronize();
-+
-+	papr_kernfs = sysfs_get_dirent(nvdimm_kobj(dimm->nvdimm)->sd, "papr");
-+	if (!papr_kernfs) {
-+		pr_err("Could not initialize the notifier handle\n");
-+		return 0;
-+	}
-+
-+	dimm->notify_handle = sysfs_get_dirent(papr_kernfs, "flags");
-+	sysfs_put(papr_kernfs);
-+	if (!dimm->notify_handle) {
-+		pr_err("Could not initialize the notifier handle\n");
-+		return 0;
-+	}
- 	return 0;
- }
- 
-@@ -819,6 +963,8 @@ static int ndtest_bus_register(struct ndtest_priv *p)
- 	p->bus_desc.provider_name = NULL;
- 	p->bus_desc.attr_groups = ndtest_attribute_groups;
- 
-+	set_bit(NVDIMM_FAMILY_PAPR, &p->bus_desc.dimm_family_mask);
-+
- 	p->bus = nvdimm_bus_register(&p->pdev.dev, &p->bus_desc);
- 	if (!p->bus) {
- 		dev_err(&p->pdev.dev, "Error creating nvdimm bus %pOF\n", p->dn);
-diff --git a/tools/testing/nvdimm/test/ndtest.h b/tools/testing/nvdimm/test/ndtest.h
-index 8f27ad6f7319..e18b3b006fa2 100644
---- a/tools/testing/nvdimm/test/ndtest.h
-+++ b/tools/testing/nvdimm/test/ndtest.h
-@@ -49,6 +49,13 @@ struct ndtest_dimm {
- 	int id;
- 	int fail_cmd_code;
- 	u8 no_alias;
-+
-+	struct kernfs_node *notify_handle;
-+
-+	/* SMART Health information */
-+	u32 extension_flags;
-+	u16 dimm_fuel_gauge;
-+	u64 dimm_dsc;
- };
- 
- struct ndtest_mapping {
+---
+
+...and then jump into what CFMWS is and the proposal to coordinate
+with request_free_mem_region().
 
 
+>
+> Compute Express Link 2.0 [ECN] defines a concept called CXL Fixed Memory
+> Window Structures (CFMWS). Each CFMWS conveys a region of host physical
+> address (HPA) space which has certain properties that are familiar to
+> CXL, mainly interleave properties, and restrictions, such as
+> persistence. The HPA ranges therefore should be owned, or at least
+> guided by the relevant CXL driver, cxl_acpi [1].
+>
+> It would be desirable to simply insert this address space into
+> iomem_resource with a new flag to denote this is CXL memory. This would
+> permit request_free_mem_region() to be reused for CXL memory provided it
+> learned some new tricks. For that, it is tempting to simply use
+> insert_resource(). The API was designed specifically for cases where new
+> devices may offer new address space. This cannot work in the general
+> case. Boot firmware can pass, some, none, or all of the CFMWS range as
+> various types of memory to the kernel, and this may be left alone,
+> merged, or even expanded.
+
+s/expanded/expanded as the memory map is parsed and reconciled/
+
+> As a result iomem_resource may intersect CFMWS
+> regions in ways insert_resource cannot handle [2]. Similar reasoning
+> applies to allocate_resource().
+>
+> With the insert_resource option out, the only reasonable approach left
+> is to let the CXL driver manage the address space independently of
+> iomem_resource and attempt to prevent users of device private memory
+
+s/device private memory/MEMORY_DEVICE_PRIVATE/
+
+> APIs from using CXL memory. In the case where cxl_acpi comes up first,
+> the new API allows cxl to block use of any CFMWS defined address space
+> by assuming everything above the highest CFMWS entry is fair game. It is
+> expected that this effectively will prevent usage of device private
+> memory,
+
+No, only if CFMWS consumes the full 64-bit address space which is
+unlikely. It's also unlikely going forward to need
+MEMORY_DEVICE_PRIVATE when hardware supports CXL for fully coherent
+migration of buffers onto and off of an accelearator.
+
+> but if such behavior is undesired, cxl_acpi can be blocked from
+> loading, or unloaded.
+
+I would just say if MEMORY_DEVICE_PRIVATE needs exceed the memory
+space left over by CXL then the loading of the dynamic CXL address
+space allocation infrastructure can be deferred until after
+MEMORY_DEVICE_PRIVATE consumers have
+
+> When device private memory is used before CXL
+> comes up, or, there are intersections as described above, the CXL driver
+> will have to make sure to not reuse sysram that is BUSY.
+>
+> [1]: The specification defines enumeration via ACPI, however, one could
+> envision devicetree, or some other hardcoded mechanisms for doing the
+> same thing.
+>
+> [2]: A common way to hit this case is when BIOS creates a volatile
+> region with extra space for hotplug. In this case, you're likely to have
+>
+> |<--------------HPA space---------------------->|
+> |<---iomem_resource -->|
+> | DDR  | CXL Volatile  |
+> |      | CFMWS for volatile w/ hotplug |
+>
+> Suggested-by: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
+> ---
+>  drivers/cxl/acpi.c     | 26 ++++++++++++++++++++++++++
+>  include/linux/ioport.h |  1 +
+>  kernel/resource.c      | 11 ++++++++++-
+>  3 files changed, 37 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/cxl/acpi.c b/drivers/cxl/acpi.c
+> index 9b69955b90cb..0870904fe4b5 100644
+> --- a/drivers/cxl/acpi.c
+> +++ b/drivers/cxl/acpi.c
+> @@ -76,6 +76,7 @@ static int cxl_acpi_cfmws_verify(struct device *dev,
+>  struct cxl_cfmws_context {
+>         struct device *dev;
+>         struct cxl_port *root_port;
+> +       struct acpi_cedt_cfmws *high_cfmws;
+
+Seems more straightforward to track the max 'end' address seen so far
+rather than the "highest" cfmws entry.
+
+>  };
+>
+>  static int cxl_parse_cfmws(union acpi_subtable_headers *header, void *arg,
+> @@ -126,6 +127,14 @@ static int cxl_parse_cfmws(union acpi_subtable_headers *header, void *arg,
+>                         cfmws->base_hpa + cfmws->window_size - 1);
+>                 return 0;
+>         }
+> +
+> +       if (ctx->high_cfmws) {
+> +               if (cfmws->base_hpa > ctx->high_cfmws->base_hpa)
+> +                       ctx->high_cfmws = cfmws;
+
+I'd expect:
+
+end = cfmws->base_hpa + window_size;
+if (ctx->cfmws_max < end)
+   ctx->cfmws_max = end;
+
+> +       } else {
+> +               ctx->high_cfmws = cfmws;
+> +       }
+> +
+>         dev_dbg(dev, "add: %s node: %d range %#llx-%#llx\n",
+>                 dev_name(&cxld->dev), phys_to_target_node(cxld->range.start),
+>                 cfmws->base_hpa, cfmws->base_hpa + cfmws->window_size - 1);
+> @@ -299,6 +308,7 @@ static int cxl_acpi_probe(struct platform_device *pdev)
+>         ctx = (struct cxl_cfmws_context) {
+>                 .dev = host,
+>                 .root_port = root_port,
+> +               .high_cfmws = NULL,
+>         };
+>         acpi_table_parse_cedt(ACPI_CEDT_TYPE_CFMWS, cxl_parse_cfmws, &ctx);
+>
+> @@ -317,10 +327,25 @@ static int cxl_acpi_probe(struct platform_device *pdev)
+>         if (rc < 0)
+>                 return rc;
+>
+> +       if (ctx.high_cfmws) {
+
+Even if there are zero CFMWS entries there will always be a max end
+address to call set_request_free_min_base().
+
+> +               resource_size_t end =
+> +                       ctx.high_cfmws->base_hpa + ctx.high_cfmws->window_size;
+> +               dev_dbg(host,
+> +                       "Disabling free device private regions below %#llx\n",
+> +                       end);
+> +               set_request_free_min_base(end);
+> +       }
+> +
+>         /* In case PCI is scanned before ACPI re-trigger memdev attach */
+>         return cxl_bus_rescan();
+>  }
+>
+> +static int cxl_acpi_remove(struct platform_device *pdev)
+
+No need for a .remove() method, just use devm_add_action_or_reset() to
+unreserve CXL address space as cxl_acpi unloads.
+
+> +{
+> +       set_request_free_min_base(0);
+> +       return 0;
+> +}
+> +
+>  static const struct acpi_device_id cxl_acpi_ids[] = {
+>         { "ACPI0017" },
+>         { },
+> @@ -329,6 +354,7 @@ MODULE_DEVICE_TABLE(acpi, cxl_acpi_ids);
+>
+>  static struct platform_driver cxl_acpi_driver = {
+>         .probe = cxl_acpi_probe,
+> +       .remove = cxl_acpi_remove,
+>         .driver = {
+>                 .name = KBUILD_MODNAME,
+>                 .acpi_match_table = cxl_acpi_ids,
+> diff --git a/include/linux/ioport.h b/include/linux/ioport.h
+> index ec5f71f7135b..dc41e4be5635 100644
+> --- a/include/linux/ioport.h
+> +++ b/include/linux/ioport.h
+> @@ -325,6 +325,7 @@ extern int
+>  walk_iomem_res_desc(unsigned long desc, unsigned long flags, u64 start, u64 end,
+>                     void *arg, int (*func)(struct resource *, void *));
+>
+> +void set_request_free_min_base(resource_size_t val);
+
+Shouldn't there also be a static inline empty routine in the
+CONFIG_DEVICE_PRIVATE=n case?
+
+>  struct resource *devm_request_free_mem_region(struct device *dev,
+>                 struct resource *base, unsigned long size);
+>  struct resource *request_free_mem_region(struct resource *base,
+> diff --git a/kernel/resource.c b/kernel/resource.c
+> index 34eaee179689..a4750689e529 100644
+> --- a/kernel/resource.c
+> +++ b/kernel/resource.c
+> @@ -1774,6 +1774,14 @@ void resource_list_free(struct list_head *head)
+>  EXPORT_SYMBOL(resource_list_free);
+>
+>  #ifdef CONFIG_DEVICE_PRIVATE
+> +static resource_size_t request_free_min_base;
+> +
+> +void set_request_free_min_base(resource_size_t val)
+> +{
+> +       request_free_min_base = val;
+> +}
+> +EXPORT_SYMBOL_GPL(set_request_free_min_base);
+> +
+>  static struct resource *__request_free_mem_region(struct device *dev,
+>                 struct resource *base, unsigned long size, const char *name)
+>  {
+> @@ -1799,7 +1807,8 @@ static struct resource *__request_free_mem_region(struct device *dev,
+>         }
+>
+>         write_lock(&resource_lock);
+> -       for (; addr > size && addr >= base->start; addr -= size) {
+> +       for (; addr > size && addr >= max(base->start, request_free_min_base);
+> +            addr -= size) {
+>                 if (__region_intersects(addr, size, 0, IORES_DESC_NONE) !=
+>                                 REGION_DISJOINT)
+>                         continue;
+> --
+> 2.35.1
+>
