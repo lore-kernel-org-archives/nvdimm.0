@@ -1,253 +1,482 @@
 Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60A2CA29
-	for <nvdimm@lists.linux.dev>; Mon, 18 Apr 2022 17:10:00 +0000 (UTC)
-Received: from pps.filterd (m0098393.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 23IEkpsu011941;
-	Mon, 18 Apr 2022 17:09:59 GMT
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48BCFA29
+	for <nvdimm@lists.linux.dev>; Mon, 18 Apr 2022 17:10:12 +0000 (UTC)
+Received: from pps.filterd (m0098396.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 23IEL1fR010106;
+	Mon, 18 Apr 2022 17:10:11 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=subject : from : to : cc
- : date : message-id : content-type : content-transfer-encoding :
- mime-version; s=pp1; bh=5r+dvWk6z+oYjnXfj1ZG5MSk+ta9M9kYVoUqAhK5x8E=;
- b=MnoJo5+Tb1o3JwUED8qt+gNPREqRxSK4lXsYFNPGwifgg2uyPEe82o0c6dOb9v3ZGQbY
- OYqmWQVLnWAfnKbQFqqyVCj6CI7h4foa6bhpVNx6X8eKvX/RvwdT5wN5fQd63qLI96W3
- iaqSBxShHRzoBVLK3ImOc6B91KQ/OmFWOnWKM0+u/caPskXJww+FALbRdjONmxkwmyQF
- KCA8fMPR2hVtlDfPePGBCK4ivqvDoXAGtdr+YtEaw/rzgI4q2wY4NMDmclqZqH8gFO8W
- n695DoURUGOH588SjwecKjJVtPYPY3th8Jl8xSzsMBrmKChc1uMvZ/7CxyMse7F0ijnB NQ== 
-Received: from ppma02fra.de.ibm.com (47.49.7a9f.ip4.static.sl-reverse.com [159.122.73.71])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 3fg7vn9367-1
+ : date : message-id : in-reply-to : references : mime-version :
+ content-type : content-transfer-encoding; s=pp1;
+ bh=xPEC9nWdoOqoqBKVu7LRDgzQ7HmM5576Kx9aFYz0W+M=;
+ b=N0dbF6tMlK2LUhrTyiFJJGII396JufzC3De4q0D+sX+25uKxg27Do+Ft/yITPbHuHEZ9
+ 52yZ/6Ax1Frl3h2xFya6ZtXmJk31UWdooACFDNaes5oPvKbO8OQtBooytapsyxcpv9xh
+ s1y+tf/SO/dbIaI9D8A8E+SNsESO0BUNcyu6Im63AA9/ERZcD26yYL7ujUz3hkuffo+z
+ b7TQEY1atkFs94H9G3D1OibaUXMcuT7nzILbRsrzzZfqquvoWAsHfE5XKyJnKWSE2mOu
+ /z6K7YAxpxQJ6vT20EIATodLTNH59yDmlyxhB7fGjsyIyLDrGMnUUDbtomEol+Fp/GjR Zw== 
+Received: from ppma04ams.nl.ibm.com (63.31.33a9.ip4.static.sl-reverse.com [169.51.49.99])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 3fg7bt1jev-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 18 Apr 2022 17:09:58 +0000
-Received: from pps.filterd (ppma02fra.de.ibm.com [127.0.0.1])
-	by ppma02fra.de.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 23IH2xqX002748;
-	Mon, 18 Apr 2022 17:09:56 GMT
+	Mon, 18 Apr 2022 17:10:10 +0000
+Received: from pps.filterd (ppma04ams.nl.ibm.com [127.0.0.1])
+	by ppma04ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 23IH2xAi002612;
+	Mon, 18 Apr 2022 17:10:08 GMT
 Received: from b06avi18878370.portsmouth.uk.ibm.com (b06avi18878370.portsmouth.uk.ibm.com [9.149.26.194])
-	by ppma02fra.de.ibm.com with ESMTP id 3fgu6u0vpq-1
+	by ppma04ams.nl.ibm.com with ESMTP id 3ffne931cw-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 18 Apr 2022 17:09:56 +0000
-Received: from d06av22.portsmouth.uk.ibm.com (d06av22.portsmouth.uk.ibm.com [9.149.105.58])
-	by b06avi18878370.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 23IHA3Nw8520250
+	Mon, 18 Apr 2022 17:10:08 +0000
+Received: from d06av23.portsmouth.uk.ibm.com (d06av23.portsmouth.uk.ibm.com [9.149.105.59])
+	by b06avi18878370.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 23IHAGDJ64815596
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 18 Apr 2022 17:10:03 GMT
-Received: from d06av22.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 7DDDC4C046;
-	Mon, 18 Apr 2022 17:09:52 +0000 (GMT)
-Received: from d06av22.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 8E4014C040;
-	Mon, 18 Apr 2022 17:09:51 +0000 (GMT)
+	Mon, 18 Apr 2022 17:10:16 GMT
+Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 53C6BA404D;
+	Mon, 18 Apr 2022 17:10:05 +0000 (GMT)
+Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 60E0EA4040;
+	Mon, 18 Apr 2022 17:10:04 +0000 (GMT)
 Received: from lep8c.aus.stglabs.ibm.com (unknown [9.40.192.207])
-	by d06av22.portsmouth.uk.ibm.com (Postfix) with ESMTP;
-	Mon, 18 Apr 2022 17:09:51 +0000 (GMT)
-Subject: [RFC ndctl PATCH 0/9] test: Enable PAPR test family by default
+	by d06av23.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+	Mon, 18 Apr 2022 17:10:04 +0000 (GMT)
+Subject: [RFC ndctl PATCH 1/9] test/common: Ensure to unload test modules
 From: Shivaprasad G Bhat <sbhat@linux.ibm.com>
 To: nvdimm@lists.linux.dev, dan.j.williams@intel.com, vishal.l.verma@intel.com
 Cc: aneesh.kumar@linux.ibm.com, sbhat@linux.ibm.com, vaibhav@linux.ibm.com
-Date: Mon, 18 Apr 2022 12:09:50 -0500
+Date: Mon, 18 Apr 2022 12:10:03 -0500
 Message-ID: 
+ <165030179767.3224737.3430509039595994936.stgit@lep8c.aus.stglabs.ibm.com>
+In-Reply-To: 
+ <165030175745.3224737.6985015146263991065.stgit@lep8c.aus.stglabs.ibm.com>
+References: 
  <165030175745.3224737.6985015146263991065.stgit@lep8c.aus.stglabs.ibm.com>
 User-Agent: StGit/1.1+40.g1b20
-Content-Type: text/plain; charset="utf-8"
-X-TM-AS-GCONF: 00
-X-Proofpoint-ORIG-GUID: bquv_UGRz7-FB5k75POO6hY-c7HL2wBA
-X-Proofpoint-GUID: bquv_UGRz7-FB5k75POO6hY-c7HL2wBA
-Content-Transfer-Encoding: 7bit
-X-Proofpoint-UnRewURL: 0 URL was un-rewritten
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: l-uSEnssAbXIp-Rj0QY55wTb1plIKMx7
+X-Proofpoint-ORIG-GUID: l-uSEnssAbXIp-Rj0QY55wTb1plIKMx7
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.205,Aquarius:18.0.858,Hydra:6.0.486,FMLib:17.11.64.514
  definitions=2022-04-18_02,2022-04-15_01,2022-02-23_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 clxscore=1011 mlxscore=0
- phishscore=0 suspectscore=0 bulkscore=0 lowpriorityscore=0 spamscore=0
- priorityscore=1501 impostorscore=0 mlxlogscore=878 adultscore=0
- malwarescore=0 classifier=spam adjust=0 reason=mlx scancount=1
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 impostorscore=0
+ priorityscore=1501 suspectscore=0 bulkscore=0 phishscore=0 mlxlogscore=760
+ clxscore=1015 spamscore=0 adultscore=0 mlxscore=0 malwarescore=0
+ lowpriorityscore=0 classifier=spam adjust=0 reason=mlx scancount=1
  engine=8.12.0-2202240000 definitions=main-2204180101
 
-It is possible to have tests run over multiple test families if
-the respective modules can be loaded/unloaded serially on a test to
-test basis. The kernel patch [1] separated out the PAPR specific
-ndtest module on its own as "ndtest.ko".
+The _cleanup is easily missed to be called at places where trap
+ERR is set, ex security.sh.
 
-So with [1], we have two family specific modules(nfit_test & ndtest)
-which can be loaded one after the other and have the test results
-in one go without a need for kernel recompilation with different
-kernel configs.
+The patch moves all the modprobes into the _init in test/common
+and sets the trap on exit for "any" of the reasons to invoke
+_cleanup.
 
-The series ensures all the known failures/unsupported/irrelevant tests
-to be skipped on ndtest to avoid all "known" chances of false negatives.
-This is achieved using a skip file containing the list of tests to be
-skipped on the given platform. The PAPR specific tests to be skipped
-are updated in the skip_PAPR.js file.
+The patch also gracefully skips the test if the module load fails
+instead of continuing, which otherwise makes the tests fail
+erroneously in random places during the tests.
 
-A meson config option(-Dtest-families=INTEL,PAPR default) is added.
-One can just limit the tests to INTEL or PAPR alone if required.
-
-An example run would look like,
-===========================================
- 1/72 ndctl:ndctl+INTEL / libndctl                       OK              2.79s
- 2/72 ndctl:ndctl+INTEL / dsm-fail                       OK              0.70s
- 3/72 ndctl:ndctl+INTEL / create.sh                      OK              0.80s
- 4/72 ndctl:ndctl+INTEL / clear.sh                       OK             15.04s
- 5/72 ndctl:ndctl+INTEL / pmem-errors.sh                 OK             14.97s
- 6/72 ndctl:dax+INTEL / daxdev-errors.sh                 OK             12.33s
- 7/72 ndctl:dax+INTEL / multi-dax.sh                     OK              0.67s
- 8/72 ndctl:ndctl+INTEL / btt-check.sh                   OK             16.20s
- 9/72 ndctl:ndctl+INTEL / label-compat.sh                OK              0.82s
-10/72 ndctl:ndctl+INTEL / sector-mode.sh                 OK              1.01s
-11/72 ndctl:ndctl+INTEL / inject-error.sh                OK             14.52s
-12/72 ndctl:ndctl+INTEL / btt-errors.sh                  OK             24.01s
-13/72 ndctl:ndctl+INTEL / hugetlb                        OK              0.09s
-14/72 ndctl:ndctl+INTEL / btt-pad-compat.sh              OK              1.78s
-15/72 ndctl:ndctl+INTEL / firmware-update.sh             FAIL           10.33s   exit status 1
->>> TEST_PATH=/home/sbhat/code/ndctl/build/test NDCTL_TEST_FAMILY=INTEL DAXCTL=/home/sbhat/code/ndctl/build/daxctl/daxctl NDCTL=/home/sbhat/code/ndctl/build/ndctl/ndctl MALLOC_PERTURB_=181 DATA_PATH=/home/sbhat/code/ndctl/test /home/sbhat
-/code/ndctl/test/firmware-update.sh
-
-16/72 ndctl:ndctl+INTEL / ack-shutdown-count-set         OK              0.26s
-17/72 ndctl:ndctl+INTEL / rescan-partitions.sh           OK              7.84s
-18/72 ndctl:ndctl+INTEL / inject-smart.sh                OK              1.89s
-19/72 ndctl:ndctl+INTEL / monitor.sh                     OK             13.22s
-20/72 ndctl:ndctl+INTEL / max_extent_ns                  OK              1.10s
-21/72 ndctl:ndctl+INTEL / pfn-meta-errors.sh             OK             14.62s
-22/72 ndctl:ndctl+INTEL / track-uuid.sh                  OK              0.78s
-23/72 ndctl:ndctl+INTEL / pmem-ns                        FAIL            0.26s   (exit status 237 or signal 109 SIGinvalid)
->>> TEST_PATH=/home/sbhat/code/ndctl/build/test MALLOC_PERTURB_=140 NDCTL_TEST_FAMILY=INTEL DAXCTL=/home/sbhat/code/ndctl/build/daxctl/daxctl NDCTL=/home/sbhat/code/ndctl/build/ndctl/ndctl DATA_PATH=/home/sbhat/code/ndctl/test /home/sbhat
-/code/ndctl/build/test/pmem-ns
-
-24/72 ndctl:dax+INTEL / sub-section.sh                   SKIP            0.15s   exit status 77
-25/72 ndctl:dax+INTEL / dax-dev                          SKIP            0.03s   exit status 77
-26/72 ndctl:dax+INTEL / dax-ext4.sh                      SKIP            0.05s   exit status 77
-27/72 ndctl:dax+INTEL / dax-xfs.sh                       SKIP            0.05s   exit status 77
-28/72 ndctl:ndctl+INTEL / align.sh                       SKIP            0.09s   exit status 77
-29/72 ndctl:dax+INTEL / device-dax                       SKIP            0.04s   exit status 77
-30/72 ndctl:dax+INTEL / revoke-devmem                    OK              0.03s
-31/72 ndctl:dax+INTEL / device-dax-fio.sh                SKIP            0.06s   exit status 77
-32/72 ndctl:dax+INTEL / daxctl-devices.sh                SKIP            0.07s   exit status 77
-33/72 ndctl:dax+INTEL / daxctl-create.sh                 SKIP            0.02s   exit status 77
-34/72 ndctl:dax+INTEL / dm.sh                            FAIL            0.12s   exit status 1
->>> TEST_PATH=/home/sbhat/code/ndctl/build/test NDCTL_TEST_FAMILY=INTEL DAXCTL=/home/sbhat/code/ndctl/build/daxctl/daxctl NDCTL=/home/sbhat/code/ndctl/build/ndctl/ndctl MALLOC_PERTURB_=115 DATA_PATH=/home/sbhat/code/ndctl/test /home/sbhat
-/code/ndctl/test/dm.sh
-35/72 ndctl:dax+INTEL / mmap.sh                          SKIP            0.05s   exit status 77
-36/72 ndctl:ndctl+INTEL / security.sh                    SKIP            0.38s   exit status 77
-37/72 ndctl:ndctl+PAPR / libndctl                        OK              2.63s
-38/72 ndctl:ndctl+PAPR / dsm-fail                        OK              1.41s
-39/72 ndctl:ndctl+PAPR / create.sh                       OK              1.06s
-40/72 ndctl:ndctl+PAPR / clear.sh                        SKIP            0.12s   exit status 77
-41/72 ndctl:ndctl+PAPR / pmem-errors.sh                  SKIP            0.16s   exit status 77
-42/72 ndctl:dax+PAPR / daxdev-errors.sh                  SKIP            0.08s   exit status 77
-43/72 ndctl:dax+PAPR / multi-dax.sh                      OK              1.03s
-44/72 ndctl:ndctl+PAPR / btt-check.sh                    OK             17.13s
-45/72 ndctl:ndctl+PAPR / label-compat.sh                 SKIP            0.26s   exit status 77
-46/72 ndctl:ndctl+PAPR / sector-mode.sh                  OK              1.26s
-47/72 ndctl:ndctl+PAPR / inject-error.sh                 SKIP            0.20s   exit status 77
-48/72 ndctl:ndctl+PAPR / btt-errors.sh                   SKIP            1.42s   exit status 77
-49/72 ndctl:ndctl+PAPR / hugetlb                         OK              0.16s
-50/72 ndctl:ndctl+PAPR / btt-pad-compat.sh               OK              3.06s
-51/72 ndctl:ndctl+PAPR / firmware-update.sh              SKIP            0.90s   exit status 77
-52/72 ndctl:ndctl+PAPR / ack-shutdown-count-set          SKIP            0.09s   exit status 77
-53/72 ndctl:ndctl+PAPR / rescan-partitions.sh            OK              8.11s
-54/72 ndctl:ndctl+PAPR / inject-smart.sh                 OK              1.37s
-55/72 ndctl:ndctl+PAPR / monitor.sh                      OK              7.63s
-56/72 ndctl:ndctl+PAPR / max_extent_ns                   OK              1.41s
-57/72 ndctl:ndctl+PAPR / pfn-meta-errors.sh              SKIP            0.14s   exit status 77
-58/72 ndctl:ndctl+PAPR / track-uuid.sh                   OK              1.07s
-59/72 ndctl:ndctl+PAPR / pmem-ns                         OK              0.54s
-60/72 ndctl:dax+PAPR / sub-section.sh                    SKIP            0.27s   exit status 77
-61/72 ndctl:dax+PAPR / dax-dev                           SKIP            0.04s   exit status 77
-62/72 ndctl:dax+PAPR / dax-ext4.sh                       SKIP            0.35s   exit status 77
-63/72 ndctl:dax+PAPR / dax-xfs.sh                        SKIP            0.39s   exit status 77
-64/72 ndctl:ndctl+PAPR / align.sh                        SKIP            0.46s   exit status 77
-65/72 ndctl:dax+PAPR / device-dax                        SKIP            0.04s   exit status 77
-66/72 ndctl:dax+PAPR / revoke-devmem                     OK              0.04s
-67/72 ndctl:dax+PAPR / device-dax-fio.sh                 SKIP            0.32s   exit status 77
-68/72 ndctl:dax+PAPR / daxctl-devices.sh                 SKIP            0.40s   exit status 77
-69/72 ndctl:dax+PAPR / daxctl-create.sh                  SKIP            0.48s   exit status 77
-70/72 ndctl:dax+PAPR / dm.sh                             SKIP            0.48s   exit status 77
-71/72 ndctl:dax+PAPR / mmap.sh                           SKIP            0.50s   exit status 77
-72/72 ndctl:ndctl+PAPR / security.sh                     SKIP            0.22s   exit status 77
-
-
-Ok:                 37
-Expected Fail:      0
-Fail:               3 # Not from PAPR family
-Unexpected Pass:    0
-Skipped:            32
-Timeout:            0
-===========================================
-Note the meson suite string here "ndctl+INTEL|PAPR" indicating the
-test family.
-
-The first 6 patches in the series move the code with little/no change
-to current behaviour in isolation while fixing existing bugs in
-preparation for running the tests for INTEL and PAPR families one
-after the other. The last 3 patches fix the known failures on ndtest
-and they depend on the kernel patch [2]. These 3 patches are repost of
-previously posted patches with rebase. The last patches are included
-here in this series for completeness.
-
-The patches are posted on github repos below
-Kernel - https://github.com/shivaprasadbhat/linux/tree/ndtest-runall
-ndctl  - https://github.com/shivaprasadbhat/ndctl/tree/ndctl-test-all
-
-References:
-[1] - https://patchwork.kernel.org/project/linux-nvdimm/patch/165025849452.2974989.6131145460098517848.stgit@lep8c.aus.stglabs.ibm.com/
-[2] - https://patchwork.kernel.org/project/linux-nvdimm/patch/165027233876.3035289.4353747702027907365.stgit@lep8c.aus.stglabs.ibm.com/
-
+Signed-off-by: Shivaprasad G Bhat <sbhat@linux.ibm.com>
 ---
+ test/btt-check.sh               |    3 +--
+ test/btt-errors.sh              |    3 +--
+ test/btt-pad-compat.sh          |    3 +--
+ test/clear.sh                   |    4 +---
+ test/common                     |   12 ++++++++++++
+ test/create.sh                  |    4 +---
+ test/daxdev-errors.sh           |    4 +---
+ test/firmware-update.sh         |    3 +--
+ test/inject-error.sh            |    3 +--
+ test/inject-smart.sh            |    3 +--
+ test/label-compat.sh            |    4 +---
+ test/max_available_extent_ns.sh |    3 +--
+ test/monitor.sh                 |    3 +--
+ test/multi-dax.sh               |    4 +---
+ test/pfn-meta-errors.sh         |    3 +--
+ test/pmem-errors.sh             |    3 +--
+ test/rescan-partitions.sh       |    3 +--
+ test/sector-mode.sh             |    4 +---
+ test/security.sh                |    3 +--
+ test/track-uuid.sh              |    3 +--
+ 20 files changed, 31 insertions(+), 44 deletions(-)
 
-Shivaprasad G Bhat (9):
-      test/common: Ensure to unload test modules
-      test: core: Fix module unload failures
-      test: Unload the nfit module during cleanup
-      test: Introduce skip file to skip irrelevant tests
-      test: Assign provider name based on the test family
-      test: Enable PAPR test family tests after INTEL family tests
-      test/libndctl: Enable libndctl tests on ndtest
-      test/inject-smart: Enable inject-smart tests on ndtest
-      test/monitor.sh: Partially skip monitor test on ndtest
+diff --git a/test/btt-check.sh b/test/btt-check.sh
+index 65b5c58b..1039d0eb 100755
+--- a/test/btt-check.sh
++++ b/test/btt-check.sh
+@@ -150,10 +150,9 @@ do_tests()
+ }
+ 
+ # setup (reset nfit_test dimms, create the BTT namespace)
+-modprobe nfit_test
++_init
+ rc=1
+ reset && create
+ do_tests
+ reset
+-_cleanup
+ exit 0
+diff --git a/test/btt-errors.sh b/test/btt-errors.sh
+index 18518d50..ea1a6627 100755
+--- a/test/btt-errors.sh
++++ b/test/btt-errors.sh
+@@ -42,7 +42,7 @@ mkdir -p $MNT
+ trap 'err $LINENO cleanup' ERR
+ 
+ # setup (reset nfit_test dimms)
+-modprobe nfit_test
++_init
+ resetV
+ 
+ rc=1
+@@ -144,5 +144,4 @@ dd if=/dev/$blockdev of=/dev/null iflag=direct bs=4096 count=1 && err $LINENO ||
+ # done, exit
+ reset
+ cleanup
+-_cleanup
+ exit 0
+diff --git a/test/btt-pad-compat.sh b/test/btt-pad-compat.sh
+index 005316a2..de85fec7 100755
+--- a/test/btt-pad-compat.sh
++++ b/test/btt-pad-compat.sh
+@@ -172,11 +172,10 @@ do_tests()
+ 	ns_info_wipe
+ }
+ 
+-modprobe nfit_test
++_init
+ check_prereq xxd
+ rc=1
+ reset
+ do_tests
+ reset
+-_cleanup
+ exit 0
+diff --git a/test/clear.sh b/test/clear.sh
+index c4d02d54..9b785e35 100755
+--- a/test/clear.sh
++++ b/test/clear.sh
+@@ -13,7 +13,7 @@ check_min_kver "4.6" || do_skip "lacks clear poison support"
+ trap 'err $LINENO' ERR
+ 
+ # setup (reset nfit_test dimms)
+-modprobe nfit_test
++_init
+ reset
+ 
+ rc=1
+@@ -72,6 +72,4 @@ if check_min_kver "4.9"; then
+ 	fi
+ fi
+ 
+-_cleanup
+-
+ exit 0
+diff --git a/test/common b/test/common
+index fb487958..d3216a0c 100644
+--- a/test/common
++++ b/test/common
+@@ -113,6 +113,18 @@ _cleanup()
+ 	modprobe -r nfit_test
+ }
+ 
++_init()
++{
++	set +e
++	modprobe nfit_test
++	if [ $? -ne 0 ]; then
++		echo "Could not load the nfit_test module."
++		exit 77
++	fi
++	set -e
++	trap _cleanup EXIT INT TERM HUP PIPE
++}
++
+ # json2var
+ # stdin: json
+ #
+diff --git a/test/create.sh b/test/create.sh
+index 9a6f3733..c2fdee2e 100755
+--- a/test/create.sh
++++ b/test/create.sh
+@@ -14,7 +14,7 @@ check_min_kver "4.5" || do_skip "may lack namespace mode attribute"
+ trap 'err $LINENO' ERR
+ 
+ # setup (reset nfit_test dimms)
+-modprobe nfit_test
++_init
+ reset
+ 
+ rc=1
+@@ -40,6 +40,4 @@ eval $(echo $json | json2var)
+ # free capacity for blk creation
+ $NDCTL destroy-namespace -f $dev
+ 
+-_cleanup
+-
+ exit 0
+diff --git a/test/daxdev-errors.sh b/test/daxdev-errors.sh
+index 7f797181..f32f8b80 100755
+--- a/test/daxdev-errors.sh
++++ b/test/daxdev-errors.sh
+@@ -14,7 +14,7 @@ check_prereq "jq"
+ trap 'err $LINENO' ERR
+ 
+ # setup (reset nfit_test dimms)
+-modprobe nfit_test
++_init
+ reset
+ 
+ rc=1
+@@ -71,6 +71,4 @@ if read sector len < /sys/bus/platform/devices/nfit_test.0/$busdev/$region/badbl
+ fi
+ [ -n "$sector" ] && echo "fail: $LINENO" && exit 1
+ 
+-_cleanup
+-
+ exit 0
+diff --git a/test/firmware-update.sh b/test/firmware-update.sh
+index 93ce166e..1fac9dc1 100755
+--- a/test/firmware-update.sh
++++ b/test/firmware-update.sh
+@@ -70,11 +70,10 @@ do_tests()
+ 
+ check_min_kver "4.16" || do_skip "may lack firmware update test handling"
+ 
+-modprobe nfit_test
++_init
+ fwupd_reset
+ detect
+ rc=1
+ do_tests
+ rm -f $image
+-_cleanup
+ exit 0
+diff --git a/test/inject-error.sh b/test/inject-error.sh
+index fd823b6c..15d0dbe8 100755
+--- a/test/inject-error.sh
++++ b/test/inject-error.sh
+@@ -79,10 +79,9 @@ do_tests()
+ 	check_status
+ }
+ 
+-modprobe nfit_test
++_init
+ rc=1
+ reset && create
+ do_tests
+ reset
+-_cleanup
+ exit 0
+diff --git a/test/inject-smart.sh b/test/inject-smart.sh
+index 046322bf..80af058a 100755
+--- a/test/inject-smart.sh
++++ b/test/inject-smart.sh
+@@ -167,7 +167,7 @@ do_tests()
+ 
+ check_min_kver "4.19" || do_skip "kernel $KVER may not support smart (un)injection"
+ check_prereq "jq"
+-modprobe nfit_test
++_init
+ rc=1
+ 
+ jlist=$($TEST_PATH/list-smart-dimm -b $bus)
+@@ -175,5 +175,4 @@ dimm="$(jq '.[]."dev"?, ."dev"?' <<< $jlist | sort | head -1 | xargs)"
+ test -n "$dimm"
+ 
+ do_tests
+-_cleanup
+ exit 0
+diff --git a/test/label-compat.sh b/test/label-compat.sh
+index 7ae4d5ef..4ccf69fa 100755
+--- a/test/label-compat.sh
++++ b/test/label-compat.sh
+@@ -15,7 +15,7 @@ check_prereq "jq"
+ trap 'err $LINENO' ERR
+ 
+ # setup (reset nfit_test dimms)
+-modprobe nfit_test
++_init
+ $NDCTL disable-region -b $NFIT_TEST_BUS0 all
+ $NDCTL init-labels -f -b $NFIT_TEST_BUS0 all
+ 
+@@ -43,6 +43,4 @@ if [ -z $len ]; then
+ 	exit 1
+ fi
+ 
+-_cleanup
+-
+ exit 0
+diff --git a/test/max_available_extent_ns.sh b/test/max_available_extent_ns.sh
+index 47a921f5..98235424 100755
+--- a/test/max_available_extent_ns.sh
++++ b/test/max_available_extent_ns.sh
+@@ -31,9 +31,8 @@ do_test()
+ 	$NDCTL create-namespace -r $region -t pmem
+ }
+ 
+-modprobe nfit_test
++_init
+ rc=1
+ reset
+ do_test
+-_cleanup
+ exit 0
+diff --git a/test/monitor.sh b/test/monitor.sh
+index e58c908b..10e65374 100755
+--- a/test/monitor.sh
++++ b/test/monitor.sh
+@@ -161,10 +161,9 @@ do_tests()
+ 	test_filter_dimmevent
+ }
+ 
+-modprobe nfit_test
++_init
+ rc=1
+ reset
+ set_smart_supported_bus
+ do_tests
+-_cleanup
+ exit 0
+diff --git a/test/multi-dax.sh b/test/multi-dax.sh
+index 04070adb..2b21c28c 100755
+--- a/test/multi-dax.sh
++++ b/test/multi-dax.sh
+@@ -16,7 +16,7 @@ trap 'err $LINENO' ERR
+ ALIGN_SIZE=`getconf PAGESIZE`
+ 
+ # setup (reset nfit_test dimms)
+-modprobe nfit_test
++_init
+ reset
+ rc=1
+ 
+@@ -28,6 +28,4 @@ chardev1=$(echo $json | jq ". | select(.mode == \"devdax\") | .daxregion.devices
+ json=$($NDCTL create-namespace -b $NFIT_TEST_BUS0 -r $region -t pmem -m devdax -a $ALIGN_SIZE -s 16M)
+ chardev2=$(echo $json | jq ". | select(.mode == \"devdax\") | .daxregion.devices[0].chardev")
+ 
+-_cleanup
+-
+ exit 0
+diff --git a/test/pfn-meta-errors.sh b/test/pfn-meta-errors.sh
+index 63148979..ccf5b7a1 100755
+--- a/test/pfn-meta-errors.sh
++++ b/test/pfn-meta-errors.sh
+@@ -28,7 +28,7 @@ set -e
+ trap 'err $LINENO' ERR
+ 
+ # setup (reset nfit_test dimms)
+-modprobe nfit_test
++_init
+ reset
+ 
+ rc=1
+@@ -67,5 +67,4 @@ if read -r sector len < "/sys/block/$raw_bdev/badblocks"; then
+ 	false
+ fi
+ 
+-_cleanup
+ exit 0
+diff --git a/test/pmem-errors.sh b/test/pmem-errors.sh
+index 9a59c25d..550114ac 100755
+--- a/test/pmem-errors.sh
++++ b/test/pmem-errors.sh
+@@ -25,7 +25,7 @@ mkdir -p $MNT
+ trap 'err $LINENO cleanup' ERR
+ 
+ # setup (reset nfit_test dimms)
+-modprobe nfit_test
++_init
+ reset
+ 
+ rc=1
+@@ -110,6 +110,5 @@ echo $((start_sect + 1)) 1 > /sys/block/$blockdev/badblocks
+ dd if=$MNT/$FILE of=/dev/null iflag=direct bs=4096 count=1 && err $LINENO || true
+ 
+ cleanup
+-_cleanup
+ 
+ exit 0
+diff --git a/test/rescan-partitions.sh b/test/rescan-partitions.sh
+index 51bbd731..f46e17ed 100755
+--- a/test/rescan-partitions.sh
++++ b/test/rescan-partitions.sh
+@@ -65,11 +65,10 @@ test_mode()
+ 	$NDCTL destroy-namespace $dev
+ }
+ 
+-modprobe nfit_test
++_init
+ rc=1
+ reset
+ test_mode "raw"
+ test_mode "fsdax"
+ test_mode "sector"
+-_cleanup
+ exit 0
+diff --git a/test/sector-mode.sh b/test/sector-mode.sh
+index f70b0f17..d4a62bf3 100755
+--- a/test/sector-mode.sh
++++ b/test/sector-mode.sh
+@@ -14,7 +14,7 @@ trap 'err $LINENO' ERR
+ ALIGN_SIZE=`getconf PAGESIZE`
+ 
+ # setup (reset nfit_test dimms)
+-modprobe nfit_test
++_init
+ reset
+ reset1
+ 
+@@ -27,6 +27,4 @@ NAMESPACE=$($NDCTL create-namespace --no-autolabel -r $REGION -m sector -f -l 4K
+ $NDCTL create-namespace --no-autolabel -e $NAMESPACE -m dax -f -a $ALIGN_SIZE
+ $NDCTL create-namespace --no-autolabel -e $NAMESPACE -m sector -f -l 4K
+ 
+-_cleanup
+-
+ exit 0
+diff --git a/test/security.sh b/test/security.sh
+index 34c4977b..7ae6e88c 100755
+--- a/test/security.sh
++++ b/test/security.sh
+@@ -246,7 +246,7 @@ if [ "$uid" -ne 0 ]; then
+ 	do_skip "run as root or with a sudo login shell for test to work"
+ fi
+ 
+-modprobe nfit_test
++_init
+ setup
+ check_prereq "keyctl"
+ rc=1
+@@ -275,5 +275,4 @@ test_6_load_keys
+ 
+ test_cleanup
+ post_cleanup
+-_cleanup
+ exit 0
+diff --git a/test/track-uuid.sh b/test/track-uuid.sh
+index a967d0e4..954afe7c 100755
+--- a/test/track-uuid.sh
++++ b/test/track-uuid.sh
+@@ -11,7 +11,7 @@ set -e
+ trap 'err $LINENO' ERR
+ 
+ # setup (reset nfit_test dimms)
+-modprobe nfit_test
++_init
+ reset
+ 
+ rc=1
+@@ -34,5 +34,4 @@ $NDCTL disable-namespace $dev
+ uuidgen > /sys/bus/nd/devices/$dev/uuid
+ $NDCTL enable-namespace $dev
+ 
+-_cleanup
+ exit 0
 
- meson.build                     |  10 +++
- meson_options.txt               |   2 +
- ndctl/bat.c                     |   4 +-
- ndctl/test.c                    |   4 +-
- test.h                          |  10 ++-
- test/ack-shutdown-count-set.c   |  17 ++--
- test/btt-check.sh               |   3 +-
- test/btt-errors.sh              |   3 +-
- test/btt-pad-compat.sh          |   3 +-
- test/clear.sh                   |   4 +-
- test/common                     |  57 ++++++++++++-
- test/core.c                     | 140 +++++++++++++++++++++++++++++++-
- test/create.sh                  |   4 +-
- test/dax-dev.c                  |   2 +-
- test/dax-pmd.c                  |   2 +-
- test/daxdev-errors.sh           |   6 +-
- test/device-dax.c               |   2 +-
- test/dsm-fail.c                 |  33 +++++---
- test/firmware-update.sh         |   3 +-
- test/inject-error.sh            |   3 +-
- test/inject-smart.sh            |  17 ++--
- test/label-compat.sh            |   4 +-
- test/libndctl.c                 |  60 ++++++++++++--
- test/list-smart-dimm.c          |  33 +++++++-
- test/max_available_extent_ns.sh |   3 +-
- test/meson.build                |  59 ++++++++------
- test/monitor.sh                 |  14 +++-
- test/multi-dax.sh               |   4 +-
- test/pfn-meta-errors.sh         |   3 +-
- test/pmem-errors.sh             |   3 +-
- test/pmem_namespaces.c          |  29 +++----
- test/rescan-partitions.sh       |   3 +-
- test/revoke-devmem.c            |   2 +-
- test/sector-mode.sh             |   4 +-
- test/security.sh                |   3 +-
- test/skip_PAPR.js               |  32 ++++++++
- test/track-uuid.sh              |   3 +-
- 37 files changed, 447 insertions(+), 141 deletions(-)
- create mode 100644 test/skip_PAPR.js
-
---
 
