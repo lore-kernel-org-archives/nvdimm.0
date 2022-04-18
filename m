@@ -1,167 +1,212 @@
-Received: from mailout2.w2.samsung.com (mailout2.w2.samsung.com [211.189.100.12])
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 498BB7A;
-	Fri, 15 Apr 2022 20:57:10 +0000 (UTC)
-Received: from uscas1p1.samsung.com (unknown [182.198.245.206])
-	by mailout2.w2.samsung.com (KnoxPortal) with ESMTP id 20220415205054usoutp02a6724ca69cc982e85f6353434051425e~mLQ6QPQ_e2793527935usoutp02Z;
-	Fri, 15 Apr 2022 20:50:54 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout2.w2.samsung.com 20220415205054usoutp02a6724ca69cc982e85f6353434051425e~mLQ6QPQ_e2793527935usoutp02Z
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-	s=mail20170921; t=1650055854;
-	bh=rbPH910LIobk7Uf+bxHj1FGQoCQLyXIdRimZ7RIZzf4=;
-	h=From:To:CC:Subject:Date:In-Reply-To:References:From;
-	b=ID874J2826YFkiRJ0/yahd8+alg0rAlq3iSAk8aWlIeFxNrpxHH2aljOyLu7VsnI+
-	 j9B6RW0H4rah7sCqmj3YTI2Bpi191oxD5TyKNGihW8litJMOk2nz4ni0u5Z4ghvaZo
-	 10CJclwaZUSvWM032UZXvEhOB9FMBnIZP8rr3n34=
-Received: from ussmges1new.samsung.com (u109.gpu85.samsung.co.kr
-	[203.254.195.109]) by uscas1p1.samsung.com (KnoxPortal) with ESMTP id
-	20220415205052uscas1p12c16360da29ef841fdc737753598c39e~mLQ5MhkMj1327213272uscas1p1F;
-	Fri, 15 Apr 2022 20:50:52 +0000 (GMT)
-Received: from uscas1p1.samsung.com ( [182.198.245.206]) by
-	ussmges1new.samsung.com (USCPEMTA) with SMTP id 88.8E.09760.CAAD9526; Fri,
-	15 Apr 2022 16:50:52 -0400 (EDT)
-Received: from ussmgxs3new.samsung.com (u92.gpu85.samsung.co.kr
-	[203.254.195.92]) by uscas1p2.samsung.com (KnoxPortal) with ESMTP id
-	20220415205052uscas1p209e03abf95b9c80b2ba1f287c82dfd80~mLQ47mUSg2505025050uscas1p22;
-	Fri, 15 Apr 2022 20:50:52 +0000 (GMT)
-X-AuditID: cbfec36d-51bff70000002620-8b-6259daacff88
-Received: from SSI-EX3.ssi.samsung.com ( [105.128.2.145]) by
-	ussmgxs3new.samsung.com (USCPEXMTA) with SMTP id 06.B4.09665.CAAD9526; Fri,
-	15 Apr 2022 16:50:52 -0400 (EDT)
-Received: from SSI-EX3.ssi.samsung.com (105.128.2.228) by
-	SSI-EX3.ssi.samsung.com (105.128.2.228) with Microsoft SMTP Server
-	(version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
-	15.1.2242.4; Fri, 15 Apr 2022 13:50:51 -0700
-Received: from SSI-EX3.ssi.samsung.com ([fe80::8d80:5816:c578:8c36]) by
-	SSI-EX3.ssi.samsung.com ([fe80::4031:294d:7626:e900%4]) with mapi id
-	15.01.2242.008; Fri, 15 Apr 2022 13:50:51 -0700
-From: Adam Manzanares <a.manzanares@samsung.com>
-To: Ben Widawsky <ben.widawsky@intel.com>
-CC: "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
-	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, "patches@lists.linux.dev"
-	<patches@lists.linux.dev>, Alison Schofield <alison.schofield@intel.com>,
-	"Dan Williams" <dan.j.williams@intel.com>, Ira Weiny <ira.weiny@intel.com>,
-	Jonathan Cameron <Jonathan.Cameron@huawei.com>, Vishal Verma
-	<vishal.l.verma@intel.com>
-Subject: Re: [RFC PATCH 01/15] cxl/core: Use is_endpoint_decoder
-Thread-Topic: [RFC PATCH 01/15] cxl/core: Use is_endpoint_decoder
-Thread-Index: AQHYUQp+buRaSuq+ck6p5yfWSKlchg==
-Date: Fri, 15 Apr 2022 20:50:51 +0000
-Message-ID: <20220415205034.GA67162@bgt-140510-bm01>
-In-Reply-To: <20220413183720.2444089-2-ben.widawsky@intel.com>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-originating-ip: [105.128.2.176]
-Content-Type: text/plain; charset="us-ascii"
-Content-ID: <60C9E0E4E632524F8632FB28E5FB8218@ssi.samsung.com>
-Content-Transfer-Encoding: quoted-printable
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6733F64C
+	for <nvdimm@lists.linux.dev>; Mon, 18 Apr 2022 03:55:19 +0000 (UTC)
+Received: from pps.filterd (m0098394.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 23I10qHQ002530;
+	Mon, 18 Apr 2022 03:55:09 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=subject : from : to : cc
+ : date : message-id : mime-version : content-type :
+ content-transfer-encoding; s=pp1;
+ bh=SlDrnwNzn68eRrRjkncFbXlNdKvQzdsDZZIqRdV+i4U=;
+ b=efVzmGFjyNGa/DG89wvuhlaayEyyBxRoaTbkBCMw76mgUZo5DJE71aU3TMPcvRNLx3fa
+ BtIEWqPQ46BXzSUg/hI7WRKHvI/SCOI2J2xvpDVgZ8uPDoXMObb+j9TsnEcYU2Z54Ma7
+ C5RYlN+lnaKXefeZA5mRjtHBUf2XDP0UUFJJluKFw1ZKY3aE34HPjFLgCBZPdIswFzhZ
+ 3uGtaAnyx+JMfAfbmNhhdGnkADvd7YOdJJL9REAsE3ciPTGPZ8RfQGgexyYzXRKxdRoe
+ 5qC6x2oJil3a5iKL6ALkQdMQ4hrjpKpaWGwC9wWdzGtEoAEg66VrjLg5ZXpdxEhR1maz MA== 
+Received: from ppma04ams.nl.ibm.com (63.31.33a9.ip4.static.sl-reverse.com [169.51.49.99])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 3fg79w330k-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 18 Apr 2022 03:55:08 +0000
+Received: from pps.filterd (ppma04ams.nl.ibm.com [127.0.0.1])
+	by ppma04ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 23I3r1fF014236;
+	Mon, 18 Apr 2022 03:55:06 GMT
+Received: from b06cxnps4075.portsmouth.uk.ibm.com (d06relay12.portsmouth.uk.ibm.com [9.149.109.197])
+	by ppma04ams.nl.ibm.com with ESMTP id 3ffne925vr-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 18 Apr 2022 03:55:06 +0000
+Received: from b06wcsmtp001.portsmouth.uk.ibm.com (b06wcsmtp001.portsmouth.uk.ibm.com [9.149.105.160])
+	by b06cxnps4075.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 23I3t3x342467738
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Mon, 18 Apr 2022 03:55:03 GMT
+Received: from b06wcsmtp001.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 14110A4060;
+	Mon, 18 Apr 2022 03:55:03 +0000 (GMT)
+Received: from b06wcsmtp001.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id E4A30A4067;
+	Mon, 18 Apr 2022 03:55:01 +0000 (GMT)
+Received: from lep8c.aus.stglabs.ibm.com (unknown [9.40.192.207])
+	by b06wcsmtp001.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+	Mon, 18 Apr 2022 03:55:01 +0000 (GMT)
+Subject: [PATCH] ndtest: Cleanup all of blk namespace specific code
+From: Shivaprasad G Bhat <sbhat@linux.ibm.com>
+To: nvdimm@lists.linux.dev
+Cc: linuxppc-dev@lists.ozlabs.org, aneesh.kumar@linux.ibm.com,
+        sbhat@linux.ibm.com, vaibhav@linux.ibm.com, dan.j.williams@intel.com,
+        ira.weiny@intel.com, mpe@ellerman.id.au
+Date: Sun, 17 Apr 2022 22:55:00 -0500
+Message-ID: 
+ <165025395730.2821159.14794984437851867426.stgit@lep8c.aus.stglabs.ibm.com>
+User-Agent: StGit/1.1+40.g1b20
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-CFilter-Loop: Reflected
-X-Brightmail-Tracker: H4sIAAAAAAAAA02Sa0hTcRjG+59zdnY2Wp1W6JtSmhTRbU0JOnQZ2U3TDwsKpKLL1INaOm1z
-	TiUqyQilcFpSLcpLsdyaXVyapFkunal5Ic1KlPKSZmm4tCytlfMs2Lffy/s85/3x51C42MLz
-	omKUiaxKqYj1I4VEme178xpz575wqfm+lOnuayWZzIEsnLmc24qYpx8HCcZU0EEyLfoGgjH+
-	/M1j2l68QkynzoZtEQSn14zwgm9WDmHBnyxXUfBYyeLdxH7hpkg2NiaJVa2VHRFGGx1T/IRv
-	dHLJjUn8NEqbk4kEFNDroL1nHGUiISWmjQiqLBkEN5zFwFbbwvufytb14tyiGEFv4QseN9gR
-	jJ8pd22eIbAa2ghnhaSlMFX3AHfyAnoFjNxqnzmC02k4DN6rRs7FfHoLtJhySC4UCF23x/gc
-	S6B0qnm6TFEEvQzstqNOFE1r3K3wdSYEtAw+v0ufOYVoD5hoMGNOxmlP6OzPwzjreVB4rRLn
-	2AMcj3tIjpfA+4khPpdfDfkV30iOZVDdNIw4XgWGgi8zXdH0d+qv9hNcdyFUF72deSKg+ylo
-	HX7tOrYdsmxdLvaGy+Y2V+gcglFdFY8bdAi6Rn65NDaCI6ODr0NL9W7mejcrvZuV3s1K72aV
-	j3gm5KlRq+OiWLW/ktVK1Io4tUYZJYmIjytB0/9Vo+N5XDkq77RLrAijkBUBhfstEL3LCgsX
-	iyIVKamsKv6wShPLqq3ImyL8PEWGmPsKMR2lSGSPsWwCq/q/xSiB12ms6Id9vCdv1Gqa7Svz
-	/Rj2daQu6oiP43pzn3E49FzDfqlSZnievLW/Km3jm/oBYe6cQ3QA2Vu4eK9kp3bwg6B81phY
-	Nd5N270s25om1zcl+T8qlQbOLn25aDOCNadiNdqvObLI1IiciZDi7g3xEVTlrg0ng8oS6wIe
-	YaNkYo7/q4sBjZMGOb/gV6RhuyY0+Xx8WGPfvuboHcezr/lUyU35Bz8dGAw6E22pv5KV6aN9
-	c6kjdFNRTVl47p6hJ+tfzmViaitO1AaS2fLwh/IfbX1/ij206Gc7eIb8DdptTJfLv6ckrVhV
-	k7r8c8i91gvYgHdhcf2dRQn85IwD5pTJ+XvtIj9CHa3wX4mr1Ip/REBbdcYDAAA=
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFjrHIsWRmVeSWpSXmKPExsWS2cA0UXfNrcgkg/ePpS3uPr7AZtH1rJ/Z
-	YvrUC4wW+58+Z7FYtfAam8X5WadYLFb++MNqcfnEJUaLWxOOMTlwerQcecvqsXjPSyaPF5tn
-	Mnp83iQXwBLFZZOSmpNZllqkb5fAlbHy32/2gk8CFZvm/WJuYGzk62Lk5JAQMJGYOOERcxcj
-	F4eQwGpGiflnZzJBOB8ZJf7O3MAI4RxglPjS8JQNpIVNwEDi9/GNzCC2iICmxNslV8CKmAUa
-	mSWerz/ICJIQFnCQOL9qEhtEkaPEneWf2SFsPYmtv88BNXNwsAioSnw8lgVi8gKdsW63AkiF
-	kEChxM/9Z1lAbE4BO4lXN1vAbEYBMYnvp9YwgdjMAuISt57MZ4L4QEBiyZ7zzBC2qMTLx/9Y
-	IWxFifvfX7JD1OtILNj9iQ3CtpM4ePYNI4StLbFs4WuwXl4BQYmTM5+wQPRKShxccYNlAqPE
-	LCTrZiEZNQvJqFlIRs1CMmoBI+sqRvHS4uLc9Ipi47zUcr3ixNzi0rx0veT83E2MwCg//e9w
-	zA7Ge7c+6h1iZOJgPMQowcGsJMJ7sz88SYg3JbGyKrUoP76oNCe1+BCjNAeLkjivR+zEeCGB
-	9MSS1OzU1ILUIpgsEwenVANT6PWXosFrHZcWVk3ylMgSPrZ2hoMUT/BswdDZa1l3xKxxqj1x
-	oepd95wvH/Ob3Nu2hYemaS//vdVxqabhvqMpyQwR16Zt3X9yT9IVN94DXyLeTHZQ/pautm35
-	e9u563ckeLL8X5ZUlPXA5YHLrA0bT89z9Qj+KZlp3yDbvIQ5uf/ihUsH/+hHndh13sGkdwr7
-	GUOz15xChaI1txX+FZzfarE5yeTM3YbAvY3uOxa+uHxQmIPnVKj7+p//nmZ2bt/Ya/dPbFJQ
-	9dJLclXLdH8w7cnm45LVtC1okUty9ZgZGdvwKMBzf/IOkSmmGj/EmY4sD/porz1p6sMJm1OO
-	fzn5K2jGhU1na9aqJnf/3Ju0QImlOCPRUIu5qDgRABol7ihhAwAA
-X-CMS-MailID: 20220415205052uscas1p209e03abf95b9c80b2ba1f287c82dfd80
-CMS-TYPE: 301P
-X-CMS-RootMailID: 20220415205052uscas1p209e03abf95b9c80b2ba1f287c82dfd80
-References: <20220413183720.2444089-1-ben.widawsky@intel.com>
-	<20220413183720.2444089-2-ben.widawsky@intel.com>
-	<CGME20220415205052uscas1p209e03abf95b9c80b2ba1f287c82dfd80@uscas1p2.samsung.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: n9Gw6zysOMAxu2YikPzSvln8lcd4NPmE
+X-Proofpoint-ORIG-GUID: n9Gw6zysOMAxu2YikPzSvln8lcd4NPmE
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.205,Aquarius:18.0.858,Hydra:6.0.486,FMLib:17.11.64.514
+ definitions=2022-04-18_01,2022-04-15_01,2022-02-23_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxscore=0 clxscore=1011
+ priorityscore=1501 bulkscore=0 mlxlogscore=954 spamscore=0 phishscore=0
+ adultscore=0 impostorscore=0 lowpriorityscore=0 malwarescore=0
+ suspectscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2202240000 definitions=main-2204180019
 
-On Wed, Apr 13, 2022 at 11:37:06AM -0700, Ben Widawsky wrote:
-> Save some characters and directly check decoder type rather than port
-> type. There's no need to check if the port is an endpoint port since we
-> already know the decoder, after alloc, has a specified type.
->=20
-> Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
-> ---
->  drivers/cxl/core/hdm.c  | 2 +-
->  drivers/cxl/core/port.c | 2 +-
->  drivers/cxl/cxl.h       | 1 +
->  3 files changed, 3 insertions(+), 2 deletions(-)
->=20
-> diff --git a/drivers/cxl/core/hdm.c b/drivers/cxl/core/hdm.c
-> index 0e89a7a932d4..bfc8ee876278 100644
-> --- a/drivers/cxl/core/hdm.c
-> +++ b/drivers/cxl/core/hdm.c
-> @@ -197,7 +197,7 @@ static int init_hdm_decoder(struct cxl_port *port, st=
-ruct cxl_decoder *cxld,
->  	else
->  		cxld->target_type =3D CXL_DECODER_ACCELERATOR;
-> =20
-> -	if (is_cxl_endpoint(to_cxl_port(cxld->dev.parent)))
-> +	if (is_endpoint_decoder(&cxld->dev))
->  		return 0;
-> =20
->  	target_list.value =3D
-> diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
-> index 2ab1ba4499b3..74c8e47bf915 100644
-> --- a/drivers/cxl/core/port.c
-> +++ b/drivers/cxl/core/port.c
-> @@ -272,7 +272,7 @@ static const struct device_type cxl_decoder_root_type=
- =3D {
->  	.groups =3D cxl_decoder_root_attribute_groups,
->  };
-> =20
-> -static bool is_endpoint_decoder(struct device *dev)
-> +bool is_endpoint_decoder(struct device *dev)
->  {
->  	return dev->type =3D=3D &cxl_decoder_endpoint_type;
->  }
-> diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
-> index 990b6670222e..5102491e8d13 100644
-> --- a/drivers/cxl/cxl.h
-> +++ b/drivers/cxl/cxl.h
-> @@ -340,6 +340,7 @@ struct cxl_dport *cxl_find_dport_by_dev(struct cxl_po=
-rt *port,
-> =20
->  struct cxl_decoder *to_cxl_decoder(struct device *dev);
->  bool is_root_decoder(struct device *dev);
-> +bool is_endpoint_decoder(struct device *dev);
->  bool is_cxl_decoder(struct device *dev);
->  struct cxl_decoder *cxl_root_decoder_alloc(struct cxl_port *port,
->  					   unsigned int nr_targets);
-> --=20
-> 2.35.1
->=20
->
+With the nd_namespace_blk and nd_blk_region infrastructures being removed,
+the ndtest still has some references to the old code. So the
+compilation fails as below,
+
+../tools/testing/nvdimm/test/ndtest.c:204:25: error: ‘ND_DEVICE_NAMESPACE_BLK’ undeclared here (not in a function); did you mean ‘ND_DEVICE_NAMESPACE_IO’?
+  204 |                 .type = ND_DEVICE_NAMESPACE_BLK,
+      |                         ^~~~~~~~~~~~~~~~~~~~~~~
+      |                         ND_DEVICE_NAMESPACE_IO
+../tools/testing/nvdimm/test/ndtest.c: In function ‘ndtest_create_region’:
+../tools/testing/nvdimm/test/ndtest.c:630:17: error: ‘ndbr_desc’ undeclared (first use in this function); did you mean ‘ndr_desc’?
+  630 |                 ndbr_desc.enable = ndtest_blk_region_enable;
+      |                 ^~~~~~~~~
+      |                 ndr_desc
+../tools/testing/nvdimm/test/ndtest.c:630:17: note: each undeclared identifier is reported only once for each function it appears in
+../tools/testing/nvdimm/test/ndtest.c:630:36: error: ‘ndtest_blk_region_enable’ undeclared (first use in this function)
+  630 |                 ndbr_desc.enable = ndtest_blk_region_enable;
+      |                                    ^~~~~~~~~~~~~~~~~~~~~~~~
+../tools/testing/nvdimm/test/ndtest.c:631:35: error: ‘ndtest_blk_do_io’ undeclared (first use in this function); did you mean ‘ndtest_blk_mmio’?
+  631 |                 ndbr_desc.do_io = ndtest_blk_do_io;
+      |                                   ^~~~~~~~~~~~~~~~
+      |                                   ndtest_blk_mmio
+
+The current patch removes the specific code to cleanup all obsolete
+references.
+
+Signed-off-by: Shivaprasad G Bhat <sbhat@linux.ibm.com>
+---
+ tools/testing/nvdimm/test/ndtest.c |   77 ------------------------------------
+ 1 file changed, 77 deletions(-)
+
+diff --git a/tools/testing/nvdimm/test/ndtest.c b/tools/testing/nvdimm/test/ndtest.c
+index 4d1a947367f9..01ceb98c15a0 100644
+--- a/tools/testing/nvdimm/test/ndtest.c
++++ b/tools/testing/nvdimm/test/ndtest.c
+@@ -134,39 +134,6 @@ static struct ndtest_mapping region1_mapping[] = {
+ 	},
+ };
+ 
+-static struct ndtest_mapping region2_mapping[] = {
+-	{
+-		.dimm = 0,
+-		.position = 0,
+-		.start = 0,
+-		.size = DIMM_SIZE,
+-	},
+-};
+-
+-static struct ndtest_mapping region3_mapping[] = {
+-	{
+-		.dimm = 1,
+-		.start = 0,
+-		.size = DIMM_SIZE,
+-	}
+-};
+-
+-static struct ndtest_mapping region4_mapping[] = {
+-	{
+-		.dimm = 2,
+-		.start = 0,
+-		.size = DIMM_SIZE,
+-	}
+-};
+-
+-static struct ndtest_mapping region5_mapping[] = {
+-	{
+-		.dimm = 3,
+-		.start = 0,
+-		.size = DIMM_SIZE,
+-	}
+-};
+-
+ static struct ndtest_region bus0_regions[] = {
+ 	{
+ 		.type = ND_DEVICE_NAMESPACE_PMEM,
+@@ -182,34 +149,6 @@ static struct ndtest_region bus0_regions[] = {
+ 		.size = DIMM_SIZE * 2,
+ 		.range_index = 2,
+ 	},
+-	{
+-		.type = ND_DEVICE_NAMESPACE_BLK,
+-		.num_mappings = ARRAY_SIZE(region2_mapping),
+-		.mapping = region2_mapping,
+-		.size = DIMM_SIZE,
+-		.range_index = 3,
+-	},
+-	{
+-		.type = ND_DEVICE_NAMESPACE_BLK,
+-		.num_mappings = ARRAY_SIZE(region3_mapping),
+-		.mapping = region3_mapping,
+-		.size = DIMM_SIZE,
+-		.range_index = 4,
+-	},
+-	{
+-		.type = ND_DEVICE_NAMESPACE_BLK,
+-		.num_mappings = ARRAY_SIZE(region4_mapping),
+-		.mapping = region4_mapping,
+-		.size = DIMM_SIZE,
+-		.range_index = 5,
+-	},
+-	{
+-		.type = ND_DEVICE_NAMESPACE_BLK,
+-		.num_mappings = ARRAY_SIZE(region5_mapping),
+-		.mapping = region5_mapping,
+-		.size = DIMM_SIZE,
+-		.range_index = 6,
+-	},
+ };
+ 
+ static struct ndtest_mapping region6_mapping[] = {
+@@ -501,21 +440,6 @@ static int ndtest_create_region(struct ndtest_priv *p,
+ 	nd_set->altcookie = nd_set->cookie1;
+ 	ndr_desc->nd_set = nd_set;
+ 
+-	if (region->type == ND_DEVICE_NAMESPACE_BLK) {
+-		mappings[0].start = 0;
+-		mappings[0].size = DIMM_SIZE;
+-		mappings[0].nvdimm = p->config->dimms[ndimm].nvdimm;
+-
+-		ndr_desc->mapping = &mappings[0];
+-		ndr_desc->num_mappings = 1;
+-		ndr_desc->num_lanes = 1;
+-		ndbr_desc.enable = ndtest_blk_region_enable;
+-		ndbr_desc.do_io = ndtest_blk_do_io;
+-		region->region = nvdimm_blk_region_create(p->bus, ndr_desc);
+-
+-		goto done;
+-	}
+-
+ 	for (i = 0; i < region->num_mappings; i++) {
+ 		ndimm = region->mapping[i].dimm;
+ 		mappings[i].start = region->mapping[i].start;
+@@ -527,7 +451,6 @@ static int ndtest_create_region(struct ndtest_priv *p,
+ 	ndr_desc->num_mappings = region->num_mappings;
+ 	region->region = nvdimm_pmem_region_create(p->bus, ndr_desc);
+ 
+-done:
+ 	if (!region->region) {
+ 		dev_err(&p->pdev.dev, "Error registering region %pR\n",
+ 			ndr_desc->res);
 
 
-Looks good.
-
-Reviewed by: Adam Manzanares <a.manzanares@samsung.com>=
