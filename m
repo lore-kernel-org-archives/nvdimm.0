@@ -1,52 +1,52 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1DE7FA29
-	for <nvdimm@lists.linux.dev>; Mon, 18 Apr 2022 17:10:52 +0000 (UTC)
-Received: from pps.filterd (m0098419.ppops.net [127.0.0.1])
-	by mx0b-001b2d01.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 23IFg2CD020257;
-	Mon, 18 Apr 2022 17:10:50 GMT
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B434A30
+	for <nvdimm@lists.linux.dev>; Mon, 18 Apr 2022 17:11:04 +0000 (UTC)
+Received: from pps.filterd (m0098393.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 23IEHTIu010782;
+	Mon, 18 Apr 2022 17:11:03 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=subject : from : to : cc
  : date : message-id : in-reply-to : references : mime-version :
  content-type : content-transfer-encoding; s=pp1;
- bh=Jcch8HH6yAyXSsJ5muSXjcRVMAju0r1IkdEJnbTZeBM=;
- b=NzST7nSn0SlwBLAhhUZq4S/ZH9klBLEPegkpu+8ZkhOu8q4u5Vid/jC0VV/oFlIJHWp1
- kStoHCSJqRLo2hFSls2PryqnHbZd3KaeZY3z6I5CVmf8+ZCusQnPaBCPsVzmhegVjei5
- Fj0gGfWqFVX4ePDqFXJEdnsllLQNvvrEhZmVv+rt/VAOgD0JI4gywnjFjJAg+FqKQl2p
- oMrGgNtoog6cwrwLTKBJbUDuag0GgMdYX3HW8W7s2RBWSH4eZVrfm7XBh7eOtwwokGhv
- PGMdTDzb2tM/JURSuHHhIkVVSR/lkQtIPJZwzClWu3U6oCC1WUGOMuG8WGGEva7U9Ep0 eg== 
-Received: from ppma02fra.de.ibm.com (47.49.7a9f.ip4.static.sl-reverse.com [159.122.73.71])
-	by mx0b-001b2d01.pphosted.com with ESMTP id 3fg75psujc-1
+ bh=C5iGUS6+LIhOpp8qDvVGzFWsIWbCdUEefphv1q7H+Pg=;
+ b=FXYdUG5YBMoXL/OqDNi11vdKw00oqCPGYDBCP5jhDOJ1u54n4yUeBKlV2kaO/Hx/0Fl7
+ wIc06Gwb6vdD+BU/nclZW0BUqoSPXqhBxYRJC2bqDZtKUGLN2hmt0SfcXg6QpE7AdVaG
+ rGGiRBLA/J1BKNlzMt3VX7moat7RouZnFWykZsjZW5Y7Sl7zWwdEfBvMY5L0cCVODHua
+ Xk/c7kiUBk+TlscXxx1+ZigQ3BPvWD6DDsLoyHmRW6kBUEiqzUClDNyBlXWhMQYX8i8A
+ 6ZIvqlfnUQhnG/jy5sttr5xk0PFo8I144/VV4op28cO0BxKYsjLGWay1Mr5L0cN4/vip RQ== 
+Received: from ppma03ams.nl.ibm.com (62.31.33a9.ip4.static.sl-reverse.com [169.51.49.98])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 3fg7vn93yn-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 18 Apr 2022 17:10:49 +0000
-Received: from pps.filterd (ppma02fra.de.ibm.com [127.0.0.1])
-	by ppma02fra.de.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 23IH2onP002587;
-	Mon, 18 Apr 2022 17:10:47 GMT
-Received: from b06cxnps4074.portsmouth.uk.ibm.com (d06relay11.portsmouth.uk.ibm.com [9.149.109.196])
-	by ppma02fra.de.ibm.com with ESMTP id 3fgu6u0vqk-1
+	Mon, 18 Apr 2022 17:11:03 +0000
+Received: from pps.filterd (ppma03ams.nl.ibm.com [127.0.0.1])
+	by ppma03ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 23IH2q7A018068;
+	Mon, 18 Apr 2022 17:11:00 GMT
+Received: from b06cxnps4075.portsmouth.uk.ibm.com (d06relay12.portsmouth.uk.ibm.com [9.149.109.197])
+	by ppma03ams.nl.ibm.com with ESMTP id 3ffne8k1kv-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 18 Apr 2022 17:10:47 +0000
-Received: from d06av26.portsmouth.uk.ibm.com (d06av26.portsmouth.uk.ibm.com [9.149.105.62])
-	by b06cxnps4074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 23IHAiQT44892654
+	Mon, 18 Apr 2022 17:11:00 +0000
+Received: from b06wcsmtp001.portsmouth.uk.ibm.com (b06wcsmtp001.portsmouth.uk.ibm.com [9.149.105.160])
+	by b06cxnps4075.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 23IHAv0d46924234
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 18 Apr 2022 17:10:44 GMT
-Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 35042AE045;
-	Mon, 18 Apr 2022 17:10:44 +0000 (GMT)
-Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 43ADAAE051;
-	Mon, 18 Apr 2022 17:10:43 +0000 (GMT)
+	Mon, 18 Apr 2022 17:10:57 GMT
+Received: from b06wcsmtp001.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 2EAA4A4054;
+	Mon, 18 Apr 2022 17:10:57 +0000 (GMT)
+Received: from b06wcsmtp001.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 3BF6CA405C;
+	Mon, 18 Apr 2022 17:10:56 +0000 (GMT)
 Received: from lep8c.aus.stglabs.ibm.com (unknown [9.40.192.207])
-	by d06av26.portsmouth.uk.ibm.com (Postfix) with ESMTP;
-	Mon, 18 Apr 2022 17:10:43 +0000 (GMT)
-Subject: [RFC ndctl PATCH 4/9] test: Introduce skip file to skip irrelevant
- tests
+	by b06wcsmtp001.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+	Mon, 18 Apr 2022 17:10:56 +0000 (GMT)
+Subject: [RFC ndctl PATCH 5/9] test: Assign provider name based on the test
+ family
 From: Shivaprasad G Bhat <sbhat@linux.ibm.com>
 To: nvdimm@lists.linux.dev, dan.j.williams@intel.com, vishal.l.verma@intel.com
 Cc: aneesh.kumar@linux.ibm.com, sbhat@linux.ibm.com, vaibhav@linux.ibm.com
-Date: Mon, 18 Apr 2022 12:10:42 -0500
+Date: Mon, 18 Apr 2022 12:10:55 -0500
 Message-ID: 
- <165030183808.3224737.13932338864318081260.stgit@lep8c.aus.stglabs.ibm.com>
+ <165030184936.3224737.4501499015485134399.stgit@lep8c.aus.stglabs.ibm.com>
 In-Reply-To: 
  <165030175745.3224737.6985015146263991065.stgit@lep8c.aus.stglabs.ibm.com>
 References: 
@@ -61,364 +61,324 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 X-TM-AS-GCONF: 00
-X-Proofpoint-ORIG-GUID: uT166OY8AmyI2bKtwQYnrE2r7IAceJ6b
-X-Proofpoint-GUID: uT166OY8AmyI2bKtwQYnrE2r7IAceJ6b
+X-Proofpoint-ORIG-GUID: HUoRoKsbV6tvOJKpY7KTiAiIlD54KMF_
+X-Proofpoint-GUID: HUoRoKsbV6tvOJKpY7KTiAiIlD54KMF_
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.205,Aquarius:18.0.858,Hydra:6.0.486,FMLib:17.11.64.514
  definitions=2022-04-18_02,2022-04-15_01,2022-02-23_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 clxscore=1015 phishscore=0
- mlxlogscore=999 spamscore=0 suspectscore=0 impostorscore=0 mlxscore=0
- lowpriorityscore=0 malwarescore=0 priorityscore=1501 bulkscore=0
- adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 clxscore=1015 mlxscore=0
+ phishscore=0 suspectscore=0 bulkscore=0 lowpriorityscore=0 spamscore=0
+ priorityscore=1501 impostorscore=0 mlxlogscore=999 adultscore=0
+ malwarescore=0 classifier=spam adjust=0 reason=mlx scancount=1
  engine=8.12.0-2202240000 definitions=main-2204180101
 
-Having a skip file containing the list of tests to be skipped on
-a given platform is useful to avoid false negatives when running
-the tests on multiple platforms.
+The provider name is used by test scripts in a hard-coded fashion
+like nfit_test.X today.
 
-The meson sets the specific environment variables during test.
-Tests when run under meson or with these specific env variables,
-are supposed to check the skip_INTEL|PAPR.js file and decide if
-the current test is to skipped or not. The json file format is
-chosen for the skip file as the current ndctl code base already
-has the json dependencies linked to the sources.
+With the kernel modules names being different per nvdimm family
+and the provider name too would change because of that.
 
-The patch also adds the PAPR specific skip_PAPR.js file to skip
-all the irrelevant and failing tests on the ndtest module.
+The patch reassigns the correct provider name based on the test family.
+
+The default family and the provider is set to INTEL to keep the
+original behaviour intact.
 
 Signed-off-by: Shivaprasad G Bhat <sbhat@linux.ibm.com>
 Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
 ---
- ndctl/bat.c                   |    4 +--
- ndctl/test.c                  |    4 +--
- test.h                        |    4 +--
- test/ack-shutdown-count-set.c |    2 +
- test/common                   |   10 +++++++
- test/core.c                   |   62 ++++++++++++++++++++++++++++++++++++++++-
- test/dax-dev.c                |    2 +
- test/dax-pmd.c                |    2 +
- test/device-dax.c             |    2 +
- test/dsm-fail.c               |    2 +
- test/libndctl.c               |    2 +
- test/meson.build              |    1 +
- test/pmem_namespaces.c        |    2 +
- test/revoke-devmem.c          |    2 +
- test/skip_PAPR.js             |   34 ++++++++++++++++++++++
- 15 files changed, 120 insertions(+), 15 deletions(-)
- create mode 100644 test/skip_PAPR.js
+ test.h                        |    6 ++++++
+ test/ack-shutdown-count-set.c |   11 +++--------
+ test/core.c                   |   23 +++++++++++++++++++----
+ test/daxdev-errors.sh         |    2 +-
+ test/dsm-fail.c               |   27 ++++++++++++++++++---------
+ test/libndctl.c               |    8 ++++----
+ test/pmem_namespaces.c        |    4 +++-
+ 7 files changed, 54 insertions(+), 27 deletions(-)
 
-diff --git a/ndctl/bat.c b/ndctl/bat.c
-index 13e964dc..53e9d951 100644
---- a/ndctl/bat.c
-+++ b/ndctl/bat.c
-@@ -32,9 +32,9 @@ int cmd_bat(int argc, const char **argv, struct ndctl_ctx *ctx)
- 		usage_with_options(u, options);
- 
- 	if (force)
--		test = ndctl_test_new(UINT_MAX);
-+		test = ndctl_test_new(UINT_MAX, argv[0]);
- 	else
--		test = ndctl_test_new(0);
-+		test = ndctl_test_new(0, argv[0]);
- 
- 	if (!test) {
- 		fprintf(stderr, "failed to initialize test\n");
-diff --git a/ndctl/test.c b/ndctl/test.c
-index a0f5bc95..43b8c383 100644
---- a/ndctl/test.c
-+++ b/ndctl/test.c
-@@ -42,9 +42,9 @@ int cmd_test(int argc, const char **argv, struct ndctl_ctx *ctx)
- 		usage_with_options(u, options);
- 
- 	if (force)
--		test = ndctl_test_new(UINT_MAX);
-+		test = ndctl_test_new(UINT_MAX, argv[0]);
- 	else
--		test = ndctl_test_new(0);
-+		test = ndctl_test_new(0, argv[0]);
- 	if (!test)
- 		return EXIT_FAILURE;
- 
 diff --git a/test.h b/test.h
-index 6cff4189..cb61e0d9 100644
+index cb61e0d9..7c7f620c 100644
 --- a/test.h
 +++ b/test.h
-@@ -6,7 +6,7 @@
+@@ -6,6 +6,12 @@
  
  struct ndctl_test;
  struct ndctl_ctx;
--struct ndctl_test *ndctl_test_new(unsigned int kver);
-+struct ndctl_test *ndctl_test_new(unsigned int kver, const char *testname);
++
++extern char TEST_PROVIDER0[15];
++extern char TEST_PROVIDER1[15];
++extern int ndctl_test_family;
++void init_env(void);
++
+ struct ndctl_test *ndctl_test_new(unsigned int kver, const char *testname);
  int ndctl_test_result(struct ndctl_test *test, int rc);
  int ndctl_test_get_skipped(struct ndctl_test *test);
- int ndctl_test_get_attempted(struct ndctl_test *test);
-@@ -23,7 +23,7 @@ struct kmod_module;
- int ndctl_test_init(struct kmod_ctx **ctx, struct kmod_module **mod,
- 		struct ndctl_ctx *nd_ctx, int log_level,
- 		struct ndctl_test *test);
--int ndctl_test_module_remove(struct kmod_ctx **ctx, struct kmod_module **mod,
-+void ndctl_test_module_remove(struct kmod_ctx **ctx, struct kmod_module **mod,
- 			struct ndctl_ctx *nd_ctx);
- 
- struct ndctl_ctx;
 diff --git a/test/ack-shutdown-count-set.c b/test/ack-shutdown-count-set.c
-index 2d77aa07..5d38ad9d 100644
+index 5d38ad9d..d35ee717 100644
 --- a/test/ack-shutdown-count-set.c
 +++ b/test/ack-shutdown-count-set.c
-@@ -118,7 +118,7 @@ static int test_ack_shutdown_count_set(int loglevel, struct ndctl_test *test,
+@@ -56,7 +56,7 @@ static void reset_bus(struct ndctl_bus *bus)
+ 
+ static int do_test(struct ndctl_ctx *ctx, struct ndctl_test *test)
+ {
+-	struct ndctl_bus *bus = ndctl_bus_get_by_provider(ctx, "nfit_test.0");
++	struct ndctl_bus *bus = ndctl_bus_get_by_provider(ctx, TEST_PROVIDER0);
+ 	struct ndctl_dimm *dimm;
+ 	struct ndctl_region *region;
+ 	struct log_ctx log_ctx;
+@@ -117,17 +117,12 @@ static int test_ack_shutdown_count_set(int loglevel, struct ndctl_test *test,
+ 
  int main(int argc, char *argv[])
  {
- 	char *test_env = getenv("NDCTL_TEST_FAMILY");
--	struct ndctl_test *test = ndctl_test_new(0);
-+	struct ndctl_test *test = ndctl_test_new(0, argv[0]);
+-	char *test_env = getenv("NDCTL_TEST_FAMILY");
+ 	struct ndctl_test *test = ndctl_test_new(0, argv[0]);
  	struct ndctl_ctx *ctx;
  	int rc;
  
-diff --git a/test/common b/test/common
-index d2cb3f73..31395ece 100644
---- a/test/common
-+++ b/test/common
-@@ -35,6 +35,16 @@ if [ ! -v NDCTL_TEST_FAMILY ]; then
- 	export NDCTL_TEST_FAMILY=INTEL
- fi
+-	if (!test) {
+-		fprintf(stderr, "failed to initialize test\n");
+-		return EXIT_FAILURE;
+-	}
+-
+-	if (test_env && strcmp(test_env, "PAPR") == 0)
++	init_env();
++	if (ndctl_test_family == NVDIMM_FAMILY_PAPR)
+ 		return ndctl_test_result(test, 77);
  
-+if [ -f "$(dirname $0)/skip_${NDCTL_TEST_FAMILY}.js" ]; then
-+	length=$(cat $(dirname $0)/skip_${NDCTL_TEST_FAMILY}.js |\
-+		sed 's|//.*||' | jq length)
-+	for (( i=0; i<length; i++ )); do
-+		test=$(cat $(dirname $0)/skip_${NDCTL_TEST_FAMILY}.js |\
-+			sed 's|//.*||' | jq -e -r ".[${i}]")
-+		[ "$test" == "${0##*/}" ] && exit 77;
-+	done
-+fi
-+
- # NFIT_TEST_BUS[01]
- #
- NFIT_TEST_BUS0="nfit_test.0"
+ 	rc = ndctl_new(&ctx);
 diff --git a/test/core.c b/test/core.c
-index bc7542aa..130e4aed 100644
+index 130e4aed..f5cf6c82 100644
 --- a/test/core.c
 +++ b/test/core.c
-@@ -7,6 +7,8 @@
- #include <errno.h>
- #include <stdio.h>
- #include <test.h>
-+#include <unistd.h>
-+#include <json-c/json.h>
+@@ -24,6 +24,21 @@ struct ndctl_test {
+ 	int skip;
+ };
  
- #include <util/log.h>
- #include <util/sysfs.h>
-@@ -39,9 +41,67 @@ static unsigned int get_system_kver(void)
- 	return KERNEL_VERSION(a,b,c);
- }
- 
--struct ndctl_test *ndctl_test_new(unsigned int kver)
-+static bool skip_current_test(char *skip_file, const char *curtest)
++char TEST_PROVIDER0[15] = "nfit_test.0";
++char TEST_PROVIDER1[15] = "nfit_test.1";
++int ndctl_test_family = NVDIMM_FAMILY_INTEL;
++
++void init_env(void)
 +{
-+	FILE *fp;
-+	char buffer[16384]; //16k large enough for file with comments
-+	const char *curtestname = basename(curtest);
-+	struct json_object *skip_array;
-+	struct json_object *test;
-+	const char *testname;
-+	size_t i, size;
++	char *test_env = getenv("NDCTL_TEST_FAMILY");
 +
-+	fp = fopen(skip_file, "r");
-+	if (fp == NULL) {
-+		fprintf(stderr, "Failed to open the %s file. Ignore, and continue..\n", skip_file);
-+		return false;
++	if (test_env && strcmp(test_env, "PAPR") == 0) {
++		ndctl_test_family = NVDIMM_FAMILY_PAPR;
++		strcpy(TEST_PROVIDER0, "ndtest.0");
++		strcpy(TEST_PROVIDER1, "ndtest.1");
 +	}
-+
-+	size = fread(buffer, 1, 16384, fp);
-+	if (size == 0) {
-+		fprintf(stderr, "Failed to read the %s file. Ignore, and continue..\n", skip_file);
-+		return false;
-+	}
-+	fclose(fp);
-+
-+	skip_array = json_tokener_parse(buffer);
-+	if (json_object_get_type(skip_array) != json_type_array) {
-+		fprintf(stderr, "Failed to parse the %s file. Ignore, and continue..\n", skip_file);
-+		return false;
-+	}
-+
-+	for (i = 0; i < json_object_array_length(skip_array); i++) {
-+		test = json_object_array_get_idx(skip_array, i);
-+		testname = json_object_get_string(test);
-+		if (testname && strcmp(curtestname, testname) == 0)
-+			return true;
-+	}
-+
-+	return false;
 +}
 +
-+struct ndctl_test *ndctl_test_new(unsigned int kver, const char *testpath)
+ static unsigned int get_system_kver(void)
  {
- 	struct ndctl_test *test = calloc(1, sizeof(*test));
-+	const char *data_path  = getenv("DATA_PATH");
-+	const char *test_family = getenv("NDCTL_TEST_FAMILY");
-+	char *skip_file = NULL;
-+
-+	if (test_family && data_path &&
-+	    (asprintf(&skip_file, "%s/skip_%s.js", data_path, test_family) < 0)) {
-+		fprintf(stderr, "test : allocation failed\n");
-+		free(test);
-+		return NULL;
-+	}
-+
-+	if (skip_file &&
-+		(access(skip_file, F_OK) == 0) &&
-+		skip_current_test(skip_file, testpath)) {
-+		fprintf(stderr, "test : skip requested in the skip_%s.js\n",
-+			test_family);
-+		ndctl_test_skip(test);
-+		exit(ndctl_test_result(test, 77));
-+	}
+ 	const char *kver = getenv("KVER");
+@@ -177,9 +192,9 @@ void ndctl_test_module_remove(struct kmod_ctx **ctx, struct kmod_module **mod,
+ 		struct ndctl_region *region;
  
- 	if (!test)
- 		return NULL;
-diff --git a/test/dax-dev.c b/test/dax-dev.c
-index 6a1b76d6..2c9b6156 100644
---- a/test/dax-dev.c
-+++ b/test/dax-dev.c
-@@ -118,7 +118,7 @@ static int emit_e820_device(int loglevel, struct ndctl_test *test)
+ 		if ((strcmp(ndctl_bus_get_provider(bus),
+-			   "nfit_test.0") != 0) &&
++			   TEST_PROVIDER0) != 0) &&
+ 			strcmp(ndctl_bus_get_provider(bus),
+-				"nfit_test.1") != 0)
++				TEST_PROVIDER1) != 0)
+ 			continue;
  
- int __attribute__((weak)) main(int argc, char *argv[])
- {
--	struct ndctl_test *test = ndctl_test_new(0);
-+	struct ndctl_test *test = ndctl_test_new(0, argv[0]);
- 	int rc;
+ 		ndctl_region_foreach(bus, region)
+@@ -360,7 +375,7 @@ retry:
+ 			struct ndctl_region *region;
  
- 	if (!test) {
-diff --git a/test/dax-pmd.c b/test/dax-pmd.c
-index f8408759..7f74ea03 100644
---- a/test/dax-pmd.c
-+++ b/test/dax-pmd.c
-@@ -358,7 +358,7 @@ err_mmap:
+ 			if (strcmp(ndctl_bus_get_provider(bus),
+-				   "nfit_test.0") != 0)
++				   TEST_PROVIDER0) != 0)
+ 				continue;
+ 			ndctl_region_foreach(bus, region)
+ 				ndctl_region_disable_invalidate(region);
+@@ -386,7 +401,7 @@ retry:
+ 		struct ndctl_region *region;
+ 		struct ndctl_dimm *dimm;
  
- int __attribute__((weak)) main(int argc, char *argv[])
- {
--	struct ndctl_test *test = ndctl_test_new(0);
-+	struct ndctl_test *test = ndctl_test_new(0, argv[0]);
- 	int fd, rc;
+-		if (strcmp(ndctl_bus_get_provider(bus), "nfit_test.0") != 0)
++		if (strcmp(ndctl_bus_get_provider(bus), TEST_PROVIDER0) != 0)
+ 			continue;
  
- 	if (!test) {
-diff --git a/test/device-dax.c b/test/device-dax.c
-index 49c9bc8b..14ea2f82 100644
---- a/test/device-dax.c
-+++ b/test/device-dax.c
-@@ -423,7 +423,7 @@ static int test_device_dax(int loglevel, struct ndctl_test *test,
+ 		ndctl_region_foreach (bus, region)
+diff --git a/test/daxdev-errors.sh b/test/daxdev-errors.sh
+index f32f8b80..d80a536c 100755
+--- a/test/daxdev-errors.sh
++++ b/test/daxdev-errors.sh
+@@ -66,7 +66,7 @@ test -x $TEST_PATH/daxdev-errors
+ $TEST_PATH/daxdev-errors $busdev $region
  
- int __attribute__((weak)) main(int argc, char *argv[])
- {
--	struct ndctl_test *test = ndctl_test_new(0);
-+	struct ndctl_test *test = ndctl_test_new(0, argv[0]);
- 	struct ndctl_ctx *ctx;
- 	int rc;
- 
+ # check badblocks, should be empty
+-if read sector len < /sys/bus/platform/devices/nfit_test.0/$busdev/$region/badblocks; then
++if read sector len < /sys/bus/platform/devices/$NFIT_TEST_BUS0/$busdev/$region/badblocks; then
+ 	echo "badblocks empty, expected"
+ fi
+ [ -n "$sector" ] && echo "fail: $LINENO" && exit 1
 diff --git a/test/dsm-fail.c b/test/dsm-fail.c
-index 65ac2bd4..e7a35ca6 100644
+index e7a35ca6..382d8da3 100644
 --- a/test/dsm-fail.c
 +++ b/test/dsm-fail.c
-@@ -364,7 +364,7 @@ int test_dsm_fail(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx)
+@@ -18,8 +18,6 @@
+ #include <ndctl/ndctl.h>
+ #include <test.h>
  
- int __attribute__((weak)) main(int argc, char *argv[])
+-#define DIMM_PATH "/sys/devices/platform/nfit_test.0/nfit_test_dimm/test_dimm0"
+-
+ static int reset_bus(struct ndctl_bus *bus)
  {
--	struct ndctl_test *test = ndctl_test_new(0);
-+	struct ndctl_test *test = ndctl_test_new(0, argv[0]);
+ 	struct ndctl_region *region;
+@@ -176,10 +174,11 @@ static int test_regions_enable(struct ndctl_bus *bus,
+ 
+ static int do_test(struct ndctl_ctx *ctx, struct ndctl_test *test)
+ {
+-	struct ndctl_bus *bus = ndctl_bus_get_by_provider(ctx, "nfit_test.0");
++	struct ndctl_bus *bus = ndctl_bus_get_by_provider(ctx, TEST_PROVIDER0);
+ 	struct ndctl_region *region, *victim_region = NULL;
+ 	struct ndctl_dimm *dimm, *victim = NULL;
+ 	char path[1024], buf[SYSFS_ATTR_SIZE];
++	char *dimm_path;
+ 	struct log_ctx log_ctx;
+ 	unsigned int handle;
+ 	int rc, err = 0;
+@@ -197,7 +196,14 @@ static int do_test(struct ndctl_ctx *ctx, struct ndctl_test *test)
+ 		return -ENXIO;
+ 	}
+ 
+-	sprintf(path, "%s/handle", DIMM_PATH);
++	if (asprintf(&dimm_path,
++			"/sys/devices/platform/%s/nfit_test_dimm/test_dimm0",
++			TEST_PROVIDER0) < 0) {
++		fprintf(stderr, "Path allocation failed\n");
++		return -ENOMEM;
++	}
++
++	sprintf(path, "%s/handle", dimm_path);
+ 	rc = __sysfs_read_attr(&log_ctx, path, buf);
+ 	if (rc) {
+ 		fprintf(stderr, "failed to retrieve test dimm handle\n");
+@@ -280,7 +286,7 @@ static int do_test(struct ndctl_ctx *ctx, struct ndctl_test *test)
+ 		goto out;
+ 
+ 
+-	rc = set_dimm_response(DIMM_PATH, ND_CMD_GET_CONFIG_SIZE, -EACCES,
++	rc = set_dimm_response(dimm_path, ND_CMD_GET_CONFIG_SIZE, -EACCES,
+ 			&log_ctx);
+ 	if (rc)
+ 		goto out;
+@@ -290,7 +296,7 @@ static int do_test(struct ndctl_ctx *ctx, struct ndctl_test *test)
+ 	rc = test_regions_enable(bus, victim, victim_region, true, 2);
+ 	if (rc)
+ 		goto out;
+-	rc = set_dimm_response(DIMM_PATH, ND_CMD_GET_CONFIG_SIZE, 0, &log_ctx);
++	rc = set_dimm_response(dimm_path, ND_CMD_GET_CONFIG_SIZE, 0, &log_ctx);
+ 	if (rc)
+ 		goto out;
+ 
+@@ -300,7 +306,7 @@ static int do_test(struct ndctl_ctx *ctx, struct ndctl_test *test)
+ 	if (rc)
+ 		goto out;
+ 
+-	rc = set_dimm_response(DIMM_PATH, ND_CMD_GET_CONFIG_DATA, -EACCES,
++	rc = set_dimm_response(dimm_path, ND_CMD_GET_CONFIG_DATA, -EACCES,
+ 			&log_ctx);
+ 	if (rc)
+ 		goto out;
+@@ -311,7 +317,7 @@ static int do_test(struct ndctl_ctx *ctx, struct ndctl_test *test)
+ 	rc = test_regions_enable(bus, victim, victim_region, false, 0);
+ 	if (rc)
+ 		goto out;
+-	rc = set_dimm_response(DIMM_PATH, ND_CMD_GET_CONFIG_DATA, 0, &log_ctx);
++	rc = set_dimm_response(dimm_path, ND_CMD_GET_CONFIG_DATA, 0, &log_ctx);
+ 	if (rc)
+ 		goto out;
+ 	rc = dimms_disable(bus);
+@@ -320,7 +326,7 @@ static int do_test(struct ndctl_ctx *ctx, struct ndctl_test *test)
+ 
+  out:
+ 	err = rc;
+-	sprintf(path, "%s/fail_cmd", DIMM_PATH);
++	sprintf(path, "%s/fail_cmd", dimm_path);
+ 	sprintf(buf, "0\n");
+ 	rc = __sysfs_write_attr(&log_ctx, path, buf);
+ 	if (rc)
+@@ -333,6 +339,7 @@ static int do_test(struct ndctl_ctx *ctx, struct ndctl_test *test)
+ 		rc = -ENXIO;
+ 	}
+ 	reset_bus(bus);
++	free(dimm_path);
+ 
+ 	if (rc)
+ 		err = rc;
+@@ -368,6 +375,8 @@ int __attribute__((weak)) main(int argc, char *argv[])
  	struct ndctl_ctx *ctx;
  	int rc;
  
++	init_env();
++
+ 	if (!test) {
+ 		fprintf(stderr, "failed to initialize test\n");
+ 		return EXIT_FAILURE;
 diff --git a/test/libndctl.c b/test/libndctl.c
-index df61f84c..de95c83e 100644
+index de95c83e..ab9f73c9 100644
 --- a/test/libndctl.c
 +++ b/test/libndctl.c
-@@ -2618,7 +2618,7 @@ int test_libndctl(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx)
+@@ -73,8 +73,6 @@
+  *    dimm.
+  */
  
- int __attribute__((weak)) main(int argc, char *argv[])
+-static const char *NFIT_PROVIDER0 = "nfit_test.0";
+-static const char *NFIT_PROVIDER1 = "nfit_test.1";
+ #define SZ_4K   0x00001000
+ #define SZ_128K 0x00020000
+ #define SZ_7M   0x00700000
+@@ -2496,7 +2494,7 @@ static void reset_bus(struct ndctl_bus *bus, enum dimm_reset reset)
+ 
+ static int do_test0(struct ndctl_ctx *ctx, struct ndctl_test *test)
  {
--	struct ndctl_test *test = ndctl_test_new(0);
-+	struct ndctl_test *test = ndctl_test_new(0, argv[0]);
+-	struct ndctl_bus *bus = ndctl_bus_get_by_provider(ctx, NFIT_PROVIDER0);
++	struct ndctl_bus *bus = ndctl_bus_get_by_provider(ctx, TEST_PROVIDER0);
+ 	struct ndctl_region *region;
+ 	int rc;
+ 
+@@ -2550,7 +2548,7 @@ static int do_test0(struct ndctl_ctx *ctx, struct ndctl_test *test)
+ 
+ static int do_test1(struct ndctl_ctx *ctx, struct ndctl_test *test)
+ {
+-	struct ndctl_bus *bus = ndctl_bus_get_by_provider(ctx, NFIT_PROVIDER1);
++	struct ndctl_bus *bus = ndctl_bus_get_by_provider(ctx, TEST_PROVIDER1);
+ 	int rc;
+ 
+ 	if (!bus)
+@@ -2622,6 +2620,8 @@ int __attribute__((weak)) main(int argc, char *argv[])
  	struct ndctl_ctx *ctx;
  	int rc;
  
-diff --git a/test/meson.build b/test/meson.build
-index 07a5bb6e..395b5333 100644
---- a/test/meson.build
-+++ b/test/meson.build
-@@ -9,6 +9,7 @@ libndctl_deps = [
-   daxctl_dep,
-   uuid,
-   kmod,
-+  json,
- ]
- 
- ndctl_deps = libndctl_deps + [
++	init_env();
++
+ 	if (!test) {
+ 		fprintf(stderr, "failed to initialize test\n");
+ 		return EXIT_FAILURE;
 diff --git a/test/pmem_namespaces.c b/test/pmem_namespaces.c
-index 64207020..f3a00c79 100644
+index f3a00c79..973c9ce3 100644
 --- a/test/pmem_namespaces.c
 +++ b/test/pmem_namespaces.c
-@@ -251,7 +251,7 @@ int test_pmem_namespaces(int log_level, struct ndctl_test *test,
- 
- int __attribute__((weak)) main(int argc, char *argv[])
- {
--	struct ndctl_test *test = ndctl_test_new(0);
-+	struct ndctl_test *test = ndctl_test_new(0, argv[0]);
+@@ -193,7 +193,7 @@ int test_pmem_namespaces(int log_level, struct ndctl_test *test,
+ 		fprintf(stderr, "ACPI.NFIT unavailable falling back to nfit_test\n");
+ 		rc = ndctl_test_init(&kmod_ctx, &mod, NULL, log_level, test);
+ 		ndctl_invalidate(ctx);
+-		bus = ndctl_bus_get_by_provider(ctx, "nfit_test.0");
++		bus = ndctl_bus_get_by_provider(ctx, TEST_PROVIDER0);
+ 		if (rc < 0 || !bus) {
+ 			rc = 77;
+ 			ndctl_test_skip(test);
+@@ -255,6 +255,8 @@ int __attribute__((weak)) main(int argc, char *argv[])
  	struct ndctl_ctx *ctx;
  	int rc;
  
-diff --git a/test/revoke-devmem.c b/test/revoke-devmem.c
-index 59d1a72d..c0d84e8b 100644
---- a/test/revoke-devmem.c
-+++ b/test/revoke-devmem.c
-@@ -124,7 +124,7 @@ out_devmem:
- 
- int main(int argc, char *argv[])
- {
--	struct ndctl_test *test = ndctl_test_new(0);
-+	struct ndctl_test *test = ndctl_test_new(0, argv[0]);
- 	struct ndctl_ctx *ctx;
- 	int rc;
- 
-diff --git a/test/skip_PAPR.js b/test/skip_PAPR.js
-new file mode 100644
-index 00000000..367257c4
---- /dev/null
-+++ b/test/skip_PAPR.js
-@@ -0,0 +1,34 @@
-+// List of tests to be skipped on ndtest
-+//
-+// Append new test cases to this array below until support is added on ndtest.
-+//
-+["clear.sh",		// No error injection support on PPC.
-+ "daxdev-errors.sh",	// 		""
-+ "inject-error.sh",	// 		""
-+ "pfn-meta-errors.sh",  //		""
-+ "pmem-errors.sh",	//		""
-+ "btt-errors.sh",	//		""
-+ "label-compat.sh",	// Legacy namespace support test/irrelavent on
-+			// ndtest.
-+ "security.sh",		// No support on PPC yet.
-+ "daxctl-create.sh",	// Depends on dax_hmem
-+ "sub-section.sh",	// Tests using nd_e820, either duplication when
-+			// running on INTEL host, or cannot be tested on
-+			// PPC host.
-+ "dax-dev",		//		""
-+ "device-dax",		//		""
-+ "device-dax-fio.sh",	//		""
-+ "dax-ext4.sh",		//		""
-+ "dax-xfs.sh",		//		""
-+ "daxctl-devices.sh",	//		""
-+ "revoke_devmem",	//		""
-+ "align.sh",		//		""
-+ "dm.sh",		//		""
-+ "mmap.sh",		//		""
-+ "monitor.sh",		// To be fixed
-+ "inject-smart.sh",	//    ""
-+ "libndctl"		//    ""
-+]
++	init_env();
 +
-+// NOTE: The libjson-c doesn't like comments in json files, so keep the file
-+// extension as .js to pacify.
+ 	comm = argv[0];
+ 	if (!test) {
+ 		fprintf(stderr, "failed to initialize test\n");
 
 
