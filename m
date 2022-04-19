@@ -1,190 +1,172 @@
-Received: from mail-pg1-f182.google.com (mail-pg1-f182.google.com [209.85.215.182])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCD532567
-	for <nvdimm@lists.linux.dev>; Mon, 18 Apr 2022 22:15:58 +0000 (UTC)
-Received: by mail-pg1-f182.google.com with SMTP id q19so21353189pgm.6
-        for <nvdimm@lists.linux.dev>; Mon, 18 Apr 2022 15:15:58 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=cXn+XlB+cHweCj8dldoZHVhXGxfPdw05rCWNbSdTdc4=;
-        b=a3/CLTjzJmABS8OJFu259ZAUTBgMaKGm4qDzfxoiRymib2vIz041twXe8ofgq4beSM
-         eSQL8xTTCC4e0rZY+34Qhb/SgeNRFRHayrKIXcXN0HlKhdLw0WGzrHDgTl+fmi8NEtHv
-         os5PoVy+JqKtRigkZSJ54ftSJ2lJkVAjmMUgdpAWnNC0Vj1K/r0tTGTv7knsD4EEq2Kr
-         Mi4ySkAyfxS87q5a8/jLaxSWyv+fhnnV+QyCWzhNWQ4gaaIjE2JYJ3aZWmvOaOG8v5Zm
-         qSSPB2ZqqAlCJKHPoOdtuy3NU5l0nlThx9ctndSpbQz+609wdbCpDGtAHMYaxo5fQHTp
-         Nlcw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=cXn+XlB+cHweCj8dldoZHVhXGxfPdw05rCWNbSdTdc4=;
-        b=GFwzVQC5apC9ER9p31/+EgUECkCKl7n6hw7udsmrzFykqGgfQGcG61Z81TvzjxcXI+
-         V9GxjP6sYp6cGFhX4pqH35oL7+MeaJM4QGKWUvwoq+t8+TugN6eXSKd+sTQY2RUlO7N0
-         qlNv9jb8OsreJqJXw8srBVFo+cxBVcyVIIzgaVivbIaFneM6XIsz8c7Jxh5OG0WIPZG6
-         C0ONAfr2I5nHQszhizOmi+PM0ssBMsG6+6s3uJDZeRv8t1qJXAOX0ufUQ+0FneZ6LUUV
-         hxVqxS7CzV+JZKS5RlJUl9+FLDtxxWlEek9Jhyj85s81VyKgWsx+eadEDa6ZZwUnB6sV
-         Ki1w==
-X-Gm-Message-State: AOAM530vJZvMpQH1UzHNhqlhWY0J81JzvtN6DSHAPMd/GAkkDltPcK0K
-	zuQSQcIjBX5qVLNad8t9Ultv2lmpRq6O2w515j2JsA==
-X-Google-Smtp-Source: ABdhPJwWpbqzZFn6prFelZgwymqzv8uuDIY8ktJhHn2DeA4Oidn7MdV/6rumg9QinS8Ff9gdYQ4FlLujPhf5fWaz814=
-X-Received: by 2002:a05:6a00:e14:b0:4fe:3cdb:23f with SMTP id
- bq20-20020a056a000e1400b004fe3cdb023fmr14519126pfb.86.1650320158259; Mon, 18
- Apr 2022 15:15:58 -0700 (PDT)
+Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4809DEA1
+	for <nvdimm@lists.linux.dev>; Tue, 19 Apr 2022 04:51:04 +0000 (UTC)
+IronPort-Data: =?us-ascii?q?A9a23=3Acc1GcqCgTJpJxRVW/1biw5YqxClBgxIJ4g17XOL?=
+ =?us-ascii?q?fBgK6hj9xgzFSnGpLWzuDOvmKNDPzKI8lbInl8xlXvJOAx9UxeLYW3SszFioV8?=
+ =?us-ascii?q?6IpJjg4wn/YZnrUdouaJK5ex512huLocYZkHhcwmj/3auK79SMkjPnRLlbBILW?=
+ =?us-ascii?q?s1h5ZFFYMpBgJ2UoLd94R2uaEsPDha++/kYqaT/73ZDdJ7wVJ3lc8sMpvnv/AU?=
+ =?us-ascii?q?MPa41v0tnRmDRxCUcS3e3M9VPrzLonpR5f0rxU9IwK0ewrD5OnREmLx9BFrBM6?=
+ =?us-ascii?q?nk6rgbwsBRbu60Qqm0yIQAvb9xEMZ4HFaPqUTbZLwbW9NljyPhME3xtNWqbS+V?=
+ =?us-ascii?q?AUoIrbR3u8aVnG0FgknZ/YYp+aYfCfXXcu7iheun2HX6/lnEkA6FYMC/eNwG2t?=
+ =?us-ascii?q?P6boTLzVlRhCIh8q3xryhQ+Vhj8hlK9PkVKsTs3cmz3fGDPIiQJnGWI3L48NV2?=
+ =?us-ascii?q?HE7gcUmNfrceM0fZhJsYQ7GbhkJPU0YYLo6neG1ljz6dhVbtluepuww+We75Ap?=
+ =?us-ascii?q?v3LnoNfLRe8eWXoNRn0CFtiTK8nqRKhERNPSb0ibD/n/Eru3Gmy69U4IPPLqi/?=
+ =?us-ascii?q?/VujRuYwWl7IBkXU0ar5PeihkOgVtZ3NUMZ4GwtoLI0+UjtScPyNzW8oXiZrls?=
+ =?us-ascii?q?fVsBWHukS9g6A0OzX7hyfC2xCSSROAPQitckrVXk62EShgdzkH3psvaeTRHbb8?=
+ =?us-ascii?q?a2bxQ5ekwB9wXQqPHdCFFVapYK45txbs/4Gdf47eIbdszE/MW2YL+i2kRUD?=
+IronPort-HdrOrdr: =?us-ascii?q?A9a23=3AVbE/nK3WYdvTvdjcNkG4jQqjBFYkLtp133Aq?=
+ =?us-ascii?q?2lEZdPRUGvb3qynIpoV86faUskdpZJhOo7C90cW7LU80sKQFhLX5Xo3SOzUO2l?=
+ =?us-ascii?q?HYT72KhLGKq1aLdhEWtNQtsZuIGJIeNDSfNzdHZL7BkWuF+sgbsaS62ZHtleHD?=
+ =?us-ascii?q?1G1sUA0vT6lh6j1yAgGdHlYefng8ObMJUIqb+tFcpyetPVAebsGADHEDWOTZ4/?=
+ =?us-ascii?q?LRkpaOW299OzcXrBmJkSiz6KP3VzyR3hIlWTtJxrs4tUjp+jaJnpmejw=3D=3D?=
+X-IronPort-AV: E=Sophos;i="5.88,333,1635177600"; 
+   d="scan'208";a="123671757"
+Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
+  by heian.cn.fujitsu.com with ESMTP; 19 Apr 2022 12:50:54 +0800
+Received: from G08CNEXMBPEKD04.g08.fujitsu.local (unknown [10.167.33.201])
+	by cn.fujitsu.com (Postfix) with ESMTP id BCFBD4D1716F;
+	Tue, 19 Apr 2022 12:50:49 +0800 (CST)
+Received: from G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.85) by
+ G08CNEXMBPEKD04.g08.fujitsu.local (10.167.33.201) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.23; Tue, 19 Apr 2022 12:50:51 +0800
+Received: from irides.mr.mr (10.167.225.141) by
+ G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
+ id 15.0.1497.23 via Frontend Transport; Tue, 19 Apr 2022 12:50:47 +0800
+From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+To: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
+	<nvdimm@lists.linux.dev>, <linux-mm@kvack.org>,
+	<linux-fsdevel@vger.kernel.org>
+CC: <djwong@kernel.org>, <dan.j.williams@intel.com>, <david@fromorbit.com>,
+	<hch@infradead.org>, <jane.chu@oracle.com>, Christoph Hellwig <hch@lst.de>
+Subject: [PATCH v13 3/7] pagemap,pmem: Introduce ->memory_failure()
+Date: Tue, 19 Apr 2022 12:50:41 +0800
+Message-ID: <20220419045045.1664996-4-ruansy.fnst@fujitsu.com>
+X-Mailer: git-send-email 2.35.1
+In-Reply-To: <20220419045045.1664996-1-ruansy.fnst@fujitsu.com>
+References: <20220419045045.1664996-1-ruansy.fnst@fujitsu.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20220413183720.2444089-1-ben.widawsky@intel.com> <20220413183720.2444089-7-ben.widawsky@intel.com>
-In-Reply-To: <20220413183720.2444089-7-ben.widawsky@intel.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 18 Apr 2022 15:15:47 -0700
-Message-ID: <CAPcyv4hD93d20Sq25tPNMQ1T68uQmTTQo7aDXMKN36wrCTa1-Q@mail.gmail.com>
-Subject: Re: [RFC PATCH 06/15] cxl/acpi: Manage root decoder's address space
-To: Ben Widawsky <ben.widawsky@intel.com>
-Cc: linux-cxl@vger.kernel.org, Linux NVDIMM <nvdimm@lists.linux.dev>, 
-	patches@lists.linux.dev, Alison Schofield <alison.schofield@intel.com>, 
-	Ira Weiny <ira.weiny@intel.com>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, 
-	Vishal Verma <vishal.l.verma@intel.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-yoursite-MailScanner-ID: BCFBD4D1716F.A4F31
+X-yoursite-MailScanner: Found to be clean
+X-yoursite-MailScanner-From: ruansy.fnst@fujitsu.com
+X-Spam-Status: No
 
-On Wed, Apr 13, 2022 at 11:38 AM Ben Widawsky <ben.widawsky@intel.com> wrote:
->
-> Use a gen_pool to manage the physical address space that is routed by
-> the platform decoder (root decoder). As described in 'cxl/acpi: Resereve
-> CXL resources from request_free_mem_region' the address space does not
-> coexist well if part of all of it is conveyed in the memory map to the
-> kernel.
->
-> Since the existing resource APIs of interest all rely on the root
-> decoder's address space being in iomem_resource,
+When memory-failure occurs, we call this function which is implemented
+by each kind of devices.  For the fsdax case, pmem device driver
+implements it.  Pmem device driver will find out the filesystem in which
+the corrupted page located in.
 
-I do not understand what this is trying to convey. Nothing requires
-that a given 'struct resource' be managed under iomem_resource.
+With dax_holder notify support, we are able to notify the memory failure
+from pmem driver to upper layers.  If there is something not support in
+the notify routine, memory_failure will fall back to the generic hanlder.
 
-> the choices are to roll
-> a new allocator because on struct resource, or use gen_pool. gen_pool is
-> a good choice because it already has all the capabilities needed to
-> satisfy CXL programming.
+Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/nvdimm/pmem.c    | 17 +++++++++++++++++
+ include/linux/memremap.h | 12 ++++++++++++
+ mm/memory-failure.c      | 14 ++++++++++++++
+ 3 files changed, 43 insertions(+)
 
-Not sure what comparison to 'struct resource' is being made here, what
-is the tradeoff as you see it? In other words, why mention 'struct
-resource' as a consideration?
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 58d95242a836..bd502957cfdf 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -366,6 +366,21 @@ static void pmem_release_disk(void *__pmem)
+ 	blk_cleanup_disk(pmem->disk);
+ }
+ 
++static int pmem_pagemap_memory_failure(struct dev_pagemap *pgmap,
++		unsigned long pfn, unsigned long nr_pages, int mf_flags)
++{
++	struct pmem_device *pmem =
++			container_of(pgmap, struct pmem_device, pgmap);
++	u64 offset = PFN_PHYS(pfn) - pmem->phys_addr - pmem->data_offset;
++	u64 len = nr_pages << PAGE_SHIFT;
++
++	return dax_holder_notify_failure(pmem->dax_dev, offset, len, mf_flags);
++}
++
++static const struct dev_pagemap_ops fsdax_pagemap_ops = {
++	.memory_failure		= pmem_pagemap_memory_failure,
++};
++
+ static int pmem_attach_disk(struct device *dev,
+ 		struct nd_namespace_common *ndns)
+ {
+@@ -427,6 +442,7 @@ static int pmem_attach_disk(struct device *dev,
+ 	pmem->pfn_flags = PFN_DEV;
+ 	if (is_nd_pfn(dev)) {
+ 		pmem->pgmap.type = MEMORY_DEVICE_FS_DAX;
++		pmem->pgmap.ops = &fsdax_pagemap_ops;
+ 		addr = devm_memremap_pages(dev, &pmem->pgmap);
+ 		pfn_sb = nd_pfn->pfn_sb;
+ 		pmem->data_offset = le64_to_cpu(pfn_sb->dataoff);
+@@ -440,6 +456,7 @@ static int pmem_attach_disk(struct device *dev,
+ 		pmem->pgmap.range.end = res->end;
+ 		pmem->pgmap.nr_range = 1;
+ 		pmem->pgmap.type = MEMORY_DEVICE_FS_DAX;
++		pmem->pgmap.ops = &fsdax_pagemap_ops;
+ 		addr = devm_memremap_pages(dev, &pmem->pgmap);
+ 		pmem->pfn_flags |= PFN_MAP;
+ 		bb_range = pmem->pgmap.range;
+diff --git a/include/linux/memremap.h b/include/linux/memremap.h
+index ad6062d736cd..bcfb6bf4ce5a 100644
+--- a/include/linux/memremap.h
++++ b/include/linux/memremap.h
+@@ -79,6 +79,18 @@ struct dev_pagemap_ops {
+ 	 * the page back to a CPU accessible page.
+ 	 */
+ 	vm_fault_t (*migrate_to_ram)(struct vm_fault *vmf);
++
++	/*
++	 * Handle the memory failure happens on a range of pfns.  Notify the
++	 * processes who are using these pfns, and try to recover the data on
++	 * them if necessary.  The mf_flags is finally passed to the recover
++	 * function through the whole notify routine.
++	 *
++	 * When this is not implemented, or it returns -EOPNOTSUPP, the caller
++	 * will fall back to a common handler called mf_generic_kill_procs().
++	 */
++	int (*memory_failure)(struct dev_pagemap *pgmap, unsigned long pfn,
++			      unsigned long nr_pages, int mf_flags);
+ };
+ 
+ #define PGMAP_ALTMAP_VALID	(1 << 0)
+diff --git a/mm/memory-failure.c b/mm/memory-failure.c
+index 7c8c047bfdc8..a40e79e634a4 100644
+--- a/mm/memory-failure.c
++++ b/mm/memory-failure.c
+@@ -1741,6 +1741,20 @@ static int memory_failure_dev_pagemap(unsigned long pfn, int flags,
+ 	if (!pgmap_pfn_valid(pgmap, pfn))
+ 		goto out;
+ 
++	/*
++	 * Call driver's implementation to handle the memory failure, otherwise
++	 * fall back to generic handler.
++	 */
++	if (pgmap->ops->memory_failure) {
++		rc = pgmap->ops->memory_failure(pgmap, pfn, 1, flags);
++		/*
++		 * Fall back to generic handler too if operation is not
++		 * supported inside the driver/device/filesystem.
++		 */
++		if (rc != -EOPNOTSUPP)
++			goto out;
++	}
++
+ 	rc = mf_generic_kill_procs(pfn, flags, pgmap);
+ out:
+ 	/* drop pgmap ref acquired in caller */
+-- 
+2.35.1
 
->
-> Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
-> ---
->  drivers/cxl/acpi.c | 36 ++++++++++++++++++++++++++++++++++++
->  drivers/cxl/cxl.h  |  2 ++
->  2 files changed, 38 insertions(+)
->
-> diff --git a/drivers/cxl/acpi.c b/drivers/cxl/acpi.c
-> index 0870904fe4b5..a6b0c3181d0e 100644
-> --- a/drivers/cxl/acpi.c
-> +++ b/drivers/cxl/acpi.c
-> @@ -1,6 +1,7 @@
->  // SPDX-License-Identifier: GPL-2.0-only
->  /* Copyright(c) 2021 Intel Corporation. All rights reserved. */
->  #include <linux/platform_device.h>
-> +#include <linux/genalloc.h>
->  #include <linux/module.h>
->  #include <linux/device.h>
->  #include <linux/kernel.h>
-> @@ -79,6 +80,25 @@ struct cxl_cfmws_context {
->         struct acpi_cedt_cfmws *high_cfmws;
->  };
->
-> +static int cfmws_cookie;
-> +
-> +static int fill_busy_mem(struct resource *res, void *_window)
-> +{
-> +       struct gen_pool *window = _window;
-> +       struct genpool_data_fixed gpdf;
-> +       unsigned long addr;
-> +       void *type;
-> +
-> +       gpdf.offset = res->start;
-> +       addr = gen_pool_alloc_algo_owner(window, resource_size(res),
-> +                                        gen_pool_fixed_alloc, &gpdf, &type);
 
-The "_owner" variant of gen_pool was only added for p2pdma as a way to
-coordinate reference counts across p2pdma space allocation and a
-'strcuct dev_pagemap' instance. The use here seems completely
-vestigial and can just move to gen_pool_alloc_algo.
 
-> +       if (addr != res->start || (res->start == 0 && type != &cfmws_cookie))
-> +               return -ENXIO;
-
-How can the second condition ever be true?
-
-> +
-> +       pr_devel("%pR removed from CFMWS\n", res);
-> +       return 0;
-> +}
-> +
->  static int cxl_parse_cfmws(union acpi_subtable_headers *header, void *arg,
->                            const unsigned long end)
->  {
-> @@ -88,6 +108,8 @@ static int cxl_parse_cfmws(union acpi_subtable_headers *header, void *arg,
->         struct device *dev = ctx->dev;
->         struct acpi_cedt_cfmws *cfmws;
->         struct cxl_decoder *cxld;
-> +       struct gen_pool *window;
-> +       char name[64];
->         int rc, i;
->
->         cfmws = (struct acpi_cedt_cfmws *) header;
-> @@ -116,6 +138,20 @@ static int cxl_parse_cfmws(union acpi_subtable_headers *header, void *arg,
->         cxld->interleave_ways = CFMWS_INTERLEAVE_WAYS(cfmws);
->         cxld->interleave_granularity = CFMWS_INTERLEAVE_GRANULARITY(cfmws);
->
-> +       sprintf(name, "cfmws@%#llx", cfmws->base_hpa);
-> +       window = devm_gen_pool_create(dev, ilog2(SZ_256M), NUMA_NO_NODE, name);
-> +       if (IS_ERR(window))
-> +               return 0;
-> +
-> +       gen_pool_add_owner(window, cfmws->base_hpa, -1, cfmws->window_size,
-> +                          NUMA_NO_NODE, &cfmws_cookie);
-
-Similar comment about the "_owner" variant serving no visible purpose.
-
-These seems to pre-suppose that only the allocator will ever want to
-interrogate the state of free space, it might be worth registering
-objects for each intersection that are not cxl_regions so that
-userspace explicitly sees what the cxl_acpi driver sees in terms of
-available resources.
-
-> +
-> +       /* Area claimed by other resources, remove those from the gen_pool. */
-> +       walk_iomem_res_desc(IORES_DESC_NONE, 0, cfmws->base_hpa,
-> +                           cfmws->base_hpa + cfmws->window_size - 1, window,
-> +                           fill_busy_mem);
-> +       to_cxl_root_decoder(cxld)->window = window;
-> +
->         rc = cxl_decoder_add(cxld, target_map);
->         if (rc)
->                 put_device(&cxld->dev);
-> diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
-> index 85fd5e84f978..0e1c65761ead 100644
-> --- a/drivers/cxl/cxl.h
-> +++ b/drivers/cxl/cxl.h
-> @@ -246,10 +246,12 @@ struct cxl_switch_decoder {
->  /**
->   * struct cxl_root_decoder - A toplevel/platform decoder
->   * @base: Base class decoder
-> + * @window: host address space allocator
->   * @targets: Downstream targets (ie. hostbridges).
->   */
->  struct cxl_root_decoder {
->         struct cxl_decoder base;
-> +       struct gen_pool *window;
->         struct cxl_decoder_targets *targets;
->  };
->
-> --
-> 2.35.1
->
