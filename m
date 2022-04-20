@@ -1,54 +1,55 @@
-Received: from mx0a-00069f02.pphosted.com (mx0a-00069f02.pphosted.com [205.220.165.32])
+Received: from mx0b-00069f02.pphosted.com (mx0b-00069f02.pphosted.com [205.220.177.32])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A94010F3
-	for <nvdimm@lists.linux.dev>; Wed, 20 Apr 2022 02:05:32 +0000 (UTC)
-Received: from pps.filterd (m0246617.ppops.net [127.0.0.1])
-	by mx0b-00069f02.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 23K1trif012431;
-	Wed, 20 Apr 2022 02:04:57 GMT
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0B9310F3
+	for <nvdimm@lists.linux.dev>; Wed, 20 Apr 2022 02:05:34 +0000 (UTC)
+Received: from pps.filterd (m0246632.ppops.net [127.0.0.1])
+	by mx0b-00069f02.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 23JLMjcm013493;
+	Wed, 20 Apr 2022 02:05:06 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
- subject : date : message-id : content-type : mime-version;
- s=corp-2021-07-09; bh=aTfGHG1g+PFPj1m9lGtF5PCavEp3vqpn5lnibXMo0fc=;
- b=LTmf6JpVcvlMdbtwFbBZ/X0edE4DHxntMwtWq/nDJD3x3deHf5FxLku9cm2oDgS7dJWG
- QqPWWIn3pOqfLa0jdAS2ZbQPsxXLNd7yhqgBPZfnw4LDReRG6yMcJAmW7+PR4eA2+dUF
- r++9keLWFaZwxlmX9ETn+NfGvieLM3ohRxDVTR16fSTX0Kx0jDGNbjrlog07JDr5oysN
- 03PlGzq9D9VPENuuBLuTecLxbnuPyY6OGTZbqjDe61spUAjn6gmr3VX+dMxycJ6pPZdi
- njIvtXscTWTns9KCBYZRU3DdOGTirR7d4cXJIjfTbtpmU6lTsRoaBhks9P4j4Ru7CpAF kA== 
+ subject : date : message-id : in-reply-to : references : content-type :
+ mime-version; s=corp-2021-07-09;
+ bh=uvWeK48wP2Py79jR00WKj7o5KWBwj4JlN/oMfz5t8Yk=;
+ b=Vqt1tq6Iiji0H+S/iu2Db5q03hVPzPk1oIRQdhysCtIRt7dQ3UiHx8P6X+w/j3UZ6X2Y
+ GkEA5Su9hmJNDTE0eKcBuykaYl7RHQNMFPpi21uMZifMTi27vnZ2KevtVhxt6gu4HwGT
+ qqivX3hfty6IDIbKJHWJWVTgBLOnR4/tOZeNousK5/omO4fe50B0Xsuu9rLD9Tt7qNIb
+ dkOfEItjz8IJKSksa3j1ez4IJzB8JXw0O1SytWZL6JY5F73EzQGtompOjO2nxqgVuVzc
+ Bmp1eimnO9o2zkGUUNjHut2lb/lStcWPODgGETkgGFBJlrwULVNN83wSix0zbrWHdfZa Kw== 
 Received: from iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com (iadpaimrmta01.appoci.oracle.com [130.35.100.223])
-	by mx0b-00069f02.pphosted.com with ESMTP id 3ffpbv7qhu-1
+	by mx0b-00069f02.pphosted.com with ESMTP id 3ffndtfngm-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 20 Apr 2022 02:04:56 +0000
+	Wed, 20 Apr 2022 02:05:05 +0000
 Received: from pps.filterd (iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com [127.0.0.1])
-	by iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com (8.16.1.2/8.16.1.2) with SMTP id 23K20Wr5038029;
-	Wed, 20 Apr 2022 02:04:55 GMT
+	by iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com (8.16.1.2/8.16.1.2) with SMTP id 23K20WES038043;
+	Wed, 20 Apr 2022 02:05:05 GMT
 Received: from nam04-dm6-obe.outbound.protection.outlook.com (mail-dm6nam08lp2046.outbound.protection.outlook.com [104.47.73.46])
-	by iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com with ESMTP id 3ffm88mv52-1
+	by iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com with ESMTP id 3ffm88mv78-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 20 Apr 2022 02:04:55 +0000
+	Wed, 20 Apr 2022 02:05:05 +0000
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=AvZz3vxj9ABFfWdXTRgWo/y1C9OKTDpTmxTI47/xy2URqdOfPs6g1wBKW0rbnR4c1VBM1Nmb4Tk2kI7z8WqXWzpw757TogKwwdJkTSjKc+4bgpGlnS6aOALFzU8MLY5FGePg3ux7wy7NrdGe2D4xeHh+kwy+j9bqRNUPBns8oGKN12Ygs1wAbu3Nb1GrQpvBX5BCtaCXk9VXtWP6Dj8oiVonf5I0kY9EPZQwVXtO0zn9B+psP3+Azu4kZ/0mCg6GVaaMcWWSNwh1kzw6NhLLHMlg8zXTs7sxEYtRS1jcXgju11ulUN96FNyYK0aKG+/PaROM31nx4bGjJNdLuq+omw==
+ b=k0HKN1fBmoC2DWUPhpnznPp9Q62+VSunjAsZsO/tZSyHDWyqgTDjNx8LTi5YkVyQLl/nCja5HcsYL/6YtXFbV145eADgvDYSBtEV+5IZh2lykB9W9qoo+SZL6EjAlfU66hO5bwnvVDVy+ubznKPDsS9tYKefNe/pIzVAaTlIzzypBNVN2u8GJkRwo3SDLRUk0/fovCZsvwWFideU8wofGPjJ/o/f6jOWBYv5noi29Xgv5lrw+eMDq1xxTA3de3vWXY73EOYApPN+xvBBBNhOMziZLqgjB9Nny+P5+TCWgIoFXbcHuEEOJxVCQPa5rwwe3pmBUkApaQAlVMFUZfVMRA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=aTfGHG1g+PFPj1m9lGtF5PCavEp3vqpn5lnibXMo0fc=;
- b=Tpe7nhpEh/jmyxSxJXhxc46wTxD1LKP7FDaK0rkvPxaRQBSZn45qUHwg7P43CAjpUrbq3cxj4ieUMs+dKNnWa+B5qgAQNHO95whlp2sGP50ZoQUO4p3fELZRT6d3kEV69WCOcOfj2NSV4jf7aEz4A194D6RJ4tXO3IIzerohiXSfqo6T4syFiql8JXSAXpYetkIyRsD9kIeoVKRKz8K+QGhVOVLib6R3lAmUbfyN4cuyhZeFPbq8GWtTp+pZqC+4++LUd/WFpCJFzqB2RomSvocrYL5vXG+ITbSRYOMiXac7OBiYwhxc0TSREdRpjHZrboDwUYH2MDeJHOZ/TBh+nw==
+ bh=uvWeK48wP2Py79jR00WKj7o5KWBwj4JlN/oMfz5t8Yk=;
+ b=fmVZEcY26wG/s9IEE9cIzDkP1J3fsKZ7W3dRRf8wDN2i35EM7d7Iog/zfbo/M/PMjC2JMb1gF6qj3HdtrUwjbbDq2b7cG8AgVHuer3C6yfFq8ffHZpI4AC3lAzHg7rzTKzjMFh6owQUPBupdijxS3IgaMMJ4UGulUsK2cTdlTlceMCIxQujYx3RW4iBZfXnrkERliTvHv6eWdSGVxr6gLLM+XhRywdvKRX7v467NfQPEZ6g9V6y0QE0g3BsfGafc8i5pkiU+OSAFXyedBFZpV7fGnrY66MLqxwB5RpjnT0kKL/ZnrPI5WJoxtGZuNEr3eFsVkJL8tWXtdIV67mZ5mw==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
  dkim=pass header.d=oracle.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
  d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=aTfGHG1g+PFPj1m9lGtF5PCavEp3vqpn5lnibXMo0fc=;
- b=zmRwlCbJ9Tc1X+4x2sNMBgPXwPCTlBMV3S5hbJiYpv/pJofF7lY+TYuCV9ylsQ0HSa0PAAoyvdoUYlq+BL4D7V2FE5YkptrtmUlHU9Vi0kOZhZWLo4dflY9NZUPBefmKiB/mPm8ghxEuQSpC7f04R3M9FKvmLT+2j+aXLCqlOgE=
+ bh=uvWeK48wP2Py79jR00WKj7o5KWBwj4JlN/oMfz5t8Yk=;
+ b=DKr+pGUyxtyPEZNZTKs8+cN9I8Mp53YVhcVKUhwzrYA7TNUiu/3sLCSszKpRhhUM6VrSLGB4uuOdAWZPSAzskuDrL0Y1wU+nxVvMeUTB/PVd5V6NLsK6lwmo8ryu9qFpGILna7fVarx73vgipbV4JTJJsjNc4K6Mg25+dBYKLfA=
 Received: from SJ0PR10MB4429.namprd10.prod.outlook.com (2603:10b6:a03:2d1::14)
  by SJ0PR10MB4557.namprd10.prod.outlook.com (2603:10b6:a03:2d4::16) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5164.20; Wed, 20 Apr
- 2022 02:04:53 +0000
+ 2022 02:05:03 +0000
 Received: from SJ0PR10MB4429.namprd10.prod.outlook.com
  ([fe80::1c44:15ca:b5c2:603e]) by SJ0PR10MB4429.namprd10.prod.outlook.com
  ([fe80::1c44:15ca:b5c2:603e%8]) with mapi id 15.20.5164.025; Wed, 20 Apr 2022
- 02:04:53 +0000
+ 02:05:03 +0000
 From: Jane Chu <jane.chu@oracle.com>
 To: dan.j.williams@intel.com, bp@alien8.de, hch@infradead.org,
         dave.hansen@intel.com, peterz@infradead.org, luto@kernel.org,
@@ -57,10 +58,12 @@ To: dan.j.williams@intel.com, bp@alien8.de, hch@infradead.org,
 Cc: vishal.l.verma@intel.com, dave.jiang@intel.com, agk@redhat.com,
         snitzer@redhat.com, dm-devel@redhat.com, ira.weiny@intel.com,
         willy@infradead.org, vgoyal@redhat.com
-Subject: [PATCH v8 0/7] DAX poison recovery
-Date: Tue, 19 Apr 2022 20:04:28 -0600
-Message-Id: <20220420020435.90326-1-jane.chu@oracle.com>
+Subject: [PATCH v8 2/7] x86/mce: relocate set{clear}_mce_nospec() functions
+Date: Tue, 19 Apr 2022 20:04:30 -0600
+Message-Id: <20220420020435.90326-3-jane.chu@oracle.com>
 X-Mailer: git-send-email 2.18.4
+In-Reply-To: <20220420020435.90326-1-jane.chu@oracle.com>
+References: <20220420020435.90326-1-jane.chu@oracle.com>
 Content-Type: text/plain
 X-ClientProxiedBy: SN1PR12CA0112.namprd12.prod.outlook.com
  (2603:10b6:802:21::47) To SJ0PR10MB4429.namprd10.prod.outlook.com
@@ -72,59 +75,59 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 4c95634e-607e-4624-5d3b-08da227228c3
+X-MS-Office365-Filtering-Correlation-Id: c35109b9-24fc-4c12-cede-08da22722ebf
 X-MS-TrafficTypeDiagnostic: SJ0PR10MB4557:EE_
 X-Microsoft-Antispam-PRVS: 
-	<SJ0PR10MB455781AA6A2F071926A79925F3F59@SJ0PR10MB4557.namprd10.prod.outlook.com>
+	<SJ0PR10MB45579A556DCD6B8D71E10E47F3F59@SJ0PR10MB4557.namprd10.prod.outlook.com>
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
 X-Microsoft-Antispam-Message-Info: 
-	/UqPgiG2gKPBKyctzPrAApde3neFj3DZT3hl500Vr25rd45uL4QPIcUHgf1DYwgVZLqLp/DxKBEyF6QwvUvz5jaIxZmYQdNhIQ4o4bGpBx2Jofp43BMGlL4SMIFrXMT3A9AluZAod9M5Yeq+uREhTgk/6q0NbXoIIl3kCEPqfRTtVIl4DdfAvfUTXA3bvp8WsFitNt7h5wzglXr4ehEfHbV9lBNYfbyknbHTS65gJWq6xEqPT/rzjiKz1MusiJq0e4wxrFVKz/wMOrXD8jHNM/Eo8xbAwf8ptin3WgoDM9i5yJ75YiNnfQhRjrnO3t7kemMHrRRyBoUwFPhEr3SquOIpHv2yix0GyX2B2R8Bgyef+4gq1BKxuRg4K5X4xXpmv8mbYj2m/M9Nn9sqYBd2Sr6kI7asas4x7EPKr5KKLyTWrnUfHbnWIy4m0zN493azIABzbJ68RCHh0i0FFkts7pO/PreqBfEyToucp7SvCaTdFd1kFCzHSo4uTChqeBcYtSLneYoVI6EDNRmNWLuFyR7CZ/O15cBFXHiKEk4qZ9akzz3CTMSjJxZPVkmGRF/hvkGQVsHidEAA20t9LMMEl2P3hBJCKCIT8Shzo5badBIABpYd9GDnDQ5gGvvC+z157qX6e0PYQL67hTbBCl0qoyHn4zzChvepM5ShJujQSbnZjSZj+t9H6an6hcqA0nL9f/ikSfuCH5QoRNWM19sUPsbkw4QfVbsxosvG3bDyDqgs3idFsDeCFhiet3wpkQnIUYq3PjG485ZPveSv2puMatvtDfGaW7QCvd2fKzcHbEZmeXGcPNb3rYFSXv9m1YrQ
+	Khabm9zfxzhsrZxP0wWbEZPUv7wX2yK1H+4CI8dEeUs0mTTSl5m2Ipyiur8+OnThwDx3Br/0v9pqCkEtZDTPwe9AjPxyT1KvjI2uae04vrH6e4rY+hv7xiLAX8+Z3pCj3gihrxA4f5m3sq1+walVJztKmM6bc57HPKr1c5zYvQZS6nSVupVegFoOGSxSRg0F7JCAegQG+EnY0utGgt4irnkx5HAFPO6RPqPA3noaAaH15BfBlxsWYh9JfscQZbBnwiX8E8ZWGMocxZZXvC5GOJtWD8Xn/1pob17CyZBd+d7PFs1TNZG68yxNADD/CQwvuonGgFWDUBb5WaCWxQFPgsmogptfwa8WTpGxBLw1N5tVy3wub0LKt5HZpeTH70ZfIabkM/cWIGZj+kNkpEKBnQtynENt0TUs3ysffapxZ7E5n16Xzf3xyh/HzKUoLD2ZHRnqNsoCppEfzOZvKEcTdpDjnIqTS/wyuJJ/YdI/kaTmEbJaOow9JTXKCjywBmPRmOEJvnpgBjWgCx7vR1AP7hptlJT2OMQ7Lo/Quf3S2SEYjm3Hd46+HH+PiUHr0vhuf7yT1WHLbQefxxN2jQvA56nBRyfV18Mrce1VuQyGAC541Bqu+7Rzs3PWci3RVt8T0KxPE655vn81NSjR7znctPMytYbyFM8Xqmo1Zc2Ql96mJn5L/FgfhEEs2VsrXPDI
 X-Forefront-Antispam-Report: 
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SJ0PR10MB4429.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230001)(366004)(66476007)(5660300002)(83380400001)(86362001)(4326008)(66556008)(316002)(2906002)(508600001)(1076003)(36756003)(66946007)(186003)(44832011)(966005)(6486002)(6512007)(8676002)(2616005)(921005)(7416002)(6666004)(52116002)(38100700002)(6506007)(8936002);DIR:OUT;SFP:1101;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SJ0PR10MB4429.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230001)(366004)(66476007)(5660300002)(83380400001)(86362001)(4326008)(66556008)(316002)(2906002)(508600001)(1076003)(36756003)(66946007)(186003)(44832011)(6486002)(6512007)(8676002)(2616005)(921005)(7416002)(6666004)(52116002)(38100700002)(6506007)(8936002);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0: 
-	=?us-ascii?Q?9dUgSa34wAbOTRsVKWyiwku8CjcNtOBeL6KLFmMYhAwNrHD+ttVUKzhPr9rb?=
- =?us-ascii?Q?ZHDmYRRv6lhzlg6M40jtxfVnaqhj4nDcp7SzrHUnXzPx/5q5lri8SvgnOdqe?=
- =?us-ascii?Q?4ISWoJgh+8S6wLWL4dwXqg4+d42MHaGjXo0XoEEk4uA0mNsU4+MCSg9hqVSq?=
- =?us-ascii?Q?8BHENhK44s2PzROMiBnooNodI8y/WadEP1ZA9CWW/+Vu+5QL/KHsCYMNvdGN?=
- =?us-ascii?Q?dXWHr9vfY/innwvT0XjdBHKzVW/tKeujFHgF4RuJhgRS3zyDZrlNKRXf7F02?=
- =?us-ascii?Q?FU6LLSqW1jwN/1rXeNzN+KtVlG/VdjYddrj5D4CDw37cHzZx09ydm/gSUyrN?=
- =?us-ascii?Q?JrAIE1DV+8820f7XSoAczr0a3N6Cf+6nQzTR6gSDqODPfgOCAvz3P6HdAwMr?=
- =?us-ascii?Q?fSuaGSHaAFoPfibt5CIKXZOrvJoVOeOz+0OIBFNsFsa3AbP/MCsg3koK3y9D?=
- =?us-ascii?Q?L1J7/BdHAIUn+8OiQE1BRSQMFVen18624jUvQCFZg3ckc+V9xNOmvUVBv5ft?=
- =?us-ascii?Q?jGqPq47dG0IOwS30RZZSf7H+4omQeDcm/F6rfTjJcy9NHnEv5XvlcnYrsHCR?=
- =?us-ascii?Q?/SmPH463eqtMpzVKlb316gKExGPtbO/rl0zxzBO+p+JvuFf3Y/UB3Mx89xcz?=
- =?us-ascii?Q?sF72kIYM4qtDPV978pt8wC0iltHhoMY/7/e/bEAdh2A6x4MIfVD21eN4XNhY?=
- =?us-ascii?Q?RuI3a2pi16LjyYZFSpQbFxZEe23kQXf4h2Z7vGN+bqZjF0bL/Esle1FN/VxJ?=
- =?us-ascii?Q?Sp4dZzzu2mcrFALtN3PlTkYTggsV25z7wxZ7PotEGIIV4sjYhmPQoSo592go?=
- =?us-ascii?Q?dfUuWRTataZ1V6fohZgtQca9hrVLvIv1ORZh9jDcWjkn53luH23lIBXJLh+H?=
- =?us-ascii?Q?YZpOQTrdyQKyowZfiIG9qT+1GeBTXKmTgNZviCVWImeZ160V0ME4ReOamYHf?=
- =?us-ascii?Q?GvbusegXLH6g5gdnM98kIQ/t0be9ZWEGOT5X86ncD9QMhVdAM/49LsTXQz/V?=
- =?us-ascii?Q?0yXNYTBdSeqbM7400vbNOAQXj6yY+Tyti/l1hI5A/mw0zA78068icDV2upGv?=
- =?us-ascii?Q?k+9GNWq0o+nVxMNdGT3u/73qftp4UJYoIkWls3IIGSKY0rzZ3MBoy4KFdmy4?=
- =?us-ascii?Q?UiVpboI182AMfTGMvrIOaowoPOTFWXzjV+BDO+NW0qcaxu7DwPYcR1x3W0HU?=
- =?us-ascii?Q?1ntIN0vrG0TnZvTtmUj7xmW2GBcPbuxNyxtrWG+Yq+QA3u68PPz0m3lHAIoe?=
- =?us-ascii?Q?ukMNq4tiL6tFCWZ7DXf1uWwLWM5H7tnJ6SvkEqdqhOw3BDUepuS+rhGQ6sRR?=
- =?us-ascii?Q?Z8P4u3FHx4KctdBTjZpy9PBkTIAuio3WTJ6aVU2xU6smADHyNW89RPjpLDjV?=
- =?us-ascii?Q?E7cE4AQAtwJlq1+LArM+u3YPvSKhhmmfWrrKjQy/0varSQ7IRjz5PdsixGON?=
- =?us-ascii?Q?7QF4CHqCsJ+kuFRnHTzlmnXWC1WZ/HGJ1qRk9XEjkWDT0H9donzkC5oABZv5?=
- =?us-ascii?Q?Ex0x+v4lfu7cm4JbtCcWVLaAOjukr/h021UCPjcK7N9y+ef/t8IusYoEOhVK?=
- =?us-ascii?Q?Yx3W4BnrzeEaHv54vBESMNFisRtEmzdphJ2hxjSj0/BK3TkLJ6yuMH54Hc1A?=
- =?us-ascii?Q?aZNZeRSIS2WOimnqokLfoWAvzTssa0zpHndhbxdfahu8+0rMgOMuDNtO8LbY?=
- =?us-ascii?Q?TCZM2kAAsvgUAvdCfTiXJ5cZJ1RGEbOCxttPxTCDcnz33bwsXJMW4jRWdyJk?=
- =?us-ascii?Q?gtNoy9pa3TU55Qx8a5tvGTCQQRemXu0=3D?=
+	=?us-ascii?Q?Ec2qLoa3nh5oO6dIlwVBIF+Pn+ZVq38kQy9dGMCEzNLpBYq65ahnLNNU2n2k?=
+ =?us-ascii?Q?95Lsh0ujFd1B4yt9/CVeK6r9LoWJvURMqaQt7EOWu8ydE1JG5qf0OLALFEd+?=
+ =?us-ascii?Q?67nQWfKFXiiuVVRg5lz8nLSNYCtIbfUAxWpw4NNpls5/o6a1LBK6HtwmEAaz?=
+ =?us-ascii?Q?ZXDsQp2HwqkVHVROcLv+lmGi+KE4kcnQxxrrHHBjVoGK38kBotjGMyj5o1x9?=
+ =?us-ascii?Q?vcS4BMHXEovHnwrIFZuhVm2lUjbOZ57oERHb6CmBKlMzh7ao3AtsGtPltsaC?=
+ =?us-ascii?Q?ycJHfEpI1VgVsA20OPNVMGAFd9mYbgsYlUh0G7ysUEgoFRQsWhERJeOsFxs8?=
+ =?us-ascii?Q?Wn0K+icdy+4tJwYDCMUKGWMtwHcPfOjVoYzNFZkU9uv9O2ILwnuxxzWoZstx?=
+ =?us-ascii?Q?TopbOapbPROQdT57fv12BnX8eMxb7ilupfDqpQbdWS8dkTKUJeHXoPz/g4hw?=
+ =?us-ascii?Q?Vs2/MFXkA7Wy5XYH2rY44RsJWW5N+mEy/ly2+/77bcFH5sKTzhmBz/cfE1dM?=
+ =?us-ascii?Q?CXVFvOMpd+hnlVL5/jfIe6JJrMgzqGZljlasuTjC02/huD/9PSRzlFZvNtN3?=
+ =?us-ascii?Q?QbLfwuzp/VMhmZ4sZ9VuHdVHVnNss+Errx7zkLbFL6batQT5yphvzh79kl9z?=
+ =?us-ascii?Q?VmwaJC5eQAwPcBoUznRXuyLogbyqOLw9eo66X/9qJ9sNQ6FqDavOdm+b0adl?=
+ =?us-ascii?Q?43JPQYDSq9HqQzYUYM42g+7z5HWfZ9mUYoVxnPUx0rmDjQgWPj0jChDn2Fiq?=
+ =?us-ascii?Q?zxCxt1AHeIJ2XjGtVz263rHxZjbrleD8EMHp7k12Dypw9EHL0Zlk3twXHFjl?=
+ =?us-ascii?Q?b93AFVVBIWpbHkM25xV6njHKSBl9MIz3mDZxxjiQMPMzyip/R3hoBwlR3hPi?=
+ =?us-ascii?Q?/oekJ+HwE86+jWSPHyZhKjiPD7tgbWcVjceuUT80IkNumfufoNRw8keqMObC?=
+ =?us-ascii?Q?7t5JF46abmjSa/nfBLy98LFzW073ZcLFwxWLNLdUlxEHt9i0p4oAgoHgJhRw?=
+ =?us-ascii?Q?r3L6uO0NaMK75Yjf7hwHTw2y5uMg1b17cTBNM0sifky8mSr+cVqNC3TyEPD9?=
+ =?us-ascii?Q?kfPKZ3RQuL6RXO3Ef4BQDPAgEldFAxtJGHk8SLNh3iHkItnpZ1qqG1Xfb6Uo?=
+ =?us-ascii?Q?6NRODC/8Q5Rl1xzicBZfWe9Kj802QbrRwyp4YdPbNkCjuMAoKYdiZcbx+4m6?=
+ =?us-ascii?Q?n3yiQCIi3KDl2/cy/t/UOvmQSEtUi+WWa1uCsuPmkzMkNHjhf2jc8naFd8Rv?=
+ =?us-ascii?Q?1jYINnUQfgQSFx115Y4fNq5+SbSumjw8bQp4RUF46cZ3a3kTY10ymUmfeCoP?=
+ =?us-ascii?Q?Kdf5ST6gywMsNdkcoh/PLv3TNZ4Lg5FTY7P1AQbKQM89AbawZSMiqFv6aSDF?=
+ =?us-ascii?Q?Qf055kAhS7KmdqMEzHE06OT34PLzlbpfybR3XFeISiLQCgarYdrF5KSme5Vb?=
+ =?us-ascii?Q?Po67fC01YWkNvQCjdUBaDpJ7wTjUPy7MVfhiKjktf2EA5lUL8wchY+tFlvxC?=
+ =?us-ascii?Q?DRuKIGVZSaROmSRRfKvQOXpaEET+KXqtJeXuKZQ75AjB7SenL5R5cIdz16cx?=
+ =?us-ascii?Q?NEsWEe/oeWyzgE/dr68Z2Q2l9q3/W+qR09DcHjVRonTVo6jaO+ibeE5JRlYf?=
+ =?us-ascii?Q?ztt5T2Z3JPMfV7EiTdr96EZntjlAz1h3GjMD6lMUkDizy+KtW1tIuD1Uvjyd?=
+ =?us-ascii?Q?R3SYzLrYk4uf+GGx1Gp4jdZQtDrIUBsqCDs9OyB0W5qbg4mqU5Hfg3AIBjgy?=
+ =?us-ascii?Q?yATZmGJG31hv/KAYUXzNsh1s4g82I8c=3D?=
 X-OriginatorOrg: oracle.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 4c95634e-607e-4624-5d3b-08da227228c3
+X-MS-Exchange-CrossTenant-Network-Message-Id: c35109b9-24fc-4c12-cede-08da22722ebf
 X-MS-Exchange-CrossTenant-AuthSource: SJ0PR10MB4429.namprd10.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 20 Apr 2022 02:04:53.3728
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 20 Apr 2022 02:05:03.3690
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: qSy1XBTdyC1iCNVs1IUPUZe/CdVFczukqGgWo5kDpUpUuUB9w1T+rdJmwxvI+YzckZfdD/kc+R/wI9aQ/fvxow==
+X-MS-Exchange-CrossTenant-UserPrincipalName: Nmmu2CdaOp6F16dqXwSgs1SUwn/klqH7Gi93Igy7ulw3O3L6ZTBq2Y6WqHhk4x8x6a0dVhSftU7PYFPKDi5ySQ==
 X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ0PR10MB4557
 X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.486,18.0.858
  definitions=2022-04-19_08:2022-04-15,2022-04-19 signatures=0
@@ -132,102 +135,173 @@ X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 malwarescore=0 ml
  adultscore=0 mlxlogscore=999 spamscore=0 bulkscore=0 suspectscore=0
  classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2202240000
  definitions=main-2204200008
-X-Proofpoint-GUID: y2nRgij0bW6AMCfhsEVWIoL5Yjh74U4c
-X-Proofpoint-ORIG-GUID: y2nRgij0bW6AMCfhsEVWIoL5Yjh74U4c
+X-Proofpoint-ORIG-GUID: SqkTtmP0CkU-oOj4EJHVR0SwW3M3uKGv
+X-Proofpoint-GUID: SqkTtmP0CkU-oOj4EJHVR0SwW3M3uKGv
 
-In this series, dax recovery code path is independent of that of
-normal write. Competing dax recovery threads are serialized,
-racing read threads are guaranteed not overlapping with the
-recovery process.
+Relocate the twin mce functions to arch/x86/mm/pat/set_memory.c
+file where they belong.
 
-In this phase, the recovery granularity is page, future patch
-will explore recovery in finer granularity.
+While at it, fixup a function name in a comment.
 
-Changelog:
-v7 -> v8:
-  - add a patch to teach the nfit driver to rely on mce->misc for poison
-    granularity, suggested by Dan
-  - add set_memory_present() helper to be invoked by set_mce_nospec() for
-    better readibility, suggested by Dan
-  - folded a trivial fix to comments in patch 2/NN, suggested by Boris,
-    and more commit message comments from Boris
-  - mode .recovery_write to dax_operation as dev_pagemap_ops is meant for
-    device agnostic operations, suggested by Christoph
-  - replace DAX_RECOVERY flag with enum dax_access_mode suggested by Dan
-  - re-organized __pmem_direct_access as provided by Christoph
-  - split [PATCH v7 4/6] into two patches: one introduces
-    DAX_RECOVERY_WRITE, and the other introduces .recovery_write operation
-  
-v6 -> v7:
- . incorporated comments from Christoph, and picked up a reviewed-by
- . add x86@kernel.org per Boris
- . discovered pmem firmware doesn't reliably handle a request to clear
-   poison over a large range (such as 2M), hence worked around the
-   the feature by limiting the size of the requested range to kernel
-   page size. 
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Jane Chu <jane.chu@oracle.com>
+---
+ arch/x86/include/asm/set_memory.h | 52 -------------------------------
+ arch/x86/mm/pat/set_memory.c      | 49 ++++++++++++++++++++++++++++-
+ include/linux/set_memory.h        |  8 ++---
+ 3 files changed, 52 insertions(+), 57 deletions(-)
 
-v5->v6:
-  . per Christoph, move set{clear}_mce_nospec() inline functions out
-    of include/linux/set_memory.h and into arch/x86/mm/pat/set_memory.c
-    file, so that no need to export _set_memory_present().
-  . per Christoph, ratelimit warning message in pmem_do_write()
-  . per both Christoph and Dan, switch back to adding a flag to
-    dax_direct_access() instead of embedding the flag in kvaddr
-  . suggestions from Christoph for improving code structure and
-    readability
-  . per Dan, add .recovery_write to dev_pagemap.ops instead of adding
-    it to dax_operations, such that, the DM layer doesn't need to be
-    involved explicitly in dax recoovery write
-  . per Dan, is_bad_pmem() takes a seqlock, so no need to place it
-    under recovery_lock.
-  Many thanks for both reviewers!
-
-v4->v5:
-  Fixed build errors reported by kernel test robot
-
-v3->v4:
-  Rebased to v5.17-rc1-81-g0280e3c58f92
-
-References:
-v4 https://lore.kernel.org/lkml/20220126211116.860012-1-jane.chu@oracle.com/T/
-v3 https://lkml.org/lkml/2022/1/11/900
-v2 https://lore.kernel.org/all/20211106011638.2613039-1-jane.chu@oracle.com/
-Disussions about marking poisoned page as 'np'
-https://lore.kernel.org/all/CAPcyv4hrXPb1tASBZUg-GgdVs0OOFKXMXLiHmktg_kFi7YBMyQ@mail.gmail.com/
-
-Jane Chu (7):
-  acpi/nfit: rely on mce->misc to determine poison granularity
-  x86/mce: relocate set{clear}_mce_nospec() functions
-  mce: fix set_mce_nospec to always unmap the whole page
-  dax: introduce DAX_RECOVERY_WRITE dax access mode
-  dax: add .recovery_write dax_operation
-  pmem: refactor pmem_clear_poison()
-  pmem: implement pmem_recovery_write()
-
- arch/x86/include/asm/set_memory.h |  52 --------
- arch/x86/kernel/cpu/mce/core.c    |   6 +-
- arch/x86/mm/pat/set_memory.c      |  48 ++++++-
- drivers/acpi/nfit/mce.c           |   4 +-
- drivers/dax/super.c               |  14 +-
- drivers/md/dm-linear.c            |  15 ++-
- drivers/md/dm-log-writes.c        |  15 ++-
- drivers/md/dm-stripe.c            |  15 ++-
- drivers/md/dm-target.c            |   4 +-
- drivers/md/dm-writecache.c        |   7 +-
- drivers/md/dm.c                   |  25 +++-
- drivers/nvdimm/pmem.c             | 207 +++++++++++++++++++++---------
- drivers/nvdimm/pmem.h             |   6 +-
- drivers/s390/block/dcssblk.c      |   9 +-
- fs/dax.c                          |  22 +++-
- fs/fuse/dax.c                     |   4 +-
- include/linux/dax.h               |  22 +++-
- include/linux/device-mapper.h     |  13 +-
- include/linux/set_memory.h        |  10 +-
- tools/testing/nvdimm/pmem-dax.c   |   3 +-
- 20 files changed, 351 insertions(+), 150 deletions(-)
-
-
-base-commit: 028192fea1de083f4f12bfb1eb7c4d7beb5c8ecd
+diff --git a/arch/x86/include/asm/set_memory.h b/arch/x86/include/asm/set_memory.h
+index 78ca53512486..b45c4d27fd46 100644
+--- a/arch/x86/include/asm/set_memory.h
++++ b/arch/x86/include/asm/set_memory.h
+@@ -86,56 +86,4 @@ bool kernel_page_present(struct page *page);
+ 
+ extern int kernel_set_to_readonly;
+ 
+-#ifdef CONFIG_X86_64
+-/*
+- * Prevent speculative access to the page by either unmapping
+- * it (if we do not require access to any part of the page) or
+- * marking it uncacheable (if we want to try to retrieve data
+- * from non-poisoned lines in the page).
+- */
+-static inline int set_mce_nospec(unsigned long pfn, bool unmap)
+-{
+-	unsigned long decoy_addr;
+-	int rc;
+-
+-	/* SGX pages are not in the 1:1 map */
+-	if (arch_is_platform_page(pfn << PAGE_SHIFT))
+-		return 0;
+-	/*
+-	 * We would like to just call:
+-	 *      set_memory_XX((unsigned long)pfn_to_kaddr(pfn), 1);
+-	 * but doing that would radically increase the odds of a
+-	 * speculative access to the poison page because we'd have
+-	 * the virtual address of the kernel 1:1 mapping sitting
+-	 * around in registers.
+-	 * Instead we get tricky.  We create a non-canonical address
+-	 * that looks just like the one we want, but has bit 63 flipped.
+-	 * This relies on set_memory_XX() properly sanitizing any __pa()
+-	 * results with __PHYSICAL_MASK or PTE_PFN_MASK.
+-	 */
+-	decoy_addr = (pfn << PAGE_SHIFT) + (PAGE_OFFSET ^ BIT(63));
+-
+-	if (unmap)
+-		rc = set_memory_np(decoy_addr, 1);
+-	else
+-		rc = set_memory_uc(decoy_addr, 1);
+-	if (rc)
+-		pr_warn("Could not invalidate pfn=0x%lx from 1:1 map\n", pfn);
+-	return rc;
+-}
+-#define set_mce_nospec set_mce_nospec
+-
+-/* Restore full speculative operation to the pfn. */
+-static inline int clear_mce_nospec(unsigned long pfn)
+-{
+-	return set_memory_wb((unsigned long) pfn_to_kaddr(pfn), 1);
+-}
+-#define clear_mce_nospec clear_mce_nospec
+-#else
+-/*
+- * Few people would run a 32-bit kernel on a machine that supports
+- * recoverable errors because they have too much memory to boot 32-bit.
+- */
+-#endif
+-
+ #endif /* _ASM_X86_SET_MEMORY_H */
+diff --git a/arch/x86/mm/pat/set_memory.c b/arch/x86/mm/pat/set_memory.c
+index abf5ed76e4b7..978cf5bd2ab6 100644
+--- a/arch/x86/mm/pat/set_memory.c
++++ b/arch/x86/mm/pat/set_memory.c
+@@ -1816,7 +1816,7 @@ static inline int cpa_clear_pages_array(struct page **pages, int numpages,
+ }
+ 
+ /*
+- * _set_memory_prot is an internal helper for callers that have been passed
++ * __set_memory_prot is an internal helper for callers that have been passed
+  * a pgprot_t value from upper layers and a reservation has already been taken.
+  * If you want to set the pgprot to a specific page protocol, use the
+  * set_memory_xx() functions.
+@@ -1925,6 +1925,53 @@ int set_memory_wb(unsigned long addr, int numpages)
+ }
+ EXPORT_SYMBOL(set_memory_wb);
+ 
++/*
++ * Prevent speculative access to the page by either unmapping
++ * it (if we do not require access to any part of the page) or
++ * marking it uncacheable (if we want to try to retrieve data
++ * from non-poisoned lines in the page).
++ */
++int set_mce_nospec(unsigned long pfn, bool unmap)
++{
++	unsigned long decoy_addr;
++	int rc;
++
++	if (!IS_ENABLED(CONFIG_64BIT))
++		return 0;
++
++	/* SGX pages are not in the 1:1 map */
++	if (arch_is_platform_page(pfn << PAGE_SHIFT))
++		return 0;
++	/*
++	 * We would like to just call:
++	 *      set_memory_XX((unsigned long)pfn_to_kaddr(pfn), 1);
++	 * but doing that would radically increase the odds of a
++	 * speculative access to the poison page because we'd have
++	 * the virtual address of the kernel 1:1 mapping sitting
++	 * around in registers.
++	 * Instead we get tricky.  We create a non-canonical address
++	 * that looks just like the one we want, but has bit 63 flipped.
++	 * This relies on set_memory_XX() properly sanitizing any __pa()
++	 * results with __PHYSICAL_MASK or PTE_PFN_MASK.
++	 */
++	decoy_addr = (pfn << PAGE_SHIFT) + (PAGE_OFFSET ^ BIT(63));
++
++	if (unmap)
++		rc = set_memory_np(decoy_addr, 1);
++	else
++		rc = set_memory_uc(decoy_addr, 1);
++	if (rc)
++		pr_warn("Could not invalidate pfn=0x%lx from 1:1 map\n", pfn);
++	return rc;
++}
++
++/* Restore full speculative operation to the pfn. */
++int clear_mce_nospec(unsigned long pfn)
++{
++	return set_memory_wb((unsigned long) pfn_to_kaddr(pfn), 1);
++}
++EXPORT_SYMBOL_GPL(clear_mce_nospec);
++
+ int set_memory_x(unsigned long addr, int numpages)
+ {
+ 	if (!(__supported_pte_mask & _PAGE_NX))
+diff --git a/include/linux/set_memory.h b/include/linux/set_memory.h
+index f36be5166c19..683a6c3f7179 100644
+--- a/include/linux/set_memory.h
++++ b/include/linux/set_memory.h
+@@ -42,14 +42,14 @@ static inline bool can_set_direct_map(void)
+ #endif
+ #endif /* CONFIG_ARCH_HAS_SET_DIRECT_MAP */
+ 
+-#ifndef set_mce_nospec
++#ifdef CONFIG_X86_64
++int set_mce_nospec(unsigned long pfn, bool unmap);
++int clear_mce_nospec(unsigned long pfn);
++#else
+ static inline int set_mce_nospec(unsigned long pfn, bool unmap)
+ {
+ 	return 0;
+ }
+-#endif
+-
+-#ifndef clear_mce_nospec
+ static inline int clear_mce_nospec(unsigned long pfn)
+ {
+ 	return 0;
 -- 
 2.18.4
 
