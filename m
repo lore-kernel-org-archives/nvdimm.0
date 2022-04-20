@@ -1,55 +1,55 @@
-Received: from mx0a-00069f02.pphosted.com (mx0a-00069f02.pphosted.com [205.220.165.32])
+Received: from mx0b-00069f02.pphosted.com (mx0b-00069f02.pphosted.com [205.220.177.32])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6CD51101
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CE7510F3
 	for <nvdimm@lists.linux.dev>; Wed, 20 Apr 2022 02:05:36 +0000 (UTC)
-Received: from pps.filterd (m0246617.ppops.net [127.0.0.1])
-	by mx0b-00069f02.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 23K1sp8K011972;
-	Wed, 20 Apr 2022 02:05:24 GMT
+Received: from pps.filterd (m0246630.ppops.net [127.0.0.1])
+	by mx0b-00069f02.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 23JMIjr8019340;
+	Wed, 20 Apr 2022 02:05:12 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : content-type :
  mime-version; s=corp-2021-07-09;
- bh=HxDuJ0/97JC2Vs/ddL0Wm6G+2GrhMusSSHuhGZHvn6o=;
- b=NnMatPT3uIb9QAJ6H3UOv9ZE1IRSeh2jC3BkLKhLI+vxTYOuoonq/varzf1QA+Qs1qYc
- EG0Y4XaDMwIexVgjcTYzSWqPGcil0BnlS3z35Jy7kg2Y1Odos9K1qdZAH75VJJ/PNMMl
- On2wt63Uj9/f9y1cmcgHT3HzYLI9kw9N1KWDojHgL9STG59As/mdZFb1O1p+P/zbbYF9
- u4iXU2RmuycbRCCSoKWtYe8Ay8KybJN+OKui7xKwGSy9UWwCfqzJABtnfvIavSwoYsia
- /nC9P8UtedhJ3E0DMJdwjQ35O+5pKj1gBfNqM9kKyE9YI9r6PZsrOgNUgdsiQWh6LkdD 4g== 
-Received: from iadpaimrmta03.imrmtpd1.prodappiadaev1.oraclevcn.com (iadpaimrmta03.appoci.oracle.com [130.35.103.27])
-	by mx0b-00069f02.pphosted.com with ESMTP id 3ffpbv7qjs-1
+ bh=pfqG/zGcXQZRAJwpMqOoq8cK+cexVXIh4CKJuaKWLW8=;
+ b=CAz/MRqRakGbBN+MHgh+JHEQxoqm3VGs2Hjc9STyHocIkqhgcXwMwu/IpuUBngvDW0v5
+ dB3gajKdbC8YEqjJG1jClJ9d549mOLC003bSYirimsBkTYe4NqSdqgNflKQeB6cLpIUd
+ HevM3U4xmXjAUPLfL24m6ZY3kuvtc9g7L//CspcmK6IUBzm8vBERtOC+YZ593KPJvHri
+ eZzxrDEjnjNb0b5ZW4Rp30DhqjdfpUvJLyzG1Z9nOJELMdRZFWmwvMNyRfBzsm1d2G+W
+ srnsRxBTMTLg+WMuBGcIjy9LL9Gn9ACPonEtyhD4NHA8/BmYYvyks7M+M2iGOmVLiyfm iw== 
+Received: from phxpaimrmta02.imrmtpd1.prodappphxaev1.oraclevcn.com (phxpaimrmta02.appoci.oracle.com [147.154.114.232])
+	by mx0b-00069f02.pphosted.com with ESMTP id 3ffm7cqh39-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 20 Apr 2022 02:05:24 +0000
-Received: from pps.filterd (iadpaimrmta03.imrmtpd1.prodappiadaev1.oraclevcn.com [127.0.0.1])
-	by iadpaimrmta03.imrmtpd1.prodappiadaev1.oraclevcn.com (8.16.1.2/8.16.1.2) with SMTP id 23K20kEJ027909;
-	Wed, 20 Apr 2022 02:05:22 GMT
-Received: from nam10-bn7-obe.outbound.protection.outlook.com (mail-bn7nam10lp2107.outbound.protection.outlook.com [104.47.70.107])
-	by iadpaimrmta03.imrmtpd1.prodappiadaev1.oraclevcn.com with ESMTP id 3ffm8960xc-1
+	Wed, 20 Apr 2022 02:05:11 +0000
+Received: from pps.filterd (phxpaimrmta02.imrmtpd1.prodappphxaev1.oraclevcn.com [127.0.0.1])
+	by phxpaimrmta02.imrmtpd1.prodappphxaev1.oraclevcn.com (8.16.1.2/8.16.1.2) with SMTP id 23K20gfZ037457;
+	Wed, 20 Apr 2022 02:05:10 GMT
+Received: from nam04-dm6-obe.outbound.protection.outlook.com (mail-dm6nam08lp2045.outbound.protection.outlook.com [104.47.73.45])
+	by phxpaimrmta02.imrmtpd1.prodappphxaev1.oraclevcn.com with ESMTP id 3ffm843u6g-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 20 Apr 2022 02:05:22 +0000
+	Wed, 20 Apr 2022 02:05:10 +0000
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=EqEJOL1Pu7krdRXZbnG32M6mX4I1zzfHM1//fJ4aX6spFw6FarxbYuyWNHWNB/2SyO+AfDviRt6JaIQ5ypiKkxm0jpTK/5kFJkc4gEjBlLHT9UENzT1OUo0sn15U3CMCSaqC3gXisqtqIxnLdGqkJSajC/7uplDi1WVJIv93oaWmAjdTCIgyy4f7v5xNA+M8cy9EOTiCfIHJ3vtieIBuB45l/aXoQdhTCutQuB3DeLeMdSreJWeOSHD6Y9kAn0xQ+411sAjGEWc2+PX0a2Pxb9lZmlOe0YfurKs91zya/CTjuOibfbIhy8cadonXQngXYp0OPL8y4fjG9anpYKOo4g==
+ b=N7tGFqF62VZgvZN0YsSRPbnAlLhVR58GvfKh3DauD40ni1R4GOYInflQS+lEEs5K8vEfJgieFD09S4iXcK64DYWXJizhSo/vfX32McYOMztcXuphiIoZtNCbusiLOCelien2kytTFvSBt4Hj4BO42dkfCOUtVy+F8sVaSxAgK9Wm5jxSCorW+KI6aqKT3ySZTlZ/Z9YBu7E5UJVkj5+uwI6zA4DLS6TgVY1kQ5r3gmbaONh0/XJl4+YpLYdxMBj7maOoWnV7wO9o1sWobvK9NRt7HFwf6SIRrRU8jTdJIW1NZNKRdMy5pFYeZ8ytJ1lDFtpu6543WCzEKw2q4mOj2Q==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=HxDuJ0/97JC2Vs/ddL0Wm6G+2GrhMusSSHuhGZHvn6o=;
- b=XkfzUZfPbm+ohEkjCA5yWg2zsn0iW32mI9OxAJ4uFqmdN0ojG2egSPZMm9RMxIzAIMQoTc/D+lf1tX6t1GCuelypBt0E3X+7fyCmyo9tZTjEGlhDo8eBDxVJjCXLDlmf5ameZPi+Ume07Iak7O/xe9oXGoul8m0Di7YGxf7kQdiXIJGb6WGF5lt4PvwsVvzpQSOdXNZOme+jGaGitk3dF/8iws3c3V2HcMEVdIZfX2zER5EsU5KpJUXANwD07nMnjQrh+c/MXMLC72OcnHPSH9ioPhsFDSPjKYu4ee6a74wCNR6GebHLQmrjF7K2JJ7HRAmYmbIsGlkI1msxxKtFqQ==
+ bh=pfqG/zGcXQZRAJwpMqOoq8cK+cexVXIh4CKJuaKWLW8=;
+ b=KnOBBX9dttYxNN6JUyPUmowI6YSq4sQGeF6FLIXFydMUjMAkGaNsOouMKN3usZYT+myTFAlFEgCamHq0j2oqFAouannB5Vtudesv4EE+B+Q7XLdiCRb4ZPz+x37oFz7DFsoyRhorDKTKPPnzC5UkUrAx4UKXxt+nzenPPMvjl5cje18AwbjF8CesyCqiuDeHRSmMipy70oNx+06CKPlGuSSBZmt3nMEQokFECTytex+62tmPmkGVS2OVCQ4TA5GKOFPAFGpyTJrwi+NzMpxHPHMuCMQgGPpzQlcPGv8K67f5FEclSFA9F+qj7Rz2LcAKuYuvwRL19C9JkHJo/F3Rhw==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
  dkim=pass header.d=oracle.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
  d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=HxDuJ0/97JC2Vs/ddL0Wm6G+2GrhMusSSHuhGZHvn6o=;
- b=ftdE5NA2nFuU/I21hTapbsBv07geKNDdYDAqPKZjr2FDV5shfJ6DvaX8IIh7RxGlrbJddWXwQO1uR7kVPRKyYH2enrG6aL4GqvOB19hOYLoLAVjrlB5T7S62TSeYCuCMYHBOKifWT5M/5iNP05/YvxUAWJsPMpo9mOvJpaPfbek=
+ bh=pfqG/zGcXQZRAJwpMqOoq8cK+cexVXIh4CKJuaKWLW8=;
+ b=fmhXbeG6Astu/IjKqE++yEgtuf2BlKhHlZ5t70gIMouK+n0vJAUbqCAL7tUD2kSbPbw/x9YQq3vnoKLyQGiTDvAk1gfIJAWoRFX9Q95GrOf5Y7jHrzH9YI7MDqy6J1H3/qLij87HNKvjgmEqHRLHtqo1jaie/VuAQf9r2Z/DV8Q=
 Received: from SJ0PR10MB4429.namprd10.prod.outlook.com (2603:10b6:a03:2d1::14)
- by MWHPR10MB1422.namprd10.prod.outlook.com (2603:10b6:300:22::15) with
+ by SJ0PR10MB4557.namprd10.prod.outlook.com (2603:10b6:a03:2d4::16) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5164.20; Wed, 20 Apr
- 2022 02:05:20 +0000
+ 2022 02:05:07 +0000
 Received: from SJ0PR10MB4429.namprd10.prod.outlook.com
  ([fe80::1c44:15ca:b5c2:603e]) by SJ0PR10MB4429.namprd10.prod.outlook.com
  ([fe80::1c44:15ca:b5c2:603e%8]) with mapi id 15.20.5164.025; Wed, 20 Apr 2022
- 02:05:20 +0000
+ 02:05:07 +0000
 From: Jane Chu <jane.chu@oracle.com>
 To: dan.j.williams@intel.com, bp@alien8.de, hch@infradead.org,
         dave.hansen@intel.com, peterz@infradead.org, luto@kernel.org,
@@ -58,9 +58,9 @@ To: dan.j.williams@intel.com, bp@alien8.de, hch@infradead.org,
 Cc: vishal.l.verma@intel.com, dave.jiang@intel.com, agk@redhat.com,
         snitzer@redhat.com, dm-devel@redhat.com, ira.weiny@intel.com,
         willy@infradead.org, vgoyal@redhat.com
-Subject: [PATCH v8 7/7] pmem: implement pmem_recovery_write()
-Date: Tue, 19 Apr 2022 20:04:35 -0600
-Message-Id: <20220420020435.90326-8-jane.chu@oracle.com>
+Subject: [PATCH v8 3/7] mce: fix set_mce_nospec to always unmap the whole page
+Date: Tue, 19 Apr 2022 20:04:31 -0600
+Message-Id: <20220420020435.90326-4-jane.chu@oracle.com>
 X-Mailer: git-send-email 2.18.4
 In-Reply-To: <20220420020435.90326-1-jane.chu@oracle.com>
 References: <20220420020435.90326-1-jane.chu@oracle.com>
@@ -75,176 +75,242 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 2a8ff09f-5721-4c81-de0f-08da227238f0
-X-MS-TrafficTypeDiagnostic: MWHPR10MB1422:EE_
+X-MS-Office365-Filtering-Correlation-Id: 6adfec80-fc94-488b-3273-08da2272310d
+X-MS-TrafficTypeDiagnostic: SJ0PR10MB4557:EE_
 X-Microsoft-Antispam-PRVS: 
-	<MWHPR10MB1422AF653C5ABCA773FDA0B8F3F59@MWHPR10MB1422.namprd10.prod.outlook.com>
+	<SJ0PR10MB4557DE7701433DFF61BD329DF3F59@SJ0PR10MB4557.namprd10.prod.outlook.com>
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
 X-Microsoft-Antispam-Message-Info: 
-	2Bp8GRFDDkmwJdPIsVMpm9oyviC+1gPWmVhIICQ32GReuYtHSOKjJ6sXSRHxAhMHj0DUCSOhYs4bCf09/ok1QpzRkwPTksiTSYcViAdjyORQ56IxdJG73HslxX/xeHrRpLnNIZwsjCVHbSegzdPuTYqE3SdFgbp6GD2aZ+b2hl/fOmH9C3OxCpWxB9PCL9sbb6W2sX8YcPf5LzZ7ODmVrNMYr3pnEs1HcDHNfCRq8q/dXYijpmZOmbcWnKrQ85lH9ZMF4EgB0P/kvgwhH029w8noTubr4TWFdh/CZ07ZCCUtKRQgscYjMLhwdzJLOuLgG/gauABPSbp26PL/HmmG28OndxGAs3as3yEbQ00V4aB3JAPAR6fc07Wb/Ge9cLVDHhkUojTkMQjDyd4xaSuv4O/nK8RBfK1MXv2UpizffeqivMfpV6xVCHzaknTl/l7hiKHlVAgB7grYqDEngTdg0lRJYhmZFtqviTt+MjwgXZbH6d1cT/kitfeP5Rw6u1yrvQYKEgGLl95SbIXO4V6KYbW/s6QzoM0sjHeXlUoZbzqfmOGPfyRnXkN4yY+J9Oyfl+bqi7WiYbfHnfaBT0bJWJHhd63NRIHH6T1C3iFFCibBJ7kGlNwbVR6Sm1ZNhMLkrwJnKF9MPpDgrKus75SeVbfLi7Tt2LdbeZdzANGMtDlKzKfmUX/3NeeMNGO79wet
+	B0EZ7qVzDyGm4SN7QbkJX3QPlNFx7OFl4bVD1MvoEOeJh2CUxRTv8NXj7b+nGw4u/6AldsTBL4Op3PKcfjLx5DtaGUeTmNK25ECiztk+0PD3f85VInXlB66zHBaAOHP/qJfbfxCjKd4Qz7Uy+W+HLnKiPjsM59qTsuVL534WYPwUwbQuBt7lLG2bPau75HENH8aAIqVGGQaDS9NyXFTpEHIBP0gbx7j4EAhe4kq7tps7Jpv59hUF1YwZLSq9SMdygS33L6uIrJ9U8PfxqGGgcET7c2qCD1EaqHm+VPv2AvwbrucO8vcAZhNYWLkdBIBVXb6ZsLRCXPw/4FOLegg7D21KzorfMrIz6HDZQydAhKVnHOW7dFg2078JQbOBqMuERcED286PzbzgiL6HSOJoBsEzFngUf3lgZbyLfXevCWU54UAS9B1nEsHZ+jpv7gB5H8zNYjl0lzQ7PYyM+T6bFijneRWUQ07mcwwyDxtbWlajOco6L3EEJDxRigj2P2qEQTnMHadWyf4YGTg24+6byhcPhVT+hBnvQ4n8ufvmf7ZCQQQi7tWOo+r4pCsfsjDpIsOMiR5Eb+bcS6GnES8zabr6kp90HK1E+DMmeosa9aqVE6Re1xcLwLJDz5ljhIr4Vl6v7riVBViVTl5NaRCeiEyMTRrRzhf4cOpZZGl1R0qz9CJ009GUxin4e3tLTLyNF4Urvk/cuNj4i1d//ZQPHNsGFPAOTh+6c80GXHA4XDGr8P0wp2Fzr5gdqwaW53M//SLyHy9qjQaEWpKUjuOJkg==
 X-Forefront-Antispam-Report: 
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SJ0PR10MB4429.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230001)(366004)(86362001)(83380400001)(2616005)(66946007)(316002)(38100700002)(186003)(36756003)(921005)(66476007)(4326008)(66556008)(8936002)(2906002)(44832011)(5660300002)(7416002)(6666004)(52116002)(6506007)(6512007)(508600001)(8676002)(1076003)(6486002);DIR:OUT;SFP:1101;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SJ0PR10MB4429.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230001)(366004)(66476007)(5660300002)(83380400001)(86362001)(4326008)(66556008)(316002)(2906002)(508600001)(1076003)(36756003)(66946007)(186003)(44832011)(966005)(6486002)(6512007)(8676002)(2616005)(921005)(7416002)(6666004)(52116002)(38100700002)(6506007)(8936002);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0: 
-	=?us-ascii?Q?F8y3rS6mAWcLVToI9gl4i1tz1kVvBplaVmGOH1ntHI50G0bBTpsOEDPnk1kL?=
- =?us-ascii?Q?QdwWLWwwLR0pNL9RTIBuaFJBlLDquYm9nH8n0qZt1Yaztxb7BpUIw3Vw4GID?=
- =?us-ascii?Q?ncU/XaI8jh553XrcQ1awssRHpfcjCfXPnvCRqxSEIPEekI+YmrrjnNMBAgyG?=
- =?us-ascii?Q?4E+0Lf/7Vfy+xHeXylDRsRs4nlHi5Cnpy4GaKX4+3TwldRtdrIgE3Bg0xUJd?=
- =?us-ascii?Q?bUALwORNkBIKgD/Qn7JJgR5PUS+BW6DL7uZDWcEZEjhPJaZS4ytVYQW4rMQ1?=
- =?us-ascii?Q?klagbGpcuYtxjiJAhbJFoJ6KR2ZfC9Brg8WQWA8Aw86tS4r3fZnLtcvG5fmD?=
- =?us-ascii?Q?b7sWGRyfAl/Muyty+DvTeQEvI8HoMKcH7Ai9WD9GKnS5uxDaJ2fZldGiJusl?=
- =?us-ascii?Q?1npH0s7CShtHlovXzarRx9TaA3pJs/yZBQX9/ICW2nTo9y6sBPoH2uageI01?=
- =?us-ascii?Q?Qh3Zt3ibChOFYuRox/LdB3RZtueZIuK+SxcPvuxCFzpKyclgflc4bMvKtCfX?=
- =?us-ascii?Q?0qknGV4yY3wH5HViY4wAsiLBEeOPQxZydnoUHXjKfaNywxA+FHCz8WQe8r9D?=
- =?us-ascii?Q?HKU+CXAdaM632YqZ+s0cvoRWWu+EotsuMCfRXvjKyxkQdDd7pb8+V9JTc58O?=
- =?us-ascii?Q?2mo8jaKigCq+N+kKsXRYhNPgQtJ3M55/fWZFDZGBEV+43n4M/iGKZz3aJzY2?=
- =?us-ascii?Q?BuzExIJJWpbfxC4Bs97aODuUv9Pxtm7eFv1BZe8E8/O7Mgc2hTRVA+vEEW/O?=
- =?us-ascii?Q?mfSLgvCgZ7iE3jAaSQha5br8RFJNf6exyj+oFYTT/Uh4Av91D5KtWjdzLwwX?=
- =?us-ascii?Q?6q1eSg0VaXrH00u1BTAJKGXTgwhH43F5HyaI61DmwWW2foHJlPZVZQeCA6s1?=
- =?us-ascii?Q?cnnOwaGtL3j0ps87svUspzYGOXVx1LA6FCA9sLyydyGr7pW410lKMEDIBYP6?=
- =?us-ascii?Q?V1jL+nREODMkr57425s8QhWxCE4I5jBX011qTkuFtj4pezm3MELJ/dJXkLeK?=
- =?us-ascii?Q?eAeBbAisxpxrxV2akV66j1GCHZiFObOmdcjIBxmqF9omXoK9vYBhSWx9d6Jr?=
- =?us-ascii?Q?WkdGbGb74Ux9KLx+Ve165mh30hpqKtgGRsVpJ+fizSgnKM10DjbGPq4vJYC8?=
- =?us-ascii?Q?E+N/lSZqn70JUQKF6fCQZfyEpfhTCH+/ZjzMIroCINNOmCdDPMdquSxtW5NB?=
- =?us-ascii?Q?y/XQgJ4Jj0d3jaCQeEQo36URmDn5woSFjOTiAWwNK8FtIvwUA01HPuWZtHZ2?=
- =?us-ascii?Q?BmK9L5jblCWX3l3MjTG9UjFynEpdGJdYEGWRGA0jYCqpbK/aNpZ2Y6aVwhGv?=
- =?us-ascii?Q?HqrEaBu8QvOrv9wyhVlNYLJHo0wE/rs24iP6WhoA91FVYFO4nH6cCt1q/kKQ?=
- =?us-ascii?Q?ekAMQAgQj/jG8bSC2gncZ8zHBxDqROq5hO7gP8z4hYCXx2nDsWkCwFXwLQrg?=
- =?us-ascii?Q?fD/DKs/v90ycWYGQvfFkhZ1VqBfjTBZUIh4l3HejVCGajStQvCZ5Gf2o4RBG?=
- =?us-ascii?Q?lQ+kXOwun1osNbCDtg2WkMuOm9BYszHZPqsEBeCtgbIc0Sllko7d9e/cgQru?=
- =?us-ascii?Q?Dr9lJMvYzsDaEfRdSEeUVsWWDMmCOPnACg/FoedyC6een5c01j/t489LTv9f?=
- =?us-ascii?Q?QTXwzF8Aho6cUxVWFmt4NTZX+J5Y+ZAiDDpHoLQP+jiAms/UM2KNe5PebZEL?=
- =?us-ascii?Q?OXDfzo+3UvGV5OVD/4E7se0fm6I5lf5RQu2xI4hCnDf9Vi7en+bLTh1AyX5g?=
- =?us-ascii?Q?xBmgr5K8aSySPqVu3mcZtDRz721W4go=3D?=
+	=?us-ascii?Q?njyXFplh4wCi5RkjeR3COAycVHMfYaddYyhOoWfjvqarCBMoouyDKjriuEcL?=
+ =?us-ascii?Q?cqFLSLLEtFNwaULbJNgAG1hKnuOadX9xYQv1XVNug4hCVOpZhL161q0amtAB?=
+ =?us-ascii?Q?lYucv6K/O3dgsLFtO722veXMXXXUzgvYOODZmImVk+B480z4aMrTPTGY+/Zm?=
+ =?us-ascii?Q?DK0DCwJ1e+Fw/KkoOdm+VR/YO+GTC+AtWYOQoZQ8lRLSVNz27Es7rq2IKb+r?=
+ =?us-ascii?Q?81bjlSYAzCamqSFSCeEGlrhpjow9jZSVC3N8yL+iH0bpiOvGWmr8VR2bcSZ4?=
+ =?us-ascii?Q?kQCDUkIAVwwKeMtMRq60/k8ZxLB4o4H6gx65x+e2FzLkmlN4AWucFDM4D/4S?=
+ =?us-ascii?Q?n9XVMCN0raeqdCa54DFgV9f8VEu2qwTGCi3SDd1rqunpU2I+XfK3GQJ2YOxb?=
+ =?us-ascii?Q?fnVIB5anPc1G/bAbABfYHOXTUgsEYIQi0EOEU+wtPeN2gj+UB47NwjYgTaiV?=
+ =?us-ascii?Q?jPlR84P626w/UoTCoYX+lmkH4X8pIxpSiRsQXLhK5F0hoB6WPDcyc5pQMlnI?=
+ =?us-ascii?Q?JZlD0cYMWVfy8zwrwFdKV8dEYB1oVoH8Amsx82rzkyvcWlepWMwY+9nmB3nU?=
+ =?us-ascii?Q?evnOC+Bh228hJPtsR3esm0+bvnMw6FSnBP2ail1jCDuHlTnoSsJsKNsFatQG?=
+ =?us-ascii?Q?zpsSY5LFx25fQjYs8KXwjTYlabhth4XlbitxYOt4ViJQ7N7hfqrMV7loB7Dp?=
+ =?us-ascii?Q?1LtN+AC5PVrzm3237VyaNbEXThw2lvc8jwV9S5W3+P3pEayKajjimybKPN8k?=
+ =?us-ascii?Q?M+/0QU9cmtr0nW1kHYdKRqLgx3luXjHHdVT/uRhuq7dHne+xihyiHSQg1KYU?=
+ =?us-ascii?Q?r2XKXlwoGfTuAns5smZAlwDOy0hfDNt3h9V9/vH4qz0rN0qchNnEM5JftmeO?=
+ =?us-ascii?Q?f48meoygv+9c2bGTcwiYEd4V+WPpRVn/MraUDrwsHjJhSLio6J33ce3U/ETC?=
+ =?us-ascii?Q?WOquahWNyUx5XZGxJAJpEsE60b/7+QRooG963/2QJ34Hp9ZYpNVRsbtQe4v6?=
+ =?us-ascii?Q?01iO1Y71unZmkLSilJRUhfAxQS44vbntggQI8Hz5D+PakNqAathnzD5GEFvb?=
+ =?us-ascii?Q?WMb71cjyPLbzVy8JPnC2CWDbkOO9R+IQ6d4QbAmLEZpQOK9JMaQyceZU2bJN?=
+ =?us-ascii?Q?wRcrkm6CuSwyKPaYzp/IA/B54J4sew8TZToK6jkmPL/JM9c+B8PD3Xsr28tQ?=
+ =?us-ascii?Q?nOv8IDZi7ZaODUDQX3nc79huXRSYT8MWTOQ1AOtqeuIV/nWCNv+qWyiwoaVB?=
+ =?us-ascii?Q?qoGzNmOzUCUHowgZnyUZsZyPvmyyEK1g8InBurt88RKDHT9cjr1rkP4hZJvC?=
+ =?us-ascii?Q?Va5paYlO+mb6dZEyWeB1YgT0+KUGDLSFWMq/ScEL0dv+dGZqqqX1qLR8ELAF?=
+ =?us-ascii?Q?D1vDyY6kTGLXmsdsGWmUjGWEHmA+zlBAZuWq3MQmyt8HulAX/D6EMqFoGQWp?=
+ =?us-ascii?Q?cZyUIb/fWzFvTxQmpCmNuPqUp74VkfprCAGEldWdQWRM2ciDZYXXM9HCZNjX?=
+ =?us-ascii?Q?RrSUGSTmB6leEKiEGQA1YCZXKUOaz9kLQZRjgF0eLbbMY657jNpCh0gtEjq6?=
+ =?us-ascii?Q?kRR7D8W5c/mb6/a8cTVyG/rosv+UM+mmur+MqnuJXuA3i+t4lIhpGUViaqfe?=
+ =?us-ascii?Q?a8UzpJG30issXwVP8AZXGYqzCOFyn6OhdTuhIAAcsoBQOQflXQIC4/o2jmDb?=
+ =?us-ascii?Q?oWL7Vd4EUckawQIa3X1BL00y26zX9zlPa25XmyYpVaywaA6CiNYJsKJuxgI3?=
+ =?us-ascii?Q?lhwg6gOdzdmols0uB3DvJxu1jNNdRM0=3D?=
 X-OriginatorOrg: oracle.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 2a8ff09f-5721-4c81-de0f-08da227238f0
+X-MS-Exchange-CrossTenant-Network-Message-Id: 6adfec80-fc94-488b-3273-08da2272310d
 X-MS-Exchange-CrossTenant-AuthSource: SJ0PR10MB4429.namprd10.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 20 Apr 2022 02:05:20.4834
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 20 Apr 2022 02:05:07.2800
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: Vk9EpuLdgN4bWLsNNVK/vEdhD/OJkQ3/SZ/OhpSNWgAs3D1UmEN800LiKLi3lI0o2M4ZXTesz/ZzgigsRkKR4A==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MWHPR10MB1422
+X-MS-Exchange-CrossTenant-UserPrincipalName: 1V1mNgbn0HPaJh4P6cwJ20FaU8jBrBKvnamyUQxw9bvOt/i55somunXICquW/cC+jntPxI6sSxytpsfFmxR+nQ==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ0PR10MB4557
 X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.486,18.0.858
  definitions=2022-04-19_08:2022-04-15,2022-04-19 signatures=0
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 malwarescore=0 bulkscore=0
- suspectscore=0 mlxscore=0 spamscore=0 mlxlogscore=999 phishscore=0
- adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2202240000 definitions=main-2204200008
-X-Proofpoint-GUID: zanx5o3i1mGmIddukr5ohjpRAcYjKz8S
-X-Proofpoint-ORIG-GUID: zanx5o3i1mGmIddukr5ohjpRAcYjKz8S
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 phishscore=0 bulkscore=0 suspectscore=0
+ malwarescore=0 mlxlogscore=999 adultscore=0 mlxscore=0 spamscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2202240000
+ definitions=main-2204200008
+X-Proofpoint-GUID: UxkRw9DjDw10CDqnaLswESvNY_1l1MtI
+X-Proofpoint-ORIG-GUID: UxkRw9DjDw10CDqnaLswESvNY_1l1MtI
 
-The recovery write thread started out as a normal pwrite thread and
-when the filesystem was told about potential media error in the
-range, filesystem turns the normal pwrite to a dax_recovery_write.
+The set_memory_uc() approach doesn't work well in all cases.
+As Dan pointed out when "The VMM unmapped the bad page from
+guest physical space and passed the machine check to the guest."
+"The guest gets virtual #MC on an access to that page. When
+the guest tries to do set_memory_uc() and instructs cpa_flush()
+to do clean caches that results in taking another fault / exception
+perhaps because the VMM unmapped the page from the guest."
 
-The recovery write consists of clearing media poison, clearing page
-HWPoison bit, reenable page-wide read-write permission, flush the
-caches and finally write.  A competing pread thread will be held
-off during the recovery process since data read back might not be
-valid, and this is achieved by clearing the badblock records after
-the recovery write is complete. Competing recovery write threads
-are serialized by pmem device level .recovery_lock.
+Since the driver has special knowledge to handle NP or UC,
+mark the poisoned page with NP and let driver handle it when
+it comes down to repair.
 
+Please refer to discussions here for more details.
+https://lore.kernel.org/all/CAPcyv4hrXPb1tASBZUg-GgdVs0OOFKXMXLiHmktg_kFi7YBMyQ@mail.gmail.com/
+
+Now since poisoned page is marked as not-present, in order to
+avoid writing to a not-present page and trigger kernel Oops,
+also fix pmem_do_write().
+
+Fixes: 284ce4011ba6 ("x86/memory_failure: Introduce {set, clear}_mce_nospec()")
 Signed-off-by: Jane Chu <jane.chu@oracle.com>
 ---
- drivers/nvdimm/pmem.c | 56 ++++++++++++++++++++++++++++++++++++++++++-
- drivers/nvdimm/pmem.h |  1 +
- 2 files changed, 56 insertions(+), 1 deletion(-)
+ arch/x86/kernel/cpu/mce/core.c |  6 +++---
+ arch/x86/mm/pat/set_memory.c   | 23 +++++++++++------------
+ drivers/nvdimm/pmem.c          | 30 +++++++-----------------------
+ include/linux/set_memory.h     |  4 ++--
+ 4 files changed, 23 insertions(+), 40 deletions(-)
 
+diff --git a/arch/x86/kernel/cpu/mce/core.c b/arch/x86/kernel/cpu/mce/core.c
+index 981496e6bc0e..fa67bb9d1afe 100644
+--- a/arch/x86/kernel/cpu/mce/core.c
++++ b/arch/x86/kernel/cpu/mce/core.c
+@@ -579,7 +579,7 @@ static int uc_decode_notifier(struct notifier_block *nb, unsigned long val,
+ 
+ 	pfn = mce->addr >> PAGE_SHIFT;
+ 	if (!memory_failure(pfn, 0)) {
+-		set_mce_nospec(pfn, whole_page(mce));
++		set_mce_nospec(pfn);
+ 		mce->kflags |= MCE_HANDLED_UC;
+ 	}
+ 
+@@ -1316,7 +1316,7 @@ static void kill_me_maybe(struct callback_head *cb)
+ 
+ 	ret = memory_failure(p->mce_addr >> PAGE_SHIFT, flags);
+ 	if (!ret) {
+-		set_mce_nospec(p->mce_addr >> PAGE_SHIFT, p->mce_whole_page);
++		set_mce_nospec(p->mce_addr >> PAGE_SHIFT);
+ 		sync_core();
+ 		return;
+ 	}
+@@ -1342,7 +1342,7 @@ static void kill_me_never(struct callback_head *cb)
+ 	p->mce_count = 0;
+ 	pr_err("Kernel accessed poison in user space at %llx\n", p->mce_addr);
+ 	if (!memory_failure(p->mce_addr >> PAGE_SHIFT, 0))
+-		set_mce_nospec(p->mce_addr >> PAGE_SHIFT, p->mce_whole_page);
++		set_mce_nospec(p->mce_addr >> PAGE_SHIFT);
+ }
+ 
+ static void queue_task_work(struct mce *m, char *msg, void (*func)(struct callback_head *))
+diff --git a/arch/x86/mm/pat/set_memory.c b/arch/x86/mm/pat/set_memory.c
+index 978cf5bd2ab6..e3a5e55f3e08 100644
+--- a/arch/x86/mm/pat/set_memory.c
++++ b/arch/x86/mm/pat/set_memory.c
+@@ -1925,13 +1925,8 @@ int set_memory_wb(unsigned long addr, int numpages)
+ }
+ EXPORT_SYMBOL(set_memory_wb);
+ 
+-/*
+- * Prevent speculative access to the page by either unmapping
+- * it (if we do not require access to any part of the page) or
+- * marking it uncacheable (if we want to try to retrieve data
+- * from non-poisoned lines in the page).
+- */
+-int set_mce_nospec(unsigned long pfn, bool unmap)
++/* Prevent speculative access to a page by marking it not-present */
++int set_mce_nospec(unsigned long pfn)
+ {
+ 	unsigned long decoy_addr;
+ 	int rc;
+@@ -1956,19 +1951,23 @@ int set_mce_nospec(unsigned long pfn, bool unmap)
+ 	 */
+ 	decoy_addr = (pfn << PAGE_SHIFT) + (PAGE_OFFSET ^ BIT(63));
+ 
+-	if (unmap)
+-		rc = set_memory_np(decoy_addr, 1);
+-	else
+-		rc = set_memory_uc(decoy_addr, 1);
++	rc = set_memory_np(decoy_addr, 1);
+ 	if (rc)
+ 		pr_warn("Could not invalidate pfn=0x%lx from 1:1 map\n", pfn);
+ 	return rc;
+ }
+ 
++static int set_memory_present(unsigned long *addr, int numpages)
++{
++	return change_page_attr_set(addr, numpages, __pgprot(_PAGE_PRESENT), 0);
++}
++
+ /* Restore full speculative operation to the pfn. */
+ int clear_mce_nospec(unsigned long pfn)
+ {
+-	return set_memory_wb((unsigned long) pfn_to_kaddr(pfn), 1);
++	unsigned long addr = (unsigned long) pfn_to_kaddr(pfn);
++
++	return set_memory_present(&addr, 1);
+ }
+ EXPORT_SYMBOL_GPL(clear_mce_nospec);
+ 
 diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index c3772304d417..134f8909eb65 100644
+index 58d95242a836..4aa17132a557 100644
 --- a/drivers/nvdimm/pmem.c
 +++ b/drivers/nvdimm/pmem.c
-@@ -332,10 +332,63 @@ static long pmem_dax_direct_access(struct dax_device *dax_dev,
- 	return __pmem_direct_access(pmem, pgoff, nr_pages, mode, kaddr, pfn);
- }
- 
-+/*
-+ * The recovery write thread started out as a normal pwrite thread and
-+ * when the filesystem was told about potential media error in the
-+ * range, filesystem turns the normal pwrite to a dax_recovery_write.
-+ *
-+ * The recovery write consists of clearing media poison, clearing page
-+ * HWPoison bit, reenable page-wide read-write permission, flush the
-+ * caches and finally write.  A competing pread thread will be held
-+ * off during the recovery process since data read back might not be
-+ * valid, and this is achieved by clearing the badblock records after
-+ * the recovery write is complete. Competing recovery write threads
-+ * are serialized by pmem device level .recovery_lock.
-+ */
- static size_t pmem_recovery_write(struct dax_device *dax_dev, pgoff_t pgoff,
- 		void *addr, size_t bytes, struct iov_iter *i)
+@@ -158,36 +158,20 @@ static blk_status_t pmem_do_write(struct pmem_device *pmem,
+ 			struct page *page, unsigned int page_off,
+ 			sector_t sector, unsigned int len)
  {
--	return 0;
-+	struct pmem_device *pmem = dax_get_private(dax_dev);
-+	size_t olen, len, off;
-+	phys_addr_t pmem_off;
-+	struct device *dev = pmem->bb.dev;
-+	long cleared;
+-	blk_status_t rc = BLK_STS_OK;
+-	bool bad_pmem = false;
+ 	phys_addr_t pmem_off = sector * 512 + pmem->data_offset;
+ 	void *pmem_addr = pmem->virt_addr + pmem_off;
+ 
+-	if (unlikely(is_bad_pmem(&pmem->bb, sector, len)))
+-		bad_pmem = true;
++	if (unlikely(is_bad_pmem(&pmem->bb, sector, len))) {
++		blk_status_t rc = pmem_clear_poison(pmem, pmem_off, len);
 +
-+	off = offset_in_page(addr);
-+	len = PFN_PHYS(PFN_UP(off + bytes));
-+	if (!is_bad_pmem(&pmem->bb, PFN_PHYS(pgoff) >> SECTOR_SHIFT, len))
-+		return _copy_from_iter_flushcache(addr, bytes, i);
-+
-+	/*
-+	 * Not page-aligned range cannot be recovered. This should not
-+	 * happen unless something else went wrong.
-+	 */
-+	if (off || !PAGE_ALIGNED(bytes)) {
-+		dev_warn(dev, "Found poison, but addr(%p) or bytes(%#lx) not page aligned\n",
-+			addr, bytes);
-+		return 0;
++		if (rc != BLK_STS_OK)
++			return rc;
 +	}
-+
-+	mutex_lock(&pmem->recovery_lock);
-+	pmem_off = PFN_PHYS(pgoff) + pmem->data_offset;
-+	cleared = __pmem_clear_poison(pmem, pmem_off, len);
-+	if (cleared > 0 && cleared < len) {
-+		dev_warn(dev, "poison cleared only %ld out of %lu bytes\n",
-+			cleared, len);
-+		mutex_unlock(&pmem->recovery_lock);
-+		return 0;
-+	}
-+	if (cleared < 0) {
-+		dev_warn(dev, "poison clear failed: %ld\n", cleared);
-+		mutex_unlock(&pmem->recovery_lock);
-+		return 0;
-+	}
-+
-+	olen = _copy_from_iter_flushcache(addr, bytes, i);
-+	pmem_clear_bb(pmem, to_sect(pmem, pmem_off), cleared >> SECTOR_SHIFT);
-+
-+	mutex_unlock(&pmem->recovery_lock);
-+	return olen;
+ 
+-	/*
+-	 * Note that we write the data both before and after
+-	 * clearing poison.  The write before clear poison
+-	 * handles situations where the latest written data is
+-	 * preserved and the clear poison operation simply marks
+-	 * the address range as valid without changing the data.
+-	 * In this case application software can assume that an
+-	 * interrupted write will either return the new good
+-	 * data or an error.
+-	 *
+-	 * However, if pmem_clear_poison() leaves the data in an
+-	 * indeterminate state we need to perform the write
+-	 * after clear poison.
+-	 */
+ 	flush_dcache_page(page);
+ 	write_pmem(pmem_addr, page, page_off, len);
+-	if (unlikely(bad_pmem)) {
+-		rc = pmem_clear_poison(pmem, pmem_off, len);
+-		write_pmem(pmem_addr, page, page_off, len);
+-	}
+ 
+-	return rc;
++	return BLK_STS_OK;
  }
  
- static const struct dax_operations pmem_dax_ops = {
-@@ -525,6 +578,7 @@ static int pmem_attach_disk(struct device *dev,
- 	if (rc)
- 		goto out_cleanup_dax;
- 	dax_write_cache(dax_dev, nvdimm_has_cache(nd_region));
-+	mutex_init(&pmem->recovery_lock);
- 	pmem->dax_dev = dax_dev;
+ static void pmem_submit_bio(struct bio *bio)
+diff --git a/include/linux/set_memory.h b/include/linux/set_memory.h
+index 683a6c3f7179..369769ce7399 100644
+--- a/include/linux/set_memory.h
++++ b/include/linux/set_memory.h
+@@ -43,10 +43,10 @@ static inline bool can_set_direct_map(void)
+ #endif /* CONFIG_ARCH_HAS_SET_DIRECT_MAP */
  
- 	rc = device_add_disk(dev, disk, pmem_attribute_groups);
-diff --git a/drivers/nvdimm/pmem.h b/drivers/nvdimm/pmem.h
-index 392b0b38acb9..91e40f5e3c0e 100644
---- a/drivers/nvdimm/pmem.h
-+++ b/drivers/nvdimm/pmem.h
-@@ -27,6 +27,7 @@ struct pmem_device {
- 	struct dax_device	*dax_dev;
- 	struct gendisk		*disk;
- 	struct dev_pagemap	pgmap;
-+	struct mutex		recovery_lock;
- };
- 
- long __pmem_direct_access(struct pmem_device *pmem, pgoff_t pgoff,
+ #ifdef CONFIG_X86_64
+-int set_mce_nospec(unsigned long pfn, bool unmap);
++int set_mce_nospec(unsigned long pfn);
+ int clear_mce_nospec(unsigned long pfn);
+ #else
+-static inline int set_mce_nospec(unsigned long pfn, bool unmap)
++static inline int set_mce_nospec(unsigned long pfn)
+ {
+ 	return 0;
+ }
 -- 
 2.18.4
 
