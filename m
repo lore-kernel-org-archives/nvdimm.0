@@ -1,55 +1,55 @@
-Received: from mx0b-00069f02.pphosted.com (mx0b-00069f02.pphosted.com [205.220.177.32])
+Received: from mx0a-00069f02.pphosted.com (mx0a-00069f02.pphosted.com [205.220.165.32])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0B9310F3
-	for <nvdimm@lists.linux.dev>; Wed, 20 Apr 2022 02:05:34 +0000 (UTC)
-Received: from pps.filterd (m0246632.ppops.net [127.0.0.1])
-	by mx0b-00069f02.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 23JLMjcm013493;
-	Wed, 20 Apr 2022 02:05:06 GMT
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1584710FE
+	for <nvdimm@lists.linux.dev>; Wed, 20 Apr 2022 02:05:35 +0000 (UTC)
+Received: from pps.filterd (m0246627.ppops.net [127.0.0.1])
+	by mx0b-00069f02.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 23JKk2Af019815;
+	Wed, 20 Apr 2022 02:05:22 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : content-type :
  mime-version; s=corp-2021-07-09;
- bh=uvWeK48wP2Py79jR00WKj7o5KWBwj4JlN/oMfz5t8Yk=;
- b=Vqt1tq6Iiji0H+S/iu2Db5q03hVPzPk1oIRQdhysCtIRt7dQ3UiHx8P6X+w/j3UZ6X2Y
- GkEA5Su9hmJNDTE0eKcBuykaYl7RHQNMFPpi21uMZifMTi27vnZ2KevtVhxt6gu4HwGT
- qqivX3hfty6IDIbKJHWJWVTgBLOnR4/tOZeNousK5/omO4fe50B0Xsuu9rLD9Tt7qNIb
- dkOfEItjz8IJKSksa3j1ez4IJzB8JXw0O1SytWZL6JY5F73EzQGtompOjO2nxqgVuVzc
- Bmp1eimnO9o2zkGUUNjHut2lb/lStcWPODgGETkgGFBJlrwULVNN83wSix0zbrWHdfZa Kw== 
+ bh=rGKMWwhH5kxfzhUJGdmd+RVQaEH51yGoDRr/lTdFaTc=;
+ b=puE+olaJf1nmVoSe7+56rdf84E7leH7m7dVkQ8CghinBOXAqCxF0HkC+nws4p+PNxVs3
+ 7AauDtwNsKfGncjJApJwL1up6TLACpcLrFaFOTd9Ci8xN5qAE72jyxxcuZK3RLnDKQQ8
+ 3mrvhCzaphi1l6ub1zdT3eqItESOkatmvNgzXGfo860VxNsRthuo1hSED+EHJsDB7x7c
+ 4J2krd0+Fcssvg/uBHiggJLozqcrnAzGFqNhX+9pInVHV/3WNzm/tZ/NxwzUjJ42FjsL
+ mSp29iDj/PnJxSGOPMEoLYi2FkC3fnp5kt4WCn/NprEsaBIS6yG9ytLbgD7Rc8rtI8ik Jw== 
 Received: from iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com (iadpaimrmta01.appoci.oracle.com [130.35.100.223])
-	by mx0b-00069f02.pphosted.com with ESMTP id 3ffndtfngm-1
+	by mx0b-00069f02.pphosted.com with ESMTP id 3ffmd17ppx-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 20 Apr 2022 02:05:05 +0000
+	Wed, 20 Apr 2022 02:05:21 +0000
 Received: from pps.filterd (iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com [127.0.0.1])
-	by iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com (8.16.1.2/8.16.1.2) with SMTP id 23K20WES038043;
-	Wed, 20 Apr 2022 02:05:05 GMT
-Received: from nam04-dm6-obe.outbound.protection.outlook.com (mail-dm6nam08lp2046.outbound.protection.outlook.com [104.47.73.46])
-	by iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com with ESMTP id 3ffm88mv78-1
+	by iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com (8.16.1.2/8.16.1.2) with SMTP id 23K20Wh1038030;
+	Wed, 20 Apr 2022 02:05:20 GMT
+Received: from nam04-dm6-obe.outbound.protection.outlook.com (mail-dm6nam08lp2049.outbound.protection.outlook.com [104.47.73.49])
+	by iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com with ESMTP id 3ffm88mv94-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 20 Apr 2022 02:05:05 +0000
+	Wed, 20 Apr 2022 02:05:20 +0000
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=k0HKN1fBmoC2DWUPhpnznPp9Q62+VSunjAsZsO/tZSyHDWyqgTDjNx8LTi5YkVyQLl/nCja5HcsYL/6YtXFbV145eADgvDYSBtEV+5IZh2lykB9W9qoo+SZL6EjAlfU66hO5bwnvVDVy+ubznKPDsS9tYKefNe/pIzVAaTlIzzypBNVN2u8GJkRwo3SDLRUk0/fovCZsvwWFideU8wofGPjJ/o/f6jOWBYv5noi29Xgv5lrw+eMDq1xxTA3de3vWXY73EOYApPN+xvBBBNhOMziZLqgjB9Nny+P5+TCWgIoFXbcHuEEOJxVCQPa5rwwe3pmBUkApaQAlVMFUZfVMRA==
+ b=k65fd/AU03wWKdacDnuBpQhx6yB37d8mbLDYDCIU1ToDpzEAsu1xhkLo9rQl+Lu9H6GSv9PKVxu1XctlJ6W+lHSZlLHqO+jIuB8dES+Dd+0Q5O15ywp0zOSwfq9yxOwlj1vCpJlCPTS+k6EPmIl3lDXNGNc70CO1pDBsCftgWcyMnO1x0oWJhWwTk2WvcjaaE2RebtYchbJg4W5JcRmR8f4Cg/2wDTZ3wxRvrlR4n2feLA7rRfGC16RBPF63QZLQkGGgusfnZSu3ZCncqRlPjUrvyXb7d6IFCuLJEc/qAJVVTvPdkoYcaOQXFPzKxmRW8eWaMCuIn5/oZ2BLqcg8jw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=uvWeK48wP2Py79jR00WKj7o5KWBwj4JlN/oMfz5t8Yk=;
- b=fmVZEcY26wG/s9IEE9cIzDkP1J3fsKZ7W3dRRf8wDN2i35EM7d7Iog/zfbo/M/PMjC2JMb1gF6qj3HdtrUwjbbDq2b7cG8AgVHuer3C6yfFq8ffHZpI4AC3lAzHg7rzTKzjMFh6owQUPBupdijxS3IgaMMJ4UGulUsK2cTdlTlceMCIxQujYx3RW4iBZfXnrkERliTvHv6eWdSGVxr6gLLM+XhRywdvKRX7v467NfQPEZ6g9V6y0QE0g3BsfGafc8i5pkiU+OSAFXyedBFZpV7fGnrY66MLqxwB5RpjnT0kKL/ZnrPI5WJoxtGZuNEr3eFsVkJL8tWXtdIV67mZ5mw==
+ bh=rGKMWwhH5kxfzhUJGdmd+RVQaEH51yGoDRr/lTdFaTc=;
+ b=mou88uR4m4ag6D8rAT/msCizw0eylnCVe9nenBH2323vGFGNcdU5jp3/1TBRx6b+YSad4yVL7Cc524vYxA7lDU6glOT2AY/GaDGFXB2H4e2mXmnUm6UdU1ero+C9e/mIQcB4u8A84gW/VOLl0sQcBg7FCk16IT7DgMgIfKNCKd3mELfgaWNTO4Ru4hNYgqKhuA1pMbRfcB7W2u5RL9ysApH2nKkb5/IdHRoeIQgUNgSbJPMVaQ0ChEcEHIpEy7036vBO3qITjxn/Yse4JDyRa3HxGAI3kr4WPrETw9FHCAIW5nGbTEcM7imQ+Xe3vFAaNLUIJEVvX1Nxs9201fhbJw==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
  dkim=pass header.d=oracle.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
  d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=uvWeK48wP2Py79jR00WKj7o5KWBwj4JlN/oMfz5t8Yk=;
- b=DKr+pGUyxtyPEZNZTKs8+cN9I8Mp53YVhcVKUhwzrYA7TNUiu/3sLCSszKpRhhUM6VrSLGB4uuOdAWZPSAzskuDrL0Y1wU+nxVvMeUTB/PVd5V6NLsK6lwmo8ryu9qFpGILna7fVarx73vgipbV4JTJJsjNc4K6Mg25+dBYKLfA=
+ bh=rGKMWwhH5kxfzhUJGdmd+RVQaEH51yGoDRr/lTdFaTc=;
+ b=sgrXyycQeWRsCL1Zry/fHlDcPvFU1tr9BCCw5zBTEDzN8SviphYGDiLcZcjogHdv7LmxSkPd9P2CRa3OSpZvTZQILrsGMSOX5oRG2Z+NNRMwlXvhGBbRqv68NWzleLJmXt4ki80CtW/SpP7HM+pUGnIy2qGsNy7MAiKwe9ZEfGw=
 Received: from SJ0PR10MB4429.namprd10.prod.outlook.com (2603:10b6:a03:2d1::14)
  by SJ0PR10MB4557.namprd10.prod.outlook.com (2603:10b6:a03:2d4::16) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5164.20; Wed, 20 Apr
- 2022 02:05:03 +0000
+ 2022 02:05:13 +0000
 Received: from SJ0PR10MB4429.namprd10.prod.outlook.com
  ([fe80::1c44:15ca:b5c2:603e]) by SJ0PR10MB4429.namprd10.prod.outlook.com
  ([fe80::1c44:15ca:b5c2:603e%8]) with mapi id 15.20.5164.025; Wed, 20 Apr 2022
- 02:05:03 +0000
+ 02:05:13 +0000
 From: Jane Chu <jane.chu@oracle.com>
 To: dan.j.williams@intel.com, bp@alien8.de, hch@infradead.org,
         dave.hansen@intel.com, peterz@infradead.org, luto@kernel.org,
@@ -58,9 +58,9 @@ To: dan.j.williams@intel.com, bp@alien8.de, hch@infradead.org,
 Cc: vishal.l.verma@intel.com, dave.jiang@intel.com, agk@redhat.com,
         snitzer@redhat.com, dm-devel@redhat.com, ira.weiny@intel.com,
         willy@infradead.org, vgoyal@redhat.com
-Subject: [PATCH v8 2/7] x86/mce: relocate set{clear}_mce_nospec() functions
-Date: Tue, 19 Apr 2022 20:04:30 -0600
-Message-Id: <20220420020435.90326-3-jane.chu@oracle.com>
+Subject: [PATCH v8 5/7] dax: add .recovery_write dax_operation
+Date: Tue, 19 Apr 2022 20:04:33 -0600
+Message-Id: <20220420020435.90326-6-jane.chu@oracle.com>
 X-Mailer: git-send-email 2.18.4
 In-Reply-To: <20220420020435.90326-1-jane.chu@oracle.com>
 References: <20220420020435.90326-1-jane.chu@oracle.com>
@@ -75,59 +75,59 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: c35109b9-24fc-4c12-cede-08da22722ebf
+X-MS-Office365-Filtering-Correlation-Id: cd3ddca6-48dd-42f9-2847-08da227234c2
 X-MS-TrafficTypeDiagnostic: SJ0PR10MB4557:EE_
 X-Microsoft-Antispam-PRVS: 
-	<SJ0PR10MB45579A556DCD6B8D71E10E47F3F59@SJ0PR10MB4557.namprd10.prod.outlook.com>
+	<SJ0PR10MB4557927BBEA38273D00D896AF3F59@SJ0PR10MB4557.namprd10.prod.outlook.com>
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
 X-Microsoft-Antispam-Message-Info: 
-	Khabm9zfxzhsrZxP0wWbEZPUv7wX2yK1H+4CI8dEeUs0mTTSl5m2Ipyiur8+OnThwDx3Br/0v9pqCkEtZDTPwe9AjPxyT1KvjI2uae04vrH6e4rY+hv7xiLAX8+Z3pCj3gihrxA4f5m3sq1+walVJztKmM6bc57HPKr1c5zYvQZS6nSVupVegFoOGSxSRg0F7JCAegQG+EnY0utGgt4irnkx5HAFPO6RPqPA3noaAaH15BfBlxsWYh9JfscQZbBnwiX8E8ZWGMocxZZXvC5GOJtWD8Xn/1pob17CyZBd+d7PFs1TNZG68yxNADD/CQwvuonGgFWDUBb5WaCWxQFPgsmogptfwa8WTpGxBLw1N5tVy3wub0LKt5HZpeTH70ZfIabkM/cWIGZj+kNkpEKBnQtynENt0TUs3ysffapxZ7E5n16Xzf3xyh/HzKUoLD2ZHRnqNsoCppEfzOZvKEcTdpDjnIqTS/wyuJJ/YdI/kaTmEbJaOow9JTXKCjywBmPRmOEJvnpgBjWgCx7vR1AP7hptlJT2OMQ7Lo/Quf3S2SEYjm3Hd46+HH+PiUHr0vhuf7yT1WHLbQefxxN2jQvA56nBRyfV18Mrce1VuQyGAC541Bqu+7Rzs3PWci3RVt8T0KxPE655vn81NSjR7znctPMytYbyFM8Xqmo1Zc2Ql96mJn5L/FgfhEEs2VsrXPDI
+	R4wqIE77SX4EMKaXmn+KgoOMbe9u8K4pJv/8eWigfYW1t5xzmV6Hq7FowrmThJr/HiX19iYDLtRRiVg1r3bEHiPa9/5NPJXer3lcZJcqYi0ID3mD/6VEKbqIcROoZkYlOMc1qmEpd2PA5AKczAt4Mr5S6hbKoYlfq3eEZS0sgMTauAYj2LqiLPMvyuuZJTg7wsZKJIqMGyasxdnSFdnxVBxHR9rwiVawYW5iLU71N//vkmjoBBztH8v6Z6z2xRhJq2uVf98NU54kCnjgErudDsyd9ldJ8Ozsk/pqghKaYCXtmFkGrWXQpL5oHa8vHwVrcP0MkEPMytbYgrW6ZRvmOD//cQYpTOWXGUVSnTsiXKp6D/z+xiLah1koCzvboP7FQMLPNyd0Q04HgSNfFjO9+qDlkDjjWrlAN0KnzuwDoownvWliWjgDfr8u1120fOtaomD49jOg5kM13A7sTZlVXuzvudfens9tKFsat1LhoJNrIrulh+6AEtLbHkce2JbwpvOKsi19UcgcvUyrlyPir8/TNlkNvw50Lo77xT/XpW/KPQmjE9PIdf1M2x5OTK8U7CWqveopf8acrfzjqP2PHssRFm8DBVHYhNvl0iTzS6u9iTnkapxoseLfbWJNqM3hdZF65kIGKlyYdVfVxDOcjfimFqVbvuOjGp8lxf+pOudd9sJVFjP6ypm01VttoE1eQyuX6+6jVxSOdHFD0t3B7XefbKVtlIBkrj3Q5H3zz8I=
 X-Forefront-Antispam-Report: 
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SJ0PR10MB4429.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230001)(366004)(66476007)(5660300002)(83380400001)(86362001)(4326008)(66556008)(316002)(2906002)(508600001)(1076003)(36756003)(66946007)(186003)(44832011)(6486002)(6512007)(8676002)(2616005)(921005)(7416002)(6666004)(52116002)(38100700002)(6506007)(8936002);DIR:OUT;SFP:1101;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SJ0PR10MB4429.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230001)(366004)(66476007)(5660300002)(83380400001)(86362001)(4326008)(66556008)(316002)(2906002)(508600001)(1076003)(36756003)(66946007)(186003)(44832011)(6486002)(6512007)(8676002)(2616005)(921005)(7416002)(6666004)(52116002)(38100700002)(6506007)(8936002)(142923001);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0: 
-	=?us-ascii?Q?Ec2qLoa3nh5oO6dIlwVBIF+Pn+ZVq38kQy9dGMCEzNLpBYq65ahnLNNU2n2k?=
- =?us-ascii?Q?95Lsh0ujFd1B4yt9/CVeK6r9LoWJvURMqaQt7EOWu8ydE1JG5qf0OLALFEd+?=
- =?us-ascii?Q?67nQWfKFXiiuVVRg5lz8nLSNYCtIbfUAxWpw4NNpls5/o6a1LBK6HtwmEAaz?=
- =?us-ascii?Q?ZXDsQp2HwqkVHVROcLv+lmGi+KE4kcnQxxrrHHBjVoGK38kBotjGMyj5o1x9?=
- =?us-ascii?Q?vcS4BMHXEovHnwrIFZuhVm2lUjbOZ57oERHb6CmBKlMzh7ao3AtsGtPltsaC?=
- =?us-ascii?Q?ycJHfEpI1VgVsA20OPNVMGAFd9mYbgsYlUh0G7ysUEgoFRQsWhERJeOsFxs8?=
- =?us-ascii?Q?Wn0K+icdy+4tJwYDCMUKGWMtwHcPfOjVoYzNFZkU9uv9O2ILwnuxxzWoZstx?=
- =?us-ascii?Q?TopbOapbPROQdT57fv12BnX8eMxb7ilupfDqpQbdWS8dkTKUJeHXoPz/g4hw?=
- =?us-ascii?Q?Vs2/MFXkA7Wy5XYH2rY44RsJWW5N+mEy/ly2+/77bcFH5sKTzhmBz/cfE1dM?=
- =?us-ascii?Q?CXVFvOMpd+hnlVL5/jfIe6JJrMgzqGZljlasuTjC02/huD/9PSRzlFZvNtN3?=
- =?us-ascii?Q?QbLfwuzp/VMhmZ4sZ9VuHdVHVnNss+Errx7zkLbFL6batQT5yphvzh79kl9z?=
- =?us-ascii?Q?VmwaJC5eQAwPcBoUznRXuyLogbyqOLw9eo66X/9qJ9sNQ6FqDavOdm+b0adl?=
- =?us-ascii?Q?43JPQYDSq9HqQzYUYM42g+7z5HWfZ9mUYoVxnPUx0rmDjQgWPj0jChDn2Fiq?=
- =?us-ascii?Q?zxCxt1AHeIJ2XjGtVz263rHxZjbrleD8EMHp7k12Dypw9EHL0Zlk3twXHFjl?=
- =?us-ascii?Q?b93AFVVBIWpbHkM25xV6njHKSBl9MIz3mDZxxjiQMPMzyip/R3hoBwlR3hPi?=
- =?us-ascii?Q?/oekJ+HwE86+jWSPHyZhKjiPD7tgbWcVjceuUT80IkNumfufoNRw8keqMObC?=
- =?us-ascii?Q?7t5JF46abmjSa/nfBLy98LFzW073ZcLFwxWLNLdUlxEHt9i0p4oAgoHgJhRw?=
- =?us-ascii?Q?r3L6uO0NaMK75Yjf7hwHTw2y5uMg1b17cTBNM0sifky8mSr+cVqNC3TyEPD9?=
- =?us-ascii?Q?kfPKZ3RQuL6RXO3Ef4BQDPAgEldFAxtJGHk8SLNh3iHkItnpZ1qqG1Xfb6Uo?=
- =?us-ascii?Q?6NRODC/8Q5Rl1xzicBZfWe9Kj802QbrRwyp4YdPbNkCjuMAoKYdiZcbx+4m6?=
- =?us-ascii?Q?n3yiQCIi3KDl2/cy/t/UOvmQSEtUi+WWa1uCsuPmkzMkNHjhf2jc8naFd8Rv?=
- =?us-ascii?Q?1jYINnUQfgQSFx115Y4fNq5+SbSumjw8bQp4RUF46cZ3a3kTY10ymUmfeCoP?=
- =?us-ascii?Q?Kdf5ST6gywMsNdkcoh/PLv3TNZ4Lg5FTY7P1AQbKQM89AbawZSMiqFv6aSDF?=
- =?us-ascii?Q?Qf055kAhS7KmdqMEzHE06OT34PLzlbpfybR3XFeISiLQCgarYdrF5KSme5Vb?=
- =?us-ascii?Q?Po67fC01YWkNvQCjdUBaDpJ7wTjUPy7MVfhiKjktf2EA5lUL8wchY+tFlvxC?=
- =?us-ascii?Q?DRuKIGVZSaROmSRRfKvQOXpaEET+KXqtJeXuKZQ75AjB7SenL5R5cIdz16cx?=
- =?us-ascii?Q?NEsWEe/oeWyzgE/dr68Z2Q2l9q3/W+qR09DcHjVRonTVo6jaO+ibeE5JRlYf?=
- =?us-ascii?Q?ztt5T2Z3JPMfV7EiTdr96EZntjlAz1h3GjMD6lMUkDizy+KtW1tIuD1Uvjyd?=
- =?us-ascii?Q?R3SYzLrYk4uf+GGx1Gp4jdZQtDrIUBsqCDs9OyB0W5qbg4mqU5Hfg3AIBjgy?=
- =?us-ascii?Q?yATZmGJG31hv/KAYUXzNsh1s4g82I8c=3D?=
+	=?us-ascii?Q?AEl3jXt0UkeTVfeT2amfqSrOg5fPSZi0dpdk3ILtn5MWVKh9N03UT/FK07KJ?=
+ =?us-ascii?Q?KZ4XGkb+grTfIMDKsix0kJ2DBw21fy6SJr3EZp6yKSN8leEJRj9ZDM1kPYXL?=
+ =?us-ascii?Q?+vwS5hpU6FrJRrTE0ZyZb+bUsxfCHciQjKhU8Q0h5kH3GR4OIyF29D5We008?=
+ =?us-ascii?Q?bl9X5x5ODbrq0KiqdsFcfmMh8br9nDAhzwFGr3Di4UV1Eekv2S8m5w7YP6Ys?=
+ =?us-ascii?Q?Lzns+8xuQhElBnN+AJRcpPOw5lkvsv6VAAAKgDOtXhrCrwaXInYAFlpWL8cG?=
+ =?us-ascii?Q?sOxT5Jzfxaz/PAw32tY1hHv2RXLKY4GEwg+5hdnUFYzZqYKdZBglfSIxIkEK?=
+ =?us-ascii?Q?B/qCUNrseJKHQ98koskgydJRDahY+56UZVZTmRNpmk3xP4BS5P93+s4v/bCc?=
+ =?us-ascii?Q?93Lm+1OmZX/rTWT9q5/G/GUb4M09PTudvvqg4eshiy+keiY9wmInR7UISBpq?=
+ =?us-ascii?Q?M5T8yOnnT9pWQxX1gX7trNF4lwLenEb2gA/Tcfg2VFNJjzaqdVcqC59VE/CE?=
+ =?us-ascii?Q?TNrkWMdXKiWeBQBr07A/uUTMT6HP90ItKMVqWRbREMGsmn8ytlxFSv+SKr01?=
+ =?us-ascii?Q?imCzomQXxSDz0dIalHHKD3KOuj/X9oGg1HrREJEGtVrTqa0OzTg7fJSA3P3A?=
+ =?us-ascii?Q?mtRgD9Mya+AFrXv5lvmM4tWAON0gWokmY4ZexYxUaVCfbtbJOKSIyHs6usgr?=
+ =?us-ascii?Q?xAgwsFSTWSbmJgLNmqWT7NLLNGgUBhmDD2LnHZUZGBI3gRNLnq/H03ssw8cu?=
+ =?us-ascii?Q?OfmmoyWs3sqyxhL5eABifqpemxYh+lJK3LNWwCY+3qfKWLuNq25B8dfEYiEd?=
+ =?us-ascii?Q?6dduDFhVHJYo0BbQweobM6GcZ2VvPVfxMM2A59/BGzMBgtwFA9r4aliY95fq?=
+ =?us-ascii?Q?e3mbABHjdmc7fIhLyzeQCdVZHAU8Q0SixvFEj8vdnmel/on59CZ/bHKKJxzS?=
+ =?us-ascii?Q?+btnygooXmZiho9t4ABsmzuKELiJvr7B/jzLIyq1q9JBnTUB/xEGGJ1pe79O?=
+ =?us-ascii?Q?8/8IdmyPgMMv+WW5yQzNyVRWCoX60OIl+HDDk4wyJ9rsV3iq1cjlVipVczOi?=
+ =?us-ascii?Q?L8ohkJUv0XMDIb+u0P6Hqlr6LNUJ3AmicHEX0A932FGlQblqIdcYf7xs5DtB?=
+ =?us-ascii?Q?0XnMr24PUY447qeTe6dkcSD+MeR528gns7IbsfxUKk8hrWf+3IFxlGf3MtPV?=
+ =?us-ascii?Q?FbS5yFoyMcIbrELJtLOJCWKaiVRtFcVS6kaeum4GL2MFqoRx7AmhA//nwo8Q?=
+ =?us-ascii?Q?iwbCrQGz9DQfR6h94miLBIe3fzM2JmbxbjxmzV+2qfZeI4ABA1SGZRPd2rOA?=
+ =?us-ascii?Q?CVPYCXYCPAWQcI+QjUU5Ljnyjrvpq3lWFhqNZ9gYbJtkTVXYVjuj9KJypEes?=
+ =?us-ascii?Q?cmw0txTjrbfN3JCBMMqg9Ml+Jy/ZUnxPdLOuPEL3SyCc5dh21zdFwDrkB9V7?=
+ =?us-ascii?Q?n6yAwc+wGv0FR/tEE0W6ucYo5kVdx8R3gi5g9KFtjfSp4i6CDnlpi0eDlrs8?=
+ =?us-ascii?Q?jGLgyYvy7HOIN+dTzQGbu74YkjbFat4uhDS80i3zZMjhy43FJpH6qg7y4BLY?=
+ =?us-ascii?Q?dV3zgWijxeUvEAZrw3W+byPCqX1STm3DUhmclDi/GuGDFTZPtBO/c2DNhJlS?=
+ =?us-ascii?Q?/d6nTJh3IJCO/7ZFAWvy/ucY9Xfu1DMstE2tk2LKYJKO6V86FIWmSPvyADDm?=
+ =?us-ascii?Q?m/3DRgrr+tuMelJR/oe4tZbDWZqGkZjzRaDBlE3T9EyLaSLtDU8FUoh1T0DM?=
+ =?us-ascii?Q?no6xBoLmdkiHzpCzqwDQutm/p4fXIJw=3D?=
 X-OriginatorOrg: oracle.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: c35109b9-24fc-4c12-cede-08da22722ebf
+X-MS-Exchange-CrossTenant-Network-Message-Id: cd3ddca6-48dd-42f9-2847-08da227234c2
 X-MS-Exchange-CrossTenant-AuthSource: SJ0PR10MB4429.namprd10.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 20 Apr 2022 02:05:03.3690
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 20 Apr 2022 02:05:13.4351
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: Nmmu2CdaOp6F16dqXwSgs1SUwn/klqH7Gi93Igy7ulw3O3L6ZTBq2Y6WqHhk4x8x6a0dVhSftU7PYFPKDi5ySQ==
+X-MS-Exchange-CrossTenant-UserPrincipalName: yPsJCFFreogqqrq6IToN2vO6xsowMb9HjGviS9HdP6MGZ0jLrnOmGmhvAn4YikRloR2Z5kiA1lRNEhjvgmIA9w==
 X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ0PR10MB4557
 X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.486,18.0.858
  definitions=2022-04-19_08:2022-04-15,2022-04-19 signatures=0
@@ -135,173 +135,304 @@ X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 malwarescore=0 ml
  adultscore=0 mlxlogscore=999 spamscore=0 bulkscore=0 suspectscore=0
  classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2202240000
  definitions=main-2204200008
-X-Proofpoint-ORIG-GUID: SqkTtmP0CkU-oOj4EJHVR0SwW3M3uKGv
-X-Proofpoint-GUID: SqkTtmP0CkU-oOj4EJHVR0SwW3M3uKGv
+X-Proofpoint-ORIG-GUID: hVsQsBx_x-gt84TVWA4ULBpdkfH4Zy_k
+X-Proofpoint-GUID: hVsQsBx_x-gt84TVWA4ULBpdkfH4Zy_k
 
-Relocate the twin mce functions to arch/x86/mm/pat/set_memory.c
-file where they belong.
+Introduce dax_recovery_write() operation. The function is used to
+recover a dax range that contains poison. Typical use case is when
+a user process receives a SIGBUS with si_code BUS_MCEERR_AR
+indicating poison(s) in a dax range, in response, the user process
+issues a pwrite() to the page-aligned dax range, thus clears the
+poison and puts valid data in the range.
 
-While at it, fixup a function name in a comment.
-
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Jane Chu <jane.chu@oracle.com>
 ---
- arch/x86/include/asm/set_memory.h | 52 -------------------------------
- arch/x86/mm/pat/set_memory.c      | 49 ++++++++++++++++++++++++++++-
- include/linux/set_memory.h        |  8 ++---
- 3 files changed, 52 insertions(+), 57 deletions(-)
+ drivers/dax/super.c           |  9 +++++++++
+ drivers/md/dm-linear.c        | 10 ++++++++++
+ drivers/md/dm-log-writes.c    | 10 ++++++++++
+ drivers/md/dm-stripe.c        | 10 ++++++++++
+ drivers/md/dm.c               | 20 ++++++++++++++++++++
+ drivers/nvdimm/pmem.c         |  7 +++++++
+ fs/dax.c                      | 13 ++++++++++++-
+ include/linux/dax.h           | 13 +++++++++++++
+ include/linux/device-mapper.h |  9 +++++++++
+ 9 files changed, 100 insertions(+), 1 deletion(-)
 
-diff --git a/arch/x86/include/asm/set_memory.h b/arch/x86/include/asm/set_memory.h
-index 78ca53512486..b45c4d27fd46 100644
---- a/arch/x86/include/asm/set_memory.h
-+++ b/arch/x86/include/asm/set_memory.h
-@@ -86,56 +86,4 @@ bool kernel_page_present(struct page *page);
- 
- extern int kernel_set_to_readonly;
- 
--#ifdef CONFIG_X86_64
--/*
-- * Prevent speculative access to the page by either unmapping
-- * it (if we do not require access to any part of the page) or
-- * marking it uncacheable (if we want to try to retrieve data
-- * from non-poisoned lines in the page).
-- */
--static inline int set_mce_nospec(unsigned long pfn, bool unmap)
--{
--	unsigned long decoy_addr;
--	int rc;
--
--	/* SGX pages are not in the 1:1 map */
--	if (arch_is_platform_page(pfn << PAGE_SHIFT))
--		return 0;
--	/*
--	 * We would like to just call:
--	 *      set_memory_XX((unsigned long)pfn_to_kaddr(pfn), 1);
--	 * but doing that would radically increase the odds of a
--	 * speculative access to the poison page because we'd have
--	 * the virtual address of the kernel 1:1 mapping sitting
--	 * around in registers.
--	 * Instead we get tricky.  We create a non-canonical address
--	 * that looks just like the one we want, but has bit 63 flipped.
--	 * This relies on set_memory_XX() properly sanitizing any __pa()
--	 * results with __PHYSICAL_MASK or PTE_PFN_MASK.
--	 */
--	decoy_addr = (pfn << PAGE_SHIFT) + (PAGE_OFFSET ^ BIT(63));
--
--	if (unmap)
--		rc = set_memory_np(decoy_addr, 1);
--	else
--		rc = set_memory_uc(decoy_addr, 1);
--	if (rc)
--		pr_warn("Could not invalidate pfn=0x%lx from 1:1 map\n", pfn);
--	return rc;
--}
--#define set_mce_nospec set_mce_nospec
--
--/* Restore full speculative operation to the pfn. */
--static inline int clear_mce_nospec(unsigned long pfn)
--{
--	return set_memory_wb((unsigned long) pfn_to_kaddr(pfn), 1);
--}
--#define clear_mce_nospec clear_mce_nospec
--#else
--/*
-- * Few people would run a 32-bit kernel on a machine that supports
-- * recoverable errors because they have too much memory to boot 32-bit.
-- */
--#endif
--
- #endif /* _ASM_X86_SET_MEMORY_H */
-diff --git a/arch/x86/mm/pat/set_memory.c b/arch/x86/mm/pat/set_memory.c
-index abf5ed76e4b7..978cf5bd2ab6 100644
---- a/arch/x86/mm/pat/set_memory.c
-+++ b/arch/x86/mm/pat/set_memory.c
-@@ -1816,7 +1816,7 @@ static inline int cpa_clear_pages_array(struct page **pages, int numpages,
+diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+index 5405eb553430..50a08b2ec247 100644
+--- a/drivers/dax/super.c
++++ b/drivers/dax/super.c
+@@ -195,6 +195,15 @@ int dax_zero_page_range(struct dax_device *dax_dev, pgoff_t pgoff,
  }
+ EXPORT_SYMBOL_GPL(dax_zero_page_range);
+ 
++size_t dax_recovery_write(struct dax_device *dax_dev, pgoff_t pgoff,
++		void *addr, size_t bytes, struct iov_iter *iter)
++{
++	if (!dax_dev->ops->recovery_write)
++		return 0;
++	return dax_dev->ops->recovery_write(dax_dev, pgoff, addr, bytes, iter);
++}
++EXPORT_SYMBOL_GPL(dax_recovery_write);
++
+ #ifdef CONFIG_ARCH_HAS_PMEM_API
+ void arch_wb_cache_pmem(void *addr, size_t size);
+ void dax_flush(struct dax_device *dax_dev, void *addr, size_t size)
+diff --git a/drivers/md/dm-linear.c b/drivers/md/dm-linear.c
+index 13e263299c9c..cdf48bc8c5b0 100644
+--- a/drivers/md/dm-linear.c
++++ b/drivers/md/dm-linear.c
+@@ -188,9 +188,18 @@ static int linear_dax_zero_page_range(struct dm_target *ti, pgoff_t pgoff,
+ 	return dax_zero_page_range(dax_dev, pgoff, nr_pages);
+ }
+ 
++static size_t linear_dax_recovery_write(struct dm_target *ti, pgoff_t pgoff,
++		void *addr, size_t bytes, struct iov_iter *i)
++{
++	struct dax_device *dax_dev = linear_dax_pgoff(ti, &pgoff);
++
++	return dax_recovery_write(dax_dev, pgoff, addr, bytes, i);
++}
++
+ #else
+ #define linear_dax_direct_access NULL
+ #define linear_dax_zero_page_range NULL
++#define linear_dax_recovery_write NULL
+ #endif
+ 
+ static struct target_type linear_target = {
+@@ -208,6 +217,7 @@ static struct target_type linear_target = {
+ 	.iterate_devices = linear_iterate_devices,
+ 	.direct_access = linear_dax_direct_access,
+ 	.dax_zero_page_range = linear_dax_zero_page_range,
++	.dax_recovery_write = linear_dax_recovery_write,
+ };
+ 
+ int __init dm_linear_init(void)
+diff --git a/drivers/md/dm-log-writes.c b/drivers/md/dm-log-writes.c
+index 06bdbed65eb1..22739dccdd17 100644
+--- a/drivers/md/dm-log-writes.c
++++ b/drivers/md/dm-log-writes.c
+@@ -905,9 +905,18 @@ static int log_writes_dax_zero_page_range(struct dm_target *ti, pgoff_t pgoff,
+ 	return dax_zero_page_range(dax_dev, pgoff, nr_pages << PAGE_SHIFT);
+ }
+ 
++static size_t log_writes_dax_recovery_write(struct dm_target *ti,
++		pgoff_t pgoff, void *addr, size_t bytes, struct iov_iter *i)
++{
++	struct dax_device *dax_dev = log_writes_dax_pgoff(ti, &pgoff);
++
++	return dax_recovery_write(dax_dev, pgoff, addr, bytes, i);
++}
++
+ #else
+ #define log_writes_dax_direct_access NULL
+ #define log_writes_dax_zero_page_range NULL
++#define log_writes_dax_recovery_write NULL
+ #endif
+ 
+ static struct target_type log_writes_target = {
+@@ -925,6 +934,7 @@ static struct target_type log_writes_target = {
+ 	.io_hints = log_writes_io_hints,
+ 	.direct_access = log_writes_dax_direct_access,
+ 	.dax_zero_page_range = log_writes_dax_zero_page_range,
++	.dax_recovery_write = log_writes_dax_recovery_write,
+ };
+ 
+ static int __init dm_log_writes_init(void)
+diff --git a/drivers/md/dm-stripe.c b/drivers/md/dm-stripe.c
+index 77d72900e997..baa085cc67bd 100644
+--- a/drivers/md/dm-stripe.c
++++ b/drivers/md/dm-stripe.c
+@@ -331,9 +331,18 @@ static int stripe_dax_zero_page_range(struct dm_target *ti, pgoff_t pgoff,
+ 	return dax_zero_page_range(dax_dev, pgoff, nr_pages);
+ }
+ 
++static size_t stripe_dax_recovery_write(struct dm_target *ti, pgoff_t pgoff,
++		void *addr, size_t bytes, struct iov_iter *i)
++{
++	struct dax_device *dax_dev = stripe_dax_pgoff(ti, &pgoff);
++
++	return dax_recovery_write(dax_dev, pgoff, addr, bytes, i);
++}
++
+ #else
+ #define stripe_dax_direct_access NULL
+ #define stripe_dax_zero_page_range NULL
++#define stripe_dax_recovery_write NULL
+ #endif
  
  /*
-- * _set_memory_prot is an internal helper for callers that have been passed
-+ * __set_memory_prot is an internal helper for callers that have been passed
-  * a pgprot_t value from upper layers and a reservation has already been taken.
-  * If you want to set the pgprot to a specific page protocol, use the
-  * set_memory_xx() functions.
-@@ -1925,6 +1925,53 @@ int set_memory_wb(unsigned long addr, int numpages)
+@@ -470,6 +479,7 @@ static struct target_type stripe_target = {
+ 	.io_hints = stripe_io_hints,
+ 	.direct_access = stripe_dax_direct_access,
+ 	.dax_zero_page_range = stripe_dax_zero_page_range,
++	.dax_recovery_write = stripe_dax_recovery_write,
+ };
+ 
+ int __init dm_stripe_init(void)
+diff --git a/drivers/md/dm.c b/drivers/md/dm.c
+index 8258676a352f..5374c8aba2d6 100644
+--- a/drivers/md/dm.c
++++ b/drivers/md/dm.c
+@@ -1147,6 +1147,25 @@ static int dm_dax_zero_page_range(struct dax_device *dax_dev, pgoff_t pgoff,
+ 	return ret;
  }
- EXPORT_SYMBOL(set_memory_wb);
+ 
++static size_t dm_dax_recovery_write(struct dax_device *dax_dev, pgoff_t pgoff,
++		void *addr, size_t bytes, struct iov_iter *i)
++{
++	struct mapped_device *md = dax_get_private(dax_dev);
++	sector_t sector = pgoff * PAGE_SECTORS;
++	struct dm_target *ti;
++	int srcu_idx;
++	long ret = 0;
++
++	ti = dm_dax_get_live_target(md, sector, &srcu_idx);
++	if (!ti || !ti->type->dax_recovery_write)
++		goto out;
++
++	ret = ti->type->dax_recovery_write(ti, pgoff, addr, bytes, i);
++out:
++	dm_put_live_table(md, srcu_idx);
++	return ret;
++}
++
+ /*
+  * A target may call dm_accept_partial_bio only from the map routine.  It is
+  * allowed for all bio types except REQ_PREFLUSH, REQ_OP_ZONE_* zone management
+@@ -3151,6 +3170,7 @@ static const struct block_device_operations dm_rq_blk_dops = {
+ static const struct dax_operations dm_dax_ops = {
+ 	.direct_access = dm_dax_direct_access,
+ 	.zero_page_range = dm_dax_zero_page_range,
++	.recovery_write = dm_dax_recovery_write,
+ };
+ 
+ /*
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index c77b7cf19639..3c0cad38ec33 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -309,9 +309,16 @@ static long pmem_dax_direct_access(struct dax_device *dax_dev,
+ 	return __pmem_direct_access(pmem, pgoff, nr_pages, mode, kaddr, pfn);
+ }
+ 
++static size_t pmem_recovery_write(struct dax_device *dax_dev, pgoff_t pgoff,
++		void *addr, size_t bytes, struct iov_iter *i)
++{
++	return 0;
++}
++
+ static const struct dax_operations pmem_dax_ops = {
+ 	.direct_access = pmem_dax_direct_access,
+ 	.zero_page_range = pmem_dax_zero_page_range,
++	.recovery_write = pmem_recovery_write,
+ };
+ 
+ static ssize_t write_cache_show(struct device *dev,
+diff --git a/fs/dax.c b/fs/dax.c
+index ef3103107104..a1e4b45cbf55 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -1240,6 +1240,7 @@ static loff_t dax_iomap_iter(const struct iomap_iter *iomi,
+ 		const size_t size = ALIGN(length + offset, PAGE_SIZE);
+ 		pgoff_t pgoff = dax_iomap_pgoff(iomap, pos);
+ 		ssize_t map_len;
++		bool recovery = false;
+ 		void *kaddr;
+ 
+ 		if (fatal_signal_pending(current)) {
+@@ -1249,6 +1250,13 @@ static loff_t dax_iomap_iter(const struct iomap_iter *iomi,
+ 
+ 		map_len = dax_direct_access(dax_dev, pgoff, PHYS_PFN(size),
+ 				DAX_ACCESS, &kaddr, NULL);
++		if (map_len == -EIO && iov_iter_rw(iter) == WRITE) {
++			map_len = dax_direct_access(dax_dev, pgoff,
++					PHYS_PFN(size), DAX_RECOVERY_WRITE,
++					&kaddr, NULL);
++			if (map_len > 0)
++				recovery = true;
++		}
+ 		if (map_len < 0) {
+ 			ret = map_len;
+ 			break;
+@@ -1260,7 +1268,10 @@ static loff_t dax_iomap_iter(const struct iomap_iter *iomi,
+ 		if (map_len > end - pos)
+ 			map_len = end - pos;
+ 
+-		if (iov_iter_rw(iter) == WRITE)
++		if (recovery)
++			xfer = dax_recovery_write(dax_dev, pgoff, kaddr,
++					map_len, iter);
++		else if (iov_iter_rw(iter) == WRITE)
+ 			xfer = dax_copy_from_iter(dax_dev, pgoff, kaddr,
+ 					map_len, iter);
+ 		else
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index 3f1339bce3c0..e7b81634c52a 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -35,6 +35,12 @@ struct dax_operations {
+ 			sector_t, sector_t);
+ 	/* zero_page_range: required operation. Zero page range   */
+ 	int (*zero_page_range)(struct dax_device *, pgoff_t, size_t);
++	/*
++	 * recovery_write: recover a poisoned range by DAX device driver
++	 * capable of clearing poison.
++	 */
++	size_t (*recovery_write)(struct dax_device *dax_dev, pgoff_t pgoff,
++			void *addr, size_t bytes, struct iov_iter *iter);
+ };
+ 
+ #if IS_ENABLED(CONFIG_DAX)
+@@ -45,6 +51,8 @@ void dax_write_cache(struct dax_device *dax_dev, bool wc);
+ bool dax_write_cache_enabled(struct dax_device *dax_dev);
+ bool dax_synchronous(struct dax_device *dax_dev);
+ void set_dax_synchronous(struct dax_device *dax_dev);
++size_t dax_recovery_write(struct dax_device *dax_dev, pgoff_t pgoff,
++		void *addr, size_t bytes, struct iov_iter *i);
+ /*
+  * Check if given mapping is supported by the file / underlying device.
+  */
+@@ -92,6 +100,11 @@ static inline bool daxdev_mapping_supported(struct vm_area_struct *vma,
+ {
+ 	return !(vma->vm_flags & VM_SYNC);
+ }
++static inline size_t dax_recovery_write(struct dax_device *dax_dev,
++		pgoff_t pgoff, void *addr, size_t bytes, struct iov_iter *i)
++{
++	return 0;
++}
+ #endif
+ 
+ void set_dax_nocache(struct dax_device *dax_dev);
+diff --git a/include/linux/device-mapper.h b/include/linux/device-mapper.h
+index acdedda0d12b..47a01c7cffdf 100644
+--- a/include/linux/device-mapper.h
++++ b/include/linux/device-mapper.h
+@@ -152,6 +152,14 @@ typedef long (*dm_dax_direct_access_fn) (struct dm_target *ti, pgoff_t pgoff,
+ typedef int (*dm_dax_zero_page_range_fn)(struct dm_target *ti, pgoff_t pgoff,
+ 		size_t nr_pages);
  
 +/*
-+ * Prevent speculative access to the page by either unmapping
-+ * it (if we do not require access to any part of the page) or
-+ * marking it uncacheable (if we want to try to retrieve data
-+ * from non-poisoned lines in the page).
++ * Returns:
++ * != 0 : number of bytes transferred
++ * 0    : recovery write failed
 + */
-+int set_mce_nospec(unsigned long pfn, bool unmap)
-+{
-+	unsigned long decoy_addr;
-+	int rc;
++typedef size_t (*dm_dax_recovery_write_fn)(struct dm_target *ti, pgoff_t pgoff,
++		void *addr, size_t bytes, struct iov_iter *i);
 +
-+	if (!IS_ENABLED(CONFIG_64BIT))
-+		return 0;
-+
-+	/* SGX pages are not in the 1:1 map */
-+	if (arch_is_platform_page(pfn << PAGE_SHIFT))
-+		return 0;
-+	/*
-+	 * We would like to just call:
-+	 *      set_memory_XX((unsigned long)pfn_to_kaddr(pfn), 1);
-+	 * but doing that would radically increase the odds of a
-+	 * speculative access to the poison page because we'd have
-+	 * the virtual address of the kernel 1:1 mapping sitting
-+	 * around in registers.
-+	 * Instead we get tricky.  We create a non-canonical address
-+	 * that looks just like the one we want, but has bit 63 flipped.
-+	 * This relies on set_memory_XX() properly sanitizing any __pa()
-+	 * results with __PHYSICAL_MASK or PTE_PFN_MASK.
-+	 */
-+	decoy_addr = (pfn << PAGE_SHIFT) + (PAGE_OFFSET ^ BIT(63));
-+
-+	if (unmap)
-+		rc = set_memory_np(decoy_addr, 1);
-+	else
-+		rc = set_memory_uc(decoy_addr, 1);
-+	if (rc)
-+		pr_warn("Could not invalidate pfn=0x%lx from 1:1 map\n", pfn);
-+	return rc;
-+}
-+
-+/* Restore full speculative operation to the pfn. */
-+int clear_mce_nospec(unsigned long pfn)
-+{
-+	return set_memory_wb((unsigned long) pfn_to_kaddr(pfn), 1);
-+}
-+EXPORT_SYMBOL_GPL(clear_mce_nospec);
-+
- int set_memory_x(unsigned long addr, int numpages)
- {
- 	if (!(__supported_pte_mask & _PAGE_NX))
-diff --git a/include/linux/set_memory.h b/include/linux/set_memory.h
-index f36be5166c19..683a6c3f7179 100644
---- a/include/linux/set_memory.h
-+++ b/include/linux/set_memory.h
-@@ -42,14 +42,14 @@ static inline bool can_set_direct_map(void)
- #endif
- #endif /* CONFIG_ARCH_HAS_SET_DIRECT_MAP */
+ void dm_error(const char *message);
  
--#ifndef set_mce_nospec
-+#ifdef CONFIG_X86_64
-+int set_mce_nospec(unsigned long pfn, bool unmap);
-+int clear_mce_nospec(unsigned long pfn);
-+#else
- static inline int set_mce_nospec(unsigned long pfn, bool unmap)
- {
- 	return 0;
- }
--#endif
--
--#ifndef clear_mce_nospec
- static inline int clear_mce_nospec(unsigned long pfn)
- {
- 	return 0;
+ struct dm_dev {
+@@ -201,6 +209,7 @@ struct target_type {
+ 	dm_io_hints_fn io_hints;
+ 	dm_dax_direct_access_fn direct_access;
+ 	dm_dax_zero_page_range_fn dax_zero_page_range;
++	dm_dax_recovery_write_fn dax_recovery_write;
+ 
+ 	/* For internal device-mapper use. */
+ 	struct list_head list;
 -- 
 2.18.4
 
