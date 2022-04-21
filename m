@@ -1,52 +1,18 @@
-Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id CCF6F1FA1
-	for <nvdimm@lists.linux.dev>; Thu, 21 Apr 2022 08:10:19 +0000 (UTC)
-IronPort-Data: =?us-ascii?q?A9a23=3AY/H+3qoHaQWaOJZTSW6YX/fDBHNeBmIOZBIvgKr?=
- =?us-ascii?q?LsJaIsI5as4F+vmoWCmuHbqmOMWH1eNxzaIm1pBkGsZXXzYdmTlNspHg3QiMRo?=
- =?us-ascii?q?6IpJ/zDcB6oYHn6wu4v7a5fx5xHLIGGdajYd1eEzvuWGuWn/SkUOZ2gHOKmUra?=
- =?us-ascii?q?eYnkpHGeIdQ964f5ds79g6mJXqYjha++9kYuaT/z3YDdJ6RYtWo4nw/7rRCdUg?=
- =?us-ascii?q?RjHkGhwUmrSyhx8lAS2e3E9VPrzLEwqRpfyatE88uWSH44vwFwll1418SvBCvv?=
- =?us-ascii?q?9+lr6WkYMBLDPPwmSkWcQUK+n6vRAjnVqlP9la7xHMgEK49mKt4kZJNFlr4G5T?=
- =?us-ascii?q?xw4eKPKg/g1XQRaEj1lIOtN/7qvzX2X6JbIkBeZLSW9qxlpJARsVWECwc57CH9?=
- =?us-ascii?q?P+dQWMjcIaQqJhv7wy7W+IsFsjcQLLc/lJooTt3hsizbDAp4OTZnFBaeM+t5c2?=
- =?us-ascii?q?DY5g9tmHPDCas5fYj1qBDzMYQJIPFg/C58kmuqswH7lfFVwrFOTuLpy5m37zxJ?=
- =?us-ascii?q?427urN8DaEvSMW8lUm0OwomPd43+/BhAcKczZxTebmlqsje/nmTjnHo4ffJW+/?=
- =?us-ascii?q?/l7iRuTwXYSBwAdVVqTp/SyzEW5Xrp3KUUS92wlrbUa81aiRd3wGRa/pRasuh8?=
- =?us-ascii?q?aRsoVHfY25R+AzoLK7AuDQGsJVDhMbJohrsBebTgr0EKZ2tDkHzpitJWLRn+Hs?=
- =?us-ascii?q?LSZtzW/PW4SN2BqTSsFSxYVpsntu6ktgR/VCNVuCqi4ipvyAz6Y/twghEDSnJ1?=
- =?us-ascii?q?K1YhSifr9pguB3lqRSlHyZlZdzm3qsqiNtWuVvLKYWrE=3D?=
-IronPort-HdrOrdr: =?us-ascii?q?A9a23=3AxTKq7qkEOHZg80dk9grC0W0QV93pDfLI3DAb?=
- =?us-ascii?q?v31ZSRFFG/Fxl6iV7ZYmPHjP+U8ssRAb6La90ca7Lk80maQFhbX5eI3SOzUO21?=
- =?us-ascii?q?HHEGgB1+ffKlTbckWUnINgPOVbAs1D4bbLbWSS4/yKgzVQX+xA/DCYytHUuc7u?=
- =?us-ascii?q?i2dqURpxa7xtqyNwCgOgGEVwQwVcbKBJb6a0145WoSa6Y3QLYoCeDnkBZeLKoN?=
- =?us-ascii?q?rGj9bIehgDbiRXkjWmvHe57qLgCRiE0lM7WzNL+70r9m/IiEjYy8yYwomG9iM?=
- =?us-ascii?q?=3D?=
-X-IronPort-AV: E=Sophos;i="5.88,333,1635177600"; 
-   d="scan'208";a="123727669"
-Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
-  by heian.cn.fujitsu.com with ESMTP; 21 Apr 2022 16:10:11 +0800
-Received: from G08CNEXMBPEKD04.g08.fujitsu.local (unknown [10.167.33.201])
-	by cn.fujitsu.com (Postfix) with ESMTP id 0E35C4D17172;
-	Thu, 21 Apr 2022 16:10:09 +0800 (CST)
-Received: from G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.85) by
- G08CNEXMBPEKD04.g08.fujitsu.local (10.167.33.201) with Microsoft SMTP Server
- (TLS) id 15.0.1497.23; Thu, 21 Apr 2022 16:10:09 +0800
-Received: from [192.168.22.28] (10.167.225.141) by
- G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
- id 15.0.1497.23 via Frontend Transport; Thu, 21 Apr 2022 16:10:06 +0800
-Message-ID: <685f3191-d454-88c0-277a-05b65b831dc5@fujitsu.com>
-Date: Thu, 21 Apr 2022 16:10:08 +0800
-Precedence: bulk
-X-Mailing-List: nvdimm@lists.linux.dev
-List-Id: <nvdimm.lists.linux.dev>
-List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
-List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.7.0
+Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDD361FA1
+	for <nvdimm@lists.linux.dev>; Thu, 21 Apr 2022 08:12:49 +0000 (UTC)
+Received: from canpemm500002.china.huawei.com (unknown [172.30.72.56])
+	by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4KkVdW5c14zhXYn;
+	Thu, 21 Apr 2022 16:12:31 +0800 (CST)
+Received: from [10.174.177.76] (10.174.177.76) by
+ canpemm500002.china.huawei.com (7.192.104.244) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.24; Thu, 21 Apr 2022 16:12:40 +0800
 Subject: Re: [PATCH v13 2/7] mm: factor helpers for memory_failure_dev_pagemap
 To: =?UTF-8?B?SE9SSUdVQ0hJIE5BT1lBKOWggOWPoyDnm7TkuZ8p?=
-	<naoya.horiguchi@nec.com>
+	<naoya.horiguchi@nec.com>, Shiyang Ruan <ruansy.fnst@fujitsu.com>
 CC: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
 	"linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>,
 	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, "linux-mm@kvack.org"
@@ -58,18 +24,27 @@ CC: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
 References: <20220419045045.1664996-1-ruansy.fnst@fujitsu.com>
  <20220419045045.1664996-3-ruansy.fnst@fujitsu.com>
  <20220421061344.GA3607858@hori.linux.bs1.fc.nec.co.jp>
-From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+From: Miaohe Lin <linmiaohe@huawei.com>
+Message-ID: <564100f4-fb8f-e2cf-db69-495294090ba4@huawei.com>
+Date: Thu, 21 Apr 2022 16:12:40 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
+ Thunderbird/78.6.0
+Precedence: bulk
+X-Mailing-List: nvdimm@lists.linux.dev
+List-Id: <nvdimm.lists.linux.dev>
+List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
+List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
+MIME-Version: 1.0
 In-Reply-To: <20220421061344.GA3607858@hori.linux.bs1.fc.nec.co.jp>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
 Content-Transfer-Encoding: 8bit
-X-yoursite-MailScanner-ID: 0E35C4D17172.A4D4C
-X-yoursite-MailScanner: Found to be clean
-X-yoursite-MailScanner-From: ruansy.fnst@fujitsu.com
-X-Spam-Status: No
+X-Originating-IP: [10.174.177.76]
+X-ClientProxiedBy: dggems701-chm.china.huawei.com (10.3.19.178) To
+ canpemm500002.china.huawei.com (7.192.104.244)
+X-CFilter-Loop: Reflected
 
-
-
-在 2022/4/21 14:13, HORIGUCHI NAOYA(堀口 直也) 写道:
+On 2022/4/21 14:13, HORIGUCHI NAOYA(堀口 直也) wrote:
 > On Tue, Apr 19, 2022 at 12:50:40PM +0800, Shiyang Ruan wrote:
 >> memory_failure_dev_pagemap code is a bit complex before introduce RMAP
 >> feature for fsdax.  So it is needed to factor some helper functions to
@@ -87,16 +62,16 @@ X-Spam-Status: No
 > Another few comment below ...
 > 
 >> ---
->>   mm/memory-failure.c | 157 ++++++++++++++++++++++++--------------------
->>   1 file changed, 87 insertions(+), 70 deletions(-)
+>>  mm/memory-failure.c | 157 ++++++++++++++++++++++++--------------------
+>>  1 file changed, 87 insertions(+), 70 deletions(-)
 >>
 >> diff --git a/mm/memory-failure.c b/mm/memory-failure.c
 >> index e3fbff5bd467..7c8c047bfdc8 100644
 >> --- a/mm/memory-failure.c
 >> +++ b/mm/memory-failure.c
 >> @@ -1498,6 +1498,90 @@ static int try_to_split_thp_page(struct page *page, const char *msg)
->>   	return 0;
->>   }
+>>  	return 0;
+>>  }
 >>
 >> +static void unmap_and_kill(struct list_head *to_kill, unsigned long pfn,
 >> +		struct address_space *mapping, pgoff_t index, int flags)
@@ -161,6 +136,9 @@ X-Spam-Status: No
 >> +		return -EBUSY;
 > 
 > Don't we need to go to dax_unlock_page() as the origincal code do?
+
+I think dax_unlock_page is needed too and please remember set rc to -EBUSY before out.
+
 > 
 >> +	}
 >> +
@@ -185,30 +163,27 @@ X-Spam-Status: No
 >> +	return rc;
 >> +}
 >> +
->>   /*
->>    * Called from hugetlb code with hugetlb_lock held.
->>    *
+>>  /*
+>>   * Called from hugetlb code with hugetlb_lock held.
+>>   *
 >> @@ -1644,12 +1728,8 @@ static int memory_failure_dev_pagemap(unsigned long pfn, int flags,
->>   		struct dev_pagemap *pgmap)
->>   {
->>   	struct page *page = pfn_to_page(pfn);
+>>  		struct dev_pagemap *pgmap)
+>>  {
+>>  	struct page *page = pfn_to_page(pfn);
 >> -	unsigned long size = 0;
 >> -	struct to_kill *tk;
->>   	LIST_HEAD(tokill);
+>>  	LIST_HEAD(tokill);
 > 
 > Is this variable unused in this function?
 
-Yes, this one and the one above are mistakes I didn't notice when I 
-resolving conflicts with the newer next- branch.  I'll fix them in next 
-version.
-
-
---
-Thanks,
-Ruan.
+There has a to_kill in mf_generic_kill_procs. So this one is unneeded. We should remove it.
 
 > 
 > Thanks,
 > Naoya Horiguchi
+> 
 
+Except for the above nit, the patch looks good to me. Thanks!
+
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
 
