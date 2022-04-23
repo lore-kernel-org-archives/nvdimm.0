@@ -1,47 +1,36 @@
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 452562F3B
-	for <nvdimm@lists.linux.dev>; Fri, 22 Apr 2022 23:58:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1650671910; x=1682207910;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=e3FLOi/+v6B4A3waN/i8lUdjtDM+G0jjnajfyZctWxo=;
-  b=dxoYcrrVO2F7AX3wFwJrGEUzOEgpH6Vv+7TSHTfYKnbDt8XlNO9tHgcv
-   VFKImxz4k6ODmlGDNywfwN5IPUx6TYA3Vmow+Cxu88aZnjVkHFSQuDoYg
-   wUyJ4NXCpVUW/mX1sB7PvlQWYDO++XK4f+oegh5MBvYeOeg0idT+VjmaX
-   M/HCGrx6ZnWUrNzYwomUTg+NROSCcDhx7fV+c5RZQTRTIyprOkk9/mm7W
-   EaSvJrUptAp5BcInofRbRc9I/KRI9M7ZFjNkjXDyvVglYjrZdZjvscxul
-   qxDYhz5S5wE1oEOXZhew8yVdHHeZK0dBc6yEkwuyN7K5tPJzkoEAct3+X
-   A==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10324"; a="289946472"
-X-IronPort-AV: E=Sophos;i="5.90,282,1643702400"; 
-   d="scan'208";a="289946472"
-Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Apr 2022 16:58:29 -0700
-X-IronPort-AV: E=Sophos;i="5.90,282,1643702400"; 
-   d="scan'208";a="659264395"
-Received: from hltravis-mobl1.amr.corp.intel.com (HELO localhost) ([10.213.166.215])
-  by fmsmga002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Apr 2022 16:58:28 -0700
-Date: Fri, 22 Apr 2022 16:58:28 -0700
-From: Ira Weiny <ira.weiny@intel.com>
+Received: from mail104.syd.optusnet.com.au (mail104.syd.optusnet.com.au [211.29.132.246])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4AF4233EA
+	for <nvdimm@lists.linux.dev>; Sat, 23 Apr 2022 00:01:32 +0000 (UTC)
+Received: from dread.disaster.area (pa49-181-115-138.pa.nsw.optusnet.com.au [49.181.115.138])
+	by mail104.syd.optusnet.com.au (Postfix) with ESMTPS id 060F35345C6;
+	Sat, 23 Apr 2022 10:01:22 +1000 (AEST)
+Received: from dave by dread.disaster.area with local (Exim 4.92.3)
+	(envelope-from <david@fromorbit.com>)
+	id 1ni3DF-003Ms4-8J; Sat, 23 Apr 2022 10:01:21 +1000
+Date: Sat, 23 Apr 2022 10:01:21 +1000
+From: Dave Chinner <david@fromorbit.com>
 To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-cxl@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Ingo Molnar <mingo@redhat.com>, Will Deacon <will@kernel.org>,
-	Waiman Long <longman@redhat.com>, Boqun Feng <boqun.feng@gmail.com>,
-	Alison Schofield <alison.schofield@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Ben Widawsky <ben.widawsky@intel.com>,
-	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
-	nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v3 2/8] cxl/acpi: Add root device lockdep validation
-Message-ID: <YmNBJBTxUCvDHMbw@iweiny-desk3>
-References: <165055518776.3745911.9346998911322224736.stgit@dwillia2-desk3.amr.corp.intel.com>
- <165055519869.3745911.10162603933337340370.stgit@dwillia2-desk3.amr.corp.intel.com>
+Cc: Christoph Hellwig <hch@infradead.org>,
+	Shiyang Ruan <ruansy.fnst@fujitsu.com>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	linux-xfs <linux-xfs@vger.kernel.org>,
+	Linux NVDIMM <nvdimm@lists.linux.dev>,
+	Linux MM <linux-mm@kvack.org>,
+	linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+	"Darrick J. Wong" <djwong@kernel.org>,
+	Jane Chu <jane.chu@oracle.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Naoya Horiguchi <naoya.horiguchi@nec.com>
+Subject: Re: [PATCH v13 0/7] fsdax: introduce fs query to support reflink
+Message-ID: <20220423000121.GH1544202@dread.disaster.area>
+References: <20220419045045.1664996-1-ruansy.fnst@fujitsu.com>
+ <20220421012045.GR1544202@dread.disaster.area>
+ <86cb0ada-208c-02de-dbc9-53c6014892c3@fujitsu.com>
+ <CAPcyv4i0Noum8hqHtCpdM5HMVdmNHm3Aj2JCnZ+KZLgceiXYaA@mail.gmail.com>
+ <20220421043502.GS1544202@dread.disaster.area>
+ <YmDxs1Hj4H/cu2sd@infradead.org>
+ <20220421074653.GT1544202@dread.disaster.area>
+ <CAPcyv4jj_Z+P4BuC6EXXrzbVr1uHomQVu1A+cq55EFnSGmP7cQ@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -50,116 +39,73 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <165055519869.3745911.10162603933337340370.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <CAPcyv4jj_Z+P4BuC6EXXrzbVr1uHomQVu1A+cq55EFnSGmP7cQ@mail.gmail.com>
+X-Optus-CM-Score: 0
+X-Optus-CM-Analysis: v=2.4 cv=deDjYVbe c=1 sm=1 tr=0 ts=626341d5
+	a=/kVtbFzwtM2bJgxRVb+eeA==:117 a=/kVtbFzwtM2bJgxRVb+eeA==:17
+	a=kj9zAlcOel0A:10 a=z0gMJWrwH1QA:10 a=7-415B0cAAAA:8
+	a=N97b58O49P40uwd1XQkA:9 a=CjuIK1q_8ugA:10 a=biEYGPWJfzWAr4FL6Ov7:22
 
-On Thu, Apr 21, 2022 at 08:33:18AM -0700, Dan Williams wrote:
-> The CXL "root" device, ACPI0017, is an attach point for coordinating
-> platform level CXL resources and is the parent device for a CXL port
-> topology tree. As such it has distinct locking rules relative to other
-> CXL subsystem objects, but because it is an ACPI device the lock class
-> is established well before it is given to the cxl_acpi driver.
- 
-This final sentence gave me pause because it implied that the device lock class
-was set to something other than no validate.  But I don't see that anywhere in
-the acpi code.  So given that it looks to me like ACPI is just using the
-default no validate class...
+On Fri, Apr 22, 2022 at 02:27:32PM -0700, Dan Williams wrote:
+> On Thu, Apr 21, 2022 at 12:47 AM Dave Chinner <david@fromorbit.com> wrote:
+> >
+> > On Wed, Apr 20, 2022 at 10:54:59PM -0700, Christoph Hellwig wrote:
+> > > On Thu, Apr 21, 2022 at 02:35:02PM +1000, Dave Chinner wrote:
+> > > > Sure, I'm not a maintainer and just the stand-in patch shepherd for
+> > > > a single release. However, being unable to cleanly merge code we
+> > > > need integrated into our local subsystem tree for integration
+> > > > testing because a patch dependency with another subsystem won't gain
+> > > > a stable commit ID until the next merge window is .... distinctly
+> > > > suboptimal.
+> > >
+> > > Yes.  Which is why we've taken a lot of mm patchs through other trees,
+> > > sometimes specilly crafted for that.  So I guess in this case we'll
+> > > just need to take non-trivial dependencies into the XFS tree, and just
+> > > deal with small merge conflicts for the trivial ones.
+> >
+> > OK. As Naoyo has pointed out, the first dependency/conflict Ruan has
+> > listed looks trivial to resolve.
+> >
+> > The second dependency, OTOH, is on a new function added in the patch
+> > pointed to. That said, at first glance it looks to be independent of
+> > the first two patches in that series so I might just be able to pull
+> > that one patch in and have that leave us with a working
+> > fsdax+reflink tree.
+> >
+> > Regardless, I'll wait to see how much work the updated XFS/DAX
+> > reflink enablement patchset still requires when Ruan posts it before
+> > deciding what to do here.  If it isn't going to be a merge
+> > candidate, what to do with this patchset is moot because there's
+> > little to test without reflink enabled...
+> 
+> I do have a use case for this work absent the reflink work.  Recall we
+> had a conversation about how to communicate "dax-device has been
+> ripped away from the fs" events and we ended up on the idea of reusing
+> ->notify_failure(), but with the device's entire logical address range
+> as the notification span. That will let me unwind and delete the
+> PTE_DEVMAP infrastructure for taking extra device references to hold
+> off device-removal. Instead ->notify_failure() arranges for all active
+> DAX mappings to be invalidated and allow the removal to proceed
+> especially since physical removal does not care about software pins.
 
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+Sure. My point is that if the reflink enablement isn't ready to go,
+then from an XFS POV none of this matters in this cycle and we can
+just leave the dependencies to commit via Andrew's tree. Hence by
+the time we get to the reflink enablement all the prior dependencies
+will have been merged and have stable commit IDs, and we can just
+stage this series and the reflink enablement as we normally would in
+the next cycle.
 
-> However, the lockdep API does support changing the lock class "live" for
-> situations like this. Add a device_lock_set_class() helper that a driver
-> can use in ->probe() to set a custom lock class, and
-> device_lock_reset_class() to return to the default "no validate" class
-> before the custom lock class key goes out of scope after ->remove().
-> 
-> Note the helpers are all macros to support dead code elimination in the
-> CONFIG_PROVE_LOCKING=n case.
-> 
-> Suggested-by: Peter Zijlstra <peterz@infradead.org>
-> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-> Cc: Ingo Molnar <mingo@redhat.com>
-> Cc: Will Deacon <will@kernel.org>
-> Cc: Waiman Long <longman@redhat.com>
-> Cc: Boqun Feng <boqun.feng@gmail.com>
-> Cc: Alison Schofield <alison.schofield@intel.com>
-> Cc: Vishal Verma <vishal.l.verma@intel.com>
-> Cc: Ira Weiny <ira.weiny@intel.com>
-> Cc: Ben Widawsky <ben.widawsky@intel.com>
-> Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> ---
->  drivers/cxl/acpi.c     |   15 +++++++++++++++
->  include/linux/device.h |   25 +++++++++++++++++++++++++
->  2 files changed, 40 insertions(+)
-> 
-> diff --git a/drivers/cxl/acpi.c b/drivers/cxl/acpi.c
-> index d15a6aec0331..e19cea27387e 100644
-> --- a/drivers/cxl/acpi.c
-> +++ b/drivers/cxl/acpi.c
-> @@ -275,6 +275,15 @@ static int add_root_nvdimm_bridge(struct device *match, void *data)
->  	return 1;
->  }
->  
-> +static struct lock_class_key cxl_root_key;
-> +
-> +static void cxl_acpi_lock_reset_class(void *_dev)
-> +{
-> +	struct device *dev = _dev;
-> +
-> +	device_lock_reset_class(dev);
-> +}
-> +
->  static int cxl_acpi_probe(struct platform_device *pdev)
->  {
->  	int rc;
-> @@ -283,6 +292,12 @@ static int cxl_acpi_probe(struct platform_device *pdev)
->  	struct acpi_device *adev = ACPI_COMPANION(host);
->  	struct cxl_cfmws_context ctx;
->  
-> +	device_lock_set_class(&pdev->dev, &cxl_root_key);
-> +	rc = devm_add_action_or_reset(&pdev->dev, cxl_acpi_lock_reset_class,
-> +				      &pdev->dev);
-> +	if (rc)
-> +		return rc;
-> +
->  	root_port = devm_cxl_add_port(host, host, CXL_RESOURCE_NONE, NULL);
->  	if (IS_ERR(root_port))
->  		return PTR_ERR(root_port);
-> diff --git a/include/linux/device.h b/include/linux/device.h
-> index 93459724dcde..82c9d307e7bd 100644
-> --- a/include/linux/device.h
-> +++ b/include/linux/device.h
-> @@ -850,6 +850,31 @@ static inline bool device_supports_offline(struct device *dev)
->  	return dev->bus && dev->bus->offline && dev->bus->online;
->  }
->  
-> +#define __device_lock_set_class(dev, name, key) \
-> +	lock_set_class(&(dev)->mutex.dep_map, name, key, 0, _THIS_IP_)
-> +
-> +/**
-> + * device_lock_set_class - Specify a temporary lock class while a device
-> + *			   is attached to a driver
-> + * @dev: device to modify
-> + * @key: lock class key data
-> + *
-> + * This must be called with the device_lock() already held, for example
-> + * from driver ->probe().
-> + */
-> +#define device_lock_set_class(dev, key)				\
-> +	__device_lock_set_class(dev, #key, key)
-> +
-> +/**
-> + * device_lock_reset_class - Return a device to the default lockdep novalidate state
-> + * @dev: device to modify
-> + *
-> + * This must be called with the device_lock() already held, for example
-> + * from driver ->remove().
-> + */
-> +#define device_lock_reset_class(dev) \
-> +	device_lock_set_class(dev, &__lockdep_no_validate__)
-> +
->  void lock_device_hotplug(void);
->  void unlock_device_hotplug(void);
->  int lock_device_hotplug_sysfs(void);
-> 
+However, if we don't get the XFS reflink dax enablement sorted out
+in the next week or two, then we don't need this patchset in this
+cycle. Hence if you still need this patchset for other code you need
+to merge in this cycle, then you're the poor schmuck that has to run
+the mm-tree conflict guantlet to get a stable commit ID for the
+dependent patches in this cycle, not me....
+
+Cheers,
+
+Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
