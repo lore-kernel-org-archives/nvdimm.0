@@ -1,151 +1,80 @@
-Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
+Received: from szxga08-in.huawei.com (szxga08-in.huawei.com [45.249.212.255])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FF757C
-	for <nvdimm@lists.linux.dev>; Sat, 23 Apr 2022 21:22:19 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1650748939; x=1682284939;
-  h=subject:from:to:cc:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=tWkequjSYEh30bCG4fPlkdokflxW/XwwcXiDxXk3wWw=;
-  b=ZLkL8bd7zu/z9JmRsQMuuejFr7DMXDUAZBV3v+PSQVY8Z8Ws81rtEqKw
-   /B+ebigwfeppDi6Y4Ijw+sI1bgdoyQDrmnQV+tbR3sq7V/mVkzrqGHIDZ
-   nOFyVrtpJAFW8jjjnxHHztcjmXyzG6AB/TTlG/9H2RyQUmI1/Lvyd5vCQ
-   6pEPc9athS88K3rjuUMY6hdZy8TQlA8pS3S38dA/6UZhIeKXQpyfb3GJG
-   EVRyjaDb41oGbALWUJLhU3vXMcGwAN96OX3GJAaUowW55p99y5NIOa9up
-   S26U7qVS223yBWUN0s5HQg5Z+eO1cdON6X1GFRu9isVxCdiS1u6PWVfMH
-   w==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10326"; a="325417699"
-X-IronPort-AV: E=Sophos;i="5.90,285,1643702400"; 
-   d="scan'208";a="325417699"
-Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Apr 2022 14:22:18 -0700
-X-IronPort-AV: E=Sophos;i="5.90,285,1643702400"; 
-   d="scan'208";a="557009140"
-Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
-  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Apr 2022 14:22:18 -0700
-Subject: [PATCH v4 8/8] nvdimm: Fix firmware activation deadlock scenarios
-From: Dan Williams <dan.j.williams@intel.com>
-To: linux-cxl@vger.kernel.org
-Cc: nvdimm@lists.linux.dev
-Date: Sat, 23 Apr 2022 14:22:18 -0700
-Message-ID: <165074883800.4116052.10737040861825806582.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <165055523099.3745911.9091010720291846249.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <165055523099.3745911.9091010720291846249.stgit@dwillia2-desk3.amr.corp.intel.com>
-User-Agent: StGit/0.18-3-g996c
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 123677A
+	for <nvdimm@lists.linux.dev>; Sun, 24 Apr 2022 02:20:53 +0000 (UTC)
+Received: from canpemm500002.china.huawei.com (unknown [172.30.72.53])
+	by szxga08-in.huawei.com (SkyGuard) with ESMTP id 4KmBCp4fXkz1JBJC;
+	Sun, 24 Apr 2022 09:59:34 +0800 (CST)
+Received: from [10.174.177.76] (10.174.177.76) by
+ canpemm500002.china.huawei.com (7.192.104.244) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.24; Sun, 24 Apr 2022 10:00:23 +0800
+Subject: Re: [PATCH v13 3/7] pagemap,pmem: Introduce ->memory_failure()
+To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+CC: <djwong@kernel.org>, <dan.j.williams@intel.com>, <david@fromorbit.com>,
+	<hch@infradead.org>, <jane.chu@oracle.com>, Christoph Hellwig <hch@lst.de>,
+	<linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
+	<nvdimm@lists.linux.dev>, <linux-mm@kvack.org>,
+	<linux-fsdevel@vger.kernel.org>
+References: <20220419045045.1664996-1-ruansy.fnst@fujitsu.com>
+ <20220419045045.1664996-4-ruansy.fnst@fujitsu.com>
+ <f173f091-d5ca-b049-a8ed-6616032ca83e@huawei.com>
+ <4a808b12-9215-9421-d114-951e70764778@fujitsu.com>
+From: Miaohe Lin <linmiaohe@huawei.com>
+Message-ID: <cc219e5d-a400-776c-116b-21e5d1470045@huawei.com>
+Date: Sun, 24 Apr 2022 10:00:23 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
+ Thunderbird/78.6.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
+In-Reply-To: <4a808b12-9215-9421-d114-951e70764778@fujitsu.com>
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.174.177.76]
+X-ClientProxiedBy: dggems705-chm.china.huawei.com (10.3.19.182) To
+ canpemm500002.china.huawei.com (7.192.104.244)
+X-CFilter-Loop: Reflected
 
-Lockdep reports the following deadlock scenarios for CXL root device
-power-management, device_prepare(), operations, and device_shutdown()
-operations for 'nd_region' devices:
+On 2022/4/22 15:06, Shiyang Ruan wrote:
+> 
+> 
+...
+>>
+>> Thanks for your patch. There are two questions:
+>>
+>> 1.Is dax_lock_page + dax_unlock_page pair needed here?
+> 
+> They are moved into mf_generic_kill_procs() in Patch2.  Callback will implement its own dax lock/unlock method.  For example, for mf_dax_kill_procs() in Patch4, we implemented dax_lock_mapping_entry()/dax_unlock_mapping_entry() for it.
+> 
+>> 2.hwpoison_filter and SetPageHWPoison will be handled by the callback or they're just ignored deliberately?
+> 
+> SetPageHWPoison() will be handled by callback or by mf_generic_kill_procs().
+> 
+> hwpoison_filter() is moved into mf_generic_kill_procs() too.  The callback will make sure the page is correct, so it is ignored.
 
----
- Chain exists of:
-   &nvdimm_region_key --> &nvdimm_bus->reconfig_mutex --> system_transition_mutex
+I see this when I read the other patches. Many thanks for clarifying!
 
-  Possible unsafe locking scenario:
-
-        CPU0                    CPU1
-        ----                    ----
-   lock(system_transition_mutex);
-                                lock(&nvdimm_bus->reconfig_mutex);
-                                lock(system_transition_mutex);
-   lock(&nvdimm_region_key);
-
---
-
- Chain exists of:
-   &cxl_nvdimm_bridge_key --> acpi_scan_lock --> &cxl_root_key
-
-  Possible unsafe locking scenario:
-
-        CPU0                    CPU1
-        ----                    ----
-   lock(&cxl_root_key);
-                                lock(acpi_scan_lock);
-                                lock(&cxl_root_key);
-   lock(&cxl_nvdimm_bridge_key);
-
----
-
-These stem from holding nvdimm_bus_lock() over hibernate_quiet_exec()
-which walks the entire system device topology taking device_lock() along
-the way. The nvdimm_bus_lock() is protecting against unregistration,
-multiple simultaneous ops callers, and preventing activate_show() from
-racing activate_store(). For the first 2, the lock is redundant.
-Unregistration already flushes all ops users, and sysfs already prevents
-multiple threads to be active in an ops handler at the same time. For
-the last userspace should already be waiting for its last
-activate_store() to complete, and does not need activate_show() to flush
-the write side, so this lock usage can be deleted in these attributes.
-
-Fixes: 48001ea50d17 ("PM, libnvdimm: Add runtime firmware activation support")
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
-Changes since v3:
-- Remove nvdimm_bus_lock() from all ->capability() invocations (Ira)
-
- drivers/nvdimm/core.c |    9 ---------
- 1 file changed, 9 deletions(-)
-
-diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
-index 144926b7451c..d91799b71d23 100644
---- a/drivers/nvdimm/core.c
-+++ b/drivers/nvdimm/core.c
-@@ -368,9 +368,7 @@ static ssize_t capability_show(struct device *dev,
- 	if (!nd_desc->fw_ops)
- 		return -EOPNOTSUPP;
- 
--	nvdimm_bus_lock(dev);
- 	cap = nd_desc->fw_ops->capability(nd_desc);
--	nvdimm_bus_unlock(dev);
- 
- 	switch (cap) {
- 	case NVDIMM_FWA_CAP_QUIESCE:
-@@ -395,10 +393,8 @@ static ssize_t activate_show(struct device *dev,
- 	if (!nd_desc->fw_ops)
- 		return -EOPNOTSUPP;
- 
--	nvdimm_bus_lock(dev);
- 	cap = nd_desc->fw_ops->capability(nd_desc);
- 	state = nd_desc->fw_ops->activate_state(nd_desc);
--	nvdimm_bus_unlock(dev);
- 
- 	if (cap < NVDIMM_FWA_CAP_QUIESCE)
- 		return -EOPNOTSUPP;
-@@ -443,7 +439,6 @@ static ssize_t activate_store(struct device *dev,
- 	else
- 		return -EINVAL;
- 
--	nvdimm_bus_lock(dev);
- 	state = nd_desc->fw_ops->activate_state(nd_desc);
- 
- 	switch (state) {
-@@ -461,7 +456,6 @@ static ssize_t activate_store(struct device *dev,
- 	default:
- 		rc = -ENXIO;
- 	}
--	nvdimm_bus_unlock(dev);
- 
- 	if (rc == 0)
- 		rc = len;
-@@ -484,10 +478,7 @@ static umode_t nvdimm_bus_firmware_visible(struct kobject *kobj, struct attribut
- 	if (!nd_desc->fw_ops)
- 		return 0;
- 
--	nvdimm_bus_lock(dev);
- 	cap = nd_desc->fw_ops->capability(nd_desc);
--	nvdimm_bus_unlock(dev);
--
- 	if (cap < NVDIMM_FWA_CAP_QUIESCE)
- 		return 0;
- 
+> 
+> 
+> -- 
+> Thanks,
+> Ruan.
+> 
+>>
+>> Thanks!
+>>
+>>>       rc = mf_generic_kill_procs(pfn, flags, pgmap);
+>>>   out:
+>>>       /* drop pgmap ref acquired in caller */
+>>>
+>>
+> 
+> 
+> .
 
