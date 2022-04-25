@@ -1,64 +1,86 @@
-Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk1-f178.google.com (mail-qk1-f178.google.com [209.85.222.178])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1DB7C7E
-	for <nvdimm@lists.linux.dev>; Mon, 25 Apr 2022 10:33:36 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=6rsQ5fLAtyoRL3SCMAk0oVTyMBB12u7c5MZ8wkkb5As=; b=eW9cGuwpaIgQ68FjdQGW5135pM
-	9tqLVhqfzw41daqFoSxdYQ/af4NbMzk56dxF37hJ8qaX77dseTCr8SUaFd5D66025hnYCKGUZq66p
-	MV18qFjo7U9QpJln+4demErqx5RZkIlOvGJKAABIdbn8E+KEQUv/9X6uCCpjKLNSofDsqUhuqRptr
-	FIvE5XDKWVtcPQiEMnimASjqM5XMyn89q2dx6SQF8/6CAlcRr0m4G1pJ5YXPZ/gZeMeRivL7FLgY/
-	wBahDvqLCQo/PzTKleGxYxvJW1cg+4QsV3Y/oYIcwYoZHSoi6S/HVdcBH+WBhN18xRa0URKWb5bTE
-	Y92rIkYg==;
-Received: from j217100.upc-j.chello.nl ([24.132.217.100] helo=worktop.programming.kicks-ass.net)
-	by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-	id 1niw1l-008c8c-4P; Mon, 25 Apr 2022 10:33:09 +0000
-Received: by worktop.programming.kicks-ass.net (Postfix, from userid 1000)
-	id 61E7F980BF1; Mon, 25 Apr 2022 12:33:07 +0200 (CEST)
-Date: Mon, 25 Apr 2022 12:33:07 +0200
-From: Peter Zijlstra <peterz@infradead.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Ira Weiny <ira.weiny@intel.com>, linux-cxl@vger.kernel.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Ingo Molnar <mingo@redhat.com>, Will Deacon <will@kernel.org>,
-	Waiman Long <longman@redhat.com>, Boqun Feng <boqun.feng@gmail.com>,
-	Alison Schofield <alison.schofield@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Ben Widawsky <ben.widawsky@intel.com>,
-	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
-	Linux NVDIMM <nvdimm@lists.linux.dev>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v3 2/8] cxl/acpi: Add root device lockdep validation
-Message-ID: <20220425103307.GI2731@worktop.programming.kicks-ass.net>
-References: <165055518776.3745911.9346998911322224736.stgit@dwillia2-desk3.amr.corp.intel.com>
- <165055519869.3745911.10162603933337340370.stgit@dwillia2-desk3.amr.corp.intel.com>
- <YmNBJBTxUCvDHMbw@iweiny-desk3>
- <CAPcyv4jtNgfjWLyu6MtBAjwUiqe2qEBW802AzZZeg2gZ_wU9AQ@mail.gmail.com>
- <CAPcyv4hhD5t-qm_c_=bRjbJZFg9Mjkzbvu_2MEJB87fKy3hh-g@mail.gmail.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41E3A7E
+	for <nvdimm@lists.linux.dev>; Mon, 25 Apr 2022 10:53:15 +0000 (UTC)
+Received: by mail-qk1-f178.google.com with SMTP id b68so10438763qkc.4
+        for <nvdimm@lists.linux.dev>; Mon, 25 Apr 2022 03:53:15 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=nng+cuOZXEHqgBLxg+EFCILX+xKl20bMRqTLzQmAT+U=;
+        b=pHDouWVUlROIktaXFvN8miGDnrFxxKbLC4wFfNzrdcs7nhlsxn8uGOENdcPRua02x0
+         r6W49/A7A3WcoC84dlyrB3ux2fUaXrDZtAGW9s+bC1qwTNTfNv1bLxp+p3voQNetpXKp
+         WW6EPzErPQyHVbyfg37Nz8pekw6R4O2cCa9jOh6sSx2kOY6oDf497+IbjcTn22mpmrir
+         zRPztjgffzc4o634TPWGJwOxLusEabIzkHxm4kONyUeWieObTOyXVFaSwXngSx+YmD0a
+         jjS3NsRNVIC20ZEx9q4lmJ5yEJ2bhdJsbGSm3KYuNiwwn3O9h/6TFsxdKXGaIVNqIHt0
+         DbjA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=nng+cuOZXEHqgBLxg+EFCILX+xKl20bMRqTLzQmAT+U=;
+        b=i0sCdZs8pesSqXppZVwU/9EMyX9J/6+Hdxo2tvJmJgkZ5NdoGfexLOoHqLzykjU1jd
+         1D9r1T61hZp2iqJ5SeSx1YZV9TplRUi+w9qu2SC/Ib3sfiisPQi2zpQzOieNFZr2lIa0
+         hCkSPonGp5bfi6D3FQt83FesBZrRjlBerYwtWv5U6oQV89kEN6KTm4ag5f1FZfFcneOv
+         3DomGMG/j1kQvv//reVdMSZeIPORiZNbEfbZl/BZc7nKIe+/CLiBYVF6vNJ5/xQ2O5Ol
+         0JmpoRUJaReuXxJxK7B4ANlg5vFQ8czQc9NEij1x9pJqgrSoRKAYZvka8NjOmIMTAMi2
+         B1gQ==
+X-Gm-Message-State: AOAM531eb7XPrjUs6XUU5EFE9VCuf+/zsD63FU64KJK8t/n3wlVvRcWJ
+	PMU5O0UiwH5rhRAUGYdsFbE=
+X-Google-Smtp-Source: ABdhPJw4mgvJV9J7kPiDJloD9/keX1rjWVz5uMEwpVFnuDTiR37Bbvktx8338MASzNtnoiv6tNU1Aw==
+X-Received: by 2002:a05:620a:438e:b0:69f:5296:fac with SMTP id a14-20020a05620a438e00b0069f52960facmr2671788qkp.719.1650883994069;
+        Mon, 25 Apr 2022 03:53:14 -0700 (PDT)
+Received: from localhost.localdomain ([193.203.214.57])
+        by smtp.gmail.com with ESMTPSA id h20-20020a05620a13f400b0069e7ed38857sm4679973qkl.103.2022.04.25.03.53.10
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 25 Apr 2022 03:53:13 -0700 (PDT)
+From: cgel.zte@gmail.com
+X-Google-Original-From: chi.minghao@zte.com.cn
+To: dan.j.williams@intel.com
+Cc: vishal.l.verma@intel.com,
+	dave.jiang@intel.com,
+	nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org,
+	Minghao Chi <chi.minghao@zte.com.cn>,
+	Zeal Robot <zealci@zte.com.cn>
+Subject: [PATCH] device-dax: use kobj_to_dev()
+Date: Mon, 25 Apr 2022 10:53:07 +0000
+Message-Id: <20220425105307.3515215-1-chi.minghao@zte.com.cn>
+X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4hhD5t-qm_c_=bRjbJZFg9Mjkzbvu_2MEJB87fKy3hh-g@mail.gmail.com>
+Content-Transfer-Encoding: 8bit
 
-On Sat, Apr 23, 2022 at 10:27:52AM -0700, Dan Williams wrote:
+From: Minghao Chi <chi.minghao@zte.com.cn>
 
-> ...so I'm going to drop it and just add a comment about the
-> expectations. As Peter said there's already a multitude of ways to
-> cause false positive / negative results with lockdep so this is just
-> one more area where one needs to be careful and understand the lock
-> context they might be overriding.
+Use kobj_to_dev() instead of open-coding it.
 
-One safe-guard might be to check the class you're overriding is indeed
-__no_validate__, and WARN if not. Then the unconditional reset is
-conistent.
+Reported-by: Zeal Robot <zealci@zte.com.cn>
+Signed-off-by: Minghao Chi <chi.minghao@zte.com.cn>
+---
+ drivers/dax/bus.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Then, if/when, that WARN ever triggers you can revisit all this.
+diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+index 1dad813ee4a6..aebe884f5d99 100644
+--- a/drivers/dax/bus.c
++++ b/drivers/dax/bus.c
+@@ -512,7 +512,7 @@ static DEVICE_ATTR_WO(delete);
+ static umode_t dax_region_visible(struct kobject *kobj, struct attribute *a,
+ 		int n)
+ {
+-	struct device *dev = container_of(kobj, struct device, kobj);
++	struct device *dev = kobj_to_dev(kobj)
+ 	struct dax_region *dax_region = dev_get_drvdata(dev);
+ 
+ 	if (is_static(dax_region))
+-- 
+2.25.1
+
+
