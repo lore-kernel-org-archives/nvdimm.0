@@ -1,86 +1,91 @@
-Received: from mail-pf1-f180.google.com (mail-pf1-f180.google.com [209.85.210.180])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FAF72571
-	for <nvdimm@lists.linux.dev>; Mon, 25 Apr 2022 18:57:33 +0000 (UTC)
-Received: by mail-pf1-f180.google.com with SMTP id a15so15652103pfv.11
-        for <nvdimm@lists.linux.dev>; Mon, 25 Apr 2022 11:57:33 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=6o+SI4yj6/1QuIDP6FADkDckBUMPioD3y38MqpuhkSo=;
-        b=P1K4PYS25TS0Jd/Wx1fojI8IZ5I9h3+RLAY7MrwpwNS/97M2bik+Fzj4uCxSceTFqC
-         By1zfFuX/dRkCdeEJYZr+gPWBQpJmKS+xMan4GPia2P7HYavXB/ti79lxVJxwM7d4LM4
-         aPK1RRSJ/R9VAaoblJjSjAtxHnDWIJPEq87p8VBqlTtFdSmnFgJdFtRWqMM0h49u6xc9
-         rhrP0KJj3lMgZHRcTs+tyLa2KjZgBcbNipfstGdWxKKlnvCyT2TaW1Syc4TU9KG3ibtj
-         4zHlVZKN7G/200mOGcecQer5k4ANX/oi0/zChwRmOOQUjYp8HN+wmH5LUUnSU34FuuRS
-         Hgeg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=6o+SI4yj6/1QuIDP6FADkDckBUMPioD3y38MqpuhkSo=;
-        b=YCZfJkmK8ZTb3AdLq4zwPAD91jEXknuZYi5agCmOMf3DhBglPBp6ez5cwb5LjWiElj
-         elo9UO4Nbdlss7c4+gOum1AkkHZ8Egx/tpaqdgXuLx2uBPDjQmVnxNPyIJmza+gWlCtr
-         moEqzrJ5I8eW9S2JyM0vt2RgHnsve+c0vG/ZThMqcHIEbb/UAzkiRVYCrOk5SX+q2tdF
-         K9MKM9RdTDEXrBZ3oc/PuVo6jNybHT4RJ8kQCcG5tLtO+9To7qAmIInh3T17GKCbiNLK
-         f6/xmBPD9yCRFEQSxK/6hKtiWDDfp3XwrzoXKeqVdIWjtQMTGlU6av31wHssy9tqg/Eu
-         nOkQ==
-X-Gm-Message-State: AOAM531cZAKZzzMXgM5ui9ayyyTR5zc1EcBUSiwZTZChdUfl/x4Cdhyt
-	VuSWyaeKy86fuosWmdpbTqDMXDvVJ9xA3UpUSKGR6w==
-X-Google-Smtp-Source: ABdhPJyUxljZXNAY57tBgo6I/sBtSCxjGKyLUSTbY3/eBgitnlYZPc3dWMb2Osy5fBb0Ykt3C3DNXYRbEpXXGPyfmdk=
-X-Received: by 2002:a05:6a00:e14:b0:4fe:3cdb:23f with SMTP id
- bq20-20020a056a000e1400b004fe3cdb023fmr20248514pfb.86.1650913052859; Mon, 25
- Apr 2022 11:57:32 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 38CB7259B
+	for <nvdimm@lists.linux.dev>; Mon, 25 Apr 2022 19:13:49 +0000 (UTC)
+Received: from pps.filterd (m0098419.ppops.net [127.0.0.1])
+	by mx0b-001b2d01.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 23PHsswA013182;
+	Mon, 25 Apr 2022 19:13:46 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
+ : date : message-id : mime-version : content-transfer-encoding; s=pp1;
+ bh=i+qmVCLhzZwXxQ5R7RoUVkhd0nTazNWR6sDZMyDQ2y0=;
+ b=JF+zirTdp3q5zwlT6HmPAGfll7hDmiIzDKzGJ1ktBmAu6ZBTNMSFRVLYeBRv+Wgo1IjL
+ EHEs+Bjwrg3kwTyB5tNVcRWlL3kuZ6ILEM7+Ppveg2QEZy7t0f2t6FMqOzDQVlGofHcz
+ KO1/Qe/oNEyYb7KsmRYncjhFvufCjnOEeofdCzBTEYWY7DVAUC0XtfNV4FtiK+NWsY6R
+ zdGahgyi7bGLFOSj6GObNYUy+Mt6IJyu65SksWGShGwcz/u3tcKcidHnGbT+vmgJqvHp
+ 0Gk2t4C95htwfJF13uZYbf7Ltt2AlXGYU7bKjen3J2uI11AxhVDHWhvQlEBdnLOfv+Rv +w== 
+Received: from ppma03fra.de.ibm.com (6b.4a.5195.ip4.static.sl-reverse.com [149.81.74.107])
+	by mx0b-001b2d01.pphosted.com (PPS) with ESMTPS id 3fns00waf5-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 25 Apr 2022 19:13:45 +0000
+Received: from pps.filterd (ppma03fra.de.ibm.com [127.0.0.1])
+	by ppma03fra.de.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 23PJASEd029939;
+	Mon, 25 Apr 2022 19:13:44 GMT
+Received: from b06cxnps4075.portsmouth.uk.ibm.com (d06relay12.portsmouth.uk.ibm.com [9.149.109.197])
+	by ppma03fra.de.ibm.com with ESMTP id 3fm938taep-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 25 Apr 2022 19:13:44 +0000
+Received: from d06av21.portsmouth.uk.ibm.com (d06av21.portsmouth.uk.ibm.com [9.149.105.232])
+	by b06cxnps4075.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 23PJDeaM30998850
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Mon, 25 Apr 2022 19:13:40 GMT
+Received: from d06av21.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id ACC035204F;
+	Mon, 25 Apr 2022 19:13:40 +0000 (GMT)
+Received: from li-efb8054c-3504-11b2-a85c-ca10df28279e.ibm.com.com (unknown [9.43.7.86])
+	by d06av21.portsmouth.uk.ibm.com (Postfix) with ESMTP id B11EF5204E;
+	Mon, 25 Apr 2022 19:13:37 +0000 (GMT)
+From: Tarun Sahu <tsahu@linux.ibm.com>
+To: nvdimm@lists.linux.dev
+Cc: tsahu@linux.ibm.com, dan.j.williams@intel.com, vishal.l.verma@intel.com,
+        aneesh.kumar@linux.ibm.com, sbhat@linux.ibm.com, vaibhav@linux.ibm.com
+Subject: [PATCH v2 0/2] ndctl/namespace:Fix and improve write-infoblock
+Date: Tue, 26 Apr 2022 00:43:27 +0530
+Message-Id: <20220425191329.59213-1-tsahu@linux.ibm.com>
+X-Mailer: git-send-email 2.35.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <165055518776.3745911.9346998911322224736.stgit@dwillia2-desk3.amr.corp.intel.com>
- <165055519869.3745911.10162603933337340370.stgit@dwillia2-desk3.amr.corp.intel.com>
- <YmNBJBTxUCvDHMbw@iweiny-desk3> <CAPcyv4jtNgfjWLyu6MtBAjwUiqe2qEBW802AzZZeg2gZ_wU9AQ@mail.gmail.com>
- <CAPcyv4hhD5t-qm_c_=bRjbJZFg9Mjkzbvu_2MEJB87fKy3hh-g@mail.gmail.com>
- <20220425103307.GI2731@worktop.programming.kicks-ass.net> <CAPcyv4i9ONW5w6p2P+E5rpw25_kmzpYf6SbmRM4+eP5hK4si-A@mail.gmail.com>
-In-Reply-To: <CAPcyv4i9ONW5w6p2P+E5rpw25_kmzpYf6SbmRM4+eP5hK4si-A@mail.gmail.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 25 Apr 2022 11:57:21 -0700
-Message-ID: <CAPcyv4hT7TcTxV_x1hhp8zVev21SMMUO7o2NkJw5OozjDRO4dQ@mail.gmail.com>
-Subject: Re: [PATCH v3 2/8] cxl/acpi: Add root device lockdep validation
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Ira Weiny <ira.weiny@intel.com>, linux-cxl@vger.kernel.org, 
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
-	Ingo Molnar <mingo@redhat.com>, Will Deacon <will@kernel.org>, Waiman Long <longman@redhat.com>, 
-	Boqun Feng <boqun.feng@gmail.com>, Alison Schofield <alison.schofield@intel.com>, 
-	Vishal Verma <vishal.l.verma@intel.com>, Ben Widawsky <ben.widawsky@intel.com>, 
-	Jonathan Cameron <Jonathan.Cameron@huawei.com>, Linux NVDIMM <nvdimm@lists.linux.dev>, 
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: s476xHn13dXBWosZJrPkNGwdtxDW4Opf
+X-Proofpoint-ORIG-GUID: s476xHn13dXBWosZJrPkNGwdtxDW4Opf
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.205,Aquarius:18.0.858,Hydra:6.0.486,FMLib:17.11.64.514
+ definitions=2022-04-25_10,2022-04-25_03,2022-02-23_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 lowpriorityscore=0
+ mlxlogscore=556 adultscore=0 suspectscore=0 clxscore=1015 impostorscore=0
+ spamscore=0 mlxscore=0 bulkscore=0 phishscore=0 malwarescore=0
+ priorityscore=1501 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2202240000 definitions=main-2204250085
 
-On Mon, Apr 25, 2022 at 9:05 AM Dan Williams <dan.j.williams@intel.com> wrote:
->
-> On Mon, Apr 25, 2022 at 3:33 AM Peter Zijlstra <peterz@infradead.org> wrote:
-> >
-> > On Sat, Apr 23, 2022 at 10:27:52AM -0700, Dan Williams wrote:
-> >
-> > > ...so I'm going to drop it and just add a comment about the
-> > > expectations. As Peter said there's already a multitude of ways to
-> > > cause false positive / negative results with lockdep so this is just
-> > > one more area where one needs to be careful and understand the lock
-> > > context they might be overriding.
-> >
-> > One safe-guard might be to check the class you're overriding is indeed
-> > __no_validate__, and WARN if not. Then the unconditional reset is
-> > conistent.
-> >
-> > Then, if/when, that WARN ever triggers you can revisit all this.
->
-> Ok, that does seem to need a dummy definition of lockdep_match_class()
-> in the CONFIG_LOCKDEP=n case, but that seems worth it to me for the
-> sanity check.
+This series resolves some issues with write-infoblock command and provide support to write-infoblock for sector mode namespace
 
-Thankfully the comment in lockdep.h to not define a
-lockdep_match_class() for the CONFIG_LOCKDEP=n stopped me from going
-that direction.
+write-infoblock command has issues regarding updating the align, uuid, parent_uuid. In case of no parameter passed for it, this command used to overwrite the existing values with defaults.
+
+In PATCH 1/2 these parameters will be set to their original values, incase, values hasn't been passed in command arguments
+
+write-infoblock command doesn't have support for sector/BTT mode namespaces. They can be converted to fsdax, but can not be written being in sector mode.
+
+In PATCH 2/2, It creates a functionality which write infoblock of Sector/BTT namespace. Currently only uuid, parent_uuid can be updated. In future, Support for other parameters can easily be integrated in the
+functionality.
+
+---
+v2:
+  Updated the commit message (rephrasing) in patch 1/2
+  Moved the ns_info struct to namespace.c from namespace.h
+  put the results after --- to avoid long commit message
+  
+Tarun-Sahu (2):
+  ndctl/namespace:Fix multiple issues with write-infoblock
+  ndctl/namespace:Implement write-infoblock for sector mode namespaces
+
+ ndctl/namespace.c | 307 +++++++++++++++++++++++++++++++++-------------
+ 1 file changed, 224 insertions(+), 83 deletions(-)
+
+-- 
+2.35.1
+
