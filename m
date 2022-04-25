@@ -1,138 +1,77 @@
-Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1AA687C
-	for <nvdimm@lists.linux.dev>; Mon, 25 Apr 2022 12:37:52 +0000 (UTC)
-Received: from pps.filterd (m0098421.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 23PBCbpF028542;
-	Mon, 25 Apr 2022 12:37:44 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : date :
- mime-version : subject : to : cc : references : from : in-reply-to :
- content-type : content-transfer-encoding; s=pp1;
- bh=WBj+lF9crn38ly64rAu2SUr2YafyK9xDqlUy7yre2+k=;
- b=Jw2cgn9LgESvEtFhIp6TLAZ7Z9apFYCjCWkVeDz+QhZInD4bqzCnYT9yg6MiQxIrlvXL
- E7symT6mR+vW/86EhrXFsYiGDVEBvnDiz45xQWerNJuVxbAKiMTWoBKx3K4SZX0VP0yV
- tR2h4aZCqR+d8QQsR14OJ6zHDJDMHXgjt2RE8esM1axqlb4PpZyt2MVpnvTfT+RZtIvi
- GQkG58LcumWe+MUHt320XkM7NC4TAj10kXRVSL5NmsSPTLr2oXo+AnUgZN5UhsZlu7Hx
- bx/wRFtmkZ4XHO7H1i5C96LLnKq1VgiJv9+pNpYj4bF7+ufZW9Jx6JhU/WLZ6AomFqtL eA== 
-Received: from ppma03ams.nl.ibm.com (62.31.33a9.ip4.static.sl-reverse.com [169.51.49.98])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3fnraumrrf-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 25 Apr 2022 12:37:44 +0000
-Received: from pps.filterd (ppma03ams.nl.ibm.com [127.0.0.1])
-	by ppma03ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 23PCKTVu023144;
-	Mon, 25 Apr 2022 12:37:42 GMT
-Received: from b06cxnps4074.portsmouth.uk.ibm.com (d06relay11.portsmouth.uk.ibm.com [9.149.109.196])
-	by ppma03ams.nl.ibm.com with ESMTP id 3fm938tcs6-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 25 Apr 2022 12:37:42 +0000
-Received: from d06av24.portsmouth.uk.ibm.com (mk.ibm.com [9.149.105.60])
-	by b06cxnps4074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 23PCbdq847907080
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 25 Apr 2022 12:37:39 GMT
-Received: from d06av24.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 2F9C44203F;
-	Mon, 25 Apr 2022 12:37:39 +0000 (GMT)
-Received: from d06av24.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id F35C442045;
-	Mon, 25 Apr 2022 12:37:36 +0000 (GMT)
-Received: from [9.43.33.161] (unknown [9.43.33.161])
-	by d06av24.portsmouth.uk.ibm.com (Postfix) with ESMTP;
-	Mon, 25 Apr 2022 12:37:36 +0000 (GMT)
-Message-ID: <d1aec1cf-86c5-ad64-3d29-cdce12a923ba@linux.ibm.com>
-Date: Mon, 25 Apr 2022 18:07:35 +0530
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6ADA257B
+	for <nvdimm@lists.linux.dev>; Mon, 25 Apr 2022 15:09:02 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1650899343; x=1682435343;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=wQnjSWMkT1Rr15X7pNbO5/y1mdqNp9x3OoIAYE6/qS0=;
+  b=gKOw274faZ4WYG7DQL8kSHW5rWw5VU57DXKqjrX37RvAQqcksmEPTqBn
+   4D74PMtZJsbjWICPWbWbiVv1fEytAE+w/J6hu0nL5l3SxF4ZQ/1+BJ8/P
+   d7bbI7Ia87tZxmDpHuwDxjllpChv4VF2Ww2jwa/1aj9ctclsGpqCLipZL
+   1UqapTM22doV+dZ3hCNXN0wOsq7tAvvrJHty8T3ivZiEQHBno9Bc/BcmI
+   7RCTLrSjnUiYVJJQ11lUy3bx05pmwZBC+/Dqg2/ujVUVNQazvcLWSsu+j
+   xiZRw/wAVTwrd0fLj9wdHZkK3kv2Ogb/szHipVyFbWQ4Eisn7kW0UH2pz
+   A==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10328"; a="264122583"
+X-IronPort-AV: E=Sophos;i="5.90,288,1643702400"; 
+   d="scan'208";a="264122583"
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Apr 2022 08:07:44 -0700
+X-IronPort-AV: E=Sophos;i="5.90,288,1643702400"; 
+   d="scan'208";a="729779664"
+Received: from hungyuan-mobl.amr.corp.intel.com (HELO localhost) ([10.212.88.155])
+  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Apr 2022 08:07:43 -0700
+Date: Mon, 25 Apr 2022 08:07:43 -0700
+From: Ira Weiny <ira.weiny@intel.com>
+To: cgel.zte@gmail.com
+Cc: dan.j.williams@intel.com, vishal.l.verma@intel.com,
+	dave.jiang@intel.com, ran.jianping@zte.com.cn, jane.chu@oracle.com,
+	rafael.j.wysocki@intel.com, nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org, Zeal Robot <zealci@zte.com.cn>
+Subject: Re: [PATCH] tools/testing/nvdimm: remove unneeded flush_workqueue
+Message-ID: <Yma5P3b7HceTyUD6@iweiny-desk3>
+References: <20220424062655.3221152-1-ran.jianping@zte.com.cn>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.7.0
-Subject: Re: [PATCH 2/2] ndctl/namespace:Implement write-infoblock for sector
- mode namespaces
-Content-Language: en-US
-To: Tarun Sahu <tsahu@linux.ibm.com>, nvdimm@lists.linux.dev
-Cc: dan.j.williams@intel.com, vishal.l.verma@intel.com,
-        aneesh.kumar@linux.ibm.com, vaibhav@linux.ibm.com
-References: <20220413035252.161527-1-tsahu@linux.ibm.com>
- <20220413035252.161527-3-tsahu@linux.ibm.com>
-From: Shivaprasad G Bhat <sbhat@linux.ibm.com>
-In-Reply-To: <20220413035252.161527-3-tsahu@linux.ibm.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-ORIG-GUID: xTCVjZnV2NZh24JdoSRONO4_sOVJzoRE
-X-Proofpoint-GUID: xTCVjZnV2NZh24JdoSRONO4_sOVJzoRE
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.205,Aquarius:18.0.858,Hydra:6.0.486,FMLib:17.11.64.514
- definitions=2022-04-25_08,2022-04-25_01,2022-02-23_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 spamscore=0 phishscore=0
- mlxscore=0 lowpriorityscore=0 clxscore=1015 priorityscore=1501 bulkscore=0
- impostorscore=0 mlxlogscore=999 adultscore=0 suspectscore=0 malwarescore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2202240000
- definitions=main-2204250055
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220424062655.3221152-1-ran.jianping@zte.com.cn>
 
+On Sun, Apr 24, 2022 at 06:26:55AM +0000, cgel.zte@gmail.com wrote:
+> From: ran jianping <ran.jianping@zte.com.cn>
+> 
+> All work currently pending will be done first by calling destroy_workqueue,
+> so there is no need to flush it explicitly.
+> 
+> Reported-by: Zeal Robot <zealci@zte.com.cn>
+> Signed-off-by: ran jianping <ran.jianping@zte.com.cn>
 
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
 
-On 4/13/22 09:22, Tarun Sahu wrote:
-> Following to the previous patch in this series,
-> once the namespace info has been collected in ns_info,
-> while writing to the infoblock for sector mode, it can be
-> written with original infoblock values except the ones that
-> have been provided by parameter arguments to write-infoblock command.
-
-<snip>
-
->   }
->   
-> +static int write_btt_sb(const int fd, unsigned long long size, struct ns_info *ns_info)
-> +{
-> +	int rc = 0;
-> +	uuid_t uuid, parent_uuid;
-> +
-> +	// updating the original values which are asked to change,
-> +	// rest will be unchanged
-> +	if (param.uuid) {
-> +		rc = uuid_parse(param.uuid, uuid);
-> +		if (rc) {
-> +			pr_verbose("Failed to parse UUID");
-
-Use error("Failed ... instead
-
-> +			return rc;
-> +		}
-> +		memcpy(((struct btt_sb *)(ns_info->ns_sb_buf + ns_info->offset))->uuid,
-> +				uuid, sizeof(uuid_t));
-> +	}
-> +	if (param.parent_uuid) {
-> +		rc = uuid_parse(param.parent_uuid, parent_uuid);
-> +		if (rc) {
-> +			pr_verbose("Failed to parse UUID");
-
-Same here
-
-> +			return rc;
-> +		}
-> +		memcpy(((struct btt_sb *)(ns_info->ns_sb_buf + ns_info->offset))->parent_uuid,
-> +				parent_uuid, sizeof(uuid_t));
-> +	}
-> +
-> +	if (pwrite(fd, ns_info->ns_sb_buf + ns_info->offset, sizeof(struct btt_sb),
-> +			       ns_info->offset) < 0) {
-> +		pr_verbose("Unable to write the info block: %s\n",
-> +				strerror(errno));
-
-Same here
-> +		rc = -errno;
-> +	}
-> +
-> +	if (pwrite(fd, ns_info->ns_sb_buf + ns_info->offset, sizeof(struct btt_sb),
-> +				size - sizeof(struct btt_sb)) < 0) {
-> +		pr_verbose("Unable to write the info block: %s\n",
-> +			strerror(errno));
-
-Same here
-
-Thanks,
-Shivaprasad
+> ---
+>  tools/testing/nvdimm/test/nfit.c | 1 -
+>  1 file changed, 1 deletion(-)
+> 
+> diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+> index 1da76ccde448..e7e1a640e482 100644
+> --- a/tools/testing/nvdimm/test/nfit.c
+> +++ b/tools/testing/nvdimm/test/nfit.c
+> @@ -3375,7 +3375,6 @@ static __exit void nfit_test_exit(void)
+>  {
+>  	int i;
+>  
+> -	flush_workqueue(nfit_wq);
+>  	destroy_workqueue(nfit_wq);
+>  	for (i = 0; i < NUM_NFITS; i++)
+>  		platform_device_unregister(&instances[i]->pdev);
+> -- 
+> 2.25.1
+> 
