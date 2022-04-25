@@ -1,111 +1,86 @@
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f180.google.com (mail-pf1-f180.google.com [209.85.210.180])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46FB37E;
-	Mon, 25 Apr 2022 18:26:28 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1650911188; x=1682447188;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=jzQ9R7uQvM7Ar4hkHhfKsohSU59ehFv4fTDdCMY0mMA=;
-  b=IM7auPJrb5DqaMnlK3lM4kvYadLEwSBewVFKsGGp+uY3htCCP0BGzYU+
-   So4WXz511bQGz9wgsfn1NV5pRKvWAYFIpl8OcIBMT5BsW/ju9Jz9F3IAa
-   gxn6/Rjigypdz5ybbLsCagkRTrFJOaX7HD1nKOwrio1GGyaaH5IIw0IOn
-   qncYNP6LlnItFAKpKRT38A64k/N64GbhcM3WoHNtGUuptxlDp5+4mbVHH
-   kiN8kUqg1mQJxhSmURdLlN2xPO6M+6jgLKkVkdNPcse68gerh1azcQfeb
-   blE2L8+8qsV9eiIwr78U9sfVIW8DEe4c72lMltjJFmpuZyhOLMoJA5KYw
-   g==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10328"; a="351775939"
-X-IronPort-AV: E=Sophos;i="5.90,289,1643702400"; 
-   d="scan'208";a="351775939"
-Received: from orsmga004.jf.intel.com ([10.7.209.38])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Apr 2022 11:26:27 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.90,289,1643702400"; 
-   d="scan'208";a="677346229"
-Received: from lkp-server01.sh.intel.com (HELO 5056e131ad90) ([10.239.97.150])
-  by orsmga004.jf.intel.com with ESMTP; 25 Apr 2022 11:26:24 -0700
-Received: from kbuild by 5056e131ad90 with local (Exim 4.95)
-	(envelope-from <lkp@intel.com>)
-	id 1nj3Pk-0002lK-6v;
-	Mon, 25 Apr 2022 18:26:24 +0000
-Date: Tue, 26 Apr 2022 02:25:46 +0800
-From: kernel test robot <lkp@intel.com>
-To: cgel.zte@gmail.com, dan.j.williams@intel.com
-Cc: llvm@lists.linux.dev, kbuild-all@lists.01.org, vishal.l.verma@intel.com,
-	dave.jiang@intel.com, nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org, Minghao Chi <chi.minghao@zte.com.cn>,
-	Zeal Robot <zealci@zte.com.cn>
-Subject: Re: [PATCH] device-dax: use kobj_to_dev()
-Message-ID: <202204260238.kDqgLOsU-lkp@intel.com>
-References: <20220425105307.3515215-1-chi.minghao@zte.com.cn>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FAF72571
+	for <nvdimm@lists.linux.dev>; Mon, 25 Apr 2022 18:57:33 +0000 (UTC)
+Received: by mail-pf1-f180.google.com with SMTP id a15so15652103pfv.11
+        for <nvdimm@lists.linux.dev>; Mon, 25 Apr 2022 11:57:33 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20210112.gappssmtp.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=6o+SI4yj6/1QuIDP6FADkDckBUMPioD3y38MqpuhkSo=;
+        b=P1K4PYS25TS0Jd/Wx1fojI8IZ5I9h3+RLAY7MrwpwNS/97M2bik+Fzj4uCxSceTFqC
+         By1zfFuX/dRkCdeEJYZr+gPWBQpJmKS+xMan4GPia2P7HYavXB/ti79lxVJxwM7d4LM4
+         aPK1RRSJ/R9VAaoblJjSjAtxHnDWIJPEq87p8VBqlTtFdSmnFgJdFtRWqMM0h49u6xc9
+         rhrP0KJj3lMgZHRcTs+tyLa2KjZgBcbNipfstGdWxKKlnvCyT2TaW1Syc4TU9KG3ibtj
+         4zHlVZKN7G/200mOGcecQer5k4ANX/oi0/zChwRmOOQUjYp8HN+wmH5LUUnSU34FuuRS
+         Hgeg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=6o+SI4yj6/1QuIDP6FADkDckBUMPioD3y38MqpuhkSo=;
+        b=YCZfJkmK8ZTb3AdLq4zwPAD91jEXknuZYi5agCmOMf3DhBglPBp6ez5cwb5LjWiElj
+         elo9UO4Nbdlss7c4+gOum1AkkHZ8Egx/tpaqdgXuLx2uBPDjQmVnxNPyIJmza+gWlCtr
+         moEqzrJ5I8eW9S2JyM0vt2RgHnsve+c0vG/ZThMqcHIEbb/UAzkiRVYCrOk5SX+q2tdF
+         K9MKM9RdTDEXrBZ3oc/PuVo6jNybHT4RJ8kQCcG5tLtO+9To7qAmIInh3T17GKCbiNLK
+         f6/xmBPD9yCRFEQSxK/6hKtiWDDfp3XwrzoXKeqVdIWjtQMTGlU6av31wHssy9tqg/Eu
+         nOkQ==
+X-Gm-Message-State: AOAM531cZAKZzzMXgM5ui9ayyyTR5zc1EcBUSiwZTZChdUfl/x4Cdhyt
+	VuSWyaeKy86fuosWmdpbTqDMXDvVJ9xA3UpUSKGR6w==
+X-Google-Smtp-Source: ABdhPJyUxljZXNAY57tBgo6I/sBtSCxjGKyLUSTbY3/eBgitnlYZPc3dWMb2Osy5fBb0Ykt3C3DNXYRbEpXXGPyfmdk=
+X-Received: by 2002:a05:6a00:e14:b0:4fe:3cdb:23f with SMTP id
+ bq20-20020a056a000e1400b004fe3cdb023fmr20248514pfb.86.1650913052859; Mon, 25
+ Apr 2022 11:57:32 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220425105307.3515215-1-chi.minghao@zte.com.cn>
+References: <165055518776.3745911.9346998911322224736.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <165055519869.3745911.10162603933337340370.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <YmNBJBTxUCvDHMbw@iweiny-desk3> <CAPcyv4jtNgfjWLyu6MtBAjwUiqe2qEBW802AzZZeg2gZ_wU9AQ@mail.gmail.com>
+ <CAPcyv4hhD5t-qm_c_=bRjbJZFg9Mjkzbvu_2MEJB87fKy3hh-g@mail.gmail.com>
+ <20220425103307.GI2731@worktop.programming.kicks-ass.net> <CAPcyv4i9ONW5w6p2P+E5rpw25_kmzpYf6SbmRM4+eP5hK4si-A@mail.gmail.com>
+In-Reply-To: <CAPcyv4i9ONW5w6p2P+E5rpw25_kmzpYf6SbmRM4+eP5hK4si-A@mail.gmail.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 25 Apr 2022 11:57:21 -0700
+Message-ID: <CAPcyv4hT7TcTxV_x1hhp8zVev21SMMUO7o2NkJw5OozjDRO4dQ@mail.gmail.com>
+Subject: Re: [PATCH v3 2/8] cxl/acpi: Add root device lockdep validation
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Ira Weiny <ira.weiny@intel.com>, linux-cxl@vger.kernel.org, 
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, 
+	Ingo Molnar <mingo@redhat.com>, Will Deacon <will@kernel.org>, Waiman Long <longman@redhat.com>, 
+	Boqun Feng <boqun.feng@gmail.com>, Alison Schofield <alison.schofield@intel.com>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Ben Widawsky <ben.widawsky@intel.com>, 
+	Jonathan Cameron <Jonathan.Cameron@huawei.com>, Linux NVDIMM <nvdimm@lists.linux.dev>, 
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 
-Hi,
+On Mon, Apr 25, 2022 at 9:05 AM Dan Williams <dan.j.williams@intel.com> wrote:
+>
+> On Mon, Apr 25, 2022 at 3:33 AM Peter Zijlstra <peterz@infradead.org> wrote:
+> >
+> > On Sat, Apr 23, 2022 at 10:27:52AM -0700, Dan Williams wrote:
+> >
+> > > ...so I'm going to drop it and just add a comment about the
+> > > expectations. As Peter said there's already a multitude of ways to
+> > > cause false positive / negative results with lockdep so this is just
+> > > one more area where one needs to be careful and understand the lock
+> > > context they might be overriding.
+> >
+> > One safe-guard might be to check the class you're overriding is indeed
+> > __no_validate__, and WARN if not. Then the unconditional reset is
+> > conistent.
+> >
+> > Then, if/when, that WARN ever triggers you can revisit all this.
+>
+> Ok, that does seem to need a dummy definition of lockdep_match_class()
+> in the CONFIG_LOCKDEP=n case, but that seems worth it to me for the
+> sanity check.
 
-Thank you for the patch! Yet something to improve:
-
-[auto build test ERROR on linus/master]
-[also build test ERROR on v5.18-rc4 next-20220422]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch]
-
-url:    https://github.com/intel-lab-lkp/linux/commits/cgel-zte-gmail-com/device-dax-use-kobj_to_dev/20220425-185400
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git af2d861d4cd2a4da5137f795ee3509e6f944a25b
-config: hexagon-randconfig-r041-20220425 (https://download.01.org/0day-ci/archive/20220426/202204260238.kDqgLOsU-lkp@intel.com/config)
-compiler: clang version 15.0.0 (https://github.com/llvm/llvm-project 1cddcfdc3c683b393df1a5c9063252eb60e52818)
-reproduce (this is a W=1 build):
-        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        # https://github.com/intel-lab-lkp/linux/commit/83eff180ded41da8e042373de81fa823835a1be0
-        git remote add linux-review https://github.com/intel-lab-lkp/linux
-        git fetch --no-tags linux-review cgel-zte-gmail-com/device-dax-use-kobj_to_dev/20220425-185400
-        git checkout 83eff180ded41da8e042373de81fa823835a1be0
-        # save the config file
-        mkdir build_dir && cp config build_dir/.config
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=clang make.cross W=1 O=build_dir ARCH=hexagon SHELL=/bin/bash drivers/
-
-If you fix the issue, kindly add following tag as appropriate
-Reported-by: kernel test robot <lkp@intel.com>
-
-All errors (new ones prefixed by >>):
-
->> drivers/dax/bus.c:515:40: error: expected ';' at end of declaration
-           struct device *dev = kobj_to_dev(kobj)
-                                                 ^
-                                                 ;
-   1 error generated.
-
-
-vim +515 drivers/dax/bus.c
-
-   511	
-   512	static umode_t dax_region_visible(struct kobject *kobj, struct attribute *a,
-   513			int n)
-   514	{
- > 515		struct device *dev = kobj_to_dev(kobj)
-   516		struct dax_region *dax_region = dev_get_drvdata(dev);
-   517	
-   518		if (is_static(dax_region))
-   519			if (a == &dev_attr_available_size.attr
-   520					|| a == &dev_attr_create.attr
-   521					|| a == &dev_attr_seed.attr
-   522					|| a == &dev_attr_delete.attr)
-   523				return 0;
-   524		return a->mode;
-   525	}
-   526	
-
--- 
-0-DAY CI Kernel Test Service
-https://01.org/lkp
+Thankfully the comment in lockdep.h to not define a
+lockdep_match_class() for the CONFIG_LOCKDEP=n stopped me from going
+that direction.
