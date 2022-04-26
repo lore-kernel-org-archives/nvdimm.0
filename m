@@ -1,222 +1,209 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C944C29B4
-	for <nvdimm@lists.linux.dev>; Mon, 25 Apr 2022 19:13:56 +0000 (UTC)
-Received: from pps.filterd (m0098404.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 23PHrw3A019569;
-	Mon, 25 Apr 2022 19:13:55 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
- : date : message-id : in-reply-to : references : mime-version :
- content-transfer-encoding; s=pp1;
- bh=Of6frm+KRe3P3zNITXS63JaWyfE/TIzooDMkcEqUj8c=;
- b=h/+QyHQSxGxb9NLCThwqE21ld8o3AHU+QX5tdZI2ymr7s4RhHrSfgNkwMtXHhar4Y1YP
- 9BMI41CPwFFRypTpsLwq/aLjRWJZmXSqYD1BGyLNiIsqbRaylV5WS4bQ9GXZ7bPbiXU/
- 4hKSb54uCC3eOS1oCJSrSi0DFhc1BKQryEeh6C9GY9pMVSw/28ZricMYO3htQT+SpKZr
- 1J9zUzrd5Kw59KPejLCMvOxeElVl/dWwmPbi7YGS3xG08OLJbCy348IwXXllgG915s77
- YOjt7UOcolQAVhMwhiKo6dVojLprINwEOsUc+X2HNukFfEWno+OKEWnz9qzK1Twm+qie Iw== 
-Received: from ppma03ams.nl.ibm.com (62.31.33a9.ip4.static.sl-reverse.com [169.51.49.98])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3fnun4gwu2-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 25 Apr 2022 19:13:54 +0000
-Received: from pps.filterd (ppma03ams.nl.ibm.com [127.0.0.1])
-	by ppma03ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 23PJAbA8032735;
-	Mon, 25 Apr 2022 19:13:52 GMT
-Received: from b06avi18878370.portsmouth.uk.ibm.com (b06avi18878370.portsmouth.uk.ibm.com [9.149.26.194])
-	by ppma03ams.nl.ibm.com with ESMTP id 3fm938ttcn-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 25 Apr 2022 19:13:52 +0000
-Received: from d06av21.portsmouth.uk.ibm.com (d06av21.portsmouth.uk.ibm.com [9.149.105.232])
-	by b06avi18878370.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 23PJE1N544499366
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 25 Apr 2022 19:14:01 GMT
-Received: from d06av21.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id F1EE65204F;
-	Mon, 25 Apr 2022 19:13:48 +0000 (GMT)
-Received: from li-efb8054c-3504-11b2-a85c-ca10df28279e.ibm.com.com (unknown [9.43.7.86])
-	by d06av21.portsmouth.uk.ibm.com (Postfix) with ESMTP id 4C37552050;
-	Mon, 25 Apr 2022 19:13:46 +0000 (GMT)
-From: Tarun Sahu <tsahu@linux.ibm.com>
-To: nvdimm@lists.linux.dev
-Cc: tsahu@linux.ibm.com, dan.j.williams@intel.com, vishal.l.verma@intel.com,
-        aneesh.kumar@linux.ibm.com, sbhat@linux.ibm.com, vaibhav@linux.ibm.com
-Subject: [PATCH v2 2/2] ndctl/namespace:Implement  write-infoblock for sector mode namespaces
-Date: Tue, 26 Apr 2022 00:43:29 +0530
-Message-Id: <20220425191329.59213-3-tsahu@linux.ibm.com>
-X-Mailer: git-send-email 2.35.1
-In-Reply-To: <20220425191329.59213-1-tsahu@linux.ibm.com>
-References: <20220425191329.59213-1-tsahu@linux.ibm.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39F53363
+	for <nvdimm@lists.linux.dev>; Tue, 26 Apr 2022 04:23:26 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1650947006; x=1682483006;
+  h=subject:from:to:cc:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=RPsTBLRj1KMYFKyyD8tLYZbU16tTm3/UP+mPjNuhPJk=;
+  b=JXVbVJpdn/jXS/I+zsBqxILnP3oG9/KDLxlXvkVNRx2aUQBE5jg8J+M7
+   Deg1bZVVoNaeGWqmXxbpBS4jhMIwFbd+yM/yOYyjwVsVy0EAb4Q6ZLWjN
+   SxtiGKDMZp1rrLvF+/3g+2iwHNXTliwi3/hzXzUPx4Nu+KFqPeR4W/tXE
+   lQSuLY5asdGcyONx3UV8QTWnAHNMPeKZ0bdCgBwRjEommVR/tdqROkdU9
+   hRJBe1FVv+JaE/A836MI8tbz7eyPntBpT/9ecep4NGVfCvoL+nsDr2TIt
+   NYIPgZJAAAB3wahICdZqFgibUxc6H/TOkeCaNm9h9Apcj4aFFJ2ThI0aW
+   Q==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10328"; a="290588842"
+X-IronPort-AV: E=Sophos;i="5.90,290,1643702400"; 
+   d="scan'208";a="290588842"
+Received: from fmsmga007.fm.intel.com ([10.253.24.52])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Apr 2022 21:23:25 -0700
+X-IronPort-AV: E=Sophos;i="5.90,290,1643702400"; 
+   d="scan'208";a="564391541"
+Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
+  by fmsmga007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Apr 2022 21:23:25 -0700
+Subject: [PATCH v5 2/8] cxl/acpi: Add root device lockdep validation
+From: Dan Williams <dan.j.williams@intel.com>
+To: linux-cxl@vger.kernel.org
+Cc: Peter Zijlstra <peterz@infradead.org>,
+ "Rafael J. Wysocki" <rafael@kernel.org>, Ingo Molnar <mingo@redhat.com>,
+ Will Deacon <will@kernel.org>, Waiman Long <longman@redhat.com>,
+ Boqun Feng <boqun.feng@gmail.com>,
+ Alison Schofield <alison.schofield@intel.com>,
+ Vishal Verma <vishal.l.verma@intel.com>, Ben Widawsky <ben.widawsky@intel.com>,
+ Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ Ira Weiny <ira.weiny@intel.com>, nvdimm@lists.linux.dev
+Date: Mon, 25 Apr 2022 21:23:25 -0700
+Message-ID: <165094691930.1127280.7077256361741497990.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <165074768280.4047093.15803516065715087623.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <165074768280.4047093.15803516065715087623.stgit@dwillia2-desk3.amr.corp.intel.com>
+User-Agent: StGit/0.18-3-g996c
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-ORIG-GUID: 4OA9H3ycWlAxs_CFIE7i2FA7sxwAMlUI
-X-Proofpoint-GUID: 4OA9H3ycWlAxs_CFIE7i2FA7sxwAMlUI
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.205,Aquarius:18.0.858,Hydra:6.0.486,FMLib:17.11.64.514
- definitions=2022-04-25_10,2022-04-25_03,2022-02-23_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 impostorscore=0
- malwarescore=0 suspectscore=0 phishscore=0 mlxlogscore=999 mlxscore=0
- priorityscore=1501 clxscore=1015 spamscore=0 bulkscore=0
- lowpriorityscore=0 adultscore=0 classifier=spam adjust=0 reason=mlx
- scancount=1 engine=8.12.0-2202240000 definitions=main-2204250085
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 
-Following to the previous patch in this series,
-once the namespace info has been collected in ns_info,
-while writing to the infoblock for sector mode, it can be
-written with original infoblock values except the ones that
-have been provided by parameter arguments to write-infoblock command.
+The CXL "root" device, ACPI0017, is an attach point for coordinating
+platform level CXL resources and is the parent device for a CXL port
+topology tree. As such it has distinct locking rules relative to other
+CXL subsystem objects, but because it is an ACPI device the lock class
+is established well before it is given to the cxl_acpi driver.
 
-Currently, this patch allows only uuid and parent_uuid to be
-changed, In future support for other values can be implemented easily by adding condition inside write_btt_sb function, which has been created to write BTT sector mode specific namespace.
+However, the lockdep API does support changing the lock class "live" for
+situations like this. Add a device_lock_set_class() helper that a driver
+can use in ->probe() to set a custom lock class, and
+device_lock_reset_class() to return to the default "no validate" class
+before the custom lock class key goes out of scope after ->remove().
 
-$ ./ndctl read-infoblock namespace0.0 -j
-[
-  {
-    "dev":"namespace0.0",
-    "signature":"BTT_ARENA_INFO",
-    "uuid":"7296ebd6-7039-4d02-9ed9-ac5f351ff0e4",
-    "parent_uuid":"46850d31-8fb5-4492-b630-9f3cd7b77500",
-    "flags":0,
-    "version":"2.0",
-    "external_lbasize":4096,
-    "external_nlba":8380160,
-    "internal_lbasize":4096,
-    "internal_nlba":8380416,
-    "nfree":256,
-    "infosize":4096,
-    "nextoff":0,
-    "dataoff":4096,
-    "mapoff":34326196224,
-    "logoff":34359717888,
-    "info2off":34359734272
-  }
-]
-read 1 infoblock
+Note the helpers are all macros to support dead code elimination in the
+CONFIG_PROVE_LOCKING=n case, however device_set_lock_class() still needs
+#ifdef CONFIG_PROVE_LOCKING since lockdep_match_class() explicitly does
+not have a helper in the CONFIG_PROVE_LOCKING=n case (see comment in
+lockdep.h). The lockdep API needs 2 small tweaks to prevent "unused"
+warnings for the @key argument to lock_set_class(), and a new
+lock_set_novalidate_class() is added to supplement
+lockdep_set_novalidate_class() in the cases where the lock class is
+converted while the lock is held.
 
-$ ./ndctl write-infoblock namespace0.0 \
->	--uuid "d0b19883-0874-4847-8c71-71549590949c"
-wrote 1 infoblock
-
-$ ./ndctl read-infoblock namespace0.0 -j
-[
-  {
-    "dev":"namespace0.0",
-    "signature":"BTT_ARENA_INFO",
-    "uuid":"d0b19883-0874-4847-8c71-71549590949c",
-    "parent_uuid":"46850d31-8fb5-4492-b630-9f3cd7b77500",
-    "flags":0,
-    "version":"2.0",
-    "external_lbasize":4096,
-    "external_nlba":8380160,
-    "internal_lbasize":4096,
-    "internal_nlba":8380416,
-    "nfree":256,
-    "infosize":4096,
-    "nextoff":0,
-    "dataoff":4096,
-    "mapoff":34326196224,
-    "logoff":34359717888,
-    "info2off":34359734272
-  }
-]
-read 1 infoblock
-
-Signed-off-by: Tarun Sahu <tsahu@linux.ibm.com>
+Suggested-by: Peter Zijlstra <peterz@infradead.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Waiman Long <longman@redhat.com>
+Cc: Boqun Feng <boqun.feng@gmail.com>
+Cc: Alison Schofield <alison.schofield@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Ben Widawsky <ben.widawsky@intel.com>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- ndctl/namespace.c | 54 +++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 54 insertions(+)
+Changes since v4:
+- Rather than attempt to error out when device_set_lock_class() is
+  overriding an existing lock class, just WARN and revisit if it becomes
+  a problem. (Peter).
 
-diff --git a/ndctl/namespace.c b/ndctl/namespace.c
-index 028c517..fe26202 100644
---- a/ndctl/namespace.c
-+++ b/ndctl/namespace.c
-@@ -253,6 +253,7 @@ static int set_defaults(enum device_action action)
- 			break;
- 		case NDCTL_NS_MODE_FSDAX:
- 		case NDCTL_NS_MODE_DEVDAX:
-+		case NDCTL_NS_MODE_SECTOR:
- 			break;
- 		default:
- 			if (action == ACTION_WRITE_INFOBLOCK) {
-@@ -2014,6 +2015,48 @@ static int write_pfn_sb(int fd, unsigned long long size, const char *sig,
- 	return 0;
+ drivers/cxl/acpi.c      |   13 +++++++++++++
+ include/linux/device.h  |   43 +++++++++++++++++++++++++++++++++++++++++++
+ include/linux/lockdep.h |    6 +++++-
+ 3 files changed, 61 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/cxl/acpi.c b/drivers/cxl/acpi.c
+index d15a6aec0331..40286f5df812 100644
+--- a/drivers/cxl/acpi.c
++++ b/drivers/cxl/acpi.c
+@@ -275,6 +275,13 @@ static int add_root_nvdimm_bridge(struct device *match, void *data)
+ 	return 1;
  }
  
-+static int write_btt_sb(const int fd, unsigned long long size, struct ns_info *ns_info)
++static struct lock_class_key cxl_root_key;
++
++static void cxl_acpi_lock_reset_class(void *dev)
 +{
-+	int rc = 0;
-+	uuid_t uuid, parent_uuid;
-+
-+	// updating the original values which are asked to change,
-+	// rest will be unchanged
-+	if (param.uuid) {
-+		rc = uuid_parse(param.uuid, uuid);
-+		if (rc) {
-+			error("Failed to parse UUID");
-+			return rc;
-+		}
-+		memcpy(((struct btt_sb *)(ns_info->ns_sb_buf + ns_info->offset))->uuid,
-+				uuid, sizeof(uuid_t));
-+	}
-+	if (param.parent_uuid) {
-+		rc = uuid_parse(param.parent_uuid, parent_uuid);
-+		if (rc) {
-+			error("Failed to parse UUID");
-+			return rc;
-+		}
-+		memcpy(((struct btt_sb *)(ns_info->ns_sb_buf + ns_info->offset))->parent_uuid,
-+				parent_uuid, sizeof(uuid_t));
-+	}
-+
-+	if (pwrite(fd, ns_info->ns_sb_buf + ns_info->offset, sizeof(struct btt_sb),
-+			       ns_info->offset) < 0) {
-+		pr_verbose("Unable to write the info block: %s\n",
-+				strerror(errno));
-+		rc = -errno;
-+	}
-+
-+	if (pwrite(fd, ns_info->ns_sb_buf + ns_info->offset, sizeof(struct btt_sb),
-+				size - sizeof(struct btt_sb)) < 0) {
-+		pr_verbose("Unable to write the info block: %s\n",
-+			strerror(errno));
-+		rc = -errno;
-+	}
-+	return rc;
++	device_lock_reset_class(dev);
 +}
 +
- static int file_write_infoblock(const char *path, struct ns_info *ns_info)
+ static int cxl_acpi_probe(struct platform_device *pdev)
  {
- 	unsigned long long size = parse_size64(param.size);
-@@ -2061,6 +2104,14 @@ static int file_write_infoblock(const char *path, struct ns_info *ns_info)
- 	case NDCTL_NS_MODE_DEVDAX:
- 		rc = write_pfn_sb(fd, size, DAX_SIG, ns_info);
- 		break;
-+	case NDCTL_NS_MODE_SECTOR:
-+		if (ns_info->mode == NDCTL_NS_MODE_SECTOR)
-+			rc = write_btt_sb(fd, size, ns_info);
-+		else {
-+			pr_verbose("Non-sector mode namespaces can't be converted to sector mode namespaces");
-+			rc = -EPERM;
-+		}
-+		break;
- 	case NDCTL_NS_MODE_UNKNOWN:
- 		switch (ns_info->mode) {
- 		case NDCTL_NS_MODE_FSDAX:
-@@ -2069,6 +2120,9 @@ static int file_write_infoblock(const char *path, struct ns_info *ns_info)
- 		case NDCTL_NS_MODE_DEVDAX:
- 			rc = write_pfn_sb(fd, size, DAX_SIG, ns_info);
- 			break;
-+		case NDCTL_NS_MODE_SECTOR:
-+			rc = write_btt_sb(fd, size, ns_info);
-+			break;
- 		default:
- 			rc = -EINVAL;
- 			break;
--- 
-2.35.1
+ 	int rc;
+@@ -283,6 +290,12 @@ static int cxl_acpi_probe(struct platform_device *pdev)
+ 	struct acpi_device *adev = ACPI_COMPANION(host);
+ 	struct cxl_cfmws_context ctx;
+ 
++	device_lock_set_class(&pdev->dev, &cxl_root_key);
++	rc = devm_add_action_or_reset(&pdev->dev, cxl_acpi_lock_reset_class,
++				      &pdev->dev);
++	if (rc)
++		return rc;
++
+ 	root_port = devm_cxl_add_port(host, host, CXL_RESOURCE_NONE, NULL);
+ 	if (IS_ERR(root_port))
+ 		return PTR_ERR(root_port);
+diff --git a/include/linux/device.h b/include/linux/device.h
+index 93459724dcde..355127d0de78 100644
+--- a/include/linux/device.h
++++ b/include/linux/device.h
+@@ -850,6 +850,49 @@ static inline bool device_supports_offline(struct device *dev)
+ 	return dev->bus && dev->bus->offline && dev->bus->online;
+ }
+ 
++#define __device_lock_set_class(dev, name, key)                        \
++do {                                                                   \
++	struct device *__d __maybe_unused = dev;                       \
++	lock_set_class(&__d->mutex.dep_map, name, key, 0, _THIS_IP_);  \
++} while (0)
++
++/**
++ * device_lock_set_class - Specify a temporary lock class while a device
++ *			   is attached to a driver
++ * @dev: device to modify
++ * @key: lock class key data
++ *
++ * This must be called with the device_lock() already held, for example
++ * from driver ->probe(). Take care to only override the default
++ * lockdep_no_validate class.
++ */
++#ifdef CONFIG_LOCKDEP
++#define device_lock_set_class(dev, key)                                    \
++do {                                                                       \
++	struct device *__d = dev;                                          \
++	dev_WARN_ONCE(__d, !lockdep_match_class(&__d->mutex,               \
++					        &__lockdep_no_validate__), \
++		 "overriding existing custom lock class\n");               \
++	__device_lock_set_class(__d, #key, key);                           \
++} while (0)
++#else
++#define device_lock_set_class(dev, key) __device_lock_set_class(dev, #key, key)
++#endif
++
++/**
++ * device_lock_reset_class - Return a device to the default lockdep novalidate state
++ * @dev: device to modify
++ *
++ * This must be called with the device_lock() already held, for example
++ * from driver ->remove().
++ */
++#define device_lock_reset_class(dev) \
++do { \
++	struct device *__d __maybe_unused = dev;                       \
++	lock_set_novalidate_class(&__d->mutex.dep_map, "&dev->mutex",  \
++				  _THIS_IP_);                          \
++} while (0)
++
+ void lock_device_hotplug(void);
+ void unlock_device_hotplug(void);
+ int lock_device_hotplug_sysfs(void);
+diff --git a/include/linux/lockdep.h b/include/linux/lockdep.h
+index 467b94257105..43b0dc6a0b21 100644
+--- a/include/linux/lockdep.h
++++ b/include/linux/lockdep.h
+@@ -290,6 +290,9 @@ extern void lock_set_class(struct lockdep_map *lock, const char *name,
+ 			   struct lock_class_key *key, unsigned int subclass,
+ 			   unsigned long ip);
+ 
++#define lock_set_novalidate_class(l, n, i) \
++	lock_set_class(l, n, &__lockdep_no_validate__, 0, i)
++
+ static inline void lock_set_subclass(struct lockdep_map *lock,
+ 		unsigned int subclass, unsigned long ip)
+ {
+@@ -357,7 +360,8 @@ static inline void lockdep_set_selftest_task(struct task_struct *task)
+ # define lock_acquire(l, s, t, r, c, n, i)	do { } while (0)
+ # define lock_release(l, i)			do { } while (0)
+ # define lock_downgrade(l, i)			do { } while (0)
+-# define lock_set_class(l, n, k, s, i)		do { } while (0)
++# define lock_set_class(l, n, key, s, i)	do { (void)(key); } while (0)
++# define lock_set_novalidate_class(l, n, i)	do { } while (0)
+ # define lock_set_subclass(l, s, i)		do { } while (0)
+ # define lockdep_init()				do { } while (0)
+ # define lockdep_init_map_type(lock, name, key, sub, inner, outer, type) \
 
