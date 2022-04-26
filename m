@@ -1,120 +1,212 @@
-Received: from mail-pf1-f180.google.com (mail-pf1-f180.google.com [209.85.210.180])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD5AC7B
-	for <nvdimm@lists.linux.dev>; Tue, 26 Apr 2022 18:23:06 +0000 (UTC)
-Received: by mail-pf1-f180.google.com with SMTP id z16so18714301pfh.3
-        for <nvdimm@lists.linux.dev>; Tue, 26 Apr 2022 11:23:06 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=DquimjI7WBuJalAU6LAJx471lCu4EEpIqSRlDhHHfPk=;
-        b=ksL5p3RigFZPhFG5oJwg4nU6THP3LTCHRX8Zhod9tzl8bRCpVgUwGSb3NKpnBJidXJ
-         cl7poYpk4vYTCJBoBb8jogM71gpJeVk1wFXGmFNqDRX8Ae8CFHNWUFjlLD0p7RwVTpc4
-         RYogqvF1zA7oTpJ6/hr0xgXIBjwfkby0JjKFUOXkjHaZgczJEBpX1EpyEzXmoBqlYmb2
-         DPWgnPFEoeFSKXzCdUxbG1sjapyz/P1M9U+0XW+HdR6ZqRNtn/yfgXMruWJVLYkjSp1U
-         vvPF3dshkj87x6ZlgecYqTO9/J5pC8JiStHsIU0AuO34/i8s5/X4olMU7IakGfFl3rA/
-         tFkw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=DquimjI7WBuJalAU6LAJx471lCu4EEpIqSRlDhHHfPk=;
-        b=UdBuAQO9dO4OqfVoLGHic7d8Hfz3iL3WnD5oFpR0frTyJdC+raedzkApngBvRk/ZeT
-         /yortapWHD08CwBe8Qbg7iY0Xqj9/oMA/0ffLur+ywTmi6h2EmMKE/yAhT7BMqc3+kvc
-         /DxK0XQ/kW7S5BX3YFMa4c/0X2E/KAHNCQAJYTaZrXKNMnKiPn3l4V6preCvA+n0/qd4
-         KabTR49/RYpAdMfZydDHkNkELkZre3QEkwNPmW2SHmNB4qi+GdH6Dr92l372Bd6zBK79
-         /dQy7Zd2GAeZvemn77z7fIC1x0UsgdxxwYce33o/EOC4aLi+f008uLWHWYJ+sECAWjFi
-         yWEw==
-X-Gm-Message-State: AOAM5328vIqui7W2+xa4HWlYMC+CXHd/7g6nNeDnU8UJ6yIsCAv8j1FR
-	yWF5WxZUHG/TG16a2ncRCIYHkEvqKGioHkjmG2dK5A==
-X-Google-Smtp-Source: ABdhPJzlxLx6CVU9e5P9X9+6Dk1okldpaPNZtYs2ldyopx2xJvWGYKzTtkg4w1ivaFWYsO7uYj0paT4IXcYIOwM7baw=
-X-Received: by 2002:a63:1117:0:b0:399:2df0:7fb9 with SMTP id
- g23-20020a631117000000b003992df07fb9mr21133502pgl.40.1650997386125; Tue, 26
- Apr 2022 11:23:06 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A46B7E
+	for <nvdimm@lists.linux.dev>; Tue, 26 Apr 2022 19:22:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1651000978; x=1682536978;
+  h=subject:from:to:cc:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=CEloj/FYqmR8/A3+Jw0HM/VA7CxCHVorhGVbkZfxGUo=;
+  b=WM81mFiCTaAhlKbhotV7+NcDc6JL5rQiPc3VSb8mRprKLwE9zDEy4Ljf
+   FiewM/VUjoF1OUtW5MWim7P/5gxNyXbrrUrFP8dakZ/slwuvI1aChPgRf
+   pRoBciLXwqh+QEJSk3wDalVl1Z4TT2h/PomuCRjzHZkvnOE51w1J0AwPJ
+   ZKq1vnF6Qk1FOi/FoItDY+ZbqRqMfcuJuSyqf2NCvreiwI/bPDUAW16Cw
+   WUfJBp0QEcq664765b4JmbwSqwetkT+yqXGYyfIGPNGf0+cgDygSZnlrN
+   4u0wIvXjU0TbFqHfqZSwUVfxIOAAIhhNuW5rNN8AM8H7MEO044f4UeAJd
+   Q==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10329"; a="328638189"
+X-IronPort-AV: E=Sophos;i="5.90,291,1643702400"; 
+   d="scan'208";a="328638189"
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Apr 2022 12:22:44 -0700
+X-IronPort-AV: E=Sophos;i="5.90,291,1643702400"; 
+   d="scan'208";a="558490040"
+Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
+  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Apr 2022 12:22:44 -0700
+Subject: [PATCH v6 2/8] cxl/acpi: Add root device lockdep validation
+From: Dan Williams <dan.j.williams@intel.com>
+To: linux-cxl@vger.kernel.org
+Cc: Peter Zijlstra <peterz@infradead.org>,
+ "Rafael J. Wysocki" <rafael@kernel.org>, Ingo Molnar <mingo@redhat.com>,
+ Will Deacon <will@kernel.org>, Waiman Long <longman@redhat.com>,
+ Boqun Feng <boqun.feng@gmail.com>,
+ Alison Schofield <alison.schofield@intel.com>,
+ Vishal Verma <vishal.l.verma@intel.com>, Ben Widawsky <ben.widawsky@intel.com>,
+ Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ Ira Weiny <ira.weiny@intel.com>, nvdimm@lists.linux.dev
+Date: Tue, 26 Apr 2022 12:22:44 -0700
+Message-ID: <165100081305.1528964.11138612430659737238.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <165094691930.1127280.7077256361741497990.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <165094691930.1127280.7077256361741497990.stgit@dwillia2-desk3.amr.corp.intel.com>
+User-Agent: StGit/0.18-3-g996c
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20220426123839.GF163591@kunlun.suse.cz> <CAPcyv4j66HAE_x-eAHQR71pNyR0mk5b463S6OfeokLzZHq5ezw@mail.gmail.com>
- <20220426161435.GH163591@kunlun.suse.cz> <CAPcyv4iG4L3rA3eX-H=6nVkwhO2FGqDCbQHB2Lv_gLb+jy3+bw@mail.gmail.com>
- <20220426163834.GI163591@kunlun.suse.cz> <CAPcyv4jUj3v+4Sf=1i5EjxTeX9Ur65Smib-vkuaBdKYjUrh7yA@mail.gmail.com>
- <20220426180958.GJ163591@kunlun.suse.cz>
-In-Reply-To: <20220426180958.GJ163591@kunlun.suse.cz>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 26 Apr 2022 11:22:55 -0700
-Message-ID: <CAPcyv4hr1LDaAXCOrfub1eys=OcQXAPYv2dHGzwbY7pt=_fKZQ@mail.gmail.com>
-Subject: Re: ndctl tests usable?
-To: =?UTF-8?Q?Michal_Such=C3=A1nek?= <msuchanek@suse.de>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux NVDIMM <nvdimm@lists.linux.dev>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 
-On Tue, Apr 26, 2022 at 11:10 AM Michal Such=C3=A1nek <msuchanek@suse.de> w=
-rote:
->
-> On Tue, Apr 26, 2022 at 09:47:19AM -0700, Dan Williams wrote:
-> > On Tue, Apr 26, 2022 at 9:43 AM Michal Such=C3=A1nek <msuchanek@suse.de=
-> wrote:
-> > >
-> > > On Tue, Apr 26, 2022 at 09:32:24AM -0700, Dan Williams wrote:
-> > > > On Tue, Apr 26, 2022 at 9:15 AM Michal Such=C3=A1nek <msuchanek@sus=
-e.de> wrote:
-> > > > >
-> > > > > On Tue, Apr 26, 2022 at 08:51:25AM -0700, Dan Williams wrote:
-> > > > > > On Tue, Apr 26, 2022 at 5:39 AM Michal Such=C3=A1nek <msuchanek=
-@suse.de> wrote:
-> > > > > > >
-> ...
-> > > >
-> > > > The modinfo just tells you what modules are available, but it does =
-not
-> > > > necessarily indicate which modules are actively loaded in the syste=
-m
-> > > > which is what ndctl_test_init() validates.
-> > >
-> > > Isn't what modinfo lists also what modrobe loads?
-> >
-> > It shows what modprobe would load on the next invocation, but
-> > sometimes when nfit_test fails it's because the initramfs or something
-> > else loaded the modules without respecting the extra/ (or updates/ in
-> > your case) override modules.
-> >
-> > > There isn't any pmem so I don't see why production modules would be
-> > > loaded before the test modules are installed. Unloading the modules
-> > > first does not really make any difference.
-> >
-> > Ok, my first guess was wrong... would need more debug to see what
-> > those other skip tests are complaining about.
->
-> There was also missing parted and hostname command.
->
-> However, the nfit.ko is detected as production even when I remove all
-> the production modules just in case. lsmod confirms that the nvdimm
-> modules are not loaded before the test.
->
-> Maybe something goes wrong with the test module build?
->
-> It is very fragile and requires complete kernel source for each
-> configuration built. See below for the package
->
-> https://build.opensuse.org/package/show/home:michals/nfit_test
->
-> Attaching the log of test run which does not report any missing tools,
-> only complains about nfit.ko being production.
+The CXL "root" device, ACPI0017, is an attach point for coordinating
+platform level CXL resources and is the parent device for a CXL port
+topology tree. As such it has distinct locking rules relative to other
+CXL subsystem objects, but because it is an ACPI device the lock class
+is established well before it is given to the cxl_acpi driver.
 
-Oh... something silly, ndctl_test_init() assumes that the out-of-tree
-module directory is always "/lib/modules/$(uname -r)/extra"
+However, the lockdep API does support changing the lock class "live" for
+situations like this. Add a device_lock_set_class() helper that a driver
+can use in ->probe() to set a custom lock class, and
+device_lock_reset_class() to return to the default "no validate" class
+before the custom lock class key goes out of scope after ->remove().
 
-                if (!strstr(path, "/extra/")) {
-                        log_err(&log_ctx, "%s.ko: appears to be
-production version: %s\n",
-                                        name, path);
-                        break;
-                }
+Note the helpers are all macros to support dead code elimination in the
+CONFIG_PROVE_LOCKING=n case, however device_set_lock_class() still needs
+#ifdef CONFIG_PROVE_LOCKING since lockdep_match_class() explicitly does
+not have a helper in the CONFIG_PROVE_LOCKING=n case (see comment in
+lockdep.h). The lockdep API needs 2 small tweaks to prevent "unused"
+warnings for the @key argument to lock_set_class(), and a new
+lock_set_novalidate_class() is added to supplement
+lockdep_set_novalidate_class() in the cases where the lock class is
+converted while the lock is held.
 
-Looks like a build configuration variable is needed there to allow for
-"updates/".
+Suggested-by: Peter Zijlstra <peterz@infradead.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Waiman Long <longman@redhat.com>
+Cc: Boqun Feng <boqun.feng@gmail.com>
+Cc: Alison Schofield <alison.schofield@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Ben Widawsky <ben.widawsky@intel.com>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+Changes since v5:
+- 0day reports [1] that clang does not like how the macros shadow the
+  definition of the @__d variable. Move __device_lock_set_class() to a
+  unique variable name. Note that the variable is needed as some macro
+  callers may pass a 'void *' to device_set_lock_class().
+
+[1]: https://lore.kernel.org/all/202204261758.lzXWne7H-lkp@intel.com/
+
+ drivers/cxl/acpi.c      |   13 +++++++++++++
+ include/linux/device.h  |   43 +++++++++++++++++++++++++++++++++++++++++++
+ include/linux/lockdep.h |    6 +++++-
+ 3 files changed, 61 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/cxl/acpi.c b/drivers/cxl/acpi.c
+index d15a6aec0331..40286f5df812 100644
+--- a/drivers/cxl/acpi.c
++++ b/drivers/cxl/acpi.c
+@@ -275,6 +275,13 @@ static int add_root_nvdimm_bridge(struct device *match, void *data)
+ 	return 1;
+ }
+ 
++static struct lock_class_key cxl_root_key;
++
++static void cxl_acpi_lock_reset_class(void *dev)
++{
++	device_lock_reset_class(dev);
++}
++
+ static int cxl_acpi_probe(struct platform_device *pdev)
+ {
+ 	int rc;
+@@ -283,6 +290,12 @@ static int cxl_acpi_probe(struct platform_device *pdev)
+ 	struct acpi_device *adev = ACPI_COMPANION(host);
+ 	struct cxl_cfmws_context ctx;
+ 
++	device_lock_set_class(&pdev->dev, &cxl_root_key);
++	rc = devm_add_action_or_reset(&pdev->dev, cxl_acpi_lock_reset_class,
++				      &pdev->dev);
++	if (rc)
++		return rc;
++
+ 	root_port = devm_cxl_add_port(host, host, CXL_RESOURCE_NONE, NULL);
+ 	if (IS_ERR(root_port))
+ 		return PTR_ERR(root_port);
+diff --git a/include/linux/device.h b/include/linux/device.h
+index 93459724dcde..833b0b3b0193 100644
+--- a/include/linux/device.h
++++ b/include/linux/device.h
+@@ -850,6 +850,49 @@ static inline bool device_supports_offline(struct device *dev)
+ 	return dev->bus && dev->bus->offline && dev->bus->online;
+ }
+ 
++#define __device_lock_set_class(dev, name, key)                        \
++do {                                                                   \
++	struct device *__d2 __maybe_unused = dev;                      \
++	lock_set_class(&__d2->mutex.dep_map, name, key, 0, _THIS_IP_); \
++} while (0)
++
++/**
++ * device_lock_set_class - Specify a temporary lock class while a device
++ *			   is attached to a driver
++ * @dev: device to modify
++ * @key: lock class key data
++ *
++ * This must be called with the device_lock() already held, for example
++ * from driver ->probe(). Take care to only override the default
++ * lockdep_no_validate class.
++ */
++#ifdef CONFIG_LOCKDEP
++#define device_lock_set_class(dev, key)                                    \
++do {                                                                       \
++	struct device *__d = dev;                                          \
++	dev_WARN_ONCE(__d, !lockdep_match_class(&__d->mutex,               \
++						&__lockdep_no_validate__), \
++		 "overriding existing custom lock class\n");               \
++	__device_lock_set_class(__d, #key, key);                           \
++} while (0)
++#else
++#define device_lock_set_class(dev, key) __device_lock_set_class(dev, #key, key)
++#endif
++
++/**
++ * device_lock_reset_class - Return a device to the default lockdep novalidate state
++ * @dev: device to modify
++ *
++ * This must be called with the device_lock() already held, for example
++ * from driver ->remove().
++ */
++#define device_lock_reset_class(dev) \
++do { \
++	struct device *__d __maybe_unused = dev;                       \
++	lock_set_novalidate_class(&__d->mutex.dep_map, "&dev->mutex",  \
++				  _THIS_IP_);                          \
++} while (0)
++
+ void lock_device_hotplug(void);
+ void unlock_device_hotplug(void);
+ int lock_device_hotplug_sysfs(void);
+diff --git a/include/linux/lockdep.h b/include/linux/lockdep.h
+index 467b94257105..43b0dc6a0b21 100644
+--- a/include/linux/lockdep.h
++++ b/include/linux/lockdep.h
+@@ -290,6 +290,9 @@ extern void lock_set_class(struct lockdep_map *lock, const char *name,
+ 			   struct lock_class_key *key, unsigned int subclass,
+ 			   unsigned long ip);
+ 
++#define lock_set_novalidate_class(l, n, i) \
++	lock_set_class(l, n, &__lockdep_no_validate__, 0, i)
++
+ static inline void lock_set_subclass(struct lockdep_map *lock,
+ 		unsigned int subclass, unsigned long ip)
+ {
+@@ -357,7 +360,8 @@ static inline void lockdep_set_selftest_task(struct task_struct *task)
+ # define lock_acquire(l, s, t, r, c, n, i)	do { } while (0)
+ # define lock_release(l, i)			do { } while (0)
+ # define lock_downgrade(l, i)			do { } while (0)
+-# define lock_set_class(l, n, k, s, i)		do { } while (0)
++# define lock_set_class(l, n, key, s, i)	do { (void)(key); } while (0)
++# define lock_set_novalidate_class(l, n, i)	do { } while (0)
+ # define lock_set_subclass(l, s, i)		do { } while (0)
+ # define lockdep_init()				do { } while (0)
+ # define lockdep_init_map_type(lock, name, key, sub, inner, outer, type) \
+
