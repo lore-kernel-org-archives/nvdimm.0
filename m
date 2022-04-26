@@ -1,140 +1,109 @@
-Received: from mail-pf1-f178.google.com (mail-pf1-f178.google.com [209.85.210.178])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1540F7B
-	for <nvdimm@lists.linux.dev>; Tue, 26 Apr 2022 16:47:30 +0000 (UTC)
-Received: by mail-pf1-f178.google.com with SMTP id t13so4832278pfg.2
-        for <nvdimm@lists.linux.dev>; Tue, 26 Apr 2022 09:47:30 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=fZ70D0cVnnPXPK9Ej6Zn6n9gKcidZRyOEp+MolYSflo=;
-        b=ntgDgHv/lSQpRZFmn+4MX9RayrJeGNGq4yCFYzNqgnmwtVFv2aJRd4ProEqNgs6dgW
-         1KVM1HcTg/y5YnxlAoSwqJJhugcj8nf0rI6143nSvZeaWSeyBurvUFNA3Gz5x0Q9y+jn
-         HMJ8k5rudB7CuL2+RGTf/Cv0nWQagFCzTOmOjDH9NWI+3pOrHgFqYr//mUDuVoYHmywz
-         NhHGrk9iYlRs4OAIS/AMowc13fbjVz0QTkX4ItEKzncaYQTf99jUMebqeo4wmA9nrhFB
-         0EwVn3aH9D5l9zoeGIPZHcqMBQHuX7HdzgJAR0xNDaj1TTL3jnR+6HM89/am8WO5ojaK
-         M1kQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=fZ70D0cVnnPXPK9Ej6Zn6n9gKcidZRyOEp+MolYSflo=;
-        b=iJ7lb3hQe6SGM7FQGGF9k2WnuFLxWZ4kH7/usR3PqP/9ZRxGphv3Mlh3FNFns91LRd
-         rFKtRhzdDZUSOP8jIqlQsss60jWfKdsFrpLaG0UOyp/aRmtu07ESBbS5YAL3cqwrai0S
-         bvzCf+kJGtSdVfOoOx1GGe9NSzHnG57iBbudP7ORnKeOv5N4ZrHXHDXRGJr8Zy4IIpWm
-         TBpNvqv1oePUCONCeLI+wvXHobfGk2+a2naGJPrM4PjFK+GWiS7Ys+68zJUot9FNn8VM
-         MyONxKErptSlPYmvyCL8NaG1965V/3UGwg4yeC16yRfUjVtIcwBKFZlRrTU6VJNv3VC4
-         Y7jA==
-X-Gm-Message-State: AOAM533qh4KxPLDzEG56MUQ3KfKBpIzMIykATYvsQ5fBih+qRrFUYb0u
-	JOublzEiWbA6bmIm0o1UhwUja458IS41spWZPZgRWg==
-X-Google-Smtp-Source: ABdhPJwODo10rc9TudmxpFOyBKYK0ZSg4IZZv0WokXo0HVbHZUWNTR3RlkWi98PRm2q7WmO/8sh8Ujc6PEnE21cDh6A=
-X-Received: by 2002:a63:1117:0:b0:399:2df0:7fb9 with SMTP id
- g23-20020a631117000000b003992df07fb9mr20802671pgl.40.1650991650440; Tue, 26
- Apr 2022 09:47:30 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D92897B
+	for <nvdimm@lists.linux.dev>; Tue, 26 Apr 2022 17:22:41 +0000 (UTC)
+Received: from pps.filterd (m0098417.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 23QGDuZd025185;
+	Tue, 26 Apr 2022 17:22:33 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
+ : date : message-id : mime-version : content-transfer-encoding; s=pp1;
+ bh=eamDKsKXiERfCBNYE0b4AzZm1XVuZJvvh/jMzav7XS0=;
+ b=pNjUyClvppBor06tKI+XMTBluGSTBqf143MHGWjidXaIrDGc2/n4s9SKbM5gVFwTQGF1
+ 3C33TzklNIzJgJhoDvo2Yf0cPfDJP5uXpi17OPwQQu/saYQzLi6opJiJFRVcZ3l8oS/z
+ RE2OqaPtBMtaBOK1GTco77DoFJRBsDg54FGO7+6tXV4FkbodBVZPj3o5yVH9wPGepL9w
+ XZ8dRAZyZTkATdM0D6T3oOvWI0elcc3WuQaJCJPFMdUPyOl2qsPpJxZinPoYkZtw4tYw
+ 4fFH3t7XZQiXkwJcKnA2C6JM4T6huyOmDnC1+/68AqFCvOjVOeJwUGT6f5hFq4bL3wsw Tw== 
+Received: from ppma05fra.de.ibm.com (6c.4a.5195.ip4.static.sl-reverse.com [149.81.74.108])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3fpm2v9aqa-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 26 Apr 2022 17:22:33 +0000
+Received: from pps.filterd (ppma05fra.de.ibm.com [127.0.0.1])
+	by ppma05fra.de.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 23QHDP0f008703;
+	Tue, 26 Apr 2022 17:22:30 GMT
+Received: from b06cxnps3074.portsmouth.uk.ibm.com (d06relay09.portsmouth.uk.ibm.com [9.149.109.194])
+	by ppma05fra.de.ibm.com with ESMTP id 3fm938uqx7-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 26 Apr 2022 17:22:30 +0000
+Received: from d06av24.portsmouth.uk.ibm.com (mk.ibm.com [9.149.105.60])
+	by b06cxnps3074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 23QHMQMo40501592
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Tue, 26 Apr 2022 17:22:26 GMT
+Received: from d06av24.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id C15914203F;
+	Tue, 26 Apr 2022 17:22:26 +0000 (GMT)
+Received: from d06av24.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 261AB42042;
+	Tue, 26 Apr 2022 17:22:24 +0000 (GMT)
+Received: from li-efb8054c-3504-11b2-a85c-ca10df28279e.ibm.com.com (unknown [9.43.5.136])
+	by d06av24.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+	Tue, 26 Apr 2022 17:22:23 +0000 (GMT)
+From: Tarun Sahu <tsahu@linux.ibm.com>
+To: nvdimm@lists.linux.dev
+Cc: tsahu@linux.ibm.com, dan.j.williams@intel.com, vishal.l.verma@intel.com,
+        aneesh.kumar@linux.ibm.com, sbhat@linux.ibm.com, vaibhav@linux.ibm.com
+Subject: [PATCH v3 0/2] ndctl/namespace:Fix and improve write-infoblock
+Date: Tue, 26 Apr 2022 22:50:54 +0530
+Message-Id: <20220426172056.122789-1-tsahu@linux.ibm.com>
+X-Mailer: git-send-email 2.35.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20220426123839.GF163591@kunlun.suse.cz> <CAPcyv4j66HAE_x-eAHQR71pNyR0mk5b463S6OfeokLzZHq5ezw@mail.gmail.com>
- <20220426161435.GH163591@kunlun.suse.cz> <CAPcyv4iG4L3rA3eX-H=6nVkwhO2FGqDCbQHB2Lv_gLb+jy3+bw@mail.gmail.com>
- <20220426163834.GI163591@kunlun.suse.cz>
-In-Reply-To: <20220426163834.GI163591@kunlun.suse.cz>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 26 Apr 2022 09:47:19 -0700
-Message-ID: <CAPcyv4jUj3v+4Sf=1i5EjxTeX9Ur65Smib-vkuaBdKYjUrh7yA@mail.gmail.com>
-Subject: Re: ndctl tests usable?
-To: =?UTF-8?Q?Michal_Such=C3=A1nek?= <msuchanek@suse.de>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux NVDIMM <nvdimm@lists.linux.dev>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: YFcdIrOOGduI5iQ2Lw0vys6CVGY9PuTl
+X-Proofpoint-ORIG-GUID: YFcdIrOOGduI5iQ2Lw0vys6CVGY9PuTl
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.205,Aquarius:18.0.858,Hydra:6.0.486,FMLib:17.11.64.514
+ definitions=2022-04-26_05,2022-04-26_02,2022-02-23_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 spamscore=0 impostorscore=0
+ lowpriorityscore=0 adultscore=0 mlxlogscore=670 priorityscore=1501
+ bulkscore=0 clxscore=1015 phishscore=0 malwarescore=0 mlxscore=0
+ suspectscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2202240000 definitions=main-2204260109
 
-On Tue, Apr 26, 2022 at 9:43 AM Michal Such=C3=A1nek <msuchanek@suse.de> wr=
-ote:
->
-> On Tue, Apr 26, 2022 at 09:32:24AM -0700, Dan Williams wrote:
-> > On Tue, Apr 26, 2022 at 9:15 AM Michal Such=C3=A1nek <msuchanek@suse.de=
-> wrote:
-> > >
-> > > On Tue, Apr 26, 2022 at 08:51:25AM -0700, Dan Williams wrote:
-> > > > On Tue, Apr 26, 2022 at 5:39 AM Michal Such=C3=A1nek <msuchanek@sus=
-e.de> wrote:
-> > > > >
-> > > > > Hello,
-> > > > >
-> > > > > there is some testsuite included with ndctl, and when following t=
-he
-> > > > > instructions to build it most tests fail or are skipped:
-> > > > >
-> > > > > [   95s] Ok:                 3
-> > > > > [   95s] Expected Fail:      0
-> > > > > [   95s] Fail:               5
-> > > > > [   95s] Unexpected Pass:    0
-> > > > > [   95s] Skipped:            15
-> > > > > [   95s] Timeout:            0
-> > > > >
-> > > > > Is this the expected outcome or is this a problem with the ndctl =
-build?
-> > > > >
-> > > > > Attaching test run log.
-> > > >
-> > > > I see a few missing prerequisites:
-> > > >
-> > > > [   78s] /usr/src/packages/BUILD/ndctl-73/test/pmem-errors.sh: line
-> > > > 64: mkfs.ext4: command not found
-> > > > [   95s] /usr/src/packages/BUILD/ndctl-73/test/security.sh: line 25=
-:
-> > > > jq: command not found
-> > >
-> > > Indeed, with those installed I get much more tests passing:
-> > >
-> > > [  148s] Ok:                 13
-> > > [  148s] Expected Fail:      0
-> > > [  148s] Fail:               4
-> > > [  148s] Unexpected Pass:    0
-> > > [  148s] Skipped:            6
-> > > [  148s] Timeout:            0
-> > >
-> > > >
-> > > > This report:
-> > > >
-> > > > [   51s]  1/23 ndctl:ndctl / libndctl               SKIP
-> > > > 0.02s   exit status 77
-> > > >
-> > > > ...seems to indicate that the nfit_test modules did not appear to l=
-oad
-> > > > correctly. I never expected that the nfit_test modules would be
-> > > > redistributable, so I was surprised to see them being installed by =
-an
-> > > > actual package "nfit_test-kmp-default-0_k5.17.4_1-6.1". The reason
-> > > > they are not redistributable is because they require replacing the
-> > > > production build of the kernel provided modules libnvdimm.ko,
-> > > > nd_pmem.ko, etc... What I expect is happening is that the productio=
-n
-> > > > version of libnvdimm.ko is already loaded (or is the only one on th=
-e
-> > >
-> > > AFAICT neither is the case, that's why I dump the module information =
-in
-> > > the log.
-> >
-> > The modinfo just tells you what modules are available, but it does not
-> > necessarily indicate which modules are actively loaded in the system
-> > which is what ndctl_test_init() validates.
->
-> Isn't what modinfo lists also what modrobe loads?
+This series resolves some issues with write-infoblock 
+command and provide support to write-infoblock for sector 
+mode namespace
 
-It shows what modprobe would load on the next invocation, but
-sometimes when nfit_test fails it's because the initramfs or something
-else loaded the modules without respecting the extra/ (or updates/ in
-your case) override modules.
+write-infoblock command has issues regarding updating the 
+align, uuid, parent_uuid. In case of no parameter passed 
+for it, this command used to overwrite the existing values 
+with defaults.
 
-> There isn't any pmem so I don't see why production modules would be
-> loaded before the test modules are installed. Unloading the modules
-> first does not really make any difference.
+In PATCH 1/2 these parameters will be set to their original 
+values, incase, values hasn't been passed in command 
+arguments
 
-Ok, my first guess was wrong... would need more debug to see what
-those other skip tests are complaining about.
+write-infoblock command doesn't have support for sector/BTT 
+mode namespaces. They can be converted to fsdax, but can 
+not be written being in sector mode.
+
+In PATCH 2/2, It creates a functionality which write 
+infoblock of Sector/BTT namespace. Currently only uuid, 
+parent_uuid can be updated. In future, Support for other 
+parameters can easily be integrated in the
+functionality.
+
+---
+v2:
+  Updated the commit message (rephrasing) in patch 1/2
+  Moved the ns_info struct to namespace.c from namespace.h
+  put the results after --- to avoid long commit message
+
+v3:
+  reformat the commit message to meet 100 column condition
+
+Tarun-Sahu (2):
+  ndctl/namespace:Fix multiple issues with write-infoblock
+  ndctl/namespace:Implement write-infoblock for sector mode namespaces
+
+ ndctl/namespace.c | 308 +++++++++++++++++++++++++++++++++-------------
+ 1 file changed, 225 insertions(+), 83 deletions(-)
+
+-- 
+2.35.1
+
