@@ -1,212 +1,119 @@
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from NAM10-MW2-obe.outbound.protection.outlook.com (mail-mw2nam10olkn2017.outbound.protection.outlook.com [40.92.42.17])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A46B7E
-	for <nvdimm@lists.linux.dev>; Tue, 26 Apr 2022 19:22:57 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1651000978; x=1682536978;
-  h=subject:from:to:cc:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=CEloj/FYqmR8/A3+Jw0HM/VA7CxCHVorhGVbkZfxGUo=;
-  b=WM81mFiCTaAhlKbhotV7+NcDc6JL5rQiPc3VSb8mRprKLwE9zDEy4Ljf
-   FiewM/VUjoF1OUtW5MWim7P/5gxNyXbrrUrFP8dakZ/slwuvI1aChPgRf
-   pRoBciLXwqh+QEJSk3wDalVl1Z4TT2h/PomuCRjzHZkvnOE51w1J0AwPJ
-   ZKq1vnF6Qk1FOi/FoItDY+ZbqRqMfcuJuSyqf2NCvreiwI/bPDUAW16Cw
-   WUfJBp0QEcq664765b4JmbwSqwetkT+yqXGYyfIGPNGf0+cgDygSZnlrN
-   4u0wIvXjU0TbFqHfqZSwUVfxIOAAIhhNuW5rNN8AM8H7MEO044f4UeAJd
-   Q==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10329"; a="328638189"
-X-IronPort-AV: E=Sophos;i="5.90,291,1643702400"; 
-   d="scan'208";a="328638189"
-Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Apr 2022 12:22:44 -0700
-X-IronPort-AV: E=Sophos;i="5.90,291,1643702400"; 
-   d="scan'208";a="558490040"
-Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
-  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Apr 2022 12:22:44 -0700
-Subject: [PATCH v6 2/8] cxl/acpi: Add root device lockdep validation
-From: Dan Williams <dan.j.williams@intel.com>
-To: linux-cxl@vger.kernel.org
-Cc: Peter Zijlstra <peterz@infradead.org>,
- "Rafael J. Wysocki" <rafael@kernel.org>, Ingo Molnar <mingo@redhat.com>,
- Will Deacon <will@kernel.org>, Waiman Long <longman@redhat.com>,
- Boqun Feng <boqun.feng@gmail.com>,
- Alison Schofield <alison.schofield@intel.com>,
- Vishal Verma <vishal.l.verma@intel.com>, Ben Widawsky <ben.widawsky@intel.com>,
- Jonathan Cameron <Jonathan.Cameron@huawei.com>,
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- Ira Weiny <ira.weiny@intel.com>, nvdimm@lists.linux.dev
-Date: Tue, 26 Apr 2022 12:22:44 -0700
-Message-ID: <165100081305.1528964.11138612430659737238.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <165094691930.1127280.7077256361741497990.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <165094691930.1127280.7077256361741497990.stgit@dwillia2-desk3.amr.corp.intel.com>
-User-Agent: StGit/0.18-3-g996c
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6CF7C33C3
+	for <nvdimm@lists.linux.dev>; Tue, 26 Apr 2022 20:53:05 +0000 (UTC)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=VIzoa2r5vX9h8keabp/ZzB1giB5K839+9JcKupODbF2496EMu7BO3fwFOqdusOdtIvFJww5Fba3GCrIsDPzU8Vs9/gtlGW+x2PDaEL8pqn0XcUxyfriyUJY36rz0W2lC6SqOFzfg3McBGKvcJUFnpkgi8eQXw60MMsnCVChZpxMs6CcrhfCJFkiJBCTdMl/NjRAMNRwLHcnkGzru00x7kUAjkIVDWndbVb3yrRp9CZ2V98Qow/YEh+lVDUonhrdGnb7AtWiD64IUmZH2PqgYKejA6qywL60qY09uL9ZPYCbvnTv2dbEEhp1AqlXnLmCLxdZ08yS0eO01qrT2Mxr8Fg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=p9BhG5lVJ3pfmfEwdbRzlRTERBQxRTcyHKzew/6r7FU=;
+ b=afe89sHClz0f2NkkbLQQ7tHyOqPN4p8JanzJA3GGijP0dhvBkVN8x+BtbS8v/hBVgZsa6Y80zuWp8DyNUXHdYldhU5BsYLbH0mRXa7ekf6R9xBpxxT5gxtE4NHc9QWZpu9czW4z6EtZQVzzVzCMzWtHIJyl0B2CbFxBpFS1awje0KXcukJaG+QPMMASQNqEnHuY9mcntfMOFzH9cWj4P+E9e4mhxkmuunfBv/EJvm9eOHmfFbWWAkFlDLYSAiD8eS35vKjRbcTRyNjjnAgHIyvGvjLwR6Luv4F+Nqea4afrqC03f+AJl9cR+6U2PiyDFuJxnm+xaEKXtJ9JPPTf5LQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=none; dmarc=none;
+ dkim=none; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=hotmail.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=p9BhG5lVJ3pfmfEwdbRzlRTERBQxRTcyHKzew/6r7FU=;
+ b=kUKRdxOeeJ+NOwiX++oAOEu74Z/Pu7ylLjk8H4JQCBVpGcwW15iQURcGIzPr9uv2XLp8LrXFgO0iuYEc1aUx4FodeJtpVNABa2ULXuBJ57he7U7t4Lj7ELiBgrPGv15nEU8YyEPTL4RnNz7d6ZeNNRTrM/qkR63wb3s/U78VivXmvDQW3GKQj2yu1ufdFG/w0a1FGa5H/R0f9j1gAUjEmOePGsmJkAIIQq3ajGqXJNV+GvJGwkMTTh6hTZHF1pDiSJFZhGQfy7C+4loFwPkVhfWZNJltpRF0eX4lveY6c2nqcyu/3SjHzv9ipX9MsTQ7XJp8efWnMYxgPUQ2bUiYEg==
+Received: from PH0PR18MB5071.namprd18.prod.outlook.com (2603:10b6:510:16b::15)
+ by PH0PR18MB4624.namprd18.prod.outlook.com (2603:10b6:510:c4::7) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5186.21; Tue, 26 Apr
+ 2022 20:53:04 +0000
+Received: from PH0PR18MB5071.namprd18.prod.outlook.com
+ ([fe80::cc99:a515:38e8:2f9e]) by PH0PR18MB5071.namprd18.prod.outlook.com
+ ([fe80::cc99:a515:38e8:2f9e%5]) with mapi id 15.20.5186.021; Tue, 26 Apr 2022
+ 20:53:04 +0000
+From: An Sarpal <ansrk2001@hotmail.com>
+To: "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>
+Subject: How to map my PCIe memory as a devdax device (/dev/daxX.Y)
+Thread-Topic: How to map my PCIe memory as a devdax device (/dev/daxX.Y)
+Thread-Index: AdhZr3Dz3peOUCWVT+66vwkDKQ0fFw==
+Date: Tue, 26 Apr 2022 20:53:04 +0000
+Message-ID:
+ <PH0PR18MB50713BB676BBFCBAD8C1C05BA9FB9@PH0PR18MB5071.namprd18.prod.outlook.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+x-tmn: [k+p9a+9IH3LZ8LhQnG0dVliMJeGVqQ7r]
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-correlation-id: dd9ed544-2676-4805-8591-08da27c6c233
+x-ms-traffictypediagnostic: PH0PR18MB4624:EE_
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info:
+ ZhfR7Innoq9yCNr5I23dWkL9c+DiM4cU9x2i71w8orBypwMCfgJwYPMwpNLbB6xuFl3Vvjp+JjHcRMEAoFniGpK6Ei71hSAugU2Qb8uDzSZJ+TIyvKMqaULrFmbo24y1mOgpFa998K/3LTD1bnfuPE8aW1b0O+Z7dygHGd3qiEGQQldgme8Edm3Cs4W83kCZ26Myait1xcnDLVPbF9DLOMpl/8I8BstXutVp7oWBcTsCtIb4FAqcFRdcz/3iajVlTIlEXJhjlSxblsLfHaBThLrWkTmGrhLp8TasTFnjkwhserY81oJ1COTPRQzpS+vWDMqkeT9WgKZ2ussZNNnIGtt3sSHL7b+G5n9fSLoGX67A/l2efWC7FEms/vCHpbPc5iD352GgTI6touowL+yOGWXu+TRI7idwV+qhUYRQRVHrD8OCe8VTZF28RYlA84+uKH/gB7jZyHn5YzXmW2bF3QvPSRG0MM1XuLnk4GHa5keZZz3HTtDyCkLmjgxUm7A+N1yLMfuK4BCBWq1XVj34DeheEQydM1TEgw+wo3oz9ggHnZn4W+OTaCkyKS5jwY9D4tDxtN9+x3eaQaijCk5mtQ==
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0:
+ =?us-ascii?Q?fPs7M2UjsjyDq7n1znoFOoKPUiCt52YhlvUnZ45zxIQ9G8DdGr0tkW46wcKn?=
+ =?us-ascii?Q?L55FB6BCr+Zq2wi/l5i7xoo0Ud8bouN8JrvYKmhww6tpJF+cZmlkIN7zHeli?=
+ =?us-ascii?Q?Oa47cIHl4B0ngU4dectTs6e/f5i0aH11D2TPwbon6L002cALjM/ZdhMqs1m3?=
+ =?us-ascii?Q?5yliF31Ijm9ItvzIEjBpMLpJmc9M1aZBJfYJgxWr3rw+MAzVno4iWiexV6hd?=
+ =?us-ascii?Q?Og7xoNbN/shnNw3OYypG7DGfLM6wGZ1tExqyKUaBEGyS0Qvun/A8rEfUlVnA?=
+ =?us-ascii?Q?zm/Ec1s805QEOyHl6lHvMnrMxiT7PYT+Xcj12ztvkUxHyTse9cm7k1zuGsM8?=
+ =?us-ascii?Q?lTl2BhowjRzJ6y5nkSnLgiAxr3UBCobwHucMWHzW2PGPInIzqz7E3ZeXQYJ2?=
+ =?us-ascii?Q?oBxD+5JrjSEndJ+1orYMa9w86Bq90BaHPohY/mUb239hSzDzEqgNxSHS5rCl?=
+ =?us-ascii?Q?9SAWT2gD/EE5Sw56FmPzjOUpBpS8CSuAvEz4Qr5qfOq3ri9Zth1i5o1nMYTm?=
+ =?us-ascii?Q?kWQ+4D8y6JL96N7yGt4/sG773DFbEvlOWqFijyftMbefSooxk6qJFtExtvqY?=
+ =?us-ascii?Q?vKavfLvYqUHc1p2B+AXOs/wRRYkTTnp0//ikBny0ELzx7pUkHYooIPLkR5gc?=
+ =?us-ascii?Q?KHYgAk5unGXbkkepDJSwkgQ9j17HKUDoTiBHrgffMQ0A2rN44yVrIr3r7Dl/?=
+ =?us-ascii?Q?f9cTZjzDwQqk6n0n2UIoRLhV8pZzMh1rCvRCbd/ZM0molv5tqXO+UTdKh9NR?=
+ =?us-ascii?Q?eG7ZZZOsaki1NNQU0a8oNJhG4AQyPqa9u+ktaOElPHgL5IAJw/pyv4TwN9Lt?=
+ =?us-ascii?Q?Qc/0HreAYIvG12psY0bfQz8lbpyUfZuI5uo+FCWa5hz2EZmVo5t8qZKyu1yg?=
+ =?us-ascii?Q?Y0jylUFNVRrlNa7I2cm+Avg03QHaohwRRsr/keTYTa3U7FT+BOEdePMpdL70?=
+ =?us-ascii?Q?UAFnVkm5bunBC0RhzS38M5P/YBi4ZIeD30ufeTwNJTVysvHEt02W3oHvNWnB?=
+ =?us-ascii?Q?/GIIjhHp2lkzPsPUi359RKmjWp4Y/0Ygw81k1bhgd5z+MT9ALbjmiqQwZkUL?=
+ =?us-ascii?Q?+iyjITdqU3bvV+XcChAHHdZOLpu5UvRBlgqhMbeKJ/2fXwzUhT5AwV1cMH6R?=
+ =?us-ascii?Q?Sb8QqGKOP77dRXl9v7083Y5ODWSxkZPLCIy48mbGcYQsj4vE0arO9/rusobj?=
+ =?us-ascii?Q?RfNTIhYKHlqiUNly2qQg5BPrYnBVLUs8PQFQZ63uRdBgmG70XBubH70g+1GN?=
+ =?us-ascii?Q?x22Par8yUujmbqdXIPu5VurkDxx2NLNcLxHVvvXmfY9pIyXlGd5RGY6+CJfu?=
+ =?us-ascii?Q?YDZtT7uyyo6Ez7eoTh93k9LwcMcMQDpy8186yu4AxhoPLdwH0xAzDDZVQXwe?=
+ =?us-ascii?Q?GnClu7JwASlVa4AUADasLDOu74LNm3nQ4rzqtvh1Xdom9pIkQNaG4m4vZOjK?=
+ =?us-ascii?Q?va7c1X3GKgs=3D?=
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+X-OriginatorOrg: sct-15-20-4755-11-msonline-outlook-db494.templateTenant
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: PH0PR18MB5071.namprd18.prod.outlook.com
+X-MS-Exchange-CrossTenant-RMS-PersistedConsumerOrg: 00000000-0000-0000-0000-000000000000
+X-MS-Exchange-CrossTenant-Network-Message-Id: dd9ed544-2676-4805-8591-08da27c6c233
+X-MS-Exchange-CrossTenant-originalarrivaltime: 26 Apr 2022 20:53:04.0885
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 84df9e7f-e9f6-40af-b435-aaaaaaaaaaaa
+X-MS-Exchange-CrossTenant-rms-persistedconsumerorg: 00000000-0000-0000-0000-000000000000
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH0PR18MB4624
 
-The CXL "root" device, ACPI0017, is an attach point for coordinating
-platform level CXL resources and is the parent device for a CXL port
-topology tree. As such it has distinct locking rules relative to other
-CXL subsystem objects, but because it is an ACPI device the lock class
-is established well before it is given to the cxl_acpi driver.
+I have a PCIe FPGA device (single function) that has a 2GB RAM mapped via a=
+ single 64-bit PCIe BAR of length 2GB.
 
-However, the lockdep API does support changing the lock class "live" for
-situations like this. Add a device_lock_set_class() helper that a driver
-can use in ->probe() to set a custom lock class, and
-device_lock_reset_class() to return to the default "no validate" class
-before the custom lock class key goes out of scope after ->remove().
+I would like to make this memory available as /dev/daxX.Y character device =
+so some applications that I already have that work with these character dev=
+ices can be used.
 
-Note the helpers are all macros to support dead code elimination in the
-CONFIG_PROVE_LOCKING=n case, however device_set_lock_class() still needs
-#ifdef CONFIG_PROVE_LOCKING since lockdep_match_class() explicitly does
-not have a helper in the CONFIG_PROVE_LOCKING=n case (see comment in
-lockdep.h). The lockdep API needs 2 small tweaks to prevent "unused"
-warnings for the @key argument to lock_set_class(), and a new
-lock_set_novalidate_class() is added to supplement
-lockdep_set_novalidate_class() in the cases where the lock class is
-converted while the lock is held.
+I am thinking of modifying drivers/dax/device.c for my implementation.
 
-Suggested-by: Peter Zijlstra <peterz@infradead.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Waiman Long <longman@redhat.com>
-Cc: Boqun Feng <boqun.feng@gmail.com>
-Cc: Alison Schofield <alison.schofield@intel.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Ben Widawsky <ben.widawsky@intel.com>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
-Changes since v5:
-- 0day reports [1] that clang does not like how the macros shadow the
-  definition of the @__d variable. Move __device_lock_set_class() to a
-  unique variable name. Note that the variable is needed as some macro
-  callers may pass a 'void *' to device_set_lock_class().
+To test drivers/dax/device.c, I added memmap to my kernel command line and =
+rebooted. I noticed I have /dev/pmem0 of the same length show up. ndctl sho=
+ws this device. This is obviously of type fsdax.
+I then ran ndctl create-namespace -mem=3Ddevdax on this device which conver=
+ted it to /dev/daxX.Y.=20
 
-[1]: https://lore.kernel.org/all/202204261758.lzXWne7H-lkp@intel.com/
+When I ran ndctl that converted from fsdax to devdax, I noticed that the pr=
+obe routine was called with the base and length as expected.
 
- drivers/cxl/acpi.c      |   13 +++++++++++++
- include/linux/device.h  |   43 +++++++++++++++++++++++++++++++++++++++++++
- include/linux/lockdep.h |    6 +++++-
- 3 files changed, 61 insertions(+), 1 deletion(-)
+So I am hoping using drivers/dax/device.c is the best way to go to expose m=
+y PCIe memory as /dev/daxX.Y.
 
-diff --git a/drivers/cxl/acpi.c b/drivers/cxl/acpi.c
-index d15a6aec0331..40286f5df812 100644
---- a/drivers/cxl/acpi.c
-+++ b/drivers/cxl/acpi.c
-@@ -275,6 +275,13 @@ static int add_root_nvdimm_bridge(struct device *match, void *data)
- 	return 1;
- }
- 
-+static struct lock_class_key cxl_root_key;
-+
-+static void cxl_acpi_lock_reset_class(void *dev)
-+{
-+	device_lock_reset_class(dev);
-+}
-+
- static int cxl_acpi_probe(struct platform_device *pdev)
- {
- 	int rc;
-@@ -283,6 +290,12 @@ static int cxl_acpi_probe(struct platform_device *pdev)
- 	struct acpi_device *adev = ACPI_COMPANION(host);
- 	struct cxl_cfmws_context ctx;
- 
-+	device_lock_set_class(&pdev->dev, &cxl_root_key);
-+	rc = devm_add_action_or_reset(&pdev->dev, cxl_acpi_lock_reset_class,
-+				      &pdev->dev);
-+	if (rc)
-+		return rc;
-+
- 	root_port = devm_cxl_add_port(host, host, CXL_RESOURCE_NONE, NULL);
- 	if (IS_ERR(root_port))
- 		return PTR_ERR(root_port);
-diff --git a/include/linux/device.h b/include/linux/device.h
-index 93459724dcde..833b0b3b0193 100644
---- a/include/linux/device.h
-+++ b/include/linux/device.h
-@@ -850,6 +850,49 @@ static inline bool device_supports_offline(struct device *dev)
- 	return dev->bus && dev->bus->offline && dev->bus->online;
- }
- 
-+#define __device_lock_set_class(dev, name, key)                        \
-+do {                                                                   \
-+	struct device *__d2 __maybe_unused = dev;                      \
-+	lock_set_class(&__d2->mutex.dep_map, name, key, 0, _THIS_IP_); \
-+} while (0)
-+
-+/**
-+ * device_lock_set_class - Specify a temporary lock class while a device
-+ *			   is attached to a driver
-+ * @dev: device to modify
-+ * @key: lock class key data
-+ *
-+ * This must be called with the device_lock() already held, for example
-+ * from driver ->probe(). Take care to only override the default
-+ * lockdep_no_validate class.
-+ */
-+#ifdef CONFIG_LOCKDEP
-+#define device_lock_set_class(dev, key)                                    \
-+do {                                                                       \
-+	struct device *__d = dev;                                          \
-+	dev_WARN_ONCE(__d, !lockdep_match_class(&__d->mutex,               \
-+						&__lockdep_no_validate__), \
-+		 "overriding existing custom lock class\n");               \
-+	__device_lock_set_class(__d, #key, key);                           \
-+} while (0)
-+#else
-+#define device_lock_set_class(dev, key) __device_lock_set_class(dev, #key, key)
-+#endif
-+
-+/**
-+ * device_lock_reset_class - Return a device to the default lockdep novalidate state
-+ * @dev: device to modify
-+ *
-+ * This must be called with the device_lock() already held, for example
-+ * from driver ->remove().
-+ */
-+#define device_lock_reset_class(dev) \
-+do { \
-+	struct device *__d __maybe_unused = dev;                       \
-+	lock_set_novalidate_class(&__d->mutex.dep_map, "&dev->mutex",  \
-+				  _THIS_IP_);                          \
-+} while (0)
-+
- void lock_device_hotplug(void);
- void unlock_device_hotplug(void);
- int lock_device_hotplug_sysfs(void);
-diff --git a/include/linux/lockdep.h b/include/linux/lockdep.h
-index 467b94257105..43b0dc6a0b21 100644
---- a/include/linux/lockdep.h
-+++ b/include/linux/lockdep.h
-@@ -290,6 +290,9 @@ extern void lock_set_class(struct lockdep_map *lock, const char *name,
- 			   struct lock_class_key *key, unsigned int subclass,
- 			   unsigned long ip);
- 
-+#define lock_set_novalidate_class(l, n, i) \
-+	lock_set_class(l, n, &__lockdep_no_validate__, 0, i)
-+
- static inline void lock_set_subclass(struct lockdep_map *lock,
- 		unsigned int subclass, unsigned long ip)
- {
-@@ -357,7 +360,8 @@ static inline void lockdep_set_selftest_task(struct task_struct *task)
- # define lock_acquire(l, s, t, r, c, n, i)	do { } while (0)
- # define lock_release(l, i)			do { } while (0)
- # define lock_downgrade(l, i)			do { } while (0)
--# define lock_set_class(l, n, k, s, i)		do { } while (0)
-+# define lock_set_class(l, n, key, s, i)	do { (void)(key); } while (0)
-+# define lock_set_novalidate_class(l, n, i)	do { } while (0)
- # define lock_set_subclass(l, s, i)		do { } while (0)
- # define lockdep_init()				do { } while (0)
- # define lockdep_init_map_type(lock, name, key, sub, inner, outer, type) \
+Or maybe there is another option.
 
+Thanks a lot in advance,
+AneeshS
