@@ -1,36 +1,38 @@
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9B9F3D84
-	for <nvdimm@lists.linux.dev>; Thu, 28 Apr 2022 22:10:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93F4D3D60
+	for <nvdimm@lists.linux.dev>; Thu, 28 Apr 2022 22:10:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1651183849; x=1682719849;
+  t=1651183854; x=1682719854;
   h=subject:from:to:cc:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=PBTLU2Ut0BNAm+/bMqdFhOHLzc/Mr8QrZbbCovHeDwI=;
-  b=cc/6q0QxL+wLIudq4jFz7QZ0+HtXdsVEaomZ2bK8La7MaOgP3fntzMAF
-   vDube+Eu/ko3iecDORWxTw8jIKZBkePP2m0/w+ZlcE65bnvWUASMFFTj6
-   ERlHbUGRtcOweZgi7qUaijHZWGKYyK8G3FlhNPQ59YAfPh77UJBYDBTbD
-   16hb5T3g7YxksgqpI1+PFT0eluVCXGP0ujSz4nRLOvMsLSR9TEVXMxmE9
-   XkFhp6Ua4RMo32w8db02KyBJuNRAKBjUSspPsXbScgSYOlqBkbX55ksH2
-   7LorrhMSfnU9oKXjOTptKUpMlSM1eS+wG4gJWFUyQWe1crm7thwOWI5wi
-   w==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10331"; a="265967748"
+  bh=6EmxZJQM6gbeuuBnZcbUrwJkT+T3QCR3Fl3Sx8kLU8s=;
+  b=gZGh6vS+aG6qlZB5U09aCtCtFZqujPAoGa0qumhxeq72UHWaybK/ZvQP
+   YahmTkRPVz5ouPMq+KPeFoJTPGkfRMx4qdREUsA0WVyXNjOAkYCqzaDHW
+   C89sMLFXAz77dEgksFvKKG4vaC6+4tVPz55T2j1JwQoLlAki1DHJmJSNL
+   qk/MF+XvkIzsjdZ5AQaG1S1X8Fw8oNr2FVGb8JsXQPG1uoMP/xCScd2Ol
+   Y+kpvk+mx7eL0UKYyypAxnUfGj7P2yfTZ3AyPjOzERAJMqoIKFYqGo1rb
+   5wYBKWZ5km8vFT4u0I7l1BfioJ3VSsw86RMY+zTMV3Ud/LKtzPTKtIK7q
+   g==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10331"; a="253823647"
 X-IronPort-AV: E=Sophos;i="5.91,296,1647327600"; 
-   d="scan'208";a="265967748"
-Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Apr 2022 15:10:49 -0700
+   d="scan'208";a="253823647"
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Apr 2022 15:10:54 -0700
 X-IronPort-AV: E=Sophos;i="5.91,296,1647327600"; 
-   d="scan'208";a="879336239"
+   d="scan'208";a="731735723"
 Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
-  by fmsmga005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Apr 2022 15:10:48 -0700
-Subject: [ndctl PATCH 09/10] cxl/port: Relax port identifier validation
+  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Apr 2022 15:10:54 -0700
+Subject: [ndctl PATCH 10/10] cxl/test: Add topology enumeration and hotplug
+ test
 From: Dan Williams <dan.j.williams@intel.com>
 To: vishal.l.verma@intel.com
-Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
-Date: Thu, 28 Apr 2022 15:10:48 -0700
-Message-ID: <165118384845.1676208.7570620216888371408.stgit@dwillia2-desk3.amr.corp.intel.com>
+Cc: Luis Chamberlain <mcgrof@kernel.org>, linux-cxl@vger.kernel.org,
+ nvdimm@lists.linux.dev
+Date: Thu, 28 Apr 2022 15:10:54 -0700
+Message-ID: <165118385401.1676208.9224280236045777443.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <165118380037.1676208.7644295506592461996.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <165118380037.1676208.7644295506592461996.stgit@dwillia2-desk3.amr.corp.intel.com>
 User-Agent: StGit/0.18-3-g996c
@@ -43,86 +45,230 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 
-Now that util_cxl_port_filter() accepts port host identifiers it is no
-longer possible to pre-validate that the port arguments follow the "port%d"
-format. Instead, let all inputs through and warn if the filter fails to
-identify a port.
+Test the re-plug of memdevs, switch ports, root ports, and bus objects.
 
+Cc: Luis Chamberlain <mcgrof@kernel.org>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- cxl/port.c |   30 ++++--------------------------
- 1 file changed, 4 insertions(+), 26 deletions(-)
+ test/common          |   12 ++++
+ test/cxl-topology.sh |  166 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ test/meson.build     |    2 +
+ 3 files changed, 180 insertions(+)
+ create mode 100644 test/cxl-topology.sh
 
-diff --git a/cxl/port.c b/cxl/port.c
-index 46a8f32df8e1..89f3916d85aa 100644
---- a/cxl/port.c
-+++ b/cxl/port.c
-@@ -145,7 +145,6 @@ static int port_action(int argc, const char **argv, struct cxl_ctx *ctx,
- 		usage,
- 		NULL
- 	};
--	unsigned long id;
+diff --git a/test/common b/test/common
+index fb487958a29b..65615cc09a3e 100644
+--- a/test/common
++++ b/test/common
+@@ -27,6 +27,18 @@ if [ -z $DAXCTL ]; then
+ 	fi
+ fi
  
- 	log_init(&pl, "cxl port", "CXL_PORT_LOG");
- 	argc = parse_options(argc, argv, options, u, 0);
-@@ -153,31 +152,10 @@ static int port_action(int argc, const char **argv, struct cxl_ctx *ctx,
- 	if (argc == 0)
- 		usage_with_options(u, options);
- 	for (i = 0; i < argc; i++) {
--		const char *fmt;
--
- 		if (strcmp(argv[i], "all") == 0) {
- 			argc = 1;
- 			break;
- 		}
--
--		if (param.endpoint)
--			fmt = "endpoint%lu";
--		else
--			fmt = "port%lu";
--
--		if (sscanf(argv[i], fmt, &id) == 1)
--			continue;
--		if (sscanf(argv[i], "%lu", &id) == 1)
--			continue;
--
--		log_err(&pl, "'%s' is not a valid %s identifer\n", argv[i],
--			param.endpoint ? "endpoint" : "port");
--		err++;
--	}
--
--	if (err == argc) {
--		usage_with_options(u, options);
--		return -EINVAL;
- 	}
++# CXL
++if [ -z $CXL ]; then
++	if [ -f "../cxl/cxl" ] && [ -x "../cxl/cxl" ]; then
++		export CXL=../cxl/cxl
++	elif [ -f "./cxl/cxl" ] && [ -x "./cxl/cxl" ]; then
++		export CXL=./cxl/cxl
++	else
++		echo "Couldn't find a cxl binary"
++		exit 1
++	fi
++fi
++
+ if [ -z $TEST_PATH ]; then
+ 	export TEST_PATH=.
+ fi
+diff --git a/test/cxl-topology.sh b/test/cxl-topology.sh
+new file mode 100644
+index 000000000000..ff11614f4f14
+--- /dev/null
++++ b/test/cxl-topology.sh
+@@ -0,0 +1,166 @@
++#!/bin/bash
++# SPDX-License-Identifier: GPL-2.0
++# Copyright (C) 2022 Intel Corporation. All rights reserved.
++
++. $(dirname $0)/common
++
++rc=1
++
++set -ex
++
++trap 'err $LINENO' ERR
++
++check_prereq "jq"
++
++modprobe -r cxl_test
++modprobe cxl_test
++udevadm settle
++
++# THEORY OF OPERATION: Validate the hard coded assumptions of the
++# cxl_test.ko module that defines its topology in
++# tools/testing/cxl/test/cxl.c. If that model ever changes then the
++# paired update must be made to this test.
++
++# collect cxl_test root device id
++json=$($CXL list -b cxl_test)
++count=$(jq "length" <<< $json)
++((count == 1)) || err "$LINENO"
++root=$(jq -r ".[] | .bus" <<< $json)
++
++
++# validate 2 host bridges under a root port
++port_sort="sort_by(.port | .[4:] | tonumber)"
++json=$($CXL list -b cxl_test -BP)
++count=$(jq ".[] | .[\"ports:$root\"] | length" <<< $json)
++((count == 2)) || err "$LINENO"
++
++bridge[0]=$(jq -r ".[] | .[\"ports:$root\"] | $port_sort | .[0].port" <<< $json)
++bridge[1]=$(jq -r ".[] | .[\"ports:$root\"] | $port_sort | .[1].port" <<< $json)
++
++
++# validate 2 root ports per host bridge
++json=$($CXL list -b cxl_test -T -p ${bridge[0]})
++count=$(jq ".[] | .dports | length" <<< $json)
++((count == 2)) || err "$LINENO"
++
++json=$($CXL list -b cxl_test -T -p ${bridge[1]})
++count=$(jq ".[] | .dports | length" <<< $json)
++((count == 2)) || err "$LINENO"
++
++
++# validate 2 switches per-root port
++json=$($CXL list -b cxl_test -P -p ${bridge[0]})
++count=$(jq ".[] | .[\"ports:${bridge[0]}\"] | length" <<< $json)
++((count == 2)) || err "$LINENO"
++
++switch[0]=$(jq -r ".[] | .[\"ports:${bridge[0]}\"] | $port_sort | .[0].host" <<< $json)
++switch[1]=$(jq -r ".[] | .[\"ports:${bridge[0]}\"] | $port_sort | .[1].host" <<< $json)
++
++json=$($CXL list -b cxl_test -P -p ${bridge[1]})
++count=$(jq ".[] | .[\"ports:${bridge[1]}\"] | length" <<< $json)
++((count == 2)) || err "$LINENO"
++
++switch[2]=$(jq -r ".[] | .[\"ports:${bridge[1]}\"] | $port_sort | .[0].host" <<< $json)
++switch[3]=$(jq -r ".[] | .[\"ports:${bridge[1]}\"] | $port_sort | .[1].host" <<< $json)
++
++
++# check that all 8 cxl_test memdevs are enabled by default and have a
++# pmem size of 256M
++json=$($CXL list -b cxl_test -M)
++count=$(jq "map(select(.pmem_size == $((256 << 20)))) | length" <<< $json)
++((count == 8)) || err "$LINENO"
++
++
++# validate the expected properties of the 4 root decoders
++json=$($CXL list -b cxl_test -D -d root)
++port_id=${root:4}
++port_id_len=${#port_id}
++decoder_sort="sort_by(.decoder | .[$((8+port_id_len)):] | tonumber)"
++count=$(jq "[ $decoder_sort | .[0] |
++	select(.volatile_capable == true) |
++	select(.size == $((256 << 20))) |
++	select(.nr_targets == 1) ] | length" <<< $json)
++((count == 1)) || err "$LINENO"
++
++count=$(jq "[ $decoder_sort | .[1] |
++	select(.volatile_capable == true) |
++	select(.size == $((512 << 20))) |
++	select(.nr_targets == 2) ] | length" <<< $json)
++((count == 1)) || err "$LINENO"
++
++count=$(jq "[ $decoder_sort | .[2] |
++	select(.pmem_capable == true) |
++	select(.size == $((256 << 20))) |
++	select(.nr_targets == 1) ] | length" <<< $json)
++((count == 1)) || err "$LINENO"
++
++count=$(jq "[ $decoder_sort | .[3] |
++	select(.pmem_capable == true) |
++	select(.size == $((512 << 20))) |
++	select(.nr_targets == 2) ] | length" <<< $json)
++((count == 1)) || err "$LINENO"
++
++# check that switch ports disappear after all of their memdevs have been
++# disabled, and return when the memdevs are enabled.
++for s in ${switch[@]}
++do
++	json=$($CXL list -M -p $s)
++	count=$(jq "length" <<< $json)
++	((count == 2)) || err "$LINENO"
++
++	mem[0]=$(jq -r ".[0] | .memdev" <<< $json)
++	mem[1]=$(jq -r ".[1] | .memdev" <<< $json)
++
++	$CXL disable-memdev ${mem[0]} --force
++	json=$($CXL list -p $s)
++	count=$(jq "length" <<< $json)
++	((count == 1)) || err "$LINENO"
++
++	$CXL disable-memdev ${mem[1]} --force
++	json=$($CXL list -p $s)
++	count=$(jq "length" <<< $json)
++	((count == 0)) || err "$LINENO"
++
++	$CXL enable-memdev ${mem[0]}
++	$CXL enable-memdev ${mem[1]}
++
++	json=$($CXL list -p $s)
++	count=$(jq "length" <<< $json)
++	((count == 1)) || err "$LINENO"
++
++	$CXL disable-port $s --force
++	json=$($CXL list -p $s)
++	count=$(jq "length" <<< $json)
++	((count == 0)) || err "$LINENO"
++
++	$CXL enable-memdev ${mem[0]} ${mem[1]}
++	json=$($CXL list -p $s)
++	count=$(jq "length" <<< $json)
++	((count == 1)) || err "$LINENO"
++done
++
++
++# validate host bridge tear down
++for b in ${bridge[@]}
++do
++	$CXL disable-port $b -f
++	json=$($CXL list -M -i -p $b)
++	count=$(jq "map(select(.state == \"disabled\")) | length" <<< $json)
++	((count == 4)) || err "$LINENO"
++
++	$CXL enable-port $b -m
++	json=$($CXL list -M -p $b)
++	count=$(jq "length" <<< $json)
++	((count == 4)) || err "$LINENO"
++done
++
++
++# validate that the bus can be disabled without issue
++$CXL disable-bus $root -f
++
++
++# validate no WARN or lockdep report during the run
++log=$(journalctl -r -k --since "-$((SECONDS+1))s")
++grep -q "Call Trace" <<< $log && err "$LINENO"
++
++modprobe -r cxl_test
+diff --git a/test/meson.build b/test/meson.build
+index 7ccd45195236..210dcb0b5ff1 100644
+--- a/test/meson.build
++++ b/test/meson.build
+@@ -150,6 +150,7 @@ monitor = find_program('monitor.sh')
+ max_extent = find_program('max_available_extent_ns.sh')
+ pfn_meta_errors = find_program('pfn-meta-errors.sh')
+ track_uuid = find_program('track-uuid.sh')
++cxl_topo = find_program('cxl-topology.sh')
  
- 	if (param.debug) {
-@@ -187,7 +165,6 @@ static int port_action(int argc, const char **argv, struct cxl_ctx *ctx,
- 		pl.log_priority = LOG_INFO;
+ tests = [
+   [ 'libndctl',               libndctl,		  'ndctl' ],
+@@ -174,6 +175,7 @@ tests = [
+   [ 'max_extent_ns',          max_extent,	  'ndctl' ],
+   [ 'pfn-meta-errors.sh',     pfn_meta_errors,	  'ndctl' ],
+   [ 'track-uuid.sh',          track_uuid,	  'ndctl' ],
++  [ 'cxl-topology.sh',	      cxl_topo,		  'cxl'   ],
+ ]
  
- 	rc = 0;
--	err = 0;
- 	count = 0;
- 
- 	for (i = 0; i < argc; i++) {
-@@ -198,15 +175,16 @@ static int port_action(int argc, const char **argv, struct cxl_ctx *ctx,
- 
- 			endpoint = find_cxl_endpoint(ctx, argv[i]);
- 			if (!endpoint) {
--				log_dbg(&pl, "endpoint: %s not found\n",
--					argv[i]);
-+				log_notice(&pl, "endpoint: %s not found\n",
-+					   argv[i]);
- 				continue;
- 			}
- 			port = cxl_endpoint_get_port(endpoint);
- 		} else {
- 			port = find_cxl_port(ctx, argv[i]);
- 			if (!port) {
--				log_dbg(&pl, "port: %s not found\n", argv[i]);
-+				log_notice(&pl, "port: %s not found\n",
-+					   argv[i]);
- 				continue;
- 			}
- 		}
+ if get_option('destructive').enabled()
 
