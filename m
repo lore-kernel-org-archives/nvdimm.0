@@ -1,89 +1,122 @@
-Received: from mail-pg1-f174.google.com (mail-pg1-f174.google.com [209.85.215.174])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF93D7B
-	for <nvdimm@lists.linux.dev>; Thu, 28 Apr 2022 00:26:48 +0000 (UTC)
-Received: by mail-pg1-f174.google.com with SMTP id k14so2711940pga.0
-        for <nvdimm@lists.linux.dev>; Wed, 27 Apr 2022 17:26:48 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=MRuUNJV7gX0xYtM2Tpo1ftLBP5+GxruFiS3PUjERGmY=;
-        b=glua9KfzaoM/vK2bmaMhx4Yx1qqfS9oorXu7lu2qg0ubY5HiAx7R3h4JSMYAZuzfAx
-         GEm4t254ol4fJkiKYJphOCcCccMJ6JWsPOdvl7MEyL/E5h/c7oM0wU56OG0bJ2rEtoZ5
-         78N3z5vZdS8Pgzb3ZFksPnJSYZ2uFJHP6smKAVP0INbQ2yW6I755b8ORIfwZZLoEBpTh
-         7QipFTs5o0lFsRTRGNTF4CbXRG26tDruJiXoJU+HEGJeufJ4yxeCKb6RL5TZJwkgmcbN
-         GA4Zz+6lWMTAfgXBfCxN/77H0/90HZCnAmK7z2hPHxhwHFrs8lPUGqmEHULSpqGj1nb/
-         L2ig==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=MRuUNJV7gX0xYtM2Tpo1ftLBP5+GxruFiS3PUjERGmY=;
-        b=AwZ5dK3CMsv9K8lsFgJNKZ3mgWF3xtwDX0e8SBF20ZuLnxWgCUV8m7DgkfCd2iPUTZ
-         JYozGO57+y/aSpv7CGYiLscXOVpY+GAxFsYF0wMfuNHiS3VKM79zgKxoWA5XvxMlNqb1
-         KbYdTtyiAQ7z0Nw1tQ+S1nBrr5kSfN0EFaTceK0hZW2CJp5bz/UN4xfLuUiAECsS4bd6
-         YsEzys2GzmS6wKL3FPD9jTv9bnaZ3/922onptqilEHh/qTZ3Bg79atkjsKzIru7d6asW
-         jjl3irBL6Iq5lCIfYWQBBlJ2i/M//vBFeD179qa2aSKojrd77hYSj+WhIty0Q80wXuOY
-         M8sA==
-X-Gm-Message-State: AOAM5337SQ/aM4etNerW2SkvOLTnT2MmgoeauYJKVV2Yq8Wdzj6fS6xW
-	x2a8LctNXxpOvewNKXeJ4joY4nAYfxXMGI8Mqf2LU7qmicQ=
-X-Google-Smtp-Source: ABdhPJyot/7q+y50FGo4fqvhm5bWnpopymk+1Pff4PrBGOWRUbRwrGuIbaMp5cqsCddc4fqMDni6TgL6u4ly9ElR864=
-X-Received: by 2002:a05:6a02:283:b0:342:703e:1434 with SMTP id
- bk3-20020a056a02028300b00342703e1434mr25832886pgb.74.1651105608074; Wed, 27
- Apr 2022 17:26:48 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9D727B
+	for <nvdimm@lists.linux.dev>; Thu, 28 Apr 2022 04:33:10 +0000 (UTC)
+Received: from pps.filterd (m0127361.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 23S4LJA2033958;
+	Thu, 28 Apr 2022 04:32:54 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : date :
+ subject : to : cc : references : from : in-reply-to : content-type :
+ content-transfer-encoding : mime-version; s=pp1;
+ bh=iCKW0yrERGuzdNcsk+TTKd9Fbk2qUe5WNgFQ65bW3Sk=;
+ b=bS1kQjVtj1pwKMFiHDiOap5ToSuj4mRI74SEbjpMrubR9BF+wh67qbYKhVy7OtR+17EV
+ pH5r2YAgMb1yNMJu+13H9ZVWabqKoNJvnYw1AeNrApZwtCCsi9657YqKGi/enzeiauLI
+ CwZDNIdlfUR+9oF9avPCceGnTKpU5rEWvLmiRyXrnzQP252FSlyVOJHZTACqohshvNhj
+ fdd/Apx0keb4NaoghV1LRRIsnvpIvkl456MuJjnNNsj2i4Oc9w5EY7UvnhjYnETwXjhg
+ gCVBO9gvwGd/mSKd8WCz4UXzlcgsLvP9dT1Om335Ydf9ZZBMga3hv7J2vzBUvEzmSWro CA== 
+Received: from ppma03ams.nl.ibm.com (62.31.33a9.ip4.static.sl-reverse.com [169.51.49.98])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3fqktv84h7-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Thu, 28 Apr 2022 04:32:53 +0000
+Received: from pps.filterd (ppma03ams.nl.ibm.com [127.0.0.1])
+	by ppma03ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 23S4WbxO007519;
+	Thu, 28 Apr 2022 04:32:52 GMT
+Received: from b06avi18626390.portsmouth.uk.ibm.com (b06avi18626390.portsmouth.uk.ibm.com [9.149.26.192])
+	by ppma03ams.nl.ibm.com with ESMTP id 3fm938xv03-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Thu, 28 Apr 2022 04:32:51 +0000
+Received: from d06av26.portsmouth.uk.ibm.com (d06av26.portsmouth.uk.ibm.com [9.149.105.62])
+	by b06avi18626390.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 23S4JiQF48234776
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Thu, 28 Apr 2022 04:19:44 GMT
+Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id B6AADAE045;
+	Thu, 28 Apr 2022 04:32:49 +0000 (GMT)
+Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 73CECAE04D;
+	Thu, 28 Apr 2022 04:32:48 +0000 (GMT)
+Received: from [9.43.113.95] (unknown [9.43.113.95])
+	by d06av26.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+	Thu, 28 Apr 2022 04:32:48 +0000 (GMT)
+Message-ID: <d2684252-8c85-ba0e-2356-29837e836f6f@linux.ibm.com>
+Date: Thu, 28 Apr 2022 10:02:47 +0530
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.7.0
+Subject: Re: ndctl tests usable?
+Content-Language: en-US
+To: =?UTF-8?Q?Michal_Such=c3=a1nek?= <msuchanek@suse.de>,
+        Dan Williams <dan.j.williams@intel.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Linux NVDIMM <nvdimm@lists.linux.dev>
+References: <20220426123839.GF163591@kunlun.suse.cz>
+ <CAPcyv4j66HAE_x-eAHQR71pNyR0mk5b463S6OfeokLzZHq5ezw@mail.gmail.com>
+ <20220426161435.GH163591@kunlun.suse.cz>
+ <CAPcyv4iG4L3rA3eX-H=6nVkwhO2FGqDCbQHB2Lv_gLb+jy3+bw@mail.gmail.com>
+ <20220426163834.GI163591@kunlun.suse.cz>
+ <CAPcyv4jUj3v+4Sf=1i5EjxTeX9Ur65Smib-vkuaBdKYjUrh7yA@mail.gmail.com>
+ <20220426180958.GJ163591@kunlun.suse.cz>
+From: Shivaprasad G Bhat <sbhat@linux.ibm.com>
+In-Reply-To: <20220426180958.GJ163591@kunlun.suse.cz>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: wDpgUURbyXBAy9ZfDpjFB9XN5cBgsnuj
+X-Proofpoint-ORIG-GUID: wDpgUURbyXBAy9ZfDpjFB9XN5cBgsnuj
+Content-Transfer-Encoding: 8bit
+X-Proofpoint-UnRewURL: 0 URL was un-rewritten
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <PH0PR18MB50713BB676BBFCBAD8C1C05BA9FB9@PH0PR18MB5071.namprd18.prod.outlook.com>
- <CAPcyv4hGWAHBth+yF4DoEuyZN-O3-Tsfy4BU9PCyoTwaY-kKWw@mail.gmail.com>
- <PH0PR18MB50716D0F3A25CD25F8ED463BA9FA9@PH0PR18MB5071.namprd18.prod.outlook.com>
- <CAPcyv4hnj8zeLqZWXRkhVUovFKR-sj5X=P5WM=vwXxjc7qL64w@mail.gmail.com> <PH0PR18MB507124A7660C21A147B30AE1A9FA9@PH0PR18MB5071.namprd18.prod.outlook.com>
-In-Reply-To: <PH0PR18MB507124A7660C21A147B30AE1A9FA9@PH0PR18MB5071.namprd18.prod.outlook.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 27 Apr 2022 17:26:37 -0700
-Message-ID: <CAPcyv4gtnFQd46BH=Ng=3sL-yn9ctXrjwtThCFQ-AAo9DeO93A@mail.gmail.com>
-Subject: Re: How to map my PCIe memory as a devdax device (/dev/daxX.Y)
-To: An Sarpal <ansrk2001@hotmail.com>
-Cc: "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>
-Content-Type: text/plain; charset="UTF-8"
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.205,Aquarius:18.0.858,Hydra:6.0.486,FMLib:17.11.64.514
+ definitions=2022-04-27_04,2022-04-27_01,2022-02-23_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 impostorscore=0
+ suspectscore=0 clxscore=1011 bulkscore=0 lowpriorityscore=0 mlxscore=0
+ adultscore=0 priorityscore=1501 malwarescore=0 spamscore=0 mlxlogscore=999
+ phishscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2202240000 definitions=main-2204280027
 
-On Wed, Apr 27, 2022 at 2:34 PM An Sarpal <ansrk2001@hotmail.com> wrote:
->
-> Dan, thank you very much for the reply. I appreciate your time on this.
->
-> I talked to my application developer and he said that he can work around the lack of coherency that you identified.
+On 4/26/22 23:39, Michal Suchánek wrote:
+> On Tue, Apr 26, 2022 at 09:47:19AM -0700, Dan Williams wrote:
+>> On Tue, Apr 26, 2022 at 9:43 AM Michal Suchánek <msuchanek@suse.de> wrote:
+>>>
+>>> On Tue, Apr 26, 2022 at 09:32:24AM -0700, Dan Williams wrote:
+>>>> On Tue, Apr 26, 2022 at 9:15 AM Michal Suchánek <msuchanek@suse.de> wrote:
+>>>>>
+>>>>> On Tue, Apr 26, 2022 at 08:51:25AM -0700, Dan Williams wrote:
+>>>>>> On Tue, Apr 26, 2022 at 5:39 AM Michal Suchánek <msuchanek@suse.de> wrote:
+>>>>>>>
+> ...
+>>>>
+>>>> The modinfo just tells you what modules are available, but it does not
+>>>> necessarily indicate which modules are actively loaded in the system
+>>>> which is what ndctl_test_init() validates.
+>>>
+>>> Isn't what modinfo lists also what modrobe loads?
 
-Best of luck.
+<snip>
 
->
-> I was under the impression that PCIe memory physical ranges were always mapped as UC which obviously implies that they are not cacheable but I guess I am wrong there.
+> modules are not loaded before the test.
+> 
+> Maybe something goes wrong with the test module build?
+> 
+> It is very fragile and requires complete kernel source for each
+> configuration built. See below for the package
+> 
+> https://build.opensuse.org/package/show/home:michals/nfit_test
+> 
+> Attaching the log of test run which does not report any missing tools,
+> only complains about nfit.ko being production.
 
-Not if you use memmap= to hack the memory map, that interface is
-"garbage in / garbage out" from a safety perspective.
+I have attempted to fix few of the known issues in the first 3 patches 
+of the series posted here.
 
->
-> With that said, I still would like to create a /dev/daxX.Y character device that would map to the PCIe BAR range.
->
-> I am using driver/dax/device.c as my prototype.
-> a) I added memmap=X@Y to the kernel command line. When I rebooted the kernel, I see /dev/pmem0. So far so good.
->               Ndctl list shows this memory with namespace0.0
-> b) I then ran ndctl create namespace with --mode=devdax to convert from fsdax to devdax and noticed that the probe() routine in device.c was invoked as I expected.
->
-> Now in my driver, I only have my PCIe function probe() routine. I was wondering if there is an obvious way for me to make this work just like PMEM (memmap).
+https://patchwork.kernel.org/project/linux-nvdimm/list/?series=633103
 
-No, the obscurity of APIs for this is deliberate. It's broken outside
-of controlled scenarios, not something Linux will ever support in the
-general case. See the CXL specification for the hardware capability
-required to support memory over PCIe electricals.
-
->
-> There is a lot of functionality provided in other source files of drivers/dax and it all seems to depend on having that namespace created and lots of initialization being done.
->
-> I was wondering if there is an easier way for me to attach a struct dev_dax to my own pcie functionality. It does not look like there is an easy way but wanted to check with you
-
-Correct, I do not have any recommendations to offer here.
+> 
+> Thanks
+> 
+> Michal
