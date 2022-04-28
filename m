@@ -1,54 +1,42 @@
-Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.220.29])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A344EC2
+	for <nvdimm@lists.linux.dev>; Thu, 28 Apr 2022 08:51:51 +0000 (UTC)
+Received: from relay2.suse.de (relay2.suse.de [149.44.160.134])
+	by smtp-out2.suse.de (Postfix) with ESMTP id 711C91F88A;
+	Thu, 28 Apr 2022 08:51:44 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1651135904; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=RJlbReEahztd0FkC1b41gsYtqvdIadAThBNXtHtAHaQ=;
+	b=oRW6E5CswHN9hABWUOgLNlIP9L+7FiCtZZvSLAaOYYRv3FQTt4obLWekKOo6Lha/jWZ3nu
+	LGEEFiv8r/iVU8WLlft6XAvot1eV3ktjeuez1mP3ptoSGbnbh8pXG8ZE64cA7Q+3uBmVSm
+	VZ/swtxERjsiXzaJHV9irrBfrrL4LPM=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1651135904;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=RJlbReEahztd0FkC1b41gsYtqvdIadAThBNXtHtAHaQ=;
+	b=+lU35ZyVMubP+kUa38il6ZCoXknUkz6shiuL8RVppwgv9sRLP6iyhkqTnrQ/GDgDUsE+bN
+	n5rbbhgoeUAhzJBw==
+Received: from kunlun.suse.cz (unknown [10.100.128.76])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9D727B
-	for <nvdimm@lists.linux.dev>; Thu, 28 Apr 2022 04:33:10 +0000 (UTC)
-Received: from pps.filterd (m0127361.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 23S4LJA2033958;
-	Thu, 28 Apr 2022 04:32:54 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : date :
- subject : to : cc : references : from : in-reply-to : content-type :
- content-transfer-encoding : mime-version; s=pp1;
- bh=iCKW0yrERGuzdNcsk+TTKd9Fbk2qUe5WNgFQ65bW3Sk=;
- b=bS1kQjVtj1pwKMFiHDiOap5ToSuj4mRI74SEbjpMrubR9BF+wh67qbYKhVy7OtR+17EV
- pH5r2YAgMb1yNMJu+13H9ZVWabqKoNJvnYw1AeNrApZwtCCsi9657YqKGi/enzeiauLI
- CwZDNIdlfUR+9oF9avPCceGnTKpU5rEWvLmiRyXrnzQP252FSlyVOJHZTACqohshvNhj
- fdd/Apx0keb4NaoghV1LRRIsnvpIvkl456MuJjnNNsj2i4Oc9w5EY7UvnhjYnETwXjhg
- gCVBO9gvwGd/mSKd8WCz4UXzlcgsLvP9dT1Om335Ydf9ZZBMga3hv7J2vzBUvEzmSWro CA== 
-Received: from ppma03ams.nl.ibm.com (62.31.33a9.ip4.static.sl-reverse.com [169.51.49.98])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3fqktv84h7-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 28 Apr 2022 04:32:53 +0000
-Received: from pps.filterd (ppma03ams.nl.ibm.com [127.0.0.1])
-	by ppma03ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 23S4WbxO007519;
-	Thu, 28 Apr 2022 04:32:52 GMT
-Received: from b06avi18626390.portsmouth.uk.ibm.com (b06avi18626390.portsmouth.uk.ibm.com [9.149.26.192])
-	by ppma03ams.nl.ibm.com with ESMTP id 3fm938xv03-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 28 Apr 2022 04:32:51 +0000
-Received: from d06av26.portsmouth.uk.ibm.com (d06av26.portsmouth.uk.ibm.com [9.149.105.62])
-	by b06avi18626390.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 23S4JiQF48234776
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Thu, 28 Apr 2022 04:19:44 GMT
-Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id B6AADAE045;
-	Thu, 28 Apr 2022 04:32:49 +0000 (GMT)
-Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 73CECAE04D;
-	Thu, 28 Apr 2022 04:32:48 +0000 (GMT)
-Received: from [9.43.113.95] (unknown [9.43.113.95])
-	by d06av26.portsmouth.uk.ibm.com (Postfix) with ESMTP;
-	Thu, 28 Apr 2022 04:32:48 +0000 (GMT)
-Message-ID: <d2684252-8c85-ba0e-2356-29837e836f6f@linux.ibm.com>
-Date: Thu, 28 Apr 2022 10:02:47 +0530
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.7.0
+	by relay2.suse.de (Postfix) with ESMTPS id 0DA612C141;
+	Thu, 28 Apr 2022 08:51:44 +0000 (UTC)
+Date: Thu, 28 Apr 2022 10:51:42 +0200
+From: Michal =?iso-8859-1?Q?Such=E1nek?= <msuchanek@suse.de>
+To: Shivaprasad G Bhat <sbhat@linux.ibm.com>
+Cc: Dan Williams <dan.j.williams@intel.com>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Linux NVDIMM <nvdimm@lists.linux.dev>
 Subject: Re: ndctl tests usable?
-Content-Language: en-US
-To: =?UTF-8?Q?Michal_Such=c3=a1nek?= <msuchanek@suse.de>,
-        Dan Williams <dan.j.williams@intel.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linux NVDIMM <nvdimm@lists.linux.dev>
+Message-ID: <20220428085142.GL163591@kunlun.suse.cz>
 References: <20220426123839.GF163591@kunlun.suse.cz>
  <CAPcyv4j66HAE_x-eAHQR71pNyR0mk5b463S6OfeokLzZHq5ezw@mail.gmail.com>
  <20220426161435.GH163591@kunlun.suse.cz>
@@ -56,67 +44,60 @@ References: <20220426123839.GF163591@kunlun.suse.cz>
  <20220426163834.GI163591@kunlun.suse.cz>
  <CAPcyv4jUj3v+4Sf=1i5EjxTeX9Ur65Smib-vkuaBdKYjUrh7yA@mail.gmail.com>
  <20220426180958.GJ163591@kunlun.suse.cz>
-From: Shivaprasad G Bhat <sbhat@linux.ibm.com>
-In-Reply-To: <20220426180958.GJ163591@kunlun.suse.cz>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: wDpgUURbyXBAy9ZfDpjFB9XN5cBgsnuj
-X-Proofpoint-ORIG-GUID: wDpgUURbyXBAy9ZfDpjFB9XN5cBgsnuj
-Content-Transfer-Encoding: 8bit
-X-Proofpoint-UnRewURL: 0 URL was un-rewritten
+ <d2684252-8c85-ba0e-2356-29837e836f6f@linux.ibm.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.205,Aquarius:18.0.858,Hydra:6.0.486,FMLib:17.11.64.514
- definitions=2022-04-27_04,2022-04-27_01,2022-02-23_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 impostorscore=0
- suspectscore=0 clxscore=1011 bulkscore=0 lowpriorityscore=0 mlxscore=0
- adultscore=0 priorityscore=1501 malwarescore=0 spamscore=0 mlxlogscore=999
- phishscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2202240000 definitions=main-2204280027
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <d2684252-8c85-ba0e-2356-29837e836f6f@linux.ibm.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-On 4/26/22 23:39, Michal SuchÃ¡nek wrote:
-> On Tue, Apr 26, 2022 at 09:47:19AM -0700, Dan Williams wrote:
->> On Tue, Apr 26, 2022 at 9:43 AM Michal SuchÃ¡nek <msuchanek@suse.de> wrote:
->>>
->>> On Tue, Apr 26, 2022 at 09:32:24AM -0700, Dan Williams wrote:
->>>> On Tue, Apr 26, 2022 at 9:15 AM Michal SuchÃ¡nek <msuchanek@suse.de> wrote:
->>>>>
->>>>> On Tue, Apr 26, 2022 at 08:51:25AM -0700, Dan Williams wrote:
->>>>>> On Tue, Apr 26, 2022 at 5:39 AM Michal SuchÃ¡nek <msuchanek@suse.de> wrote:
->>>>>>>
-> ...
->>>>
->>>> The modinfo just tells you what modules are available, but it does not
->>>> necessarily indicate which modules are actively loaded in the system
->>>> which is what ndctl_test_init() validates.
->>>
->>> Isn't what modinfo lists also what modrobe loads?
+On Thu, Apr 28, 2022 at 10:02:47AM +0530, Shivaprasad G Bhat wrote:
+> On 4/26/22 23:39, Michal Suchánek wrote:
+> > On Tue, Apr 26, 2022 at 09:47:19AM -0700, Dan Williams wrote:
+> > > On Tue, Apr 26, 2022 at 9:43 AM Michal Suchánek <msuchanek@suse.de> wrote:
+> > > > 
+> > > > On Tue, Apr 26, 2022 at 09:32:24AM -0700, Dan Williams wrote:
+> > > > > On Tue, Apr 26, 2022 at 9:15 AM Michal Suchánek <msuchanek@suse.de> wrote:
+> > > > > > 
+> > > > > > On Tue, Apr 26, 2022 at 08:51:25AM -0700, Dan Williams wrote:
+> > > > > > > On Tue, Apr 26, 2022 at 5:39 AM Michal Suchánek <msuchanek@suse.de> wrote:
+> > > > > > > > 
+> > ...
+> > > > > 
+> > > > > The modinfo just tells you what modules are available, but it does not
+> > > > > necessarily indicate which modules are actively loaded in the system
+> > > > > which is what ndctl_test_init() validates.
+> > > > 
+> > > > Isn't what modinfo lists also what modrobe loads?
+> 
+> <snip>
+> 
+> > modules are not loaded before the test.
+> > 
+> > Maybe something goes wrong with the test module build?
+> > 
+> > It is very fragile and requires complete kernel source for each
+> > configuration built. See below for the package
+> > 
+> > https://build.opensuse.org/package/show/home:michals/nfit_test
+> > 
+> > Attaching the log of test run which does not report any missing tools,
+> > only complains about nfit.ko being production.
+> 
+> I have attempted to fix few of the known issues in the first 3 patches of
+> the series posted here.
+> 
+> https://patchwork.kernel.org/project/linux-nvdimm/list/?series=633103
 
-<snip>
+Thanks for pointing out these series.
 
-> modules are not loaded before the test.
-> 
-> Maybe something goes wrong with the test module build?
-> 
-> It is very fragile and requires complete kernel source for each
-> configuration built. See below for the package
-> 
-> https://build.opensuse.org/package/show/home:michals/nfit_test
-> 
-> Attaching the log of test run which does not report any missing tools,
-> only complains about nfit.ko being production.
+It is certainly of interest but given the test VM is x86 the papr fixes
+don't really apply to this case.
 
-I have attempted to fix few of the known issues in the first 3 patches 
-of the series posted here.
-
-https://patchwork.kernel.org/project/linux-nvdimm/list/?series=633103
-
-> 
-> Thanks
-> 
-> Michal
+Michal
