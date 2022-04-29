@@ -1,128 +1,76 @@
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 998551843
-	for <nvdimm@lists.linux.dev>; Thu, 28 Apr 2022 23:54:58 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1651190098; x=1682726098;
-  h=subject:from:to:cc:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=9ghc5xys4b5mMhFTJ7wpef3dneV4GyoA6BP0qu8W56o=;
-  b=VFwO+dnVRaANZfHtqUcK32fQetngLtnAB7Bm4M07HJZQt1n0YuvKny0l
-   udkAAhimpUtpGgi8QKsU7/WA+svHV7AMregwhl7xGN8OPvfJn5LZ96JO1
-   2Ba8Kjo+LtU2f1nak1eulTRCPTj0lJZzFF9k8NoP/mxT79QkFikmwoHYQ
-   smGTgPcyRVjDB7XzpcLBkX4vVwOdfBXE9KCceP8Wvif6qKLstE0MoAPTf
-   DREerfcVba1d9FrA2LFPmt8rUe0cV1ATDsDlopCiV8M/TsPV/s+imdvzZ
-   EgxFLRxoKfT2K6Gc1kvxKwXbUsPqlMdmjp675aUe5PFGuJtYM/P+PTUuA
-   g==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10331"; a="264052605"
-X-IronPort-AV: E=Sophos;i="5.91,296,1647327600"; 
-   d="scan'208";a="264052605"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Apr 2022 16:54:48 -0700
-X-IronPort-AV: E=Sophos;i="5.91,296,1647327600"; 
-   d="scan'208";a="581720253"
-Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Apr 2022 16:54:48 -0700
-Subject: [ndctl PATCH] ndctl/dimm: Flush invalidated labels after overwrite
-From: Dan Williams <dan.j.williams@intel.com>
-To: vishal.l.verma@intel.com
-Cc: Jeff Moyer <jmoyer@redhat.com>, Dave Jiang <dave.jiang@intel.com>,
- linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
-Date: Thu, 28 Apr 2022 16:54:48 -0700
-Message-ID: <165119008839.1783158.3766085644383173318.stgit@dwillia2-desk3.amr.corp.intel.com>
-User-Agent: StGit/0.18-3-g996c
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 594F17B
+	for <nvdimm@lists.linux.dev>; Fri, 29 Apr 2022 07:43:48 +0000 (UTC)
+Received: from relay2.suse.de (relay2.suse.de [149.44.160.134])
+	by smtp-out1.suse.de (Postfix) with ESMTP id 041A821872;
+	Fri, 29 Apr 2022 07:43:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1651218220; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=cE02aE0M+NaUBzKQB+RLthaTB5Wl8xw0uBDzpADoSXw=;
+	b=WJLmdyGX/0LbsFaPU6E6QtMrie4b9uRTjXaKGXITC20t16kfiMw0BEc6D39O3tqSjR87E+
+	EMUqYeJiWQUmex28m4pVz/M0gSFbyGfxamwqgAZSQumZiNmtvnXWXnmoMpFM+yOJmoTgrq
+	i4RI7qAc/ndrWnbCyIgT79H6rKDIM2Q=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1651218220;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=cE02aE0M+NaUBzKQB+RLthaTB5Wl8xw0uBDzpADoSXw=;
+	b=CGQ7iQP4IJuGCrpaa/70FlQOSKWld0v5Dca+FO+1EOoG+lhS+bn4hWpqB1j7mBm3yrvZcG
+	fYMz9CY4VUACvMDQ==
+Received: from kitsune.suse.cz (kitsune.suse.cz [10.100.12.127])
+	by relay2.suse.de (Postfix) with ESMTP id 973E32C142;
+	Fri, 29 Apr 2022 07:43:39 +0000 (UTC)
+From: Michal Suchanek <msuchanek@suse.de>
+To: nvdimm@lists.linux.dev
+Cc: Michal Suchanek <msuchanek@suse.de>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Ira Weiny <ira.weiny@intel.com>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	Jeff Moyer <jmoyer@redhat.com>,
+	Jane Chu <jane.chu@oracle.com>,
+	Borislav Petkov <bp@suse.de>,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] testing: nvdimm: asm/mce.h is not needed in nfit.c
+Date: Fri, 29 Apr 2022 09:43:34 +0200
+Message-Id: <20220429074334.21771-1-msuchanek@suse.de>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-Similar to "ndctl write-labels", after "ndctl sanitize-dimm --overwrite"
-the kernel may contain a cached copy of the label area that has been
-invalidated by the overwrite. Toggle the enabled state of the dimm-device
-to trigger the kernel to release the cached copy.
+asm/mce.h is not available on arm, and it is not needed to build nfit.c.
+Remove the include.
 
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Link: https://lore.kernel.org/all/165118817010.1772793.5101398830527716084.stgit@dwillia2-desk3.amr.corp.intel.com/
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+It was likely needed for COPY_MC_TEST
+
+Fixes: 3adb776384f2 ("x86, libnvdimm/test: Remove COPY_MC_TEST")
+Signed-off-by: Michal Suchanek <msuchanek@suse.de>
 ---
- ndctl/dimm.c |   34 ++++++++++++++++++++++------------
- 1 file changed, 22 insertions(+), 12 deletions(-)
+ tools/testing/nvdimm/test/nfit.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/ndctl/dimm.c b/ndctl/dimm.c
-index d9718a33b22f..ac7c5270e971 100644
---- a/ndctl/dimm.c
-+++ b/ndctl/dimm.c
-@@ -354,6 +354,23 @@ static int rw_bin(FILE *f, struct ndctl_cmd *cmd, ssize_t size,
- 	return 0;
- }
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index 0bc91ffee257..b4743ba65b96 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -23,8 +23,6 @@
+ #include "nfit_test.h"
+ #include "../watermark.h"
  
-+static int revalidate_labels(struct ndctl_dimm *dimm)
-+{
-+	int rc;
-+
-+	/*
-+	 * If the dimm is already disabled the kernel is not holding a cached
-+	 * copy of the label space.
-+	 */
-+	if (!ndctl_dimm_is_enabled(dimm))
-+		return 0;
-+
-+	rc = ndctl_dimm_disable(dimm);
-+	if (rc)
-+		return rc;
-+	return ndctl_dimm_enable(dimm);
-+}
-+
- static int action_write(struct ndctl_dimm *dimm, struct action_context *actx)
- {
- 	struct ndctl_cmd *cmd_read, *cmd_write;
-@@ -377,18 +394,10 @@ static int action_write(struct ndctl_dimm *dimm, struct action_context *actx)
- 
- 	size = ndctl_cmd_cfg_read_get_size(cmd_read);
- 	rc = rw_bin(actx->f_in, cmd_write, size, param.offset, WRITE);
+-#include <asm/mce.h>
 -
--	/*
--	 * If the dimm is already disabled the kernel is not holding a cached
--	 * copy of the label space.
--	 */
--	if (!ndctl_dimm_is_enabled(dimm))
--		goto out;
--
--	rc = ndctl_dimm_disable(dimm);
- 	if (rc)
- 		goto out;
--	rc = ndctl_dimm_enable(dimm);
-+
-+	rc = revalidate_labels(dimm);
- 
-  out:
- 	ndctl_cmd_unref(cmd_read);
-@@ -1043,7 +1052,7 @@ static int action_security_freeze(struct ndctl_dimm *dimm,
- static int action_sanitize_dimm(struct ndctl_dimm *dimm,
- 		struct action_context *actx)
- {
--	int rc;
-+	int rc = 0;
- 	enum ndctl_key_type key_type;
- 
- 	if (ndctl_dimm_get_security(dimm) < 0) {
-@@ -1085,9 +1094,10 @@ static int action_sanitize_dimm(struct ndctl_dimm *dimm,
- 		rc = ndctl_dimm_overwrite_key(dimm);
- 		if (rc < 0)
- 			return rc;
-+		rc = revalidate_labels(dimm);
- 	}
- 
--	return 0;
-+	return rc;
- }
- 
- static int action_wait_overwrite(struct ndctl_dimm *dimm,
+ /*
+  * Generate an NFIT table to describe the following topology:
+  *
+-- 
+2.34.1
 
