@@ -1,142 +1,109 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72E437F
-	for <nvdimm@lists.linux.dev>; Mon,  2 May 2022 07:06:20 +0000 (UTC)
-Received: from pps.filterd (m0098420.ppops.net [127.0.0.1])
-	by mx0b-001b2d01.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 2426mcf7021386;
-	Mon, 2 May 2022 07:06:11 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
- : date : message-id : mime-version : content-transfer-encoding; s=pp1;
- bh=e9YfE7/Qr/pwsbNfg6MLtIszClbNX9utfANnrXiLPEk=;
- b=p+KEYnSLTEWfEzYXY1OWcYwNiH+F6hiAJsJhqKGb++jOxAmxI0SfR7oiIcht+xvZ3A0D
- So5VDKbUNmc6UzqVU6WH2AWfcB2Al8me0V3ASer18kehR9ZjXQt+1fWeLWMAAd/DtCYB
- UC+KlxoHoKdS4/BkyCfrSofD8uqJl0gVtVwVgB+FP6H226KOPygsIbqqjwY834hi5+MR
- OA+cL7vhst+AL+8TdIq3rK5DAGlXLVjZssgsQRL+lL7CngCvieIcPrsk4B38sPwdUERd
- +0kRss99jxo/pCoR3ONar5hmNJBLLYo0kOFhxbdZyJLoG/+jZ1j9eCvRZhYxyrLt08to hQ== 
-Received: from ppma04ams.nl.ibm.com (63.31.33a9.ip4.static.sl-reverse.com [169.51.49.99])
-	by mx0b-001b2d01.pphosted.com (PPS) with ESMTPS id 3fsf66vbdh-1
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70DC117C1
+	for <nvdimm@lists.linux.dev>; Mon,  2 May 2022 09:33:50 +0000 (UTC)
+Received: from pps.filterd (m0098396.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 2426n4u8025008;
+	Mon, 2 May 2022 09:33:49 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : date :
+ subject : to : references : from : in-reply-to : content-type :
+ content-transfer-encoding : mime-version; s=pp1;
+ bh=/jywOcdWvDzAIx+1jdlo87HJXiCqFfBByL/uqmnNid0=;
+ b=WuOT0x8uQG3/+sm1K8e/zpdf9KnPUFsJoDBId/YLkd4uvCnmz1Y17D8R4NgXlLX94RsC
+ W6WkUWIhIL6az9OAWej1X2PiXWctTWxXu8AnAU8XGVvBviiqH4OG+oLQsHcqsuc2+2AX
+ /R7L3oOIQQThgBQnd2VNPP5A7WhGU0dauPj7tEDpSqxAoiuQikmy1Mz6dkT0UJvWSanm
+ dg7e+AfMMTJJiZdm4hoZl9431Wk33EHYehB1XxH6LWXZyD4inpJc/mfpinl6ChajVUzX
+ 8ewQ7+QvIArvgqYwuv/8AQ8pE/67swJWvMILOK+0Z9AhShPw1WKTsqxTGRKSCS0teD5J qQ== 
+Received: from ppma06ams.nl.ibm.com (66.31.33a9.ip4.static.sl-reverse.com [169.51.49.102])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3fsef6qpe0-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 02 May 2022 07:06:11 +0000
-Received: from pps.filterd (ppma04ams.nl.ibm.com [127.0.0.1])
-	by ppma04ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 242739DP021400;
-	Mon, 2 May 2022 07:06:09 GMT
-Received: from b06cxnps4074.portsmouth.uk.ibm.com (d06relay11.portsmouth.uk.ibm.com [9.149.109.196])
-	by ppma04ams.nl.ibm.com with ESMTP id 3frvr8t9e8-1
+	Mon, 02 May 2022 09:33:49 +0000
+Received: from pps.filterd (ppma06ams.nl.ibm.com [127.0.0.1])
+	by ppma06ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 2429SH6r015533;
+	Mon, 2 May 2022 09:33:46 GMT
+Received: from b06cxnps4076.portsmouth.uk.ibm.com (d06relay13.portsmouth.uk.ibm.com [9.149.109.198])
+	by ppma06ams.nl.ibm.com with ESMTP id 3frvcj2g2q-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 02 May 2022 07:06:09 +0000
-Received: from b06wcsmtp001.portsmouth.uk.ibm.com (b06wcsmtp001.portsmouth.uk.ibm.com [9.149.105.160])
-	by b06cxnps4074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 242766H746268740
+	Mon, 02 May 2022 09:33:46 +0000
+Received: from d06av26.portsmouth.uk.ibm.com (d06av26.portsmouth.uk.ibm.com [9.149.105.62])
+	by b06cxnps4076.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 2429XiVx39715174
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 2 May 2022 07:06:06 GMT
-Received: from b06wcsmtp001.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 386F8A4064;
-	Mon,  2 May 2022 07:06:06 +0000 (GMT)
-Received: from b06wcsmtp001.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 380A0A4054;
-	Mon,  2 May 2022 07:06:01 +0000 (GMT)
-Received: from li-efb8054c-3504-11b2-a85c-ca10df28279e.ibm.com.com (unknown [9.43.15.16])
-	by b06wcsmtp001.portsmouth.uk.ibm.com (Postfix) with ESMTP;
-	Mon,  2 May 2022 07:05:59 +0000 (GMT)
-From: Tarun Sahu <tsahu@linux.ibm.com>
-To: nvdimm@lists.linux.dev
-Cc: tsahu@linux.ibm.com, dan.j.williams@intel.com, vishal.l.verma@intel.com,
-        aneesh.kumar@linux.ibm.com, sbhat@linux.ibm.com, vaibhav@linux.ibm.com
-Subject: [PATCH v2] ndctl/bus:Handling the scrub related command more gracefully
-Date: Mon,  2 May 2022 12:34:54 +0530
-Message-Id: <20220502070454.179153-1-tsahu@linux.ibm.com>
-X-Mailer: git-send-email 2.35.1
+	Mon, 2 May 2022 09:33:44 GMT
+Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 4E650AE053;
+	Mon,  2 May 2022 09:33:44 +0000 (GMT)
+Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 6E2BDAE056;
+	Mon,  2 May 2022 09:33:43 +0000 (GMT)
+Received: from [9.43.11.32] (unknown [9.43.11.32])
+	by d06av26.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+	Mon,  2 May 2022 09:33:43 +0000 (GMT)
+Message-ID: <1fa2de28-7bbb-f584-ec11-2cf320dfea39@linux.ibm.com>
+Date: Mon, 2 May 2022 15:03:41 +0530
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.7.0
+Subject: Re: [PATCH] test: monitor: Use in-tree configuration file
+Content-Language: en-US
+To: Michal Suchanek <msuchanek@suse.de>, nvdimm@lists.linux.dev
+References: <20220428190831.15251-1-msuchanek@suse.de>
+From: Shivaprasad G Bhat <sbhat@linux.ibm.com>
+In-Reply-To: <20220428190831.15251-1-msuchanek@suse.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: SSQ5VDeyK1Qf_wN8tO6Ga9ewtOLfinXK
+X-Proofpoint-ORIG-GUID: SSQ5VDeyK1Qf_wN8tO6Ga9ewtOLfinXK
+Content-Transfer-Encoding: 7bit
+X-Proofpoint-UnRewURL: 0 URL was un-rewritten
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: gVqvqRWttXoUIK1G64jYSHHASjncDZZC
-X-Proofpoint-ORIG-GUID: gVqvqRWttXoUIK1G64jYSHHASjncDZZC
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.205,Aquarius:18.0.858,Hydra:6.0.486,FMLib:17.11.64.514
- definitions=2022-05-02_02,2022-04-28_01,2022-02-23_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
- bulkscore=0 clxscore=1015 impostorscore=0 spamscore=0 mlxlogscore=999
- mlxscore=0 adultscore=0 lowpriorityscore=0 malwarescore=0 phishscore=0
- suspectscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2202240000 definitions=main-2205020054
+ definitions=2022-05-02_03,2022-04-28_01,2022-02-23_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 suspectscore=0 clxscore=1015
+ spamscore=0 lowpriorityscore=0 mlxlogscore=999 phishscore=0 adultscore=0
+ mlxscore=0 malwarescore=0 priorityscore=1501 bulkscore=0 impostorscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2202240000
+ definitions=main-2205020074
 
-The buses, that don't have nfit support, return "No such file or
-directory" for start-scrub/wait-scrub command.
+On 4/29/22 00:38, Michal Suchanek wrote:
+> When ndctl is not installed /etc/ndctl.conf.d does not exist and the
+> monitor fails to start. Use in-tree configuration for testing.
+> 
+> Signed-off-by: Michal Suchanek <msuchanek@suse.de>
+> Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+>   test/monitor.sh | 4 +++-
+>   1 file changed, 3 insertions(+), 1 deletion(-)
+> 
+> diff --git a/test/monitor.sh b/test/monitor.sh
+> index e58c908..c5beb2c 100755
+> --- a/test/monitor.sh
+> +++ b/test/monitor.sh
+> @@ -13,6 +13,8 @@ smart_supported_bus=""
+>   
+>   . $(dirname $0)/common
+>   
+> +monitor_conf="$TEST_PATH/../ndctl"
 
-Presently, non-nfit support buses do not support start-scrub/
-wait-scrub operation. This patch is to handle these commands
-more gracefully by returning" Operation not supported".
+Though this patch gets the monitor to "listening" mode,
+its not really parsing anything from the $TEST_PATH/../ndctl
 
-This patch is tested on PPC64le lpar with nvdimm that does
-not support scrub.
+There are two issues here.
+1) Using the iniparser for parsing the monitor config file
+when the parser is set to parse_monitor_config() for monitor.
+I have posted a patch for this at 
+https://patchwork.kernel.org/project/linux-nvdimm/patch/164750955519.2000193.16903542741359443926.stgit@LAPTOP-TBQTPII8/
 
-Previously:
-$ ./ndctl start-scrub ndbus0
-error starting scrub: No such file or directory
+2) The directory passed in -c would silently be ignored
+in parse_monitor_config() during fseek() failure. The command proceeds 
+to monitor everything.
 
-Now:
-$ ./ndctl start-scrub ndbus0
-error starting scrub: Operation not supported
+Should the -c option be made to accept the directory as argument?
 
-- Invalid ndbus
-$ sudo ./ndctl start-scrub ndbus5
-error starting scrub: No such device or address
-
-Signed-off-by: Tarun Sahu <tsahu@linux.ibm.com>
-Reviewed-by: Vaibhav Jain <vaibhav@linux.ibm.com>
-Tested-by: Vaibhav Jain <vaibhav@linux.ibm.com>
----
- ndctl/lib/libndctl.c | 18 ++++++++++++++----
- 1 file changed, 14 insertions(+), 4 deletions(-)
-
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index ccca8b5..8bfad6a 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -938,10 +938,14 @@ static void *add_bus(void *parent, int id, const char *ctl_base)
- 	if (!bus->wait_probe_path)
- 		goto err_read;
- 
--	sprintf(path, "%s/device/nfit/scrub", ctl_base);
--	bus->scrub_path = strdup(path);
--	if (!bus->scrub_path)
--		goto err_read;
-+	if (ndctl_bus_has_nfit(bus)) {
-+		sprintf(path, "%s/device/nfit/scrub", ctl_base);
-+		bus->scrub_path = strdup(path);
-+		if (!bus->scrub_path)
-+			goto err_read;
-+	} else {
-+		bus->scrub_path = NULL;
-+	}
- 
- 	sprintf(path, "%s/device/firmware/activate", ctl_base);
- 	if (sysfs_read_attr(ctx, path, buf) < 0)
-@@ -1377,6 +1381,9 @@ NDCTL_EXPORT int ndctl_bus_start_scrub(struct ndctl_bus *bus)
- 	struct ndctl_ctx *ctx = ndctl_bus_get_ctx(bus);
- 	int rc;
- 
-+	if (bus->scrub_path == NULL)
-+		return -EOPNOTSUPP;
-+
- 	rc = sysfs_write_attr(ctx, bus->scrub_path, "1\n");
- 
- 	/*
-@@ -1447,6 +1454,9 @@ NDCTL_EXPORT int ndctl_bus_poll_scrub_completion(struct ndctl_bus *bus,
- 	char in_progress;
- 	int fd = 0, rc;
- 
-+	if (bus->scrub_path == NULL)
-+		return -EOPNOTSUPP;
-+
- 	fd = open(bus->scrub_path, O_RDONLY|O_CLOEXEC);
- 	if (fd < 0)
- 		return -errno;
--- 
-2.35.1
-
+Thanks,
+Shivaprasad
