@@ -1,43 +1,40 @@
 Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 826EA10ED
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 845F1110A
 	for <nvdimm@lists.linux.dev>; Sun,  8 May 2022 14:36:39 +0000 (UTC)
-IronPort-Data: =?us-ascii?q?A9a23=3ABH7Aja0A+gWrByATGPbD5T9wkn2cJEfYwER7XOP?=
- =?us-ascii?q?LsXnJgD9z3jYAzDQcDWGOO6qNZTGhfdBwOoqy/U4GvsDRzNY2QQE+nZ1PZygU8?=
- =?us-ascii?q?JKaX7x1DatR0xu6d5SFFAQ+hyknQoGowPscEzmM9n9BDpC79SMmjfvQH+KlYAL?=
- =?us-ascii?q?5EnsZqTFMGX5JZS1Ly7ZRbr5A2bBVMivV0T/Ai5S31GyNh1aYBlkpB5er83uDi?=
- =?us-ascii?q?hhdVAQw5TTSbdgT1LPXeuJ84Jg3fcldJFOgKmVY83LTegrN8F251juxExYFAdX?=
- =?us-ascii?q?jnKv5c1ERX/jZOg3mZnh+AvDk20Yd4HdplPtT2Pk0MC+7jx2Tgtl308QLu5qrV?=
- =?us-ascii?q?S8nI6/NhP8AFRJfFkmSOIUfouOffiXg7ZX7I0ruNiGEL+9VJE0/I4wU0uhtBmR?=
- =?us-ascii?q?J7/YZNHYGaRXrr+a3xre6Q+5si+wjMcD0MYJZsXZlpRnZBvYOQJbNWazG6NZUm?=
- =?us-ascii?q?jAqiahmAvfaY9sxaDxhdh3MbhRDfFANB/oWkO6uwHu5bDxcrFOcoLEf4m7PwQg?=
- =?us-ascii?q?327/oWPLZeMONQ8p9nUuCoG/CuWPjDXkyMN2Z1CrA93eEhfHGliC9X5gdfJW+6?=
- =?us-ascii?q?PJrhVi7wm0IFAZQUVq9vOn/hkOgM/pfIEw8/jEy66Q/nGStR97sVlu4p2SFsQM?=
- =?us-ascii?q?XW9t4FeAxrgqKz8L84Q+fCy4PTiNpb8Yvv8s7Azct0zehhdzuATBwobu9Um+G+?=
- =?us-ascii?q?/GYoFuaPSkTMH9HazQIQBUI5/H9r4wpyBHCVNBuFOiylNKdMTXxxS2a6SsznbM?=
- =?us-ascii?q?eieYV2Kihu1PKmTShot7OVAFdzgHWWH+1qxN3f6a7aIGyr1vW9/BNKMCeVFbpl?=
- =?us-ascii?q?GYFgc+2/u0IDI/LkC2LXfVLG6umoeuGWAAwK3YH84IJrmzroiD8O9sLpmwWGau?=
- =?us-ascii?q?gCe5cEReBXaMZkVk5CEdvAUaX?=
-IronPort-HdrOrdr: =?us-ascii?q?A9a23=3AvXo0qa23PhXR77qd1J97oAqjBFQkLtp133Aq?=
- =?us-ascii?q?2lEZdPRUGvb4qynIpoVj6faUskdoZJhOo6HiBEDtexzhHNtOkO0s1NSZLW/bUQ?=
- =?us-ascii?q?mTXeNfBOLZqlWKcUCTygce79YGT0EUMr3N5DZB4/oSmDPIdurI3uP3jJyAtKPP?=
- =?us-ascii?q?yWt3VwF2Z+VF5wd9MAySFUp7X2B9dOAEPavZ9sxavCChZHhSSsy6A0MOV+/Fq8?=
- =?us-ascii?q?aOu4nhZXc9dmMawTjLnTW186T7DhTd+h8fVglEybAk/XOAsyGR3NTZj82G?=
+IronPort-Data: =?us-ascii?q?A9a23=3AdgDLBagHbyfnfMQ3dbsb8h3gX161jBEKZh0ujC4?=
+ =?us-ascii?q?5NGQNrF6WrkVRzGYfDW6FOazeMWD0edkjPou+8U5VsJCEyd5mGgE4q3w8FHgiR?=
+ =?us-ascii?q?ejtX4rAdhiqV8+xwmwvdGo+toNGLICowPkcFhcwnT/wdOixxZVA/fvQHOCkUra?=
+ =?us-ascii?q?dYnkZqTJME0/NtzoywobVvaY42bBVMyvV0T/Di5W31G2NglaYAUpIg063ky6Di?=
+ =?us-ascii?q?dyp0N8uUvPSUtgQ1LPWvyF94JvyvshdJVOgKmVfNrbSq+ouUNiEEm3lExcFUrt?=
+ =?us-ascii?q?Jk57wdAsEX7zTIROTzHFRXsBOgDAb/mprjPl9b6FaNC+7iB3Q9zx14M9QvJqrW?=
+ =?us-ascii?q?EEnOLbQsOoAURhECDw4NqpDkFPCCSHl7ZTMkhKdIhMAxN0rVinaJ7Yw9u9pAG1?=
+ =?us-ascii?q?m++YfLTcXZBGfwemxxdqTTuhqg8UqK8nmFIMCs25tzHfSCvNOaZDIQ43L49FC1?=
+ =?us-ascii?q?Ts9j8wIGuzRD+IGaD5rfTzBZRNVM1saAZ54m/2n7lHzejseqhSKpK4z4mHW1yR?=
+ =?us-ascii?q?w1qTgNJzefdnibclXgUGeqUrF8n7/DxVcM8aQoRKB83SxlqrKmAv4RosZF/u/7?=
+ =?us-ascii?q?PECqFuNym0WDTUSVECnur+9i0ijS5RTJlJ80iolrYA271DtQtSVdxuxp2+N+B4?=
+ =?us-ascii?q?bQdtfDuY66SmLx6GS6AGcbkAGRzhMLtcmqecxXzUh0lLPlNTsbRR1v7qRRW2M8?=
+ =?us-ascii?q?J+PsCi/fyQYRUcGZCkZXU4L+NXuvow3pgzAQ8wlE6OviNDxXzbqzFiiqCk4mqV?=
+ =?us-ascii?q?WjsMR0ai/1U7IjijqpZXTSAMxoALNUQqN6gJ/eZ7gd4KzwUbU4OwGL4uDSFSF+?=
+ =?us-ascii?q?n8elKC28uEUCrmfmSqMXqMJHbe097CCKjKanF0HInWL31xB4Fb6JcYJvm44fxw?=
+ =?us-ascii?q?vb645lfbSSBe7kWtsCFV7ZhNGtZNKXr8=3D?=
+IronPort-HdrOrdr: =?us-ascii?q?A9a23=3A/K8r5ar5PcUalDfTj2WU/e4aV5rPeYIsimQD?=
+ =?us-ascii?q?101hICG8cqSj+fxG+85rsyMc6QxhIU3I9urhBEDtex/hHNtOkOws1NSZLW7bUQ?=
+ =?us-ascii?q?mTXeJfBOLZqlWKcUDDH6xmpMNdmsNFaeEYY2IUsS+D2njbLz8/+qj7zImYwffZ?=
+ =?us-ascii?q?02x2TRxnL4Vp7wJCAA6dFUFsLTM2fqYRJd6N4NZdvTq8dTAyZsS/PHMMWO/OvJ?=
+ =?us-ascii?q?nlj5TjCCR2fSIP2U2fiy+y8r7mH1y91hcaaTlGxrAv6izkvmXCl92ej80=3D?=
 X-IronPort-AV: E=Sophos;i="5.88,333,1635177600"; 
-   d="scan'208";a="124075741"
+   d="scan'208";a="124075739"
 Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
   by heian.cn.fujitsu.com with ESMTP; 08 May 2022 22:36:31 +0800
-Received: from G08CNEXMBPEKD05.g08.fujitsu.local (unknown [10.167.33.204])
-	by cn.fujitsu.com (Postfix) with ESMTP id A46A34D16FDF;
-	Sun,  8 May 2022 22:36:25 +0800 (CST)
-Received: from G08CNEXJMPEKD02.g08.fujitsu.local (10.167.33.202) by
- G08CNEXMBPEKD05.g08.fujitsu.local (10.167.33.204) with Microsoft SMTP Server
- (TLS) id 15.0.1497.23; Sun, 8 May 2022 22:36:28 +0800
+Received: from G08CNEXMBPEKD04.g08.fujitsu.local (unknown [10.167.33.201])
+	by cn.fujitsu.com (Postfix) with ESMTP id E5CF24D17197;
+	Sun,  8 May 2022 22:36:27 +0800 (CST)
 Received: from G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.85) by
- G08CNEXJMPEKD02.g08.fujitsu.local (10.167.33.202) with Microsoft SMTP Server
- (TLS) id 15.0.1497.23; Sun, 8 May 2022 22:36:28 +0800
+ G08CNEXMBPEKD04.g08.fujitsu.local (10.167.33.201) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.23; Sun, 8 May 2022 22:36:31 +0800
 Received: from irides.mr.mr (10.167.225.141) by
  G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
- id 15.0.1497.23 via Frontend Transport; Sun, 8 May 2022 22:36:23 +0800
+ id 15.0.1497.23 via Frontend Transport; Sun, 8 May 2022 22:36:26 +0800
 From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
 To: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
 	<nvdimm@lists.linux.dev>, <linux-mm@kvack.org>,
@@ -46,9 +43,9 @@ CC: <djwong@kernel.org>, <dan.j.williams@intel.com>, <david@fromorbit.com>,
 	<hch@infradead.org>, <jane.chu@oracle.com>, <rgoldwyn@suse.de>,
 	<viro@zeniv.linux.org.uk>, <willy@infradead.org>, <naoya.horiguchi@nec.com>,
 	<linmiaohe@huawei.com>, Christoph Hellwig <hch@lst.de>
-Subject: [PATCH v14 04/07] fsdax: Introduce dax_lock_mapping_entry()
-Date: Sun, 8 May 2022 22:36:10 +0800
-Message-ID: <20220508143620.1775214-5-ruansy.fnst@fujitsu.com>
+Subject: [PATCH v14 07/07] fsdax: set a CoW flag when associate reflink mappings
+Date: Sun, 8 May 2022 22:36:13 +0800
+Message-ID: <20220508143620.1775214-8-ruansy.fnst@fujitsu.com>
 X-Mailer: git-send-email 2.35.1
 In-Reply-To: <20220508143620.1775214-1-ruansy.fnst@fujitsu.com>
 References: <20220508143620.1775214-1-ruansy.fnst@fujitsu.com>
@@ -60,132 +57,132 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-yoursite-MailScanner-ID: A46A34D16FDF.A26AD
+X-yoursite-MailScanner-ID: E5CF24D17197.AF878
 X-yoursite-MailScanner: Found to be clean
 X-yoursite-MailScanner-From: ruansy.fnst@fujitsu.com
 X-Spam-Status: No
 
-The current dax_lock_page() locks dax entry by obtaining mapping and
-index in page.  To support 1-to-N RMAP in NVDIMM, we need a new function
-to lock a specific dax entry corresponding to this file's mapping,index.
-And output the page corresponding to the specific dax entry for caller
-use.
+Introduce a PAGE_MAPPING_DAX_COW flag to support association with CoW file
+mappings.  In this case, since the dax-rmap has already took the
+responsibility to look up for shared files by given dax page,
+the page->mapping is no longer to used for rmap but for marking that
+this dax page is shared.  And to make sure disassociation works fine, we
+use page->index as refcount, and clear page->mapping to the initial
+state when page->index is decreased to 0.
+
+With the help of this new flag, it is able to distinguish normal case
+and CoW case, and keep the warning in normal case.
 
 Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Darrick J. Wong <djwong@kernel.org>
 ---
- fs/dax.c            | 63 +++++++++++++++++++++++++++++++++++++++++++++
- include/linux/dax.h | 15 +++++++++++
- 2 files changed, 78 insertions(+)
+ fs/dax.c                   | 50 +++++++++++++++++++++++++++++++-------
+ include/linux/page-flags.h |  6 +++++
+ 2 files changed, 47 insertions(+), 9 deletions(-)
 
 diff --git a/fs/dax.c b/fs/dax.c
-index 1ac12e877f4f..57efd3f73655 100644
+index 57efd3f73655..4d3dfc8bee33 100644
 --- a/fs/dax.c
 +++ b/fs/dax.c
-@@ -455,6 +455,69 @@ void dax_unlock_page(struct page *page, dax_entry_t cookie)
- 	dax_unlock_entry(&xas, (void *)cookie);
- }
+@@ -334,13 +334,35 @@ static unsigned long dax_end_pfn(void *entry)
+ 	for (pfn = dax_to_pfn(entry); \
+ 			pfn < dax_end_pfn(entry); pfn++)
  
-+/*
-+ * dax_lock_mapping_entry - Lock the DAX entry corresponding to a mapping
-+ * @mapping: the file's mapping whose entry we want to lock
-+ * @index: the offset within this file
-+ * @page: output the dax page corresponding to this dax entry
-+ *
-+ * Return: A cookie to pass to dax_unlock_mapping_entry() or 0 if the entry
-+ * could not be locked.
-+ */
-+dax_entry_t dax_lock_mapping_entry(struct address_space *mapping, pgoff_t index,
-+		struct page **page)
++static inline bool dax_mapping_is_cow(struct address_space *mapping)
 +{
-+	XA_STATE(xas, NULL, 0);
-+	void *entry;
-+
-+	rcu_read_lock();
-+	for (;;) {
-+		entry = NULL;
-+		if (!dax_mapping(mapping))
-+			break;
-+
-+		xas.xa = &mapping->i_pages;
-+		xas_lock_irq(&xas);
-+		xas_set(&xas, index);
-+		entry = xas_load(&xas);
-+		if (dax_is_locked(entry)) {
-+			rcu_read_unlock();
-+			wait_entry_unlocked(&xas, entry);
-+			rcu_read_lock();
-+			continue;
-+		}
-+		if (!entry ||
-+		    dax_is_zero_entry(entry) || dax_is_empty_entry(entry)) {
-+			/*
-+			 * Because we are looking for entry from file's mapping
-+			 * and index, so the entry may not be inserted for now,
-+			 * or even a zero/empty entry.  We don't think this is
-+			 * an error case.  So, return a special value and do
-+			 * not output @page.
-+			 */
-+			entry = (void *)~0UL;
-+		} else {
-+			*page = pfn_to_page(dax_to_pfn(entry));
-+			dax_lock_entry(&xas, entry);
-+		}
-+		xas_unlock_irq(&xas);
-+		break;
-+	}
-+	rcu_read_unlock();
-+	return (dax_entry_t)entry;
-+}
-+
-+void dax_unlock_mapping_entry(struct address_space *mapping, pgoff_t index,
-+		dax_entry_t cookie)
-+{
-+	XA_STATE(xas, &mapping->i_pages, index);
-+
-+	if (cookie == ~0UL)
-+		return;
-+
-+	dax_unlock_entry(&xas, (void *)cookie);
++	return (unsigned long)mapping == PAGE_MAPPING_DAX_COW;
 +}
 +
  /*
-  * Find page cache entry at given index. If it is a DAX entry, return it
-  * with the entry locked. If the page cache doesn't contain an entry at
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 9c426a207ba8..c152f315d1c9 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -143,6 +143,10 @@ struct page *dax_layout_busy_page(struct address_space *mapping);
- struct page *dax_layout_busy_page_range(struct address_space *mapping, loff_t start, loff_t end);
- dax_entry_t dax_lock_page(struct page *page);
- void dax_unlock_page(struct page *page, dax_entry_t cookie);
-+dax_entry_t dax_lock_mapping_entry(struct address_space *mapping,
-+		unsigned long index, struct page **page);
-+void dax_unlock_mapping_entry(struct address_space *mapping,
-+		unsigned long index, dax_entry_t cookie);
- #else
- static inline struct page *dax_layout_busy_page(struct address_space *mapping)
- {
-@@ -170,6 +174,17 @@ static inline dax_entry_t dax_lock_page(struct page *page)
- static inline void dax_unlock_page(struct page *page, dax_entry_t cookie)
- {
- }
-+
-+static inline dax_entry_t dax_lock_mapping_entry(struct address_space *mapping,
-+		unsigned long index, struct page **page)
+- * TODO: for reflink+dax we need a way to associate a single page with
+- * multiple address_space instances at different linear_page_index()
+- * offsets.
++ * Set the page->mapping with FS_DAX_MAPPING_COW flag, increase the refcount.
++ */
++static inline void dax_mapping_set_cow(struct page *page)
 +{
-+	return 0;
++	if ((uintptr_t)page->mapping != PAGE_MAPPING_DAX_COW) {
++		/*
++		 * Reset the index if the page was already mapped
++		 * regularly before.
++		 */
++		if (page->mapping)
++			page->index = 1;
++		page->mapping = (void *)PAGE_MAPPING_DAX_COW;
++	}
++	page->index++;
 +}
 +
-+static inline void dax_unlock_mapping_entry(struct address_space *mapping,
-+		unsigned long index, dax_entry_t cookie)
-+{
-+}
- #endif
++/*
++ * When it is called in dax_insert_entry(), the cow flag will indicate that
++ * whether this entry is shared by multiple files.  If so, set the page->mapping
++ * FS_DAX_MAPPING_COW, and use page->index as refcount.
+  */
+ static void dax_associate_entry(void *entry, struct address_space *mapping,
+-		struct vm_area_struct *vma, unsigned long address)
++		struct vm_area_struct *vma, unsigned long address, bool cow)
+ {
+ 	unsigned long size = dax_entry_size(entry), pfn, index;
+ 	int i = 0;
+@@ -352,9 +374,13 @@ static void dax_associate_entry(void *entry, struct address_space *mapping,
+ 	for_each_mapped_pfn(entry, pfn) {
+ 		struct page *page = pfn_to_page(pfn);
  
- int dax_zero_range(struct inode *inode, loff_t pos, loff_t len, bool *did_zero,
+-		WARN_ON_ONCE(page->mapping);
+-		page->mapping = mapping;
+-		page->index = index + i++;
++		if (cow) {
++			dax_mapping_set_cow(page);
++		} else {
++			WARN_ON_ONCE(page->mapping);
++			page->mapping = mapping;
++			page->index = index + i++;
++		}
+ 	}
+ }
+ 
+@@ -370,7 +396,12 @@ static void dax_disassociate_entry(void *entry, struct address_space *mapping,
+ 		struct page *page = pfn_to_page(pfn);
+ 
+ 		WARN_ON_ONCE(trunc && page_ref_count(page) > 1);
+-		WARN_ON_ONCE(page->mapping && page->mapping != mapping);
++		if (dax_mapping_is_cow(page->mapping)) {
++			/* keep the CoW flag if this page is still shared */
++			if (page->index-- > 0)
++				continue;
++		} else
++			WARN_ON_ONCE(page->mapping && page->mapping != mapping);
+ 		page->mapping = NULL;
+ 		page->index = 0;
+ 	}
+@@ -829,7 +860,8 @@ static void *dax_insert_entry(struct xa_state *xas,
+ 		void *old;
+ 
+ 		dax_disassociate_entry(entry, mapping, false);
+-		dax_associate_entry(new_entry, mapping, vmf->vma, vmf->address);
++		dax_associate_entry(new_entry, mapping, vmf->vma, vmf->address,
++				false);
+ 		/*
+ 		 * Only swap our new entry into the page cache if the current
+ 		 * entry is a zero page or an empty entry.  If a normal PTE or
+diff --git a/include/linux/page-flags.h b/include/linux/page-flags.h
+index fe47ee8dc258..cad9aeb5e75c 100644
+--- a/include/linux/page-flags.h
++++ b/include/linux/page-flags.h
+@@ -650,6 +650,12 @@ __PAGEFLAG(Reported, reported, PF_NO_COMPOUND)
+ #define PAGE_MAPPING_KSM	(PAGE_MAPPING_ANON | PAGE_MAPPING_MOVABLE)
+ #define PAGE_MAPPING_FLAGS	(PAGE_MAPPING_ANON | PAGE_MAPPING_MOVABLE)
+ 
++/*
++ * Different with flags above, this flag is used only for fsdax mode.  It
++ * indicates that this page->mapping is now under reflink case.
++ */
++#define PAGE_MAPPING_DAX_COW	0x1
++
+ static __always_inline int PageMappingFlags(struct page *page)
+ {
+ 	return ((unsigned long)page->mapping & PAGE_MAPPING_FLAGS) != 0;
 -- 
 2.35.1
 
