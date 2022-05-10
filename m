@@ -1,190 +1,62 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D9117E
-	for <nvdimm@lists.linux.dev>; Mon,  9 May 2022 06:06:51 +0000 (UTC)
-Received: from pps.filterd (m0098393.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 2491KCxT024460;
-	Mon, 9 May 2022 06:06:41 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
- : date : message-id : mime-version : content-transfer-encoding; s=pp1;
- bh=tmCFQBvW8y/ke33sjTz6Re1Zu+2mkXSEuF8x0jW90lc=;
- b=I7w59ImnOBlOHBml1/C1gL8jM6z3B+jvru8RonIIKoaBkZas4/AB7YFb7rfmoFDl/6KJ
- KYXKqSErEsWq0C1CtsygbHYMym5TV1qvNvVI+qYGXZVNeXoiewRkrSTSkiisTItbM4tx
- 1n7VMVmvWBHUIfniSe9q7EoadtICNosZTSehA5xpwzRvUYPA+fYYVFDCA8NHqRMM+bz3
- gyEatrPSVee4xguQecWC4opOvKKXYWsRHzObJAKPMq5Yanv/O6onBGh+7vXKus17AEE0
- XRnb2RpJa60CJ14MBTlfQbemX7hzIVVzOLhYtYcTbPm3KkhiSUAqghNA1MGoqST2030F GA== 
-Received: from ppma05fra.de.ibm.com (6c.4a.5195.ip4.static.sl-reverse.com [149.81.74.108])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3fx256b1sw-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 09 May 2022 06:06:40 +0000
-Received: from pps.filterd (ppma05fra.de.ibm.com [127.0.0.1])
-	by ppma05fra.de.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 2495wvtk002116;
-	Mon, 9 May 2022 06:06:38 GMT
-Received: from b06cxnps3075.portsmouth.uk.ibm.com (d06relay10.portsmouth.uk.ibm.com [9.149.109.195])
-	by ppma05fra.de.ibm.com with ESMTP id 3fwgd8shwq-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 09 May 2022 06:06:38 +0000
-Received: from b06wcsmtp001.portsmouth.uk.ibm.com (b06wcsmtp001.portsmouth.uk.ibm.com [9.149.105.160])
-	by b06cxnps3075.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 24966ZMh49414646
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 9 May 2022 06:06:35 GMT
-Received: from b06wcsmtp001.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 235B9A4060;
-	Mon,  9 May 2022 06:06:35 +0000 (GMT)
-Received: from b06wcsmtp001.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 029B1A405B;
-	Mon,  9 May 2022 06:06:32 +0000 (GMT)
-Received: from vajain21.in.ibm.com (unknown [9.43.80.76])
-	by b06wcsmtp001.portsmouth.uk.ibm.com (Postfix) with SMTP;
-	Mon,  9 May 2022 06:06:31 +0000 (GMT)
-Received: by vajain21.in.ibm.com (sSMTP sendmail emulation); Mon, 09 May 2022 11:36:30 +0530
-From: Vaibhav Jain <vaibhav@linux.ibm.com>
-To: nvdimm@lists.linux.dev, linuxppc-dev@lists.ozlabs.org,
-        Kajol Jain <kjain@linux.ibm.com>,
-        Michael Ellerman <mpe@ellerman.id.au>
-Cc: Vaibhav Jain <vaibhav@linux.ibm.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>,
-        Shivaprasad G Bhat <sbhat@linux.ibm.com>
-Subject: [PATCH] powerpc/papr_scm: Fix leaking nvdimm_events_map elements
-Date: Mon,  9 May 2022 11:36:29 +0530
-Message-Id: <20220509060629.179282-1-vaibhav@linux.ibm.com>
-X-Mailer: git-send-email 2.35.1
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 871B223B7
+	for <nvdimm@lists.linux.dev>; Tue, 10 May 2022 05:45:58 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
+	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=cpwq/OLvQ6BxCOaH+3pF5HdK307ERk7HHWVvMWH/28U=; b=MpMWT1FEZcXAuLHYaX7QGm59Fe
+	+Xe4NR2djbwqu6Z34ULgu3zfo19+scTn4YJGLz7OrHl70yFbLc56gH4uX64lbATYoPth+p+eUitQV
+	4XmoTeHkzSxmuwpgLfUhlGBbOYtGZWPmrDznB0zthU+q82QSko6oxaSAfwaDdqEMRdu7fC8mTlvor
+	wdXIQKyKGuHGs5dZQp+E+XUMylRxGPsxegf4X0pcAPtE/zjU6m2ywUhMa/I1lQ3zD3KcTxwhttMb/
+	WXwuLCw1qiAsRzlJN0vuMF+jIoIUgI9TSodb3Mi3NRWvvNtsrAzV04GtThZUoZLNp18BERtMniMd/
+	oefUel2Q==;
+Received: from hch by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
+	id 1noIgo-00034j-FN; Tue, 10 May 2022 05:45:42 +0000
+Date: Mon, 9 May 2022 22:45:42 -0700
+From: Christoph Hellwig <hch@infradead.org>
+To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Cc: linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org,
+	nvdimm@lists.linux.dev, linux-mm@kvack.org,
+	linux-fsdevel@vger.kernel.org, djwong@kernel.org,
+	dan.j.williams@intel.com, david@fromorbit.com, hch@infradead.org,
+	jane.chu@oracle.com, rgoldwyn@suse.de, viro@zeniv.linux.org.uk,
+	willy@infradead.org, naoya.horiguchi@nec.com, linmiaohe@huawei.com
+Subject: Re: [PATCH v11 06/07] xfs: support CoW in fsdax mode
+Message-ID: <Ynn8BnZclNoEuzvv@infradead.org>
+References: <20220508143620.1775214-1-ruansy.fnst@fujitsu.com>
+ <20220508143620.1775214-14-ruansy.fnst@fujitsu.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: yDuUiU37lfhDf8bCLhGcxeiu8gJjMog_
-X-Proofpoint-ORIG-GUID: yDuUiU37lfhDf8bCLhGcxeiu8gJjMog_
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.205,Aquarius:18.0.858,Hydra:6.0.486,FMLib:17.11.64.514
- definitions=2022-05-09_01,2022-05-06_01,2022-02-23_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 phishscore=0 mlxscore=0
- adultscore=0 clxscore=1015 impostorscore=0 bulkscore=0 mlxlogscore=999
- priorityscore=1501 malwarescore=0 spamscore=0 suspectscore=0
- lowpriorityscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2202240000 definitions=main-2205090035
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220508143620.1775214-14-ruansy.fnst@fujitsu.com>
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 
-Right now 'char *' elements allocated individual 'stat_id' in
-'papr_scm_priv.nvdimm_events_map' during papr_scm_pmu_check_events() leak in
-papr_scm_remove() and papr_scm_pmu_register(), papr_scm_pmu_check_events() error
-paths.
+> +#ifdef CONFIG_FS_DAX
+> +int
+> +xfs_dax_fault(
+> +	struct vm_fault		*vmf,
+> +	enum page_entry_size	pe_size,
+> +	bool			write_fault,
+> +	pfn_t			*pfn)
+> +{
+> +	return dax_iomap_fault(vmf, pe_size, pfn, NULL,
+> +			(write_fault && !vmf->cow_page) ?
+> +				&xfs_dax_write_iomap_ops :
+> +				&xfs_read_iomap_ops);
+> +}
+> +#endif
 
-Also individual 'stat_id' arent NULL terminated 'char *' instead they are fixed
-8-byte sized identifiers. However papr_scm_pmu_register() assumes it to be a
-NULL terminated 'char *' and at other places it assumes it to be a
-'papr_scm_perf_stat.stat_id' sized string which is 8-byes in size.
+Is there any reason this is in xfs_iomap.c and not xfs_file.c?
 
-Fix this by allocating the memory for papr_scm_priv.nvdimm_events_map to also
-include space for 'stat_id' entries. This is possible since number of available
-events/stat_ids are known upfront. This saves some memory and one extra level of
-indirection from 'nvdimm_events_map' to 'stat_id'. Also rest of the code
-can continue to call 'kfree(papr_scm_priv.nvdimm_events_map)' without needing to
-iterate over the array and free up individual elements.
+Otherwise the patch looks good:
 
-Also introduce a new typedef called 'state_id_t' thats a 'u8[8]' and can be used
-across papr_scm to deal with stat_ids.
 
-Fixes: 4c08d4bbc089 ("powerpc/papr_scm: Add perf interface support")
-Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
----
- arch/powerpc/platforms/pseries/papr_scm.c | 48 +++++++++++------------
- 1 file changed, 22 insertions(+), 26 deletions(-)
-
-diff --git a/arch/powerpc/platforms/pseries/papr_scm.c b/arch/powerpc/platforms/pseries/papr_scm.c
-index 39962c905542..f33a865ad5fb 100644
---- a/arch/powerpc/platforms/pseries/papr_scm.c
-+++ b/arch/powerpc/platforms/pseries/papr_scm.c
-@@ -70,8 +70,10 @@
- #define PAPR_SCM_PERF_STATS_VERSION 0x1
- 
- /* Struct holding a single performance metric */
-+typedef u8 stat_id_t[8];
-+
- struct papr_scm_perf_stat {
--	u8 stat_id[8];
-+	stat_id_t stat_id;
- 	__be64 stat_val;
- } __packed;
- 
-@@ -126,7 +128,7 @@ struct papr_scm_priv {
- 	u64 health_bitmap_inject_mask;
- 
- 	 /* array to have event_code and stat_id mappings */
--	char **nvdimm_events_map;
-+	stat_id_t *nvdimm_events_map;
- };
- 
- static int papr_scm_pmem_flush(struct nd_region *nd_region,
-@@ -462,7 +464,7 @@ static int papr_scm_pmu_check_events(struct papr_scm_priv *p, struct nvdimm_pmu
- {
- 	struct papr_scm_perf_stat *stat;
- 	struct papr_scm_perf_stats *stats;
--	int index, rc, count;
-+	int index, rc = 0;
- 	u32 available_events;
- 
- 	if (!p->stat_buffer_len)
-@@ -478,35 +480,29 @@ static int papr_scm_pmu_check_events(struct papr_scm_priv *p, struct nvdimm_pmu
- 		return rc;
- 	}
- 
--	/* Allocate memory to nvdimm_event_map */
--	p->nvdimm_events_map = kcalloc(available_events, sizeof(char *), GFP_KERNEL);
--	if (!p->nvdimm_events_map) {
--		rc = -ENOMEM;
--		goto out_stats;
--	}
--
- 	/* Called to get list of events supported */
- 	rc = drc_pmem_query_stats(p, stats, 0);
- 	if (rc)
--		goto out_nvdimm_events_map;
--
--	for (index = 0, stat = stats->scm_statistic, count = 0;
--		     index < available_events; index++, ++stat) {
--		p->nvdimm_events_map[count] = kmemdup_nul(stat->stat_id, 8, GFP_KERNEL);
--		if (!p->nvdimm_events_map[count]) {
--			rc = -ENOMEM;
--			goto out_nvdimm_events_map;
--		}
-+		goto out;
- 
--		count++;
-+	/*
-+	 * Allocate memory and populate nvdimm_event_map.
-+	 * Allocate an extra element for NULL entry
-+	 */
-+	p->nvdimm_events_map = kcalloc(available_events + 1,
-+				       sizeof(stat_id_t), GFP_KERNEL);
-+	if (!p->nvdimm_events_map) {
-+		rc = -ENOMEM;
-+		goto out;
- 	}
--	p->nvdimm_events_map[count] = NULL;
--	kfree(stats);
--	return 0;
- 
--out_nvdimm_events_map:
--	kfree(p->nvdimm_events_map);
--out_stats:
-+	/* Copy all stat_ids to event map */
-+	for (index = 0, stat = stats->scm_statistic;
-+	     index < available_events; index++, ++stat) {
-+		memcpy(&p->nvdimm_events_map[index], &stat->stat_id,
-+		       sizeof(stat_id_t));
-+	}
-+out:
- 	kfree(stats);
- 	return rc;
- }
-
-base-commit: 348c71344111d7a48892e3e52264ff11956fc196
--- 
-2.35.1
-
+Reviewed-by: Christoph Hellwig <hch@lst.de>
