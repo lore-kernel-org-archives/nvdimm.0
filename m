@@ -1,204 +1,70 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+Received: from mail.skyhub.de (mail.skyhub.de [5.9.137.197])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 807EA15B9
-	for <nvdimm@lists.linux.dev>; Wed, 11 May 2022 08:26:56 +0000 (UTC)
-Received: from pps.filterd (m0098399.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 24B5e91c001126;
-	Wed, 11 May 2022 08:26:49 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
- : date : message-id : mime-version : content-transfer-encoding; s=pp1;
- bh=UnGTwYp3U43I9F1WrjgfwnJEnsMPx40zRf6UjzLZVu8=;
- b=UeVza1mdcjJlJD/4Tw6GLQn7vVwWmvfdRzW0M1QlGacFEsgUUe6zwLMg4dwbr0x9xcFA
- 9IR+bS/0MCLrV42sZcniG4pjZTvrE+KtYqvbzY069vqT7HlKQXBIt67Bo9UbJXYxlCu3
- RUx0wqSoLnjmRi5wnEvyBW7fh049/CAZBWyNUdEPj8J4tu1dVytpocyRGYtrHeoJcT9d
- L8hMF0/wrgm3mDcCcTCqFLD3ei6/d/9PZZAkzyh07kp3VXbjlqr5EvN0X5w4eMPGWks2
- SA+jV/XHuKNs27YH1MOzPid3N0Ab4zE8YY1fV+QF/wfXvMkA0RNgfamRD/McYZXpgfT/ 2g== 
-Received: from ppma06ams.nl.ibm.com (66.31.33a9.ip4.static.sl-reverse.com [169.51.49.102])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3g054jmgvk-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Wed, 11 May 2022 08:26:49 +0000
-Received: from pps.filterd (ppma06ams.nl.ibm.com [127.0.0.1])
-	by ppma06ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 24B8DDgU007377;
-	Wed, 11 May 2022 08:26:46 GMT
-Received: from b06cxnps3074.portsmouth.uk.ibm.com (d06relay09.portsmouth.uk.ibm.com [9.149.109.194])
-	by ppma06ams.nl.ibm.com with ESMTP id 3fyrkk11xt-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Wed, 11 May 2022 08:26:46 +0000
-Received: from d06av22.portsmouth.uk.ibm.com (d06av22.portsmouth.uk.ibm.com [9.149.105.58])
-	by b06cxnps3074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 24B8Qhoo50397506
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 11 May 2022 08:26:43 GMT
-Received: from d06av22.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id B91004C04A;
-	Wed, 11 May 2022 08:26:43 +0000 (GMT)
-Received: from d06av22.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 61D194C040;
-	Wed, 11 May 2022 08:26:39 +0000 (GMT)
-Received: from vajain21.in.ibm.com (unknown [9.43.12.38])
-	by d06av22.portsmouth.uk.ibm.com (Postfix) with SMTP;
-	Wed, 11 May 2022 08:26:39 +0000 (GMT)
-Received: by vajain21.in.ibm.com (sSMTP sendmail emulation); Wed, 11 May 2022 13:56:37 +0530
-From: Vaibhav Jain <vaibhav@linux.ibm.com>
-To: nvdimm@lists.linux.dev, linuxppc-dev@lists.ozlabs.org,
-        Kajol Jain <kjain@linux.ibm.com>
-Cc: Vaibhav Jain <vaibhav@linux.ibm.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Shivaprasad G Bhat <sbhat@linux.ibm.com>,
-        Ira Weiny <ira.weiny@intel.com>
-Subject: [PATCH v2] powerpc/papr_scm: Fix leaking nvdimm_events_map elements
-Date: Wed, 11 May 2022 13:56:36 +0530
-Message-Id: <20220511082637.646714-1-vaibhav@linux.ibm.com>
-X-Mailer: git-send-email 2.35.1
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F54B15A2
+	for <nvdimm@lists.linux.dev>; Wed, 11 May 2022 08:44:10 +0000 (UTC)
+Received: from zn.tnic (p5de8eeb4.dip0.t-ipconnect.de [93.232.238.180])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by mail.skyhub.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id EB3B31EC04EC;
+	Wed, 11 May 2022 10:44:03 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=dkim;
+	t=1652258644;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:in-reply-to:in-reply-to:  references:references;
+	bh=LHg4Oe2iF4hQwykUueN/sjIC2MSSA3VeuKanItkOhY8=;
+	b=a19rfyiZ7ZJh9FO3jBzw37rHKqnlvDKwdHQrD0kEkMf3YgjeCGXDBZ/x/EKnxdafGfa8nC
+	M0nc98SpgU7g/sJvKdUIAyCzwLXkpPS3bl4N7wX5iKE9qevB90s/pbhVNSep01gVgITLfJ
+	bKH3xl7EiDbL15Xnm/j5wq6zCwmEbiE=
+Date: Wed, 11 May 2022 10:44:10 +0200
+From: Borislav Petkov <bp@alien8.de>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Jane Chu <jane.chu@oracle.com>, Christoph Hellwig <hch@infradead.org>,
+	Dave Hansen <dave.hansen@intel.com>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Andy Lutomirski <luto@kernel.org>, david <david@fromorbit.com>,
+	"Darrick J. Wong" <djwong@kernel.org>,
+	linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+	Linux NVDIMM <nvdimm@lists.linux.dev>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	X86 ML <x86@kernel.org>, Vishal L Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>, Alasdair Kergon <agk@redhat.com>,
+	Mike Snitzer <snitzer@redhat.com>,
+	device-mapper development <dm-devel@redhat.com>,
+	"Weiny, Ira" <ira.weiny@intel.com>,
+	Matthew Wilcox <willy@infradead.org>,
+	Vivek Goyal <vgoyal@redhat.com>, "Luck, Tony" <tony.luck@intel.com>,
+	Jue Wang <juew@google.com>
+Subject: Re: [PATCH v9 3/7] mce: fix set_mce_nospec to always unmap the whole
+ page
+Message-ID: <Ynt3WlpcJwuqffDX@zn.tnic>
+References: <20220422224508.440670-1-jane.chu@oracle.com>
+ <20220422224508.440670-4-jane.chu@oracle.com>
+ <CAPcyv4i7xi=5O=HSeBEzvoLvsmBB_GdEncbasMmYKf3vATNy0A@mail.gmail.com>
+ <CAPcyv4id8AbTFpO7ED_DAPren=eJQHwcdY8Mjx18LhW+u4MdNQ@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-ORIG-GUID: dC0X-v-c4-5yMxyTd747dETdl24ZqFAT
-X-Proofpoint-GUID: dC0X-v-c4-5yMxyTd747dETdl24ZqFAT
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.205,Aquarius:18.0.858,Hydra:6.0.486,FMLib:17.11.64.514
- definitions=2022-05-11_02,2022-05-10_01,2022-02-23_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 phishscore=0 malwarescore=0
- bulkscore=0 clxscore=1015 mlxscore=0 lowpriorityscore=0 priorityscore=1501
- adultscore=0 spamscore=0 mlxlogscore=999 suspectscore=0 impostorscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2202240000
- definitions=main-2205110035
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4id8AbTFpO7ED_DAPren=eJQHwcdY8Mjx18LhW+u4MdNQ@mail.gmail.com>
 
-Right now 'char *' elements allocated for individual 'stat_id' in
-'papr_scm_priv.nvdimm_events_map[]' during papr_scm_pmu_check_events(), get
-leaked in papr_scm_remove() and papr_scm_pmu_register(),
-papr_scm_pmu_check_events() error paths.
+On Tue, May 10, 2022 at 08:56:21PM -0700, Dan Williams wrote:
+> This is the last patch in this set that needs an x86 maintainer ack.
+> Since you have been involved in the history for most of this, mind
+> giving it an ack so I can pull it in for v5.19? Let me know if you
+> want a resend.
 
-Also individual 'stat_id' arent NULL terminated 'char *' instead they are fixed
-8-byte sized identifiers. However papr_scm_pmu_register() assumes it to be a
-NULL terminated 'char *' and at other places it assumes it to be a
-'papr_scm_perf_stat.stat_id' sized string which is 8-byes in size.
+I - just like you - am waiting for Tony to say whether he still needs
+this whole_page() thing. I already suggested removing it so I'm fine
+with this patch.
 
-Fix this by allocating the memory for papr_scm_priv.nvdimm_events_map to also
-include space for 'stat_id' entries. This is possible since number of available
-events/stat_ids are known upfront. This saves some memory and one extra level of
-indirection from 'nvdimm_events_map' to 'stat_id'. Also rest of the code
-can continue to call 'kfree(papr_scm_priv.nvdimm_events_map)' without needing to
-iterate over the array and free up individual elements.
-
-Fixes: 4c08d4bbc089 ("powerpc/papr_scm: Add perf interface support")
-Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
----
-Change-log:
-
-v2:
-* Removed the typedef 'stat_id_t' which will be introduced in a later patch
-  [Aneesh]
-* Updated the patch description a bit
----
- arch/powerpc/platforms/pseries/papr_scm.c | 54 ++++++++++-------------
- 1 file changed, 24 insertions(+), 30 deletions(-)
-
-diff --git a/arch/powerpc/platforms/pseries/papr_scm.c b/arch/powerpc/platforms/pseries/papr_scm.c
-index 39962c905542..181b855b3050 100644
---- a/arch/powerpc/platforms/pseries/papr_scm.c
-+++ b/arch/powerpc/platforms/pseries/papr_scm.c
-@@ -125,8 +125,8 @@ struct papr_scm_priv {
- 	/* The bits which needs to be overridden */
- 	u64 health_bitmap_inject_mask;
- 
--	 /* array to have event_code and stat_id mappings */
--	char **nvdimm_events_map;
-+	/* array to have event_code and stat_id mappings */
-+	u8 *nvdimm_events_map;
- };
- 
- static int papr_scm_pmem_flush(struct nd_region *nd_region,
-@@ -370,7 +370,7 @@ static int papr_scm_pmu_get_value(struct perf_event *event, struct device *dev,
- 
- 	stat = &stats->scm_statistic[0];
- 	memcpy(&stat->stat_id,
--	       p->nvdimm_events_map[event->attr.config],
-+	       &p->nvdimm_events_map[event->attr.config * sizeof(stat->stat_id)],
- 		sizeof(stat->stat_id));
- 	stat->stat_val = 0;
- 
-@@ -462,14 +462,13 @@ static int papr_scm_pmu_check_events(struct papr_scm_priv *p, struct nvdimm_pmu
- {
- 	struct papr_scm_perf_stat *stat;
- 	struct papr_scm_perf_stats *stats;
--	int index, rc, count;
- 	u32 available_events;
--
--	if (!p->stat_buffer_len)
--		return -ENOENT;
-+	int index, rc = 0;
- 
- 	available_events = (p->stat_buffer_len  - sizeof(struct papr_scm_perf_stats))
- 			/ sizeof(struct papr_scm_perf_stat);
-+	if (available_events == 0)
-+		return -EOPNOTSUPP;
- 
- 	/* Allocate the buffer for phyp where stats are written */
- 	stats = kzalloc(p->stat_buffer_len, GFP_KERNEL);
-@@ -478,35 +477,30 @@ static int papr_scm_pmu_check_events(struct papr_scm_priv *p, struct nvdimm_pmu
- 		return rc;
- 	}
- 
--	/* Allocate memory to nvdimm_event_map */
--	p->nvdimm_events_map = kcalloc(available_events, sizeof(char *), GFP_KERNEL);
--	if (!p->nvdimm_events_map) {
--		rc = -ENOMEM;
--		goto out_stats;
--	}
--
- 	/* Called to get list of events supported */
- 	rc = drc_pmem_query_stats(p, stats, 0);
- 	if (rc)
--		goto out_nvdimm_events_map;
--
--	for (index = 0, stat = stats->scm_statistic, count = 0;
--		     index < available_events; index++, ++stat) {
--		p->nvdimm_events_map[count] = kmemdup_nul(stat->stat_id, 8, GFP_KERNEL);
--		if (!p->nvdimm_events_map[count]) {
--			rc = -ENOMEM;
--			goto out_nvdimm_events_map;
--		}
-+		goto out;
- 
--		count++;
-+	/*
-+	 * Allocate memory and populate nvdimm_event_map.
-+	 * Allocate an extra element for NULL entry
-+	 */
-+	p->nvdimm_events_map = kcalloc(available_events + 1,
-+				       sizeof(stat->stat_id),
-+				       GFP_KERNEL);
-+	if (!p->nvdimm_events_map) {
-+		rc = -ENOMEM;
-+		goto out;
- 	}
--	p->nvdimm_events_map[count] = NULL;
--	kfree(stats);
--	return 0;
- 
--out_nvdimm_events_map:
--	kfree(p->nvdimm_events_map);
--out_stats:
-+	/* Copy all stat_ids to event map */
-+	for (index = 0, stat = stats->scm_statistic;
-+	     index < available_events; index++, ++stat) {
-+		memcpy(&p->nvdimm_events_map[index * sizeof(stat->stat_id)],
-+		       &stat->stat_id, sizeof(stat->stat_id));
-+	}
-+out:
- 	kfree(stats);
- 	return rc;
- }
-
-base-commit: 348c71344111d7a48892e3e52264ff11956fc196
 -- 
-2.35.1
+Regards/Gruss,
+    Boris.
 
+https://people.kernel.org/tglx/notes-about-netiquette
