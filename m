@@ -1,160 +1,111 @@
-Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id BFC0A2F21
-	for <nvdimm@lists.linux.dev>; Thu, 12 May 2022 12:27:27 +0000 (UTC)
-IronPort-Data: =?us-ascii?q?A9a23=3A2J3H0ahOgBolD7Tcll9Sgf2TX161nREKZh0ujC4?=
- =?us-ascii?q?5NGQNrF6WrkUBzjEZXTvTPPbeMWWmc91/bYm//UNVsZHWzdBiQQpv/nw8FHgiR?=
- =?us-ascii?q?ejtX4rAdhiqV8+xwmwvdGo+toNGLICowPkcFhcwnT/wdOixxZVA/fvQHOCkUra?=
- =?us-ascii?q?dYnkZqTJME0/NtzoywobVvaY42bBVMyvV0T/Di5W31G2NglaYAUpIg063ky6Di?=
- =?us-ascii?q?dyp0N8uUvPSUtgQ1LPWvyF94JvyvshdJVOgKmVfNrbSq+ouUNiEEm3lExcFUrt?=
- =?us-ascii?q?Jk57wdAsEX7zTIROTzHFRXsBOgDAb/mprjPl9b6FaNC+7iB3Q9zx14M9QvJqrW?=
- =?us-ascii?q?EEnOLbQsOoAURhECDw4NqpDkFPCCSHl7ZXDnhaYKRMAxN0rVinaJ7Yw9u9pAG1?=
- =?us-ascii?q?m++YfLTcXZBGfwemxxdqTTuhqg8UqK8nmFIMCs25tzHfSCvNOaZDIQ43L49FC1?=
- =?us-ascii?q?Ts9j8wIGuzRD+IGaD5rfTzBZRNVM1saAZ54m/2n7lHzejseqhSKpK4z4mHW1yR?=
- =?us-ascii?q?w1qTgNJzefdnibclXgUGeqUrF8n7/DxVcM8aQoRKB83SxlqrKmAv4RosZF/u/7?=
- =?us-ascii?q?PECqFSQ3mk7DBwQSEv+r/6kjEK3R9NYLQoT4CVGha4s+E2uS/H5XgakuziAvxg?=
- =?us-ascii?q?BS5xcHvNSwAeEzbvdpQaeHGkLUzVBafQgucRwTjsvvneLltXkQzdvrZWSU3uW8?=
- =?us-ascii?q?rrSpjS3UQAPImgGaTAVSyMe/sLu5o0+5jrLT9B+AOu7ldH4Bzz06y6FoTJ4hLg?=
- =?us-ascii?q?Ji8MPkaKh8jjvhzOqu4iMTQMv4AjTdnyq4xk/Z4O/YYGsr1/B4p5oKIefU0nEr?=
- =?us-ascii?q?HYfs9aR4fpIDpyXkiGJBuIXE9mB+fefNxXOjFhuAd8l9jKw6zikZ48W/TIWGav?=
- =?us-ascii?q?DGq7oYhewOAmK51wXv8QVYROXgWZMS9rZI6wXIWLITLwJjszpU+c=3D?=
-IronPort-HdrOrdr: =?us-ascii?q?A9a23=3AMdotua02tTX0AwwoyLJmZwqjBFYkLtp133Aq?=
- =?us-ascii?q?2lEZdPRUGvbo9fxG+85rrCMc6QxhPk3I9uruBEDtewK5yXcx2/h3AV7AZmfbUQ?=
- =?us-ascii?q?mTQL2KhLGKq1aLdhEWtNQtsJuIGJIfNDSfNykYsS+32miF+sgbsaS62ZHtleHD?=
- =?us-ascii?q?1G1sUA0vT6lh6j1yAgGdHlYefng8ObMJUIqb+tFcpyetPVAebsGADHEDWOTZ4/?=
- =?us-ascii?q?LRkpaOW299OzcXrBmJkSiz6KP3VzyR3hIlWTtJxrs4tUjp+jaJnpmejw=3D=3D?=
-X-IronPort-AV: E=Sophos;i="5.88,333,1635177600"; 
-   d="scan'208";a="124189362"
-Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
-  by heian.cn.fujitsu.com with ESMTP; 12 May 2022 20:27:17 +0800
-Received: from G08CNEXMBPEKD05.g08.fujitsu.local (unknown [10.167.33.204])
-	by cn.fujitsu.com (Postfix) with ESMTP id 0124C4D1716B;
-	Thu, 12 May 2022 20:27:13 +0800 (CST)
-Received: from G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.85) by
- G08CNEXMBPEKD05.g08.fujitsu.local (10.167.33.204) with Microsoft SMTP Server
- (TLS) id 15.0.1497.23; Thu, 12 May 2022 20:27:13 +0800
-Received: from [192.168.22.28] (10.167.225.141) by
- G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
- id 15.0.1497.23 via Frontend Transport; Thu, 12 May 2022 20:27:10 +0800
-Message-ID: <32f51223-c671-1dc0-e14a-8887863d9071@fujitsu.com>
-Date: Thu, 12 May 2022 20:27:12 +0800
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D889533C2;
+	Thu, 12 May 2022 15:50:30 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1652370631; x=1683906631;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=LtzNjIgaLmlN01m0X99eoeCvuTc9SqpMdkrdBj/FxSM=;
+  b=IUN8J5StENK5Uxvcy/kzFION8KcHV+r+oQnOJGQz+EmGDsAUvVKuiiZB
+   t5eikc+MidLvRN/zTmjL6P39jl/U0w6niU4hhN/ERxxKl2JLnNdiZmRW7
+   3zqH88AQg1FIO7lcSgnm2eW3LG185IlxOMneLaBdobkYML9N1QUNMLAcJ
+   0LeWpbl9Dj722evF0VZG5l/+K8kwoDb6v1mygDQOrraA/4p2okWPN0g3W
+   pLkAyK6oUJoMo3x7YGc1gLEVVajMQTt67RxSXIi5c+Rwd1seoMJnGPT8x
+   ru5eMjsEFFTnFRCwksq4HMgAe26vM0t+xUBLcvflIdP6/ND+xPmD36o6O
+   A==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10345"; a="270166901"
+X-IronPort-AV: E=Sophos;i="5.91,220,1647327600"; 
+   d="scan'208";a="270166901"
+Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2022 08:50:21 -0700
+X-IronPort-AV: E=Sophos;i="5.91,220,1647327600"; 
+   d="scan'208";a="636891796"
+Received: from wcogara-mobl.amr.corp.intel.com (HELO intel.com) ([10.252.129.107])
+  by fmsmga004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2022 08:50:20 -0700
+Date: Thu, 12 May 2022 08:50:14 -0700
+From: Ben Widawsky <ben.widawsky@intel.com>
+To: Adam Manzanares <a.manzanares@samsung.com>
+Cc: Dan Williams <dan.j.williams@intel.com>,
+	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
+	Linux NVDIMM <nvdimm@lists.linux.dev>,
+	"patches@lists.linux.dev" <patches@lists.linux.dev>,
+	Alison Schofield <alison.schofield@intel.com>,
+	Ira Weiny <ira.weiny@intel.com>,
+	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	"mcgrof@kernel.org" <mcgrof@kernel.org>
+Subject: Re: [RFC PATCH 02/15] cxl/core/hdm: Bail on endpoint init fail
+Message-ID: <20220512155014.bbyqvxqbqnm3pk2p@intel.com>
+References: <20220413183720.2444089-1-ben.widawsky@intel.com>
+ <20220413183720.2444089-3-ben.widawsky@intel.com>
+ <CAPcyv4hKGEy_0dMQWfJAVVsGu364NjfNeup7URb7ORUYLSZncw@mail.gmail.com>
+ <CGME20220418163713uscas1p17b3b1b45c7d27e54e3ecb62eb8af2469@uscas1p1.samsung.com>
+ <20220418163702.GA85141@bgt-140510-bm01>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.8.1
-Subject: Re: [PATCHSETS] v14 fsdax-rmap + v11 fsdax-reflink
-To: Dan Williams <dan.j.williams@intel.com>, "Darrick J. Wong"
-	<djwong@kernel.org>
-CC: Andrew Morton <akpm@linux-foundation.org>, Dave Chinner
-	<david@fromorbit.com>, Linux Kernel Mailing List
-	<linux-kernel@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, Linux
- NVDIMM <nvdimm@lists.linux.dev>, Linux MM <linux-mm@kvack.org>, linux-fsdevel
-	<linux-fsdevel@vger.kernel.org>, Christoph Hellwig <hch@infradead.org>, Jane
- Chu <jane.chu@oracle.com>, Goldwyn Rodrigues <rgoldwyn@suse.de>, Al Viro
-	<viro@zeniv.linux.org.uk>, Matthew Wilcox <willy@infradead.org>, Naoya
- Horiguchi <naoya.horiguchi@nec.com>, <linmiaohe@huawei.com>
-References: <20220508143620.1775214-1-ruansy.fnst@fujitsu.com>
- <20220511000352.GY27195@magnolia>
- <20220511014818.GE1098723@dread.disaster.area>
- <CAPcyv4h0a3aT3XH9qCBW3nbT4K3EwQvBSD_oX5W=55_x24-wFA@mail.gmail.com>
- <20220510192853.410ea7587f04694038cd01de@linux-foundation.org>
- <20220511024301.GD27195@magnolia>
- <20220510222428.0cc8a50bd007474c97b050b2@linux-foundation.org>
- <20220511151955.GC27212@magnolia>
- <CAPcyv4gwV5ReuCUbJHZPVPUJjnaGFWibCLLsH-XEgyvbn9RkWA@mail.gmail.com>
-From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-In-Reply-To: <CAPcyv4gwV5ReuCUbJHZPVPUJjnaGFWibCLLsH-XEgyvbn9RkWA@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-X-yoursite-MailScanner-ID: 0124C4D1716B.A2F85
-X-yoursite-MailScanner: Found to be clean
-X-yoursite-MailScanner-From: ruansy.fnst@fujitsu.com
-X-Spam-Status: No
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220418163702.GA85141@bgt-140510-bm01>
 
-
-
-在 2022/5/11 23:46, Dan Williams 写道:
-> On Wed, May 11, 2022 at 8:21 AM Darrick J. Wong <djwong@kernel.org> wrote:
->>
->> Oan Tue, May 10, 2022 at 10:24:28PM -0700, Andrew Morton wrote:
->>> On Tue, 10 May 2022 19:43:01 -0700 "Darrick J. Wong" <djwong@kernel.org> wrote:
->>>
->>>> On Tue, May 10, 2022 at 07:28:53PM -0700, Andrew Morton wrote:
->>>>> On Tue, 10 May 2022 18:55:50 -0700 Dan Williams <dan.j.williams@intel.com> wrote:
->>>>>
->>>>>>> It'll need to be a stable branch somewhere, but I don't think it
->>>>>>> really matters where al long as it's merged into the xfs for-next
->>>>>>> tree so it gets filesystem test coverage...
->>>>>>
->>>>>> So how about let the notify_failure() bits go through -mm this cycle,
->>>>>> if Andrew will have it, and then the reflnk work has a clean v5.19-rc1
->>>>>> baseline to build from?
->>>>>
->>>>> What are we referring to here?  I think a minimal thing would be the
->>>>> memremap.h and memory-failure.c changes from
->>>>> https://lkml.kernel.org/r/20220508143620.1775214-4-ruansy.fnst@fujitsu.com ?
->>>>>
->>>>> Sure, I can scoot that into 5.19-rc1 if you think that's best.  It
->>>>> would probably be straining things to slip it into 5.19.
->>>>>
->>>>> The use of EOPNOTSUPP is a bit suspect, btw.  It *sounds* like the
->>>>> right thing, but it's a networking errno.  I suppose livable with if it
->>>>> never escapes the kernel, but if it can get back to userspace then a
->>>>> user would be justified in wondering how the heck a filesystem
->>>>> operation generated a networking errno?
->>>>
->>>> <shrug> most filesystems return EOPNOTSUPP rather enthusiastically when
->>>> they don't know how to do something...
->>>
->>> Can it propagate back to userspace?
->>
->> AFAICT, the new code falls back to the current (mf_generic_kill_procs)
->> failure code if the filesystem doesn't provide a ->memory_failure
->> function or if it returns -EOPNOSUPP.  mf_generic_kill_procs can also
->> return -EOPNOTSUPP, but all the memory_failure() callers (madvise, etc.)
->> convert that to 0 before returning it to userspace.
->>
->> I suppose the weirder question is going to be what happens when madvise
->> starts returning filesystem errors like EIO or EFSCORRUPTED when pmem
->> loses half its brains and even the fs can't deal with it.
+On 22-04-18 16:37:12, Adam Manzanares wrote:
+> On Wed, Apr 13, 2022 at 02:31:42PM -0700, Dan Williams wrote:
+> > On Wed, Apr 13, 2022 at 11:38 AM Ben Widawsky <ben.widawsky@intel.com> wrote:
+> > >
+> > > Endpoint decoder enumeration is the only way in which we can determine
+> > > Device Physical Address (DPA) -> Host Physical Address (HPA) mappings.
+> > > Information is obtained only when the register state can be read
+> > > sequentially. If when enumerating the decoders a failure occurs, all
+> > > other decoders must also fail since the decoders can no longer be
+> > > accurately managed (unless it's the last decoder in which case it can
+> > > still work).
+> > 
+> > I think this should be expanded to fail if any decoder fails to
+> > allocate anywhere in the topology otherwise it leaves a mess for
+> > future address translation code to work through cases where decoder
+> > information is missing.
+> > 
+> > The current approach is based around the current expectation that
+> > nothing is enumerating pre-existing regions, and nothing is performing
+> > address translation.
 > 
-> Even then that notification is not in a system call context so it
-> would still result in a SIGBUS notification not a EOPNOTSUPP return
-> code. The only potential gap I see are what are the possible error
-> codes that MADV_SOFT_OFFLINE might see? The man page is silent on soft
-> offline failure codes. Shiyang, that's something to check / update if
-> necessary.
+> Does the qemu support currently allow testing of this patch? If so, it would 
+> be good to reference qemu configurations. Any other alternatives would be 
+> welcome as well. 
+> 
+> +Luis on cc.
+> 
 
-According to the code around MADV_SOFT_OFFLINE, it will return -EIO when 
-the backend is NVDIMM.
+No. This type of error injection would be cool to have, but I'm not sure of a
+good way to support that in a scalable way. Maybe Jonathan has some ideas?
 
-Here is the logic:
-  madvise_inject_error() {
-      ...
-      if (MADV_SOFT_OFFLINE) {
-          ret = soft_offline_page() {
-              ...
-              /* Only online pages can be soft-offlined (esp., not 
-ZONE_DEVICE). */
-              page = pfn_to_online_page(pfn);
-              if (!page) {
-                  put_ref_page(ref_page);
-                  return -EIO;
-              }
-              ...
-          }
-      } else {
-          ret = memory_failure()
-      }
-      return ret
-  }
-
-
---
-Thanks,
-Ruan.
-
-
+> > 
+> > >
+> > > Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
+> > > ---
+> > >  drivers/cxl/core/hdm.c | 2 ++
+> > >  1 file changed, 2 insertions(+)
+> > >
+> > > diff --git a/drivers/cxl/core/hdm.c b/drivers/cxl/core/hdm.c
+> > > index bfc8ee876278..c3c021b54079 100644
+> > > --- a/drivers/cxl/core/hdm.c
+> > > +++ b/drivers/cxl/core/hdm.c
+> > > @@ -255,6 +255,8 @@ int devm_cxl_enumerate_decoders(struct cxl_hdm *cxlhdm)
+> > >                                       cxlhdm->regs.hdm_decoder, i);
+> > >                 if (rc) {
+> > >                         put_device(&cxld->dev);
+> > > +                       if (is_endpoint_decoder(&cxld->dev))
+> > > +                               return rc;
+> > >                         failed++;
+> > >                         continue;
+> > >                 }
+> > > --
+> > > 2.35.1
+> > >
+> > 
