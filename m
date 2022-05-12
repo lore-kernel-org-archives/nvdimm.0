@@ -1,94 +1,85 @@
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f52.google.com (mail-pj1-f52.google.com [209.85.216.52])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E8882F25
-	for <nvdimm@lists.linux.dev>; Wed, 11 May 2022 17:17:31 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1652289451; x=1683825451;
-  h=from:to:cc:subject:date:message-id:references:
-   in-reply-to:content-transfer-encoding:mime-version;
-  bh=WHDdURNms3aWfdEJX5KkrqUkQcS2EWtnqEvYYDuGX0w=;
-  b=afrKiHwVsBOcgAkrOMqFvsKPEbG3/5gqOK19u91+p5D9Az6tr2R1LgCa
-   lh9r+Im/BcTBTsqj+uVuAWiXLQyL7f87VGIymvBGK+u0wSn32DKyDTs24
-   mhnSPUSUd4ReOQYFXUHrTx9TKEKrV6KbOSjPH+YOacHWsio6vDkQdy8Rr
-   gF8/uYWk0922vNUpXHbuL9bl2dLZiIx/vWYBGMHqB8ZrCjrykc/5ZiU/T
-   r7ststOzTfj1oe96hg1x4jXYPXEsjW8aeV14anzeNzd7K4lN+ag0FPvt1
-   G4keJ9deoMMCd99lTJ6n+WTjlgEc4+Ym5nvz8tjjl3h9X3I+BEhL/n6Cw
-   A==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10344"; a="268597193"
-X-IronPort-AV: E=Sophos;i="5.91,217,1647327600"; 
-   d="scan'208";a="268597193"
-Received: from fmsmga004.fm.intel.com ([10.253.24.48])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 May 2022 10:17:23 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.91,217,1647327600"; 
-   d="scan'208";a="636495042"
-Received: from fmsmsx606.amr.corp.intel.com ([10.18.126.86])
-  by fmsmga004.fm.intel.com with ESMTP; 11 May 2022 10:17:22 -0700
-Received: from fmsmsx611.amr.corp.intel.com (10.18.126.91) by
- fmsmsx606.amr.corp.intel.com (10.18.126.86) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.27; Wed, 11 May 2022 10:17:22 -0700
-Received: from fmsmsx610.amr.corp.intel.com (10.18.126.90) by
- fmsmsx611.amr.corp.intel.com (10.18.126.91) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.27; Wed, 11 May 2022 10:17:21 -0700
-Received: from fmsmsx610.amr.corp.intel.com ([10.18.126.90]) by
- fmsmsx610.amr.corp.intel.com ([10.18.126.90]) with mapi id 15.01.2308.027;
- Wed, 11 May 2022 10:17:21 -0700
-From: "Luck, Tony" <tony.luck@intel.com>
-To: Borislav Petkov <bp@alien8.de>, "Williams, Dan J"
-	<dan.j.williams@intel.com>
-CC: Jane Chu <jane.chu@oracle.com>, Christoph Hellwig <hch@infradead.org>,
-	"Hansen, Dave" <dave.hansen@intel.com>, Peter Zijlstra
-	<peterz@infradead.org>, Andy Lutomirski <luto@kernel.org>, david
-	<david@fromorbit.com>, "Darrick J. Wong" <djwong@kernel.org>, linux-fsdevel
-	<linux-fsdevel@vger.kernel.org>, Linux NVDIMM <nvdimm@lists.linux.dev>, Linux
- Kernel Mailing List <linux-kernel@vger.kernel.org>, X86 ML <x86@kernel.org>,
-	"Verma, Vishal L" <vishal.l.verma@intel.com>, "Jiang, Dave"
-	<dave.jiang@intel.com>, Alasdair Kergon <agk@redhat.com>, Mike Snitzer
-	<snitzer@redhat.com>, device-mapper development <dm-devel@redhat.com>,
-	"Weiny, Ira" <ira.weiny@intel.com>, Matthew Wilcox <willy@infradead.org>,
-	Vivek Goyal <vgoyal@redhat.com>, Jue Wang <juew@google.com>
-Subject: RE: [PATCH v9 3/7] mce: fix set_mce_nospec to always unmap the whole
- page
-Thread-Topic: [PATCH v9 3/7] mce: fix set_mce_nospec to always unmap the whole
- page
-Thread-Index: AQHYVqBhtO9kfcaX30Okv6G3eRqhwq0Znj6AgABQagCAABkaEA==
-Date: Wed, 11 May 2022 17:17:21 +0000
-Message-ID: <5aa1c9aacc5a4086a904440641062669@intel.com>
-References: <20220422224508.440670-1-jane.chu@oracle.com>
- <20220422224508.440670-4-jane.chu@oracle.com>
- <CAPcyv4i7xi=5O=HSeBEzvoLvsmBB_GdEncbasMmYKf3vATNy0A@mail.gmail.com>
- <CAPcyv4id8AbTFpO7ED_DAPren=eJQHwcdY8Mjx18LhW+u4MdNQ@mail.gmail.com>
- <Ynt3WlpcJwuqffDX@zn.tnic>
-In-Reply-To: <Ynt3WlpcJwuqffDX@zn.tnic>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-dlp-product: dlpe-windows
-dlp-reaction: no-action
-dlp-version: 11.6.401.20
-x-originating-ip: [10.1.200.100]
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B73F5190
+	for <nvdimm@lists.linux.dev>; Thu, 12 May 2022 01:17:12 +0000 (UTC)
+Received: by mail-pj1-f52.google.com with SMTP id cx11-20020a17090afd8b00b001d9fe5965b3so6422360pjb.3
+        for <nvdimm@lists.linux.dev>; Wed, 11 May 2022 18:17:12 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=91WjG8Xgx7zSwWUKmJ5ZSvjr4nPKvPOOCne/40ungPw=;
+        b=iktCS3MFPTW3v9KcNEYcXrmVK23wGjhROQSXLkxw0YvX2V+iHCxWCRTIpcPAWSyEaT
+         I2IW7NJ2Wmm99rzrcUYT19xGZcElkbm1jDi9MFV7bJIinywBGR30NFywf1fFl7silO2v
+         Hafzvq03Z5tXwU8vPtEzBICethZwCdUxt+kN5FvXCEp006yCl5AcRt14hLt6yQ837Hzu
+         SdK3KIoURq7EfuC52WwrLB5Y6YDyuMW0iGsOIRDsiYcFY472RMEboKGWiPWpqc2b9s71
+         ESyXYoRo1SMCi0G86afjxtyMQ2rArCW24myG3ytAv1wcRcYFeXfNQHETJQiPXGYXX7hj
+         CqSg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=91WjG8Xgx7zSwWUKmJ5ZSvjr4nPKvPOOCne/40ungPw=;
+        b=RkR2oBx0VLovDouf2zDkMSH331S4yxjBUNrbkFZQTFEiKyOo7Cmfk1lx6+LaDLZyUc
+         yxBgxD+qVbGpoEcxmmLHNI9yy10wlcBam71scxuR1IbuiNwnCNh5UN4xMeLPk/bZhYMJ
+         clpo0bHPHBkIaiNjXNuKdIHMvYw/bD/nRS0YxeeZ7r97wSpLDjnl+x8wQQgov5qkdD1N
+         pYoGMRsk4ogElfHbQSf4i20zuwYhydnQuvkmUP9bBZq4MwMZdG2eXaVaAULZ94xf1XlT
+         vb5gWAaDcUkE2PLWZ+gnJS0f80jCtRrBppmqIG19QWKFoulgq/YBrFYhE3+6meoCP1N/
+         pQnQ==
+X-Gm-Message-State: AOAM532shC4MVkhb4aw7eQdvfiHJ+sMaooRNb6vQltaGtJ/4ZP5sTocW
+	CArQC8BBtbuto1KRJTz8n5U=
+X-Google-Smtp-Source: ABdhPJx85MTQXdHNFwU36UFVAAIS/ICXp3PePnf5H5bIDcZeM48iGF15fix0phyLByLEpSVyb2ReDQ==
+X-Received: by 2002:a17:90b:3851:b0:1dc:4f70:1cb with SMTP id nl17-20020a17090b385100b001dc4f7001cbmr8080318pjb.167.1652318232159;
+        Wed, 11 May 2022 18:17:12 -0700 (PDT)
+Received: from localhost.localdomain ([193.203.214.57])
+        by smtp.gmail.com with ESMTPSA id h20-20020aa786d4000000b0050dc76281e4sm2396913pfo.190.2022.05.11.18.17.09
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 11 May 2022 18:17:11 -0700 (PDT)
+From: cgel.zte@gmail.com
+X-Google-Original-From: chi.minghao@zte.com.cn
+To: dan.j.williams@intel.com
+Cc: vishal.l.verma@intel.com,
+	nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org,
+	Minghao Chi <chi.minghao@zte.com.cn>,
+	Zeal Robot <zealci@zte.com.cn>
+Subject: [PATCH] libnvdimm/region: use kobj_to_dev()
+Date: Thu, 12 May 2022 01:17:07 +0000
+Message-Id: <20220512011707.1621619-1-chi.minghao@zte.com.cn>
+X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-PiBJIC0ganVzdCBsaWtlIHlvdSAtIGFtIHdhaXRpbmcgZm9yIFRvbnkgdG8gc2F5IHdoZXRoZXIg
-aGUgc3RpbGwgbmVlZHMNCj4gdGhpcyB3aG9sZV9wYWdlKCkgdGhpbmcuIEkgYWxyZWFkeSBzdWdn
-ZXN0ZWQgcmVtb3ZpbmcgaXQgc28gSSdtIGZpbmUNCj4gd2l0aCB0aGlzIHBhdGNoLg0KDQpJSVJD
-IHRoaXMgbmV3IHBhdGNoIGVmZmVjdGl2ZWx5IHJldmVydHMgYmFjayB0byB0aGUgb3JpZ2luYWwg
-YmVoYXZpb3IgdGhhdA0KSSBpbXBsZW1lbnRlZCBiYWNrIGF0IHRoZSBkYXduIG9mIHRpbWUuIEku
-ZS4ganVzdCBhbHdheXMgbWFyayB0aGUgd2hvbGUNCnBhZ2UgIm5vdCBwcmVzZW50IiBhbmQgZG9u
-J3QgdHJ5IHRvIG1lc3Mgd2l0aCBVQyBtYXBwaW5ncyB0byBhbGxvdw0KcGFydGlhbCAoYnV0IG5v
-bi1zcGVjdWxhdGl2ZSkgYWNjZXNzIHRvIHRoZSBub3QtcG9pc29uZWQgcGFydHMgb2YgdGhlDQpw
-YWdlLg0KDQpJZiB0aGF0IGlzIHRoZSBjYXNlIC4uLiB0aGVuIEFja2VkLWJ5OiBUb255IEx1Y2sg
-PHRvbnkubHVja0BpbnRlbC5jb20+DQoNCklmIEkndmUgbWlzdW5kZXJzdG9vZCAuLi4gdGhlbiBw
-bGVhc2UgZXhwbGFpbiB3aGF0IGl0IGlzIGRvaW5nLg0KDQpUaGFua3MNCg0KLVRvbnkNCg==
+From: Minghao Chi <chi.minghao@zte.com.cn>
+
+Use kobj_to_dev() instead of open-coding it.
+
+Reported-by: Zeal Robot <zealci@zte.com.cn>
+Signed-off-by: Minghao Chi <chi.minghao@zte.com.cn>
+---
+ drivers/nvdimm/region_devs.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index 0cb274c2b508..d1bd82a3a500 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -720,7 +720,7 @@ REGION_MAPPING(31);
+ 
+ static umode_t mapping_visible(struct kobject *kobj, struct attribute *a, int n)
+ {
+-	struct device *dev = container_of(kobj, struct device, kobj);
++	struct device *dev = kobj_to_dev(kobj);
+ 	struct nd_region *nd_region = to_nd_region(dev);
+ 
+ 	if (n < nd_region->ndr_mappings)
+--
+2.25.1
+
+
