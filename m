@@ -1,41 +1,44 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C6D733E5;
-	Thu, 12 May 2022 17:27:48 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=Sender:In-Reply-To:Content-Type:
-	MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=POsmG8gxTJ+8opBsMUMlh4wZguh3L79HwkpJz2EQhGE=; b=UAhw9uCow//dvgzeqpZuVgDO0q
-	yVBGGglzPHB03fj1bF68oA5ctLYocF7GOkfSzv/LgwvGYFRh+GAP8WM39hrDi+S5I2NHaMt9Wxrg0
-	xKDyyhbaLtmLasiTlx6LjYeOWYvTtS/1OHuh1oQK9rQPWpXDRT+R4wy7gc6Y4IM7ExYUCvM3pNp8J
-	Qfjyq7zo+eV7NfkJkNsmCGfsOzYZM8xXfYBFJVxLOnsVPgXFUgSZ6FfaBysjAQy34qatn7F0dBjn4
-	ZCCCoTnfCdYDL86T6eKTVpLb0IolzmsCPOFS6u2K/3rFG9M2sqbVl5wy09WPHmdS0voRDS6XbaVDl
-	Xwnqaejg==;
-Received: from mcgrof by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-	id 1npCbC-00D00T-K8; Thu, 12 May 2022 17:27:38 +0000
-Date: Thu, 12 May 2022 10:27:38 -0700
-From: Luis Chamberlain <mcgrof@kernel.org>
-To: Ben Widawsky <ben.widawsky@intel.com>, Klaus Jensen <its@irrelevant.dk>,
-	Josef Bacik <jbacik@fb.com>
-Cc: Adam Manzanares <a.manzanares@samsung.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
-	Linux NVDIMM <nvdimm@lists.linux.dev>,
-	"patches@lists.linux.dev" <patches@lists.linux.dev>,
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 004DA3D60;
+	Thu, 12 May 2022 19:18:55 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1652383136; x=1683919136;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=wjPUSzKUUYft3oC5ZKjmTmKwYasf70pBVMBarE80YmU=;
+  b=aQmq5AZDARwG+5MyZpeZCW5UYrmp9vGje74c8w2hmo0Fx4uVY0yvrKB/
+   yZyhPOl29/fLPLbFjx8JeVvah+FgIBYSJDjzhHTCGulRju9CVFHs6EwhG
+   xI99pe+MDMbH9TwlM5617v7oejMSX8icbyoDnR2u7Lze6nq+mTfd9xX3K
+   rB8Ngx5qo8zpVE4n5EecPx/FBJ86v+X/Vw+TCL1UmwY7IkBjMHSEUKWYK
+   rjclXLFi2djqBQP/bsPQ82tYF2oYq3qrzysq5l3GNHJjZrIYndkhRicVp
+   j1e64xuGY9k9cE67WxyozSZf1EWQrJWykoJVSwhGmtJr+6Fjhc3uxta5D
+   A==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10345"; a="330716698"
+X-IronPort-AV: E=Sophos;i="5.91,220,1647327600"; 
+   d="scan'208";a="330716698"
+Received: from orsmga002.jf.intel.com ([10.7.209.21])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2022 12:18:54 -0700
+X-IronPort-AV: E=Sophos;i="5.91,220,1647327600"; 
+   d="scan'208";a="553908542"
+Received: from wcogara-mobl.amr.corp.intel.com (HELO intel.com) ([10.252.129.107])
+  by orsmga002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2022 12:18:54 -0700
+Date: Thu, 12 May 2022 12:18:48 -0700
+From: Ben Widawsky <ben.widawsky@intel.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-cxl@vger.kernel.org, Linux NVDIMM <nvdimm@lists.linux.dev>,
+	patches@lists.linux.dev,
 	Alison Schofield <alison.schofield@intel.com>,
 	Ira Weiny <ira.weiny@intel.com>,
 	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
 	Vishal Verma <vishal.l.verma@intel.com>
-Subject: Re: [RFC PATCH 02/15] cxl/core/hdm: Bail on endpoint init fail
-Message-ID: <Yn1DiuqjYpklcEIT@bombadil.infradead.org>
+Subject: Re: [RFC PATCH 06/15] cxl/acpi: Manage root decoder's address space
+Message-ID: <20220512191848.5piyvjtsryht3hbg@intel.com>
 References: <20220413183720.2444089-1-ben.widawsky@intel.com>
- <20220413183720.2444089-3-ben.widawsky@intel.com>
- <CAPcyv4hKGEy_0dMQWfJAVVsGu364NjfNeup7URb7ORUYLSZncw@mail.gmail.com>
- <CGME20220418163713uscas1p17b3b1b45c7d27e54e3ecb62eb8af2469@uscas1p1.samsung.com>
- <20220418163702.GA85141@bgt-140510-bm01>
- <20220512155014.bbyqvxqbqnm3pk2p@intel.com>
+ <20220413183720.2444089-7-ben.widawsky@intel.com>
+ <CAPcyv4hD93d20Sq25tPNMQ1T68uQmTTQo7aDXMKN36wrCTa1-Q@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -44,94 +47,153 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20220512155014.bbyqvxqbqnm3pk2p@intel.com>
-Sender: Luis Chamberlain <mcgrof@infradead.org>
+In-Reply-To: <CAPcyv4hD93d20Sq25tPNMQ1T68uQmTTQo7aDXMKN36wrCTa1-Q@mail.gmail.com>
 
-On Thu, May 12, 2022 at 08:50:14AM -0700, Ben Widawsky wrote:
-> On 22-04-18 16:37:12, Adam Manzanares wrote:
-> > On Wed, Apr 13, 2022 at 02:31:42PM -0700, Dan Williams wrote:
-> > > On Wed, Apr 13, 2022 at 11:38 AM Ben Widawsky <ben.widawsky@intel.com> wrote:
-> > > >
-> > > > Endpoint decoder enumeration is the only way in which we can determine
-> > > > Device Physical Address (DPA) -> Host Physical Address (HPA) mappings.
-> > > > Information is obtained only when the register state can be read
-> > > > sequentially. If when enumerating the decoders a failure occurs, all
-> > > > other decoders must also fail since the decoders can no longer be
-> > > > accurately managed (unless it's the last decoder in which case it can
-> > > > still work).
-> > > 
-> > > I think this should be expanded to fail if any decoder fails to
-> > > allocate anywhere in the topology otherwise it leaves a mess for
-> > > future address translation code to work through cases where decoder
-> > > information is missing.
-> > > 
-> > > The current approach is based around the current expectation that
-> > > nothing is enumerating pre-existing regions, and nothing is performing
-> > > address translation.
-> > 
-> > Does the qemu support currently allow testing of this patch? If so, it would 
-> > be good to reference qemu configurations. Any other alternatives would be 
-> > welcome as well. 
-> > 
-> > +Luis on cc.
-> > 
+On 22-04-18 15:15:47, Dan Williams wrote:
+> On Wed, Apr 13, 2022 at 11:38 AM Ben Widawsky <ben.widawsky@intel.com> wrote:
+> >
+> > Use a gen_pool to manage the physical address space that is routed by
+> > the platform decoder (root decoder). As described in 'cxl/acpi: Resereve
+> > CXL resources from request_free_mem_region' the address space does not
+> > coexist well if part of all of it is conveyed in the memory map to the
+> > kernel.
+> >
+> > Since the existing resource APIs of interest all rely on the root
+> > decoder's address space being in iomem_resource,
 > 
-> No. This type of error injection would be cool to have, but I'm not sure of a
-> good way to support that in a scalable way. Maybe Jonathan has some ideas?
+> I do not understand what this is trying to convey. Nothing requires
+> that a given 'struct resource' be managed under iomem_resource.
+> 
+> > the choices are to roll
+> > a new allocator because on struct resource, or use gen_pool. gen_pool is
+> > a good choice because it already has all the capabilities needed to
+> > satisfy CXL programming.
+> 
+> Not sure what comparison to 'struct resource' is being made here, what
+> is the tradeoff as you see it? In other words, why mention 'struct
+> resource' as a consideration?
+> 
+> >
+> > Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
+> > ---
+> >  drivers/cxl/acpi.c | 36 ++++++++++++++++++++++++++++++++++++
+> >  drivers/cxl/cxl.h  |  2 ++
+> >  2 files changed, 38 insertions(+)
+> >
+> > diff --git a/drivers/cxl/acpi.c b/drivers/cxl/acpi.c
+> > index 0870904fe4b5..a6b0c3181d0e 100644
+> > --- a/drivers/cxl/acpi.c
+> > +++ b/drivers/cxl/acpi.c
+> > @@ -1,6 +1,7 @@
+> >  // SPDX-License-Identifier: GPL-2.0-only
+> >  /* Copyright(c) 2021 Intel Corporation. All rights reserved. */
+> >  #include <linux/platform_device.h>
+> > +#include <linux/genalloc.h>
+> >  #include <linux/module.h>
+> >  #include <linux/device.h>
+> >  #include <linux/kernel.h>
+> > @@ -79,6 +80,25 @@ struct cxl_cfmws_context {
+> >         struct acpi_cedt_cfmws *high_cfmws;
+> >  };
+> >
+> > +static int cfmws_cookie;
+> > +
+> > +static int fill_busy_mem(struct resource *res, void *_window)
+> > +{
+> > +       struct gen_pool *window = _window;
+> > +       struct genpool_data_fixed gpdf;
+> > +       unsigned long addr;
+> > +       void *type;
+> > +
+> > +       gpdf.offset = res->start;
+> > +       addr = gen_pool_alloc_algo_owner(window, resource_size(res),
+> > +                                        gen_pool_fixed_alloc, &gpdf, &type);
+> 
+> The "_owner" variant of gen_pool was only added for p2pdma as a way to
+> coordinate reference counts across p2pdma space allocation and a
+> 'strcuct dev_pagemap' instance. The use here seems completely
+> vestigial and can just move to gen_pool_alloc_algo.
+> 
 
-In case it helps on the Linux front the least intrusive way is to use
-ALLOW_ERROR_INJECTION(). It's what I hope we'll slowly strive for on
-the block layer and filesystems slowly. That incurs one macro call per error
-routine you want to allow error injection on.
+The problem that it's trying to solve is for the case when gpdf.offset is 0. I
+think that's a highly unlikely case with the current plan, however, if
+reparenting comes into play, you could very likely have offset 0, and then you
+have no way to distinguish error from success without the cookie.
 
-Then you use debugfs to dynamically enable / disable the error
-injection / rate etc.
+Thoughts?
 
-So I think this begs the question, what error injection mechanisms
-exist for qemu and would new functionality be welcomed?
+> > +       if (addr != res->start || (res->start == 0 && type != &cfmws_cookie))
+> > +               return -ENXIO;
+> 
+> How can the second condition ever be true?
+> 
 
-Linux builds off a brilliantly simple simple interface borrowed from
-failmalloc [0]. The initial implementation on Linux then was also really
-simple [1] [2] [3] however it required adding stubs on each call with a
-respective build option to enable failure injection. Configuration was done
-through debugfs.
+0 offset but failure.
 
-Later Josef enabled us to use BPF to allow overriding kprobed functions
-to return arbitrary values[4], and further generalized away from kprobes
-by Masami [5].
-
-If no failure injection is present in qemu something as simple as the initial
-approach could be considered [1] [2] [3], but a dynamic interface
-would certainly be wonderful long term.
-
-[0] http://www.nongnu.org/failmalloc/
-[1] https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=de1ba09b214056365d9082982905b255caafb7a2
-[2] https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=6ff1cb355e628f8fc55fa2d01e269e5e1bbc2fe9
-[3] https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=8a8b6502fb669c3a0638a08955442814cedc86b1
-[4] https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=92ace9991da08827e809c2d120108a96a281e7fc
-[5] https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=540adea3809f61115d2a1ea4ed6e627613452ba1
-
-  Luis
-
-> > > > Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
-> > > > ---
-> > > >  drivers/cxl/core/hdm.c | 2 ++
-> > > >  1 file changed, 2 insertions(+)
-> > > >
-> > > > diff --git a/drivers/cxl/core/hdm.c b/drivers/cxl/core/hdm.c
-> > > > index bfc8ee876278..c3c021b54079 100644
-> > > > --- a/drivers/cxl/core/hdm.c
-> > > > +++ b/drivers/cxl/core/hdm.c
-> > > > @@ -255,6 +255,8 @@ int devm_cxl_enumerate_decoders(struct cxl_hdm *cxlhdm)
-> > > >                                       cxlhdm->regs.hdm_decoder, i);
-> > > >                 if (rc) {
-> > > >                         put_device(&cxld->dev);
-> > > > +                       if (is_endpoint_decoder(&cxld->dev))
-> > > > +                               return rc;
-> > > >                         failed++;
-> > > >                         continue;
-> > > >                 }
-> > > > --
-> > > > 2.35.1
-> > > >
-> > > 
+> > +
+> > +       pr_devel("%pR removed from CFMWS\n", res);
+> > +       return 0;
+> > +}
+> > +
+> >  static int cxl_parse_cfmws(union acpi_subtable_headers *header, void *arg,
+> >                            const unsigned long end)
+> >  {
+> > @@ -88,6 +108,8 @@ static int cxl_parse_cfmws(union acpi_subtable_headers *header, void *arg,
+> >         struct device *dev = ctx->dev;
+> >         struct acpi_cedt_cfmws *cfmws;
+> >         struct cxl_decoder *cxld;
+> > +       struct gen_pool *window;
+> > +       char name[64];
+> >         int rc, i;
+> >
+> >         cfmws = (struct acpi_cedt_cfmws *) header;
+> > @@ -116,6 +138,20 @@ static int cxl_parse_cfmws(union acpi_subtable_headers *header, void *arg,
+> >         cxld->interleave_ways = CFMWS_INTERLEAVE_WAYS(cfmws);
+> >         cxld->interleave_granularity = CFMWS_INTERLEAVE_GRANULARITY(cfmws);
+> >
+> > +       sprintf(name, "cfmws@%#llx", cfmws->base_hpa);
+> > +       window = devm_gen_pool_create(dev, ilog2(SZ_256M), NUMA_NO_NODE, name);
+> > +       if (IS_ERR(window))
+> > +               return 0;
+> > +
+> > +       gen_pool_add_owner(window, cfmws->base_hpa, -1, cfmws->window_size,
+> > +                          NUMA_NO_NODE, &cfmws_cookie);
+> 
+> Similar comment about the "_owner" variant serving no visible purpose.
+> 
+> These seems to pre-suppose that only the allocator will ever want to
+> interrogate the state of free space, it might be worth registering
+> objects for each intersection that are not cxl_regions so that
+> userspace explicitly sees what the cxl_acpi driver sees in terms of
+> available resources.
+> 
+> > +
+> > +       /* Area claimed by other resources, remove those from the gen_pool. */
+> > +       walk_iomem_res_desc(IORES_DESC_NONE, 0, cfmws->base_hpa,
+> > +                           cfmws->base_hpa + cfmws->window_size - 1, window,
+> > +                           fill_busy_mem);
+> > +       to_cxl_root_decoder(cxld)->window = window;
+> > +
+> >         rc = cxl_decoder_add(cxld, target_map);
+> >         if (rc)
+> >                 put_device(&cxld->dev);
+> > diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
+> > index 85fd5e84f978..0e1c65761ead 100644
+> > --- a/drivers/cxl/cxl.h
+> > +++ b/drivers/cxl/cxl.h
+> > @@ -246,10 +246,12 @@ struct cxl_switch_decoder {
+> >  /**
+> >   * struct cxl_root_decoder - A toplevel/platform decoder
+> >   * @base: Base class decoder
+> > + * @window: host address space allocator
+> >   * @targets: Downstream targets (ie. hostbridges).
+> >   */
+> >  struct cxl_root_decoder {
+> >         struct cxl_decoder base;
+> > +       struct gen_pool *window;
+> >         struct cxl_decoder_targets *targets;
+> >  };
+> >
+> > --
+> > 2.35.1
+> >
