@@ -1,85 +1,40 @@
-Received: from mail-pj1-f52.google.com (mail-pj1-f52.google.com [209.85.216.52])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B73F5190
-	for <nvdimm@lists.linux.dev>; Thu, 12 May 2022 01:17:12 +0000 (UTC)
-Received: by mail-pj1-f52.google.com with SMTP id cx11-20020a17090afd8b00b001d9fe5965b3so6422360pjb.3
-        for <nvdimm@lists.linux.dev>; Wed, 11 May 2022 18:17:12 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=91WjG8Xgx7zSwWUKmJ5ZSvjr4nPKvPOOCne/40ungPw=;
-        b=iktCS3MFPTW3v9KcNEYcXrmVK23wGjhROQSXLkxw0YvX2V+iHCxWCRTIpcPAWSyEaT
-         I2IW7NJ2Wmm99rzrcUYT19xGZcElkbm1jDi9MFV7bJIinywBGR30NFywf1fFl7silO2v
-         Hafzvq03Z5tXwU8vPtEzBICethZwCdUxt+kN5FvXCEp006yCl5AcRt14hLt6yQ837Hzu
-         SdK3KIoURq7EfuC52WwrLB5Y6YDyuMW0iGsOIRDsiYcFY472RMEboKGWiPWpqc2b9s71
-         ESyXYoRo1SMCi0G86afjxtyMQ2rArCW24myG3ytAv1wcRcYFeXfNQHETJQiPXGYXX7hj
-         CqSg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=91WjG8Xgx7zSwWUKmJ5ZSvjr4nPKvPOOCne/40ungPw=;
-        b=RkR2oBx0VLovDouf2zDkMSH331S4yxjBUNrbkFZQTFEiKyOo7Cmfk1lx6+LaDLZyUc
-         yxBgxD+qVbGpoEcxmmLHNI9yy10wlcBam71scxuR1IbuiNwnCNh5UN4xMeLPk/bZhYMJ
-         clpo0bHPHBkIaiNjXNuKdIHMvYw/bD/nRS0YxeeZ7r97wSpLDjnl+x8wQQgov5qkdD1N
-         pYoGMRsk4ogElfHbQSf4i20zuwYhydnQuvkmUP9bBZq4MwMZdG2eXaVaAULZ94xf1XlT
-         vb5gWAaDcUkE2PLWZ+gnJS0f80jCtRrBppmqIG19QWKFoulgq/YBrFYhE3+6meoCP1N/
-         pQnQ==
-X-Gm-Message-State: AOAM532shC4MVkhb4aw7eQdvfiHJ+sMaooRNb6vQltaGtJ/4ZP5sTocW
-	CArQC8BBtbuto1KRJTz8n5U=
-X-Google-Smtp-Source: ABdhPJx85MTQXdHNFwU36UFVAAIS/ICXp3PePnf5H5bIDcZeM48iGF15fix0phyLByLEpSVyb2ReDQ==
-X-Received: by 2002:a17:90b:3851:b0:1dc:4f70:1cb with SMTP id nl17-20020a17090b385100b001dc4f7001cbmr8080318pjb.167.1652318232159;
-        Wed, 11 May 2022 18:17:12 -0700 (PDT)
-Received: from localhost.localdomain ([193.203.214.57])
-        by smtp.gmail.com with ESMTPSA id h20-20020aa786d4000000b0050dc76281e4sm2396913pfo.190.2022.05.11.18.17.09
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 11 May 2022 18:17:11 -0700 (PDT)
-From: cgel.zte@gmail.com
-X-Google-Original-From: chi.minghao@zte.com.cn
-To: dan.j.williams@intel.com
-Cc: vishal.l.verma@intel.com,
-	nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org,
-	Minghao Chi <chi.minghao@zte.com.cn>,
-	Zeal Robot <zealci@zte.com.cn>
-Subject: [PATCH] libnvdimm/region: use kobj_to_dev()
-Date: Thu, 12 May 2022 01:17:07 +0000
-Message-Id: <20220512011707.1621619-1-chi.minghao@zte.com.cn>
-X-Mailer: git-send-email 2.25.1
+Received: from eki-net.com (unknown [152.32.156.133])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 213CF17D2
+	for <nvdimm@lists.linux.dev>; Thu, 12 May 2022 05:49:13 +0000 (UTC)
+Message-ID: <20220512111914772628@eki-net.com>
+From: =?utf-8?B?44GI44GN44Gt44Gj44Go?= <wpyyuudxh@eki-net.com>
+To: <nvdimm@lists.linux.dev>
+Subject: =?utf-8?B?44CQ44GI44GN44Gt44Gj44Go44CR56K66KqN44GV44KM44Gf5oOF5aCx?=
+Date: Thu, 12 May 2022 11:19:02 +0530
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: base64
+X-mailer: Qhkxv 1
 
-From: Minghao Chi <chi.minghao@zte.com.cn>
-
-Use kobj_to_dev() instead of open-coding it.
-
-Reported-by: Zeal Robot <zealci@zte.com.cn>
-Signed-off-by: Minghao Chi <chi.minghao@zte.com.cn>
----
- drivers/nvdimm/region_devs.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index 0cb274c2b508..d1bd82a3a500 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -720,7 +720,7 @@ REGION_MAPPING(31);
- 
- static umode_t mapping_visible(struct kobject *kobj, struct attribute *a, int n)
- {
--	struct device *dev = container_of(kobj, struct device, kobj);
-+	struct device *dev = kobj_to_dev(kobj);
- 	struct nd_region *nd_region = to_nd_region(dev);
- 
- 	if (n < nd_region->ndr_mappings)
---
-2.25.1
+44CM44GI44GN44Gt44Gj44Go44CN44Gu44Ki44Kr44Km44Oz44OI44Gv5Yi26ZmQ44GV44KM44Gm
+44GE44G+44GZ44CC6YCa5bi444Gu5L2/55So44Gr5b2x6Z+/44KS5LiO44GI44Gq44GE44KI44GG
+44Gr44CB5LiL44Gu44Oq44Oz44Kv44KS44Kv44Oq44OD44Kv44GX44Gm6Zai6YCj5oOF5aCx44KS
+44Gn44GN44KL44Gg44GR5pep44GP56K66KqN44GX44Gm44GP44Gg44GV44GE44CCMTLmmYLplpPk
+u6XlhoXjgavnlLPjgZfovrzjgb/jgYzlsYrjgYvjgarjgYTloLTlkIjjgIHjgqLjgqvjgqbjg7Pj
+g4jjga/luLjjgavjgZTkuI3kvr/jgpLjgYrjgYvjgZHjgZfjgabnlLPjgZfoqLPjgZTjgZbjgYTj
+gb7jgZvjgpPjgIINCi0tLS0tLS0tLS0tLS0tDQoNCuOAkOeiuuiqjeOBleOCjOOBn+aDheWgseOA
+kQ0KaHR0cHM6Ly9zLnlhbS5jb20vaVF3a3oNCi0tLS0tLS0tLS0tLS0tLS0tLS0tDQrjgYrllY/j
+gYTlkIjjgo/jgZvlhYgNCiDjgYjjgY3jga3jgaPjgajjgrXjg53jg7zjg4jjgrvjg7Pjgr/jg7wN
+CiBURUwgMDUwLTIwMTYtNTAwMA0KIOWPl+S7mOaZgumWkyA45pmCMDDliIbvvZ4yMuaZgjAw5YiG
+DQog44K144Kk44OI6YGL5Za244O7566h55CGDQogSlLmnbHml6XmnKzjg43jg4Pjg4jjgrnjg4bj
+g7zjgrfjg6fjg7MNCi0tLS0tLS0tLS0tLS0tLS0tLS0tDQoNCuOBk+OBruODoeODvOODq+OBr+OA
+jOOBiOOBjeOBreOBo+OBqOOAjeOCiOOCiuiHquWLlemFjeS/oeOBleOCjOOBpuOBhOOBvuOBmeOA
+gg0K6L+U5L+h44GE44Gf44Gg44GN44G+44GX44Gm44KC5a++5b+c6Ie044GX44GL44Gt44G+44GZ
+44Gu44Gn44CB44GC44KJ44GL44GY44KB44GU5LqG5om/44GP44Gg44GV44GE44CCDQoNCuOBiuW/
+g+W9k+OBn+OCiuOBruOBquOBhOaWueOBr+OAgeiqoOOBq+aBkOOCjOWFpeOCiuOBvuOBmeOBjOOB
+k+OBruODoeODvOODq+OBruWJiumZpOOCkuOBiumhmOOBhOOBhOOBn+OBl+OBvuOBmeOAgg0K44GU
+5LiN5piO44Gq54K544Gu44GC44KL5pa544Gv44CB44GI44GN44Gt44Gj44Go44K144Od44O844OI
+44K744Oz44K/44O844G+44Gn44GU6YCj57Wh44GP44Gg44GV44GE44CCDQogDQo=
 
 
