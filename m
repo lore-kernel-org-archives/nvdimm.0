@@ -1,89 +1,125 @@
-Received: from mail-pf1-f176.google.com (mail-pf1-f176.google.com [209.85.210.176])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48D8220EA
-	for <nvdimm@lists.linux.dev>; Fri, 13 May 2022 03:41:21 +0000 (UTC)
-Received: by mail-pf1-f176.google.com with SMTP id v11so6582123pff.6
-        for <nvdimm@lists.linux.dev>; Thu, 12 May 2022 20:41:21 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=JaD/7HsV0lHA07q8V2RCBkaHsJJjfnySNbAofgOVR+s=;
-        b=c5Kb2dLIuZWvdFJVbRc2JEjzw2B2Dzf6Pnk5QeLzsmOpoGIwIXrpk2u4HDZxZATVcb
-         RQCZB7AVQpilRtH7j3HgXELDOxJYJ9AKnOiXcozN38K+eOYCpZP4eAlTuzhX/IbcCHuF
-         fD3vymdbg+d0WJZH2mnnTf1n84ziyZHJdMP43IJNspQjPgKbCRjFPWCi0TXAHs+tLuGU
-         urDfcdgnspQ7g4DGHkyU07WM4OnHipWnDR8hHhzB2+jand1Ci74ZFyKlmSFQx8u+ZRJl
-         /fHf7uqFlvRKRzQk/sbZFyLyxR/TYYupQSVu7Zpa7xukHKA19d6/I9LAJEHLHh9NSCHf
-         9I6A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=JaD/7HsV0lHA07q8V2RCBkaHsJJjfnySNbAofgOVR+s=;
-        b=j5mxIbFGtdBcVy0kqvdUO9NMUl4OgzHXtaNvwJRCMnVc41YeKlkJGughoW2uZa84vT
-         y1fOlwmo+KZwiLMWhlg/rlY5qHoKLPq2LL+WeU3QReTgGiLmg/G+PtCFNmGnpoatniaC
-         /cLM0HPKdZxSJZzXmpP8HBKtPFaUH1kuASuXsE1LeiLoJDXc8T51THT6+Ruj6yhfrY3L
-         KZvr3MXCgPCXhQ4AOLFQy4Tzgd3UJeLe9swz6og9P3xyfYWPUlvCtOPIUEWz6x40T1nW
-         yM88/AdhuxB+B2mQg9PhcAvttXcY4CEbjkvU7B5rT90yvTKeNCpMBRd/7Dnb9KCToNzw
-         SRHQ==
-X-Gm-Message-State: AOAM531mN1QpaqFWrYW+ake+7FSE8Dct3XKtZCZw0l7KmSWZVdV6L5/q
-	tVBp4D8QZ6Ed9XW32ofKusffJqyjic0f6yadlJWC3w==
-X-Google-Smtp-Source: ABdhPJztXj3NI4LlWRYrTyoHNrGuFPmTDU30zBctcBdUbZiL2txSy8W/riK1TBgLzTUumv2yr+YHO2k/aNd90/TW10s=
-X-Received: by 2002:a63:1117:0:b0:399:2df0:7fb9 with SMTP id
- g23-20020a631117000000b003992df07fb9mr2395090pgl.40.1652413280701; Thu, 12
- May 2022 20:41:20 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E04E62100
+	for <nvdimm@lists.linux.dev>; Fri, 13 May 2022 07:32:02 +0000 (UTC)
+Received: from pps.filterd (m0098394.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 24D71b1a019878;
+	Fri, 13 May 2022 07:07:41 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : subject :
+ from : reply-to : to : cc : date : in-reply-to : references : content-type
+ : mime-version : content-transfer-encoding; s=pp1;
+ bh=5usIPu5pwRStczuoOQfXqmsS+n4fNI0SeK/d+jMIO+g=;
+ b=rRX+WIzPIyHKcXDp5kxqLorzkHZgDQ3r7l+4OfAgGfdHfWxNRjWg5Nj4iAyZ1GjlzfJg
+ oSp88wJs3wuksgo414ii8xzLt7/yo1sOXgAyNDPO3vZepr+OKSIXdZtSqrn1T9RNwGCr
+ oVP/NYAue0lJxJSw94oPjIoG72n6wWuWgwGHID0W2AupolnFjQjv5fTyvD0TdV7wPs/i
+ CKX7aKqEieLAZz+pG+C2bttT/25nJ3RALdcGc8JjgKurQ3t07pY3LN53Qd9oWGN5xzRZ
+ NWZI20Ek/qbrWPJyQ4oOgqV73AkAk+1E5z13cW8h1h8qQrWQC3u3yBXVzJqK4fuaMXow FA== 
+Received: from ppma03ams.nl.ibm.com (62.31.33a9.ip4.static.sl-reverse.com [169.51.49.98])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3g1jk2g3fk-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 13 May 2022 07:07:41 +0000
+Received: from pps.filterd (ppma03ams.nl.ibm.com [127.0.0.1])
+	by ppma03ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 24D70s1p015763;
+	Fri, 13 May 2022 07:07:39 GMT
+Received: from b06cxnps3074.portsmouth.uk.ibm.com (d06relay09.portsmouth.uk.ibm.com [9.149.109.194])
+	by ppma03ams.nl.ibm.com with ESMTP id 3fwgd904ys-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 13 May 2022 07:07:38 +0000
+Received: from b06wcsmtp001.portsmouth.uk.ibm.com (b06wcsmtp001.portsmouth.uk.ibm.com [9.149.105.160])
+	by b06cxnps3074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 24D77ZMH27787722
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Fri, 13 May 2022 07:07:35 GMT
+Received: from b06wcsmtp001.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 99BECA405C;
+	Fri, 13 May 2022 07:07:35 +0000 (GMT)
+Received: from b06wcsmtp001.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 9351FA405B;
+	Fri, 13 May 2022 07:07:33 +0000 (GMT)
+Received: from li-efb8054c-3504-11b2-a85c-ca10df28279e.ibm.com (unknown [9.43.42.168])
+	by b06wcsmtp001.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+	Fri, 13 May 2022 07:07:33 +0000 (GMT)
+Message-ID: <af7c22c28e0ebe16a74f3bf0e0e136b11ca774fb.camel@linux.ibm.com>
+Subject: Re: [PATCH v3 0/2] ndctl/namespace:Fix and improve write-infoblock
+From: Tarun Sahu <tsahu@linux.ibm.com>
+Reply-To: tsahu@linux.ibm.com
+To: nvdimm@lists.linux.dev
+Cc: dan.j.williams@intel.com, vishal.l.verma@intel.com,
+        aneesh.kumar@linux.ibm.com, sbhat@linux.ibm.com, vaibhav@linux.ibm.com
+Date: Fri, 13 May 2022 12:37:32 +0530
+In-Reply-To: <20220426172056.122789-1-tsahu@linux.ibm.com>
+References: <20220426172056.122789-1-tsahu@linux.ibm.com>
+Organization: IBM
+Content-Type: text/plain; charset="UTF-8"
+User-Agent: Evolution 3.42.4 (3.42.4-2.fc35) 
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20220422224508.440670-1-jane.chu@oracle.com> <20220422224508.440670-4-jane.chu@oracle.com>
- <CAPcyv4i7xi=5O=HSeBEzvoLvsmBB_GdEncbasMmYKf3vATNy0A@mail.gmail.com>
- <CAPcyv4id8AbTFpO7ED_DAPren=eJQHwcdY8Mjx18LhW+u4MdNQ@mail.gmail.com>
- <Ynt3WlpcJwuqffDX@zn.tnic> <5aa1c9aacc5a4086a904440641062669@intel.com>
-In-Reply-To: <5aa1c9aacc5a4086a904440641062669@intel.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 12 May 2022 20:41:09 -0700
-Message-ID: <CAPcyv4hOD--eFPX9v4U0iowzQZVfOX2KgNYQU7Cb+WSnZmWpiw@mail.gmail.com>
-Subject: Re: [PATCH v9 3/7] mce: fix set_mce_nospec to always unmap the whole page
-To: "Luck, Tony" <tony.luck@intel.com>
-Cc: Borislav Petkov <bp@alien8.de>, "chu, jane" <jane.chu@oracle.com>, 
-	Christoph Hellwig <hch@infradead.org>, "Hansen, Dave" <dave.hansen@intel.com>, 
-	Peter Zijlstra <peterz@infradead.org>, "Lutomirski, Andy" <luto@kernel.org>, david <david@fromorbit.com>, 
-	"Darrick J. Wong" <djwong@kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, 
-	Linux NVDIMM <nvdimm@lists.linux.dev>, 
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, X86 ML <x86@kernel.org>, 
-	"Verma, Vishal L" <vishal.l.verma@intel.com>, "Jiang, Dave" <dave.jiang@intel.com>, 
-	Alasdair Kergon <agk@redhat.com>, Mike Snitzer <snitzer@redhat.com>, 
-	device-mapper development <dm-devel@redhat.com>, "Weiny, Ira" <ira.weiny@intel.com>, 
-	Matthew Wilcox <willy@infradead.org>, Vivek Goyal <vgoyal@redhat.com>, "Wang, Jue" <juew@google.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: S8OpIb399sUIsPIM-ETFn1APBxjPZT3z
+X-Proofpoint-ORIG-GUID: S8OpIb399sUIsPIM-ETFn1APBxjPZT3z
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.205,Aquarius:18.0.858,Hydra:6.0.486,FMLib:17.11.64.514
+ definitions=2022-05-13_02,2022-05-12_01,2022-02-23_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
+ impostorscore=0 malwarescore=0 spamscore=0 lowpriorityscore=0 bulkscore=0
+ adultscore=0 clxscore=1015 mlxscore=0 phishscore=0 mlxlogscore=557
+ suspectscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2202240000 definitions=main-2205130029
 
-On Wed, May 11, 2022 at 10:17 AM Luck, Tony <tony.luck@intel.com> wrote:
->
-> > I - just like you - am waiting for Tony to say whether he still needs
-> > this whole_page() thing. I already suggested removing it so I'm fine
-> > with this patch.
->
-> IIRC this new patch effectively reverts back to the original behavior that
-> I implemented back at the dawn of time. I.e. just always mark the whole
-> page "not present" and don't try to mess with UC mappings to allow
-> partial (but non-speculative) access to the not-poisoned parts of the
-> page.
->
-> If that is the case ... then Acked-by: Tony Luck <tony.luck@intel.com>
->
-> If I've misunderstood ... then please explain what it is doing.
+Hi,
 
-You are correct. The page is always marked not present as far as the
-page-offlining code is concerned, back to the way it always was.
+Just a gentle reminder, Kindly Let me know if any changes are needed in
+this patchset.
 
-The code in the pmem driver that repairs the page now knows that the
-page is to be kept "not present" until the poison is cleared and
-clear_mce_nospec() returns the mapping to typical write-back caching.
+Thank you,
+Tarun
 
-There is no support for what the UC case previously allowed which was
-reading the good lines around the one bad line, just handle overwrites
-to clear poison and restore access.
+
+On Tue, 2022-04-26 at 22:50 +0530, Tarun Sahu wrote:
+> This series resolves some issues with write-infoblock 
+> command and provide support to write-infoblock for sector 
+> mode namespace
+> 
+> write-infoblock command has issues regarding updating the 
+> align, uuid, parent_uuid. In case of no parameter passed 
+> for it, this command used to overwrite the existing values 
+> with defaults.
+> 
+> In PATCH 1/2 these parameters will be set to their original 
+> values, incase, values hasn't been passed in command 
+> arguments
+> 
+> write-infoblock command doesn't have support for sector/BTT 
+> mode namespaces. They can be converted to fsdax, but can 
+> not be written being in sector mode.
+> 
+> In PATCH 2/2, It creates a functionality which write 
+> infoblock of Sector/BTT namespace. Currently only uuid, 
+> parent_uuid can be updated. In future, Support for other 
+> parameters can easily be integrated in the
+> functionality.
+> 
+> ---
+> v2:
+>   Updated the commit message (rephrasing) in patch 1/2
+>   Moved the ns_info struct to namespace.c from namespace.h
+>   put the results after --- to avoid long commit message
+> 
+> v3:
+>   reformat the commit message to meet 100 column condition
+> 
+> Tarun-Sahu (2):
+>   ndctl/namespace:Fix multiple issues with write-infoblock
+>   ndctl/namespace:Implement write-infoblock for sector mode
+> namespaces
+> 
+>  ndctl/namespace.c | 308 +++++++++++++++++++++++++++++++++-----------
+> --
+>  1 file changed, 225 insertions(+), 83 deletions(-)
+> 
+
