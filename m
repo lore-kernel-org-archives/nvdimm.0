@@ -1,237 +1,105 @@
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f172.google.com (mail-pl1-f172.google.com [209.85.214.172])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 166D67A
-	for <nvdimm@lists.linux.dev>; Fri, 13 May 2022 21:41:19 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1652478080; x=1684014080;
-  h=subject:from:to:cc:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=qAF9zD9EtuX3tbZ+GfTkFflelIxMa30w8V3BNOoliu8=;
-  b=GrMoBh8BlHqbWPJWRG4mWq+2YgAtUV3dXqhDnRBkPFItit6iyPjO1Wcu
-   0hPu2/oG5thZsUTwhbQXEG3zoICpgPE8fQTSm2xy3XYT4gik+F8WpJHZW
-   nxr4BNoRM0leQhpS9ajFQBVjAj+wm4rIa3CrAqBRhRuDWwMiW1TRd7OnF
-   SaNa5r/1M6YY1OAW1PnlOw38mafS+KzbO+HAg6iwgnMh573QLrBWkgqAK
-   ROQzeks3ORUJ7drfXxlg748jYwYDfghbcAEH926lGRNpTFi2ZG8gG7cgv
-   p0DYDUn4MQoqET+YdhwwX8iUDGghVRKKpg1Q/daJJu5l25jRfbKaZyBdW
-   A==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10346"; a="268007686"
-X-IronPort-AV: E=Sophos;i="5.91,223,1647327600"; 
-   d="scan'208";a="268007686"
-Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 May 2022 14:41:19 -0700
-X-IronPort-AV: E=Sophos;i="5.91,223,1647327600"; 
-   d="scan'208";a="554398099"
-Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
-  by orsmga002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 May 2022 14:41:18 -0700
-Subject: [PATCH v10 2/7] x86/mce: relocate set{clear}_mce_nospec() functions
-From: Dan Williams <dan.j.williams@intel.com>
-To: linux-kernel@vger.kernel.org
-Cc: Christoph Hellwig <hch@lst.de>, Jane Chu <jane.chu@oracle.com>,
- Borislav Petkov <bp@suse.de>, x86@kernel.org, nvdimm@lists.linux.dev,
- linux-fsdevel@vger.kernel.org
-Date: Fri, 13 May 2022 14:41:18 -0700
-Message-ID: <165247798860.4117683.4554602198740624216.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20220422224508.440670-3-jane.chu@oracle.com>
-References: <20220422224508.440670-3-jane.chu@oracle.com>
-User-Agent: StGit/0.18-3-g996c
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CC9E257D
+	for <nvdimm@lists.linux.dev>; Fri, 13 May 2022 21:50:50 +0000 (UTC)
+Received: by mail-pl1-f172.google.com with SMTP id i17so9151705pla.10
+        for <nvdimm@lists.linux.dev>; Fri, 13 May 2022 14:50:50 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20210112.gappssmtp.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=iJuobBmIBVSaPMk+qVzEvo4csdqwj8fKf0FwNOb+7M0=;
+        b=hSTJioLxFfDdpKmJuQTSCJBtlSTNQhan5vYhQrx77bAOMLNw1zLzEe2Br0xFAf8gjz
+         /CzK+jK3YXtyOzQtBd+X6jlhTuMj/chjrbeHazEKUXqcl4+UhVP44kpOKxOtQoM1LQ4X
+         kHJVRrLsRQzDlgFtopPZkdMz/eUvATdd6hky18DZrScoyx9WuX4Dg6JAcJAtJb8yOove
+         kU6uQFPrk4rdN532S9aGreECmTpbYeLe7SKoBF577A2UMy4z+ENSH/U8ZgVgBbtMVUax
+         CImMP1I2VdTRuJlHaQQnbtN6G67c+ShUIrQvI0VEOozDIQYEdPDVcnJO437d1bOpQK92
+         0Chg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=iJuobBmIBVSaPMk+qVzEvo4csdqwj8fKf0FwNOb+7M0=;
+        b=QoG8aBsncrtAH0tf9+maHSBeCkdTmXiW9izIut+ld8G61S5eVQJp0uJ3pUI+imSY5S
+         FxI/pgCEftzeV/YDFSahlSSRI7SCq5g0ALj26Sr8jRPIAyTCX53I2baeP/enBU+P3zh2
+         daPXlyIKnFUqQLrC6nevs36ruAUp1urPKMZUJ6fUHWMRDixipFr4GM6tS9wUBTkGuwk8
+         DCvAId0NAgV/r8RgVnG8oC+9IOaXEFXsYhnAWIuPm8/p087btPlsX3vgnn9nnhWwCrUK
+         EyC63rEXA+Gl/Qjjql86g5v18yD7WoLubTEWDuY3fnTtW83X6Azii/gncT75S7mSvezs
+         ZYdg==
+X-Gm-Message-State: AOAM5325DuT+dkXCvQsXg0RxwIfRmbXGXuSVGCF5UzMw3wJ18VXMoXu+
+	ll7mnhqCZlxXNNAKc1i22EE0gVPNRXGniYhS0aIWjA==
+X-Google-Smtp-Source: ABdhPJyU4g+3eCS7Fxllab5e0ETM04Rki3xFhVv7p/mB+jsYuPnBcvUXAfOdh2kWOTGfT3M+MbSh0PFnPgzDvBALmNA=
+X-Received: by 2002:a17:902:ea57:b0:15a:6173:87dd with SMTP id
+ r23-20020a170902ea5700b0015a617387ddmr6665568plg.147.1652478650479; Fri, 13
+ May 2022 14:50:50 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+References: <202205132308.wrD99x33-lkp@intel.com> <4960152c-4bff-4749-1dfa-61f2b2b1fd3f@oracle.com>
+In-Reply-To: <4960152c-4bff-4749-1dfa-61f2b2b1fd3f@oracle.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 13 May 2022 14:50:39 -0700
+Message-ID: <CAPcyv4j4=V_Rhg=oDoMKgVcaOQgoWNBNOu4-F1wwtfxkfn-aRA@mail.gmail.com>
+Subject: Re: [nvdimm:libnvdimm-for-next 8/11] fs/fuse/virtio_fs.c:784:19:
+ error: incompatible function pointer types initializing 'long (*)(struct
+ dax_device *, unsigned long, long, enum dax_access_mode, void **, pfn_t *)'
+ with an expression of type 'long (stru...
+To: Jane Chu <jane.chu@oracle.com>
+Cc: "llvm@lists.linux.dev" <llvm@lists.linux.dev>, Christoph Hellwig <hch@lst.de>, 
+	Linux NVDIMM <nvdimm@lists.linux.dev>, Vivek Goyal <vgoyal@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
 
-From: Jane Chu <jane.chu@oracle.com>
+On Fri, May 13, 2022 at 11:50 AM Jane Chu <jane.chu@oracle.com> wrote:
+>
+> Sorry again, and I'm scratching my head how could my build not complain
+> when I missed this change?
+>
+> diff --git a/fs/fuse/virtio_fs.c b/fs/fuse/virtio_fs.c
+> index 86b7dbb6a0d4..c9faa5f2587c 100644
+> --- a/fs/fuse/virtio_fs.c
+> +++ b/fs/fuse/virtio_fs.c
+> @@ -773,6 +773,8 @@ static int virtio_fs_zero_page_range(struct
+> dax_device *dax_dev,
+>          void *kaddr;
+>
+>          rc = dax_direct_access(dax_dev, pgoff, nr_pages, &kaddr, NULL);
+> +       rc = dax_direct_access(dax_dev, pgoff, nr_pages, DAX_ACCESS,
+> +                       &kaddr, NULL);
+>          if (rc < 0)
+>                  return rc;
+>          memset(kaddr, 0, nr_pages << PAGE_SHIFT);
+>
+> Please let me know if you prefer a patch sent your way.
 
-Relocate the twin mce functions to arch/x86/mm/pat/set_memory.c
-file where they belong.
+Also needed to fixup the virtio_fs_direct_access() function signature:
 
-While at it, fixup a function name in a comment.
-
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Jane Chu <jane.chu@oracle.com>
-Acked-by: Borislav Petkov <bp@suse.de>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
-Changes since v9:
-- fixup a 0day report: "no previous prototype for 'set_mce_nospec'",
-  include linux/set_memory.h in set_memory.c.
-
- arch/x86/include/asm/set_memory.h |   52 -------------------------------------
- arch/x86/mm/pat/set_memory.c      |   51 +++++++++++++++++++++++++++++++++++-
- include/linux/set_memory.h        |    8 +++---
- 3 files changed, 53 insertions(+), 58 deletions(-)
-
-diff --git a/arch/x86/include/asm/set_memory.h b/arch/x86/include/asm/set_memory.h
-index 78ca53512486..b45c4d27fd46 100644
---- a/arch/x86/include/asm/set_memory.h
-+++ b/arch/x86/include/asm/set_memory.h
-@@ -86,56 +86,4 @@ bool kernel_page_present(struct page *page);
- 
- extern int kernel_set_to_readonly;
- 
--#ifdef CONFIG_X86_64
--/*
-- * Prevent speculative access to the page by either unmapping
-- * it (if we do not require access to any part of the page) or
-- * marking it uncacheable (if we want to try to retrieve data
-- * from non-poisoned lines in the page).
-- */
--static inline int set_mce_nospec(unsigned long pfn, bool unmap)
--{
--	unsigned long decoy_addr;
--	int rc;
--
--	/* SGX pages are not in the 1:1 map */
--	if (arch_is_platform_page(pfn << PAGE_SHIFT))
--		return 0;
--	/*
--	 * We would like to just call:
--	 *      set_memory_XX((unsigned long)pfn_to_kaddr(pfn), 1);
--	 * but doing that would radically increase the odds of a
--	 * speculative access to the poison page because we'd have
--	 * the virtual address of the kernel 1:1 mapping sitting
--	 * around in registers.
--	 * Instead we get tricky.  We create a non-canonical address
--	 * that looks just like the one we want, but has bit 63 flipped.
--	 * This relies on set_memory_XX() properly sanitizing any __pa()
--	 * results with __PHYSICAL_MASK or PTE_PFN_MASK.
--	 */
--	decoy_addr = (pfn << PAGE_SHIFT) + (PAGE_OFFSET ^ BIT(63));
--
--	if (unmap)
--		rc = set_memory_np(decoy_addr, 1);
--	else
--		rc = set_memory_uc(decoy_addr, 1);
--	if (rc)
--		pr_warn("Could not invalidate pfn=0x%lx from 1:1 map\n", pfn);
--	return rc;
--}
--#define set_mce_nospec set_mce_nospec
--
--/* Restore full speculative operation to the pfn. */
--static inline int clear_mce_nospec(unsigned long pfn)
--{
--	return set_memory_wb((unsigned long) pfn_to_kaddr(pfn), 1);
--}
--#define clear_mce_nospec clear_mce_nospec
--#else
--/*
-- * Few people would run a 32-bit kernel on a machine that supports
-- * recoverable errors because they have too much memory to boot 32-bit.
-- */
--#endif
--
- #endif /* _ASM_X86_SET_MEMORY_H */
-diff --git a/arch/x86/mm/pat/set_memory.c b/arch/x86/mm/pat/set_memory.c
-index abf5ed76e4b7..8297cf82c613 100644
---- a/arch/x86/mm/pat/set_memory.c
-+++ b/arch/x86/mm/pat/set_memory.c
-@@ -19,6 +19,7 @@
- #include <linux/vmstat.h>
- #include <linux/kernel.h>
- #include <linux/cc_platform.h>
-+#include <linux/set_memory.h>
- 
- #include <asm/e820/api.h>
- #include <asm/processor.h>
-@@ -29,7 +30,6 @@
- #include <asm/pgalloc.h>
- #include <asm/proto.h>
- #include <asm/memtype.h>
--#include <asm/set_memory.h>
- #include <asm/hyperv-tlfs.h>
- #include <asm/mshyperv.h>
- 
-@@ -1816,7 +1816,7 @@ static inline int cpa_clear_pages_array(struct page **pages, int numpages,
- }
- 
- /*
-- * _set_memory_prot is an internal helper for callers that have been passed
-+ * __set_memory_prot is an internal helper for callers that have been passed
-  * a pgprot_t value from upper layers and a reservation has already been taken.
-  * If you want to set the pgprot to a specific page protocol, use the
-  * set_memory_xx() functions.
-@@ -1925,6 +1925,53 @@ int set_memory_wb(unsigned long addr, int numpages)
- }
- EXPORT_SYMBOL(set_memory_wb);
- 
-+/*
-+ * Prevent speculative access to the page by either unmapping
-+ * it (if we do not require access to any part of the page) or
-+ * marking it uncacheable (if we want to try to retrieve data
-+ * from non-poisoned lines in the page).
-+ */
-+int set_mce_nospec(unsigned long pfn, bool unmap)
-+{
-+	unsigned long decoy_addr;
-+	int rc;
-+
-+	if (!IS_ENABLED(CONFIG_64BIT))
-+		return 0;
-+
-+	/* SGX pages are not in the 1:1 map */
-+	if (arch_is_platform_page(pfn << PAGE_SHIFT))
-+		return 0;
-+	/*
-+	 * We would like to just call:
-+	 *      set_memory_XX((unsigned long)pfn_to_kaddr(pfn), 1);
-+	 * but doing that would radically increase the odds of a
-+	 * speculative access to the poison page because we'd have
-+	 * the virtual address of the kernel 1:1 mapping sitting
-+	 * around in registers.
-+	 * Instead we get tricky.  We create a non-canonical address
-+	 * that looks just like the one we want, but has bit 63 flipped.
-+	 * This relies on set_memory_XX() properly sanitizing any __pa()
-+	 * results with __PHYSICAL_MASK or PTE_PFN_MASK.
-+	 */
-+	decoy_addr = (pfn << PAGE_SHIFT) + (PAGE_OFFSET ^ BIT(63));
-+
-+	if (unmap)
-+		rc = set_memory_np(decoy_addr, 1);
-+	else
-+		rc = set_memory_uc(decoy_addr, 1);
-+	if (rc)
-+		pr_warn("Could not invalidate pfn=0x%lx from 1:1 map\n", pfn);
-+	return rc;
-+}
-+
-+/* Restore full speculative operation to the pfn. */
-+int clear_mce_nospec(unsigned long pfn)
-+{
-+	return set_memory_wb((unsigned long) pfn_to_kaddr(pfn), 1);
-+}
-+EXPORT_SYMBOL_GPL(clear_mce_nospec);
-+
- int set_memory_x(unsigned long addr, int numpages)
+diff --git a/fs/fuse/virtio_fs.c b/fs/fuse/virtio_fs.c
+index 86b7dbb6a0d4..8db53fa67359 100644
+--- a/fs/fuse/virtio_fs.c
++++ b/fs/fuse/virtio_fs.c
+@@ -752,7 +752,8 @@ static void virtio_fs_cleanup_vqs(struct
+virtio_device *vdev,
+  * offset.
+  */
+ static long virtio_fs_direct_access(struct dax_device *dax_dev, pgoff_t pgoff,
+-                                   long nr_pages, void **kaddr, pfn_t *pfn)
++                                   long nr_pages, enum dax_access_mode mode,
++                                   void **kaddr, pfn_t *pfn)
  {
- 	if (!(__supported_pte_mask & _PAGE_NX))
-diff --git a/include/linux/set_memory.h b/include/linux/set_memory.h
-index f36be5166c19..683a6c3f7179 100644
---- a/include/linux/set_memory.h
-+++ b/include/linux/set_memory.h
-@@ -42,14 +42,14 @@ static inline bool can_set_direct_map(void)
- #endif
- #endif /* CONFIG_ARCH_HAS_SET_DIRECT_MAP */
- 
--#ifndef set_mce_nospec
-+#ifdef CONFIG_X86_64
-+int set_mce_nospec(unsigned long pfn, bool unmap);
-+int clear_mce_nospec(unsigned long pfn);
-+#else
- static inline int set_mce_nospec(unsigned long pfn, bool unmap)
- {
- 	return 0;
- }
--#endif
--
--#ifndef clear_mce_nospec
- static inline int clear_mce_nospec(unsigned long pfn)
- {
- 	return 0;
+        struct virtio_fs *fs = dax_get_private(dax_dev);
+        phys_addr_t offset = PFN_PHYS(pgoff);
+@@ -772,7 +773,8 @@ static int virtio_fs_zero_page_range(struct
+dax_device *dax_dev,
+        long rc;
+        void *kaddr;
 
+-       rc = dax_direct_access(dax_dev, pgoff, nr_pages, &kaddr, NULL);
++       rc = dax_direct_access(dax_dev, pgoff, nr_pages, DAX_ACCESS, &kaddr,
++                              NULL);
+        if (rc < 0)
+                return rc;
+        memset(kaddr, 0, nr_pages << PAGE_SHIFT);
