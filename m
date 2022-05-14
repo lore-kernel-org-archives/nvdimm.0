@@ -1,187 +1,227 @@
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lf1-f44.google.com (mail-lf1-f44.google.com [209.85.167.44])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 209937A
-	for <nvdimm@lists.linux.dev>; Fri, 13 May 2022 22:13:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1652480002; x=1684016002;
-  h=subject:from:to:cc:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=tp29QKBC0TkkWxqN6GFsZPZItezTnUJxKUUuesmJmVE=;
-  b=meZ8628LzK06YqI0MbQts/Qka0mE13aygG4yxFqlfWR/v85hfS5s1Lc+
-   oU9gdqD6VSQzB9SmmHTrYIho4+OcNYvzREtw4ZOtB61COs/vwxlWKY33D
-   tqHsdF3LeHd6fzWS/eshTw9syfDKlymw1jhBDH3blX5cF/K3ejj4apu9l
-   f33oLzs51G+xM/xrLw7qfC5BOO2c9f6vfAzhMRmuVRMUJNshXK/aFZIRl
-   d0tNodrFrqAj6vSDoCa+SFd+62u6KrBLoTIZ4xGdVNWAU5JsDIU0V1Px1
-   w9rv5cYQxUdTNVHF4ff5Mw4Qs47ZEbEbradUpKvr+I46+kqlq3YRe2Rjl
-   A==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10346"; a="270095935"
-X-IronPort-AV: E=Sophos;i="5.91,223,1647327600"; 
-   d="scan'208";a="270095935"
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 May 2022 15:13:21 -0700
-X-IronPort-AV: E=Sophos;i="5.91,223,1647327600"; 
-   d="scan'208";a="659299630"
-Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
-  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 May 2022 15:13:20 -0700
-Subject: [PATCH v10 7/7] pmem: implement pmem_recovery_write()
-From: Dan Williams <dan.j.williams@intel.com>
-To: linux-kernel@vger.kernel.org
-Cc: Jane Chu <jane.chu@oracle.com>, Christoph Hellwig <hch@lst.de>,
- nvdimm@lists.linux.dev
-Date: Fri, 13 May 2022 15:13:20 -0700
-Message-ID: <165247997655.53156.8381418704988035976.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <20220422224508.440670-8-jane.chu@oracle.com>
-References: <20220422224508.440670-8-jane.chu@oracle.com>
-User-Agent: StGit/0.18-3-g996c
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C27077A
+	for <nvdimm@lists.linux.dev>; Sat, 14 May 2022 14:26:24 +0000 (UTC)
+Received: by mail-lf1-f44.google.com with SMTP id u23so18988979lfc.1
+        for <nvdimm@lists.linux.dev>; Sat, 14 May 2022 07:26:24 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=openvz-org.20210112.gappssmtp.com; s=20210112;
+        h=message-id:date:mime-version:user-agent:from:subject:to:cc
+         :content-language:content-transfer-encoding;
+        bh=Li6/tQDXHzv8kZiOpKUQD1TPJCVlsntTcNVJC7DZIzE=;
+        b=Kotfmd59T2vwKoH6qJP7H7l9uJqBl4fvklMdaJmEksj2Hc2/NE0Q/bFCFcQRipTg50
+         gWoPxS8tp+9YBXdLbEdFKp4dNu3+ECSYOiv3E63hYcBSm4oEHOtgE1TIAjkYkXu4c0zV
+         QFoLt5LtKLO/qBTEJ0e566ZyqeuGymbwkbwq1HnmkuMnOzDvFvrJRKmYmhD5tD1gwleZ
+         KBvcKVuZZlEFwkqsdsTIzRn9ByRm81I5XWGw0FrSFGjv25l1dzLHqhMwD+XSV3hTE6lQ
+         ssPP6XT1mDkzEUND+/7zc84awYm1BczkR73aLT5GUdQHzSsgP2RYrAJiTAODHffOGiz9
+         Ytzg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:message-id:date:mime-version:user-agent:from
+         :subject:to:cc:content-language:content-transfer-encoding;
+        bh=Li6/tQDXHzv8kZiOpKUQD1TPJCVlsntTcNVJC7DZIzE=;
+        b=deamPDfrRg/QJ/m3OSWHC3AgHTQ57RENY2U1XLgSxqfXHDNJAVffbu4GxervO5KrCE
+         4V8l6CoMJZrtoOXIiwguKv1nfFDxvsFf3Mporim5aPYsvVB6v7Hl8pF++nuk75+/Z6bi
+         7VTXxgunlPJRcUulUuZH40+dwfChoYSVwXgcHfPKLqQCthWZ1dO5F8wyzyM88aQV1oBk
+         JkrieGMirzvuTRCX4+0Rg3VWwG9JdzcOxGqgtd1A1gIifCzSdkUGHgTjSirEkIvp8h0q
+         M6nWBzzPKGQ5QU0FNA9N9z59CprGrOK5XgE6iJESX+ac6GqBogiqjQUPuLGqmGKcMfRs
+         qkMA==
+X-Gm-Message-State: AOAM533ic93cXEZGVM5+mkz03BPNDgKHGtAnh5x0mV4HQraXiYNccvHg
+	OpT7jXG4BKMk92LouTZK8vjB9Q==
+X-Google-Smtp-Source: ABdhPJx20/rdz5gh/QUmWaR3qdzEbffKnh5fGQECoYVJthQjwM0Qnnpm5/Eygnyzr8pA3B6MQmmy/A==
+X-Received: by 2002:a05:6512:a92:b0:45c:6b70:c892 with SMTP id m18-20020a0565120a9200b0045c6b70c892mr1034464lfu.124.1652538382834;
+        Sat, 14 May 2022 07:26:22 -0700 (PDT)
+Received: from [192.168.1.65] ([46.188.121.177])
+        by smtp.gmail.com with ESMTPSA id d15-20020ac25ecf000000b0047255d210f7sm727847lfq.38.2022.05.14.07.26.21
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sat, 14 May 2022 07:26:22 -0700 (PDT)
+Message-ID: <cf47f8c3-c4f3-7f80-ce17-ed9fbc7fe424@openvz.org>
+Date: Sat, 14 May 2022 17:26:21 +0300
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.8.1
+From: Vasily Averin <vvs@openvz.org>
+Subject: [PATCH] sparse: use force attribute for vm_fault_t casts
+To: Dan Williams <dan.j.williams@intel.com>,
+ Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
+ Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: kernel@openvz.org, linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
+ linux-fsdevel@vger.kernel.org
+Content-Language: en-US
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-From: Jane Chu <jane.chu@oracle.com>
+Fixes sparse warnings:
+./include/trace/events/fs_dax.h:10:1: sparse:
+    got restricted vm_fault_t
+./include/trace/events/fs_dax.h:153:1: sparse:
+    got restricted vm_fault_t
+fs/dax.c:563:39: sparse:    got restricted vm_fault_t
+fs/dax.c:565:39: sparse:    got restricted vm_fault_t
+fs/dax.c:569:31: sparse:    got restricted vm_fault_t
+fs/dax.c:1055:41: sparse:
+    got restricted vm_fault_t [assigned] [usertype] ret
+fs/dax.c:1461:46: sparse:    got restricted vm_fault_t [usertype] ret
+fs/dax.c:1477:21: sparse:
+    expected restricted vm_fault_t [assigned] [usertype] ret
+fs/dax.c:1518:51: sparse:
+    got restricted vm_fault_t [assigned] [usertype] ret
+fs/dax.c:1599:21: sparse:
+    expected restricted vm_fault_t [assigned] [usertype] ret
+fs/dax.c:1633:62: sparse:
+    got restricted vm_fault_t [assigned] [usertype] ret
+fs/dax.c:1696:55: sparse:    got restricted vm_fault_t
+fs/dax.c:1711:58: sparse:
+    got restricted vm_fault_t [assigned] [usertype] ret
 
-The recovery write thread started out as a normal pwrite thread and
-when the filesystem was told about potential media error in the
-range, filesystem turns the normal pwrite to a dax_recovery_write.
+vm_fault_t type is bitwise and requires __force attribute for any casts.
 
-The recovery write consists of clearing media poison, clearing page
-HWPoison bit, reenable page-wide read-write permission, flush the
-caches and finally write.  A competing pread thread will be held
-off during the recovery process since data read back might not be
-valid, and this is achieved by clearing the badblock records after
-the recovery write is complete. Competing recovery write threads
-are already serialized by writer lock held by dax_iomap_rw().
-
-Signed-off-by: Jane Chu <jane.chu@oracle.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vasily Averin <vvs@openvz.org>
 ---
-Changes since v9:
-- Fixup compile warnings in debug messages
+ fs/dax.c                 | 22 +++++++++++-----------
+ include/linux/mm_types.h | 30 ++++++++++++++++--------------
+ 2 files changed, 27 insertions(+), 25 deletions(-)
 
- drivers/nvdimm/pmem.c |   87 ++++++++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 79 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 0961625dfa05..6b24ecada695 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -266,21 +266,43 @@ __weak long __pmem_direct_access(struct pmem_device *pmem, pgoff_t pgoff,
- 		pfn_t *pfn)
- {
- 	resource_size_t offset = PFN_PHYS(pgoff) + pmem->data_offset;
--
--	if (unlikely(is_bad_pmem(&pmem->bb, PFN_PHYS(pgoff) / 512,
--					PFN_PHYS(nr_pages))))
--		return -EIO;
-+	sector_t sector = PFN_PHYS(pgoff) >> SECTOR_SHIFT;
-+	unsigned int num = PFN_PHYS(nr_pages) >> SECTOR_SHIFT;
-+	struct badblocks *bb = &pmem->bb;
-+	sector_t first_bad;
-+	int num_bad;
+diff --git a/fs/dax.c b/fs/dax.c
+index 67a08a32fccb..eb1a1808f719 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -560,13 +560,13 @@ static void *grab_mapping_entry(struct xa_state *xas,
+ 	if (xas_nomem(xas, mapping_gfp_mask(mapping) & ~__GFP_HIGHMEM))
+ 		goto retry;
+ 	if (xas->xa_node == XA_ERROR(-ENOMEM))
+-		return xa_mk_internal(VM_FAULT_OOM);
++		return xa_mk_internal((__force unsigned long)VM_FAULT_OOM);
+ 	if (xas_error(xas))
+-		return xa_mk_internal(VM_FAULT_SIGBUS);
++		return xa_mk_internal((__force unsigned long)VM_FAULT_SIGBUS);
+ 	return entry;
+ fallback:
+ 	xas_unlock_irq(xas);
+-	return xa_mk_internal(VM_FAULT_FALLBACK);
++	return xa_mk_internal((__force unsigned long)VM_FAULT_FALLBACK);
+ }
  
- 	if (kaddr)
- 		*kaddr = pmem->virt_addr + offset;
- 	if (pfn)
- 		*pfn = phys_to_pfn_t(pmem->phys_addr + offset, pmem->pfn_flags);
+ /**
+@@ -1052,7 +1052,7 @@ static vm_fault_t dax_load_hole(struct xa_state *xas,
+ 			DAX_ZERO_PAGE, false);
  
-+	if (bb->count &&
-+	    badblocks_check(bb, sector, num, &first_bad, &num_bad)) {
-+		long actual_nr;
-+
-+		if (mode != DAX_RECOVERY_WRITE)
-+			return -EIO;
-+
-+		/*
-+		 * Set the recovery stride is set to kernel page size because
-+		 * the underlying driver and firmware clear poison functions
-+		 * don't appear to handle large chunk(such as 2MiB) reliably.
-+		 */
-+		actual_nr = PHYS_PFN(
-+			PAGE_ALIGN((first_bad - sector) << SECTOR_SHIFT));
-+		dev_dbg(pmem->bb.dev, "start sector(%llu), nr_pages(%ld), first_bad(%llu), actual_nr(%ld)\n",
-+				sector, nr_pages, first_bad, actual_nr);
-+		if (actual_nr)
-+			return actual_nr;
-+		return 1;
-+	}
-+
+ 	ret = vmf_insert_mixed(vmf->vma, vaddr, pfn);
+-	trace_dax_load_hole(inode, vmf, ret);
++	trace_dax_load_hole(inode, vmf, (__force int)ret);
+ 	return ret;
+ }
+ 
+@@ -1458,7 +1458,7 @@ static vm_fault_t dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 	void *entry;
+ 	int error;
+ 
+-	trace_dax_pte_fault(iter.inode, vmf, ret);
++	trace_dax_pte_fault(iter.inode, vmf, (__force int)ret);
  	/*
--	 * If badblocks are present, limit known good range to the
--	 * requested range.
-+	 * If badblocks are present but not in the range, limit known good range
-+	 * to the requested range.
+ 	 * Check whether offset isn't beyond end of file now. Caller is supposed
+ 	 * to hold locks serializing us with truncate / punch hole so this is
+@@ -1474,7 +1474,7 @@ static vm_fault_t dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 
+ 	entry = grab_mapping_entry(&xas, mapping, 0);
+ 	if (xa_is_internal(entry)) {
+-		ret = xa_to_internal(entry);
++		ret = (__force vm_fault_t)xa_to_internal(entry);
+ 		goto out;
+ 	}
+ 
+@@ -1515,7 +1515,7 @@ static vm_fault_t dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ unlock_entry:
+ 	dax_unlock_entry(&xas, entry);
+ out:
+-	trace_dax_pte_fault_done(iter.inode, vmf, ret);
++	trace_dax_pte_fault_done(iter.inode, vmf, (__force int)ret);
+ 	return ret;
+ }
+ 
+@@ -1596,7 +1596,7 @@ static vm_fault_t dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
  	 */
--	if (unlikely(pmem->bb.count))
-+	if (bb->count)
- 		return nr_pages;
- 	return PHYS_PFN(pmem->size - pmem->pfn_pad - offset);
+ 	entry = grab_mapping_entry(&xas, mapping, PMD_ORDER);
+ 	if (xa_is_internal(entry)) {
+-		ret = xa_to_internal(entry);
++		ret = (__force vm_fault_t)xa_to_internal(entry);
+ 		goto fallback;
+ 	}
+ 
+@@ -1630,7 +1630,7 @@ static vm_fault_t dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 		count_vm_event(THP_FAULT_FALLBACK);
+ 	}
+ out:
+-	trace_dax_pmd_fault_done(iter.inode, vmf, max_pgoff, ret);
++	trace_dax_pmd_fault_done(iter.inode, vmf, max_pgoff, (__force int)ret);
+ 	return ret;
  }
-@@ -310,10 +332,59 @@ static long pmem_dax_direct_access(struct dax_device *dax_dev,
- 	return __pmem_direct_access(pmem, pgoff, nr_pages, mode, kaddr, pfn);
+ #else
+@@ -1693,7 +1693,7 @@ dax_insert_pfn_mkwrite(struct vm_fault *vmf, pfn_t pfn, unsigned int order)
+ 		put_unlocked_entry(&xas, entry, WAKE_NEXT);
+ 		xas_unlock_irq(&xas);
+ 		trace_dax_insert_pfn_mkwrite_no_entry(mapping->host, vmf,
+-						      VM_FAULT_NOPAGE);
++						      (__force int)VM_FAULT_NOPAGE);
+ 		return VM_FAULT_NOPAGE;
+ 	}
+ 	xas_set_mark(&xas, PAGECACHE_TAG_DIRTY);
+@@ -1708,7 +1708,7 @@ dax_insert_pfn_mkwrite(struct vm_fault *vmf, pfn_t pfn, unsigned int order)
+ 	else
+ 		ret = VM_FAULT_FALLBACK;
+ 	dax_unlock_entry(&xas, entry);
+-	trace_dax_insert_pfn_mkwrite(mapping->host, vmf, ret);
++	trace_dax_insert_pfn_mkwrite(mapping->host, vmf, (__force int)ret);
+ 	return ret;
  }
  
-+/*
-+ * The recovery write thread started out as a normal pwrite thread and
-+ * when the filesystem was told about potential media error in the
-+ * range, filesystem turns the normal pwrite to a dax_recovery_write.
-+ *
-+ * The recovery write consists of clearing media poison, clearing page
-+ * HWPoison bit, reenable page-wide read-write permission, flush the
-+ * caches and finally write.  A competing pread thread will be held
-+ * off during the recovery process since data read back might not be
-+ * valid, and this is achieved by clearing the badblock records after
-+ * the recovery write is complete. Competing recovery write threads
-+ * are already serialized by writer lock held by dax_iomap_rw().
-+ */
- static size_t pmem_recovery_write(struct dax_device *dax_dev, pgoff_t pgoff,
- 		void *addr, size_t bytes, struct iov_iter *i)
- {
--	return 0;
-+	struct pmem_device *pmem = dax_get_private(dax_dev);
-+	size_t olen, len, off;
-+	phys_addr_t pmem_off;
-+	struct device *dev = pmem->bb.dev;
-+	long cleared;
-+
-+	off = offset_in_page(addr);
-+	len = PFN_PHYS(PFN_UP(off + bytes));
-+	if (!is_bad_pmem(&pmem->bb, PFN_PHYS(pgoff) >> SECTOR_SHIFT, len))
-+		return _copy_from_iter_flushcache(addr, bytes, i);
-+
-+	/*
-+	 * Not page-aligned range cannot be recovered. This should not
-+	 * happen unless something else went wrong.
-+	 */
-+	if (off || !PAGE_ALIGNED(bytes)) {
-+		dev_dbg(dev, "Found poison, but addr(%p) or bytes(%#zx) not page aligned\n",
-+			addr, bytes);
-+		return 0;
-+	}
-+
-+	pmem_off = PFN_PHYS(pgoff) + pmem->data_offset;
-+	cleared = __pmem_clear_poison(pmem, pmem_off, len);
-+	if (cleared > 0 && cleared < len) {
-+		dev_dbg(dev, "poison cleared only %ld out of %zu bytes\n",
-+			cleared, len);
-+		return 0;
-+	}
-+	if (cleared < 0) {
-+		dev_dbg(dev, "poison clear failed: %ld\n", cleared);
-+		return 0;
-+	}
-+
-+	olen = _copy_from_iter_flushcache(addr, bytes, i);
-+	pmem_clear_bb(pmem, to_sect(pmem, pmem_off), cleared >> SECTOR_SHIFT);
-+
-+	return olen;
- }
+diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
+index 8834e38c06a4..57cc4918b1b1 100644
+--- a/include/linux/mm_types.h
++++ b/include/linux/mm_types.h
+@@ -745,20 +745,22 @@ enum vm_fault_reason {
+ 			VM_FAULT_SIGSEGV | VM_FAULT_HWPOISON |	\
+ 			VM_FAULT_HWPOISON_LARGE | VM_FAULT_FALLBACK)
  
- static const struct dax_operations pmem_dax_ops = {
+-#define VM_FAULT_RESULT_TRACE \
+-	{ VM_FAULT_OOM,                 "OOM" },	\
+-	{ VM_FAULT_SIGBUS,              "SIGBUS" },	\
+-	{ VM_FAULT_MAJOR,               "MAJOR" },	\
+-	{ VM_FAULT_WRITE,               "WRITE" },	\
+-	{ VM_FAULT_HWPOISON,            "HWPOISON" },	\
+-	{ VM_FAULT_HWPOISON_LARGE,      "HWPOISON_LARGE" },	\
+-	{ VM_FAULT_SIGSEGV,             "SIGSEGV" },	\
+-	{ VM_FAULT_NOPAGE,              "NOPAGE" },	\
+-	{ VM_FAULT_LOCKED,              "LOCKED" },	\
+-	{ VM_FAULT_RETRY,               "RETRY" },	\
+-	{ VM_FAULT_FALLBACK,            "FALLBACK" },	\
+-	{ VM_FAULT_DONE_COW,            "DONE_COW" },	\
+-	{ VM_FAULT_NEEDDSYNC,           "NEEDDSYNC" }
++#define faultflag_string(flag) {(__force unsigned long)VM_FAULT_##flag, #flag}
++
++#define VM_FAULT_RESULT_TRACE			\
++	faultflag_string(OOM),			\
++	faultflag_string(SIGBUS),		\
++	faultflag_string(MAJOR),		\
++	faultflag_string(WRITE),		\
++	faultflag_string(HWPOISON),		\
++	faultflag_string(HWPOISON_LARGE),	\
++	faultflag_string(SIGSEGV),		\
++	faultflag_string(NOPAGE),		\
++	faultflag_string(LOCKED),		\
++	faultflag_string(RETRY),		\
++	faultflag_string(FALLBACK),		\
++	faultflag_string(DONE_COW),		\
++	faultflag_string(NEEDDSYNC)
+ 
+ struct vm_special_mapping {
+ 	const char *name;	/* The name, e.g. "[vdso]". */
+-- 
+2.31.1
 
