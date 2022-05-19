@@ -1,82 +1,133 @@
-Received: from mail-pf1-f178.google.com (mail-pf1-f178.google.com [209.85.210.178])
+Received: from mail-pj1-f51.google.com (mail-pj1-f51.google.com [209.85.216.51])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE6E023AC
-	for <nvdimm@lists.linux.dev>; Thu, 19 May 2022 05:09:19 +0000 (UTC)
-Received: by mail-pf1-f178.google.com with SMTP id w200so4118301pfc.10
-        for <nvdimm@lists.linux.dev>; Wed, 18 May 2022 22:09:19 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFB652904
+	for <nvdimm@lists.linux.dev>; Thu, 19 May 2022 17:25:34 +0000 (UTC)
+Received: by mail-pj1-f51.google.com with SMTP id l7-20020a17090aaa8700b001dd1a5b9965so5842733pjq.2
+        for <nvdimm@lists.linux.dev>; Thu, 19 May 2022 10:25:34 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=98eExJmW4CvEKtY59mnP3Y/Ym1dtBxRsqatQZZ+JrsE=;
-        b=a7sYXQjPMfQzah39v1TrKWM74noSYC4U93pdcytKPTSAPZHaSMFeh6MO5a70qhYq7J
-         vqeUfanwMjC+3Ofp4OsgTCyE+RH/Iat9mOHdTv03SR7xzpISwaAtOTYTvrBplRD9KBcF
-         NfhUgAUMWXSQLvG+qW0Jm7GBkNP5JYKAcsC1AR1t1ASDWGIuyZhzldB2m5jjIUYusoXk
-         TWvXj4RcxegBTqT9127WByzDKE9n2x7lRClXNvQqbhL9/YRaDemt6RtmPa2aXa621W2Y
-         R+QDM0ZfMdRY7bPve3ZWfEfChBIgOFfJ+F0vYOrdavxpvEyCK/0L0oimLsH7PyHUkR8n
-         fo2g==
+        d=gmail.com; s=20210112;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=2QRd1Hj7z8PQ6OGAWnpJxYHyy9vDcMOmiRfmbwhyjgQ=;
+        b=hRwvBgiXo+VzZn4+ZMIuphIGy3cRF1TZwhoAN7s4erqo0CFUk1qb6ydVp88d+2ipZi
+         yJUJi0Vh+xqciOv/aQqybtbFA0SnHgW11kIpK7xCdSLq/JtOf56mzXpce/OevP5i8ryj
+         RpxcKm3CLN2X/5r7tX2qLHOrtwgaScLaFuzYtEEMVLbqgiN74TV36cmO3hF12CqtCQ9C
+         DaNjTFnJRzNK8zou/DzS9HANilhYaiwS4DrM4QaSv9VKBFLV3uzkMAxedajyr7YJS54O
+         mz5s5WeLD5t36bFXc3CHmj6/16zZj8DfbVv8OsRa3DOkYQT1g2sPgZL2y5nd/1mksJZS
+         GRUA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=98eExJmW4CvEKtY59mnP3Y/Ym1dtBxRsqatQZZ+JrsE=;
-        b=NUH2MFqlXpQqwFj8+fhFBiUR9W6N5wb/MDZum4GH00A+rwPmzUAb/MW+2WwdVYcWCe
-         xCE3V9d2jm/7Z4gF82t5GKOejXG+FvMn04g9zcqNaoe76/EwKWdZ4NpYf0Vygsxfm/D4
-         xvCJWd7A57i8YO/dufGPUM4bo4IZ+DVUS1A69y3ssiFx+uXuwcTHXuRtZAA9I2XHwD/z
-         dhzCAUi2eXWKVq0EZagr/i4PyL4ll+K8yuZ6hyZh9N/yzVVOWE6qRxaWJ+7iD8N9AJnc
-         hjYbyp9jue7qfylNWAC5lvwcyqoCW1RZH29A1s0NqcaL7Js6CSB96gD/KK5R0/u6jbft
-         t6Ug==
-X-Gm-Message-State: AOAM533C6mVJ9H4i3ROTl1Sov7ntKFb4I1LSfbiHpUZKdErSySo2pvLe
-	kQFXBeWKa/iPQxv6l/FmqVJxJ8h/5h4ER0GC5s6lHA==
-X-Google-Smtp-Source: ABdhPJygLxvh9MesiDEmxvUfVw0qVDPGMgmrGCvuMSGdvcf6MoDuUElKbtA2K4vJ7FB0j2ydMFCKHE2bqi5xa10MlCI=
-X-Received: by 2002:a63:5610:0:b0:3f2:7e19:1697 with SMTP id
- k16-20020a635610000000b003f27e191697mr2465804pgb.74.1652936959213; Wed, 18
- May 2022 22:09:19 -0700 (PDT)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=2QRd1Hj7z8PQ6OGAWnpJxYHyy9vDcMOmiRfmbwhyjgQ=;
+        b=VnQ4JVO9T9mnHAMpeNrwktdV/U5alY6rGyMavyQmyTVRUtCX6LwhJvTmIbUD//tDT0
+         Pi2D2WaAnm3pfvrLokZCMEv/knz0CbqBVrhPmEiPoskWadeBffDf2QkMFHXMbfs5AXqe
+         CmlTivrf4RMiGUBLlfc62IelxdHYRcRdrhx5EXwg6VxwNov2Qte1J+s8bxyrvElla7jq
+         dCkqSLvfMDrF6NAifU03s8vtHfo0pCZ09jxKEhKhNmXkqXQqx3TV655uDte3GO5CSTz2
+         NoJvIYw6HM+5Wg2Dq35dFnANylxkaXH6DdbAUJ09g/XQGe0Z1Q99V/79OZ72jaj5DfR8
+         q0QA==
+X-Gm-Message-State: AOAM533hjIx4FX5uLuzrnsT+DPy4t3kl7/rkvocTRIigGVA/GMY7pwPu
+	zeRRV/InGbb1bXYCbGM4Gg==
+X-Google-Smtp-Source: ABdhPJwilFeifO0CVAPkBmNZUYBAAIobtr791UrG2yrXWCxaxjHkGeXGvgtvvCY54ifcmkoBoEresA==
+X-Received: by 2002:a17:90b:3e8b:b0:1dc:e471:1a69 with SMTP id rj11-20020a17090b3e8b00b001dce4711a69mr6878682pjb.60.1652981134105;
+        Thu, 19 May 2022 10:25:34 -0700 (PDT)
+Received: from zaphod.evilpiepirate.org (068-119-229-002.res.spectrum.com. [68.119.229.2])
+        by smtp.gmail.com with ESMTPSA id y4-20020a655a04000000b003c6ab6ba06csm3859126pgs.79.2022.05.19.10.25.32
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 19 May 2022 10:25:33 -0700 (PDT)
+From: Kent Overstreet <kent.overstreet@gmail.com>
+To: linux-kernel@vger.kernel.org,
+	linux-mm@vger.kernel.org,
+	pmladek@suse.com,
+	rostedt@goodmis.org,
+	senozhatsky@chromium.org
+Cc: Kent Overstreet <kent.overstreet@gmail.com>,
+	andriy.shevchenko@linux.intel.com,
+	willy@infradead.org,
+	Dan Williams <dan.j.williams@intel.com>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	nvdimm@lists.linux.dev
+Subject: [PATCH v2 25/28] tools/testing/nvdimm: Convert to printbuf
+Date: Thu, 19 May 2022 13:24:18 -0400
+Message-Id: <20220519172421.162394-26-kent.overstreet@gmail.com>
+X-Mailer: git-send-email 2.36.0
+In-Reply-To: <20220519172421.162394-1-kent.overstreet@gmail.com>
+References: <20220519172421.162394-1-kent.overstreet@gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20220413183720.2444089-1-ben.widawsky@intel.com>
- <20220413183720.2444089-3-ben.widawsky@intel.com> <CAPcyv4hKGEy_0dMQWfJAVVsGu364NjfNeup7URb7ORUYLSZncw@mail.gmail.com>
- <CGME20220418163713uscas1p17b3b1b45c7d27e54e3ecb62eb8af2469@uscas1p1.samsung.com>
- <20220418163702.GA85141@bgt-140510-bm01> <20220512155014.bbyqvxqbqnm3pk2p@intel.com>
- <Yn1DiuqjYpklcEIT@bombadil.infradead.org> <20220513130909.0000595e@Huawei.com>
- <Yn51WhjsC1FDKNfS@bombadil.infradead.org> <CAPcyv4gwi1gr-_XTV9z5aZ-HJ=J5gDonQk0_M-_U9yYDqqi3PQ@mail.gmail.com>
- <Yn6yGKmMZES0IQbw@bombadil.infradead.org>
-In-Reply-To: <Yn6yGKmMZES0IQbw@bombadil.infradead.org>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 18 May 2022 22:09:13 -0700
-Message-ID: <CAPcyv4hFHxc9wV1R_v70WdtZAyxD7oAV2HxxySF0nZx+vunM0Q@mail.gmail.com>
-Subject: Re: [RFC PATCH 02/15] cxl/core/hdm: Bail on endpoint init fail
-To: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>, Ben Widawsky <ben.widawsky@intel.com>, 
-	Klaus Jensen <its@irrelevant.dk>, Josef Bacik <jbacik@fb.com>, 
-	Adam Manzanares <a.manzanares@samsung.com>, 
-	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, Linux NVDIMM <nvdimm@lists.linux.dev>, 
-	"patches@lists.linux.dev" <patches@lists.linux.dev>, Alison Schofield <alison.schofield@intel.com>, 
-	Ira Weiny <ira.weiny@intel.com>, Vishal Verma <vishal.l.verma@intel.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 
-On Fri, May 13, 2022 at 12:32 PM Luis Chamberlain <mcgrof@kernel.org> wrote:
->
-> On Fri, May 13, 2022 at 12:14:51PM -0700, Dan Williams wrote:
-> > On Fri, May 13, 2022 at 8:12 AM Luis Chamberlain <mcgrof@kernel.org> wrote:
-> > > But with CONFIG_FAIL_FUNCTION this means you don't have to open code
-> > > should_fail() calls, but instead for each routine you want to add a failure
-> > > injection support you'd just use ALLOW_ERROR_INJECTION() per call.
-> >
-> > So cxl_test takes the opposite approach and tries not to pollute the
-> > production code with test instrumentation. All of the infrastructure
-> > to replace calls and inject mocked values is self contained in
-> > tools/testing/cxl/ where it builds replacement modules with test
-> > instrumentation. Otherwise its a maintenance burden, in my view, to
-> > read the error injection macros in the nominal code paths.
->
-> Is relying on just ALLOW_ERROR_INJECTION() per routine you'd want
-> to enable error injection for really too much to swallow?
+This converts from seq_buf to printbuf. Here we're using printbuf with
+an external buffer, meaning it's a direct conversion.
 
-Inline? To me, yes. However, it seems the perfect thing to hide
-out-of-line in a mocked call injected from tools/testing/.
+Signed-off-by: Kent Overstreet <kent.overstreet@gmail.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: nvdimm@lists.linux.dev
+---
+ tools/testing/nvdimm/test/ndtest.c | 22 ++++++++++------------
+ 1 file changed, 10 insertions(+), 12 deletions(-)
+
+diff --git a/tools/testing/nvdimm/test/ndtest.c b/tools/testing/nvdimm/test/ndtest.c
+index 3ca7c32e93..e9b642f7f8 100644
+--- a/tools/testing/nvdimm/test/ndtest.c
++++ b/tools/testing/nvdimm/test/ndtest.c
+@@ -12,7 +12,7 @@
+ #include <linux/ndctl.h>
+ #include <nd-core.h>
+ #include <linux/printk.h>
+-#include <linux/seq_buf.h>
++#include <linux/printbuf.h>
+ 
+ #include "../watermark.h"
+ #include "nfit_test.h"
+@@ -797,32 +797,30 @@ static ssize_t flags_show(struct device *dev,
+ {
+ 	struct nvdimm *nvdimm = to_nvdimm(dev);
+ 	struct ndtest_dimm *dimm = nvdimm_provider_data(nvdimm);
+-	struct seq_buf s;
++	struct printbuf s = PRINTBUF_EXTERN(buf, PAGE_SIZE);
+ 	u64 flags;
+ 
+ 	flags = dimm->flags;
+ 
+-	seq_buf_init(&s, buf, PAGE_SIZE);
+ 	if (flags & PAPR_PMEM_UNARMED_MASK)
+-		seq_buf_printf(&s, "not_armed ");
++		pr_buf(&s, "not_armed ");
+ 
+ 	if (flags & PAPR_PMEM_BAD_SHUTDOWN_MASK)
+-		seq_buf_printf(&s, "flush_fail ");
++		pr_buf(&s, "flush_fail ");
+ 
+ 	if (flags & PAPR_PMEM_BAD_RESTORE_MASK)
+-		seq_buf_printf(&s, "restore_fail ");
++		pr_buf(&s, "restore_fail ");
+ 
+ 	if (flags & PAPR_PMEM_SAVE_MASK)
+-		seq_buf_printf(&s, "save_fail ");
++		pr_buf(&s, "save_fail ");
+ 
+ 	if (flags & PAPR_PMEM_SMART_EVENT_MASK)
+-		seq_buf_printf(&s, "smart_notify ");
++		pr_buf(&s, "smart_notify ");
+ 
++	if (printbuf_written(&s))
++		pr_buf(&s, "\n");
+ 
+-	if (seq_buf_used(&s))
+-		seq_buf_printf(&s, "\n");
+-
+-	return seq_buf_used(&s);
++	return printbuf_written(&s);
+ }
+ static DEVICE_ATTR_RO(flags);
+ 
+-- 
+2.36.0
+
