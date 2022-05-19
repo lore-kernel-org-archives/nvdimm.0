@@ -1,221 +1,82 @@
-Received: from mail-pg1-f180.google.com (mail-pg1-f180.google.com [209.85.215.180])
+Received: from mail-pf1-f178.google.com (mail-pf1-f178.google.com [209.85.210.178])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27179A35
-	for <nvdimm@lists.linux.dev>; Mon, 16 May 2022 20:30:43 +0000 (UTC)
-Received: by mail-pg1-f180.google.com with SMTP id h186so12490993pgc.3
-        for <nvdimm@lists.linux.dev>; Mon, 16 May 2022 13:30:43 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE6E023AC
+	for <nvdimm@lists.linux.dev>; Thu, 19 May 2022 05:09:19 +0000 (UTC)
+Received: by mail-pf1-f178.google.com with SMTP id w200so4118301pfc.10
+        for <nvdimm@lists.linux.dev>; Wed, 18 May 2022 22:09:19 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20210112.gappssmtp.com; s=20210112;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=3ACVB3Y0E0YBB7tPTLWC9kOdJEJz9VBk49uvnZGm168=;
-        b=qGydRqSWRmHEQXYWmP7xMI27DcIFY/huv3iAZeyWMrXsevjA/vluKjedm9wtt9X32P
-         iUvChArCrzR4ORotZg6i6NqXMMeXQ5c0xG80tUiASZRn6cwEMkpCy+spDWjB/0AmYeSe
-         9y33tA/Zw1YcrbeOz3ij6n39xxkrUCu7fQYZvNDNJ/+7QTq/o47w94oCDPsvP/jLiIWq
-         3GgfFkC9tcKnoewv3pgIJX1LVvsI/MOFs1pIJziXrfIqYY38MkQGstWWozTQtPWcJbea
-         TpOIcniKYiC3q8XlKKDX/TlRQRn6fsBB/qWp+q79LMsO+hn9bBhXZPy994JoFyC2Vfll
-         gXTQ==
+        bh=98eExJmW4CvEKtY59mnP3Y/Ym1dtBxRsqatQZZ+JrsE=;
+        b=a7sYXQjPMfQzah39v1TrKWM74noSYC4U93pdcytKPTSAPZHaSMFeh6MO5a70qhYq7J
+         vqeUfanwMjC+3Ofp4OsgTCyE+RH/Iat9mOHdTv03SR7xzpISwaAtOTYTvrBplRD9KBcF
+         NfhUgAUMWXSQLvG+qW0Jm7GBkNP5JYKAcsC1AR1t1ASDWGIuyZhzldB2m5jjIUYusoXk
+         TWvXj4RcxegBTqT9127WByzDKE9n2x7lRClXNvQqbhL9/YRaDemt6RtmPa2aXa621W2Y
+         R+QDM0ZfMdRY7bPve3ZWfEfChBIgOFfJ+F0vYOrdavxpvEyCK/0L0oimLsH7PyHUkR8n
+         fo2g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=3ACVB3Y0E0YBB7tPTLWC9kOdJEJz9VBk49uvnZGm168=;
-        b=a/AK58LItdDVlcgauAE0qGpyfskzyVmM1qaaRktxGmmXdeI02YTvjaJHGbelH05Fsu
-         lgJMS0SFZrYzKIk9V+snEDbQoPDibiSiIMQcrQEtn8xTu4A5RrTQLreTjprQ/WxErM4p
-         KSn8aF7zKSKWg3Z1FBHEtCNmkxzkZcekJJe9GK9klzvr2FijKoqlmVfegogkE1P9Bryz
-         jM5Y+TTXw/N3sn+d7NMK8nyuwB0L/cA6vgiBA1V8LhvHcMArYiiQWKwheNzVYAYwCbOQ
-         1lvSfITyYy1V+JeOtq2lmvvt7wQ2fXhkC79VZhOMNNJOHJCHhuQtWzIXNkhkV1oZiyVw
-         ZY3g==
-X-Gm-Message-State: AOAM533gPirMLXTIRyu2KMRlzhkt/ZIkoqkLYE4DAA6XQXsgth/SwI7k
-	AmD59zj4MrkvPc/mmqVgqf8bxp86OhCvt48owOWBZg==
-X-Google-Smtp-Source: ABdhPJxNfgFTQfSkBwC0NJUOFm4ZykQQ/RD3rs42AoQjvgd05emu3aDGtrxluv0uzUNgQwYGRoYx/NUiZsqjsEDg+7c=
-X-Received: by 2002:a62:a105:0:b0:50d:c97b:3084 with SMTP id
- b5-20020a62a105000000b0050dc97b3084mr18768863pff.61.1652733042575; Mon, 16
- May 2022 13:30:42 -0700 (PDT)
+        bh=98eExJmW4CvEKtY59mnP3Y/Ym1dtBxRsqatQZZ+JrsE=;
+        b=NUH2MFqlXpQqwFj8+fhFBiUR9W6N5wb/MDZum4GH00A+rwPmzUAb/MW+2WwdVYcWCe
+         xCE3V9d2jm/7Z4gF82t5GKOejXG+FvMn04g9zcqNaoe76/EwKWdZ4NpYf0Vygsxfm/D4
+         xvCJWd7A57i8YO/dufGPUM4bo4IZ+DVUS1A69y3ssiFx+uXuwcTHXuRtZAA9I2XHwD/z
+         dhzCAUi2eXWKVq0EZagr/i4PyL4ll+K8yuZ6hyZh9N/yzVVOWE6qRxaWJ+7iD8N9AJnc
+         hjYbyp9jue7qfylNWAC5lvwcyqoCW1RZH29A1s0NqcaL7Js6CSB96gD/KK5R0/u6jbft
+         t6Ug==
+X-Gm-Message-State: AOAM533C6mVJ9H4i3ROTl1Sov7ntKFb4I1LSfbiHpUZKdErSySo2pvLe
+	kQFXBeWKa/iPQxv6l/FmqVJxJ8h/5h4ER0GC5s6lHA==
+X-Google-Smtp-Source: ABdhPJygLxvh9MesiDEmxvUfVw0qVDPGMgmrGCvuMSGdvcf6MoDuUElKbtA2K4vJ7FB0j2ydMFCKHE2bqi5xa10MlCI=
+X-Received: by 2002:a63:5610:0:b0:3f2:7e19:1697 with SMTP id
+ k16-20020a635610000000b003f27e191697mr2465804pgb.74.1652936959213; Wed, 18
+ May 2022 22:09:19 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20220422224508.440670-1-jane.chu@oracle.com> <20220422224508.440670-3-jane.chu@oracle.com>
-In-Reply-To: <20220422224508.440670-3-jane.chu@oracle.com>
+References: <20220413183720.2444089-1-ben.widawsky@intel.com>
+ <20220413183720.2444089-3-ben.widawsky@intel.com> <CAPcyv4hKGEy_0dMQWfJAVVsGu364NjfNeup7URb7ORUYLSZncw@mail.gmail.com>
+ <CGME20220418163713uscas1p17b3b1b45c7d27e54e3ecb62eb8af2469@uscas1p1.samsung.com>
+ <20220418163702.GA85141@bgt-140510-bm01> <20220512155014.bbyqvxqbqnm3pk2p@intel.com>
+ <Yn1DiuqjYpklcEIT@bombadil.infradead.org> <20220513130909.0000595e@Huawei.com>
+ <Yn51WhjsC1FDKNfS@bombadil.infradead.org> <CAPcyv4gwi1gr-_XTV9z5aZ-HJ=J5gDonQk0_M-_U9yYDqqi3PQ@mail.gmail.com>
+ <Yn6yGKmMZES0IQbw@bombadil.infradead.org>
+In-Reply-To: <Yn6yGKmMZES0IQbw@bombadil.infradead.org>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 16 May 2022 13:30:31 -0700
-Message-ID: <CAPcyv4g02C5LnDxqDG0_U51+v05fQa966LnrvvdadN2Eqf7eKA@mail.gmail.com>
-Subject: Re: [PATCH v9 2/7] x86/mce: relocate set{clear}_mce_nospec() functions
-To: Jane Chu <jane.chu@oracle.com>
-Cc: Borislav Petkov <bp@alien8.de>, Christoph Hellwig <hch@infradead.org>, Dave Hansen <dave.hansen@intel.com>, 
-	Peter Zijlstra <peterz@infradead.org>, Andy Lutomirski <luto@kernel.org>, david <david@fromorbit.com>, 
-	"Darrick J. Wong" <djwong@kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, 
-	Linux NVDIMM <nvdimm@lists.linux.dev>, 
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, X86 ML <x86@kernel.org>, 
-	Vishal L Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
-	Alasdair Kergon <agk@redhat.com>, Mike Snitzer <snitzer@redhat.com>, 
-	device-mapper development <dm-devel@redhat.com>, "Weiny, Ira" <ira.weiny@intel.com>, 
-	Matthew Wilcox <willy@infradead.org>, Vivek Goyal <vgoyal@redhat.com>
+Date: Wed, 18 May 2022 22:09:13 -0700
+Message-ID: <CAPcyv4hFHxc9wV1R_v70WdtZAyxD7oAV2HxxySF0nZx+vunM0Q@mail.gmail.com>
+Subject: Re: [RFC PATCH 02/15] cxl/core/hdm: Bail on endpoint init fail
+To: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>, Ben Widawsky <ben.widawsky@intel.com>, 
+	Klaus Jensen <its@irrelevant.dk>, Josef Bacik <jbacik@fb.com>, 
+	Adam Manzanares <a.manzanares@samsung.com>, 
+	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, Linux NVDIMM <nvdimm@lists.linux.dev>, 
+	"patches@lists.linux.dev" <patches@lists.linux.dev>, Alison Schofield <alison.schofield@intel.com>, 
+	Ira Weiny <ira.weiny@intel.com>, Vishal Verma <vishal.l.verma@intel.com>
 Content-Type: text/plain; charset="UTF-8"
 
-On Fri, Apr 22, 2022 at 3:46 PM Jane Chu <jane.chu@oracle.com> wrote:
+On Fri, May 13, 2022 at 12:32 PM Luis Chamberlain <mcgrof@kernel.org> wrote:
 >
-> Relocate the twin mce functions to arch/x86/mm/pat/set_memory.c
-> file where they belong.
+> On Fri, May 13, 2022 at 12:14:51PM -0700, Dan Williams wrote:
+> > On Fri, May 13, 2022 at 8:12 AM Luis Chamberlain <mcgrof@kernel.org> wrote:
+> > > But with CONFIG_FAIL_FUNCTION this means you don't have to open code
+> > > should_fail() calls, but instead for each routine you want to add a failure
+> > > injection support you'd just use ALLOW_ERROR_INJECTION() per call.
+> >
+> > So cxl_test takes the opposite approach and tries not to pollute the
+> > production code with test instrumentation. All of the infrastructure
+> > to replace calls and inject mocked values is self contained in
+> > tools/testing/cxl/ where it builds replacement modules with test
+> > instrumentation. Otherwise its a maintenance burden, in my view, to
+> > read the error injection macros in the nominal code paths.
 >
-> While at it, fixup a function name in a comment.
->
-> Reviewed-by: Christoph Hellwig <hch@lst.de>
-> Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-> Signed-off-by: Jane Chu <jane.chu@oracle.com>
-> ---
->  arch/x86/include/asm/set_memory.h | 52 -------------------------------
->  arch/x86/mm/pat/set_memory.c      | 49 ++++++++++++++++++++++++++++-
->  include/linux/set_memory.h        |  8 ++---
->  3 files changed, 52 insertions(+), 57 deletions(-)
->
-> diff --git a/arch/x86/include/asm/set_memory.h b/arch/x86/include/asm/set_memory.h
-> index 78ca53512486..b45c4d27fd46 100644
-> --- a/arch/x86/include/asm/set_memory.h
-> +++ b/arch/x86/include/asm/set_memory.h
-> @@ -86,56 +86,4 @@ bool kernel_page_present(struct page *page);
->
->  extern int kernel_set_to_readonly;
->
-> -#ifdef CONFIG_X86_64
-> -/*
-> - * Prevent speculative access to the page by either unmapping
-> - * it (if we do not require access to any part of the page) or
-> - * marking it uncacheable (if we want to try to retrieve data
-> - * from non-poisoned lines in the page).
-> - */
-> -static inline int set_mce_nospec(unsigned long pfn, bool unmap)
-> -{
-> -       unsigned long decoy_addr;
-> -       int rc;
-> -
-> -       /* SGX pages are not in the 1:1 map */
-> -       if (arch_is_platform_page(pfn << PAGE_SHIFT))
-> -               return 0;
-> -       /*
-> -        * We would like to just call:
-> -        *      set_memory_XX((unsigned long)pfn_to_kaddr(pfn), 1);
-> -        * but doing that would radically increase the odds of a
-> -        * speculative access to the poison page because we'd have
-> -        * the virtual address of the kernel 1:1 mapping sitting
-> -        * around in registers.
-> -        * Instead we get tricky.  We create a non-canonical address
-> -        * that looks just like the one we want, but has bit 63 flipped.
-> -        * This relies on set_memory_XX() properly sanitizing any __pa()
-> -        * results with __PHYSICAL_MASK or PTE_PFN_MASK.
-> -        */
-> -       decoy_addr = (pfn << PAGE_SHIFT) + (PAGE_OFFSET ^ BIT(63));
-> -
-> -       if (unmap)
-> -               rc = set_memory_np(decoy_addr, 1);
-> -       else
-> -               rc = set_memory_uc(decoy_addr, 1);
-> -       if (rc)
-> -               pr_warn("Could not invalidate pfn=0x%lx from 1:1 map\n", pfn);
-> -       return rc;
-> -}
-> -#define set_mce_nospec set_mce_nospec
-> -
-> -/* Restore full speculative operation to the pfn. */
-> -static inline int clear_mce_nospec(unsigned long pfn)
-> -{
-> -       return set_memory_wb((unsigned long) pfn_to_kaddr(pfn), 1);
-> -}
-> -#define clear_mce_nospec clear_mce_nospec
-> -#else
-> -/*
-> - * Few people would run a 32-bit kernel on a machine that supports
-> - * recoverable errors because they have too much memory to boot 32-bit.
-> - */
-> -#endif
-> -
->  #endif /* _ASM_X86_SET_MEMORY_H */
-> diff --git a/arch/x86/mm/pat/set_memory.c b/arch/x86/mm/pat/set_memory.c
-> index abf5ed76e4b7..978cf5bd2ab6 100644
-> --- a/arch/x86/mm/pat/set_memory.c
-> +++ b/arch/x86/mm/pat/set_memory.c
-> @@ -1816,7 +1816,7 @@ static inline int cpa_clear_pages_array(struct page **pages, int numpages,
->  }
->
->  /*
-> - * _set_memory_prot is an internal helper for callers that have been passed
-> + * __set_memory_prot is an internal helper for callers that have been passed
->   * a pgprot_t value from upper layers and a reservation has already been taken.
->   * If you want to set the pgprot to a specific page protocol, use the
->   * set_memory_xx() functions.
-> @@ -1925,6 +1925,53 @@ int set_memory_wb(unsigned long addr, int numpages)
->  }
->  EXPORT_SYMBOL(set_memory_wb);
->
-> +/*
-> + * Prevent speculative access to the page by either unmapping
-> + * it (if we do not require access to any part of the page) or
-> + * marking it uncacheable (if we want to try to retrieve data
-> + * from non-poisoned lines in the page).
-> + */
-> +int set_mce_nospec(unsigned long pfn, bool unmap)
-> +{
-> +       unsigned long decoy_addr;
-> +       int rc;
-> +
-> +       if (!IS_ENABLED(CONFIG_64BIT))
-> +               return 0;
-> +
-> +       /* SGX pages are not in the 1:1 map */
-> +       if (arch_is_platform_page(pfn << PAGE_SHIFT))
-> +               return 0;
-> +       /*
-> +        * We would like to just call:
-> +        *      set_memory_XX((unsigned long)pfn_to_kaddr(pfn), 1);
-> +        * but doing that would radically increase the odds of a
-> +        * speculative access to the poison page because we'd have
-> +        * the virtual address of the kernel 1:1 mapping sitting
-> +        * around in registers.
-> +        * Instead we get tricky.  We create a non-canonical address
-> +        * that looks just like the one we want, but has bit 63 flipped.
-> +        * This relies on set_memory_XX() properly sanitizing any __pa()
-> +        * results with __PHYSICAL_MASK or PTE_PFN_MASK.
-> +        */
-> +       decoy_addr = (pfn << PAGE_SHIFT) + (PAGE_OFFSET ^ BIT(63));
-> +
-> +       if (unmap)
-> +               rc = set_memory_np(decoy_addr, 1);
-> +       else
-> +               rc = set_memory_uc(decoy_addr, 1);
-> +       if (rc)
-> +               pr_warn("Could not invalidate pfn=0x%lx from 1:1 map\n", pfn);
-> +       return rc;
-> +}
-> +
-> +/* Restore full speculative operation to the pfn. */
-> +int clear_mce_nospec(unsigned long pfn)
-> +{
-> +       return set_memory_wb((unsigned long) pfn_to_kaddr(pfn), 1);
-> +}
-> +EXPORT_SYMBOL_GPL(clear_mce_nospec);
-> +
->  int set_memory_x(unsigned long addr, int numpages)
->  {
->         if (!(__supported_pte_mask & _PAGE_NX))
-> diff --git a/include/linux/set_memory.h b/include/linux/set_memory.h
-> index f36be5166c19..683a6c3f7179 100644
-> --- a/include/linux/set_memory.h
-> +++ b/include/linux/set_memory.h
-> @@ -42,14 +42,14 @@ static inline bool can_set_direct_map(void)
->  #endif
->  #endif /* CONFIG_ARCH_HAS_SET_DIRECT_MAP */
->
-> -#ifndef set_mce_nospec
-> +#ifdef CONFIG_X86_64
+> Is relying on just ALLOW_ERROR_INJECTION() per routine you'd want
+> to enable error injection for really too much to swallow?
 
-Jane,
-
-I just noticed that this makes set_mce_nospec() and clear_mce_nospec()
-x86_64-only. If / when more architectures add support for these
-helpers they will need to go back to the "#ifndef $symbol" scheme to
-allow asm/set_memory.h to indicate the availability of the arch-local
-helper.
+Inline? To me, yes. However, it seems the perfect thing to hide
+out-of-line in a mocked call injected from tools/testing/.
