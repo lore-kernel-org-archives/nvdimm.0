@@ -1,137 +1,204 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+Received: from szxga08-in.huawei.com (szxga08-in.huawei.com [45.249.212.255])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30978810
-	for <nvdimm@lists.linux.dev>; Tue, 24 May 2022 13:51:43 +0000 (UTC)
-Received: from pps.filterd (m0098409.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 24ODnm59004783;
-	Tue, 24 May 2022 13:51:37 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=content-type : subject :
- from : in-reply-to : date : cc : message-id : references : to :
- content-transfer-encoding : mime-version; s=pp1;
- bh=mZrR9FGA40A5SmIjBAAZ4cA+zKcpp46t0ktUyq6q6hI=;
- b=YuDalzMOgRr3Cr+pTxNgSwcTFlpHP9p6NBAN9l7a6G/ScerntqUUgxLOuvnu0HJ9bH/v
- kOydEi9Dpa6wFi/VZSZlEFWV/qhy+5k9C0djrpbZlWA+Q1qHpUzq7XqXQ8KSjJVyhGE3
- bBwPFgxCEy8YX94AMlbebslzVN+TnlKgdZUE5f9nV6J5bqB3w+fh6yyvygeE+ALs0G3q
- trRCJNLFbAb5qilvS/Ux37547AKHgBuil40kaL7UoVSHAa9Xk4BeCQLCPA/PptRxy5c6
- T9SmTglC32fa+/My0OlUpilcMn/seKr1ErjcuMzJc6Ygy+kJL3Z7dfZRRGahxAkLVpdj Bg== 
-Received: from ppma04ams.nl.ibm.com (63.31.33a9.ip4.static.sl-reverse.com [169.51.49.99])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3g8ypp1j13-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 24 May 2022 13:51:37 +0000
-Received: from pps.filterd (ppma04ams.nl.ibm.com [127.0.0.1])
-	by ppma04ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 24ODmSUU032201;
-	Tue, 24 May 2022 13:51:34 GMT
-Received: from b06cxnps4075.portsmouth.uk.ibm.com (d06relay12.portsmouth.uk.ibm.com [9.149.109.197])
-	by ppma04ams.nl.ibm.com with ESMTP id 3g6qq9ck0c-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 24 May 2022 13:51:34 +0000
-Received: from d06av26.portsmouth.uk.ibm.com (d06av26.portsmouth.uk.ibm.com [9.149.105.62])
-	by b06cxnps4075.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 24ODpVu853608796
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 24 May 2022 13:51:31 GMT
-Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id ACAD2AE055;
-	Tue, 24 May 2022 13:51:31 +0000 (GMT)
-Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 21474AE051;
-	Tue, 24 May 2022 13:51:30 +0000 (GMT)
-Received: from smtpclient.apple (unknown [9.43.125.120])
-	by d06av26.portsmouth.uk.ibm.com (Postfix) with ESMTP;
-	Tue, 24 May 2022 13:51:29 +0000 (GMT)
-Content-Type: text/plain;
-	charset=us-ascii
-Subject: Re: [PATCH] powerpc/papr_scm: don't requests stats with '0' sized
- stats buffer
-From: Sachin Sant <sachinp@linux.ibm.com>
-In-Reply-To: <20220524112353.1718454-1-vaibhav@linux.ibm.com>
-Date: Tue, 24 May 2022 19:21:28 +0530
-Cc: nvdimm@lists.linux.dev, linuxppc-dev@lists.ozlabs.org,
-        Dan Williams <dan.j.williams@intel.com>,
-        "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Shivaprasad G Bhat <sbhat@linux.ibm.com>
-Message-Id: <AFC3DC94-B307-471C-AE09-9A36C17B43BA@linux.ibm.com>
-References: <20220524112353.1718454-1-vaibhav@linux.ibm.com>
-To: Vaibhav Jain <vaibhav@linux.ibm.com>
-X-Mailer: Apple Mail (2.3696.80.82.1.1)
-X-TM-AS-GCONF: 00
-X-Proofpoint-ORIG-GUID: rrmeHhNrord4bzNlLicka-EMznimBQCJ
-X-Proofpoint-GUID: rrmeHhNrord4bzNlLicka-EMznimBQCJ
-Content-Transfer-Encoding: quoted-printable
-X-Proofpoint-UnRewURL: 0 URL was un-rewritten
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFF6C46A9
+	for <nvdimm@lists.linux.dev>; Fri, 27 May 2022 08:14:54 +0000 (UTC)
+Received: from dggpemm500020.china.huawei.com (unknown [172.30.72.53])
+	by szxga08-in.huawei.com (SkyGuard) with ESMTP id 4L8cxp6mwbz1JCC8;
+	Fri, 27 May 2022 16:13:18 +0800 (CST)
+Received: from dggpemm500018.china.huawei.com (7.185.36.111) by
+ dggpemm500020.china.huawei.com (7.185.36.49) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.24; Fri, 27 May 2022 16:14:51 +0800
+Received: from localhost.localdomain (10.175.112.125) by
+ dggpemm500018.china.huawei.com (7.185.36.111) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.24; Fri, 27 May 2022 16:14:51 +0800
+From: keliu <liuke94@huawei.com>
+To: <dan.j.williams@intel.com>, <vishal.l.verma@intel.com>,
+	<dave.jiang@intel.com>, <ira.weiny@intel.com>, <nvdimm@lists.linux.dev>,
+	<linux-kernel@vger.kernel.org>
+CC: keliu <liuke94@huawei.com>
+Subject: [PATCH] drivers: nvdimm: Directly use ida_alloc()/free()
+Date: Fri, 27 May 2022 08:36:20 +0000
+Message-ID: <20220527083620.2553637-1-liuke94@huawei.com>
+X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.205,Aquarius:18.0.874,Hydra:6.0.486,FMLib:17.11.64.514
- definitions=2022-05-24_07,2022-05-23_01,2022-02-23_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 malwarescore=0 bulkscore=0
- phishscore=0 adultscore=0 priorityscore=1501 suspectscore=0 spamscore=0
- mlxscore=0 clxscore=1011 mlxlogscore=711 impostorscore=0
- lowpriorityscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2202240000 definitions=main-2205240068
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Originating-IP: [10.175.112.125]
+X-ClientProxiedBy: dggems701-chm.china.huawei.com (10.3.19.178) To
+ dggpemm500018.china.huawei.com (7.185.36.111)
+X-CFilter-Loop: Reflected
 
+Use ida_alloc()/ida_free() instead of deprecated
+ida_simple_get()/ida_simple_remove() .
 
-> On 24-May-2022, at 4:53 PM, Vaibhav Jain <vaibhav@linux.ibm.com> wrote:
->=20
-> Sachin reported [1] that on a POWER-10 lpar he is seeing a kernel panic b=
-eing
-> reported with vPMEM when papr_scm probe is being called. The panic is of =
-the
-> form below and is observed only with following option disabled(profile) f=
-or the
-> said LPAR 'Enable Performance Information Collection' in the HMC:
->=20
-> Kernel attempted to write user page (1c) - exploit attempt? (uid: 0)
-> BUG: Kernel NULL pointer dereference on write at 0x0000001c
-> Faulting instruction address: 0xc008000001b90844
-> Oops: Kernel access of bad area, sig: 11 [#1]
-> <snip>
-> NIP [c008000001b90844] drc_pmem_query_stats+0x5c/0x270 [papr_scm]
-> LR [c008000001b92794] papr_scm_probe+0x2ac/0x6ec [papr_scm]
-> Call Trace:
->       0xc00000000941bca0 (unreliable)
->       papr_scm_probe+0x2ac/0x6ec [papr_scm]
->       platform_probe+0x98/0x150
->       really_probe+0xfc/0x510
->       __driver_probe_device+0x17c/0x230
-> <snip>
-> ---[ end trace 0000000000000000 ]---
-> Kernel panic - not syncing: Fatal exception
->=20
-> On investigation looks like this panic was caused due to a 'stat_buffer' =
-of
-> size=3D=3D0 being provided to drc_pmem_query_stats() to fetch all perform=
-ance
-> stats-ids of an NVDIMM. However drc_pmem_query_stats() shouldn't have bee=
-n called
-> since the vPMEM NVDIMM doesn't support and performance stat-id's. This wa=
-s caused
-> due to missing check for 'p->stat_buffer_len' at the beginning of
-> papr_scm_pmu_check_events() which indicates that the NVDIMM doesn't suppo=
-rt
-> performance-stats.
->=20
-> Fix this by introducing the check for 'p->stat_buffer_len' at the beginni=
-ng of
-> papr_scm_pmu_check_events().
->=20
-> [1] https://lore.kernel.org/all/6B3A522A-6A5F-4CC9-B268-0C63AA6E07D3@linu=
-x.ibm.com
->=20
-> Fixes: 0e0946e22f3665d2732 ("powerpc/papr_scm: Fix leaking nvdimm_events_=
-map elements")
-> Reported-by: Sachin Sant <sachinp@linux.ibm.com>
-> Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
-> ---
+Signed-off-by: keliu <liuke94@huawei.com>
+---
+ drivers/nvdimm/btt_devs.c       | 6 +++---
+ drivers/nvdimm/bus.c            | 4 ++--
+ drivers/nvdimm/dax_devs.c       | 4 ++--
+ drivers/nvdimm/dimm_devs.c      | 4 ++--
+ drivers/nvdimm/namespace_devs.c | 6 +++---
+ drivers/nvdimm/pfn_devs.c       | 4 ++--
+ 6 files changed, 14 insertions(+), 14 deletions(-)
 
-Thanks Vaibhav for the patch. With the patch the reported problem is fixed.
-
-Tested-by: Sachin Sant <sachinp@linux.ibm.com>
-
--Sachin
+diff --git a/drivers/nvdimm/btt_devs.c b/drivers/nvdimm/btt_devs.c
+index e5a58520d398..25af0df89400 100644
+--- a/drivers/nvdimm/btt_devs.c
++++ b/drivers/nvdimm/btt_devs.c
+@@ -19,7 +19,7 @@ static void nd_btt_release(struct device *dev)
+ 
+ 	dev_dbg(dev, "trace\n");
+ 	nd_detach_ndns(&nd_btt->dev, &nd_btt->ndns);
+-	ida_simple_remove(&nd_region->btt_ida, nd_btt->id);
++	ida_free(&nd_region->btt_ida, nd_btt->id);
+ 	kfree(nd_btt->uuid);
+ 	kfree(nd_btt);
+ }
+@@ -189,7 +189,7 @@ static struct device *__nd_btt_create(struct nd_region *nd_region,
+ 	if (!nd_btt)
+ 		return NULL;
+ 
+-	nd_btt->id = ida_simple_get(&nd_region->btt_ida, 0, 0, GFP_KERNEL);
++	nd_btt->id = ida_alloc(&nd_region->btt_ida, GFP_KERNEL);
+ 	if (nd_btt->id < 0)
+ 		goto out_nd_btt;
+ 
+@@ -214,7 +214,7 @@ static struct device *__nd_btt_create(struct nd_region *nd_region,
+ 	return dev;
+ 
+ out_put_id:
+-	ida_simple_remove(&nd_region->btt_ida, nd_btt->id);
++	ida_free(&nd_region->btt_ida, nd_btt->id);
+ 
+ out_nd_btt:
+ 	kfree(nd_btt);
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index 7b0d1443217a..2fc7409f5f2f 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -291,7 +291,7 @@ static void nvdimm_bus_release(struct device *dev)
+ 	struct nvdimm_bus *nvdimm_bus;
+ 
+ 	nvdimm_bus = container_of(dev, struct nvdimm_bus, dev);
+-	ida_simple_remove(&nd_ida, nvdimm_bus->id);
++	ida_free(&nd_ida, nvdimm_bus->id);
+ 	kfree(nvdimm_bus);
+ }
+ 
+@@ -346,7 +346,7 @@ struct nvdimm_bus *nvdimm_bus_register(struct device *parent,
+ 	INIT_LIST_HEAD(&nvdimm_bus->list);
+ 	INIT_LIST_HEAD(&nvdimm_bus->mapping_list);
+ 	init_waitqueue_head(&nvdimm_bus->wait);
+-	nvdimm_bus->id = ida_simple_get(&nd_ida, 0, 0, GFP_KERNEL);
++	nvdimm_bus->id = ida_alloc(&nd_ida, GFP_KERNEL);
+ 	if (nvdimm_bus->id < 0) {
+ 		kfree(nvdimm_bus);
+ 		return NULL;
+diff --git a/drivers/nvdimm/dax_devs.c b/drivers/nvdimm/dax_devs.c
+index 99965077bac4..374b195ba8d5 100644
+--- a/drivers/nvdimm/dax_devs.c
++++ b/drivers/nvdimm/dax_devs.c
+@@ -18,7 +18,7 @@ static void nd_dax_release(struct device *dev)
+ 
+ 	dev_dbg(dev, "trace\n");
+ 	nd_detach_ndns(dev, &nd_pfn->ndns);
+-	ida_simple_remove(&nd_region->dax_ida, nd_pfn->id);
++	ida_free(&nd_region->dax_ida, nd_pfn->id);
+ 	kfree(nd_pfn->uuid);
+ 	kfree(nd_dax);
+ }
+@@ -55,7 +55,7 @@ static struct nd_dax *nd_dax_alloc(struct nd_region *nd_region)
+ 		return NULL;
+ 
+ 	nd_pfn = &nd_dax->nd_pfn;
+-	nd_pfn->id = ida_simple_get(&nd_region->dax_ida, 0, 0, GFP_KERNEL);
++	nd_pfn->id = ida_alloc(&nd_region->dax_ida, GFP_KERNEL);
+ 	if (nd_pfn->id < 0) {
+ 		kfree(nd_dax);
+ 		return NULL;
+diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+index ee507eed42b5..0f0e5851784f 100644
+--- a/drivers/nvdimm/dimm_devs.c
++++ b/drivers/nvdimm/dimm_devs.c
+@@ -194,7 +194,7 @@ static void nvdimm_release(struct device *dev)
+ {
+ 	struct nvdimm *nvdimm = to_nvdimm(dev);
+ 
+-	ida_simple_remove(&dimm_ida, nvdimm->id);
++	ida_free(&dimm_ida, nvdimm->id);
+ 	kfree(nvdimm);
+ }
+ 
+@@ -583,7 +583,7 @@ struct nvdimm *__nvdimm_create(struct nvdimm_bus *nvdimm_bus,
+ 	if (!nvdimm)
+ 		return NULL;
+ 
+-	nvdimm->id = ida_simple_get(&dimm_ida, 0, 0, GFP_KERNEL);
++	nvdimm->id = ida_alloc(&dimm_ida, GFP_KERNEL);
+ 	if (nvdimm->id < 0) {
+ 		kfree(nvdimm);
+ 		return NULL;
+diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
+index 62b83b2e26e3..925e75f7382d 100644
+--- a/drivers/nvdimm/namespace_devs.c
++++ b/drivers/nvdimm/namespace_devs.c
+@@ -26,7 +26,7 @@ static void namespace_pmem_release(struct device *dev)
+ 	struct nd_region *nd_region = to_nd_region(dev->parent);
+ 
+ 	if (nspm->id >= 0)
+-		ida_simple_remove(&nd_region->ns_ida, nspm->id);
++		ida_free(&nd_region->ns_ida, nspm->id);
+ 	kfree(nspm->alt_name);
+ 	kfree(nspm->uuid);
+ 	kfree(nspm);
+@@ -1819,7 +1819,7 @@ static struct device *nd_namespace_pmem_create(struct nd_region *nd_region)
+ 	res->name = dev_name(&nd_region->dev);
+ 	res->flags = IORESOURCE_MEM;
+ 
+-	nspm->id = ida_simple_get(&nd_region->ns_ida, 0, 0, GFP_KERNEL);
++	nspm->id = ida_alloc(&nd_region->ns_ida, GFP_KERNEL);
+ 	if (nspm->id < 0) {
+ 		kfree(nspm);
+ 		return NULL;
+@@ -2191,7 +2191,7 @@ int nd_region_register_namespaces(struct nd_region *nd_region, int *err)
+ 			struct nd_namespace_pmem *nspm;
+ 
+ 			nspm = to_nd_namespace_pmem(dev);
+-			id = ida_simple_get(&nd_region->ns_ida, 0, 0,
++			id = ida_alloc(&nd_region->ns_ida,
+ 					    GFP_KERNEL);
+ 			nspm->id = id;
+ 		} else
+diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
+index c31e184bfa45..d814bda8040a 100644
+--- a/drivers/nvdimm/pfn_devs.c
++++ b/drivers/nvdimm/pfn_devs.c
+@@ -20,7 +20,7 @@ static void nd_pfn_release(struct device *dev)
+ 
+ 	dev_dbg(dev, "trace\n");
+ 	nd_detach_ndns(&nd_pfn->dev, &nd_pfn->ndns);
+-	ida_simple_remove(&nd_region->pfn_ida, nd_pfn->id);
++	ida_free(&nd_region->pfn_ida, nd_pfn->id);
+ 	kfree(nd_pfn->uuid);
+ 	kfree(nd_pfn);
+ }
+@@ -321,7 +321,7 @@ static struct nd_pfn *nd_pfn_alloc(struct nd_region *nd_region)
+ 	if (!nd_pfn)
+ 		return NULL;
+ 
+-	nd_pfn->id = ida_simple_get(&nd_region->pfn_ida, 0, 0, GFP_KERNEL);
++	nd_pfn->id = ida_alloc(&nd_region->pfn_ida, GFP_KERNEL);
+ 	if (nd_pfn->id < 0) {
+ 		kfree(nd_pfn);
+ 		return NULL;
+-- 
+2.25.1
 
