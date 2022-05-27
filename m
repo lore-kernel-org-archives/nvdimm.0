@@ -1,28 +1,48 @@
-Received: from szxga08-in.huawei.com (szxga08-in.huawei.com [45.249.212.255])
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFF6C46A9
-	for <nvdimm@lists.linux.dev>; Fri, 27 May 2022 08:14:54 +0000 (UTC)
-Received: from dggpemm500020.china.huawei.com (unknown [172.30.72.53])
-	by szxga08-in.huawei.com (SkyGuard) with ESMTP id 4L8cxp6mwbz1JCC8;
-	Fri, 27 May 2022 16:13:18 +0800 (CST)
-Received: from dggpemm500018.china.huawei.com (7.185.36.111) by
- dggpemm500020.china.huawei.com (7.185.36.49) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.24; Fri, 27 May 2022 16:14:51 +0800
-Received: from localhost.localdomain (10.175.112.125) by
- dggpemm500018.china.huawei.com (7.185.36.111) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.24; Fri, 27 May 2022 16:14:51 +0800
-From: keliu <liuke94@huawei.com>
-To: <dan.j.williams@intel.com>, <vishal.l.verma@intel.com>,
-	<dave.jiang@intel.com>, <ira.weiny@intel.com>, <nvdimm@lists.linux.dev>,
-	<linux-kernel@vger.kernel.org>
-CC: keliu <liuke94@huawei.com>
-Subject: [PATCH] drivers: nvdimm: Directly use ida_alloc()/free()
-Date: Fri, 27 May 2022 08:36:20 +0000
-Message-ID: <20220527083620.2553637-1-liuke94@huawei.com>
-X-Mailer: git-send-email 2.25.1
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F7571366
+	for <nvdimm@lists.linux.dev>; Fri, 27 May 2022 10:30:40 +0000 (UTC)
+Received: from pps.filterd (m0098399.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 24RAFcpK017714;
+	Fri, 27 May 2022 10:30:34 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
+ : date : message-id : mime-version : content-transfer-encoding; s=pp1;
+ bh=p+hrfX+yngEvnm1+cEsLsCEgOmOIAjcMX/e5obuB+Cc=;
+ b=VHjamw9hoGB0tBNmFDx3o3BNXehZQDU6CD3E0N7fEe8zn07L4U1S7oKgFKe2WI6Xug3Q
+ upY92W75b0s3Yq/O5ypx+84uH5lSmksxITiEs1EcjxDJiyTZBdtEdDZEWKMvpRmKYb8m
+ +i7qEMnMuGtbXJTYFy4PWqn+9098xCo/n/B3A2VmTmp7/tHmHsuAUFJRsl11y9t/hUrV
+ Ntkn3TbmsbcLu1bxklvrbmGVvdyh7k5NE+HKaeyAfaDuH6dNEkntbNJgVjeM4tnkyRso
+ tuD6gYDloPCLOBDFiJEX/b0Mxgsep1JhNqhxdMI+LM8+grvZbrT0HKC27I+TZhKo06Em 2g== 
+Received: from ppma03ams.nl.ibm.com (62.31.33a9.ip4.static.sl-reverse.com [169.51.49.98])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3gavr1879u-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 27 May 2022 10:30:33 +0000
+Received: from pps.filterd (ppma03ams.nl.ibm.com [127.0.0.1])
+	by ppma03ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 24RAMniv009494;
+	Fri, 27 May 2022 10:30:31 GMT
+Received: from b06cxnps3074.portsmouth.uk.ibm.com (d06relay09.portsmouth.uk.ibm.com [9.149.109.194])
+	by ppma03ams.nl.ibm.com with ESMTP id 3g93ux3t3j-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 27 May 2022 10:30:31 +0000
+Received: from d06av21.portsmouth.uk.ibm.com (d06av21.portsmouth.uk.ibm.com [9.149.105.232])
+	by b06cxnps3074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 24RAUSRp47645052
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Fri, 27 May 2022 10:30:28 GMT
+Received: from d06av21.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 82B565204F;
+	Fri, 27 May 2022 10:30:28 +0000 (GMT)
+Received: from li-efb8054c-3504-11b2-a85c-ca10df28279e.ibm.com.com (unknown [9.43.36.181])
+	by d06av21.portsmouth.uk.ibm.com (Postfix) with ESMTP id 9372352050;
+	Fri, 27 May 2022 10:30:25 +0000 (GMT)
+From: Tarun Sahu <tsahu@linux.ibm.com>
+To: nvdimm@lists.linux.dev
+Cc: tsahu@linux.ibm.com, dan.j.williams@intel.com, vishal.l.verma@intel.com,
+        aneesh.kumar@linux.ibm.com, sbhat@linux.ibm.com, vaibhav@linux.ibm.com
+Subject: [PATCH v4 0/2]ndctl/namespace: Fix and improve write-infoblock
+Date: Fri, 27 May 2022 16:00:19 +0530
+Message-Id: <20220527103021.452651-1-tsahu@linux.ibm.com>
+X-Mailer: git-send-email 2.35.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -30,175 +50,64 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-Originating-IP: [10.175.112.125]
-X-ClientProxiedBy: dggems701-chm.china.huawei.com (10.3.19.178) To
- dggpemm500018.china.huawei.com (7.185.36.111)
-X-CFilter-Loop: Reflected
+X-TM-AS-GCONF: 00
+X-Proofpoint-ORIG-GUID: vUV80-x_8ER803JUpIvvEsZDKPX_TqBX
+X-Proofpoint-GUID: vUV80-x_8ER803JUpIvvEsZDKPX_TqBX
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.205,Aquarius:18.0.874,Hydra:6.0.486,FMLib:17.11.64.514
+ definitions=2022-05-27_03,2022-05-25_02,2022-02-23_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxlogscore=738 adultscore=0
+ lowpriorityscore=0 malwarescore=0 clxscore=1011 phishscore=0
+ impostorscore=0 priorityscore=1501 mlxscore=0 spamscore=0 bulkscore=0
+ suspectscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2204290000 definitions=main-2205270047
 
-Use ida_alloc()/ida_free() instead of deprecated
-ida_simple_get()/ida_simple_remove() .
+This series resolves some issues with write-infoblock 
+command and provide support to write-infoblock for sector 
+mode namespace
 
-Signed-off-by: keliu <liuke94@huawei.com>
+write-infoblock command has issues regarding updating the 
+align, uuid, parent_uuid. In case of no parameter passed 
+for it, this command used to overwrite the existing values 
+with defaults.
+
+In PATCH 1/2 these parameters will be set to their original 
+values, incase, values hasn't been passed in command 
+arguments
+
+write-infoblock command doesn't have support for sector/BTT 
+mode namespaces. They can be converted to fsdax, but can 
+not be written being in sector mode.
+
+In PATCH 2/2, It creates a functionality which write 
+infoblock of Sector/BTT namespace. Currently only uuid, 
+parent_uuid can be updated. In future, Support for other 
+parameters can easily be integrated in the
+functionality.
+
 ---
- drivers/nvdimm/btt_devs.c       | 6 +++---
- drivers/nvdimm/bus.c            | 4 ++--
- drivers/nvdimm/dax_devs.c       | 4 ++--
- drivers/nvdimm/dimm_devs.c      | 4 ++--
- drivers/nvdimm/namespace_devs.c | 6 +++---
- drivers/nvdimm/pfn_devs.c       | 4 ++--
- 6 files changed, 14 insertions(+), 14 deletions(-)
+v2:
+  Updated the commit message (rephrasing) in patch 1/2
+  Moved the ns_info struct to namespace.c from namespace.h
+  put the results after --- to avoid long commit message
 
-diff --git a/drivers/nvdimm/btt_devs.c b/drivers/nvdimm/btt_devs.c
-index e5a58520d398..25af0df89400 100644
---- a/drivers/nvdimm/btt_devs.c
-+++ b/drivers/nvdimm/btt_devs.c
-@@ -19,7 +19,7 @@ static void nd_btt_release(struct device *dev)
- 
- 	dev_dbg(dev, "trace\n");
- 	nd_detach_ndns(&nd_btt->dev, &nd_btt->ndns);
--	ida_simple_remove(&nd_region->btt_ida, nd_btt->id);
-+	ida_free(&nd_region->btt_ida, nd_btt->id);
- 	kfree(nd_btt->uuid);
- 	kfree(nd_btt);
- }
-@@ -189,7 +189,7 @@ static struct device *__nd_btt_create(struct nd_region *nd_region,
- 	if (!nd_btt)
- 		return NULL;
- 
--	nd_btt->id = ida_simple_get(&nd_region->btt_ida, 0, 0, GFP_KERNEL);
-+	nd_btt->id = ida_alloc(&nd_region->btt_ida, GFP_KERNEL);
- 	if (nd_btt->id < 0)
- 		goto out_nd_btt;
- 
-@@ -214,7 +214,7 @@ static struct device *__nd_btt_create(struct nd_region *nd_region,
- 	return dev;
- 
- out_put_id:
--	ida_simple_remove(&nd_region->btt_ida, nd_btt->id);
-+	ida_free(&nd_region->btt_ida, nd_btt->id);
- 
- out_nd_btt:
- 	kfree(nd_btt);
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 7b0d1443217a..2fc7409f5f2f 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -291,7 +291,7 @@ static void nvdimm_bus_release(struct device *dev)
- 	struct nvdimm_bus *nvdimm_bus;
- 
- 	nvdimm_bus = container_of(dev, struct nvdimm_bus, dev);
--	ida_simple_remove(&nd_ida, nvdimm_bus->id);
-+	ida_free(&nd_ida, nvdimm_bus->id);
- 	kfree(nvdimm_bus);
- }
- 
-@@ -346,7 +346,7 @@ struct nvdimm_bus *nvdimm_bus_register(struct device *parent,
- 	INIT_LIST_HEAD(&nvdimm_bus->list);
- 	INIT_LIST_HEAD(&nvdimm_bus->mapping_list);
- 	init_waitqueue_head(&nvdimm_bus->wait);
--	nvdimm_bus->id = ida_simple_get(&nd_ida, 0, 0, GFP_KERNEL);
-+	nvdimm_bus->id = ida_alloc(&nd_ida, GFP_KERNEL);
- 	if (nvdimm_bus->id < 0) {
- 		kfree(nvdimm_bus);
- 		return NULL;
-diff --git a/drivers/nvdimm/dax_devs.c b/drivers/nvdimm/dax_devs.c
-index 99965077bac4..374b195ba8d5 100644
---- a/drivers/nvdimm/dax_devs.c
-+++ b/drivers/nvdimm/dax_devs.c
-@@ -18,7 +18,7 @@ static void nd_dax_release(struct device *dev)
- 
- 	dev_dbg(dev, "trace\n");
- 	nd_detach_ndns(dev, &nd_pfn->ndns);
--	ida_simple_remove(&nd_region->dax_ida, nd_pfn->id);
-+	ida_free(&nd_region->dax_ida, nd_pfn->id);
- 	kfree(nd_pfn->uuid);
- 	kfree(nd_dax);
- }
-@@ -55,7 +55,7 @@ static struct nd_dax *nd_dax_alloc(struct nd_region *nd_region)
- 		return NULL;
- 
- 	nd_pfn = &nd_dax->nd_pfn;
--	nd_pfn->id = ida_simple_get(&nd_region->dax_ida, 0, 0, GFP_KERNEL);
-+	nd_pfn->id = ida_alloc(&nd_region->dax_ida, GFP_KERNEL);
- 	if (nd_pfn->id < 0) {
- 		kfree(nd_dax);
- 		return NULL;
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index ee507eed42b5..0f0e5851784f 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -194,7 +194,7 @@ static void nvdimm_release(struct device *dev)
- {
- 	struct nvdimm *nvdimm = to_nvdimm(dev);
- 
--	ida_simple_remove(&dimm_ida, nvdimm->id);
-+	ida_free(&dimm_ida, nvdimm->id);
- 	kfree(nvdimm);
- }
- 
-@@ -583,7 +583,7 @@ struct nvdimm *__nvdimm_create(struct nvdimm_bus *nvdimm_bus,
- 	if (!nvdimm)
- 		return NULL;
- 
--	nvdimm->id = ida_simple_get(&dimm_ida, 0, 0, GFP_KERNEL);
-+	nvdimm->id = ida_alloc(&dimm_ida, GFP_KERNEL);
- 	if (nvdimm->id < 0) {
- 		kfree(nvdimm);
- 		return NULL;
-diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-index 62b83b2e26e3..925e75f7382d 100644
---- a/drivers/nvdimm/namespace_devs.c
-+++ b/drivers/nvdimm/namespace_devs.c
-@@ -26,7 +26,7 @@ static void namespace_pmem_release(struct device *dev)
- 	struct nd_region *nd_region = to_nd_region(dev->parent);
- 
- 	if (nspm->id >= 0)
--		ida_simple_remove(&nd_region->ns_ida, nspm->id);
-+		ida_free(&nd_region->ns_ida, nspm->id);
- 	kfree(nspm->alt_name);
- 	kfree(nspm->uuid);
- 	kfree(nspm);
-@@ -1819,7 +1819,7 @@ static struct device *nd_namespace_pmem_create(struct nd_region *nd_region)
- 	res->name = dev_name(&nd_region->dev);
- 	res->flags = IORESOURCE_MEM;
- 
--	nspm->id = ida_simple_get(&nd_region->ns_ida, 0, 0, GFP_KERNEL);
-+	nspm->id = ida_alloc(&nd_region->ns_ida, GFP_KERNEL);
- 	if (nspm->id < 0) {
- 		kfree(nspm);
- 		return NULL;
-@@ -2191,7 +2191,7 @@ int nd_region_register_namespaces(struct nd_region *nd_region, int *err)
- 			struct nd_namespace_pmem *nspm;
- 
- 			nspm = to_nd_namespace_pmem(dev);
--			id = ida_simple_get(&nd_region->ns_ida, 0, 0,
-+			id = ida_alloc(&nd_region->ns_ida,
- 					    GFP_KERNEL);
- 			nspm->id = id;
- 		} else
-diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
-index c31e184bfa45..d814bda8040a 100644
---- a/drivers/nvdimm/pfn_devs.c
-+++ b/drivers/nvdimm/pfn_devs.c
-@@ -20,7 +20,7 @@ static void nd_pfn_release(struct device *dev)
- 
- 	dev_dbg(dev, "trace\n");
- 	nd_detach_ndns(&nd_pfn->dev, &nd_pfn->ndns);
--	ida_simple_remove(&nd_region->pfn_ida, nd_pfn->id);
-+	ida_free(&nd_region->pfn_ida, nd_pfn->id);
- 	kfree(nd_pfn->uuid);
- 	kfree(nd_pfn);
- }
-@@ -321,7 +321,7 @@ static struct nd_pfn *nd_pfn_alloc(struct nd_region *nd_region)
- 	if (!nd_pfn)
- 		return NULL;
- 
--	nd_pfn->id = ida_simple_get(&nd_region->pfn_ida, 0, 0, GFP_KERNEL);
-+	nd_pfn->id = ida_alloc(&nd_region->pfn_ida, GFP_KERNEL);
- 	if (nd_pfn->id < 0) {
- 		kfree(nd_pfn);
- 		return NULL;
+v3:
+  reformat the commit message to meet 100 column condition
+
+v4:
+  - Moved the struct ns_info definition to the beginning of
+  the block 
+  - Initialized the buf of ns_info structure in ns_info_init
+  - Change the format of comment in code from "//" to "/**/"
+  - reword the commit message of patch 2/2
+
+Tarun Sahu (2):
+  ndctl/namespace: Fix multiple issues with write-infoblock
+  ndctl/namespace: Implement write-infoblock for sector mode namespaces
+
+ ndctl/namespace.c | 314 ++++++++++++++++++++++++++++++++++------------
+ 1 file changed, 231 insertions(+), 83 deletions(-)
+
 -- 
-2.25.1
+2.35.1
 
