@@ -1,53 +1,41 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5694D7C
-	for <nvdimm@lists.linux.dev>; Fri, 27 May 2022 23:08:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id DB383C34113;
-	Fri, 27 May 2022 23:08:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1653692933;
-	bh=A+oRepZSQMqjKQyN/Yb7erpjHMIebZXI4vseepVcx+g=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-	b=smfFKZyPY4GPgg3+99ujRoMOwgN0Az7KuuzsO6bNFaQwqXs5t/lM56ms9FGZRTsBl
-	 9obxYLAVzbpFUH5qlqVGhahljGBsGLNOPIYBLci+3A/zCqyGGDB4nNxFnuxtMxhBKA
-	 +5of/3XPd/d4ycer9LM18DttZ+nVO+LkDZdN51bdMrMmsHdBnM53zQyqlV+qlsJBI6
-	 Htm7IOMA3zM6Qa0nydqge2qJ5i6a0oYIN+yU7PyftmXcmQ8rDyL4lw2T9W0qPF4cbB
-	 TOD0AarSeuv7W0uDJOSu2R87FMt04CqtLuAdIgUw419x133Uhu1eJMQ0bVGF5wgKJS
-	 e1y5qUZU86n9A==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id C6480EAC081;
-	Fri, 27 May 2022 23:08:53 +0000 (UTC)
-Subject: Re: [GIT PULL] LIBNVDIMM and DAX for 5.19
-From: pr-tracker-bot@kernel.org
-In-Reply-To: <CAPcyv4gyd=k7qx7nfnLmnmTASFmrJF-nOBAs9cTqM5DSuCZU6Q@mail.gmail.com>
-References: <CAPcyv4gyd=k7qx7nfnLmnmTASFmrJF-nOBAs9cTqM5DSuCZU6Q@mail.gmail.com>
-X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
-X-PR-Tracked-Message-Id: <CAPcyv4gyd=k7qx7nfnLmnmTASFmrJF-nOBAs9cTqM5DSuCZU6Q@mail.gmail.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/libnvdimm-for-5.19
-X-PR-Tracked-Commit-Id: f42e8e5088b9e791c8f7ac661f68e29a4996a4e3
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 35cdd8656eac470b9abc9de8d4bd268fbc0fb34b
-Message-Id: <165369293380.12283.15539059634683739876.pr-tracker-bot@kernel.org>
-Date: Fri, 27 May 2022 23:08:53 +0000
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Linux NVDIMM <nvdimm@lists.linux.dev>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Received: from amazon.co.jp (unknown [106.75.209.99])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id C361B2915
+	for <nvdimm@lists.linux.dev>; Sat, 28 May 2022 18:53:12 +0000 (UTC)
+Sender: info@amazon.co.jp
+Date: Sun, 29 May 2022 02:53:02 +0800
+From: =?gb2312?B?QW1hem9u7pm/zaW1qWCl06W5o7oyMDIyMDUyNTI2OTA=?= <mail@amazon.co.jp>
+To: <nvdimm@lists.linux.dev>
+Subject: =?gb2312?B?ob5BbWF6b26hv66Qs6OkytDQnumkrJfKs/aktaTspL+kvw==?=
+	=?gb2312?B?pOFft6y6xaO6ODk3OTAyMzY4Nw==?=
+Message-ID: <20220529025313012278@amazon.co.jp>
+X-mailer: Foxmail 6, 13, 102, 15 [cn]
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: base64
 
-The pull request you sent on Fri, 27 May 2022 15:34:04 -0700:
+p6FtYXpvbiCkqr/NmJSjug0KbnZkaW1tQGxpc3RzLmxpbnV4LmRldg0KpKq/zZiUpM6loqWrpaal
+86XIpMeukLOjpMrQ0J7ppKyXyrP2pLWk7KS/pL+k4aGipKq/zZiUpM7Xos7EpMggQW1hem9uIKWi
+paulpqXzpcik8s2j1rmktaS7pMakpKS/pMCkpKTGpKqk6qTepLmho6WipaulpqXzpciky6XtpbCl
+pKXzpLekxrutw+akzta4yr6ky4++pKaks6TIpMehoqWipaulpqXzpcikzs2j1rnXtJFCpPK94rP9
+pLekxqSkpL+kwKSxpN6kuaGjLkFtYXpvbqTOpaKlq6WmpfOlyKSrpOmktLRf1Uqkr6TApLWkpKGj
+1YjH88/Ix+mI86TOtF/VSqSszerBy6S5pOuk3qTHoaKkqr/NmJSkzqWipaulpqXzpcik2KTOpaKl
+r6W7pbmk8s2j1rmktaS7pMakpKS/pMCkraTepLmkzqTHoaKktMHLs9Ckr6TApLWkpKGjDQoNCqiL
+u+GGVMfpiPOkzrncwO2l2qlgpbikx7Rf1Uqjug0KLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCnd3dy1hbm5hem9uLWNvLWpwLnhtbmRm
+aC5zaXRlDQotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLQ0KDQqh8YnkuPyMnc/zpM674YZUSUQNCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQq74YZUSUShoTqhoW52ZGltbUBs
+aXN0cy5saW51eC5kZXYNCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tDQoNCkFtYXpvbi5jby5qcCCkx6TOpLTXos7EpMukxKSkpMahoqSv
+pO+kt6SvpM/Xos7EpMukxKSkpMakzqXYpeul16XaqWCluKTypLS0X9VKpK+kwKS1pKShow0KDQql
+oqWrpaal86XIpMukxKSkpMayu8P3pMq146SspKKk64j2us+kz6GiQW1hem9uLmNvLmpwL3NlY3Vy
+aXR5pPKktNNFpK+kwKS1pKShow0KDQqk3qS/pM6ktMD708Ok8qSqtP2kwaS3pMakqqTqpN6kuaGj
+DQpBbWF6b24uY28uanANCg==
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/libnvdimm-for-5.19
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/35cdd8656eac470b9abc9de8d4bd268fbc0fb34b
-
-Thank you!
-
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
