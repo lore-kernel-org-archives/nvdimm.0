@@ -1,98 +1,119 @@
-Received: from gauss.telenet-ops.be (gauss.telenet-ops.be [195.130.132.49])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f47.google.com (mail-ej1-f47.google.com [209.85.218.47])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CAE023BD
-	for <nvdimm@lists.linux.dev>; Mon,  6 Jun 2022 09:15:04 +0000 (UTC)
-Received: from albert.telenet-ops.be (albert.telenet-ops.be [IPv6:2a02:1800:110:4::f00:1a])
-	by gauss.telenet-ops.be (Postfix) with ESMTPS id 4LGnhj5ZkGz4x21r
-	for <nvdimm@lists.linux.dev>; Mon,  6 Jun 2022 11:08:21 +0200 (CEST)
-Received: from ramsan.of.borg ([IPv6:2a02:1810:ac12:ed30:4ddc:2f16:838f:9c0c])
-	by albert.telenet-ops.be with bizsmtp
-	id fl8C270034e6eDr06l8Cbl; Mon, 06 Jun 2022 11:08:14 +0200
-Received: from geert (helo=localhost)
-	by ramsan.of.borg with local-esmtp (Exim 4.93)
-	(envelope-from <geert@linux-m68k.org>)
-	id 1ny8iZ-002urS-KO; Mon, 06 Jun 2022 11:08:11 +0200
-Date: Mon, 6 Jun 2022 11:08:11 +0200 (CEST)
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-X-X-Sender: geert@ramsan.of.borg
-To: linux-kernel@vger.kernel.org
-cc: Kees Cook <keescook@chromium.org>, nvdimm@lists.linux.dev, 
-    linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org, 
-    linux-sh@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
-    linux-scsi@vger.kernel.org, sparclinux@vger.kernel.org
-Subject: Re: Build regressions/improvements in v5.19-rc1
-In-Reply-To: <20220606082201.2792145-1-geert@linux-m68k.org>
-Message-ID: <alpine.DEB.2.22.394.2206061104510.695137@ramsan.of.borg>
-References: <CAHk-=wgZt-YDSKfdyES2p6A_KJoG8DwQ0mb9CeS8jZYp+0Y2Rw@mail.gmail.com> <20220606082201.2792145-1-geert@linux-m68k.org>
-User-Agent: Alpine 2.22 (DEB 394 2020-01-19)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A72F37E
+	for <nvdimm@lists.linux.dev>; Mon,  6 Jun 2022 14:10:47 +0000 (UTC)
+Received: by mail-ej1-f47.google.com with SMTP id u12so29224225eja.8
+        for <nvdimm@lists.linux.dev>; Mon, 06 Jun 2022 07:10:47 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=message-id:date:mime-version:user-agent:content-language:to:from
+         :subject:cc:content-transfer-encoding;
+        bh=zcfwBnYsaM3osnPpLQRxR1JrABrX/zB0kh++woByQVw=;
+        b=gEpMt7Yd2UxBYkCte5IR1tgFlFVQEJ5SylH2/PBFk99wiIMXMkM+sU44fPiSwHBSIa
+         IMN0bB6BoqeG1sEJlrPjvDJwshD0q/AyS0IJHSN0P9Ag849SN82OU8Ve5PJzspiKPaW1
+         ixl/BLksjnyF6+Q+zGJYXDzeZpi/LDj+JclfL1cyrON5hgnvjaUXMyC7nb1ksactUBIH
+         jb2tLQZDR3UZzGNzC9dAr2e1XwZYvkD5WfHeYwhKxD+AUN/NVrWM8f/WdIoZfPQ/vOJo
+         Hy5xj1R8bnKIgXu+lNCl9xqLdJ5CDltw8jt+jMNUJK7Q1MpOo0KjmNKdY80vONgP9gY3
+         g/vA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:message-id:date:mime-version:user-agent
+         :content-language:to:from:subject:cc:content-transfer-encoding;
+        bh=zcfwBnYsaM3osnPpLQRxR1JrABrX/zB0kh++woByQVw=;
+        b=NC19N061eZKT0lT/B+NILUx8fe/hsRxTLDP5m7sA52pmU7sQgPpkDoIYItCxm8ddKA
+         eLxQCpDwy4xmfQOSFkYXE2Q1NDBLSiBjSS0nstFZtYzeX9cVw4Kz4pwcbwehAq2q659s
+         DcZpForI6IyhMAahemAUNBbcI0VsVJ8iAhkotPbiD4GnWdSO4LDC39cIvNur2u3gqcoA
+         Bva9ISJ7F5fvq0i1ssm83XgH+j0V5+Et3QORmK4RvpopNKCHAFb3n0B0epDZ+JCxiWPV
+         78KqaGH6SPkHv4xAB/Jfh05sExvd9KY5+86vgMEIL/TUhptU604naWIiRtUNvwXSMSTr
+         W+pg==
+X-Gm-Message-State: AOAM531go+zFfeAzlfgsASzcl/9fkZ1LCuL6q7vAnnT8lSvyGFPXWf7o
+	GA0JLcicQVW0svAHpXRXp8w=
+X-Google-Smtp-Source: ABdhPJzqBAw+J0OHGwBe1PkTWA7yEhL5aB2O9MeJxPiApU6qXMja7NqcmfnC2G25AjnP5JFxsUOEog==
+X-Received: by 2002:a17:907:16a4:b0:711:c9a7:dc75 with SMTP id hc36-20020a17090716a400b00711c9a7dc75mr6290181ejc.542.1654524645895;
+        Mon, 06 Jun 2022 07:10:45 -0700 (PDT)
+Received: from [192.168.0.210] (cpc154979-craw9-2-0-cust193.16-3.cable.virginm.net. [80.193.200.194])
+        by smtp.googlemail.com with ESMTPSA id e1-20020a17090618e100b006f3ef214dc3sm6357044ejf.41.2022.06.06.07.10.44
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 06 Jun 2022 07:10:45 -0700 (PDT)
+Message-ID: <a1aab4df-9e1c-793f-5c3d-d735e4f4fb57@gmail.com>
+Date: Mon, 6 Jun 2022 15:10:44 +0100
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII; format=flowed
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.9.0
+Content-Language: en-US
+To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+From: "Colin King (gmail)" <colin.i.king@gmail.com>
+Subject: re: fsdax: output address in dax_iomap_pfn() and rename it
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>,
+ Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox
+ <willy@infradead.org>, Jan Kara <jack@suse.cz>,
+ linux-fsdevel <linux-fsdevel@vger.kernel.org>, nvdimm@lists.linux.dev,
+ "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Mon, 6 Jun 2022, Geert Uytterhoeven wrote:
-> Below is the list of build error/warning regressions/improvements in
-> v5.19-rc1[1] compared to v5.18[2].
->
-> Summarized:
->  - build errors: +9/-10
+Hi,
 
-> [1] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/f2906aa863381afb0015a9eb7fefad885d4e5a56/ (all 135 configs)
-> [2] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/4b0986a3613c92f4ec1bdc7f60ec66fea135991f/ (131 out of 135 configs)
+Static analysis with clang scan-build found a potential issue with the 
+following commit in linux-next today:
 
-> 9 error regressions:
->  + /kisskb/src/arch/um/include/asm/page.h: error: too few arguments to function 'to_phys':  => 105:20
->  + /kisskb/src/drivers/nvdimm/pmem.c: error: conflicting types for 'to_phys':  => 48:20
->  + /kisskb/src/drivers/nvdimm/pmem.c: error: control reaches end of non-void function [-Werror=return-type]:  => 324:1
+commit 1447ac26a96463a05ad9f5cfba7eef43d52913ef
+Author: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Date:   Fri Jun 3 13:37:32 2022 +0800
 
-um-x86_64/um-allyesconfig
+     fsdax: output address in dax_iomap_pfn() and rename it
 
->  + /kisskb/src/arch/xtensa/kernel/entry.S: Error: unknown pseudo-op: `.bss':  => 2176
 
-xtensa-gcc11/xtensa-allmodconfig
+The analysis is as follows:
 
->  + /kisskb/src/drivers/tty/serial/sh-sci.c: error: unused variable 'sport' [-Werror=unused-variable]:  => 2655:26
 
-sh4-gcc11/se7619_defconfig
-sh4-gcc11/sh-allmodconfig
+static int dax_iomap_direct_access(const struct iomap *iomap, loff_t pos,
+                 size_t size, void **kaddr, pfn_t *pfnp)
+{
+         pgoff_t pgoff = dax_iomap_pgoff(iomap, pos);
+         int id, rc;
+         long length;
 
-Fix available
-https://lore.kernel.org/all/4ed0a7a0d3fa912a5b44c451884818f2c138ef42.1644914600.git.geert+renesas@glider.be
+         id = dax_read_lock();
+         length = dax_direct_access(iomap->dax_dev, pgoff, PHYS_PFN(size),
+                                    DAX_ACCESS, kaddr, pfnp);
+         if (length < 0) {
+                 rc = length;
+                 goto out;
+         }
+         if (!pfnp)
+                 goto out_check_addr;
 
->  + /kisskb/src/include/linux/fortify-string.h: error: call to '__write_overflow_field' declared with attribute warning: detected write beyond size of field (1st parameter); maybe use struct_group()? [-Werror=attribute-warning]:  => 344:25
+The above check jumps to out_check_addr, if kaddr is null then rc is not 
+set and a garbage uninitialized value for rc is returned on the out path.
 
-powerpc-gcc11/ppc64_book3e_allmodconfig
 
->  + /kisskb/src/include/ufs/ufshci.h: error: initializer element is not constant:  => 245:36
+         rc = -EINVAL;
+         if (PFN_PHYS(length) < size)
+                 goto out;
+         if (pfn_t_to_pfn(*pfnp) & (PHYS_PFN(size)-1))
+                 goto out;
+         /* For larger pages we need devmap */
+         if (length > 1 && !pfn_t_devmap(*pfnp))
+                 goto out;
+         rc = 0;
 
-mipsel-gcc5/mips-allmodconfig
-powerpc-gcc5/powerpc-allmodconfig
+out_check_addr:
+         if (!kaddr)
+                 goto out;
+         if (!*kaddr)
+                 rc = -EFAULT;
+out:
+         dax_read_unlock(id);
+         return rc;
+}
 
-FTR, include/ufs/ufshci.h lacks a MAINTAINERS entry.
 
->  + error: relocation truncated to fit: R_SPARC_WDISP22 against `.init.text':  => (.head.text+0x5100), (.head.text+0x5040)
->  + error: relocation truncated to fit: R_SPARC_WDISP22 against symbol `leon_smp_cpu_startup' defined in .text section in arch/sparc/kernel/trampoline_32.o:  => (.init.text+0xa4)
+Colin
 
-sparc64-gcc5/sparc-allmodconfig
-
-> 3 warning regressions:
-
->  + arch/m68k/configs/multi_defconfig: warning: symbol value 'm' invalid for ZPOOL:  => 61
->  + arch/m68k/configs/sun3_defconfig: warning: symbol value 'm' invalid for ZPOOL:  => 37
-
-Will be fixed by the m68k defconfig update for v5.20.
-
-Gr{oetje,eeting}s,
-
- 						Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
- 							    -- Linus Torvalds
