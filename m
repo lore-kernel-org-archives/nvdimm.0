@@ -1,119 +1,143 @@
-Received: from mail-ej1-f47.google.com (mail-ej1-f47.google.com [209.85.218.47])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A72F37E
-	for <nvdimm@lists.linux.dev>; Mon,  6 Jun 2022 14:10:47 +0000 (UTC)
-Received: by mail-ej1-f47.google.com with SMTP id u12so29224225eja.8
-        for <nvdimm@lists.linux.dev>; Mon, 06 Jun 2022 07:10:47 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=message-id:date:mime-version:user-agent:content-language:to:from
-         :subject:cc:content-transfer-encoding;
-        bh=zcfwBnYsaM3osnPpLQRxR1JrABrX/zB0kh++woByQVw=;
-        b=gEpMt7Yd2UxBYkCte5IR1tgFlFVQEJ5SylH2/PBFk99wiIMXMkM+sU44fPiSwHBSIa
-         IMN0bB6BoqeG1sEJlrPjvDJwshD0q/AyS0IJHSN0P9Ag849SN82OU8Ve5PJzspiKPaW1
-         ixl/BLksjnyF6+Q+zGJYXDzeZpi/LDj+JclfL1cyrON5hgnvjaUXMyC7nb1ksactUBIH
-         jb2tLQZDR3UZzGNzC9dAr2e1XwZYvkD5WfHeYwhKxD+AUN/NVrWM8f/WdIoZfPQ/vOJo
-         Hy5xj1R8bnKIgXu+lNCl9xqLdJ5CDltw8jt+jMNUJK7Q1MpOo0KjmNKdY80vONgP9gY3
-         g/vA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:message-id:date:mime-version:user-agent
-         :content-language:to:from:subject:cc:content-transfer-encoding;
-        bh=zcfwBnYsaM3osnPpLQRxR1JrABrX/zB0kh++woByQVw=;
-        b=NC19N061eZKT0lT/B+NILUx8fe/hsRxTLDP5m7sA52pmU7sQgPpkDoIYItCxm8ddKA
-         eLxQCpDwy4xmfQOSFkYXE2Q1NDBLSiBjSS0nstFZtYzeX9cVw4Kz4pwcbwehAq2q659s
-         DcZpForI6IyhMAahemAUNBbcI0VsVJ8iAhkotPbiD4GnWdSO4LDC39cIvNur2u3gqcoA
-         Bva9ISJ7F5fvq0i1ssm83XgH+j0V5+Et3QORmK4RvpopNKCHAFb3n0B0epDZ+JCxiWPV
-         78KqaGH6SPkHv4xAB/Jfh05sExvd9KY5+86vgMEIL/TUhptU604naWIiRtUNvwXSMSTr
-         W+pg==
-X-Gm-Message-State: AOAM531go+zFfeAzlfgsASzcl/9fkZ1LCuL6q7vAnnT8lSvyGFPXWf7o
-	GA0JLcicQVW0svAHpXRXp8w=
-X-Google-Smtp-Source: ABdhPJzqBAw+J0OHGwBe1PkTWA7yEhL5aB2O9MeJxPiApU6qXMja7NqcmfnC2G25AjnP5JFxsUOEog==
-X-Received: by 2002:a17:907:16a4:b0:711:c9a7:dc75 with SMTP id hc36-20020a17090716a400b00711c9a7dc75mr6290181ejc.542.1654524645895;
-        Mon, 06 Jun 2022 07:10:45 -0700 (PDT)
-Received: from [192.168.0.210] (cpc154979-craw9-2-0-cust193.16-3.cable.virginm.net. [80.193.200.194])
-        by smtp.googlemail.com with ESMTPSA id e1-20020a17090618e100b006f3ef214dc3sm6357044ejf.41.2022.06.06.07.10.44
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 06 Jun 2022 07:10:45 -0700 (PDT)
-Message-ID: <a1aab4df-9e1c-793f-5c3d-d735e4f4fb57@gmail.com>
-Date: Mon, 6 Jun 2022 15:10:44 +0100
+Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 827D417C6
+	for <nvdimm@lists.linux.dev>; Tue,  7 Jun 2022 14:38:49 +0000 (UTC)
+IronPort-Data: =?us-ascii?q?A9a23=3AEtuDyqqieERBcSCcMmlSjOXrUbJeBmKGZBIvgKr?=
+ =?us-ascii?q?LsJaIsI5as4F+vjAZXWyEaffYazf0L98gboWy9U4E75PQnIVmS1A4/CAxQiMRo?=
+ =?us-ascii?q?6IpJ/zDcB6oYHn6wu4v7a5fx5xHLIGGdajYd1eEzvuWGuWn/SkUOZ2gHOKmUra?=
+ =?us-ascii?q?eYnkpHGeIdQ964f5ds79g6mJXqYjha++9kYuaT/z3YDdJ6RYtWo4nw/7rRCdUg?=
+ =?us-ascii?q?RjHkGhwUmrSyhx8lAS2e3E9VPrzLEwqRpfyatE88uWSH44vwFwll1418SvBCvv?=
+ =?us-ascii?q?9+lr6WkYMBLDPPwmSkWcQUK+n6vRAjnVqlP9la7xHMgEK49mKt4kZJNFlr4G5T?=
+ =?us-ascii?q?xw4eKPKg/g1XQRaEj1lIOtN/7qvzX2X6JbPkBOfIyG0qxlpJARsVWECwc57CH9?=
+ =?us-ascii?q?P+dQWMjcIaQqJhv7wy7W+IsFoh8ImLcDsPI43umxp0jzYS/0hRPjrQ67Kzd5e0?=
+ =?us-ascii?q?i05is1HEbDZfcVxQSVuaBDRSxxJNE0eBJ83kKGvnHaXWzFRrhSX47U252zSxQl?=
+ =?us-ascii?q?q+LnrLNfRPNeNQK19kkSHoWTJ12f0GBcXMJqY0zXt2natgPLf2Cb+cIEMHba7s?=
+ =?us-ascii?q?PlwjzW7z28LDTUSVF2msby3jVO4V9tDKksSvC00osAa7k23Q8L9XzW8oXiZrlg?=
+ =?us-ascii?q?dUd8WGOo/gCmL1KbV5gOxAmkfUiUHbN0gqd9wSTE0vneJlNPBASdz9rGYIVqb/?=
+ =?us-ascii?q?7CFpHWyPjIUInIJZS4sSwYOpdLkpekbjBvJQ5BoELOdicf8EjX9hTuNqUAWnbo?=
+ =?us-ascii?q?UicIUxqOT5k3cjnSgq/DhSg8z+xWSUHmp4x10YKa7aIGyr1vW9/BNKMCeVFbpl?=
+ =?us-ascii?q?HwFndWOqeMDF5eAkASTT+gXWrKk/fCINHvbm1EHN50g8Sm9vm6tZqhO7zxkYkR?=
+ =?us-ascii?q?kKMAJfXnuekC7kR1Q/ph7LnasbLExZ4O3FtRsyrLvU8nmPs04xPImjoNZLVfBp?=
+ =?us-ascii?q?X8xIxXLmT2FraTlqolnUb/zTCpmJS9y5Xxb8QeL?=
+IronPort-HdrOrdr: =?us-ascii?q?A9a23=3AsmxAfq3JLcwF/YSkKxBzBgqjBI4kLtp133Aq?=
+ =?us-ascii?q?2lEZdPU1SL39qynKppkmPHDP5gr5J0tLpTntAsi9qBDnhPtICOsqTNSftWDd0Q?=
+ =?us-ascii?q?PGEGgI1/qB/9SPIU3D398Y/aJhXow7M9foEGV95PyQ3CCIV/om3/mLmZrFudvj?=
+X-IronPort-AV: E=Sophos;i="5.88,333,1635177600"; 
+   d="scan'208";a="124761820"
+Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
+  by heian.cn.fujitsu.com with ESMTP; 07 Jun 2022 22:38:40 +0800
+Received: from G08CNEXMBPEKD04.g08.fujitsu.local (unknown [10.167.33.201])
+	by cn.fujitsu.com (Postfix) with ESMTP id 98CEE4D17196;
+	Tue,  7 Jun 2022 22:38:39 +0800 (CST)
+Received: from G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.80) by
+ G08CNEXMBPEKD04.g08.fujitsu.local (10.167.33.201) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.23; Tue, 7 Jun 2022 22:38:39 +0800
+Received: from irides.mr.mr (10.167.225.141) by
+ G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
+ id 15.0.1497.23 via Frontend Transport; Tue, 7 Jun 2022 22:38:38 +0800
+From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+To: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
+	<nvdimm@lists.linux.dev>, <linux-mm@kvack.org>,
+	<linux-fsdevel@vger.kernel.org>, <akpm@linux-foundation.org>
+CC: <djwong@kernel.org>, <dan.j.williams@intel.com>, <david@fromorbit.com>,
+	<hch@infradead.org>, <jane.chu@oracle.com>, <rgoldwyn@suse.de>,
+	<viro@zeniv.linux.org.uk>, <willy@infradead.org>, <naoya.horiguchi@nec.com>,
+	<linmiaohe@huawei.com>, Christoph Hellwig <hch@lst.de>, Ritesh Harjani
+	<riteshh@linux.ibm.com>
+Subject: [PATCH v2.1 08/14] fsdax: Output address in dax_iomap_pfn() and rename it
+Date: Tue, 7 Jun 2022 22:38:37 +0800
+Message-ID: <20220607143837.161174-1-ruansy.fnst@fujitsu.com>
+X-Mailer: git-send-email 2.36.1
+In-Reply-To: <20220603053738.1218681-9-ruansy.fnst@fujitsu.com>
+References: <20220603053738.1218681-9-ruansy.fnst@fujitsu.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.9.0
-Content-Language: en-US
-To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-From: "Colin King (gmail)" <colin.i.king@gmail.com>
-Subject: re: fsdax: output address in dax_iomap_pfn() and rename it
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>,
- Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox
- <willy@infradead.org>, Jan Kara <jack@suse.cz>,
- linux-fsdevel <linux-fsdevel@vger.kernel.org>, nvdimm@lists.linux.dev,
- "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-yoursite-MailScanner-ID: 98CEE4D17196.A17C2
+X-yoursite-MailScanner: Found to be clean
+X-yoursite-MailScanner-From: ruansy.fnst@fujitsu.com
+X-Spam-Status: No
 
-Hi,
+Add address output in dax_iomap_pfn() in order to perform a memcpy() in
+CoW case.  Since this function both output address and pfn, rename it to
+dax_iomap_direct_access().
 
-Static analysis with clang scan-build found a potential issue with the 
-following commit in linux-next today:
+Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Ritesh Harjani <riteshh@linux.ibm.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Darrick J. Wong <djwong@kernel.org>
 
-commit 1447ac26a96463a05ad9f5cfba7eef43d52913ef
-Author: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Date:   Fri Jun 3 13:37:32 2022 +0800
+==
+Hi Andrew,
 
-     fsdax: output address in dax_iomap_pfn() and rename it
+As Dan mentioned[1], the rc should be initialized.  I fixed it and resend this patch.
+
+[1] https://lore.kernel.org/linux-fsdevel/Yp8FUZnO64Qvyx5G@kili/
+
+---
+ fs/dax.c | 18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
+
+diff --git a/fs/dax.c b/fs/dax.c
+index b59b864017ad..7a8eb1e30a1b 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -1026,20 +1026,22 @@ int dax_writeback_mapping_range(struct address_space *mapping,
+ }
+ EXPORT_SYMBOL_GPL(dax_writeback_mapping_range);
+ 
+-static int dax_iomap_pfn(const struct iomap *iomap, loff_t pos, size_t size,
+-			 pfn_t *pfnp)
++static int dax_iomap_direct_access(const struct iomap *iomap, loff_t pos,
++		size_t size, void **kaddr, pfn_t *pfnp)
+ {
+ 	pgoff_t pgoff = dax_iomap_pgoff(iomap, pos);
+-	int id, rc;
++	int id, rc = 0;
+ 	long length;
+ 
+ 	id = dax_read_lock();
+ 	length = dax_direct_access(iomap->dax_dev, pgoff, PHYS_PFN(size),
+-				   DAX_ACCESS, NULL, pfnp);
++				   DAX_ACCESS, kaddr, pfnp);
+ 	if (length < 0) {
+ 		rc = length;
+ 		goto out;
+ 	}
++	if (!pfnp)
++		goto out_check_addr;
+ 	rc = -EINVAL;
+ 	if (PFN_PHYS(length) < size)
+ 		goto out;
+@@ -1049,6 +1051,12 @@ static int dax_iomap_pfn(const struct iomap *iomap, loff_t pos, size_t size,
+ 	if (length > 1 && !pfn_t_devmap(*pfnp))
+ 		goto out;
+ 	rc = 0;
++
++out_check_addr:
++	if (!kaddr)
++		goto out;
++	if (!*kaddr)
++		rc = -EFAULT;
+ out:
+ 	dax_read_unlock(id);
+ 	return rc;
+@@ -1456,7 +1464,7 @@ static vm_fault_t dax_fault_iter(struct vm_fault *vmf,
+ 		return pmd ? VM_FAULT_FALLBACK : VM_FAULT_SIGBUS;
+ 	}
+ 
+-	err = dax_iomap_pfn(&iter->iomap, pos, size, &pfn);
++	err = dax_iomap_direct_access(&iter->iomap, pos, size, NULL, &pfn);
+ 	if (err)
+ 		return pmd ? VM_FAULT_FALLBACK : dax_fault_return(err);
+ 
+-- 
+2.36.1
 
 
-The analysis is as follows:
-
-
-static int dax_iomap_direct_access(const struct iomap *iomap, loff_t pos,
-                 size_t size, void **kaddr, pfn_t *pfnp)
-{
-         pgoff_t pgoff = dax_iomap_pgoff(iomap, pos);
-         int id, rc;
-         long length;
-
-         id = dax_read_lock();
-         length = dax_direct_access(iomap->dax_dev, pgoff, PHYS_PFN(size),
-                                    DAX_ACCESS, kaddr, pfnp);
-         if (length < 0) {
-                 rc = length;
-                 goto out;
-         }
-         if (!pfnp)
-                 goto out_check_addr;
-
-The above check jumps to out_check_addr, if kaddr is null then rc is not 
-set and a garbage uninitialized value for rc is returned on the out path.
-
-
-         rc = -EINVAL;
-         if (PFN_PHYS(length) < size)
-                 goto out;
-         if (pfn_t_to_pfn(*pfnp) & (PHYS_PFN(size)-1))
-                 goto out;
-         /* For larger pages we need devmap */
-         if (length > 1 && !pfn_t_devmap(*pfnp))
-                 goto out;
-         rc = 0;
-
-out_check_addr:
-         if (!kaddr)
-                 goto out;
-         if (!*kaddr)
-                 rc = -EFAULT;
-out:
-         dax_read_unlock(id);
-         return rc;
-}
-
-
-Colin
 
