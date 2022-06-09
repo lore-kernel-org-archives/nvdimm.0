@@ -1,83 +1,59 @@
-Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 8ED7820E0
-	for <nvdimm@lists.linux.dev>; Thu,  9 Jun 2022 14:35:07 +0000 (UTC)
-IronPort-Data: =?us-ascii?q?A9a23=3A8KhIy6spCvB+FPZdJeO2fM3W+OfnVPhcMUV32f8?=
- =?us-ascii?q?akzHdYEJGY0x3y2oWDTuEa/aOYmWhctx/advi/U0PsJXQmoBnTldvr3tgHilAw?=
- =?us-ascii?q?SbnLY7Hdx+vZUt+DSFioHpPtpxYMp+ZRCwNZie0SiyFb/6x/RGQ6YnSHuCmULS?=
- =?us-ascii?q?cY3goLeNZYHxJZSxLyrdRbrFA0YDR7zOl4bsekuWHULOX82cc3lE8t8pvnChSU?=
- =?us-ascii?q?MHa41v0iLCRicdj5zcyn1FNZH4WyDrYw3HQGuG4FcbiLwrPIS3Qw4/Xw/stIov?=
- =?us-ascii?q?NfrfTeUtMTKPQPBSVlzxdXK3Kbhpq/3R0i/hkcqFHLxo/ZzahxridzP1XqJW2U?=
- =?us-ascii?q?hZvMKvXhMwTThtZDzpje6ZB/dcrJFDm65DDlhGZIyWEL/JGSRte0Zcj0up+H2B?=
- =?us-ascii?q?C3fICLzUKdBqCm6S9x7fTYulnhuwiKsfxNY8Ss30myivWZd4qQ4/ERari5tJC2?=
- =?us-ascii?q?jo0wMdUEp72YdQVaD9qRBDBeAFUfFMWDo8u2uulmBHXdzxetULQq7E77nbeyCR?=
- =?us-ascii?q?v37X3dtnYYNqHQYNShEnwjmbH+XnpRxIXLtqSzRKb/X+2wOzChyX2XMQVDrLQ3?=
- =?us-ascii?q?vprhkCDg3wdEzUIWlah5/q0kEizX5RYMUN8x8aEhcDe72TyFp+kAUL++yXC43Y?=
- =?us-ascii?q?htxNrO7VSwGmwJmD8um513lQ5cwM=3D?=
-IronPort-HdrOrdr: =?us-ascii?q?A9a23=3Av0Dwya3HDS+VGsXGsLDv+AqjBNwkLtp133Aq?=
- =?us-ascii?q?2lEZdPU1SK2lfq+V8MjzuSWetN9zYh8dcLK7V5VoKEm0naKdirN9AV7NZmPbhF?=
- =?us-ascii?q?c=3D?=
-X-IronPort-AV: E=Sophos;i="5.88,333,1635177600"; 
-   d="scan'208";a="124814786"
-Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
-  by heian.cn.fujitsu.com with ESMTP; 09 Jun 2022 22:34:59 +0800
-Received: from G08CNEXMBPEKD04.g08.fujitsu.local (unknown [10.167.33.201])
-	by cn.fujitsu.com (Postfix) with ESMTP id EF0F44D16FFC;
-	Thu,  9 Jun 2022 22:34:57 +0800 (CST)
-Received: from G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.80) by
- G08CNEXMBPEKD04.g08.fujitsu.local (10.167.33.201) with Microsoft SMTP Server
- (TLS) id 15.0.1497.23; Thu, 9 Jun 2022 22:34:58 +0800
-Received: from irides.mr.mr (10.167.225.141) by
- G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
- id 15.0.1497.23 via Frontend Transport; Thu, 9 Jun 2022 22:34:37 +0800
-From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-To: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
-	<nvdimm@lists.linux.dev>, <linux-fsdevel@vger.kernel.org>
-CC: <djwong@kernel.org>, <david@fromorbit.com>, <hch@infradead.org>
-Subject: [PATCH] xfs: fail dax mount if reflink is enabled on a partition
-Date: Thu, 9 Jun 2022 22:34:35 +0800
-Message-ID: <20220609143435.393724-1-ruansy.fnst@fujitsu.com>
-X-Mailer: git-send-email 2.36.1
+Received: from gandalf.ozlabs.org (gandalf.ozlabs.org [150.107.74.76])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D53B2599
+	for <nvdimm@lists.linux.dev>; Thu,  9 Jun 2022 14:45:36 +0000 (UTC)
+Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mail.ozlabs.org (Postfix) with ESMTPSA id 4LJn2H6n0Jz4xZB;
+	Fri, 10 Jun 2022 00:45:27 +1000 (AEST)
+From: Michael Ellerman <patch-notifications@ellerman.id.au>
+To: linuxppc-dev@lists.ozlabs.org, Vaibhav Jain <vaibhav@linux.ibm.com>, nvdimm@lists.linux.dev
+Cc: Michael Ellerman <mpe@ellerman.id.au>, Dan Williams <dan.j.williams@intel.com>, "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Sachin Sant <sachinp@linux.ibm.com>, Shivaprasad G Bhat <sbhat@linux.ibm.com>
+In-Reply-To: <20220524112353.1718454-1-vaibhav@linux.ibm.com>
+References: <20220524112353.1718454-1-vaibhav@linux.ibm.com>
+Subject: Re: [PATCH] powerpc/papr_scm: don't requests stats with '0' sized stats buffer
+Message-Id: <165478587347.589231.8636928755378535882.b4-ty@ellerman.id.au>
+Date: Fri, 10 Jun 2022 00:44:33 +1000
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-yoursite-MailScanner-ID: EF0F44D16FFC.A55E3
-X-yoursite-MailScanner: Found to be clean
-X-yoursite-MailScanner-From: ruansy.fnst@fujitsu.com
-X-Spam-Status: No
 
-Failure notification is not supported on partitions.  So, when we mount
-a reflink enabled xfs on a partition with dax option, let it fail with
--EINVAL code.
+On Tue, 24 May 2022 16:53:53 +0530, Vaibhav Jain wrote:
+> Sachin reported [1] that on a POWER-10 lpar he is seeing a kernel panic being
+> reported with vPMEM when papr_scm probe is being called. The panic is of the
+> form below and is observed only with following option disabled(profile) for the
+> said LPAR 'Enable Performance Information Collection' in the HMC:
+> 
+>  Kernel attempted to write user page (1c) - exploit attempt? (uid: 0)
+>  BUG: Kernel NULL pointer dereference on write at 0x0000001c
+>  Faulting instruction address: 0xc008000001b90844
+>  Oops: Kernel access of bad area, sig: 11 [#1]
+> <snip>
+>  NIP [c008000001b90844] drc_pmem_query_stats+0x5c/0x270 [papr_scm]
+>  LR [c008000001b92794] papr_scm_probe+0x2ac/0x6ec [papr_scm]
+>  Call Trace:
+>        0xc00000000941bca0 (unreliable)
+>        papr_scm_probe+0x2ac/0x6ec [papr_scm]
+>        platform_probe+0x98/0x150
+>        really_probe+0xfc/0x510
+>        __driver_probe_device+0x17c/0x230
+> <snip>
+>  ---[ end trace 0000000000000000 ]---
+>  Kernel panic - not syncing: Fatal exception
+> 
+> [...]
 
-Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
----
- fs/xfs/xfs_super.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+Applied to powerpc/fixes.
 
-diff --git a/fs/xfs/xfs_super.c b/fs/xfs/xfs_super.c
-index 8495ef076ffc..a3c221841fa6 100644
---- a/fs/xfs/xfs_super.c
-+++ b/fs/xfs/xfs_super.c
-@@ -348,8 +348,10 @@ xfs_setup_dax_always(
- 		goto disable_dax;
- 	}
- 
--	if (xfs_has_reflink(mp)) {
--		xfs_alert(mp, "DAX and reflink cannot be used together!");
-+	if (xfs_has_reflink(mp) &&
-+	    bdev_is_partition(mp->m_ddev_targp->bt_bdev)) {
-+		xfs_alert(mp,
-+			"DAX and reflink cannot work with multi-partitions!");
- 		return -EINVAL;
- 	}
- 
--- 
-2.36.1
+[1/1] powerpc/papr_scm: don't requests stats with '0' sized stats buffer
+      https://git.kernel.org/powerpc/c/07bf9431b1590d1cd7a8d62075d0b50b073f0495
 
-
-
+cheers
