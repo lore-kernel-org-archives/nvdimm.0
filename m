@@ -1,59 +1,45 @@
-Received: from gandalf.ozlabs.org (gandalf.ozlabs.org [150.107.74.76])
+Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D53B2599
-	for <nvdimm@lists.linux.dev>; Thu,  9 Jun 2022 14:45:36 +0000 (UTC)
-Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mail.ozlabs.org (Postfix) with ESMTPSA id 4LJn2H6n0Jz4xZB;
-	Fri, 10 Jun 2022 00:45:27 +1000 (AEST)
-From: Michael Ellerman <patch-notifications@ellerman.id.au>
-To: linuxppc-dev@lists.ozlabs.org, Vaibhav Jain <vaibhav@linux.ibm.com>, nvdimm@lists.linux.dev
-Cc: Michael Ellerman <mpe@ellerman.id.au>, Dan Williams <dan.j.williams@intel.com>, "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Sachin Sant <sachinp@linux.ibm.com>, Shivaprasad G Bhat <sbhat@linux.ibm.com>
-In-Reply-To: <20220524112353.1718454-1-vaibhav@linux.ibm.com>
-References: <20220524112353.1718454-1-vaibhav@linux.ibm.com>
-Subject: Re: [PATCH] powerpc/papr_scm: don't requests stats with '0' sized stats buffer
-Message-Id: <165478587347.589231.8636928755378535882.b4-ty@ellerman.id.au>
-Date: Fri, 10 Jun 2022 00:44:33 +1000
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D538E362
+	for <nvdimm@lists.linux.dev>; Fri, 10 Jun 2022 05:46:10 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
+	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=fQQYd8rH7yJgcH0WS5t7Iydx1WYbX6aTpNe9zlkn5xY=; b=knb9VjPHC+6O7WDiHU1GAHcTAG
+	vRgrANbZCRTzUEEFNEjFJ1RdGOfNA/zo2JrBBPC+yL6tSluDm289+6nyXfosJtKmlyZlBieC7vkkz
+	QE+AGKTlV/bfs9e2X6gg8YTXmB+lbg9RldomOdR9TXR7wcDPHzZYjcFA9ivk5gypnNfJ+PG8MIqWv
+	jb3fC56WsabH27bAKa+26acnxmxXetekXbR4k99gDJ1eLm8bsipbbeON7lqnj3i1K4QksMVFK2MiX
+	UWkr5+1IN9mWvoqKgH+esAlnwDVxmlsDwGC2wYggJwT9uExQr93/yAyGe32WwmBfYGoeEox9EeC0X
+	fd4876rA==;
+Received: from hch by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
+	id 1nzXTB-0061yU-Ai; Fri, 10 Jun 2022 05:46:05 +0000
+Date: Thu, 9 Jun 2022 22:46:05 -0700
+From: Christoph Hellwig <hch@infradead.org>
+To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Cc: linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org,
+	nvdimm@lists.linux.dev, linux-fsdevel@vger.kernel.org,
+	djwong@kernel.org, david@fromorbit.com, hch@infradead.org
+Subject: Re: [PATCH] xfs: fail dax mount if reflink is enabled on a partition
+Message-ID: <YqLanVuXPaIJOtAW@infradead.org>
+References: <20220609143435.393724-1-ruansy.fnst@fujitsu.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220609143435.393724-1-ruansy.fnst@fujitsu.com>
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 
-On Tue, 24 May 2022 16:53:53 +0530, Vaibhav Jain wrote:
-> Sachin reported [1] that on a POWER-10 lpar he is seeing a kernel panic being
-> reported with vPMEM when papr_scm probe is being called. The panic is of the
-> form below and is observed only with following option disabled(profile) for the
-> said LPAR 'Enable Performance Information Collection' in the HMC:
-> 
->  Kernel attempted to write user page (1c) - exploit attempt? (uid: 0)
->  BUG: Kernel NULL pointer dereference on write at 0x0000001c
->  Faulting instruction address: 0xc008000001b90844
->  Oops: Kernel access of bad area, sig: 11 [#1]
-> <snip>
->  NIP [c008000001b90844] drc_pmem_query_stats+0x5c/0x270 [papr_scm]
->  LR [c008000001b92794] papr_scm_probe+0x2ac/0x6ec [papr_scm]
->  Call Trace:
->        0xc00000000941bca0 (unreliable)
->        papr_scm_probe+0x2ac/0x6ec [papr_scm]
->        platform_probe+0x98/0x150
->        really_probe+0xfc/0x510
->        __driver_probe_device+0x17c/0x230
-> <snip>
->  ---[ end trace 0000000000000000 ]---
->  Kernel panic - not syncing: Fatal exception
-> 
-> [...]
+On Thu, Jun 09, 2022 at 10:34:35PM +0800, Shiyang Ruan wrote:
+> Failure notification is not supported on partitions.  So, when we mount
+> a reflink enabled xfs on a partition with dax option, let it fail with
+> -EINVAL code.
 
-Applied to powerpc/fixes.
+Looks good:
 
-[1/1] powerpc/papr_scm: don't requests stats with '0' sized stats buffer
-      https://git.kernel.org/powerpc/c/07bf9431b1590d1cd7a8d62075d0b50b073f0495
-
-cheers
+Reviewed-by: Christoph Hellwig <hch@lst.de>
