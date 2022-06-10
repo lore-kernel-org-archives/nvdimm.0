@@ -1,45 +1,228 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D538E362
-	for <nvdimm@lists.linux.dev>; Fri, 10 Jun 2022 05:46:10 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
-	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=fQQYd8rH7yJgcH0WS5t7Iydx1WYbX6aTpNe9zlkn5xY=; b=knb9VjPHC+6O7WDiHU1GAHcTAG
-	vRgrANbZCRTzUEEFNEjFJ1RdGOfNA/zo2JrBBPC+yL6tSluDm289+6nyXfosJtKmlyZlBieC7vkkz
-	QE+AGKTlV/bfs9e2X6gg8YTXmB+lbg9RldomOdR9TXR7wcDPHzZYjcFA9ivk5gypnNfJ+PG8MIqWv
-	jb3fC56WsabH27bAKa+26acnxmxXetekXbR4k99gDJ1eLm8bsipbbeON7lqnj3i1K4QksMVFK2MiX
-	UWkr5+1IN9mWvoqKgH+esAlnwDVxmlsDwGC2wYggJwT9uExQr93/yAyGe32WwmBfYGoeEox9EeC0X
-	fd4876rA==;
-Received: from hch by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-	id 1nzXTB-0061yU-Ai; Fri, 10 Jun 2022 05:46:05 +0000
-Date: Thu, 9 Jun 2022 22:46:05 -0700
-From: Christoph Hellwig <hch@infradead.org>
-To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Cc: linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org,
-	nvdimm@lists.linux.dev, linux-fsdevel@vger.kernel.org,
-	djwong@kernel.org, david@fromorbit.com, hch@infradead.org
-Subject: Re: [PATCH] xfs: fail dax mount if reflink is enabled on a partition
-Message-ID: <YqLanVuXPaIJOtAW@infradead.org>
-References: <20220609143435.393724-1-ruansy.fnst@fujitsu.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA4B97A
+	for <nvdimm@lists.linux.dev>; Fri, 10 Jun 2022 13:37:32 +0000 (UTC)
+Received: from pps.filterd (m0187473.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 25ADIiE8023542;
+	Fri, 10 Jun 2022 13:35:17 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
+ : date : message-id : mime-version : content-transfer-encoding; s=pp1;
+ bh=Nv5m7qgMnFXTupaZo4Jf0rCTifEw0xb/z1HHR1ZsH8M=;
+ b=PQtipTDWscTREqnhXSrVaokUDRoo3NnESee5aKmg1QkEx3ALWRNDNBgkRnEzHHj+R2+5
+ Kq6KoUoQocieC5nCnl/lEuLW/L/IV20WS84+XplG4IOZRF6PSLGNlWlS/bME6oIf53yz
+ M6Y7ovMi0/3u5a21WWIn7C6ClWdCy0I8EMFUzLdKOXas2kKPCK5Pt+zW8HAG/g1eUpzb
+ wQYd5bpA9GRIS8qz3KbMH1pcp0qCOEZI1lMalNiqiPQ0Bn1nCJTP1dEqFQ1Bz6UU2Hsd
+ pwk8uhgrhHmZL0cAQKBdORoCKsPT13KxenZ2QePffZM3BkAettHoUlEjnw8FwQwDK9Un DA== 
+Received: from ppma01fra.de.ibm.com (46.49.7a9f.ip4.static.sl-reverse.com [159.122.73.70])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3gm6qurb7e-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 10 Jun 2022 13:35:17 +0000
+Received: from pps.filterd (ppma01fra.de.ibm.com [127.0.0.1])
+	by ppma01fra.de.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 25ADSZL0002894;
+	Fri, 10 Jun 2022 13:35:15 GMT
+Received: from b06cxnps3074.portsmouth.uk.ibm.com (d06relay09.portsmouth.uk.ibm.com [9.149.109.194])
+	by ppma01fra.de.ibm.com with ESMTP id 3gfy19ehx2-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 10 Jun 2022 13:35:15 +0000
+Received: from d06av22.portsmouth.uk.ibm.com (d06av22.portsmouth.uk.ibm.com [9.149.105.58])
+	by b06cxnps3074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 25ADZC0l19595772
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Fri, 10 Jun 2022 13:35:12 GMT
+Received: from d06av22.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 0A7824C044;
+	Fri, 10 Jun 2022 13:35:12 +0000 (GMT)
+Received: from d06av22.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id D82684C040;
+	Fri, 10 Jun 2022 13:35:08 +0000 (GMT)
+Received: from li-e8dccbcc-2adc-11b2-a85c-bc1f33b9b810.ibm.com.com (unknown [9.43.72.99])
+	by d06av22.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+	Fri, 10 Jun 2022 13:35:08 +0000 (GMT)
+From: Kajol Jain <kjain@linux.ibm.com>
+To: mpe@ellerman.id.au, linuxppc-dev@lists.ozlabs.org, vaibhav@linux.ibm.com
+Cc: dan.j.williams@intel.com, nvdimm@lists.linux.dev,
+        atrajeev@linux.vnet.ibm.com, rnsastry@linux.ibm.com,
+        maddy@linux.ibm.com, kjain@linux.ibm.com, disgoel@linux.vnet.ibm.com,
+        "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
+Subject: [PATCH] powerpc/papr_scm: Fix nvdimm event mappings
+Date: Fri, 10 Jun 2022 19:04:31 +0530
+Message-Id: <20220610133431.410514-1-kjain@linux.ibm.com>
+X-Mailer: git-send-email 2.27.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220609143435.393724-1-ruansy.fnst@fujitsu.com>
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: P68vYUAe1FpUp9F8kHx2nIevoGAt7mdU
+X-Proofpoint-ORIG-GUID: P68vYUAe1FpUp9F8kHx2nIevoGAt7mdU
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.205,Aquarius:18.0.874,Hydra:6.0.517,FMLib:17.11.64.514
+ definitions=2022-06-10_06,2022-06-09_02,2022-02-23_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxscore=0 bulkscore=0
+ mlxlogscore=999 priorityscore=1501 phishscore=0 lowpriorityscore=0
+ clxscore=1011 impostorscore=0 suspectscore=0 malwarescore=0 spamscore=0
+ adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2204290000 definitions=main-2206100056
 
-On Thu, Jun 09, 2022 at 10:34:35PM +0800, Shiyang Ruan wrote:
-> Failure notification is not supported on partitions.  So, when we mount
-> a reflink enabled xfs on a partition with dax option, let it fail with
-> -EINVAL code.
+Commit 4c08d4bbc089 ("powerpc/papr_scm: Add perf interface support")
+adds performance monitoring support for papr-scm nvdimm devices via
+perf interface. It also adds one array in papr_scm_priv
+structure called "nvdimm_events_map", to dynamically save the stat_id
+for events specified in nvdimm driver code "nd_perf.c".
 
-Looks good:
+Right now the mapping is done based on the result of 
+H_SCM_PERFORMANCE_STATS hcall, when all the stats are
+requested. Currently there is an assumption, that a
+certain stat will always be found at a specific offset
+in the stat buffer. The assumption may not be true or
+documented as part of PAPR documentation. Fixing it,
+by adding a static mapping for nvdimm events to
+corresponding stat-id, and removing the map from
+papr_scm_priv structure.
 
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+Fixes: 4c08d4bbc089 ("powerpc/papr_scm: Add perf interface support")
+Reported-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Signed-off-by: Kajol Jain <kjain@linux.ibm.com>
+---
+ arch/powerpc/platforms/pseries/papr_scm.c | 59 ++++++++++-------------
+ 1 file changed, 25 insertions(+), 34 deletions(-)
+
+diff --git a/arch/powerpc/platforms/pseries/papr_scm.c b/arch/powerpc/platforms/pseries/papr_scm.c
+index 181b855b3050..5434c654a797 100644
+--- a/arch/powerpc/platforms/pseries/papr_scm.c
++++ b/arch/powerpc/platforms/pseries/papr_scm.c
+@@ -124,9 +124,6 @@ struct papr_scm_priv {
+ 
+ 	/* The bits which needs to be overridden */
+ 	u64 health_bitmap_inject_mask;
+-
+-	/* array to have event_code and stat_id mappings */
+-	u8 *nvdimm_events_map;
+ };
+ 
+ static int papr_scm_pmem_flush(struct nd_region *nd_region,
+@@ -350,6 +347,26 @@ static ssize_t drc_pmem_query_stats(struct papr_scm_priv *p,
+ #ifdef CONFIG_PERF_EVENTS
+ #define to_nvdimm_pmu(_pmu)	container_of(_pmu, struct nvdimm_pmu, pmu)
+ 
++static const char * const nvdimm_events_map[] = {
++	"N/A",
++	"CtlResCt",
++	"CtlResTm",
++	"PonSecs ",
++	"MemLife ",
++	"CritRscU",
++	"HostLCnt",
++	"HostSCnt",
++	"HostSDur",
++	"HostLDur",
++	"MedRCnt ",
++	"MedWCnt ",
++	"MedRDur ",
++	"MedWDur ",
++	"CchRHCnt",
++	"CchWHCnt",
++	"FastWCnt",
++};
++
+ static int papr_scm_pmu_get_value(struct perf_event *event, struct device *dev, u64 *count)
+ {
+ 	struct papr_scm_perf_stat *stat;
+@@ -361,7 +378,7 @@ static int papr_scm_pmu_get_value(struct perf_event *event, struct device *dev,
+ 	size = sizeof(struct papr_scm_perf_stats) +
+ 		sizeof(struct papr_scm_perf_stat);
+ 
+-	if (!p || !p->nvdimm_events_map)
++	if (!p)
+ 		return -EINVAL;
+ 
+ 	stats = kzalloc(size, GFP_KERNEL);
+@@ -370,7 +387,7 @@ static int papr_scm_pmu_get_value(struct perf_event *event, struct device *dev,
+ 
+ 	stat = &stats->scm_statistic[0];
+ 	memcpy(&stat->stat_id,
+-	       &p->nvdimm_events_map[event->attr.config * sizeof(stat->stat_id)],
++	       nvdimm_events_map[event->attr.config],
+ 		sizeof(stat->stat_id));
+ 	stat->stat_val = 0;
+ 
+@@ -460,10 +477,9 @@ static void papr_scm_pmu_del(struct perf_event *event, int flags)
+ 
+ static int papr_scm_pmu_check_events(struct papr_scm_priv *p, struct nvdimm_pmu *nd_pmu)
+ {
+-	struct papr_scm_perf_stat *stat;
+ 	struct papr_scm_perf_stats *stats;
+ 	u32 available_events;
+-	int index, rc = 0;
++	int rc = 0;
+ 
+ 	available_events = (p->stat_buffer_len  - sizeof(struct papr_scm_perf_stats))
+ 			/ sizeof(struct papr_scm_perf_stat);
+@@ -473,34 +489,12 @@ static int papr_scm_pmu_check_events(struct papr_scm_priv *p, struct nvdimm_pmu
+ 	/* Allocate the buffer for phyp where stats are written */
+ 	stats = kzalloc(p->stat_buffer_len, GFP_KERNEL);
+ 	if (!stats) {
+-		rc = -ENOMEM;
+-		return rc;
++		return -ENOMEM;
+ 	}
+ 
+ 	/* Called to get list of events supported */
+ 	rc = drc_pmem_query_stats(p, stats, 0);
+-	if (rc)
+-		goto out;
+ 
+-	/*
+-	 * Allocate memory and populate nvdimm_event_map.
+-	 * Allocate an extra element for NULL entry
+-	 */
+-	p->nvdimm_events_map = kcalloc(available_events + 1,
+-				       sizeof(stat->stat_id),
+-				       GFP_KERNEL);
+-	if (!p->nvdimm_events_map) {
+-		rc = -ENOMEM;
+-		goto out;
+-	}
+-
+-	/* Copy all stat_ids to event map */
+-	for (index = 0, stat = stats->scm_statistic;
+-	     index < available_events; index++, ++stat) {
+-		memcpy(&p->nvdimm_events_map[index * sizeof(stat->stat_id)],
+-		       &stat->stat_id, sizeof(stat->stat_id));
+-	}
+-out:
+ 	kfree(stats);
+ 	return rc;
+ }
+@@ -536,7 +530,7 @@ static void papr_scm_pmu_register(struct papr_scm_priv *p)
+ 
+ 	rc = register_nvdimm_pmu(nd_pmu, p->pdev);
+ 	if (rc)
+-		goto pmu_register_err;
++		goto pmu_check_events_err;
+ 
+ 	/*
+ 	 * Set archdata.priv value to nvdimm_pmu structure, to handle the
+@@ -545,8 +539,6 @@ static void papr_scm_pmu_register(struct papr_scm_priv *p)
+ 	p->pdev->archdata.priv = nd_pmu;
+ 	return;
+ 
+-pmu_register_err:
+-	kfree(p->nvdimm_events_map);
+ pmu_check_events_err:
+ 	kfree(nd_pmu);
+ pmu_err_print:
+@@ -1557,7 +1549,6 @@ static int papr_scm_remove(struct platform_device *pdev)
+ 		unregister_nvdimm_pmu(pdev->archdata.priv);
+ 
+ 	pdev->archdata.priv = NULL;
+-	kfree(p->nvdimm_events_map);
+ 	kfree(p->bus_desc.provider_name);
+ 	kfree(p);
+ 
+-- 
+2.31.1
+
