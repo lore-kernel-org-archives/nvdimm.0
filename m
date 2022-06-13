@@ -1,228 +1,106 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+Received: from zeniv-ca.linux.org.uk (zeniv-ca.linux.org.uk [142.44.231.140])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA4B97A
-	for <nvdimm@lists.linux.dev>; Fri, 10 Jun 2022 13:37:32 +0000 (UTC)
-Received: from pps.filterd (m0187473.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 25ADIiE8023542;
-	Fri, 10 Jun 2022 13:35:17 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
- : date : message-id : mime-version : content-transfer-encoding; s=pp1;
- bh=Nv5m7qgMnFXTupaZo4Jf0rCTifEw0xb/z1HHR1ZsH8M=;
- b=PQtipTDWscTREqnhXSrVaokUDRoo3NnESee5aKmg1QkEx3ALWRNDNBgkRnEzHHj+R2+5
- Kq6KoUoQocieC5nCnl/lEuLW/L/IV20WS84+XplG4IOZRF6PSLGNlWlS/bME6oIf53yz
- M6Y7ovMi0/3u5a21WWIn7C6ClWdCy0I8EMFUzLdKOXas2kKPCK5Pt+zW8HAG/g1eUpzb
- wQYd5bpA9GRIS8qz3KbMH1pcp0qCOEZI1lMalNiqiPQ0Bn1nCJTP1dEqFQ1Bz6UU2Hsd
- pwk8uhgrhHmZL0cAQKBdORoCKsPT13KxenZ2QePffZM3BkAettHoUlEjnw8FwQwDK9Un DA== 
-Received: from ppma01fra.de.ibm.com (46.49.7a9f.ip4.static.sl-reverse.com [159.122.73.70])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3gm6qurb7e-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 10 Jun 2022 13:35:17 +0000
-Received: from pps.filterd (ppma01fra.de.ibm.com [127.0.0.1])
-	by ppma01fra.de.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 25ADSZL0002894;
-	Fri, 10 Jun 2022 13:35:15 GMT
-Received: from b06cxnps3074.portsmouth.uk.ibm.com (d06relay09.portsmouth.uk.ibm.com [9.149.109.194])
-	by ppma01fra.de.ibm.com with ESMTP id 3gfy19ehx2-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 10 Jun 2022 13:35:15 +0000
-Received: from d06av22.portsmouth.uk.ibm.com (d06av22.portsmouth.uk.ibm.com [9.149.105.58])
-	by b06cxnps3074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 25ADZC0l19595772
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 10 Jun 2022 13:35:12 GMT
-Received: from d06av22.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 0A7824C044;
-	Fri, 10 Jun 2022 13:35:12 +0000 (GMT)
-Received: from d06av22.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id D82684C040;
-	Fri, 10 Jun 2022 13:35:08 +0000 (GMT)
-Received: from li-e8dccbcc-2adc-11b2-a85c-bc1f33b9b810.ibm.com.com (unknown [9.43.72.99])
-	by d06av22.portsmouth.uk.ibm.com (Postfix) with ESMTP;
-	Fri, 10 Jun 2022 13:35:08 +0000 (GMT)
-From: Kajol Jain <kjain@linux.ibm.com>
-To: mpe@ellerman.id.au, linuxppc-dev@lists.ozlabs.org, vaibhav@linux.ibm.com
-Cc: dan.j.williams@intel.com, nvdimm@lists.linux.dev,
-        atrajeev@linux.vnet.ibm.com, rnsastry@linux.ibm.com,
-        maddy@linux.ibm.com, kjain@linux.ibm.com, disgoel@linux.vnet.ibm.com,
-        "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
-Subject: [PATCH] powerpc/papr_scm: Fix nvdimm event mappings
-Date: Fri, 10 Jun 2022 19:04:31 +0530
-Message-Id: <20220610133431.410514-1-kjain@linux.ibm.com>
-X-Mailer: git-send-email 2.27.0
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13557EA0
+	for <nvdimm@lists.linux.dev>; Mon, 13 Jun 2022 00:10:34 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=linux.org.uk; s=zeniv-20220401; h=Sender:Content-Type:MIME-Version:
+	Message-ID:Subject:Cc:To:From:Date:Reply-To:Content-Transfer-Encoding:
+	Content-ID:Content-Description:In-Reply-To:References;
+	bh=/eT01oHM8scLQTOGBAnJYt6o46Km3/nksV0jfD6gFIo=; b=kEGYdqXk+xMJqu3h8BdUHNwdHJ
+	9CIwbIdhL5ZWRQwqTv6MxoC/juVD+xrbIPG55VRgqM2hHZ+sMrYV/SKNTEWlEO4WC100pNDBLAONE
+	TT3PaEKU0Pr4loNF4cfYKncrBqfuu5OnGLZ8PfS/ylp3GnWiWcOXNEj1AiVrcR7WZ6yQ/DqR3GcIo
+	YJWRtWv6N8ZH12pgkks4F6+xKC1sha28tQqSzpShqsuPxGVlf3uF19M6ejZLXFFr5adDeIBEskoQ8
+	vEVwAWUX8cQGet5iER2lqBddGWFOeRr7lySwgKZLlsMA35T5ewAybPLEs3lsQ9Wve3xxmaFeFLRZK
+	Ny1hIDvw==;
+Received: from viro by zeniv-ca.linux.org.uk with local (Exim 4.94.2 #2 (Red Hat Linux))
+	id 1o0Xey-006ZFh-1h; Mon, 13 Jun 2022 00:10:24 +0000
+Date: Mon, 13 Jun 2022 00:10:24 +0000
+From: Al Viro <viro@zeniv.linux.org.uk>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+	nvdimm@lists.linux.dev
+Subject: [RFC][PATCH] fix short copy handling in copy_mc_pipe_to_iter()
+Message-ID: <YqaAcKsd6uGfIQzM@zeniv-ca.linux.org.uk>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: P68vYUAe1FpUp9F8kHx2nIevoGAt7mdU
-X-Proofpoint-ORIG-GUID: P68vYUAe1FpUp9F8kHx2nIevoGAt7mdU
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.205,Aquarius:18.0.874,Hydra:6.0.517,FMLib:17.11.64.514
- definitions=2022-06-10_06,2022-06-09_02,2022-02-23_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxscore=0 bulkscore=0
- mlxlogscore=999 priorityscore=1501 phishscore=0 lowpriorityscore=0
- clxscore=1011 impostorscore=0 suspectscore=0 malwarescore=0 spamscore=0
- adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2204290000 definitions=main-2206100056
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Sender: Al Viro <viro@ftp.linux.org.uk>
 
-Commit 4c08d4bbc089 ("powerpc/papr_scm: Add perf interface support")
-adds performance monitoring support for papr-scm nvdimm devices via
-perf interface. It also adds one array in papr_scm_priv
-structure called "nvdimm_events_map", to dynamically save the stat_id
-for events specified in nvdimm driver code "nd_perf.c".
+[commit in question sits in vfs.git#fixes]
 
-Right now the mapping is done based on the result of 
-H_SCM_PERFORMANCE_STATS hcall, when all the stats are
-requested. Currently there is an assumption, that a
-certain stat will always be found at a specific offset
-in the stat buffer. The assumption may not be true or
-documented as part of PAPR documentation. Fixing it,
-by adding a static mapping for nvdimm events to
-corresponding stat-id, and removing the map from
-papr_scm_priv structure.
+Unlike other copying operations on ITER_PIPE, copy_mc_to_iter() can
+result in a short copy.  In that case we need to trim the unused
+buffers, as well as the length of partially filled one - it's not
+enough to set ->head, ->iov_offset and ->count to reflect how
+much had we copied.  Not hard to fix, fortunately...
 
-Fixes: 4c08d4bbc089 ("powerpc/papr_scm: Add perf interface support")
-Reported-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Signed-off-by: Kajol Jain <kjain@linux.ibm.com>
+I'd put a helper (pipe_discard_from(pipe, head)) into pipe_fs_i.h,
+rather than iov_iter.c - it has nothing to do with iov_iter and
+having it will allow us to avoid an ugly kludge in fs/splice.c.
+We could put it into lib/iov_iter.c for now and move it later,
+but I don't see the point going that way...
+
+Fixes: ca146f6f091e "lib/iov_iter: Fix pipe handling in _copy_to_iter_mcsafe()"
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
 ---
- arch/powerpc/platforms/pseries/papr_scm.c | 59 ++++++++++-------------
- 1 file changed, 25 insertions(+), 34 deletions(-)
-
-diff --git a/arch/powerpc/platforms/pseries/papr_scm.c b/arch/powerpc/platforms/pseries/papr_scm.c
-index 181b855b3050..5434c654a797 100644
---- a/arch/powerpc/platforms/pseries/papr_scm.c
-+++ b/arch/powerpc/platforms/pseries/papr_scm.c
-@@ -124,9 +124,6 @@ struct papr_scm_priv {
- 
- 	/* The bits which needs to be overridden */
- 	u64 health_bitmap_inject_mask;
--
--	/* array to have event_code and stat_id mappings */
--	u8 *nvdimm_events_map;
- };
- 
- static int papr_scm_pmem_flush(struct nd_region *nd_region,
-@@ -350,6 +347,26 @@ static ssize_t drc_pmem_query_stats(struct papr_scm_priv *p,
- #ifdef CONFIG_PERF_EVENTS
- #define to_nvdimm_pmu(_pmu)	container_of(_pmu, struct nvdimm_pmu, pmu)
- 
-+static const char * const nvdimm_events_map[] = {
-+	"N/A",
-+	"CtlResCt",
-+	"CtlResTm",
-+	"PonSecs ",
-+	"MemLife ",
-+	"CritRscU",
-+	"HostLCnt",
-+	"HostSCnt",
-+	"HostSDur",
-+	"HostLDur",
-+	"MedRCnt ",
-+	"MedWCnt ",
-+	"MedRDur ",
-+	"MedWDur ",
-+	"CchRHCnt",
-+	"CchWHCnt",
-+	"FastWCnt",
-+};
-+
- static int papr_scm_pmu_get_value(struct perf_event *event, struct device *dev, u64 *count)
- {
- 	struct papr_scm_perf_stat *stat;
-@@ -361,7 +378,7 @@ static int papr_scm_pmu_get_value(struct perf_event *event, struct device *dev,
- 	size = sizeof(struct papr_scm_perf_stats) +
- 		sizeof(struct papr_scm_perf_stat);
- 
--	if (!p || !p->nvdimm_events_map)
-+	if (!p)
- 		return -EINVAL;
- 
- 	stats = kzalloc(size, GFP_KERNEL);
-@@ -370,7 +387,7 @@ static int papr_scm_pmu_get_value(struct perf_event *event, struct device *dev,
- 
- 	stat = &stats->scm_statistic[0];
- 	memcpy(&stat->stat_id,
--	       &p->nvdimm_events_map[event->attr.config * sizeof(stat->stat_id)],
-+	       nvdimm_events_map[event->attr.config],
- 		sizeof(stat->stat_id));
- 	stat->stat_val = 0;
- 
-@@ -460,10 +477,9 @@ static void papr_scm_pmu_del(struct perf_event *event, int flags)
- 
- static int papr_scm_pmu_check_events(struct papr_scm_priv *p, struct nvdimm_pmu *nd_pmu)
- {
--	struct papr_scm_perf_stat *stat;
- 	struct papr_scm_perf_stats *stats;
- 	u32 available_events;
--	int index, rc = 0;
-+	int rc = 0;
- 
- 	available_events = (p->stat_buffer_len  - sizeof(struct papr_scm_perf_stats))
- 			/ sizeof(struct papr_scm_perf_stat);
-@@ -473,34 +489,12 @@ static int papr_scm_pmu_check_events(struct papr_scm_priv *p, struct nvdimm_pmu
- 	/* Allocate the buffer for phyp where stats are written */
- 	stats = kzalloc(p->stat_buffer_len, GFP_KERNEL);
- 	if (!stats) {
--		rc = -ENOMEM;
--		return rc;
-+		return -ENOMEM;
- 	}
- 
- 	/* Called to get list of events supported */
- 	rc = drc_pmem_query_stats(p, stats, 0);
--	if (rc)
--		goto out;
- 
--	/*
--	 * Allocate memory and populate nvdimm_event_map.
--	 * Allocate an extra element for NULL entry
--	 */
--	p->nvdimm_events_map = kcalloc(available_events + 1,
--				       sizeof(stat->stat_id),
--				       GFP_KERNEL);
--	if (!p->nvdimm_events_map) {
--		rc = -ENOMEM;
--		goto out;
--	}
--
--	/* Copy all stat_ids to event map */
--	for (index = 0, stat = stats->scm_statistic;
--	     index < available_events; index++, ++stat) {
--		memcpy(&p->nvdimm_events_map[index * sizeof(stat->stat_id)],
--		       &stat->stat_id, sizeof(stat->stat_id));
--	}
--out:
- 	kfree(stats);
- 	return rc;
+diff --git a/include/linux/pipe_fs_i.h b/include/linux/pipe_fs_i.h
+index cb0fd633a610..4ea496924106 100644
+--- a/include/linux/pipe_fs_i.h
++++ b/include/linux/pipe_fs_i.h
+@@ -229,6 +229,15 @@ static inline bool pipe_buf_try_steal(struct pipe_inode_info *pipe,
+ 	return buf->ops->try_steal(pipe, buf);
  }
-@@ -536,7 +530,7 @@ static void papr_scm_pmu_register(struct papr_scm_priv *p)
  
- 	rc = register_nvdimm_pmu(nd_pmu, p->pdev);
- 	if (rc)
--		goto pmu_register_err;
-+		goto pmu_check_events_err;
++static inline void pipe_discard_from(struct pipe_inode_info *pipe,
++		unsigned int old_head)
++{
++	unsigned int mask = pipe->ring_size - 1;
++
++	while (pipe->head > old_head)
++		pipe_buf_release(pipe, &pipe->bufs[--pipe->head & mask]);
++}
++
+ /* Differs from PIPE_BUF in that PIPE_SIZE is the length of the actual
+    memory allocation, whereas PIPE_BUF makes atomicity guarantees.  */
+ #define PIPE_SIZE		PAGE_SIZE
+diff --git a/lib/iov_iter.c b/lib/iov_iter.c
+index 0b64695ab632..2bf20b48a04a 100644
+--- a/lib/iov_iter.c
++++ b/lib/iov_iter.c
+@@ -689,6 +689,7 @@ static size_t copy_mc_pipe_to_iter(const void *addr, size_t bytes,
+ 	struct pipe_inode_info *pipe = i->pipe;
+ 	unsigned int p_mask = pipe->ring_size - 1;
+ 	unsigned int i_head;
++	unsigned int valid = pipe->head;
+ 	size_t n, off, xfer = 0;
  
- 	/*
- 	 * Set archdata.priv value to nvdimm_pmu structure, to handle the
-@@ -545,8 +539,6 @@ static void papr_scm_pmu_register(struct papr_scm_priv *p)
- 	p->pdev->archdata.priv = nd_pmu;
- 	return;
- 
--pmu_register_err:
--	kfree(p->nvdimm_events_map);
- pmu_check_events_err:
- 	kfree(nd_pmu);
- pmu_err_print:
-@@ -1557,7 +1549,6 @@ static int papr_scm_remove(struct platform_device *pdev)
- 		unregister_nvdimm_pmu(pdev->archdata.priv);
- 
- 	pdev->archdata.priv = NULL;
--	kfree(p->nvdimm_events_map);
- 	kfree(p->bus_desc.provider_name);
- 	kfree(p);
- 
--- 
-2.31.1
-
+ 	if (!sanity(i))
+@@ -702,11 +703,17 @@ static size_t copy_mc_pipe_to_iter(const void *addr, size_t bytes,
+ 		rem = copy_mc_to_kernel(p + off, addr + xfer, chunk);
+ 		chunk -= rem;
+ 		kunmap_local(p);
+-		i->head = i_head;
+-		i->iov_offset = off + chunk;
+-		xfer += chunk;
+-		if (rem)
++		if (chunk) {
++			i->head = i_head;
++			i->iov_offset = off + chunk;
++			xfer += chunk;
++			valid = i_head + 1;
++		}
++		if (rem) {
++			pipe->bufs[i_head & p_mask].len -= rem;
++			pipe_discard_from(pipe, valid);
+ 			break;
++		}
+ 		n -= chunk;
+ 		off = 0;
+ 		i_head++;
