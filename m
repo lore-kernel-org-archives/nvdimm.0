@@ -1,106 +1,84 @@
-Received: from zeniv-ca.linux.org.uk (zeniv-ca.linux.org.uk [142.44.231.140])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f53.google.com (mail-ed1-f53.google.com [209.85.208.53])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13557EA0
-	for <nvdimm@lists.linux.dev>; Mon, 13 Jun 2022 00:10:34 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=linux.org.uk; s=zeniv-20220401; h=Sender:Content-Type:MIME-Version:
-	Message-ID:Subject:Cc:To:From:Date:Reply-To:Content-Transfer-Encoding:
-	Content-ID:Content-Description:In-Reply-To:References;
-	bh=/eT01oHM8scLQTOGBAnJYt6o46Km3/nksV0jfD6gFIo=; b=kEGYdqXk+xMJqu3h8BdUHNwdHJ
-	9CIwbIdhL5ZWRQwqTv6MxoC/juVD+xrbIPG55VRgqM2hHZ+sMrYV/SKNTEWlEO4WC100pNDBLAONE
-	TT3PaEKU0Pr4loNF4cfYKncrBqfuu5OnGLZ8PfS/ylp3GnWiWcOXNEj1AiVrcR7WZ6yQ/DqR3GcIo
-	YJWRtWv6N8ZH12pgkks4F6+xKC1sha28tQqSzpShqsuPxGVlf3uF19M6ejZLXFFr5adDeIBEskoQ8
-	vEVwAWUX8cQGet5iER2lqBddGWFOeRr7lySwgKZLlsMA35T5ewAybPLEs3lsQ9Wve3xxmaFeFLRZK
-	Ny1hIDvw==;
-Received: from viro by zeniv-ca.linux.org.uk with local (Exim 4.94.2 #2 (Red Hat Linux))
-	id 1o0Xey-006ZFh-1h; Mon, 13 Jun 2022 00:10:24 +0000
-Date: Mon, 13 Jun 2022 00:10:24 +0000
-From: Al Viro <viro@zeniv.linux.org.uk>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
-	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-	nvdimm@lists.linux.dev
-Subject: [RFC][PATCH] fix short copy handling in copy_mc_pipe_to_iter()
-Message-ID: <YqaAcKsd6uGfIQzM@zeniv-ca.linux.org.uk>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14503184B
+	for <nvdimm@lists.linux.dev>; Mon, 13 Jun 2022 17:54:54 +0000 (UTC)
+Received: by mail-ed1-f53.google.com with SMTP id v25so8240580eda.6
+        for <nvdimm@lists.linux.dev>; Mon, 13 Jun 2022 10:54:54 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linux-foundation.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=0yE1F+T2LeAVJ2bFwOtJHGbp283h9GhemqSHAeGwktA=;
+        b=cV5JPzOcrWUkY/YCBj01CplxNVk0Ypz2tEFigoKe7aUyACwfxpLidnfRJxQUvCHXB8
+         hXeDqzdFDhPl5UTeyCWepHZO/sI6ZgbBgwwQXwmZisuOyhVixvoN3C2E6lXFMJOFc09R
+         /Hv3Nw2iClVxh/V9udd7r9WBzL/nRXXjTHk6I=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=0yE1F+T2LeAVJ2bFwOtJHGbp283h9GhemqSHAeGwktA=;
+        b=LGEzImGBZpFmm1f/Rkn85yydNZ9hfTxHZU7tJND9UzkssR62qaS+ofI19wnUaaTJEU
+         O8BeAezr/fhZIjacjPzhA5eJdKek1KpWHlodA/oanRDJMEYko7weAm9UqL6otNrYDYzr
+         qgiCfvny+NIGAUJtKFaoZ2VoBOAA2M7FlozFy3B027sQl1sXFR/MeGRozy378hz7WadO
+         7OAzkoUbVkZkr1BvDzVFxE7NTC4bQSf2YVMJSX/NIBt9UkyZ0T6verBIbWMR8LpczD6A
+         8r2b66EyNbipfxJaVP5m4bH5EYeuLrNDRn7SfBgr3NcGKkdUQJGkZoRosII98WPoQ+CX
+         rcYQ==
+X-Gm-Message-State: AJIora8MPM6PR1mRqpdWjk+aO4H+5cCIEHin7sFl/wqIxvYKzBhEXLsf
+	+iKaKZzZngcyKd6L8FO6kefRs1eYBzla4dir
+X-Google-Smtp-Source: ABdhPJyk3u1//KQT+LyIpWqmRrKM1NbN+9E4UuQQQWnOHA8ykkZvyo9BIlCjl9/5LXkEyp1QzFOwnA==
+X-Received: by 2002:aa7:db8d:0:b0:42e:1cbc:5e28 with SMTP id u13-20020aa7db8d000000b0042e1cbc5e28mr1044895edt.366.1655142893090;
+        Mon, 13 Jun 2022 10:54:53 -0700 (PDT)
+Received: from mail-wm1-f43.google.com (mail-wm1-f43.google.com. [209.85.128.43])
+        by smtp.gmail.com with ESMTPSA id r5-20020a508d85000000b0042aca5edba7sm5330857edh.57.2022.06.13.10.54.52
+        for <nvdimm@lists.linux.dev>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 13 Jun 2022 10:54:52 -0700 (PDT)
+Received: by mail-wm1-f43.google.com with SMTP id z17so3393559wmi.1
+        for <nvdimm@lists.linux.dev>; Mon, 13 Jun 2022 10:54:52 -0700 (PDT)
+X-Received: by 2002:a1c:5418:0:b0:39c:3552:c85e with SMTP id
+ i24-20020a1c5418000000b0039c3552c85emr16162741wmb.68.1655142892217; Mon, 13
+ Jun 2022 10:54:52 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Sender: Al Viro <viro@ftp.linux.org.uk>
+References: <YqaAcKsd6uGfIQzM@zeniv-ca.linux.org.uk>
+In-Reply-To: <YqaAcKsd6uGfIQzM@zeniv-ca.linux.org.uk>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Mon, 13 Jun 2022 10:54:36 -0700
+X-Gmail-Original-Message-ID: <CAHk-=wjmCzdNDCt6L8-N33WSRaYjnj0=yTc_JG8A_Pd7ZEtEJw@mail.gmail.com>
+Message-ID: <CAHk-=wjmCzdNDCt6L8-N33WSRaYjnj0=yTc_JG8A_Pd7ZEtEJw@mail.gmail.com>
+Subject: Re: [RFC][PATCH] fix short copy handling in copy_mc_pipe_to_iter()
+To: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Dan Williams <dan.j.williams@intel.com>, 
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, 
+	linux-fsdevel <linux-fsdevel@vger.kernel.org>, nvdimm@lists.linux.dev
+Content-Type: text/plain; charset="UTF-8"
 
-[commit in question sits in vfs.git#fixes]
+On Sun, Jun 12, 2022 at 5:10 PM Al Viro <viro@zeniv.linux.org.uk> wrote:
+>
+> Unlike other copying operations on ITER_PIPE, copy_mc_to_iter() can
+> result in a short copy.  In that case we need to trim the unused
+> buffers, as well as the length of partially filled one - it's not
+> enough to set ->head, ->iov_offset and ->count to reflect how
+> much had we copied.  Not hard to fix, fortunately...
+>
+> I'd put a helper (pipe_discard_from(pipe, head)) into pipe_fs_i.h,
+> rather than iov_iter.c -
 
-Unlike other copying operations on ITER_PIPE, copy_mc_to_iter() can
-result in a short copy.  In that case we need to trim the unused
-buffers, as well as the length of partially filled one - it's not
-enough to set ->head, ->iov_offset and ->count to reflect how
-much had we copied.  Not hard to fix, fortunately...
+Actually, since this "copy_mc_xyz()" stuff is going to be entirely
+impossible to debug and replicate for any normal situation, I would
+suggest we take the approach that we (long ago) used to take with
+copy_from_user(): zero out the destination buffer, so that developers
+that can't test the faulting behavior don't have to worry about it.
 
-I'd put a helper (pipe_discard_from(pipe, head)) into pipe_fs_i.h,
-rather than iov_iter.c - it has nothing to do with iov_iter and
-having it will allow us to avoid an ugly kludge in fs/splice.c.
-We could put it into lib/iov_iter.c for now and move it later,
-but I don't see the point going that way...
+And then the existing code is fine: it will break out of the loop, but
+it won't do the odd revert games and the "randomnoise.len -= rem"
+thing that I can't wrap my head around.
 
-Fixes: ca146f6f091e "lib/iov_iter: Fix pipe handling in _copy_to_iter_mcsafe()"
-Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
----
-diff --git a/include/linux/pipe_fs_i.h b/include/linux/pipe_fs_i.h
-index cb0fd633a610..4ea496924106 100644
---- a/include/linux/pipe_fs_i.h
-+++ b/include/linux/pipe_fs_i.h
-@@ -229,6 +229,15 @@ static inline bool pipe_buf_try_steal(struct pipe_inode_info *pipe,
- 	return buf->ops->try_steal(pipe, buf);
- }
- 
-+static inline void pipe_discard_from(struct pipe_inode_info *pipe,
-+		unsigned int old_head)
-+{
-+	unsigned int mask = pipe->ring_size - 1;
-+
-+	while (pipe->head > old_head)
-+		pipe_buf_release(pipe, &pipe->bufs[--pipe->head & mask]);
-+}
-+
- /* Differs from PIPE_BUF in that PIPE_SIZE is the length of the actual
-    memory allocation, whereas PIPE_BUF makes atomicity guarantees.  */
- #define PIPE_SIZE		PAGE_SIZE
-diff --git a/lib/iov_iter.c b/lib/iov_iter.c
-index 0b64695ab632..2bf20b48a04a 100644
---- a/lib/iov_iter.c
-+++ b/lib/iov_iter.c
-@@ -689,6 +689,7 @@ static size_t copy_mc_pipe_to_iter(const void *addr, size_t bytes,
- 	struct pipe_inode_info *pipe = i->pipe;
- 	unsigned int p_mask = pipe->ring_size - 1;
- 	unsigned int i_head;
-+	unsigned int valid = pipe->head;
- 	size_t n, off, xfer = 0;
- 
- 	if (!sanity(i))
-@@ -702,11 +703,17 @@ static size_t copy_mc_pipe_to_iter(const void *addr, size_t bytes,
- 		rem = copy_mc_to_kernel(p + off, addr + xfer, chunk);
- 		chunk -= rem;
- 		kunmap_local(p);
--		i->head = i_head;
--		i->iov_offset = off + chunk;
--		xfer += chunk;
--		if (rem)
-+		if (chunk) {
-+			i->head = i_head;
-+			i->iov_offset = off + chunk;
-+			xfer += chunk;
-+			valid = i_head + 1;
-+		}
-+		if (rem) {
-+			pipe->bufs[i_head & p_mask].len -= rem;
-+			pipe_discard_from(pipe, valid);
- 			break;
-+		}
- 		n -= chunk;
- 		off = 0;
- 		i_head++;
+Hmm?
+
+                Linus
