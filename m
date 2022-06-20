@@ -1,102 +1,152 @@
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6127E7E6
-	for <nvdimm@lists.linux.dev>; Mon, 20 Jun 2022 08:36:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8A457E6
+	for <nvdimm@lists.linux.dev>; Mon, 20 Jun 2022 08:39:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1655714213;
+	s=mimecast20190719; t=1655714381;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:mime-version:mime-version:content-type:content-type:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references;
-	bh=sSgfaujnD/2Dyu86VOOwiKh4ejtd9qtm+hMXE529rjU=;
-	b=JsSVg03eJZCO5cldMxpEA+KosWGCtNk+lsDKKpTvBf1Z6maTMeL4Hg5Ipu3/zZCAPhuzh1
-	OggZp86iUxewa8rzUvTOxIfdIv2dPC0gFIkjDoaAt23Og6e1Heckxa6USUaTetXbLLD4N4
-	8cMSj0skM67qg1MrN1iWzZXnczNznpw=
-Received: from mail-lj1-f198.google.com (mail-lj1-f198.google.com
- [209.85.208.198]) by relay.mimecast.com with ESMTP with STARTTLS
+	bh=RhD4xiFj8bqzRXaPqVNGIOgRLdEEneV01g32UMgwe4g=;
+	b=bHpZNXWAaW/zgt/yMBiKyoq2SLT5mcR0GllcKltRjB5aEfAFWx3rJ2UgzqfSBBuBe0f9wO
+	5WEgSkRsML8CIL1Jq99yIwIo/ODP91eFj2mxriHH6MbiNFWYf7hhOgWpujuAHPx9ASgmuf
+	R9WLCiMu6YdzIY/sjtQ8qYTaHSEPNPc=
+Received: from mail-lf1-f70.google.com (mail-lf1-f70.google.com
+ [209.85.167.70]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-590-OqRmNjgCN8uJMNop1juyxg-1; Mon, 20 Jun 2022 04:36:52 -0400
-X-MC-Unique: OqRmNjgCN8uJMNop1juyxg-1
-Received: by mail-lj1-f198.google.com with SMTP id h23-20020a2e3a17000000b00255788e9a7fso1166880lja.10
-        for <nvdimm@lists.linux.dev>; Mon, 20 Jun 2022 01:36:52 -0700 (PDT)
+ us-mta-114-7X66NLp3PE-n-HgIgO_tRA-1; Mon, 20 Jun 2022 04:39:40 -0400
+X-MC-Unique: 7X66NLp3PE-n-HgIgO_tRA-1
+Received: by mail-lf1-f70.google.com with SMTP id h35-20020a0565123ca300b00479113319f9so5223046lfv.0
+        for <nvdimm@lists.linux.dev>; Mon, 20 Jun 2022 01:39:40 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to;
-        bh=sSgfaujnD/2Dyu86VOOwiKh4ejtd9qtm+hMXE529rjU=;
-        b=mPVvZVyTJranDJk7e6ddrOmwfhS1LBG6X0uFujbfxHeThtNTSUHhy513dtOzuoVTBK
-         hzKWSbsSLLVSqbpsGWGyzdQlZIpNkDNyS3PuSreP8i33i8UJ275wj2ZbKEeQpqh1TONY
-         rI4FC1WHLjOVpmeqzz6qFY/33tDzhJecU+fZx3R1YhnEqKmKg6QK4AnQbFRjcAztEWnV
-         uwrc0cbcmW+wmPkO5iVNmrUwvn2Xw4Vs/dfAZJ6DkJic93FcHK5ON7quA7B+kuANukfp
-         oS/GJva+IRijdxJbY6+Ga8NKBE4GZlV8JnmkO5GXc5EXa5rviAE9uIiEVESGKHgkfm9R
-         CAYw==
-X-Gm-Message-State: AJIora93eZ3zdcrs4h1Gwh/FevtPNQH7rqfwtZds1PBw9GC7MujPPkrX
-	IjomAmImvmK89MhF1TL4QsoWv8KKp515n2eZtUiF/ATd8gCTABeGfTrx210srWzIKevKEXA7j+t
-	udgqk1J8QE5aUiLuyASPlJH04WLpqIr1r
-X-Received: by 2002:a05:6512:3130:b0:479:385f:e2ac with SMTP id p16-20020a056512313000b00479385fe2acmr12831860lfd.575.1655714210122;
-        Mon, 20 Jun 2022 01:36:50 -0700 (PDT)
-X-Google-Smtp-Source: AGRyM1t1Pp+/sgFgVD1xsb/DGXyTUHOhmhgFuV/qS35hRuGqepAXqYqLjNifXAGYUYKMcgwQaLtfVrFrCZfzTQTsbZI=
-X-Received: by 2002:a05:6512:3130:b0:479:385f:e2ac with SMTP id
- p16-20020a056512313000b00479385fe2acmr12831841lfd.575.1655714209936; Mon, 20
- Jun 2022 01:36:49 -0700 (PDT)
+         :message-id:subject:to:cc;
+        bh=RhD4xiFj8bqzRXaPqVNGIOgRLdEEneV01g32UMgwe4g=;
+        b=prcXag2Ddl1woqqCMMD5Md2qU9RKQ9ncJdE4jCOqWzgAAqI0Y56BUxlDAYiDHa2qTb
+         ckAij9EoxIKZXBv0BpM3eouH/+EUTuiVbhfN+hFw3gq+ZxcdiAPVHCORMR4KAJtF8K3I
+         no/EEOd1q+4PwJSiPa5Drnu5bvEK5jBLGIg9d29K5rXd4ldJiqtyyOAvQumSLg2XHEVF
+         +CGENYldf9Ybo3oXqlcXqtlwMDEzD7HAJsCY7YET2jZrEHk/hYEEiExb52s3wxi2RawE
+         nAHafAeFtMXdkNt9BjSLGKnaVyW4NP7p5rNcL6KvTWRPK14Ye6ioSH2BcINf3ZJzYDTT
+         iSAw==
+X-Gm-Message-State: AJIora9eIMe5ZeAq3bSw6ylsuYzS006iMsBh9GS8/a99G1GYLTteiD67
+	0XkgivrLZ54Had3kz662JN8h646aicVjAP+pXuACMBEDa9BmKY3Phml/kMf/szUI0XQvaIqm4Y+
+	Gns6hrSEioeJvZPes2nEOZATQkgH4/67N
+X-Received: by 2002:a05:6512:158d:b0:47f:718c:28b5 with SMTP id bp13-20020a056512158d00b0047f718c28b5mr1646206lfb.397.1655714378906;
+        Mon, 20 Jun 2022 01:39:38 -0700 (PDT)
+X-Google-Smtp-Source: AGRyM1sdDbxKPGn/fa9bpxxRUJOBIrdoSYk3dTvLY0iUY824lCAWtE2IKZ7kUTkksYd9748eRvBo7fjeC7ZrJU1xhrM=
+X-Received: by 2002:a05:6512:158d:b0:47f:718c:28b5 with SMTP id
+ bp13-20020a056512158d00b0047f718c28b5mr1646194lfb.397.1655714378717; Mon, 20
+ Jun 2022 01:39:38 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20220620081519.1494-1-jasowang@redhat.com>
-In-Reply-To: <20220620081519.1494-1-jasowang@redhat.com>
+References: <20220620081519.1494-1-jasowang@redhat.com> <20220620081519.1494-2-jasowang@redhat.com>
+ <20220620042610-mutt-send-email-mst@kernel.org>
+In-Reply-To: <20220620042610-mutt-send-email-mst@kernel.org>
 From: Jason Wang <jasowang@redhat.com>
-Date: Mon, 20 Jun 2022 16:36:38 +0800
-Message-ID: <CACGkMEsXgQGCK860_But1UJz0TzSCJeBrpZz7OPU77mc4hrcdg@mail.gmail.com>
-Subject: Re: [PATCH 1/2] virtio_pmem: initialize provider_data through nd_region_desc
-To: Dan Williams <dan.j.williams@intel.com>, vishal.l.verma@intel.com, 
-	"Jiang, Dave" <dave.jiang@intel.com>, ira.weiny@intel.com, nvdimm@lists.linux.dev, 
-	mst <mst@redhat.com>, jasowang <jasowang@redhat.com>, pankaj.gupta.linux@gmail.com
+Date: Mon, 20 Jun 2022 16:39:27 +0800
+Message-ID: <CACGkMEvn5WYBKwGoJMaHLxABcQjerdOCKqJFFef1rYCBTqQ53w@mail.gmail.com>
+Subject: Re: [PATCH 2/2] virtio_pmem: set device ready in probe()
+To: "Michael S. Tsirkin" <mst@redhat.com>, pankaj.gupta.linux@gmail.com
+Cc: Dan Williams <dan.j.williams@intel.com>, vishal.l.verma@intel.com, 
+	"Jiang, Dave" <dave.jiang@intel.com>, ira.weiny@intel.com, nvdimm@lists.linux.dev
 Authentication-Results: relay.mimecast.com;
 	auth=pass smtp.auth=CUSA124A263 smtp.mailfrom=jasowang@redhat.com
 X-Mimecast-Spam-Score: 0
 X-Mimecast-Originator: redhat.com
 Content-Type: text/plain; charset="UTF-8"
 
-Adding Pankaj.
+On Mon, Jun 20, 2022 at 4:32 PM Michael S. Tsirkin <mst@redhat.com> wrote:
+>
+> I think you should CC the maintainer, Pankaj Gupta.
 
-On Mon, Jun 20, 2022 at 4:15 PM Jason Wang <jasowang@redhat.com> wrote:
+Yes, I miss him accidentally.
+
 >
-> We used to initialize the provider_data manually after
-> nvdimm_pemm_region_create(). This seems to be racy if the flush is
-> issued before the initialization of provider_data. Fixing this by
-> initialize the provider_data through nd_region_desc to make sure the
-> provider_data is ready after the pmem is created.
+> On Mon, Jun 20, 2022 at 04:15:19PM +0800, Jason Wang wrote:
+> > The NVDIMM region could be available before the virtio_device_ready()
+> > that is called by virtio_dev_probe(). This means the driver tries to
+> > use device before DRIVER_OK which violates the spec, fixing this by
+> > set device ready before the nvdimm_pmem_region_create().
+> >
+> > Note that this means the virtio_pmem_host_ack() could be triggered
+> > before the creation of the nd region, this is safe since the
+> > virtio_pmem_host_ack() since pmem_lock has been initialized and we
+> > check if we've added any buffer before trying to proceed.
+> >
+> > Fixes 6e84200c0a29 ("virtio-pmem: Add virtio pmem driver")
+> > Signed-off-by: Jason Wang <jasowang@redhat.com>
+> > ---
+> >  drivers/nvdimm/virtio_pmem.c | 12 ++++++++++++
+> >  1 file changed, 12 insertions(+)
+> >
+> > diff --git a/drivers/nvdimm/virtio_pmem.c b/drivers/nvdimm/virtio_pmem.c
+> > index 48f8327d0431..173f2f5adaea 100644
+> > --- a/drivers/nvdimm/virtio_pmem.c
+> > +++ b/drivers/nvdimm/virtio_pmem.c
+> > @@ -84,6 +84,17 @@ static int virtio_pmem_probe(struct virtio_device *vdev)
+> >       ndr_desc.provider_data = vdev;
+> >       set_bit(ND_REGION_PAGEMAP, &ndr_desc.flags);
+> >       set_bit(ND_REGION_ASYNC, &ndr_desc.flags);
+> > +     /*
+> > +      * The NVDIMM region could be available before the
+> > +      * virtio_device_ready() that is called by
+> > +      * virtio_dev_probe(), so we set device ready here.
+> > +      *
 >
-> Fixes 6e84200c0a29 ("virtio-pmem: Add virtio pmem driver")
-> Signed-off-by: Jason Wang <jasowang@redhat.com>
-> ---
->  drivers/nvdimm/virtio_pmem.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> virtio_dev_probe is not to blame here, right?
+
+Yes and actually it's not to blame, it just describes what can happen now.
+
+> I don't like copying its logic here as we won't remember to fix
+> it if we change virtio_dev_probe to e.g. not call virtio_device_ready.
 >
-> diff --git a/drivers/nvdimm/virtio_pmem.c b/drivers/nvdimm/virtio_pmem.c
-> index 995b6cdc67ed..48f8327d0431 100644
-> --- a/drivers/nvdimm/virtio_pmem.c
-> +++ b/drivers/nvdimm/virtio_pmem.c
-> @@ -81,6 +81,7 @@ static int virtio_pmem_probe(struct virtio_device *vdev)
->         ndr_desc.res = &res;
->         ndr_desc.numa_node = nid;
->         ndr_desc.flush = async_pmem_flush;
-> +       ndr_desc.provider_data = vdev;
->         set_bit(ND_REGION_PAGEMAP, &ndr_desc.flags);
->         set_bit(ND_REGION_ASYNC, &ndr_desc.flags);
->         nd_region = nvdimm_pmem_region_create(vpmem->nvdimm_bus, &ndr_desc);
-> @@ -89,7 +90,6 @@ static int virtio_pmem_probe(struct virtio_device *vdev)
->                 err = -ENXIO;
->                 goto out_nd;
->         }
-> -       nd_region->provider_data = dev_to_virtio(nd_region->dev.parent->parent);
->         return 0;
->  out_nd:
->         nvdimm_bus_unregister(vpmem->nvdimm_bus);
-> --
-> 2.25.1
+> is it nvdimm_pmem_region_create what makes it possible for
+> the region to become available?
+
+I think so.
+
+> Then "The NVDIMM region could become available immediately
+> after the call to nvdimm_pmem_region_create.
+> Tell device we are ready to handle this case."
+
+That's fine.
+
+>
+> > +      * The callback - virtio_pmem_host_ack() is safe to be called
+> > +      * before the nvdimm_pmem_region_create() since the pmem_lock
+> > +      * has been initialized and legality of a used buffer is
+> > +      * validated before moving forward.
+> > +      */
+> > +     virtio_device_ready(vdev);
+> >       nd_region = nvdimm_pmem_region_create(vpmem->nvdimm_bus, &ndr_desc);
+> >       if (!nd_region) {
+> >               dev_err(&vdev->dev, "failed to create nvdimm region\n");
+> > @@ -92,6 +103,7 @@ static int virtio_pmem_probe(struct virtio_device *vdev)
+> >       }
+> >       return 0;
+> >  out_nd:
+> > +     virtio_reset_device(vdev);
+>
+>
+> Does this fix cleanup too?
+
+Not sure I get this, we make the device ready before
+nvdimm_pmem_region_create(), so we need to reset if
+nvdimm_pmem_region_create() fails?
+
+Thanks
+
+>
+> >       nvdimm_bus_unregister(vpmem->nvdimm_bus);
+> >  out_vq:
+> >       vdev->config->del_vqs(vdev);
+> > --
+> > 2.25.1
 >
 
