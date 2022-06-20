@@ -1,162 +1,131 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24AB07F6
-	for <nvdimm@lists.linux.dev>; Mon, 20 Jun 2022 08:53:56 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1655715234;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=vuvjh/PQE1tUBtQ1vbIQHDaQolN735MKlqLygUsScrg=;
-	b=Dg7EdpbKnI/rGEBpORiSWqzAnEl/MxCSviKahbXJ/eCEcuzgB23hClTrRCb4VvmEIPdNMr
-	Q8UJAtDZzqwRKiSBzJJU79SqCD9sty7ed76Sa1NZVaDrJr4Vaa+Mx7q6JohhUH3BJeVVGt
-	o+Exp74n9CQ983a4mmwD8AGUb+Zn3kg=
-Received: from mail-lj1-f199.google.com (mail-lj1-f199.google.com
- [209.85.208.199]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-489-eY61spRZP0i6T5B21O1wPA-1; Mon, 20 Jun 2022 04:53:53 -0400
-X-MC-Unique: eY61spRZP0i6T5B21O1wPA-1
-Received: by mail-lj1-f199.google.com with SMTP id m20-20020a2ea594000000b00258f0218017so1175726ljp.2
-        for <nvdimm@lists.linux.dev>; Mon, 20 Jun 2022 01:53:53 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=vuvjh/PQE1tUBtQ1vbIQHDaQolN735MKlqLygUsScrg=;
-        b=WNrrFALBkvf5e1aKAwJJ8Qk2Tf5XYH7rycqUl2Rbi7mbCaIEI2QGJc2N50PIFAxxGg
-         hifleL3gF95eVoYISZC1eY0bsGqiU8N+gHRD3sd0/ImrbBeBM2c0JKoC/1/bOa5xmNz8
-         4X88/3mS/22h/F3zzU10G44C2AzwSLXHtcmALsYK2E5R/KDra2oFdSmzyQ2D2GGkQK7H
-         IvCQDelsNLn3Jgql7izE4FPhWO7ue7nu1IrRbDAFtxZKeCoEDjU+N+Fiha1eWdzuxn2u
-         yZ7hWMjGq05wg+5Hq4+KJCuc6Wx5K+L+zw64TsiU6+6u/f1f3BQ8xqg/Lq2K2AmeMXam
-         y9Cg==
-X-Gm-Message-State: AJIora9UeMO+HlD+lHa+XxnlW9ecp9PZRq935hCZVJFklIgprRWIRsSg
-	5+3+2Mp3kSwAy/7+WrurRUu2G5TYggr1vtcnGmmHnrw5HPT4wk6lYbV+fuTX9QZpX2irjxXyW7O
-	VS8vxy4Nei2AcR+Ar
-X-Received: by 2002:a05:6512:6e:b0:47f:7725:d445 with SMTP id i14-20020a056512006e00b0047f7725d445mr566935lfo.237.1655715232127;
-        Mon, 20 Jun 2022 01:53:52 -0700 (PDT)
-X-Google-Smtp-Source: AGRyM1slB6dMPwXyRPvHvBrgMIuAMj3XPiln6GEhHVy3dX9YwuSEjPtChdOh8DwL78zKvKcYlmntxA==
-X-Received: by 2002:a17:907:6e25:b0:711:c6ce:b7bc with SMTP id sd37-20020a1709076e2500b00711c6ceb7bcmr20796439ejc.752.1655715221001;
-        Mon, 20 Jun 2022 01:53:41 -0700 (PDT)
-Received: from redhat.com ([2.52.146.221])
-        by smtp.gmail.com with ESMTPSA id r13-20020a05640251cd00b0042ab4e20543sm9875449edd.48.2022.06.20.01.53.38
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 20 Jun 2022 01:53:40 -0700 (PDT)
-Date: Mon, 20 Jun 2022 04:53:36 -0400
-From: "Michael S. Tsirkin" <mst@redhat.com>
-To: Jason Wang <jasowang@redhat.com>
-Cc: pankaj.gupta.linux@gmail.com, Dan Williams <dan.j.williams@intel.com>,
-	vishal.l.verma@intel.com, "Jiang, Dave" <dave.jiang@intel.com>,
-	ira.weiny@intel.com, nvdimm@lists.linux.dev
-Subject: Re: [PATCH 2/2] virtio_pmem: set device ready in probe()
-Message-ID: <20220620045121-mutt-send-email-mst@kernel.org>
-References: <20220620081519.1494-1-jasowang@redhat.com>
- <20220620081519.1494-2-jasowang@redhat.com>
- <20220620042610-mutt-send-email-mst@kernel.org>
- <CACGkMEvn5WYBKwGoJMaHLxABcQjerdOCKqJFFef1rYCBTqQ53w@mail.gmail.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C26D27F6
+	for <nvdimm@lists.linux.dev>; Mon, 20 Jun 2022 10:53:35 +0000 (UTC)
+Received: from pps.filterd (m0098416.ppops.net [127.0.0.1])
+	by mx0b-001b2d01.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 25K7i2BU024218;
+	Mon, 20 Jun 2022 09:27:59 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : subject :
+ from : reply-to : to : cc : date : in-reply-to : references : content-type
+ : mime-version : content-transfer-encoding; s=pp1;
+ bh=lez5hQYIMS5d6I4dl1KXmRCZrul+GCwIkuzX51xn8VA=;
+ b=ZWqQXuzrJLAyE97elCOq2gFd1Stm1P6Dck/Y+WLFczUfn3bz8EGbVHV+llk7eciiJb1u
+ KUiRKZ5a6ZvOITEYSNvJhc52ycuxfQ0rqYbXwmMsdBrusKDs2eYk1QLcdgVcxdbcH7dS
+ Y72B/a9SFobB02Kq5JNujEbd9/pXPFv/6unCxydY519NH3pjO5kwHYce2RAPMjY7oKDe
+ okL++TraHVWZvx4/8AgxUbhcFBOzgu4/Gu+C1vDXeXucNZLXNFhqbxFp6HFN/wq15AU9
+ Eu3z/rjJqeY2hFUhntMzD6/IWjXVboF8qMO12CjNljmgJYgMrC4xF8abzuRTxTZk+lTH 4A== 
+Received: from ppma05fra.de.ibm.com (6c.4a.5195.ip4.static.sl-reverse.com [149.81.74.108])
+	by mx0b-001b2d01.pphosted.com (PPS) with ESMTPS id 3gsr4kc70m-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 20 Jun 2022 09:27:58 +0000
+Received: from pps.filterd (ppma05fra.de.ibm.com [127.0.0.1])
+	by ppma05fra.de.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 25K9L1CY001613;
+	Mon, 20 Jun 2022 09:27:57 GMT
+Received: from b06cxnps3075.portsmouth.uk.ibm.com (d06relay10.portsmouth.uk.ibm.com [9.149.109.195])
+	by ppma05fra.de.ibm.com with ESMTP id 3gs6b91sc9-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 20 Jun 2022 09:27:56 +0000
+Received: from d06av23.portsmouth.uk.ibm.com (d06av23.portsmouth.uk.ibm.com [9.149.105.59])
+	by b06cxnps3075.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 25K9RrdU23331108
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Mon, 20 Jun 2022 09:27:53 GMT
+Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 5E8D9A404D;
+	Mon, 20 Jun 2022 09:27:53 +0000 (GMT)
+Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 9D2A5A4040;
+	Mon, 20 Jun 2022 09:27:51 +0000 (GMT)
+Received: from li-efb8054c-3504-11b2-a85c-ca10df28279e.ibm.com (unknown [9.43.91.113])
+	by d06av23.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+	Mon, 20 Jun 2022 09:27:51 +0000 (GMT)
+Message-ID: <b0a77e8039591027a469166b4a4e0b3fbd0faae3.camel@linux.ibm.com>
+Subject: Re: [PATCH v4 0/2]ndctl/namespace: Fix and improve write-infoblock
+From: Tarun Sahu <tsahu@linux.ibm.com>
+Reply-To: tsahu@linux.ibm.com
+To: nvdimm@lists.linux.dev
+Cc: dan.j.williams@intel.com, vishal.l.verma@intel.com,
+        aneesh.kumar@linux.ibm.com, sbhat@linux.ibm.com, vaibhav@linux.ibm.com
+Date: Mon, 20 Jun 2022 14:57:50 +0530
+In-Reply-To: <20220527103021.452651-1-tsahu@linux.ibm.com>
+References: <20220527103021.452651-1-tsahu@linux.ibm.com>
+Organization: IBM
+Content-Type: text/plain; charset="UTF-8"
+User-Agent: Evolution 3.42.4 (3.42.4-2.fc35) 
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <CACGkMEvn5WYBKwGoJMaHLxABcQjerdOCKqJFFef1rYCBTqQ53w@mail.gmail.com>
-Authentication-Results: relay.mimecast.com;
-	auth=pass smtp.auth=CUSA124A263 smtp.mailfrom=mst@redhat.com
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: redhat.com
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-ORIG-GUID: tfo4TwNwdm5IjuYcfZ8h9qz-1W2dloDL
+X-Proofpoint-GUID: tfo4TwNwdm5IjuYcfZ8h9qz-1W2dloDL
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.205,Aquarius:18.0.883,Hydra:6.0.517,FMLib:17.11.64.514
+ definitions=2022-06-20_05,2022-06-17_01,2022-02-23_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 lowpriorityscore=0
+ suspectscore=0 priorityscore=1501 impostorscore=0 spamscore=0 mlxscore=0
+ phishscore=0 clxscore=1011 malwarescore=0 mlxlogscore=748 bulkscore=0
+ adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2204290000 definitions=main-2206200043
 
-On Mon, Jun 20, 2022 at 04:39:27PM +0800, Jason Wang wrote:
-> On Mon, Jun 20, 2022 at 4:32 PM Michael S. Tsirkin <mst@redhat.com> wrote:
-> >
-> > I think you should CC the maintainer, Pankaj Gupta.
-> 
-> Yes, I miss him accidentally.
-> 
-> >
-> > On Mon, Jun 20, 2022 at 04:15:19PM +0800, Jason Wang wrote:
-> > > The NVDIMM region could be available before the virtio_device_ready()
-> > > that is called by virtio_dev_probe(). This means the driver tries to
-> > > use device before DRIVER_OK which violates the spec, fixing this by
-> > > set device ready before the nvdimm_pmem_region_create().
-> > >
-> > > Note that this means the virtio_pmem_host_ack() could be triggered
-> > > before the creation of the nd region, this is safe since the
-> > > virtio_pmem_host_ack() since pmem_lock has been initialized and we
-> > > check if we've added any buffer before trying to proceed.
-> > >
-> > > Fixes 6e84200c0a29 ("virtio-pmem: Add virtio pmem driver")
-> > > Signed-off-by: Jason Wang <jasowang@redhat.com>
-> > > ---
-> > >  drivers/nvdimm/virtio_pmem.c | 12 ++++++++++++
-> > >  1 file changed, 12 insertions(+)
-> > >
-> > > diff --git a/drivers/nvdimm/virtio_pmem.c b/drivers/nvdimm/virtio_pmem.c
-> > > index 48f8327d0431..173f2f5adaea 100644
-> > > --- a/drivers/nvdimm/virtio_pmem.c
-> > > +++ b/drivers/nvdimm/virtio_pmem.c
-> > > @@ -84,6 +84,17 @@ static int virtio_pmem_probe(struct virtio_device *vdev)
-> > >       ndr_desc.provider_data = vdev;
-> > >       set_bit(ND_REGION_PAGEMAP, &ndr_desc.flags);
-> > >       set_bit(ND_REGION_ASYNC, &ndr_desc.flags);
-> > > +     /*
-> > > +      * The NVDIMM region could be available before the
-> > > +      * virtio_device_ready() that is called by
-> > > +      * virtio_dev_probe(), so we set device ready here.
-> > > +      *
-> >
-> > virtio_dev_probe is not to blame here, right?
-> 
-> Yes and actually it's not to blame, it just describes what can happen now.
-> 
-> > I don't like copying its logic here as we won't remember to fix
-> > it if we change virtio_dev_probe to e.g. not call virtio_device_ready.
-> >
-> > is it nvdimm_pmem_region_create what makes it possible for
-> > the region to become available?
-> 
-> I think so.
-> 
-> > Then "The NVDIMM region could become available immediately
-> > after the call to nvdimm_pmem_region_create.
-> > Tell device we are ready to handle this case."
-> 
-> That's fine.
-> 
-> >
-> > > +      * The callback - virtio_pmem_host_ack() is safe to be called
-> > > +      * before the nvdimm_pmem_region_create() since the pmem_lock
-> > > +      * has been initialized and legality of a used buffer is
-> > > +      * validated before moving forward.
-> > > +      */
-> > > +     virtio_device_ready(vdev);
-> > >       nd_region = nvdimm_pmem_region_create(vpmem->nvdimm_bus, &ndr_desc);
-> > >       if (!nd_region) {
-> > >               dev_err(&vdev->dev, "failed to create nvdimm region\n");
-> > > @@ -92,6 +103,7 @@ static int virtio_pmem_probe(struct virtio_device *vdev)
-> > >       }
-> > >       return 0;
-> > >  out_nd:
-> > > +     virtio_reset_device(vdev);
-> >
-> >
-> > Does this fix cleanup too?
-> 
-> Not sure I get this, we make the device ready before
-> nvdimm_pmem_region_create(), so we need to reset if
-> nvdimm_pmem_region_create() fails?
-> 
-> Thanks
+Hi, 
 
-Oh, right.
+Just a gentle reminder. May you please look into these patches.
+Please let me know if any changes are required.
 
-> >
-> > >       nvdimm_bus_unregister(vpmem->nvdimm_bus);
-> > >  out_vq:
-> > >       vdev->config->del_vqs(vdev);
-> > > --
-> > > 2.25.1
-> >
+Thanks
+Tarun
+
+On Fri, 2022-05-27 at 16:00 +0530, Tarun Sahu wrote:
+> This series resolves some issues with write-infoblock 
+> command and provide support to write-infoblock for sector 
+> mode namespace
+> 
+> write-infoblock command has issues regarding updating the 
+> align, uuid, parent_uuid. In case of no parameter passed 
+> for it, this command used to overwrite the existing values 
+> with defaults.
+> 
+> In PATCH 1/2 these parameters will be set to their original 
+> values, incase, values hasn't been passed in command 
+> arguments
+> 
+> write-infoblock command doesn't have support for sector/BTT 
+> mode namespaces. They can be converted to fsdax, but can 
+> not be written being in sector mode.
+> 
+> In PATCH 2/2, It creates a functionality which write 
+> infoblock of Sector/BTT namespace. Currently only uuid, 
+> parent_uuid can be updated. In future, Support for other 
+> parameters can easily be integrated in the
+> functionality.
+> 
+> ---
+> v2:
+>   Updated the commit message (rephrasing) in patch 1/2
+>   Moved the ns_info struct to namespace.c from namespace.h
+>   put the results after --- to avoid long commit message
+> 
+> v3:
+>   reformat the commit message to meet 100 column condition
+> 
+> v4:
+>   - Moved the struct ns_info definition to the beginning of
+>   the block 
+>   - Initialized the buf of ns_info structure in ns_info_init
+>   - Change the format of comment in code from "//" to "/**/"
+>   - reword the commit message of patch 2/2
+> 
+> Tarun Sahu (2):
+>   ndctl/namespace: Fix multiple issues with write-infoblock
+>   ndctl/namespace: Implement write-infoblock for sector mode
+> namespaces
+> 
+>  ndctl/namespace.c | 314 ++++++++++++++++++++++++++++++++++----------
+> --
+>  1 file changed, 231 insertions(+), 83 deletions(-)
+> 
 
