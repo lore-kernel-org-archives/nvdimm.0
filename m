@@ -1,133 +1,65 @@
-Received: from mail-qk1-f170.google.com (mail-qk1-f170.google.com [209.85.222.170])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A679E7B
-	for <nvdimm@lists.linux.dev>; Mon, 20 Jun 2022 00:43:35 +0000 (UTC)
-Received: by mail-qk1-f170.google.com with SMTP id c83so6888859qke.3
-        for <nvdimm@lists.linux.dev>; Sun, 19 Jun 2022 17:43:35 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=c+8VrBQ9WReeZhxiPy4cLYIhVweEbjxzP+O3PD/upkI=;
-        b=hG1zSXlqMLSt6C53e/b9Mbo0SIVK2m3R3jUS+uuyLNSYU7h0hemVP+PRCJbhYgLMX7
-         FyNfHr+aW+bfF+gBFHQVtjYmTqBlPCmff2HDumH0thLuIMmi+5xTZif5rFBJ+/Im7rAY
-         1iX2kT7GRCrIcIEadxyY1d1XK2xwI+VfWhMkRQQXdVqaQ1Fe0sWfvN1U4Bkz0s0EOCFP
-         8abRX4B1TCxLaNePhLqRU6tlIUx0JP4G+9qFcUhjmBSi/tOCHoHYoFp9xNjydTdju9/h
-         wJokcyg3abuBPNvUSNp4Rqz/gHfQqlC/+laxZ12aplYKKmjtUIHJTaMhGSQZkwxGp0ta
-         ffZA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=c+8VrBQ9WReeZhxiPy4cLYIhVweEbjxzP+O3PD/upkI=;
-        b=5CI48/xHRyVY6ZH/3/nL+2UyQlL2+rMLh55t8UWu1nfnW8C7fcdrlKkc0IF2ohfhHD
-         IImOguSOzW6MY2kwzkEzgIQ6hUH7b52jxIz8uVacfP7+4dLMso1KTK7dRYCF69d1zSO9
-         hZiRAWM0Ztf6q4hd3H+9DOUt2FjPnO6J0/ZyUZ/lC6dlfzuqjj9MLVtwb6Tgv80y8rNw
-         egUY86isw9lOYUdnnkYXJZViUmMvwEZHih/lYExniORiAtrQKrl/3+kHirFZhwXkNdPT
-         qxa3Kj5CAVdEGVJxA1C15voqyISfHUu5K7UiPnb2NHue++VsFQ8lLfd87MOo5ukoKYpC
-         PuvA==
-X-Gm-Message-State: AJIora91q/4WeXzxHqqwzn1IPitJRFZeS8Q7ovxHVwbj08riMu9/ed7Y
-	ff6Bx+290zbHFdnnKyWgSQ==
-X-Google-Smtp-Source: AGRyM1sebw4W5sjFrt3VW++8K/4IO2JYqZAC0xgWvLT2GDMfU7O1Du2uxp+uMD8HWJJW0TKREzVJcA==
-X-Received: by 2002:a05:620a:f05:b0:6a9:7122:edb1 with SMTP id v5-20020a05620a0f0500b006a97122edb1mr14790338qkl.82.1655685814618;
-        Sun, 19 Jun 2022 17:43:34 -0700 (PDT)
-Received: from localhost (c-73-219-103-14.hsd1.vt.comcast.net. [73.219.103.14])
-        by smtp.gmail.com with ESMTPSA id y17-20020a37f611000000b006a69f6793c5sm9944488qkj.14.2022.06.19.17.43.33
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 19 Jun 2022 17:43:33 -0700 (PDT)
-From: Kent Overstreet <kent.overstreet@gmail.com>
-To: linux-kernel@vger.kernel.org,
-	linux-mm@kvack.org,
-	pmladek@suse.com
-Cc: Kent Overstreet <kent.overstreet@gmail.com>,
-	rostedt@goodmis.org,
-	enozhatsky@chromium.org,
-	linux@rasmusvillemoes.dk,
-	willy@infradead.org,
-	Dan Williams <dan.j.williams@intel.com>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	nvdimm@lists.linux.dev
-Subject: [PATCH v4 26/34] tools/testing/nvdimm: Convert to printbuf
-Date: Sun, 19 Jun 2022 20:42:25 -0400
-Message-Id: <20220620004233.3805-27-kent.overstreet@gmail.com>
-X-Mailer: git-send-email 2.36.1
-In-Reply-To: <20220620004233.3805-1-kent.overstreet@gmail.com>
-References: <20220620004233.3805-1-kent.overstreet@gmail.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 048767E0
+	for <nvdimm@lists.linux.dev>; Mon, 20 Jun 2022 06:14:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
+	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=T3KOxbdAR49UlzR9YGgT8mGXxv3RRYiUh00gOTonZcY=; b=RuY4LJZATK5t4/TmA/aqu2Yt8d
+	g3QDZlqufYFda7V6QXZWX76Ywfh+uxaxqh8tRN/UnE3KDxH+kKPiDpzhERG6B53VQJFjbabJaWVnB
+	NsAA00Zide4lbhDlNuVKDmCpUPXYDUKhsuj8zHg3O+zZWWrXYBuhlZq8n+uCKM1DVe9Xz5YnFzLed
+	BDALg9KSLJetINzCVfQ49eXKWs/+kEIwdPVH9aSg9z2oMpfR3V0fsH1V8CSOGgmYb29JItDo1LL/9
+	DX8jcjqrne1VSfMKZHJqO0WiB19P6UpiMbLnZ1EIy5uu2yB5CqjwzVAkQtXH8exTeW3upoT65xsYZ
+	modywJqA==;
+Received: from hch by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
+	id 1o3Afp-00GQ2J-Tw; Mon, 20 Jun 2022 06:14:09 +0000
+Date: Sun, 19 Jun 2022 23:14:09 -0700
+From: Christoph Hellwig <hch@infradead.org>
+To: Dave Chinner <david@fromorbit.com>
+Cc: "Williams, Dan J" <dan.j.williams@intel.com>,
+	"linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>,
+	"jack@suse.cz" <jack@suse.cz>,
+	"djwong@kernel.org" <djwong@kernel.org>,
+	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
+	"Gomatam, Sravani" <sravani.gomatam@intel.com>
+Subject: Re: [PATCH 8/8] xfs: drop async cache flushes from CIL commits.
+Message-ID: <YrAQMYypulcJWtM+@infradead.org>
+References: <20220330011048.1311625-1-david@fromorbit.com>
+ <20220330011048.1311625-9-david@fromorbit.com>
+ <2820766805073c176e1a65a61fad2ef8ad0f9766.camel@intel.com>
+ <20220619234011.GK227878@dread.disaster.area>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220619234011.GK227878@dread.disaster.area>
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 
-This converts from seq_buf to printbuf. Here we're using printbuf with
-an external buffer, meaning it's a direct conversion.
+On Mon, Jun 20, 2022 at 09:40:11AM +1000, Dave Chinner wrote:
+> That doesn't change the fact we are issuing cache flushes from the
+> log checkpoint code - it just changes how we issue them. We removed
+> the explicit blkdev_issue_flush_async() call from the cache path and
+> went back to the old way of doing things (attaching it directly to
+> the first IO of a journal checkpoint) when it became clear the async
+> flush was causing performance regressions on storage with really
+> slow cache flush semantics by causing too many extra cache flushes
+> to be issued.
 
-Signed-off-by: Kent Overstreet <kent.overstreet@gmail.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: nvdimm@lists.linux.dev
----
- tools/testing/nvdimm/test/ndtest.c | 22 ++++++++++------------
- 1 file changed, 10 insertions(+), 12 deletions(-)
+Yes.  Also actualy nvidmms (unlike virtio-pmem) never supported async
+flush anyway and still did the cache flush operations synchronously
+anyway.
 
-diff --git a/tools/testing/nvdimm/test/ndtest.c b/tools/testing/nvdimm/test/ndtest.c
-index 4d1a947367..a2097955da 100644
---- a/tools/testing/nvdimm/test/ndtest.c
-+++ b/tools/testing/nvdimm/test/ndtest.c
-@@ -12,7 +12,7 @@
- #include <linux/ndctl.h>
- #include <nd-core.h>
- #include <linux/printk.h>
--#include <linux/seq_buf.h>
-+#include <linux/printbuf.h>
- 
- #include "../watermark.h"
- #include "nfit_test.h"
-@@ -740,32 +740,30 @@ static ssize_t flags_show(struct device *dev,
- {
- 	struct nvdimm *nvdimm = to_nvdimm(dev);
- 	struct ndtest_dimm *dimm = nvdimm_provider_data(nvdimm);
--	struct seq_buf s;
-+	struct printbuf s = PRINTBUF_EXTERN(buf, PAGE_SIZE);
- 	u64 flags;
- 
- 	flags = dimm->flags;
- 
--	seq_buf_init(&s, buf, PAGE_SIZE);
- 	if (flags & PAPR_PMEM_UNARMED_MASK)
--		seq_buf_printf(&s, "not_armed ");
-+		prt_printf(&s, "not_armed ");
- 
- 	if (flags & PAPR_PMEM_BAD_SHUTDOWN_MASK)
--		seq_buf_printf(&s, "flush_fail ");
-+		prt_printf(&s, "flush_fail ");
- 
- 	if (flags & PAPR_PMEM_BAD_RESTORE_MASK)
--		seq_buf_printf(&s, "restore_fail ");
-+		prt_printf(&s, "restore_fail ");
- 
- 	if (flags & PAPR_PMEM_SAVE_MASK)
--		seq_buf_printf(&s, "save_fail ");
-+		prt_printf(&s, "save_fail ");
- 
- 	if (flags & PAPR_PMEM_SMART_EVENT_MASK)
--		seq_buf_printf(&s, "smart_notify ");
-+		prt_printf(&s, "smart_notify ");
- 
-+	if (printbuf_written(&s))
-+		prt_printf(&s, "\n");
- 
--	if (seq_buf_used(&s))
--		seq_buf_printf(&s, "\n");
--
--	return seq_buf_used(&s);
-+	return printbuf_written(&s);
- }
- static DEVICE_ATTR_RO(flags);
- 
--- 
-2.36.1
+> To me, this smells of a pmem block device cache flush issue, not a
+> filesystem problem...
 
+Yes.  Especially as normal nvdims are designed to not have a volatile
+write cache in the storage device sense anyway - Linux just does some
+extra magic for REQ_PREFLUSH commands that isn't nessecary and gives
+all thus funky userspace solution or snake oil acadmic file systems
+extra advantages by skipping that..
