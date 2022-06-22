@@ -1,160 +1,145 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4BA610F0
-	for <nvdimm@lists.linux.dev>; Wed, 22 Jun 2022 12:31:17 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1655901076;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=F2xQP4rqDja0eyG0j3YADtf0ZNknwH6S17BXvTIyWok=;
-	b=YaQgE0OkPVpq/g1oYwOsn8pDPfjwTSSK98zxDHVk5dGestTAarFb375u0fW07B0nTx8SBA
-	/CRnlSJoUybgqtZflehRNG8m0oPQzWUmi5EyWAlHBbBOPAlJDfmNYR4mrmiWniqLjPdt+4
-	Mq59n1slGvOHvwHlhkd/SJRPcDr9YW0=
-Received: from mail-wm1-f71.google.com (mail-wm1-f71.google.com
- [209.85.128.71]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-582-VVuQ0bfAO9aIa3B1giMLSg-1; Wed, 22 Jun 2022 08:31:15 -0400
-X-MC-Unique: VVuQ0bfAO9aIa3B1giMLSg-1
-Received: by mail-wm1-f71.google.com with SMTP id l4-20020a05600c1d0400b0039c60535405so5482580wms.6
-        for <nvdimm@lists.linux.dev>; Wed, 22 Jun 2022 05:31:15 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=F2xQP4rqDja0eyG0j3YADtf0ZNknwH6S17BXvTIyWok=;
-        b=U5Xg7nh5Y5vh2q1GTx7UjI0meglANULHZ69c9bXT6e6G7MMmaR5feYGTQlLqdN2h4N
-         BhEA7yVU8Bm+U+6ii8uzju72UH6XT3BEewrAiNGDf5MiCKzAopFRDsfQjFbXnvoUbgKM
-         2EGK7dxY5SoJetwJ6lqpvnyERNhfe8bApBXOHAue9H/noCNRTBqZIcobFc1LE33rvBET
-         R180GKodQUxUkIPoExDnrOgVN/Sv0nk29oc8bKbZCTmy1Eyb7YZiPLFSWNUL/IMrK1i0
-         yLbY4mSqSROHGBJ6v7urKQ3kl28F5mHvCQ0m9AsONenm11csKREgvaWDEBf/SXz7ByIa
-         1Qog==
-X-Gm-Message-State: AJIora+k7OsJ8NjGc9QnDP1edBnEPvXfxuJHzbxlvploforC27ikP+hi
-	unXxWwwE55jhCWjTEJczbbKokK9HndWYEcRQlfcWOzp/KlRl6b+DXd+f9NNdTt0VMNF+uUd+Kst
-	Pn5qye0zpTULNHxBq
-X-Received: by 2002:adf:ef42:0:b0:21b:8e58:f24b with SMTP id c2-20020adfef42000000b0021b8e58f24bmr3107334wrp.257.1655901074046;
-        Wed, 22 Jun 2022 05:31:14 -0700 (PDT)
-X-Google-Smtp-Source: AGRyM1vSbKkV3PVXP2BiSZ/bc1te6+gAY4nooRijb5UD0GYswwybjJ+A+BhWzkfCCVHtOvAemGRXXQ==
-X-Received: by 2002:adf:ef42:0:b0:21b:8e58:f24b with SMTP id c2-20020adfef42000000b0021b8e58f24bmr3107303wrp.257.1655901073728;
-        Wed, 22 Jun 2022 05:31:13 -0700 (PDT)
-Received: from redhat.com ([147.235.217.93])
-        by smtp.gmail.com with ESMTPSA id u3-20020adfeb43000000b0021a34023ca3sm18829702wrn.62.2022.06.22.05.31.12
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 22 Jun 2022 05:31:13 -0700 (PDT)
-Date: Wed, 22 Jun 2022 08:31:10 -0400
-From: "Michael S. Tsirkin" <mst@redhat.com>
-To: Jason Wang <jasowang@redhat.com>
-Cc: Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	"Jiang, Dave" <dave.jiang@intel.com>,
-	Ira Weiny <ira.weiny@intel.com>,
-	Linux NVDIMM <nvdimm@lists.linux.dev>
-Subject: Re: [PATCH 2/2] virtio_pmem: set device ready in probe()
-Message-ID: <20220622082811-mutt-send-email-mst@kernel.org>
-References: <20220620081519.1494-1-jasowang@redhat.com>
- <20220620081519.1494-2-jasowang@redhat.com>
- <62b2486b8fafe_8920729455@dwillia2-xfh.notmuch>
- <20220622022324-mutt-send-email-mst@kernel.org>
- <CACGkMEtrhbVoNyAO54PDY6RvL+-OaF8A_ryj+17a6kz=uJxAqw@mail.gmail.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 647FF1860
+	for <nvdimm@lists.linux.dev>; Wed, 22 Jun 2022 16:49:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0240EC34114;
+	Wed, 22 Jun 2022 16:49:28 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1655916569;
+	bh=mI4MDyHEMxaSG34Hj/fZrqohmQwQNM49s78s/LON24U=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=M3J1USxUtGI/7fujk6bsFc6vvzcgJ4Z9zigigTXeZZnMKi4mFcVXFlczuWFcF88M0
+	 O2ypyx3yfoPAPxXHFvJg+LXU9muZXYtkkCwfmNhvpvEmaRW2WbdYlUjhVRj9IPSNqu
+	 iBnNRmI7IHcWWR5L3kYzyJ8sQ2efKPTVIX8uN8aBIoOhuBZJnao0kMZ52Gx5FeEfkQ
+	 0QXmkk0vdQ7Yms9QT22CFikwHd6AYYdwfMqrcWqiBEGeMwkOz8mKTfZoVbxOG8vMNA
+	 T5cgKGab/XisfZBcfQKT9tGlZ3LrspUMcDUZfGnI/X4UcTSPl1IeAeGKX4DTPBLf3e
+	 cyRwFss2D8ecQ==
+Date: Wed, 22 Jun 2022 09:49:28 -0700
+From: "Darrick J. Wong" <djwong@kernel.org>
+To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Cc: linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org,
+	nvdimm@lists.linux.dev, linux-mm@kvack.org,
+	linux-fsdevel@vger.kernel.org, dan.j.williams@intel.com,
+	david@fromorbit.com, hch@infradead.org, jane.chu@oracle.com
+Subject: Re: [RFC PATCH v3] mm, pmem, xfs: Introduce MF_MEM_REMOVE for unbind
+Message-ID: <YrNIGGBK7/cztV8c@magnolia>
+References: <20220410171623.3788004-1-ruansy.fnst@fujitsu.com>
+ <20220615125400.880067-1-ruansy.fnst@fujitsu.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <CACGkMEtrhbVoNyAO54PDY6RvL+-OaF8A_ryj+17a6kz=uJxAqw@mail.gmail.com>
-Authentication-Results: relay.mimecast.com;
-	auth=pass smtp.auth=CUSA124A263 smtp.mailfrom=mst@redhat.com
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: redhat.com
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <20220615125400.880067-1-ruansy.fnst@fujitsu.com>
 
-On Wed, Jun 22, 2022 at 03:24:15PM +0800, Jason Wang wrote:
-> On Wed, Jun 22, 2022 at 2:29 PM Michael S. Tsirkin <mst@redhat.com> wrote:
-> >
-> > On Tue, Jun 21, 2022 at 03:38:35PM -0700, Dan Williams wrote:
-> > > Jason Wang wrote:
-> > > > The NVDIMM region could be available before the virtio_device_ready()
-> > > > that is called by virtio_dev_probe(). This means the driver tries to
-> > > > use device before DRIVER_OK which violates the spec, fixing this by
-> > > > set device ready before the nvdimm_pmem_region_create().
-> > >
-> > > Can you clarify the failure path. What race is virtio_device_ready()
-> > > losing?
-> > >
-> > > >
-> > > > Note that this means the virtio_pmem_host_ack() could be triggered
-> > > > before the creation of the nd region, this is safe since the
-> > > > virtio_pmem_host_ack() since pmem_lock has been initialized and we
-> > > > check if we've added any buffer before trying to proceed.
-> > >
-> > > I got a little bit lost with the usage of "we" here. Can you clarify
-> > > which function / context is making which guarantee?
-> > >
-> > > >
-> > > > Fixes 6e84200c0a29 ("virtio-pmem: Add virtio pmem driver")
-> > > > Signed-off-by: Jason Wang <jasowang@redhat.com>
-> > > > ---
-> > > >  drivers/nvdimm/virtio_pmem.c | 12 ++++++++++++
-> > > >  1 file changed, 12 insertions(+)
-> > > >
-> > > > diff --git a/drivers/nvdimm/virtio_pmem.c b/drivers/nvdimm/virtio_pmem.c
-> > > > index 48f8327d0431..173f2f5adaea 100644
-> > > > --- a/drivers/nvdimm/virtio_pmem.c
-> > > > +++ b/drivers/nvdimm/virtio_pmem.c
-> > > > @@ -84,6 +84,17 @@ static int virtio_pmem_probe(struct virtio_device *vdev)
-> > > >     ndr_desc.provider_data = vdev;
-> > > >     set_bit(ND_REGION_PAGEMAP, &ndr_desc.flags);
-> > > >     set_bit(ND_REGION_ASYNC, &ndr_desc.flags);
-> > > > +   /*
-> > > > +    * The NVDIMM region could be available before the
-> > > > +    * virtio_device_ready() that is called by
-> > > > +    * virtio_dev_probe(), so we set device ready here.
-> > > > +    *
-> > > > +    * The callback - virtio_pmem_host_ack() is safe to be called
-> > > > +    * before the nvdimm_pmem_region_create() since the pmem_lock
-> > > > +    * has been initialized and legality of a used buffer is
-> > > > +    * validated before moving forward.
-> > >
-> > > This comment feels like changelog material. Just document why
-> > > virtio_device_ready() must be called before device_add() of the
-> > > nd_region.
-> >
-> > Agree here. More specifically if you are documenting why is it
-> > safe to invoke each callback then that belongs to the callback itself.
+On Wed, Jun 15, 2022 at 08:54:00PM +0800, Shiyang Ruan wrote:
+> This patch is inspired by Dan's "mm, dax, pmem: Introduce
+> dev_pagemap_failure()"[1].  With the help of dax_holder and
+> ->notify_failure() mechanism, the pmem driver is able to ask filesystem
+> (or mapped device) on it to unmap all files in use and notify processes
+> who are using those files.
 > 
-> Ok, so I will move it to the callback and leave a simple comment like
+> Call trace:
+> trigger unbind
+>  -> unbind_store()
+>   -> ... (skip)
+>    -> devres_release_all()   # was pmem driver ->remove() in v1
+>     -> kill_dax()
+>      -> dax_holder_notify_failure(dax_dev, 0, U64_MAX, MF_MEM_REMOVE)
+>       -> xfs_dax_notify_failure()
 > 
-> " See comment in virtio_pmem_host_ack(), it is safe to be called
-> before nvdimm_pmem_region_create()"
+> Introduce MF_MEM_REMOVE to let filesystem know this is a remove event.
+> So do not shutdown filesystem directly if something not supported, or if
+> failure range includes metadata area.  Make sure all files and processes
+> are handled correctly.
 > 
-> Thanks
+> [1]: https://lore.kernel.org/linux-mm/161604050314.1463742.14151665140035795571.stgit@dwillia2-desk3.amr.corp.intel.com/
+> 
+> Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+> 
+> ==
+> Changes since v2:
+>   1. Rebased on next-20220615
+> 
+> Changes since v1:
+>   1. Drop the needless change of moving {kill,put}_dax()
+>   2. Rebased on '[PATCHSETS] v14 fsdax-rmap + v11 fsdax-reflink'[2]
+> 
+> ---
+>  drivers/dax/super.c         | 2 +-
+>  fs/xfs/xfs_notify_failure.c | 6 +++++-
+>  include/linux/mm.h          | 1 +
+>  3 files changed, 7 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+> index 9b5e2a5eb0ae..d4bc83159d46 100644
+> --- a/drivers/dax/super.c
+> +++ b/drivers/dax/super.c
+> @@ -323,7 +323,7 @@ void kill_dax(struct dax_device *dax_dev)
+>  		return;
+>  
+>  	if (dax_dev->holder_data != NULL)
+> -		dax_holder_notify_failure(dax_dev, 0, U64_MAX, 0);
+> +		dax_holder_notify_failure(dax_dev, 0, U64_MAX, MF_MEM_REMOVE);
 
-No, just document why virtio_device_ready() must be called before device_add()
+At the point we're initiating a MEM_REMOVE call, is the pmem already
+gone, or is it about to be gone?
 
-I don't think the idea of working around these issues by adding code
-to  virtio_device_ready worked so far, not at all sure this approach
-is here to stay.
+>  
+>  	clear_bit(DAXDEV_ALIVE, &dax_dev->flags);
+>  	synchronize_srcu(&dax_srcu);
+> diff --git a/fs/xfs/xfs_notify_failure.c b/fs/xfs/xfs_notify_failure.c
+> index aa8dc27c599c..91d3f05d4241 100644
+> --- a/fs/xfs/xfs_notify_failure.c
+> +++ b/fs/xfs/xfs_notify_failure.c
+> @@ -73,7 +73,9 @@ xfs_dax_failure_fn(
+>  	struct failure_info		*notify = data;
+>  	int				error = 0;
+>  
+> -	if (XFS_RMAP_NON_INODE_OWNER(rec->rm_owner) ||
+> +	/* Do not shutdown so early when device is to be removed */
+> +	if (!(notify->mf_flags & MF_MEM_REMOVE) ||
+> +	    XFS_RMAP_NON_INODE_OWNER(rec->rm_owner) ||
+>  	    (rec->rm_flags & (XFS_RMAP_ATTR_FORK | XFS_RMAP_BMBT_BLOCK))) {
+>  		xfs_force_shutdown(mp, SHUTDOWN_CORRUPT_ONDISK);
+>  		return -EFSCORRUPTED;
+> @@ -182,6 +184,8 @@ xfs_dax_notify_failure(
+>  
+>  	if (mp->m_logdev_targp && mp->m_logdev_targp->bt_daxdev == dax_dev &&
+>  	    mp->m_logdev_targp != mp->m_ddev_targp) {
+> +		if (mf_flags & MF_MEM_REMOVE)
+> +			return -EOPNOTSUPP;
 
+The reason I ask is that if the pmem is *about to be* but not yet
+removed from the system, shouldn't we at least try to flush all dirty
+files and the log to reduce data loss and minimize recovery time?
 
-> >
-> > > > +    */
-> > > > +   virtio_device_ready(vdev);
-> > > >     nd_region = nvdimm_pmem_region_create(vpmem->nvdimm_bus, &ndr_desc);
-> > > >     if (!nd_region) {
-> > > >             dev_err(&vdev->dev, "failed to create nvdimm region\n");
-> > > > @@ -92,6 +103,7 @@ static int virtio_pmem_probe(struct virtio_device *vdev)
-> > > >     }
-> > > >     return 0;
-> > > >  out_nd:
-> > > > +   virtio_reset_device(vdev);
-> > > >     nvdimm_bus_unregister(vpmem->nvdimm_bus);
-> > > >  out_vq:
-> > > >     vdev->config->del_vqs(vdev);
-> > > > --
-> > > > 2.25.1
-> > > >
-> >
+If it's already gone, then you might as well shut down immediately,
+unless there's a chance the pmem will come back(?)
 
+--D
+
+>  		xfs_err(mp, "ondisk log corrupt, shutting down fs!");
+>  		xfs_force_shutdown(mp, SHUTDOWN_CORRUPT_ONDISK);
+>  		return -EFSCORRUPTED;
+> diff --git a/include/linux/mm.h b/include/linux/mm.h
+> index 623c2ee8330a..bbeb31883362 100644
+> --- a/include/linux/mm.h
+> +++ b/include/linux/mm.h
+> @@ -3249,6 +3249,7 @@ enum mf_flags {
+>  	MF_SOFT_OFFLINE = 1 << 3,
+>  	MF_UNPOISON = 1 << 4,
+>  	MF_NO_RETRY = 1 << 5,
+> +	MF_MEM_REMOVE = 1 << 6,
+>  };
+>  int mf_dax_kill_procs(struct address_space *mapping, pgoff_t index,
+>  		      unsigned long count, int mf_flags);
+> -- 
+> 2.36.1
+> 
+> 
+> 
