@@ -1,38 +1,33 @@
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7A157C;
-	Fri, 24 Jun 2022 09:08:44 +0000 (UTC)
-Received: from fraeml714-chm.china.huawei.com (unknown [172.18.147.200])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4LTrmD1S0sz686l0;
-	Fri, 24 Jun 2022 17:04:44 +0800 (CST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14EBC291C;
+	Fri, 24 Jun 2022 15:13:19 +0000 (UTC)
+Received: from fraeml735-chm.china.huawei.com (unknown [172.18.147.200])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4LV0wl5vXpz67xMg;
+	Fri, 24 Jun 2022 23:12:39 +0800 (CST)
 Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
- fraeml714-chm.china.huawei.com (10.206.15.33) with Microsoft SMTP Server
+ fraeml735-chm.china.huawei.com (10.206.15.216) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.24; Fri, 24 Jun 2022 11:08:39 +0200
-Received: from localhost (10.81.207.131) by lhreml710-chm.china.huawei.com
+ 15.1.2375.24; Fri, 24 Jun 2022 17:13:11 +0200
+Received: from localhost (10.122.247.231) by lhreml710-chm.china.huawei.com
  (10.201.108.61) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.24; Fri, 24 Jun
- 2022 10:08:38 +0100
-Date: Fri, 24 Jun 2022 10:08:36 +0100
-From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+ 2022 16:13:11 +0100
+Date: Fri, 24 Jun 2022 16:13:10 +0100
+From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 To: Dan Williams <dan.j.williams@intel.com>
-CC: Ben Widawsky <ben.widawsky@intel.com>, <linux-cxl@vger.kernel.org>,
-	<nvdimm@lists.linux.dev>, <patches@lists.linux.dev>, Alison Schofield
-	<alison.schofield@intel.com>, Ira Weiny <ira.weiny@intel.com>, Vishal Verma
-	<vishal.l.verma@intel.com>
-Subject: Re: [RFC PATCH 00/15] Region driver
-Message-ID: <20220624100836.00004191@Huawei.com>
-In-Reply-To: <62b4a3f259aad_32f38a294ee@dwillia2-xfh.notmuch>
-References: <20220413183720.2444089-1-ben.widawsky@intel.com>
-	<20220520172325.000043d8@huawei.com>
-	<CAPcyv4hkP1iuBxCPTK_FeQ=+afmVOLAAfE6t0z2u2OGH+Crmag@mail.gmail.com>
-	<20220531132157.000022c7@huawei.com>
-	<62b3fce0bde02_3baed529440@dwillia2-xfh.notmuch>
-	<20220623160857.00005fe2@Huawei.com>
-	<62b4a3f259aad_32f38a294ee@dwillia2-xfh.notmuch>
-Organization: Huawei Technologies Research and Development (UK) Ltd.
-X-Mailer: Claws Mail 4.0.0 (GTK+ 3.24.29; i686-w64-mingw32)
+CC: <linux-cxl@vger.kernel.org>, Ira Weiny <ira.weiny@intel.com>, "Christoph
+ Hellwig" <hch@infradead.org>, Jason Gunthorpe <jgg@nvidia.com>, Ben Widawsky
+	<bwidawsk@kernel.org>, Alison Schofield <alison.schofield@intel.com>,
+	"Matthew Wilcox" <willy@infradead.org>, <nvdimm@lists.linux.dev>,
+	<linux-pci@vger.kernel.org>, <patches@lists.linux.dev>
+Subject: Re: [PATCH 00/46] CXL PMEM Region Provisioning
+Message-ID: <20220624161310.00006689@huawei.com>
+In-Reply-To: <165603869943.551046.3498980330327696732.stgit@dwillia2-xfh>
+References: <165603869943.551046.3498980330327696732.stgit@dwillia2-xfh>
+Organization: Huawei Technologies R&D (UK) Ltd.
+X-Mailer: Claws Mail 4.0.0 (GTK+ 3.24.29; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -41,119 +36,31 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.81.207.131]
-X-ClientProxiedBy: lhreml735-chm.china.huawei.com (10.201.108.86) To
+X-Originating-IP: [10.122.247.231]
+X-ClientProxiedBy: lhreml738-chm.china.huawei.com (10.201.108.188) To
  lhreml710-chm.china.huawei.com (10.201.108.61)
 X-CFilter-Loop: Reflected
 
-On Thu, 23 Jun 2022 10:33:38 -0700
+On Thu, 23 Jun 2022 19:45:00 -0700
 Dan Williams <dan.j.williams@intel.com> wrote:
 
-> Jonathan Cameron wrote:
-> > On Wed, 22 Jun 2022 22:40:48 -0700
-> > Dan Williams <dan.j.williams@intel.com> wrote:
-> >   
-> > > Jonathan Cameron wrote:  
-> > > > ....
-> > > >     
-> > > > > > Hi Ben,
-> > > > > >
-> > > > > > I finally got around to actually trying this out on top of Dan's recent fix set
-> > > > > > (I rebased it from the cxl/preview branch on kernel.org).
-> > > > > >
-> > > > > > I'm not having much luck actually bring up a region.
-> > > > > >
-> > > > > > The patch set refers to configuring the end point decoders, but all their
-> > > > > > sysfs attributes are read only.  Am I missing a dependency somewhere or
-> > > > > > is the intent that this series is part of the solution only?
-> > > > > >
-> > > > > > I'm confused!      
-> > > > > 
-> > > > > There's a new series that's being reviewed internally before going to the list:
-> > > > > 
-> > > > > https://gitlab.com/bwidawsk/linux/-/tree/cxl_region-redux3
-> > > > > 
-> > > > > Given the proximity to the merge window opening and the need to get
-> > > > > the "mem_enabled" series staged, I asked Ben to hold it back from the
-> > > > > list for now.
-> > > > > 
-> > > > > There are some changes I am folding into it, but I hope to send it out
-> > > > > in the next few days after "mem_enabled" is finalized.    
-> > > > 
-> > > > Hi Dan,
-> > > > 
-> > > > I switched from an earlier version of the region code over to a rebase of the tree.
-> > > > Two issues below you may already have fixed.
-> > > > 
-> > > > The second is a carry over from an earlier set so I haven't tested
-> > > > without it but looks like it's still valid.
-> > > > 
-> > > > Anyhow, thought it might save some cycles to preempt you sending
-> > > > out the series if these issues are still present.
-> > > > 
-> > > > Minimal testing so far on these with 2 hb, 2 rp, 4 directly connected
-> > > > devices, but once you post I'll test more extensively.  I've not
-> > > > really thought about the below much, so might not be best way to fix.
-> > > > 
-> > > > Found a bug in QEMU code as well (missing write masks for the
-> > > > target list registers) - will post fix for that shortly.    
-> > > 
-> > > Hi Jonathan,
-> > > 
-> > > Tomorrow I'll post the tranche to the list, but wanted to let you and
-> > > others watching that that the 'preview' branch [1] now has the proposed
-> > > initial region support. Once the bots give the thumbs up I'll send it
-> > > along.
-> > > 
-> > > To date I've only tested it with cxl_test and an internal test vehicle.
-> > > The cxl_test script I used to setup and teardown a x8 interleave across
-> > > x2 host bridges and x4 switches is:  
-> > 
-> > Thanks.  Trivial feedback from a very quick play (busy day).
-> > 
-> > Bit odd that regionX/size is once write - get an error even if
-> > writing same value to it twice.  
+> tl;dr: 46 patches is way too many patches to review in one sitting. Jump
+> to the PATCH SUMMARY below to find a subset of interest to jump into.
 > 
-> Ah true, that should just silently succeed.
+> The series is also posted on the 'preview' branch [1]. Note that branch
+> rebases, the tip of that branch at time of posting is:
 > 
-> > Also not debugged yet but on just got a null pointer dereference on
-> > 
-> > echo decoder3.0 > target0
-> > 
-> > Beyond a stacktrace pointing at store_targetN and dereference is of
-> > 0x00008 no idea yet.  
+> 7e5ad5cb1580 cxl/region: Introduce cxl_pmem_region objects
 > 
-> The compiler unfortunately does a good job inlining the entirety of all the
-> leaf functions beneath store_targetN() so I have found myself needing to
-> sprinkle "noinline" to get better back traces.
-> 
-> > 
-> > I was testing with a slightly modified version of a nasty script
-> > I was using to test with Ben's code previously.  Might well be
-> > doing something wrong but obviously need to fix that crash anyway!  
-> 
-> Most definitely.
-> 
-> > Will move to your nicer script below at somepoint as I've been lazy
-> > enough I'm still hand editing a few lines depending on number on
-> > a particular run.
-> > 
-> > Should have some time tomorrow to debug, but definitely 'here be
-> > dragons' at the moment.  
-> 
-> Yes. Even before this posting I had shaken out a few crash scenarios just from
-> moving from my old QEMU baseline to "jic123/cxl-rework-draft-2" which did
-> things like collide PCI MMIO with cxl_test fake CXL ranges. By the way, is
-> there a "latest" tag I should be following to stay in sync with what you are
-> running for QEMU+CXL? 
+> [1]: https://git.kernel.org/pub/scm/linux/kernel/git/cxl/cxl.git/log/?h=preview
 
-For this particular feature should just be mainline QEMU now.
-Switch support was picked up a few days ago and I haven't pushed out a rebase
-on top of that yet. Famous last words, but I don't 'think' that anything
-that isn't yet in upstream QEMU should effect the region code.
+Via a W=1 build some docs are out of sync with parameter names.
+I'm lazy so I'll leave finding the right patch to you ;)
+drivers/cxl/core/region.c:1490: warning: Function parameter or member 'type' not described in 'devm_cxl_add_region'
+drivers/cxl/core/region.c:1719: warning: Function parameter or member 'cxlr' not described in 'devm_cxl_add_pmem_region'
+drivers/cxl/core/region.c:1719: warning: Excess function parameter 'host' description in 'devm_cxl_add_pmem_region'
 
-I am testing on ARM (which requires the arch and board support which is
-awaiting review) but doubt that causes this problem...
+whilst here, docs for generic_nvdimm_flush() need updating to reflect
+generic getting added to the name in 2019...
 
-> If only to reproduce the same crash scenarios.
-
+Jonathan
