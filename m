@@ -1,197 +1,638 @@
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 079C52CA7;
-	Fri, 24 Jun 2022 15:32:58 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1656084779; x=1687620779;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=kczNqG4boRCScXQ0SN5DTAQQeT8/6w6ptgyvzUNq9wM=;
-  b=bmJyZYtOUjJcI20X2vrCLtT5fzyHQy9F5te7RIH5IVCRKQNedw9cBy4C
-   WqBsngqOjehjtZrd183wdFSUuKOSie2BDM8NS2elCmibDjlkSyejBaucJ
-   g3syXugN8eqgB1h8lVH3aFZeArcxzalY+FBNHjc1/dgb8m8Bko/0t8MgJ
-   eyUyYWoL3qef3kcGmqW92+4ch8suelHFJKuEmK0v2YXAV0noN4DTSmDyZ
-   YStax/8HP2VC2raJtzsDPK6wzz9gaAfJdpEntgELkJdKPbE9pKU9C2xJ9
-   JO7YeISS0tMwiiR9Mjht6Dj/J5exAZAurYJ4qLNsHUXhiwdWQS6/wCm4U
-   Q==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10388"; a="264063535"
-X-IronPort-AV: E=Sophos;i="5.92,218,1650956400"; 
-   d="scan'208";a="264063535"
-Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Jun 2022 08:32:58 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.92,218,1650956400"; 
-   d="scan'208";a="915721444"
-Received: from orsmsx604.amr.corp.intel.com ([10.22.229.17])
-  by fmsmga005.fm.intel.com with ESMTP; 24 Jun 2022 08:32:57 -0700
-Received: from orsmsx604.amr.corp.intel.com (10.22.229.17) by
- ORSMSX604.amr.corp.intel.com (10.22.229.17) with Microsoft SMTP Server
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F9597C;
+	Fri, 24 Jun 2022 18:25:06 +0000 (UTC)
+Received: from fraeml708-chm.china.huawei.com (unknown [172.18.147.226])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4LV58L15yWz684kT;
+	Sat, 25 Jun 2022 02:22:58 +0800 (CST)
+Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
+ fraeml708-chm.china.huawei.com (10.206.15.36) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.27; Fri, 24 Jun 2022 08:32:57 -0700
-Received: from ORSEDG602.ED.cps.intel.com (10.7.248.7) by
- orsmsx604.amr.corp.intel.com (10.22.229.17) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.27 via Frontend Transport; Fri, 24 Jun 2022 08:32:57 -0700
-Received: from NAM11-BN8-obe.outbound.protection.outlook.com (104.47.58.168)
- by edgegateway.intel.com (134.134.137.103) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2308.27; Fri, 24 Jun 2022 08:32:56 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=Kr0eC81iOMdd7PYVJ+NoOWF9tt0I4OF9OT0cbw/ylzawIXiN/4T6xHfmAFQoCW2FuNmkAQGA2TUE6JFBOwfmRlL6fJVSfZbM49zdZpZXVffJ3vOrum9PqKcJQdfglUku8i7YWPdUoyUp1S1hABs8udbs9VlpceQsILZRrZgPW30nBYxj6qglVT7bM5jbw27hLfeWPJHed5wfvTEGPrQfIp72uZxXYthWY+ov6ITlby2UB3B1k5f+6xbsTlI8yqoKlqC4lIr3BxXGUdPMyYhkGRuMAUw0EV+29LulJUgKvXKJCELO1KhV8GhIdAv2Xs+2LG6/v0qh2p/UFEYnjC+VAw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=Ew/gAMR5VNY7w5VlAAp6Vc2eTn0hgxU5O8bnsMynPHI=;
- b=dT68v4hGC95uxyw0D/RVshUlQ3wLcXsvqjomU1m7EzT5H/iBTyhjqqV9t0IP/AXjDwFyEHkRMhOmtPvQm9VGwAH9RhJwoqkMprBVMZCTtuLGrzZFJC5e6DYcPolRpJFNexGEs4TI8FNbBljCFRQMUi0rAaPVOk8o1uP9dp3Wo/aXEHY7dxu1gVZDI88srbIrwjMcmhUBMn6EPl/v72Fv3EOf8P6FDstGyw9jf/JLwVTSslYSsIChct8gM72WCI9dM/paW3nTD4/hqLbTb7GAXjMnMAwBwJksiSn4cT2TIesCnzoWrF18kziktHZluLp7Epba3t7A2s9n+Uw7Vt/YVw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
- (2603:10b6:301:50::20) by BN6PR1101MB2114.namprd11.prod.outlook.com
- (2603:10b6:405:57::10) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5373.15; Fri, 24 Jun
- 2022 15:32:54 +0000
-Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
- ([fe80::f50c:6e72:c8aa:8dbf]) by MWHPR1101MB2126.namprd11.prod.outlook.com
- ([fe80::f50c:6e72:c8aa:8dbf%7]) with mapi id 15.20.5353.024; Fri, 24 Jun 2022
- 15:32:54 +0000
-Date: Fri, 24 Jun 2022 08:32:52 -0700
-From: Dan Williams <dan.j.williams@intel.com>
-To: Jonathan Cameron <Jonathan.Cameron@huawei.com>, Dan Williams
-	<dan.j.williams@intel.com>
-CC: <linux-cxl@vger.kernel.org>, Ira Weiny <ira.weiny@intel.com>, "Christoph
- Hellwig" <hch@infradead.org>, Jason Gunthorpe <jgg@nvidia.com>, Ben Widawsky
-	<bwidawsk@kernel.org>, Alison Schofield <alison.schofield@intel.com>,
-	"Matthew Wilcox" <willy@infradead.org>, <nvdimm@lists.linux.dev>,
-	<linux-pci@vger.kernel.org>, <patches@lists.linux.dev>
-Subject: Re: [PATCH 00/46] CXL PMEM Region Provisioning
-Message-ID: <62b5d9249edf2_8070294d2@dwillia2-xfh.notmuch>
+ 15.1.2375.24; Fri, 24 Jun 2022 20:25:03 +0200
+Received: from localhost (10.122.247.231) by lhreml710-chm.china.huawei.com
+ (10.201.108.61) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.24; Fri, 24 Jun
+ 2022 19:25:02 +0100
+Date: Fri, 24 Jun 2022 19:25:01 +0100
+From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+To: Dan Williams <dan.j.williams@intel.com>
+CC: <linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>,
+	<linux-pci@vger.kernel.org>, <patches@lists.linux.dev>, <hch@lst.de>, "Ben
+ Widawsky" <bwidawsk@kernel.org>
+Subject: Re: [PATCH 40/46] cxl/region: Attach endpoint decoders
+Message-ID: <20220624192501.00003b53@huawei.com>
+In-Reply-To: <20220624041950.559155-15-dan.j.williams@intel.com>
 References: <165603869943.551046.3498980330327696732.stgit@dwillia2-xfh>
- <20220624161310.00006689@huawei.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20220624161310.00006689@huawei.com>
-X-ClientProxiedBy: MWHPR01CA0036.prod.exchangelabs.com (2603:10b6:300:101::22)
- To MWHPR1101MB2126.namprd11.prod.outlook.com (2603:10b6:301:50::20)
+	<20220624041950.559155-15-dan.j.williams@intel.com>
+Organization: Huawei Technologies R&D (UK) Ltd.
+X-Mailer: Claws Mail 4.0.0 (GTK+ 3.24.29; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 8485d136-89e0-4d2b-84ab-08da55f6ce80
-X-MS-TrafficTypeDiagnostic: BN6PR1101MB2114:EE_
-X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: 2XylJ5ityUqOm14ZW4OZ+EAaVBVX4fngpy7xzBlJUmo+jkbqYih9EUh2mWX/1VkhLhjSnszL6C6Bxv76BQok/mTISOf83L8TwoKX0cFsx24mx888iRHYR1axPVzZH5kV0X107y7SIsalUkhAL7XfIsZYES33R6ORDCq/3Mld7CGFJSRYSWAKI7kqeWgBoDIO9nukJlm/pX3nC26iaxxPgR+wBlYGfhPdFdtGB5JxcSWLvgQW/jSf/tR0Tx3iWsmRdX52z/zj7Cjdm6HgT42v0UuFfNEiJ1wnXV9RVSwK7gpwDvjqyHLVSXxSIzKbsJ2NP6IVOqNwdS6AckkwVLMLrrIcwgaTCV4z0t0hylJuPfNy16s1BZLV9sZjKUPlyT0aFaLabm0CJaXei9qQdzxwIDmQOxGo2gU4DGSw9LLMU9eCSQv4t/raM2OWufh5SoZuxL7cDO0/WsS3ft+YCufg+/jSOXqQrJkduJ1hX0Aoy3xPEz9q212pFR4oCPinGhrTLojaE86Gt1dTu+0F5umAeGzKvw2CP3vUSEhD+VlOJkPA63gVXY7PyOSDcqwFrH2RP7aZdWxVmoUTndOf8m3/8Dy+bJwvBal7VDcN+5XCFppqZ11iVW0r6A8ON9bBDN36+wkkj3ZsQER3Tn7ZP0sI0lzrdptRKADs4lDHT7pawqDRQHnPnzsL2htrjGIZ/EUMJLFY05xfByrrBKjabVWJFEY5+HtRi61WuPTRfJdUxtC3N7hgPOAFAUi/YEOfBVDKj9IOQs5gD6plccd7kwQFtg==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1101MB2126.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(366004)(39860400002)(136003)(396003)(346002)(376002)(966005)(9686003)(6512007)(66556008)(5660300002)(6486002)(86362001)(83380400001)(66946007)(6506007)(26005)(186003)(41300700001)(2906002)(4326008)(478600001)(8676002)(66476007)(316002)(8936002)(38100700002)(54906003)(82960400001)(110136005);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?Ry8oMlfkZxQhnIeZObGK6kAQwG5KX9mNNqGfIICWPv1u6o41FYkZL/jMT15i?=
- =?us-ascii?Q?U4RBVONyb/Frvi+I9TdgdTu42ZNAUBTXPRPv5QKVOPiw/Yj0ZF6BLbvzTIB7?=
- =?us-ascii?Q?PdbwJU6lCmlcBUUSpimuEc1jOLu+prOE9VVoicpAA0edWr9F3tHTe1gysAi8?=
- =?us-ascii?Q?838T1mXIoOHCuTV9gAZHilrwwCbthX9kUqbRVzUYMgWGlAXQlKjKMHQixsT5?=
- =?us-ascii?Q?xQ6i6+svd5U3AalJnh+wG/dZj5S3FJbTl/QzKFZX0YIyPQfbVvkEOZllLUli?=
- =?us-ascii?Q?4AfxxGHaqvtMUWZIPt1yH21mc08PCcRxfEx97GIVmrZ6H+Ib0dZ2jUPjjPHw?=
- =?us-ascii?Q?ncM0KwpJJh6VKyMmC9Uz2wUjDnQVmSJqnYaHpp0f7RbECeajY/SYt0jjeG5U?=
- =?us-ascii?Q?NASUK8L7jMITSsTQBC6MGm5J/YEsMSwolpwP/bPojqSgMJnk8rTSvAeNWAUE?=
- =?us-ascii?Q?7FoJyT1ezgcCiUoFfLYl9dNkRBqeD2+7JKsREzKzepQe8dcrGyZJdGbY+smT?=
- =?us-ascii?Q?2djn1/ha3hKevf+RUFZTXTNO0O6IGfHjtIFfGz4gXaZNJixMfXXYtq7FkPHN?=
- =?us-ascii?Q?ozxhMGQc5kFgyrERkYghqZEKn9oV/az61483r8tktf39H/c0j10k4ee48zSZ?=
- =?us-ascii?Q?SMxVKboyYGAJtmYEf8UxG7zl0PpQ6cM3EPi4WBr9Mc/MpxCybh9fTTymX4Qo?=
- =?us-ascii?Q?c3Cjy+FuNGrh+oodtcY3cbjJ1ohwwhKc8IEnGQAiQhcHx2gVStxo5xfml0st?=
- =?us-ascii?Q?n17cU6OB2WznSuA2EquogJOE/o/vJtzxaADxCpcEDZ5HF/kGOp1XlTXayjbE?=
- =?us-ascii?Q?FLhqVsonXa48UmuUcDMcbXMKk39My20Uxcw8+s1szrmSYAyNhdPUmy/sU8fN?=
- =?us-ascii?Q?ifoSXI2zxfIm7GfGsAUvVBVU43AkCPV85+Mi32Csd0/c5BTDalPBKrWHvPvJ?=
- =?us-ascii?Q?ZZirkr9DNAMLk8+KCsxQETis8wOpwq+w76RcaMTv3LSfkf+5fj5yTuSW6+5F?=
- =?us-ascii?Q?bD5uhJrDV5XPJM6UFGm40GKlb+Xdye8AjH0d2girB/3zEUisfwlJIF5SbUkF?=
- =?us-ascii?Q?+g4vw/Ns1r79bXYfRsjuQKPp5b8m3luNXMhvAMLtkQXnAPR0sb/P1Dn1ugKG?=
- =?us-ascii?Q?rUl7MbPky0kYL4q37FTY+wHEaVHPfdahlEU45fRSanEPPlNglplfXLCKE4UI?=
- =?us-ascii?Q?hmhpCffOQllWkta29ssaQjD6EYMOOC75bFpkj2YI776FrYrkEVMy8+1k1qtH?=
- =?us-ascii?Q?xj+rwc8YHIeVNXcnujr2hLpzl9c1KfdygFWl+VpdCpjFRhS9QFoJIou/+FrU?=
- =?us-ascii?Q?eG4X/BxwSO095Z5RlJIx+A4msarhElvZt0b3gFKGPiVW1Rt7p1r3T2AmEObc?=
- =?us-ascii?Q?TGoJHvauSJIptY4d0orx3x3ewngxauQFKwcu5wP38li3VFrMLGHjqEa6+z29?=
- =?us-ascii?Q?08aMOOJyiPH0H2U++hFoR27hP7uDTnywF20nTje9csB/NiGjcYUXAMlQuvQ6?=
- =?us-ascii?Q?0OfQSdA3LPMXZi2hoJMZokq4mIwGBV+jqekQpF0fgWjmH7Wn8CIiecmMzTLL?=
- =?us-ascii?Q?fBOD5SJ1gsaWPPuFr9faASxaX0abk8SO5H7MeS94yaGxR5gHgvJQuI+BqajN?=
- =?us-ascii?Q?TQ=3D=3D?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: 8485d136-89e0-4d2b-84ab-08da55f6ce80
-X-MS-Exchange-CrossTenant-AuthSource: MWHPR1101MB2126.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 24 Jun 2022 15:32:54.3222
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 3Ox7WpuWRjWz8qCM9rPzA1+sh5ruD6ZiYOkNvQLlnPJd5Ggf4bKjBY5teTW0+QgvxfnaxmuqhoSSqGi7icTRuSpNtaLgGZeQsXenu53waHM=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BN6PR1101MB2114
-X-OriginatorOrg: intel.com
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.122.247.231]
+X-ClientProxiedBy: lhreml738-chm.china.huawei.com (10.201.108.188) To
+ lhreml710-chm.china.huawei.com (10.201.108.61)
+X-CFilter-Loop: Reflected
 
-Jonathan Cameron wrote:
-> On Thu, 23 Jun 2022 19:45:00 -0700
-> Dan Williams <dan.j.williams@intel.com> wrote:
+On Thu, 23 Jun 2022 21:19:44 -0700
+Dan Williams <dan.j.williams@intel.com> wrote:
+
+> CXL regions (interleave sets) are made up of a set of memory devices
+> where each device maps a portion of the interleave with one of its
+> decoders (see CXL 2.0 8.2.5.12 CXL HDM Decoder Capability Structure).
+> As endpoint decoders are identified by a provisioning tool they can be
+> added to a region provided the region interleave properties are set
+> (way, granularity, HPA) and DPA has been assigned to the decoder.
 > 
-> > tl;dr: 46 patches is way too many patches to review in one sitting. Jump
-> > to the PATCH SUMMARY below to find a subset of interest to jump into.
-> > 
-> > The series is also posted on the 'preview' branch [1]. Note that branch
-> > rebases, the tip of that branch at time of posting is:
-> > 
-> > 7e5ad5cb1580 cxl/region: Introduce cxl_pmem_region objects
-> > 
-> > [1]: https://git.kernel.org/pub/scm/linux/kernel/git/cxl/cxl.git/log/?h=preview
+> The attach event triggers several validation checks, for example:
+> - is the DPA sized appropriately for the region
+> - is the decoder reachable via the host-bridges identified by the
+>   region's root decoder
+> - is the device already active in a different region position slot
+> - are there already regions with a higher HPA active on a given port
+>   (per CXL 2.0 8.2.5.12.20 Committing Decoder Programming)
 > 
-> Via a W=1 build some docs are out of sync with parameter names.
-> I'm lazy so I'll leave finding the right patch to you ;)
-> drivers/cxl/core/region.c:1490: warning: Function parameter or member 'type' not described in 'devm_cxl_add_region'
+> ...and the attach event affords an opportunity to collect data and
+> resources relevant to later programming the target lists in switch
+> decoders, for example:
+> - allocate a decoder at each cxl_port in the decode chain
+> - for a given switch port, how many the region's endpoints are hosted
+>   through the port
+> - how many unique targets (next hops) does a port need to map to reach
+>   those endpoints
+> 
+> The act of reconciling this information and deploying it to the decoder
+> configuration is saved for a follow-on patch.
+Hi Dam,
+n
+Only managed to grab a few mins today to debug that crash.. So I know
+the immediate cause but not yet why we got to that state.
 
-Added:
+Test case (happened to be one I had open) is 2x HB, 2x RP on each,
+direct connected type 3s on all ports.
 
-diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
-index f2a0ead20ca7..f5ca4f811463 100644
---- a/drivers/cxl/core/region.c
-+++ b/drivers/cxl/core/region.c
-@@ -84,6 +84,7 @@ static struct cxl_region *cxl_region_alloc(struct cxl_root_decoder *cxlrd, int i
-  * @cxlrd: root decoder
-  * @id: memregion id to create
-  * @mode: mode for the endpoint decoders of this region
-+ * @type: select whether this is an expander or accelerator (type-2 or type-3)
-  *
-  * This is the second step of region initialization. Regions exist within an
-  * address space which is mapped by a @cxlrd.
+Manual test script is:
 
-...to patch 34.
+insmod modules/5.19.0-rc3+/kernel/drivers/cxl/core/cxl_core.ko
+insmod modules/5.19.0-rc3+/kernel/drivers/cxl/cxl_acpi.ko
+insmod modules/5.19.0-rc3+/kernel/drivers/cxl/cxl_port.ko
+insmod modules/5.19.0-rc3+/kernel/drivers/cxl/cxl_pci.ko
+insmod modules/5.19.0-rc3+/kernel/drivers/cxl/cxl_mem.ko
+insmod modules/5.19.0-rc3+/kernel/drivers/cxl/cxl_pmem.ko
 
-> drivers/cxl/core/region.c:1719: warning: Function parameter or member 'cxlr' not described in 'devm_cxl_add_pmem_region'
-> drivers/cxl/core/region.c:1719: warning: Excess function parameter 'host' description in 'devm_cxl_add_pmem_region'
+cd /sys/bus/cxl/devices/decoder0.0/
+cat create_pmem_region
+echo region0 > create_pmem_region
 
-Added:
+cd region0/
+echo 4 > interleave_ways
+echo $((256 << 22)) > size
+echo 6a6b9b22-e0d4-11ec-9d64-0242ac120002 > uuid
+ls -lh /sys/bus/cxl/devices/endpoint?/upo*
 
-diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
-index 808148eef557..fa209fb649f7 100644
---- a/drivers/cxl/core/region.c
-+++ b/drivers/cxl/core/region.c
-@@ -1711,8 +1711,8 @@ static void cxlr_pmem_unregister(void *dev)
- }
- 
- /**
-- * devm_cxl_add_pmem_region() - add a cxl_region to nd_region bridge
-- * @host: same host as @cxlmd
-+ * devm_cxl_add_pmem_region() - add a cxl_region-to-nd_region bridge
-+ * @cxlr: parent CXL region for this pmem region bridge device
-  *
-  * Return: 0 on success negative error code on failure.
-  */
+# Then figure out the order hopefully write the correct targets 
+echo decoder5.0 > target0
 
-...to patch 46.
+Location of crash below...
+No idea if these breadcrumbs will be much use. I'll poke
+it some more next week. Have a good weekend,
 
-> whilst here, docs for generic_nvdimm_flush() need updating to reflect
-> generic getting added to the name in 2019...
+Jonathan
 
-Sure, but not in this series.
+
+> 
+> Co-developed-by: Ben Widawsky <bwidawsk@kernel.org>
+> Signed-off-by: Ben Widawsky <bwidawsk@kernel.org>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+>  drivers/cxl/core/core.h   |   7 +
+>  drivers/cxl/core/port.c   |  10 +-
+>  drivers/cxl/core/region.c | 338 +++++++++++++++++++++++++++++++++++++-
+>  drivers/cxl/cxl.h         |  20 +++
+>  drivers/cxl/cxlmem.h      |   5 +
+>  5 files changed, 372 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/cxl/core/core.h b/drivers/cxl/core/core.h
+> index 36b6bd8dac2b..0e4e5c2d9452 100644
+> --- a/drivers/cxl/core/core.h
+> +++ b/drivers/cxl/core/core.h
+> @@ -42,6 +42,13 @@ resource_size_t cxl_dpa_size(struct cxl_endpoint_decoder *cxled);
+>  resource_size_t cxl_dpa_resource(struct cxl_endpoint_decoder *cxled);
+>  extern struct rw_semaphore cxl_dpa_rwsem;
+>  
+> +bool is_switch_decoder(struct device *dev);
+> +static inline struct cxl_ep *cxl_ep_load(struct cxl_port *port,
+> +					 struct cxl_memdev *cxlmd)
+> +{
+> +	return xa_load(&port->endpoints, (unsigned long)&cxlmd->dev);
+> +}
+> +
+>  int cxl_memdev_init(void);
+>  void cxl_memdev_exit(void);
+>  void cxl_mbox_init(void);
+> diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
+> index 7756409d0a58..fde2a2e103d4 100644
+> --- a/drivers/cxl/core/port.c
+> +++ b/drivers/cxl/core/port.c
+> @@ -447,7 +447,7 @@ bool is_root_decoder(struct device *dev)
+>  }
+>  EXPORT_SYMBOL_NS_GPL(is_root_decoder, CXL);
+>  
+> -static bool is_switch_decoder(struct device *dev)
+> +bool is_switch_decoder(struct device *dev)
+>  {
+>  	return is_root_decoder(dev) || dev->type == &cxl_decoder_switch_type;
+>  }
+> @@ -503,6 +503,7 @@ static void cxl_port_release(struct device *dev)
+>  		cxl_ep_remove(port, ep);
+>  	xa_destroy(&port->endpoints);
+>  	xa_destroy(&port->dports);
+> +	xa_destroy(&port->regions);
+>  	ida_free(&cxl_port_ida, port->id);
+>  	kfree(port);
+>  }
+> @@ -633,6 +634,7 @@ static struct cxl_port *cxl_port_alloc(struct device *uport,
+>  	port->dpa_end = -1;
+>  	xa_init(&port->dports);
+>  	xa_init(&port->endpoints);
+> +	xa_init(&port->regions);
+>  
+>  	device_initialize(dev);
+>  	lockdep_set_class_and_subclass(&dev->mutex, &cxl_port_key, port->depth);
+> @@ -1110,12 +1112,6 @@ static void reap_dports(struct cxl_port *port)
+>  	}
+>  }
+>  
+> -static struct cxl_ep *cxl_ep_load(struct cxl_port *port,
+> -				  struct cxl_memdev *cxlmd)
+> -{
+> -	return xa_load(&port->endpoints, (unsigned long)&cxlmd->dev);
+> -}
+> -
+>  int devm_cxl_add_endpoint(struct cxl_memdev *cxlmd,
+>  			  struct cxl_dport *parent_dport)
+>  {
+> diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
+> index 4830365f3857..65bf84abad57 100644
+> --- a/drivers/cxl/core/region.c
+> +++ b/drivers/cxl/core/region.c
+> @@ -428,6 +428,254 @@ static size_t show_targetN(struct cxl_region *cxlr, char *buf, int pos)
+>  	return rc;
+>  }
+>  
+> +static int match_free_decoder(struct device *dev, void *data)
+> +{
+> +	struct cxl_decoder *cxld;
+> +	int *id = data;
+> +
+> +	if (!is_switch_decoder(dev))
+> +		return 0;
+> +
+> +	cxld = to_cxl_decoder(dev);
+> +
+> +	/* enforce ordered allocation */
+> +	if (cxld->id != *id)
+> +		return 0;
+> +
+> +	if (!cxld->region)
+> +		return 1;
+> +
+> +	(*id)++;
+> +
+> +	return 0;
+> +}
+> +
+> +static struct cxl_decoder *cxl_region_find_decoder(struct cxl_port *port,
+> +						   struct cxl_region *cxlr)
+> +{
+> +	struct device *dev;
+> +	int id = 0;
+> +
+> +	dev = device_find_child(&port->dev, &id, match_free_decoder);
+> +	if (!dev)
+> +		return NULL;
+> +	/*
+> +	 * This decoder is pinned registered as long as the endpoint decoder is
+> +	 * registered, and endpoint decoder unregistration holds the
+> +	 * cxl_region_rwsem over unregister events, so no need to hold on to
+> +	 * this extra reference.
+> +	 */
+> +	put_device(dev);
+> +	return to_cxl_decoder(dev);
+> +}
+> +
+> +static struct cxl_region_ref *alloc_region_ref(struct cxl_port *port,
+> +					       struct cxl_region *cxlr)
+> +{
+> +	struct cxl_region_ref *cxl_rr;
+> +
+> +	cxl_rr = kzalloc(sizeof(*cxl_rr), GFP_KERNEL);
+> +	if (!cxl_rr)
+> +		return NULL;
+> +	cxl_rr->port = port;
+> +	cxl_rr->region = cxlr;
+> +	xa_init(&cxl_rr->endpoints);
+> +	return cxl_rr;
+> +}
+> +
+> +static void free_region_ref(struct cxl_region_ref *cxl_rr)
+> +{
+> +	struct cxl_port *port = cxl_rr->port;
+> +	struct cxl_region *cxlr = cxl_rr->region;
+> +	struct cxl_decoder *cxld = cxl_rr->decoder;
+> +
+> +	dev_WARN_ONCE(&cxlr->dev, cxld->region != cxlr, "region mismatch\n");
+> +	if (cxld->region == cxlr) {
+> +		cxld->region = NULL;
+> +		put_device(&cxlr->dev);
+> +	}
+> +
+> +	xa_erase(&port->regions, (unsigned long)cxlr);
+> +	xa_destroy(&cxl_rr->endpoints);
+> +	kfree(cxl_rr);
+> +}
+> +
+> +static int cxl_rr_add(struct cxl_region_ref *cxl_rr)
+> +{
+> +	struct cxl_port *port = cxl_rr->port;
+> +	struct cxl_region *cxlr = cxl_rr->region;
+> +
+> +	return xa_insert(&port->regions, (unsigned long)cxlr, cxl_rr,
+> +			 GFP_KERNEL);
+> +}
+> +
+> +static int cxl_rr_ep_add(struct cxl_region_ref *cxl_rr,
+> +			 struct cxl_endpoint_decoder *cxled)
+> +{
+> +	int rc;
+> +	struct cxl_port *port = cxl_rr->port;
+> +	struct cxl_region *cxlr = cxl_rr->region;
+> +	struct cxl_decoder *cxld = cxl_rr->decoder;
+> +	struct cxl_ep *ep = cxl_ep_load(port, cxled_to_memdev(cxled));
+> +
+> +	rc = xa_insert(&cxl_rr->endpoints, (unsigned long)cxled, ep,
+> +			 GFP_KERNEL);
+> +	if (rc)
+> +		return rc;
+> +	cxl_rr->nr_eps++;
+> +
+> +	if (!cxld->region) {
+> +		cxld->region = cxlr;
+> +		get_device(&cxlr->dev);
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int cxl_port_attach_region(struct cxl_port *port,
+> +				  struct cxl_region *cxlr,
+> +				  struct cxl_endpoint_decoder *cxled, int pos)
+> +{
+> +	struct cxl_memdev *cxlmd = cxled_to_memdev(cxled);
+> +	struct cxl_ep *ep = cxl_ep_load(port, cxlmd);
+> +	struct cxl_region_ref *cxl_rr = NULL, *iter;
+> +	struct cxl_region_params *p = &cxlr->params;
+> +	struct cxl_decoder *cxld = NULL;
+> +	unsigned long index;
+> +	int rc = -EBUSY;
+> +
+> +	lockdep_assert_held_write(&cxl_region_rwsem);
+> +
+> +	xa_for_each(&port->regions, index, iter) {
+> +		struct cxl_region_params *ip = &iter->region->params;
+> +
+> +		if (iter->region == cxlr)
+> +			cxl_rr = iter;
+> +		if (ip->res->start > p->res->start) {
+> +			dev_dbg(&cxlr->dev,
+> +				"%s: HPA order violation %s:%pr vs %pr\n",
+> +				dev_name(&port->dev),
+> +				dev_name(&iter->region->dev), ip->res, p->res);
+> +			return -EBUSY;
+> +		}
+> +	}
+> +
+> +	if (cxl_rr) {
+> +		struct cxl_ep *ep_iter;
+> +		int found = 0;
+> +
+> +		cxld = cxl_rr->decoder;
+> +		xa_for_each(&cxl_rr->endpoints, index, ep_iter) {
+> +			if (ep_iter == ep)
+> +				continue;
+> +			if (ep_iter->next == ep->next) {
+> +				found++;
+> +				break;
+> +			}
+> +		}
+> +
+> +		/*
+> +		 * If this is a new target or if this port is direct connected
+> +		 * to this endpoint then add to the target count.
+> +		 */
+> +		if (!found || !ep->next)
+> +			cxl_rr->nr_targets++;
+> +	} else {
+> +		cxl_rr = alloc_region_ref(port, cxlr);
+> +		if (!cxl_rr) {
+> +			dev_dbg(&cxlr->dev,
+> +				"%s: failed to allocate region reference\n",
+> +				dev_name(&port->dev));
+> +			return -ENOMEM;
+> +		}
+> +		rc = cxl_rr_add(cxl_rr);
+> +		if (rc) {
+> +			dev_dbg(&cxlr->dev,
+> +				"%s: failed to track region reference\n",
+> +				dev_name(&port->dev));
+> +			kfree(cxl_rr);
+> +			return rc;
+> +		}
+> +	}
+> +
+> +	if (!cxld) {
+> +		if (port == cxled_to_port(cxled))
+> +			cxld = &cxled->cxld;
+> +		else
+> +			cxld = cxl_region_find_decoder(port, cxlr);
+> +		if (!cxld) {
+> +			dev_dbg(&cxlr->dev, "%s: no decoder available\n",
+> +				dev_name(&port->dev));
+> +			goto out_erase;
+> +		}
+> +
+> +		if (cxld->region) {
+> +			dev_dbg(&cxlr->dev, "%s: %s already attached to %s\n",
+> +				dev_name(&port->dev), dev_name(&cxld->dev),
+> +				dev_name(&cxld->region->dev));
+> +			rc = -EBUSY;
+> +			goto out_erase;
+> +		}
+> +
+> +		cxl_rr->decoder = cxld;
+> +	}
+> +
+> +	rc = cxl_rr_ep_add(cxl_rr, cxled);
+> +	if (rc) {
+> +		dev_dbg(&cxlr->dev,
+> +			"%s: failed to track endpoint %s:%s reference\n",
+> +			dev_name(&port->dev), dev_name(&cxlmd->dev),
+> +			dev_name(&cxld->dev));
+> +		goto out_erase;
+> +	}
+> +
+> +	return 0;
+> +out_erase:
+> +	if (cxl_rr->nr_eps == 0)
+> +		free_region_ref(cxl_rr);
+> +	return rc;
+> +}
+> +
+> +static struct cxl_region_ref *cxl_rr_load(struct cxl_port *port,
+> +					  struct cxl_region *cxlr)
+> +{
+> +	return xa_load(&port->regions, (unsigned long)cxlr);
+> +}
+> +
+> +static void cxl_port_detach_region(struct cxl_port *port,
+> +				   struct cxl_region *cxlr,
+> +				   struct cxl_endpoint_decoder *cxled)
+> +{
+> +	struct cxl_region_ref *cxl_rr;
+> +	struct cxl_ep *ep;
+> +
+> +	lockdep_assert_held_write(&cxl_region_rwsem);
+> +
+> +	cxl_rr = cxl_rr_load(port, cxlr);
+> +	if (!cxl_rr)
+> +		return;
+> +
+> +	ep = xa_erase(&cxl_rr->endpoints, (unsigned long)cxled);
+> +	if (ep) {
+> +		struct cxl_ep *ep_iter;
+> +		unsigned long index;
+> +		int found = 0;
+> +
+> +		cxl_rr->nr_eps--;
+> +		xa_for_each(&cxl_rr->endpoints, index, ep_iter) {
+> +			if (ep_iter->next == ep->next) {
+> +				found++;
+> +				break;
+> +			}
+> +		}
+> +		if (!found)
+> +			cxl_rr->nr_targets--;
+> +	}
+> +
+> +	if (cxl_rr->nr_eps == 0)
+> +		free_region_ref(cxl_rr);
+> +}
+> +
+>  /*
+>   * - Check that the given endpoint is attached to a host-bridge identified
+>   *   in the root interleave.
+> @@ -435,14 +683,28 @@ static size_t show_targetN(struct cxl_region *cxlr, char *buf, int pos)
+>  static int cxl_region_attach(struct cxl_region *cxlr,
+>  			     struct cxl_endpoint_decoder *cxled, int pos)
+>  {
+> +	struct cxl_root_decoder *cxlrd = to_cxl_root_decoder(cxlr->dev.parent);
+> +	struct cxl_memdev *cxlmd = cxled_to_memdev(cxled);
+> +	struct cxl_port *ep_port, *root_port, *iter;
+>  	struct cxl_region_params *p = &cxlr->params;
+> +	struct cxl_dport *dport;
+> +	int i, rc = -ENXIO;
+>  
+>  	if (cxled->mode == CXL_DECODER_DEAD) {
+>  		dev_dbg(&cxlr->dev, "%s dead\n", dev_name(&cxled->cxld.dev));
+>  		return -ENODEV;
+>  	}
+>  
+> -	if (pos >= p->interleave_ways) {
+> +	/* all full of members, or interleave config not established? */
+> +	if (p->state > CXL_CONFIG_INTERLEAVE_ACTIVE) {
+> +		dev_dbg(&cxlr->dev, "region already active\n");
+> +		return -EBUSY;
+> +	} else if (p->state < CXL_CONFIG_INTERLEAVE_ACTIVE) {
+> +		dev_dbg(&cxlr->dev, "interleave config missing\n");
+> +		return -ENXIO;
+> +	}
+> +
+> +	if (pos < 0 || pos >= p->interleave_ways) {
+>  		dev_dbg(&cxlr->dev, "position %d out of range %d\n", pos,
+>  			p->interleave_ways);
+>  		return -ENXIO;
+> @@ -461,15 +723,83 @@ static int cxl_region_attach(struct cxl_region *cxlr,
+>  		return -EBUSY;
+>  	}
+>  
+> +	for (i = 0; i < p->interleave_ways; i++) {
+> +		struct cxl_endpoint_decoder *cxled_target;
+> +		struct cxl_memdev *cxlmd_target;
+> +
+> +		cxled_target = p->targets[pos];
+> +		if (!cxled_target)
+> +			continue;
+> +
+> +		cxlmd_target = cxled_to_memdev(cxled_target);
+> +		if (cxlmd_target == cxlmd) {
+> +			dev_dbg(&cxlr->dev,
+> +				"%s already specified at position %d via: %s\n",
+> +				dev_name(&cxlmd->dev), pos,
+> +				dev_name(&cxled_target->cxld.dev));
+> +			return -EBUSY;
+> +		}
+> +	}
+> +
+> +	ep_port = cxled_to_port(cxled);
+> +	root_port = cxlrd_to_port(cxlrd);
+> +	dport = cxl_dport_load(root_port, ep_port->host_bridge);
+> +	if (!dport) {
+> +		dev_dbg(&cxlr->dev, "%s:%s invalid target for %s\n",
+> +			dev_name(&cxlmd->dev), dev_name(&cxled->cxld.dev),
+> +			dev_name(cxlr->dev.parent));
+> +		return -ENXIO;
+> +	}
+> +
+> +	if (cxlrd->calc_hb(cxlrd, pos) != dport) {
+> +		dev_dbg(&cxlr->dev, "%s:%s invalid target position for %s\n",
+> +			dev_name(&cxlmd->dev), dev_name(&cxled->cxld.dev),
+> +			dev_name(&cxlrd->cxlsd.cxld.dev));
+> +		return -ENXIO;
+> +	}
+> +
+> +	if (cxled->cxld.target_type != cxlr->type) {
+> +		dev_dbg(&cxlr->dev, "%s:%s type mismatch: %d vs %d\n",
+> +			dev_name(&cxlmd->dev), dev_name(&cxled->cxld.dev),
+> +			cxled->cxld.target_type, cxlr->type);
+> +		return -ENXIO;
+> +	}
+> +
+> +	if (resource_size(cxled->dpa_res) * p->interleave_ways !=
+
+At this point cxled->dpa_res is NULL.
+
+> +	    resource_size(p->res)) {
+> +		dev_dbg(&cxlr->dev,
+> +			"decoder-size-%#llx * ways-%d != region-size-%#llx\n",
+> +			(u64)resource_size(cxled->dpa_res), p->interleave_ways,
+> +			(u64)resource_size(p->res));
+> +		return -EINVAL;
+> +	}
+> +
+> +	for (iter = ep_port; !is_cxl_root(iter);
+> +	     iter = to_cxl_port(iter->dev.parent)) {
+> +		rc = cxl_port_attach_region(iter, cxlr, cxled, pos);
+> +		if (rc)
+> +			goto err;
+> +	}
+> +
+>  	p->targets[pos] = cxled;
+>  	cxled->pos = pos;
+>  	p->nr_targets++;
+>  
+> +	if (p->nr_targets == p->interleave_ways)
+> +		p->state = CXL_CONFIG_ACTIVE;
+> +
+>  	return 0;
+> +
+> +err:
+> +	for (iter = ep_port; !is_cxl_root(iter);
+> +	     iter = to_cxl_port(iter->dev.parent))
+> +		cxl_port_detach_region(iter, cxlr, cxled);
+> +	return rc;
+>  }
+>  
+>  static void cxl_region_detach(struct cxl_endpoint_decoder *cxled)
+>  {
+> +	struct cxl_port *iter, *ep_port = cxled_to_port(cxled);
+>  	struct cxl_region *cxlr = cxled->cxld.region;
+>  	struct cxl_region_params *p;
+>  
+> @@ -481,6 +811,10 @@ static void cxl_region_detach(struct cxl_endpoint_decoder *cxled)
+>  	p = &cxlr->params;
+>  	get_device(&cxlr->dev);
+>  
+> +	for (iter = ep_port; !is_cxl_root(iter);
+> +	     iter = to_cxl_port(iter->dev.parent))
+> +		cxl_port_detach_region(iter, cxlr, cxled);
+> +
+>  	if (cxled->pos < 0 || cxled->pos >= p->interleave_ways ||
+>  	    p->targets[cxled->pos] != cxled) {
+>  		struct cxl_memdev *cxlmd = cxled_to_memdev(cxled);
+> @@ -491,6 +825,8 @@ static void cxl_region_detach(struct cxl_endpoint_decoder *cxled)
+>  		goto out;
+>  	}
+>  
+> +	if (p->state == CXL_CONFIG_ACTIVE)
+> +		p->state = CXL_CONFIG_INTERLEAVE_ACTIVE;
+>  	p->targets[cxled->pos] = NULL;
+>  	p->nr_targets--;
+>  
+> diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
+> index 30227348f768..09dbd46cc4c7 100644
+> --- a/drivers/cxl/cxl.h
+> +++ b/drivers/cxl/cxl.h
+> @@ -414,6 +414,7 @@ struct cxl_nvdimm {
+>   * @id: id for port device-name
+>   * @dports: cxl_dport instances referenced by decoders
+>   * @endpoints: cxl_ep instances, endpoints that are a descendant of this port
+> + * @regions: cxl_region_ref instances, regions mapped by this port
+>   * @parent_dport: dport that points to this port in the parent
+>   * @decoder_ida: allocator for decoder ids
+>   * @dpa_end: cursor to track highest allocated decoder for allocation ordering
+> @@ -428,6 +429,7 @@ struct cxl_port {
+>  	int id;
+>  	struct xarray dports;
+>  	struct xarray endpoints;
+> +	struct xarray regions;
+>  	struct cxl_dport *parent_dport;
+>  	struct ida decoder_ida;
+>  	int dpa_end;
+> @@ -470,6 +472,24 @@ struct cxl_ep {
+>  	struct cxl_port *next;
+>  };
+>  
+> +/**
+> + * struct cxl_region_ref - track a region's interest in a port
+> + * @port: point in topology to install this reference
+> + * @decoder: decoder assigned for @region in @port
+> + * @region: region for this reference
+> + * @endpoints: cxl_ep references for region members beneath @port
+> + * @nr_eps: number of endpoints beneath @port
+> + * @nr_targets: number of distinct targets needed to reach @nr_eps
+> + */
+> +struct cxl_region_ref {
+> +	struct cxl_port *port;
+> +	struct cxl_decoder *decoder;
+> +	struct cxl_region *region;
+> +	struct xarray endpoints;
+> +	int nr_eps;
+> +	int nr_targets;
+> +};
+> +
+>  /*
+>   * The platform firmware device hosting the root is also the top of the
+>   * CXL port topology. All other CXL ports have another CXL port as their
+> diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
+> index eee96016c3c7..a83bb6782d23 100644
+> --- a/drivers/cxl/cxlmem.h
+> +++ b/drivers/cxl/cxlmem.h
+> @@ -55,6 +55,11 @@ static inline struct cxl_port *cxled_to_port(struct cxl_endpoint_decoder *cxled)
+>  	return to_cxl_port(cxled->cxld.dev.parent);
+>  }
+>  
+> +static inline struct cxl_port *cxlrd_to_port(struct cxl_root_decoder *cxlrd)
+> +{
+> +	return to_cxl_port(cxlrd->cxlsd.cxld.dev.parent);
+> +}
+> +
+>  static inline struct cxl_memdev *
+>  cxled_to_memdev(struct cxl_endpoint_decoder *cxled)
+>  {
+
