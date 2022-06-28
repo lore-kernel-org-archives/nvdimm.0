@@ -1,155 +1,93 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F13C7A
-	for <nvdimm@lists.linux.dev>; Tue, 28 Jun 2022 02:21:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3298C341CB;
-	Tue, 28 Jun 2022 02:21:31 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1656382894;
-	bh=pqPD6qoEi8JT199in7jg5DAol4iF8DjKFPgIGYlvQoc=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=GyqsByaDXQg5yOq6smuSw5cw5zuxTHl+rHrYo/OlHMZ1OuAvd9ONI8/jqrzLdImbD
-	 VTWK7UP5itlkHBzyKuMpIHQb6qIkgBzcX3Jxv+GaaOi42Ij7zVfd0aNVRCj/2kEQLZ
-	 O6R0SdzzjedD8BThjNur1AhOSXcjIOf8wUfiJdziqd597shekW5NqBhdePKYvvXsYS
-	 oJiSFkiCFnaZl7loW+605mJuFv8NTwWJO3O6z94S5MRsftmK5FPbSEThNMZ5b+uoVL
-	 ifMihZ1oD6Ug5EuhwczB9HuCayJu7LpnnMklqlMLvNn/Nf3BKVwwKkKVP3/5TDDlCW
-	 d3gJG/ZMvv/2g==
-Date: Tue, 28 Jun 2022 04:21:29 +0200
-From: "Gustavo A. R. Silva" <gustavoars@kernel.org>
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Daniel Borkmann <daniel@iogearbox.net>,
-	Kees Cook <keescook@chromium.org>, linux-kernel@vger.kernel.org,
-	x86@kernel.org, dm-devel@redhat.com,
-	linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
-	linux-s390@vger.kernel.org, kvm@vger.kernel.org,
-	intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
-	netdev@vger.kernel.org, bpf@vger.kernel.org,
-	linux-btrfs@vger.kernel.org, linux-can@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org,
-	linux1394-devel@lists.sourceforge.net, io-uring@vger.kernel.org,
-	lvs-devel@vger.kernel.org, linux-mtd@lists.infradead.org,
-	kasan-dev@googlegroups.com, linux-mmc@vger.kernel.org,
-	nvdimm@lists.linux.dev, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, linux-perf-users@vger.kernel.org,
-	linux-raid@vger.kernel.org, linux-sctp@vger.kernel.org,
-	linux-stm32@st-md-mailman.stormreply.com,
-	linux-arm-kernel@lists.infradead.org, linux-scsi@vger.kernel.org,
-	target-devel@vger.kernel.org, linux-usb@vger.kernel.org,
-	virtualization@lists.linux-foundation.org,
-	v9fs-developer@lists.sourceforge.net, linux-rdma@vger.kernel.org,
-	alsa-devel@alsa-project.org, linux-hardening@vger.kernel.org
-Subject: Re: [PATCH][next] treewide: uapi: Replace zero-length arrays with
- flexible-array members
-Message-ID: <20220628022129.GA8452@embeddedor>
-References: <20220627180432.GA136081@embeddedor>
- <6bc1e94c-ce1d-a074-7d0c-8dbe6ce22637@iogearbox.net>
- <20220628004052.GM23621@ziepe.ca>
- <20220628005825.GA161566@embeddedor>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E55E6368;
+	Tue, 28 Jun 2022 03:12:51 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1656385971; x=1687921971;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=Q9oVw6/GMZy/Vws24GjHpyW1vsg9MEk5gQhF+q9kszE=;
+  b=QQRCAi6W/XabJ0V7J1mQ+mZ0aGez1eJi91tmJn2NbvGOCOg66fxeCbEi
+   U5GOBm6L3Id0+kU2OiAFbSDctG7yB+vcr856RJTR4y+TFA/w7aMmBnVCk
+   xcZqtzufu9KXXR6mbboaQAhy8Mc/iVXR4pR7T6zzcIG8Ag3gP0ajs6MR+
+   dJa4HyNn+Yso3K9wEqRTm2gfTUI71M9efXX+g3YBFNQnzYBixDJQMVoQQ
+   DFEkE7Z/diGz1el+BRMlLPbH/unQAgMK6rvlF0Yi4Xw3ccT9LiLPUC/KH
+   tH7vaU4BlXA7+e/BSXYBV6IWvbrGHA1CoyHWwSOv9KsbhzyAo9438ql3X
+   w==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10391"; a="282355590"
+X-IronPort-AV: E=Sophos;i="5.92,227,1650956400"; 
+   d="scan'208";a="282355590"
+Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Jun 2022 20:12:50 -0700
+X-IronPort-AV: E=Sophos;i="5.92,227,1650956400"; 
+   d="scan'208";a="657951487"
+Received: from alison-desk.jf.intel.com (HELO alison-desk) ([10.54.74.41])
+  by fmsmga004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Jun 2022 20:12:50 -0700
+Date: Mon, 27 Jun 2022 20:12:05 -0700
+From: Alison Schofield <alison.schofield@intel.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
+	"Weiny, Ira" <ira.weiny@intel.com>,
+	Christoph Hellwig <hch@infradead.org>,
+	Jason Gunthorpe <jgg@nvidia.com>,
+	Ben Widawsky <bwidawsk@kernel.org>,
+	Matthew Wilcox <willy@infradead.org>,
+	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
+	"linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+	"patches@lists.linux.dev" <patches@lists.linux.dev>
+Subject: Re: [PATCH 00/46] CXL PMEM Region Provisioning
+Message-ID: <20220628031205.GA1575206@alison-desk>
+References: <165603869943.551046.3498980330327696732.stgit@dwillia2-xfh>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20220628005825.GA161566@embeddedor>
+In-Reply-To: <165603869943.551046.3498980330327696732.stgit@dwillia2-xfh>
 
-On Tue, Jun 28, 2022 at 02:58:25AM +0200, Gustavo A. R. Silva wrote:
-> On Mon, Jun 27, 2022 at 09:40:52PM -0300, Jason Gunthorpe wrote:
-> > On Mon, Jun 27, 2022 at 08:27:37PM +0200, Daniel Borkmann wrote:
-> > > On 6/27/22 8:04 PM, Gustavo A. R. Silva wrote:
-> > > > There is a regular need in the kernel to provide a way to declare
-> > > > having a dynamically sized set of trailing elements in a structure.
-> > > > Kernel code should always use “flexible array members”[1] for these
-> > > > cases. The older style of one-element or zero-length arrays should
-> > > > no longer be used[2].
-> > > > 
-> > > > This code was transformed with the help of Coccinelle:
-> > > > (linux-5.19-rc2$ spatch --jobs $(getconf _NPROCESSORS_ONLN) --sp-file script.cocci --include-headers --dir . > output.patch)
-> > > > 
-> > > > @@
-> > > > identifier S, member, array;
-> > > > type T1, T2;
-> > > > @@
-> > > > 
-> > > > struct S {
-> > > >    ...
-> > > >    T1 member;
-> > > >    T2 array[
-> > > > - 0
-> > > >    ];
-> > > > };
-> > > > 
-> > > > -fstrict-flex-arrays=3 is coming and we need to land these changes
-> > > > to prevent issues like these in the short future:
-> > > > 
-> > > > ../fs/minix/dir.c:337:3: warning: 'strcpy' will always overflow; destination buffer has size 0,
-> > > > but the source string has length 2 (including NUL byte) [-Wfortify-source]
-> > > > 		strcpy(de3->name, ".");
-> > > > 		^
-> > > > 
-> > > > Since these are all [0] to [] changes, the risk to UAPI is nearly zero. If
-> > > > this breaks anything, we can use a union with a new member name.
-> > > > 
-> > > > [1] https://en.wikipedia.org/wiki/Flexible_array_member
-> > > > [2] https://www.kernel.org/doc/html/v5.16/process/deprecated.html#zero-length-and-one-element-arrays
-> > > > 
-> > > > Link: https://github.com/KSPP/linux/issues/78
-> > > > Build-tested-by: https://lore.kernel.org/lkml/62b675ec.wKX6AOZ6cbE71vtF%25lkp@intel.com/
-> > > > Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
-> > > > ---
-> > > > Hi all!
-> > > > 
-> > > > JFYI: I'm adding this to my -next tree. :)
-> > > 
-> > > Fyi, this breaks BPF CI:
-> > > 
-> > > https://github.com/kernel-patches/bpf/runs/7078719372?check_suite_focus=true
-> > > 
-> > >   [...]
-> > >   progs/map_ptr_kern.c:314:26: error: field 'trie_key' with variable sized type 'struct bpf_lpm_trie_key' not at the end of a struct or class is a GNU extension [-Werror,-Wgnu-variable-sized-type-not-at-end]
-> > >           struct bpf_lpm_trie_key trie_key;
-> > >                                   ^
-> > 
-> > This will break the rdma-core userspace as well, with a similar
-> > error:
-> > 
-> > /usr/bin/clang-13 -DVERBS_DEBUG -Dibverbs_EXPORTS -Iinclude -I/usr/include/libnl3 -I/usr/include/drm -g -O2 -fdebug-prefix-map=/__w/1/s=. -fstack-protector-strong -Wformat -Werror=format-security -Wdate-time -D_FORTIFY_SOURCE=2 -Wmissing-prototypes -Wmissing-declarations -Wwrite-strings -Wformat=2 -Wcast-function-type -Wformat-nonliteral -Wdate-time -Wnested-externs -Wshadow -Wstrict-prototypes -Wold-style-definition -Werror -Wredundant-decls -g -fPIC   -std=gnu11 -MD -MT libibverbs/CMakeFiles/ibverbs.dir/cmd_flow.c.o -MF libibverbs/CMakeFiles/ibverbs.dir/cmd_flow.c.o.d -o libibverbs/CMakeFiles/ibverbs.dir/cmd_flow.c.o   -c ../libibverbs/cmd_flow.c
-> > In file included from ../libibverbs/cmd_flow.c:33:
-> > In file included from include/infiniband/cmd_write.h:36:
-> > In file included from include/infiniband/cmd_ioctl.h:41:
-> > In file included from include/infiniband/verbs.h:48:
-> > In file included from include/infiniband/verbs_api.h:66:
-> > In file included from include/infiniband/ib_user_ioctl_verbs.h:38:
-> > include/rdma/ib_user_verbs.h:436:34: error: field 'base' with variable sized type 'struct ib_uverbs_create_cq_resp' not at the end of a struct or class is a GNU extension [-Werror,-Wgnu-variable-sized-type-not-at-end]
-> >         struct ib_uverbs_create_cq_resp base;
-> >                                         ^
-> > include/rdma/ib_user_verbs.h:644:34: error: field 'base' with variable sized type 'struct ib_uverbs_create_qp_resp' not at the end of a struct or class is a GNU extension [-Werror,-Wgnu-variable-sized-type-not-at-end]
-> >         struct ib_uverbs_create_qp_resp base;
-> > 
-> > Which is why I gave up trying to change these..
-> > 
-> > Though maybe we could just switch off -Wgnu-variable-sized-type-not-at-end  during configuration ?
-> 
-> No. I think now we can easily workaround these sorts of problems with
-> something like this:
-> 
-> 	struct flex {
-> 		any_type any_member;
-> 		union {
-> 			type array[0];
-> 			__DECLARE_FLEX_ARRAY(type, array_flex);
-> 		};
-> 	};
 
-Mmmh... nope; this doesn't work[1].
+-snipped everything
 
-We need to think in a different strategy.
+These are commit message typos followed by one tidy-up request.
 
---
-Gustavo
+[PATCH 00/46] CXL PMEM Region Provisioning
+s/usersapce/userspace
+s/mangage/manage
 
-[1] https://godbolt.org/z/av79Pqbfz
+[PATCH 09/46] cxl/acpi: Track CXL resources in iomem_resource
+s/accurracy/accuracy
+
+[PATCH 11/46] cxl/core: Define a 'struct cxl_endpoint_decoder' for tracking DPA resources
+s/platfom/platforma
+
+[PATCH 14/46] cxl/hdm: Enumerate allocated DPA
+s/provisioining/provisioning
+s/comrpised/comprised
+s/volaltile-ram/volatile-ram
+
+[PATCH 23/46] tools/testing/cxl: Add partition support
+s/mecahinisms/mechanisms
+
+[PATCH 25/46] cxl/port: Record dport in endpoint references
+s/endoint/endpoint
+
+[PATCH 30/46] cxl/hdm: Add sysfs attributes for interleave ways + granularity
+s/userpace/userspace
+s/resonsible/responsible
+
+[PATCH 35/46] cxl/region: Add a 'uuid' attribute
+s/is operation/its operation
+
+[PATCH 42/46] cxl/hdm: Commit decoder state to hardware
+s/base-addres/base-address
+s/intereleave/interleave
+
+How about shortening the commit messages of Patch 10 & 11? They make my
+git pretty one liner output ugly.
+
+
