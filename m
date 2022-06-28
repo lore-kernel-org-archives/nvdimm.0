@@ -1,103 +1,286 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 574D67A
-	for <nvdimm@lists.linux.dev>; Tue, 28 Jun 2022 08:34:55 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1656405294;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=tG2I7aLFwQB0Roi6WlSImPu69yOCfGrYWC9fgF3Fn1s=;
-	b=UyG2tfYQOPfQ1ct00KYbol5DEg/h4WwH4dYI/+VfkWlJ1HIOC/FfmmmLnrGMrlGLkYBMgo
-	aWYeyuB/eqoHElN3h/EmNsOeNb8v5IsnTSB/dK9PLSTiAEJGd41F8U9IooHuRxwMfnySo0
-	783t2cYKg5sZcSQ4fjDp9VG/HOdGwnE=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-230-yPEWJTdGPLaq9gtFQEUxTw-1; Tue, 28 Jun 2022 04:34:43 -0400
-X-MC-Unique: yPEWJTdGPLaq9gtFQEUxTw-1
-Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.rdu2.redhat.com [10.11.54.8])
-	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mimecast-mx02.redhat.com (Postfix) with ESMTPS id A23488FE6C5;
-	Tue, 28 Jun 2022 08:34:42 +0000 (UTC)
-Received: from localhost.localdomain (ovpn-13-87.pek2.redhat.com [10.72.13.87])
-	by smtp.corp.redhat.com (Postfix) with ESMTP id C7B7FC15D40;
-	Tue, 28 Jun 2022 08:34:38 +0000 (UTC)
-From: Jason Wang <jasowang@redhat.com>
-To: dan.j.williams@intel.com,
-	vishal.l.verma@intel.com,
-	dave.jiang@intel.com,
-	ira.weiny@intel.com,
-	nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org,
-	mst@redhat.com
-Cc: Jason Wang <jasowang@redhat.com>,
-	Pankaj Gupta <pankaj.gupta@amd.com>
-Subject: [PATCH V3 2/2] virtio_pmem: set device ready in probe()
-Date: Tue, 28 Jun 2022 16:34:30 +0800
-Message-Id: <20220628083430.61856-2-jasowang@redhat.com>
-In-Reply-To: <20220628083430.61856-1-jasowang@redhat.com>
-References: <20220628083430.61856-1-jasowang@redhat.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FE627A;
+	Tue, 28 Jun 2022 10:29:24 +0000 (UTC)
+Received: from fraeml713-chm.china.huawei.com (unknown [172.18.147.207])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4LXLMN0YCcz6872t;
+	Tue, 28 Jun 2022 18:25:20 +0800 (CST)
+Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
+ fraeml713-chm.china.huawei.com (10.206.15.32) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.24; Tue, 28 Jun 2022 12:29:21 +0200
+Received: from localhost (10.202.226.42) by lhreml710-chm.china.huawei.com
+ (10.201.108.61) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.24; Tue, 28 Jun
+ 2022 11:29:20 +0100
+Date: Tue, 28 Jun 2022 11:29:19 +0100
+From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+To: Dan Williams <dan.j.williams@intel.com>
+CC: <linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>,
+	<linux-pci@vger.kernel.org>, <patches@lists.linux.dev>, <hch@lst.de>, "Ben
+ Widawsky" <bwidawsk@kernel.org>
+Subject: Re: [PATCH 35/46] cxl/region: Add a 'uuid' attribute
+Message-ID: <20220628112919.000067e6@Huawei.com>
+In-Reply-To: <20220624041950.559155-10-dan.j.williams@intel.com>
+References: <165603869943.551046.3498980330327696732.stgit@dwillia2-xfh>
+	<20220624041950.559155-10-dan.j.williams@intel.com>
+Organization: Huawei Technologies Research and Development (UK) Ltd.
+X-Mailer: Claws Mail 4.0.0 (GTK+ 3.24.29; i686-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-type: text/plain
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 2.85 on 10.11.54.8
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.202.226.42]
+X-ClientProxiedBy: lhreml712-chm.china.huawei.com (10.201.108.63) To
+ lhreml710-chm.china.huawei.com (10.201.108.61)
+X-CFilter-Loop: Reflected
 
-The NVDIMM region could be available before the virtio_device_ready()
-that is called by virtio_dev_probe(). This means the driver tries to
-use device before DRIVER_OK which violates the spec, fixing this by
-set device ready before the nvdimm_pmem_region_create().
+On Thu, 23 Jun 2022 21:19:39 -0700
+Dan Williams <dan.j.williams@intel.com> wrote:
 
-Note that this means the virtio_pmem_host_ack() could be triggered
-before the creation of the nd region, this is safe since the pmem_lock
-has been initialized and whether or not any available buffer is added
-before is validated by virtio_pmem_host_ack().
+> From: Ben Widawsky <bwidawsk@kernel.org>
+> 
+> The process of provisioning a region involves triggering the creation of
+> a new region object, pouring in the configuration, and then binding that
+> configured object to the region driver to start is operation. For
+> persistent memory regions the CXL specification mandates that it
+> identified by a uuid. Add an ABI for userspace to specify a region's
+> uuid.
+> 
+> Signed-off-by: Ben Widawsky <bwidawsk@kernel.org>
+> [djbw: simplify locking]
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-Fixes 6e84200c0a29 ("virtio-pmem: Add virtio pmem driver")
-Acked-by: Pankaj Gupta <pankaj.gupta@amd.com>
-Signed-off-by: Jason Wang <jasowang@redhat.com>
----
-Changes since V2:
-- Tweak the change log
-Changes since v1:
-- Remove some comments per Dan
----
- drivers/nvdimm/virtio_pmem.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+I think this needs to be a little less restrictive as it currently errors
+out on trying to write the same UUID to the same region twice.
 
-diff --git a/drivers/nvdimm/virtio_pmem.c b/drivers/nvdimm/virtio_pmem.c
-index 48f8327d0431..20da455d2ef6 100644
---- a/drivers/nvdimm/virtio_pmem.c
-+++ b/drivers/nvdimm/virtio_pmem.c
-@@ -84,6 +84,12 @@ static int virtio_pmem_probe(struct virtio_device *vdev)
- 	ndr_desc.provider_data = vdev;
- 	set_bit(ND_REGION_PAGEMAP, &ndr_desc.flags);
- 	set_bit(ND_REGION_ASYNC, &ndr_desc.flags);
-+	/*
-+	 * The NVDIMM region could be available before the
-+	 * virtio_device_ready() that is called by
-+	 * virtio_dev_probe(), so we set device ready here.
-+	 */
-+	virtio_device_ready(vdev);
- 	nd_region = nvdimm_pmem_region_create(vpmem->nvdimm_bus, &ndr_desc);
- 	if (!nd_region) {
- 		dev_err(&vdev->dev, "failed to create nvdimm region\n");
-@@ -92,6 +98,7 @@ static int virtio_pmem_probe(struct virtio_device *vdev)
- 	}
- 	return 0;
- out_nd:
-+	virtio_reset_device(vdev);
- 	nvdimm_bus_unregister(vpmem->nvdimm_bus);
- out_vq:
- 	vdev->config->del_vqs(vdev);
--- 
-2.25.1
+Short cut that case and just return 0 if the UUID is same as already set.
+
+Thanks,
+
+Jonathan
+
+
+
+> ---
+>  Documentation/ABI/testing/sysfs-bus-cxl |  10 +++
+>  drivers/cxl/core/region.c               | 115 ++++++++++++++++++++++++
+>  drivers/cxl/cxl.h                       |  25 ++++++
+>  3 files changed, 150 insertions(+)
+> 
+> diff --git a/Documentation/ABI/testing/sysfs-bus-cxl b/Documentation/ABI/testing/sysfs-bus-cxl
+> index 9a4856066631..d30c95a758a9 100644
+> --- a/Documentation/ABI/testing/sysfs-bus-cxl
+> +++ b/Documentation/ABI/testing/sysfs-bus-cxl
+> @@ -263,3 +263,13 @@ Contact:	linux-cxl@vger.kernel.org
+>  Description:
+>  		(WO) Write a string in the form 'regionZ' to delete that region,
+>  		provided it is currently idle / not bound to a driver.
+> +
+> +
+> +What:		/sys/bus/cxl/devices/regionZ/uuid
+> +Date:		May, 2022
+> +KernelVersion:	v5.20
+> +Contact:	linux-cxl@vger.kernel.org
+> +Description:
+> +		(RW) Write a unique identifier for the region. This field must
+> +		be set for persistent regions and it must not conflict with the
+> +		UUID of another region.
+> diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
+> index f2a0ead20ca7..f75978f846b9 100644
+> --- a/drivers/cxl/core/region.c
+> +++ b/drivers/cxl/core/region.c
+> @@ -5,6 +5,7 @@
+>  #include <linux/device.h>
+>  #include <linux/module.h>
+>  #include <linux/slab.h>
+> +#include <linux/uuid.h>
+>  #include <linux/idr.h>
+>  #include <cxl.h>
+>  #include "core.h"
+> @@ -17,10 +18,123 @@
+>   * Memory ranges, Regions represent the active mapped capacity by the HDM
+>   * Decoder Capability structures throughout the Host Bridges, Switches, and
+>   * Endpoints in the topology.
+> + *
+> + * Region configuration has ordering constraints. UUID may be set at any time
+> + * but is only visible for persistent regions.
+> + */
+> +
+> +/*
+> + * All changes to the interleave configuration occur with this lock held
+> + * for write.
+>   */
+> +static DECLARE_RWSEM(cxl_region_rwsem);
+>  
+>  static struct cxl_region *to_cxl_region(struct device *dev);
+>  
+> +static ssize_t uuid_show(struct device *dev, struct device_attribute *attr,
+> +			 char *buf)
+> +{
+> +	struct cxl_region *cxlr = to_cxl_region(dev);
+> +	struct cxl_region_params *p = &cxlr->params;
+> +	ssize_t rc;
+> +
+> +	rc = down_read_interruptible(&cxl_region_rwsem);
+> +	if (rc)
+> +		return rc;
+> +	rc = sysfs_emit(buf, "%pUb\n", &p->uuid);
+> +	up_read(&cxl_region_rwsem);
+> +
+> +	return rc;
+> +}
+> +
+> +static int is_dup(struct device *match, void *data)
+> +{
+> +	struct cxl_region_params *p;
+> +	struct cxl_region *cxlr;
+> +	uuid_t *uuid = data;
+> +
+> +	if (!is_cxl_region(match))
+> +		return 0;
+> +
+> +	lockdep_assert_held(&cxl_region_rwsem);
+> +	cxlr = to_cxl_region(match);
+> +	p = &cxlr->params;
+> +
+> +	if (uuid_equal(&p->uuid, uuid)) {
+> +		dev_dbg(match, "already has uuid: %pUb\n", uuid);
+> +		return -EBUSY;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static ssize_t uuid_store(struct device *dev, struct device_attribute *attr,
+> +			  const char *buf, size_t len)
+> +{
+> +	struct cxl_region *cxlr = to_cxl_region(dev);
+> +	struct cxl_region_params *p = &cxlr->params;
+> +	uuid_t temp;
+> +	ssize_t rc;
+> +
+> +	if (len != UUID_STRING_LEN + 1)
+> +		return -EINVAL;
+> +
+> +	rc = uuid_parse(buf, &temp);
+> +	if (rc)
+> +		return rc;
+> +
+> +	if (uuid_is_null(&temp))
+> +		return -EINVAL;
+> +
+> +	rc = down_write_killable(&cxl_region_rwsem);
+> +	if (rc)
+> +		return rc;
+> +
+> +	rc = -EBUSY;
+> +	if (p->state >= CXL_CONFIG_ACTIVE)
+> +		goto out;
+> +
+> +	rc = bus_for_each_dev(&cxl_bus_type, NULL, &temp, is_dup);
+> +	if (rc < 0)
+> +		goto out;
+> +
+> +	uuid_copy(&p->uuid, &temp);
+> +out:
+> +	up_write(&cxl_region_rwsem);
+> +
+> +	if (rc)
+> +		return rc;
+> +	return len;
+> +}
+> +static DEVICE_ATTR_RW(uuid);
+> +
+> +static umode_t cxl_region_visible(struct kobject *kobj, struct attribute *a,
+> +				  int n)
+> +{
+> +	struct device *dev = kobj_to_dev(kobj);
+> +	struct cxl_region *cxlr = to_cxl_region(dev);
+> +
+> +	if (a == &dev_attr_uuid.attr && cxlr->mode != CXL_DECODER_PMEM)
+> +		return 0;
+> +	return a->mode;
+> +}
+> +
+> +static struct attribute *cxl_region_attrs[] = {
+> +	&dev_attr_uuid.attr,
+> +	NULL,
+> +};
+> +
+> +static const struct attribute_group cxl_region_group = {
+> +	.attrs = cxl_region_attrs,
+> +	.is_visible = cxl_region_visible,
+> +};
+> +
+> +static const struct attribute_group *region_groups[] = {
+> +	&cxl_base_attribute_group,
+> +	&cxl_region_group,
+> +	NULL,
+> +};
+> +
+>  static void cxl_region_release(struct device *dev)
+>  {
+>  	struct cxl_region *cxlr = to_cxl_region(dev);
+> @@ -32,6 +146,7 @@ static void cxl_region_release(struct device *dev)
+>  static const struct device_type cxl_region_type = {
+>  	.name = "cxl_region",
+>  	.release = cxl_region_release,
+> +	.groups = region_groups
+>  };
+>  
+>  bool is_cxl_region(struct device *dev)
+> diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
+> index 49b73b2e44a9..46a9f8acc602 100644
+> --- a/drivers/cxl/cxl.h
+> +++ b/drivers/cxl/cxl.h
+> @@ -288,18 +288,43 @@ struct cxl_root_decoder {
+>  	struct cxl_switch_decoder cxlsd;
+>  };
+>  
+> +/*
+> + * enum cxl_config_state - State machine for region configuration
+> + * @CXL_CONFIG_IDLE: Any sysfs attribute can be written freely
+> + * @CXL_CONFIG_ACTIVE: All targets have been added the region is now
+> + * active
+> + */
+> +enum cxl_config_state {
+> +	CXL_CONFIG_IDLE,
+> +	CXL_CONFIG_ACTIVE,
+> +};
+> +
+> +/**
+> + * struct cxl_region_params - region settings
+> + * @state: allow the driver to lockdown further parameter changes
+> + * @uuid: unique id for persistent regions
+> + *
+> + * State transitions are protected by the cxl_region_rwsem
+> + */
+> +struct cxl_region_params {
+> +	enum cxl_config_state state;
+> +	uuid_t uuid;
+> +};
+> +
+>  /**
+>   * struct cxl_region - CXL region
+>   * @dev: This region's device
+>   * @id: This region's id. Id is globally unique across all regions
+>   * @mode: Endpoint decoder allocation / access mode
+>   * @type: Endpoint decoder target type
+> + * @params: active + config params for the region
+>   */
+>  struct cxl_region {
+>  	struct device dev;
+>  	int id;
+>  	enum cxl_decoder_mode mode;
+>  	enum cxl_decoder_type type;
+> +	struct cxl_region_params params;
+>  };
+>  
+>  /**
 
