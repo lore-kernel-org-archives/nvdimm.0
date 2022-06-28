@@ -1,103 +1,138 @@
-Received: from mail-qv1-f53.google.com (mail-qv1-f53.google.com [209.85.219.53])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E58B6362
-	for <nvdimm@lists.linux.dev>; Tue, 28 Jun 2022 07:27:37 +0000 (UTC)
-Received: by mail-qv1-f53.google.com with SMTP id c1so18764854qvi.11
-        for <nvdimm@lists.linux.dev>; Tue, 28 Jun 2022 00:27:37 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=hwgLtruPC06mcRCnQAsf+kJqHCP1mf00hTNnpiQ34M0=;
-        b=kvef8EdkzTmjSOcDmEv8cJrFuoX36xT42Yk6eTEqaZoViuBDEWUGzj+cIkq1lwZ0cI
-         ZyWCSnt72Msy854/jtnEOnyD8pAqdDXM1Mjg1ycj1h/745UoFApQatufB/EpGWyHuO8x
-         wFAxroEwE9V+i9pO8WzHZt6Wf8aYdhFcoeSuSo2YQdJziMYbLxcDLwreSLT16j3bLHDY
-         r5JlzHIb50E1k03xjmp/qv4D3laO6vsHfHkQNkUdR4N7SE8aeWOttvVC/DTqP8FV0y4I
-         AQakXhz/ulCJ1iLS4Wjjl+K+vdd5UHWP6OJM47wOYhEucQPa2HxUlIA+9rUnZSwXgnuS
-         lbDA==
-X-Gm-Message-State: AJIora/hgPgkwSd2jm5U3NDMScN5G04GCSVaR4O3+whds6gknIc2COd+
-	jGNkXS4djZslAT4Rzcvsc2aF7P3Jh46jEaiG
-X-Google-Smtp-Source: AGRyM1th8YLN4T/LN5XfgF325yh1JJVvEz37oKjKC/TDbVhjycoT6rUVhWywW0u9iyVADpwe1181pg==
-X-Received: by 2002:ac8:5bd4:0:b0:31a:faa2:f639 with SMTP id b20-20020ac85bd4000000b0031afaa2f639mr5068801qtb.487.1656401256795;
-        Tue, 28 Jun 2022 00:27:36 -0700 (PDT)
-Received: from mail-yw1-f182.google.com (mail-yw1-f182.google.com. [209.85.128.182])
-        by smtp.gmail.com with ESMTPSA id w11-20020a05622a190b00b003162a22f8f4sm3534655qtc.49.2022.06.28.00.27.33
-        for <nvdimm@lists.linux.dev>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 28 Jun 2022 00:27:34 -0700 (PDT)
-Received: by mail-yw1-f182.google.com with SMTP id 00721157ae682-318889e6a2cso107416087b3.1
-        for <nvdimm@lists.linux.dev>; Tue, 28 Jun 2022 00:27:33 -0700 (PDT)
-X-Received: by 2002:a81:a092:0:b0:318:5c89:a935 with SMTP id
- x140-20020a81a092000000b003185c89a935mr20762801ywg.383.1656401253054; Tue, 28
- Jun 2022 00:27:33 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC32B7A
+	for <nvdimm@lists.linux.dev>; Tue, 28 Jun 2022 08:34:45 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1656405284;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=G3OVg0/+USZTuncktGnY+Rt80pNYe8Z8u40tYvJiacA=;
+	b=TRoIhQ1TDKDKdCDULA9LvSeRE4ETKYl0V/NYKSmqAOgERsBmkoskPBuR9QlD5bAtZg6rIx
+	GEvdATCSQB+PowlRFcfVqJqHzpWFrEA6x7SnIIXmtkgBsAz8RUDM094XUp3yl/o29na+y3
+	NhtrkqkaJjW3JzAGJvxxpUs41+agfkY=
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-589-1qg0e1ArNbq317LgoOjj4g-1; Tue, 28 Jun 2022 04:34:38 -0400
+X-MC-Unique: 1qg0e1ArNbq317LgoOjj4g-1
+Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.rdu2.redhat.com [10.11.54.8])
+	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 1942A8FE6CE;
+	Tue, 28 Jun 2022 08:34:38 +0000 (UTC)
+Received: from localhost.localdomain (ovpn-13-87.pek2.redhat.com [10.72.13.87])
+	by smtp.corp.redhat.com (Postfix) with ESMTP id 40D20C15D40;
+	Tue, 28 Jun 2022 08:34:32 +0000 (UTC)
+From: Jason Wang <jasowang@redhat.com>
+To: dan.j.williams@intel.com,
+	vishal.l.verma@intel.com,
+	dave.jiang@intel.com,
+	ira.weiny@intel.com,
+	nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org,
+	mst@redhat.com
+Cc: Jason Wang <jasowang@redhat.com>,
+	Pankaj Gupta <pankaj.gupta@amd.com>
+Subject: [PATCH V3 1/2] virtio_pmem: initialize provider_data through nd_region_desc
+Date: Tue, 28 Jun 2022 16:34:29 +0800
+Message-Id: <20220628083430.61856-1-jasowang@redhat.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20220627180432.GA136081@embeddedor>
-In-Reply-To: <20220627180432.GA136081@embeddedor>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Tue, 28 Jun 2022 09:27:21 +0200
-X-Gmail-Original-Message-ID: <CAMuHMdU27TG_rpd=WTRPRcY22A4j4aN-6d_8OmK2aNpX06G3ig@mail.gmail.com>
-Message-ID: <CAMuHMdU27TG_rpd=WTRPRcY22A4j4aN-6d_8OmK2aNpX06G3ig@mail.gmail.com>
-Subject: Re: [PATCH][next] treewide: uapi: Replace zero-length arrays with
- flexible-array members
-To: "Gustavo A. R. Silva" <gustavoars@kernel.org>
-Cc: Kees Cook <keescook@chromium.org>, 
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "the arch/x86 maintainers" <x86@kernel.org>, dm-devel@redhat.com, 
-	linux-m68k <linux-m68k@lists.linux-m68k.org>, 
-	"open list:BROADCOM NVRAM DRIVER" <linux-mips@vger.kernel.org>, linux-s390 <linux-s390@vger.kernel.org>, 
-	KVM list <kvm@vger.kernel.org>, 
-	Intel Graphics Development <intel-gfx@lists.freedesktop.org>, 
-	DRI Development <dri-devel@lists.freedesktop.org>, netdev <netdev@vger.kernel.org>, 
-	bpf <bpf@vger.kernel.org>, linux-btrfs <linux-btrfs@vger.kernel.org>, 
-	linux-can@vger.kernel.org, Linux FS Devel <linux-fsdevel@vger.kernel.org>, 
-	linux1394-devel@lists.sourceforge.net, io-uring@vger.kernel.org, 
-	lvs-devel@vger.kernel.org, MTD Maling List <linux-mtd@lists.infradead.org>, 
-	kasan-dev <kasan-dev@googlegroups.com>, Linux MMC List <linux-mmc@vger.kernel.org>, 
-	nvdimm@lists.linux.dev, NetFilter <netfilter-devel@vger.kernel.org>, 
-	coreteam@netfilter.org, linux-perf-users@vger.kernel.org, 
-	linux-raid@vger.kernel.org, linux-sctp@vger.kernel.org, 
-	linux-stm32@st-md-mailman.stormreply.com, 
-	Linux ARM <linux-arm-kernel@lists.infradead.org>, scsi <linux-scsi@vger.kernel.org>, 
-	target-devel <target-devel@vger.kernel.org>, USB list <linux-usb@vger.kernel.org>, 
-	virtualization@lists.linux-foundation.org, 
-	V9FS Developers <v9fs-developer@lists.sourceforge.net>, 
-	linux-rdma <linux-rdma@vger.kernel.org>, 
-	ALSA Development Mailing List <alsa-devel@alsa-project.org>, linux-hardening@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-type: text/plain
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 2.85 on 10.11.54.8
 
-Hi Gustavo,
+We used to initialize the provider_data manually after
+nvdimm_pemm_region_create(). This seems to be racy if the flush is
+issued before the initialization of provider_data[1]. Fixing this by
+initializing the provider_data through nd_region_desc to make sure the
+provider_data is ready after the pmem is created.
 
-Thanks for your patch!
+[1]:
 
-On Mon, Jun 27, 2022 at 8:04 PM Gustavo A. R. Silva
-<gustavoars@kernel.org> wrote:
-> There is a regular need in the kernel to provide a way to declare
-> having a dynamically sized set of trailing elements in a structure.
-> Kernel code should always use =E2=80=9Cflexible array members=E2=80=9D[1]=
- for these
-> cases. The older style of one-element or zero-length arrays should
-> no longer be used[2].
+[   80.152281] nd_pmem namespace0.0: unable to guarantee persistence of writes
+[   92.393956] BUG: kernel NULL pointer dereference, address: 0000000000000318
+[   92.394551] #PF: supervisor read access in kernel mode
+[   92.394955] #PF: error_code(0x0000) - not-present page
+[   92.395365] PGD 0 P4D 0
+[   92.395566] Oops: 0000 [#1] PREEMPT SMP PTI
+[   92.395867] CPU: 2 PID: 506 Comm: mkfs.ext4 Not tainted 5.19.0-rc1+ #453
+[   92.396365] Hardware name: QEMU Standard PC (Q35 + ICH9, 2009),
+BIOS rel-1.16.0-0-gd239552ce722-prebuilt.qemu.org 04/01/2014
+[   92.397178] RIP: 0010:virtio_pmem_flush+0x2f/0x1f0
+[   92.397521] Code: 55 41 54 55 53 48 81 ec a0 00 00 00 65 48 8b 04
+25 28 00 00 00 48 89 84 24 98 00 00 00 31 c0 48 8b 87 78 03 00 00 48
+89 04 24 <48> 8b 98 18 03 00 00 e8 85 bf 6b 00 ba 58 00 00 00 be c0 0c
+00 00
+[   92.398982] RSP: 0018:ffff9a7380aefc88 EFLAGS: 00010246
+[   92.399349] RAX: 0000000000000000 RBX: ffff8e77c3f86f00 RCX: 0000000000000000
+[   92.399833] RDX: ffffffffad4ea720 RSI: ffff8e77c41e39c0 RDI: ffff8e77c41c5c00
+[   92.400388] RBP: ffff8e77c41e39c0 R08: ffff8e77c19f0600 R09: 0000000000000000
+[   92.400874] R10: 0000000000000000 R11: 0000000000000000 R12: ffff8e77c0814e28
+[   92.401364] R13: 0000000000000000 R14: 0000000000000000 R15: ffff8e77c41e39c0
+[   92.401849] FS:  00007f3cd75b2780(0000) GS:ffff8e7937d00000(0000)
+knlGS:0000000000000000
+[   92.402423] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[   92.402821] CR2: 0000000000000318 CR3: 0000000103c80002 CR4: 0000000000370ee0
+[   92.403307] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+[   92.403793] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+[   92.404278] Call Trace:
+[   92.404481]  <TASK>
+[   92.404654]  ? mempool_alloc+0x5d/0x160
+[   92.404939]  ? terminate_walk+0x5f/0xf0
+[   92.405226]  ? bio_alloc_bioset+0xbb/0x3f0
+[   92.405525]  async_pmem_flush+0x17/0x80
+[   92.405806]  nvdimm_flush+0x11/0x30
+[   92.406067]  pmem_submit_bio+0x1e9/0x200
+[   92.406354]  __submit_bio+0x80/0x120
+[   92.406621]  submit_bio_noacct_nocheck+0xdc/0x2a0
+[   92.406958]  submit_bio_wait+0x4e/0x80
+[   92.407234]  blkdev_issue_flush+0x31/0x50
+[   92.407526]  ? punt_bios_to_rescuer+0x230/0x230
+[   92.407852]  blkdev_fsync+0x1e/0x30
+[   92.408112]  do_fsync+0x33/0x70
+[   92.408354]  __x64_sys_fsync+0xb/0x10
+[   92.408625]  do_syscall_64+0x43/0x90
+[   92.408895]  entry_SYSCALL_64_after_hwframe+0x46/0xb0
+[   92.409257] RIP: 0033:0x7f3cd76c6c44
 
-These rules apply to the kernel, but uapi is not considered part of the
-kernel, so different rules apply.  Uapi header files should work with
-whatever compiler that can be used for compiling userspace.
+Fixes 6e84200c0a29 ("virtio-pmem: Add virtio pmem driver")
+Acked-by: Pankaj Gupta <pankaj.gupta@amd.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Jason Wang <jasowang@redhat.com>
+---
+Changes since V1:
+- Add calltrace to explain the issue in detail
+---
+ drivers/nvdimm/virtio_pmem.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Gr{oetje,eeting}s,
+diff --git a/drivers/nvdimm/virtio_pmem.c b/drivers/nvdimm/virtio_pmem.c
+index 995b6cdc67ed..48f8327d0431 100644
+--- a/drivers/nvdimm/virtio_pmem.c
++++ b/drivers/nvdimm/virtio_pmem.c
+@@ -81,6 +81,7 @@ static int virtio_pmem_probe(struct virtio_device *vdev)
+ 	ndr_desc.res = &res;
+ 	ndr_desc.numa_node = nid;
+ 	ndr_desc.flush = async_pmem_flush;
++	ndr_desc.provider_data = vdev;
+ 	set_bit(ND_REGION_PAGEMAP, &ndr_desc.flags);
+ 	set_bit(ND_REGION_ASYNC, &ndr_desc.flags);
+ 	nd_region = nvdimm_pmem_region_create(vpmem->nvdimm_bus, &ndr_desc);
+@@ -89,7 +90,6 @@ static int virtio_pmem_probe(struct virtio_device *vdev)
+ 		err = -ENXIO;
+ 		goto out_nd;
+ 	}
+-	nd_region->provider_data = dev_to_virtio(nd_region->dev.parent->parent);
+ 	return 0;
+ out_nd:
+ 	nvdimm_bus_unregister(vpmem->nvdimm_bus);
+-- 
+2.25.1
 
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k=
-.org
-
-In personal conversations with technical people, I call myself a hacker. Bu=
-t
-when I'm talking to journalists I just say "programmer" or something like t=
-hat.
-                                -- Linus Torvalds
