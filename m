@@ -1,251 +1,103 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qv1-f53.google.com (mail-qv1-f53.google.com [209.85.219.53])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92C2C362
-	for <nvdimm@lists.linux.dev>; Tue, 28 Jun 2022 06:46:29 +0000 (UTC)
-Received: from pps.filterd (m0098409.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 25S42J4p025426;
-	Tue, 28 Jun 2022 06:05:01 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : date :
- mime-version : subject : to : cc : references : from : in-reply-to :
- content-type : content-transfer-encoding; s=pp1;
- bh=btd8R9oRMPb9pJvSLJyk+oQpLfazHe8IJbIKxcZp1PY=;
- b=SE7XVZ+bKcs1F3bw9mwUKO2I1ZPm1F79vAXNuSKtjmn8iOQvlgH0BKIDx90KgAczbD5U
- 7e822Klh3Dpfq/Sm33KyISg59RM8Cz7t+kt70tVNJmHAeo5qgfNBiaSb3Ljy0ZKHbEIZ
- YMYBCzLHicCwAFI1fP/zIVcUS2Tt9HlnYLIKvgNpIh5k24kNmD4RBi+pjkQwk6k4kELY
- 4rqZtVNwsShy4Vrxy6ERYxq+KMwd3+Y0OWKJXX/qJlrIVL4peqmxSuF8zyDyM/bIkIV6
- JGAVHmdAxep0wKwJQ6qfuGb5jpgXKLk2Cj+6cdcx01DunAmfKXHFoi3s6OpoYO1y9tUt Fg== 
-Received: from ppma01fra.de.ibm.com (46.49.7a9f.ip4.static.sl-reverse.com [159.122.73.70])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3gyt92jt1c-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 28 Jun 2022 06:05:00 +0000
-Received: from pps.filterd (ppma01fra.de.ibm.com [127.0.0.1])
-	by ppma01fra.de.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 25S5q3au026558;
-	Tue, 28 Jun 2022 06:04:58 GMT
-Received: from b06avi18878370.portsmouth.uk.ibm.com (b06avi18878370.portsmouth.uk.ibm.com [9.149.26.194])
-	by ppma01fra.de.ibm.com with ESMTP id 3gwt08u6r6-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 28 Jun 2022 06:04:58 +0000
-Received: from d06av21.portsmouth.uk.ibm.com (d06av21.portsmouth.uk.ibm.com [9.149.105.232])
-	by b06avi18878370.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 25S652Ma24248824
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 28 Jun 2022 06:05:02 GMT
-Received: from d06av21.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 26FFA5204E;
-	Tue, 28 Jun 2022 06:04:55 +0000 (GMT)
-Received: from [9.43.16.94] (unknown [9.43.16.94])
-	by d06av21.portsmouth.uk.ibm.com (Postfix) with ESMTP id 6F25752051;
-	Tue, 28 Jun 2022 06:04:52 +0000 (GMT)
-Message-ID: <13aff5a0-fb64-8393-7800-d65cbfbc3125@linux.ibm.com>
-Date: Tue, 28 Jun 2022 11:34:51 +0530
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E58B6362
+	for <nvdimm@lists.linux.dev>; Tue, 28 Jun 2022 07:27:37 +0000 (UTC)
+Received: by mail-qv1-f53.google.com with SMTP id c1so18764854qvi.11
+        for <nvdimm@lists.linux.dev>; Tue, 28 Jun 2022 00:27:37 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=hwgLtruPC06mcRCnQAsf+kJqHCP1mf00hTNnpiQ34M0=;
+        b=kvef8EdkzTmjSOcDmEv8cJrFuoX36xT42Yk6eTEqaZoViuBDEWUGzj+cIkq1lwZ0cI
+         ZyWCSnt72Msy854/jtnEOnyD8pAqdDXM1Mjg1ycj1h/745UoFApQatufB/EpGWyHuO8x
+         wFAxroEwE9V+i9pO8WzHZt6Wf8aYdhFcoeSuSo2YQdJziMYbLxcDLwreSLT16j3bLHDY
+         r5JlzHIb50E1k03xjmp/qv4D3laO6vsHfHkQNkUdR4N7SE8aeWOttvVC/DTqP8FV0y4I
+         AQakXhz/ulCJ1iLS4Wjjl+K+vdd5UHWP6OJM47wOYhEucQPa2HxUlIA+9rUnZSwXgnuS
+         lbDA==
+X-Gm-Message-State: AJIora/hgPgkwSd2jm5U3NDMScN5G04GCSVaR4O3+whds6gknIc2COd+
+	jGNkXS4djZslAT4Rzcvsc2aF7P3Jh46jEaiG
+X-Google-Smtp-Source: AGRyM1th8YLN4T/LN5XfgF325yh1JJVvEz37oKjKC/TDbVhjycoT6rUVhWywW0u9iyVADpwe1181pg==
+X-Received: by 2002:ac8:5bd4:0:b0:31a:faa2:f639 with SMTP id b20-20020ac85bd4000000b0031afaa2f639mr5068801qtb.487.1656401256795;
+        Tue, 28 Jun 2022 00:27:36 -0700 (PDT)
+Received: from mail-yw1-f182.google.com (mail-yw1-f182.google.com. [209.85.128.182])
+        by smtp.gmail.com with ESMTPSA id w11-20020a05622a190b00b003162a22f8f4sm3534655qtc.49.2022.06.28.00.27.33
+        for <nvdimm@lists.linux.dev>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 28 Jun 2022 00:27:34 -0700 (PDT)
+Received: by mail-yw1-f182.google.com with SMTP id 00721157ae682-318889e6a2cso107416087b3.1
+        for <nvdimm@lists.linux.dev>; Tue, 28 Jun 2022 00:27:33 -0700 (PDT)
+X-Received: by 2002:a81:a092:0:b0:318:5c89:a935 with SMTP id
+ x140-20020a81a092000000b003185c89a935mr20762801ywg.383.1656401253054; Tue, 28
+ Jun 2022 00:27:33 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.9.1
-Subject: Re: [PATCH] powerpc/papr_scm: Fix nvdimm event mappings
-Content-Language: en-US
-To: Michael Ellerman <mpe@ellerman.id.au>, linuxppc-dev@lists.ozlabs.org,
-        vaibhav@linux.ibm.com
-Cc: dan.j.williams@intel.com, nvdimm@lists.linux.dev,
-        atrajeev@linux.vnet.ibm.com, rnsastry@linux.ibm.com,
-        maddy@linux.ibm.com, disgoel@linux.vnet.ibm.com,
-        "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
-References: <20220610133431.410514-1-kjain@linux.ibm.com>
- <87ilom4nr6.fsf@mpe.ellerman.id.au>
-From: kajoljain <kjain@linux.ibm.com>
-In-Reply-To: <87ilom4nr6.fsf@mpe.ellerman.id.au>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-ORIG-GUID: OQS9dtU7tKEi8L7xWLk6Lx6sLHRB076Q
-X-Proofpoint-GUID: OQS9dtU7tKEi8L7xWLk6Lx6sLHRB076Q
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.205,Aquarius:18.0.883,Hydra:6.0.517,FMLib:17.11.122.1
- definitions=2022-06-27_09,2022-06-24_01,2022-06-22_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxlogscore=999 bulkscore=0
- phishscore=0 impostorscore=0 lowpriorityscore=0 spamscore=0 malwarescore=0
- clxscore=1015 suspectscore=0 priorityscore=1501 mlxscore=0 adultscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2204290000
- definitions=main-2206280025
+References: <20220627180432.GA136081@embeddedor>
+In-Reply-To: <20220627180432.GA136081@embeddedor>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Tue, 28 Jun 2022 09:27:21 +0200
+X-Gmail-Original-Message-ID: <CAMuHMdU27TG_rpd=WTRPRcY22A4j4aN-6d_8OmK2aNpX06G3ig@mail.gmail.com>
+Message-ID: <CAMuHMdU27TG_rpd=WTRPRcY22A4j4aN-6d_8OmK2aNpX06G3ig@mail.gmail.com>
+Subject: Re: [PATCH][next] treewide: uapi: Replace zero-length arrays with
+ flexible-array members
+To: "Gustavo A. R. Silva" <gustavoars@kernel.org>
+Cc: Kees Cook <keescook@chromium.org>, 
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "the arch/x86 maintainers" <x86@kernel.org>, dm-devel@redhat.com, 
+	linux-m68k <linux-m68k@lists.linux-m68k.org>, 
+	"open list:BROADCOM NVRAM DRIVER" <linux-mips@vger.kernel.org>, linux-s390 <linux-s390@vger.kernel.org>, 
+	KVM list <kvm@vger.kernel.org>, 
+	Intel Graphics Development <intel-gfx@lists.freedesktop.org>, 
+	DRI Development <dri-devel@lists.freedesktop.org>, netdev <netdev@vger.kernel.org>, 
+	bpf <bpf@vger.kernel.org>, linux-btrfs <linux-btrfs@vger.kernel.org>, 
+	linux-can@vger.kernel.org, Linux FS Devel <linux-fsdevel@vger.kernel.org>, 
+	linux1394-devel@lists.sourceforge.net, io-uring@vger.kernel.org, 
+	lvs-devel@vger.kernel.org, MTD Maling List <linux-mtd@lists.infradead.org>, 
+	kasan-dev <kasan-dev@googlegroups.com>, Linux MMC List <linux-mmc@vger.kernel.org>, 
+	nvdimm@lists.linux.dev, NetFilter <netfilter-devel@vger.kernel.org>, 
+	coreteam@netfilter.org, linux-perf-users@vger.kernel.org, 
+	linux-raid@vger.kernel.org, linux-sctp@vger.kernel.org, 
+	linux-stm32@st-md-mailman.stormreply.com, 
+	Linux ARM <linux-arm-kernel@lists.infradead.org>, scsi <linux-scsi@vger.kernel.org>, 
+	target-devel <target-devel@vger.kernel.org>, USB list <linux-usb@vger.kernel.org>, 
+	virtualization@lists.linux-foundation.org, 
+	V9FS Developers <v9fs-developer@lists.sourceforge.net>, 
+	linux-rdma <linux-rdma@vger.kernel.org>, 
+	ALSA Development Mailing List <alsa-devel@alsa-project.org>, linux-hardening@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
+Hi Gustavo,
 
+Thanks for your patch!
 
-On 6/27/22 12:05, Michael Ellerman wrote:
-> Hi Kajol,
-> 
-> A few comments below ...
+On Mon, Jun 27, 2022 at 8:04 PM Gustavo A. R. Silva
+<gustavoars@kernel.org> wrote:
+> There is a regular need in the kernel to provide a way to declare
+> having a dynamically sized set of trailing elements in a structure.
+> Kernel code should always use =E2=80=9Cflexible array members=E2=80=9D[1]=
+ for these
+> cases. The older style of one-element or zero-length arrays should
+> no longer be used[2].
 
-Hi Michael,
-   Thanks for reviewing the patch. I will make the changes suggested by
-you and send version 2 of this patch.
+These rules apply to the kernel, but uapi is not considered part of the
+kernel, so different rules apply.  Uapi header files should work with
+whatever compiler that can be used for compiling userspace.
 
-Thanks,
-Kajol Jain
-> 
-> Kajol Jain <kjain@linux.ibm.com> writes:
->> Commit 4c08d4bbc089 ("powerpc/papr_scm: Add perf interface support")
->> adds performance monitoring support for papr-scm nvdimm devices via
->   ^ 
-> We're talking about a commit that's already happened so we should use
-> past tense, so "added".
-> 
->> perf interface. It also adds one array in papr_scm_priv
->                          "added" 
->> structure called "nvdimm_events_map", to dynamically save the stat_id
->> for events specified in nvdimm driver code "nd_perf.c".
->>
->> Right now the mapping is done based on the result of 
->> H_SCM_PERFORMANCE_STATS hcall, when all the stats are
->> requested. Currently there is an assumption, that a
->> certain stat will always be found at a specific offset
->> in the stat buffer.
->                     ^
->                     "returned by the hypervisor."
-> 
-> To make it clear where the stat buffer comes from, and that it's out of
-> our control.
-> 
->> The assumption may not be true or documented as part of PAPR
->> documentation.
-> 
-> That reads as the assumption "may not be documented as part of PAPR". I
-> think what you mean is the assumption *is not* documented by PAPR, and
-> although it happens to be true on current systems it may not be true in
-> future.
-> 
->> Fixing it, by adding a static mapping for nvdimm events to
->   Fix  it
->> corresponding stat-id, and removing the map from
->> papr_scm_priv structure.
->>
->> Fixes: 4c08d4bbc089 ("powerpc/papr_scm: Add perf interface support")
->> Reported-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
->> Signed-off-by: Kajol Jain <kjain@linux.ibm.com>
->> ---
->>  arch/powerpc/platforms/pseries/papr_scm.c | 59 ++++++++++-------------
->>  1 file changed, 25 insertions(+), 34 deletions(-)
->>
->> diff --git a/arch/powerpc/platforms/pseries/papr_scm.c b/arch/powerpc/platforms/pseries/papr_scm.c
->> index 181b855b3050..5434c654a797 100644
->> --- a/arch/powerpc/platforms/pseries/papr_scm.c
->> +++ b/arch/powerpc/platforms/pseries/papr_scm.c
->> @@ -350,6 +347,26 @@ static ssize_t drc_pmem_query_stats(struct papr_scm_priv *p,
->>  #ifdef CONFIG_PERF_EVENTS
->>  #define to_nvdimm_pmu(_pmu)	container_of(_pmu, struct nvdimm_pmu, pmu)
->>
->> +static const char * const nvdimm_events_map[] = {
->> +	"N/A",
->> +	"CtlResCt",
->> +	"CtlResTm",
->> +	"PonSecs ",
->> +	"MemLife ",
->> +	"CritRscU",
->> +	"HostLCnt",
->> +	"HostSCnt",
->> +	"HostSDur",
->> +	"HostLDur",
->> +	"MedRCnt ",
->> +	"MedWCnt ",
->> +	"MedRDur ",
->> +	"MedWDur ",
->> +	"CchRHCnt",
->> +	"CchWHCnt",
->> +	"FastWCnt",
->> +};
->   
-> The order of the strings in that array becomes ABI. Because it defines
-> the mapping from perf_event.attr.config (perf user ABI) to the actual
-> event we request from the hypervisor.
-> 
-> So I'd like that made more explicit by using designated initialisers, eg:
-> 
-> static const char * const nvdimm_events_map[] = {
-> 	[1] = "CtlResCt",
-> 	[2] = "CtlResTm",
->         ...
-> 
-> That way an accidental reordering of the array won't break anything.
+Gr{oetje,eeting}s,
 
-Yes make sense. Will do update it.
-> 
-> You shouldn't need to specify 0 either as it's not used.
-> 
->> @@ -370,7 +387,7 @@ static int papr_scm_pmu_get_value(struct perf_event *event, struct device *dev,
->>  
->>  	stat = &stats->scm_statistic[0];
->>  	memcpy(&stat->stat_id,
->> -	       &p->nvdimm_events_map[event->attr.config * sizeof(stat->stat_id)],
->> +	       nvdimm_events_map[event->attr.config],
->>  		sizeof(stat->stat_id));
-> 
-> It's not clear that this won't index off the end of the array.
-> 
-> There is a check in papr_scm_pmu_event_init(), but I'd probably be
-> happier if we did an explicit check in here as well, eg:
-> 
-> 	if (event->attr.config >= ARRAY_SIZE(nvdimm_events_map))
-> 		return -EINVAL;
-> 
-> 
->>  	stat->stat_val = 0;
->>  
->> @@ -460,10 +477,9 @@ static void papr_scm_pmu_del(struct perf_event *event, int flags)
->>  
->>  static int papr_scm_pmu_check_events(struct papr_scm_priv *p, struct nvdimm_pmu *nd_pmu)
->>  {
->> -	struct papr_scm_perf_stat *stat;
->>  	struct papr_scm_perf_stats *stats;
->>  	u32 available_events;
->> -	int index, rc = 0;
->> +	int rc = 0;
-> 
-> You shouldn't need to initialise rc here. It's not used until the call
-> to drc_pmem_query_stats() below.
+                        Geert
 
-Ok sure.
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k=
+.org
 
-> 
->>  	available_events = (p->stat_buffer_len  - sizeof(struct papr_scm_perf_stats))
->>  			/ sizeof(struct papr_scm_perf_stat);
->> @@ -473,34 +489,12 @@ static int papr_scm_pmu_check_events(struct papr_scm_priv *p, struct nvdimm_pmu
->>  	/* Allocate the buffer for phyp where stats are written */
->>  	stats = kzalloc(p->stat_buffer_len, GFP_KERNEL);
->>  	if (!stats) {
->> -		rc = -ENOMEM;
->> -		return rc;
->> +		return -ENOMEM;
->>  	}
->>  
->>  	/* Called to get list of events supported */
->>  	rc = drc_pmem_query_stats(p, stats, 0);
->> -	if (rc)
->> -		goto out;
->>  
->> -	/*
->> -	 * Allocate memory and populate nvdimm_event_map.
->> -	 * Allocate an extra element for NULL entry
->> -	 */
->> -	p->nvdimm_events_map = kcalloc(available_events + 1,
->> -				       sizeof(stat->stat_id),
->> -				       GFP_KERNEL);
->> -	if (!p->nvdimm_events_map) {
->> -		rc = -ENOMEM;
->> -		goto out;
->> -	}
->> -
->> -	/* Copy all stat_ids to event map */
->> -	for (index = 0, stat = stats->scm_statistic;
->> -	     index < available_events; index++, ++stat) {
->> -		memcpy(&p->nvdimm_events_map[index * sizeof(stat->stat_id)],
->> -		       &stat->stat_id, sizeof(stat->stat_id));
->> -	}
->> -out:
->>  	kfree(stats);
->>  	return rc;
->>  }
-> 
-> cheers
+In personal conversations with technical people, I call myself a hacker. Bu=
+t
+when I'm talking to journalists I just say "programmer" or something like t=
+hat.
+                                -- Linus Torvalds
