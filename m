@@ -1,94 +1,86 @@
-Received: from mail-qv1-f53.google.com (mail-qv1-f53.google.com [209.85.219.53])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B6987A
-	for <nvdimm@lists.linux.dev>; Tue, 28 Jun 2022 18:44:07 +0000 (UTC)
-Received: by mail-qv1-f53.google.com with SMTP id t16so21434201qvh.1
-        for <nvdimm@lists.linux.dev>; Tue, 28 Jun 2022 11:44:07 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=srd0vxfduo9pXREXizXvQ1Gwi/kEACFP1rdXcY0Aglg=;
-        b=QDfPPT0fYl+zbzIvYII9znFGb4s02ZWc7rdJXgoVlQii3pb6MPHXUbo2NQcshGpobE
-         dWlWXPBgu4AcM4BoWih7Z1Nr6ImLeGEz2FZoCblM4qyf8MsycIzs6ej4nXX7nwNpGP6Q
-         WS2wAoLm7tunOmWFHsCTXENR5aJ2dwangh3Hiy+KajaZLCQ31/GJ39i5LG+HlW0f/4Yp
-         DzCT3gMR3JvAVHruRt3NJZXTCo87e7XIf3RRiCTD40KLgGYQ8Oy9U016RK3fPhyNykEI
-         VcI+7whSObzV9gDqoR9iwpi6V1hWpQPbHnX1dl7fE5ec/owdsM9r7W03JXKpNXxaLmSi
-         lJng==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=srd0vxfduo9pXREXizXvQ1Gwi/kEACFP1rdXcY0Aglg=;
-        b=BBue/h6v/sW67ww9vB8kFg4Bt39UouS9UlxSZdGm76OCLsY0PUJy0ZoyGB9avQAcEe
-         Vavy8BNEwBMi7wpUKt+yFQWXbsRBHVqnM6dfYfc/tOJPaHvMxp6pAFM2Z6oCyuQYlgYs
-         rTTckCJC7Bh9zF1EUsI3bA+RC2PT9rxBvpRPuH2nVJ2Ix4dq6chjoDCIWYXhfJ/i6ulq
-         ua7WSdTu1ffOxOZPI+g3LjY92RTy9pt7m81UWUlZYTGQ4W2wkRVVFx7BROoBArm9LFEy
-         wE/MStJBT/A1EPXOJlIHN3Cy/RjODbIOSf4ePzAw1E/3ZwKYxd/qorUFuUFxHMA5k7DY
-         vKxw==
-X-Gm-Message-State: AJIora8LhQgvP59l8sCOwp8gslw03AydJLe5g0oa7GuS2BbKByfh+mcd
-	55BX+JMOaDPsN4C/0qvhHbsIdg==
-X-Google-Smtp-Source: AGRyM1uBRJ6m7mmrK5Ju1JW1doBHC+UzIgAGX/xwYqaVx3XSmh4juFCDP3TjiYp7BZ5iZ3elpoeXxg==
-X-Received: by 2002:a05:622a:7:b0:31b:74bd:1597 with SMTP id x7-20020a05622a000700b0031b74bd1597mr6494688qtw.677.1656441846052;
-        Tue, 28 Jun 2022 11:44:06 -0700 (PDT)
-Received: from ziepe.ca (hlfxns017vw-142-162-113-129.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.162.113.129])
-        by smtp.gmail.com with ESMTPSA id h9-20020ac85149000000b003050bd1f7c9sm9708477qtn.76.2022.06.28.11.44.04
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 28 Jun 2022 11:44:05 -0700 (PDT)
-Received: from jgg by mlx with local (Exim 4.94)
-	(envelope-from <jgg@ziepe.ca>)
-	id 1o6GBw-0035y2-Fs; Tue, 28 Jun 2022 15:44:04 -0300
-Date: Tue, 28 Jun 2022 15:44:04 -0300
-From: Jason Gunthorpe <jgg@ziepe.ca>
-To: Kees Cook <keescook@chromium.org>
-Cc: Daniel Borkmann <daniel@iogearbox.net>,
-	"Gustavo A. R. Silva" <gustavoars@kernel.org>,
-	linux-kernel@vger.kernel.org, x86@kernel.org, dm-devel@redhat.com,
-	linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
-	linux-s390@vger.kernel.org, kvm@vger.kernel.org,
-	intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
-	netdev@vger.kernel.org, bpf@vger.kernel.org,
-	linux-btrfs@vger.kernel.org, linux-can@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org,
-	linux1394-devel@lists.sourceforge.net, io-uring@vger.kernel.org,
-	lvs-devel@vger.kernel.org, linux-mtd@lists.infradead.org,
-	kasan-dev@googlegroups.com, linux-mmc@vger.kernel.org,
-	nvdimm@lists.linux.dev, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, linux-perf-users@vger.kernel.org,
-	linux-raid@vger.kernel.org, linux-sctp@vger.kernel.org,
-	linux-stm32@st-md-mailman.stormreply.com,
-	linux-arm-kernel@lists.infradead.org, linux-scsi@vger.kernel.org,
-	target-devel@vger.kernel.org, linux-usb@vger.kernel.org,
-	virtualization@lists.linux-foundation.org,
-	v9fs-developer@lists.sourceforge.net, linux-rdma@vger.kernel.org,
-	alsa-devel@alsa-project.org, linux-hardening@vger.kernel.org
-Subject: Re: [PATCH][next] treewide: uapi: Replace zero-length arrays with
- flexible-array members
-Message-ID: <20220628184404.GS23621@ziepe.ca>
-References: <20220627180432.GA136081@embeddedor>
- <6bc1e94c-ce1d-a074-7d0c-8dbe6ce22637@iogearbox.net>
- <20220628004052.GM23621@ziepe.ca>
- <202206281009.4332AA33@keescook>
+Received: from mail-m971.mail.163.com (mail-m971.mail.163.com [123.126.97.1])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4560B7EB
+	for <nvdimm@lists.linux.dev>; Wed, 29 Jun 2022 07:39:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=krvw6
+	qwr/IZNtIPW1oz/T//NVChJsEDf0J7wBQxN9uo=; b=ifrxMVQy2hSFHVZnDqlcU
+	a0bNEtGYsLueeADGVR+YCCDTxYJvCpdmGo3UJKNpKyzrg83tzf6z+D36NK5HcSrv
+	YXaOF0z1Tf0cLLGdM484sieT2yi5nZmNGCHeBCLew0l9XblYlc4uLLN7Ob7LdJri
+	BxvwGblQhUiXUrkjmJJZ+E=
+Received: from localhost.localdomain (unknown [123.112.69.106])
+	by smtp1 (Coremail) with SMTP id GdxpCgCXgqPW_btiXNRwLg--.54145S4;
+	Wed, 29 Jun 2022 15:23:47 +0800 (CST)
+From: Jianglei Nie <niejianglei2021@163.com>
+To: dan.j.williams@intel.com,
+	vishal.l.verma@intel.com,
+	dave.jiang@intel.com,
+	fenghua.yu@intel.com,
+	ravi.v.shankar@intel.com
+Cc: nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org,
+	Jianglei Nie <niejianglei2021@163.com>
+Subject: [PATCH] =?UTF-8?q?=EF=BB=BFdax:=20Fix=20potential=20uaf=20in=20?= =?UTF-8?q?=5F=5Fdax=5Fpmem=5Fprobe()?=
+Date: Wed, 29 Jun 2022 15:22:59 +0800
+Message-Id: <20220629072259.2150978-1-niejianglei2021@163.com>
+X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <202206281009.4332AA33@keescook>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:GdxpCgCXgqPW_btiXNRwLg--.54145S4
+X-Coremail-Antispam: 1Uf129KBjvJXoW7CFykXrWktw4rKw18CFyxAFb_yoW8ZF18p3
+	y5XFyUurWDAr1Uur43Aws3uFyrZa1ktw4rCr4xuw47u345Z34xA3y8Xa4jya47K3yxAr1U
+	X3Wjqw1xu3y7uF7anT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0zRIks9UUUUU=
+X-Originating-IP: [123.112.69.106]
+X-CM-SenderInfo: xqlhyxxdqjzvrlsqjii6rwjhhfrp/1tbiFQMvjF5mLh+DBgAAs5
 
-On Tue, Jun 28, 2022 at 10:54:58AM -0700, Kees Cook wrote:
+__dax_pmem_probe() allocates a memory chunk from dax_region with
+alloc_dax_region(). alloc_dax_region() increases the refcount for
+dax_region and uses devm_add_action_or_reset() to make the parent
+dev manage the dax_region. The dax_region will be used if the parent
+dev is destroyed.
 
+Then the function calls devm_create_dev_dax() to make child dev_dax
+instances own the lifetime of the dax_region. devm_create_dev_dax()
+calls devm_add_action_or_reset(dax_region->dev, unregister_dev_dax, dev);
+to make the child dev_dax manage the dax_region and register the destroy
+function "unregister_dev_dax".The devm_create_dev_dax() increases the
+refcount for dax_region when the function is successfully executed. But
+when some error occurs, devm_create_dev_dax() may return ERR_PTR before
+increasing the refcount for dax_region. In these cases, the call for
+dax_region_put() will decrease the ref count for dax_region and trigger
+dax_region_free(), which will execute kfree(dax_region).
+
+When the parent dev is destroyed, the registered destroy function
+"unregister_dev_dax" will be triggered and calls dax_region_free(), which
+will use the freed dax_region, leading to a use after free bug.
+
+We should check the return value of devm_create_dev_dax(). If it returns
+ERR_PTR, we should return this function with ERR_PTR.
+
+Signed-off-by: Jianglei Nie <niejianglei2021@163.com>
+---
+ drivers/dax/pmem.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/dax/pmem.c b/drivers/dax/pmem.c
+index f050ea78bb83..d5c8bd546ee9 100644
+--- a/drivers/dax/pmem.c
++++ b/drivers/dax/pmem.c
+@@ -66,6 +66,8 @@ static struct dev_dax *__dax_pmem_probe(struct device *dev)
+ 		.size = range_len(&range),
+ 	};
+ 	dev_dax = devm_create_dev_dax(&data);
++	if (IS_ERR(dev_dax))
++		return ERR_PTR((dev_dax);
  
-> which must also be assuming it's a header. So probably better to just
-> drop the driver_data field? I don't see anything using it (that I can
-> find) besides as a sanity-check that the field exists and is at the end
-> of the struct.
+ 	/* child dev_dax instances now own the lifetime of the dax_region */
+ 	dax_region_put(dax_region);
+-- 
+2.25.1
 
-The field is guaranteeing alignment of the following structure. IIRC
-there are a few cases that we don't have a u64 already to force this.
-
-Jason
