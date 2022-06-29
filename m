@@ -1,51 +1,199 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B25F0323F
-	for <nvdimm@lists.linux.dev>; Wed, 29 Jun 2022 15:27:03 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
-	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=dM4+ROKUOOXAaf00uyOfnLm4S33M4aOobSzF5uH6GQc=; b=J/EFS/06taiacNokV5Ktu40WHu
-	CmN8tJ2KYfKB9OBCF1ggM+OKiUi7O6T3U/jXmIjt8+U6yVxlEn063aLPj++GMn+azmID8d1fUMWdY
-	hZ+RJQ6oofyZe/DI5mwSy8qLwg3hiP4qJmVtmcwSu/PIjc4yBGp7rk1mGfkBp9m871FQIZrD3D/7D
-	q+szyG2xGRy/CuNo5f60lZY5rhiRsCmDu+Xus6y4w6sGFzFuHsMHklAQxqSUc6E/y5hgdVYtvQQ0X
-	WmNnZrU9EfFKKirkNc0t7ND9ycddW+QYs4XUr3jibEVdQdYqjX5wZV9Vmnc2TIUPK8tlexzi+/4Yt
-	Fubhlqbw==;
-Received: from hch by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-	id 1o6Zap-00ChIe-10; Wed, 29 Jun 2022 15:27:03 +0000
-Date: Wed, 29 Jun 2022 08:27:03 -0700
-From: Christoph Hellwig <hch@infradead.org>
-To: "Dennis.Wu" <dennis.wu@intel.com>
-Cc: nvdimm@lists.linux.dev, dan.j.williams@intel.com,
-	vishal.l.verma@intel.com, dave.jiang@intel.com, ira.weiny@intel.com
-Subject: Re: [PATCH] ACPI/NFIT: Add no_deepflush param to dynamic control
- flush operation
-Message-ID: <YrxvR6zDZymsQCQl@infradead.org>
-References: <20220629083118.8737-1-dennis.wu@intel.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9358D3C05;
+	Wed, 29 Jun 2022 15:28:13 +0000 (UTC)
+Received: from fraeml715-chm.china.huawei.com (unknown [172.18.147.226])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4LY51R6kcwz689NG;
+	Wed, 29 Jun 2022 23:27:23 +0800 (CST)
+Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
+ fraeml715-chm.china.huawei.com (10.206.15.34) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.24; Wed, 29 Jun 2022 17:28:09 +0200
+Received: from localhost (10.202.226.42) by lhreml710-chm.china.huawei.com
+ (10.201.108.61) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id 15.1.2375.24; Wed, 29 Jun
+ 2022 16:28:09 +0100
+Date: Wed, 29 Jun 2022 16:28:07 +0100
+From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+To: Dan Williams <dan.j.williams@intel.com>
+CC: <linux-cxl@vger.kernel.org>, <hch@infradead.org>,
+	<alison.schofield@intel.com>, <nvdimm@lists.linux.dev>,
+	<linux-pci@vger.kernel.org>, <patches@lists.linux.dev>
+Subject: Re: [PATCH 16/46] cxl/hdm: Add 'mode' attribute to decoder objects
+Message-ID: <20220629162807.00007bb7@Huawei.com>
+In-Reply-To: <165603881967.551046.6007594190951596439.stgit@dwillia2-xfh>
+References: <165603869943.551046.3498980330327696732.stgit@dwillia2-xfh>
+	<165603881967.551046.6007594190951596439.stgit@dwillia2-xfh>
+Organization: Huawei Technologies Research and Development (UK) Ltd.
+X-Mailer: Claws Mail 4.0.0 (GTK+ 3.24.29; i686-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220629083118.8737-1-dennis.wu@intel.com>
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.202.226.42]
+X-ClientProxiedBy: lhreml709-chm.china.huawei.com (10.201.108.58) To
+ lhreml710-chm.china.huawei.com (10.201.108.61)
+X-CFilter-Loop: Reflected
 
-On Wed, Jun 29, 2022 at 04:31:18PM +0800, Dennis.Wu wrote:
-> reason: in the current BTT implimentation deepflush is always
-> used and deepflush is very expensive. Since customer already
-> know the ADR can protect the WPQ data in memory controller and
-> no need to call deepflush to get better performance. BTT w/o
-> deepflush, performance can improve 300%~600% with diff FIO jobs.
+On Thu, 23 Jun 2022 19:46:59 -0700
+Dan Williams <dan.j.williams@intel.com> wrote:
+
+> Recall that the Device Physical Address (DPA) space of a CXL Memory
+> Expander is potentially partitioned into a volatile and persistent
+> portion. A decoder maps a Host Physical Address (HPA) range to a DPA
+> range and that translation depends on the value of all previous (lower
+> instance number) decoders before the current one.
 > 
-> How: Add one param "no_deepflush" in the nfit module parameter.
-> if "modprob nfit no_deepflush=1", customer can get the higher
-> performance but not strict data security. Before modprob nfit,
-> you may need to "ndctl disable-region".
+> In preparation for allowing dynamic provisioning of regions, decoders
+> need an ABI to indicate which DPA partition a decoder targets. This ABI
+> needs to be prepared for the possibility that some other agent committed
+> and locked a decoder that spans the partition boundary.
+> 
+> Add 'decoderX.Y/mode' to endpoint decoders that indicates which
+> partition 'ram' / 'pmem' the decoder targets, or 'mixed' if the decoder
+> currently spans the partition boundary.
+> 
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-This goes back to my question from years ago:  why do we ever
-do this deep flush in the Linux nvdimm stack to start with?
+A few trivial things inline though I'm not super keen on it being
+introduced RO for just 2 patches...  You could pull forwards
+the outline of the store() to avoid that slight oddity, but
+I'm not that bothered if it is a pain to do.
+
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+
+> ---
+>  Documentation/ABI/testing/sysfs-bus-cxl |   16 ++++++++++++++++
+>  drivers/cxl/core/hdm.c                  |   10 ++++++++++
+>  drivers/cxl/core/port.c                 |   20 ++++++++++++++++++++
+>  drivers/cxl/cxl.h                       |    9 +++++++++
+>  4 files changed, 55 insertions(+)
+> 
+> diff --git a/Documentation/ABI/testing/sysfs-bus-cxl b/Documentation/ABI/testing/sysfs-bus-cxl
+> index 1fd5984b6158..091459216e11 100644
+> --- a/Documentation/ABI/testing/sysfs-bus-cxl
+> +++ b/Documentation/ABI/testing/sysfs-bus-cxl
+> @@ -164,3 +164,19 @@ Description:
+>  		expander memory (type-3). The 'target_type' attribute indicates
+>  		the current setting which may dynamically change based on what
+>  		memory regions are activated in this decode hierarchy.
+> +
+> +
+
+Single blank line used for previous entries. Note this carries to other
+later patches.
+
+
+> +What:		/sys/bus/cxl/devices/decoderX.Y/mode
+> +Date:		May, 2022
+> +KernelVersion:	v5.20
+> +Contact:	linux-cxl@vger.kernel.org
+> +Description:
+> +		(RO) When a CXL decoder is of devtype "cxl_decoder_endpoint" it
+> +		translates from a host physical address range, to a device local
+> +		address range. Device-local address ranges are further split
+> +		into a 'ram' (volatile memory) range and 'pmem' (persistent
+> +		memory) range. The 'mode' attribute emits one of 'ram', 'pmem',
+> +		'mixed', or 'none'. The 'mixed' indication is for error cases
+> +		when a decoder straddles the volatile/persistent partition
+> +		boundary, and 'none' indicates the decoder is not actively
+> +		decoding, or no DPA allocation policy has been set.
+> diff --git a/drivers/cxl/core/hdm.c b/drivers/cxl/core/hdm.c
+> index daae6e533146..3f929231b822 100644
+> --- a/drivers/cxl/core/hdm.c
+> +++ b/drivers/cxl/core/hdm.c
+> @@ -204,6 +204,16 @@ static int __cxl_dpa_reserve(struct cxl_endpoint_decoder *cxled,
+>  	cxled->dpa_res = res;
+>  	cxled->skip = skip;
+>  
+> +	if (resource_contains(&cxlds->pmem_res, res))
+> +		cxled->mode = CXL_DECODER_PMEM;
+> +	else if (resource_contains(&cxlds->ram_res, res))
+> +		cxled->mode = CXL_DECODER_RAM;
+> +	else {
+> +		dev_dbg(dev, "decoder%d.%d: %pr mixed\n", port->id,
+> +			cxled->cxld.id, cxled->dpa_res);
+
+Why debug for one case and not the the others?
+
+> +		cxled->mode = CXL_DECODER_MIXED;
+> +	}
+> +
+>  	return 0;
+>  }
+>  
+> diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
+> index b5f5fb9aa4b7..9d632c8c580b 100644
+> --- a/drivers/cxl/core/port.c
+> +++ b/drivers/cxl/core/port.c
+> @@ -171,6 +171,25 @@ static ssize_t target_list_show(struct device *dev,
+>  }
+>  static DEVICE_ATTR_RO(target_list);
+>  
+> +static ssize_t mode_show(struct device *dev, struct device_attribute *attr,
+> +			 char *buf)
+> +{
+> +	struct cxl_endpoint_decoder *cxled = to_cxl_endpoint_decoder(dev);
+> +
+> +	switch (cxled->mode) {
+> +	case CXL_DECODER_RAM:
+> +		return sysfs_emit(buf, "ram\n");
+> +	case CXL_DECODER_PMEM:
+> +		return sysfs_emit(buf, "pmem\n");
+> +	case CXL_DECODER_NONE:
+> +		return sysfs_emit(buf, "none\n");
+> +	case CXL_DECODER_MIXED:
+> +	default:
+> +		return sysfs_emit(buf, "mixed\n");
+> +	}
+> +}
+> +static DEVICE_ATTR_RO(mode);
+> +
+>  static struct attribute *cxl_decoder_base_attrs[] = {
+>  	&dev_attr_start.attr,
+>  	&dev_attr_size.attr,
+> @@ -221,6 +240,7 @@ static const struct attribute_group *cxl_decoder_switch_attribute_groups[] = {
+>  
+>  static struct attribute *cxl_decoder_endpoint_attrs[] = {
+>  	&dev_attr_target_type.attr,
+> +	&dev_attr_mode.attr,
+>  	NULL,
+>  };
+>  
+> diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
+> index 6832d6d70548..aa223166f7ef 100644
+> --- a/drivers/cxl/cxl.h
+> +++ b/drivers/cxl/cxl.h
+> @@ -241,16 +241,25 @@ struct cxl_decoder {
+>  	unsigned long flags;
+>  };
+>  
+> +enum cxl_decoder_mode {
+> +	CXL_DECODER_NONE,
+> +	CXL_DECODER_RAM,
+> +	CXL_DECODER_PMEM,
+> +	CXL_DECODER_MIXED,
+> +};
+> +
+>  /**
+>   * struct cxl_endpoint_decoder - Endpoint  / SPA to DPA decoder
+>   * @cxld: base cxl_decoder_object
+>   * @dpa_res: actively claimed DPA span of this decoder
+>   * @skip: offset into @dpa_res where @cxld.hpa_range maps
+> + * @mode: which memory type / access-mode-partition this decoder targets
+>   */
+>  struct cxl_endpoint_decoder {
+>  	struct cxl_decoder cxld;
+>  	struct resource *dpa_res;
+>  	resource_size_t skip;
+> +	enum cxl_decoder_mode mode;
+>  };
+>  
+>  /**
+> 
+
