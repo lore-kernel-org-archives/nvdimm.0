@@ -1,86 +1,97 @@
-Received: from mail-m971.mail.163.com (mail-m971.mail.163.com [123.126.97.1])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4560B7EB
-	for <nvdimm@lists.linux.dev>; Wed, 29 Jun 2022 07:39:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-	s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=krvw6
-	qwr/IZNtIPW1oz/T//NVChJsEDf0J7wBQxN9uo=; b=ifrxMVQy2hSFHVZnDqlcU
-	a0bNEtGYsLueeADGVR+YCCDTxYJvCpdmGo3UJKNpKyzrg83tzf6z+D36NK5HcSrv
-	YXaOF0z1Tf0cLLGdM484sieT2yi5nZmNGCHeBCLew0l9XblYlc4uLLN7Ob7LdJri
-	BxvwGblQhUiXUrkjmJJZ+E=
-Received: from localhost.localdomain (unknown [123.112.69.106])
-	by smtp1 (Coremail) with SMTP id GdxpCgCXgqPW_btiXNRwLg--.54145S4;
-	Wed, 29 Jun 2022 15:23:47 +0800 (CST)
-From: Jianglei Nie <niejianglei2021@163.com>
-To: dan.j.williams@intel.com,
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 860187B
+	for <nvdimm@lists.linux.dev>; Wed, 29 Jun 2022 08:31:26 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1656491486; x=1688027486;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=XfMapp4Lpx6knW5KLXt+Mg3dcI04Kale7nDaYY/4qjA=;
+  b=c8F9EVLILYgtV10nw3/s/m3phSED3QOUt6euOhxHuUrdSko5TJcrziBX
+   n6tlq0BLjqvaoAUvdiWxZT9qQuqalmKj7NfH4Ilhc7LX4//QAYh2HojcD
+   Q5qHAq4Y3KVqMBc3wr61DHutx3dkLFpou6ORIxqgaP9elfvqOajt/gajz
+   u2mlgqjpU9tc5zUuePWi0lajaA0tDuvouJhs6Lfcu+Kg2SyQip0PeFBae
+   Y9wew643Qlm+dazB3bwhlAINcA0nCfni8TxN1xFxKezOMP18N41Q3Uq2B
+   qvqAvR9cfMQ9gCkpiTDxOGktKq62bL9h5B78pNcvKgK7v5JsUoCE7neNb
+   Q==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10392"; a="283065346"
+X-IronPort-AV: E=Sophos;i="5.92,231,1650956400"; 
+   d="scan'208";a="283065346"
+Received: from fmsmga007.fm.intel.com ([10.253.24.52])
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Jun 2022 01:31:26 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.92,231,1650956400"; 
+   d="scan'208";a="595149897"
+Received: from ac02.sh.intel.com ([10.112.227.141])
+  by fmsmga007.fm.intel.com with ESMTP; 29 Jun 2022 01:31:08 -0700
+From: "Dennis.Wu" <dennis.wu@intel.com>
+To: nvdimm@lists.linux.dev
+Cc: dan.j.williams@intel.com,
 	vishal.l.verma@intel.com,
 	dave.jiang@intel.com,
-	fenghua.yu@intel.com,
-	ravi.v.shankar@intel.com
-Cc: nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org,
-	Jianglei Nie <niejianglei2021@163.com>
-Subject: [PATCH] =?UTF-8?q?=EF=BB=BFdax:=20Fix=20potential=20uaf=20in=20?= =?UTF-8?q?=5F=5Fdax=5Fpmem=5Fprobe()?=
-Date: Wed, 29 Jun 2022 15:22:59 +0800
-Message-Id: <20220629072259.2150978-1-niejianglei2021@163.com>
-X-Mailer: git-send-email 2.25.1
+	ira.weiny@intel.com,
+	"Dennis.Wu" <dennis.wu@intel.com>
+Subject: [PATCH] ACPI/NFIT: Add no_deepflush param to dynamic control flush operation
+Date: Wed, 29 Jun 2022 16:31:18 +0800
+Message-Id: <20220629083118.8737-1-dennis.wu@intel.com>
+X-Mailer: git-send-email 2.27.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:GdxpCgCXgqPW_btiXNRwLg--.54145S4
-X-Coremail-Antispam: 1Uf129KBjvJXoW7CFykXrWktw4rKw18CFyxAFb_yoW8ZF18p3
-	y5XFyUurWDAr1Uur43Aws3uFyrZa1ktw4rCr4xuw47u345Z34xA3y8Xa4jya47K3yxAr1U
-	X3Wjqw1xu3y7uF7anT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0zRIks9UUUUU=
-X-Originating-IP: [123.112.69.106]
-X-CM-SenderInfo: xqlhyxxdqjzvrlsqjii6rwjhhfrp/1tbiFQMvjF5mLh+DBgAAs5
 
-__dax_pmem_probe() allocates a memory chunk from dax_region with
-alloc_dax_region(). alloc_dax_region() increases the refcount for
-dax_region and uses devm_add_action_or_reset() to make the parent
-dev manage the dax_region. The dax_region will be used if the parent
-dev is destroyed.
+reason: in the current BTT implimentation deepflush is always
+used and deepflush is very expensive. Since customer already
+know the ADR can protect the WPQ data in memory controller and
+no need to call deepflush to get better performance. BTT w/o
+deepflush, performance can improve 300%~600% with diff FIO jobs.
 
-Then the function calls devm_create_dev_dax() to make child dev_dax
-instances own the lifetime of the dax_region. devm_create_dev_dax()
-calls devm_add_action_or_reset(dax_region->dev, unregister_dev_dax, dev);
-to make the child dev_dax manage the dax_region and register the destroy
-function "unregister_dev_dax".The devm_create_dev_dax() increases the
-refcount for dax_region when the function is successfully executed. But
-when some error occurs, devm_create_dev_dax() may return ERR_PTR before
-increasing the refcount for dax_region. In these cases, the call for
-dax_region_put() will decrease the ref count for dax_region and trigger
-dax_region_free(), which will execute kfree(dax_region).
+How: Add one param "no_deepflush" in the nfit module parameter.
+if "modprob nfit no_deepflush=1", customer can get the higher
+performance but not strict data security. Before modprob nfit,
+you may need to "ndctl disable-region".
 
-When the parent dev is destroyed, the registered destroy function
-"unregister_dev_dax" will be triggered and calls dax_region_free(), which
-will use the freed dax_region, leading to a use after free bug.
+Next: In the BTT, use flag to control the data w/o deepflush
+in the case "no_deepflush=0".
 
-We should check the return value of devm_create_dev_dax(). If it returns
-ERR_PTR, we should return this function with ERR_PTR.
-
-Signed-off-by: Jianglei Nie <niejianglei2021@163.com>
+Signed-off-by: Dennis.Wu <dennis.wu@intel.com>
 ---
- drivers/dax/pmem.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/acpi/nfit/core.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/dax/pmem.c b/drivers/dax/pmem.c
-index f050ea78bb83..d5c8bd546ee9 100644
---- a/drivers/dax/pmem.c
-+++ b/drivers/dax/pmem.c
-@@ -66,6 +66,8 @@ static struct dev_dax *__dax_pmem_probe(struct device *dev)
- 		.size = range_len(&range),
- 	};
- 	dev_dax = devm_create_dev_dax(&data);
-+	if (IS_ERR(dev_dax))
-+		return ERR_PTR((dev_dax);
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index e5d7f2bda13f..ec0ad48b0283 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -52,6 +52,10 @@ static bool force_labels;
+ module_param(force_labels, bool, 0444);
+ MODULE_PARM_DESC(force_labels, "Opt-in to labels despite missing methods");
  
- 	/* child dev_dax instances now own the lifetime of the dax_region */
- 	dax_region_put(dax_region);
++static bool no_deepflush;
++module_param(no_deepflush, bool, 0644);
++MODULE_PARM_DESC(no_deepflush, "skip deep flush if ADR or no strict security");
++
+ LIST_HEAD(acpi_descs);
+ DEFINE_MUTEX(acpi_desc_lock);
+ 
+@@ -981,8 +985,10 @@ static void *add_table(struct acpi_nfit_desc *acpi_desc,
+ 			return err;
+ 		break;
+ 	case ACPI_NFIT_TYPE_FLUSH_ADDRESS:
+-		if (!add_flush(acpi_desc, prev, table))
+-			return err;
++		if (!no_deepflush) {
++			if (!add_flush(acpi_desc, prev, table))
++				return err;
++		}
+ 		break;
+ 	case ACPI_NFIT_TYPE_SMBIOS:
+ 		dev_dbg(dev, "smbios\n");
 -- 
-2.25.1
+2.27.0
 
