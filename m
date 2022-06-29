@@ -1,64 +1,62 @@
 Received: from mailout2.w2.samsung.com (mailout2.w2.samsung.com [211.189.100.12])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C43F7B;
-	Wed, 29 Jun 2022 17:54:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0BE36AB4;
+	Wed, 29 Jun 2022 20:03:14 +0000 (UTC)
 Received: from uscas1p2.samsung.com (unknown [182.198.245.207])
-	by mailout2.w2.samsung.com (KnoxPortal) with ESMTP id 20220629174623usoutp02bf63d98dd973781afcca64057fc979d8~9KIOIIVZ30568505685usoutp02v;
-	Wed, 29 Jun 2022 17:46:23 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout2.w2.samsung.com 20220629174623usoutp02bf63d98dd973781afcca64057fc979d8~9KIOIIVZ30568505685usoutp02v
+	by mailout2.w2.samsung.com (KnoxPortal) with ESMTP id 20220629200313usoutp02af2c71230e9976d49b496d6c430e0c9f~9L-sClPYy2008920089usoutp02b;
+	Wed, 29 Jun 2022 20:03:13 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout2.w2.samsung.com 20220629200313usoutp02af2c71230e9976d49b496d6c430e0c9f~9L-sClPYy2008920089usoutp02b
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-	s=mail20170921; t=1656524783;
-	bh=GD1vU5h6mRyxGY0KIGc7Vki7/E+WPAS3HZ04QFjyZNQ=;
+	s=mail20170921; t=1656532993;
+	bh=b8kZMXueIyXsCuYB0ERS+5vaIE6v3zttPhNANzXvvB0=;
 	h=From:To:CC:Subject:Date:In-Reply-To:References:From;
-	b=jw+r3bDnlIvpJOaMBTw4yWL0NccKC+jg6FBfNo41GWsu2UHIkMEQmMS+BPS+PsUz8
-	 bwGPiRsHcvvOwJ95udzjyOzUqXTfGFein7VN2JwUHEtZJUcFjuPTZi2hi6Gr2VPQHt
-	 fyp4JwElLHPJsAIk/rI5w5/B+r+01tc7uZw0ellk=
-Received: from ussmges3new.samsung.com (u112.gpu85.samsung.co.kr
-	[203.254.195.112]) by uscas1p2.samsung.com (KnoxPortal) with ESMTP id
-	20220629174623uscas1p23ce40b9ff6c4ce7fba54479b317b90b0~9KIN9LSmC2222022220uscas1p2L;
-	Wed, 29 Jun 2022 17:46:23 +0000 (GMT)
-Received: from uscas1p1.samsung.com ( [182.198.245.206]) by
-	ussmges3new.samsung.com (USCPEMTA) with SMTP id 7E.BB.09749.FEF8CB26; Wed,
-	29 Jun 2022 13:46:23 -0400 (EDT)
+	b=BnJNnHkME4dmNrtgEDY087HKU6SwXG73uICFn6j7YMpCw4q1hsA5nTqhbrO6N6z1R
+	 u5u+DDT0f6ufT2KZQKpx39G7Vs/pJBvQHqS/iH1WkGFt+67N0xvFCiqAE8g42nH29s
+	 UczpSVW64TNzaA3eDGep9A1MENpUvoo1AZbH8sMQ=
+Received: from ussmges2new.samsung.com (u111.gpu85.samsung.co.kr
+	[203.254.195.111]) by uscas1p2.samsung.com (KnoxPortal) with ESMTP id
+	20220629200312uscas1p215029cd690a730a55f9633ad698b5cb7~9L-rzC70z2285622856uscas1p2j;
+	Wed, 29 Jun 2022 20:03:12 +0000 (GMT)
+Received: from uscas1p2.samsung.com ( [182.198.245.207]) by
+	ussmges2new.samsung.com (USCPEMTA) with SMTP id 59.69.09642.000BCB26; Wed,
+	29 Jun 2022 16:03:12 -0400 (EDT)
 Received: from ussmgxs3new.samsung.com (u92.gpu85.samsung.co.kr
 	[203.254.195.92]) by uscas1p2.samsung.com (KnoxPortal) with ESMTP id
-	20220629174622uscas1p2236a084ce25771a3ab57c6f006632f35~9KINvfbtB2126221262uscas1p2e;
-	Wed, 29 Jun 2022 17:46:22 +0000 (GMT)
-X-AuditID: cbfec370-a83ff70000002615-7d-62bc8feff7d5
-Received: from SSI-EX4.ssi.samsung.com ( [105.128.2.146]) by
-	ussmgxs3new.samsung.com (USCPEXMTA) with SMTP id C1.76.52945.EEF8CB26; Wed,
-	29 Jun 2022 13:46:22 -0400 (EDT)
+	20220629200312uscas1p292303b9325dcbfe59293f002dc9e6b03~9L-rjA4u82091020910uscas1p2g;
+	Wed, 29 Jun 2022 20:03:12 +0000 (GMT)
+X-AuditID: cbfec36f-bfdff700000025aa-8f-62bcb000c7c0
+Received: from SSI-EX4.ssi.samsung.com ( [105.128.2.145]) by
+	ussmgxs3new.samsung.com (USCPEXMTA) with SMTP id A3.B8.52945.000BCB26; Wed,
+	29 Jun 2022 16:03:12 -0400 (EDT)
 Received: from SSI-EX3.ssi.samsung.com (105.128.2.228) by
 	SSI-EX4.ssi.samsung.com (105.128.2.229) with Microsoft SMTP Server
 	(version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
-	15.1.2375.24; Wed, 29 Jun 2022 10:46:22 -0700
+	15.1.2375.24; Wed, 29 Jun 2022 13:03:11 -0700
 Received: from SSI-EX3.ssi.samsung.com ([105.128.5.228]) by
 	SSI-EX3.ssi.samsung.com ([105.128.5.228]) with mapi id 15.01.2375.024; Wed,
-	29 Jun 2022 10:46:22 -0700
+	29 Jun 2022 13:03:11 -0700
 From: Adam Manzanares <a.manzanares@samsung.com>
 To: Dan Williams <dan.j.williams@intel.com>
-CC: "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
-	"hch@infradead.org" <hch@infradead.org>, "alison.schofield@intel.com"
-	<alison.schofield@intel.com>, "nvdimm@lists.linux.dev"
-	<nvdimm@lists.linux.dev>, "linux-pci@vger.kernel.org"
-	<linux-pci@vger.kernel.org>, "patches@lists.linux.dev"
-	<patches@lists.linux.dev>
-Subject: Re: [PATCH 02/46] cxl/port: Keep port->uport valid for the entire
- life of a port
-Thread-Topic: [PATCH 02/46] cxl/port: Keep port->uport valid for the entire
-	life of a port
-Thread-Index: AQHYi+Al+3mugtmgg0G1bAQs/bDPgA==
-Date: Wed, 29 Jun 2022 17:46:22 +0000
-Message-ID: <20220629174621.GB1139821@bgt-140510-bm01>
-In-Reply-To: <165603871491.551046.6682199179541194356.stgit@dwillia2-xfh>
+CC: "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, Ben Widawsky
+	<bwidawsk@kernel.org>, "hch@infradead.org" <hch@infradead.org>,
+	"alison.schofield@intel.com" <alison.schofield@intel.com>,
+	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
+	"linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+	"patches@lists.linux.dev" <patches@lists.linux.dev>
+Subject: Re: [PATCH 03/46] cxl/hdm: Use local hdm variable
+Thread-Topic: [PATCH 03/46] cxl/hdm: Use local hdm variable
+Thread-Index: AQHYi/NCdOli68RSBE2xziq02ThdiA==
+Date: Wed, 29 Jun 2022 20:03:11 +0000
+Message-ID: <20220629200303.GA1140419@bgt-140510-bm01>
+In-Reply-To: <165603872171.551046.913207574344536475.stgit@dwillia2-xfh>
 Accept-Language: en-US
 Content-Language: en-US
 X-MS-Has-Attach: 
 X-MS-TNEF-Correlator: 
 x-originating-ip: [105.128.2.176]
 Content-Type: text/plain; charset="us-ascii"
-Content-ID: <169DC7407D0E1C44AA1111688B856697@ssi.samsung.com>
+Content-ID: <D1570C75012F9346845CADF7D59784E1@ssi.samsung.com>
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -67,86 +65,72 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-CFilter-Loop: Reflected
-X-Brightmail-Tracker: H4sIAAAAAAAAA02Se0hTYRjG+845m8fB6Kgr39bdlEJrFkUMHboiYhHR/aZFHe2kI122zS4G
-	eQlbLaEVqTgvZZqXsshJXmpFLc3mLLWLNStCssxSdJnO5aXajsH+e573ed7v+/Hxkbh3KUdI
-	yhVqRqmg4/y4PKL66dCLJf0XjFFLz5zliD9+buWKszNbkdiiu4aJW/RNhPh5QSNXXD4yxhG/
-	evYSST1kVWWBsiJjDyb7VpWDZIOGOZuICJ7kABMnP8oog8P282KL3/8hEvL4x7ubv+ApqJ+n
-	RSQJ1ArobpNpEY/0psoRXG7JIFiTjkFt+gOkRZ6uUqvGiLHBLQSXKsc5rPmJwJBhQqwpQeDI
-	H8adK1xqKYw2Vrq0gAqCi3mPcWcJp5owsP92EM7Ah4oEg8aO2NIeSM264eGEElAiMKfJnWOC
-	CoBSazPuHPOplWC7n+wce1LrIFvXiTk1oqaDvanCpXHKFzq6rmAstRdcyzXirJ4OE/c6uaye
-	D5/sPR5sfzFcvf+Ty+oweNs7hLM6CEoKf7g0/9855pwugt2dAY/L3rmeCKjXJORnOThssAau
-	F1VMXjwTsiteTZY0CAZ0Dzms0SH40OeYxAiFiXPtHjrkr3cj17tR6d2o9G5Uejeqq4hzA/km
-	qlTxMYxquYI5JlLR8apERYwo+nC8Af37S5aJJwm1qKPDJjIhjEQmBCTuJ+AXNtdFefMP0CeS
-	GOXhfcrEOEZlQjNJws+XXyK/Q3tTMbSaOcQwCYzyf4qRnsIUrGE4tH2wxXddZceu2lnRZtGC
-	On/RdoGFLj+IhUelychRqfp8Pf1x/KQGC20c19Z150p9rI+mRk5paIhI7x1iNrStXVgTgL/B
-	ckyrgszhuRE1VuHXadrIXQ7jkYPDeyVVBh9JSEBBD55lUAPT1++I9Rr6deFUwYBhd9vWzZkn
-	dwjmnV5WNs2Utvqlf75sU2tmRkbxRsHp0a+L5F6FD0ZmfTifFn3rrmHtKZ+K2wNSRnemJ+TK
-	21TKEpyzc2X9JebmtvrXzw7129QBcxW7L4dpUn/9aG+fXbJXIu21ckbMIfXEmDXJnre+2RYs
-	NG+5WJ1dfvT2m3Hh9w2rJdU2i/lJsh+hiqWXBeJKFf0XOFiyIroDAAA=
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFjrCIsWRmVeSWpSXmKPExsWS2cA0Sfdd/54kg7ebDCzuPr7AZjF96gVG
-	i9MTFjFZnJ91isXi7LzjbBYrf/xhtbh84hKjA7vH5hVaHov3vGTyeLF5JqPH501yASxRXDYp
-	qTmZZalF+nYJXBlLbv9nKZjDW/H8zFPmBsb3XF2MnBwSAiYSF9r3MHUxcnEICaxmlLjZs40Z
-	wvnEKDH/8Sw2CGcZo0Tju/+MIC1sAgYSv49vZAaxRQS0JSbOOQjWwSxwikni+6+fLCAJYYFo
-	iU3t3xkhimIkXu45DWRzANl6EiebMkHCLAKqEstvnmEGCfMKmEl83F0PsaudUeLY94Vg8zkF
-	PCWmT3jIBGIzCohJfD+1BsxmFhCXuPVkPhPECwISS/acZ4awRSVePv7HCmErStz//pIdol5H
-	YsHuT2wQtp3E9TdfmSFsbYllC1+D2bwCghInZz5hgeiVlDi44gbLBEaJWUjWzUIyahaSUbOQ
-	jJqFZNQCRtZVjOKlxcW56RXFxnmp5XrFibnFpXnpesn5uZsYgRF9+t/hmB2M92591DvEyMTB
-	eIhRgoNZSYR34ZmdSUK8KYmVValF+fFFpTmpxYcYpTlYlMR5PWInxgsJpCeWpGanphakFsFk
-	mTg4pRqY1LeusNOq/8+2YO53ryuqX/bO2mF7LvSEUpvtu0lqd/zyJfIO608w9/25/up7jihZ
-	8QhTQ4nzj0OKEp+3ra+7e2mT4rQy3e+VAq3TRW6Eb5e5bXDZTG/SwyimHP785q1Vq4W66q+l
-	aU6/cCn4a7Hp86tNr+ct4vPKKbOfvFL4VMqHkxXX2s8vlPNy7Qk4dHbhGVkDywXT1kXbaLoU
-	cR9xrbr9v3+Bo2Lo4t09oTcibCMjmj/u5Wk4vmjr6vjPBUFt975PONl01vDaQxGfbIHLmzvq
-	Qj+Wal+5ZaaUvdVfX+hpyv/TVVdXXjrs/JxlvuTzGN8TZgsrLJovcgZ6rFn6WebiYWvBE5+2
-	sy5j75W+o8RSnJFoqMVcVJwIAPi8+YtXAwAA
-X-CMS-MailID: 20220629174622uscas1p2236a084ce25771a3ab57c6f006632f35
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFtrIKsWRmVeSWpSXmKPExsWy7djX87oMG/YkGRw9omdx9/EFNovmyYsZ
+	LaZPvcBocXrCIiaL87NOsVicnXeczWLljz+sFpdPXGJ04PDYvELLY/Gel0wem1Z1snm82DyT
+	0ePzJrkA1igum5TUnMyy1CJ9uwSujLtXHrEV/GCveLJ9InsD41a2LkZODgkBE4lJr1YwdzFy
+	cQgJrGSU+HjmLStIQkiglUni3BF3mKIbc/YwQhStZZSY8XsdC4TziVHibf9/dghnGaPE5s0v
+	WUBa2AQMJH4f38gMYosIaEtMnHMQzGYWeMck0XkqBMQWFrCS+NPxkwWixlri4PT3jBC2nsTF
+	ib1gZ7AIqEpcuDwdrIZXwExiw4/vQHM4ODgFPCReH68HCTMKiEl8P7WGCWK8uMStJ/OZIK4W
+	lFg0ew8zhC0m8W/XQ6iXFSXuf3/JDlGvI7Fg9yc2CNtOYvnR0ywQtrbEsoWvmSHWCkqcnPmE
+	BaJXUuLgihtgz0sIPOCQ+LtrAiNEwkXi1KbDUEXSEtPXXIYqameU+DBhHyuEM4FR4s7bn1Bn
+	WEv867zGPoFRZRaSy2chuWoWkqtmIblqFpKrFjCyrmIULy0uzk1PLTbKSy3XK07MLS7NS9dL
+	zs/dxAhMVaf/Hc7fwXj91ke9Q4xMHIyHGCU4mJVEeBee2ZkkxJuSWFmVWpQfX1Sak1p8iFGa
+	g0VJnHdZ5oZEIYH0xJLU7NTUgtQimCwTB6dUA1P4qrnb5y5f5MQpUCOiEOyfkOHxTUOHa7m7
+	w5MXvs5ZP8+WpsrU5S4Vvv4lXqO95NLSH0XZj5e1zOWv8jXeXLtp7exkvVbmrOTnc7/fk/ER
+	nMDG6erivJKHL231k6UNHJptfyO/Zhpfjv+ZJL4l4Ziv06W7jRxRxU4t5UyyrKITTu/aJHvz
+	xrGnNrcXVTvqfdyewCmhfLPoSqtz/Jc7HWVlDnG2Nx5/fLJrus6yFM6MVXutnwgImQpMsSiS
+	ybM9kjBtzbv2slQP7b4ZC+5PmafmmGIh9NonP+CX99X+1IevOt6s/e3B2MQUMsfjiuCp48t+
+	9Irt2ftX686dae2zI8TkatmWVgflhcZOSVt0Q4mlOCPRUIu5qDgRAGDcf1/EAwAA
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFjrHIsWRmVeSWpSXmKPExsWS2cA0UZdhw54kg5XrpCzuPr7AZtE8eTGj
+	xfSpFxgtTk9YxGRxftYpFouz846zWaz88YfV4vKJS4wOHB6bV2h5LN7zkslj06pONo8Xm2cy
+	enzeJBfAGsVlk5Kak1mWWqRvl8CVcffKI7aCH+wVT7ZPZG9g3MrWxcjJISFgInFjzh7GLkYu
+	DiGB1YwSP9/MYodwPjFK7G3rYYZwljFKrN99gR2khU3AQOL38Y3MILaIgLbExDkHwWxmgXdM
+	Ep2nQkBsYQEriT8dP1kgaqwlDk5/zwhh60lcnNjLCmKzCKhKXLg8HayGV8BMYsOP71DL2hgl
+	JvzYBdTAwcEp4CHx+ng9SA2jgJjE91NrmCB2iUvcejKfCeIFAYkle84zQ9iiEi8f/2OFsBUl
+	7n9/yQ5RryOxYPcnNgjbTmL50dMsELa2xLKFr5khbhCUODnzCQtEr6TEwRU3WCYwSsxCsm4W
+	klGzkIyahWTULCSjFjCyrmIULy0uzk2vKDbOSy3XK07MLS7NS9dLzs/dxAiM8tP/DsfsYLx3
+	66PeIUYmDsZDjBIczEoivAvP7EwS4k1JrKxKLcqPLyrNSS0+xCjNwaIkzusROzFeSCA9sSQ1
+	OzW1ILUIJsvEwSnVwFR78+v/zCNHVISdMk/5aEq123yfW7f7Svft4J7dWW+qItVLxdt28Vfu
+	ybnIvvGYsubPVbdcVMo3MBpfUzoSm3HnpJwm63uuS5u7bvQ4fz+z2Kf1+bFjVV4Z3VVzHk9f
+	orZ9woLNf3nvS3iuUnwXuyfkU/65Nu+mTQIz3fyW+M93m7CldGlI0fuSJ3ktJ0x123+vc+Du
+	28bxQHZOXvJ3/niPgvSCl20hGxdF2Qo0fza9ZF4a8nfHpMzD5d1PGO5ybXqh/+gUY3s985VH
+	59h1ptaGPM/8rbn0zBLFgEYZ8Y2VK27Ms5r+Uf2fh/f1V/W72goqd/1feYTfLflhzCFtBbtD
+	b+zWmr/5MPtUzSp2uXglluKMREMt5qLiRAAz2mPYYQMAAA==
+X-CMS-MailID: 20220629200312uscas1p292303b9325dcbfe59293f002dc9e6b03
 CMS-TYPE: 301P
-X-CMS-RootMailID: 20220629174622uscas1p2236a084ce25771a3ab57c6f006632f35
+X-CMS-RootMailID: 20220629200312uscas1p292303b9325dcbfe59293f002dc9e6b03
 References: <165603869943.551046.3498980330327696732.stgit@dwillia2-xfh>
-	<165603871491.551046.6682199179541194356.stgit@dwillia2-xfh>
-	<CGME20220629174622uscas1p2236a084ce25771a3ab57c6f006632f35@uscas1p2.samsung.com>
+	<165603872171.551046.913207574344536475.stgit@dwillia2-xfh>
+	<CGME20220629200312uscas1p292303b9325dcbfe59293f002dc9e6b03@uscas1p2.samsung.com>
 
-On Thu, Jun 23, 2022 at 07:45:14PM -0700, Dan Williams wrote:
-> The upcoming region provisioning implementation has a need to
-> dereference port->uport during the port unregister flow. Specifically,
-> endpoint decoders need to be able to lookup their corresponding memdev
-> via port->uport.
+On Thu, Jun 23, 2022 at 07:45:21PM -0700, Dan Williams wrote:
+> From: Ben Widawsky <bwidawsk@kernel.org>
 >=20
-> The existing ->dead flag was added for cases where the core was
-> committed to tearing down the port, but needed to drop locks before
-> calling device_unregister(). Reuse that flag to indicate to
-> delete_endpoint() that it has no "release action" work to do as
-> unregister_port() will handle it.
+> Save a few characters and use the already initialized local variable.
 >=20
-> Fixes: 8dd2bc0f8e02 ("cxl/mem: Add the cxl_mem driver")
+> Signed-off-by: Ben Widawsky <bwidawsk@kernel.org>
 > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 > ---
->  drivers/cxl/core/port.c |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+>  drivers/cxl/core/hdm.c |    3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
 >=20
-> diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
-> index dbce99bdffab..7810d1a8369b 100644
-> --- a/drivers/cxl/core/port.c
-> +++ b/drivers/cxl/core/port.c
-> @@ -370,7 +370,7 @@ static void unregister_port(void *_port)
->  		lock_dev =3D &parent->dev;
+> diff --git a/drivers/cxl/core/hdm.c b/drivers/cxl/core/hdm.c
+> index bfc8ee876278..ba3d2d959c71 100644
+> --- a/drivers/cxl/core/hdm.c
+> +++ b/drivers/cxl/core/hdm.c
+> @@ -251,8 +251,7 @@ int devm_cxl_enumerate_decoders(struct cxl_hdm *cxlhd=
+m)
+>  			return PTR_ERR(cxld);
+>  		}
 > =20
->  	device_lock_assert(lock_dev);
-> -	port->uport =3D NULL;
-> +	port->dead =3D true;
->  	device_unregister(&port->dev);
->  }
-> =20
-> @@ -857,7 +857,7 @@ static void delete_endpoint(void *data)
->  	parent =3D &parent_port->dev;
-> =20
->  	device_lock(parent);
-> -	if (parent->driver && endpoint->uport) {
-> +	if (parent->driver && !endpoint->dead) {
->  		devm_release_action(parent, cxl_unlink_uport, endpoint);
->  		devm_release_action(parent, unregister_port, endpoint);
->  	}
+> -		rc =3D init_hdm_decoder(port, cxld, target_map,
+> -				      cxlhdm->regs.hdm_decoder, i);
+> +		rc =3D init_hdm_decoder(port, cxld, target_map, hdm, i);
+>  		if (rc) {
+>  			put_device(&cxld->dev);
+>  			failed++;
 >=20
->
+>=20
 
 
 Looks good.
