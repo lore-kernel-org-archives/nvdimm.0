@@ -1,31 +1,31 @@
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9923E7E0
-	for <nvdimm@lists.linux.dev>; Wed, 29 Jun 2022 12:44:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71D252575
+	for <nvdimm@lists.linux.dev>; Wed, 29 Jun 2022 13:57:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1656506665; x=1688042665;
+  t=1656511060; x=1688047060;
   h=from:to:cc:subject:date:message-id:mime-version:
    content-transfer-encoding;
-  bh=U0Vgp+01jpqVuj3tOsx9veURZ0rxMbCvTMpUiVszy1I=;
-  b=XAwcvkE1Q852tHrS3ptGUFcC2wBWdNc3028jphQyisqqj+n9B2yphA8V
-   bqzyb63Pnk4JWX0Y90rnmhLBvNBXBj3I8sIa6/x47pkKmaqxDCj/iQILc
-   oNogci55OHoJxCU/mIk5cp+35tt+3nO2BfGAluWuGlfMnUNzb9u9yOMCJ
-   w3fjlIFBiqBDph3Bra9zYO2TggVvrT88rvl+vL+WkVruKwQDPYwGrWLK4
-   xwWieYwYRrqT8ypGg0p/vC9DKpo/UQKwtwsTIXVSO7zkAfRCZJiyMO4kg
-   pAgTodWNKM8/x7U2vA83dnkoTinrvNo7SiwuLwjpsEoEZ0iOUO4KKCihk
-   w==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10392"; a="279565112"
+  bh=w/6Q7O6GEZNOlUMT7r8ge77hg2bDL8J4HlnZ4GUxTsc=;
+  b=XQEXDoiHJxUuxSeJwsrRglKcMcfowgeM/Vw1yhvLrcaXawIRB5wICZgh
+   MYHyoNK6dFGQsxH3EyEL5owgP8vW6WOes1Ul7ORDPd/tMqtDkkV1UurYO
+   xBXMsAG5CEouH0HahGHDc9z3McR6CG1mh8s7zRObLEi3B0ODShpnqX5jT
+   dCb8G/U8N+92gwbcfWV8E+q6Lfp2G0bDZY3YWS5otzSqU6DnTb7uGOJGl
+   KE65Gh8nv+R6UFcAlVR58ZGpwyKI3NOU6DwBZiWPkhWYyswHiUhclBhjc
+   IN0Sc9ybLY/mPemzNiw68DYrLiQs3jmLNR4FD+7+MUFj9gqCm+nlzdr7W
+   A==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10392"; a="265073128"
 X-IronPort-AV: E=Sophos;i="5.92,231,1650956400"; 
-   d="scan'208";a="279565112"
-Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Jun 2022 05:44:24 -0700
+   d="scan'208";a="265073128"
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Jun 2022 06:57:39 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.92,231,1650956400"; 
-   d="scan'208";a="837115177"
+   d="scan'208";a="647402034"
 Received: from ac02.sh.intel.com ([10.112.227.141])
-  by fmsmga006.fm.intel.com with ESMTP; 29 Jun 2022 05:44:23 -0700
+  by fmsmga008.fm.intel.com with ESMTP; 29 Jun 2022 06:57:37 -0700
 From: "Dennis.Wu" <dennis.wu@intel.com>
 To: nvdimm@lists.linux.dev
 Cc: dan.j.williams@intel.com,
@@ -34,8 +34,8 @@ Cc: dan.j.williams@intel.com,
 	ira.weiny@intel.com,
 	"Dennis.Wu" <dennis.wu@intel.com>
 Subject: [PATCH] nvdimm: Add NVDIMM_NO_DEEPFLUSH flag to control btt data deepflush
-Date: Wed, 29 Jun 2022 20:44:19 +0800
-Message-Id: <20220629124419.3916-1-dennis.wu@intel.com>
+Date: Wed, 29 Jun 2022 21:58:01 +0800
+Message-Id: <20220629135801.192821-1-dennis.wu@intel.com>
 X-Mailer: git-send-email 2.27.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -60,16 +60,16 @@ otherwise, the pmem_wmb() called to fense all previous write.
 
 Signed-off-by: Dennis.Wu <dennis.wu@intel.com>
 ---
- drivers/nvdimm/btt.c   | 30 +++++++++++++++++++-----------
+ drivers/nvdimm/btt.c   | 26 +++++++++++++++++---------
  drivers/nvdimm/claim.c |  9 +++++++--
  drivers/nvdimm/nd.h    |  4 ++++
- 3 files changed, 30 insertions(+), 13 deletions(-)
+ 3 files changed, 28 insertions(+), 11 deletions(-)
 
 diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-index da3f007a1211..a3787dd3b017 100644
+index 9613e54c7a67..c71ba7a1edd0 100644
 --- a/drivers/nvdimm/btt.c
 +++ b/drivers/nvdimm/btt.c
-@@ -71,6 +71,10 @@ static int btt_info_write(struct arena_info *arena, struct btt_sb *super)
+@@ -70,6 +70,10 @@ static int btt_info_write(struct arena_info *arena, struct btt_sb *super)
  	dev_WARN_ONCE(to_dev(arena), !IS_ALIGNED(arena->info2off, 512),
  		"arena->info2off: %#llx is unaligned\n", arena->info2off);
  
@@ -80,7 +80,7 @@ index da3f007a1211..a3787dd3b017 100644
  	ret = arena_write_bytes(arena, arena->info2off, super,
  			sizeof(struct btt_sb), 0);
  	if (ret)
-@@ -385,7 +389,8 @@ static int btt_flog_write(struct arena_info *arena, u32 lane, u32 sub,
+@@ -384,7 +388,8 @@ static int btt_flog_write(struct arena_info *arena, u32 lane, u32 sub,
  {
  	int ret;
  
@@ -90,7 +90,7 @@ index da3f007a1211..a3787dd3b017 100644
  	if (ret)
  		return ret;
  
-@@ -430,7 +435,7 @@ static int btt_map_init(struct arena_info *arena)
+@@ -429,7 +434,7 @@ static int btt_map_init(struct arena_info *arena)
  		dev_WARN_ONCE(to_dev(arena), size < 512,
  			"chunk size: %#zx is unaligned\n", size);
  		ret = arena_write_bytes(arena, arena->mapoff + offset, zerobuf,
@@ -99,7 +99,7 @@ index da3f007a1211..a3787dd3b017 100644
  		if (ret)
  			goto free;
  
-@@ -474,7 +479,7 @@ static int btt_log_init(struct arena_info *arena)
+@@ -473,7 +478,7 @@ static int btt_log_init(struct arena_info *arena)
  		dev_WARN_ONCE(to_dev(arena), size < 512,
  			"chunk size: %#zx is unaligned\n", size);
  		ret = arena_write_bytes(arena, arena->logoff + offset, zerobuf,
@@ -108,7 +108,7 @@ index da3f007a1211..a3787dd3b017 100644
  		if (ret)
  			goto free;
  
-@@ -488,7 +493,7 @@ static int btt_log_init(struct arena_info *arena)
+@@ -487,7 +492,7 @@ static int btt_log_init(struct arena_info *arena)
  		ent.old_map = cpu_to_le32(arena->external_nlba + i);
  		ent.new_map = cpu_to_le32(arena->external_nlba + i);
  		ent.seq = cpu_to_le32(LOG_SEQ_INIT);
@@ -117,7 +117,7 @@ index da3f007a1211..a3787dd3b017 100644
  		if (ret)
  			goto free;
  	}
-@@ -519,7 +524,7 @@ static int arena_clear_freelist_error(struct arena_info *arena, u32 lane)
+@@ -518,7 +523,7 @@ static int arena_clear_freelist_error(struct arena_info *arena, u32 lane)
  			unsigned long chunk = min(len, PAGE_SIZE);
  
  			ret = arena_write_bytes(arena, nsoff, zero_page,
@@ -126,7 +126,7 @@ index da3f007a1211..a3787dd3b017 100644
  			if (ret)
  				break;
  			len -= chunk;
-@@ -593,7 +598,8 @@ static int btt_freelist_init(struct arena_info *arena)
+@@ -592,7 +597,8 @@ static int btt_freelist_init(struct arena_info *arena)
  			 * to complete the map write. So fix up the map.
  			 */
  			ret = btt_map_write(arena, le32_to_cpu(log_new.lba),
@@ -136,7 +136,7 @@ index da3f007a1211..a3787dd3b017 100644
  			if (ret)
  				return ret;
  		}
-@@ -1124,7 +1130,8 @@ static int btt_data_write(struct arena_info *arena, u32 lba,
+@@ -1123,7 +1129,8 @@ static int btt_data_write(struct arena_info *arena, u32 lba,
  	u64 nsoff = to_namespace_offset(arena, lba);
  	void *mem = kmap_atomic(page);
  
@@ -146,21 +146,7 @@ index da3f007a1211..a3787dd3b017 100644
  	kunmap_atomic(mem);
  
  	return ret;
-@@ -1168,11 +1175,11 @@ static int btt_rw_integrity(struct btt *btt, struct bio_integrity_payload *bip,
- 		if (rw)
- 			ret = arena_write_bytes(arena, meta_nsoff,
- 					mem + bv.bv_offset, cur_len,
--					NVDIMM_IO_ATOMIC);
-+					NVDIMM_IO_ATOMIC|NVDIMM_NO_DEEPFLUSH);
- 		else
- 			ret = arena_read_bytes(arena, meta_nsoff,
- 					mem + bv.bv_offset, cur_len,
--					NVDIMM_IO_ATOMIC);
-+					NVDIMM_IO_ATOMIC|NVDIMM_NO_DEEPFLUSH);
- 
- 		kunmap_atomic(mem);
- 		if (ret)
-@@ -1263,7 +1270,8 @@ static int btt_read_pg(struct btt *btt, struct bio_integrity_payload *bip,
+@@ -1260,7 +1267,8 @@ static int btt_read_pg(struct btt *btt, struct bio_integrity_payload *bip,
  		ret = btt_data_read(arena, page, off, postmap, cur_len);
  		if (ret) {
  			/* Media error - set the e_flag */
@@ -170,7 +156,7 @@ index da3f007a1211..a3787dd3b017 100644
  				dev_warn_ratelimited(to_dev(arena),
  					"Error persistently tracking bad blocks at %#x\n",
  					premap);
-@@ -1396,7 +1404,7 @@ static int btt_write_pg(struct btt *btt, struct bio_integrity_payload *bip,
+@@ -1393,7 +1401,7 @@ static int btt_write_pg(struct btt *btt, struct bio_integrity_payload *bip,
  			goto out_map;
  
  		ret = btt_map_write(arena, premap, new_postmap, 0, 0,
@@ -201,7 +187,7 @@ index 030dbde6b088..c1fa3291c063 100644
  	return rc;
  }
 diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-index 6f8ce114032d..4d8c23c8acc4 100644
+index ec5219680092..a16e259a8cff 100644
 --- a/drivers/nvdimm/nd.h
 +++ b/drivers/nvdimm/nd.h
 @@ -22,7 +22,11 @@ enum {
