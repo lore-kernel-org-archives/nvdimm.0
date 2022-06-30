@@ -1,152 +1,327 @@
-Received: from mailout2.w2.samsung.com (mailout2.w2.samsung.com [211.189.100.12])
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02DC76AA2;
-	Wed, 29 Jun 2022 20:34:49 +0000 (UTC)
-Received: from uscas1p1.samsung.com (unknown [182.198.245.206])
-	by mailout2.w2.samsung.com (KnoxPortal) with ESMTP id 20220629203448usoutp02318847ae62d98267869b8f184374df8a~9MbRdlW-t1403414034usoutp02d;
-	Wed, 29 Jun 2022 20:34:48 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout2.w2.samsung.com 20220629203448usoutp02318847ae62d98267869b8f184374df8a~9MbRdlW-t1403414034usoutp02d
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-	s=mail20170921; t=1656534888;
-	bh=lXomARyTOr4zgBrO/xc7GHtTIlPV1c04Hr27zgTgCDo=;
-	h=From:To:CC:Subject:Date:In-Reply-To:References:From;
-	b=DoXDYnTU9wJUhHg0M+dJvd6R5eELNa1IpQhmZRsSdXjD5XvtmRCwfJRBDo75/EmRD
-	 /MLQvbFVRfnkXhoW6gVJFii6Xk6V4Ci81G1kWeMKjb++6/XGm+wyQM61wFd+5GrCWa
-	 gcOReMFB2voO/ZsLw15IUWNbjR170WvjY4hqRBzk=
-Received: from ussmges1new.samsung.com (u109.gpu85.samsung.co.kr
-	[203.254.195.109]) by uscas1p1.samsung.com (KnoxPortal) with ESMTP id
-	20220629203448uscas1p105d46b03604938b494e3acea4abe6ad6~9MbRM8mXt2673826738uscas1p1H;
-	Wed, 29 Jun 2022 20:34:48 +0000 (GMT)
-Received: from uscas1p1.samsung.com ( [182.198.245.206]) by
-	ussmges1new.samsung.com (USCPEMTA) with SMTP id 35.93.09760.867BCB26; Wed,
-	29 Jun 2022 16:34:48 -0400 (EDT)
-Received: from ussmgxs2new.samsung.com (u91.gpu85.samsung.co.kr
-	[203.254.195.91]) by uscas1p2.samsung.com (KnoxPortal) with ESMTP id
-	20220629203448uscas1p264a7f79a1ed7f9257eefcb3064c7d943~9MbQ1nqLU1740317403uscas1p2U;
-	Wed, 29 Jun 2022 20:34:48 +0000 (GMT)
-X-AuditID: cbfec36d-51bff70000002620-64-62bcb76802ee
-Received: from SSI-EX3.ssi.samsung.com ( [105.128.2.146]) by
-	ussmgxs2new.samsung.com (USCPEXMTA) with SMTP id E2.9A.57470.767BCB26; Wed,
-	29 Jun 2022 16:34:47 -0400 (EDT)
-Received: from SSI-EX3.ssi.samsung.com (105.128.2.228) by
-	SSI-EX3.ssi.samsung.com (105.128.2.228) with Microsoft SMTP Server
-	(version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
-	15.1.2375.24; Wed, 29 Jun 2022 13:34:47 -0700
-Received: from SSI-EX3.ssi.samsung.com ([105.128.5.228]) by
-	SSI-EX3.ssi.samsung.com ([105.128.5.228]) with mapi id 15.01.2375.024; Wed,
-	29 Jun 2022 13:34:47 -0700
-From: Adam Manzanares <a.manzanares@samsung.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B2FFEBB;
+	Thu, 30 Jun 2022 09:18:14 +0000 (UTC)
+Received: from fraeml736-chm.china.huawei.com (unknown [172.18.147.200])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4LYXhH2KzVz67x9N;
+	Thu, 30 Jun 2022 17:14:07 +0800 (CST)
+Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
+ fraeml736-chm.china.huawei.com (10.206.15.217) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.24; Thu, 30 Jun 2022 11:18:11 +0200
+Received: from localhost (10.81.200.250) by lhreml710-chm.china.huawei.com
+ (10.201.108.61) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.24; Thu, 30 Jun
+ 2022 10:18:10 +0100
+Date: Thu, 30 Jun 2022 10:18:08 +0100
+From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
 To: Dan Williams <dan.j.williams@intel.com>
-CC: "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
-	"hch@infradead.org" <hch@infradead.org>, "alison.schofield@intel.com"
-	<alison.schofield@intel.com>, "nvdimm@lists.linux.dev"
-	<nvdimm@lists.linux.dev>, "linux-pci@vger.kernel.org"
-	<linux-pci@vger.kernel.org>, "patches@lists.linux.dev"
-	<patches@lists.linux.dev>
-Subject: Re: [PATCH 06/46] cxl/core: Drop is_cxl_decoder()
-Thread-Topic: [PATCH 06/46] cxl/core: Drop is_cxl_decoder()
-Thread-Index: AQHYi/esL78qDLSsR02eEE+HvYuomA==
-Date: Wed, 29 Jun 2022 20:34:47 +0000
-Message-ID: <20220629203440.GA1140902@bgt-140510-bm01>
-In-Reply-To: <165603874340.551046.15491766127759244728.stgit@dwillia2-xfh>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-originating-ip: [105.128.2.176]
-Content-Type: text/plain; charset="us-ascii"
-Content-ID: <5997976DCBC30F47BE34FFBE44886E3B@ssi.samsung.com>
-Content-Transfer-Encoding: quoted-printable
+CC: <linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>,
+	<linux-pci@vger.kernel.org>, <patches@lists.linux.dev>, <hch@lst.de>
+Subject: Re: [PATCH 28/46] cxl/port: Move dport tracking to an xarray
+Message-ID: <20220630101808.0000714f@Huawei.com>
+In-Reply-To: <20220624041950.559155-3-dan.j.williams@intel.com>
+References: <165603869943.551046.3498980330327696732.stgit@dwillia2-xfh>
+	<20220624041950.559155-3-dan.j.williams@intel.com>
+Organization: Huawei Technologies Research and Development (UK) Ltd.
+X-Mailer: Claws Mail 4.0.0 (GTK+ 3.24.29; i686-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.81.200.250]
+X-ClientProxiedBy: lhreml754-chm.china.huawei.com (10.201.108.204) To
+ lhreml710-chm.china.huawei.com (10.201.108.61)
 X-CFilter-Loop: Reflected
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFlrFKsWRmVeSWpSXmKPExsWy7djXc7oZ2/ckGSx4LGpx9/EFNovpUy8w
-	WpyesIjJ4vysUywWZ+cdZ7NY+eMPq8XlE5cYHdg9Nq/Q8li85yWTx4vNMxk9Pm+SC2CJ4rJJ
-	Sc3JLEst0rdL4Mp492s5a8FN3ooJ504zNzBu5+5i5OSQEDCR2Ln5PGMXIxeHkMBKRok59yey
-	QTitTBKPH3Wxw1T9+7ySFSKxllHi4ptJUFWfGCVO338I5SxjlNg3fR8LSAubgIHE7+MbmUFs
-	EQFtiYlzDjKDFDELnGKS+P7rJ1iRsICVxNPlZ6GKrCU+XPvDCGHrSTx9fp0NxGYRUJV4OOEW
-	WA2vgJnEv4dfwOKcAl4SH56sBbuPUUBM4vupNUwgNrOAuMStJ/OZIO4WlFg0ew8zhC0m8W/X
-	QzYIW1Hi/veX7BD1OhILdn9ig7DtJF4cbGKEsLUlli18DbVXUOLkzCcsEL2SEgdX3GABeUZC
-	4AKHxIm1bVDLXCT+b7kODTBpib93lzFBFLUzSnyYsI8VwpnAKHHn7U+oM6wl/nVeY5/AqDIL
-	yeWzkFw1C8lVs5BcNQvJVQsYWVcxipcWF+empxYb5qWW6xUn5haX5qXrJefnbmIEJqfT/w7n
-	7mDcceuj3iFGJg7GQ4wSHMxKIrwLz+xMEuJNSaysSi3Kjy8qzUktPsQozcGiJM67LHNDopBA
-	emJJanZqakFqEUyWiYNTqoGJ3+k2j22Zzor43Wwd9379t5pzZ5uc907WzT2VlacWijaeF+fu
-	vmaTFvOn+qWZUeqb9+0vVzZc8rv/8Mye1qe33ovPWfDs7v6m9ZmSCbISbj6ljBzbAu+tWPo7
-	fpp7SeOjaVM0zUJUfmo/VIpzkCp8dpWx/Z/aRL31TgXOfNlbVxwU42zc80pkSpjxuSe/FpY+
-	jJkwI/vXi1z/6V87p/UUZzxwa71r+zn6gXjD1nWVvVmCHUvLhWJ/cgSEv7i29rXPlf1SkfeP
-	VrX/yHp6eUelglEOi9+dErUVzh4mtUV3xHO8XRb+EpB937YlySA1Sognv85r1oP10zuyFpZG
-	TOSW1nx3xfZrwcbovi1lnx4osRRnJBpqMRcVJwIArRGlvr0DAAA=
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFjrGIsWRmVeSWpSXmKPExsWS2cA0STd9+54kg8WTDCzuPr7AZjF96gVG
-	i9MTFjFZnJ91isXi7LzjbBYrf/xhtbh84hKjA7vH5hVaHov3vGTyeLF5JqPH501yASxRXDYp
-	qTmZZalF+nYJXBnvfi1nLbjJWzHh3GnmBsbt3F2MnBwSAiYS/z6vZO1i5OIQEljNKHH8yHEW
-	COcTo8ShhW1MEM4yRolrF3eygbSwCRhI/D6+kRnEFhHQlpg45yAzSBGzwCkmie+/frKAJIQF
-	rCSeLj8LVWQt8eHaH0YIW0/i6fPrYINYBFQlHk64BVbDK2Am8e/hFzaIbR2MEgeP/wQr4hTw
-	kvjwZC07iM0oICbx/dQaJhCbWUBc4taT+UwQTwhILNlznhnCFpV4+fgfK4StKHH/+0t2iHod
-	iQW7P7FB2HYSLw42MULY2hLLFr6GOkJQ4uTMJywQvZISB1fcYJnAKDELybpZSEbNQjJqFpJR
-	s5CMWsDIuopRvLS4ODe9otgoL7Vcrzgxt7g0L10vOT93EyMwqk//Oxy9g/H2rY96hxiZOBgP
-	MUpwMCuJ8C48szNJiDclsbIqtSg/vqg0J7X4EKM0B4uSOO/LqInxQgLpiSWp2ampBalFMFkm
-	Dk6pBqYpoesiT9oeum2ZoPa4c9uhq9LhvcF1gllakT+6J2xZdTaC42CDtoVokkJD0+TjyUlf
-	7r1rNmeyPtnncTWFQaVBoI9ZMfnRFu3o+11rJhxWzjd8MXHF8y1aE1aGVwt3FTPMz67oWGrx
-	eWOF3c+jFYc8rltP7zxxUOhJX4bk5GuPLeJkFNsvapWcuWvmsj/1z5HfHlmWYe9mN6nUiJft
-	Orqa+cj9c18l253ELtXmRwrdOybhyR2iJX7q39VrrqdYQ1UyLhU3ZxTNWPj89dJpTBUP2Q5F
-	TZ+sWrxZIiwpZsoWSct1t/9Xme27rrSb0cah4GT5YVUjlbBT6vqlTcxVH3fZXdFIfxF3Qewz
-	sz3zMSWW4oxEQy3mouJEAE/EosJZAwAA
-X-CMS-MailID: 20220629203448uscas1p264a7f79a1ed7f9257eefcb3064c7d943
-CMS-TYPE: 301P
-X-CMS-RootMailID: 20220629203448uscas1p264a7f79a1ed7f9257eefcb3064c7d943
-References: <165603869943.551046.3498980330327696732.stgit@dwillia2-xfh>
-	<165603874340.551046.15491766127759244728.stgit@dwillia2-xfh>
-	<CGME20220629203448uscas1p264a7f79a1ed7f9257eefcb3064c7d943@uscas1p2.samsung.com>
 
-On Thu, Jun 23, 2022 at 07:45:43PM -0700, Dan Williams wrote:
-> This helper was only used to identify the object type for lockdep
-> purposes. Now that lockdep support is done with explicit lock classes,
-> this helper can be dropped.
->=20
+On Thu, 23 Jun 2022 21:19:32 -0700
+Dan Williams <dan.j.williams@intel.com> wrote:
+
+> Reduce the complexity and the overhead of walking the topology to
+> determine endpoint connectivity to root decoder interleave
+> configurations.
+> 
 > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Hi Dan,
+
+A few minor comments inline around naming and also one query on why
+the refactor or reap_ports is connected to the xarray change.
+
+Thanks,
+
+Jonathan
+
 > ---
->  drivers/cxl/core/port.c |    6 ------
->  drivers/cxl/cxl.h       |    1 -
->  2 files changed, 7 deletions(-)
->=20
+>  drivers/cxl/acpi.c      |  2 +-
+>  drivers/cxl/core/hdm.c  |  6 ++-
+>  drivers/cxl/core/port.c | 88 ++++++++++++++++++-----------------------
+>  drivers/cxl/cxl.h       | 12 +++---
+>  4 files changed, 51 insertions(+), 57 deletions(-)
+> 
+> diff --git a/drivers/cxl/acpi.c b/drivers/cxl/acpi.c
+> index 09fe92177d03..92ad1f359faf 100644
+> --- a/drivers/cxl/acpi.c
+> +++ b/drivers/cxl/acpi.c
+> @@ -197,7 +197,7 @@ static int add_host_bridge_uport(struct device *match, void *arg)
+>  	if (!bridge)
+>  		return 0;
+>  
+> -	dport = cxl_find_dport_by_dev(root_port, match);
+> +	dport = cxl_dport_load(root_port, match);
+
+Load is kind of specific to the xarray.  I'd be tempted to keep it to
+original find naming.
+
+
+>  	if (!dport) {
+>  		dev_dbg(host, "host bridge expected and not found\n");
+>  		return 0;
+> diff --git a/drivers/cxl/core/hdm.c b/drivers/cxl/core/hdm.c
+> index c0164f9b2195..672bf3e97811 100644
+> --- a/drivers/cxl/core/hdm.c
+> +++ b/drivers/cxl/core/hdm.c
+> @@ -50,8 +50,9 @@ static int add_hdm_decoder(struct cxl_port *port, struct cxl_decoder *cxld,
+>  int devm_cxl_add_passthrough_decoder(struct cxl_port *port)
+>  {
+>  	struct cxl_switch_decoder *cxlsd;
+> -	struct cxl_dport *dport;
+> +	struct cxl_dport *dport = NULL;
+>  	int single_port_map[1];
+> +	unsigned long index;
+>  
+>  	cxlsd = cxl_switch_decoder_alloc(port, 1);
+>  	if (IS_ERR(cxlsd))
+> @@ -59,7 +60,8 @@ int devm_cxl_add_passthrough_decoder(struct cxl_port *port)
+>  
+>  	device_lock_assert(&port->dev);
+>  
+> -	dport = list_first_entry(&port->dports, typeof(*dport), list);
+> +	xa_for_each(&port->dports, index, dport)
+> +		break;
+>  	single_port_map[0] = dport->port_id;
+>  
+>  	return add_hdm_decoder(port, &cxlsd->cxld, single_port_map);
 > diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
-> index b51eb41aa839..13c321afe076 100644
+> index ea3ab9baf232..d2f6898940fa 100644
 > --- a/drivers/cxl/core/port.c
 > +++ b/drivers/cxl/core/port.c
-> @@ -271,12 +271,6 @@ bool is_root_decoder(struct device *dev)
+> @@ -452,6 +452,7 @@ static void cxl_port_release(struct device *dev)
+>  	xa_for_each(&port->endpoints, index, ep)
+>  		cxl_ep_remove(port, ep);
+>  	xa_destroy(&port->endpoints);
+> +	xa_destroy(&port->dports);
+>  	ida_free(&cxl_port_ida, port->id);
+>  	kfree(port);
 >  }
->  EXPORT_SYMBOL_NS_GPL(is_root_decoder, CXL);
-> =20
-> -bool is_cxl_decoder(struct device *dev)
-> -{
-> -	return dev->type && dev->type->release =3D=3D cxl_decoder_release;
-> -}
-> -EXPORT_SYMBOL_NS_GPL(is_cxl_decoder, CXL);
-> -
->  struct cxl_decoder *to_cxl_decoder(struct device *dev)
+> @@ -566,7 +567,7 @@ static struct cxl_port *cxl_port_alloc(struct device *uport,
+>  	port->component_reg_phys = component_reg_phys;
+>  	ida_init(&port->decoder_ida);
+>  	port->dpa_end = -1;
+> -	INIT_LIST_HEAD(&port->dports);
+> +	xa_init(&port->dports);
+>  	xa_init(&port->endpoints);
+>  
+>  	device_initialize(dev);
+> @@ -696,17 +697,13 @@ static int match_root_child(struct device *dev, const void *match)
+>  		return 0;
+>  
+>  	port = to_cxl_port(dev);
+> -	device_lock(dev);
+> -	list_for_each_entry(dport, &port->dports, list) {
+> -		iter = match;
+> -		while (iter) {
+> -			if (iter == dport->dport)
+> -				goto out;
+> -			iter = iter->parent;
+> -		}
+> +	iter = match;
+> +	while (iter) {
+> +		dport = cxl_dport_load(port, iter);
+> +		if (dport)
+> +			break;
+> +		iter = iter->parent;
+>  	}
+> -out:
+> -	device_unlock(dev);
+>  
+>  	return !!iter;
+>  }
+> @@ -730,9 +727,10 @@ EXPORT_SYMBOL_NS_GPL(find_cxl_root, CXL);
+>  static struct cxl_dport *find_dport(struct cxl_port *port, int id)
 >  {
->  	if (dev_WARN_ONCE(dev, dev->type->release !=3D cxl_decoder_release,
-> diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
-> index 35ce17872fc1..6e08fe8cc0fe 100644
-> --- a/drivers/cxl/cxl.h
-> +++ b/drivers/cxl/cxl.h
-> @@ -337,7 +337,6 @@ struct cxl_dport *cxl_find_dport_by_dev(struct cxl_po=
-rt *port,
->  struct cxl_decoder *to_cxl_decoder(struct device *dev);
->  bool is_root_decoder(struct device *dev);
->  bool is_endpoint_decoder(struct device *dev);
-> -bool is_cxl_decoder(struct device *dev);
->  struct cxl_decoder *cxl_root_decoder_alloc(struct cxl_port *port,
->  					   unsigned int nr_targets);
->  struct cxl_decoder *cxl_switch_decoder_alloc(struct cxl_port *port,
->=20
->
+>  	struct cxl_dport *dport;
+> +	unsigned long index;
+>  
+>  	device_lock_assert(&port->dev);
+> -	list_for_each_entry (dport, &port->dports, list)
+> +	xa_for_each(&port->dports, index, dport)
+>  		if (dport->port_id == id)
+>  			return dport;
+>  	return NULL;
+> @@ -741,18 +739,21 @@ static struct cxl_dport *find_dport(struct cxl_port *port, int id)
+>  static int add_dport(struct cxl_port *port, struct cxl_dport *new)
+>  {
+>  	struct cxl_dport *dup;
+> +	int rc;
+>  
+>  	device_lock_assert(&port->dev);
+>  	dup = find_dport(port, new->port_id);
+> -	if (dup)
+> +	if (dup) {
+>  		dev_err(&port->dev,
+>  			"unable to add dport%d-%s non-unique port id (%s)\n",
+>  			new->port_id, dev_name(new->dport),
+>  			dev_name(dup->dport));
+> -	else
+> -		list_add_tail(&new->list, &port->dports);
+> +		rc = -EBUSY;
 
-Looks good.
+Direct return slightly simpler and reduce indent on next bit plus makes
+this more obviously an 'error condition' by indenting it.
 
-Reviewed by: Adam Manzanares <a.manzanares@samsung.com>=
+> +	} else
+> +		rc = xa_insert(&port->dports, (unsigned long)new->dport, new,
+> +			       GFP_KERNEL);
+>  
+> -	return dup ? -EEXIST : 0;
+> +	return rc;
+>  }
+>  
+>  /*
+> @@ -779,10 +780,8 @@ static void cxl_dport_remove(void *data)
+>  	struct cxl_dport *dport = data;
+>  	struct cxl_port *port = dport->port;
+>  
+> +	xa_erase(&port->dports, (unsigned long) dport->dport);
+>  	put_device(dport->dport);
+> -	cond_cxl_root_lock(port);
+> -	list_del(&dport->list);
+> -	cond_cxl_root_unlock(port);
+>  }
+>  
+>  static void cxl_dport_unlink(void *data)
+> @@ -834,7 +833,6 @@ struct cxl_dport *devm_cxl_add_dport(struct cxl_port *port,
+>  	if (!dport)
+>  		return ERR_PTR(-ENOMEM);
+>  
+> -	INIT_LIST_HEAD(&dport->list);
+>  	dport->dport = dport_dev;
+>  	dport->port_id = port_id;
+>  	dport->component_reg_phys = component_reg_phys;
+> @@ -925,7 +923,7 @@ static int match_port_by_dport(struct device *dev, const void *data)
+>  		return 0;
+>  
+>  	port = to_cxl_port(dev);
+> -	dport = cxl_find_dport_by_dev(port, ctx->dport_dev);
+> +	dport = cxl_dport_load(port, ctx->dport_dev);
+>  	if (ctx->dport)
+>  		*ctx->dport = dport;
+>  	return dport != NULL;
+> @@ -1025,19 +1023,27 @@ EXPORT_SYMBOL_NS_GPL(cxl_endpoint_autoremove, CXL);
+>   * for a port to be unregistered is when all memdevs beneath that port have gone
+>   * through ->remove(). This "bottom-up" removal selectively removes individual
+>   * child ports manually. This depends on devm_cxl_add_port() to not change is
+> - * devm action registration order.
+> + * devm action registration order, and for dports to have already been
+> + * destroyed by reap_dports().
+>   */
+> -static void delete_switch_port(struct cxl_port *port, struct list_head *dports)
+> +static void delete_switch_port(struct cxl_port *port)
+> +{
+> +	devm_release_action(port->dev.parent, cxl_unlink_uport, port);
+> +	devm_release_action(port->dev.parent, unregister_port, port);
+> +}
+> +
+> +static void reap_dports(struct cxl_port *port)
+>  {
+> -	struct cxl_dport *dport, *_d;
+> +	struct cxl_dport *dport;
+> +	unsigned long index;
+> +
+> +	device_lock_assert(&port->dev);
+>  
+> -	list_for_each_entry_safe(dport, _d, dports, list) {
+> +	xa_for_each(&port->dports, index, dport) {
+>  		devm_release_action(&port->dev, cxl_dport_unlink, dport);
+>  		devm_release_action(&port->dev, cxl_dport_remove, dport);
+>  		devm_kfree(&port->dev, dport);
+>  	}
+> -	devm_release_action(port->dev.parent, cxl_unlink_uport, port);
+> -	devm_release_action(port->dev.parent, unregister_port, port);
+>  }
+>  
+>  static struct cxl_ep *cxl_ep_load(struct cxl_port *port,
+> @@ -1054,8 +1060,8 @@ static void cxl_detach_ep(void *data)
+>  	for (iter = &cxlmd->dev; iter; iter = grandparent(iter)) {
+>  		struct device *dport_dev = grandparent(iter);
+>  		struct cxl_port *port, *parent_port;
+> -		LIST_HEAD(reap_dports);
+>  		struct cxl_ep *ep;
+> +		bool died = false;
+>  
+>  		if (!dport_dev)
+>  			break;
+> @@ -1095,15 +1101,16 @@ static void cxl_detach_ep(void *data)
+>  			 * enumerated port. Block new cxl_add_ep() and garbage
+>  			 * collect the port.
+>  			 */
+> +			died = true;
+>  			port->dead = true;
+> -			list_splice_init(&port->dports, &reap_dports);
+> +			reap_dports(port);
+
+I'm not immediately clear on why this refactor is tied up with moving
+to the xarray.  Perhaps a comment in the commit message to add
+more detail around this?
+
+>  		}
+>  		device_unlock(&port->dev);
+>  
+> -		if (!list_empty(&reap_dports)) {
+> +		if (died) {
+>  			dev_dbg(&cxlmd->dev, "delete %s\n",
+>  				dev_name(&port->dev));
+> -			delete_switch_port(port, &reap_dports);
+> +			delete_switch_port(port);
+>  		}
+>  		put_device(&port->dev);
+>  		device_unlock(&parent_port->dev);
+> @@ -1282,23 +1289,6 @@ struct cxl_port *cxl_mem_find_port(struct cxl_memdev *cxlmd,
+>  }
+>  EXPORT_SYMBOL_NS_GPL(cxl_mem_find_port, CXL);
+>  
+> -struct cxl_dport *cxl_find_dport_by_dev(struct cxl_port *port,
+> -					const struct device *dev)
+> -{
+> -	struct cxl_dport *dport;
+> -
+> -	device_lock(&port->dev);
+> -	list_for_each_entry(dport, &port->dports, list)
+> -		if (dport->dport == dev) {
+> -			device_unlock(&port->dev);
+> -			return dport;
+> -		}
+> -
+> -	device_unlock(&port->dev);
+> -	return NULL;
+> -}
+> -EXPORT_SYMBOL_NS_GPL(cxl_find_dport_by_dev, CXL);
+> -
+>  static int decoder_populate_targets(struct cxl_switch_decoder *cxlsd,
+>  				    struct cxl_port *port, int *target_map)
+>  {
+> @@ -1309,7 +1299,7 @@ static int decoder_populate_targets(struct cxl_switch_decoder *cxlsd,
+>  
+>  	device_lock_assert(&port->dev);
+>  
+> -	if (list_empty(&port->dports))
+> +	if (xa_empty(&port->dports))
+>  		return -EINVAL;
+>  
+>  	write_seqlock(&cxlsd->target_lock);
+
