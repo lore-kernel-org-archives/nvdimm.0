@@ -1,31 +1,30 @@
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B27333EF;
-	Thu, 30 Jun 2022 14:31:56 +0000 (UTC)
-Received: from fraeml711-chm.china.huawei.com (unknown [172.18.147.200])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4LYgk02FNLz686H8;
-	Thu, 30 Jun 2022 22:31:04 +0800 (CST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD5FC6D19;
+	Thu, 30 Jun 2022 15:48:11 +0000 (UTC)
+Received: from fraeml740-chm.china.huawei.com (unknown [172.18.147.226])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4LYjPz4P6Vz67jhH;
+	Thu, 30 Jun 2022 23:47:19 +0800 (CST)
 Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
- fraeml711-chm.china.huawei.com (10.206.15.60) with Microsoft SMTP Server
+ fraeml740-chm.china.huawei.com (10.206.15.221) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.24; Thu, 30 Jun 2022 16:31:53 +0200
+ 15.1.2375.24; Thu, 30 Jun 2022 17:48:08 +0200
 Received: from localhost (10.81.200.250) by lhreml710-chm.china.huawei.com
  (10.201.108.61) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.24; Thu, 30 Jun
- 2022 15:31:52 +0100
-Date: Thu, 30 Jun 2022 15:31:50 +0100
+ 2022 16:48:07 +0100
+Date: Thu, 30 Jun 2022 16:48:05 +0100
 From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
 To: Dan Williams <dan.j.williams@intel.com>
 CC: <linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>,
-	<linux-pci@vger.kernel.org>, <patches@lists.linux.dev>, <hch@lst.de>, "Ben
- Widawsky" <bwidawsk@kernel.org>
-Subject: Re: [PATCH 38/46] cxl/region: Enable the assignment of endpoint
- decoders to regions
-Message-ID: <20220630153150.00006fa2@Huawei.com>
-In-Reply-To: <20220624041950.559155-13-dan.j.williams@intel.com>
+	<linux-pci@vger.kernel.org>, <patches@lists.linux.dev>, <hch@lst.de>
+Subject: Re: [PATCH 39/46] cxl/acpi: Add a host-bridge index lookup
+ mechanism
+Message-ID: <20220630164805.00007b0c@Huawei.com>
+In-Reply-To: <20220624041950.559155-14-dan.j.williams@intel.com>
 References: <165603869943.551046.3498980330327696732.stgit@dwillia2-xfh>
-	<20220624041950.559155-13-dan.j.williams@intel.com>
+	<20220624041950.559155-14-dan.j.williams@intel.com>
 Organization: Huawei Technologies Research and Development (UK) Ltd.
 X-Mailer: Claws Mail 4.0.0 (GTK+ 3.24.29; i686-w64-mingw32)
 Precedence: bulk
@@ -41,180 +40,79 @@ X-ClientProxiedBy: lhreml754-chm.china.huawei.com (10.201.108.204) To
  lhreml710-chm.china.huawei.com (10.201.108.61)
 X-CFilter-Loop: Reflected
 
-On Thu, 23 Jun 2022 21:19:42 -0700
+On Thu, 23 Jun 2022 21:19:43 -0700
 Dan Williams <dan.j.williams@intel.com> wrote:
 
-> The region provisioning process involves allocating DPA to a set of
-> endpoint decoders, and HPA plus the region geometry to a region device.
-> Then the decoder is assigned to the region. At this point several
-> validation steps can be performed to validate that the decoder is
-> suitable to participate in the region.
+> The ACPI CXL Fixed Memory Window Structure (CFMWS) defines multiple
+> methods to determine which host bridge provides access to a given
+> endpoint relative to that device's position in the interleave. The
+> "Interleave Arithmetic" defines either a "standard modulo" /
+> round-random algorithm, or "xormap" based algorithm which can be defined
+> as a non-linear transform. Given that there are already more options
+> beyond "standard modulo" and that "xormap" may turn out to be ACPI CXL
+> specific, provide a callback for the region provisioning code to map
+> endpoint positions back to expected host bridge id (cxl_dport target).
 > 
-> Co-developed-by: Ben Widawsky <bwidawsk@kernel.org>
-> Signed-off-by: Ben Widawsky <bwidawsk@kernel.org>
+> For now just support the simple modulo math case and save the xormap for
+> a follow-on change.
+> 
 > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+
 > ---
->  Documentation/ABI/testing/sysfs-bus-cxl |  19 ++
->  drivers/cxl/core/core.h                 |   6 +
->  drivers/cxl/core/hdm.c                  |  13 +-
->  drivers/cxl/core/port.c                 |  12 +-
->  drivers/cxl/core/region.c               | 286 +++++++++++++++++++++++-
->  drivers/cxl/cxl.h                       |  11 +
->  6 files changed, 342 insertions(+), 5 deletions(-)
+>  drivers/cxl/core/port.c | 15 +++++++++++++++
+>  drivers/cxl/cxl.h       |  2 ++
+>  2 files changed, 17 insertions(+)
 > 
-
-A few fixes seems to have ended up in wrong patch.
-Other trivial typos etc inline plus what looks to be an
-item left from a todo list...
-
-...
-
-
-> diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
-> index a604c24ff918..4830365f3857 100644
-> --- a/drivers/cxl/core/region.c
-> +++ b/drivers/cxl/core/region.c
-> @@ -24,6 +24,7 @@
->   * but is only visible for persistent regions.
->   * 1. Interleave granularity
->   * 2. Interleave size
-> + * 3. Decoder targets
->   */
->  
->  /*
-> @@ -138,6 +139,8 @@ static ssize_t interleave_ways_show(struct device *dev,
+> diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
+> index 562a6453249b..7756409d0a58 100644
+> --- a/drivers/cxl/core/port.c
+> +++ b/drivers/cxl/core/port.c
+> @@ -1422,6 +1422,20 @@ static int decoder_populate_targets(struct cxl_switch_decoder *cxlsd,
 >  	return rc;
 >  }
 >  
-> +static const struct attribute_group *get_cxl_region_target_group(void);
+> +static struct cxl_dport *cxl_hb_modulo(struct cxl_root_decoder *cxlrd, int pos)
+> +{
+> +	struct cxl_switch_decoder *cxlsd = &cxlrd->cxlsd;
+> +	struct cxl_decoder *cxld = &cxlsd->cxld;
+> +	int iw;
 > +
->  static ssize_t interleave_ways_store(struct device *dev,
->  				     struct device_attribute *attr,
->  				     const char *buf, size_t len)
-> @@ -146,7 +149,7 @@ static ssize_t interleave_ways_store(struct device *dev,
->  	struct cxl_decoder *cxld = &cxlrd->cxlsd.cxld;
->  	struct cxl_region *cxlr = to_cxl_region(dev);
->  	struct cxl_region_params *p = &cxlr->params;
-> -	int rc, val;
-> +	int rc, val, save;
->  	u8 iw;
+> +	iw = cxld->interleave_ways;
+> +	if (dev_WARN_ONCE(&cxld->dev, iw != cxlsd->nr_targets,
+> +			  "misconfigured root decoder\n"))
+> +		return NULL;
+> +
+> +	return cxlrd->cxlsd.target[pos % iw];
+> +}
+> +
+>  static struct lock_class_key cxl_decoder_key;
 >  
->  	rc = kstrtoint(buf, 0, &val);
-> @@ -175,9 +178,13 @@ static ssize_t interleave_ways_store(struct device *dev,
->  		goto out;
->  	}
->  
-> +	save = p->interleave_ways;
->  	p->interleave_ways = val;
-> +	rc = sysfs_update_group(&cxlr->dev.kobj, get_cxl_region_target_group());
-> +	if (rc)
-> +		p->interleave_ways = save;
->  out:
-> -	up_read(&cxl_region_rwsem);
-> +	up_write(&cxl_region_rwsem);
-
-Bug in earlier patch?
-
->  	if (rc)
->  		return rc;
->  	return len;
-> @@ -234,7 +241,7 @@ static ssize_t interleave_granularity_store(struct device *dev,
->  
->  	p->interleave_granularity = val;
->  out:
-> -	up_read(&cxl_region_rwsem);
-> +	up_write(&cxl_region_rwsem);
-
-Bug in earlier patch? 
-
->  	if (rc)
->  		return rc;
->  	return len;
-> @@ -393,9 +400,262 @@ static const struct attribute_group cxl_region_group = {
->  	.is_visible = cxl_region_visible,
+>  /**
+> @@ -1466,6 +1480,7 @@ static struct cxl_decoder *cxl_decoder_alloc(struct cxl_port *port,
+>  				if (rc < 0)
+>  					goto err;
+>  				atomic_set(&cxlrd->region_id, rc);
+> +				cxlrd->calc_hb = cxl_hb_modulo;
+>  			} else
+>  				cxlsd = NULL;
+>  		} else {
+> diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
+> index 9340deccad4f..30227348f768 100644
+> --- a/drivers/cxl/cxl.h
+> +++ b/drivers/cxl/cxl.h
+> @@ -315,11 +315,13 @@ struct cxl_switch_decoder {
+>   * struct cxl_root_decoder - Static platform CXL address decoder
+>   * @res: host / parent resource for region allocations
+>   * @region_id: region id for next region provisioning event
+> + * @calc_hb: which host bridge covers the n'th position by granularity
+>   * @cxlsd: base cxl switch decoder
+>   */
+>  struct cxl_root_decoder {
+>  	struct resource *res;
+>  	atomic_t region_id;
+> +	struct cxl_dport *(*calc_hb)(struct cxl_root_decoder *cxlrd, int pos);
+>  	struct cxl_switch_decoder cxlsd;
 >  };
-
-...
-
-> +/*
-> + * - Check that the given endpoint is attached to a host-bridge identified
-> + *   in the root interleave.
-
- Comment on something to fix?  Or stale comment that can be dropped?
-
-> + */
-> +static int cxl_region_attach(struct cxl_region *cxlr,
-> +			     struct cxl_endpoint_decoder *cxled, int pos)
-> +{
-> +	struct cxl_region_params *p = &cxlr->params;
-> +
-> +	if (cxled->mode == CXL_DECODER_DEAD) {
-> +		dev_dbg(&cxlr->dev, "%s dead\n", dev_name(&cxled->cxld.dev));
-> +		return -ENODEV;
-> +	}
-> +
-> +	if (pos >= p->interleave_ways) {
-> +		dev_dbg(&cxlr->dev, "position %d out of range %d\n", pos,
-> +			p->interleave_ways);
-> +		return -ENXIO;
-> +	}
-> +
-> +	if (p->targets[pos] == cxled)
-> +		return 0;
-> +
-> +	if (p->targets[pos]) {
-> +		struct cxl_endpoint_decoder *cxled_target = p->targets[pos];
-> +		struct cxl_memdev *cxlmd_target = cxled_to_memdev(cxled_target);
-> +
-> +		dev_dbg(&cxlr->dev, "position %d already assigned to %s:%s\n",
-> +			pos, dev_name(&cxlmd_target->dev),
-> +			dev_name(&cxled_target->cxld.dev));
-> +		return -EBUSY;
-> +	}
-> +
-> +	p->targets[pos] = cxled;
-> +	cxled->pos = pos;
-> +	p->nr_targets++;
-> +
-> +	return 0;
-> +}
-> +
-> +static void cxl_region_detach(struct cxl_endpoint_decoder *cxled)
-> +{
-> +	struct cxl_region *cxlr = cxled->cxld.region;
-> +	struct cxl_region_params *p;
-> +
-> +	lockdep_assert_held_write(&cxl_region_rwsem);
-> +
-> +	if (!cxlr)
-> +		return;
-> +
-> +	p = &cxlr->params;
-> +	get_device(&cxlr->dev);
-> +
-> +	if (cxled->pos < 0 || cxled->pos >= p->interleave_ways ||
-> +	    p->targets[cxled->pos] != cxled) {
-> +		struct cxl_memdev *cxlmd = cxled_to_memdev(cxled);
-> +
-> +		dev_WARN_ONCE(&cxlr->dev, 1, "expected %s:%s at position %d\n",
-> +			      dev_name(&cxlmd->dev), dev_name(&cxled->cxld.dev),
-> +			      cxled->pos);
-> +		goto out;
-> +	}
-> +
-> +	p->targets[cxled->pos] = NULL;
-> +	p->nr_targets--;
-> +
-> +	/* notify the region driver that one of its targets has deparated */
-
-departed?
-
-> +	up_write(&cxl_region_rwsem);
-> +	device_release_driver(&cxlr->dev);
-> +	down_write(&cxl_region_rwsem);
-> +out:
-> +	put_device(&cxlr->dev);
-> +}
-> +
-
+>  
 
