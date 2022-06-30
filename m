@@ -1,151 +1,183 @@
-Received: from mx0b-00069f02.pphosted.com (mx0b-00069f02.pphosted.com [205.220.177.32])
+Received: from out02.mta.xmission.com (out02.mta.xmission.com [166.70.13.232])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ECB3F7E9
-	for <nvdimm@lists.linux.dev>; Thu, 30 Jun 2022 18:34:08 +0000 (UTC)
-Received: from pps.filterd (m0246631.ppops.net [127.0.0.1])
-	by mx0b-00069f02.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 25UITn8C024971;
-	Thu, 30 Jun 2022 18:34:07 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
- subject : date : message-id : references : in-reply-to : content-type :
- content-id : content-transfer-encoding : mime-version; s=corp-2021-07-09;
- bh=Bf8QpExTn1xuQXEX7VzHq84T+4CUdmMAMsEbV5ydTVI=;
- b=aj1BdgJ7n5P0+a8m9GfF9Dj+VAiVCHpQszUFaMs24WBNy76z8xuHFIuiDADgP7m3Qq/8
- SCS5vd26EIdmFDp93d2aoMUh4M+k7sPfD14X9/q0oAhP49daZZ4sim5qpae8Ja12ThKW
- y8yA+3UDUtVa+K7RZYTfKWXOc3jzJudnlttRD1g2WxL+YwGLfjBmwKBWJ7eEniqD8Z7t
- oSseKgVw0xgcKHQ2v41UA29qmtGya4dPkQRudr+BzQEOromYZGEH4YVQx/cBCPkcdrbC
- m+YVTLihx2snXsnJtG9gtaqE4Uu5B37Bwjs3WX/HSkb2o46hg1R3LYLyjUjTEujlUOUQ Jg== 
-Received: from iadpaimrmta03.imrmtpd1.prodappiadaev1.oraclevcn.com (iadpaimrmta03.appoci.oracle.com [130.35.103.27])
-	by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 3gws52n7dr-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Thu, 30 Jun 2022 18:34:06 +0000
-Received: from pps.filterd (iadpaimrmta03.imrmtpd1.prodappiadaev1.oraclevcn.com [127.0.0.1])
-	by iadpaimrmta03.imrmtpd1.prodappiadaev1.oraclevcn.com (8.16.1.2/8.16.1.2) with SMTP id 25UI5BP1036651;
-	Thu, 30 Jun 2022 18:34:06 GMT
-Received: from nam10-bn7-obe.outbound.protection.outlook.com (mail-bn7nam10lp2104.outbound.protection.outlook.com [104.47.70.104])
-	by iadpaimrmta03.imrmtpd1.prodappiadaev1.oraclevcn.com with ESMTP id 3gwrta1cse-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Thu, 30 Jun 2022 18:34:06 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=AeBp/P+xy9Q+ZSBwaBM/HsudmXd/GF1w8ET+fZpvd0BjqhSTPwzlYARFADMHawh7VS8IJEMnZ8onY49DOnPQ8/0P0p49/9qpqFqInjs3+CmOcZneiHNI4FxZb7iEp0TE37/Hfk3gYeEj699Pk5BgSAzQ2cQOpD1Oby4YtnA6b2kYLOdIUw/Zw/Z3lyRCh3rAyrEYez7o9rcwuuC9e+QE+J+0rG7A7yGH2U5mjSTN4pkjHZzZ9q/A+yviqae9L7kNL6mSlzcMeP5SMoe0ChEyZVtJHCb+LA92LXqju5AvFkIJSd8VGRmWNrsX8K0688wLnuFSbXVl8p+Vzl2W18Tj5w==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=Bf8QpExTn1xuQXEX7VzHq84T+4CUdmMAMsEbV5ydTVI=;
- b=cKj7/HX8Uv+M9k6pETwbtYJKnG2qiMSasRBcC7rq7S3YUYQZFXmqDRw/8URMTsMAJncFoOJrbDRE/Q3b7Gw1AVsGXFCncMJ7rPiTNHZVJ26sJJWqU9ObEhs310jf1g1bCE13GO1BBE/lly/91GQbr7tZOD/RgqdM4w3Xgo5568iR0KCXwelFlB7dn/gEa+z/HEMLEvXNSVV2Ct94QFd4Cz/HQyRIZEiDnX2Z5vor5muLdYezUHE1BY7vphfSgUB6X1SkxGOshQYmMxFTz7YbxN98QYEQaXdBUxzoaMU6cxFRAAYYWIawlSheY3j0ns+vehftG+9yhvFTKBndHsXzGw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
- dkim=pass header.d=oracle.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=Bf8QpExTn1xuQXEX7VzHq84T+4CUdmMAMsEbV5ydTVI=;
- b=jllVyrXWAFfif+tUzpWzkbaFJczXQwHUw+D6MvXaTvCrtFmUAVT+l4YrnVupB09v0efVq7mymKaMtxzuR0Tu7xuHOiGxzDOtNhcM1pNWO81XxvBHajbx+gUJGpc+ZTyVEZAfchyosNlKc2uBSJhcMFi4DshofEABYdJmLco6cYg=
-Received: from SJ0PR10MB4429.namprd10.prod.outlook.com (2603:10b6:a03:2d1::14)
- by DS7PR10MB5087.namprd10.prod.outlook.com (2603:10b6:5:3b0::16) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5395.14; Thu, 30 Jun
- 2022 18:34:04 +0000
-Received: from SJ0PR10MB4429.namprd10.prod.outlook.com
- ([fe80::20c4:5b7f:ce53:eb20]) by SJ0PR10MB4429.namprd10.prod.outlook.com
- ([fe80::20c4:5b7f:ce53:eb20%9]) with mapi id 15.20.5395.014; Thu, 30 Jun 2022
- 18:34:04 +0000
-From: Jane Chu <jane.chu@oracle.com>
-To: Christoph Hellwig <hch@lst.de>
-CC: "dan.j.williams@intel.com" <dan.j.williams@intel.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>
-Subject: Re: [PATCH v2] pmem: fix a name collision
-Thread-Topic: [PATCH v2] pmem: fix a name collision
-Thread-Index: AQHYjK8rBSATsthIi0m9QeL2G5Lstq1oRVaAgAABPgA=
-Date: Thu, 30 Jun 2022 18:34:04 +0000
-Message-ID: <cb2660a6-e91d-33b2-0664-2c8924ac176c@oracle.com>
-References: <20220630182802.3250449-1-jane.chu@oracle.com>
- <20220630182937.GA19534@lst.de>
-In-Reply-To: <20220630182937.GA19534@lst.de>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.11.0
-x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: 27a5a98a-a198-436f-994a-08da5ac71c61
-x-ms-traffictypediagnostic: DS7PR10MB5087:EE_
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: 
- YrlrJgbGn0NJCksS3zwpJZmNa+YJt97CsRwDf+EgeTEzm0qk9ggaA5btcYKl4YpR/K/QIPZSyKIcNYNoegH/4wPzihcVicA5iWp6B/rhI6fEEidMgUlQzXA2JjeDeSzTkC8ZLCDOGlSBKSx+qOWpWvSOOI6yRhgH8eG+gnIqR7AEEEVy1/n61P5B8t9vRHMYptFIm9ryHN32GhXIZ+xbJXUi5wyBRnq+4tHhBwmBUTBSC5Y7yxSnyeNwBRVUgA6e8ZiY6JQLIUkDmyU34MBrVE0sQdjuZdvyMtVrMKYVHkfiyhH1K9BSDofb337Nu78idhZ+cpMn/LaF1SNskDB55N8SdSNaZ9JhI5blxjlPrkCUhb3qM5jZjrROGXXSzOMjZMJ2SsM9DMBZZ7+saC/bK9WVinZ9vwH0BqUY+eudpMqL3Hp6rvEQvB2Ma+R+Z7dHiAui0Pd205h57vWl1gzLtawls0BlA3Mttd8eP+G0hAUZcY0m1XtjFGOUrFUMVvH633w1ODAnBicoKSQ2bNKpF6RLxvAtsbby3rjIhZUdVS9nItyUhb2Ri8EqorpN3I6ZSmm2S7lOjQfuUqHblfxWvskAAYcaxf7ieEK4rE9S17EEJXunwdiC6SqEm22OHgiGih+7pefKX0OugQGOk78mzjBVNS9VDNK9bdQATKAj6+SfglFUzwrdEQD72a3Zf+lEU0yAtWC2AkhIBTBr/CsNof/pA5v+glLeGXgCr+9C5lyX+umTEzeNb7DBKs6c9nLU/CjXO/dS2QedgWrUEJqMUObKVQ4MRWgrDhc1ja2waXiQAeg3Nmo96+vW3kMD7I0A+Aig9mzS9uOGEWgFWbDmiXNF/qG0g715TbrdjndaeicW06HV7OvdoVZPZ/kmEvzY
-x-forefront-antispam-report: 
- CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SJ0PR10MB4429.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(346002)(136003)(366004)(376002)(39860400002)(396003)(26005)(53546011)(6486002)(478600001)(41300700001)(558084003)(186003)(44832011)(86362001)(6506007)(2616005)(6512007)(2906002)(8936002)(5660300002)(71200400001)(31696002)(66446008)(8676002)(6916009)(4326008)(54906003)(64756008)(316002)(122000001)(76116006)(66556008)(66946007)(38100700002)(31686004)(36756003)(66476007)(38070700005)(45980500001)(43740500002);DIR:OUT;SFP:1101;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0: 
- =?utf-8?B?NjJZL25oUVUyNVYyaDd2bkJXb2d3M1YxNWRTRFdCWGxBUzBWTWhHSXlIWnly?=
- =?utf-8?B?L3VaeEJiS3IrQldVeHZHVTJLTG0rOG5hck1rSVBJeXU3Ym9ZbXlwN2o1c2I1?=
- =?utf-8?B?NENZT1JmbnhWWVN2ZDVLbHlMZHF4cTdtNFo1aVBxTm9QbHJZOWJtK3FEYm1T?=
- =?utf-8?B?YkxuSnEzUkJXUThEVEs1OTZoazlOeDhIUWF2QzVDVkpMa0UyRkFncTRBazlO?=
- =?utf-8?B?SHZTUkJYT1QvRVQvSGRtcXJ3dXNVNzNFOGFiZ1VFcjlTc1F3ZFNZVFp5OEhj?=
- =?utf-8?B?bXFRYWlSS29YL05aQU9yV29jNFk4bXEvYndZRTVmemc5Vk5IcW8yVHRYOCtn?=
- =?utf-8?B?YnZFUDRzMkFsRld2Z2FyQ0VyT0s0ZGF4OVd6bnBSOTNBTFF4TlVJd2xmamdC?=
- =?utf-8?B?Rnc1Rzd4QUk4VytaYW1IV2xtMVI4bXhoU0MyUUlYcGdhdUg2SGczdHN4K1lm?=
- =?utf-8?B?Mk9zemhYUS8waXVVbFgwdGdCNnFZM2ZzSGgwSVV3VjRvL1FpWS9rcmQ5Mmdu?=
- =?utf-8?B?RzR0Nm1xSmt5clE4ZERINkdHYkhMS3VjVUtPcVZhYnF3QVkxU2tHZUhBaFVN?=
- =?utf-8?B?ZXhiMXR2N0xZc0lMVndESm1wc2ovbWllNUJWcG81c0FaWlB4VzFWU2tGVmps?=
- =?utf-8?B?Rndkb0hOTENpWGp2WkZKRzdjbHRZTDJ1Ui93VHViUVI4N004Z1VrTWE0UzEw?=
- =?utf-8?B?bEM5cTM3UVhXSlhFSXVLWkdTbEFsMHZ2VWFCVTdaaFFscDBocUV5R3RDTXcr?=
- =?utf-8?B?OGZtUHhOLzlyVy9SNWNnODgxUytqSDZyeXVITzJKSk52dEhwZDdDNjloeFlx?=
- =?utf-8?B?c09QOGlsQnprUFlhTXVrdUZyUGxzbkdUcGlRb2FJVm9qVm42dXdzYy9lOHVp?=
- =?utf-8?B?T3RLY0QybEpxTElqMHhJblJnNlBrWVZFeU1NTVNYNmJaNy9uNGJweS9kYk5j?=
- =?utf-8?B?d1ZQVDhpMGpMS2MzMVVkRVAwM1BOWmM4M1lnMU8rbm9ma1RzQmZrYnpnMVI2?=
- =?utf-8?B?UFVmU0oxRVY1TC9JTVA5K3VOZnd5dzZyRzhVdlVJSURNSjJ2NFQ0dlNKRFN0?=
- =?utf-8?B?eGpmcTVzSVdZT3hyNlJlRS9MNlh0ODFyak5KVlY5OTdmMjVYa05uT1llLzk2?=
- =?utf-8?B?RCtDeExMYkdjMmE0MVNqbjRScFh3VURJcmRlaCsycTcwcFRjeUZCaDFseU03?=
- =?utf-8?B?Y21MU3pkaE1yVm1VRU5DdjlPejN5WnBTVFhwYjBiVE5ISmlSTzgwd2RDWGgx?=
- =?utf-8?B?cjBSRjhWWGVmeUljbGJKakFPcGxzemdWZEI2U05qOGYxMFk2T28xQ2dFMmRa?=
- =?utf-8?B?ZHY3RkxoMlpyS1ZvQWs0WG5pSjJQZXJTdXhWN0pmYkoyM3dqbmpIcVFETURm?=
- =?utf-8?B?NGxmYzZBMitCZVlxSk4zcG1pQUU4U2tiOHA0RkxXb0tjdUtmdHIrZDcrVmVp?=
- =?utf-8?B?MDJCVDZIa1lhdWcxQUoxZW9BdEJLNndXRVRvWEsrdHRKeDdnaXgvSzZMbGJK?=
- =?utf-8?B?dEh1NTVCN2MrWFlOL0N2VG8zSWYwNDBhMnNQcHRUZ2FVN2U5ZWUxQk5ZYmpM?=
- =?utf-8?B?RXhCSUkrRys5ZjZLRzl6Z2tXUGtYZytMYW5vczlISWh4a3lZV2NyVzlRL3Q0?=
- =?utf-8?B?eVBZY20xbEErdWkrT1hrN0NQd0hjWGlTdk9Xb2lHMmQrNVVoSVlZb20rNUhz?=
- =?utf-8?B?WkdYdVdzQWJPeWVzWUZJRzByVzZUR1ZRZTBKV0pGQlVkbnVHOXJuOFF3TVA5?=
- =?utf-8?B?QUdyN1ptbWxYZFdpSHNSaGIrZGNJdDV4UUxsajlkcmxDM2tlRVM2WFM2SGNX?=
- =?utf-8?B?VzIxcFpUL29HVlZUUm1sdUFXTU9ucm43cUE0TmhTem8veHVKVjBPbGxCZmVV?=
- =?utf-8?B?SWliYWNubkFIV0tIaDlSbWxNcEQ1V25hdTFRcVJ3eVJtZElEM00xY1dlanJn?=
- =?utf-8?B?ZWtuekVsVG1FK092ZUJwbkhkUXBXQlBseGpnR3FHakJzUTdxTERSRG1ObHht?=
- =?utf-8?B?eHErOW1tRnM0THhlMDFWcFlzYldaOXJZSmYzS3pPQUQ3VVJ3QWVvZEYwUjBh?=
- =?utf-8?B?QTBmNGdLUGJtWGZOVGRhY05UM0huNjlDaVV0YmlEWlgxcXJ0MllMZ1lNc1d3?=
- =?utf-8?Q?QYqg=3D?=
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <8E5D874576DC414D8A3EA9FD27C2E9EE@namprd10.prod.outlook.com>
-Content-Transfer-Encoding: base64
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC2CC3D83;
+	Thu, 30 Jun 2022 18:46:43 +0000 (UTC)
+Received: from in02.mta.xmission.com ([166.70.13.52]:44732)
+	by out02.mta.xmission.com with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.93)
+	(envelope-from <ebiederm@xmission.com>)
+	id 1o6yLn-0020mB-0Z; Thu, 30 Jun 2022 11:53:11 -0600
+Received: from ip68-227-174-4.om.om.cox.net ([68.227.174.4]:58068 helo=email.froward.int.ebiederm.org.xmission.com)
+	by in02.mta.xmission.com with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.93)
+	(envelope-from <ebiederm@xmission.com>)
+	id 1o6yLl-001wdx-Pt; Thu, 30 Jun 2022 11:53:10 -0600
+From: "Eric W. Biederman" <ebiederm@xmission.com>
+To: "Fabio M. De Francesco" <fmdefrancesco@gmail.com>
+Cc: Benjamin LaHaise <bcrl@kvack.org>,  Alexander Viro
+ <viro@zeniv.linux.org.uk>,  Kees Cook <keescook@chromium.org>,  Dan
+ Williams <dan.j.williams@intel.com>,  Matthew Wilcox
+ <willy@infradead.org>,  Jan Kara <jack@suse.cz>,  Jeff Layton
+ <jlayton@kernel.org>,  Chuck Lever <chuck.lever@oracle.com>,  Jens Axboe
+ <axboe@kernel.dk>,  Pavel Begunkov <asml.silence@gmail.com>,  Thomas
+ Gleixner <tglx@linutronix.de>,  Paul Walmsley <paul.walmsley@sifive.com>,
+  Palmer Dabbelt <palmer@dabbelt.com>,  Albert Ou <aou@eecs.berkeley.edu>,
+  Nathan Chancellor <nathan@kernel.org>,  Nick Desaulniers
+ <ndesaulniers@google.com>,  Tom Rix <trix@redhat.com>,
+  linux-aio@kvack.org,  linux-fsdevel@vger.kernel.org,
+  linux-kernel@vger.kernel.org,  linux-mm@kvack.org,
+  nvdimm@lists.linux.dev,  io-uring@vger.kernel.org,
+  linux-riscv@lists.infradead.org,  llvm@lists.linux.dev,  Ira Weiny
+ <ira.weiny@intel.com>
+References: <20220630163527.9776-1-fmdefrancesco@gmail.com>
+Date: Thu, 30 Jun 2022 12:38:08 -0500
+In-Reply-To: <20220630163527.9776-1-fmdefrancesco@gmail.com> (Fabio M. De
+	Francesco's message of "Thu, 30 Jun 2022 18:35:27 +0200")
+Message-ID: <8735fmqcfz.fsf@email.froward.int.ebiederm.org>
+User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/27.1 (gnu/linux)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-OriginatorOrg: oracle.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: SJ0PR10MB4429.namprd10.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 27a5a98a-a198-436f-994a-08da5ac71c61
-X-MS-Exchange-CrossTenant-originalarrivaltime: 30 Jun 2022 18:34:04.6871
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: wxLPlDhDtY0+9u5jDMjnI7WOVkn/bznB7b7/E+uenLM+5VS5GJ8dg31qeq0tUQECwXkWrLgWKHU0bU9EIOGPMQ==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS7PR10MB5087
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.517,18.0.883
- definitions=2022-06-30_12:2022-06-28,2022-06-30 signatures=0
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxlogscore=927 suspectscore=0
- mlxscore=0 phishscore=0 malwarescore=0 adultscore=0 spamscore=0
- bulkscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2204290000 definitions=main-2206300071
-X-Proofpoint-ORIG-GUID: Z1tgvfwFjWtjiVSHn1n44AuG0wPhaiAO
-X-Proofpoint-GUID: Z1tgvfwFjWtjiVSHn1n44AuG0wPhaiAO
+Content-Type: text/plain
+X-XM-SPF: eid=1o6yLl-001wdx-Pt;;;mid=<8735fmqcfz.fsf@email.froward.int.ebiederm.org>;;;hst=in02.mta.xmission.com;;;ip=68.227.174.4;;;frm=ebiederm@xmission.com;;;spf=softfail
+X-XM-AID: U2FsdGVkX19nGDcBXv1cJKDV99uQtYu50l8eqi94dLE=
+X-SA-Exim-Connect-IP: 68.227.174.4
+X-SA-Exim-Mail-From: ebiederm@xmission.com
+X-Spam-Checker-Version: SpamAssassin 3.4.2 (2018-09-13) on sa06.xmission.com
+X-Spam-Level: ****
+X-Spam-Status: No, score=4.0 required=8.0 tests=ALL_TRUSTED,BAYES_50,
+	DCC_CHECK_NEGATIVE,T_SCC_BODY_TEXT_LINE,T_TM2_M_HEADER_IN_MSG,
+	T_TooManySym_01,T_TooManySym_02,T_TooManySym_03,T_TooManySym_04,
+	T_TooManySym_05,T_XMDrugObfuBody_08,XMSubLong,XM_SPF_SoftFail
+	autolearn=disabled version=3.4.2
+X-Spam-Report: 
+	* -1.0 ALL_TRUSTED Passed through trusted hosts only via SMTP
+	*  0.8 BAYES_50 BODY: Bayes spam probability is 40 to 60%
+	*      [score: 0.4754]
+	*  0.7 XMSubLong Long Subject
+	*  0.0 T_TM2_M_HEADER_IN_MSG BODY: No description available.
+	* -0.0 DCC_CHECK_NEGATIVE Not listed in DCC
+	*      [sa06 1397; Body=1 Fuz1=1 Fuz2=1]
+	*  0.0 T_TooManySym_04 7+ unique symbols in subject
+	*  0.0 T_TooManySym_05 8+ unique symbols in subject
+	*  0.0 T_TooManySym_01 4+ unique symbols in subject
+	*  2.5 XM_SPF_SoftFail SPF-SoftFail
+	*  0.0 T_TooManySym_02 5+ unique symbols in subject
+	*  1.0 T_XMDrugObfuBody_08 obfuscated drug references
+	* -0.0 T_SCC_BODY_TEXT_LINE No description available.
+	*  0.0 T_TooManySym_03 6+ unique symbols in subject
+X-Spam-DCC: XMission; sa06 1397; Body=1 Fuz1=1 Fuz2=1 
+X-Spam-Combo: ****;"Fabio M. De Francesco" <fmdefrancesco@gmail.com>
+X-Spam-Relay-Country: 
+X-Spam-Timing: total 601 ms - load_scoreonly_sql: 0.07 (0.0%),
+	signal_user_changed: 11 (1.8%), b_tie_ro: 9 (1.6%), parse: 1.61 (0.3%),
+	 extract_message_metadata: 20 (3.3%), get_uri_detail_list: 3.2 (0.5%),
+	tests_pri_-1000: 17 (2.9%), tests_pri_-950: 1.40 (0.2%),
+	tests_pri_-900: 1.10 (0.2%), tests_pri_-90: 109 (18.1%), check_bayes:
+	107 (17.7%), b_tokenize: 12 (1.9%), b_tok_get_all: 10 (1.7%),
+	b_comp_prob: 4.7 (0.8%), b_tok_touch_all: 76 (12.6%), b_finish: 1.04
+	(0.2%), tests_pri_0: 426 (70.8%), check_dkim_signature: 0.89 (0.1%),
+	check_dkim_adsp: 3.2 (0.5%), poll_dns_idle: 0.80 (0.1%), tests_pri_10:
+	2.1 (0.4%), tests_pri_500: 8 (1.3%), rewrite_mail: 0.00 (0.0%)
+Subject: Re: [PATCH] fs: Replace kmap{,_atomic}() with kmap_local_page()
+X-SA-Exim-Version: 4.2.1 (built Sat, 08 Feb 2020 21:53:50 +0000)
+X-SA-Exim-Scanned: Yes (on in02.mta.xmission.com)
 
-T24gNi8zMC8yMDIyIDExOjI5IEFNLCBDaHJpc3RvcGggSGVsbHdpZyB3cm90ZToNCj4gTG9va3Mg
-Z29vZDoNCj4gDQo+IFJldmlld2VkLWJ5OiBDaHJpc3RvcGggSGVsbHdpZyA8aGNoQGxzdC5kZT4N
-Cg0KVGhhbmsgeW91IQ0KLWphbmUNCg==
+"Fabio M. De Francesco" <fmdefrancesco@gmail.com> writes:
+
+> The use of kmap() and kmap_atomic() are being deprecated in favor of
+> kmap_local_page().
+>
+> With kmap_local_page(), the mappings are per thread, CPU local and not
+> globally visible. Furthermore, the mappings can be acquired from any
+> context (including interrupts).
+>
+> Therefore, use kmap_local_page() in exec.c because these mappings are per
+> thread, CPU local, and not globally visible.
+>
+> Tested with xfstests on a QEMU + KVM 32-bits VM booting a kernel with
+> HIGHMEM64GB enabled.
+
+Can someone please refresh my memory on what is going on.
+
+I remember there were limitations that kmap_atomic had that are hard to
+meet so something I think it was kmap_local was invented and created
+to be the kmap_atomic replacement.
+
+What are the requirements on kmap_local?  In copy_strings
+kmap is called in contexts that can sleep in page faults so any
+nearly any requirement except a thread local use is invalidated.
+
+As you have described kmap_local above it does not sound like kmap_local
+is safe in this context, but that could just be a problem in description
+that my poor memory does is not recalling the necessary details to
+correct.
+
+Eric
+
+> Suggested-by: Ira Weiny <ira.weiny@intel.com>
+> Signed-off-by: Fabio M. De Francesco <fmdefrancesco@gmail.com>
+> ---
+>  fs/exec.c | 14 +++++++-------
+>  1 file changed, 7 insertions(+), 7 deletions(-)
+>
+> diff --git a/fs/exec.c b/fs/exec.c
+> index 0989fb8472a1..4a2129c0d422 100644
+> --- a/fs/exec.c
+> +++ b/fs/exec.c
+> @@ -583,11 +583,11 @@ static int copy_strings(int argc, struct user_arg_ptr argv,
+>  
+>  				if (kmapped_page) {
+>  					flush_dcache_page(kmapped_page);
+> -					kunmap(kmapped_page);
+> +					kunmap_local(kaddr);
+>  					put_arg_page(kmapped_page);
+>  				}
+>  				kmapped_page = page;
+> -				kaddr = kmap(kmapped_page);
+> +				kaddr = kmap_local_page(kmapped_page);
+>  				kpos = pos & PAGE_MASK;
+>  				flush_arg_page(bprm, kpos, kmapped_page);
+>  			}
+> @@ -601,7 +601,7 @@ static int copy_strings(int argc, struct user_arg_ptr argv,
+>  out:
+>  	if (kmapped_page) {
+>  		flush_dcache_page(kmapped_page);
+> -		kunmap(kmapped_page);
+> +		kunmap_local(kaddr);
+>  		put_arg_page(kmapped_page);
+>  	}
+>  	return ret;
+> @@ -883,11 +883,11 @@ int transfer_args_to_stack(struct linux_binprm *bprm,
+>  
+>  	for (index = MAX_ARG_PAGES - 1; index >= stop; index--) {
+>  		unsigned int offset = index == stop ? bprm->p & ~PAGE_MASK : 0;
+> -		char *src = kmap(bprm->page[index]) + offset;
+> +		char *src = kmap_local_page(bprm->page[index]) + offset;
+>  		sp -= PAGE_SIZE - offset;
+>  		if (copy_to_user((void *) sp, src, PAGE_SIZE - offset) != 0)
+>  			ret = -EFAULT;
+> -		kunmap(bprm->page[index]);
+> +		kunmap_local(src);
+>  		if (ret)
+>  			goto out;
+>  	}
+> @@ -1680,13 +1680,13 @@ int remove_arg_zero(struct linux_binprm *bprm)
+>  			ret = -EFAULT;
+>  			goto out;
+>  		}
+> -		kaddr = kmap_atomic(page);
+> +		kaddr = kmap_local_page(page);
+>  
+>  		for (; offset < PAGE_SIZE && kaddr[offset];
+>  				offset++, bprm->p++)
+>  			;
+>  
+> -		kunmap_atomic(kaddr);
+> +		kunmap_local(kaddr);
+>  		put_arg_page(page);
+>  	} while (offset == PAGE_SIZE);
