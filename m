@@ -1,158 +1,448 @@
-Received: from mail-wm1-f46.google.com (mail-wm1-f46.google.com [209.85.128.46])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE1267B;
-	Thu, 30 Jun 2022 16:35:35 +0000 (UTC)
-Received: by mail-wm1-f46.google.com with SMTP id l68so6660147wml.3;
-        Thu, 30 Jun 2022 09:35:35 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=lZIrTmlOnvUkLrFbSOhPtwGibISpt/RODIchaEd1CDY=;
-        b=gvOxH2z87z7QsFkRgTQuNhQyyz+dHV1+8rh1sM7GpDupM74IOa6Ym2zyVx4Y0mEnkA
-         xFy3h+4BLgQAGQb7kHWwxfMcgIUz4Tef84LuOZORClSobvlsqYZZA4JRBDfKNY3iS9A8
-         W3vDemOPYtYp6bt4LA+muwinmH5c50oo9YbK3ghNa7sz/mzg54ZgVTtrFKX2Cgzw+P3N
-         ELSRjvVF4ivQ1YmTMe+MNMmYKoyNYpV+LtXu6h2BXUafKGQrVOGF0X6LVvrsdTzc/XfD
-         EcDDOVPqA+9w2kvc7GCTWMKYCQjY0KUvF3eMQA1meIaibaLIqLPbyUm6YJoKiAbmsj+a
-         uGnA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=lZIrTmlOnvUkLrFbSOhPtwGibISpt/RODIchaEd1CDY=;
-        b=W2jsSNnaYrLwpbKkLNqdtIJ/60IEKxIa64JCsfIbRcdE0xySu0gK+9zk3d11scG9Yg
-         aHqXorx5i/PTfcWANKkCVWoYQsuE/CUWpvxoO7MkuYrRxOsJTugiM4LEBSS0vXm+8oQR
-         QukFmvgDE/aH96kVh+9c25tivstLE9+tjfmiEl2oGx4tG/Uf0Gdbdrk6Q+nk04deFxXE
-         at47ywlb4dw3j21urQWF7m9r45XWkNTJBN1gwQ1qAiLB7eiNoj3NhHgq6x34ziJ6Nq39
-         BJuMGzGHT02s0WUWdszkDqn+Tf5Xky5nmYL6xd56ZM4f6FwEwz72n/IkOq0VghbRPjLM
-         +cQA==
-X-Gm-Message-State: AJIora+Lj42/DZGfM1op+MCbd+wvn3gbSTVP1CcPdOlC1/unGX4SAGLf
-	vqx7muzU93ax17EWTVj1cFo=
-X-Google-Smtp-Source: AGRyM1sQNe4+WIPmqW10XET/JjOyzodgMYKlJLfdcugPO9fE6FCvfEevPFPhlgS/sBSR469fLSNDFQ==
-X-Received: by 2002:a1c:4b11:0:b0:3a0:4270:fcfa with SMTP id y17-20020a1c4b11000000b003a04270fcfamr12974836wma.53.1656606933805;
-        Thu, 30 Jun 2022 09:35:33 -0700 (PDT)
-Received: from localhost.localdomain (host-87-6-98-182.retail.telecomitalia.it. [87.6.98.182])
-        by smtp.gmail.com with ESMTPSA id u3-20020a05600c210300b003a044fe7fe7sm7112303wml.9.2022.06.30.09.35.30
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 30 Jun 2022 09:35:32 -0700 (PDT)
-From: "Fabio M. De Francesco" <fmdefrancesco@gmail.com>
-To: Benjamin LaHaise <bcrl@kvack.org>,
-	Alexander Viro <viro@zeniv.linux.org.uk>,
-	Eric Biederman <ebiederm@xmission.com>,
-	Kees Cook <keescook@chromium.org>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Matthew Wilcox <willy@infradead.org>,
-	Jan Kara <jack@suse.cz>,
-	Jeff Layton <jlayton@kernel.org>,
-	Chuck Lever <chuck.lever@oracle.com>,
-	Jens Axboe <axboe@kernel.dk>,
-	Pavel Begunkov <asml.silence@gmail.com>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Paul Walmsley <paul.walmsley@sifive.com>,
-	Palmer Dabbelt <palmer@dabbelt.com>,
-	Albert Ou <aou@eecs.berkeley.edu>,
-	Nathan Chancellor <nathan@kernel.org>,
-	Nick Desaulniers <ndesaulniers@google.com>,
-	Tom Rix <trix@redhat.com>,
-	linux-aio@kvack.org,
-	linux-fsdevel@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-mm@kvack.org,
-	nvdimm@lists.linux.dev,
-	io-uring@vger.kernel.org,
-	linux-riscv@lists.infradead.org,
-	llvm@lists.linux.dev
-Cc: "Fabio M. De Francesco" <fmdefrancesco@gmail.com>,
-	Ira Weiny <ira.weiny@intel.com>
-Subject: [PATCH] fs: Replace kmap{,_atomic}() with kmap_local_page()
-Date: Thu, 30 Jun 2022 18:35:27 +0200
-Message-Id: <20220630163527.9776-1-fmdefrancesco@gmail.com>
-X-Mailer: git-send-email 2.36.1
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1477D7B;
+	Thu, 30 Jun 2022 17:05:46 +0000 (UTC)
+Received: from fraeml741-chm.china.huawei.com (unknown [172.18.147.207])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4LYl7V6mg1z687rC;
+	Fri,  1 Jul 2022 01:04:54 +0800 (CST)
+Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
+ fraeml741-chm.china.huawei.com (10.206.15.222) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.24; Thu, 30 Jun 2022 19:05:43 +0200
+Received: from localhost (10.81.200.250) by lhreml710-chm.china.huawei.com
+ (10.201.108.61) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.24; Thu, 30 Jun
+ 2022 18:05:43 +0100
+Date: Thu, 30 Jun 2022 18:05:41 +0100
+From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+To: Dan Williams <dan.j.williams@intel.com>
+CC: <linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>,
+	<linux-pci@vger.kernel.org>, <patches@lists.linux.dev>, <hch@lst.de>
+Subject: Re: [PATCH 42/46] cxl/hdm: Commit decoder state to hardware
+Message-ID: <20220630180541.0000259c@Huawei.com>
+In-Reply-To: <20220624041950.559155-17-dan.j.williams@intel.com>
+References: <165603869943.551046.3498980330327696732.stgit@dwillia2-xfh>
+	<20220624041950.559155-17-dan.j.williams@intel.com>
+Organization: Huawei Technologies Research and Development (UK) Ltd.
+X-Mailer: Claws Mail 4.0.0 (GTK+ 3.24.29; i686-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.81.200.250]
+X-ClientProxiedBy: lhreml754-chm.china.huawei.com (10.201.108.204) To
+ lhreml710-chm.china.huawei.com (10.201.108.61)
+X-CFilter-Loop: Reflected
 
-The use of kmap() and kmap_atomic() are being deprecated in favor of
-kmap_local_page().
+On Thu, 23 Jun 2022 21:19:46 -0700
+Dan Williams <dan.j.williams@intel.com> wrote:
 
-With kmap_local_page(), the mappings are per thread, CPU local and not
-globally visible. Furthermore, the mappings can be acquired from any
-context (including interrupts).
+> After all the soft validation of the region has completed, convey the
+> region configuration to hardware while being careful to commit decoders
+> in specification mandated order. In addition to programming the endpoint
+> decoder base-addres, intereleave ways and granularity, the switch
+> decoder target lists are also established.
+> 
+> While the kernel can enforce spec-mandated commit order, it can not
+> enforce spec-mandated reset order. For example, the kernel can't stop
+> someone from removing an endpoint device that is occupying decoderN in a
+> switch decoder where decoderN+1 is also committed. To reset decoderN,
+> decoderN+1 must be torn down first. That "tear down the world"
+> implementation is saved for a follow-on patch.
+> 
+> Callback operations are provided for the 'commit' and 'reset'
+> operations. While those callbacks may prove useful for CXL accelerators
+> (Type-2 devices with memory) the primary motivation is to enable a
+> simple way for cxl_test to intercept those operations.
+> 
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-Therefore, use kmap_local_page() in exec.c because these mappings are per
-thread, CPU local, and not globally visible.
+Trivial comments only in this one.
 
-Tested with xfstests on a QEMU + KVM 32-bits VM booting a kernel with
-HIGHMEM64GB enabled.
+Jonathan
 
-Suggested-by: Ira Weiny <ira.weiny@intel.com>
-Signed-off-by: Fabio M. De Francesco <fmdefrancesco@gmail.com>
----
- fs/exec.c | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+> ---
+>  Documentation/ABI/testing/sysfs-bus-cxl |  16 ++
+>  drivers/cxl/core/hdm.c                  | 218 ++++++++++++++++++++++++
+>  drivers/cxl/core/port.c                 |   1 +
+>  drivers/cxl/core/region.c               | 189 ++++++++++++++++++--
+>  drivers/cxl/cxl.h                       |  11 ++
+>  tools/testing/cxl/test/cxl.c            |  46 +++++
+>  6 files changed, 471 insertions(+), 10 deletions(-)
+> 
 
-diff --git a/fs/exec.c b/fs/exec.c
-index 0989fb8472a1..4a2129c0d422 100644
---- a/fs/exec.c
-+++ b/fs/exec.c
-@@ -583,11 +583,11 @@ static int copy_strings(int argc, struct user_arg_ptr argv,
- 
- 				if (kmapped_page) {
- 					flush_dcache_page(kmapped_page);
--					kunmap(kmapped_page);
-+					kunmap_local(kaddr);
- 					put_arg_page(kmapped_page);
- 				}
- 				kmapped_page = page;
--				kaddr = kmap(kmapped_page);
-+				kaddr = kmap_local_page(kmapped_page);
- 				kpos = pos & PAGE_MASK;
- 				flush_arg_page(bprm, kpos, kmapped_page);
- 			}
-@@ -601,7 +601,7 @@ static int copy_strings(int argc, struct user_arg_ptr argv,
- out:
- 	if (kmapped_page) {
- 		flush_dcache_page(kmapped_page);
--		kunmap(kmapped_page);
-+		kunmap_local(kaddr);
- 		put_arg_page(kmapped_page);
- 	}
- 	return ret;
-@@ -883,11 +883,11 @@ int transfer_args_to_stack(struct linux_binprm *bprm,
- 
- 	for (index = MAX_ARG_PAGES - 1; index >= stop; index--) {
- 		unsigned int offset = index == stop ? bprm->p & ~PAGE_MASK : 0;
--		char *src = kmap(bprm->page[index]) + offset;
-+		char *src = kmap_local_page(bprm->page[index]) + offset;
- 		sp -= PAGE_SIZE - offset;
- 		if (copy_to_user((void *) sp, src, PAGE_SIZE - offset) != 0)
- 			ret = -EFAULT;
--		kunmap(bprm->page[index]);
-+		kunmap_local(src);
- 		if (ret)
- 			goto out;
- 	}
-@@ -1680,13 +1680,13 @@ int remove_arg_zero(struct linux_binprm *bprm)
- 			ret = -EFAULT;
- 			goto out;
- 		}
--		kaddr = kmap_atomic(page);
-+		kaddr = kmap_local_page(page);
- 
- 		for (; offset < PAGE_SIZE && kaddr[offset];
- 				offset++, bprm->p++)
- 			;
- 
--		kunmap_atomic(kaddr);
-+		kunmap_local(kaddr);
- 		put_arg_page(page);
- 	} while (offset == PAGE_SIZE);
- 
--- 
-2.36.1
+> diff --git a/drivers/cxl/core/hdm.c b/drivers/cxl/core/hdm.c
+> index 2ee62dde8b23..72f98f1a782c 100644
+> --- a/drivers/cxl/core/hdm.c
+> +++ b/drivers/cxl/core/hdm.c
+> @@ -129,6 +129,8 @@ struct cxl_hdm *devm_cxl_setup_hdm(struct cxl_port *port)
+>  		return ERR_PTR(-ENXIO);
+>  	}
+>  
+> +	dev_set_drvdata(&port->dev, cxlhdm);
+
+Trivial, but dev == &port->dev I think so you might as well use dev.
+
+This feels like a bit of a hack as it just so happens nothing else is
+in the port drvdata.  Maybe it's better to add a pointer from
+port to cxlhdm?
+
+> +
+>  	return cxlhdm;
+>  }
+>  EXPORT_SYMBOL_NS_GPL(devm_cxl_setup_hdm, CXL);
+> @@ -444,6 +446,213 @@ int cxl_dpa_alloc(struct cxl_endpoint_decoder *cxled, unsigned long long size)
+>  	return devm_add_action_or_reset(&port->dev, cxl_dpa_release, cxled);
+>  }
+>  
+
+> +static int cxl_decoder_commit(struct cxl_decoder *cxld)
+> +{
+> +	struct cxl_port *port = to_cxl_port(cxld->dev.parent);
+> +	struct cxl_hdm *cxlhdm = dev_get_drvdata(&port->dev);
+> +	void __iomem *hdm = cxlhdm->regs.hdm_decoder;
+> +	int id = cxld->id, rc;
+> +	u64 base, size;
+> +	u32 ctrl;
+> +
+> +	if (cxld->flags & CXL_DECODER_F_ENABLE)
+> +		return 0;
+> +
+> +	if (port->commit_end + 1 != id) {
+> +		dev_dbg(&port->dev,
+> +			"%s: out of order commit, expected decoder%d.%d\n",
+> +			dev_name(&cxld->dev), port->id, port->commit_end + 1);
+> +		return -EBUSY;
+> +	}
+> +
+> +	down_read(&cxl_dpa_rwsem);
+> +	/* common decoder settings */
+> +	ctrl = readl(hdm + CXL_HDM_DECODER0_CTRL_OFFSET(cxld->id));
+> +	cxld_set_interleave(cxld, &ctrl);
+> +	cxld_set_type(cxld, &ctrl);
+> +	cxld_set_hpa(cxld, &base, &size);
+> +
+> +	writel(upper_32_bits(base), hdm + CXL_HDM_DECODER0_BASE_HIGH_OFFSET(id));
+> +	writel(lower_32_bits(base), hdm + CXL_HDM_DECODER0_BASE_LOW_OFFSET(id));
+> +	writel(upper_32_bits(size), hdm + CXL_HDM_DECODER0_SIZE_HIGH_OFFSET(id));
+> +	writel(lower_32_bits(size), hdm + CXL_HDM_DECODER0_SIZE_LOW_OFFSET(id));
+> +
+> +	if (is_switch_decoder(&cxld->dev)) {
+> +		struct cxl_switch_decoder *cxlsd =
+> +			to_cxl_switch_decoder(&cxld->dev);
+> +		void __iomem *tl_hi = hdm + CXL_HDM_DECODER0_TL_HIGH(id);
+> +		void __iomem *tl_lo = hdm + CXL_HDM_DECODER0_TL_LOW(id);
+> +		u64 targets;
+> +
+> +		rc = cxlsd_set_targets(cxlsd, &targets);
+> +		if (rc) {
+> +			dev_dbg(&port->dev, "%s: target configuration error\n",
+> +				dev_name(&cxld->dev));
+> +			goto err;
+> +		}
+> +
+> +		writel(upper_32_bits(targets), tl_hi);
+> +		writel(lower_32_bits(targets), tl_lo);
+> +	} else {
+> +		struct cxl_endpoint_decoder *cxled =
+> +			to_cxl_endpoint_decoder(&cxld->dev);
+> +		void __iomem *sk_hi = hdm + CXL_HDM_DECODER0_SKIP_HIGH(id);
+> +		void __iomem *sk_lo = hdm + CXL_HDM_DECODER0_SKIP_LOW(id);
+> +
+> +		writel(upper_32_bits(cxled->skip), sk_hi);
+> +		writel(lower_32_bits(cxled->skip), sk_lo);
+> +	}
+> +
+> +	writel(ctrl, hdm + CXL_HDM_DECODER0_CTRL_OFFSET(id));
+> +	up_read(&cxl_dpa_rwsem);
+> +
+> +	port->commit_end++;
+
+Obviously doesn't matter as resetting on error, but
+feels like the increment of commit_end++ should only follow
+succesful commit / await_commit();
+
+> +	rc = cxld_await_commit(hdm, cxld->id);
+> +err:
+> +	if (rc) {
+> +		dev_dbg(&port->dev, "%s: error %d committing decoder\n",
+> +			dev_name(&cxld->dev), rc);
+> +		cxld->reset(cxld);
+> +		return rc;
+> +	}
+> +	cxld->flags |= CXL_DECODER_F_ENABLE;
+> +
+> +	return 0;
+> +}
+> +
+> +static int cxl_decoder_reset(struct cxl_decoder *cxld)
+> +{
+> +	struct cxl_port *port = to_cxl_port(cxld->dev.parent);
+> +	struct cxl_hdm *cxlhdm = dev_get_drvdata(&port->dev);
+> +	void __iomem *hdm = cxlhdm->regs.hdm_decoder;
+> +	int id = cxld->id;
+> +	u32 ctrl;
+> +
+> +	if ((cxld->flags & CXL_DECODER_F_ENABLE) ==  0)
+
+extra space after ==
+
+> +		return 0;
+> +
+
+...
+
+
+>  		
+> diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
+> index 7034300e72b2..eee1615d2319 100644
+> --- a/drivers/cxl/core/port.c
+> +++ b/drivers/cxl/core/port.c
+> @@ -630,6 +630,7 @@ static struct cxl_port *cxl_port_alloc(struct device *uport,
+>  	port->component_reg_phys = component_reg_phys;
+>  	ida_init(&port->decoder_ida);
+>  	port->dpa_end = -1;
+> +	port->commit_end = -1;
+>  	xa_init(&port->dports);
+>  	xa_init(&port->endpoints);
+>  	xa_init(&port->regions);
+> diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
+> index 071b8cafe2bb..b90160c4f975 100644
+> --- a/drivers/cxl/core/region.c
+> +++ b/drivers/cxl/core/region.c
+> @@ -112,6 +112,168 @@ static ssize_t uuid_store(struct device *dev, struct device_attribute *attr,
+>  }
+>  static DEVICE_ATTR_RW(uuid);
+
+...
+
+
+> +static int cxl_region_decode_reset(struct cxl_region *cxlr, int count)
+> +{
+> +	struct cxl_region_params *p = &cxlr->params;
+> +	int i;
+> +
+> +	for (i = count - 1; i >= 0; i--) {
+> +		struct cxl_endpoint_decoder *cxled = p->targets[i];
+> +		struct cxl_memdev *cxlmd = cxled_to_memdev(cxled);
+> +		struct cxl_port *iter = cxled_to_port(cxled);
+> +		struct cxl_ep *ep;
+> +		int rc;
+> +
+> +		while (!is_cxl_root(to_cxl_port(iter->dev.parent)))
+> +			iter = to_cxl_port(iter->dev.parent);
+> +
+> +		for (ep = cxl_ep_load(iter, cxlmd); iter;
+> +		     iter = ep->next, ep = cxl_ep_load(iter, cxlmd)) {
+> +			struct cxl_region_ref *cxl_rr;
+> +			struct cxl_decoder *cxld;
+> +
+> +			cxl_rr = cxl_rr_load(iter, cxlr);
+> +			cxld = cxl_rr->decoder;
+> +			rc = cxld->reset(cxld);
+> +			if (rc)
+> +				return rc;
+> +		}
+> +
+> +		rc = cxled->cxld.reset(&cxled->cxld);
+> +		if (rc)
+> +			return rc;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int cxl_region_decode_commit(struct cxl_region *cxlr)
+> +{
+> +	struct cxl_region_params *p = &cxlr->params;
+> +	int i, rc;
+> +
+> +	for (i = 0; i < p->nr_targets; i++) {
+> +		struct cxl_endpoint_decoder *cxled = p->targets[i];
+> +		struct cxl_memdev *cxlmd = cxled_to_memdev(cxled);
+> +		struct cxl_region_ref *cxl_rr;
+> +		struct cxl_decoder *cxld;
+> +		struct cxl_port *iter;
+> +		struct cxl_ep *ep;
+> +
+> +		/* commit bottom up */
+> +		for (iter = cxled_to_port(cxled); !is_cxl_root(iter);
+> +		     iter = to_cxl_port(iter->dev.parent)) {
+> +			cxl_rr = cxl_rr_load(iter, cxlr);
+> +			cxld = cxl_rr->decoder;
+> +			rc = cxld->commit(cxld);
+> +			if (rc)
+> +				break;
+> +		}
+> +
+> +		if (is_cxl_root(iter))
+> +			continue;
+> +
+> +		/* teardown top down */
+
+Comment on why we are tearing down.  I guess because previous
+somehow didn't end up at the root?
+
+> +		for (ep = cxl_ep_load(iter, cxlmd); ep && iter;
+> +		     iter = ep->next, ep = cxl_ep_load(iter, cxlmd)) {
+> +			cxl_rr = cxl_rr_load(iter, cxlr);
+> +			cxld = cxl_rr->decoder;
+> +			cxld->reset(cxld);
+> +		}
+> +
+> +		cxled->cxld.reset(&cxled->cxld);
+> +		if (i == 0)
+> +			return rc;
+> +		break;
+> +	}
+> +
+> +	if (i >= p->nr_targets)
+> +		return 0;
+> +
+> +	/* undo the targets that were successfully committed */
+> +	cxl_region_decode_reset(cxlr, i);
+> +	return rc;
+> +}
+> +
+> +static ssize_t commit_store(struct device *dev, struct device_attribute *attr,
+> +			    const char *buf, size_t len)
+> +{
+> +	struct cxl_region *cxlr = to_cxl_region(dev);
+> +	struct cxl_region_params *p = &cxlr->params;
+> +	bool commit;
+> +	ssize_t rc;
+> +
+> +	rc = kstrtobool(buf, &commit);
+> +	if (rc)
+> +		return rc;
+> +
+> +	rc = down_write_killable(&cxl_region_rwsem);
+> +	if (rc)
+> +		return rc;
+> +
+> +	/* Already in the requested state? */
+> +	if (commit && p->state >= CXL_CONFIG_COMMIT)
+> +		goto out;
+> +	if (!commit && p->state < CXL_CONFIG_COMMIT)
+> +		goto out;
+> +
+> +	/* Not ready to commit? */
+> +	if (commit && p->state < CXL_CONFIG_ACTIVE) {
+> +		rc = -ENXIO;
+> +		goto out;
+> +	}
+> +
+> +	if (commit)
+> +		rc = cxl_region_decode_commit(cxlr);
+> +	else {
+> +		p->state = CXL_CONFIG_RESET_PENDING;
+> +		up_write(&cxl_region_rwsem);
+> +		device_release_driver(&cxlr->dev);
+> +		down_write(&cxl_region_rwsem);
+> +
+> +		if (p->state == CXL_CONFIG_RESET_PENDING)
+
+What path results in that changing in last few lines?
+Perhaps a comment if there is something we need to protect against?
+
+
+> +			rc = cxl_region_decode_reset(cxlr, p->interleave_ways);
+> +	}
+> +
+> +	if (rc)
+> +		goto out;
+> +
+> +	if (commit)
+> +		p->state = CXL_CONFIG_COMMIT;
+> +	else if (p->state == CXL_CONFIG_RESET_PENDING)
+> +		p->state = CXL_CONFIG_ACTIVE;
+> +
+> +out:
+> +	up_write(&cxl_region_rwsem);
+> +
+> +	if (rc)
+> +		return rc;
+> +	return len;
+> +}
+
+
+...
+
+
+> diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
+> index a93d7c4efd1a..fc14f6805f2c 100644
+> --- a/drivers/cxl/cxl.h
+> +++ b/drivers/cxl/cxl.h
+> @@ -54,6 +54,7 @@
+>  #define   CXL_HDM_DECODER0_CTRL_LOCK BIT(8)
+>  #define   CXL_HDM_DECODER0_CTRL_COMMIT BIT(9)
+>  #define   CXL_HDM_DECODER0_CTRL_COMMITTED BIT(10)
+> +#define   CXL_HDM_DECODER0_CTRL_COMMIT_ERROR BIT(11)
+>  #define   CXL_HDM_DECODER0_CTRL_TYPE BIT(12)
+>  #define CXL_HDM_DECODER0_TL_LOW(i) (0x20 * (i) + 0x24)
+>  #define CXL_HDM_DECODER0_TL_HIGH(i) (0x20 * (i) + 0x28)
+> @@ -257,6 +258,8 @@ enum cxl_decoder_type {
+>   * @target_type: accelerator vs expander (type2 vs type3) selector
+>   * @region: currently assigned region for this decoder
+>   * @flags: memory type capabilities and locking
+> + * @commit: device/decoder-type specific callback to commit settings to hw
+> + * @commit: device/decoder-type specific callback to reset hw settings
+
+@reset
+
+>  */
+>  struct cxl_decoder {
+>  	struct device dev;
+> @@ -267,6 +270,8 @@ struct cxl_decoder {
+>  	enum cxl_decoder_type target_type;
+>  	struct cxl_region *region;
+>  	unsigned long flags;
+> +	int (*commit)(struct cxl_decoder *cxld);
+> +	int (*reset)(struct cxl_decoder *cxld);
+>  };
+>  
+
+
+> diff --git a/tools/testing/cxl/test/cxl.c b/tools/testing/cxl/test/cxl.c
+> index 51d517fa62ee..94653201631c 100644
+> --- a/tools/testing/cxl/test/cxl.c
+> +++ b/tools/testing/cxl/test/cxl.c
+> @@ -429,6 +429,50 @@ static int map_targets(struct device *dev, void *data)
+>  	return 0;
+>  }
+>  
+
+...
+
+> +static int mock_decoder_reset(struct cxl_decoder *cxld)
+> +{
+> +	struct cxl_port *port = to_cxl_port(cxld->dev.parent);
+> +	int id = cxld->id;
+> +
+> +	if ((cxld->flags & CXL_DECODER_F_ENABLE) ==  0)
+
+bonus space after ==
+
+
+> +		return 0;
+> +
+> +	dev_dbg(&port->dev, "%s reset\n", dev_name(&cxld->dev));
+> +	if (port->commit_end != id) {
+> +		dev_dbg(&port->dev,
+> +			"%s: out of order reset, expected decoder%d.%d\n",
+> +			dev_name(&cxld->dev), port->id, port->commit_end);
+> +		return -EBUSY;
+> +	}
+> +
+> +	port->commit_end--;
+> +	cxld->flags &= ~CXL_DECODER_F_ENABLE;
+> +
+> +	return 0;
+> +}
+> 
 
