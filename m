@@ -1,439 +1,494 @@
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEEE3ECE;
-	Thu, 30 Jun 2022 13:17:27 +0000 (UTC)
-Received: from fraeml740-chm.china.huawei.com (unknown [172.18.147.207])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4LYf2F0lw5z6H7sm;
-	Thu, 30 Jun 2022 21:15:01 +0800 (CST)
-Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
- fraeml740-chm.china.huawei.com (10.206.15.221) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.24; Thu, 30 Jun 2022 15:17:24 +0200
-Received: from localhost (10.81.200.250) by lhreml710-chm.china.huawei.com
- (10.201.108.61) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.24; Thu, 30 Jun
- 2022 14:17:23 +0100
-Date: Thu, 30 Jun 2022 14:17:21 +0100
-From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-To: Dan Williams <dan.j.williams@intel.com>
-CC: <linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>,
-	<linux-pci@vger.kernel.org>, <patches@lists.linux.dev>, <hch@lst.de>, "Ben
- Widawsky" <bwidawsk@kernel.org>
-Subject: Re: [PATCH 34/46] cxl/region: Add region creation support
-Message-ID: <20220630141721.00005dce@Huawei.com>
-In-Reply-To: <20220624041950.559155-9-dan.j.williams@intel.com>
-References: <165603869943.551046.3498980330327696732.stgit@dwillia2-xfh>
-	<20220624041950.559155-9-dan.j.williams@intel.com>
-Organization: Huawei Technologies Research and Development (UK) Ltd.
-X-Mailer: Claws Mail 4.0.0 (GTK+ 3.24.29; i686-w64-mingw32)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2DE33D7C
+	for <nvdimm@lists.linux.dev>; Thu, 30 Jun 2022 13:42:23 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1656596543; x=1688132543;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=9gVHeF0MVQHsnI7u9OePiX5VHPzODaP4jxNsxOYOHks=;
+  b=eeQinGJCkv76vtcyljN9eW6FY5ETKKwA3r3muo2Ez8k027JwPCw1ZWAX
+   kCyFbXDjs9mf+/Y3l4CwwS5Yx82JnMgtUSq5EBt2oc9+Fmkqx7vyDUokb
+   frPSfwJKl85CHKswuoWf+W5Wqix3yxPvt9kzbs7ACQuGpGuhU3yg6fQvB
+   JqScmrJh76jx5fLL7VPYNEA3jVnEbGAq3bh6zTazW6j3axZSmRYJHyjTc
+   HP05f0tctVEJGgVtsVwO88d7I7xryD5zpFDaf4IuOifru3xtWFgnaQAOX
+   K/RaDw5sqc1oXoP/MuLq5RDZPJ/bF+dZ9uHvQecgdp7FKu4GeKxwSIRZg
+   Q==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10393"; a="271118395"
+X-IronPort-AV: E=Sophos;i="5.92,234,1650956400"; 
+   d="scan'208";a="271118395"
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Jun 2022 06:42:23 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.92,234,1650956400"; 
+   d="scan'208";a="733635947"
+Received: from ac02.sh.intel.com ([10.112.227.141])
+  by fmsmga001.fm.intel.com with ESMTP; 30 Jun 2022 06:42:21 -0700
+From: "dennis.wu" <dennis.wu@intel.com>
+To: nvdimm@lists.linux.dev
+Cc: vishal.l.verma@intel.com,
+	dan.j.williams@intel.com,
+	dave.jiang@intel.com,
+	"dennis.wu" <dennis.wu@intel.com>
+Subject: [PATCH] BTT: Use dram freelist and remove bflog to otpimize perf
+Date: Thu, 30 Jun 2022 21:42:44 +0800
+Message-Id: <20220630134244.685331-1-dennis.wu@intel.com>
+X-Mailer: git-send-email 2.27.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.81.200.250]
-X-ClientProxiedBy: lhreml754-chm.china.huawei.com (10.201.108.204) To
- lhreml710-chm.china.huawei.com (10.201.108.61)
-X-CFilter-Loop: Reflected
+Content-Transfer-Encoding: 8bit
 
-On Thu, 23 Jun 2022 21:19:38 -0700
-Dan Williams <dan.j.williams@intel.com> wrote:
+Dependency:
+[PATCH] nvdimm: Add NVDIMM_NO_DEEPFLUSH flag to control btt
+data deepflush
+https://lore.kernel.org/nvdimm/20220629135801.192821-1-dennis.wu@intel.com/T/#u
 
-> From: Ben Widawsky <bwidawsk@kernel.org>
-> 
-> CXL 2.0 allows for dynamic provisioning of new memory regions (system
-> physical address resources like "System RAM" and "Persistent Memory").
-> Whereas DDR and PMEM resources are conveyed statically at boot, CXL
-> allows for assembling and instantiating new regions from the available
-> capacity of CXL memory expanders in the system.
-> 
-> Sysfs with an "echo $region_name > $create_region_attribute" interface
-> is chosen as the mechanism to initiate the provisioning process. This
-> was chosen over ioctl() and netlink() to keep the configuration
-> interface entirely in a pseudo-fs interface, and it was chosen over
-> configfs since, aside from this one creation event, the interface is
-> read-mostly. I.e. configfs supports cases where an object is designed to
-> be provisioned each boot, like an iSCSI storage target, and CXL region
-> creation is mostly for PMEM regions which are created usually once
-> per-lifetime of a server instance.
-> 
-> Recall that the major change that CXL brings over previous
-> persistent memory architectures is the ability to dynamically define new
-> regions.  Compare that to drivers like 'nfit' where the region
-> configuration is statically defined by platform firmware.
-> 
-> Regions are created as a child of a root decoder that encompasses an
-> address space with constraints. When created through sysfs, the root
-> decoder is explicit. When created from an LSA's region structure a root
-> decoder will possibly need to be inferred by the driver.
-> 
-> Upon region creation through sysfs, a vacant region is created with a
-> unique name. Regions have a number of attributes that must be configured
-> before the region can be bound to the driver where HDM decoder program
-> is completed.
-> 
-> An example of creating a new region:
-> 
-> - Allocate a new region name:
-> region=$(cat /sys/bus/cxl/devices/decoder0.0/create_pmem_region)
-> 
-> - Create a new region by name:
-> while
-> region=$(cat /sys/bus/cxl/devices/decoder0.0/create_pmem_region)
+Reason:
+In BTT, each write will write sector data, update 4 bytes btt_map
+entry and update 16 bytes bflog (two 8 bytes atomic write),the
+meta data write overhead is big and we can optimize the algorithm
+and not use the bflog. Then each write, we will update the sector
+data and then 4 bytes btt_map entry.
 
-Perhaps it is worth calling out the region ID allocator is shared
-with nvdimms and other usecases.  I'm not really sure what the advantage
-in doing that is, but it doesn't do any real harm.
+How:
+1. scan the btt_map to generate the aba mapping bitmap, if one
+internal aba used, the bit will be set.
+2. generate the in-memory freelist according the aba bitmap, the
+freelist is a array that records all the free ABAs like:
+| 340 | 422 | 578 |...
+that means ABA 340, 422, 578 are free. The last nfree(nlane)
+records in the array will be used for each lane at the beginning.
+3. Get a free ABA of a lane, write data to the ABA. If the premap
+btt_map entry is initialization state (e_flag=0, z_flag=0), get
+an free ABA from the free ABA array for the lane. If the premap
+btt_map entry is not in initialization state, the ABA in the
+btt_map entry will be looked as the free ABA of the lane.Once
+the free ABAs = nfree that means the arena is fully written and
+we can free the whole freelist (not implimented yet).
+4. In the code, "version_major ==2" is the new algorithm and
+the logic in else is the old algorithm.
 
-> ! echo $region > /sys/bus/cxl/devices/decoder0.0/create_pmem_region
-> do true; done
-> 
-> - Region now exists in sysfs:
-> stat -t /sys/bus/cxl/devices/decoder0.0/$region
-> 
-> - Delete the region, and name:
-> echo $region > /sys/bus/cxl/devices/decoder0.0/delete_region
-> 
-> Signed-off-by: Ben Widawsky <bwidawsk@kernel.org>
-> [djbw: simplify locking, reword changelog]
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Result:
+1. The write performance can improve ~50% and the latency also
+reduce to 60% of origial algorithm.
+2. During initialization, scan btt_map and generate the freelist
+will take time and lead namespace enable longer. With 4K sector,
+1TB namespace, the enable time less than 4s. This will only happen
+once during initalization.
+3. Take 4 bytes per sector memory to store the freelist. But once
+the arena fully written, the freelist can be freed. As we know,in
+the storage case, the disk always be fully written for usage, then
+we don't have memory space overhead.
 
-> ---
->  Documentation/ABI/testing/sysfs-bus-cxl       |  25 +++
->  .../driver-api/cxl/memory-devices.rst         |  11 +
->  drivers/cxl/Kconfig                           |   5 +
->  drivers/cxl/core/Makefile                     |   1 +
->  drivers/cxl/core/core.h                       |  12 ++
->  drivers/cxl/core/port.c                       |  39 +++-
->  drivers/cxl/core/region.c                     | 199 ++++++++++++++++++
->  drivers/cxl/cxl.h                             |  18 ++
->  tools/testing/cxl/Kbuild                      |   1 +
->  9 files changed, 308 insertions(+), 3 deletions(-)
->  create mode 100644 drivers/cxl/core/region.c
-> 
+Compatablity:
+1. The new algorithm keep the layout of bflog, only ignore its
+logic, that means no update during new algorithm.
+2. If a namespace create with old algorithm and layout, you can
+switch to the new algorithm seamless w/o any specific operation.
+3. Since the bflog will not be updated if you move to the new
+algorithm. After you write data with the new algorithmyou, you
+can't switch back from the new algorithm to old algorithm.
 
-...
+Signed-off-by: dennis.wu <dennis.wu@intel.com>
+---
+ drivers/nvdimm/btt.c | 231 ++++++++++++++++++++++++++++++++++---------
+ drivers/nvdimm/btt.h |  15 +++
+ 2 files changed, 199 insertions(+), 47 deletions(-)
 
+diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+index c71ba7a1edd0..1d75e5f4d88e 100644
+--- a/drivers/nvdimm/btt.c
++++ b/drivers/nvdimm/btt.c
+@@ -70,10 +70,6 @@ static int btt_info_write(struct arena_info *arena, struct btt_sb *super)
+ 	dev_WARN_ONCE(to_dev(arena), !IS_ALIGNED(arena->info2off, 512),
+ 		"arena->info2off: %#llx is unaligned\n", arena->info2off);
+ 
+-	/*
+-	 * btt_sb is critial information and need proper write
+-	 * nvdimm_flush will be called (deepflush)
+-	 */
+ 	ret = arena_write_bytes(arena, arena->info2off, super,
+ 			sizeof(struct btt_sb), 0);
+ 	if (ret)
+@@ -194,6 +190,8 @@ static int btt_map_read(struct arena_info *arena, u32 lba, u32 *mapping,
+ 		break;
+ 	case 3:
+ 		*mapping = postmap;
++		z_flag = 1;
++		e_flag = 1;
+ 		break;
+ 	default:
+ 		return -EIO;
+@@ -507,6 +505,30 @@ static u64 to_namespace_offset(struct arena_info *arena, u64 lba)
+ 	return arena->dataoff + ((u64)lba * arena->internal_lbasize);
+ }
+ 
++static int arena_clear_error(struct arena_info *arena, u32 lba)
++{
++	int ret = 0;
++
++	void *zero_page = page_address(ZERO_PAGE(0));
++	u64 nsoff = to_namespace_offset(arena, lba);
++	unsigned long len = arena->sector_size;
++
++	mutex_lock(&arena->err_lock);
++	while (len) {
++		unsigned long chunk = min(len, PAGE_SIZE);
++
++		ret = arena_write_bytes(arena, nsoff, zero_page,
++			chunk, 0);
++		if (ret)
++			break;
++		len -= chunk;
++		nsoff += chunk;
++	}
++	mutex_unlock(&arena->err_lock);
++
++	return ret;
++}
++
+ static int arena_clear_freelist_error(struct arena_info *arena, u32 lane)
+ {
+ 	int ret = 0;
+@@ -536,6 +558,82 @@ static int arena_clear_freelist_error(struct arena_info *arena, u32 lane)
+ 	return ret;
+ }
+ 
++/*
++ * get_aba_in_a_lane - get a free block out of the freelist.
++ * @arena: arena handler
++ * @lane:	the block (postmap) will be put back to free array list
++ */
++static inline void get_lane_aba(struct arena_info *arena,
++		u32 lane, u32 *entry)
++{
++	uint32_t free_num;
++
++	spin_lock(&(arena->list_lock.lock));
++	free_num = arena->freezone_array.free_num;
++	arena->lane_free[lane] = arena->freezone_array.free_array[free_num - 1];
++	arena->freezone_array.free_num = free_num - 1;
++	spin_unlock(&(arena->list_lock.lock));
++
++	*entry = arena->lane_free[lane];
++}
++
++static int btt_freezone_init(struct arena_info *arena)
++{
++	int ret = 0, trim, err;
++	u32 i;
++	u32 mapping;
++	u8 *aba_map_byte, *aba_map;
++	u32 *free_array;
++	u32 free_num = 0;
++	u32 aba_map_size = (arena->internal_nlba>>3) + 1;
++
++	aba_map = vzalloc(aba_map_size);
++	if (!aba_map)
++		return -ENOMEM;
++
++	/*
++	 * prepare the aba_map, each aba will be in a bit, occupied bit=1, free bit=0
++	 * the scan will take times, but it is only once execution during initialization.
++	 */
++	for (i = 0; i < arena->external_nlba; i++) {
++		ret = btt_map_read(arena, i, &mapping, &trim, &err, 0);
++		if (ret || (trim == 0 && err == 0))
++			continue;
++		if (mapping < arena->internal_nlba) {
++			aba_map_byte = aba_map + (mapping>>3);
++			*aba_map_byte |= (u8)(1<<(mapping % 8));
++		}
++	}
++
++	/*
++	 * Scan the aba_bitmap , use the static array, that will take 1% memory.
++	 */
++	free_array = vmalloc(arena->internal_nlba*sizeof(u32));
++	if (!free_array) {
++		vfree(aba_map);
++		return -ENOMEM;
++	}
++
++	for (i = 0; i < arena->internal_nlba; i++) {
++		aba_map_byte = aba_map + (i>>3);
++		if (((*aba_map_byte) & (1<<(i%8))) == 0) {
++			free_array[free_num] = i;
++			free_num++;
++		}
++	}
++	spin_lock_init(&(arena->list_lock.lock));
++
++	for (i = 0; i < arena->nfree; i++) {
++		arena->lane_free[i] = free_array[free_num - 1];
++		free_num--;
++	}
++	arena->freezone_array.free_array = free_array;
++	arena->freezone_array.free_num = free_num;
++
++	vfree(aba_map);
++	return ret;
++}
++
+ static int btt_freelist_init(struct arena_info *arena)
+ {
+ 	int new, ret;
+@@ -597,8 +695,7 @@ static int btt_freelist_init(struct arena_info *arena)
+ 			 * to complete the map write. So fix up the map.
+ 			 */
+ 			ret = btt_map_write(arena, le32_to_cpu(log_new.lba),
+-					le32_to_cpu(log_new.new_map), 0, 0,
+-					NVDIMM_NO_DEEPFLUSH);
++					le32_to_cpu(log_new.new_map), 0, 0, NVDIMM_NO_DEEPFLUSH);
+ 			if (ret)
+ 				return ret;
+ 		}
+@@ -813,7 +910,12 @@ static void free_arenas(struct btt *btt)
+ 		list_del(&arena->list);
+ 		kfree(arena->rtt);
+ 		kfree(arena->map_locks);
+-		kfree(arena->freelist);
++		if (arena->version_major == 2) {
++			if (arena->freezone_array.free_array)
++				vfree(arena->freezone_array.free_array);
++		} else {
++			kfree(arena->freelist);
++		}
+ 		debugfs_remove_recursive(arena->debugfs_dir);
+ 		kfree(arena);
+ 	}
+@@ -892,14 +994,18 @@ static int discover_arenas(struct btt *btt)
+ 		arena->external_lba_start = cur_nlba;
+ 		parse_arena_meta(arena, super, cur_off);
+ 
+-		ret = log_set_indices(arena);
+-		if (ret) {
+-			dev_err(to_dev(arena),
+-				"Unable to deduce log/padding indices\n");
+-			goto out;
+-		}
++		if (arena->version_major == 2) {
++			ret = btt_freezone_init(arena);
++		} else {
++			ret = log_set_indices(arena);
++			if (ret) {
++				dev_err(to_dev(arena),
++					"Unable to deduce log/padding indices\n");
++				goto out;
++			}
+ 
+-		ret = btt_freelist_init(arena);
++			ret = btt_freelist_init(arena);
++		}
+ 		if (ret)
+ 			goto out;
+ 
+@@ -984,9 +1090,11 @@ static int btt_arena_write_layout(struct arena_info *arena)
+ 	if (ret)
+ 		return ret;
+ 
+-	ret = btt_log_init(arena);
+-	if (ret)
+-		return ret;
++	if (arena->version_major != 2) {
++		ret = btt_log_init(arena);
++		if (ret)
++			return ret;
++	}
+ 
+ 	super = kzalloc(sizeof(struct btt_sb), GFP_NOIO);
+ 	if (!super)
+@@ -1039,7 +1147,10 @@ static int btt_meta_init(struct btt *btt)
+ 		if (ret)
+ 			goto unlock;
+ 
+-		ret = btt_freelist_init(arena);
++		if (arena->version_major == 2)
++			ret = btt_freezone_init(arena);
++		else
++			ret = btt_freelist_init(arena);
+ 		if (ret)
+ 			goto unlock;
+ 
+@@ -1233,12 +1344,14 @@ static int btt_read_pg(struct btt *btt, struct bio_integrity_payload *bip,
+ 			u32 new_map;
+ 			int new_t, new_e;
+ 
+-			if (t_flag) {
++			/* t_flag = 1, e_flag = 0 or t_flag=0, e_flag=0 */
++			if ((t_flag && e_flag == 0) || (t_flag == 0 && e_flag == 0)) {
+ 				zero_fill_data(page, off, cur_len);
+ 				goto out_lane;
+ 			}
+ 
+-			if (e_flag) {
++			/* t_flag = 0, e_flag = 1*/
++			if (e_flag && t_flag == 0) {
+ 				ret = -EIO;
+ 				goto out_lane;
+ 			}
+@@ -1326,6 +1439,7 @@ static int btt_write_pg(struct btt *btt, struct bio_integrity_payload *bip,
+ 	while (len) {
+ 		u32 cur_len;
+ 		int e_flag;
++		int z_flag;
+ 
+  retry:
+ 		lane = nd_region_acquire_lane(btt->nd_region);
+@@ -1340,29 +1454,41 @@ static int btt_write_pg(struct btt *btt, struct bio_integrity_payload *bip,
+ 			goto out_lane;
+ 		}
+ 
+-		if (btt_is_badblock(btt, arena, arena->freelist[lane].block))
+-			arena->freelist[lane].has_err = 1;
++		if (arena->version_major == 2) {
++			new_postmap = arena->lane_free[lane];
++			if (btt_is_badblock(btt, arena, new_postmap)
++				|| mutex_is_locked(&arena->err_lock)) {
++				nd_region_release_lane(btt->nd_region, lane);
++				ret = arena_clear_error(arena, new_postmap);
++				if (ret)
++					return ret;
++				/* OK to acquire a different lane/free block */
++				goto retry;
++			}
++		} else {
++			if (btt_is_badblock(btt, arena, arena->freelist[lane].block))
++				arena->freelist[lane].has_err = 1;
+ 
+-		if (mutex_is_locked(&arena->err_lock)
+-				|| arena->freelist[lane].has_err) {
+-			nd_region_release_lane(btt->nd_region, lane);
++			if (mutex_is_locked(&arena->err_lock)
++					|| arena->freelist[lane].has_err) {
++				nd_region_release_lane(btt->nd_region, lane);
+ 
+-			ret = arena_clear_freelist_error(arena, lane);
+-			if (ret)
+-				return ret;
++				ret = arena_clear_freelist_error(arena, lane);
++				if (ret)
++					return ret;
+ 
+-			/* OK to acquire a different lane/free block */
+-			goto retry;
+-		}
++				/* OK to acquire a different lane/free block */
++				goto retry;
++			}
+ 
+-		new_postmap = arena->freelist[lane].block;
++			new_postmap = arena->freelist[lane].block;
++		}
+ 
+ 		/* Wait if the new block is being read from */
+ 		for (i = 0; i < arena->nfree; i++)
+ 			while (arena->rtt[i] == (RTT_VALID | new_postmap))
+ 				cpu_relax();
+ 
+-
+ 		if (new_postmap >= arena->internal_nlba) {
+ 			ret = -EIO;
+ 			goto out_lane;
+@@ -1380,7 +1506,7 @@ static int btt_write_pg(struct btt *btt, struct bio_integrity_payload *bip,
+ 		}
+ 
+ 		lock_map(arena, premap);
+-		ret = btt_map_read(arena, premap, &old_postmap, NULL, &e_flag,
++		ret = btt_map_read(arena, premap, &old_postmap, &z_flag, &e_flag,
+ 				NVDIMM_IO_ATOMIC);
+ 		if (ret)
+ 			goto out_map;
+@@ -1388,17 +1514,25 @@ static int btt_write_pg(struct btt *btt, struct bio_integrity_payload *bip,
+ 			ret = -EIO;
+ 			goto out_map;
+ 		}
+-		if (e_flag)
+-			set_e_flag(old_postmap);
+-
+-		log.lba = cpu_to_le32(premap);
+-		log.old_map = cpu_to_le32(old_postmap);
+-		log.new_map = cpu_to_le32(new_postmap);
+-		log.seq = cpu_to_le32(arena->freelist[lane].seq);
+-		sub = arena->freelist[lane].sub;
+-		ret = btt_flog_write(arena, lane, sub, &log);
+-		if (ret)
+-			goto out_map;
++
++		if (arena->version_major == 2) {
++			if (z_flag == 0 && e_flag == 0) /* initialization state (00)*/
++				get_lane_aba(arena, lane, &old_postmap);
++			else
++				arena->lane_free[lane] = old_postmap;
++		} else {
++			if (e_flag && z_flag != 1) /* Error State (10) */
++				set_e_flag(old_postmap);
++
++			log.lba = cpu_to_le32(premap);
++			log.old_map = cpu_to_le32(old_postmap);
++			log.new_map = cpu_to_le32(new_postmap);
++			log.seq = cpu_to_le32(arena->freelist[lane].seq);
++			sub = arena->freelist[lane].sub;
++			ret = btt_flog_write(arena, lane, sub, &log);
++			if (ret)
++				goto out_map;
++		}
+ 
+ 		ret = btt_map_write(arena, premap, new_postmap, 0, 0,
+ 			NVDIMM_IO_ATOMIC|NVDIMM_NO_DEEPFLUSH);
+@@ -1408,8 +1542,11 @@ static int btt_write_pg(struct btt *btt, struct bio_integrity_payload *bip,
+ 		unlock_map(arena, premap);
+ 		nd_region_release_lane(btt->nd_region, lane);
+ 
+-		if (e_flag) {
+-			ret = arena_clear_freelist_error(arena, lane);
++		if (e_flag && z_flag != 1) {
++			if (arena->version_major == 2)
++				ret = arena_clear_error(arena, old_postmap);
++			else
++				ret = arena_clear_freelist_error(arena, lane);
+ 			if (ret)
+ 				return ret;
+ 		}
+diff --git a/drivers/nvdimm/btt.h b/drivers/nvdimm/btt.h
+index 0c76c0333f6e..996af269f854 100644
+--- a/drivers/nvdimm/btt.h
++++ b/drivers/nvdimm/btt.h
+@@ -8,6 +8,7 @@
+ #define _LINUX_BTT_H
+ 
+ #include <linux/types.h>
++#include "nd.h"
+ 
+ #define BTT_SIG_LEN 16
+ #define BTT_SIG "BTT_ARENA_INFO\0"
+@@ -185,6 +186,20 @@ struct arena_info {
+ 	u64 info2off;
+ 	/* Pointers to other in-memory structures for this arena */
+ 	struct free_entry *freelist;
++
++	/*divide the whole arena into #lanes zone. */
++	struct zone_free {
++		u32 free_num;
++		u32 *free_array;
++	} freezone_array;
++	struct aligned_lock list_lock;
++
++	/*
++	 * each lane, keep at least one free ABA
++	 * if in the lane, no ABA, get one from freelist
++	 */
++	u32 lane_free[BTT_DEFAULT_NFREE];
++
+ 	u32 *rtt;
+ 	struct aligned_lock *map_locks;
+ 	struct nd_btt *nd_btt;
+-- 
+2.27.0
 
-> diff --git a/drivers/cxl/core/core.h b/drivers/cxl/core/core.h
-> index 472ec9cb1018..ebe6197fb9b8 100644
-> --- a/drivers/cxl/core/core.h
-> +++ b/drivers/cxl/core/core.h
-> @@ -9,6 +9,18 @@ extern const struct device_type cxl_nvdimm_type;
->  
->  extern struct attribute_group cxl_base_attribute_group;
->  
-> +#ifdef CONFIG_CXL_REGION
-> +extern struct device_attribute dev_attr_create_pmem_region;
-> +extern struct device_attribute dev_attr_delete_region;
-> +/*
-> + * Note must be used at the end of an attribute list, since it
-> + * terminates the list in the CONFIG_CXL_REGION=n case.
-
-That's rather ugly.  Maybe just push the ifdef down into the c file
-where we will be shortening the list and it should be obvious what is
-going on without needing the comment?  Much as I don't like ifdef
-magic in the c files, it sometimes ends up cleaner.
-
-> + */
-> +#define CXL_REGION_ATTR(x) (&dev_attr_##x.attr)
-> +#else
-> +#define CXL_REGION_ATTR(x) NULL
-> +#endif
-> +
->  struct cxl_send_command;
->  struct cxl_mem_query_commands;
->  int cxl_query_cmd(struct cxl_memdev *cxlmd,
-> diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
-> index 2e56903399c2..c9207ebc3f32 100644
-> --- a/drivers/cxl/core/port.c
-> +++ b/drivers/cxl/core/port.c
-> @@ -1,6 +1,7 @@
->  // SPDX-License-Identifier: GPL-2.0-only
->  /* Copyright(c) 2020 Intel Corporation. All rights reserved. */
->  #include <linux/io-64-nonatomic-lo-hi.h>
-> +#include <linux/memregion.h>
->  #include <linux/workqueue.h>
->  #include <linux/debugfs.h>
->  #include <linux/device.h>
-> @@ -300,11 +301,35 @@ static struct attribute *cxl_decoder_root_attrs[] = {
->  	&dev_attr_cap_type2.attr,
->  	&dev_attr_cap_type3.attr,
->  	&dev_attr_target_list.attr,
-> +	CXL_REGION_ATTR(create_pmem_region),
-> +	CXL_REGION_ATTR(delete_region),
->  	NULL,
->  };
-
->  
->  static const struct attribute_group *cxl_decoder_root_attribute_groups[] = {
-> @@ -387,6 +412,7 @@ static void cxl_root_decoder_release(struct device *dev)
->  {
->  	struct cxl_root_decoder *cxlrd = to_cxl_root_decoder(dev);
->  
-> +	memregion_free(atomic_read(&cxlrd->region_id));
->  	__cxl_decoder_release(&cxlrd->cxlsd.cxld);
->  	kfree(cxlrd);
->  }
-> @@ -1415,6 +1441,7 @@ static struct lock_class_key cxl_decoder_key;
->  static struct cxl_decoder *cxl_decoder_alloc(struct cxl_port *port,
->  					     unsigned int nr_targets)
->  {
-> +	struct cxl_root_decoder *cxlrd = NULL;
->  	struct cxl_decoder *cxld;
->  	struct device *dev;
->  	void *alloc;
-> @@ -1425,16 +1452,20 @@ static struct cxl_decoder *cxl_decoder_alloc(struct cxl_port *port,
->  
->  	if (nr_targets) {
->  		struct cxl_switch_decoder *cxlsd;
-> -		struct cxl_root_decoder *cxlrd;
->  
->  		if (is_cxl_root(port)) {
->  			alloc = kzalloc(struct_size(cxlrd, cxlsd.target,
->  						    nr_targets),
->  					GFP_KERNEL);
->  			cxlrd = alloc;
-> -			if (cxlrd)
-> +			if (cxlrd) {
->  				cxlsd = &cxlrd->cxlsd;
-> -			else
-> +				atomic_set(&cxlrd->region_id, -1);
-> +				rc = memregion_alloc(GFP_KERNEL);
-> +				if (rc < 0)
-> +					goto err;
-
-Leaving region_id set to -1 seems interesting for ever
-recovering from this error.  Perhaps a comment on how the magic
-value is used.
-
-> +				atomic_set(&cxlrd->region_id, rc);
-> +			} else
->  				cxlsd = NULL;
->  		} else {
->  			alloc = kzalloc(struct_size(cxlsd, target, nr_targets),
-> @@ -1490,6 +1521,8 @@ static struct cxl_decoder *cxl_decoder_alloc(struct cxl_port *port,
->  
->  	return cxld;
->  err:
-> +	if (cxlrd && atomic_read(&cxlrd->region_id) >= 0)
-> +		memregion_free(atomic_read(&cxlrd->region_id));
->  	kfree(alloc);
->  	return ERR_PTR(rc);
->  }
-> diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
-> new file mode 100644
-> index 000000000000..f2a0ead20ca7
-> --- /dev/null
-> +++ b/drivers/cxl/core/region.c
-> @@ -0,0 +1,199 @@
-> +// SPDX-License-Identifier: GPL-2.0-only
-> +/* Copyright(c) 2022 Intel Corporation. All rights reserved. */
-> +#include <linux/memregion.h>
-> +#include <linux/genalloc.h>
-> +#include <linux/device.h>
-> +#include <linux/module.h>
-> +#include <linux/slab.h>
-> +#include <linux/idr.h>
-> +#include <cxl.h>
-> +#include "core.h"
-> +
-> +/**
-> + * DOC: cxl core region
-> + *
-> + * CXL Regions represent mapped memory capacity in system physical address
-> + * space. Whereas the CXL Root Decoders identify the bounds of potential CXL
-> + * Memory ranges, Regions represent the active mapped capacity by the HDM
-> + * Decoder Capability structures throughout the Host Bridges, Switches, and
-> + * Endpoints in the topology.
-> + */
-> +
-> +static struct cxl_region *to_cxl_region(struct device *dev);
-> +
-> +static void cxl_region_release(struct device *dev)
-> +{
-> +	struct cxl_region *cxlr = to_cxl_region(dev);
-> +
-> +	memregion_free(cxlr->id);
-> +	kfree(cxlr);
-> +}
-> +
-> +static const struct device_type cxl_region_type = {
-> +	.name = "cxl_region",
-> +	.release = cxl_region_release,
-> +};
-> +
-> +bool is_cxl_region(struct device *dev)
-> +{
-> +	return dev->type == &cxl_region_type;
-> +}
-> +EXPORT_SYMBOL_NS_GPL(is_cxl_region, CXL);
-> +
-> +static struct cxl_region *to_cxl_region(struct device *dev)
-> +{
-> +	if (dev_WARN_ONCE(dev, dev->type != &cxl_region_type,
-> +			  "not a cxl_region device\n"))
-> +		return NULL;
-> +
-> +	return container_of(dev, struct cxl_region, dev);
-> +}
-> +
-> +static void unregister_region(void *dev)
-> +{
-> +	device_unregister(dev);
-> +}
-> +
-> +static struct lock_class_key cxl_region_key;
-> +
-> +static struct cxl_region *cxl_region_alloc(struct cxl_root_decoder *cxlrd, int id)
-> +{
-> +	struct cxl_region *cxlr;
-> +	struct device *dev;
-> +
-> +	cxlr = kzalloc(sizeof(*cxlr), GFP_KERNEL);
-> +	if (!cxlr) {
-> +		memregion_free(id);
-
-That's a bit nasty as it gives the function side effects. Perhaps some
-comments in the callers of this to highlight that memregion will either be freed
-in here or handled over to the device.
-
-> +		return ERR_PTR(-ENOMEM);
-> +	}
-> +
-> +	dev = &cxlr->dev;
-> +	device_initialize(dev);
-> +	lockdep_set_class(&dev->mutex, &cxl_region_key);
-> +	dev->parent = &cxlrd->cxlsd.cxld.dev;
-> +	device_set_pm_not_required(dev);
-> +	dev->bus = &cxl_bus_type;
-> +	dev->type = &cxl_region_type;
-> +	cxlr->id = id;
-> +
-> +	return cxlr;
-> +}
-> +
-> +/**
-> + * devm_cxl_add_region - Adds a region to a decoder
-> + * @cxlrd: root decoder
-> + * @id: memregion id to create
-> + * @mode: mode for the endpoint decoders of this region
-
-Missing docs for type
-
-> + *
-> + * This is the second step of region initialization. Regions exist within an
-> + * address space which is mapped by a @cxlrd.
-> + *
-> + * Return: 0 if the region was added to the @cxlrd, else returns negative error
-> + * code. The region will be named "regionZ" where Z is the unique region number.
-> + */
-> +static struct cxl_region *devm_cxl_add_region(struct cxl_root_decoder *cxlrd,
-> +					      int id,
-> +					      enum cxl_decoder_mode mode,
-> +					      enum cxl_decoder_type type)
-> +{
-> +	struct cxl_port *port = to_cxl_port(cxlrd->cxlsd.cxld.dev.parent);
-> +	struct cxl_region *cxlr;
-> +	struct device *dev;
-> +	int rc;
-> +
-> +	cxlr = cxl_region_alloc(cxlrd, id);
-> +	if (IS_ERR(cxlr))
-> +		return cxlr;
-> +	cxlr->mode = mode;
-> +	cxlr->type = type;
-> +
-> +	dev = &cxlr->dev;
-> +	rc = dev_set_name(dev, "region%d", id);
-> +	if (rc)
-> +		goto err;
-> +
-> +	rc = device_add(dev);
-> +	if (rc)
-> +		goto err;
-> +
-> +	rc = devm_add_action_or_reset(port->uport, unregister_region, cxlr);
-> +	if (rc)
-> +		return ERR_PTR(rc);
-> +
-> +	dev_dbg(port->uport, "%s: created %s\n",
-> +		dev_name(&cxlrd->cxlsd.cxld.dev), dev_name(dev));
-> +	return cxlr;
-> +
-> +err:
-> +	put_device(dev);
-> +	return ERR_PTR(rc);
-> +}
-> +
-
-> +static ssize_t create_pmem_region_store(struct device *dev,
-> +					struct device_attribute *attr,
-> +					const char *buf, size_t len)
-> +{
-> +	struct cxl_root_decoder *cxlrd = to_cxl_root_decoder(dev);
-> +	struct cxl_region *cxlr;
-> +	unsigned int id, rc;
-> +
-> +	rc = sscanf(buf, "region%u\n", &id);
-> +	if (rc != 1)
-> +		return -EINVAL;
-> +
-> +	rc = memregion_alloc(GFP_KERNEL);
-> +	if (rc < 0)
-> +		return rc;
-> +
-> +	if (atomic_cmpxchg(&cxlrd->region_id, id, rc) != id) {
-> +		memregion_free(rc);
-> +		return -EBUSY;
-> +	}
-> +
-> +	cxlr = devm_cxl_add_region(cxlrd, id, CXL_DECODER_PMEM,
-> +				   CXL_DECODER_EXPANDER);
-> +	if (IS_ERR(cxlr))
-> +		return PTR_ERR(cxlr);
-> +
-> +	return len;
-> +}
-> +DEVICE_ATTR_RW(create_pmem_region);
-> +
-> +static struct cxl_region *cxl_find_region_by_name(struct cxl_decoder *cxld,
-
-Perhaps rename cxld here to make it clear it's a root decoder only.
-
-> +						  const char *name)
-> +{
-> +	struct device *region_dev;
-> +
-> +	region_dev = device_find_child_by_name(&cxld->dev, name);
-> +	if (!region_dev)
-> +		return ERR_PTR(-ENODEV);
-> +
-> +	return to_cxl_region(region_dev);
-> +}
-> +
-> +static ssize_t delete_region_store(struct device *dev,
-> +				   struct device_attribute *attr,
-> +				   const char *buf, size_t len)
-> +{
-> +	struct cxl_port *port = to_cxl_port(dev->parent);
-> +	struct cxl_decoder *cxld = to_cxl_decoder(dev);
-As above, given it's the root decoder can we name it to make that
-obvious?
-
-> +	struct cxl_region *cxlr;
-> +
-> +	cxlr = cxl_find_region_by_name(cxld, buf);
-> +	if (IS_ERR(cxlr))
-> +		return PTR_ERR(cxlr);
-> +
-> +	devm_release_action(port->uport, unregister_region, cxlr);
-> +	put_device(&cxlr->dev);
-> +
-> +	return len;
-> +}
-> +DEVICE_ATTR_WO(delete_region);
