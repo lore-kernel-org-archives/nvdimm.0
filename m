@@ -1,118 +1,144 @@
-Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 44CB310E8
-	for <nvdimm@lists.linux.dev>; Fri,  1 Jul 2022 05:15:01 +0000 (UTC)
-IronPort-Data: =?us-ascii?q?A9a23=3AJLjYGq6B6cmXTrRbn3QZXwxRtJbFchMFZxGqfqr?=
- =?us-ascii?q?LsXjdYENS12RVy2McX2/UPKnYZzPxKohxPorjpBkF7JCGx4cwT1A5pCpnJ55og?=
- =?us-ascii?q?ZCbXIzGdC8cHM8zwvXrFRsht4NHAjX5BJhcokT0+1H9YtANkVEmjfvSHuCkUba?=
- =?us-ascii?q?dUsxMbVQMpBkJ2EsLd9ER0tYAbeiRW2thiPuqyyHtEAbNNw1cbgr435m+RCZH5?=
- =?us-ascii?q?5wejt+3UmsWPpintHeG/5Uc4Ql2yauZdxMUSaEMdgK2qnqq8V23wo/Z109F5tK?=
- =?us-ascii?q?NmbC9fFAIQ6LJIE6FjX8+t6qK20AE/3JtlP1gcqd0hUR/0l1lm/hr1dxLro32R?=
- =?us-ascii?q?wEyIoXCheYcTwJFVSp5OMWq/Zeeeyfn4JLPlB2un3zEhq8G4FsNFYER5Od7KW9?=
- =?us-ascii?q?U8vkfMjoMclaIgOfe6LKwSsFtgMo5JcXmNY9ZvWtvpRnVD+khR5/rQKjQ49Jcm?=
- =?us-ascii?q?jAqiahmG+jSZs8cQT5udwjbJRlOPEoHTp4zgo+Agnj5bi0dpkmZqLQ650DNwwF?=
- =?us-ascii?q?rlrvgKtzYfpqNX8o9tkKZoH/Wumf0GBcXMPSBxjeftHGhnOnCmWX8Qo16PLm58?=
- =?us-ascii?q?ON6xU2d3UQNBxAME1i2u/+0jgi5Qd03FqC+0kLCtoBrrAryEIa7BEb+/Ra5Utc?=
- =?us-ascii?q?nc4I4O4UHBMulk8I4OzqkO1U=3D?=
-IronPort-HdrOrdr: =?us-ascii?q?A9a23=3AKuVcIKPFYuaVXMBcTiWjsMiBIKoaSvp037Eq?=
- =?us-ascii?q?v3oBKyC9Ffbo7vxG/c5rsyMc5wx/ZJhNo6HlBEDEewK6yXcX2+cs1NWZMDUO0V?=
- =?us-ascii?q?HAROoJgLcKgQeQfhEWndQ86U4PSdkcNDS9NzlHZNjBkXSFOudl0N+a67qpmOub?=
- =?us-ascii?q?639sSDthY6Zm4xwRMHfhLmRGABlBGYEiFIeRou5Opz+bc3wRacihQlYfWeyrna?=
- =?us-ascii?q?ywqLvWJQ4BGwU86BSDyReh6LvBGRCe2RsEFxNjqI1SiVT4rw=3D=3D?=
-X-IronPort-AV: E=Sophos;i="5.88,333,1635177600"; 
-   d="scan'208";a="127096438"
-Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
-  by heian.cn.fujitsu.com with ESMTP; 01 Jul 2022 13:14:52 +0800
-Received: from G08CNEXMBPEKD06.g08.fujitsu.local (unknown [10.167.33.206])
-	by cn.fujitsu.com (Postfix) with ESMTP id B88394D1719A;
-	Fri,  1 Jul 2022 13:14:51 +0800 (CST)
-Received: from G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.80) by
- G08CNEXMBPEKD06.g08.fujitsu.local (10.167.33.206) with Microsoft SMTP Server
- (TLS) id 15.0.1497.23; Fri, 1 Jul 2022 13:14:50 +0800
-Received: from [192.168.22.78] (10.167.225.141) by
- G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
- id 15.0.1497.23 via Frontend Transport; Fri, 1 Jul 2022 13:14:53 +0800
-Message-ID: <07805923-6455-e046-8c0a-60ed99d1fb38@fujitsu.com>
-Date: Fri, 1 Jul 2022 13:14:51 +0800
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BAAA410E9
+	for <nvdimm@lists.linux.dev>; Fri,  1 Jul 2022 07:25:38 +0000 (UTC)
+Received: from pps.filterd (m0098421.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 2615pHTw024331;
+	Fri, 1 Jul 2022 06:33:02 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : date :
+ subject : to : cc : references : from : in-reply-to : content-type :
+ content-transfer-encoding : mime-version; s=pp1;
+ bh=43E8lWSoKTQumIYPANAN9tbxhnCu/ars1CPwWA8NO1U=;
+ b=JOKedKyLCivY7mYGp6FCPDuKCovFSWCAVRjPFXI3fesIQGWMJgvA7YSSjsJzaPt5BvxX
+ GKtTEgQ9vHzZM8HoW6mA/B7zjYPAqYHrecJltsVT3PRlxSiDS6H8ZdksNGmGc0rhpeQa
+ zfPKQSi36nFnLHhjqSHcMyxgS/XYNwN/jvRWp8wA8HqHlKQnnp8Ny9q/WbRpsO0VhCnj
+ /Je01xQghaXKLjsRrLz121EVqY7+tVb5zOiih8hxDKKgaPp52nyPPXfn8rg6nQ8LMYap
+ 3p/3ClpF3X5Na2AG0X8q3XTFfAEfLCGWRK4npqXxNz5++7mm0gj1ItRK9NK2j4bdNiAb uQ== 
+Received: from pps.reinject (localhost [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3h1u1c943y-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 01 Jul 2022 06:33:02 +0000
+Received: from m0098421.ppops.net (m0098421.ppops.net [127.0.0.1])
+	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 2615phKY025370;
+	Fri, 1 Jul 2022 06:33:02 GMT
+Received: from ppma03ams.nl.ibm.com (62.31.33a9.ip4.static.sl-reverse.com [169.51.49.98])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3h1u1c9433-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 01 Jul 2022 06:33:01 +0000
+Received: from pps.filterd (ppma03ams.nl.ibm.com [127.0.0.1])
+	by ppma03ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 2616LMe9026261;
+	Fri, 1 Jul 2022 06:32:59 GMT
+Received: from b06cxnps4074.portsmouth.uk.ibm.com (d06relay11.portsmouth.uk.ibm.com [9.149.109.196])
+	by ppma03ams.nl.ibm.com with ESMTP id 3gwt0918hx-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 01 Jul 2022 06:32:59 +0000
+Received: from d06av23.portsmouth.uk.ibm.com (d06av23.portsmouth.uk.ibm.com [9.149.105.59])
+	by b06cxnps4074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 2616Wvsv22348128
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Fri, 1 Jul 2022 06:32:57 GMT
+Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 13857A404D;
+	Fri,  1 Jul 2022 06:32:57 +0000 (GMT)
+Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 66371A4051;
+	Fri,  1 Jul 2022 06:32:53 +0000 (GMT)
+Received: from [9.43.53.136] (unknown [9.43.53.136])
+	by d06av23.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+	Fri,  1 Jul 2022 06:32:53 +0000 (GMT)
+Message-ID: <b299ebe2-88e5-c2bd-bad0-bef62d4acdfe@linux.ibm.com>
+Date: Fri, 1 Jul 2022 12:02:51 +0530
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.10.0
+Subject: Re: [PATCH v4 26/34] tools/testing/nvdimm: Convert to printbuf
+Content-Language: en-US
+To: Santosh Sivaraj <santosh@fossix.org>,
+        Dan Williams <dan.j.williams@intel.com>
+Cc: Kent Overstreet <kent.overstreet@gmail.com>,
+        linux-kernel <linux-kernel@vger.kernel.org>, linux-mm@kvack.org,
+        Petr Mladek <pmladek@suse.com>, Steven Rostedt <rostedt@goodmis.org>,
+        enozhatsky@chromium.org, Rasmus Villemoes <linux@rasmusvillemoes.dk>,
+        willy@infradead.org, Dave Hansen <dave.hansen@linux.intel.com>,
+        Linux NVDIMM <nvdimm@lists.linux.dev>,
+        Vaibhav Jain <vaibhav@linux.ibm.com>
+References: <20220620004233.3805-1-kent.overstreet@gmail.com>
+ <20220620004233.3805-27-kent.overstreet@gmail.com>
+ <62b61165348f4_a7a2f294d0@dwillia2-xfh.notmuch>
+ <CA+n8AA-grcDuYWt-TxcttK+2tHpEP4s9ue2uq_0d8=hJpqNh+g@mail.gmail.com>
+From: Shivaprasad G Bhat <sbhat@linux.ibm.com>
+In-Reply-To: <CA+n8AA-grcDuYWt-TxcttK+2tHpEP4s9ue2uq_0d8=hJpqNh+g@mail.gmail.com>
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: 8oemeT4kbVhWz-CORfaTBY1vKeWOi9_V
+X-Proofpoint-ORIG-GUID: Qyas4CxWbLYIFtodCSyStsjrbn6FwLO0
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Proofpoint-UnRewURL: 0 URL was un-rewritten
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.10.0
-Subject: Re: [PATCH] xfs: fail dax mount if reflink is enabled on a partition
-To: "Darrick J. Wong" <djwong@kernel.org>
-CC: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
-	<nvdimm@lists.linux.dev>, <linux-fsdevel@vger.kernel.org>,
-	<david@fromorbit.com>, <hch@infradead.org>
-References: <20220609143435.393724-1-ruansy.fnst@fujitsu.com>
- <Yr5AV5HaleJXMmUm@magnolia>
-From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-In-Reply-To: <Yr5AV5HaleJXMmUm@magnolia>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-X-yoursite-MailScanner-ID: B88394D1719A.AFAA7
-X-yoursite-MailScanner: Found to be clean
-X-yoursite-MailScanner-From: ruansy.fnst@fujitsu.com
-X-Spam-Status: No
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.205,Aquarius:18.0.883,Hydra:6.0.517,FMLib:17.11.122.1
+ definitions=2022-07-01_04,2022-06-28_01,2022-06-22_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 impostorscore=0 clxscore=1011
+ mlxscore=0 lowpriorityscore=0 bulkscore=0 malwarescore=0 spamscore=0
+ adultscore=0 phishscore=0 priorityscore=1501 mlxlogscore=999
+ suspectscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2204290000 definitions=main-2207010021
 
-
-
-在 2022/7/1 8:31, Darrick J. Wong 写道:
-> On Thu, Jun 09, 2022 at 10:34:35PM +0800, Shiyang Ruan wrote:
->> Failure notification is not supported on partitions.  So, when we mount
->> a reflink enabled xfs on a partition with dax option, let it fail with
->> -EINVAL code.
->>
->> Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+On 6/25/22 05:12, Santosh Sivaraj wrote:
+> I don't have setup to test this now. Adding Shiva and Vaibhav who could 
+> probably help. Thanks, Santosh On Sat, 25 Jun, 2022, 1:03 am Dan 
+> Williams, <dan.j.williams@intel.com> wrote: [ add Santosh ] Kent 
+> Overstreet wrote: ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍ ‍
+> ZjQcmQRYFpfptBannerStart
+> This Message Is From an External Sender
+> This message came from outside your organization.
+> ZjQcmQRYFpfptBannerEnd
+> I don't have setup to test this now. Adding Shiva and Vaibhav who could 
+> probably help.
 > 
-> Looks good to me, though I think this patch applies to ... wherever all
-> those rmap+reflink+dax patches went.  I think that's akpm's tree, right?
-
-Yes, they are in his tree, still in mm-unstable now.
-
+> Thanks,
+> Santosh
 > 
-> Ideally this would go in through there to keep the pieces together, but
-> I don't mind tossing this in at the end of the 5.20 merge window if akpm
-> is unwilling.
-
-Both are fine to me.  Thanks!
-
-
---
-Ruan.
-
+> On Sat, 25 Jun, 2022, 1:03 am Dan Williams, <dan.j.williams@intel.com 
+> <mailto:dan.j.williams@intel.com>> wrote:
 > 
-> Reviewed-by: Darrick J. Wong <djwong@kernel.org>
+>     [ add Santosh ]
 > 
-> --D
+>     Kent Overstreet wrote:
+>      > This converts from seq_buf to printbuf. Here we're using printbuf
+>     with
+>      > an external buffer, meaning it's a direct conversion.
+>      >
+>      > Signed-off-by: Kent Overstreet <kent.overstreet@gmail.com
+>     <mailto:kent.overstreet@gmail.com>>
+>      > Cc: Dan Williams <dan.j.williams@intel.com
+>     <mailto:dan.j.williams@intel.com>>
+>      > Cc: Dave Hansen <dave.hansen@linux.intel.com
+>     <mailto:dave.hansen@linux.intel.com>>
+>      > Cc: nvdimm@lists.linux.dev <mailto:nvdimm@lists.linux.dev>
 > 
->> ---
->>   fs/xfs/xfs_super.c | 6 ++++--
->>   1 file changed, 4 insertions(+), 2 deletions(-)
->>
->> diff --git a/fs/xfs/xfs_super.c b/fs/xfs/xfs_super.c
->> index 8495ef076ffc..a3c221841fa6 100644
->> --- a/fs/xfs/xfs_super.c
->> +++ b/fs/xfs/xfs_super.c
->> @@ -348,8 +348,10 @@ xfs_setup_dax_always(
->>   		goto disable_dax;
->>   	}
->>   
->> -	if (xfs_has_reflink(mp)) {
->> -		xfs_alert(mp, "DAX and reflink cannot be used together!");
->> +	if (xfs_has_reflink(mp) &&
->> +	    bdev_is_partition(mp->m_ddev_targp->bt_bdev)) {
->> +		xfs_alert(mp,
->> +			"DAX and reflink cannot work with multi-partitions!");
->>   		return -EINVAL;
->>   	}
->>   
->> -- 
->> 2.36.1
->>
->>
->>
+>     Acked-by: Dan Williams <dan.j.williams@intel.com
+>     <mailto:dan.j.williams@intel.com>>
+> 
+
+The ndtest build requires [1] as the build is currently broken from 
+nd_namespace_blk/blk_region infrastructure removal.
+
+Dan, Could you review [1] and see if it can be included as well ?
+
+With [1], the this patch is tested, and works fine.
+
+Tested-By: Shivaprasad G Bhat <sbhat@linux.ibm.com>
+
+References:
+[1] 
+https://patchwork.kernel.org/project/linux-nvdimm/patch/165025395730.2821159.14794984437851867426.stgit@lep8c.aus.stglabs.ibm.com/
 
 
+>     This probably also wants a Tested-by from Santosh, but it looks ok
+>     to me.
+> 
