@@ -1,126 +1,144 @@
-Received: from mail-pf1-f173.google.com (mail-pf1-f173.google.com [209.85.210.173])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FBE915A3
-	for <nvdimm@lists.linux.dev>; Mon,  4 Jul 2022 08:03:39 +0000 (UTC)
-Received: by mail-pf1-f173.google.com with SMTP id f85so4447523pfa.3
-        for <nvdimm@lists.linux.dev>; Mon, 04 Jul 2022 01:03:39 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bytedance-com.20210112.gappssmtp.com; s=20210112;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=f9ptmB3XGt31Pq8FBcI5MbA2yBypm+2JGBZYReeKeY8=;
-        b=Q9uOsaM9gkzoT9XZMryjeJeF4CqBEe4f122QMdyvIZ9OW46Gs7GZNeNtv9XtFxnCJJ
-         fJqRhw9DxUt5HANWF5eFN4LhPRwVHx/FispChp8KKIr9C6S/zq1dZ9KG9pK2KmbLIap8
-         uS3E0XSoWiw8KERhpzJsdlrcOYmCZE9mIS152hhNij8jcjSAnsvF0v726taSw+Dj8qt6
-         2pGaOxOcxT5Q98YX++uFB1kri4Vpa1ZLOLSXgZR6PtXp0jdOhRjRdMI8kPpt3zrDBKDe
-         Vy3YfYkRNeVmXc3niV/aK3gvgb6va+fJXbTRWgmK+kKE3xJvF326absJFF6oeeKY+VSS
-         cCvA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=f9ptmB3XGt31Pq8FBcI5MbA2yBypm+2JGBZYReeKeY8=;
-        b=fBHzZfj9gVhL9LbLvKxJ+Qvyaz805vKyQ3Gqr1wTgUCjF5fniEpBUl0mEsCVrb4kb1
-         LNdyUZQMilzhAWvycaeNJQdFmBsnnRS17PALtciTAV9153dd5ohyUmPqyhqxPDjtdS9l
-         lnQSM5w9PzlunhTzw1o8o/oVFh48oBGFUna136lzJvuG0lTWAZ979C8hQuYruTf9LKAZ
-         0cnxrX7/Re9ICX5H8jUGAXw54AvBB44HdCxjObJdT5mJU9mPmPpTB2MS8afmUMLk0TLI
-         b+gtzikVz9Rpxq45BnMnzuukVIhkUCezV4/I1j9vqjebhozLcapWM39nMrzv6YXglDGi
-         /TnA==
-X-Gm-Message-State: AJIora+70wrxD8FcYgNz8lj021YgXXJ1PY4YKiOK+xyYGYpx3TQM+YuI
-	aR4FXuiQsVK3+6OwJK9svMk+XA==
-X-Google-Smtp-Source: AGRyM1svsqJoBsj5Q1XvMG+PjZFAD50xTrVz1dkapvyAi5JFA6rZcft884USVJUlz+5c+8OcIXlzng==
-X-Received: by 2002:a65:640e:0:b0:412:2906:bb25 with SMTP id a14-20020a65640e000000b004122906bb25mr6567449pgv.82.1656921818983;
-        Mon, 04 Jul 2022 01:03:38 -0700 (PDT)
-Received: from FVFYT0MHHV2J.bytedance.net ([139.177.225.229])
-        by smtp.gmail.com with ESMTPSA id s8-20020aa78d48000000b0052089e1b88esm20352965pfe.192.2022.07.04.01.03.34
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 04 Jul 2022 01:03:38 -0700 (PDT)
-From: Muchun Song <songmuchun@bytedance.com>
-To: akpm@linux-foundation.org,
-	willy@infradead.org,
-	jgg@ziepe.ca,
-	jhubbard@nvidia.com,
-	william.kucharski@oracle.com,
-	dan.j.williams@intel.com,
-	jack@suse.cz
-Cc: linux-mm@kvack.org,
-	linux-kernel@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org,
-	nvdimm@lists.linux.dev,
-	Muchun Song <songmuchun@bytedance.com>
-Subject: [PATCH] mm: fix missing wake-up event for FSDAX pages
-Date: Mon,  4 Jul 2022 15:40:54 +0800
-Message-Id: <20220704074054.32310-1-songmuchun@bytedance.com>
-X-Mailer: git-send-email 2.32.1 (Apple Git-133)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4044C7E
+	for <nvdimm@lists.linux.dev>; Mon,  4 Jul 2022 10:38:43 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=bgFpDRJ1phHQqdCoJBko0cJC9ngsJhc8l5GKh4nATgo=; b=rSgWnvQEmiowdltF5/el1vzXCe
+	EouJ0fQsqVyuBzwEgkUO/ew48ICBo4l6H1cJc+N/MR1v+uMNj3mbLq0RDNvRygBYzO3xqLdtaWTce
+	JqeMO6RsgfJ+n0AeIFuo1oWQuW9yyBtXVqlGlZ2orNkHOJZRGlyNAf2D5kg5iMm0959zGWd13jboR
+	qpX+oF9PeFyB3pFOqV9dUr3NVFQLBAp9nJ3Of3Kx+0fwekZlbOisV7XugG9/ZzvX9gwnarHiOmMxc
+	4/AUFNBs96GW3W+jWK6WEZYSAUhxYZFmNJnvsltMLtdytDmbe0jQe97UrRuPLt4emehZsKnv8V6UD
+	19e6+GEw==;
+Received: from willy by casper.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
+	id 1o8JT6-00HBd7-Bw; Mon, 04 Jul 2022 10:38:16 +0000
+Date: Mon, 4 Jul 2022 11:38:16 +0100
+From: Matthew Wilcox <willy@infradead.org>
+To: Muchun Song <songmuchun@bytedance.com>
+Cc: akpm@linux-foundation.org, jgg@ziepe.ca, jhubbard@nvidia.com,
+	william.kucharski@oracle.com, dan.j.williams@intel.com,
+	jack@suse.cz, linux-mm@kvack.org, linux-kernel@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev
+Subject: Re: [PATCH] mm: fix missing wake-up event for FSDAX pages
+Message-ID: <YsLDGEiVSHN3Xx/g@casper.infradead.org>
+References: <20220704074054.32310-1-songmuchun@bytedance.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220704074054.32310-1-songmuchun@bytedance.com>
 
-FSDAX page refcounts are 1-based, rather than 0-based: if refcount is
-1, then the page is freed.  The FSDAX pages can be pinned through GUP,
-then they will be unpinned via unpin_user_page() using a folio variant
-to put the page, however, folio variants did not consider this special
-case, the result will be to miss a wakeup event (like the user of
-__fuse_dax_break_layouts()).
+On Mon, Jul 04, 2022 at 03:40:54PM +0800, Muchun Song wrote:
+> FSDAX page refcounts are 1-based, rather than 0-based: if refcount is
+> 1, then the page is freed.  The FSDAX pages can be pinned through GUP,
+> then they will be unpinned via unpin_user_page() using a folio variant
+> to put the page, however, folio variants did not consider this special
+> case, the result will be to miss a wakeup event (like the user of
+> __fuse_dax_break_layouts()).
 
-Fixes: d8ddc099c6b3 ("mm/gup: Add gup_put_folio()")
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
----
- include/linux/mm.h | 22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+Argh, no.  The 1-based refcounts are a blight on the entire kernel.
+They need to go away, not be pushed into folios as well.  I think
+we're close to having that fixed, but until then, this should do
+the trick?
 
 diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 517f9deba56f..32aaa7b06f5a 100644
+index cc98ab012a9b..4cef5e0f78b6 100644
 --- a/include/linux/mm.h
 +++ b/include/linux/mm.h
-@@ -1223,6 +1223,9 @@ static inline __must_check bool try_get_page(struct page *page)
-  */
- static inline void folio_put(struct folio *folio)
+@@ -1129,18 +1129,18 @@ static inline bool is_zone_movable_page(const struct page *page)
+ #if defined(CONFIG_ZONE_DEVICE) && defined(CONFIG_FS_DAX)
+ DECLARE_STATIC_KEY_FALSE(devmap_managed_key);
+ 
+-bool __put_devmap_managed_page(struct page *page);
+-static inline bool put_devmap_managed_page(struct page *page)
++bool __put_devmap_managed_page(struct page *page, int refs);
++static inline bool put_devmap_managed_page(struct page *page, int refs)
  {
-+	if (put_devmap_managed_page(&folio->page))
-+		return;
-+
- 	if (folio_put_testzero(folio))
- 		__folio_put(folio);
- }
-@@ -1243,8 +1246,13 @@ static inline void folio_put(struct folio *folio)
-  */
- static inline void folio_put_refs(struct folio *folio, int refs)
- {
--	if (folio_ref_sub_and_test(folio, refs))
--		__folio_put(folio);
-+	/*
-+	 * For fsdax managed pages we need to catch refcount transition
-+	 * from 2 to 1:
-+	 */
-+	if (refs > 1)
-+		folio_ref_sub(folio, refs - 1);
-+	folio_put(folio);
+ 	if (!static_branch_unlikely(&devmap_managed_key))
+ 		return false;
+ 	if (!is_zone_device_page(page))
+ 		return false;
+-	return __put_devmap_managed_page(page);
++	return __put_devmap_managed_page(page, refs);
  }
  
- void release_pages(struct page **pages, int nr);
-@@ -1268,15 +1276,7 @@ static inline void folios_put(struct folio **folios, unsigned int nr)
- 
- static inline void put_page(struct page *page)
+ #else /* CONFIG_ZONE_DEVICE && CONFIG_FS_DAX */
+-static inline bool put_devmap_managed_page(struct page *page)
++static inline bool put_devmap_managed_page(struct page *page, int refs)
  {
--	struct folio *folio = page_folio(page);
--
--	/*
--	 * For some devmap managed pages we need to catch refcount transition
--	 * from 2 to 1:
--	 */
+ 	return false;
+ }
+@@ -1246,7 +1246,7 @@ static inline void put_page(struct page *page)
+ 	 * For some devmap managed pages we need to catch refcount transition
+ 	 * from 2 to 1:
+ 	 */
 -	if (put_devmap_managed_page(&folio->page))
--		return;
--	folio_put(folio);
-+	folio_put(page_folio(page));
++	if (put_devmap_managed_page(&folio->page, 1))
+ 		return;
+ 	folio_put(folio);
+ }
+diff --git a/mm/gup.c b/mm/gup.c
+index d1132b39aa8f..28df02121c78 100644
+--- a/mm/gup.c
++++ b/mm/gup.c
+@@ -88,7 +88,8 @@ static inline struct folio *try_get_folio(struct page *page, int refs)
+ 	 * belongs to this folio.
+ 	 */
+ 	if (unlikely(page_folio(page) != folio)) {
+-		folio_put_refs(folio, refs);
++		if (!put_devmap_managed_page(&folio->page, refs))
++			folio_put_refs(folio, refs);
+ 		goto retry;
+ 	}
+ 
+@@ -177,6 +178,8 @@ static void gup_put_folio(struct folio *folio, int refs, unsigned int flags)
+ 			refs *= GUP_PIN_COUNTING_BIAS;
+ 	}
+ 
++	if (put_devmap_managed_page(&folio->page, refs))
++		return;
+ 	folio_put_refs(folio, refs);
  }
  
- /*
--- 
-2.11.0
-
+diff --git a/mm/memremap.c b/mm/memremap.c
+index b870a659eee6..b25e40e3a11e 100644
+--- a/mm/memremap.c
++++ b/mm/memremap.c
+@@ -499,7 +499,7 @@ void free_zone_device_page(struct page *page)
+ }
+ 
+ #ifdef CONFIG_FS_DAX
+-bool __put_devmap_managed_page(struct page *page)
++bool __put_devmap_managed_page(struct page *page, int refs)
+ {
+ 	if (page->pgmap->type != MEMORY_DEVICE_FS_DAX)
+ 		return false;
+@@ -509,7 +509,7 @@ bool __put_devmap_managed_page(struct page *page)
+ 	 * refcount is 1, then the page is free and the refcount is
+ 	 * stable because nobody holds a reference on the page.
+ 	 */
+-	if (page_ref_dec_return(page) == 1)
++	if (page_ref_sub_return(page, refs) == 1)
+ 		wake_up_var(&page->_refcount);
+ 	return true;
+ }
+diff --git a/mm/swap.c b/mm/swap.c
+index c6194cfa2af6..94e42a9bab92 100644
+--- a/mm/swap.c
++++ b/mm/swap.c
+@@ -960,7 +960,7 @@ void release_pages(struct page **pages, int nr)
+ 				unlock_page_lruvec_irqrestore(lruvec, flags);
+ 				lruvec = NULL;
+ 			}
+-			if (put_devmap_managed_page(&folio->page))
++			if (put_devmap_managed_page(&folio->page, 1))
+ 				continue;
+ 			if (folio_put_testzero(folio))
+ 				free_zone_device_page(&folio->page);
