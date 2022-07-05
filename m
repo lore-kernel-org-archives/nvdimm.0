@@ -1,174 +1,184 @@
-Received: from mail-pj1-f51.google.com (mail-pj1-f51.google.com [209.85.216.51])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1250917E2
-	for <nvdimm@lists.linux.dev>; Tue,  5 Jul 2022 12:35:42 +0000 (UTC)
-Received: by mail-pj1-f51.google.com with SMTP id fz10so5933722pjb.2
-        for <nvdimm@lists.linux.dev>; Tue, 05 Jul 2022 05:35:42 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bytedance-com.20210112.gappssmtp.com; s=20210112;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=P8dLNO3XSVpB5X1jg4KVwtpXwWMCvyBucMCZ4xYCRcE=;
-        b=YvIK0lrmI2mmJifbiC13P9zSa4jhgWrCSf8HfCcWHJeRvq/2xkb1o4YgiN5i3z09tp
-         9gjXqgJccr/RTi1IiNDqr6D8MVorTHbLO1jtVDyuYjTeI3kwWWXhiQQ2TrQXZp4R3Fyc
-         gAg8b1Xktofgk5Kju+be+WvUsysFwFRsMwUspJoICZi2ITNn1orttaMB7Hu9XGSP2Wmp
-         Wx5L3SOcTvfXsH1MEAI4qEFT/TzHEnmLTkz25L9J0/PjOwfRvTbJ2875wc/+WzeDbrGw
-         QrdhzE9iE0rO0PUQ94DCPnJeTPvzYHio319Xu9Fr3vu3PcLHckf80vLg/ZO9PtWpsvvW
-         eX2Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=P8dLNO3XSVpB5X1jg4KVwtpXwWMCvyBucMCZ4xYCRcE=;
-        b=8CUKdulEAOwrv2zVBkUZJP85R4/B+CZlaLL8vBUCGZa8qNJDtNoo45U9U0a934HIyx
-         iCP/8MQT+JCRgfFecQoIzeiJBssBoq87SWA5OAd78sApbsoq0sSLUsWxZByjDUvP0DlB
-         E9K+gjFlEmYnpJKS0HwjM3M/L9amy85wYeIEFQdXgn9/ErLTJhtzc4HMuLJlpQ7Bq/0e
-         pOJA+kSCjbd7Ds3raHd3nOBQbr9bWutpb+OTuvaGKhXXiwhNl8TyT4U9OBjTEfhY8ySd
-         BdIEX9Rn5N/KdGMl2pNBGgDmEIHLEq0iZds2ihA45HS+NKlyUTNhxPPJ0bxRbcwIuWug
-         tQ6g==
-X-Gm-Message-State: AJIora94CfKnvWm7fKmsi+W5DWfoEkDTSn+lPK/GfPrfozLpsTyBO4rd
-	bKWCBEsMo6TSdpfkl4MiK3cTSQ==
-X-Google-Smtp-Source: AGRyM1tGmro/IOsy0F1j/gU/vPekilw0RyPAVRgsAlBkibEGJXezSBOKSTDCC9D3AROIwcb5MCGdfQ==
-X-Received: by 2002:a17:902:a601:b0:16a:6632:7f14 with SMTP id u1-20020a170902a60100b0016a66327f14mr42460871plq.2.1657024542238;
-        Tue, 05 Jul 2022 05:35:42 -0700 (PDT)
-Received: from FVFYT0MHHV2J.bytedance.net ([139.177.225.229])
-        by smtp.gmail.com with ESMTPSA id k6-20020a63ba06000000b0041278f0025esm1154191pgf.12.2022.07.05.05.35.37
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 05 Jul 2022 05:35:41 -0700 (PDT)
-From: Muchun Song <songmuchun@bytedance.com>
-To: akpm@linux-foundation.org,
-	willy@infradead.org,
-	jgg@ziepe.ca,
-	jhubbard@nvidia.com,
-	william.kucharski@oracle.com,
-	dan.j.williams@intel.com,
-	jack@suse.cz
-Cc: linux-mm@kvack.org,
-	linux-kernel@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org,
-	nvdimm@lists.linux.dev,
-	Muchun Song <songmuchun@bytedance.com>,
-	stable@vger.kernel.org
-Subject: [PATCH v2] mm: fix missing wake-up event for FSDAX pages
-Date: Tue,  5 Jul 2022 20:35:32 +0800
-Message-Id: <20220705123532.283-1-songmuchun@bytedance.com>
-X-Mailer: git-send-email 2.32.1 (Apple Git-133)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 895B46001
+	for <nvdimm@lists.linux.dev>; Tue,  5 Jul 2022 17:26:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A384C341C7;
+	Tue,  5 Jul 2022 17:26:04 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1657041964;
+	bh=4Zdi0gj1V9biGaqF3ho4TehXBAAmFn8ky14G82fpvD0=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=EuIzM+kSE1RzV7Diz++pApSM1OKkvA20PoCUL4AzVsM6Fu6zo8fLRDV65imgqVHq3
+	 L6d49PaGRnKO9dsrX63RxZ4ASWtzd2e8heQUD51/NzTPy0lTEbD4keI84B0EC0ZwhV
+	 K6w8kn+nokR9Mj5Ujxjwafj6LcRFfD+TrzpTL9xRzgpl5paAkBRPMFNLuBB/ZMjmwo
+	 IPVcSGNnE0BQWRYXc6vfjdnB25Y7mHFiKheqqsJD6Z691UxWDZ5Vo+HQCrTiJFYLb9
+	 Vp2uZIDYsoku9U4dxYZLCKk3C5dKO7l4HvyyP2w9TTqu5g6Kl95I0gGn0UrgFY/L4p
+	 7sGRKAVDEaPxw==
+Date: Tue, 5 Jul 2022 10:26:03 -0700
+From: "Darrick J. Wong" <djwong@kernel.org>
+To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Cc: linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org,
+	nvdimm@lists.linux.dev, linux-mm@kvack.org,
+	linux-fsdevel@vger.kernel.org, dan.j.williams@intel.com,
+	david@fromorbit.com, hch@infradead.org, jane.chu@oracle.com
+Subject: Re: [RFC PATCH v4] mm, pmem, xfs: Introduce MF_MEM_REMOVE for unbind
+Message-ID: <YsR0K3wOUl3Ytc1R@magnolia>
+References: <20220410171623.3788004-1-ruansy.fnst@fujitsu.com>
+ <20220703130838.3518127-1-ruansy.fnst@fujitsu.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220703130838.3518127-1-ruansy.fnst@fujitsu.com>
 
-FSDAX page refcounts are 1-based, rather than 0-based: if refcount is
-1, then the page is freed.  The FSDAX pages can be pinned through GUP,
-then they will be unpinned via unpin_user_page() using a folio variant
-to put the page, however, folio variants did not consider this special
-case, the result will be to miss a wakeup event (like the user of
-__fuse_dax_break_layouts()).  Since FSDAX pages are only possible get
-by GUP users, so fix GUP instead of folio_put() to lower overhead.
+On Sun, Jul 03, 2022 at 09:08:38PM +0800, Shiyang Ruan wrote:
+> This patch is inspired by Dan's "mm, dax, pmem: Introduce
+> dev_pagemap_failure()"[1].  With the help of dax_holder and
+> ->notify_failure() mechanism, the pmem driver is able to ask filesystem
+> (or mapped device) on it to unmap all files in use and notify processes
+> who are using those files.
+> 
+> Call trace:
+> trigger unbind
+>  -> unbind_store()
+>   -> ... (skip)
+>    -> devres_release_all()   # was pmem driver ->remove() in v1
+>     -> kill_dax()
+>      -> dax_holder_notify_failure(dax_dev, 0, U64_MAX, MF_MEM_REMOVE)
+>       -> xfs_dax_notify_failure()
+> 
+> Introduce MF_MEM_REMOVE to let filesystem know this is a remove event.
+> So do not shutdown filesystem directly if something not supported, or if
+> failure range includes metadata area.  Make sure all files and processes
+> are handled correctly.
+> 
+> ==
+> Changes since v3:
+>   1. Flush dirty files and logs when pmem is about to be removed.
+>   2. Rebased on next-20220701
+> 
+> Changes since v2:
+>   1. Rebased on next-20220615
+> 
+> Changes since v1:
+>   1. Drop the needless change of moving {kill,put}_dax()
+>   2. Rebased on '[PATCHSETS] v14 fsdax-rmap + v11 fsdax-reflink'[2]
+> 
+> [1]: https://lore.kernel.org/linux-mm/161604050314.1463742.14151665140035795571.stgit@dwillia2-desk3.amr.corp.intel.com/
+> [2]: https://lore.kernel.org/linux-xfs/20220508143620.1775214-1-ruansy.fnst@fujitsu.com/
+> 
+> Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+> ---
+>  drivers/dax/super.c         |  2 +-
+>  fs/xfs/xfs_notify_failure.c | 23 ++++++++++++++++++++++-
+>  include/linux/mm.h          |  1 +
+>  3 files changed, 24 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+> index 9b5e2a5eb0ae..d4bc83159d46 100644
+> --- a/drivers/dax/super.c
+> +++ b/drivers/dax/super.c
+> @@ -323,7 +323,7 @@ void kill_dax(struct dax_device *dax_dev)
+>  		return;
+> 
+>  	if (dax_dev->holder_data != NULL)
+> -		dax_holder_notify_failure(dax_dev, 0, U64_MAX, 0);
+> +		dax_holder_notify_failure(dax_dev, 0, U64_MAX, MF_MEM_REMOVE);
+> 
+>  	clear_bit(DAXDEV_ALIVE, &dax_dev->flags);
+>  	synchronize_srcu(&dax_srcu);
+> diff --git a/fs/xfs/xfs_notify_failure.c b/fs/xfs/xfs_notify_failure.c
+> index aa8dc27c599c..269e21b3341c 100644
+> --- a/fs/xfs/xfs_notify_failure.c
+> +++ b/fs/xfs/xfs_notify_failure.c
+> @@ -18,6 +18,7 @@
+>  #include "xfs_rmap_btree.h"
+>  #include "xfs_rtalloc.h"
+>  #include "xfs_trans.h"
+> +#include "xfs_log.h"
+> 
+>  #include <linux/mm.h>
+>  #include <linux/dax.h>
+> @@ -75,6 +76,10 @@ xfs_dax_failure_fn(
+> 
+>  	if (XFS_RMAP_NON_INODE_OWNER(rec->rm_owner) ||
+>  	    (rec->rm_flags & (XFS_RMAP_ATTR_FORK | XFS_RMAP_BMBT_BLOCK))) {
+> +		/* Do not shutdown so early when device is to be removed */
+> +		if (notify->mf_flags & MF_MEM_REMOVE) {
+> +			return 0;
+> +		}
+>  		xfs_force_shutdown(mp, SHUTDOWN_CORRUPT_ONDISK);
+>  		return -EFSCORRUPTED;
+>  	}
+> @@ -168,6 +173,7 @@ xfs_dax_notify_failure(
+>  	struct xfs_mount	*mp = dax_holder(dax_dev);
+>  	u64			ddev_start;
+>  	u64			ddev_end;
+> +	int			error;
+> 
+>  	if (!(mp->m_sb.sb_flags & SB_BORN)) {
+>  		xfs_warn(mp, "filesystem is not ready for notify_failure()!");
+> @@ -182,6 +188,13 @@ xfs_dax_notify_failure(
+> 
+>  	if (mp->m_logdev_targp && mp->m_logdev_targp->bt_daxdev == dax_dev &&
+>  	    mp->m_logdev_targp != mp->m_ddev_targp) {
+> +		if (mf_flags & MF_MEM_REMOVE) {
+> +			/* Flush the log since device is about to be removed. */
 
-Fixes: d8ddc099c6b3 ("mm/gup: Add gup_put_folio()")
-Suggested-by: Matthew Wilcox <willy@infradead.org>
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Cc: <stable@vger.kernel.org>
----
-v2:
- - Fix GUP instead of folio_put() suggested by Matthew.
+If MF_MEM_REMOVE means "storage is about to go away" then perhaps the
+only thing we need to do in xfs_dax_notify_failure is log a message
+about the pending failure and then call sync_filesystem()?  This I think
+could come before we even start looking at which device -- if any of the
+filesystem blockdevs are about to be removed, the best we can do is
+flush all the dirty data to disk.
 
- include/linux/mm.h | 14 +++++++++-----
- mm/gup.c           |  6 ++++--
- mm/memremap.c      |  6 +++---
- 3 files changed, 16 insertions(+), 10 deletions(-)
+--D
 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 517f9deba56f..b324c9fa2940 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -1157,23 +1157,27 @@ static inline bool is_zone_movable_page(const struct page *page)
- #if defined(CONFIG_ZONE_DEVICE) && defined(CONFIG_FS_DAX)
- DECLARE_STATIC_KEY_FALSE(devmap_managed_key);
- 
--bool __put_devmap_managed_page(struct page *page);
--static inline bool put_devmap_managed_page(struct page *page)
-+bool __put_devmap_managed_page_refs(struct page *page, int refs);
-+static inline bool put_devmap_managed_page_refs(struct page *page, int refs)
- {
- 	if (!static_branch_unlikely(&devmap_managed_key))
- 		return false;
- 	if (!is_zone_device_page(page))
- 		return false;
--	return __put_devmap_managed_page(page);
-+	return __put_devmap_managed_page_refs(page, refs);
- }
--
- #else /* CONFIG_ZONE_DEVICE && CONFIG_FS_DAX */
--static inline bool put_devmap_managed_page(struct page *page)
-+static inline bool put_devmap_managed_page_refs(struct page *page, int refs)
- {
- 	return false;
- }
- #endif /* CONFIG_ZONE_DEVICE && CONFIG_FS_DAX */
- 
-+static inline bool put_devmap_managed_page(struct page *page)
-+{
-+	return put_devmap_managed_page_refs(page, 1);
-+}
-+
- /* 127: arbitrary random number, small enough to assemble well */
- #define folio_ref_zero_or_close_to_overflow(folio) \
- 	((unsigned int) folio_ref_count(folio) + 127u <= 127u)
-diff --git a/mm/gup.c b/mm/gup.c
-index 4e1999402e71..965ba755023f 100644
---- a/mm/gup.c
-+++ b/mm/gup.c
-@@ -87,7 +87,8 @@ static inline struct folio *try_get_folio(struct page *page, int refs)
- 	 * belongs to this folio.
- 	 */
- 	if (unlikely(page_folio(page) != folio)) {
--		folio_put_refs(folio, refs);
-+		if (!put_devmap_managed_page_refs(&folio->page, refs))
-+			folio_put_refs(folio, refs);
- 		goto retry;
- 	}
- 
-@@ -176,7 +177,8 @@ static void gup_put_folio(struct folio *folio, int refs, unsigned int flags)
- 			refs *= GUP_PIN_COUNTING_BIAS;
- 	}
- 
--	folio_put_refs(folio, refs);
-+	if (!put_devmap_managed_page_refs(&folio->page, refs))
-+		folio_put_refs(folio, refs);
- }
- 
- /**
-diff --git a/mm/memremap.c b/mm/memremap.c
-index f0955785150f..58b20c3c300b 100644
---- a/mm/memremap.c
-+++ b/mm/memremap.c
-@@ -509,7 +509,7 @@ void free_zone_device_page(struct page *page)
- }
- 
- #ifdef CONFIG_FS_DAX
--bool __put_devmap_managed_page(struct page *page)
-+bool __put_devmap_managed_page_refs(struct page *page, int refs)
- {
- 	if (page->pgmap->type != MEMORY_DEVICE_FS_DAX)
- 		return false;
-@@ -519,9 +519,9 @@ bool __put_devmap_managed_page(struct page *page)
- 	 * refcount is 1, then the page is free and the refcount is
- 	 * stable because nobody holds a reference on the page.
- 	 */
--	if (page_ref_dec_return(page) == 1)
-+	if (page_ref_sub_return(page, refs) == 1)
- 		wake_up_var(&page->_refcount);
- 	return true;
- }
--EXPORT_SYMBOL(__put_devmap_managed_page);
-+EXPORT_SYMBOL(__put_devmap_managed_page_refs);
- #endif /* CONFIG_FS_DAX */
--- 
-2.11.0
-
+> +			error = xfs_log_force(mp, XFS_LOG_SYNC);
+> +			if (error)
+> +				return error;
+> +			return -EOPNOTSUPP;
+> +		}
+>  		xfs_err(mp, "ondisk log corrupt, shutting down fs!");
+>  		xfs_force_shutdown(mp, SHUTDOWN_CORRUPT_ONDISK);
+>  		return -EFSCORRUPTED;
+> @@ -211,8 +224,16 @@ xfs_dax_notify_failure(
+>  	if (offset + len > ddev_end)
+>  		len -= ddev_end - offset;
+> 
+> -	return xfs_dax_notify_ddev_failure(mp, BTOBB(offset), BTOBB(len),
+> +	error = xfs_dax_notify_ddev_failure(mp, BTOBB(offset), BTOBB(len),
+>  			mf_flags);
+> +	if (error)
+> +		return error;
+> +
+> +	if (mf_flags & MF_MEM_REMOVE) {
+> +		xfs_flush_inodes(mp);
+> +		error = xfs_log_force(mp, XFS_LOG_SYNC);
+> +	}
+> +	return error;
+>  }
+> 
+>  const struct dax_holder_operations xfs_dax_holder_operations = {
+> diff --git a/include/linux/mm.h b/include/linux/mm.h
+> index a2270e35a676..e66d23188323 100644
+> --- a/include/linux/mm.h
+> +++ b/include/linux/mm.h
+> @@ -3236,6 +3236,7 @@ enum mf_flags {
+>  	MF_SOFT_OFFLINE = 1 << 3,
+>  	MF_UNPOISON = 1 << 4,
+>  	MF_SW_SIMULATED = 1 << 5,
+> +	MF_MEM_REMOVE = 1 << 6,
+>  };
+>  int mf_dax_kill_procs(struct address_space *mapping, pgoff_t index,
+>  		      unsigned long count, int mf_flags);
+> --
+> 2.36.1
+> 
+> 
+> 
