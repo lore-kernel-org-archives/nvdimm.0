@@ -1,226 +1,130 @@
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr1-f45.google.com (mail-wr1-f45.google.com [209.85.221.45])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2017610EC;
-	Sun, 10 Jul 2022 03:55:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1657425324; x=1688961324;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=mHnI+wrIAa/f7xccfiwI37kLenZqDL6w/YtlDBBcqjU=;
-  b=Y9L4VxgOpOzJ5ttXUj0IAFB5N1j3wJBgye809lRY/NSo5n0A/GEUefeh
-   F/PU2VdkML/Z6jwar7hkmTxJbPJb44GPgmqMV990FPaxIB18nAeff6s4Q
-   DwSupuYfmFkZO08jcbGjFfAIZ0St6H53voYxRZSM2GCeWHPYJwK2m2gGX
-   vU+S/vnWIQ8MIKgCfM4DI4fyywsIFAb5V030i6Nc9g0euGEv+u0IveQh/
-   gorbpqEGTey3Gacs88dEheMJYjZsr0u6iYfE01PexCp2Yq81+VFkVej90
-   QZMhm1zKt3lN/BwrUk2jqHzno2KEaZ3XCBwsIAsa6z9A2Xt0RIRtB18QR
-   Q==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10403"; a="370789624"
-X-IronPort-AV: E=Sophos;i="5.92,260,1650956400"; 
-   d="scan'208";a="370789624"
-Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Jul 2022 20:55:23 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.92,260,1650956400"; 
-   d="scan'208";a="544631818"
-Received: from fmsmsx605.amr.corp.intel.com ([10.18.126.85])
-  by orsmga003.jf.intel.com with ESMTP; 09 Jul 2022 20:55:22 -0700
-Received: from fmsmsx611.amr.corp.intel.com (10.18.126.91) by
- fmsmsx605.amr.corp.intel.com (10.18.126.85) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.27; Sat, 9 Jul 2022 20:55:22 -0700
-Received: from fmsmsx606.amr.corp.intel.com (10.18.126.86) by
- fmsmsx611.amr.corp.intel.com (10.18.126.91) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.27; Sat, 9 Jul 2022 20:55:21 -0700
-Received: from fmsedg602.ED.cps.intel.com (10.1.192.136) by
- fmsmsx606.amr.corp.intel.com (10.18.126.86) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.27 via Frontend Transport; Sat, 9 Jul 2022 20:55:21 -0700
-Received: from NAM11-BN8-obe.outbound.protection.outlook.com (104.47.58.168)
- by edgegateway.intel.com (192.55.55.71) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2308.27; Sat, 9 Jul 2022 20:55:21 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=Lx6hrNhQjL1B5uBHP2PZSEdycdEHsn5pp+ejTkj5av+CI3HGQqo0B5/El127kkf6pZCnGmKJwg+XJUyil2jziTqC3gOngamV9owlvy0HeEPXiZOkavOEcs+8BEBT0HTpf1Vukk4we1BnXoSS/0PGlJ4hHubHP1NtAJqpeIN/ms0i0kkGI/kZ50MWzNVmJWeXcBVI3WKkIRKrXSMNLIZN2aZ+ntIR0ZFHimzIZLVhIWApReJl6bnIRxCLMnW0LQXVOiEeg+epMpcjKSxeqvNb1K48+MyNjIkgHdJX8osTEbi3UTwkPjGEVed5u6hJI294BlYjYwbq87+rAXGSbLnwwA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=AyftBb2M4TxidR5BmtB6rR4VPQ0xm0fB89WLA7xgvhY=;
- b=NiJ5SAP2WPSc+Sv177W2IgOgxvCUHrdH7EChNYjCU9AeDEY9FtK/bGYTXdu5ASWSH5aNGz7Xf1Dgg3DARQWLzoU7cM75COM/3Udw7ElSvMsixQy4hgU6h/EI/jyWBrE7MSscupILoa8HpzmfcEZ2l8WLVrpRt4lzRoYBk+I2jRUFlcbybEtq1bSlPYNBWzMTiaZZT9K9V4o1MLD5u5deD8nAYSsHk1OuzOHD2j2UkzwiofyIxEpQsrv3FcNoq2XplHdiyPltYdgk4TRsS4c1m0cWf/Xz6RukPwa9yCNM/8G4eGPq0lnsnRvzZtPQBGWjqGztrRcfqtgHJ1YB2MK9ig==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
- (2603:10b6:301:50::20) by BN6PR11MB3922.namprd11.prod.outlook.com
- (2603:10b6:405:7b::16) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5417.23; Sun, 10 Jul
- 2022 03:55:19 +0000
-Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
- ([fe80::6466:20a6:57b4:1edf]) by MWHPR1101MB2126.namprd11.prod.outlook.com
- ([fe80::6466:20a6:57b4:1edf%11]) with mapi id 15.20.5417.021; Sun, 10 Jul
- 2022 03:55:19 +0000
-Date: Sat, 9 Jul 2022 20:55:17 -0700
-From: Dan Williams <dan.j.williams@intel.com>
-To: Jonathan Cameron <Jonathan.Cameron@huawei.com>, Dan Williams
-	<dan.j.williams@intel.com>
-CC: <linux-cxl@vger.kernel.org>, <hch@infradead.org>,
-	<alison.schofield@intel.com>, <nvdimm@lists.linux.dev>,
-	<linux-pci@vger.kernel.org>, <patches@lists.linux.dev>
-Subject: Re: [PATCH 17/46] cxl/hdm: Track next decoder to allocate
-Message-ID: <62ca4da570a4e_3177ca294eb@dwillia2-xfh.notmuch>
-References: <165603869943.551046.3498980330327696732.stgit@dwillia2-xfh>
- <165603882752.551046.12620934370518380800.stgit@dwillia2-xfh>
- <20220629163102.000016c4@Huawei.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20220629163102.000016c4@Huawei.com>
-X-ClientProxiedBy: CO2PR06CA0076.namprd06.prod.outlook.com
- (2603:10b6:104:3::34) To MWHPR1101MB2126.namprd11.prod.outlook.com
- (2603:10b6:301:50::20)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D20CD1104;
+	Sun, 10 Jul 2022 10:01:45 +0000 (UTC)
+Received: by mail-wr1-f45.google.com with SMTP id z12so3581895wrq.7;
+        Sun, 10 Jul 2022 03:01:45 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=81hvwpBlfxQBH7APOHFnmGU6Oy26r79hMsY7b8ngUnA=;
+        b=LaBR8No6eDA8e9Rql/Q8hpGkLLfuSD5/EMXQepcthh8cGp7UjbSFP1k9BsyzXUHnNy
+         /Tpq4atRiIOMgSMJhXBMpDbldJ1g4b5k0jQCcLGn8jfGRoB7x/q/8CTNYecJfV/bu4Bo
+         MERWiqyGTdkZFrXjwSPTS3Z7Yn+KmnzXcWrJiE8YusI2QP2MhVEHWCSDIj8F43mtTiYZ
+         TEX0Th1RPImvZ0IVeKx1UMGztnYZGsQwur0HjBXDJzClOHfTYfzZhOg8rixDdLobrGug
+         oZU4dhUGGW50vkkWM5cZ8x/txINWUWLWL80giRRZdFN9hqvwmfL00pFxL7khmpX45EwE
+         onMw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=81hvwpBlfxQBH7APOHFnmGU6Oy26r79hMsY7b8ngUnA=;
+        b=aT4dH0nQHQ/YQqMV/yimR6oRj9g5/XpVlLD7sa9mjyuuGDPaZzmCfX2cJZgdC5bHi+
+         DhYlLTjNUOBTw7hXFoToKoLbmWD1e0Atr841pAnez67e/nMP8Cv5jvQ0dIDQIdq3OGi1
+         D6C2Yw07ZkfFxc3MQByvOnlG/6K+L8rGPBL+BHJDwn3WU52e9nYHI7gv3pbgIw7UlqFA
+         wspgCXimZ4LdvXcBtDjAJLMKOtCWSjTmAovEgdY8/P6pi0stCbk+bze2ipUGmmK0QRWA
+         KeXc/h+48OJ2UXTzvOiZY4Uign60LkhmEJ/Ra641zwUMdfCd1IkXwUQ3q46pjOuFApxf
+         hhHg==
+X-Gm-Message-State: AJIora/8PeYzobQ3vjAJgoIn9TM7XA6xtsyri6rzzJ7bNCRMqWtH3cig
+	ySBU/mZTXyJtDt5Anm36mxo=
+X-Google-Smtp-Source: AGRyM1t1D8hDiyos2lkhzHSCdCKBxQy3yBejjsdGsbA5T1lQgpocurWl0ACdlPHS4JNTO6vo74nRPw==
+X-Received: by 2002:a05:6000:54f:b0:21b:944c:c70b with SMTP id b15-20020a056000054f00b0021b944cc70bmr12117283wrf.572.1657447303959;
+        Sun, 10 Jul 2022 03:01:43 -0700 (PDT)
+Received: from localhost.localdomain (host-95-235-102-55.retail.telecomitalia.it. [95.235.102.55])
+        by smtp.gmail.com with ESMTPSA id r7-20020a05600c434700b003a2da6b2cbesm3502026wme.33.2022.07.10.03.01.39
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 10 Jul 2022 03:01:42 -0700 (PDT)
+From: "Fabio M. De Francesco" <fmdefrancesco@gmail.com>
+To: Benjamin LaHaise <bcrl@kvack.org>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Eric Biederman <ebiederm@xmission.com>,
+	Kees Cook <keescook@chromium.org>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Matthew Wilcox <willy@infradead.org>,
+	Jan Kara <jack@suse.cz>,
+	Jeff Layton <jlayton@kernel.org>,
+	Chuck Lever <chuck.lever@oracle.com>,
+	Jens Axboe <axboe@kernel.dk>,
+	Pavel Begunkov <asml.silence@gmail.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Paul Walmsley <paul.walmsley@sifive.com>,
+	Palmer Dabbelt <palmer@dabbelt.com>,
+	Albert Ou <aou@eecs.berkeley.edu>,
+	Nathan Chancellor <nathan@kernel.org>,
+	Nick Desaulniers <ndesaulniers@google.com>,
+	Tom Rix <trix@redhat.com>,
+	linux-aio@kvack.org,
+	linux-fsdevel@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-mm@kvack.org,
+	nvdimm@lists.linux.dev,
+	io-uring@vger.kernel.org,
+	linux-riscv@lists.infradead.org,
+	llvm@lists.linux.dev
+Cc: "Fabio M. De Francesco" <fmdefrancesco@gmail.com>,
+	Ira Weiny <ira.weiny@intel.com>
+Subject: [PATCH] fs: Call kmap_local_page() in copy_string_kernel()
+Date: Sun, 10 Jul 2022 12:01:36 +0200
+Message-Id: <20220710100136.25496-1-fmdefrancesco@gmail.com>
+X-Mailer: git-send-email 2.36.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 26e28c5b-4723-42ae-5a1e-08da622801a7
-X-MS-TrafficTypeDiagnostic: BN6PR11MB3922:EE_
-X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: MjpRj5dJiEuPvMSeIKoSqebaaVpWNZwBncQZPIIRfDl7yhuD5cNjQOCdMvqEJc03YlIA75Ks70K2p9Ml4EtMXnWIyXR9FdfsKQ7ibRSSx7j0KlGGeqMYpnwUppUfPHVs6Fcm0q0i/QFxTVkyfY2VY7q1nyZFXAIqaok4tGvNdjt6W072nAdMaS8ZqJ22d5F28EYSYigct2Vl5UgulxVgp1f5F9XhFax2myqbG3pemZGOdOpuwQGjg77SLxvRrJCvNPSihipnpSvtLPrDMK8FcCdOZCpS+c3IwXFSS3DGtyYFhOl3QYRx3m1tvj7fZMApT5cfmeFD3bT/biRIxfD+/gv0qFa9vRP3hxnBVmV3p1TKDzDNOYQjrC6Yez9nIKoo4OVOba9avcfq7FS8+6Hc/ZKuc3WYSf4Dhja0WCKoCR0g2+RS3ulgpy/0F/97rfzzwMp7tCKPy6S0t/4JvkCAY+e1yUrrBAF4VmuQxhIeUop5vOlp89Drw9wX4cNfj4dqefUlBguxUhj9UDuWeIhvWfMR54RGnbDGb6ZOAPkqVRxmHVFcJv0TJgEQcsepm6CKo7+FBFguk4XxDHkodW7X+J5Ie+qGPS5BkcTUA41iq5uXRJjK2IhwBAD9Q4ibnvGEG+j61AQHc4u85cImZGoP0gLmTZ+DKnaTptCzaL3HSS3o87Rn98FBp3+gRGFFIp13Ptv6fwm/4h1YO6c83QyPM155fcuzKUhwSrDfPZt0zeUKbO3uUHnsLdf6HIML24lS6dxn34/ThDvMutDV2Hv7Ow==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1101MB2126.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(346002)(366004)(376002)(39860400002)(136003)(396003)(6506007)(41300700001)(83380400001)(478600001)(6486002)(5660300002)(8936002)(82960400001)(4326008)(86362001)(110136005)(2906002)(316002)(186003)(38100700002)(66476007)(66556008)(6512007)(66946007)(8676002)(9686003)(26005);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?Psi6XVHhWCvsqSyddu496NMNLMCvh4WF/DCJv2Kiu1ru4J2lVTMXTUPEFBZO?=
- =?us-ascii?Q?kIYZePiA/ryIRgxWFQp5angbxjpU1thggMoxxbw+9PDcE5SUh7eQOON3HOzj?=
- =?us-ascii?Q?63tG+++rmQ6JCfim02gegm7/SBLptWtBDEjkHvMJgEfsnnXS1g8VbxLc/fSy?=
- =?us-ascii?Q?EazFEeqSTRnDBVBAQKdmCZ9lQN/UdD1uRofNobZMvCm8J2HGb50fT7sp2cWZ?=
- =?us-ascii?Q?28oFHYOHt7o+0xAdfg37cetv3aTY0oDSfBeZw76PSA5MIDdDzie5ZWp9dL9A?=
- =?us-ascii?Q?lZ/jp5TSr7FA3V3Ov8eiCkX9DVKMzV+IULh9awfUUEtnA5vE98IGrcw0OrJd?=
- =?us-ascii?Q?ETyippHgR9hAn/NlBlJ4RUk/87ysfvJfSDu95ktk9FkS8rsB1Mp7jguRnC4o?=
- =?us-ascii?Q?fhp9TU7/8/xZ09FvclrjMf+68qCatAHjjzFeefDbu923FpM2tx+N/G257A4e?=
- =?us-ascii?Q?Fogf+B6g58n7rywtfZdjF6g4q8VHCiD2XhLrNN7KfcKlpqtJaXw5t8MNbRDO?=
- =?us-ascii?Q?vFSsyUGk8Zg8HawMwVI/oDzRtpt5dLrMhRYQRkZc60altbwT15kkX9UkB26L?=
- =?us-ascii?Q?kdcRoEQO9i0owWdfspvJDgDvcKqAyjKPUHnQms2wRAr9YXxF7aBa0iDQiAj7?=
- =?us-ascii?Q?ANgQevsawNdDQyJwjRYOYKaXRS2M/Dw0ZeQBtpArSAWkZkmpPQWHTHGCuoHP?=
- =?us-ascii?Q?/0FaiTgMaonsccwyQCrtAEgDUDaf3HPg0fU5hC54QgN/uMkk+HPQv4iETCFK?=
- =?us-ascii?Q?eoofeGYZFsgEMnlhwKvSaFPhyWLSoipwQEZ1BUVKTPvUlKfwI2sqKu6DFGAS?=
- =?us-ascii?Q?qF0M7apvu8Nnyf+MZY+yg5TlazzvEPJdwiVOlCDCWWKJeMWRa2HftjWAKGbS?=
- =?us-ascii?Q?o8Pj18wTYcKytuVgpS/laBQ+GB+AIgs3tyzpg6Hc2nxeOYRmLolX04NcapCB?=
- =?us-ascii?Q?IBuy2YZK2iibKALTgxAglWDXEU/ENYgSVS6ztJl0hFeJLHFoJRStgd/IyMH+?=
- =?us-ascii?Q?TimtFxrboMXG7ywZuSg5kxQZhjnjUrWIUamny5MNelX5d2dlVzkKUDiLa7Tc?=
- =?us-ascii?Q?+1is4mEUklDXx6zFS10eZhQl/CH6szGIolWh7HU1qll4fbpYVfAt7XaRiVWY?=
- =?us-ascii?Q?V4NfI/QvQKQx9UOyZuSXNxRz4ImDcgMEtoxoJ1h+npNDmGxZcWZha2LxekK3?=
- =?us-ascii?Q?Ka6FykNXFkb6qcB/oO2tB5n0EhyAwLJtddWcGMd69YBRkEyY8kaPqDs2nBz2?=
- =?us-ascii?Q?G5ARj5ipZQiIhsQTDlJLC4cVE4FZwsIoMpRssKDZ4Uya8TDvGtzn+yI2tiQe?=
- =?us-ascii?Q?TbuIKUGC1w+cEdUOMUGCkrq/EqB2o3dr1DSZ937BypEVNH28WOlY3drSEfwp?=
- =?us-ascii?Q?uPdJG0Zso7d46IHiRwZEfiHqHGm62FOUd2UGDyY00gjtxg77k07v2L5gqAtq?=
- =?us-ascii?Q?i30SvbM5QLGPcf9v3TjzjoI2oEWQgmGxCni1yjVJDs1ipKGd+0iENsAHhgyf?=
- =?us-ascii?Q?vOgdQHl0k/om9eUkMGWoX6jTCy4yd28yhKO4ON6QpYaEo+ru2wLgNJfj2H/4?=
- =?us-ascii?Q?bMmwR6utRft7Y0J/evsai/AYK5QkMA8zBHlXDWrZdG8Ar+qHrWQ/IBQeWIOp?=
- =?us-ascii?Q?/A=3D=3D?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: 26e28c5b-4723-42ae-5a1e-08da622801a7
-X-MS-Exchange-CrossTenant-AuthSource: MWHPR1101MB2126.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 Jul 2022 03:55:19.3398
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: WNTjejnRyQHQiWA+7S8oVz+wUQh/nj1y5ruZaxsYEScGWuK5ROIoQF7FF9e514SXJhdWmPnmkZL72W+lOEnDvlT+YGWBz/i3IecNrliFDSo=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BN6PR11MB3922
-X-OriginatorOrg: intel.com
+Content-Transfer-Encoding: 8bit
 
-Jonathan Cameron wrote:
-> On Thu, 23 Jun 2022 19:47:07 -0700
-> Dan Williams <dan.j.williams@intel.com> wrote:
-> 
-> > The CXL specification enforces that endpoint decoders are committed in
-> > hw instance id order. In preparation for adding dynamic DPA allocation,
-> > record the hw instance id in endpoint decoders, and enforce allocations
-> > to occur in hw instance id order.
-> > 
-> > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> 
-> dpa_end isn't a good name given the value isn't a Device Physical Address.
-> 
-> Otherwise looks fine,
-> 
-> Jonathan
-> 
-> > ---
-> >  drivers/cxl/core/hdm.c  |   14 ++++++++++++++
-> >  drivers/cxl/core/port.c |    1 +
-> >  drivers/cxl/cxl.h       |    2 ++
-> >  3 files changed, 17 insertions(+)
-> > 
-> > diff --git a/drivers/cxl/core/hdm.c b/drivers/cxl/core/hdm.c
-> > index 3f929231b822..8805afe63ebf 100644
-> > --- a/drivers/cxl/core/hdm.c
-> > +++ b/drivers/cxl/core/hdm.c
-> > @@ -153,6 +153,7 @@ static void __cxl_dpa_release(struct cxl_endpoint_decoder *cxled, bool remove_ac
-> >  	cxled->skip = 0;
-> >  	__release_region(&cxlds->dpa_res, res->start, resource_size(res));
-> >  	cxled->dpa_res = NULL;
-> > +	port->dpa_end--;
-> >  }
-> >  
-> >  static void cxl_dpa_release(void *cxled)
-> > @@ -183,6 +184,18 @@ static int __cxl_dpa_reserve(struct cxl_endpoint_decoder *cxled,
-> >  		return -EBUSY;
-> >  	}
-> >  
-> > +	if (port->dpa_end + 1 != cxled->cxld.id) {
-> > +		/*
-> > +		 * Assumes alloc and commit order is always in hardware instance
-> > +		 * order per expectations from 8.2.5.12.20 Committing Decoder
-> > +		 * Programming that enforce decoder[m] committed before
-> > +		 * decoder[m+1] commit start.
-> > +		 */
-> > +		dev_dbg(dev, "decoder%d.%d: expected decoder%d.%d\n", port->id,
-> > +			cxled->cxld.id, port->id, port->dpa_end + 1);
-> > +		return -EBUSY;
-> > +	}
-> > +
-> >  	if (skip) {
-> >  		res = __request_region(&cxlds->dpa_res, base - skip, skip,
-> >  				       dev_name(dev), 0);
-> > @@ -213,6 +226,7 @@ static int __cxl_dpa_reserve(struct cxl_endpoint_decoder *cxled,
-> >  			cxled->cxld.id, cxled->dpa_res);
-> >  		cxled->mode = CXL_DECODER_MIXED;
-> >  	}
-> > +	port->dpa_end++;
-> >  
-> >  	return 0;
-> >  }
-> > diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
-> > index 9d632c8c580b..54bf032cbcb7 100644
-> > --- a/drivers/cxl/core/port.c
-> > +++ b/drivers/cxl/core/port.c
-> > @@ -485,6 +485,7 @@ static struct cxl_port *cxl_port_alloc(struct device *uport,
-> >  	port->uport = uport;
-> >  	port->component_reg_phys = component_reg_phys;
-> >  	ida_init(&port->decoder_ida);
-> > +	port->dpa_end = -1;
-> >  	INIT_LIST_HEAD(&port->dports);
-> >  	INIT_LIST_HEAD(&port->endpoints);
-> >  
-> > diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
-> > index aa223166f7ef..d8edbdaa6208 100644
-> > --- a/drivers/cxl/cxl.h
-> > +++ b/drivers/cxl/cxl.h
-> > @@ -326,6 +326,7 @@ struct cxl_nvdimm {
-> >   * @dports: cxl_dport instances referenced by decoders
-> >   * @endpoints: cxl_ep instances, endpoints that are a descendant of this port
-> >   * @decoder_ida: allocator for decoder ids
-> > + * @dpa_end: cursor to track highest allocated decoder for allocation ordering
-> 
-> dpa_end not a good name as this isn't a Device Physical Address.
+The use of kmap_atomic() is being deprecated in favor of kmap_local_page().
 
-Ok, renamed it to 'hdm_end'. Suitable to add "Reviewed-by" now?
+With kmap_local_page(), the mappings are per thread, CPU local, not
+globally visible and can take page faults. Furthermore, the mappings can be
+acquired from any context (including interrupts).
+
+Therefore, use kmap_local_page() in copy_string_kernel() instead of
+kmap_atomic().
+
+Tested with xfstests on a QEMU + KVM 32-bits VM booting a kernel with
+HIGHMEM64GB enabled.
+
+Suggested-by: Ira Weiny <ira.weiny@intel.com>
+Signed-off-by: Fabio M. De Francesco <fmdefrancesco@gmail.com>
+---
+
+I sent a first patch to fs/exec.c for converting kmap() and kmap_atomic()
+to kmap_local_page():
+https://lore.kernel.org/lkml/20220630163527.9776-1-fmdefrancesco@gmail.com/
+
+Some days ago, Ira Weiny, while he was reviewing that patch, made me notice
+that I had overlooked a second kmap_atomic() in the same file (thanks):
+https://lore.kernel.org/lkml/YsiQptk19txHrG4c@iweiny-desk3/
+
+I've been asked to send this as an additional change. This is why there will
+not be any second version of that previous patch.
+
+ fs/exec.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/fs/exec.c b/fs/exec.c
+index 4a2129c0d422..5fa652ca5823 100644
+--- a/fs/exec.c
++++ b/fs/exec.c
+@@ -639,11 +639,11 @@ int copy_string_kernel(const char *arg, struct linux_binprm *bprm)
+ 		page = get_arg_page(bprm, pos, 1);
+ 		if (!page)
+ 			return -E2BIG;
+-		kaddr = kmap_atomic(page);
++		kaddr = kmap_local_page(page);
+ 		flush_arg_page(bprm, pos & PAGE_MASK, page);
+ 		memcpy(kaddr + offset_in_page(pos), arg, bytes_to_copy);
+ 		flush_dcache_page(page);
+-		kunmap_atomic(kaddr);
++		kunmap_local(kaddr);
+ 		put_arg_page(page);
+ 	}
+ 
+-- 
+2.36.1
+
