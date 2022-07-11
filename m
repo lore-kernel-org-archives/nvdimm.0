@@ -1,246 +1,190 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9128C1865
-	for <nvdimm@lists.linux.dev>; Mon, 11 Jul 2022 03:46:34 +0000 (UTC)
-Received: from pps.filterd (m0098409.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 26B239oo022799;
-	Mon, 11 Jul 2022 03:46:23 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
- : date : message-id : content-transfer-encoding : mime-version; s=pp1;
- bh=lbnQ8tqSl6pnPEc8bY+nklDKgjDgzlxSpb44T/eMyHw=;
- b=UB7vUG4BfitMPqt49WBEAVwDA9BzyXF0lZLFIqSUNEipm+Om82kIBvYUwFnE5U70/4LQ
- xvzAR3LRqNtovIAKcRcI5J88fgxFt3mUgk0BvQJXZJiElg3D5tUxJRRi8IkgHCC9SzXa
- 2zdNCTd45GTynKIPlklxx5QHQkwBd+4TIaEanT+f4eiU+89EWh5AzlDp6o5LUFFOgjAN
- mJfB2jDXxjX+UbJZWte9DMEsk7kj8BHCdK7FRMScptzU3A5GE3tec2437E2rExYZS6GQ
- CON/2wVSAlZrcLnxks4Kf4szlMAz+M+9Z48cdCBQ1AeDL/VbcvUoDuHB88E3Zk5M+QvS 7Q== 
-Received: from ppma04ams.nl.ibm.com (63.31.33a9.ip4.static.sl-reverse.com [169.51.49.99])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3h7ygdjr7f-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 11 Jul 2022 03:46:23 +0000
-Received: from pps.filterd (ppma04ams.nl.ibm.com [127.0.0.1])
-	by ppma04ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 26B3KBmn018377;
-	Mon, 11 Jul 2022 03:46:21 GMT
-Received: from b06avi18878370.portsmouth.uk.ibm.com (b06avi18878370.portsmouth.uk.ibm.com [9.149.26.194])
-	by ppma04ams.nl.ibm.com with ESMTP id 3h71a8j3a8-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 11 Jul 2022 03:46:20 +0000
-Received: from d06av23.portsmouth.uk.ibm.com (d06av23.portsmouth.uk.ibm.com [9.149.105.59])
-	by b06avi18878370.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 26B3kRAv25559492
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 11 Jul 2022 03:46:27 GMT
-Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 81B60A4053;
-	Mon, 11 Jul 2022 03:46:17 +0000 (GMT)
-Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 49E8EA4040;
-	Mon, 11 Jul 2022 03:46:14 +0000 (GMT)
-Received: from li-e8dccbcc-2adc-11b2-a85c-bc1f33b9b810.ibm.com.com (unknown [9.43.105.173])
-	by d06av23.portsmouth.uk.ibm.com (Postfix) with ESMTP;
-	Mon, 11 Jul 2022 03:46:14 +0000 (GMT)
-From: Kajol Jain <kjain@linux.ibm.com>
-To: mpe@ellerman.id.au, linuxppc-dev@lists.ozlabs.org, vaibhav@linux.ibm.com
-Cc: dan.j.williams@intel.com, nvdimm@lists.linux.dev,
-        atrajeev@linux.vnet.ibm.com, rnsastry@linux.ibm.com,
-        maddy@linux.ibm.com, kjain@linux.ibm.com, disgoel@linux.vnet.ibm.com,
-        "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
-Subject: [PATCH v2] powerpc/papr_scm: Fix nvdimm event mappings
-Date: Mon, 11 Jul 2022 09:16:05 +0530
-Message-Id: <20220711034605.212683-1-kjain@linux.ibm.com>
-X-Mailer: git-send-email 2.31.1
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: OcbqPDvKQuQ2EvjgPEz-RSgMAszZy71K
-X-Proofpoint-ORIG-GUID: OcbqPDvKQuQ2EvjgPEz-RSgMAszZy71K
-Content-Transfer-Encoding: 8bit
-X-Proofpoint-UnRewURL: 0 URL was un-rewritten
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFBF7469A;
+	Mon, 11 Jul 2022 19:49:42 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1657568982; x=1689104982;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=AyBQ5PScvQMsV1t67wDUOdR71lV1NJCdrCnm8bOtFxk=;
+  b=lqMC0y+A4fn5TDFiysqSmRdeZS3YEvkRFLAbByNa6SNmwW5DuAndXtvN
+   aIXSx1ypPkSRVo2yh3WjI6nNP0P9Wr+IQqgrFMfyyWBzXffRluGfNpm1T
+   7MEBaHT1hPIEWMsudk9dM6WqOiDM/emEEEYZ0YXrgVHlO4lw/EbP/z1A/
+   9ZisV0c2FP40PBqNhNHFyjtxcnH3tch17B89AkTY9+TpJuMid93SPt3Yc
+   gsJnOJq1NOEK/TCJwxP6pVw79v6hOjPlO6kqfFjY8o9XuxVDHmVJvHdQ/
+   vwDPnwUhCsoOMc/xXSk1C+VFVstv2hUqhChrvwJ3j9jCYWpD0gCBJpnAy
+   Q==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10405"; a="265166379"
+X-IronPort-AV: E=Sophos;i="5.92,263,1650956400"; 
+   d="scan'208";a="265166379"
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jul 2022 12:49:41 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.92,263,1650956400"; 
+   d="scan'208";a="737215774"
+Received: from fmsmsx602.amr.corp.intel.com ([10.18.126.82])
+  by fmsmga001.fm.intel.com with ESMTP; 11 Jul 2022 12:49:41 -0700
+Received: from fmsmsx610.amr.corp.intel.com (10.18.126.90) by
+ fmsmsx602.amr.corp.intel.com (10.18.126.82) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2308.27; Mon, 11 Jul 2022 12:49:41 -0700
+Received: from fmsmsx610.amr.corp.intel.com (10.18.126.90) by
+ fmsmsx610.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2308.27; Mon, 11 Jul 2022 12:49:41 -0700
+Received: from FMSEDG603.ED.cps.intel.com (10.1.192.133) by
+ fmsmsx610.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2308.27 via Frontend Transport; Mon, 11 Jul 2022 12:49:41 -0700
+Received: from NAM11-DM6-obe.outbound.protection.outlook.com (104.47.57.172)
+ by edgegateway.intel.com (192.55.55.68) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2308.27; Mon, 11 Jul 2022 12:49:40 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=RwjOZQdlEHdIQiDvnJv9ct2HkuU2z8gaYbffj38LuhHiUFTAS4bvIPYFH1LwYibHMpyryLfIjQ0YNgawx2wu7FS0WjStPkSNMaJ4ex18PnqJswIixQ/EmA9pkQf4Wah/lQgrhkrObqxSwV6yl2VaoNboy4Y+v4TVE3j/HCJ5+bgg4exUdczIfsv1TUl/9Ft/nWJ5O4ttji7Vpkx1fmLJO0XOAaTYrUEiSsYj89Dhu+ANY2qEYnsDPiOAnL6AILJR7LZuFGiikJXmd09C9AJOd4sroHZ2xqQyVMQz1b8D5bJnojYx+OC5h0oEkOAlt8Xs0nGaQJ3zUftY06j7uBINGA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=JXqAnf2sV/lRXhD5821kqGypO7LV2xnUObBekyvas4s=;
+ b=CvvL6YyjvYwxDKtQqSFiWwGWtDbzpN5ahDCutpBOD0TiBsj0Fk72b/lntttvR5gHriRTVFQBIP9AwN0wec3hORm9yKZGOFHowRmtZGtLumhv80+vY7uRwPXM57n2k4Naf9Ukju6CJgTEwnP4PzZavCx+HfAG/lpQ94O6TK9o7Eg/gWiM8DaD4sNVetz2ZDlX0/HZVQYB0x4iBvW7VzEAY4SaT3r53MRQ771NNVfgXSsOHYvgFh9ftffN9jLyTXeSz3Bj6V4BgG77qOz7FYiUkDWOAzw2G9Ncdsp/dRbKIIdzCbPEWqxk8LeAS9z1z1Na3EwZ1S6sCm49hBx8O2oLDw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
+ (2603:10b6:301:50::20) by SN6PR11MB3150.namprd11.prod.outlook.com
+ (2603:10b6:805:d1::25) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5417.20; Mon, 11 Jul
+ 2022 19:49:39 +0000
+Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
+ ([fe80::6466:20a6:57b4:1edf]) by MWHPR1101MB2126.namprd11.prod.outlook.com
+ ([fe80::6466:20a6:57b4:1edf%11]) with mapi id 15.20.5417.026; Mon, 11 Jul
+ 2022 19:49:39 +0000
+Date: Mon, 11 Jul 2022 12:49:37 -0700
+From: Dan Williams <dan.j.williams@intel.com>
+To: Jonathan Cameron <Jonathan.Cameron@huawei.com>, Dan Williams
+	<dan.j.williams@intel.com>
+CC: <linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>,
+	<linux-pci@vger.kernel.org>, <patches@lists.linux.dev>, <hch@lst.de>
+Subject: Re: [PATCH 45/46] cxl/pmem: Fix offline_nvdimm_bus() to offline by
+ bridge
+Message-ID: <62cc7ed125008_35351629450@dwillia2-xfh.notmuch>
+References: <165603869943.551046.3498980330327696732.stgit@dwillia2-xfh>
+ <20220624041950.559155-20-dan.j.williams@intel.com>
+ <20220630181432.000040a2@Huawei.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20220630181432.000040a2@Huawei.com>
+X-ClientProxiedBy: SJ0PR13CA0170.namprd13.prod.outlook.com
+ (2603:10b6:a03:2c7::25) To MWHPR1101MB2126.namprd11.prod.outlook.com
+ (2603:10b6:301:50::20)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.205,Aquarius:18.0.883,Hydra:6.0.517,FMLib:17.11.122.1
- definitions=2022-07-10_18,2022-07-08_01,2022-06-22_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501 mlxscore=0
- clxscore=1015 impostorscore=0 suspectscore=0 spamscore=0
- lowpriorityscore=0 malwarescore=0 adultscore=0 bulkscore=0 mlxlogscore=999
- phishscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2206140000 definitions=main-2207110013
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: 37c5672b-e45a-424c-cbd8-08da63767da3
+X-MS-TrafficTypeDiagnostic: SN6PR11MB3150:EE_
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: Askdt+cXzJ629bj3oqOmtnpj4rMSt/9+AE3OMTK369uPaS+fjmTXQvOBHtu6BHJJt/UDQooFR8yacSA8EImlsYpIsOx34qJYOuXcaxIB75/60uFipodp2tcnCiKDdLPiYVrvu0e4boggBn5yrdTQ9UbsEy7OX57J1at6Q8dn4LoHwVZcicjQ6PbTWTnUWvqW5cbTY1t8SAaZTvSM0xhMtVWGeh5lG260LmLZ2dkfwcip2akeT4M07COz09AiLDuLYCMrcELSVVF00On6hhinviBevcIPfLt010nKT5hxuvxVwFxRKVgldbpdeh/srGokFeDUXkjbNwKRUUHRjuIX60TfobKxMC+YaBoSJjW3LGv5gIcadqc+1HvfoeVJuLfLyMJx285FC7fGDxiymTTFJ+wGO0f7YWltW/aslk/HwtukhjBuwgZh4UdSVRaFRMVoY7b+3e6kouC48Vm+RSxH3DQHU2bxc543KxdaU51bs6lGxbwcYpDegMGuJP0i+wYhcYErJ12s9oF/X4ovEalHGS1LJSt9tKrPF7ez24HINhHMMeuBO3fuWMljZg1GlePcVUh1X+7QtYVDWXeH8qPhm2rDj+kkRtwBk9yyrbJtOfDf3B9Ezy6dCLs34OF7zWKAdoR25lXfql2nRPCnsMP0a2o7QrTPtL/vc/zByJC3v+lj29lwfTdtYOrhD2xCI/l+ZIIrtKKOQWyXVZcDyoNp8dRNzybkUWqq+8cBS+RS1yscmEtKEwje/SASxsHisdzO
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1101MB2126.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(136003)(376002)(346002)(39860400002)(366004)(396003)(38100700002)(186003)(316002)(110136005)(66476007)(5660300002)(8676002)(9686003)(4326008)(66556008)(66946007)(82960400001)(41300700001)(6506007)(6486002)(8936002)(478600001)(2906002)(6512007)(86362001)(26005);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?1TsJBHF+V/+xyEn1MiH+Ay3ZxgoRuRtovQmfFYW++VvRkGqtI1FNDvMpi8my?=
+ =?us-ascii?Q?zOGlLLqcBk/P6SgO9DpYCJ0UNH4GOOt7zwozfiySQEYhfUzoocCxBs8whxfO?=
+ =?us-ascii?Q?0Oo8aUwxE4f/Wq3gU63QfdgyYClRgD3I433xkPlMmI8utIZFHXCLZW4Y3wHS?=
+ =?us-ascii?Q?iUvNFEHxhD2akIVM2vm7Z2M/8aJ4vDGzIAJ/CNQ9aPSUSqSOBb/fRcZ3E4nK?=
+ =?us-ascii?Q?vL7SfnOZOSl83yNWTrgpU9bWEjYkeiYJudM+KH9QKf/nr4EaLCwdy8aKsiBK?=
+ =?us-ascii?Q?zivM2lIVqr2Kql/ezhfb5+qdCfi8fq8Kg/BSN4e6FLqEau+A+beBRp8t21jN?=
+ =?us-ascii?Q?A+tOWubdik0wm/dBjXbAw8A2dcQtuX9yX2gYrjOjPpx3AWjD6APIDbYUzim8?=
+ =?us-ascii?Q?rIlbMmNrbgawhMszxeJ/hdihK4yrcBDV1JLBQ8u88HlFNTBCGf1IrUjjYkBd?=
+ =?us-ascii?Q?sS75NDfCh4Sc9PA9izYpumL+PGnUrUtwC4Y/zGfOxUXhH1XSy2zN++uZDTVc?=
+ =?us-ascii?Q?k8QJt5ZSmDEzsJ8V9prAG0m3F9ulPqI9fh5CPQoW/LLdE9tte9LN622lHWPx?=
+ =?us-ascii?Q?8x0/r5drL4Vp3RwEK4ZJIUDoSFtDe67IYnXY50a1Ojw6eMURBrZkeWRsZtMA?=
+ =?us-ascii?Q?/5vmxHd9CyzkbNpLGDGEz0lbsmbnrXxoAMQ0RSbYwpjIVydxfCcL9Sg72dK0?=
+ =?us-ascii?Q?LoUi6mMaHimOiE/7Km9P5TdYiD6i6+4tHwT8hNDEoYI05sivTQY0FaqmB9ux?=
+ =?us-ascii?Q?i7r1Wl8Z16qd5zOpaLpl90gJz6XraBQ345pl3StWrf6g+cLBpaNmF9Png6yt?=
+ =?us-ascii?Q?A+aaIz54y6K2Nb+2+nj3xUixooomWpXC4HbTbZljC5pY3JlP8UlkAMcaqevN?=
+ =?us-ascii?Q?QDePhcSDzeQo+sHWmFHOWRoTqwQENVzC+Z0Qp1OqA7pNsw0x3mcOM1Mtz/uF?=
+ =?us-ascii?Q?zknAQdBYL3N8oSv+xeeyZBrt2CiRkGv/iWSCz591F7WK9oZ5U7Lj2ImqlnS0?=
+ =?us-ascii?Q?PDqBAhgSNg0XB/htAd3IE4X9eFBfi6I0b/FEHWp+sFBTAyU9uP5RQANUmHyy?=
+ =?us-ascii?Q?SvAnhkLxHcR1/OLbrgwJpXW5VzE4+7u3o+uSUMLGFrAxGI14dkGEJsyrQWVp?=
+ =?us-ascii?Q?sidyyoi/LAXPdnqGo/3cceUVaQG/gZIG+T0MsVtMzISPoE9ZD8Pu4I1ZFArj?=
+ =?us-ascii?Q?K4c42ATKkNlLxti2hkX3zqKI5x1JXWK1+407bPSSgcY5eTC4uhARD0wFfarz?=
+ =?us-ascii?Q?gtHe0NQSPZ8mPs7QbTb61kqIMIYJcplimAF9G4XNxZze6S1Rijtu3KSDYcFC?=
+ =?us-ascii?Q?yjKzXaI3HGUyeHYcJw26a3CevuFCQLHO1pwU7a0GT2Ryg67vUQoc4WHRjQr9?=
+ =?us-ascii?Q?4UcDkWRFe1duB5zNgimTgwYljq1tkOB4UoiRPP3JLKHeyIdC7HUKUabO5xGz?=
+ =?us-ascii?Q?yP0syeUpPENhMSpyIBjEEGmZaa7kKN02S5RIz1lELl76KwjHOpy+IVuzAxV+?=
+ =?us-ascii?Q?QFbBXPhP6fSNNzloSqHbr7lLKgguKenlCTR2Qo0bgprpbM6SRmHPhgY12woG?=
+ =?us-ascii?Q?PECxeRj+CgLjtAxN6DUJntcIT6TzaNxFVGTIKPhlxAWUHa8Apd1IWw3vf9Ux?=
+ =?us-ascii?Q?og=3D=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: 37c5672b-e45a-424c-cbd8-08da63767da3
+X-MS-Exchange-CrossTenant-AuthSource: MWHPR1101MB2126.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 11 Jul 2022 19:49:39.3242
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: ExTWpHxjv3Xd4Y+KYsYlbwLAIvpU7yXYKgXsqTMxqGuVqbcnNzTfnt2+Qp9ZQ32PhQkeNmXqMMTgaUPh6wL6qvNnt+gwCGpPtkotVN5eXVg=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN6PR11MB3150
+X-OriginatorOrg: intel.com
 
-Commit 4c08d4bbc089 ("powerpc/papr_scm: Add perf interface support")
-added performance monitoring support for papr-scm nvdimm devices via
-perf interface. Commit also added an array in papr_scm_priv
-structure called "nvdimm_events_map", which got filled based on the
-result of H_SCM_PERFORMANCE_STATS hcall. 
+Jonathan Cameron wrote:
+> On Thu, 23 Jun 2022 21:19:49 -0700
+> Dan Williams <dan.j.williams@intel.com> wrote:
+> 
+> > Be careful to only disable cxl_pmem objects related to a given
+> > cxl_nvdimm_bridge. Otherwise, offline_nvdimm_bus() reaches across CXL
+> > domains and disables more than is expected.
+> > 
+> > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> Fix, but not fixes tag? Probably wants a comment (I'm guessing
+> it didn't matter until now?)
 
-Currently there is an assumption that the order of events in the
-stats buffer, returned by the hypervisor is same. And that order also
-matches with the events specified in nvdimm driver code. 
-But this assumption is not documented anywhere in Power Architecture
-Platform Requirements (PAPR) document. Although the order
-of events happens to be same on current systems, but it might
-not be true in future generation systems. Fix the issue, by
-adding a static mapping for nvdimm events to corresponding stat-id,
-and removing the dynamic map from papr_scm_priv structure.
+I'll add:
 
-Fixes: 4c08d4bbc089 ("powerpc/papr_scm: Add perf interface support")
-Reported-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Signed-off-by: Kajol Jain <kjain@linux.ibm.com>
----
- arch/powerpc/platforms/pseries/papr_scm.c | 62 ++++++++++-------------
- 1 file changed, 28 insertions(+), 34 deletions(-)
+Fixes: 21083f51521f ("cxl/pmem: Register 'pmem' / cxl_nvdimm devices")
 
----
-Changelog:
-v1 -> v2
-- To avoid accidental reordering, explicitly defined index for all
-  the events. Also added valid config check in papr_scm_pmu_event_init
-  function as suggested by Michael Ellerman.
-- Did minor commit message changes and remove initialization of
-  rc variable as suggested by Michael Ellerman  
-- Link to the patch v1: https://patchwork.kernel.org/project/linux-nvdimm/patch/20220610133431.410514-1-kjain@linux.ibm.com/
----
-diff --git a/arch/powerpc/platforms/pseries/papr_scm.c b/arch/powerpc/platforms/pseries/papr_scm.c
-index 82cae08976bc..139e243c3f49 100644
---- a/arch/powerpc/platforms/pseries/papr_scm.c
-+++ b/arch/powerpc/platforms/pseries/papr_scm.c
-@@ -124,9 +124,6 @@ struct papr_scm_priv {
- 
- 	/* The bits which needs to be overridden */
- 	u64 health_bitmap_inject_mask;
--
--	/* array to have event_code and stat_id mappings */
--	u8 *nvdimm_events_map;
- };
- 
- static int papr_scm_pmem_flush(struct nd_region *nd_region,
-@@ -350,6 +347,25 @@ static ssize_t drc_pmem_query_stats(struct papr_scm_priv *p,
- #ifdef CONFIG_PERF_EVENTS
- #define to_nvdimm_pmu(_pmu)	container_of(_pmu, struct nvdimm_pmu, pmu)
- 
-+static const char * const nvdimm_events_map[] = {
-+	[1] = "CtlResCt",
-+	[2] = "CtlResTm",
-+	[3] = "PonSecs ",
-+	[4] = "MemLife ",
-+	[5] = "CritRscU",
-+	[6] = "HostLCnt",
-+	[7] = "HostSCnt",
-+	[8] = "HostSDur",
-+	[9] = "HostLDur",
-+	[10] = "MedRCnt ",
-+	[11] = "MedWCnt ",
-+	[12] = "MedRDur ",
-+	[13] = "MedWDur ",
-+	[14] = "CchRHCnt",
-+	[15] = "CchWHCnt",
-+	[16] = "FastWCnt",
-+};
-+
- static int papr_scm_pmu_get_value(struct perf_event *event, struct device *dev, u64 *count)
- {
- 	struct papr_scm_perf_stat *stat;
-@@ -357,11 +373,15 @@ static int papr_scm_pmu_get_value(struct perf_event *event, struct device *dev,
- 	struct papr_scm_priv *p = (struct papr_scm_priv *)dev->driver_data;
- 	int rc, size;
- 
-+	/* Invalid eventcode */
-+	if (event->attr.config == 0 || event->attr.config >= ARRAY_SIZE(nvdimm_events_map))
-+		return -EINVAL;
-+
- 	/* Allocate request buffer enough to hold single performance stat */
- 	size = sizeof(struct papr_scm_perf_stats) +
- 		sizeof(struct papr_scm_perf_stat);
- 
--	if (!p || !p->nvdimm_events_map)
-+	if (!p)
- 		return -EINVAL;
- 
- 	stats = kzalloc(size, GFP_KERNEL);
-@@ -370,7 +390,7 @@ static int papr_scm_pmu_get_value(struct perf_event *event, struct device *dev,
- 
- 	stat = &stats->scm_statistic[0];
- 	memcpy(&stat->stat_id,
--	       &p->nvdimm_events_map[event->attr.config * sizeof(stat->stat_id)],
-+	       nvdimm_events_map[event->attr.config],
- 		sizeof(stat->stat_id));
- 	stat->stat_val = 0;
- 
-@@ -460,10 +480,9 @@ static void papr_scm_pmu_del(struct perf_event *event, int flags)
- 
- static int papr_scm_pmu_check_events(struct papr_scm_priv *p, struct nvdimm_pmu *nd_pmu)
- {
--	struct papr_scm_perf_stat *stat;
- 	struct papr_scm_perf_stats *stats;
- 	u32 available_events;
--	int index, rc = 0;
-+	int rc;
- 
- 	if (!p->stat_buffer_len)
- 		return -ENOENT;
-@@ -476,34 +495,12 @@ static int papr_scm_pmu_check_events(struct papr_scm_priv *p, struct nvdimm_pmu
- 	/* Allocate the buffer for phyp where stats are written */
- 	stats = kzalloc(p->stat_buffer_len, GFP_KERNEL);
- 	if (!stats) {
--		rc = -ENOMEM;
--		return rc;
-+		return -ENOMEM;
- 	}
- 
- 	/* Called to get list of events supported */
- 	rc = drc_pmem_query_stats(p, stats, 0);
--	if (rc)
--		goto out;
--
--	/*
--	 * Allocate memory and populate nvdimm_event_map.
--	 * Allocate an extra element for NULL entry
--	 */
--	p->nvdimm_events_map = kcalloc(available_events + 1,
--				       sizeof(stat->stat_id),
--				       GFP_KERNEL);
--	if (!p->nvdimm_events_map) {
--		rc = -ENOMEM;
--		goto out;
--	}
- 
--	/* Copy all stat_ids to event map */
--	for (index = 0, stat = stats->scm_statistic;
--	     index < available_events; index++, ++stat) {
--		memcpy(&p->nvdimm_events_map[index * sizeof(stat->stat_id)],
--		       &stat->stat_id, sizeof(stat->stat_id));
--	}
--out:
- 	kfree(stats);
- 	return rc;
- }
-@@ -539,7 +536,7 @@ static void papr_scm_pmu_register(struct papr_scm_priv *p)
- 
- 	rc = register_nvdimm_pmu(nd_pmu, p->pdev);
- 	if (rc)
--		goto pmu_register_err;
-+		goto pmu_check_events_err;
- 
- 	/*
- 	 * Set archdata.priv value to nvdimm_pmu structure, to handle the
-@@ -548,8 +545,6 @@ static void papr_scm_pmu_register(struct papr_scm_priv *p)
- 	p->pdev->archdata.priv = nd_pmu;
- 	return;
- 
--pmu_register_err:
--	kfree(p->nvdimm_events_map);
- pmu_check_events_err:
- 	kfree(nd_pmu);
- pmu_err_print:
-@@ -1560,7 +1555,6 @@ static int papr_scm_remove(struct platform_device *pdev)
- 		unregister_nvdimm_pmu(pdev->archdata.priv);
- 
- 	pdev->archdata.priv = NULL;
--	kfree(p->nvdimm_events_map);
- 	kfree(p->bus_desc.provider_name);
- 	kfree(p);
- 
--- 
-2.31.1
+To date this has been a benign side effect since it only effects
+cxl_test, but as cxl_test gets wider deployment it needs to meet the
+expectation that any cxl_test operations have no effect on the
+production stack. It might also be important if Device Tree adds
+incremental CXL platform topology support.
 
+> By Domains, what do you mean?  I don't think we have that
+> well defined as a term.
+
+By "domain" I meant a CXL topology hierarchy that a given memdev
+attaches. In the userspace cxl-cli tool terms this is a "bus":
+
+# cxl list -M -b "ACPI.CXL" | jq .[0]
+{
+  "memdev": "mem0",
+  "pmem_size": 536870912,
+  "ram_size": 0,
+  "serial": 0,
+  "host": "0000:35:00.0"
+}
+
+# cxl list -M -b "cxl_test" | jq .[0]
+{
+  "memdev": "mem2",
+  "pmem_size": 1073741824,
+  "ram_size": 1073741824,
+  "serial": 1,
+  "numa_node": 1,
+  "host": "cxl_mem.1"
+}
+
+...where "-b" filters by the "bus" provider. This shows that mem0
+derives its CXL.mem connectivity from the typical ACPI hierarchy, and
+mem2 is in the "cxl_test" domain. I did not use the "bus" term in the
+changelog because "bus" means something different to the kernel as both
+of those devices are registered on @cxl_bus_type.
