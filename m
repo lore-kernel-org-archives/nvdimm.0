@@ -1,86 +1,85 @@
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 997282F3D;
-	Sun, 10 Jul 2022 21:58:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CB43110C;
+	Mon, 11 Jul 2022 00:08:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1657490295; x=1689026295;
+  t=1657498106; x=1689034106;
   h=date:from:to:cc:subject:message-id:references:
    in-reply-to:mime-version;
-  bh=NsE9WFeyKj/rWrPJCnRNqhQyusCR2ZNjh2Ng+TKRXVU=;
-  b=mDojYUdI84GPxIHIZQw7djPRTcbnRchWeCspfqYoj9H6rfbvcRgBheYu
-   rchXTxxo5PjVLUmbcfuN3BOy3gzEmNur8mLCozUgS8LD7V55vJ4YYXhcl
-   BJaYv0LKBMVaBq67hQj9lyQfPb2w6SDmNlPUX85Lk/6CxK7HIDl4r/Nxw
-   ckGBUqJ7AoprPzXKzpegHrWXUbtX4O6TkyT0DiPV1sHK6r0HYSmpoGYvz
-   uVXF20kRY5HXKlhd0J+J6SQMQlBWWs3VnXfJKqfaJODl6mkmoVqvp4E9o
-   2TRyO+ImzMTxRd9OJsdqWChYqPpr6+cx/m66VoXEkgt4OEMQuhso/cR43
+  bh=Nn+FNrB3SBkvcdWFuP5we5qPuBdVDthM1rEUKEOqURw=;
+  b=doYJVmwLLdgRdj3RaUmVa0Q7ynht1bjvefOZUDgUiDvCN4L1aZw/yiN4
+   P7tgXGxusBUG3tw+xUqm5uOThtfHmalTd4deoXD3t0oawyN/vc3RRBxtR
+   HKQbADgBiWK2y+NBfG27ZC/b54yGKVqXK+g7frP1O2HL4D8TZuUNBLdmY
+   6GmolEXCNKZStFjAfnxOnRIFozXa26jvBCWzT+KXcmX+uXggLp2zavkN0
+   QwtmaXYnBu6FT2nyO+opUylYFJwXijaSIR0RZGPM9QvJdJWkJIuZgzO9r
+   9S/v/9OicTeQt+HDGS/jVQPjj/XIyRuZieX/bviJ6Rz2sfwggHXZxDeXx
    A==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10404"; a="310141435"
+X-IronPort-AV: E=McAfee;i="6400,9594,10404"; a="283302417"
 X-IronPort-AV: E=Sophos;i="5.92,261,1650956400"; 
-   d="scan'208";a="310141435"
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Jul 2022 14:58:13 -0700
+   d="scan'208";a="283302417"
+Received: from orsmga001.jf.intel.com ([10.7.209.18])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Jul 2022 17:08:25 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.92,261,1650956400"; 
-   d="scan'208";a="569547251"
-Received: from fmsmsx606.amr.corp.intel.com ([10.18.126.86])
-  by orsmga006.jf.intel.com with ESMTP; 10 Jul 2022 14:58:12 -0700
-Received: from fmsmsx608.amr.corp.intel.com (10.18.126.88) by
- fmsmsx606.amr.corp.intel.com (10.18.126.86) with Microsoft SMTP Server
+   d="scan'208";a="627299747"
+Received: from orsmsx604.amr.corp.intel.com ([10.22.229.17])
+  by orsmga001.jf.intel.com with ESMTP; 10 Jul 2022 17:08:25 -0700
+Received: from orsmsx610.amr.corp.intel.com (10.22.229.23) by
+ ORSMSX604.amr.corp.intel.com (10.22.229.17) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.27; Sun, 10 Jul 2022 14:58:12 -0700
-Received: from fmsmsx602.amr.corp.intel.com (10.18.126.82) by
- fmsmsx608.amr.corp.intel.com (10.18.126.88) with Microsoft SMTP Server
+ 15.1.2308.27; Sun, 10 Jul 2022 17:08:25 -0700
+Received: from orsmsx610.amr.corp.intel.com (10.22.229.23) by
+ ORSMSX610.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.27; Sun, 10 Jul 2022 14:58:12 -0700
-Received: from FMSEDG603.ED.cps.intel.com (10.1.192.133) by
- fmsmsx602.amr.corp.intel.com (10.18.126.82) with Microsoft SMTP Server
+ 15.1.2308.27; Sun, 10 Jul 2022 17:08:24 -0700
+Received: from orsedg603.ED.cps.intel.com (10.7.248.4) by
+ orsmsx610.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.27 via Frontend Transport; Sun, 10 Jul 2022 14:58:12 -0700
-Received: from NAM04-DM6-obe.outbound.protection.outlook.com (104.47.73.48) by
- edgegateway.intel.com (192.55.55.68) with Microsoft SMTP Server
+ 15.1.2308.27 via Frontend Transport; Sun, 10 Jul 2022 17:08:24 -0700
+Received: from NAM02-DM3-obe.outbound.protection.outlook.com (104.47.56.49) by
+ edgegateway.intel.com (134.134.137.100) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2308.27; Sun, 10 Jul 2022 14:58:11 -0700
+ 15.1.2308.27; Sun, 10 Jul 2022 17:08:24 -0700
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=VxDdPwDkku8ayCKnqqgOAmsi6yt5ZpUhkLVBAKXcEjXTgovXwtvWqYILI0UjV2DjfAIm5q9xA0ZExAOUhCEmWuYKzREILU6LYxDAxs5ACGXcL9Wma/fccKHlQKGUYGQn8TCsOpeNPsJFlkyghTEzn+AsmQyiUoBTmi34a80oMga5DVgD0veMhOs9iUJxVHv+eQllQArFA/QA5sJtPwjiufcwbfLUV3YKvFMDF5lSuuTfZgwtbwsT8PfNwcNwUCG7No9+dyaWWFyc6TQ8FI5QwVxWL3Df3bSWVWqscDWBaiNlCqDKuujPufnASCCniIJEk+NPnjN+JX2qKMfExAUsEQ==
+ b=hQXZRptjyIdHxTfqXXY4fANxTCeSOSBiZsS4606jCzewX9PO7pavDND9lyIu8iK9l+CZG5JjQ023KU/mp+o1RkdLXJ/RJ9qTmIBx8aT2SJwF41MOdDojWCh+LAJlXqhLEDHHt2blKL+6WRyPzvrBCksquCxwbe8wuz6I4h1CCA+1vd/t+6GEqqGYErZz6PDeFfNJXXYtQ+Wx6PnEiU0UvM1EUyyzCLvRSHqH+9EhWDUHlEIGpcQr2zRMC4bMiyozBsbJWFLDaWD77DOonnt2YFpbuzuxva2iB4m7c+HIpEeOdFQBJ0nGTBEt6QPTrUg87oTDgQuiaTOLNyLUb9PJqQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=vWkwiKYwXxqSp6wJAGNW0aaxUa6UWcl2sjLJvhJxfXA=;
- b=JcRMIaG2coP/0QJJ+G1VBeMCOXmA9B3EhDSDJamG8XlO3KPJiibmlrWz8peEvjbzxPrzY09GcpkMD9CoQSPxfHxAjdogC9+k0qDaYl8KH2MYW2wFIs0qd7EDM/rO8ayIcG7SLk9pqtcdzCQ0QmWSEkVesprRE4jsuU9PNqxquc45kA5QF5zChC6UUkjQCaSaPW6VLCHU/G5XUeembaH2PLyiDUBszTEXk0oSncunyG3w2ar3PuKvD7Wx92v4fE/8VyoWRMH2u6hTdQMWs5RzxnaIXp8ggXYKLGUS0DSHLinxrVMV5/RI+c1oH60Pz+hYex2/ShDhxG+xGk5I3tz2kg==
+ bh=Y2YHmgRLGzyj0qlwYbXGb2voVZqdcdoee6StlNCiFqA=;
+ b=BhpLFYWjWX2BDWXMqbZUh3AH2LlOSy5PbK97PqRWJrfkPniqraLx8u6Mr1HJYBgnLeWWOJM/9WOnQErqYSDGjrvwOqPUUBPAor8QyZsxQyDYN6P2WG7nTR9/fvea9ySalxSqVjrRXErJDWkILDUM3KO+F/VnwAUNs7kZySqw1Q/sMkmVfhUhNH22Eo81B/8xr/PDlJATDlOrfy96hnfMpDswAiWBG23/njOcM8FhBG1lCmmm2mnGJG+XgQUMTTNsbi8A+S3Td2tCVpoR5rZO3LWe82AEYxln0lEPlI8BMp/bIDfA5uy01wIClie2PsieqhP1WBEljzABvko0gaPEeQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
  dkim=pass header.d=intel.com; arc=none
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=intel.com;
 Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
- (2603:10b6:301:50::20) by MN2PR11MB4400.namprd11.prod.outlook.com
- (2603:10b6:208:18c::12) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5417.21; Sun, 10 Jul
- 2022 21:58:09 +0000
+ (2603:10b6:301:50::20) by SJ0PR11MB4943.namprd11.prod.outlook.com
+ (2603:10b6:a03:2ad::17) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5417.16; Mon, 11 Jul
+ 2022 00:08:22 +0000
 Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
  ([fe80::6466:20a6:57b4:1edf]) by MWHPR1101MB2126.namprd11.prod.outlook.com
- ([fe80::6466:20a6:57b4:1edf%11]) with mapi id 15.20.5417.026; Sun, 10 Jul
- 2022 21:58:09 +0000
-Date: Sun, 10 Jul 2022 14:58:06 -0700
+ ([fe80::6466:20a6:57b4:1edf%11]) with mapi id 15.20.5417.026; Mon, 11 Jul
+ 2022 00:08:22 +0000
+Date: Sun, 10 Jul 2022 17:08:20 -0700
 From: Dan Williams <dan.j.williams@intel.com>
 To: Jonathan Cameron <Jonathan.Cameron@huawei.com>, Dan Williams
 	<dan.j.williams@intel.com>
 CC: <linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>,
-	<linux-pci@vger.kernel.org>, <patches@lists.linux.dev>, <hch@lst.de>, "Jason
- Gunthorpe" <jgg@nvidia.com>, Matthew Wilcox <willy@infradead.org>, "Christoph
- Hellwig" <hch@infradead.org>
-Subject: Re: [PATCH 33/46] resource: Introduce alloc_free_mem_region()
-Message-ID: <62cb4b6ed3efd_35351629463@dwillia2-xfh.notmuch>
+	<linux-pci@vger.kernel.org>, <patches@lists.linux.dev>, <hch@lst.de>, "Ben
+ Widawsky" <bwidawsk@kernel.org>
+Subject: Re: [PATCH 34/46] cxl/region: Add region creation support
+Message-ID: <62cb69f47767b_353516294c9@dwillia2-xfh.notmuch>
 References: <165603869943.551046.3498980330327696732.stgit@dwillia2-xfh>
- <20220624041950.559155-8-dan.j.williams@intel.com>
- <20220630113548.000036e8@Huawei.com>
+ <20220624041950.559155-9-dan.j.williams@intel.com>
+ <20220630141721.00005dce@Huawei.com>
 Content-Type: text/plain; charset="us-ascii"
 Content-Disposition: inline
-In-Reply-To: <20220630113548.000036e8@Huawei.com>
-X-ClientProxiedBy: MWHPR18CA0051.namprd18.prod.outlook.com
- (2603:10b6:300:39::13) To MWHPR1101MB2126.namprd11.prod.outlook.com
+In-Reply-To: <20220630141721.00005dce@Huawei.com>
+X-ClientProxiedBy: MW4PR04CA0258.namprd04.prod.outlook.com
+ (2603:10b6:303:88::23) To MWHPR1101MB2126.namprd11.prod.outlook.com
  (2603:10b6:301:50::20)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -89,344 +88,483 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 98ce5915-8946-4b4d-0285-08da62bf46d4
-X-MS-TrafficTypeDiagnostic: MN2PR11MB4400:EE_
+X-MS-Office365-Filtering-Correlation-Id: 802f114b-d767-45da-1319-08da62d1775e
+X-MS-TrafficTypeDiagnostic: SJ0PR11MB4943:EE_
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: t3TRmapLGWuTeDFduuLlsAxtdSDoDMoQb5CWpc8CDJ2ZwUxDv0aJwgHcRJM23gvc0QiCXHX9439YwBfpszV8rzCAYRW3w7iv17xOONCVQG0Zst+zj3MgXQuWnf6c/Fqv0RXApPKzpeEjiw7Wkl9r+gDRHmeSf5lN+83VJKzvqjRDl3OdRQq8AOseRapdWLV4PBxpy1z4/x219JnDdz7BqYuoxeX4y9nrib5lJSaIh7zM+QnppSEdDukz5HeFJJ418iRS2+yLFXBY+2CHey7sbTEY2RBkvsbTXFyy5l+eFkwFY2tre6kT1itGi+POGiGXrG8hrQHifkCh1gh7GTUawx2oVfET541e3UNTx/qiCCeTbEUk7IQmGxB2ys+xzkp1nVQlSwFdIVHhmhgZs1R3RTeHdgFzdVTiqWzytxHT9VCUenHe5v2Rhrp8e+AhOQFjgusYkE4iDE75I7aYpbxct4M9D79s7WvyBRHFLFf8TQ/FhvzCkHOm2X7R1XTwhoYgrk+O0G39r3pQLLfyjINJekjj7jYMUOM1VMuinfPYKJ1PzNwV1v35YgeHQZdZep9N71S7ZM7TztuKPAiUjYnArVrzBB5qAShZ0r0XjhVic9n+tma8AYJGV5dNmNF09xbI1G82AQZqKbZIHd88ly8GuuVflDMoFU/rs3SVAYPQNmkmyE/+1EbwiABXC0XUty42AkjLq/GCen2XROfALpwfOwa5Pyv28N5RKTB+mS3EYCDxs+AMi1S6BfKDz1fm0wHKV7VQNSH9CNGuiTOHnLFDVGWU4uONQ+NwztNZ6C4TApo=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1101MB2126.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(136003)(376002)(396003)(39860400002)(366004)(346002)(8936002)(2906002)(5660300002)(38100700002)(54906003)(8676002)(66476007)(66946007)(66556008)(110136005)(86362001)(316002)(4326008)(26005)(9686003)(82960400001)(186003)(6506007)(478600001)(6512007)(41300700001)(6486002)(966005)(83380400001)(6666004);DIR:OUT;SFP:1102;
+X-Microsoft-Antispam-Message-Info: ZJbgNMAdo9TVKZQC7vfy7HH8KGpSED0cjh+6EH7TUS/14OtczdHr7C4gnLnu3T4QGlGooBt2VuoiicC4/w483L6UrQa+ADMDZCEHVxL4jgrFqVVUqhZ4o1lyr3R37UNTmqa2E5Y0XBq35NWkEDFKddB6bpd36rM33x7lZyvZoPni7A56f3P4qTA2YbL7Qx7wt2YHD3WDbAkuyrVt0w2f3RCFtW5ZXgGK/Bg/yFlwxis1fc4+7Xh8Q/zkxppcO47NkHcDKINvOeOXv2BRoAO9+jF9xILJ/JLZunLmk1FbNOfaOyqCPZ3wiXjIwuspfFRUmqF8S2GjYYuj7GlnaAUpUwhjSF6jH8CYR1jsm/p6tvNSEK53bixseXOfSKlMI+tHL0ytJsWBSAG3n0yznnRf1BECwzf9vb+VQx6LUMKcEI5melcax6XCwQCZd5K/HY5j0h9apLOabdWGw2zMR2WuwFNg6pm/8xdvQ/BNm7yf+QUOIC7j+uSQmQf1LcUBU1O8t6m1riPMDT6gWMymSFNMDL5+zMfG1a/Nj9Wb6qxLrFHiK1/HVX+9WJvll4kCjke0rNagZGJi+9Q5ZT/xoHOhVTLleuUYIWXA1LydWEBex5TcXWeOaXCFvGeGAwHcihuBuX9XX9xFML2dBOWKXGCP4NGlXXNnRCLe0qF91VJCoW3ltpov7XArSG4Z5qndjmBpyyKr8Wc2mdsK06zoMvD3zz3K94zAmYDa5ez/6l75v8wHYyU89INi1ywDZZOT15u182DLSDzaRu4frnN/p62EEg==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1101MB2126.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(39860400002)(396003)(346002)(376002)(366004)(136003)(8676002)(66476007)(186003)(4326008)(316002)(66556008)(66946007)(6486002)(110136005)(26005)(86362001)(478600001)(41300700001)(6506007)(6512007)(9686003)(2906002)(38100700002)(8936002)(83380400001)(30864003)(5660300002)(82960400001);DIR:OUT;SFP:1102;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?uUCBzRGiM6bCknGmbjBhI0JkoWE6KsmIjGUOat/mciK+ImuKb2vSHdj9zR6d?=
- =?us-ascii?Q?ExN60o0oQ7Xh7yQ+acZytQ0iKAnY3Z+3sYE2yvN/XYQZXOmvMfH6LsrlY28o?=
- =?us-ascii?Q?7oH9hQe6dtGU/9PdTlxdUupSkYWsmkFBIRrHiO7lukysY0IjKHdBFeNjBjyq?=
- =?us-ascii?Q?QhjXsjriXkyIS9UIGSmPx50svayJvV57vNOYJpwssYqmfEJZ1oEQP08084Tc?=
- =?us-ascii?Q?xs4oL3q3lc5O0M5vT2L731w9Eg0e7WRijV736dZ67z8ElDVXjTLE90/AfueN?=
- =?us-ascii?Q?ATMzMVQgj16K90b3trmLBWeEm60o633Zk67x/bMBaYfoL0yE3sXEyrAAVAA5?=
- =?us-ascii?Q?bThCjCjzcfZ5hGPXbN4ekZCvTUeRxjIkQ/7zuD2B2+uJqdOo0ZCZdtq9EW79?=
- =?us-ascii?Q?pqr8DA6fAK7nJCCO4MY/ZSja0Vzg6U/ndV5mPL1e6ASNelMr5vJWmWgjuHW3?=
- =?us-ascii?Q?/C/iW1UQRspz58toPZ632CG9kvBVsVG/rCmfzPHKrzlfPZP/pzOQUJNs4hOj?=
- =?us-ascii?Q?la22cG7nnTthQ6Qgpg+hpaX0nXjTl6yETqHhZjyb4TpnySQ27XMzWhz0jLX5?=
- =?us-ascii?Q?HSl4rybV+WRwt1LDKK8Zc0o9qqQfNhqdfY74sXiwEKqs30WulLkCz56zUHKc?=
- =?us-ascii?Q?bHVjY1Xf3nd4fa4Pz1yWO/jb03F4UZHIIWeVFnt2E+zbckPMfGHkIkJ/vPwO?=
- =?us-ascii?Q?S6dxsNBNGnCZUIh9ALVnauIfsGX6ifmkNHaSrkm0867u5BU3+BRqVEDTWDtQ?=
- =?us-ascii?Q?ss5VY3dB1vmVHSZBmWZoVvC/nTYF7Kdl88e+SJ0yal4MhSVF8+Fbjub2Gdy0?=
- =?us-ascii?Q?D3EadoZgcIcBKGAOFBUgCZC1T8F6kmQ/xaA6O2bF+5ijjwkhews6/CCqDTye?=
- =?us-ascii?Q?1Neok+ciSXoCRsCFHMFzvxnZJNa3EY2Bs6c8iT+KMb2KgwJJ3JF46nkWsMkM?=
- =?us-ascii?Q?Do5bNcbA4pNmrBOd/LoBydljsFCx5GgORUJ8Tu4RO6UqepRsAINrOe+HjNsc?=
- =?us-ascii?Q?rMxfM71cyBK2rODndeFNaK9PL+g+pGkPh0ebmAFr0AFmhhkmz6VWh/hQN3bP?=
- =?us-ascii?Q?tjrlkoqxntf5p+WievKh2dNRySitSFq9xW2ycvpu+64TWt4NdUmJSAJYW52B?=
- =?us-ascii?Q?hqu0AsUK+xsBGHgLdxKsUQaScJVQ7a2/O2KZiJsuSPgC7UF0tyeZMcNTOyvs?=
- =?us-ascii?Q?hNAkIgHxBKM98Er7y9IX5VWjWHn5yeXKjX3W/SUrGAmS6rEmMXXPqaHlBeN7?=
- =?us-ascii?Q?AcRu4gf5uwWxm9sfEih1+j17jnVdD2yl6yQdvYmHx0HK1uR9ozfbDvJgaRRb?=
- =?us-ascii?Q?W0YPgSkncLbjO6W8yy5OOTtiuRqx0+8uNcy6K7eXK8c1BHlTWWrLJpdgrRIH?=
- =?us-ascii?Q?JatiaMVha9F146tSDR9qbM3T6VS7jqE0jfeo2UqyO6ZuuY8e2Q65jI5fnZxE?=
- =?us-ascii?Q?6mWeXfa6gLOv2JY/4KS14Pqh0cs7TNj2MY5A8nBkKeFY7ttI65yJbeP5bVC3?=
- =?us-ascii?Q?cxEUW4qm2AyWw/XaYU6T+I/Fk7nc4g+J7y9GqLPVMqk4rV2JGi9McBPf+Wlm?=
- =?us-ascii?Q?/dxqQKYmaAmdIqo4sLAmqAQl7TomxA3XvTHciCqwt9VVDext9lPQMYC0xTp6?=
- =?us-ascii?Q?Ww=3D=3D?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: 98ce5915-8946-4b4d-0285-08da62bf46d4
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?AFkdAPx0ec+kJprUr5Sd8TtfvvEubCBGbdwPMYbUco3km0z/p7QuF7AYBugk?=
+ =?us-ascii?Q?y7nApdttDkYzGI+z+tGuOsB6mzQsKICbXfqkL+EOFDASYSEC91qZE2zHEmzx?=
+ =?us-ascii?Q?bXqZ7dH+vENbzLuS9CMEkxoZnI8MXAHgR2uxNgno/LBQz67rjn8/uPEsr8CS?=
+ =?us-ascii?Q?jG9DKQai8/ZNymrh5/bspZQRdAS2qnK7T9MIu2YcoJ9JJuxfZobxG1jx1Rcw?=
+ =?us-ascii?Q?ip6NytJOgx49RLtxqzQyiReiAqYTX8c6ZCF7b/hXyR8Dv6CmmeJPuYa8mXb5?=
+ =?us-ascii?Q?1h8z6uPnKiNw6tVVz4I1+2IVjIJ/4Tzyi08x7K11KsHNGsAAgenUnP0YVWFL?=
+ =?us-ascii?Q?l4e0R5LpawxggIAz22Uu1R87dm4GfGQmvCxJ5GsQmI1jHCUf5oQfVrRwPh2E?=
+ =?us-ascii?Q?S1wvxi0j/yyZ1CbVpiBMLeJYloot/J0/ALDh9OdHjOx1wHaOJ1M/LH4kac8C?=
+ =?us-ascii?Q?QCyGBx7gJasHnuJDh0Q3Geddob4T6LbG6MngJDh6TbWTQ6c1jOVv/bfUui7A?=
+ =?us-ascii?Q?1jMKBgEyf1URu/1CrOwAEzcsZsQ/X6GNqSXK0FL6OHLELW6OAwbAHWBsQZnk?=
+ =?us-ascii?Q?FDtszsK0LVNxI42n8MNOfzpv55EcDVaGaJduXX/r5EIpbGIJHnb2j53svlpN?=
+ =?us-ascii?Q?tX5Ob4wzBP7e1P9QugDIvGD27kX0jK1H3OLFlr6VNQrVilEp2zI7c28IyKQv?=
+ =?us-ascii?Q?y5YI9HXUlqVGuQjK++4fHCEMMKkgZvBNjnnmRX53hmvY4VRljPiDczqAGJKd?=
+ =?us-ascii?Q?KZIB3pUzWRTitio9n3da55szuAl3z96KHT0xJfbIMvSds3zH9CqyjSYVxe+T?=
+ =?us-ascii?Q?vW1nSetwiuRfBSow1J10MZdtRKzIUexE+gNi24H//P/FW6nMqMW0IqYP0xSL?=
+ =?us-ascii?Q?W86qcBtvUVOmcnfNdFMXI/AwWMR3EL521cIk1Dc27vPEjwiEsj2DRUaZywqz?=
+ =?us-ascii?Q?ua6vz/Wx8MY9qJstvygBFwfFauxDYupk7L47RqXhQOId3l7jKvbIYM2D2327?=
+ =?us-ascii?Q?DCVaEAFW9VDG/J5C6tXkaLJFPdcjXB+T1usPuMJ0n6JDJhTuDzz9HJVsQFGH?=
+ =?us-ascii?Q?P9uzwhcx0mK8aAoorC6zWQSRMR/SQ15R8YcdqMejSAyuk8187Nly6QeJSN/2?=
+ =?us-ascii?Q?XzF+G0+YEXkusdgZiPirk8fk+oufhM5apXdb25lYmFDkbNv9VxbIOhLu+fdO?=
+ =?us-ascii?Q?5rrFK/YBfB4TXGUcLCHeuUNCBI5If/6yTW30sFq7Jw4lff1bxgHCl8IaeZ+t?=
+ =?us-ascii?Q?VSc88BktiH5i03KfWBnwEdGNsiGkGLH4vMd+xqBAJ06F7uuxpfySxfG51jDZ?=
+ =?us-ascii?Q?sV7ZAR1lHDLvOXt6dVsxp37vQ++9yuyCQDP1ECoQGay9wlv37I9TWVrUsx9B?=
+ =?us-ascii?Q?qR1MloCF9Eb1NcepEjvjDc6EzxeOUwp3YmjTYVRzCyK0RlHnVcM2iWXNJMqK?=
+ =?us-ascii?Q?mBUn+HHt6YGZRWIhY01yz1yGG7Dj0GgOHeNJvhUZMbg1dzPaCiLDtaheFDgb?=
+ =?us-ascii?Q?RhuCaat2kg2VGMzAoyq0LL+FYZKI431iyNUK+gPu+IWXBwgU5fHDVQ9ZFtpR?=
+ =?us-ascii?Q?XNirhQmfx3q2VqQjvli50yArLRg24yN34D5bLItdQD4a1rxcKFPvfFO6FOOI?=
+ =?us-ascii?Q?+w=3D=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: 802f114b-d767-45da-1319-08da62d1775e
 X-MS-Exchange-CrossTenant-AuthSource: MWHPR1101MB2126.namprd11.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 Jul 2022 21:58:09.5421
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 11 Jul 2022 00:08:21.8718
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: EwQQKvNmBkZeROH9WHgLuaRd/mSkUHU1xWMsIl87ujNKJYRcwB0yi8jij5FWZAeS71MhVm5dzBjdONS9RYGv72rZ5U3W21WMpOBv02Zds0k=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN2PR11MB4400
+X-MS-Exchange-CrossTenant-UserPrincipalName: WxEIqv6KGaYd5OVDXbhtgFPnPgX9VqdjnVlNw1oJEKx7PJ6NqRA5/gNrW7TXPKzIQY8MMZNllCzafx7Kk0A2Sio6n7KQqc46tp2pZEoqVA8=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ0PR11MB4943
 X-OriginatorOrg: intel.com
 
 Jonathan Cameron wrote:
-> On Thu, 23 Jun 2022 21:19:37 -0700
+> On Thu, 23 Jun 2022 21:19:38 -0700
 > Dan Williams <dan.j.williams@intel.com> wrote:
 > 
-> > The core of devm_request_free_mem_region() is a helper that searches for
-> > free space in iomem_resource and performs __request_region_locked() on
-> > the result of that search. The policy choices of the implementation
-> > conform to what CONFIG_DEVICE_PRIVATE users want which is memory that is
-> > immediately marked busy, and a preference to search for the first-fit
-> > free range in descending order from the top of the physical address
-> > space.
+> > From: Ben Widawsky <bwidawsk@kernel.org>
 > > 
-> > CXL has a need for a similar allocator, but with the following tweaks:
+> > CXL 2.0 allows for dynamic provisioning of new memory regions (system
+> > physical address resources like "System RAM" and "Persistent Memory").
+> > Whereas DDR and PMEM resources are conveyed statically at boot, CXL
+> > allows for assembling and instantiating new regions from the available
+> > capacity of CXL memory expanders in the system.
 > > 
-> > 1/ Search for free space in ascending order
+> > Sysfs with an "echo $region_name > $create_region_attribute" interface
+> > is chosen as the mechanism to initiate the provisioning process. This
+> > was chosen over ioctl() and netlink() to keep the configuration
+> > interface entirely in a pseudo-fs interface, and it was chosen over
+> > configfs since, aside from this one creation event, the interface is
+> > read-mostly. I.e. configfs supports cases where an object is designed to
+> > be provisioned each boot, like an iSCSI storage target, and CXL region
+> > creation is mostly for PMEM regions which are created usually once
+> > per-lifetime of a server instance.
 > > 
-> > 2/ Search for free space relative to a given CXL window
+> > Recall that the major change that CXL brings over previous
+> > persistent memory architectures is the ability to dynamically define new
+> > regions.  Compare that to drivers like 'nfit' where the region
+> > configuration is statically defined by platform firmware.
 > > 
-> > 3/ 'insert' rather than 'request' the new resource given downstream
-> >    drivers from the CXL Region driver (like the pmem or dax drivers) are
-> >    responsible for request_mem_region() when they activate the memory
-> >    range.
+> > Regions are created as a child of a root decoder that encompasses an
+> > address space with constraints. When created through sysfs, the root
+> > decoder is explicit. When created from an LSA's region structure a root
+> > decoder will possibly need to be inferred by the driver.
 > > 
-> > Rework __request_free_mem_region() into get_free_mem_region() which
-> > takes a set of GFR_* (Get Free Region) flags to control the allocation
-> > policy (ascending vs descending), and "busy" policy (insert_resource()
-> > vs request_region()).
+> > Upon region creation through sysfs, a vacant region is created with a
+> > unique name. Regions have a number of attributes that must be configured
+> > before the region can be bound to the driver where HDM decoder program
+> > is completed.
 > > 
-> > Suggested-by: Jason Gunthorpe <jgg@nvidia.com>
-> > Link: https://lore.kernel.org/linux-cxl/20220420143406.GY2120790@nvidia.com/
-> > Cc: Matthew Wilcox <willy@infradead.org>
-> > Cc: Christoph Hellwig <hch@infradead.org>
+> > An example of creating a new region:
+> > 
+> > - Allocate a new region name:
+> > region=$(cat /sys/bus/cxl/devices/decoder0.0/create_pmem_region)
+> > 
+> > - Create a new region by name:
+> > while
+> > region=$(cat /sys/bus/cxl/devices/decoder0.0/create_pmem_region)
+> 
+> Perhaps it is worth calling out the region ID allocator is shared
+> with nvdimms and other usecases.  I'm not really sure what the advantage
+> in doing that is, but it doesn't do any real harm.
+
+The rationale is that there are several producers of memory regions
+nvdimm, device-dax (hmem), and now cxl. Of those cases cxl can pass
+regoins to nvdimm and nvdimm can pass regions to device-dax (pmem). If
+each of those cases allocated their own region-id it would just
+complicate debug for no benefit. I can add this a note to remind why
+memregion_alloc() was introduced in the first instance.
+
+> 
+> > ! echo $region > /sys/bus/cxl/devices/decoder0.0/create_pmem_region
+> > do true; done
+
+I recall you also asked to clarify the rationale of this complexity. It
+is related to the potential proliferation of disaparate region ids, but
+also a lesson learned from nvdimm which itself learned lessons from
+md-raid. The lesson from md-raid in short is do not use ioctl for object
+creation. After "not ioctl" the choice is configfs or a small bit of
+sysfs hackery. Configfs is overkill when there is already a sysfs
+hierarchy that just needs one new object injected.
+
+Namespace creation in nvdimm pre-created "seed" devices which let the
+kernel control the naming, but confused end users that wondered about
+vestigial devices. This "read to learn next object name" + "write to
+atomically claim and instantiate that id" cleans up that vestigial
+device problem while also constraining object naming to follow memregion
+id expectations.
+
+> > 
+> > - Region now exists in sysfs:
+> > stat -t /sys/bus/cxl/devices/decoder0.0/$region
+> > 
+> > - Delete the region, and name:
+> > echo $region > /sys/bus/cxl/devices/decoder0.0/delete_region
+> > 
+> > Signed-off-by: Ben Widawsky <bwidawsk@kernel.org>
+> > [djbw: simplify locking, reword changelog]
 > > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 > 
-> A few things inline,
-> 
-> Thanks,
-> 
-> Jonathan
-> 
 > > ---
-> >  include/linux/ioport.h |   2 +
-> >  kernel/resource.c      | 174 ++++++++++++++++++++++++++++++++---------
-> >  mm/Kconfig             |   5 ++
-> >  3 files changed, 146 insertions(+), 35 deletions(-)
+> >  Documentation/ABI/testing/sysfs-bus-cxl       |  25 +++
+> >  .../driver-api/cxl/memory-devices.rst         |  11 +
+> >  drivers/cxl/Kconfig                           |   5 +
+> >  drivers/cxl/core/Makefile                     |   1 +
+> >  drivers/cxl/core/core.h                       |  12 ++
+> >  drivers/cxl/core/port.c                       |  39 +++-
+> >  drivers/cxl/core/region.c                     | 199 ++++++++++++++++++
+> >  drivers/cxl/cxl.h                             |  18 ++
+> >  tools/testing/cxl/Kbuild                      |   1 +
+> >  9 files changed, 308 insertions(+), 3 deletions(-)
+> >  create mode 100644 drivers/cxl/core/region.c
 > > 
-> > diff --git a/include/linux/ioport.h b/include/linux/ioport.h
-> > index ec5f71f7135b..ed03518347aa 100644
-> > --- a/include/linux/ioport.h
-> > +++ b/include/linux/ioport.h
-> > @@ -329,6 +329,8 @@ struct resource *devm_request_free_mem_region(struct device *dev,
-> >  		struct resource *base, unsigned long size);
-> >  struct resource *request_free_mem_region(struct resource *base,
-> >  		unsigned long size, const char *name);
-> > +struct resource *alloc_free_mem_region(struct resource *base,
-> > +		unsigned long size, unsigned long align, const char *name);
+> 
+> ...
+> 
+> 
+> > diff --git a/drivers/cxl/core/core.h b/drivers/cxl/core/core.h
+> > index 472ec9cb1018..ebe6197fb9b8 100644
+> > --- a/drivers/cxl/core/core.h
+> > +++ b/drivers/cxl/core/core.h
+> > @@ -9,6 +9,18 @@ extern const struct device_type cxl_nvdimm_type;
 > >  
-> >  static inline void irqresource_disabled(struct resource *res, u32 irq)
-> >  {
-> > diff --git a/kernel/resource.c b/kernel/resource.c
-> > index 53a534db350e..9fc990274106 100644
-> > --- a/kernel/resource.c
-> > +++ b/kernel/resource.c
+> >  extern struct attribute_group cxl_base_attribute_group;
+> >  
+> > +#ifdef CONFIG_CXL_REGION
+> > +extern struct device_attribute dev_attr_create_pmem_region;
+> > +extern struct device_attribute dev_attr_delete_region;
+> > +/*
+> > + * Note must be used at the end of an attribute list, since it
+> > + * terminates the list in the CONFIG_CXL_REGION=n case.
 > 
-> 
-> > +static bool gfr_continue(struct resource *base, resource_size_t addr,
-> > +			 resource_size_t size, unsigned long flags)
-> > +{
-> > +	if (flags & GFR_DESCENDING)
-> > +		return addr > size && addr >= base->start;
-> > +	return addr > addr - size &&
-> 
-> Is this checking for wrap around?  If so maybe a comment to call that out?
+> That's rather ugly.  Maybe just push the ifdef down into the c file
+> where we will be shortening the list and it should be obvious what is
+> going on without needing the comment?  Much as I don't like ifdef
+> magic in the c files, it sometimes ends up cleaner.
 
-Yes, and ok.
+No, I think ifdef in C is definitely uglier, but I also notice that
+helpers like SET_SYSTEM_SLEEP_PM_OPS() are defined to be used in any
+place in the list. So, I'll just duplicate that approach.
 
 > 
-> > +	       addr <= min_t(resource_size_t, base->end,
-> > +			     (1ULL << MAX_PHYSMEM_BITS) - 1);
-> > +}
-> > +
-> > +static resource_size_t gfr_next(resource_size_t addr, resource_size_t size,
-> > +				unsigned long flags)
-> > +{
-> > +	if (flags & GFR_DESCENDING)
-> > +		return addr - size;
-> > +	return addr + size;
-> > +}
-> > +
-> > +static void remove_free_mem_region(void *_res)
-> >  {
-> > -	resource_size_t end, addr;
-> > +	struct resource *res = _res;
-> > +
-> > +	if (res->parent)
-> > +		remove_resource(res);
-> > +	free_resource(res);
-> > +}
-> > +
-> > +static struct resource *
-> > +get_free_mem_region(struct device *dev, struct resource *base,
-> > +		    resource_size_t size, const unsigned long align,
-> > +		    const char *name, const unsigned long desc,
-> > +		    const unsigned long flags)
-> > +{
-> > +	resource_size_t addr;
-> >  	struct resource *res;
-> >  	struct region_devres *dr = NULL;
-> >  
-> > -	size = ALIGN(size, 1UL << PA_SECTION_SHIFT);
-> > -	end = min_t(unsigned long, base->end, (1UL << MAX_PHYSMEM_BITS) - 1);
-> > -	addr = end - size + 1UL;
-> > +	size = ALIGN(size, align);
-> >  
-> >  	res = alloc_resource(GFP_KERNEL);
-> >  	if (!res)
-> >  		return ERR_PTR(-ENOMEM);
-> >  
-> > -	if (dev) {
-> > +	if (dev && (flags & GFR_REQUEST_REGION)) {
-> >  		dr = devres_alloc(devm_region_release,
-> >  				sizeof(struct region_devres), GFP_KERNEL);
-> >  		if (!dr) {
-> >  			free_resource(res);
-> >  			return ERR_PTR(-ENOMEM);
-> >  		}
-> > +	} else if (dev) {
-> > +		if (devm_add_action_or_reset(dev, remove_free_mem_region, res))
-> > +			return ERR_PTR(-ENOMEM);
-> 
-> slightly nicer to return whatever value you got back from devm_add_action_or_reset()
-
-Yes, but it is known to only return -ENOMEM on failure and saves adding
-a local @rc variable.
-
-> 
-> >  	}
-> >  
-> >  	write_lock(&resource_lock);
-> > -	for (; addr > size && addr >= base->start; addr -= size) {
-> > -		if (__region_intersects(addr, size, 0, IORES_DESC_NONE) !=
-> > -				REGION_DISJOINT)
-> > +	for (addr = gfr_start(base, size, align, flags);
-> > +	     gfr_continue(base, addr, size, flags);
-> > +	     addr = gfr_next(addr, size, flags)) {
-> > +		if (__region_intersects(base, addr, size, 0, IORES_DESC_NONE) !=
-> > +		    REGION_DISJOINT)
-> >  			continue;
-> >  
-> > -		if (__request_region_locked(res, &iomem_resource, addr, size,
-> > -						name, 0))
-> > -			break;
-> > +		if (flags & GFR_REQUEST_REGION) {
-> > +			if (__request_region_locked(res, &iomem_resource, addr,
-> > +						    size, name, 0))
-> > +				break;
-> >  
-> > -		if (dev) {
-> > -			dr->parent = &iomem_resource;
-> > -			dr->start = addr;
-> > -			dr->n = size;
-> > -			devres_add(dev, dr);
-> > -		}
-> > +			if (dev) {
-> > +				dr->parent = &iomem_resource;
-> > +				dr->start = addr;
-> > +				dr->n = size;
-> > +				devres_add(dev, dr);
-> > +			}
-> >  
-> > -		res->desc = IORES_DESC_DEVICE_PRIVATE_MEMORY;
-> > -		write_unlock(&resource_lock);
-> > +			res->desc = desc;
-> > +			write_unlock(&resource_lock);
-> > +
-> > +
-> > +			/*
-> > +			 * A driver is claiming this region so revoke any
-> > +			 * mappings.
-> > +			 */
-> > +			revoke_iomem(res);
-> > +		} else {
-> > +			res->start = addr;
-> > +			res->end = addr + size - 1;
-> > +			res->name = name;
-> > +			res->desc = desc;
-> > +			res->flags = IORESOURCE_MEM;
-> > +
-> > +			/*
-> > +			 * Only succeed if the resource hosts an exclusive
-> > +			 * range after the insert
-> > +			 */
-> > +			if (__insert_resource(base, res) || res->child)
-> > +				break;
-> > +
-> > +			write_unlock(&resource_lock);
-> > +		}
-> >  
-> > -		/*
-> > -		 * A driver is claiming this region so revoke any mappings.
-> > -		 */
-> > -		revoke_iomem(res);
-> >  		return res;
-> >  	}
-> >  	write_unlock(&resource_lock);
-> >  
-> > -	free_resource(res);
-> > -	if (dr)
-> > +	if (flags & GFR_REQUEST_REGION) {
-> > +		free_resource(res);
-> >  		devres_free(dr);
-> 
-> The original if (dr) was unnecessary as devres_free() checks.
-> 
-> Looking just at this patch it looks like you aren't covering the
-> corner case of dev == NULL and GFR_REQUEST_REGION.
-> 
-> Perhaps worth a tiny comment in patch description? (doesn't seem worth
-> pulling this change out as a precursor given it's so small).
-> Of add the extra if (dr) back in to 'document' that no change...
-
-Added to the changelog:
-
-As part of the consolidation of the legacy GFR_REQUEST_REGION case with
-the new default of just inserting a new resource into the free space
-some minor cleanups like not checking for NULL before calling
-devres_free() (which does its own check) is included.
-
-> 
-> 
-> > +	} else if (dev)
-> > +		devm_release_action(dev, remove_free_mem_region, res);
-> >  
-> >  	return ERR_PTR(-ERANGE);
-> >  }
-> > @@ -1854,18 +1928,48 @@ static struct resource *__request_free_mem_region(struct device *dev,
-> >  struct resource *devm_request_free_mem_region(struct device *dev,
-> >  		struct resource *base, unsigned long size)
-> >  {
-> > -	return __request_free_mem_region(dev, base, size, dev_name(dev));
-> > +	unsigned long flags = GFR_DESCENDING | GFR_REQUEST_REGION;
-> > +
-> > +	return get_free_mem_region(dev, base, size, GFR_DEFAULT_ALIGN,
-> > +				   dev_name(dev),
-> > +				   IORES_DESC_DEVICE_PRIVATE_MEMORY, flags);
-> >  }
-> >  EXPORT_SYMBOL_GPL(devm_request_free_mem_region);
-> >  
-> >  struct resource *request_free_mem_region(struct resource *base,
-> >  		unsigned long size, const char *name)
-> >  {
-> > -	return __request_free_mem_region(NULL, base, size, name);
-> > +	unsigned long flags = GFR_DESCENDING | GFR_REQUEST_REGION;
-> > +
-> > +	return get_free_mem_region(NULL, base, size, GFR_DEFAULT_ALIGN, name,
-> > +				   IORES_DESC_DEVICE_PRIVATE_MEMORY, flags);
-> >  }
-> >  EXPORT_SYMBOL_GPL(request_free_mem_region);
-> >  
-> > -#endif /* CONFIG_DEVICE_PRIVATE */
-> > +/**
-> > + * alloc_free_mem_region - find a free region relative to @base
-> > + * @base: resource that will parent the new resource
-> > + * @size: size in bytes of memory to allocate from @base
-> > + * @align: alignment requirements for the allocation
-> > + * @name: resource name
-> > + *
-> > + * Buses like CXL, that can dynamically instantiate new memory regions,
-> > + * need a method to allocate physical address space for those regions.
-> > + * Allocate and insert a new resource to cover a free, unclaimed by a
-> > + * descendant of @base, range in the span of @base.
 > > + */
-> > +struct resource *alloc_free_mem_region(struct resource *base,
-> Given the extra align parameter, does it make sense to give this a naming
-> that highlights that vs the other two interfaces above?
+> > +#define CXL_REGION_ATTR(x) (&dev_attr_##x.attr)
+> > +#else
+> > +#define CXL_REGION_ATTR(x) NULL
+> > +#endif
+> > +
+> >  struct cxl_send_command;
+> >  struct cxl_mem_query_commands;
+> >  int cxl_query_cmd(struct cxl_memdev *cxlmd,
+> > diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
+> > index 2e56903399c2..c9207ebc3f32 100644
+> > --- a/drivers/cxl/core/port.c
+> > +++ b/drivers/cxl/core/port.c
+> > @@ -1,6 +1,7 @@
+> >  // SPDX-License-Identifier: GPL-2.0-only
+> >  /* Copyright(c) 2020 Intel Corporation. All rights reserved. */
+> >  #include <linux/io-64-nonatomic-lo-hi.h>
+> > +#include <linux/memregion.h>
+> >  #include <linux/workqueue.h>
+> >  #include <linux/debugfs.h>
+> >  #include <linux/device.h>
+> > @@ -300,11 +301,35 @@ static struct attribute *cxl_decoder_root_attrs[] = {
+> >  	&dev_attr_cap_type2.attr,
+> >  	&dev_attr_cap_type3.attr,
+> >  	&dev_attr_target_list.attr,
+> > +	CXL_REGION_ATTR(create_pmem_region),
+> > +	CXL_REGION_ATTR(delete_region),
+> >  	NULL,
+> >  };
 > 
-> alloc_free_mem_region_aligned()
+> >  
+> >  static const struct attribute_group *cxl_decoder_root_attribute_groups[] = {
+> > @@ -387,6 +412,7 @@ static void cxl_root_decoder_release(struct device *dev)
+> >  {
+> >  	struct cxl_root_decoder *cxlrd = to_cxl_root_decoder(dev);
+> >  
+> > +	memregion_free(atomic_read(&cxlrd->region_id));
+> >  	__cxl_decoder_release(&cxlrd->cxlsd.cxld);
+> >  	kfree(cxlrd);
+> >  }
+> > @@ -1415,6 +1441,7 @@ static struct lock_class_key cxl_decoder_key;
+> >  static struct cxl_decoder *cxl_decoder_alloc(struct cxl_port *port,
+> >  					     unsigned int nr_targets)
+> >  {
+> > +	struct cxl_root_decoder *cxlrd = NULL;
+> >  	struct cxl_decoder *cxld;
+> >  	struct device *dev;
+> >  	void *alloc;
+> > @@ -1425,16 +1452,20 @@ static struct cxl_decoder *cxl_decoder_alloc(struct cxl_port *port,
+> >  
+> >  	if (nr_targets) {
+> >  		struct cxl_switch_decoder *cxlsd;
+> > -		struct cxl_root_decoder *cxlrd;
+> >  
+> >  		if (is_cxl_root(port)) {
+> >  			alloc = kzalloc(struct_size(cxlrd, cxlsd.target,
+> >  						    nr_targets),
+> >  					GFP_KERNEL);
+> >  			cxlrd = alloc;
+> > -			if (cxlrd)
+> > +			if (cxlrd) {
+> >  				cxlsd = &cxlrd->cxlsd;
+> > -			else
+> > +				atomic_set(&cxlrd->region_id, -1);
+> > +				rc = memregion_alloc(GFP_KERNEL);
+> > +				if (rc < 0)
+> > +					goto err;
+> 
+> Leaving region_id set to -1 seems interesting for ever
+> recovering from this error.  Perhaps a comment on how the magic
+> value is used.
 
-The other variants are also aligned, they just aren't variably aligned,
-they are implicitly aligned to GFR_DEFAULT_ALIGN. So I think calling
-this one _aligned() betrays what is happening in the other cases.
+Comment added.
 
-> > +				       unsigned long size, unsigned long align,
-> > +				       const char *name)
+> 
+> > +				atomic_set(&cxlrd->region_id, rc);
+> > +			} else
+> >  				cxlsd = NULL;
+> >  		} else {
+> >  			alloc = kzalloc(struct_size(cxlsd, target, nr_targets),
+> > @@ -1490,6 +1521,8 @@ static struct cxl_decoder *cxl_decoder_alloc(struct cxl_port *port,
+> >  
+> >  	return cxld;
+> >  err:
+> > +	if (cxlrd && atomic_read(&cxlrd->region_id) >= 0)
+> > +		memregion_free(atomic_read(&cxlrd->region_id));
+> >  	kfree(alloc);
+> >  	return ERR_PTR(rc);
+> >  }
+> > diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
+> > new file mode 100644
+> > index 000000000000..f2a0ead20ca7
+> > --- /dev/null
+> > +++ b/drivers/cxl/core/region.c
+> > @@ -0,0 +1,199 @@
+> > +// SPDX-License-Identifier: GPL-2.0-only
+> > +/* Copyright(c) 2022 Intel Corporation. All rights reserved. */
+> > +#include <linux/memregion.h>
+> > +#include <linux/genalloc.h>
+> > +#include <linux/device.h>
+> > +#include <linux/module.h>
+> > +#include <linux/slab.h>
+> > +#include <linux/idr.h>
+> > +#include <cxl.h>
+> > +#include "core.h"
+> > +
+> > +/**
+> > + * DOC: cxl core region
+> > + *
+> > + * CXL Regions represent mapped memory capacity in system physical address
+> > + * space. Whereas the CXL Root Decoders identify the bounds of potential CXL
+> > + * Memory ranges, Regions represent the active mapped capacity by the HDM
+> > + * Decoder Capability structures throughout the Host Bridges, Switches, and
+> > + * Endpoints in the topology.
+> > + */
+> > +
+> > +static struct cxl_region *to_cxl_region(struct device *dev);
+> > +
+> > +static void cxl_region_release(struct device *dev)
 > > +{
-> > +	/* GFR_ASCENDING | GFR_INSERT_RESOURCE */
+> > +	struct cxl_region *cxlr = to_cxl_region(dev);
+> > +
+> > +	memregion_free(cxlr->id);
+> > +	kfree(cxlr);
+> > +}
+> > +
+> > +static const struct device_type cxl_region_type = {
+> > +	.name = "cxl_region",
+> > +	.release = cxl_region_release,
+> > +};
+> > +
+> > +bool is_cxl_region(struct device *dev)
+> > +{
+> > +	return dev->type == &cxl_region_type;
+> > +}
+> > +EXPORT_SYMBOL_NS_GPL(is_cxl_region, CXL);
+> > +
+> > +static struct cxl_region *to_cxl_region(struct device *dev)
+> > +{
+> > +	if (dev_WARN_ONCE(dev, dev->type != &cxl_region_type,
+> > +			  "not a cxl_region device\n"))
+> > +		return NULL;
+> > +
+> > +	return container_of(dev, struct cxl_region, dev);
+> > +}
+> > +
+> > +static void unregister_region(void *dev)
+> > +{
+> > +	device_unregister(dev);
+> > +}
+> > +
+> > +static struct lock_class_key cxl_region_key;
+> > +
+> > +static struct cxl_region *cxl_region_alloc(struct cxl_root_decoder *cxlrd, int id)
+> > +{
+> > +	struct cxl_region *cxlr;
+> > +	struct device *dev;
+> > +
+> > +	cxlr = kzalloc(sizeof(*cxlr), GFP_KERNEL);
+> > +	if (!cxlr) {
+> > +		memregion_free(id);
 > 
-> Given those flags don't exist and some fool like me might grep for them
-> perhaps better to describe it in text
-> 
-> 	/* Default of ascending direction and insert resource */
+> That's a bit nasty as it gives the function side effects. Perhaps some
+> comments in the callers of this to highlight that memregion will either be freed
+> in here or handled over to the device.
 
-Ok.
+Added to the devm_cxl_add_region() kdoc that the memregion id is freed
+on failure.
+
+> 
+> > +		return ERR_PTR(-ENOMEM);
+> > +	}
+> > +
+> > +	dev = &cxlr->dev;
+> > +	device_initialize(dev);
+> > +	lockdep_set_class(&dev->mutex, &cxl_region_key);
+> > +	dev->parent = &cxlrd->cxlsd.cxld.dev;
+> > +	device_set_pm_not_required(dev);
+> > +	dev->bus = &cxl_bus_type;
+> > +	dev->type = &cxl_region_type;
+> > +	cxlr->id = id;
+> > +
+> > +	return cxlr;
+> > +}
+> > +
+> > +/**
+> > + * devm_cxl_add_region - Adds a region to a decoder
+> > + * @cxlrd: root decoder
+> > + * @id: memregion id to create
+> > + * @mode: mode for the endpoint decoders of this region
+> 
+> Missing docs for type
+
+Added.
+
+> 
+> > + *
+> > + * This is the second step of region initialization. Regions exist within an
+> > + * address space which is mapped by a @cxlrd.
+> > + *
+> > + * Return: 0 if the region was added to the @cxlrd, else returns negative error
+> > + * code. The region will be named "regionZ" where Z is the unique region number.
+> > + */
+> > +static struct cxl_region *devm_cxl_add_region(struct cxl_root_decoder *cxlrd,
+> > +					      int id,
+> > +					      enum cxl_decoder_mode mode,
+> > +					      enum cxl_decoder_type type)
+> > +{
+> > +	struct cxl_port *port = to_cxl_port(cxlrd->cxlsd.cxld.dev.parent);
+> > +	struct cxl_region *cxlr;
+> > +	struct device *dev;
+> > +	int rc;
+> > +
+> > +	cxlr = cxl_region_alloc(cxlrd, id);
+> > +	if (IS_ERR(cxlr))
+> > +		return cxlr;
+> > +	cxlr->mode = mode;
+> > +	cxlr->type = type;
+> > +
+> > +	dev = &cxlr->dev;
+> > +	rc = dev_set_name(dev, "region%d", id);
+> > +	if (rc)
+> > +		goto err;
+> > +
+> > +	rc = device_add(dev);
+> > +	if (rc)
+> > +		goto err;
+> > +
+> > +	rc = devm_add_action_or_reset(port->uport, unregister_region, cxlr);
+> > +	if (rc)
+> > +		return ERR_PTR(rc);
+> > +
+> > +	dev_dbg(port->uport, "%s: created %s\n",
+> > +		dev_name(&cxlrd->cxlsd.cxld.dev), dev_name(dev));
+> > +	return cxlr;
+> > +
+> > +err:
+> > +	put_device(dev);
+> > +	return ERR_PTR(rc);
+> > +}
+> > +
+> 
+> > +static ssize_t create_pmem_region_store(struct device *dev,
+> > +					struct device_attribute *attr,
+> > +					const char *buf, size_t len)
+> > +{
+> > +	struct cxl_root_decoder *cxlrd = to_cxl_root_decoder(dev);
+> > +	struct cxl_region *cxlr;
+> > +	unsigned int id, rc;
+> > +
+> > +	rc = sscanf(buf, "region%u\n", &id);
+> > +	if (rc != 1)
+> > +		return -EINVAL;
+> > +
+> > +	rc = memregion_alloc(GFP_KERNEL);
+> > +	if (rc < 0)
+> > +		return rc;
+> > +
+> > +	if (atomic_cmpxchg(&cxlrd->region_id, id, rc) != id) {
+> > +		memregion_free(rc);
+> > +		return -EBUSY;
+> > +	}
+> > +
+> > +	cxlr = devm_cxl_add_region(cxlrd, id, CXL_DECODER_PMEM,
+> > +				   CXL_DECODER_EXPANDER);
+> > +	if (IS_ERR(cxlr))
+> > +		return PTR_ERR(cxlr);
+> > +
+> > +	return len;
+> > +}
+> > +DEVICE_ATTR_RW(create_pmem_region);
+> > +
+> > +static struct cxl_region *cxl_find_region_by_name(struct cxl_decoder *cxld,
+> 
+> Perhaps rename cxld here to make it clear it's a root decoder only.
+
+Yes, in fact it should just be a 'struct cxl_root_decoder' type
+argument.
+
+> 
+> > +						  const char *name)
+> > +{
+> > +	struct device *region_dev;
+> > +
+> > +	region_dev = device_find_child_by_name(&cxld->dev, name);
+> > +	if (!region_dev)
+> > +		return ERR_PTR(-ENODEV);
+> > +
+> > +	return to_cxl_region(region_dev);
+> > +}
+> > +
+> > +static ssize_t delete_region_store(struct device *dev,
+> > +				   struct device_attribute *attr,
+> > +				   const char *buf, size_t len)
+> > +{
+> > +	struct cxl_port *port = to_cxl_port(dev->parent);
+> > +	struct cxl_decoder *cxld = to_cxl_decoder(dev);
+> As above, given it's the root decoder can we name it to make that
+> obvious?
+
+Right, this is now:
+
+struct cxl_root_decoder *cxlrd = to_cxl_root_decoder(dev);
