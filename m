@@ -1,66 +1,88 @@
-Received: from mx0b-00069f02.pphosted.com (mx0b-00069f02.pphosted.com [205.220.177.32])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C421D6AA3
-	for <nvdimm@lists.linux.dev>; Mon, 11 Jul 2022 23:27:39 +0000 (UTC)
-Received: from pps.filterd (m0246632.ppops.net [127.0.0.1])
-	by mx0b-00069f02.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 26BMYitI001799;
-	Mon, 11 Jul 2022 23:27:28 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : subject :
- date : message-id : content-type : mime-version; s=corp-2021-07-09;
- bh=IMrxXoPE2WQGBqD/bgCcTizgk6cokrNpuHyDHng0n1g=;
- b=P/adS2XvgEXtUcdt36w3KzgN04do1yoOMFn7HNetZU5umSkmkFafMBZp6B3o3DKrPrgC
- UL2Gn14thPXAiER+X7i9rFYb1n1V7POyMM5lrlbuLe30z2zL33R9bOAN2APdCJ8Nt8uF
- M5YDumjwMHA+iazQ0HKnTZLKlCxK53HrsKUqms6Ys7O/qzoDH9lz8LTgYmA/R5BIx74U
- SvACLG+0PM91AJSmmMHFCsdcsg+uGRXEPz9G1JTJ6Q1GTKNpRHDfJy1Kr2kuW/0hdBmc
- EEUMEPgSSZYTby/XAr7xFvGxnUBv1WyMG/h5Pmtrm0cMq/vI1ZxrjQWFoo2GKV3SqPC+ fg== 
-Received: from iadpaimrmta03.imrmtpd1.prodappiadaev1.oraclevcn.com (iadpaimrmta03.appoci.oracle.com [130.35.103.27])
-	by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 3h71xrcye9-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 11 Jul 2022 23:27:27 +0000
-Received: from pps.filterd (iadpaimrmta03.imrmtpd1.prodappiadaev1.oraclevcn.com [127.0.0.1])
-	by iadpaimrmta03.imrmtpd1.prodappiadaev1.oraclevcn.com (8.16.1.2/8.16.1.2) with SMTP id 26BNL2jx026150;
-	Mon, 11 Jul 2022 23:27:27 GMT
-Received: from nam10-bn7-obe.outbound.protection.outlook.com (mail-bn7nam10lp2105.outbound.protection.outlook.com [104.47.70.105])
-	by iadpaimrmta03.imrmtpd1.prodappiadaev1.oraclevcn.com with ESMTP id 3h7042mpqd-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 11 Jul 2022 23:27:27 +0000
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A7FB23AA
+	for <nvdimm@lists.linux.dev>; Tue, 12 Jul 2022 02:39:30 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1657593570; x=1689129570;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=Tqqn7n5G9atdeX0TyirP31UmOSuxZTIYeAd6aN5uiE4=;
+  b=U1ArCsWTIUYIzNRaFUcy7Ep2ly0O51EhFReLfacveRRZjDYOdx2mkU7J
+   J7XjzatQxe6l/xsmAWuKiSne7F/R1ko2TL7asac9eeaeAItBdsWdOcWQ5
+   Ssi1D70kumPRThhJv7CFZUUtJhb91sLM0C8/TN9vETCe3gJprXeIyKQFq
+   HdfAFDsIXkfLVWUQW845qV5JdL0Ado4HC9YW1fkDYAWhmGT2hkgE30lOj
+   Vu2Aik8Wlarj44rZNA0WBgRLTn1le9vLJJJ1vc8Y+nutf7gzStJfUSq+U
+   hwQ5MxO1MtRITHN3rwnZBQZlOdHalOSqoQZQS06ZBUrt9TYcAqMSXx8zq
+   Q==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10405"; a="264610189"
+X-IronPort-AV: E=Sophos;i="5.92,264,1650956400"; 
+   d="scan'208";a="264610189"
+Received: from orsmga002.jf.intel.com ([10.7.209.21])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jul 2022 19:39:29 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.92,264,1650956400"; 
+   d="scan'208";a="595122845"
+Received: from orsmsx604.amr.corp.intel.com ([10.22.229.17])
+  by orsmga002.jf.intel.com with ESMTP; 11 Jul 2022 19:39:29 -0700
+Received: from orsmsx612.amr.corp.intel.com (10.22.229.25) by
+ ORSMSX604.amr.corp.intel.com (10.22.229.17) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2308.27; Mon, 11 Jul 2022 19:39:28 -0700
+Received: from orsmsx606.amr.corp.intel.com (10.22.229.19) by
+ ORSMSX612.amr.corp.intel.com (10.22.229.25) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2308.27; Mon, 11 Jul 2022 19:39:27 -0700
+Received: from ORSEDG601.ED.cps.intel.com (10.7.248.6) by
+ orsmsx606.amr.corp.intel.com (10.22.229.19) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2308.27 via Frontend Transport; Mon, 11 Jul 2022 19:39:27 -0700
+Received: from NAM10-DM6-obe.outbound.protection.outlook.com (104.47.58.103)
+ by edgegateway.intel.com (134.134.137.102) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2308.27; Mon, 11 Jul 2022 19:39:27 -0700
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=BmvvcGLM2vm7RkC47q9JldBV6oq3QWp4cAwwQAdlIz1hwv1LO/YiUSVYajWdSF3zMlwIDoAhs4QMlRIv8cik2O1UnI1IiHMlVvlyfqolvUQW/AO1BBUZkM9stM3w+yTAoah/GsyilP8LHKlv438nB0Q0cvjNe/doZKbGGDkjC/Ri4xUKqYXawOyhfTzfBWZfsvHkE4wI+e4oaQvT6UBcW/uGdKlGTVJI6Sp1RGNYcHbWRiHWYaEIynWpuw3CqsAcCp8xzERE9hIyWSkQOw5u/Qwo+8i3SdeDBLol8vzEkKw/W7GFHa9svZa2hfAPTv0UEoTG6o49lvNKokZ3xj/94g==
+ b=NTkfebjL13XeSSict0syx8/LD/WjJW1445kXgeInYG9TzAquADItLTs3zfmMlsmxnU+VQRFi6w3WF1aELbIus5/QZnXqaHMOE7Ipfmetu4u0o6IfXA/GJHoNpPGGA/D1/B9LUmb7C6wU3Opnbu3FqtGkwnC0VpehQcs55pui/bKkGzCoI/mqk0+w1AsLPx6yYPi7rSd5QZ7CEUZtHVMFbND/NpBJxdw59dsRK4TbD6xExkvjCgeEQHk/QkSkZ0VHxjlcKCRtT5jj42jZ6YvmEFTYIG/TUGl0JaKPBgLJDGTuvyrtuMOSpkHHMkVjA1LRmc98zyYKHdd8z7c99bfmMg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=IMrxXoPE2WQGBqD/bgCcTizgk6cokrNpuHyDHng0n1g=;
- b=aEcOi8xGtYvCQhNVk1RKLHH2CdlhanIFF6uP2ixwsvPrS1JoBqXQR6Q+7D38KFDVc6teow9ivU0TAZKkQ51bCYzIIqc6Mv6AnQXp4urDd2ktiHz++NB3JWPqjLbvTIPOFw82QfIrXP1Br1trPcc7SpxwoEvqYRHcFQNwudiaDUYwfrCYE3JLavegTY8JCGYsNsmVhfBYC/wGHe+GYUjzzrbA2c9S0D/Oky8N1hRmbcGA8XhTlXfsrcFgMrZ70iTa8wSbcXHISX9CCZ3lrnMGgK3JRq51+pDYd4F3LGeOUoFSAyGIKfHOhDlK6NTNfgy5hcvXR/CehhiL1xe7v96zXw==
+ bh=/MUzRys3a2grhSplw18vM/9dz28UCEUmiOqEH9nhKqI=;
+ b=eJOtu9x2nOuFlm30wu6Szp13epuKHE3R4/UQn36OQskxmn3dFvQlEqrTFf5nDIrasPR0zJHswOeVa3S5vHXJOM8LHoDMmsEKSDKPNdWvKfupLGjj87L7gHXadq6+7iHmhzJdv5DEpfygCuCYM1Scw0yW9WdQ7oVbqzmnFToDg2Q06p7g81Wcp5MAaDHg8+REruxi+3lEVvHSLYsnMONI9D1asyevi31g1SdzgG5Th2NTuqXqe4LpFx3SsHSrzPNfJ4SG4ye/IJwzbmhN0XyTv5Hfn6cMFolo1/CezFHFqhvCaS88MVTA9k4LrSGRK0kWZCl70DmBybm4G/NCG2542g==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
- dkim=pass header.d=oracle.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=IMrxXoPE2WQGBqD/bgCcTizgk6cokrNpuHyDHng0n1g=;
- b=DOrNK5MOHbDVSOVti1MCIq4qHK56Tch0n3LIuC+Uz7Z1CMIeQi2QxgCjEz0KTe+Yx8RV+TluGBCirOlzZhGV68vQUp1MRPc84KL87ETtWwPVTtsHSekiuisx2dE344FPquSTULcy45oOcccgcYrQNtVknT1y3DMSyG5Hwr4BmvU=
-Received: from SJ0PR10MB4429.namprd10.prod.outlook.com (2603:10b6:a03:2d1::14)
- by PH0PR10MB5819.namprd10.prod.outlook.com (2603:10b6:510:141::9) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5417.26; Mon, 11 Jul
- 2022 23:27:25 +0000
-Received: from SJ0PR10MB4429.namprd10.prod.outlook.com
- ([fe80::2ce3:447b:f3ee:bf1e]) by SJ0PR10MB4429.namprd10.prod.outlook.com
- ([fe80::2ce3:447b:f3ee:bf1e%4]) with mapi id 15.20.5417.026; Mon, 11 Jul 2022
- 23:27:25 +0000
-From: Jane Chu <jane.chu@oracle.com>
-To: dan.j.williams@intel.com, hch@infradead.org, vishal.l.verma@intel.com,
-        dave.jiang@intel.com, ira.weiny@intel.com, nvdimm@lists.linux.dev,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] acpi/nfit: badrange report spill over to clean range
-Date: Mon, 11 Jul 2022 17:26:58 -0600
-Message-Id: <20220711232658.536064-1-jane.chu@oracle.com>
-X-Mailer: git-send-email 2.18.4
-Content-Type: text/plain
-X-ClientProxiedBy: BL0PR0102CA0053.prod.exchangelabs.com
- (2603:10b6:208:25::30) To SJ0PR10MB4429.namprd10.prod.outlook.com
- (2603:10b6:a03:2d1::14)
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
+ (2603:10b6:301:50::20) by MN0PR11MB6011.namprd11.prod.outlook.com
+ (2603:10b6:208:372::6) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5417.26; Tue, 12 Jul
+ 2022 02:39:20 +0000
+Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
+ ([fe80::6466:20a6:57b4:1edf]) by MWHPR1101MB2126.namprd11.prod.outlook.com
+ ([fe80::6466:20a6:57b4:1edf%11]) with mapi id 15.20.5417.026; Tue, 12 Jul
+ 2022 02:39:19 +0000
+Date: Mon, 11 Jul 2022 19:39:17 -0700
+From: Dan Williams <dan.j.williams@intel.com>
+To: Muchun Song <songmuchun@bytedance.com>, Matthew Wilcox
+	<willy@infradead.org>
+CC: <akpm@linux-foundation.org>, <jgg@ziepe.ca>, <jhubbard@nvidia.com>,
+	<william.kucharski@oracle.com>, <dan.j.williams@intel.com>, <jack@suse.cz>,
+	<linux-mm@kvack.org>, <linux-kernel@vger.kernel.org>,
+	<linux-fsdevel@vger.kernel.org>, <nvdimm@lists.linux.dev>,
+	<ruansy.fnst@fujitsu.com>, <hch@infradead.org>
+Subject: Re: [PATCH] mm: fix missing wake-up event for FSDAX pages
+Message-ID: <62ccded5298d8_293ff129437@dwillia2-xfh.notmuch>
+References: <20220704074054.32310-1-songmuchun@bytedance.com>
+ <YsLDGEiVSHN3Xx/g@casper.infradead.org>
+ <YsLHUxNjXLOumaIy@FVFYT0MHHV2J.usts.net>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <YsLHUxNjXLOumaIy@FVFYT0MHHV2J.usts.net>
+X-ClientProxiedBy: BYAPR03CA0019.namprd03.prod.outlook.com
+ (2603:10b6:a02:a8::32) To MWHPR1101MB2126.namprd11.prod.outlook.com
+ (2603:10b6:301:50::20)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -68,148 +90,193 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 194abd2d-cbe7-42d0-c9eb-08da6394e9ed
-X-MS-TrafficTypeDiagnostic: PH0PR10MB5819:EE_
+X-MS-Office365-Filtering-Correlation-Id: adedf25b-8889-47f6-0ad5-08da63afb8bf
+X-MS-TrafficTypeDiagnostic: MN0PR11MB6011:EE_
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: 
-	LW3dn/eGibDvyAEPVDFmFQOy3Wwivb3E0QEw3UxHfq4MkzFgtdDwu4KkohC5g4b5/qRn8CpV1W3r9kuCjAkERCHCLAZUt8wCfehPYIUp5APVxbhZjro0/x1XkoZRdfq647wy4RBM9ODO+BIGA1R8SSfsMbbYnOS7X9zN7RfX6h9XWVzr4jzZhHAnLa+OpLIWoFv72wP5g9hoh7flyqVpOou1Jar2oJvqTYifljJHRYZ8v27PCSpfi4dCP2oGXgI8sllKn0eRNqk9VdMEokU5glpgFx+ZRO0SabltCeXIK++JU3MvaTcj6DRJQ2OCHipDc2/WnWNa2FkAt7/irvAQ0E2H+2nmgrkREo4XJ64fVej/CLmh2/vUt0MY4ojEZtXUQkhcNqIqDSeGiY7dTEBe9GxYCZH7hyt77bNEUMJ809pf02ZApO7UaD1PMgHgMLE7cDeZnApb32p8lJ9Aqx4LxCIlSKDpu7gKn7VJjVei5p2LZ80/JLrUPNPtXNAU77nvcvMqtSUlLvhdfP88rGBUMQKEFgXs8wKL77s+hWhZFpg9nsdc5LBSlJBd05p+qya3L7FkF+0D/1ec5UQi0Tnce/WjZNxsIkBW7yh72prisJoERA4JPUb0nM4O5d6mD47sJNtKO+1cBh9y3w/c3HhJcXuBkMI+80LtPfZnBeo8l+pwZD6mDenqPC5B/OOpfT3HFG83tc+3cj2d+gw5tKntLDXqgSJaQtKHamygE3YeqGlig0dA+AxD16rgVYjOZVrruvcpOlV5rQ0x5O+P5XzehOOuNFwlp11GtAy9rZ/6IKQyqp19p2OPGF5RgQjjckwY
-X-Forefront-Antispam-Report: 
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SJ0PR10MB4429.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(136003)(39860400002)(346002)(396003)(376002)(366004)(38100700002)(1076003)(52116002)(41300700001)(6512007)(6666004)(6506007)(44832011)(36756003)(5660300002)(8936002)(2906002)(478600001)(8676002)(66476007)(66946007)(6486002)(83380400001)(2616005)(186003)(66556008)(86362001)(316002)(21314003);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam-Message-Info: hJ/420PM0t/I4B72kkybFBWn+EUwPKyJo81+zixWmvYnTnQDF35cC1G7yDEbnW1g7YWQIvfwjISSKMAaNm8JM/Jtp6ydvQwFFfcJ6UvCZBYLYWVzf8WsSQyWxB3noAFBASqQX5AFQ4cT1SVZj9Zy0nahPrfS6viYmT41VAa6WBWAos6UwJbzMGonLTcBlOjwuvOLvt6dhpYkkzePgIhypNfHUozOHMFvb3uUsceGuzLW67pc9znvqiSYYQqhR14TBODpiBPlVhsv8OjHav+nCR0GrZ2YKcekQZHG9XJRXwt4LDInxnZckIdn3YA+0Z7pNOLfDf/nj0nPvlBzcMY8no0h3HjptxC9AKNKfmaLsYqmoqZEYD4duyk/kvqu7RMZBOcughgqEq0GZ79H3Ckth/LsPp+TVOWaaJfZL5kX4X7uIc77XNnElw140r5OToj/ppw6+UIDtF+Ttee3VC8264agCF2ELnrWnRHv4Jh58NPvVGrSm6smvW0zYEvm4wH0XVtz0XVaJQ1fqcX5W5Q6uow1ItS3k7uSkwyNRe5DH0Pv4lyqBInNn5zFVhOzi2Hme0wXZWRrEqFrLt3CL9LZ8fHnLxYvMmi8O8xFz8ZUZ5sTFj2+XuTFsUD5DuZ8l2EoWmlLyuF8I5XR+SetCIx7T3b1PMl2h6MIMluPGdZHfj9gCHJwcnUfGD9mImgAr4sBq2kOOCvZ7qF161a+8kGM4PZW9LcFwWEAaF0faQTQSQkRvo4/nSoaPR5FSg2tx75611L05ykEgcs9z1RSWFNJKls73dcQtvKVjOe/4Fo4u4EoV7QVT7ZQtbkJd3ZBu/Nq+2QW1xtz2PZpSHH+MqGuig==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1101MB2126.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(39860400002)(366004)(346002)(136003)(396003)(376002)(478600001)(26005)(66556008)(6506007)(6512007)(186003)(41300700001)(9686003)(66476007)(82960400001)(83380400001)(110136005)(66946007)(8676002)(6486002)(7416002)(8936002)(4326008)(316002)(86362001)(5660300002)(966005)(2906002)(38100700002);DIR:OUT;SFP:1102;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: 
-	=?us-ascii?Q?lS4m8Sd3WYED6qxVFvs0Jcz8yXo5847XWErptuqpdHkGMpBc5B9LsBC0PO6n?=
- =?us-ascii?Q?Ou0dBrQSStMR0koDJdxAofnJptfkAX4hPdRsXGvWpM20aELRpqgYzW1eUlRR?=
- =?us-ascii?Q?SWbvbz1920iNydIo+Gkk/IMw4pw0etmSJ2cpYhPAl0FvUMRlkUWZhWi+CgJx?=
- =?us-ascii?Q?GbaVGVevGOpVdPqC/0Waa4CURQF0vEyt0G3y3oPpJFkztZuzUCvXnHn2Kl5h?=
- =?us-ascii?Q?gpjO1TJ7IFQbf5dz912BTcYBqIS6yxdl/8GitnL0Sb0AEY5i41RhLvpVLl3D?=
- =?us-ascii?Q?Xi8wYFkZlRgDIRzLLr0cfCAwDfQf/Yrwx0xmhnMDGP/TYoANub9cIFVODNac?=
- =?us-ascii?Q?9z91tgg5POn/g0wvQkMdskrABfIyeMjTPiygXnIhyZXUyvJpGOv5SHsRvmRO?=
- =?us-ascii?Q?O/3RqoFw/8/NiN7cEypF+ZtA0Dxglc7yMOT1L/hvvNV7VQYLEz9FaiPjpFYV?=
- =?us-ascii?Q?o0+X2bnVRjgr1iSMisKSTISs6PLO/XRA8+KC+ZsizczIhuDrv3Et0KYljFBe?=
- =?us-ascii?Q?hU0m087vZMG3WRLqcOrkIh4Oeoud+LZtedZ/s+IHM4ezIhqWyyqVpM4f0f1m?=
- =?us-ascii?Q?yqudNduNlQKloh2skHwaJSBm7QZFjzsnqA2AbTpRydBNdaOOk/ZkTT9/OPID?=
- =?us-ascii?Q?wTWFAbhBSmjCM+BzAqx0qcdAgP3ugTFyFoXNVPP9maT6u6s7wXlSDujQgZcU?=
- =?us-ascii?Q?W+jjrIIEeiKu7iq+9zIrfG5N3j87Zr4/gobU3GzY1SoKVPi7MqW1Ea1KiYe9?=
- =?us-ascii?Q?KNtaJi5q56RALEilWCB+vXppHPBZtd4sJB+TBCh6b+k6SVILiOItwjkcq6N6?=
- =?us-ascii?Q?xsBFhGqlmyTRVBQec9JrymXZWzswxU49vO26zup756L7cfThSZNczkackIOB?=
- =?us-ascii?Q?1DrotRFFp6vMb8H0iFnYBbk3ISpm++Ap/ODjcVx/a/8ezGfabm9sRsz2iaOm?=
- =?us-ascii?Q?aDF6xDE+3a620WTXwOJcGQICyWG05xItIfbj/xq4eQPEBR5N430ll/Jmsei6?=
- =?us-ascii?Q?khUhefuIO/onES3gpVD+1V1RHzGD92aTzrd+g79qS/hZ5xIzSsRYvEuOv1lQ?=
- =?us-ascii?Q?mEZe/YoIzEpflIFYeHO4YoAXF4nwuIvtE7Z0/5SBn8llW6FWd799rNrXzjt6?=
- =?us-ascii?Q?PVA9B6xdYSLBa8O1Ktq8sQmYz91lbg6jZaHi0eHs8NZAGlnaHMYh56upL5V6?=
- =?us-ascii?Q?BH0YG6VygDi31KazaOijUR07AfU93KRmaKDEA3zvPfNwflykiem/yBVBNZw1?=
- =?us-ascii?Q?uTnD3N4U5EYLrNs+dNx+tbM1oa0ux9l6Dry3lq/JJMnRzs2gQIqXboHQJnp/?=
- =?us-ascii?Q?+oChpImGWT5WzOT71Tw1WeZ/YNFvkRyxnaWRIBmlCNCzrRqePE3oRx/2SZt4?=
- =?us-ascii?Q?OyZHQsjraleZOrIa1WhBHgT5iSYAXnnvwbRmqJBrLEa+2y/7xtAJw8SGer0w?=
- =?us-ascii?Q?PTyPFv4ToCXiAGO+F1iV0CFONAN7QeRSJgvU514fAE2gMW0d2YRh5BJn7o5h?=
- =?us-ascii?Q?HBv2+/UHaw1ZBAAtElf7idntczOD63vAu7zZFHPbqp5fOPWFzIBOgW2q/jdb?=
- =?us-ascii?Q?mac3PKzM9wjlHMtDdzMHOLmZzeNKRaSQACchdveOqDMAxQASjQzFy7I6z91r?=
- =?us-ascii?Q?sQ=3D=3D?=
-X-OriginatorOrg: oracle.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 194abd2d-cbe7-42d0-c9eb-08da6394e9ed
-X-MS-Exchange-CrossTenant-AuthSource: SJ0PR10MB4429.namprd10.prod.outlook.com
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?yRpNG9dnK0OM0nxNjk62V1EkCAc+u5qeH1xYLsgRASC2t2YQkJ1OKSpqgHru?=
+ =?us-ascii?Q?zO7KIU7Wc74K5mMaiaSzFF/873f7AmH2amnBd+zVg6b0ziHhVduhX0wIPhHR?=
+ =?us-ascii?Q?gf/BPteNBVsqSZmQfqqpXtNE3kRPnHbLGsE0lnmTYWCNZ/KyudG3q6a9vSgw?=
+ =?us-ascii?Q?ByV5b3gKgrvYhazpy6ub7Nku6QWsqtq7XRQeuGQYtLo1xn33uhH4hACfURdA?=
+ =?us-ascii?Q?aUAYRSESsEniKGHlHXVs/aLkvVZ+4c1QC7vkhTa1klAM5/neefuDgwlF92Ab?=
+ =?us-ascii?Q?NwrTcYmQZURC4HMtWWmu23Nyu8SATI2A1NRKmbxmiqhPSeqjuF53u311RhAX?=
+ =?us-ascii?Q?JovyHfzNxEIxzCoibjXbcpQ835Ea3eWSBGHfdKs4hdTH4DFJ9Kcj7X7XkJCV?=
+ =?us-ascii?Q?2JPiwJio14asjQjZnLvUTDStbXSNpIT6dGhD0Bi+licIY3HQTQm1Ejigfhj+?=
+ =?us-ascii?Q?PIvXl2d2YC4GU9ibUMfAkH57JcZPFWAk8qImmEigtvXFrO6QEJ2TzqE9y3vL?=
+ =?us-ascii?Q?6HFWCZhT2nYgw+LSQ+BicOaWkING+hfuXETeExk6SjamqpTaz6M8+oij12YE?=
+ =?us-ascii?Q?jKUVr/vjPewcmg82lt0ZMcES+P3jJb5CnTQfePTHiwG+HtIyRP70pfDLAhP0?=
+ =?us-ascii?Q?OtpOLovftHY8bi9pRU5sUa5ZsTonSX+Q7Vr0O+Sy5Bfgtk6nkJmVsDufctxz?=
+ =?us-ascii?Q?AgPH9eafIMEFX5GfaGuO46pqOam1Ffxr/z7XNFFnNb8MNZ5P9Dc1PHUUcgQ7?=
+ =?us-ascii?Q?sIvPUfJqdOgrHDsDxpb11VmpaSzI343iMTK5M5s8UdPMXhQcy3A9MwdYi+Bx?=
+ =?us-ascii?Q?uZuqDCWBGN1oDgaKdWupP4D4RXx+By9TrnKh+WIcra4oGjhYleQ9VKa/Z8vW?=
+ =?us-ascii?Q?cDVbOumCFrl0JtvCpc+rc65zDweVfkOSKIqBZXFIX5v8EcQKJUtjAMsG8F2G?=
+ =?us-ascii?Q?LvFCnpZtwDVi/kUelIHojrJChJahMtsMKjZVAPO7CO4vfYaf0XvJZ3xItOGT?=
+ =?us-ascii?Q?r+qtNPHLpxCHj3B54ZnFKzkA+47kqKPxkNEaLorNhmcjXKiA+om/uZwpSolE?=
+ =?us-ascii?Q?3SeB1YGaKGkdPTgTuwddNcr7lzBmmLrZ1qa9X7uDnZ02e4ZO0Agj6mmZgBNX?=
+ =?us-ascii?Q?OjHzHzVw3HsivaXC4B7CjIOzS9kXYJfSd224j2VLXk68NvC3me5CC1x2eW0O?=
+ =?us-ascii?Q?5frQoLRn/OKSiPMZLVj7Rj1mgG3YzBNFcaLtXFkO7X7qDJK/5DLT3Z+bK0H6?=
+ =?us-ascii?Q?MFCPETue5KpS/j1Bpp5sdu6WxPNYeaHxnN2zbScQuXNW/2QVJI3rq1kbmz1x?=
+ =?us-ascii?Q?A8agEnv3cG01UffQR3rQifaCihfuTPIgRjdgQCZZ3hFhvttdp2ngV7ZQwAwN?=
+ =?us-ascii?Q?63nOUh3WA2EMnwO3Q0YiDv1r90ZYFxdX3v9BpG9enX6qa2YRUxOKMq8s6F24?=
+ =?us-ascii?Q?VJBB4q2+nbPVeRl7UCSR6S7k1yv7kwHrb3U/2e0iY9r9+B4BClNzA0qcROEq?=
+ =?us-ascii?Q?OCIhHETt7lV2CX0o8CWun3/sM/F+D04qNn8kdQdyjqA5UeculeX8/qX+BC3x?=
+ =?us-ascii?Q?Labm8iQWPsp6h+QCoqIDbggUrIG1xvkr+P+exfabC2Wjb43nBB51C0Az1/V2?=
+ =?us-ascii?Q?+Q=3D=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: adedf25b-8889-47f6-0ad5-08da63afb8bf
+X-MS-Exchange-CrossTenant-AuthSource: MWHPR1101MB2126.namprd11.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 11 Jul 2022 23:27:25.8424
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 12 Jul 2022 02:39:19.8800
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: HflaB7oLyEFHwtUqjWLrMaBpsZdho7SbQGsdwoOybySWC7SGLUSV9kqHaLdOv2kef0NX4VO6YM3CZFRSCG1uOw==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH0PR10MB5819
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.517,18.0.883
- definitions=2022-07-11_25:2022-07-08,2022-07-11 signatures=0
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 bulkscore=0 mlxlogscore=999 mlxscore=0
- suspectscore=0 phishscore=0 spamscore=0 malwarescore=0 adultscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2206140000
- definitions=main-2207110095
-X-Proofpoint-GUID: D0zxFR2QtP6rZ653WSG5IVSQ-FO-6YJw
-X-Proofpoint-ORIG-GUID: D0zxFR2QtP6rZ653WSG5IVSQ-FO-6YJw
+X-MS-Exchange-CrossTenant-UserPrincipalName: ApRDIpxknI9RfQw1ypZU40IYji3r9515eLw4mmQQtKwZAgDbGQQhgebpfrsRoC/vOiw+6a7F0qZYUiyiNNSElD/em1ccg8jLm8INH1WGdy4=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN0PR11MB6011
+X-OriginatorOrg: intel.com
 
-Commit 7917f9cdb503 ("acpi/nfit: rely on mce->misc to determine poison
-granularity") changed nfit_handle_mce() callback to report badrange for
-each poison at an alignment indicated by 1ULL << MCI_MISC_ADDR_LSB(mce->misc)
-instead of the hardcoded L1_CACHE_BYTES. However recently on a server
-populated with Intel DCPMEM v2 dimms, it appears that
-1UL << MCI_MISC_ADDR_LSB(mce->misc) turns out is 4KiB, or 8 512-byte blocks.
-Consequently, injecting 2 back-to-back poisons via ndctl, and it reports
-8 poisons.
+Muchun Song wrote:
+> On Mon, Jul 04, 2022 at 11:38:16AM +0100, Matthew Wilcox wrote:
+> > On Mon, Jul 04, 2022 at 03:40:54PM +0800, Muchun Song wrote:
+> > > FSDAX page refcounts are 1-based, rather than 0-based: if refcount is
+> > > 1, then the page is freed.  The FSDAX pages can be pinned through GUP,
+> > > then they will be unpinned via unpin_user_page() using a folio variant
+> > > to put the page, however, folio variants did not consider this special
+> > > case, the result will be to miss a wakeup event (like the user of
+> > > __fuse_dax_break_layouts()).
+> > 
+> > Argh, no.  The 1-based refcounts are a blight on the entire kernel.
+> > They need to go away, not be pushed into folios as well.  I think
+> 
+> I would be happy if this could go away.
 
-[29076.590281] {3}[Hardware Error]:   physical_address: 0x00000040a0602400
-[..]
-[29076.619447] Memory failure: 0x40a0602: recovery action for dax page: Recovered
-[29076.627519] mce: [Hardware Error]: Machine check events logged
-[29076.634033] nfit ACPI0012:00: addr in SPA 1 (0x4080000000, 0x1f80000000)
-[29076.648805] nd_bus ndbus0: XXX nvdimm_bus_add_badrange: (0x40a0602000, 0x1000)
-[..]
-[29078.634817] {4}[Hardware Error]:   physical_address: 0x00000040a0602600
-[..]
-[29079.595327] nfit ACPI0012:00: addr in SPA 1 (0x4080000000, 0x1f80000000)
-[29079.610106] nd_bus ndbus0: XXX nvdimm_bus_add_badrange: (0x40a0602000, 0x1000)
-[..]
-{
-  "dev":"namespace0.0",
-  "mode":"fsdax",
-  "map":"dev",
-  "size":33820770304,
-  "uuid":"a1b0f07f-747f-40a8-bcd4-de1560a1ef75",
-  "sector_size":512,
-  "align":2097152,
-  "blockdev":"pmem0",
-  "badblock_count":8,
-  "badblocks":[
-    {
-      "offset":8208,
-      "length":8,
-      "dimms":[
-        "nmem0"
-      ]
-    }
-  ]
-}
+Continue to agree that this blight needs to end.
 
-So, 1UL << MCI_MISC_ADDR_LSB(mce->misc) is an unreliable indicator for poison
-radius and shouldn't be used.  More over, as each injected poison is being
-reported independently, any alignment under 512-byte appear works:
-L1_CACHE_BYTES (though inaccurate), or 256-bytes (as ars->length reports),
-or 512-byte.
+One of the pre-requisites to getting back to normal accounting of FSDAX
+page pin counts was to first drop the usage of get_dev_pagemap() in the
+GUP path:
 
-To get around this issue, 512-bytes is chosen as the alignment because
-  a. it happens to be the badblock granularity,
-  b. ndctl inject-error cannot inject more than one poison to a 512-byte block,
-  c. architecture agnostic
+https://lore.kernel.org/linux-mm/161604048257.1463742.1374527716381197629.stgit@dwillia2-desk3.amr.corp.intel.com/
 
-Fixes: 7917f9cdb503 ("acpi/nfit: rely on mce->misc to determine poison granularity")
-Signed-off-by: Jane Chu <jane.chu@oracle.com>
----
- drivers/acpi/nfit/mce.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+That work stalled on notifying mappers of surprise removal events of FSDAX pfns.
+However, Ruan has been spending some time on that problem recently:
 
-diff --git a/drivers/acpi/nfit/mce.c b/drivers/acpi/nfit/mce.c
-index d48a388b796e..eeacc8eb807f 100644
---- a/drivers/acpi/nfit/mce.c
-+++ b/drivers/acpi/nfit/mce.c
-@@ -32,7 +32,6 @@ static int nfit_handle_mce(struct notifier_block *nb, unsigned long val,
- 	 */
- 	mutex_lock(&acpi_desc_lock);
- 	list_for_each_entry(acpi_desc, &acpi_descs, list) {
--		unsigned int align = 1UL << MCI_MISC_ADDR_LSB(mce->misc);
- 		struct device *dev = acpi_desc->dev;
- 		int found_match = 0;
- 
-@@ -64,7 +63,8 @@ static int nfit_handle_mce(struct notifier_block *nb, unsigned long val,
- 
- 		/* If this fails due to an -ENOMEM, there is little we can do */
- 		nvdimm_bus_add_badrange(acpi_desc->nvdimm_bus,
--				ALIGN_DOWN(mce->addr, align), align);
-+				ALIGN(mce->addr, SECTOR_SIZE),
-+				SECTOR_SIZE);
- 		nvdimm_region_notify(nfit_spa->nd_region,
- 				NVDIMM_REVALIDATE_POISON);
- 
+https://lore.kernel.org/all/20220410171623.3788004-1-ruansy.fnst@fujitsu.com/
 
-base-commit: e35e5b6f695d241ffb1d223207da58a1fbcdff4b
--- 
-2.18.4
+So, once I dig out from a bit of CXL backlog and review that effort the
+next step that I see will be convert the FSDAX path to take typical
+references vmf_insert() time. Unless I am missing a shorter path to get
+this fixed up?
+
+> > we're close to having that fixed, but until then, this should do
+> > the trick?
+> > 
+> 
+> The following fix looks good to me since it lowers the overhead as
+> much as possible
+
+This change looks good to me as well.
+
+> 
+> Thanks.
+> 
+> > diff --git a/include/linux/mm.h b/include/linux/mm.h
+> > index cc98ab012a9b..4cef5e0f78b6 100644
+> > --- a/include/linux/mm.h
+> > +++ b/include/linux/mm.h
+> > @@ -1129,18 +1129,18 @@ static inline bool is_zone_movable_page(const struct page *page)
+> >  #if defined(CONFIG_ZONE_DEVICE) && defined(CONFIG_FS_DAX)
+> >  DECLARE_STATIC_KEY_FALSE(devmap_managed_key);
+> >  
+> > -bool __put_devmap_managed_page(struct page *page);
+> > -static inline bool put_devmap_managed_page(struct page *page)
+> > +bool __put_devmap_managed_page(struct page *page, int refs);
+> > +static inline bool put_devmap_managed_page(struct page *page, int refs)
+> >  {
+> >  	if (!static_branch_unlikely(&devmap_managed_key))
+> >  		return false;
+> >  	if (!is_zone_device_page(page))
+> >  		return false;
+> > -	return __put_devmap_managed_page(page);
+> > +	return __put_devmap_managed_page(page, refs);
+> >  }
+> >  
+> >  #else /* CONFIG_ZONE_DEVICE && CONFIG_FS_DAX */
+> > -static inline bool put_devmap_managed_page(struct page *page)
+> > +static inline bool put_devmap_managed_page(struct page *page, int refs)
+> >  {
+> >  	return false;
+> >  }
+> > @@ -1246,7 +1246,7 @@ static inline void put_page(struct page *page)
+> >  	 * For some devmap managed pages we need to catch refcount transition
+> >  	 * from 2 to 1:
+> >  	 */
+> > -	if (put_devmap_managed_page(&folio->page))
+> > +	if (put_devmap_managed_page(&folio->page, 1))
+> >  		return;
+> >  	folio_put(folio);
+> >  }
+> > diff --git a/mm/gup.c b/mm/gup.c
+> > index d1132b39aa8f..28df02121c78 100644
+> > --- a/mm/gup.c
+> > +++ b/mm/gup.c
+> > @@ -88,7 +88,8 @@ static inline struct folio *try_get_folio(struct page *page, int refs)
+> >  	 * belongs to this folio.
+> >  	 */
+> >  	if (unlikely(page_folio(page) != folio)) {
+> > -		folio_put_refs(folio, refs);
+> > +		if (!put_devmap_managed_page(&folio->page, refs))
+> > +			folio_put_refs(folio, refs);
+> >  		goto retry;
+> >  	}
+> >  
+> > @@ -177,6 +178,8 @@ static void gup_put_folio(struct folio *folio, int refs, unsigned int flags)
+> >  			refs *= GUP_PIN_COUNTING_BIAS;
+> >  	}
+> >  
+> > +	if (put_devmap_managed_page(&folio->page, refs))
+> > +		return;
+> >  	folio_put_refs(folio, refs);
+> >  }
+> >  
+> > diff --git a/mm/memremap.c b/mm/memremap.c
+> > index b870a659eee6..b25e40e3a11e 100644
+> > --- a/mm/memremap.c
+> > +++ b/mm/memremap.c
+> > @@ -499,7 +499,7 @@ void free_zone_device_page(struct page *page)
+> >  }
+> >  
+> >  #ifdef CONFIG_FS_DAX
+> > -bool __put_devmap_managed_page(struct page *page)
+> > +bool __put_devmap_managed_page(struct page *page, int refs)
+> >  {
+> >  	if (page->pgmap->type != MEMORY_DEVICE_FS_DAX)
+> >  		return false;
+> > @@ -509,7 +509,7 @@ bool __put_devmap_managed_page(struct page *page)
+> >  	 * refcount is 1, then the page is free and the refcount is
+> >  	 * stable because nobody holds a reference on the page.
+> >  	 */
+> > -	if (page_ref_dec_return(page) == 1)
+> > +	if (page_ref_sub_return(page, refs) == 1)
+> >  		wake_up_var(&page->_refcount);
+> >  	return true;
+> >  }
+> > diff --git a/mm/swap.c b/mm/swap.c
+> > index c6194cfa2af6..94e42a9bab92 100644
+> > --- a/mm/swap.c
+> > +++ b/mm/swap.c
+> > @@ -960,7 +960,7 @@ void release_pages(struct page **pages, int nr)
+> >  				unlock_page_lruvec_irqrestore(lruvec, flags);
+> >  				lruvec = NULL;
+> >  			}
+> > -			if (put_devmap_managed_page(&folio->page))
+> > +			if (put_devmap_managed_page(&folio->page, 1))
+> >  				continue;
+> >  			if (folio_put_testzero(folio))
+> >  				free_zone_device_page(&folio->page);
+> > 
+
 
