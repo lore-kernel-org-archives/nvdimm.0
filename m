@@ -1,38 +1,37 @@
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CA99538B
-	for <nvdimm@lists.linux.dev>; Tue, 12 Jul 2022 19:07:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B77B538B
+	for <nvdimm@lists.linux.dev>; Tue, 12 Jul 2022 19:07:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1657652868; x=1689188868;
+  t=1657652874; x=1689188874;
   h=subject:from:to:cc:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=NR3xEc9IRdzsHzkHzpnmoYhBLcYxBL8o1b4hDwqsDX8=;
-  b=Efyec0DQPwglpLAzLtG0z4K+AycUsPNgDj/RIHm4uEEo4icSk5LdhBo7
-   9gx3lhmXD4J5pbaGo2D09G7AsM/IdP44Lwd4op/cHWljem3S5aB4IS0YI
-   R6SSoUbps8JxygXk5mAx2o9SXW4BC5hEBJIseSlk0mr7WRLN2ma+rzphG
-   0/dfJG6qLtp3LZjItAf3m0AxztrZAH/zDLcUNMos7zxh4KYCshs4W/EXN
-   qA7Mwe134GfX5IJ72kW6Nfsvo0RUBCpvX1kvV8R6ASEgvc4rA6O9ho+Wf
-   C4CAHdnsobUCSkb8D6uFMfox/9DbkS/Ng3rlEXsVAEnlV7xM6PIpej4Aq
-   g==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10406"; a="264810896"
+  bh=QwZrIyDCpVWkjA3BzG2YbvtgjL7PYMxHdM6l/VXwClA=;
+  b=ltHoGrR32iBLfwTqGYYZNL0i+IUL3ufojKLwQH3GYr3l4b3StjxObMUH
+   9xnNstEgHTN9MIONcsZQxkBXxTD8kNzwUOzMdxjtwA2keKd7DdRBvuRTI
+   DYu3gw+egibg3LVvYh91icjKze8cyBDik5vXGPFiunHH5smXL6k/JhKNV
+   d3wR0NGFR4MMNqMssfGH13me0RHsmP5Kg57FXlH6pwXndq0qpR4/6YCeE
+   1bz6W7zx9P7sjlkVkUkTQW56lhBJ9O3oSgrA/PhuAkVymSrCnPiiC4yzI
+   d+B7jW9aoViIDLd574xb2jpHtVaAvw3C/zbIcCKtKDDeFYSUUygLedIEv
+   w==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10406"; a="282573297"
 X-IronPort-AV: E=Sophos;i="5.92,266,1650956400"; 
-   d="scan'208";a="264810896"
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jul 2022 12:07:47 -0700
+   d="scan'208";a="282573297"
+Received: from orsmga002.jf.intel.com ([10.7.209.21])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jul 2022 12:07:53 -0700
 X-IronPort-AV: E=Sophos;i="5.92,266,1650956400"; 
-   d="scan'208";a="771986148"
+   d="scan'208";a="595400555"
 Received: from sheyting-mobl3.amr.corp.intel.com (HELO [192.168.1.117]) ([10.212.147.156])
-  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jul 2022 12:07:47 -0700
-Subject: [ndctl PATCH 04/11] cxl/list: Add DPA span to endpoint decoder
- listings
+  by orsmga002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jul 2022 12:07:53 -0700
+Subject: [ndctl PATCH 05/11] cxl/lib: Maintain decoders in id order
 From: Dan Williams <dan.j.williams@intel.com>
 To: vishal.l.verma@intel.com
 Cc: alison.schofield@intel.com, nvdimm@lists.linux.dev,
  linux-cxl@vger.kernel.org
-Date: Tue, 12 Jul 2022 12:07:47 -0700
-Message-ID: <165765286728.435671.6495930203063433208.stgit@dwillia2-xfh>
+Date: Tue, 12 Jul 2022 12:07:52 -0700
+Message-ID: <165765287277.435671.14320322485572083484.stgit@dwillia2-xfh>
 In-Reply-To: <165765284365.435671.13173937566404931163.stgit@dwillia2-xfh>
 References: <165765284365.435671.13173937566404931163.stgit@dwillia2-xfh>
 User-Agent: StGit/0.18-3-g996c
@@ -45,161 +44,120 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 
-Optionally include in decoder listings the device local address space for
-endpoint decoders with active / allocated capacity.
+Given that decoder instance order is fundamental to the DPA translation
+sequence for endpoint decoders, enforce that cxl_decoder_for_each() returns
+decoders in instance order. Otherwise, they show up in readddir() order
+which is not predictable.
+
+Add a list_add_sorted() to generically handle inserting into a sorted list.
 
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- Documentation/cxl/lib/libcxl.txt |    2 ++
- cxl/json.c                       |   18 ++++++++++++++++
- cxl/lib/libcxl.c                 |   43 +++++++++++++++++++++++++++++++++++++-
- cxl/lib/libcxl.sym               |    6 +++++
- cxl/lib/private.h                |    2 ++
- cxl/libcxl.h                     |    2 ++
- 6 files changed, 72 insertions(+), 1 deletion(-)
+ cxl/lib/libcxl.c |    8 ++++++-
+ util/list.h      |   61 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 68 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/cxl/lib/libcxl.txt b/Documentation/cxl/lib/libcxl.txt
-index f8f0e668ab59..2aef489e8e12 100644
---- a/Documentation/cxl/lib/libcxl.txt
-+++ b/Documentation/cxl/lib/libcxl.txt
-@@ -392,6 +392,8 @@ more CXL decoder objects.
- ----
- unsigned long long cxl_decoder_get_resource(struct cxl_decoder *decoder);
- unsigned long long cxl_decoder_get_size(struct cxl_decoder *decoder);
-+unsigned long long cxl_decoder_get_dpa_resource(struct cxl_decoder *decoder);
-+unsigned long long cxl_decoder_get_dpa_size(struct cxl_decoder *decoder);
- const char *cxl_decoder_get_devname(struct cxl_decoder *decoder);
- int cxl_decoder_get_id(struct cxl_decoder *decoder);
- int cxl_decoder_get_nr_targets(struct cxl_decoder *decoder);
-diff --git a/cxl/json.c b/cxl/json.c
-index a213fdad55fd..3f52d3bbff45 100644
---- a/cxl/json.c
-+++ b/cxl/json.c
-@@ -472,6 +472,24 @@ struct json_object *util_cxl_decoder_to_json(struct cxl_decoder *decoder,
- 			json_object_object_add(jdecoder, "state", jobj);
- 	}
- 
-+	if (cxl_port_is_endpoint(port)) {
-+		size = cxl_decoder_get_dpa_size(decoder);
-+		val = cxl_decoder_get_dpa_resource(decoder);
-+		if (size && val < ULLONG_MAX) {
-+			jobj = util_json_object_hex(val, flags);
-+			if (jobj)
-+				json_object_object_add(jdecoder, "dpa_resource",
-+						       jobj);
-+		}
-+
-+		if (size && size < ULLONG_MAX) {
-+			jobj = util_json_object_size(size, flags);
-+			if (jobj)
-+				json_object_object_add(jdecoder, "dpa_size",
-+						       jobj);
-+		}
-+	}
-+
- 	if (cxl_port_is_root(port) && cxl_decoder_is_mem_capable(decoder)) {
- 		if (cxl_decoder_is_pmem_capable(decoder)) {
- 			jobj = json_object_new_boolean(true);
 diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
-index c988ce2ddea9..f36edcfc735a 100644
+index f36edcfc735a..e4c5d3819e88 100644
 --- a/cxl/lib/libcxl.c
 +++ b/cxl/lib/libcxl.c
-@@ -955,8 +955,19 @@ static void *add_cxl_decoder(void *parent, int id, const char *cxldecoder_base)
- 		decoder->size = strtoull(buf, NULL, 0);
+@@ -19,6 +19,7 @@
+ #include <ccan/short_types/short_types.h>
  
- 	switch (port->type) {
--	case CXL_PORT_SWITCH:
- 	case CXL_PORT_ENDPOINT:
-+		sprintf(path, "%s/dpa_resource", cxldecoder_base);
-+		if (sysfs_read_attr(ctx, path, buf) < 0)
-+			decoder->dpa_resource = ULLONG_MAX;
-+		else
-+			decoder->dpa_resource = strtoull(buf, NULL, 0);
-+		sprintf(path, "%s/dpa_size", cxldecoder_base);
-+		if (sysfs_read_attr(ctx, path, buf) < 0)
-+			decoder->dpa_size = ULLONG_MAX;
-+		else
-+			decoder->dpa_size = strtoull(buf, NULL, 0);
-+
-+	case CXL_PORT_SWITCH:
- 		decoder->pmem_capable = true;
- 		decoder->volatile_capable = true;
- 		decoder->mem_capable = true;
-@@ -1113,6 +1124,36 @@ CXL_EXPORT unsigned long long cxl_decoder_get_size(struct cxl_decoder *decoder)
- 	return decoder->size;
+ #include <util/log.h>
++#include <util/list.h>
+ #include <util/size.h>
+ #include <util/sysfs.h>
+ #include <util/bitmap.h>
+@@ -908,6 +909,11 @@ cxl_endpoint_get_memdev(struct cxl_endpoint *endpoint)
+ 	return NULL;
  }
  
-+CXL_EXPORT unsigned long long
-+cxl_decoder_get_dpa_resource(struct cxl_decoder *decoder)
++static int decoder_id_cmp(struct cxl_decoder *d1, struct cxl_decoder *d2)
 +{
-+	struct cxl_port *port = cxl_decoder_get_port(decoder);
-+	struct cxl_ctx *ctx = cxl_decoder_get_ctx(decoder);
-+
-+	if (!cxl_port_is_endpoint(port)) {
-+		err(ctx, "%s: not an endpoint decoder\n",
-+		    cxl_decoder_get_devname(decoder));
-+		return ULLONG_MAX;
-+	}
-+
-+	return decoder->dpa_resource;
++	return d1->id - d2->id;
 +}
 +
-+CXL_EXPORT unsigned long long
-+cxl_decoder_get_dpa_size(struct cxl_decoder *decoder)
-+{
-+	struct cxl_port *port = cxl_decoder_get_port(decoder);
-+	struct cxl_ctx *ctx = cxl_decoder_get_ctx(decoder);
-+
-+	if (!cxl_port_is_endpoint(port)) {
-+		err(ctx, "%s: not an endpoint decoder\n",
-+		    cxl_decoder_get_devname(decoder));
-+		return ULLONG_MAX;
-+	}
-+
-+	return decoder->dpa_size;
-+}
-+
- CXL_EXPORT enum cxl_decoder_target_type
- cxl_decoder_get_target_type(struct cxl_decoder *decoder)
+ static void *add_cxl_decoder(void *parent, int id, const char *cxldecoder_base)
  {
-diff --git a/cxl/lib/libcxl.sym b/cxl/lib/libcxl.sym
-index dffcb60b8dd0..8e2fc75557f9 100644
---- a/cxl/lib/libcxl.sym
-+++ b/cxl/lib/libcxl.sym
-@@ -167,3 +167,9 @@ global:
- 	cxl_cmd_new_set_partition;
- 	cxl_cmd_partition_set_mode;
- } LIBCXL_1;
+ 	const char *devname = devpath_to_devname(cxldecoder_base);
+@@ -1049,7 +1055,7 @@ static void *add_cxl_decoder(void *parent, int id, const char *cxldecoder_base)
+ 			return decoder_dup;
+ 		}
+ 
+-	list_add(&port->decoders, &decoder->list);
++	list_add_sorted(&port->decoders, decoder, list, decoder_id_cmp);
+ 
+ 	free(path);
+ 	return decoder;
+diff --git a/util/list.h b/util/list.h
+index 1ea9c59b9f0c..c6584e3ec725 100644
+--- a/util/list.h
++++ b/util/list.h
+@@ -37,4 +37,65 @@ static inline void list_add_after_(struct list_head *h,
+ 	(void)list_debug(h, abortstr);
+ }
+ 
++/**
++ * list_add_before - add an entry before the given node in the linked list.
++ * @h: the list_head to add the node to
++ * @l: the list_node before which to add to
++ * @n: the list_node to add to the list.
++ *
++ * The list_node does not need to be initialized; it will be overwritten.
++ * Example:
++ *	struct child *child = malloc(sizeof(*child));
++ *
++ *	child->name = "geoffrey";
++ *	list_add_before(&parent->children, &child1->list, &child->list);
++ *	parent->num_children++;
++ */
++#define list_add_before(h, l, n) list_add_before_(h, l, n, LIST_LOC)
++static inline void list_add_before_(struct list_head *h, struct list_node *l,
++				    struct list_node *n, const char *abortstr)
++{
++	if (l->prev == &h->n) {
++		/* l is the first element, this becomes a list_add */
++		list_add(h, n);
++		return;
++	}
 +
-+LIBCXL_3 {
-+global:
-+	cxl_decoder_get_dpa_resource;
-+	cxl_decoder_get_dpa_size;
-+} LIBCXL_2;
-diff --git a/cxl/lib/private.h b/cxl/lib/private.h
-index c6d88f7140f2..24a2ae6787be 100644
---- a/cxl/lib/private.h
-+++ b/cxl/lib/private.h
-@@ -101,6 +101,8 @@ struct cxl_decoder {
- 	struct cxl_ctx *ctx;
- 	u64 start;
- 	u64 size;
-+	u64 dpa_resource;
-+	u64 dpa_size;
- 	void *dev_buf;
- 	size_t buf_len;
- 	char *dev_path;
-diff --git a/cxl/libcxl.h b/cxl/libcxl.h
-index 0007f4d9bcee..76aebe3efda8 100644
---- a/cxl/libcxl.h
-+++ b/cxl/libcxl.h
-@@ -129,6 +129,8 @@ struct cxl_decoder *cxl_decoder_get_first(struct cxl_port *port);
- struct cxl_decoder *cxl_decoder_get_next(struct cxl_decoder *decoder);
- unsigned long long cxl_decoder_get_resource(struct cxl_decoder *decoder);
- unsigned long long cxl_decoder_get_size(struct cxl_decoder *decoder);
-+unsigned long long cxl_decoder_get_dpa_resource(struct cxl_decoder *decoder);
-+unsigned long long cxl_decoder_get_dpa_size(struct cxl_decoder *decoder);
- const char *cxl_decoder_get_devname(struct cxl_decoder *decoder);
- struct cxl_target *cxl_decoder_get_target_by_memdev(struct cxl_decoder *decoder,
- 						    struct cxl_memdev *memdev);
++	n->next = l;
++	n->prev = l->prev;
++	l->prev->next = n;
++	l->prev = n;
++}
++
++#define list_add_sorted(head, n, node, cmp)                                    \
++	do {                                                                   \
++		struct list_head *__head = (head);                             \
++		typeof(n) __iter, __next;                                      \
++		typeof(n) __new = (n);                                         \
++                                                                               \
++		if (list_empty(__head)) {                                      \
++			list_add(__head, &__new->node);                        \
++			break;                                                 \
++		}                                                              \
++                                                                               \
++		list_for_each (__head, __iter, node) {                         \
++			if (cmp(__new, __iter) < 0) {                          \
++				list_add_before(__head, &__iter->node,         \
++						&__new->node);                 \
++				break;                                         \
++			}                                                      \
++			__next = list_next(__head, __iter, node);              \
++			if (!__next) {                                         \
++				list_add_after(__head, &__iter->node,          \
++					       &__new->node);                  \
++				break;                                         \
++			}                                                      \
++			if (cmp(__new, __next) < 0) {                          \
++				list_add_before(__head, &__next->node,         \
++						&__new->node);                 \
++				break;                                         \
++			}                                                      \
++		}                                                              \
++	} while (0)
++
+ #endif /* _NDCTL_LIST_H_ */
 
