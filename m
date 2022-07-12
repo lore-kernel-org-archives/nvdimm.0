@@ -1,179 +1,217 @@
 Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82ED723A9
-	for <nvdimm@lists.linux.dev>; Tue, 12 Jul 2022 05:16:11 +0000 (UTC)
-Received: from pps.filterd (m0098409.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 26C5CK8n029516;
-	Tue, 12 Jul 2022 05:15:52 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
- : in-reply-to : references : date : message-id : mime-version :
- content-type; s=pp1; bh=LjCncoQYfgjpxTi/KkBbwYehv1N9u1L+plXflGjtKuE=;
- b=j6EK2W4zrXukmh35WzmZHoGhVNzA38T2xheTOLZ8QVqrLOywd6g5IBQraopfpS5CG1t6
- YxFLYnHec35Gd+gQG7pZSGUEOZcOOaWnsJpNSHHXKawYjtNnitdGuUxm+PGUIMaJ7ZYU
- DrT17FGvO5k4Rx//Fj/tUvnz5eexIzj0KYOVj7f+QVjN+QXVAOcXOd0gWGtYbGGxUd7T
- ZVLniH2nRQqyWrzOcSb2TmrBKnGZ/96sx7nR7YhH0tIHB6i5Ih8fctv+pFCLJBgF4ei9
- km7SylQ3bHu6xa/FWrcHZaK3v2mSdG8kNJ9SYbxfw+Nrk7z80qEP1Q65A/hcHbLmD2W3 gQ== 
-Received: from ppma03ams.nl.ibm.com (62.31.33a9.ip4.static.sl-reverse.com [169.51.49.98])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3h92kmg243-1
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91E384414
+	for <nvdimm@lists.linux.dev>; Tue, 12 Jul 2022 15:23:55 +0000 (UTC)
+Received: from pps.filterd (m0098399.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 26CF2nb6007050;
+	Tue, 12 Jul 2022 15:23:51 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=subject : from : to : cc
+ : date : message-id : content-type : content-transfer-encoding :
+ mime-version; s=pp1; bh=5ECn/sObgC3lCbv+/XzZgYJYx1I49uysR8R2kS1gM34=;
+ b=nyzEbBg3+mS9WzNAGU/lSjK47wlBJyyGx8wce3bi03LzIyjeeb5PRJw0hHYJ/yxMaBpA
+ o4rdftOf2DFZXfhTnCOv/t+53NRL/en/H9ttL7SpbVcyjKAU8ec/tV0GALGmXmbHeig/
+ VW8Mk7b5itGOSdSLl2rmxWERV0y+WnBwAruQHb36Q52n85duxsrpg01KkoWHg2Jdhp6z
+ i+3MooN+2RZkyW0vP5RorG2jx8kz1h7Jk4toQKXgs7+MbWFp2hXC6D8mp4dnjxa5WgC3
+ 8emuhmVI1f/SUliw3KjaJpt1R4W6TdMLzdU3gf7f7CwfgcjSfNycT2DbQYw9QNhEbOdq bg== 
+Received: from ppma04ams.nl.ibm.com (63.31.33a9.ip4.static.sl-reverse.com [169.51.49.99])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3h99r03r0a-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 12 Jul 2022 05:15:52 +0000
-Received: from pps.filterd (ppma03ams.nl.ibm.com [127.0.0.1])
-	by ppma03ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 26C57LMd026547;
-	Tue, 12 Jul 2022 05:15:50 GMT
-Received: from b06cxnps3074.portsmouth.uk.ibm.com (d06relay09.portsmouth.uk.ibm.com [9.149.109.194])
-	by ppma03ams.nl.ibm.com with ESMTP id 3h71a8umxq-1
+	Tue, 12 Jul 2022 15:23:51 +0000
+Received: from pps.filterd (ppma04ams.nl.ibm.com [127.0.0.1])
+	by ppma04ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 26CFM0TJ012056;
+	Tue, 12 Jul 2022 15:23:49 GMT
+Received: from b06cxnps4074.portsmouth.uk.ibm.com (d06relay11.portsmouth.uk.ibm.com [9.149.109.196])
+	by ppma04ams.nl.ibm.com with ESMTP id 3h8rrn19vh-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 12 Jul 2022 05:15:50 +0000
+	Tue, 12 Jul 2022 15:23:49 +0000
 Received: from d06av24.portsmouth.uk.ibm.com (mk.ibm.com [9.149.105.60])
-	by b06cxnps3074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 26C5Flpu18612534
+	by b06cxnps4074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 26CFNjsD16449988
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 12 Jul 2022 05:15:47 GMT
+	Tue, 12 Jul 2022 15:23:46 GMT
 Received: from d06av24.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 223A34203F;
-	Tue, 12 Jul 2022 05:15:47 +0000 (GMT)
+	by IMSVA (Postfix) with ESMTP id D5C594203F;
+	Tue, 12 Jul 2022 15:23:45 +0000 (GMT)
 Received: from d06av24.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 4F11B42042;
-	Tue, 12 Jul 2022 05:15:41 +0000 (GMT)
-Received: from vajain21.in.ibm.com (unknown [9.211.127.138])
-	by d06av24.portsmouth.uk.ibm.com (Postfix) with SMTP;
-	Tue, 12 Jul 2022 05:15:40 +0000 (GMT)
-Received: by vajain21.in.ibm.com (sSMTP sendmail emulation); Tue, 12 Jul 2022 10:45:39 +0530
-From: Vaibhav Jain <vaibhav@linux.ibm.com>
-To: Kajol Jain <kjain@linux.ibm.com>, mpe@ellerman.id.au,
-        linuxppc-dev@lists.ozlabs.org
-Cc: dan.j.williams@intel.com, nvdimm@lists.linux.dev,
-        atrajeev@linux.vnet.ibm.com, rnsastry@linux.ibm.com,
-        maddy@linux.ibm.com, kjain@linux.ibm.com, disgoel@linux.vnet.ibm.com,
-        "Aneesh Kumar K . V"
- <aneesh.kumar@linux.ibm.com>
-Subject: Re: [PATCH v2] powerpc/papr_scm: Fix nvdimm event mappings
-In-Reply-To: <20220711034605.212683-1-kjain@linux.ibm.com>
-References: <20220711034605.212683-1-kjain@linux.ibm.com>
-Date: Tue, 12 Jul 2022 10:45:39 +0530
-Message-ID: <87czeac3no.fsf@vajain21.in.ibm.com>
+	by IMSVA (Postfix) with ESMTP id C86FE42041;
+	Tue, 12 Jul 2022 15:23:44 +0000 (GMT)
+Received: from ltc-boston123.aus.stglabs.ibm.com (unknown [9.40.193.212])
+	by d06av24.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+	Tue, 12 Jul 2022 15:23:44 +0000 (GMT)
+Subject: [REPOST PATCH] ndtest: Cleanup all of blk namespace specific code
+From: Shivaprasad G Bhat <sbhat@linux.ibm.com>
+To: nvdimm@lists.linux.dev
+Cc: linuxppc-dev@lists.ozlabs.org, aneesh.kumar@linux.ibm.com,
+        vaibhav@linux.ibm.com, dan.j.williams@intel.com, ira.weiny@intel.com,
+        mpe@ellerman.id.au
+Date: Tue, 12 Jul 2022 10:23:44 -0500
+Message-ID: 
+ <165763940218.3501174.7103619358744815702.stgit@ltc-boston123.aus.stglabs.ibm.com>
+User-Agent: StGit/0.19
+Content-Type: text/plain; charset="utf-8"
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: nA906ZoSj8WM3tlF64CqdcA_NTmcsMm2
+X-Proofpoint-ORIG-GUID: nA906ZoSj8WM3tlF64CqdcA_NTmcsMm2
+Content-Transfer-Encoding: 8bit
+X-Proofpoint-UnRewURL: 0 URL was un-rewritten
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-TM-AS-GCONF: 00
-X-Proofpoint-ORIG-GUID: VPxp-3WT8t2B2ViH7xEhrwhfP7p35av2
-X-Proofpoint-GUID: VPxp-3WT8t2B2ViH7xEhrwhfP7p35av2
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.205,Aquarius:18.0.883,Hydra:6.0.517,FMLib:17.11.122.1
- definitions=2022-07-12_03,2022-07-08_01,2022-06-22_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
- spamscore=0 clxscore=1011 phishscore=0 bulkscore=0 adultscore=0
- lowpriorityscore=0 malwarescore=0 mlxscore=0 mlxlogscore=999
- suspectscore=0 impostorscore=0 classifier=spam adjust=0 reason=mlx
- scancount=1 engine=8.12.0-2206140000 definitions=main-2207120020
+ definitions=2022-07-12_08,2022-07-12_01,2022-06-22_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 bulkscore=0
+ priorityscore=1501 phishscore=0 suspectscore=0 mlxlogscore=999
+ impostorscore=0 mlxscore=0 clxscore=1011 spamscore=0 malwarescore=0
+ lowpriorityscore=0 adultscore=0 classifier=spam adjust=0 reason=mlx
+ scancount=1 engine=8.12.0-2206140000 definitions=main-2207120059
 
-Hi Kajol,
+With the nd_namespace_blk and nd_blk_region infrastructures being removed,
+the ndtest still has some references to the old code. So the
+compilation fails as below,
 
-Thanks for the patch. Minor review comment below:
+../tools/testing/nvdimm/test/ndtest.c:204:25: error: ‘ND_DEVICE_NAMESPACE_BLK’ undeclared here (not in a function); did you mean ‘ND_DEVICE_NAMESPACE_IO’?
+  204 |                 .type = ND_DEVICE_NAMESPACE_BLK,
+      |                         ^~~~~~~~~~~~~~~~~~~~~~~
+      |                         ND_DEVICE_NAMESPACE_IO
+../tools/testing/nvdimm/test/ndtest.c: In function ‘ndtest_create_region’:
+../tools/testing/nvdimm/test/ndtest.c:630:17: error: ‘ndbr_desc’ undeclared (first use in this function); did you mean ‘ndr_desc’?
+  630 |                 ndbr_desc.enable = ndtest_blk_region_enable;
+      |                 ^~~~~~~~~
+      |                 ndr_desc
+../tools/testing/nvdimm/test/ndtest.c:630:17: note: each undeclared identifier is reported only once for each function it appears in
+../tools/testing/nvdimm/test/ndtest.c:630:36: error: ‘ndtest_blk_region_enable’ undeclared (first use in this function)
+  630 |                 ndbr_desc.enable = ndtest_blk_region_enable;
+      |                                    ^~~~~~~~~~~~~~~~~~~~~~~~
+../tools/testing/nvdimm/test/ndtest.c:631:35: error: ‘ndtest_blk_do_io’ undeclared (first use in this function); did you mean ‘ndtest_blk_mmio’?
+  631 |                 ndbr_desc.do_io = ndtest_blk_do_io;
+      |                                   ^~~~~~~~~~~~~~~~
+      |                                   ndtest_blk_mmio
 
-Kajol Jain <kjain@linux.ibm.com> writes:
+The current patch removes the specific code to cleanup all obsolete
+references.
 
-> Commit 4c08d4bbc089 ("powerpc/papr_scm: Add perf interface support")
-> added performance monitoring support for papr-scm nvdimm devices via
-> perf interface. Commit also added an array in papr_scm_priv
-> structure called "nvdimm_events_map", which got filled based on the
-> result of H_SCM_PERFORMANCE_STATS hcall. 
->
-> Currently there is an assumption that the order of events in the
-> stats buffer, returned by the hypervisor is same. And that order also
-> matches with the events specified in nvdimm driver code. 
-> But this assumption is not documented anywhere in Power Architecture
-> Platform Requirements (PAPR) document. Although the order
-> of events happens to be same on current systems, but it might
-> not be true in future generation systems. Fix the issue, by
-> adding a static mapping for nvdimm events to corresponding stat-id,
-> and removing the dynamic map from papr_scm_priv structure.
->
-> Fixes: 4c08d4bbc089 ("powerpc/papr_scm: Add perf interface support")
-> Reported-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-> Signed-off-by: Kajol Jain <kjain@linux.ibm.com>
+Signed-off-by: Shivaprasad G Bhat <sbhat@linux.ibm.com>
+---
+Changelog:
+Repost of v1:
+Link - https://patchwork.kernel.org/project/linux-nvdimm/patch/165025395730.2821159.14794984437851867426.stgit@lep8c.aus.stglabs.ibm.com/
+No changes.
 
-<snip>
-> @@ -460,10 +480,9 @@ static void papr_scm_pmu_del(struct perf_event *event, int flags)
->  
->  static int papr_scm_pmu_check_events(struct papr_scm_priv *p, struct nvdimm_pmu *nd_pmu)
->  {
-> -	struct papr_scm_perf_stat *stat;
->  	struct papr_scm_perf_stats *stats;
->  	u32 available_events;
-> -	int index, rc = 0;
-> +	int rc;
->  
->  	if (!p->stat_buffer_len)
->  		return -ENOENT;
-> @@ -476,34 +495,12 @@ static int papr_scm_pmu_check_events(struct papr_scm_priv *p, struct nvdimm_pmu
->  	/* Allocate the buffer for phyp where stats are written */
->  	stats = kzalloc(p->stat_buffer_len, GFP_KERNEL);
->  	if (!stats) {
-> -		rc = -ENOMEM;
-> -		return rc;
-> +		return -ENOMEM;
->  	}
->  
->  	/* Called to get list of events supported */
->  	rc = drc_pmem_query_stats(p, stats, 0);
-> -	if (rc)
-> -		goto out;
-> -
-> -	/*
-> -	 * Allocate memory and populate nvdimm_event_map.
-> -	 * Allocate an extra element for NULL entry
-> -	 */
-> -	p->nvdimm_events_map = kcalloc(available_events + 1,
-> -				       sizeof(stat->stat_id),
-> -				       GFP_KERNEL);
-> -	if (!p->nvdimm_events_map) {
-> -		rc = -ENOMEM;
-> -		goto out;
-> -	}
->  
-> -	/* Copy all stat_ids to event map */
-> -	for (index = 0, stat = stats->scm_statistic;
-> -	     index < available_events; index++, ++stat) {
-> -		memcpy(&p->nvdimm_events_map[index * sizeof(stat->stat_id)],
-> -		       &stat->stat_id, sizeof(stat->stat_id));
-> -	}
-> -out:
->  	kfree(stats);
->  	return rc;
->  }
+ tools/testing/nvdimm/test/ndtest.c |   77 ------------------------------------
+ 1 file changed, 77 deletions(-)
 
-Earlier implementation of papr_scm_pmu_check_events() would copy the
-contents of returned stat-ids to struct papr_scm_priv->nvdimm_events_map,
-hence it was needed.
+diff --git a/tools/testing/nvdimm/test/ndtest.c b/tools/testing/nvdimm/test/ndtest.c
+index 4d1a947367f9..01ceb98c15a0 100644
+--- a/tools/testing/nvdimm/test/ndtest.c
++++ b/tools/testing/nvdimm/test/ndtest.c
+@@ -134,39 +134,6 @@ static struct ndtest_mapping region1_mapping[] = {
+ 	},
+ };
 
-With static events map you dont really need to call
-drc_pmem_query_stats() as that would have been already being done once
-in papr_scm_probe() before papr_scm_pmu_register() is called:
+-static struct ndtest_mapping region2_mapping[] = {
+-	{
+-		.dimm = 0,
+-		.position = 0,
+-		.start = 0,
+-		.size = DIMM_SIZE,
+-	},
+-};
+-
+-static struct ndtest_mapping region3_mapping[] = {
+-	{
+-		.dimm = 1,
+-		.start = 0,
+-		.size = DIMM_SIZE,
+-	}
+-};
+-
+-static struct ndtest_mapping region4_mapping[] = {
+-	{
+-		.dimm = 2,
+-		.start = 0,
+-		.size = DIMM_SIZE,
+-	}
+-};
+-
+-static struct ndtest_mapping region5_mapping[] = {
+-	{
+-		.dimm = 3,
+-		.start = 0,
+-		.size = DIMM_SIZE,
+-	}
+-};
+-
+ static struct ndtest_region bus0_regions[] = {
+ 	{
+ 		.type = ND_DEVICE_NAMESPACE_PMEM,
+@@ -182,34 +149,6 @@ static struct ndtest_region bus0_regions[] = {
+ 		.size = DIMM_SIZE * 2,
+ 		.range_index = 2,
+ 	},
+-	{
+-		.type = ND_DEVICE_NAMESPACE_BLK,
+-		.num_mappings = ARRAY_SIZE(region2_mapping),
+-		.mapping = region2_mapping,
+-		.size = DIMM_SIZE,
+-		.range_index = 3,
+-	},
+-	{
+-		.type = ND_DEVICE_NAMESPACE_BLK,
+-		.num_mappings = ARRAY_SIZE(region3_mapping),
+-		.mapping = region3_mapping,
+-		.size = DIMM_SIZE,
+-		.range_index = 4,
+-	},
+-	{
+-		.type = ND_DEVICE_NAMESPACE_BLK,
+-		.num_mappings = ARRAY_SIZE(region4_mapping),
+-		.mapping = region4_mapping,
+-		.size = DIMM_SIZE,
+-		.range_index = 5,
+-	},
+-	{
+-		.type = ND_DEVICE_NAMESPACE_BLK,
+-		.num_mappings = ARRAY_SIZE(region5_mapping),
+-		.mapping = region5_mapping,
+-		.size = DIMM_SIZE,
+-		.range_index = 6,
+-	},
+ };
+
+ static struct ndtest_mapping region6_mapping[] = {
+@@ -501,21 +440,6 @@ static int ndtest_create_region(struct ndtest_priv *p,
+ 	nd_set->altcookie = nd_set->cookie1;
+ 	ndr_desc->nd_set = nd_set;
+
+-	if (region->type == ND_DEVICE_NAMESPACE_BLK) {
+-		mappings[0].start = 0;
+-		mappings[0].size = DIMM_SIZE;
+-		mappings[0].nvdimm = p->config->dimms[ndimm].nvdimm;
+-
+-		ndr_desc->mapping = &mappings[0];
+-		ndr_desc->num_mappings = 1;
+-		ndr_desc->num_lanes = 1;
+-		ndbr_desc.enable = ndtest_blk_region_enable;
+-		ndbr_desc.do_io = ndtest_blk_do_io;
+-		region->region = nvdimm_blk_region_create(p->bus, ndr_desc);
+-
+-		goto done;
+-	}
+-
+ 	for (i = 0; i < region->num_mappings; i++) {
+ 		ndimm = region->mapping[i].dimm;
+ 		mappings[i].start = region->mapping[i].start;
+@@ -527,7 +451,6 @@ static int ndtest_create_region(struct ndtest_priv *p,
+ 	ndr_desc->num_mappings = region->num_mappings;
+ 	region->region = nvdimm_pmem_region_create(p->bus, ndr_desc);
+
+-done:
+ 	if (!region->region) {
+ 		dev_err(&p->pdev.dev, "Error registering region %pR\n",
+ 			ndr_desc->res);
 
 
-papr_scm_probe()
-{
-...
-	/* Try retrieving the stat buffer and see if its supported */
-	stat_size = drc_pmem_query_stats(p, NULL, 0);
-...
-        papr_scm_pmu_register(p);
-...
-}
-
-I would suggest replacing single callsite of papr_scm_pmu_check_events()
-with the check
-
-     if (!p->stat_buffer_len)
-		goto pmu_check_events_err;
-
-<snip>
-
--- 
-Cheers
-~ Vaibhav
