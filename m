@@ -1,37 +1,38 @@
 Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B77B538B
-	for <nvdimm@lists.linux.dev>; Tue, 12 Jul 2022 19:07:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A146538B
+	for <nvdimm@lists.linux.dev>; Tue, 12 Jul 2022 19:08:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1657652874; x=1689188874;
+  t=1657652880; x=1689188880;
   h=subject:from:to:cc:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=QwZrIyDCpVWkjA3BzG2YbvtgjL7PYMxHdM6l/VXwClA=;
-  b=ltHoGrR32iBLfwTqGYYZNL0i+IUL3ufojKLwQH3GYr3l4b3StjxObMUH
-   9xnNstEgHTN9MIONcsZQxkBXxTD8kNzwUOzMdxjtwA2keKd7DdRBvuRTI
-   DYu3gw+egibg3LVvYh91icjKze8cyBDik5vXGPFiunHH5smXL6k/JhKNV
-   d3wR0NGFR4MMNqMssfGH13me0RHsmP5Kg57FXlH6pwXndq0qpR4/6YCeE
-   1bz6W7zx9P7sjlkVkUkTQW56lhBJ9O3oSgrA/PhuAkVymSrCnPiiC4yzI
-   d+B7jW9aoViIDLd574xb2jpHtVaAvw3C/zbIcCKtKDDeFYSUUygLedIEv
-   w==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10406"; a="282573297"
+  bh=z2SMMm41uIRd5DJN5abWRnM6MsMByqAH5tJ7qm43uuc=;
+  b=JMjQ2e3QokklZZgBD8tSr/ywnARBeNx0eBwADUkF/9hmtd/GDEyQEcif
+   NxjlN0YbsHGV3hENkneUd5TLLSCGO+Ky98gGaio/set48858MyrPCmIbS
+   xp94eyufqOhLYgQals2Dmpl9EA7VH0Qa4FQfewN5HDezBOQmlGCGSBFu0
+   ew04ZaDdiJ5BHf6tGzwIM9dLz3/449+ntrXsR+1oAtnAwhqM5pOF4mS6i
+   ua23Yr1N4Yetxk1qxvcGuTzD46mjazCop85oHCRKf6wOBrEb2KtnDxBSg
+   l0a2u3kctb7qyHWgevqfdXSuw3efIYnjRdnUcUUJSLzbtK34mStbNQqcm
+   A==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10406"; a="282573305"
 X-IronPort-AV: E=Sophos;i="5.92,266,1650956400"; 
-   d="scan'208";a="282573297"
-Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jul 2022 12:07:53 -0700
+   d="scan'208";a="282573305"
+Received: from fmsmga007.fm.intel.com ([10.253.24.52])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jul 2022 12:07:59 -0700
 X-IronPort-AV: E=Sophos;i="5.92,266,1650956400"; 
-   d="scan'208";a="595400555"
+   d="scan'208";a="599484287"
 Received: from sheyting-mobl3.amr.corp.intel.com (HELO [192.168.1.117]) ([10.212.147.156])
-  by orsmga002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jul 2022 12:07:53 -0700
-Subject: [ndctl PATCH 05/11] cxl/lib: Maintain decoders in id order
+  by fmsmga007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jul 2022 12:07:58 -0700
+Subject: [ndctl PATCH 06/11] cxl/memdev: Fix json for multi-device
+ partitioning
 From: Dan Williams <dan.j.williams@intel.com>
 To: vishal.l.verma@intel.com
-Cc: alison.schofield@intel.com, nvdimm@lists.linux.dev,
+Cc: Alison Schofield <alison.schofield@intel.com>, nvdimm@lists.linux.dev,
  linux-cxl@vger.kernel.org
-Date: Tue, 12 Jul 2022 12:07:52 -0700
-Message-ID: <165765287277.435671.14320322485572083484.stgit@dwillia2-xfh>
+Date: Tue, 12 Jul 2022 12:07:58 -0700
+Message-ID: <165765287829.435671.4715059086458230262.stgit@dwillia2-xfh>
 In-Reply-To: <165765284365.435671.13173937566404931163.stgit@dwillia2-xfh>
 References: <165765284365.435671.13173937566404931163.stgit@dwillia2-xfh>
 User-Agent: StGit/0.18-3-g996c
@@ -44,120 +45,87 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 
-Given that decoder instance order is fundamental to the DPA translation
-sequence for endpoint decoders, enforce that cxl_decoder_for_each() returns
-decoders in instance order. Otherwise, they show up in readddir() order
-which is not predictable.
+In the case when someone partitions several devices at once, collect all
+the affected memdevs into a json array.
 
-Add a list_add_sorted() to generically handle inserting into a sorted list.
+With the move to use util_display_json_array() that also requires a set of
+flags to be specifiied. Apply the UTIL_JSON_HUMAN flag for all interactive
+command result output to bring this command in line with other tools.
 
+Cc: Alison Schofield <alison.schofield@intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- cxl/lib/libcxl.c |    8 ++++++-
- util/list.h      |   61 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 68 insertions(+), 1 deletion(-)
+ cxl/memdev.c |   26 +++++++++++++++++++++-----
+ 1 file changed, 21 insertions(+), 5 deletions(-)
 
-diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
-index f36edcfc735a..e4c5d3819e88 100644
---- a/cxl/lib/libcxl.c
-+++ b/cxl/lib/libcxl.c
+diff --git a/cxl/memdev.c b/cxl/memdev.c
+index 91d914db5af6..9fcd8ae5724b 100644
+--- a/cxl/memdev.c
++++ b/cxl/memdev.c
 @@ -19,6 +19,7 @@
- #include <ccan/short_types/short_types.h>
+ struct action_context {
+ 	FILE *f_out;
+ 	FILE *f_in;
++	struct json_object *jdevs;
+ };
  
- #include <util/log.h>
-+#include <util/list.h>
- #include <util/size.h>
- #include <util/sysfs.h>
- #include <util/bitmap.h>
-@@ -908,6 +909,11 @@ cxl_endpoint_get_memdev(struct cxl_endpoint *endpoint)
- 	return NULL;
+ static struct parameters {
+@@ -339,12 +340,13 @@ out:
  }
  
-+static int decoder_id_cmp(struct cxl_decoder *d1, struct cxl_decoder *d2)
-+{
-+	return d1->id - d2->id;
-+}
-+
- static void *add_cxl_decoder(void *parent, int id, const char *cxldecoder_base)
+ static int action_setpartition(struct cxl_memdev *memdev,
+-		struct action_context *actx)
++			       struct action_context *actx)
  {
- 	const char *devname = devpath_to_devname(cxldecoder_base);
-@@ -1049,7 +1055,7 @@ static void *add_cxl_decoder(void *parent, int id, const char *cxldecoder_base)
- 			return decoder_dup;
- 		}
+ 	const char *devname = cxl_memdev_get_devname(memdev);
+ 	enum cxl_setpart_type type = CXL_SETPART_PMEM;
+ 	unsigned long long size = ULLONG_MAX;
+ 	struct json_object *jmemdev;
++	unsigned long flags;
+ 	struct cxl_cmd *cmd;
+ 	int rc;
  
--	list_add(&port->decoders, &decoder->list);
-+	list_add_sorted(&port->decoders, decoder, list, decoder_id_cmp);
+@@ -396,10 +398,12 @@ out_err:
+ 	if (rc)
+ 		log_err(&ml, "%s error: %s\n", devname, strerror(-rc));
  
- 	free(path);
- 	return decoder;
-diff --git a/util/list.h b/util/list.h
-index 1ea9c59b9f0c..c6584e3ec725 100644
---- a/util/list.h
-+++ b/util/list.h
-@@ -37,4 +37,65 @@ static inline void list_add_after_(struct list_head *h,
- 	(void)list_debug(h, abortstr);
+-	jmemdev = util_cxl_memdev_to_json(memdev, UTIL_JSON_PARTITION);
+-	if (jmemdev)
+-		printf("%s\n", json_object_to_json_string_ext(jmemdev,
+-		       JSON_C_TO_STRING_PRETTY));
++	flags = UTIL_JSON_PARTITION;
++	if (actx->f_out == stdout && isatty(1))
++		flags |= UTIL_JSON_HUMAN;
++	jmemdev = util_cxl_memdev_to_json(memdev, flags);
++	if (actx->jdevs && jmemdev)
++		json_object_array_add(actx->jdevs, jmemdev);
+ 
+ 	return rc;
  }
+@@ -446,6 +450,9 @@ static int memdev_action(int argc, const char **argv, struct cxl_ctx *ctx,
+ 		err++;
+ 	}
  
-+/**
-+ * list_add_before - add an entry before the given node in the linked list.
-+ * @h: the list_head to add the node to
-+ * @l: the list_node before which to add to
-+ * @n: the list_node to add to the list.
-+ *
-+ * The list_node does not need to be initialized; it will be overwritten.
-+ * Example:
-+ *	struct child *child = malloc(sizeof(*child));
-+ *
-+ *	child->name = "geoffrey";
-+ *	list_add_before(&parent->children, &child1->list, &child->list);
-+ *	parent->num_children++;
-+ */
-+#define list_add_before(h, l, n) list_add_before_(h, l, n, LIST_LOC)
-+static inline void list_add_before_(struct list_head *h, struct list_node *l,
-+				    struct list_node *n, const char *abortstr)
-+{
-+	if (l->prev == &h->n) {
-+		/* l is the first element, this becomes a list_add */
-+		list_add(h, n);
-+		return;
++	if (action == action_setpartition)
++		actx.jdevs = json_object_new_array();
++
+ 	if (err == argc) {
+ 		usage_with_options(u, options);
+ 		return -EINVAL;
+@@ -528,6 +535,15 @@ static int memdev_action(int argc, const char **argv, struct cxl_ctx *ctx,
+ 	if (actx.f_in != stdin)
+ 		fclose(actx.f_in);
+ 
++	if (actx.jdevs) {
++		unsigned long flags = 0;
++
++		if (actx.f_out == stdout && isatty(1))
++			flags |= UTIL_JSON_HUMAN;
++		util_display_json_array(actx.f_out, actx.jdevs, flags);
 +	}
 +
-+	n->next = l;
-+	n->prev = l->prev;
-+	l->prev->next = n;
-+	l->prev = n;
-+}
 +
-+#define list_add_sorted(head, n, node, cmp)                                    \
-+	do {                                                                   \
-+		struct list_head *__head = (head);                             \
-+		typeof(n) __iter, __next;                                      \
-+		typeof(n) __new = (n);                                         \
-+                                                                               \
-+		if (list_empty(__head)) {                                      \
-+			list_add(__head, &__new->node);                        \
-+			break;                                                 \
-+		}                                                              \
-+                                                                               \
-+		list_for_each (__head, __iter, node) {                         \
-+			if (cmp(__new, __iter) < 0) {                          \
-+				list_add_before(__head, &__iter->node,         \
-+						&__new->node);                 \
-+				break;                                         \
-+			}                                                      \
-+			__next = list_next(__head, __iter, node);              \
-+			if (!__next) {                                         \
-+				list_add_after(__head, &__iter->node,          \
-+					       &__new->node);                  \
-+				break;                                         \
-+			}                                                      \
-+			if (cmp(__new, __next) < 0) {                          \
-+				list_add_before(__head, &__next->node,         \
-+						&__new->node);                 \
-+				break;                                         \
-+			}                                                      \
-+		}                                                              \
-+	} while (0)
-+
- #endif /* _NDCTL_LIST_H_ */
+  out_close_fout:
+ 	if (actx.f_out != stdout)
+ 		fclose(actx.f_out);
 
