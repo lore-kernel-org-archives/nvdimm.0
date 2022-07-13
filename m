@@ -1,35 +1,35 @@
-Received: from hamster.birch.relay.mailchannels.net (hamster.birch.relay.mailchannels.net [23.83.209.80])
+Received: from beige.elm.relay.mailchannels.net (beige.elm.relay.mailchannels.net [23.83.212.16])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D397B4A0A
-	for <nvdimm@lists.linux.dev>; Wed, 13 Jul 2022 19:21:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 155814A0A
+	for <nvdimm@lists.linux.dev>; Wed, 13 Jul 2022 19:25:46 +0000 (UTC)
 X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
 Received: from relay.mailchannels.net (localhost [127.0.0.1])
-	by relay.mailchannels.net (Postfix) with ESMTP id D47825A1F35;
-	Wed, 13 Jul 2022 19:04:14 +0000 (UTC)
+	by relay.mailchannels.net (Postfix) with ESMTP id 911826C16EB;
+	Wed, 13 Jul 2022 19:06:51 +0000 (UTC)
 Received: from pdx1-sub0-mail-a228.dreamhost.com (unknown [127.0.0.6])
 	(Authenticated sender: dreamhost)
-	by relay.mailchannels.net (Postfix) with ESMTPA id 5EA735A1D80;
-	Wed, 13 Jul 2022 19:04:14 +0000 (UTC)
-ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1657739054; a=rsa-sha256;
+	by relay.mailchannels.net (Postfix) with ESMTPA id D19F56C17AA;
+	Wed, 13 Jul 2022 19:06:50 +0000 (UTC)
+ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1657739210; a=rsa-sha256;
 	cv=none;
-	b=ocgqM8rHdw7CJFAVxQrOOpAqYWo+//m/rVQzdlUZ61Tbi3xJ7guK/OxYmAU6g1ds3OE/PV
-	GcB2D85lM9yWIoW6XsMjZjAT3u8j6eLBMl9Zo4VjLxI8YKHQbz9VhZ+UsM5moQzMkK0w/Z
-	IET901QzgDsqODeKb0CbTCdaMwh3mku2hkrgmPNyLvwvbWhopGyyhUykQRSg1z1d7ilrna
-	r14Q4E44KZ75GOVojA6CU30z3+u2YgxUF6nlYzhSD/lrGstAjZHncIm3QT7+D8obahhL44
-	qUxRhASDhPpAsBDYzupD6wujUI/3Zvej0WzT3Tu3Cvon/eEjX/zCtDD3f9ox/g==
+	b=uNCTOYjFXqqn7Dwa82a8hvQpiUMX0Zzc/gUdTUUncS+p8uKzfZCkS1UQv4fS5PMoSBitBZ
+	56ngf7q1CTnEqaxFrza0mYSqRbXQAz6IBlPxqrGoqisDvOYj9onM57rVIvs7Er2CAwbNE5
+	8KQuR4C/hQ0pMRGYCFpQ66/RTWq9Es5XT+MZr00pH8e+vIxH5S+YO+Ji/HCHbGHG2vjdvl
+	KjWReQIgzu8QsIJ7k3S5+lUK85ZC8RX4FZG5qCE2uZBaKknOLPmlHRQq3X1U7MDv+8TXFT
+	bWrlbLxrY/LCFtcNh6nPt5wbT1EuEBmY1egcM1IAI04kf123ZoJjDCFQ3E8KCw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
  d=mailchannels.net;
-	s=arc-2022; t=1657739054;
+	s=arc-2022; t=1657739210;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references:dkim-signature;
-	bh=VwAbIV9GS7MUyfQ5yMD8a/0YG2yQmMOza6THyO0Yyx0=;
-	b=DUwaoGyZrY1rFAJEhaPwWkWZTT8PvqXhqiDeaYtm/83yhX/JvTNTG+s+fgc8unjXZ1hPZi
-	nWPWfr9mTQ3Ag49t6bQTWRP317XIZGP/P/huqRXpcdj4L+1ChRtmw3YYb08TpolemVN/pn
-	xj4d9CZiMao+PpDJRT4Mkkab7eRRUF/pZ0vRKJWhIdXmsh27+e6byx5AEsbDbgDV2CVmwd
-	s+hysxV/1UfRUZYFrNQK5K7jFyrLOvnEQaiGQ8H+2q7DJaWH4cUds+0dOaIatQiiBB/u2y
-	lrxm57fzvCGOwLYfrzARVEb41FkQAIaKRLObcEumEiLJuFN4nQ0NAzttBy1iRw==
+	bh=50EqSST0aiIhNeVDhbzWOF2H9pf8rm9Ld6sSRtsMHck=;
+	b=SJ7A6RGcUHxXmaOnFKi15kZ6uSnNFVXUEfrvNqvJil0cWJoEyQl8+UTSNHi3bzoPjC9lGt
+	dFPOYrR7LqXeliyY6z/LgnKGocO78mg9PYQ0VNkjpZjICEAvo6OqkV8CBYbkn4aD/WFrCP
+	I8Aw5J0Py9grmdtvjKjFXLf4RjRohEMQU86skTIT5UI81/Y5qGvIugNHh6O3B7CqpSeJps
+	YBEbkQ59GLW3Ah/Gel+X5J9zrlo8ZJgisNJGE3z4iZHoC++9wnHMEhlarDy/4Xgong8buO
+	tLi2xtZpFUTq1dF59vWKdeLvyw7ie95Vb+UPm9LrAy19dExNoFmOFsDF5TZFAQ==
 ARC-Authentication-Results: i=1;
 	rspamd-689699966c-fmvc6;
 	auth=pass smtp.auth=dreamhost smtp.mailfrom=dave@stgolabs.net
@@ -37,41 +37,42 @@ X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
 X-MC-Relay: Neutral
 X-MailChannels-SenderId: dreamhost|x-authsender|dave@stgolabs.net
 X-MailChannels-Auth-Id: dreamhost
-X-Inform-Descriptive: 28c3465d5ec77d8c_1657739054698_1789728461
-X-MC-Loop-Signature: 1657739054698:3395718113
-X-MC-Ingress-Time: 1657739054698
+X-White-Cellar: 1e52006823a5a149_1657739211226_1137818684
+X-MC-Loop-Signature: 1657739211226:1479349991
+X-MC-Ingress-Time: 1657739211226
 Received: from pdx1-sub0-mail-a228.dreamhost.com (pop.dreamhost.com
  [64.90.62.162])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
-	by 100.115.45.52 (trex/6.7.1);
-	Wed, 13 Jul 2022 19:04:14 +0000
+	by 100.98.67.142 (trex/6.7.1);
+	Wed, 13 Jul 2022 19:06:51 +0000
 Received: from offworld (unknown [104.36.25.13])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
 	(Authenticated sender: dave@stgolabs.net)
-	by pdx1-sub0-mail-a228.dreamhost.com (Postfix) with ESMTPSA id 4Ljn994hslz7x;
-	Wed, 13 Jul 2022 12:04:13 -0700 (PDT)
+	by pdx1-sub0-mail-a228.dreamhost.com (Postfix) with ESMTPSA id 4LjnD96zFFz7v;
+	Wed, 13 Jul 2022 12:06:49 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=stgolabs.net;
-	s=dreamhost; t=1657739054;
-	bh=VwAbIV9GS7MUyfQ5yMD8a/0YG2yQmMOza6THyO0Yyx0=;
+	s=dreamhost; t=1657739210;
+	bh=50EqSST0aiIhNeVDhbzWOF2H9pf8rm9Ld6sSRtsMHck=;
 	h=Date:From:To:Cc:Subject:Content-Type;
-	b=H6MQsn54ue4DlpjXbPLDMbx6S3Gj/+qp0WSs46nsOiqxkgiuj08OrQRHuSb98GSlN
-	 bfH/0skyq7AtPJIHNS+oY6C9Z/UHy7cpx/n5ohsEoHdM5KuBIhpWxtCMx4U6n4uI17
-	 e/zSxKaAVGQSEJbu9ooB+Z34epo8TGiayIMOyKYh2MLapqOlZKZFR1GcDGZD6ltbPL
-	 mtidB1Fh9rz+I+47R64dwqZ5Z6sl6IXfv5+WZLeCK2LjRljsSOPzdEhX/f6O1GygKj
-	 1/b4JgfONK8NjaMEMrouE7Pdizg8jfFGmGjAnVSTNF231oXJCOQNxFQxQbRQwlutF8
-	 nw59qM8UDVPZw==
-Date: Wed, 13 Jul 2022 12:04:10 -0700
+	b=JR0xFYnjcljfPnXlkMzZSMATM10WMvJpqJaxFmVje4Gn+2dBGDGfs0woso0+Ubsw+
+	 oyyTxZTFWk1By7lYJLXypFmw1U78XmRvJZFtjjQzNlUu10K9+9oFoCMYPVR6Tr1txd
+	 zBPRnWl9jTA8sy5Ys9os4ZzDxKk+uEHGw8jsyU2ekZRzICnwUZnxU65LLWHUJ/D82w
+	 n2D2hm90+PXYm/1v7CMRnSkPQrInfx/+I2g6x4RBV+y0cFaM5n7UCgJnG59I5rBW7C
+	 eT2wUmpTWvevP6fK6qXCKS55OJE2zbQAwRKqC0PoR0fOnw52Cp5HDE71XFkTjp3XBj
+	 ttaVerjxIus5Q==
+Date: Wed, 13 Jul 2022 12:06:47 -0700
 From: Davidlohr Bueso <dave@stgolabs.net>
 To: Dan Williams <dan.j.williams@intel.com>
-Cc: vishal.l.verma@intel.com, alison.schofield@intel.com,
+Cc: vishal.l.verma@intel.com, Alison Schofield <alison.schofield@intel.com>,
 	nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
 	a.manzanares@samsung.com
-Subject: Re: [PATCH 1/11] cxl/list: Reformat option list
-Message-ID: <20220713190410.jjggbuzwkgyakbw6@offworld>
+Subject: Re: [PATCH 8/11] cxl/set-partition: Accept 'ram' as an alias for
+ 'volatile'
+Message-ID: <20220713190647.u6xcip4wctudlunl@offworld>
 References: <165765284365.435671.13173937566404931163.stgit@dwillia2-xfh>
- <165765284992.435671.17218875214208199972.stgit@dwillia2-xfh>
+ <165765288979.435671.2636624998478988147.stgit@dwillia2-xfh>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -80,48 +81,56 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Disposition: inline
-In-Reply-To: <165765284992.435671.17218875214208199972.stgit@dwillia2-xfh>
+In-Reply-To: <165765288979.435671.2636624998478988147.stgit@dwillia2-xfh>
 User-Agent: NeoMutt/20220429
 
 On Tue, 12 Jul 2022, Dan Williams wrote:
 
->Cleanup some spurious spaces and let clang-format re-layout the options.
+>'ram' is a more convenient shorthand for volatile memory.
 
 Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
 
 >
+>Cc: Alison Schofield <alison.schofield@intel.com>
 >Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 >---
-> cxl/list.c |    9 ++++-----
-> 1 file changed, 4 insertions(+), 5 deletions(-)
+> Documentation/cxl/cxl-set-partition.txt |    2 +-
+> cxl/memdev.c                            |    4 +++-
+> 2 files changed, 4 insertions(+), 2 deletions(-)
 >
->diff --git a/cxl/list.c b/cxl/list.c
->index 940782d33a10..1b5f58328047 100644
->--- a/cxl/list.c
->+++ b/cxl/list.c
->@@ -36,8 +36,7 @@ static const struct option options[] = {
->		   "filter by CXL endpoint device name(s)"),
->	OPT_BOOLEAN('E', "endpoints", &param.endpoints,
->		    "include CXL endpoint info"),
->-	OPT_STRING('d', "decoder", &param.decoder_filter,
->-		   "decoder device name",
->+	OPT_STRING('d', "decoder", &param.decoder_filter, "decoder device name",
->		   "filter by CXL decoder device name(s) / class"),
->	OPT_BOOLEAN('D', "decoders", &param.decoders,
->		    "include CXL decoder info"),
->@@ -45,11 +44,11 @@ static const struct option options[] = {
->		    "include CXL target data with decoders or ports"),
->	OPT_BOOLEAN('i', "idle", &param.idle, "include disabled devices"),
->	OPT_BOOLEAN('u', "human", &param.human,
->-		    "use human friendly number formats "),
->+		    "use human friendly number formats"),
->	OPT_BOOLEAN('H', "health", &param.health,
->-		    "include memory device health information "),
->+		    "include memory device health information"),
->	OPT_BOOLEAN('I', "partition", &param.partition,
->-		    "include memory device partition information "),
->+		    "include memory device partition information"),
-> #ifdef ENABLE_DEBUG
->	OPT_BOOLEAN(0, "debug", &debug, "debug list walk"),
-> #endif
+>diff --git a/Documentation/cxl/cxl-set-partition.txt b/Documentation/cxl/cxl-set-partition.txt
+>index 1e548af77da2..f0126daf808b 100644
+>--- a/Documentation/cxl/cxl-set-partition.txt
+>+++ b/Documentation/cxl/cxl-set-partition.txt
+>@@ -37,7 +37,7 @@ include::memdev-option.txt[]
+>
+> -t::
+> --type=::
+>-	Type of partition, 'pmem' or 'volatile', to modify.
+>+	Type of partition, 'pmem' or 'ram' (volatile), to modify.
+>	Default: 'pmem'
+>
+> -s::
+>diff --git a/cxl/memdev.c b/cxl/memdev.c
+>index 9fcd8ae5724b..1cecad2dba4b 100644
+>--- a/cxl/memdev.c
+>+++ b/cxl/memdev.c
+>@@ -65,7 +65,7 @@ OPT_BOOLEAN('f', "force", &param.force,                                \
+>
+> #define SET_PARTITION_OPTIONS() \
+> OPT_STRING('t', "type",  &param.type, "type",			\
+>-	"'pmem' or 'volatile' (Default: 'pmem')"),		\
+>+	"'pmem' or 'ram' (volatile) (Default: 'pmem')"),		\
+> OPT_STRING('s', "size",  &param.size, "size",			\
+>	"size in bytes (Default: all available capacity)"),	\
+> OPT_BOOLEAN('a', "align",  &param.align,			\
+>@@ -355,6 +355,8 @@ static int action_setpartition(struct cxl_memdev *memdev,
+>			/* default */;
+>		else if (strcmp(param.type, "volatile") == 0)
+>			type = CXL_SETPART_VOLATILE;
+>+		else if (strcmp(param.type, "ram") == 0)
+>+			type = CXL_SETPART_VOLATILE;
+>		else {
+>			log_err(&ml, "invalid type '%s'\n", param.type);
+>			return -EINVAL;
 >
