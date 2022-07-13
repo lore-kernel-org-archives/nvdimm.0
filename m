@@ -1,159 +1,192 @@
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 41A6F15AC
-	for <nvdimm@lists.linux.dev>; Wed, 13 Jul 2022 01:25:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1657675537; x=1689211537;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=7zxXkwQ5ks7gOR4ReOvhSqieOhYRePIpWqjwbwVoji4=;
-  b=axo41C3gKgmzxHHqmVqB/dVHFONReehiHT14/i394XTvitQpsj2iJ4S3
-   MmqdYkU8lUPPc8AoVufFfamabTHZiKV+4olvICdbc4cAl/QdmEvNIrnJJ
-   CCd+UNFBgnDA3fTB9i4uvTJkJeNkeGE0W71XOuoxmpBaMNf/49zbe5waN
-   KuoecKoOKcbMxCN+RJ6G6o87mM+LLUyl7Z0UUcQnmXkVbnDwRt40tSFXp
-   ZTIGoq47DR9v2zBH6zkYLUb12R11CMpFxs/gGhqVDgzN7ev3gdZvJSM8z
-   zzE1iiQUoZRjg7n7eH9Wk+tK9CQg1qH3MCb3vL1qWtdQhES8mRPDXpaSa
-   Q==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10406"; a="282634480"
-X-IronPort-AV: E=Sophos;i="5.92,266,1650956400"; 
-   d="scan'208";a="282634480"
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jul 2022 18:25:36 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.92,266,1650956400"; 
-   d="scan'208";a="570414269"
-Received: from fmsmsx604.amr.corp.intel.com ([10.18.126.84])
-  by orsmga006.jf.intel.com with ESMTP; 12 Jul 2022 18:25:36 -0700
-Received: from fmsmsx612.amr.corp.intel.com (10.18.126.92) by
- fmsmsx604.amr.corp.intel.com (10.18.126.84) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.27; Tue, 12 Jul 2022 18:25:35 -0700
-Received: from fmsmsx606.amr.corp.intel.com (10.18.126.86) by
- fmsmsx612.amr.corp.intel.com (10.18.126.92) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.27; Tue, 12 Jul 2022 18:25:35 -0700
-Received: from FMSEDG603.ED.cps.intel.com (10.1.192.133) by
- fmsmsx606.amr.corp.intel.com (10.18.126.86) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.27 via Frontend Transport; Tue, 12 Jul 2022 18:25:32 -0700
-Received: from NAM11-CO1-obe.outbound.protection.outlook.com (104.47.56.170)
- by edgegateway.intel.com (192.55.55.68) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2308.27; Tue, 12 Jul 2022 18:25:35 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=OrPWYGV7GlcjRF0ZAuzhmSzTL9Len0Mfe2xIMGXoqtFY4JjeGkvfzG7vkfcFc4J2cmsOCilNamNCG30Z/GNrAXGJ+A4e1lBx8qKLn0dxxoWuSfB6w+httuQou/rclTjghDWXtq+yGY1rnAEvFGSa0SdDMQCcl4wYUzuQnKJBBUTq9aSQ/a1HuAEv9789wC2uCKALpYZJavtZFeJU7NWhhht3jJ2PLorOTWvSTvkzrm1a9T183HfvcTvvExGTBcFtnvBLSoY6P/fu+Bq+dLXlLx9mPcqkHK1GBYMFjYm0lScZdH7haR4xEspPDloIY7cCJzxwK1BiIxv/mqUK4dZ+ug==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=tBWmGbWiS9MXJPwZTTZeyGz1+XiBfnCuu64wpbrHYs4=;
- b=lh6GxZ+H5j4MVIiRONFCrAaWA/zCL+Nz0277cOpG1VDYOfaDMZkQcbv3iISbNKRmpUmSumMrUz9v9kqm8caU5irW1TvDT8Oy9Yh64rTmGa5H2HVROu879FBDwj5WjqGG3hhW7dk9nSwj7t0Xs8tMf+7pcr6geFEuJeD8+i7Kbfe+bQ68mSIZ4vQob3ufmCx/6nRCZNj8UZq0W7L6hazoIt34ME1cM8W60hNA4tv08KL+5Mjq2XjL0Dj5kAbF3qB6yz1P1Gor2qW6kt/FsvXDOfqGslOXlT6ZgGGqqWJdnL8eEjEfb7klmqes+Z9+a6gn5liM2duqCZCnnkjfObDJKQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
- (2603:10b6:301:50::20) by SN6PR11MB2638.namprd11.prod.outlook.com
- (2603:10b6:805:58::21) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5417.16; Wed, 13 Jul
- 2022 01:25:32 +0000
-Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
- ([fe80::6466:20a6:57b4:1edf]) by MWHPR1101MB2126.namprd11.prod.outlook.com
- ([fe80::6466:20a6:57b4:1edf%11]) with mapi id 15.20.5417.026; Wed, 13 Jul
- 2022 01:25:32 +0000
-Date: Tue, 12 Jul 2022 18:25:30 -0700
-From: Dan Williams <dan.j.williams@intel.com>
-To: Christoph Hellwig <hch@infradead.org>, Dennis.Wu <dennis.wu@intel.com>
-CC: <nvdimm@lists.linux.dev>, <dan.j.williams@intel.com>,
-	<vishal.l.verma@intel.com>, <dave.jiang@intel.com>, <ira.weiny@intel.com>
-Subject: Re: [PATCH] ACPI/NFIT: Add no_deepflush param to dynamic control
- flush operation
-Message-ID: <62ce1f0a57b84_6070c294a@dwillia2-xfh.jf.intel.com.notmuch>
-References: <20220629083118.8737-1-dennis.wu@intel.com>
- <YrxvR6zDZymsQCQl@infradead.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <YrxvR6zDZymsQCQl@infradead.org>
-X-ClientProxiedBy: BYAPR05CA0107.namprd05.prod.outlook.com
- (2603:10b6:a03:e0::48) To MWHPR1101MB2126.namprd11.prod.outlook.com
- (2603:10b6:301:50::20)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B570D17C3
+	for <nvdimm@lists.linux.dev>; Wed, 13 Jul 2022 06:03:30 +0000 (UTC)
+Received: from pps.filterd (m0187473.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 26D4ap9d020596;
+	Wed, 13 Jul 2022 06:03:00 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : date :
+ mime-version : subject : to : cc : references : from : in-reply-to :
+ content-type : content-transfer-encoding; s=pp1;
+ bh=M2J4hNtr6Jsul4mlKamSAWYoWrN7DMI187VyXpVQvsM=;
+ b=Ar6oUmN6tQNULLSkOVfIGsp3Bes1WRszjKkt/gPrD/tLNl1htSglptPx2Y1FbYGmJuq4
+ HIX7THL5F8M2fb7om9lyqOYdthoDO/W9nSBTb6gUf7KDlKBGCpHo9Odae3NNhU8Kd/90
+ 9+Lb6vq0Jxxyt++8YfdmqlAhtXxKV1cJbu81B6dgx6BcZ5DVRID+QkodKj3elqSJ5uY1
+ QIH23lresDcCi1ocgFrOqqqhEqOy0se3qdbshoxf0Yr7Ob3dr9ecfFWkL2fNFY99yZsQ
+ gGbmsoJSAKUmHV1aHRDMx65t/cy8uNsOnt74yEVH7xGwKIreLdGH7jFokAKaHYh1NkP8 yQ== 
+Received: from ppma04ams.nl.ibm.com (63.31.33a9.ip4.static.sl-reverse.com [169.51.49.99])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3h9pxs9prj-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Wed, 13 Jul 2022 06:03:00 +0000
+Received: from pps.filterd (ppma04ams.nl.ibm.com [127.0.0.1])
+	by ppma04ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 26D5Zj1g014811;
+	Wed, 13 Jul 2022 06:02:58 GMT
+Received: from b06cxnps4076.portsmouth.uk.ibm.com (d06relay13.portsmouth.uk.ibm.com [9.149.109.198])
+	by ppma04ams.nl.ibm.com with ESMTP id 3h8rrn23gc-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Wed, 13 Jul 2022 06:02:57 +0000
+Received: from d06av26.portsmouth.uk.ibm.com (d06av26.portsmouth.uk.ibm.com [9.149.105.62])
+	by b06cxnps4076.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 26D62sx625297338
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Wed, 13 Jul 2022 06:02:55 GMT
+Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id E3C2FAE04D;
+	Wed, 13 Jul 2022 06:02:54 +0000 (GMT)
+Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 3553AAE045;
+	Wed, 13 Jul 2022 06:02:52 +0000 (GMT)
+Received: from [9.43.78.240] (unknown [9.43.78.240])
+	by d06av26.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+	Wed, 13 Jul 2022 06:02:51 +0000 (GMT)
+Message-ID: <4bbad947-89d2-934d-1030-2c1eef064aaa@linux.ibm.com>
+Date: Wed, 13 Jul 2022 11:32:50 +0530
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: d040c4fe-6709-49ef-0245-08da646e9440
-X-MS-TrafficTypeDiagnostic: SN6PR11MB2638:EE_
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: S43cJVPm2RxNPGB3eYlVg9Vg52AILIhiaOV9XmBZyql8ShUHJxfWtddS3qIQQhzkT8NDpyKS77BP+VNy+R7AEOIHW0szyNfGYUgPcN0evmMGNJ82uPh2W7eDfD03q/MFubB28p7mvZY3YOySlKOCBe7bbxakkSp1l+b8mJdektzWXwvizFKfgAXM4suNfnIsuJ/rRwkY0K1gLVrXfwGN9F/vu4zj8n/s2vhYzGy5eSK/SIWfGxnjB1KYPrr67RFbFzRZuzKdjDxEgZhP37sDFejjyHX+tDDXfhf7v47Tc6wLeeoy7hmOi+71vvRKlpnCfHkO089odqg+lj1QvGqHjvT6WPgFo2U7cykDxPZmNwl//X7gLBVfjaAIRNdCLtSVOx8UMDGLIA1VRqF1Aqx6ffzqWzu4qnC7dzwKnMN0MR0ZJb6zvu4BPgPoDzmMC69o4Tq1+QxQyIFi1UosaKeH5cZjn/8CMIcijfnM9SJr4kxGwzm/7Du5OmGdJR17hsm4AHiuOMGuoulH0MyxT039RS8lpiptV9QOR4Tf0NXW88M/pOZGSBRhilrBadaKJl+hFgy9dioDoob1vGBDu9MunRy7xWtaJ1u+KlHXqXGnMh2gqbYOmb/95bW0PQm2IlkW0YUCbyXRKTKJuSazrR/A+M2EAE9n06Vy/c7KcuJ1oqzEf0WakGk8x4bf1B5vpJL9epQPjeUz7hotv+9z0RSF7z+4Ner4hcKjYlh4kjcxBInMbv1391rmwUF2r2Aynod2KaDeB+T0NDmWUx0tHDcdlg==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1101MB2126.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(346002)(396003)(39860400002)(376002)(366004)(136003)(66946007)(6486002)(41300700001)(4326008)(66476007)(478600001)(110136005)(8676002)(66556008)(5660300002)(83380400001)(6506007)(6636002)(8936002)(2906002)(316002)(38100700002)(82960400001)(86362001)(107886003)(26005)(6512007)(9686003)(186003);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?bCLPyH0MLzWzDY16XV24ggi8GI/mIdlUhFRMpPenfdhZeoBvM6OEZc7NffMt?=
- =?us-ascii?Q?PmN6p/zAdkZyl8DUDvQCfkZ7pClHH/Uij5VEpmqY2uxJFZrTKDHzVAT3CpcP?=
- =?us-ascii?Q?IQzt+gjWF2BLip/UTZPKw17m7USsemhz+ch/gBukU8dzx5PRBUrPEt2ezExu?=
- =?us-ascii?Q?mPaHx5RImAuIm9RwDQP0Jk0cnpIcAdIUZkAPSHT6seFHTJvyCuDfrR3qFrNb?=
- =?us-ascii?Q?QBZTei2LOB3W7eYsmSB9Zi/0e2whI4QhXcuQFSOEBeGsZypUc1QxbWZ0ZrUV?=
- =?us-ascii?Q?sQFrOPed4fSmBVYUh89wIADIpYaEblfRX35+90b2kRUOJgyU2eh7kMfbUIby?=
- =?us-ascii?Q?mKQ8EnA9WcyGZeheS++8G23NZKIxsOvDA3ZIaC5smzS0JanoZNjsjf0JAgMr?=
- =?us-ascii?Q?4jk653s1jdPwClnHtRHIIHb5BH1VUDzF9M8g7q52i8RfJWI1ZU23Ctxo0tzx?=
- =?us-ascii?Q?xH8yCnURyz66yhcFtLr8/gWSRJjWoLGfNmBc12NtA0EJiHA7e9i6f6aTWGj/?=
- =?us-ascii?Q?iQA1xUiyPL13OkArWxPjubuwMhPGxrHxrAIlEcJ8yhRhEkuR87ebb+rECJE8?=
- =?us-ascii?Q?ehTIqYmZK/iXYQiceXOlk2bg4zCEqmuPQJOgbskHKV3wlkISLMOsqjxzhjdP?=
- =?us-ascii?Q?NV/rYVVU281zJQ4v4+1jRqsDGfiOUMqUYf/cm/ZewshcER46qccy6LLIjsj8?=
- =?us-ascii?Q?W+dqn8e6FRWChtWG7X0y0UKvFyo0nqbmz/D6CaP3drX6GSroOFGL/KTzuliM?=
- =?us-ascii?Q?TgdMCrNc6vztW2WCGV8Q5EdY40c5vYI59avtYWKPYTK+oZSimUQPrskZcVI9?=
- =?us-ascii?Q?V/egZSCZYViSAAmR4RzmUXNS77NJJHDCW9xjWYSvmoLz8w7jip9XZSPHxEIp?=
- =?us-ascii?Q?Dfd9HBsDbYi47wqDTooiy/v55jdFDRLlYjBo10EchEV+HXcGo6BXVd0P7LPn?=
- =?us-ascii?Q?AmCeV+tP8H2U9eyy8rgFPPf+2XIqWgSVstCww4R0jyGd4mO4h92PTM0cNaD5?=
- =?us-ascii?Q?I7lCCclktaLtWFTk+pH9iCz+f7/r5s3PImgF9/954GphxssuATbkQGD3yE31?=
- =?us-ascii?Q?IkH+uyMeKgff4C5wbsGxefJF6eaN1UoNvD1CNnfCabK90DbvMduH0c7DHrHt?=
- =?us-ascii?Q?ZKGR8SymLuaEXjQycgooEPPILIolYUnacfaXTdMb5/CXKz+TNX9g7zmN0ksL?=
- =?us-ascii?Q?bKbcGImsIUu1nDGu0BoNYKVYhMgLi/FseOMwsG3c8ZYbT001jChlptZb0HgY?=
- =?us-ascii?Q?w+nq656XXqtwb73VQcVwjI8ED4b8Q6eUQ0mdotxiS87EDGpxq5BsjfwNTuBc?=
- =?us-ascii?Q?LNqaV9+0gdQNeEw+mawQnlBxwD854VlUWTWuEcaKyPyywE0QOd7lCiXA4ALk?=
- =?us-ascii?Q?xnH8PafKd3tv+6jEa3CFDNZtBLK/TsdXlcOMhRw5t1yuiHNdYdj7R4DKIAYS?=
- =?us-ascii?Q?3ttQgUuL/Ia3D653P0Ui+FCCrrUUs0+wDoKBmMDqw8z/K/nLTGWkltyCoDMW?=
- =?us-ascii?Q?9VpDHbKerSDsfDirC5CWoU35aOsEsYz8meB6IkVFn1ai8iMdO7ybVcEhXpsP?=
- =?us-ascii?Q?VLI1QgviAwIQsLYp9fI1XG3MJ67VJJtvXBciFCjC1rvYUxNrlJbeCsU01isV?=
- =?us-ascii?Q?VA=3D=3D?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: d040c4fe-6709-49ef-0245-08da646e9440
-X-MS-Exchange-CrossTenant-AuthSource: MWHPR1101MB2126.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 13 Jul 2022 01:25:32.4155
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: RwHyvyXVCzRVjC5Vj86h4WBLnJMAuPch/TyihQ5YQWzbGtn/P0b4ziDvwB+eF2rO6XNg5q+651bSxObiMKmw+Y6g/NkdBgVZa1vvfB71Rog=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN6PR11MB2638
-X-OriginatorOrg: intel.com
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.9.1
+Subject: Re: [PATCH v2] powerpc/papr_scm: Fix nvdimm event mappings
+Content-Language: en-US
+To: Vaibhav Jain <vaibhav@linux.ibm.com>, mpe@ellerman.id.au,
+        linuxppc-dev@lists.ozlabs.org
+Cc: nvdimm@lists.linux.dev, atrajeev@linux.vnet.ibm.com,
+        rnsastry@linux.ibm.com, maddy@linux.ibm.com,
+        "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>,
+        dan.j.williams@intel.com, disgoel@linux.vnet.ibm.com
+References: <20220711034605.212683-1-kjain@linux.ibm.com>
+ <87czeac3no.fsf@vajain21.in.ibm.com>
+From: kajoljain <kjain@linux.ibm.com>
+In-Reply-To: <87czeac3no.fsf@vajain21.in.ibm.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: CnrDm1tXiM9liGVWPP3cCKaG5baHQhSI
+X-Proofpoint-ORIG-GUID: CnrDm1tXiM9liGVWPP3cCKaG5baHQhSI
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.205,Aquarius:18.0.883,Hydra:6.0.517,FMLib:17.11.122.1
+ definitions=2022-07-12_14,2022-07-12_01,2022-06-22_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 malwarescore=0 mlxscore=0
+ suspectscore=0 bulkscore=0 priorityscore=1501 adultscore=0 mlxlogscore=999
+ lowpriorityscore=0 phishscore=0 impostorscore=0 spamscore=0 clxscore=1011
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2206140000
+ definitions=main-2207130024
 
-Christoph Hellwig wrote:
-> On Wed, Jun 29, 2022 at 04:31:18PM +0800, Dennis.Wu wrote:
-> > reason: in the current BTT implimentation deepflush is always
-> > used and deepflush is very expensive. Since customer already
-> > know the ADR can protect the WPQ data in memory controller and
-> > no need to call deepflush to get better performance. BTT w/o
-> > deepflush, performance can improve 300%~600% with diff FIO jobs.
-> > 
-> > How: Add one param "no_deepflush" in the nfit module parameter.
-> > if "modprob nfit no_deepflush=1", customer can get the higher
-> > performance but not strict data security. Before modprob nfit,
-> > you may need to "ndctl disable-region".
+
+
+On 7/12/22 10:45, Vaibhav Jain wrote:
+> Hi Kajol,
 > 
-> This goes back to my question from years ago:  why do we ever
-> do this deep flush in the Linux nvdimm stack to start with?
+> Thanks for the patch. Minor review comment below:
+> 
+> Kajol Jain <kjain@linux.ibm.com> writes:
+> 
+>> Commit 4c08d4bbc089 ("powerpc/papr_scm: Add perf interface support")
+>> added performance monitoring support for papr-scm nvdimm devices via
+>> perf interface. Commit also added an array in papr_scm_priv
+>> structure called "nvdimm_events_map", which got filled based on the
+>> result of H_SCM_PERFORMANCE_STATS hcall. 
+>>
+>> Currently there is an assumption that the order of events in the
+>> stats buffer, returned by the hypervisor is same. And that order also
+>> matches with the events specified in nvdimm driver code. 
+>> But this assumption is not documented anywhere in Power Architecture
+>> Platform Requirements (PAPR) document. Although the order
+>> of events happens to be same on current systems, but it might
+>> not be true in future generation systems. Fix the issue, by
+>> adding a static mapping for nvdimm events to corresponding stat-id,
+>> and removing the dynamic map from papr_scm_priv structure.
+>>
+>> Fixes: 4c08d4bbc089 ("powerpc/papr_scm: Add perf interface support")
+>> Reported-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+>> Signed-off-by: Kajol Jain <kjain@linux.ibm.com>
+> 
+> <snip>
+>> @@ -460,10 +480,9 @@ static void papr_scm_pmu_del(struct perf_event *event, int flags)
+>>  
+>>  static int papr_scm_pmu_check_events(struct papr_scm_priv *p, struct nvdimm_pmu *nd_pmu)
+>>  {
+>> -	struct papr_scm_perf_stat *stat;
+>>  	struct papr_scm_perf_stats *stats;
+>>  	u32 available_events;
+>> -	int index, rc = 0;
+>> +	int rc;
+>>  
+>>  	if (!p->stat_buffer_len)
+>>  		return -ENOENT;
+>> @@ -476,34 +495,12 @@ static int papr_scm_pmu_check_events(struct papr_scm_priv *p, struct nvdimm_pmu
+>>  	/* Allocate the buffer for phyp where stats are written */
+>>  	stats = kzalloc(p->stat_buffer_len, GFP_KERNEL);
+>>  	if (!stats) {
+>> -		rc = -ENOMEM;
+>> -		return rc;
+>> +		return -ENOMEM;
+>>  	}
+>>  
+>>  	/* Called to get list of events supported */
+>>  	rc = drc_pmem_query_stats(p, stats, 0);
+>> -	if (rc)
+>> -		goto out;
+>> -
+>> -	/*
+>> -	 * Allocate memory and populate nvdimm_event_map.
+>> -	 * Allocate an extra element for NULL entry
+>> -	 */
+>> -	p->nvdimm_events_map = kcalloc(available_events + 1,
+>> -				       sizeof(stat->stat_id),
+>> -				       GFP_KERNEL);
+>> -	if (!p->nvdimm_events_map) {
+>> -		rc = -ENOMEM;
+>> -		goto out;
+>> -	}
+>>  
+>> -	/* Copy all stat_ids to event map */
+>> -	for (index = 0, stat = stats->scm_statistic;
+>> -	     index < available_events; index++, ++stat) {
+>> -		memcpy(&p->nvdimm_events_map[index * sizeof(stat->stat_id)],
+>> -		       &stat->stat_id, sizeof(stat->stat_id));
+>> -	}
+>> -out:
+>>  	kfree(stats);
+>>  	return rc;
+>>  }
+> 
+> Earlier implementation of papr_scm_pmu_check_events() would copy the
+> contents of returned stat-ids to struct papr_scm_priv->nvdimm_events_map,
+> hence it was needed.
+> 
+> With static events map you dont really need to call
+> drc_pmem_query_stats() as that would have been already being done once
+> in papr_scm_probe() before papr_scm_pmu_register() is called:
+> 
+> 
 
-The rationale is to push the data to smaller failure domain. Similar to
-flushing disk write-caches. Otherwise, if you trust your memory power
-supplies like you trust your disks then just rely on them to take care
-of the data.
+Hi Vaibhav,
+    Thanks for reviewing the patch. Yes it make sense, as mainly we want
+to make sure, in case stat buffer is empty we will not register the
+nvdimm pmu. I will do the change and send next version of the patch.
 
-Otherwise, by default the kernel should default to taking as much care
-as possible to push writes to the smallest failure domain possible.
+Thanks,
+Kajol Jain
+
+> papr_scm_probe()
+> {
+> ...
+> 	/* Try retrieving the stat buffer and see if its supported */
+> 	stat_size = drc_pmem_query_stats(p, NULL, 0);
+> ...
+>         papr_scm_pmu_register(p);
+> ...
+> }
+> 
+> I would suggest replacing single callsite of papr_scm_pmu_check_events()
+> with the check
+> 
+>      if (!p->stat_buffer_len)
+> 		goto pmu_check_events_err;
+> 
+> <snip>
+> 
