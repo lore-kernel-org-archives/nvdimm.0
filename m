@@ -1,50 +1,50 @@
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0519715AC
-	for <nvdimm@lists.linux.dev>; Wed, 13 Jul 2022 00:48:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9106415AC
+	for <nvdimm@lists.linux.dev>; Wed, 13 Jul 2022 00:53:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1657673310; x=1689209310;
+  t=1657673592; x=1689209592;
   h=date:from:to:subject:message-id:references:in-reply-to:
    mime-version;
-  bh=9VkG19+im7+GASEzfadZHpDRffIOZJMivA6iwyRe5S0=;
-  b=c6KXj77bW8clF14CkMsjJ+KPfnHjPISss7v6/Powt1FRmPYyFkIqZjNI
-   ISicgEf6NXjxiw5Y6xWbA7ydEssjhszwsIbJX7arn6ozXU5SJk3aHBwax
-   a7wGdhFVKe2GiqMdsesMjyNs35yLUpNmwW51PVnLvH+LJgsV4Dm7mRnmp
-   Y9Z5Lq6hIZR7UvMM0CmiFOpJXRrDeA43w4qqC9D5NbbuBkH65aFGF5XtP
-   hPuvxJbY/GTYEXSmCesyykIp65L9iS0QthqIKoqjvbzRqRrHqO6Hp/a4x
-   jmOczHd45isk6AJ4SnYZCxD77C9Z2Ab/ETDQ0y8FK/gHiGmFip7jjhGY2
+  bh=kCF3nGvhH4MmgeAj6a11Gpldr8K/0dmBvHvb79cc9bI=;
+  b=JIHfvKFtjedcMdJ5PCnyOYVDt/7CoEO/3cB7QQAGfvPHolGgFuIJDO1x
+   7k5CU6UfQtsQ+sF/HMtsJUh7XOywNpi8/dzWwrvHLqcagYIXRILYdp8YS
+   gkoe/bBBFhZgf1kZSSTL7LpSkT1Ngsr1eGMV5u/PexJQm7M9BH6HeY++l
+   3VDViek8qsbkQEHGKOlxEqVfY7Zk1910iOygjfbyu9p4DvyVGL0CPAc4M
+   fiPSGPWeHgkm6D7nEZCAHKx4eo4u4PajlG1lKCgTjo2iNwLhzo80Xmp/f
+   muTpe/POq5faP+YmLpCfBPt8i4ZNJ16IqhZZQrHeNjq4moObs8LIzt6xA
    g==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10406"; a="285821794"
+X-IronPort-AV: E=McAfee;i="6400,9594,10406"; a="346759050"
 X-IronPort-AV: E=Sophos;i="5.92,266,1650956400"; 
-   d="scan'208";a="285821794"
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jul 2022 17:48:22 -0700
+   d="scan'208";a="346759050"
+Received: from orsmga003.jf.intel.com ([10.7.209.27])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jul 2022 17:53:11 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.92,266,1650956400"; 
-   d="scan'208";a="653137328"
-Received: from fmsmsx605.amr.corp.intel.com ([10.18.126.85])
-  by fmsmga008.fm.intel.com with ESMTP; 12 Jul 2022 17:48:22 -0700
-Received: from fmsmsx601.amr.corp.intel.com (10.18.126.81) by
- fmsmsx605.amr.corp.intel.com (10.18.126.85) with Microsoft SMTP Server
+   d="scan'208";a="545639548"
+Received: from fmsmsx606.amr.corp.intel.com ([10.18.126.86])
+  by orsmga003.jf.intel.com with ESMTP; 12 Jul 2022 17:53:10 -0700
+Received: from fmsmsx603.amr.corp.intel.com (10.18.126.83) by
+ fmsmsx606.amr.corp.intel.com (10.18.126.86) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.27; Tue, 12 Jul 2022 17:48:21 -0700
-Received: from fmsedg601.ED.cps.intel.com (10.1.192.135) by
- fmsmsx601.amr.corp.intel.com (10.18.126.81) with Microsoft SMTP Server
+ 15.1.2308.27; Tue, 12 Jul 2022 17:53:07 -0700
+Received: from fmsedg602.ED.cps.intel.com (10.1.192.136) by
+ fmsmsx603.amr.corp.intel.com (10.18.126.83) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.27 via Frontend Transport; Tue, 12 Jul 2022 17:48:21 -0700
-Received: from NAM12-DM6-obe.outbound.protection.outlook.com (104.47.59.174)
- by edgegateway.intel.com (192.55.55.70) with Microsoft SMTP Server
+ 15.1.2308.27 via Frontend Transport; Tue, 12 Jul 2022 17:53:10 -0700
+Received: from NAM12-DM6-obe.outbound.protection.outlook.com (104.47.59.176)
+ by edgegateway.intel.com (192.55.55.71) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2308.27; Tue, 12 Jul 2022 17:48:21 -0700
+ 15.1.2308.27; Tue, 12 Jul 2022 17:53:10 -0700
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=CfY53uC71AhH1w48lTS6SORqjbv6xDxWYRMLFlcpuSFTc0IMSdT1suymXHrghiOsa5hwu+lLKTzNktTXAgqU728qIhTM2YQnVBRhhG80My7sqx9Mx2WIsin+YrONk16Iug3DlP2I+7Luth+v0KlYcisVQvIMXNj1KT1epohDzdggvYH7QImlzqYsgTxE84kMNwEnBjEnMoLMKIDgsczjpQN0rLxtZ+gL/8jo/ZOnfc05wgMupccHWkhV+hF+7gVELEqMr3wyi9Wk0LfNN5c9+7aCNBreZV+NQEWIKHaMLXDwljNNk6JBD3C8z8ZbSfLJm/jNy7HAm2ESzjqn74SuHA==
+ b=gEcpnJjVH8/Otg5pY6+YPrF3DdltEdhbleH0/HbZEfSLZQrKnh8iwUUwRWHjUF1bLKMIhoUR5GfKh9qEB+cfI0nmbKtwxZDCTs2oLSs8MPxLFt1qQJMipL7R8eEAE48eca33OwnMY0adZKXbdz+3yrxgv1KK3U7Da4G8NFUlhCO00WjsbZ0/QBMODBCiIHHvCdTDgvPDpd4+c9/8fW6oVGRwDrsATtptM4ITGhUVJvWtw/2dFkBizvTF+c3Omrn3fR2N24xLIuA+UgblDHnAzFl0B2sVQfAwnhidbjBNBYXNnmTBThTOIKDhjuE5HRzamUiE9rMvhdqpETQTxB2DxA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=lAxxsPLKB7BpvrQunlcOuTbpRzlKFEDjzYmHN+8OYic=;
- b=XhCO3p41UnvclmqmvcZROEjoZ620xrKpfy/WCZNG2d5AIEqIM064xu13Swm23Qm+utPhzXKRME8TRPWXT1r2G1hCPLggLHYEDUlQOjde9X7qVhiy6n0M18aGwqhfR2ZgdSF8w2oKiJorTZCIpq27qswqBo9wQF/w19dAjFIWUVMFGE/vJ5zQFhRALfxzZ4DBujLKEgmwEDlsT2cEOd/ZIuUi2dc3MaToVaoTy1+jP0vPzSEQacVtFHjP6tQxXPSxxCvIO7cO9j/NgNXL38Xz5nZB9gTRImtNZ3LX0L1KmCwtpa6E5dVkCRws5CBwSVc42lKgAW1tSvfzsgDB+hezfg==
+ bh=9D+H3+EHoZuANzQAxdQeGEkVVlgE2Z7E4E1oc7C/Phs=;
+ b=TXhbv/2IlTo0yTxClgG88gBcBabGMoP+TR+gJzBx7FryEXmsmoj80isnxF9tdas9ZYcdyIo6dnDTC/3yMNJLK7XtWWOYFRAjb1zX0unBaAD+yb8EFnTaxcX48EY3AACkEUZblVZHCQ7+X63eXvjxa3qfe2hDO1UtFXxt7QgqWetzqDdrOlkGNTGBrYAxwI7SLodpKNi7RU9EV3UKYQeMuSxjEAZZKhfdQUqqWf/RcpoLN00p7G255L1aA/qqtj3cHFzXtQetnIM/1gbJCwcpcXv2CI0CU+zUpgibm0d2VBTorZs76X8Tu4yZuVh5d3ka7sQyexgYGyb5zLUzVyCXxQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
  dkim=pass header.d=intel.com; arc=none
@@ -54,25 +54,23 @@ Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
  (2603:10b6:301:50::20) by CH2PR11MB4456.namprd11.prod.outlook.com
  (2603:10b6:610:48::22) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5417.25; Wed, 13 Jul
- 2022 00:48:19 +0000
+ 2022 00:53:08 +0000
 Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
  ([fe80::6466:20a6:57b4:1edf]) by MWHPR1101MB2126.namprd11.prod.outlook.com
  ([fe80::6466:20a6:57b4:1edf%11]) with mapi id 15.20.5417.026; Wed, 13 Jul
- 2022 00:48:19 +0000
-Date: Tue, 12 Jul 2022 17:48:17 -0700
+ 2022 00:53:08 +0000
+Date: Tue, 12 Jul 2022 17:53:05 -0700
 From: Dan Williams <dan.j.williams@intel.com>
 To: Jane Chu <jane.chu@oracle.com>, <dan.j.williams@intel.com>,
-	<hch@infradead.org>, <vishal.l.verma@intel.com>, <dave.jiang@intel.com>,
-	<ira.weiny@intel.com>, <nvdimm@lists.linux.dev>,
-	<linux-kernel@vger.kernel.org>
-Subject: RE: [PATCH] acpi/nfit: badrange report spill over to clean range
-Message-ID: <62ce16518e7d3_6070c29447@dwillia2-xfh.jf.intel.com.notmuch>
-References: <20220711232658.536064-1-jane.chu@oracle.com>
+	<linux-kernel@vger.kernel.org>, <hch@lst.de>, <nvdimm@lists.linux.dev>
+Subject: RE: [PATCH v2] pmem: fix a name collision
+Message-ID: <62ce1771b331c_6070c294a6@dwillia2-xfh.jf.intel.com.notmuch>
+References: <20220630182802.3250449-1-jane.chu@oracle.com>
 Content-Type: text/plain; charset="us-ascii"
 Content-Disposition: inline
-In-Reply-To: <20220711232658.536064-1-jane.chu@oracle.com>
-X-ClientProxiedBy: SJ0PR05CA0030.namprd05.prod.outlook.com
- (2603:10b6:a03:33b::35) To MWHPR1101MB2126.namprd11.prod.outlook.com
+In-Reply-To: <20220630182802.3250449-1-jane.chu@oracle.com>
+X-ClientProxiedBy: BYAPR06CA0009.namprd06.prod.outlook.com
+ (2603:10b6:a03:d4::22) To MWHPR1101MB2126.namprd11.prod.outlook.com
  (2603:10b6:301:50::20)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -81,120 +79,82 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: c2ff655f-8418-4202-fd2c-08da64696165
+X-MS-Office365-Filtering-Correlation-Id: 16ed41c2-779c-4073-c510-08da646a0d3a
 X-MS-TrafficTypeDiagnostic: CH2PR11MB4456:EE_
 X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: puXcqocNBpgPFa6PB/3E8H0s6WBB0eub84mI1DHNIdTRzr+cGEYlSOWPGTWudk+RS4bT+Ru8YZZ3l6ScBLWmCHFCI8I3byShTV0qob6rbEDmnQKjFX3NQ4vajBeBj36KRP3EF05VGkw/7kAh0iXRbKOfl8dQRYbPiSOVEwWUwjVW+Bz3WjuVqAwm3L6/HVp/lDShQqiloVWtkfkNq3wXtMxLnbfvc3I56drIlgOjw9iqQhglb3NNduFIaiUjamkAGISdFmqciuMLRgJ5XcBbrGzYE7V7NbuT0rIwUzjTSNP4zMGg8ScQgiAly1s+r3s90eltESm+zyf0rT9dgf03gn7O+XCYPDxaafbrEH4txsRlAE36QzALR+2LJGwE75ZMOH9HIDToi98LowN5W76zFNuwX6Khff2k9ScwxUGjarl03u4iNpQQ0teL86nQrEM+W9fRhre6NRLBFfpDlLDrmBK3h500qCBnfKMKGAQCkj8ynr+VfFcDtvbdIAFWj3iYRU2Twf/9uLHC2BiCqAnqAxbgierqGPqrR/ZsUBlnsaLgoZ2SGKMeKufCoEL9mefaUCVNDdzKlPZsxiNymdgTmwfoVQQRBEUJ+ZxtOZf4ZhoQEQqK/8H2ifB9/KR+CEtysKaleTiObxlmCV/ky8J+ON1r4FHovrCietv6wRL7Kw69rU1vRxeWmNAUsgctA+gXE/p14covJRJHjSxKfqhBJcTAkATgJw/Lx5wFpmGjgtywzMV0ynbGDmMPGsz054jnOjej9i/9kgm3RfN7AYMoy70N+o5pX49dPopPgMDTl7Z8hi6pWPt6KhCkQs1XzcbT
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1101MB2126.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(376002)(396003)(136003)(346002)(366004)(39860400002)(41300700001)(316002)(5660300002)(8936002)(83380400001)(38100700002)(2906002)(66476007)(26005)(6506007)(6512007)(86362001)(186003)(8676002)(66556008)(82960400001)(6486002)(478600001)(66946007)(9686003)(21314003);DIR:OUT;SFP:1102;
+X-Microsoft-Antispam-Message-Info: BIEYbHAhu9ZmtvJSqWIPlqnSYrsc4/FNW9wLsizlc9vXrxyHQTfKN/utkcvojQEqaKhCMxZXkpd5YfdaTMb9Wp84QRcP6Wa2nspmM1xfyq/gR3Cj/LljrGEHecqHHBmdsw53HbWP4xLOTc+fn6PB1xXWrj52vpjZhzxJuOGncka6avXjU3fzyoaJ0Azp2TigyGAXbJZJElG+DoyN6ohV8cSGYHhnKRxGyGQeNvv+W9d3hgIDN5BDWkyAlJOhhnxJCwXJNqxRcQmC63sdxMaizDgHKCShgafA30EHHt4YW/N7W0yxbzAFzzqyA33McFkg+hP27YmzhJbrKqlXTaZ1SBRcy8c+rLF1I4MIpqsPK53+KkX+zgQ2e3iYEv959Fzk4pZGlCnK4azrSwlEmng8pLwZY7G+V1/BPyO1WhPDHON4BY/jhCMnS6qWIi0s/hLguJ/j2EY7mNO6vg+hWd+rx7AdYn6T1o9X1VsPbJjdokwJrNwxwqVlqao3KdAzX8NTNRbiO6+MrRHMsXLZ6xylbCqN4Qjco62oQvu99Tjah3plYB5rfL2zW5KZRL4nbhhodXOk41IGiRzdnHDyIpZyoug9GH1yT0J8LO0x4ED3sSiKBM0z2RXGF6sniMQ1r9HO4pB0La9apziglDedw6/iVSkgDNQqqCdrE47zG7TUPiIrFpKf35ecQ84FtErENXSoXJCDBsjrtdMLDwuvQ2Mz/VO0xj8sxtP44uUIvV/yv1Gm9pm3DMggIWllAt/cnfiED5yi+q5mQZ68OQJun5qD3w==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1101MB2126.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(376002)(396003)(136003)(346002)(366004)(39860400002)(41300700001)(316002)(5660300002)(8936002)(83380400001)(38100700002)(2906002)(66476007)(26005)(6506007)(6512007)(86362001)(186003)(8676002)(66556008)(82960400001)(6486002)(478600001)(66946007)(6666004)(9686003);DIR:OUT;SFP:1102;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?hIDSuZEONUUNAY/kciutLDbCA54GzA2kubEOwSqRhohW9PE5NEvfan2FMnk6?=
- =?us-ascii?Q?pTBLV4yGrSZ3km8nCzjQxXfbnIWzkD6PBabI85ZrpWIpMwUIEhkSnLVACwJ0?=
- =?us-ascii?Q?zvnplBLOGIUntGYsFICBR1u5ASLXD7QpXTUjhEyqo4C1EvW45X1hULQbo/z1?=
- =?us-ascii?Q?2uzD3ni0SFJks/J2A3ameEPNoSi7furjHmIyb7kSa0cz0KVyJ7HiXEgI+H2/?=
- =?us-ascii?Q?S5uhxkYiyOqGUPkhRU8SrVNtX3sMXO/oQk0oFhjHQntlWOryV6GNUaR+PVxL?=
- =?us-ascii?Q?mpGr3huvgwU5tSNp3LxJx1qQlAEK10hP1rnwhirE+3azBv+lt7pydVQswR+T?=
- =?us-ascii?Q?MTll6ntV/ySKI0mOpuyRZWVDv73wMhIb9xII5WWLPXmb2yzZXVLVb4macpur?=
- =?us-ascii?Q?qFC8Sq4lSC5SDdwuPUqXXebicvoQU5Kx+HkZyjWCperRRiHRjuFz3+5RmU81?=
- =?us-ascii?Q?BRcWFnWh2dxacQqa+YOUQ5Fkr2r23NLoK/Y7IFGCkvwTDAOTKbQpT4kwkdxZ?=
- =?us-ascii?Q?5g6DOyRY6BTUVh6TzR7OtI5cItgKB0UjxpdrU98Kb4OAmZ3tua7/vUUnR2XZ?=
- =?us-ascii?Q?U02V1DbehvrRjdIPWDn/YrMoNyqZ7XhAFt2iAWI8ltIEz74jTbUWHrrkzTgV?=
- =?us-ascii?Q?zcEmPyuRSi7fXLocl/yETe78zZ3O2QeboiA1ZJi+B8CHqA3i9I0XEV6/CaPb?=
- =?us-ascii?Q?7KaULvtBotRFD1x3G014xkwAKDVZDplxZ9uISS3fK9fyNh68z2T+Wtq9Q8HU?=
- =?us-ascii?Q?PZljWJdHA4mCRFBNRWUsx6xlfp1DwlJp3He0rQezfgAZbGBDo5fIZcvyU1f6?=
- =?us-ascii?Q?peeDigi0WN/JzMeoAq7igPxjaAAA+bzCNzHyqEk7fNKLImdMvfzcPHFViDQi?=
- =?us-ascii?Q?trdQaWUP+DoPc/DYkztJ/0FD25u3iNZcpxOJzcK69BRtxmE1zC+r0z9t4Oga?=
- =?us-ascii?Q?/HZGE3zX4MpaZtXK7404inrXU5KXU4FwcL/3PqytvStM+wKuQre66KFMT1W8?=
- =?us-ascii?Q?zpFdt3cMWBzTMm+U598899VO0JKlsSo+VA0982ddG2YJLI23YRqtZ9aMBVTG?=
- =?us-ascii?Q?8m9zs+ezf2MLp/TTtonc7roakSKNFNMOYCpxSJ224MaGh74a5fmewpBQeaLh?=
- =?us-ascii?Q?ZpK4R6U1v05BNO/yz0KVy9PBKCrn+EvJ6VDJyNgT7BL+XwtwkeS+sGvwOyod?=
- =?us-ascii?Q?jt7SfwQ6RZjzyb3tYmLglGdaXE7vLr6QrOjlby5kVbMTgHRt/hflnYbaa9uH?=
- =?us-ascii?Q?vbOGxKUBETczxc4om7duBHZbZkRx0f4nVtCWBGOu8fQSFoujwF1J5EpDBqx+?=
- =?us-ascii?Q?fiXcaYPqerP71Z2P8Z7nZCRLR/2yRFeQ3SANDol0if2TKODnOshNjbyVpYm7?=
- =?us-ascii?Q?uiqJrbbicBlMiA9396Iy9yK9e7zK7bXpYqWb7WC6DnlfD5An26297TBQgaxw?=
- =?us-ascii?Q?IHixMUEsc80YSf7af3OeEP6lV/pKeT5pf79EIcyOW+VdRgV2UwKBbwVfKRZ6?=
- =?us-ascii?Q?aM8VAS1Ui1rtAvQc8NdVVmvwKlAKKSHvIr6Yh/gvVEsVEzUkQ6BFLaLN7bSV?=
- =?us-ascii?Q?FmlFitCqznjz9g4q8F17A4mriHN9B8aKJ/MaoBWaktD5KfCEnsHhPO0MS36O?=
- =?us-ascii?Q?dA=3D=3D?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: c2ff655f-8418-4202-fd2c-08da64696165
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?NXOosIDjmCBUNfkpzj9b90cclgyAkJrZi7C6pszw5KBtt2Qm8bKR47Wm/s/l?=
+ =?us-ascii?Q?GHoAMHoN1ynxm1gA3fgzEaPGQYBaKKFtyGwVJmqU+S7kh1VFolbHuPVNKP6D?=
+ =?us-ascii?Q?xnEd77g0HMMHIx4Q8X8SK9bDjfU2OyDtL9kMFhVwbz5PcSeQBCEnr5DbZD4J?=
+ =?us-ascii?Q?cYXHr8O20IYDijr/xFwesUyh72LCICzQWQOwCPDPzpz36WxjfPm7zSPAy/k+?=
+ =?us-ascii?Q?4XaHALRHMUwSPs3LcyY48ZgdA5BuVghyrsuxt7VU2iSLSm/IDgLmCiE0RW2f?=
+ =?us-ascii?Q?oaWE7J516kxbRc3ZHkJOCYdIsWUamSQBNFAQMUYcIMMBaTovrKZASwsVcvGL?=
+ =?us-ascii?Q?RTRqXtOhTTJdJ7ab9Ciwj/DKDzDt7P78JkRmPcsij68U2nIQzdtOUWK3pes/?=
+ =?us-ascii?Q?F4p4O+J0qENPB+CKa43azw4l5gj/7GZpWFlxin164veO1AgfbkxLcKzwUGpN?=
+ =?us-ascii?Q?0CdSnWrMoLr95sts1PDhPJaQib0BRd/UJIL8WUEj1Yzm1wyX3oBSDdMNe4D1?=
+ =?us-ascii?Q?/EXbw4GH+l4dnuHeLXvCEapJ3M2HbET1OAz+kI01CL+unNX7k7zPSM42gcdW?=
+ =?us-ascii?Q?e7LYYlvMLZA4IPkWXGQ0RC3emhUdqcNXMs1TAch/StWFzLjKPL+3O+HVn02q?=
+ =?us-ascii?Q?xXkGcsFdNdeh1Cjr7Mb0qXperGat4EIJS09d+LmgFCNOFStT5+vUdAnOpkn9?=
+ =?us-ascii?Q?d1LG4dh7WT6iWlxYDbrBF59PeXkDaF2r3fyl+zEODAERtObTIAsy0IKgn5SJ?=
+ =?us-ascii?Q?WRVb74aURtflRhRanOZHdtQC4SnUQoueFoyTgorEPRHs9WODdxzU80yAMsdE?=
+ =?us-ascii?Q?8f1HebObPxOSXpElV+1LEeSI66P3RVG2KvmrRymfbYt0xbhJX1pHs+kTwFN1?=
+ =?us-ascii?Q?PhRxXvg9QCw8Hc499XXAZUw4G+2i8G73OBEYfJG6m0Z8n5saTPy7TzJqW6CS?=
+ =?us-ascii?Q?E+yHTNAy2K5d+oT7rNmFPgygv3WtbL1Ck+502wgHlaVULGyElXq4D1eUtSfr?=
+ =?us-ascii?Q?ErJkf4yZ/G9oBi49FvTxO1CLmzXjIW6wyn9QCz25wV5+rBpiGbOdQ/gaK1hs?=
+ =?us-ascii?Q?0s7dlQKjR1DVhgeLeNciHKBUAowGgDcg0YLdOhmOEFqjNE02O6MnengLlPm1?=
+ =?us-ascii?Q?Eku8RdIVNwcknbq+xbd33E7wUETiIkEAp4MFruJpsNka4nt1GARI3u0vUmo5?=
+ =?us-ascii?Q?pA8+i38TIiaxqZiszasE2+VpUkaiq2s3ZsWohvxVQCqsBVu3lZ8NqhyFnHyz?=
+ =?us-ascii?Q?usMstOLE0rpgrZD32BtU/f7IZnqvsAvi8PAE7Glp1Fd3+3Wb/u746KlSMa9w?=
+ =?us-ascii?Q?SurzMBS9KO7ZIRzEn3c89V13FzezR84qyk5BP4Xcux2yFDAyHeGPOs3Hgh+i?=
+ =?us-ascii?Q?6whpFXfWqQjeDpWPtKnvoxudV4j6gx5SUHoAAyQz+5L6xTGWeP+Ptzz0UHNS?=
+ =?us-ascii?Q?01V/+Y+KpM/zSpwlu46AZ6psfhPZmLpjZWxLOkLNyUMc6Zut7kxYazWyBeux?=
+ =?us-ascii?Q?saKzEbKwRJqyL2EhFbAHAesneoQ9NEn/Em+Q8Q5/iZOycVaDn7iGcF5lq2de?=
+ =?us-ascii?Q?1vdpfGkWbV1E3keUfP3aG/HRzrw9fllj+cyAQIsnuxFiaWntCPikPPAapkCr?=
+ =?us-ascii?Q?jw=3D=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: 16ed41c2-779c-4073-c510-08da646a0d3a
 X-MS-Exchange-CrossTenant-AuthSource: MWHPR1101MB2126.namprd11.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 13 Jul 2022 00:48:19.6170
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 13 Jul 2022 00:53:07.9331
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: z/wEXRPZyKzDipsfcIJu2015XNesTFTXvUAmIhk0/mDUVbu+1B97ldeBGjyl2kXnhTly+G6Tm48x8WVQwMLsVslt/HmjoVWxtW+KGMLsJY0=
+X-MS-Exchange-CrossTenant-UserPrincipalName: csCB5nNWNyKjhXQWQaIRQDC9NEbWGr/vuFBleMqWoqrjs43daAQTfPYzjm/jJpd40Zi4WnzCUZarjzd9IXNotKtaIa9+lthu14FFEcf77wA=
 X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH2PR11MB4456
 X-OriginatorOrg: intel.com
 
 Jane Chu wrote:
-> Commit 7917f9cdb503 ("acpi/nfit: rely on mce->misc to determine poison
-> granularity") changed nfit_handle_mce() callback to report badrange for
-> each poison at an alignment indicated by 1ULL << MCI_MISC_ADDR_LSB(mce->misc)
-> instead of the hardcoded L1_CACHE_BYTES. However recently on a server
-> populated with Intel DCPMEM v2 dimms, it appears that
-> 1UL << MCI_MISC_ADDR_LSB(mce->misc) turns out is 4KiB, or 8 512-byte blocks.
-> Consequently, injecting 2 back-to-back poisons via ndctl, and it reports
-> 8 poisons.
+> Kernel test robot detected name collision when compiled on 'um'
+> architecture.  Rename "to_phys()"  to "pmem_to_phys()".
 > 
-> [29076.590281] {3}[Hardware Error]:   physical_address: 0x00000040a0602400
-> [..]
-> [29076.619447] Memory failure: 0x40a0602: recovery action for dax page: Recovered
-> [29076.627519] mce: [Hardware Error]: Machine check events logged
-> [29076.634033] nfit ACPI0012:00: addr in SPA 1 (0x4080000000, 0x1f80000000)
-> [29076.648805] nd_bus ndbus0: XXX nvdimm_bus_add_badrange: (0x40a0602000, 0x1000)
-> [..]
-> [29078.634817] {4}[Hardware Error]:   physical_address: 0x00000040a0602600
-> [..]
-> [29079.595327] nfit ACPI0012:00: addr in SPA 1 (0x4080000000, 0x1f80000000)
-> [29079.610106] nd_bus ndbus0: XXX nvdimm_bus_add_badrange: (0x40a0602000, 0x1000)
-> [..]
-> {
->   "dev":"namespace0.0",
->   "mode":"fsdax",
->   "map":"dev",
->   "size":33820770304,
->   "uuid":"a1b0f07f-747f-40a8-bcd4-de1560a1ef75",
->   "sector_size":512,
->   "align":2097152,
->   "blockdev":"pmem0",
->   "badblock_count":8,
->   "badblocks":[
->     {
->       "offset":8208,
->       "length":8,
->       "dimms":[
->         "nmem0"
->       ]
->     }
->   ]
-> }
+> >> drivers/nvdimm/pmem.c:48:20: error: conflicting types for 'to_phys'; have 'phys_addr_t(struct pmem_device *, phys_addr_t)' {aka 'long long unsigned int(struct pmem_device *, long long unsigned int)'}
+>       48 | static phys_addr_t to_phys(struct pmem_device *pmem, phys_addr_t offset)
+>          |                    ^~~~~~~
+>    In file included from arch/um/include/asm/page.h:98,
+>                     from arch/um/include/asm/thread_info.h:15,
+>                     from include/linux/thread_info.h:60,
+>                     from include/asm-generic/preempt.h:5,
+>                     from ./arch/um/include/generated/asm/preempt.h:1,
 > 
-> So, 1UL << MCI_MISC_ADDR_LSB(mce->misc) is an unreliable indicator for poison
-> radius and shouldn't be used.  More over, as each injected poison is being
-> reported independently, any alignment under 512-byte appear works:
-> L1_CACHE_BYTES (though inaccurate), or 256-bytes (as ars->length reports),
-> or 512-byte.
+>    arch/um/include/shared/mem.h:12:29: note: previous definition of 'to_phys' with type 'long unsigned int(void *)'
+>       12 | static inline unsigned long to_phys(void *virt)
+>          |                             ^~~~~~~
 > 
-> To get around this issue, 512-bytes is chosen as the alignment because
->   a. it happens to be the badblock granularity,
->   b. ndctl inject-error cannot inject more than one poison to a 512-byte block,
->   c. architecture agnostic
+> vim +48 drivers/nvdimm/pmem.c
+>     47
+>   > 48	static phys_addr_t to_phys(struct pmem_device *pmem, phys_addr_t offset)
+>     49	{
+>     50		return pmem->phys_addr + offset;
+>     51	}
+>     52
+> 
+> Fixes: 9409c9b6709e (pmem: refactor pmem_clear_poison())
+> Reported-by: kernel test robot <lkp@intel.com>
+> Signed-off-by: Jane Chu <jane.chu@oracle.com>
 
-I am failing to see the kernel bug? Yes, you injected less than 8
-"badblocks" of poison and the hardware reported 8 blocks of poison, but
-that's not the kernel's fault, that's the hardware. What happens when
-hardware really does detect 8 blocks of consective poison and this
-implementation decides to only record 1 at a time?
-
-It seems the fix you want is for the hardware to report the precise
-error bounds and that 1UL << MCI_MISC_ADDR_LSB(mce->misc) does not have
-that precision in this case.
-
-However, the ARS engine likely can return the precise error ranges so I
-think the fix is to just use the address range indicated by 1UL <<
-MCI_MISC_ADDR_LSB(mce->misc) to filter the results from a short ARS
-scrub request to ask the device for the precise error list.
+Applied. Sorry for the delay, catching up after vacation.
