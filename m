@@ -1,188 +1,200 @@
-Received: from mailout2.w2.samsung.com (mailout2.w2.samsung.com [211.189.100.12])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ADBEF6AAC;
-	Tue, 12 Jul 2022 22:19:56 +0000 (UTC)
-Received: from uscas1p2.samsung.com (unknown [182.198.245.207])
-	by mailout2.w2.samsung.com (KnoxPortal) with ESMTP id 20220712221103usoutp0226615f7f73ec5d3bacfe2e1fe6a1de04~BNIBNQtRu1022710227usoutp029;
-	Tue, 12 Jul 2022 22:11:03 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout2.w2.samsung.com 20220712221103usoutp0226615f7f73ec5d3bacfe2e1fe6a1de04~BNIBNQtRu1022710227usoutp029
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-	s=mail20170921; t=1657663863;
-	bh=iWyVIuuKN1RX5S4TsL6EoerpdN622CMVEKU5naRCKdc=;
-	h=From:To:CC:Subject:Date:In-Reply-To:References:From;
-	b=ZwIfvCd7eHcJADJavnvM4pE3zhTFp+NYiECTiRLCHuCIYkF98uyUYNTYFMDFzLwct
-	 iq8fi661XTT2keok8oue4EOJtiY3hAF1gl6XU95pfiRZ0s7eJfF5HauQ+jyhfe4Px+
-	 2bSeOpMPUhg6ymIaJmIJNh60oTq0awXSvLAsB1iY=
-Received: from ussmges1new.samsung.com (u109.gpu85.samsung.co.kr
-	[203.254.195.109]) by uscas1p2.samsung.com (KnoxPortal) with ESMTP id
-	20220712221103uscas1p25bd856c029123a60e5637302a17c3ee3~BNIA8fY7K2897928979uscas1p2Y;
-	Tue, 12 Jul 2022 22:11:03 +0000 (GMT)
-Received: from uscas1p2.samsung.com ( [182.198.245.207]) by
-	ussmges1new.samsung.com (USCPEMTA) with SMTP id CF.06.09760.771FDC26; Tue,
-	12 Jul 2022 18:11:03 -0400 (EDT)
-Received: from ussmgxs3new.samsung.com (u92.gpu85.samsung.co.kr
-	[203.254.195.92]) by uscas1p2.samsung.com (KnoxPortal) with ESMTP id
-	20220712221103uscas1p2b5e7ab2a1074067efc8bd7af6bf92213~BNIAvilgr3161731617uscas1p2U;
-	Tue, 12 Jul 2022 22:11:03 +0000 (GMT)
-X-AuditID: cbfec36d-503ff70000002620-b6-62cdf1775a55
-Received: from SSI-EX4.ssi.samsung.com ( [105.128.2.146]) by
-	ussmgxs3new.samsung.com (USCPEXMTA) with SMTP id E2.79.52945.671FDC26; Tue,
-	12 Jul 2022 18:11:02 -0400 (EDT)
-Received: from SSI-EX3.ssi.samsung.com (105.128.2.228) by
-	SSI-EX4.ssi.samsung.com (105.128.2.229) with Microsoft SMTP Server
-	(version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
-	15.1.2375.24; Tue, 12 Jul 2022 15:11:02 -0700
-Received: from SSI-EX3.ssi.samsung.com ([105.128.5.228]) by
-	SSI-EX3.ssi.samsung.com ([105.128.5.228]) with mapi id 15.01.2375.024; Tue,
-	12 Jul 2022 15:11:02 -0700
-From: Adam Manzanares <a.manzanares@samsung.com>
-To: Dan Williams <dan.j.williams@intel.com>
-CC: "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
-	"hch@infradead.org" <hch@infradead.org>, "alison.schofield@intel.com"
-	<alison.schofield@intel.com>, "nvdimm@lists.linux.dev"
-	<nvdimm@lists.linux.dev>, "linux-pci@vger.kernel.org"
-	<linux-pci@vger.kernel.org>, "patches@lists.linux.dev"
-	<patches@lists.linux.dev>
-Subject: Re: [PATCH 01/46] tools/testing/cxl: Fix cxl_hdm_decode_init()
- calling convention
-Thread-Topic: [PATCH 01/46] tools/testing/cxl: Fix cxl_hdm_decode_init()
-	calling convention
-Thread-Index: AQHYi9+BR05N/2uauk6b8y51LxKnvq12/GIAgATZvgA=
-Date: Tue, 12 Jul 2022 22:11:01 +0000
-Message-ID: <20220712221055.GA1367622@bgt-140510-bm01>
-In-Reply-To: <62c9dfcc4bd7c_2c74df294c1@dwillia2-xfh.notmuch>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-originating-ip: [105.128.2.176]
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0519715AC
+	for <nvdimm@lists.linux.dev>; Wed, 13 Jul 2022 00:48:29 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1657673310; x=1689209310;
+  h=date:from:to:subject:message-id:references:in-reply-to:
+   mime-version;
+  bh=9VkG19+im7+GASEzfadZHpDRffIOZJMivA6iwyRe5S0=;
+  b=c6KXj77bW8clF14CkMsjJ+KPfnHjPISss7v6/Powt1FRmPYyFkIqZjNI
+   ISicgEf6NXjxiw5Y6xWbA7ydEssjhszwsIbJX7arn6ozXU5SJk3aHBwax
+   a7wGdhFVKe2GiqMdsesMjyNs35yLUpNmwW51PVnLvH+LJgsV4Dm7mRnmp
+   Y9Z5Lq6hIZR7UvMM0CmiFOpJXRrDeA43w4qqC9D5NbbuBkH65aFGF5XtP
+   hPuvxJbY/GTYEXSmCesyykIp65L9iS0QthqIKoqjvbzRqRrHqO6Hp/a4x
+   jmOczHd45isk6AJ4SnYZCxD77C9Z2Ab/ETDQ0y8FK/gHiGmFip7jjhGY2
+   g==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10406"; a="285821794"
+X-IronPort-AV: E=Sophos;i="5.92,266,1650956400"; 
+   d="scan'208";a="285821794"
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jul 2022 17:48:22 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.92,266,1650956400"; 
+   d="scan'208";a="653137328"
+Received: from fmsmsx605.amr.corp.intel.com ([10.18.126.85])
+  by fmsmga008.fm.intel.com with ESMTP; 12 Jul 2022 17:48:22 -0700
+Received: from fmsmsx601.amr.corp.intel.com (10.18.126.81) by
+ fmsmsx605.amr.corp.intel.com (10.18.126.85) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2308.27; Tue, 12 Jul 2022 17:48:21 -0700
+Received: from fmsedg601.ED.cps.intel.com (10.1.192.135) by
+ fmsmsx601.amr.corp.intel.com (10.18.126.81) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2308.27 via Frontend Transport; Tue, 12 Jul 2022 17:48:21 -0700
+Received: from NAM12-DM6-obe.outbound.protection.outlook.com (104.47.59.174)
+ by edgegateway.intel.com (192.55.55.70) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2308.27; Tue, 12 Jul 2022 17:48:21 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=CfY53uC71AhH1w48lTS6SORqjbv6xDxWYRMLFlcpuSFTc0IMSdT1suymXHrghiOsa5hwu+lLKTzNktTXAgqU728qIhTM2YQnVBRhhG80My7sqx9Mx2WIsin+YrONk16Iug3DlP2I+7Luth+v0KlYcisVQvIMXNj1KT1epohDzdggvYH7QImlzqYsgTxE84kMNwEnBjEnMoLMKIDgsczjpQN0rLxtZ+gL/8jo/ZOnfc05wgMupccHWkhV+hF+7gVELEqMr3wyi9Wk0LfNN5c9+7aCNBreZV+NQEWIKHaMLXDwljNNk6JBD3C8z8ZbSfLJm/jNy7HAm2ESzjqn74SuHA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=lAxxsPLKB7BpvrQunlcOuTbpRzlKFEDjzYmHN+8OYic=;
+ b=XhCO3p41UnvclmqmvcZROEjoZ620xrKpfy/WCZNG2d5AIEqIM064xu13Swm23Qm+utPhzXKRME8TRPWXT1r2G1hCPLggLHYEDUlQOjde9X7qVhiy6n0M18aGwqhfR2ZgdSF8w2oKiJorTZCIpq27qswqBo9wQF/w19dAjFIWUVMFGE/vJ5zQFhRALfxzZ4DBujLKEgmwEDlsT2cEOd/ZIuUi2dc3MaToVaoTy1+jP0vPzSEQacVtFHjP6tQxXPSxxCvIO7cO9j/NgNXL38Xz5nZB9gTRImtNZ3LX0L1KmCwtpa6E5dVkCRws5CBwSVc42lKgAW1tSvfzsgDB+hezfg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
+ (2603:10b6:301:50::20) by CH2PR11MB4456.namprd11.prod.outlook.com
+ (2603:10b6:610:48::22) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5417.25; Wed, 13 Jul
+ 2022 00:48:19 +0000
+Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
+ ([fe80::6466:20a6:57b4:1edf]) by MWHPR1101MB2126.namprd11.prod.outlook.com
+ ([fe80::6466:20a6:57b4:1edf%11]) with mapi id 15.20.5417.026; Wed, 13 Jul
+ 2022 00:48:19 +0000
+Date: Tue, 12 Jul 2022 17:48:17 -0700
+From: Dan Williams <dan.j.williams@intel.com>
+To: Jane Chu <jane.chu@oracle.com>, <dan.j.williams@intel.com>,
+	<hch@infradead.org>, <vishal.l.verma@intel.com>, <dave.jiang@intel.com>,
+	<ira.weiny@intel.com>, <nvdimm@lists.linux.dev>,
+	<linux-kernel@vger.kernel.org>
+Subject: RE: [PATCH] acpi/nfit: badrange report spill over to clean range
+Message-ID: <62ce16518e7d3_6070c29447@dwillia2-xfh.jf.intel.com.notmuch>
+References: <20220711232658.536064-1-jane.chu@oracle.com>
 Content-Type: text/plain; charset="us-ascii"
-Content-ID: <D0189145084D414799F73CABBF917BD6@ssi.samsung.com>
-Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+In-Reply-To: <20220711232658.536064-1-jane.chu@oracle.com>
+X-ClientProxiedBy: SJ0PR05CA0030.namprd05.prod.outlook.com
+ (2603:10b6:a03:33b::35) To MWHPR1101MB2126.namprd11.prod.outlook.com
+ (2603:10b6:301:50::20)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-CFilter-Loop: Reflected
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFlrBKsWRmVeSWpSXmKPExsWy7djX87rlH88mGTR957K4+/gCm8X0qRcY
-	LU5PWMRkcX7WKRaLs/OOs1ms/PGH1eLyiUuMDuwem1doeSze85LJ48XmmYwenzfJBbBEcdmk
-	pOZklqUW6dslcGWcfbaTvWCGeMXrSzkNjHuFuhg5OSQETCRefdjO1sXIxSEksJJR4taqY+wQ
-	TiuTxP2HXSwwVe0fWlggEmsZJV4f/wHlfGKU2LbgPDOEs4xR4unHZ8wgLWwCBhK/j28Es0UE
-	tCUmzjkIVsQscIpJ4vuvn0DtHBzCAjESnZNKIGpiJXZfXccOYVtJ9DVPZQKxWQRUJVb9vQN2
-	Bq+AmcSeh4tZQWxOAVuJuRdvgNUzCohJfD+1BqyeWUBc4taT+UwQZwtKLJq9hxnCFpP4t+sh
-	G4StKHH/+0t2iHodiQW7P7FB2HYS+598gJqjLbFs4WtmiL2CEidnPoEGhaTEwRU3wL6XELjC
-	IbH9QyfUAheJ3vW/oRZLS0xfcxmqqJ1R4sOEfawQzgRGiTtvf0KdYS3xr/Ma+wRGlVlILp+F
-	5KpZSK6aheSqWUiuWsDIuopRvLS4ODc9tdgwL7Vcrzgxt7g0L10vOT93EyMwMZ3+dzh3B+OO
-	Wx/1DjEycTAeYpTgYFYS4f1z9lSSEG9KYmVValF+fFFpTmrxIUZpDhYlcd5lmRsShQTSE0tS
-	s1NTC1KLYLJMHJxSDUwpzZ5S7TXaO9/eOV0vvNKT3+TFdd7Drebnn29a8srkYqxoy53rZ89K
-	mDLfmGX36b7IBsX9KvFbGaTCPM0PKOgeYry55HXu2bV3ndZcuns0YOLX9Qs9fGRfB6317mOv
-	rJ+eeG8tf+fjuYtfZz45Pu35n7trDrpP9Mpb5LNyd5zO2jBx9jvHtoZ0d65efTT9eOtLnfJH
-	7vmHrE9r7fG5snfqjLcH2e7skcnf2sT8plv5RqR7nwjjTbejr9/XL91d/efgD2s126eHjnu9
-	Yuc//+sc3/Pio5/yag52fHC/8TjjpqHRu2vvBEtap4iwJzs/jxGLm3dCLfauR4qjjFhto4+m
-	SUzZmsbgx/Wndjn3z+bcp8RSnJFoqMVcVJwIAPKe/CC7AwAA
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFjrMIsWRmVeSWpSXmKPExsWS2cA0Sbfs49kkgwmt5hZ3H19gs5g+9QKj
-	xekJi5gszs86xWJxdt5xNouVP/6wWlw+cYnRgd1j8wotj8V7XjJ5vNg8k9Hj8ya5AJYoLpuU
-	1JzMstQifbsEroyzz3ayF8wQr3h9KaeBca9QFyMnh4SAiUT7hxaWLkYuDiGB1YwSi6buZAJJ
-	CAl8YpRY080HkVjGKDFpykxGkASbgIHE7+MbmUFsEQFtiYlzDjKDFDELnGKS+P7rJ9AoDg5h
-	gRiJzkklEDWxEr92f2aCsK0k+pqngtksAqoSq/7eYQGxeQXMJPY8XMwKsWw3k8Sd7kNgRZwC
-	thJzL95gB7EZBcQkvp9aAxZnFhCXuPVkPhPECwISS/acZ4awRSVePv7HCmErStz//pIdol5H
-	YsHuT2wQtp3E/icfoOZoSyxb+JoZ4ghBiZMzn7BA9EpKHFxxg2UCo8QsJOtmIRk1C8moWUhG
-	zUIyagEj6ypG8dLi4tz0imLjvNRyveLE3OLSvHS95PzcTYzAeD7973DMDsZ7tz7qHWJk4mA8
-	xCjBwawkwvvn7KkkId6UxMqq1KL8+KLSnNTiQ4zSHCxK4rwesRPjhQTSE0tSs1NTC1KLYLJM
-	HJxSDUweTnVLj8360LLRwdfC48sNk+2tS7TSzE+/fZmx60yyWEqp3IokSd5y7s4XOed2f/ip
-	Zux8rur/W42L/G4ZiQkHc/6cy4uIyZPYcHaBavXqH3u3yDadPHnswr92u9gboTksohMd9L+4
-	/xFa3fJP/2qi2hrLSWX3Hnk0/n1xRvulylVJwVmL5Nm/HN3KKdzvM7MqUtfny865wuYXHHmv
-	fP/2yels5KOq+5b2ji9cD64sfnm57/5H3YiOrKdCE4Qdm3euUl9oLpD364KL7YulPXpGU4Kv
-	Ouv13lLYsfJenDD/Q8/mMC5hNdl5wRtyNeJTPzgunHHjqzrHlpV+Pgb1vwz3soVpHs3b7vtd
-	vUix8YESS3FGoqEWc1FxIgCbuSsuVgMAAA==
-X-CMS-MailID: 20220712221103uscas1p2b5e7ab2a1074067efc8bd7af6bf92213
-CMS-TYPE: 301P
-X-CMS-RootMailID: 20220629174147uscas1p211384ae262e099484440ef285be26c75
-References: <165603869943.551046.3498980330327696732.stgit@dwillia2-xfh>
-	<165603870776.551046.8709990108936497723.stgit@dwillia2-xfh>
-	<CGME20220629174147uscas1p211384ae262e099484440ef285be26c75@uscas1p2.samsung.com>
-	<20220629174139.GA1139821@bgt-140510-bm01>
-	<62c9dfcc4bd7c_2c74df294c1@dwillia2-xfh.notmuch>
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: c2ff655f-8418-4202-fd2c-08da64696165
+X-MS-TrafficTypeDiagnostic: CH2PR11MB4456:EE_
+X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: puXcqocNBpgPFa6PB/3E8H0s6WBB0eub84mI1DHNIdTRzr+cGEYlSOWPGTWudk+RS4bT+Ru8YZZ3l6ScBLWmCHFCI8I3byShTV0qob6rbEDmnQKjFX3NQ4vajBeBj36KRP3EF05VGkw/7kAh0iXRbKOfl8dQRYbPiSOVEwWUwjVW+Bz3WjuVqAwm3L6/HVp/lDShQqiloVWtkfkNq3wXtMxLnbfvc3I56drIlgOjw9iqQhglb3NNduFIaiUjamkAGISdFmqciuMLRgJ5XcBbrGzYE7V7NbuT0rIwUzjTSNP4zMGg8ScQgiAly1s+r3s90eltESm+zyf0rT9dgf03gn7O+XCYPDxaafbrEH4txsRlAE36QzALR+2LJGwE75ZMOH9HIDToi98LowN5W76zFNuwX6Khff2k9ScwxUGjarl03u4iNpQQ0teL86nQrEM+W9fRhre6NRLBFfpDlLDrmBK3h500qCBnfKMKGAQCkj8ynr+VfFcDtvbdIAFWj3iYRU2Twf/9uLHC2BiCqAnqAxbgierqGPqrR/ZsUBlnsaLgoZ2SGKMeKufCoEL9mefaUCVNDdzKlPZsxiNymdgTmwfoVQQRBEUJ+ZxtOZf4ZhoQEQqK/8H2ifB9/KR+CEtysKaleTiObxlmCV/ky8J+ON1r4FHovrCietv6wRL7Kw69rU1vRxeWmNAUsgctA+gXE/p14covJRJHjSxKfqhBJcTAkATgJw/Lx5wFpmGjgtywzMV0ynbGDmMPGsz054jnOjej9i/9kgm3RfN7AYMoy70N+o5pX49dPopPgMDTl7Z8hi6pWPt6KhCkQs1XzcbT
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1101MB2126.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(376002)(396003)(136003)(346002)(366004)(39860400002)(41300700001)(316002)(5660300002)(8936002)(83380400001)(38100700002)(2906002)(66476007)(26005)(6506007)(6512007)(86362001)(186003)(8676002)(66556008)(82960400001)(6486002)(478600001)(66946007)(9686003)(21314003);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?hIDSuZEONUUNAY/kciutLDbCA54GzA2kubEOwSqRhohW9PE5NEvfan2FMnk6?=
+ =?us-ascii?Q?pTBLV4yGrSZ3km8nCzjQxXfbnIWzkD6PBabI85ZrpWIpMwUIEhkSnLVACwJ0?=
+ =?us-ascii?Q?zvnplBLOGIUntGYsFICBR1u5ASLXD7QpXTUjhEyqo4C1EvW45X1hULQbo/z1?=
+ =?us-ascii?Q?2uzD3ni0SFJks/J2A3ameEPNoSi7furjHmIyb7kSa0cz0KVyJ7HiXEgI+H2/?=
+ =?us-ascii?Q?S5uhxkYiyOqGUPkhRU8SrVNtX3sMXO/oQk0oFhjHQntlWOryV6GNUaR+PVxL?=
+ =?us-ascii?Q?mpGr3huvgwU5tSNp3LxJx1qQlAEK10hP1rnwhirE+3azBv+lt7pydVQswR+T?=
+ =?us-ascii?Q?MTll6ntV/ySKI0mOpuyRZWVDv73wMhIb9xII5WWLPXmb2yzZXVLVb4macpur?=
+ =?us-ascii?Q?qFC8Sq4lSC5SDdwuPUqXXebicvoQU5Kx+HkZyjWCperRRiHRjuFz3+5RmU81?=
+ =?us-ascii?Q?BRcWFnWh2dxacQqa+YOUQ5Fkr2r23NLoK/Y7IFGCkvwTDAOTKbQpT4kwkdxZ?=
+ =?us-ascii?Q?5g6DOyRY6BTUVh6TzR7OtI5cItgKB0UjxpdrU98Kb4OAmZ3tua7/vUUnR2XZ?=
+ =?us-ascii?Q?U02V1DbehvrRjdIPWDn/YrMoNyqZ7XhAFt2iAWI8ltIEz74jTbUWHrrkzTgV?=
+ =?us-ascii?Q?zcEmPyuRSi7fXLocl/yETe78zZ3O2QeboiA1ZJi+B8CHqA3i9I0XEV6/CaPb?=
+ =?us-ascii?Q?7KaULvtBotRFD1x3G014xkwAKDVZDplxZ9uISS3fK9fyNh68z2T+Wtq9Q8HU?=
+ =?us-ascii?Q?PZljWJdHA4mCRFBNRWUsx6xlfp1DwlJp3He0rQezfgAZbGBDo5fIZcvyU1f6?=
+ =?us-ascii?Q?peeDigi0WN/JzMeoAq7igPxjaAAA+bzCNzHyqEk7fNKLImdMvfzcPHFViDQi?=
+ =?us-ascii?Q?trdQaWUP+DoPc/DYkztJ/0FD25u3iNZcpxOJzcK69BRtxmE1zC+r0z9t4Oga?=
+ =?us-ascii?Q?/HZGE3zX4MpaZtXK7404inrXU5KXU4FwcL/3PqytvStM+wKuQre66KFMT1W8?=
+ =?us-ascii?Q?zpFdt3cMWBzTMm+U598899VO0JKlsSo+VA0982ddG2YJLI23YRqtZ9aMBVTG?=
+ =?us-ascii?Q?8m9zs+ezf2MLp/TTtonc7roakSKNFNMOYCpxSJ224MaGh74a5fmewpBQeaLh?=
+ =?us-ascii?Q?ZpK4R6U1v05BNO/yz0KVy9PBKCrn+EvJ6VDJyNgT7BL+XwtwkeS+sGvwOyod?=
+ =?us-ascii?Q?jt7SfwQ6RZjzyb3tYmLglGdaXE7vLr6QrOjlby5kVbMTgHRt/hflnYbaa9uH?=
+ =?us-ascii?Q?vbOGxKUBETczxc4om7duBHZbZkRx0f4nVtCWBGOu8fQSFoujwF1J5EpDBqx+?=
+ =?us-ascii?Q?fiXcaYPqerP71Z2P8Z7nZCRLR/2yRFeQ3SANDol0if2TKODnOshNjbyVpYm7?=
+ =?us-ascii?Q?uiqJrbbicBlMiA9396Iy9yK9e7zK7bXpYqWb7WC6DnlfD5An26297TBQgaxw?=
+ =?us-ascii?Q?IHixMUEsc80YSf7af3OeEP6lV/pKeT5pf79EIcyOW+VdRgV2UwKBbwVfKRZ6?=
+ =?us-ascii?Q?aM8VAS1Ui1rtAvQc8NdVVmvwKlAKKSHvIr6Yh/gvVEsVEzUkQ6BFLaLN7bSV?=
+ =?us-ascii?Q?FmlFitCqznjz9g4q8F17A4mriHN9B8aKJ/MaoBWaktD5KfCEnsHhPO0MS36O?=
+ =?us-ascii?Q?dA=3D=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: c2ff655f-8418-4202-fd2c-08da64696165
+X-MS-Exchange-CrossTenant-AuthSource: MWHPR1101MB2126.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 13 Jul 2022 00:48:19.6170
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: z/wEXRPZyKzDipsfcIJu2015XNesTFTXvUAmIhk0/mDUVbu+1B97ldeBGjyl2kXnhTly+G6Tm48x8WVQwMLsVslt/HmjoVWxtW+KGMLsJY0=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH2PR11MB4456
+X-OriginatorOrg: intel.com
 
-On Sat, Jul 09, 2022 at 01:06:36PM -0700, Dan Williams wrote:
-> Adam Manzanares wrote:
-> > On Thu, Jun 23, 2022 at 07:45:07PM -0700, Dan Williams wrote:
-> > > This failing signature:
-> > >=20
-> > > [    8.392669] cxl_bus_probe: cxl_port endpoint2: probe: 970997760
-> > > [    8.392670] cxl_port: probe of endpoint2 failed with error 9709977=
-60
-> > > [    8.392719] create_endpoint: cxl_mem mem0: add: endpoint2
-> > > [    8.392721] cxl_mem mem0: endpoint2 failed probe
-> > > [    8.392725] cxl_bus_probe: cxl_mem mem0: probe: -6
-> > >=20
-> > > ...shows cxl_hdm_decode_init() resulting in a return code ("970997760=
-")
-> > > that looks like stack corruption. The problem goes away if
-> > > cxl_hdm_decode_init() is not mocked via __wrap_cxl_hdm_decode_init().
-> > >=20
-> > > The corruption results from the mismatch that the calling convention =
-for
-> > > cxl_hdm_decode_init() is:
-> > >=20
-> > > int cxl_hdm_decode_init(struct cxl_dev_state *cxlds, struct cxl_hdm *=
-cxlhdm)
-> > >=20
-> > > ...and __wrap_cxl_hdm_decode_init() is:
-> > >=20
-> > > bool __wrap_cxl_hdm_decode_init(struct cxl_dev_state *cxlds, struct c=
-xl_hdm *cxlhdm)
-> > >=20
-> > > ...i.e. an int is expected but __wrap_hdm_decode_init() returns bool.
-> > >=20
-> > > Fix the convention and cleanup the organization to match
-> > > __wrap_cxl_await_media_ready() as the difference was a red herring th=
-at
-> > > distracted from finding the bug.
-> > >=20
-> > > Fixes: 92804edb11f0 ("cxl/pci: Drop @info argument to cxl_hdm_decode_=
-init()")
-> > > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> > > ---
-> > >  tools/testing/cxl/test/mock.c |    8 +++++---
-> > >  1 file changed, 5 insertions(+), 3 deletions(-)
-> > >=20
-> > > diff --git a/tools/testing/cxl/test/mock.c b/tools/testing/cxl/test/m=
-ock.c
-> > > index f1f8c40948c5..bce6a21df0d5 100644
-> > > --- a/tools/testing/cxl/test/mock.c
-> > > +++ b/tools/testing/cxl/test/mock.c
-> > > @@ -208,13 +208,15 @@ int __wrap_cxl_await_media_ready(struct cxl_dev=
-_state *cxlds)
-> > >  }
-> > >  EXPORT_SYMBOL_NS_GPL(__wrap_cxl_await_media_ready, CXL);
-> > > =20
-> > > -bool __wrap_cxl_hdm_decode_init(struct cxl_dev_state *cxlds,
-> > > -				struct cxl_hdm *cxlhdm)
-> > > +int __wrap_cxl_hdm_decode_init(struct cxl_dev_state *cxlds,
-> > > +			       struct cxl_hdm *cxlhdm)
-> > >  {
-> > >  	int rc =3D 0, index;
-> > >  	struct cxl_mock_ops *ops =3D get_cxl_mock_ops(&index);
-> > > =20
-> > > -	if (!ops || !ops->is_mock_dev(cxlds->dev))
-> > > +	if (ops && ops->is_mock_dev(cxlds->dev))
-> > > +		rc =3D 0;
-> > > +	else
-> > >  		rc =3D cxl_hdm_decode_init(cxlds, cxlhdm);
-> > >  	put_cxl_mock_ops(index);
-> > > =20
-> > >=20
-> >=20
-> >=20
-> > Looks good.
-> >=20
-> > Reviewed by: Adam Manzanares <a.manzanares@samsung.com>
->=20
-> Just fyi, b4 did not auto-apply this tag due to the missing "-", caught
-> it manually.
+Jane Chu wrote:
+> Commit 7917f9cdb503 ("acpi/nfit: rely on mce->misc to determine poison
+> granularity") changed nfit_handle_mce() callback to report badrange for
+> each poison at an alignment indicated by 1ULL << MCI_MISC_ADDR_LSB(mce->misc)
+> instead of the hardcoded L1_CACHE_BYTES. However recently on a server
+> populated with Intel DCPMEM v2 dimms, it appears that
+> 1UL << MCI_MISC_ADDR_LSB(mce->misc) turns out is 4KiB, or 8 512-byte blocks.
+> Consequently, injecting 2 back-to-back poisons via ndctl, and it reports
+> 8 poisons.
+> 
+> [29076.590281] {3}[Hardware Error]:   physical_address: 0x00000040a0602400
+> [..]
+> [29076.619447] Memory failure: 0x40a0602: recovery action for dax page: Recovered
+> [29076.627519] mce: [Hardware Error]: Machine check events logged
+> [29076.634033] nfit ACPI0012:00: addr in SPA 1 (0x4080000000, 0x1f80000000)
+> [29076.648805] nd_bus ndbus0: XXX nvdimm_bus_add_badrange: (0x40a0602000, 0x1000)
+> [..]
+> [29078.634817] {4}[Hardware Error]:   physical_address: 0x00000040a0602600
+> [..]
+> [29079.595327] nfit ACPI0012:00: addr in SPA 1 (0x4080000000, 0x1f80000000)
+> [29079.610106] nd_bus ndbus0: XXX nvdimm_bus_add_badrange: (0x40a0602000, 0x1000)
+> [..]
+> {
+>   "dev":"namespace0.0",
+>   "mode":"fsdax",
+>   "map":"dev",
+>   "size":33820770304,
+>   "uuid":"a1b0f07f-747f-40a8-bcd4-de1560a1ef75",
+>   "sector_size":512,
+>   "align":2097152,
+>   "blockdev":"pmem0",
+>   "badblock_count":8,
+>   "badblocks":[
+>     {
+>       "offset":8208,
+>       "length":8,
+>       "dimms":[
+>         "nmem0"
+>       ]
+>     }
+>   ]
+> }
+> 
+> So, 1UL << MCI_MISC_ADDR_LSB(mce->misc) is an unreliable indicator for poison
+> radius and shouldn't be used.  More over, as each injected poison is being
+> reported independently, any alignment under 512-byte appear works:
+> L1_CACHE_BYTES (though inaccurate), or 256-bytes (as ars->length reports),
+> or 512-byte.
+> 
+> To get around this issue, 512-bytes is chosen as the alignment because
+>   a. it happens to be the badblock granularity,
+>   b. ndctl inject-error cannot inject more than one poison to a 512-byte block,
+>   c. architecture agnostic
 
-Ouch, thanks for pointing this out. Updated my template. =
+I am failing to see the kernel bug? Yes, you injected less than 8
+"badblocks" of poison and the hardware reported 8 blocks of poison, but
+that's not the kernel's fault, that's the hardware. What happens when
+hardware really does detect 8 blocks of consective poison and this
+implementation decides to only record 1 at a time?
+
+It seems the fix you want is for the hardware to report the precise
+error bounds and that 1UL << MCI_MISC_ADDR_LSB(mce->misc) does not have
+that precision in this case.
+
+However, the ARS engine likely can return the precise error ranges so I
+think the fix is to just use the address range indicated by 1UL <<
+MCI_MISC_ADDR_LSB(mce->misc) to filter the results from a short ARS
+scrub request to ask the device for the precise error list.
