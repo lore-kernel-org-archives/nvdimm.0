@@ -1,143 +1,70 @@
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FA636004
-	for <nvdimm@lists.linux.dev>; Thu, 14 Jul 2022 18:28:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24DD4182
+	for <nvdimm@lists.linux.dev>; Thu, 14 Jul 2022 18:45:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1657823307; x=1689359307;
+  t=1657824319; x=1689360319;
   h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=9IycQdzJ7jLKJIX8/dq827FwUuH5KwW6Su3z0Mip7jg=;
-  b=IC7FtkP3MmatWopnJCg5JTtwmmnmWaiGxNEwf18dMr7H7PoYuTULWMIc
-   QnMVzAUg+M56IMXRtTTJbZanB+737ADGhcCO6s8yRrGGPVFmy5xn3ovGU
-   cnPuwgjIcoJua/RmovcAilUBiK3kmY243B0/QoP4ialtqYwgWlAsgzcd4
-   fVZ4cktdS951wf/kyeYzak8xkhutioZz8qFPhsgeDsUSi3B1F/kEG56xi
-   8zGZTN4XninfNM7Yp9aegwpj4O6z8SRaNkCTy+xvMTi7XPs6d8Hv7wtHB
-   hs4D1iXtG88DwEhrBik0YJHrCAP2RUCRzBIU7oq5npswOgd11CfFmcO1A
-   w==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10408"; a="286341040"
+   mime-version:in-reply-to;
+  bh=5XgSObRvgCEBVYMNFLgm/u5va9kqcKxCl7i6MOEhDrY=;
+  b=ZublFOSWgpAshEb8fA3WJSOV25XTj51ssGOMyLRnej3KEDM1tgCtF0Ox
+   Os3u9bMLIy1tD6zRKfJ5MLX8FnsGypsLsMG74cHYSJetATFabQftoY/12
+   4jcRI0TdpNkvRMItbSUvCG7W7ThnsOBjMgGb5bIacQx9yWUjNpw61gs+m
+   iuJp1JiIAOsUvxMTGK5KvcAlV9MWe+AJDjnjeJ+zf236GWTw7FR8wzlF9
+   qwoV5Dw10Uw/11g/QRADNUkr5EclhAmN64T63GGxViYUO1hV0J/Bce8BL
+   dy2Q2Jsp7QupSE350fSKcOLntTgAuF3tml9ABbo4PIXph8gD/0bqA8zBL
+   A==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10408"; a="349569735"
 X-IronPort-AV: E=Sophos;i="5.92,272,1650956400"; 
-   d="scan'208";a="286341040"
-Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jul 2022 11:28:26 -0700
-X-ExtLoop1: 1
+   d="scan'208";a="349569735"
+Received: from fmsmga003.fm.intel.com ([10.253.24.29])
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jul 2022 11:45:18 -0700
 X-IronPort-AV: E=Sophos;i="5.92,272,1650956400"; 
-   d="scan'208";a="593468714"
-Received: from fmsmsx602.amr.corp.intel.com ([10.18.126.82])
-  by orsmga007.jf.intel.com with ESMTP; 14 Jul 2022 11:28:26 -0700
-Received: from fmsmsx607.amr.corp.intel.com (10.18.126.87) by
- fmsmsx602.amr.corp.intel.com (10.18.126.82) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.27; Thu, 14 Jul 2022 11:28:25 -0700
-Received: from fmsmsx609.amr.corp.intel.com (10.18.126.89) by
- fmsmsx607.amr.corp.intel.com (10.18.126.87) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.27; Thu, 14 Jul 2022 11:28:25 -0700
-Received: from fmsedg601.ED.cps.intel.com (10.1.192.135) by
- fmsmsx609.amr.corp.intel.com (10.18.126.89) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.27 via Frontend Transport; Thu, 14 Jul 2022 11:28:25 -0700
-Received: from NAM12-MW2-obe.outbound.protection.outlook.com (104.47.66.40) by
- edgegateway.intel.com (192.55.55.70) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2308.27; Thu, 14 Jul 2022 11:28:25 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=DmpEi7bp7/LhHXDJANAQM1J09lxdwiSC4BMqgZYOs9eA937p8iuTGAvRPi/sP5isJIJrriswFP4bT8B+5WtgzJs0fJepyt7Y7SV/8iMflvEU4RshsAj0JjbJHY0cERanSyALpeR4sam0TTsJ3+Aq1AeNKAvc39OHHL+PPLwmmhROacR0HciyGezddPzbqg03cj9YQb8AJG3IPaq6zYMi0jqd8i9NkgnDcTyi497qPHaNpztGE3sH2j4w8hSeIEg2sp2y/tR62Q694f/4HGedQrjrRMkwiCfmAiUQZUYCTZQrsqZuqFNvZxFaClpvohoB7rtU/0t3gU4ihkRZcpE/Zw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=9IycQdzJ7jLKJIX8/dq827FwUuH5KwW6Su3z0Mip7jg=;
- b=JRU7RdmqCRB3+rESjSYtp32d34nYVMaE/MAS4gGHpgHHpj73Fm75IycBRYxplOyRkXqZpbI1BRq74jITOBRxyzz7jfnorna5DP7hrIV5CiHupXobO6/pilIOKIatOue6uKCIkH/N93XYP7rKwV/yFLhGIFiyzGTE055ybfJwu3T3Y4oBRVsimQ9Qd4ik7qOMDk0HpJOZbAcVoXUuVeDmnDSO1PVzioTHWOAJMeMVoPnOAZWGlKmDjmqr+LdCxXjVAdfnolL824qt/4X3x/cuTfFE9EgMSrTZNfEfCen/WhBHle+mFYV+fXolMujJcoYQ3mVdMusIsfAP239RHxBpKg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
- (2603:10b6:301:50::20) by DM5PR11MB1674.namprd11.prod.outlook.com
- (2603:10b6:4:b::8) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5417.25; Thu, 14 Jul
- 2022 18:28:23 +0000
-Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
- ([fe80::6466:20a6:57b4:1edf]) by MWHPR1101MB2126.namprd11.prod.outlook.com
- ([fe80::6466:20a6:57b4:1edf%11]) with mapi id 15.20.5438.014; Thu, 14 Jul
- 2022 18:28:23 +0000
-Date: Thu, 14 Jul 2022 11:28:21 -0700
-From: Dan Williams <dan.j.williams@intel.com>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Dan Williams
-	<dan.j.williams@intel.com>, <nvdimm@lists.linux.dev>,
-	<linux-kernel@vger.kernel.org>
-CC: Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang
-	<dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>, Andy Shevchenko
-	<andriy.shevchenko@linux.intel.com>
-Subject: RE: [PATCH v1 1/1] nvdimm/namespace: drop unneeded temporary
- variable in size_store()
-Message-ID: <62d060459476d_1643dc294e3@dwillia2-xfh.jf.intel.com.notmuch>
-References: <20220607153750.33639-1-andriy.shevchenko@linux.intel.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20220607153750.33639-1-andriy.shevchenko@linux.intel.com>
-X-ClientProxiedBy: BYAPR11CA0052.namprd11.prod.outlook.com
- (2603:10b6:a03:80::29) To MWHPR1101MB2126.namprd11.prod.outlook.com
- (2603:10b6:301:50::20)
+   d="scan'208";a="685678001"
+Received: from smile.fi.intel.com ([10.237.72.54])
+  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jul 2022 11:45:16 -0700
+Received: from andy by smile.fi.intel.com with local (Exim 4.96)
+	(envelope-from <andriy.shevchenko@linux.intel.com>)
+	id 1oC3pq-001Dco-13;
+	Thu, 14 Jul 2022 21:45:14 +0300
+Date: Thu, 14 Jul 2022 21:45:14 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>
+Subject: Re: [PATCH v1 1/1] nvdimm/namespace: return uuid_null only once in
+ nd_dev_to_uuid()
+Message-ID: <YtBkOo2vME1jgU1C@smile.fi.intel.com>
+References: <20220607152525.33468-1-andriy.shevchenko@linux.intel.com>
+ <62d05f453b73e_1643dc29412@dwillia2-xfh.jf.intel.com.notmuch>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 936e418d-4426-46de-9314-08da65c6a2d5
-X-MS-TrafficTypeDiagnostic: DM5PR11MB1674:EE_
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: 9Q9L9/rg5YCVB6T1CUhrlqlkjxLB/7e0aG8iwBBhrY5BxDMMM2lqUunr5sor5De+1mr4X2QchBoudcqf23RW1lyuInpmEvpkd6B6P3qmABv0iL43x5hmUDyBU+QIklfioudSRZWGm7M7TyEBFtSswkWj/POjO+HpNv0ps9Yw5NOECqsZqhTN0EwvMI/sDD230xBbF1lfjPok5cg9ClWz7bzSjk82qn9OizIhYNcRuasGIDyT5HsIveCXyTu6pHmWHAK7DBFP1lT/xPCMkyjkqVYtsaTXVVrmQJ5yf4hWurkMTyZWOTvBu1wdXKC1HwEz2ZcqKLh6U6l8TBGeoLM0jij2SBw0IrOWJKEhJ0MxAOvO6wxbBTzJ2WJptFxnpq02XY+0bbWhEUqZ7d1/wgZR3aXmBtGhxUir4m1FfOwYZNeYSlWVhP65ghsAUUNkomSZmlPTsfha9qz/zatJZEdmrq1hmeGDkZvgLVIyPg8yA/GPJIpvg6mCuPWBC8+Jn2YW/vra6AgaisrBNIsJbzC11vI0fCiffVihWi6FLsqyGqPg3YbHXw4UgxBEC+gWtb5t6W9Vq+xIDPeuNmcLV3GcDm5Je/xotOkkNM2DEvxd8rEtO/ihI7GW08GyLipvhng+ZHNy6UJ6bdITH4muxhXCIDvQpCQyvR/2S3AKDsWMea3b+RaIhbICcj42syGch3245/5HJRqiSQFXbnH8bmQN+Ejtbiz/v4k6VRrQSGbPYHBVL1qRhZcoP61EomzavGdi
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1101MB2126.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(396003)(346002)(39860400002)(366004)(376002)(136003)(2906002)(5660300002)(6512007)(83380400001)(316002)(110136005)(54906003)(8936002)(558084003)(86362001)(82960400001)(4326008)(8676002)(6506007)(26005)(41300700001)(9686003)(6486002)(478600001)(38100700002)(66946007)(66476007)(66556008)(186003);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?KrUJcuCu2nzOxE3yXe/ofw9EqO23cEmg7lee5Zy7O68mMXTCMK/x5TlKk8ut?=
- =?us-ascii?Q?BZigYhcWHO4GCBkqJavguVQPfN7FTSlBUJ83rgO2MgRuHJz1RfOZAD53jp27?=
- =?us-ascii?Q?/7ngc1qisuqEgd+Jn98ghcSy3iiiQbTCYsyDf5HOCP9dNu3F20CpDO5SW838?=
- =?us-ascii?Q?TLIa1in4Gu9upOsstwjfmDFJDINiXO4dRs46UYN8kJSwxuER3MTf4tS9VNVW?=
- =?us-ascii?Q?4NF1ozCtMFG3rl60KryyHGyHO4P2rq1PIuwMOdwuw9rpFSFi77urkQnJtnSx?=
- =?us-ascii?Q?A8iLQYWOMcyQjbyf4DBt7tzZI5NXeOkGjVLhG0ftHeuOLSsbQjUuEnxcrnWi?=
- =?us-ascii?Q?m1ci6f37KXBwIoJGmHWXG97SOJXVpx0ft6kycj+aXnVNUrRauhoW7e+YjioY?=
- =?us-ascii?Q?dL7R8JruIwUi6prGdtWAR56y1ks4K8rbqEyMmvSAxO+P3jAKyvK0XVWs7xrK?=
- =?us-ascii?Q?KbDRGzZLuAiyXEaGMVU4xYl4fVuKvKnU8aFVGR07J/ChFJhz4rMbPDBvZW2v?=
- =?us-ascii?Q?KwBerbQhtskjveqsFaC3GeQwv87M4ZN19Ro96mehgRto9stHcxKeJ23ljsCQ?=
- =?us-ascii?Q?4koUJPyhuCAhU6s5oM4ymofq1WAxtMtyT7yG/py085qtaoFTfBOK4T79g9+x?=
- =?us-ascii?Q?GEFrc0n9N4DNfF3K3DrrGWjr+7dIutOgH3YS0GiDTB7/3+/8aap30vh7MDVJ?=
- =?us-ascii?Q?5ZEhu6At76boo2OR35qZGEjmBTtqi+4hsx//W9Gj7nnkferuUbZdZtakhKky?=
- =?us-ascii?Q?qicfTdO3brVgzdqsmcj2GYVsHaRQFQgcQNa6lAZe3h266Fig0zyXCLHkT2sk?=
- =?us-ascii?Q?6ZuLwNFCv9FPC3OgEqxjsavjupuPl2RwvBipbiUl58IxKhYApDiLCLNqwBtu?=
- =?us-ascii?Q?dXEsl8bRpDS4pkFTto5dirqI4MFi1pT6GVIJC2jQ8+5WttARlkTvhMTgznDJ?=
- =?us-ascii?Q?LYyQxjcLiCXXDaf99YLefZ5WCk06ccFN0GFkX29ogvNB37c6tGLu9QmEU90A?=
- =?us-ascii?Q?FRpCdoX8rxUnuTvMGSN8vqV8nm7wlDD06uvUGhxptSz2fTsMv2VBmJyD9Ea+?=
- =?us-ascii?Q?nO8OyEt268HH0CrgQJ8LB6eURW7lh4JIGZCqZeYnH9Kr7CykwtYaoEj+Fnhw?=
- =?us-ascii?Q?tfgfuPf+nYtSYSMz4V505Nq4sC6gGfUT3kEW4xl9fU87OJIUFyiN9eU5ewHU?=
- =?us-ascii?Q?60TK7cCsqdnmc7xFXPrOuJPIKDUBwu/AAebpZEtsEcy01OiaSw/s79WCdQff?=
- =?us-ascii?Q?gju2fQtUNZmaQjTT/3ON4jKncIW/6IUb3iH9ZHHrjrvkyexDj0FSJnLEwmxT?=
- =?us-ascii?Q?nO1pE72t6ltQKti3STsBNHpnX3XhV32P8T2tZqEXNByIXdBn6KHeXazYbEvs?=
- =?us-ascii?Q?GJ90jbHyNt9pE7iUXanPMwclgpe3qBaPRxeRKXZTcrSLUu0xgekXJ0XGVCRm?=
- =?us-ascii?Q?c+DVCChys0iFZUcqhV8ypM6WJgMaHhVbsydYq7JcEMpFHvGRTJvViXy399qk?=
- =?us-ascii?Q?KrnQIZsC+WhN3zLYQOe4e6NGci5ZuUnIY7pWe40QbrlUhLbBzZz1d74W0yjR?=
- =?us-ascii?Q?kwZsQ/nTT2v3nmY1DYoWpUW+ERr7dGXpkW4+zM8TegeGS3oe8Rffnb/6TA3W?=
- =?us-ascii?Q?ig=3D=3D?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: 936e418d-4426-46de-9314-08da65c6a2d5
-X-MS-Exchange-CrossTenant-AuthSource: MWHPR1101MB2126.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 14 Jul 2022 18:28:23.7588
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: TSKaJEwCiTw7F/p7ZGRddxjJIqR9JSLFm4QLs8HemqENhbKdxs7MixU0LeIFctLhrBgfWaEgYTFc4KmjzSrld8kA2woJd7laXAXnhxhJq+I=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM5PR11MB1674
-X-OriginatorOrg: intel.com
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <62d05f453b73e_1643dc29412@dwillia2-xfh.jf.intel.com.notmuch>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 
-Andy Shevchenko wrote:
-> Refactor size_store() in order to remove temporary variable on stack
-> by joining conditionals.
+On Thu, Jul 14, 2022 at 11:24:05AM -0700, Dan Williams wrote:
+> Andy Shevchenko wrote:
+> > Refactor nd_dev_to_uuid() in order to make code shorter and cleaner
+> > by joining conditions and hence returning uuid_null only once.
+> 
+> Apologies for the delay, applied for v5.20.
 
-Looks good, applied.
+No problem and thanks!
+
+P.S. One patch out of three is a fix, would be nice to have it in v5.19
+release.
+
+-- 
+With Best Regards,
+Andy Shevchenko
+
+
