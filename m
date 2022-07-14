@@ -1,47 +1,147 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B23A96004
-	for <nvdimm@lists.linux.dev>; Thu, 14 Jul 2022 17:54:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4AEAAC34114;
-	Thu, 14 Jul 2022 17:54:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1657821255;
-	bh=LgU+sYC6IUyCyX2o7fwrVIJ7cvKYLuT2/55WRReuVuk=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=miK77TVEWJzTCgxOunLKwtg+bA4M2rbSH6kRxi8PeaYxE7T8a2fQkRJDBoyTOQjZ+
-	 P39e07+GfiM2KD0lvYiJd7QQNy6dpTtGIa9KUi8/E/0iSLcQ7JkUECWw1g4A6N71OO
-	 vv6++OCRidDQp0ekvihKIjwcgtB2DJ0URyILgMWdcpEwdnMZEGlwhkInw+RBelqDba
-	 soOqdmPgEN1XHEVM28Oln3izsHpXswM711d3W9X6m5wyEtnESil+ozOdJKGo27IykI
-	 nMU+ORrvI3wjsw+mC5KORWbTjzq7Au2FR7PlORe/B75JNMKd39FfyoIPGpzEX6SY7T
-	 lIHJXqNKwc21w==
-Date: Thu, 14 Jul 2022 10:54:14 -0700
-From: "Darrick J. Wong" <djwong@kernel.org>
-To: "ruansy.fnst@fujitsu.com" <ruansy.fnst@fujitsu.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF0206004
+	for <nvdimm@lists.linux.dev>; Thu, 14 Jul 2022 18:21:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1657822912; x=1689358912;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=6vDKSPSBtwB+0kL7ja4/WtKq73QvcoQST4NE/aGzpTw=;
+  b=mGykmFC3ZYmucB3PvEwIsKHNNEH1vVbgQq0zPpG/c7udZKDP7Yo1v2mS
+   6p8UslZjCvD8HqQQV02aYdhAmbKbxpQ6jB2uz2ARFytTLeMzet4oncNOz
+   /C7CwQaBXnJ8jzzUx/OoZh5BgOdbCP9DweI8+kI+05Vd6zc3wLUMVX0X1
+   E4cJuHwF3waRqOHGc0CvIx0uFI/3h7dewPr9UFA6QmwDCmojRWT3v681I
+   /Uv8MleogDN+IjrzkUV4/zxedmP6kxYU08OaixovmYRiGPx+rNjgcPUte
+   dimXwgxo0Zc4ZFJjwPh/oWyh6eTdS/SEXVNE+3asDOtth4PUmT+vzfNdc
+   Q==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10408"; a="311255587"
+X-IronPort-AV: E=Sophos;i="5.92,272,1650956400"; 
+   d="scan'208";a="311255587"
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jul 2022 11:21:52 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.92,272,1650956400"; 
+   d="scan'208";a="653989487"
+Received: from orsmsx604.amr.corp.intel.com ([10.22.229.17])
+  by fmsmga008.fm.intel.com with ESMTP; 14 Jul 2022 11:21:51 -0700
+Received: from orsmsx607.amr.corp.intel.com (10.22.229.20) by
+ ORSMSX604.amr.corp.intel.com (10.22.229.17) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2308.27; Thu, 14 Jul 2022 11:21:51 -0700
+Received: from orsmsx610.amr.corp.intel.com (10.22.229.23) by
+ ORSMSX607.amr.corp.intel.com (10.22.229.20) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2308.27; Thu, 14 Jul 2022 11:21:50 -0700
+Received: from ORSEDG602.ED.cps.intel.com (10.7.248.7) by
+ orsmsx610.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2308.27 via Frontend Transport; Thu, 14 Jul 2022 11:21:50 -0700
+Received: from NAM02-BN1-obe.outbound.protection.outlook.com (104.47.51.47) by
+ edgegateway.intel.com (134.134.137.103) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2308.27; Thu, 14 Jul 2022 11:21:49 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=K3+IagfPwxIjSVBLNlTJWkZ27HEdB6KBioBi4C0T+Fg1s8LcJxNlEEHI+GtXWNbGHSV12VkzCDiK9X7EfQATelDm/iR2gSQrTUlJd5Pt48bCXCPrzitk1dCpVrf9KXVhZ+NCU1DuIkH2MloGYeiz2ZW8VwCn51pa+Wg0u829qC/asIE7v28EdnWcWztTNvSv7vfRDGzyQwqQb7CGKgY13QrYJQJl8Iz8p7hF7Raac+Cn7CWN3HTcUbOL86WBShDvvsOoBRKN9UZ2Cmk1v2Wt7MgfcW41l8uVOKaqyv36ltlSEHFXcrfiHkxVtp9L/sJ5AARLazcSn3subducC8v+YA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=clGwws9tiUG1V06uohL0+U5pwhO6+axGCcvIBSbCVcU=;
+ b=Uh1upwS8PLaywevKBs8q8J4mgnWvZgfzmzSjcKA7CUBKC+3JDTfsve3LvwJF+uSsMOWW6SKNucQoXXqxnmCB1pFnLdsyfvZT9ql22xI15ila5ESVSqBKQ1M7pgFayFJKn0xZF/I73b/D2XD9+gWUyYX0wa54qcWW+YGHSf6Z3fRE7xBRYzZ2KIfTVcoe8nnGp4oeifmeGbg9/rZcpDwnwlOp4lRzvGd0kC0xxbydUnIPDyg1uQIXI8iK2Q8B2hJhGkJgtihfLRoVYehautMJoQjv7TUey8J34oATLxil54Y2C+NdvcPzmBaoIUtp27gotYE1vsbkNc3IyugzyOP/ZA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
+ (2603:10b6:301:50::20) by IA1PR11MB6169.namprd11.prod.outlook.com
+ (2603:10b6:208:3eb::9) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5438.14; Thu, 14 Jul
+ 2022 18:21:47 +0000
+Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
+ ([fe80::6466:20a6:57b4:1edf]) by MWHPR1101MB2126.namprd11.prod.outlook.com
+ ([fe80::6466:20a6:57b4:1edf%11]) with mapi id 15.20.5438.014; Thu, 14 Jul
+ 2022 18:21:47 +0000
+Date: Thu, 14 Jul 2022 11:21:44 -0700
+From: Dan Williams <dan.j.williams@intel.com>
+To: "ruansy.fnst@fujitsu.com" <ruansy.fnst@fujitsu.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
 	"linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>,
-	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
-	"linux-mm@kvack.org" <linux-mm@kvack.org>,
-	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
-	"dan.j.williams@intel.com" <dan.j.williams@intel.com>,
-	"david@fromorbit.com" <david@fromorbit.com>,
-	"hch@infradead.org" <hch@infradead.org>,
-	"jane.chu@oracle.com" <jane.chu@oracle.com>
-Subject: Re: [RFC PATCH v6] mm, pmem, xfs: Introduce MF_MEM_REMOVE for unbind
-Message-ID: <YtBYRrkSkuF4VU5e@magnolia>
+	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, "linux-mm@kvack.org"
+	<linux-mm@kvack.org>, "linux-fsdevel@vger.kernel.org"
+	<linux-fsdevel@vger.kernel.org>
+CC: "djwong@kernel.org" <djwong@kernel.org>, "dan.j.williams@intel.com"
+	<dan.j.williams@intel.com>, "david@fromorbit.com" <david@fromorbit.com>,
+	"hch@infradead.org" <hch@infradead.org>, "jane.chu@oracle.com"
+	<jane.chu@oracle.com>
+Subject: RE: [RFC PATCH v6] mm, pmem, xfs: Introduce MF_MEM_REMOVE for unbind
+Message-ID: <62d05eb8e663c_1643dc294fa@dwillia2-xfh.jf.intel.com.notmuch>
 References: <20220410171623.3788004-1-ruansy.fnst@fujitsu.com>
  <20220714103421.1988696-1-ruansy.fnst@fujitsu.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20220714103421.1988696-1-ruansy.fnst@fujitsu.com>
+X-ClientProxiedBy: BY5PR17CA0040.namprd17.prod.outlook.com
+ (2603:10b6:a03:167::17) To MWHPR1101MB2126.namprd11.prod.outlook.com
+ (2603:10b6:301:50::20)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220714103421.1988696-1-ruansy.fnst@fujitsu.com>
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: d592c3fe-6727-4e02-ec94-08da65c5b67c
+X-MS-TrafficTypeDiagnostic: IA1PR11MB6169:EE_
+X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: V63goFcl5uJ4etIiNfaUu3gkBWGcQd3Ogble5fCW18QOgQm85oNswqxtN7uY6T1TCxWIwXkBt5hYPk1xroBfBh2lHvv0qz5VHMPdtzyIIPL1+4MtYnywIcUhk9TMH6hx/8IpQhq2mSSaVoegfLAHXwnPJwydYeL+g+KImwUzOhJPxL5inWgPuddnL7qpQyTSkdRWi12TNRYK5BPkhF2oj6A+XsHN05C5aX/f1/rj6tOOHeBcS17qgZZCxWt76BLdXWrnexKKwl7u/e3TKYMlpndu/Z1NBgN02436cxcm8HP09jbkRb3UryTf0kdcx+wEMEdm0c/83cppUpet4sM2XzWB90sK/zNkhdpYTqUcppzIoz17Deugs5mkHrx9ocLixPhcnQS35t+u1GFfpU9YoLBvW8zcZQekH6xr/v0t603HNs6ZVxmOEfMZCJiiss9N/jNesxn10LiqCZZH21EGDMa4mphJff0FB+qVz7V4ioOVtA6A1MzlFBdHvVQ0NxZtu3LANkTlXkazJWwxzMF6rQDTTkpkYOpqwc5T8Z+siPRCzJguQUP/yWIQenOAsZtVuPA9frD+XEYvMKxSKAuxVAVFkn6N7qGWURlnUa1CsYMqMt0+jpTZvoGE3OR5b87P2Q01U+Sa7FoSGVnJznZzcOReQ7nx64qBsJmwWfcwKzeHxZXgS3ik/kizlB9811pDWD7nStGhPCGJrEuS9EJsL8a2NCXPd0ESFHnQbHGFBZl6tcsqn+jIC26c54rtwAeCzyn5T1pJ/c4zzgkwZIlvHeb/lfqHmojqdRlgdBPjiy0=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1101MB2126.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(136003)(366004)(39860400002)(396003)(376002)(346002)(8936002)(5660300002)(7416002)(8676002)(4326008)(2906002)(83380400001)(86362001)(38100700002)(82960400001)(966005)(6486002)(478600001)(66946007)(110136005)(54906003)(66476007)(316002)(186003)(66556008)(6506007)(6666004)(41300700001)(6512007)(9686003)(26005);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?v7Z77dRSvLV9xguhdNVMaIsm25FHaliYApNlM7xE58VUFoO2f4eIOZrhIvUI?=
+ =?us-ascii?Q?MWo8Q/rZcSOu8RmJJ1o3ul1X16ebHOjXxXChnOA82szoNLB12aoiahjwifnW?=
+ =?us-ascii?Q?RDgMXSlp5zAOKHd26lXnZAj9luMqPmPDsGKzPgLUaHYNFA9useaFMS2ad0PZ?=
+ =?us-ascii?Q?mWmB6YLFUSZIqkDNTF+6cnGF3bWmv0vTLWEuq30s5q3Q8S6hjKZH/Y/q4d2o?=
+ =?us-ascii?Q?nNTkn0qSWQ9duCUGrRcDQca3FQjbpf27eBicJk/C6cnquwDo14BPDzDXOKDl?=
+ =?us-ascii?Q?U8/UWI7MRS2SJ+ggZeuNHt2N61Z3DpkW7xo2ae5AAqdhtm+7GvHPa42M2vWm?=
+ =?us-ascii?Q?dM3VtKbUkiyNUvJABsRCG1iir3F1mf4dVZYJFko25/TRsYI3n4I6qf/P16eQ?=
+ =?us-ascii?Q?mXJUarD4wXBS+qzfJKkr8B967j0Gb1pz8mIJWXkkbHYfepPBsOI88wFkhnu6?=
+ =?us-ascii?Q?ON8lANOSnsQ7+TGSAXkfTTL9NWPvQYu4c2bjLQmsxZR1IL5qoud+yPRjxWGq?=
+ =?us-ascii?Q?kskz75IwpG8b7SkzQGoppB9E0J/jKG05Mk+3Lw07rVVOwJMebHou3Iqftroz?=
+ =?us-ascii?Q?3NChVVZso5VpsFLYStVseSqvos4mVmKaWQ0u7UtH52UJmWB8rkYzfxBMr0hM?=
+ =?us-ascii?Q?2pFDU/5R5WaGubvojdBvoJvH02AyIZkqAypfbk5Y/M2Pyaw5d1yDkaCxywEG?=
+ =?us-ascii?Q?0lIHs9EYDwzWx9MmV6CaKaEbA0UUV/Ta5FB6Cqnv+jIl96kxDGWDM0VTND6V?=
+ =?us-ascii?Q?/fZ2cA6ClbthfSM1FcAKbrQTmMGQ74HmyY9fMixUL4VXsRpSqTPMjl0jWP5J?=
+ =?us-ascii?Q?l1qOJCMX9aPaVOHdz007TDR09LMXP/OlYqTBfRdHViOr54uedx7ypW/G/9Xr?=
+ =?us-ascii?Q?mqURn8X7IICGvIrz0mY7GA8csYQuR24QtGa/AtS7lYVlNFbsR/S23MJYA/cL?=
+ =?us-ascii?Q?y3g/N7Q3wpLq7LNoupXLJbKrWG2Dbg20kdPJRyi1gXbEjUtPpjCn9AEdwEKZ?=
+ =?us-ascii?Q?dn7cK1Da/bKZ4UcMPQ7u/enxFj9cQeboxDcEHvgvFcKyczE8CQj0yodRxaIR?=
+ =?us-ascii?Q?tpTKWMT1gXYI2GDsdgGal7Ugwd8gotZnpudYOiPzYmG781d+yTO7EGKO3nNo?=
+ =?us-ascii?Q?q2SP72030yhQsu29xRVPbiwmDwCHLziCoYfmujGKN7Kl34umBKc/Z5T3fA3z?=
+ =?us-ascii?Q?PC8Exy7H39jV3HfOTa+1548QhGYauaOgoTcTBpLnWH5yEBc2fU3cpfh6SA/K?=
+ =?us-ascii?Q?RAqL76JJcbLvDbUAgSbIdFvYzokl2MfNw9SVmP9gMN0ZfNvm9D9Eqrk+VTmz?=
+ =?us-ascii?Q?gFV1jFyqVbPeyDhWo8DVxVARwWui7UOO911uS0eQR1apGbyzMBSXm1WPWgXZ?=
+ =?us-ascii?Q?lljg7VVuC1zymMkOxDR6RNAUKIJv5WSWEMc5lZwcE2moCwOxLUDuh4B7nueR?=
+ =?us-ascii?Q?sS2A1sdkqQCXeFTbG/rURkaaaKVvNZe8XWDCUJ8aEHteieWvTDuSJdzB/N94?=
+ =?us-ascii?Q?9IcT3mudvU/T7M7TU+Dczh7xrqvgoNI0dN1ScmHbFRNuzJbty76NCvzQQ2WX?=
+ =?us-ascii?Q?9YjPuTacslr8057Om2rHl2W3dAykzkIsP+0sTK96cF8GNOzzCJQ++vzpeabX?=
+ =?us-ascii?Q?bQ=3D=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: d592c3fe-6727-4e02-ec94-08da65c5b67c
+X-MS-Exchange-CrossTenant-AuthSource: MWHPR1101MB2126.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 14 Jul 2022 18:21:47.2355
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: oIlp0v8zRAqhheKRsqvgNlefPQIMH8s6FCxCVdD06hOznqnMUU8RCVuf8bfthxYRjtahQhiXKgfG7+AczmB4rgcw2lBW7cZf0dfr5zZitjo=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR11MB6169
+X-OriginatorOrg: intel.com
 
-On Thu, Jul 14, 2022 at 10:34:29AM +0000, ruansy.fnst@fujitsu.com wrote:
+ruansy.fnst@fujitsu.com wrote:
 > This patch is inspired by Dan's "mm, dax, pmem: Introduce
 > dev_pagemap_failure()"[1].  With the help of dax_holder and
 > ->notify_failure() mechanism, the pmem driver is able to ask filesystem
@@ -76,12 +176,6 @@ On Thu, Jul 14, 2022 at 10:34:29AM +0000, ruansy.fnst@fujitsu.com wrote:
 > [1]: https://lore.kernel.org/linux-mm/161604050314.1463742.14151665140035795571.stgit@dwillia2-desk3.amr.corp.intel.com/
 > 
 > Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-
-Looks reasonable to me now,
-Reviewed-by: Darrick J. Wong <djwong@kernel.org>
-
---D
-
 > ---
 >  drivers/dax/super.c         |  3 ++-
 >  fs/xfs/xfs_notify_failure.c | 15 +++++++++++++++
@@ -132,33 +226,15 @@ Reviewed-by: Darrick J. Wong <djwong@kernel.org>
 > +		down_write(&mp->m_super->s_umount);
 > +		error = sync_filesystem(mp->m_super);
 > +		up_write(&mp->m_super->s_umount);
-> +		if (error)
-> +			return error;
-> +	}
-> +
->  	if (mp->m_rtdev_targp && mp->m_rtdev_targp->bt_daxdev == dax_dev) {
->  		xfs_warn(mp,
->  			 "notify_failure() not supported on realtime device!");
-> @@ -188,6 +201,8 @@ xfs_dax_notify_failure(
->  
->  	if (mp->m_logdev_targp && mp->m_logdev_targp->bt_daxdev == dax_dev &&
->  	    mp->m_logdev_targp != mp->m_ddev_targp) {
-> +		if (mf_flags & MF_MEM_PRE_REMOVE)
-> +			return 0;
->  		xfs_err(mp, "ondisk log corrupt, shutting down fs!");
->  		xfs_force_shutdown(mp, SHUTDOWN_CORRUPT_ONDISK);
->  		return -EFSCORRUPTED;
-> diff --git a/include/linux/mm.h b/include/linux/mm.h
-> index 4287bec50c28..2ddfb76c8a83 100644
-> --- a/include/linux/mm.h
-> +++ b/include/linux/mm.h
-> @@ -3188,6 +3188,7 @@ enum mf_flags {
->  	MF_SOFT_OFFLINE = 1 << 3,
->  	MF_UNPOISON = 1 << 4,
->  	MF_SW_SIMULATED = 1 << 5,
-> +	MF_MEM_PRE_REMOVE = 1 << 6,
->  };
->  int mf_dax_kill_procs(struct address_space *mapping, pgoff_t index,
->  		      unsigned long count, int mf_flags);
-> -- 
-> 2.37.0
+
+Are all mappings invalidated after this point?
+
+The goal of the removal notification is to invalidate all DAX mappings
+that are no pointing to pfns that do not exist anymore, so just syncing
+does not seem like enough, and the shutdown is skipped above. What am I
+missing?
+
+Notice that kill_dev_dax() does unmap_mapping_range() after invalidating
+the dax device and that ensures that all existing mappings are gone and
+cannot be re-established. As far as I can see a process with an existing
+dax mapping will still be able to use it after this runs, no?
