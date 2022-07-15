@@ -1,37 +1,37 @@
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DC926D17
-	for <nvdimm@lists.linux.dev>; Fri, 15 Jul 2022 00:01:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8D946D17
+	for <nvdimm@lists.linux.dev>; Fri, 15 Jul 2022 00:01:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1657843303; x=1689379303;
+  t=1657843305; x=1689379305;
   h=subject:from:to:cc:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=zbeC4suVaifJOdnAyRi2cfH0scr2EdvKoYXquZzpLB0=;
-  b=h9yBJuOOpE9ieTBETEl6x7uicNUw853wm2sWUpwpW8Pj6FoSOD6rMQ3x
-   7TX66NLH7R9kdBHihFqEyDLju99OVr6zZXR3B4d0aDtDH20QiO7Lr8ioX
-   TtOHD/27VHu4hEq8Mkn9k/TPMcwFmRKmmDOCnVfnh8/tajMHiYqBkw/3g
-   7Uqoaznt9ZhcUYth2i11jFfoNrwdqTKbqatEvvRC8JVeTUS7SsAvTjpuL
-   Xqw7YMEp84ujiPbwfzkBtiuiv/ho7x2REvi0MdeuJYW7Yo5wDz2xCpEte
-   YhHY9v0+W1Cvb3R/Wm47Do2VNS85DaeBhG1BXlNyZjqjwQB9Q+FK+WoPq
-   Q==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10408"; a="285683404"
+  bh=+ihFnLM0nNzB7sHl4ZXxnyM/LsP/E8epqdxlAvbvAKI=;
+  b=feBpUD3VinWAkUX4ESrm74Oe9vhwINibUZLSKAOEAHTZy2lodP+OYhV0
+   cBgNG9YdTxQyzFGnk9fuhTaKcxL3xCTT+c2LBjlqtHOUSyEcZYd5bzpbA
+   uJqdxiZlQ0lkon8SxbxGHP6OmYR+BPSfcyxYAOSQZbxrnS6V805rMjnJc
+   34ZXqpROlSaTtV0GLNmMFW3GO2JBizmKoGNoehTJUha1JLod9F3kAlJYn
+   RH47XePqjMxdysZ4kyhLMqVhRqjZysI7Eatnf2qEFK9a3d+n2P6ehJlav
+   JnKuY7sh9tnMFK9tgUhM29KiNJo+VvkwCFqhJ5672r1K2SQdyUCP+PRKx
+   g==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10408"; a="347338986"
 X-IronPort-AV: E=Sophos;i="5.92,272,1650956400"; 
-   d="scan'208";a="285683404"
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jul 2022 17:01:23 -0700
+   d="scan'208";a="347338986"
+Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jul 2022 17:01:12 -0700
 X-IronPort-AV: E=Sophos;i="5.92,272,1650956400"; 
-   d="scan'208";a="571302165"
+   d="scan'208";a="663984569"
 Received: from jlcone-mobl1.amr.corp.intel.com (HELO dwillia2-xfh.jf.intel.com) ([10.209.2.90])
-  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jul 2022 17:01:23 -0700
-Subject: [PATCH v2 07/28] cxl/hdm: Add 'mode' attribute to decoder objects
+  by fmsmga004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jul 2022 17:01:11 -0700
+Subject: [PATCH v2 05/28] cxl/core: Define a 'struct cxl_endpoint_decoder'
 From: Dan Williams <dan.j.williams@intel.com>
 To: linux-cxl@vger.kernel.org
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>, hch@lst.de,
- nvdimm@lists.linux.dev, linux-pci@vger.kernel.org
-Date: Thu, 14 Jul 2022 17:01:22 -0700
-Message-ID: <165784328277.1758207.16889065926766678946.stgit@dwillia2-xfh.jf.intel.com>
+Cc: Ben Widawsky <bwidawsk@kernel.org>, hch@lst.de, nvdimm@lists.linux.dev,
+ linux-pci@vger.kernel.org
+Date: Thu, 14 Jul 2022 17:01:10 -0700
+Message-ID: <165784327088.1758207.15502834501671201192.stgit@dwillia2-xfh.jf.intel.com>
 In-Reply-To: <165784324066.1758207.15025479284039479071.stgit@dwillia2-xfh.jf.intel.com>
 References: <165784324066.1758207.15025479284039479071.stgit@dwillia2-xfh.jf.intel.com>
 User-Agent: StGit/0.18-3-g996c
@@ -44,142 +44,191 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 
-Recall that the Device Physical Address (DPA) space of a CXL Memory
-Expander is potentially partitioned into a volatile and persistent
-portion. A decoder maps a Host Physical Address (HPA) range to a DPA
-range and that translation depends on the value of all previous (lower
-instance number) decoders before the current one.
+Previously the target routing specifics of switch decoders and platform
+CXL window resource tracking of root decoders were factored out of
+'struct cxl_decoder'. While switch decoders translate from SPA to
+downstream ports, endpoint decoders translate from SPA to DPA.
 
-In preparation for allowing dynamic provisioning of regions, decoders
-need an ABI to indicate which DPA partition a decoder targets. This ABI
-needs to be prepared for the possibility that some other agent committed
-and locked a decoder that spans the partition boundary.
+This patch, 3 of 3, adds a 'struct cxl_endpoint_decoder' that tracks an
+endpoint-specific Device Physical Address (DPA) resource. For now this
+just defines ->dpa_res, a follow-on patch will handle requesting DPA
+resource ranges from a device-DPA resource tree.
 
-Add 'decoderX.Y/mode' to endpoint decoders that indicates which
-partition 'ram' / 'pmem' the decoder targets, or 'mixed' if the decoder
-currently spans the partition boundary.
-
-Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Link: https://lore.kernel.org/r/165603881967.551046.6007594190951596439.stgit@dwillia2-xfh
+Co-developed-by: Ben Widawsky <bwidawsk@kernel.org>
+Signed-off-by: Ben Widawsky <bwidawsk@kernel.org>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- Documentation/ABI/testing/sysfs-bus-cxl |   16 ++++++++++++++++
- drivers/cxl/core/hdm.c                  |   10 ++++++++++
- drivers/cxl/core/port.c                 |   20 ++++++++++++++++++++
- drivers/cxl/cxl.h                       |    9 +++++++++
- 4 files changed, 55 insertions(+)
+ drivers/cxl/core/hdm.c       |    9 ++++++---
+ drivers/cxl/core/port.c      |   31 +++++++++++++++++++++----------
+ drivers/cxl/cxl.h            |   15 ++++++++++++++-
+ tools/testing/cxl/test/cxl.c |   10 +++++++---
+ 4 files changed, 48 insertions(+), 17 deletions(-)
 
-diff --git a/Documentation/ABI/testing/sysfs-bus-cxl b/Documentation/ABI/testing/sysfs-bus-cxl
-index 16d9ffa94bbd..b8ef8aedaf39 100644
---- a/Documentation/ABI/testing/sysfs-bus-cxl
-+++ b/Documentation/ABI/testing/sysfs-bus-cxl
-@@ -179,3 +179,19 @@ Description:
- 		expander memory (type-3). The 'target_type' attribute indicates
- 		the current setting which may dynamically change based on what
- 		memory regions are activated in this decode hierarchy.
-+
-+
-+What:		/sys/bus/cxl/devices/decoderX.Y/mode
-+Date:		May, 2022
-+KernelVersion:	v5.20
-+Contact:	linux-cxl@vger.kernel.org
-+Description:
-+		(RO) When a CXL decoder is of devtype "cxl_decoder_endpoint" it
-+		translates from a host physical address range, to a device local
-+		address range. Device-local address ranges are further split
-+		into a 'ram' (volatile memory) range and 'pmem' (persistent
-+		memory) range. The 'mode' attribute emits one of 'ram', 'pmem',
-+		'mixed', or 'none'. The 'mixed' indication is for error cases
-+		when a decoder straddles the volatile/persistent partition
-+		boundary, and 'none' indicates the decoder is not actively
-+		decoding, or no DPA allocation policy has been set.
 diff --git a/drivers/cxl/core/hdm.c b/drivers/cxl/core/hdm.c
-index d4c17325001b..acd46b0d69c6 100644
+index 2f10d42798de..650363d5272f 100644
 --- a/drivers/cxl/core/hdm.c
 +++ b/drivers/cxl/core/hdm.c
-@@ -224,6 +224,16 @@ static int __cxl_dpa_reserve(struct cxl_endpoint_decoder *cxled,
- 	cxled->dpa_res = res;
- 	cxled->skip = skipped;
+@@ -256,12 +256,15 @@ int devm_cxl_enumerate_decoders(struct cxl_hdm *cxlhdm)
+ 		struct cxl_decoder *cxld;
  
-+	if (resource_contains(&cxlds->pmem_res, res))
-+		cxled->mode = CXL_DECODER_PMEM;
-+	else if (resource_contains(&cxlds->ram_res, res))
-+		cxled->mode = CXL_DECODER_RAM;
-+	else {
-+		dev_dbg(dev, "decoder%d.%d: %pr mixed\n", port->id,
-+			cxled->cxld.id, cxled->dpa_res);
-+		cxled->mode = CXL_DECODER_MIXED;
-+	}
+ 		if (is_cxl_endpoint(port)) {
+-			cxld = cxl_endpoint_decoder_alloc(port);
+-			if (IS_ERR(cxld)) {
++			struct cxl_endpoint_decoder *cxled;
 +
- 	return 0;
- }
++			cxled = cxl_endpoint_decoder_alloc(port);
++			if (IS_ERR(cxled)) {
+ 				dev_warn(&port->dev,
+ 					 "Failed to allocate the decoder\n");
+-				return PTR_ERR(cxld);
++				return PTR_ERR(cxled);
+ 			}
++			cxld = &cxled->cxld;
+ 		} else {
+ 			struct cxl_switch_decoder *cxlsd;
  
 diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
-index ca4f23204e5c..0ac5dcd612e0 100644
+index 4953a1c7b245..ca4f23204e5c 100644
 --- a/drivers/cxl/core/port.c
 +++ b/drivers/cxl/core/port.c
-@@ -172,6 +172,25 @@ static ssize_t target_list_show(struct device *dev,
+@@ -244,12 +244,12 @@ static void __cxl_decoder_release(struct cxl_decoder *cxld)
+ 	put_device(&port->dev);
  }
- static DEVICE_ATTR_RO(target_list);
  
-+static ssize_t mode_show(struct device *dev, struct device_attribute *attr,
-+			 char *buf)
-+{
+-static void cxl_decoder_release(struct device *dev)
++static void cxl_endpoint_decoder_release(struct device *dev)
+ {
+-	struct cxl_decoder *cxld = to_cxl_decoder(dev);
 +	struct cxl_endpoint_decoder *cxled = to_cxl_endpoint_decoder(dev);
-+
-+	switch (cxled->mode) {
-+	case CXL_DECODER_RAM:
-+		return sysfs_emit(buf, "ram\n");
-+	case CXL_DECODER_PMEM:
-+		return sysfs_emit(buf, "pmem\n");
-+	case CXL_DECODER_NONE:
-+		return sysfs_emit(buf, "none\n");
-+	case CXL_DECODER_MIXED:
-+	default:
-+		return sysfs_emit(buf, "mixed\n");
-+	}
-+}
-+static DEVICE_ATTR_RO(mode);
-+
- static struct attribute *cxl_decoder_base_attrs[] = {
- 	&dev_attr_start.attr,
- 	&dev_attr_size.attr,
-@@ -222,6 +241,7 @@ static const struct attribute_group *cxl_decoder_switch_attribute_groups[] = {
  
- static struct attribute *cxl_decoder_endpoint_attrs[] = {
- 	&dev_attr_target_type.attr,
-+	&dev_attr_mode.attr,
- 	NULL,
+-	__cxl_decoder_release(cxld);
+-	kfree(cxld);
++	__cxl_decoder_release(&cxled->cxld);
++	kfree(cxled);
+ }
+ 
+ static void cxl_switch_decoder_release(struct device *dev)
+@@ -279,7 +279,7 @@ static void cxl_root_decoder_release(struct device *dev)
+ 
+ static const struct device_type cxl_decoder_endpoint_type = {
+ 	.name = "cxl_decoder_endpoint",
+-	.release = cxl_decoder_release,
++	.release = cxl_endpoint_decoder_release,
+ 	.groups = cxl_decoder_endpoint_attribute_groups,
  };
  
+@@ -321,6 +321,15 @@ struct cxl_decoder *to_cxl_decoder(struct device *dev)
+ }
+ EXPORT_SYMBOL_NS_GPL(to_cxl_decoder, CXL);
+ 
++struct cxl_endpoint_decoder *to_cxl_endpoint_decoder(struct device *dev)
++{
++	if (dev_WARN_ONCE(dev, !is_endpoint_decoder(dev),
++			  "not a cxl_endpoint_decoder device\n"))
++		return NULL;
++	return container_of(dev, struct cxl_endpoint_decoder, cxld.dev);
++}
++EXPORT_SYMBOL_NS_GPL(to_cxl_endpoint_decoder, CXL);
++
+ static struct cxl_switch_decoder *to_cxl_switch_decoder(struct device *dev)
+ {
+ 	if (dev_WARN_ONCE(dev, !is_switch_decoder(dev),
+@@ -1360,26 +1369,28 @@ EXPORT_SYMBOL_NS_GPL(cxl_switch_decoder_alloc, CXL);
+  *
+  * Return: A new cxl decoder to be registered by cxl_decoder_add()
+  */
+-struct cxl_decoder *cxl_endpoint_decoder_alloc(struct cxl_port *port)
++struct cxl_endpoint_decoder *cxl_endpoint_decoder_alloc(struct cxl_port *port)
+ {
++	struct cxl_endpoint_decoder *cxled;
+ 	struct cxl_decoder *cxld;
+ 	int rc;
+ 
+ 	if (!is_cxl_endpoint(port))
+ 		return ERR_PTR(-EINVAL);
+ 
+-	cxld = kzalloc(sizeof(*cxld), GFP_KERNEL);
+-	if (!cxld)
++	cxled = kzalloc(sizeof(*cxled), GFP_KERNEL);
++	if (!cxled)
+ 		return ERR_PTR(-ENOMEM);
+ 
++	cxld = &cxled->cxld;
+ 	rc = cxl_decoder_init(port, cxld);
+ 	if (rc)	 {
+-		kfree(cxld);
++		kfree(cxled);
+ 		return ERR_PTR(rc);
+ 	}
+ 
+ 	cxld->dev.type = &cxl_decoder_endpoint_type;
+-	return cxld;
++	return cxled;
+ }
+ EXPORT_SYMBOL_NS_GPL(cxl_endpoint_decoder_alloc, CXL);
+ 
 diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
-index d5e4cfac35ea..3e7363dde80f 100644
+index ebdac8e7d181..7e1460d89296 100644
 --- a/drivers/cxl/cxl.h
 +++ b/drivers/cxl/cxl.h
-@@ -241,16 +241,25 @@ struct cxl_decoder {
+@@ -239,6 +239,18 @@ struct cxl_decoder {
  	unsigned long flags;
  };
  
-+enum cxl_decoder_mode {
-+	CXL_DECODER_NONE,
-+	CXL_DECODER_RAM,
-+	CXL_DECODER_PMEM,
-+	CXL_DECODER_MIXED,
++/**
++ * struct cxl_endpoint_decoder - Endpoint  / SPA to DPA decoder
++ * @cxld: base cxl_decoder_object
++ * @dpa_res: actively claimed DPA span of this decoder
++ * @skip: offset into @dpa_res where @cxld.hpa_range maps
++ */
++struct cxl_endpoint_decoder {
++	struct cxl_decoder cxld;
++	struct resource *dpa_res;
++	resource_size_t skip;
 +};
 +
  /**
-  * struct cxl_endpoint_decoder - Endpoint  / SPA to DPA decoder
-  * @cxld: base cxl_decoder_object
-  * @dpa_res: actively claimed DPA span of this decoder
-  * @skip: offset into @dpa_res where @cxld.hpa_range maps
-+ * @mode: which memory type / access-mode-partition this decoder targets
-  */
- struct cxl_endpoint_decoder {
- 	struct cxl_decoder cxld;
- 	struct resource *dpa_res;
- 	resource_size_t skip;
-+	enum cxl_decoder_mode mode;
- };
+  * struct cxl_switch_decoder - Switch specific CXL HDM Decoder
+  * @cxld: base cxl_decoder object
+@@ -387,6 +399,7 @@ struct cxl_dport *cxl_find_dport_by_dev(struct cxl_port *port,
  
- /**
+ struct cxl_decoder *to_cxl_decoder(struct device *dev);
+ struct cxl_root_decoder *to_cxl_root_decoder(struct device *dev);
++struct cxl_endpoint_decoder *to_cxl_endpoint_decoder(struct device *dev);
+ bool is_root_decoder(struct device *dev);
+ bool is_endpoint_decoder(struct device *dev);
+ struct cxl_root_decoder *cxl_root_decoder_alloc(struct cxl_port *port,
+@@ -394,7 +407,7 @@ struct cxl_root_decoder *cxl_root_decoder_alloc(struct cxl_port *port,
+ struct cxl_switch_decoder *cxl_switch_decoder_alloc(struct cxl_port *port,
+ 						    unsigned int nr_targets);
+ int cxl_decoder_add(struct cxl_decoder *cxld, int *target_map);
+-struct cxl_decoder *cxl_endpoint_decoder_alloc(struct cxl_port *port);
++struct cxl_endpoint_decoder *cxl_endpoint_decoder_alloc(struct cxl_port *port);
+ int cxl_decoder_add_locked(struct cxl_decoder *cxld, int *target_map);
+ int cxl_decoder_autoremove(struct device *host, struct cxl_decoder *cxld);
+ int cxl_endpoint_autoremove(struct cxl_memdev *cxlmd, struct cxl_port *endpoint);
+diff --git a/tools/testing/cxl/test/cxl.c b/tools/testing/cxl/test/cxl.c
+index 7991ddc6e562..4dad0fa7ac4c 100644
+--- a/tools/testing/cxl/test/cxl.c
++++ b/tools/testing/cxl/test/cxl.c
+@@ -462,12 +462,16 @@ static int mock_cxl_enumerate_decoders(struct cxl_hdm *cxlhdm)
+ 			}
+ 			cxld = &cxlsd->cxld;
+ 		} else {
+-			cxld = cxl_endpoint_decoder_alloc(port);
+-			if (IS_ERR(cxld)) {
++			struct cxl_endpoint_decoder *cxled;
++
++			cxled = cxl_endpoint_decoder_alloc(port);
++
++			if (IS_ERR(cxled)) {
+ 				dev_warn(&port->dev,
+ 					 "Failed to allocate the decoder\n");
+-				return PTR_ERR(cxld);
++				return PTR_ERR(cxled);
+ 			}
++			cxld = &cxled->cxld;
+ 		}
+ 
+ 		cxld->hpa_range = (struct range) {
 
