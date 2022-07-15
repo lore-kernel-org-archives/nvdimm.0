@@ -1,188 +1,114 @@
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 667B94C65
-	for <nvdimm@lists.linux.dev>; Fri, 15 Jul 2022 19:17:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D3CB4C96
+	for <nvdimm@lists.linux.dev>; Fri, 15 Jul 2022 21:08:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1657912672; x=1689448672;
-  h=date:from:to:subject:message-id:references:in-reply-to:
-   mime-version;
-  bh=V4Eewf6lWyUp24qfZWpfsxA+0VBIRoC8t2PNjrEd1VA=;
-  b=Xyu65RvPMPPQtciwk70nJe2zaNoYHLQxqumFYwclP+S1Rj0DCQ03JBGv
-   k/WsP5QcFNFbQxbt9Dk+SDxkgnl9O/Qi6ydoLxqsUo6Lz5HwtxQmazcZL
-   pj9GG+vTp8lW/DHCVq8e/KT5cpCaRWsuiW6PHhCeSOGGKwG+A3KXqe1G3
-   VpAQ3Znkfs5hBbK3q3VEeUmpe7n8t2aGR++N/nmOialF1eEb09zEEEfA3
-   RqttLBN0jviPzSKPx9C0Ijn4XEkn0pLTRwK5LBf7E3+768bmFlRfWEQEB
-   X/PegPl1OH7guYm2zskxA9VnMnl1JJO/LgAWx9r3h1jzcCSZF/h+Rq61h
-   g==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10409"; a="284641418"
-X-IronPort-AV: E=Sophos;i="5.92,274,1650956400"; 
-   d="scan'208";a="284641418"
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Jul 2022 12:17:51 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.92,274,1650956400"; 
-   d="scan'208";a="773085852"
-Received: from orsmsx606.amr.corp.intel.com ([10.22.229.19])
-  by orsmga005.jf.intel.com with ESMTP; 15 Jul 2022 12:17:51 -0700
-Received: from orsmsx609.amr.corp.intel.com (10.22.229.22) by
- ORSMSX606.amr.corp.intel.com (10.22.229.19) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.27; Fri, 15 Jul 2022 12:17:51 -0700
-Received: from orsedg603.ED.cps.intel.com (10.7.248.4) by
- orsmsx609.amr.corp.intel.com (10.22.229.22) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.27 via Frontend Transport; Fri, 15 Jul 2022 12:17:51 -0700
-Received: from NAM11-DM6-obe.outbound.protection.outlook.com (104.47.57.168)
- by edgegateway.intel.com (134.134.137.100) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2308.27; Fri, 15 Jul 2022 12:17:51 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=b57l+VyAZUgwA5NKUcK0isiTAXdQGzFiQ6cQIoiQjHyNyk33L8T9zAU9r7/4UDpMa/CADfUV91k24i+bo2gtJrQlVZlgkOzV02PsvrkNe8DaBBiGkuAcsVjCHpc3K6xn99PTizsJFonIgqRV9+KWFKJjgiXyC3A065ksVSFxLXFyBkDK5k/K+1h43YEXRwP7iNRsSk9PYgSgf5nBU2+Shmdj0DP/M+hfTj8VGhwc0pP48FvRjZl6c05Fsvl+aG2/S+Cay/IoyrpbSC0KMk6tVGx9rJugUXAzRBYH7uuOg1Gs0Mr6Dsy+79VcI41NSSLqGeZ6tsdcpa8y4PeRMOQ3og==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=XxpAcl1xCwBXPDwwwRjOPUZXDfiPS1xVmqc/42D/NTE=;
- b=FSEe10wMm02hEdIIy4EfbkFbo6zrgJ0ezdpS7zNcBmw2J00lorgQtFBkKR9lx3NLSw+hhcL0l4z0voSzzKM35CW98NgsXjyWGs4yZerVgR9QpPTJlKg2FxPV5vbmRQWdp49x+BRBJy3Ut5y+PLpKnQPHC+Won7pPcTSruS3QPXs4rVYrN6RMyAF4VHevdQcO0M4xAymby9SaO2bN0DLFwtfMyH46nWMAb8oBArfI0xP+ipaOMHcfj9AhY47OnLgaW2SXQlpkuVOZMc6z/7YoN42Tyqr317ZWNhuw15alUGQUT6Tqnm8CPKxYD9d81rNP7Z9cSPiV/NSG2FFIoCbsTg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
- (2603:10b6:301:50::20) by BYAPR11MB3559.namprd11.prod.outlook.com
- (2603:10b6:a03:f7::12) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5438.12; Fri, 15 Jul
- 2022 19:17:43 +0000
-Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
- ([fe80::6466:20a6:57b4:1edf]) by MWHPR1101MB2126.namprd11.prod.outlook.com
- ([fe80::6466:20a6:57b4:1edf%11]) with mapi id 15.20.5438.018; Fri, 15 Jul
- 2022 19:17:43 +0000
-Date: Fri, 15 Jul 2022 12:17:40 -0700
-From: Dan Williams <dan.j.williams@intel.com>
-To: Jane Chu <jane.chu@oracle.com>, Dan Williams <dan.j.williams@intel.com>,
-	"hch@infradead.org" <hch@infradead.org>, "vishal.l.verma@intel.com"
-	<vishal.l.verma@intel.com>, "dave.jiang@intel.com" <dave.jiang@intel.com>,
-	"ira.weiny@intel.com" <ira.weiny@intel.com>, "nvdimm@lists.linux.dev"
-	<nvdimm@lists.linux.dev>, "linux-kernel@vger.kernel.org"
-	<linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] acpi/nfit: badrange report spill over to clean range
-Message-ID: <62d1bd546fce2_242d29499@dwillia2-xfh.jf.intel.com.notmuch>
-References: <20220711232658.536064-1-jane.chu@oracle.com>
- <62ce16518e7d3_6070c29447@dwillia2-xfh.jf.intel.com.notmuch>
- <09df842d-d8e4-0594-56b0-b4bb9ea37b67@oracle.com>
- <62cf622a32e1_16b52e294ea@dwillia2-xfh.jf.intel.com.notmuch>
- <8b13446a-65ac-0cbd-6c17-0f9e1cfbb048@oracle.com>
- <62d0c0947c3e6_1643dc2944a@dwillia2-xfh.jf.intel.com.notmuch>
- <82641e64-1003-d11a-df9c-73f3b61d6b8a@oracle.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <82641e64-1003-d11a-df9c-73f3b61d6b8a@oracle.com>
-X-ClientProxiedBy: BYAPR05CA0083.namprd05.prod.outlook.com
- (2603:10b6:a03:e0::24) To MWHPR1101MB2126.namprd11.prod.outlook.com
- (2603:10b6:301:50::20)
+  t=1657919316; x=1689455316;
+  h=subject:from:to:cc:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=7BF81LETZaU+r3o9lF+SOM9GnjKhTQeTvLp6cuo8V9s=;
+  b=ewMn4JzYffmaZtHj/hQTm1EkfSM044KbiUVkBdRo3pjSjGPjBC0A0sSc
+   AQ5+8bGEWchw+zERRvMlL7OzX2g+hEM67SwiMUEnLcacR05ZvKYPj1lEK
+   klE3gs4JvtSbkxSXrxhZ0pDJb5agoDGuB4p7EHn6AEp5o5J3H2JqrsMoU
+   Vt4ujGVYJILvQFGcw5qc8XrTKFlZOs5mgloyfdH+SEmZ0Uha2qEF9Fv79
+   efjzON5P8OKzHrYYfJQ9uX5ms9fF3GsU2GaCqypVyuvbyZcqwunvKYhTU
+   8AmTrTKXg0i3ogv8nkLH8aqpn/lKLYp5nAi0LZAjRw/KglSQrxF6Innh7
+   w==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10409"; a="286636496"
+X-IronPort-AV: E=Sophos;i="5.92,275,1650956400"; 
+   d="scan'208";a="286636496"
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Jul 2022 14:08:33 -0700
+X-IronPort-AV: E=Sophos;i="5.92,275,1650956400"; 
+   d="scan'208";a="654501206"
+Received: from djiang5-desk3.ch.intel.com ([143.182.136.137])
+  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Jul 2022 14:08:32 -0700
+Subject: [PATCH RFC 00/15] Introduce security commands for CXL pmem device
+From: Dave Jiang <dave.jiang@intel.com>
+To: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
+Cc: dan.j.williams@intel.com, bwidawsk@kernel.org, ira.weiny@intel.com,
+ vishal.l.verma@intel.com, alison.schofield@intel.com, dave@stgolabs.net
+Date: Fri, 15 Jul 2022 14:08:32 -0700
+Message-ID: 
+ <165791918718.2491387.4203738301057301285.stgit@djiang5-desk3.ch.intel.com>
+User-Agent: StGit/1.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: a63f5760-2b6b-4747-1575-08da6696b122
-X-MS-TrafficTypeDiagnostic: BYAPR11MB3559:EE_
-X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: m0TwsSfLKu8yrPcYb/+eNdXbLvdih6DREcDGJjsdUrLQllSwpDAKg7cq07ejcF4hfo2oI66W/BW00A5lztYxGA2+nhUN1ZPCWt/KKpUe/a/tszu8hWxXf3QpBTkFiqHi5Leb/AtiFsFjOy7/5a0/0ujLOWuYjT0y1eRkPEJnBpNv2HCCJQ8Q5OL/+2oULV1l9k58D+mBWy2dCWnjWOSeeQwpE/moLXNDzgl3MTMFeySAlqn8gFT6cVHorMmAIRsqz1SPWEAHtDtHH9sh2CAoJ11FZMi44b4LRhGreSvmE28F2/FzZZkt1sFpI3ejBo0hdkgU43rdupcI3G0te1AwrPI3KZ8zkKIMjjXAxl4RT+YEGtoEI9686KLCKWw80nwnl1JkMh/LRSOIoQOXcWKlx5rEWWRBbEB7HsOBTV3C/mqc9OSXG/j7SW62MXYmcx1AZZG+/iTOAE0ulbSDzEuGL16xRQGLRKiMGAlLP9o7QtXAYyX2268HCXH8tWymJjxYGfY+dkUaHwED/+KOXOnfjhfpgDhJ80ZQZEDF43ARhh6W6vgE+1KHdRFd/QnZtd6Lkh3uG86XoPiJlkO11/ezoaD6KSu0X97/GEvrlZWYBSPqq0R7zGZpUxoAY0bkIXQg4fNhS1QCQ+bx3lxlXzzfi04j1Otpx5rSNHdDXqiAntvsE6qUx8zd6nF9TDjcvTsH3QnkdhIS3ydHnQLvxDy7w3fiJbFB2+HBft4lLb+L9RaBwBQak/nufjCPp/mxM1aL
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1101MB2126.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(366004)(376002)(39860400002)(396003)(136003)(346002)(26005)(66476007)(6512007)(53546011)(66946007)(6486002)(41300700001)(6506007)(8676002)(66556008)(316002)(110136005)(478600001)(86362001)(9686003)(82960400001)(186003)(8936002)(38100700002)(2906002)(5660300002);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?9PuY4Wh3i3Dmu4gnDYMe58t7UxbJezK1zbo49FNAMLs64UI2xt2/m3RkdpKG?=
- =?us-ascii?Q?GuIes2ZqRWrKk/udXLmo4ciTa5wccDeYNyGuYF9ApK0lbPZZSxvdIlyD3kIv?=
- =?us-ascii?Q?EZ51L61torJBJz98V9S38biHVhXl8J13s3U+xWKtGVqrVi/IMM0GD9ws4KFF?=
- =?us-ascii?Q?pROiFmfOvvxNtUUYES32DIQt5VGz/dI4064WRnV5nkXOwlGbCLMokK/qauX4?=
- =?us-ascii?Q?a9giCOhTzYY+E42QhegYMbHJDCCKN3c4zh20WXSuDJUnme2RU3GRObbaXGid?=
- =?us-ascii?Q?6vpcVeRmP6ffSSfI6zhZI9gbpFDyzlVwD5hbP9mcHxKBftWmE5g2el0tL3QS?=
- =?us-ascii?Q?05a4Q+A4dNl+VOE/5gNDbTU5ftjk0h0+uA0MKrsP2VheDq1wD7+slP13D/tw?=
- =?us-ascii?Q?ZT2s5CxQfpQc/EVSKfukTT1pnOWtYzwCfaco2iS5pnC4KfXS9NUjIl9aPBxF?=
- =?us-ascii?Q?oi7J/AR4FFouStx4r2X8neDOOz+SdgFCusY9rcOpJPOcpKrOkje1dbh8FyCT?=
- =?us-ascii?Q?tTevk4TR0KZ1x5znyywgYRv/zr0zgWsHGEHvauoZOurrDuM8HdFlM8TNFiID?=
- =?us-ascii?Q?2woCitqnTJLzBzM9kI98HBM82FoyL2qrXZwDMgwpF8Lo+ZnVvd/GZkAzdic1?=
- =?us-ascii?Q?E6tix3ot7uTITz262fWgFlpUwBD07Cq/UPk6V0D73GOyPEWmqZ12+kvat1Xz?=
- =?us-ascii?Q?YAhay6OdARCrvA66BzYsS5Xc/6CVdTYYYtWPtGRR5JpwvCa1MR3Eo70LyYGM?=
- =?us-ascii?Q?eIiHFFp/p/yyObloJuSS4vspvFR8kuEOBMYfmQhjLmRHg1GJvjTgdhZBO10l?=
- =?us-ascii?Q?tPXtpuQjs/YNcQYboIZSqZxo12Y/hcynf2cce7IXP2CAQy9nCOEnqp3d3+4E?=
- =?us-ascii?Q?PXIk7Nn5O6PaKnaIM3yFOOPoO0OFxXCBVTN3RR/CpQev24PsbD6ZyalBiMCb?=
- =?us-ascii?Q?KAAMT0WftbQZFSej3KA0ARKrTX1ACQl4twPlQh+lXQb6/Hp4eixMailgO2M9?=
- =?us-ascii?Q?2ecdBz/sDe2g/owqHOnAq/rJzzE8DKR1G0e9AIouiOcJwUJ30CuHNbY6jpnQ?=
- =?us-ascii?Q?35HWk8AmOtEZTfclwDtjVAN2MRnz6GJxPmSEQ1O1xRfCiGGliX/jwOIL7HIt?=
- =?us-ascii?Q?DFTChJQLkHxMzRL+vD7HtLwjpR1ZVGsm/yXtfmlkb5yqNRdaychNsobNKVwz?=
- =?us-ascii?Q?dAKN+9iXN+HL+lGzwUVOqmoeirwiWBdf+h+soOQ/M9oRkt2oqxVfhsDIayTk?=
- =?us-ascii?Q?jc8oaZw4fdQAOAACzsWpfzb/7CB7GP59tHVREYyg5jeEMvdmUaTiV8pt0NIU?=
- =?us-ascii?Q?NTFYtyo6rMBsF0paE8uZbIrHbOh8sn0WClUU+dVMz9Aie7gvIoa4qqGacqiB?=
- =?us-ascii?Q?Uc2alLTFjx3GZxD3EXcoGom6+VJdGi1tpXNBF/aNqc65ggkEjLHMLOeJB33d?=
- =?us-ascii?Q?5ic+7bDqYqVXAzw3qHWzEigdmZWtcnlXewuTFRxoasa3r6bicXjGxCFXW8BJ?=
- =?us-ascii?Q?HvOG3TGoHDQNtncZV3LCauqgYDoinSDDGF9nnh2BHobf0HsK0btBRLSx9+Z0?=
- =?us-ascii?Q?zGqFqEydvoNsVBU6a8/3h1/I2bhmoPg71qZ6t+O7Eid3lZQTrYY1Csw2Azfh?=
- =?us-ascii?Q?3A=3D=3D?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: a63f5760-2b6b-4747-1575-08da6696b122
-X-MS-Exchange-CrossTenant-AuthSource: MWHPR1101MB2126.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 15 Jul 2022 19:17:43.1306
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 80H5j9NTOOznG/NYbZlpRgFYXq6VPIUKpyJO7qzHFOLj3j6GWqWPmiUUZ6EX1Xe9DGp003YODKkczQrawyyR4eXHK1d0wiTqI2HAMYSNoXI=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BYAPR11MB3559
-X-OriginatorOrg: intel.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 
-[ add Tony ]
+This series is seeking comments on the implementation. It has not been fully
+tested yet.
 
-Jane Chu wrote:
-> On 7/14/2022 6:19 PM, Dan Williams wrote:
-> > Jane Chu wrote:
-> >> I meant to say there would be 8 calls to the nfit_handle_mce() callback,
-> >> one call for each poison with accurate address.
-> >>
-> >> Also, short ARS would find 2 poisons.
-> >>
-> >> I attached the console output, my annotation is prefixed with "<==".
-> > 
-> > [29078.634817] {4}[Hardware Error]:   physical_address: 0x00000040a0602600		<== 2nd poison @ 0x600
-> > [29078.642200] {4}[Hardware Error]:   physical_address_mask: 0xffffffffffffff00
-> > 
-> > Why is nfit_handle_mce() seeing a 4K address mask when the CPER record
-> > is seeing a 256-byte address mask?
-> 
-> Good question!  One would think both GHES reporting and 
-> nfit_handle_mce() are consuming the same mce record...
-> Who might know?
+This series adds the support for "Persistent Memory Data-at-rest Security"
+block of command set for the CXL Memory Devices. The enabling is done through
+the nvdimm_security_ops as the operations are very similar to the same
+operations that the persistent memory devices through NFIT provider support.
+This enabling does not include the security pass-through commands nor the
+Santize commands.
 
-Did some grepping...
+Under the nvdimm_security_ops, this patch series will enable get_flags(),
+freeze(), change_key(), unlock(), disable(), and erase(). The disable() API
+does not support disabling of the master passphrase. To maintain established
+user ABI through the sysfs attribute "security", the "disable" command is
+left untouched and a new "disable_master" command is introduced with a new
+disable_master() API call for the nvdimm_security_ops().
 
-Have a look at: apei_mce_report_mem_error()
+This series does not include plumbing to directly handle the security commands
+through cxl control util. The enabled security commands will still go through
+ndctl tool with this enabling.
 
-"The call is coming from inside the house!"
+For calls such as unlock() and erase(), the CPU caches must be invalidated
+post operation. Currently, the implementation resides in
+drivers/acpi/nfit/intel.c with a comment that it should be implemented
+cross arch when more than just NFIT based device needs this operation.
+With the coming of CXL persistent memory devices this is now needed.
+Introduce ARCH_HAS_NVDIMM_INVAL_CACHE and implement similar to
+ARCH_HAS_PMEM_API where the arch can opt in with implementation.
+Currently only add x86_64 implementation where wbinvd_on_all_cpus()
+is called.
 
-Luckily we do not need to contact a BIOS engineer to get this fixed.
+---
 
-> > Sigh, is this "firmware-first" causing the kernel to get bad information
-> > via the native mechanisms >
-> > I would expect that if this test was truly worried about minimizing BIOS
-> > latency it would disable firmware-first error reporting. I wonder if
-> > that fixes the observed problem?
-> 
-> Could you elaborate on firmware-first error please?  What are the 
-> possible consequences disabling it? and how to disable it?
+Dave Jiang (15):
+      cxl/pmem: Introduce nvdimm_security_ops with ->get_flags() operation
+      tools/testing/cxl: Create context for cxl mock device
+      tools/testing/cxl: Add "Get Security State" opcode support
+      cxl/pmem: Add "Set Passphrase" security command support
+      tools/testing/cxl: Add "Set Passphrase" opcode support
+      cxl/pmem: Add Disable Passphrase security command support
+      tools/testing/cxl: Add "Disable" security opcode support
+      cxl/pmem: Add "Freeze Security State" security command support
+      tools/testing/cxl: Add "Freeze Security State" security opcode support
+      x86: add an arch helper function to invalidate all cache for nvdimm
+      cxl/pmem: Add "Unlock" security command support
+      tools/testing/cxl: Add "Unlock" security opcode support
+      cxl/pmem: Add "Passphrase Secure Erase" security command support
+      tools/testing/cxl: Add "passphrase secure erase" opcode support
+      nvdimm/cxl/pmem: Add support for master passphrase disable security command
 
-With my Linux kernel developer hat on, firmware-first error handling is
-really only useful for supporting legacy operating systems that do not
-have native machine check handling, or for platforms that have bugs that
-would otherwise cause OS native error handling to fail. Otherwise, for
-modern Linux, firmware-first error handling is pure overhead and a
-source of bugs.
 
-In this case the bug is in the Linux code that translates the ACPI event
-back into an MCE record.
+ arch/x86/Kconfig             |   1 +
+ arch/x86/mm/pat/set_memory.c |   8 +
+ drivers/acpi/nfit/intel.c    |  28 +--
+ drivers/cxl/Kconfig          |  16 ++
+ drivers/cxl/Makefile         |   1 +
+ drivers/cxl/cxlmem.h         |  41 +++++
+ drivers/cxl/pmem.c           |  10 +-
+ drivers/cxl/security.c       | 182 ++++++++++++++++++
+ drivers/nvdimm/security.c    |  33 +++-
+ include/linux/libnvdimm.h    |  10 +
+ lib/Kconfig                  |   3 +
+ tools/testing/cxl/Kbuild     |   1 +
+ tools/testing/cxl/test/mem.c | 348 ++++++++++++++++++++++++++++++++++-
+ 13 files changed, 644 insertions(+), 38 deletions(-)
+ create mode 100644 drivers/cxl/security.c
+
+--
+
