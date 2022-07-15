@@ -1,30 +1,30 @@
 Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BCE720E6
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 917CF20EA
 	for <nvdimm@lists.linux.dev>; Fri, 15 Jul 2022 06:26:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
   t=1657866371; x=1689402371;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=ku2XjYLDPTGymNpdbfIOfMasi9M2a9+2C3iKmEu6q3Y=;
-  b=IM76yJqhawunxpmHaWT8cRtmMI2+Q/dZyJDka0kwM7uCxeFNSVL0Kqo4
-   ckXkXL5tfQjLtIpreNJwrjF7c757tBrIMTnvYDdzFQZkjIgvfTp5jP+u1
-   uTxtJuwUk3Tey0falYwBSUSjuRx86z0JBa4vbuZT/K0MWZNZZnGEq1JU2
-   jFSFslwxNE6HE4Fpw0bSipAaS0m+3Z2DR8asubNONPymk0KXmk90Ade10
-   yz0oFw/AgS4WnhUYPb6/V3mROipQHEY7cPuBP1t6JSz+VS8wgydZoyOta
-   w0Z0TxwLIfE0f8BAga4d59akPFb8pSqXV0WTYr8+v/XPKgOm7FPF8el6t
+  bh=VScp0z0ULQqc/XnWR0snJ26/sWE9rhYK9NXAVkcwxTw=;
+  b=bCNJbAFzXCaYKigN4D4vk/95cKxV/P639oztz32qv50EsmmsJ8v5DEIh
+   ZZEOC1ybGeziN3aFbE4qBcSiy3IG3ELVkD2T6tLeTAzsTQ2JDiozEY+tT
+   YIDTAp7IBh6leKlONI+ff0TUsX2F+YGEoFEVKYPnNRlAjEmRgRzLVss2Z
+   7yRDgRm8zmFSEF7nwb/1EXTRbXMXCKb+1Vz0t2cEDX2qi7346sLinLfSa
+   LZ5zqxPiyuD1KFuhC9exbIl5dYvXPb5qkq0a+MetovuI850BsMiSB2Tal
+   xUL21hF1gbltqx5ySoCo5mkx+MxlICwytFI+2RRMuKXcJDJttJJLUZhfY
    w==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10408"; a="266125534"
+X-IronPort-AV: E=McAfee;i="6400,9594,10408"; a="266125538"
 X-IronPort-AV: E=Sophos;i="5.92,273,1650956400"; 
-   d="scan'208";a="266125534"
+   d="scan'208";a="266125538"
 Received: from orsmga003.jf.intel.com ([10.7.209.27])
   by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jul 2022 23:26:10 -0700
 X-IronPort-AV: E=Sophos;i="5.92,273,1650956400"; 
-   d="scan'208";a="546544614"
+   d="scan'208";a="546544617"
 Received: from saseiper-mobl.amr.corp.intel.com (HELO vverma7-desk1.intel.com) ([10.212.71.32])
-  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jul 2022 23:26:09 -0700
+  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jul 2022 23:26:10 -0700
 From: Vishal Verma <vishal.l.verma@intel.com>
 To: <linux-cxl@vger.kernel.org>
 Cc: <nvdimm@lists.linux.dev>,
@@ -33,9 +33,9 @@ Cc: <nvdimm@lists.linux.dev>,
 	Ira Weiny <ira.weiny@intel.com>,
 	Dave Jiang <dave.jiang@intel.com>,
 	Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH 3/8] libcxl: Introduce libcxl region and mapping objects
-Date: Fri, 15 Jul 2022 00:25:45 -0600
-Message-Id: <20220715062550.789736-4-vishal.l.verma@intel.com>
+Subject: [ndctl PATCH 4/8] cxl-cli: add region listing support
+Date: Fri, 15 Jul 2022 00:25:46 -0600
+Message-Id: <20220715062550.789736-5-vishal.l.verma@intel.com>
 X-Mailer: git-send-email 2.36.1
 In-Reply-To: <20220715062550.789736-1-vishal.l.verma@intel.com>
 References: <20220715062550.789736-1-vishal.l.verma@intel.com>
@@ -45,615 +45,521 @@ List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=17623; h=from:subject; bh=ku2XjYLDPTGymNpdbfIOfMasi9M2a9+2C3iKmEu6q3Y=; b=owGbwMvMwCXGf25diOft7jLG02pJDEkXOfIqL9dz/9oxM8jRO/hPnOMUp+92x36wc6TIuh17sGPu tQmyHaUsDGJcDLJiiix/93xkPCa3PZ8nMMERZg4rE8gQBi5OAZiIYSwjw1uBk9ci1uqv64rf+8rZ45 vz7YcbEj8mfHhqc+pL0I+HWjKMDNf8W96VLpgR/GL2QbXG79+nTJa7cN9/7v0F/DnXe91WHGQDAA==
+X-Developer-Signature: v=1; a=openpgp-sha256; l=16100; h=from:subject; bh=VScp0z0ULQqc/XnWR0snJ26/sWE9rhYK9NXAVkcwxTw=; b=owGbwMvMwCXGf25diOft7jLG02pJDEkXOfLeWYvvteVQv3Vwy/HUfUyZXzbvfbg5pMepZcGy8ikN Kg+0OkpZGMS4GGTFFFn+7vnIeExuez5PYIIjzBxWJpAhDFycAjAR6zWMDP8s5CJtY9dy7hCU8E1SX9 HJfsPXYBK3ybrlpwJ57y+V2cPI8OYNk9EJCa+LsceXxtlPmMPy0XdGYknhzmKn+lP8f7YJsAIA
 X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp; fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
 Content-Transfer-Encoding: 8bit
 
-Add a cxl_region object to libcxl that represents a CXL region. CXL
-regions are made up of one or more cxl_memdev 'targets'. The
-relationship between a target and a region is conveyed with a
-cxl_memdev_mapping object.
-
-CXL regions are childeren of root decoders, and are organized as such.
-Mapping objects are childeren of a CXL region.  Introduce the two
-classes of objects themselves, and common accessors related to them.
+Add cxl_region -> json and cxl_mapping -> json emitter helpers, and
+teach cxl_filter_walk about cxl_regions. With these in place, 'cxl-list'
+can now emit json objects for CXL regions. They can be top-level objects
+if requested by themselves, or nested under root-decoders, if listed
+along with decoders. Allow a plain 'cxl list' command to imply
+'--regions'.
 
 Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- cxl/lib/private.h  |  34 ++++
- cxl/lib/libcxl.c   | 421 +++++++++++++++++++++++++++++++++++++++++++--
- cxl/libcxl.h       |  41 +++++
- .clang-format      |   2 +
- cxl/lib/libcxl.sym |  20 +++
- 5 files changed, 508 insertions(+), 10 deletions(-)
+ Documentation/cxl/cxl-list.txt |  13 +++-
+ cxl/filter.h                   |   4 ++
+ cxl/json.h                     |   5 ++
+ cxl/filter.c                   | 121 +++++++++++++++++++++++++++++---
+ cxl/json.c                     | 123 +++++++++++++++++++++++++++++++++
+ cxl/list.c                     |  25 ++++---
+ 6 files changed, 265 insertions(+), 26 deletions(-)
 
-diff --git a/cxl/lib/private.h b/cxl/lib/private.h
-index 832a815..d58a73b 100644
---- a/cxl/lib/private.h
-+++ b/cxl/lib/private.h
-@@ -116,7 +116,41 @@ struct cxl_decoder {
- 	bool accelmem_capable;
- 	bool locked;
- 	enum cxl_decoder_target_type target_type;
-+	int regions_init;
- 	struct list_head targets;
-+	struct list_head regions;
-+};
-+
-+enum cxl_region_commit {
-+	CXL_REGION_COMMIT_UNKNOWN = -1,
-+	CXL_REGION_DECOMMIT = 0,
-+	CXL_REGION_COMMIT,
-+};
-+
-+struct cxl_region {
-+	struct cxl_decoder *decoder;
-+	struct list_node list;
-+	int mappings_init;
-+	struct cxl_ctx *ctx;
-+	void *dev_buf;
-+	size_t buf_len;
-+	char *dev_path;
-+	int id;
-+	uuid_t uuid;
-+	u64 start;
-+	u64 size;
-+	unsigned int interleave_ways;
-+	unsigned int interleave_granularity;
-+	enum cxl_region_commit commit_state;
-+	struct kmod_module *module;
-+	struct list_head mappings;
-+};
-+
-+struct cxl_memdev_mapping {
-+	struct cxl_region *region;
-+	struct cxl_decoder *decoder;
-+	unsigned int position;
-+	struct list_node list;
- };
+diff --git a/Documentation/cxl/cxl-list.txt b/Documentation/cxl/cxl-list.txt
+index f6aba0c..2906c2f 100644
+--- a/Documentation/cxl/cxl-list.txt
++++ b/Documentation/cxl/cxl-list.txt
+@@ -309,8 +309,9 @@ OPTIONS
  
- enum cxl_cmd_query_status {
-diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
-index 946cd4b..df72bf6 100644
---- a/cxl/lib/libcxl.c
-+++ b/cxl/lib/libcxl.c
-@@ -304,6 +304,416 @@ CXL_EXPORT void cxl_set_log_priority(struct cxl_ctx *ctx, int priority)
- 	ctx->ctx.log_priority = priority;
+ -T::
+ --targets::
+-	Extend decoder listings with downstream port target information, and /
+-	or port and bus listings with the downstream port information.
++	Extend decoder listings with downstream port target information, port
++	and bus listings with the downstream port information, and / or regions
++	with mapping information.
+ ----
+ # cxl list -BTu -b ACPI.CXL
+ {
+@@ -327,6 +328,14 @@ OPTIONS
+ }
+ ----
+ 
++-R::
++--regions::
++	Include region objects in the listing.
++
++-r::
++--region::
++	Specify the region name to filter the emitted regions.
++
+ --debug::
+ 	If the cxl tool was built with debug enabled, turn on debug
+ 	messages.
+diff --git a/cxl/filter.h b/cxl/filter.h
+index c913daf..609433c 100644
+--- a/cxl/filter.h
++++ b/cxl/filter.h
+@@ -13,9 +13,11 @@ struct cxl_filter_params {
+ 	const char *port_filter;
+ 	const char *endpoint_filter;
+ 	const char *decoder_filter;
++	const char *region_filter;
+ 	bool single;
+ 	bool endpoints;
+ 	bool decoders;
++	bool regions;
+ 	bool targets;
+ 	bool memdevs;
+ 	bool ports;
+@@ -33,6 +35,8 @@ struct cxl_memdev *util_cxl_memdev_filter(struct cxl_memdev *memdev,
+ struct cxl_port *util_cxl_port_filter_by_memdev(struct cxl_port *port,
+ 						const char *ident,
+ 						const char *serial);
++struct cxl_region *util_cxl_region_filter(struct cxl_region *region,
++					    const char *__ident);
+ 
+ enum cxl_port_filter_mode {
+ 	CXL_PF_SINGLE,
+diff --git a/cxl/json.h b/cxl/json.h
+index 9a5a845..eb7572b 100644
+--- a/cxl/json.h
++++ b/cxl/json.h
+@@ -15,6 +15,11 @@ struct json_object *util_cxl_endpoint_to_json(struct cxl_endpoint *endpoint,
+ 					      unsigned long flags);
+ struct json_object *util_cxl_decoder_to_json(struct cxl_decoder *decoder,
+ 					     unsigned long flags);
++struct json_object *util_cxl_region_to_json(struct cxl_region *region,
++					     unsigned long flags);
++void util_cxl_mappings_append_json(struct json_object *jregion,
++				  struct cxl_region *region,
++				  unsigned long flags);
+ void util_cxl_targets_append_json(struct json_object *jdecoder,
+ 				  struct cxl_decoder *decoder,
+ 				  const char *ident, const char *serial,
+diff --git a/cxl/filter.c b/cxl/filter.c
+index e5fab19..ae95e2e 100644
+--- a/cxl/filter.c
++++ b/cxl/filter.c
+@@ -585,6 +585,41 @@ util_cxl_memdev_filter_by_port(struct cxl_memdev *memdev, const char *bus_ident,
+ 	return NULL;
  }
  
-+static int is_enabled(const char *drvpath)
++struct cxl_region *util_cxl_region_filter(struct cxl_region *region,
++					    const char *__ident)
 +{
-+	struct stat st;
++	char *ident, *save;
++	const char *name;
++	int id;
 +
-+	if (lstat(drvpath, &st) < 0 || !S_ISLNK(st.st_mode))
-+		return 0;
-+	else
-+		return 1;
-+}
++	if (!__ident)
++		return region;
 +
-+static void free_region(struct cxl_region *region)
-+{
-+	struct cxl_decoder *decoder = region->decoder;
-+	struct cxl_memdev_mapping *mapping, *_m;
-+
-+	list_for_each_safe(&region->mappings, mapping, _m, list) {
-+		list_del_from(&region->mappings, &mapping->list);
-+		free(mapping);
-+	}
-+	list_del_from(&decoder->regions, &region->list);
-+	kmod_module_unref(region->module);
-+	free(region->dev_buf);
-+	free(region->dev_path);
-+	free(region);
-+}
-+
-+CXL_EXPORT int cxl_region_is_enabled(struct cxl_region *region)
-+{
-+	struct cxl_ctx *ctx = cxl_region_get_ctx(region);
-+	char *path = region->dev_buf;
-+	int len = region->buf_len;
-+
-+	if (snprintf(path, len, "%s/driver", region->dev_path) >= len) {
-+		err(ctx, "%s: buffer too small!\n", cxl_region_get_devname(region));
-+		return 0;
-+	}
-+
-+	return is_enabled(path);
-+}
-+
-+CXL_EXPORT int cxl_region_disable(struct cxl_region *region)
-+{
-+	const char *devname = cxl_region_get_devname(region);
-+	struct cxl_ctx *ctx = cxl_region_get_ctx(region);
-+
-+	util_unbind(region->dev_path, ctx);
-+
-+	if (cxl_region_is_enabled(region)) {
-+		err(ctx, "%s: failed to disable\n", devname);
-+		return -EBUSY;
-+	}
-+
-+	dbg(ctx, "%s: disabled\n", devname);
-+
-+	return 0;
-+}
-+
-+CXL_EXPORT int cxl_region_enable(struct cxl_region *region)
-+{
-+	const char *devname = cxl_region_get_devname(region);
-+	struct cxl_ctx *ctx = cxl_region_get_ctx(region);
-+	char *path = region->dev_buf;
-+	int len = region->buf_len;
-+	char buf[SYSFS_ATTR_SIZE];
-+	u64 resource = ULLONG_MAX;
-+
-+	if (cxl_region_is_enabled(region))
-+		return 0;
-+
-+	util_bind(devname, region->module, "cxl", ctx);
-+
-+	if (!cxl_region_is_enabled(region)) {
-+		err(ctx, "%s: failed to enable\n", devname);
-+		return -ENXIO;
-+	}
-+
-+	/*
-+	 * Currently 'resource' is the only attr that may change after enabling.
-+	 * Just refresh it here. If there are additional resources that need
-+	 * to be refreshed here later, split these out into a common helper
-+	 * for this and add_cxl_region()
-+	 */
-+	if (snprintf(path, len, "%s/resource", region->dev_path) >= len) {
-+		err(ctx, "%s: buffer too small!\n", devname);
-+		return 0;
-+	}
-+
-+	if (sysfs_read_attr(ctx, path, buf) == 0)
-+		resource = strtoull(buf, NULL, 0);
-+
-+	if (resource < ULLONG_MAX)
-+		region->start = resource;
-+
-+	dbg(ctx, "%s: enabled\n", devname);
-+
-+	return 0;
-+}
-+
-+static void *add_cxl_region(void *parent, int id, const char *cxlregion_base)
-+{
-+	const char *devname = devpath_to_devname(cxlregion_base);
-+	char *path = calloc(1, strlen(cxlregion_base) + 100);
-+	struct cxl_region *region, *region_dup;
-+	struct cxl_decoder *decoder = parent;
-+	struct cxl_ctx *ctx = cxl_decoder_get_ctx(decoder);
-+	char buf[SYSFS_ATTR_SIZE];
-+	u64 resource = ULLONG_MAX;
-+
-+	dbg(ctx, "%s: base: \'%s\'\n", devname, cxlregion_base);
-+
-+	if (!path)
++	ident = strdup(__ident);
++	if (!ident)
 +		return NULL;
 +
-+	region = calloc(1, sizeof(*region));
-+	if (!region)
-+		goto err;
++	for (name = strtok_r(ident, which_sep(__ident), &save); name;
++	     name = strtok_r(NULL, which_sep(__ident), &save)) {
++		if (strcmp(name, "all") == 0)
++			break;
 +
-+	region->id = id;
-+	region->ctx = ctx;
-+	region->decoder = decoder;
-+	list_head_init(&region->mappings);
++		if ((sscanf(name, "%d", &id) == 1 ||
++		     sscanf(name, "region%d", &id) == 1) &&
++		    cxl_region_get_id(region) == id)
++			break;
 +
-+	region->dev_path = strdup(cxlregion_base);
-+	if (!region->dev_path)
-+		goto err;
-+
-+	region->dev_buf = calloc(1, strlen(cxlregion_base) + 50);
-+	if (!region->dev_buf)
-+		goto err;
-+	region->buf_len = strlen(cxlregion_base) + 50;
-+
-+	sprintf(path, "%s/size", cxlregion_base);
-+	if (sysfs_read_attr(ctx, path, buf) < 0)
-+		region->size = ULLONG_MAX;
-+	else
-+		region->size = strtoull(buf, NULL, 0);
-+
-+	sprintf(path, "%s/resource", cxlregion_base);
-+	if (sysfs_read_attr(ctx, path, buf) == 0)
-+		resource = strtoull(buf, NULL, 0);
-+
-+	if (resource < ULLONG_MAX)
-+		region->start = resource;
-+
-+	sprintf(path, "%s/uuid", cxlregion_base);
-+	if (sysfs_read_attr(ctx, path, buf) < 0)
-+		goto err;
-+	if (strlen(buf) && uuid_parse(buf, region->uuid) < 0) {
-+		dbg(ctx, "%s:%s\n", path, buf);
-+		goto err;
++		if (strcmp(name, cxl_region_get_devname(region)) == 0)
++			break;
 +	}
 +
-+	sprintf(path, "%s/interleave_granularity", cxlregion_base);
-+	if (sysfs_read_attr(ctx, path, buf) < 0)
-+		region->interleave_granularity = UINT_MAX;
-+	else
-+		region->interleave_granularity = strtoul(buf, NULL, 0);
-+
-+	sprintf(path, "%s/interleave_ways", cxlregion_base);
-+	if (sysfs_read_attr(ctx, path, buf) < 0)
-+		region->interleave_ways = UINT_MAX;
-+	else
-+		region->interleave_ways = strtoul(buf, NULL, 0);
-+
-+	sprintf(path, "%s/commit", cxlregion_base);
-+	if (sysfs_read_attr(ctx, path, buf) < 0)
-+		region->commit_state = CXL_REGION_COMMIT_UNKNOWN;
-+	else
-+		region->commit_state = strtoul(buf, NULL, 0);
-+
-+	sprintf(path, "%s/modalias", cxlregion_base);
-+	if (sysfs_read_attr(ctx, path, buf) == 0)
-+		region->module = util_modalias_to_module(ctx, buf);
-+
-+	cxl_region_foreach(decoder, region_dup)
-+		if (region_dup->id == region->id) {
-+			free_region(region);
-+			return region_dup;
-+		}
-+
-+	list_add(&decoder->regions, &region->list);
-+
-+	return region;
-+err:
-+	free(region->dev_path);
-+	free(region->dev_buf);
-+	free(region);
-+	free(path);
++	free(ident);
++	if (name)
++		return region;
 +	return NULL;
++
 +}
 +
-+static void cxl_regions_init(struct cxl_decoder *decoder)
-+{
-+	struct cxl_port *port = cxl_decoder_get_port(decoder);
-+	struct cxl_ctx *ctx = cxl_decoder_get_ctx(decoder);
-+
-+	if (decoder->regions_init)
-+		return;
-+
-+	/* Only root port decoders may have child regions */
-+	if (!cxl_port_is_root(port))
-+		return;
-+
-+	decoder->regions_init = 1;
-+
-+	sysfs_device_parse(ctx, decoder->dev_path, "region", decoder,
-+			   add_cxl_region);
-+}
-+
-+CXL_EXPORT struct cxl_region *cxl_region_get_first(struct cxl_decoder *decoder)
-+{
-+	cxl_regions_init(decoder);
-+
-+	return list_top(&decoder->regions, struct cxl_region, list);
-+}
-+
-+CXL_EXPORT struct cxl_region *cxl_region_get_next(struct cxl_region *region)
-+{
-+	struct cxl_decoder *decoder = region->decoder;
-+
-+	return list_next(&decoder->regions, region, list);
-+}
-+
-+CXL_EXPORT struct cxl_ctx *cxl_region_get_ctx(struct cxl_region *region)
-+{
-+	return region->ctx;
-+}
-+
-+CXL_EXPORT struct cxl_decoder *cxl_region_get_decoder(struct cxl_region *region)
-+{
-+	return region->decoder;
-+}
-+
-+CXL_EXPORT int cxl_region_get_id(struct cxl_region *region)
-+{
-+	return region->id;
-+}
-+
-+CXL_EXPORT const char *cxl_region_get_devname(struct cxl_region *region)
-+{
-+	return devpath_to_devname(region->dev_path);
-+}
-+
-+CXL_EXPORT void cxl_region_get_uuid(struct cxl_region *region, uuid_t uu)
-+{
-+	memcpy(uu, region->uuid, sizeof(uuid_t));
-+}
-+
-+CXL_EXPORT unsigned long long cxl_region_get_size(struct cxl_region *region)
-+{
-+	return region->size;
-+}
-+
-+CXL_EXPORT unsigned long long cxl_region_get_resource(struct cxl_region *region)
-+{
-+	return region->start;
-+}
-+
-+CXL_EXPORT unsigned int
-+cxl_region_get_interleave_ways(struct cxl_region *region)
-+{
-+	return region->interleave_ways;
-+}
-+
-+CXL_EXPORT int cxl_region_is_committed(struct cxl_region *region)
-+{
-+	return (region->commit_state == CXL_REGION_COMMIT) ? 1 : 0;
-+}
-+
-+CXL_EXPORT unsigned int
-+cxl_region_get_interleave_granularity(struct cxl_region *region)
-+{
-+	return region->interleave_granularity;
-+}
-+
-+static struct cxl_decoder *__cxl_port_match_decoder(struct cxl_port *port,
-+						    const char *ident)
-+{
-+	struct cxl_decoder *decoder;
-+
-+	cxl_decoder_foreach(port, decoder)
-+		if (strcmp(cxl_decoder_get_devname(decoder), ident) == 0)
-+			return decoder;
-+
-+	return NULL;
-+}
-+
-+static struct cxl_decoder *cxl_port_find_decoder(struct cxl_port *port,
-+						 const char *ident)
-+{
-+	struct cxl_decoder *decoder;
-+	struct cxl_endpoint *ep;
-+
-+	/* First, check decoders directly under @port */
-+	decoder = __cxl_port_match_decoder(port, ident);
-+	if (decoder)
-+		return decoder;
-+
-+	/* Next, iterate over the endpoints under @port */
-+	cxl_endpoint_foreach(port, ep) {
-+		decoder = __cxl_port_match_decoder(cxl_endpoint_get_port(ep),
-+						   ident);
-+		if (decoder)
-+			return decoder;
-+	}
-+
-+	return NULL;
-+}
-+
-+static struct cxl_decoder *cxl_decoder_get_by_name(struct cxl_ctx *ctx,
-+						   const char *ident)
-+{
-+	struct cxl_bus *bus;
-+
-+	cxl_bus_foreach(ctx, bus) {
-+		struct cxl_decoder *decoder;
-+		struct cxl_port *port, *top;
-+
-+		port = cxl_bus_get_port(bus);
-+		decoder = cxl_port_find_decoder(port, ident);
-+		if (decoder)
-+			return decoder;
-+
-+		top = port;
-+		cxl_port_foreach_all (top, port) {
-+			decoder = cxl_port_find_decoder(port, ident);
-+			if (decoder)
-+				return decoder;
-+		}
-+	}
-+
-+	return NULL;
-+}
-+
-+static void cxl_mappings_init(struct cxl_region *region)
-+{
-+	const char *devname = cxl_region_get_devname(region);
-+	struct cxl_ctx *ctx = cxl_region_get_ctx(region);
-+	char *mapping_path, buf[SYSFS_ATTR_SIZE];
-+	unsigned int i;
-+
-+	if (region->mappings_init)
-+		return;
-+	region->mappings_init = 1;
-+
-+	mapping_path = calloc(1, strlen(region->dev_path) + 100);
-+	if (!mapping_path) {
-+		err(ctx, "%s: allocation failure\n", devname);
-+		return;
-+	}
-+
-+	for (i = 0; i < region->interleave_ways; i++) {
-+		struct cxl_memdev_mapping *mapping;
-+		struct cxl_decoder *decoder;
-+
-+		sprintf(mapping_path, "%s/target%d", region->dev_path, i);
-+		if (sysfs_read_attr(ctx, mapping_path, buf) < 0) {
-+			err(ctx, "%s: failed to read target%d\n", devname, i);
-+			continue;
-+		}
-+
-+		decoder = cxl_decoder_get_by_name(ctx, buf);
-+		if (!decoder) {
-+			err(ctx, "%s target%d: %s lookup failure\n",
-+			    devname, i, buf);
-+			continue;
-+		}
-+
-+		mapping = calloc(1, sizeof(*mapping));
-+		if (!mapping) {
-+			err(ctx, "%s target%d: allocation failure\n", devname, i);
-+			continue;
-+		}
-+
-+		mapping->region = region;
-+		mapping->decoder = decoder;
-+		mapping->position = i;
-+		list_add(&region->mappings, &mapping->list);
-+	}
-+	free(mapping_path);
-+}
-+
-+CXL_EXPORT struct cxl_memdev_mapping *
-+cxl_mapping_get_first(struct cxl_region *region)
-+{
-+	cxl_mappings_init(region);
-+
-+	return list_top(&region->mappings, struct cxl_memdev_mapping, list);
-+}
-+
-+CXL_EXPORT struct cxl_memdev_mapping *
-+cxl_mapping_get_next(struct cxl_memdev_mapping *mapping)
-+{
-+	struct cxl_region *region = mapping->region;
-+
-+	return list_next(&region->mappings, mapping, list);
-+}
-+
-+CXL_EXPORT struct cxl_decoder *
-+cxl_mapping_get_decoder(struct cxl_memdev_mapping *mapping)
-+{
-+	return mapping->decoder;
-+}
-+
-+CXL_EXPORT unsigned int
-+cxl_mapping_get_position(struct cxl_memdev_mapping *mapping)
-+{
-+	return mapping->position;
-+}
-+
- static void *add_cxl_pmem(void *parent, int id, const char *br_base)
+ static unsigned long params_to_flags(struct cxl_filter_params *param)
  {
- 	const char *devname = devpath_to_devname(br_base);
-@@ -681,16 +1091,6 @@ CXL_EXPORT size_t cxl_memdev_get_label_size(struct cxl_memdev *memdev)
- 	return memdev->lsa_size;
+ 	unsigned long flags = 0;
+@@ -672,37 +707,79 @@ static struct json_object *pick_array(struct json_object *child,
+ 	return NULL;
  }
  
--static int is_enabled(const char *drvpath)
--{
--	struct stat st;
--
--	if (lstat(drvpath, &st) < 0 || !S_ISLNK(st.st_mode))
--		return 0;
--	else
--		return 1;
--}
--
- CXL_EXPORT int cxl_memdev_is_enabled(struct cxl_memdev *memdev)
++static void walk_regions(struct cxl_decoder *decoder,
++			 struct json_object *jregions,
++			 struct cxl_filter_params *p,
++			 unsigned long flags)
++{
++	struct json_object *jregion;
++	struct cxl_region *region;
++
++	cxl_region_foreach(decoder, region) {
++		if (!util_cxl_region_filter(region, p->region_filter))
++			continue;
++		if (!p->idle && !cxl_region_is_enabled(region))
++			continue;
++		jregion = util_cxl_region_to_json(region, flags);
++		if (!jregion)
++			continue;
++		json_object_array_add(jregions, jregion);
++	}
++
++	return;
++}
++
+ static void walk_decoders(struct cxl_port *port, struct cxl_filter_params *p,
+-			  struct json_object *jdecoders, unsigned long flags)
++			  struct json_object *jdecoders,
++			  struct json_object *jregions, unsigned long flags)
  {
- 	struct cxl_ctx *ctx = cxl_memdev_get_ctx(memdev);
-@@ -939,6 +1339,7 @@ static void *add_cxl_decoder(void *parent, int id, const char *cxldecoder_base)
- 	decoder->ctx = ctx;
- 	decoder->port = port;
- 	list_head_init(&decoder->targets);
-+	list_head_init(&decoder->regions);
+ 	struct cxl_decoder *decoder;
  
- 	decoder->dev_path = strdup(cxldecoder_base);
- 	if (!decoder->dev_path)
-diff --git a/cxl/libcxl.h b/cxl/libcxl.h
-index 33a216e..5479c83 100644
---- a/cxl/libcxl.h
-+++ b/cxl/libcxl.h
-@@ -224,6 +224,47 @@ int cxl_memdev_is_enabled(struct cxl_memdev *memdev);
- 	for (endpoint = cxl_endpoint_get_first(port); endpoint != NULL;        \
- 	     endpoint = cxl_endpoint_get_next(endpoint))
+ 	cxl_decoder_foreach(port, decoder) {
++		const char *devname = cxl_decoder_get_devname(decoder);
++		struct json_object *jchildregions = NULL;
+ 		struct json_object *jdecoder;
  
-+struct cxl_region;
-+struct cxl_region *cxl_region_get_first(struct cxl_decoder *decoder);
-+struct cxl_region *cxl_region_get_next(struct cxl_region *region);
-+int cxl_region_is_committed(struct cxl_region *region);
-+int cxl_region_is_enabled(struct cxl_region *region);
-+int cxl_region_disable(struct cxl_region *region);
-+int cxl_region_enable(struct cxl_region *region);
-+struct cxl_ctx *cxl_region_get_ctx(struct cxl_region *region);
-+struct cxl_decoder *cxl_region_get_decoder(struct cxl_region *region);
-+int cxl_region_get_id(struct cxl_region *region);
-+const char *cxl_region_get_devname(struct cxl_region *region);
-+void cxl_region_get_uuid(struct cxl_region *region, uuid_t uu);
-+unsigned long long cxl_region_get_size(struct cxl_region *region);
-+unsigned long long cxl_region_get_resource(struct cxl_region *region);
-+unsigned int cxl_region_get_interleave_ways(struct cxl_region *region);
-+unsigned int cxl_region_get_interleave_granularity(struct cxl_region *region);
++		if (p->regions && p->decoders) {
++			jchildregions = json_object_new_array();
++			if (!jchildregions) {
++				err(p, "failed to allocate region object\n");
++				return;
++			}
++		}
 +
-+#define cxl_region_foreach(decoder, region)                                    \
-+	for (region = cxl_region_get_first(decoder); region != NULL;           \
-+	     region = cxl_region_get_next(region))
++		if (p->regions && cxl_port_is_root(port))
++			walk_regions(decoder,
++				     pick_array(jchildregions, jregions),
++				     p, flags);
+ 		if (!p->decoders)
+-			continue;
++			goto put_continue;
+ 		if (!util_cxl_decoder_filter(decoder, p->decoder_filter))
+-			continue;
++			goto put_continue;
+ 		if (!util_cxl_decoder_filter_by_bus(decoder, p->bus_filter))
+-			continue;
++			goto put_continue;
+ 		if (!util_cxl_decoder_filter_by_port(decoder, p->port_filter,
+ 						     pf_mode(p)))
+-			continue;
++			goto put_continue;
+ 		if (!util_cxl_decoder_filter_by_memdev(
+ 			    decoder, p->memdev_filter, p->serial_filter))
+-			continue;
++			goto put_continue;
+ 		if (!p->idle && cxl_decoder_get_size(decoder) == 0)
+-			continue;
++			goto put_continue;
+ 		jdecoder = util_cxl_decoder_to_json(decoder, flags);
+ 		if (!decoder) {
+ 			dbg(p, "decoder object allocation failure\n");
+-			continue;
++			goto put_continue;
+ 		}
+ 		util_cxl_targets_append_json(jdecoder, decoder,
+ 					     p->memdev_filter, p->serial_filter,
+ 					     flags);
++		cond_add_put_array_suffix(jdecoder, "regions", devname,
++					  jchildregions);
+ 		json_object_array_add(jdecoders, jdecoder);
++		continue;
++put_continue:
++		json_object_put(jchildregions);
+ 	}
+ }
+ 
+@@ -782,7 +859,7 @@ static void walk_endpoints(struct cxl_port *port, struct cxl_filter_params *p,
+ 		if (!p->decoders)
+ 			continue;
+ 		walk_decoders(cxl_endpoint_get_port(endpoint), p,
+-			      pick_array(jchilddecoders, jdecoders), flags);
++			      pick_array(jchilddecoders, jdecoders), NULL, flags);
+ 		cond_add_put_array_suffix(jendpoint, "decoders", devname,
+ 					  jchilddecoders);
+ 	}
+@@ -869,7 +946,8 @@ walk_children:
+ 				       flags);
+ 
+ 		walk_decoders(port, p,
+-			      pick_array(jchilddecoders, jportdecoders), flags);
++			      pick_array(jchilddecoders, jportdecoders), NULL,
++			      flags);
+ 		walk_child_ports(port, p, pick_array(jchildports, jports),
+ 				 pick_array(jchilddecoders, jportdecoders),
+ 				 pick_array(jchildeps, jeps),
+@@ -894,6 +972,7 @@ int cxl_filter_walk(struct cxl_ctx *ctx, struct cxl_filter_params *p)
+ 	struct json_object *jbusdecoders = NULL;
+ 	struct json_object *jepdecoders = NULL;
+ 	struct json_object *janondevs = NULL;
++	struct json_object *jregions = NULL;
+ 	struct json_object *jeps = NULL;
+ 	struct cxl_memdev *memdev;
+ 	int top_level_objs = 0;
+@@ -936,6 +1015,10 @@ int cxl_filter_walk(struct cxl_ctx *ctx, struct cxl_filter_params *p)
+ 	if (!jepdecoders)
+ 		goto err;
+ 
++	jregions = json_object_new_array();
++	if (!jregions)
++		goto err;
 +
-+#define cxl_region_foreach_safe(decoder, region, _region)                      \
-+	for (region = cxl_region_get_first(decoder),                           \
-+	     _region = region ? cxl_region_get_next(region) : NULL;            \
-+	     region != NULL;                                                   \
-+	     region = _region,                                                 \
-+	     _region = _region ? cxl_region_get_next(_region) : NULL)
+ 	dbg(p, "walk memdevs\n");
+ 	cxl_memdev_foreach(ctx, memdev) {
+ 		struct json_object *janondev;
+@@ -964,6 +1047,7 @@ int cxl_filter_walk(struct cxl_ctx *ctx, struct cxl_filter_params *p)
+ 		struct json_object *jchildports = NULL;
+ 		struct json_object *jchilddevs = NULL;
+ 		struct json_object *jchildeps = NULL;
++		struct json_object *jchildregions = NULL;
+ 		struct cxl_port *port = cxl_bus_get_port(bus);
+ 		const char *devname = cxl_bus_get_devname(bus);
+ 
+@@ -1021,11 +1105,20 @@ int cxl_filter_walk(struct cxl_ctx *ctx, struct cxl_filter_params *p)
+ 					continue;
+ 				}
+ 			}
++			if (p->regions && !p->decoders) {
++				jchildregions = json_object_new_array();
++				if (!jchildregions) {
++					err(p,
++					    "%s: failed to enumerate child regions\n",
++					    devname);
++					continue;
++				}
++			}
+ 		}
+ walk_children:
+ 		dbg(p, "walk decoders\n");
+ 		walk_decoders(port, p, pick_array(jchilddecoders, jbusdecoders),
+-			      flags);
++			      pick_array(jchildregions, jregions), flags);
+ 
+ 		dbg(p, "walk ports\n");
+ 		walk_child_ports(port, p, pick_array(jchildports, jports),
+@@ -1038,6 +1131,8 @@ walk_children:
+ 					  jchildeps);
+ 		cond_add_put_array_suffix(jbus, "decoders", devname,
+ 					  jchilddecoders);
++		cond_add_put_array_suffix(jbus, "regions", devname,
++					  jchildregions);
+ 		cond_add_put_array_suffix(jbus, "memdevs", devname, jchilddevs);
+ 	}
+ 
+@@ -1057,6 +1152,8 @@ walk_children:
+ 		top_level_objs++;
+ 	if (json_object_array_length(jepdecoders))
+ 		top_level_objs++;
++	if (json_object_array_length(jregions))
++		top_level_objs++;
+ 
+ 	splice_array(p, janondevs, jplatform, "anon memdevs", top_level_objs > 1);
+ 	splice_array(p, jbuses, jplatform, "buses", top_level_objs > 1);
+@@ -1069,6 +1166,7 @@ walk_children:
+ 		     top_level_objs > 1);
+ 	splice_array(p, jepdecoders, jplatform, "endpoint decoders",
+ 		     top_level_objs > 1);
++	splice_array(p, jregions, jplatform, "regions", top_level_objs > 1);
+ 
+ 	util_display_json_array(stdout, jplatform, flags);
+ 
+@@ -1082,6 +1180,7 @@ err:
+ 	json_object_put(jbusdecoders);
+ 	json_object_put(jportdecoders);
+ 	json_object_put(jepdecoders);
++	json_object_put(jregions);
+ 	json_object_put(jplatform);
+ 	return -ENOMEM;
+ }
+diff --git a/cxl/json.c b/cxl/json.c
+index ae9c812..1508338 100644
+--- a/cxl/json.c
++++ b/cxl/json.c
+@@ -524,6 +524,129 @@ struct json_object *util_cxl_decoder_to_json(struct cxl_decoder *decoder,
+ 	return jdecoder;
+ }
+ 
++void util_cxl_mappings_append_json(struct json_object *jregion,
++				  struct cxl_region *region,
++				  unsigned long flags)
++{
++	struct json_object *jobj, *jmappings;
++	struct cxl_memdev_mapping *mapping;
++	unsigned int val, nr_mappings;
++	const char *devname;
 +
-+struct cxl_memdev_mapping;
-+struct cxl_memdev_mapping *cxl_mapping_get_first(struct cxl_region *region);
-+struct cxl_memdev_mapping *
-+cxl_mapping_get_next(struct cxl_memdev_mapping *mapping);
-+struct cxl_decoder *cxl_mapping_get_decoder(struct cxl_memdev_mapping *mapping);
-+struct cxl_region *cxl_mapping_get_region(struct cxl_memdev_mapping *mapping);
-+unsigned int cxl_mapping_get_position(struct cxl_memdev_mapping *mapping);
++	nr_mappings = cxl_region_get_interleave_ways(region);
++	if (!nr_mappings || (nr_mappings == UINT_MAX))
++		return;
 +
-+#define cxl_mapping_foreach(region, mapping) \
-+        for (mapping = cxl_mapping_get_first(region); \
-+             mapping != NULL; \
-+             mapping = cxl_mapping_get_next(mapping))
++	if (!(flags & UTIL_JSON_TARGETS))
++		return;
 +
- struct cxl_cmd;
- const char *cxl_cmd_get_devname(struct cxl_cmd *cmd);
- struct cxl_cmd *cxl_cmd_new_raw(struct cxl_memdev *memdev, int opcode);
-diff --git a/.clang-format b/.clang-format
-index 7254a1b..b6169e1 100644
---- a/.clang-format
-+++ b/.clang-format
-@@ -86,6 +86,8 @@ ForEachMacros:
-   - 'cxl_dport_foreach'
-   - 'cxl_endpoint_foreach'
-   - 'cxl_port_foreach_all'
-+  - 'cxl_region_foreach'
-+  - 'cxl_region_foreach_safe'
-   - 'daxctl_dev_foreach'
-   - 'daxctl_mapping_foreach'
-   - 'daxctl_region_foreach'
-diff --git a/cxl/lib/libcxl.sym b/cxl/lib/libcxl.sym
-index 7712de0..47c1695 100644
---- a/cxl/lib/libcxl.sym
-+++ b/cxl/lib/libcxl.sym
-@@ -177,4 +177,24 @@ global:
- 	cxl_decoder_get_prev;
- 	cxl_decoder_set_dpa_size;
- 	cxl_decoder_set_mode;
-+	cxl_region_get_first;
-+	cxl_region_get_next;
-+	cxl_region_is_committed;
-+	cxl_region_is_enabled;
-+	cxl_region_disable;
-+	cxl_region_enable;
-+	cxl_region_get_ctx;
-+	cxl_region_get_decoder;
-+	cxl_region_get_id;
-+	cxl_region_get_devname;
-+	cxl_region_get_uuid;
-+	cxl_region_get_size;
-+	cxl_region_get_resource;
-+	cxl_region_get_interleave_ways;
-+	cxl_region_get_interleave_granularity;
-+	cxl_mapping_get_first;
-+	cxl_mapping_get_next;
-+	cxl_mapping_get_decoder;
-+	cxl_mapping_get_region;
-+	cxl_mapping_get_position;
- } LIBCXL_2;
++	jmappings = json_object_new_array();
++	if (!jmappings)
++		return;
++
++	cxl_mapping_foreach(region, mapping) {
++		struct json_object *jmapping;
++		struct cxl_decoder *decoder;
++		struct cxl_memdev *memdev;
++
++		jmapping = json_object_new_object();
++		if (!jmapping)
++			continue;
++
++		val = cxl_mapping_get_position(mapping);
++		if (val < UINT_MAX) {
++			jobj = json_object_new_int(val);
++			if (jobj)
++				json_object_object_add(jmapping, "position",
++						       jobj);
++		}
++
++		decoder = cxl_mapping_get_decoder(mapping);
++		if (!decoder)
++			continue;
++
++		memdev = cxl_ep_decoder_get_memdev(decoder);
++		if (memdev) {
++			devname = cxl_memdev_get_devname(memdev);
++			jobj = json_object_new_string(devname);
++			if (jobj)
++				json_object_object_add(jmapping, "memdev", jobj);
++		}
++
++		devname = cxl_decoder_get_devname(decoder);
++		jobj = json_object_new_string(devname);
++		if (jobj)
++			json_object_object_add(jmapping, "decoder", jobj);
++
++		json_object_array_add(jmappings, jmapping);
++	}
++
++	json_object_object_add(jregion, "mappings", jmappings);
++}
++
++struct json_object *util_cxl_region_to_json(struct cxl_region *region,
++					     unsigned long flags)
++{
++	const char *devname = cxl_region_get_devname(region);
++	struct json_object *jregion, *jobj;
++	u64 val;
++
++	jregion = json_object_new_object();
++	if (!jregion)
++		return NULL;
++
++	jobj = json_object_new_string(devname);
++	if (jobj)
++		json_object_object_add(jregion, "region", jobj);
++
++	val = cxl_region_get_resource(region);
++	if (val < ULLONG_MAX) {
++		jobj = util_json_object_hex(val, flags);
++		if (jobj)
++			json_object_object_add(jregion, "resource", jobj);
++	}
++
++	val = cxl_region_get_size(region);
++	if (val < ULLONG_MAX) {
++		jobj = util_json_object_size(val, flags);
++		if (jobj)
++			json_object_object_add(jregion, "size", jobj);
++	}
++
++	val = cxl_region_get_interleave_ways(region);
++	if (val < INT_MAX) {
++		jobj = json_object_new_int(val);
++		if (jobj)
++			json_object_object_add(jregion,
++					       "interleave_ways", jobj);
++	}
++
++	val = cxl_region_get_interleave_granularity(region);
++	if (val < INT_MAX) {
++		jobj = json_object_new_int(val);
++		if (jobj)
++			json_object_object_add(jregion,
++					       "interleave_granularity", jobj);
++	}
++
++	if (cxl_region_is_committed(region))
++		jobj = json_object_new_boolean(true);
++	else
++		jobj = json_object_new_boolean(false);
++	if (jobj)
++		json_object_object_add(jregion, "committed", jobj);
++
++	if (!cxl_region_is_enabled(region)) {
++		jobj = json_object_new_string("disabled");
++		if (jobj)
++			json_object_object_add(jregion, "state", jobj);
++	}
++
++	util_cxl_mappings_append_json(jregion, region, flags);
++
++	return jregion;
++}
++
+ void util_cxl_targets_append_json(struct json_object *jdecoder,
+ 				  struct cxl_decoder *decoder,
+ 				  const char *ident, const char *serial,
+diff --git a/cxl/list.c b/cxl/list.c
+index 1b5f583..88ca9d9 100644
+--- a/cxl/list.c
++++ b/cxl/list.c
+@@ -41,7 +41,10 @@ static const struct option options[] = {
+ 	OPT_BOOLEAN('D', "decoders", &param.decoders,
+ 		    "include CXL decoder info"),
+ 	OPT_BOOLEAN('T', "targets", &param.targets,
+-		    "include CXL target data with decoders or ports"),
++		    "include CXL target data with decoders, ports, or regions"),
++	OPT_STRING('r', "region", &param.region_filter, "region name",
++		   "filter by CXL region name(s)"),
++	OPT_BOOLEAN('R', "regions", &param.regions, "include CXL regions"),
+ 	OPT_BOOLEAN('i', "idle", &param.idle, "include disabled devices"),
+ 	OPT_BOOLEAN('u', "human", &param.human,
+ 		    "use human friendly number formats"),
+@@ -58,7 +61,7 @@ static const struct option options[] = {
+ static int num_list_flags(void)
+ {
+ 	return !!param.memdevs + !!param.buses + !!param.ports +
+-	       !!param.endpoints + !!param.decoders;
++	       !!param.endpoints + !!param.decoders + !!param.regions;
+ }
+ 
+ int cmd_list(int argc, const char **argv, struct cxl_ctx *ctx)
+@@ -92,18 +95,14 @@ int cmd_list(int argc, const char **argv, struct cxl_ctx *ctx)
+ 			param.endpoints = true;
+ 		if (param.decoder_filter)
+ 			param.decoders = true;
+-		if (num_list_flags() == 0) {
+-			/*
+-			 * TODO: We likely want to list regions by default if
+-			 * nothing was explicitly asked for. But until we have
+-			 * region support, print this error asking for devices
+-			 * explicitly.  Once region support is added, this TODO
+-			 * can be removed.
+-			 */
+-			error("please specify entities to list, e.g. using -m/-M\n");
+-			usage_with_options(u, options);
+-		}
+ 		param.single = true;
++		if (param.region_filter)
++			param.regions = true;
++	}
++
++	/* List regions by default */
++	if (num_list_flags() == 0) {
++		param.regions = true;
+ 	}
+ 
+ 	log_init(&param.ctx, "cxl list", "CXL_LIST_LOG");
 -- 
 2.36.1
 
