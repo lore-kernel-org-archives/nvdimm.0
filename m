@@ -1,37 +1,40 @@
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1837D6D17
-	for <nvdimm@lists.linux.dev>; Fri, 15 Jul 2022 00:01:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19E386D17
+	for <nvdimm@lists.linux.dev>; Fri, 15 Jul 2022 00:01:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1657843273; x=1689379273;
+  t=1657843277; x=1689379277;
   h=subject:from:to:cc:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=yIncCty2UR6oXNxbEEHSGl8uWj7bPEwM/IqHg+ZT7g8=;
-  b=eW1uIJmMQFuo/cPRQ8wkfPvFyKhdYzXQbTeroFe4+lsizid93nygtSfT
-   bS5lnr0XERoo3uvOPeDDDClDEC4r3JMkRwX//VwlkZRxOnLYoPlClC78C
-   UgNPwxDRch4Xs5E4/Iq93sVup4x0XJuYwrWHj5MRxBHNCFlm1bVzcFMIh
-   bfDgUP6LS7fMj6fJU6cTrc4WGz4+SuuZVoeQWF2jsk9IYOfczEvMUkISs
-   Rvu1zkeKjlrhRag6+D+6xi6c1RC9Ntwy/vOhBWI7a+DHY2ws8mxAWD6vT
-   pE70Td3GlvyJyFm8H+MCWeYRwCmAC/nXNIciyXPw/fcETplXzSctsif8/
+  bh=g7uYXQiu25oHGwZq+lig75MTaX/7ZFGMAsa2V42H71M=;
+  b=HKwFKxB7jczgehIvOp1nJzIUI1jxRQD/G5jHAtLqzS2qJ3ZONME/JQ4c
+   1ivDM3jcOTLB/w6FfzWcaLJ5GEiOuBi/9t8NIVZWDz7kLjY+C8DiPCNlN
+   mNJxUI1gq48qGMYKiDVBFf1DqVmLoVyq8zL5s9rr78AluUIsURvlPwBgM
+   6sfLtc3tXQx/U95aS0LDO8FsdPWj1xQHaxbU/zye2NVc0POZ3zFLiiXQG
+   HQJDeOws4U0NBO7v5UOqZU6OV2g3Un+S7DOdmAGde+Zfp0zUuX7GCMuaI
+   xLLUZx0JKY2QC8l77GfhZoYGDEEYor7+GzP9t5PFSp+hFhPVTP8SWXXqK
    g==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10408"; a="283219233"
+X-IronPort-AV: E=McAfee;i="6400,9594,10408"; a="285683186"
 X-IronPort-AV: E=Sophos;i="5.92,272,1650956400"; 
-   d="scan'208";a="283219233"
-Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jul 2022 17:01:06 -0700
+   d="scan'208";a="285683186"
+Received: from fmsmga006.fm.intel.com ([10.253.24.20])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jul 2022 17:01:00 -0700
 X-IronPort-AV: E=Sophos;i="5.92,272,1650956400"; 
-   d="scan'208";a="546461332"
+   d="scan'208";a="842325380"
 Received: from jlcone-mobl1.amr.corp.intel.com (HELO dwillia2-xfh.jf.intel.com) ([10.209.2.90])
-  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jul 2022 17:01:05 -0700
-Subject: [PATCH v2 04/28] cxl/core: Define a 'struct cxl_root_decoder'
+  by fmsmga006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jul 2022 17:00:59 -0700
+Subject: [PATCH v2 03/28] cxl/acpi: Track CXL resources in iomem_resource
 From: Dan Williams <dan.j.williams@intel.com>
 To: linux-cxl@vger.kernel.org
-Cc: Ben Widawsky <bwidawsk@kernel.org>, hch@lst.de, nvdimm@lists.linux.dev,
- linux-pci@vger.kernel.org
-Date: Thu, 14 Jul 2022 17:01:05 -0700
-Message-ID: <165784326541.1758207.9915663937394448341.stgit@dwillia2-xfh.jf.intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ Andrew Morton <akpm@linux-foundation.org>,
+ David Hildenbrand <david@redhat.com>, Jason Gunthorpe <jgg@nvidia.com>,
+ Tony Luck <tony.luck@intel.com>, Christoph Hellwig <hch@lst.de>,
+ nvdimm@lists.linux.dev, linux-pci@vger.kernel.org
+Date: Thu, 14 Jul 2022 17:00:59 -0700
+Message-ID: <165784325943.1758207.5310344844375305118.stgit@dwillia2-xfh.jf.intel.com>
 In-Reply-To: <165784324066.1758207.15025479284039479071.stgit@dwillia2-xfh.jf.intel.com>
 References: <165784324066.1758207.15025479284039479071.stgit@dwillia2-xfh.jf.intel.com>
 User-Agent: StGit/0.18-3-g996c
@@ -44,211 +47,305 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 
-Previously the target routing specifics of switch decoders were factored
-out of 'struct cxl_decoder' into 'struct cxl_switch_decoder'.
+Recall that CXL capable address ranges, on ACPI platforms, are published
+in the CEDT.CFMWS (CXL Early Discovery Table: CXL Fixed Memory Window
+Structures). These windows represent both the actively mapped capacity
+and the potential address space that can be dynamically assigned to a
+new CXL decode configuration (region / interleave-set).
 
-This patch, 2 of 3, adds a 'struct cxl_root_decoder' as a superset of a
-switch decoder that also track the associated CXL window platform
-resource.
+CXL endpoints like DDR DIMMs can be mapped at any physical address
+including 0 and legacy ranges.
 
-Note that the reason the resource for a given root decoder needs to be
-looked up after the fact (i.e. after cxl_parse_cfmws() and
-add_cxl_resource()) is because add_cxl_resource() may have merged CXL
-windows in order to keep them at the top of the resource tree / decode
-hierarchy.
+There is an expectation and requirement that the /proc/iomem interface
+and the iomem_resource tree in the kernel reflect the full set of
+platform address ranges. I.e. that every address range that platform
+firmware and bus drivers enumerate be reflected as an iomem_resource
+entry. The hard requirement to do this for CXL arises from the fact that
+facilities like CONFIG_DEVICE_PRIVATE expect to be able to treat empty
+iomem_resource ranges as free for software to use as proxy address
+space. Without CXL publishing its potential address ranges in
+iomem_resource, the CONFIG_DEVICE_PRIVATE mechanism may inadvertently
+steal capacity reserved for runtime provisioning of new CXL regions.
 
-Co-developed-by: Ben Widawsky <bwidawsk@kernel.org>
-Signed-off-by: Ben Widawsky <bwidawsk@kernel.org>
+So, iomem_resource needs to know about both active and potential CXL
+resource ranges. The active CXL resources might already be reflected in
+iomem_resource as "System RAM". insert_resource_expand_to_fit() handles
+re-parenting "System RAM" underneath a CXL window.
+
+The "_expand_to_fit()" behavior handles cases where a CXL window is not
+a strict superset of an existing entry in the iomem_resource tree. The
+"_expand_to_fit()" behavior is acceptable from the perspective of
+resource allocation. The expansion happens because a conflicting
+resource range is already populated, which means the resource boundary
+expansion does not result in any additional free CXL address space being
+made available. CXL address space allocation is always bounded by the
+orginal unexpanded address range.
+
+However, the potential for expansion does mean that something like
+walk_iomem_res_desc(IORES_DESC_CXL...) can only return fuzzy answers on
+corner case platforms that cause the resource tree to expand a CXL
+window resource over a range that is not decoded by CXL. This would be
+an odd platform configuration, but if it becomes a problem in practice
+the CXL subsytem could just publish an API that returns definitive
+answers.
+
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/cxl/acpi.c      |   40 ++++++++++++++++++++++++++++++++++++----
- drivers/cxl/core/port.c |   34 +++++++++++++++++++++++++++-------
- drivers/cxl/cxl.h       |   15 +++++++++++++--
- 3 files changed, 76 insertions(+), 13 deletions(-)
+ drivers/cxl/acpi.c     |  144 +++++++++++++++++++++++++++++++++++++++++++++++-
+ include/linux/ioport.h |    1 
+ kernel/resource.c      |    7 ++
+ 3 files changed, 149 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/cxl/acpi.c b/drivers/cxl/acpi.c
-index e2b6cbd04846..8f021241699f 100644
+index 62bf22ffb7aa..e2b6cbd04846 100644
 --- a/drivers/cxl/acpi.c
 +++ b/drivers/cxl/acpi.c
-@@ -84,7 +84,7 @@ static int cxl_parse_cfmws(union acpi_subtable_headers *header, void *arg,
+@@ -73,6 +73,8 @@ static int cxl_acpi_cfmws_verify(struct device *dev,
+ struct cxl_cfmws_context {
+ 	struct device *dev;
+ 	struct cxl_port *root_port;
++	struct resource *cxl_res;
++	int id;
+ };
+ 
+ static int cxl_parse_cfmws(union acpi_subtable_headers *header, void *arg,
+@@ -81,11 +83,13 @@ static int cxl_parse_cfmws(union acpi_subtable_headers *header, void *arg,
+ 	int target_map[CXL_DECODER_MAX_INTERLEAVE];
  	struct cxl_cfmws_context *ctx = arg;
  	struct cxl_port *root_port = ctx->root_port;
- 	struct resource *cxl_res = ctx->cxl_res;
--	struct cxl_switch_decoder *cxlsd;
-+	struct cxl_root_decoder *cxlrd;
++	struct resource *cxl_res = ctx->cxl_res;
+ 	struct cxl_switch_decoder *cxlsd;
  	struct device *dev = ctx->dev;
  	struct acpi_cedt_cfmws *cfmws;
  	struct cxl_decoder *cxld;
-@@ -128,11 +128,11 @@ static int cxl_parse_cfmws(union acpi_subtable_headers *header, void *arg,
- 	if (rc)
- 		goto err_insert;
+ 	unsigned int ways, i, ig;
++	struct resource *res;
+ 	int rc;
  
--	cxlsd = cxl_root_decoder_alloc(root_port, ways);
--	if (IS_ERR(cxld))
-+	cxlrd = cxl_root_decoder_alloc(root_port, ways);
-+	if (IS_ERR(cxlrd))
+ 	cfmws = (struct acpi_cedt_cfmws *) header;
+@@ -107,6 +111,23 @@ static int cxl_parse_cfmws(union acpi_subtable_headers *header, void *arg,
+ 	for (i = 0; i < ways; i++)
+ 		target_map[i] = cfmws->interleave_targets[i];
+ 
++	res = kzalloc(sizeof(*res), GFP_KERNEL);
++	if (!res)
++		return -ENOMEM;
++
++	res->name = kasprintf(GFP_KERNEL, "CXL Window %d", ctx->id++);
++	if (!res->name)
++		goto err_name;
++
++	res->start = cfmws->base_hpa;
++	res->end = cfmws->base_hpa + cfmws->window_size - 1;
++	res->flags = IORESOURCE_MEM;
++
++	/* add to the local resource tracking to establish a sort order */
++	rc = insert_resource(cxl_res, res);
++	if (rc)
++		goto err_insert;
++
+ 	cxlsd = cxl_root_decoder_alloc(root_port, ways);
+ 	if (IS_ERR(cxld))
  		return 0;
- 
--	cxld = &cxlsd->cxld;
-+	cxld = &cxlrd->cxlsd.cxld;
+@@ -115,8 +136,8 @@ static int cxl_parse_cfmws(union acpi_subtable_headers *header, void *arg,
  	cxld->flags = cfmws_to_decoder_flags(cfmws->restrictions);
  	cxld->target_type = CXL_DECODER_EXPANDER;
  	cxld->hpa_range = (struct range) {
-@@ -409,6 +409,32 @@ static int add_cxl_resources(struct resource *cxl_res)
+-		.start = cfmws->base_hpa,
+-		.end = cfmws->base_hpa + cfmws->window_size - 1,
++		.start = res->start,
++		.end = res->end,
+ 	};
+ 	cxld->interleave_ways = ways;
+ 	cxld->interleave_granularity = ig;
+@@ -137,6 +158,12 @@ static int cxl_parse_cfmws(union acpi_subtable_headers *header, void *arg,
+ 		cxld->hpa_range.start, cxld->hpa_range.end);
+ 
  	return 0;
++
++err_insert:
++	kfree(res->name);
++err_name:
++	kfree(res);
++	return -ENOMEM;
  }
  
-+static int pair_cxl_resource(struct device *dev, void *data)
+ __mock struct acpi_device *to_cxl_host_bridge(struct device *host,
+@@ -291,9 +318,101 @@ static void cxl_acpi_lock_reset_class(void *dev)
+ 	device_lock_reset_class(dev);
+ }
+ 
++static void del_cxl_resource(struct resource *res)
 +{
-+	struct resource *cxl_res = data;
-+	struct resource *p;
++	kfree(res->name);
++	kfree(res);
++}
 +
-+	if (!is_root_decoder(dev))
-+		return 0;
++static void cxl_set_public_resource(struct resource *priv, struct resource *pub)
++{
++	priv->desc = (unsigned long) pub;
++}
 +
-+	for (p = cxl_res->child; p; p = p->sibling) {
-+		struct cxl_root_decoder *cxlrd = to_cxl_root_decoder(dev);
-+		struct cxl_decoder *cxld = &cxlrd->cxlsd.cxld;
-+		struct resource res = {
-+			.start = cxld->hpa_range.start,
-+			.end = cxld->hpa_range.end,
-+			.flags = IORESOURCE_MEM,
-+		};
++static struct resource *cxl_get_public_resource(struct resource *priv)
++{
++	return (struct resource *) priv->desc;
++}
 +
-+		if (resource_contains(p, &res)) {
-+			cxlrd->res = cxl_get_public_resource(p);
-+			break;
++static void remove_cxl_resources(void *data)
++{
++	struct resource *res, *next, *cxl = data;
++
++	for (res = cxl->child; res; res = next) {
++		struct resource *victim = cxl_get_public_resource(res);
++
++		next = res->sibling;
++		remove_resource(res);
++
++		if (victim) {
++			remove_resource(victim);
++			kfree(victim);
++		}
++
++		del_cxl_resource(res);
++	}
++}
++
++/**
++ * add_cxl_resources() - reflect CXL fixed memory windows in iomem_resource
++ * @cxl_res: A standalone resource tree where each CXL window is a sibling
++ *
++ * Walk each CXL window in @cxl_res and add it to iomem_resource potentially
++ * expanding its boundaries to ensure that any conflicting resources become
++ * children. If a window is expanded it may then conflict with a another window
++ * entry and require the window to be truncated or trimmed. Consider this
++ * situation:
++ *
++ * |-- "CXL Window 0" --||----- "CXL Window 1" -----|
++ * |--------------- "System RAM" -------------|
++ *
++ * ...where platform firmware has established as System RAM resource across 2
++ * windows, but has left some portion of window 1 for dynamic CXL region
++ * provisioning. In this case "Window 0" will span the entirety of the "System
++ * RAM" span, and "CXL Window 1" is truncated to the remaining tail past the end
++ * of that "System RAM" resource.
++ */
++static int add_cxl_resources(struct resource *cxl_res)
++{
++	struct resource *res, *new, *next;
++
++	for (res = cxl_res->child; res; res = next) {
++		new = kzalloc(sizeof(*new), GFP_KERNEL);
++		if (!new)
++			return -ENOMEM;
++		new->name = res->name;
++		new->start = res->start;
++		new->end = res->end;
++		new->flags = IORESOURCE_MEM;
++		new->desc = IORES_DESC_CXL;
++
++		/*
++		 * Record the public resource in the private cxl_res tree for
++		 * later removal.
++		 */
++		cxl_set_public_resource(res, new);
++
++		insert_resource_expand_to_fit(&iomem_resource, new);
++
++		next = res->sibling;
++		while (next && resource_overlaps(new, next)) {
++			if (resource_contains(new, next)) {
++				struct resource *_next = next->sibling;
++
++				remove_resource(next);
++				del_cxl_resource(next);
++				next = _next;
++			} else
++				next->start = new->end + 1;
 +		}
 +	}
-+
 +	return 0;
 +}
 +
  static int cxl_acpi_probe(struct platform_device *pdev)
  {
  	int rc;
-@@ -459,6 +485,12 @@ static int cxl_acpi_probe(struct platform_device *pdev)
++	struct resource *cxl_res;
+ 	struct cxl_port *root_port;
+ 	struct device *host = &pdev->dev;
+ 	struct acpi_device *adev = ACPI_COMPANION(host);
+@@ -305,6 +424,14 @@ static int cxl_acpi_probe(struct platform_device *pdev)
  	if (rc)
  		return rc;
  
-+	/*
-+	 * Populate the root decoders with their related iomem resource,
-+	 * if present
-+	 */
-+	device_for_each_child(&root_port->dev, cxl_res, pair_cxl_resource);
++	cxl_res = devm_kzalloc(host, sizeof(*cxl_res), GFP_KERNEL);
++	if (!cxl_res)
++		return -ENOMEM;
++	cxl_res->name = "CXL mem";
++	cxl_res->start = 0;
++	cxl_res->end = -1;
++	cxl_res->flags = IORESOURCE_MEM;
 +
+ 	root_port = devm_cxl_add_port(host, host, CXL_RESOURCE_NONE, NULL);
+ 	if (IS_ERR(root_port))
+ 		return PTR_ERR(root_port);
+@@ -315,11 +442,22 @@ static int cxl_acpi_probe(struct platform_device *pdev)
+ 	if (rc < 0)
+ 		return rc;
+ 
++	rc = devm_add_action_or_reset(host, remove_cxl_resources, cxl_res);
++	if (rc)
++		return rc;
++
+ 	ctx = (struct cxl_cfmws_context) {
+ 		.dev = host,
+ 		.root_port = root_port,
++		.cxl_res = cxl_res,
+ 	};
+-	acpi_table_parse_cedt(ACPI_CEDT_TYPE_CFMWS, cxl_parse_cfmws, &ctx);
++	rc = acpi_table_parse_cedt(ACPI_CEDT_TYPE_CFMWS, cxl_parse_cfmws, &ctx);
++	if (rc < 0)
++		return -ENXIO;
++
++	rc = add_cxl_resources(cxl_res);
++	if (rc)
++		return rc;
+ 
  	/*
  	 * Root level scanned with host-bridge as dports, now scan host-bridges
- 	 * for their role as CXL uports to their CXL-capable PCIe Root Ports.
-diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
-index 27a2a6b839aa..4953a1c7b245 100644
---- a/drivers/cxl/core/port.c
-+++ b/drivers/cxl/core/port.c
-@@ -260,6 +260,23 @@ static void cxl_switch_decoder_release(struct device *dev)
- 	kfree(cxlsd);
- }
- 
-+struct cxl_root_decoder *to_cxl_root_decoder(struct device *dev)
-+{
-+	if (dev_WARN_ONCE(dev, !is_root_decoder(dev),
-+			  "not a cxl_root_decoder device\n"))
-+		return NULL;
-+	return container_of(dev, struct cxl_root_decoder, cxlsd.cxld.dev);
-+}
-+EXPORT_SYMBOL_NS_GPL(to_cxl_root_decoder, CXL);
-+
-+static void cxl_root_decoder_release(struct device *dev)
-+{
-+	struct cxl_root_decoder *cxlrd = to_cxl_root_decoder(dev);
-+
-+	__cxl_decoder_release(&cxlrd->cxlsd.cxld);
-+	kfree(cxlrd);
-+}
-+
- static const struct device_type cxl_decoder_endpoint_type = {
- 	.name = "cxl_decoder_endpoint",
- 	.release = cxl_decoder_release,
-@@ -274,7 +291,7 @@ static const struct device_type cxl_decoder_switch_type = {
- 
- static const struct device_type cxl_decoder_root_type = {
- 	.name = "cxl_decoder_root",
--	.release = cxl_switch_decoder_release,
-+	.release = cxl_root_decoder_release,
- 	.groups = cxl_decoder_root_attribute_groups,
+diff --git a/include/linux/ioport.h b/include/linux/ioport.h
+index ec5f71f7135b..79d1ad6d6275 100644
+--- a/include/linux/ioport.h
++++ b/include/linux/ioport.h
+@@ -141,6 +141,7 @@ enum {
+ 	IORES_DESC_DEVICE_PRIVATE_MEMORY	= 6,
+ 	IORES_DESC_RESERVED			= 7,
+ 	IORES_DESC_SOFT_RESERVED		= 8,
++	IORES_DESC_CXL				= 9,
  };
  
-@@ -1271,9 +1288,10 @@ static int cxl_switch_decoder_init(struct cxl_port *port,
-  * firmware description of CXL resources into a CXL standard decode
-  * topology.
-  */
--struct cxl_switch_decoder *cxl_root_decoder_alloc(struct cxl_port *port,
--						  unsigned int nr_targets)
-+struct cxl_root_decoder *cxl_root_decoder_alloc(struct cxl_port *port,
-+						unsigned int nr_targets)
- {
-+	struct cxl_root_decoder *cxlrd;
- 	struct cxl_switch_decoder *cxlsd;
- 	struct cxl_decoder *cxld;
- 	int rc;
-@@ -1281,19 +1299,21 @@ struct cxl_switch_decoder *cxl_root_decoder_alloc(struct cxl_port *port,
- 	if (!is_cxl_root(port))
- 		return ERR_PTR(-EINVAL);
- 
--	cxlsd = kzalloc(struct_size(cxlsd, target, nr_targets), GFP_KERNEL);
--	if (!cxlsd)
-+	cxlrd = kzalloc(struct_size(cxlrd, cxlsd.target, nr_targets),
-+			GFP_KERNEL);
-+	if (!cxlrd)
- 		return ERR_PTR(-ENOMEM);
- 
-+	cxlsd = &cxlrd->cxlsd;
- 	rc = cxl_switch_decoder_init(port, cxlsd, nr_targets);
- 	if (rc) {
--		kfree(cxlsd);
-+		kfree(cxlrd);
- 		return ERR_PTR(rc);
+ /*
+diff --git a/kernel/resource.c b/kernel/resource.c
+index 34eaee179689..53a534db350e 100644
+--- a/kernel/resource.c
++++ b/kernel/resource.c
+@@ -891,6 +891,13 @@ void insert_resource_expand_to_fit(struct resource *root, struct resource *new)
  	}
- 
- 	cxld = &cxlsd->cxld;
- 	cxld->dev.type = &cxl_decoder_root_type;
--	return cxlsd;
-+	return cxlrd;
+ 	write_unlock(&resource_lock);
  }
- EXPORT_SYMBOL_NS_GPL(cxl_root_decoder_alloc, CXL);
- 
-diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
-index 0289c06ec72c..ebdac8e7d181 100644
---- a/drivers/cxl/cxl.h
-+++ b/drivers/cxl/cxl.h
-@@ -260,6 +260,16 @@ struct cxl_switch_decoder {
- };
- 
- 
-+/**
-+ * struct cxl_root_decoder - Static platform CXL address decoder
-+ * @res: host / parent resource for region allocations
-+ * @cxlsd: base cxl switch decoder
++/*
++ * Not for general consumption, only early boot memory map parsing, PCI
++ * resource discovery, and late discovery of CXL resources are expected
++ * to use this interface. The former are built-in and only the latter,
++ * CXL, is a module.
 + */
-+struct cxl_root_decoder {
-+	struct resource *res;
-+	struct cxl_switch_decoder cxlsd;
-+};
-+
- /**
-  * enum cxl_nvdimm_brige_state - state machine for managing bus rescans
-  * @CXL_NVB_NEW: Set at bridge create and after cxl_pmem_wq is destroyed
-@@ -376,10 +386,11 @@ struct cxl_dport *cxl_find_dport_by_dev(struct cxl_port *port,
- 					const struct device *dev);
++EXPORT_SYMBOL_NS_GPL(insert_resource_expand_to_fit, CXL);
  
- struct cxl_decoder *to_cxl_decoder(struct device *dev);
-+struct cxl_root_decoder *to_cxl_root_decoder(struct device *dev);
- bool is_root_decoder(struct device *dev);
- bool is_endpoint_decoder(struct device *dev);
--struct cxl_switch_decoder *cxl_root_decoder_alloc(struct cxl_port *port,
--						  unsigned int nr_targets);
-+struct cxl_root_decoder *cxl_root_decoder_alloc(struct cxl_port *port,
-+						unsigned int nr_targets);
- struct cxl_switch_decoder *cxl_switch_decoder_alloc(struct cxl_port *port,
- 						    unsigned int nr_targets);
- int cxl_decoder_add(struct cxl_decoder *cxld, int *target_map);
+ /**
+  * remove_resource - Remove a resource in the resource tree
 
