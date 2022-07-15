@@ -1,37 +1,36 @@
-Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8D946D17
-	for <nvdimm@lists.linux.dev>; Fri, 15 Jul 2022 00:01:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDF2F7461
+	for <nvdimm@lists.linux.dev>; Fri, 15 Jul 2022 00:01:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1657843305; x=1689379305;
+  t=1657843309; x=1689379309;
   h=subject:from:to:cc:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=+ihFnLM0nNzB7sHl4ZXxnyM/LsP/E8epqdxlAvbvAKI=;
-  b=feBpUD3VinWAkUX4ESrm74Oe9vhwINibUZLSKAOEAHTZy2lodP+OYhV0
-   cBgNG9YdTxQyzFGnk9fuhTaKcxL3xCTT+c2LBjlqtHOUSyEcZYd5bzpbA
-   uJqdxiZlQ0lkon8SxbxGHP6OmYR+BPSfcyxYAOSQZbxrnS6V805rMjnJc
-   34ZXqpROlSaTtV0GLNmMFW3GO2JBizmKoGNoehTJUha1JLod9F3kAlJYn
-   RH47XePqjMxdysZ4kyhLMqVhRqjZysI7Eatnf2qEFK9a3d+n2P6ehJlav
-   JnKuY7sh9tnMFK9tgUhM29KiNJo+VvkwCFqhJ5672r1K2SQdyUCP+PRKx
-   g==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10408"; a="347338986"
+  bh=bxzdzJ6W/nVe6j8R5tao1r1yoeBQICSH9UM4Ttac/L0=;
+  b=A8tHFjw+84CcUZqPuIRzG+rXUQA3K9a6F+NJm3pf8AAJ1jZ1xQdE1GaH
+   hd55ua30FY5Au12zxew003prGci+uGzTBfTTxN3yVKViod/wL4Hf7+7uV
+   PNVNzd+fixcDl/2GvMRfgxw7MzRi8MkaIsIC6W+xH5Oyr3yVFh7hsWe8Q
+   YnRM70MUMShAM5iE0GAOwjYGzbCgTqwcWKaI5ZuQ2UuR17ketanbCuWQB
+   bqpNNHtrmNP/PABN5NYA28X8dbpAQ4piCJipQuX1/mBQ7qy9zBqshq2sl
+   8hmEj5JkN0u196OuIK2ekQ8GktpD2m5S13VKZ9o0clrscpB+O+PF05dw6
+   w==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10408"; a="349626533"
 X-IronPort-AV: E=Sophos;i="5.92,272,1650956400"; 
-   d="scan'208";a="347338986"
-Received: from fmsmga004.fm.intel.com ([10.253.24.48])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jul 2022 17:01:12 -0700
+   d="scan'208";a="349626533"
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jul 2022 17:01:40 -0700
 X-IronPort-AV: E=Sophos;i="5.92,272,1650956400"; 
-   d="scan'208";a="663984569"
+   d="scan'208";a="654092715"
 Received: from jlcone-mobl1.amr.corp.intel.com (HELO dwillia2-xfh.jf.intel.com) ([10.209.2.90])
-  by fmsmga004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jul 2022 17:01:11 -0700
-Subject: [PATCH v2 05/28] cxl/core: Define a 'struct cxl_endpoint_decoder'
+  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jul 2022 17:01:39 -0700
+Subject: [PATCH v2 10/28] cxl/port: Record dport in endpoint references
 From: Dan Williams <dan.j.williams@intel.com>
 To: linux-cxl@vger.kernel.org
-Cc: Ben Widawsky <bwidawsk@kernel.org>, hch@lst.de, nvdimm@lists.linux.dev,
- linux-pci@vger.kernel.org
-Date: Thu, 14 Jul 2022 17:01:10 -0700
-Message-ID: <165784327088.1758207.15502834501671201192.stgit@dwillia2-xfh.jf.intel.com>
+Cc: hch@lst.de, nvdimm@lists.linux.dev, linux-pci@vger.kernel.org
+Date: Thu, 14 Jul 2022 17:01:39 -0700
+Message-ID: <165784329944.1758207.15203961796832072116.stgit@dwillia2-xfh.jf.intel.com>
 In-Reply-To: <165784324066.1758207.15025479284039479071.stgit@dwillia2-xfh.jf.intel.com>
 References: <165784324066.1758207.15025479284039479071.stgit@dwillia2-xfh.jf.intel.com>
 User-Agent: StGit/0.18-3-g996c
@@ -44,191 +43,232 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 
-Previously the target routing specifics of switch decoders and platform
-CXL window resource tracking of root decoders were factored out of
-'struct cxl_decoder'. While switch decoders translate from SPA to
-downstream ports, endpoint decoders translate from SPA to DPA.
+Recall that the primary role of the cxl_mem driver is to probe if the
+given endpoint is connected to a CXL port topology. In that process it
+walks its device ancestry to its PCI root port. If that root port is
+also a CXL root port then the probe process adds cxl_port object
+instances at switch in the path between to the root and the endpoint. As
+those cxl_port instances are added, or if a previous enumeration
+attempt already created the port, a 'struct cxl_ep' instance is
+registered with that port to track the endpoints interested in that
+port.
 
-This patch, 3 of 3, adds a 'struct cxl_endpoint_decoder' that tracks an
-endpoint-specific Device Physical Address (DPA) resource. For now this
-just defines ->dpa_res, a follow-on patch will handle requesting DPA
-resource ranges from a device-DPA resource tree.
+At the time the cxl_ep is registered the downstream egress path from the
+port to the endpoint is known. Take the opportunity to record that
+information as it will be needed for dynamic programming of decoder
+targets during region provisioning.
 
-Co-developed-by: Ben Widawsky <bwidawsk@kernel.org>
-Signed-off-by: Ben Widawsky <bwidawsk@kernel.org>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/cxl/core/hdm.c       |    9 ++++++---
- drivers/cxl/core/port.c      |   31 +++++++++++++++++++++----------
- drivers/cxl/cxl.h            |   15 ++++++++++++++-
- tools/testing/cxl/test/cxl.c |   10 +++++++---
- 4 files changed, 48 insertions(+), 17 deletions(-)
+ drivers/cxl/core/port.c |   52 ++++++++++++++++++++++++++++++++---------------
+ drivers/cxl/cxl.h       |    2 ++
+ 2 files changed, 37 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/cxl/core/hdm.c b/drivers/cxl/core/hdm.c
-index 2f10d42798de..650363d5272f 100644
---- a/drivers/cxl/core/hdm.c
-+++ b/drivers/cxl/core/hdm.c
-@@ -256,12 +256,15 @@ int devm_cxl_enumerate_decoders(struct cxl_hdm *cxlhdm)
- 		struct cxl_decoder *cxld;
- 
- 		if (is_cxl_endpoint(port)) {
--			cxld = cxl_endpoint_decoder_alloc(port);
--			if (IS_ERR(cxld)) {
-+			struct cxl_endpoint_decoder *cxled;
-+
-+			cxled = cxl_endpoint_decoder_alloc(port);
-+			if (IS_ERR(cxled)) {
- 				dev_warn(&port->dev,
- 					 "Failed to allocate the decoder\n");
--				return PTR_ERR(cxld);
-+				return PTR_ERR(cxled);
- 			}
-+			cxld = &cxled->cxld;
- 		} else {
- 			struct cxl_switch_decoder *cxlsd;
- 
 diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
-index 4953a1c7b245..ca4f23204e5c 100644
+index fdc1be7db917..a8d350361548 100644
 --- a/drivers/cxl/core/port.c
 +++ b/drivers/cxl/core/port.c
-@@ -244,12 +244,12 @@ static void __cxl_decoder_release(struct cxl_decoder *cxld)
- 	put_device(&port->dev);
+@@ -882,8 +882,9 @@ static struct cxl_ep *find_ep(struct cxl_port *port, struct device *ep_dev)
+ 	return NULL;
  }
  
--static void cxl_decoder_release(struct device *dev)
-+static void cxl_endpoint_decoder_release(struct device *dev)
+-static int add_ep(struct cxl_port *port, struct cxl_ep *new)
++static int add_ep(struct cxl_ep *new)
  {
--	struct cxl_decoder *cxld = to_cxl_decoder(dev);
-+	struct cxl_endpoint_decoder *cxled = to_cxl_endpoint_decoder(dev);
++	struct cxl_port *port = new->dport->port;
+ 	struct cxl_ep *dup;
  
--	__cxl_decoder_release(cxld);
--	kfree(cxld);
-+	__cxl_decoder_release(&cxled->cxld);
-+	kfree(cxled);
- }
+ 	device_lock(&port->dev);
+@@ -901,14 +902,14 @@ static int add_ep(struct cxl_port *port, struct cxl_ep *new)
  
- static void cxl_switch_decoder_release(struct device *dev)
-@@ -279,7 +279,7 @@ static void cxl_root_decoder_release(struct device *dev)
+ /**
+  * cxl_add_ep - register an endpoint's interest in a port
+- * @port: a port in the endpoint's topology ancestry
++ * @dport: the dport that routes to @ep_dev
+  * @ep_dev: device representing the endpoint
+  *
+  * Intermediate CXL ports are scanned based on the arrival of endpoints.
+  * When those endpoints depart the port can be destroyed once all
+  * endpoints that care about that port have been removed.
+  */
+-static int cxl_add_ep(struct cxl_port *port, struct device *ep_dev)
++static int cxl_add_ep(struct cxl_dport *dport, struct device *ep_dev)
+ {
+ 	struct cxl_ep *ep;
+ 	int rc;
+@@ -919,8 +920,9 @@ static int cxl_add_ep(struct cxl_port *port, struct device *ep_dev)
  
- static const struct device_type cxl_decoder_endpoint_type = {
- 	.name = "cxl_decoder_endpoint",
--	.release = cxl_decoder_release,
-+	.release = cxl_endpoint_decoder_release,
- 	.groups = cxl_decoder_endpoint_attribute_groups,
+ 	INIT_LIST_HEAD(&ep->list);
+ 	ep->ep = get_device(ep_dev);
++	ep->dport = dport;
+ 
+-	rc = add_ep(port, ep);
++	rc = add_ep(ep);
+ 	if (rc)
+ 		cxl_ep_release(ep);
+ 	return rc;
+@@ -929,11 +931,13 @@ static int cxl_add_ep(struct cxl_port *port, struct device *ep_dev)
+ struct cxl_find_port_ctx {
+ 	const struct device *dport_dev;
+ 	const struct cxl_port *parent_port;
++	struct cxl_dport **dport;
  };
  
-@@ -321,6 +321,15 @@ struct cxl_decoder *to_cxl_decoder(struct device *dev)
- }
- EXPORT_SYMBOL_NS_GPL(to_cxl_decoder, CXL);
+ static int match_port_by_dport(struct device *dev, const void *data)
+ {
+ 	const struct cxl_find_port_ctx *ctx = data;
++	struct cxl_dport *dport;
+ 	struct cxl_port *port;
  
-+struct cxl_endpoint_decoder *to_cxl_endpoint_decoder(struct device *dev)
-+{
-+	if (dev_WARN_ONCE(dev, !is_endpoint_decoder(dev),
-+			  "not a cxl_endpoint_decoder device\n"))
-+		return NULL;
-+	return container_of(dev, struct cxl_endpoint_decoder, cxld.dev);
-+}
-+EXPORT_SYMBOL_NS_GPL(to_cxl_endpoint_decoder, CXL);
-+
- static struct cxl_switch_decoder *to_cxl_switch_decoder(struct device *dev)
+ 	if (!is_cxl_port(dev))
+@@ -942,7 +946,10 @@ static int match_port_by_dport(struct device *dev, const void *data)
+ 		return 0;
+ 
+ 	port = to_cxl_port(dev);
+-	return cxl_find_dport_by_dev(port, ctx->dport_dev) != NULL;
++	dport = cxl_find_dport_by_dev(port, ctx->dport_dev);
++	if (ctx->dport)
++		*ctx->dport = dport;
++	return dport != NULL;
+ }
+ 
+ static struct cxl_port *__find_cxl_port(struct cxl_find_port_ctx *ctx)
+@@ -958,24 +965,32 @@ static struct cxl_port *__find_cxl_port(struct cxl_find_port_ctx *ctx)
+ 	return NULL;
+ }
+ 
+-static struct cxl_port *find_cxl_port(struct device *dport_dev)
++static struct cxl_port *find_cxl_port(struct device *dport_dev,
++				      struct cxl_dport **dport)
  {
- 	if (dev_WARN_ONCE(dev, !is_switch_decoder(dev),
-@@ -1360,26 +1369,28 @@ EXPORT_SYMBOL_NS_GPL(cxl_switch_decoder_alloc, CXL);
-  *
-  * Return: A new cxl decoder to be registered by cxl_decoder_add()
-  */
--struct cxl_decoder *cxl_endpoint_decoder_alloc(struct cxl_port *port)
-+struct cxl_endpoint_decoder *cxl_endpoint_decoder_alloc(struct cxl_port *port)
+ 	struct cxl_find_port_ctx ctx = {
+ 		.dport_dev = dport_dev,
++		.dport = dport,
+ 	};
++	struct cxl_port *port;
+ 
+-	return __find_cxl_port(&ctx);
++	port = __find_cxl_port(&ctx);
++	return port;
+ }
+ 
+ static struct cxl_port *find_cxl_port_at(struct cxl_port *parent_port,
+-					 struct device *dport_dev)
++					 struct device *dport_dev,
++					 struct cxl_dport **dport)
  {
-+	struct cxl_endpoint_decoder *cxled;
- 	struct cxl_decoder *cxld;
+ 	struct cxl_find_port_ctx ctx = {
+ 		.dport_dev = dport_dev,
+ 		.parent_port = parent_port,
++		.dport = dport,
+ 	};
++	struct cxl_port *port;
+ 
+-	return __find_cxl_port(&ctx);
++	port = __find_cxl_port(&ctx);
++	return port;
+ }
+ 
+ /*
+@@ -1060,7 +1075,7 @@ static void cxl_detach_ep(void *data)
+ 		if (!dport_dev)
+ 			break;
+ 
+-		port = find_cxl_port(dport_dev);
++		port = find_cxl_port(dport_dev, NULL);
+ 		if (!port)
+ 			continue;
+ 
+@@ -1135,6 +1150,7 @@ static int add_port_attach_ep(struct cxl_memdev *cxlmd,
+ 	struct device *dparent = grandparent(dport_dev);
+ 	struct cxl_port *port, *parent_port = NULL;
+ 	resource_size_t component_reg_phys;
++	struct cxl_dport *dport;
  	int rc;
  
- 	if (!is_cxl_endpoint(port))
- 		return ERR_PTR(-EINVAL);
- 
--	cxld = kzalloc(sizeof(*cxld), GFP_KERNEL);
--	if (!cxld)
-+	cxled = kzalloc(sizeof(*cxled), GFP_KERNEL);
-+	if (!cxled)
- 		return ERR_PTR(-ENOMEM);
- 
-+	cxld = &cxled->cxld;
- 	rc = cxl_decoder_init(port, cxld);
- 	if (rc)	 {
--		kfree(cxld);
-+		kfree(cxled);
- 		return ERR_PTR(rc);
+ 	if (!dparent) {
+@@ -1148,7 +1164,7 @@ static int add_port_attach_ep(struct cxl_memdev *cxlmd,
+ 		return -ENXIO;
  	}
  
- 	cxld->dev.type = &cxl_decoder_endpoint_type;
--	return cxld;
-+	return cxled;
+-	parent_port = find_cxl_port(dparent);
++	parent_port = find_cxl_port(dparent, NULL);
+ 	if (!parent_port) {
+ 		/* iterate to create this parent_port */
+ 		return -EAGAIN;
+@@ -1163,13 +1179,14 @@ static int add_port_attach_ep(struct cxl_memdev *cxlmd,
+ 		goto out;
+ 	}
+ 
+-	port = find_cxl_port_at(parent_port, dport_dev);
++	port = find_cxl_port_at(parent_port, dport_dev, &dport);
+ 	if (!port) {
+ 		component_reg_phys = find_component_registers(uport_dev);
+ 		port = devm_cxl_add_port(&parent_port->dev, uport_dev,
+ 					 component_reg_phys, parent_port);
++		/* retry find to pick up the new dport information */
+ 		if (!IS_ERR(port))
+-			get_device(&port->dev);
++			port = find_cxl_port_at(parent_port, dport_dev, &dport);
+ 	}
+ out:
+ 	device_unlock(&parent_port->dev);
+@@ -1179,7 +1196,7 @@ static int add_port_attach_ep(struct cxl_memdev *cxlmd,
+ 	else {
+ 		dev_dbg(&cxlmd->dev, "add to new port %s:%s\n",
+ 			dev_name(&port->dev), dev_name(port->uport));
+-		rc = cxl_add_ep(port, &cxlmd->dev);
++		rc = cxl_add_ep(dport, &cxlmd->dev);
+ 		if (rc == -EEXIST) {
+ 			/*
+ 			 * "can't" happen, but this error code means
+@@ -1213,6 +1230,7 @@ int devm_cxl_enumerate_ports(struct cxl_memdev *cxlmd)
+ 	for (iter = dev; iter; iter = grandparent(iter)) {
+ 		struct device *dport_dev = grandparent(iter);
+ 		struct device *uport_dev;
++		struct cxl_dport *dport;
+ 		struct cxl_port *port;
+ 
+ 		if (!dport_dev)
+@@ -1228,12 +1246,12 @@ int devm_cxl_enumerate_ports(struct cxl_memdev *cxlmd)
+ 		dev_dbg(dev, "scan: iter: %s dport_dev: %s parent: %s\n",
+ 			dev_name(iter), dev_name(dport_dev),
+ 			dev_name(uport_dev));
+-		port = find_cxl_port(dport_dev);
++		port = find_cxl_port(dport_dev, &dport);
+ 		if (port) {
+ 			dev_dbg(&cxlmd->dev,
+ 				"found already registered port %s:%s\n",
+ 				dev_name(&port->dev), dev_name(port->uport));
+-			rc = cxl_add_ep(port, &cxlmd->dev);
++			rc = cxl_add_ep(dport, &cxlmd->dev);
+ 
+ 			/*
+ 			 * If the endpoint already exists in the port's list,
+@@ -1274,7 +1292,7 @@ EXPORT_SYMBOL_NS_GPL(devm_cxl_enumerate_ports, CXL);
+ 
+ struct cxl_port *cxl_mem_find_port(struct cxl_memdev *cxlmd)
+ {
+-	return find_cxl_port(grandparent(&cxlmd->dev));
++	return find_cxl_port(grandparent(&cxlmd->dev), NULL);
  }
- EXPORT_SYMBOL_NS_GPL(cxl_endpoint_decoder_alloc, CXL);
+ EXPORT_SYMBOL_NS_GPL(cxl_mem_find_port, CXL);
  
 diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
-index ebdac8e7d181..7e1460d89296 100644
+index 70cd24e4f3ce..31f33844279a 100644
 --- a/drivers/cxl/cxl.h
 +++ b/drivers/cxl/cxl.h
-@@ -239,6 +239,18 @@ struct cxl_decoder {
- 	unsigned long flags;
+@@ -371,10 +371,12 @@ struct cxl_dport {
+ /**
+  * struct cxl_ep - track an endpoint's interest in a port
+  * @ep: device that hosts a generic CXL endpoint (expander or accelerator)
++ * @dport: which dport routes to this endpoint on @port
+  * @list: node on port->endpoints list
+  */
+ struct cxl_ep {
+ 	struct device *ep;
++	struct cxl_dport *dport;
+ 	struct list_head list;
  };
  
-+/**
-+ * struct cxl_endpoint_decoder - Endpoint  / SPA to DPA decoder
-+ * @cxld: base cxl_decoder_object
-+ * @dpa_res: actively claimed DPA span of this decoder
-+ * @skip: offset into @dpa_res where @cxld.hpa_range maps
-+ */
-+struct cxl_endpoint_decoder {
-+	struct cxl_decoder cxld;
-+	struct resource *dpa_res;
-+	resource_size_t skip;
-+};
-+
- /**
-  * struct cxl_switch_decoder - Switch specific CXL HDM Decoder
-  * @cxld: base cxl_decoder object
-@@ -387,6 +399,7 @@ struct cxl_dport *cxl_find_dport_by_dev(struct cxl_port *port,
- 
- struct cxl_decoder *to_cxl_decoder(struct device *dev);
- struct cxl_root_decoder *to_cxl_root_decoder(struct device *dev);
-+struct cxl_endpoint_decoder *to_cxl_endpoint_decoder(struct device *dev);
- bool is_root_decoder(struct device *dev);
- bool is_endpoint_decoder(struct device *dev);
- struct cxl_root_decoder *cxl_root_decoder_alloc(struct cxl_port *port,
-@@ -394,7 +407,7 @@ struct cxl_root_decoder *cxl_root_decoder_alloc(struct cxl_port *port,
- struct cxl_switch_decoder *cxl_switch_decoder_alloc(struct cxl_port *port,
- 						    unsigned int nr_targets);
- int cxl_decoder_add(struct cxl_decoder *cxld, int *target_map);
--struct cxl_decoder *cxl_endpoint_decoder_alloc(struct cxl_port *port);
-+struct cxl_endpoint_decoder *cxl_endpoint_decoder_alloc(struct cxl_port *port);
- int cxl_decoder_add_locked(struct cxl_decoder *cxld, int *target_map);
- int cxl_decoder_autoremove(struct device *host, struct cxl_decoder *cxld);
- int cxl_endpoint_autoremove(struct cxl_memdev *cxlmd, struct cxl_port *endpoint);
-diff --git a/tools/testing/cxl/test/cxl.c b/tools/testing/cxl/test/cxl.c
-index 7991ddc6e562..4dad0fa7ac4c 100644
---- a/tools/testing/cxl/test/cxl.c
-+++ b/tools/testing/cxl/test/cxl.c
-@@ -462,12 +462,16 @@ static int mock_cxl_enumerate_decoders(struct cxl_hdm *cxlhdm)
- 			}
- 			cxld = &cxlsd->cxld;
- 		} else {
--			cxld = cxl_endpoint_decoder_alloc(port);
--			if (IS_ERR(cxld)) {
-+			struct cxl_endpoint_decoder *cxled;
-+
-+			cxled = cxl_endpoint_decoder_alloc(port);
-+
-+			if (IS_ERR(cxled)) {
- 				dev_warn(&port->dev,
- 					 "Failed to allocate the decoder\n");
--				return PTR_ERR(cxld);
-+				return PTR_ERR(cxled);
- 			}
-+			cxld = &cxled->cxld;
- 		}
- 
- 		cxld->hpa_range = (struct range) {
 
