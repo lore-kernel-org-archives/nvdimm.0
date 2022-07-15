@@ -1,38 +1,38 @@
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 481E07460
-	for <nvdimm@lists.linux.dev>; Fri, 15 Jul 2022 00:04:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92C0D7460
+	for <nvdimm@lists.linux.dev>; Fri, 15 Jul 2022 00:04:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1657843451; x=1689379451;
+  t=1657843473; x=1689379473;
   h=subject:from:to:cc:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=86ZN3Qodg4lER5Hi4rU+jkBv0qRvwnJVICGuPoHFcns=;
-  b=GS5B0ezn3KDkr0jV8UUIl7RcYdEXa62BIQyjMk+1Fb0yOymHwoO5s52/
-   h2CUrdk5koBJlaRhIzi8OjqdsV1mdhUk+ynYiu2RLooyoc4A4kirCK8ik
-   JZvXQkgPVYMzIFqaZ9pIwP7ent3DY9vXQSfnAg/imranmCPYNSu+rq+u/
-   5KfuHW9EGO1uvnOJ2+dXWdSdz4iGt+M80KTRIaZ3QXgN/7by7xCxB0t5+
-   fsXHmOMeaS2/tvzAp278/HG00GQCyfvg3UNQDlQZFXqC7E0YM+/s+bElQ
-   Pj3uAgt9m/1iEUELzkD8CeOtDTTpp4JJ7ZvWi6yV6pxQ9wDWvVMJLLXyv
-   w==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10408"; a="265451122"
+  bh=U+7MkLAHurf3f2Fjf7LARlOGChHtsfQEBW7wJ4w68qo=;
+  b=etOJY1rAPKk8w5SqrzHLiw6aougWj31APBsAGBNv204zA9vEnYlnfPQc
+   xT7MfNpLLfO+0YS5Swuok24UEH/KK0vsrwMXzHqcZbwpgd9zy1DvA6Yoz
+   gEX9RuipXgs9An9f5naksF2Bvop7F/xFy7SIQ8yj1yfLUHe/oIhaxYeNS
+   0r7vKnVwjqoupfAki0D8Bx5VRJpSiOW9l5AmQwuuyBF/0RieLbtMtg5K+
+   ogYWsu7M5M3T3dil/RHuby8H3Wu12EGvQ+ZHslm9XG/c3RaYoVa7V13vX
+   MdS/IoAHYejijwF/+iq2Cb8xadVs6FUgl6wZrn+8HAL87j676sYjOimLk
+   A==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10408"; a="286401669"
 X-IronPort-AV: E=Sophos;i="5.92,272,1650956400"; 
-   d="scan'208";a="265451122"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jul 2022 17:02:42 -0700
+   d="scan'208";a="286401669"
+Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jul 2022 17:02:31 -0700
 X-IronPort-AV: E=Sophos;i="5.92,272,1650956400"; 
-   d="scan'208";a="623634781"
+   d="scan'208";a="663985220"
 Received: from jlcone-mobl1.amr.corp.intel.com (HELO dwillia2-xfh.jf.intel.com) ([10.209.2.90])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jul 2022 17:02:42 -0700
-Subject: [PATCH v2 21/28] cxl/region: Enable the assignment of endpoint
- decoders to regions
+  by fmsmga004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jul 2022 17:02:30 -0700
+Subject: [PATCH v2 19/28] cxl/region: Add interleave geometry attributes
 From: Dan Williams <dan.j.williams@intel.com>
 To: linux-cxl@vger.kernel.org
-Cc: Ben Widawsky <bwidawsk@kernel.org>, hch@lst.de, nvdimm@lists.linux.dev,
- linux-pci@vger.kernel.org
-Date: Thu, 14 Jul 2022 17:02:41 -0700
-Message-ID: <165784336184.1758207.16403282029203949622.stgit@dwillia2-xfh.jf.intel.com>
+Cc: Ben Widawsky <bwidawsk@kernel.org>,
+ Jonathan Cameron <Jonathan.Cameron@huawei.com>, hch@lst.de,
+ nvdimm@lists.linux.dev, linux-pci@vger.kernel.org
+Date: Thu, 14 Jul 2022 17:02:30 -0700
+Message-ID: <165784335054.1758207.5368288630288141162.stgit@dwillia2-xfh.jf.intel.com>
 In-Reply-To: <165784324066.1758207.15025479284039479071.stgit@dwillia2-xfh.jf.intel.com>
 References: <165784324066.1758207.15025479284039479071.stgit@dwillia2-xfh.jf.intel.com>
 User-Agent: StGit/0.18-3-g996c
@@ -45,536 +45,295 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 
-The region provisioning process involves allocating DPA to a set of
-endpoint decoders, and HPA plus the region geometry to a region device.
-Then the decoder is assigned to the region. At this point several
-validation steps can be performed to validate that the decoder is
-suitable to participate in the region.
+From: Ben Widawsky <bwidawsk@kernel.org>
 
-Co-developed-by: Ben Widawsky <bwidawsk@kernel.org>
+Add ABI to allow the number of devices that comprise a region to be
+set as well as the interleave granularity for the region.
+
 Signed-off-by: Ben Widawsky <bwidawsk@kernel.org>
+[djbw: reword changelog]
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Link: https://lore.kernel.org/r/20220624041950.559155-11-dan.j.williams@intel.com
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- Documentation/ABI/testing/sysfs-bus-cxl |   19 ++
- drivers/cxl/core/core.h                 |    6 +
- drivers/cxl/core/hdm.c                  |   13 +
- drivers/cxl/core/port.c                 |    9 +
- drivers/cxl/core/region.c               |  282 +++++++++++++++++++++++++++++++
- drivers/cxl/cxl.h                       |   11 +
- 6 files changed, 338 insertions(+), 2 deletions(-)
+ Documentation/ABI/testing/sysfs-bus-cxl |   21 +++++
+ drivers/cxl/core/region.c               |  128 +++++++++++++++++++++++++++++++
+ drivers/cxl/cxl.h                       |   33 ++++++++
+ 3 files changed, 182 insertions(+)
 
 diff --git a/Documentation/ABI/testing/sysfs-bus-cxl b/Documentation/ABI/testing/sysfs-bus-cxl
-index 0c6c3da4da5a..94e19e24de8d 100644
+index 0760b8402c23..bfa42bcc8383 100644
 --- a/Documentation/ABI/testing/sysfs-bus-cxl
 +++ b/Documentation/ABI/testing/sysfs-bus-cxl
-@@ -342,3 +342,22 @@ Description:
- 		size attribute, the resulting physical address space determined
- 		by the driver is reflected here. It is therefore not useful to
- 		read this before writing a value to the size attribute.
+@@ -292,3 +292,24 @@ Description:
+ 		(RW) Write a unique identifier for the region. This field must
+ 		be set for persistent regions and it must not conflict with the
+ 		UUID of another region.
 +
 +
-+What:		/sys/bus/cxl/devices/regionZ/target[0..N]
++What:		/sys/bus/cxl/devices/regionZ/interleave_granularity
 +Date:		May, 2022
 +KernelVersion:	v5.20
 +Contact:	linux-cxl@vger.kernel.org
 +Description:
-+		(RW) Write an endpoint decoder object name to 'targetX' where X
-+		is the intended position of the endpoint device in the region
-+		interleave and N is the 'interleave_ways' setting for the
-+		region. ENXIO is returned if the write results in an impossible
-+		to map decode scenario, like the endpoint is unreachable at that
-+		position relative to the root decoder interleave. EBUSY is
-+		returned if the position in the region is already occupied, or
-+		if the region is not in a state to accept interleave
-+		configuration changes. EINVAL is returned if the object name is
-+		not an endpoint decoder. Once all positions have been
-+		successfully written a final validation for decode conflicts is
-+		performed before activating the region.
-diff --git a/drivers/cxl/core/core.h b/drivers/cxl/core/core.h
-index 29272df7e212..a60ad9f656fd 100644
---- a/drivers/cxl/core/core.h
-+++ b/drivers/cxl/core/core.h
-@@ -12,9 +12,14 @@ extern struct attribute_group cxl_base_attribute_group;
- #ifdef CONFIG_CXL_REGION
- extern struct device_attribute dev_attr_create_pmem_region;
- extern struct device_attribute dev_attr_delete_region;
-+extern struct device_attribute dev_attr_region;
-+void cxl_decoder_kill_region(struct cxl_endpoint_decoder *cxled);
- #define CXL_REGION_ATTR(x) (&dev_attr_##x.attr)
- #define SET_CXL_REGION_ATTR(x) (&dev_attr_##x.attr),
- #else
-+static inline void cxl_decoder_kill_region(struct cxl_endpoint_decoder *cxled)
-+{
-+}
- #define CXL_REGION_ATTR(x) NULL
- #define SET_CXL_REGION_ATTR(x)
- #endif
-@@ -34,6 +39,7 @@ int cxl_dpa_alloc(struct cxl_endpoint_decoder *cxled, unsigned long long size);
- int cxl_dpa_free(struct cxl_endpoint_decoder *cxled);
- resource_size_t cxl_dpa_size(struct cxl_endpoint_decoder *cxled);
- resource_size_t cxl_dpa_resource_start(struct cxl_endpoint_decoder *cxled);
-+extern struct rw_semaphore cxl_dpa_rwsem;
- 
- int cxl_memdev_init(void);
- void cxl_memdev_exit(void);
-diff --git a/drivers/cxl/core/hdm.c b/drivers/cxl/core/hdm.c
-index 4a0325b02ca4..81645de1064f 100644
---- a/drivers/cxl/core/hdm.c
-+++ b/drivers/cxl/core/hdm.c
-@@ -17,7 +17,7 @@
-  * for enumerating these registers and capabilities.
-  */
- 
--static DECLARE_RWSEM(cxl_dpa_rwsem);
-+DECLARE_RWSEM(cxl_dpa_rwsem);
- 
- static int add_hdm_decoder(struct cxl_port *port, struct cxl_decoder *cxld,
- 			   int *target_map)
-@@ -319,6 +319,11 @@ int cxl_dpa_free(struct cxl_endpoint_decoder *cxled)
- 		rc = 0;
- 		goto out;
- 	}
-+	if (cxled->cxld.region) {
-+		dev_dbg(dev, "decoder assigned to: %s\n",
-+			dev_name(&cxled->cxld.region->dev));
-+		goto out;
-+	}
- 	if (cxled->cxld.flags & CXL_DECODER_F_ENABLE) {
- 		dev_dbg(dev, "decoder enabled\n");
- 		rc = -EBUSY;
-@@ -395,6 +400,12 @@ int cxl_dpa_alloc(struct cxl_endpoint_decoder *cxled, unsigned long long size)
- 	int rc;
- 
- 	down_write(&cxl_dpa_rwsem);
-+	if (cxled->cxld.region) {
-+		dev_dbg(dev, "decoder attached to %s\n",
-+			dev_name(&cxled->cxld.region->dev));
-+		goto out;
-+	}
++		(RW) Set the number of consecutive bytes each device in the
++		interleave set will claim. The possible interleave granularity
++		values are determined by the CXL spec and the participating
++		devices.
 +
- 	if (cxled->cxld.flags & CXL_DECODER_F_ENABLE) {
- 		dev_dbg(dev, "decoder enabled\n");
- 		rc = -EBUSY;
-diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
-index 89672b126b30..bd0673821d28 100644
---- a/drivers/cxl/core/port.c
-+++ b/drivers/cxl/core/port.c
-@@ -288,6 +288,7 @@ static struct attribute *cxl_decoder_base_attrs[] = {
- 	&dev_attr_locked.attr,
- 	&dev_attr_interleave_granularity.attr,
- 	&dev_attr_interleave_ways.attr,
-+	SET_CXL_REGION_ATTR(region)
- 	NULL,
- };
- 
-@@ -1583,6 +1584,7 @@ struct cxl_endpoint_decoder *cxl_endpoint_decoder_alloc(struct cxl_port *port)
- 	if (!cxled)
- 		return ERR_PTR(-ENOMEM);
- 
-+	cxled->pos = -1;
- 	cxld = &cxled->cxld;
- 	rc = cxl_decoder_init(port, cxld);
- 	if (rc)	 {
-@@ -1687,6 +1689,13 @@ EXPORT_SYMBOL_NS_GPL(cxl_decoder_add, CXL);
- 
- static void cxld_unregister(void *dev)
- {
-+	struct cxl_endpoint_decoder *cxled;
 +
-+	if (is_endpoint_decoder(dev)) {
-+		cxled = to_cxl_endpoint_decoder(dev);
-+		cxl_decoder_kill_region(cxled);
-+	}
-+
- 	device_unregister(dev);
- }
- 
++What:		/sys/bus/cxl/devices/regionZ/interleave_ways
++Date:		May, 2022
++KernelVersion:	v5.20
++Contact:	linux-cxl@vger.kernel.org
++Description:
++		(RW) Configures the number of devices participating in the
++		region is set by writing this value. Each device will provide
++		1/interleave_ways of storage for the region.
 diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
-index b1e847827c6b..871bfdbb9bc8 100644
+index 22dccb4702e5..3289caa5d882 100644
 --- a/drivers/cxl/core/region.c
 +++ b/drivers/cxl/core/region.c
-@@ -24,6 +24,7 @@
+@@ -7,6 +7,7 @@
+ #include <linux/slab.h>
+ #include <linux/uuid.h>
+ #include <linux/idr.h>
++#include <cxlmem.h>
+ #include <cxl.h>
+ #include "core.h"
+ 
+@@ -21,6 +22,8 @@
+  *
+  * Region configuration has ordering constraints. UUID may be set at any time
   * but is only visible for persistent regions.
-  * 1. Interleave granularity
-  * 2. Interleave size
-+ * 3. Decoder targets
++ * 1. Interleave granularity
++ * 2. Interleave size
   */
  
  /*
-@@ -141,6 +142,8 @@ static ssize_t interleave_ways_show(struct device *dev,
- 	return rc;
+@@ -122,8 +125,129 @@ static umode_t cxl_region_visible(struct kobject *kobj, struct attribute *a,
+ 	return a->mode;
  }
  
-+static const struct attribute_group *get_cxl_region_target_group(void);
-+
- static ssize_t interleave_ways_store(struct device *dev,
- 				     struct device_attribute *attr,
- 				     const char *buf, size_t len)
-@@ -149,7 +152,7 @@ static ssize_t interleave_ways_store(struct device *dev,
- 	struct cxl_decoder *cxld = &cxlrd->cxlsd.cxld;
- 	struct cxl_region *cxlr = to_cxl_region(dev);
- 	struct cxl_region_params *p = &cxlr->params;
--	int rc, val;
-+	int rc, val, save;
- 	u8 iw;
- 
- 	rc = kstrtoint(buf, 0, &val);
-@@ -178,7 +181,11 @@ static ssize_t interleave_ways_store(struct device *dev,
- 		goto out;
- 	}
- 
-+	save = p->interleave_ways;
- 	p->interleave_ways = val;
-+	rc = sysfs_update_group(&cxlr->dev.kobj, get_cxl_region_target_group());
-+	if (rc)
-+		p->interleave_ways = save;
- out:
- 	up_write(&cxl_region_rwsem);
- 	if (rc)
-@@ -398,9 +405,262 @@ static const struct attribute_group cxl_region_group = {
- 	.is_visible = cxl_region_visible,
- };
- 
-+static size_t show_targetN(struct cxl_region *cxlr, char *buf, int pos)
++static ssize_t interleave_ways_show(struct device *dev,
++				    struct device_attribute *attr, char *buf)
 +{
-+	struct cxl_region_params *p = &cxlr->params;
-+	struct cxl_endpoint_decoder *cxled;
-+	int rc;
-+
-+	rc = down_read_interruptible(&cxl_region_rwsem);
-+	if (rc)
-+		return rc;
-+
-+	if (pos >= p->interleave_ways) {
-+		dev_dbg(&cxlr->dev, "position %d out of range %d\n", pos,
-+			p->interleave_ways);
-+		rc = -ENXIO;
-+		goto out;
-+	}
-+
-+	cxled = p->targets[pos];
-+	if (!cxled)
-+		rc = sysfs_emit(buf, "\n");
-+	else
-+		rc = sysfs_emit(buf, "%s\n", dev_name(&cxled->cxld.dev));
-+out:
-+	up_read(&cxl_region_rwsem);
-+
-+	return rc;
-+}
-+
-+/*
-+ * - Check that the given endpoint is attached to a host-bridge identified
-+ *   in the root interleave.
-+ */
-+static int cxl_region_attach(struct cxl_region *cxlr,
-+			     struct cxl_endpoint_decoder *cxled, int pos)
-+{
-+	struct cxl_region_params *p = &cxlr->params;
-+
-+	if (cxled->mode == CXL_DECODER_DEAD) {
-+		dev_dbg(&cxlr->dev, "%s dead\n", dev_name(&cxled->cxld.dev));
-+		return -ENODEV;
-+	}
-+
-+	if (pos >= p->interleave_ways) {
-+		dev_dbg(&cxlr->dev, "position %d out of range %d\n", pos,
-+			p->interleave_ways);
-+		return -ENXIO;
-+	}
-+
-+	if (p->targets[pos] == cxled)
-+		return 0;
-+
-+	if (p->targets[pos]) {
-+		struct cxl_endpoint_decoder *cxled_target = p->targets[pos];
-+		struct cxl_memdev *cxlmd_target = cxled_to_memdev(cxled_target);
-+
-+		dev_dbg(&cxlr->dev, "position %d already assigned to %s:%s\n",
-+			pos, dev_name(&cxlmd_target->dev),
-+			dev_name(&cxled_target->cxld.dev));
-+		return -EBUSY;
-+	}
-+
-+	p->targets[pos] = cxled;
-+	cxled->pos = pos;
-+	p->nr_targets++;
-+
-+	return 0;
-+}
-+
-+static void cxl_region_detach(struct cxl_endpoint_decoder *cxled)
-+{
-+	struct cxl_region *cxlr = cxled->cxld.region;
-+	struct cxl_region_params *p;
-+
-+	lockdep_assert_held_write(&cxl_region_rwsem);
-+
-+	if (!cxlr)
-+		return;
-+
-+	p = &cxlr->params;
-+	get_device(&cxlr->dev);
-+
-+	if (cxled->pos < 0 || cxled->pos >= p->interleave_ways ||
-+	    p->targets[cxled->pos] != cxled) {
-+		struct cxl_memdev *cxlmd = cxled_to_memdev(cxled);
-+
-+		dev_WARN_ONCE(&cxlr->dev, 1, "expected %s:%s at position %d\n",
-+			      dev_name(&cxlmd->dev), dev_name(&cxled->cxld.dev),
-+			      cxled->pos);
-+		goto out;
-+	}
-+
-+	p->targets[cxled->pos] = NULL;
-+	p->nr_targets--;
-+
-+	/* notify the region driver that one of its targets has deparated */
-+	up_write(&cxl_region_rwsem);
-+	device_release_driver(&cxlr->dev);
-+	down_write(&cxl_region_rwsem);
-+out:
-+	put_device(&cxlr->dev);
-+}
-+
-+void cxl_decoder_kill_region(struct cxl_endpoint_decoder *cxled)
-+{
-+	down_write(&cxl_region_rwsem);
-+	cxled->mode = CXL_DECODER_DEAD;
-+	cxl_region_detach(cxled);
-+	up_write(&cxl_region_rwsem);
-+}
-+
-+static int attach_target(struct cxl_region *cxlr, const char *decoder, int pos)
-+{
-+	struct device *dev;
-+	int rc;
-+
-+	dev = bus_find_device_by_name(&cxl_bus_type, NULL, decoder);
-+	if (!dev)
-+		return -ENODEV;
-+
-+	if (!is_endpoint_decoder(dev)) {
-+		put_device(dev);
-+		return -EINVAL;
-+	}
-+
-+	rc = down_write_killable(&cxl_region_rwsem);
-+	if (rc)
-+		goto out;
-+	down_read(&cxl_dpa_rwsem);
-+	rc = cxl_region_attach(cxlr, to_cxl_endpoint_decoder(dev), pos);
-+	up_read(&cxl_dpa_rwsem);
-+	up_write(&cxl_region_rwsem);
-+out:
-+	put_device(dev);
-+	return rc;
-+}
-+
-+static int detach_target(struct cxl_region *cxlr, int pos)
-+{
-+	struct cxl_region_params *p = &cxlr->params;
-+	int rc;
-+
-+	rc = down_write_killable(&cxl_region_rwsem);
-+	if (rc)
-+		return rc;
-+
-+	if (pos >= p->interleave_ways) {
-+		dev_dbg(&cxlr->dev, "position %d out of range %d\n", pos,
-+			p->interleave_ways);
-+		rc = -ENXIO;
-+		goto out;
-+	}
-+
-+	if (!p->targets[pos]) {
-+		rc = 0;
-+		goto out;
-+	}
-+
-+	cxl_region_detach(p->targets[pos]);
-+	rc = 0;
-+out:
-+	up_write(&cxl_region_rwsem);
-+	return rc;
-+}
-+
-+static size_t store_targetN(struct cxl_region *cxlr, const char *buf, int pos,
-+			    size_t len)
-+{
-+	int rc;
-+
-+	if (sysfs_streq(buf, "\n"))
-+		rc = detach_target(cxlr, pos);
-+	else
-+		rc = attach_target(cxlr, buf, pos);
-+
-+	if (rc < 0)
-+		return rc;
-+	return len;
-+}
-+
-+#define TARGET_ATTR_RW(n)                                              \
-+static ssize_t target##n##_show(                                       \
-+	struct device *dev, struct device_attribute *attr, char *buf)  \
-+{                                                                      \
-+	return show_targetN(to_cxl_region(dev), buf, (n));             \
-+}                                                                      \
-+static ssize_t target##n##_store(struct device *dev,                   \
-+				 struct device_attribute *attr,        \
-+				 const char *buf, size_t len)          \
-+{                                                                      \
-+	return store_targetN(to_cxl_region(dev), buf, (n), len);       \
-+}                                                                      \
-+static DEVICE_ATTR_RW(target##n)
-+
-+TARGET_ATTR_RW(0);
-+TARGET_ATTR_RW(1);
-+TARGET_ATTR_RW(2);
-+TARGET_ATTR_RW(3);
-+TARGET_ATTR_RW(4);
-+TARGET_ATTR_RW(5);
-+TARGET_ATTR_RW(6);
-+TARGET_ATTR_RW(7);
-+TARGET_ATTR_RW(8);
-+TARGET_ATTR_RW(9);
-+TARGET_ATTR_RW(10);
-+TARGET_ATTR_RW(11);
-+TARGET_ATTR_RW(12);
-+TARGET_ATTR_RW(13);
-+TARGET_ATTR_RW(14);
-+TARGET_ATTR_RW(15);
-+
-+static struct attribute *target_attrs[] = {
-+	&dev_attr_target0.attr,
-+	&dev_attr_target1.attr,
-+	&dev_attr_target2.attr,
-+	&dev_attr_target3.attr,
-+	&dev_attr_target4.attr,
-+	&dev_attr_target5.attr,
-+	&dev_attr_target6.attr,
-+	&dev_attr_target7.attr,
-+	&dev_attr_target8.attr,
-+	&dev_attr_target9.attr,
-+	&dev_attr_target10.attr,
-+	&dev_attr_target11.attr,
-+	&dev_attr_target12.attr,
-+	&dev_attr_target13.attr,
-+	&dev_attr_target14.attr,
-+	&dev_attr_target15.attr,
-+	NULL,
-+};
-+
-+static umode_t cxl_region_target_visible(struct kobject *kobj,
-+					 struct attribute *a, int n)
-+{
-+	struct device *dev = kobj_to_dev(kobj);
 +	struct cxl_region *cxlr = to_cxl_region(dev);
 +	struct cxl_region_params *p = &cxlr->params;
-+
-+	if (n < p->interleave_ways)
-+		return a->mode;
-+	return 0;
-+}
-+
-+static const struct attribute_group cxl_region_target_group = {
-+	.attrs = target_attrs,
-+	.is_visible = cxl_region_target_visible,
-+};
-+
-+static const struct attribute_group *get_cxl_region_target_group(void)
-+{
-+	return &cxl_region_target_group;
-+}
-+
- static const struct attribute_group *region_groups[] = {
- 	&cxl_base_attribute_group,
- 	&cxl_region_group,
-+	&cxl_region_target_group,
- 	NULL,
- };
- 
-@@ -560,6 +820,26 @@ static ssize_t create_pmem_region_store(struct device *dev,
- }
- DEVICE_ATTR_RW(create_pmem_region);
- 
-+static ssize_t region_show(struct device *dev, struct device_attribute *attr,
-+			   char *buf)
-+{
-+	struct cxl_decoder *cxld = to_cxl_decoder(dev);
 +	ssize_t rc;
 +
 +	rc = down_read_interruptible(&cxl_region_rwsem);
 +	if (rc)
 +		return rc;
-+
-+	if (cxld->region)
-+		rc = sysfs_emit(buf, "%s\n", dev_name(&cxld->region->dev));
-+	else
-+		rc = sysfs_emit(buf, "\n");
++	rc = sysfs_emit(buf, "%d\n", p->interleave_ways);
 +	up_read(&cxl_region_rwsem);
 +
 +	return rc;
 +}
-+DEVICE_ATTR_RO(region);
 +
- static struct cxl_region *
- cxl_find_region_by_name(struct cxl_root_decoder *cxlrd, const char *name)
++static ssize_t interleave_ways_store(struct device *dev,
++				     struct device_attribute *attr,
++				     const char *buf, size_t len)
++{
++	struct cxl_root_decoder *cxlrd = to_cxl_root_decoder(dev->parent);
++	struct cxl_decoder *cxld = &cxlrd->cxlsd.cxld;
++	struct cxl_region *cxlr = to_cxl_region(dev);
++	struct cxl_region_params *p = &cxlr->params;
++	int rc, val;
++	u8 iw;
++
++	rc = kstrtoint(buf, 0, &val);
++	if (rc)
++		return rc;
++
++	rc = ways_to_cxl(val, &iw);
++	if (rc)
++		return rc;
++
++	/*
++	 * Even for x3, x9, and x12 interleaves the region interleave must be a
++	 * power of 2 multiple of the host bridge interleave.
++	 */
++	if (!is_power_of_2(val / cxld->interleave_ways) ||
++	    (val % cxld->interleave_ways)) {
++		dev_dbg(&cxlr->dev, "invalid interleave: %d\n", val);
++		return -EINVAL;
++	}
++
++	rc = down_write_killable(&cxl_region_rwsem);
++	if (rc)
++		return rc;
++	if (p->state >= CXL_CONFIG_INTERLEAVE_ACTIVE) {
++		rc = -EBUSY;
++		goto out;
++	}
++
++	p->interleave_ways = val;
++out:
++	up_write(&cxl_region_rwsem);
++	if (rc)
++		return rc;
++	return len;
++}
++static DEVICE_ATTR_RW(interleave_ways);
++
++static ssize_t interleave_granularity_show(struct device *dev,
++					   struct device_attribute *attr,
++					   char *buf)
++{
++	struct cxl_region *cxlr = to_cxl_region(dev);
++	struct cxl_region_params *p = &cxlr->params;
++	ssize_t rc;
++
++	rc = down_read_interruptible(&cxl_region_rwsem);
++	if (rc)
++		return rc;
++	rc = sysfs_emit(buf, "%d\n", p->interleave_granularity);
++	up_read(&cxl_region_rwsem);
++
++	return rc;
++}
++
++static ssize_t interleave_granularity_store(struct device *dev,
++					    struct device_attribute *attr,
++					    const char *buf, size_t len)
++{
++	struct cxl_root_decoder *cxlrd = to_cxl_root_decoder(dev->parent);
++	struct cxl_decoder *cxld = &cxlrd->cxlsd.cxld;
++	struct cxl_region *cxlr = to_cxl_region(dev);
++	struct cxl_region_params *p = &cxlr->params;
++	int rc, val;
++	u16 ig;
++
++	rc = kstrtoint(buf, 0, &val);
++	if (rc)
++		return rc;
++
++	rc = granularity_to_cxl(val, &ig);
++	if (rc)
++		return rc;
++
++	/* region granularity must be >= root granularity */
++	if (val < cxld->interleave_granularity)
++		return -EINVAL;
++
++	rc = down_write_killable(&cxl_region_rwsem);
++	if (rc)
++		return rc;
++	if (p->state >= CXL_CONFIG_INTERLEAVE_ACTIVE) {
++		rc = -EBUSY;
++		goto out;
++	}
++
++	p->interleave_granularity = val;
++out:
++	up_write(&cxl_region_rwsem);
++	if (rc)
++		return rc;
++	return len;
++}
++static DEVICE_ATTR_RW(interleave_granularity);
++
+ static struct attribute *cxl_region_attrs[] = {
+ 	&dev_attr_uuid.attr,
++	&dev_attr_interleave_ways.attr,
++	&dev_attr_interleave_granularity.attr,
+ 	NULL,
+ };
+ 
+@@ -216,6 +340,8 @@ static struct cxl_region *devm_cxl_add_region(struct cxl_root_decoder *cxlrd,
+ 					      enum cxl_decoder_type type)
  {
+ 	struct cxl_port *port = to_cxl_port(cxlrd->cxlsd.cxld.dev.parent);
++	struct cxl_decoder *cxld = &cxlrd->cxlsd.cxld;
++	struct cxl_region_params *p;
+ 	struct cxl_region *cxlr;
+ 	struct device *dev;
+ 	int rc;
+@@ -223,8 +349,10 @@ static struct cxl_region *devm_cxl_add_region(struct cxl_root_decoder *cxlrd,
+ 	cxlr = cxl_region_alloc(cxlrd, id);
+ 	if (IS_ERR(cxlr))
+ 		return cxlr;
++	p = &cxlr->params;
+ 	cxlr->mode = mode;
+ 	cxlr->type = type;
++	p->interleave_granularity = cxld->interleave_granularity;
+ 
+ 	dev = &cxlr->dev;
+ 	rc = dev_set_name(dev, "region%d", id);
 diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
-index 837bfa67f469..95d74cf425a4 100644
+index cf2ece363015..a4e65c102bed 100644
 --- a/drivers/cxl/cxl.h
 +++ b/drivers/cxl/cxl.h
-@@ -255,6 +255,7 @@ enum cxl_decoder_type {
-  * @interleave_ways: number of cxl_dports in this decode
-  * @interleave_granularity: data stride per dport
-  * @target_type: accelerator vs expander (type2 vs type3) selector
-+ * @region: currently assigned region for this decoder
-  * @flags: memory type capabilities and locking
-  */
- struct cxl_decoder {
-@@ -264,14 +265,20 @@ struct cxl_decoder {
- 	int interleave_ways;
- 	int interleave_granularity;
- 	enum cxl_decoder_type target_type;
-+	struct cxl_region *region;
- 	unsigned long flags;
- };
- 
-+/*
-+ * CXL_DECODER_DEAD prevents endpoints from being reattached to regions
-+ * while cxld_unregister() is running
-+ */
- enum cxl_decoder_mode {
- 	CXL_DECODER_NONE,
- 	CXL_DECODER_RAM,
- 	CXL_DECODER_PMEM,
- 	CXL_DECODER_MIXED,
-+	CXL_DECODER_DEAD,
- };
+@@ -7,6 +7,7 @@
+ #include <linux/libnvdimm.h>
+ #include <linux/bitfield.h>
+ #include <linux/bitops.h>
++#include <linux/log2.h>
+ #include <linux/io.h>
  
  /**
-@@ -280,12 +287,14 @@ enum cxl_decoder_mode {
-  * @dpa_res: actively claimed DPA span of this decoder
-  * @skip: offset into @dpa_res where @cxld.hpa_range maps
-  * @mode: which memory type / access-mode-partition this decoder targets
-+ * @pos: interleave position in @cxld.region
+@@ -92,6 +93,31 @@ static inline int cxl_to_ways(u8 eniw, unsigned int *val)
+ 	return 0;
+ }
+ 
++static inline int granularity_to_cxl(int g, u16 *ig)
++{
++	if (g > SZ_16K || g < 256 || !is_power_of_2(g))
++		return -EINVAL;
++	*ig = ilog2(g) - 8;
++	return 0;
++}
++
++static inline int ways_to_cxl(int ways, u8 *iw)
++{
++	if (ways > 16)
++		return -EINVAL;
++	if (is_power_of_2(ways)) {
++		*iw = ilog2(ways);
++		return 0;
++	}
++	if (ways % 3)
++		return -EINVAL;
++	ways /= 3;
++	if (!is_power_of_2(ways))
++		return -EINVAL;
++	*iw = ilog2(ways) + 8;
++	return 0;
++}
++
+ /* CXL 2.0 8.2.8.1 Device Capabilities Array Register */
+ #define CXLDEV_CAP_ARRAY_OFFSET 0x0
+ #define   CXLDEV_CAP_ARRAY_CAP_ID 0
+@@ -298,11 +324,14 @@ struct cxl_root_decoder {
+ /*
+  * enum cxl_config_state - State machine for region configuration
+  * @CXL_CONFIG_IDLE: Any sysfs attribute can be written freely
++ * @CXL_CONFIG_INTERLEAVE_ACTIVE: region size has been set, no more
++ * changes to interleave_ways or interleave_granularity
+  * @CXL_CONFIG_ACTIVE: All targets have been added the region is now
+  * active
   */
- struct cxl_endpoint_decoder {
- 	struct cxl_decoder cxld;
- 	struct resource *dpa_res;
- 	resource_size_t skip;
- 	enum cxl_decoder_mode mode;
-+	int pos;
+ enum cxl_config_state {
+ 	CXL_CONFIG_IDLE,
++	CXL_CONFIG_INTERLEAVE_ACTIVE,
+ 	CXL_CONFIG_ACTIVE,
  };
  
- /**
-@@ -351,6 +360,8 @@ struct cxl_region_params {
- 	int interleave_ways;
- 	int interleave_granularity;
- 	struct resource *res;
-+	struct cxl_endpoint_decoder *targets[CXL_DECODER_MAX_INTERLEAVE];
-+	int nr_targets;
+@@ -310,12 +339,16 @@ enum cxl_config_state {
+  * struct cxl_region_params - region settings
+  * @state: allow the driver to lockdown further parameter changes
+  * @uuid: unique id for persistent regions
++ * @interleave_ways: number of endpoints in the region
++ * @interleave_granularity: capacity each endpoint contributes to a stripe
+  *
+  * State transitions are protected by the cxl_region_rwsem
+  */
+ struct cxl_region_params {
+ 	enum cxl_config_state state;
+ 	uuid_t uuid;
++	int interleave_ways;
++	int interleave_granularity;
  };
  
  /**
