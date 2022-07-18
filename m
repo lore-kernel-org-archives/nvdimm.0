@@ -1,78 +1,78 @@
-Received: from antelope.elm.relay.mailchannels.net (antelope.elm.relay.mailchannels.net [23.83.212.4])
+Received: from dog.elm.relay.mailchannels.net (dog.elm.relay.mailchannels.net [23.83.212.48])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3A61A46
-	for <nvdimm@lists.linux.dev>; Mon, 18 Jul 2022 06:13:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA530A46
+	for <nvdimm@lists.linux.dev>; Mon, 18 Jul 2022 06:29:15 +0000 (UTC)
 X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
 Received: from relay.mailchannels.net (localhost [127.0.0.1])
-	by relay.mailchannels.net (Postfix) with ESMTP id 5D7EE21F49;
-	Mon, 18 Jul 2022 05:34:57 +0000 (UTC)
+	by relay.mailchannels.net (Postfix) with ESMTP id A15FA81A99;
+	Mon, 18 Jul 2022 06:29:07 +0000 (UTC)
 Received: from pdx1-sub0-mail-a220.dreamhost.com (unknown [127.0.0.6])
 	(Authenticated sender: dreamhost)
-	by relay.mailchannels.net (Postfix) with ESMTPA id B009D21EF1;
-	Mon, 18 Jul 2022 05:34:56 +0000 (UTC)
-ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1658122496; a=rsa-sha256;
+	by relay.mailchannels.net (Postfix) with ESMTPA id 13DE18193C;
+	Mon, 18 Jul 2022 06:29:06 +0000 (UTC)
+ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1658125746; a=rsa-sha256;
 	cv=none;
-	b=GpR0aY9RITC8plMQ3GAnkODcSGydKEVKuUwhQ9gCiPEO8/S7PlPJM6qBdSMqoCH6FT83Be
-	wdmnQWWYCMQcijscXTndti3qc0AnYVDAuCdm/qEYaTdkUSVnpiCYlsaFh5DDawesXBDmrf
-	meipPAEkJv7x6UsGeKSiPwFYIBnRo474H/WbAzZAOYy5z6qjaOFlvFEhmvDZ4EkfeuPp0f
-	NvZJKJCEhK0R+1TZDSLDRK+V1UYEF6cTd9XwTrA70N7qR74J+UWRhajB8UAIZaBRTO3GEO
-	Vz4As5qby6polv+JIzWT/Y33oVRW59rwAlKEJqLYsc4wlWaIYoV07jM+ej7TBA==
+	b=9Xf8AyfaQEnWyhaP07RrJhZP28Uk0RMJXIcyJu76FnxcLpGgpIb1WYal2uTSSVfa83Y8Rb
+	PbDZJBD+/is5UKYLsMrsWu4xPhtHm90NGp2VN3yxmje4rjsXIc6uXdHreV3YOKe30lKeJA
+	Xr8pUH8JQHPlzOUKCZ+XH8KrCbcco8cwvyVij5kh24wjLn1w6+DW6EWsyNtJ5ysApQUJ7O
+	8Xm+xUby7vGMnj3MbFSaiCReDQt2nLj1KdZxrtZSY4dRt5Q8feFfpAZ0uqH4NeudT0OtKE
+	eK7cexq40O43ARb53y/klAf8DxQpRIb4yr4TPvwk55Maf6r6x64SwaouJPJ4aw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
  d=mailchannels.net;
-	s=arc-2022; t=1658122496;
+	s=arc-2022; t=1658125746;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references:dkim-signature;
-	bh=c7p32pyhlwYNPQPxZWq9NBe05dDDwYC3kOsylo6MJT4=;
-	b=q6Xz18aAvXuSjT1t3P554HYqZToXhyqE3BLvLtHYNmgA+Uh4b3lcMV18Lg3lhJNeeEUqZ3
-	smrUdEJyrl69rYNDXYwxov5do4gUHNA97RD/xfMT4LSYYwI3zrUflQVwd0E8bpsN8j8PGx
-	H9zgP231guEQHgubfpVNZU8xI809BRkhgWSwrdU1O96dYvK5srpwgL+I/PvQp5yS4buNQG
-	CtmUWKapWWWEh5c6c2vVmNPEnnz3N5LyH0pxZOxIsh66M6eMBuHF5qXtKJpq5dgvlhINNX
-	16AQG8NhM3/vsAb16nY37HEuNAYM66ZUNoe/zP2caoAyE0WQk9bD+jO7q5tS2A==
+	bh=xi6KAyVJ25K/T3eEYFHQUSX6q6bLKhuFf3IYvlWoVY8=;
+	b=pP9ogDpKjuF3R1ul2CmkE7+7vkfeWJtNjKKd8kwQVNJ6xjIFal9jDd0+QEnbFOE8VxBfJp
+	UDsYisX/MlDw5VAhvsq1kA185nhnsoSE6UBAKuK57vxvvI49mqixOMLZpR3O8UAuzvRGr+
+	wenk5OgR1Za+teEs83P6G80PbIN7e2aIY/BL11Jwq1sWVFgud3E3uc8zezaoPBFL/IJyt/
+	NiJdcIkb15EBwVO170AeQ45C28DCO3JoUFlOj19LfCz5OMaiIFyWB+q46zhMWJuGKBOODn
+	1iU/BtvIXL3djd6nIiqIm39CTuDu+gDx55WZqDxClNS2R8huR3wyoCexrJSosg==
 ARC-Authentication-Results: i=1;
-	rspamd-674ffb986c-sh5xl;
+	rspamd-689699966c-frzhf;
 	auth=pass smtp.auth=dreamhost smtp.mailfrom=dave@stgolabs.net
 X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
 X-MC-Relay: Neutral
 X-MailChannels-SenderId: dreamhost|x-authsender|dave@stgolabs.net
 X-MailChannels-Auth-Id: dreamhost
-X-Turn-Whispering: 1f9a2e2857271bfa_1658122497072_4130917283
-X-MC-Loop-Signature: 1658122497072:2885307300
-X-MC-Ingress-Time: 1658122497072
+X-Left-Shade: 48165b596f844c0c_1658125746657_1363763677
+X-MC-Loop-Signature: 1658125746657:3530652602
+X-MC-Ingress-Time: 1658125746656
 Received: from pdx1-sub0-mail-a220.dreamhost.com (pop.dreamhost.com
  [64.90.62.162])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
-	by 100.108.161.109 (trex/6.7.1);
-	Mon, 18 Jul 2022 05:34:57 +0000
+	by 100.98.242.215 (trex/6.7.1);
+	Mon, 18 Jul 2022 06:29:06 +0000
 Received: from offworld (unknown [104.36.25.13])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
 	(Authenticated sender: dave@stgolabs.net)
-	by pdx1-sub0-mail-a220.dreamhost.com (Postfix) with ESMTPSA id 4LmVz14JV3zF4;
-	Sun, 17 Jul 2022 22:34:52 -0700 (PDT)
+	by pdx1-sub0-mail-a220.dreamhost.com (Postfix) with ESMTPSA id 4LmX9Y2nqkz75;
+	Sun, 17 Jul 2022 23:29:05 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=stgolabs.net;
-	s=dreamhost; t=1658122496;
-	bh=c7p32pyhlwYNPQPxZWq9NBe05dDDwYC3kOsylo6MJT4=;
+	s=dreamhost; t=1658125745;
+	bh=xi6KAyVJ25K/T3eEYFHQUSX6q6bLKhuFf3IYvlWoVY8=;
 	h=Date:From:To:Cc:Subject:Content-Type;
-	b=eny7Xr+SOe1K6ReIAcDTpoPNlTLbE57OcgsWTBKlcS+H/BRAnjhYa8cV9eEfM99k5
-	 SiEvBoL52n01JTkmIGVlBwCbPMLwgQwyJbnlsqgJsjcJ0wjVVv8levV64kjqj2PHbu
-	 OJIo76ZESPnqMZIIEao4RMoBPdInDN5921/P/4Q2fMlK8HOYfchoQeADujVLXU3kRU
-	 nNvF0Je1NtfSLoygUM74gErCBtDVuQ1nyLysQrCaoT2lBuojJjT6hVm6xX++AiTheX
-	 jH5wT5IcTX0O3prYMiT7Ujqn+ztMp9oA9jpOC1DdP7mXvGzVoxF+Ba0mepd9x6gGlF
-	 NbjVlU2Ul3EaQ==
-Date: Sun, 17 Jul 2022 22:34:49 -0700
+	b=MUhCiA/OiYOdgT05w5P6njjSHpvsgrUURYaqhsbq4sVksMKSHypCA1als7KwRWMMY
+	 N4PGu1gN8XfuOUTRmD15/9QaIF0NTgsgS5rJoVx5yFVo6lA48ymO7TrsJHwiu4oyE9
+	 Ew/bIp1z3Y82z/aUfD1DAive3Kw46FqE6bhH/zlB7+wgJnhfYRKwSlS4FwnwpKZ8XF
+	 Rn9FdF/2r9dISWqqr/w6qujy6KytHCxk5oxLDAsgzHySHVKNf0kRYsqDBMSQz3on0w
+	 0LqxtZ1pHh7Bhwt0BtH9olPVkSZWDnvOUW4JH25d1QSc4Z9649nkDVVaa9vGNJkFYw
+	 jt6BmTNbHabfw==
+Date: Sun, 17 Jul 2022 23:29:02 -0700
 From: Davidlohr Bueso <dave@stgolabs.net>
 To: Dave Jiang <dave.jiang@intel.com>
 Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
 	dan.j.williams@intel.com, bwidawsk@kernel.org, ira.weiny@intel.com,
 	vishal.l.verma@intel.com, alison.schofield@intel.com
-Subject: Re: [PATCH RFC 1/15] cxl/pmem: Introduce nvdimm_security_ops with
- ->get_flags() operation
-Message-ID: <20220718053449.5t6mxfjoknajs5fi@offworld>
+Subject: Re: [PATCH RFC 2/15] tools/testing/cxl: Create context for cxl mock
+ device
+Message-ID: <20220718062902.i7pfbrej6hpwdvb4@offworld>
 References: <165791918718.2491387.4203738301057301285.stgit@djiang5-desk3.ch.intel.com>
- <165791931828.2491387.3280104860123759941.stgit@djiang5-desk3.ch.intel.com>
+ <165791932409.2491387.9065856569307593223.stgit@djiang5-desk3.ch.intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -81,18 +81,95 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Disposition: inline
-In-Reply-To: <165791931828.2491387.3280104860123759941.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <165791932409.2491387.9065856569307593223.stgit@djiang5-desk3.ch.intel.com>
 User-Agent: NeoMutt/20220429
 
 On Fri, 15 Jul 2022, Dave Jiang wrote:
 
->+++ b/drivers/cxl/security.c
->@@ -0,0 +1,57 @@
->+// SPDX-License-Identifier: GPL-2.0-only
->+/* Copyright(c) 2022 Intel Corporation. All rights reserved. */
->+#include <linux/libnvdimm.h>
->+#include <asm/unaligned.h>
->+#include <linux/module.h>
->+#include <linux/ndctl.h>
+>Add context struct for mock device and move lsa under the context. This
+>allows additional information such as security status and other persistent
+>security data such as passphrase to be added for the emulated test device.
+>
 
-ndctl.h can be removed.
+Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
+
+>Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+>---
+> tools/testing/cxl/test/mem.c |   29 +++++++++++++++++++++++------
+> 1 file changed, 23 insertions(+), 6 deletions(-)
+>
+>diff --git a/tools/testing/cxl/test/mem.c b/tools/testing/cxl/test/mem.c
+>index 6b9239b2afd4..723378248321 100644
+>--- a/tools/testing/cxl/test/mem.c
+>+++ b/tools/testing/cxl/test/mem.c
+>@@ -9,6 +9,10 @@
+> #include <linux/bits.h>
+> #include <cxlmem.h>
+>
+>+struct mock_mdev_data {
+>+	void *lsa;
+>+};
+>+
+> #define LSA_SIZE SZ_128K
+> #define EFFECT(x) (1U << x)
+>
+>@@ -140,7 +144,8 @@ static int mock_id(struct cxl_dev_state *cxlds, struct cxl_mbox_cmd *cmd)
+> static int mock_get_lsa(struct cxl_dev_state *cxlds, struct cxl_mbox_cmd *cmd)
+> {
+> 	struct cxl_mbox_get_lsa *get_lsa = cmd->payload_in;
+>-	void *lsa = dev_get_drvdata(cxlds->dev);
+>+	struct mock_mdev_data *mdata = dev_get_drvdata(cxlds->dev);
+>+	void *lsa = mdata->lsa;
+> 	u32 offset, length;
+>
+> 	if (sizeof(*get_lsa) > cmd->size_in)
+>@@ -159,7 +164,8 @@ static int mock_get_lsa(struct cxl_dev_state *cxlds, struct cxl_mbox_cmd *cmd)
+> static int mock_set_lsa(struct cxl_dev_state *cxlds, struct cxl_mbox_cmd *cmd)
+> {
+> 	struct cxl_mbox_set_lsa *set_lsa = cmd->payload_in;
+>-	void *lsa = dev_get_drvdata(cxlds->dev);
+>+	struct mock_mdev_data *mdata = dev_get_drvdata(cxlds->dev);
+>+	void *lsa = mdata->lsa;
+> 	u32 offset, length;
+>
+> 	if (sizeof(*set_lsa) > cmd->size_in)
+>@@ -237,9 +243,12 @@ static int cxl_mock_mbox_send(struct cxl_dev_state *cxlds, struct cxl_mbox_cmd *
+> 	return rc;
+> }
+>
+>-static void label_area_release(void *lsa)
+>+static void cxl_mock_drvdata_release(void *data)
+> {
+>-	vfree(lsa);
+>+	struct mock_mdev_data *mdata = data;
+>+
+>+	vfree(mdata->lsa);
+>+	vfree(mdata);
+> }
+>
+> static int cxl_mock_mem_probe(struct platform_device *pdev)
+>@@ -247,13 +256,21 @@ static int cxl_mock_mem_probe(struct platform_device *pdev)
+> 	struct device *dev = &pdev->dev;
+> 	struct cxl_memdev *cxlmd;
+> 	struct cxl_dev_state *cxlds;
+>+	struct mock_mdev_data *mdata;
+> 	void *lsa;
+> 	int rc;
+>
+>+	mdata = vmalloc(sizeof(*mdata));
+>+	if (!mdata)
+>+		return -ENOMEM;
+>+
+> 	lsa = vmalloc(LSA_SIZE);
+>-	if (!lsa)
+>+	if (!lsa) {
+>+		vfree(mdata);
+> 		return -ENOMEM;
+>-	rc = devm_add_action_or_reset(dev, label_area_release, lsa);
+>+	}
+>+
+>+	rc = devm_add_action_or_reset(dev, cxl_mock_drvdata_release, mdata);
+> 	if (rc)
+> 		return rc;
+> 	dev_set_drvdata(dev, lsa);
+>
