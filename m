@@ -1,102 +1,88 @@
-Received: from dragonfly.birch.relay.mailchannels.net (dragonfly.birch.relay.mailchannels.net [23.83.209.51])
+Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57C357FE
-	for <nvdimm@lists.linux.dev>; Mon, 18 Jul 2022 06:37:03 +0000 (UTC)
-X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
-Received: from relay.mailchannels.net (localhost [127.0.0.1])
-	by relay.mailchannels.net (Postfix) with ESMTP id 6AD311219E3;
-	Mon, 18 Jul 2022 06:36:56 +0000 (UTC)
-Received: from pdx1-sub0-mail-a220.dreamhost.com (unknown [127.0.0.6])
-	(Authenticated sender: dreamhost)
-	by relay.mailchannels.net (Postfix) with ESMTPA id B335F121D51;
-	Mon, 18 Jul 2022 06:36:55 +0000 (UTC)
-ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1658126216; a=rsa-sha256;
-	cv=none;
-	b=LhNy5xfroBRTUFcAJIvBrl9g3HllhExzfEfc9f65/JoN+rSOnS1lw8U5ZwIrshd/D8zkDQ
-	ZyzFD1n2HSTz8dnvxlvTNDLGqMCNbnYUdkPjC3hBHEahx6eQaW/fGb6yD8Hp8HxJMJZL1g
-	MfJJIif79V4d9PRJk85JG7etCdfS5csbEeR2Ok2yALDfUZp91PUheAMl410mV0BfXwT+aZ
-	Sox5YlOCCulUHdFCPgluq6wq5VmQkaqpQ/1KlD7IMJv3G0ce6wyjfnffxIyBJ0OYcc2plG
-	byKHdkbtL+IeFt3nS7sbZR3k2FdDLudK8QBVsvcX3RQtZ4UKFcaI2s9WlBvuCA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
- d=mailchannels.net;
-	s=arc-2022; t=1658126216;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references:dkim-signature;
-	bh=SOqHZ3Ea2jaBwNaMDxKw0tnDrWnm+OTtYiPgTLSio3g=;
-	b=NMou+Hdhy1Hsem8qM9SKefDlaOi8GdfFZeTMMJR98XIpu8DS3IBQZqmE18Wh8+Z4+omcz/
-	2FCFuRM0BK1hXuZlNlszed1Snmw19apnzl+kdUSUJcBxbH4ca4rl5DDxBYaK14CBMBohdW
-	kXH7r0GVbTsUozvr5uU60ytemByOLZP9kGEo99i0MW2fjngTjIEPaFObSyaweixfvbT6Xz
-	CU4cDPVh+2NHh/vR7SzfbVxxtV25hbhxrls6EX1nslmcgAhHWmJtZOzwNxHSGk6l2adsyT
-	UXYEEAg+kHTtPG6vNi8Rd2UFvGzNPgCeOgiJs+HHqkllDs0DMLEc5OR+01apGw==
-ARC-Authentication-Results: i=1;
-	rspamd-674ffb986c-v42bq;
-	auth=pass smtp.auth=dreamhost smtp.mailfrom=dave@stgolabs.net
-X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
-X-MC-Relay: Neutral
-X-MailChannels-SenderId: dreamhost|x-authsender|dave@stgolabs.net
-X-MailChannels-Auth-Id: dreamhost
-X-Cellar-Illegal: 124b19796256e14c_1658126216225_88675048
-X-MC-Loop-Signature: 1658126216225:866721001
-X-MC-Ingress-Time: 1658126216224
-Received: from pdx1-sub0-mail-a220.dreamhost.com (pop.dreamhost.com
- [64.90.62.162])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
-	by 100.110.28.222 (trex/6.7.1);
-	Mon, 18 Jul 2022 06:36:56 +0000
-Received: from offworld (unknown [104.36.25.13])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	(Authenticated sender: dave@stgolabs.net)
-	by pdx1-sub0-mail-a220.dreamhost.com (Postfix) with ESMTPSA id 4LmXLZ5zqzz75;
-	Sun, 17 Jul 2022 23:36:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=stgolabs.net;
-	s=dreamhost; t=1658126215;
-	bh=SOqHZ3Ea2jaBwNaMDxKw0tnDrWnm+OTtYiPgTLSio3g=;
-	h=Date:From:To:Cc:Subject:Content-Type;
-	b=beT8ePTscmNRd4/tJFIV9YYaIAo7OQgVhFLlio4D61f5ceAfc4FAUEsGJoLQOJtQs
-	 B18QmwR+zP3e2jfrx0kzQEhSDDrTYMCuWYA66Hczgi7Oj+zD8T5P/FyWrZXdc9TK/8
-	 Jjpuj6gMB1iCuuSIZqpXkWagt9eEhmojJR63gX0tmf7Wxhh41RL3HQvVbJRU7Spqz5
-	 motoP1rs+R0Be325X8C9hj+t7Q49KBpfS90k7q0ASlFUX4vuL9JezwTQ0oTrCgrQ/x
-	 Akze913PFUvcDFBWXuw4j6m4d28TrVlGkpKIHUNEEMmCblRsowZgT0N3yCvdcHM7Wt
-	 cZ8KKMp4XwOWA==
-Date: Sun, 17 Jul 2022 23:36:52 -0700
-From: Davidlohr Bueso <dave@stgolabs.net>
-To: Dave Jiang <dave.jiang@intel.com>
-Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
-	dan.j.williams@intel.com, bwidawsk@kernel.org, ira.weiny@intel.com,
-	vishal.l.verma@intel.com, alison.schofield@intel.com
-Subject: Re: [PATCH RFC 4/15] cxl/pmem: Add "Set Passphrase" security command
- support
-Message-ID: <20220718063652.osytkh3sji3mntfn@offworld>
-References: <165791918718.2491387.4203738301057301285.stgit@djiang5-desk3.ch.intel.com>
- <165791933557.2491387.2141316283759403219.stgit@djiang5-desk3.ch.intel.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55576EA4
+	for <nvdimm@lists.linux.dev>; Mon, 18 Jul 2022 08:23:52 +0000 (UTC)
+Received: from pps.filterd (m0098420.ppops.net [127.0.0.1])
+	by mx0b-001b2d01.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 26I8Dmqk032246;
+	Mon, 18 Jul 2022 08:23:44 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=subject : from : to : cc
+ : date : message-id : mime-version : content-type :
+ content-transfer-encoding; s=pp1;
+ bh=Dvdsv6qQGUVmrQZaa7rGsnnz3ShNYUtZ1RRv7Lw20go=;
+ b=ZNm8T1aTQI1Enns5BjDBsyH8Nv0jWVn0yThTqqGfzxhfJoD1ikiQo1v1XCw/y9wjXJB5
+ mXKDeIzIddzvcf8nfsbYnHdOVHZb6FMtbJWEy6Z8Dt3zwGgaIoHNR8cktFrerkU94aUc
+ slSJ25o94ucXCULfSdvJCee7ELZmbTUWfJnsmtUZO1wVk/CAOsJ2sY0l6Ts9u+QApDZB
+ 4hjw2+lgPviDX7Vnxzip112LTmyzBRNxBjcq+SijNiQIgWKopqkjsjK+Na/P1ytuce8M
+ UT+Rxl1CfVKn6d+vCUbRkXE0Kzr3QKB9WnD/y+1F1hTM0UxyNUlcggQIC/ZejdPQUi1D wg== 
+Received: from ppma03ams.nl.ibm.com (62.31.33a9.ip4.static.sl-reverse.com [169.51.49.98])
+	by mx0b-001b2d01.pphosted.com (PPS) with ESMTPS id 3hd3ttr5yy-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 18 Jul 2022 08:23:43 +0000
+Received: from pps.filterd (ppma03ams.nl.ibm.com [127.0.0.1])
+	by ppma03ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 26I8Ka3K001724;
+	Mon, 18 Jul 2022 08:23:42 GMT
+Received: from b06cxnps4074.portsmouth.uk.ibm.com (d06relay11.portsmouth.uk.ibm.com [9.149.109.196])
+	by ppma03ams.nl.ibm.com with ESMTP id 3hbmy8t8mh-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 18 Jul 2022 08:23:41 +0000
+Received: from d06av21.portsmouth.uk.ibm.com (d06av21.portsmouth.uk.ibm.com [9.149.105.232])
+	by b06cxnps4074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 26I8NcZd20250906
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Mon, 18 Jul 2022 08:23:38 GMT
+Received: from d06av21.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 818565204F;
+	Mon, 18 Jul 2022 08:23:38 +0000 (GMT)
+Received: from [192.168.29.61] (unknown [9.43.124.131])
+	by d06av21.portsmouth.uk.ibm.com (Postfix) with ESMTP id 84D715204E;
+	Mon, 18 Jul 2022 08:23:36 +0000 (GMT)
+Subject: [PATCH] libcxl: Fix memory leakage in cxl_port_init()
+From: Shivaprasad G Bhat <sbhat@linux.ibm.com>
+To: nvdimm@lists.linux.dev, vishal.l.verma@intel.com
+Cc: dan.j.williams@intel.com, vaibhav@linux.ibm.com, sbhat@linux.ibm.com,
+        aneesh.kumar@linux.ibm.com
+Date: Mon, 18 Jul 2022 13:53:35 +0530
+Message-ID: <165813258358.95191.6678871197554236554.stgit@LAPTOP-TBQTPII8>
+User-Agent: StGit/1.4
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
-In-Reply-To: <165791933557.2491387.2141316283759403219.stgit@djiang5-desk3.ch.intel.com>
-User-Agent: NeoMutt/20220429
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-ORIG-GUID: rGpM8Q4NfzKis2JCQEYSlJAFZih8blm1
+X-Proofpoint-GUID: rGpM8Q4NfzKis2JCQEYSlJAFZih8blm1
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.205,Aquarius:18.0.883,Hydra:6.0.517,FMLib:17.11.122.1
+ definitions=2022-07-18_04,2022-07-15_01,2022-06-22_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxscore=0 mlxlogscore=999
+ clxscore=1015 spamscore=0 lowpriorityscore=0 suspectscore=0 phishscore=0
+ impostorscore=0 malwarescore=0 adultscore=0 priorityscore=1501 bulkscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2206140000
+ definitions=main-2207180034
 
-On Fri, 15 Jul 2022, Dave Jiang wrote:
+The local variable 'path' is not freed in cxl_port_init() for success case.
+The patch fixes that.
 
->However, the spec leaves a gap WRT master passphrase usages. The spec does
->not define any ways to retrieve the status of if the support of master
->passphrase is available for the device, nor does the commands that utilize
->master passphrase will return a specific error that indicates master
->passphrase is not supported. If using a device does not support master
->passphrase and a command is issued with a master passphrase, the error
->message returned by the device will be ambiguos.
+Signed-off-by: Shivaprasad G Bhat <sbhat@linux.ibm.com>
+---
+ cxl/lib/libcxl.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-In general I think that the 2.0 spec is brief at *best* wrt to these topics.
-Even if a lot is redundant, there should be an explicit equivalent to the
-theory of operation found in https://pmem.io/documents/NVDIMM_DSM_Interface-V1.8.pdf
+diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
+index be6bc2c..e52896f 100644
+--- a/cxl/lib/libcxl.c
++++ b/cxl/lib/libcxl.c
+@@ -770,6 +770,7 @@ static int cxl_port_init(struct cxl_port *port, struct cxl_port *parent_port,
+ 	if (sysfs_read_attr(ctx, path, buf) == 0)
+ 		port->module = util_modalias_to_module(ctx, buf);
+ 
++	free(path);
+ 	return 0;
+ err:
+ 	free(port->dev_path);
 
-Thanks,
-Davidlohr
+
