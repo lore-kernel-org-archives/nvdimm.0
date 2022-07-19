@@ -1,180 +1,65 @@
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D8F72F2D;
-	Tue, 19 Jul 2022 14:47:23 +0000 (UTC)
-Received: from fraeml738-chm.china.huawei.com (unknown [172.18.147.226])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4LnM822Ntyz67kvY;
-	Tue, 19 Jul 2022 22:45:38 +0800 (CST)
-Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
- fraeml738-chm.china.huawei.com (10.206.15.219) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.24; Tue, 19 Jul 2022 16:47:20 +0200
-Received: from localhost (10.81.209.49) by lhreml710-chm.china.huawei.com
- (10.201.108.61) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.24; Tue, 19 Jul
- 2022 15:47:20 +0100
-Date: Tue, 19 Jul 2022 15:47:18 +0100
-From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-To: Dan Williams <dan.j.williams@intel.com>
-CC: <linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>,
-	<linux-pci@vger.kernel.org>, <patches@lists.linux.dev>, <hch@lst.de>, "Ben
- Widawsky" <bwidawsk@kernel.org>
-Subject: Re: [PATCH 36/46] cxl/region: Add interleave ways attribute
-Message-ID: <20220719154718.000077ec@Huawei.com>
-In-Reply-To: <62cb6f9a74b33_3535162944e@dwillia2-xfh.notmuch>
-References: <165603869943.551046.3498980330327696732.stgit@dwillia2-xfh>
-	<20220624041950.559155-11-dan.j.williams@intel.com>
-	<20220630144420.000005b5@Huawei.com>
-	<62cb6f9a74b33_3535162944e@dwillia2-xfh.notmuch>
-Organization: Huawei Technologies Research and Development (UK) Ltd.
-X-Mailer: Claws Mail 4.0.0 (GTK+ 3.24.29; i686-w64-mingw32)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 647594C77
+	for <nvdimm@lists.linux.dev>; Tue, 19 Jul 2022 18:53:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1658256832; x=1689792832;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=KlXROmbhy3+DYYvkDn3Lj6JCjAHxOGaTM4piOHf5Ngs=;
+  b=Mwc7tOg9car+VblmLw6aJSZZJx3ADVZdj4h8nDBWQn3IY9WMhtJo8DoN
+   cusM911rC60/fGvN2T4z00VpWgtJH6pxn2Rj0tgHbf8Vw+rXJHqAZ7cTA
+   ZKX8mIdf2PYUch71k+4pPoqejOhfRmLgqGAZNSzhDO/VUfMit07ALkLij
+   4gvnrVIPwmgW/oQfXu/iSX5u0wKemgyymj4kfXkayvexdEvN07OHZTw0X
+   csW/rbrrfc2CguWZxMwl6PHBT9LyoFMyB68D9a0zJO+G4IKuSFKcx4NsO
+   T1XViOSkGLpuSuzsxk/+rz8VO7yd5qrbmCsjNzGohbKeffmHS2sOHipAK
+   A==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10413"; a="350538510"
+X-IronPort-AV: E=Sophos;i="5.92,285,1650956400"; 
+   d="scan'208";a="350538510"
+Received: from orsmga004.jf.intel.com ([10.7.209.38])
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Jul 2022 11:53:51 -0700
+X-IronPort-AV: E=Sophos;i="5.92,285,1650956400"; 
+   d="scan'208";a="724365569"
+Received: from djiang5-mobl1.amr.corp.intel.com (HELO [10.213.175.55]) ([10.213.175.55])
+  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Jul 2022 11:53:51 -0700
+Message-ID: <81570006-34c9-4314-e085-c660ea826372@intel.com>
+Date: Tue, 19 Jul 2022 11:53:50 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Firefox/91.0 Thunderbird/91.11.0
+Subject: Re: [PATCH RFC 00/15] Introduce security commands for CXL pmem device
+Content-Language: en-US
+To: Davidlohr Bueso <dave@stgolabs.net>
+Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
+ dan.j.williams@intel.com, bwidawsk@kernel.org, ira.weiny@intel.com,
+ vishal.l.verma@intel.com, alison.schofield@intel.com
+References: <165791918718.2491387.4203738301057301285.stgit@djiang5-desk3.ch.intel.com>
+ <20220715212933.yhg32x6vdlnpipas@offworld>
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <20220715212933.yhg32x6vdlnpipas@offworld>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.81.209.49]
-X-ClientProxiedBy: lhreml749-chm.china.huawei.com (10.201.108.199) To
- lhreml710-chm.china.huawei.com (10.201.108.61)
-X-CFilter-Loop: Reflected
 
-On Sun, 10 Jul 2022 17:32:26 -0700
-Dan Williams <dan.j.williams@intel.com> wrote:
 
-> Jonathan Cameron wrote:
-> > On Thu, 23 Jun 2022 21:19:40 -0700
-> > Dan Williams <dan.j.williams@intel.com> wrote:
-> >   
-> > > From: Ben Widawsky <bwidawsk@kernel.org>
-> > > 
-> > > Add an ABI to allow the number of devices that comprise a region to be
-> > > set.  
-> > 
-> > Should at least mention interleave_granularity is being added as well!  
-> 
-> Added.
-> 
-> >   
-> > > 
-> > > Signed-off-by: Ben Widawsky <bwidawsk@kernel.org>
-> > > [djbw: reword changelog]
-> > > Signed-off-by: Dan Williams <dan.j.williams@intel.com>  
-> > 
-> > Random diversion inline...
-> >   
-> > > ---
-> > >  Documentation/ABI/testing/sysfs-bus-cxl |  21 ++++
-> > >  drivers/cxl/core/region.c               | 128 ++++++++++++++++++++++++
-> > >  drivers/cxl/cxl.h                       |  33 ++++++
-> > >  3 files changed, 182 insertions(+)  
-> >   
-> > > diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
-> > > index f75978f846b9..78af42454760 100644
-> > > --- a/drivers/cxl/core/region.c
-> > > +++ b/drivers/cxl/core/region.c
-> > > @@ -7,6 +7,7 @@  
-> > 
-> >   
-> > > +static ssize_t interleave_granularity_store(struct device *dev,
-> > > +					    struct device_attribute *attr,
-> > > +					    const char *buf, size_t len)
-> > > +{
-> > > +	struct cxl_root_decoder *cxlrd = to_cxl_root_decoder(dev->parent);
-> > > +	struct cxl_decoder *cxld = &cxlrd->cxlsd.cxld;
-> > > +	struct cxl_region *cxlr = to_cxl_region(dev);
-> > > +	struct cxl_region_params *p = &cxlr->params;
-> > > +	int rc, val;
-> > > +	u16 ig;
-> > > +
-> > > +	rc = kstrtoint(buf, 0, &val);
-> > > +	if (rc)
-> > > +		return rc;
-> > > +
-> > > +	rc = granularity_to_cxl(val, &ig);
-> > > +	if (rc)
-> > > +		return rc;
-> > > +
-> > > +	/* region granularity must be >= root granularity */  
-> > 
-> > In general I think that's an implementation choice.  Sure today
-> > we only support it this way, but it's perfectly possible to build
-> > setups where that's not the case.  
-> 
-> If the region granularity is smaller than the host bridge interleave
-> granularity it means that multiple devices per host bridge are needed to
-> satsify a single "slot" in the interleave. Valid? Yes. Useful for Linux
-> to support, not clear.
-
-True.  Wait and see on this one makes sense to me. I only noticed because
-my older test scripts (against hacks on top of Ben's code) were broken as
-I did it the silly way :)
-
-> 
-> > Maybe the comment should say that this code goes with an
-> > implementation choice inline with the software guide (that argues you
-> > will always prefer small ig for interleaving at the host to make best
-> > use of bandwidth etc).  
-> 
-> No, I would prefer that as far as the Linux implementation is concerned
-> the software-guide does not exist. In the sense that the Linux
-> implementation choices supersede and are otherwise a superset of what
-> the guide recommends.
-
-ah. I phrased that badly. I just meant lift the argument as a comment rather
-than a cross reference.
-
-> 
-> Also, for the same reason that the code does not anticipate future
-> implementation possibilities, neither should the comments. It is
-> sufficient to just change this comment when / if the implemetation stops
-> expecting region granularity >= root granularity.
-> 
-> > Interestingly the code I was previously testing QEMU with
-> > allowed that option (might have been only option that worked).
-> > That code was a mixture of Ben's earlier version and my own hacks.
-> > It probably doesn't make sense to support other ways of picking
-> > the interleaving granularity until / if we ever get a request
-> > to do so. 
-> > 
-> > I think it results in a different device ordering.
-> > 
-> > Ordering with this
-> > 
-> >     Host
-> >      | 4k
-> >     / \
-> >    /   \  
-> >   HB   HB  8k
-> >   |     |
-> >  / \   / \
-> > 0  2   1  3
-> > 
-> > Ordering with Larger granularity CFMWS over finer granularity HB
-> > 
-> >     Host
-> >      | 8k
-> >     / \
-> >    /   \ 
-> >   HB   HB 4k
-> >   |     |
-> >  / \   / \
-> > 0  1   2  3
-> > 
-> > Not clear why you'd do the second one though :)  So can ignore for now.  
-> 
-> All I can think of is "ZOMG! My platform failed and the only one I have
-> to recover my data has HB interleaves with larger granularity than my
-> failed system!". Otherwise, I expect cross-platform CXL persistent
-> memory recovery to be so rare as to not need to spend time too much time
-> worrying about it now. It seems a straightforward constraint to lift at
-> a later date without any risk to breaking the ABI.
-
-It was cross platform that I was thinking but you make a fair point that
-it is unlikely to occur that often.  + If another OS want's to do it wrong
-that's their problem :)
-
-J
+On 7/15/2022 2:29 PM, Davidlohr Bueso wrote:
+> On Fri, 15 Jul 2022, Dave Jiang wrote:
+>
+>> This series is seeking comments on the implementation. It has not 
+>> been fully
+>> tested yet.
+>
+> Sorry if this is already somewhere, but how exactly does one test the 
+> mock device?
+So you can do "make M=tools/testing/cxl" to build cxl_test drivers. It's 
+similar to ndctl_test and the ndctl README has some instruction on how 
+to build and load. Probably should add some information for cxl_test in 
+that file. The run_qemu tool from Vishal also provides support for this 
+if you add the --cxl-test switch.
