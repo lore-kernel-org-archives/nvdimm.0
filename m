@@ -1,22 +1,72 @@
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D2C74690
-	for <nvdimm@lists.linux.dev>; Thu, 21 Jul 2022 17:22:57 +0000 (UTC)
-Received: from fraeml736-chm.china.huawei.com (unknown [172.18.147.207])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4LpfSX1xQnz6J66g;
-	Fri, 22 Jul 2022 01:19:24 +0800 (CST)
-Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
- fraeml736-chm.china.huawei.com (10.206.15.217) with Microsoft SMTP Server
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D69923B9
+	for <nvdimm@lists.linux.dev>; Thu, 21 Jul 2022 18:35:03 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1658428504; x=1689964504;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=SeN6+jSQolvvYsH1u9ADEim0VcvzKRKtoYD4GQY09WA=;
+  b=YSzUEzxEGQfUjIUHh91UpvN/RMWe7EnlJxYlqjhsDNZ95FsaxK4t3Ci8
+   TdDo4H2sq0wxTqN+lwfpDqsixDtW0TpevU3YDXtMIZHTd/4DrLlGS+odk
+   qmgKNRRAAf4z27RlWluJnNxSFAd1ShLSKYe9z86Y9L9u4Vol1rAfPycKd
+   wTi+IABxs1e4gHxIFo5CdubUejus7f6qa1HeqtX9OYSGdiEMo3fhknkjl
+   p6JMivDFmDt3QHj22UgB0gaMkqZ6M5w30spgAacZsjrNNZ87K03NcSDlH
+   Hi8UabOHb0axV/VajnV0ODH0bYZGmBl9EjcBDsQja4axgMmM8cAaseXxk
+   A==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10415"; a="351136609"
+X-IronPort-AV: E=Sophos;i="5.93,183,1654585200"; 
+   d="scan'208";a="351136609"
+Received: from orsmga006.jf.intel.com ([10.7.209.51])
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Jul 2022 11:34:54 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.93,183,1654585200"; 
+   d="scan'208";a="573861621"
+Received: from fmsmsx603.amr.corp.intel.com ([10.18.126.83])
+  by orsmga006.jf.intel.com with ESMTP; 21 Jul 2022 11:34:54 -0700
+Received: from fmsmsx609.amr.corp.intel.com (10.18.126.89) by
+ fmsmsx603.amr.corp.intel.com (10.18.126.83) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.24; Thu, 21 Jul 2022 19:22:54 +0200
-Received: from localhost (10.122.247.231) by lhreml710-chm.china.huawei.com
- (10.201.108.61) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.24; Thu, 21 Jul
- 2022 18:22:53 +0100
-Date: Thu, 21 Jul 2022 18:22:52 +0100
-From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-To: Dan Williams <dan.j.williams@intel.com>
+ 15.1.2375.28; Thu, 21 Jul 2022 11:34:53 -0700
+Received: from fmsmsx602.amr.corp.intel.com (10.18.126.82) by
+ fmsmsx609.amr.corp.intel.com (10.18.126.89) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.28; Thu, 21 Jul 2022 11:34:53 -0700
+Received: from fmsedg602.ED.cps.intel.com (10.1.192.136) by
+ fmsmsx602.amr.corp.intel.com (10.18.126.82) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.28 via Frontend Transport; Thu, 21 Jul 2022 11:34:53 -0700
+Received: from NAM12-BN8-obe.outbound.protection.outlook.com (104.47.55.171)
+ by edgegateway.intel.com (192.55.55.71) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2308.27; Thu, 21 Jul 2022 11:34:52 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=hJPdsDIslsrJLs9LrKALgLST5/FtHiLgTTSexpHWOBPR37s/mF+IyUxMYubmt6l3V2rq+HlTxQL6lid4rbcDKC3xGKo51po4ZIE9mlE9bFfe4UXzbeQvd+Qj1BSITwciYhKv98bvp/WNjsriN8ij4z1EREkExQElmHYmMXd9mRq81GTN9+57skxMnz4ibENzTCxjuUYybGmJ+gcOlc++Jy97nWZbaCl46gzE2wiADkcaLbee2uELy2JZQpfq5kXV/5RspPw7A7Zag1xRjcFxpsaSnQxACmNkGWUJrTBfoDi7IKG0ygaZIhZvzOCKV4DifqHgbMnJOuTUSnaZLJKrww==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=oDdKQevU9UDje/xIqfJBqNLmZBOjJDq70i6z8xZjybk=;
+ b=kaLspXhEUvgjSMqXqOQuWUKbf7RpSSH5ca0TITOFS9fcUhAXxdwB7EnTsbnKGeUYZZgIDgtM5B5QLhJLkO8ChkbvUAnDDTmgbFSrLCYjT72fn46EtuSS7YBs/5xtW25Jk6r5ZEk5n5n9XNAn7kMeEjnAu7Fne32i9kjeW0mPCfCLoscDSQZQbGMo+X1FUdnkuO4JHCuBD+ipbuwiBfqVzUtJ4r70/lsxVyt1A6pGNvPcRB+3wHK8cl7y25RquqqUIgNN52/XbvJoz11U1LCZryYd7X6DQU2MUDATLb32VhLnJeFvMId4FY1XOvfjN89RfdhQ8TfPR7oQ6TQa/OKnvQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
+ (2603:10b6:301:50::20) by CY4PR11MB1416.namprd11.prod.outlook.com
+ (2603:10b6:903:2e::14) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5438.19; Thu, 21 Jul
+ 2022 18:34:51 +0000
+Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
+ ([fe80::6466:20a6:57b4:1edf]) by MWHPR1101MB2126.namprd11.prod.outlook.com
+ ([fe80::6466:20a6:57b4:1edf%11]) with mapi id 15.20.5458.019; Thu, 21 Jul
+ 2022 18:34:51 +0000
+Date: Thu, 21 Jul 2022 11:34:48 -0700
+From: Dan Williams <dan.j.williams@intel.com>
+To: Jonathan Cameron <Jonathan.Cameron@huawei.com>, Dan Williams
+	<dan.j.williams@intel.com>
 CC: <linux-cxl@vger.kernel.org>, David Hildenbrand <david@redhat.com>, "Tony
  Luck" <tony.luck@intel.com>, Jason Gunthorpe <jgg@nvidia.com>, Ben Widawsky
 	<bwidawsk@kernel.org>, Christoph Hellwig <hch@lst.de>, Greg Kroah-Hartman
@@ -24,122 +74,94 @@ CC: <linux-cxl@vger.kernel.org>, David Hildenbrand <david@redhat.com>, "Tony
  Morton" <akpm@linux-foundation.org>, <nvdimm@lists.linux.dev>,
 	<linux-pci@vger.kernel.org>
 Subject: Re: [PATCH v2 00/28] CXL PMEM Region Provisioning
-Message-ID: <20220721182252.0000227f@huawei.com>
-In-Reply-To: <62d97efa7ec7a_17f3e8294b4@dwillia2-xfh.jf.intel.com.notmuch>
+Message-ID: <62d99c4840614_17f3e8294c9@dwillia2-xfh.jf.intel.com.notmuch>
 References: <165784324066.1758207.15025479284039479071.stgit@dwillia2-xfh.jf.intel.com>
-	<20220721155907.0000708c@huawei.com>
-	<62d97efa7ec7a_17f3e8294b4@dwillia2-xfh.jf.intel.com.notmuch>
-Organization: Huawei Technologies R&D (UK) Ltd.
-X-Mailer: Claws Mail 4.0.0 (GTK+ 3.24.29; x86_64-w64-mingw32)
+ <20220720191211.00000c86@Huawei.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20220720191211.00000c86@Huawei.com>
+X-ClientProxiedBy: MW4P220CA0023.NAMP220.PROD.OUTLOOK.COM
+ (2603:10b6:303:115::28) To MWHPR1101MB2126.namprd11.prod.outlook.com
+ (2603:10b6:301:50::20)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: quoted-printable
-X-Originating-IP: [10.122.247.231]
-X-ClientProxiedBy: lhreml732-chm.china.huawei.com (10.201.108.83) To
- lhreml710-chm.china.huawei.com (10.201.108.61)
-X-CFilter-Loop: Reflected
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: b629bd64-79c0-4dc9-1fb5-08da6b47b285
+X-MS-TrafficTypeDiagnostic: CY4PR11MB1416:EE_
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: uSt0TDQk8HYxfLIBAMIy8uQoezS6zWWUNPPbz0DjFtA57tVwdYFUyaJE+fp27W26PTHzdqxYSB74F/8ar4ZQHA4jabGBZXqNea4cuG0FHOnnpSpjW+gGbmUfc2nvGfttf7JEyFodGQ3NJ3RUYNORF8mdfLny0vV5vm5JfazQ8WqbPHb8CBu04445S3daRneyPHZjLDPUiaCo4bh2JR563QQqfJ+FlW1lkIdGDxL8cmKD5BSRkl9l2/0Tpj9IxCppdP0PLm2/aPAhSUFavmZEo40JdWpMchmmS3dSGnECsOzrCNUeTL1ooEmd2EjNKQofn37g6FK37WT0zzjglle+DM4XnY5dFFGaoMFx9Pv60Tjx1u0737tW6h6HXP2KXPS5e/tmCrD8AzeiCYC6SRwNQRglXjw+3sr+L7aIrZjgNs7Abk/F9rSxi9NC2hLSNWEqPodsm+18ER7WM6c7KBFXZUBfBXwT6XS9j/LmAjlSKqph94bSIxsi68gc9RYkirscGq4159ci/PFvGjs4PivjvP/4yQ4JTvB9XnDalpJl02PoKXBQsjbRYlBnVTFaWXWeCYdAnP1/aOT9Y8vgmJqa/A1cjepnURdLU5veOzyZmeBWO6Rt8kuaewiHXm0eudTkeTVajmmd+txP497p8+N+Dn7UVN4L+lrbFI1+ffitljdw18zlCZ6VegHPqDCFUGveyx38x7KQTjS2LVWEmhkKL2bGRCHSWJVWLoqmNJuKXJiWlU0XioKVJ3aG25XOFb+BPb5sppo8iTcRou0esISnLw==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1101MB2126.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(396003)(366004)(136003)(376002)(39860400002)(346002)(186003)(316002)(6666004)(6506007)(478600001)(26005)(9686003)(4744005)(5660300002)(966005)(83380400001)(86362001)(41300700001)(6512007)(6486002)(4326008)(8676002)(66556008)(8936002)(66476007)(38100700002)(7416002)(54906003)(82960400001)(110136005)(66946007)(2906002);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?7PJzDGURhAadHO7YvtT2gJDfZfa38eqoWtUQ8LKT9DvuyhvKyJ2Q1/5D9E/R?=
+ =?us-ascii?Q?utpDzTfPdZ4yFbfXSTPucBDwmnxQGMrjHVxr1e+FcN6IgVlsdRgJqT5BrMRj?=
+ =?us-ascii?Q?Mfgo9Oa+jgBuyLRZLYWZ5hMbJt9Qi1ALiFnewT+ZoJ8l0VeiJFqNGs3K9IZF?=
+ =?us-ascii?Q?mS6oBSTnZsT0kfBls2j3BoOhehooCEZIXFLV+efnQf8PQufPhaTFlDzUvm1M?=
+ =?us-ascii?Q?2UF2fb+sXCsh+QtHWYIvhU0aTSSd8x0bR77Ovi0spOWEjx3wwV2uH0p3ThEJ?=
+ =?us-ascii?Q?GrlUGJb/XvPNaMLDq3jdUdaej5HnRD+ichIwjoU481yoIVKKrWfH0zODbH33?=
+ =?us-ascii?Q?CdvK5d3Ts7TF+DT68tz7qEKf0VSaHVPFExEtO5l9uaut+PxzSOeop/cOs869?=
+ =?us-ascii?Q?j4vD95ZoXgzz8hCLDcp6T8/QQdFmIw30dSgjPxMLoOy7MwMVldPV2adiswF+?=
+ =?us-ascii?Q?GUvyTjH/ZrDpkqYvPLO2BeAyWK1KxDjtKesuvcYCjqltT9WywK0aJfwhUgAG?=
+ =?us-ascii?Q?UySpL2FS9lgCfZdqadVvGF5BFOHnq9Z6ZTtCgZUyLwSzuogi0+h/p+UEz8at?=
+ =?us-ascii?Q?heM3hhNsiTLz6I3Afs4ngVZ1ulFyxxSli8MTXAqMLS/oSWz/k3t0dI3EfMz5?=
+ =?us-ascii?Q?KSnygqGM7b5yujPJkAt57MWm1IxKtGZ1Ckg/0EVDv6GJJxmsGJILXHaKifHb?=
+ =?us-ascii?Q?jI1A19Dy59g1h8SQZ9fklpJOg3BRwgDqXBC7Cdm1mA+iyhWOCdOu4uSeE1GI?=
+ =?us-ascii?Q?6qkQRC9ASyJIchsIaMbBgCcmG0GHIjIhGInydD1DBYsTVCxIj7gbJMMZgbae?=
+ =?us-ascii?Q?UtwRTM+dKHSJ4foPtnB38dtwn9diG2ph5602ya4WoHl+H82VtF9H/3YwIRy/?=
+ =?us-ascii?Q?zslj5bvZKTqWb1NQmM5FqSYls+7P661nWiKxe2BbbVY0TxIICqs/4gfxqC4g?=
+ =?us-ascii?Q?sXouVD6zeWKfZqv53U9r8TM3bgqsoR28mfyoVRnndkzoNDzBFoRxFVuT2K5g?=
+ =?us-ascii?Q?+sAYxdxtsKoXjT063KxqV4CnW1Neq4JD+X6Cb73O/4jUqqcr26OradvdiriZ?=
+ =?us-ascii?Q?/kcM5ibuMZu81U+x9yVJ/gf1TswzOr8Ah2Hd3WJo1q09Qv/Lry+Go8eJaKTN?=
+ =?us-ascii?Q?+fHAXCvlcuShrgEDorguoc5j62DD8wdKRLzZkAR9uoi4q4aeGOtYALBLK4IV?=
+ =?us-ascii?Q?ZUwrD1e32RvTzytsTUqZ6pJRp0z5CM2PA8YHoJ/UiYF5IiP7RTHGdE9qovoy?=
+ =?us-ascii?Q?jhxLTxxUxhMgt3vvQc3vNEweyQOiIoalwJ6CQY2Ijce6CsjJCmc8LLB2A0iW?=
+ =?us-ascii?Q?C6jmhWTpLgWyZJa1CCcp3SLXF/Rj8yFhodP+v85BG+kXXL2OIBO9i85hjdAQ?=
+ =?us-ascii?Q?cd6nhNUdB/uFxe9Mwlsz80oBb8w4dIoD5zfgsT4lxwDixZVgNddNWvjNRBhc?=
+ =?us-ascii?Q?CCJfsnQvn9VF/HrGeMtjHuegfMtulUGzYbB1deJ8+Cz/FDe3L0WIMXrvC82Y?=
+ =?us-ascii?Q?gQYb+Y+zN7WxcZQVGrJ07Mbr8K7vYotRrRJLz3OOMkr/EHs0PByw+l9wgrYe?=
+ =?us-ascii?Q?lZ3ukIjkbu5Wj/pAJM85azpc3W8E/vFyoB2WtpEG6Yhoiqoftb2u3SujGCEV?=
+ =?us-ascii?Q?0g=3D=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: b629bd64-79c0-4dc9-1fb5-08da6b47b285
+X-MS-Exchange-CrossTenant-AuthSource: MWHPR1101MB2126.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 Jul 2022 18:34:50.9983
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: hYz3bpWwNm6iP3sB5UKUKC4YAoYgMNU/AjIJbxO7Q8kwtmPINPBhAyGEiscY3XrwIdKOP9n1YO5Nsi9hEu5XO1IkplzN2KzRAOnM12asvww=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY4PR11MB1416
+X-OriginatorOrg: intel.com
 
-On Thu, 21 Jul 2022 09:29:46 -0700
-Dan Williams <dan.j.williams@intel.com> wrote:
+Jonathan Cameron wrote:
+> 
+> 
+> Hi Dan,
+> 
+> As I mentioned in one of my reviews I'd love to run a bunch of test
+> cases against this,
 
-> Jonathan Cameron wrote:
-> > On Thu, 14 Jul 2022 17:00:41 -0700
-> > Dan Williams <dan.j.williams@intel.com> wrote:
-> >=20
-> >=20
-> > Hi Dan,
-> >=20
-> > I'm low on time unfortunately and will be OoO for next week,
-> > But whilst fixing a bug in QEMU, I set up a test to exercise
-> > the high port target register on the hb with
-> >=20
-> > CFMWS interleave ways =3D 1
-> > hb with 8 rp with a type3 device connected to each.
-> >=20
-> > The resulting interleave granularity isn't what I'd expect to see.
-> > Setting region interleave to 1k (which happens to match the CFMWS)
-> > I'm getting 1k for the CFMWS, 2k for the hb and 256 bytes for the type3
-> > devices.  Which is crazy...  Now there may be another bug lurking
-> > in QEMU so this might not be a kernel issue at all. =20
->=20
-> Potentially, I will note that there seems to be a QEMU issue, that I
-> have not had time to dig into, that is preventing region creation
-> compared to other environments, maybe this is it...
->=20
+Yes, Vishal and I are also looking to have a create-region permutation
+test in cxl_test to go beyond:
 
-Fwiw, proposed QEMU fix is this.  One of those where I'm not sure how
-it gave the impression of working previously.
+https://lore.kernel.org/r/165781817516.1555691.3557156570639615515.stgit@dwillia2-xfh.jf.intel.com/
 
-=46rom 64c6566601c782e91eafe48eb28711e4bb85e8d0 Mon Sep 17 00:00:00 2001
-From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Date: Thu, 21 Jul 2022 13:29:59 +0100
-Subject: [PATCH] hw/cxl: Fix wrong query of target ports.
+> but won't get to that until sometime in August.
+> For some of those tests on QEMU I'll need to add some minor features
+> (multiple HDM decoder support and handling of skip for example).
+> 
+> However, my limited testing of v1 was looking good and I doesn't seem
+> like there were any fundamental changes.
+> 
+> So personally I'd be happy with this going in this cycle and getting
+> additional testing later if you and anyone else who comments feels
+> that's the way to go.
 
-Two issues in this code:
-1) Check on which register to look in was inverted.
-2) Both branches read the _LO register.
-
-Whilst here moved to extract32() rather than hand rolling
-the field extraction as simpler and hopefully less error prone.
-
-Fixes Coverity CID: 1488873
-
-Reported-by: Peter Maydell <peter.maydell@linaro.org>
-Signed-off-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
----
- hw/cxl/cxl-host.c | 12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
-
-diff --git a/hw/cxl/cxl-host.c b/hw/cxl/cxl-host.c
-index faa68ef038..1adf61231a 100644
---- a/hw/cxl/cxl-host.c
-+++ b/hw/cxl/cxl-host.c
-@@ -104,7 +104,6 @@ static bool cxl_hdm_find_target(uint32_t *cache_mem, hw=
-addr addr,
-     uint32_t ctrl;
-     uint32_t ig_enc;
-     uint32_t iw_enc;
--    uint32_t target_reg;
-     uint32_t target_idx;
-
-     ctrl =3D cache_mem[R_CXL_HDM_DECODER0_CTRL];
-@@ -116,14 +115,13 @@ static bool cxl_hdm_find_target(uint32_t *cache_mem, =
-hwaddr addr,
-     iw_enc =3D FIELD_EX32(ctrl, CXL_HDM_DECODER0_CTRL, IW);
-     target_idx =3D (addr / cxl_decode_ig(ig_enc)) % (1 << iw_enc);
-
--    if (target_idx > 4) {
--        target_reg =3D cache_mem[R_CXL_HDM_DECODER0_TARGET_LIST_LO];
--        target_reg >>=3D target_idx * 8;
-+    if (target_idx < 4) {
-+        *target =3D extract32(cache_mem[R_CXL_HDM_DECODER0_TARGET_LIST_LO],
-+                            target_idx * 8, 8);
-     } else {
--        target_reg =3D cache_mem[R_CXL_HDM_DECODER0_TARGET_LIST_LO];
--        target_reg >>=3D (target_idx - 4) * 8;
-+        *target =3D extract32(cache_mem[R_CXL_HDM_DECODER0_TARGET_LIST_HI],
-+                            (target_idx - 4) * 8, 8);
-     }
--    *target =3D target_reg & 0xff;
-
-     return true;
- }
---
-2.32.0
-
-
-
-> > For this special case we should be ignoring the CFMWS IG
-> > as it's irrelevant if we aren't interleaving at that level.
-> > We also know we don't have any address bits used for interleave
-> > decoding until the HB. =20
->=20
-> ...but I am certain that the drvier implementation is not accounting for
-> the freedom to specify any granularity when the CFMWS interleave is x1.
-> Will craft an incremental fix.
-
+Thank you for being such a reliable partner on the review and picking up
+the torch on the QEMU work. It has significantly accelerated the
+development, and I appreciate it.
