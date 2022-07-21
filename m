@@ -1,164 +1,255 @@
-Received: from esa8.fujitsucc.c3s2.iphmx.com (esa8.fujitsucc.c3s2.iphmx.com [68.232.159.88])
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E040A441A
-	for <nvdimm@lists.linux.dev>; Thu, 21 Jul 2022 14:07:24 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
-  d=fujitsu.com; i=@fujitsu.com; q=dns/txt; s=fj1;
-  t=1658412444; x=1689948444;
-  h=from:to:cc:subject:date:message-id:references:
-   in-reply-to:content-id:content-transfer-encoding:
-   mime-version;
-  bh=qZicy2/K7T3OcVjP6k5ZqN9ZHo4BS4NI/JWguO/q/VA=;
-  b=y7al4HPA+ibpGMbXxobWA/5gU2/O5WHrME9VsGfUmUDTxQ1r9jKCg/2c
-   VtTllghXpPnpUOJ16z5q6gyZsKbsL6PwKZtDHAQmkiJjeHBhejL9kKyx+
-   ih79yG8RV4SeTUODKgAR0HpplnTwgrYrJh5peqW1pcvNnW0EXiwztIDPG
-   KihxYnD6pPXmT7TH3Q1w0GlMruWs++DrygR/fQIGdqEYJcW2Y5IV5vRxi
-   ZZRke5vMgkwRPgtM5Y0K8v2GlYt4r/2E2nvejagoowyGUVqVz5BOrAJ5r
-   JHsAeS7aYyIslGiC6Y2ZjXsUkK0bQEe7XcRGuxmyxkB4C02AkbcfU5/es
-   Q==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10414"; a="60938011"
-X-IronPort-AV: E=Sophos;i="5.93,289,1654527600"; 
-   d="scan'208";a="60938011"
-Received: from mail-os0jpn01lp2104.outbound.protection.outlook.com (HELO JPN01-OS0-obe.outbound.protection.outlook.com) ([104.47.23.104])
-  by ob1.fujitsucc.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Jul 2022 23:06:13 +0900
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=TsWWTvWa3RcHMH1pKXJZk9RX+9ATmOHtU+UEDQ/eDwZuLemvVyiALpr3XzR2cMFi3Kf9xHw1kdtKWl0zJZmI7pdR6C4Xi2CBo/F8eQJfYoWs1tC0L61JWxx4fhEYWMY2b+PyRT2VI5Tmar4+cHURRXVRkEeJHl9uLD3nZmNP7mmePHwFtXRfRTx9KqmH/1M/o4S0iLb2GdgjVRGpCDj+AXAK4j0c6HF8OKVdvTtUnb8/m39JKCYnf2QbayEQl7R/5M2vvXUWD38Lrhpff1TisSd4wgFCbw9W1fd9XRCPKN55pQyNBSg4VjjJ+ztNhte4GY/+H/nGN1IFi8pENEM2Xg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=qZicy2/K7T3OcVjP6k5ZqN9ZHo4BS4NI/JWguO/q/VA=;
- b=WE+lAdf26AbeJlxPqmLaXDmbNJYkzJow9movO9zGqQwLjiTY20i0UfN8rPfU2nAbbpE2mywhOxF0SWGSkKPhVtsF0sKneYpEerYe7+lWdjCKK1YPmwb2bnLxmhrJAkZcmM1+qJHs3ozCFuofAGOGNHYTjitY4EqVEW6GGZlD7WBjKsOyorALaMzDFBFdrohrDH5mXh8MinI7INCDVYYzF7fGtGYVIKse1iSWIjG087VplAcPADzfP2l13xUaSnBqaSeQ57Q0wVwOFy9urAYPVYcUXFD4fFf5hpNNN9C4GKLGZHnj+BCOLtFXbzmngfqYoPxku993n5qxX45wro+/aQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=fujitsu.com; dmarc=pass action=none header.from=fujitsu.com;
- dkim=pass header.d=fujitsu.com; arc=none
-Received: from OSBPR01MB2920.jpnprd01.prod.outlook.com (2603:1096:604:18::16)
- by TYCPR01MB6852.jpnprd01.prod.outlook.com (2603:1096:400:b7::6) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5458.18; Thu, 21 Jul
- 2022 14:06:10 +0000
-Received: from OSBPR01MB2920.jpnprd01.prod.outlook.com
- ([fe80::7556:cf54:e9e1:28ca]) by OSBPR01MB2920.jpnprd01.prod.outlook.com
- ([fe80::7556:cf54:e9e1:28ca%7]) with mapi id 15.20.5438.023; Thu, 21 Jul 2022
- 14:06:10 +0000
-From: "ruansy.fnst@fujitsu.com" <ruansy.fnst@fujitsu.com>
-To: "Darrick J. Wong" <djwong@kernel.org>
-CC: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>,
-	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
-	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
-	"david@fromorbit.com" <david@fromorbit.com>, "hch@infradead.org"
-	<hch@infradead.org>
-Subject: Re: [PATCH] xfs: fail dax mount if reflink is enabled on a partition
-Thread-Topic: [PATCH] xfs: fail dax mount if reflink is enabled on a partition
-Thread-Index: AQHYfA4g5aj+ViA5o0mdS5cU960Zpq1oy6eAgCBSEIA=
-Date: Thu, 21 Jul 2022 14:06:10 +0000
-Message-ID: <74b0a034-8c77-5136-3fbd-4affb841edcb@fujitsu.com>
-References: <20220609143435.393724-1-ruansy.fnst@fujitsu.com>
- <Yr5AV5HaleJXMmUm@magnolia>
-In-Reply-To: <Yr5AV5HaleJXMmUm@magnolia>
-Accept-Language: en-US, zh-CN
-Content-Language: en-US
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-msip_labels:
- MSIP_Label_a7295cc1-d279-42ac-ab4d-3b0f4fece050_Enabled=True;MSIP_Label_a7295cc1-d279-42ac-ab4d-3b0f4fece050_SiteId=a19f121d-81e1-4858-a9d8-736e267fd4c7;MSIP_Label_a7295cc1-d279-42ac-ab4d-3b0f4fece050_SetDate=2022-07-21T14:06:10.109Z;MSIP_Label_a7295cc1-d279-42ac-ab4d-3b0f4fece050_Name=FUJITSU-RESTRICTED;MSIP_Label_a7295cc1-d279-42ac-ab4d-3b0f4fece050_ContentBits=0;MSIP_Label_a7295cc1-d279-42ac-ab4d-3b0f4fece050_Method=Standard;
-authentication-results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=fujitsu.com;
-x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: 940a7dad-f791-4cc5-63c1-08da6b222a22
-x-ms-traffictypediagnostic: TYCPR01MB6852:EE_
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info:
- nrYDK5QW8uuqIw7T1RSeMtov3IsaKtbigxmtD3jbG67gJ+UWh6G6ykqAf1MgiAwm9LHqYHa1UT53YhFGCH+8IIdyAWwIs92iQxv1SMZq4AhdxrQIRFW3NkLIuFVExxTFzF0tUwLowvXQSABoIMXULH1kGLs6u4XTGUS+aYnJF+CI/TV1V29XkIN1EpApd2QwMPPaXFYTO/dyONQZkxGfchSpvqecIoGilnMF4eSgokUSk/SBBuaQAPrGD1lSehzsrYMXyhdJrRDGKbZsOsLNmvR8elhkrq/JsiF/5Z667E8DMROZNm7ebBJtUaNsqEUvwMzsT8QEA6JVxN0fmauul6sMtxmaEzqacowX5lJdJQEoOcdZzalgNSMqkyuX8VZmHg56dKVGTgEwkRyw4gA2I/3f/xW3eK6NZk0yQAS9jXYCGyGOoqbinUw3fqShS7pSwEEuAAp5R8wCr+K4bc2IQN1vwWF4HDCfgXQji4QE6n046yJcZIOGSNSOQXm1WnjeWtNyqhEIGLTc8V4JPHLZnTkGnf8/9rS4SZbyqykBQOtS4Ux+zmhEJrk1999Z+7cpCmQ5Y7pk0a+mz/IvEQC4ujpwwHohEGLtj4BugZccLtwS33l8OfXchtPNFC9iZbUusBbBSSu5MRlAh+Z4D9l6Ub3PRvF+V1u5mgA95Rxwsj8eyaI+dZv8ZrVo30YQXxW8rs/RetZzETJaSD8lTx8ufyWp5vZCaAezIJJzfGmF+sLnQ+i3B9l/HiFyCy9fvshlN52Qd4nYNgFPDQur5rz/Yf5+jKOqVub1tV/YPlI3h4DAv4aJCFQNB9Ocz8Gc4IaDPKK2qREjq4aRXPcEDd9gPQ==
-x-forefront-antispam-report:
- CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:OSBPR01MB2920.jpnprd01.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(4636009)(376002)(366004)(136003)(346002)(39860400002)(396003)(26005)(478600001)(6512007)(36756003)(41300700001)(4326008)(6506007)(85182001)(31686004)(82960400001)(91956017)(122000001)(71200400001)(2906002)(5660300002)(38100700002)(38070700005)(2616005)(66476007)(66556008)(54906003)(66946007)(83380400001)(6916009)(64756008)(66446008)(186003)(8936002)(316002)(31696002)(6486002)(8676002)(76116006)(86362001)(45980500001);DIR:OUT;SFP:1101;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0:
- =?gb2312?B?YU5XVkhqRVZ3TXRBR0d0cWsrMWpDanMxQmdNdm1CQitiWm5BZ3NkcmJON2Ns?=
- =?gb2312?B?Y1VYNzcwTi92TVpQVU12TE8zaW9KYlcwN2JSTzlhTnNsTGRMYjAyaGpybUVD?=
- =?gb2312?B?UEgxcUZzemFoUkVTdE1VSUNzT2luM0tiR1VWU2Z4Rm5teXlXNEE4ZU9MSmdo?=
- =?gb2312?B?Z1pqd3VZQUIxKzNxdElKSDdYQkp1dFVNcnVpdXFFaFF6UWZwbUZObXdRWkJM?=
- =?gb2312?B?ZmhEYzdZM3cySkVmSktBNUVmMUhjWUI5Uk1pMWs4QUtwNFkyNEoxQVJpQXVW?=
- =?gb2312?B?N2xiZmQ5enNtSWloblJhU3dHL3Nhby92Q3RpR3MzZ1RuRlZEUklla0dJUk1E?=
- =?gb2312?B?R1N3b05iOWN1b1NVeVBsVkIyVFRWNTVxV3FZRTVrdHlsTnB2a1VKV0c0TzNC?=
- =?gb2312?B?MlpvR2tCUHd6OGdFWXpMaVRUZ0JhcXcwdTdQVS9samcvTENmZ1dXWnlnTmUz?=
- =?gb2312?B?NStCSGxVbzFoQ3ZETEN1UU5EalRqZ3JsanJnYzUxUVVlV1NjV001ckRrZlpk?=
- =?gb2312?B?ZUZ5SWhTdkFiaWxxUW9JRVBUM2VMdVJGYlV5Z3pIYnZMYjhzd0FiWk1wbWth?=
- =?gb2312?B?ZFJXL2Q0c05aYUxGSEZnV1BlYjB0ME5EcVZzbkI0Vk05RXZieU9UenU5bTRI?=
- =?gb2312?B?eDhNb09DK1lGTm92Q1dnQ3I0bEU2Z2RDdlFMSk9xVnZyZWVVNTNCbXFLK3Mr?=
- =?gb2312?B?eHFpUTdKUGFxKzN1SFU5NFZjTkV6bTJhY0hPU2pQVUhrSVJkZHdRRGdVaFhE?=
- =?gb2312?B?dGJmSkJlanZwdVFIZXRjaUlFc2JRQ2xzakV2KzdVSGQyMnpxeFdLMUlGTnYr?=
- =?gb2312?B?MDExK3NwL3QzQUI4Mi9KWElQVkRwR3h3VXo5WHcwTDJGczd6OUsvSVphSjhq?=
- =?gb2312?B?K3J6b2xtcHlDa0FyMWdlWE5XQVU1TG52Y0ErNFJxdlFCWFpUN0VMN1RIT0xn?=
- =?gb2312?B?SXlaN1VpNEZOenhTN3c1MEl2ZnU5S2dxN0JCZ1UrMkY3MnFvSU04TzhyQzVM?=
- =?gb2312?B?aFc4VERMcVBHVTArQTA3UmV5NTl5c0xIMmtUYm1GMGpXK0lBS3dSUmtsOUc5?=
- =?gb2312?B?VlArUGVZc1N2ZTFCdjdqbVhCNFM1S3ZQRGtqVFY1Ky8xTWhHTmlBdy9oNWJD?=
- =?gb2312?B?cGRUcGppYWhIVmxFRzBlUjBjVkxBNXlvelFBcVpTYTAwVkhmbjVxWk5rUHVu?=
- =?gb2312?B?OG95T3hiTkx3YnEzVVFlbGRVNXFEZEhWWXRCUnhJWVVvMURZclRWT3VINy8r?=
- =?gb2312?B?a1QrS21zaUpYM1JVTy9meU9yc1BDYld2Rmx4NXNIanpXbk42NWFCWFY5RVdZ?=
- =?gb2312?B?aC9xdmJLcHJtVGxyanVPMHVmZ0pxZnJYVzN3NXRHb042bklKcXk2cTVtZzFS?=
- =?gb2312?B?S2JXTnAwTmo4TzhsQXVYSnZHS0x5U3pJUVN3QytrYTNYWjdnS3MvUTNQSGNL?=
- =?gb2312?B?bThMMUhpMmFIT3hENGV6RzF6MnFsL1VjdC95SGpaUzdxY29iaXpzT1BnN1JM?=
- =?gb2312?B?WmxHOU5LY2g4VFZ3eVVpdGQwb2svU091S0g0VFBxM0FBcTdpdlkrT2YxKzRp?=
- =?gb2312?B?NHBmLytqSW8xMEsxdGxOemRFclM4UzFTZUVKZFhsdWsvTDdjSUh3c25qRERn?=
- =?gb2312?B?Ri9uSnJZR3JTWTZnQ3pEMnFnZVUxK1BMbnBvQU14aGlVd3dvVEFoVG02alU5?=
- =?gb2312?B?ZkR1VzY5TStCQmQxcVZtcGg4RllOUU9TSXBFaUdPbnNnUEg3ejFndUY4eUZK?=
- =?gb2312?B?Z0FPREtKSGRvM3Q3d3dqY2YyVmhUUzN2S1lKNVAwek12NUx3M2JwUUtET3Zt?=
- =?gb2312?B?WEFMUkpwMit3TDZnM0pFanpJN0pIWFZrUFppa3FYc1RoL0lsMHU1ZE1LdTIw?=
- =?gb2312?B?b3dVbVJBa0hGWWtqdkNJK3NuSDFzMXlCajBtK0g5TDlPYXNYVHhCVko0OXZx?=
- =?gb2312?B?a2RESXZkNXBGTlAxNFB6Yk84aXZNcVk1WGc2a0NKd1lpNHV5S2lGT3lXSTRj?=
- =?gb2312?B?TFhoM2pSRWJ1Skl1N3JYSzRpbDdiSS9WU21Fc0dJOUszS20xOWpiZ0lUTmRW?=
- =?gb2312?B?aXV0NS9GclN3dmszTnhaOW5YOUJlS0dRN3BSd0hPbzVYVmFRN0pxRno5UkxO?=
- =?gb2312?Q?L5AD7uiGh7fQ54YfSa1+7hB2H?=
-Content-Type: text/plain; charset="gb2312"
-Content-ID: <3448AB9E232B874FB4DAA9330D072FD6@jpnprd01.prod.outlook.com>
-Content-Transfer-Encoding: base64
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31B5A3C26
+	for <nvdimm@lists.linux.dev>; Thu, 21 Jul 2022 14:59:18 +0000 (UTC)
+Received: from fraeml737-chm.china.huawei.com (unknown [172.18.147.201])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4LpbJd6zy9z67dbJ;
+	Thu, 21 Jul 2022 22:57:21 +0800 (CST)
+Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
+ fraeml737-chm.china.huawei.com (10.206.15.218) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.24; Thu, 21 Jul 2022 16:59:10 +0200
+Received: from localhost (10.122.247.231) by lhreml710-chm.china.huawei.com
+ (10.201.108.61) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.24; Thu, 21 Jul
+ 2022 15:59:09 +0100
+Date: Thu, 21 Jul 2022 15:59:07 +0100
+From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+To: Dan Williams <dan.j.williams@intel.com>
+CC: <linux-cxl@vger.kernel.org>, David Hildenbrand <david@redhat.com>, "Tony
+ Luck" <tony.luck@intel.com>, Jason Gunthorpe <jgg@nvidia.com>, Ben Widawsky
+	<bwidawsk@kernel.org>, Christoph Hellwig <hch@lst.de>, Greg Kroah-Hartman
+	<gregkh@linuxfoundation.org>, Matthew Wilcox <willy@infradead.org>, "Andrew
+ Morton" <akpm@linux-foundation.org>, <nvdimm@lists.linux.dev>,
+	<linux-pci@vger.kernel.org>
+Subject: Re: [PATCH v2 00/28] CXL PMEM Region Provisioning
+Message-ID: <20220721155907.0000708c@huawei.com>
+In-Reply-To: <165784324066.1758207.15025479284039479071.stgit@dwillia2-xfh.jf.intel.com>
+References: <165784324066.1758207.15025479284039479071.stgit@dwillia2-xfh.jf.intel.com>
+Organization: Huawei Technologies R&D (UK) Ltd.
+X-Mailer: Claws Mail 4.0.0 (GTK+ 3.24.29; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-OriginatorOrg: fujitsu.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: OSBPR01MB2920.jpnprd01.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 940a7dad-f791-4cc5-63c1-08da6b222a22
-X-MS-Exchange-CrossTenant-originalarrivaltime: 21 Jul 2022 14:06:10.6147
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: a19f121d-81e1-4858-a9d8-736e267fd4c7
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: MLUkLn1CYZo2Jp2Z3AXwB6fNgGcf7saTClDOIsSImSYZ0+sI3xcWcr+VD0H5jV8jDx69Mwo8lW6LYEd/FugOwg==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: TYCPR01MB6852
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.122.247.231]
+X-ClientProxiedBy: lhreml732-chm.china.huawei.com (10.201.108.83) To
+ lhreml710-chm.china.huawei.com (10.201.108.61)
+X-CFilter-Loop: Reflected
 
-1NogMjAyMi83LzEgODozMSwgRGFycmljayBKLiBXb25nINC0tcA6Cj4gT24gVGh1LCBKdW4gMDks
-IDIwMjIgYXQgMTA6MzQ6MzVQTSArMDgwMCwgU2hpeWFuZyBSdWFuIHdyb3RlOgo+PiBGYWlsdXJl
-IG5vdGlmaWNhdGlvbiBpcyBub3Qgc3VwcG9ydGVkIG9uIHBhcnRpdGlvbnMuICBTbywgd2hlbiB3
-ZSBtb3VudAo+PiBhIHJlZmxpbmsgZW5hYmxlZCB4ZnMgb24gYSBwYXJ0aXRpb24gd2l0aCBkYXgg
-b3B0aW9uLCBsZXQgaXQgZmFpbCB3aXRoCj4+IC1FSU5WQUwgY29kZS4KPj4KPj4gU2lnbmVkLW9m
-Zi1ieTogU2hpeWFuZyBSdWFuIDxydWFuc3kuZm5zdEBmdWppdHN1LmNvbT4KPiAKPiBMb29rcyBn
-b29kIHRvIG1lLCB0aG91Z2ggSSB0aGluayB0aGlzIHBhdGNoIGFwcGxpZXMgdG8gLi4uIHdoZXJl
-dmVyIGFsbAo+IHRob3NlIHJtYXArcmVmbGluaytkYXggcGF0Y2hlcyB3ZW50LiAgSSB0aGluayB0
-aGF0J3MgYWtwbSdzIHRyZWUsIHJpZ2h0Pwo+IAo+IElkZWFsbHkgdGhpcyB3b3VsZCBnbyBpbiB0
-aHJvdWdoIHRoZXJlIHRvIGtlZXAgdGhlIHBpZWNlcyB0b2dldGhlciwgYnV0Cj4gSSBkb24ndCBt
-aW5kIHRvc3NpbmcgdGhpcyBpbiBhdCB0aGUgZW5kIG9mIHRoZSA1LjIwIG1lcmdlIHdpbmRvdyBp
-ZiBha3BtCj4gaXMgdW53aWxsaW5nLgoKQlRXLCBzaW5jZSB0aGVzZSBwYXRjaGVzIChkYXgmcmVm
-bGluayZybWFwICsgVEhJUyArIHBtZW0tdW5iaW5kKSBhcmUgCndhaXRpbmcgdG8gYmUgbWVyZ2Vk
-LCBpcyBpdCB0aW1lIHRvIHRoaW5rIGFib3V0ICJyZW1vdmluZyB0aGUgCmV4cGVyaW1lbnRhbCB0
-YWciIGFnYWluPyAgOikKCgotLQpUaGFua3MsClJ1YW4uCgo+IAo+IFJldmlld2VkLWJ5OiBEYXJy
-aWNrIEouIFdvbmcgPGRqd29uZ0BrZXJuZWwub3JnPgo+IAo+IC0tRAo+IAo+PiAtLS0KPj4gICBm
-cy94ZnMveGZzX3N1cGVyLmMgfCA2ICsrKystLQo+PiAgIDEgZmlsZSBjaGFuZ2VkLCA0IGluc2Vy
-dGlvbnMoKyksIDIgZGVsZXRpb25zKC0pCj4+Cj4+IGRpZmYgLS1naXQgYS9mcy94ZnMveGZzX3N1
-cGVyLmMgYi9mcy94ZnMveGZzX3N1cGVyLmMKPj4gaW5kZXggODQ5NWVmMDc2ZmZjLi5hM2MyMjE4
-NDFmYTYgMTAwNjQ0Cj4+IC0tLSBhL2ZzL3hmcy94ZnNfc3VwZXIuYwo+PiArKysgYi9mcy94ZnMv
-eGZzX3N1cGVyLmMKPj4gQEAgLTM0OCw4ICszNDgsMTAgQEAgeGZzX3NldHVwX2RheF9hbHdheXMo
-Cj4+ICAgCQlnb3RvIGRpc2FibGVfZGF4Owo+PiAgIAl9Cj4+ICAgCj4+IC0JaWYgKHhmc19oYXNf
-cmVmbGluayhtcCkpIHsKPj4gLQkJeGZzX2FsZXJ0KG1wLCAiREFYIGFuZCByZWZsaW5rIGNhbm5v
-dCBiZSB1c2VkIHRvZ2V0aGVyISIpOwo+PiArCWlmICh4ZnNfaGFzX3JlZmxpbmsobXApICYmCj4+
-ICsJICAgIGJkZXZfaXNfcGFydGl0aW9uKG1wLT5tX2RkZXZfdGFyZ3AtPmJ0X2JkZXYpKSB7Cj4+
-ICsJCXhmc19hbGVydChtcCwKPj4gKwkJCSJEQVggYW5kIHJlZmxpbmsgY2Fubm90IHdvcmsgd2l0
-aCBtdWx0aS1wYXJ0aXRpb25zISIpOwo+PiAgIAkJcmV0dXJuIC1FSU5WQUw7Cj4+ICAgCX0KPj4g
-ICAKPj4gLS0gCj4+IDIuMzYuMQo+Pgo+Pgo+Pgo=
+On Thu, 14 Jul 2022 17:00:41 -0700
+Dan Williams <dan.j.williams@intel.com> wrote:
+
+
+Hi Dan,
+
+I'm low on time unfortunately and will be OoO for next week,
+But whilst fixing a bug in QEMU, I set up a test to exercise
+the high port target register on the hb with
+
+CFMWS interleave ways = 1
+hb with 8 rp with a type3 device connected to each.
+
+The resulting interleave granularity isn't what I'd expect to see.
+Setting region interleave to 1k (which happens to match the CFMWS)
+I'm getting 1k for the CFMWS, 2k for the hb and 256 bytes for the type3
+devices.  Which is crazy...  Now there may be another bug lurking
+in QEMU so this might not be a kernel issue at all.
+
+For this special case we should be ignoring the CFMWS IG
+as it's irrelevant if we aren't interleaving at that level.
+We also know we don't have any address bits used for interleave
+decoding until the HB.
+
+Thanks,
+
+Jonathan
+
+
+> Changes since v1 [1]:
+> - Move 19 patches that have received a Reviewed-by to the 'pending'
+>   branch in cxl.git (Thanks Alison, Adam, and Jonathan!)
+> - Improve the changelog and add more Cc's to "cxl/acpi: Track CXL
+>   resources in iomem_resource" and highlight the new export of
+>   insert_resource_expand_to_fit()
+> - Switch all occurrences of the pattern "rc = -ECODE; if (condition)
+>   goto err;" to "if (condition) { rc = -ECODE; goto err; }" (Jonathan)
+> - Re-organize all the cxl_{root,switch,endpoint}_decoder() patches to
+>   move the decoder-type-specific setup into the decoder-type-specific
+>   allocation routines (Jonathan)
+> - Add kdoc to clarify the behavior of add_cxl_resources() (Jonathan)
+> - Add IORES_DESC_CXL for kernel components like EDAC to determine when
+>   they might be dealing with a CXL address range (Tony)
+> - Drop usage of dev_set_drvdata() for passing @cxl_res (Jonathan)
+> - Drop @remove_action argument to __cxl_dpa_release(), make it behave
+>   like any other devm_<free> helper (Jonathan)
+> - Clarify 'skip' vs 'skipped' in DPA handling helpers (Jonathan)
+> - Clarify why port teardown no proceeds under the lock with the
+>   conversion from list to xarray (Jonathan)
+> - Revert rename of cxl_find_dport_by_dev() (Jonathan)
+> - Fold down_read() / up_write() mismatch fix to the patch that
+>   introduced the problem (Jonathan)
+> - Fix description of interleave_ways and interleave_granularity in the
+>   sysfs ABI document
+> - Clarify tangential cleanups in "resource: Introduce
+>   alloc_free_mem_region()" (Jonathan)
+> - Clarify rationale for the region creation / naming ABI (Jonathan)
+> - Add SET_CXL_REGION_ATTR() to supplement CXL_REGION_ATTR() the former
+>   is used to optionally added region attributes to an attribute list
+>   (position independent) and the latter is used to retrieve a pointer to
+>   the attribute in code.  (Jonathan)
+> - For writes to region attributes allow the same value to be written
+>   multiple times without error (Jonathan)
+> - Clarify the actions performed by cxl_port_attach_region() (Jonathan)
+> - Commit message spelling fixes (Alison and Jonathan)
+> - Rename cxl_dpa_resource() => cxl_dpa_resource_start() (Jonathan)
+> - Reword error message in cxl_parse_cfmws() (Adam)
+> - Keep @expected_len signed in cxl_acpi_cfmws_verify() (Jonathan)
+> - Miscellaneous formatting and doc fixes (Jonathan)
+> - Rename port->dpa_end port->hdm_end (Jonathan)
+> - Rename unregister_region() => unregister_nvdimm_region() (Jonathan)
+> 
+> [1]: https://lore.kernel.org/linux-cxl/165603869943.551046.3498980330327696732.stgit@dwillia2-xfh
+> 
+> ---
+> 
+> Until the CXL 2.0 definition arrived there was little reason for OS
+> drivers to care about CXL memory expanders. Similar to DDR they just
+> implemented a physical address range that was described to the OS by
+> platform firmware (EFI Memory Map + ACPI SRAT/SLIT/HMAT etc). The CXL
+> 2.0 definition adds support for PMEM, hotplug, switch topologies, and
+> device-interleaving which exceeds the limits of what can be reasonably
+> abstracted by EFI + ACPI mechanisms. As a result, Linux needs a native
+> capability to provision new CXL regions.
+> 
+> The term "region" is the same term that originated in the LIBNVDIMM
+> implementation to describe a host physical / system physical address
+> range. For PMEM a region is a persistent memory range that can be
+> further sub-divided into namespaces. For CXL there are three
+> classifications of regions:
+> - PMEM: set up by CXL native tooling and persisted in CXL region labels
+> 
+> - RAM: set up dynamically by CXL native tooling after hotplug events, or
+>   leftover capacity not mapped by platform firmware. Any persistent
+>   configuration would come from set up scripts / configuration files in
+>   userspace.
+> 
+> - System RAM: set up by platform firmware and described by EFI + ACPI
+>   metadata, these regions are static.
+> 
+> For now, these patches implement just PMEM regions without region label
+> support. Note though that the infrastructure routines like
+> cxl_region_attach() and cxl_region_setup_targets() are building blocks
+> for region-label support, provisioning RAM regions, and enumerating
+> System RAM regions.
+> 
+> The general flow for provisioning a CXL region is to:
+> - Find a device or set of devices with available device-physical-address
+>   (DPA) capacity
+> 
+> - Find a platform CXL window that has free capacity to map a new region
+>   and that is able to target the devices in the previous step.
+> 
+> - Allocate DPA according to the CXL specification rules of sequential
+>   enabling of decoders by id and when a device hosts multiple decoders
+>   make sure that lower-id decoders map lower HPA and higher-id decoders
+>   map higher HPA.
+> 
+> - Assign endpoint decoders to a region and validate that the switching
+>   topology supports the requested configuration. Recall that
+>   interleaving is governed by modulo or xormap math that constrains which
+>   device can support which positions in a given region interleave.
+> 
+> - Program all the decoders an all endpoints and participating switches
+>   to bring the new address range online.
+> 
+> Once the range is online then existing drivers like LIBNVDIMM or
+> device-dax can manage the memory range as if the ACPI BIOS had conveyed
+> its parameters at boot.
+> 
+> This patch kit is the result of significant amounts of path finding work
+> [2] and long discussions with Ben. Thank you Ben for all that work!
+> Where the patches in this kit go in a different design direction than
+> the RFC, the authorship is changed and a Co-developed-by is added mainly
+> so I get blamed for the bad decisions and not Ben. The major updates
+> from that last posting are:
+> 
+> - all CXL resources are reflected in full in iomem_resource
+> 
+> - host-physical-address (HPA) range allocation moves to a
+>   devm_request_free_mem_region() derivative
+> 
+> - locking moves to two global rwsems, one for DPA / endpoint decoders
+>   and one for HPA / regions.
+> 
+> - the existing port scanning path is augmented to cache more topology
+>   information rather than recreate it at region creation time
+> 
+> [2]: https://lore.kernel.org/r/20220413183720.2444089-1-ben.widawsky@intel.com
+> 
+> ---
+> 
+> Ben Widawsky (4):
+>       cxl/hdm: Add sysfs attributes for interleave ways + granularity
+>       cxl/region: Add region creation support
+>       cxl/region: Add a 'uuid' attribute
+>       cxl/region: Add interleave geometry attributes
+> 
+> Dan Williams (24):
+>       Documentation/cxl: Use a double line break between entries
+>       cxl/core: Define a 'struct cxl_switch_decoder'
+>       cxl/acpi: Track CXL resources in iomem_resource
+>       cxl/core: Define a 'struct cxl_root_decoder'
+>       cxl/core: Define a 'struct cxl_endpoint_decoder'
+>       cxl/hdm: Enumerate allocated DPA
+>       cxl/hdm: Add 'mode' attribute to decoder objects
+>       cxl/hdm: Track next decoder to allocate
+>       cxl/hdm: Add support for allocating DPA to an endpoint decoder
+>       cxl/port: Record dport in endpoint references
+>       cxl/port: Record parent dport when adding ports
+>       cxl/port: Move 'cxl_ep' references to an xarray per port
+>       cxl/port: Move dport tracking to an xarray
+>       cxl/mem: Enumerate port targets before adding endpoints
+>       resource: Introduce alloc_free_mem_region()
+>       cxl/region: Allocate HPA capacity to regions
+>       cxl/region: Enable the assignment of endpoint decoders to regions
+>       cxl/acpi: Add a host-bridge index lookup mechanism
+>       cxl/region: Attach endpoint decoders
+>       cxl/region: Program target lists
+>       cxl/hdm: Commit decoder state to hardware
+>       cxl/region: Add region driver boiler plate
+>       cxl/pmem: Fix offline_nvdimm_bus() to offline by bridge
+>       cxl/region: Introduce cxl_pmem_region objects
+> 
+> 
+>  Documentation/ABI/testing/sysfs-bus-cxl         |  213 +++
+>  Documentation/driver-api/cxl/memory-devices.rst |   11 
+>  drivers/cxl/Kconfig                             |    8 
+>  drivers/cxl/acpi.c                              |  185 ++
+>  drivers/cxl/core/Makefile                       |    1 
+>  drivers/cxl/core/core.h                         |   49 +
+>  drivers/cxl/core/hdm.c                          |  623 +++++++-
+>  drivers/cxl/core/pmem.c                         |    4 
+>  drivers/cxl/core/port.c                         |  669 ++++++--
+>  drivers/cxl/core/region.c                       | 1830 +++++++++++++++++++++++
+>  drivers/cxl/cxl.h                               |  263 +++
+>  drivers/cxl/cxlmem.h                            |   18 
+>  drivers/cxl/mem.c                               |   32 
+>  drivers/cxl/pmem.c                              |  259 +++
+>  drivers/nvdimm/region_devs.c                    |   28 
+>  include/linux/ioport.h                          |    3 
+>  include/linux/libnvdimm.h                       |    5 
+>  kernel/resource.c                               |  185 ++
+>  mm/Kconfig                                      |    5 
+>  tools/testing/cxl/Kbuild                        |    1 
+>  tools/testing/cxl/test/cxl.c                    |   75 +
+>  21 files changed, 4156 insertions(+), 311 deletions(-)
+>  create mode 100644 drivers/cxl/core/region.c
+> 
+> base-commit: b060edfd8cdd52bc8648392500bf152a8dd6d4c5
+
