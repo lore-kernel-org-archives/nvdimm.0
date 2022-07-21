@@ -1,80 +1,83 @@
 Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 825CB4680
-	for <nvdimm@lists.linux.dev>; Thu, 21 Jul 2022 15:29:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EEFAA4680
+	for <nvdimm@lists.linux.dev>; Thu, 21 Jul 2022 16:11:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1658417351; x=1689953351;
+  t=1658419867; x=1689955867;
   h=date:from:to:cc:subject:message-id:references:
    in-reply-to:mime-version;
-  bh=4R0szUxMHfwtnH6JE4lZGBh/fp22PR7bTCRiO+ba24o=;
-  b=HAgil/v4ol24OMI2jplbUUo0aTQpXqD0+ElFt2Ov37UVxn80FTpvu3qe
-   +zZ+uRs3q86IhoKxn6o/r4hIY7LALwtAUsAvAUlf1cGzMUtJzhMclNzkJ
-   A0XQos0v6vAfltHw91ux4IA1veOc7ZmuSVJRIoHoI8mEvNOHtcmZIHZVC
-   nUpAS7J7oAPcrJrH8CZo786iECTU5ll0cqcTWX0WSA+VFQ6HbLpLaDeao
-   lAJdS//aPPsIF8fYdtRigmbjZv9GxtyBAn6AfwSbxYo2mNJfB1MqiTGN4
-   PVeAA/0CC6zQrjZI5kqpGTVdUzWKZ10qQoOLtJ9iA0slBK4QyngnzbqOB
+  bh=HFGQo6bXWJCXw0EpOTHYnpRm5F1M1SL/xABPhG6kXTM=;
+  b=GCrH5XRFf+RzJVGuqqn2GPEJNmogqBl0s3M/T191+lEN6MrfyvZn+ABQ
+   TDOdWGkuIPXSOG0cDlMT4TYglh4JW+E5NtKFtdlyB4BpFvrnwxD11hG6M
+   oc2nAKl12rAslS33zSAwYyE5/wUT9WBaaNJU9JPMZCmibdqJexBKT58TM
+   ZSXIQPUPfArSb0+iAmlOTkOyIcDDRtMsqgV24/8DMXMZYq2cxmwepcpBn
+   ZOTNjOsIyhDB9T3fXk6QFA6LrcFE3l18zxzaNvgtAH9Amlwc3WsIjT4gm
+   4kEDRlaoAXnXSRLXOv2tQdqje0vNneU2fb9WXzmvkSwbIOJ0L35nqWFst
    Q==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10414"; a="287829793"
-X-IronPort-AV: E=Sophos;i="5.93,290,1654585200"; 
-   d="scan'208";a="287829793"
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Jul 2022 08:29:10 -0700
+X-IronPort-AV: E=McAfee;i="6400,9594,10415"; a="287843738"
+X-IronPort-AV: E=Sophos;i="5.93,183,1654585200"; 
+   d="scan'208";a="287843738"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Jul 2022 09:11:00 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.93,290,1654585200"; 
-   d="scan'208";a="740717257"
-Received: from fmsmsx602.amr.corp.intel.com ([10.18.126.82])
-  by fmsmga001.fm.intel.com with ESMTP; 21 Jul 2022 08:29:10 -0700
-Received: from fmsmsx601.amr.corp.intel.com (10.18.126.81) by
- fmsmsx602.amr.corp.intel.com (10.18.126.82) with Microsoft SMTP Server
+X-IronPort-AV: E=Sophos;i="5.93,183,1654585200"; 
+   d="scan'208";a="626179467"
+Received: from orsmsx604.amr.corp.intel.com ([10.22.229.17])
+  by orsmga008.jf.intel.com with ESMTP; 21 Jul 2022 09:11:00 -0700
+Received: from orsmsx607.amr.corp.intel.com (10.22.229.20) by
+ ORSMSX604.amr.corp.intel.com (10.22.229.17) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.28; Thu, 21 Jul 2022 08:29:10 -0700
-Received: from FMSEDG603.ED.cps.intel.com (10.1.192.133) by
- fmsmsx601.amr.corp.intel.com (10.18.126.81) with Microsoft SMTP Server
+ 15.1.2375.28; Thu, 21 Jul 2022 09:11:00 -0700
+Received: from orsmsx607.amr.corp.intel.com (10.22.229.20) by
+ ORSMSX607.amr.corp.intel.com (10.22.229.20) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.28 via Frontend Transport; Thu, 21 Jul 2022 08:29:10 -0700
-Received: from NAM11-BN8-obe.outbound.protection.outlook.com (104.47.58.169)
- by edgegateway.intel.com (192.55.55.68) with Microsoft SMTP Server
+ 15.1.2375.28; Thu, 21 Jul 2022 09:10:59 -0700
+Received: from ORSEDG601.ED.cps.intel.com (10.7.248.6) by
+ orsmsx607.amr.corp.intel.com (10.22.229.20) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.28 via Frontend Transport; Thu, 21 Jul 2022 09:10:59 -0700
+Received: from NAM04-DM6-obe.outbound.protection.outlook.com (104.47.73.48) by
+ edgegateway.intel.com (134.134.137.102) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2308.27; Thu, 21 Jul 2022 08:29:09 -0700
+ 15.1.2308.27; Thu, 21 Jul 2022 09:10:59 -0700
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=iqgn6F+HRAeOJEGLN8RGT4rO/of4d5/2EVw6jUIYvmbMwQe0oJtH3qrRZonO2g5/plC1qQCFzUwZZkM1cO7UUlq3lFyeSZh3JdbHvUyV9tOsDcXazpfJ6OWD5Z/p+ULRi/vX505kCkjhQWBD3GlbIxGsTnuHjy6HreIF8gqxJVTK6vIuneKYN4liEBhnf0q8MW7gkFb/TGt2clX6CQQRHtqckGqmWrFO5NAT7e3y/uazOFiCopEDjYNrvRMAAZZbzi0VsoFTMOdicdwDsHJ1vU95PyT5q1mI4QfymoFaWw+kvAj5BBGa/SMIfSISnBwkT8PXnnjWWTXKZUpiYYlybA==
+ b=eIqRisxHE2/+6qJEx4355afkwgu6URATyqDgQi/dLjBWY81whxJNzphFTkqooQvXFTy7YVkCSHGK5mGoEq1jFgrZUDBYZSywNoPyWaaEqDcHjdwiNtxTKW1RvyFUZGvMxfgfRGvRyHEnZdJ7cvMkw0+Ey2fwgfmuxBuneli92WeEmCybSnQ/T3K8nHOdZq/nCmFzW+d4w4a9d8G4X2GTbtSpvVFcCHfoD4zZ8C8kdi0WK0YTRfMVC4ezlimnWrbzui1cUv1SAN5D9szVC0IEanlMN8RJh9TzAsQOh3wZlsBahoV1h2nNjj6QStcjn9oMCJzLgMZchba4FfQqCiSSag==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=2XCd1NZwIEMHzaslrapRMwAfYIJbUUl5jxTINQo+ujU=;
- b=V82ZQpOl7dsy03RKzzK5KeWL/tPJe9C9WO6NGdnzzFdi7+6YBjpwh1wthjwMZW5MTOORqvWGJFOk7r9vwAnKjXjB1yhYMGARN2p7AWU1WX128EewPEUxSN40VNauXXO0piBPN4oEfqNzM+qCUq7nKVXgf6rhq+btacMLFkZccmevkn8uGDZ+nfmjpxptvUg2yETqnoTcaaVLpIRQW3o4ginE84r+VaYsLErHsrb45bcRNXJMay5Wfpp2sds5gzSjIo+dt0xAqXEk2cbbQHY7EPGPlz8c9jQQUd0kfVZUub38R3iqKimC8RFwYIOZ1mBw/+o7s8jFrczp7bmc9Gs6sQ==
+ bh=R1QE/VC0qpZsPug/0MfXEM+D7DodZ1qGf8bzJIVa/78=;
+ b=oEepKVmavo6TmzF07+oYWxos/QnDI/5PX7Hg0kD4fyayeG+FHlwJBEyb7ImPu8pgTu7RwRw4lOPMyLOWofn/rTSxmOFLwL2+H9X9mOk82haEBTvXIQPhVY06Sg3/USEtwbwyByMjiLKpbusZgN4uv2M33oCHP4v2pdFPHbRgFgVCyXcPryvMnvW9hfPTur8GFdO5JuqpJsiv5eAMEquu+w59xKeff98tfao/1KYW9pAAJMkxYYBb5ot0IJH1zCQ584ZLq+whgpdKsr/nFhQry2Az6uw7wTal7OfykxToOUvNni7n4e3WXs7YKoKLj/agMw0ekd8o2heHrZ/iY8NthQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
  dkim=pass header.d=intel.com; arc=none
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=intel.com;
 Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
- (2603:10b6:301:50::20) by BL3PR11MB5746.namprd11.prod.outlook.com
- (2603:10b6:208:353::21) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5458.18; Thu, 21 Jul
- 2022 15:29:07 +0000
+ (2603:10b6:301:50::20) by MWHPR11MB0014.namprd11.prod.outlook.com
+ (2603:10b6:301:64::31) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5438.15; Thu, 21 Jul
+ 2022 16:10:52 +0000
 Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
  ([fe80::6466:20a6:57b4:1edf]) by MWHPR1101MB2126.namprd11.prod.outlook.com
  ([fe80::6466:20a6:57b4:1edf%11]) with mapi id 15.20.5458.019; Thu, 21 Jul
- 2022 15:29:07 +0000
-Date: Thu, 21 Jul 2022 08:29:05 -0700
+ 2022 16:10:52 +0000
+Date: Thu, 21 Jul 2022 09:10:49 -0700
 From: Dan Williams <dan.j.williams@intel.com>
-To: Jonathan Cameron <Jonathan.Cameron@huawei.com>, Dan Williams
-	<dan.j.williams@intel.com>
-CC: <linux-cxl@vger.kernel.org>, Ben Widawsky <bwidawsk@kernel.org>,
-	<hch@lst.de>, <nvdimm@lists.linux.dev>, <linux-pci@vger.kernel.org>
-Subject: Re: [PATCH v2 06/28] cxl/hdm: Enumerate allocated DPA
-Message-ID: <62d970c11889e_17f3e829411@dwillia2-xfh.jf.intel.com.notmuch>
+To: Jason Gunthorpe <jgg@nvidia.com>, Christoph Hellwig <hch@lst.de>
+CC: <dri-devel@lists.freedesktop.org>, <nouveau@lists.freedesktop.org>,
+	<linux-cxl@vger.kernel.org>, Matthew Wilcox <willy@infradead.org>,
+	<nvdimm@lists.linux.dev>, <linux-pci@vger.kernel.org>
+Subject: RE: [PATCH v2 16/28] resource: Introduce alloc_free_mem_region()
+Message-ID: <62d97a89d66a1_17f3e82949e@dwillia2-xfh.jf.intel.com.notmuch>
 References: <165784324066.1758207.15025479284039479071.stgit@dwillia2-xfh.jf.intel.com>
- <165784327682.1758207.7914919426043855876.stgit@dwillia2-xfh.jf.intel.com>
- <20220720174031.00006f78@Huawei.com>
+ <165784333333.1758207.13703329337805274043.stgit@dwillia2-xfh.jf.intel.com>
 Content-Type: text/plain; charset="us-ascii"
 Content-Disposition: inline
-In-Reply-To: <20220720174031.00006f78@Huawei.com>
-X-ClientProxiedBy: BY3PR05CA0009.namprd05.prod.outlook.com
- (2603:10b6:a03:254::14) To MWHPR1101MB2126.namprd11.prod.outlook.com
+In-Reply-To: <165784333333.1758207.13703329337805274043.stgit@dwillia2-xfh.jf.intel.com>
+X-ClientProxiedBy: SJ0PR03CA0053.namprd03.prod.outlook.com
+ (2603:10b6:a03:33e::28) To MWHPR1101MB2126.namprd11.prod.outlook.com
  (2603:10b6:301:50::20)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -83,117 +86,391 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 87e7b54b-2f78-4de4-2c35-08da6b2dc056
-X-MS-TrafficTypeDiagnostic: BL3PR11MB5746:EE_
+X-MS-Office365-Filtering-Correlation-Id: c978c002-a318-44b0-8925-08da6b33953c
+X-MS-TrafficTypeDiagnostic: MWHPR11MB0014:EE_
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: 5HhcWnaBdG8wUeHLEBQEdO02MnBakgczbBR6hCb73AjaR9ELfbveE4ktgsesnHFq/Bb8o522yvrG0aZtzpUgz6YAESXPS86vkayhMW10DalkurOJeSwRxfKVsXJ+7gDJv4jaOaezlXeE+Lsp5cd5QvYiI/BW+5/sjS3kZwG978gBOonymyVkMBH+95yU9R2rgS/+UDA09VuZsmKj6Er30xXn79mIyOkJ52g7nUOYri7mSCEfBYGMgVAkRIigfixKNSnWFfQuGE6sLRfkWcE3909dDAADr7bQIyRobh31tGVL3kOnW7oF3rBoBVDmGM4FoSV12MoMYnI7jOetpgNaL442qMMy2hQmYtg/baMcAdCTjXu+6UH1+ry2Kc47iWwMtZGXDK1/8ICYphnnm/AKJP3xAwnfCZZXmZA9H6cA4iZMDdGhwx+OX9joDSsV7nGGHLVLt2JmdAZSq3vo1GhlXNMd2L2edVPmk7DZwgeANUkyAwUIE/uG5Wxd4CR3vpzsBk2MkTn4o4IUldEEkxsaGalLjXCao5v0G/+RiPNfkMaxOU+itULRJPCazSHLL6pRFr5xR1Rk9fXTsuL4OZ8Ar+DpjcDfMHakvbYWg4I8FgS8FxlA0xYoYKjN8LveoVtzZk228MZ4htP+p4IHNR3xnUOOot1L4h3UKlBy0KAqT+zXTTXRbzr6Ar9mfkG1sxDAlCVTh1+kzbXIox8bCTBtydTT/fqAvdzNBBbflxqm2wxB/4dm/8IuqEzfZnTYM1I3
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1101MB2126.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(39860400002)(396003)(366004)(376002)(136003)(346002)(6486002)(2906002)(6506007)(38100700002)(26005)(66476007)(66946007)(8676002)(86362001)(66556008)(6512007)(9686003)(5660300002)(8936002)(4326008)(83380400001)(316002)(186003)(82960400001)(478600001)(110136005)(41300700001);DIR:OUT;SFP:1102;
+X-Microsoft-Antispam-Message-Info: sp+2va/NQ2K8XOkmbDU9NA9H3KvGKCaLCfDwQhcZXLHeYY7vnqB/TxzaI2Gy1BMTz9g0VE3twAgKuXAPNqkk3K9ocgK7RbRa/b5pm0jQ1BbU4JGImJqtaDrYdIAur6HGZLWXJgHxOeudf6vqiD1VZi2KzW+OS+6hOnqjO4JBmH+JcBBgIYbTq0UuNHD6fBlge9rCn0Y5/27V5EZZ57XOX6n5fHKW3WAuZ/3H2GVquibU6khnq6l3/EY7b90ztvD3waXvf9IsqBw1cD0NIX/yLBUp9OIGQE4/gDQVKqmm6flRER26WZdH3FwGRHFw2a0FMAK5Pz2BqmDebDS7/qfkhw1I5Z1omQa7ZDsRoOPHLCdQK7iE2JqqxaGGKu+EuZgcX8CIy+3pKKVBG9jrBg+EU48NHM/fYNbgFm5SytGXMxWVspLxWtXfXERDB3/zoKqsOffAbSaDrkNd9dn8PjukeobtNRN2XExCRmxtTKbW9+M3/+f2FL2LNnJZc/eIL1xVe7vrgWcVPj9XZOTgBhXM6cnAKN3UTrNSJigty2L86fGqm3gzmqq2bjbN1eEBuy0PeYccgSUTQuuqhYENR4YOGnLTH+fuWqirW/+pz90CFf3KL5Q4itrQyFbOmVlwNst8rVRZqOJqo5vX3WtOgeowUTJ85GYXM+iK9RbKex9DH/aQ1bnEdZ49z1HmWI1XQgDEP4OdllmpVe9i1cQkoenWl2P2qMC2gd2iVCvO2ESJlCojET4HEC8rNd144kLdxkGK5lTt1LX5w3GRYPUNAGJuKg==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1101MB2126.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(376002)(346002)(366004)(396003)(136003)(39860400002)(478600001)(41300700001)(5660300002)(2906002)(8936002)(6486002)(110136005)(4326008)(8676002)(30864003)(66946007)(82960400001)(66476007)(66556008)(38100700002)(316002)(966005)(6506007)(83380400001)(186003)(9686003)(6512007)(26005)(86362001)(6666004);DIR:OUT;SFP:1102;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?p3o/G/4o1Ax/jVj2K+W07yo2eWsvxXeGIAiwtL7qOqnPRjCSHfYgztHqrZWp?=
- =?us-ascii?Q?LdX155IZDmZMosXSehtxu4cVUmbf6e+sB3A9cZbFftXVxB1FQTYnupngPbmT?=
- =?us-ascii?Q?MsfWEeAvXJ0CXCKKSpl6J5Avmsn6RDMWPCFz47Im8CTUEXs/pGNQ/A9YfeD0?=
- =?us-ascii?Q?wfC2jEu6Q1E11AQh6HgIp6OYQZB+Wwg7U+FH0u5nt/cg69ptXhV5Bv5GpB4P?=
- =?us-ascii?Q?1KjO2/wZdkv82uNzwQCWLq7GAxOlKGdszOrNd+TdkC0HPu5I/DPFQbVC4aAM?=
- =?us-ascii?Q?whcY6L3F6Jd1aesE30Gyu95Ccc9v2UZnUNDFWtfRK/34RtT6krpVS/V/KEis?=
- =?us-ascii?Q?CIHG5ub4/Kc7ETw+ULsn+API4CHR6pn7aNmHqeu9SwQ3tYXN3iBOt3vOHjc/?=
- =?us-ascii?Q?RDBGFF66/Jd+y36yHYkfEQqp32SD7wYlPQrAuVhKDGOBsVGHcR/iSeIAUv9o?=
- =?us-ascii?Q?8IcWMIXuSK7kyYIhUFAi0X+6kP/PiTYl1hafJYHn5y2KoALwprNPUWzguNRz?=
- =?us-ascii?Q?cXkpVWVPEu5g2JleNQDiXuqvm67wrM+Z8l6MW7oGMao9vt8zloqWbvBUAy8d?=
- =?us-ascii?Q?6Y8qCoVeJ14cG7gHatNkQOpUqWiPCepAbvAGQjgspIshCJRZYVwIfWBbdNIF?=
- =?us-ascii?Q?Wmfj4p9Z5E0vAvXB6IqhQAvsOVqwLKQSl8L4bdTc0H5Jh3dECv08oAqrH3Di?=
- =?us-ascii?Q?VOQc/pNK9YD1F4ndVn7O/KUPmBbfkUui4MyKPxfc8eUGITEKXmOus1YVm+gH?=
- =?us-ascii?Q?FZi32cbPPcjQfKO9ZMZyeGz1FW5AvQYjoM2dL+CV5Y39+6Ijlcq9DUf3GOjY?=
- =?us-ascii?Q?d3KIcPqUZsVE/A0Wnj+5u8zE0X1J+CpHvb2IVYb/XELq1+5JI33Izjn76LX2?=
- =?us-ascii?Q?NbIDq5WyB9Dbs/46yUAOuXTjvlwRrmq2dDPzFH/Okk8QTgj5q3cUIy8DxlCh?=
- =?us-ascii?Q?z7Q6fZQUbZz3M10Xw1zrQhf7onlmA6c4ycHpFiYplDM7MTynqyur+cs8jXZp?=
- =?us-ascii?Q?GJDtUmQoSxZKgCYtV1UbpyGguuGVxfHDv8OTyCkRGg0Et1BHHDh/nvYwPpzX?=
- =?us-ascii?Q?fFtXR2PFyynXicVdqiRgahqXtc8zcsHIWlgbwscyA1EhBbvQee592T/9OHB6?=
- =?us-ascii?Q?oUiQUU9HzD+4WMufIbxo+ZlQXyPyPYjw09HhyZHfjVYsQbfuC+BKzA7R/zmr?=
- =?us-ascii?Q?PjEQZWUPWWsD8kKK0TMWmyds17Hm9fPwE2G/CM0aiSLr+KKzHUCB25a1+xF8?=
- =?us-ascii?Q?ZTOy3y0l1vss0FTj8iBVf8iFI4rTVhiLtsT5B6A8qyqJdOQAoCLAlRd6WsPO?=
- =?us-ascii?Q?TC4uzhVPexOjMu71R9wzW1fOScH41mjemY/cILageoOnZLoKk5Nk84+3VNyQ?=
- =?us-ascii?Q?PG9G2Scl9rm04CQh44ZsEPVilCQR90s5zOEaRsYHSmw2mxgSojML5nBfKoiv?=
- =?us-ascii?Q?jF8KMRviKJHpgzBEIcuThFjO0+lGlRA94HAAX47jKAvRUxycosDSxmMLdMK5?=
- =?us-ascii?Q?FVLmOhn7K3PLNue7bcsUEPcgxDBuHi5kZPLPhuy4avtB4yv+LEyVYnuGMdAw?=
- =?us-ascii?Q?gtcokBrvcsDw0+XXlfemVwXlwOWTsSI/6z/IIdq19yUyIENUjQp6hmGP4Dwh?=
- =?us-ascii?Q?tg=3D=3D?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: 87e7b54b-2f78-4de4-2c35-08da6b2dc056
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?QnBEZyo7Fp9JsKa84HwPLhhEEgPvR6PAtLZtJDIHmIyn3nVjcYJ0j0O625ED?=
+ =?us-ascii?Q?ascCXOgVEz/HpTRgiSp3LGk28xtN+xGyZoehCnsPZeOAevZTgiy3CVqQTKfu?=
+ =?us-ascii?Q?SOvIY5/HTfKIzOP+AoXH1Z2TKolSN4C34FvFu1tfmHgRHduOmeTDWhsVU0Dc?=
+ =?us-ascii?Q?bKfisjS8v9lfki6Op4gtVBUN1TUEkc7ts7oWVOU+KB95hs0bLsmgMoEC48rO?=
+ =?us-ascii?Q?gSaviHJipbhsVmkiU3TOx8wiztMh5jTHOSAE1yF/2y/8y8sb9Id4CcAihnSO?=
+ =?us-ascii?Q?hFc27yRf0oQBdD2MsG6XTAxf/Gq71ZQGd2Jpq2SwWrzKtMctcf6U41ll+AgX?=
+ =?us-ascii?Q?bSJyVRre9W2gZcZPn2xZkclRANqeRxn0cu3JZF1QV8TfFOuz17oX0Nuu1/yf?=
+ =?us-ascii?Q?QUDOaD/AaVj/0ztZBekuevX0Ud9a5Ku0+8Sf47Bkf7yfpfjIoT+4pmWjg6jP?=
+ =?us-ascii?Q?aIWkVpBTpg1umdeHbsmDmMpxnemWAvS8RJeFf9X0lK9iQTbc5YJF4rr+ImgK?=
+ =?us-ascii?Q?vlsDkQbPuJeIYm8eNeNgkG/aHer0LoD+EpdB0+Bi5G8RwKmNRukfYA4VaCr/?=
+ =?us-ascii?Q?19WdRtB3efFPRkkYxVAX3IcFRprIL7dhr8wUnvyRhhRzuYWbwrZfbFyEhvnQ?=
+ =?us-ascii?Q?Pg9auQpN911A9Be/5pa8i1sd49vGq1tXuXO/ZQPNI38RabZI1+zu6DSV/GBK?=
+ =?us-ascii?Q?rO2NQQLhZdYjSgPfr80KSxHe4B2KiE4MsTmqr/wCvT5Oc+LDF0vvhtlrlPr9?=
+ =?us-ascii?Q?x83rhz4u6EXG6GvNvvS8uOGlQuD2lj0FaQya0e51Eci/LV5FgygKe6871CT0?=
+ =?us-ascii?Q?RwSN5/V1qNa4QznK9gj66l/Q3fy4CxLZReY77o1gbhNs7KBcmL2LK9q/N/9B?=
+ =?us-ascii?Q?VnCfxIWNHPhVszuqV4tkOW9aPe/6unyWwMBuexN0/Gp4rBGJa0toVi7Bf7Qi?=
+ =?us-ascii?Q?GVhPm5x2h+s2AlxYeNctDopivNV0ARQ9y0TbSErfharMbYETkoxrmxIBqhzS?=
+ =?us-ascii?Q?TSYp6yIRAODoflZScA3D7ARlBVqi8BWrJZD4uYAWXctLJOOhGFVv2YJhX5k3?=
+ =?us-ascii?Q?rN4r0Pf/hzq/yy6/g/EKuxUlBNDh76iHilpVmeYNPyfVYsVngJRiUtpqtU0U?=
+ =?us-ascii?Q?qcWViT2tRoNuOmct5UkYR4BRv2JtkI3aULQ89UDmuNYQP9hFPTx8aqRGSOIU?=
+ =?us-ascii?Q?tXUpgFUtTuZlxU+8ohwPb/PwQfEEYINBRHF8qDUULN2oqznsTgHP2LmSQ596?=
+ =?us-ascii?Q?BY6ZExSXhSIGw0wcAPURCRR00cEbyA45AEyziNK3iNr7AOCmZD44wsJVBxh/?=
+ =?us-ascii?Q?/U48p2ckDYsgQb2P5xdmTUh5BYq0SOP9doBUwIvYWmR68eAdbDmzUKHMnFdt?=
+ =?us-ascii?Q?nx0UswufbQXvcw7JJ3IEHHBOlpXvxZ13GXHnLda+0Z1OXmhImBBrn1Woc15o?=
+ =?us-ascii?Q?FplyVOneoXpqeog1Qwc/96onbJywO2DoM3SuiLsV2GiBkbBy+6q7yOe0quM7?=
+ =?us-ascii?Q?f1T8cETuALka9TLF9UoQRqZcKTQRp2FgU1jN+ly1Ceg3Bod4vMjURSGs4IJD?=
+ =?us-ascii?Q?4rSO6E/fyJpk8HG95i4OAy+sHqIDvAuFzfZ52t93NeBkH2B/dhdt3Nko+dHI?=
+ =?us-ascii?Q?jg=3D=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: c978c002-a318-44b0-8925-08da6b33953c
 X-MS-Exchange-CrossTenant-AuthSource: MWHPR1101MB2126.namprd11.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 Jul 2022 15:29:07.3263
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 Jul 2022 16:10:52.0435
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: WTGCt8k0rrwK2sW4F4K4o+GEb9HgqgszQXu+xsjYj+Ix+uEd+AGr+KPDRXS82ksrA+VMAjYtqj4Nc02H6BlmxIDMinVoV2u2Hkdw4PM2U9w=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BL3PR11MB5746
+X-MS-Exchange-CrossTenant-UserPrincipalName: ep5rf5b44yYdElGY0hQdaw2afcci1towvLxYK3TYHx3kgN83u4G3DZitIJqVsBpGmsxP7ot4AoKXxyti/LNqYXC8Nau65xQfQJZqfVv9dz8=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MWHPR11MB0014
 X-OriginatorOrg: intel.com
 
-Jonathan Cameron wrote:
-> On Thu, 14 Jul 2022 17:01:16 -0700
-> Dan Williams <dan.j.williams@intel.com> wrote:
-> 
-> > In preparation for provisioning CXL regions, add accounting for the DPA
-> > space consumed by existing regions / decoders. Recall, a CXL region is a
-> > memory range comprised from one or more endpoint devices contributing a
-> > mapping of their DPA into HPA space through a decoder.
-> > 
-> > Record the DPA ranges covered by committed decoders at initial probe of
-> > endpoint ports relative to a per-device resource tree of the DPA type
-> > (pmem or volatile-ram).
-> > 
-> > The cxl_dpa_rwsem semaphore is introduced to globally synchronize DPA
-> > state across all endpoints and their decoders at once. The vast majority
-> > of DPA operations are reads as region creation is expected to be as rare
-> > as disk partitioning and volume creation. The device_lock() for this
-> > synchronization is specifically avoided for concern of entangling with
-> > sysfs attribute removal.
-> > 
-> > Co-developed-by: Ben Widawsky <bwidawsk@kernel.org>
-> > Signed-off-by: Ben Widawsky <bwidawsk@kernel.org>
-> > Signed-off-by: Dan Williams <dan.j.williams@intel.com> 
-> 
-> One trivial ordering question inline. I'm not that bothered whether you
-> do anything about it though as it's all very local.
-> 
-> Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-> 
-> > ---
-> >  drivers/cxl/core/hdm.c |  143 ++++++++++++++++++++++++++++++++++++++++++++----
-> >  drivers/cxl/cxl.h      |    2 +
-> >  drivers/cxl/cxlmem.h   |   13 ++++
-> >  3 files changed, 147 insertions(+), 11 deletions(-)
-> > 
-> > diff --git a/drivers/cxl/core/hdm.c b/drivers/cxl/core/hdm.c
-> > index 650363d5272f..d4c17325001b 100644
-> > --- a/drivers/cxl/core/hdm.c
-> > +++ b/drivers/cxl/core/hdm.c
-> > @@ -153,10 +153,105 @@ void cxl_dpa_debug(struct seq_file *file, struct cxl_dev_state *cxlds)
-> >  }
-> >  EXPORT_SYMBOL_NS_GPL(cxl_dpa_debug, CXL);
-> >  
-> > +/*
-> > + * Must be called in a context that synchronizes against this decoder's
-> > + * port ->remove() callback (like an endpoint decoder sysfs attribute)
-> > + */
-> > +static void __cxl_dpa_release(struct cxl_endpoint_decoder *cxled)
-> > +{
-> > +	struct cxl_memdev *cxlmd = cxled_to_memdev(cxled);
-> > +	struct cxl_dev_state *cxlds = cxlmd->cxlds;
-> > +	struct resource *res = cxled->dpa_res;
-> > +
-> > +	lockdep_assert_held_write(&cxl_dpa_rwsem);
-> > +
-> > +	if (cxled->skip)
-> > +		__release_region(&cxlds->dpa_res, res->start - cxled->skip,
-> > +				 cxled->skip);
-> > +	cxled->skip = 0;
-> > +	__release_region(&cxlds->dpa_res, res->start, resource_size(res));
-> 
-> Minor but I think the ordering in here is unnecessarily not the opposite
-> of what is going on in __cxl_dpa_reserve()  Should be releasing the
-> actual rs first, then releasing the skip.
+[ add dri-devel and nouveau ]
 
-Done.
+Dan Williams wrote:
+> The core of devm_request_free_mem_region() is a helper that searches for
+> free space in iomem_resource and performs __request_region_locked() on
+> the result of that search. The policy choices of the implementation
+> conform to what CONFIG_DEVICE_PRIVATE users want which is memory that is
+> immediately marked busy, and a preference to search for the first-fit
+> free range in descending order from the top of the physical address
+> space.
+> 
+> CXL has a need for a similar allocator, but with the following tweaks:
+> 
+> 1/ Search for free space in ascending order
+> 
+> 2/ Search for free space relative to a given CXL window
+> 
+> 3/ 'insert' rather than 'request' the new resource given downstream
+>    drivers from the CXL Region driver (like the pmem or dax drivers) are
+>    responsible for request_mem_region() when they activate the memory
+>    range.
+> 
+> Rework __request_free_mem_region() into get_free_mem_region() which
+> takes a set of GFR_* (Get Free Region) flags to control the allocation
+> policy (ascending vs descending), and "busy" policy (insert_resource()
+> vs request_region()).
+> 
+> As part of the consolidation of the legacy GFR_REQUEST_REGION case with
+> the new default of just inserting a new resource into the free space
+> some minor cleanups like not checking for NULL before calling
+> devres_free() (which does its own check) is included.
+> 
+> Suggested-by: Jason Gunthorpe <jgg@nvidia.com>
+> Link: https://lore.kernel.org/linux-cxl/20220420143406.GY2120790@nvidia.com/
+> Cc: Matthew Wilcox <willy@infradead.org>
+> Cc: Christoph Hellwig <hch@lst.de>
+
+Jason, Christoph, anyone else that depends on CONFIG_DEVICE_PRIVATE,
+
+Just a heads up that with Jonathan's review I am going to proceed with
+pushing this change to linux-next. Please holler if
+CONFIG_DEVICE_PRIVATE starts misbehaving, or if you have other feedback,
+and I will get it fixed up.
+
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+>  include/linux/ioport.h |    2 +
+>  kernel/resource.c      |  178 +++++++++++++++++++++++++++++++++++++++---------
+>  mm/Kconfig             |    5 +
+>  3 files changed, 150 insertions(+), 35 deletions(-)
+> 
+> diff --git a/include/linux/ioport.h b/include/linux/ioport.h
+> index 79d1ad6d6275..616b683563a9 100644
+> --- a/include/linux/ioport.h
+> +++ b/include/linux/ioport.h
+> @@ -330,6 +330,8 @@ struct resource *devm_request_free_mem_region(struct device *dev,
+>  		struct resource *base, unsigned long size);
+>  struct resource *request_free_mem_region(struct resource *base,
+>  		unsigned long size, const char *name);
+> +struct resource *alloc_free_mem_region(struct resource *base,
+> +		unsigned long size, unsigned long align, const char *name);
+>  
+>  static inline void irqresource_disabled(struct resource *res, u32 irq)
+>  {
+> diff --git a/kernel/resource.c b/kernel/resource.c
+> index 53a534db350e..4c5e80b92f2f 100644
+> --- a/kernel/resource.c
+> +++ b/kernel/resource.c
+> @@ -489,8 +489,9 @@ int __weak page_is_ram(unsigned long pfn)
+>  }
+>  EXPORT_SYMBOL_GPL(page_is_ram);
+>  
+> -static int __region_intersects(resource_size_t start, size_t size,
+> -			unsigned long flags, unsigned long desc)
+> +static int __region_intersects(struct resource *parent, resource_size_t start,
+> +			       size_t size, unsigned long flags,
+> +			       unsigned long desc)
+>  {
+>  	struct resource res;
+>  	int type = 0; int other = 0;
+> @@ -499,7 +500,7 @@ static int __region_intersects(resource_size_t start, size_t size,
+>  	res.start = start;
+>  	res.end = start + size - 1;
+>  
+> -	for (p = iomem_resource.child; p ; p = p->sibling) {
+> +	for (p = parent->child; p ; p = p->sibling) {
+>  		bool is_type = (((p->flags & flags) == flags) &&
+>  				((desc == IORES_DESC_NONE) ||
+>  				 (desc == p->desc)));
+> @@ -543,7 +544,7 @@ int region_intersects(resource_size_t start, size_t size, unsigned long flags,
+>  	int ret;
+>  
+>  	read_lock(&resource_lock);
+> -	ret = __region_intersects(start, size, flags, desc);
+> +	ret = __region_intersects(&iomem_resource, start, size, flags, desc);
+>  	read_unlock(&resource_lock);
+>  
+>  	return ret;
+> @@ -1780,62 +1781,139 @@ void resource_list_free(struct list_head *head)
+>  }
+>  EXPORT_SYMBOL(resource_list_free);
+>  
+> -#ifdef CONFIG_DEVICE_PRIVATE
+> -static struct resource *__request_free_mem_region(struct device *dev,
+> -		struct resource *base, unsigned long size, const char *name)
+> +#ifdef CONFIG_GET_FREE_REGION
+> +#define GFR_DESCENDING		(1UL << 0)
+> +#define GFR_REQUEST_REGION	(1UL << 1)
+> +#define GFR_DEFAULT_ALIGN (1UL << PA_SECTION_SHIFT)
+> +
+> +static resource_size_t gfr_start(struct resource *base, resource_size_t size,
+> +				 resource_size_t align, unsigned long flags)
+> +{
+> +	if (flags & GFR_DESCENDING) {
+> +		resource_size_t end;
+> +
+> +		end = min_t(resource_size_t, base->end,
+> +			    (1ULL << MAX_PHYSMEM_BITS) - 1);
+> +		return end - size + 1;
+> +	}
+> +
+> +	return ALIGN(base->start, align);
+> +}
+> +
+> +static bool gfr_continue(struct resource *base, resource_size_t addr,
+> +			 resource_size_t size, unsigned long flags)
+> +{
+> +	if (flags & GFR_DESCENDING)
+> +		return addr > size && addr >= base->start;
+> +	/*
+> +	 * In the ascend case be careful that the last increment by
+> +	 * @size did not wrap 0.
+> +	 */
+> +	return addr > addr - size &&
+> +	       addr <= min_t(resource_size_t, base->end,
+> +			     (1ULL << MAX_PHYSMEM_BITS) - 1);
+> +}
+> +
+> +static resource_size_t gfr_next(resource_size_t addr, resource_size_t size,
+> +				unsigned long flags)
+> +{
+> +	if (flags & GFR_DESCENDING)
+> +		return addr - size;
+> +	return addr + size;
+> +}
+> +
+> +static void remove_free_mem_region(void *_res)
+> +{
+> +	struct resource *res = _res;
+> +
+> +	if (res->parent)
+> +		remove_resource(res);
+> +	free_resource(res);
+> +}
+> +
+> +static struct resource *
+> +get_free_mem_region(struct device *dev, struct resource *base,
+> +		    resource_size_t size, const unsigned long align,
+> +		    const char *name, const unsigned long desc,
+> +		    const unsigned long flags)
+>  {
+> -	resource_size_t end, addr;
+> +	resource_size_t addr;
+>  	struct resource *res;
+>  	struct region_devres *dr = NULL;
+>  
+> -	size = ALIGN(size, 1UL << PA_SECTION_SHIFT);
+> -	end = min_t(unsigned long, base->end, (1UL << MAX_PHYSMEM_BITS) - 1);
+> -	addr = end - size + 1UL;
+> +	size = ALIGN(size, align);
+>  
+>  	res = alloc_resource(GFP_KERNEL);
+>  	if (!res)
+>  		return ERR_PTR(-ENOMEM);
+>  
+> -	if (dev) {
+> +	if (dev && (flags & GFR_REQUEST_REGION)) {
+>  		dr = devres_alloc(devm_region_release,
+>  				sizeof(struct region_devres), GFP_KERNEL);
+>  		if (!dr) {
+>  			free_resource(res);
+>  			return ERR_PTR(-ENOMEM);
+>  		}
+> +	} else if (dev) {
+> +		if (devm_add_action_or_reset(dev, remove_free_mem_region, res))
+> +			return ERR_PTR(-ENOMEM);
+>  	}
+>  
+>  	write_lock(&resource_lock);
+> -	for (; addr > size && addr >= base->start; addr -= size) {
+> -		if (__region_intersects(addr, size, 0, IORES_DESC_NONE) !=
+> -				REGION_DISJOINT)
+> +	for (addr = gfr_start(base, size, align, flags);
+> +	     gfr_continue(base, addr, size, flags);
+> +	     addr = gfr_next(addr, size, flags)) {
+> +		if (__region_intersects(base, addr, size, 0, IORES_DESC_NONE) !=
+> +		    REGION_DISJOINT)
+>  			continue;
+>  
+> -		if (__request_region_locked(res, &iomem_resource, addr, size,
+> -						name, 0))
+> -			break;
+> +		if (flags & GFR_REQUEST_REGION) {
+> +			if (__request_region_locked(res, &iomem_resource, addr,
+> +						    size, name, 0))
+> +				break;
+>  
+> -		if (dev) {
+> -			dr->parent = &iomem_resource;
+> -			dr->start = addr;
+> -			dr->n = size;
+> -			devres_add(dev, dr);
+> -		}
+> +			if (dev) {
+> +				dr->parent = &iomem_resource;
+> +				dr->start = addr;
+> +				dr->n = size;
+> +				devres_add(dev, dr);
+> +			}
+>  
+> -		res->desc = IORES_DESC_DEVICE_PRIVATE_MEMORY;
+> -		write_unlock(&resource_lock);
+> +			res->desc = desc;
+> +			write_unlock(&resource_lock);
+> +
+> +
+> +			/*
+> +			 * A driver is claiming this region so revoke any
+> +			 * mappings.
+> +			 */
+> +			revoke_iomem(res);
+> +		} else {
+> +			res->start = addr;
+> +			res->end = addr + size - 1;
+> +			res->name = name;
+> +			res->desc = desc;
+> +			res->flags = IORESOURCE_MEM;
+> +
+> +			/*
+> +			 * Only succeed if the resource hosts an exclusive
+> +			 * range after the insert
+> +			 */
+> +			if (__insert_resource(base, res) || res->child)
+> +				break;
+> +
+> +			write_unlock(&resource_lock);
+> +		}
+>  
+> -		/*
+> -		 * A driver is claiming this region so revoke any mappings.
+> -		 */
+> -		revoke_iomem(res);
+>  		return res;
+>  	}
+>  	write_unlock(&resource_lock);
+>  
+> -	free_resource(res);
+> -	if (dr)
+> +	if (flags & GFR_REQUEST_REGION) {
+> +		free_resource(res);
+>  		devres_free(dr);
+> +	} else if (dev)
+> +		devm_release_action(dev, remove_free_mem_region, res);
+>  
+>  	return ERR_PTR(-ERANGE);
+>  }
+> @@ -1854,18 +1932,48 @@ static struct resource *__request_free_mem_region(struct device *dev,
+>  struct resource *devm_request_free_mem_region(struct device *dev,
+>  		struct resource *base, unsigned long size)
+>  {
+> -	return __request_free_mem_region(dev, base, size, dev_name(dev));
+> +	unsigned long flags = GFR_DESCENDING | GFR_REQUEST_REGION;
+> +
+> +	return get_free_mem_region(dev, base, size, GFR_DEFAULT_ALIGN,
+> +				   dev_name(dev),
+> +				   IORES_DESC_DEVICE_PRIVATE_MEMORY, flags);
+>  }
+>  EXPORT_SYMBOL_GPL(devm_request_free_mem_region);
+>  
+>  struct resource *request_free_mem_region(struct resource *base,
+>  		unsigned long size, const char *name)
+>  {
+> -	return __request_free_mem_region(NULL, base, size, name);
+> +	unsigned long flags = GFR_DESCENDING | GFR_REQUEST_REGION;
+> +
+> +	return get_free_mem_region(NULL, base, size, GFR_DEFAULT_ALIGN, name,
+> +				   IORES_DESC_DEVICE_PRIVATE_MEMORY, flags);
+>  }
+>  EXPORT_SYMBOL_GPL(request_free_mem_region);
+>  
+> -#endif /* CONFIG_DEVICE_PRIVATE */
+> +/**
+> + * alloc_free_mem_region - find a free region relative to @base
+> + * @base: resource that will parent the new resource
+> + * @size: size in bytes of memory to allocate from @base
+> + * @align: alignment requirements for the allocation
+> + * @name: resource name
+> + *
+> + * Buses like CXL, that can dynamically instantiate new memory regions,
+> + * need a method to allocate physical address space for those regions.
+> + * Allocate and insert a new resource to cover a free, unclaimed by a
+> + * descendant of @base, range in the span of @base.
+> + */
+> +struct resource *alloc_free_mem_region(struct resource *base,
+> +				       unsigned long size, unsigned long align,
+> +				       const char *name)
+> +{
+> +	/* Default of ascending direction and insert resource */
+> +	unsigned long flags = 0;
+> +
+> +	return get_free_mem_region(NULL, base, size, align, name,
+> +				   IORES_DESC_NONE, flags);
+> +}
+> +EXPORT_SYMBOL_NS_GPL(alloc_free_mem_region, CXL);
+> +#endif /* CONFIG_GET_FREE_REGION */
+>  
+>  static int __init strict_iomem(char *str)
+>  {
+> diff --git a/mm/Kconfig b/mm/Kconfig
+> index 169e64192e48..a5b4fee2e3fd 100644
+> --- a/mm/Kconfig
+> +++ b/mm/Kconfig
+> @@ -994,9 +994,14 @@ config HMM_MIRROR
+>  	bool
+>  	depends on MMU
+>  
+> +config GET_FREE_REGION
+> +	depends on SPARSEMEM
+> +	bool
+> +
+>  config DEVICE_PRIVATE
+>  	bool "Unaddressable device memory (GPU memory, ...)"
+>  	depends on ZONE_DEVICE
+> +	select GET_FREE_REGION
+>  
+>  	help
+>  	  Allows creation of struct pages to represent unaddressable device
+> 
+
+
