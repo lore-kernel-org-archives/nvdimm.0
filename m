@@ -1,167 +1,114 @@
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt1-f170.google.com (mail-qt1-f170.google.com [209.85.160.170])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D69923B9
-	for <nvdimm@lists.linux.dev>; Thu, 21 Jul 2022 18:35:03 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1658428504; x=1689964504;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=SeN6+jSQolvvYsH1u9ADEim0VcvzKRKtoYD4GQY09WA=;
-  b=YSzUEzxEGQfUjIUHh91UpvN/RMWe7EnlJxYlqjhsDNZ95FsaxK4t3Ci8
-   TdDo4H2sq0wxTqN+lwfpDqsixDtW0TpevU3YDXtMIZHTd/4DrLlGS+odk
-   qmgKNRRAAf4z27RlWluJnNxSFAd1ShLSKYe9z86Y9L9u4Vol1rAfPycKd
-   wTi+IABxs1e4gHxIFo5CdubUejus7f6qa1HeqtX9OYSGdiEMo3fhknkjl
-   p6JMivDFmDt3QHj22UgB0gaMkqZ6M5w30spgAacZsjrNNZ87K03NcSDlH
-   Hi8UabOHb0axV/VajnV0ODH0bYZGmBl9EjcBDsQja4axgMmM8cAaseXxk
-   A==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10415"; a="351136609"
-X-IronPort-AV: E=Sophos;i="5.93,183,1654585200"; 
-   d="scan'208";a="351136609"
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Jul 2022 11:34:54 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.93,183,1654585200"; 
-   d="scan'208";a="573861621"
-Received: from fmsmsx603.amr.corp.intel.com ([10.18.126.83])
-  by orsmga006.jf.intel.com with ESMTP; 21 Jul 2022 11:34:54 -0700
-Received: from fmsmsx609.amr.corp.intel.com (10.18.126.89) by
- fmsmsx603.amr.corp.intel.com (10.18.126.83) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.28; Thu, 21 Jul 2022 11:34:53 -0700
-Received: from fmsmsx602.amr.corp.intel.com (10.18.126.82) by
- fmsmsx609.amr.corp.intel.com (10.18.126.89) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.28; Thu, 21 Jul 2022 11:34:53 -0700
-Received: from fmsedg602.ED.cps.intel.com (10.1.192.136) by
- fmsmsx602.amr.corp.intel.com (10.18.126.82) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.28 via Frontend Transport; Thu, 21 Jul 2022 11:34:53 -0700
-Received: from NAM12-BN8-obe.outbound.protection.outlook.com (104.47.55.171)
- by edgegateway.intel.com (192.55.55.71) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2308.27; Thu, 21 Jul 2022 11:34:52 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=hJPdsDIslsrJLs9LrKALgLST5/FtHiLgTTSexpHWOBPR37s/mF+IyUxMYubmt6l3V2rq+HlTxQL6lid4rbcDKC3xGKo51po4ZIE9mlE9bFfe4UXzbeQvd+Qj1BSITwciYhKv98bvp/WNjsriN8ij4z1EREkExQElmHYmMXd9mRq81GTN9+57skxMnz4ibENzTCxjuUYybGmJ+gcOlc++Jy97nWZbaCl46gzE2wiADkcaLbee2uELy2JZQpfq5kXV/5RspPw7A7Zag1xRjcFxpsaSnQxACmNkGWUJrTBfoDi7IKG0ygaZIhZvzOCKV4DifqHgbMnJOuTUSnaZLJKrww==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=oDdKQevU9UDje/xIqfJBqNLmZBOjJDq70i6z8xZjybk=;
- b=kaLspXhEUvgjSMqXqOQuWUKbf7RpSSH5ca0TITOFS9fcUhAXxdwB7EnTsbnKGeUYZZgIDgtM5B5QLhJLkO8ChkbvUAnDDTmgbFSrLCYjT72fn46EtuSS7YBs/5xtW25Jk6r5ZEk5n5n9XNAn7kMeEjnAu7Fne32i9kjeW0mPCfCLoscDSQZQbGMo+X1FUdnkuO4JHCuBD+ipbuwiBfqVzUtJ4r70/lsxVyt1A6pGNvPcRB+3wHK8cl7y25RquqqUIgNN52/XbvJoz11U1LCZryYd7X6DQU2MUDATLb32VhLnJeFvMId4FY1XOvfjN89RfdhQ8TfPR7oQ6TQa/OKnvQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
- (2603:10b6:301:50::20) by CY4PR11MB1416.namprd11.prod.outlook.com
- (2603:10b6:903:2e::14) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5438.19; Thu, 21 Jul
- 2022 18:34:51 +0000
-Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
- ([fe80::6466:20a6:57b4:1edf]) by MWHPR1101MB2126.namprd11.prod.outlook.com
- ([fe80::6466:20a6:57b4:1edf%11]) with mapi id 15.20.5458.019; Thu, 21 Jul
- 2022 18:34:51 +0000
-Date: Thu, 21 Jul 2022 11:34:48 -0700
-From: Dan Williams <dan.j.williams@intel.com>
-To: Jonathan Cameron <Jonathan.Cameron@huawei.com>, Dan Williams
-	<dan.j.williams@intel.com>
-CC: <linux-cxl@vger.kernel.org>, David Hildenbrand <david@redhat.com>, "Tony
- Luck" <tony.luck@intel.com>, Jason Gunthorpe <jgg@nvidia.com>, Ben Widawsky
-	<bwidawsk@kernel.org>, Christoph Hellwig <hch@lst.de>, Greg Kroah-Hartman
-	<gregkh@linuxfoundation.org>, Matthew Wilcox <willy@infradead.org>, "Andrew
- Morton" <akpm@linux-foundation.org>, <nvdimm@lists.linux.dev>,
-	<linux-pci@vger.kernel.org>
-Subject: Re: [PATCH v2 00/28] CXL PMEM Region Provisioning
-Message-ID: <62d99c4840614_17f3e8294c9@dwillia2-xfh.jf.intel.com.notmuch>
-References: <165784324066.1758207.15025479284039479071.stgit@dwillia2-xfh.jf.intel.com>
- <20220720191211.00000c86@Huawei.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20220720191211.00000c86@Huawei.com>
-X-ClientProxiedBy: MW4P220CA0023.NAMP220.PROD.OUTLOOK.COM
- (2603:10b6:303:115::28) To MWHPR1101MB2126.namprd11.prod.outlook.com
- (2603:10b6:301:50::20)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20C5628EA
+	for <nvdimm@lists.linux.dev>; Thu, 21 Jul 2022 18:51:18 +0000 (UTC)
+Received: by mail-qt1-f170.google.com with SMTP id u12so1993900qtk.0
+        for <nvdimm@lists.linux.dev>; Thu, 21 Jul 2022 11:51:18 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=ABlARo1q4W8MWl8fMSyyIWAkJhcwdZqRLERUMRVV8y0=;
+        b=a3Dipqi7DP4aUkldrHp93ne1O6cTrWtFJpNvlTOIVlXo01XvWSk4dz1tX3rtPQH3F2
+         jAZAdCSavV3Sqgbsz0881u6GS2ltM95tIgUSEsp0f4tJQdjSNgtsu7Jm0vYtk0N2CT3v
+         Aif0YgWwWfuK44GRHXwEJRP03Ftyu1B4VkWa6AXBbpGhQcxyIz58MrwLQXzV7/YOGDWD
+         JA9n9g/1CRGRGhplF8rk7GYAdQ3ph3PTTW9VPSa4A+IG/q+1eI6r6yd63bvqVxvRoThu
+         CFd4/soAUrj26JEa+N7OTRsMBMcMiPKeKZJ6e4cI5qyemzqeYxtA9kaepAZ6wNVIN7X3
+         sMPw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=ABlARo1q4W8MWl8fMSyyIWAkJhcwdZqRLERUMRVV8y0=;
+        b=CqK6sFkAqh49Fhs9tESC++q7z8TpoE7D4B/syewKVOGmg9P2GRNMgw4c0uUX7qp+4F
+         nxmwtEHoOSJZDdqAWx340kLk/jP3QFxoVS3NAuaCE8qDyrnNrSolZ0pAR6NzcW2p5wWa
+         MGIGzI9cHFGgPUMTbJr5C88NrCwhNdJdm5C+dmagZ+CAFsdBOc7G1R9co0A4LfPnpQ3z
+         pxvE8/vNkcyKh47mXZMlh1UYz2iTGbmnVIg3+b0Ngl9rKAG83G1eaDZJ+NPd+RdluwoC
+         V5gSDu/crYafjbgHYyHc6kIHcxvOXvWF9wMMHR0k0KHC/qPvXHaIEA1E9XHDPUNjqDAQ
+         Vz0g==
+X-Gm-Message-State: AJIora8WDSmnNnZxrk8pOqeocRJGRFk8XCi6k9zoJpwYUzFyevC/20rP
+	Mq7LS+lr6opOdvXRXqLTzuJXtA==
+X-Google-Smtp-Source: AGRyM1tSQawsbfCG3JVFskJrFAyZkEyE7wpSkmlKeLjG/ZzroPfTxIM/UKxdVXtcFB6JavtqQFxOGg==
+X-Received: by 2002:ac8:5a12:0:b0:31e:f233:50f1 with SMTP id n18-20020ac85a12000000b0031ef23350f1mr15963077qta.229.1658429477857;
+        Thu, 21 Jul 2022 11:51:17 -0700 (PDT)
+Received: from ziepe.ca ([142.177.133.130])
+        by smtp.gmail.com with ESMTPSA id q5-20020a05620a038500b006b5e833d996sm1745532qkm.22.2022.07.21.11.51.17
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 21 Jul 2022 11:51:17 -0700 (PDT)
+Received: from jgg by jggl with local (Exim 4.94)
+	(envelope-from <jgg@ziepe.ca>)
+	id 1oEbGW-00022g-2R; Thu, 21 Jul 2022 15:51:16 -0300
+Date: Thu, 21 Jul 2022 15:51:16 -0300
+From: Jason Gunthorpe <jgg@ziepe.ca>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Muchun Song <songmuchun@bytedance.com>,
+	Matthew Wilcox <willy@infradead.org>, akpm@linux-foundation.org,
+	jhubbard@nvidia.com, william.kucharski@oracle.com, jack@suse.cz,
+	linux-mm@kvack.org, linux-kernel@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
+	ruansy.fnst@fujitsu.com, hch@infradead.org
+Subject: Re: [PATCH] mm: fix missing wake-up event for FSDAX pages
+Message-ID: <20220721185116.GC6833@ziepe.ca>
+References: <20220704074054.32310-1-songmuchun@bytedance.com>
+ <YsLDGEiVSHN3Xx/g@casper.infradead.org>
+ <YsLHUxNjXLOumaIy@FVFYT0MHHV2J.usts.net>
+ <62ccded5298d8_293ff129437@dwillia2-xfh.notmuch>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: b629bd64-79c0-4dc9-1fb5-08da6b47b285
-X-MS-TrafficTypeDiagnostic: CY4PR11MB1416:EE_
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: uSt0TDQk8HYxfLIBAMIy8uQoezS6zWWUNPPbz0DjFtA57tVwdYFUyaJE+fp27W26PTHzdqxYSB74F/8ar4ZQHA4jabGBZXqNea4cuG0FHOnnpSpjW+gGbmUfc2nvGfttf7JEyFodGQ3NJ3RUYNORF8mdfLny0vV5vm5JfazQ8WqbPHb8CBu04445S3daRneyPHZjLDPUiaCo4bh2JR563QQqfJ+FlW1lkIdGDxL8cmKD5BSRkl9l2/0Tpj9IxCppdP0PLm2/aPAhSUFavmZEo40JdWpMchmmS3dSGnECsOzrCNUeTL1ooEmd2EjNKQofn37g6FK37WT0zzjglle+DM4XnY5dFFGaoMFx9Pv60Tjx1u0737tW6h6HXP2KXPS5e/tmCrD8AzeiCYC6SRwNQRglXjw+3sr+L7aIrZjgNs7Abk/F9rSxi9NC2hLSNWEqPodsm+18ER7WM6c7KBFXZUBfBXwT6XS9j/LmAjlSKqph94bSIxsi68gc9RYkirscGq4159ci/PFvGjs4PivjvP/4yQ4JTvB9XnDalpJl02PoKXBQsjbRYlBnVTFaWXWeCYdAnP1/aOT9Y8vgmJqa/A1cjepnURdLU5veOzyZmeBWO6Rt8kuaewiHXm0eudTkeTVajmmd+txP497p8+N+Dn7UVN4L+lrbFI1+ffitljdw18zlCZ6VegHPqDCFUGveyx38x7KQTjS2LVWEmhkKL2bGRCHSWJVWLoqmNJuKXJiWlU0XioKVJ3aG25XOFb+BPb5sppo8iTcRou0esISnLw==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1101MB2126.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(396003)(366004)(136003)(376002)(39860400002)(346002)(186003)(316002)(6666004)(6506007)(478600001)(26005)(9686003)(4744005)(5660300002)(966005)(83380400001)(86362001)(41300700001)(6512007)(6486002)(4326008)(8676002)(66556008)(8936002)(66476007)(38100700002)(7416002)(54906003)(82960400001)(110136005)(66946007)(2906002);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?7PJzDGURhAadHO7YvtT2gJDfZfa38eqoWtUQ8LKT9DvuyhvKyJ2Q1/5D9E/R?=
- =?us-ascii?Q?utpDzTfPdZ4yFbfXSTPucBDwmnxQGMrjHVxr1e+FcN6IgVlsdRgJqT5BrMRj?=
- =?us-ascii?Q?Mfgo9Oa+jgBuyLRZLYWZ5hMbJt9Qi1ALiFnewT+ZoJ8l0VeiJFqNGs3K9IZF?=
- =?us-ascii?Q?mS6oBSTnZsT0kfBls2j3BoOhehooCEZIXFLV+efnQf8PQufPhaTFlDzUvm1M?=
- =?us-ascii?Q?2UF2fb+sXCsh+QtHWYIvhU0aTSSd8x0bR77Ovi0spOWEjx3wwV2uH0p3ThEJ?=
- =?us-ascii?Q?GrlUGJb/XvPNaMLDq3jdUdaej5HnRD+ichIwjoU481yoIVKKrWfH0zODbH33?=
- =?us-ascii?Q?CdvK5d3Ts7TF+DT68tz7qEKf0VSaHVPFExEtO5l9uaut+PxzSOeop/cOs869?=
- =?us-ascii?Q?j4vD95ZoXgzz8hCLDcp6T8/QQdFmIw30dSgjPxMLoOy7MwMVldPV2adiswF+?=
- =?us-ascii?Q?GUvyTjH/ZrDpkqYvPLO2BeAyWK1KxDjtKesuvcYCjqltT9WywK0aJfwhUgAG?=
- =?us-ascii?Q?UySpL2FS9lgCfZdqadVvGF5BFOHnq9Z6ZTtCgZUyLwSzuogi0+h/p+UEz8at?=
- =?us-ascii?Q?heM3hhNsiTLz6I3Afs4ngVZ1ulFyxxSli8MTXAqMLS/oSWz/k3t0dI3EfMz5?=
- =?us-ascii?Q?KSnygqGM7b5yujPJkAt57MWm1IxKtGZ1Ckg/0EVDv6GJJxmsGJILXHaKifHb?=
- =?us-ascii?Q?jI1A19Dy59g1h8SQZ9fklpJOg3BRwgDqXBC7Cdm1mA+iyhWOCdOu4uSeE1GI?=
- =?us-ascii?Q?6qkQRC9ASyJIchsIaMbBgCcmG0GHIjIhGInydD1DBYsTVCxIj7gbJMMZgbae?=
- =?us-ascii?Q?UtwRTM+dKHSJ4foPtnB38dtwn9diG2ph5602ya4WoHl+H82VtF9H/3YwIRy/?=
- =?us-ascii?Q?zslj5bvZKTqWb1NQmM5FqSYls+7P661nWiKxe2BbbVY0TxIICqs/4gfxqC4g?=
- =?us-ascii?Q?sXouVD6zeWKfZqv53U9r8TM3bgqsoR28mfyoVRnndkzoNDzBFoRxFVuT2K5g?=
- =?us-ascii?Q?+sAYxdxtsKoXjT063KxqV4CnW1Neq4JD+X6Cb73O/4jUqqcr26OradvdiriZ?=
- =?us-ascii?Q?/kcM5ibuMZu81U+x9yVJ/gf1TswzOr8Ah2Hd3WJo1q09Qv/Lry+Go8eJaKTN?=
- =?us-ascii?Q?+fHAXCvlcuShrgEDorguoc5j62DD8wdKRLzZkAR9uoi4q4aeGOtYALBLK4IV?=
- =?us-ascii?Q?ZUwrD1e32RvTzytsTUqZ6pJRp0z5CM2PA8YHoJ/UiYF5IiP7RTHGdE9qovoy?=
- =?us-ascii?Q?jhxLTxxUxhMgt3vvQc3vNEweyQOiIoalwJ6CQY2Ijce6CsjJCmc8LLB2A0iW?=
- =?us-ascii?Q?C6jmhWTpLgWyZJa1CCcp3SLXF/Rj8yFhodP+v85BG+kXXL2OIBO9i85hjdAQ?=
- =?us-ascii?Q?cd6nhNUdB/uFxe9Mwlsz80oBb8w4dIoD5zfgsT4lxwDixZVgNddNWvjNRBhc?=
- =?us-ascii?Q?CCJfsnQvn9VF/HrGeMtjHuegfMtulUGzYbB1deJ8+Cz/FDe3L0WIMXrvC82Y?=
- =?us-ascii?Q?gQYb+Y+zN7WxcZQVGrJ07Mbr8K7vYotRrRJLz3OOMkr/EHs0PByw+l9wgrYe?=
- =?us-ascii?Q?lZ3ukIjkbu5Wj/pAJM85azpc3W8E/vFyoB2WtpEG6Yhoiqoftb2u3SujGCEV?=
- =?us-ascii?Q?0g=3D=3D?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: b629bd64-79c0-4dc9-1fb5-08da6b47b285
-X-MS-Exchange-CrossTenant-AuthSource: MWHPR1101MB2126.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 Jul 2022 18:34:50.9983
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: hYz3bpWwNm6iP3sB5UKUKC4YAoYgMNU/AjIJbxO7Q8kwtmPINPBhAyGEiscY3XrwIdKOP9n1YO5Nsi9hEu5XO1IkplzN2KzRAOnM12asvww=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY4PR11MB1416
-X-OriginatorOrg: intel.com
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <62ccded5298d8_293ff129437@dwillia2-xfh.notmuch>
 
-Jonathan Cameron wrote:
+On Mon, Jul 11, 2022 at 07:39:17PM -0700, Dan Williams wrote:
+> Muchun Song wrote:
+> > On Mon, Jul 04, 2022 at 11:38:16AM +0100, Matthew Wilcox wrote:
+> > > On Mon, Jul 04, 2022 at 03:40:54PM +0800, Muchun Song wrote:
+> > > > FSDAX page refcounts are 1-based, rather than 0-based: if refcount is
+> > > > 1, then the page is freed.  The FSDAX pages can be pinned through GUP,
+> > > > then they will be unpinned via unpin_user_page() using a folio variant
+> > > > to put the page, however, folio variants did not consider this special
+> > > > case, the result will be to miss a wakeup event (like the user of
+> > > > __fuse_dax_break_layouts()).
+> > > 
+> > > Argh, no.  The 1-based refcounts are a blight on the entire kernel.
+> > > They need to go away, not be pushed into folios as well.  I think
+> > 
+> > I would be happy if this could go away.
 > 
+> Continue to agree that this blight needs to end.
 > 
-> Hi Dan,
+> One of the pre-requisites to getting back to normal accounting of FSDAX
+> page pin counts was to first drop the usage of get_dev_pagemap() in the
+> GUP path:
 > 
-> As I mentioned in one of my reviews I'd love to run a bunch of test
-> cases against this,
+> https://lore.kernel.org/linux-mm/161604048257.1463742.1374527716381197629.stgit@dwillia2-desk3.amr.corp.intel.com/
+> 
+> That work stalled on notifying mappers of surprise removal events of FSDAX pfns.
 
-Yes, Vishal and I are also looking to have a create-region permutation
-test in cxl_test to go beyond:
+We already talked about this - once we have proper refcounting the
+above is protected naturally by the proper refcounting. The reason it
+is there is only because the refcount goes to 1 and the page is
+re-used so the natural protection in GUP doesn't work.
 
-https://lore.kernel.org/r/165781817516.1555691.3557156570639615515.stgit@dwillia2-xfh.jf.intel.com/
+We don't need surprise removal events to fix this, we need the FS side
+to hold a reference when it puts the pages into the PTEs..
 
-> but won't get to that until sometime in August.
-> For some of those tests on QEMU I'll need to add some minor features
-> (multiple HDM decoder support and handling of skip for example).
-> 
-> However, my limited testing of v1 was looking good and I doesn't seem
-> like there were any fundamental changes.
-> 
-> So personally I'd be happy with this going in this cycle and getting
-> additional testing later if you and anyone else who comments feels
-> that's the way to go.
+> So, once I dig out from a bit of CXL backlog and review that effort the
+> next step that I see will be convert the FSDAX path to take typical
+> references vmf_insert() time. Unless I am missing a shorter path to get
+> this fixed up?
 
-Thank you for being such a reliable partner on the review and picking up
-the torch on the QEMU work. It has significantly accelerated the
-development, and I appreciate it.
+Yeah, just do this. IIRC Christoph already did all the infrastructure now,
+just take the correct references and remove the special cases that
+turn off the new infrastructure for fsdax.
+
+When I looked at it a long while ago it seemd to require some
+understanding of the fsdax code and exactly what the lifecycle model
+was supposed to be there.
+
+Jason
