@@ -1,88 +1,79 @@
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 828BC15A2
-	for <nvdimm@lists.linux.dev>; Fri, 22 Jul 2022 00:27:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D54232C80
+	for <nvdimm@lists.linux.dev>; Fri, 22 Jul 2022 18:39:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1658449652; x=1689985652;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=PhBRaxbl4x+CkDzSLAEdt3l4klqBkxfiZFiYCBqLEso=;
-  b=LXZrknmbf3BnWzGFma9tRhWboaDzLwCL+5oXAM3g1ibNI+JBaEjUXo8h
-   3UlRSapz1VMNdx/kEZ0+f07orgRkxtKpBuqD02IZQzta6pW1QhAKGe7Os
-   Qyg8Tr4z/lpdpjD1mtBf5j5vWxko+3eFJCeRoaa7a8+6Z9RAtBfTVjuj8
-   Ve/cONIw4qWvmjMzLovWDyitA59hnN2QCy6vrR85cyYv6yR9jNwn8YAoD
-   rBS7Skzh+BiWmZeCyB9r1PPDZ2sQ0HNtFv+P8OOmU9RjVKXUfTKZ+h/Gy
-   3swwYSE9tiz1ssck+eNH+kGIn+yQcqrR2HmDA1q/yPLlwqHznnAtgVM/U
-   w==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10415"; a="287207823"
-X-IronPort-AV: E=Sophos;i="5.93,184,1654585200"; 
-   d="scan'208";a="287207823"
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Jul 2022 17:27:31 -0700
+  t=1658515194; x=1690051194;
+  h=date:from:to:subject:message-id:references:in-reply-to:
+   mime-version;
+  bh=6vURZAfYiAGZvHjSQd4LL+bPgbCaYp7qaLFEyGkP5PM=;
+  b=gweIy8+uIvvG1rmJCtk4CV6Gzt6SNq4Jk24TNiPmtu+4qeJROUZ0uvQl
+   LLWS0DwqtLfrEb2226rGC0wd02eHunjGWQ9sSB5CIylbDkBGZ4nPQUfnN
+   WlxTHg5dlgJ1bKxSJOPz6F/Q9a8jxUS7fopAsseSFbABS+FmQJD38y40F
+   hb89/xTNhWSB5Jl9x3bkngMG7AdFQOH+2Slb+/b5FoKuj83BtNuQaqa6H
+   GGioAMzUZD1XGjfjPkUGBPDOl6IBxmscnSFxkVlW8YUDi8gvNPFwq7MvL
+   1FrU8sWrKSJzXYu3gX57REXHBZwmJnDP9kFkQD/dcfl1+/7vyH1arFxbZ
+   A==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10416"; a="313115502"
+X-IronPort-AV: E=Sophos;i="5.93,186,1654585200"; 
+   d="scan'208";a="313115502"
+Received: from orsmga001.jf.intel.com ([10.7.209.18])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Jul 2022 11:39:53 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.93,184,1654585200"; 
-   d="scan'208";a="688103606"
-Received: from orsmsx603.amr.corp.intel.com ([10.22.229.16])
-  by FMSMGA003.fm.intel.com with ESMTP; 21 Jul 2022 17:27:31 -0700
+X-IronPort-AV: E=Sophos;i="5.93,186,1654585200"; 
+   d="scan'208";a="631660707"
+Received: from orsmsx606.amr.corp.intel.com ([10.22.229.19])
+  by orsmga001.jf.intel.com with ESMTP; 22 Jul 2022 11:39:53 -0700
+Received: from orsmsx611.amr.corp.intel.com (10.22.229.24) by
+ ORSMSX606.amr.corp.intel.com (10.22.229.19) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.28; Fri, 22 Jul 2022 11:39:53 -0700
 Received: from orsmsx609.amr.corp.intel.com (10.22.229.22) by
- ORSMSX603.amr.corp.intel.com (10.22.229.16) with Microsoft SMTP Server
+ ORSMSX611.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.28; Thu, 21 Jul 2022 17:27:30 -0700
-Received: from orsmsx610.amr.corp.intel.com (10.22.229.23) by
- ORSMSX609.amr.corp.intel.com (10.22.229.22) with Microsoft SMTP Server
+ 15.1.2375.28; Fri, 22 Jul 2022 11:39:52 -0700
+Received: from orsedg603.ED.cps.intel.com (10.7.248.4) by
+ orsmsx609.amr.corp.intel.com (10.22.229.22) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.28; Thu, 21 Jul 2022 17:27:30 -0700
-Received: from ORSEDG601.ED.cps.intel.com (10.7.248.6) by
- orsmsx610.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.28 via Frontend Transport; Thu, 21 Jul 2022 17:27:30 -0700
-Received: from NAM02-BN1-obe.outbound.protection.outlook.com (104.47.51.41) by
- edgegateway.intel.com (134.134.137.102) with Microsoft SMTP Server
+ 15.1.2375.28 via Frontend Transport; Fri, 22 Jul 2022 11:39:52 -0700
+Received: from NAM04-DM6-obe.outbound.protection.outlook.com (104.47.73.47) by
+ edgegateway.intel.com (134.134.137.100) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2308.27; Thu, 21 Jul 2022 17:27:30 -0700
+ 15.1.2308.27; Fri, 22 Jul 2022 11:39:52 -0700
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=TpVLN//LzswCdV83Y+x9IfOG6/0S5swoXHJ2MpJSIfDBZiWFbHDEM3GD3H4w36h2+pPtIrzR86cCbAtFC60iKCeKKv+wPqGzBWCuQbxaZHnJ0yLAHJjj1I0VxPNAnnCZALhkk991GE7h8AEze1yBO+hlvPnP3psb4cJuQcdWkl2IqHz7hpnXHTfqOHyH6RcmBxlci/YaNZ3YKXbazUR44OfaGCPkAIq6ZjoBgpQem+zbdmO3XMnjViriG9Okq9YKsR/hjQv5CmsqcgpSIqPuBeVgVaaFP/F4j2LMnx5RxktYpUhKbCG8XzblWqSelTqSEPVxUqvcAXaIWj1RWwmb4g==
+ b=aIboT/Y893HPIjPQztIyWpWy87s6qgdabvq6MxPe8dpBCyly3Ok5bCi/WPske7N26U7hCsvRSmfDhgO1g9Hd+OtGrRW3UF0nPqxU9VnYNOeY59/gmT2b/qguEnR3UEdvRPCz3TDPsyki2p8Eeva7dYZRXJR2CQiLyFPgpC8r1wQpI7xbIPnvigWDTmfZ64UFHTN9bt3bGZAJuUyoCdLbNxtfP0dxtZKtiOGVk2LK/Q4tXL8hX41HPgGL4yJiPhE5iOwEQ5NZeXpX8mBytRGjzsJ9TDD5CERI7xgfbnP1Ap8rlZTyCV4nhGJ6Ko0lLuGQAVjiwdqHVvtaaVysnt7VAA==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=nTc7J0ErhLQLMIV/WQ9OEht7ctCDgFUdubbgKfg3QiQ=;
- b=hEYDunuZ59ER8YnyLXuNyh+KwK0Ygb1NG2EovNns+qKS5PXbxcVJRifW9SG58fBJBvBlhgQwN4/8c1ZtEKNLmpViCcBPCPWjNY28Pgjx8iTQAoJR+dLW6E5JHIxN1U1XRPTPSjDdIH+THiXJ4GMEHEInRtNlj+xxFMnjhtadW79EPcbXSiiHNsRYYRH+Ag7jNdQZF8MN+38My2zkeroBIlGK10XplXLaa+bf+8MOUTQPqR+r67iIZgSiOVB0Iu/8mTf5SHhEuJFPrf5jf9JsDQRYycyl2YnWWKMs7ejkVz2IQvVXSdofHta/WWRF9mO33Zds43rsYc8b10mFE2zdbQ==
+ bh=yjZTNJeMV6E2vvH0sr+g2gIIbfNeOwvVyyyIw1NJWAE=;
+ b=bzjyDFIrsL/ipJ9XiduJJ8t+9j8S1QjVjhrIabrIBF7zX17UWE7jix7qXqLxDswypHvYqiJSpgLAbYqysbHZraTpneI+tpVvAAkKhejL5hxHziIUkv7nE40AVwm+YQV9PpZSd8fGnHMRVDtsBpz1zZL2QvB1JURolXTdCOUvRIMTr+CnLUPBp1eAEUQg2gkqUyC75CzARojFjH8xQXSqUvXHAjkGZjmlkSHvyky7mNcipeR5POwSzuegHNQjHxjcjlF2CT6egZOP01m4JZRYZ+LUpokAx1YUT7/iSrVs9+g/QVw1C/ahdql/acSz+MLjeaLuR5KblJdJAg5O4tGiGw==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
  dkim=pass header.d=intel.com; arc=none
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=intel.com;
 Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
- (2603:10b6:301:50::20) by BYAPR11MB3461.namprd11.prod.outlook.com
- (2603:10b6:a03:7b::23) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5438.19; Fri, 22 Jul
- 2022 00:27:23 +0000
+ (2603:10b6:301:50::20) by DM5PR11MB1323.namprd11.prod.outlook.com
+ (2603:10b6:3:14::7) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5458.19; Fri, 22 Jul
+ 2022 18:39:50 +0000
 Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
  ([fe80::6466:20a6:57b4:1edf]) by MWHPR1101MB2126.namprd11.prod.outlook.com
  ([fe80::6466:20a6:57b4:1edf%11]) with mapi id 15.20.5458.019; Fri, 22 Jul
- 2022 00:27:23 +0000
-Date: Thu, 21 Jul 2022 17:27:20 -0700
+ 2022 18:39:50 +0000
+Date: Fri, 22 Jul 2022 11:39:47 -0700
 From: Dan Williams <dan.j.williams@intel.com>
-To: Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>
-CC: Muchun Song <songmuchun@bytedance.com>, Matthew Wilcox
-	<willy@infradead.org>, <akpm@linux-foundation.org>, <jhubbard@nvidia.com>,
-	<william.kucharski@oracle.com>, <jack@suse.cz>, <linux-mm@kvack.org>,
-	<linux-kernel@vger.kernel.org>, <linux-fsdevel@vger.kernel.org>,
-	<nvdimm@lists.linux.dev>, <ruansy.fnst@fujitsu.com>, <hch@infradead.org>
-Subject: Re: [PATCH] mm: fix missing wake-up event for FSDAX pages
-Message-ID: <62d9eee832950_1f5536294e4@dwillia2-xfh.jf.intel.com.notmuch>
-References: <20220704074054.32310-1-songmuchun@bytedance.com>
- <YsLDGEiVSHN3Xx/g@casper.infradead.org>
- <YsLHUxNjXLOumaIy@FVFYT0MHHV2J.usts.net>
- <62ccded5298d8_293ff129437@dwillia2-xfh.notmuch>
- <20220721185116.GC6833@ziepe.ca>
+To: Eliot Moss <moss@cs.umass.edu>, <nvdimm@lists.linux.dev>
+Subject: RE: Building on Ubuntu; and persistence_domain:cpu_cache
+Message-ID: <62daeef3d20b3_2363782948d@dwillia2-xfh.jf.intel.com.notmuch>
+References: <c8297399-4c99-52d9-861a-62fade81cda1@cs.umass.edu>
 Content-Type: text/plain; charset="us-ascii"
 Content-Disposition: inline
-In-Reply-To: <20220721185116.GC6833@ziepe.ca>
-X-ClientProxiedBy: SJ0PR05CA0024.namprd05.prod.outlook.com
- (2603:10b6:a03:33b::29) To MWHPR1101MB2126.namprd11.prod.outlook.com
+In-Reply-To: <c8297399-4c99-52d9-861a-62fade81cda1@cs.umass.edu>
+X-ClientProxiedBy: SJ0PR13CA0019.namprd13.prod.outlook.com
+ (2603:10b6:a03:2c0::24) To MWHPR1101MB2126.namprd11.prod.outlook.com
  (2603:10b6:301:50::20)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -91,114 +82,157 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: ef40cc3c-4776-495b-cb20-08da6b78f21d
-X-MS-TrafficTypeDiagnostic: BYAPR11MB3461:EE_
+X-MS-Office365-Filtering-Correlation-Id: 77849625-e007-49b6-ae1a-08da6c118f47
+X-MS-TrafficTypeDiagnostic: DM5PR11MB1323:EE_
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: QwrSmImzQd4PijNKfvkgSnJ5pVDbhDVoZDS3u5n3W50noa6KW77WLNOH7eH1Iim5R1TVihUiC2pYIH8Qb+dF1TcCWT/xiBytm2lWnwS9J4lBDacTjE/u8Fo+uCpRHrkjuiZY3uoW6EaY4n00pTMbx+VdyaT/ggJr3of3rZtP1YhwNZRK0b3GulFQTJTQESvWSCK+htzXC6vdCSc2BhU7EXcOugl86HWPUkpOIQJ7JttZs5kV/anCfz1fA8JPZUGvE7wtPDvr6GMpR+f04ktuNXtdxOKK2+QPBRpBH7HMHW3xlfDw2Di6EbqfCB7zzchlEIGTZMYQhZ5vHJUeyFXKU1CLpKRZZeOI84DGcDpyBTHrAw+yZLOq28+K8nTkFbE8tQ4P1sYZyKlSpY6OIaKF9U2CQwFVi0+84J++7+SCo2CASH0gd72PFdN8wk539SQUf65DyShtqyomj2vEQd/zgpYqEiImGmOgYNUB7VzgdIdlWTCa/uLgTcqKwMl5VMknwV4GTIiap1Phkpc2bzCYe6sl6BvfFAZkYANXj6YQWbNMZGgPH2w2Ah0EsfXExXl4HS1wTuEdrG/Z1XXLNm/HimMaeEcARm+V+Zb8D/Jt9Z/Bjok9jqmDkNuux+yLIif/enE6DR85enDwFHpkzuxjte8vqIxWF2zmv+CWbg6aRFYU29H1N6XDl/dV7BzXaXLLbYOrQamFgYMBWQn30avwWiRwWApfRSKDeFVesHKZJmj4oR6lyX7Amxw+zVNVdwp/lUjnVSb/Yz+dzA+EOwB9MVza5yzG1enqiy8IBYnx9lljes/awei3cpZFjnkiI+HS
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1101MB2126.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(366004)(396003)(136003)(346002)(39860400002)(376002)(83380400001)(186003)(6486002)(41300700001)(478600001)(26005)(6512007)(966005)(6506007)(82960400001)(54906003)(5660300002)(86362001)(2906002)(4326008)(9686003)(8936002)(7416002)(110136005)(66476007)(8676002)(38100700002)(66946007)(316002)(66556008);DIR:OUT;SFP:1102;
+X-Microsoft-Antispam-Message-Info: X7/G9EgW3HgQN29DG3AGmqc11qu411KCBijo7n6nWCvLExOzFIpJGCzciLLvMBDIg6xchgRH8a8AHk0qsKqCa0gc1VWg2/JhnVNgoOcFWNZYqCfM1gaEAG0XAsUk65vgwL6JnO1JMOJTY41LmkmxGztryAoY+Oqk2xqOeUwrGSLCqmMg9K3GSVZYDUOhASEoTgdUOAQJgcrdX9Vjv+1ZHgQxMKZJj+dZZqAHNYrwxOj+qXS53fyMZ8TSsm+f+J4WTReKVoW2O/uRX9dLLoYIVPA8O80p2Nazq6NWlKqpmOTHiGngQ0MYCr9umJ+xcCO+cCBLVxWmfGGuHFKQKSn8PViOXD3rcgdVYV9Tkv2FuOXntY6i25L0WtAFaeP9V2jzXL7DMDvL7rX1m7Dn6dVotWNvOr7QUOZ43+BgmLK2DyuDxgCot6DN+NJzzCy8BafFrzZnEV3l3LSHw0dxYLcTjSba51s+6tiXoa06vyG+A0f9G30vmSX2hRzcwYaG5R+oHlN8aTwDAY1CRygZbqQKD9feATLrlxE0gDLLOLE0wgm0QSnjgB0DpMBS7Epoy25LJ/7mLuJS4ay1tkjpauAWCmqjtwx89uuGU3+L8RTcyloEdgpRFpzkZFgR7FNOnbEWu2wHlQJBftLla6Y0qQnA8e0a7VnjE0lAxvixazrsxqctz+oIxWvguplTdYjp2SL5f6brALz/abXxzfd+/uwRQ3bvs7BNYCwI3v6beI7NAEmpJASEXvjEosaMJuITB2gXS+uifAU2V6cv3wyDY6n2ScSXSK2BbCfONYeOO6sUUpmNF+Os1Pf40JRdfbLHkOwm
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1101MB2126.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(136003)(396003)(376002)(346002)(39860400002)(366004)(86362001)(38100700002)(82960400001)(966005)(6486002)(478600001)(6666004)(6506007)(41300700001)(316002)(26005)(6512007)(186003)(9686003)(66476007)(5660300002)(8936002)(66946007)(66556008)(8676002)(83380400001)(2906002);DIR:OUT;SFP:1102;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?Fg4x/th3B0ARkMkeYj3oPL2pelDilYH3yB1shdDPd51YvnSPyadj7LDKUwcJ?=
- =?us-ascii?Q?QhmOtIMoE4+HahQeNwy+PlckyLXjtbvuCAZ3yKs4vQuFn4gw0b46F0ruidV8?=
- =?us-ascii?Q?IemAyUNHm5/zyvPX7Pvcl6NxSFzl6eSRNnvHswa69Io0XhfvsUiHjgXqjZFa?=
- =?us-ascii?Q?nUf5smLUQEllJnXPplTPC4YvAkc6u5tkDK39y0ohuav8NUO2W00Q4VZWE8w2?=
- =?us-ascii?Q?hGS87XRVlxXZ7QCGeDOe/eVCzY0fd0+hD30CPi7/4UPW875aT+RN5082E/U2?=
- =?us-ascii?Q?dPYCrJ9EedltbL+lpPrPtH02fHUqeI3f6AUt4ltvNB/1rQKDLqUCek74Y/dQ?=
- =?us-ascii?Q?A6+8arm33eqx48S0NBG9RDPulzIHpic6v/lzFif426WMiFaHJ58uxUz35mMD?=
- =?us-ascii?Q?TzVGJTE0pAdhNZviJIW2S6+N857qtwA+4EW8VbxS+pjpIP5IvW+G0zumXoj3?=
- =?us-ascii?Q?YLvl8vQE5BCDf3Dwo4Uy6JvGdMq11FRHWjkl2xEGNlmbes7FYUdw2d2xXUzk?=
- =?us-ascii?Q?GFD9YvIH1EjCxY+IBnGONMm1ifmlj7S21ZBXXi7p4YNNqTKeckFQ/lRXT0Ku?=
- =?us-ascii?Q?XCHADu7Zne7mcEeWWQm4qEGC2qoVXkyqtvSir4MV92LcbWO0DcVukABQ+5xc?=
- =?us-ascii?Q?BJEdpQJLcFKdsUiN1i4GnodYfCWBEkfKK2P0JOyZ3wpawobaazUYn0ok6r16?=
- =?us-ascii?Q?uTWpqfuBnkql4Rwey61ZJs6oYbY4pzMjbG56zKz1yjI1FgSZ/QgiStuHutUL?=
- =?us-ascii?Q?TQVkV2fr1gThLqzjyBjG4FoZkE0qClDROKlr4Hu8fy4lW18/KQZakw8DCcpR?=
- =?us-ascii?Q?xLWOq4JoIwr7a1kDHpzIBWyJjR/dNDxjDpcF1lVUa81VjUQ2XDPwyIZihKKT?=
- =?us-ascii?Q?mQGnXxPqUxCsc3m4eRjSnhAWE7mNqUOk3bsqom+I3eTeOeOqp0367okkjnYt?=
- =?us-ascii?Q?KiG9b7QV1YIMwiRQKNlH9Foal3JMKAlNrpBhUUpUWPwEnDA6l+hklZGL61Cm?=
- =?us-ascii?Q?H4neQA3YMSV8e38Bl/P50T6/P3IRveN8fREm0HPWVIMLK+HbONP0WL7Ympc+?=
- =?us-ascii?Q?wmiky3CdTIhBsFjSKDG3HStbX51FuTRvmzsNhWfvvW0RTlWBSl1eTxtTzGHp?=
- =?us-ascii?Q?GI/KIacbxtfpkBPW+PKTUzpMyoNprmTvtY9d90F+d8isdOQOTLPcsnYaADit?=
- =?us-ascii?Q?QCFmA3uPqFreOthvuF/juQCxAQ/eN4+iT3wTmUSNns7o+SRI6jtNUukb+rJc?=
- =?us-ascii?Q?EER0oMT3pHdj4ShgYg3W4/+lm3KRJMuKh6GS6cpobLVqug3EByA8PWb89ZbV?=
- =?us-ascii?Q?Cr1Bb0LX3kUOW6TrV2Q94KT/c6vy/jsU5fX0JZ4rFhI7iSXsQETVi5S7buWm?=
- =?us-ascii?Q?lx6N3kX5EGzCFmPEgCNsu2dcMbahHFY/6HcGRhgCdDkPrmtl5QYxVbB1xuTU?=
- =?us-ascii?Q?r3IFptF4CZdGrYUKbh20TsMbucS4KhXspVKQAW8iDxeXu6sWlwc5rPto9Kci?=
- =?us-ascii?Q?TxTZv0ZF3BNXs0kGxn/dz2/IEeuPavCMksB2R1cniLuX9UAgsonGdxs5xt35?=
- =?us-ascii?Q?pNQ4I1HqpknilShh4JdwRrdwXzvGP+yqUI//z1SjVEGTBOpcGWQ0h2NAFuqB?=
- =?us-ascii?Q?pA=3D=3D?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: ef40cc3c-4776-495b-cb20-08da6b78f21d
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?2p+cLvTaZ2kOyrD1rjMasfPTY4b3SoqNdXI8RszduqMPH+ot7a4/OGWkAWXW?=
+ =?us-ascii?Q?gxQ92lcUF4cjcYynYlITSvuvgEj6wOEe84pmoCO7jIqylA21NehILZkSDLnM?=
+ =?us-ascii?Q?cJRCJfbVbmNPJK91cH/KCxadKmH64NiWyb4JbKZza+kd5fDv9btdqwPu4H5h?=
+ =?us-ascii?Q?dIhJf273fsllkhE4wjQ/PXPfilLktYrIph+XCAzq/hCDN1rIv6ju8fZEYECe?=
+ =?us-ascii?Q?qiEvj3QHAnN4o2lDqaL7aEHdG/hVlei++3hI4nSQU4fDcEyMLZE2xX5pM7TW?=
+ =?us-ascii?Q?1W/l/ilSmFFjjkvekoqIP1wKG8jwAquVszOzj9JQz82J6OLRfihkIxPeOazj?=
+ =?us-ascii?Q?APScGSXLwj5Szjq4gDwZBdgTVrVH0P+mJrCFli4jnIiJo2w7ONxoUPN6M1ef?=
+ =?us-ascii?Q?Z5p/e1BwTT/YELERL+bqnSxz3iOAJIvqv1ldZ/6C5HXc/LrsXEruCWwwdQI3?=
+ =?us-ascii?Q?KZ/l34nt4DHpVCdw5gbolF5a34WfUae7gzvGP9cPhEJRbY/VdNtzIrUs85mE?=
+ =?us-ascii?Q?mgVuta3XqdMxs9BW4hqwapY0Ax/eFgw5YiGunMfkE1sRbTwPacnSdoyMMR7m?=
+ =?us-ascii?Q?qbIHbvanGHageZsBskUx6UWbCdn6SrMqgJrYebOI0U99DSPMQirmyrR3V976?=
+ =?us-ascii?Q?baprhWTtwqy/amlI2eauvYCy2XJeDWGZU3wMS3pAOePTXBEFYDj3iQK/KpEg?=
+ =?us-ascii?Q?a4foGRMiVvXJS/JMIw4YZYM+MF40zKrJwlA/2LeYqqlDF7Qc2VWrkEc8mwAl?=
+ =?us-ascii?Q?83rDxe62jVVXrVkwXveqWEPGJAVHIrwpsrlOzlyQUeB49Vti2tGMsIg9T1Mz?=
+ =?us-ascii?Q?MqjePmSJhNQjvXHyMWdtlDLCEX/5jcJRz5qyF9ZikEDoU1D/ULg8FQow+LtT?=
+ =?us-ascii?Q?q2vSWnQagx9JQVg2jfzp5zJ7FcJXhIghG+K27ArCHuou2YVmqBM2wqbFoyOz?=
+ =?us-ascii?Q?fQI1A3IVwoRC+IN4NIwDb+rarx09+NMR4fz+3gz/V4WWhK78xyzFKnp9WEb6?=
+ =?us-ascii?Q?1KMK4cwF1iW1OnGmrMLlRkub6/mGneDtBOPLEXiX7ORVl3UPdvOpeu7wzoGB?=
+ =?us-ascii?Q?NtFTOd7lPwV98WMjeZN/WdQci7xSgdMwsDCv7zkuTjscUL1IocG57iwzPj1k?=
+ =?us-ascii?Q?vIP/V/+y0r22fUhtBjO1+VDAnEeE5fM6WFidlOquTzVijQcn6u26q5DuPat+?=
+ =?us-ascii?Q?1MvLpgaHMl64cpjkTHv9BATc/j6vdLUz1CfjxnrKKn8nPaDnlKnPJ9Js4gX4?=
+ =?us-ascii?Q?7ZTFH/xGXVdTRSrF0OucccR/WHadOFKdR+nVATvhQ5WRjRztewlWZmSTnny0?=
+ =?us-ascii?Q?2t+vqgi/oHZfTPMYjhJTRFFjWgNgrzyXH5dNW+n9baVnFr731YCJAmI4268u?=
+ =?us-ascii?Q?pgZBiTtt7hnvmzqd6XLae1feQ3Il0br/VbotQQLj1/QarthACAhJ5Oobbegh?=
+ =?us-ascii?Q?mjaJGG0E3hwnNs2qozEsuIRDuxhRZJzsvqkbvwry1YIzvo4zYbk/ZD9xNnpu?=
+ =?us-ascii?Q?kJHFj1V8B/fDld+aQzht+3lp/b7BvoPbjfncSXN+V2FDaGpplVQmAvx93C8Y?=
+ =?us-ascii?Q?jqcSAK8A1ILkfnfYN8EV+KUW55H6q5JwEAb+lF76mem36bvld4LXc/mUYCLD?=
+ =?us-ascii?Q?pg=3D=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: 77849625-e007-49b6-ae1a-08da6c118f47
 X-MS-Exchange-CrossTenant-AuthSource: MWHPR1101MB2126.namprd11.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 22 Jul 2022 00:27:23.0351
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 22 Jul 2022 18:39:50.6679
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: pZh1GfHbIp9ENgB9MyD9Cb2hfkmNnIHWCFYwnp9ndLzrVXMUcM6be+2RovHPJ4OR5hvn1C3PSk+5aaben2PEgamqxVPrnsgXBuejRZYBjRo=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BYAPR11MB3461
+X-MS-Exchange-CrossTenant-UserPrincipalName: GggL9QJqQ+5+3We1vAISA+o7pLZw5/9ml2qacJyMQzBrqVihKyHc+T7GNSs8ChxJqCKuy5Uw3qG+XmNEhcJ0z9MRAxDyvUx4jIXssJ7VeUY=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM5PR11MB1323
 X-OriginatorOrg: intel.com
 
-Jason Gunthorpe wrote:
-> On Mon, Jul 11, 2022 at 07:39:17PM -0700, Dan Williams wrote:
-> > Muchun Song wrote:
-> > > On Mon, Jul 04, 2022 at 11:38:16AM +0100, Matthew Wilcox wrote:
-> > > > On Mon, Jul 04, 2022 at 03:40:54PM +0800, Muchun Song wrote:
-> > > > > FSDAX page refcounts are 1-based, rather than 0-based: if refcount is
-> > > > > 1, then the page is freed.  The FSDAX pages can be pinned through GUP,
-> > > > > then they will be unpinned via unpin_user_page() using a folio variant
-> > > > > to put the page, however, folio variants did not consider this special
-> > > > > case, the result will be to miss a wakeup event (like the user of
-> > > > > __fuse_dax_break_layouts()).
-> > > > 
-> > > > Argh, no.  The 1-based refcounts are a blight on the entire kernel.
-> > > > They need to go away, not be pushed into folios as well.  I think
-> > > 
-> > > I would be happy if this could go away.
-> > 
-> > Continue to agree that this blight needs to end.
-> > 
-> > One of the pre-requisites to getting back to normal accounting of FSDAX
-> > page pin counts was to first drop the usage of get_dev_pagemap() in the
-> > GUP path:
-> > 
-> > https://lore.kernel.org/linux-mm/161604048257.1463742.1374527716381197629.stgit@dwillia2-desk3.amr.corp.intel.com/
-> > 
-> > That work stalled on notifying mappers of surprise removal events of FSDAX pfns.
+Eliot Moss wrote:
+> Dear NVDimm folk:
 > 
-> We already talked about this - once we have proper refcounting the
-> above is protected naturally by the proper refcounting. The reason it
-> is there is only because the refcount goes to 1 and the page is
-> re-used so the natural protection in GUP doesn't work.
+> I write concerning ndctl verion 72.1+ running on Ubuntu 22.04 (Linux
+> 5.15.0-41-generic x86_64).
 > 
-> We don't need surprise removal events to fix this, we need the FS side
-> to hold a reference when it puts the pages into the PTEs..
-
-Ah, true. Once the FS reference can make device removal hang on the open
-references then that is good enough for fixing up the dax-page reference
-count problem.
-
-The notification to force the FS to drop its references is just a
-behaviour improvment at that point.
-
+> The system is a brand new two socket Dell server with cpu model Xeon GOld 6346
+> and 4 Tb of Optane DC P200 memory.
 > 
-> > So, once I dig out from a bit of CXL backlog and review that effort the
-> > next step that I see will be convert the FSDAX path to take typical
-> > references vmf_insert() time. Unless I am missing a shorter path to get
-> > this fixed up?
+> I am able to ue ndctl to configure the two regions with one namespace each in
+> fsdax mode.  Here is what ndctl list --namespaces -R prints:
 > 
-> Yeah, just do this. IIRC Christoph already did all the infrastructure now,
-> just take the correct references and remove the special cases that
-> turn off the new infrastructure for fsdax.
+> {
+>    "regions":[
+>      {
+>        "dev":"region1",
+>        "size":2177548419072,
+>        "align":16777216,
+>        "available_size":0,
+>        "max_available_extent":0,
+>        "type":"pmem",
+>        "iset_id":-953140445588584312,
+>        "persistence_domain":"memory_controller",
+>        "namespaces":[
+>          {
+>            "dev":"namespace1.0",
+>            "mode":"fsdax",
+>            "map":"dev",
+>            "size":2143522127872,
+>            "uuid":"ed74879e-4eb6-4f88-bb7f-ae018d659720",
+>            "sector_size":512,
+>            "align":2097152,
+>            "blockdev":"pmem1",
+>            "name":"namespace1"
+>          }
+>        ]
+>      },
+>      {
+>        "dev":"region0",
+>        "size":2177548419072,
+>        "align":16777216,
+>        "available_size":0,
+>        "max_available_extent":0,
+>        "type":"pmem",
+>        "iset_id":-3109801715871676280,
+>        "persistence_domain":"memory_controller",
+>        "namespaces":[
+>          {
+>            "dev":"namespace0.0",
+>            "mode":"fsdax",
+>            "map":"dev",
+>            "size":2143522127872,
+>            "uuid":"64c75dc0-3d7a-4ac0-8698-8914e67b18db",
+>            "sector_size":512,
+>            "align":2097152,
+>            "blockdev":"pmem0",
+>            "name":"namespace0"
+>          }
+>        ]
+>      }
+>    ]
+> }
 > 
-> When I looked at it a long while ago it seemd to require some
-> understanding of the fsdax code and exactly what the lifecycle model
-> was supposed to be there.
+> What concerns me is that it shows "persistence_domain":"memory_controller"
+> when I think it should show the persistence domain as "cpu_cache", since this
+> system is supposed to support eADR.
 
-CXL development has reached a good break point for me to hop over and
-take a look at this now.
+This is determined by:
 
-Speaking of CXL, if you have any heartburn on that rework of
-devm_request_free_mem_region(), let me know:
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/drivers/acpi/nfit/core.c?h=v5.15#n3022
 
-https://lore.kernel.org/all/62d97a89d66a1_17f3e82949e@dwillia2-xfh.jf.intel.com.notmuch/
+The first thing to check is whether your ACPI tables have that bit set,
+where that flag is coming from this table:
+
+https://uefi.org/specs/ACPI/6.4/05_ACPI_Software_Programming_Model/ACPI_Software_Programming_Model.html#platform-capabilities-structure
+
+You can dump the table with the acpica-tools (acpidump and iasl).  Some
+examples of how to extract and disassemble a table is here (see the
+usage of iasl in the "how does it work" section):
+
+https://docs.kernel.org/admin-guide/acpi/initrd_table_override.html
+
+> I wondered if maybe I needed the very latest version of ndctl for it to print
+> that, but I cannot build it.  I did my best to obtain the pre-reqs -- they
+> mostly have different names under Ubunut -- but the first meson command,
+> "meson setup build" hangs and if I then try the compile step it complains.
+
+ndctl is just packaging up the kernel's sysfs attribute data into JSON.
+That data is coming direct from:
+
+/sys/bus/devices/nd/$region/persistence_domain
+
+> I am hoping someone here might be able to shed light on how I can verify that
+> this system does support persistence_domain cpu_cache, or if something needs
+> to be enabled or turned on, etc.  I have also gotten my Dell sales rep to
+> contact the Dell product engineers about this, but have not yet heard back.
+
+I can't help on that side, but if you do get a contact I expect the
+acpidump result from above will be useful.
+
+> Thanks for any light you might shed on either issue ...
+> 
+> Regards - Eliot Moss
+> Professor Emeritus, Computer and Information Sciences
+> Univ of Massachusetts Amherst
+> 
