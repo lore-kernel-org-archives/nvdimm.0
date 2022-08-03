@@ -1,201 +1,215 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from esa19.fujitsucc.c3s2.iphmx.com (esa19.fujitsucc.c3s2.iphmx.com [216.71.158.62])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE7AE7F
-	for <nvdimm@lists.linux.dev>; Wed,  3 Aug 2022 04:33:44 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82576C433C1;
-	Wed,  3 Aug 2022 04:33:44 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1659501224;
-	bh=id9I8D3e7agQ56Vv5SWmx4sZLvoGWkQXWA23gW96Ja4=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=TbV/ufCihC66Kn35+ChJqEGIJijhyFQ57MIgEHSTCYdFEL3Q7k5TRsYP+qeP/2+nQ
-	 vpHbhiCpSv8aWFM2ifPeNaOOWjNiscqWUBZ08mBmDlMJYP3bOVnhBViugVS3zubaAh
-	 HlXI6NeLL9okc6pNZHbBGwTJtx3QJ0EjrnVlgXkhYN8OAqDG8aI1DZcWNk6RCWHBUk
-	 6YB4W+D/4CaBGX4PzWjujhCQjKqrg5OroD4Ts2eOkWiMxxP/LhLXMtSBVxrsqe+L6W
-	 DNI+pggUqxvAbDSttn0wO0C1OnHbniD79oPgJkXbuwXWYbwkmsvVuB6pNMWdmspBoI
-	 ddd+MFDqOLldw==
-Date: Tue, 2 Aug 2022 21:33:44 -0700
-From: "Darrick J. Wong" <djwong@kernel.org>
-To: "ruansy.fnst@fujitsu.com" <ruansy.fnst@fujitsu.com>
-Cc: Dan Williams <dan.j.williams@intel.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1DC62368
+	for <nvdimm@lists.linux.dev>; Wed,  3 Aug 2022 06:48:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
+  d=fujitsu.com; i=@fujitsu.com; q=dns/txt; s=fj1;
+  t=1659509322; x=1691045322;
+  h=from:to:cc:subject:date:message-id:references:
+   in-reply-to:content-id:content-transfer-encoding:
+   mime-version;
+  bh=riCeVEUI8Y9s8nX5iMcRRLoa7Ljs8rjLwGtlIf2YDKw=;
+  b=NhF5nXJZrOXtXcH/eilQZKuyCm5wftmUGvknij854GBQNNkx79LRWydL
+   Fvy64N1uAT+EVwjWKDrV6TUb1cIpZt7lhHxQb7enDgL8dvYBYnfdQAMiN
+   tiH//AksEa7GOIVK1KhnOA27IZYmmIBLYOr8T3jX9eK9V+m0Ail7lwGD0
+   pWB3VN2sFOYVq4hRNPQvDtkhVZjPFiT1TCPP4rumicOM8xllY8TKAFBmM
+   RQ8nL9XC/qFk2Pawbjm1XYKNnCJakjo9a/7DftFIrZ4CI6gmA1sFyNe/N
+   zlzyETh6dqujaMWCp8IFOzH4RWJYo9l59lBj/AFVSxRg/vf/e3b20LD87
+   A==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10427"; a="61604307"
+X-IronPort-AV: E=Sophos;i="5.93,213,1654527600"; 
+   d="scan'208";a="61604307"
+Received: from mail-tycjpn01lp2170.outbound.protection.outlook.com (HELO JPN01-TYC-obe.outbound.protection.outlook.com) ([104.47.23.170])
+  by ob1.fujitsucc.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Aug 2022 15:47:28 +0900
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=Op6zGgR/niSnoyyVTDC8xHukiyk2jKb6R1rbx3KpZgtV2juyzK8bVrqPYACnGwiN9Om7manCqJl8sAG1nJq+CAbEENKaOslCiDo6MKj2v40kOcZQMk4WsDhEHZKSF1uAVKTN041NWqkhiAom1xj9kmRN93Y1oj0rhwvflRMYk744uafL7nvH69vNVPV4U7vE0dlB2gryxmF27uMU/cXvuuBi/SGhoh1xfrjOO0dlPEUpUELiYHkL9RqRFGHgycS1rZE6/Ps99I+f7B/aVlHD8k4hohDXDYppbVHtXOzjTESlF6mOQRmuppdgMIp4OF/E3zDLWepowFldo5vZNJbjZA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=riCeVEUI8Y9s8nX5iMcRRLoa7Ljs8rjLwGtlIf2YDKw=;
+ b=laz1NKuYDzbg3YcpGaOfvzV+xCgiWdJWHNxqUq1w6KN1JchEOgbxPGnuM7tm3gr/UTP/75W2xK8ui04oFQctTMTCuvxlRAedRQNZ6r/dbxWcB51PSf8cYcBgcG0Buj02ethOcGAYT9zGya7jg8uLI0xmm71sGaC9KbblU7/39PVHkdqg2uxOWYwCClX8Z8VRen3aVltDTNzW9vE2FLnp+Tl4aRYU+afFPDET7IKQq9jhz7e42vgG1AZt2OALx33L+cnIe53jdC4FJeVseWGkjeev7ReBf/DSBt8lCFUsBp/KipLriOTGPMIBcQV/OdDovXbEBfTHTeOXsfdCf0R77A==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=fujitsu.com; dmarc=pass action=none header.from=fujitsu.com;
+ dkim=pass header.d=fujitsu.com; arc=none
+Received: from OSBPR01MB2920.jpnprd01.prod.outlook.com (2603:1096:604:18::16)
+ by TY2PR01MB4777.jpnprd01.prod.outlook.com (2603:1096:404:117::20) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5482.14; Wed, 3 Aug
+ 2022 06:47:25 +0000
+Received: from OSBPR01MB2920.jpnprd01.prod.outlook.com
+ ([fe80::7556:cf54:e9e1:28ca]) by OSBPR01MB2920.jpnprd01.prod.outlook.com
+ ([fe80::7556:cf54:e9e1:28ca%7]) with mapi id 15.20.5482.016; Wed, 3 Aug 2022
+ 06:47:25 +0000
+From: "ruansy.fnst@fujitsu.com" <ruansy.fnst@fujitsu.com>
+To: "Darrick J. Wong" <djwong@kernel.org>
+CC: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
 	"linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>,
 	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
-	"linux-mm@kvack.org" <linux-mm@kvack.org>,
 	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
-	"david@fromorbit.com" <david@fromorbit.com>,
-	"hch@infradead.org" <hch@infradead.org>,
-	"jane.chu@oracle.com" <jane.chu@oracle.com>
-Subject: Re: [RFC PATCH v6] mm, pmem, xfs: Introduce MF_MEM_REMOVE for unbind
-Message-ID: <Yun6qIonQbeqVvso@magnolia>
-References: <20220410171623.3788004-1-ruansy.fnst@fujitsu.com>
- <20220714103421.1988696-1-ruansy.fnst@fujitsu.com>
- <62d05eb8e663c_1643dc294fa@dwillia2-xfh.jf.intel.com.notmuch>
- <YtXbD4e8mLHqWSwL@magnolia>
- <62d5e515de3a_929192941e@dwillia2-xfh.jf.intel.com.notmuch>
- <ef6fbc40-db59-eca5-e3e1-19f5809ec357@fujitsu.com>
+	"david@fromorbit.com" <david@fromorbit.com>, "hch@infradead.org"
+	<hch@infradead.org>
+Subject: Re: [PATCH] xfs: fail dax mount if reflink is enabled on a partition
+Thread-Topic: [PATCH] xfs: fail dax mount if reflink is enabled on a partition
+Thread-Index:
+ AQHYfA4g5aj+ViA5o0mdS5cU960Zpq1oy6eAgCBSEICAACSLAIALwXoAgAASpQCAB/r0gA==
+Date: Wed, 3 Aug 2022 06:47:24 +0000
+Message-ID: <0ea1cbe1-79d7-c22b-58bf-5860a961b680@fujitsu.com>
+References: <20220609143435.393724-1-ruansy.fnst@fujitsu.com>
+ <Yr5AV5HaleJXMmUm@magnolia>
+ <74b0a034-8c77-5136-3fbd-4affb841edcb@fujitsu.com>
+ <Ytl7yJJL1fdC006S@magnolia>
+ <7fde89dc-2e8f-967b-d342-eb334e80255c@fujitsu.com>
+ <YuNn9NkUFofmrXRG@magnolia>
+In-Reply-To: <YuNn9NkUFofmrXRG@magnolia>
+Accept-Language: en-US, zh-CN
+Content-Language: en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+msip_labels:
+ MSIP_Label_a7295cc1-d279-42ac-ab4d-3b0f4fece050_Enabled=True;MSIP_Label_a7295cc1-d279-42ac-ab4d-3b0f4fece050_SiteId=a19f121d-81e1-4858-a9d8-736e267fd4c7;MSIP_Label_a7295cc1-d279-42ac-ab4d-3b0f4fece050_SetDate=2022-08-03T06:47:24.176Z;MSIP_Label_a7295cc1-d279-42ac-ab4d-3b0f4fece050_Name=FUJITSU-RESTRICTED;MSIP_Label_a7295cc1-d279-42ac-ab4d-3b0f4fece050_ContentBits=0;MSIP_Label_a7295cc1-d279-42ac-ab4d-3b0f4fece050_Method=Standard;
+authentication-results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=fujitsu.com;
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-correlation-id: 2447de42-0cba-4a1d-1c13-08da751c0637
+x-ms-traffictypediagnostic: TY2PR01MB4777:EE_
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info:
+ sKoh/1NFDraT+WcGbOsNQo2Tj/WeQhihEFIbkjAXwx1cLwJFX30z4O4iro7j6W1N89Z3GlcioNsCiC0V+DnEbftsJHh5iMzdoyntz2cfbYOyTryC4pRqC2anhbAcMCMzxSVqb4yxWcqCCXfMsX5yBtXJs8rIuYC9MOcENxs3ct0zC8slZD50+EcIpEO6RW+3Fd8Y5c3HPqwFOqMm2/3BEfI1laRJpXjkfF/Rga1whLiAMYLNgCKC0KOuk2vGBjQ/S4wjSO4AuxIYCOUHnQfRW5Rys+U8Px/iUPLC82TZvQXtrcVL+TO5Fa1laEgvFlJ4+Gwtjm0CxAjfonOiL0uN9ciY1Zz4aFFl0t7SzhvcZa1hrMMqP9e9RAh4r0A17Ptc4QtPKp8ijiIbAtHDJDS0Bt1zCZ6racPRP4ZmPdByW0fsbgLh/W/G81J0k1JJsiNVKG6+wDq6oBuKlxLSAbg/EP25f9NXsBOCtWgbI5yjJDXZ5oKuDT7rwwbLqlIOEwiFaNFldhRPeftonYJgVOpEyo/yHEMG1uhVTnGLNb9k20+1oyo4f/feR/qOK+Gm0cu/lsWJ7ZS4OBMG2EAsJ7XOxHR0KGDZd6GClODbQxKa+PCOCASRUS2Sg/KzWLNtqJWF0fd/SB1FkDise1HeFF6AIzodIcMlULOzkAZ6kV4gj4+qTWseaBplmvLU/qHVtswoZui99fxZEsmh/OatIkosxYe83UoJc7SK3O+12SJLGQ5i+eJ5MzC4/zADJRkLeEjn/MagURyGXSSB6/3apl9MZOadMuBoZbkvn40Dx9Y25iEo6h44lGCiJ7Tu9ujzAAuTfN3a6Q3uaCck4PCYLmteAA==
+x-forefront-antispam-report:
+ CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:OSBPR01MB2920.jpnprd01.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(4636009)(376002)(346002)(136003)(396003)(39860400002)(366004)(26005)(6512007)(86362001)(41300700001)(54906003)(6916009)(31696002)(6506007)(6486002)(71200400001)(316002)(478600001)(38100700002)(38070700005)(122000001)(82960400001)(2616005)(186003)(5660300002)(91956017)(83380400001)(4326008)(64756008)(66446008)(31686004)(66556008)(36756003)(66946007)(66476007)(85182001)(2906002)(8676002)(8936002)(76116006)(45980500001);DIR:OUT;SFP:1101;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0:
+ =?gb2312?B?K0pYdnk1UlI3L2ZSY215amZ4cENJcjM5YWlVQWRPRDJYdUZrMTNvY0FERGdR?=
+ =?gb2312?B?RkxSdjVEM3J6QUFPVE9iTmpIbDZOVzRhNzNCdFJuNERLVUFEWFN0UnA2cW5C?=
+ =?gb2312?B?L0Q5K3cxOUFMVTJDc3VkSFlCMHMvUXJKZmIyQ0d1dHl4eGoxNHVzMVMxRmdp?=
+ =?gb2312?B?S3ByKzNjTC9EcGV2dndkTkw0eTVFU2JsU2prdEFDUGpPQTVuNmx4S3RxZnp1?=
+ =?gb2312?B?ditxVnN1aU1HNG1YYVluUXhEcUUxZGpXY2Uvd01pL1JMNGtoUDd0b1p1L3lV?=
+ =?gb2312?B?c0tIVW9wTTBJbVo4Tmc2TWZoZHVNYTVmOGFDaDUxTGo5NzA4Zk5xMFhVZ2x6?=
+ =?gb2312?B?NmROVGo3b2J2WU5iYk9GNmE4V0Q3YkdweEpsUkh2ekNaczg1K3pTMk5tT0tW?=
+ =?gb2312?B?QmVlaVFTd3RsbEdxTXEyR3NUbW1MRGxxQ3p1bkVxdjRkTlFKUVZYOUpjbVRO?=
+ =?gb2312?B?T0tKeXdsSVE5cCtxNTBxbUxyR3pmU3Q3NmxlL1o5NVg1YkxhMGRaMWVuWVFS?=
+ =?gb2312?B?UEk0TjFNdSt2MVFhM1lMdHVCWGFxbGtFd21USm9PYWRZbTl2VjR2TFJJK21h?=
+ =?gb2312?B?NldFcG0vMWdRd1VZaVJuTXBYRlJVL3hPSHNNSDFFeXNFTFhIYkZNV2JzZWFs?=
+ =?gb2312?B?WW1hVHdYTjVMeitmNWd0MnpQZzRlWXFTRDZWMytQR1YxOS9scXU2R2NrUnN1?=
+ =?gb2312?B?K1dpWVNaSE4yYjA4Wi80S3oyMllZU1JIQ3pjamg3bWxiYmNiZnhPSFpLcGJh?=
+ =?gb2312?B?TTdidUFVbktHV3ZzR3g3SVcrRml4QkJQOVRDWEVRcTE2SDU2dzZiZnhGYUdi?=
+ =?gb2312?B?cm9sRXdqMmlsa0dJOFRMa054M1pyV2FYNDhvc3dLUXhHZDJJY284VkkvVmpR?=
+ =?gb2312?B?Qm1TN3VtM0tFL2VRbEt2TUhyQlNlZURSaFFFbU00eFRDZCtFSWY4UTBFTWNI?=
+ =?gb2312?B?bkpvazFSTmZHM0t4SmVUV0w4MmZudGI5NlVQdUpZT2ZMSU1OMDN3eS94cUta?=
+ =?gb2312?B?ZmFRTDhCRytMTzl4QUJuWnRZNzVjbjNIUjVYWVEwYWRrVGVWVHRMaVZNUkl3?=
+ =?gb2312?B?UHhpdnBQallPQzRBcHpvdm54KzJ3Qnd5aFo0MVpKb3FCNW9UVVNVQXdrR05s?=
+ =?gb2312?B?eVZaNDliV3pwRW1VNDJXdjk5MVNNSzhiaE1XR0VaQWcrUjJyMVcyazRWUDU4?=
+ =?gb2312?B?NVc4RXByVXdxbEFxTWJZRlJVLzRvQWlYWU45WEE2cDJQK25TTURRSjhsdjdh?=
+ =?gb2312?B?eHZlcUFFOE43bkJrd1F4YnNQRnZNY29UWWNhVWFYR0FSYXZnREQ3U3pkRWN5?=
+ =?gb2312?B?K3pSSisyRVlRY1NLbnpUUVNIWEZoVnoxRSt5VHR3L2RxdytjU1RTek91bTZN?=
+ =?gb2312?B?dGo0TXVyam1iWTNWNlJsN2VpK2ZHQXBIL2NGWGJHL2xNbFhaSUYrOFBrM3Zk?=
+ =?gb2312?B?c2graVprenVkSEI2Wi9XL1RjU0grcExkQk1OLzE4V0E3MUswbko2UG1LNFpQ?=
+ =?gb2312?B?bmJtY3ZVUXh2YkNQdzkvOGVSd1Zqa0FyTHczS2VRYnVvc3psclF0cTJjMUdQ?=
+ =?gb2312?B?eU5lbjVuSW9JWUxyUXhvSGRBZ1ZTR3JEZkxhRlVsK1BHelRraXBNN2w1S2Jt?=
+ =?gb2312?B?L21UNCtSeFlVRzlqaW1jY1VsQ3NJSWF1K0dYSkZ1dkZuZTZqRVg3YlZOaEMw?=
+ =?gb2312?B?MTVXKzc1SWFmc25zTTFLUHRDeTRibnFZSzU4MDN2djdreUtLVXJLcXdiWXQw?=
+ =?gb2312?B?N001RHJnaFVFVVlNYXFpb05Nd25pSHQvUEJXdUx6Ly9kQzJ3M0RoVjNqeE1N?=
+ =?gb2312?B?d1RiaG9BMnltYXJraGNEQWh6b0dYU0FmekdZRk9yd2UvMG5VY01ZQ3JnZkMw?=
+ =?gb2312?B?ZVV0Q2I3ZHRhUmpZNFAyYXAxRlFuMkZlNU82MkRlMUZheHpVTy82b2NaTHo2?=
+ =?gb2312?B?N1lZKzNGb2lFTi9hUXdjdlp6dmRhQ0hjT2ltelhQL0RvbmgrUDV5RFBiVG1G?=
+ =?gb2312?B?dEw1eGV6c2lmc0FKRjJML3pGZGRiRzQ2QU96N0gwUHJxdzRLejgyaWNjdk8x?=
+ =?gb2312?B?SldYTVVrQnIyNEZ3RzI5dzVvYTFzTE9USjFNTzdtTFJKeTQvRTJSQXJKMTBJ?=
+ =?gb2312?Q?du1mwmVBgH6PIQLHlSVXqy8uk?=
+Content-Type: text/plain; charset="gb2312"
+Content-ID: <34BB07496FBB5D478A4DB0F81228CE6A@jpnprd01.prod.outlook.com>
+Content-Transfer-Encoding: base64
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <ef6fbc40-db59-eca5-e3e1-19f5809ec357@fujitsu.com>
+X-OriginatorOrg: fujitsu.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: OSBPR01MB2920.jpnprd01.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 2447de42-0cba-4a1d-1c13-08da751c0637
+X-MS-Exchange-CrossTenant-originalarrivaltime: 03 Aug 2022 06:47:24.9530
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: a19f121d-81e1-4858-a9d8-736e267fd4c7
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: 9zN212E7T5RwQm4KyuX782kTXnt18SSs1YHzBE7pS1mB9xawcmdpEL6dtVi0tejCJSGV0hXB8OL5sbjg8QR8UA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: TY2PR01MB4777
 
-On Wed, Aug 03, 2022 at 02:43:20AM +0000, ruansy.fnst@fujitsu.com wrote:
-> 
-> 在 2022/7/19 6:56, Dan Williams 写道:
-> > Darrick J. Wong wrote:
-> >> On Thu, Jul 14, 2022 at 11:21:44AM -0700, Dan Williams wrote:
-> >>> ruansy.fnst@fujitsu.com wrote:
-> >>>> This patch is inspired by Dan's "mm, dax, pmem: Introduce
-> >>>> dev_pagemap_failure()"[1].  With the help of dax_holder and
-> >>>> ->notify_failure() mechanism, the pmem driver is able to ask filesystem
-> >>>> (or mapped device) on it to unmap all files in use and notify processes
-> >>>> who are using those files.
-> >>>>
-> >>>> Call trace:
-> >>>> trigger unbind
-> >>>>   -> unbind_store()
-> >>>>    -> ... (skip)
-> >>>>     -> devres_release_all()   # was pmem driver ->remove() in v1
-> >>>>      -> kill_dax()
-> >>>>       -> dax_holder_notify_failure(dax_dev, 0, U64_MAX, MF_MEM_PRE_REMOVE)
-> >>>>        -> xfs_dax_notify_failure()
-> >>>>
-> >>>> Introduce MF_MEM_PRE_REMOVE to let filesystem know this is a remove
-> >>>> event.  So do not shutdown filesystem directly if something not
-> >>>> supported, or if failure range includes metadata area.  Make sure all
-> >>>> files and processes are handled correctly.
-> >>>>
-> >>>> ==
-> >>>> Changes since v5:
-> >>>>    1. Renamed MF_MEM_REMOVE to MF_MEM_PRE_REMOVE
-> >>>>    2. hold s_umount before sync_filesystem()
-> >>>>    3. move sync_filesystem() after SB_BORN check
-> >>>>    4. Rebased on next-20220714
-> >>>>
-> >>>> Changes since v4:
-> >>>>    1. sync_filesystem() at the beginning when MF_MEM_REMOVE
-> >>>>    2. Rebased on next-20220706
-> >>>>
-> >>>> [1]: https://lore.kernel.org/linux-mm/161604050314.1463742.14151665140035795571.stgit@dwillia2-desk3.amr.corp.intel.com/
-> >>>>
-> >>>> Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-> >>>> ---
-> >>>>   drivers/dax/super.c         |  3 ++-
-> >>>>   fs/xfs/xfs_notify_failure.c | 15 +++++++++++++++
-> >>>>   include/linux/mm.h          |  1 +
-> >>>>   3 files changed, 18 insertions(+), 1 deletion(-)
-> >>>>
-> >>>> diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-> >>>> index 9b5e2a5eb0ae..cf9a64563fbe 100644
-> >>>> --- a/drivers/dax/super.c
-> >>>> +++ b/drivers/dax/super.c
-> >>>> @@ -323,7 +323,8 @@ void kill_dax(struct dax_device *dax_dev)
-> >>>>   		return;
-> >>>>   
-> >>>>   	if (dax_dev->holder_data != NULL)
-> >>>> -		dax_holder_notify_failure(dax_dev, 0, U64_MAX, 0);
-> >>>> +		dax_holder_notify_failure(dax_dev, 0, U64_MAX,
-> >>>> +				MF_MEM_PRE_REMOVE);
-> >>>>   
-> >>>>   	clear_bit(DAXDEV_ALIVE, &dax_dev->flags);
-> >>>>   	synchronize_srcu(&dax_srcu);
-> >>>> diff --git a/fs/xfs/xfs_notify_failure.c b/fs/xfs/xfs_notify_failure.c
-> >>>> index 69d9c83ea4b2..6da6747435eb 100644
-> >>>> --- a/fs/xfs/xfs_notify_failure.c
-> >>>> +++ b/fs/xfs/xfs_notify_failure.c
-> >>>> @@ -76,6 +76,9 @@ xfs_dax_failure_fn(
-> >>>>   
-> >>>>   	if (XFS_RMAP_NON_INODE_OWNER(rec->rm_owner) ||
-> >>>>   	    (rec->rm_flags & (XFS_RMAP_ATTR_FORK | XFS_RMAP_BMBT_BLOCK))) {
-> >>>> +		/* Do not shutdown so early when device is to be removed */
-> >>>> +		if (notify->mf_flags & MF_MEM_PRE_REMOVE)
-> >>>> +			return 0;
-> >>>>   		xfs_force_shutdown(mp, SHUTDOWN_CORRUPT_ONDISK);
-> >>>>   		return -EFSCORRUPTED;
-> >>>>   	}
-> >>>> @@ -174,12 +177,22 @@ xfs_dax_notify_failure(
-> >>>>   	struct xfs_mount	*mp = dax_holder(dax_dev);
-> >>>>   	u64			ddev_start;
-> >>>>   	u64			ddev_end;
-> >>>> +	int			error;
-> >>>>   
-> >>>>   	if (!(mp->m_sb.sb_flags & SB_BORN)) {
-> >>>>   		xfs_warn(mp, "filesystem is not ready for notify_failure()!");
-> >>>>   		return -EIO;
-> >>>>   	}
-> >>>>   
-> >>>> +	if (mf_flags & MF_MEM_PRE_REMOVE) {
-> >>>> +		xfs_info(mp, "device is about to be removed!");
-> >>>> +		down_write(&mp->m_super->s_umount);
-> >>>> +		error = sync_filesystem(mp->m_super);
-> >>>> +		up_write(&mp->m_super->s_umount);
-> >>>
-> >>> Are all mappings invalidated after this point?
-> >>
-> >> No; all this step does is pushes dirty filesystem [meta]data to pmem
-> >> before we lose DAXDEV_ALIVE...
-> >>
-> >>> The goal of the removal notification is to invalidate all DAX mappings
-> >>> that are no pointing to pfns that do not exist anymore, so just syncing
-> >>> does not seem like enough, and the shutdown is skipped above. What am I
-> >>> missing?
-> >>
-> >> ...however, the shutdown above only applies to filesystem metadata.  In
-> >> effect, we avoid the fs shutdown in MF_MEM_PRE_REMOVE mode, which
-> >> enables the mf_dax_kill_procs calls to proceed against mapped file data.
-> >> I have a nagging suspicion that in non-PREREMOVE mode, we can end up
-> >> shutting down the filesytem on an xattr block and the 'return
-> >> -EFSCORRUPTED' actually prevents us from reaching all the remaining file
-> >> data mappings.
-> >>
-> >> IOWs, I think that clause above really ought to have returned zero so
-> >> that we keep the filesystem up while we're tearing down mappings, and
-> >> only call xfs_force_shutdown() after we've had a chance to let
-> >> xfs_dax_notify_ddev_failure() tear down all the mappings.
-> >>
-> >> I missed that subtlety in the initial ~30 rounds of review, but I figure
-> >> at this point let's just land it in 5.20 and clean up that quirk for
-> >> -rc1.
-> > 
-> > Sure, this is a good baseline to incrementally improve.
-> 
-> Hi Dan, Darrick
-> 
-> Do I need to fix somewhere on this patch?  I'm not sure if it is looked good...
-
-Eh, wait for me to send the xfs pull request and then I'll clean things
-up and send you a patch. :)
-
---D
-
-> 
-> --
-> Thanks,
-> Ruan.
-> 
-> > 
-> >>
-> >>> Notice that kill_dev_dax() does unmap_mapping_range() after invalidating
-> >>> the dax device and that ensures that all existing mappings are gone and
-> >>> cannot be re-established. As far as I can see a process with an existing
-> >>> dax mapping will still be able to use it after this runs, no?
-> >>
-> >> I'm not sure where in akpm's tree I find kill_dev_dax()?  I'm cribbing
-> >> off of:
-> >>
-> >> https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git/tree/fs/xfs/xfs_notify_failure.c?h=mm-stable
-> > 
-> > https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git/tree/drivers/dax/bus.c?h=mm-stable#n381
-> > 
-> > Where the observation is that when device-dax is told that the device is
-> > going away it invalidates all the active mappings to that single
-> > character-device-inode. The hope being that in the fsdax case all the
-> > dax-mapped filesystem inodes would experience the same irreversible
-> > invalidation as the device is exiting.
+CgrU2iAyMDIyLzcvMjkgMTI6NTQsIERhcnJpY2sgSi4gV29uZyDQtLXAOgo+IE9uIEZyaSwgSnVs
+IDI5LCAyMDIyIGF0IDAzOjU1OjI0QU0gKzAwMDAsIHJ1YW5zeS5mbnN0QGZ1aml0c3UuY29tIHdy
+b3RlOgo+Pgo+Pgo+PiDU2iAyMDIyLzcvMjIgMDoxNiwgRGFycmljayBKLiBXb25nINC0tcA6Cj4+
+PiBPbiBUaHUsIEp1bCAyMSwgMjAyMiBhdCAwMjowNjoxMFBNICswMDAwLCBydWFuc3kuZm5zdEBm
+dWppdHN1LmNvbSB3cm90ZToKPj4+PiDU2iAyMDIyLzcvMSA4OjMxLCBEYXJyaWNrIEouIFdvbmcg
+0LS1wDoKPj4+Pj4gT24gVGh1LCBKdW4gMDksIDIwMjIgYXQgMTA6MzQ6MzVQTSArMDgwMCwgU2hp
+eWFuZyBSdWFuIHdyb3RlOgo+Pj4+Pj4gRmFpbHVyZSBub3RpZmljYXRpb24gaXMgbm90IHN1cHBv
+cnRlZCBvbiBwYXJ0aXRpb25zLiAgU28sIHdoZW4gd2UgbW91bnQKPj4+Pj4+IGEgcmVmbGluayBl
+bmFibGVkIHhmcyBvbiBhIHBhcnRpdGlvbiB3aXRoIGRheCBvcHRpb24sIGxldCBpdCBmYWlsIHdp
+dGgKPj4+Pj4+IC1FSU5WQUwgY29kZS4KPj4+Pj4+Cj4+Pj4+PiBTaWduZWQtb2ZmLWJ5OiBTaGl5
+YW5nIFJ1YW4gPHJ1YW5zeS5mbnN0QGZ1aml0c3UuY29tPgo+Pj4+Pgo+Pj4+PiBMb29rcyBnb29k
+IHRvIG1lLCB0aG91Z2ggSSB0aGluayB0aGlzIHBhdGNoIGFwcGxpZXMgdG8gLi4uIHdoZXJldmVy
+IGFsbAo+Pj4+PiB0aG9zZSBybWFwK3JlZmxpbmsrZGF4IHBhdGNoZXMgd2VudC4gIEkgdGhpbmsg
+dGhhdCdzIGFrcG0ncyB0cmVlLCByaWdodD8KPj4+Pj4KPj4+Pj4gSWRlYWxseSB0aGlzIHdvdWxk
+IGdvIGluIHRocm91Z2ggdGhlcmUgdG8ga2VlcCB0aGUgcGllY2VzIHRvZ2V0aGVyLCBidXQKPj4+
+Pj4gSSBkb24ndCBtaW5kIHRvc3NpbmcgdGhpcyBpbiBhdCB0aGUgZW5kIG9mIHRoZSA1LjIwIG1l
+cmdlIHdpbmRvdyBpZiBha3BtCj4+Pj4+IGlzIHVud2lsbGluZy4KPj4+Pgo+Pj4+IEJUVywgc2lu
+Y2UgdGhlc2UgcGF0Y2hlcyAoZGF4JnJlZmxpbmsmcm1hcCArIFRISVMgKyBwbWVtLXVuYmluZCkg
+YXJlCj4+Pj4gd2FpdGluZyB0byBiZSBtZXJnZWQsIGlzIGl0IHRpbWUgdG8gdGhpbmsgYWJvdXQg
+InJlbW92aW5nIHRoZQo+Pj4+IGV4cGVyaW1lbnRhbCB0YWciIGFnYWluPyAgOikKPj4+Cj4+PiBJ
+dCdzIHByb2JhYmx5IHRpbWUgdG8gdGFrZSB1cCB0aGF0IHF1ZXN0aW9uIGFnYWluLgo+Pj4KPj4+
+IFllc3RlcmRheSBJIHRyaWVkIHJ1bm5pbmcgZ2VuZXJpYy80NzAgKGFrYSB0aGUgTUFQX1NZTkMg
+dGVzdCkgYW5kIGl0Cj4+PiBkaWRuJ3Qgc3VjY2VlZCBiZWNhdXNlIGl0IHNldHMgdXAgZG1sb2d3
+cml0ZXMgYXRvcCBkbXRoaW5wIGF0b3AgcG1lbSwKPj4+IGFuZCBhdCBsZWFzdCBvbmUgb2YgdGhv
+c2UgZG0gbGF5ZXJzIG5vIGxvbmdlciBhbGxvd3MgZnNkYXggcGFzcy10aHJvdWdoLAo+Pj4gc28g
+WEZTIHNpbGVudGx5IHR1cm5lZCBtb3VudCAtbyBkYXggaW50byAtbyBkYXg9bmV2ZXIuIDooCj4+
+Cj4+IEhpIERhcnJpY2ssCj4+Cj4+IEkgdHJpZWQgZ2VuZXJpYy80NzAgYnV0IGl0IGRpZG4ndCBy
+dW46Cj4+ICAgICBbbm90IHJ1bl0gQ2Fubm90IHVzZSB0aGluLXBvb2wgZGV2aWNlcyBvbiBEQVgg
+Y2FwYWJsZSBibG9jayBkZXZpY2VzLgo+Pgo+PiBEaWQgeW91IG1vZGlmeSB0aGUgX3JlcXVpcmVf
+ZG1fdGFyZ2V0KCkgaW4gY29tbW9uL3JjPyAgSSBhZGRlZCB0aGluLXBvb2wKPj4gdG8gbm90IHRv
+IGNoZWNrIGRheCBjYXBhYmlsaXR5Ogo+Pgo+PiAgICAgICAgICAgY2FzZSAkdGFyZ2V0IGluCj4+
+ICAgICAgICAgICBzdHJpcGV8bGluZWFyfGxvZy13cml0ZXN8dGhpbi1wb29sKSAgIyBhZGQgdGhp
+bi1wb29sIGhlcmUKPj4gICAgICAgICAgICAgICAgICAgOzsKPj4KPj4gdGhlbiB0aGUgY2FzZSBm
+aW5hbGx5IHJhbiBhbmQgaXQgc2lsZW50bHkgdHVybmVkIG9mZiBkYXggYXMgeW91IHNhaWQuCj4+
+Cj4+IEFyZSB0aGUgc3RlcHMgZm9yIHJlcHJvZHVjdGlvbiBjb3JyZWN0PyBJZiBzbywgSSB3aWxs
+IGNvbnRpbnVlIHRvCj4+IGludmVzdGlnYXRlIHRoaXMgcHJvYmxlbS4KPiAKPiBBaCwgeWVzLCBJ
+IGRpZCBhZGQgdGhpbi1wb29sIHRvIHRoYXQgY2FzZSBzdGF0ZW1lbnQuICBTb3JyeSBJIGZvcmdv
+dCB0bwo+IG1lbnRpb24gdGhhdC4gIEkgc3VzcGVjdCB0aGF0IHRoZSByZW1vdmFsIG9mIGRtIHN1
+cHBvcnQgZm9yIHBtZW0gaXMKPiBnb2luZyB0byBmb3JjZSB1cyB0byBjb21wbGV0ZWx5IHJlZGVz
+aWduIHRoaXMgdGVzdC4gIEkgY2FuJ3QgcmVhbGx5Cj4gdGhpbmsgb2YgaG93LCB0aG91Z2gsIHNp
+bmNlIHRoZXJlJ3Mgbm8gZ29vZCB3YXkgdGhhdCBJIGtub3cgb2YgdG8gZ2FpbiBhCj4gcG9pbnQt
+aW4tdGltZSBzbmFwc2hvdCBvZiBhIHBtZW0gZGV2aWNlLgoKSGkgRGFycmljaywKCiA+IHJlbW92
+YWwgb2YgZG0gc3VwcG9ydCBmb3IgcG1lbQpJIHRoaW5rIGhlcmUgd2UgYXJlIHNheWluZyBhYm91
+dCB4ZnN0ZXN0IHdobyByZW1vdmVkIHRoZSBzdXBwb3J0LCBub3QgCmtlcm5lbD8KCkkgZm91bmQg
+c29tZSB4ZnN0ZXN0cyBjb21taXRzOgpmYzdiMzkwMzg5NGE2MjEzYzc2NWQ2NGRmOTE4NDdmNDQ2
+MDMzNmEyICAjIGNvbW1vbi9yYzogYWRkIHRoZSByZXN0cmljdGlvbi4KZmM1ODcwZGE0ODVhZWMw
+ZjkxOTZhMGYyYmVkMzJmNzNmNmIyYzY2NCAgIyBnZW5lcmljLzQ3MDogdXNlIHRoaW4tcG9vbAoK
+U28sIHRoaXMgY2FzZSB3YXMgbmV2ZXIgYWJsZSB0byBydW4gc2luY2UgdGhlIHNlY29uZCBjb21t
+aXQ/ICAoSSBkaWRuJ3QgCm5vdGljZSB0aGUgbm90IHJ1biBjYXNlLiAgSSB0aG91Z2h0IGl0IHdh
+cyBleHBlY3RlZCB0byBiZSBub3QgcnVuLikKCkFuZCBhY2NvcmRpbmcgdG8gdGhlIGZpcnN0IGNv
+bW1pdCwgdGhlIHJlc3RyaWN0aW9uIHdhcyBhZGRlZCBiZWNhdXNlIApzb21lIG9mIGRtIGRldmlj
+ZXMgZG9uJ3Qgc3VwcG9ydCBkYXguICBTbyBteSB1bmRlcnN0YW5kaW5nIGlzOiB3ZSBzaG91bGQg
+CnJlZGVzaWduIHRoZSBjYXNlIHRvIG1ha2UgdGhlIGl0IHdvcmssIGFuZCBmaXJzdGx5LCB3ZSBz
+aG91bGQgYWRkIGRheCAKc3VwcG9ydCBmb3IgZG0gZGV2aWNlcyBpbiBrZXJuZWwuCgoKSW4gYWRk
+aXRpb24sIGlzIHRoZXJlIGFueSBvdGhlciB0ZXN0Y2FzZSBoYXMgdGhlIHNhbWUgcHJvYmxlbT8g
+IHNvIHRoYXQgCndlIGNhbiBkZWFsIHdpdGggdGhlbSB0b2dldGhlci4KCgotLQpUaGFua3MsClJ1
+YW4KCgo+IAo+IC0tRAo+IAo+Pgo+PiAtLQo+PiBUaGFua3MsCj4+IFJ1YW4uCj4+Cj4+Cj4+Cj4+
+Pgo+Pj4gSSdtIG5vdCBzdXJlIGhvdyB0byBmaXggdGhhdC4uLgo+Pj4KPj4+IC0tRAo+Pj4KPj4+
+Pgo+Pj4+IC0tCj4+Pj4gVGhhbmtzLAo+Pj4+IFJ1YW4uCj4+Pj4KPj4+Pj4KPj4+Pj4gUmV2aWV3
+ZWQtYnk6IERhcnJpY2sgSi4gV29uZyA8ZGp3b25nQGtlcm5lbC5vcmc+Cj4+Pj4+Cj4+Pj4+IC0t
+RAo+Pj4+Pgo+Pj4+Pj4gLS0tCj4+Pj4+PiAgICAgZnMveGZzL3hmc19zdXBlci5jIHwgNiArKysr
+LS0KPj4+Pj4+ICAgICAxIGZpbGUgY2hhbmdlZCwgNCBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9u
+cygtKQo+Pj4+Pj4KPj4+Pj4+IGRpZmYgLS1naXQgYS9mcy94ZnMveGZzX3N1cGVyLmMgYi9mcy94
+ZnMveGZzX3N1cGVyLmMKPj4+Pj4+IGluZGV4IDg0OTVlZjA3NmZmYy4uYTNjMjIxODQxZmE2IDEw
+MDY0NAo+Pj4+Pj4gLS0tIGEvZnMveGZzL3hmc19zdXBlci5jCj4+Pj4+PiArKysgYi9mcy94ZnMv
+eGZzX3N1cGVyLmMKPj4+Pj4+IEBAIC0zNDgsOCArMzQ4LDEwIEBAIHhmc19zZXR1cF9kYXhfYWx3
+YXlzKAo+Pj4+Pj4gICAgIAkJZ290byBkaXNhYmxlX2RheDsKPj4+Pj4+ICAgICAJfQo+Pj4+Pj4g
+ICAgIAo+Pj4+Pj4gLQlpZiAoeGZzX2hhc19yZWZsaW5rKG1wKSkgewo+Pj4+Pj4gLQkJeGZzX2Fs
+ZXJ0KG1wLCAiREFYIGFuZCByZWZsaW5rIGNhbm5vdCBiZSB1c2VkIHRvZ2V0aGVyISIpOwo+Pj4+
+Pj4gKwlpZiAoeGZzX2hhc19yZWZsaW5rKG1wKSAmJgo+Pj4+Pj4gKwkgICAgYmRldl9pc19wYXJ0
+aXRpb24obXAtPm1fZGRldl90YXJncC0+YnRfYmRldikpIHsKPj4+Pj4+ICsJCXhmc19hbGVydCht
+cCwKPj4+Pj4+ICsJCQkiREFYIGFuZCByZWZsaW5rIGNhbm5vdCB3b3JrIHdpdGggbXVsdGktcGFy
+dGl0aW9ucyEiKTsKPj4+Pj4+ICAgICAJCXJldHVybiAtRUlOVkFMOwo+Pj4+Pj4gICAgIAl9Cj4+
+Pj4+PiAgICAgCj4+Pj4+PiAtLSAKPj4+Pj4+IDIuMzYuMQo+Pj4+Pj4KPj4+Pj4+Cj4+Pj4+Pgo=
