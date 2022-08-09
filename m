@@ -1,217 +1,155 @@
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93821440F
-	for <nvdimm@lists.linux.dev>; Mon,  8 Aug 2022 23:30:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D422215C2
+	for <nvdimm@lists.linux.dev>; Tue,  9 Aug 2022 20:30:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1660001429; x=1691537429;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=Scu1tEBQYKmXare2D12erCNo+MBhRcvsorowMPBYTtg=;
-  b=L2IgUOgt2O1Z+0fxeHX3LqZA/XH8c7WNdORwrd2xQ9Ukwfaz6if3Db1L
-   sIwYv0zMfErmYsUkjhkR+TdmIYevQuapiBLEFL9UTPh6l0MFscjxIr5/w
-   BSHS5Y882h6IOjOwws+ZxDhfJnek/w9GCjMhwEWpYkRM4683P02nVTcI8
-   w0Ui95KrA0eajVxrpSTf+bb5smvcGxg3O9jCKzb8lQYDptQnXO7f5apmE
-   RV1ljCOoKlV+T1dT03hZjDcbHtCAkts5B/O+1PGV5r7hHQl1SLEt7wbUq
-   855gEu1LLszjv+Pchh0KckFu59raqu3mttjuieTbHOIB54laazdKapDUH
-   w==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10433"; a="270488559"
-X-IronPort-AV: E=Sophos;i="5.93,222,1654585200"; 
-   d="scan'208";a="270488559"
-Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Aug 2022 16:30:29 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.93,222,1654585200"; 
-   d="scan'208";a="932263619"
-Received: from fmsmsx603.amr.corp.intel.com ([10.18.126.83])
-  by fmsmga005.fm.intel.com with ESMTP; 08 Aug 2022 16:30:28 -0700
-Received: from fmsmsx609.amr.corp.intel.com (10.18.126.89) by
- fmsmsx603.amr.corp.intel.com (10.18.126.83) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.28; Mon, 8 Aug 2022 16:30:28 -0700
-Received: from fmsmsx608.amr.corp.intel.com (10.18.126.88) by
- fmsmsx609.amr.corp.intel.com (10.18.126.89) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.28; Mon, 8 Aug 2022 16:30:28 -0700
-Received: from fmsedg601.ED.cps.intel.com (10.1.192.135) by
- fmsmsx608.amr.corp.intel.com (10.18.126.88) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.28 via Frontend Transport; Mon, 8 Aug 2022 16:30:28 -0700
-Received: from NAM11-CO1-obe.outbound.protection.outlook.com (104.47.56.177)
- by edgegateway.intel.com (192.55.55.70) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2375.28; Mon, 8 Aug 2022 16:30:27 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=mrkGInJiZC6uWahw8hdVRf7aB75CzrK8e5B0MJWwImi9/n3Gl6js+OhZkUgucR23h7Z3duDWhkND5f6lGU54t2ejD5P+VSW7ySdWJrBL79796DvnfimxyT0FQrrdmpwfRgoEXXfFmqDJfYLQ0ev+jTjfXF6DJZ3UDjAJSHdTkZqHQ6RXrWJ6siYy2AgcS+NESu5Zy7iBcZoF/inbUXgqxHhYQMzr6H+7/LWr+6meoJJs83wPvJLC9nWoJiT09eqZaAkeAeTc6sV93IoXQG3+A+7jf/nYbKA1C1ATlI5sD6BMLTDt6XnzXSqNHNsjUy697fK6OXuL+AAlKIyEZFURDQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=UuZAKxLrYa/k7Hz/3fcM+WLA7aHG+T9hpPrnATw7lFQ=;
- b=IptN4+8NTJGJdWwbi6Iecfbeh5skoW0KrwTZpTmC3H42tivpTjFK47Wzct+TlOZ+n8xo/qKLaOCTFZ0nfXgSTP5Hzhqg24pgvxi9DqWKxt2AUM18j+ek1T3O+HUU6omUxFJNVTGZcHAGUOf5iXKxlSDOcQFSnMtpbrG+4NviYeRFRKqhFYtA1wg1/2EYZWNBWO8dcVJyq3w7Ocsvyrb66wmKI9IZTyc24wguoQAZfxB4V9Z5Nl8JkOoPSCkEeLE+PxI5rzNmuKXW9FhXK/4Q5JVoH7YHRIh5ZdRUO9yhbSMyADfjMBbq30g8qAPriMVdL9Tj0pvnVXnKi9X2XhIhDA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
- (2603:10b6:301:50::20) by MW3PR11MB4572.namprd11.prod.outlook.com
- (2603:10b6:303:5e::14) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5504.15; Mon, 8 Aug
- 2022 23:30:25 +0000
-Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
- ([fe80::9847:345e:4c5b:ca12]) by MWHPR1101MB2126.namprd11.prod.outlook.com
- ([fe80::9847:345e:4c5b:ca12%6]) with mapi id 15.20.5504.020; Mon, 8 Aug 2022
- 23:30:25 +0000
-Date: Mon, 8 Aug 2022 16:30:22 -0700
-From: Dan Williams <dan.j.williams@intel.com>
-To: Jane Chu <jane.chu@oracle.com>, Ingo Molnar <mingo@kernel.org>
-CC: "tony.luck@intel.com" <tony.luck@intel.com>, "bp@alien8.de"
-	<bp@alien8.de>, "tglx@linutronix.de" <tglx@linutronix.de>, "mingo@redhat.com"
-	<mingo@redhat.com>, "dave.hansen@linux.intel.com"
-	<dave.hansen@linux.intel.com>, "x86@kernel.org" <x86@kernel.org>,
-	"linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>,
-	"dan.j.williams@intel.com" <dan.j.williams@intel.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "hch@lst.de"
-	<hch@lst.de>, "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>
-Subject: Re: [PATCH v7] x86/mce: retrieve poison range from hardware
-Message-ID: <62f19c8e795d1_1b3c29448@dwillia2-xfh.jf.intel.com.notmuch>
-References: <20220802195053.3882368-1-jane.chu@oracle.com>
- <Yuo3dioqb9mDAOcT@gmail.com>
- <833288b3-4838-63b8-b22b-f22538877957@oracle.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <833288b3-4838-63b8-b22b-f22538877957@oracle.com>
-X-ClientProxiedBy: BYAPR08CA0031.namprd08.prod.outlook.com
- (2603:10b6:a03:100::44) To MWHPR1101MB2126.namprd11.prod.outlook.com
- (2603:10b6:301:50::20)
+  t=1660077007; x=1691613007;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=71gXcCiIrRqrAMZqZLiditzGyBcKnr9ngpE/U5wN+kA=;
+  b=LYfY3+mLRM1bovhcxMXjjr5w9zwxeby85OvN17PwM/ABYDfV0yzSvhib
+   AYdx3EE3X2jVqdCf5Cimy96JxxVFu8g9vzHX1z27fjoXVmIzGo6Dbh9DM
+   NaGMDupaZGy4+mNvk6JPC0PrZtmeEbs+v+GpIRpu9+oMl3168DwHnoXic
+   Yr9z7mLXF7oQslNpIl1JXusGwFa5NgfCeh9LxvfqaXJ3A8EjdZleSlCq0
+   4JItJkOlGZgv1RVrBGn1B4zBogndFMPgoxk8+Ta+ZkbexnxKALxIkHnFT
+   Ar3soCbiYEjkQRKWy+ynYYygTO68IwU8X0nmMDK+qFI6cw/E7djJiuVeJ
+   A==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10434"; a="352660829"
+X-IronPort-AV: E=Sophos;i="5.93,225,1654585200"; 
+   d="scan'208";a="352660829"
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Aug 2022 13:30:07 -0700
+X-IronPort-AV: E=Sophos;i="5.93,225,1654585200"; 
+   d="scan'208";a="664582603"
+Received: from djiang5-mobl1.amr.corp.intel.com (HELO [10.212.24.249]) ([10.212.24.249])
+  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Aug 2022 13:30:06 -0700
+Message-ID: <6d8481db-6b74-7319-21d5-203f983eb811@intel.com>
+Date: Tue, 9 Aug 2022 13:30:05 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 510444e2-7504-473f-7f03-08da7995f88c
-X-MS-TrafficTypeDiagnostic: MW3PR11MB4572:EE_
-X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: AOlB9RgIJ6HfFMD5dzN0WpHZgaYWIjqCTwWLYDsnJwf/QlcdHV0uA4nF8w3pkD684GoIW4PG1g3rdkA1N3HWFEZjLrTnm3K6onwF2k5gQY3+M8k6+FbLXvRVcP43o/XISW3AV0XAw1Q91RxXzhtGcl/FxH+A/2b8ajvwK/uGL81I6wujcyX6QxJ9Hn9vGoyg6s5FgXdFm27+cFStEVODki4/PcoMe0+DRoFLsCd757qg8DJ3e5vOLQD+fD9mtoqt8cbhzFFQdcsAEv7cdronQ3En2e9y/JR31KBkxDUfVfG2xDRNZl77nNylAFOQ09cFKs1DoLmxyi/9PN9Z0HUEy4EWPLiaXR7PYgsCmfENu+SakuVegsYYHXC7J3+mbEpQT22mchP79dR1RtdpjhLArFTXu4wWKWTslRh2177I5OleACeWhYw8xymMTyoZn0kEH/Zq6apOWKeTFIg7yiSntEJwqKdo6iHjfn4U+/54Iw6NtgwTwPHAvjE/Vbc+56GR3h2S6ylAd7YwtgruqyeGUDDSgmGM72nBaeoi2SWt/ihbTTVzD5Ip7w+gGeL9MdYS2qtEmMdMUmMHcwiN5jSIlc/GbaDPGGKvtn01wrWI0bxVV2st0Ay3f+c48Q+pdPh3VSor61By9f8lMK9cSUnuDaCw95z5+1oj0v9L7VjNlgcxXIn1O19WTp4yIbxzLMngZkiOLYiULWF7TRtBpy1fxtnq1wwO9XQrsEOmNXMVY5rkrSyqWwpddLVTlosHL3zI90g0GMH2/Hw7IkynD3Vzcg==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1101MB2126.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(366004)(39860400002)(376002)(396003)(136003)(346002)(83380400001)(8936002)(8676002)(66556008)(66476007)(4326008)(66946007)(966005)(6486002)(186003)(316002)(7416002)(54906003)(86362001)(110136005)(5660300002)(478600001)(82960400001)(9686003)(6512007)(26005)(53546011)(41300700001)(6666004)(6506007)(2906002)(38100700002);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?mRMA/e11//UTebNIwqBXqXVmx4iYOXFZldTyf9FYKp6Y2elnGa1fMKCvF4MM?=
- =?us-ascii?Q?jEPz3620zbgDW2eT42bEL43tpl4h+j45FDlJguR1SmlUx+5W+NpWRmO0ojgC?=
- =?us-ascii?Q?iS79zzQIMiAjHTzyg6GLW2gItjNP5LW7tiIIzZf8PIV/Lg3BpDV7GlEOjj+d?=
- =?us-ascii?Q?IxPSqOHQmV1AM7nmlY2u5hPd085zrA/0v+Z4/q3T1vk1XuzzICoXi56QQ61a?=
- =?us-ascii?Q?2zL8B7kLkVTe7jbor8vbV2cDtRtLWhntcolA9H9NnSEBCQBeL9FBBDAdx0QC?=
- =?us-ascii?Q?JrLZb+hL4B7zpf9lhXdEQZ+nZBfSABydsrn6q5KJQ2ghu9DidxiBdtRcsRKF?=
- =?us-ascii?Q?xt/vXOtqgcXJdac0LFZj3fe+enhut1KA7Ut91KlXXXwMLyBDPT/KKnkUCKbE?=
- =?us-ascii?Q?sCDs0mYrbd7+dLQ39M7MuICark5kCiVfnfxH9BEk6wX73X5Apr9ApUAWT9PF?=
- =?us-ascii?Q?kirloUMyNhQ8sC9A44OHu2qf1U4nbE0ddd/vklFasoJBLWuYcVVE8a0H8EeJ?=
- =?us-ascii?Q?CpuaYsuumZEWSlH0bxp/jIvY8CkoC5YvnL2hmRxL3FX8TFea3UlezBG4Infv?=
- =?us-ascii?Q?pkqmmcoB7CpKgW2fxVaxREZTP826yGRNEOArQGlHw7EtaOvQeP3OVe31w0Ku?=
- =?us-ascii?Q?iHMqE9qyYRbQOCSh0QN7RuYlEPqnf8hoUDTF1+cxs4UIew0UA++kL3zA29yN?=
- =?us-ascii?Q?5ww7SUEGAswMjRIJ8X+mYomxuV692r4GpDYkaQ2SJG/pvASsdKETM25y9zzp?=
- =?us-ascii?Q?rmJ1YL/leYeUcXaGBcYOdxpQvxZwE3MJqrRZojAvCxz4vef8V0MxbqxJ1pVl?=
- =?us-ascii?Q?b07MVEq5fkRjvPtlX1wpAtQTRtLaZOJ3m4/MbPgPIH+lhE3jFz+dCz63eeZm?=
- =?us-ascii?Q?en5nW8X0/1WrSfPkJ+Ju5B/TBXiEjpu+5y0sQozUZO1EJTN1uh+jWKM0NTHJ?=
- =?us-ascii?Q?TcmVx02Mo2wkf0Ot42MSEQ4RnYEO5qtmgc62YNyTUSJks/e2HFyBi61fGp5c?=
- =?us-ascii?Q?pNMZ0DshRdH8xHBX79aN2KgHa+L5+jjzjXoMksion09sx7Im9t9gb8yMA95H?=
- =?us-ascii?Q?3HFiEKdddQ1oAIwOVyUfHOx7VqgWFGxZuNUdLVghmklUSJvodKKy2nL6I+3i?=
- =?us-ascii?Q?h1JAxkNYMcEmcdrvWwoTQDGYOoRCvtKK3kECuJA1mOwGxDXYUu85eDZ/lZSy?=
- =?us-ascii?Q?Vw6IdIHheJq5kF8UXCv56SNPZ28lsenoQAXRsBdojPfQe9okuV8UzbP1krmN?=
- =?us-ascii?Q?boEmqIompaPYD5QjdZaWb4GVJRwHGFrIRf044RnVqtM+CFfxT5ZbfaVNMgZ2?=
- =?us-ascii?Q?ZN6ed+TStMj/O4aZz/yHnnXhc0CKK1YzZpA74DX59a8g4ax3fjHJpYK1GJCK?=
- =?us-ascii?Q?3aIiEn4X09/+MH2sK7zbDZWpf7/0FLyhXn+njP4nFCO+oyRKMIYRlGf8F9Xb?=
- =?us-ascii?Q?ht8OHYwtFSL/oUvJ5FE4NHsPv340NsbL96oJEMmystiVjs1hvQ7sDhQhGQQU?=
- =?us-ascii?Q?2kgLja5mWaYOiXKZv19ZO6hcM02DRU35jkCcDi3pSUQ8dNzU5RNsTRvpIurx?=
- =?us-ascii?Q?AVxzeRiXld+jp/hdEhS8qPi+9hZ3+HhtzXkADsiMMRbA99ec4q/7PDKKzX25?=
- =?us-ascii?Q?9g=3D=3D?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: 510444e2-7504-473f-7f03-08da7995f88c
-X-MS-Exchange-CrossTenant-AuthSource: MWHPR1101MB2126.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Aug 2022 23:30:25.5735
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: oQOb2MczMTnEjLGtpmHat5WWMbvID6OjlKWxsEwAE5O0NmJc08PdwBgvqLqGwh88GeQCsaNVjU38eZNXHS+SE7Ky+4pfq8aKv3nYXzwBEUI=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW3PR11MB4572
-X-OriginatorOrg: intel.com
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Firefox/91.0 Thunderbird/91.12.0
+Subject: Re: [PATCH RFC 02/15] tools/testing/cxl: Create context for cxl mock
+ device
+Content-Language: en-US
+To: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
+ dan.j.williams@intel.com, bwidawsk@kernel.org, ira.weiny@intel.com,
+ vishal.l.verma@intel.com, alison.schofield@intel.com, dave@stgolabs.net
+References: <165791918718.2491387.4203738301057301285.stgit@djiang5-desk3.ch.intel.com>
+ <165791932409.2491387.9065856569307593223.stgit@djiang5-desk3.ch.intel.com>
+ <20220803173619.00002da7@huawei.com>
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <20220803173619.00002da7@huawei.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Jane Chu wrote:
-> On 8/3/2022 1:53 AM, Ingo Molnar wrote:
-> > 
-> > * Jane Chu <jane.chu@oracle.com> wrote:
-> > 
-> >> With Commit 7917f9cdb503 ("acpi/nfit: rely on mce->misc to determine
-> > 
-> > s/Commit/commit
-> 
-> Maintainers,
-> Would you prefer a v8, or take care the comment upon accepting the patch?
-> 
-> > 
-> >> poison granularity") that changed nfit_handle_mce() callback to report
-> >> badrange according to 1ULL << MCI_MISC_ADDR_LSB(mce->misc), it's been
-> >> discovered that the mce->misc LSB field is 0x1000 bytes, hence injecting
-> >> 2 back-to-back poisons and the driver ends up logging 8 badblocks,
-> >> because 0x1000 bytes is 8 512-byte.
-> >>
-> >> Dan Williams noticed that apei_mce_report_mem_error() hardcode
-> >> the LSB field to PAGE_SHIFT instead of consulting the input
-> >> struct cper_sec_mem_err record.  So change to rely on hardware whenever
-> >> support is available.
-> >>
-> >> Link: https://lore.kernel.org/r/7ed50fd8-521e-cade-77b1-738b8bfb8502@oracle.com
-> >>
-> >> Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-> >> Reviewed-by: Ingo Molnar <mingo@kernel.org>
-> >> Signed-off-by: Jane Chu <jane.chu@oracle.com>
-> >> ---
-> >>   arch/x86/kernel/cpu/mce/apei.c | 13 ++++++++++++-
-> >>   1 file changed, 12 insertions(+), 1 deletion(-)
-> >>
-> >> diff --git a/arch/x86/kernel/cpu/mce/apei.c b/arch/x86/kernel/cpu/mce/apei.c
-> >> index 717192915f28..8ed341714686 100644
-> >> --- a/arch/x86/kernel/cpu/mce/apei.c
-> >> +++ b/arch/x86/kernel/cpu/mce/apei.c
-> >> @@ -29,15 +29,26 @@
-> >>   void apei_mce_report_mem_error(int severity, struct cper_sec_mem_err *mem_err)
-> >>   {
-> >>   	struct mce m;
-> >> +	int lsb;
-> >>   
-> >>   	if (!(mem_err->validation_bits & CPER_MEM_VALID_PA))
-> >>   		return;
-> >>   
-> >> +	/*
-> >> +	 * Even if the ->validation_bits are set for address mask,
-> >> +	 * to be extra safe, check and reject an error radius '0',
-> >> +	 * and fall back to the default page size.
-> >> +	 */
-> >> +	if (mem_err->validation_bits & CPER_MEM_VALID_PA_MASK)
-> >> +		lsb = find_first_bit((void *)&mem_err->physical_addr_mask, PAGE_SHIFT);
-> >> +	else
-> >> +		lsb = PAGE_SHIFT;
-> >> +
-> >>   	mce_setup(&m);
-> >>   	m.bank = -1;
-> >>   	/* Fake a memory read error with unknown channel */
-> >>   	m.status = MCI_STATUS_VAL | MCI_STATUS_EN | MCI_STATUS_ADDRV | MCI_STATUS_MISCV | 0x9f;
-> >> -	m.misc = (MCI_MISC_ADDR_PHYS << 6) | PAGE_SHIFT;
-> >> +	m.misc = (MCI_MISC_ADDR_PHYS << 6) | lsb;
-> > 
-> > LGTM.
-> > 
-> > I suppose this wants to go upstream via the tree the bug came from (NVDIMM
-> > tree? ACPI tree?), or should we pick it up into the x86 tree?
-> 
-> No idea.  Maintainers?
 
-There's no real NVDIMM dependency here, just a general cleanup of how
-APEI error granularities are managed. So I think it is appropriate for
-this to go through the x86 tree via the typical path for mce related
-topics.
+On 8/3/2022 9:36 AM, Jonathan Cameron wrote:
+> On Fri, 15 Jul 2022 14:08:44 -0700
+> Dave Jiang <dave.jiang@intel.com> wrote:
+>
+>> Add context struct for mock device and move lsa under the context. This
+>> allows additional information such as security status and other persistent
+>> security data such as passphrase to be added for the emulated test device.
+>>
+>> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+>> ---
+>>   tools/testing/cxl/test/mem.c |   29 +++++++++++++++++++++++------
+>>   1 file changed, 23 insertions(+), 6 deletions(-)
+>>
+>> diff --git a/tools/testing/cxl/test/mem.c b/tools/testing/cxl/test/mem.c
+>> index 6b9239b2afd4..723378248321 100644
+>> --- a/tools/testing/cxl/test/mem.c
+>> +++ b/tools/testing/cxl/test/mem.c
+>> @@ -9,6 +9,10 @@
+>>   #include <linux/bits.h>
+>>   #include <cxlmem.h>
+>>   
+>> +struct mock_mdev_data {
+>> +	void *lsa;
+>> +};
+>> +
+>>   #define LSA_SIZE SZ_128K
+>>   #define EFFECT(x) (1U << x)
+>>   
+>> @@ -140,7 +144,8 @@ static int mock_id(struct cxl_dev_state *cxlds, struct cxl_mbox_cmd *cmd)
+>>   static int mock_get_lsa(struct cxl_dev_state *cxlds, struct cxl_mbox_cmd *cmd)
+>>   {
+>>   	struct cxl_mbox_get_lsa *get_lsa = cmd->payload_in;
+>> -	void *lsa = dev_get_drvdata(cxlds->dev);
+>> +	struct mock_mdev_data *mdata = dev_get_drvdata(cxlds->dev);
+>> +	void *lsa = mdata->lsa;
+>>   	u32 offset, length;
+>>   
+>>   	if (sizeof(*get_lsa) > cmd->size_in)
+>> @@ -159,7 +164,8 @@ static int mock_get_lsa(struct cxl_dev_state *cxlds, struct cxl_mbox_cmd *cmd)
+>>   static int mock_set_lsa(struct cxl_dev_state *cxlds, struct cxl_mbox_cmd *cmd)
+>>   {
+>>   	struct cxl_mbox_set_lsa *set_lsa = cmd->payload_in;
+>> -	void *lsa = dev_get_drvdata(cxlds->dev);
+>> +	struct mock_mdev_data *mdata = dev_get_drvdata(cxlds->dev);
+>> +	void *lsa = mdata->lsa;
+>>   	u32 offset, length;
+>>   
+>>   	if (sizeof(*set_lsa) > cmd->size_in)
+>> @@ -237,9 +243,12 @@ static int cxl_mock_mbox_send(struct cxl_dev_state *cxlds, struct cxl_mbox_cmd *
+>>   	return rc;
+>>   }
+>>   
+>> -static void label_area_release(void *lsa)
+>> +static void cxl_mock_drvdata_release(void *data)
+>>   {
+>> -	vfree(lsa);
+>> +	struct mock_mdev_data *mdata = data;
+>> +
+>> +	vfree(mdata->lsa);
+>> +	vfree(mdata);
+>>   }
+>>   
+>>   static int cxl_mock_mem_probe(struct platform_device *pdev)
+>> @@ -247,13 +256,21 @@ static int cxl_mock_mem_probe(struct platform_device *pdev)
+>>   	struct device *dev = &pdev->dev;
+>>   	struct cxl_memdev *cxlmd;
+>>   	struct cxl_dev_state *cxlds;
+>> +	struct mock_mdev_data *mdata;
+>>   	void *lsa;
+>>   	int rc;
+>>   
+>> +	mdata = vmalloc(sizeof(*mdata));
+> It's tiny so why vmalloc?  I guess that might become apparent later.
+> devm_kzalloc() should be fine and lead to simpler error handling.
+In my testing I actually realized that this needs to be part of platform 
+data in order for the contents to be "persistent" even the driver is 
+unloaded. So this allocation has moved to cxl_test_init() and managed 
+via platform_device_add_data(). And the function makes a copy of the 
+passed in data rather than taking it as is and that is managed with the 
+platform device lifetime.
+>
+>> +	if (!mdata)
+>> +		return -ENOMEM;
+>> +
+>>   	lsa = vmalloc(LSA_SIZE);
+>> -	if (!lsa)
+>> +	if (!lsa) {
+>> +		vfree(mdata);
+> In general doing this just makes things fragile in the long term. Better to
+> register one devm_add_action_or_reset() for each thing set up (or standard
+> allcoation).
+>
+>>   		return -ENOMEM;
+>> -	rc = devm_add_action_or_reset(dev, label_area_release, lsa);
+>> +	}
+>> +
+>> +	rc = devm_add_action_or_reset(dev, cxl_mock_drvdata_release, mdata);
+>>   	if (rc)
+>>   		return rc;
+>>   	dev_set_drvdata(dev, lsa);
+>>
+>>
