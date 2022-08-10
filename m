@@ -1,30 +1,30 @@
 Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28E004A05
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 670664A08
 	for <nvdimm@lists.linux.dev>; Wed, 10 Aug 2022 23:09:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
   t=1660172975; x=1691708975;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=IgDPZkTj8OWicxyeDb2nka/I4dLrq3fbpj7i9AcVc+0=;
-  b=LkKev9+3ic7TtQvnRj1KJ4yX1B0/osvQTYvTGbTO9iAIA8xhSX1sruOG
-   TyJecItpbay5YpkSM4eDYvzrVxc7iBwBCPPriX/qjPqU75wE4F4KR7I76
-   66uoJWnmPQfibrTgR+PQNAejv2nXVXGjBmmn+E6aAcBlos8TpSrS4nVTa
-   RaK3uC9r9GadkIH3gdqPL9zMfUhPa4zXRGhZASPr6/msvOOlWAbpExqU2
-   uoYNQoooyXUIqigstDKpw5R0drGqm7EV5DsuJAZam48dgWnQ3xZiKXkJw
-   rNfkDonJ0pbDMlVAWzvSIaB1zKvCGk66UXCEqecjsCUoa7FBfqq1iJHex
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=hWdnQGSa5Du+Yzjo1XKDR7Gzv21wnxh5foUJXYJfm4I=;
+  b=mp64L04gPyaA+v9HKqRTOHIFsPzJG75qLZC6h12mKW6wNApNdtXcoYqw
+   z3N1tltAeiJHhokJMMoSjb/r8mkGPbWFHizh+a7nC1Z/feXh0FCAfWXI+
+   W9dsTUQ727pjwCrUH2sNVMjguo4UIfcKy9rgTnArhpJBywC1+q/vqomHg
+   wlSYuh405OvUfzZzWX0iqNFqGm7Z06BRuZZodced8dJapCtCEdWFtMOdD
+   ohvCGpM8UnV2xDQxPJGlLCqUcYymQzicGghawBnyDmIXT6NvlMvTYJIzW
+   PA8q0zz2Nq7huBPgLLTa8IMHl1DLyBRftANfR4cmMjqdiyrSc3KJfHVYR
    A==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10435"; a="292471270"
+X-IronPort-AV: E=McAfee;i="6400,9594,10435"; a="292471272"
 X-IronPort-AV: E=Sophos;i="5.93,228,1654585200"; 
-   d="scan'208";a="292471270"
+   d="scan'208";a="292471272"
 Received: from orsmga006.jf.intel.com ([10.7.209.51])
   by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Aug 2022 16:09:32 -0700
 X-IronPort-AV: E=Sophos;i="5.93,228,1654585200"; 
-   d="scan'208";a="581429410"
+   d="scan'208";a="581429427"
 Received: from maughenb-mobl.amr.corp.intel.com (HELO vverma7-desk1.intel.com) ([10.209.94.5])
-  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Aug 2022 16:09:30 -0700
+  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Aug 2022 16:09:31 -0700
 From: Vishal Verma <vishal.l.verma@intel.com>
 To: <linux-cxl@vger.kernel.org>
 Cc: <nvdimm@lists.linux.dev>,
@@ -33,143 +33,94 @@ Cc: <nvdimm@lists.linux.dev>,
 	Ira Weiny <ira.weiny@intel.com>,
 	Dave Jiang <dave.jiang@intel.com>,
 	Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v2 00/10] cxl: add region management
-Date: Wed, 10 Aug 2022 17:09:04 -0600
-Message-Id: <20220810230914.549611-1-vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v2 02/10] cxl/port: Consolidate the debug option in cxl-port man pages
+Date: Wed, 10 Aug 2022 17:09:06 -0600
+Message-Id: <20220810230914.549611-3-vishal.l.verma@intel.com>
 X-Mailer: git-send-email 2.37.1
+In-Reply-To: <20220810230914.549611-1-vishal.l.verma@intel.com>
+References: <20220810230914.549611-1-vishal.l.verma@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=5805; h=from:subject; bh=IgDPZkTj8OWicxyeDb2nka/I4dLrq3fbpj7i9AcVc+0=; b=owGbwMvMwCXGf25diOft7jLG02pJDElfrKb8i34rxxl4REllksfUPQ49s+t0LtvEK7VEezyRyD6f XaXYUcrCIMbFICumyPJ3z0fGY3Lb83kCExxh5rAygQxh4OIUgIkkVzAyzH3+ycu7ccvik5bWcncnh+ ud2XIqr23+6a//uufsyfm38SDDPwupGed7tr1j+XR0+YRHyzc8FfC39ktm5VJZ7mJ5W9EgnwcA
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2436; h=from:subject; bh=hWdnQGSa5Du+Yzjo1XKDR7Gzv21wnxh5foUJXYJfm4I=; b=owGbwMvMwCXGf25diOft7jLG02pJDElfrGbYp8U4iv6d8OrDDf7myRHuy2+KWEeUnK0LVf8+4fma MOUHHaUsDGJcDLJiiix/93xkPCa3PZ8nMMERZg4rE8gQBi5OAZjIrOmMDP/q9rzLTjq/48UulbfZCS dX/1rNe0fH716PlJ7qlbLKU86MDAc2znVtq80q88/xUFkR9lDN03PBm2P12evNd+abz1l3kAkA
 X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp; fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
 Content-Transfer-Encoding: 8bit
 
-Changes since v1[1]:
-- Collect review tags
-- Fix order of setting region size vs UUID (Dan)
-- Rename region_{commit,decommit} to region_decode{commit,reset} everywhere (Dan)
-- Add a -b <bus> option to all region management commands
-- Add a cxl-create-region unit test
-- Use walk_children pattern for root decoders vs. regions (Dan)
-- Add bus, port, and (root) decoder based filters for regions (Dan)
-- Add a 'REGIONS' section to the libcxl(3) documentation (Dan)
-- s/--interleave-ways/--ways/ and
-  s/interleave-granularity/--granularity/ (Dan)
-- Rename and clarify memdev_match_set_size() with a comment (Dan)
-- Remove a double init in memdev_match_set_size() (Dan)
-- Rework granularity determination (Dan)
-- Ensure ep_decoder is free before changing its mode (Dan)
-- Fix a mid-series compile breakage in region_action() (Dan)
-- Fix missing whitespace in region_action() (Dan)
-- Refactor region_action for too much indentation (Dan)
-- Save error state from multi-region operations in region_action()
-- Free leaky region objects (when the parent decoder is freed)
-- Consider root decoder's available size before creating a region (Dan)
+In preparation for additional commands that implement the --debug
+option, consolidate the option description from the cxl-port man pages
+into an include.
 
+The port man pages also mentioned the debug option requiring a build
+with debug enabled, which wasn't true - so remove that part.
 
-[1]: https://lore.kernel.org/linux-cxl/20220715062550.789736-1-vishal.l.verma@intel.com/
-
+Cc: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
-
-Introduce the first cut at a 'cxl create-region' command, which uses the
-ABI merged in the kernel in [2], and builds on the create-region foundation
-laid out in [3].
-
-This introduces libcxl objects for regions and their memdev mappings,
-adds listing support for them, and libcxl APIs to create, enable,
-disable, and destroy regions. These are consumed by respective cxl-cli
-commands to perform the same region management operations.
-
-The 'cxl create-region' command deserves a bit more detail. Its current
-version can be considered a fundamental 'plumbing' implementation. It
-allows, and in some cases, requires the user to specify the parameters
-for the region being created. Future enhancements to this will allow a
-simple 'cxl create-region' invocation to automatically pick suitable
-root decoders, memdev endpoints, and interleave settings to create a
-maximally sized and interleaved region.
-
-Today, the create-region command requires the following from the user:
-
-  -d <root decoder> : the root decoder (CFMWS window) under which to
-  create the region
-
-  -m or -e <targets>: the memdev or endpoint decoder targets that will
-  form the new region
-
-It can pick the following settings automatically (though the user can
-also override these if desired):
-
-  -w : interleave ways - picked based on the number of memdev / endpoint
-  decoder targets supplied
-
-  -g : interleave granularity - selects the interleave granularity
-  advertised by the root decoder
-
-  -t : type of region - defaults to pmem. The ram (volatile) type is not
-  supported yet.
-
-  -s : size of region - deduced based on sizes of the specified targets
-
-[2]: https://git.kernel.org/torvalds/c/c235698355fa94df7073b51befda7d4be00a0e23
-[3]: https://lore.kernel.org/linux-cxl/165781810717.1555691.1411727384567016588.stgit@dwillia2-xfh.jf.intel.com/
-
-
-Vishal Verma (10):
-  libcxl: add a depth attribute to cxl_port
-  cxl/port: Consolidate the debug option in cxl-port man pages
-  libcxl: Introduce libcxl region and mapping objects
-  cxl-cli: add region listing support
-  libcxl: add low level APIs for region creation
-  cxl: add a 'create-region' command
-  cxl: add commands to {enable,disable,destroy}-region
-  cxl/list: make memdevs and regions the default listing
-  test: add a cxl-create-region test
-  cxl/decoder: add a max_available_extent attribute
-
- Documentation/cxl/bus-option.txt         |   5 +
- Documentation/cxl/cxl-create-region.txt  | 114 +++
- Documentation/cxl/cxl-destroy-region.txt |  41 ++
- Documentation/cxl/cxl-disable-port.txt   |   5 +-
- Documentation/cxl/cxl-disable-region.txt |  36 +
- Documentation/cxl/cxl-enable-port.txt    |   5 +-
- Documentation/cxl/cxl-enable-region.txt  |  36 +
- Documentation/cxl/cxl-list.txt           |  13 +-
- Documentation/cxl/debug-option.txt       |   4 +
- Documentation/cxl/decoder-option.txt     |   6 +
- Documentation/cxl/lib/libcxl.txt         |  69 ++
- Documentation/cxl/region-description.txt |   7 +
- cxl/lib/private.h                        |  38 +
- cxl/lib/libcxl.c                         | 889 ++++++++++++++++++++++-
- cxl/builtin.h                            |   4 +
- cxl/filter.h                             |   6 +
- cxl/json.h                               |   5 +
- cxl/libcxl.h                             |  67 +-
- cxl/cxl.c                                |   4 +
- cxl/filter.c                             | 158 +++-
- cxl/json.c                               | 131 ++++
- cxl/list.c                               |  26 +-
- cxl/region.c                             | 797 ++++++++++++++++++++
- .clang-format                            |   2 +
- Documentation/cxl/meson.build            |   7 +
- cxl/lib/libcxl.sym                       |  37 +
- cxl/meson.build                          |   1 +
- test/cxl-create-region.sh                | 126 ++++
- test/meson.build                         |   2 +
- 29 files changed, 2598 insertions(+), 43 deletions(-)
- create mode 100644 Documentation/cxl/bus-option.txt
- create mode 100644 Documentation/cxl/cxl-create-region.txt
- create mode 100644 Documentation/cxl/cxl-destroy-region.txt
- create mode 100644 Documentation/cxl/cxl-disable-region.txt
- create mode 100644 Documentation/cxl/cxl-enable-region.txt
+ Documentation/cxl/cxl-disable-port.txt | 5 +----
+ Documentation/cxl/cxl-enable-port.txt  | 5 +----
+ Documentation/cxl/debug-option.txt     | 4 ++++
+ Documentation/cxl/meson.build          | 1 +
+ 4 files changed, 7 insertions(+), 8 deletions(-)
  create mode 100644 Documentation/cxl/debug-option.txt
- create mode 100644 Documentation/cxl/decoder-option.txt
- create mode 100644 Documentation/cxl/region-description.txt
- create mode 100644 cxl/region.c
- create mode 100644 test/cxl-create-region.sh
 
+diff --git a/Documentation/cxl/cxl-disable-port.txt b/Documentation/cxl/cxl-disable-port.txt
+index ac56f20..7a22efc 100644
+--- a/Documentation/cxl/cxl-disable-port.txt
++++ b/Documentation/cxl/cxl-disable-port.txt
+@@ -30,10 +30,7 @@ OPTIONS
+ 	firmware and disabling an active device is akin to force removing memory
+ 	from a running system.
+ 
+---debug::
+-	If the cxl tool was built with debug disabled, turn on debug
+-	messages.
+-
++include::debug-option.txt[]
+ 
+ include::../copyright.txt[]
+ 
+diff --git a/Documentation/cxl/cxl-enable-port.txt b/Documentation/cxl/cxl-enable-port.txt
+index 9a37cef..50b53d1 100644
+--- a/Documentation/cxl/cxl-enable-port.txt
++++ b/Documentation/cxl/cxl-enable-port.txt
+@@ -31,10 +31,7 @@ OPTIONS
+ 	memdev is only enabled after all CXL ports in its device topology
+ 	ancestry are enabled.
+ 
+---debug::
+-	If the cxl tool was built with debug enabled, turn on debug
+-	messages.
+-
++include::debug-option.txt[]
+ 
+ include::../copyright.txt[]
+ 
+diff --git a/Documentation/cxl/debug-option.txt b/Documentation/cxl/debug-option.txt
+new file mode 100644
+index 0000000..70b922f
+--- /dev/null
++++ b/Documentation/cxl/debug-option.txt
+@@ -0,0 +1,4 @@
++// SPDX-License-Identifier: GPL-2.0
++
++--debug::
++	Turn on additional debug messages including library debug.
+diff --git a/Documentation/cxl/meson.build b/Documentation/cxl/meson.build
+index d019dfc..423be90 100644
+--- a/Documentation/cxl/meson.build
++++ b/Documentation/cxl/meson.build
+@@ -22,6 +22,7 @@ filedeps = [
+   '../copyright.txt',
+   'memdev-option.txt',
+   'labels-options.txt',
++  'debug-option.txt',
+ ]
+ 
+ cxl_manpages = [
 -- 
 2.37.1
 
