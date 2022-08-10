@@ -1,30 +1,30 @@
 Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 935684A28
-	for <nvdimm@lists.linux.dev>; Wed, 10 Aug 2022 23:09:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81DEC4C6D
+	for <nvdimm@lists.linux.dev>; Wed, 10 Aug 2022 23:09:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1660172978; x=1691708978;
+  t=1660172980; x=1691708980;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=ll4sf0upnKEMkgqJbhm+w9VOWthNvFQnSAhuMYPnYTg=;
-  b=JhV+zbAUivdpjcQNyoKlpRdaImhBlkqEIqIjtX1GikBJTnmhEhnx5fcQ
-   rwnLKD/21sieOc/NFAQRpDuEwTXsVNndW0bo+leBTcbwnbvkQeIdxTo7V
-   6b+bLeEnGLYKy6wi17bw0bWc9NiyRimPVq4Vhg+nQfud10VnNHZ8Q9sDV
-   8qCk9QUuz4tqPTTXdl3IzEMW4rGl9Ibse1DxthcOHEf0SZ5bhe1VczZgB
-   XK9AtOzACiqbX2w0Dzd1pmfQtQR0eATOESupQfnTLFetTovUyabndS4dG
-   r150YLot6RlHIVhxUZ97PN5Ap0CSbFccNIx3iNQcGGQBY/gv0HcYFQolQ
-   Q==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10435"; a="292471275"
+  bh=m0wVT4V47JTEsgznmK65WPkAhggA+UZPawRDfDIzfpY=;
+  b=mCwgiPZ9krSWbZrbqdyD9UKVxNvIGkZIzGOV6M65FKWzToKpyDCS3FyG
+   Q+NjA8JtemHzUzEjEpS1nFoAZ89Xe2sIGCcOsCeP5qyOZ05gNqkDAstwR
+   vCHUGWOW/OelkQ2yKyLnEeG3hrx8P2PdNgqiw0aSKsa2Jsa0VAcmw5tHd
+   dP907bIm2Ocr1vZ16FiN1OdbFoIWL3OEkgZLCFuxJL0lREZ7Lwv1i2x6e
+   UYMM+Z/RoPNSGjXoMwaz5BJVT0iYY1JjkS94pueQqNRHrBAdnbSyFWKfc
+   g4OtiilI+TMLGV8T0pG+Mg/p30n54b47KMwibW9jN0OyMQge/Dafu11d6
+   g==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10435"; a="292471277"
 X-IronPort-AV: E=Sophos;i="5.93,228,1654585200"; 
-   d="scan'208";a="292471275"
+   d="scan'208";a="292471277"
 Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Aug 2022 16:09:33 -0700
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Aug 2022 16:09:35 -0700
 X-IronPort-AV: E=Sophos;i="5.93,228,1654585200"; 
-   d="scan'208";a="581429438"
+   d="scan'208";a="581429451"
 Received: from maughenb-mobl.amr.corp.intel.com (HELO vverma7-desk1.intel.com) ([10.209.94.5])
-  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Aug 2022 16:09:32 -0700
+  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Aug 2022 16:09:33 -0700
 From: Vishal Verma <vishal.l.verma@intel.com>
 To: <linux-cxl@vger.kernel.org>
 Cc: <nvdimm@lists.linux.dev>,
@@ -33,9 +33,9 @@ Cc: <nvdimm@lists.linux.dev>,
 	Ira Weiny <ira.weiny@intel.com>,
 	Dave Jiang <dave.jiang@intel.com>,
 	Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v2 05/10] libcxl: add low level APIs for region creation
-Date: Wed, 10 Aug 2022 17:09:09 -0600
-Message-Id: <20220810230914.549611-6-vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v2 07/10] cxl: add commands to {enable,disable,destroy}-region
+Date: Wed, 10 Aug 2022 17:09:11 -0600
+Message-Id: <20220810230914.549611-8-vishal.l.verma@intel.com>
 X-Mailer: git-send-email 2.37.1
 In-Reply-To: <20220810230914.549611-1-vishal.l.verma@intel.com>
 References: <20220810230914.549611-1-vishal.l.verma@intel.com>
@@ -45,640 +45,460 @@ List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=20891; h=from:subject; bh=ll4sf0upnKEMkgqJbhm+w9VOWthNvFQnSAhuMYPnYTg=; b=owGbwMvMwCXGf25diOft7jLG02pJDElfrGamyclmPpxqY3pm4v2FNVVb33YpBgpd4BUNPKuQZnDZ 5sK8jlIWBjEuBlkxRZa/ez4yHpPbns8TmOAIM4eVCWQIAxenAEzEk5WR4Rzb21sWP/bsdpvYF5T0c9 bn0nkurCm7fL8J8WcbHag7toaRoX+HaVym6duq4+9maXX8+XytOXzrYjOtLtf2Z0c2PczbxwMA
+X-Developer-Signature: v=1; a=openpgp-sha256; l=12123; h=from:subject; bh=m0wVT4V47JTEsgznmK65WPkAhggA+UZPawRDfDIzfpY=; b=owGbwMvMwCXGf25diOft7jLG02pJDElfrGZ+e5O3qzHoTKbA8henn+tvzt9sx/Xhhr9fxUYHizXR hy2iO0pZGMS4GGTFFFn+7vnIeExuez5PYIIjzBxWJpAhDFycAjCRfDWG/2lxq08HBeoe0HfIVAuxFk 26HCPOFvtoh9aRdaeezbV6WczwV5i1eU90jyjPod9aSvkx3U/OX516xG5jz0nB7kSFhMe6PAA=
 X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp; fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
 Content-Transfer-Encoding: 8bit
 
-Add libcxl APIs to create a region under a given root decoder, and to
-set different attributes for the new region. These allow setting the
-size, interleave_ways, interleave_granularity, uuid, and the target
-devices for the newly minted cxl_region object.
+With a template from cxl-create-region in place, add its friends:
+
+  cxl enable-region
+  cxl disable-region
+  cxl destroy-region
 
 Cc: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- Documentation/cxl/lib/libcxl.txt |  69 ++++++
- cxl/lib/private.h                |   2 +
- cxl/lib/libcxl.c                 | 377 ++++++++++++++++++++++++++++++-
- cxl/libcxl.h                     |  23 +-
- cxl/lib/libcxl.sym               |  16 ++
- 5 files changed, 484 insertions(+), 3 deletions(-)
+ Documentation/cxl/cxl-destroy-region.txt |  41 +++++
+ Documentation/cxl/cxl-disable-region.txt |  36 +++++
+ Documentation/cxl/cxl-enable-region.txt  |  36 +++++
+ Documentation/cxl/decoder-option.txt     |   6 +
+ cxl/builtin.h                            |   3 +
+ cxl/cxl.c                                |   3 +
+ cxl/region.c                             | 193 ++++++++++++++++++++++-
+ Documentation/cxl/meson.build            |   4 +
+ 8 files changed, 321 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/cxl/cxl-destroy-region.txt
+ create mode 100644 Documentation/cxl/cxl-disable-region.txt
+ create mode 100644 Documentation/cxl/cxl-enable-region.txt
+ create mode 100644 Documentation/cxl/decoder-option.txt
 
-diff --git a/Documentation/cxl/lib/libcxl.txt b/Documentation/cxl/lib/libcxl.txt
-index 7a38ce4..c3a8f36 100644
---- a/Documentation/cxl/lib/libcxl.txt
-+++ b/Documentation/cxl/lib/libcxl.txt
-@@ -508,6 +508,75 @@ device to represent the root of a PCI device hierarchy. The
- cxl_target_get_physical_node() helper returns the device name of that
- companion object in the PCI hierarchy.
+diff --git a/Documentation/cxl/cxl-destroy-region.txt b/Documentation/cxl/cxl-destroy-region.txt
+new file mode 100644
+index 0000000..74f4093
+--- /dev/null
++++ b/Documentation/cxl/cxl-destroy-region.txt
+@@ -0,0 +1,41 @@
++// SPDX-License-Identifier: GPL-2.0
++
++cxl-destroy-region(1)
++=====================
++
++NAME
++----
++cxl-destroy-region - destroy specified region(s).
++
++SYNOPSIS
++--------
++[verse]
++'cxl destroy-region <region> [<options>]'
++
++include::region-description.txt[]
++
++EXAMPLE
++-------
++----
++# cxl destroy-region all
++destroyed 2 regions
++----
++
++OPTIONS
++-------
++include::bus-option.txt[]
++
++-f::
++--force::
++	Force a destroy operation even if the region is active.
++	This will attempt to disable the region first.
++
++include::decoder-option.txt[]
++
++include::debug-option.txt[]
++
++include::../copyright.txt[]
++
++SEE ALSO
++--------
++linkcxl:cxl-list[1], linkcxl:cxl-create-region[1]
+diff --git a/Documentation/cxl/cxl-disable-region.txt b/Documentation/cxl/cxl-disable-region.txt
+new file mode 100644
+index 0000000..6a39aee
+--- /dev/null
++++ b/Documentation/cxl/cxl-disable-region.txt
+@@ -0,0 +1,36 @@
++// SPDX-License-Identifier: GPL-2.0
++
++cxl-disable-region(1)
++=====================
++
++NAME
++----
++cxl-disable-region - disable specified region(s).
++
++SYNOPSIS
++--------
++[verse]
++'cxl disable-region <region> [<options>]'
++
++include::region-description.txt[]
++
++EXAMPLE
++-------
++----
++# cxl disable-region all
++disabled 2 regions
++----
++
++OPTIONS
++-------
++include::bus-option.txt[]
++
++include::decoder-option.txt[]
++
++include::debug-option.txt[]
++
++include::../copyright.txt[]
++
++SEE ALSO
++--------
++linkcxl:cxl-list[1], linkcxl:cxl-enable-region[1]
+diff --git a/Documentation/cxl/cxl-enable-region.txt b/Documentation/cxl/cxl-enable-region.txt
+new file mode 100644
+index 0000000..f6ef00f
+--- /dev/null
++++ b/Documentation/cxl/cxl-enable-region.txt
+@@ -0,0 +1,36 @@
++// SPDX-License-Identifier: GPL-2.0
++
++cxl-enable-region(1)
++=====================
++
++NAME
++----
++cxl-enable-region - enable specified region(s).
++
++SYNOPSIS
++--------
++[verse]
++'cxl enable-region <region> [<options>]'
++
++include::region-description.txt[]
++
++EXAMPLE
++-------
++----
++# cxl enable-region all
++enabled 2 regions
++----
++
++OPTIONS
++-------
++include::bus-option.txt[]
++
++include::decoder-option.txt[]
++
++include::debug-option.txt[]
++
++include::../copyright.txt[]
++
++SEE ALSO
++--------
++linkcxl:cxl-list[1], linkcxl:cxl-disable-region[1]
+diff --git a/Documentation/cxl/decoder-option.txt b/Documentation/cxl/decoder-option.txt
+new file mode 100644
+index 0000000..e638d6e
+--- /dev/null
++++ b/Documentation/cxl/decoder-option.txt
+@@ -0,0 +1,6 @@
++// SPDX-License-Identifier: GPL-2.0
++
++-d::
++--decoder=::
++	The root decoder to limit the operation to. Only regions that are
++	children of the specified decoder will be acted upon.
+diff --git a/cxl/builtin.h b/cxl/builtin.h
+index 843bada..b28c221 100644
+--- a/cxl/builtin.h
++++ b/cxl/builtin.h
+@@ -19,4 +19,7 @@ int cmd_enable_port(int argc, const char **argv, struct cxl_ctx *ctx);
+ int cmd_set_partition(int argc, const char **argv, struct cxl_ctx *ctx);
+ int cmd_disable_bus(int argc, const char **argv, struct cxl_ctx *ctx);
+ int cmd_create_region(int argc, const char **argv, struct cxl_ctx *ctx);
++int cmd_enable_region(int argc, const char **argv, struct cxl_ctx *ctx);
++int cmd_disable_region(int argc, const char **argv, struct cxl_ctx *ctx);
++int cmd_destroy_region(int argc, const char **argv, struct cxl_ctx *ctx);
+ #endif /* _CXL_BUILTIN_H_ */
+diff --git a/cxl/cxl.c b/cxl/cxl.c
+index f0afcfe..dd1be7a 100644
+--- a/cxl/cxl.c
++++ b/cxl/cxl.c
+@@ -73,6 +73,9 @@ static struct cmd_struct commands[] = {
+ 	{ "set-partition", .c_fn = cmd_set_partition },
+ 	{ "disable-bus", .c_fn = cmd_disable_bus },
+ 	{ "create-region", .c_fn = cmd_create_region },
++	{ "enable-region", .c_fn = cmd_enable_region },
++	{ "disable-region", .c_fn = cmd_disable_region },
++	{ "destroy-region", .c_fn = cmd_destroy_region },
+ };
  
-+==== REGIONS
-+A CXL region is composed of one or more slices of CXL memdevs, with configurable
-+interleave settings - both the number of interleave ways, and the interleave
-+granularity. In terms of hierarchy, it is the child of a CXL root decoder. A root
-+decoder (recall that this corresponds to an ACPI CEDT.CFMWS 'window'), may have
-+multiple chile regions, but a region is strictly tied to one root decoder.
-+
-+A region also defines a set of mappings which are slices of capacity on a memdev,
-+each represented by an endpoint decoder.
-+
-+===== REGION: Enumeration
-+----
-+struct cxl_region *cxl_region_get_first(struct cxl_decoder *decoder);
-+struct cxl_region *cxl_region_get_next(struct cxl_region *region);
-+
-+#define cxl_region_foreach(decoder, region)                                    \
-+	for (region = cxl_region_get_first(decoder); region != NULL;           \
-+	     region = cxl_region_get_next(region))
-+
-+#define cxl_region_foreach_safe(decoder, region, _region)                      \
-+	for (region = cxl_region_get_first(decoder),                           \
-+	     _region = region ? cxl_region_get_next(region) : NULL;            \
-+	     region != NULL;                                                   \
-+	     region = _region,                                                 \
-+	     _region = _region ? cxl_region_get_next(_region) : NULL)
-+----
-+
-+===== REGION: Attributes
-+----
-+int cxl_region_get_id(struct cxl_region *region);
-+const char *cxl_region_get_devname(struct cxl_region *region);
-+void cxl_region_get_uuid(struct cxl_region *region, uuid_t uu);
-+unsigned long long cxl_region_get_size(struct cxl_region *region);
-+unsigned long long cxl_region_get_resource(struct cxl_region *region);
-+unsigned int cxl_region_get_interleave_ways(struct cxl_region *region);
-+unsigned int cxl_region_get_interleave_granularity(struct cxl_region *region);
-+struct cxl_decoder *cxl_region_get_target_decoder(struct cxl_region *region,
-+						  int position);
-+int cxl_region_set_size(struct cxl_region *region, unsigned long long size);
-+int cxl_region_set_uuid(struct cxl_region *region, uuid_t uu);
-+int cxl_region_set_interleave_ways(struct cxl_region *region,
-+				   unsigned int ways);
-+int cxl_region_set_interleave_granularity(struct cxl_region *region,
-+					  unsigned int granularity);
-+int cxl_region_set_target(struct cxl_region *region, int position,
-+			  struct cxl_decoder *decoder);
-+int cxl_region_clear_target(struct cxl_region *region, int position);
-+int cxl_region_clear_all_targets(struct cxl_region *region);
-+int cxl_region_decode_commit(struct cxl_region *region);
-+int cxl_region_decode_reset(struct cxl_region *region);
-+----
-+
-+A region's resource attribute is the Host Physical Address at which the region's
-+address space starts. The region's address space is a subset of the parent root
-+decoder's address space.
-+
-+The interleave ways is the number of component memdevs participating in the
-+region.
-+
-+The interleave granularity depends on the root decoder's granularity, and must
-+follow the interleave math rules defined in the CXL spec.
-+
-+Regions have a list of targets 0..N, which are programmed with the name of an
-+endpoint decoder under each participating memdev.
-+
-+The 'decode_commit' and 'decode_reset' attributes reserve and free DPA space
-+on a given memdev by allocating an endpoint decoder, and programming it based
-+on the region's interleave geometry.
-+
- include::../../copyright.txt[]
+ int main(int argc, const char **argv)
+diff --git a/cxl/region.c b/cxl/region.c
+index 8f455ab..3f83dd4 100644
+--- a/cxl/region.c
++++ b/cxl/region.c
+@@ -46,6 +46,9 @@ struct parsed_params {
  
- SEE ALSO
-diff --git a/cxl/lib/private.h b/cxl/lib/private.h
-index da49a6c..8619bb1 100644
---- a/cxl/lib/private.h
-+++ b/cxl/lib/private.h
-@@ -110,6 +110,8 @@ struct cxl_decoder {
- 	int nr_targets;
- 	int id;
- 	enum cxl_decoder_mode mode;
-+	unsigned int interleave_ways;
-+	unsigned int interleave_granularity;
- 	bool pmem_capable;
- 	bool volatile_capable;
- 	bool mem_capable;
-diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
-index 8dd804c..b4d7890 100644
---- a/cxl/lib/libcxl.c
-+++ b/cxl/lib/libcxl.c
-@@ -17,6 +17,7 @@
- #include <ccan/minmax/minmax.h>
- #include <ccan/array_size/array_size.h>
- #include <ccan/short_types/short_types.h>
-+#include <ccan/container_of/container_of.h>
+ enum region_actions {
+ 	ACTION_CREATE,
++	ACTION_ENABLE,
++	ACTION_DISABLE,
++	ACTION_DESTROY,
+ };
  
- #include <util/log.h>
- #include <util/list.h>
-@@ -412,6 +413,39 @@ CXL_EXPORT int cxl_region_enable(struct cxl_region *region)
- 	return 0;
+ static struct log_ctx rl;
+@@ -81,7 +84,22 @@ static const struct option create_options[] = {
+ 	OPT_END(),
+ };
+ 
++static const struct option enable_options[] = {
++	BASE_OPTIONS(),
++	OPT_END(),
++};
+ 
++static const struct option disable_options[] = {
++	BASE_OPTIONS(),
++	OPT_END(),
++};
++
++static const struct option destroy_options[] = {
++	BASE_OPTIONS(),
++	OPT_BOOLEAN('f', "force", &param.force,
++		    "destroy region even if currently active"),
++	OPT_END(),
++};
+ 
+ static int parse_create_options(int argc, const char **argv,
+ 				struct parsed_params *p)
+@@ -563,12 +581,122 @@ err_delete:
+ 	return rc;
  }
  
-+static int cxl_region_delete_name(struct cxl_decoder *decoder,
-+				  const char *devname)
-+{
-+	struct cxl_ctx *ctx = cxl_decoder_get_ctx(decoder);
-+	char *path = decoder->dev_buf;
-+	int rc;
-+
-+	sprintf(path, "%s/delete_region", decoder->dev_path);
-+	rc = sysfs_write_attr(ctx, path, devname);
-+	if (rc != 0) {
-+		err(ctx, "error deleting region: %s\n", strerror(-rc));
-+		return rc;
-+	}
-+	return 0;
-+}
-+
-+CXL_EXPORT int cxl_region_delete(struct cxl_region *region)
-+{
-+	struct cxl_decoder *decoder = cxl_region_get_decoder(region);
-+	const char *devname = cxl_region_get_devname(region);
-+	int rc;
-+
-+	if (cxl_region_is_enabled(region))
-+		return -EBUSY;
-+
-+	rc = cxl_region_delete_name(decoder, devname);
-+	if (rc != 0)
-+		return rc;
-+
-+	free_region(region);
-+	return 0;
-+}
-+
- static void *add_cxl_region(void *parent, int id, const char *cxlregion_base)
- {
- 	const char *devname = devpath_to_devname(cxlregion_base);
-@@ -589,6 +623,258 @@ cxl_region_get_interleave_granularity(struct cxl_region *region)
- 	return region->interleave_granularity;
- }
- 
-+CXL_EXPORT struct cxl_decoder *
-+cxl_region_get_target_decoder(struct cxl_region *region, int position)
++static int destroy_region(struct cxl_region *region)
 +{
 +	const char *devname = cxl_region_get_devname(region);
-+	struct cxl_ctx *ctx = cxl_region_get_ctx(region);
-+	int len = region->buf_len, rc;
-+	char *path = region->dev_buf;
-+	struct cxl_decoder *decoder;
-+	char buf[SYSFS_ATTR_SIZE];
-+
-+	if (snprintf(path, len, "%s/target%d", region->dev_path, position) >=
-+	    len) {
-+		err(ctx, "%s: buffer too small!\n", devname);
-+		return NULL;
-+	}
-+
-+	rc = sysfs_read_attr(ctx, path, buf);
-+	if (rc < 0) {
-+		err(ctx, "%s: error reading target%d: %s\n", devname,
-+		    position, strerror(-rc));
-+		return NULL;
-+	}
-+
-+	decoder = cxl_decoder_get_by_name(ctx, buf);
-+	if (!decoder) {
-+		err(ctx, "%s: error locating decoder for target%d\n", devname,
-+		    position);
-+		return NULL;
-+	}
-+	return decoder;
-+}
-+
-+CXL_EXPORT int cxl_region_set_size(struct cxl_region *region,
-+				   unsigned long long size)
-+{
-+	const char *devname = cxl_region_get_devname(region);
-+	struct cxl_ctx *ctx = cxl_region_get_ctx(region);
-+	int len = region->buf_len, rc;
-+	char *path = region->dev_buf;
-+	char buf[SYSFS_ATTR_SIZE];
-+
-+	if (size == 0) {
-+		dbg(ctx, "%s: cannot use %s to delete a region\n", __func__,
-+		    devname);
-+		return -EINVAL;
-+	}
-+
-+	if (snprintf(path, len, "%s/size", region->dev_path) >= len) {
-+		err(ctx, "%s: buffer too small!\n", devname);
-+		return -ENXIO;
-+	}
-+
-+	sprintf(buf, "%#llx\n", size);
-+	rc = sysfs_write_attr(ctx, path, buf);
-+	if (rc < 0)
-+		return rc;
-+
-+	region->size = size;
-+
-+	return 0;
-+}
-+
-+CXL_EXPORT int cxl_region_set_uuid(struct cxl_region *region, uuid_t uu)
-+{
-+	const char *devname = cxl_region_get_devname(region);
-+	struct cxl_ctx *ctx = cxl_region_get_ctx(region);
-+	int len = region->buf_len, rc;
-+	char *path = region->dev_buf;
-+	char uuid[SYSFS_ATTR_SIZE];
-+
-+	if (snprintf(path, len, "%s/uuid", region->dev_path) >= len) {
-+		err(ctx, "%s: buffer too small!\n", devname);
-+		return -ENXIO;
-+	}
-+
-+	uuid_unparse(uu, uuid);
-+	rc = sysfs_write_attr(ctx, path, uuid);
-+	if (rc != 0)
-+		return rc;
-+	memcpy(region->uuid, uu, sizeof(uuid_t));
-+	return 0;
-+}
-+
-+CXL_EXPORT int cxl_region_set_interleave_ways(struct cxl_region *region,
-+					      unsigned int ways)
-+{
-+	const char *devname = cxl_region_get_devname(region);
-+	struct cxl_ctx *ctx = cxl_region_get_ctx(region);
-+	int len = region->buf_len, rc;
-+	char *path = region->dev_buf;
-+	char buf[SYSFS_ATTR_SIZE];
-+
-+	if (snprintf(path, len, "%s/interleave_ways",
-+		     region->dev_path) >= len) {
-+		err(ctx, "%s: buffer too small!\n", devname);
-+		return -ENXIO;
-+	}
-+
-+	sprintf(buf, "%u\n", ways);
-+	rc = sysfs_write_attr(ctx, path, buf);
-+	if (rc < 0)
-+		return rc;
-+
-+	region->interleave_ways = ways;
-+
-+	return 0;
-+}
-+
-+CXL_EXPORT int cxl_region_set_interleave_granularity(struct cxl_region *region,
-+						     unsigned int granularity)
-+{
-+	const char *devname = cxl_region_get_devname(region);
-+	struct cxl_ctx *ctx = cxl_region_get_ctx(region);
-+	int len = region->buf_len, rc;
-+	char *path = region->dev_buf;
-+	char buf[SYSFS_ATTR_SIZE];
-+
-+	if (snprintf(path, len, "%s/interleave_granularity",
-+		     region->dev_path) >= len) {
-+		err(ctx, "%s: buffer too small!\n", devname);
-+		return -ENXIO;
-+	}
-+
-+	sprintf(buf, "%u\n", granularity);
-+	rc = sysfs_write_attr(ctx, path, buf);
-+	if (rc < 0)
-+		return rc;
-+
-+	region->interleave_granularity = granularity;
-+
-+	return 0;
-+}
-+
-+static int region_write_target(struct cxl_region *region, int position,
-+			       struct cxl_decoder *decoder)
-+{
-+	const char *devname = cxl_region_get_devname(region);
-+	struct cxl_ctx *ctx = cxl_region_get_ctx(region);
-+	int len = region->buf_len, rc;
-+	char *path = region->dev_buf;
-+	const char *dec_name = "";
-+
-+	if (decoder)
-+		dec_name = cxl_decoder_get_devname(decoder);
-+
-+	if (snprintf(path, len, "%s/target%d", region->dev_path, position) >=
-+	    len) {
-+		err(ctx, "%s: buffer too small!\n", devname);
-+		return -ENXIO;
-+	}
-+
-+	rc = sysfs_write_attr(ctx, path, dec_name);
-+	if (rc < 0)
-+		return rc;
-+
-+	return 0;
-+}
-+
-+CXL_EXPORT int cxl_region_set_target(struct cxl_region *region, int position,
-+				     struct cxl_decoder *decoder)
-+{
-+	if (!decoder)
-+		return -ENXIO;
-+
-+	return region_write_target(region, position, decoder);
-+}
-+
-+CXL_EXPORT int cxl_region_clear_target(struct cxl_region *region, int position)
-+{
-+	const char *devname = cxl_region_get_devname(region);
-+	struct cxl_ctx *ctx = cxl_region_get_ctx(region);
-+	int rc;
-+
-+	if (cxl_region_is_enabled(region)) {
-+		err(ctx, "%s: can't clear targets on an active region\n",
-+		    devname);
-+		return -EBUSY;
-+	}
-+
-+	rc = region_write_target(region, position, NULL);
-+	if (rc) {
-+		err(ctx, "%s: error clearing target%d: %s\n",
-+		    devname, position, strerror(-rc));
-+		return rc;
-+	}
-+
-+	return 0;
-+}
-+
-+CXL_EXPORT int cxl_region_clear_all_targets(struct cxl_region *region)
-+{
-+	const char *devname = cxl_region_get_devname(region);
-+	struct cxl_ctx *ctx = cxl_region_get_ctx(region);
 +	unsigned int ways, i;
 +	int rc;
 +
++	/* First, unbind/disable the region if needed */
 +	if (cxl_region_is_enabled(region)) {
-+		err(ctx, "%s: can't clear targets on an active region\n",
-+		    devname);
-+		return -EBUSY;
++		if (param.force) {
++			rc = cxl_region_disable(region);
++			if (rc) {
++				log_err(&rl, "%s: error disabling region: %s\n",
++					devname, strerror(-rc));
++				return rc;
++			}
++		} else {
++			log_err(&rl, "%s active. Disable it or use --force\n",
++				devname);
++			return -EBUSY;
++		}
 +	}
 +
++	/* Reset the region decode in preparation for removal */
++	rc = cxl_region_decode_reset(region);
++	if (rc) {
++		log_err(&rl, "%s: failed to reset decode: %s\n", devname,
++			strerror(-rc));
++		return rc;
++	}
++
++	/* Reset all endpoint decoders and region targets */
 +	ways = cxl_region_get_interleave_ways(region);
-+	if (ways == 0 || ways == UINT_MAX)
++	if (ways == 0 || ways == UINT_MAX) {
++		log_err(&rl, "%s: error getting interleave ways\n", devname);
 +		return -ENXIO;
++	}
 +
 +	for (i = 0; i < ways; i++) {
-+		rc = region_write_target(region, i, NULL);
++		struct cxl_decoder *ep_decoder;
++
++		ep_decoder = cxl_region_get_target_decoder(region, i);
++		if (!ep_decoder)
++			return -ENXIO;
++
++		rc = cxl_region_clear_target(region, i);
 +		if (rc) {
-+			err(ctx, "%s: error clearing target%d: %s\n",
-+			    devname, i, strerror(-rc));
++			log_err(&rl, "%s: clearing target%d failed: %s\n",
++				devname, i, strerror(abs(rc)));
++			return rc;
++		}
++
++		rc = cxl_decoder_set_dpa_size(ep_decoder, 0);
++		if (rc) {
++			log_err(&rl, "%s: set_dpa_size failed: %s\n",
++				cxl_decoder_get_devname(ep_decoder),
++				strerror(abs(rc)));
 +			return rc;
 +		}
 +	}
 +
-+	return 0;
++	/* Finally, delete the region */
++	return cxl_region_delete(region);
 +}
 +
-+static int set_region_decode(struct cxl_region *region,
-+			     enum cxl_decode_state decode_state)
++static int do_region_xable(struct cxl_region *region, enum region_actions action)
 +{
-+	const char *devname = cxl_region_get_devname(region);
-+	struct cxl_ctx *ctx = cxl_region_get_ctx(region);
-+	int len = region->buf_len, rc;
-+	char *path = region->dev_buf;
-+	char buf[SYSFS_ATTR_SIZE];
++	switch (action) {
++	case ACTION_ENABLE:
++		return cxl_region_enable(region);
++	case ACTION_DISABLE:
++		return cxl_region_disable(region);
++	case ACTION_DESTROY:
++		return destroy_region(region);
++	default:
++		return -EINVAL;
++	}
++}
 +
-+	if (snprintf(path, len, "%s/commit", region->dev_path) >= len) {
-+		err(ctx, "%s: buffer too small!\n", devname);
-+		return -ENXIO;
++static int decoder_region_action(struct parsed_params *p,
++				 struct cxl_decoder *decoder,
++				 enum region_actions action, int *count)
++{
++	struct cxl_region *region, *_r;
++	int rc = 0, err_rc = 0;
++
++	cxl_region_foreach_safe (decoder, region, _r) {
++		int i, match = 0;
++
++		for (i = 0; i < p->num_targets; i++) {
++			if (util_cxl_region_filter(region, p->targets[i])) {
++				match = 1;
++				break;
++			}
++		}
++		if (!match)
++			continue;
++
++		rc = do_region_xable(region, action);
++		if (rc == 0) {
++			*count += 1;
++		} else {
++			log_err(&rl, "%s: failed: %s\n",
++				cxl_region_get_devname(region), strerror(-rc));
++			err_rc = rc;
++		}
++	}
++	return err_rc ? err_rc : rc;
++}
++
+ static int region_action(int argc, const char **argv, struct cxl_ctx *ctx,
+ 			 enum region_actions action,
+ 			 const struct option *options, struct parsed_params *p,
+ 			 int *count, const char *u)
+ {
+-	int rc = -ENXIO;
++	int rc = 0, err_rc = 0;
++	struct cxl_bus *bus;
+ 
+ 	log_init(&rl, "cxl region", "CXL_REGION_LOG");
+ 	rc = parse_region_options(argc, argv, ctx, action, options, p, u);
+@@ -578,6 +706,33 @@ static int region_action(int argc, const char **argv, struct cxl_ctx *ctx,
+ 	if (action == ACTION_CREATE)
+ 		return create_region(ctx, count, p);
+ 
++	cxl_bus_foreach(ctx, bus) {
++		struct cxl_decoder *decoder;
++		struct cxl_port *port;
++
++		if (!util_cxl_bus_filter(bus, param.bus))
++			continue;
++
++		port = cxl_bus_get_port(bus);
++		if (!cxl_port_is_root(port))
++			continue;
++
++		cxl_decoder_foreach (port, decoder) {
++			decoder = util_cxl_decoder_filter(decoder,
++							  param.root_decoder);
++			if (!decoder)
++				continue;
++			rc = decoder_region_action(p, decoder, action, count);
++			if (rc)
++				err_rc = rc;
++		}
 +	}
 +
-+	sprintf(buf, "%d\n", decode_state);
-+	rc = sysfs_write_attr(ctx, path, buf);
-+	if (rc < 0)
-+		return rc;
-+
-+	region->decode_state = decode_state;
-+
-+	return 0;
-+}
-+
-+CXL_EXPORT int cxl_region_decode_commit(struct cxl_region *region)
-+{
-+	return set_region_decode(region, CXL_DECODE_COMMIT);
-+}
-+
-+CXL_EXPORT int cxl_region_decode_reset(struct cxl_region *region)
-+{
-+	return set_region_decode(region, CXL_DECODE_RESET);
-+}
-+
- static struct cxl_decoder *__cxl_port_match_decoder(struct cxl_port *port,
- 						    const char *ident)
- {
-@@ -623,8 +909,8 @@ static struct cxl_decoder *cxl_port_find_decoder(struct cxl_port *port,
- 	return NULL;
++	if (err_rc) {
++		log_err(&rl, "one or more failures, last failure: %s\n",
++			strerror(-err_rc));
++		return err_rc;
++	}
+ 	return rc;
  }
  
--static struct cxl_decoder *cxl_decoder_get_by_name(struct cxl_ctx *ctx,
--						   const char *ident)
-+CXL_EXPORT struct cxl_decoder *cxl_decoder_get_by_name(struct cxl_ctx *ctx,
-+						       const char *ident)
- {
- 	struct cxl_bus *bus;
- 
-@@ -1387,6 +1673,18 @@ static void *add_cxl_decoder(void *parent, int id, const char *cxldecoder_base)
- 	} else
- 		decoder->mode = CXL_DECODER_MODE_NONE;
- 
-+	sprintf(path, "%s/interleave_granularity", cxldecoder_base);
-+	if (sysfs_read_attr(ctx, path, buf) < 0)
-+		decoder->interleave_granularity = UINT_MAX;
-+	else
-+		decoder->interleave_granularity = strtoul(buf, NULL, 0);
-+
-+	sprintf(path, "%s/interleave_ways", cxldecoder_base);
-+	if (sysfs_read_attr(ctx, path, buf) < 0)
-+		decoder->interleave_ways = UINT_MAX;
-+	else
-+		decoder->interleave_ways = strtoul(buf, NULL, 0);
-+
- 	switch (port->type) {
- 	case CXL_PORT_ENDPOINT:
- 		sprintf(path, "%s/dpa_resource", cxldecoder_base);
-@@ -1719,6 +2017,63 @@ CXL_EXPORT bool cxl_decoder_is_locked(struct cxl_decoder *decoder)
- 	return decoder->locked;
+@@ -592,3 +747,39 @@ int cmd_create_region(int argc, const char **argv, struct cxl_ctx *ctx)
+ 	log_info(&rl, "created %d region%s\n", count, count == 1 ? "" : "s");
+ 	return rc == 0 ? 0 : EXIT_FAILURE;
  }
++
++int cmd_enable_region(int argc, const char **argv, struct cxl_ctx *ctx)
++{
++	const char *u = "cxl enable-region <region0> ... [<options>]";
++	struct parsed_params p = { 0 };
++	int rc, count = 0;
++
++	rc = region_action(argc, argv, ctx, ACTION_ENABLE, enable_options, &p,
++			   &count, u);
++	log_info(&rl, "enabled %d region%s\n", count, count == 1 ? "" : "s");
++	return rc == 0 ? 0 : EXIT_FAILURE;
++}
++
++int cmd_disable_region(int argc, const char **argv, struct cxl_ctx *ctx)
++{
++	const char *u = "cxl disable-region <region0> ... [<options>]";
++	struct parsed_params p = { 0 };
++	int rc, count = 0;
++
++	rc = region_action(argc, argv, ctx, ACTION_DISABLE, disable_options, &p,
++			   &count, u);
++	log_info(&rl, "disabled %d region%s\n", count, count == 1 ? "" : "s");
++	return rc == 0 ? 0 : EXIT_FAILURE;
++}
++
++int cmd_destroy_region(int argc, const char **argv, struct cxl_ctx *ctx)
++{
++	const char *u = "cxl destroy-region <region0> ... [<options>]";
++	struct parsed_params p = { 0 };
++	int rc, count = 0;
++
++	rc = region_action(argc, argv, ctx, ACTION_DESTROY, destroy_options, &p,
++			   &count, u);
++	log_info(&rl, "destroyed %d region%s\n", count, count == 1 ? "" : "s");
++	return rc == 0 ? 0 : EXIT_FAILURE;
++}
+diff --git a/Documentation/cxl/meson.build b/Documentation/cxl/meson.build
+index 340cdee..147ea71 100644
+--- a/Documentation/cxl/meson.build
++++ b/Documentation/cxl/meson.build
+@@ -24,6 +24,7 @@ filedeps = [
+   'labels-options.txt',
+   'debug-option.txt',
+   'region-description.txt',
++  'decoder-option.txt',
+ ]
  
-+CXL_EXPORT unsigned int
-+cxl_decoder_get_interleave_granularity(struct cxl_decoder *decoder)
-+{
-+	return decoder->interleave_granularity;
-+}
-+
-+CXL_EXPORT unsigned int
-+cxl_decoder_get_interleave_ways(struct cxl_decoder *decoder)
-+{
-+	return decoder->interleave_ways;
-+}
-+
-+CXL_EXPORT struct cxl_region *
-+cxl_decoder_create_pmem_region(struct cxl_decoder *decoder)
-+{
-+	struct cxl_ctx *ctx = cxl_decoder_get_ctx(decoder);
-+	char *path = decoder->dev_buf;
-+	char buf[SYSFS_ATTR_SIZE];
-+	struct cxl_region *region;
-+	int rc;
-+
-+	sprintf(path, "%s/create_pmem_region", decoder->dev_path);
-+	rc = sysfs_read_attr(ctx, path, buf);
-+	if (rc < 0) {
-+		err(ctx, "failed to read new region name: %s\n",
-+		    strerror(-rc));
-+		return NULL;
-+	}
-+
-+	rc = sysfs_write_attr(ctx, path, buf);
-+	if (rc < 0) {
-+		err(ctx, "failed to write new region name: %s\n",
-+		    strerror(-rc));
-+		return NULL;
-+	}
-+
-+	/* create_region was successful, walk to the new region */
-+	cxl_region_foreach(decoder, region) {
-+		const char *devname = cxl_region_get_devname(region);
-+
-+		if (strcmp(devname, buf) == 0)
-+			goto found;
-+	}
-+
-+	/*
-+	 * If walking to the region we just created failed, something has gone
-+	 * very wrong. Attempt to delete it to avoid leaving a dangling region
-+	 * id behind.
-+	 */
-+	err(ctx, "failed to add new region to libcxl\n");
-+	cxl_region_delete_name(decoder, buf);
-+	return NULL;
-+
-+ found:
-+	return region;
-+}
-+
- CXL_EXPORT int cxl_decoder_get_nr_targets(struct cxl_decoder *decoder)
- {
- 	return decoder->nr_targets;
-@@ -1729,6 +2084,24 @@ CXL_EXPORT const char *cxl_decoder_get_devname(struct cxl_decoder *decoder)
- 	return devpath_to_devname(decoder->dev_path);
- }
+ cxl_manpages = [
+@@ -41,6 +42,9 @@ cxl_manpages = [
+   'cxl-reserve-dpa.txt',
+   'cxl-free-dpa.txt',
+   'cxl-create-region.txt',
++  'cxl-disable-region.txt',
++  'cxl-enable-region.txt',
++  'cxl-destroy-region.txt',
+ ]
  
-+CXL_EXPORT struct cxl_memdev *
-+cxl_ep_decoder_get_memdev(struct cxl_decoder *decoder)
-+{
-+	struct cxl_port *port = cxl_decoder_get_port(decoder);
-+	struct cxl_endpoint *ep;
-+
-+	if (!port)
-+		return NULL;
-+	if (!cxl_port_is_endpoint(port))
-+		return NULL;
-+
-+	ep = container_of(port, struct cxl_endpoint, port);
-+	if (!ep)
-+		return NULL;
-+
-+	return cxl_endpoint_get_memdev(ep);
-+}
-+
- CXL_EXPORT struct cxl_target *cxl_target_get_first(struct cxl_decoder *decoder)
- {
- 	return list_top(&decoder->targets, struct cxl_target, list);
-diff --git a/cxl/libcxl.h b/cxl/libcxl.h
-index c77a7b9..0b84977 100644
---- a/cxl/libcxl.h
-+++ b/cxl/libcxl.h
-@@ -182,7 +182,13 @@ bool cxl_decoder_is_volatile_capable(struct cxl_decoder *decoder);
- bool cxl_decoder_is_mem_capable(struct cxl_decoder *decoder);
- bool cxl_decoder_is_accelmem_capable(struct cxl_decoder *decoder);
- bool cxl_decoder_is_locked(struct cxl_decoder *decoder);
--
-+unsigned int
-+cxl_decoder_get_interleave_granularity(struct cxl_decoder *decoder);
-+unsigned int cxl_decoder_get_interleave_ways(struct cxl_decoder *decoder);
-+struct cxl_region *cxl_decoder_create_pmem_region(struct cxl_decoder *decoder);
-+struct cxl_decoder *cxl_decoder_get_by_name(struct cxl_ctx *ctx,
-+					    const char *ident);
-+struct cxl_memdev *cxl_ep_decoder_get_memdev(struct cxl_decoder *decoder);
- #define cxl_decoder_foreach(port, decoder)                                     \
- 	for (decoder = cxl_decoder_get_first(port); decoder != NULL;           \
- 	     decoder = cxl_decoder_get_next(decoder))
-@@ -231,6 +237,7 @@ int cxl_region_decode_is_committed(struct cxl_region *region);
- int cxl_region_is_enabled(struct cxl_region *region);
- int cxl_region_disable(struct cxl_region *region);
- int cxl_region_enable(struct cxl_region *region);
-+int cxl_region_delete(struct cxl_region *region);
- struct cxl_ctx *cxl_region_get_ctx(struct cxl_region *region);
- struct cxl_decoder *cxl_region_get_decoder(struct cxl_region *region);
- int cxl_region_get_id(struct cxl_region *region);
-@@ -240,6 +247,20 @@ unsigned long long cxl_region_get_size(struct cxl_region *region);
- unsigned long long cxl_region_get_resource(struct cxl_region *region);
- unsigned int cxl_region_get_interleave_ways(struct cxl_region *region);
- unsigned int cxl_region_get_interleave_granularity(struct cxl_region *region);
-+struct cxl_decoder *cxl_region_get_target_decoder(struct cxl_region *region,
-+						  int position);
-+int cxl_region_set_size(struct cxl_region *region, unsigned long long size);
-+int cxl_region_set_uuid(struct cxl_region *region, uuid_t uu);
-+int cxl_region_set_interleave_ways(struct cxl_region *region,
-+				   unsigned int ways);
-+int cxl_region_set_interleave_granularity(struct cxl_region *region,
-+					  unsigned int granularity);
-+int cxl_region_set_target(struct cxl_region *region, int position,
-+			  struct cxl_decoder *decoder);
-+int cxl_region_clear_target(struct cxl_region *region, int position);
-+int cxl_region_clear_all_targets(struct cxl_region *region);
-+int cxl_region_decode_commit(struct cxl_region *region);
-+int cxl_region_decode_reset(struct cxl_region *region);
- 
- #define cxl_region_foreach(decoder, region)                                    \
- 	for (region = cxl_region_get_first(decoder); region != NULL;           \
-diff --git a/cxl/lib/libcxl.sym b/cxl/lib/libcxl.sym
-index e410298..6bf3e91 100644
---- a/cxl/lib/libcxl.sym
-+++ b/cxl/lib/libcxl.sym
-@@ -140,6 +140,7 @@ global:
- 	cxl_decoder_is_mem_capable;
- 	cxl_decoder_is_accelmem_capable;
- 	cxl_decoder_is_locked;
-+	cxl_decoder_create_pmem_region;
- 	cxl_target_get_first;
- 	cxl_target_get_next;
- 	cxl_target_get_decoder;
-@@ -183,6 +184,7 @@ global:
- 	cxl_region_is_enabled;
- 	cxl_region_disable;
- 	cxl_region_enable;
-+	cxl_region_delete;
- 	cxl_region_get_ctx;
- 	cxl_region_get_decoder;
- 	cxl_region_get_id;
-@@ -192,9 +194,23 @@ global:
- 	cxl_region_get_resource;
- 	cxl_region_get_interleave_ways;
- 	cxl_region_get_interleave_granularity;
-+	cxl_region_get_target_decoder;
-+	cxl_region_set_size;
-+	cxl_region_set_uuid;
-+	cxl_region_set_interleave_ways;
-+	cxl_region_set_interleave_granularity;
-+	cxl_region_set_target;
-+	cxl_region_clear_target;
-+	cxl_region_clear_all_targets;
-+	cxl_region_decode_commit;
-+	cxl_region_decode_reset;
- 	cxl_mapping_get_first;
- 	cxl_mapping_get_next;
- 	cxl_mapping_get_decoder;
- 	cxl_mapping_get_region;
- 	cxl_mapping_get_position;
-+	cxl_decoder_get_by_name;
-+	cxl_ep_decoder_get_memdev;
-+	cxl_decoder_get_interleave_granularity;
-+	cxl_decoder_get_interleave_ways;
- } LIBCXL_2;
+ foreach man : cxl_manpages
 -- 
 2.37.1
 
