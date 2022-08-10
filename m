@@ -1,76 +1,81 @@
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4CAC33C1
-	for <nvdimm@lists.linux.dev>; Wed, 10 Aug 2022 20:06:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA4214428
+	for <nvdimm@lists.linux.dev>; Wed, 10 Aug 2022 21:31:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1660161989; x=1691697989;
+  t=1660167062; x=1691703062;
   h=date:from:to:cc:subject:message-id:references:
    in-reply-to:mime-version;
-  bh=JSG3ixkP4bVprOhaV3jc/IkrLsbznj78HQcCvMqt4Mo=;
-  b=nAg/PMWV3CBw5sx/KOlLYVunw0wCfUNKQGYlRRbVpviUGDT58nqYgEbo
-   nXmqMCggYYpvpgVfmQHlaiqVMytrLTRnxPhiCU/0BTfHzBE0BhLVyf44S
-   SxDHwf0i3vZbeDQx6NRfjbfvGasHTjTk2qR1MZhLWsNLBljmjke9H8pdP
-   zB93Jiun7+UZRPc1Z0fkwBWUTgpb995kGLO7X/H4wnTgk9HcpJ5ZMM7De
-   OK93tNqQFICG9ceWCt9OuKLze4aH1UNIs/q7DcqaclbZh72+LVMDW92Ai
-   Rzsy3r1QvfJuNkwQXdjGLY37zVQL3c5or7TR4g7hTh5AgJuSab5twnaOV
-   Q==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10435"; a="274235385"
+  bh=1peyvjiEsf9ZFyiZPMpRTR9IoM1PbiZJSmkAB8bb560=;
+  b=dwLp0PjzA/ps8/OYGUP5MkLwVJmlmgFfIbJgkFhVugbGjgL54sCJCXAr
+   aZdVN8QM7cdlrD/aDvkMhXdkMxB370iKHRnoEdp7MqK4NzUmyQbU80g+p
+   uoadD8zTdGOc7giVuL63WJj0P+CeRpvP4fDw+L7iLv0InWLCOqBWdyOe2
+   zUOluHHAA3nFV5pvU9f9/kcxnonXMGpHc+KVHMbFF4jshPJ9UEuHrgF3o
+   B44dDNgFanD2O45xoJSfyWAfDEJfbtVUv8qe79sYQ0vuJeaWbGSx1MjI1
+   zttkUQ+WhTU3fAagsCuvAzSWoVw8C6AQTaTnpWoOoq/py+R/K9x7VyZJk
+   A==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10435"; a="292453233"
 X-IronPort-AV: E=Sophos;i="5.93,228,1654585200"; 
-   d="scan'208";a="274235385"
-Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Aug 2022 13:06:29 -0700
+   d="scan'208";a="292453233"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Aug 2022 14:30:58 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.93,228,1654585200"; 
-   d="scan'208";a="605278700"
-Received: from orsmsx602.amr.corp.intel.com ([10.22.229.15])
-  by orsmga002.jf.intel.com with ESMTP; 10 Aug 2022 13:06:29 -0700
-Received: from orsmsx608.amr.corp.intel.com (10.22.229.21) by
- ORSMSX602.amr.corp.intel.com (10.22.229.15) with Microsoft SMTP Server
+   d="scan'208";a="633941931"
+Received: from fmsmsx602.amr.corp.intel.com ([10.18.126.82])
+  by orsmga008.jf.intel.com with ESMTP; 10 Aug 2022 14:30:57 -0700
+Received: from fmsmsx609.amr.corp.intel.com (10.18.126.89) by
+ fmsmsx602.amr.corp.intel.com (10.18.126.82) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.28; Wed, 10 Aug 2022 13:06:28 -0700
-Received: from ORSEDG601.ED.cps.intel.com (10.7.248.6) by
- orsmsx608.amr.corp.intel.com (10.22.229.21) with Microsoft SMTP Server
+ 15.1.2375.28; Wed, 10 Aug 2022 14:30:57 -0700
+Received: from fmsmsx608.amr.corp.intel.com (10.18.126.88) by
+ fmsmsx609.amr.corp.intel.com (10.18.126.89) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.28 via Frontend Transport; Wed, 10 Aug 2022 13:06:28 -0700
-Received: from NAM04-MW2-obe.outbound.protection.outlook.com (104.47.73.168)
- by edgegateway.intel.com (134.134.137.102) with Microsoft SMTP Server
+ 15.1.2375.28; Wed, 10 Aug 2022 14:30:56 -0700
+Received: from fmsedg602.ED.cps.intel.com (10.1.192.136) by
+ fmsmsx608.amr.corp.intel.com (10.18.126.88) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.28 via Frontend Transport; Wed, 10 Aug 2022 14:30:56 -0700
+Received: from NAM10-BN7-obe.outbound.protection.outlook.com (104.47.70.106)
+ by edgegateway.intel.com (192.55.55.71) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2375.28; Wed, 10 Aug 2022 13:06:22 -0700
+ 15.1.2375.28; Wed, 10 Aug 2022 14:30:55 -0700
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=QKH4uhaEgOThfeZxCCuy2OojvO4S7dEngTDg3F3WiL9RpXcF0IrB8uhfUdkC7QXUZ9OYTK5MNyK4feVyW02eBYUKNPN8ZLR06BkBTc6FFAcu9rT/wBGcypC6t+WoNyXs2d+cpj6X1ZpqllxpdadSULOZOIoTn5EHYQENhzNip8qbxkyyEE+mp6/WNDEdCA7IjL3iaV138ucom6lDMsITXH1WjxuaDGiqjgtvQL6orxhFCTcmzDX8vZWKu60xhn6CLLXpgY6eh1SWr7sz64Jb0UevdhLHGbdLp9FbHT6SSB8eRjvzOajC/KzSrh//NYmSdZqJktey0mOL9kxswutzOw==
+ b=jbgtAX+g6ivFvagX27W9ooLF4r+edDVVKeLKSOBmXwfamDjZtBfg107zcMXHd/Gjy7HOweodRkYsBqg0XV+46Sl4XdOsSHH/IyDq6lp/19X7xBG9t9UVo/2YVsjtAu5rpyCyoStd6y7veFgwbNRfcEVsvxXgQLe+ZLD/IXwdSCYrg+AWkXwI+2WD7JD9soyKYadvjxDUtkXjqL4h6oM6jzDe9KxaibT0smjOLB4Wcr2EDYi6uEZ5VNW1yvX/KynVomxiVXJi/bcncde5Gn5q6Nay6KqKbb1zaEvl/3OPwnkrISfhhmgvClWCGjFLgjDaMby7JxAzFR3Jj+BiIWnKzQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=yLtf6yx3X40oRu8BiFHef8XxdiDYlyU6TWJ8vBLX9bE=;
- b=kceiYmUnJtO0jOw2QsNOmFVBHbxvdC4LbBnBLMwd6ei6PGutCWa4Uy1WbvQtTjiEMQ2vwZCbLA58Q/pVgzUFVabVO77X+Hvm+Om4d6Mok3y7G9wESq/MlZKerDy+zCnjMsFw2tNPvgEh5TfMTLPpgQjO2ZL1isf5Y702+eDyKQB42k2OXzWAUDuS37jXGht4SF5Ry+dDoTmJA2s/+FCY+s2OpXcF5bddk19Li/FPqlqOzORLdPGLkZ8kB9E3wetuadv0iLKnjrJP1Yaajrj4518+Tl764oClSRchuVfKkednqLkO64MdpUIxYhEa39b2SQ6I34RJAYElUzIqz16JuA==
+ bh=5IFlZymuEqdtvBGIkbSDLTwPinBVAS2M3TbevIxWlhg=;
+ b=d3jrnMymlx8AQaYxYcJI6PZrNEZxXqNDwgQ80MNUhLhKPNIGg7VRpD/mtApLK1ZY39TjCV9+vWLvKopfD45qqNQPnSgdxNTEU+SptGgKOvIHa49tz1y8Pzvp4mBQ+Jzzk/ju99SdM9ZpVB706DbLL4I48NGVkCPgJaJn23MUPD2+HWsFrMFZa3GFTaXiImP7krk5f7m4ta9AteOWq68jkr3VUz4cjxWyW1V1Z+4pYWa7W0YrBSahYH1uuPi3WlkxZrG9Cq7DA7dg6Q61kxjN5uV2hHFU55fG0Qf5Grkmbomx5MvT35qjbD/wqMMjWXX63uis4APJXBGfLxDnrBcxfA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
  dkim=pass header.d=intel.com; arc=none
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=intel.com;
 Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
- (2603:10b6:301:50::20) by DM6PR11MB4428.namprd11.prod.outlook.com
- (2603:10b6:5:202::31) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5504.16; Wed, 10 Aug
- 2022 20:06:21 +0000
+ (2603:10b6:301:50::20) by MWHPR11MB1872.namprd11.prod.outlook.com
+ (2603:10b6:300:110::7) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5504.17; Wed, 10 Aug
+ 2022 21:30:54 +0000
 Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
  ([fe80::9847:345e:4c5b:ca12]) by MWHPR1101MB2126.namprd11.prod.outlook.com
  ([fe80::9847:345e:4c5b:ca12%6]) with mapi id 15.20.5504.022; Wed, 10 Aug 2022
- 20:06:20 +0000
-Date: Wed, 10 Aug 2022 13:06:18 -0700
+ 21:30:54 +0000
+Date: Wed, 10 Aug 2022 14:30:51 -0700
 From: Dan Williams <dan.j.williams@intel.com>
-To: Mark Rutland <mark.rutland@arm.com>, Dave Jiang <dave.jiang@intel.com>
-CC: Jonathan Cameron <Jonathan.Cameron@huawei.com>, Davidlohr Bueso
-	<dave@stgolabs.net>, <linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>,
-	<dan.j.williams@intel.com>, <bwidawsk@kernel.org>, <ira.weiny@intel.com>,
+To: Davidlohr Bueso <dave@stgolabs.net>, Dan Williams
+	<dan.j.williams@intel.com>
+CC: Mark Rutland <mark.rutland@arm.com>, Dave Jiang <dave.jiang@intel.com>,
+	Jonathan Cameron <Jonathan.Cameron@huawei.com>, <linux-cxl@vger.kernel.org>,
+	<nvdimm@lists.linux.dev>, <bwidawsk@kernel.org>, <ira.weiny@intel.com>,
 	<vishal.l.verma@intel.com>, <alison.schofield@intel.com>,
 	<a.manzanares@samsung.com>, <linux-arch@vger.kernel.org>, Arnd Bergmann
 	<arnd@arndb.de>, <linux-arm-kernel@lists.infradead.org>
 Subject: Re: [PATCH RFC 10/15] x86: add an arch helper function to invalidate
  all cache for nvdimm
-Message-ID: <62f40fba338af_3ce6829466@dwillia2-xfh.jf.intel.com.notmuch>
+Message-ID: <62f4238b5ce8a_3ce6829447@dwillia2-xfh.jf.intel.com.notmuch>
 References: <165791918718.2491387.4203738301057301285.stgit@djiang5-desk3.ch.intel.com>
  <165791937063.2491387.15277418618265930924.stgit@djiang5-desk3.ch.intel.com>
  <20220718053039.5whjdcxynukildlo@offworld>
@@ -78,11 +83,13 @@ References: <165791918718.2491387.4203738301057301285.stgit@djiang5-desk3.ch.int
  <20220803183729.00002183@huawei.com>
  <9f3705e1-de21-0f3c-12af-fd011b6d613d@intel.com>
  <YvO8pP7NUOdH17MM@FVFF77S0Q05N>
+ <62f40fba338af_3ce6829466@dwillia2-xfh.jf.intel.com.notmuch>
+ <20220810211337.ha27cl24splm4wjh@offworld>
 Content-Type: text/plain; charset="us-ascii"
 Content-Disposition: inline
-In-Reply-To: <YvO8pP7NUOdH17MM@FVFF77S0Q05N>
-X-ClientProxiedBy: MW4PR03CA0153.namprd03.prod.outlook.com
- (2603:10b6:303:8d::8) To MWHPR1101MB2126.namprd11.prod.outlook.com
+In-Reply-To: <20220810211337.ha27cl24splm4wjh@offworld>
+X-ClientProxiedBy: SJ0PR03CA0183.namprd03.prod.outlook.com
+ (2603:10b6:a03:2ef::8) To MWHPR1101MB2126.namprd11.prod.outlook.com
  (2603:10b6:301:50::20)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -91,135 +98,87 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: bcf4e788-2415-4abf-144e-08da7b0bcac0
-X-MS-TrafficTypeDiagnostic: DM6PR11MB4428:EE_
+X-MS-Office365-Filtering-Correlation-Id: b4ccc7e5-c8f2-4dfe-7bcf-08da7b179ae7
+X-MS-TrafficTypeDiagnostic: MWHPR11MB1872:EE_
 X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: KBj5Pb25n1YnYyorc7G430t6MD+ID71oP+xCmOMrWoxxU4QTZ0XY0J4NimAuGEkpS+ia0BdmyhHcWdXLe8A6z8TNMrSDNqcbYFJiED28s09INF9pq0DOltBFmyo/OWYsVyCrRCxhrfZpHL/XqMLqdYl9fsWncL3GjitYzMCKDe4WOYxKHoPtyEZksUd4G1Yca6PPg7iSH2OMVH7VCP/gMIIIDFCKylu7jH/svvlbvG6dTAIxYeAhYJM3CiRcATl+dRi33gTjCq19B5DK3Ud2/nDbgoCsn4mrLVsHrg5WQprFBzn3uQQg18MmOCMXrF3TjRx4SxSGadYBoRuc8hMr6wnmhQKUjxH7m1GzRXrKWV7zUNMfb6PTCh0+pV0RvO3MyEiOIpw3QQCnGtFVnhYVE9kGNgvHg0TUS1tV6ci/LMsMWfbqFhD7xgdP+erZOtpxWfx3hubB/NslsLs1sqWU3CDP5sbBHXpNfTxiG/09sb6+mKNFVbkX+M6Thyta28Pw9NHEpB6tQXlzJ8kUjDW5wue5Nd9MAnPNeiZiRXiVKJB7ws7xl9eklrw8qHxjkULce46h5VUdkGX3usOFI/EMRDNGFQGV5yBt2boi6/cO1wgwKg2xgJNVGh7xNmGm8TQbxGDEEiB/4glXzCYal+CqeTaVoLbsAx73CNLzHzv6t7b1alLibUH8qL48+xqPZ5Qph/BXFWZhfdn005WbLSj1hdPujkMTlHzd3mMH/5gCXueJmP++gF1RXPwghslenlqzohwFO/dOfjej/zK5ztXTVw==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1101MB2126.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(396003)(39860400002)(136003)(346002)(366004)(376002)(41300700001)(6512007)(53546011)(9686003)(26005)(2906002)(6506007)(86362001)(82960400001)(83380400001)(6636002)(8936002)(38100700002)(66946007)(66476007)(6486002)(8676002)(66556008)(966005)(7416002)(4326008)(54906003)(186003)(478600001)(110136005)(5660300002)(316002);DIR:OUT;SFP:1102;
+X-Microsoft-Antispam-Message-Info: hrru1JdwCBZ+iZLlJRSakSdmfPmnLg5YBdgCUPDNTpZszag8QvdqX3/vLlSW9dL+UKUCHZyq9/HODFZDyMTviHy1pIcZQC9SwgLITxjngu8yS8aj7cpwK/Vd/ZsiCWhpB4CXug5T+RW7P+WblvuT0fqIpBtDUsBBnfcUuS585b6SnT6ZDY3NAcQ6iC4//cQnz3uGY0lZCqlLjZC0079v3jz6NQpUCeHOC8A755Cj+P4xCEt7JPH+f0F72uCZuBrgjrmQZgjVeOpDsk5X8mB0dhIEJvrHxMC6XWZmcpsHIXnxnkUJm3U4TSdSeu4H3NC0gz3v660j1ohgm32fp4d88IjCdbbibKFajPNliw7ThaGAxkfHv8MOY9aULU6Q1rz1plNyIEJnrIjMNvW+8KVIvI9xdxFc1IHGaooL9m5zUxkbi89FXbscHn02eUolmAkFphXFj4+M5yLXAFgxOeZw+bnihgFnN2xRY5YQlK404Ocr3mPS4hH9XMryq5tl/wMBLrKgRdGO7kf9u9fcm4i//r2t/3QDKZeZD7ukqQ14+FEpOaxiZjVzP/7feYk+BwAJ1TJXkyTRlJv934MjHK/3CmzmaYpOjIghokuy5q5GmvwonSTjNldNAPf9q47m6hHF8XU4dNoGu7tKMkx4XKR6pQVm4/PpHT7hxr2ZF3U8xkCMI2tKgvNTos6bWFPmsjtf68ZK1asHTtx3hXcm1GkpFjY/zVTU8XcPdpo31bpd43nO3pRhm6A4T9guI3ekDxLH
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1101MB2126.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(396003)(366004)(39860400002)(346002)(376002)(136003)(83380400001)(186003)(82960400001)(4326008)(8676002)(66556008)(66476007)(316002)(5660300002)(54906003)(66946007)(8936002)(7416002)(110136005)(478600001)(6506007)(9686003)(6512007)(6666004)(6486002)(86362001)(26005)(41300700001)(2906002)(38100700002);DIR:OUT;SFP:1102;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?Ou+q66llpaYdKP87bn/g3ggJeN0iZvY7vIz0S6qE56FMIFOdil3UHrc2OC+q?=
- =?us-ascii?Q?rCAkULKRTfU6j/wNzBdczjkDV+JSFqflDYr27uIvNH4EehG5zyQObiUyq+vH?=
- =?us-ascii?Q?nf/n4FWz1CCHFEY3oFk6qFf3oJQxCRf6oR9M3Rcs21TAPO935nRk176kqQ9S?=
- =?us-ascii?Q?8O1NH8lViYhSkjuOkkNZlAo+k6clvfuzKl60pcjsue2dnOp1Vh1nb4jTThw0?=
- =?us-ascii?Q?6UNDF5teIGRwXISKLr1SBsZU5P9pLsBlisTqOaHypRhJEghVyHxoQKDJZKTq?=
- =?us-ascii?Q?LzRlAACurAwFZI2D5zzd+n5a4raGhVvk9TfV2qN8SCKvH8N1yl4DjBA3QhK3?=
- =?us-ascii?Q?A/yyQdMtVGadcHMq/2Pbq4agcrTP8mpk6Ghz71J1mAeMuI4AhMQwnCo1fk5V?=
- =?us-ascii?Q?G2fMMQ8hlg7vFdFZ3K4Wl4fjGX2X7/Ewnf4UKL9tlylEieRCzNSBekfYE1V1?=
- =?us-ascii?Q?pZXQPNvjKAJ4gSwvgh1vuZ7Oed0ROIteSLN/Hv3CgDt+jDW5O/Ap6FAfZx6m?=
- =?us-ascii?Q?1fFNEFm/KTTTRSnMRWSv++zbxUChSBami3d3ph0XPREIDsiUvrbYurPQ5Tg4?=
- =?us-ascii?Q?l+scDZCRvAyOffeRhkZVJURgTcvGg3Luy5/WDkjxZ5L175pu9yIiGnyDd2Fu?=
- =?us-ascii?Q?/NkaipqmzN8CT3zLqzeeB8uio/LkP9TF8Q75/FMr48Pd0cueOqzsDuP9ucIf?=
- =?us-ascii?Q?f4Z5YCnlZbcZMd2y8j/W/ph2k4Bjbjk2VXE2x6MurSDWgcNkmgEccxKu3BoP?=
- =?us-ascii?Q?Nvwji8pPmuaqBss0ebpal8NfTEFO/+LMtVIaQ9XlFWEjBuHCzQ1AqUTjVCPK?=
- =?us-ascii?Q?QJBuuUdAH8KkbcUhL9StoR69Zl0Zy9YGF3iicXYvszn+e1lOOWYohpsoZHl1?=
- =?us-ascii?Q?I5ul9PEaWhoHnHXy4vhMv9Nt9mVlDYwsjAyAD491N5As/vBZRyOtTRbWhxiI?=
- =?us-ascii?Q?hwtMQD+0wPHFn8AIj3QuFxEKYwuv/ysrn5fcbPdjzEb8dhDZDmOR+bJUsw1P?=
- =?us-ascii?Q?VPwjsZ3v0b+WqS+NXfUZLIviNz+rjiRqT+u1RBdBf653AGU2nd72OpEwNETg?=
- =?us-ascii?Q?SYA6UPLyZMPwOVnDC5qqy75PnojKhO4jsDs02kxcZpFzpzReFWqlODJUHpfS?=
- =?us-ascii?Q?InEStDv85csISivHkHj3xVgouF+Z+hjM35mAR+qY7DWQo94XX3VU65+dkc0G?=
- =?us-ascii?Q?5VCeoEwSIYbZd21iI+9lzNFIBiPkwg6AHSYeFO3Yb6q7rGIBgXyXnuGxwedn?=
- =?us-ascii?Q?S0Ol3njq+j79Mh77ps3y6G/T7WCnOL9562obhKZSGHBWi2eMsOTgXX8TNg7M?=
- =?us-ascii?Q?ELpvOTQH/XPWXCbn/pWY8qrOtnWJ/ey7dLUKIB+4RrVfVHdGX9WP7LzzT+yO?=
- =?us-ascii?Q?0EcaSB0sH7Qu4RXKcDt7GN9Pp5KvpfA4JmxmNq3+5E/Sxcj2U242XqPHt5cT?=
- =?us-ascii?Q?pO6JOg3sCOuB78/3yTsQNkZyQVIllWbGvfOBqrYwgWw/R1HWRIuNwKHRcHxV?=
- =?us-ascii?Q?CiNPLv/YBVfj0fNIHln8C24E6etM7KpClwuXm0nVU0WeKEj6sDZSt5FXx/3g?=
- =?us-ascii?Q?3KYrx9K7U9eL+VHmDIL2FOBlawoC327QU1CMx162rvcX1/EMzXpLImKTmNrC?=
- =?us-ascii?Q?2w=3D=3D?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: bcf4e788-2415-4abf-144e-08da7b0bcac0
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?75Y9GBH2Nyj3/3XCxRp5uQ3yZ6x1smG97hmKk68dq4bcdfa/ZxlNgpdIj2AS?=
+ =?us-ascii?Q?bf6+BouDbudobafJKy4cHXrPyErZ1jVd3Aku8LtZ60FuKcK/OT5jQga4HsRB?=
+ =?us-ascii?Q?7ZY9iSu108P01D/bCNASlw5UsSsX4fCqdJsCrgEUt4iDEmgkC6912a/YVsPP?=
+ =?us-ascii?Q?Lpz2DGTvw3LKtphBgixX5cbRmd3rcIA7L/DOMweSXxIFIvhmcpdaOKset1BN?=
+ =?us-ascii?Q?vNPs2mrHreoY3iiO9grL3kR6Acb/Vq6bCzVlwfWvcLKKkzgNVEIuz40nqysp?=
+ =?us-ascii?Q?Kbxc5wZ4zs3ZPX7Rx01zem6dUhqwCzJHiv23WT3TMJMmwVPzAfnhzgVFpeKf?=
+ =?us-ascii?Q?P6QaNJjB0XEFG8djGnWvlQmc3eNBSlJxSPChxRdoAVlCZE9p4oA0DE30W9i0?=
+ =?us-ascii?Q?pRL8jAIxyAIv7i8CR5qDQPy5F3R1DzoSoqqpjZQpbYMblUgjzQJ/34YlRdPL?=
+ =?us-ascii?Q?38MzmaPr5dUXmmSBoM1CJhiHgsa7bDnL/PsGHVYL5ctgpKe15OX0n4mkeo/4?=
+ =?us-ascii?Q?S6CadBt7mrogMPsbDSjLtOuXJD8U8WLxyIHASn7iHALMh2RQELs2EM7fY/De?=
+ =?us-ascii?Q?yUjEVsofQ28YpPoVXg9inpJHzj9i+2wkRL0ZwbSXCOEUzoTIOEFwk92mE9UM?=
+ =?us-ascii?Q?vLljf0nEA2F4Qd+4YCmcskEqy0ymvM6tNwbqM379AARh6toHgOzVAEgJyAFy?=
+ =?us-ascii?Q?ZMKSjT18Ucu6EdTHCLB81YMZPyhR2QXGrxwHx//XkZIE0ZDklM/4g6obO7Lp?=
+ =?us-ascii?Q?xLheDfDgI6njFQ1ecXeNDmxeYESRU/nIagXRkgVMtI0ZmYk5G5u9M/MaHVfA?=
+ =?us-ascii?Q?Bj498Gm8ie7nPWWlm7x47SZkve7v+3VHNEGIJubQU99KRQl6mncX3xHj8WoM?=
+ =?us-ascii?Q?uExSwuFuvlFeiTX7BMIcJKALTf1ahPcLpOdzgUuHYW1VNosQOEB5TKJglB0w?=
+ =?us-ascii?Q?S6h+Ss08xhBfbE8xrZxnprRsWaPtoN9qOcSKf1EYcaYQO7+jCVXuyU9r3R8i?=
+ =?us-ascii?Q?1i9x9kji6RhTvdnmb2CUZHsCpoHgh2kzuxaunPDQ57s6FSc2tZQEYOzxz/0n?=
+ =?us-ascii?Q?3mxcZStm7zuMr1ewmeXziSK3+fuxZs4TPz6ZPu1yx3b+/vmreLOYdbx1vpyI?=
+ =?us-ascii?Q?6aP+7NJHA4BNU4XOMcRl360z/MYP/Ye/31HJpZjfFvY6y1KmU1HaE8NKjbfq?=
+ =?us-ascii?Q?I7OPKp9K4RENN6CDylWFsPjjx/Rgfx/DAoHpCJFPMOrGCdWdGyJx4PXdsWyO?=
+ =?us-ascii?Q?PR1l9TvwiWrhue+UBNFkEH7xvpXs2SwTJMBd1tnIaGZDaxBHM9tsVVJZU4iD?=
+ =?us-ascii?Q?SI33CmZdgnj4adImGdiFKZKTmKteoq8aeK1G61hIFlQc7JC7tyhsTxOJCeOR?=
+ =?us-ascii?Q?bm4IHDrjr4aWVtTaJRkKK6qvYUqDiFca0O4arjwjhduuWQttgYhynifxoQT1?=
+ =?us-ascii?Q?h1IhpIbfHr6Gp1cln6K0OcqaOvNe26/MI3aQcIre2wkMSPX1gGofCpuaVCNB?=
+ =?us-ascii?Q?Lfcva5cAS097wfFDV9Vd5UGIscOu3xMI+UcbsHCAfZWYoiunQzez7EPKrAWK?=
+ =?us-ascii?Q?YJMWrOgITN6KQ00owLkHsEZFL/PzD/oknR10qov7zdetztAZKy8LMeLOIWjT?=
+ =?us-ascii?Q?ow=3D=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: b4ccc7e5-c8f2-4dfe-7bcf-08da7b179ae7
 X-MS-Exchange-CrossTenant-AuthSource: MWHPR1101MB2126.namprd11.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 Aug 2022 20:06:20.5757
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 Aug 2022 21:30:54.1234
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: hgjzIoS+oiqQ30hvzizTZ1odQkG+jimVr8eI0iZcLc97Pj+R80CaZsLkanysp5NQl9jJ8kfwbdNsSd1Mk8dlC/lzF4MVqfnFPp6Bg8oWwJY=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR11MB4428
+X-MS-Exchange-CrossTenant-UserPrincipalName: kOdRR0o5cNyx2s/Or3uHFXjAhfWy8H1QO6KSOvdqW15JE52HrhKvdLe7QvoKnOKtCnMfG2DuDMkLSmI0ndijuk/2uL5zfwNn2ZVEHZg0edI=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MWHPR11MB1872
 X-OriginatorOrg: intel.com
 
-Mark Rutland wrote:
-> On Tue, Aug 09, 2022 at 02:47:06PM -0700, Dave Jiang wrote:
-> > 
-> > On 8/3/2022 10:37 AM, Jonathan Cameron wrote:
-> > > On Tue, 19 Jul 2022 12:07:03 -0700
-> > > Dave Jiang <dave.jiang@intel.com> wrote:
-> > > 
-> > > > On 7/17/2022 10:30 PM, Davidlohr Bueso wrote:
-> > > > > On Fri, 15 Jul 2022, Dave Jiang wrote:
-> > > > > > The original implementation to flush all cache after unlocking the
-> > > > > > nvdimm
-> > > > > > resides in drivers/acpi/nfit/intel.c. This is a temporary stop gap until
-> > > > > > nvdimm with security operations arrives on other archs. With support CXL
-> > > > > > pmem supporting security operations, specifically "unlock" dimm, the
-> > > > > > need
-> > > > > > for an arch supported helper function to invalidate all CPU cache for
-> > > > > > nvdimm has arrived. Remove original implementation from acpi/nfit and
-> > > > > > add
-> > > > > > cross arch support for this operation.
-> > > > > > 
-> > > > > > Add CONFIG_ARCH_HAS_NVDIMM_INVAL_CACHE Kconfig and allow x86_64 to
-> > > > > > opt in
-> > > > > > and provide the support via wbinvd_on_all_cpus() call.
-> > > > > So the 8.2.9.5.5 bits will also need wbinvd - and I guess arm64 will need
-> > > > > its own semantics (iirc there was a flush all call in the past). Cc'ing
-> > > > > Jonathan as well.
-> > > > > 
-> > > > > Anyway, I think this call should not be defined in any place other
-> > > > > than core
-> > > > > kernel headers, and not in pat/nvdimm. I was trying to make it fit in
-> > > > > smp.h,
-> > > > > for example, but conviniently we might be able to hijack
-> > > > > flush_cache_all()
-> > > > > for our purposes as of course neither x86-64 arm64 uses it :)
-> > > > > 
-> > > > > And I see this as safe (wrt not adding a big hammer on unaware
-> > > > > drivers) as
-> > > > > the 32bit archs that define the call are mostly contained thin their
-> > > > > arch/,
-> > > > > and the few in drivers/ are still specific to those archs.
-> > > > > 
-> > > > > Maybe something like the below.
-> > > > Ok. I'll replace my version with yours.
-> > > Careful with flush_cache_all(). The stub version in
-> > > include/asm-generic/cacheflush.h has a comment above it that would
-> > > need updating at very least (I think).
-> > > Note there 'was' a flush_cache_all() for ARM64, but:
-> > > https://patchwork.kernel.org/project/linux-arm-kernel/patch/1429521875-16893-1-git-send-email-mark.rutland@arm.com/
-> > 
-> > 
-> > flush_and_invalidate_cache_all() instead given it calls wbinvd on x86? I
-> > think other archs, at least ARM, those are separate instructions aren't
-> > they?
+Davidlohr Bueso wrote:
+> On Wed, 10 Aug 2022, Dan Williams wrote:
 > 
-> On arm and arm64 there is no way to perform maintenance on *all* caches; it has
-> to be done in cacheline increments by address. It's not realistic to do that
-> for the entire address space, so we need to know the relevant address ranges
-> (as per the commit referenced above).
+> >I expect the interface would not be in the "flush_cache_" namespace
+> >since those functions are explicitly for virtually tagged caches that
+> >need maintenance on TLB operations that change the VA to PA association.
+> >In this case the cache needs maintenance because the data at the PA
+> >changes. That also means that putting it in the "nvdimm_" namespace is
+> >also wrong because there are provisions in the CXL spec where volatile
+> >memory ranges can also change contents at a given PA, for example caches
+> >might need to be invalidated if software resets the device, but not the
+> >platform.
+> >
+> >Something like:
+> >
+> >    region_cache_flush(resource_size_t base, resource_size_t n, bool nowait)
+> >
+> >...where internally that function can decide if it can rely on an
+> >instruction like wbinvd, use set / way based flushing (if set / way
+> >maintenance can be made to work which sounds like no for arm64), or map
+> >into VA space and loop. If it needs to fall back to that VA-based loop
+> >it might be the case that the caller would want to just fail the
+> >security op rather than suffer the loop latency.
 > 
-> So we probably need to think a bit harder about the geenric interface, since
-> "all" isn't possible to implement. :/
-> 
+> Yep, I was actually prototyping something similar, but want to still
+> reuse cacheflush.h machinery and just introduce cache_flush_region()
+> or whatever name, which returns any error. So all the logic would
+> just be per-arch, where x86 will do the wbinv and return 0, and arm64
+> can just do -EINVAL until VA-based is no longer the only way.
 
-I expect the interface would not be in the "flush_cache_" namespace
-since those functions are explicitly for virtually tagged caches that
-need maintenance on TLB operations that change the VA to PA association.
-In this case the cache needs maintenance because the data at the PA
-changes. That also means that putting it in the "nvdimm_" namespace is
-also wrong because there are provisions in the CXL spec where volatile
-memory ranges can also change contents at a given PA, for example caches
-might need to be invalidated if software resets the device, but not the
-platform.
-
-Something like:
-
-    region_cache_flush(resource_size_t base, resource_size_t n, bool nowait)
-
-...where internally that function can decide if it can rely on an
-instruction like wbinvd, use set / way based flushing (if set / way
-maintenance can be made to work which sounds like no for arm64), or map
-into VA space and loop. If it needs to fall back to that VA-based loop
-it might be the case that the caller would want to just fail the
-security op rather than suffer the loop latency.
+cache_flush_region() works for me, but I wonder if there should be a
+cache_flush_region_capable() call to shut off dependent code early
+rather than discovering it at runtime? For example, even archs like x86,
+that have wbinvd, have scenarios where wbinvd is prohibited, or painful.
+TDX, and virtualization in general, comes to mind.
