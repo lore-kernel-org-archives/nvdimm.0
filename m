@@ -1,155 +1,150 @@
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58BBA36C
-	for <nvdimm@lists.linux.dev>; Fri, 12 Aug 2022 00:52:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF6F928F5;
+	Sat, 13 Aug 2022 22:00:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1660265566; x=1691801566;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=2H/3hz1viQeyZAsUklWj1oRwptipkI4zaU4VtH3MYpM=;
-  b=GMev5dGhdrXYmIgxv872OeF+Sfe1ie1GwGouI0zUPV+IOWW1B3nLl9vD
-   8o2bPGP4R6EbwlBJvFJSGAk2caLcZAz0CZJOBtDw/mKv9qx4J1csNfwCa
-   jwNK3C+mzQoK0Z6hRdUzTS53ZY2GG+nD4sUh8CG1bqfBXmvLCsSXP+7xC
-   1SuZoGxBbxO1OUyoDTp9R79F9WyQF+30Gectj05GlSwYeJ9pXFcZvXCoH
-   rlxWlnLQgj58nZQs7MN6oUlZu5w9yu1GyYButLRjgvjtpDst/n4ZuUU1R
-   58Fw5pk76DjYicnMQxAEbwcwpwfEYC0k0t0NBFQJEh/67ZyRi64HhW493
-   Q==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10436"; a="290248514"
-X-IronPort-AV: E=Sophos;i="5.93,231,1654585200"; 
-   d="scan'208";a="290248514"
-Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Aug 2022 17:52:45 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.93,231,1654585200"; 
-   d="scan'208";a="708822179"
-Received: from fmsmsx603.amr.corp.intel.com ([10.18.126.83])
-  by fmsmga002.fm.intel.com with ESMTP; 11 Aug 2022 17:52:43 -0700
-Received: from fmsmsx611.amr.corp.intel.com (10.18.126.91) by
- fmsmsx603.amr.corp.intel.com (10.18.126.83) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.28; Thu, 11 Aug 2022 17:52:43 -0700
-Received: from fmsedg602.ED.cps.intel.com (10.1.192.136) by
- fmsmsx611.amr.corp.intel.com (10.18.126.91) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.28 via Frontend Transport; Thu, 11 Aug 2022 17:52:43 -0700
-Received: from NAM10-DM6-obe.outbound.protection.outlook.com (104.47.58.107)
- by edgegateway.intel.com (192.55.55.71) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2375.28; Thu, 11 Aug 2022 17:52:42 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=TANgeto/a5rkYVCbBEju2b818+EVq9nv1JeYFYeAFb/wLWnb2eXOAKDLTOcfqkvx2eevFAOvhr/44nhMKOwvrliAZ82DjI/FbnKo+9QhjcKvVUkLACAMo7rwIZOeT7Bqya7BS8fq5JJQzXXAcGMs2fO0rejouYk7RfhJf3bHrGBP7tbLw578nVdqZbvbJJ7A6n7+tYj2dH/uS4UgtUtJEHg41o6hC01gd0Yit3jA/NIt3zKpVENwdEZNtG6nXojAjGYyG8hZ07UHdZ8IGCnlZN0FmLSgOV1uXfNFisGhFdXy5wdsBizHhggJyAjkPslNmC7fNPSOeOOJt44ecEbi5g==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=+MogFH3ERvHJY2+l2qV4ZOthsxYFZrfG6vMpM4oCUOc=;
- b=b0kPGhiuSPY2x/IleP+jYtTaPBgyMyGQ6Ua8l3HZ2Ogm/5yYZQdFF5xJiVAHlVVGkoszFpr/gQVEZiT/SmmY9ul1UYviiYOGJGTWmgqzRaoRLKqIO5ziAljoYc05QrToRo1v0AbruwfqohI13nGiSzoOt2BJu80wSfF8+yQvNqsGWmIL/0/srsxOIY30AE0hgKdnSF68HF0bCXwydpwlfH1GrdZVF294tA/SMvmxF+5cL0iYRovYMZB4BXcFuYYwDLQrffMgLwDN9CatLt885Tnw7QijQuQSKV3wJrB6lSP69G4e0JhI0T//181rJcji8d6cKShxnM+jRbsZ7o9vhA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
- (2603:10b6:301:50::20) by CY4PR1101MB2327.namprd11.prod.outlook.com
- (2603:10b6:903:bc::15) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5504.16; Fri, 12 Aug
- 2022 00:52:41 +0000
-Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
- ([fe80::9847:345e:4c5b:ca12]) by MWHPR1101MB2126.namprd11.prod.outlook.com
- ([fe80::9847:345e:4c5b:ca12%6]) with mapi id 15.20.5504.025; Fri, 12 Aug 2022
- 00:52:40 +0000
-Date: Thu, 11 Aug 2022 17:52:38 -0700
-From: Dan Williams <dan.j.williams@intel.com>
-To: Miguel Bernal Marin <miguel.bernal.marin@linux.intel.com>,
-	<nvdimm@lists.linux.dev>
-CC: <dan.j.williams@intel.com>, <vishal.l.verma@intel.com>
-Subject: RE: [ndctl PATCH] meson: fix modprobedatadir default value
-Message-ID: <62f5a456a416b_3ce682944b@dwillia2-xfh.jf.intel.com.notmuch>
-References: <20220812003653.53992-1-miguel.bernal.marin@linux.intel.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20220812003653.53992-1-miguel.bernal.marin@linux.intel.com>
-X-ClientProxiedBy: BYAPR01CA0019.prod.exchangelabs.com (2603:10b6:a02:80::32)
- To MWHPR1101MB2126.namprd11.prod.outlook.com (2603:10b6:301:50::20)
+  t=1660428042; x=1691964042;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=J2stkkYmPik2bQMds1PPTKQFWYY4K6w3/+pjsawBn4I=;
+  b=HJqLse1iEyD+5ycn8xeBxUfR3BBfNyCk6Xh7fHhgFL1iIplNCsxI6FZo
+   Fj1sNlfHXvd0fivsBEeIDGDpRyUpocibZ0UdSTHNmy4oyRBadNISbeboY
+   nPzfoG0zOcSUn3/n+StXVaXEb0RzwGCs23jgzzsaQqHqC7ChEgHW9qq4r
+   RJ05ApwRCbTPIgwiYukZhXIm2Z9INJEvXDJ5uL/VvpZ5EzvyyxKjAoWN7
+   BTSDE7fyHRDiSOo544h5bB6M7OvgH9gH5hjCrJdOz9HubEhrhzRBCayVd
+   MJhNAe36NHXfCZw5EQf1vZjbtmzJKJbghjdcZVZ0DV0ul/Ot5tah1ocYn
+   g==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10437"; a="292575221"
+X-IronPort-AV: E=Sophos;i="5.93,236,1654585200"; 
+   d="scan'208";a="292575221"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Aug 2022 15:00:42 -0700
+X-IronPort-AV: E=Sophos;i="5.93,236,1654585200"; 
+   d="scan'208";a="635047705"
+Received: from tsaiyinl-mobl1.amr.corp.intel.com (HELO localhost) ([10.209.125.19])
+  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Aug 2022 15:00:40 -0700
+From: ira.weiny@intel.com
+To: Andy Whitcroft <apw@canonical.com>,
+	Joe Perches <joe@perches.com>
+Cc: Ira Weiny <ira.weiny@intel.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	"Fabio M . De Francesco" <fmdefrancesco@gmail.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	linux-kernel@vger.kernel.org,
+	linux-snps-arc@lists.infradead.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-csky@vger.kernel.org,
+	loongarch@lists.linux.dev,
+	linux-mips@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org,
+	linux-riscv@lists.infradead.org,
+	linux-sh@vger.kernel.org,
+	sparclinux@vger.kernel.org,
+	linux-um@lists.infradead.org,
+	x86@kernel.org,
+	linux-xtensa@linux-xtensa.org,
+	keyrings@vger.kernel.org,
+	linux-ide@vger.kernel.org,
+	linux-block@vger.kernel.org,
+	linux-crypto@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	linux-edac@vger.kernel.org,
+	linux1394-devel@lists.sourceforge.net,
+	dri-devel@lists.freedesktop.org,
+	dm-devel@redhat.com,
+	linux-raid@vger.kernel.org,
+	linux-mmc@vger.kernel.org,
+	linux-rdma@vger.kernel.org,
+	linux-mtd@lists.infradead.org,
+	netdev@vger.kernel.org,
+	nvdimm@lists.linux.dev,
+	linux-nvme@lists.infradead.org,
+	linux-scsi@vger.kernel.org,
+	virtualization@lists.linux-foundation.org,
+	linux-fsdevel@vger.kernel.org,
+	kgdb-bugreport@lists.sourceforge.net,
+	iommu@lists.linux.dev,
+	bpf@vger.kernel.org,
+	kvm@vger.kernel.org
+Subject: [PATCH] checkpatch: Add kmap and kmap_atomic to the deprecated list
+Date: Sat, 13 Aug 2022 15:00:34 -0700
+Message-Id: <20220813220034.806698-1-ira.weiny@intel.com>
+X-Mailer: git-send-email 2.35.3
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: a950245e-e563-4c50-b3d1-08da7bfcf577
-X-MS-TrafficTypeDiagnostic: CY4PR1101MB2327:EE_
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: p57Bfpvchh5/JBQlp65B4A1baV+sLXfdPhstcfJAp2v0AsATWl4dzOb2F754o6VzeMEitvWqINp1smLMG+u0kYS0my7QwbfqgwKCubMlJX6hWgrNDAsCbU1KrfgrmfRW1Aa1kQ8lv5LvR3zISOU+HhDDrBhWZgCE2YxXbSkuK4CcGuq7Vt/vnegYv6h8eE+n30abAR/ESUG2poMq+09V0fYjt60LIZ3J1znUQYLrN6VPVfQO1s5rmPomdWeNJnEnS0/3BVliWiVahNPN4nhWg6TkJaYXxsSzveqCbLmr1uSI1gluGNRQNgGdY9OpGnb1N6/+qOdUYgIe+x2xoMO5Vlp+3s6S00eMBIKXtlVji680qHh/P4HoVf5heNeTOwgefSGt+IeCmUzSz/5DzePM7sTIQvTk+ul/G7aFPeEnTne2mjT5EGv3KhWZ3Utiyxt9wPDcPgmZ5n8ofnkzFeyNeNqr2ToSrD+VFEXAbcaQqXjTezWwb+FQYCuz8Lawj2WDBQrXI04nejzcgheRqla+BWrEbjDa9dFPRMm4M2oVGS/x6vi125+cvQabqGpk13zOXvhltP6U+ujxOvyFWQyQ5lNLCQjvDwdNq20qKbF4ZSzITHQ9iB4v638jLgWpCGwTHDc3MDZqXApJyzYAEc0e930N1JkvCghTziiyRkEKkjeoCDOUTvR7MYCbmQCAKwQ9nVJY3XWnqJML/X/cK4khXLIWddsNwB1vSCUyIhc6OR/Y38SS1rmItA52jNDW/vSY
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1101MB2126.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(376002)(346002)(396003)(136003)(39860400002)(366004)(38100700002)(83380400001)(8676002)(86362001)(316002)(66556008)(66946007)(4326008)(6506007)(66476007)(186003)(41300700001)(6512007)(9686003)(26005)(8936002)(5660300002)(4744005)(2906002)(478600001)(6486002)(82960400001);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?D48sTnhReyblv7xTcQE8I9ct9XGNNSiCRL8lvx6TiVbuKrISO0YSScutfxaM?=
- =?us-ascii?Q?GRZqTCo719UVafuMQgxsiPegKb18RuT13xYVLfLdf4rDPXWu+k60Ye6Fqv1a?=
- =?us-ascii?Q?Dk6386mO1pasHU188wJusTUlO12SL6WdejZm+WZ6A49ZlM37uw1wyvkfPpKm?=
- =?us-ascii?Q?u9yNReEgu9MiB/h4FL3GWjpHHEP4J5sLMEbG3COfBANNkUm7CFDcHT5D4cEe?=
- =?us-ascii?Q?VVqNWCjMKTk+qpFGJQEjtEdCLnf6QJLeNHBO4TbXqXdVZF88MeO0jtLFfhBL?=
- =?us-ascii?Q?5ZfzIYUiPWg3/34wuZxh0ic58AZ2fzoNzR7RJTfjtOfCiUzPfwFSAvkhbrFV?=
- =?us-ascii?Q?/Y0kkUEFbTlp1aQhTM7vHcz/VafHRIu6tZS+yUjqH/1Hv12oXqBQ8C8WtnlC?=
- =?us-ascii?Q?Hl+7HDGBXvyCTEH2SF84XTkS4Fw501uv4PGxdKt3BC9Qvjnz4tmCXtQjKmB+?=
- =?us-ascii?Q?rQYYJ2kAh/TpmNPUzCNXxksYkNewjCKWboH2MWg6orrQ6gLf08kFiigoac2w?=
- =?us-ascii?Q?/05GYAQlF9cKBo73/0n4GnkQW7GJ6hqKyT7X6/56o3K0IsGRosSs98hyAqWp?=
- =?us-ascii?Q?+E2F3a3Gpd4oknPCZ9uQhrijq3v2JOjlJiYnNb7gMKZOSvUyGon2cleYMl7n?=
- =?us-ascii?Q?HzztBjVJuSOKTpQGRDipSOEAE4aNVrFg2vh1IIGCLkDIqLNTRO553c+qTXwy?=
- =?us-ascii?Q?2UaVwHS/B5llIseQCzJ5EQV9BdRj9k20ZCYQD2hPilan8bTG9RnughBPFfeY?=
- =?us-ascii?Q?74l3+v3Ku61CakaZRsULlRLDnHi0afarTDKH72lQjW3Gws8eQFTfdVxGYOcE?=
- =?us-ascii?Q?fOZBD0Vk7fLnypkw9TAv8rTE57eBLR2MmYuedGX6Pwotk9Nsi2P8vUMrDISF?=
- =?us-ascii?Q?CHWNvnBeSKgBgkbNX+DUWTr9Mz8RoVjQNdR1WK3xA4k0t4/l7lSkAy5RDZzX?=
- =?us-ascii?Q?FmnZx0S1ig/gqWOeVpwuNKHpj8HwDwsO96r/csPw1NJMgTBCr5NwkHUw6c7e?=
- =?us-ascii?Q?aq8rCUvuWg1tpHNXnUqnxBiyw6gH5QGSRgw5ZQSFlFyMjbrI/+X/Ww59pwWx?=
- =?us-ascii?Q?x7vouHE6wNsydOTxTaUJkXSwUPSjXlN0dKem3U1ppV0bZpI3CahVzDQDSejj?=
- =?us-ascii?Q?RXNfEMgtXjZ8Dnt51M8Jv6ceBtqSxRG5K1auVxBTVzz3uFncDCRI5NEyHip1?=
- =?us-ascii?Q?9wKAQEmrzPjC/EtKReRsRAevD4RtiyTDzYhssCgj+n+L8JVV3Lmd2Qc9l+1e?=
- =?us-ascii?Q?VkeKLUIsCrG61Z+59g2uuhTDfKSTlG90/d6c0R3EdC5k7/W5PsM6j3c/tJO6?=
- =?us-ascii?Q?Z9F7uxkhs3k6R60Cx7rf95U9t+zufAZ02DEBgDJclXVXdZk6Dg5f3pSAxQ3Z?=
- =?us-ascii?Q?ks8I1KDgGCI6F9DVzGw3xLdQwlYuYNuIrZj4UR0vxTjYHHDQD0JSzdo5LbbY?=
- =?us-ascii?Q?psj8wW3nGOPuYQGicrlkYg1ocR+bzhhzmu8xzEaYjcizmiGxzgfezknTRFd4?=
- =?us-ascii?Q?urErpnxHhtzjeUyT4RKVApRXBs6VeB50CjZhPGG3Z+65Yt1nxMiO1GRkyFEO?=
- =?us-ascii?Q?b62qWASMeBovnb5V4nNZGkNbn9ZACfSDUZMMAQfzdcg4uYJn4RvIiDgPp2c+?=
- =?us-ascii?Q?Ew=3D=3D?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: a950245e-e563-4c50-b3d1-08da7bfcf577
-X-MS-Exchange-CrossTenant-AuthSource: MWHPR1101MB2126.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 12 Aug 2022 00:52:40.7677
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: L1HlgTKslw5iL/obY82sDQSOz1TbVEEts+qTnJmyAF/xt2/9xBFcD3kT6ixWTYmvbgKxV88cdlkrb10WPDsAz6G4t5Jeva2uqWCaAgqrWpk=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY4PR1101MB2327
-X-OriginatorOrg: intel.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-Miguel Bernal Marin wrote:
-> The modprobedatadir is now set as a meson option, but without a
-> default value.
-> 
-> Set the default value if modprobedatadir is not set.
-> 
-> Fixes: 524ad09d5eda ("meson: make modprobedatadir an option")
-> Signed-off-by: Miguel Bernal Marin <miguel.bernal.marin@linux.intel.com>
-> ---
->  contrib/meson.build | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/contrib/meson.build b/contrib/meson.build
-> index ad63a50..48aa7c0 100644
-> --- a/contrib/meson.build
-> +++ b/contrib/meson.build
-> @@ -26,6 +26,6 @@ endif
->  
->  modprobedatadir = get_option('modprobedatadir')
->  if modprobedatadir == ''
-> -  modprobedatadir = get_option('modprobedatadir')
-> +  modprobedatadir = sysconfdir + '/modprobe.d/'
+From: Ira Weiny <ira.weiny@intel.com>
 
-Looks good to me:
+kmap() and kmap_atomic() are being deprecated in favor of
+kmap_local_page().
 
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+There are two main problems with kmap(): (1) It comes with an overhead
+as mapping space is restricted and protected by a global lock for
+synchronization and (2) it also requires global TLB invalidation when
+the kmap’s pool wraps and it might block when the mapping space is fully
+utilized until a slot becomes available.
+
+kmap_local_page() is safe from any context and is therefore redundant
+with kmap_atomic() with the exception of any pagefault or preemption
+disable requirements.  However, using kmap_atomic() for these side
+effects makes the code less clear.  So any requirement for pagefault or
+preemption disable should be made explicitly.
+
+With kmap_local_page() the mappings are per thread, CPU local, can take
+page faults, and can be called from any context (including interrupts).
+It is faster than kmap() in kernels with HIGHMEM enabled. Furthermore,
+the tasks can be preempted and, when they are scheduled to run again,
+the kernel virtual addresses are restored.
+
+Suggested-by: Thomas Gleixner <tglx@linutronix.de>
+Suggested-by: Fabio M. De Francesco <fmdefrancesco@gmail.com>
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+
+---
+Suggested by credits.
+	Thomas: Idea to keep from growing more kmap/kmap_atomic calls.
+	Fabio: Stole some of his boiler plate commit message.
+
+Notes on tree-wide conversions:
+
+I've cc'ed mailing lists for subsystems which currently contains either kmap()
+or kmap_atomic() calls.  As some of you already know Fabio and I have been
+working through converting kmap() calls to kmap_local_page().  But there is a
+lot more work to be done.  Help from the community is always welcome,
+especially with kmap_atomic() conversions.  To keep from stepping on each
+others toes I've created a spreadsheet of the current calls[1].  Please let me
+or Fabio know if you plan on tacking one of the conversions so we can mark it
+off the list.
+
+[1] https://docs.google.com/spreadsheets/d/1i_ckZ10p90bH_CkxD2bYNi05S2Qz84E2OFPv8zq__0w/edit#gid=1679714357
+
+---
+ scripts/checkpatch.pl | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
+index 79e759aac543..9ff219e0a9d5 100755
+--- a/scripts/checkpatch.pl
++++ b/scripts/checkpatch.pl
+@@ -807,6 +807,8 @@ our %deprecated_apis = (
+ 	"rcu_barrier_sched"			=> "rcu_barrier",
+ 	"get_state_synchronize_sched"		=> "get_state_synchronize_rcu",
+ 	"cond_synchronize_sched"		=> "cond_synchronize_rcu",
++	"kmap"					=> "kmap_local_page",
++	"kmap_atomic"				=> "kmap_local_page",
+ );
+ 
+ #Create a search pattern for all these strings to speed up a loop below
+
+base-commit: 4a9350597aff50bbd0f4b80ccf49d2e02d1111f5
+-- 
+2.35.3
+
