@@ -1,197 +1,291 @@
-Received: from NAM12-BN8-obe.outbound.protection.outlook.com (mail-bn8nam12on2072.outbound.protection.outlook.com [40.107.237.72])
+Received: from donkey.elm.relay.mailchannels.net (donkey.elm.relay.mailchannels.net [23.83.212.49])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E05EA3F;
-	Sun, 14 Aug 2022 05:25:33 +0000 (UTC)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=LTzIebJc7wR27rZhZNxqQXUGEntM7H6pgwQ4wqeKq55S3mCVi1G29ga7ShcQ7DZ8abXomqXocWnviZJaTu24Ve+p13Wuhy6kkYiTndg9NkOCqS0UhlqrURFSBssOQvYQjPE2L7qH6JBRhsueES0HnHy5fRHzptWMJcFNxpyi9DF6REOSA+C31hnFRJJUEYumrpAO3Gpegw8tJgZ6tVX6WI2WCzoZsCngNfUjzC12sMlnOx6sUwPqBISa0YiM0aJ3H7czXOBgnjsRA/5/wxTVes6MyBe4iPbH8fpRQUHZsSuEnCFV5ahFFf9JYVPr+2O6oxPqbIv9na+UfUuFgJrzEQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=iPsnByg9GkmeiXdCbLUjXq5RxPhjCaYA61SaoODvzqg=;
- b=jqSeCGlyL6w/kEEktueNI/fuwZ91+/fgVidnZ72YcZ97Rwp7xj5EDvSPLkV1/ahr5+H+EBmvdP4Nl0R9mW0Iq3eY7dm4BwerE2VEkJdnZBgETrEg4IlzWRdLwr4RZvvWLT57m2103oIHk76hEfLtHxvhp0gmsGzJluRa8NyFolbO0GCqYvLCY+PqT0U3p1R6xyorKt3Py9e0dgo9Kw1nc+l5oe5fQ8Jrxs8wOvyLfKJ6X+Wp1VkxFBNx01/QKmQoktGo3k32L3HiP27JkRs27taUwwECYsnyF6pV6NImm+fK/yzYioblAiwUQMSdnHJIv48FihKzpl3avhxqtyqrrw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=iPsnByg9GkmeiXdCbLUjXq5RxPhjCaYA61SaoODvzqg=;
- b=Pq80a7lYO2AKoEkT8vF6OpsyuOwmTuArVdoaMngPuKJXwUPeJT1iDlPtO5FJbvXARElAz8reD+fmZlnlcSgRGD4eHu8W+hgtL3Zo2SwtPeNfLobo6FWydHHHESf1rA9Mbevm4h/fQR/U59WugWV/BNlNhHvcWnpPbc3zwSSFnQXt4rHnp9UOkN4CSpSBE97VKABnj6B6xynrNnOPN01ZUZ/k+oVgdJA5V9n4wBQ0Zorq6ZJlrurxNepEzuMWw90fF5yWwk+KpoC1h6QLT1exzR1yuBpsTKt/7tWdU4HrIzpmqCiB15xCDkDsrng92AXl6yArEcB4R8p+XW/shNACaQ==
-Received: from DM5PR12MB4663.namprd12.prod.outlook.com (2603:10b6:4:a9::26) by
- DM4PR12MB5199.namprd12.prod.outlook.com (2603:10b6:5:396::14) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.5504.14; Sun, 14 Aug 2022 05:25:31 +0000
-Received: from DM5PR12MB4663.namprd12.prod.outlook.com
- ([fe80::b4ab:4d63:1cdd:b051]) by DM5PR12MB4663.namprd12.prod.outlook.com
- ([fe80::b4ab:4d63:1cdd:b051%4]) with mapi id 15.20.5504.025; Sun, 14 Aug 2022
- 05:25:31 +0000
-From: Chaitanya Kulkarni <chaitanyak@nvidia.com>
-To: "ira.weiny@intel.com" <ira.weiny@intel.com>, Andy Whitcroft
-	<apw@canonical.com>, Joe Perches <joe@perches.com>
-CC: "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, "kvm@vger.kernel.org"
-	<kvm@vger.kernel.org>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>,
-	"kgdb-bugreport@lists.sourceforge.net"
-	<kgdb-bugreport@lists.sourceforge.net>, "dri-devel@lists.freedesktop.org"
-	<dri-devel@lists.freedesktop.org>, "linux-mips@vger.kernel.org"
-	<linux-mips@vger.kernel.org>, "linux-ide@vger.kernel.org"
-	<linux-ide@vger.kernel.org>, "dm-devel@redhat.com" <dm-devel@redhat.com>,
-	"keyrings@vger.kernel.org" <keyrings@vger.kernel.org>,
-	"linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>,
-	"sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>,
-	"linux-riscv@lists.infradead.org" <linux-riscv@lists.infradead.org>,
-	"linux1394-devel@lists.sourceforge.net"
-	<linux1394-devel@lists.sourceforge.net>, "linux-scsi@vger.kernel.org"
-	<linux-scsi@vger.kernel.org>, "linux-rdma@vger.kernel.org"
-	<linux-rdma@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>,
-	"linux-csky@vger.kernel.org" <linux-csky@vger.kernel.org>,
-	"iommu@lists.linux.dev" <iommu@lists.linux.dev>,
-	"linux-snps-arc@lists.infradead.org" <linux-snps-arc@lists.infradead.org>,
-	"Fabio M . De Francesco" <fmdefrancesco@gmail.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-xtensa@linux-xtensa.org" <linux-xtensa@linux-xtensa.org>,
-	"linux-um@lists.infradead.org" <linux-um@lists.infradead.org>,
-	"linux-block@vger.kernel.org" <linux-block@vger.kernel.org>,
-	"linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>,
-	"loongarch@lists.linux.dev" <loongarch@lists.linux.dev>, Thomas Gleixner
-	<tglx@linutronix.de>, "virtualization@lists.linux-foundation.org"
-	<virtualization@lists.linux-foundation.org>, "bpf@vger.kernel.org"
-	<bpf@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>, "linux-edac@vger.kernel.org"
-	<linux-edac@vger.kernel.org>, "linux-raid@vger.kernel.org"
-	<linux-raid@vger.kernel.org>, "netdev@vger.kernel.org"
-	<netdev@vger.kernel.org>, "linux-mmc@vger.kernel.org"
-	<linux-mmc@vger.kernel.org>, "linux-kernel@vger.kernel.org"
-	<linux-kernel@vger.kernel.org>, "linux-crypto@vger.kernel.org"
-	<linux-crypto@vger.kernel.org>, "linux-fsdevel@vger.kernel.org"
-	<linux-fsdevel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>,
-	"linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>
-Subject: Re: [PATCH] checkpatch: Add kmap and kmap_atomic to the deprecated
- list
-Thread-Topic: [PATCH] checkpatch: Add kmap and kmap_atomic to the deprecated
- list
-Thread-Index: AQHYr2AnarTe9oV4GEWjC3HdbpR5Ya2t3ckA
-Date: Sun, 14 Aug 2022 05:25:30 +0000
-Message-ID: <91f708ed-f456-dc83-281e-fc18a0b4b981@nvidia.com>
-References: <20220813220034.806698-1-ira.weiny@intel.com>
-In-Reply-To: <20220813220034.806698-1-ira.weiny@intel.com>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-user-agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.9.0
-authentication-results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: 31ec3568-a4e9-4168-77a9-08da7db567cb
-x-ms-traffictypediagnostic: DM4PR12MB5199:EE_
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info:
- 6VLE6UsKRBwAODhumIvrq3g/k3pw/3vVudsx7E1SYHm5qNlNlnwoHNGRuBrJQuXwTVVhU/VrAz8wlQXrLxQpPOW3iUHura4jvNR1SaAW/5S6I2Qx6kDAoaJd3avPZjss5UBvvIJ0XTxeHDgZskqRz+Iuwvolz3WQrJZJ7Wu1uU3xEF6au3DuFGl6Med2yyJsJsSGjTXkRj3dq4qOMEf7RN062zm0Q3MylQHxl858NTHI406oDnSxrxFcJLqdMZk1wKAI0QIXLGRs9KFi1XEEq/QcHJDH5AWxH7QSWtuCKWI/LXV6WF7spD0PsHp8NfI6oq/BKnuAAHTCtachXF8YNDALwCj+x1IbZmMvtEZCrnh81tDCGsTHvrSTRTMdvaNIaOE3rpUmBKh4o8a0zZFXbJkjhW4B5mvOtdIodXEajf1D0y2nv3u6XShHIwlVQDdQtu0f9H3V2GEMEv2wYY98m0rxNK80QRyYof11BNGSXMA6YsMA5ib4wDeLSybgNDV5rMxAJ2R8s/0/uY81Bd2ma7Cgsu+dKZFwK2nG/FujAuLxp66HdkHZtEDjrK1uBcTBAjvabxosYanuiMrzK/KmduPw+F8M/vBqqtBRFkoDX5hgcBYD+Dg4QlhCtdZ9t/9S1yQK50V/B5rEPgts1rA6grLB7lTOQfNTJHDVQsAW/pxm3Hys4bqjgOw6xMuU5GvWZWt7K/GnjMxxXuMdDJ3u89cIcErwOX0MxVR3NivkZoqA8+uK03F13AHHxSME3P4gG/hAjnM2bVmq1Taj5+DJtKlNRc15jMly+lv9g7OxKYq2IgXpwuivh6VROmKVUc2lt6y0hmnBcNu8zovkYk7KVhJVd1ZElq8RXIN1mjse85V9z6ROkqRQ0xoRQ9uWbgH2YdM8wUZti0B0W3yYPGekPh+xdOdkVR3rud9Sf1ONTr08EArEgOazyW1wU4zYF0Kw
-x-forefront-antispam-report:
- CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM5PR12MB4663.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(4636009)(396003)(376002)(346002)(136003)(39860400002)(366004)(66946007)(66446008)(6506007)(41300700001)(6512007)(53546011)(186003)(83380400001)(91956017)(76116006)(66556008)(4326008)(66476007)(64756008)(8676002)(2616005)(2906002)(8936002)(5660300002)(7406005)(7416002)(86362001)(478600001)(54906003)(966005)(6486002)(110136005)(71200400001)(316002)(38070700005)(31696002)(38100700002)(31686004)(36756003)(122000001)(43740500002)(45980500001);DIR:OUT;SFP:1101;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0:
- =?utf-8?B?U1MyRnlCbC8vYlhTbkV3enZJdFhCYXZzOGtIRm52Y3JybUxCZlRBRnVDclN0?=
- =?utf-8?B?ek9xZUhkMm1rNUc2WmgvVXFMSWNYVFZ4dTh0cVY4M0dzRmxxZ1R1R2o0K1la?=
- =?utf-8?B?NVNqd0pEeGNPWm43V0xYRitZWFdqUklvbWsvQ0RmcnFhZkQ4MXRkWko3SDJP?=
- =?utf-8?B?eHJobTFNU1ZUbFk3MytOSUxEeVM1WlFySnc4TGF1MjVWL2tsRENZNW51SnV2?=
- =?utf-8?B?b01wV0RsN0Z2WTA2eEZvMFhQYXBSbk9GWTErbzMrcWJybmd5R0dsMTFCQ1lB?=
- =?utf-8?B?L0k0Um94M0MrNkpRMzFxZVRVZUZGZ3lUUGlXbVBQb1ZYVXZiZCtqMEJsWXpG?=
- =?utf-8?B?QVllM2NCSkR1eE9XRlQrQ0lKeFZ0Y09rWTcrYVV3RVdwTWZGcDcrbDNpWDFH?=
- =?utf-8?B?S3hDODZ3dDBncHdscWFZOWxMWU1SalNhOTlvMDc1cmFaNndHQ2pNSnpCeVF3?=
- =?utf-8?B?L0RIVGN0d1ZqV0VLemg0Unh3VlhpUDdVVnpQbDN0d3NyK0VOWmF5Vkhjanlv?=
- =?utf-8?B?aG1DRDdITjJ5YzFPUHZiYjIvM0Z4ZjVrTnZtdHcrSTVVbmtXcmNXczRRMFJP?=
- =?utf-8?B?YjZNL00zQS8vUm0rMnpDUjV6eGVrS2cxNWNnaWJJaVNZdWhMRW5ZU1dDa0s5?=
- =?utf-8?B?RGExODVYMjBoemc4QnNBaDg0eFNKODJWN29MUHRFUDZWZUlSYUMvWXR3dVhw?=
- =?utf-8?B?UTd4eFVQUGgvazFRaGhOYkNxc2dFelJJUENPdDZJV1o3OEI4dVVwN1h1RG1X?=
- =?utf-8?B?SkZWd09nNWhrSGtnSHFTNXM5VlZnVHYreUpkaVlLOW84UFdlRGlQWWtxdzJh?=
- =?utf-8?B?aSs1VjYrazRuRWloMktyc1JlNzhUcEFmWlFOVS85bFJBeTM5WFpPS2J5bFJh?=
- =?utf-8?B?UElIaTlCUUJ1eDhXcTFpdnlHeHBsdHdMM1oyOXk3aUw1ZlI2c3A3RVo0WnFk?=
- =?utf-8?B?cmhOMHVyNTZTZUhUYkF5dkRkdS9jU1dXMW1nbktKcHd3QTdJZmxxSm5CUkVi?=
- =?utf-8?B?NUsvTVF2THNFMDBFd2JvL0ZzUDdxY0xBUTZhOU5zWHVFVllid2NnTGFicFlu?=
- =?utf-8?B?YkVQQmVwT29vdG51Q2w3eEFGUjNhbUU3OHZOV25jM1VCNlNqSUw5enZFS0h0?=
- =?utf-8?B?eDdUN005QzgvZWtyZVhGclJqdTNVbGtQUm5xVmRQeER0NHVsY3l3OFRLYUlo?=
- =?utf-8?B?aUltOHNRSmowcGhIRjM5ajNjcTNzNEdjVlM3cWdnRnFvaExiRDZhVnNjcjU3?=
- =?utf-8?B?YmRIMU1PenFjM0FLSWtTaGVidHFrSFZDQlp6NDdHTUJnbGZJd203WjNRN2lx?=
- =?utf-8?B?S3ZNK25JVHplalQ3SFhSdGFSeHpPbzMxbTFXQWF4SEtPc25PRG11OUhVQWRC?=
- =?utf-8?B?NFFHYVBzbVlJQkVOZ1Jvd2JPM2QvOUxtUUpSZUIvQUg2MmxEZnlJM3EwTjdX?=
- =?utf-8?B?RVZjM3dwb3JVdDZnMEU1SmtaaXkzZnk0NmxPTnBBcG5INHJSdVAzV2w0RW5J?=
- =?utf-8?B?azJxOUZleldLdW1jTFQ0WmlhM2RlMWpSb0krcGNFZjVIYWNvV1lYbjdSVGlF?=
- =?utf-8?B?a3hNSzhadERYS2VxK20wRHdXSHkvY1F1Mk0xRUhlWUw3bzJXRGgrSHozSVRn?=
- =?utf-8?B?dzBHbk16azVqVWk4WU5iQTdGVENub1Robmk2Y3ZOaUZwdXJ0U0xBb2ZIVHNJ?=
- =?utf-8?B?Qm9EeFBVNmtkSU90ZjM4cDEvdEl3R3dacEM2RFhpN0c1TUdZYVBnemlqYzBV?=
- =?utf-8?B?MUlmSXpaMVpONFhBNHFNY0JPY3FxQWNqckVDd0gvTFRldVJMbGd0SVpBQ2hn?=
- =?utf-8?B?aDRZZkl5MUhjeFlkbDB6eWFrSGpFNHNtbi9JNzhsZzdJQ1N1Z1hKRG9ZcVZR?=
- =?utf-8?B?WGtzbnVGVnN5K2owUy9nS1g2UGpLSEs2KzJibUlRZkZaellFWlRqMTYwSklw?=
- =?utf-8?B?Q2Z2MmlENTlEbXdSWjB5bmwvUFhxWkcreDd2aUMvZWhKS1Iyc1JKMnJtQnpS?=
- =?utf-8?B?TWdtTzUyZmdJMGhaVlpDdStZc3NuR1RZNmgzbEhxejF2cWVFTGlzY1QyM016?=
- =?utf-8?B?WmFDRVY3ZHdPS1oraHNPU3F0S0JHRUVxZFRRWSszLzBqQ1RqaTJYNXY2SEow?=
- =?utf-8?B?SU5IaXpMSWNROTRGYUJsWGVjMXdYQjBuNWg1eUJRcDg4YlR4ZjNMRzFVL1Nx?=
- =?utf-8?B?dmc9PQ==?=
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <5261E63C04B5044FBDC2CBFA7DC85685@namprd12.prod.outlook.com>
-Content-Transfer-Encoding: base64
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C1FC2914
+	for <nvdimm@lists.linux.dev>; Mon, 15 Aug 2022 16:07:19 +0000 (UTC)
+X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
+Received: from relay.mailchannels.net (localhost [127.0.0.1])
+	by relay.mailchannels.net (Postfix) with ESMTP id D977B5A208E;
+	Mon, 15 Aug 2022 16:07:11 +0000 (UTC)
+Received: from pdx1-sub0-mail-a235.dreamhost.com (unknown [127.0.0.6])
+	(Authenticated sender: dreamhost)
+	by relay.mailchannels.net (Postfix) with ESMTPA id 211355A2B8D;
+	Mon, 15 Aug 2022 16:07:11 +0000 (UTC)
+ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1660579631; a=rsa-sha256;
+	cv=none;
+	b=dwy35Dq6MGivfs7YD0SiCsx7o/lmefiDQXuFB6kuAoJ2GZ1w/zY7XZEeKhE+Buxp+kVpkV
+	aNKf3PQBZ5wknPxF9NEeQeDCkbavaCTKYZye7jnw1XTcDso5ufMiHrE5IFKw6Nd+ttCLE9
+	KX/KMm1eXiBNdt4I77PznODaZj21QQYckOhr5FPp7GdGvzl9N4fD7s/o1BzsoEj6b0f9em
+	kYTRMZCvvv3VOulYN/Whm9Y2ZXP9wIpsK6SwqI03lw/DXgAvgheaDrPjhujaNuSEyHr/yD
+	1Wd47BWWbRgbpUCEs/vCAtZjGUypu8J+JLQzZHwASPZ/V05rbGJG42bzesfLoA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=mailchannels.net;
+	s=arc-2022; t=1660579631;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references:dkim-signature;
+	bh=SWrmCDYRRkOHcBepfHdfZ2+Ekw3l2pMf1Y2VMTMTM4I=;
+	b=h9RmqWmgiRegO2wOYKqT+5fUhLzOscKjonYh+kgeJvR7it3+DEXu9kbd/WCLhtp5U5Jojk
+	FmvtB+1dCF7govsF1ALK5Rjjy09uvZ9XjWSNWeMAdtK4Yiit18mpxoXfrmXvZxjCLKRqkc
+	zDdDGK3IupY43C8FD/m1HMDQ0csqOUwIqSTDb0QTeirLtrVdjxIw3FV0SztaBO6bqWxMpR
+	kCTyAf5lKhxaH4Ulg7/f2XSfJEQqZpJRrd2K4oDUgtLbNCiKYIImHoUmCSdVy6bNKcodMb
+	Ibx9AzWQxGe8Oto4CJGiNpzC3MteuQ7Y/fdlGOxA1IOdT7YVbLaXPCCTDnBpMQ==
+ARC-Authentication-Results: i=1;
+	rspamd-7586b5656-fgpvh;
+	auth=pass smtp.auth=dreamhost smtp.mailfrom=dave@stgolabs.net
+X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
+X-MC-Relay: Neutral
+X-MailChannels-SenderId: dreamhost|x-authsender|dave@stgolabs.net
+X-MailChannels-Auth-Id: dreamhost
+X-Society-Power: 6a49d4b33abf0487_1660579631606_2197245223
+X-MC-Loop-Signature: 1660579631606:4165773123
+X-MC-Ingress-Time: 1660579631606
+Received: from pdx1-sub0-mail-a235.dreamhost.com (pop.dreamhost.com
+ [64.90.62.162])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
+	by 100.116.106.123 (trex/6.7.1);
+	Mon, 15 Aug 2022 16:07:11 +0000
+Received: from offworld (unknown [104.36.25.245])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	(Authenticated sender: dave@stgolabs.net)
+	by pdx1-sub0-mail-a235.dreamhost.com (Postfix) with ESMTPSA id 4M5zgd4syVz3Y;
+	Mon, 15 Aug 2022 09:07:09 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=stgolabs.net;
+	s=dreamhost; t=1660579630;
+	bh=SWrmCDYRRkOHcBepfHdfZ2+Ekw3l2pMf1Y2VMTMTM4I=;
+	h=Date:From:To:Cc:Subject:Content-Type;
+	b=jj4Cc7GxvFJDCpbsnMc8Pcg+Do8obnFG2gpvaPsDG1OI3Rc42JwCEQnWBFu5hyDSw
+	 YtFlOAuYS3RfC3dMKaSnF8M13SmlKJTy8sYwaB9tvs4Zjm4a+KW6A9n23diwYALWRm
+	 IXdP7VzTupOvYWvscXcCMWON5ZtUxg+gXUOeL5wenY453KeK0L6gniUAZr0K0W+nAa
+	 t2Odh8WClDC/AuBrNkm7pQ2H6Kp1YXdzofpoNNm73Kl1S9nbM3zIvDBYyMykPzFa42
+	 wwREa30YKMa3Ty9HSKSVggOqOn+fcLq8qTYKwXwGp6p9wrGYmGAGUhUnSEuGZukwFe
+	 uJfWwePvmuW2A==
+Date: Mon, 15 Aug 2022 09:07:06 -0700
+From: Davidlohr Bueso <dave@stgolabs.net>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, Dave Jiang <dave.jiang@intel.com>,
+	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+	linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
+	bwidawsk@kernel.org, ira.weiny@intel.com, vishal.l.verma@intel.com,
+	alison.schofield@intel.com, a.manzanares@samsung.com,
+	linux-arch@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>,
+	linux-arm-kernel@lists.infradead.org, bp@alien8.de, x86@kernel.org,
+	linux-kernel@vger.kernel.org, dave@stgolabs.net
+Subject: [PATCH] arch/cacheflush: Introduce flush_all_caches()
+Message-ID: <20220815160706.tqd42dv24tgb7x7y@offworld>
+References: <165791918718.2491387.4203738301057301285.stgit@djiang5-desk3.ch.intel.com>
+ <165791937063.2491387.15277418618265930924.stgit@djiang5-desk3.ch.intel.com>
+ <20220718053039.5whjdcxynukildlo@offworld>
+ <4bedc81d-62fa-7091-029e-a2e56b4f8f7a@intel.com>
+ <20220803183729.00002183@huawei.com>
+ <9f3705e1-de21-0f3c-12af-fd011b6d613d@intel.com>
+ <YvO8pP7NUOdH17MM@FVFF77S0Q05N>
+ <62f40fba338af_3ce6829466@dwillia2-xfh.jf.intel.com.notmuch>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: DM5PR12MB4663.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 31ec3568-a4e9-4168-77a9-08da7db567cb
-X-MS-Exchange-CrossTenant-originalarrivaltime: 14 Aug 2022 05:25:31.0130
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: DTS1C5RKwVtBKScaU/BTbd0QOIaELY0YZxfbtZMm5adcb9U5unTaXCRAksNDGAW1JZlBYO6iAoiBrXG8NSNNaQ==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM4PR12MB5199
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Disposition: inline
+In-Reply-To: <62f40fba338af_3ce6829466@dwillia2-xfh.jf.intel.com.notmuch>
+User-Agent: NeoMutt/20220429
 
-T24gOC8xMy8yMiAxNTowMCwgaXJhLndlaW55QGludGVsLmNvbSB3cm90ZToNCj4gRnJvbTogSXJh
-IFdlaW55IDxpcmEud2VpbnlAaW50ZWwuY29tPg0KPiANCj4ga21hcCgpIGFuZCBrbWFwX2F0b21p
-YygpIGFyZSBiZWluZyBkZXByZWNhdGVkIGluIGZhdm9yIG9mDQo+IGttYXBfbG9jYWxfcGFnZSgp
-Lg0KPiANCj4gVGhlcmUgYXJlIHR3byBtYWluIHByb2JsZW1zIHdpdGgga21hcCgpOiAoMSkgSXQg
-Y29tZXMgd2l0aCBhbiBvdmVyaGVhZA0KPiBhcyBtYXBwaW5nIHNwYWNlIGlzIHJlc3RyaWN0ZWQg
-YW5kIHByb3RlY3RlZCBieSBhIGdsb2JhbCBsb2NrIGZvcg0KPiBzeW5jaHJvbml6YXRpb24gYW5k
-ICgyKSBpdCBhbHNvIHJlcXVpcmVzIGdsb2JhbCBUTEIgaW52YWxpZGF0aW9uIHdoZW4NCj4gdGhl
-IGttYXDigJlzIHBvb2wgd3JhcHMgYW5kIGl0IG1pZ2h0IGJsb2NrIHdoZW4gdGhlIG1hcHBpbmcg
-c3BhY2UgaXMgZnVsbHkNCj4gdXRpbGl6ZWQgdW50aWwgYSBzbG90IGJlY29tZXMgYXZhaWxhYmxl
-Lg0KPiANCj4ga21hcF9sb2NhbF9wYWdlKCkgaXMgc2FmZSBmcm9tIGFueSBjb250ZXh0IGFuZCBp
-cyB0aGVyZWZvcmUgcmVkdW5kYW50DQo+IHdpdGgga21hcF9hdG9taWMoKSB3aXRoIHRoZSBleGNl
-cHRpb24gb2YgYW55IHBhZ2VmYXVsdCBvciBwcmVlbXB0aW9uDQo+IGRpc2FibGUgcmVxdWlyZW1l
-bnRzLiAgSG93ZXZlciwgdXNpbmcga21hcF9hdG9taWMoKSBmb3IgdGhlc2Ugc2lkZQ0KPiBlZmZl
-Y3RzIG1ha2VzIHRoZSBjb2RlIGxlc3MgY2xlYXIuICBTbyBhbnkgcmVxdWlyZW1lbnQgZm9yIHBh
-Z2VmYXVsdCBvcg0KPiBwcmVlbXB0aW9uIGRpc2FibGUgc2hvdWxkIGJlIG1hZGUgZXhwbGljaXRs
-eS4NCj4gDQo+IFdpdGgga21hcF9sb2NhbF9wYWdlKCkgdGhlIG1hcHBpbmdzIGFyZSBwZXIgdGhy
-ZWFkLCBDUFUgbG9jYWwsIGNhbiB0YWtlDQo+IHBhZ2UgZmF1bHRzLCBhbmQgY2FuIGJlIGNhbGxl
-ZCBmcm9tIGFueSBjb250ZXh0IChpbmNsdWRpbmcgaW50ZXJydXB0cykuDQo+IEl0IGlzIGZhc3Rl
-ciB0aGFuIGttYXAoKSBpbiBrZXJuZWxzIHdpdGggSElHSE1FTSBlbmFibGVkLiBGdXJ0aGVybW9y
-ZSwNCj4gdGhlIHRhc2tzIGNhbiBiZSBwcmVlbXB0ZWQgYW5kLCB3aGVuIHRoZXkgYXJlIHNjaGVk
-dWxlZCB0byBydW4gYWdhaW4sDQo+IHRoZSBrZXJuZWwgdmlydHVhbCBhZGRyZXNzZXMgYXJlIHJl
-c3RvcmVkLg0KPiANCj4gU3VnZ2VzdGVkLWJ5OiBUaG9tYXMgR2xlaXhuZXIgPHRnbHhAbGludXRy
-b25peC5kZT4NCj4gU3VnZ2VzdGVkLWJ5OiBGYWJpbyBNLiBEZSBGcmFuY2VzY28gPGZtZGVmcmFu
-Y2VzY29AZ21haWwuY29tPg0KPiBTaWduZWQtb2ZmLWJ5OiBJcmEgV2VpbnkgPGlyYS53ZWlueUBp
-bnRlbC5jb20+DQo+IA0KPiAtLS0NCj4gU3VnZ2VzdGVkIGJ5IGNyZWRpdHMuDQo+IAlUaG9tYXM6
-IElkZWEgdG8ga2VlcCBmcm9tIGdyb3dpbmcgbW9yZSBrbWFwL2ttYXBfYXRvbWljIGNhbGxzLg0K
-PiAJRmFiaW86IFN0b2xlIHNvbWUgb2YgaGlzIGJvaWxlciBwbGF0ZSBjb21taXQgbWVzc2FnZS4N
-Cj4gDQo+IE5vdGVzIG9uIHRyZWUtd2lkZSBjb252ZXJzaW9uczoNCj4gDQo+IEkndmUgY2MnZWQg
-bWFpbGluZyBsaXN0cyBmb3Igc3Vic3lzdGVtcyB3aGljaCBjdXJyZW50bHkgY29udGFpbnMgZWl0
-aGVyIGttYXAoKQ0KPiBvciBrbWFwX2F0b21pYygpIGNhbGxzLiAgQXMgc29tZSBvZiB5b3UgYWxy
-ZWFkeSBrbm93IEZhYmlvIGFuZCBJIGhhdmUgYmVlbg0KPiB3b3JraW5nIHRocm91Z2ggY29udmVy
-dGluZyBrbWFwKCkgY2FsbHMgdG8ga21hcF9sb2NhbF9wYWdlKCkuICBCdXQgdGhlcmUgaXMgYQ0K
-PiBsb3QgbW9yZSB3b3JrIHRvIGJlIGRvbmUuICBIZWxwIGZyb20gdGhlIGNvbW11bml0eSBpcyBh
-bHdheXMgd2VsY29tZSwNCj4gZXNwZWNpYWxseSB3aXRoIGttYXBfYXRvbWljKCkgY29udmVyc2lv
-bnMuICBUbyBrZWVwIGZyb20gc3RlcHBpbmcgb24gZWFjaA0KPiBvdGhlcnMgdG9lcyBJJ3ZlIGNy
-ZWF0ZWQgYSBzcHJlYWRzaGVldCBvZiB0aGUgY3VycmVudCBjYWxsc1sxXS4gIFBsZWFzZSBsZXQg
-bWUNCj4gb3IgRmFiaW8ga25vdyBpZiB5b3UgcGxhbiBvbiB0YWNraW5nIG9uZSBvZiB0aGUgY29u
-dmVyc2lvbnMgc28gd2UgY2FuIG1hcmsgaXQNCj4gb2ZmIHRoZSBsaXN0Lg0KPiANCj4gWzFdIGh0
-dHBzOi8vZG9jcy5nb29nbGUuY29tL3NwcmVhZHNoZWV0cy9kLzFpX2NrWjEwcDkwYkhfQ2t4RDJi
-WU5pMDVTMlF6ODRFMk9GUHY4enFfXzB3L2VkaXQjZ2lkPTE2Nzk3MTQzNTcNCj4gDQoNCkxvb2tz
-IGdvb2QuDQoNClJldmlld2VkLWJ5OiBDaGFpdGFueWEgS3Vsa2FybmkgPGtjaEBudmlkaWEuY29t
-Pg0KDQoNCg==
+With CXL security features, global CPU cache flushing nvdimm
+requirements are no longer specific to that subsystem, even
+beyond the scope of security_ops. CXL will need such semantics
+for features not necessarily limited to persistent memory.
+
+While the scope of this is for physical address space, add a
+new flush_all_caches() in cacheflush headers such that each
+architecture can define it, when capable. For x86 just use the
+wbinvd hammer and prevent any other arch from being capable.
+While there can be performance penalties or delays response
+times, these calls are both rare and explicitly security
+related, and therefore become less important.
+
+Signed-off-by: Davidlohr Bueso <dave@stgolabs.net>
+---
+
+After a few iterations I circled back to an interface without granularity.
+It just doesn't make sense right now to define a range if arm64 will not
+support this (won't do VA-based physical address space flushes) and, until
+it comes up with consistent caches, security operations will simply be
+unsupported.
+
+  arch/x86/include/asm/cacheflush.h |  3 +++
+  drivers/acpi/nfit/intel.c         | 41 ++++++++++++++-----------------
+  include/asm-generic/cacheflush.h  | 22 +++++++++++++++++
+  3 files changed, 43 insertions(+), 23 deletions(-)
+
+diff --git a/arch/x86/include/asm/cacheflush.h b/arch/x86/include/asm/cacheflush.h
+index b192d917a6d0..ce2ec9556093 100644
+--- a/arch/x86/include/asm/cacheflush.h
++++ b/arch/x86/include/asm/cacheflush.h
+@@ -10,4 +10,7 @@
+
+  void clflush_cache_range(void *addr, unsigned int size);
+
++#define flush_all_caches() \
++	do { wbinvd_on_all_cpus(); } while(0)
++
+  #endif /* _ASM_X86_CACHEFLUSH_H */
+diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
+index 8dd792a55730..f2f6c31e6ab7 100644
+--- a/drivers/acpi/nfit/intel.c
++++ b/drivers/acpi/nfit/intel.c
+@@ -4,6 +4,7 @@
+  #include <linux/ndctl.h>
+  #include <linux/acpi.h>
+  #include <asm/smp.h>
++#include <linux/cacheflush.h>
+  #include "intel.h"
+  #include "nfit.h"
+
+@@ -190,8 +191,6 @@ static int intel_security_change_key(struct nvdimm *nvdimm,
+	}
+  }
+
+-static void nvdimm_invalidate_cache(void);
+-
+  static int __maybe_unused intel_security_unlock(struct nvdimm *nvdimm,
+		const struct nvdimm_key_data *key_data)
+  {
+@@ -210,6 +209,9 @@ static int __maybe_unused intel_security_unlock(struct nvdimm *nvdimm,
+	};
+	int rc;
+
++	if (!flush_all_caches_capable())
++		return -EINVAL;
++
+	if (!test_bit(NVDIMM_INTEL_UNLOCK_UNIT, &nfit_mem->dsm_mask))
+		return -ENOTTY;
+
+@@ -228,7 +230,7 @@ static int __maybe_unused intel_security_unlock(struct nvdimm *nvdimm,
+	}
+
+	/* DIMM unlocked, invalidate all CPU caches before we read it */
+-	nvdimm_invalidate_cache();
++	flush_all_caches();
+
+	return 0;
+  }
+@@ -294,11 +296,14 @@ static int __maybe_unused intel_security_erase(struct nvdimm *nvdimm,
+		},
+	};
+
++	if (!flush_all_caches_capable())
++		return -EINVAL;
++
+	if (!test_bit(cmd, &nfit_mem->dsm_mask))
+		return -ENOTTY;
+
+	/* flush all cache before we erase DIMM */
+-	nvdimm_invalidate_cache();
++	flush_all_caches();
+	memcpy(nd_cmd.cmd.passphrase, key->data,
+			sizeof(nd_cmd.cmd.passphrase));
+	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
+@@ -318,7 +323,7 @@ static int __maybe_unused intel_security_erase(struct nvdimm *nvdimm,
+	}
+
+	/* DIMM erased, invalidate all CPU caches before we read it */
+-	nvdimm_invalidate_cache();
++	flush_all_caches();
+	return 0;
+  }
+
+@@ -338,6 +343,9 @@ static int __maybe_unused intel_security_query_overwrite(struct nvdimm *nvdimm)
+		},
+	};
+
++	if (!flush_all_caches_capable())
++		return -EINVAL;
++
+	if (!test_bit(NVDIMM_INTEL_QUERY_OVERWRITE, &nfit_mem->dsm_mask))
+		return -ENOTTY;
+
+@@ -355,7 +363,7 @@ static int __maybe_unused intel_security_query_overwrite(struct nvdimm *nvdimm)
+	}
+
+	/* flush all cache before we make the nvdimms available */
+-	nvdimm_invalidate_cache();
++	flush_all_caches();
+	return 0;
+  }
+
+@@ -377,11 +385,14 @@ static int __maybe_unused intel_security_overwrite(struct nvdimm *nvdimm,
+		},
+	};
+
++	if (!flush_all_caches_capable())
++		return -EINVAL;
++
+	if (!test_bit(NVDIMM_INTEL_OVERWRITE, &nfit_mem->dsm_mask))
+		return -ENOTTY;
+
+	/* flush all cache before we erase DIMM */
+-	nvdimm_invalidate_cache();
++	flush_all_caches();
+	memcpy(nd_cmd.cmd.passphrase, nkey->data,
+			sizeof(nd_cmd.cmd.passphrase));
+	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
+@@ -401,22 +412,6 @@ static int __maybe_unused intel_security_overwrite(struct nvdimm *nvdimm,
+	}
+  }
+
+-/*
+- * TODO: define a cross arch wbinvd equivalent when/if
+- * NVDIMM_FAMILY_INTEL command support arrives on another arch.
+- */
+-#ifdef CONFIG_X86
+-static void nvdimm_invalidate_cache(void)
+-{
+-	wbinvd_on_all_cpus();
+-}
+-#else
+-static void nvdimm_invalidate_cache(void)
+-{
+-	WARN_ON_ONCE("cache invalidation required after unlock\n");
+-}
+-#endif
+-
+  static const struct nvdimm_security_ops __intel_security_ops = {
+	.get_flags = intel_security_flags,
+	.freeze = intel_security_freeze,
+diff --git a/include/asm-generic/cacheflush.h b/include/asm-generic/cacheflush.h
+index 4f07afacbc23..f249142b4908 100644
+--- a/include/asm-generic/cacheflush.h
++++ b/include/asm-generic/cacheflush.h
+@@ -115,4 +115,26 @@ static inline void flush_cache_vunmap(unsigned long start, unsigned long end)
+	memcpy(dst, src, len)
+  #endif
+
++/*
++ * Flush the entire caches across all CPUs. It is considered
++ * a big hammer (latency and performance). Unlike the APIs
++ * above, this function can be defined on architectures which
++ * have VIPT or PIPT caches, and thus is beyond the scope of
++ * virtual to physical mappings/page tables changing.
++ *
++ * The limitation here is that the architectures that make
++ * use of it must can actually comply with the semantics,
++ * such as those which caches are in a consistent state. The
++ * caller can verify the situation early on.
++ */
++#ifndef flush_all_caches
++# define flush_all_caches_capable() false
++static inline void flush_all_caches(void)
++{
++	WARN_ON_ONCE("cache invalidation required\n");
++}
++#else
++# define flush_all_caches_capable() true
++#endif
++
+  #endif /* _ASM_GENERIC_CACHEFLUSH_H */
+--
+2.37.2
