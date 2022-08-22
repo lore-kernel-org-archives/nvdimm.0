@@ -1,28 +1,33 @@
-Received: from mail104.syd.optusnet.com.au (mail104.syd.optusnet.com.au [211.29.132.246])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 6E40246AA
-	for <nvdimm@lists.linux.dev>; Sun, 21 Aug 2022 23:33:03 +0000 (UTC)
-Received: from dread.disaster.area (pa49-195-4-169.pa.nsw.optusnet.com.au [49.195.4.169])
-	by mail104.syd.optusnet.com.au (Postfix) with ESMTPS id 024CE62D65C;
-	Mon, 22 Aug 2022 09:32:54 +1000 (AEST)
-Received: from dave by dread.disaster.area with local (Exim 4.92.3)
-	(envelope-from <david@fromorbit.com>)
-	id 1oPuR1-00FxHU-PQ; Mon, 22 Aug 2022 09:32:51 +1000
-Date: Mon, 22 Aug 2022 09:32:51 +1000
-From: Dave Chinner <david@fromorbit.com>
-To: "Darrick J. Wong" <djwong@kernel.org>
-Cc: Shiyang Ruan <ruansy.fnst@fujitsu.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>,
-	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
-	"linux-mm@kvack.org" <linux-mm@kvack.org>,
-	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
-	"hch@infradead.org" <hch@infradead.org>,
-	"jane.chu@oracle.com" <jane.chu@oracle.com>
-Subject: Re: [PATCH] xfs: on memory failure, only shut down fs after scanning
- all mappings
-Message-ID: <20220821233251.GI3600936@dread.disaster.area>
-References: <Yv5wIa2crHioYeRr@magnolia>
+Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 866717F
+	for <nvdimm@lists.linux.dev>; Mon, 22 Aug 2022 06:38:39 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
+	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=HBBcM9A/awFTGNV6DJENggodsApSG3Yqfk+2KouRytw=; b=2njf6YzoOY74vKtpZpZ6F9ctF7
+	ZN7kngU/R2cbNVb79v3SS1WbSehYORP54z1w/9AdtIqlVKeM1igPjVUu8UACXINb7lJJ1NeNARNe2
+	X/MGBj60eb8jRcdRkf38ucSaka943Je/6nwC+890otwlDxhUumx32O367UCUv5ttn6J6VvjC7CwVm
+	0xetAh0J5S0L7tbptmZ1s8mVzKv6YybnXLaSvik2rGNgdnRGirCxMUzCAEV1rSZF34sMRG4dJUZMr
+	c2SUlO47+rcHOthZFim6I6352/gCiUe9koyOFOrCQjqQhyyaIa9gQBBeGhm+vg0F0BvzFEfS/U3Au
+	9BgLXaQQ==;
+Received: from hch by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
+	id 1oQ14a-005WRv-J5; Mon, 22 Aug 2022 06:38:08 +0000
+Date: Sun, 21 Aug 2022 23:38:08 -0700
+From: Christoph Hellwig <hch@infradead.org>
+To: Davidlohr Bueso <dave@stgolabs.net>
+Cc: linux-arch@vger.kernel.org, dan.j.williams@intel.com,
+	peterz@infradead.org, mark.rutland@arm.com, dave.jiang@intel.com,
+	Jonathan.Cameron@huawei.com, a.manzanares@samsung.com,
+	bwidawsk@kernel.org, alison.schofield@intel.com,
+	ira.weiny@intel.com, linux-cxl@vger.kernel.org,
+	nvdimm@lists.linux.dev, x86@kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2] arch/cacheflush: Introduce flush_all_caches()
+Message-ID: <YwMkUMiKf3ZyMDDF@infradead.org>
+References: <20220819171024.1766857-1-dave@stgolabs.net>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -31,33 +36,24 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <Yv5wIa2crHioYeRr@magnolia>
-X-Optus-CM-Score: 0
-X-Optus-CM-Analysis: v=2.4 cv=VuxAv86n c=1 sm=1 tr=0 ts=6302c0a8
-	a=FOdsZBbW/tHyAhIVFJ0pRA==:117 a=FOdsZBbW/tHyAhIVFJ0pRA==:17
-	a=kj9zAlcOel0A:10 a=biHskzXt2R4A:10 a=VwQbUJbxAAAA:8 a=20KFwNOVAAAA:8
-	a=7-415B0cAAAA:8 a=1mAKx1ogGfV0O7zOtsIA:9 a=CjuIK1q_8ugA:10
-	a=AjGcO6oz07-iQ99wixmX:22 a=biEYGPWJfzWAr4FL6Ov7:22
+In-Reply-To: <20220819171024.1766857-1-dave@stgolabs.net>
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 
-On Thu, Aug 18, 2022 at 10:00:17AM -0700, Darrick J. Wong wrote:
-> From: Darrick J. Wong <djwong@kernel.org>
-> 
-> xfs_dax_failure_fn is used to scan the filesystem during a memory
-> failure event to look for memory mappings to revoke.  Unfortunately, if
-> it encounters an rmap record for filesystem metadata, it will shut down
-> the filesystem and the scan immediately.  This means that we don't
-> complete the mapping revocation scan and instead leave live mappings to
-> failed memory.  Fix the function to defer the shutdown until after we've
-> finished culling mappings.
-> 
-> While we're at it, add the usual "xfs_" prefix to struct failure_info,
-> and actually initialize mf_flags.
-> 
-> Signed-off-by: Darrick J. Wong <djwong@kernel.org>
+On Fri, Aug 19, 2022 at 10:10:24AM -0700, Davidlohr Bueso wrote:
+> index b192d917a6d0..ac4d4fd4e508 100644
+> --- a/arch/x86/include/asm/cacheflush.h
+> +++ b/arch/x86/include/asm/cacheflush.h
+> @@ -10,4 +10,8 @@
+>  
+>  void clflush_cache_range(void *addr, unsigned int size);
+>  
+> +/* see comments in the stub version */
+> +#define flush_all_caches() \
+> +	do { wbinvd_on_all_cpus(); } while(0)
 
-Looks fine.
+Yikes.  This is just a horrible, horrible name and placement for a bad
+hack that should have no generic relevance.
 
-Reviewed-by: Dave Chinner <dchinner@redhat.com>
--- 
-Dave Chinner
-david@fromorbit.com
+Please fix up the naming to make it clear that this function is for a
+very specific nvdimm use case, and move it to a nvdimm-specific header
+file.
