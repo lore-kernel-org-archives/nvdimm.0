@@ -1,72 +1,80 @@
 Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C509AA3B
-	for <nvdimm@lists.linux.dev>; Tue, 23 Aug 2022 07:45:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8919A54
+	for <nvdimm@lists.linux.dev>; Tue, 23 Aug 2022 07:45:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1661240731; x=1692776731;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=MQGAynVVQNWd8X9mtXQpToldlZvQ77AW/OreICS7N/k=;
-  b=QFBYTji+7v/JnRqJjX7is2mIjihq1mUnjNzfTj1ztWYwqGCbj1v1LE/F
-   ltaMoMX4KssQUM0ps7bMOr39g/LWUMUAOLay5HDicXpe9Eb4WpDdu0xul
-   k3x0+sjvFXmhletRJKZdXoplnMS7sJ9Jv87j48lMFWRqfBMP/qbiorrQI
-   OEUBNgLba6sWJfglPSA0KGMLbizoUtue7EOHrc0xwtTWmI+1LjSvkQmGZ
-   UwswyVpZFMzXup3mCfCYcFt7TXMiCoZQRfPLPErw3u1QY1IjzjhFnNmSL
-   xVlQ+Biyx7rFNuWcRXd+n4JP7RGx+PdC5RSxhcMqoa7PQYwSQcIvCuOsF
+  t=1661240732; x=1692776732;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=86SwdVxA7TMFpmryejfDk5NOkDpXUJW5f4die9B9dY0=;
+  b=V6WECukLOwH9NtuLosK2loG95uhp9iFGUrhIO0xmMhpKixTubLFoHYcW
+   5jLAXvPgNpLwX+ND38RKGVUO9ipkKJMH8cjzDdwyc6Rk0A7Q140HGX5LP
+   aElUVxBuxyB48Vw3CIUhc1M3wiKutDxez1y5TIRGZ2iLKely4+yPb6bwl
+   La04C3B7QIo8Om07WAhfjhdSuHYXo0o/VopVnND45a7OxJQbflVvtZZ5T
+   KLvVpenY4wovhjrnEaw8xp6sze+BVuJt+Z+pkyGeWric7fV3E2onoVd3L
+   k/yuBCGbCJpv2j4ScffiVEnV+rywzOe5QWoOiDAhGVdPFyPjcGTJumN4+
    A==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10447"; a="294901755"
+X-IronPort-AV: E=McAfee;i="6500,9779,10447"; a="294901757"
 X-IronPort-AV: E=Sophos;i="5.93,256,1654585200"; 
-   d="scan'208";a="294901755"
+   d="scan'208";a="294901757"
 Received: from orsmga002.jf.intel.com ([10.7.209.21])
   by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Aug 2022 00:45:31 -0700
 X-IronPort-AV: E=Sophos;i="5.93,256,1654585200"; 
-   d="scan'208";a="609254276"
+   d="scan'208";a="609254280"
 Received: from skummith-mobl1.amr.corp.intel.com (HELO vverma7-desk1.intel.com) ([10.212.54.206])
-  by orsmga002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Aug 2022 00:45:30 -0700
+  by orsmga002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Aug 2022 00:45:31 -0700
 From: Vishal Verma <vishal.l.verma@intel.com>
 To: <linux-cxl@vger.kernel.org>
 Cc: <nvdimm@lists.linux.dev>,
 	Dan Williams <dan.j.williams@intel.com>,
 	Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v2 0/3] cxl: static analysis fixes
-Date: Tue, 23 Aug 2022 01:45:24 -0600
-Message-Id: <20220823074527.404435-1-vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v2 1/3] cxl/region: fix a dereferecnce after NULL check
+Date: Tue, 23 Aug 2022 01:45:25 -0600
+Message-Id: <20220823074527.404435-2-vishal.l.verma@intel.com>
 X-Mailer: git-send-email 2.37.2
+In-Reply-To: <20220823074527.404435-1-vishal.l.verma@intel.com>
+References: <20220823074527.404435-1-vishal.l.verma@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=703; h=from:subject; bh=MQGAynVVQNWd8X9mtXQpToldlZvQ77AW/OreICS7N/k=; b=owGbwMvMwCXGf25diOft7jLG02pJDMksrdMWpf3hSjjnkO6smPXwyNKyS2k37umdFdyxy9ph9bU/ lnucOkpZGMS4GGTFFFn+7vnIeExuez5PYIIjzBxWJpAhDFycAjCRR2mMDLf/3DKa+ixfxClvw92y7S 3PLHayf7y64++r5njVKxZLPC8y/E9kXdadGOl2x0GW4dMpDR79ySytPzQEuJM2fkyddnbKMyYA
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1092; h=from:subject; bh=86SwdVxA7TMFpmryejfDk5NOkDpXUJW5f4die9B9dY0=; b=owGbwMvMwCXGf25diOft7jLG02pJDMksrdNOqVVaba4I4r7asfpm9O6cndzzq7nE7/8+6y45815v wpZDHaUsDGJcDLJiiix/93xkPCa3PZ8nMMERZg4rE8gQBi5OAZjI9okMfwW1vZ5IMrSe/zufR6ea+9 nDtcXuhz3/CJx1mnZd1cLTjoPhf7aJmpfBvNpNjPPXymoosq+z2BexfOnVAyw5bw+6c0mY8AEA
 X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp; fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
 Content-Transfer-Encoding: 8bit
 
-Changes since v1[1]:
-- Fix the decoder filter check in patch 1.
-- Fix a missed free(path) in patch 2.
+A NULL check in region_action() implies that 'decoder' might be NULL, but
+later we dereference it during cxl_decoder_foreach(). The NULL check is
+valid because it was the filter result being checked, however, while
+doing this, the original 'decoder' variable was being clobbered.
 
-[1]: https://lore.kernel.org/linux-cxl/20220823072106.398076-1-vishal.l.verma@intel.com
+Check the filter results independently of the original decoder variable.
 
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
+ cxl/region.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-Fix a small handful of issues reported by scan.coverity.com for the
-recent region management additions.
-
-Vishal Verma (3):
-  cxl/region: fix a dereferecnce after NULL check
-  libcxl: fox a resource leak and a forward NULL check
-  cxl/filter: Fix an uninitialized pointer dereference
-
- cxl/lib/libcxl.c | 4 +++-
- cxl/filter.c     | 2 +-
- cxl/region.c     | 5 ++---
- 3 files changed, 6 insertions(+), 5 deletions(-)
-
-
-base-commit: 9a993ce24fdd5de45774b65211570dd514cdf61d
+diff --git a/cxl/region.c b/cxl/region.c
+index a30313c..334fcc2 100644
+--- a/cxl/region.c
++++ b/cxl/region.c
+@@ -686,9 +686,8 @@ static int region_action(int argc, const char **argv, struct cxl_ctx *ctx,
+ 			continue;
+ 
+ 		cxl_decoder_foreach (port, decoder) {
+-			decoder = util_cxl_decoder_filter(decoder,
+-							  param.root_decoder);
+-			if (!decoder)
++			if (!util_cxl_decoder_filter(decoder,
++						     param.root_decoder))
+ 				continue;
+ 			rc = decoder_region_action(p, decoder, action, count);
+ 			if (rc)
 -- 
 2.37.2
 
