@@ -1,38 +1,38 @@
 Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C5FFA5B
-	for <nvdimm@lists.linux.dev>; Tue, 23 Aug 2022 07:45:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E681A5F
+	for <nvdimm@lists.linux.dev>; Tue, 23 Aug 2022 07:45:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1661240733; x=1692776733;
+  t=1661240734; x=1692776734;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=/9z/gQg3nRurW7/yKCKgoDtKwuWnKKZassG/KM8FQgQ=;
-  b=g/VQuU2j4Tl8l82OiuF5DAawXywUyyl8xsLFQJ4UY/G3NrnxTNobfHZU
-   ap9a4bn7l9vM1QrwRznJy6UQGAoFHtSBHNs6xPvhJ2WdZUobrvqlwBz8F
-   69ddWNqkWv9QGAPaYLNPB94oHBHCxRF/aIB4PMoWCCLPbiqnVcFY5Spla
-   WwigEqqfePe7b+FoPJCvMaNbzCQ/Ed9l35DMSawtnVRVBu1WRBdVsT4iH
-   COe8yXgpYpg8pEuHLjWql8AkoAunCe6YSCx4IVy0UhUjXTRx8HSGxSyZG
-   G+S1t/HT+5oRXIwPcEOghJtY0h9hkd++Z96qM+1MR4MVDzOYxKIAL8mf6
-   w==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10447"; a="294901759"
+  bh=8rJ8gEEBtVLYGXTt1L5arjJ8aeJKmNlD+4PYtRRCVes=;
+  b=P0/oSW2XeCbq5cg3f71QQ1b0DeHgDqMJZDIHJfyDhwnP7ZnMqcthDrCR
+   ZJJtKi7/EpA3OCp6YbzWMVo0hdsHTemPQbFUo0rIOQTjvFmMpkPsCLNMr
+   TPFZNJ0ihvOEp9sv6SJISGdKV2mf5fHaGVSLvZPIrw2W/cVdYDv3jo8i2
+   lmgma2oxKrG565a2wbj8sQUIMQX/+Kn1yqA89xVJX6q9eZAJmUPizpwfo
+   pUK6wYDc3cRIB9q76lHfHuaCiDyWvLiriSAV6E8YaJKCbXHqYMUYbvil4
+   Y1700v5IKq5DHECjiwdJcwufCCJmzX503U0fsrkZGEC7BHQYE+JfQOvEx
+   A==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10447"; a="294901762"
 X-IronPort-AV: E=Sophos;i="5.93,256,1654585200"; 
-   d="scan'208";a="294901759"
+   d="scan'208";a="294901762"
 Received: from orsmga002.jf.intel.com ([10.7.209.21])
   by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Aug 2022 00:45:32 -0700
 X-IronPort-AV: E=Sophos;i="5.93,256,1654585200"; 
-   d="scan'208";a="609254286"
+   d="scan'208";a="609254291"
 Received: from skummith-mobl1.amr.corp.intel.com (HELO vverma7-desk1.intel.com) ([10.212.54.206])
-  by orsmga002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Aug 2022 00:45:31 -0700
+  by orsmga002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Aug 2022 00:45:32 -0700
 From: Vishal Verma <vishal.l.verma@intel.com>
 To: <linux-cxl@vger.kernel.org>
 Cc: <nvdimm@lists.linux.dev>,
 	Dan Williams <dan.j.williams@intel.com>,
 	Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v2 2/3] libcxl: fox a resource leak and a forward NULL check
-Date: Tue, 23 Aug 2022 01:45:26 -0600
-Message-Id: <20220823074527.404435-3-vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v2 3/3] cxl/filter: Fix an uninitialized pointer dereference
+Date: Tue, 23 Aug 2022 01:45:27 -0600
+Message-Id: <20220823074527.404435-4-vishal.l.verma@intel.com>
 X-Mailer: git-send-email 2.37.2
 In-Reply-To: <20220823074527.404435-1-vishal.l.verma@intel.com>
 References: <20220823074527.404435-1-vishal.l.verma@intel.com>
@@ -42,50 +42,33 @@ List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1260; h=from:subject; bh=/9z/gQg3nRurW7/yKCKgoDtKwuWnKKZassG/KM8FQgQ=; b=owGbwMvMwCXGf25diOft7jLG02pJDMksrdOaby6tVC0KOGu4b4ntucdlXALP7nBtN6q5pzJl+mOt tNlJHaUsDGJcDLJiiix/93xkPCa3PZ8nMMERZg4rE8gQBi5OAZjI7DcM/1QSxKbuucf87o6XxbNA7R fvZG04avl/BjFai5k5X+Bvz2dkWCd/bL96nHE/D1s0q9DlnGV3onwXbHi1qSXi6HOF3xvn8gAA
+X-Developer-Signature: v=1; a=openpgp-sha256; l=837; h=from:subject; bh=8rJ8gEEBtVLYGXTt1L5arjJ8aeJKmNlD+4PYtRRCVes=; b=owGbwMvMwCXGf25diOft7jLG02pJDMksrdM3rpzD9XiPz/5/vlEpvj4ZhrEnntescBLlLH+lvv2L 0NGTHaUsDGJcDLJiiix/93xkPCa3PZ8nMMERZg4rE8gQBi5OAZiIyiOG/wX/NYz45jFHbWr5+WSb+n OdS7/OXvjpeWjSLc3QKTH7Za4x/JXbVLHZoVGZ7/kyYz+B535NvI8U37H1mP8scRNc++L1CyYA
 X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp; fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
 Content-Transfer-Encoding: 8bit
 
-Static analysis reports a couple of issues in add_cxl_region(). Firstly,
-'path' wasn't freed in the success case, only in the error case.
-Secondly, the error handling after 'calloc()'ing the region object
-erroneously jumped to the error path which tried to free the region object.
-
-Add anew error label to just free 'path' and return for this exit case.
+Static analysis points out that there was a chance that 'jdecoder' could
+be used while uninitialized in walk_decoders(). Initialize it to NULL to
+avoid this.
 
 Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- cxl/lib/libcxl.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ cxl/filter.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
-index 021d59f..e8c5d44 100644
---- a/cxl/lib/libcxl.c
-+++ b/cxl/lib/libcxl.c
-@@ -482,7 +482,7 @@ static void *add_cxl_region(void *parent, int id, const char *cxlregion_base)
+diff --git a/cxl/filter.c b/cxl/filter.c
+index 9a3de8c..56c6599 100644
+--- a/cxl/filter.c
++++ b/cxl/filter.c
+@@ -796,7 +796,7 @@ static void walk_decoders(struct cxl_port *port, struct cxl_filter_params *p,
+ 	cxl_decoder_foreach(port, decoder) {
+ 		const char *devname = cxl_decoder_get_devname(decoder);
+ 		struct json_object *jchildregions = NULL;
+-		struct json_object *jdecoder;
++		struct json_object *jdecoder = NULL;
  
- 	region = calloc(1, sizeof(*region));
- 	if (!region)
--		goto err;
-+		goto err_path;
- 
- 	region->id = id;
- 	region->ctx = ctx;
-@@ -551,11 +551,13 @@ static void *add_cxl_region(void *parent, int id, const char *cxlregion_base)
- 
- 	list_add_sorted(&decoder->regions, region, list, region_start_cmp);
- 
-+	free(path);
- 	return region;
- err:
- 	free(region->dev_path);
- 	free(region->dev_buf);
- 	free(region);
-+err_path:
- 	free(path);
- 	return NULL;
- }
+ 		if (!p->decoders)
+ 			goto walk_children;
 -- 
 2.37.2
 
