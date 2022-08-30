@@ -1,165 +1,120 @@
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4573C36A
-	for <nvdimm@lists.linux.dev>; Tue, 30 Aug 2022 03:57:19 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1661831839; x=1693367839;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=o2KLwuHiZALE/Xa/7tGWnIgQagrpbzVuhDDeoe5nlEY=;
-  b=Hi/WVY5X4YB5RpsFFiSXKYzUSc7nG+Vl9LDvKqWweQow2dU40BxKFUJw
-   pdZ8izgmpZgsbj4zkcBccRFLUyH2JqANO9CtN20u8dXPnJDaFcbkYVJey
-   YwUtVmljOKrqcSraq9v2brAf7JXesri6NENdeEM16RAQBU7OqOb2qcP93
-   8ARKinmVNFnl0MMghLbqDiiKzdmXjJnJd0R9tajQHUr5LurkTwR6i6ts+
-   mb9cK2f03R8nAGSWHVtQC3QK0FbNJlhQxRDcFr7qgXjdfajkTEHwskaVa
-   6btPou8hk8iSGY+OYG7EdVKy6LEEuftqfjraxW9YmSCkOJyO3ZDx43QQI
-   g==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10454"; a="359035204"
-X-IronPort-AV: E=Sophos;i="5.93,274,1654585200"; 
-   d="scan'208";a="359035204"
-Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Aug 2022 20:57:11 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.93,274,1654585200"; 
-   d="scan'208";a="939849809"
-Received: from fmsmsx602.amr.corp.intel.com ([10.18.126.82])
-  by fmsmga005.fm.intel.com with ESMTP; 29 Aug 2022 20:57:10 -0700
-Received: from fmsmsx610.amr.corp.intel.com (10.18.126.90) by
- fmsmsx602.amr.corp.intel.com (10.18.126.82) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.31; Mon, 29 Aug 2022 20:57:10 -0700
-Received: from FMSEDG603.ED.cps.intel.com (10.1.192.133) by
- fmsmsx610.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.31 via Frontend Transport; Mon, 29 Aug 2022 20:57:10 -0700
-Received: from NAM11-CO1-obe.outbound.protection.outlook.com (104.47.56.172)
- by edgegateway.intel.com (192.55.55.68) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2375.31; Mon, 29 Aug 2022 20:57:09 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=BUuut5N1KPZno1/0pJbFpg2QL/qYP4DIS8tlaiBekdN1pq1Nix7g9mi1Tuzaj8Lvr48LvWjbuWuwDL7UWzVjgp9GnFtG0vpBBY8oIKMAoX+a8peA7J06W7gRwSpJIUt9MtI383u24H+RKMgaPKSd7KlDyczSLRQS1ACXStFyQVbu6yHkPbQJsDscYwmIDlGM+0oC/NyaC+q2P6rYRmTGSxdRgmhQEtx+qK1HcHiiqBykmxdfRLaqnOJCzdE6ijamUPIBsQ2UW31LLXSH38VVq4iiVx5z+z4EDi8XM6s4RugbajLO0j65mkBvSBeArJPdclpusRSfhpIoxE1eTi8iOA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=YEgihtSOQabcHWOM6VIlC2pdPQvq6PcobkftZdgxqx0=;
- b=d4QcyQbcZHAACPXIKZeRJx4d+NogBgm5w1P+3bq6KfnpdiGDEewlN14jvsoe8jOViqsix5KqLeibRSVJfYIUG88zYT7Rfh1xl1WcsUX14uiSkidInTAIZlhZ5b76ASsWXan6Kcet4v7fJoAE8aWrbaWv6PKxtWRSsMqwOjj9aaso26fbEzTf9Uq09Sru0/oQ0zu42bdDM3LPMz4b2eM2hvGgC/PKnAXrR1/S4hV1HStoRKbVB+8xrOQMXRKExRbxa1DAey3ysb5aPkmI2kY5asfvFz67+lZAHQE5KhPYXWF+GEac187s61yfFcs6PtXCG8vkmw4lkqAj3jKO79+hrA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
- (2603:10b6:301:50::20) by BN7PR11MB2723.namprd11.prod.outlook.com
- (2603:10b6:406:b9::25) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5566.14; Tue, 30 Aug
- 2022 03:57:08 +0000
-Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
- ([fe80::9847:345e:4c5b:ca12]) by MWHPR1101MB2126.namprd11.prod.outlook.com
- ([fe80::9847:345e:4c5b:ca12%6]) with mapi id 15.20.5566.021; Tue, 30 Aug 2022
- 03:57:07 +0000
-Date: Mon, 29 Aug 2022 20:57:04 -0700
-From: Dan Williams <dan.j.williams@intel.com>
-To: Miaohe Lin <linmiaohe@huawei.com>, Dan Williams <dan.j.williams@intel.com>
-CC: Shiyang Ruan <ruansy.fnst@fujitsu.com>, Christoph Hellwig <hch@lst.de>,
-	Naoya Horiguchi <naoya.horiguchi@nec.com>, Al Viro <viro@zeniv.linux.org.uk>,
-	Dave Chinner <david@fromorbit.com>, Goldwyn Rodrigues <rgoldwyn@suse.de>,
-	Jane Chu <jane.chu@oracle.com>, Matthew Wilcox <willy@infradead.org>, "Ritesh
- Harjani" <riteshh@linux.ibm.com>, <nvdimm@lists.linux.dev>,
-	<linux-xfs@vger.kernel.org>, <linux-mm@kvack.org>,
-	<linux-fsdevel@vger.kernel.org>, <akpm@linux-foundation.org>,
-	<djwong@kernel.org>
-Subject: Re: [PATCH 4/4] mm/memory-failure: Fall back to vma_address() when
- ->notify_failure() fails
-Message-ID: <630d8a902231b_259e5b29490@dwillia2-xfh.jf.intel.com.notmuch>
-References: <166153426798.2758201.15108211981034512993.stgit@dwillia2-xfh.jf.intel.com>
- <166153429427.2758201.14605968329933175594.stgit@dwillia2-xfh.jf.intel.com>
- <76fb4464-73eb-256c-60e0-a0c3dc152e78@huawei.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <76fb4464-73eb-256c-60e0-a0c3dc152e78@huawei.com>
-X-ClientProxiedBy: SJ0PR03CA0065.namprd03.prod.outlook.com
- (2603:10b6:a03:331::10) To MWHPR1101MB2126.namprd11.prod.outlook.com
- (2603:10b6:301:50::20)
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 8CE0A374
+	for <nvdimm@lists.linux.dev>; Tue, 30 Aug 2022 05:54:22 +0000 (UTC)
+Received: from sequoia.corp.microsoft.com (162-237-133-238.lightspeed.rcsntx.sbcglobal.net [162.237.133.238])
+	by linux.microsoft.com (Postfix) with ESMTPSA id 274422045DF9;
+	Mon, 29 Aug 2022 22:45:20 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 274422045DF9
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1661838320;
+	bh=4tx7988dbpdq6BjiDihRE9SJL3xDVUEU7ewDk7bxwKI=;
+	h=From:To:Cc:Subject:Date:From;
+	b=rjIZRi5zdg8LaVn/ILkz++FbgiY4eZyRHPsgBTZgwKPFrI/8cNSBe31Kr6w5GsizV
+	 E4WpkAPgNcG4eQd/4Q70OasvOpubjxjHtjUuw64enAWvgYjK/J5YXIOUf0wFvS7exm
+	 y8x0mxoUOGDRJCNDEFeVkP87PxjNEstxTRp6bygk=
+From: Tyler Hicks <tyhicks@linux.microsoft.com>
+To: Dan Williams <dan.j.williams@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Ira Weiny <ira.weiny@intel.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
+	Jeff Moyer <jmoyer@redhat.com>,
+	Pavel Tatashin <pasha.tatashin@soleen.com>,
+	"Madhavan T. Venkataraman" <madvenka@linux.microsoft.com>,
+	nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH v2] libnvdimm/region: Allow setting align attribute on regions without mappings
+Date: Tue, 30 Aug 2022 00:45:05 -0500
+Message-Id: <20220830054505.1159488-1-tyhicks@linux.microsoft.com>
+X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 756ae756-562d-48d1-dcec-08da8a3bb557
-X-MS-TrafficTypeDiagnostic: BN7PR11MB2723:EE_
-X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: ddV+hDUuC9Q4DZN9jkRTFuHqQHLQ2Ql7JTzwNkOOPdBKPgqluS/RaVg2Kfw1ebynHwHC321aP6oakWrh15tXtBVjVECzK7mikjwqpfU8BDDsUf5XPJVNYx7onNVms003H3CvkEQvdjFULev6UuBvyXcVoUW7iSIcjUVo2FhcHke8PaIpYkXLMCe0//YXfslrfPyrSx5sOMzT/3BuoMlcmorlYdpMTSLMo/oyAl0fqf1vXq16mUhhtPkHsXWAAVAkDdx0duxyW59R/Te0zkwvvMOvMo+pBGSwJ2JCZDCFkbMDSqCVkw54wMu5ym4mQkRwtySlwmbAfEjUNzKG6AUDJacFRpSERrjeTGOd8op1aTYzBzfpVbGC1FWxouCSWO5l3zmh+LoHjBS4O0QGmJnw18vFrB6V0GddiSvemBk1tUJDtrOXiYUX4IG/SvAz+kwxdJdJ54oTcFF3paKcDBP+cg4kQR2QllldYeS9Toj9SflU62oYbptK+E90R+LfoXqtaKMI/wfvvk/ULkcUwRp8Lz/TyVrbdahVRSgtIMUdz8ltsU1Cco+TbDafobc4mTolym3N/d5rFmhuOeJsJp8MXOBo5INbn+zQPfTxVsCT98ZB0UnnoNhmSFBHFseMnjKLEfxSM/ydok3rNWFCn/sHRzM7PX8BgBNJV3xRa1XuVmyC025kSZ02doWFOuhIw6DxryMKgfFG33lukcBQcfc1O0eGR6uBAn0FPpyQcJzf+sCXX8aewgok6M/EzeEtWeCg
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1101MB2126.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(346002)(39860400002)(376002)(366004)(396003)(136003)(316002)(110136005)(186003)(38100700002)(86362001)(54906003)(82960400001)(83380400001)(2906002)(53546011)(41300700001)(6486002)(66946007)(66556008)(8676002)(966005)(4326008)(66476007)(478600001)(7416002)(6666004)(6506007)(5660300002)(9686003)(6512007)(8936002)(26005);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?6MERBoRt59Pc8sqEQvNnzbfSaCWnAat0YXm5MfiH5rsqiWB2IxkiMrLsdYOk?=
- =?us-ascii?Q?2b7DuH96WjDu3nYQ2PZN6AOBKoWQ0QPZdQd4pXXalsamOgX0yYsVJMmSPQ9J?=
- =?us-ascii?Q?QUrEfuvsbr5MZDncrvs0f86ucNukOT05eE7nMKAC/BrgJL3dZp6sNhk9NS9E?=
- =?us-ascii?Q?JQ5BhJN6+eoX+88w68J2z8+GGT+R8tYNYLgLVh3dsIuEGd4tAVAPJaVOkhkS?=
- =?us-ascii?Q?76yqRDQEb/jiA8cAQ5FbawsNaI6nyYdS3n7Mo7cSldHlglRSEB6K1qoh+k6e?=
- =?us-ascii?Q?ueQiR+IMQKhL9ae7IxciW7sFBYtzm4Y3BubUz3W/ociyFHzpQU4xC8WTzP7n?=
- =?us-ascii?Q?u+V5o88LvoZtW5jaz8qS9vnO8btdVHkmC5nw4WxT1lStlUqXoY3mOLkpVyFr?=
- =?us-ascii?Q?kYaaZ7UL0A3vHeSlryPCK6QpXMrPXLXlroLdwY4pT+F3NWu+Dl6A37KI42Gg?=
- =?us-ascii?Q?VoFcf+StEcJ+u1BOha4mVcklAhqGGu8W/ujyRi5w6oSpb4yyQyu6aVSx1dkG?=
- =?us-ascii?Q?PSmj+VhP8ZkMSlLAKRx0GqBoQuX2ukQndTO1JSNAAxyox3+QUprfkr9tDKWY?=
- =?us-ascii?Q?s55eoztXVCaYlt/+ILsUc9XphxuGNFEzcTC75zBq/ZzfSJxK6XHQ7nVTOJb1?=
- =?us-ascii?Q?mppu9CHIVQrmkdwV/OJfW7xkjqubN34x1fbGzdv32FHthv2bXnsEm1+jO2VQ?=
- =?us-ascii?Q?5W7h3T+B/5/BiZoyitOPEN6xzJP0s5v4PlcE6uiGX1pOT/UnuKGIUR8/GZAa?=
- =?us-ascii?Q?cQavZJw3/dDZCiVTz/y9lvyFp21/ei1hE7jdVVpcGKt1/NnTQbPyJC6VAPRE?=
- =?us-ascii?Q?lxqcGxPu97zACaXO9AIuiNoSgIUiLGMx+GddJYnW4b1b8+aH1/uZLLI/FA4C?=
- =?us-ascii?Q?8t2wXAC7psL4RuNChEATf6GzLzjcqYIu1kCYuob7suBlv5LCl8qKFM9vu7wu?=
- =?us-ascii?Q?Q5xRSm7Rt0/XT4moV3oK5VIBt5e4LpmOLVj0ixfleZERq3/zXcWC/H0Xo8Oo?=
- =?us-ascii?Q?zcGIClMMS92KETYkgiVVmQgqcbvPb4pmYlvYdEfJ8IJlSYilWbVmaDqebWEv?=
- =?us-ascii?Q?klxrrSHyu2a/ZlEZG+RlfyuQaSIZWylsCPw7sSgIB1nJL/J2O5k9fPvMjm3k?=
- =?us-ascii?Q?ZhbQxbwAdddb6sNAosCgcXAfByA3jA1ltXMqfaI9/Hupo5b2JUgTlk7p2bOV?=
- =?us-ascii?Q?v7+ADTQw7DcSdQUr4byI72nrWIhVIOhtuhO4qWp5v8v6PARqQh4fx752knaw?=
- =?us-ascii?Q?ADcdVAcpE/SPF1TLOrOG7doY//fu4yt/a/wtDOdolLgOIhYW+r0npIT03PvY?=
- =?us-ascii?Q?NiWLbn6d2HLAs5MYKIHAXfNDccoJph0KeLAF3TKtnWtEohouI70YKG/xffeb?=
- =?us-ascii?Q?S9ApDkKukWN+4GdisCu3ojrRa/hqWrzcHYRQ/R0g/8VS1OCLxMOH8XX9pNjk?=
- =?us-ascii?Q?VN2Sxqs7WzkPam03c9Qs6J9pGpeTvhCGArLhqyLvqNx0uOGtH7HG+FWOMMYc?=
- =?us-ascii?Q?MLzGI06f477LK8+QcO8CsAFYGO9cbhofz483MukT2edj1bROR876SHYgllQT?=
- =?us-ascii?Q?xmnXoktk/aR1Hix8FC/g5Swpyo6Ij9fWrprFLJ6LEWLCUCi6qGz+bcUu1ZNr?=
- =?us-ascii?Q?iw=3D=3D?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: 756ae756-562d-48d1-dcec-08da8a3bb557
-X-MS-Exchange-CrossTenant-AuthSource: MWHPR1101MB2126.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 Aug 2022 03:57:07.8046
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: vpyL4pAsjiRjpzzEhxE7tNzzMSInE/NneS2Bnogo1blG6VTS3JYoL4+nwfqMgCy8VN4o6OqAq+XUHgAgUIOMJxL9bAfFZeIhNNmx3rxI5LA=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BN7PR11MB2723
-X-OriginatorOrg: intel.com
+Content-Transfer-Encoding: 8bit
 
-Miaohe Lin wrote:
-> On 2022/8/27 1:18, Dan Williams wrote:
-> > In the case where a filesystem is polled to take over the memory failure
-> > and receives -EOPNOTSUPP it indicates that page->index and page->mapping
-> > are valid for reverse mapping the failure address. Introduce
-> > FSDAX_INVALID_PGOFF to distinguish when add_to_kill() is being called
-> > from mf_dax_kill_procs() by a filesytem vs the typical memory_failure()
-> > path.
-> 
-> Thanks for fixing.
-> I'm sorry but I can't find the bug report email. 
+The alignment constraint for namespace creation in a region was
+increased, from 2M to 16M, for non-PowerPC architectures in v5.7 with
+commit 2522afb86a8c ("libnvdimm/region: Introduce an 'align'
+attribute"). The thought behind the change was that region alignment
+should be uniform across all architectures and, since PowerPC had the
+largest alignment constraint of 16M, all architectures should conform to
+that alignment.
 
-Report is here:
+The change regressed namespace creation in pre-defined regions that
+relied on 2M alignment but a workaround was provided in the form of a
+sysfs attribute, named 'align', that could be adjusted to a non-default
+alignment value.
 
-https://lore.kernel.org/all/63069db388d43_1b3229426@dwillia2-xfh.jf.intel.com.notmuch/
+However, the sysfs attribute's store function returned an error (-ENXIO)
+when userspace attempted to change the alignment of a region that had no
+mappings. This affected 2M aligned regions of volatile memory that were
+defined in a device tree using "pmem-region" and created by the
+of_pmem_region_driver, since those regions do not contain mappings
+(ndr_mappings is 0).
 
-> Do you mean mf_dax_kill_procs() can pass an invalid pgoff to the
-> add_to_kill()? 
+Allow userspace to set the align attribute on pre-existing regions that
+do not have mappings so that namespaces can still be within those
+regions, despite not being aligned to 16M.
 
-No, the problem is that ->notify_failure() returns -EOPNOTSUPP so
-memory_failure_dev_pagemap() falls back to mf_generic_kill_procs().
-However, mf_generic_kill_procs() end up passing '0' for fsdax_pgoff from
-collect_procs_file() to add_to_kill(). A '0' for fsdax_pgoff results in
-vma_pgoff_address() returning -EFAULT which causes the VM_BUG_ON() in
-dev_pagemap_mapping_shift().
+Link: https://lore.kernel.org/lkml/CA+CK2bDJ3hrWoE91L2wpAk+Yu0_=GtYw=4gLDDD7mxs321b_aA@mail.gmail.com
+Fixes: 2522afb86a8c ("libnvdimm/region: Introduce an 'align' attribute")
+Signed-off-by: Tyler Hicks <tyhicks@linux.microsoft.com>
+---
+
+While testing with a recent kernel release (6.0-rc3), I rediscovered
+this bug and eventually realized that I never followed through with
+fixing it upstream. After a year later, here's the v2 that Aneesh
+requested. Sorry about that!
+
+v2:
+- Included Aneesh's feedback to ensure the val is a power of 2 and
+  greater than PAGE_SIZE even for regions without mappings
+- Reused the max_t() trick from default_align() to avoid special
+  casing, with an if-else, when regions have mappings and when they
+  don't
+  + Didn't include Pavel's Reviewed-by since this is a slightly
+    different approach than what he reviewed in v1
+- Added a Link commit tag to Pavel's initial problem description
+v1: https://lore.kernel.org/lkml/20210326152645.85225-1-tyhicks@linux.microsoft.com/
+
+ drivers/nvdimm/region_devs.c | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index 473a71bbd9c9..550ea0bd6c53 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -509,16 +509,13 @@ static ssize_t align_store(struct device *dev,
+ {
+ 	struct nd_region *nd_region = to_nd_region(dev);
+ 	unsigned long val, dpa;
+-	u32 remainder;
++	u32 mappings, remainder;
+ 	int rc;
+ 
+ 	rc = kstrtoul(buf, 0, &val);
+ 	if (rc)
+ 		return rc;
+ 
+-	if (!nd_region->ndr_mappings)
+-		return -ENXIO;
+-
+ 	/*
+ 	 * Ensure space-align is evenly divisible by the region
+ 	 * interleave-width because the kernel typically has no facility
+@@ -526,7 +523,8 @@ static ssize_t align_store(struct device *dev,
+ 	 * contribute to the tail capacity in system-physical-address
+ 	 * space for the namespace.
+ 	 */
+-	dpa = div_u64_rem(val, nd_region->ndr_mappings, &remainder);
++	mappings = max_t(u32, 1, nd_region->ndr_mappings);
++	dpa = div_u64_rem(val, mappings, &remainder);
+ 	if (!is_power_of_2(dpa) || dpa < PAGE_SIZE
+ 			|| val > region_size(nd_region) || remainder)
+ 		return -EINVAL;
+-- 
+2.25.1
+
