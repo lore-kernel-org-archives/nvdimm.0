@@ -1,120 +1,81 @@
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 8CE0A374
-	for <nvdimm@lists.linux.dev>; Tue, 30 Aug 2022 05:54:22 +0000 (UTC)
-Received: from sequoia.corp.microsoft.com (162-237-133-238.lightspeed.rcsntx.sbcglobal.net [162.237.133.238])
-	by linux.microsoft.com (Postfix) with ESMTPSA id 274422045DF9;
-	Mon, 29 Aug 2022 22:45:20 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 274422045DF9
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1661838320;
-	bh=4tx7988dbpdq6BjiDihRE9SJL3xDVUEU7ewDk7bxwKI=;
-	h=From:To:Cc:Subject:Date:From;
-	b=rjIZRi5zdg8LaVn/ILkz++FbgiY4eZyRHPsgBTZgwKPFrI/8cNSBe31Kr6w5GsizV
-	 E4WpkAPgNcG4eQd/4Q70OasvOpubjxjHtjUuw64enAWvgYjK/J5YXIOUf0wFvS7exm
-	 y8x0mxoUOGDRJCNDEFeVkP87PxjNEstxTRp6bygk=
-From: Tyler Hicks <tyhicks@linux.microsoft.com>
-To: Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Ira Weiny <ira.weiny@intel.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
-	Jeff Moyer <jmoyer@redhat.com>,
-	Pavel Tatashin <pasha.tatashin@soleen.com>,
-	"Madhavan T. Venkataraman" <madvenka@linux.microsoft.com>,
-	nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH v2] libnvdimm/region: Allow setting align attribute on regions without mappings
-Date: Tue, 30 Aug 2022 00:45:05 -0500
-Message-Id: <20220830054505.1159488-1-tyhicks@linux.microsoft.com>
-X-Mailer: git-send-email 2.25.1
+Received: from szxga03-in.huawei.com (szxga03-in.huawei.com [45.249.212.189])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E812374
+	for <nvdimm@lists.linux.dev>; Tue, 30 Aug 2022 06:17:48 +0000 (UTC)
+Received: from canpemm500002.china.huawei.com (unknown [172.30.72.54])
+	by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4MGxrb3cJSzHnVd;
+	Tue, 30 Aug 2022 14:15:59 +0800 (CST)
+Received: from [10.174.177.76] (10.174.177.76) by
+ canpemm500002.china.huawei.com (7.192.104.244) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.24; Tue, 30 Aug 2022 14:17:44 +0800
+Subject: Re: [PATCH 4/4] mm/memory-failure: Fall back to vma_address() when
+ ->notify_failure() fails
+To: Dan Williams <dan.j.williams@intel.com>
+CC: Shiyang Ruan <ruansy.fnst@fujitsu.com>, Christoph Hellwig <hch@lst.de>,
+	Naoya Horiguchi <naoya.horiguchi@nec.com>, Al Viro <viro@zeniv.linux.org.uk>,
+	Dave Chinner <david@fromorbit.com>, Goldwyn Rodrigues <rgoldwyn@suse.de>,
+	Jane Chu <jane.chu@oracle.com>, Matthew Wilcox <willy@infradead.org>, Ritesh
+ Harjani <riteshh@linux.ibm.com>, <nvdimm@lists.linux.dev>,
+	<linux-xfs@vger.kernel.org>, <linux-mm@kvack.org>,
+	<linux-fsdevel@vger.kernel.org>, <akpm@linux-foundation.org>,
+	<djwong@kernel.org>
+References: <166153426798.2758201.15108211981034512993.stgit@dwillia2-xfh.jf.intel.com>
+ <166153429427.2758201.14605968329933175594.stgit@dwillia2-xfh.jf.intel.com>
+ <76fb4464-73eb-256c-60e0-a0c3dc152e78@huawei.com>
+ <630d8a902231b_259e5b29490@dwillia2-xfh.jf.intel.com.notmuch>
+From: Miaohe Lin <linmiaohe@huawei.com>
+Message-ID: <abe4b976-e2b2-57e6-9cd5-596129d11a95@huawei.com>
+Date: Tue, 30 Aug 2022 14:17:44 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
+ Thunderbird/78.6.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <630d8a902231b_259e5b29490@dwillia2-xfh.jf.intel.com.notmuch>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.174.177.76]
+X-ClientProxiedBy: dggems705-chm.china.huawei.com (10.3.19.182) To
+ canpemm500002.china.huawei.com (7.192.104.244)
+X-CFilter-Loop: Reflected
 
-The alignment constraint for namespace creation in a region was
-increased, from 2M to 16M, for non-PowerPC architectures in v5.7 with
-commit 2522afb86a8c ("libnvdimm/region: Introduce an 'align'
-attribute"). The thought behind the change was that region alignment
-should be uniform across all architectures and, since PowerPC had the
-largest alignment constraint of 16M, all architectures should conform to
-that alignment.
+On 2022/8/30 11:57, Dan Williams wrote:
+> Miaohe Lin wrote:
+>> On 2022/8/27 1:18, Dan Williams wrote:
+>>> In the case where a filesystem is polled to take over the memory failure
+>>> and receives -EOPNOTSUPP it indicates that page->index and page->mapping
+>>> are valid for reverse mapping the failure address. Introduce
+>>> FSDAX_INVALID_PGOFF to distinguish when add_to_kill() is being called
+>>> from mf_dax_kill_procs() by a filesytem vs the typical memory_failure()
+>>> path.
+>>
+>> Thanks for fixing.
+>> I'm sorry but I can't find the bug report email. 
+> 
+> Report is here:
+> 
+> https://lore.kernel.org/all/63069db388d43_1b3229426@dwillia2-xfh.jf.intel.com.notmuch/
+> 
+>> Do you mean mf_dax_kill_procs() can pass an invalid pgoff to the
+>> add_to_kill()? 
+> 
+> No, the problem is that ->notify_failure() returns -EOPNOTSUPP so
+> memory_failure_dev_pagemap() falls back to mf_generic_kill_procs().
+> However, mf_generic_kill_procs() end up passing '0' for fsdax_pgoff from
+> collect_procs_file() to add_to_kill(). A '0' for fsdax_pgoff results in
+> vma_pgoff_address() returning -EFAULT which causes the VM_BUG_ON() in
+> dev_pagemap_mapping_shift().
 
-The change regressed namespace creation in pre-defined regions that
-relied on 2M alignment but a workaround was provided in the form of a
-sysfs attribute, named 'align', that could be adjusted to a non-default
-alignment value.
+Many thanks for your explanation.
 
-However, the sysfs attribute's store function returned an error (-ENXIO)
-when userspace attempted to change the alignment of a region that had no
-mappings. This affected 2M aligned regions of volatile memory that were
-defined in a device tree using "pmem-region" and created by the
-of_pmem_region_driver, since those regions do not contain mappings
-(ndr_mappings is 0).
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
 
-Allow userspace to set the align attribute on pre-existing regions that
-do not have mappings so that namespaces can still be within those
-regions, despite not being aligned to 16M.
-
-Link: https://lore.kernel.org/lkml/CA+CK2bDJ3hrWoE91L2wpAk+Yu0_=GtYw=4gLDDD7mxs321b_aA@mail.gmail.com
-Fixes: 2522afb86a8c ("libnvdimm/region: Introduce an 'align' attribute")
-Signed-off-by: Tyler Hicks <tyhicks@linux.microsoft.com>
----
-
-While testing with a recent kernel release (6.0-rc3), I rediscovered
-this bug and eventually realized that I never followed through with
-fixing it upstream. After a year later, here's the v2 that Aneesh
-requested. Sorry about that!
-
-v2:
-- Included Aneesh's feedback to ensure the val is a power of 2 and
-  greater than PAGE_SIZE even for regions without mappings
-- Reused the max_t() trick from default_align() to avoid special
-  casing, with an if-else, when regions have mappings and when they
-  don't
-  + Didn't include Pavel's Reviewed-by since this is a slightly
-    different approach than what he reviewed in v1
-- Added a Link commit tag to Pavel's initial problem description
-v1: https://lore.kernel.org/lkml/20210326152645.85225-1-tyhicks@linux.microsoft.com/
-
- drivers/nvdimm/region_devs.c | 8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index 473a71bbd9c9..550ea0bd6c53 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -509,16 +509,13 @@ static ssize_t align_store(struct device *dev,
- {
- 	struct nd_region *nd_region = to_nd_region(dev);
- 	unsigned long val, dpa;
--	u32 remainder;
-+	u32 mappings, remainder;
- 	int rc;
- 
- 	rc = kstrtoul(buf, 0, &val);
- 	if (rc)
- 		return rc;
- 
--	if (!nd_region->ndr_mappings)
--		return -ENXIO;
--
- 	/*
- 	 * Ensure space-align is evenly divisible by the region
- 	 * interleave-width because the kernel typically has no facility
-@@ -526,7 +523,8 @@ static ssize_t align_store(struct device *dev,
- 	 * contribute to the tail capacity in system-physical-address
- 	 * space for the namespace.
- 	 */
--	dpa = div_u64_rem(val, nd_region->ndr_mappings, &remainder);
-+	mappings = max_t(u32, 1, nd_region->ndr_mappings);
-+	dpa = div_u64_rem(val, mappings, &remainder);
- 	if (!is_power_of_2(dpa) || dpa < PAGE_SIZE
- 			|| val > region_size(nd_region) || remainder)
- 		return -EINVAL;
--- 
-2.25.1
+Thanks,
+Miaohe Lin
 
