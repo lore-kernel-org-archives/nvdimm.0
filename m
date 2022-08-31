@@ -1,108 +1,55 @@
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from gandalf.ozlabs.org (gandalf.ozlabs.org [150.107.74.76])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE63B538B
-	for <nvdimm@lists.linux.dev>; Tue, 30 Aug 2022 21:23:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1661894623; x=1693430623;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=zbZdZAKRlqjPDqC6oGf0MtEjbg47qQRjslqUVXMbkLI=;
-  b=IxXsxuzV9Ig0FbbOmz2Z+U4xDdWhBGzsmrdvIbcVN19ZmxrtjdOOsgC/
-   yJKCS4qdJFxMxqieyaxCjVvvvG3n8x2g9NVIaulLEDIQVP7LbgptIlOPh
-   2Rz3eDXihoEvh5hR7xXgtNphseJZWU0j/RUfgox2193JnRyYz+XidUR0R
-   O5yUVH1KWoDuxLv/K2UeYSU7Hsr6bDvRvr725lQPzgSR7sUk9aA29XByI
-   JIkbfA/SV1nsYcAvSuBYYYZoc3D0/bObDjmmqasMnjCE6TndGommON3TU
-   WzFnlz3gF7vEc/FSz4IM1bo3JXwWokgSkkTyQRgCxwi/Z38PKc9SOLChG
-   g==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10455"; a="381599511"
-X-IronPort-AV: E=Sophos;i="5.93,276,1654585200"; 
-   d="scan'208";a="381599511"
-Received: from orsmga004.jf.intel.com ([10.7.209.38])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Aug 2022 14:23:43 -0700
-X-IronPort-AV: E=Sophos;i="5.93,276,1654585200"; 
-   d="scan'208";a="737889499"
-Received: from malfaroa-mobl1.amr.corp.intel.com (HELO vverma7-desk1.intel.com) ([10.212.49.188])
-  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Aug 2022 14:23:42 -0700
-From: Vishal Verma <vishal.l.verma@intel.com>
-To: <nvdimm@lists.linux.dev>
-Cc: Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH] ndctl: remove travis-ci
-Date: Tue, 30 Aug 2022 15:23:38 -0600
-Message-Id: <20220830212338.413104-1-vishal.l.verma@intel.com>
-X-Mailer: git-send-email 2.37.2
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 51CA72580
+	for <nvdimm@lists.linux.dev>; Wed, 31 Aug 2022 13:18:13 +0000 (UTC)
+Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mail.ozlabs.org (Postfix) with ESMTPSA id 4MHl2q442yz4x1D;
+	Wed, 31 Aug 2022 23:12:35 +1000 (AEST)
+From: Michael Ellerman <patch-notifications@ellerman.id.au>
+To: mpe@ellerman.id.au, Kajol Jain <kjain@linux.ibm.com>, linuxppc-dev@lists.ozlabs.org, vaibhav@linux.ibm.com
+Cc: atrajeev@linux.vnet.ibm.com, nvdimm@lists.linux.dev, dan.j.williams@intel.com, disgoel@linux.vnet.ibm.com, aneesh.kumar@linux.ibm.com, maddy@linux.ibm.com, rnsastry@linux.ibm.com
+In-Reply-To: <20220804074852.55157-1-kjain@linux.ibm.com>
+References: <20220804074852.55157-1-kjain@linux.ibm.com>
+Subject: Re: [PATCH v3] powerpc/papr_scm: Fix nvdimm event mappings
+Message-Id: <166195152081.42804.8091615195567843266.b4-ty@ellerman.id.au>
+Date: Wed, 31 Aug 2022 23:12:00 +1000
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1955; h=from:subject; bh=zbZdZAKRlqjPDqC6oGf0MtEjbg47qQRjslqUVXMbkLI=; b=owGbwMvMwCXGf25diOft7jLG02pJDMl89WeYn81eFhIVqvMiSmntEZmbF90PR0k9O/Vwr/nJ+ilK rcWOHaUsDGJcDLJiiix/93xkPCa3PZ8nMMERZg4rE8gQBi5OAZiI8xKG/wVrnYI3q9jaZS0Pcw/Y+L zoUuOe86d/b7iw18FqYtNboXWMDM0fviSabpAOCeE9vj/BjvHkxYlXtkbuUvqoNWdmas56fj4A
-X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp; fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 
-Drop the Travis CI integration. Their switch to '.com' and the
-corresponding rework to billing plans and OSS 'credits' has introduced
-unnecessary complexity to something that Just Worked before.
+On Thu, 4 Aug 2022 13:18:52 +0530, Kajol Jain wrote:
+> Commit 4c08d4bbc089 ("powerpc/papr_scm: Add perf interface support")
+> added performance monitoring support for papr-scm nvdimm devices via
+> perf interface. Commit also added an array in papr_scm_priv
+> structure called "nvdimm_events_map", which got filled based on the
+> result of H_SCM_PERFORMANCE_STATS hcall.
+> 
+> Currently there is an assumption that the order of events in the
+> stats buffer, returned by the hypervisor is same. And order also
+> happens to matches with the events specified in nvdimm driver code.
+> But this assumption is not documented in Power Architecture
+> Platform Requirements (PAPR) document. Although the order
+> of events happens to be same on current generation od system, but
+> it might not be true in future generation systems. Fix the issue, by
+> adding a static mapping for nvdimm events to corresponding stat-id,
+> and removing the dynamic map from papr_scm_priv structure. Also
+> remove the function papr_scm_pmu_check_events from papr_scm.c file,
+> as we no longer need to copy stat-ids dynamically.
+> 
+> [...]
 
-The only thing the CI was testing was builds on Ubuntu, but there
-appears to be Debian (unstable) automation now to pick up and build new
-upstream releases automatically [1], so we have some replacement coverage
-by way of that.
+Applied to powerpc/fixes.
 
-[1]: https://packages.debian.org/source/sid/ndctl
+[1/1] powerpc/papr_scm: Fix nvdimm event mappings
+      https://git.kernel.org/powerpc/c/9b1ac04698a4bfec146322502cdcd9904c1777fa
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- .travis.yml | 23 -----------------------
- README.md   |  1 -
- 2 files changed, 24 deletions(-)
- delete mode 100644 .travis.yml
-
-diff --git a/.travis.yml b/.travis.yml
-deleted file mode 100644
-index eb0c665..0000000
---- a/.travis.yml
-+++ /dev/null
-@@ -1,23 +0,0 @@
--dist: xenial
--language: c
--sudo: required
--ccache: ccache
--
--git:
--  depth: 5
--  quiet: true
--
--before_install:
--  - sudo apt-get update -qq
--  - sudo apt-get install -qq --no-install-recommends -y systemd dh-systemd libkmod2 libkmod-dev libudev1 libudev-dev keyutils libkeyutils-dev libjson-c-dev libuuid1 asciidoctor jq kmod dracut build-essential git-core libelf-dev asciidoc binutils-dev
--  - sudo apt-get build-dep linux-image-$(uname -r)
--
--install:
--  - ./autogen.sh
--  - ./configure CFLAGS='-g -O2' --prefix=/usr --sysconfdir=/etc --libdir=/usr/lib
--  - make -j$(nproc --all)
--  - sudo make install
--
--jobs:
--  include:
--      script: true
-diff --git a/README.md b/README.md
-index e5c4940..8e91322 100644
---- a/README.md
-+++ b/README.md
-@@ -1,5 +1,4 @@
- # ndctl
--[![Build Status](https://travis-ci.org/pmem/ndctl.svg?branch=master)](https://travis-ci.org/pmem/ndctl)
- 
- Utility library for managing the libnvdimm (non-volatile memory device)
- sub-system in the Linux kernel
-
-base-commit: c9c9db39354ea0c3f737378186318e9b7908e3a7
--- 
-2.37.2
-
+cheers
