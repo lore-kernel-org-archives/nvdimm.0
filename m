@@ -1,119 +1,107 @@
-Received: from smtp.smtpout.orange.fr (smtp-30.smtpout.orange.fr [80.12.242.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B47932F33
-	for <nvdimm@lists.linux.dev>; Sun,  4 Sep 2022 16:05:11 +0000 (UTC)
-Received: from [192.168.1.18] ([90.11.190.129])
-	by smtp.orange.fr with ESMTPA
-	id Us7LoN8WyXFXxUs7Lorkc5; Sun, 04 Sep 2022 18:05:04 +0200
-X-ME-Helo: [192.168.1.18]
-X-ME-Auth: Y2hyaXN0b3BoZS5qYWlsbGV0QHdhbmFkb28uZnI=
-X-ME-Date: Sun, 04 Sep 2022 18:05:04 +0200
-X-ME-IP: 90.11.190.129
-Message-ID: <e82700e0-c27e-926f-cf07-11620afffea4@wanadoo.fr>
-Date: Sun, 4 Sep 2022 18:05:02 +0200
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F401333DF;
+	Sun,  4 Sep 2022 16:18:09 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1662308289; x=1693844289;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=+dB9LL7EeJed87igxILfGGCGqx09Wbnoy3k0RadLndU=;
+  b=UoTfryXHIFBxahAwcsZ+kjU2lWjywxSspAZNI49VEZvQj9Gx7OA0BU2o
+   tbdt56oxDUOQ1zzPmLQzQLG2/a5Qc9qKN4adNmMfisF6z7EpB6MtZoyjh
+   6pmjnF7ZQBCVz61Bltsm05Hz4kKvTRynGFQD8XwBgf6z2zkLwn7hqSfHU
+   mQjCVsZ3I4ldj49EqAJovOuDiOu6PkA6IUfy9ARy8aw47fIBC/Uq3wn0j
+   GX3kM6Ia/GCRGZm4+hkizilrf0qXCmTwaYaA9kMpFwilSfeRLt5SrHNJP
+   8pmJtSre8qLmu7l+Olmntc4jsOglnBFiM6XJn+cbCauJSqCPUkiTigb9K
+   g==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10460"; a="357968565"
+X-IronPort-AV: E=Sophos;i="5.93,289,1654585200"; 
+   d="scan'208";a="357968565"
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Sep 2022 09:18:09 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.93,289,1654585200"; 
+   d="scan'208";a="941847924"
+Received: from lkp-server02.sh.intel.com (HELO 95dfd251caa2) ([10.239.97.151])
+  by fmsmga005.fm.intel.com with ESMTP; 04 Sep 2022 09:18:06 -0700
+Received: from kbuild by 95dfd251caa2 with local (Exim 4.96)
+	(envelope-from <lkp@intel.com>)
+	id 1oUsJy-0003Eh-0u;
+	Sun, 04 Sep 2022 16:18:06 +0000
+Date: Mon, 5 Sep 2022 00:17:35 +0800
+From: kernel test robot <lkp@intel.com>
+To: Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>
+Cc: llvm@lists.linux.dev, kbuild-all@lists.01.org,
+	linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org,
+	Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
+	nvdimm@lists.linux.dev
+Subject: Re: [PATCH] nvdimm: Avoid wasting some memory.
+Message-ID: <202209050000.tAI7TSe5-lkp@intel.com>
+References: <8355cb2b720f8cd0f1315b06d70b541ba38add30.1662299370.git.christophe.jaillet@wanadoo.fr>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.11.0
-Subject: Re: [PATCH] nvdimm: Avoid wasting some memory.
-Content-Language: en-GB
-To: Dan Williams <dan.j.williams@intel.com>,
- Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>,
- Ira Weiny <ira.weiny@intel.com>
-Cc: linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org,
- nvdimm@lists.linux.dev
-References: <8355cb2b720f8cd0f1315b06d70b541ba38add30.1662299370.git.christophe.jaillet@wanadoo.fr>
- <6314b859df5e2_2202c6294f5@dwillia2-xfh.jf.intel.com.notmuch>
-From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-In-Reply-To: <6314b859df5e2_2202c6294f5@dwillia2-xfh.jf.intel.com.notmuch>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <8355cb2b720f8cd0f1315b06d70b541ba38add30.1662299370.git.christophe.jaillet@wanadoo.fr>
 
-Le 04/09/2022 à 16:38, Dan Williams a écrit :
-> Christophe JAILLET wrote:
->> sizeof(struct btt_sb) is 4096.
->>
->> When using devm_kzalloc(), there is a small memory overhead and, on most
->> systems, this leads to 40 bytes of extra memory allocation.
->> So 5036 bytes are expected to be allocated.
->>
->> The memory allocator works with fixed size hunks of memory. In this case,
->> it will require 8192 bytes of memory because more than 4096 bytes are
->> required.
->>
->> In order to avoid wasting 4ko of memory, just use kzalloc() and add a
->> devm action to free it when needed.
->>
->> Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
->> ---
->>   drivers/nvdimm/btt_devs.c | 17 ++++++++++++++++-
->>   1 file changed, 16 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/nvdimm/btt_devs.c b/drivers/nvdimm/btt_devs.c
->> index fabbb31f2c35..7b79fb0b0338 100644
->> --- a/drivers/nvdimm/btt_devs.c
->> +++ b/drivers/nvdimm/btt_devs.c
->> @@ -332,6 +332,11 @@ static int __nd_btt_probe(struct nd_btt *nd_btt,
->>   	return 0;
->>   }
->>   
->> +void nd_btt_free(void *data)
->> +{
->> +	kfree(data);
->> +}
->> +
->>   int nd_btt_probe(struct device *dev, struct nd_namespace_common *ndns)
->>   {
->>   	int rc;
->> @@ -356,7 +361,17 @@ int nd_btt_probe(struct device *dev, struct nd_namespace_common *ndns)
->>   	nvdimm_bus_unlock(&ndns->dev);
->>   	if (!btt_dev)
->>   		return -ENOMEM;
->> -	btt_sb = devm_kzalloc(dev, sizeof(*btt_sb), GFP_KERNEL);
->> +
->> +	/*
->> +	 * 'struct btt_sb' is 4096. Using devm_kzalloc() would waste 4 ko of
->> +	 * memory because, because of a small memory over head, 8192 bytes
->> +	 * would be allocated. So keep this kzalloc()+devm_add_action_or_reset()
->> +	 */
->> +	btt_sb = kzalloc(sizeof(*btt_sb), GFP_KERNEL);
->> +	rc = devm_add_action_or_reset(dev, nd_btt_free, btt_sb);
->> +	if (rc)
->> +		return rc;
-> 
-> Thanks for the analysis and the patch. However, shouldn't this be
-> something that is addressed internal to devm_kzalloc() rather than
-> open-coded at every potential call site?
-> 
+Hi Christophe,
 
-Hi,
-it would be fine, but it is not that easy.
-(read: any idea to implement it is welcomed :) )
+Thank you for the patch! Perhaps something to improve:
 
-I made a try a few weeks ago. See [1].
-It triggered obvious issues spotted by 0day robot <lkp@intel.com>.
+[auto build test WARNING on v6.0-rc3]
+[also build test WARNING on linus/master next-20220901]
+[If your patch is applied to the wrong git tree, kindly drop us a note.
+And when submitting patch, we suggest to use '--base' as documented in
+https://git-scm.com/docs/git-format-patch#_base_tree_information]
 
-In fact, "making clever things" in devm_kmalloc() prevent using 
-devm_kfree() (or would require some over-engineering).
+url:    https://github.com/intel-lab-lkp/linux/commits/Christophe-JAILLET/nvdimm-Avoid-wasting-some-memory/20220904-215140
+base:    b90cb1053190353cc30f0fef0ef1f378ccc063c5
+config: x86_64-randconfig-a014 (https://download.01.org/0day-ci/archive/20220905/202209050000.tAI7TSe5-lkp@intel.com/config)
+compiler: clang version 14.0.6 (https://github.com/llvm/llvm-project f28c006a5895fc0e329fe15fead81e37457cb1d1)
+reproduce (this is a W=1 build):
+        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
+        chmod +x ~/bin/make.cross
+        # https://github.com/intel-lab-lkp/linux/commit/af94e709929390501b3d2f6e933fa0c1244a2029
+        git remote add linux-review https://github.com/intel-lab-lkp/linux
+        git fetch --no-tags linux-review Christophe-JAILLET/nvdimm-Avoid-wasting-some-memory/20220904-215140
+        git checkout af94e709929390501b3d2f6e933fa0c1244a2029
+        # save the config file
+        mkdir build_dir && cp config build_dir/.config
+        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=clang make.cross W=1 O=build_dir ARCH=x86_64 SHELL=/bin/bash drivers/nvdimm/
+
+If you fix the issue, kindly add following tag where applicable
+Reported-by: kernel test robot <lkp@intel.com>
+
+All warnings (new ones prefixed by >>):
+
+>> drivers/nvdimm/btt_devs.c:335:6: warning: no previous prototype for function 'nd_btt_free' [-Wmissing-prototypes]
+   void nd_btt_free(void *data)
+        ^
+   drivers/nvdimm/btt_devs.c:335:1: note: declare 'static' if the function is not intended to be used outside of this translation unit
+   void nd_btt_free(void *data)
+   ^
+   static 
+   1 warning generated.
 
 
-Greg also argued that it is likely that devm_  allocated memory does not 
-happen that much.
+vim +/nd_btt_free +335 drivers/nvdimm/btt_devs.c
 
+   334	
+ > 335	void nd_btt_free(void *data)
+   336	{
+   337		kfree(data);
+   338	}
+   339	
 
-I posted today a few similar patches as the one above in different 
-subsystem to get some feed-backs whether open-coding it in "interesting" 
-places make sense or not.
-
-Spotted such places is not that hard with a home made additional check 
-in smatch.
-
-CJ
-
-[1]: 
-https://lore.kernel.org/all/92ec2f78e8d38f68da95d9250cf3f86b2fbe78ad.1658570017.git.christophe.jaillet@wanadoo.fr/
+-- 
+0-DAY CI Kernel Test Service
+https://01.org/lkp
