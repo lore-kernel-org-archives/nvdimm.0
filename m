@@ -1,165 +1,383 @@
-Received: from NAM10-MW2-obe.outbound.protection.outlook.com (mail-mw2nam10on2081.outbound.protection.outlook.com [40.107.94.81])
+Received: from madras.collabora.co.uk (madras.collabora.co.uk [46.235.227.172])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F173E4684
-	for <nvdimm@lists.linux.dev>; Tue,  6 Sep 2022 13:05:32 +0000 (UTC)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=chk9KqdKoTmpBd5g060VjjGLqgB92yl8TsYSAImGUhAGOraQRLW9d/HXpPY9waUawbFp93x3RjTnLJFtX5AHdhWXzqRuP28aPqb9bICJfvrMzODEHBJWZRkzcuH/NScDrLgg3O/d6esDq9nhjevmN5CfPmfuPJUDupltW4x4rihERQk9xk993RBy1hBM7RLnXbf46WUC8DLFgB7IqXdKplglze1k9RoZ6ME8oBdIMnJ6tA+iDL1FwbBRV2TOPa3D+UIZ1RyXGOEm9Zkf6gN14OzaFtRw3l+BaZPsdoyGZJeU+gOZPMrPpqLtdHUzdrHVE+ErTK7C26eO985hXCh/RA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=J6SSmg3M/JZLf2xOd8mxqhSH83+96sJwTEGi+bYRwg4=;
- b=CfMXPHf7+lwT/FLnmDohL249j0bYHpoA9xREqa44qQzemCXQ/Qz/w8BUxOqExiNVCJPukom4C9peoLbpT3Az6kvkITTwGpDIodqbdLn12EopUdySbBayYEfUuPDNaB0gwQUIp3az/KeQ6gTKgTJv4udgPd33kXRwn/31h+JWtO04onAUrSIlDEDOwvRqUr6xdgl8r3w0i7BOCOxSnvm1bF2sBl5CJkbmfMomcDSKYMT1jl6cNg/xGwETiWczymePigNqWKSKrzrtMTKWwdtLnVq9oQwzFKbz/jUq0oQMbwbs6UVyFD5atZ/CQvniRQ5UV7BAlyRvlR2ajSguZe+uRw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=J6SSmg3M/JZLf2xOd8mxqhSH83+96sJwTEGi+bYRwg4=;
- b=eyRJYjjgEuoWEndh+miH1cmzfVMyrxKSfqVJZXAhLI3fdFmbmKQqy3/I2rh1g0ASrwpL7l9riPtLME7jDoNAVCVgOwiLxU2dtb4Q7ektAwEt9oN1FobP3ND8f0v3FU0uFty7Wt+xz6240qyLBv8gGxPytWAA0jupWuuWxOKArl37/qUupuKCUD4Zpd8jASQRD45ymLsRDQ0Qb3e/fCRZsfvzrxkytsC1FogPWPJ1zG67z/5HEujp0HC8piQ8GOOrSMWz+JrUxTlHZgEPZiieXhkbPzIelOMi3nAujs7pZUyP0XEt9IOG1YY2omLaJKaMLRERZYFMzfdAvQeZzhaciQ==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from MN2PR12MB4192.namprd12.prod.outlook.com (2603:10b6:208:1d5::15)
- by DS7PR12MB6007.namprd12.prod.outlook.com (2603:10b6:8:7e::13) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5588.16; Tue, 6 Sep
- 2022 13:05:31 +0000
-Received: from MN2PR12MB4192.namprd12.prod.outlook.com
- ([fe80::462:7fe:f04f:d0d5]) by MN2PR12MB4192.namprd12.prod.outlook.com
- ([fe80::462:7fe:f04f:d0d5%7]) with mapi id 15.20.5588.018; Tue, 6 Sep 2022
- 13:05:30 +0000
-Date: Tue, 6 Sep 2022 10:05:29 -0300
-From: Jason Gunthorpe <jgg@nvidia.com>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: akpm@linux-foundation.org, Jan Kara <jack@suse.cz>,
-	Christoph Hellwig <hch@lst.de>,
-	"Darrick J. Wong" <djwong@kernel.org>,
-	John Hubbard <jhubbard@nvidia.com>,
-	Matthew Wilcox <willy@infradead.org>, linux-mm@kvack.org,
-	nvdimm@lists.linux.dev, linux-fsdevel@vger.kernel.org
-Subject: Re: [PATCH 00/13] Fix the DAX-gup mistake
-Message-ID: <YxdFmXi/Zdr8Zi3q@nvidia.com>
-References: <166225775968.2351842.11156458342486082012.stgit@dwillia2-xfh.jf.intel.com>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <166225775968.2351842.11156458342486082012.stgit@dwillia2-xfh.jf.intel.com>
-X-ClientProxiedBy: BL0PR0102CA0007.prod.exchangelabs.com
- (2603:10b6:207:18::20) To MN2PR12MB4192.namprd12.prod.outlook.com
- (2603:10b6:208:1d5::15)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6BE5B46BC
+	for <nvdimm@lists.linux.dev>; Tue,  6 Sep 2022 13:25:40 +0000 (UTC)
+Received: from [IPV6:2804:14c:483:908a:1c66:9ef:929:4647] (unknown [IPv6:2804:14c:483:908a:1c66:9ef:929:4647])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	(Authenticated sender: rcardoso)
+	by madras.collabora.co.uk (Postfix) with ESMTPSA id D42896601F20;
+	Tue,  6 Sep 2022 14:25:30 +0100 (BST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=collabora.com;
+	s=mail; t=1662470732;
+	bh=+ZriZMWLnPcFAA8yevPphAKbkp3sSg99hbOE7/02Bw0=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=D2K/eHKAXAnzlQVUdlkKA648JG4aWPPa8tZTnDLTbusmmlGOAZoQA06QBGWul3sst
+	 ZtdU29K12P7y9BKzeT2pnApGWW1NmzRcblHBgfMOhR0ag8LkEjs2jwNdkyKtaPSRJX
+	 RlThirTmKhJz+HETMnllJokeUgzSujZeQQau4OOyEjmG9S27jieCTsCilkHHMH25In
+	 tZXdVH6aRYibn6gVi10LHx3PUpx9Fgb6IdXRcXZ2ivKeFhJQDU1Vvxl/xtVZMElPPR
+	 bEUT28Ce4PCKtrITL7zB4AUFCoPJlMMDcOn8pBz3tmXPCuUSJ3QXesOaRSwvWnGvQy
+	 6jdKX4+aW8t+A==
+Message-ID: <21f184d4-40c1-4489-4df0-c31fbd2de90a@collabora.com>
+Date: Tue, 6 Sep 2022 10:25:25 -0300
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: ca9ad345-ace6-4b55-bb1c-08da900879e9
-X-MS-TrafficTypeDiagnostic: DS7PR12MB6007:EE_
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info:
-	RSqp/o8Yk8ognlt/LwhvnvmrGLppJIYM277M9rBcVeGMWjOlq02T+5ho6uzxUBEJy8ga7obFkoWciEjQmcR2G22Rgl7fsuqYvXkON2kM9NJ6SPQCuY7MKDWofisqMDhr2ljnQB9NFgMpgZnWeC/0jUKr3hFr5TE9AWps1KC68Pog6I/ar2TZi4z6KtQWt7F2qplx2gN1B3GquQfv1DaYvc6g5VaF0oxyW7EocOfNrRvXPVwkA8z6ik0eqKjHYM+WDeyzCPE1g4oxxymNrYFEuHsWTDp9mZqFLeE1fs7aDCb1IiLPeFXBAtCCM93684DpFIK84igNMPoG6/htknWxTcflxUC/OcYyISgrjkBC+LKzTgAnbrIC9+vAlGvGBbdSdztu+qhatLk7qhFnDThTnJhRASn2hodgnapr2RqL7OCOUTqYSzGMTdhdJ+EfvAiRqL3/k/7G3+LBf6WSEM2s5zXZNSclVyRIveLT67F5cYnn8TzZ6xAapDJDy9L7MmfdpPblqJuUw9sDm0M64HN8rXyZVZNKSH+HUGNkjPmLUZv9njEmd6Ic3YzxmuupAGmQXUpTt1kIjx7SzqDDfwccLr8lFDeZUUw/lzvf6sy+1MyIOKhp9bDjHbOXPZ9u0b5hTHC3E0UCc7/qsEDGDU1REL+SU+gPM9kiNCtencai0ejVrUM5focquD/34xGPJ9NlH0DF1Lg9b+9SOr0zb36MtQ==
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MN2PR12MB4192.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(4636009)(136003)(396003)(366004)(39860400002)(346002)(376002)(186003)(66476007)(66556008)(86362001)(66946007)(2616005)(8936002)(6506007)(41300700001)(8676002)(5660300002)(478600001)(4326008)(2906002)(6512007)(38100700002)(6486002)(26005)(83380400001)(316002)(54906003)(6916009)(36756003);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?ncd8qbiQKK7qIu2i5OGo8GHWB2qu15LTtWrFwjvidI9Di6Z97xBxLEZ1VEoO?=
- =?us-ascii?Q?kmBgpU9KrGJT4O6rvX+0C0F3HZ5QyFHdaF1JiXlORRs/jQC3rMYbuepWGoD8?=
- =?us-ascii?Q?baIKOgIMq3rciqdYwE64WHCOEMqt+Wz8K4GuSalCrKiJhlmfEduKMnCuHWE/?=
- =?us-ascii?Q?Qu7TF8Yy8DHONiWnfoYuJ5m6d2kWZeGOYxLaQIPVT4m8mACo94rqp8WdxchG?=
- =?us-ascii?Q?L8/XfsFcpt6zFrXqhgt1oN/ZnjuHijWhxky8C0xSeIxX0+APuME8rePx7i0Z?=
- =?us-ascii?Q?EjzMwRx12ncpyU9jYpeNsYVCliYgTt3B19ey++lMBnkXGEJNdGr3Rm7QEQRd?=
- =?us-ascii?Q?pEtPYwnSYmUbZRpziBGYsAbgdBwO0bcpQNENX4y6El8lZUXH09E5jYTvpGj5?=
- =?us-ascii?Q?3EoLYXx55+Qgg/4h4m4eJSe0R6sX5C2o98y3t3RgZ3TGcf+/hatenvqXAKq6?=
- =?us-ascii?Q?xOBSNyNQ78scwepyo9QwO1wn68HlGSKivapilXZXdxglYYrIdIvAQhcCUTZo?=
- =?us-ascii?Q?eOsT+0ngf6YKgo2S4Isb0Ng0bYv8buW1HochW0g/sP57X+HR83cGVStp1jeI?=
- =?us-ascii?Q?fsezVqLzx0E1g1OTpI+Yo8YNyNtW/5/wzSAQ43AC7AKz4L251LR9jhC3cbaI?=
- =?us-ascii?Q?tXBUNuT0Y4EhmpoRbKhs9buRcyPK0OTJZfULlfeV4Oja1uf4MNTrE6Ezkt/+?=
- =?us-ascii?Q?o6UC5CB8SzUK+IwveqPiQyVdlDLb5xHadqyqnSdRM/cQMC+eIZdypNW3ikEw?=
- =?us-ascii?Q?F+eoBugf/7Ct/W+xaOPItmR6vDD4psZKoLitCwnPPwfwPGvQwfSu8Yk2q0cW?=
- =?us-ascii?Q?vDQwxktkEbwM7DKdYxW1gQZShL0mkxvlX/dw15i30sh0qe//QG+R4oHrtLqw?=
- =?us-ascii?Q?4NgWOrcvot3C6ieSi/wqMGV4BFYDRBa6HU85x8T3yz1gm60vHy+wDwn2Q+Bi?=
- =?us-ascii?Q?/FnrQJUrMq+J4rb4YL92DV6ECXS2kxiLvJB6uGE4yrgtUa/llesNzsMS39jW?=
- =?us-ascii?Q?Id2dfUm7qtoAKk4E6lcMqAmnEjABfE0FKr5D+B/KlH7bXkn9xZ7nuBDEbTcX?=
- =?us-ascii?Q?aknAMukF9wdtyFxC3POFtruqQszj7LnusFzDrZpq/M68gZhioYuRuFWB4i9B?=
- =?us-ascii?Q?9JBcJhEce19voOTaa+fdoYhNoc2yoOFW0pczWqT1/go2J08zjHD67Fylxc/P?=
- =?us-ascii?Q?64oDZb6whM+ODoQ+i+ds07Ffqf68YXzdNUeeFXuvGsBMW6rSOzmdOlykK2SA?=
- =?us-ascii?Q?fzQbRbT9pR483A5aiCBJPmwTCPknUh1L81474OF+TZXFQwxGn558GQw3Nc9e?=
- =?us-ascii?Q?qfRamk3c8CmT8/M6gAHf+ty81+zFAnQLu8dCQONjZlRiNuHESJpllq5wHNMa?=
- =?us-ascii?Q?wVJWt1kKino25klU3CE1DmBiZJXm/PxsuEz17KMhRNBCQCP8Ge7eQtPTCTB+?=
- =?us-ascii?Q?UnZ/fUBv2JhI+yp5OQrZRaoJgXfH05H98gvBlAZO2a+iyL5HNFF82vEqSxWM?=
- =?us-ascii?Q?YlUERTUAeHUB9YGBhuT2hSmfj4P87y++CNR3dbw/h1UqPkkEiaO8q5y83BOU?=
- =?us-ascii?Q?lpPoxqtXFYPkMJwcvYspy246+8Ajvo8JLik5dDTo?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: ca9ad345-ace6-4b55-bb1c-08da900879e9
-X-MS-Exchange-CrossTenant-AuthSource: MN2PR12MB4192.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 06 Sep 2022 13:05:30.7407
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: PeuiivyPqNPk+f/5JIJtNrs1ybrow4V6Ak//bN4tNzhHoclAd9UUVKIwzPsIwo5x
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS7PR12MB6007
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.11.0
+Subject: Re: [PATCH v2 16/28] resource: Introduce alloc_free_mem_region()
+Content-Language: en-US
+To: Dan Williams <dan.j.williams@intel.com>, linux-cxl@vger.kernel.org
+Cc: Jason Gunthorpe <jgg@nvidia.com>, Matthew Wilcox <willy@infradead.org>,
+ Christoph Hellwig <hch@lst.de>, nvdimm@lists.linux.dev,
+ linux-pci@vger.kernel.org
+References: <165784324066.1758207.15025479284039479071.stgit@dwillia2-xfh.jf.intel.com>
+ <165784333333.1758207.13703329337805274043.stgit@dwillia2-xfh.jf.intel.com>
+From: Rogerio Alves <rogerio.cardoso@collabora.com>
+In-Reply-To: <165784333333.1758207.13703329337805274043.stgit@dwillia2-xfh.jf.intel.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Sat, Sep 03, 2022 at 07:16:00PM -0700, Dan Williams wrote:
-> tl;dr: Move the pin of 'struct dev_pagemap' instances from gup-time to
-> map time, move the unpin of 'struct dev_pagemap' to truncate_inode_pages()
-> for fsdax and devdax inodes, and use page_maybe_dma_pinned() to
-> determine when filesystems can safely truncate DAX mappings vs DMA.
+On 7/14/22 21:02, Dan Williams wrote:
+> The core of devm_request_free_mem_region() is a helper that searches for
+> free space in iomem_resource and performs __request_region_locked() on
+> the result of that search. The policy choices of the implementation
+> conform to what CONFIG_DEVICE_PRIVATE users want which is memory that is
+> immediately marked busy, and a preference to search for the first-fit
+> free range in descending order from the top of the physical address
+> space.
 > 
-> The longer story is that DAX has caused friction with folio development
-> and other device-memory use cases due to its hack of using a
-> page-reference count of 1 to indicate that the page is DMA idle. That
-> situation arose from the mistake of not managing DAX page reference
-> counts at map time. The lack of page reference counting at map time grew
-> organically from the original DAX experiment of attempting to manage DAX
-> mappings without page structures. The page lock, dirty tracking and
-> other entry management was supported sans pages. However, the page
-> support was then bolted on incrementally so solve problems with gup,
-> memory-failure, and all the other kernel services that are missing when
-> a pfn does not have an associated page structure.
+> CXL has a need for a similar allocator, but with the following tweaks:
 > 
-> Since then John has led an effort to account for when a page is pinned
-> for DMA vs other sources that elevate the reference count. The
-> page_maybe_dma_pinned() helper slots in seamlessly to replace the need
-> to track transitions to page->_refount == 1.
+> 1/ Search for free space in ascending order
 > 
-> The larger change in this set comes from Jason's observation that
-> inserting DAX mappings without any reference taken is a bug. So
-> dax_insert_entry(), that fsdax uses, is updated to take 'struct
-> dev_pagemap' references, and devdax is updated to reuse the same.
+> 2/ Search for free space relative to a given CXL window
+> 
+> 3/ 'insert' rather than 'request' the new resource given downstream
+>     drivers from the CXL Region driver (like the pmem or dax drivers) are
+>     responsible for request_mem_region() when they activate the memory
+>     range.
+> 
+> Rework __request_free_mem_region() into get_free_mem_region() which
+> takes a set of GFR_* (Get Free Region) flags to control the allocation
+> policy (ascending vs descending), and "busy" policy (insert_resource()
+> vs request_region()).
+> 
+> As part of the consolidation of the legacy GFR_REQUEST_REGION case with
+> the new default of just inserting a new resource into the free space
+> some minor cleanups like not checking for NULL before calling
+> devres_free() (which does its own check) is included.
+> 
+> Suggested-by: Jason Gunthorpe <jgg@nvidia.com>
+> Link: https://lore.kernel.org/linux-cxl/20220420143406.GY2120790@nvidia.com/
+> Cc: Matthew Wilcox <willy@infradead.org>
+> Cc: Christoph Hellwig <hch@lst.de>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+>   include/linux/ioport.h |    2 +
+>   kernel/resource.c      |  178 +++++++++++++++++++++++++++++++++++++++---------
+>   mm/Kconfig             |    5 +
+>   3 files changed, 150 insertions(+), 35 deletions(-)
+> 
+> diff --git a/include/linux/ioport.h b/include/linux/ioport.h
+> index 79d1ad6d6275..616b683563a9 100644
+> --- a/include/linux/ioport.h
+> +++ b/include/linux/ioport.h
+> @@ -330,6 +330,8 @@ struct resource *devm_request_free_mem_region(struct device *dev,
+>   		struct resource *base, unsigned long size);
+>   struct resource *request_free_mem_region(struct resource *base,
+>   		unsigned long size, const char *name);
+> +struct resource *alloc_free_mem_region(struct resource *base,
+> +		unsigned long size, unsigned long align, const char *name);
+>   
+>   static inline void irqresource_disabled(struct resource *res, u32 irq)
+>   {
+> diff --git a/kernel/resource.c b/kernel/resource.c
+> index 53a534db350e..4c5e80b92f2f 100644
+> --- a/kernel/resource.c
+> +++ b/kernel/resource.c
+> @@ -489,8 +489,9 @@ int __weak page_is_ram(unsigned long pfn)
+>   }
+>   EXPORT_SYMBOL_GPL(page_is_ram);
+>   
+> -static int __region_intersects(resource_size_t start, size_t size,
+> -			unsigned long flags, unsigned long desc)
+> +static int __region_intersects(struct resource *parent, resource_size_t start,
+> +			       size_t size, unsigned long flags,
+> +			       unsigned long desc)
+>   {
+>   	struct resource res;
+>   	int type = 0; int other = 0;
+> @@ -499,7 +500,7 @@ static int __region_intersects(resource_size_t start, size_t size,
+>   	res.start = start;
+>   	res.end = start + size - 1;
+>   
+> -	for (p = iomem_resource.child; p ; p = p->sibling) {
+> +	for (p = parent->child; p ; p = p->sibling) {
+>   		bool is_type = (((p->flags & flags) == flags) &&
+>   				((desc == IORES_DESC_NONE) ||
+>   				 (desc == p->desc)));
+> @@ -543,7 +544,7 @@ int region_intersects(resource_size_t start, size_t size, unsigned long flags,
+>   	int ret;
+>   
+>   	read_lock(&resource_lock);
+> -	ret = __region_intersects(start, size, flags, desc);
+> +	ret = __region_intersects(&iomem_resource, start, size, flags, desc);
+>   	read_unlock(&resource_lock);
+>   
+>   	return ret;
+> @@ -1780,62 +1781,139 @@ void resource_list_free(struct list_head *head)
+>   }
+>   EXPORT_SYMBOL(resource_list_free);
+>   
+> -#ifdef CONFIG_DEVICE_PRIVATE
+> -static struct resource *__request_free_mem_region(struct device *dev,
+> -		struct resource *base, unsigned long size, const char *name)
+> +#ifdef CONFIG_GET_FREE_REGION
+> +#define GFR_DESCENDING		(1UL << 0)
+> +#define GFR_REQUEST_REGION	(1UL << 1)
+> +#define GFR_DEFAULT_ALIGN (1UL << PA_SECTION_SHIFT)
+> +
+> +static resource_size_t gfr_start(struct resource *base, resource_size_t size,
+> +				 resource_size_t align, unsigned long flags)
+> +{
+> +	if (flags & GFR_DESCENDING) {
+> +		resource_size_t end;
+> +
+> +		end = min_t(resource_size_t, base->end,
+> +			    (1ULL << MAX_PHYSMEM_BITS) - 1);
+> +		return end - size + 1;
+> +	}
+> +
+> +	return ALIGN(base->start, align);
+> +}
+> +
+> +static bool gfr_continue(struct resource *base, resource_size_t addr,
+> +			 resource_size_t size, unsigned long flags)
+> +{
+> +	if (flags & GFR_DESCENDING)
+> +		return addr > size && addr >= base->start;
+> +	/*
+> +	 * In the ascend case be careful that the last increment by
+> +	 * @size did not wrap 0.
+> +	 */
+> +	return addr > addr - size &&
+> +	       addr <= min_t(resource_size_t, base->end,
+> +			     (1ULL << MAX_PHYSMEM_BITS) - 1);
+> +}
+> +
+> +static resource_size_t gfr_next(resource_size_t addr, resource_size_t size,
+> +				unsigned long flags)
+> +{
+> +	if (flags & GFR_DESCENDING)
+> +		return addr - size;
+> +	return addr + size;
+> +}
+> +
+> +static void remove_free_mem_region(void *_res)
+> +{
+> +	struct resource *res = _res;
+> +
+> +	if (res->parent)
+> +		remove_resource(res);
+> +	free_resource(res);
+> +}
+> +
+> +static struct resource *
+> +get_free_mem_region(struct device *dev, struct resource *base,
+> +		    resource_size_t size, const unsigned long align,
+> +		    const char *name, const unsigned long desc,
+> +		    const unsigned long flags)
+>   {
+> -	resource_size_t end, addr;
+> +	resource_size_t addr;
+>   	struct resource *res;
+>   	struct region_devres *dr = NULL;
+>   
+> -	size = ALIGN(size, 1UL << PA_SECTION_SHIFT);
+> -	end = min_t(unsigned long, base->end, (1UL << MAX_PHYSMEM_BITS) - 1);
+> -	addr = end - size + 1UL;
+> +	size = ALIGN(size, align);
+>   
+>   	res = alloc_resource(GFP_KERNEL);
+>   	if (!res)
+>   		return ERR_PTR(-ENOMEM);
+>   
+> -	if (dev) {
+> +	if (dev && (flags & GFR_REQUEST_REGION)) {
+>   		dr = devres_alloc(devm_region_release,
+>   				sizeof(struct region_devres), GFP_KERNEL);
+>   		if (!dr) {
+>   			free_resource(res);
+>   			return ERR_PTR(-ENOMEM);
+>   		}
+> +	} else if (dev) {
+> +		if (devm_add_action_or_reset(dev, remove_free_mem_region, res))
+> +			return ERR_PTR(-ENOMEM);
+>   	}
+>   
+>   	write_lock(&resource_lock);
+> -	for (; addr > size && addr >= base->start; addr -= size) {
+> -		if (__region_intersects(addr, size, 0, IORES_DESC_NONE) !=
+> -				REGION_DISJOINT)
+> +	for (addr = gfr_start(base, size, align, flags);
+> +	     gfr_continue(base, addr, size, flags);
+> +	     addr = gfr_next(addr, size, flags)) {
+> +		if (__region_intersects(base, addr, size, 0, IORES_DESC_NONE) !=
+> +		    REGION_DISJOINT)
+>   			continue;
+>   
+> -		if (__request_region_locked(res, &iomem_resource, addr, size,
+> -						name, 0))
+> -			break;
+> +		if (flags & GFR_REQUEST_REGION) {
+> +			if (__request_region_locked(res, &iomem_resource, addr,
+> +						    size, name, 0))
+> +				break;
+>   
+> -		if (dev) {
+> -			dr->parent = &iomem_resource;
+> -			dr->start = addr;
+> -			dr->n = size;
+> -			devres_add(dev, dr);
+> -		}
+> +			if (dev) {
+> +				dr->parent = &iomem_resource;
+> +				dr->start = addr;
+> +				dr->n = size;
+> +				devres_add(dev, dr);
+> +			}
+>   
+> -		res->desc = IORES_DESC_DEVICE_PRIVATE_MEMORY;
+> -		write_unlock(&resource_lock);
+> +			res->desc = desc;
+> +			write_unlock(&resource_lock);
+> +
+> +
+> +			/*
+> +			 * A driver is claiming this region so revoke any
+> +			 * mappings.
+> +			 */
+> +			revoke_iomem(res);
+> +		} else {
+> +			res->start = addr;
+> +			res->end = addr + size - 1;
+> +			res->name = name;
+> +			res->desc = desc;
+> +			res->flags = IORESOURCE_MEM;
+> +
+> +			/*
+> +			 * Only succeed if the resource hosts an exclusive
+> +			 * range after the insert
+> +			 */
+> +			if (__insert_resource(base, res) || res->child)
+> +				break;
+> +
+> +			write_unlock(&resource_lock);
+> +		}
+>   
+> -		/*
+> -		 * A driver is claiming this region so revoke any mappings.
+> -		 */
+> -		revoke_iomem(res);
+>   		return res;
+>   	}
+>   	write_unlock(&resource_lock);
+>   
+> -	free_resource(res);
+> -	if (dr)
+> +	if (flags & GFR_REQUEST_REGION) {
+> +		free_resource(res);
+>   		devres_free(dr);
+> +	} else if (dev)
+> +		devm_release_action(dev, remove_free_mem_region, res);
+>
 
-It wasn't pagemap references that were the problem, it was struct page
-references.
+Coverity is reporting a resource leak here. This may happens if we have 
+dev=NULL and flags=0 which seems it is the case when we call this 
+function using alloc_free_mem. However, I think this may be a false 
+positve since flags=0 means the default behavior aka GFR_ASCENDING | 
+GFR_INSERT_RESOURCE which seems fine. I just want to confirm if it is 
+possible that we have a corner case such as that.
 
-pagemap is just something that should be ref'd in the background, as
-long as a struct page has a positive reference the pagemap should be
-considered referenced, IMHO free_zone_device_page() should be dealing
-with this - put the pagemap after calling page_free().
 
-Pagemap is protecting page->pgmap from UAF so we must ensure we hold
-it when we do pgmap->ops
+>   	return ERR_PTR(-ERANGE);
+>   }
+> @@ -1854,18 +1932,48 @@ static struct resource *__request_free_mem_region(struct device *dev,
+>   struct resource *devm_request_free_mem_region(struct device *dev,
+>   		struct resource *base, unsigned long size)
+>   {
+> -	return __request_free_mem_region(dev, base, size, dev_name(dev));
+> +	unsigned long flags = GFR_DESCENDING | GFR_REQUEST_REGION;
+> +
+> +	return get_free_mem_region(dev, base, size, GFR_DEFAULT_ALIGN,
+> +				   dev_name(dev),
+> +				   IORES_DESC_DEVICE_PRIVATE_MEMORY, flags);
+>   }
+>   EXPORT_SYMBOL_GPL(devm_request_free_mem_region);
+>   
+>   struct resource *request_free_mem_region(struct resource *base,
+>   		unsigned long size, const char *name)
+>   {
+> -	return __request_free_mem_region(NULL, base, size, name);
+> +	unsigned long flags = GFR_DESCENDING | GFR_REQUEST_REGION;
+> +
+> +	return get_free_mem_region(NULL, base, size, GFR_DEFAULT_ALIGN, name,
+> +				   IORES_DESC_DEVICE_PRIVATE_MEMORY, flags);
+>   }
+>   EXPORT_SYMBOL_GPL(request_free_mem_region);
+>   
+> -#endif /* CONFIG_DEVICE_PRIVATE */
+> +/**
+> + * alloc_free_mem_region - find a free region relative to @base
+> + * @base: resource that will parent the new resource
+> + * @size: size in bytes of memory to allocate from @base
+> + * @align: alignment requirements for the allocation
+> + * @name: resource name
+> + *
+> + * Buses like CXL, that can dynamically instantiate new memory regions,
+> + * need a method to allocate physical address space for those regions.
+> + * Allocate and insert a new resource to cover a free, unclaimed by a
+> + * descendant of @base, range in the span of @base.
+> + */
+> +struct resource *alloc_free_mem_region(struct resource *base,
+> +				       unsigned long size, unsigned long align,
+> +				       const char *name)
+> +{
+> +	/* Default of ascending direction and insert resource */
+> +	unsigned long flags = 0;
+> +
+> +	return get_free_mem_region(NULL, base, size, align, name,
+> +				   IORES_DESC_NONE, flags);
+> +}
+> +EXPORT_SYMBOL_NS_GPL(alloc_free_mem_region, CXL);
+> +#endif /* CONFIG_GET_FREE_REGION */
+>   
+>   static int __init strict_iomem(char *str)
+>   {
+> diff --git a/mm/Kconfig b/mm/Kconfig
+> index 169e64192e48..a5b4fee2e3fd 100644
+> --- a/mm/Kconfig
+> +++ b/mm/Kconfig
+> @@ -994,9 +994,14 @@ config HMM_MIRROR
+>   	bool
+>   	depends on MMU
+>   
+> +config GET_FREE_REGION
+> +	depends on SPARSEMEM
+> +	bool
+> +
+>   config DEVICE_PRIVATE
+>   	bool "Unaddressable device memory (GPU memory, ...)"
+>   	depends on ZONE_DEVICE
+> +	select GET_FREE_REGION
+>   
+>   	help
+>   	  Allows creation of struct pages to represent unaddressable device
+> 
 
-That should be the only put, and it should pair with the only get
-which happens when the driver takes a 0 refcount page out of its free
-list and makes it have a refcount of 1.
-
-> page mapping helpers. One of the immediate hurdles is the usage of
-> pmd_devmap() to distinguish large page mappings that are not transparent
-> huge pages.
-
-And this is because the struct page refcounting is not right :|
-
-I had thought the progression would be to make fsdax use compound
-folios, install compound folios in the PMD, remove all the special
-case refcounting for DAX from the pagetable code, then address the
-pgmap issue from the basis of working page->refcount, eg by putting a
-pgmap put in right after the op->page_free call.
-
-Can we continue to have the weird page->refcount behavior and still
-change the other things?
-
-Jason
