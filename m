@@ -1,47 +1,79 @@
-Received: from NAM10-MW2-obe.outbound.protection.outlook.com (mail-mw2nam10on2041.outbound.protection.outlook.com [40.107.94.41])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C47D7649
-	for <nvdimm@lists.linux.dev>; Thu,  8 Sep 2022 18:49:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 983475CA6
+	for <nvdimm@lists.linux.dev>; Thu,  8 Sep 2022 19:27:17 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1662665237; x=1694201237;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=vCJcMLdnU3CL1cmcqh2nqNf1VDj89bppulgDf8cZIGY=;
+  b=T1z2b4AxgSENPMZ3kmDay6GVIOlj/JRX+kcpIS8YZ+o7GfilMfxweFOn
+   3VJMRot2hQiWOm45Ob5rHyyxZH6tR/OmUiuIP+7u1Mu0t6CzMKT2X6S8p
+   TNRjKF9CH5vtoxx35jPSiqW+e7qt2ktl+7oga3Di72sfEQJVSULFxsaNQ
+   rLUiK8YwvcjMcbzyi5fn5BgZEG/V6AmAO+4HQAp8lOpqZey5gIj/cyWpK
+   2L6pti2GPOmdirF8r5KB75r45uHgskJrApRRgHogFUpYQO92KbpHAk6Dv
+   wQ8Ul+OV4qlcuEKfbRvDoDQHUgzUU2vrTIZ60B/MQ431QKnb7mOGWD2s4
+   g==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10464"; a="277037542"
+X-IronPort-AV: E=Sophos;i="5.93,300,1654585200"; 
+   d="scan'208";a="277037542"
+Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Sep 2022 12:27:12 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.93,300,1654585200"; 
+   d="scan'208";a="683357366"
+Received: from fmsmsx601.amr.corp.intel.com ([10.18.126.81])
+  by fmsmga004.fm.intel.com with ESMTP; 08 Sep 2022 12:27:12 -0700
+Received: from fmsmsx608.amr.corp.intel.com (10.18.126.88) by
+ fmsmsx601.amr.corp.intel.com (10.18.126.81) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31; Thu, 8 Sep 2022 12:27:11 -0700
+Received: from fmsmsx608.amr.corp.intel.com (10.18.126.88) by
+ fmsmsx608.amr.corp.intel.com (10.18.126.88) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31; Thu, 8 Sep 2022 12:27:11 -0700
+Received: from FMSEDG603.ED.cps.intel.com (10.1.192.133) by
+ fmsmsx608.amr.corp.intel.com (10.18.126.88) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31 via Frontend Transport; Thu, 8 Sep 2022 12:27:11 -0700
+Received: from NAM04-MW2-obe.outbound.protection.outlook.com (104.47.73.169)
+ by edgegateway.intel.com (192.55.55.68) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2375.31; Thu, 8 Sep 2022 12:27:11 -0700
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=BYyb3FMfrBa8IJlOh6i7zdcphutsbjdbCIQ40Ne0WqrDp9elSm6aClIKr37A3oHpnwv/cb7NHwWJqiiYIJYgir5lkyuUvTfXWah+ikYlAXzpfNgACXtoBGk1hINJRjG8JxOXvs9M2QdeInaXsp6Hxv9pQ14pzzpLgN2lvXbDmjElXb+h7XvCZeh1wMp9jHuykaQHxkkM80blrCHqB9PnaxSxCyxcnISuYLpx4PFR0E8Lq7mWhCORyTk4bSL+Dw/UWXbTHhlj/yxURQI3RAyYoJUCzFGiaNMOGm1Q9zxkDUQpjOyRAQPtZmvZQaWt+EKwgpycjPcTPI/sx7KXPVmd2w==
+ b=bPQgGdLo2QMLBDeRD9fdMItWsxXoEOHbPzSpV13xkAU/gzx+z9fZ+zArPeKHRSOmWX3pTKrfhKYc47u56IqWAWTkVF+Yqv5LRgdd4HuulD7BbmIuzt0vCj5SecI2WKqWfn/+RiYwL5sPebK40WxWBKqgfcK5MzUMzhRVEhzGIxKcP3vtqckGN+Sty/q9bQfQR40DHke6Bx2gKVhVN5lWzeJpDB+OF/x4++eYHdYcwcir4lRuRd1lJr6NIiLSTskN6LVNDqJM1ukfFxxOjrDQyOXv/ZdbXBNmciDv25YyY4cx+uDOPKCDI5FT80ulDSxGcen+y8p5r2iE1711wht2Jg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=N/fo4OH3zDpxbb5IhFWYYv0r9/6bHmJJJAPySvTU3VY=;
- b=XwevFLRUra9jBVHRLN7qmyTxRQvCm+8LDKjlw4xsy5hLdgOxGO4cgls/8T+YS1PmXMNLvFFZ8m1eO2IRMkkzeRvyJ6WYSGrqmnWSsrHzjg/b8tKrfwdfAu8kBQ3f8Oy0HqqDBkPhR+OYO5AW7iNtFazZKBJRSaPhdJKksOWr1zOorn0Fm3qq2qYqpH4nV6oghfU+jIeXvc8JbQd2ciKNyIzUYAfrUKx5XL9h8JXOs609qjjmfosV8aY5Zd/foN1TmtH6ZU3qA8g8aI6LWBfobi/StI0bGx6hbb/DgIb2YGuSrAbyRdZNu6fzII4J7E9J0UXUbZm6XM8o5q7T+u2f1A==
+ bh=E2fYUjoB9YJqJvl9xAq1/TL2kYahJLp2FZCNHp+apws=;
+ b=aGugWv6POTATk0AQKW0pPX7z5rjalRdfW0JaVP66HqZq2AzkQkQkCXVktg6Nf6CbiRsz35M6pQcmldMobxe/pg3SWMPVO8MtlVeDOu3GIRsGoWfa8u1GNMZA/AwsuLXU6HObQOLYMZ95naLeTYf+If+aKiAe/K5+C0OUFC2xB9bqEtd/Sw+u7ZNDOZAsoaEdCE807geOPvGTy1cCwkKlPHz1nnmrgE9Sos9zX5GAMrZxxTqS4MgYoqurrXK9w8K+Nk3o5CT7fzQ5A+SPMc/e79uboPSoINqUNIzpcuJU6Cv+UvykOFfS8Fb7XAoskqIJDZdHkCqkqRtZhuXabG2XUQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=N/fo4OH3zDpxbb5IhFWYYv0r9/6bHmJJJAPySvTU3VY=;
- b=SL8NUrht9R5HodVVEm9qwdDf7g9zr4HD6dDvAHkAM9xs6vAm/WwrjxC53QsFx9mNvmLFuVIcvW6Va60XiTbNjFj2D4uCTXWeREZWIntWKRWcMJZJjsA6Ly8w43A94nNnvS2qsQ/sDPmBQuYBsQpt8JbRVXQvdmvLYogQ5YQR2FBuer12nQBimlVpXMlP0u7p3sOtp8Mo7mjUZl1XfpvL4CT3ExvBCXYCQFSAzM8zUj4Z6L0GDS1egvNmDtJuCAzrUdbFgn+4gcfbHUbxmsBNS4JG5YxJeswobqcabqxcao4YDwnAasN7CXCGXHEvkMf5luD1EE/CNhUOuFjE3kOEWg==
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
 Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from MN2PR12MB4192.namprd12.prod.outlook.com (2603:10b6:208:1d5::15)
- by BL3PR12MB6644.namprd12.prod.outlook.com (2603:10b6:208:3b1::14) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5612.16; Thu, 8 Sep
- 2022 18:49:25 +0000
-Received: from MN2PR12MB4192.namprd12.prod.outlook.com
- ([fe80::462:7fe:f04f:d0d5]) by MN2PR12MB4192.namprd12.prod.outlook.com
- ([fe80::462:7fe:f04f:d0d5%7]) with mapi id 15.20.5612.019; Thu, 8 Sep 2022
- 18:49:25 +0000
-Date: Thu, 8 Sep 2022 15:49:24 -0300
-From: Jason Gunthorpe <jgg@nvidia.com>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: akpm@linux-foundation.org, Jan Kara <jack@suse.cz>,
-	Christoph Hellwig <hch@lst.de>,
-	"Darrick J. Wong" <djwong@kernel.org>,
-	John Hubbard <jhubbard@nvidia.com>,
-	Matthew Wilcox <willy@infradead.org>, linux-mm@kvack.org,
-	nvdimm@lists.linux.dev, linux-fsdevel@vger.kernel.org
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
+ (2603:10b6:301:50::20) by DM5PR11MB1994.namprd11.prod.outlook.com
+ (2603:10b6:3:e::10) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5588.14; Thu, 8 Sep
+ 2022 19:27:09 +0000
+Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
+ ([fe80::9847:345e:4c5b:ca12]) by MWHPR1101MB2126.namprd11.prod.outlook.com
+ ([fe80::9847:345e:4c5b:ca12%6]) with mapi id 15.20.5588.017; Thu, 8 Sep 2022
+ 19:27:09 +0000
+Date: Thu, 8 Sep 2022 12:27:06 -0700
+From: Dan Williams <dan.j.williams@intel.com>
+To: Jason Gunthorpe <jgg@nvidia.com>, Dan Williams <dan.j.williams@intel.com>
+CC: <akpm@linux-foundation.org>, Jan Kara <jack@suse.cz>, Christoph Hellwig
+	<hch@lst.de>, "Darrick J. Wong" <djwong@kernel.org>, John Hubbard
+	<jhubbard@nvidia.com>, Matthew Wilcox <willy@infradead.org>,
+	<linux-mm@kvack.org>, <nvdimm@lists.linux.dev>,
+	<linux-fsdevel@vger.kernel.org>
 Subject: Re: [PATCH 00/13] Fix the DAX-gup mistake
-Message-ID: <Yxo5NMoEgk+xKyBj@nvidia.com>
-References: <YxeDjTq526iS15Re@nvidia.com>
- <631793709f2d3_166f29415@dwillia2-xfh.jf.intel.com.notmuch>
+Message-ID: <631a420ad2f28_166f29423@dwillia2-xfh.jf.intel.com.notmuch>
+References: <631793709f2d3_166f29415@dwillia2-xfh.jf.intel.com.notmuch>
  <YxeWQIxPZF0QJ/FL@nvidia.com>
  <6317a26d3e1ed_166f2946e@dwillia2-xfh.jf.intel.com.notmuch>
  <6317ebde620ec_166f29466@dwillia2-xfh.jf.intel.com.notmuch>
@@ -50,12 +82,13 @@ References: <YxeDjTq526iS15Re@nvidia.com>
  <6318e66861c87_166f294f1@dwillia2-xfh.jf.intel.com.notmuch>
  <YxjxUPS6pwHwQhRh@nvidia.com>
  <631902ef5591a_166f2941c@dwillia2-xfh.jf.intel.com.notmuch>
-Content-Type: text/plain; charset=us-ascii
+ <Yxo5NMoEgk+xKyBj@nvidia.com>
+Content-Type: text/plain; charset="us-ascii"
 Content-Disposition: inline
-In-Reply-To: <631902ef5591a_166f2941c@dwillia2-xfh.jf.intel.com.notmuch>
-X-ClientProxiedBy: BL0PR0102CA0003.prod.exchangelabs.com
- (2603:10b6:207:18::16) To MN2PR12MB4192.namprd12.prod.outlook.com
- (2603:10b6:208:1d5::15)
+In-Reply-To: <Yxo5NMoEgk+xKyBj@nvidia.com>
+X-ClientProxiedBy: BY5PR17CA0018.namprd17.prod.outlook.com
+ (2603:10b6:a03:1b8::31) To MWHPR1101MB2126.namprd11.prod.outlook.com
+ (2603:10b6:301:50::20)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -63,103 +96,144 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MN2PR12MB4192:EE_|BL3PR12MB6644:EE_
-X-MS-Office365-Filtering-Correlation-Id: 065d1899-e735-4067-3caa-08da91cad9fd
+X-MS-Office365-Filtering-Correlation-Id: 6ed68066-00f0-4c59-9bac-08da91d01f60
+X-MS-TrafficTypeDiagnostic: DM5PR11MB1994:EE_
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info:
-	URQdMlEpllj/UfMnhfGc36X11TsoKK6sWRoKl6bSE+vbpSFwEHAN5YfgegJbp28HUXpR9Doss1puhHsoyRB1I8M+PCZczrVWGEBUdYl7r3Xiyf2ffTEOR9XwVyM51eu4oq6YjtV72DadQ04I+yAHWK8c25V1GKe5qjrfgBJWyVLeFzUavtgw1oBOZ0DZKTl7czkq05fxEzSDGek3KygqOjRDBbfGP7spVlEfaCfaWAM2qSYHq9xUGPnbt/99JgzsDXz0x9ZvThUAD9e7YhCn9b4/QXh4NuRmSY/poYngp3/jriRz7r/eBL6U13zHRkzPHEFwzduQuOihiwyBcnVEyv2cMSIsFs+15/uljHBP3gLZKNMMHyVemIIbFn5twgDPEtYCxF78SSvUTWYf/w4yO8MC8W7mb1FNqRHLQMQ4CWCWjBZ9n07ayG+HOkyMdELAr6BlXIZKb5H2fQZjontqock3+rTkWdV1Y7Giw0yfFWrU4JdFTiluTFr3bWvd7fI16PlCg4zRZKzz18RIrYVXiGhxTbYg0rBzGyQaNZsvQfhO6bQd01HxRPbwX1s125xf92BJN+ylRl9HO++n6gD9yXB4ZIdalQRkytuy+cY1xkjwA9K5DjvYmOlcGTNRVnlOFdLQwczUtMFyzVg8Y5dPPcpnCXx1ZgHQPPGJ1yN7QP1G1+K2PRD96eE66xeoXTdIjQTf+gPWEtQspPbqF9/Oh/0csBPU0HuvFFSl10NO6fqbk+KuUSXKxBu3EbWZfJqu
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MN2PR12MB4192.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(4636009)(39860400002)(136003)(376002)(396003)(366004)(346002)(6512007)(6506007)(478600001)(26005)(6486002)(41300700001)(2616005)(186003)(83380400001)(38100700002)(86362001)(8936002)(66476007)(8676002)(66946007)(4326008)(2906002)(36756003)(66556008)(5660300002)(54906003)(6916009)(316002)(67856001);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam-Message-Info: WBLSdEsiCBvlr7dRLtiMNBcThNqynN2BSAfHb8bcBukYgnohgdK6vn/GqUFi+WcGW/2eylDwG7LJx9ydz+I1GZOKCnRjQr2EjlT/tTf2iCQwSjhVFiw2zIjgDNV5miy/CE7yi9S6fxewMZtn6SxdqzLs1K39wRa506tJEnfSMBCLbvdUkGkHvWGahhbg+4A6s2ZIWP91RP5vOiKeSxaQ9oQn7kK4IKvX4ekYbRPZJLR3OC3RD9XNZbam3BL4yDZRzHkrFph/hm6DdclttR97BadbYxWIXFUY7cQVSqsCTRBGTwX9RPfWUZp00hTxtqZqJXkIUH1NhEfBkvPZkKID0FH6lMoAdrWYWmVN1l0nq4WDDly1ODtjgdrg1ZXij0+fRZ0VcTWzYo0HASbs8izvf3mmgqm1+4GRxj5HHvjXSq4Itzh7riEuajbgOVKBTb+0FYnF3UBCkqi0e4tBUXpEYnbjkthPjzCQxqofC02rHcIORF7AL+473OI7hnNs4LunitJLVSf3ad/BdQ0kYzsm3wEPH2IhXswu+QC7NjgmJW/0RYRNPj2mx2doQ0loVkuEZTKd/KTsdZIK1ibbYRwMEysEYSgTReeKMR+JiE/277I7WPQ1HMkZF2/QPmMpsVZe69Ei8dMeY3+O9Xrtl8EBfN6yjD6aU5HWbu4MgYDVHieGz7/kuBHxGjhQhvJFCvKVi49ZtG2AeVI18TePR4b8Bg==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1101MB2126.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(136003)(346002)(376002)(39860400002)(396003)(366004)(6486002)(38100700002)(8936002)(2906002)(186003)(7416002)(5660300002)(478600001)(82960400001)(83380400001)(6506007)(66556008)(66476007)(8676002)(6666004)(4326008)(66946007)(9686003)(86362001)(54906003)(6512007)(26005)(41300700001)(110136005)(316002);DIR:OUT;SFP:1102;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?UDd/KXauMJtbRhy1IXs0p8eQ888TiB2JjAB1pHontVwUcPSu48w55Qm++3LE?=
- =?us-ascii?Q?wf7E45Xa0tlqFLoKJDz11Kgrg2Dn1n8+MIub8RpjERAH2Jp5gFZ0CSHX9TuI?=
- =?us-ascii?Q?TNsAuyuYOKlKKKBifjzWVZaiSm1Z+W5LR6LZ7p7G0W79GNJIv74ldOj95DsT?=
- =?us-ascii?Q?7tnBPCPCuITrPXhFZ5vcvqYsa6xK58hpvH+wbcbOuhFkdwkMEdCfKeHdXl/M?=
- =?us-ascii?Q?XfVQtQIE2UBtCHYb3NRMZbx1HZ9bg754Qz1LvKSWjwFFFfl6hAFwxnAoWL5r?=
- =?us-ascii?Q?Ubnd3295I0rb8JfN7xB2gP7w9XyvecpucwKHu4qIphwyqeqLf62+taMJGX7a?=
- =?us-ascii?Q?adhqt25qQRjf04UaVzZPlFCHf3hjGenBcU8xCLlVRziOly0gwQEb3F+Zv3YX?=
- =?us-ascii?Q?aZgKwSDZKaxK/hSfS5S3N2zLtIgjpoOYJOH23SbGXf2nLwb0WjzzAky706OE?=
- =?us-ascii?Q?TEy+chFHCoqVT574aiHytjWALaX1Uljl3tpwGoFgMGfMpziacLb/3jfsAKuo?=
- =?us-ascii?Q?wx02tJQHpS4XvYPugyBUL0hr5xRaekRycEXBOBVKbKVN4hFGCvUz+sNfAdMI?=
- =?us-ascii?Q?q92yg6iBrdZkP/PHkRMAMs6TM7THDrIm9zileePnb4HFXJMQGhEHPybtmI/u?=
- =?us-ascii?Q?yh5CcGXO5GA+xG42qoRycX/p8RhQQOQ9C1F6mw+JphNWYyYnFRFCEcVl2nzg?=
- =?us-ascii?Q?tHONDEDfDvNKcV/UE3X826ipyIFtNvs80fDQFbfGHKrCuHH0REK4cqKeDu2k?=
- =?us-ascii?Q?QjZpx83jIzUJbAdTeUIFyTzhEk6KQMVEWbGGfzYfI8Svq2fhHmXsoBPjkU8f?=
- =?us-ascii?Q?w25cV7VrGsweM8jExN0VArZbVhprt2K2TlEu74ZVBBsc0nsg5UVNkSO4vVqz?=
- =?us-ascii?Q?bTwHYwROMzGIv1JUdtJzU1uLAOMSQ8pUgvTWRHyao8Fr07E2AhSQCmsoole/?=
- =?us-ascii?Q?2eSbUCf2dG8W3yWIGZOQlABnBbJrxQoxs/LDSt1Gn0Dxv5inwcIMoQOT7JTi?=
- =?us-ascii?Q?iJtf55NATBo//+u+dOjYPMvctTAGaMzvsc/HGDqpsRkN7pretqQyFMIfVd56?=
- =?us-ascii?Q?YluNsm5NaD/JnfuKEnlrOwucID/e8Te5NjFKS47UzdijLgjj/hyxjPZ1ecmh?=
- =?us-ascii?Q?5gtVQOI537Hn6JGC4emm7OYcKd0YrBKb+BAwykwkrTDfdJu2hicldhILOA4h?=
- =?us-ascii?Q?KCBcHKZdFtlPzNwaAnBgy7q47Q5DtNosSKSpFNrfzv9kqzoTWuZWS/CpERRW?=
- =?us-ascii?Q?f16j++tX7nk6igyaQgS3PS8vhpQulCMGeDaavOPKFiBfk56IvpYB6Cu0eYPO?=
- =?us-ascii?Q?ApqQ7V+vjOr98Qib/hU8diQ0nsrKabnBmeRRREE5X8lmlC0AO9iNcbL2kBy6?=
- =?us-ascii?Q?b8FOnGJ0EDh0wDf4Bf32TR/ZD3d1nloYToKNhzFIgwgBfFgVmW7MrThemhQg?=
- =?us-ascii?Q?c1pB1hZ58yNd9pf9bzESOxOHTkSjDETt8oL2FSSSJLLQjIdfA1we4mHbk3qF?=
- =?us-ascii?Q?mxrBEBvaw481ddXQqopAgZ5uBrFEkvdhZlCJWuL99myBbBBAL2ewhAykSDl4?=
- =?us-ascii?Q?0iiYK40tsfJ87Na+H6UYV/XVegQQLf/c4PluKL5a?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 065d1899-e735-4067-3caa-08da91cad9fd
-X-MS-Exchange-CrossTenant-AuthSource: MN2PR12MB4192.namprd12.prod.outlook.com
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?8ShyqEVsiymtX9rk5nMtrbCIY2tVUbr+jlhiR/MUmNo8SayN/OePZfthUEvB?=
+ =?us-ascii?Q?oaBDDnVNoh5JY/3poasP7eq+t366a/SvXMw31jcQ9PgRh9/CCnAE5SAvRumT?=
+ =?us-ascii?Q?vOSYhLemnTqss716PvEmdm4KPo6dGZWyCKpnl6AZ2N0zSDwioTzU4Aw21jLl?=
+ =?us-ascii?Q?NRyhnbRr5vmP/RXHDiXfuU6YW1J7MuB5nqVYNNS6lO56DKfsKoPPtY6BEXUg?=
+ =?us-ascii?Q?OKjrynPqqQkXkWEB8QELL9zMv/kqhhH8yWjAQSPBgXq3ADsVInsVCE7EsXIx?=
+ =?us-ascii?Q?nGyKNolmZLhRwKZQs474CRZ0zsb36UfDcetYIMnDy1oJP6m+S4mF9Lsi6cNQ?=
+ =?us-ascii?Q?Fvg4GUx4930ey/so5tg/dx5jtmwrXptbD7JpT3AUW9gn99IDXh8Zm7IqnD6c?=
+ =?us-ascii?Q?5is6zv66RaTu560R1x4MWCqDnG7ChTHVeslWScPz3aF+KEEoYSw+DLZH1f1r?=
+ =?us-ascii?Q?l07htsPeVaRkaeTu2XeVc8P1rrEvE9iYpDZqTve/N/3TjVelsoaek0XpT3OO?=
+ =?us-ascii?Q?X69WKXAVsS+fZHP3wVK2Xk9dgaIOsnJ/swH/PS6UnUpnjWo14vnYI0EqwdWc?=
+ =?us-ascii?Q?YfDks3bHW0pFVTSU9PujB/RjTuS1uOjpk2qRm3UzeJozs+R3TJhH/Ei2fsaW?=
+ =?us-ascii?Q?eN6LDGhR/RjehPoqwWfKFARaFgLrvLDjMgyVBsrOskWhneOZEFRqvugfNfZW?=
+ =?us-ascii?Q?MQpkkPMTzZ9gsPGAl3I3htdNUaTWZPUdWJYkcRq8f7gNHPfSmlWSgfLgsVfZ?=
+ =?us-ascii?Q?1/LFsbD4tWsMPxs9iTy0wmKElJt3P2kTO8jINSWNpof5W6pSq/e2Sl5j9viQ?=
+ =?us-ascii?Q?O4MWCQbuoSO96RMKGH7bWkam0YOEJECJACL/XzPcPg2FrsUbxcZ7zGsGlu4p?=
+ =?us-ascii?Q?67Zfk+z6XoLQzpt7g1K3tvF9HOtpdkRz6tj40wANKn9gD1ffXiBY+1LQfzsI?=
+ =?us-ascii?Q?wBX43yIHPVoMOPi1rkbd46eIqj/c7w1DaWWqRxTc9X51yQLwF/ASjyUh2qKw?=
+ =?us-ascii?Q?WaXUMD5V2BEbvF2nG9XHt+UvcFMn+mF5VRCxXumf5/Is/ia15At9x4gGe8Jr?=
+ =?us-ascii?Q?47/oGSPpv7hcr/sJPR702ehvkxEzW7mo2tp4H4p3opbHnd1Ht6P5gmqQAkAd?=
+ =?us-ascii?Q?rtSWbkLCdjsDL52W104mPwEznS4SUbEsdFgQ3xAjJddRfvJMpgdl25Od+riR?=
+ =?us-ascii?Q?A6eEztedKerarn9axfRDnuzmvvp61VA/dbY/2mZlHqHzaPL8oXQwkFuh6g8h?=
+ =?us-ascii?Q?2qRKb3ABF0HbUxXUBhZ6DxWwbQnTNtrvvx44P/4uG/bld8bEs3jzxaoCYlku?=
+ =?us-ascii?Q?XusWqIYuBh99Ad4Dx+/4ghQ/Wp4PSbwWrUjZ4/5q8EV1ASpZaPn15Tu0kRE3?=
+ =?us-ascii?Q?ab/iA0D5EvSY0/7a7/Gwz+o1tEflYP6/7ARc7DqrIc5/dzMeTEQz4q9ptnth?=
+ =?us-ascii?Q?EVTNXAYoD1WVfjH894ngiAmcYaZPZ3+Cki4CBTQQa0nb/3GpGfCdDjbDCt9K?=
+ =?us-ascii?Q?evxNNQb9keUtuv8YS/qPgjx54z4tNlrFk4OBBG8i7NaUwksfYGyfpP3Sht/+?=
+ =?us-ascii?Q?kcoPFjH/mU+fHI4WkuDaexXXtbqubHZ2mn2rOOWhozrcUJGZ9GFARC9CiWt8?=
+ =?us-ascii?Q?Vw=3D=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: 6ed68066-00f0-4c59-9bac-08da91d01f60
+X-MS-Exchange-CrossTenant-AuthSource: MWHPR1101MB2126.namprd11.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Sep 2022 18:49:25.5206
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Sep 2022 19:27:09.3715
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: tpXP+EGNvct01P0ipzURg69eV14LjkxuDyFTMLzMnJz2PVqNolaOrofGvXdGeo/0
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BL3PR12MB6644
+X-MS-Exchange-CrossTenant-UserPrincipalName: ONh62I4nVDnjQHTzeO7qTsMjLBqjAJgW6gvQShv4wpTX3xVYw72ddwbiBqk/iFHtIdHeZYPYCE7crXWlqXlFrVrlrTuy0Ay9tNC/igYuypE=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM5PR11MB1994
+X-OriginatorOrg: intel.com
 
-On Wed, Sep 07, 2022 at 01:45:35PM -0700, Dan Williams wrote:
-> Jason Gunthorpe wrote:
-> > On Wed, Sep 07, 2022 at 11:43:52AM -0700, Dan Williams wrote:
+Jason Gunthorpe wrote:
+> On Wed, Sep 07, 2022 at 01:45:35PM -0700, Dan Williams wrote:
+> > Jason Gunthorpe wrote:
+> > > On Wed, Sep 07, 2022 at 11:43:52AM -0700, Dan Williams wrote:
+> > > 
+> > > > It is still the case that while waiting for the page to go idle it is
+> > > > associated with its given file / inode. It is possible that
+> > > > memory-failure, or some other event that requires looking up the page's
+> > > > association, fires in that time span.
+> > > 
+> > > Can't the page->mapping can remain set to the address space even if it is
+> > > not installed into any PTEs? Zap should only remove the PTEs, not
+> > > clear the page->mapping.
+> > > 
+> > > Or, said another way, page->mapping should only change while the page
+> > > refcount is 0 and thus the filesystem is completely in control of when
+> > > it changes, and can do so under its own locks
+> > > 
+> > > If the refcount is 0 then memory failure should not happen - it would
+> > > require someone accessed the page without referencing it. The only
+> > > thing that could do that is the kernel, and if the kernel is
+> > > referencing a 0 refcount page (eg it got converted to meta-data or
+> > > something), it is probably not linked to an address space anymore
+> > > anyhow?
 > > 
-> > > It is still the case that while waiting for the page to go idle it is
-> > > associated with its given file / inode. It is possible that
-> > > memory-failure, or some other event that requires looking up the page's
-> > > association, fires in that time span.
+> > First, thank you for helping me think through this, I am going to need
+> > this thread in 6 months when I revisit this code.
 > > 
-> > Can't the page->mapping can remain set to the address space even if it is
-> > not installed into any PTEs? Zap should only remove the PTEs, not
-> > clear the page->mapping.
-> > 
-> > Or, said another way, page->mapping should only change while the page
-> > refcount is 0 and thus the filesystem is completely in control of when
-> > it changes, and can do so under its own locks
-> > 
-> > If the refcount is 0 then memory failure should not happen - it would
-> > require someone accessed the page without referencing it. The only
-> > thing that could do that is the kernel, and if the kernel is
-> > referencing a 0 refcount page (eg it got converted to meta-data or
-> > something), it is probably not linked to an address space anymore
-> > anyhow?
+> > I agree with the observation that page->mapping should only change while
+> > the reference count is zero, but my problem is catching the 1 -> 0 in
+> > its natural location in free_zone_device_page(). That and the fact that
+> > the entry needs to be maintained until the page is actually disconnected
+> > from the file to me means that break layouts holds off truncate until it
+> > can observe the 0 refcount condition while holding filesystem locks, and
+> > then the final truncate deletes the mapping entry which is already at 0.
 > 
-> First, thank you for helping me think through this, I am going to need
-> this thread in 6 months when I revisit this code.
+> Okay, that makes sense to me.. but what is "entry need to be
+> maintained" mean?
+
+I am talking about keeping an entry in the address_space until that page
+is truncated out of the file, and I think the "zapped but not truncated"
+state needs a new Xarray-value flag (DAX_ZAP) to track it. So the
+life-cycle of a DAX page that is truncated becomes:
+
+0/ devm_memremap_pages() to instantiate the page with _refcount==0
+
+1/ dax_insert_entry() and vmf_insert_mixed() add an entry to the
+address_space and install a pte for the page. _refcount==1.
+
+2/ gup elevates _refcount to 2
+
+3/ truncate or punch hole attempts to free the DAX page
+
+4/ break layouts zaps the ptes, drops the reference from 1/, and waits
+   for _refcount to drop to zero while holding fs locks.
+
+5/ at the 1 -> 0 transition the address_space entry is tagged with a new
+   flag DAX_ZAP to track that this page is unreferenced, but still
+   associated with the mapping until the final truncate. I.e. the DAX_ZAP
+   flag lets the fsdax core track when it has already dropped a page
+   reference, but still has use for things like memory-failure to
+   opportunistically use page->mapping on a 0-reference page.
+
+I think this could be done without the DAX_ZAP flag, but I want to have
+some safety to catch programming errors where the truncate path finds
+entries already at a zero reference count without having first been
+zapped.
+
+> > I.e. break layouts waits until _refcount reaches 0, but entry removal
+> > still needs one more dax_delete_mapping_entry() event to transitition to
+> > the _refcount == 0 plus no address_space entry condition. Effectively
+> > simulating _mapcount with address_space tracking until DAX pages can
+> > become vm_normal_page().
 > 
-> I agree with the observation that page->mapping should only change while
-> the reference count is zero, but my problem is catching the 1 -> 0 in
-> its natural location in free_zone_device_page(). That and the fact that
-> the entry needs to be maintained until the page is actually disconnected
-> from the file to me means that break layouts holds off truncate until it
-> can observe the 0 refcount condition while holding filesystem locks, and
-> then the final truncate deletes the mapping entry which is already at 0.
+> This I don't follow.. Who will do the one more
+> dax_delete_mapping_entry()?
 
-Okay, that makes sense to me.. but what is "entry need to be
-maintained" mean?
+The core of dax_delete_mapping_entry() is __dax_invalidate_entry(). I am
+thinking something like __dax_invalidate_entry(mapping, index, ZAP) is
+called for break layouts and __dax_invalidate_entry(mapping, index,
+TRUNC) is called for finally disconnecting that page from its mapping.
 
-> I.e. break layouts waits until _refcount reaches 0, but entry removal
-> still needs one more dax_delete_mapping_entry() event to transitition to
-> the _refcount == 0 plus no address_space entry condition. Effectively
-> simulating _mapcount with address_space tracking until DAX pages can
-> become vm_normal_page().
+> 
+> I'm not sure what it has to do with normal_page?
+> 
 
-This I don't follow.. Who will do the one more
-dax_delete_mapping_entry()?
-
-I'm not sure what it has to do with normal_page?
-
-Jason
+This thread is mainly about DAX slowly reinventing _mapcount that gets
+managed in all the right places for a normal_page. Longer term I think
+we either need to get back to the page-less DAX experiment and find a
+way to unwind some of this page usage creep, or cut over to finally
+making DAX-pages be normal pages and delete most of the special case
+handling in fs/dax.c. I am open to discussing the former, but I think
+the latter is more likely.
