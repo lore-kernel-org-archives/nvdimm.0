@@ -1,399 +1,165 @@
-Received: from mail-ed1-f53.google.com (mail-ed1-f53.google.com [209.85.208.53])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from NAM10-MW2-obe.outbound.protection.outlook.com (mail-mw2nam10on2041.outbound.protection.outlook.com [40.107.94.41])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92FCB46B8
-	for <nvdimm@lists.linux.dev>; Thu,  8 Sep 2022 16:58:07 +0000 (UTC)
-Received: by mail-ed1-f53.google.com with SMTP id e17so17739532edc.5
-        for <nvdimm@lists.linux.dev>; Thu, 08 Sep 2022 09:58:07 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ionos.com; s=google;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date;
-        bh=fdN0NiEhCFD/RsYtUZRFeLe9CN44coSoPfvCSXs8mjQ=;
-        b=JdV5QttbV8NePye6mB/fr5Cug70ptnZTimezkPfX43wiaTHGQvbM04zYfaL9mkwQds
-         JNQZQZdJIkDfI4+JkOI8ngn/VDH7l1Wzi4d5XC6kxcqXGMxI6cS/Raf4v/1rh55nL+Df
-         822AEwPp2G7MreY7wgvel6H62jCTtVdR/5/w1vRGUdpXZryC7WsyEp+GqC1pV5OLP8OG
-         S+xwSpxPRUpVU9nds08SKX7lhdDShk5kztD9Z4uzuolXYwrJe5fixsnR66u8SK69QOfU
-         we7DCwExp9YZawZ41SKF612qlQ6OWq4NpDmYOGgPLz1x4XaVspqiUIQqJQTwQ8DjRKLQ
-         Zomg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date;
-        bh=fdN0NiEhCFD/RsYtUZRFeLe9CN44coSoPfvCSXs8mjQ=;
-        b=mBFlhke+Wc2+IpDg3Ib1BaXODOtl05mDSoTop29A3DKvX61CgcQiABLjefJLpo8dhY
-         qVo8Ei+GBs6fxe8SNgC3Je3pYk4U8SI1LIoqCYAN0qG4WhHnDyVPUlTAkv3bvZTseyZO
-         jKP13KI0lY0BfeVZ1tWKodLKgt7r6LwB0fcc2ya4gDXfTHp+wRfi9S658UvyjAbWychj
-         WCyotP9LOc786CBRgmmKCjMiZdraWJhDJikRkEn2k0n2tuLmFXXY6pBNztArVc7r4BAK
-         PEIRgwMAbCaZO/atrXu5cROmE+ok1YZdAwU5oHY9HP1xWNZSIRH6jTaayJYMCRRtlAfd
-         /Gow==
-X-Gm-Message-State: ACgBeo10yhFThN8rYgTImEtYUFaHmbMGkggDprJK6wyNpic32HPHNZ1z
-	UTiXomOU6apVnJ3uXtk8KcTC6ASOqOFov0ofAPbmqw==
-X-Google-Smtp-Source: AA6agR6HDOjTIIbBXbiiVbjJOkVchFonRNdcWkDi4CVHxDuaUevf+fUM2gBlB5TzqScsiELAVa5c0aAvOwXh3QJf4RE=
-X-Received: by 2002:a05:6402:350b:b0:43e:f4be:c447 with SMTP id
- b11-20020a056402350b00b0043ef4bec447mr8231548edd.427.1662656285595; Thu, 08
- Sep 2022 09:58:05 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C47D7649
+	for <nvdimm@lists.linux.dev>; Thu,  8 Sep 2022 18:49:29 +0000 (UTC)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=BYyb3FMfrBa8IJlOh6i7zdcphutsbjdbCIQ40Ne0WqrDp9elSm6aClIKr37A3oHpnwv/cb7NHwWJqiiYIJYgir5lkyuUvTfXWah+ikYlAXzpfNgACXtoBGk1hINJRjG8JxOXvs9M2QdeInaXsp6Hxv9pQ14pzzpLgN2lvXbDmjElXb+h7XvCZeh1wMp9jHuykaQHxkkM80blrCHqB9PnaxSxCyxcnISuYLpx4PFR0E8Lq7mWhCORyTk4bSL+Dw/UWXbTHhlj/yxURQI3RAyYoJUCzFGiaNMOGm1Q9zxkDUQpjOyRAQPtZmvZQaWt+EKwgpycjPcTPI/sx7KXPVmd2w==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=N/fo4OH3zDpxbb5IhFWYYv0r9/6bHmJJJAPySvTU3VY=;
+ b=XwevFLRUra9jBVHRLN7qmyTxRQvCm+8LDKjlw4xsy5hLdgOxGO4cgls/8T+YS1PmXMNLvFFZ8m1eO2IRMkkzeRvyJ6WYSGrqmnWSsrHzjg/b8tKrfwdfAu8kBQ3f8Oy0HqqDBkPhR+OYO5AW7iNtFazZKBJRSaPhdJKksOWr1zOorn0Fm3qq2qYqpH4nV6oghfU+jIeXvc8JbQd2ciKNyIzUYAfrUKx5XL9h8JXOs609qjjmfosV8aY5Zd/foN1TmtH6ZU3qA8g8aI6LWBfobi/StI0bGx6hbb/DgIb2YGuSrAbyRdZNu6fzII4J7E9J0UXUbZm6XM8o5q7T+u2f1A==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=N/fo4OH3zDpxbb5IhFWYYv0r9/6bHmJJJAPySvTU3VY=;
+ b=SL8NUrht9R5HodVVEm9qwdDf7g9zr4HD6dDvAHkAM9xs6vAm/WwrjxC53QsFx9mNvmLFuVIcvW6Va60XiTbNjFj2D4uCTXWeREZWIntWKRWcMJZJjsA6Ly8w43A94nNnvS2qsQ/sDPmBQuYBsQpt8JbRVXQvdmvLYogQ5YQR2FBuer12nQBimlVpXMlP0u7p3sOtp8Mo7mjUZl1XfpvL4CT3ExvBCXYCQFSAzM8zUj4Z6L0GDS1egvNmDtJuCAzrUdbFgn+4gcfbHUbxmsBNS4JG5YxJeswobqcabqxcao4YDwnAasN7CXCGXHEvkMf5luD1EE/CNhUOuFjE3kOEWg==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from MN2PR12MB4192.namprd12.prod.outlook.com (2603:10b6:208:1d5::15)
+ by BL3PR12MB6644.namprd12.prod.outlook.com (2603:10b6:208:3b1::14) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5612.16; Thu, 8 Sep
+ 2022 18:49:25 +0000
+Received: from MN2PR12MB4192.namprd12.prod.outlook.com
+ ([fe80::462:7fe:f04f:d0d5]) by MN2PR12MB4192.namprd12.prod.outlook.com
+ ([fe80::462:7fe:f04f:d0d5%7]) with mapi id 15.20.5612.019; Thu, 8 Sep 2022
+ 18:49:25 +0000
+Date: Thu, 8 Sep 2022 15:49:24 -0300
+From: Jason Gunthorpe <jgg@nvidia.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: akpm@linux-foundation.org, Jan Kara <jack@suse.cz>,
+	Christoph Hellwig <hch@lst.de>,
+	"Darrick J. Wong" <djwong@kernel.org>,
+	John Hubbard <jhubbard@nvidia.com>,
+	Matthew Wilcox <willy@infradead.org>, linux-mm@kvack.org,
+	nvdimm@lists.linux.dev, linux-fsdevel@vger.kernel.org
+Subject: Re: [PATCH 00/13] Fix the DAX-gup mistake
+Message-ID: <Yxo5NMoEgk+xKyBj@nvidia.com>
+References: <YxeDjTq526iS15Re@nvidia.com>
+ <631793709f2d3_166f29415@dwillia2-xfh.jf.intel.com.notmuch>
+ <YxeWQIxPZF0QJ/FL@nvidia.com>
+ <6317a26d3e1ed_166f2946e@dwillia2-xfh.jf.intel.com.notmuch>
+ <6317ebde620ec_166f29466@dwillia2-xfh.jf.intel.com.notmuch>
+ <YxiVfn8+fR4I76ED@nvidia.com>
+ <6318d07fa17e7_166f29495@dwillia2-xfh.jf.intel.com.notmuch>
+ <6318e66861c87_166f294f1@dwillia2-xfh.jf.intel.com.notmuch>
+ <YxjxUPS6pwHwQhRh@nvidia.com>
+ <631902ef5591a_166f2941c@dwillia2-xfh.jf.intel.com.notmuch>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <631902ef5591a_166f2941c@dwillia2-xfh.jf.intel.com.notmuch>
+X-ClientProxiedBy: BL0PR0102CA0003.prod.exchangelabs.com
+ (2603:10b6:207:18::16) To MN2PR12MB4192.namprd12.prod.outlook.com
+ (2603:10b6:208:1d5::15)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <cover.1662461897.git.matsuda-daisuke@fujitsu.com> <b416663effb891cc63fff4ea11d0a8d24ba1706e.1662461897.git.matsuda-daisuke@fujitsu.com>
-In-Reply-To: <b416663effb891cc63fff4ea11d0a8d24ba1706e.1662461897.git.matsuda-daisuke@fujitsu.com>
-From: Haris Iqbal <haris.iqbal@ionos.com>
-Date: Thu, 8 Sep 2022 18:57:54 +0200
-Message-ID: <CAJpMwyg7S-NErAfyJohWkGNXiWuSKnu9NrsjnbyYHMAOojjPpw@mail.gmail.com>
-Subject: Re: [RFC PATCH 5/7] RDMA/rxe: Allow registering MRs for On-Demand Paging
-To: Daisuke Matsuda <matsuda-daisuke@fujitsu.com>
-Cc: linux-rdma@vger.kernel.org, leonro@nvidia.com, jgg@nvidia.com, 
-	zyjzyj2000@gmail.com, nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org, 
-	rpearsonhpe@gmail.com, yangx.jy@fujitsu.com, lizhijian@fujitsu.com, 
-	y-goto@fujitsu.com, haris iqbal <haris.phnx@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: MN2PR12MB4192:EE_|BL3PR12MB6644:EE_
+X-MS-Office365-Filtering-Correlation-Id: 065d1899-e735-4067-3caa-08da91cad9fd
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info:
+	URQdMlEpllj/UfMnhfGc36X11TsoKK6sWRoKl6bSE+vbpSFwEHAN5YfgegJbp28HUXpR9Doss1puhHsoyRB1I8M+PCZczrVWGEBUdYl7r3Xiyf2ffTEOR9XwVyM51eu4oq6YjtV72DadQ04I+yAHWK8c25V1GKe5qjrfgBJWyVLeFzUavtgw1oBOZ0DZKTl7czkq05fxEzSDGek3KygqOjRDBbfGP7spVlEfaCfaWAM2qSYHq9xUGPnbt/99JgzsDXz0x9ZvThUAD9e7YhCn9b4/QXh4NuRmSY/poYngp3/jriRz7r/eBL6U13zHRkzPHEFwzduQuOihiwyBcnVEyv2cMSIsFs+15/uljHBP3gLZKNMMHyVemIIbFn5twgDPEtYCxF78SSvUTWYf/w4yO8MC8W7mb1FNqRHLQMQ4CWCWjBZ9n07ayG+HOkyMdELAr6BlXIZKb5H2fQZjontqock3+rTkWdV1Y7Giw0yfFWrU4JdFTiluTFr3bWvd7fI16PlCg4zRZKzz18RIrYVXiGhxTbYg0rBzGyQaNZsvQfhO6bQd01HxRPbwX1s125xf92BJN+ylRl9HO++n6gD9yXB4ZIdalQRkytuy+cY1xkjwA9K5DjvYmOlcGTNRVnlOFdLQwczUtMFyzVg8Y5dPPcpnCXx1ZgHQPPGJ1yN7QP1G1+K2PRD96eE66xeoXTdIjQTf+gPWEtQspPbqF9/Oh/0csBPU0HuvFFSl10NO6fqbk+KuUSXKxBu3EbWZfJqu
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MN2PR12MB4192.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(4636009)(39860400002)(136003)(376002)(396003)(366004)(346002)(6512007)(6506007)(478600001)(26005)(6486002)(41300700001)(2616005)(186003)(83380400001)(38100700002)(86362001)(8936002)(66476007)(8676002)(66946007)(4326008)(2906002)(36756003)(66556008)(5660300002)(54906003)(6916009)(316002)(67856001);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?UDd/KXauMJtbRhy1IXs0p8eQ888TiB2JjAB1pHontVwUcPSu48w55Qm++3LE?=
+ =?us-ascii?Q?wf7E45Xa0tlqFLoKJDz11Kgrg2Dn1n8+MIub8RpjERAH2Jp5gFZ0CSHX9TuI?=
+ =?us-ascii?Q?TNsAuyuYOKlKKKBifjzWVZaiSm1Z+W5LR6LZ7p7G0W79GNJIv74ldOj95DsT?=
+ =?us-ascii?Q?7tnBPCPCuITrPXhFZ5vcvqYsa6xK58hpvH+wbcbOuhFkdwkMEdCfKeHdXl/M?=
+ =?us-ascii?Q?XfVQtQIE2UBtCHYb3NRMZbx1HZ9bg754Qz1LvKSWjwFFFfl6hAFwxnAoWL5r?=
+ =?us-ascii?Q?Ubnd3295I0rb8JfN7xB2gP7w9XyvecpucwKHu4qIphwyqeqLf62+taMJGX7a?=
+ =?us-ascii?Q?adhqt25qQRjf04UaVzZPlFCHf3hjGenBcU8xCLlVRziOly0gwQEb3F+Zv3YX?=
+ =?us-ascii?Q?aZgKwSDZKaxK/hSfS5S3N2zLtIgjpoOYJOH23SbGXf2nLwb0WjzzAky706OE?=
+ =?us-ascii?Q?TEy+chFHCoqVT574aiHytjWALaX1Uljl3tpwGoFgMGfMpziacLb/3jfsAKuo?=
+ =?us-ascii?Q?wx02tJQHpS4XvYPugyBUL0hr5xRaekRycEXBOBVKbKVN4hFGCvUz+sNfAdMI?=
+ =?us-ascii?Q?q92yg6iBrdZkP/PHkRMAMs6TM7THDrIm9zileePnb4HFXJMQGhEHPybtmI/u?=
+ =?us-ascii?Q?yh5CcGXO5GA+xG42qoRycX/p8RhQQOQ9C1F6mw+JphNWYyYnFRFCEcVl2nzg?=
+ =?us-ascii?Q?tHONDEDfDvNKcV/UE3X826ipyIFtNvs80fDQFbfGHKrCuHH0REK4cqKeDu2k?=
+ =?us-ascii?Q?QjZpx83jIzUJbAdTeUIFyTzhEk6KQMVEWbGGfzYfI8Svq2fhHmXsoBPjkU8f?=
+ =?us-ascii?Q?w25cV7VrGsweM8jExN0VArZbVhprt2K2TlEu74ZVBBsc0nsg5UVNkSO4vVqz?=
+ =?us-ascii?Q?bTwHYwROMzGIv1JUdtJzU1uLAOMSQ8pUgvTWRHyao8Fr07E2AhSQCmsoole/?=
+ =?us-ascii?Q?2eSbUCf2dG8W3yWIGZOQlABnBbJrxQoxs/LDSt1Gn0Dxv5inwcIMoQOT7JTi?=
+ =?us-ascii?Q?iJtf55NATBo//+u+dOjYPMvctTAGaMzvsc/HGDqpsRkN7pretqQyFMIfVd56?=
+ =?us-ascii?Q?YluNsm5NaD/JnfuKEnlrOwucID/e8Te5NjFKS47UzdijLgjj/hyxjPZ1ecmh?=
+ =?us-ascii?Q?5gtVQOI537Hn6JGC4emm7OYcKd0YrBKb+BAwykwkrTDfdJu2hicldhILOA4h?=
+ =?us-ascii?Q?KCBcHKZdFtlPzNwaAnBgy7q47Q5DtNosSKSpFNrfzv9kqzoTWuZWS/CpERRW?=
+ =?us-ascii?Q?f16j++tX7nk6igyaQgS3PS8vhpQulCMGeDaavOPKFiBfk56IvpYB6Cu0eYPO?=
+ =?us-ascii?Q?ApqQ7V+vjOr98Qib/hU8diQ0nsrKabnBmeRRREE5X8lmlC0AO9iNcbL2kBy6?=
+ =?us-ascii?Q?b8FOnGJ0EDh0wDf4Bf32TR/ZD3d1nloYToKNhzFIgwgBfFgVmW7MrThemhQg?=
+ =?us-ascii?Q?c1pB1hZ58yNd9pf9bzESOxOHTkSjDETt8oL2FSSSJLLQjIdfA1we4mHbk3qF?=
+ =?us-ascii?Q?mxrBEBvaw481ddXQqopAgZ5uBrFEkvdhZlCJWuL99myBbBBAL2ewhAykSDl4?=
+ =?us-ascii?Q?0iiYK40tsfJ87Na+H6UYV/XVegQQLf/c4PluKL5a?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 065d1899-e735-4067-3caa-08da91cad9fd
+X-MS-Exchange-CrossTenant-AuthSource: MN2PR12MB4192.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Sep 2022 18:49:25.5206
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: tpXP+EGNvct01P0ipzURg69eV14LjkxuDyFTMLzMnJz2PVqNolaOrofGvXdGeo/0
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BL3PR12MB6644
 
-On Wed, Sep 7, 2022 at 4:45 AM Daisuke Matsuda
-<matsuda-daisuke@fujitsu.com> wrote:
->
-> Allow applications to register an ODP-enabled MR, in which case the flag
-> IB_ACCESS_ON_DEMAND is passed to rxe_reg_user_mr(). However, there is no
-> RDMA operation supported right now. They will be enabled later in the
-> subsequent two patches.
->
-> rxe_odp_do_pagefault() is called to initialize an ODP-enabled MR here.
-> It syncs process address space from the CPU page table to the driver page
-> table(dma_list/pfn_list in umem_odp) when called with a
-> RXE_PAGEFAULT_SNAPSHOT flag. Additionally, It can be used to trigger page
-> fault when pages being accessed are not present or do not have proper
-> read/write permissions and possibly to prefetch pages in the future.
->
-> Signed-off-by: Daisuke Matsuda <matsuda-daisuke@fujitsu.com>
-> ---
->  drivers/infiniband/sw/rxe/rxe.c       |  7 +++
->  drivers/infiniband/sw/rxe/rxe_loc.h   |  5 ++
->  drivers/infiniband/sw/rxe/rxe_mr.c    |  7 ++-
->  drivers/infiniband/sw/rxe/rxe_odp.c   | 80 +++++++++++++++++++++++++++
->  drivers/infiniband/sw/rxe/rxe_resp.c  | 21 +++++--
->  drivers/infiniband/sw/rxe/rxe_verbs.c |  8 ++-
->  drivers/infiniband/sw/rxe/rxe_verbs.h |  2 +
->  7 files changed, 121 insertions(+), 9 deletions(-)
->
-> diff --git a/drivers/infiniband/sw/rxe/rxe.c b/drivers/infiniband/sw/rxe/rxe.c
-> index 51daac5c4feb..0719f451253c 100644
-> --- a/drivers/infiniband/sw/rxe/rxe.c
-> +++ b/drivers/infiniband/sw/rxe/rxe.c
-> @@ -73,6 +73,13 @@ static void rxe_init_device_param(struct rxe_dev *rxe)
->                         rxe->ndev->dev_addr);
->
->         rxe->max_ucontext                       = RXE_MAX_UCONTEXT;
-> +
-> +       if (IS_ENABLED(CONFIG_INFINIBAND_ON_DEMAND_PAGING)) {
-> +               rxe->attr.kernel_cap_flags |= IBK_ON_DEMAND_PAGING;
-> +
-> +               /* IB_ODP_SUPPORT_IMPLICIT is not supported right now. */
-> +               rxe->attr.odp_caps.general_caps |= IB_ODP_SUPPORT;
-> +       }
->  }
->
->  /* initialize port attributes */
-> diff --git a/drivers/infiniband/sw/rxe/rxe_loc.h b/drivers/infiniband/sw/rxe/rxe_loc.h
-> index 0f8cb9e38cc9..03b4078b90a3 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_loc.h
-> +++ b/drivers/infiniband/sw/rxe/rxe_loc.h
-> @@ -64,6 +64,7 @@ int rxe_mmap(struct ib_ucontext *context, struct vm_area_struct *vma);
->
->  /* rxe_mr.c */
->  u8 rxe_get_next_key(u32 last_key);
-> +void rxe_mr_init(int access, struct rxe_mr *mr);
->  void rxe_mr_init_dma(struct rxe_pd *pd, int access, struct rxe_mr *mr);
->  int rxe_mr_init_user(struct rxe_pd *pd, u64 start, u64 length, u64 iova,
->                      int access, struct rxe_mr *mr);
-> @@ -188,4 +189,8 @@ static inline unsigned int wr_opcode_mask(int opcode, struct rxe_qp *qp)
->         return rxe_wr_opcode_info[opcode].mask[qp->ibqp.qp_type];
->  }
->
-> +/* rxe_odp.c */
-> +int rxe_create_user_odp_mr(struct ib_pd *pd, u64 start, u64 length, u64 iova,
-> +                          int access_flags, struct rxe_mr *mr);
-> +
->  #endif /* RXE_LOC_H */
-> diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
-> index 814116ec4778..0ae72a4516be 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_mr.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_mr.c
-> @@ -48,7 +48,7 @@ int mr_check_range(struct rxe_mr *mr, u64 iova, size_t length)
->                                 | IB_ACCESS_REMOTE_WRITE        \
->                                 | IB_ACCESS_REMOTE_ATOMIC)
->
-> -static void rxe_mr_init(int access, struct rxe_mr *mr)
-> +void rxe_mr_init(int access, struct rxe_mr *mr)
->  {
->         u32 lkey = mr->elem.index << 8 | rxe_get_next_key(-1);
->         u32 rkey = (access & IB_ACCESS_REMOTE) ? lkey : 0;
-> @@ -438,7 +438,10 @@ int copy_data(
->                 if (bytes > 0) {
->                         iova = sge->addr + offset;
->
-> -                       err = rxe_mr_copy(mr, iova, addr, bytes, dir);
-> +                       if (mr->odp_enabled)
-> +                               err = -EOPNOTSUPP;
-> +                       else
-> +                               err = rxe_mr_copy(mr, iova, addr, bytes, dir);
->                         if (err)
->                                 goto err2;
->
-> diff --git a/drivers/infiniband/sw/rxe/rxe_odp.c b/drivers/infiniband/sw/rxe/rxe_odp.c
-> index 0f702787a66e..1f6930ba714c 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_odp.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_odp.c
-> @@ -5,6 +5,8 @@
->
->  #include <rdma/ib_umem_odp.h>
->
-> +#include "rxe.h"
-> +
->  bool rxe_ib_invalidate_range(struct mmu_interval_notifier *mni,
->                              const struct mmu_notifier_range *range,
->                              unsigned long cur_seq)
-> @@ -32,3 +34,81 @@ bool rxe_ib_invalidate_range(struct mmu_interval_notifier *mni,
->  const struct mmu_interval_notifier_ops rxe_mn_ops = {
->         .invalidate = rxe_ib_invalidate_range,
->  };
-> +
-> +#define RXE_PAGEFAULT_RDONLY BIT(1)
-> +#define RXE_PAGEFAULT_SNAPSHOT BIT(2)
-> +static int rxe_odp_do_pagefault(struct rxe_mr *mr, u64 user_va, int bcnt, u32 flags)
-> +{
-> +       int np;
-> +       u64 access_mask;
-> +       bool fault = !(flags & RXE_PAGEFAULT_SNAPSHOT);
-> +       struct ib_umem_odp *umem_odp = to_ib_umem_odp(mr->umem);
-> +
-> +       access_mask = ODP_READ_ALLOWED_BIT;
-> +       if (umem_odp->umem.writable && !(flags & RXE_PAGEFAULT_RDONLY))
-> +               access_mask |= ODP_WRITE_ALLOWED_BIT;
-> +
-> +       /*
-> +        * umem mutex is held after return from ib_umem_odp_map_dma_and_lock().
-> +        * Release it when access to user MR is done or not required.
-> +        */
-> +       np = ib_umem_odp_map_dma_and_lock(umem_odp, user_va, bcnt,
-> +                                         access_mask, fault);
-> +
-> +       return np;
-> +}
-> +
-> +static int rxe_init_odp_mr(struct rxe_mr *mr)
-> +{
-> +       int ret;
-> +       struct ib_umem_odp *umem_odp = to_ib_umem_odp(mr->umem);
-> +
-> +       ret = rxe_odp_do_pagefault(mr, mr->umem->address, mr->umem->length,
-> +                                  RXE_PAGEFAULT_SNAPSHOT);
-> +       mutex_unlock(&umem_odp->umem_mutex);
-> +
-> +       return ret >= 0 ? 0 : ret;
-> +}
-> +
-> +int rxe_create_user_odp_mr(struct ib_pd *pd, u64 start, u64 length, u64 iova,
-> +                          int access_flags, struct rxe_mr *mr)
-> +{
-> +       int err;
-> +       struct ib_umem_odp *umem_odp;
-> +       struct rxe_dev *dev = container_of(pd->device, struct rxe_dev, ib_dev);
-> +
-> +       if (!IS_ENABLED(CONFIG_INFINIBAND_ON_DEMAND_PAGING))
-> +               return -EOPNOTSUPP;
-> +
-> +       rxe_mr_init(access_flags, mr);
-> +
-> +       if (!start && length == U64_MAX) {
-> +               if (iova != 0)
-> +                       return -EINVAL;
-> +               if (!(dev->attr.odp_caps.general_caps & IB_ODP_SUPPORT_IMPLICIT))
-> +                       return -EINVAL;
-> +
-> +               /* Never reach here, for implicit ODP is not implemented. */
-> +       }
-> +
-> +       umem_odp = ib_umem_odp_get(pd->device, start, length, access_flags,
-> +                                  &rxe_mn_ops);
-> +       if (IS_ERR(umem_odp))
-> +               return PTR_ERR(umem_odp);
-> +
-> +       umem_odp->private = mr;
-> +
-> +       mr->odp_enabled = true;
-> +       mr->ibmr.pd = pd;
-> +       mr->umem = &umem_odp->umem;
-> +       mr->access = access_flags;
-> +       mr->length = length;
-> +       mr->iova = iova;
-> +       mr->offset = ib_umem_offset(&umem_odp->umem);
-> +       mr->state = RXE_MR_STATE_VALID;
-> +       mr->type = IB_MR_TYPE_USER;
-> +
-> +       err = rxe_init_odp_mr(mr);
-> +
-> +       return err;
-> +}
-> diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
-> index cadc8fa64dd0..dd8632e783f6 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_resp.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_resp.c
-> @@ -535,8 +535,12 @@ static enum resp_states write_data_in(struct rxe_qp *qp,
->         int     err;
->         int data_len = payload_size(pkt);
->
-> -       err = rxe_mr_copy(qp->resp.mr, qp->resp.va + qp->resp.offset,
-> -                         payload_addr(pkt), data_len, RXE_TO_MR_OBJ);
-> +       if (qp->resp.mr->odp_enabled)
+On Wed, Sep 07, 2022 at 01:45:35PM -0700, Dan Williams wrote:
+> Jason Gunthorpe wrote:
+> > On Wed, Sep 07, 2022 at 11:43:52AM -0700, Dan Williams wrote:
+> > 
+> > > It is still the case that while waiting for the page to go idle it is
+> > > associated with its given file / inode. It is possible that
+> > > memory-failure, or some other event that requires looking up the page's
+> > > association, fires in that time span.
+> > 
+> > Can't the page->mapping can remain set to the address space even if it is
+> > not installed into any PTEs? Zap should only remove the PTEs, not
+> > clear the page->mapping.
+> > 
+> > Or, said another way, page->mapping should only change while the page
+> > refcount is 0 and thus the filesystem is completely in control of when
+> > it changes, and can do so under its own locks
+> > 
+> > If the refcount is 0 then memory failure should not happen - it would
+> > require someone accessed the page without referencing it. The only
+> > thing that could do that is the kernel, and if the kernel is
+> > referencing a 0 refcount page (eg it got converted to meta-data or
+> > something), it is probably not linked to an address space anymore
+> > anyhow?
+> 
+> First, thank you for helping me think through this, I am going to need
+> this thread in 6 months when I revisit this code.
+> 
+> I agree with the observation that page->mapping should only change while
+> the reference count is zero, but my problem is catching the 1 -> 0 in
+> its natural location in free_zone_device_page(). That and the fact that
+> the entry needs to be maintained until the page is actually disconnected
+> from the file to me means that break layouts holds off truncate until it
+> can observe the 0 refcount condition while holding filesystem locks, and
+> then the final truncate deletes the mapping entry which is already at 0.
 
-You cannot use qp->resp.mr here, because for zero byte operations,
-resp.mr is not set in the function check_rkey().
+Okay, that makes sense to me.. but what is "entry need to be
+maintained" mean?
 
-The code fails for RTRS with the following stack trace,
+> I.e. break layouts waits until _refcount reaches 0, but entry removal
+> still needs one more dax_delete_mapping_entry() event to transitition to
+> the _refcount == 0 plus no address_space entry condition. Effectively
+> simulating _mapcount with address_space tracking until DAX pages can
+> become vm_normal_page().
 
-[Thu Sep  8 20:12:22 2022] BUG: kernel NULL pointer dereference,
-address: 0000000000000158
-[Thu Sep  8 20:12:22 2022] #PF: supervisor read access in kernel mode
-[Thu Sep  8 20:12:22 2022] #PF: error_code(0x0000) - not-present page
-[Thu Sep  8 20:12:22 2022] PGD 0 P4D 0
-[Thu Sep  8 20:12:22 2022] Oops: 0000 [#1] PREEMPT SMP
-[Thu Sep  8 20:12:22 2022] CPU: 3 PID: 38 Comm: kworker/u8:1 Not
-tainted 6.0.0-rc2-pserver+ #17
-[Thu Sep  8 20:12:22 2022] Hardware name: QEMU Standard PC (i440FX +
-PIIX, 1996), BIOS 1.13.0-1ubuntu1.1 04/01/2014
-[Thu Sep  8 20:12:22 2022] Workqueue: rxe_resp rxe_do_work [rdma_rxe]
-[Thu Sep  8 20:12:22 2022] RIP: 0010:rxe_responder+0x1910/0x1d90 [rdma_rxe]
-[Thu Sep  8 20:12:22 2022] Code: 06 48 63 88 fc 15 63 c0 0f b6 46 01
-83 ea 04 c0 e8 04 29 ca 83 e0 03 29 c2 49 8b 87 08 05 00 00 49 03 87
-00 05 00 00 4c 63 ea <80> bf 58 01 00 00 00 48 8d 14 0e 48 89 c6 4d 89
-ee 44 89 e9 0f 84
-[Thu Sep  8 20:12:22 2022] RSP: 0018:ffffb0358015fd80 EFLAGS: 00010246
-[Thu Sep  8 20:12:22 2022] RAX: 0000000000000000 RBX: ffff9af4839b5e28
-RCX: 0000000000000020
-[Thu Sep  8 20:12:22 2022] RDX: 0000000000000000 RSI: ffff9af485094a6a
-RDI: 0000000000000000
-[Thu Sep  8 20:12:22 2022] RBP: ffff9af488bd7128 R08: 0000000000000000
-R09: 0000000000000000
-[Thu Sep  8 20:12:22 2022] R10: ffff9af4808eaf7c R11: 0000000000000001
-R12: 0000000000000008
-[Thu Sep  8 20:12:22 2022] R13: 0000000000000000 R14: ffff9af488bd7380
-R15: ffff9af488bd7000
-[Thu Sep  8 20:12:22 2022] FS:  0000000000000000(0000)
-GS:ffff9af5b7d80000(0000) knlGS:0000000000000000
-[Thu Sep  8 20:12:22 2022] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[Thu Sep  8 20:12:22 2022] CR2: 0000000000000158 CR3: 000000004a60a000
-CR4: 00000000000006e0
-[Thu Sep  8 20:12:22 2022] DR0: 0000000000000000 DR1: 0000000000000000
-DR2: 0000000000000000
-[Thu Sep  8 20:12:22 2022] DR3: 0000000000000000 DR6: 00000000fffe0ff0
-DR7: 0000000000000400
-[Thu Sep  8 20:12:22 2022] Call Trace:
-[Thu Sep  8 20:12:22 2022]  <TASK>
-[Thu Sep  8 20:12:22 2022]  ? newidle_balance+0x2e5/0x400
-[Thu Sep  8 20:12:22 2022]  ? _raw_spin_unlock+0x12/0x30
-[Thu Sep  8 20:12:22 2022]  ? finish_task_switch+0x91/0x2a0
-[Thu Sep  8 20:12:22 2022]  rxe_do_work+0x86/0x110 [rdma_rxe]
-[Thu Sep  8 20:12:22 2022]  process_one_work+0x1dc/0x3a0
-[Thu Sep  8 20:12:22 2022]  worker_thread+0x4a/0x3b0
-[Thu Sep  8 20:12:22 2022]  ? process_one_work+0x3a0/0x3a0
-[Thu Sep  8 20:12:22 2022]  kthread+0xe7/0x110
-[Thu Sep  8 20:12:22 2022]  ? kthread_complete_and_exit+0x20/0x20
-[Thu Sep  8 20:12:22 2022]  ret_from_fork+0x22/0x30
-[Thu Sep  8 20:12:22 2022]  </TASK>
-[Thu Sep  8 20:12:22 2022] Modules linked in: rnbd_server rtrs_server
-rtrs_core rdma_ucm rdma_cm iw_cm ib_cm crc32_generic rdma_rxe
-ip6_udp_tunnel udp_tunnel ib_uverbs ib_core loop null_blk
-[Thu Sep  8 20:12:22 2022] CR2: 0000000000000158
-[Thu Sep  8 20:12:22 2022] ---[ end trace 0000000000000000 ]---
-[Thu Sep  8 20:12:22 2022] BUG: kernel NULL pointer dereference,
-address: 0000000000000158
-[Thu Sep  8 20:12:22 2022] RIP: 0010:rxe_responder+0x1910/0x1d90 [rdma_rxe]
-[Thu Sep  8 20:12:22 2022] #PF: supervisor read access in kernel mode
-[Thu Sep  8 20:12:22 2022] Code: 06 48 63 88 fc 15 63 c0 0f b6 46 01
-83 ea 04 c0 e8 04 29 ca 83 e0 03 29 c2 49 8b 87 08 05 00 00 49 03 87
-00 05 00 00 4c 63 ea <80> bf 58 01 00 00 00 48 8d 14 0e 48 89 c6 4d 89
-ee 44 89 e9 0f 84
-[Thu Sep  8 20:12:22 2022] #PF: error_code(0x0000) - not-present page
-[Thu Sep  8 20:12:22 2022] RSP: 0018:ffffb0358015fd80 EFLAGS: 00010246
-[Thu Sep  8 20:12:22 2022] PGD 0 P4D 0
+This I don't follow.. Who will do the one more
+dax_delete_mapping_entry()?
 
-Technically, for operations with 0 length, the code can simply not do
-any of the *_mr_copy, and carry on with success. So maybe you can
-check data_len first and copy only if needed.
+I'm not sure what it has to do with normal_page?
 
-
-> +               err = -EOPNOTSUPP;
-> +       else
-> +               err = rxe_mr_copy(qp->resp.mr, qp->resp.va + qp->resp.offset,
-> +                                 payload_addr(pkt), data_len, RXE_TO_MR_OBJ);
-> +
->         if (err) {
->                 rc = RESPST_ERR_RKEY_VIOLATION;
->                 goto out;
-> @@ -667,7 +671,10 @@ static enum resp_states rxe_atomic_reply(struct rxe_qp *qp,
->                 if (mr->state != RXE_MR_STATE_VALID)
->                         return RESPST_ERR_RKEY_VIOLATION;
->
-> -               ret = rxe_atomic_ops(qp, pkt, mr);
-> +               if (mr->odp_enabled)
-> +                       ret = RESPST_ERR_UNSUPPORTED_OPCODE;
-> +               else
-> +                       ret = rxe_atomic_ops(qp, pkt, mr);
->         } else
->                 ret = RESPST_ACKNOWLEDGE;
->
-> @@ -831,8 +838,12 @@ static enum resp_states read_reply(struct rxe_qp *qp,
->         if (!skb)
->                 return RESPST_ERR_RNR;
->
-> -       err = rxe_mr_copy(mr, res->read.va, payload_addr(&ack_pkt),
-> -                         payload, RXE_FROM_MR_OBJ);
-> +       if (mr->odp_enabled)
-> +               err = -EOPNOTSUPP;
-> +       else
-> +               err = rxe_mr_copy(mr, res->read.va, payload_addr(&ack_pkt),
-> +                                 payload, RXE_FROM_MR_OBJ);
-> +
->         if (err)
->                 pr_err("Failed copying memory\n");
->         if (mr)
-> diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-> index 7510f25c5ea3..b00e9b847382 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_verbs.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-> @@ -926,10 +926,14 @@ static struct ib_mr *rxe_reg_user_mr(struct ib_pd *ibpd,
->                 goto err2;
->         }
->
-> -
->         rxe_get(pd);
->
-> -       err = rxe_mr_init_user(pd, start, length, iova, access, mr);
-> +       if (access & IB_ACCESS_ON_DEMAND)
-> +               err = rxe_create_user_odp_mr(&pd->ibpd, start, length, iova,
-> +                                            access, mr);
-> +       else
-> +               err = rxe_mr_init_user(pd, start, length, iova, access, mr);
-> +
->         if (err)
->                 goto err3;
->
-> diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.h b/drivers/infiniband/sw/rxe/rxe_verbs.h
-> index b09b4cb9897a..98d2bb737ebc 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_verbs.h
-> +++ b/drivers/infiniband/sw/rxe/rxe_verbs.h
-> @@ -324,6 +324,8 @@ struct rxe_mr {
->         atomic_t                num_mw;
->
->         struct rxe_map          **map;
-> +
-> +       bool                    odp_enabled;
->  };
->
->  enum rxe_mw_state {
-> --
-> 2.31.1
->
+Jason
