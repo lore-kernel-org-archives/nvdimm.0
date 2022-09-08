@@ -1,43 +1,159 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1CF4589B0
-	for <nvdimm@lists.linux.dev>; Wed,  7 Sep 2022 22:30:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 495D9C433D6;
-	Wed,  7 Sep 2022 22:30:17 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1662589817;
-	bh=icUrwow2CfL0XBxzTtlHd9U90jN+X9EkDzy9xW2u15w=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=I8fEiVnYdONLg4RYOnaYni7CG0VvoCxIZn0T6K99IIfhvScjtIRaOt19syHlKmEil
-	 t8eQLP01qbrGEqu2bL0WD40A1KOvexY13ymExhqqa3bh7c6D2qonaIVG5EYYhH1nsG
-	 d1GHZ79kMApd+lcxU46r0rUc7wauR0AJL3bJiUf4=
-Date: Wed, 7 Sep 2022 15:30:16 -0700
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Davidlohr Bueso <dave@stgolabs.net>
-Cc: dan.j.williams@intel.com, x86@kernel.org, nvdimm@lists.linux.dev,
- linux-cxl@vger.kernel.org, peterz@infradead.org, bp@alien8.de,
- dave.jiang@intel.com, Jonathan.Cameron@huawei.com,
- vishal.l.verma@intel.com, ira.weiny@intel.com, a.manzanares@samsung.com,
- linux-kernel@vger.kernel.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 453337C
+	for <nvdimm@lists.linux.dev>; Thu,  8 Sep 2022 01:07:41 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1662599261; x=1694135261;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=GAuPa3vrCp8x0XzQVr45o1CQkbBwpTAKhkb+x6rf7eI=;
+  b=nYAtINEdhyCOtG7baQ8Xdip7ighd+3660qFQDL031aPDl2kFHMlm5il3
+   PF9b0PbHufm9cXtjamjNAwEoafiAw94fLz48lj/W4wX7EOCV3sytZfYUW
+   ZNBk1XrtJxF/5J3a4JUN900IXxa2RC2uz4MdYq3On9RhXgEbhGBIllwup
+   /6IkQPQRHBAPuxYC6eCTBltomc4foHbISKmGsmxFYO6qo4ako573eg+Do
+   AsdTDT7hENh2AroyRPo9Knnrsd64EB1Dep1syHwfrSpZSX5z9ChgI0EY/
+   N/v7cfMobKmh+I93oSFnizsXAiWXxrHml10zYi2SpEquzeR1YBAnBSaV+
+   w==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10463"; a="276771555"
+X-IronPort-AV: E=Sophos;i="5.93,298,1654585200"; 
+   d="scan'208";a="276771555"
+Received: from orsmga003.jf.intel.com ([10.7.209.27])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Sep 2022 18:07:37 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.93,298,1654585200"; 
+   d="scan'208";a="565741133"
+Received: from orsmsx603.amr.corp.intel.com ([10.22.229.16])
+  by orsmga003.jf.intel.com with ESMTP; 07 Sep 2022 18:07:37 -0700
+Received: from orsmsx611.amr.corp.intel.com (10.22.229.24) by
+ ORSMSX603.amr.corp.intel.com (10.22.229.16) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31; Wed, 7 Sep 2022 18:07:37 -0700
+Received: from ORSEDG601.ED.cps.intel.com (10.7.248.6) by
+ orsmsx611.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31 via Frontend Transport; Wed, 7 Sep 2022 18:07:37 -0700
+Received: from NAM11-BN8-obe.outbound.protection.outlook.com (104.47.58.168)
+ by edgegateway.intel.com (134.134.137.102) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2375.31; Wed, 7 Sep 2022 18:07:36 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=QcVdhchafDzl1n/WwplvbFYxHM0cHdmfY5ulrRvr15KNbjrm6DaYL8FYtcju3Q0yfPlewbctwBYzYWDSUrbNidrHewU/7O2dBoygxW6o+0ATHgCaG8K77EcbiABFabXW/SdCOrhJGkiyw1pqcfTuIrCNsQcNG9YKHMG7LWisXN08RgSi7f5JSf4Q38NZ8Ul3wTjNk7g/AaTJ5G1b96Sp2EoBeHz1nWZrt583wuRNieM8EqaSprZ9cdJXv98AftFMFpEyz7+jC2JyZRKUgZEV++4Ky5Ad3LHewmuKdmDbKCt308l1unH/Yq5PWVdDGpEyEZGqZMMbXU+STroG0W7PNQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=4Y3tNKfRfqXRn+KMQqqmoiPbHlOyC5TVC5DKg4w/mvQ=;
+ b=PBztHRNqkSEtFmpHWulATxyORUnAwf1DxOJ6G8B7muQRwgwSrTN377HpyuQkUWp4Rcuol52Mqa40Q1Hklf8gmHQ1M8RpypQiXn4RxxmhOkY0w+u+LM9kQZe1udQBY2Mq+maIJ2WmK1m6g6fkZNK3C9qL6Ie5Jqcn9UPBqDSyP/ByUCobiN3dJ4gHoFMuPti/O7YjObARzLrdyakseobho5WSSzska1uKU8YFBX6sdW/yZubeCvmXumVjGA+vg4GzLPFNn414mhKVkJBxGsTcvSzSYZxRDKmCPZAEm/uLUp+1daE++gPNdkcpPJUf8ockR1SYGqX/SzYze2QtpxU8ng==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
+ (2603:10b6:301:50::20) by DM6PR11MB4315.namprd11.prod.outlook.com
+ (2603:10b6:5:201::28) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5612.14; Thu, 8 Sep
+ 2022 01:07:34 +0000
+Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
+ ([fe80::9847:345e:4c5b:ca12]) by MWHPR1101MB2126.namprd11.prod.outlook.com
+ ([fe80::9847:345e:4c5b:ca12%6]) with mapi id 15.20.5588.017; Thu, 8 Sep 2022
+ 01:07:34 +0000
+Date: Wed, 7 Sep 2022 18:07:31 -0700
+From: Dan Williams <dan.j.williams@intel.com>
+To: Andrew Morton <akpm@linux-foundation.org>, Davidlohr Bueso
+	<dave@stgolabs.net>
+CC: <dan.j.williams@intel.com>, <x86@kernel.org>, <nvdimm@lists.linux.dev>,
+	<linux-cxl@vger.kernel.org>, <peterz@infradead.org>, <bp@alien8.de>,
+	<dave.jiang@intel.com>, <Jonathan.Cameron@huawei.com>,
+	<vishal.l.verma@intel.com>, <ira.weiny@intel.com>,
+	<a.manzanares@samsung.com>, <linux-kernel@vger.kernel.org>
 Subject: Re: [PATCH -next] memregion: Add arch_flush_memregion() interface
-Message-Id: <20220907153016.f7cd4f42a337fedae8319f28@linux-foundation.org>
-In-Reply-To: <20220829212918.4039240-1-dave@stgolabs.net>
+Message-ID: <631940536d040_2736529437@dwillia2-xfh.jf.intel.com.notmuch>
 References: <20220829212918.4039240-1-dave@stgolabs.net>
-X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+ <20220907153016.f7cd4f42a337fedae8319f28@linux-foundation.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20220907153016.f7cd4f42a337fedae8319f28@linux-foundation.org>
+X-ClientProxiedBy: SJ0PR03CA0264.namprd03.prod.outlook.com
+ (2603:10b6:a03:3a0::29) To MWHPR1101MB2126.namprd11.prod.outlook.com
+ (2603:10b6:301:50::20)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: 2e88ff95-e3c3-4eb4-ab1d-08da91368315
+X-MS-TrafficTypeDiagnostic: DM6PR11MB4315:EE_
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: pMyMxil8ZJvJDxvAUQ1r8+nPhNez4pfxWDprBHDOPTH6VGVi6CnKpYxDX/klTa+j7FzBmxv5bQs2C1MZyELxrbR2JtinhTq4fcsfI4rlftG+eLglLkSHn2lIGxQx8aOkhTxmqwhvVO0AFXMPejH3Wj2wvlaocrowG409A3g7BWKwURHGI5mClErVGj1CtrZED70HH0sNP5dpWHIR4VSM+0trZVmCefmjk5GcdvqwlCDXo+c2AqhSBfQSOOwvAUT4lmKy/n1P7D/8zcQxgEKc7PmAD6hJTcx2ZckGAg0wDS9vls1dgJ2XIpInMSCnyhla6/Bclo65Gx8+oQW91tl5t4MTg3xDJLHxug9xONH8Bwi8Zf6DbkWEBNIK+ubhpYun+0kBztZryR7zOKeQUskXnVtUZHfREwMDio3o1eUA3bAmi4wTV52vXQhnPk7r4IEOyEHSOL6lGmsfvPH48azbG4SCpCuosmgKfsSYDf8pdHicj3xFslbJV/bQGBa++iBeepoH1fZivGQWQ2Htx1arF54gNSWS5bi15PjjeWWuetaz8GsDUjJU+l77vRzCTS0hNfsJHB5HlE5ZdWDu0pksoQLhuvZVWzAe/PNiefOJUQOOBXFoW2wMhrHo5/gPHQR1Ac8hToz46ZgsGxuCun2DIjPdAwfe3keAsDSOPqWoLB2bEnCzU0h7lVc7G86KJrAr7ZI0/iZN+xbpNP1CpktZZA==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1101MB2126.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230016)(346002)(136003)(376002)(396003)(39860400002)(366004)(8936002)(4744005)(5660300002)(7416002)(2906002)(38100700002)(41300700001)(82960400001)(6486002)(6506007)(478600001)(6512007)(6666004)(9686003)(316002)(26005)(110136005)(83380400001)(8676002)(66946007)(66476007)(66556008)(4326008)(186003)(86362001);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?oixaxejqYGP6Xfvjww6ZSFsPnYmhFwecMrutr7jMpftnvWPWxUDfaASRGICV?=
+ =?us-ascii?Q?TuW2YNGjcK71RhdOkFEPzyI5mQMJzidJS11h3+hXXNOXMYce1KHal10Te86L?=
+ =?us-ascii?Q?jqHj8QIrdxTX1jlnJpotsKewHH1uuVNLmGQzQtF3bkwN/Als8lijXm6U1EIO?=
+ =?us-ascii?Q?EyGCK3H9LAxhQx+0ws0W+EzeSBb+/GoDgAYsuW0ApT4ULkLAHGukkZWJvfwO?=
+ =?us-ascii?Q?kCBfYNUWFzPBCoGQww4js5tebGsUxYGoxSGV4dxER8fxUpRU6bceFyPOS7QD?=
+ =?us-ascii?Q?ZZ79A+TTub7ReCc4VvJnMC+TGcw8lBEmQrMgjsCOoE6DUBr9c3oZ13wwjxrX?=
+ =?us-ascii?Q?dUvAuyGTiKH03ZKc2u9ElMSKzaaxw0pb6bTun694GwolPrQTxdKInWoK8tYT?=
+ =?us-ascii?Q?Y9Qod6H2Eom05LD/+mbDyGbdxcTCgKrPuEMQWv4Z3X2nlVVHL1IEpCy8JTtd?=
+ =?us-ascii?Q?al1XTJjrshCMPej6ANw8ymJlwTV8TLopWAfYOHJN4ftiLUV8hKwXJPieh8yh?=
+ =?us-ascii?Q?EC11rOnlyClUaBIE0SFNLtc8X0PRHw+vhJ6tUUfh9VoFXET8ZkAI47W3qdAY?=
+ =?us-ascii?Q?OQDON0KBdybapc74nW1GSloQMoaWpTS0yYeZyxcBmPuw29ouTi8GShbAbisd?=
+ =?us-ascii?Q?siXKKR3O3ZBuAr2y++1VyXvGGDQ5RKkn4Qdaedyxn+2Em0JF/4STsv7f4zUb?=
+ =?us-ascii?Q?6SvCjVrVT7rfREuEO5uWfFUKjRlNTw9Vgla3G5XO7RNnY3BH3k89opikklIR?=
+ =?us-ascii?Q?8xOmyAFM/UYxjw8pAhGrzYQN8uOSjsdGAgMwzKOY4rlOYIaUth0P+L7KxviI?=
+ =?us-ascii?Q?8g6zkqZGxcM1tdK6GCwwDFmevviHcqHJbQk+wdjKS7B9pY1i36jVrBq730KS?=
+ =?us-ascii?Q?TUIMO0LFtJJYIvQxlIfiv10LSwFrJa44BLq65OauMxFhgLt9WXLwGuPmiy74?=
+ =?us-ascii?Q?xHuIoWoz1U02z9eBz29jbtkI8Pt/cNjsO9lU5MEJ64wuPamD/IugWTfsQhqQ?=
+ =?us-ascii?Q?63xLvjU8AUy83Ci6PJPD/21KgpztAR0d1O0iMoLx7g7JJ5PSmasJd5EF/cW5?=
+ =?us-ascii?Q?gk8lj/Oea5hEhfBj/vqtBfkCznC/ecA4I0uedaSyve8brcZ4woXKr0X4K9MI?=
+ =?us-ascii?Q?+bkNEdXaA9FWc5vo7IrtSfV/hPp/twNK0Y8Ra6qRgFV+NmoBvN1iusY2gLFd?=
+ =?us-ascii?Q?5vI0BsWXEtRrNceszlxybZBpN4eXNurRVBTNs3ODn5Ba3dIqYqsdS/dQiA3J?=
+ =?us-ascii?Q?ryfAWsHPV12cDFtX7ItKPJHEE29tF0FUaYlnD9LCXa9LQhURbPi1cmUsJJJw?=
+ =?us-ascii?Q?2Lvx871qDlAg9dAW5mYDsPjvTSpO9WIZ42lkWDba80vExch5j8eZWfSzTHaC?=
+ =?us-ascii?Q?V2s3hph8gIwlGxHBfVe1ikAx/ve0GofbGtw1HJPp5OU89A5bILi1LDrIXkQb?=
+ =?us-ascii?Q?sBra1ww85Uk63H6TaQFuilvz7MsaCiwR0orGHccq13GucE6vawXlzw4HIcU9?=
+ =?us-ascii?Q?wD8LQGX12T/NWxsOwUyP+3k8DpE0PcWFAZnCd6TzxJ2nwlZ2Fxg1DIE+Y3gv?=
+ =?us-ascii?Q?sBvwIvn6uk9/erF449QgIGs0alByPJ17Hf40nvrRMxNR+DgfHuBJyyKfLEAu?=
+ =?us-ascii?Q?7w=3D=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: 2e88ff95-e3c3-4eb4-ab1d-08da91368315
+X-MS-Exchange-CrossTenant-AuthSource: MWHPR1101MB2126.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Sep 2022 01:07:34.1561
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: lKovOfM4s1i7T/YZk+VG8LXePdlsmfnZ40wfvv3TGlAdig31tg/Vr2AwB5sO4cLYzuZ0XkvWcUadpHzFEpmuDkDeLVRDOWAYsYRZa8hqww8=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR11MB4315
+X-OriginatorOrg: intel.com
 
-I really dislike the term "flush".  Sometimes it means writeback,
-sometimes it means invalidate.  Perhaps at other times it means
-both.
+Andrew Morton wrote:
+> I really dislike the term "flush".  Sometimes it means writeback,
+> sometimes it means invalidate.  Perhaps at other times it means
+> both.
+> 
+> Can we please be very clear in comments and changelogs about exactly
+> what this "flush" does.   With bonus points for being more specific in the 
+> function naming?
+> 
 
-Can we please be very clear in comments and changelogs about exactly
-what this "flush" does.   With bonus points for being more specific in the 
-function naming?
+That's a good point, "flush" has been cargo-culted along in Linux's
+cache management APIs to mean write-back-and-invalidate. In this case I
+think this API is purely about invalidate. It just so happens that x86
+has not historically had a global invalidate instruction readily
+available which leads to the overuse of wbinvd.
+
+It would be nice to make clear that this API is purely about
+invalidating any data cached for a physical address impacted by address
+space management event (secure erase / new region provision). Write-back
+is an unnecessary side-effect.
+
+So how about:
+
+s/arch_flush_memregion/cpu_cache_invalidate_memregion/?
