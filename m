@@ -1,193 +1,399 @@
-Received: from mail1.bemta34.messagelabs.com (mail1.bemta34.messagelabs.com [195.245.231.3])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f53.google.com (mail-ed1-f53.google.com [209.85.208.53])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59E0F3222
-	for <nvdimm@lists.linux.dev>; Thu,  8 Sep 2022 13:46:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fujitsu.com;
-	s=170520fj; t=1662644776; i=@fujitsu.com;
-	bh=yMCPAIebxWO4vvQFb71MGPuxF6WjMXvRRiRf6mryorw=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type:Content-Transfer-Encoding;
-	b=avrZt2VJjTxJirixqR6H/V3e3wSSh0H6k561RdHpHtuheftdEtoCd3HVUIjAtPI/S
-	 kt7WK6oIWizI6paJwqi8NFnPgdBmr9S/56r/TF73r5bkxZPfz59PmGS8jugzB8jqwz
-	 ZUNVOYrsF5fRBOdB60l2ngHleVhJ0pwkejVn3NIwzkiOb80foyC4H83daGKT+d8ahU
-	 +xrYvjdZlPbZwzCT2nXHA5/J1i4m43BAfUyAbXSq0vMPIHGGDlcnuQhjLdaRwwgmOk
-	 9+Rz/v9IG47pMYQ5c7Zym95cNdVscrt0Jmpje+whrrLnDdq6QmtLIdfRUvOE2567y0
-	 eehsLdqMcJChQ==
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFlrGKsWRWlGSWpSXmKPExsViZ8MxSVf9k2S
-  ywatGa4t3n6ssthy7x2hx+QmfxekJi5gs9uw9yWJxedccNotdf3awW6z88YfVgcPj1CIJj80r
-  tDw2repk83ixeSajx/t9V9k8Pm+SC2CLYs3MS8qvSGDNOPZ3EXvBJdmKR+32DYx/xLsYuTiEB
-  LYwSjSunMQO4Sxnkuh49p4RwtkGlHkLkuHk4BWwk/i87i6YzSKgIvHr0GWouKDEyZlPWEBsUY
-  FkibuH14PZwgK+Ems39TF3MXJwiAjYS3ScMgCZySzQzizx79kuqAVnmSRud35hAmlgE9CRuLD
-  gLyuIzSmgIXFq+ywwm1nAQmLxm4PsELa8RPPW2WBDJQSUJGZ2x4OEJQQqJBqnH2KCsNUkrp7b
-  xDyBUWgWkvNmIZk0C8mkBYzMqxitk4oy0zNKchMzc3QNDQx0DQ1NdY2NdA2NzPQSq3QT9VJLd
-  ctTi0t0jfQSy4v1UouL9Yorc5NzUvTyUks2MQKjLKVYoW4H47WVP/UOMUpyMCmJ8u5eKJksxJ
-  eUn1KZkVicEV9UmpNafIhRhoNDSYI3+C1QTrAoNT21Ii0zBxjxMGkJDh4lEd6Pb4DSvMUFibn
-  FmekQqVOMuhznd+7fyyzEkpeflyolzmv4HqhIAKQoozQPbgQs+VxilJUS5mVkYGAQ4ilILcrN
-  LEGVf8UozsGoJMyr8AFoCk9mXgncpldARzABHbE1UBzkiJJEhJRUA5N7H9f5pwdWzeS5ZS8Rt
-  nZH8JYrjdxB3X5Vc77Ev4x3j+L9cnPb7eYzz0L/8Ia2a5psm61ikvfa48n6ma/TnF6HbzmV5X
-  KucuHWG+vv1Qts1WnM6He9YPJq2vFwFUcOWz3u+51FlmJegi4cdvL+51+Iyj1f+ev/qpXNU0p
-  v2qZoMJV5yTW8i8hY3ramN+iW3mVp/RXaFloNzjdYPl/VqlltdvH1Ecmjp2ZuSf82Zz3L5K9n
-  V53boLf5v2PQuk3Z/Y+uvmDg7rKZ9fBrj0Oyw3Ter8ct1pdqfOI16HfPPhdjoqptHuG4eNK6s
-  9+E7vBuYNK3fn+tflbR8h8f246/vz/93Crlj9dTDlbEncyc28asxFKckWioxVxUnAgAiO6r/r
-  kDAAA=
-X-Env-Sender: ruansy.fnst@fujitsu.com
-X-Msg-Ref: server-6.tower-571.messagelabs.com!1662644775!176728!1
-X-Originating-IP: [62.60.8.146]
-X-SYMC-ESS-Client-Auth: outbound-route-from=pass
-X-StarScan-Received:
-X-StarScan-Version: 9.87.3; banners=-,-,-
-X-VirusChecked: Checked
-Received: (qmail 15548 invoked from network); 8 Sep 2022 13:46:15 -0000
-Received: from unknown (HELO n03ukasimr02.n03.fujitsu.local) (62.60.8.146)
-  by server-6.tower-571.messagelabs.com with ECDHE-RSA-AES256-GCM-SHA384 encrypted SMTP; 8 Sep 2022 13:46:15 -0000
-Received: from n03ukasimr02.n03.fujitsu.local (localhost [127.0.0.1])
-	by n03ukasimr02.n03.fujitsu.local (Postfix) with ESMTP id 995BC1000FB;
-	Thu,  8 Sep 2022 14:46:15 +0100 (BST)
-Received: from R01UKEXCASM121.r01.fujitsu.local (R01UKEXCASM121 [10.183.43.173])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by n03ukasimr02.n03.fujitsu.local (Postfix) with ESMTPS id 8B6F5100078;
-	Thu,  8 Sep 2022 14:46:15 +0100 (BST)
-Received: from [192.168.22.78] (10.167.225.141) by
- R01UKEXCASM121.r01.fujitsu.local (10.183.43.173) with Microsoft SMTP Server
- (TLS) id 15.0.1497.32; Thu, 8 Sep 2022 14:46:11 +0100
-Message-ID: <dd363bd8-2dbd-5d9c-0406-380b60c5f510@fujitsu.com>
-Date: Thu, 8 Sep 2022 21:46:04 +0800
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92FCB46B8
+	for <nvdimm@lists.linux.dev>; Thu,  8 Sep 2022 16:58:07 +0000 (UTC)
+Received: by mail-ed1-f53.google.com with SMTP id e17so17739532edc.5
+        for <nvdimm@lists.linux.dev>; Thu, 08 Sep 2022 09:58:07 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ionos.com; s=google;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date;
+        bh=fdN0NiEhCFD/RsYtUZRFeLe9CN44coSoPfvCSXs8mjQ=;
+        b=JdV5QttbV8NePye6mB/fr5Cug70ptnZTimezkPfX43wiaTHGQvbM04zYfaL9mkwQds
+         JNQZQZdJIkDfI4+JkOI8ngn/VDH7l1Wzi4d5XC6kxcqXGMxI6cS/Raf4v/1rh55nL+Df
+         822AEwPp2G7MreY7wgvel6H62jCTtVdR/5/w1vRGUdpXZryC7WsyEp+GqC1pV5OLP8OG
+         S+xwSpxPRUpVU9nds08SKX7lhdDShk5kztD9Z4uzuolXYwrJe5fixsnR66u8SK69QOfU
+         we7DCwExp9YZawZ41SKF612qlQ6OWq4NpDmYOGgPLz1x4XaVspqiUIQqJQTwQ8DjRKLQ
+         Zomg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date;
+        bh=fdN0NiEhCFD/RsYtUZRFeLe9CN44coSoPfvCSXs8mjQ=;
+        b=mBFlhke+Wc2+IpDg3Ib1BaXODOtl05mDSoTop29A3DKvX61CgcQiABLjefJLpo8dhY
+         qVo8Ei+GBs6fxe8SNgC3Je3pYk4U8SI1LIoqCYAN0qG4WhHnDyVPUlTAkv3bvZTseyZO
+         jKP13KI0lY0BfeVZ1tWKodLKgt7r6LwB0fcc2ya4gDXfTHp+wRfi9S658UvyjAbWychj
+         WCyotP9LOc786CBRgmmKCjMiZdraWJhDJikRkEn2k0n2tuLmFXXY6pBNztArVc7r4BAK
+         PEIRgwMAbCaZO/atrXu5cROmE+ok1YZdAwU5oHY9HP1xWNZSIRH6jTaayJYMCRRtlAfd
+         /Gow==
+X-Gm-Message-State: ACgBeo10yhFThN8rYgTImEtYUFaHmbMGkggDprJK6wyNpic32HPHNZ1z
+	UTiXomOU6apVnJ3uXtk8KcTC6ASOqOFov0ofAPbmqw==
+X-Google-Smtp-Source: AA6agR6HDOjTIIbBXbiiVbjJOkVchFonRNdcWkDi4CVHxDuaUevf+fUM2gBlB5TzqScsiELAVa5c0aAvOwXh3QJf4RE=
+X-Received: by 2002:a05:6402:350b:b0:43e:f4be:c447 with SMTP id
+ b11-20020a056402350b00b0043ef4bec447mr8231548edd.427.1662656285595; Thu, 08
+ Sep 2022 09:58:05 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
- Thunderbird/102.1.2
-Subject: Re: [PATCH] xfs: fail dax mount if reflink is enabled on a partition
-To: "Darrick J. Wong" <djwong@kernel.org>, <bfoster@redhat.com>
-CC: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>,
-	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
-	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
-	"david@fromorbit.com" <david@fromorbit.com>, "hch@infradead.org"
-	<hch@infradead.org>, =?UTF-8?B?WWFuZywgWGlhby/mnagg5pmT?=
-	<yangx.jy@fujitsu.com>
-References: <20220609143435.393724-1-ruansy.fnst@fujitsu.com>
- <Yr5AV5HaleJXMmUm@magnolia>
- <74b0a034-8c77-5136-3fbd-4affb841edcb@fujitsu.com>
- <Ytl7yJJL1fdC006S@magnolia>
- <7fde89dc-2e8f-967b-d342-eb334e80255c@fujitsu.com>
- <YuNn9NkUFofmrXRG@magnolia>
- <0ea1cbe1-79d7-c22b-58bf-5860a961b680@fujitsu.com>
- <YusYDMXLYxzqMENY@magnolia>
-From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-In-Reply-To: <YusYDMXLYxzqMENY@magnolia>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.167.225.141]
-X-ClientProxiedBy: G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.80) To
- R01UKEXCASM121.r01.fujitsu.local (10.183.43.173)
-X-Virus-Scanned: ClamAV using ClamSMTP
+References: <cover.1662461897.git.matsuda-daisuke@fujitsu.com> <b416663effb891cc63fff4ea11d0a8d24ba1706e.1662461897.git.matsuda-daisuke@fujitsu.com>
+In-Reply-To: <b416663effb891cc63fff4ea11d0a8d24ba1706e.1662461897.git.matsuda-daisuke@fujitsu.com>
+From: Haris Iqbal <haris.iqbal@ionos.com>
+Date: Thu, 8 Sep 2022 18:57:54 +0200
+Message-ID: <CAJpMwyg7S-NErAfyJohWkGNXiWuSKnu9NrsjnbyYHMAOojjPpw@mail.gmail.com>
+Subject: Re: [RFC PATCH 5/7] RDMA/rxe: Allow registering MRs for On-Demand Paging
+To: Daisuke Matsuda <matsuda-daisuke@fujitsu.com>
+Cc: linux-rdma@vger.kernel.org, leonro@nvidia.com, jgg@nvidia.com, 
+	zyjzyj2000@gmail.com, nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org, 
+	rpearsonhpe@gmail.com, yangx.jy@fujitsu.com, lizhijian@fujitsu.com, 
+	y-goto@fujitsu.com, haris iqbal <haris.phnx@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+
+On Wed, Sep 7, 2022 at 4:45 AM Daisuke Matsuda
+<matsuda-daisuke@fujitsu.com> wrote:
+>
+> Allow applications to register an ODP-enabled MR, in which case the flag
+> IB_ACCESS_ON_DEMAND is passed to rxe_reg_user_mr(). However, there is no
+> RDMA operation supported right now. They will be enabled later in the
+> subsequent two patches.
+>
+> rxe_odp_do_pagefault() is called to initialize an ODP-enabled MR here.
+> It syncs process address space from the CPU page table to the driver page
+> table(dma_list/pfn_list in umem_odp) when called with a
+> RXE_PAGEFAULT_SNAPSHOT flag. Additionally, It can be used to trigger page
+> fault when pages being accessed are not present or do not have proper
+> read/write permissions and possibly to prefetch pages in the future.
+>
+> Signed-off-by: Daisuke Matsuda <matsuda-daisuke@fujitsu.com>
+> ---
+>  drivers/infiniband/sw/rxe/rxe.c       |  7 +++
+>  drivers/infiniband/sw/rxe/rxe_loc.h   |  5 ++
+>  drivers/infiniband/sw/rxe/rxe_mr.c    |  7 ++-
+>  drivers/infiniband/sw/rxe/rxe_odp.c   | 80 +++++++++++++++++++++++++++
+>  drivers/infiniband/sw/rxe/rxe_resp.c  | 21 +++++--
+>  drivers/infiniband/sw/rxe/rxe_verbs.c |  8 ++-
+>  drivers/infiniband/sw/rxe/rxe_verbs.h |  2 +
+>  7 files changed, 121 insertions(+), 9 deletions(-)
+>
+> diff --git a/drivers/infiniband/sw/rxe/rxe.c b/drivers/infiniband/sw/rxe/rxe.c
+> index 51daac5c4feb..0719f451253c 100644
+> --- a/drivers/infiniband/sw/rxe/rxe.c
+> +++ b/drivers/infiniband/sw/rxe/rxe.c
+> @@ -73,6 +73,13 @@ static void rxe_init_device_param(struct rxe_dev *rxe)
+>                         rxe->ndev->dev_addr);
+>
+>         rxe->max_ucontext                       = RXE_MAX_UCONTEXT;
+> +
+> +       if (IS_ENABLED(CONFIG_INFINIBAND_ON_DEMAND_PAGING)) {
+> +               rxe->attr.kernel_cap_flags |= IBK_ON_DEMAND_PAGING;
+> +
+> +               /* IB_ODP_SUPPORT_IMPLICIT is not supported right now. */
+> +               rxe->attr.odp_caps.general_caps |= IB_ODP_SUPPORT;
+> +       }
+>  }
+>
+>  /* initialize port attributes */
+> diff --git a/drivers/infiniband/sw/rxe/rxe_loc.h b/drivers/infiniband/sw/rxe/rxe_loc.h
+> index 0f8cb9e38cc9..03b4078b90a3 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_loc.h
+> +++ b/drivers/infiniband/sw/rxe/rxe_loc.h
+> @@ -64,6 +64,7 @@ int rxe_mmap(struct ib_ucontext *context, struct vm_area_struct *vma);
+>
+>  /* rxe_mr.c */
+>  u8 rxe_get_next_key(u32 last_key);
+> +void rxe_mr_init(int access, struct rxe_mr *mr);
+>  void rxe_mr_init_dma(struct rxe_pd *pd, int access, struct rxe_mr *mr);
+>  int rxe_mr_init_user(struct rxe_pd *pd, u64 start, u64 length, u64 iova,
+>                      int access, struct rxe_mr *mr);
+> @@ -188,4 +189,8 @@ static inline unsigned int wr_opcode_mask(int opcode, struct rxe_qp *qp)
+>         return rxe_wr_opcode_info[opcode].mask[qp->ibqp.qp_type];
+>  }
+>
+> +/* rxe_odp.c */
+> +int rxe_create_user_odp_mr(struct ib_pd *pd, u64 start, u64 length, u64 iova,
+> +                          int access_flags, struct rxe_mr *mr);
+> +
+>  #endif /* RXE_LOC_H */
+> diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
+> index 814116ec4778..0ae72a4516be 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_mr.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_mr.c
+> @@ -48,7 +48,7 @@ int mr_check_range(struct rxe_mr *mr, u64 iova, size_t length)
+>                                 | IB_ACCESS_REMOTE_WRITE        \
+>                                 | IB_ACCESS_REMOTE_ATOMIC)
+>
+> -static void rxe_mr_init(int access, struct rxe_mr *mr)
+> +void rxe_mr_init(int access, struct rxe_mr *mr)
+>  {
+>         u32 lkey = mr->elem.index << 8 | rxe_get_next_key(-1);
+>         u32 rkey = (access & IB_ACCESS_REMOTE) ? lkey : 0;
+> @@ -438,7 +438,10 @@ int copy_data(
+>                 if (bytes > 0) {
+>                         iova = sge->addr + offset;
+>
+> -                       err = rxe_mr_copy(mr, iova, addr, bytes, dir);
+> +                       if (mr->odp_enabled)
+> +                               err = -EOPNOTSUPP;
+> +                       else
+> +                               err = rxe_mr_copy(mr, iova, addr, bytes, dir);
+>                         if (err)
+>                                 goto err2;
+>
+> diff --git a/drivers/infiniband/sw/rxe/rxe_odp.c b/drivers/infiniband/sw/rxe/rxe_odp.c
+> index 0f702787a66e..1f6930ba714c 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_odp.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_odp.c
+> @@ -5,6 +5,8 @@
+>
+>  #include <rdma/ib_umem_odp.h>
+>
+> +#include "rxe.h"
+> +
+>  bool rxe_ib_invalidate_range(struct mmu_interval_notifier *mni,
+>                              const struct mmu_notifier_range *range,
+>                              unsigned long cur_seq)
+> @@ -32,3 +34,81 @@ bool rxe_ib_invalidate_range(struct mmu_interval_notifier *mni,
+>  const struct mmu_interval_notifier_ops rxe_mn_ops = {
+>         .invalidate = rxe_ib_invalidate_range,
+>  };
+> +
+> +#define RXE_PAGEFAULT_RDONLY BIT(1)
+> +#define RXE_PAGEFAULT_SNAPSHOT BIT(2)
+> +static int rxe_odp_do_pagefault(struct rxe_mr *mr, u64 user_va, int bcnt, u32 flags)
+> +{
+> +       int np;
+> +       u64 access_mask;
+> +       bool fault = !(flags & RXE_PAGEFAULT_SNAPSHOT);
+> +       struct ib_umem_odp *umem_odp = to_ib_umem_odp(mr->umem);
+> +
+> +       access_mask = ODP_READ_ALLOWED_BIT;
+> +       if (umem_odp->umem.writable && !(flags & RXE_PAGEFAULT_RDONLY))
+> +               access_mask |= ODP_WRITE_ALLOWED_BIT;
+> +
+> +       /*
+> +        * umem mutex is held after return from ib_umem_odp_map_dma_and_lock().
+> +        * Release it when access to user MR is done or not required.
+> +        */
+> +       np = ib_umem_odp_map_dma_and_lock(umem_odp, user_va, bcnt,
+> +                                         access_mask, fault);
+> +
+> +       return np;
+> +}
+> +
+> +static int rxe_init_odp_mr(struct rxe_mr *mr)
+> +{
+> +       int ret;
+> +       struct ib_umem_odp *umem_odp = to_ib_umem_odp(mr->umem);
+> +
+> +       ret = rxe_odp_do_pagefault(mr, mr->umem->address, mr->umem->length,
+> +                                  RXE_PAGEFAULT_SNAPSHOT);
+> +       mutex_unlock(&umem_odp->umem_mutex);
+> +
+> +       return ret >= 0 ? 0 : ret;
+> +}
+> +
+> +int rxe_create_user_odp_mr(struct ib_pd *pd, u64 start, u64 length, u64 iova,
+> +                          int access_flags, struct rxe_mr *mr)
+> +{
+> +       int err;
+> +       struct ib_umem_odp *umem_odp;
+> +       struct rxe_dev *dev = container_of(pd->device, struct rxe_dev, ib_dev);
+> +
+> +       if (!IS_ENABLED(CONFIG_INFINIBAND_ON_DEMAND_PAGING))
+> +               return -EOPNOTSUPP;
+> +
+> +       rxe_mr_init(access_flags, mr);
+> +
+> +       if (!start && length == U64_MAX) {
+> +               if (iova != 0)
+> +                       return -EINVAL;
+> +               if (!(dev->attr.odp_caps.general_caps & IB_ODP_SUPPORT_IMPLICIT))
+> +                       return -EINVAL;
+> +
+> +               /* Never reach here, for implicit ODP is not implemented. */
+> +       }
+> +
+> +       umem_odp = ib_umem_odp_get(pd->device, start, length, access_flags,
+> +                                  &rxe_mn_ops);
+> +       if (IS_ERR(umem_odp))
+> +               return PTR_ERR(umem_odp);
+> +
+> +       umem_odp->private = mr;
+> +
+> +       mr->odp_enabled = true;
+> +       mr->ibmr.pd = pd;
+> +       mr->umem = &umem_odp->umem;
+> +       mr->access = access_flags;
+> +       mr->length = length;
+> +       mr->iova = iova;
+> +       mr->offset = ib_umem_offset(&umem_odp->umem);
+> +       mr->state = RXE_MR_STATE_VALID;
+> +       mr->type = IB_MR_TYPE_USER;
+> +
+> +       err = rxe_init_odp_mr(mr);
+> +
+> +       return err;
+> +}
+> diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
+> index cadc8fa64dd0..dd8632e783f6 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_resp.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_resp.c
+> @@ -535,8 +535,12 @@ static enum resp_states write_data_in(struct rxe_qp *qp,
+>         int     err;
+>         int data_len = payload_size(pkt);
+>
+> -       err = rxe_mr_copy(qp->resp.mr, qp->resp.va + qp->resp.offset,
+> -                         payload_addr(pkt), data_len, RXE_TO_MR_OBJ);
+> +       if (qp->resp.mr->odp_enabled)
+
+You cannot use qp->resp.mr here, because for zero byte operations,
+resp.mr is not set in the function check_rkey().
+
+The code fails for RTRS with the following stack trace,
+
+[Thu Sep  8 20:12:22 2022] BUG: kernel NULL pointer dereference,
+address: 0000000000000158
+[Thu Sep  8 20:12:22 2022] #PF: supervisor read access in kernel mode
+[Thu Sep  8 20:12:22 2022] #PF: error_code(0x0000) - not-present page
+[Thu Sep  8 20:12:22 2022] PGD 0 P4D 0
+[Thu Sep  8 20:12:22 2022] Oops: 0000 [#1] PREEMPT SMP
+[Thu Sep  8 20:12:22 2022] CPU: 3 PID: 38 Comm: kworker/u8:1 Not
+tainted 6.0.0-rc2-pserver+ #17
+[Thu Sep  8 20:12:22 2022] Hardware name: QEMU Standard PC (i440FX +
+PIIX, 1996), BIOS 1.13.0-1ubuntu1.1 04/01/2014
+[Thu Sep  8 20:12:22 2022] Workqueue: rxe_resp rxe_do_work [rdma_rxe]
+[Thu Sep  8 20:12:22 2022] RIP: 0010:rxe_responder+0x1910/0x1d90 [rdma_rxe]
+[Thu Sep  8 20:12:22 2022] Code: 06 48 63 88 fc 15 63 c0 0f b6 46 01
+83 ea 04 c0 e8 04 29 ca 83 e0 03 29 c2 49 8b 87 08 05 00 00 49 03 87
+00 05 00 00 4c 63 ea <80> bf 58 01 00 00 00 48 8d 14 0e 48 89 c6 4d 89
+ee 44 89 e9 0f 84
+[Thu Sep  8 20:12:22 2022] RSP: 0018:ffffb0358015fd80 EFLAGS: 00010246
+[Thu Sep  8 20:12:22 2022] RAX: 0000000000000000 RBX: ffff9af4839b5e28
+RCX: 0000000000000020
+[Thu Sep  8 20:12:22 2022] RDX: 0000000000000000 RSI: ffff9af485094a6a
+RDI: 0000000000000000
+[Thu Sep  8 20:12:22 2022] RBP: ffff9af488bd7128 R08: 0000000000000000
+R09: 0000000000000000
+[Thu Sep  8 20:12:22 2022] R10: ffff9af4808eaf7c R11: 0000000000000001
+R12: 0000000000000008
+[Thu Sep  8 20:12:22 2022] R13: 0000000000000000 R14: ffff9af488bd7380
+R15: ffff9af488bd7000
+[Thu Sep  8 20:12:22 2022] FS:  0000000000000000(0000)
+GS:ffff9af5b7d80000(0000) knlGS:0000000000000000
+[Thu Sep  8 20:12:22 2022] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[Thu Sep  8 20:12:22 2022] CR2: 0000000000000158 CR3: 000000004a60a000
+CR4: 00000000000006e0
+[Thu Sep  8 20:12:22 2022] DR0: 0000000000000000 DR1: 0000000000000000
+DR2: 0000000000000000
+[Thu Sep  8 20:12:22 2022] DR3: 0000000000000000 DR6: 00000000fffe0ff0
+DR7: 0000000000000400
+[Thu Sep  8 20:12:22 2022] Call Trace:
+[Thu Sep  8 20:12:22 2022]  <TASK>
+[Thu Sep  8 20:12:22 2022]  ? newidle_balance+0x2e5/0x400
+[Thu Sep  8 20:12:22 2022]  ? _raw_spin_unlock+0x12/0x30
+[Thu Sep  8 20:12:22 2022]  ? finish_task_switch+0x91/0x2a0
+[Thu Sep  8 20:12:22 2022]  rxe_do_work+0x86/0x110 [rdma_rxe]
+[Thu Sep  8 20:12:22 2022]  process_one_work+0x1dc/0x3a0
+[Thu Sep  8 20:12:22 2022]  worker_thread+0x4a/0x3b0
+[Thu Sep  8 20:12:22 2022]  ? process_one_work+0x3a0/0x3a0
+[Thu Sep  8 20:12:22 2022]  kthread+0xe7/0x110
+[Thu Sep  8 20:12:22 2022]  ? kthread_complete_and_exit+0x20/0x20
+[Thu Sep  8 20:12:22 2022]  ret_from_fork+0x22/0x30
+[Thu Sep  8 20:12:22 2022]  </TASK>
+[Thu Sep  8 20:12:22 2022] Modules linked in: rnbd_server rtrs_server
+rtrs_core rdma_ucm rdma_cm iw_cm ib_cm crc32_generic rdma_rxe
+ip6_udp_tunnel udp_tunnel ib_uverbs ib_core loop null_blk
+[Thu Sep  8 20:12:22 2022] CR2: 0000000000000158
+[Thu Sep  8 20:12:22 2022] ---[ end trace 0000000000000000 ]---
+[Thu Sep  8 20:12:22 2022] BUG: kernel NULL pointer dereference,
+address: 0000000000000158
+[Thu Sep  8 20:12:22 2022] RIP: 0010:rxe_responder+0x1910/0x1d90 [rdma_rxe]
+[Thu Sep  8 20:12:22 2022] #PF: supervisor read access in kernel mode
+[Thu Sep  8 20:12:22 2022] Code: 06 48 63 88 fc 15 63 c0 0f b6 46 01
+83 ea 04 c0 e8 04 29 ca 83 e0 03 29 c2 49 8b 87 08 05 00 00 49 03 87
+00 05 00 00 4c 63 ea <80> bf 58 01 00 00 00 48 8d 14 0e 48 89 c6 4d 89
+ee 44 89 e9 0f 84
+[Thu Sep  8 20:12:22 2022] #PF: error_code(0x0000) - not-present page
+[Thu Sep  8 20:12:22 2022] RSP: 0018:ffffb0358015fd80 EFLAGS: 00010246
+[Thu Sep  8 20:12:22 2022] PGD 0 P4D 0
+
+Technically, for operations with 0 length, the code can simply not do
+any of the *_mr_copy, and carry on with success. So maybe you can
+check data_len first and copy only if needed.
 
 
-
-在 2022/8/4 8:51, Darrick J. Wong 写道:
-> On Wed, Aug 03, 2022 at 06:47:24AM +0000, ruansy.fnst@fujitsu.com wrote:
-
-...
-
->>>>>>
->>>>>> BTW, since these patches (dax&reflink&rmap + THIS + pmem-unbind) are
->>>>>> waiting to be merged, is it time to think about "removing the
->>>>>> experimental tag" again?  :)
->>>>>
->>>>> It's probably time to take up that question again.
->>>>>
->>>>> Yesterday I tried running generic/470 (aka the MAP_SYNC test) and it
->>>>> didn't succeed because it sets up dmlogwrites atop dmthinp atop pmem,
->>>>> and at least one of those dm layers no longer allows fsdax pass-through,
->>>>> so XFS silently turned mount -o dax into -o dax=never. :(
->>>>
->>>> Hi Darrick,
->>>>
->>>> I tried generic/470 but it didn't run:
->>>>      [not run] Cannot use thin-pool devices on DAX capable block devices.
->>>>
->>>> Did you modify the _require_dm_target() in common/rc?  I added thin-pool
->>>> to not to check dax capability:
->>>>
->>>>            case $target in
->>>>            stripe|linear|log-writes|thin-pool)  # add thin-pool here
->>>>                    ;;
->>>>
->>>> then the case finally ran and it silently turned off dax as you said.
->>>>
->>>> Are the steps for reproduction correct? If so, I will continue to
->>>> investigate this problem.
->>>
->>> Ah, yes, I did add thin-pool to that case statement.  Sorry I forgot to
->>> mention that.  I suspect that the removal of dm support for pmem is
->>> going to force us to completely redesign this test.  I can't really
->>> think of how, though, since there's no good way that I know of to gain a
->>> point-in-time snapshot of a pmem device.
->>
->> Hi Darrick,
->>
->>   > removal of dm support for pmem
->> I think here we are saying about xfstest who removed the support, not
->> kernel?
->>
->> I found some xfstests commits:
->> fc7b3903894a6213c765d64df91847f4460336a2  # common/rc: add the restriction.
->> fc5870da485aec0f9196a0f2bed32f73f6b2c664  # generic/470: use thin-pool
->>
->> So, this case was never able to run since the second commit?  (I didn't
->> notice the not run case.  I thought it was expected to be not run.)
->>
->> And according to the first commit, the restriction was added because
->> some of dm devices don't support dax.  So my understanding is: we should
->> redesign the case to make the it work, and firstly, we should add dax
->> support for dm devices in kernel.
-> 
-> dm devices used to have fsdax support; I think Christoph is actively
-> removing (or already has removed) all that support.
-> 
->> In addition, is there any other testcase has the same problem?  so that
->> we can deal with them together.
-> 
-> The last I checked, there aren't any that require MAP_SYNC or pmem aside
-> from g/470 and the three poison notification tests that you sent a few
-> days ago.
-> 
-> --D
-> 
-
-Hi Darrick, Brian
-
-I made a little investigation on generic/470.
-
-This case was able to run before introducing thin-pool[1], but since 
-that, it became 'Failed'/'Not Run' because thin-pool does not support 
-DAX.  I have checked the log of thin-pool, it never supports DAX.  And, 
-it's not someone has removed the fsdax support.  So, I think it's not 
-correct to bypass the requirement conditions by adding 'thin-pool' to 
-_require_dm_target().
-
-As far as I known, to prevent out-of-order replay of dm-log-write, 
-thin-pool was introduced (to provide discard zeroing).  Should we solve 
-the 'out-of-order replay' issue instead of avoiding it by thin-pool? @Brian
-
-Besides, since it's not a fsdax problem, I think there is nothing need 
-to be fixed in fsdax.  I'd like to help it solved, but I'm still 
-wondering if we could back to the original topic("Remove Experimental 
-Tag") firstly? :)
-
-
-[1] fc5870da485aec0f9196a0f2bed32f73f6b2c664 generic/470: use thin 
-volume for dmlogwrites target device
-
-
---
-Thanks,
-Ruan.
-
-
+> +               err = -EOPNOTSUPP;
+> +       else
+> +               err = rxe_mr_copy(qp->resp.mr, qp->resp.va + qp->resp.offset,
+> +                                 payload_addr(pkt), data_len, RXE_TO_MR_OBJ);
+> +
+>         if (err) {
+>                 rc = RESPST_ERR_RKEY_VIOLATION;
+>                 goto out;
+> @@ -667,7 +671,10 @@ static enum resp_states rxe_atomic_reply(struct rxe_qp *qp,
+>                 if (mr->state != RXE_MR_STATE_VALID)
+>                         return RESPST_ERR_RKEY_VIOLATION;
+>
+> -               ret = rxe_atomic_ops(qp, pkt, mr);
+> +               if (mr->odp_enabled)
+> +                       ret = RESPST_ERR_UNSUPPORTED_OPCODE;
+> +               else
+> +                       ret = rxe_atomic_ops(qp, pkt, mr);
+>         } else
+>                 ret = RESPST_ACKNOWLEDGE;
+>
+> @@ -831,8 +838,12 @@ static enum resp_states read_reply(struct rxe_qp *qp,
+>         if (!skb)
+>                 return RESPST_ERR_RNR;
+>
+> -       err = rxe_mr_copy(mr, res->read.va, payload_addr(&ack_pkt),
+> -                         payload, RXE_FROM_MR_OBJ);
+> +       if (mr->odp_enabled)
+> +               err = -EOPNOTSUPP;
+> +       else
+> +               err = rxe_mr_copy(mr, res->read.va, payload_addr(&ack_pkt),
+> +                                 payload, RXE_FROM_MR_OBJ);
+> +
+>         if (err)
+>                 pr_err("Failed copying memory\n");
+>         if (mr)
+> diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
+> index 7510f25c5ea3..b00e9b847382 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_verbs.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
+> @@ -926,10 +926,14 @@ static struct ib_mr *rxe_reg_user_mr(struct ib_pd *ibpd,
+>                 goto err2;
+>         }
+>
+> -
+>         rxe_get(pd);
+>
+> -       err = rxe_mr_init_user(pd, start, length, iova, access, mr);
+> +       if (access & IB_ACCESS_ON_DEMAND)
+> +               err = rxe_create_user_odp_mr(&pd->ibpd, start, length, iova,
+> +                                            access, mr);
+> +       else
+> +               err = rxe_mr_init_user(pd, start, length, iova, access, mr);
+> +
+>         if (err)
+>                 goto err3;
+>
+> diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.h b/drivers/infiniband/sw/rxe/rxe_verbs.h
+> index b09b4cb9897a..98d2bb737ebc 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_verbs.h
+> +++ b/drivers/infiniband/sw/rxe/rxe_verbs.h
+> @@ -324,6 +324,8 @@ struct rxe_mr {
+>         atomic_t                num_mw;
+>
+>         struct rxe_map          **map;
+> +
+> +       bool                    odp_enabled;
+>  };
+>
+>  enum rxe_mw_state {
+> --
+> 2.31.1
+>
