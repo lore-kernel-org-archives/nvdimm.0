@@ -1,43 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8CA493FC2
-	for <nvdimm@lists.linux.dev>; Wed, 14 Sep 2022 16:28:33 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2EE64C433D7;
-	Wed, 14 Sep 2022 16:28:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFC0C4403
+	for <nvdimm@lists.linux.dev>; Wed, 14 Sep 2022 18:09:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D4A6C433C1;
+	Wed, 14 Sep 2022 18:09:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1663172913;
-	bh=gDxM+S092LlNnnNChSxCoMsXY2G5IgcT89F8QnyFbu4=;
+	s=k20201202; t=1663178963;
+	bh=2Vax29sc4ZSisv5YCVSdfRKAOSq8E9/1iuj8XUbl3q4=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=urDFRWS+xAAvRnRIuH6YprPix4N88yxNN1jBRkcwXf/AYlrDNpfKuDvX7QjnnfSdI
-	 3/p77+Vc5Uf8GC8KyCyOu2mRjLKwYBmoJy/Ud2nEFJPu2EHEU/oT1gh/KlaqUbW1qO
-	 fPk6gNKiE5vqpgbTXKqHfFULqK4riGnlLlREVZf7jxAxYAXyqO+Hup90dVv6jfaF6Y
-	 goc+24pqcUO4geb+EVUXAGZKri/ShdPT3kX0uHQig4xjTFeee7A3XdSaBF1puAeK/8
-	 63D6iBRfXPg1tPbNHvmE5v3g8Jfk3DHCBWQjHgk9VU8H5gMIWFxGPt0C7MHkgSF7Qx
-	 HOxi4rpZ5w+WA==
-Date: Wed, 14 Sep 2022 09:28:32 -0700
+	b=EsHCSiUbI1qgnhHLG1idfk2LDZW2y5wlqq6RPLuRhkUqSCQMq+p4V4JwgDebH8jRr
+	 G216o+in0R2PwpYVv0Ahu6rocVSQKRLzRzp8k4P9ID0paeQG6E+kPASeuHviWCcEJl
+	 wjeygFcKi5tqn2JxkSALd+OUvmimqXQSiOVyjgM34Mkds0vqv/OIxY+j5DC9h3Prhd
+	 qgAQwISbu49tOwm2TM1MvscXv0XeQzeBr0JCOd9BrYQBwM8eacE3NC3k3SDnXXn2s5
+	 iaYs/AxvyINJcFiiA4wam7OY/4BjEUyId+EAUgDGwISSBFGZmI5RnF07YdGxtcMxuC
+	 p6Znf0+j3vh+w==
+Date: Wed, 14 Sep 2022 11:09:23 -0700
 From: "Darrick J. Wong" <djwong@kernel.org>
-To: Brian Foster <bfoster@redhat.com>
-Cc: =?utf-8?B?WWFuZywgWGlhby/mnagg5pmT?= <yangx.jy@fujitsu.com>,
-	=?utf-8?B?UnVhbiwgU2hpeWFuZy/pmK4g5LiW6Ziz?= <ruansy.fnst@fujitsu.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>,
-	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
-	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
-	"david@fromorbit.com" <david@fromorbit.com>,
-	"hch@infradead.org" <hch@infradead.org>
-Subject: Re: [PATCH] xfs: fail dax mount if reflink is enabled on a partition
-Message-ID: <YyIBMJzmbZsUBHpy@magnolia>
-References: <Ytl7yJJL1fdC006S@magnolia>
- <7fde89dc-2e8f-967b-d342-eb334e80255c@fujitsu.com>
- <YuNn9NkUFofmrXRG@magnolia>
- <0ea1cbe1-79d7-c22b-58bf-5860a961b680@fujitsu.com>
- <YusYDMXLYxzqMENY@magnolia>
- <dd363bd8-2dbd-5d9c-0406-380b60c5f510@fujitsu.com>
- <Yxs5Jb7Yt2c6R6eW@bfoster>
- <7fdc9e88-f255-6edb-7964-a5a82e9b1292@fujitsu.com>
- <76ea04b4-bad7-8cb3-d2c6-4ad49def4e05@fujitsu.com>
- <YyHKUhOgHdTKPQXL@bfoster>
+To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Cc: dan.j.williams@intel.com, linux-fsdevel@vger.kernel.org,
+	linux-mm@kvack.org, nvdimm@lists.linux.dev,
+	linux-xfs@vger.kernel.org, linux-kernel@vger.kernel.org,
+	hch@infradead.org, david@fromorbit.com, jane.chu@oracle.com
+Subject: Re: [PATCH v8 0/3] mm, pmem, xfs: Introduce MF_MEM_REMOVE for unbind
+Message-ID: <YyIY0+8AzTIDKMVy@magnolia>
+References: <9e9521a4-6e07-e226-2814-b78a2451656b@fujitsu.com>
+ <1662114961-66-1-git-send-email-ruansy.fnst@fujitsu.com>
+ <bf68da75-5b05-5376-c306-24f9d2b92e80@fujitsu.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -47,112 +36,41 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <YyHKUhOgHdTKPQXL@bfoster>
+In-Reply-To: <bf68da75-5b05-5376-c306-24f9d2b92e80@fujitsu.com>
 
-On Wed, Sep 14, 2022 at 08:34:26AM -0400, Brian Foster wrote:
-> On Wed, Sep 14, 2022 at 05:38:02PM +0800, Yang, Xiao/杨 晓 wrote:
-> > On 2022/9/14 14:44, Yang, Xiao/杨 晓 wrote:
-> > > On 2022/9/9 21:01, Brian Foster wrote:
-> > > > Yes.. I don't recall all the internals of the tools and test, but IIRC
-> > > > it relied on discard to perform zeroing between checkpoints or some such
-> > > > and avoid spurious failures. The purpose of running on dm-thin was
-> > > > merely to provide reliable discard zeroing behavior on the target device
-> > > > and thus to allow the test to run reliably.
-> > > Hi Brian,
-> > > 
-> > > As far as I know, generic/470 was original designed to verify
-> > > mmap(MAP_SYNC) on the dm-log-writes device enabling DAX. Due to the
-> > > reason, we need to ensure that all underlying devices under
-> > > dm-log-writes device support DAX. However dm-thin device never supports
-> > > DAX so
-> > > running generic/470 with dm-thin device always returns "not run".
-> > > 
-> > > Please see the difference between old and new logic:
-> > > 
-> > >            old logic                          new logic
-> > > ---------------------------------------------------------------
-> > > log-writes device(DAX)                 log-writes device(DAX)
-> > >              |                                       |
-> > > PMEM0(DAX) + PMEM1(DAX)       Thin device(non-DAX) + PMEM1(DAX)
-> > >                                            |
-> > >                                          PMEM0(DAX)
-> > > ---------------------------------------------------------------
-> > > 
-> > > We think dm-thin device is not a good solution for generic/470, is there
-> > > any other solution to support both discard zero and DAX?
-> > 
-> > Hi Brian,
-> > 
-> > I have sent a patch[1] to revert your fix because I think it's not good for
-> > generic/470 to use thin volume as my revert patch[1] describes:
-> > [1] https://lore.kernel.org/fstests/20220914090625.32207-1-yangx.jy@fujitsu.com/T/#u
-> > 
+On Wed, Sep 07, 2022 at 05:46:00PM +0800, Shiyang Ruan wrote:
+> ping
 > 
-> I think the history here is that generic/482 was changed over first in
-> commit 65cc9a235919 ("generic/482: use thin volume as data device"), and
-> then sometime later we realized generic/455,457,470 had the same general
-> flaw and were switched over. The dm/dax compatibility thing was probably
-> just an oversight, but I am a little curious about that because it should
-
-It's not an oversight -- it used to work (albeit with EXPERIMENTAL
-tags), and now we've broken it on fsdax as the pmem/blockdev divorce
-progresses.
-
-> have been obvious that the change caused the test to no longer run. Did
-> something change after that to trigger that change in behavior?
-> 
-> > With the revert, generic/470 can always run successfully on my environment
-> > so I wonder how to reproduce the out-of-order replay issue on XFS v5
-> > filesystem?
+> 在 2022/9/2 18:35, Shiyang Ruan 写道:
+> > Changes since v7:
+> >    1. Add P1 to fix calculation mistake
+> >    2. Add P2 to move drop_pagecache_sb() to super.c for xfs to use
+> >    3. P3: Add invalidate all mappings after sync.
+> >    4. P3: Set offset&len to be start&length of device when it is to be removed.
+> >    5. Rebase on 6.0-rc3 + Darrick's patch[1] + Dan's patch[2].
 > > 
-> 
-> I don't quite recall the characteristics of the failures beyond that we
-> were seeing spurious test failures with generic/482 that were due to
-> essentially putting the fs/log back in time in a way that wasn't quite
-> accurate due to the clearing by the logwrites tool not taking place. If
-> you wanted to reproduce in order to revisit that, perhaps start with
-> generic/482 and let it run in a loop for a while and see if it
-> eventually triggers a failure/corruption..?
-> 
-> > PS: I want to reproduce the issue and try to find a better solution to fix
-> > it.
+> > Changes since v6:
+> >    1. Rebase on 6.0-rc2 and Darrick's patch[1].
 > > 
-> 
-> It's been a while since I looked at any of this tooling to semi-grok how
-> it works.
+> > [1]: https://lore.kernel.org/linux-xfs/Yv5wIa2crHioYeRr@magnolia/
+> > [2]: https://lore.kernel.org/linux-xfs/166153426798.2758201.15108211981034512993.stgit@dwillia2-xfh.jf.intel.com/
 
-I /think/ this was the crux of the problem, back in 2019?
-https://lore.kernel.org/fstests/20190227061529.GF16436@dastard/
-
-> Perhaps it could learn to rely on something more explicit like
-> zero range (instead of discard?) or fall back to manual zeroing?
-
-AFAICT src/log-writes/ actually /can/ do zeroing, but (a) it probably
-ought to be adapted to call BLKZEROOUT and (b) in the worst case it
-writes zeroes to the entire device, which is/can be slow.
-
-For a (crass) example, one of my cloudy test VMs uses 34GB partitions,
-and for cost optimization purposes we're only "paying" for the cheapest
-tier.  Weirdly that maps to an upper limit of 6500 write iops and
-48MB/s(!) but that would take about 20 minutes to zero the entire
-device if the dm-thin hack wasn't in place.  Frustratingly, it doesn't
-support discard or write-zeroes.
-
-> If the
-> eventual solution is simple and low enough overhead, it might make some
-> sense to replace the dmthin hack across the set of tests mentioned
-> above.
-
-That said, for a *pmem* test you'd expect it to be faster than that...
+Just out of curiosity, is it your (or djbw's) intent to send all these
+as bugfixes for 6.0 via akpm like all the other dax fixen?
 
 --D
 
-> Brian
-> 
-> > Best Regards,
-> > Xiao Yang
 > > 
-> > > 
-> > > BTW, only log-writes, stripe and linear support DAX for now.
+> > Shiyang Ruan (3):
+> >    xfs: fix the calculation of length and end
+> >    fs: move drop_pagecache_sb() for others to use
+> >    mm, pmem, xfs: Introduce MF_MEM_REMOVE for unbind
 > > 
-> 
+> >   drivers/dax/super.c         |  3 ++-
+> >   fs/drop_caches.c            | 33 ---------------------------------
+> >   fs/super.c                  | 34 ++++++++++++++++++++++++++++++++++
+> >   fs/xfs/xfs_notify_failure.c | 31 +++++++++++++++++++++++++++----
+> >   include/linux/fs.h          |  1 +
+> >   include/linux/mm.h          |  1 +
+> >   6 files changed, 65 insertions(+), 38 deletions(-)
+> > 
