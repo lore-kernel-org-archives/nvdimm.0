@@ -1,176 +1,229 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mail1.bemta34.messagelabs.com (mail1.bemta34.messagelabs.com [195.245.231.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 640824403
-	for <nvdimm@lists.linux.dev>; Wed, 14 Sep 2022 18:16:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D133C433C1;
-	Wed, 14 Sep 2022 18:16:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1663179406;
-	bh=jXFOz1XVK5eWZZw6y6L5fljt3zc2+fxNH9PxNP+WsS8=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=hrv/a+EKivgV16U2LUPUSjAKCu880fbgBNkF74k9+hMyrgav6ctMMJgVUlbzAUXUj
-	 V7v7mTGVo7+m8K4lmHi3aHXtjPSs20Y+v7ybhwm8pmZ5k0oZQ0qgcV0iGn4cMdjgJa
-	 wcZ7TGgUm6d06N1HnkXTsvNky79zKZc1Ba13HcNGUS0x2wpmmvFlFPE7/NRKYPYZEb
-	 W9xQI901oNKZXw+Xxlhtz9kHblgylfJd0bU+fAXbdBNxmQxc2LKnCQhoT5FXds7zJT
-	 VxAdToZdETZr1yKkUg0aak3BFdx/c4SgYKEyCdaP1jmu2O0TgUdPHh7uFphzogA/k+
-	 GApvPvvtZYfaA==
-Date: Wed, 14 Sep 2022 11:16:45 -0700
-From: "Darrick J. Wong" <djwong@kernel.org>
-To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Cc: linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org,
-	nvdimm@lists.linux.dev, linux-mm@kvack.org,
-	linux-fsdevel@vger.kernel.org, dan.j.williams@intel.com,
-	david@fromorbit.com, hch@infradead.org, jane.chu@oracle.com
-Subject: Re: [PATCH 2/3] fs: move drop_pagecache_sb() for others to use
-Message-ID: <YyIajcWz/h1k3kvq@magnolia>
-References: <9e9521a4-6e07-e226-2814-b78a2451656b@fujitsu.com>
- <1662114961-66-1-git-send-email-ruansy.fnst@fujitsu.com>
- <1662114961-66-3-git-send-email-ruansy.fnst@fujitsu.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED166194
+	for <nvdimm@lists.linux.dev>; Thu, 15 Sep 2022 01:49:43 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fujitsu.com;
+	s=170520fj; t=1663206582; i=@fujitsu.com;
+	bh=rBcRdkltDnvoxKepJMU0xIuM7p8Qal0AgclNKzc3qas=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type:Content-Transfer-Encoding;
+	b=ui6MUcF+UlH1/eAfKLJR7LCQlPX+3nv8qMWI2EEd22X6Xot61egARz4F3k3nMiOJ0
+	 SeexaM2gaQ0mcLeWOF13rkdY9x+QBOs7W//tnZZgK3xE0rEmgq7VDwnRz9gdnOvWex
+	 jbKf1OL5VxHuwn15pd+9l4DeyNW/lnh15ibTQg4UTil0by5ARECg+0mJ799c/CBA8U
+	 1GFWhkxesQiTM9i89rbLRxxW8nC2egkG10KDvpbL7j6LSCNSUsiwXsQceA0zB5aRF4
+	 /vV0JfMRho33AjNh0IlInpn1bi8twIalO01P9WLf8HHqVAfDL6cXfdcnwyBEABGnku
+	 byrqLgGn+6/Kw==
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFjrEKsWRWlGSWpSXmKPExsViZ8ORqLulRSn
+  ZYHanrsX0qRcYLbYcu8docfkJn8XpCYuYLHa/vslmsWfvSRaLy7vmsFncW/Of1WLXnx3sFit/
+  /GF14PI4tUjCY/MKLY/Fe14yeWxa1cnmsenTJHaPF5tnMnp8fHqLxePzJrkAjijWzLyk/IoE1
+  oyL6xcyF/xRq2i5PYetgfGifBcjF4eQwBZGib9di1ghnOVMEls+tTBDONsZJc6evMXSxcjJwS
+  tgJ3Fm9g1GEJtFQFXi/tcGVoi4oMTJmU/AakQFkiXuHl4PZgsLeEns3/GICcQWEdCUOPLtGhP
+  IUGaBT4wSM47/YYPYcJ5RovXoHnaQKjYBHYkLC/6CTeUU0JC43N4Mto1ZwEJi8ZuD7BC2vETz
+  1tlA53FwSAgoSczsjgcJSwhUSDROP8QEYatJXD23iXkCo9AsJPfNQjJpFpJJCxiZVzFaJRVlp
+  meU5CZm5ugaGhjoGhqa6hpb6loY6SVW6SbqpZbqlqcWl+gCueXFeqnFxXrFlbnJOSl6eaklmx
+  iBEZlSrB60g/Hbip96hxglOZiURHmZ5JSShfiS8lMqMxKLM+KLSnNSiw8xynBwKEnwPq8Hygk
+  WpaanVqRl5gCTA0xagoNHSYT3E0iat7ggMbc4Mx0idYrRmGNtw4G9zBxTZ//bzyzEkpeflyol
+  zuvVBFQqAFKaUZoHNwiWtC4xykoJ8zIyMDAI8RSkFuVmlqDKv2IU52BUEuaNbgSawpOZVwK37
+  xXQKUxApxhZy4OcUpKIkJJqYHLYFNHWuCl4c/yfchGtZEH2RbrGorXGGzVDNK63//tirubEPq
+  sqVb93SXeJ3L8Vsn/lee6d3mwe/kJYY8b3jlrjMIbc2w3TtDnCz7mrL+s8wr59KddkxpcMB/0
+  Wv8uOKn6h8fyhp9C8q9dvPl5W+zG1K2jjqm2+D9c0Wpj18CrJZT40OGPylXf3Mvst7exbRVNy
+  DLfeurbz2brHZxL+6/6/MOl9+asm432lmmdfr+NarXb3qc29H8Ea1xTvJ93QFHRcaOx/+Iily
+  C3RCQ++X4/rvNzs9E/n9411bEsSghuj17xTnpabfKxm7krL0uM27YfZGGZJGQnOdzsg+I/hqk
+  WA/YosFf9Tkf8cTr/UXqnEUpyRaKjFXFScCAAm/o6j1QMAAA==
+X-Env-Sender: ruansy.fnst@fujitsu.com
+X-Msg-Ref: server-2.tower-548.messagelabs.com!1663206580!18747!1
+X-Originating-IP: [62.60.8.97]
+X-SYMC-ESS-Client-Auth: outbound-route-from=pass
+X-StarScan-Received:
+X-StarScan-Version: 9.87.3; banners=-,-,-
+X-VirusChecked: Checked
+Received: (qmail 9520 invoked from network); 15 Sep 2022 01:49:40 -0000
+Received: from unknown (HELO n03ukasimr01.n03.fujitsu.local) (62.60.8.97)
+  by server-2.tower-548.messagelabs.com with ECDHE-RSA-AES256-GCM-SHA384 encrypted SMTP; 15 Sep 2022 01:49:40 -0000
+Received: from n03ukasimr01.n03.fujitsu.local (localhost [127.0.0.1])
+	by n03ukasimr01.n03.fujitsu.local (Postfix) with ESMTP id 60F7210018D;
+	Thu, 15 Sep 2022 02:49:40 +0100 (BST)
+Received: from R01UKEXCASM121.r01.fujitsu.local (R01UKEXCASM121 [10.183.43.173])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by n03ukasimr01.n03.fujitsu.local (Postfix) with ESMTPS id 5442A100043;
+	Thu, 15 Sep 2022 02:49:40 +0100 (BST)
+Received: from [192.168.22.78] (10.167.225.141) by
+ R01UKEXCASM121.r01.fujitsu.local (10.183.43.173) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.32; Thu, 15 Sep 2022 02:49:36 +0100
+Message-ID: <048b5294-b60d-cbb7-76b7-8f0c69dba23b@fujitsu.com>
+Date: Thu, 15 Sep 2022 09:49:30 +0800
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1662114961-66-3-git-send-email-ruansy.fnst@fujitsu.com>
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
+ Thunderbird/102.1.2
+Subject: Re: [PATCH 3/3] mm, pmem, xfs: Introduce MF_MEM_REMOVE for unbind
+To: "Darrick J. Wong" <djwong@kernel.org>
+CC: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
+	<nvdimm@lists.linux.dev>, <linux-mm@kvack.org>,
+	<linux-fsdevel@vger.kernel.org>, <dan.j.williams@intel.com>,
+	<david@fromorbit.com>, <hch@infradead.org>, <jane.chu@oracle.com>
+References: <9e9521a4-6e07-e226-2814-b78a2451656b@fujitsu.com>
+ <1662114961-66-1-git-send-email-ruansy.fnst@fujitsu.com>
+ <1662114961-66-4-git-send-email-ruansy.fnst@fujitsu.com>
+ <YyIaP4EFNaYhqKkQ@magnolia>
+From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+In-Reply-To: <YyIaP4EFNaYhqKkQ@magnolia>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.167.225.141]
+X-ClientProxiedBy: G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.80) To
+ R01UKEXCASM121.r01.fujitsu.local (10.183.43.173)
+X-Virus-Scanned: ClamAV using ClamSMTP
 
-On Fri, Sep 02, 2022 at 10:36:00AM +0000, Shiyang Ruan wrote:
-> xfs_notify_failure requires a method to invalidate all mappings.
-> drop_pagecache_sb() can do this but it is a static function and only
-> build with CONFIG_SYSCTL.  Now, move it to super.c and make it available
-> for others.
+
+
+在 2022/9/15 2:15, Darrick J. Wong 写道:
+> On Fri, Sep 02, 2022 at 10:36:01AM +0000, Shiyang Ruan wrote:
+>> This patch is inspired by Dan's "mm, dax, pmem: Introduce
+>> dev_pagemap_failure()"[1].  With the help of dax_holder and
+>> ->notify_failure() mechanism, the pmem driver is able to ask filesystem
+>> (or mapped device) on it to unmap all files in use and notify processes
+>> who are using those files.
+>>
+>> Call trace:
+>> trigger unbind
+>>   -> unbind_store()
+>>    -> ... (skip)
+>>     -> devres_release_all()   # was pmem driver ->remove() in v1
+>>      -> kill_dax()
+>>       -> dax_holder_notify_failure(dax_dev, 0, U64_MAX, MF_MEM_PRE_REMOVE)
+>>        -> xfs_dax_notify_failure()
+>>
+>> Introduce MF_MEM_PRE_REMOVE to let filesystem know this is a remove
+>> event.  So do not shutdown filesystem directly if something not
+>> supported, or if failure range includes metadata area.  Make sure all
+>> files and processes are handled correctly.
+>>
+>> [1]: https://lore.kernel.org/linux-mm/161604050314.1463742.14151665140035795571.stgit@dwillia2-desk3.amr.corp.intel.com/
+>>
+>> Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+>> ---
+>>   drivers/dax/super.c         |  3 ++-
+>>   fs/xfs/xfs_notify_failure.c | 23 +++++++++++++++++++++++
+>>   include/linux/mm.h          |  1 +
+>>   3 files changed, 26 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+>> index 9b5e2a5eb0ae..cf9a64563fbe 100644
+>> --- a/drivers/dax/super.c
+>> +++ b/drivers/dax/super.c
+>> @@ -323,7 +323,8 @@ void kill_dax(struct dax_device *dax_dev)
+>>   		return;
+>>   
+>>   	if (dax_dev->holder_data != NULL)
+>> -		dax_holder_notify_failure(dax_dev, 0, U64_MAX, 0);
+>> +		dax_holder_notify_failure(dax_dev, 0, U64_MAX,
+>> +				MF_MEM_PRE_REMOVE);
+>>   
+>>   	clear_bit(DAXDEV_ALIVE, &dax_dev->flags);
+>>   	synchronize_srcu(&dax_srcu);
+>> diff --git a/fs/xfs/xfs_notify_failure.c b/fs/xfs/xfs_notify_failure.c
+>> index 3830f908e215..5e04ba7fa403 100644
+>> --- a/fs/xfs/xfs_notify_failure.c
+>> +++ b/fs/xfs/xfs_notify_failure.c
+>> @@ -22,6 +22,7 @@
+>>   
+>>   #include <linux/mm.h>
+>>   #include <linux/dax.h>
+>> +#include <linux/fs.h>
+>>   
+>>   struct xfs_failure_info {
+>>   	xfs_agblock_t		startblock;
+>> @@ -77,6 +78,9 @@ xfs_dax_failure_fn(
+>>   
+>>   	if (XFS_RMAP_NON_INODE_OWNER(rec->rm_owner) ||
+>>   	    (rec->rm_flags & (XFS_RMAP_ATTR_FORK | XFS_RMAP_BMBT_BLOCK))) {
+>> +		/* The device is about to be removed.  Not a really failure. */
+>> +		if (notify->mf_flags & MF_MEM_PRE_REMOVE)
+>> +			return 0;
+>>   		notify->want_shutdown = true;
+>>   		return 0;
+>>   	}
+>> @@ -182,12 +186,23 @@ xfs_dax_notify_failure(
+>>   	struct xfs_mount	*mp = dax_holder(dax_dev);
+>>   	u64			ddev_start;
+>>   	u64			ddev_end;
+>> +	int			error;
+>>   
+>>   	if (!(mp->m_super->s_flags & SB_BORN)) {
+>>   		xfs_warn(mp, "filesystem is not ready for notify_failure()!");
+>>   		return -EIO;
+>>   	}
+>>   
+>> +	if (mf_flags & MF_MEM_PRE_REMOVE) {
+>> +		xfs_info(mp, "device is about to be removed!");
+>> +		down_write(&mp->m_super->s_umount);
+>> +		error = sync_filesystem(mp->m_super);
+>> +		drop_pagecache_sb(mp->m_super, NULL);
+>> +		up_write(&mp->m_super->s_umount);
+>> +		if (error)
+>> +			return error;
+>> +	}
+>> +
+>>   	if (mp->m_rtdev_targp && mp->m_rtdev_targp->bt_daxdev == dax_dev) {
+>>   		xfs_debug(mp,
+>>   			 "notify_failure() not supported on realtime device!");
+>> @@ -196,6 +211,8 @@ xfs_dax_notify_failure(
+>>   
+>>   	if (mp->m_logdev_targp && mp->m_logdev_targp->bt_daxdev == dax_dev &&
+>>   	    mp->m_logdev_targp != mp->m_ddev_targp) {
+>> +		if (mf_flags & MF_MEM_PRE_REMOVE)
+>> +			return 0;
+>>   		xfs_err(mp, "ondisk log corrupt, shutting down fs!");
+>>   		xfs_force_shutdown(mp, SHUTDOWN_CORRUPT_ONDISK);
+>>   		return -EFSCORRUPTED;
+>> @@ -209,6 +226,12 @@ xfs_dax_notify_failure(
+>>   	ddev_start = mp->m_ddev_targp->bt_dax_part_off;
+>>   	ddev_end = ddev_start + bdev_nr_bytes(mp->m_ddev_targp->bt_bdev) - 1;
+>>   
+>> +	/* Notify failure on the whole device */
+>> +	if (offset == 0 && len == U64_MAX) {
+>> +		offset = ddev_start;
+>> +		len = bdev_nr_bytes(mp->m_ddev_targp->bt_bdev);
+>> +	}
 > 
-> Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-> ---
->  fs/drop_caches.c   | 33 ---------------------------------
->  fs/super.c         | 34 ++++++++++++++++++++++++++++++++++
->  include/linux/fs.h |  1 +
->  3 files changed, 35 insertions(+), 33 deletions(-)
+> I wonder, won't the trimming code below take care of this?
+
+The len is U64_MAX, so 'offset + len - 1' will overflow.  That can't be 
+handled correctly by the trimming code below.
+
+
+--
+Thanks,
+Ruan.
+
 > 
-> diff --git a/fs/drop_caches.c b/fs/drop_caches.c
-> index e619c31b6bd9..5c8406076f9b 100644
-> --- a/fs/drop_caches.c
-> +++ b/fs/drop_caches.c
-> @@ -3,7 +3,6 @@
->   * Implement the manual drop-all-pagecache function
->   */
->  
-> -#include <linux/pagemap.h>
->  #include <linux/kernel.h>
->  #include <linux/mm.h>
->  #include <linux/fs.h>
-> @@ -15,38 +14,6 @@
->  /* A global variable is a bit ugly, but it keeps the code simple */
->  int sysctl_drop_caches;
->  
-> -static void drop_pagecache_sb(struct super_block *sb, void *unused)
-> -{
-> -	struct inode *inode, *toput_inode = NULL;
-> -
-> -	spin_lock(&sb->s_inode_list_lock);
-> -	list_for_each_entry(inode, &sb->s_inodes, i_sb_list) {
-> -		spin_lock(&inode->i_lock);
-> -		/*
-> -		 * We must skip inodes in unusual state. We may also skip
-> -		 * inodes without pages but we deliberately won't in case
-> -		 * we need to reschedule to avoid softlockups.
-> -		 */
-> -		if ((inode->i_state & (I_FREEING|I_WILL_FREE|I_NEW)) ||
-> -		    (mapping_empty(inode->i_mapping) && !need_resched())) {
-> -			spin_unlock(&inode->i_lock);
-> -			continue;
-> -		}
-> -		__iget(inode);
-> -		spin_unlock(&inode->i_lock);
-> -		spin_unlock(&sb->s_inode_list_lock);
-> -
-> -		invalidate_mapping_pages(inode->i_mapping, 0, -1);
-> -		iput(toput_inode);
-> -		toput_inode = inode;
-> -
-> -		cond_resched();
-> -		spin_lock(&sb->s_inode_list_lock);
-> -	}
-> -	spin_unlock(&sb->s_inode_list_lock);
-> -	iput(toput_inode);
-> -}
-> -
->  int drop_caches_sysctl_handler(struct ctl_table *table, int write,
->  		void *buffer, size_t *length, loff_t *ppos)
->  {
-> diff --git a/fs/super.c b/fs/super.c
-> index 734ed584a946..bdf53dbe834c 100644
-> --- a/fs/super.c
-> +++ b/fs/super.c
-> @@ -36,6 +36,7 @@
->  #include <linux/lockdep.h>
->  #include <linux/user_namespace.h>
->  #include <linux/fs_context.h>
-> +#include <linux/pagemap.h>
->  #include <uapi/linux/mount.h>
->  #include "internal.h"
->  
-> @@ -677,6 +678,39 @@ void drop_super_exclusive(struct super_block *sb)
->  }
->  EXPORT_SYMBOL(drop_super_exclusive);
->  
-> +void drop_pagecache_sb(struct super_block *sb, void *unused)
-> +{
-> +	struct inode *inode, *toput_inode = NULL;
-> +
-> +	spin_lock(&sb->s_inode_list_lock);
-> +	list_for_each_entry(inode, &sb->s_inodes, i_sb_list) {
-> +		spin_lock(&inode->i_lock);
-> +		/*
-> +		 * We must skip inodes in unusual state. We may also skip
-> +		 * inodes without pages but we deliberately won't in case
-> +		 * we need to reschedule to avoid softlockups.
-> +		 */
-> +		if ((inode->i_state & (I_FREEING|I_WILL_FREE|I_NEW)) ||
-> +		    (mapping_empty(inode->i_mapping) && !need_resched())) {
-> +			spin_unlock(&inode->i_lock);
-> +			continue;
-> +		}
-> +		__iget(inode);
-> +		spin_unlock(&inode->i_lock);
-> +		spin_unlock(&sb->s_inode_list_lock);
-> +
-> +		invalidate_mapping_pages(inode->i_mapping, 0, -1);
-> +		iput(toput_inode);
-> +		toput_inode = inode;
-> +
-> +		cond_resched();
-> +		spin_lock(&sb->s_inode_list_lock);
-> +	}
-> +	spin_unlock(&sb->s_inode_list_lock);
-> +	iput(toput_inode);
-> +}
-> +EXPORT_SYMBOL(drop_pagecache_sb);
-
-You might want to rename this "super_drop_pagecache" to fit with the
-other functions that all have "super" in the name somewhere.
-
---D
-
-> +
->  static void __iterate_supers(void (*f)(struct super_block *))
->  {
->  	struct super_block *sb, *p = NULL;
-> diff --git a/include/linux/fs.h b/include/linux/fs.h
-> index 9eced4cc286e..5ded28c0d2c9 100644
-> --- a/include/linux/fs.h
-> +++ b/include/linux/fs.h
-> @@ -3292,6 +3292,7 @@ extern struct super_block *get_super(struct block_device *);
->  extern struct super_block *get_active_super(struct block_device *bdev);
->  extern void drop_super(struct super_block *sb);
->  extern void drop_super_exclusive(struct super_block *sb);
-> +void drop_pagecache_sb(struct super_block *sb, void *unused);
->  extern void iterate_supers(void (*)(struct super_block *, void *), void *);
->  extern void iterate_supers_type(struct file_system_type *,
->  			        void (*)(struct super_block *, void *), void *);
-> -- 
-> 2.37.2
+> The rest of the patch looks ok to me.
 > 
+> --D
+> 
+>> +
+>>   	/* Ignore the range out of filesystem area */
+>>   	if (offset + len - 1 < ddev_start)
+>>   		return -ENXIO;
+>> diff --git a/include/linux/mm.h b/include/linux/mm.h
+>> index 21f8b27bd9fd..9122a1c57dd2 100644
+>> --- a/include/linux/mm.h
+>> +++ b/include/linux/mm.h
+>> @@ -3183,6 +3183,7 @@ enum mf_flags {
+>>   	MF_UNPOISON = 1 << 4,
+>>   	MF_SW_SIMULATED = 1 << 5,
+>>   	MF_NO_RETRY = 1 << 6,
+>> +	MF_MEM_PRE_REMOVE = 1 << 7,
+>>   };
+>>   int mf_dax_kill_procs(struct address_space *mapping, pgoff_t index,
+>>   		      unsigned long count, int mf_flags);
+>> -- 
+>> 2.37.2
+>>
