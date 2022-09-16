@@ -1,32 +1,32 @@
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0EF9520EA
-	for <nvdimm@lists.linux.dev>; Fri, 16 Sep 2022 03:35:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA18120FB
+	for <nvdimm@lists.linux.dev>; Fri, 16 Sep 2022 03:35:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
   t=1663299328; x=1694835328;
   h=subject:from:to:cc:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=09smizwI4GSJLiX2SQxDnF1gC8wYEWwvB8zT8M3pE8M=;
-  b=O27eKmInqWpykYZ5y5IYQdYBNdsKV/2k3DZfklvub9KXRi87ElL1FJYS
-   ZGUlBwbMzk/ZZJbMKbcKCVw3tEvhGTnnApMgzs5hTLhVpHq/tAPqiCtS8
-   +qtAGffVK7VlbbVYS2zgyiIKesZsl7bbNwlepITAyXwCSKOiwVOdsy+ak
-   t2mrED49qf5P77pqpvfGz3Cjx6ojOHpUrxlMH8fQWljnwKg8iV0DvdFut
-   vkKGXACG67vt0QstIQKZdSxK+q8KNOA7MWr3WJRJhm1lPFz2rN65TiR5s
-   oMHFmTV65hYk7xYNC+ieWZ0Pz2zQGufsg/zXN5YXjdji0YK6jUSP8U0mN
-   Q==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10471"; a="279283771"
+  bh=3wvSjSkW/zXAYAgI4UeAUQfAuIeQwEc+TBBp6c7MzGs=;
+  b=Mb9F74okTHTmaV/cHLI1gJbR1l4CoGfOhappm4V4iOTjYZ05X1urdOxD
+   G2jrazMPdOsV2GSYMOIkN9WmnSm+cQqfdIdd5WaZ+SaO/fnlc9HXW9JLp
+   uakhy241zwgKOOFyVDT03ccpJIv8JuM28nkgIUUXFvfhlTogHY0j10Fp6
+   VGBij8x4GFIbJphhHxw4IPvexqQntK3357LnqBEBMQEo1coN36sqMkU1r
+   HoVxWPgIzcaUzFeIIMHB0I2MjHTos3uSC8jFQVmD0V5wwWDfjTn6pf3og
+   f9/ImlqTDD2i7N/F5iFIr8d2IDbUg8zIuPIDWPcHRYvXyzc+79kIAZUTp
+   A==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10471"; a="298895380"
 X-IronPort-AV: E=Sophos;i="5.93,319,1654585200"; 
-   d="scan'208";a="279283771"
+   d="scan'208";a="298895380"
 Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Sep 2022 20:35:22 -0700
+  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Sep 2022 20:35:28 -0700
 X-IronPort-AV: E=Sophos;i="5.93,319,1654585200"; 
-   d="scan'208";a="792961772"
+   d="scan'208";a="792961807"
 Received: from colinlix-mobl.amr.corp.intel.com (HELO dwillia2-xfh.jf.intel.com) ([10.209.29.52])
-  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Sep 2022 20:35:21 -0700
-Subject: [PATCH v2 02/18] fsdax: Use dax_page_idle() to document DAX busy
- page checking
+  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Sep 2022 20:35:27 -0700
+Subject: [PATCH v2 03/18] fsdax: Include unmapped inodes for page-idle
+ detection
 From: Dan Williams <dan.j.williams@intel.com>
 To: akpm@linux-foundation.org
 Cc: Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
@@ -34,8 +34,8 @@ Cc: Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
  Christoph Hellwig <hch@lst.de>, John Hubbard <jhubbard@nvidia.com>,
  linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
  linux-xfs@vger.kernel.org, linux-mm@kvack.org, linux-ext4@vger.kernel.org
-Date: Thu, 15 Sep 2022 20:35:21 -0700
-Message-ID: <166329932151.2786261.15762187070104795379.stgit@dwillia2-xfh.jf.intel.com>
+Date: Thu, 15 Sep 2022 20:35:27 -0700
+Message-ID: <166329932730.2786261.8645669907699123863.stgit@dwillia2-xfh.jf.intel.com>
 In-Reply-To: <166329930818.2786261.6086109734008025807.stgit@dwillia2-xfh.jf.intel.com>
 References: <166329930818.2786261.6086109734008025807.stgit@dwillia2-xfh.jf.intel.com>
 User-Agent: StGit/0.18-3-g996c
@@ -48,10 +48,11 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 
-In advance of converting DAX pages to be 0-based, use a new
-dax_page_idle() helper to both simplify that future conversion, but also
-document all the kernel locations that are watching for DAX page idle
-events.
+A page can remain pinned even after it has been unmapped from userspace
+/ removed from the rmap. In advance of requiring that all
+dax_insert_entry() events are followed up 'break layouts' before a
+truncate event, make sure that 'break layouts' can find unmapped
+entries.
 
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Jan Kara <jack@suse.cz>
@@ -61,99 +62,20 @@ Cc: Christoph Hellwig <hch@lst.de>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- fs/dax.c            |    4 ++--
- fs/ext4/inode.c     |    3 +--
- fs/fuse/dax.c       |    5 ++---
- fs/xfs/xfs_file.c   |    5 ++---
- include/linux/dax.h |    9 +++++++++
- 5 files changed, 16 insertions(+), 10 deletions(-)
+ fs/dax.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/fs/dax.c b/fs/dax.c
-index c440dcef4b1b..e762b9c04fb4 100644
+index e762b9c04fb4..76bad1c095c0 100644
 --- a/fs/dax.c
 +++ b/fs/dax.c
-@@ -395,7 +395,7 @@ static void dax_disassociate_entry(void *entry, struct address_space *mapping,
- 	for_each_mapped_pfn(entry, pfn) {
- 		struct page *page = pfn_to_page(pfn);
+@@ -698,7 +698,7 @@ struct page *dax_layout_busy_page_range(struct address_space *mapping,
+ 	if (IS_ENABLED(CONFIG_FS_DAX_LIMITED))
+ 		return NULL;
  
--		WARN_ON_ONCE(trunc && page_ref_count(page) > 1);
-+		WARN_ON_ONCE(trunc && !dax_page_idle(page));
- 		if (dax_mapping_is_cow(page->mapping)) {
- 			/* keep the CoW flag if this page is still shared */
- 			if (page->index-- > 0)
-@@ -414,7 +414,7 @@ static struct page *dax_busy_page(void *entry)
- 	for_each_mapped_pfn(entry, pfn) {
- 		struct page *page = pfn_to_page(pfn);
+-	if (!dax_mapping(mapping) || !mapping_mapped(mapping))
++	if (!dax_mapping(mapping))
+ 		return NULL;
  
--		if (page_ref_count(page) > 1)
-+		if (!dax_page_idle(page))
- 			return page;
- 	}
- 	return NULL;
-diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
-index b028a4413bea..478ec6bc0935 100644
---- a/fs/ext4/inode.c
-+++ b/fs/ext4/inode.c
-@@ -3961,8 +3961,7 @@ int ext4_break_layouts(struct inode *inode)
- 		if (!page)
- 			return 0;
- 
--		error = ___wait_var_event(page,
--					  atomic_read(&page->_refcount) == 1,
-+		error = ___wait_var_event(page, dax_page_idle(page),
- 					  TASK_INTERRUPTIBLE, 0, 0,
- 					  ext4_wait_dax_page(inode));
- 	} while (error == 0);
-diff --git a/fs/fuse/dax.c b/fs/fuse/dax.c
-index 4e12108c68af..ae52ef7dbabe 100644
---- a/fs/fuse/dax.c
-+++ b/fs/fuse/dax.c
-@@ -676,9 +676,8 @@ static int __fuse_dax_break_layouts(struct inode *inode, bool *retry,
- 		return 0;
- 
- 	*retry = true;
--	return ___wait_var_event(page, atomic_read(&page->_refcount) == 1,
--				 TASK_INTERRUPTIBLE, 0, 0,
--				 fuse_wait_dax_page(inode));
-+	return ___wait_var_event(page, dax_page_idle(page), TASK_INTERRUPTIBLE,
-+				 0, 0, fuse_wait_dax_page(inode));
- }
- 
- /* dmap_end == 0 leads to unmapping of whole file */
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index 73e7b7ec0a4c..556e28d06788 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -827,9 +827,8 @@ xfs_break_dax_layouts(
- 		return 0;
- 
- 	*retry = true;
--	return ___wait_var_event(page, atomic_read(&page->_refcount) == 1,
--				 TASK_INTERRUPTIBLE, 0, 0,
--				 xfs_wait_dax_page(inode));
-+	return ___wait_var_event(page, dax_page_idle(page), TASK_INTERRUPTIBLE,
-+				 0, 0, xfs_wait_dax_page(inode));
- }
- 
- int
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index ba985333e26b..04987d14d7e0 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -210,6 +210,15 @@ int dax_zero_range(struct inode *inode, loff_t pos, loff_t len, bool *did_zero,
- int dax_truncate_page(struct inode *inode, loff_t pos, bool *did_zero,
- 		const struct iomap_ops *ops);
- 
-+/*
-+ * Document all the code locations that want know when a dax page is
-+ * unreferenced.
-+ */
-+static inline bool dax_page_idle(struct page *page)
-+{
-+	return page_ref_count(page) == 1;
-+}
-+
- #if IS_ENABLED(CONFIG_DAX)
- int dax_read_lock(void);
- void dax_read_unlock(int id);
+ 	/* If end == LLONG_MAX, all pages from start to till end of file */
 
