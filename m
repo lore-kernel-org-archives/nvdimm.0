@@ -1,40 +1,42 @@
 Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC84E17F1
-	for <nvdimm@lists.linux.dev>; Fri, 16 Sep 2022 01:35:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24C3017F4
+	for <nvdimm@lists.linux.dev>; Fri, 16 Sep 2022 01:35:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1663292105; x=1694828105;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=mIHXnsOvdekewSe6mYzd3yIs+UBS133p9gdzBdK5lWI=;
-  b=dfWwerHBa9NRhqNTSxwz7BJtvCcJoK74BPJiUEcwYUXiX9wNhRL+W4OP
-   mrOcKrKYj8NezPizhSWDr7bYTa3EUkxwNpfBY2/kiICqonXqCYCluDEJk
-   5Gs5o8SPEzqfHB/ARWlLhkNKKtoOV8Uc2nUT6widRNqPTNJQ2iLM0vPTo
-   +ulGUKba57YwsM3b2/8Yp3jRw6U6Cfz6IhXeuFX0dzHnpOYWtXYSf7VsJ
-   gqDG9p3L2pPgkb6GJ5oNZyzEMOgmuCxYwo0KViBULdvEUvpBtrxT24cbw
-   I+X868R7Ch92WSPDJYKGImL2dtT+CoDRtIEYUN/R7Ak6eokM25/5jreVx
-   w==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10471"; a="300247778"
+  t=1663292107; x=1694828107;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=GbjGsk48B5jT8oeQhzL1rnsT1NQxODvuyZ+YY+8XGL8=;
+  b=e+PorOQOfZ79FKOOPjD6dftGnlJJ2AVcgr/QOouFf6F0TTz9cF/C/xpd
+   l6GVb4b4XDOmBiAvswXSR0M/Q70ZzrCy2akfI/H4/ZnoLgq6/oKk7Aarb
+   AKUV/nyuCEvmJnex/IfG7XVoaFmcPJmACbG80UG8kfMh5YdaaVz0AcsBd
+   s2F0YtBPL4FoLGMkTsdCu+V/Qlw04VRd52W69gQKJ5zMfv+fVj52KG4kV
+   TPKLmPXHYZvDd6tftoB46HmD5/s/sJyTk9xCiQSyvyzWZs+K40W/ff8//
+   lsf7XheUlxmVoTaPp4HFT7uhOk5oMYYGvxZGWpy/qp2yIsa9L9WcYAQuT
+   Q==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10471"; a="300247782"
 X-IronPort-AV: E=Sophos;i="5.93,319,1654585200"; 
-   d="scan'208";a="300247778"
+   d="scan'208";a="300247782"
 Received: from orsmga004.jf.intel.com ([10.7.209.38])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Sep 2022 18:35:05 -0700
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Sep 2022 18:35:06 -0700
 X-IronPort-AV: E=Sophos;i="5.93,319,1654585200"; 
-   d="scan'208";a="743164747"
+   d="scan'208";a="743164761"
 Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.209.120.139])
-  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Sep 2022 18:35:05 -0700
+  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Sep 2022 18:35:06 -0700
 From: alison.schofield@intel.com
 To: Vishal Verma <vishal.l.verma@intel.com>,
 	Dan Williams <dan.j.williams@intel.com>
 Cc: Alison Schofield <alison.schofield@intel.com>,
 	nvdimm@lists.linux.dev,
 	linux-cxl@vger.kernel.org
-Subject: [ndctl PATCH 0/2] Add CXL XOR region test
-Date: Thu, 15 Sep 2022 18:35:00 -0700
-Message-Id: <cover.1663290390.git.alison.schofield@intel.com>
+Subject: [ndctl PATCH 2/2] cxl/test: allow another host bridge in cxl-topology check
+Date: Thu, 15 Sep 2022 18:35:02 -0700
+Message-Id: <1380b5042ba3baf39777183205cc3d6974519159.1663290390.git.alison.schofield@intel.com>
 X-Mailer: git-send-email 2.37.2
+In-Reply-To: <cover.1663290390.git.alison.schofield@intel.com>
+References: <cover.1663290390.git.alison.schofield@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -45,28 +47,41 @@ Content-Transfer-Encoding: 8bit
 
 From: Alison Schofield <alison.schofield@intel.com>
 
-These patches, although not tied to each other, both depend upon
-this cxl_test patch:
-https://lore.kernel.org/linux-cxl/5a33e3d0b182308a3a783ac8685fd2728bb64a22.1663291370.git.alison.schofield@intel.com/
+Update the related count checks to allow a third CXL Host
+Bridge in the cxl_test topology.
 
-cxl/test: add cxl_xor_region test
-	Depends on: tools/testing/cxl: Add XOR math support
+Signed-off-by: Alison Schofield <alison.schofield@intel.com>
+---
+ test/cxl-topology.sh | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-cxl/test: allow another host bridge in cxl-topology check
-	This patch syncs cxl-topology test with the cxl_test changes
-
-Alison Schofield (2):
-  cxl/test: add cxl_xor_region test
-  cxl/test: allow another host bridge in cxl-topology check
-
- test/cxl-topology.sh   |   6 +-
- test/cxl-xor-region.sh | 126 +++++++++++++++++++++++++++++++++++++++++
- test/meson.build       |   2 +
- 3 files changed, 131 insertions(+), 3 deletions(-)
- create mode 100644 test/cxl-xor-region.sh
-
-
-base-commit: c9c9db39354ea0c3f737378186318e9b7908e3a7
+diff --git a/test/cxl-topology.sh b/test/cxl-topology.sh
+index 2583005fef26..11c39f61cf52 100644
+--- a/test/cxl-topology.sh
++++ b/test/cxl-topology.sh
+@@ -32,7 +32,7 @@ root=$(jq -r ".[] | .bus" <<< $json)
+ port_sort="sort_by(.port | .[4:] | tonumber)"
+ json=$($CXL list -b cxl_test -BP)
+ count=$(jq ".[] | .[\"ports:$root\"] | length" <<< $json)
+-((count == 2)) || err "$LINENO"
++((count == 4)) || err "$LINENO"
+ 
+ bridge[0]=$(jq -r ".[] | .[\"ports:$root\"] | $port_sort | .[0].port" <<< $json)
+ bridge[1]=$(jq -r ".[] | .[\"ports:$root\"] | $port_sort | .[1].port" <<< $json)
+@@ -103,11 +103,11 @@ count=$(jq "[ $decoder_sort | .[3] |
+ ((count == 1)) || err "$LINENO"
+ 
+ 
+-# check that all 8 cxl_test memdevs are enabled by default and have a
++# check that all 16 cxl_test memdevs are enabled by default and have a
+ # pmem size of 256M, or 1G
+ json=$($CXL list -b cxl_test -M)
+ count=$(jq "map(select(.pmem_size == $pmem_size)) | length" <<< $json)
+-((count == 8)) || err "$LINENO"
++((count == 16 )) || err "$LINENO"
+ 
+ 
+ # check that switch ports disappear after all of their memdevs have been
 -- 
 2.31.1
 
