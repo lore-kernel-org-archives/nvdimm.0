@@ -1,108 +1,67 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20A455C81
-	for <nvdimm@lists.linux.dev>; Fri, 16 Sep 2022 15:43:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA8EAC433D6;
-	Fri, 16 Sep 2022 15:43:33 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1663343013;
-	bh=YNSjP/LiCCx3Suc7zoGweqKnIGX37rmyAojFu4j9Jpo=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=pveEJvBs5oLqN97djCT3lNEcGo8sygvspthc3T6FPX2c2JBTSgbmWcnPOA0T1UIMC
-	 2oLag7mwCeBb4PdOrgGOaDexLa5ClhsPeLFvUUGzXxsDv3ij8xkOwPa0I6wrOpJakE
-	 WT/WjagmVY+3qiWPEOlUXrqc6z+f5hRbc0ZnVPASXv7+Gu2tjB8aiq7hCNaFe94TqD
-	 WtGSJVDLPk5h025tMLlKPQRiqMqZUtqLNPAShKqCqxbbeUoT/0V/H6Pv8PJvbG/rQ+
-	 cXsNbBYF0XOwGDG3hD1rNhuuGjGl9Z6QyjWZt1hjzXBf58O5Oo0Sb7SnoOO9D18Mcx
-	 dTkz/XIdsFrwg==
-Date: Fri, 16 Sep 2022 08:43:33 -0700
-From: "Darrick J. Wong" <djwong@kernel.org>
-To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Cc: dan.j.williams@intel.com, linux-fsdevel@vger.kernel.org,
-	linux-mm@kvack.org, nvdimm@lists.linux.dev,
-	linux-xfs@vger.kernel.org, linux-kernel@vger.kernel.org,
-	hch@infradead.org, david@fromorbit.com, jane.chu@oracle.com
-Subject: Re: [PATCH v8 0/3] mm, pmem, xfs: Introduce MF_MEM_REMOVE for unbind
-Message-ID: <YySZpaX6NU6aSdke@magnolia>
-References: <9e9521a4-6e07-e226-2814-b78a2451656b@fujitsu.com>
- <1662114961-66-1-git-send-email-ruansy.fnst@fujitsu.com>
- <bf68da75-5b05-5376-c306-24f9d2b92e80@fujitsu.com>
- <YyIY0+8AzTIDKMVy@magnolia>
- <YyIaVZ36biogzQU3@magnolia>
- <d3b5ce9e-dcdf-26b1-cdea-712d7e1be1f6@fujitsu.com>
+Received: from mail-m972.mail.163.com (mail-m972.mail.163.com [123.126.97.2])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 239E839D
+	for <nvdimm@lists.linux.dev>; Sat, 17 Sep 2022 06:41:32 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=n9TQa
+	rA5HFDvEKCCTRUTj+Y9jic5HRzWblDS8dMVBcs=; b=piZsHqUmKrV9g5gYH+XAj
+	slB5OEMIlxz0ZAfscZrxoOeOlX3lAZ/AkcO5Z9mIhOHDuouF0n15Dk/E0G9WNpUR
+	CRn6XiG9w8tbgpts5xEtDjRKFKeeaG5xhILoM9KDL/puwJSbz/9Jl3yjoFnqESy0
+	vSa0KKfeecrW10IAbF9jsc=
+Received: from DESKTOP-CE2KKHI.localdomain (unknown [124.160.210.227])
+	by smtp2 (Coremail) with SMTP id GtxpCgC3K+5_aCVj8qg3eQ--.56440S2;
+	Sat, 17 Sep 2022 14:26:09 +0800 (CST)
+From: williamsukatube@163.com
+To: nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org
+Cc: dan.j.williams@intel.com,
+	vishal.l.verma@intel.com,
+	dave.jiang@intel.com,
+	William Dean <williamsukatube@163.com>
+Subject: [PATH -next] device-dax: simplify code in devm_register_dax_mapping
+Date: Sat, 17 Sep 2022 14:26:06 +0800
+Message-Id: <20220917062606.1701-1-williamsukatube@163.com>
+X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <d3b5ce9e-dcdf-26b1-cdea-712d7e1be1f6@fujitsu.com>
+X-CM-TRANSID:GtxpCgC3K+5_aCVj8qg3eQ--.56440S2
+X-Coremail-Antispam: 1Uf129KBjvdXoW7GFWfAFWDuw4xtr1fGFWrGrg_yoW3trX_Gr
+	yrAFyxWwnIg3WfGw17Crn3Zry3tF1DuF4fZrs0qa43Gw18Ca1kuF4vyrnrCr97XrWxWr98
+	t3Z0gr1FyFnrGjkaLaAFLSUrUUUUUb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
+	9fnUUvcSsGvfC2KfnxnUUI43ZEXa7xRM5l8DUUUUU==
+X-Originating-IP: [124.160.210.227]
+X-CM-SenderInfo: xzlozx5dpv3yxdwxuvi6rwjhhfrp/1tbiUQF-g2DEPMIy+wAAs-
 
-On Thu, Sep 15, 2022 at 10:56:09AM +0800, Shiyang Ruan wrote:
-> 
-> 
-> 在 2022/9/15 2:15, Darrick J. Wong 写道:
-> > On Wed, Sep 14, 2022 at 11:09:23AM -0700, Darrick J. Wong wrote:
-> > > On Wed, Sep 07, 2022 at 05:46:00PM +0800, Shiyang Ruan wrote:
-> > > > ping
-> > > > 
-> > > > 在 2022/9/2 18:35, Shiyang Ruan 写道:
-> > > > > Changes since v7:
-> > > > >     1. Add P1 to fix calculation mistake
-> > > > >     2. Add P2 to move drop_pagecache_sb() to super.c for xfs to use
-> > > > >     3. P3: Add invalidate all mappings after sync.
-> > > > >     4. P3: Set offset&len to be start&length of device when it is to be removed.
-> > > > >     5. Rebase on 6.0-rc3 + Darrick's patch[1] + Dan's patch[2].
-> > > > > 
-> > > > > Changes since v6:
-> > > > >     1. Rebase on 6.0-rc2 and Darrick's patch[1].
-> > > > > 
-> > > > > [1]: https://lore.kernel.org/linux-xfs/Yv5wIa2crHioYeRr@magnolia/
-> > > > > [2]: https://lore.kernel.org/linux-xfs/166153426798.2758201.15108211981034512993.stgit@dwillia2-xfh.jf.intel.com/
-> > > 
-> > > Just out of curiosity, is it your (or djbw's) intent to send all these
-> > > as bugfixes for 6.0 via akpm like all the other dax fixen?
-> > 
-> > Aha, this is 6.1 stuff, please ignore this question.
-> 
-> Actually I hope these patches can be merged ASAP. (But it seems a bit late
-> for 6.0 now.)
-> 
-> And do you know which/whose branch has picked up your patch[1]?  I cannot
-> find it.
+From: William Dean <williamsukatube@163.com>
 
-It's not upstream, though the maintainer (Dave currently) reviewed it.
-I don't know if he hasn't had time to put together a fixes branch or if
-he's simply punting all the queued up stuff to 6.1.
+It could directly return 'devm_add_action_or_reset' to simplify code.
 
-(Dave?)
+Signed-off-by: William Dean <williamsukatube@163.com>
+---
+ drivers/dax/bus.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
---D
+diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+index 1dad813ee4a6..251c53061764 100644
+--- a/drivers/dax/bus.c
++++ b/drivers/dax/bus.c
+@@ -772,11 +772,8 @@ static int devm_register_dax_mapping(struct dev_dax *dev_dax, int range_id)
+ 		return rc;
+ 	}
+ 
+-	rc = devm_add_action_or_reset(dax_region->dev, unregister_dax_mapping,
++	return devm_add_action_or_reset(dax_region->dev, unregister_dax_mapping,
+ 			dev);
+-	if (rc)
+-		return rc;
+-	return 0;
+ }
+ 
+ static int alloc_dev_dax_range(struct dev_dax *dev_dax, u64 start,
+-- 
+2.25.1
 
-> 
-> --
-> Thanks,
-> Ruan.
-> 
-> > 
-> > --D
-> > 
-> > > --D
-> > > 
-> > > > > 
-> > > > > Shiyang Ruan (3):
-> > > > >     xfs: fix the calculation of length and end
-> > > > >     fs: move drop_pagecache_sb() for others to use
-> > > > >     mm, pmem, xfs: Introduce MF_MEM_REMOVE for unbind
-> > > > > 
-> > > > >    drivers/dax/super.c         |  3 ++-
-> > > > >    fs/drop_caches.c            | 33 ---------------------------------
-> > > > >    fs/super.c                  | 34 ++++++++++++++++++++++++++++++++++
-> > > > >    fs/xfs/xfs_notify_failure.c | 31 +++++++++++++++++++++++++++----
-> > > > >    include/linux/fs.h          |  1 +
-> > > > >    include/linux/mm.h          |  1 +
-> > > > >    6 files changed, 65 insertions(+), 38 deletions(-)
-> > > > > 
