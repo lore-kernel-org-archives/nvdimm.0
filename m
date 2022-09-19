@@ -1,39 +1,39 @@
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36BCC747E
-	for <nvdimm@lists.linux.dev>; Mon, 19 Sep 2022 23:46:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F0B6747E
+	for <nvdimm@lists.linux.dev>; Mon, 19 Sep 2022 23:46:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1663631207; x=1695167207;
+  t=1663631213; x=1695167213;
   h=subject:from:to:cc:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=9gaF7ojex/AWmcWNUcltPV8CEfpBA4/ub1OftBXVZhE=;
-  b=hn9sMPGaouffT5Z4sMlOA+QhbCsl0IT5xHFfOHEmITIs3WGKGFzDYoN/
-   HA5ZUKz1aMBzRMPPHQm7/iZAwQmsxR22hgU/jQBLdBMTuAA6o6sgfOC0H
-   Zduu4J7HzQsT3z8dGXnKSHsqMoBfMJMaZhT1Pp9BJlG9q0GRV8UP3QuCp
-   46Ie2mOekclH3SV6fVQTuzmnNR/+1ZRTBNWSiNz5xtoY3WU0DBDNU7/nU
-   kj0GOcWivXCvb/eJ+xTEJVQ9LMQHAgxjLAO8XaQvxlhfmoqp4XUoXLkJF
-   y5U15v9rGQ6RZkqtPDLTNRvY/2TkwR0hby+tY+nTzWIYWlRjgSslxyliQ
-   Q==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10475"; a="286596927"
+  bh=zRvCCQdFMS8gRXk3Cb3ubH4bqvKv8FV3o8BZZcD+tqc=;
+  b=fbhTBab8Frr/JsfOtO6EDMXod7uQEmEVDbs51POHwkj4c3u7zvFp5Xcr
+   JWQXMdb+Xx97ZULICyEIydRG/gT+x4ropQ+HQPxtBu8KOoKXuft9NNdfG
+   gx+tX80rENlNqOzYzMWkvSxcLWsZHLs7jCbwV7CPrqQ0dt+7KhjwrFhkV
+   a4tQ8VK9WeD+10Mi1u3ro5Tb4WwwOX9PLC4ZIBei71puXa6KHuQXzvbAW
+   N1VQVGb8ZztcdYgCbYsLghrEZ2y9byrNjMRqFRtlobOF5mdfr6ZiN+dKd
+   Yi/g2/8iVdWiEHtpZ3b5SeCmGmT/6YP6DrSkezpsQBxXq8/PvEfmH7aMv
+   A==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10475"; a="279278292"
 X-IronPort-AV: E=Sophos;i="5.93,329,1654585200"; 
-   d="scan'208";a="286596927"
+   d="scan'208";a="279278292"
 Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Sep 2022 16:46:46 -0700
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Sep 2022 16:46:52 -0700
 X-IronPort-AV: E=Sophos;i="5.93,329,1654585200"; 
-   d="scan'208";a="722504506"
+   d="scan'208";a="722504592"
 Received: from djiang5-desk3.ch.intel.com ([143.182.136.137])
-  by fmsmga002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Sep 2022 16:46:46 -0700
-Subject: [PATCH v2 2/9] cxl: add helper to parse through all current events
+  by fmsmga002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Sep 2022 16:46:51 -0700
+Subject: [PATCH v2 3/9] cxl: add common function to enable event trace
 From: Dave Jiang <dave.jiang@intel.com>
 To: linux-cxl@vger.kernel.org
 Cc: alison.schofield@intel.com, vishal.l.verma@intel.com, ira.weiny@intel.com,
  bwidawsk@kernel.org, dan.j.williams@intel.com, nafonten@amd.com,
  nvdimm@lists.linux.dev
-Date: Mon, 19 Sep 2022 16:46:46 -0700
+Date: Mon, 19 Sep 2022 16:46:51 -0700
 Message-ID: 
- <166363120598.3861186.12071132915910252601.stgit@djiang5-desk3.ch.intel.com>
+ <166363121162.3861186.4784558227642526260.stgit@djiang5-desk3.ch.intel.com>
 In-Reply-To: 
  <166363103019.3861186.3067220004819656109.stgit@djiang5-desk3.ch.intel.com>
 References: 
@@ -48,109 +48,55 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 
-Add common function to iterate through and extract the events in the
-current trace buffer. The function uses tracefs_iterate_raw_events() from
-libtracefs to go through all the events loaded into a tep_handle. A
-callback is provided to the API call in order to parse the event. For cxl
-monitor, an array of interested "systems" is provided in order to filter
-for the interested events.
+Add a common function for cxl command to enable event tracing for the
+instance created. The interested "systems" will be enabled for tracing
+as well.
 
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- cxl/event_trace.c |   33 +++++++++++++++++++++++++++++++++
- cxl/event_trace.h |    7 +++++++
- cxl/meson.build   |    1 +
- meson.build       |    2 ++
- 4 files changed, 43 insertions(+)
+ cxl/event_trace.c |   21 +++++++++++++++++++++
+ cxl/event_trace.h |    1 +
+ 2 files changed, 22 insertions(+)
 
 diff --git a/cxl/event_trace.c b/cxl/event_trace.c
-index ffa2a9b9b036..430146ce66f5 100644
+index 430146ce66f5..ca2fb94f2eba 100644
 --- a/cxl/event_trace.c
 +++ b/cxl/event_trace.c
-@@ -16,6 +16,7 @@
- #include <libcxl.h>
- #include <uuid/uuid.h>
- #include <traceevent/event-parse.h>
-+#include <tracefs/tracefs.h>
- #include "json.h"
- #include "event_trace.h"
- 
-@@ -164,3 +165,35 @@ err_jevent:
- 	free(jnode);
+@@ -197,3 +197,24 @@ int cxl_parse_events(struct tracefs_instance *inst, struct event_ctx *ectx)
+ 	tep_free(tep);
  	return rc;
  }
 +
-+static int cxl_event_parse_cb(struct tep_event *event, struct tep_record *record,
-+		int cpu, void *ctx)
++int cxl_event_tracing_enable(struct tracefs_instance *inst, const char *system)
 +{
-+	struct event_ctx *event_ctx = (struct event_ctx *)ctx;
 +	int rc;
++	char *path;
 +
-+	/* Filter out all the events that the caller isn't interested in. */
-+	if (strcmp(event->system, event_ctx->system) != 0)
++	rc = asprintf(&path, "events/%s/enable", system);
++	if (rc == -1)
++		return -errno;
++
++	rc = tracefs_instance_file_write(inst, path, "1");
++	free(path);
++	if (rc == -1)
++		return -errno;
++
++	if (tracefs_trace_is_on(inst))
 +		return 0;
 +
-+	rc = cxl_event_to_json_callback(event, record, &event_ctx->jlist_head);
-+	if (rc < 0)
-+		return rc;
-+
++	tracefs_trace_on(inst);
 +	return 0;
 +}
-+
-+int cxl_parse_events(struct tracefs_instance *inst, struct event_ctx *ectx)
-+{
-+	struct tep_handle *tep;
-+	int rc;
-+
-+	tep = tracefs_local_events(NULL);
-+	if (!tep)
-+		return -ENOMEM;
-+
-+	rc = tracefs_iterate_raw_events(tep, inst, NULL, 0,
-+			cxl_event_parse_cb, ectx);
-+	tep_free(tep);
-+	return rc;
-+}
 diff --git a/cxl/event_trace.h b/cxl/event_trace.h
-index 00975a0b5680..2fbefa1586d9 100644
+index 2fbefa1586d9..1fb905664625 100644
 --- a/cxl/event_trace.h
 +++ b/cxl/event_trace.h
-@@ -11,4 +11,11 @@ struct jlist_node {
- 	struct list_node list;
+@@ -17,5 +17,6 @@ struct event_ctx {
  };
  
-+struct event_ctx {
-+	const char *system;
-+	struct list_head jlist_head;
-+};
-+
-+int cxl_parse_events(struct tracefs_instance *inst, struct event_ctx *ectx);
-+
+ int cxl_parse_events(struct tracefs_instance *inst, struct event_ctx *ectx);
++int cxl_event_tracing_enable(struct tracefs_instance *inst, const char *system);
+ 
  #endif
-diff --git a/cxl/meson.build b/cxl/meson.build
-index 8c7733431613..c59876262e76 100644
---- a/cxl/meson.build
-+++ b/cxl/meson.build
-@@ -21,6 +21,7 @@ cxl_tool = executable('cxl',
-     json,
-     versiondep,
-     traceevent,
-+    tracefs,
-   ],
-   install : true,
-   install_dir : rootbindir,
-diff --git a/meson.build b/meson.build
-index f611e0bdd7f3..c204c8ac52de 100644
---- a/meson.build
-+++ b/meson.build
-@@ -143,6 +143,8 @@ libudev = dependency('libudev')
- uuid = dependency('uuid')
- json = dependency('json-c')
- traceevent = dependency('libtraceevent')
-+tracefs = dependency('libtracefs')
-+
- if get_option('docs').enabled()
-   if get_option('asciidoctor').enabled()
-     asciidoc = find_program('asciidoctor', required : true)
 
 
