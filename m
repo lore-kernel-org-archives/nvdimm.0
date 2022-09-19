@@ -1,23 +1,28 @@
 Received: from mail105.syd.optusnet.com.au (mail105.syd.optusnet.com.au [211.29.132.249])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 14DBA746D
-	for <nvdimm@lists.linux.dev>; Mon, 19 Sep 2022 21:15:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id AD3A9746D
+	for <nvdimm@lists.linux.dev>; Mon, 19 Sep 2022 21:30:03 +0000 (UTC)
 Received: from dread.disaster.area (pa49-180-183-60.pa.nsw.optusnet.com.au [49.180.183.60])
-	by mail105.syd.optusnet.com.au (Postfix) with ESMTPS id 0A63711008E6;
-	Tue, 20 Sep 2022 07:15:35 +1000 (AEST)
+	by mail105.syd.optusnet.com.au (Postfix) with ESMTPS id A5ABA110098A;
+	Tue, 20 Sep 2022 07:30:00 +1000 (AEST)
 Received: from dave by dread.disaster.area with local (Exim 4.92.3)
 	(envelope-from <david@fromorbit.com>)
-	id 1oaO73-009kZr-9v; Tue, 20 Sep 2022 07:15:33 +1000
-Date: Tue, 20 Sep 2022 07:15:33 +1000
+	id 1oaOL1-009kv2-DN; Tue, 20 Sep 2022 07:29:59 +1000
+Date: Tue, 20 Sep 2022 07:29:59 +1000
 From: Dave Chinner <david@fromorbit.com>
-To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Cc: linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org,
-	nvdimm@lists.linux.dev, linux-mm@kvack.org,
-	linux-fsdevel@vger.kernel.org, djwong@kernel.org,
-	dan.j.williams@intel.com
-Subject: Re: [RFC PATCH] xfs: drop experimental warning for fsdax
-Message-ID: <20220919211533.GK3600936@dread.disaster.area>
-References: <1663234002-17-1-git-send-email-ruansy.fnst@fujitsu.com>
- <20220919045003.GJ3600936@dread.disaster.area>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: akpm@linux-foundation.org, Matthew Wilcox <willy@infradead.org>,
+	Jan Kara <jack@suse.cz>, "Darrick J. Wong" <djwong@kernel.org>,
+	Jason Gunthorpe <jgg@nvidia.com>, Christoph Hellwig <hch@lst.de>,
+	John Hubbard <jhubbard@nvidia.com>, linux-fsdevel@vger.kernel.org,
+	nvdimm@lists.linux.dev, linux-xfs@vger.kernel.org,
+	linux-mm@kvack.org, linux-ext4@vger.kernel.org
+Subject: Re: [PATCH v2 05/18] xfs: Add xfs_break_layouts() to the inode
+ eviction path
+Message-ID: <20220919212959.GL3600936@dread.disaster.area>
+References: <166329930818.2786261.6086109734008025807.stgit@dwillia2-xfh.jf.intel.com>
+ <166329933874.2786261.18236541386474985669.stgit@dwillia2-xfh.jf.intel.com>
+ <20220918225731.GG3600936@dread.disaster.area>
+ <632894c4738d8_2a6ded294a@dwillia2-xfh.jf.intel.com.notmuch>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -26,110 +31,121 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20220919045003.GJ3600936@dread.disaster.area>
+In-Reply-To: <632894c4738d8_2a6ded294a@dwillia2-xfh.jf.intel.com.notmuch>
 X-Optus-CM-Score: 0
-X-Optus-CM-Analysis: v=2.4 cv=VuxAv86n c=1 sm=1 tr=0 ts=6328dbf8
+X-Optus-CM-Analysis: v=2.4 cv=VuxAv86n c=1 sm=1 tr=0 ts=6328df5a
 	a=mj5ET7k2jFntY++HerHxfg==:117 a=mj5ET7k2jFntY++HerHxfg==:17
-	a=kj9zAlcOel0A:10 a=xOM3xZuef0cA:10 a=omOdbC7AAAAA:8 a=7-415B0cAAAA:8
-	a=P5i7CRKJERA4Ca6FXRMA:9 a=CjuIK1q_8ugA:10 a=biEYGPWJfzWAr4FL6Ov7:22
+	a=kj9zAlcOel0A:10 a=xOM3xZuef0cA:10 a=7-415B0cAAAA:8
+	a=xuJ1WRtAoSBjHkJDGakA:9 a=CjuIK1q_8ugA:10 a=biEYGPWJfzWAr4FL6Ov7:22
 
-On Mon, Sep 19, 2022 at 02:50:03PM +1000, Dave Chinner wrote:
-> On Thu, Sep 15, 2022 at 09:26:42AM +0000, Shiyang Ruan wrote:
-> > Since reflink&fsdax can work together now, the last obstacle has been
-> > resolved.  It's time to remove restrictions and drop this warning.
+On Mon, Sep 19, 2022 at 09:11:48AM -0700, Dan Williams wrote:
+> Dave Chinner wrote:
+> > On Thu, Sep 15, 2022 at 08:35:38PM -0700, Dan Williams wrote:
+> > > In preparation for moving DAX pages to be 0-based rather than 1-based
+> > > for the idle refcount, the fsdax core wants to have all mappings in a
+> > > "zapped" state before truncate. For typical pages this happens naturally
+> > > via unmap_mapping_range(), for DAX pages some help is needed to record
+> > > this state in the 'struct address_space' of the inode(s) where the page
+> > > is mapped.
+> > > 
+> > > That "zapped" state is recorded in DAX entries as a side effect of
+> > > xfs_break_layouts(). Arrange for it to be called before all truncation
+> > > events which already happens for truncate() and PUNCH_HOLE, but not
+> > > truncate_inode_pages_final(). Arrange for xfs_break_layouts() before
+> > > truncate_inode_pages_final().
+....
+> > > diff --git a/fs/xfs/xfs_super.c b/fs/xfs/xfs_super.c
+> > > index 9ac59814bbb6..ebb4a6eba3fc 100644
+> > > --- a/fs/xfs/xfs_super.c
+> > > +++ b/fs/xfs/xfs_super.c
+> > > @@ -725,6 +725,27 @@ xfs_fs_drop_inode(
+> > >  	return generic_drop_inode(inode);
+> > >  }
+> > >  
+> > > +STATIC void
+> > > +xfs_fs_evict_inode(
+> > > +	struct inode		*inode)
+> > > +{
+> > > +	struct xfs_inode	*ip = XFS_I(inode);
+> > > +	uint			iolock = XFS_IOLOCK_EXCL | XFS_MMAPLOCK_EXCL;
+> > > +	long			error;
+> > > +
+> > > +	xfs_ilock(ip, iolock);
 > > 
-> > Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+> > I'm guessing you never ran this through lockdep.
 > 
-> I haven't looked at reflink+DAX for some time, and I haven't tested
-> it for even longer. So I'm currently running a v6.0-rc6 kernel with
-> "-o dax=always" fstests run with reflink enabled and it's not
-> looking very promising.
+> I always run with lockdep enabled in my development kernels, but maybe my
+> testing was insufficient? Somewhat moot with your concerns below...
+
+I'm guessing your testing doesn't generate inode cache pressure and
+then have direct memory reclaim inodes. e.g. on a directory inode
+this will trigger lockdep immediately because readdir locks with
+XFS_IOLOCK_SHARED and then does GFP_KERNEL memory reclaim. If we try
+to take XFS_IOLOCK_EXCL from memory reclaim of directory inodes,
+lockdep will then shout from the rooftops...
+
+> > > +
+> > > +	truncate_inode_pages_final(&inode->i_data);
+> > > +	clear_inode(inode);
+> > > +
+> > > +	xfs_iunlock(ip, iolock);
+> > > +}
+> > 
+> > That all said, this really looks like a bit of a band-aid.
 > 
-> All of the fsx tests are failing with data corruption, several
-> reflink/clone tests are failing with -EINVAL (e.g. g/16[45]) and
-> *lots* of tests are leaving stack traces from WARN() conditions in
-> DAx operations such as dax_insert_entry(), dax_disassociate_entry(),
-> dax_writeback_mapping_range(), iomap_iter() (called from
-> dax_dedupe_file_range_compare()), and so on.
+> It definitely is since DAX is in this transitory state between doing
+> some activities page-less and others with page metadata. If DAX was
+> fully committed to behaving like a typical page then
+> unmap_mapping_range() would have already satisfied this reference
+> counting situation.
 > 
-> At thsi point - the tests are still running - I'd guess that there's
-> going to be at least 50 test failures by the time it completes -
-> in comparison using "-o dax=never" results in just a single test
-> failure and a lot more tests actually being run.
+> > I can't work out why would we we ever have an actual layout lease
+> > here that needs breaking given they are file based and active files
+> > hold a reference to the inode. If we ever break that, then I suspect
+> > this change will cause major problems for anyone using pNFS with XFS
+> > as xfs_break_layouts() can end up waiting for NFS delegation
+> > revocation. This is something we should never be doing in inode
+> > eviction/memory reclaim.
+> > 
+> > Hence I have to ask why this lease break is being done
+> > unconditionally for all inodes, instead of only calling
+> > xfs_break_dax_layouts() directly on DAX enabled regular files?  I
+> > also wonder what exciting new system deadlocks this will create
+> > because BREAK_UNMAP_FINAL can essentially block forever waiting on
+> > dax mappings going away. If that DAX mapping reclaim requires memory
+> > allocations.....
+> 
+> There should be no memory allocations in the DAX mapping reclaim path.
+> Also, the page pins it waits for are precluded from being GUP_LONGTERM.
 
-The end results with dax+reflink were:
+So if the task that holds the pin needs memory allocation before it
+can unpin the page to allow direct inode reclaim to make progress?
 
-SECTION       -- xfs_dax
-=========================
+> > /me looks deeper into the dax_layout_busy_page() stuff and realises
+> > that both ext4 and XFS implementations of ext4_break_layouts() and
+> > xfs_break_dax_layouts() are actually identical.
+> > 
+> > That is, filemap_invalidate_unlock() and xfs_iunlock(ip,
+> > XFS_MMAPLOCK_EXCL) operate on exactly the same
+> > inode->i_mapping->invalidate_lock. Hence the implementations in ext4
+> > and XFS are both functionally identical.
+> 
+> I assume you mean for the purposes of this "final" break since
+> xfs_file_allocate() holds XFS_IOLOCK_EXCL over xfs_break_layouts().
 
-Failures: generic/051 generic/068 generic/074 generic/075
-generic/083 generic/091 generic/112 generic/127 generic/164
-generic/165 generic/175 generic/231 generic/232 generic/247
-generic/269 generic/270 generic/327 generic/340 generic/388
-generic/390 generic/413 generic/447 generic/461 generic/471
-generic/476 generic/517 generic/519 generic/560 generic/561
-generic/605 generic/617 generic/619 generic/630 generic/649
-generic/650 generic/656 generic/670 generic/672 xfs/011 xfs/013
-xfs/017 xfs/068 xfs/073 xfs/104 xfs/127 xfs/137 xfs/141 xfs/158
-xfs/168 xfs/179 xfs/243 xfs/297 xfs/305 xfs/328 xfs/440 xfs/442
-xfs/517 xfs/535 xfs/538 xfs/551 xfs/552
-Failed 61 of 1071 tests
+No, I'm just looking at the two *dax* functions - we don't care what
+locks xfs_break_layouts() requires - dax mapping manipulation is
+covered by the mapping->invalidate_lock and not the inode->i_rwsem.
+This is explicitly documented in the code by the the asserts in both
+ext4_break_layouts() and xfs_break_dax_layouts().
 
-Ok, so I did a new no-reflink run as a baseline, because it is a
-while since I've tested DAX at all:
+XFS holds the inode->i_rwsem over xfs_break_layouts() because we
+have to break *file layout leases* from there, too. These are
+serialised by the inode->i_rwsem, not the mapping->invalidate_lock.
 
-SECTION       -- xfs_dax_noreflink
-=========================
-Failures: generic/051 generic/068 generic/074 generic/075
-generic/083 generic/112 generic/231 generic/232 generic/269
-generic/270 generic/340 generic/388 generic/461 generic/471
-generic/476 generic/519 generic/560 generic/561 generic/617
-generic/650 generic/656 xfs/011 xfs/013 xfs/017 xfs/073 xfs/297
-xfs/305 xfs/517 xfs/538
-Failed 29 of 1071 tests
+Cheers,
 
-Yeah, there's still lots of warnings from dax_insert_entry() and
-friends like:
-
-[43262.025815] WARNING: CPU: 9 PID: 1309428 at fs/dax.c:380 dax_insert_entry+0x2ab/0x320
-[43262.028355] Modules linked in:
-[43262.029386] CPU: 9 PID: 1309428 Comm: fsstress Tainted: G W          6.0.0-rc6-dgc+ #1543
-[43262.032168] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.15.0-1 04/01/2014
-[43262.034840] RIP: 0010:dax_insert_entry+0x2ab/0x320
-[43262.036358] Code: 08 48 83 c4 30 5b 5d 41 5c 41 5d 41 5e 41 5f c3 48 8b 58 20 48 8d 53 01 e9 65 ff ff ff 48 8b 58 20 48 8d 53 01 e9 50 ff ff ff <0f> 0b e9 70 ff ff ff 31 f6 4c 89 e7 e8 84 b1 5a 00 eb a4 48 81 e6
-[43262.042255] RSP: 0018:ffffc9000a0cbb78 EFLAGS: 00010002
-[43262.043946] RAX: ffffea0018cd1fc0 RBX: 0000000000000001 RCX: 0000000000000001
-[43262.046233] RDX: ffffea0000000000 RSI: 0000000000000221 RDI: ffffea0018cd2000
-[43262.048518] RBP: 0000000000000011 R08: 0000000000000000 R09: 0000000000000000
-[43262.050762] R10: ffff888241a6d318 R11: 0000000000000001 R12: ffffc9000a0cbc58
-[43262.053020] R13: ffff888241a6d318 R14: ffffc9000a0cbe20 R15: 0000000000000000
-[43262.055309] FS:  00007f8ce25e2b80(0000) GS:ffff8885fec80000(0000) knlGS:0000000000000000
-[43262.057859] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[43262.059713] CR2: 00007f8ce25e1000 CR3: 0000000152141001 CR4: 0000000000060ee0
-[43262.061993] Call Trace:
-[43262.062836]  <TASK>
-[43262.063557]  dax_fault_iter+0x243/0x600
-[43262.064802]  dax_iomap_pte_fault+0x199/0x360
-[43262.066197]  __xfs_filemap_fault+0x1e3/0x2c0
-[43262.067602]  __do_fault+0x31/0x1d0
-[43262.068719]  __handle_mm_fault+0xd6d/0x1650
-[43262.070083]  ? do_mmap+0x348/0x540
-[43262.071200]  handle_mm_fault+0x7a/0x1d0
-[43262.072449]  ? __kvm_handle_async_pf+0x12/0xb0
-[43262.073908]  exc_page_fault+0x1d9/0x810
-[43262.075123]  asm_exc_page_fault+0x22/0x30
-[43262.076413] RIP: 0033:0x7f8ce268bc23
-
-So it looks to me like DAX is well and truly broken in 6.0-rc6. And,
-yes, I'm running the fixes in mm-hotifxes-stable branch that allow
-xfs/550 to pass.
-
-Who is actually testing this DAX code, and what are they actually
-testing on? These are not random failures - I haven't run DAX
-testing since ~5.18, and none of these failures were present on the
-same DAX test VM running the same configuration back then....
-
--Dave.
+Dave.
 -- 
 Dave Chinner
 david@fromorbit.com
