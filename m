@@ -1,40 +1,39 @@
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72B4F7481
-	for <nvdimm@lists.linux.dev>; Mon, 19 Sep 2022 23:46:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36BCC747E
+	for <nvdimm@lists.linux.dev>; Mon, 19 Sep 2022 23:46:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1663631201; x=1695167201;
+  t=1663631207; x=1695167207;
   h=subject:from:to:cc:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=wxHvp86GJD8bYcGle+ijwYCUQIn4oAnCr/tWh5NO3/Q=;
-  b=edJftiiznVtb4tudwwETpcNosHaUzjwobp396IdwrXMch3kmm8EW6yj/
-   X1vZU+mFmg/G/rGNHZRrhX7KPAIN4FRLPXcRzH8cwgudtFy2YqaFh0qYK
-   H7vOyWP24397RzOQ/aDUrfPG7avU2fpoLU7Wa8LUYAf46i7D2fdZyaCtn
-   A1u6FWFraNMiNZrqJkZSHgdXpsD8P1Em5j4qvtRAwgr01i+VnotuMamHj
-   Mi4w8BupFiGIbAnqL42mCTLFN1JhlKbpIwR2G6qg3wDrYJNYiPm/8xdYt
-   Jaaa4cReS7UH1O/pBZ5IdJF7af737A9KYmCbQvyS5/npxfucVvLtL2497
-   g==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10475"; a="385838511"
+  bh=9gaF7ojex/AWmcWNUcltPV8CEfpBA4/ub1OftBXVZhE=;
+  b=hn9sMPGaouffT5Z4sMlOA+QhbCsl0IT5xHFfOHEmITIs3WGKGFzDYoN/
+   HA5ZUKz1aMBzRMPPHQm7/iZAwQmsxR22hgU/jQBLdBMTuAA6o6sgfOC0H
+   Zduu4J7HzQsT3z8dGXnKSHsqMoBfMJMaZhT1Pp9BJlG9q0GRV8UP3QuCp
+   46Ie2mOekclH3SV6fVQTuzmnNR/+1ZRTBNWSiNz5xtoY3WU0DBDNU7/nU
+   kj0GOcWivXCvb/eJ+xTEJVQ9LMQHAgxjLAO8XaQvxlhfmoqp4XUoXLkJF
+   y5U15v9rGQ6RZkqtPDLTNRvY/2TkwR0hby+tY+nTzWIYWlRjgSslxyliQ
+   Q==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10475"; a="286596927"
 X-IronPort-AV: E=Sophos;i="5.93,329,1654585200"; 
-   d="scan'208";a="385838511"
+   d="scan'208";a="286596927"
 Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Sep 2022 16:46:40 -0700
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Sep 2022 16:46:46 -0700
 X-IronPort-AV: E=Sophos;i="5.93,329,1654585200"; 
-   d="scan'208";a="722504484"
+   d="scan'208";a="722504506"
 Received: from djiang5-desk3.ch.intel.com ([143.182.136.137])
-  by fmsmga002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Sep 2022 16:46:40 -0700
-Subject: [PATCH v2 1/9] cxl: add helper function to parse trace event to json
- object
+  by fmsmga002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Sep 2022 16:46:46 -0700
+Subject: [PATCH v2 2/9] cxl: add helper to parse through all current events
 From: Dave Jiang <dave.jiang@intel.com>
 To: linux-cxl@vger.kernel.org
 Cc: alison.schofield@intel.com, vishal.l.verma@intel.com, ira.weiny@intel.com,
  bwidawsk@kernel.org, dan.j.williams@intel.com, nafonten@amd.com,
  nvdimm@lists.linux.dev
-Date: Mon, 19 Sep 2022 16:46:40 -0700
+Date: Mon, 19 Sep 2022 16:46:46 -0700
 Message-ID: 
- <166363120028.3861186.15658213147992814983.stgit@djiang5-desk3.ch.intel.com>
+ <166363120598.3861186.12071132915910252601.stgit@djiang5-desk3.ch.intel.com>
 In-Reply-To: 
  <166363103019.3861186.3067220004819656109.stgit@djiang5-desk3.ch.intel.com>
 References: 
@@ -49,241 +48,107 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 
-Add the helper function that parses a trace event captured by
-libtraceevent in a tep handle. All the parsed fields are added to a json
-object. The json object is added to the provided list in the input parameter.
+Add common function to iterate through and extract the events in the
+current trace buffer. The function uses tracefs_iterate_raw_events() from
+libtracefs to go through all the events loaded into a tep_handle. A
+callback is provided to the API call in order to parse the event. For cxl
+monitor, an array of interested "systems" is provided in order to filter
+for the interested events.
 
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- cxl/event_trace.c |  166 +++++++++++++++++++++++++++++++++++++++++++++++++++++
- cxl/event_trace.h |   14 ++++
- cxl/meson.build   |    2 +
- meson.build       |    1 
- 4 files changed, 183 insertions(+)
- create mode 100644 cxl/event_trace.c
- create mode 100644 cxl/event_trace.h
+ cxl/event_trace.c |   33 +++++++++++++++++++++++++++++++++
+ cxl/event_trace.h |    7 +++++++
+ cxl/meson.build   |    1 +
+ meson.build       |    2 ++
+ 4 files changed, 43 insertions(+)
 
 diff --git a/cxl/event_trace.c b/cxl/event_trace.c
-new file mode 100644
-index 000000000000..ffa2a9b9b036
---- /dev/null
+index ffa2a9b9b036..430146ce66f5 100644
+--- a/cxl/event_trace.c
 +++ b/cxl/event_trace.c
-@@ -0,0 +1,166 @@
-+// SPDX-License-Identifier: GPL-2.0
-+// Copyright (C) 2022, Intel Corp. All rights reserved.
-+#include <stdio.h>
-+#include <json-c/json.h>
-+#include <util/json.h>
-+#include <util/util.h>
-+#include <util/parse-options.h>
-+#include <util/parse-configs.h>
-+#include <util/strbuf.h>
-+#include <util/sysfs.h>
-+#include <ccan/list/list.h>
-+#include <ndctl/ndctl.h>
-+#include <ndctl/libndctl.h>
-+#include <sys/epoll.h>
-+#include <sys/stat.h>
-+#include <libcxl.h>
-+#include <uuid/uuid.h>
-+#include <traceevent/event-parse.h>
-+#include "json.h"
-+#include "event_trace.h"
+@@ -16,6 +16,7 @@
+ #include <libcxl.h>
+ #include <uuid/uuid.h>
+ #include <traceevent/event-parse.h>
++#include <tracefs/tracefs.h>
+ #include "json.h"
+ #include "event_trace.h"
+ 
+@@ -164,3 +165,35 @@ err_jevent:
+ 	free(jnode);
+ 	return rc;
+ }
 +
-+#define _GNU_SOURCE
-+#include <string.h>
-+
-+static struct json_object *num_to_json(void *num, int size)
++static int cxl_event_parse_cb(struct tep_event *event, struct tep_record *record,
++		int cpu, void *ctx)
 +{
-+	if (size <= 4)
-+		return json_object_new_int(*(int *)num);
++	struct event_ctx *event_ctx = (struct event_ctx *)ctx;
++	int rc;
 +
-+	return util_json_object_hex(*(unsigned long long *)num, 0);
++	/* Filter out all the events that the caller isn't interested in. */
++	if (strcmp(event->system, event_ctx->system) != 0)
++		return 0;
++
++	rc = cxl_event_to_json_callback(event, record, &event_ctx->jlist_head);
++	if (rc < 0)
++		return rc;
++
++	return 0;
 +}
 +
-+static int cxl_event_to_json_callback(struct tep_event *event,
-+		struct tep_record *record, struct list_head *jlist_head)
++int cxl_parse_events(struct tracefs_instance *inst, struct event_ctx *ectx)
 +{
-+	struct tep_format_field **fields;
-+	struct json_object *jevent, *jobj, *jarray;
-+	struct jlist_node *jnode;
-+	int i, j, rc = 0;
++	struct tep_handle *tep;
++	int rc;
 +
-+	jnode = malloc(sizeof(*jnode));
-+	if (!jnode)
++	tep = tracefs_local_events(NULL);
++	if (!tep)
 +		return -ENOMEM;
 +
-+	jevent = json_object_new_object();
-+	if (!jevent) {
-+		rc = -ENOMEM;
-+		goto err_jevent;
-+	}
-+	jnode->jobj = jevent;
-+
-+	fields = tep_event_fields(event);
-+	if (!fields) {
-+		rc = -ENOENT;
-+		goto err;
-+	}
-+
-+	jobj = json_object_new_string(event->system);
-+	if (!jobj) {
-+		rc = -ENOMEM;
-+		goto err;
-+	}
-+	json_object_object_add(jevent, "system", jobj);
-+
-+	jobj = json_object_new_string(event->name);
-+	if (!jobj) {
-+		rc = -ENOMEM;
-+		goto err;
-+	}
-+	json_object_object_add(jevent, "event", jobj);
-+
-+	jobj = json_object_new_uint64(record->ts);
-+	if (!jobj) {
-+		rc = -ENOMEM;
-+		goto err;
-+	}
-+	json_object_object_add(jevent, "timestamp", jobj);
-+
-+	for (i = 0; fields[i]; i++) {
-+		struct tep_format_field *f = fields[i];
-+		int len;
-+		char *tmp;
-+
-+		tmp = strcasestr(f->type, "char[]");
-+		if (tmp) { /* event field is a string */
-+			char *str;
-+
-+			str = tep_get_field_raw(NULL, event, f->name, record, &len, 0);
-+			if (!str)
-+				continue;
-+
-+			jobj = json_object_new_string(str);
-+			if (!jobj) {
-+				rc = -ENOMEM;
-+				goto err;
-+			}
-+
-+			json_object_object_add(jevent, f->name, jobj);
-+		} else if (f->arraylen) { /* data array */
-+			unsigned char *data;
-+			int chunks;
-+
-+			data = tep_get_field_raw(NULL, event, f->name, record, &len, 0);
-+			if (!data)
-+				continue;
-+
-+			/* check to see if we have a UUID */
-+			tmp = strcasestr(f->name, "uuid");
-+			if (tmp && f->arraylen == 16) {
-+				char uuid[SYSFS_ATTR_SIZE];
-+
-+				uuid_unparse(data, uuid);
-+				jobj = json_object_new_string(uuid);
-+				if (!jobj) {
-+					rc = -ENOMEM;
-+					goto err;
-+				}
-+
-+				json_object_object_add(jevent, f->name, jobj);
-+				continue;
-+			}
-+
-+			jarray = json_object_new_array();
-+			if (!jarray) {
-+				rc = -ENOMEM;
-+				goto err;
-+			}
-+
-+			chunks = f->size / f->elementsize;
-+			for (j = 0; j < chunks; j++) {
-+				jobj = num_to_json(data, f->elementsize);
-+				if (!jobj) {
-+					json_object_put(jarray);
-+					return -ENOMEM;
-+				}
-+				json_object_array_add(jarray, jobj);
-+				data += f->elementsize;
-+			}
-+
-+			json_object_object_add(jevent, f->name, jarray);
-+		} else { /* single number */
-+			char *data;
-+
-+			data = tep_get_field_raw(NULL, event, f->name, record, &len, 0);
-+			if (!data)
-+				continue;
-+
-+			jobj = num_to_json(data, f->elementsize);
-+			if (!jobj) {
-+				rc = -ENOMEM;
-+				goto err;
-+			}
-+
-+			json_object_object_add(jevent, f->name, jobj);
-+		}
-+	}
-+
-+	list_add_tail(jlist_head, &jnode->list);
-+	return 0;
-+
-+err:
-+	json_object_put(jevent);
-+err_jevent:
-+	free(jnode);
++	rc = tracefs_iterate_raw_events(tep, inst, NULL, 0,
++			cxl_event_parse_cb, ectx);
++	tep_free(tep);
 +	return rc;
 +}
 diff --git a/cxl/event_trace.h b/cxl/event_trace.h
-new file mode 100644
-index 000000000000..00975a0b5680
---- /dev/null
+index 00975a0b5680..2fbefa1586d9 100644
+--- a/cxl/event_trace.h
 +++ b/cxl/event_trace.h
-@@ -0,0 +1,14 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/* Copyright (C) 2022 Intel Corporation. All rights reserved. */
-+#ifndef __CXL_EVENT_TRACE_H__
-+#define __CXL_EVENT_TRACE_H__
-+
-+#include <json-c/json.h>
-+#include <ccan/list/list.h>
-+
-+struct jlist_node {
-+	struct json_object *jobj;
-+	struct list_node list;
+@@ -11,4 +11,11 @@ struct jlist_node {
+ 	struct list_node list;
+ };
+ 
++struct event_ctx {
++	const char *system;
++	struct list_head jlist_head;
 +};
 +
-+#endif
++int cxl_parse_events(struct tracefs_instance *inst, struct event_ctx *ectx);
++
+ #endif
 diff --git a/cxl/meson.build b/cxl/meson.build
-index f2474aaa6e2e..8c7733431613 100644
+index 8c7733431613..c59876262e76 100644
 --- a/cxl/meson.build
 +++ b/cxl/meson.build
-@@ -7,6 +7,7 @@ cxl_src = [
-   'memdev.c',
-   'json.c',
-   'filter.c',
-+  'event_trace.c',
- ]
- 
- cxl_tool = executable('cxl',
-@@ -19,6 +20,7 @@ cxl_tool = executable('cxl',
-     kmod,
+@@ -21,6 +21,7 @@ cxl_tool = executable('cxl',
      json,
      versiondep,
-+    traceevent,
+     traceevent,
++    tracefs,
    ],
    install : true,
    install_dir : rootbindir,
 diff --git a/meson.build b/meson.build
-index 20a646d135c7..f611e0bdd7f3 100644
+index f611e0bdd7f3..c204c8ac52de 100644
 --- a/meson.build
 +++ b/meson.build
-@@ -142,6 +142,7 @@ kmod = dependency('libkmod')
- libudev = dependency('libudev')
+@@ -143,6 +143,8 @@ libudev = dependency('libudev')
  uuid = dependency('uuid')
  json = dependency('json-c')
-+traceevent = dependency('libtraceevent')
+ traceevent = dependency('libtraceevent')
++tracefs = dependency('libtracefs')
++
  if get_option('docs').enabled()
    if get_option('asciidoctor').enabled()
      asciidoc = find_program('asciidoctor', required : true)
