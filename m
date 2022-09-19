@@ -1,347 +1,388 @@
-Received: from aye.elm.relay.mailchannels.net (aye.elm.relay.mailchannels.net [23.83.212.6])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02F964A1F
-	for <nvdimm@lists.linux.dev>; Mon, 19 Sep 2022 11:42:27 +0000 (UTC)
-X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
-Received: from relay.mailchannels.net (localhost [127.0.0.1])
-	by relay.mailchannels.net (Postfix) with ESMTP id 797081236BD;
-	Mon, 19 Sep 2022 11:25:55 +0000 (UTC)
-Received: from pdx1-sub0-mail-a263 (unknown [127.0.0.6])
-	(Authenticated sender: dreamhost)
-	by relay.mailchannels.net (Postfix) with ESMTPA id B568E123220;
-	Mon, 19 Sep 2022 11:25:54 +0000 (UTC)
-ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1663586754; a=rsa-sha256;
-	cv=none;
-	b=8HQK08uw8EUbz+K+TnRg9fP57KzbZtyCMGDt9BLYASen1sOJVGhJEONE8vNFISF+zCvoxb
-	XaUbDFMGpDf683K0sEQ9wW6lMaqEa9bb0ScrnJM5YyayTKMP27AJ5NHpfPztjc3+13vvsC
-	zSTGDokLCgpSnoENp6/7ewSBsaCX2kDvAzFV3VXIptO7y7j7azGouFHdLkY0+Ro4+hwMiZ
-	yobUsk0hEwAIzUj9rc5FwZb9umVWeEHM8v8+4VOEkG+eoAajLvmJCUqAiiaFj0EgArJMvS
-	DWEB670Z5CLH9Ttl2Lur49c+j5LZRMvShOH9xt2hrNWf4v3HPR8amZb37JA8eA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
- d=mailchannels.net;
-	s=arc-2022; t=1663586754;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:dkim-signature;
-	bh=gg9aOCDP6c4mrsDjdaPERES3849dYDvvYWHpCqCjES0=;
-	b=ssphTPaw4Q4pzWGkcGmJwmWl9Vyx9WmWiV1F3U9lf+FCp6INXQ0CXKGS7GCWdz0Ih+JbkT
-	i98DvAh+lA5Y7It36FTXRCDLSU8f+mW/cVnkGobNk39D+g0m69tPapKIeW1l1JOtsuG3T6
-	k2ki3gqibd4OqCmONe1+pnusIdl0OJBw9S7EJtpVJaqiT5Rb21kCs29tn3jxas8NuY/Z5u
-	vMtD8OR1BEm6L4yqhu4pCwEhh4SIyRanOfAmumnP8bHNCB0PJTJDxQq1arCzWPFqKVrl9Q
-	ubiz7eihKqARF6FSAAHytrqzR97tPRNT2yEn8vWczvNJ6Uq3hLrU9A2b0K7PFg==
-ARC-Authentication-Results: i=1;
-	rspamd-686945db84-m9jbc;
-	auth=pass smtp.auth=dreamhost smtp.mailfrom=dave@stgolabs.net
-X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
-X-MC-Relay: Neutral
-X-MailChannels-SenderId: dreamhost|x-authsender|dave@stgolabs.net
-X-MailChannels-Auth-Id: dreamhost
-X-Abaft-Zesty: 2ba7123e103cbe5c_1663586755151_102532906
-X-MC-Loop-Signature: 1663586755151:944648257
-X-MC-Ingress-Time: 1663586755151
-Received: from pdx1-sub0-mail-a263 (pop.dreamhost.com [64.90.62.162])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
-	by 100.115.125.73 (trex/6.7.1);
-	Mon, 19 Sep 2022 11:25:55 +0000
-Received: from localhost.localdomain (unknown [83.137.2.198])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	(Authenticated sender: dave@stgolabs.net)
-	by pdx1-sub0-mail-a263 (Postfix) with ESMTPSA id 4MWMmq67xlzMS;
-	Mon, 19 Sep 2022 04:25:46 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=stgolabs.net;
-	s=dreamhost; t=1663586754;
-	bh=gg9aOCDP6c4mrsDjdaPERES3849dYDvvYWHpCqCjES0=;
-	h=From:To:Cc:Subject:Date:Content-Transfer-Encoding;
-	b=hnRfKmySTj74GdxiGVQdWOiPxRqhue/Yhi+h/mXCk8dE56pmUR+snmuyX6Hpwy58i
-	 ExunNJKntrce6xIxMsjU3wyCd9x+IJUwq5wsge3MFrhn67i2/ik98X2NSooJpYWnxA
-	 pjAfhZ2eCDN+VFelLRZf2m6qGyd0HLVhaG2t7OkDV61SmixzJQYXe3RxaCL2zZtMSf
-	 Uqqu0AilQMj3/1wfxLLrzHVGCkji0GVinLmic+ETFWQutD+d+fbwtfotUebKcRGSal
-	 fOoMgofdgyYTaldCKfiGPV60yl3qZn4n5nta+u7Z0il0I3sJymIsMmaPehYsDx9XaL
-	 d8zvri4QGnE5g==
-From: Davidlohr Bueso <dave@stgolabs.net>
-To: dan.j.williams@intel.com
-Cc: peterz@infradead.org,
-	bp@alien8.de,
-	akpm@linux-foundation.org,
-	hch@lst.de,
-	dave.jiang@intel.com,
-	Jonathan.Cameron@huawei.com,
-	vishal.l.verma@intel.com,
-	ira.weiny@intel.com,
-	a.manzanares@samsung.com,
-	x86@kernel.org,
-	nvdimm@lists.linux.dev,
-	linux-cxl@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	dave@stgolabs.net
-Subject: [PATCH v3 -next] memregion: Add cpu_cache_invalidate_memregion() interface
-Date: Mon, 19 Sep 2022 04:06:05 -0700
-Message-Id: <20220919110605.3696-1-dave@stgolabs.net>
-X-Mailer: git-send-email 2.37.0
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AAF97C
+	for <nvdimm@lists.linux.dev>; Mon, 19 Sep 2022 16:11:55 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1663603915; x=1695139915;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=VN0E0H5V3LgM+cMDZKfSfUqI54GPl39S5DCoHTJfYUA=;
+  b=Fb2ZYgszxUOHCH0bjFcK2GIokpbEfdmWgeXrIdGzOZBAyaAB8M8oiu4l
+   pFKL1gKNJcEWTahEJOrGKOHI2Ddkt6mJ7samIKKfIpYC4yfYdzCpUOiCm
+   TPyYk0kfO0QP+5PRVT72SQXYL1HaJP2um2t7tXgpIlOpA4O93YJEspzMZ
+   6ZYt0uJ3ywmrxWs0d8ktflQSZog7d/0U2ZwqBkl6WzwWG4PWQXaTRsNm+
+   /pRCvnoNjX62Mvthyh6w0A2GzV38sHRv2OZO3EH0ne1zXqr+Cm3ARDYPy
+   GsIUdHLehM2GqOEDMHwfCwCfxEXfo5GF3eOpdL4zA58c2cJRUzFdcOpNW
+   A==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10475"; a="300260986"
+X-IronPort-AV: E=Sophos;i="5.93,328,1654585200"; 
+   d="scan'208";a="300260986"
+Received: from fmsmga007.fm.intel.com ([10.253.24.52])
+  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Sep 2022 09:11:54 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.93,328,1654585200"; 
+   d="scan'208";a="620908317"
+Received: from fmsmsx602.amr.corp.intel.com ([10.18.126.82])
+  by fmsmga007.fm.intel.com with ESMTP; 19 Sep 2022 09:11:54 -0700
+Received: from fmsmsx611.amr.corp.intel.com (10.18.126.91) by
+ fmsmsx602.amr.corp.intel.com (10.18.126.82) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31; Mon, 19 Sep 2022 09:11:54 -0700
+Received: from fmsmsx603.amr.corp.intel.com (10.18.126.83) by
+ fmsmsx611.amr.corp.intel.com (10.18.126.91) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31; Mon, 19 Sep 2022 09:11:53 -0700
+Received: from fmsedg601.ED.cps.intel.com (10.1.192.135) by
+ fmsmsx603.amr.corp.intel.com (10.18.126.83) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31 via Frontend Transport; Mon, 19 Sep 2022 09:11:53 -0700
+Received: from NAM04-DM6-obe.outbound.protection.outlook.com (104.47.73.43) by
+ edgegateway.intel.com (192.55.55.70) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2375.31; Mon, 19 Sep 2022 09:11:53 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=BrnQReM7ch1Qp2y8X/GpK3zZ910uFasvTHS7xUyOv1nslWaIluB7T+QPOxFlFZ7pL/59QiVKzc4QG0Xnz7aHSOjD4O6DZCHrLce3Jut8SV2d2sSTHe2MZ/T6ZvWri4KxOZcqiDB+K4KHHPPREUYHxuCyCQIfQiVOtNM4r/nIWHBRQv0JRBOSG2Za0/3fvVmWbZrBUdIRu17bA3cDREkRWJnoNJvD3tsFfH65DwX1SLPMKg9ni+d+ZoI8iG6hQSEFlBhPtJqd9L7FjFeDBMlNoZPaj/SBABoXBisOiX2Pgh0fhJnyeQboPs5zVl7u/LBZa6Opt81nD4nk7IjD26sElQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=DPcGIQmAaOH1CraeAEBL8KL2/8nG8ph3hbnGDKlHHMU=;
+ b=E/tdjWZ8m8xaB6tmwCoJo/TR4EpjX/iKzAmOVeauxlw3ALstS1m3azzuV1pNQMtuZBQEftb2Q9XcFfOIfAeKcesdmSqrKN3edXFGMcQQgahkwpaAemttWbfkJ1AhcCPkP05vthvCOfFFGNgbnEejev5jrmeReFmd13Vt5aMQyx8jU6Y8e0bMwZUQ703odEoqczsi3j9BMU+GbuZ4cT/ezGub4SwGurkkraTqkOeTiBuKul4v+IkOTDwx92gZWkRuykxdqlVwgZgIfm0xFkoZQnHNFU9DNX4nUy4WE7CYYioBj/M8BYbwT3F3XwOjWHL7g/ENprc2TZOD6g6YfAEwOQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
+ (2603:10b6:301:50::20) by BN9PR11MB5465.namprd11.prod.outlook.com
+ (2603:10b6:408:11e::18) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5632.21; Mon, 19 Sep
+ 2022 16:11:51 +0000
+Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
+ ([fe80::9847:345e:4c5b:ca12]) by MWHPR1101MB2126.namprd11.prod.outlook.com
+ ([fe80::9847:345e:4c5b:ca12%6]) with mapi id 15.20.5632.021; Mon, 19 Sep 2022
+ 16:11:51 +0000
+Date: Mon, 19 Sep 2022 09:11:48 -0700
+From: Dan Williams <dan.j.williams@intel.com>
+To: Dave Chinner <david@fromorbit.com>, Dan Williams
+	<dan.j.williams@intel.com>
+CC: <akpm@linux-foundation.org>, Matthew Wilcox <willy@infradead.org>, "Jan
+ Kara" <jack@suse.cz>, "Darrick J. Wong" <djwong@kernel.org>, Jason Gunthorpe
+	<jgg@nvidia.com>, Christoph Hellwig <hch@lst.de>, John Hubbard
+	<jhubbard@nvidia.com>, <linux-fsdevel@vger.kernel.org>,
+	<nvdimm@lists.linux.dev>, <linux-xfs@vger.kernel.org>, <linux-mm@kvack.org>,
+	<linux-ext4@vger.kernel.org>
+Subject: Re: [PATCH v2 05/18] xfs: Add xfs_break_layouts() to the inode
+ eviction path
+Message-ID: <632894c4738d8_2a6ded294a@dwillia2-xfh.jf.intel.com.notmuch>
+References: <166329930818.2786261.6086109734008025807.stgit@dwillia2-xfh.jf.intel.com>
+ <166329933874.2786261.18236541386474985669.stgit@dwillia2-xfh.jf.intel.com>
+ <20220918225731.GG3600936@dread.disaster.area>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20220918225731.GG3600936@dread.disaster.area>
+X-ClientProxiedBy: SJ0PR03CA0027.namprd03.prod.outlook.com
+ (2603:10b6:a03:33a::32) To MWHPR1101MB2126.namprd11.prod.outlook.com
+ (2603:10b6:301:50::20)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: MWHPR1101MB2126:EE_|BN9PR11MB5465:EE_
+X-MS-Office365-Filtering-Correlation-Id: 915436a7-b58a-4fc5-ab16-08da9a59a989
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: m7J85kc01GbZYesk64ywtUxCaKywDjU9MMqop+mHGSDiRx+kglENiE3/kM63H4wzC/+vZ7wRZU4qjFOuHkTAthgcAgWIuz+EEmXZXfm/7SqiT7T8zqkvJdnmTq4lMVv6GBVkitPnGDoKvWlIPEs/g/DWju6mH8c2dCd8Y6ZDL+X6O1GVwHaTrDj8WkY2cLwApz19I5cokXrdLhBRqSTzYcHAuL2rHpk/gG9yoGbT4ta6aVLY5uO+vcm310j4/rHuTwGlD5sboVIvL9mrHji2KGJ2ybdkahCcX1YEWfkAjRD3YcRqG505RDBozD+5WD3Su2NM1R0sbMEoc9q7gzAopfEIdUqlMXaChsQk/fiEo74yj0mhsmza/bf+5Rd+NR4TUylR96hlRyzvddlID7IOrR2Ca6GjnQW0M5r/K7/lRsDXaZIY/x9d51n49hPE3VcH+ffsxWS2qVzGniqegXM+VW7MF7r8Q+RuKj/KnP4PiLW32XK0YWtAAGn8czeLyLtKgU5pcnwA5qHzvgGP4QtWttXFobE0Lgxfpov1B1DAazRsyrURGsAao9O4tuCTBnCgI0z+abmd5EwminM0yFAQHveJwdhcwNZpmiQZHtyXLVS7OUajgB3sxxqHQ8IYS3qu0Iq2YOupLKyRJc4sRIjlvPc0tp+fAS8rg+rm4yK4rVxAKu4+2SqAEdwOsobvVIOgGavHsb6r92tJRiTNZffwDQ==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1101MB2126.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230022)(376002)(346002)(396003)(366004)(136003)(39860400002)(451199015)(6506007)(4326008)(2906002)(86362001)(38100700002)(8936002)(6512007)(9686003)(6486002)(26005)(66476007)(8676002)(66946007)(41300700001)(6666004)(478600001)(82960400001)(110136005)(83380400001)(66556008)(186003)(5660300002)(54906003)(316002)(7416002);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?WHErHPzxFLpKovVGulo33I3Uj1UqsTYPR9mts+7cAEVm2AJ7Bk5GGt44MsNu?=
+ =?us-ascii?Q?CXz3gyx1OQX+CECh48YqX3xlDAiCKKBxxsDuEp6xKqPvS9k0ZRiK5xjVQbxJ?=
+ =?us-ascii?Q?XkX8O8hIV+2eEUym5wYM/7cEntbicv2GA2QivBVE6RCnFdbl3dw69t+vOhjM?=
+ =?us-ascii?Q?BsD/8hT3/4zmzCWopq0qnRPNJerSrFj6rhYP2tuGJUkf0i6n6SPPljg/9uXj?=
+ =?us-ascii?Q?ueTUOOQRGNpef4gup+nJJsSz4IFXAn36dv95sXH1PSkceLR8tvTSPb9zldtQ?=
+ =?us-ascii?Q?vqF4bXq1CguRsgcYL7cnn0J5DG1Y0wr9m+o4W3JsE/+sxz2TkEOzAaPJ3acP?=
+ =?us-ascii?Q?s2gKd26wy2g50tj7bXx+t6wq2WHg95c0JvFtWocpKyKdXrbXpct9cazkwOO6?=
+ =?us-ascii?Q?c03TCS1GwjeH1Q8hivW2TAZk0vLqcegtN58WkeOfg4Xz9l21hiA/D2kAdzls?=
+ =?us-ascii?Q?71wEpQOgIqxdlt4+TN0zR5UQzAc8JhtSDxWYduZXkcrJcliRpWuQjBeoC/gB?=
+ =?us-ascii?Q?r5gD+Seiy7MnK1P+jlcouZ6ACTiMEUAOuCLYJdaAHj11cplxlkYOtLC9ayoi?=
+ =?us-ascii?Q?pwYu9x7wPD73+7ZjCtxqOoRc2g1KYsD+qxpBVC4WVWeEOX1EIvsNObHPMhcI?=
+ =?us-ascii?Q?2QtukTP7HiE0aw56X1ytS2qPW/eGirSGTnUZ/V5hXmT2pFHbC05MJ49KdEuM?=
+ =?us-ascii?Q?IU5wD/dR+LwC1/72W90QSXj6mM14XBY/0N0qsWOrcltnz2e2jz2w4UfXzBG5?=
+ =?us-ascii?Q?uxBEX2Ioem0dGeS+MBu5S3/SmV+jIOpy1QfD9Jr3j8z7IvuAWKz+s4G0PBtm?=
+ =?us-ascii?Q?ysYl8DM9U35y9DEauq+Durn8q2M7QjwkmccFmeEgUyZPfCi1/ayLkb7/Dotq?=
+ =?us-ascii?Q?5u3P+vQmNRtDytmrQUz4AOKnKOeTKdQAlfFipUCNr3PeslVed81CgEespWxY?=
+ =?us-ascii?Q?xQKsERR1kuK0qjK9ScvIC392dmDVS07mKRL5D3GtvrYUDWMXHdMXu1/3I1nW?=
+ =?us-ascii?Q?R4b9VOvZbQ5kF+f65GzmSN0jZTHKPNbP3IIle6KRkkouTbmJvQsfYE1IGHch?=
+ =?us-ascii?Q?V4svDoJhykAWbIYc07oCQ4rJfk7pqJWKgIcabjKkp6VOUN1G3ZOf29B0SbGW?=
+ =?us-ascii?Q?elFms3R5vA4E2PgfnApD3phrlCIVqrhZXGh5AaE9UobLFl40mOA2g8n/TheM?=
+ =?us-ascii?Q?CYd6OIJgMnOum/PD9bxUJSN5oKZBklX09qbgagttG6k2uey1y0saSPTIrt0b?=
+ =?us-ascii?Q?fwlfpm8DEj0TWmuRORBwRxc6U3mrb+mAXgPRmv2xhPwJeF/W1ZK8ZNYv1yXQ?=
+ =?us-ascii?Q?JVMLoeVFNKq+it5SHN6HAgbZTMjbGap9AcGEkzIRaZq6jsXAOmxyuXZE2jZw?=
+ =?us-ascii?Q?ItZ1MNB0p3eTymeCOOgJ7e6KIQbquQwDfort66/mtZdZPouV8HF2XRnWMs8c?=
+ =?us-ascii?Q?pi9fFmHJj50e0QqwA5Rit5tGTxPfyZjldkveJZCPcA54hQ4cCb4CV6wnwcrQ?=
+ =?us-ascii?Q?/rD/hI9OvmxuCvOT6qsu9e3dNcIRix27sP1qXcoa3yyUU8iVfgxurBnV4Hrl?=
+ =?us-ascii?Q?Zf5Xy31dT6hMSEa1ahl9tBtNz66R9Pyaw//7cf2GLJglhWvaidgUX9Sy0Wy5?=
+ =?us-ascii?Q?ZA=3D=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: 915436a7-b58a-4fc5-ab16-08da9a59a989
+X-MS-Exchange-CrossTenant-AuthSource: MWHPR1101MB2126.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 19 Sep 2022 16:11:51.5828
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: JezHI4rgMyDoSGRnr8WK/A1KuAknPtjwfKN4hK+hX+bYSMY4gIqD9izjko0TTliZYOmyLPpAhdRF63uGaqO/tL3QM6MSVr1RLcPY8CE7CUM=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BN9PR11MB5465
+X-OriginatorOrg: intel.com
 
-With CXL security features, global CPU cache flushing nvdimm requirements
-are no longer specific to that subsystem, even beyond the scope of
-security_ops. CXL will need such semantics for features not necessarily
-limited to persistent memory.
+Dave Chinner wrote:
+> On Thu, Sep 15, 2022 at 08:35:38PM -0700, Dan Williams wrote:
+> > In preparation for moving DAX pages to be 0-based rather than 1-based
+> > for the idle refcount, the fsdax core wants to have all mappings in a
+> > "zapped" state before truncate. For typical pages this happens naturally
+> > via unmap_mapping_range(), for DAX pages some help is needed to record
+> > this state in the 'struct address_space' of the inode(s) where the page
+> > is mapped.
+> > 
+> > That "zapped" state is recorded in DAX entries as a side effect of
+> > xfs_break_layouts(). Arrange for it to be called before all truncation
+> > events which already happens for truncate() and PUNCH_HOLE, but not
+> > truncate_inode_pages_final(). Arrange for xfs_break_layouts() before
+> > truncate_inode_pages_final().
+> 
+> Ugh. That's nasty and awful.
+> 
+> 
+> 
+> > Cc: Matthew Wilcox <willy@infradead.org>
+> > Cc: Jan Kara <jack@suse.cz>
+> > Cc: "Darrick J. Wong" <djwong@kernel.org>
+> > Cc: Jason Gunthorpe <jgg@nvidia.com>
+> > Cc: Christoph Hellwig <hch@lst.de>
+> > Cc: John Hubbard <jhubbard@nvidia.com>
+> > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> > ---
+> >  fs/xfs/xfs_file.c  |   13 +++++++++----
+> >  fs/xfs/xfs_inode.c |    3 ++-
+> >  fs/xfs/xfs_inode.h |    6 ++++--
+> >  fs/xfs/xfs_super.c |   22 ++++++++++++++++++++++
+> >  4 files changed, 37 insertions(+), 7 deletions(-)
+> > 
+> > diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+> > index 556e28d06788..d3ff692d5546 100644
+> > --- a/fs/xfs/xfs_file.c
+> > +++ b/fs/xfs/xfs_file.c
+> > @@ -816,7 +816,8 @@ xfs_wait_dax_page(
+> >  int
+> >  xfs_break_dax_layouts(
+> >  	struct inode		*inode,
+> > -	bool			*retry)
+> > +	bool			*retry,
+> > +	int			state)
+> >  {
+> >  	struct page		*page;
+> >  
+> > @@ -827,8 +828,8 @@ xfs_break_dax_layouts(
+> >  		return 0;
+> >  
+> >  	*retry = true;
+> > -	return ___wait_var_event(page, dax_page_idle(page), TASK_INTERRUPTIBLE,
+> > -				 0, 0, xfs_wait_dax_page(inode));
+> > +	return ___wait_var_event(page, dax_page_idle(page), state, 0, 0,
+> > +				 xfs_wait_dax_page(inode));
+> >  }
+> >  
+> >  int
+> > @@ -839,14 +840,18 @@ xfs_break_layouts(
+> >  {
+> >  	bool			retry;
+> >  	int			error;
+> > +	int			state = TASK_INTERRUPTIBLE;
+> >  
+> >  	ASSERT(xfs_isilocked(XFS_I(inode), XFS_IOLOCK_SHARED|XFS_IOLOCK_EXCL));
+> >  
+> >  	do {
+> >  		retry = false;
+> >  		switch (reason) {
+> > +		case BREAK_UNMAP_FINAL:
+> > +			state = TASK_UNINTERRUPTIBLE;
+> > +			fallthrough;
+> >  		case BREAK_UNMAP:
+> > -			error = xfs_break_dax_layouts(inode, &retry);
+> > +			error = xfs_break_dax_layouts(inode, &retry, state);
+> >  			if (error || retry)
+> >  				break;
+> >  			fallthrough;
+> > diff --git a/fs/xfs/xfs_inode.c b/fs/xfs/xfs_inode.c
+> > index 28493c8e9bb2..72ce1cb72736 100644
+> > --- a/fs/xfs/xfs_inode.c
+> > +++ b/fs/xfs/xfs_inode.c
+> > @@ -3452,6 +3452,7 @@ xfs_mmaplock_two_inodes_and_break_dax_layout(
+> >  	struct xfs_inode	*ip1,
+> >  	struct xfs_inode	*ip2)
+> >  {
+> > +	int			state = TASK_INTERRUPTIBLE;
+> >  	int			error;
+> >  	bool			retry;
+> >  	struct page		*page;
+> > @@ -3463,7 +3464,7 @@ xfs_mmaplock_two_inodes_and_break_dax_layout(
+> >  	retry = false;
+> >  	/* Lock the first inode */
+> >  	xfs_ilock(ip1, XFS_MMAPLOCK_EXCL);
+> > -	error = xfs_break_dax_layouts(VFS_I(ip1), &retry);
+> > +	error = xfs_break_dax_layouts(VFS_I(ip1), &retry, state);
+> >  	if (error || retry) {
+> >  		xfs_iunlock(ip1, XFS_MMAPLOCK_EXCL);
+> >  		if (error == 0 && retry)
+> > diff --git a/fs/xfs/xfs_inode.h b/fs/xfs/xfs_inode.h
+> > index fa780f08dc89..e4994eb6e521 100644
+> > --- a/fs/xfs/xfs_inode.h
+> > +++ b/fs/xfs/xfs_inode.h
+> > @@ -454,11 +454,13 @@ static inline bool xfs_inode_has_large_extent_counts(struct xfs_inode *ip)
+> >   * layout-holder has a consistent view of the file's extent map. While
+> >   * BREAK_WRITE breaks can be satisfied by recalling FL_LAYOUT leases,
+> >   * BREAK_UNMAP breaks additionally require waiting for busy dax-pages to
+> > - * go idle.
+> > + * go idle. BREAK_UNMAP_FINAL is an uninterruptible version of
+> > + * BREAK_UNMAP.
+> >   */
+> >  enum layout_break_reason {
+> >          BREAK_WRITE,
+> >          BREAK_UNMAP,
+> > +        BREAK_UNMAP_FINAL,
+> >  };
+> >  
+> >  /*
+> > @@ -531,7 +533,7 @@ xfs_itruncate_extents(
+> >  }
+> >  
+> >  /* from xfs_file.c */
+> > -int	xfs_break_dax_layouts(struct inode *inode, bool *retry);
+> > +int	xfs_break_dax_layouts(struct inode *inode, bool *retry, int state);
+> >  int	xfs_break_layouts(struct inode *inode, uint *iolock,
+> >  		enum layout_break_reason reason);
+> >  
+> > diff --git a/fs/xfs/xfs_super.c b/fs/xfs/xfs_super.c
+> > index 9ac59814bbb6..ebb4a6eba3fc 100644
+> > --- a/fs/xfs/xfs_super.c
+> > +++ b/fs/xfs/xfs_super.c
+> > @@ -725,6 +725,27 @@ xfs_fs_drop_inode(
+> >  	return generic_drop_inode(inode);
+> >  }
+> >  
+> > +STATIC void
+> > +xfs_fs_evict_inode(
+> > +	struct inode		*inode)
+> > +{
+> > +	struct xfs_inode	*ip = XFS_I(inode);
+> > +	uint			iolock = XFS_IOLOCK_EXCL | XFS_MMAPLOCK_EXCL;
+> > +	long			error;
+> > +
+> > +	xfs_ilock(ip, iolock);
+> 
+> I'm guessing you never ran this through lockdep.
 
-The functionality this is enabling is to be able to instantaneously
-secure erase potentially terabytes of memory at once and the kernel
-needs to be sure that none of the data from before the erase is still
-present in the cache. It is also used when unlocking a memory device
-where speculative reads and firmware accesses could have cached poison
-from before the device was unlocked.
+I always run with lockdep enabled in my development kernels, but maybe my
+testing was insufficient? Somewhat moot with your concerns below...
 
-This capability is typically only used once per-boot (for unlock), or
-once per bare metal provisioning event (secure erase), like when handing
-off the system to another tenant or decommissioning a device. It may
-also be used for dynamic CXL region provisioning.
+> The general rule is that XFS should not take inode locks directly in
+> the inode eviction path because lockdep tends to throw all manner of
+> memory reclaim related false positives when we do this. We most
+> definitely don't want to be doing this for anything other than
+> regular files that are DAX enabled, yes?
 
-Users must first call cpu_cache_has_invalidate_memregion() to know whether
-this functionality is available on the architecture. Only enable it on
-x86-64 via the wbinvd() hammer. Hypervisors are not supported as TDX
-guests may trigger a virtualization exception and may need proper handling
-to recover. See:
+Guilty. I sought to satisfy the locking expectations of the
+break_layouts internals rather than drop the unnecessary locking.
 
-   e2efb6359e62 ("ACPICA: Avoid cache flush inside virtual machines")
+> 
+> We also don't want to arbitrarily block memory reclaim for long
+> periods of time waiting on an inode lock.  People seem to get very
+> upset when we introduce unbound latencies into the memory reclaim
+> path...
+> 
+> Indeed, what are you actually trying to serialise against here?
+> Nothing should have a reference to the inode, nor should anything be
+> able to find and take a new reference to the inode while it is being
+> evicted....
 
-Signed-off-by: Davidlohr Bueso <dave@stgolabs.net>
----
-Changes from v2 (https://lore.kernel.org/all/20220829212918.4039240-1-dave@stgolabs.net/):
-- Change the names and params (Dan).
-- GPL symbols (Boris).
-- Mentioned VMM check in the changelog (Boris).
+Ok.
 
+> 
+> > +	error = xfs_break_layouts(inode, &iolock, BREAK_UNMAP_FINAL);
+> > +
+> > +	/* The final layout break is uninterruptible */
+> > +	ASSERT_ALWAYS(!error);
+> 
+> We don't do error handling with BUG(). If xfs_break_layouts() truly
+> can't fail (what happens if the fs is shut down and some internal
+> call path now detects that and returns -EFSCORRUPTED?), theni
+> WARN_ON_ONCE() and continuing to tear down the inode so the system
+> is not immediately compromised is the appropriate action here.
+> 
+> > +
+> > +	truncate_inode_pages_final(&inode->i_data);
+> > +	clear_inode(inode);
+> > +
+> > +	xfs_iunlock(ip, iolock);
+> > +}
+> 
+> That all said, this really looks like a bit of a band-aid.
 
- arch/x86/Kconfig             |  1 +
- arch/x86/mm/pat/set_memory.c | 15 +++++++++++++
- drivers/acpi/nfit/intel.c    | 41 ++++++++++++++++--------------------
- include/linux/memregion.h    | 35 ++++++++++++++++++++++++++++++
- lib/Kconfig                  |  3 +++
- 5 files changed, 72 insertions(+), 23 deletions(-)
+It definitely is since DAX is in this transitory state between doing
+some activities page-less and others with page metadata. If DAX was
+fully committed to behaving like a typical page then
+unmap_mapping_range() would have already satisfied this reference
+counting situation.
 
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 2e8f6fd28e59..fa5cc581315a 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -69,6 +69,7 @@ config X86
- 	select ARCH_ENABLE_THP_MIGRATION if X86_64 && TRANSPARENT_HUGEPAGE
- 	select ARCH_HAS_ACPI_TABLE_UPGRADE	if ACPI
- 	select ARCH_HAS_CACHE_LINE_SIZE
-+	select ARCH_HAS_CPU_CACHE_INVALIDATE_MEMREGION  if X86_64
- 	select ARCH_HAS_CURRENT_STACK_POINTER
- 	select ARCH_HAS_DEBUG_VIRTUAL
- 	select ARCH_HAS_DEBUG_VM_PGTABLE	if !X86_PAE
-diff --git a/arch/x86/mm/pat/set_memory.c b/arch/x86/mm/pat/set_memory.c
-index 0656db33574d..7d940ae2fede 100644
---- a/arch/x86/mm/pat/set_memory.c
-+++ b/arch/x86/mm/pat/set_memory.c
-@@ -330,6 +330,21 @@ void arch_invalidate_pmem(void *addr, size_t size)
- EXPORT_SYMBOL_GPL(arch_invalidate_pmem);
- #endif
- 
-+#ifdef CONFIG_ARCH_HAS_CPU_CACHE_INVALIDATE_MEMREGION
-+bool cpu_cache_has_invalidate_memregion(void)
-+{
-+	return !cpu_feature_enabled(X86_FEATURE_HYPERVISOR);
-+}
-+EXPORT_SYMBOL_GPL(cpu_cache_has_invalidate_memregion);
-+
-+int cpu_cache_invalidate_memregion(int res_desc)
-+{
-+	wbinvd_on_all_cpus();
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(cpu_cache_invalidate_memregion);
-+#endif
-+
- static void __cpa_flush_all(void *arg)
- {
- 	unsigned long cache = (unsigned long)arg;
-diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
-index 8dd792a55730..b2bfbf5797da 100644
---- a/drivers/acpi/nfit/intel.c
-+++ b/drivers/acpi/nfit/intel.c
-@@ -3,6 +3,7 @@
- #include <linux/libnvdimm.h>
- #include <linux/ndctl.h>
- #include <linux/acpi.h>
-+#include <linux/memregion.h>
- #include <asm/smp.h>
- #include "intel.h"
- #include "nfit.h"
-@@ -190,8 +191,6 @@ static int intel_security_change_key(struct nvdimm *nvdimm,
- 	}
- }
- 
--static void nvdimm_invalidate_cache(void);
--
- static int __maybe_unused intel_security_unlock(struct nvdimm *nvdimm,
- 		const struct nvdimm_key_data *key_data)
- {
-@@ -213,6 +212,9 @@ static int __maybe_unused intel_security_unlock(struct nvdimm *nvdimm,
- 	if (!test_bit(NVDIMM_INTEL_UNLOCK_UNIT, &nfit_mem->dsm_mask))
- 		return -ENOTTY;
- 
-+	if (!cpu_cache_has_invalidate_memregion())
-+		return -EINVAL;
-+
- 	memcpy(nd_cmd.cmd.passphrase, key_data->data,
- 			sizeof(nd_cmd.cmd.passphrase));
- 	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
-@@ -228,7 +230,7 @@ static int __maybe_unused intel_security_unlock(struct nvdimm *nvdimm,
- 	}
- 
- 	/* DIMM unlocked, invalidate all CPU caches before we read it */
--	nvdimm_invalidate_cache();
-+	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
- 
- 	return 0;
- }
-@@ -297,8 +299,11 @@ static int __maybe_unused intel_security_erase(struct nvdimm *nvdimm,
- 	if (!test_bit(cmd, &nfit_mem->dsm_mask))
- 		return -ENOTTY;
- 
-+	if (!cpu_cache_has_invalidate_memregion())
-+		return -EINVAL;
-+
- 	/* flush all cache before we erase DIMM */
--	nvdimm_invalidate_cache();
-+	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
- 	memcpy(nd_cmd.cmd.passphrase, key->data,
- 			sizeof(nd_cmd.cmd.passphrase));
- 	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
-@@ -318,7 +323,7 @@ static int __maybe_unused intel_security_erase(struct nvdimm *nvdimm,
- 	}
- 
- 	/* DIMM erased, invalidate all CPU caches before we read it */
--	nvdimm_invalidate_cache();
-+	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
- 	return 0;
- }
- 
-@@ -341,6 +346,9 @@ static int __maybe_unused intel_security_query_overwrite(struct nvdimm *nvdimm)
- 	if (!test_bit(NVDIMM_INTEL_QUERY_OVERWRITE, &nfit_mem->dsm_mask))
- 		return -ENOTTY;
- 
-+	if (!cpu_cache_has_invalidate_memregion())
-+		return -EINVAL;
-+
- 	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
- 	if (rc < 0)
- 		return rc;
-@@ -355,7 +363,7 @@ static int __maybe_unused intel_security_query_overwrite(struct nvdimm *nvdimm)
- 	}
- 
- 	/* flush all cache before we make the nvdimms available */
--	nvdimm_invalidate_cache();
-+	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
- 	return 0;
- }
- 
-@@ -380,8 +388,11 @@ static int __maybe_unused intel_security_overwrite(struct nvdimm *nvdimm,
- 	if (!test_bit(NVDIMM_INTEL_OVERWRITE, &nfit_mem->dsm_mask))
- 		return -ENOTTY;
- 
-+	if (!cpu_cache_has_invalidate_memregion())
-+		return -EINVAL;
-+
- 	/* flush all cache before we erase DIMM */
--	nvdimm_invalidate_cache();
-+	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
- 	memcpy(nd_cmd.cmd.passphrase, nkey->data,
- 			sizeof(nd_cmd.cmd.passphrase));
- 	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
-@@ -401,22 +412,6 @@ static int __maybe_unused intel_security_overwrite(struct nvdimm *nvdimm,
- 	}
- }
- 
--/*
-- * TODO: define a cross arch wbinvd equivalent when/if
-- * NVDIMM_FAMILY_INTEL command support arrives on another arch.
-- */
--#ifdef CONFIG_X86
--static void nvdimm_invalidate_cache(void)
--{
--	wbinvd_on_all_cpus();
--}
--#else
--static void nvdimm_invalidate_cache(void)
--{
--	WARN_ON_ONCE("cache invalidation required after unlock\n");
--}
--#endif
--
- static const struct nvdimm_security_ops __intel_security_ops = {
- 	.get_flags = intel_security_flags,
- 	.freeze = intel_security_freeze,
-diff --git a/include/linux/memregion.h b/include/linux/memregion.h
-index e11595256cac..d3fafb6873b5 100644
---- a/include/linux/memregion.h
-+++ b/include/linux/memregion.h
-@@ -20,4 +20,39 @@ void memregion_free(int id)
- {
- }
- #endif
-+
-+/**
-+ * cpu_cache_invalidate_memregion - drop any CPU cached data for
-+ *     memregions described by @res_desc
-+ * @res_desc: one of the IORES_DESC_* types
-+ *
-+ * Perform cache maintenance after a memory event / operation that
-+ * changes the contents of physical memory in a cache-incoherent manner.
-+ * For example, device memory technologies like NVDIMM and CXL have
-+ * device secure erase, or dynamic region provision features where such
-+ * semantics.
-+ *
-+ * Limit the functionality to architectures that have an efficient way
-+ * to writeback and invalidate potentially terabytes of memory at once.
-+ * Note that this routine may or may not write back any dirty contents
-+ * while performing the invalidation.
-+ *
-+ * Returns 0 on success or negative error code on a failure to perform
-+ * the cache maintenance.
-+ */
-+#ifdef CONFIG_ARCH_HAS_CPU_CACHE_INVALIDATE_MEMREGION
-+int cpu_cache_invalidate_memregion(int res_desc);
-+bool cpu_cache_has_invalidate_memregion(void);
-+#else
-+static inline bool cpu_cache_has_invalidate_memregion(void)
-+{
-+	return false;
-+}
-+
-+int cpu_cache_invalidate_memregion(int res_desc)
-+{
-+	WARN_ON_ONCE("CPU cache invalidation required");
-+	return -EINVAL;
-+}
-+#endif
- #endif /* _MEMREGION_H_ */
-diff --git a/lib/Kconfig b/lib/Kconfig
-index 087e06b4cdfd..757ae7fff93d 100644
---- a/lib/Kconfig
-+++ b/lib/Kconfig
-@@ -652,6 +652,9 @@ config ARCH_HAS_PMEM_API
- config MEMREGION
- 	bool
- 
-+config ARCH_HAS_CPU_CACHE_INVALIDATE_MEMREGION
-+	bool
-+
- config ARCH_HAS_MEMREMAP_COMPAT_ALIGN
- 	bool
- 
--- 
-2.37.0
+> I can't work out why would we we ever have an actual layout lease
+> here that needs breaking given they are file based and active files
+> hold a reference to the inode. If we ever break that, then I suspect
+> this change will cause major problems for anyone using pNFS with XFS
+> as xfs_break_layouts() can end up waiting for NFS delegation
+> revocation. This is something we should never be doing in inode
+> eviction/memory reclaim.
+> 
+> Hence I have to ask why this lease break is being done
+> unconditionally for all inodes, instead of only calling
+> xfs_break_dax_layouts() directly on DAX enabled regular files?  I
+> also wonder what exciting new system deadlocks this will create
+> because BREAK_UNMAP_FINAL can essentially block forever waiting on
+> dax mappings going away. If that DAX mapping reclaim requires memory
+> allocations.....
 
+There should be no memory allocations in the DAX mapping reclaim path.
+Also, the page pins it waits for are precluded from being GUP_LONGTERM.
+
+> 
+> /me looks deeper into the dax_layout_busy_page() stuff and realises
+> that both ext4 and XFS implementations of ext4_break_layouts() and
+> xfs_break_dax_layouts() are actually identical.
+> 
+> That is, filemap_invalidate_unlock() and xfs_iunlock(ip,
+> XFS_MMAPLOCK_EXCL) operate on exactly the same
+> inode->i_mapping->invalidate_lock. Hence the implementations in ext4
+> and XFS are both functionally identical.
+
+I assume you mean for the purposes of this "final" break since
+xfs_file_allocate() holds XFS_IOLOCK_EXCL over xfs_break_layouts().
+
+> Further, when the inode is
+> in the eviction path there is no reason for needing to take that
+> mapping->invalidation_lock to invalidate remaining stale DAX
+> mappings before truncate blasts them away.
+> 
+> IOWs, I don't see why fixing this problem needs to add new code to
+> XFS or ext4 at all. The DAX mapping invalidation and waiting can be
+> done enitrely within truncate_inode_pages_final() (conditional on
+> IS_DAX()) after mapping_set_exiting() has been set with generic code
+> and it should not require locking at all. I also think that
+> ext4_break_layouts() and xfs_break_dax_layouts() should be merged
+> into a generic dax infrastructure function so the filesystems don't
+> need to care about the internal details of DAX mappings at all...
+
+Yes, I think I can make that happen. Thanks Dave.
