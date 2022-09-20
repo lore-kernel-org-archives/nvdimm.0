@@ -1,51 +1,136 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+Received: from NAM12-DM6-obe.outbound.protection.outlook.com (mail-dm6nam12on2079.outbound.protection.outlook.com [40.107.243.79])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD50C187D
-	for <nvdimm@lists.linux.dev>; Tue, 20 Sep 2022 11:46:09 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
-	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=QlLWgD8hH8VEMML/lnKrKbbOY8OsVVslAl3FeCo563k=; b=JD3StW5yL7XaTSGYt2pRl9vRoZ
-	dV+b3CD7Ly+8dChwGxED8Qsiapud6PJqLFw76FTtkAWGcWQrjoR+JOrw8qewhPlqJPUiQJcQn+Y5k
-	RbPNFCj38aBUXK9+8U9gqiRf9r+jdHO35BB/gFBiYF4qnYcIyNvgCF+yYDoWmfv7hRe9XEeniGRlF
-	+QjHCk3QI8C+YcBHGOHlcZVpw0WSGUSjRq4MY5qQk/Fr8hM29Zb2E8VC5KUERhsLXu/04uFwmdx38
-	vRFhMfc6fWHgjzFmyl9tsrXH5orLkBNFSQ5QoZK2RIHxTnanUsZCEErNQAmWEfhZvF3nW/kkiKNAW
-	Q/LVnu5Q==;
-Received: from hch by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-	id 1oabhY-003RwO-Cq; Tue, 20 Sep 2022 11:46:08 +0000
-Date: Tue, 20 Sep 2022 04:46:08 -0700
-From: Christoph Hellwig <hch@infradead.org>
-To: "Wu, Dennis" <dennis.wu@intel.com>
-Cc: Christoph Hellwig <hch@infradead.org>,
-	"Williams, Dan J" <dan.j.williams@intel.com>,
-	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
-	"Verma, Vishal L" <vishal.l.verma@intel.com>,
-	"Jiang, Dave" <dave.jiang@intel.com>,
-	"Weiny, Ira" <ira.weiny@intel.com>
-Subject: Re: [PATCH] ACPI/NFIT: Add no_deepflush param to dynamic control
- flush operation
-Message-ID: <YymoAGbaU7tOo0Lv@infradead.org>
-References: <20220629083118.8737-1-dennis.wu@intel.com>
- <YrxvR6zDZymsQCQl@infradead.org>
- <62ce1f0a57b84_6070c294a@dwillia2-xfh.jf.intel.com.notmuch>
- <YtefnyIvY9OdrVU5@infradead.org>
- <SN6PR11MB2640AC955668C96D5664F10BF84C9@SN6PR11MB2640.namprd11.prod.outlook.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3BC56111
+	for <nvdimm@lists.linux.dev>; Tue, 20 Sep 2022 14:29:52 +0000 (UTC)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=BU2t8vy++EU71lYosktFe0Uo3+9WYFNXZ48hAiWp0DoApzzMff4gxz6He1rkJ9OndQBZd2xyvZjRd4y3AiZQIboHu92aeETxFxcGv+gSVnucHE3NtHqiJqsdkiDSJc2C2GfVv9p4YV98D4b6fZ1SH/BQcq5CNuVsuHCCHtwGUtNIFZHzSSCI8ddkxJJcP1vJZnDzxE7IWqx9geXe+gBvITEHlCVS5HFU2+V1Bn0kJk5Qc6r8SSDSeIyyMw4EGY8FbLdH0vazxbg0WV01841OPpnYqgIYSOt0zHKl3MMz4RJSupY+Sil9RGpUmr54ODzf+y4kY92cWl7CLbz2S1BzxQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=/4QxQOF3j4N4ok5PxUm3x8trDAWeL4/L1R6hAgNqXBw=;
+ b=Iaxh2yjAwT5j4C0emxxgPryI2jQ8dHvCWmXi8K+Q8+10vWfXcQTym6tJ0mcsj/Wnc51UQHgXuzmFDlD3YYYN/q0tFLh/3SIGz0us9rlXZ0H5pejuuIJiL8mYR6matQGIaszkwOFjr71h9JmoiCh+alp4gn54t6S3TAo+HiTxNF61tXPMf5yc3IleGfqGtMuyjXrcUQKABC3gF6HvBWz4XpjptQkWrZ077BobuR9CUwoTdRrpl1isJwbT5T1EZ1HtmRFglg0t8R+HXiuTRIcO+uzQUnZ/F759EnQFisIi646Oj8a9kKfAe44d1+mLD2oonTCkHsDUKlfK3PiFLCiaxQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=/4QxQOF3j4N4ok5PxUm3x8trDAWeL4/L1R6hAgNqXBw=;
+ b=oRD7O0qlDKXneF92dqI1k9b9R/iCBzwtdMjo0IJfpAUlYaiDfZDG5SQcAcvQSKPN5iGaF98at650sGLVVbT09I977cKFDuhF0uqu9mMVljai1idcqoxw1XNWqUNlugMLuHJBbts+pWIKdZRbHWYvX8kGryAOYlzgIhmrehrf2apjD7QdJ9mm/IIMU2Qs7RVVv+VhWfpyMXebaW/gDaxKHdIXePbcY/DtpdxNQLboUUqfpslPZIkcyrBQFXvotWtMFSERMbdQ5iqlC2J3y+06jLfjzlRYB+SxrWia0F6iI8GpaMcnJOZI+jzHmjeKx/oIAtcbepW23cvzRxiPJRxA0Q==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from MN2PR12MB4192.namprd12.prod.outlook.com (2603:10b6:208:1d5::15)
+ by CH2PR12MB4232.namprd12.prod.outlook.com (2603:10b6:610:a4::21) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5632.21; Tue, 20 Sep
+ 2022 14:29:50 +0000
+Received: from MN2PR12MB4192.namprd12.prod.outlook.com
+ ([fe80::462:7fe:f04f:d0d5]) by MN2PR12MB4192.namprd12.prod.outlook.com
+ ([fe80::462:7fe:f04f:d0d5%7]) with mapi id 15.20.5632.021; Tue, 20 Sep 2022
+ 14:29:50 +0000
+Date: Tue, 20 Sep 2022 11:29:49 -0300
+From: Jason Gunthorpe <jgg@nvidia.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: akpm@linux-foundation.org, Jan Kara <jack@suse.cz>,
+	Christoph Hellwig <hch@lst.de>,
+	"Darrick J. Wong" <djwong@kernel.org>,
+	Matthew Wilcox <willy@infradead.org>,
+	John Hubbard <jhubbard@nvidia.com>, linux-fsdevel@vger.kernel.org,
+	nvdimm@lists.linux.dev, linux-xfs@vger.kernel.org,
+	linux-mm@kvack.org, linux-ext4@vger.kernel.org
+Subject: Re: [PATCH v2 00/18] Fix the DAX-gup mistake
+Message-ID: <YynOXa8+jxxCjH5k@nvidia.com>
+References: <166329930818.2786261.6086109734008025807.stgit@dwillia2-xfh.jf.intel.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <166329930818.2786261.6086109734008025807.stgit@dwillia2-xfh.jf.intel.com>
+X-ClientProxiedBy: BL1PR13CA0309.namprd13.prod.outlook.com
+ (2603:10b6:208:2c1::14) To MN2PR12MB4192.namprd12.prod.outlook.com
+ (2603:10b6:208:1d5::15)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <SN6PR11MB2640AC955668C96D5664F10BF84C9@SN6PR11MB2640.namprd11.prod.outlook.com>
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: MN2PR12MB4192:EE_|CH2PR12MB4232:EE_
+X-MS-Office365-Filtering-Correlation-Id: 063f9051-4695-436d-66ad-08da9b14939a
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info:
+	0nNvbL6k9eF2Muvpmm6pB3hcO87Ndwqcs+TgH10p2YAUYVXT0Wv2iCnw2XmyVtowoKO0SCWeobHvmHMTGDgEHiknqqiO00Z2Ty5vLZPJclHzogvAsn2kcLiqMWW14Y3ysc5DQhgg303Ldup1VTP6D+9zS0JFpAlQ1uB0GCBnMI+PApJVBHQ1qvdX1feDZXwv3bBpONGA6iUXAbGZjEMgxfGFWjoNU3grx9uwFe+pNrzpCAgVPRJXg542drvKyRnhUeHVTvo1AYRMiUlzUllNw8/Zhd9DtSCku0vOnOiP9ZKTPfKrSQjNaPgRtcb6gPaKhZGRErHGPJ+vUk5QrJIRPK6Vd4bcgMPE/bukU8ZXlQOCkOVXRhtSdG1Dv8sx52cSALcYDnRRls89ZxNVr4+JmEYyViELL6rxrUwsgTAHJuAfVa3nlqJI8mMe35kO5/PHx0OlQEWCRKzDxqxcvo5ONIFkIOOnlWFerEP/I+3eDdfTbjMl+7prH9fAW+BSxVYrcJuQxGPAEb9l3nEYarX/XwKIzhQT0K80O/GK6yVdsyr6BFfrAQ+GprBPsnNnkMh8pBr15wArggdNaLhng70oqKthFtyCZmzvSemCfp/13AsrWk9wYyQSZnq0Wqw8VzvgO0vLd0acpnKRXmuWR0Wn9oQmQF1fuc0ktsko3HAOM3y3KMOh+DgdUhjDCS1VPrFzJLvBi0UHmG1IAVx8GFfkZkUybev59XL9Fu7wdDomJ2JQW/nlb3pxvw+4BHZtCifl
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MN2PR12MB4192.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230022)(4636009)(136003)(396003)(376002)(366004)(39860400002)(346002)(451199015)(38100700002)(36756003)(86362001)(2906002)(186003)(6506007)(6512007)(7416002)(478600001)(2616005)(41300700001)(26005)(6486002)(6916009)(5660300002)(54906003)(8936002)(316002)(66946007)(8676002)(4326008)(66476007)(66556008)(67856001);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?gzVaANg579vVe4vzhgXTFXWoUc/WexrGwFPl6BPoT8XWigRo/llEmYbLPJEU?=
+ =?us-ascii?Q?bXZrQt94EjB+3E3M9+OBEFujemBOWS0ACcNA4+CwB65Ws+YqFjrkqZMI9mwQ?=
+ =?us-ascii?Q?cIFx5iIMaIiXxv3XwXMJGUmAvV3+w9PJk9JZ8Jso/oO/OGqHX2bhpLq6zRbm?=
+ =?us-ascii?Q?JmvW9Ooi97LT3teJ0clqqoLLZWe6GrebU7cJ3komYPWqQ1pyu3BTSkb1o17c?=
+ =?us-ascii?Q?Jy44NHnLBkQ9leUlXsgzDl4z4OybA8N25baTK/yKhCMORHi2cxHaKa2GdrQx?=
+ =?us-ascii?Q?GKnzaxdYRczEwTdJIFXJH2Oej4y1xC0j/aRy8HkU8b3eEJtRvAkiU7Igqpc3?=
+ =?us-ascii?Q?/xDf7thqTkNBOpiHpHWs0VLDjaY1j1JooZUYOvxBpgfdZf8TYbKLRobTlrM3?=
+ =?us-ascii?Q?X84Uao9Dv6B+QVLuV+Re+8oQQI4IGDdkyvmjnzkfWUl+AcH51Xs8lWr8PDes?=
+ =?us-ascii?Q?etyLSSN+/47Bk7gZwSXFeuE/erpCEGpQ+9Nlg8M8BLya6/oh8RFvFiHgi9hT?=
+ =?us-ascii?Q?fMPKtR4Y+xXgJAHkaSiQ6Sb4tz6unmSeQ3DkSbmzgZPq+YXDNZQ3W5duf7yd?=
+ =?us-ascii?Q?QHytrIDKXWsTJ0KILJo2WZ+wJaP5ciovWWuP/2cKpLOgZu33PGDKyvXI8iJz?=
+ =?us-ascii?Q?ku/0K6UlCCFNOhET3/RuKTlgKiPA+mmKXCLbsmuQzGMqOLsyez8fnwTS+s4I?=
+ =?us-ascii?Q?MbckTDVCS0Tpm5PFECOj0ZToZUq+E1ARHAv/uoAHpmFHrWhSNiy/0V7pJOFJ?=
+ =?us-ascii?Q?hOP406UWVvkJ2RwfS8HtXi9esQw/LzPMfKP3WpC6LmSZ/NLANscR3BzG0F0K?=
+ =?us-ascii?Q?n3pRYV3j0gFWH5+/glxptb8TV1Buc1MiIArh8mLdgCZhMtyukaRJjLIeMWWV?=
+ =?us-ascii?Q?ArP+k8Z+ZuX2V96KjxjhMDSVUixDfP9CQbg0VXNL69cam4nRBqfL28gZGH0M?=
+ =?us-ascii?Q?HlwDMRFxIaJRgY9sjpGDHhvVfzSvHjqmM45kAxiK3Wx1uC9v1xi1gPoIouC9?=
+ =?us-ascii?Q?eg3NuFTzFUs/4Jw6TLqHxkp8lZw8YFHhAdPQ/7MMUh6/WhkzL7maapcxs3ha?=
+ =?us-ascii?Q?uChi5MTfpv9zXQpJgiwdwSabjJr+HpZDLEp6If3Pmzphs7DtMcdCEgtKzmgG?=
+ =?us-ascii?Q?jq1j992jaxnQ+f/6wx0hjvIlNYQ5KhuQ1byQonmgpySOIzR4kxD+yQXjhaes?=
+ =?us-ascii?Q?Ynym1fTEcFyCrv/0oBIghO3qTG/lKfhdrwZQ2idbftwUBogxMUfNAct7fNev?=
+ =?us-ascii?Q?kLRqrmaR7Mp9fmO+eHajfbB6kc7DMQTS1btXm1cC6354Q7DnPUsgEpYyya3/?=
+ =?us-ascii?Q?7YR8ftbJ70cqCfaYiRRz28/PxR5T8Tfw/8AsQpV/jyxweKbkaHlM7xLhLuFB?=
+ =?us-ascii?Q?OSlYoqzY+UgK+6JfzHbdGQ8nNCrhPtwILIcSmsT4PJnzOZEzsUtADH3fqMuW?=
+ =?us-ascii?Q?/BvjPigMOXFyMAdGlclqVqV31VA0ncI1Wc9nGIZkQccJK5o5qhRUJ+6FykdV?=
+ =?us-ascii?Q?/07fkfrO/h/o23vaMb2E1WARMvivAv110hSRrAlNWoltQT0+8S33DleM1qs8?=
+ =?us-ascii?Q?b25UWbBeLooc1d1gQu6d9D9d86ikXbVpgIHCdCV9?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 063f9051-4695-436d-66ad-08da9b14939a
+X-MS-Exchange-CrossTenant-AuthSource: MN2PR12MB4192.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 20 Sep 2022 14:29:50.5617
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: yKuWuXlai2SPubKRoaJMF8x1l9G5YVHbP6IZFK7Pd7d+6qgbVpWVklpGJcq1ewAJ
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH2PR12MB4232
 
-On Tue, Sep 20, 2022 at 03:08:03AM +0000, Wu, Dennis wrote:
-> Hi, Dan,
-> Will we add this patch to some new kernel version?
+On Thu, Sep 15, 2022 at 08:35:08PM -0700, Dan Williams wrote:
 
-How about addressing my comments and explaining what the exact
-data integrity model is here first?
+> This hackery continues the status of DAX pages as special cases in the
+> VM. The thought being carrying the Xarray / mapping infrastructure
+> forward still allows for the continuation of the page-less DAX effort.
+> Otherwise, the work to convert DAX pages to behave like typical
+> vm_normal_page() needs more investigation to untangle transparent huge
+> page assumptions.
+
+I see it differently, ZONE_DEVICE by definition is page-based. As long
+as DAX is using ZONE_DEVICE it should follow the normal struct page
+rules, including proper reference counting everywhere.
+
+By not doing this DAX is causing all ZONE_DEVICE users to suffer
+because we haven't really special cased just DAX out of all the other
+users.
+
+If there is some kind of non-struct page future, then it will not be
+ZONE_DEVICE and it will have its own mechanisms, somehow.
+
+So, we should be systematically stripping away all the half-backed
+non-struct page stuff from ZONE_DEVICE as a matter of principle. DAX
+included, whatever DAX's future may hold.
+
+The pte bit and the missing refcounting in the page table paths is the
+remaining big issue and I hope we fix it. The main problem is that
+FS-DAX must create compound pages for the 2M page size.
+
+Jason
