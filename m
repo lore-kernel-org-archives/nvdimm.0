@@ -1,38 +1,43 @@
 Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C27F4C63
-	for <nvdimm@lists.linux.dev>; Wed, 21 Sep 2022 15:31:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75F704C63
+	for <nvdimm@lists.linux.dev>; Wed, 21 Sep 2022 15:31:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1663774291; x=1695310291;
-  h=subject:from:to:cc:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=Z6t59XHjrmcCr4Hpz4QstXO/w5hgMyZ4F5YLJwWfzXg=;
-  b=KijJ7F1M2trAPx87VZQANVk4EhmYqZKmCG7on9+gS0EJ/g62cGwhdMbf
-   0y0EWYJ8zoMZQYfKfQu8mwW0wcedHnrv93aBLYu6x3ZteFqBJAVtyxIT4
-   gqr6uHJ8nTOyxDPwfnWnWA0och7Mg65vxjOfnaBJUtX60oxo12uTXthUJ
-   YwlD9ecipSHAhY3Q10Rg4uX0lP4lrizeySjUb/azbW215hUvx8/aWPZcC
-   LvQvtB1ss7Wz2L39IzbKV3wuLEvf9tJbhChMw65P6e+oH7/KeABFDetTy
-   zPt9M6/hEQQWgur4KSGdtgr1+0laohc1M3SoMJDncGVvLzypbgp2gMNmt
+  t=1663774294; x=1695310294;
+  h=subject:from:to:cc:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=1nfD48fp2r0AfaA0ZGQ6qjOdAq8SksG/zOtMLOOpWO0=;
+  b=KaVs478IEXwoe0CdKYeD10m3cDZlIAg5MXwz90Cyq5XfvO8mXPSBrg3M
+   BR92ENusRQxD8mfiITJZ+fKrtL6+6KNKOUldYfjxwJVUMKJABo1a1zf+S
+   iZh6T3iXnLxq/XRJ/IIAVJUUII4tAOftjLdxVjzNQQkE878H2mJB4aksb
+   2WE2jBrZBTZvkPI4GxqqjyJCuo9RYTy047s5KvM39BBGZ88QZEo1vXDHd
+   IH2vT1xBKXk0Q5A6vMHhC/QWbFLbX+g9S3qr38u+UcFvcUIXl2guC/IT2
+   v7OYgvhJhiqRPB1SRgVtpIUufa/oW7onqkG4rl4QY68kB58wcxtVgNMQI
    A==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10477"; a="300876675"
+X-IronPort-AV: E=McAfee;i="6500,9779,10477"; a="300876700"
 X-IronPort-AV: E=Sophos;i="5.93,333,1654585200"; 
-   d="scan'208";a="300876675"
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Sep 2022 08:31:30 -0700
+   d="scan'208";a="300876700"
+Received: from orsmga001.jf.intel.com ([10.7.209.18])
+  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Sep 2022 08:31:34 -0700
 X-IronPort-AV: E=Sophos;i="5.93,333,1654585200"; 
-   d="scan'208";a="708499251"
+   d="scan'208";a="652578872"
 Received: from djiang5-desk3.ch.intel.com ([143.182.136.137])
-  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Sep 2022 08:31:27 -0700
-Subject: [PATCH v2 00/19] Introduce security commands for CXL pmem device
+  by orsmga001-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Sep 2022 08:31:33 -0700
+Subject: [PATCH v2 01/19] memregion: Add cpu_cache_invalidate_memregion()
+ interface
 From: Dave Jiang <dave.jiang@intel.com>
 To: linux-cxl@vger.kernel.org
 Cc: nvdimm@lists.linux.dev, dan.j.williams@intel.com, bwidawsk@kernel.org,
  ira.weiny@intel.com, vishal.l.verma@intel.com, alison.schofield@intel.com,
  dave@stgolabs.net, Jonathan.Cameron@huawei.com
-Date: Wed, 21 Sep 2022 08:31:26 -0700
+Date: Wed, 21 Sep 2022 08:31:33 -0700
 Message-ID: 
+ <166377429297.430546.18244091321001267098.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: 
+ <166377414787.430546.3863229455285366312.stgit@djiang5-desk3.ch.intel.com>
+References: 
  <166377414787.430546.3863229455285366312.stgit@djiang5-desk3.ch.intel.com>
 User-Agent: StGit/1.4
 Precedence: bulk
@@ -44,97 +49,254 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 
-This series adds the support for "Persistent Memory Data-at-rest Security"
-block of command set for the CXL Memory Devices. The enabling is done
-through the nvdimm_security_ops as the operations are very similar to the
-same operations that the persistent memory devices through NFIT provider
-support. This enabling does not include the security pass-through commands
-nor the Santize commands.
+From: Davidlohr Bueso <dave@stgolabs.net>
 
-Under the nvdimm_security_ops, this patch series will enable get_flags(),
-freeze(), change_key(), unlock(), disable(), and erase(). The disable() API
-does not support disabling of the master passphrase. To maintain
-established user ABI through the sysfs attribute "security", the "disable"
-command is left untouched and a new "disable_master" command is introduced
-with a new disable_master() API call for the nvdimm_security_ops().
+With CXL security features, global CPU cache flushing nvdimm requirements
+are no longer specific to that subsystem, even beyond the scope of
+security_ops. CXL will need such semantics for features not necessarily
+limited to persistent memory.
 
-This series does not include plumbing to directly handle the security
-commands through cxl control util. The enabled security commands will still
-go through ndctl tool with this enabling.
+The functionality this is enabling is to be able to instantaneously
+secure erase potentially terabytes of memory at once and the kernel
+needs to be sure that none of the data from before the erase is still
+present in the cache. It is also used when unlocking a memory device
+where speculative reads and firmware accesses could have cached poison
+from before the device was unlocked.
 
-The first commit is from Davidlohr [1]. It's submitted separately and can
-be dropped. It's here for reference and 0-day testing convenience. The
-series does have dependency on the patch.
+This capability is typically only used once per-boot (for unlock), or
+once per bare metal provisioning event (secure erase), like when handing
+off the system to another tenant or decommissioning a device. It may
+also be used for dynamic CXL region provisioning.
 
-[1]: https://lore.kernel.org/nvdimm/20220919110605.3696-1-dave@stgolabs.net/T/#u
+Users must first call cpu_cache_has_invalidate_memregion() to know whether
+this functionality is available on the architecture. Only enable it on
+x86-64 via the wbinvd() hammer. Hypervisors are not supported as TDX
+guests may trigger a virtualization exception and may need proper handling
+to recover. See:
 
-v2:
-- Rebased against Davidlohr's memregion flush call
-- Remove SECURITY Kconfig and merge with PMEM (Davidlohr & Jonathan)
-- Remove inclusion of ndctl.h from security.c (Davidlohr)
-- Return errno and leave out return_code for error cases not in spec for
-  mock device (Jonathan)
-  - Add comment for using NVDIMM_PASSPHRASE_LEN (Jonathan)
-  - Put 'struct cxl_set_pass' on the stack instead of kmalloc (Jonathan)
-  - Directly return in mock_set_passphrase() when done. (Jonathan)
-  - Tie user interface change commenting for passphrase disable. (Jonathan)
-  - Pass passphrase directly in command and remove copy. (Jonathan)
-  - Remove state check to enable first time passphrase set in mock device.
-  - Fix missing ptr assignment in mock secure erase
-  - Tested against cxl_test with new cxl security test.
+   e2efb6359e62 ("ACPICA: Avoid cache flush inside virtual machines")
 
+Signed-off-by: Davidlohr Bueso <dave@stgolabs.net>
 ---
+ arch/x86/Kconfig             |    1 +
+ arch/x86/mm/pat/set_memory.c |   15 +++++++++++++++
+ drivers/acpi/nfit/intel.c    |   41 ++++++++++++++++++-----------------------
+ include/linux/memregion.h    |   35 +++++++++++++++++++++++++++++++++++
+ lib/Kconfig                  |    3 +++
+ 5 files changed, 72 insertions(+), 23 deletions(-)
 
-Dave Jiang (18):
-      cxl/pmem: Introduce nvdimm_security_ops with ->get_flags() operation
-      tools/testing/cxl: Add "Get Security State" opcode support
-      cxl/pmem: Add "Set Passphrase" security command support
-      tools/testing/cxl: Add "Set Passphrase" opcode support
-      cxl/pmem: Add Disable Passphrase security command support
-      tools/testing/cxl: Add "Disable" security opcode support
-      cxl/pmem: Add "Freeze Security State" security command support
-      tools/testing/cxl: Add "Freeze Security State" security opcode support
-      cxl/pmem: Add "Unlock" security command support
-      tools/testing/cxl: Add "Unlock" security opcode support
-      cxl/pmem: Add "Passphrase Secure Erase" security command support
-      tools/testing/cxl: Add "passphrase secure erase" opcode support
-      nvdimm/cxl/pmem: Add support for master passphrase disable security command
-      cxl/pmem: add id attribute to CXL based nvdimm
-      tools/testing/cxl: add mechanism to lock mem device for testing
-      cxl/pmem: add provider name to cxl pmem dimm attribute group
-      libnvdimm: Introduce CONFIG_NVDIMM_SECURITY_TEST flag
-      cxl: add dimm_id support for __nvdimm_create()
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index f9920f1341c8..94dc39911f92 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -69,6 +69,7 @@ config X86
+ 	select ARCH_ENABLE_THP_MIGRATION if X86_64 && TRANSPARENT_HUGEPAGE
+ 	select ARCH_HAS_ACPI_TABLE_UPGRADE	if ACPI
+ 	select ARCH_HAS_CACHE_LINE_SIZE
++	select ARCH_HAS_CPU_CACHE_INVALIDATE_MEMREGION  if X86_64
+ 	select ARCH_HAS_CURRENT_STACK_POINTER
+ 	select ARCH_HAS_DEBUG_VIRTUAL
+ 	select ARCH_HAS_DEBUG_VM_PGTABLE	if !X86_PAE
+diff --git a/arch/x86/mm/pat/set_memory.c b/arch/x86/mm/pat/set_memory.c
+index 1abd5438f126..4924d5a45950 100644
+--- a/arch/x86/mm/pat/set_memory.c
++++ b/arch/x86/mm/pat/set_memory.c
+@@ -330,6 +330,21 @@ void arch_invalidate_pmem(void *addr, size_t size)
+ EXPORT_SYMBOL_GPL(arch_invalidate_pmem);
+ #endif
+ 
++#ifdef CONFIG_ARCH_HAS_CPU_CACHE_INVALIDATE_MEMREGION
++bool cpu_cache_has_invalidate_memregion(void)
++{
++	return !cpu_feature_enabled(X86_FEATURE_HYPERVISOR);
++}
++EXPORT_SYMBOL_GPL(cpu_cache_has_invalidate_memregion);
++
++int cpu_cache_invalidate_memregion(int res_desc)
++{
++	wbinvd_on_all_cpus();
++	return 0;
++}
++EXPORT_SYMBOL_GPL(cpu_cache_invalidate_memregion);
++#endif
++
+ static void __cpa_flush_all(void *arg)
+ {
+ 	unsigned long cache = (unsigned long)arg;
+diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
+index 8dd792a55730..b2bfbf5797da 100644
+--- a/drivers/acpi/nfit/intel.c
++++ b/drivers/acpi/nfit/intel.c
+@@ -3,6 +3,7 @@
+ #include <linux/libnvdimm.h>
+ #include <linux/ndctl.h>
+ #include <linux/acpi.h>
++#include <linux/memregion.h>
+ #include <asm/smp.h>
+ #include "intel.h"
+ #include "nfit.h"
+@@ -190,8 +191,6 @@ static int intel_security_change_key(struct nvdimm *nvdimm,
+ 	}
+ }
+ 
+-static void nvdimm_invalidate_cache(void);
+-
+ static int __maybe_unused intel_security_unlock(struct nvdimm *nvdimm,
+ 		const struct nvdimm_key_data *key_data)
+ {
+@@ -213,6 +212,9 @@ static int __maybe_unused intel_security_unlock(struct nvdimm *nvdimm,
+ 	if (!test_bit(NVDIMM_INTEL_UNLOCK_UNIT, &nfit_mem->dsm_mask))
+ 		return -ENOTTY;
+ 
++	if (!cpu_cache_has_invalidate_memregion())
++		return -EINVAL;
++
+ 	memcpy(nd_cmd.cmd.passphrase, key_data->data,
+ 			sizeof(nd_cmd.cmd.passphrase));
+ 	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
+@@ -228,7 +230,7 @@ static int __maybe_unused intel_security_unlock(struct nvdimm *nvdimm,
+ 	}
+ 
+ 	/* DIMM unlocked, invalidate all CPU caches before we read it */
+-	nvdimm_invalidate_cache();
++	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
+ 
+ 	return 0;
+ }
+@@ -297,8 +299,11 @@ static int __maybe_unused intel_security_erase(struct nvdimm *nvdimm,
+ 	if (!test_bit(cmd, &nfit_mem->dsm_mask))
+ 		return -ENOTTY;
+ 
++	if (!cpu_cache_has_invalidate_memregion())
++		return -EINVAL;
++
+ 	/* flush all cache before we erase DIMM */
+-	nvdimm_invalidate_cache();
++	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
+ 	memcpy(nd_cmd.cmd.passphrase, key->data,
+ 			sizeof(nd_cmd.cmd.passphrase));
+ 	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
+@@ -318,7 +323,7 @@ static int __maybe_unused intel_security_erase(struct nvdimm *nvdimm,
+ 	}
+ 
+ 	/* DIMM erased, invalidate all CPU caches before we read it */
+-	nvdimm_invalidate_cache();
++	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
+ 	return 0;
+ }
+ 
+@@ -341,6 +346,9 @@ static int __maybe_unused intel_security_query_overwrite(struct nvdimm *nvdimm)
+ 	if (!test_bit(NVDIMM_INTEL_QUERY_OVERWRITE, &nfit_mem->dsm_mask))
+ 		return -ENOTTY;
+ 
++	if (!cpu_cache_has_invalidate_memregion())
++		return -EINVAL;
++
+ 	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
+ 	if (rc < 0)
+ 		return rc;
+@@ -355,7 +363,7 @@ static int __maybe_unused intel_security_query_overwrite(struct nvdimm *nvdimm)
+ 	}
+ 
+ 	/* flush all cache before we make the nvdimms available */
+-	nvdimm_invalidate_cache();
++	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
+ 	return 0;
+ }
+ 
+@@ -380,8 +388,11 @@ static int __maybe_unused intel_security_overwrite(struct nvdimm *nvdimm,
+ 	if (!test_bit(NVDIMM_INTEL_OVERWRITE, &nfit_mem->dsm_mask))
+ 		return -ENOTTY;
+ 
++	if (!cpu_cache_has_invalidate_memregion())
++		return -EINVAL;
++
+ 	/* flush all cache before we erase DIMM */
+-	nvdimm_invalidate_cache();
++	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
+ 	memcpy(nd_cmd.cmd.passphrase, nkey->data,
+ 			sizeof(nd_cmd.cmd.passphrase));
+ 	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
+@@ -401,22 +412,6 @@ static int __maybe_unused intel_security_overwrite(struct nvdimm *nvdimm,
+ 	}
+ }
+ 
+-/*
+- * TODO: define a cross arch wbinvd equivalent when/if
+- * NVDIMM_FAMILY_INTEL command support arrives on another arch.
+- */
+-#ifdef CONFIG_X86
+-static void nvdimm_invalidate_cache(void)
+-{
+-	wbinvd_on_all_cpus();
+-}
+-#else
+-static void nvdimm_invalidate_cache(void)
+-{
+-	WARN_ON_ONCE("cache invalidation required after unlock\n");
+-}
+-#endif
+-
+ static const struct nvdimm_security_ops __intel_security_ops = {
+ 	.get_flags = intel_security_flags,
+ 	.freeze = intel_security_freeze,
+diff --git a/include/linux/memregion.h b/include/linux/memregion.h
+index c04c4fd2e209..f964193e4e2a 100644
+--- a/include/linux/memregion.h
++++ b/include/linux/memregion.h
+@@ -20,4 +20,39 @@ static inline void memregion_free(int id)
+ {
+ }
+ #endif
++
++/**
++ * cpu_cache_invalidate_memregion - drop any CPU cached data for
++ *     memregions described by @res_desc
++ * @res_desc: one of the IORES_DESC_* types
++ *
++ * Perform cache maintenance after a memory event / operation that
++ * changes the contents of physical memory in a cache-incoherent manner.
++ * For example, device memory technologies like NVDIMM and CXL have
++ * device secure erase, or dynamic region provision features where such
++ * semantics.
++ *
++ * Limit the functionality to architectures that have an efficient way
++ * to writeback and invalidate potentially terabytes of memory at once.
++ * Note that this routine may or may not write back any dirty contents
++ * while performing the invalidation.
++ *
++ * Returns 0 on success or negative error code on a failure to perform
++ * the cache maintenance.
++ */
++#ifdef CONFIG_ARCH_HAS_CPU_CACHE_INVALIDATE_MEMREGION
++int cpu_cache_invalidate_memregion(int res_desc);
++bool cpu_cache_has_invalidate_memregion(void);
++#else
++static inline bool cpu_cache_has_invalidate_memregion(void)
++{
++	return false;
++}
++
++int cpu_cache_invalidate_memregion(int res_desc)
++{
++	WARN_ON_ONCE("CPU cache invalidation required");
++	return -EINVAL;
++}
++#endif
+ #endif /* _MEMREGION_H_ */
+diff --git a/lib/Kconfig b/lib/Kconfig
+index dc1ab2ed1dc6..6bb99da6011a 100644
+--- a/lib/Kconfig
++++ b/lib/Kconfig
+@@ -662,6 +662,9 @@ config ARCH_HAS_PMEM_API
+ config MEMREGION
+ 	bool
+ 
++config ARCH_HAS_CPU_CACHE_INVALIDATE_MEMREGION
++	bool
++
+ config ARCH_HAS_MEMREMAP_COMPAT_ALIGN
+ 	bool
+ 
 
-Davidlohr Bueso (1):
-      memregion: Add cpu_cache_invalidate_memregion() interface
-
-
- arch/x86/Kconfig                   |   1 +
- arch/x86/mm/pat/set_memory.c       |  15 ++
- drivers/acpi/nfit/intel.c          |  41 ++--
- drivers/cxl/Makefile               |   2 +-
- drivers/cxl/core/mbox.c            |   6 +
- drivers/cxl/cxlmem.h               |  44 +++++
- drivers/cxl/pci.c                  |   4 +
- drivers/cxl/pmem.c                 |  45 ++++-
- drivers/cxl/security.c             | 184 ++++++++++++++++++
- drivers/nvdimm/Kconfig             |   9 +
- drivers/nvdimm/dimm_devs.c         |   9 +-
- drivers/nvdimm/security.c          |  37 +++-
- include/linux/libnvdimm.h          |   2 +
- include/linux/memregion.h          |  35 ++++
- include/uapi/linux/cxl_mem.h       |   6 +
- lib/Kconfig                        |   3 +
- tools/testing/cxl/Kbuild           |   1 +
- tools/testing/cxl/test/cxl.c       |  70 ++++++-
- tools/testing/cxl/test/mem.c       | 294 +++++++++++++++++++++++++++++
- tools/testing/cxl/test/mem_pdata.h |  16 ++
- tools/testing/nvdimm/Kbuild        |   1 -
- tools/testing/nvdimm/dimm_devs.c   |  30 ---
- 22 files changed, 788 insertions(+), 67 deletions(-)
- create mode 100644 drivers/cxl/security.c
- create mode 100644 tools/testing/cxl/test/mem_pdata.h
- delete mode 100644 tools/testing/nvdimm/dimm_devs.c
-
---
 
