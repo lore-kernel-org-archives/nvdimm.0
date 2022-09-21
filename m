@@ -1,393 +1,183 @@
 Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1BC97C
-	for <nvdimm@lists.linux.dev>; Wed, 21 Sep 2022 21:03:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B408F7C
+	for <nvdimm@lists.linux.dev>; Wed, 21 Sep 2022 21:09:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1663794181; x=1695330181;
-  h=subject:from:to:cc:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=6NNWNNzK4UffdcdjarrsFINSPx7MqoYkv1uX3Kiwe1U=;
-  b=TUo0/t0XniHueeFou7GLpk98ocV1PcWSHI9eIZ8MzP35uFNqoiGBGPXK
-   SVu3AunLK71HmZODcVH1XGqFtq+tqCkxz/PwV/FqcjBZBvpY2fXKGBqv5
-   XvtfUo8ufV/ZiIsj8WxQMh7ZeIkdAu62I+zosy5l2f7tW9HETdJVX58DL
-   hqLchuCu1JkJeHLqQ+jA2BktZpY6LxXM+Ffj8lGR5Oin+em8HGWfDhnB7
-   XrLrTug9lEudBIhyp3WcabSkjLBECz7A8UIxXfngI0HGR6ILeUDbcior5
-   hT0wzjJS9n55O2lE/UMPd5PhSls1HJeAYYGJCIEXxxzyY2Eqbs3pVi0xi
+  t=1663794545; x=1695330545;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=2LiO0PZ26Kh+yNpDIoXkOxtWfl77zUEx/B3YMK9csr4=;
+  b=n0OtWfbesiXaUi9I9H9dbitwk9LI8FN3gHZIsGQMIh3hw9VVOf5VYBmg
+   zMJllurZ/avMMkvHQGO+FbFHf8afLqpxtNjPKH1jFYoLNauTXAEl/Js+W
+   Df7H6kg3BGBmEqz1C37ao5VIBwsiUDn/vXjoorMU0sPcXx2o58jEgXPCO
+   GGco+EUnLjSMg7GkipME587VNF2Edh8O62ze1IictxsRiCWBENRAoOLaB
+   DweVWVy/IhgrJYeHywZpBqPH7qjmHmHzfKQsybDag8KJDHJ0fZhopC/io
+   aUDjVIXceJlHgwfYwtGy+ciqMI/mvt0QSKtPjn9fLimzDx04q+MiYipfS
    A==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10477"; a="279848680"
+X-IronPort-AV: E=McAfee;i="6500,9779,10477"; a="279849807"
 X-IronPort-AV: E=Sophos;i="5.93,334,1654585200"; 
-   d="scan'208";a="279848680"
-Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Sep 2022 14:03:01 -0700
+   d="scan'208";a="279849807"
+Received: from orsmga002.jf.intel.com ([10.7.209.21])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Sep 2022 14:09:05 -0700
 X-IronPort-AV: E=Sophos;i="5.93,334,1654585200"; 
-   d="scan'208";a="614959299"
-Received: from djiang5-desk3.ch.intel.com ([143.182.136.137])
-  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Sep 2022 14:02:59 -0700
-Subject: [PATCH 4/4] ndctl/test: Add CXL test for security
-From: Dave Jiang <dave.jiang@intel.com>
-To: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
-Cc: vishal.l.verma@intel.com
-Date: Wed, 21 Sep 2022 14:02:58 -0700
-Message-ID: 
- <166379417897.433612.16268594042547006566.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: 
- <166379397620.433612.13099557870939895846.stgit@djiang5-desk3.ch.intel.com>
-References: 
- <166379397620.433612.13099557870939895846.stgit@djiang5-desk3.ch.intel.com>
-User-Agent: StGit/1.4
+   d="scan'208";a="619519971"
+Received: from aschofie-mobl2.amr.corp.intel.com (HELO aschofie-mobl2) ([10.212.138.80])
+  by orsmga002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Sep 2022 14:09:04 -0700
+Date: Wed, 21 Sep 2022 14:09:03 -0700
+From: Alison Schofield <alison.schofield@intel.com>
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: linux-cxl@vger.kernel.org, vishal.l.verma@intel.com,
+	ira.weiny@intel.com, bwidawsk@kernel.org, dan.j.williams@intel.com,
+	nafonten@amd.com, nvdimm@lists.linux.dev
+Subject: Re: [PATCH v2 2/9] cxl: add helper to parse through all current
+ events
+Message-ID: <Yyt9b99nWEaM5jEF@aschofie-mobl2>
+References: <166363103019.3861186.3067220004819656109.stgit@djiang5-desk3.ch.intel.com>
+ <166363120598.3861186.12071132915910252601.stgit@djiang5-desk3.ch.intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <166363120598.3861186.12071132915910252601.stgit@djiang5-desk3.ch.intel.com>
 
-Create security-cxl.sh based off of security.sh for nfit security testing.
-The test will test a cxl_test based security commands enabling through
-nvdimm.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- test/common          |    7 +
- test/meson.build     |    7 +
- test/security-cxl.sh |  282 ++++++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 296 insertions(+)
- create mode 100755 test/security-cxl.sh
+On Mon, Sep 19, 2022 at 04:46:46PM -0700, Dave Jiang wrote:
+> Add common function to iterate through and extract the events in the
+> current trace buffer. The function uses tracefs_iterate_raw_events() from
+> libtracefs to go through all the events loaded into a tep_handle. A
+> callback is provided to the API call in order to parse the event. For cxl
+> monitor, an array of interested "systems" is provided in order to filter
+> for the interested events.
+> 
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+>  cxl/event_trace.c |   33 +++++++++++++++++++++++++++++++++
+>  cxl/event_trace.h |    7 +++++++
+>  cxl/meson.build   |    1 +
+>  meson.build       |    2 ++
+>  4 files changed, 43 insertions(+)
+> 
+> diff --git a/cxl/event_trace.c b/cxl/event_trace.c
+> index ffa2a9b9b036..430146ce66f5 100644
+> --- a/cxl/event_trace.c
+> +++ b/cxl/event_trace.c
+> @@ -16,6 +16,7 @@
+>  #include <libcxl.h>
+>  #include <uuid/uuid.h>
+>  #include <traceevent/event-parse.h>
+> +#include <tracefs/tracefs.h>
+>  #include "json.h"
+>  #include "event_trace.h"
+>  
+> @@ -164,3 +165,35 @@ err_jevent:
+>  	free(jnode);
+>  	return rc;
+>  }
+> +
+> +static int cxl_event_parse_cb(struct tep_event *event, struct tep_record *record,
+> +		int cpu, void *ctx)
+> +{
+> +	struct event_ctx *event_ctx = (struct event_ctx *)ctx;
+> +	int rc;
+> +
+> +	/* Filter out all the events that the caller isn't interested in. */
+> +	if (strcmp(event->system, event_ctx->system) != 0)
+> +		return 0;
+> +
 
-diff --git a/test/common b/test/common
-index 65615cc09a3e..e13b79728b0c 100644
---- a/test/common
-+++ b/test/common
-@@ -47,6 +47,7 @@ fi
- #
- NFIT_TEST_BUS0="nfit_test.0"
- NFIT_TEST_BUS1="nfit_test.1"
-+CXL_TEST_BUS="cxl_test"
- ACPI_BUS="ACPI.NFIT"
- E820_BUS="e820"
+While integrating w poison events, I find I'd like to filter on 
+tep_event->name == "cxl_poison" here.
+
+Something like this:
+
++	if (event_ctx->name) {
++		if (strcmp(event->name, event_ctx->name) != 0)
++			return 0;
++	}
  
-@@ -125,6 +126,12 @@ _cleanup()
- 	modprobe -r nfit_test
- }
- 
-+_cxl_cleanup()
-+{
-+	$NDCTL disable-region -b $CXL_TEST_BUS all
-+	modprobe -r cxl_test
-+}
-+
- # json2var
- # stdin: json
- #
-diff --git a/test/meson.build b/test/meson.build
-index 5953c286d13f..485deb89bbe2 100644
---- a/test/meson.build
-+++ b/test/meson.build
-@@ -219,6 +219,13 @@ if get_option('keyutils').enabled()
-   ]
- endif
- 
-+if get_option('keyutils').enabled()
-+  security_cxl = find_program('security-cxl.sh')
-+  tests += [
-+    [ 'security-cxl.sh', security_cxl, 'ndctl' ]
-+  ]
-+endif
-+
- foreach t : tests
-   test(t[0], t[1],
-     is_parallel : false,
-diff --git a/test/security-cxl.sh b/test/security-cxl.sh
-new file mode 100755
-index 000000000000..0ec9b335bf41
---- /dev/null
-+++ b/test/security-cxl.sh
-@@ -0,0 +1,282 @@
-+#!/bin/bash -Ex
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright (C) 2022 Intel Corporation. All rights reserved.
-+
-+rc=77
-+dev=""
-+id=""
-+keypath="/etc/ndctl/keys"
-+masterkey="nvdimm-master"
-+masterpath="$keypath/$masterkey.blob"
-+backup_key=0
-+backup_handle=0
-+
-+. $(dirname $0)/common
-+
-+trap 'err $LINENO' ERR
-+
-+setup()
-+{
-+	$NDCTL disable-region -b "$CXL_TEST_BUS" all
-+}
-+
-+detect()
-+{
-+	dev="$($NDCTL list -b "$CXL_TEST_BUS" -D | jq -r 'sort_by(.id) | .[0].dev')"
-+	[ -n "$dev" ] || err "$LINENO"
-+	id="$($NDCTL list -b "$CXL_TEST_BUS" -D | jq -r 'sort_by(.id) | .[0].id')"
-+	[ -n "$id" ] || err "$LINENO"
-+}
-+
-+setup_keys()
-+{
-+	if [ ! -d "$keypath" ]; then
-+		mkdir -p "$keypath"
-+	fi
-+
-+	if [ -f "$masterpath" ]; then
-+		mv "$masterpath" "$masterpath.bak"
-+		backup_key=1
-+	fi
-+	if [ -f "$keypath/tpm.handle" ]; then
-+		mv "$keypath/tpm.handle" "$keypath/tpm.handle.bak"
-+		backup_handle=1
-+	fi
-+
-+	dd if=/dev/urandom bs=1 count=32 2>/dev/null | keyctl padd user "$masterkey" @u
-+	keyctl pipe "$(keyctl search @u user $masterkey)" > "$masterpath"
-+}
-+
-+test_cleanup()
-+{
-+	if keyctl search @u encrypted nvdimm:"$id"; then
-+		keyctl unlink "$(keyctl search @u encrypted nvdimm:"$id")"
-+	fi
-+
-+	if keyctl search @u user "$masterkey"; then
-+		keyctl unlink "$(keyctl search @u user "$masterkey")"
-+	fi
-+
-+	if [ -f "$keypath"/nvdimm_"$id"_"$(hostname)".blob ]; then
-+		rm -f "$keypath"/nvdimm_"$id"_"$(hostname)".blob
-+	fi
-+}
-+
-+post_cleanup()
-+{
-+	if [ -f $masterpath ]; then
-+		rm -f "$masterpath"
-+	fi
-+	if [ "$backup_key" -eq 1 ]; then
-+		mv "$masterpath.bak" "$masterpath"
-+	fi
-+	if [ "$backup_handle" -eq 1 ]; then
-+		mv "$keypath/tpm.handle.bak" "$keypath/tpm.handle"
-+	fi
-+}
-+
-+lock_dimm()
-+{
-+	$NDCTL disable-dimm "$dev"
-+	test_dimm_path=""
-+
-+	nmem_rpath=$(readlink -f "/sys/bus/nd/devices/${dev}")
-+	nmem_bus=$(dirname ${nmem_rpath});
-+	bus_provider_path="${nmem_bus}/provider"
-+	test -e "$bus_provider_path" || err "$LINENO"
-+	bus_provider=$(cat ${bus_provider_path})
-+
-+	[[ "$bus_provider" == "$CXL_TEST_BUS" ]] || err "$LINENO"
-+	bus="cxl"
-+	nmem_provider_path="/sys/bus/nd/devices/${dev}/${bus}/provider"
-+	nmem_provider=$(cat ${nmem_provider_path})
-+
-+	test_dimm_path=$(readlink -f /sys/bus/$bus/devices/${nmem_provider})
-+	test_dimm_path=$(dirname $(dirname ${test_dimm_path}))/security_lock
-+
-+	test -e "$test_dimm_path"
-+
-+	# now lock the dimm
-+	echo 1 > "${test_dimm_path}"
-+	sstate="$(get_security_state)"
-+	if [ "$sstate" != "locked" ]; then
-+		echo "Incorrect security state: $sstate expected: locked"
-+		err "$LINENO"
-+	fi
-+}
-+
-+get_frozen_state()
-+{
-+	$NDCTL list -i -b "$CXL_TEST_BUS" -d "$dev" | jq -r .[].dimms[0].security_frozen
-+}
-+
-+get_security_state()
-+{
-+	$NDCTL list -i -b "$CXL_TEST_BUS" -d "$dev" | jq -r .[].dimms[0].security
-+}
-+
-+setup_passphrase()
-+{
-+	$NDCTL setup-passphrase "$dev" -k user:"$masterkey"
-+	sstate="$(get_security_state)"
-+	if [ "$sstate" != "unlocked" ]; then
-+		echo "Incorrect security state: $sstate expected: unlocked"
-+		err "$LINENO"
-+	fi
-+}
-+
-+remove_passphrase()
-+{
-+	$NDCTL remove-passphrase "$dev"
-+	sstate="$(get_security_state)"
-+	if [ "$sstate" != "disabled" ]; then
-+		echo "Incorrect security state: $sstate expected: disabled"
-+		err "$LINENO"
-+	fi
-+}
-+
-+erase_security()
-+{
-+	$NDCTL sanitize-dimm -c "$dev"
-+	sstate="$(get_security_state)"
-+	if [ "$sstate" != "disabled" ]; then
-+		echo "Incorrect security state: $sstate expected: disabled"
-+		err "$LINENO"
-+	fi
-+}
-+
-+update_security()
-+{
-+	$NDCTL update-passphrase "$dev"
-+	sstate="$(get_security_state)"
-+	if [ "$sstate" != "unlocked" ]; then
-+		echo "Incorrect security state: $sstate expected: unlocked"
-+		err "$LINENO"
-+	fi
-+}
-+
-+freeze_security()
-+{
-+	$NDCTL freeze-security "$dev"
-+}
-+
-+test_1_security_setup_and_remove()
-+{
-+	setup_passphrase
-+	remove_passphrase
-+}
-+
-+test_2_security_setup_and_update()
-+{
-+	setup_passphrase
-+	update_security
-+	remove_passphrase
-+}
-+
-+test_3_security_setup_and_erase()
-+{
-+	setup_passphrase
-+	erase_security
-+}
-+
-+test_4_security_unlock()
-+{
-+	setup_passphrase
-+	lock_dimm
-+	$NDCTL enable-dimm "$dev"
-+	sstate="$(get_security_state)"
-+	if [ "$sstate" != "unlocked" ]; then
-+		echo "Incorrect security state: $sstate expected: unlocked"
-+		err "$LINENO"
-+	fi
-+	$NDCTL disable-region -b "$CXL_TEST_BUS" all
-+	remove_passphrase
-+}
-+
-+# This should always be the last nvdimm security test.
-+# with security frozen, cxl_test must be removed and is no longer usable
-+test_5_security_freeze()
-+{
-+	setup_passphrase
-+	freeze_security
-+	sstate="$(get_security_state)"
-+	fstate="$(get_frozen_state)"
-+	if [ "$fstate" != "true" ]; then
-+		echo "Incorrect security state: expected: frozen"
-+		err "$LINENO"
-+	fi
-+
-+	# need to simulate a soft reboot here to clean up
-+	lock_dimm
-+	$NDCTL enable-dimm "$dev"
-+	sstate="$(get_security_state)"
-+	if [ "$sstate" != "unlocked" ]; then
-+		echo "Incorrect security state: $sstate expected: unlocked"
-+		err "$LINENO"
-+	fi
-+}
-+
-+test_6_load_keys()
-+{
-+	if keyctl search @u encrypted nvdimm:"$id"; then
-+		keyctl unlink "$(keyctl search @u encrypted nvdimm:"$id")"
-+	fi
-+
-+	if keyctl search @u user "$masterkey"; then
-+		keyctl unlink "$(keyctl search @u user "$masterkey")"
-+	fi
-+
-+	$NDCTL load-keys
-+
-+	if keyctl search @u user "$masterkey"; then
-+		echo "master key loaded"
-+	else
-+		echo "master key failed to loaded"
-+		err "$LINENO"
-+	fi
-+
-+	if keyctl search @u encrypted nvdimm:"$id"; then
-+		echo "dimm key loaded"
-+	else
-+		echo "dimm key failed to load"
-+		err "$LINENO"
-+	fi
-+}
-+
-+check_min_kver "5.0" || do_skip "may lack security handling"
-+uid="$(keyctl show | grep -Eo "_uid.[0-9]+" | head -1 | cut -d. -f2-)"
-+if [ "$uid" -ne 0 ]; then
-+	do_skip "run as root or with a sudo login shell for test to work"
-+fi
-+
-+modprobe cxl_test
-+setup
-+check_prereq "keyctl"
-+rc=1
-+detect
-+test_cleanup
-+setup_keys
-+echo "Test 1, security setup and remove"
-+test_1_security_setup_and_remove
-+echo "Test 2, security setup, update, and remove"
-+test_2_security_setup_and_update
-+echo "Test 3, security setup and erase"
-+test_3_security_setup_and_erase
-+echo "Test 4, unlock dimm"
-+test_4_security_unlock
-+
-+# Freeze should always be the last nvdimm security test because it locks
-+# security state and require cxl_test module unload. However, this does
-+# not impact any key management testing via libkeyctl.
-+echo "Test 5, freeze security"
-+test_5_security_freeze
-+
-+# Load-keys is independent of actual nvdimm security and is part of key
-+# mangement testing.
-+echo "Test 6, test load-keys"
-+test_6_load_keys
-+
-+test_cleanup
-+post_cleanup
-+_cxl_cleanup
-+exit 0
+along w this:
+
+struct event_ctx {
+ 	const char *system;
++	const char *name;
+ 	struct list_head jlist_head;
+ };
+
+I guess an all|1 option won't suffice for users wanting a subset.
+See how that fits it w your needs for monitor command. I can always
+filter after the fact if this type of change is not generally useful.
+
+Thanks,
+Alison
 
 
+> +	rc = cxl_event_to_json_callback(event, record, &event_ctx->jlist_head);
+> +	if (rc < 0)
+> +		return rc;
+> +
+> +	return 0;
+> +}
+> +
+> +int cxl_parse_events(struct tracefs_instance *inst, struct event_ctx *ectx)
+> +{
+> +	struct tep_handle *tep;
+> +	int rc;
+> +
+> +	tep = tracefs_local_events(NULL);
+> +	if (!tep)
+> +		return -ENOMEM;
+> +
+> +	rc = tracefs_iterate_raw_events(tep, inst, NULL, 0,
+> +			cxl_event_parse_cb, ectx);
+> +	tep_free(tep);
+> +	return rc;
+> +}
+> diff --git a/cxl/event_trace.h b/cxl/event_trace.h
+> index 00975a0b5680..2fbefa1586d9 100644
+> --- a/cxl/event_trace.h
+> +++ b/cxl/event_trace.h
+> @@ -11,4 +11,11 @@ struct jlist_node {
+>  	struct list_node list;
+>  };
+>  
+> +struct event_ctx {
+> +	const char *system;
+> +	struct list_head jlist_head;
+> +};
+> +
+> +int cxl_parse_events(struct tracefs_instance *inst, struct event_ctx *ectx);
+> +
+>  #endif
+> diff --git a/cxl/meson.build b/cxl/meson.build
+> index 8c7733431613..c59876262e76 100644
+> --- a/cxl/meson.build
+> +++ b/cxl/meson.build
+> @@ -21,6 +21,7 @@ cxl_tool = executable('cxl',
+>      json,
+>      versiondep,
+>      traceevent,
+> +    tracefs,
+>    ],
+>    install : true,
+>    install_dir : rootbindir,
+> diff --git a/meson.build b/meson.build
+> index f611e0bdd7f3..c204c8ac52de 100644
+> --- a/meson.build
+> +++ b/meson.build
+> @@ -143,6 +143,8 @@ libudev = dependency('libudev')
+>  uuid = dependency('uuid')
+>  json = dependency('json-c')
+>  traceevent = dependency('libtraceevent')
+> +tracefs = dependency('libtracefs')
+> +
+>  if get_option('docs').enabled()
+>    if get_option('asciidoctor').enabled()
+>      asciidoc = find_program('asciidoctor', required : true)
+> 
+> 
