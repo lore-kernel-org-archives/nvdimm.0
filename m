@@ -1,133 +1,179 @@
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F2274610D
-	for <nvdimm@lists.linux.dev>; Wed, 21 Sep 2022 15:33:22 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 852284A3A
+	for <nvdimm@lists.linux.dev>; Wed, 21 Sep 2022 15:48:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1663774403; x=1695310403;
-  h=subject:from:to:cc:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=gt2jmv9wWZQFQH3sB6A0swBtQahAJrX7Q7RXVbA0WSU=;
-  b=UjKI0KdygMbVFQ2ip1sTkMulghhsaG++6y1EKP7ufgm0e7fRw8TNyFB9
-   9GJxvGprBwSHEAdO+R00UOgIMIKx6hGYDCHOWsiAsKtVQK5li2jabz1cu
-   NjAvrcTma3L1S+XhAiPOmbI3kuH6Luxxe3138fjy1Jj7IEvG47rxAzJc6
-   za5Jz/4ENkZSgJ0qeUe7U/5Ynss6q8pM9JVlcCfLmfAYJhdQkZ3bzJQDb
-   zuKLbCUk44lt7dBzx1rPQQb2/TkMjqlaaqUK4XHjKc59uWD7OaD9LEPE/
-   ysbVjCsN/xomw5ZCooz2bFbwIFpI0oJ9qTCCyft4RlGOf457+TbQtgHJ4
-   Q==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10477"; a="300877291"
+  t=1663775310; x=1695311310;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=CrBLGfeCiI/VyIA6T5Stp4k3eOKwhB5Y+I3X/dOi7HY=;
+  b=nWliYkY4lqRaP/F/OQzgt7TQcaXg0IARK3sVZF4Ei9QT9LpT4BEqt0DE
+   H2Jhjlmw4JgfFaPv90033U7ykkDE45U9y4LWCa6c8NRMuM408HRg5qcu6
+   pSAeDRDfPrSMloM2MSv+ExvjnqLVh/9XyQ2TYKjbwYtSpwWXauo0PQk00
+   c89Ij7vYIaGeeM/4yKNkYmmKw764INumLZOK3FRygOK2o6eSNN0Rcosou
+   78usEOwvhRILnZxVonq25GfKyuNYpL5RysBmLZqKATp2qzVPRN5E8rCus
+   r7eTsmmwBOQZyqITM4TG5AlNljGQJmy2oWKXt4LcSWVhLhUCAT6QamrZC
+   w==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10477"; a="297641256"
 X-IronPort-AV: E=Sophos;i="5.93,333,1654585200"; 
-   d="scan'208";a="300877291"
-Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Sep 2022 08:33:22 -0700
+   d="scan'208";a="297641256"
+Received: from orsmga002.jf.intel.com ([10.7.209.21])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Sep 2022 08:48:29 -0700
+X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.93,333,1654585200"; 
-   d="scan'208";a="723257378"
-Received: from djiang5-desk3.ch.intel.com ([143.182.136.137])
-  by fmsmga002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Sep 2022 08:33:21 -0700
-Subject: [PATCH v2 19/19] cxl: add dimm_id support for __nvdimm_create()
-From: Dave Jiang <dave.jiang@intel.com>
-To: linux-cxl@vger.kernel.org
-Cc: nvdimm@lists.linux.dev, dan.j.williams@intel.com, bwidawsk@kernel.org,
- ira.weiny@intel.com, vishal.l.verma@intel.com, alison.schofield@intel.com,
- dave@stgolabs.net, Jonathan.Cameron@huawei.com
-Date: Wed, 21 Sep 2022 08:33:21 -0700
-Message-ID: 
- <166377440119.430546.15623409728442106946.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: 
- <166377414787.430546.3863229455285366312.stgit@djiang5-desk3.ch.intel.com>
-References: 
- <166377414787.430546.3863229455285366312.stgit@djiang5-desk3.ch.intel.com>
-User-Agent: StGit/1.4
+   d="scan'208";a="619405380"
+Received: from fmsmsx603.amr.corp.intel.com ([10.18.126.83])
+  by orsmga002.jf.intel.com with ESMTP; 21 Sep 2022 08:48:28 -0700
+Received: from fmsmsx611.amr.corp.intel.com (10.18.126.91) by
+ fmsmsx603.amr.corp.intel.com (10.18.126.83) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31; Wed, 21 Sep 2022 08:48:28 -0700
+Received: from fmsmsx609.amr.corp.intel.com (10.18.126.89) by
+ fmsmsx611.amr.corp.intel.com (10.18.126.91) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31; Wed, 21 Sep 2022 08:48:27 -0700
+Received: from FMSEDG603.ED.cps.intel.com (10.1.192.133) by
+ fmsmsx609.amr.corp.intel.com (10.18.126.89) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31 via Frontend Transport; Wed, 21 Sep 2022 08:48:27 -0700
+Received: from NAM11-BN8-obe.outbound.protection.outlook.com (104.47.58.168)
+ by edgegateway.intel.com (192.55.55.68) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2375.31; Wed, 21 Sep 2022 08:48:27 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=HIr2hcV/9eqMm8JMCDrVO48mKueXwu6jN5X6f4pyACOTYOc5hJQTPlfQzFG9pSd2UbFq/IMXdYRyrO8KbnyfVncVIKh67bj7ObwIqtF5+8yF1ClmLURwK240myQIvjYkaNyvyelQvRR7nkbFeAepzIT1sBymoBordOwS2ARHU19mQ9eqtZo/H+agO5e6k78rstcgYvdPef5YAOGJDGEa6OmoL01M5uShzFeyxtcrFQWgMkPgbeANWEUbMroLSAI/zqQfsIcdFMiTSzCRW8ErgxDY0LllZStLAAOdPwygUaCrWRKQqGuUbgUQJfk+yRRwAmXMJyD6l1ofwRshjCXDkA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=iVw9YfXiPasIvNAsMtmJHQyY2u3FVNp4EpyzxgG7QmM=;
+ b=WMZULLZkiFOgrupd50iCqgmT1A+E19jwme6VNMXFGWh2T5LshhpE1OK+Jlux8vGSW7a+3gElod0asLlhKmYZHak9D07KRBFNdYciu1ag73RdmV5elqCcnixe93aOeJakStLriQaa3PdA8vXaWRfpflvqq9mYRfjaQ5bvy/xjYBlb6bM5CM6et5gkQ4ZRib/6c1JsVBT6eK/dY2Cyazwh5vxZ83JfyNvJKcSoJlsBQN1IGbWp+rdEeKZhRfb4BQwnShxN+bNmeFOgI4szRcvbF4xGfsp3OR5Td97UeTeTw1jDCS9O7RJAhEmE8+Lx6Yj0Vg5swdRgVLEheUjAw9x+dw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
+ (2603:10b6:301:50::20) by BL1PR11MB5956.namprd11.prod.outlook.com
+ (2603:10b6:208:387::11) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5632.18; Wed, 21 Sep
+ 2022 15:48:25 +0000
+Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
+ ([fe80::9847:345e:4c5b:ca12]) by MWHPR1101MB2126.namprd11.prod.outlook.com
+ ([fe80::9847:345e:4c5b:ca12%6]) with mapi id 15.20.5654.017; Wed, 21 Sep 2022
+ 15:48:25 +0000
+Date: Wed, 21 Sep 2022 08:48:22 -0700
+From: Dan Williams <dan.j.williams@intel.com>
+To: Jason Gunthorpe <jgg@nvidia.com>, Dan Williams <dan.j.williams@intel.com>
+CC: <akpm@linux-foundation.org>, Matthew Wilcox <willy@infradead.org>, "Jan
+ Kara" <jack@suse.cz>, "Darrick J. Wong" <djwong@kernel.org>, "Christoph
+ Hellwig" <hch@lst.de>, John Hubbard <jhubbard@nvidia.com>,
+	<linux-fsdevel@vger.kernel.org>, <nvdimm@lists.linux.dev>,
+	<linux-xfs@vger.kernel.org>, <linux-mm@kvack.org>,
+	<linux-ext4@vger.kernel.org>
+Subject: Re: [PATCH v2 15/18] devdax: Use dax_insert_entry() +
+ dax_delete_mapping_entry()
+Message-ID: <632b3246548ff_66d1a29431@dwillia2-xfh.jf.intel.com.notmuch>
+References: <166329930818.2786261.6086109734008025807.stgit@dwillia2-xfh.jf.intel.com>
+ <166329939733.2786261.13946962468817639563.stgit@dwillia2-xfh.jf.intel.com>
+ <YysbXPnA3Z6AzWCw@nvidia.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <YysbXPnA3Z6AzWCw@nvidia.com>
+X-ClientProxiedBy: BYAPR01CA0026.prod.exchangelabs.com (2603:10b6:a02:80::39)
+ To MWHPR1101MB2126.namprd11.prod.outlook.com (2603:10b6:301:50::20)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: MWHPR1101MB2126:EE_|BL1PR11MB5956:EE_
+X-MS-Office365-Filtering-Correlation-Id: 10bf5bf9-15c1-4348-ca1b-08da9be8b838
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: 7B1EWQC1M5Y1iEXzkVDF6YBjJg6rmU3GYvVOvHu+3s3NJCoRzsnY8w0WLFBuDXFY1mx/vkX9P74icWRCtVu7UbApN6I6ADMjnReDqu3uY8PIEtHVPgafmqAW5XKgcI+KahbcA99K0dP4vjPEvaCh++x4XaydEO5u00YSUlQwRURLuStiYvOodlSCZqRq3EdJ5HPoSS1R4/91BPBX5yXTzV7+Y1JdDveLaN5A6Vr07LbbtTob2fm/Kx524aiJ5UOZ+lb55AC66GZTPgndYBPnUq55jNnPRbAz74lmzrQTMeGHk7nLzBOTuRGtSQ2lPJGx/qrpqLtKtwWBXH/vUYyxBFg/cThwkMwUz4AuqM7+csmbm7++lEdeqWnx+OxAZPvY37ot68v3xkBXUWkEQVeYYxxJS6B8J+3sNWi/8pSwz1gAEBu2biTgpX4U5iAB/IxRNZ8u/U3xzebuQIKIsFd396pDuyOW51JdocbY9FoMt4QqUDHCnb6VbiicoSAcL3v8N2RTaSmOW401UkzR3IZqFOtXMpjGn0TF0azhN3sSXAsuTnf+aEgZ753TPuPWXKyPi8J+Vqc2/dTeHObvPjn6huPpx7G60Ds8xAVUYn986P8iWUXFqE4+0yE2m3C1b9BV8eHymYRJVV5LKYN2PALbIEXUYj9xhv2HxlAbORGg/WO6eY5Gx/JyQwFDChbQ8Ai40IXJt2o7cuhtsUEV+nKZbw==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1101MB2126.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230022)(396003)(366004)(376002)(136003)(39860400002)(346002)(451199015)(6666004)(6506007)(7416002)(86362001)(6512007)(41300700001)(9686003)(26005)(186003)(82960400001)(478600001)(38100700002)(6486002)(66556008)(5660300002)(66946007)(316002)(8676002)(8936002)(2906002)(4326008)(54906003)(66476007)(83380400001)(110136005);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?V/hOwmhHi3v4DuOgodnU7govA71BYACuyb7blXjEvZFejtV+3VdU2jTZ1DA9?=
+ =?us-ascii?Q?+V74DXAvCuV/5I66zGvNkyqaO57EDUmEXB5UB2P8hmR5cfW250hPdZN0E3If?=
+ =?us-ascii?Q?0LZQy903T0/4qLB8vgovDVtypgT4EcMIEEIGXAMRpZGnT9pfGMzvz/zneAgT?=
+ =?us-ascii?Q?duRaO0CSKldb+LL1uKtUM0kvKsegQfCgXB2EIlpXFmJS/QVnx9flkvgqwgBS?=
+ =?us-ascii?Q?YiHmNFME/XY9kBkRE5dCzlFXV/TFtM6G1iiRexg3dx5ga0u/ly4088RAT/7J?=
+ =?us-ascii?Q?YKX5QgQmtObKqdFInSDa12BL6MHriPAf+j4BCm+jAiT5UMV+H9LEgBv7pvdF?=
+ =?us-ascii?Q?ohfqYFF+NJk9T4EsdfgNBiFRodxxg/2ADOvDX1SIxTkFYdL/jeGWzvzkW6Ky?=
+ =?us-ascii?Q?RdPgQVei0dGe4YcXILLUUk5I4ns92VZpVpV0oECqa4qQH5Im6qMHOtysd4V9?=
+ =?us-ascii?Q?px3h/qSXBshdhbds0ao+sP3Ihhh4+9DxrCqtLZBRURlEfz0Ethi7P1F58myS?=
+ =?us-ascii?Q?cnynIieJMoP5fNP5k5aebiIJbR6ksM2TDK7EubXzOq56SxyjaHAzzeB89Ggf?=
+ =?us-ascii?Q?TIAFrTZKoJ1dyJNfrDFjo029qwygybNONYhE4UPdgok/uPy5yOJlRBFAlDrX?=
+ =?us-ascii?Q?plx0Xu26InD6HLydaaS4YNcK9XhG9w00GEZxBB1mXW7z9W7o9rxmNIx+OhD6?=
+ =?us-ascii?Q?lSaBSPrxSBRpIaYBGyuDpzqsUYncp2ojbgqN69gG/3HWBP7l/i//9GhZXdm5?=
+ =?us-ascii?Q?hf8UpcGZskXDx0Mb7FbMTrkFzz4D6rL8n/1Md1FMeLYf96K9JLoUy+uNu4pT?=
+ =?us-ascii?Q?qj8vLFi7tIn3TYuwQtUf2eeL5UHzBcfItOFndZPQqwL4flMxLrn8mOSj5skm?=
+ =?us-ascii?Q?lGFsc7bxwAKYlU4wRwOAhBrP3TpA/bXm0hTw0sTem1Vki+ZHxvisbjB5/Uj+?=
+ =?us-ascii?Q?sROhvSXWQ1nN+zAwRKammWuTa2kK97INMasi5uuUk6nX8vYLzaPFUb0ASSCN?=
+ =?us-ascii?Q?qdQqTMk0VaHrFBWjUmTQwcpelA7qfiS9QxtddViIklA+Pw+6SzOhUmn+KQ4P?=
+ =?us-ascii?Q?9k+4lBE2UJ1xMvhLFrLTDZMTKpHaD5tGEm47OQwQUZb2H3X7YfeUVIH7wWn9?=
+ =?us-ascii?Q?aEp6SkAIyqhVtjK1mxq1CO9EBtHM0Y0665aovkNvTnGt/l+5KOWXorcPPz0Z?=
+ =?us-ascii?Q?xoPvb9QY6dqpd8PwJpNjzPEKRwh+1Wy8qUwgFdbakVDH5y11AmbokjrfjnbG?=
+ =?us-ascii?Q?KiT+w9EeEn8B54Dvpt6Wl/uBkfEMHdp5kO4uiiohXwyaAGj1KBfiReLq5gft?=
+ =?us-ascii?Q?WmH2XSMvUpZHWx9XpRhHHER8ZVy+WJARdAWpD5XGtF/AU61pqpjtR+dW0n1n?=
+ =?us-ascii?Q?Gf/jvZmhqFjOg1OFrF5Ow2r9L0vDpUWCTvjkbLUNVZc4NUX18a+LF549h27v?=
+ =?us-ascii?Q?i5d+Z4KSYpO5k1LG1zNh5IZdNf0ulZtxfArB06wBXtUQhadXiS2wZFyjHr9K?=
+ =?us-ascii?Q?T7frvfoMboh7/YYwhT9io4VM7MAgw8GVjM/QrmEioevsUoHGHR62TkOLTao6?=
+ =?us-ascii?Q?4Jim4UCb9FPoFxYt9IhWGM9JQus3rO+BXBSvIe1+Lml5980aDWlUVBFBwAXb?=
+ =?us-ascii?Q?6w=3D=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: 10bf5bf9-15c1-4348-ca1b-08da9be8b838
+X-MS-Exchange-CrossTenant-AuthSource: MWHPR1101MB2126.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 Sep 2022 15:48:25.3356
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: CdFO8xc9qHMv0wX4iD7Gp8Lm70qVgIKpz3bYwLjl+BdnYQJw2CxdaJ0ytTUyoDflEyJ6sSyySeB67UYyKi9iu2CLxZ6ZpeXYF/1DchsELXI=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BL1PR11MB5956
+X-OriginatorOrg: intel.com
 
-Set the cxlds->serial as the dimm_id to be fed to __nvdimm_create(). The
-security code uses that as the key description for the security key of the
-memory device. The nvdimm unlock code cannot find the respective key
-without the dimm_id.
+Jason Gunthorpe wrote:
+> On Thu, Sep 15, 2022 at 08:36:37PM -0700, Dan Williams wrote:
+> > Track entries and take pgmap references at mapping insertion time.
+> > Revoke mappings (dax_zap_mappings()) and drop the associated pgmap
+> > references at device destruction or inode eviction time. With this in
+> > place, and the fsdax equivalent already in place, the gup code no longer
+> > needs to consider PTE_DEVMAP as an indicator to get a pgmap reference
+> > before taking a page reference.
+> > 
+> > In other words, GUP takes additional references on mapped pages. Until
+> > now, DAX in all its forms was failing to take references at mapping
+> > time. With that fixed there is no longer a requirement for gup to manage
+> > @pgmap references. However, that cleanup is saved for a follow-on patch.
+> 
+> A page->pgmap must be valid and stable so long as a page has a
+> positive refcount. Once we fixed the refcount GUP is automatically
+> fine. So this explanation seems confusing.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+I think while trying to describe the history I made this patch
+description confusing.
+
+> If dax code needs other changes to maintain that invarient it should
+> be spelled out what those are and why, but the instant we fix the
+> refcount we can delete the stuff in gup.c and everywhere else.
+
+How about the following, note that this incorporates new changes I have
+in flight after Dave pointed out the problem DAX has with page pins
+versus inode lifetime:
+
 ---
- drivers/cxl/cxlmem.h         |    3 +++
- drivers/cxl/pci.c            |    4 ++++
- drivers/cxl/pmem.c           |    4 +++-
- tools/testing/cxl/test/mem.c |    4 ++++
- 4 files changed, 14 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
-index 1266df3b2d3d..24d1c66a30ed 100644
---- a/drivers/cxl/cxlmem.h
-+++ b/drivers/cxl/cxlmem.h
-@@ -178,6 +178,8 @@ struct cxl_endpoint_dvsec_info {
- 	struct range dvsec_range[2];
- };
- 
-+#define CXL_DEV_ID_LEN 32
-+
- /**
-  * struct cxl_dev_state - The driver device state
-  *
-@@ -244,6 +246,7 @@ struct cxl_dev_state {
- 
- 	resource_size_t component_reg_phys;
- 	u64 serial;
-+	u8 dev_id[CXL_DEV_ID_LEN]; /* for nvdimm, string of 'serial' */
- 
- 	struct xarray doe_mbs;
- 
-diff --git a/drivers/cxl/pci.c b/drivers/cxl/pci.c
-index faeb5d9d7a7a..de5f37e0fe6f 100644
---- a/drivers/cxl/pci.c
-+++ b/drivers/cxl/pci.c
-@@ -451,6 +451,10 @@ static int cxl_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
- 		return PTR_ERR(cxlds);
- 
- 	cxlds->serial = pci_get_dsn(pdev);
-+	rc = snprintf(cxlds->dev_id, CXL_DEV_ID_LEN, "%llu", cxlds->serial);
-+	if (rc <= 0)
-+		return -ENXIO;
-+
- 	cxlds->cxl_dvsec = pci_find_dvsec_capability(
- 		pdev, PCI_DVSEC_VENDOR_ID_CXL, CXL_DVSEC_PCIE_DEVICE);
- 	if (!cxlds->cxl_dvsec)
-diff --git a/drivers/cxl/pmem.c b/drivers/cxl/pmem.c
-index cb303edb925d..444f18c09848 100644
---- a/drivers/cxl/pmem.c
-+++ b/drivers/cxl/pmem.c
-@@ -113,9 +113,11 @@ static int cxl_nvdimm_probe(struct device *dev)
- 	set_bit(ND_CMD_GET_CONFIG_SIZE, &cmd_mask);
- 	set_bit(ND_CMD_GET_CONFIG_DATA, &cmd_mask);
- 	set_bit(ND_CMD_SET_CONFIG_DATA, &cmd_mask);
-+
- 	nvdimm = __nvdimm_create(cxl_nvb->nvdimm_bus, cxl_nvd,
- 				 cxl_dimm_attribute_groups, flags,
--				 cmd_mask, 0, NULL, NULL, cxl_security_ops, NULL);
-+				 cmd_mask, 0, NULL, cxlds->dev_id,
-+				 cxl_security_ops, NULL);
- 	if (!nvdimm) {
- 		rc = -ENOMEM;
- 		goto out;
-diff --git a/tools/testing/cxl/test/mem.c b/tools/testing/cxl/test/mem.c
-index a0a58156c15a..ca1d8f2fc6a4 100644
---- a/tools/testing/cxl/test/mem.c
-+++ b/tools/testing/cxl/test/mem.c
-@@ -556,6 +556,10 @@ static int cxl_mock_mem_probe(struct platform_device *pdev)
- 		return PTR_ERR(cxlds);
- 
- 	cxlds->serial = pdev->id;
-+	rc = snprintf(cxlds->dev_id, CXL_DEV_ID_LEN, "%llu", cxlds->serial);
-+	if (rc <= 0)
-+		return -ENXIO;
-+
- 	cxlds->mbox_send = cxl_mock_mbox_send;
- 	cxlds->payload_size = SZ_4K;
- 
+The fsdax core now manages pgmap references when servicing faults that
+install new mappings, and elevates the page reference until it is
+zapped. It coordinates with the VFS to make sure that all page
+references are dropped before the hosting inode goes out of scope
+(iput_final()).
 
-
+In order to delete the unnecessary pgmap reference taking in mm/gup.c
+devdax needs to move to the same model.
