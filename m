@@ -1,176 +1,190 @@
-Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B97367C
-	for <nvdimm@lists.linux.dev>; Wed, 21 Sep 2022 21:39:46 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD8587C
+	for <nvdimm@lists.linux.dev>; Wed, 21 Sep 2022 21:46:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1663796387; x=1695332387;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=cM8zUWJCpBi78ghXNdioeXPTIEiYgb3ew4yaOo1iB4Y=;
-  b=X8jFuKxbGq1akeuiDoVYxTNjMPEHWJ0VgysJYe1Iq+DR248myYYu3rSO
-   sZGK/P4CuUsO9JtLx4i49FLcur5rVHwcVqw5+Wwa6IMK2+ZcNENkQdu/o
-   iDu4LLTO17NxLGBXWFPbrxmatKhrPxgQyqHq9000kdXTeTm2Frrt+ElZc
-   1ehi0+nDSkFwTUInvNxSGMXyvIEygy8t1T36Zs+XcljdTToSJaZhPY9on
-   TiV+JuAxbZLnzV7Cdw58UpQ9nyuCFITcFnh7obb2IIqN646feZqJr00GF
-   P+2YUIQJiUE0SnO2xRoAWC0GETKUGUSC0+/MEaSYJ7Zu7ku1S8A/vUoZI
-   w==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10477"; a="361893321"
+  t=1663796796; x=1695332796;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=UkjKU3jVRLd/tZJnumpL34VRkcM0G1YyRrePH+3xd5w=;
+  b=CEHfOTlIX1PqdpCD1IZGKxOgrkrJeV0IC4epqsHIvnJUPlcqvk9GLy/P
+   gxFtS5cZdfoRTU7mAVgTLP6/uZFoW4IWTkBtA/IquZtRXaKsFv2ohE+wY
+   zAmol4Pz07AfbVyij5LfojcSVSPrGhQpOkWOpyV9IQW3KtqcLUaFRoagq
+   vKTLHnUWZBu36uHP670uLXky3VJXsVAyhqk/w0w+B5Lk8Ol+ryRwANXTc
+   med4mZTtZ8BogRgjanBBzsZNkK4GvKSCfseKhJ/8tkWeq8v7hYso0KpiG
+   8RDB+gwUWEpCAyPIyLdIdnCsZ9YQuKNxORh1bRwmHfgjeE5zJi3j9c8+v
+   g==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10477"; a="280503721"
 X-IronPort-AV: E=Sophos;i="5.93,334,1654585200"; 
-   d="scan'208";a="361893321"
+   d="scan'208";a="280503721"
 Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Sep 2022 14:39:45 -0700
-X-ExtLoop1: 1
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Sep 2022 14:46:36 -0700
 X-IronPort-AV: E=Sophos;i="5.93,334,1654585200"; 
-   d="scan'208";a="614967592"
-Received: from orsmsx602.amr.corp.intel.com ([10.22.229.15])
-  by orsmga007.jf.intel.com with ESMTP; 21 Sep 2022 14:39:45 -0700
-Received: from orsmsx607.amr.corp.intel.com (10.22.229.20) by
- ORSMSX602.amr.corp.intel.com (10.22.229.15) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.31; Wed, 21 Sep 2022 14:39:45 -0700
-Received: from ORSEDG601.ED.cps.intel.com (10.7.248.6) by
- orsmsx607.amr.corp.intel.com (10.22.229.20) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.31 via Frontend Transport; Wed, 21 Sep 2022 14:39:45 -0700
-Received: from NAM04-BN8-obe.outbound.protection.outlook.com (104.47.74.43) by
- edgegateway.intel.com (134.134.137.102) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2375.31; Wed, 21 Sep 2022 14:39:06 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=IaIHzUsTBALGSNcPKjwjDCiVJsimSVi1LCRNPLaeKMS0sFdvVSOPVRvK0YOQS/fTiUUAgwex77tvuvICLoivlIXfdxyOZVi2smeRPfBjcz7x3Slh4H76OdovdYqneyUPKFECFu+YlbARZJDRcRcs2O0+BwNhGGJI7IF+9HYXv4p8srnn6lTKSHqJefdiRtJ2ANFTmeIKL/KnuSiEnNhl5daePaaAuLazmbwccSY6fo1qPBlO2eZA59I7MOb7MMcuGP+2giFfA7FScwsW3boqxzWg/WMCcJ9tMlOBIN1rdGI5tZy0FkrC12Z+AktvPDiON4h5cyFLhrC7zBSMWx4fsQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=lzTF3CKogVNe83DB0pzo5K7Z+pTRzCMEUMBFMLvBjhs=;
- b=OBm4RodrhY3Btkr2lmt+4zNriSVy+7c4OZ/2i5oa14COEEqv1oOEy90HFlwyUtaWuvu+VVgDAlROZ9FkcI0HR9GcvecSEBYIOJurXSG0GdSVtCHU26c8CBrHR3nhMCmR80BMf0MD5HluEHrwEJEvte4SQNztOGu+/WyV/oCvXoQYLzdeVIwFhak7f92ecdClUY7l+/xQLtrCSwUZjddtnhAcKJic5J5QjuZ2MRe5nscktZi7X7ylOXXY2vbtnxeP1OQYXKhZGdzN1Q9JmaZD7WbHuOK0hldodHfSs3hcWYeRRWpcn3qWQ+/vXgu9JO+9qoF/gx8n1VIKUQ0U1uGHGw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
- (2603:10b6:301:50::20) by MW3PR11MB4620.namprd11.prod.outlook.com
- (2603:10b6:303:54::14) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5654.17; Wed, 21 Sep
- 2022 21:38:59 +0000
-Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
- ([fe80::9847:345e:4c5b:ca12]) by MWHPR1101MB2126.namprd11.prod.outlook.com
- ([fe80::9847:345e:4c5b:ca12%6]) with mapi id 15.20.5654.017; Wed, 21 Sep 2022
- 21:38:59 +0000
-Date: Wed, 21 Sep 2022 14:38:56 -0700
-From: Dan Williams <dan.j.williams@intel.com>
-To: Dan Williams <dan.j.williams@intel.com>, Jason Gunthorpe <jgg@nvidia.com>
-CC: <akpm@linux-foundation.org>, Matthew Wilcox <willy@infradead.org>, "Jan
- Kara" <jack@suse.cz>, "Darrick J. Wong" <djwong@kernel.org>, Christoph
- Hellwig <hch@lst.de>, John Hubbard <jhubbard@nvidia.com>,
-	<linux-fsdevel@vger.kernel.org>, <nvdimm@lists.linux.dev>,
-	<linux-xfs@vger.kernel.org>, <linux-mm@kvack.org>,
-	<linux-ext4@vger.kernel.org>
-Subject: Re: [PATCH v2 10/18] fsdax: Manage pgmap references at entry
- insertion and deletion
-Message-ID: <632b8470d34a6_34962946d@dwillia2-xfh.jf.intel.com.notmuch>
-References: <166329930818.2786261.6086109734008025807.stgit@dwillia2-xfh.jf.intel.com>
- <166329936739.2786261.14035402420254589047.stgit@dwillia2-xfh.jf.intel.com>
- <YysZrdF/BSQhjWZs@nvidia.com>
- <632b2b4edd803_66d1a2941a@dwillia2-xfh.jf.intel.com.notmuch>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <632b2b4edd803_66d1a2941a@dwillia2-xfh.jf.intel.com.notmuch>
-X-ClientProxiedBy: BYAPR03CA0016.namprd03.prod.outlook.com
- (2603:10b6:a02:a8::29) To MWHPR1101MB2126.namprd11.prod.outlook.com
- (2603:10b6:301:50::20)
+   d="scan'208";a="614969473"
+Received: from djiang5-mobl2.amr.corp.intel.com (HELO [10.212.36.150]) ([10.212.36.150])
+  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Sep 2022 14:46:35 -0700
+Message-ID: <762b2338-7e65-6462-cf88-9e9cc8dd8f83@intel.com>
+Date: Wed, 21 Sep 2022 14:46:34 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MWHPR1101MB2126:EE_|MW3PR11MB4620:EE_
-X-MS-Office365-Filtering-Correlation-Id: 4ebfdb64-0743-4230-a81e-08da9c19b198
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: KUk8dJuaPeZXxIZF2PyX9tG3WmdneczFTG7AUJr53n2PFUGenp31yTkfRr+M1caTJ5TC6yQGAb/H6cN7hKwqq+y2abmPoV/oFvKYGXEeR8Wr2YntywuhGdXBU1HzspMMjRJHf9OkBOqzYpuNpgZNrugtRq/QqCm+9eDJ1RCx2wBt7jHRqbk1/yEobWDMLY+9T12Fu2ePIRiQyqllQVj9ay1JUSrdtE9B+GiiM0crMBi0ZvNWoHsqrBVCUSu3GNqXwdX2W+ckznXu907sWoQN/lLC9yCPsLDA6IXuqHqsaSl3K2zuVnaSWuldGVpMXxkNYW+Oij2OpbreB6OysOIm2ze5mWWfz5K19uwDX5lkEzd56cFwuYoy4McMNRFrFkVyF2ztR0ezs4CDFDMymXOngWn3pAL5aQI+1DUBklQLvNfyOZ4Drl8LZznXpIV6IOfjhTiZTIeFZocy4Lt7XVASMG7L0LLQGhyNCJsubkj39Bsh5XZfCEJgGWZms8n99lL8BWks0EEFlQkYllCOdnn30iYWguEoSmWxPMHsgR7/99iYs53YIh3/zRLi8ljNry7vO89KQkIXX9cQ+awcrdHAlFnxK7WO7s+kzZxoAIE2ohuw76A9FYQykb/VRWHXBJo+LIYMWQ6vxTtb4AG4PDSCs0br+INneqSKAc3AaP+oqsUmb/8IcNO95f1quwbexIgtgaC2WGJcqIWqgEviMwPbXw==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1101MB2126.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230022)(376002)(366004)(346002)(136003)(396003)(39860400002)(451199015)(83380400001)(6666004)(41300700001)(6506007)(186003)(26005)(6512007)(9686003)(82960400001)(86362001)(38100700002)(66476007)(4326008)(66946007)(8936002)(8676002)(5660300002)(66556008)(7416002)(316002)(54906003)(110136005)(2906002)(6486002)(478600001);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?bitLZW/9fII9MZrM46gzpU+odIMqR9zkie7EWHIqiK79919pvf5Iraht635d?=
- =?us-ascii?Q?UZ+U+Fy0dV8JtzD1U1cp9WXh24+UleBZ9ABWy/rrtf4HqXrLZLeFCAgNAbGB?=
- =?us-ascii?Q?Z5SJ/gTBn5KZgN+OuLgLUVbrJyJ0IqpWKigIr1y4wx3SD0I0ljrCc9oJCmeq?=
- =?us-ascii?Q?RW15D3SGjkY0q8nxLofHgpcrUlVRPw2YW7jgw9Ht0mMMIdNIKcI4Kni/b1jK?=
- =?us-ascii?Q?EkH6vqaf74JDvWr9qZWoTZJLejq07IoNXEi1iyWot/MeigYfx0ryYT8UWLBs?=
- =?us-ascii?Q?2u5nY33VIDMO2tHt10WGK5z3BfOupjbRt38RT93NJhHQ/xu4ZC0Aw6TriAc6?=
- =?us-ascii?Q?YXzzSZDXD2Cx5zfqcQWnzDaN578FhavzwOxhAp1N6g8SNbyopJ1+0UqAfVhF?=
- =?us-ascii?Q?Gf//ODN8ovuRhqzuY4nOTH5K4S19OwEbnUUfxe+YxTo8oX9hH+c/Ndo30YbL?=
- =?us-ascii?Q?G8pHayfC1Z/jmUbG2AgJ37Dnaucb+s6taFy859ndpqYAtCHcKp+PhwZOX8a1?=
- =?us-ascii?Q?9uWdJZM/ddbk6WaDpjMY43ESuBHeQEP5bXiA6ghjYMZyh1ZBxk+N+KYpu0wF?=
- =?us-ascii?Q?cggWzu7BxyWXRAqr88wqpKvZOfqPcR2o2K6ufDRa5+3BB2TF7YeOxz0tdFxx?=
- =?us-ascii?Q?rMA06O+Aw5fAG7fRv/vVEK0D6E2gLE7lAK4VsnYiRdNo4g/EjyftCXzFCLtN?=
- =?us-ascii?Q?qfO9zuprfiGVLj2G7iXzqO7aCmZQacvgyjN8KR7X5wPX8vMeJAy0TGn2wIyk?=
- =?us-ascii?Q?h1ko0qHa2S3gCdRl1p7jvdibrvrcsNr3MBDUdmIfQNPfpOIpM/mnPSty3W27?=
- =?us-ascii?Q?k2K1GBshTNhqx4XlDT5oeIBvYvF2se1IonSMZ3q1Kfxa/kfCqKhGD5GEtUDb?=
- =?us-ascii?Q?QZqcu/bTkPYppjKgJXIKWMDSboAHrhU5REWtJ9XROS63GeQyjtJ317/a9ihy?=
- =?us-ascii?Q?uFt7NSWMqQ8k51Z1ejMttJ5wtRxlWS6GS4x53jOqQJFpwPAWK2t6O676EEfi?=
- =?us-ascii?Q?38W52APzXoObCSJN6+I0iLgsIHYdZkK896RSCrCudHuNpklH7C9CsjlFQj3r?=
- =?us-ascii?Q?I8Ubox1V3R0G32DxAwoojyoTnFA1RqTqjF/XF2MTZCayOBoL6aMZbaWbjqVj?=
- =?us-ascii?Q?3fwkS/mbp5QYeoC2RB9NwdBwJhVELMvmcnpOtPAXZSSBY0l/preg5Q/7qcyH?=
- =?us-ascii?Q?+kxhbmCgBzssR/T8o21HAPcgc5+g/qfauK7JygYpZBGAf3OgFbbikY9Q5VMb?=
- =?us-ascii?Q?pEMXQAHz+/dLMxek0Y/q2dU/sC/ek2h8ERGCJTxiaT1sQAn/BG7cucdiSnJn?=
- =?us-ascii?Q?LCJIAXqOalgklKp3/RyuHgri+SgUa2oe+HtvKXMdWvqTHx3T8YEPgJ7mSJ43?=
- =?us-ascii?Q?aBfvpH9h7lvx786wPhNTdaddIFzw7rtNWYucuFwImxgUfrXi0pbxQfKiIIli?=
- =?us-ascii?Q?uQOzlX6Ad7Av1ipNy/Pjv3aiNxak1jEOuF6lAHRKbtO7QaNBU4++SkTkPXUW?=
- =?us-ascii?Q?NTjRLZFBrnowbAVpSvkQFfhskaqxA9X+b9aAUegJHVtKidaakkYgmDXfkSys?=
- =?us-ascii?Q?oz8UtyArLmiFRfNzlFji4OchbK7tB/kFEhMHTMP+P0o3m9bEg7vgCs45E7GI?=
- =?us-ascii?Q?AA=3D=3D?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: 4ebfdb64-0743-4230-a81e-08da9c19b198
-X-MS-Exchange-CrossTenant-AuthSource: MWHPR1101MB2126.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 Sep 2022 21:38:59.5127
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: g5mjBbbLw0wIP+bHr2Jm5Z64K+Mg6i37kKh/rbW3fSWLO/0+cPtpidxluu0tyhacqWgWknKNVHB8dJmyOMrM+VBAEqvP5LlovlKazupGSrc=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW3PR11MB4620
-X-OriginatorOrg: intel.com
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
+ Firefox/102.0 Thunderbird/102.2.2
+Subject: Re: [PATCH v2 2/9] cxl: add helper to parse through all current
+ events
+Content-Language: en-US
+To: Alison Schofield <alison.schofield@intel.com>
+Cc: linux-cxl@vger.kernel.org, vishal.l.verma@intel.com, ira.weiny@intel.com,
+ bwidawsk@kernel.org, dan.j.williams@intel.com, nafonten@amd.com,
+ nvdimm@lists.linux.dev
+References: <166363103019.3861186.3067220004819656109.stgit@djiang5-desk3.ch.intel.com>
+ <166363120598.3861186.12071132915910252601.stgit@djiang5-desk3.ch.intel.com>
+ <Yyt9b99nWEaM5jEF@aschofie-mobl2>
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <Yyt9b99nWEaM5jEF@aschofie-mobl2>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Dan Williams wrote:
-> Jason Gunthorpe wrote:
-> > On Thu, Sep 15, 2022 at 08:36:07PM -0700, Dan Williams wrote:
-> > > The percpu_ref in 'struct dev_pagemap' is used to coordinate active
-> > > mappings of device-memory with the device-removal / unbind path. It
-> > > enables the semantic that initiating device-removal (or
-> > > device-driver-unbind) blocks new mapping and DMA attempts, and waits for
-> > > mapping revocation or inflight DMA to complete.
-> > 
-> > This seems strange to me
-> > 
-> > The pagemap should be ref'd as long as the filesystem is mounted over
-> > the dax. The ref should be incrd when the filesystem is mounted and
-> > decrd when it is unmounted.
-> > 
-> > When the filesystem unmounts it should zap all the mappings (actually
-> > I don't think you can even unmount a filesystem while mappings are
-> > open) and wait for all page references to go to zero, then put the
-> > final pagemap back.
-> > 
-> > The rule is nothing can touch page->pgmap while page->refcount == 0,
-> > and if page->refcount != 0 then page->pgmap must be valid, without any
-> > refcounting on the page map itself.
-> > 
-> > So, why do we need pgmap refcounting all over the place? It seems like
-> > it only existed before because of the abuse of the page->refcount?
-> 
-> Recall that this percpu_ref is mirroring the same function as
-> blk_queue_enter() whereby every new request is checking to make sure the
-> device is still alive, or whether it has started exiting.
-> 
-> So pgmap 'live' reference taking in fs/dax.c allows the core to start
-> failing fault requests once device teardown has started. It is a 'block
-> new, and drain old' semantic.
 
-However this line of questioning has me realizing that I have the
-put_dev_pagemap() in the wrong place. It needs to go in
-free_zone_device_page(), so that gup extends the lifetime of the device.
+On 9/21/2022 2:09 PM, Alison Schofield wrote:
+> On Mon, Sep 19, 2022 at 04:46:46PM -0700, Dave Jiang wrote:
+>> Add common function to iterate through and extract the events in the
+>> current trace buffer. The function uses tracefs_iterate_raw_events() from
+>> libtracefs to go through all the events loaded into a tep_handle. A
+>> callback is provided to the API call in order to parse the event. For cxl
+>> monitor, an array of interested "systems" is provided in order to filter
+>> for the interested events.
+>>
+>> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+>> ---
+>>   cxl/event_trace.c |   33 +++++++++++++++++++++++++++++++++
+>>   cxl/event_trace.h |    7 +++++++
+>>   cxl/meson.build   |    1 +
+>>   meson.build       |    2 ++
+>>   4 files changed, 43 insertions(+)
+>>
+>> diff --git a/cxl/event_trace.c b/cxl/event_trace.c
+>> index ffa2a9b9b036..430146ce66f5 100644
+>> --- a/cxl/event_trace.c
+>> +++ b/cxl/event_trace.c
+>> @@ -16,6 +16,7 @@
+>>   #include <libcxl.h>
+>>   #include <uuid/uuid.h>
+>>   #include <traceevent/event-parse.h>
+>> +#include <tracefs/tracefs.h>
+>>   #include "json.h"
+>>   #include "event_trace.h"
+>>   
+>> @@ -164,3 +165,35 @@ err_jevent:
+>>   	free(jnode);
+>>   	return rc;
+>>   }
+>> +
+>> +static int cxl_event_parse_cb(struct tep_event *event, struct tep_record *record,
+>> +		int cpu, void *ctx)
+>> +{
+>> +	struct event_ctx *event_ctx = (struct event_ctx *)ctx;
+>> +	int rc;
+>> +
+>> +	/* Filter out all the events that the caller isn't interested in. */
+>> +	if (strcmp(event->system, event_ctx->system) != 0)
+>> +		return 0;
+>> +
+> While integrating w poison events, I find I'd like to filter on
+> tep_event->name == "cxl_poison" here.
+>
+> Something like this:
+>
+> +	if (event_ctx->name) {
+> +		if (strcmp(event->name, event_ctx->name) != 0)
+> +			return 0;
+> +	}
+>   
+> along w this:
+>
+> struct event_ctx {
+>   	const char *system;
+> +	const char *name;
+>   	struct list_head jlist_head;
+>   };
+
+Ok I can add that.
+
+>
+> I guess an all|1 option won't suffice for users wanting a subset.
+> See how that fits it w your needs for monitor command. I can always
+> filter after the fact if this type of change is not generally useful.
+>
+> Thanks,
+> Alison
+>
+>
+>> +	rc = cxl_event_to_json_callback(event, record, &event_ctx->jlist_head);
+>> +	if (rc < 0)
+>> +		return rc;
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +int cxl_parse_events(struct tracefs_instance *inst, struct event_ctx *ectx)
+>> +{
+>> +	struct tep_handle *tep;
+>> +	int rc;
+>> +
+>> +	tep = tracefs_local_events(NULL);
+>> +	if (!tep)
+>> +		return -ENOMEM;
+>> +
+>> +	rc = tracefs_iterate_raw_events(tep, inst, NULL, 0,
+>> +			cxl_event_parse_cb, ectx);
+>> +	tep_free(tep);
+>> +	return rc;
+>> +}
+>> diff --git a/cxl/event_trace.h b/cxl/event_trace.h
+>> index 00975a0b5680..2fbefa1586d9 100644
+>> --- a/cxl/event_trace.h
+>> +++ b/cxl/event_trace.h
+>> @@ -11,4 +11,11 @@ struct jlist_node {
+>>   	struct list_node list;
+>>   };
+>>   
+>> +struct event_ctx {
+>> +	const char *system;
+>> +	struct list_head jlist_head;
+>> +};
+>> +
+>> +int cxl_parse_events(struct tracefs_instance *inst, struct event_ctx *ectx);
+>> +
+>>   #endif
+>> diff --git a/cxl/meson.build b/cxl/meson.build
+>> index 8c7733431613..c59876262e76 100644
+>> --- a/cxl/meson.build
+>> +++ b/cxl/meson.build
+>> @@ -21,6 +21,7 @@ cxl_tool = executable('cxl',
+>>       json,
+>>       versiondep,
+>>       traceevent,
+>> +    tracefs,
+>>     ],
+>>     install : true,
+>>     install_dir : rootbindir,
+>> diff --git a/meson.build b/meson.build
+>> index f611e0bdd7f3..c204c8ac52de 100644
+>> --- a/meson.build
+>> +++ b/meson.build
+>> @@ -143,6 +143,8 @@ libudev = dependency('libudev')
+>>   uuid = dependency('uuid')
+>>   json = dependency('json-c')
+>>   traceevent = dependency('libtraceevent')
+>> +tracefs = dependency('libtracefs')
+>> +
+>>   if get_option('docs').enabled()
+>>     if get_option('asciidoctor').enabled()
+>>       asciidoc = find_program('asciidoctor', required : true)
+>>
+>>
