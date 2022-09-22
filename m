@@ -1,46 +1,76 @@
-Received: from NAM11-BN8-obe.outbound.protection.outlook.com (mail-bn8nam11on2041.outbound.protection.outlook.com [40.107.236.41])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D4D37C
-	for <nvdimm@lists.linux.dev>; Thu, 22 Sep 2022 17:56:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1A872560
+	for <nvdimm@lists.linux.dev>; Thu, 22 Sep 2022 21:56:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1663883776; x=1695419776;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=TF9ohMeOdxOMPU8wNWg0+uO+8siZDUoP9TRt2qswqGM=;
+  b=aq0SNrdcdDO2Vm2k3+s0fnmIzY/oDn/VQMOHdOfGpMG6Y9stlExYVa5C
+   upvDKWO5Qv7Zj2s2fBW3WbVj3Zi3y4yGFXFPSIJFkvhIAFM1yycDw+Anm
+   svZFfrFVHVb3Calqgx7n8lHJ6gOwTIh/Cs/FGefD8osMqFadinJcpR7X8
+   gv031RehO4HQ2TTPUJH83fWCOhDitlHuCqYz8FWZt0BMNkRtaOFg4yJrv
+   891966T90tgETUeoQpCXXJLOiso6xhMDZZtIs6xedEIdhO7ZAelvBubWY
+   z9YhkSJ+e0PVbEb/8tVrxkdv6oMb3Si0uXCdoF33Du+6tB3PzhlDXCenh
+   w==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10478"; a="299167040"
+X-IronPort-AV: E=Sophos;i="5.93,337,1654585200"; 
+   d="scan'208";a="299167040"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Sep 2022 14:54:49 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.93,337,1654585200"; 
+   d="scan'208";a="650712718"
+Received: from orsmsx603.amr.corp.intel.com ([10.22.229.16])
+  by orsmga008.jf.intel.com with ESMTP; 22 Sep 2022 14:54:48 -0700
+Received: from orsmsx601.amr.corp.intel.com (10.22.229.14) by
+ ORSMSX603.amr.corp.intel.com (10.22.229.16) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31; Thu, 22 Sep 2022 14:54:48 -0700
+Received: from ORSEDG602.ED.cps.intel.com (10.7.248.7) by
+ orsmsx601.amr.corp.intel.com (10.22.229.14) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31 via Frontend Transport; Thu, 22 Sep 2022 14:54:48 -0700
+Received: from NAM10-BN7-obe.outbound.protection.outlook.com (104.47.70.108)
+ by edgegateway.intel.com (134.134.137.103) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2375.31; Thu, 22 Sep 2022 14:54:47 -0700
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=fb7Pg4eKIfD/6OzH/1q2XEozjs85a4KPTC1jVbykErgH7+gDFGVzIBm60j7M14p2bv917JkHrImXWVc/9l3fmpgPNHoml6+dPW8swFmuh8ixEffbBntke9ub5PsqOJ8PBbjgBSZvpe/9D9q3TKSspjW5LSjFaDFyyS+baafiyc2b2yH91kTt2bXVNgPY3wzoki0ry3CHzbu6Ocv+x+5KgNGgPDWGUStvgw7zwNUd3UyW5XTICVQYvnfktPVYAJ7pYzt5lF2FTVUTC+jpOeTSNxcr9/t1xSqug/8ELvNuANry38Lu+0jmkXnUSgIu1pJi/VR2cXLRIhNe9iBytDJBDQ==
+ b=F4sD3tzhetkJTXC+Y+SI9pb4PaN/zbzPlN7Qa0HNBk8RBcvSB/nk6HP/4v/LqHoZdzjr13M++WsdAkW8qLAO9CXVI8xpjGDta2UAVIVq012EKCQva9v6XA6BFSesVU7v81APX8Tgax13uaJ7XD9B7jYnp0OlOTn0VUJi76JcpkUNWA2pH5KxIrrfK9aPFRePIaYha1E3Mf98kbjq6zvh7A/zANVPbCombdXSbCqz0k3ju+HEP3A94Xmysblf78WA199GlNprQAFK7qyJDUDkLMK1/ARNSn3kYBcaP7rmZXJJRnf5aW4hlE5xRwKRcUIuiBt2CrxhB4k3lh50Gwsdlw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=NUYd7Vr4T9LW+SgR8wu1dhGQVt+npJ+sPWcUGP4dgM0=;
- b=l9skv0XyCW2ozAwXvKejHZeNoYlMtwzmdCwlmBa4edU6YRNdhTIfJA1lFRTexbHfONwNazTKuQ+wTS32imrIStBtX6UzEt4Lf0he+ruLt4dcpwmt4Ijs/cb6oZ6jf5McSYx+/ALESlE7a/Sz5g1UgQjOx/raudGEeGE3mCgwVS1vQKy/QLc9pS/svg29JJa27Q4cUYvBU00lcAvan+6AsAm6t/EWMQvC039jdwOkoMACxqGZw3y/O/1LF09waOodHFfGz7+V0IClO0wsi2GypE0/mfTzfvhmP1K6KPtBgzIMqWWCWPJBkXBQbKQUgkif50RmHoyhDsLnvlksFJ/cmg==
+ bh=hickjYoSb4cp8i3n8hOMWQH35gIZl17oBPYyhW8xE8k=;
+ b=nltHbLBknIajovejgjo74sdAkYF8eXcL5AWuMPJ26lI2kCLgmkUkx8vjGOb4UMo3NsuFWpKuMhQpmv/0r6GABt1rx3930LRtj5aQL+d7h1/ge9nRRPG/DUp3p3pwy1qlmfF5+zwtdeb/DsxPIURVrPyeAImF7rMf+8e/jGGKdM3xfwiAnM+FRuBJXkp+2rrjZmCHGzbeQb7uk5nvSPwoVhyRrCxZsJqWBscnj/ZTmPuNzh14sT2iT56Ti9z5xDmgRXUjG0aL5t6Yj2Xn3DErYNaoOBMY+caB04TMZupIYX2hca8DOlKxDq4tl/ZtjKvGP+UUviRxMnzoHGEvGETd6w==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=NUYd7Vr4T9LW+SgR8wu1dhGQVt+npJ+sPWcUGP4dgM0=;
- b=a/FcXNVTSu5hFcVXGbSa/6qwJhmv8LnBcjYAjpIOsnZqPz5V83SPzg6SGwALh6ftNn1c+lFWIlyIPVgCOWKO0YG+PHoh5dT8hJwQEVq+P9dzahmNiM2yG01wEO4SOv4TCEjSoquV4+OKh0p0XvuNHa5bzY8yI6qHgwuBilGwl7gfeIXEb9kXK5y+uloczg5IIDyJumLPHaRPt4BnhcghkEOCvyy3vdeXMP5l1Q5jvDCiJ23UJdJMMI/MsOpfjPiYe6Bdd672unPXbt/toWCylaaVIgJN+urpSid4xR2RStL0DBYzZzRgPQx8IaFBTQADH8hvxMB3kPVnnfqsnYzhVg==
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
 Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from MN2PR12MB4192.namprd12.prod.outlook.com (2603:10b6:208:1d5::15)
- by BL1PR12MB5850.namprd12.prod.outlook.com (2603:10b6:208:395::6) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5654.16; Thu, 22 Sep
- 2022 17:55:59 +0000
-Received: from MN2PR12MB4192.namprd12.prod.outlook.com
- ([fe80::462:7fe:f04f:d0d5]) by MN2PR12MB4192.namprd12.prod.outlook.com
- ([fe80::462:7fe:f04f:d0d5%7]) with mapi id 15.20.5654.019; Thu, 22 Sep 2022
- 17:55:59 +0000
-Date: Thu, 22 Sep 2022 14:55:57 -0300
-From: Jason Gunthorpe <jgg@nvidia.com>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: akpm@linux-foundation.org, Matthew Wilcox <willy@infradead.org>,
-	Jan Kara <jack@suse.cz>, "Darrick J. Wong" <djwong@kernel.org>,
-	Christoph Hellwig <hch@lst.de>, John Hubbard <jhubbard@nvidia.com>,
-	linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
-	linux-xfs@vger.kernel.org, linux-mm@kvack.org,
-	linux-ext4@vger.kernel.org
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
+ (2603:10b6:301:50::20) by DM6PR11MB4676.namprd11.prod.outlook.com
+ (2603:10b6:5:2a7::9) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5654.19; Thu, 22 Sep
+ 2022 21:54:44 +0000
+Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
+ ([fe80::9847:345e:4c5b:ca12]) by MWHPR1101MB2126.namprd11.prod.outlook.com
+ ([fe80::9847:345e:4c5b:ca12%6]) with mapi id 15.20.5654.017; Thu, 22 Sep 2022
+ 21:54:44 +0000
+Date: Thu, 22 Sep 2022 14:54:42 -0700
+From: Dan Williams <dan.j.williams@intel.com>
+To: Jason Gunthorpe <jgg@nvidia.com>, Dan Williams <dan.j.williams@intel.com>
+CC: <akpm@linux-foundation.org>, Matthew Wilcox <willy@infradead.org>, "Jan
+ Kara" <jack@suse.cz>, "Darrick J. Wong" <djwong@kernel.org>, Christoph
+ Hellwig <hch@lst.de>, John Hubbard <jhubbard@nvidia.com>,
+	<linux-fsdevel@vger.kernel.org>, <nvdimm@lists.linux.dev>,
+	<linux-xfs@vger.kernel.org>, <linux-mm@kvack.org>,
+	<linux-ext4@vger.kernel.org>
 Subject: Re: [PATCH v2 10/18] fsdax: Manage pgmap references at entry
  insertion and deletion
-Message-ID: <YyyhrTxFJZlMGYY6@nvidia.com>
+Message-ID: <632cd9a2a023_3496294da@dwillia2-xfh.jf.intel.com.notmuch>
 References: <166329930818.2786261.6086109734008025807.stgit@dwillia2-xfh.jf.intel.com>
  <166329936739.2786261.14035402420254589047.stgit@dwillia2-xfh.jf.intel.com>
  <YysZrdF/BSQhjWZs@nvidia.com>
@@ -50,12 +80,13 @@ References: <166329930818.2786261.6086109734008025807.stgit@dwillia2-xfh.jf.inte
  <632ba8eaa5aea_349629422@dwillia2-xfh.jf.intel.com.notmuch>
  <YyurdXnW7SyEndHV@nvidia.com>
  <632bc5c4363e9_349629486@dwillia2-xfh.jf.intel.com.notmuch>
-Content-Type: text/plain; charset=us-ascii
+ <YyyhrTxFJZlMGYY6@nvidia.com>
+Content-Type: text/plain; charset="us-ascii"
 Content-Disposition: inline
-In-Reply-To: <632bc5c4363e9_349629486@dwillia2-xfh.jf.intel.com.notmuch>
-X-ClientProxiedBy: BL1PR13CA0118.namprd13.prod.outlook.com
- (2603:10b6:208:2b9::33) To MN2PR12MB4192.namprd12.prod.outlook.com
- (2603:10b6:208:1d5::15)
+In-Reply-To: <YyyhrTxFJZlMGYY6@nvidia.com>
+X-ClientProxiedBy: BY5PR16CA0005.namprd16.prod.outlook.com
+ (2603:10b6:a03:1a0::18) To MWHPR1101MB2126.namprd11.prod.outlook.com
+ (2603:10b6:301:50::20)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -63,101 +94,133 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MN2PR12MB4192:EE_|BL1PR12MB5850:EE_
-X-MS-Office365-Filtering-Correlation-Id: bf053442-991b-4b96-0bec-08da9cc3b47d
+X-MS-TrafficTypeDiagnostic: MWHPR1101MB2126:EE_|DM6PR11MB4676:EE_
+X-MS-Office365-Filtering-Correlation-Id: 0e638cc0-afd0-4200-56d3-08da9ce50f47
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info:
-	4fwdqsWn21QmpfHk+u8FCNyBfFyYmOlUxHpkwWfuyu/xMrbskbK0c3b17+8uh+I/8Wb5RhdxC1KtQrnuuc/81jry68KnjEZvfPel5Xk5dDEgZyydxqwRFo3ir2LgFjDpvEIk3GBL7KwGO/5VO55gKxbXli5X25pR12EkLxkCForgQW0am1OnthlB4aKkWo4rXITVy16ddbr84JPftZ+fH9I77h8/FjzTg09GQxrzmGCH2OYGb04pfHfIvuF79poaO5S90N3Y0SCdh/txibGDELkrhoY39SbT+bffBpSbiTmBOvsjJoWAHoe7B4zX/UGJBnEini06UzLpigV8tE5Z+zgaD7+qML8uvTlf+C43RXYpmCv0jqTOJB5spkSOxOEosHH4hI2n/7fBlTRscvmbv0EfwscmquEgqEnJ0nte6LngCdCp08L8ZOf3ITVrCTnaUX1l/RXNGC5SluPXGxLISgFyGirzScffa5TCX3cRF+U6tqykc/J0oMYgW824hrt/5Z0kMhjJJD6waZvfKI9u6LEkrfW1Yf4Jmc0ZiPgx39bnVItIzSr4OfauaPkbhvOMGsVmhDtxfzOTS2u09I968UYm4I/wW2aLx+rmPwElxRqwX8w/N5fgbd5EjW8gUZBs6gva/eRLv1jftcZXceN5zV6PuYhiD5O1/2DhGQLgVJx2Gse8Cjb6LdkkTR8oy17Z3DyDX+8hyk/h5DZJ2/qBpQ==
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MN2PR12MB4192.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230022)(4636009)(39860400002)(366004)(396003)(376002)(346002)(136003)(451199015)(186003)(83380400001)(2616005)(86362001)(7416002)(38100700002)(8936002)(8676002)(66556008)(41300700001)(5660300002)(66946007)(4326008)(66476007)(2906002)(6512007)(478600001)(26005)(6916009)(316002)(54906003)(6506007)(6486002)(36756003);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam-Message-Info: c8MAe3YfJib/tYsvR11rQsklxtGbJp5uYtSahxmP57deoYa8fFlJkEOkLikg2dqezHGtFaL8LDHASoSRBwy7uZXA0UOFXNPDt1ABI4NUjaUeD4cJEEVJe1zGkLddhZLxPyPZj1p5ve6O5oGO8M4+UwK4TXNQCZlQCKdnvwuW3PvR0jCSC+PkUVvnMFxGfWIeME5BQJOZuXhOZi869bdppUc2o2mD416Tbou5pcXLaNvJUpmFi9Idzs6/ouqFX6Sm67dh5iengJyf54nkhjPM0e0CFKT31GciG9Xa0/Puvjcd97DhrWkUqhwuiSdasySe8qtUjkl+MYB4N3HCZvXBD+YdgmI+Vq6yCW+v7B85EBZGXE9uJlPBFGtWGB1YphH+vPHCh8yVs0vwcc3AKtu3taomhOU70EDOL2FaDRwnIncJj5T+CB/jx31yp+cCUwTMx5V2X+QaaL5n8ZfI1+OCsX74HoTtfQ7w5zlvhw7vqxtRRmtfWjXQmZYsJaTywLCnRflaibrRo6gsLru5T45OqKP/QkBRzVlw5lWOKGEUMOD3aerLzjAuu+F7AeUcSbRAdtYLBmZYI9vtG0W6mu1ydxOLdTDaTw6Wuwbls7kdDdRUzLdJAhIlGKcoDIDVmeYJYlSItSo7ADW3xjjdB1BHK909jdUqkFud+sJB2hxbYozr7AcA9ts+Ri8wuTSasc72jjEgrRdKNEDjGjlBa18o8Q==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1101MB2126.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230022)(39860400002)(366004)(136003)(396003)(376002)(346002)(451199015)(186003)(2906002)(83380400001)(26005)(9686003)(6512007)(5660300002)(8936002)(7416002)(86362001)(6506007)(41300700001)(66946007)(66476007)(4326008)(8676002)(66556008)(54906003)(478600001)(316002)(38100700002)(110136005)(6486002)(82960400001);DIR:OUT;SFP:1102;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?FLHSvSyGxDWSppy9l5AfVS/FeJZNn3RjsLG4wqV08IlUwM5FQ3PacwiVJah8?=
- =?us-ascii?Q?U3V6/jyTKO+Mpvp/0xN76uYyGz9KoqjDlrCHYC84aJH4YFpobsTXNUTprIAe?=
- =?us-ascii?Q?H7e01Wl15cfXB7N7RJNk/Cq1sR5FU6U4oSNDzjkx1/ZlugPOFoEarBFWhaWT?=
- =?us-ascii?Q?J2UjovucuUJy9MAg5YsYrmviJrv+7T2/2EYsNlwt8GmtxlP7df9WwzMhs/G4?=
- =?us-ascii?Q?5rp5E4Ac1geUQnoQ03YJ4vDlhchvvtAImW5lmV6MC2dN+eo8xIQye6lGZv6+?=
- =?us-ascii?Q?dCCu8zzOnccMXkpo6yeN0uATJu0YxAsryMX3wIFI3E65w4F4aFOescM7TZhM?=
- =?us-ascii?Q?Io1rHwERU5M9X/Y7orZKfFzd72D1yfKMh18mZei89dfFC/sGx4D7XM2b2kRJ?=
- =?us-ascii?Q?q9P+LhOi0HARTP8HoPbNVKsQwNKhJqXz4PvfSCGSeAkcMSdpI1H0sKH2XbAg?=
- =?us-ascii?Q?3ZQWW0FD3qtoTI0hA8NeXyDmklN2IalPG03eQ5VpXgJxlZJ2BoYbdhgXadIW?=
- =?us-ascii?Q?ryX3vTW+gOwujzuA/RG64yzIvbgyK4EdR+8OjG+Y9Msowe3s86CwQKSGtcDC?=
- =?us-ascii?Q?rXG5bCZEDhT+U972G6HXR9gXRHErjKSoSEVrnbBgwTNZbFkRe+3GWojlGg4a?=
- =?us-ascii?Q?lBsE+rsVDV3x1foVtZsJgu2duh+MiG+ILsuHCX/uNvGi1gWUg2ob1lBi6qHN?=
- =?us-ascii?Q?DZLc/mWEpkH38L6172OwinweXa7b90CnD2KeewnONZHEhWYAY6HBtspwxzSn?=
- =?us-ascii?Q?ssRpkarZbFujzZSoFN2CS5qLX/gctWMZSUfAu/z/RBK9VhP6F82UdcpXuXYz?=
- =?us-ascii?Q?BxMtUWBrS8u9HpihoZPIKpo4baPYefdiBSLUis/PR9H1rmNT2YxxpWCHVQ9u?=
- =?us-ascii?Q?OV8P+pJVt+4pwVPy9yY+MEqBm7yPD6TPXGFHv5oA2dEj5gZPYeZRJDCNWayv?=
- =?us-ascii?Q?okjOqiSyUQMVegEMkbZ5786DaXdQ5Fdx7gW/j8sZ/yn1DZN0GGpR1GjIDo2n?=
- =?us-ascii?Q?1TvnM33jXpNn9sZz04nCQD9LMl+tWkCsVfejF4IBgtUb5D2fBfgqjQ5IBnFH?=
- =?us-ascii?Q?+CYTTpPTw09Ohm7/FERV8STD3FZVy/0mAEsvHRZ792JeJ8VClK9RAsdz9lht?=
- =?us-ascii?Q?cSUofaBpwxSrIEcCTWx+1PVOhr5rWIhuic3YYHn9DsKDmVraUyiJY4IpJcqM?=
- =?us-ascii?Q?cDNx269BOOpYGCuJS/K7md/oNMZ+GtXZrVkVk3oI+Hi7+1pmmz4MggnEK4Yx?=
- =?us-ascii?Q?+ODJ76tHrv9Uf3sIahDzJOl0jeq8Np4rnSgHsmoYLHbRG9PNTMrowmSdjeDC?=
- =?us-ascii?Q?bP74HXNjeSGzOWGB/VTNmRAydbYZ7j85XEX5QvJoxOhtULXJFILa+GRNkHSa?=
- =?us-ascii?Q?I/GztcfVrwYFRAubiMSUXSLCkgT/GM1KkKUy35qN6tAZNK2KVBBP2pggsCoD?=
- =?us-ascii?Q?yA83DnI3Uj1bo9IpSaTVjfm5doYfAizDK9oEfJLxsxw20AwPQDE42cWF6UZP?=
- =?us-ascii?Q?9j+e8AVr1UoDeGC4rUovEBhe/+Sy7rKNN6c8mjUaB0SLQAtUwqPVLphihKxk?=
- =?us-ascii?Q?A0ofNjafndtNJ1Z8fIu1LgY6r5C8wpdon23XHAkH?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: bf053442-991b-4b96-0bec-08da9cc3b47d
-X-MS-Exchange-CrossTenant-AuthSource: MN2PR12MB4192.namprd12.prod.outlook.com
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?SjVEZaLuoaxFGcixmOXu+D+H/8F1u9EX8E9yZUL3llbn9kpaap+arHS/+RiT?=
+ =?us-ascii?Q?6GqHm7RcfTsyZFWmzcIsapd/vGzdNL7/i976ZoXTQJ0WFYhnvUpnKgJSf6US?=
+ =?us-ascii?Q?OQqoWWr5QC8lcahNCCrwWYJ3PMM+dwDjCJr+zVL5Stu7WNr+GN1eCWwhSrng?=
+ =?us-ascii?Q?K6hVitDGR3TZsijFJFsm4UuOOwnKBONsLTfc0dcqQAWmVls3+nxxhHwG008C?=
+ =?us-ascii?Q?o+kqy8oczZq0U3CDQ95foLEqJxC39Ol40GlqY146nPP1dr5LZ/NW9v0Gmg+1?=
+ =?us-ascii?Q?VJOMZaeF5K2zKD+2R/RSISVXuV9yX8prKPU2+4abxhi/uTekk/whll3Yrjv4?=
+ =?us-ascii?Q?aF5xsDlPqvSB4Slc13puVf7pASfeMu+Hm032etNezT+8DcPfV9hItYlm4683?=
+ =?us-ascii?Q?f7NMUyAPvW2gZeSJfApVO44xT+/Y3XYuRnwQZbT3Fy9J3oDFJo3GCtraW0Lk?=
+ =?us-ascii?Q?3V0UzgTUPea4pQCsrJfZQuZUQP/tdTKrOfSBwkNsdBhbJwF2RcZFmTcYdU4w?=
+ =?us-ascii?Q?rcj7y1qZ4aJOIk+D2tL6OR6vBtJmQ/IG4OhIGvA7CebQq4/5cTnGj4Sblktv?=
+ =?us-ascii?Q?NIkP4B+pfTD/gojWehSV0tJLUaSdKst20+ant4hOwLQOsyhfNGRJUiLB6x8m?=
+ =?us-ascii?Q?XOv8JX7egJcYKvatjIPX9hGOH/m+jxbAEExzNZV7TW8gogf83Z0HMoL0mzFo?=
+ =?us-ascii?Q?kciIH3dXhUrj3S0KXEyZ2+xqh/osHSFEy1PsgM7xgp/Ud5yhXAwrAS/rZjXB?=
+ =?us-ascii?Q?hDCk1RU/Ahi1GYVaV3ishiAXDD1wm4iSQOm8sUoDFfYR8DgL0Vns+SOJcLj2?=
+ =?us-ascii?Q?PINW3rbyPh5wTQ3keCKBtiIKQgHNkZE9lmjjWFPzCYJY5LUWC1Bt19vuZE26?=
+ =?us-ascii?Q?rBh4vAXNhxjKv+iBNh6lNkwPcqaY4viYpx9SX/SHqmZttkOxgVmz33tNn6Wp?=
+ =?us-ascii?Q?Z6HgqxAiva0mGltnmjCHKiZfuqzY9dMQzWRt4/1LDS6QQJFeyn53wF1U6NtV?=
+ =?us-ascii?Q?jGskkHgKrkTRE7tTJgEQpNMzxz06nnnKo0H0/2MHi8ui+dLH7KO30b2/cou6?=
+ =?us-ascii?Q?kZcTm/9rZ0w+qqrY5OHV28Egwz1Dx3oMxvjXfK4nFZBWCVjOsrzozHAuex/j?=
+ =?us-ascii?Q?yUZwD7nMBOC18XlkWKoBVLR1MAUnWNkQUQWiEn2IN2jWLGVMYUo3SPkEVPPF?=
+ =?us-ascii?Q?eTo3ufQSwx7b/hzJcoRbjBNT0IwK+vwD/0Cccsi8ByA0j830lTHngbjbc9GZ?=
+ =?us-ascii?Q?sC22kAMc29KwzpU9YRHtgxH7XBjGHHMP/u7JuJRdUS5eiGzlaPGTdUY+f6T3?=
+ =?us-ascii?Q?H/CYH4+Dt4cNex9JF2gRD14BFCqmKf7p2cuKThqtIPNVJI4T4i7I3FDaiEXL?=
+ =?us-ascii?Q?rzIemf00u11vYH6i0SluzetqocZVCtSsEEs3VSyeJbffkX3IMjQ2sGg4XEXF?=
+ =?us-ascii?Q?JQ8MWxv+JNh5PIdyET1n47rCjbKtlO6kEiXtHK6FHrMbZwWR1lkfgWxJilac?=
+ =?us-ascii?Q?UKuBo9iIsLvUPElCYptFY9MSemf0ymVUn3UcXv61H32YcJic4nXWWFzoe4sQ?=
+ =?us-ascii?Q?xp4ic65eO+/fYpq77L+pfcGdKBf3wNClPa91UzV2edBHREfTGLiJg3CnppSE?=
+ =?us-ascii?Q?Bg=3D=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: 0e638cc0-afd0-4200-56d3-08da9ce50f47
+X-MS-Exchange-CrossTenant-AuthSource: MWHPR1101MB2126.namprd11.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 22 Sep 2022 17:55:58.9339
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 22 Sep 2022 21:54:44.5529
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: BCLf8z0i7ihkSVpuTU9r2fqVSlXKnybTXXNCSOfoox9uNcClL0m50cM+yvV/tgBk
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BL1PR12MB5850
+X-MS-Exchange-CrossTenant-UserPrincipalName: fCo50yv28oDj6vc7UGfFBbbrgdiCpcu0G/dlLqrRjwNrigveLBnfZLcZBk/mW3fOikGt8j6rAwYldddp5Rm+4CLWXQwXrhWncwa+BKYY4eA=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR11MB4676
+X-OriginatorOrg: intel.com
 
-On Wed, Sep 21, 2022 at 07:17:40PM -0700, Dan Williams wrote:
-> Jason Gunthorpe wrote:
-> > On Wed, Sep 21, 2022 at 05:14:34PM -0700, Dan Williams wrote:
-> > 
-> > > > Indeed, you could reasonably put such a liveness test at the moment
-> > > > every driver takes a 0 refcount struct page and turns it into a 1
-> > > > refcount struct page.
+Jason Gunthorpe wrote:
+> On Wed, Sep 21, 2022 at 07:17:40PM -0700, Dan Williams wrote:
+> > Jason Gunthorpe wrote:
+> > > On Wed, Sep 21, 2022 at 05:14:34PM -0700, Dan Williams wrote:
 > > > 
-> > > I could do it with a flag, but the reason to have pgmap->ref managed at
-> > > the page->_refcount 0 -> 1 and 1 -> 0 transitions is so at the end of
-> > > time memunmap_pages() can look at the one counter rather than scanning
-> > > and rescanning all the pages to see when they go to final idle.
+> > > > > Indeed, you could reasonably put such a liveness test at the moment
+> > > > > every driver takes a 0 refcount struct page and turns it into a 1
+> > > > > refcount struct page.
+> > > > 
+> > > > I could do it with a flag, but the reason to have pgmap->ref managed at
+> > > > the page->_refcount 0 -> 1 and 1 -> 0 transitions is so at the end of
+> > > > time memunmap_pages() can look at the one counter rather than scanning
+> > > > and rescanning all the pages to see when they go to final idle.
+> > > 
+> > > That makes some sense too, but the logical way to do that is to put some
+> > > counter along the page_free() path, and establish a 'make a page not
+> > > free' path that does the other side.
+> > > 
+> > > ie it should not be in DAX code, it should be all in common pgmap
+> > > code. The pgmap should never be freed while any page->refcount != 0
+> > > and that should be an intrinsic property of pgmap, not relying on
+> > > external parties.
 > > 
-> > That makes some sense too, but the logical way to do that is to put some
-> > counter along the page_free() path, and establish a 'make a page not
-> > free' path that does the other side.
-> > 
-> > ie it should not be in DAX code, it should be all in common pgmap
-> > code. The pgmap should never be freed while any page->refcount != 0
-> > and that should be an intrinsic property of pgmap, not relying on
-> > external parties.
+> > I just do not know where to put such intrinsics since there is nothing
+> > today that requires going through the pgmap object to discover the pfn
+> > and 'allocate' the page.
 > 
-> I just do not know where to put such intrinsics since there is nothing
-> today that requires going through the pgmap object to discover the pfn
-> and 'allocate' the page.
+> I think that is just a new API that wrappers the set refcount = 1,
+> percpu refcount and maybe building appropriate compound pages too.
+> 
+> Eg maybe something like:
+> 
+>   struct folio *pgmap_alloc_folios(pgmap, start, length)
+> 
+> And you get back maximally sized allocated folios with refcount = 1
+> that span the requested range.
+> 
+> > In other words make dax_direct_access() the 'allocation' event that pins
+> > the pgmap? I might be speaking a foreign language if you're not familiar
+> > with the relationship of 'struct dax_device' to 'struct dev_pagemap'
+> > instances. This is not the first time I have considered making them one
+> > in the same.
+> 
+> I don't know enough about dax, so yes very foreign :)
+> 
+> I'm thinking broadly about how to make pgmap usable to all the other
+> drivers in a safe and robust way that makes some kind of logical sense.
 
-I think that is just a new API that wrappers the set refcount = 1,
-percpu refcount and maybe building appropriate compound pages too.
+I think the API should be pgmap_folio_get() because, at least for DAX,
+the memory is already allocated. The 'allocator' for fsdax is the
+filesystem block allocator, and pgmap_folio_get() grants access to a
+folio in the pgmap by a pfn that the block allocator knows about. If the
+GPU use case wants to wrap an allocator around that they can, but the
+fundamental requirement is check if the pgmap is dead and if not elevate
+the page reference.
 
-Eg maybe something like:
+So something like:
 
-  struct folio *pgmap_alloc_folios(pgmap, start, length)
+/**
+ * pgmap_get_folio() - reference a folio in a live @pgmap by @pfn
+ * @pgmap: live pgmap instance, caller ensures this does not race @pgmap death
+ * @pfn: page frame number covered by @pgmap
+ */
+struct folio *pgmap_get_folio(struct dev_pagemap *pgmap, unsigned long pfn)
+{
+        struct page *page;
+        
+        VM_WARN_ONCE(pgmap != xa_load(&pgmap_array, PHYS_PFN(phys)));
+        
+        if (WARN_ONCE(percpu_ref_is_dying(&pgmap->ref)))
+                return NULL;
+        page = pfn_to_page(pfn);
+        return page_folio(page);
+}
 
-And you get back maximally sized allocated folios with refcount = 1
-that span the requested range.
+This does not create compound folios, that needs to be coordinated with
+the caller and likely needs an explicit
 
-> In other words make dax_direct_access() the 'allocation' event that pins
-> the pgmap? I might be speaking a foreign language if you're not familiar
-> with the relationship of 'struct dax_device' to 'struct dev_pagemap'
-> instances. This is not the first time I have considered making them one
-> in the same.
+    pgmap_construct_folio(pgmap, pfn, order)
 
-I don't know enough about dax, so yes very foreign :)
-
-I'm thinking broadly about how to make pgmap usable to all the other
-drivers in a safe and robust way that makes some kind of logical sense.
-
-Jason
+...call that can be done while holding locks against operations that
+will cause the folio to be broken down.
