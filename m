@@ -1,187 +1,102 @@
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+Received: from mail3.bemta32.messagelabs.com (mail3.bemta32.messagelabs.com [195.245.230.82])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0BDF17C9
-	for <nvdimm@lists.linux.dev>; Sun, 25 Sep 2022 01:33:56 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1664069636; x=1695605636;
-  h=date:from:to:cc:subject:message-id:mime-version;
-  bh=nYNeVktNQEpGIwu8HmAqber2mcDoJNJbl7jwkHHnHc4=;
-  b=ioYbT35w84qFjWAp2jC/gdZDuDaut4ox+8Fn719uCz1TPVVyBfrq+jaF
-   /rXEfoeMN3i4cY3Jpcv/CglJG26rfIoS7I5IJKRrDl+NN/rcR3YvhHyZD
-   WGGDHwqxCUibfyRjRmM0np5MdkUL3vo/tc11lfy30acqzUspAS1BzuFdR
-   1NuJR/KBKAEGizP8qHXsShTqFu8xm/uRGnfMoHMEyPJ/3QGtmChjlhyJ9
-   /JMfBkRO+G+tzFO2pY9s00ssYMwtKIdHTiqto5Yhj0+zXTvTpBXDcWwDq
-   Nhca3CbO6d8ZQGFPOoLhrJso1y8DJCpPJQ8npLHISDOmpYUk9eWeguuIv
-   g==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10480"; a="281188695"
-X-IronPort-AV: E=Sophos;i="5.93,343,1654585200"; 
-   d="scan'208";a="281188695"
-Received: from fmsmga007.fm.intel.com ([10.253.24.52])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Sep 2022 18:33:56 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.93,343,1654585200"; 
-   d="scan'208";a="622926443"
-Received: from fmsmsx601.amr.corp.intel.com ([10.18.126.81])
-  by fmsmga007.fm.intel.com with ESMTP; 24 Sep 2022 18:33:56 -0700
-Received: from fmsmsx611.amr.corp.intel.com (10.18.126.91) by
- fmsmsx601.amr.corp.intel.com (10.18.126.81) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.31; Sat, 24 Sep 2022 18:33:55 -0700
-Received: from fmsmsx601.amr.corp.intel.com (10.18.126.81) by
- fmsmsx611.amr.corp.intel.com (10.18.126.91) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.31; Sat, 24 Sep 2022 18:33:55 -0700
-Received: from FMSEDG603.ED.cps.intel.com (10.1.192.133) by
- fmsmsx601.amr.corp.intel.com (10.18.126.81) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.31 via Frontend Transport; Sat, 24 Sep 2022 18:33:55 -0700
-Received: from NAM10-MW2-obe.outbound.protection.outlook.com (104.47.55.107)
- by edgegateway.intel.com (192.55.55.68) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2375.31; Sat, 24 Sep 2022 18:33:55 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=gz7yKlRBH1/1JtercJ70+HrsMsmTIQM/p2FXgEFfF/uGE/qrgFEDdNfEBl42MxHSTA8jMmCRYm0UCSbG/NGcIic7nwFIVdf9qEYlTWofO5U67/MCabp9xoF1GQwrKB6VYXux3RuduvXVgmkDUd8qQ1zbwwBnaNkzUFBXPt4rgp3o5VYS2Mm4vofeUuZNhEDsnptXNCLTiX1GkcdHFWWoD8loHKZuyL7AXJp/JaMb3b4driGEPdabCvVYQKHLuQdq3xpld597TyIPMF3ku8od4BxfIs2j7/o63r7xlgq5OBKhkJ7LH3VqUe9dIoGKVbc5RTVLA9Q5XAIQcm1tBiFRvQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=9Mqq2K4KcYYqwDpnvK6kaIVw5QA4Nk7GzOGOBTaOJCg=;
- b=mg0vpZAUjAijdg/ffwaYDNTvsIvcI6axYs4i6F9vUY2Y7Y5khG2D0U5kporXtu+ELc+xzfPRVpLO4Jn/cy8isEh8DWLIEhzfOFXiTuNHY8tHhR9dGoBs/igikkJ31BRq3jhNsOAQiaUzAWf2TeGjB0EXdEcCO2hIFKTJIzb1sRAwdBQIPxp3f08Lc8hfiY1DXGjldfQKuRuDPZWXzxs2NZuzOCCOEe4AmT22UlLP2jLVC5Lzjo3O2hYYucQRWrzNuYPOMhdWhbTePcQRY8qqeBPYUdnrzsQwsoJ0vtPWaqu1AG+j+A2Dc0VAEEYemJyYA0X/z5Sjiyf8qSkzSfr3/g==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
- (2603:10b6:301:50::20) by BN9PR11MB5305.namprd11.prod.outlook.com
- (2603:10b6:408:136::18) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5654.24; Sun, 25 Sep
- 2022 01:33:53 +0000
-Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
- ([fe80::7d5a:684d:99f7:4e83]) by MWHPR1101MB2126.namprd11.prod.outlook.com
- ([fe80::7d5a:684d:99f7:4e83%11]) with mapi id 15.20.5654.024; Sun, 25 Sep
- 2022 01:33:53 +0000
-Date: Sat, 24 Sep 2022 18:33:50 -0700
-From: Dan Williams <dan.j.williams@intel.com>
-To: <torvalds@linux-foundation.org>
-CC: <nvdimm@lists.linux.dev>, <linux-kernel@vger.kernel.org>
-Subject: [GIT PULL] NVDIMM and DAX fixes for 6.0-final
-Message-ID: <632faffe84f7c_746b294d1@dwillia2-mobl3.amr.corp.intel.com.notmuch>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-X-ClientProxiedBy: BY5PR20CA0017.namprd20.prod.outlook.com
- (2603:10b6:a03:1f4::30) To MWHPR1101MB2126.namprd11.prod.outlook.com
- (2603:10b6:301:50::20)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F1872C9D
+	for <nvdimm@lists.linux.dev>; Sun, 25 Sep 2022 13:33:42 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fujitsu.com;
+	s=170520fj; t=1664112820; i=@fujitsu.com;
+	bh=c7NQe7G34LBYxg4hwkKE43l4MRiwdYV+swWpJc9rsu0=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type;
+	b=kOCp5+qIKuMCfaB1F3maSLnvw4Vbeqhwryw4DXluA+lsqVKmH08dPkmTnbLGu0FkD
+	 svMMtrP63Ec2M+svX1XdE7aRcdCxKgo2zpKMU3CebWpvVyIfg6E8IwmhwmupX6WbHC
+	 jAwHYADJ63TZ0SPndfBoZBzflam+oJ/OUNHIJTRjIPU+7BPVHhZnCkR6MV0qnr+cLU
+	 RFq6MpfzUoK2hXrR1qdYN9Qcqb4NEFHsV/7caCwZUMkvDk3dtoKMQ8QCLzdObhELOY
+	 8QRt/nsNpIY/m9T4H+orlJ1aMHkNhISSWFx0ggc1PTzPjqpgZalrzFMtfVag6t8R8m
+	 4yLI2d2C5B7nQ==
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFvrPIsWRWlGSWpSXmKPExsViZ8MxSXdThEG
+  yQd8XI4vpUy8wWmw5do/R4vITPovTExYxWezZe5LF4vKuOWwW99b8Z7XY9WcHu8XKH39YHTg9
+  Ti2S8Ni8Qstj8Z6XTB6bVnWyeWz6NInd48XmmYwenzfJBbBHsWbmJeVXJLBmLN/ynKXgB0fFn
+  JP/2RsYZ7F3MXJxCAlsYZRoOPWFuYuRE8hZziQxbVM+RGIvo8TFDfsYQRJsAjoSFxb8ZQVJiA
+  hMYpQ4duMmWAezQIJE+5drTCC2sICnxMfOBrAGFgFViSNXd7CC2LwCLhJ7V/0Cq5EQUJCY8vA
+  9M0RcUOLkzCcsEHMkJA6+eAEU5wCqUZKY2R0PUV4h0Tj9EFSrmsTVc5uYJzDyz0LSPQtJ9wJG
+  plWMlklFmekZJbmJmTm6hgYGuoaGprqGuqaWeolVuol6qaW65anFJbqGeonlxXqpxcV6xZW5y
+  TkpenmpJZsYgXGRUsxovYOxo++n3iFGSQ4mJVHeo34GyUJ8SfkplRmJxRnxRaU5qcWHGGU4OJ
+  QkeA+4AeUEi1LTUyvSMnOAMQqTluDgURLhLQRp5S0uSMwtzkyHSJ1i1OVY23BgL7MQS15+Xqq
+  UOO/KcKAiAZCijNI8uBGwdHGJUVZKmJeRgYFBiKcgtSg3swRV/hWjOAejkjCvWzDQFJ7MvBK4
+  Ta+AjmACOsKOTx/kiJJEhJRUA9Mck1BRWx0tR+dL3zRWHPaY2sKxrOK/+ZsdNv+f/wya7WzyN
+  3OKSFva971rr1k1/eiJjIq7fGbjByNPj0DG1lpHlntXXwsqOufKzVBTtI5bcd3H4uGh398fTl
+  6yuGDuwuvT1rve9y7yDxY9+WPm/edf2ffzMc1xOGH31cCcnzPusutx4amvRD3WGkz1m5C1Mn9
+  BXF3kB78HqxKd2eRrnax04/1PT3uQOHnzuqw67icuIv0Bj2q2JrMsYNf597TS2slim+H7hQu/
+  lEbpvPp2XpY/IF5zip5W6H/eB+1//+srd147rnGmpNRnr3l7Um2y/KtyljOzslQzhaZdmJSrs
+  DCa5e6mR/+ePLq3/ZNR2WQlluKMREMt5qLiRABFCfzrkgMAAA==
+X-Env-Sender: ruansy.fnst@fujitsu.com
+X-Msg-Ref: server-5.tower-585.messagelabs.com!1664112818!187471!1
+X-Originating-IP: [62.60.8.146]
+X-SYMC-ESS-Client-Auth: outbound-route-from=pass
+X-StarScan-Received:
+X-StarScan-Version: 9.87.3; banners=-,-,-
+X-VirusChecked: Checked
+Received: (qmail 4290 invoked from network); 25 Sep 2022 13:33:38 -0000
+Received: from unknown (HELO n03ukasimr02.n03.fujitsu.local) (62.60.8.146)
+  by server-5.tower-585.messagelabs.com with ECDHE-RSA-AES256-GCM-SHA384 encrypted SMTP; 25 Sep 2022 13:33:38 -0000
+Received: from n03ukasimr02.n03.fujitsu.local (localhost [127.0.0.1])
+	by n03ukasimr02.n03.fujitsu.local (Postfix) with ESMTP id 69FD41000CD;
+	Sun, 25 Sep 2022 14:33:38 +0100 (BST)
+Received: from R01UKEXCASM121.r01.fujitsu.local (R01UKEXCASM121 [10.183.43.173])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by n03ukasimr02.n03.fujitsu.local (Postfix) with ESMTPS id 5CA071000C2;
+	Sun, 25 Sep 2022 14:33:38 +0100 (BST)
+Received: from localhost.localdomain (10.167.225.141) by
+ R01UKEXCASM121.r01.fujitsu.local (10.183.43.173) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.32; Sun, 25 Sep 2022 14:33:34 +0100
+From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+To: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
+	<nvdimm@lists.linux.dev>, <linux-mm@kvack.org>,
+	<linux-fsdevel@vger.kernel.org>
+CC: <djwong@kernel.org>, <david@fromorbit.com>, <dan.j.williams@intel.com>,
+	<hch@infradead.org>
+Subject: [PATCH v9 0/3] mm, pmem, xfs: Introduce MF_MEM_REMOVE for unbind
+Date: Sun, 25 Sep 2022 13:33:20 +0000
+Message-ID: <1664112803-57-1-git-send-email-ruansy.fnst@fujitsu.com>
+X-Mailer: git-send-email 1.8.3.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MWHPR1101MB2126:EE_|BN9PR11MB5305:EE_
-X-MS-Office365-Filtering-Correlation-Id: 79a2426a-fb2b-405f-8335-08da9e960112
-X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: oYbQ4zt17vK1jThlufcOUowWNY8WUwmFs9KbNJbZfpF518BdCEiSfgwSS2+s+yQahyOCyrgVfhohSEGkOurYvM1M1HlFir/rbef7AMPySK4RWeVzB49AptYjDPXT+MFAZc6Eg1OxZOr9hSeaof/upRlC6MP/Ox/NlGmKOPR+NBEnEKpAHSPoamy6Len+0/V2CdUoNp9dqIXMU12hz1nDUsn+7hSCMl+Kd+RogucINBclK7mtKKAqzCGVJeU0WtRyMBgqpNjTrM72eiA6BkvNALRd2ayAZY9tKAiuzRSyRZTp9sL+1rbE5RUVMQeoFdH+4PZ76eyLhfttp34Yad4EzZtAk9jetHBOPslh4W9/ZO6l27agrZ8jVSwTi5ietDDEhHcUvTAhGUNQiqscU2e3y4KLLkSVAuKFeZOW8yfL1NM368HNsOoxbS8qtCL0kW1zZW8L2CXDUnHeRNOzQSKpjFl1k7+R3NNPmnsvIL1S6Gchdxcl0aeADGTrjSPwkBGWvEcLFtBA7RetcTG4QlENNvoVFmBFhbHmXjIPldBHlpUMo1UZ/6UY5SJzrAwczKtGRCTzxwKyXZw4jOaaj6iaUU8bnyerzRs/tNdfDwhjx32sgqdnMfSBGhtws40v+vkS7Wd4KL5jM9w90HkODlEvFao30Navyd98k2XEI4L+NOnHkwt+DyQp6r6jOzRzpoNO544GTFnRRxXEFsVmLJ/Fyw==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1101MB2126.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230022)(39860400002)(376002)(396003)(136003)(346002)(366004)(451199015)(6916009)(9686003)(6512007)(26005)(41300700001)(478600001)(6486002)(8936002)(8676002)(4326008)(6506007)(5660300002)(2906002)(83380400001)(82960400001)(38100700002)(186003)(66946007)(66476007)(316002)(66556008)(86362001);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?nimA0Qkf3pJch11Gm8FLzptYwLr4u5CKxqAulB5r2MYFUsaa7uWKVPk4uj2C?=
- =?us-ascii?Q?xoatr7+sYDFwb1emZgZ/EWN7aT/S9ys07ra8VXawYthPeyWH2+su4swH9o01?=
- =?us-ascii?Q?7WaCokNP1jcJ+3n/grYVqRvnPHBj1vyBQIKN7mJuFPiCsRBIAYBskJ5Q7L45?=
- =?us-ascii?Q?EjgxKv8w8pz9L+J3jq4qIA9Q4zoo6b+7DL+UDMslVzZDwbSLj2QO1X5pUi5x?=
- =?us-ascii?Q?FqC+6eWmKw/z8cMCq+dtpb7thnUvmwcYyuwDokSTDVL7GcqobChqujU2M8A9?=
- =?us-ascii?Q?EzaMndXio01q2PVJHL7rbsNicf55xpjEYuKXl/48Yu+D1fK/ZtNWUqBUsqKc?=
- =?us-ascii?Q?/wXQRm/9iiEj7KSI06Q2sQF3QjM6SR9xogOtGyY5B+6ArDMwSZG9HQ/b2Je2?=
- =?us-ascii?Q?rvkqtZsL2CC2CBZFU5xazAdZknWNSc/b5M0J6cPkPC1Qoo3vHQlctD7YWwqb?=
- =?us-ascii?Q?yRpIsnA5rf1+EOy7oOUjVdJpH8mpHzlAwpc1gygzO8LE72FM3MhuUQQtZJRb?=
- =?us-ascii?Q?0YBJj9aWIgJYLOBNldDcrNcNz1Jp+f5nDfWmBagvFIYpZmwx2IGB4E2lcBxr?=
- =?us-ascii?Q?ucLJM0lkG1NvvhH29bzj7RC0f5eOwHGB92mXFO2KCEsTmWZlulL/WtsOgm8m?=
- =?us-ascii?Q?6jXzNe+2ju8bFX1LoZ/2O+fwODplAeFKtOkjiFU0pNHJysy9oUqLHKyNVMZb?=
- =?us-ascii?Q?rzAT4k4srlXF9vypgqIzuSxrm3kJ15CnM1gIz/vwoXh/Nh4ZH3Y15La9g3zn?=
- =?us-ascii?Q?e6HYPUj8ahegnbFE94xDVxnASbeF0ADJpCE8iXcWV1sbaj0Lm1DSWlkazohW?=
- =?us-ascii?Q?qWWw/lxziAZvEz3JCCpseuhkbUqfs1LkehKsEGcFlPhglS0obCukv2YdZ5VW?=
- =?us-ascii?Q?n0mnjRpl7y8fDZtoYeXWfYWPAlc5GNmTEu5frwipLVjCERsiGG1kpEIEGB/c?=
- =?us-ascii?Q?Bey/KzOUNtmMmqSUUsgb+LE0rHTEce0/oydoh4DR00ZkHam8Nts+ptX+Vk0w?=
- =?us-ascii?Q?qK3enmcPLFv78n3wEXgeR5JRiQ+YWq//C5MKEzpYpoPMQbKWWHT2HEg1FqzM?=
- =?us-ascii?Q?NCnWoz2kkrv2SqGgg1yHRU4YyMPUlTwYjnm1dDNmF6zx6hDfssMnAOWM5Nnm?=
- =?us-ascii?Q?EW5fr3DD8dfPotNBCL7hZLFH96PJbKnTm0bdwDW0JOoupxM/+AIOLQ63D2Ew?=
- =?us-ascii?Q?bKY0PpaWtdGuwYP+FVtB6x8zj7x7WR4KlSVXh/za1BRXkidz2t6Y4OM0nsUD?=
- =?us-ascii?Q?aiKN5qM4GZsShVzf7OMNN+cZtfOgKtQvl6LqJQ3Kxqy+7nIQ1gj98L/zS5JD?=
- =?us-ascii?Q?r2cQ6ScsnF7Z3fN0zL1FcPYUl/oqhXNoROOvjlvwJ7cYI4ZMPzMIY21BaPPO?=
- =?us-ascii?Q?L5cHdAikGKi2QtbJ8ahhmayJvbFbQTgC5PjupPSmaqvTKHsTvkZMk8QRQlnd?=
- =?us-ascii?Q?kcw9NBMZUuJOtQ4bP27izTMqpzo3zwNJ7vzkRHndAaCGr8dB/XkaAF5t4u7i?=
- =?us-ascii?Q?v5SFkm8maraC35CleZNBsRYo3irtGFQ8KJN6wiQwnQTbLXtaOlaLWiccAMiX?=
- =?us-ascii?Q?ORi0mn2HrfLqPKtxUBkPyHJUMZILD4vFr2vadD5kx/2KnJ7iW8XRDZZ4CpcZ?=
- =?us-ascii?Q?dA=3D=3D?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: 79a2426a-fb2b-405f-8335-08da9e960112
-X-MS-Exchange-CrossTenant-AuthSource: MWHPR1101MB2126.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 Sep 2022 01:33:52.8182
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: ewmlkv/bT9tiVfwBuEGg1mJDyozSsedrpfKX6CPUd++PDU0uYOcMFlwuHJRjou8pGkJKmXCc17YLTNxPd0xBoHPmWf0qF23vnXocnj/w8Q4=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BN9PR11MB5305
-X-OriginatorOrg: intel.com
+Content-Type: text/plain
+X-Originating-IP: [10.167.225.141]
+X-ClientProxiedBy: G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.80) To
+ R01UKEXCASM121.r01.fujitsu.local (10.183.43.173)
+X-Virus-Scanned: ClamAV using ClamSMTP
 
-Hi Linus, please pull from:
+Changes since v8:
+  1. P2: rename drop_pagecache_sb() to super_drop_pagecache().
+  2. P2: let super_drop_pagecache() accept invalidate method.
+  3. P3: invalidate all dax mappings by invalidate_inode_pages2().
+  4. P3: shutdown the filesystem when it is to be removed.
+  5. Rebase on 6.0-rc6 + Darrick's patch[1] + Dan's patch[2].
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/dax-and-nvdimm-fixes-v6.0-final
+[1]: https://lore.kernel.org/linux-xfs/Yv5wIa2crHioYeRr@magnolia/
+[2]: https://lore.kernel.org/linux-xfs/166153426798.2758201.15108211981034512993.stgit@dwillia2-xfh.jf.intel.com/
 
-...to receive a recently discovered one-line fix for devdax that further
-addresses a v5.5 regression, and (a bit embarrassing) a small batch of
-fixes that have been sitting in my fixes tree for weeks. The older fixes
-have soaked in linux-next during that time and address an fsdax infinite
-loop and some other minor fixups.
+Shiyang Ruan (3):
+  xfs: fix the calculation of length and end
+  fs: move drop_pagecache_sb() for others to use
+  mm, pmem, xfs: Introduce MF_MEM_REMOVE for unbind
 
----
+ drivers/dax/super.c         |  3 ++-
+ fs/drop_caches.c            | 35 ++----------------------------
+ fs/super.c                  | 43 +++++++++++++++++++++++++++++++++++++
+ fs/xfs/xfs_notify_failure.c | 36 ++++++++++++++++++++++++++-----
+ include/linux/fs.h          |  1 +
+ include/linux/mm.h          |  1 +
+ include/linux/pagemap.h     |  1 +
+ mm/truncate.c               | 20 +++++++++++++++--
+ 8 files changed, 99 insertions(+), 41 deletions(-)
 
-The following changes since commit 521a547ced6477c54b4b0cc206000406c221b4d6:
+-- 
+2.37.3
 
-  Linux 6.0-rc6 (2022-09-18 13:44:14 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/dax-and-nvdimm-fixes-v6.0-final
-
-for you to fetch changes up to b3bbcc5d1da1b654091dad15980b3d58fdae0fc6:
-
-  Merge branch 'for-6.0/dax' into libnvdimm-fixes (2022-09-24 18:14:12 -0700)
-
-----------------------------------------------------------------
-dax-and-nvdimm-fixes-v6.0-final
-
-- Fix a infinite loop bug in fsdax
-
-- Fix memory-type detection for devdax (EINJ regression)
-
-- Small cleanups
-
-----------------------------------------------------------------
-Andy Shevchenko (1):
-      nvdimm/namespace: drop nested variable in create_namespace_pmem()
-
-Dan Williams (2):
-      devdax: Fix soft-reservation memory description
-      Merge branch 'for-6.0/dax' into libnvdimm-fixes
-
-Jane Chu (1):
-      pmem: fix a name collision
-
-Li Jinlin (1):
-      fsdax: Fix infinite loop in dax_iomap_rw()
-
-Shivaprasad G Bhat (1):
-      ndtest: Cleanup all of blk namespace specific code
-
- drivers/dax/hmem/device.c          |  1 +
- drivers/nvdimm/namespace_devs.c    |  2 -
- drivers/nvdimm/pmem.c              |  6 +--
- fs/dax.c                           |  3 ++
- tools/testing/nvdimm/test/ndtest.c | 77 --------------------------------------
- 5 files changed, 7 insertions(+), 82 deletions(-)
