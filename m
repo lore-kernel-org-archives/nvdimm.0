@@ -1,219 +1,183 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.220.29])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2791633CF
-	for <nvdimm@lists.linux.dev>; Mon, 26 Sep 2022 14:10:58 +0000 (UTC)
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id 7A7551F8AA;
-	Mon, 26 Sep 2022 14:10:56 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1664201456; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=TlFGu5xf/L1Qiw7ID2qQl3vNpuCcb+T6b07/3KaOKVs=;
-	b=lt5eQhEU21zFImCJ4p/J8li9f1EZU/75GeyWieUdU6emksZtc9Zl1k88t8VPtIJiyc/5HV
-	4e8+zJXOF1YBQED1MK5S5WCfVob1wt0CDP4a8X5baitR+bF15Qo0DyUM+LTzkbeiV9PPws
-	Xvdkx6k5Rm4yUMxxEO1n4L8xQE2Qo88=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1664201456;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=TlFGu5xf/L1Qiw7ID2qQl3vNpuCcb+T6b07/3KaOKVs=;
-	b=FGPMP4E/xZWSlHk+Onq6+WTUzUu2EHdw1V6ZNYZgyh9msW4LsknhLYCiDOkp1Md4evkYio
-	Yrwi0Myuo4O1HeAQ==
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-	(No client certificate requested)
-	by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 5E206139BD;
-	Mon, 26 Sep 2022 14:10:56 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([192.168.254.65])
-	by imap2.suse-dmz.suse.de with ESMTPSA
-	id 9k1XF/CyMWPAAgAAMHmgww
-	(envelope-from <jack@suse.cz>); Mon, 26 Sep 2022 14:10:56 +0000
-Received: by quack3.suse.cz (Postfix, from userid 1000)
-	id BAEB9A0685; Mon, 26 Sep 2022 16:10:55 +0200 (CEST)
-Date: Mon, 26 Sep 2022 16:10:55 +0200
-From: Jan Kara <jack@suse.cz>
-To: Dave Chinner <david@fromorbit.com>
-Cc: Jan Kara <jack@suse.cz>, Dan Williams <dan.j.williams@intel.com>,
-	Jason Gunthorpe <jgg@nvidia.com>, akpm@linux-foundation.org,
-	Matthew Wilcox <willy@infradead.org>,
-	"Darrick J. Wong" <djwong@kernel.org>,
-	Christoph Hellwig <hch@lst.de>, John Hubbard <jhubbard@nvidia.com>,
-	linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
-	linux-xfs@vger.kernel.org, linux-mm@kvack.org,
-	linux-ext4@vger.kernel.org
-Subject: Re: [PATCH v2 05/18] xfs: Add xfs_break_layouts() to the inode
- eviction path
-Message-ID: <20220926141055.sdlm3hkfepa7azf2@quack3>
-References: <632894c4738d8_2a6ded294a@dwillia2-xfh.jf.intel.com.notmuch>
- <20220919212959.GL3600936@dread.disaster.area>
- <6329ee04c9272_2a6ded294bf@dwillia2-xfh.jf.intel.com.notmuch>
- <20220921221416.GT3600936@dread.disaster.area>
- <YyuQI08LManypG6u@nvidia.com>
- <20220923001846.GX3600936@dread.disaster.area>
- <632d00a491d0d_4a67429488@dwillia2-xfh.jf.intel.com.notmuch>
- <20220923021012.GZ3600936@dread.disaster.area>
- <20220923093803.nroajmvn7twuptez@quack3>
- <20220925235407.GA3600936@dread.disaster.area>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EE0D441E
+	for <nvdimm@lists.linux.dev>; Mon, 26 Sep 2022 18:01:14 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1664215275; x=1695751275;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=lz0YIGSLN2ywkMkseobCRxPGJq51yOlslereRPGdyDE=;
+  b=Q/hVqsvKY+1lbQR+v8cIbysSqkIZ4QZhrxZQ4vfZHmQwxFmPYOH8jZO9
+   GD11erdMwRRDsJPt4m3Fzls+sf0UVPy8GQcWaY40O9AKIYTXJc1oq09Kk
+   Ndrr3ejjgBGIEOcbXDCF592yMYJGfocaOFBtKMcs0QWlI/gdEoKdnXbiw
+   TweD+ftK9KLbpR+JM+EiO/mOiPeGviU+xtYM+LZzC+sR7SZ/ImzF8++pY
+   kkjVZqT9iG7P91C1yVkxQUjTEWg1PhSCuUdQYqP2To6I957iSPTVmpucY
+   lM4YU13UkkIjz6h1D67ykXiMhgspyci2gPWsftzrdeqNFNRPn6rvNJrin
+   w==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10482"; a="362932698"
+X-IronPort-AV: E=Sophos;i="5.93,346,1654585200"; 
+   d="scan'208";a="362932698"
+Received: from orsmga001.jf.intel.com ([10.7.209.18])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Sep 2022 11:01:14 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6500,9779,10482"; a="654371613"
+X-IronPort-AV: E=Sophos;i="5.93,346,1654585200"; 
+   d="scan'208";a="654371613"
+Received: from orsmsx602.amr.corp.intel.com ([10.22.229.15])
+  by orsmga001.jf.intel.com with ESMTP; 26 Sep 2022 11:01:14 -0700
+Received: from orsmsx609.amr.corp.intel.com (10.22.229.22) by
+ ORSMSX602.amr.corp.intel.com (10.22.229.15) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31; Mon, 26 Sep 2022 11:01:14 -0700
+Received: from orsmsx610.amr.corp.intel.com (10.22.229.23) by
+ ORSMSX609.amr.corp.intel.com (10.22.229.22) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31; Mon, 26 Sep 2022 11:01:13 -0700
+Received: from ORSEDG602.ED.cps.intel.com (10.7.248.7) by
+ orsmsx610.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31 via Frontend Transport; Mon, 26 Sep 2022 11:01:13 -0700
+Received: from NAM11-DM6-obe.outbound.protection.outlook.com (104.47.57.173)
+ by edgegateway.intel.com (134.134.137.103) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2375.31; Mon, 26 Sep 2022 11:01:12 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=PDbkL+miCNlE9BIOmqNjAD5EWoyHJ21ePFXef48nut9dxaixBUOapP/P/C4ilx/rPwnizxtYVXjxQc076ZTiDQh3t+asN6VGP3PGYhr/YvaajbhLNju+zRzz9OwBfTYRdO3pDXL8VjbI1VuUXurljekIhJ1v30s+qYyyOF4lrdIOcQxjIr1wKWn1+FSE1Ss03zlsn8sHr8jNyorQeQA0zrMcao5YWYsgZEfEW4cSmR48aSSd8TeXYvVq+xkJTyUMw+yiwb2Ugu7fph6km3iDc1IhEJLlKEwurYHie5nrhdaZwIlsn8d9C/Hy5JaaY5dUa4kAI7VpT2nxi+p5bTLmwQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=hvf7oCZQRHw78UBJqzCqXyoCBOJxgt4IJSs4pK5TZpg=;
+ b=ToaGJaJg2CPmwfZ+pxLSaDpKlW/UtnsvKhe8L3cejrBWdFzkQpBPKMTO1jnfNrqzar8dTGc2chrcEo18W0qTp8TPeSxtzQbmCn1zjLiTvrNpCYxMyKaviXYTXHPibWXBdI4dB1oNu3zOk0S39uwHeAli3xpQGUougqav45Oh/SjdnegLta0PUunodzFRxDXJccg03oS8+tavvqLxXT3fi/ImJnvO3ih+q60jwJmXvGEdpelcxpyGFlKcpoVSUg9MlZ1UsDX4eSPu0jd/8LAkvmwMOJSOWRVoVazacO8eoe/dITS//OEK9ef/z8AMOVt56LuucdCv2GnBzhxRsb/p/g==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from SA1PR11MB6733.namprd11.prod.outlook.com (2603:10b6:806:25c::17)
+ by IA0PR11MB7308.namprd11.prod.outlook.com (2603:10b6:208:436::12) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5654.25; Mon, 26 Sep
+ 2022 18:01:10 +0000
+Received: from SA1PR11MB6733.namprd11.prod.outlook.com
+ ([fe80::b572:2e32:300b:d14a]) by SA1PR11MB6733.namprd11.prod.outlook.com
+ ([fe80::b572:2e32:300b:d14a%3]) with mapi id 15.20.5654.022; Mon, 26 Sep 2022
+ 18:01:09 +0000
+Date: Mon, 26 Sep 2022 11:01:04 -0700
+From: Ira Weiny <ira.weiny@intel.com>
+To: Bo Liu <liubo03@inspur.com>
+CC: <dan.j.williams@intel.com>, <vishal.l.verma@intel.com>,
+	<dave.jiang@intel.com>, <nvdimm@lists.linux.dev>,
+	<linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] dax: Remove usage of the deprecated ida_simple_xxx API
+Message-ID: <YzHo4JOZ3wF57vLS@iweiny-desk3>
+References: <20220926012635.3205-1-liubo03@inspur.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20220926012635.3205-1-liubo03@inspur.com>
+X-ClientProxiedBy: SJ0PR13CA0027.namprd13.prod.outlook.com
+ (2603:10b6:a03:2c0::32) To SA1PR11MB6733.namprd11.prod.outlook.com
+ (2603:10b6:806:25c::17)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220925235407.GA3600936@dread.disaster.area>
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: SA1PR11MB6733:EE_|IA0PR11MB7308:EE_
+X-MS-Office365-Filtering-Correlation-Id: 13a4cd30-4a29-4126-cef4-08da9fe91750
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: laFWtTd9HLIYFdXzgxubttgj/OspS+/dk6k/LKWsE1ZVqh4hOvnbKupzaFK4FBCh+w17rgTaqw5rp4NVlCzBPdiWec86b5KpiIEsu2zSEDF3loMdI6ytA9vKP/NdB2sVPsRuH2WQSN22ZiZmPot+NGoHcaAE0EYlig6i0AEsaL2NEfNbEkDqmg+1WvLazaJZacNhe8IGNx9eD89RnPcdOuS4PLjapa/JRlxPO7O4HH28DoQAjOrMFhMsJh0pegw/xMq03k4/Z0+uuyZO4gbnb7KNXcAAYOnBWJd8KkAtKPhynvO0hvQKAvCeq3ZmWH4R0rqJ+yMpJpTmxju7gta6aj4kxlOyzXN/PKuWE9A9WIRquNeocrsHVpxyKTLr3zH8xWsOm5xcXyH1JfDBhfHLLSv2fgZe2XCg40coAsY8eyGtPw8pb4d6GBhIft5lUl7Jh+wIqDpvfyyfPSUK+2nVJ/kMKZCNFLelY42qcPCQSzDa55JA297KG3IFvsBxRWKg4BO8WFcUsdNbeyX1quRS2J6HeVn1+DN1FFK3YJWy/ZeYwwjHk2Cy8T9OvR2Qv0kuuK9KVKnuRx3L8MYK8QquDMCKdNQALuRQqEsUgonl8bfQTRSiSDQ2Lj13+UXb9eNyLTKLc7apQ6x4GdNViBwBj+v7Sh9a6h3P2Y+yCW3ui/mOnIUW4Or5NjGDVihYbtnm8s/PgljjI69J3cE8sdDkN6x5cWTkjZ9Ph85WeYQSDnxeAw9bedE08nXIQcu7A+hE
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA1PR11MB6733.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230022)(7916004)(39860400002)(346002)(136003)(366004)(376002)(396003)(451199015)(6512007)(9686003)(26005)(44832011)(5660300002)(8936002)(2906002)(66946007)(66476007)(66556008)(4326008)(8676002)(6506007)(6666004)(41300700001)(38100700002)(33716001)(86362001)(186003)(82960400001)(6486002)(316002)(6916009)(478600001)(83380400001)(21314003);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?OZFXdyu81/+PIAt9Ax7JIJaNK/DosWJBnmL3vVwrcKb1IY/+qPkpq8g201wq?=
+ =?us-ascii?Q?0qJxbARuTFazUVf9UfjEuhS+JEwcKX2Z1AoiD7ELL4nNi97J0xqre8RyUnB8?=
+ =?us-ascii?Q?ns+pi4X4v5Poiu649C40VmMVlwYdkccfO0wsUiesIAz5/WSxv3pZxznoRVFA?=
+ =?us-ascii?Q?mHLtBxPvbIicFMNf1dNKgOmFjnLjK3N1B2lRwJvH/cR6xxin99iNWPXOY5dQ?=
+ =?us-ascii?Q?dM25/3ENBnFTViusYizhEXQnETg0y2T5cu6Ry8NVwFl+TnzP9DufeFQ3Ka4g?=
+ =?us-ascii?Q?7391dhK3Tt38b1vZO43LlMYjYIhMrRG2KUEIYPO7Rqe1d4M+cvqDd4Y1+2rx?=
+ =?us-ascii?Q?LU8MoBmgVU/cZmuqhTLpLrkl8enh+rAPzvQQnz5s2WF514t6FQEfIc43fU4H?=
+ =?us-ascii?Q?wqfGHx/bV+cjSp7jl+uFV4cvJ0GHjbrYXUCKkX8HVJeAqjeCXRrYEIYLV8sS?=
+ =?us-ascii?Q?jT3o+DR6ixikeVi59z9rL0rSQSz9GCpxbcKy0BFnSQMUjdIiu0Xi/whjdgdG?=
+ =?us-ascii?Q?icibgjWI3Rfxir7VAqN8JbIBi1I7ny+3Y/F/xdmMeDnOkvnzfmHAnrJjV8/8?=
+ =?us-ascii?Q?4WDT++hN35SKlP9iWHF9OSwTX30LUT3HXJfPu8ncKH5rcTz2vkPNaBXyolEa?=
+ =?us-ascii?Q?RRqFqTry+H+9g3FrzOZ1HlS3THOMaL4yC/MRlrTwMUzPgGH4EQtAHLxDeJ7Y?=
+ =?us-ascii?Q?kB6anEb+0xRUvGiqUSFk06FajeK4HG5Hxjjkbr0DCnr9gBaaB9H9PJWcjMiB?=
+ =?us-ascii?Q?7Q9l3SQHwIeyPnSwMs18Vaib3NtifvbZU0gfEVTTVYZaLt8VRdTTXnUBGZcF?=
+ =?us-ascii?Q?mSK+P93tWImFBMX5DXLdoWNs3WIAk9FKUr2mr7L8/C3kfPdG9VhpPK5Ray+Z?=
+ =?us-ascii?Q?AV/QtF/wyMCZ6+iKk3S4UwjpZ4p+hqfmAaUYDv1t5YPEkMcDbqQSWiqN0oD6?=
+ =?us-ascii?Q?UQHiutS6/ovtBhSmfIKYhdK2/vKdMgJrOk4Vh7UDc9jOyZp/6F0QFaUTL5ao?=
+ =?us-ascii?Q?b49xW1wQL4UkWOpp68CyG8ucoujgj08ImBFJ9eN2jxKy7Rc0GSl9Ictf5mcN?=
+ =?us-ascii?Q?AhYJl2ZQ1QuewD5Unz86k/dQ1oVNBwOgSVuJWstpi8+mUNDLRXjxsaQqH4Z0?=
+ =?us-ascii?Q?LMOlFUuhsq0HgJBrdt1JamqA5nkg8wET+d8QJNJSwVZ7bMFCgo2rRUB7zOCC?=
+ =?us-ascii?Q?Rw3jOA7azSe0BQ7+AQ5I2d8CoATK0MIYP40cQDn+cYBzIs8AfOsWPhqUoXn3?=
+ =?us-ascii?Q?DNjTG0KR98zDV0RwcQS/Q65tIu5mD1c+i6l2p5frbXLZcwRwggrCZArZ6IPP?=
+ =?us-ascii?Q?UslWKJe7HOSCHH/QuuDPxg+CdQvi8u5fajoQU0u4/xu+FYQSn3jqkbJ9a4UL?=
+ =?us-ascii?Q?a+ZkhwlWtmRKvIT9HSOVODGISuZZdPyAwad920cQSpy/N62LUGacOLtZ+xfg?=
+ =?us-ascii?Q?iYyMt1RhBDO29IlnGWw7lHKjBS9GSl8TxrG35gj7+y8RPtMIOq7giSasSFkw?=
+ =?us-ascii?Q?hC7KA0MFp8PDd/wr59o3bNmzFWzvV7ZYYBUjNSx4WuxwwUn7u2n9v6k5mzio?=
+ =?us-ascii?Q?9wxHc0MtbL2z94iF8nVFsQvJPpOg+J95/+dOVHGm?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: 13a4cd30-4a29-4126-cef4-08da9fe91750
+X-MS-Exchange-CrossTenant-AuthSource: SA1PR11MB6733.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 26 Sep 2022 18:01:09.4808
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: +YreBaKbfxq5vqdbCjDu4cVBV+O7wrfLN3kyFvLVBA7AHxnIVss1esKJ87E8WjQEm2FWYs/HqagRsEE0TfmVQg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA0PR11MB7308
+X-OriginatorOrg: intel.com
 
-On Mon 26-09-22 09:54:07, Dave Chinner wrote:
-> On Fri, Sep 23, 2022 at 11:38:03AM +0200, Jan Kara wrote:
-> > On Fri 23-09-22 12:10:12, Dave Chinner wrote:
-> > > On Thu, Sep 22, 2022 at 05:41:08PM -0700, Dan Williams wrote:
-> > > > Dave Chinner wrote:
-> > > > > On Wed, Sep 21, 2022 at 07:28:51PM -0300, Jason Gunthorpe wrote:
-> > > > > > On Thu, Sep 22, 2022 at 08:14:16AM +1000, Dave Chinner wrote:
-> > > > > > 
-> > > > > > > Where are these DAX page pins that don't require the pin holder to
-> > > > > > > also hold active references to the filesystem objects coming from?
-> > > > > > 
-> > > > > > O_DIRECT and things like it.
-> > > > > 
-> > > > > O_DIRECT IO to a file holds a reference to a struct file which holds
-> > > > > an active reference to the struct inode. Hence you can't reclaim an
-> > > > > inode while an O_DIRECT IO is in progress to it. 
-> > > > > 
-> > > > > Similarly, file-backed pages pinned from user vmas have the inode
-> > > > > pinned by the VMA having a reference to the struct file passed to
-> > > > > them when they are instantiated. Hence anything using mmap() to pin
-> > > > > file-backed pages (i.e. applications using FSDAX access from
-> > > > > userspace) should also have a reference to the inode that prevents
-> > > > > the inode from being reclaimed.
-> > > > > 
-> > > > > So I'm at a loss to understand what "things like it" might actually
-> > > > > mean. Can you actually describe a situation where we actually permit
-> > > > > (even temporarily) these use-after-free scenarios?
-> > > > 
-> > > > Jason mentioned a scenario here:
-> > > > 
-> > > > https://lore.kernel.org/all/YyuoE8BgImRXVkkO@nvidia.com/
-> > > > 
-> > > > Multi-thread process where thread1 does open(O_DIRECT)+mmap()+read() and
-> > > > thread2 does memunmap()+close() while the read() is inflight.
-> > > 
-> > > And, ah, what production application does this and expects to be
-> > > able to process the result of the read() operation without getting a
-> > > SEGV?
-> > > 
-> > > There's a huge difference between an unlikely scenario which we need
-> > > to work (such as O_DIRECT IO to/from a mmap() buffer at a different
-> > > offset on the same file) and this sort of scenario where even if we
-> > > handle it correctly, the application can't do anything with the
-> > > result and will crash immediately....
-> > 
-> > I'm not sure I fully follow what we are concerned about here. As you've
-> > written above direct IO holds reference to the inode until it is completed
-> > (through kiocb->file->inode chain). So direct IO should be safe?
+On Sun, Sep 25, 2022 at 09:26:35PM -0400, Bo Liu wrote:
+> Use ida_alloc_xxx()/ida_free() instead of
+> ida_simple_get()/ida_simple_remove().
+> The latter is deprecated and more verbose.
 > 
-> AFAICT, it's the user buffer allocated by mmap() that the direct IO
-> is DMAing into/out of that is the issue here. i.e. mmap() a file
-> that is DAX enabled, pass the mmap region to DIO on a non-dax file,
-> GUP in the DIO path takes a page pin on user pages that are DAX
-> mapped, the userspace application then unmaps the file pages and
-> unlinks the FSDAX file.
-> 
-> At this point the FSDAX mapped inode has no active references, so
-> the filesystem frees the inode and it's allocated storage space, and
-> now the DIO or whatever is holding the GUP reference is
-> now a moving storage UAF violation. What ever is holding the GUP
-> reference doesn't even have a reference to the FSDAX filesystem -
-> the DIO fd could point to a file in a different filesystem
-> altogether - and so the fsdax filesytem could be unmounted at this
-> point whilst the application is still actively using the storage
-> underlying the filesystem.
-> 
-> That's just .... broken.
+> Signed-off-by: Bo Liu <liubo03@inspur.com>
 
-Hum, so I'm confused (and my last email probably was as well). So let me
-spell out the details here so that I can get on the same page about what we
-are trying to solve:
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
 
-For FSDAX, backing storage for a page must not be freed (i.e., filesystem
-must to free corresponding block) while there are some references to the
-page. This is achieved by calls to dax_layout_busy_page() from the
-filesystem before truncating file / punching hole into a file. So AFAICT
-this is working correctly and I don't think the patch series under
-discussion aims to change this besides the change in how page without
-references is detected.
-
-Now there is a separate question that while someone holds a reference to
-FSDAX page, the inode this page belongs to can get evicted from memory. For
-FSDAX nothing prevents that AFAICT. If this happens, we loose track of the
-page<->inode association so if somebody later comes and truncates the
-inode, we will not detect the page belonging to the inode is still in use
-(dax_layout_busy_page() does not find the page) and we have a problem.
-Correct?
-
-> > I'd be more worried about stuff like vmsplice() that can add file pages
-> > into pipe without holding inode alive in any way and keeping them there for
-> > arbitrarily long time. Didn't we want to add FOLL_LONGTERM to gup executed
-> > from vmsplice() to avoid issues like this?
+> ---
+>  drivers/dax/super.c | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
 > 
-> Yes, ISTR that was part of the plan - use FOLL_LONGTERM to ensure
-> FSDAX can't run operations that pin pages but don't take fs
-> references. I think that's how we prevented RDMA users from pinning
-> FSDAX direct mapped storage media in this way. It does not, however,
-> prevent the above "short term" GUP UAF situation from occurring.
-
-If what I wrote above is correct, then I understand and agree.
-
-> > I agree that freeing VMA while there are pinned pages is ... inconvenient.
-> > But that is just how gup works since the beginning - the moment you have
-> > struct page reference, you completely forget about the mapping you've used
-> > to get to the page. So anything can happen with the mapping after that
-> > moment. And in case of pages mapped by multiple processes I can easily see
-> > that one of the processes decides to unmap the page (and it may well be
-> > that was the initial process that acquired page references) while others
-> > still keep accessing the page using page references stored in some internal
-> > structure (RDMA anyone?).
+> diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+> index 9b5e2a5eb0ae..da4438f3188c 100644
+> --- a/drivers/dax/super.c
+> +++ b/drivers/dax/super.c
+> @@ -363,7 +363,7 @@ static void dax_free_inode(struct inode *inode)
+>  {
+>  	struct dax_device *dax_dev = to_dax_dev(inode);
+>  	if (inode->i_rdev)
+> -		ida_simple_remove(&dax_minor_ida, iminor(inode));
+> +		ida_free(&dax_minor_ida, iminor(inode));
+>  	kmem_cache_free(dax_cache, dax_dev);
+>  }
+>  
+> @@ -445,7 +445,7 @@ struct dax_device *alloc_dax(void *private, const struct dax_operations *ops)
+>  	if (WARN_ON_ONCE(ops && !ops->zero_page_range))
+>  		return ERR_PTR(-EINVAL);
+>  
+> -	minor = ida_simple_get(&dax_minor_ida, 0, MINORMASK+1, GFP_KERNEL);
+> +	minor = ida_alloc_max(&dax_minor_ida, MINORMASK, GFP_KERNEL);
+>  	if (minor < 0)
+>  		return ERR_PTR(-ENOMEM);
+>  
+> @@ -459,7 +459,7 @@ struct dax_device *alloc_dax(void *private, const struct dax_operations *ops)
+>  	return dax_dev;
+>  
+>   err_dev:
+> -	ida_simple_remove(&dax_minor_ida, minor);
+> +	ida_free(&dax_minor_ida, minor);
+>  	return ERR_PTR(-ENOMEM);
+>  }
+>  EXPORT_SYMBOL_GPL(alloc_dax);
+> -- 
+> 2.27.0
 > 
-> Yup, and this is why RDMA on FSDAX using this method of pinning pages
-> will end up corrupting data and filesystems, hence FOLL_LONGTERM
-> protecting against most of these situations from even arising. But
-> that's that workaround, not a long term solution that allows RDMA to
-> be run on FSDAX managed storage media.
 > 
-> I said on #xfs a few days ago:
-> 
-> [23/9/22 10:23] * dchinner is getting deja vu over this latest round
-> of "dax mappings don't pin the filesystem objects that own the
-> storage media being mapped"
-> 
-> And I'm getting that feeling again right now...
-> 
-> > I think it will be rather difficult to come up
-> > with some scheme keeping VMA alive while there are pages pinned without
-> > regressing userspace which over the years became very much tailored to the
-> > peculiar gup behavior.
-> 
-> Perhaps all we should do is add a page flag for fsdax mapped pages
-> that says GUP must pin the VMA, so only mapped pages that fall into
-> this category take the perf penalty of VMA management.
-
-Possibly. But my concern with VMA pinning was not only about performance
-but also about applications relying on being able to unmap pages that are
-currently pinned. At least from some processes one of which may be the one
-doing the original pinning. But yeah, the fact that FOLL_LONGTERM is
-forbidden with DAX somewhat restricts the insanity we have to deal with. So
-maybe pinning the VMA for DAX mappings might actually be a workable
-solution.
-
-								Honza
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
