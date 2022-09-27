@@ -1,141 +1,229 @@
-Received: from NAM04-DM6-obe.outbound.protection.outlook.com (mail-dm6nam04on2061.outbound.protection.outlook.com [40.107.102.61])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29DBC80C
-	for <nvdimm@lists.linux.dev>; Tue, 27 Sep 2022 12:56:10 +0000 (UTC)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=FYnVKPeiwcp9MBGdzqwUllUgqsXKcpsG/uSGpqPCVK+zMSFFUPJYSpf5XtsSTwWObpfDjJ3EXgOWP4IXcj4c9cKrqpfZFeeH9P150nWvatzfGDhSKVzJhnMLScQTqB1qsLB2dbQVvArH+Kzbww+aOJbcWS0zEgbN3Q9vXmc8aEN5gChqY0IdG5Iz6Y8s6Q+KlmZUNwIn47cKmZz2pZQJUg5UsUFvBTl2Mt5fpP+ZjpZtQ+Ib3iy0FcKHX7K3NvQHVRln+XeCctCFsB1CZa8lWq7K0FFXOqRioVte5aOq3JLBq6bFKG6VmOnE3hjJg8a+4be/SGECCIziKS7CfB93Bw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=8Lb9u8Cp/A5gaaVEuaeOB9FvzXNw71BbMlv/Z005r4s=;
- b=ZOyDeD8JFyFze5Sl23YAz+hMsKfWK6wAARhf9AonaacJRDJHtCzHtko9iJgJspfbV3uiu9WJrAc7mg6b9S/+Q7qV6bPqrCMSDlBW4BBKx61sSNebeXpOO7owit3dldvAxU103Ain/sPwp0PCxyr9u/zMkcqcVc+kzVDippi/nLYuz4OZF3YaNUoKqb2LYNcu/TV+23diQIcUX6YinfTeRUhV0k4DEOoSGNZiOFuL5ifbrp+rGKYjfpehF0cFAxYRH2G1G6EazHeVzZ8Rj1LeBVF+zsjuFAyahS7ieirQolNjTsQQnaMceI4cH7/UvWq4GBevcS/7Cf40EFTGU82qpg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=8Lb9u8Cp/A5gaaVEuaeOB9FvzXNw71BbMlv/Z005r4s=;
- b=dmBV5IfKLJdpU7e/6n6KtXFLVOFQ+rCBPZXCAXdemseqShPOhaXd3WSm8fVzNgxOhc9BYw0IDOI4b+LCe7GBUUB8koYHn7gcOzshqExt3EbRkKaDZQCE3vWatn84ymwjaQzSr/qc0lpnKzB3Nsm9O07CmdYNv07CibIQQhySUUXlK/CVdwgzSeQIlxwlgx6yl925ERiO8lgIRraD3TjIFXaISHlNuxGeW6JOTEcd27YWxXAxA5e+6Dt3b2Ax9yMcHizt/fRWy1dXaUMgFS9/sN1PLvasoRNxRZ9Dsc9WtwWcLkunaXMVO3BaRjQDaBn/lwzcEL0gGGpUheY78+Faig==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from MN2PR12MB4192.namprd12.prod.outlook.com (2603:10b6:208:1d5::15)
- by BL3PR12MB6644.namprd12.prod.outlook.com (2603:10b6:208:3b1::14) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5654.25; Tue, 27 Sep
- 2022 12:56:08 +0000
-Received: from MN2PR12MB4192.namprd12.prod.outlook.com
- ([fe80::462:7fe:f04f:d0d5]) by MN2PR12MB4192.namprd12.prod.outlook.com
- ([fe80::462:7fe:f04f:d0d5%8]) with mapi id 15.20.5654.026; Tue, 27 Sep 2022
- 12:56:08 +0000
-Date: Tue, 27 Sep 2022 09:56:06 -0300
-From: Jason Gunthorpe <jgg@nvidia.com>
-To: Alistair Popple <apopple@nvidia.com>
-Cc: Dan Williams <dan.j.williams@intel.com>, akpm@linux-foundation.org,
-	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
-	"Darrick J. Wong" <djwong@kernel.org>,
-	Christoph Hellwig <hch@lst.de>, John Hubbard <jhubbard@nvidia.com>,
-	linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
-	linux-xfs@vger.kernel.org, linux-mm@kvack.org,
-	linux-ext4@vger.kernel.org
-Subject: Re: [PATCH v2 10/18] fsdax: Manage pgmap references at entry
- insertion and deletion
-Message-ID: <YzLy5jJOF0jdlrJK@nvidia.com>
-References: <632ba8eaa5aea_349629422@dwillia2-xfh.jf.intel.com.notmuch>
- <YyurdXnW7SyEndHV@nvidia.com>
- <632bc5c4363e9_349629486@dwillia2-xfh.jf.intel.com.notmuch>
- <YyyhrTxFJZlMGYY6@nvidia.com>
- <632cd9a2a023_3496294da@dwillia2-xfh.jf.intel.com.notmuch>
- <Yy2ziac3GdHrpxuh@nvidia.com>
- <632ddeffd86ff_33d629490@dwillia2-xfh.jf.intel.com.notmuch>
- <Yy3wA7/bkza7NO1J@nvidia.com>
- <632e031958740_33d629428@dwillia2-xfh.jf.intel.com.notmuch>
- <8735cdl4pk.fsf@nvdebian.thelocal>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <8735cdl4pk.fsf@nvdebian.thelocal>
-X-ClientProxiedBy: BL1PR13CA0064.namprd13.prod.outlook.com
- (2603:10b6:208:2b8::9) To MN2PR12MB4192.namprd12.prod.outlook.com
- (2603:10b6:208:1d5::15)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E5A433FE
+	for <nvdimm@lists.linux.dev>; Tue, 27 Sep 2022 16:02:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D400C433D6;
+	Tue, 27 Sep 2022 16:02:49 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1664294569;
+	bh=q2PgX0FVMvjEOsQGJ0Z4Rp2fHN8quFSL88LHc/A4pJQ=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=LepGIAypkn5ICKnpSqAhtivRKIpbQawmlkzkmPTkrkDxHuURprVN5KhuGEw+fL7bU
+	 GTnsGpQvPcdFa5DOps2nSqKruetSljruJsRo5J84Oz4WYTVdkHp1cdWFG14mk0ZNKB
+	 ONOvno4yA5WYYJmMbtqJLZ+NJk2hx1MPuiTuJAd4TicZrmskpXpJvNFv1PMpJQqnP0
+	 TqjCc+EzTHREppb+xZf5PY2oVToms4GFYfLiFlFC6msC30PSwVezO1Q7JYjnFLrbN2
+	 hVOcrQZ/DdYTI4PBlCa6VG/RtCvzkDRLmh6n38Hdn0y6KBOw+BGiIcy5Zi4stjcRhI
+	 0iLkbMKTXnSbw==
+Date: Tue, 27 Sep 2022 09:02:48 -0700
+From: "Darrick J. Wong" <djwong@kernel.org>
+To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Cc: Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org,
+	linux-xfs@vger.kernel.org, nvdimm@lists.linux.dev,
+	linux-mm@kvack.org, linux-fsdevel@vger.kernel.org,
+	dan.j.williams@intel.com
+Subject: Re: [RFC PATCH] xfs: drop experimental warning for fsdax
+Message-ID: <YzMeqNg56v0/t/8x@magnolia>
+References: <1663234002-17-1-git-send-email-ruansy.fnst@fujitsu.com>
+ <20220919045003.GJ3600936@dread.disaster.area>
+ <20220919211533.GK3600936@dread.disaster.area>
+ <f10de555-370b-f236-1107-e3089258ebbc@fujitsu.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MN2PR12MB4192:EE_|BL3PR12MB6644:EE_
-X-MS-Office365-Filtering-Correlation-Id: f150e07d-f81d-450f-a417-08daa087a527
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info:
-	euKJ4srsOB96gqPC8nLsvBLT6ecr++Of4KncpemlJs8ABVhNrrx0ieM6UEifl63hnjqhgXdQ2sQtWAJMUDbKghewxKWRDtgd0dKtiBEBBXDXM4EkmKZrA3Hag7gpttG1OCnlbw5AtViq5VjyPMbQ76lVFyw3v9947aJop/3UPTCiWi5xvGP8M2ZrTiMGvsEq0OZufKHDXMUSJgjeVw8xq+vJKMwo75ze4Hb7StBccmwsvQea5PkWwVgsaVBIxI73TfDqr7ja398a1DFOy1Rm4q7fGDoIAppric74j5o5TPJy4PCciToLQ8m9gHP5ugTfy8x34cthSv39sNlg10pj+k/Ork5KOfZnb3muXaicwvXU8obJiHxTZ1vZ7ko+Oci6tdFxoS29/rG/ST2sCOf8ThZu6HmAV87fzkIun+z7RHMGnwH2jHxZ+DdqKDCbBeXwWxXhp8Il0l7pTn913Lr7mGqRnXe2FNYbubLCymsKfx4PBf0wvY4P09TcJVlnfUp+9N0W+902ZK28KXEKIsx7YwrNPGB8jqLUMtDBpIcbRYA4BP+JeSLwaod9wN8kyEv0ZW68dq8nsJAYtFKFn7h8Mw+a47X8vfPvvvHkW8xfEPGevqI8txVxW9F30c3GgQkG7TZSXt1RJ34X/XQwNoH14oaO8n/+BD4rmnlaOcOXzR0KXsj7T+YATSgxnHx935u5GrEajGqkDp5GWFlv1bJ7bg==
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MN2PR12MB4192.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230022)(4636009)(39860400002)(396003)(366004)(376002)(346002)(136003)(451199015)(38100700002)(316002)(6486002)(26005)(6512007)(41300700001)(2616005)(2906002)(36756003)(478600001)(54906003)(37006003)(7416002)(6636002)(83380400001)(8676002)(66946007)(4326008)(6506007)(186003)(6862004)(66476007)(66556008)(8936002)(5660300002)(4744005)(86362001);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?UJ/5fr4FtyCxmq3Y7AFkHwCD4l0oNOmksVkUq1Xd3UcftMVEZp1A+w+K8UZa?=
- =?us-ascii?Q?RQFPrYZlPR+DAOMSXWv6urGp6UkF8r2aSnKGbNNzC93F+pHZ3RzIDnFW6XLK?=
- =?us-ascii?Q?KrauThuN/eq0YI1z4WJnwucWszVdN5joI02Xv+92Zq0VARPw5J7FFjc5vCBa?=
- =?us-ascii?Q?uH18kjPy/nvSt61H+kR1DEdgXJwa6XDQPAusjy9J8/j5VYKbzdRPljVLyQlW?=
- =?us-ascii?Q?L1ByDMpknDcngdOvMgoinSf2FilbnP+p/6JhV2PgvYZTMsvev06fvpwnlsRI?=
- =?us-ascii?Q?3e/OAARWSGNGFU2VTifcIOEnOV0vq+1M7C0QrTn7e58/4zOcSdS6DOmY52n0?=
- =?us-ascii?Q?t/Sce0BkHCKhuGm3tpa06v5jtf7uUGI9pCZTIwESyjuyFnjxovcHlDQTpIeY?=
- =?us-ascii?Q?Dx+99bs2pQIxcPEUOnz9hEoo6Oj15zdRU/MfKfTaFjsqU0pLBvJJHwE4hjlw?=
- =?us-ascii?Q?klnFhbjiVQ/M3VYowm1600k1uT6TF7D6YHZfXRyxrHb2RXBWUi9PHCB5bLZw?=
- =?us-ascii?Q?sqC61YgunFmjteVjUE9gT1ZECvv6rGnKX7WdsuM0Lizubs8n5ohrv2WvyU7N?=
- =?us-ascii?Q?D+Px6IxyxoPVVxIHFYEOoUEmHVIgWGJLFJzhrGoIJmUpPGg6SCpmtepX0iNg?=
- =?us-ascii?Q?yNPB0lgaTND8YV/O0Naca89zk5z4H5I/RsjzOZcuibEX5U93WRo8Gwx884zO?=
- =?us-ascii?Q?g/9Uaowl59pposl/S2YDou4E0vgT+gzW0wFOBJ9UekiXWwSlLvMqXVFx3OBQ?=
- =?us-ascii?Q?5TKPtrjETa7oTKXycCp30Li8qk2FQcEXP9ItdojTmzYYrO8e4iObrwziJIpm?=
- =?us-ascii?Q?eLXLcdSYJmEe55cTUHJrpo+fMVHzdhZY6a+zPGhaSx8K0iW+d2d5H+6CIhvE?=
- =?us-ascii?Q?ntu89B2puvfdZAuOhGrahJW5C6mILZgMPCP6gVl+l2ewxE3uE7upj3Ba28c/?=
- =?us-ascii?Q?evrNhdVNaqj8PbpxQtG3uzN/zqAQzRkQWdahN8bEu1RBpu1soTLQ058tk0eP?=
- =?us-ascii?Q?FQhGymIbqbvW52H4R/Hp8BEGnWlHjSqcN1usnAYsTMsfuc276jhtWs4tcHTk?=
- =?us-ascii?Q?7DNhiTGJbswduQI6EVWDF/VdDP2hWbYOskyyTBX6R3chGeX0OSCN0wTHvHy4?=
- =?us-ascii?Q?fwNskmUku2lwHDjmb7V8zCoTCbOqysNOvArQJN8WKv9SXWqJynC+vV+4gcXq?=
- =?us-ascii?Q?YXlqSNKyDPjCn4JnKG6t5jImgI3FD5tL48IDU3XVztgRsT8f6w1JV6p/Jo3H?=
- =?us-ascii?Q?WPRD2GF9iWxMQjrDLDEXrzjg4TcsEf7Hsb75rZCXG6SVEp0LrBSgeo7L3aeE?=
- =?us-ascii?Q?nsZjq3EBY6qu+lDABQCUJu8r35ev3+qccxP3qwx8liH9UN6ec7HNjHtUj3Yn?=
- =?us-ascii?Q?bNHWIT3SfZdzFh7pgc48sx4up3iIOuqrv1KXV3Imm4a7S4a+C4b5cQPYK8uG?=
- =?us-ascii?Q?v7QIXX45r8tNbJMy4is7JutkMk67/xdcbY3r+5WhRgd1u+RgFEIXrGLdX7XK?=
- =?us-ascii?Q?AvqctkzqYif/K+rt3L1fxPtOBh6rgD4GOZZPbRNbGWDvMB/ws34xIU9KFHeA?=
- =?us-ascii?Q?2/Y/ucul2zDP+di99RM=3D?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: f150e07d-f81d-450f-a417-08daa087a527
-X-MS-Exchange-CrossTenant-AuthSource: MN2PR12MB4192.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 27 Sep 2022 12:56:07.9620
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: h9/pyBXAlUusqKhj98TYbqZ2hgg9N7QBpEAoIvYlwxb4onfOtMp1pas4jHQOUdRu
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BL3PR12MB6644
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <f10de555-370b-f236-1107-e3089258ebbc@fujitsu.com>
 
-On Tue, Sep 27, 2022 at 04:07:05PM +1000, Alistair Popple wrote:
+On Tue, Sep 27, 2022 at 02:53:14PM +0800, Shiyang Ruan wrote:
+> 
+> 
+> 在 2022/9/20 5:15, Dave Chinner 写道:
+> > On Mon, Sep 19, 2022 at 02:50:03PM +1000, Dave Chinner wrote:
+> > > On Thu, Sep 15, 2022 at 09:26:42AM +0000, Shiyang Ruan wrote:
+> > > > Since reflink&fsdax can work together now, the last obstacle has been
+> > > > resolved.  It's time to remove restrictions and drop this warning.
+> > > > 
+> > > > Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+> > > 
+> > > I haven't looked at reflink+DAX for some time, and I haven't tested
+> > > it for even longer. So I'm currently running a v6.0-rc6 kernel with
+> > > "-o dax=always" fstests run with reflink enabled and it's not
+> > > looking very promising.
+> > > 
+> > > All of the fsx tests are failing with data corruption, several
+> > > reflink/clone tests are failing with -EINVAL (e.g. g/16[45]) and
+> > > *lots* of tests are leaving stack traces from WARN() conditions in
+> > > DAx operations such as dax_insert_entry(), dax_disassociate_entry(),
+> > > dax_writeback_mapping_range(), iomap_iter() (called from
+> > > dax_dedupe_file_range_compare()), and so on.
+> > > 
+> > > At thsi point - the tests are still running - I'd guess that there's
+> > > going to be at least 50 test failures by the time it completes -
+> > > in comparison using "-o dax=never" results in just a single test
+> > > failure and a lot more tests actually being run.
+> > 
+> > The end results with dax+reflink were:
+> > 
+> > SECTION       -- xfs_dax
+> > =========================
+> > 
+> > Failures: generic/051 generic/068 generic/074 generic/075
+> > generic/083 generic/091 generic/112 generic/127 generic/164
+> > generic/165 generic/175 generic/231 generic/232 generic/247
+> > generic/269 generic/270 generic/327 generic/340 generic/388
+> > generic/390 generic/413 generic/447 generic/461 generic/471
+> > generic/476 generic/517 generic/519 generic/560 generic/561
+> > generic/605 generic/617 generic/619 generic/630 generic/649
+> > generic/650 generic/656 generic/670 generic/672 xfs/011 xfs/013
+> > xfs/017 xfs/068 xfs/073 xfs/104 xfs/127 xfs/137 xfs/141 xfs/158
+> > xfs/168 xfs/179 xfs/243 xfs/297 xfs/305 xfs/328 xfs/440 xfs/442
+> > xfs/517 xfs/535 xfs/538 xfs/551 xfs/552
+> > Failed 61 of 1071 tests
+> > 
+> > Ok, so I did a new no-reflink run as a baseline, because it is a
+> > while since I've tested DAX at all:
+> > 
+> > SECTION       -- xfs_dax_noreflink
+> > =========================
+> > Failures: generic/051 generic/068 generic/074 generic/075
+> > generic/083 generic/112 generic/231 generic/232 generic/269
+> > generic/270 generic/340 generic/388 generic/461 generic/471
+> > generic/476 generic/519 generic/560 generic/561 generic/617
+> > generic/650 generic/656 xfs/011 xfs/013 xfs/017 xfs/073 xfs/297
+> > xfs/305 xfs/517 xfs/538
+> > Failed 29 of 1071 tests
+> > 
+> > Yeah, there's still lots of warnings from dax_insert_entry() and
+> > friends like:
+> > 
+> > [43262.025815] WARNING: CPU: 9 PID: 1309428 at fs/dax.c:380 dax_insert_entry+0x2ab/0x320
+> > [43262.028355] Modules linked in:
+> > [43262.029386] CPU: 9 PID: 1309428 Comm: fsstress Tainted: G W          6.0.0-rc6-dgc+ #1543
+> > [43262.032168] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.15.0-1 04/01/2014
+> > [43262.034840] RIP: 0010:dax_insert_entry+0x2ab/0x320
+> > [43262.036358] Code: 08 48 83 c4 30 5b 5d 41 5c 41 5d 41 5e 41 5f c3 48 8b 58 20 48 8d 53 01 e9 65 ff ff ff 48 8b 58 20 48 8d 53 01 e9 50 ff ff ff <0f> 0b e9 70 ff ff ff 31 f6 4c 89 e7 e8 84 b1 5a 00 eb a4 48 81 e6
+> > [43262.042255] RSP: 0018:ffffc9000a0cbb78 EFLAGS: 00010002
+> > [43262.043946] RAX: ffffea0018cd1fc0 RBX: 0000000000000001 RCX: 0000000000000001
+> > [43262.046233] RDX: ffffea0000000000 RSI: 0000000000000221 RDI: ffffea0018cd2000
+> > [43262.048518] RBP: 0000000000000011 R08: 0000000000000000 R09: 0000000000000000
+> > [43262.050762] R10: ffff888241a6d318 R11: 0000000000000001 R12: ffffc9000a0cbc58
+> > [43262.053020] R13: ffff888241a6d318 R14: ffffc9000a0cbe20 R15: 0000000000000000
+> > [43262.055309] FS:  00007f8ce25e2b80(0000) GS:ffff8885fec80000(0000) knlGS:0000000000000000
+> > [43262.057859] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> > [43262.059713] CR2: 00007f8ce25e1000 CR3: 0000000152141001 CR4: 0000000000060ee0
+> > [43262.061993] Call Trace:
+> > [43262.062836]  <TASK>
+> > [43262.063557]  dax_fault_iter+0x243/0x600
+> > [43262.064802]  dax_iomap_pte_fault+0x199/0x360
+> > [43262.066197]  __xfs_filemap_fault+0x1e3/0x2c0
+> > [43262.067602]  __do_fault+0x31/0x1d0
+> > [43262.068719]  __handle_mm_fault+0xd6d/0x1650
+> > [43262.070083]  ? do_mmap+0x348/0x540
+> > [43262.071200]  handle_mm_fault+0x7a/0x1d0
+> > [43262.072449]  ? __kvm_handle_async_pf+0x12/0xb0
+> > [43262.073908]  exc_page_fault+0x1d9/0x810
+> > [43262.075123]  asm_exc_page_fault+0x22/0x30
+> > [43262.076413] RIP: 0033:0x7f8ce268bc23
+> > 
+> > So it looks to me like DAX is well and truly broken in 6.0-rc6. And,
+> > yes, I'm running the fixes in mm-hotifxes-stable branch that allow
+> > xfs/550 to pass.
+> 
+> I have tested these two mode for many times:
+> 
+> xfs_dax mode did failed so many cases.  (If you tested with this "drop"
+> patch, some warning around "dax_dedupe_file_range_compare()" won't occur any
+> more.)  I think warning around "dax_disassociate_entry()" is a problem with
+> concurrency.  Still looking into it.
+> 
+> But xfs_dax_noreflink didn't have so many failure, just 3 in my environment:
+> Failures: generic/471 generic/519 xfs/148.  I am thinking that did you
+> forget to reformat the TEST_DEV to be non-reflink before run the test?  If
+> so it will make sense.
 
-> That sounds good to me at least. I just noticed we introduced this exact
-> bug for device private/coherent pages when making their refcounts zero
-> based. Nothing currently takes pgmap->ref when a private/coherent page
-> is mapped. Therefore memunmap_pages() will complete and pgmap destroyed
-> while pgmap pages are still mapped.
+FWIW I saw dmesg failures in xfs/517 and xfs/013 starting with 6.0-rc5,
+and I haven't even turned on reflink yet:
 
-To kind of summarize this thread
+run fstests xfs/517 at 2022-09-26 19:53:34
+XFS (pmem1): EXPERIMENTAL Large extent counts feature in use. Use at your own risk!
+XFS (pmem1): Mounting V5 Filesystem
+XFS (pmem1): Ending clean mount
+XFS (pmem1): Quotacheck needed: Please wait.
+XFS (pmem1): Quotacheck: Done.
+XFS (pmem1): Unmounting Filesystem
+XFS (pmem0): EXPERIMENTAL online scrub feature in use. Use at your own risk!
+XFS (pmem1): EXPERIMENTAL Large extent counts feature in use. Use at your own risk!
+XFS (pmem1): Mounting V5 Filesystem
+XFS (pmem1): Ending clean mount
+XFS (pmem1): Quotacheck needed: Please wait.
+XFS (pmem1): Quotacheck: Done.
+------------[ cut here ]------------
+WARNING: CPU: 1 PID: 415317 at fs/dax.c:380 dax_insert_entry+0x22d/0x320
+Modules linked in: xfs nft_chain_nat xt_REDIRECT nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 ip6t_REJECT nf_reject_ipv6 ipt_REJECT nf_reject_ipv4 xt_tcpudp ip_set_hash_ip ip_set_hash_net xt_set nft_compat ip_set_hash_mac ip_set nf_tables libcrc32c bfq nfnetlink pvpanic_mmio pvpanic nd_pmem dax_pmem nd_btt sch_fq_codel fuse configfs ip_tables x_tables overlay nfsv4 af_packet [last unloaded: scsi_d
 
-Either we should get the pgmap reference during the refcount = 1 flow,
-and put it during page_free()
+CPU: 1 PID: 415317 Comm: fsstress Tainted: G        W          6.0.0-rc7-xfsx #rc7 727341edbd0773a36b78b09dab448fa1896eb3a5
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.15.0-1 04/01/2014
+RIP: 0010:dax_insert_entry+0x22d/0x320
+Code: e0 48 83 c4 20 5b 5d 41 5c 41 5d 41 5e 41 5f c3 48 8b 58 20 48 8d 53 01 e9 62 ff ff ff 48 8b 58 20 48 8d 53 01 e9 4d ff ff ff <0f> 0b e9 6d ff ff ff 31 f6 48 89 ef e8 72 74 12 00 eb a1 83 e0 02
+RSP: 0000:ffffc90004693b28 EFLAGS: 00010002
+RAX: ffffea0010a20480 RBX: 0000000000000001 RCX: 0000000000000001
+RDX: ffffea0000000000 RSI: 0000000000000033 RDI: ffffea0010a204c0
+RBP: ffffc90004693c08 R08: 0000000000000000 R09: 0000000000000000
+R10: ffff88800c226228 R11: 0000000000000001 R12: 0000000000000011
+R13: ffff88800c226228 R14: ffffc90004693e08 R15: 0000000000000000
+FS:  00007f3aad8db740(0000) GS:ffff88803ed00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f3aad8d1000 CR3: 0000000043104003 CR4: 00000000001706e0
+Call Trace:
+ <TASK>
+ dax_fault_iter+0x26e/0x670
+ dax_iomap_pte_fault+0x1ab/0x3e0
+ __xfs_filemap_fault+0x32f/0x5a0 [xfs c617487f99e14abfa5deb24e923415b927df3d4b]
+ __do_fault+0x30/0x1e0
+ do_fault+0x316/0x6d0
+ ? mmap_region+0x2a5/0x620
+ __handle_mm_fault+0x649/0x1250
+ handle_mm_fault+0xc1/0x220
+ do_user_addr_fault+0x1ac/0x610
+ ? _copy_to_user+0x63/0x80
+ exc_page_fault+0x63/0x130
+ asm_exc_page_fault+0x22/0x30
+RIP: 0033:0x7f3aada7f1ca
+Code: c5 fe 7f 07 c5 fe 7f 47 20 c5 fe 7f 47 40 c5 fe 7f 47 60 c5 f8 77 c3 66 0f 1f 84 00 00 00 00 00 40 0f b6 c6 48 89 d1 48 89 fa <f3> aa 48 89 d0 c5 f8 77 c3 66 66 2e 0f 1f 84 00 00 00 00 00 66 90
+RSP: 002b:00007ffe47afa688 EFLAGS: 00010206
+RAX: 000000000000002e RBX: 0000000000033000 RCX: 000000000000999c
+RDX: 00007f3aad8d1000 RSI: 000000000000002e RDI: 00007f3aad8d1000
+RBP: 0000558851e13240 R08: 0000000000000000 R09: 0000000000033000
+R10: 0000000000000008 R11: 0000000000000246 R12: 028f5c28f5c28f5c
+R13: 8f5c28f5c28f5c29 R14: 000000000000999c R15: 0000000000001c81
+ </TASK>
+---[ end trace 0000000000000000 ]---
+XFS (pmem0): Unmounting Filesystem
+XFS (pmem1): EXPERIMENTAL online scrub feature in use. Use at your own risk!
+XFS (pmem1): *** REPAIR SUCCESS ino 0x80 type probe agno 0x0 inum 0x0 gen 0x0 flags 0x80000001 error 0
+XFS (pmem1): Unmounting Filesystem
+XFS (pmem1): EXPERIMENTAL Large extent counts feature in use. Use at your own risk!
+XFS (pmem1): Mounting V5 Filesystem
+XFS (pmem1): Ending clean mount
+XFS (pmem1): Unmounting Filesystem
 
-Or we should have the pgmap destroy sweep all the pages and wait for
-them to become ref == 0
+--D
 
-I don't think we should have pgmap references randomly strewn all over
-the place. A positive refcount on the page alone must be enough to
-prove that the struct page exists and the pgmap is not destroyed.
-
-Every driver using pgmap needs something liek this, so I'd prefer it
-be in the pgmap code..
-
-Jason
+> 
+> 
+> --
+> Thanks,
+> Ruan.
+> 
+> > 
+> > Who is actually testing this DAX code, and what are they actually
+> > testing on? These are not random failures - I haven't run DAX
+> > testing since ~5.18, and none of these failures were present on the
+> > same DAX test VM running the same configuration back then....
+> > 
+> > -Dave.
