@@ -1,253 +1,229 @@
-Received: from mail105.syd.optusnet.com.au (mail105.syd.optusnet.com.au [211.29.132.249])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 4EE394C96
-	for <nvdimm@lists.linux.dev>; Tue, 27 Sep 2022 23:51:39 +0000 (UTC)
-Received: from dread.disaster.area (pa49-181-106-210.pa.nsw.optusnet.com.au [49.181.106.210])
-	by mail105.syd.optusnet.com.au (Postfix) with ESMTPS id 1692C110108A;
-	Wed, 28 Sep 2022 09:51:30 +1000 (AEST)
-Received: from dave by dread.disaster.area with local (Exim 4.92.3)
-	(envelope-from <david@fromorbit.com>)
-	id 1odKML-00CxJa-Io; Wed, 28 Sep 2022 09:51:29 +1000
-Date: Wed, 28 Sep 2022 09:51:29 +1000
-From: Dave Chinner <david@fromorbit.com>
-To: "Darrick J. Wong" <djwong@kernel.org>
-Cc: Shiyang Ruan <ruansy.fnst@fujitsu.com>, linux-kernel@vger.kernel.org,
-	linux-xfs@vger.kernel.org, nvdimm@lists.linux.dev,
-	linux-mm@kvack.org, linux-fsdevel@vger.kernel.org,
-	dan.j.williams@intel.com
-Subject: Re: [RFC PATCH] xfs: drop experimental warning for fsdax
-Message-ID: <20220927235129.GC3600936@dread.disaster.area>
-References: <1663234002-17-1-git-send-email-ruansy.fnst@fujitsu.com>
- <20220919045003.GJ3600936@dread.disaster.area>
- <20220919211533.GK3600936@dread.disaster.area>
- <f10de555-370b-f236-1107-e3089258ebbc@fujitsu.com>
- <YzMeqNg56v0/t/8x@magnolia>
+Received: from esa3.fujitsucc.c3s2.iphmx.com (esa3.fujitsucc.c3s2.iphmx.com [68.232.151.212])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10194A40
+	for <nvdimm@lists.linux.dev>; Wed, 28 Sep 2022 06:41:32 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
+  d=fujitsu.com; i=@fujitsu.com; q=dns/txt; s=fj1;
+  t=1664347293; x=1695883293;
+  h=from:to:cc:subject:date:message-id:references:
+   in-reply-to:content-transfer-encoding:mime-version;
+  bh=A5qnoQ9qm80e3PnR2L1BITfNx5jqc+Gdu8kZ6FioO0c=;
+  b=tJPS4fD2FdXj6c/Cf+vFJ6Db5iHO2/wR9FZFetNlw0QgYDp64S+d6XqH
+   OdWfEK0l6J4bFKPhgJ0ZLRoGyBs+qAfcXSqFBzjmlKmDJhrPAfxJHgdXV
+   gmp2D+jqvUjvUT4TXr+kiapcAjpf2Ww9M8nE0nfZPbKH3Og9cD1fRe0PC
+   H79q8sqE/8HSbJKw5Vn/sJhi9MOT41ALcJiQAqV1+/wmA6Bg8wh7qng0I
+   Zl3iHXDJPmczPrL0m+Bppwaj5EDJwxiRV7vIgBhVYsBrpSeDlVefNPbC8
+   KYcvWADHCB5S9kcHDaLcCWn/qeMvcJE4jh9UI+2WKWPuZShd7zEWZXSfB
+   A==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10483"; a="74288899"
+X-IronPort-AV: E=Sophos;i="5.93,351,1654527600"; 
+   d="scan'208";a="74288899"
+Received: from mail-tycjpn01lp2176.outbound.protection.outlook.com (HELO JPN01-TYC-obe.outbound.protection.outlook.com) ([104.47.23.176])
+  by ob1.fujitsucc.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Sep 2022 15:40:18 +0900
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=MNeq2yEQxGooefINxYHn554V7HUdd/J3Wl+3E5Xc3f0TDFCshc8A5O/Fn+OKKmzKy+MZVtdEfBLpKanFNzO/vh0mKEzYjlsW7MZ50GFABuubaR3UT11e1g/Rvpdi5bA4abzQa/iuUT1aerJFE/wn9NxAVwep8JuzLWk6HKC/haskqqILELEkUf8WvWWoBH7fjyl0Lv37CdtGE35+iXCobTw7E5IYkIY0j50U52mdHGEnJG3/8LOHmN0e6tPi+7j/RNm3K/ZB+ekkpqKb0yqZKqY1zXOhAuSeQ6ExOKIWMOViqNPi43Zkz2Q5cFMU7ylgsLCp2zuVZVeyV4DYebuS5A==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=A5qnoQ9qm80e3PnR2L1BITfNx5jqc+Gdu8kZ6FioO0c=;
+ b=hhGMhr0STniqljXRIFmk0ox2Q+Ig2v3P45VMBGYbztsMjfI4RdDrDNoR9Y48Y1Klhs/O2D1ahUKDv3mffq3Vv/B+YGeVRCO+EJ7x3XVlRTzfyuXzOOMVFS0YQytoNSHRcp6cln+RfNJ1Mt3xvRwHWu0mFncIIcULxsIWQq9ruRIQfJ02SGy583l5Fs/oQ9fG65503gxrPFoyUDEtSvHeID3RmOjMSxQnLurYgns2Sb3a/7Duje+s/YnBcmOrs1MYtKtCGXVTI0Wd6pWlSrDMT5MGXDcjIP6y+rsDuwFd4mtF4Xd0QH3BMXeV1ImxEJ6G4qgBJN8g5XFHZ4y69BBNtw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=fujitsu.com; dmarc=pass action=none header.from=fujitsu.com;
+ dkim=pass header.d=fujitsu.com; arc=none
+Received: from TYCPR01MB8455.jpnprd01.prod.outlook.com (2603:1096:400:15d::13)
+ by TYWPR01MB8903.jpnprd01.prod.outlook.com (2603:1096:400:168::8) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5676.17; Wed, 28 Sep
+ 2022 06:40:15 +0000
+Received: from TYCPR01MB8455.jpnprd01.prod.outlook.com
+ ([fe80::d51b:780b:2b6c:9c4a]) by TYCPR01MB8455.jpnprd01.prod.outlook.com
+ ([fe80::d51b:780b:2b6c:9c4a%3]) with mapi id 15.20.5654.026; Wed, 28 Sep 2022
+ 06:40:15 +0000
+From: "matsuda-daisuke@fujitsu.com" <matsuda-daisuke@fujitsu.com>
+To: 'Bob Pearson' <rpearsonhpe@gmail.com>, 'Bart Van Assche'
+	<bvanassche@acm.org>, Yanjun Zhu <yanjun.zhu@linux.dev>,
+	"linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+	"leonro@nvidia.com" <leonro@nvidia.com>, "jgg@nvidia.com" <jgg@nvidia.com>,
+	"zyjzyj2000@gmail.com" <zyjzyj2000@gmail.com>
+CC: "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"yangx.jy@fujitsu.com" <yangx.jy@fujitsu.com>, "lizhijian@fujitsu.com"
+	<lizhijian@fujitsu.com>, "y-goto@fujitsu.com" <y-goto@fujitsu.com>
+Subject: RE: [RFC PATCH 2/7] RDMA/rxe: Convert the triple tasklets to
+ workqueues
+Thread-Topic: [RFC PATCH 2/7] RDMA/rxe: Convert the triple tasklets to
+ workqueues
+Thread-Index: AQHYwmPAjFT9wyoflEKiuh64EWqIi63Z1kOAgACFygCAARD/0IAA0IqAgBgjDrA=
+Date: Wed, 28 Sep 2022 06:40:15 +0000
+Message-ID:
+ <TYCPR01MB84552F7598F695D0C7CE16EBE5549@TYCPR01MB8455.jpnprd01.prod.outlook.com>
+References: <cover.1662461897.git.matsuda-daisuke@fujitsu.com>
+ <41e5476f4f14a0b77f4a8c3826e3ef943bf7c173.1662461897.git.matsuda-daisuke@fujitsu.com>
+ <0b3366e6-c0ae-7242-5006-b638e629972d@linux.dev>
+ <fd1d7c49-a090-e8c7-415b-dfcda94ace9d@acm.org>
+ <TYCPR01MB8455D739FC9FB034E3485C87E5449@TYCPR01MB8455.jpnprd01.prod.outlook.com>
+ <4a9f2b42-f230-b951-f03b-588b94cd39a6@gmail.com>
+In-Reply-To: <4a9f2b42-f230-b951-f03b-588b94cd39a6@gmail.com>
+Accept-Language: ja-JP, en-US
+Content-Language: ja-JP
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+x-securitypolicycheck: OK by SHieldMailChecker v2.5.2
+x-shieldmailcheckerpolicyversion: FJ-ISEC-20170217
+x-shieldmailcheckermailid: 8d731a38a30c4e7db4038d958e5ac61c
+msip_labels:
+ =?utf-8?B?TVNJUF9MYWJlbF9hNzI5NWNjMS1kMjc5LTQyYWMtYWI0ZC0zYjBmNGZlY2Uw?=
+ =?utf-8?B?NTBfRW5hYmxlZD10cnVlOyBNU0lQX0xhYmVsX2E3Mjk1Y2MxLWQyNzktNDJh?=
+ =?utf-8?B?Yy1hYjRkLTNiMGY0ZmVjZTA1MF9TZXREYXRlPTIwMjItMDktMjhUMDY6NDA6?=
+ =?utf-8?B?MTJaOyBNU0lQX0xhYmVsX2E3Mjk1Y2MxLWQyNzktNDJhYy1hYjRkLTNiMGY0?=
+ =?utf-8?B?ZmVjZTA1MF9NZXRob2Q9U3RhbmRhcmQ7IE1TSVBfTGFiZWxfYTcyOTVjYzEt?=
+ =?utf-8?B?ZDI3OS00MmFjLWFiNGQtM2IwZjRmZWNlMDUwX05hbWU9RlVKSVRTVS1SRVNU?=
+ =?utf-8?B?UklDVEVE4oCLOyBNU0lQX0xhYmVsX2E3Mjk1Y2MxLWQyNzktNDJhYy1hYjRk?=
+ =?utf-8?B?LTNiMGY0ZmVjZTA1MF9TaXRlSWQ9YTE5ZjEyMWQtODFlMS00ODU4LWE5ZDgt?=
+ =?utf-8?B?NzM2ZTI2N2ZkNGM3OyBNU0lQX0xhYmVsX2E3Mjk1Y2MxLWQyNzktNDJhYy1h?=
+ =?utf-8?B?YjRkLTNiMGY0ZmVjZTA1MF9BY3Rpb25JZD1mM2FhZDZhMC1mMDBmLTQ2Nzct?=
+ =?utf-8?B?YWMyZC1iNDk5OWM5OTJlY2Q7IE1TSVBfTGFiZWxfYTcyOTVjYzEtZDI3OS00?=
+ =?utf-8?B?MmFjLWFiNGQtM2IwZjRmZWNlMDUwX0NvbnRlbnRCaXRzPTA=?=
+authentication-results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=fujitsu.com;
+x-ms-publictraffictype: Email
+x-ms-traffictypediagnostic: TYCPR01MB8455:EE_|TYWPR01MB8903:EE_
+x-ms-office365-filtering-correlation-id: f84fbcfe-cf18-4635-6238-08daa11c4d43
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info:
+ xGM4ikguWegIuGnGc1cNl3OgDlgXgMtIwA0Ig0B0ZuvRFHHAArrO84qsUP750wW1Qd3Luw32N5OKPL4evDc43g4r2XU1s+dVFt0DSy2GvK5AZFxO8bIcXEKO7FinGtIYRebqH5f288oyJabIt8GmakUMwO6B1w9y7ZRoURs7nC0937dXbQ68fVj1zcY30N7hhqmhVNy/s7qcc6wZoXFNNbxK+GwltWqNVTmtkJE+41nnOKnk29nbdAJ/DVjAjxPSdMeROQGsrHYARWrb6rlouMEGPYbqArVBhvPgCuEZrQpf0cp68a5gHBWo/DvZrtgShQbd06GsPEmetdYphuzGv7NyTjcUuZTiclZ76wg4P3PHlP/k69CY4DIcZqmuehYB5u6GLxrv23mV0wNRRhFvJ1SrHQ9VSp7SDv0xidZgcHBTaItMaTC7MweGyQbuSIDUNsf3BeHe6nLVCVwE2WrZZWMtWDGB4GnsCeOhNymZXfEsQQgwRyklkcDKY9XwVl80xxueDoc7K/u4Mijrv3lXai5v1vRtwiiwSAesxd/vzFq/ODCvnDuYUOK/0JdJyOg5mF8R+3jvZyUIpoMWS1mudkKHey8f3jSNrGgxf1/ZrxhDYQ1LmlJAx4Er4pRVhYTP2DIbPzwO2Q4bvqpZq0/QP8r45DJHmb/5Y3CKEdXn64CemvlORiLH7e2iYWJiVg7d5IJaRTtL2O8sg2Crav1jKrWzYtPOtChlZxSE3XdlKn8FnKrO/QOpm2wHohG+Wz1CQdJCCVEGVZggc4up7M0OcXavlnygYXjjbtj5RGuDoTEq9ZFvd0XU7/fFHNI0emaOVcMhQWlj4qhckBJkduLe3Q==
+x-forefront-antispam-report:
+ CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:TYCPR01MB8455.jpnprd01.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230022)(4636009)(39860400002)(396003)(366004)(346002)(136003)(376002)(1590799012)(451199015)(1580799009)(478600001)(5660300002)(107886003)(8936002)(86362001)(316002)(53546011)(6506007)(82960400001)(7696005)(110136005)(186003)(26005)(52536014)(85182001)(54906003)(55016003)(66476007)(66946007)(76116006)(4326008)(66446008)(38100700002)(64756008)(66556008)(41300700001)(9686003)(2906002)(8676002)(122000001)(71200400001)(83380400001)(38070700005)(33656002);DIR:OUT;SFP:1101;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0:
+ =?utf-8?B?c3lwL2s1QTgvWGU2U3RNQWw3alpYZDJ4emwvMldkUFVvY0dVZXFGdm9rYTE2?=
+ =?utf-8?B?TGpucHhjbXA1cDlCbkZJV1JYa21DbWwyL3ZIM3czWVZNaWFLTTRYWXRkamkx?=
+ =?utf-8?B?NmZmMzNpdzh0aFl4WmR1MzZWNTZRWGtCUk52REkvZmxFRDc4TlFFNlUxbnhI?=
+ =?utf-8?B?RUMwS3hjWkE5a28wN01pQTc4OS8xNWRvM2poYjN6VkR6VjJReWdQUWZCWWpM?=
+ =?utf-8?B?akNmRkZEd1VBSXI2Wm10cFQwd2pEL1FpNnpnZ0F3RHgycVBnT1c2SkFoUXF5?=
+ =?utf-8?B?Wm5IWmhKbWFwVjM4dWxVencxZG95bGlYVEZKbStPUWphSU5UeTVDb3Brb20z?=
+ =?utf-8?B?ZDJPMndzbUNGUzZvN0l6UUwya00vZG5UL3VuckNBMVR3cWRNWnV2U00rUFoz?=
+ =?utf-8?B?aUJzOWFaVnZlUVJSb2M1bmlxaGlJWkJmNWxVcGpnem1iNmlMNmtSSmwzWFdI?=
+ =?utf-8?B?OTBhaFFPdXlTMzNpZWRVamtscDBSNnBFSldKZGhlTjlwa3QxVlRFRTJ5WjJY?=
+ =?utf-8?B?K1NmR3dwdjd6V04vRmNTRk5zNFdlQnRYZkg1VGNvOHVlNlpuamJmTENjTzR1?=
+ =?utf-8?B?eVBqdTZ2MTZqTmFwa2hqY2g3Y3kxSXN5UkxCNnN3UTJDek1GL2JIL2FxUGx1?=
+ =?utf-8?B?cHE3M1cyYnB6dlltWFQzMlpmd1VscHZjZk5WSVRSa2NBRlpyQ3FhZ3UyOGsr?=
+ =?utf-8?B?dWxxK3huQytJNnNXbmU4enVWR3BqdjNEUkpUbkJxMWxrYWlVZHNCbTNDaFc3?=
+ =?utf-8?B?enRXWHZ5YU9zOXBUNGpKenkwMnJpWVpCQmFkbEU0QkdMSHZZcmVvMFpCR21l?=
+ =?utf-8?B?NGdLVlRBaFhIR1RhMVFYazJLdkJ1bUJNbllQV1dndktRWTNJOEhHWmZ3ZjRV?=
+ =?utf-8?B?UCtlM2hhaHZYTFZSUVJ6Y0JGYlZ5MmpIclM2TkFuQnpCSndjY1JHcGRXc1ow?=
+ =?utf-8?B?enEyekxRbXpicTVldDhNZkg1bnl1TjltbGtNVW1zODg3TDJhMmRkcGFlaGp6?=
+ =?utf-8?B?QzhDWjA2QjJiRjdwc1VtVGVkZGN3c0xUMWVxQ1VKWmxlUGZsNm16NWFRV3E5?=
+ =?utf-8?B?UEszVUcxTksxQzhTMUFPNVFIOEg2aEFGbmFCOFRUYnMxQ0lvcjdoZUlUeEww?=
+ =?utf-8?B?V0NxeTBPdWNCTzA4SmJBU3dJaytaQUdveHhYdU9QV3JjcUNqYVBwNW9idVdC?=
+ =?utf-8?B?ZGhQNWhzdXB0UW5McXlwSGFhOHpwN0FMSEtuYTZXUlZuQjFlaWdodkhTSTRD?=
+ =?utf-8?B?aGFkbXQ0NnhPbXVTWW5KdTY0UkVXNHVyNFNwbFU5eXhWc1JHZlNjZXduV2Zr?=
+ =?utf-8?B?ZjRQSm9jNjBFd0FKRlN1M2FyOE42dERjNjRSUm5uSWJEUkFmcmlReU5HcGxk?=
+ =?utf-8?B?UDhIR3V3K0ZPWDVXQnBBQ0xXdFFLRUNVakFaZElnT25SWlZXWDVMckxKazVD?=
+ =?utf-8?B?WDVuOVZVUEpyZkxHWktaeXpjcHExK296ZUNtZUpCK0t5Q1RzeEI2OHZzK0hz?=
+ =?utf-8?B?VlpCNmEwNldzdll4TGI5WEhLTnlMYjcvdVhsSXdUUjREdjdlK0dSZ0VLZUtj?=
+ =?utf-8?B?U20vQjZTOUVyVktKbWdhOEQ1UmJIemJ6YSt6dzFrcE9jWTdTOG1wVjczUStX?=
+ =?utf-8?B?eHZxZjU5UXhxZ0J1eWp3VkxJMmQ5THJuQk5jV1dyNElQZjN5K0RKVVBJbmY5?=
+ =?utf-8?B?M2JWN3hlOWRoT1h6RXVCZDlYSVFzRlZoU1kwWE00bldBemFHaE05b2VjNUly?=
+ =?utf-8?B?UDdVQmdHTXVOVkVIK1d6bHg3ZGZmZDdPdkozTnBmcTBZdjBzYnF3cHE2ck53?=
+ =?utf-8?B?R250REdnRXlUSTlvdnZZTDMyeDFuMkZaVHhucXBycGhjQ25YczhEVGc4UjRT?=
+ =?utf-8?B?YU55eklpd3Q5bFNUcC9TYk80UGg3NVh6cmhGNnRUbWhydFpYK2VlZmdDUmkx?=
+ =?utf-8?B?bnNmQU81WllaZW50Y1JZTHJnbXBNZ3VHaFAzNGc1RE93UElObENUU3VUSTJG?=
+ =?utf-8?B?MHNQZGJCOWU4bHIwNDg0MEpkN3FPaTR2VVFYc2EvT2xob1JNempoRGM0N1JJ?=
+ =?utf-8?B?ZXdJbTlYR0ZUeUtlbk9YWmpUS2JvSS9CTTdqZXZtZ0hjQmJlS1pkS2tQTDFS?=
+ =?utf-8?B?L0hzWDBWbFhYc3hLbitrV3E5VTlNbHVzNXlZcXJFR1dueVpQb250U3BRaU8v?=
+ =?utf-8?B?aGc9PQ==?=
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <YzMeqNg56v0/t/8x@magnolia>
-X-Optus-CM-Score: 0
-X-Optus-CM-Analysis: v=2.4 cv=e9dl9Yl/ c=1 sm=1 tr=0 ts=63338c84
-	a=j6JUzzrSC7wlfFge/rmVbg==:117 a=j6JUzzrSC7wlfFge/rmVbg==:17
-	a=IkcTkHD0fZMA:10 a=xOM3xZuef0cA:10 a=omOdbC7AAAAA:8 a=7-415B0cAAAA:8
-	a=VHcvpX4-_hD7FttO6b8A:9 a=QEXdDO2ut3YA:10 a=biEYGPWJfzWAr4FL6Ov7:22
+X-OriginatorOrg: fujitsu.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: TYCPR01MB8455.jpnprd01.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: f84fbcfe-cf18-4635-6238-08daa11c4d43
+X-MS-Exchange-CrossTenant-originalarrivaltime: 28 Sep 2022 06:40:15.3139
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: a19f121d-81e1-4858-a9d8-736e267fd4c7
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: JtYodgzqIWNW4QnIugidy2m4Px53QTD0CnAU0ALBTpukWRmizu2+1sew7yOT1MDlWiUFtJPDHxS2RuTAXeS5THFrWmGLqEJ2zEQBENvgO74=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: TYWPR01MB8903
 
-On Tue, Sep 27, 2022 at 09:02:48AM -0700, Darrick J. Wong wrote:
-> On Tue, Sep 27, 2022 at 02:53:14PM +0800, Shiyang Ruan wrote:
-> > 
-> > 
-> > 在 2022/9/20 5:15, Dave Chinner 写道:
-> > > On Mon, Sep 19, 2022 at 02:50:03PM +1000, Dave Chinner wrote:
-> > > > On Thu, Sep 15, 2022 at 09:26:42AM +0000, Shiyang Ruan wrote:
-> > > > > Since reflink&fsdax can work together now, the last obstacle has been
-> > > > > resolved.  It's time to remove restrictions and drop this warning.
-> > > > > 
-> > > > > Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-> > > > 
-> > > > I haven't looked at reflink+DAX for some time, and I haven't tested
-> > > > it for even longer. So I'm currently running a v6.0-rc6 kernel with
-> > > > "-o dax=always" fstests run with reflink enabled and it's not
-> > > > looking very promising.
-> > > > 
-> > > > All of the fsx tests are failing with data corruption, several
-> > > > reflink/clone tests are failing with -EINVAL (e.g. g/16[45]) and
-> > > > *lots* of tests are leaving stack traces from WARN() conditions in
-> > > > DAx operations such as dax_insert_entry(), dax_disassociate_entry(),
-> > > > dax_writeback_mapping_range(), iomap_iter() (called from
-> > > > dax_dedupe_file_range_compare()), and so on.
-> > > > 
-> > > > At thsi point - the tests are still running - I'd guess that there's
-> > > > going to be at least 50 test failures by the time it completes -
-> > > > in comparison using "-o dax=never" results in just a single test
-> > > > failure and a lot more tests actually being run.
-> > > 
-> > > The end results with dax+reflink were:
-> > > 
-> > > SECTION       -- xfs_dax
-> > > =========================
-> > > 
-> > > Failures: generic/051 generic/068 generic/074 generic/075
-> > > generic/083 generic/091 generic/112 generic/127 generic/164
-> > > generic/165 generic/175 generic/231 generic/232 generic/247
-> > > generic/269 generic/270 generic/327 generic/340 generic/388
-> > > generic/390 generic/413 generic/447 generic/461 generic/471
-> > > generic/476 generic/517 generic/519 generic/560 generic/561
-> > > generic/605 generic/617 generic/619 generic/630 generic/649
-> > > generic/650 generic/656 generic/670 generic/672 xfs/011 xfs/013
-> > > xfs/017 xfs/068 xfs/073 xfs/104 xfs/127 xfs/137 xfs/141 xfs/158
-> > > xfs/168 xfs/179 xfs/243 xfs/297 xfs/305 xfs/328 xfs/440 xfs/442
-> > > xfs/517 xfs/535 xfs/538 xfs/551 xfs/552
-> > > Failed 61 of 1071 tests
-> > > 
-> > > Ok, so I did a new no-reflink run as a baseline, because it is a
-> > > while since I've tested DAX at all:
-> > > 
-> > > SECTION       -- xfs_dax_noreflink
-> > > =========================
-> > > Failures: generic/051 generic/068 generic/074 generic/075
-> > > generic/083 generic/112 generic/231 generic/232 generic/269
-> > > generic/270 generic/340 generic/388 generic/461 generic/471
-> > > generic/476 generic/519 generic/560 generic/561 generic/617
-> > > generic/650 generic/656 xfs/011 xfs/013 xfs/017 xfs/073 xfs/297
-> > > xfs/305 xfs/517 xfs/538
-> > > Failed 29 of 1071 tests
-> > > 
-> > > Yeah, there's still lots of warnings from dax_insert_entry() and
-> > > friends like:
-> > > 
-> > > [43262.025815] WARNING: CPU: 9 PID: 1309428 at fs/dax.c:380 dax_insert_entry+0x2ab/0x320
-> > > [43262.028355] Modules linked in:
-> > > [43262.029386] CPU: 9 PID: 1309428 Comm: fsstress Tainted: G W          6.0.0-rc6-dgc+ #1543
-> > > [43262.032168] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.15.0-1 04/01/2014
-> > > [43262.034840] RIP: 0010:dax_insert_entry+0x2ab/0x320
-> > > [43262.036358] Code: 08 48 83 c4 30 5b 5d 41 5c 41 5d 41 5e 41 5f c3 48 8b 58 20 48 8d 53 01 e9 65 ff ff ff 48 8b 58 20 48 8d 53 01 e9 50 ff ff ff <0f> 0b e9 70 ff ff ff 31 f6 4c 89 e7 e8 84 b1 5a 00 eb a4 48 81 e6
-> > > [43262.042255] RSP: 0018:ffffc9000a0cbb78 EFLAGS: 00010002
-> > > [43262.043946] RAX: ffffea0018cd1fc0 RBX: 0000000000000001 RCX: 0000000000000001
-> > > [43262.046233] RDX: ffffea0000000000 RSI: 0000000000000221 RDI: ffffea0018cd2000
-> > > [43262.048518] RBP: 0000000000000011 R08: 0000000000000000 R09: 0000000000000000
-> > > [43262.050762] R10: ffff888241a6d318 R11: 0000000000000001 R12: ffffc9000a0cbc58
-> > > [43262.053020] R13: ffff888241a6d318 R14: ffffc9000a0cbe20 R15: 0000000000000000
-> > > [43262.055309] FS:  00007f8ce25e2b80(0000) GS:ffff8885fec80000(0000) knlGS:0000000000000000
-> > > [43262.057859] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> > > [43262.059713] CR2: 00007f8ce25e1000 CR3: 0000000152141001 CR4: 0000000000060ee0
-> > > [43262.061993] Call Trace:
-> > > [43262.062836]  <TASK>
-> > > [43262.063557]  dax_fault_iter+0x243/0x600
-> > > [43262.064802]  dax_iomap_pte_fault+0x199/0x360
-> > > [43262.066197]  __xfs_filemap_fault+0x1e3/0x2c0
-> > > [43262.067602]  __do_fault+0x31/0x1d0
-> > > [43262.068719]  __handle_mm_fault+0xd6d/0x1650
-> > > [43262.070083]  ? do_mmap+0x348/0x540
-> > > [43262.071200]  handle_mm_fault+0x7a/0x1d0
-> > > [43262.072449]  ? __kvm_handle_async_pf+0x12/0xb0
-> > > [43262.073908]  exc_page_fault+0x1d9/0x810
-> > > [43262.075123]  asm_exc_page_fault+0x22/0x30
-> > > [43262.076413] RIP: 0033:0x7f8ce268bc23
-> > > 
-> > > So it looks to me like DAX is well and truly broken in 6.0-rc6. And,
-> > > yes, I'm running the fixes in mm-hotifxes-stable branch that allow
-> > > xfs/550 to pass.
-> > 
-> > I have tested these two mode for many times:
-> > 
-> > xfs_dax mode did failed so many cases.  (If you tested with this "drop"
-> > patch, some warning around "dax_dedupe_file_range_compare()" won't occur any
-> > more.)  I think warning around "dax_disassociate_entry()" is a problem with
-> > concurrency.  Still looking into it.
-> > 
-> > But xfs_dax_noreflink didn't have so many failure, just 3 in my environment:
-> > Failures: generic/471 generic/519 xfs/148.  I am thinking that did you
-> > forget to reformat the TEST_DEV to be non-reflink before run the test?  If
-> > so it will make sense.
-
-No, I did not forget to turn off reflink for the test device:
-
-# ./run_check.sh --mkfs-opts "-m reflink=0,rmapbt=1" --run-opts "-s xfs_dax_noreflink -g auto"
-umount: /mnt/test: not mounted.
-umount: /mnt/scratch: not mounted.
-wrote 8589934592/8589934592 bytes at offset 0
-8.000 GiB, 8192 ops; 0:00:03.99 (2.001 GiB/sec and 2049.0850 ops/sec)
-wrote 8589934592/8589934592 bytes at offset 0
-8.000 GiB, 8192 ops; 0:00:04.13 (1.936 GiB/sec and 1982.5453 ops/sec)
-meta-data=/dev/pmem0             isize=512    agcount=4, agsize=524288 blks
-         =                       sectsz=4096  attr=2, projid32bit=1
-         =                       crc=1        finobt=1, sparse=1, rmapbt=1
-         =                       reflink=0    bigtime=1 inobtcount=1 nrext64=0
-data     =                       bsize=4096   blocks=2097152, imaxpct=25
-         =                       sunit=0      swidth=0 blks
-naming   =version 2              bsize=4096   ascii-ci=0, ftype=1
-log      =internal log           bsize=4096   blocks=16384, version=2
-         =                       sectsz=4096  sunit=1 blks, lazy-count=1
-realtime =none                   extsz=4096   blocks=0, rtextents=0
-.....
-Running: MOUNT_OPTIONS= ./check -R xunit -b -s xfs_dax_noreflink -g auto
-SECTION       -- xfs_dax_noreflink
-FSTYP         -- xfs (debug)
-PLATFORM      -- Linux/x86_64 test3 6.0.0-rc6-dgc+ #1543 SMP PREEMPT_DYNAMIC Mon Sep 19 07:46:37 AEST 2022
-MKFS_OPTIONS  -- -f -m reflink=0,rmapbt=1 /dev/pmem1
-MOUNT_OPTIONS -- -o dax=always -o context=system_u:object_r:root_t:s0 /dev/pmem1 /mnt/scratch
-
-So, yeah, reflink was turned off on both test and scratch devices,
-and dax=always on both the test and scratch devices was used to
-ensure that DAX was always in use.
-
-
-> FWIW I saw dmesg failures in xfs/517 and xfs/013 starting with 6.0-rc5,
-> and I haven't even turned on reflink yet:
-> 
-> run fstests xfs/517 at 2022-09-26 19:53:34
-> XFS (pmem1): EXPERIMENTAL Large extent counts feature in use. Use at your own risk!
-> XFS (pmem1): Mounting V5 Filesystem
-> XFS (pmem1): Ending clean mount
-> XFS (pmem1): Quotacheck needed: Please wait.
-> XFS (pmem1): Quotacheck: Done.
-> XFS (pmem1): Unmounting Filesystem
-> XFS (pmem0): EXPERIMENTAL online scrub feature in use. Use at your own risk!
-> XFS (pmem1): EXPERIMENTAL Large extent counts feature in use. Use at your own risk!
-> XFS (pmem1): Mounting V5 Filesystem
-> XFS (pmem1): Ending clean mount
-> XFS (pmem1): Quotacheck needed: Please wait.
-> XFS (pmem1): Quotacheck: Done.
-> ------------[ cut here ]------------
-> WARNING: CPU: 1 PID: 415317 at fs/dax.c:380 dax_insert_entry+0x22d/0x320
-> Modules linked in: xfs nft_chain_nat xt_REDIRECT nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 ip6t_REJECT nf_reject_ipv6 ipt_REJECT nf_reject_ipv4 xt_tcpudp ip_set_hash_ip ip_set_hash_net xt_set nft_compat ip_set_hash_mac ip_set nf_tables libcrc32c bfq nfnetlink pvpanic_mmio pvpanic nd_pmem dax_pmem nd_btt sch_fq_codel fuse configfs ip_tables x_tables overlay nfsv4 af_packet [last unloaded: scsi_d
-> 
-> CPU: 1 PID: 415317 Comm: fsstress Tainted: G        W          6.0.0-rc7-xfsx #rc7 727341edbd0773a36b78b09dab448fa1896eb3a5
-> Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.15.0-1 04/01/2014
-> RIP: 0010:dax_insert_entry+0x22d/0x320
-> Code: e0 48 83 c4 20 5b 5d 41 5c 41 5d 41 5e 41 5f c3 48 8b 58 20 48 8d 53 01 e9 62 ff ff ff 48 8b 58 20 48 8d 53 01 e9 4d ff ff ff <0f> 0b e9 6d ff ff ff 31 f6 48 89 ef e8 72 74 12 00 eb a1 83 e0 02
-> RSP: 0000:ffffc90004693b28 EFLAGS: 00010002
-> RAX: ffffea0010a20480 RBX: 0000000000000001 RCX: 0000000000000001
-> RDX: ffffea0000000000 RSI: 0000000000000033 RDI: ffffea0010a204c0
-> RBP: ffffc90004693c08 R08: 0000000000000000 R09: 0000000000000000
-> R10: ffff88800c226228 R11: 0000000000000001 R12: 0000000000000011
-> R13: ffff88800c226228 R14: ffffc90004693e08 R15: 0000000000000000
-> FS:  00007f3aad8db740(0000) GS:ffff88803ed00000(0000) knlGS:0000000000000000
-> CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> CR2: 00007f3aad8d1000 CR3: 0000000043104003 CR4: 00000000001706e0
-> Call Trace:
->  <TASK>
->  dax_fault_iter+0x26e/0x670
->  dax_iomap_pte_fault+0x1ab/0x3e0
->  __xfs_filemap_fault+0x32f/0x5a0 [xfs c617487f99e14abfa5deb24e923415b927df3d4b]
->  __do_fault+0x30/0x1e0
->  do_fault+0x316/0x6d0
->  ? mmap_region+0x2a5/0x620
->  __handle_mm_fault+0x649/0x1250
->  handle_mm_fault+0xc1/0x220
->  do_user_addr_fault+0x1ac/0x610
->  ? _copy_to_user+0x63/0x80
->  exc_page_fault+0x63/0x130
->  asm_exc_page_fault+0x22/0x30
-> RIP: 0033:0x7f3aada7f1ca
-> Code: c5 fe 7f 07 c5 fe 7f 47 20 c5 fe 7f 47 40 c5 fe 7f 47 60 c5 f8 77 c3 66 0f 1f 84 00 00 00 00 00 40 0f b6 c6 48 89 d1 48 89 fa <f3> aa 48 89 d0 c5 f8 77 c3 66 66 2e 0f 1f 84 00 00 00 00 00 66 90
-> RSP: 002b:00007ffe47afa688 EFLAGS: 00010206
-> RAX: 000000000000002e RBX: 0000000000033000 RCX: 000000000000999c
-> RDX: 00007f3aad8d1000 RSI: 000000000000002e RDI: 00007f3aad8d1000
-> RBP: 0000558851e13240 R08: 0000000000000000 R09: 0000000000033000
-> R10: 0000000000000008 R11: 0000000000000246 R12: 028f5c28f5c28f5c
-> R13: 8f5c28f5c28f5c29 R14: 000000000000999c R15: 0000000000001c81
->  </TASK>
-> ---[ end trace 0000000000000000 ]---
-> XFS (pmem0): Unmounting Filesystem
-> XFS (pmem1): EXPERIMENTAL online scrub feature in use. Use at your own risk!
-> XFS (pmem1): *** REPAIR SUCCESS ino 0x80 type probe agno 0x0 inum 0x0 gen 0x0 flags 0x80000001 error 0
-> XFS (pmem1): Unmounting Filesystem
-> XFS (pmem1): EXPERIMENTAL Large extent counts feature in use. Use at your own risk!
-> XFS (pmem1): Mounting V5 Filesystem
-> XFS (pmem1): Ending clean mount
-> XFS (pmem1): Unmounting Filesystem
-
-Yup, that's the same as what I'm seeing.
-
-Cheers,
-
-Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+RGVhciBCb2IsIFlhbmp1biwgYW5kIEJhcnQsDQoNClNvcnJ5IGZvciB0YWtpbmcgbG9uZyB0aW1l
+IHRvIHJlcGx5Lg0KDQo+IE9uIDkvMTIvMjIgMDI6NTgsIG1hdHN1ZGEtZGFpc3VrZUBmdWppdHN1
+LmNvbSB3cm90ZToNCj4gPiBPbiBNb24sIFNlcCAxMiwgMjAyMiAxMjowOSBBTSBCYXJ0IFZhbiBB
+c3NjaGUgd3JvdGU6DQo+ID4+IE9uIDkvMTEvMjIgMDA6MTAsIFlhbmp1biBaaHUgd3JvdGU6DQo+
+ID4+PiBJIGFsc28gaW1wbGVtZW50ZWQgYSB3b3JrcXVldWUgZm9yIHJ4ZS4gSU1PLCBjYW4gd2Ug
+YWRkIGEgdmFyaWFibGUgdG8NCj4gPj4+IGRlY2lkZSB0byB1c2UgdGFza2xldCBvciB3b3JrcXVl
+dWU/DQo+ID4+Pg0KPiA+Pj4gSWYgdXNlciBwcmVmZXIgdXNpbmcgdGFza2xldCwgaGUgY2FuIHNl
+dCB0aGUgdmFyaWFibGUgdG8gdXNlDQo+ID4+PiB0YXNrbGV0LiBBbmQgdGhlIGRlZmF1bHQgaXMg
+dGFza2xldC4gU2V0IHRoZSB2YXJpYWJsZSB0byBhbm90aGVyDQo+ID4+PiB2YWx1ZSB0byB1c2Ug
+d29ya3F1ZXVlLg0KPiA+DQo+ID4gVGhhdCdzIGFuIGludGVyZXN0aW5nIGlkZWEsIGJ1dCBJIGFt
+IG5vdCBzdXJlIGhvdyB1c2VycyBzcGVjaWZ5IGl0Lg0KPiA+IElJUkMsIHRhc2tsZXRzIGFyZSBn
+ZW5lcmF0ZWQgd2hlbiByZG1hIGxpbmsgaXMgYWRkZWQsIHR5cGljYWxseSBieQ0KPiA+IGV4ZWN1
+dGluZyAnIHJkbWEgbGluayBhZGQnIGNvbW1hbmQuIEkgZG9uJ3QgdGhpbmsgd2UgY2FuIGFkZA0K
+PiA+IGFuIGRldmljZSBzcGVjaWZpYyBvcHRpb24gdG8gdGhlIHV0aWxpdHkoaXByb3V0ZTIvcmRt
+YSkuDQo+ID4NCj4gPj4NCj4gPj4gSSdtIGluIGZhdm9yIG9mIHJlbW92aW5nIGFsbCB1c2VzIG9m
+IHRoZSB0YXNrbGV0IG1lY2hhbmlzbSBiZWNhdXNlIG9mDQo+ID4+IHRoZSBkaXNhZHZhbnRhZ2Vz
+IG9mIHRoYXQgbWVjaGFuaXNtLiBTZWUgYWxzbzoNCj4gPj4gKiAiRWxpbWluYXRpbmcgdGFza2xl
+dHMiIChodHRwczovL2x3bi5uZXQvQXJ0aWNsZXMvMjM5NjMzLykuDQo+ID4+ICogIk1vZGVybml6
+aW5nIHRoZSB0YXNrbGV0IEFQSSIgKGh0dHBzOi8vbHduLm5ldC9BcnRpY2xlcy84MzA5NjQvKS4N
+Cj4gPj4gKiBTZWJhc3RpYW4gQW5kcnplaiBTaWV3aW9yJ3Mgb3BpbmlvbiBhYm91dCB0YXNrbGV0
+cw0KPiA+PiAoaHR0cHM6Ly9sb3JlLmtlcm5lbC5vcmcvYWxsL1l2b3ZmWE1KUUFVQnN2QlpAbGlu
+dXRyb25peC5kZS8pLg0KPiA+DQo+ID4gSSBhbSBhbHNvIGluIGZhdm9yIG9mIHVzaW5nIHdvcmtx
+dWV1ZXMgYWxvbmUgbm90IG9ubHkgYmVjYXVzZSBvZiB0aGUNCj4gPiBkaXNhZHZhbnRhZ2VzIGFi
+b3ZlIGJ1dCBhbHNvIHRvIGF2b2lkIGNvbXBsZXhpdHkuIEkgd291bGQgbGlrZSB0byBrbm93DQo+
+ID4gaWYgdGhlcmUgaXMgYW55Ym9keSB3aG8gd2lsbCBib3RoZXJlZCBieSB0aGUgY2hhbmdlIGVz
+cGVjaWFsbHkgaW4gdGVybXMNCj4gPiBvZiBwZXJmb3JtYW5jZS4NCj4gPg0KPiA+IFRoYW5rcywN
+Cj4gPiBEYWlzdWtlDQo+ID4NCj4gPj4NCj4gPj4gVGhhbmtzLA0KPiA+Pg0KPiA+PiBCYXJ0Lg0K
+PiA+DQo+IA0KPiBUaGUgSFBFIHBhdGNoIHNldCBmb3Igd29yayBxdWV1ZXMgKEkgc2hvdWxkIHNl
+bmQgaXQgaW4pIGtlcHQgdGhlIGFiaWxpdHkgdG8gcnVuIHRhc2tsZXRzIG9yIHdvcmsgcXVldWVz
+Lg0KPiBUaGUgcmVhc29uIHdhcyB0aGF0IHRoZSBjaGFuZ2Ugd2FzIG1vdGl2YXRlZCBieSBhIGJl
+bmNobWFya2luZyBleGVyY2lzZSBhbmQgd2UgZm91bmQgdGhhdCB0aGUgcGVyZm9ybWFuY2UNCj4g
+b2YgdGFza2xldHMgd2FzIG5vdGljZWFibHkgYmV0dGVyIGZvciBvbmUgSU8gc3RyZWFtIGJ1dCBm
+b3IgMiBvciBtb3JlIElPIHN0cmVhbXMgd29yayBxdWV1ZXMgd2VyZSBiZXR0ZXIgYmVjYXVzZSB3
+ZQ0KPiBjb3VsZCBwbGFjZSB0aGUgd29yayBvbiBzZXBhcmF0ZSBjcHVzLiBUYXNrbGV0cyBoYXZl
+IGEgdGVuZGVuY3kgdG8gYnVuY2ggdXAgb24gdGhlIHNhbWUgY3B1LiBJIGFtIGludGVyZXN0ZWQg
+aW4NCj4gaG93IE1hdHN1ZGEgZ290IGJldHRlci9zYW1lIHBlcmZvcm1hbmNlIGZvciB3b3JrIHF1
+ZXVlcy4NCg0KQXMgZmFyIGFzIEkgbWVhc3VyZWQgdGhlIGJhbmR3aWR0aCB1c2luZyBpYl9zZW5k
+X2J3IGNvbW1hbmQsIHRoZSBwZXJmb3JtYW5jZQ0Kd2FzIGJldHRlciB3aXRoIHdvcmtxdWV1ZXMu
+IFRoZXJlIHNlZW0gdG8gYmUgbXVsdGlwbGUgZmFjdG9ycyB0aGF0IGFmZmVjdA0KdGhlIHJlc3Vs
+dC4gRm9yIGV4YW1wbGUsIHdpdGggdGhlIGN1cnJlbnQgaW1wbGVtZW50YXRpb24sIHJ4ZV9yZXNw
+b25kZXIoKSBjYW4NCnNvbWV0aW1lcyBiZSBjYWxsZWQgZnJvbSBzb2Z0aXJxKE5FVF9SWF9TT0ZU
+SVJRKSBjb250ZXh0IGRpcmVjdGx5LiBJIGNoYW5nZWQNCnJ4ZV9yZXNwX3F1ZXVlX3BrdCgpIHRv
+IGFsd2F5cyBzY2hlZHVsZSB0aGUgcmVzcG9uZGVyIGZvciBhbGwgaW5jb21pbmcgDQpyZXF1ZXN0
+cy4gVGhpcyBtYXkgaGF2ZSBsZWQgdG8gYmV0dGVyIHV0aWxpemF0aW9uIG9mIG11bHRpcGxlIHBy
+b2Nlc3NvcnMgYmVjYXVzZQ0Kc29mdGlycSBjb2RlIGFuZCByZXNwb25kZXIgY29kZSBhcmUgbW9y
+ZSBsaWtlbHkgdG8gcnVuIGNvbmN1cnJlbnRseSBvbiBkaWZmZXJlbnQNCmNvcmVzIGluIHRoaXMg
+Y2FzZS4gVGFza2xldHMgYXJlIGxpa2VseSB0byBydW4gb24gdGhlIHNhbWUgY29yZSBhcyBzb2Z0
+aXJxIGNvZGUNCmJlY2F1c2UgVEFTS0xFVF9TT0ZUSVJRIGlzIHByb2Nlc3NlZCBsYXRlciB0aGFu
+IE5FVF9SWF9TT0ZUSVJRIGluIF9fZG9fc29mdGlycSgpLg0KDQpUaGF0IGJlaW5nIHNhaWQsIEkg
+dGhpbmsgaXQgaXMgYWxzbyB0cnVlIHRoYXQgdGhlIHBlcmZvcm1hbmNlIG9mIHRhc2tsZXRzIGNh
+biBiZQ0Kc3VwZXJpb3IgdG8gdGhhdCBvZiB3b3JrcXVldWVzIGluIHNvbWUgc2l0dWF0aW9ucy4g
+V2hlbiBJIG1lYXN1cmVkIHRoZSBiYW5kd2lkdGgNCm9mIFJETUEgUmVhZCB1c2luZyBpYl9yZWFk
+X2J3IGNvbW1hbmQsIGl0IHdhcyBiZXR0ZXIgd2l0aCB0YXNrbGV0cy4gQWRkaXRpb25hbGx5LA0K
+dGhlIGxhdGVuY3kgaXMgZ2VuZXJhbGx5IGFyb3VuZCA0MCUgaGlnaGVyIHdpdGggd29ya3F1ZXVl
+cywgc28gaXQgaXMgcG9zc2libGUgc29tZQ0Ka2luZHMgb2Ygd29ya2xvYWRzIGRvIG5vdCBiZW5l
+Zml0IGZyb20gdXNpbmcgd29ya3F1ZXVlcy4NCg0KSSB0aGVyZWZvcmUgdGhpbmsgd2UgbWF5IHBy
+ZXNlcnZlIHRhc2tsZXRzIHRob3VnaCB0aGVyZSBhcmUgZGlzYWR2YW50YWdlcyBzdWdnZXN0ZWQN
+CmJ5IEJhcnQuIFdoaWxlIEkgaGF2ZSBubyBvYmplY3Rpb24gdG8gcmVtb3ZpbmcgdGFza2xldHMg
+dG90YWxseSwgSSBhbSBpbiBmYXZvdXIgb2YNCllhbmp1bidzIHN1Z2dlc3Rpb24gb2Ygc3dpdGNo
+aW5nIGJldHdlZW4gdGFza2xldHMgYW5kIHdvcmtxdWV1ZXMgdXNpbmcgc3lzY3RsDQpwYXJhbWV0
+ZXIuIEkgd291bGQgbGlrZSB0byBoZWFyIHdoYXQgeW91IGd1eXMgdGhpbmsgYWJvdXQgdGhpcy4N
+Cg0KSSB3b3VsZCBhbHNvIGxpa2UgdG8ga25vdyB3aGVuIEJvYiBpcyBnb2luZyB0byBwb3N0IHRo
+ZSBwYXRjaHNldC4gQm90aCBvZiB1cyBuZWVkIHRvIHVzZQ0Kd29ya3F1ZXVlcywgYnV0IGFsbG93
+aW5nIHNsZWVwIGZvciBPRFAgYW5kIGltcHJvdmluZyBwZXJmb3JtYW5jZSBmb3IgbXVsdGlwbGV4
+IElPDQpzdHJlYW1zIGFyZSBkaWZmZXJlbnQgbWF0dGVycy4gSSBzdXBwb3NlIGl0IHdpbGwgYmUg
+ZWFzaWVyIHRvIG1ha2UgdGhlIGNoYW5nZXMgb25lIGJ5IG9uZS4NCklmIHlvdSBuZWVkIHNvbWUg
+bW9yZSB0aW1lIHRvIHBvc3QgaXQsIEkgc3VnZ2VzdCB3ZSBwcm9jZWVkIHdpdGggWWFuanVuJ3Mg
+aWRlYSBmb3Igbm93Lg0KVGhhdCB3aWxsIHByZXNlcnZlIGN1cnJlbnQgaW1wbGVtZW50YXRpb24g
+b2YgdGFza2xldHMsIHNvIGl0IHdvdWxkIGJlIG5vdCBoYXJkIHRvIGFkZCB5b3VyDQpjaGFuZ2Ug
+b250byBpdC4gQ291bGQgeW91IGxldCBtZSBrbm93IHlvdXIgdGhvdWdodHM/DQoNCg0KUmVnYXJk
+cywNCkRhaXN1a2UgTWF0c3VkYQ0KDQoNCj4gDQo+IEJvYg0K
