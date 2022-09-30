@@ -1,110 +1,166 @@
-Received: from mail3.bemta32.messagelabs.com (mail3.bemta32.messagelabs.com [195.245.230.81])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.220.29])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4CCD41841
-	for <nvdimm@lists.linux.dev>; Fri, 30 Sep 2022 03:29:10 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fujitsu.com;
-	s=170520fj; t=1664508548; i=@fujitsu.com;
-	bh=mFMDaGi8NAVV6NLt5xFQz6xlRjSXLGOTDoBUXMnlFQw=;
-	h=Message-ID:Date:MIME-Version:Subject:From:To:CC:References:
-	 In-Reply-To:Content-Type:Content-Transfer-Encoding;
-	b=YvI9HHbWtUdy10Gyo9J4dKfPuR9+DsUrs/Fh0ejEisHmRqwAD7fgrm89g/kws2BBy
-	 AUQhXF7Yyeo3eVnngcl8WxklfpuL05AR5dDLQr6Imngs59jAxfN2cSGHeoOlEinydQ
-	 P1YdzdgWQl9j1IWO5FdlXQ1jSM2lr23SvuYgO1kgy2WmHiKYbI9N+jOXhofIiHd7Fz
-	 aeoRKWPNpUBPuyTd0Pc/6WFn+cXeLk7fI5LBCpWSlv4WUVyML+n003McnfbNBCunx+
-	 w2CDRfVO9Ty9bJBJ3fssC8/cLl4rZ27ZstcHDtNwl6umgHGev+/31exhJxeL777x2d
-	 w8yf8UnUNaQCQ==
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFtrIKsWRWlGSWpSXmKPExsViZ8ORqNucZJZ
-  sMK+Z32L61AuMFluO3WO0uPyEz+L0hEVMFnv2nmSxuLxrDpvFvTX/WS12/dnBbrHyxx9WB06P
-  U4skPDav0PJYvOclk8emVZ1sHps+TWL3eLF5JqPH501yAexRrJl5SfkVCawZh360sRU84azY+
-  O4uUwPjNfYuRi4OIYEtjBJbf99lgXCWM0nsaLvCCOFsZ5RYMe0/axcjJwevgJ3E6Tub2UBsFg
-  FViVv9M1gg4oISJ2c+AbNFBZIlvk69yARiCwv4SmzYuwksziagI3FhwV9WkKEiApMYJY7duMk
-  MkmAWSJBo/3INrEFIwEWiZ+9ZMJtTwFVi6ZRVTBA1FhKL3xxkh7DlJZq3zgbq5eCQEFCSmNkd
-  DxKWEKiQmDWrjQnCVpO4em4T8wRGoVlIzpuFZNIsJJMWMDKvYrRKKspMzyjJTczM0TU0MNA1N
-  DTVNdE1MrbUS6zSTdRLLdUtTy0u0TXUSywv1kstLtYrrsxNzknRy0st2cQIjL2UYpb3Oxib+n
-  7qHWKU5GBSEuW9wWeWLMSXlJ9SmZFYnBFfVJqTWnyIUYaDQ0mCVzwRKCdYlJqeWpGWmQNMAzB
-  pCQ4eJRHevZFAad7igsTc4sx0iNQpRl2OtQ0H9jILseTl56VKifNqJAAVCYAUZZTmwY2ApaRL
-  jLJSwryMDAwMQjwFqUW5mSWo8q8YxTkYlYR5heKBpvBk5pXAbXoFdAQT0BEfmYxBjihJREhJN
-  TBF7bTt3bJ6Gs9lrnd3f3F5rQs6fngPv86bQu/J6z4s+Zd3oXixv/6nL3GBKx9rPbrF5t/hpT
-  ht3tL0myxyNsanFid4+2jslGC0KFz9ZnNTyFGmCavWX9VY9EWusYCZjbPHLnP+jvwZL01L9H+
-  sFfnuVzVNpPnxDaUZwa1PIpKSnfqOZXuuu3Pn4h5Ge03uzv/7z0dxhtx5vkWe91bO+tk17PvW
-  +1aL++XJOrXE7zjStUDHpklq3UK7NQ88C+babst0uXVm5yeN3G0RngKflZU4TxybumtO8oE++
-  elTOSXCHV7e3GK7V6qBtdPi72GGZ6W28x+ddnzzeEL/pcJFTMtPnD50dJXMm16p351Kj8u/Kr
-  EUZyQaajEXFScCAF51o43EAwAA
-X-Env-Sender: ruansy.fnst@fujitsu.com
-X-Msg-Ref: server-6.tower-585.messagelabs.com!1664508546!338429!1
-X-Originating-IP: [62.60.8.97]
-X-SYMC-ESS-Client-Auth: outbound-route-from=pass
-X-StarScan-Received:
-X-StarScan-Version: 9.87.3; banners=-,-,-
-X-VirusChecked: Checked
-Received: (qmail 26973 invoked from network); 30 Sep 2022 03:29:07 -0000
-Received: from unknown (HELO n03ukasimr01.n03.fujitsu.local) (62.60.8.97)
-  by server-6.tower-585.messagelabs.com with ECDHE-RSA-AES256-GCM-SHA384 encrypted SMTP; 30 Sep 2022 03:29:07 -0000
-Received: from n03ukasimr01.n03.fujitsu.local (localhost [127.0.0.1])
-	by n03ukasimr01.n03.fujitsu.local (Postfix) with ESMTP id C9955100192;
-	Fri, 30 Sep 2022 04:29:06 +0100 (BST)
-Received: from R01UKEXCASM126.r01.fujitsu.local (R01UKEXCASM126 [10.183.43.178])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 065C333C7
+	for <nvdimm@lists.linux.dev>; Fri, 30 Sep 2022 13:41:52 +0000 (UTC)
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
 	(No client certificate requested)
-	by n03ukasimr01.n03.fujitsu.local (Postfix) with ESMTPS id BD6FC100191;
-	Fri, 30 Sep 2022 04:29:06 +0100 (BST)
-Received: from [192.168.22.78] (10.167.225.141) by
- R01UKEXCASM126.r01.fujitsu.local (10.183.43.178) with Microsoft SMTP Server
- (TLS) id 15.0.1497.32; Fri, 30 Sep 2022 04:29:03 +0100
-Message-ID: <ba642a21-8876-0cd0-2627-6fb7e534c950@fujitsu.com>
-Date: Fri, 30 Sep 2022 11:28:54 +0800
+	by smtp-out2.suse.de (Postfix) with ESMTPS id 06FE61F88E;
+	Fri, 30 Sep 2022 13:41:45 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1664545305; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=W3iEPJPd4WNALUdHRRfTjBi+oXPYskJSYk9FE5ApHVI=;
+	b=c4bGmWjEcN9VYtgaWDbnSVcoO3a87aGSWoLgqHJs7Ullw8llaYGbsBG8aP3wJuZ0WNUK0e
+	dyClrZQb+spR2ajvH31k0mJoGOWbURztSwchybbhwigBOPJeaJnD3ohfqPafwY1HHYZlcW
+	cBj6YiTNYZsXDWSU9/v4GMQc6knQRvg=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1664545305;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=W3iEPJPd4WNALUdHRRfTjBi+oXPYskJSYk9FE5ApHVI=;
+	b=uIKW4D3ioWwIGLwYUWsLLXWvSLtf9wAKT6KY+LoAMLmlCeVKyhptUh66PCD+dxwXR6PIum
+	Y543b8qOh6WAmFBg==
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+	(No client certificate requested)
+	by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id EB16813776;
+	Fri, 30 Sep 2022 13:41:44 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([192.168.254.65])
+	by imap2.suse-dmz.suse.de with ESMTPSA
+	id e49fORjyNmNrRgAAMHmgww
+	(envelope-from <jack@suse.cz>); Fri, 30 Sep 2022 13:41:44 +0000
+Received: by quack3.suse.cz (Postfix, from userid 1000)
+	id 809A0A0668; Fri, 30 Sep 2022 15:41:44 +0200 (CEST)
+Date: Fri, 30 Sep 2022 15:41:44 +0200
+From: Jan Kara <jack@suse.cz>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Jan Kara <jack@suse.cz>, Dave Chinner <david@fromorbit.com>,
+	Jason Gunthorpe <jgg@nvidia.com>, akpm@linux-foundation.org,
+	Matthew Wilcox <willy@infradead.org>,
+	"Darrick J. Wong" <djwong@kernel.org>,
+	Christoph Hellwig <hch@lst.de>, John Hubbard <jhubbard@nvidia.com>,
+	linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
+	linux-xfs@vger.kernel.org, linux-mm@kvack.org,
+	linux-ext4@vger.kernel.org
+Subject: Re: [PATCH v2 05/18] xfs: Add xfs_break_layouts() to the inode
+ eviction path
+Message-ID: <20220930134144.pd67rbgahzcb62mf@quack3>
+References: <6329ee04c9272_2a6ded294bf@dwillia2-xfh.jf.intel.com.notmuch>
+ <20220921221416.GT3600936@dread.disaster.area>
+ <YyuQI08LManypG6u@nvidia.com>
+ <20220923001846.GX3600936@dread.disaster.area>
+ <632d00a491d0d_4a67429488@dwillia2-xfh.jf.intel.com.notmuch>
+ <20220923021012.GZ3600936@dread.disaster.area>
+ <20220923093803.nroajmvn7twuptez@quack3>
+ <20220925235407.GA3600936@dread.disaster.area>
+ <20220926141055.sdlm3hkfepa7azf2@quack3>
+ <63362b4781294_795a6294f0@dwillia2-xfh.jf.intel.com.notmuch>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
- Thunderbird/102.3.0
-Subject: Re: [PATCH v9 0/3] mm, pmem, xfs: Introduce MF_MEM_REMOVE for unbind
-From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-To: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
-	<nvdimm@lists.linux.dev>, <linux-mm@kvack.org>,
-	<linux-fsdevel@vger.kernel.org>
-CC: <djwong@kernel.org>, <david@fromorbit.com>, <dan.j.williams@intel.com>,
-	<hch@infradead.org>
-References: <1664112803-57-1-git-send-email-ruansy.fnst@fujitsu.com>
-In-Reply-To: <1664112803-57-1-git-send-email-ruansy.fnst@fujitsu.com>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.167.225.141]
-X-ClientProxiedBy: G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.80) To
- R01UKEXCASM126.r01.fujitsu.local (10.183.43.178)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <63362b4781294_795a6294f0@dwillia2-xfh.jf.intel.com.notmuch>
 
-Hi,
+On Thu 29-09-22 16:33:27, Dan Williams wrote:
+> Jan Kara wrote:
+> > On Mon 26-09-22 09:54:07, Dave Chinner wrote:
+> > > > I'd be more worried about stuff like vmsplice() that can add file pages
+> > > > into pipe without holding inode alive in any way and keeping them there for
+> > > > arbitrarily long time. Didn't we want to add FOLL_LONGTERM to gup executed
+> > > > from vmsplice() to avoid issues like this?
+> > > 
+> > > Yes, ISTR that was part of the plan - use FOLL_LONGTERM to ensure
+> > > FSDAX can't run operations that pin pages but don't take fs
+> > > references. I think that's how we prevented RDMA users from pinning
+> > > FSDAX direct mapped storage media in this way. It does not, however,
+> > > prevent the above "short term" GUP UAF situation from occurring.
+> > 
+> > If what I wrote above is correct, then I understand and agree.
+> > 
+> > > > I agree that freeing VMA while there are pinned pages is ... inconvenient.
+> > > > But that is just how gup works since the beginning - the moment you have
+> > > > struct page reference, you completely forget about the mapping you've used
+> > > > to get to the page. So anything can happen with the mapping after that
+> > > > moment. And in case of pages mapped by multiple processes I can easily see
+> > > > that one of the processes decides to unmap the page (and it may well be
+> > > > that was the initial process that acquired page references) while others
+> > > > still keep accessing the page using page references stored in some internal
+> > > > structure (RDMA anyone?).
+> > > 
+> > > Yup, and this is why RDMA on FSDAX using this method of pinning pages
+> > > will end up corrupting data and filesystems, hence FOLL_LONGTERM
+> > > protecting against most of these situations from even arising. But
+> > > that's that workaround, not a long term solution that allows RDMA to
+> > > be run on FSDAX managed storage media.
+> > > 
+> > > I said on #xfs a few days ago:
+> > > 
+> > > [23/9/22 10:23] * dchinner is getting deja vu over this latest round
+> > > of "dax mappings don't pin the filesystem objects that own the
+> > > storage media being mapped"
+> > > 
+> > > And I'm getting that feeling again right now...
+> > > 
+> > > > I think it will be rather difficult to come up
+> > > > with some scheme keeping VMA alive while there are pages pinned without
+> > > > regressing userspace which over the years became very much tailored to the
+> > > > peculiar gup behavior.
+> > > 
+> > > Perhaps all we should do is add a page flag for fsdax mapped pages
+> > > that says GUP must pin the VMA, so only mapped pages that fall into
+> > > this category take the perf penalty of VMA management.
+> > 
+> > Possibly. But my concern with VMA pinning was not only about performance
+> > but also about applications relying on being able to unmap pages that are
+> > currently pinned. At least from some processes one of which may be the one
+> > doing the original pinning. But yeah, the fact that FOLL_LONGTERM is
+> > forbidden with DAX somewhat restricts the insanity we have to deal with. So
+> > maybe pinning the VMA for DAX mappings might actually be a workable
+> > solution.
+> 
+> As far as I can see, VMAs are not currently reference counted they are
+> just added / deleted from an mm_struct, and nothing guarantees
+> mapping_mapped() stays true while a page is pinned.
 
-Ping
+I agree this solution requires quite some work. But I wanted to say that
+in principle it would be a logically consistent and technically not that
+difficult solution.
+ 
+> I like Dave's mental model that the inode is the arbiter for the page,
+> and the arbiter is not allowed to go out of scope before asserting that
+> everything it granted previously has been returned.
+> 
+> write_inode_now() unconditionally invokes dax_writeback_mapping_range()
+> when the inode is committed to going out of scope. write_inode_now() is
+> allowed to sleep until all dirty mapping entries are written back. I see
+> nothing wrong with additionally checking for entries with elevated page
+> reference counts and doing a:
+> 
+>     __wait_var_event(page, dax_page_idle(page));
+> 
+> Since the inode is out of scope there should be no concerns with racing
+> new 0 -> 1 page->_refcount transitions. Just wait for transient page
+> pins to finally drain to zero which should already be on the order of
+> the wait time to complete synchrounous writeback in the dirty inode
+> case.
 
-在 2022/9/25 21:33, Shiyang Ruan 写道:
-> Changes since v8:
->    1. P2: rename drop_pagecache_sb() to super_drop_pagecache().
->    2. P2: let super_drop_pagecache() accept invalidate method.
->    3. P3: invalidate all dax mappings by invalidate_inode_pages2().
->    4. P3: shutdown the filesystem when it is to be removed.
->    5. Rebase on 6.0-rc6 + Darrick's patch[1] + Dan's patch[2].
-> 
-> [1]: https://lore.kernel.org/linux-xfs/Yv5wIa2crHioYeRr@magnolia/
-> [2]: https://lore.kernel.org/linux-xfs/166153426798.2758201.15108211981034512993.stgit@dwillia2-xfh.jf.intel.com/
-> 
-> Shiyang Ruan (3):
->    xfs: fix the calculation of length and end
->    fs: move drop_pagecache_sb() for others to use
->    mm, pmem, xfs: Introduce MF_MEM_REMOVE for unbind
-> 
->   drivers/dax/super.c         |  3 ++-
->   fs/drop_caches.c            | 35 ++----------------------------
->   fs/super.c                  | 43 +++++++++++++++++++++++++++++++++++++
->   fs/xfs/xfs_notify_failure.c | 36 ++++++++++++++++++++++++++-----
->   include/linux/fs.h          |  1 +
->   include/linux/mm.h          |  1 +
->   include/linux/pagemap.h     |  1 +
->   mm/truncate.c               | 20 +++++++++++++++--
->   8 files changed, 99 insertions(+), 41 deletions(-)
-> 
+I agree this is doable but there's the nasty sideeffect that inode reclaim
+may block for abitrary time waiting for page pinning. If the application
+that has pinned the page requires __GFP_FS memory allocation to get to a
+point where it releases the page, we even have a deadlock possibility.
+So it's better than the UAF issue but still not ideal.
+
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
