@@ -1,110 +1,272 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F8838F59
-	for <nvdimm@lists.linux.dev>; Mon,  3 Oct 2022 07:55:11 +0000 (UTC)
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 03A3B2199D;
-	Mon,  3 Oct 2022 07:55:04 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1664783704; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=Dwt0M+3sS5jciWoEfZ361h/7J8CUArjkqTvOekaboQM=;
-	b=zkThJ2TFJKFUEK3VylwDrcuP3qR0r+8zOoVjqqSHzXOI6usNom6OffXeZGMpe/GynYzi73
-	sQWnjyKxPucXtNlJ0gwCXCDOSp3Mxit3ZmYug0ZB8d6NdYAHk5apFRG/smhDgljnOMnWl0
-	oXPm/fEAi0u86y4+Bd97IzG2zIrXUoc=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1664783704;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=Dwt0M+3sS5jciWoEfZ361h/7J8CUArjkqTvOekaboQM=;
-	b=Ka3lq+tWamkJuoOp3to1B+06t8Js1FGSUPVxo2WCOJ4jJRaSTRqb4l+c0nHC3luZKW2MOy
-	L7hngvV2S5HeraCg==
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-	(No client certificate requested)
-	by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id E61881332F;
-	Mon,  3 Oct 2022 07:55:03 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([192.168.254.65])
-	by imap2.suse-dmz.suse.de with ESMTPSA
-	id 3yUiOFeVOmODUgAAMHmgww
-	(envelope-from <jack@suse.cz>); Mon, 03 Oct 2022 07:55:03 +0000
-Received: by quack3.suse.cz (Postfix, from userid 1000)
-	id 7768DA06E6; Mon,  3 Oct 2022 09:55:03 +0200 (CEST)
-Date: Mon, 3 Oct 2022 09:55:03 +0200
-From: Jan Kara <jack@suse.cz>
-To: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>,
-	Dave Chinner <david@fromorbit.com>, akpm@linux-foundation.org,
-	Matthew Wilcox <willy@infradead.org>,
-	"Darrick J. Wong" <djwong@kernel.org>,
-	Christoph Hellwig <hch@lst.de>, John Hubbard <jhubbard@nvidia.com>,
-	linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
-	linux-xfs@vger.kernel.org, linux-mm@kvack.org,
-	linux-ext4@vger.kernel.org
-Subject: Re: [PATCH v2 05/18] xfs: Add xfs_break_layouts() to the inode
- eviction path
-Message-ID: <20221003075503.k7h6aqvlnoi5bo52@quack3>
-References: <20220923001846.GX3600936@dread.disaster.area>
- <632d00a491d0d_4a67429488@dwillia2-xfh.jf.intel.com.notmuch>
- <20220923021012.GZ3600936@dread.disaster.area>
- <20220923093803.nroajmvn7twuptez@quack3>
- <20220925235407.GA3600936@dread.disaster.area>
- <20220926141055.sdlm3hkfepa7azf2@quack3>
- <63362b4781294_795a6294f0@dwillia2-xfh.jf.intel.com.notmuch>
- <20220930134144.pd67rbgahzcb62mf@quack3>
- <63372dcbc7f13_739029490@dwillia2-mobl3.amr.corp.intel.com.notmuch>
- <YzcwN67+QOqXpvfg@nvidia.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4578160
+	for <nvdimm@lists.linux.dev>; Tue,  4 Oct 2022 00:12:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7ECDFC433C1;
+	Tue,  4 Oct 2022 00:12:42 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1664842362;
+	bh=neIeFY0kzlr6omafVwPaVRWh/sIl8N6ZI5oIXrcn8+M=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=qTdmg6lV+JZMZdS7MFXirDcIpKmpyOIA3n5iHtls5DaUvDrh7ny7V+YdJGN8Aq1Om
+	 MI+lrw7FwJYJlCNutFIt0GAR/RKnBwa0Ujo8oYyBV005Pyt/mzJ0+BOSkIARjoSUJf
+	 Ca//+I+DbzkFw0fOjPad+IFu763p2J2talRRpGkx+6kJlnZ04s7M830//v5vqulgo9
+	 DecJGiCLTM3p6hLJjAH9vpj14baludfQxEIdbId/N2kchk0YBfWBFCpaDRIxTYAcDW
+	 EVfT41GAWxswuFGUnf7vqc6tpq41fDQAf+ofdswl3Qmz2LLMED2AIoyy0XpV0QgqVZ
+	 CeXKZ5rw9VQiw==
+Date: Mon, 3 Oct 2022 17:12:41 -0700
+From: "Darrick J. Wong" <djwong@kernel.org>
+To: =?utf-8?B?R290b3UsIFlhc3Vub3JpL+S6lOWztiDlurfmloc=?= <y-goto@fujitsu.com>
+Cc: =?utf-8?B?WWFuZywgWGlhby/mnagg5pmT?= <yangx.jy@fujitsu.com>,
+	Brian Foster <bfoster@redhat.com>,
+	"hch@infradead.org" <hch@infradead.org>,
+	=?utf-8?B?UnVhbiwgU2hpeWFuZy/pmK4g5LiW6Ziz?= <ruansy.fnst@fujitsu.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>,
+	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
+	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
+	"david@fromorbit.com" <david@fromorbit.com>, zwisler@kernel.org,
+	Jeff Moyer <jmoyer@redhat.com>, dm-devel@redhat.com,
+	toshi.kani@hpe.com
+Subject: Re: [PATCH] xfs: fail dax mount if reflink is enabled on a partition
+Message-ID: <Yzt6eWLuX/RTjmjj@magnolia>
+References: <dd363bd8-2dbd-5d9c-0406-380b60c5f510@fujitsu.com>
+ <Yxs5Jb7Yt2c6R6eW@bfoster>
+ <7fdc9e88-f255-6edb-7964-a5a82e9b1292@fujitsu.com>
+ <76ea04b4-bad7-8cb3-d2c6-4ad49def4e05@fujitsu.com>
+ <YyHKUhOgHdTKPQXL@bfoster>
+ <YyIBMJzmbZsUBHpy@magnolia>
+ <a6e7f4eb-0664-bbe8-98d2-f8386b226113@fujitsu.com>
+ <e3d51a6b-12e9-2a19-1280-5fd9dd64117c@fujitsu.com>
+ <deb54a77-90d3-df44-1880-61cce6e3f670@fujitsu.com>
+ <1444b9b5-363a-163c-0513-55d1ea951799@fujitsu.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <YzcwN67+QOqXpvfg@nvidia.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1444b9b5-363a-163c-0513-55d1ea951799@fujitsu.com>
 
-On Fri 30-09-22 15:06:47, Jason Gunthorpe wrote:
-> On Fri, Sep 30, 2022 at 10:56:27AM -0700, Dan Williams wrote:
-> > Jan Kara wrote:
-> > [..]
-> > > I agree this is doable but there's the nasty sideeffect that inode reclaim
-> > > may block for abitrary time waiting for page pinning. If the application
-> > > that has pinned the page requires __GFP_FS memory allocation to get to a
-> > > point where it releases the page, we even have a deadlock possibility.
-> > > So it's better than the UAF issue but still not ideal.
+On Fri, Sep 30, 2022 at 09:56:41AM +0900, Gotou, Yasunori/五島 康文 wrote:
+> Hello everyone,
+> 
+> On 2022/09/20 11:38, Yang, Xiao/杨 晓 wrote:
+> > Hi Darrick, Brian and Christoph
 > > 
-> > I expect VMA pinning would have similar deadlock exposure if pinning a
-> > VMA keeps the inode allocated. Anything that puts a page-pin release
-> > dependency in the inode freeing path can potentially deadlock a reclaim
-> > event that depends on that inode being freed.
+> > Ping. I hope to get your feedback.
+> > 
+> > 1) I have confirmed that the following patch set did not change the test
+> > result of generic/470 with thin-volume. Besides, I didn't see any
+> > failure when running generic/470 based on normal PMEM device instaed of
+> > thin-volume.
+> > https://lore.kernel.org/linux-xfs/20211129102203.2243509-1-hch@lst.de/
+> > 
+> > 2) I can reproduce the failure of generic/482 without thin-volume.
+> > 
+> > 3) Is it necessary to make thin-volume support DAX. Is there any use
+> > case for the requirement?
 > 
-> I think the desire would be to go from the VMA to an inode_get and
-> hold the inode reference for the from the pin_user_pages() to the
-> unpin_user_page(), ie prevent it from being freed in the first place.
-
-Yes, that was the idea how to avoid UAF problems.
-
-> It is a fine idea, the trouble is just the high complexity to get
-> there.
 > 
-> However, I wonder if the trucate/hole punch paths have the same
-> deadlock problem?
+> Though I asked other place(*), I really want to know the usecase of
+> dm-thin-volume with DAX and reflink.
+> 
+> 
+> In my understanding, dm-thin-volume seems to provide similar feature like
+> reflink of xfs. Both feature provide COW update to reduce usage of
+> its region, and snapshot feature, right?
+> 
+> I found that docker seems to select one of them (or other feature which
+> supports COW). Then user don't need to use thin-volume and reflink at same
+> time.
+> 
+> Database which uses FS-DAX may want to use snapshot for its data of FS-DAX,
+> its user seems to be satisfied with reflink or thin-volume.
+> 
+> So I could not find on what use-case user would like to use dm-thin-volume
+> and reflink at same time.
+> 
+> The only possibility is that the user has mistakenly configured dm-thinpool
+> and reflink to be used at the same time, but if that is the case, it seems
+> to be better for the user to disable one or the other.
+> 
+> I really wander why dm-thin-volume must be used with reflik and FS-DAX.
 
-Do you mean someone requiring say truncate(2) to complete on file F in
-order to unpin pages of F? That is certainly a deadlock but it has always
-worked this way for DAX so at least applications knowingly targetted at DAX
-will quickly notice and avoid such unwise dependency ;).
+There isn't a hard requirement between fsdax and dm-thinp.  The /test/
+needs dm-logwrites to check that write page faults on a MAP_SYNC
+mmapping are persisted directly to disk.  dm-logwrites requires a fast
+way to zero an entire device for correct operation of the replay step,
+and thinp is the only way to guarantee that.
 
-								Honza
+--D
 
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+> If my understanding is something wrong, please correct me.
+> 
+> (*)https://lore.kernel.org/all/TYWPR01MB1008258F474CA2295B4CD3D9B90549@TYWPR01MB10082.jpnprd01.prod.outlook.com/
+> 
+> Thanks,
+> ---
+> Yasunori Goto
+> 
+> 
+> > 
+> > Best Regards,
+> > Xiao Yang
+> > 
+> > On 2022/9/16 10:04, Yang, Xiao/杨 晓 wrote:
+> > > On 2022/9/15 18:14, Yang, Xiao/杨 晓 wrote:
+> > > > On 2022/9/15 0:28, Darrick J. Wong wrote:
+> > > > > On Wed, Sep 14, 2022 at 08:34:26AM -0400, Brian Foster wrote:
+> > > > > > On Wed, Sep 14, 2022 at 05:38:02PM +0800, Yang, Xiao/杨 晓 wrote:
+> > > > > > > On 2022/9/14 14:44, Yang, Xiao/杨 晓 wrote:
+> > > > > > > > On 2022/9/9 21:01, Brian Foster wrote:
+> > > > > > > > > Yes.. I don't recall all the internals of
+> > > > > > > > > the tools and test, but IIRC
+> > > > > > > > > it relied on discard to perform zeroing
+> > > > > > > > > between checkpoints or some such
+> > > > > > > > > and avoid spurious failures. The purpose of running on dm-thin was
+> > > > > > > > > merely to provide reliable discard zeroing
+> > > > > > > > > behavior on the target device
+> > > > > > > > > and thus to allow the test to run reliably.
+> > > > > > > > Hi Brian,
+> > > > > > > > 
+> > > > > > > > As far as I know, generic/470 was original designed to verify
+> > > > > > > > mmap(MAP_SYNC) on the dm-log-writes device enabling DAX. Due to the
+> > > > > > > > reason, we need to ensure that all underlying devices under
+> > > > > > > > dm-log-writes device support DAX. However
+> > > > > > > > dm-thin device never supports
+> > > > > > > > DAX so
+> > > > > > > > running generic/470 with dm-thin device always returns "not run".
+> > > > > > > > 
+> > > > > > > > Please see the difference between old and new logic:
+> > > > > > > > 
+> > > > > > > >             old logic                          new logic
+> > > > > > > > ---------------------------------------------------------------
+> > > > > > > > log-writes device(DAX)                 log-writes device(DAX)
+> > > > > > > >               |                                       |
+> > > > > > > > PMEM0(DAX) + PMEM1(DAX)       Thin device(non-DAX) + PMEM1(DAX)
+> > > > > > > >                                             |
+> > > > > > > >                                           PMEM0(DAX)
+> > > > > > > > ---------------------------------------------------------------
+> > > > > > > > 
+> > > > > > > > We think dm-thin device is not a good solution
+> > > > > > > > for generic/470, is there
+> > > > > > > > any other solution to support both discard zero and DAX?
+> > > > > > > 
+> > > > > > > Hi Brian,
+> > > > > > > 
+> > > > > > > I have sent a patch[1] to revert your fix because I
+> > > > > > > think it's not good for
+> > > > > > > generic/470 to use thin volume as my revert patch[1] describes:
+> > > > > > > [1] https://lore.kernel.org/fstests/20220914090625.32207-1-yangx.jy@fujitsu.com/T/#u
+> > > > > > > 
+> > > > > > > 
+> > > > > > 
+> > > > > > I think the history here is that generic/482 was changed over first in
+> > > > > > commit 65cc9a235919 ("generic/482: use thin volume as
+> > > > > > data device"), and
+> > > > > > then sometime later we realized generic/455,457,470 had
+> > > > > > the same general
+> > > > > > flaw and were switched over. The dm/dax compatibility
+> > > > > > thing was probably
+> > > > > > just an oversight, but I am a little curious about that
+> > > > > > because it should
+> > > > > 
+> > > > > It's not an oversight -- it used to work (albeit with EXPERIMENTAL
+> > > > > tags), and now we've broken it on fsdax as the pmem/blockdev divorce
+> > > > > progresses.
+> > > > Hi
+> > > > 
+> > > > Do you mean that the following patch set changed the test result
+> > > > of generic/470 with thin-volume? (pass => not run/failure)
+> > > > https://lore.kernel.org/linux-xfs/20211129102203.2243509-1-hch@lst.de/
+> > > > 
+> > > > > 
+> > > > > > have been obvious that the change caused the test to no
+> > > > > > longer run. Did
+> > > > > > something change after that to trigger that change in behavior?
+> > > > > > 
+> > > > > > > With the revert, generic/470 can always run
+> > > > > > > successfully on my environment
+> > > > > > > so I wonder how to reproduce the out-of-order replay issue on XFS v5
+> > > > > > > filesystem?
+> > > > > > > 
+> > > > > > 
+> > > > > > I don't quite recall the characteristics of the failures
+> > > > > > beyond that we
+> > > > > > were seeing spurious test failures with generic/482 that were due to
+> > > > > > essentially putting the fs/log back in time in a way that wasn't quite
+> > > > > > accurate due to the clearing by the logwrites tool not
+> > > > > > taking place. If
+> > > > > > you wanted to reproduce in order to revisit that, perhaps start with
+> > > > > > generic/482 and let it run in a loop for a while and see if it
+> > > > > > eventually triggers a failure/corruption..?
+> > > > > > 
+> > > > > > > PS: I want to reproduce the issue and try to find a
+> > > > > > > better solution to fix
+> > > > > > > it.
+> > > > > > > 
+> > > > > > 
+> > > > > > It's been a while since I looked at any of this tooling
+> > > > > > to semi-grok how
+> > > > > > it works.
+> > > > > 
+> > > > > I /think/ this was the crux of the problem, back in 2019?
+> > > > > https://lore.kernel.org/fstests/20190227061529.GF16436@dastard/
+> > > > 
+> > > > Agreed.
+> > > > 
+> > > > > 
+> > > > > > Perhaps it could learn to rely on something more explicit like
+> > > > > > zero range (instead of discard?) or fall back to manual zeroing?
+> > > > > 
+> > > > > AFAICT src/log-writes/ actually /can/ do zeroing, but (a) it probably
+> > > > > ought to be adapted to call BLKZEROOUT and (b) in the worst case it
+> > > > > writes zeroes to the entire device, which is/can be slow.
+> > > > > 
+> > > > > For a (crass) example, one of my cloudy test VMs uses 34GB partitions,
+> > > > > and for cost optimization purposes we're only "paying" for the cheapest
+> > > > > tier.  Weirdly that maps to an upper limit of 6500 write iops and
+> > > > > 48MB/s(!) but that would take about 20 minutes to zero the entire
+> > > > > device if the dm-thin hack wasn't in place.  Frustratingly, it doesn't
+> > > > > support discard or write-zeroes.
+> > > > 
+> > > > Do you mean that discard zero(BLKDISCARD) is faster than both
+> > > > fill zero(BLKZEROOUT) and write zero on user space?
+> > > 
+> > > Hi Darrick, Brian and Christoph
+> > > 
+> > > According to the discussion about generic/470. I wonder if it is
+> > > necessary to make thin-pool support DAX. Is there any use case for
+> > > the requirement?
+> > > 
+> > > Best Regards,
+> > > Xiao Yang
+> > > > 
+> > > > Best Regards,
+> > > > Xiao Yang
+> > > > > 
+> > > > > > If the
+> > > > > > eventual solution is simple and low enough overhead, it
+> > > > > > might make some
+> > > > > > sense to replace the dmthin hack across the set of tests mentioned
+> > > > > > above.
+> > > > > 
+> > > > > That said, for a *pmem* test you'd expect it to be faster than that...
+> > > > > 
+> > > > > --D
+> > > > > 
+> > > > > > Brian
+> > > > > > 
+> > > > > > > Best Regards,
+> > > > > > > Xiao Yang
+> > > > > > > 
+> > > > > > > > 
+> > > > > > > > BTW, only log-writes, stripe and linear support DAX for now.
+> > > > > > > 
+> > > > > > 
+> 
