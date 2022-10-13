@@ -1,253 +1,372 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from hamster.birch.relay.mailchannels.net (hamster.birch.relay.mailchannels.net [23.83.209.80])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22C09440C
-	for <nvdimm@lists.linux.dev>; Tue,  4 Oct 2022 18:26:43 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B470EC433D6;
-	Tue,  4 Oct 2022 18:26:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1664908003;
-	bh=oOOixuLKdO7T3peG5VpU1afyn8twx99hV9hT8wyH/MQ=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=tnIrh7v/CUw1AVF/+VFeSsXvTWcmu7o0PZgYDfhzW+23cdLgAD3eOla+HcCdidC/z
-	 izXZrfnFJ9azS4hx4bevKP1YGEtyPOfFFiKBM43eBKLt6aBPzUE33VEzWBwXzdSThi
-	 ATKPzFmwMqJ4mRn0EbH/x0a7+z6xolAS5LHfBH32OxjYsyhtRC7EauKDloHQwgpOiT
-	 YVEnhyWLc6wWTVfgh0KRToWeDVCBypPvM94pNln7eW0IbZGVR23yRDziKA73WU0Zc+
-	 r1MUi2rbbpCpcq2Lhram0ad74G5HlXtu6F3UeMXwYlAMBdp/nmnb9rDkd1/Qca2Lnk
-	 mTvW687anHNgQ==
-Date: Tue, 4 Oct 2022 11:26:43 -0700
-From: "Darrick J. Wong" <djwong@kernel.org>
-To: =?utf-8?B?R290b3UsIFlhc3Vub3JpL+S6lOWztiDlurfmloc=?= <y-goto@fujitsu.com>
-Cc: =?utf-8?B?WWFuZywgWGlhby/mnagg5pmT?= <yangx.jy@fujitsu.com>,
-	Brian Foster <bfoster@redhat.com>,
-	"hch@infradead.org" <hch@infradead.org>,
-	=?utf-8?B?UnVhbiwgU2hpeWFuZy/pmK4g5LiW6Ziz?= <ruansy.fnst@fujitsu.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>,
-	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
-	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
-	"david@fromorbit.com" <david@fromorbit.com>, zwisler@kernel.org,
-	Jeff Moyer <jmoyer@redhat.com>, dm-devel@redhat.com,
-	toshi.kani@hpe.com
-Subject: Re: [PATCH] xfs: fail dax mount if reflink is enabled on a partition
-Message-ID: <Yzx64zGt2kTiDYaP@magnolia>
-References: <7fdc9e88-f255-6edb-7964-a5a82e9b1292@fujitsu.com>
- <76ea04b4-bad7-8cb3-d2c6-4ad49def4e05@fujitsu.com>
- <YyHKUhOgHdTKPQXL@bfoster>
- <YyIBMJzmbZsUBHpy@magnolia>
- <a6e7f4eb-0664-bbe8-98d2-f8386b226113@fujitsu.com>
- <e3d51a6b-12e9-2a19-1280-5fd9dd64117c@fujitsu.com>
- <deb54a77-90d3-df44-1880-61cce6e3f670@fujitsu.com>
- <1444b9b5-363a-163c-0513-55d1ea951799@fujitsu.com>
- <Yzt6eWLuX/RTjmjj@magnolia>
- <f196bcab-6aa2-6313-8a7c-f8ab409621b7@fujitsu.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 072A817C3
+	for <nvdimm@lists.linux.dev>; Thu, 13 Oct 2022 00:50:39 +0000 (UTC)
+X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
+Received: from relay.mailchannels.net (localhost [127.0.0.1])
+	by relay.mailchannels.net (Postfix) with ESMTP id 8BD927E1F14;
+	Thu, 13 Oct 2022 00:15:21 +0000 (UTC)
+Received: from pdx1-sub0-mail-a209.dreamhost.com (unknown [127.0.0.6])
+	(Authenticated sender: dreamhost)
+	by relay.mailchannels.net (Postfix) with ESMTPA id F0FEA7E1E9F;
+	Thu, 13 Oct 2022 00:15:20 +0000 (UTC)
+ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1665620121; a=rsa-sha256;
+	cv=none;
+	b=jGt7ZgUZ8l55WkMyTJ/mA7S6hfW7qc8zakB1/VOn6yOtQrBv+/fWAEYdXDVGJEig5TsztF
+	yS9waCVEc/FFe9vjqvItp2ykJpsy+E7dRm4yOPXMzEYG5Ar0PO2yQ7tKZ82b+aiiJZzcT9
+	DIe1F0/cIyDA3fuTuC8MV2kRR1aD9D0LOkfpId0NtcZNfBvwJE4mEcLQ4A27FdaCxwa+Bc
+	YjNIsqWna2pMIBvzkX0KfF/Fl0k0VnROGQx3EOgR15IqfCDB5uRwCkinFryjF/8qgbYUmU
+	Vv7XNC5MlVImgO4D2c84Wj1nRGKoE9O3IvxEh0IDkIcmpfWt30gX4LV1qPHjRA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=mailchannels.net;
+	s=arc-2022; t=1665620121;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references:dkim-signature;
+	bh=mccInZid1y2fbzAu18MbsIybiyB6L6BtHqAAVmaf7r0=;
+	b=3f9I5s0T1zjqGdQUuuAhrpiOvuxaaYuxgm8Q5bsNAcAjuG1ng0z3xrF8oDSKuMaT2OrC/H
+	cuXKhmsBN2qkana+jdAZIidSyYYOvgB9md58Qtfby6wRgjVO79cjYE+y2AKAUKPHy8dfag
+	7X73rrXy7Va7UQxHVX0ayXGHTzaMBoAIz3Wy45i2eoV39CiT3fLfnJoV9ToJ1Jc4/zQ/Dl
+	JNjee3xonmuwlbZZU0jfpEQ0dF1fa3yWmcBsSwoUl4Fdq5mAzGRJI3gMBzOSZ1dKyEWJ79
+	FT8/nDojrJscc3eGIj8t1+kd+0VHnFiNY5KzZXHn5dceq9qwAVQKtAgLo+Ig2Q==
+ARC-Authentication-Results: i=1;
+	rspamd-7c485dd8cf-5hmpg;
+	auth=pass smtp.auth=dreamhost smtp.mailfrom=dave@stgolabs.net
+X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
+X-MC-Relay: Neutral
+X-MailChannels-SenderId: dreamhost|x-authsender|dave@stgolabs.net
+X-MailChannels-Auth-Id: dreamhost
+X-Obese-Tasty: 4bcb6b4029e7c7d3_1665620121315_2962082463
+X-MC-Loop-Signature: 1665620121314:70668254
+X-MC-Ingress-Time: 1665620121314
+Received: from pdx1-sub0-mail-a209.dreamhost.com (pop.dreamhost.com
+ [64.90.62.162])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
+	by 100.116.63.144 (trex/6.7.1);
+	Thu, 13 Oct 2022 00:15:21 +0000
+Received: from offworld (ip72-199-50-187.sd.sd.cox.net [72.199.50.187])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	(Authenticated sender: dave@stgolabs.net)
+	by pdx1-sub0-mail-a209.dreamhost.com (Postfix) with ESMTPSA id 4Mnqlv3pwsz4f;
+	Wed, 12 Oct 2022 17:15:06 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=stgolabs.net;
+	s=dreamhost; t=1665620120;
+	bh=mccInZid1y2fbzAu18MbsIybiyB6L6BtHqAAVmaf7r0=;
+	h=Date:From:To:Cc:Subject:Content-Type:Content-Transfer-Encoding;
+	b=eWfPeyf+QdnXFJTW9nsrwuASyUxxej9EbufVVkCsAmj/PeBjSoKMAjht+1Jxam0j4
+	 PquNq1dmw44BIil2SZct4Sg9eJP+K1G0y/kOX3FjiXQu4RAfbFAK6fhduuYPCs/9xX
+	 sUFRi/ZP8tPuLrnqZHZYUVpqdtQZMNEVlIeG8QWYyYxPQreK+2FZtnIOQW0kV3NDJn
+	 QrHf1Kmg2U5YS3WIhE9lkoNFwDlEqmHcGQh82/T1cyxe7jWIpxO3LUaXPEu/5kPsKf
+	 0C3egXsfL94+KMRGVMBGo9LPVFqNQbDdQoa+8OMWSNQ/JWkywSjEum1nxckSBC0eZV
+	 WzePTrVH1fCuA==
+Date: Wed, 12 Oct 2022 17:14:51 -0700
+From: Davidlohr Bueso <dave@stgolabs.net>
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
+	dan.j.williams@intel.com, bwidawsk@kernel.org, ira.weiny@intel.com,
+	vishal.l.verma@intel.com, alison.schofield@intel.com,
+	Jonathan.Cameron@huawei.com
+Subject: [PATCH v3] memregion: Add cpu_cache_invalidate_memregion() interface
+Message-ID: <20221013001451.6c6fo6sqzmaonu45@offworld>
+References: <166377414787.430546.3863229455285366312.stgit@djiang5-desk3.ch.intel.com>
+ <166377429297.430546.18244091321001267098.stgit@djiang5-desk3.ch.intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <f196bcab-6aa2-6313-8a7c-f8ab409621b7@fujitsu.com>
+Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <166377429297.430546.18244091321001267098.stgit@djiang5-desk3.ch.intel.com>
+User-Agent: NeoMutt/20220429
 
-On Mon, Oct 03, 2022 at 09:12:46PM -0700, Gotou, Yasunori/五島 康文 wrote:
-> On 2022/10/03 17:12, Darrick J. Wong wrote:
-> > On Fri, Sep 30, 2022 at 09:56:41AM +0900, Gotou, Yasunori/五島 康文 wrote:
-> > > Hello everyone,
-> > > 
-> > > On 2022/09/20 11:38, Yang, Xiao/杨 晓 wrote:
-> > > > Hi Darrick, Brian and Christoph
-> > > > 
-> > > > Ping. I hope to get your feedback.
-> > > > 
-> > > > 1) I have confirmed that the following patch set did not change the test
-> > > > result of generic/470 with thin-volume. Besides, I didn't see any
-> > > > failure when running generic/470 based on normal PMEM device instaed of
-> > > > thin-volume.
-> > > > https://lore.kernel.org/linux-xfs/20211129102203.2243509-1-hch@lst.de/
-> > > > 
-> > > > 2) I can reproduce the failure of generic/482 without thin-volume.
-> > > > 
-> > > > 3) Is it necessary to make thin-volume support DAX. Is there any use
-> > > > case for the requirement?
-> > > 
-> > > 
-> > > Though I asked other place(*), I really want to know the usecase of
-> > > dm-thin-volume with DAX and reflink.
-> > > 
-> > > 
-> > > In my understanding, dm-thin-volume seems to provide similar feature like
-> > > reflink of xfs. Both feature provide COW update to reduce usage of
-> > > its region, and snapshot feature, right?
-> > > 
-> > > I found that docker seems to select one of them (or other feature which
-> > > supports COW). Then user don't need to use thin-volume and reflink at same
-> > > time.
-> > > 
-> > > Database which uses FS-DAX may want to use snapshot for its data of FS-DAX,
-> > > its user seems to be satisfied with reflink or thin-volume.
-> > > 
-> > > So I could not find on what use-case user would like to use dm-thin-volume
-> > > and reflink at same time.
-> > > 
-> > > The only possibility is that the user has mistakenly configured dm-thinpool
-> > > and reflink to be used at the same time, but if that is the case, it seems
-> > > to be better for the user to disable one or the other.
-> > > 
-> > > I really wander why dm-thin-volume must be used with reflik and FS-DAX.
-> > 
-> > There isn't a hard requirement between fsdax and dm-thinp.  The /test/
-> > needs dm-logwrites to check that write page faults on a MAP_SYNC
-> > mmapping are persisted directly to disk.  dm-logwrites requires a fast
-> > way to zero an entire device for correct operation of the replay step,
-> > and thinp is the only way to guarantee that.
-> 
-> Thank you for your answer. But I still feel something is strange.
-> Though dm-thinp may be good way to execute the test correctly,
+With CXL security features, global CPU cache flushing nvdimm requirements
+are no longer specific to that subsystem, even beyond the scope of
+security_ops. CXL will need such semantics for features not necessarily
+limited to persistent memory.
 
-Yep.
+The functionality this is enabling is to be able to instantaneously
+secure erase potentially terabytes of memory at once and the kernel
+needs to be sure that none of the data from before the erase is still
+present in the cache. It is also used when unlocking a memory device
+where speculative reads and firmware accesses could have cached poison
+=66rom before the device was unlocked.
 
-> I suppose it seems to be likely a kind of workaround to pass the test,
-> it may not be really required for actual users.
+This capability is typically only used once per-boot (for unlock), or
+once per bare metal provisioning event (secure erase), like when handing
+off the system to another tenant or decommissioning a device. It may
+also be used for dynamic CXL region provisioning.
 
-Exactly correct.  Real users should /never/ set up this kind of (test
-scaffolding|insanity) to use fsdax.
+Users must first call cpu_cache_has_invalidate_memregion() to know whether
+this functionality is available on the architecture. Only enable it on
+x86-64 via the wbinvd() hammer. Hypervisors are not supported as TDX
+guests may trigger a virtualization exception and may need proper handling
+to recover. See:
 
-> Could you tell me why passing test by workaround is so necessary?
+    e2efb6359e62 ("ACPICA: Avoid cache flush inside virtual machines")
 
-Notice this line in generic/470:
+Signed-off-by: Davidlohr Bueso <dave@stgolabs.net>
+---
+Changes from https://lore.kernel.org/all/166377429297.430546.18244091321001=
+267098.stgit@djiang5-desk3.ch.intel.com/
+None of them are actually interface related, only a return code change and =
+some
+fixlets found by 0day:
+   - use EOPNOTSUPP upon !cpu_cache_has_invalidate_memregion() (Dave)
+   - set_memory.c includes memregion.h (0day)
+   - memregion includes linux/bug.h (for WARN_ON_ONCE) and make
+     cpu_cache_invalidate_memregion() stub static inline . (0day)
 
-$XFS_IO_PROG -t -c "truncate $LEN" -c "mmap -S 0 $LEN" -c "mwrite 0 $LEN" \
-	-c "log_writes -d $LOGWRITES_NAME -m preunmap" \
-	-f $SCRATCH_MNT/test
+  arch/x86/Kconfig             |  1 +
+  arch/x86/mm/pat/set_memory.c | 16 ++++++++++++++
+  drivers/acpi/nfit/intel.c    | 41 ++++++++++++++++--------------------
+  include/linux/memregion.h    | 36 +++++++++++++++++++++++++++++++
+  lib/Kconfig                  |  3 +++
+  5 files changed, 74 insertions(+), 23 deletions(-)
 
-The second xfs_io command creates a MAP_SYNC mmap of the
-SCRATCH_MNT/test file, and the third command memcpy's bytes to the
-mapping to invoke the write page fault handler.
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index 6d1879ef933a..d970215e7f8b 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -69,6 +69,7 @@ config X86
+	select ARCH_ENABLE_THP_MIGRATION if X86_64 && TRANSPARENT_HUGEPAGE
+	select ARCH_HAS_ACPI_TABLE_UPGRADE	if ACPI
+	select ARCH_HAS_CACHE_LINE_SIZE
++	select ARCH_HAS_CPU_CACHE_INVALIDATE_MEMREGION  if X86_64
+	select ARCH_HAS_CURRENT_STACK_POINTER
+	select ARCH_HAS_DEBUG_VIRTUAL
+	select ARCH_HAS_DEBUG_VM_PGTABLE	if !X86_PAE
+diff --git a/arch/x86/mm/pat/set_memory.c b/arch/x86/mm/pat/set_memory.c
+index 97342c42dda8..7a0fd2ba512e 100644
+--- a/arch/x86/mm/pat/set_memory.c
++++ b/arch/x86/mm/pat/set_memory.c
+@@ -16,6 +16,7 @@
+  #include <linux/pci.h>
+  #include <linux/vmalloc.h>
+  #include <linux/libnvdimm.h>
++#include <linux/memregion.h>
+  #include <linux/vmstat.h>
+  #include <linux/kernel.h>
+  #include <linux/cc_platform.h>
+@@ -330,6 +331,21 @@ void arch_invalidate_pmem(void *addr, size_t size)
+  EXPORT_SYMBOL_GPL(arch_invalidate_pmem);
+  #endif
 
-The fourth command tells the dm-logwrites driver for $LOGWRITES_NAME
-(aka the block device containing the mounted XFS filesystem) to create a
-mark called "preunmap".  This mark captures the exact state of the block
-device immediately after the write faults complete, so that we can come
-back to it later.  There are a few things to note here:
++#ifdef CONFIG_ARCH_HAS_CPU_CACHE_INVALIDATE_MEMREGION
++bool cpu_cache_has_invalidate_memregion(void)
++{
++	return !cpu_feature_enabled(X86_FEATURE_HYPERVISOR);
++}
++EXPORT_SYMBOL_GPL(cpu_cache_has_invalidate_memregion);
++
++int cpu_cache_invalidate_memregion(int res_desc)
++{
++	wbinvd_on_all_cpus();
++	return 0;
++}
++EXPORT_SYMBOL_GPL(cpu_cache_invalidate_memregion);
++#endif
++
+  static void __cpa_flush_all(void *arg)
+  {
+	unsigned long cache =3D (unsigned long)arg;
+diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
+index 8dd792a55730..4c66fa5e475b 100644
+--- a/drivers/acpi/nfit/intel.c
++++ b/drivers/acpi/nfit/intel.c
+@@ -3,6 +3,7 @@
+  #include <linux/libnvdimm.h>
+  #include <linux/ndctl.h>
+  #include <linux/acpi.h>
++#include <linux/memregion.h>
+  #include <asm/smp.h>
+  #include "intel.h"
+  #include "nfit.h"
+@@ -190,8 +191,6 @@ static int intel_security_change_key(struct nvdimm *nvd=
+imm,
+	}
+  }
 
-  (1) We did not tell the fs to persist anything;
-  (2) We can't use dm-snapshot here, because dm-snapshot will flush the
-      fs (I think?); and
-  (3) The fs is still mounted, so the state of the block device at the
-      mark reflects a dirty XFS with a log that must be replayed.
+-static void nvdimm_invalidate_cache(void);
+-
+  static int __maybe_unused intel_security_unlock(struct nvdimm *nvdimm,
+		const struct nvdimm_key_data *key_data)
+  {
+@@ -213,6 +212,9 @@ static int __maybe_unused intel_security_unlock(struct =
+nvdimm *nvdimm,
+	if (!test_bit(NVDIMM_INTEL_UNLOCK_UNIT, &nfit_mem->dsm_mask))
+		return -ENOTTY;
 
-The next thing the test does is unmount the fs, remove the dm-logwrites
-driver to stop recording, and check the fs:
++	if (!cpu_cache_has_invalidate_memregion())
++		return -EOPNOTSUPP;
++
+	memcpy(nd_cmd.cmd.passphrase, key_data->data,
+			sizeof(nd_cmd.cmd.passphrase));
+	rc =3D nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
+@@ -228,7 +230,7 @@ static int __maybe_unused intel_security_unlock(struct =
+nvdimm *nvdimm,
+	}
 
-_log_writes_unmount
-_log_writes_remove
-_dmthin_check_fs
+	/* DIMM unlocked, invalidate all CPU caches before we read it */
+-	nvdimm_invalidate_cache();
++	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
 
-This ensures that the post-umount fs is consistent.  Now we want to roll
-back to the place we marked to see if the mwrite data made it to pmem.
-It *should* have, since we asked for a MAP_SYNC mapping on a fsdax
-filesystem recorded on a pmem device:
+	return 0;
+  }
+@@ -297,8 +299,11 @@ static int __maybe_unused intel_security_erase(struct =
+nvdimm *nvdimm,
+	if (!test_bit(cmd, &nfit_mem->dsm_mask))
+		return -ENOTTY;
 
-# check pre-unmap state
-_log_writes_replay_log preunmap $DMTHIN_VOL_DEV
-_dmthin_mount
++	if (!cpu_cache_has_invalidate_memregion())
++		return -EOPNOTSUPP;
++
+	/* flush all cache before we erase DIMM */
+-	nvdimm_invalidate_cache();
++	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
+	memcpy(nd_cmd.cmd.passphrase, key->data,
+			sizeof(nd_cmd.cmd.passphrase));
+	rc =3D nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
+@@ -318,7 +323,7 @@ static int __maybe_unused intel_security_erase(struct n=
+vdimm *nvdimm,
+	}
 
-dm-logwrites can't actually roll backwards in time to a mark, since it
-only records new disk contents.  It /can/ however roll forward from
-whatever point it began recording writes to the mark, so that's what it
-does.
+	/* DIMM erased, invalidate all CPU caches before we read it */
+-	nvdimm_invalidate_cache();
++	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
+	return 0;
+  }
 
-However -- remember note (3) from earlier.  When we _dmthin_mount after
-replaying the log to the "preunmap" mark, XFS will see the dirty XFS log
-and try to recover the XFS log.  This is where the replay problems crop
-up.  The XFS log records a monotonically increasing sequence number
-(LSN) with every log update, and when updates are written into the
-filesystem, that LSN is also written into the filesystem block.  Log
-recovery also replays updates into the filesystem, but with the added
-behavior that it skips a block replay if the block's LSN is higher than
-the transaction being replayed.  IOWs, we never replay older block
-contents over newer block contents.
+@@ -341,6 +346,9 @@ static int __maybe_unused intel_security_query_overwrit=
+e(struct nvdimm *nvdimm)
+	if (!test_bit(NVDIMM_INTEL_QUERY_OVERWRITE, &nfit_mem->dsm_mask))
+		return -ENOTTY;
 
-For dm-logwrites this is a major problem, because there could be more
-filesystem updates written to the XFS log after the mark is made.  LSNs
-will then be handed out like this:
++	if (!cpu_cache_has_invalidate_memregion())
++		return -EINVAL;
++
+	rc =3D nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
+	if (rc < 0)
+		return rc;
+@@ -355,7 +363,7 @@ static int __maybe_unused intel_security_query_overwrit=
+e(struct nvdimm *nvdimm)
+	}
 
-mkfs_lsn                 preunmap_lsn             umount_lsn
-  |                           |                      |
-  |--------------------------||----------|-----------|
-                             |           |
-                         xxx_lsn     yyy_lsn
+	/* flush all cache before we make the nvdimms available */
+-	nvdimm_invalidate_cache();
++	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
+	return 0;
+  }
 
-Let's say that a new metadata block "BBB" was created in update "xxx"
-immediately before the preunmap mark was made.  Per (1), we didn't flush
-the filesystem before taking the mark, which means that the new block's
-contents exist only in the log at this point.
+@@ -380,8 +388,11 @@ static int __maybe_unused intel_security_overwrite(str=
+uct nvdimm *nvdimm,
+	if (!test_bit(NVDIMM_INTEL_OVERWRITE, &nfit_mem->dsm_mask))
+		return -ENOTTY;
 
-Let us further say that the new block was again changed in update "yyy",
-where preunmap_lsn < yyy_lsn <= umount_lsn.  Clearly, yyy_lsn > xxx_lsn.
-yyy_lsn is written to the block at unmount, because unmounting flushes
-the log clean before it completes.  This is the first time that BBB ever
-gets written.
++	if (!cpu_cache_has_invalidate_memregion())
++		return -EOPNOTSUPP;
++
+	/* flush all cache before we erase DIMM */
+-	nvdimm_invalidate_cache();
++	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
+	memcpy(nd_cmd.cmd.passphrase, nkey->data,
+			sizeof(nd_cmd.cmd.passphrase));
+	rc =3D nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
+@@ -401,22 +412,6 @@ static int __maybe_unused intel_security_overwrite(str=
+uct nvdimm *nvdimm,
+	}
+  }
 
-_log_writes_replay_log begins replaying the block device from mkfs_lsn
-towards preunmap_lsn.  When it's done, it will have a log that reflects
-all the changes up to preunmap_lsn.  Recall however that BBB isn't
-written until after the preunmap mark, which means that dm-logwrites has
-no record of BBB before preunmap_lsn, so dm-logwrites replay won't touch
-BBB.  At this point, the block header for BBB has a UUID that matches
-the filesystem, but a LSN (yyy_lsn) that is beyond preunmap_lsn.
+-/*
+- * TODO: define a cross arch wbinvd equivalent when/if
+- * NVDIMM_FAMILY_INTEL command support arrives on another arch.
+- */
+-#ifdef CONFIG_X86
+-static void nvdimm_invalidate_cache(void)
+-{
+-	wbinvd_on_all_cpus();
+-}
+-#else
+-static void nvdimm_invalidate_cache(void)
+-{
+-	WARN_ON_ONCE("cache invalidation required after unlock\n");
+-}
+-#endif
+-
+  static const struct nvdimm_security_ops __intel_security_ops =3D {
+	.get_flags =3D intel_security_flags,
+	.freeze =3D intel_security_freeze,
+diff --git a/include/linux/memregion.h b/include/linux/memregion.h
+index c04c4fd2e209..41070e722796 100644
+--- a/include/linux/memregion.h
++++ b/include/linux/memregion.h
+@@ -1,6 +1,7 @@
+  /* SPDX-License-Identifier: GPL-2.0 */
+  #ifndef _MEMREGION_H_
+  #define _MEMREGION_H_
++#include <linux/bug.h>
+  #include <linux/types.h>
+  #include <linux/errno.h>
 
-XFS log recovery starts up, and finds transaction xxx.  It will read BBB
-from disk, but then it will see that it has an LSN of yyy_lsn.  This is
-larger than xxx_lsn, so it concludes that BBB is newer than the log and
-moves on to the next log item.  No other log items touch BBB, so
-recovery finishes, and now we have a filesystem containing one metadata
-block (BBB) from the future.  This is an inconsistent filesystem, and
-has caused failures in the tests that use logwrites.
+@@ -20,4 +21,39 @@ static inline void memregion_free(int id)
+  {
+  }
+  #endif
++
++/**
++ * cpu_cache_invalidate_memregion - drop any CPU cached data for
++ *     memregions described by @res_desc
++ * @res_desc: one of the IORES_DESC_* types
++ *
++ * Perform cache maintenance after a memory event / operation that
++ * changes the contents of physical memory in a cache-incoherent manner.
++ * For example, device memory technologies like NVDIMM and CXL have
++ * device secure erase, or dynamic region provision features where such
++ * semantics.
++ *
++ * Limit the functionality to architectures that have an efficient way
++ * to writeback and invalidate potentially terabytes of memory at once.
++ * Note that this routine may or may not write back any dirty contents
++ * while performing the invalidation.
++ *
++ * Returns 0 on success or negative error code on a failure to perform
++ * the cache maintenance.
++ */
++#ifdef CONFIG_ARCH_HAS_CPU_CACHE_INVALIDATE_MEMREGION
++int cpu_cache_invalidate_memregion(int res_desc);
++bool cpu_cache_has_invalidate_memregion(void);
++#else
++static inline bool cpu_cache_has_invalidate_memregion(void)
++{
++	return false;
++}
++
++static inline int cpu_cache_invalidate_memregion(int res_desc)
++{
++	WARN_ON_ONCE("CPU cache invalidation required");
++	return -EINVAL;
++}
++#endif
+  #endif /* _MEMREGION_H_ */
+diff --git a/lib/Kconfig b/lib/Kconfig
+index 9bbf8a4b2108..9eb514abcdec 100644
+--- a/lib/Kconfig
++++ b/lib/Kconfig
+@@ -672,6 +672,9 @@ config ARCH_HAS_PMEM_API
+  config MEMREGION
+	bool
 
-To work around this problem, all we really need to do is reinitialize
-the entire block device to known contents at mkfs time.  This can be
-done expensively by writing zeroes to the entire block device, or it can
-be done cheaply by (a) issuing DISCARD to the whole the block device at
-the start of the test and (b) ensuring that reads after a discard always
-produce zeroes.  mkfs.xfs already does (a), so the test merely has to
-ensure (b).
++config ARCH_HAS_CPU_CACHE_INVALIDATE_MEMREGION
++	bool
++
+  config ARCH_HAS_MEMREMAP_COMPAT_ALIGN
+	bool
 
-dm-thinp is the only software solution that provides (b), so that's why
-this test layers dm-logwrites on top of dm-thinp on top of $SCRATCH_DEV.
-This combination used to work, but with the pending pmem/blockdev
-divorce, this strategy is no longer feasible.
-
-I think the only way to fix this test is (a) revert all of Christoph's
-changes so far and scuttle the divorce; or (b) change this test like so:
-
- 1. Create a large sparse file on $TEST_DIR and losetup that sparse
-    file.  The resulting loop device will not have dax capability.
-
- 2. Set up the dmthin/dmlogwrites stack on top of this loop device.
-
- 3. Call mkfs.xfs with the SCRATCH_DEV (which hopefully is a pmem
-    device) as the realtime device, and set the daxinherit and rtinherit
-    flags on the root directory.  The result is a filesystem with a data
-    section that the kernel will treat as a regular block device, a
-    realtime section backed by pmem, and the necessary flags to make
-    sure that the test file will actually get fsdax mode.
-
- 4. Acknowledge that we no longer have any way to test MAP_SYNC
-    functionality on ext4, which means that generic/470 has to move to
-    tests/xfs/.
-
---D
-
-> Thanks,
-> 
-> 
-> > 
-> > --D
-> > 
-> > > If my understanding is something wrong, please correct me.
-> > > 
-> > > (*)https://lore.kernel.org/all/TYWPR01MB1008258F474CA2295B4CD3D9B90549@TYWPR01MB10082.jpnprd01.prod.outlook.com/
+--
+2.37.3
