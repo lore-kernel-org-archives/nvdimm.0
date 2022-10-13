@@ -1,31 +1,31 @@
 Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1ADE4443B
-	for <nvdimm@lists.linux.dev>; Thu, 13 Oct 2022 23:39:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 575DD443F
+	for <nvdimm@lists.linux.dev>; Thu, 13 Oct 2022 23:39:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1665704347; x=1697240347;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=6gEW5eDpcXcP9ftEKEoxli8QEZf2PjnG400RLgjW1jc=;
-  b=SkdjdVSFqdtR/0XVcxRacMpVZ/hUQsQYkZMgyPzK659DeTOuyHUJpbeG
-   LVGT+4DZ/uDN6SYMn9qvEtMZJJlYbCfA1ph042Wt0ZWP2gUp6jeQKUIM8
-   Caoh58GZtGdegkVqUfmKbtGAHH5pVmsVgt+EhNYijjLqcOReJKI/70x88
-   2htfLgFjXqn2qdCtu8oL5K8c1kFj3h90XhUKaVhjaEhSGglrHpCbWWGCA
-   3xL6Bhbh/j8MabC0/Mso55yqsmZGG7fxGxV53CZZ1hnb5SRX+81oF5jzd
-   PhOweYJSL5KefHb1h9jQwdCKcCJYPXw3TOFC1kqew6C92p9c+HuywBqK4
-   w==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10499"; a="285620549"
+  t=1665704348; x=1697240348;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=eN6lcDVjsR55vDtjZErE2HjYBzlQ5DmzvW/qI5ib3Mw=;
+  b=K9DRE3QjfeSfzOf6JIV49aevpI68uWvNMUAj3wabJqrr8/yb7j3xE37G
+   YGpxt/Z12V7jWkui84j0ieBF6NNyAfH1oKktS6l0V3GcOn8p2aGZJpcBz
+   Zp7XQaRENRJ5VxAVrbKjCag0UOn5BS4jpHjXV8yijZ6Wx4YgEDF2EX2P8
+   63RlaQUtxjtS2IuNrEFGakk4d8IM6lsaYLSfFKsg+/zJPUZeRCHdDNSto
+   G8iuwjfFZslFOdYXb0+fU3OsMsXZJmGH+Zh2IPoF4/xm++CkIhQbPaVtV
+   HNdvC5bHQWZj2YYpjJshz69O3r6d0rvwlZH4kvqmaEfyQffocM6FYc1NM
+   Q==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10499"; a="285620550"
 X-IronPort-AV: E=Sophos;i="5.95,182,1661842800"; 
-   d="scan'208";a="285620549"
+   d="scan'208";a="285620550"
 Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Oct 2022 16:39:06 -0700
-X-IronPort-AV: E=McAfee;i="6500,9779,10499"; a="872527636"
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Oct 2022 16:39:07 -0700
+X-IronPort-AV: E=McAfee;i="6500,9779,10499"; a="872527640"
 X-IronPort-AV: E=Sophos;i="5.95,182,1661842800"; 
-   d="scan'208";a="872527636"
+   d="scan'208";a="872527640"
 Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.212.171.186])
-  by fmsmga006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Oct 2022 16:39:05 -0700
+  by fmsmga006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Oct 2022 16:39:07 -0700
 From: alison.schofield@intel.com
 To: Dan Williams <dan.j.williams@intel.com>,
 	Ira Weiny <ira.weiny@intel.com>,
@@ -35,10 +35,12 @@ To: Dan Williams <dan.j.williams@intel.com>,
 Cc: Alison Schofield <alison.schofield@intel.com>,
 	nvdimm@lists.linux.dev,
 	linux-cxl@vger.kernel.org
-Subject: [ndctl RFC 0/3] Support poison list retrieval
-Date: Thu, 13 Oct 2022 16:39:00 -0700
-Message-Id: <cover.1665699750.git.alison.schofield@intel.com>
+Subject: [RFC 1/3] libcxl: add interfaces for GET_POISON_LIST mailbox commands
+Date: Thu, 13 Oct 2022 16:39:01 -0700
+Message-Id: <2b277ebcb8dff698a5d1beddeae525ff7e30aba6.1665699750.git.alison.schofield@intel.com>
 X-Mailer: git-send-email 2.37.3
+In-Reply-To: <cover.1665699750.git.alison.schofield@intel.com>
+References: <cover.1665699750.git.alison.schofield@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -49,115 +51,109 @@ Content-Transfer-Encoding: 8bit
 
 From: Alison Schofield <alison.schofield@intel.com>
 
-The RFC label is because this is built upon in flight patchsets
-making it unlikely others can try it out. It depends upon the
-tracing support in Dave's monitor patchset [1], and the kernel
-driver support for poison in this patchset [2].
+CXL devices maintain a list of locations that are poisoned or result
+in poison if the addresses are accessed by the host.
 
-The first patch adds a libcxl API for triggering the read of a
-poison list from a memory device. Users of that API will need to
-trace the kernel events to collect the error records.
+Per the spec (CXL 3.0 8.2.9.8.4.1), the device returns this Poison
+list as a set of  Media Error Records that include the source of the
+error, the starting device physical address and length.
 
-Patches 2 & 3 offer a pretty option, --media-errors to cxl list 
-where the the poison list is read, results collected and parsed,
-and the media error records included in the JSON list output.
+Trigger the retrieval of the poison list by writing to the device
+sysfs attribute: trigger_poison_list.
 
-The JSON output of 'cxl list' does not include all the same fields
-that are available in the 'cxl_poison' trace event.
+The retrieval is offered by memdev or by region:
+int cxl_memdev_trigger_poison_list(struct cxl_memdev *memdev);
+int cxl_region_trigger_poison_list(struct cxl_region *region);
 
-Trace events of 'cxl_poison' always include these fields:
-region: memdev: pcidev: hpa: dpa: length: source: flags: overflow_time:
+This interface only triggers the retrieval of the poison list
+from the devices. Users need to use the kernel trace event
+'cxl_poison' to collect and view the error records.
 
-'cxl list --media-errors' omits fields that seem useless in the
-context of the cxl list command:
-- Do not repeat the memdev, region, or pcidev's that are
-  already included in the list output.
-- Only include 'hpa' when media errors are listed by region.
+Signed-off-by: Alison Schofield <alison.schofield@intel.com>
+---
+ cxl/lib/libcxl.c   | 40 ++++++++++++++++++++++++++++++++++++++++
+ cxl/lib/libcxl.sym |  6 ++++++
+ cxl/libcxl.h       |  2 ++
+ 3 files changed, 48 insertions(+)
 
-Examples:
-cxl list -m mem2 --media-errors
-[
-  {
-    "memdev":"mem2",
-    "pmem_size":1073741824,
-    "ram_size":0,
-    "serial":2,
-    "host":"cxl_mem.2",
-    "media_errors":{
-      "nr media-errors":2,
-      "media-error records":[
-        {
-          "dpa":64,
-          "length":128,
-          "source":"Injected",
-          "flags":"Overflow,",
-          "overflow_time":1656711046
-        },
-        {
-          "dpa":192,
-          "length":192,
-          "source":"Internal",
-          "flags":"Overflow,",
-          "overflow_time":1656711046
-        },
-      ]
-    }
-  }
-]
-
-# cxl list -r region5 --media-errors
-[
-  {
-    "region":"region5",
-    "resource":1035623989248,
-    "size":2147483648,
-    "interleave_ways":2,
-    "interleave_granularity":4096,
-    "decode_state":"commit",
-    "media_errors":{
-      "nr media-errors":2,
-      "media-error records":[
-        {
-          "memdev":"mem2",
-          "hpa":0,
-          "dpa":0,
-          "length":64,
-          "source":"Reserved",
-          "flags":"",
-          "overflow_time":0
-        },
-	{
-          "memdev":"mem5",
-          "hpa":0,
-          "dpa":384,
-          "length":256,
-          "source":"Injected",
-          "flags":"",
-          "overflow_time":0
-        }
-      ]
-    }
-  }
-]
-
-[1] https://lore.kernel.org/nvdimm/166363103019.3861186.3067220004819656109.stgit@djiang5-desk3.ch.intel.com/
-[2] https://lore.kernel.org/linux-cxl/cover.1665606782.git.alison.schofield@intel.com/
-
-Alison Schofield (3):
-  libcxl: add interfaces for GET_POISON_LIST mailbox commands
-  cxl/list: collect and parse the poison list records
-  cxl/list: add --media-errors option to cxl list
-
- Documentation/cxl/cxl-list.txt |  66 +++++++++++
- cxl/filter.c                   |   2 +
- cxl/filter.h                   |   1 +
- cxl/json.c                     | 197 +++++++++++++++++++++++++++++++++
- cxl/lib/libcxl.c               |  40 +++++++
- cxl/lib/libcxl.sym             |   6 +
- cxl/libcxl.h                   |   2 +
- cxl/list.c                     |   2 +
- 8 files changed, 316 insertions(+)
-
+diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
+index e8c5d4444dd0..a99ac154b7d2 100644
+--- a/cxl/lib/libcxl.c
++++ b/cxl/lib/libcxl.c
+@@ -1331,6 +1331,46 @@ CXL_EXPORT int cxl_memdev_disable_invalidate(struct cxl_memdev *memdev)
+ 	return 0;
+ }
+ 
++CXL_EXPORT int cxl_memdev_trigger_poison_list(struct cxl_memdev *memdev)
++{
++	struct cxl_ctx *ctx = cxl_memdev_get_ctx(memdev);
++	char *path = memdev->dev_buf;
++	int len = memdev->buf_len, rc;
++
++	if (snprintf(path, len, "%s/trigger_poison_list", memdev->dev_path) >= len) {
++		err(ctx, "%s: buffer too small\n",
++		    cxl_memdev_get_devname(memdev));
++		return -ENXIO;
++	}
++	rc = sysfs_write_attr(ctx, path, "1\n");
++	if (rc < 0) {
++		fprintf(stderr, "%s: Failed write sysfs attr trigger_poison_list\n",
++			cxl_memdev_get_devname(memdev));
++		return rc;
++	}
++	return 0;
++}
++
++CXL_EXPORT int cxl_region_trigger_poison_list(struct cxl_region *region)
++{
++	struct cxl_ctx *ctx = cxl_region_get_ctx(region);
++	char *path = region->dev_buf;
++	int len = region->buf_len, rc;
++
++	if (snprintf(path, len, "%s/trigger_poison_list", region->dev_path) >= len) {
++		err(ctx, "%s: buffer too small\n",
++		    cxl_region_get_devname(region));
++		return -ENXIO;
++	}
++	rc = sysfs_write_attr(ctx, path, "1\n");
++	if (rc < 0) {
++		fprintf(stderr, "%s: Failed write sysfs attr trigger_poison_list\n",
++			cxl_region_get_devname(region));
++		return rc;
++	}
++	return 0;
++}
++
+ CXL_EXPORT int cxl_memdev_enable(struct cxl_memdev *memdev)
+ {
+ 	struct cxl_ctx *ctx = cxl_memdev_get_ctx(memdev);
+diff --git a/cxl/lib/libcxl.sym b/cxl/lib/libcxl.sym
+index 8bb91e05638b..ecf98e6c7af2 100644
+--- a/cxl/lib/libcxl.sym
++++ b/cxl/lib/libcxl.sym
+@@ -217,3 +217,9 @@ global:
+ 	cxl_decoder_get_max_available_extent;
+ 	cxl_decoder_get_region;
+ } LIBCXL_2;
++
++LIBCXL_4 {
++global:
++	cxl_memdev_trigger_poison_list;
++	cxl_region_trigger_poison_list;
++} LIBCXL_3;
+diff --git a/cxl/libcxl.h b/cxl/libcxl.h
+index 9fe4e99263dd..5ebdf0879325 100644
+--- a/cxl/libcxl.h
++++ b/cxl/libcxl.h
+@@ -375,6 +375,8 @@ enum cxl_setpartition_mode {
+ 
+ int cxl_cmd_partition_set_mode(struct cxl_cmd *cmd,
+ 		enum cxl_setpartition_mode mode);
++int cxl_memdev_trigger_poison_list(struct cxl_memdev *memdev);
++int cxl_region_trigger_poison_list(struct cxl_region *region);
+ 
+ #ifdef __cplusplus
+ } /* extern "C" */
 -- 
 2.37.3
 
