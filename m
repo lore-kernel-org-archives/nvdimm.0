@@ -1,372 +1,115 @@
-Received: from hamster.birch.relay.mailchannels.net (hamster.birch.relay.mailchannels.net [23.83.209.80])
+Received: from mail1.bemta34.messagelabs.com (mail1.bemta34.messagelabs.com [195.245.231.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 072A817C3
-	for <nvdimm@lists.linux.dev>; Thu, 13 Oct 2022 00:50:39 +0000 (UTC)
-X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
-Received: from relay.mailchannels.net (localhost [127.0.0.1])
-	by relay.mailchannels.net (Postfix) with ESMTP id 8BD927E1F14;
-	Thu, 13 Oct 2022 00:15:21 +0000 (UTC)
-Received: from pdx1-sub0-mail-a209.dreamhost.com (unknown [127.0.0.6])
-	(Authenticated sender: dreamhost)
-	by relay.mailchannels.net (Postfix) with ESMTPA id F0FEA7E1E9F;
-	Thu, 13 Oct 2022 00:15:20 +0000 (UTC)
-ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1665620121; a=rsa-sha256;
-	cv=none;
-	b=jGt7ZgUZ8l55WkMyTJ/mA7S6hfW7qc8zakB1/VOn6yOtQrBv+/fWAEYdXDVGJEig5TsztF
-	yS9waCVEc/FFe9vjqvItp2ykJpsy+E7dRm4yOPXMzEYG5Ar0PO2yQ7tKZ82b+aiiJZzcT9
-	DIe1F0/cIyDA3fuTuC8MV2kRR1aD9D0LOkfpId0NtcZNfBvwJE4mEcLQ4A27FdaCxwa+Bc
-	YjNIsqWna2pMIBvzkX0KfF/Fl0k0VnROGQx3EOgR15IqfCDB5uRwCkinFryjF/8qgbYUmU
-	Vv7XNC5MlVImgO4D2c84Wj1nRGKoE9O3IvxEh0IDkIcmpfWt30gX4LV1qPHjRA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
- d=mailchannels.net;
-	s=arc-2022; t=1665620121;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references:dkim-signature;
-	bh=mccInZid1y2fbzAu18MbsIybiyB6L6BtHqAAVmaf7r0=;
-	b=3f9I5s0T1zjqGdQUuuAhrpiOvuxaaYuxgm8Q5bsNAcAjuG1ng0z3xrF8oDSKuMaT2OrC/H
-	cuXKhmsBN2qkana+jdAZIidSyYYOvgB9md58Qtfby6wRgjVO79cjYE+y2AKAUKPHy8dfag
-	7X73rrXy7Va7UQxHVX0ayXGHTzaMBoAIz3Wy45i2eoV39CiT3fLfnJoV9ToJ1Jc4/zQ/Dl
-	JNjee3xonmuwlbZZU0jfpEQ0dF1fa3yWmcBsSwoUl4Fdq5mAzGRJI3gMBzOSZ1dKyEWJ79
-	FT8/nDojrJscc3eGIj8t1+kd+0VHnFiNY5KzZXHn5dceq9qwAVQKtAgLo+Ig2Q==
-ARC-Authentication-Results: i=1;
-	rspamd-7c485dd8cf-5hmpg;
-	auth=pass smtp.auth=dreamhost smtp.mailfrom=dave@stgolabs.net
-X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
-X-MC-Relay: Neutral
-X-MailChannels-SenderId: dreamhost|x-authsender|dave@stgolabs.net
-X-MailChannels-Auth-Id: dreamhost
-X-Obese-Tasty: 4bcb6b4029e7c7d3_1665620121315_2962082463
-X-MC-Loop-Signature: 1665620121314:70668254
-X-MC-Ingress-Time: 1665620121314
-Received: from pdx1-sub0-mail-a209.dreamhost.com (pop.dreamhost.com
- [64.90.62.162])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
-	by 100.116.63.144 (trex/6.7.1);
-	Thu, 13 Oct 2022 00:15:21 +0000
-Received: from offworld (ip72-199-50-187.sd.sd.cox.net [72.199.50.187])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44D0F7B
+	for <nvdimm@lists.linux.dev>; Thu, 13 Oct 2022 10:08:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fujitsu.com;
+	s=170520fj; t=1665655687; i=@fujitsu.com;
+	bh=dJcZNOD1TZqSJEBMvqyns3m1HsI0veOvDdlgGPnJ1P8=;
+	h=Message-ID:Date:MIME-Version:Subject:From:To:CC:References:
+	 In-Reply-To:Content-Type:Content-Transfer-Encoding;
+	b=AdF5RmjYGd20CIIcNO+6W5vjlKnfsU+g/YEp6pkL3S/Y/BSv3wonQPSF8PLC9AdwZ
+	 kPoaDLqwi/rrR4Qe9tKduMqU/2BdFyliIT0y3r2VNPz1hGJuV66ljDHULp69cNNg4B
+	 Xrpx7MybT6ZOWG2rcSOL93n9RzIDv50m377Ccsu7pp2QW0yuf4/dk6SoqV0/MQQY2l
+	 cEP/Iw+3wxFbB/hG0ccBAsf9W1iY4C26SJ3QX9kl6o4GtcWwHAGPcpKLSutds/HdTI
+	 hVSbBD7ocO8Gkxww6ZF6P5hQ4nCgPjC2MUIeqFSzZH3e7KQfI6pQdm81/imElcPhrW
+	 W2Uac+37TTOhg==
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFtrIKsWRWlGSWpSXmKPExsViZ8ORpNv22D3
+  Z4PBzJYvpUy8wWmw5do/R4vITPovTExYxWezZe5LF4vKuOWwW99b8Z7XY9WcHu8XKH39YHTg9
+  Ti2S8Ni8Qstj8Z6XTB6bVnWyeWz6NInd48XmmYwenzfJBbBHsWbmJeVXJLBmfPzRxVawmLvi1
+  ImCBsZ3nF2MXBxCAhsZJY5s/sIC4SxhkjhzbzcThLOdUeJM2122LkZODl4BO4kDZz8zgdgsAq
+  oSq87NZoSIC0qcnPmEBcQWFUiW+Dr1IliNsICvxIa9m8DibAI6EhcW/GUFGSoiMIlR4tiNm8w
+  gCWaBBIn2L9fAGoQEKiR2PfkCFucUsJfY0HcDqsZCYvGbg+wQtrxE89bZQHEODgkBJYmZ3fEg
+  YQmg1lmz2pggbDWJq+c2MU9gFJqF5LxZSCbNQjJpASPzKkbrpKLM9IyS3MTMHF1DAwNdQ0NTX
+  WNzXUMzI73EKt1EvdRS3fLU4hJdILe8WC+1uFivuDI3OSdFLy+1ZBMjMPZSilUX7WDcv+qn3i
+  FGSQ4mJVHed7fck4X4kvJTKjMSizPii0pzUosPMcpwcChJ8IY+BMoJFqWmp1akZeYA0wBMWoK
+  DR0mEl+0RUJq3uCAxtzgzHSJ1ilGXY23Dgb3MQix5+XmpUuK8nx8AFQmAFGWU5sGNgKWkS4yy
+  UsK8jAwMDEI8BalFuZklqPKvGMU5GJWEebtBVvFk5pXAbXoFdAQT0BFLT7mBHFGSiJCSamByz
+  LG0cvRdMP3lldKL6wsCVecuOmi5s2q+bGvVuQNtOap5qU2bmsweyoXqTHnn6WOltEb+m+I/9r
+  3tJ/5p3c99uvdwFMuB3g1bLpSplsaw+59zCf+6y7f1oGZ0nwyD6gz9db8qzTtL+XNEu/NeFa/
+  bKKJstvA7Y8AiafbGt1zP9CTVmS6YPlgWyVRR9KtRxPTK5RvGC0QmRMdYbwp5ylmwz+3e/Z+F
+  xdIHBWLenw7e81/4mEvypBNL9lxuMrSvD8wIjF/iKPFkajyztsmku0e//P1u37TgIuuCvH/Rb
+  bVrTzp6vQ+rNOsIONkbcu2pwNM/Uo/OyAt9e+76WpyH7Vp/o2CG3Ca1wj0xDjWmE5VYijMSDb
+  WYi4oTAWrVox7EAwAA
+X-Env-Sender: ruansy.fnst@fujitsu.com
+X-Msg-Ref: server-9.tower-548.messagelabs.com!1665655686!107385!1
+X-Originating-IP: [62.60.8.98]
+X-SYMC-ESS-Client-Auth: outbound-route-from=pass
+X-StarScan-Received:
+X-StarScan-Version: 9.87.3; banners=-,-,-
+X-VirusChecked: Checked
+Received: (qmail 22353 invoked from network); 13 Oct 2022 10:08:06 -0000
+Received: from unknown (HELO n03ukasimr03.n03.fujitsu.local) (62.60.8.98)
+  by server-9.tower-548.messagelabs.com with ECDHE-RSA-AES256-GCM-SHA384 encrypted SMTP; 13 Oct 2022 10:08:06 -0000
+Received: from n03ukasimr03.n03.fujitsu.local (localhost [127.0.0.1])
+	by n03ukasimr03.n03.fujitsu.local (Postfix) with ESMTP id 33D5F1B4;
+	Thu, 13 Oct 2022 11:08:06 +0100 (BST)
+Received: from R01UKEXCASM126.r01.fujitsu.local (R01UKEXCASM126 [10.183.43.178])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
 	(No client certificate requested)
-	(Authenticated sender: dave@stgolabs.net)
-	by pdx1-sub0-mail-a209.dreamhost.com (Postfix) with ESMTPSA id 4Mnqlv3pwsz4f;
-	Wed, 12 Oct 2022 17:15:06 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=stgolabs.net;
-	s=dreamhost; t=1665620120;
-	bh=mccInZid1y2fbzAu18MbsIybiyB6L6BtHqAAVmaf7r0=;
-	h=Date:From:To:Cc:Subject:Content-Type:Content-Transfer-Encoding;
-	b=eWfPeyf+QdnXFJTW9nsrwuASyUxxej9EbufVVkCsAmj/PeBjSoKMAjht+1Jxam0j4
-	 PquNq1dmw44BIil2SZct4Sg9eJP+K1G0y/kOX3FjiXQu4RAfbFAK6fhduuYPCs/9xX
-	 sUFRi/ZP8tPuLrnqZHZYUVpqdtQZMNEVlIeG8QWYyYxPQreK+2FZtnIOQW0kV3NDJn
-	 QrHf1Kmg2U5YS3WIhE9lkoNFwDlEqmHcGQh82/T1cyxe7jWIpxO3LUaXPEu/5kPsKf
-	 0C3egXsfL94+KMRGVMBGo9LPVFqNQbDdQoa+8OMWSNQ/JWkywSjEum1nxckSBC0eZV
-	 WzePTrVH1fCuA==
-Date: Wed, 12 Oct 2022 17:14:51 -0700
-From: Davidlohr Bueso <dave@stgolabs.net>
-To: Dave Jiang <dave.jiang@intel.com>
-Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
-	dan.j.williams@intel.com, bwidawsk@kernel.org, ira.weiny@intel.com,
-	vishal.l.verma@intel.com, alison.schofield@intel.com,
-	Jonathan.Cameron@huawei.com
-Subject: [PATCH v3] memregion: Add cpu_cache_invalidate_memregion() interface
-Message-ID: <20221013001451.6c6fo6sqzmaonu45@offworld>
-References: <166377414787.430546.3863229455285366312.stgit@djiang5-desk3.ch.intel.com>
- <166377429297.430546.18244091321001267098.stgit@djiang5-desk3.ch.intel.com>
+	by n03ukasimr03.n03.fujitsu.local (Postfix) with ESMTPS id 280971B3;
+	Thu, 13 Oct 2022 11:08:06 +0100 (BST)
+Received: from [192.168.22.78] (10.167.225.141) by
+ R01UKEXCASM126.r01.fujitsu.local (10.183.43.178) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.32; Thu, 13 Oct 2022 11:08:02 +0100
+Message-ID: <7431bafb-97e2-f755-45ca-e7cce339fd88@fujitsu.com>
+Date: Thu, 13 Oct 2022 18:07:56 +0800
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-In-Reply-To: <166377429297.430546.18244091321001267098.stgit@djiang5-desk3.ch.intel.com>
-User-Agent: NeoMutt/20220429
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
+ Thunderbird/102.3.0
+Subject: Re: [PATCH v9 0/3] mm, pmem, xfs: Introduce MF_MEM_REMOVE for unbind
+From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+To: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
+	<nvdimm@lists.linux.dev>, <linux-mm@kvack.org>,
+	<linux-fsdevel@vger.kernel.org>
+CC: <djwong@kernel.org>, <david@fromorbit.com>, <dan.j.williams@intel.com>,
+	<hch@infradead.org>
+References: <1664112803-57-1-git-send-email-ruansy.fnst@fujitsu.com>
+ <ba642a21-8876-0cd0-2627-6fb7e534c950@fujitsu.com>
+In-Reply-To: <ba642a21-8876-0cd0-2627-6fb7e534c950@fujitsu.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.167.225.141]
+X-ClientProxiedBy: G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.80) To
+ R01UKEXCASM126.r01.fujitsu.local (10.183.43.178)
+X-Virus-Scanned: ClamAV using ClamSMTP
 
-With CXL security features, global CPU cache flushing nvdimm requirements
-are no longer specific to that subsystem, even beyond the scope of
-security_ops. CXL will need such semantics for features not necessarily
-limited to persistent memory.
+Ping again~
 
-The functionality this is enabling is to be able to instantaneously
-secure erase potentially terabytes of memory at once and the kernel
-needs to be sure that none of the data from before the erase is still
-present in the cache. It is also used when unlocking a memory device
-where speculative reads and firmware accesses could have cached poison
-=66rom before the device was unlocked.
-
-This capability is typically only used once per-boot (for unlock), or
-once per bare metal provisioning event (secure erase), like when handing
-off the system to another tenant or decommissioning a device. It may
-also be used for dynamic CXL region provisioning.
-
-Users must first call cpu_cache_has_invalidate_memregion() to know whether
-this functionality is available on the architecture. Only enable it on
-x86-64 via the wbinvd() hammer. Hypervisors are not supported as TDX
-guests may trigger a virtualization exception and may need proper handling
-to recover. See:
-
-    e2efb6359e62 ("ACPICA: Avoid cache flush inside virtual machines")
-
-Signed-off-by: Davidlohr Bueso <dave@stgolabs.net>
----
-Changes from https://lore.kernel.org/all/166377429297.430546.18244091321001=
-267098.stgit@djiang5-desk3.ch.intel.com/
-None of them are actually interface related, only a return code change and =
-some
-fixlets found by 0day:
-   - use EOPNOTSUPP upon !cpu_cache_has_invalidate_memregion() (Dave)
-   - set_memory.c includes memregion.h (0day)
-   - memregion includes linux/bug.h (for WARN_ON_ONCE) and make
-     cpu_cache_invalidate_memregion() stub static inline . (0day)
-
-  arch/x86/Kconfig             |  1 +
-  arch/x86/mm/pat/set_memory.c | 16 ++++++++++++++
-  drivers/acpi/nfit/intel.c    | 41 ++++++++++++++++--------------------
-  include/linux/memregion.h    | 36 +++++++++++++++++++++++++++++++
-  lib/Kconfig                  |  3 +++
-  5 files changed, 74 insertions(+), 23 deletions(-)
-
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 6d1879ef933a..d970215e7f8b 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -69,6 +69,7 @@ config X86
-	select ARCH_ENABLE_THP_MIGRATION if X86_64 && TRANSPARENT_HUGEPAGE
-	select ARCH_HAS_ACPI_TABLE_UPGRADE	if ACPI
-	select ARCH_HAS_CACHE_LINE_SIZE
-+	select ARCH_HAS_CPU_CACHE_INVALIDATE_MEMREGION  if X86_64
-	select ARCH_HAS_CURRENT_STACK_POINTER
-	select ARCH_HAS_DEBUG_VIRTUAL
-	select ARCH_HAS_DEBUG_VM_PGTABLE	if !X86_PAE
-diff --git a/arch/x86/mm/pat/set_memory.c b/arch/x86/mm/pat/set_memory.c
-index 97342c42dda8..7a0fd2ba512e 100644
---- a/arch/x86/mm/pat/set_memory.c
-+++ b/arch/x86/mm/pat/set_memory.c
-@@ -16,6 +16,7 @@
-  #include <linux/pci.h>
-  #include <linux/vmalloc.h>
-  #include <linux/libnvdimm.h>
-+#include <linux/memregion.h>
-  #include <linux/vmstat.h>
-  #include <linux/kernel.h>
-  #include <linux/cc_platform.h>
-@@ -330,6 +331,21 @@ void arch_invalidate_pmem(void *addr, size_t size)
-  EXPORT_SYMBOL_GPL(arch_invalidate_pmem);
-  #endif
-
-+#ifdef CONFIG_ARCH_HAS_CPU_CACHE_INVALIDATE_MEMREGION
-+bool cpu_cache_has_invalidate_memregion(void)
-+{
-+	return !cpu_feature_enabled(X86_FEATURE_HYPERVISOR);
-+}
-+EXPORT_SYMBOL_GPL(cpu_cache_has_invalidate_memregion);
-+
-+int cpu_cache_invalidate_memregion(int res_desc)
-+{
-+	wbinvd_on_all_cpus();
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(cpu_cache_invalidate_memregion);
-+#endif
-+
-  static void __cpa_flush_all(void *arg)
-  {
-	unsigned long cache =3D (unsigned long)arg;
-diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
-index 8dd792a55730..4c66fa5e475b 100644
---- a/drivers/acpi/nfit/intel.c
-+++ b/drivers/acpi/nfit/intel.c
-@@ -3,6 +3,7 @@
-  #include <linux/libnvdimm.h>
-  #include <linux/ndctl.h>
-  #include <linux/acpi.h>
-+#include <linux/memregion.h>
-  #include <asm/smp.h>
-  #include "intel.h"
-  #include "nfit.h"
-@@ -190,8 +191,6 @@ static int intel_security_change_key(struct nvdimm *nvd=
-imm,
-	}
-  }
-
--static void nvdimm_invalidate_cache(void);
--
-  static int __maybe_unused intel_security_unlock(struct nvdimm *nvdimm,
-		const struct nvdimm_key_data *key_data)
-  {
-@@ -213,6 +212,9 @@ static int __maybe_unused intel_security_unlock(struct =
-nvdimm *nvdimm,
-	if (!test_bit(NVDIMM_INTEL_UNLOCK_UNIT, &nfit_mem->dsm_mask))
-		return -ENOTTY;
-
-+	if (!cpu_cache_has_invalidate_memregion())
-+		return -EOPNOTSUPP;
-+
-	memcpy(nd_cmd.cmd.passphrase, key_data->data,
-			sizeof(nd_cmd.cmd.passphrase));
-	rc =3D nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
-@@ -228,7 +230,7 @@ static int __maybe_unused intel_security_unlock(struct =
-nvdimm *nvdimm,
-	}
-
-	/* DIMM unlocked, invalidate all CPU caches before we read it */
--	nvdimm_invalidate_cache();
-+	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
-
-	return 0;
-  }
-@@ -297,8 +299,11 @@ static int __maybe_unused intel_security_erase(struct =
-nvdimm *nvdimm,
-	if (!test_bit(cmd, &nfit_mem->dsm_mask))
-		return -ENOTTY;
-
-+	if (!cpu_cache_has_invalidate_memregion())
-+		return -EOPNOTSUPP;
-+
-	/* flush all cache before we erase DIMM */
--	nvdimm_invalidate_cache();
-+	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
-	memcpy(nd_cmd.cmd.passphrase, key->data,
-			sizeof(nd_cmd.cmd.passphrase));
-	rc =3D nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
-@@ -318,7 +323,7 @@ static int __maybe_unused intel_security_erase(struct n=
-vdimm *nvdimm,
-	}
-
-	/* DIMM erased, invalidate all CPU caches before we read it */
--	nvdimm_invalidate_cache();
-+	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
-	return 0;
-  }
-
-@@ -341,6 +346,9 @@ static int __maybe_unused intel_security_query_overwrit=
-e(struct nvdimm *nvdimm)
-	if (!test_bit(NVDIMM_INTEL_QUERY_OVERWRITE, &nfit_mem->dsm_mask))
-		return -ENOTTY;
-
-+	if (!cpu_cache_has_invalidate_memregion())
-+		return -EINVAL;
-+
-	rc =3D nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
-	if (rc < 0)
-		return rc;
-@@ -355,7 +363,7 @@ static int __maybe_unused intel_security_query_overwrit=
-e(struct nvdimm *nvdimm)
-	}
-
-	/* flush all cache before we make the nvdimms available */
--	nvdimm_invalidate_cache();
-+	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
-	return 0;
-  }
-
-@@ -380,8 +388,11 @@ static int __maybe_unused intel_security_overwrite(str=
-uct nvdimm *nvdimm,
-	if (!test_bit(NVDIMM_INTEL_OVERWRITE, &nfit_mem->dsm_mask))
-		return -ENOTTY;
-
-+	if (!cpu_cache_has_invalidate_memregion())
-+		return -EOPNOTSUPP;
-+
-	/* flush all cache before we erase DIMM */
--	nvdimm_invalidate_cache();
-+	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
-	memcpy(nd_cmd.cmd.passphrase, nkey->data,
-			sizeof(nd_cmd.cmd.passphrase));
-	rc =3D nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
-@@ -401,22 +412,6 @@ static int __maybe_unused intel_security_overwrite(str=
-uct nvdimm *nvdimm,
-	}
-  }
-
--/*
-- * TODO: define a cross arch wbinvd equivalent when/if
-- * NVDIMM_FAMILY_INTEL command support arrives on another arch.
-- */
--#ifdef CONFIG_X86
--static void nvdimm_invalidate_cache(void)
--{
--	wbinvd_on_all_cpus();
--}
--#else
--static void nvdimm_invalidate_cache(void)
--{
--	WARN_ON_ONCE("cache invalidation required after unlock\n");
--}
--#endif
--
-  static const struct nvdimm_security_ops __intel_security_ops =3D {
-	.get_flags =3D intel_security_flags,
-	.freeze =3D intel_security_freeze,
-diff --git a/include/linux/memregion.h b/include/linux/memregion.h
-index c04c4fd2e209..41070e722796 100644
---- a/include/linux/memregion.h
-+++ b/include/linux/memregion.h
-@@ -1,6 +1,7 @@
-  /* SPDX-License-Identifier: GPL-2.0 */
-  #ifndef _MEMREGION_H_
-  #define _MEMREGION_H_
-+#include <linux/bug.h>
-  #include <linux/types.h>
-  #include <linux/errno.h>
-
-@@ -20,4 +21,39 @@ static inline void memregion_free(int id)
-  {
-  }
-  #endif
-+
-+/**
-+ * cpu_cache_invalidate_memregion - drop any CPU cached data for
-+ *     memregions described by @res_desc
-+ * @res_desc: one of the IORES_DESC_* types
-+ *
-+ * Perform cache maintenance after a memory event / operation that
-+ * changes the contents of physical memory in a cache-incoherent manner.
-+ * For example, device memory technologies like NVDIMM and CXL have
-+ * device secure erase, or dynamic region provision features where such
-+ * semantics.
-+ *
-+ * Limit the functionality to architectures that have an efficient way
-+ * to writeback and invalidate potentially terabytes of memory at once.
-+ * Note that this routine may or may not write back any dirty contents
-+ * while performing the invalidation.
-+ *
-+ * Returns 0 on success or negative error code on a failure to perform
-+ * the cache maintenance.
-+ */
-+#ifdef CONFIG_ARCH_HAS_CPU_CACHE_INVALIDATE_MEMREGION
-+int cpu_cache_invalidate_memregion(int res_desc);
-+bool cpu_cache_has_invalidate_memregion(void);
-+#else
-+static inline bool cpu_cache_has_invalidate_memregion(void)
-+{
-+	return false;
-+}
-+
-+static inline int cpu_cache_invalidate_memregion(int res_desc)
-+{
-+	WARN_ON_ONCE("CPU cache invalidation required");
-+	return -EINVAL;
-+}
-+#endif
-  #endif /* _MEMREGION_H_ */
-diff --git a/lib/Kconfig b/lib/Kconfig
-index 9bbf8a4b2108..9eb514abcdec 100644
---- a/lib/Kconfig
-+++ b/lib/Kconfig
-@@ -672,6 +672,9 @@ config ARCH_HAS_PMEM_API
-  config MEMREGION
-	bool
-
-+config ARCH_HAS_CPU_CACHE_INVALIDATE_MEMREGION
-+	bool
-+
-  config ARCH_HAS_MEMREMAP_COMPAT_ALIGN
-	bool
-
---
-2.37.3
+在 2022/9/30 11:28, Shiyang Ruan 写道:
+> Hi,
+> 
+> Ping
+> 
+> 在 2022/9/25 21:33, Shiyang Ruan 写道:
+>> Changes since v8:
+>>    1. P2: rename drop_pagecache_sb() to super_drop_pagecache().
+>>    2. P2: let super_drop_pagecache() accept invalidate method.
+>>    3. P3: invalidate all dax mappings by invalidate_inode_pages2().
+>>    4. P3: shutdown the filesystem when it is to be removed.
+>>    5. Rebase on 6.0-rc6 + Darrick's patch[1] + Dan's patch[2].
+>>
+>> [1]: https://lore.kernel.org/linux-xfs/Yv5wIa2crHioYeRr@magnolia/
+>> [2]: 
+>> https://lore.kernel.org/linux-xfs/166153426798.2758201.15108211981034512993.stgit@dwillia2-xfh.jf.intel.com/
+>>
+>> Shiyang Ruan (3):
+>>    xfs: fix the calculation of length and end
+>>    fs: move drop_pagecache_sb() for others to use
+>>    mm, pmem, xfs: Introduce MF_MEM_REMOVE for unbind
+>>
+>>   drivers/dax/super.c         |  3 ++-
+>>   fs/drop_caches.c            | 35 ++----------------------------
+>>   fs/super.c                  | 43 +++++++++++++++++++++++++++++++++++++
+>>   fs/xfs/xfs_notify_failure.c | 36 ++++++++++++++++++++++++++-----
+>>   include/linux/fs.h          |  1 +
+>>   include/linux/mm.h          |  1 +
+>>   include/linux/pagemap.h     |  1 +
+>>   mm/truncate.c               | 20 +++++++++++++++--
+>>   8 files changed, 99 insertions(+), 41 deletions(-)
+>>
