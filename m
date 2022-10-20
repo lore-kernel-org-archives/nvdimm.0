@@ -1,256 +1,480 @@
-Received: from mail1.bemta32.messagelabs.com (mail1.bemta32.messagelabs.com [195.245.230.1])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 21CE83C20
-	for <nvdimm@lists.linux.dev>; Thu, 20 Oct 2022 14:18:09 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fujitsu.com;
-	s=170520fj; t=1666275488; i=@fujitsu.com;
-	bh=7Z3NyZzRxTM9sBX5+xswc3Xs3tppS70dX2Zc0GGAMyc=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type:Content-Transfer-Encoding;
-	b=PHvo22DziAdor/sCE0+XnDlzutpwnzDuMZBiQe+S+r/h4JLv/50gwEbYxzgqMIKAr
-	 +bkIcs7uJ27GlpbMaxOuAv33m3LD0N37cGrEmZzEfaAvTnO/IENh6thCY8jWWvEnpW
-	 oxon3ApXqFKUVXFo6iNiishxnGYU5psTM/uLGJUJw/+xUfpLOUrk2reKHMBoOxJsfH
-	 qqKNRnc3an35f9tVZLSZ7ae+C2LAedDkQYl+a67jqqNXb3d8Rn/htqOFuLooY9ogMy
-	 8rJW4wq6uV3EqLUIAYbfbbHKo4QGMuwV8hsF6gqL+w9xr1JJtj2O27L3/jRO43BLi/
-	 pbMws/2fCu28w==
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFjrOKsWRWlGSWpSXmKPExsViZ8ORpDstIjD
-  Z4PVZLYt3n6ssthy7x2hx+Qmfxd53s1ktTk9YxGRx9tdVFos9e0+yWFzeNYfNYtefHewWK3/8
-  YbV4uGAzu8Xa/nQHHo9TiyQ8du1qZPfYvELLY9OqTjaPF5tnMnq833eVzePzJrkA9ijWzLyk/
-  IoE1oztXy+xF7TbVvw7c4epgfGnfhcjF4eQwEZGif4T/WwQzhImiW+zprJDONsYJdZuu8raxc
-  jJwStgJzG7+y8biM0ioCrRu+IZG0RcUOLkzCcsILaoQJLE1Q13weqFBXwl1m7qYwaxRQRKJWZ
-  +bWcGGcosMItFYv25OewgCSGBF8wSb69ogdhsAo4S82ZtBBvKKaAhcWbaXbAaZgELicVvDkLZ
-  8hLb384BGyohoCjRtuQfO4RdITFrVhsThK0mcfXcJuYJjEKzkNw3C8moWUhGLWBkXsVoVpxaV
-  JZapGtoopdUlJmeUZKbmJmjl1ilm6iXWqpbnlpcomuol1herJdaXKxXXJmbnJOil5dasokRGI
-  8pxWyrdjD+WvZH7xCjJAeTkiivsGpgshBfUn5KZUZicUZ8UWlOavEhRhkODiUJ3sAwoJxgUWp
-  6akVaZg4wNcCkJTh4lER4xUKB0rzFBYm5xZnpEKlTjJYc53fu38vMsbbhAJD8+OfiXmYhlrz8
-  vFQpcd5ikHkCIA0ZpXlw42Dp6xKjrJQwLyMDA4MQT0FqUW5mCar8K0ZxDkYlYd6zIGt5MvNK4
-  La+AjqICegg0y1+IAeVJCKkpBqYeiUnuc77Ki0quEfi8ZQHJ/4VTOPgrtnw/+f9hpXql/+f4U
-  s9bb2pf8NNLs09R0WXpSRNfZv+M/Ol/tTXlkGC3Te6N15+mVyXyCcw9+Wn3Qnbel05fKrPvV5
-  X5s3k9b291rfqlDl/VNmC5+v3Li5Q+5ay4PXNo3qb9NM1ijKvN601yLgW4NFvw+ypVX7o3c20
-  i9mHn/z3iyzbNHfyC5tnUvxKU3wfmrsEVNg8i7ukHLmvcueZ2ZyxV9oyr59SVmCu/OnJ2mS+J
-  cODwfTthv2vs9RzbWN7ky6ekJqwqntWzfcd4TnJzbPMla4vmTB3lXRHB8urta/l7KYpc9z/OW
-  F106r/L63nnItdu9yXyT6MWYmlOCPRUIu5qDgRACDUWMDaAwAA
-X-Env-Sender: yangx.jy@fujitsu.com
-X-Msg-Ref: server-9.tower-587.messagelabs.com!1666275478!137699!1
-X-Originating-IP: [62.60.8.98]
-X-SYMC-ESS-Client-Auth: outbound-route-from=pass
-X-StarScan-Received:
-X-StarScan-Version: 9.100.1; banners=-,-,-
-X-VirusChecked: Checked
-Received: (qmail 18512 invoked from network); 20 Oct 2022 14:17:58 -0000
-Received: from unknown (HELO n03ukasimr03.n03.fujitsu.local) (62.60.8.98)
-  by server-9.tower-587.messagelabs.com with ECDHE-RSA-AES256-GCM-SHA384 encrypted SMTP; 20 Oct 2022 14:17:58 -0000
-Received: from n03ukasimr03.n03.fujitsu.local (localhost [127.0.0.1])
-	by n03ukasimr03.n03.fujitsu.local (Postfix) with ESMTP id 2A4EF1B1;
-	Thu, 20 Oct 2022 15:17:58 +0100 (BST)
-Received: from R01UKEXCASM126.r01.fujitsu.local (R01UKEXCASM126 [10.183.43.178])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by n03ukasimr03.n03.fujitsu.local (Postfix) with ESMTPS id 1E2271AB;
-	Thu, 20 Oct 2022 15:17:58 +0100 (BST)
-Received: from [10.167.215.54] (10.167.215.54) by
- R01UKEXCASM126.r01.fujitsu.local (10.183.43.178) with Microsoft SMTP Server
- (TLS) id 15.0.1497.32; Thu, 20 Oct 2022 15:17:53 +0100
-Message-ID: <6a83a56e-addc-f3c4-2357-9589a49bf582@fujitsu.com>
-Date: Thu, 20 Oct 2022 22:17:45 +0800
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CADF07B
+	for <nvdimm@lists.linux.dev>; Thu, 20 Oct 2022 21:56:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1666303000; x=1697839000;
+  h=subject:from:to:cc:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=lOKfI6sTflYeTXUvY61fNwx8fUxj12mbkLEBQEJvOj4=;
+  b=koDU+8uesrqXxufRyV9qOIY9IsS9zGko2CE55eOjYAFjGIfRmkWVhweR
+   +0Qr+oQ98SvWqtAYcJ1lygOis6kJsWjfYotXUhdQs0OVjgXstVFweszU0
+   QrMFiWxhj/O1N7km+vcf+Xyx0iYPGozzHgP2lmrNUEegcqmyHPOJbfRDo
+   E2Dwmf+/w1hjc+YQ7BqjPhhC8uniLi9lDNX5BON1waREyC34r/6Awbfwi
+   F2vuBFr7emheWLMq81Rtcy3XZ9EEBtvka4jqQJIiXVXl7yKyKynMFCNdL
+   jByNhciPUWdxOhBSMkamwvY5EMpStJv+/9jZbJsF1wBtqLT+y3JpQtY8W
+   g==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10506"; a="308528549"
+X-IronPort-AV: E=Sophos;i="5.95,199,1661842800"; 
+   d="scan'208";a="308528549"
+Received: from orsmga003.jf.intel.com ([10.7.209.27])
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Oct 2022 14:56:40 -0700
+X-IronPort-AV: E=McAfee;i="6500,9779,10506"; a="581177758"
+X-IronPort-AV: E=Sophos;i="5.95,199,1661842800"; 
+   d="scan'208";a="581177758"
+Received: from amwalker-mobl1.amr.corp.intel.com (HELO dwillia2-xfh.jf.intel.com) ([10.209.42.205])
+  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Oct 2022 14:56:39 -0700
+Subject: [PATCH] mm/memremap: Introduce pgmap_request_folio() using pgmap
+ offsets
+From: Dan Williams <dan.j.williams@intel.com>
+To: akpm@linux-foundation.org
+Cc: Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
+ "Darrick J. Wong" <djwong@kernel.org>, Christoph Hellwig <hch@lst.de>,
+ John Hubbard <jhubbard@nvidia.com>, Alistair Popple <apopple@nvidia.com>,
+ Felix Kuehling <Felix.Kuehling@amd.com>,
+ Alex Deucher <alexander.deucher@amd.com>,
+ Christian =?utf-8?b?S8O2bmln?= <christian.koenig@amd.com>, "Pan,
+ Xinhui" <Xinhui.Pan@amd.com>, David Airlie <airlied@linux.ie>,
+ Daniel Vetter <daniel@ffwll.ch>, Ben Skeggs <bskeggs@redhat.com>,
+ Karol Herbst <kherbst@redhat.com>, Lyude Paul <lyude@redhat.com>,
+ =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>,
+ Jason Gunthorpe <jgg@nvidia.com>, linux-mm@kvack.org,
+ dri-devel@lists.freedesktop.org, nvdimm@lists.linux.dev
+Date: Thu, 20 Oct 2022 14:56:39 -0700
+Message-ID: <166630293549.1017198.3833687373550679565.stgit@dwillia2-xfh.jf.intel.com>
+User-Agent: StGit/0.18-3-g996c
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.11.0
-Subject: Re: [PATCH] xfs: fail dax mount if reflink is enabled on a partition
-To: "Darrick J. Wong" <djwong@kernel.org>,
-	=?UTF-8?B?R290b3UsIFlhc3Vub3JpL+S6lOWztiDlurfmloc=?= <y-goto@fujitsu.com>
-CC: Brian Foster <bfoster@redhat.com>, "hch@infradead.org"
-	<hch@infradead.org>, =?UTF-8?B?UnVhbiwgU2hpeWFuZy/pmK4g5LiW6Ziz?=
-	<ruansy.fnst@fujitsu.com>, "linux-kernel@vger.kernel.org"
-	<linux-kernel@vger.kernel.org>, "linux-xfs@vger.kernel.org"
-	<linux-xfs@vger.kernel.org>, "nvdimm@lists.linux.dev"
-	<nvdimm@lists.linux.dev>, "linux-fsdevel@vger.kernel.org"
-	<linux-fsdevel@vger.kernel.org>, "david@fromorbit.com" <david@fromorbit.com>,
-	<zwisler@kernel.org>, Jeff Moyer <jmoyer@redhat.com>, <dm-devel@redhat.com>,
-	<toshi.kani@hpe.com>
-References: <7fdc9e88-f255-6edb-7964-a5a82e9b1292@fujitsu.com>
- <76ea04b4-bad7-8cb3-d2c6-4ad49def4e05@fujitsu.com> <YyHKUhOgHdTKPQXL@bfoster>
- <YyIBMJzmbZsUBHpy@magnolia>
- <a6e7f4eb-0664-bbe8-98d2-f8386b226113@fujitsu.com>
- <e3d51a6b-12e9-2a19-1280-5fd9dd64117c@fujitsu.com>
- <deb54a77-90d3-df44-1880-61cce6e3f670@fujitsu.com>
- <1444b9b5-363a-163c-0513-55d1ea951799@fujitsu.com>
- <Yzt6eWLuX/RTjmjj@magnolia>
- <f196bcab-6aa2-6313-8a7c-f8ab409621b7@fujitsu.com>
- <Yzx64zGt2kTiDYaP@magnolia>
-From: =?UTF-8?B?WWFuZywgWGlhby/mnagg5pmT?= <yangx.jy@fujitsu.com>
-In-Reply-To: <Yzx64zGt2kTiDYaP@magnolia>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.167.215.54]
-X-ClientProxiedBy: G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.80) To
- R01UKEXCASM126.r01.fujitsu.local (10.183.43.178)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 
-On 2022/10/5 2:26, Darrick J. Wong wrote:
-> Notice this line in generic/470:
-> 
-> $XFS_IO_PROG -t -c "truncate $LEN" -c "mmap -S 0 $LEN" -c "mwrite 0 $LEN" \
-> 	-c "log_writes -d $LOGWRITES_NAME -m preunmap" \
-> 	-f $SCRATCH_MNT/test
-> 
-> The second xfs_io command creates a MAP_SYNC mmap of the
-> SCRATCH_MNT/test file, and the third command memcpy's bytes to the
-> mapping to invoke the write page fault handler.
-> 
-> The fourth command tells the dm-logwrites driver for $LOGWRITES_NAME
-> (aka the block device containing the mounted XFS filesystem) to create a
-> mark called "preunmap".  This mark captures the exact state of the block
-> device immediately after the write faults complete, so that we can come
-> back to it later.  There are a few things to note here:
-> 
->    (1) We did not tell the fs to persist anything;
->    (2) We can't use dm-snapshot here, because dm-snapshot will flush the
->        fs (I think?); and
->    (3) The fs is still mounted, so the state of the block device at the
->        mark reflects a dirty XFS with a log that must be replayed.
-> 
-> The next thing the test does is unmount the fs, remove the dm-logwrites
-> driver to stop recording, and check the fs:
-> 
-> _log_writes_unmount
-> _log_writes_remove
-> _dmthin_check_fs
-> 
-> This ensures that the post-umount fs is consistent.  Now we want to roll
-> back to the place we marked to see if the mwrite data made it to pmem.
-> It*should*  have, since we asked for a MAP_SYNC mapping on a fsdax
-> filesystem recorded on a pmem device:
-> 
-> # check pre-unmap state
-> _log_writes_replay_log preunmap $DMTHIN_VOL_DEV
-> _dmthin_mount
-> 
-> dm-logwrites can't actually roll backwards in time to a mark, since it
-> only records new disk contents.  It/can/  however roll forward from
-> whatever point it began recording writes to the mark, so that's what it
-> does.
-> 
-> However -- remember note (3) from earlier.  When we _dmthin_mount after
-> replaying the log to the "preunmap" mark, XFS will see the dirty XFS log
-> and try to recover the XFS log.  This is where the replay problems crop
-> up.  The XFS log records a monotonically increasing sequence number
-> (LSN) with every log update, and when updates are written into the
-> filesystem, that LSN is also written into the filesystem block.  Log
-> recovery also replays updates into the filesystem, but with the added
-> behavior that it skips a block replay if the block's LSN is higher than
-> the transaction being replayed.  IOWs, we never replay older block
-> contents over newer block contents.
-> 
-> For dm-logwrites this is a major problem, because there could be more
-> filesystem updates written to the XFS log after the mark is made.  LSNs
-> will then be handed out like this:
-> 
-> mkfs_lsn                 preunmap_lsn             umount_lsn
->    |                           |                      |
->    |--------------------------||----------|-----------|
->                               |           |
->                           xxx_lsn     yyy_lsn
-> 
-> Let's say that a new metadata block "BBB" was created in update "xxx"
-> immediately before the preunmap mark was made.  Per (1), we didn't flush
-> the filesystem before taking the mark, which means that the new block's
-> contents exist only in the log at this point.
-> 
-> Let us further say that the new block was again changed in update "yyy",
-> where preunmap_lsn < yyy_lsn <= umount_lsn.  Clearly, yyy_lsn > xxx_lsn.
-> yyy_lsn is written to the block at unmount, because unmounting flushes
-> the log clean before it completes.  This is the first time that BBB ever
-> gets written.
-> 
-> _log_writes_replay_log begins replaying the block device from mkfs_lsn
-> towards preunmap_lsn.  When it's done, it will have a log that reflects
-> all the changes up to preunmap_lsn.  Recall however that BBB isn't
-> written until after the preunmap mark, which means that dm-logwrites has
-> no record of BBB before preunmap_lsn, so dm-logwrites replay won't touch
-> BBB.  At this point, the block header for BBB has a UUID that matches
-> the filesystem, but a LSN (yyy_lsn) that is beyond preunmap_lsn.
-> 
-> XFS log recovery starts up, and finds transaction xxx.  It will read BBB
-> from disk, but then it will see that it has an LSN of yyy_lsn.  This is
-> larger than xxx_lsn, so it concludes that BBB is newer than the log and
-> moves on to the next log item.  No other log items touch BBB, so
-> recovery finishes, and now we have a filesystem containing one metadata
-> block (BBB) from the future.  This is an inconsistent filesystem, and
-> has caused failures in the tests that use logwrites.
-> 
-> To work around this problem, all we really need to do is reinitialize
-> the entire block device to known contents at mkfs time.  This can be
-> done expensively by writing zeroes to the entire block device, or it can
-> be done cheaply by (a) issuing DISCARD to the whole the block device at
-> the start of the test and (b) ensuring that reads after a discard always
-> produce zeroes.  mkfs.xfs already does (a), so the test merely has to
-> ensure (b).
-> 
-> dm-thinp is the only software solution that provides (b), so that's why
-> this test layers dm-logwrites on top of dm-thinp on top of $SCRATCH_DEV.
-> This combination used to work, but with the pending pmem/blockdev
-> divorce, this strategy is no longer feasible.
+A 'struct dev_pagemap' (pgmap) represents a collection of ZONE_DEVICE
+pages. The pgmap is a reference counted object that serves a similar
+role as a 'struct request_queue'. Live references are obtained for each
+in flight request / page, and once a page's reference count drops to
+zero the associated pin of the pgmap is dropped as well. While a page is
+idle nothing should be accessing it because that is effectively a
+use-after-free situation. Unfortunately, all current ZONE_DEVICE
+implementations deploy a layering violation to manage requests to
+activate pages owned by a pgmap. Specifically, they take steps like walk
+the pfns that were previously assigned at memremap_pages() time and use
+pfn_to_page() to recall metadata like page->pgmap, or make use of other
+data like page->zone_device_data.
 
-Hi Darrick,
+The first step towards correcting that situation is to provide a
+API to get access to a pgmap page that does not require the caller to
+know the pfn, nor access any fields of an idle page. Ideally this API
+would be able to support dynamic page creation instead of the current
+status quo of pre-allocating and initializing pages.
 
-Thanks a lot for your detailed explanation.
+On a prompt from Jason, introduce pgmap_request_folio() that operates on
+an offset into a pgmap. It replaces the shortlived
+pgmap_request_folios() that was continuing the layering violation of
+assuming pages are available to be consulted before asking the pgmap to
+make them available.
 
-Could you tell me if my understanding is correct. I think the issue is 
-that log-writes log and XFS log may save the different state of block 
-device. It is possible for XFS log to save the more updates than 
-log-writes log does. In this case, we can recovery the block device by 
-log-writes log's replay but we will get the inconsistent filesystem when 
-mounting the block device because the mount operation will try to 
-recovery more updates for XFS on the block deivce by XFS log. We need to 
-fix the issue by discarding XFS log on the block device.  mkfs.xfs will 
-try to discard the blocks including XFS log by calling ioctl(BLKDISCARD) 
-  but it will ignore error silently when the block device doesn't 
-support ioctl(BLKDISCARD).  Discarding XFS log is what you said 
-"reinitialize the entire block device", right?
+For now this only converts the callers to lookup the pgmap and generate
+the pgmap offset, but it does not do the deeper cleanup of teaching
+those call sites to generate those arguments without walking the page
+metadata. For next steps it appears the DEVICE_PRIVATE implementations
+could plumb the pgmap into the necessary callsites and switch to using
+gen_pool_alloc() to track which offsets of a pgmap are allocated. For
+DAX, dax_direct_access() could switch from returning pfns to returning
+the associated @pgmap and @pgmap_offset. Those changes are saved for
+follow-on work.
 
-> 
-> I think the only way to fix this test is (a) revert all of Christoph's
-> changes so far and scuttle the divorce; or (b) change this test like so:
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: "Darrick J. Wong" <djwong@kernel.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Felix Kuehling <Felix.Kuehling@amd.com>
+Cc: Alex Deucher <alexander.deucher@amd.com>
+Cc: "Christian König" <christian.koenig@amd.com>
+Cc: "Pan, Xinhui" <Xinhui.Pan@amd.com>
+Cc: David Airlie <airlied@linux.ie>
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: Ben Skeggs <bskeggs@redhat.com>
+Cc: Karol Herbst <kherbst@redhat.com>
+Cc: Lyude Paul <lyude@redhat.com>
+Cc: "Jérôme Glisse" <jglisse@redhat.com>
+Suggested-by: Jason Gunthorpe <jgg@nvidia.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+This builds on the dax reference counting reworks in mm-unstable.
 
-Sorry, I didn't know which Christoph's patches need to be reverted?
-Could you tell me the URL about Christoph's patches?
+ arch/powerpc/kvm/book3s_hv_uvmem.c       |   11 ++--
+ drivers/dax/mapping.c                    |   10 +++
+ drivers/gpu/drm/amd/amdkfd/kfd_migrate.c |   14 +++--
+ drivers/gpu/drm/nouveau/nouveau_dmem.c   |   13 +++-
+ include/linux/memremap.h                 |   35 ++++++++---
+ lib/test_hmm.c                           |    9 +++
+ mm/memremap.c                            |   92 ++++++++++++------------------
+ 7 files changed, 106 insertions(+), 78 deletions(-)
 
-> 
->   1. Create a large sparse file on $TEST_DIR and losetup that sparse
->      file.  The resulting loop device will not have dax capability.
-> 
->   2. Set up the dmthin/dmlogwrites stack on top of this loop device.
-> 
->   3. Call mkfs.xfs with the SCRATCH_DEV (which hopefully is a pmem
->      device) as the realtime device, and set the daxinherit and rtinherit
->      flags on the root directory.  The result is a filesystem with a data
->      section that the kernel will treat as a regular block device, a
->      realtime section backed by pmem, and the necessary flags to make
->      sure that the test file will actually get fsdax mode.
-> 
->   4. Acknowledge that we no longer have any way to test MAP_SYNC
->      functionality on ext4, which means that generic/470 has to move to
->      tests/xfs/.
+diff --git a/arch/powerpc/kvm/book3s_hv_uvmem.c b/arch/powerpc/kvm/book3s_hv_uvmem.c
+index 884ec112ad43..2ea59396f608 100644
+--- a/arch/powerpc/kvm/book3s_hv_uvmem.c
++++ b/arch/powerpc/kvm/book3s_hv_uvmem.c
+@@ -689,12 +689,14 @@ unsigned long kvmppc_h_svm_init_abort(struct kvm *kvm)
+  */
+ static struct page *kvmppc_uvmem_get_page(unsigned long gpa, struct kvm *kvm)
+ {
+-	struct page *dpage = NULL;
++	struct dev_pagemap *pgmap = &kvmppc_uvmem_pgmap;
+ 	unsigned long bit, uvmem_pfn;
+ 	struct kvmppc_uvmem_page_pvt *pvt;
+ 	unsigned long pfn_last, pfn_first;
++	struct folio *folio;
++	struct page *dpage;
+ 
+-	pfn_first = kvmppc_uvmem_pgmap.range.start >> PAGE_SHIFT;
++	pfn_first = pgmap->range.start >> PAGE_SHIFT;
+ 	pfn_last = pfn_first +
+ 		   (range_len(&kvmppc_uvmem_pgmap.range) >> PAGE_SHIFT);
+ 
+@@ -716,9 +718,10 @@ static struct page *kvmppc_uvmem_get_page(unsigned long gpa, struct kvm *kvm)
+ 	pvt->gpa = gpa;
+ 	pvt->kvm = kvm;
+ 
+-	dpage = pfn_to_page(uvmem_pfn);
++	folio = pgmap_request_folio(pgmap,
++				    pfn_to_pgmap_offset(pgmap, uvmem_pfn), 0);
++	dpage = &folio->page;
+ 	dpage->zone_device_data = pvt;
+-	pgmap_request_folios(dpage->pgmap, page_folio(dpage), 1);
+ 	lock_page(dpage);
+ 	return dpage;
+ out_clear:
+diff --git a/drivers/dax/mapping.c b/drivers/dax/mapping.c
+index ca06f2515644..b885c75e2dfb 100644
+--- a/drivers/dax/mapping.c
++++ b/drivers/dax/mapping.c
+@@ -376,8 +376,14 @@ static vm_fault_t dax_associate_entry(void *entry,
+ 		if (flags & DAX_COW) {
+ 			dax_mapping_set_cow(folio);
+ 		} else {
++			struct dev_pagemap *pgmap = folio_pgmap(folio);
++			unsigned long pfn = page_to_pfn(&folio->page);
++
+ 			WARN_ON_ONCE(folio->mapping);
+-			if (!pgmap_request_folios(folio_pgmap(folio), folio, 1))
++			if (folio !=
++			    pgmap_request_folio(pgmap,
++						pfn_to_pgmap_offset(pgmap, pfn),
++						folio_order(folio)))
+ 				return VM_FAULT_SIGBUS;
+ 			folio->mapping = mapping;
+ 			folio->index = index + i;
+@@ -691,7 +697,7 @@ static struct page *dax_zap_pages(struct xa_state *xas, void *entry)
+ 
+ 	dax_for_each_folio(entry, folio, i) {
+ 		if (zap)
+-			pgmap_release_folios(folio, 1);
++			folio_put(folio);
+ 		if (!ret && !dax_folio_idle(folio))
+ 			ret = folio_page(folio, 0);
+ 	}
+diff --git a/drivers/gpu/drm/amd/amdkfd/kfd_migrate.c b/drivers/gpu/drm/amd/amdkfd/kfd_migrate.c
+index 8cf97060122b..1cecee358a9e 100644
+--- a/drivers/gpu/drm/amd/amdkfd/kfd_migrate.c
++++ b/drivers/gpu/drm/amd/amdkfd/kfd_migrate.c
+@@ -215,15 +215,17 @@ svm_migrate_addr_to_pfn(struct amdgpu_device *adev, unsigned long addr)
+ 	return (addr + adev->kfd.dev->pgmap.range.start) >> PAGE_SHIFT;
+ }
+ 
+-static void
+-svm_migrate_get_vram_page(struct svm_range *prange, unsigned long pfn)
++static void svm_migrate_get_vram_page(struct dev_pagemap *pgmap,
++				      struct svm_range *prange,
++				      unsigned long pfn)
+ {
++	struct folio *folio;
+ 	struct page *page;
+ 
+-	page = pfn_to_page(pfn);
++	folio = pgmap_request_folio(pgmap, pfn_to_pgmap_offset(pgmap, pfn), 0);
++	page = &folio->page;
+ 	svm_range_bo_ref(prange->svm_bo);
+ 	page->zone_device_data = prange->svm_bo;
+-	pgmap_request_folios(page->pgmap, page_folio(page), 1);
+ 	lock_page(page);
+ }
+ 
+@@ -298,6 +300,7 @@ svm_migrate_copy_to_vram(struct amdgpu_device *adev, struct svm_range *prange,
+ 			 struct migrate_vma *migrate, struct dma_fence **mfence,
+ 			 dma_addr_t *scratch)
+ {
++	struct kfd_dev *kfddev = adev->kfd.dev;
+ 	uint64_t npages = migrate->npages;
+ 	struct device *dev = adev->dev;
+ 	struct amdgpu_res_cursor cursor;
+@@ -327,7 +330,8 @@ svm_migrate_copy_to_vram(struct amdgpu_device *adev, struct svm_range *prange,
+ 		if (spage && !is_zone_device_page(spage)) {
+ 			dst[i] = cursor.start + (j << PAGE_SHIFT);
+ 			migrate->dst[i] = svm_migrate_addr_to_pfn(adev, dst[i]);
+-			svm_migrate_get_vram_page(prange, migrate->dst[i]);
++			svm_migrate_get_vram_page(&kfddev->pgmap, prange,
++						  migrate->dst[i]);
+ 			migrate->dst[i] = migrate_pfn(migrate->dst[i]);
+ 			src[i] = dma_map_page(dev, spage, 0, PAGE_SIZE,
+ 					      DMA_TO_DEVICE);
+diff --git a/drivers/gpu/drm/nouveau/nouveau_dmem.c b/drivers/gpu/drm/nouveau/nouveau_dmem.c
+index 1482533c7ca0..24208a1d7441 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_dmem.c
++++ b/drivers/gpu/drm/nouveau/nouveau_dmem.c
+@@ -307,6 +307,9 @@ static struct page *
+ nouveau_dmem_page_alloc_locked(struct nouveau_drm *drm)
+ {
+ 	struct nouveau_dmem_chunk *chunk;
++	struct dev_pagemap *pgmap;
++	struct folio *folio;
++	unsigned long pfn;
+ 	struct page *page = NULL;
+ 	int ret;
+ 
+@@ -316,17 +319,21 @@ nouveau_dmem_page_alloc_locked(struct nouveau_drm *drm)
+ 		drm->dmem->free_pages = page->zone_device_data;
+ 		chunk = nouveau_page_to_chunk(page);
+ 		chunk->callocated++;
++		pfn = page_to_pfn(page);
+ 		spin_unlock(&drm->dmem->lock);
+ 	} else {
+ 		spin_unlock(&drm->dmem->lock);
+ 		ret = nouveau_dmem_chunk_alloc(drm, &page);
+ 		if (ret)
+ 			return NULL;
++		chunk = nouveau_page_to_chunk(page);
++		pfn = page_to_pfn(page);
+ 	}
+ 
+-	pgmap_request_folios(page->pgmap, page_folio(page), 1);
+-	lock_page(page);
+-	return page;
++	pgmap = &chunk->pagemap;
++	folio = pgmap_request_folio(pgmap, pfn_to_pgmap_offset(pgmap, pfn), 0);
++	lock_page(&folio->page);
++	return &folio->page;
+ }
+ 
+ static void
+diff --git a/include/linux/memremap.h b/include/linux/memremap.h
+index ddb196ae0696..f11f827883bb 100644
+--- a/include/linux/memremap.h
++++ b/include/linux/memremap.h
+@@ -139,6 +139,28 @@ struct dev_pagemap {
+ 	};
+ };
+ 
++/*
++ * Do not use this in new code, this is a transitional helper on the
++ * path to convert all ZONE_DEVICE users to operate in terms of pgmap
++ * offsets rather than pfn and pfn_to_page() to put ZONE_DEVICE pages
++ * into use.
++ */
++static inline pgoff_t pfn_to_pgmap_offset(struct dev_pagemap *pgmap, unsigned long pfn)
++{
++	u64 phys = PFN_PHYS(pfn), sum = 0;
++	int i;
++
++	for (i = 0; i < pgmap->nr_range; i++) {
++		struct range *range = &pgmap->ranges[i];
++
++		if (phys >= range->start && phys <= range->end)
++			return PHYS_PFN(phys - range->start + sum);
++		sum += range_len(range);
++	}
++
++	return -1;
++}
++
+ static inline bool pgmap_has_memory_failure(struct dev_pagemap *pgmap)
+ {
+ 	return pgmap->ops && pgmap->ops->memory_failure;
+@@ -193,9 +215,8 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap);
+ void devm_memunmap_pages(struct device *dev, struct dev_pagemap *pgmap);
+ struct dev_pagemap *get_dev_pagemap(unsigned long pfn,
+ 				    struct dev_pagemap *pgmap);
+-bool pgmap_request_folios(struct dev_pagemap *pgmap, struct folio *folio,
+-			  int nr_folios);
+-void pgmap_release_folios(struct folio *folio, int nr_folios);
++struct folio *pgmap_request_folio(struct dev_pagemap *pgmap,
++				  pgoff_t pgmap_offset, int order);
+ bool pgmap_pfn_valid(struct dev_pagemap *pgmap, unsigned long pfn);
+ 
+ unsigned long vmem_altmap_offset(struct vmem_altmap *altmap);
+@@ -231,16 +252,12 @@ static inline struct dev_pagemap *get_dev_pagemap(unsigned long pfn,
+ 	return NULL;
+ }
+ 
+-static inline bool pgmap_request_folios(struct dev_pagemap *pgmap,
+-					struct folio *folio, int nr_folios)
++static inline struct folio *pgmap_request_folio(struct dev_pagemap *pgmap,
++						pgoff_t pgmap_offset, int order)
+ {
+ 	return false;
+ }
+ 
+-static inline void pgmap_release_folios(struct folio *folio, int nr_folios)
+-{
+-}
+-
+ static inline bool pgmap_pfn_valid(struct dev_pagemap *pgmap, unsigned long pfn)
+ {
+ 	return false;
+diff --git a/lib/test_hmm.c b/lib/test_hmm.c
+index e4f7219ae3bb..1f7e00ae62d5 100644
+--- a/lib/test_hmm.c
++++ b/lib/test_hmm.c
+@@ -605,8 +605,11 @@ static int dmirror_allocate_chunk(struct dmirror_device *mdevice,
+ 
+ static struct page *dmirror_devmem_alloc_page(struct dmirror_device *mdevice)
+ {
++	struct dev_pagemap *pgmap;
+ 	struct page *dpage = NULL;
+ 	struct page *rpage = NULL;
++	struct folio *folio;
++	unsigned long pfn;
+ 
+ 	/*
+ 	 * For ZONE_DEVICE private type, this is a fake device so we allocate
+@@ -632,7 +635,11 @@ static struct page *dmirror_devmem_alloc_page(struct dmirror_device *mdevice)
+ 			goto error;
+ 	}
+ 
+-	pgmap_request_folios(dpage->pgmap, page_folio(dpage), 1);
++	/* FIXME: Rework allocator to be pgmap offset based */
++	pgmap = dpage->pgmap;
++	pfn = page_to_pfn(dpage);
++	folio = pgmap_request_folio(pgmap, pfn_to_pgmap_offset(pgmap, pfn), 0);
++	WARN_ON_ONCE(dpage != &folio->page);
+ 	lock_page(dpage);
+ 	dpage->zone_device_data = rpage;
+ 	return dpage;
+diff --git a/mm/memremap.c b/mm/memremap.c
+index 02b796749b72..09b20a337db9 100644
+--- a/mm/memremap.c
++++ b/mm/memremap.c
+@@ -492,76 +492,60 @@ void free_zone_device_page(struct page *page)
+ 	put_dev_pagemap(page->pgmap);
+ }
+ 
+-static __maybe_unused bool folio_span_valid(struct dev_pagemap *pgmap,
+-					    struct folio *folio,
+-					    int nr_folios)
++static unsigned long pgmap_offset_to_pfn(struct dev_pagemap *pgmap,
++					 pgoff_t pgmap_offset)
+ {
+-	unsigned long pfn_start, pfn_end;
+-
+-	pfn_start = page_to_pfn(folio_page(folio, 0));
+-	pfn_end = pfn_start + (1 << folio_order(folio)) * nr_folios - 1;
++	u64 sum = 0, offset = PFN_PHYS(pgmap_offset);
++	int i;
+ 
+-	if (pgmap != xa_load(&pgmap_array, pfn_start))
+-		return false;
++	for (i = 0; i < pgmap->nr_range; i++) {
++		struct range *range = &pgmap->ranges[i];
+ 
+-	if (pfn_end > pfn_start && pgmap != xa_load(&pgmap_array, pfn_end))
+-		return false;
++		if (offset >= sum && offset < (sum + range_len(range)))
++			return PHYS_PFN(range->start + offset - sum);
++		sum += range_len(range);
++	}
+ 
+-	return true;
++	return -1;
+ }
+ 
+ /**
+- * pgmap_request_folios - activate an contiguous span of folios in @pgmap
+- * @pgmap: host page map for the folio array
+- * @folio: start of the folio list, all subsequent folios have same folio_size()
++ * pgmap_request_folio - activate a folio of a given order in @pgmap
++ * @pgmap: host page map of the folio to activate
++ * @pgmap_offset: page-offset into the pgmap to request
++ * @order: expected folio_order() of the folio
+  *
+  * Caller is responsible for @pgmap remaining live for the duration of
+- * this call. Caller is also responsible for not racing requests for the
+- * same folios.
++ * this call. The order (size) of the folios in the pgmap are assumed
++ * stable before this call.
+  */
+-bool pgmap_request_folios(struct dev_pagemap *pgmap, struct folio *folio,
+-			  int nr_folios)
++struct folio *pgmap_request_folio(struct dev_pagemap *pgmap,
++				  pgoff_t pgmap_offset, int order)
+ {
+-	struct folio *iter;
+-	int i;
++	unsigned long pfn = pgmap_offset_to_pfn(pgmap, pgmap_offset);
++	struct page *page = pfn_to_page(pfn);
++	struct folio *folio;
++	int v;
+ 
+-	/*
+-	 * All of the WARNs below are for catching bugs in future
+-	 * development that changes the assumptions of:
+-	 * 1/ uniform folios in @pgmap
+-	 * 2/ @pgmap death does not race this routine.
+-	 */
+-	VM_WARN_ON_ONCE(!folio_span_valid(pgmap, folio, nr_folios));
++	if (WARN_ON_ONCE(page->pgmap != pgmap))
++		return NULL;
+ 
+ 	if (WARN_ON_ONCE(percpu_ref_is_dying(&pgmap->ref)))
+-		return false;
++		return NULL;
+ 
+-	for (iter = folio_next(folio), i = 1; i < nr_folios;
+-	     iter = folio_next(folio), i++)
+-		if (WARN_ON_ONCE(folio_order(iter) != folio_order(folio)))
+-			return false;
++	folio = page_folio(page);
++	if (WARN_ON_ONCE(folio_order(folio) != order))
++		return NULL;
+ 
+-	for (iter = folio, i = 0; i < nr_folios; iter = folio_next(iter), i++) {
+-		folio_ref_inc(iter);
+-		if (folio_ref_count(iter) == 1)
+-			percpu_ref_tryget(&pgmap->ref);
+-	}
+-
+-	return true;
+-}
+-EXPORT_SYMBOL_GPL(pgmap_request_folios);
++	v = folio_ref_inc_return(folio);
++	if (v > 1)
++		return folio;
+ 
+-/*
+- * A symmetric helper to undo the page references acquired by
+- * pgmap_request_folios(), but the caller can also just arrange
+- * folio_put() on all the folios it acquired previously for the same
+- * effect.
+- */
+-void pgmap_release_folios(struct folio *folio, int nr_folios)
+-{
+-	struct folio *iter;
+-	int i;
++	if (WARN_ON_ONCE(!percpu_ref_tryget(&pgmap->ref))) {
++		folio_put(folio);
++		return NULL;
++	}
+ 
+-	for (iter = folio, i = 0; i < nr_folios; iter = folio_next(folio), i++)
+-		folio_put(iter);
++	return folio;
+ }
++EXPORT_SYMBOL_GPL(pgmap_request_folio);
 
-Sorry, I didn't understand why the above test change can fix the issue.
-Could you tell me which step can discard XFS log?
-
-In addition, I don't like your idea about the test change because it 
-will make generic/470 become the special test for XFS. Do you know if we 
-can fix the issue by changing the test in another way? blkdiscard -z can 
-fix the issue because it does zero-fill rather than discard on the block 
-device.  However, blkdiscard -z will take a lot of time when the block 
-device is large.
-
-Best Regards,
-Xiao Yang
-
-> 
-> --D
