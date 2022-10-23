@@ -1,64 +1,63 @@
-Received: from esa13.fujitsucc.c3s2.iphmx.com (esa13.fujitsucc.c3s2.iphmx.com [68.232.156.96])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f181.google.com (mail-pf1-f181.google.com [209.85.210.181])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36966160
-	for <nvdimm@lists.linux.dev>; Sun, 23 Oct 2022 07:06:11 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
-  d=fujitsu.com; i=@fujitsu.com; q=dns/txt; s=fj1;
-  t=1666508772; x=1698044772;
-  h=from:to:cc:subject:date:message-id:references:
-   in-reply-to:content-transfer-encoding:mime-version;
-  bh=qNtA0KclKrr+BAmsS/+lrPX2gBVVtX5XLnb2ArKmi/g=;
-  b=Hft8/oQON5fd5ph5Iastyhr6yp/jXPSnpCezU2PxVDdWMM8ZYKHVfzjy
-   7lCrmnSmXnrJ9ab48/mLtyicI/3UNaaHR3L0SUTCyiwcy8tqX7s29ygXJ
-   OHgc5/5LlT7cRK3K9kCFiojxcPzTMOEPfxKFAh9HT4UkXOXTNl1G9bAJ/
-   w0r+bMiAIH3BK4O9+Hu+5rADGyILJyageQPnjRDHzURWLl47xLktwjF6G
-   YOTR/Xup/Xonrjn2f4IsNTAvEdQxdyGaxMHJ1WzPOWzahzSgttRjjH4rd
-   tOAZf8wtsGIR65of4/i0o6PiVsQ9EFbVYwO0vOvFNK+t73AElQlvKslaF
-   w==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10508"; a="67935686"
-X-IronPort-AV: E=Sophos;i="5.95,206,1661785200"; 
-   d="scan'208";a="67935686"
-Received: from mail-tycjpn01lp2172.outbound.protection.outlook.com (HELO JPN01-TYC-obe.outbound.protection.outlook.com) ([104.47.23.172])
-  by ob1.fujitsucc.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Oct 2022 16:04:57 +0900
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=n6Yqu/WtnoGTNq1LJbtUTEsT1/0sw5+HOxDGjZxfjRm+cPSyHiNdLEanTorJU0pY1QutstKzr8edfzm45jnpS1OU2bDDVd4VYbbe2DnP5TFltAlKCKXrYQv90iaby4V2SDIFtAuIPb+pX6pFgFhwTPvwk6ugr45Jz/GWDhOVCd8tmTbU2DJgyag0Vn6T6db5AUrf3FxJaZKSi5p7z3lzWojLqCd8jB5bl6sp9Y3qetU1ONyvyqGrO1oN3lqVG3CquWCvptwNepquZuJnJyPN4DNC4H4jAjBbCUDldUXrID3JQ1cFgFIx66WoX1d05JMCY3eYcccXnL76JqKbm7kWgQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=qNtA0KclKrr+BAmsS/+lrPX2gBVVtX5XLnb2ArKmi/g=;
- b=KkJqGoDUI4+IN+uYxYueVTFX4VDXzNKnHl2kf8Vfyq//GROzSFEiUC2tCrIH6pqzHzxeZwPEuIBHjmmr4FK2NDhwZqh49iXKQZ8zY3l6nx2mYAjmCJQhMxTKtfEQb7CDumn+xvQK9sqzHSU89nnlE0+llDxSu6W3nMs+0TuFYnv+3DIspESNzQj9oa5httNg7ILjyAlIb8MAtWCdqqPHg8eO7EkheNaGEMqvttU1utuzj3BhUW3aKWGz1X8pCvQ8+/gVZ9OKtjlcbGgT+9fqU+bLJBnoVjPMraTw5Vm8gvVHXlv2iaWqMVm+n5Puq5e1F7cPIH8qUr9Rx4J5VsxVtw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=fujitsu.com; dmarc=pass action=none header.from=fujitsu.com;
- dkim=pass header.d=fujitsu.com; arc=none
-Received: from OS3PR01MB9499.jpnprd01.prod.outlook.com (2603:1096:604:1c8::5)
- by OSZPR01MB6309.jpnprd01.prod.outlook.com (2603:1096:604:ef::13) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5746.23; Sun, 23 Oct
- 2022 07:04:54 +0000
-Received: from OS3PR01MB9499.jpnprd01.prod.outlook.com
- ([fe80::339e:88a3:a24c:5f68]) by OS3PR01MB9499.jpnprd01.prod.outlook.com
- ([fe80::339e:88a3:a24c:5f68%9]) with mapi id 15.20.5746.021; Sun, 23 Oct 2022
- 07:04:54 +0000
-From: "yangx.jy@fujitsu.com" <yangx.jy@fujitsu.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4FFB7B
+	for <nvdimm@lists.linux.dev>; Sun, 23 Oct 2022 22:00:22 +0000 (UTC)
+Received: by mail-pf1-f181.google.com with SMTP id b185so1333310pfb.9
+        for <nvdimm@lists.linux.dev>; Sun, 23 Oct 2022 15:00:22 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=fromorbit-com.20210112.gappssmtp.com; s=20210112;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date:from:to
+         :cc:subject:date:message-id:reply-to;
+        bh=hvIFbRsnY/vDy+taGpGboiBar50BevLz1lBfrbHmmSw=;
+        b=2K6CdRtZ5HzBar49k2LtiaW4FLoVKcjs3PX7dq9FckhdarNhspBzGdosOgBSuz/dFl
+         hqkurPNmdOALjzGHlf/R/AjdU4bgOD3OuS/7fwlCriJzk7e3+d0Mwrgg1jiDZBERrjA3
+         tPjsSEMV/bQFMwFk0aZRvlr80IT4EEcbjO/xZNKwZNZCfx+8s2raBuVEoZgGRF8qUzCo
+         e3VdHSUx68cvi2Dtq5rhCK0elIHYZ57ABlCP9JY3q0fC1wbee10T+p5t803KP0EOcmds
+         PKzKeyTQKjS424ssn94Dwhwx++97dTHY7MW4pTsHLa0hq6ZxUAMk5obAniRJJSKbNQM1
+         wpAA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=hvIFbRsnY/vDy+taGpGboiBar50BevLz1lBfrbHmmSw=;
+        b=lAYlf/atGOxvUQLPozov/oWyku0SIT52IFKIsdyXfuKI+l+xsCnF9P0UZA+t31Fs/6
+         DCr4MA8yo/KeA2LHwcNBqFw7P76KM4MOq18O+MwVA3t560cpjnMMY5li1hh9jQaq9wFQ
+         P7Dgd7v+AmB+skyCaw/RLJah0xmoiVm/muSw8vcy8CPbrXqh1wbqvuUgxRIVE7z4BGbx
+         6q9rJa4UFt9dqzvdZBl3YHdh2YwSI82uVwHFadUq2DDhUsOWqGj4+Wpm5BCWdXUUcUid
+         7G8SwASlt77EDpLCUspO/smEPudSzOwY0CGsAhjc99uYT0xHlypgrPyN23sKI9Bwo6oO
+         Tozw==
+X-Gm-Message-State: ACrzQf38Ut5Y9uQbRJmc7Np7aJkTHsTIEfBQC6QCIw6pDF5bONvKBJJ0
+	/4E75vGsM01WafAo4CoDdZ2Rpw==
+X-Google-Smtp-Source: AMsMyM5VwZrmUlSzb+1EZVG+tpjTbe3LySen3wNOfYDBTBo98hzEeyHHH/8b9UZAgnJ5FzV86+CCWw==
+X-Received: by 2002:aa7:8011:0:b0:567:70cc:5b78 with SMTP id j17-20020aa78011000000b0056770cc5b78mr26373798pfi.29.1666562422001;
+        Sun, 23 Oct 2022 15:00:22 -0700 (PDT)
+Received: from dread.disaster.area (pa49-181-106-210.pa.nsw.optusnet.com.au. [49.181.106.210])
+        by smtp.gmail.com with ESMTPSA id a3-20020aa78e83000000b0056beae3dee2sm14606pfr.145.2022.10.23.15.00.21
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 23 Oct 2022 15:00:21 -0700 (PDT)
+Received: from dave by dread.disaster.area with local (Exim 4.92.3)
+	(envelope-from <david@fromorbit.com>)
+	id 1omj10-005abc-AD; Mon, 24 Oct 2022 09:00:18 +1100
+Date: Mon, 24 Oct 2022 09:00:18 +1100
+From: Dave Chinner <david@fromorbit.com>
 To: "Darrick J. Wong" <djwong@kernel.org>
-CC: Brian Foster <bfoster@redhat.com>, "hch@infradead.org"
-	<hch@infradead.org>, "linux-kernel@vger.kernel.org"
-	<linux-kernel@vger.kernel.org>, "linux-xfs@vger.kernel.org"
-	<linux-xfs@vger.kernel.org>, "nvdimm@lists.linux.dev"
-	<nvdimm@lists.linux.dev>, "linux-fsdevel@vger.kernel.org"
-	<linux-fsdevel@vger.kernel.org>, "david@fromorbit.com" <david@fromorbit.com>,
-	"zwisler@kernel.org" <zwisler@kernel.org>, Jeff Moyer <jmoyer@redhat.com>,
-	"dm-devel@redhat.com" <dm-devel@redhat.com>, "toshi.kani@hpe.com"
-	<toshi.kani@hpe.com>
-Subject: RE: [PATCH] xfs: fail dax mount if reflink is enabled on a partition
-Thread-Topic: [PATCH] xfs: fail dax mount if reflink is enabled on a partition
-Thread-Index:
- AQHYfA4forHNHCyS0U+LGZ2U8ockZa1oy6eAgG1PENKAAYW1gIAHcj8AgAAwlgCAADFJAIAAQWgAgAEpzwCAAQljgIAGUv0AgA+aw4CABj0IgIAAQxUAgADul4CAGN++gIACWZ4AgAB3MICAAWvlEA==
-Date: Sun, 23 Oct 2022 07:04:53 +0000
-Message-ID:
- <OS3PR01MB9499BE1E2B3E1823B6F8F1C4832F9@OS3PR01MB9499.jpnprd01.prod.outlook.com>
-References: <YyHKUhOgHdTKPQXL@bfoster> <YyIBMJzmbZsUBHpy@magnolia>
+Cc: =?utf-8?B?WWFuZywgWGlhby/mnagg5pmT?= <yangx.jy@fujitsu.com>,
+	=?utf-8?B?R290b3UsIFlhc3Vub3JpL+S6lOWztiDlurfmloc=?= <y-goto@fujitsu.com>,
+	Brian Foster <bfoster@redhat.com>,
+	"hch@infradead.org" <hch@infradead.org>,
+	=?utf-8?B?UnVhbiwgU2hpeWFuZy/pmK4g5LiW6Ziz?= <ruansy.fnst@fujitsu.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>,
+	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
+	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
+	zwisler@kernel.org, Jeff Moyer <jmoyer@redhat.com>,
+	dm-devel@redhat.com, toshi.kani@hpe.com
+Subject: Re: [PATCH] xfs: fail dax mount if reflink is enabled on a partition
+Message-ID: <20221023220018.GX3600936@dread.disaster.area>
+References: <YyIBMJzmbZsUBHpy@magnolia>
  <a6e7f4eb-0664-bbe8-98d2-f8386b226113@fujitsu.com>
  <e3d51a6b-12e9-2a19-1280-5fd9dd64117c@fujitsu.com>
  <deb54a77-90d3-df44-1880-61cce6e3f670@fujitsu.com>
@@ -68,206 +67,115 @@ References: <YyHKUhOgHdTKPQXL@bfoster> <YyIBMJzmbZsUBHpy@magnolia>
  <Yzx64zGt2kTiDYaP@magnolia>
  <6a83a56e-addc-f3c4-2357-9589a49bf582@fujitsu.com>
  <Y1NRNtToQTjs0Dbd@magnolia>
- <09f522cd-e846-12ee-d662-14f34a2977c4@fujitsu.com>
-In-Reply-To: <09f522cd-e846-12ee-d662-14f34a2977c4@fujitsu.com>
-Accept-Language: zh-CN, en-US
-Content-Language: en-US
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-msip_labels:
- =?utf-8?B?TVNJUF9MYWJlbF9hNzI5NWNjMS1kMjc5LTQyYWMtYWI0ZC0zYjBmNGZlY2Uw?=
- =?utf-8?B?NTBfQWN0aW9uSWQ9ZTdkN2I3ZWMtZDU5Mi00ODExLTg3MmItNmVlZTAyOGNk?=
- =?utf-8?B?ZTZiO01TSVBfTGFiZWxfYTcyOTVjYzEtZDI3OS00MmFjLWFiNGQtM2IwZjRm?=
- =?utf-8?B?ZWNlMDUwX0NvbnRlbnRCaXRzPTA7TVNJUF9MYWJlbF9hNzI5NWNjMS1kMjc5?=
- =?utf-8?B?LTQyYWMtYWI0ZC0zYjBmNGZlY2UwNTBfRW5hYmxlZD10cnVlO01TSVBfTGFi?=
- =?utf-8?B?ZWxfYTcyOTVjYzEtZDI3OS00MmFjLWFiNGQtM2IwZjRmZWNlMDUwX01ldGhv?=
- =?utf-8?B?ZD1TdGFuZGFyZDtNU0lQX0xhYmVsX2E3Mjk1Y2MxLWQyNzktNDJhYy1hYjRk?=
- =?utf-8?B?LTNiMGY0ZmVjZTA1MF9OYW1lPUZVSklUU1UtUkVTVFJJQ1RFRO+/ou++gA==?=
- =?utf-8?B?776LO01TSVBfTGFiZWxfYTcyOTVjYzEtZDI3OS00MmFjLWFiNGQtM2IwZjRm?=
- =?utf-8?B?ZWNlMDUwX1NldERhdGU9MjAyMi0xMC0yM1QwNzowMDowMlo7TVNJUF9MYWJl?=
- =?utf-8?B?bF9hNzI5NWNjMS1kMjc5LTQyYWMtYWI0ZC0zYjBmNGZlY2UwNTBfU2l0ZUlk?=
- =?utf-8?Q?=3Da19f121d-81e1-4858-a9d8-736e267fd4c7;?=
-authentication-results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=fujitsu.com;
-x-ms-publictraffictype: Email
-x-ms-traffictypediagnostic: OS3PR01MB9499:EE_|OSZPR01MB6309:EE_
-x-ms-office365-filtering-correlation-id: 5822ad2d-ce5e-4506-5ef3-08dab4c4e2bc
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info:
- shAC7Sb0qDnf7msp/29n39n7X6dFdGv1eWRiv/Ca8jlDQn6fcO869pScEau/qvz8/RoTd8Nw73kyPvFM20eC14exljvdgStW70+rZaT9WRCNtxZIpjv65L0XGQm+TEEhx0CGk2zXDwaz+WzhsqcV2plWNddL5P//FDXcyt9F/PohQ1SAkAivxUAMZfKr4CtCAuSy4TR51z/ltfx/9/SWuYFQdVEmqFjnE2uR1Osb4Kn4D7qNBraVSgL9WfKc1SNNZPvTREXQ8V6wQ3Yoha5RN/OvU7/6mqzJp8Kt6sZlIg/RT7Sfplffji7lFvpoOx/2XSS/IMcgHlZ91J7CJa+/yYgEuTC4j92EFXLvJE6du7V6/Sn0oUuAHVRnSUPbonCBuBiwLCMZ1NIiE1MmlvQmW3A+JVA7x60H+n143tlYO+wOev0VfRAqQWnxQP3DF/zV8tBMBkumkX+eszq3PdcagW9y2I7/X3s0iz2x7OeLRH0bePcgq7WGLj4E+L00a/NeLj6MQ1EH/7Kit38sU4DyMKEpK5YltzWrLrPDVmTVQQpEnDBYjdxNQRarVGSK6WYEeaKO/xsvJIV86TqE+s1dOGb/NOcgRQ4cJ9gefYbY9IqS9djH3qaobb5RfqaWg4l1y4ovSJjc6qYWc0winyAUpqPgv21clmwKiaQXlhcb4VQ0pvxmoZ0C8vMbzJEDBGW97z/nyuf123r4cWhHitcxaUJGJoVPFsjkvz/qnNx/dXPTr/sEJ8ZOYNwx0AZL2Y/zBGqsQ/3bwX76KoQYhAC0pm97yfyQfQVJUU2ieUTk3LATrprpGynm4uM66i7FlFVd50L1QhWCXq6WfMUhcPGzQw==
-x-forefront-antispam-report:
- CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:OS3PR01MB9499.jpnprd01.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230022)(4636009)(136003)(376002)(346002)(39860400002)(396003)(366004)(451199015)(1590799012)(1580799009)(2906002)(5660300002)(7416002)(85182001)(52536014)(55016003)(33656002)(41300700001)(83380400001)(122000001)(38100700002)(38070700005)(82960400001)(71200400001)(6916009)(54906003)(966005)(478600001)(8936002)(86362001)(316002)(66946007)(66476007)(66556008)(64756008)(66446008)(8676002)(4326008)(76116006)(186003)(26005)(9686003)(7696005)(53546011)(6506007);DIR:OUT;SFP:1101;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0:
- =?utf-8?B?WFRSQno3eHUxVVpneEZwZ3lVQVI1SGRmK1k4cnVlaTlLNjNVRnJwdlNNMCs5?=
- =?utf-8?B?YWkvb201OG9oQkhNekdROENUUkJLY3hTSlBsQ3lpeFB1amQySHRWRlQxUTNL?=
- =?utf-8?B?aGRJVk9jT1UrVGlkRnJSeTdhWGJ5WnlNVDF4ZlYxd1V6aUxnY0ZLRCtidVVT?=
- =?utf-8?B?ajF0WldUWDZWc0g4VllhQ0JSQVlGcEE1K3MzenkzN1hiYllnVm1XRjRtVXhC?=
- =?utf-8?B?NjMxd0prS1BJZW5DNldtN0ZXZk1SeHptNWF4OUtYNTdlaVVNNDlic3F0OEZD?=
- =?utf-8?B?VVQ4Qm9nSlh3WTFUWGtqSFBSQlh1RXFUbGVhU1NEMU1xKzlPT3ZVSk5EUUpM?=
- =?utf-8?B?SWczakV6NHlxemp0VTFqRGxIT29SNVJKRHJtOFhYenhFNW9iNkVVem9XQldR?=
- =?utf-8?B?NWE1VU9pMXU1dG9ONzlvODlUNGE2dEFveWFVNzBtUTkrbjNUVHV4QzVqUHdT?=
- =?utf-8?B?QXcvTDNUQjRrVGJHWG4vS2svelFIMy9OT0lYMS84VStSOE1xMG1FNE1OaTRx?=
- =?utf-8?B?VDFyb0ZKWldzRk00VW9abVVlYXQ1blJXZ0IxZEZCc3lUaGlscGpJVVZ6RFBR?=
- =?utf-8?B?MzVaek04TVdneVRBb2NaRFZhMHUrRlNBYVNCWVhUOTlIY0hiYVdSdE9nd1RR?=
- =?utf-8?B?QldybHdtR0lNeUdLZkc0Y29Hd05xN2J1dk4ySTlaZFAxWnJHUUhTdFdZSERV?=
- =?utf-8?B?eDN5aTZQUkxEQU5OelAwTFdTbDhRRWU2WE4vQlVhRzJUMjFraURJZEVTOStE?=
- =?utf-8?B?VUdpUUR3L0E3YkZHa0VjV3pXcnJtZmxuVWlLb3d5T2FiMEVTYVVPVVVPMmhi?=
- =?utf-8?B?TE1XdEpnVG1tdmFSL3QvbUtqWVVvallIbnRwNFZaSTVXU2NsdkJ0R2l3d2k0?=
- =?utf-8?B?MDk4ME53RUJuWnJQYnVsWFJWTHcvd2RHMTZSSkhTM3hVN3VTTFh2S0I3SDFN?=
- =?utf-8?B?MHMvU0RDb2JOQldmbEtlTWYzbHBidUt1NDhrYkcxVjE0TWFhUHdsZmgrYXZJ?=
- =?utf-8?B?N1oyZ2tvbndOLzZIakhNK1JYbDhmL0Z2bGREekRBSWtzMmQxL3Y2cEhaQjcw?=
- =?utf-8?B?b2xjNzFaaE56NFBWcGowSW96aFlNdG95azk5aTlPSkxSMWJKRzJvVHNXYmkw?=
- =?utf-8?B?WGo1SGJmaDR5bmVtZDJEK1RYb05LUFZUTXVZWjgyamFSMXdMQUZmZ2tXVGhE?=
- =?utf-8?B?bTZBMWVRcmVxeXJMN282MUIxUmNKSHh6Y0hKY2JlTHc2Z3YrNlp3VnloZ21I?=
- =?utf-8?B?QnJYTlJrNVJpRVlQQWxjV2RnTkVneTd4TSswWk9PeW5MeG9pZ3Q4SVJoNWFa?=
- =?utf-8?B?Y0ExQjYydDZDR1FKeXhUUVdWNDZPTXc2Y0hEdVd2K2Zid3ZXSi92dTg1L1Ey?=
- =?utf-8?B?R2lNY3Jzb09WVzNzeDF1NHk4TEFRMzArUWU2dkZCNVRQUkkrN3IrT0gyNUZm?=
- =?utf-8?B?amZzR05EaldZdzVBc0k1Um05OVhWUFdScTh1SHBDRzNJVEVkNEdubWxIM2FG?=
- =?utf-8?B?b2RZR0ozd3lTck9VQlZqSS90SlNtVTRtWWx5Njl6RHRoQ1V5enJNS2hVelRB?=
- =?utf-8?B?dDlFcHY5akdEY29MUURZRnVRaWg2UXRFRFhsSGFpUGd2WUgvQkF3UmlTenZh?=
- =?utf-8?B?T1FxNWR5bXdJUEJuYzVSYWVabTRpNEY5R2ZiWDlTbnFYU2NlblRKWGJNcmtw?=
- =?utf-8?B?UDJ2T3FGS3VMQ2JIV0toRWV3alJQM2w3QVdiT3VVNWxURXRZdzYrUmJCOGhN?=
- =?utf-8?B?RkNxRnhiT0YyS3orNkVIUDBhUEorNjFndG05Ni9kN29UTXNUUHgyVE5XMUVs?=
- =?utf-8?B?clJzSmJNbDM4d0JOMzRCVUpVUXo2a01MQ3RnSXgrbnVYMmF6UW9GaE1kYzFZ?=
- =?utf-8?B?ZFpCL3NacGpnc290dHVDK3A0M3NLT3FxMWw1MXgxYnFXa0lqSUhkL1VpeW1F?=
- =?utf-8?B?WkFMS3QzNkI5NjVBT211Mm5zSkZDZnJHR0xBclBmSnpkV1lyNnRyZnZlWXN6?=
- =?utf-8?B?S1NwZUI5VEYyV3lXRFQxUnZEU2ppaDdqVlkrdTc3MG1YbGhYaW8vVTIwVFow?=
- =?utf-8?B?Q0laNkpRSkVKRU9iMUhWSWlLTHF5VGdBTDYrNkhhMmdCTlhIRTV0aHZ0Q0Zh?=
- =?utf-8?Q?m/zsZx5ya4Ystw8cc+kOyfuDc?=
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-OriginatorOrg: fujitsu.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: OS3PR01MB9499.jpnprd01.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 5822ad2d-ce5e-4506-5ef3-08dab4c4e2bc
-X-MS-Exchange-CrossTenant-originalarrivaltime: 23 Oct 2022 07:04:53.6775
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: a19f121d-81e1-4858-a9d8-736e267fd4c7
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: k9Gsx5rO1/hDr1ZL1tHYrm7W7JirKzZyLnK8FlXJ1EodrNalNl3UDCR4dJ9czFIjAi8gcYEW7Be2SBID86KgFQ==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: OSZPR01MB6309
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <Y1NRNtToQTjs0Dbd@magnolia>
 
-T24gMjAyMi8xMC8yMiAxMDoxMSwgRGFycmljayBKLiBXb25nIHdyb3RlOg0KPj4gV2UgbmVlZCB0
-byBmaXggdGhlIGlzc3VlIGJ5IGRpc2NhcmRpbmcgWEZTIGxvZyBvbiB0aGUgYmxvY2sgZGV2aWNl
-Lg0KPj4gbWtmcy54ZnMgd2lsbCB0cnkgdG8gZGlzY2FyZCB0aGUgYmxvY2tzIGluY2x1ZGluZyBY
-RlMgbG9nIGJ5IGNhbGxpbmcNCj4+IGlvY3RsKEJMS0RJU0NBUkQpICBidXQgaXQgd2lsbCBpZ25v
-cmUgZXJyb3Igc2lsZW50bHkgd2hlbiB0aGUgYmxvY2sgDQo+PiBkZXZpY2UgZG9lc24ndCBzdXBw
-b3J0IGlvY3RsKEJMS0RJU0NBUkQpLg0KPiAuLi5idXQgSSB0aGluayBoZXJlJ3Mgd2hlcmUgSSB0
-aGluayB5b3VyIHVuZGVyc3RhbmRpbmcgaXNuJ3QgY29ycmVjdC4NCj4gSXQgbWlnaHQgaGVscCB0
-byBzaG93IGhvdyB0aGUgbmVzdGVkIGxvZ2dpbmcgY3JlYXRlcyBpdHMgb3duIHByb2JsZW1zLg0K
-PiANCj4gRmlyc3QsIGxldCdzIHNheSB0aGVyZSdzIGEgYmxvY2sgQiB0aGF0IGNvbnRhaW5zIHNv
-bWUgc3RhbGUgZ2FyYmFnZSANCj4gQUFBQS4NCj4gDQo+IFhGUyB3cml0ZXMgYSBibG9jayBpbnRv
-IHRoZSBYRlMgbG9nIChjYWxsIHRoZSBibG9jayBMKSB3aXRoIHRoZSANCj4gaW5zdHJ1Y3Rpb25z
-ICJhbGxvY2F0ZSBibG9jayBCIGFuZCB3cml0ZSBDQ0NDIHRvIGJsb2NrIEIiLiAgDQo+IGRtLWxv
-Z3dyaXRlcyBkb2Vzbid0IGtub3cgb3IgY2FyZSBhYm91dCB0aGUgY29udGVudHMgb2YgdGhlIGJs
-b2NrcyANCj4gdGhhdCBpdCBpcyB0b2xkIHRvIHdyaXRlOyBpdCBvbmx5IGtub3dzIHRoYXQgWEZT
-IHRvbGQgaXQgdG8gd3JpdGUgc29tZSANCj4gZGF0YSAodGhlDQo+IGluc3RydWN0aW9ucykgdG8g
-YmxvY2sgTC4gIFNvIGl0IHJlbWVtYmVycyB0aGUgZmFjdCB0aGF0IHNvbWUgZGF0YSBnb3QgDQo+
-IHdyaXR0ZW4gdG8gTCwgYnV0IGl0IGRvZXNuJ3Qga25vdyBhYm91dCBCIGF0IGFsbC4NCj4gDQo+
-IEF0IHRoZSBwb2ludCB3aGVyZSB3ZSBjcmVhdGUgdGhlIGRtLWxvZ3dyaXRlcyBwcmV1bm1hcCBt
-YXJrLCBpdCdzIG9ubHkNCj4gdHJhY2tpbmcgTC4gIEl0IGlzIG5vdCB0cmFja2luZyBCLiAgIEFm
-dGVyIHRoZSBtYXJrIGlzIHRha2VuLCB0aGUgWEZTDQo+IEFJTCB3cml0ZXMgQ0NDQyB0byBCLCBh
-bmQgb25seSB0aGVuIGRvZXMgZG0tbG9nd3JpdGVzIGJlZ2luIHRyYWNraW5nIEIuDQo+IEhlbmNl
-IEIgaXMgbm90IGluY2x1ZGVkIGluIHRoZSBwcmV1bm1hcCBtYXJrLiAgVGhlIHByZS11bm1vdW50
-IHByb2Nlc3MgDQo+IGluIFhGUyB3cml0ZXMgdG8gdGhlIFhGUyBsb2cgIndyaXRlIEREREQgdG8g
-YmxvY2sgQiIgYW5kIHRoZSB1bm1vdW50IA0KPiBwcm9jZXNzIGNoZWNrcG9pbnRzIHRoZSBsb2cg
-Y29udGVudHMsIHNvIG5vdyBibG9jayBCIGNvbnRhaW5zIGNvbnRhaW5zIA0KPiBERERELg0KPiAN
-Cj4gTm93IHRoZSB0ZXN0IHdhbnRzIHRvIHJvbGwgdG8gdGhlIHByZXVubWFwIG1hcmsuICBVbmZv
-cnR1bmF0ZWx5LCANCj4gZG0tbG9nd3JpdGVzIGRvZXNuJ3QgcmVjb3JkIGZvcm1lciBibG9jayBj
-b250ZW50cywgd2hpY2ggbWVhbnMgdGhhdCANCj4gdGhlIGxvZyByZXBsYXkgdG9vbHMgY2Fubm90
-IHJvbGwgYmFja3dhcmRzIGZyb20gInVtb3VudCIgdG8gInByZXVubWFwIiANCj4gLS0gdGhleSBj
-YW4gb25seSByb2xsIGZvcndhcmQgZnJvbSB0aGUgYmVnaW5uaW5nLiAgU28gdGhlcmUncyBubyB3
-YXkgDQo+IHRvIHVuZG8gd3JpdGluZyBEREREIG9yIENDQ0MgdG8gQi4gIElPV3MsIHRoZXJlJ3Mg
-bm8gd2F5IHRvIHJldmVydCBCJ3MgDQo+IHN0YXRlIGJhY2sgdG8gQUFBQSB3aGVuIGRvaW5nIGRt
-LWxvZ3dyaXRlcyByZWNvdmVyeS4NCj4gDQo+IE5vdyBYRlMgbG9nIHJlY292ZXJ5IHN0YXJ0cy4g
-IEl0IHNlZXMgImFsbG9jYXRlIGJsb2NrIEIgYW5kIHdyaXRlIENDQ0MgDQo+IHRvIGJsb2NrIEIi
-LiAgSG93ZXZlciwgaXQgcmVhZHMgYmxvY2sgQiwgc2VlcyB0aGF0IGl0IGNvbnRhaW5zIEREREQs
-IA0KPiBhbmQgaXQgc2tpcHMgd3JpdGluZyBDQ0NDLiAgSW5jb3JyZWN0bHkuICBUaGUgb25seSB3
-YXkgdG8gYXZvaWQgdGhpcyANCj4gaXMgdG8gemVybyBCIGJlZm9yZSByZXBsYXlpbmcgdGhlIGRt
-LWxvZ3dyaXRlcy4NCj4gDQo+IFNvIHlvdSBjb3VsZCBzb2x2ZSB0aGUgcHJvYmxlbSB2aWEgQkxL
-RElTQ0FSRCwgb3Igd3JpdGluZyB6ZXJvZXMgdG8gDQo+IHRoZSBlbnRpcmUgYmxvY2sgZGV2aWNl
-LCBvciBzY2FubmluZyB0aGUgbWV0YWRhdGEgYW5kIHdyaXRpbmcgemVyb2VzIA0KPiB0byBqdXN0
-IHRob3NlIGJsb2Nrcywgb3IgYnkgYWRkaW5nIHVuZG8gYnVmZmVyIHJlY29yZHMgdG8gZG0tbG9n
-d3JpdGVzIA0KPiBhbmQgdGVhY2hpbmcgaXQgdG8gZG8gYSBwcm9wZXIgcm9sbGJhY2suDQoNCkhp
-IERhcnJpY2ssDQoNClRoYW5rcyBmb3IgeW91ciBwYXRpZW50IGV4cGxhbmF0aW9uLg0KDQpEbyB5
-b3Uga25vdyBpZiBYRlMgbG9nIHJlY29yZHMgc3RpbGwgdXNlIGJ1ZmZlciB3cml0ZT8gSW4gb3Ro
-ZXIgd29yZHMsIHRoZXkgY2Fubm90IGJlIHdyaXR0ZW4gaW50byB0aGUgYmxvY2sgZGV2aWNlIGlu
-IERBWCBtb2RlLCByaWdodD8NCg0KSW4gZmFjdCwgSSBjYW4gcmVwcm9kdWNlIHRoZSBpbmNvbnNp
-c3RlbnQgZmlsZXN5c3RlbSBpc3N1ZSBvbg0KZ2VuZXJpYy80ODIgYnV0IGNhbm5vdCByZXByb2R1
-Y2UgdGhlIGlzc3VlIG9uIGdlbmVyaWMvNDcwLg0KDQo+IA0KPj4gRGlzY2FyZGluZyBYRlMgbG9n
-IGlzIHdoYXQgeW91IHNhaWQgInJlaW5pdGlhbGl6ZSB0aGUgZW50aXJlIGJsb2NrIA0KPj4gZGV2
-aWNlIiwgcmlnaHQ/DQo+IE5vLCBJIHJlYWxseSBtZWFudCB0aGUvZW50aXJlLyAgYmxvY2sgZGV2
-aWNlLg0KPiANCj4+PiBJIHRoaW5rIHRoZSBvbmx5IHdheSB0byBmaXggdGhpcyB0ZXN0IGlzIChh
-KSByZXZlcnQgYWxsIG9mIA0KPj4+IENocmlzdG9waCdzIGNoYW5nZXMgc28gZmFyIGFuZCBzY3V0
-dGxlIHRoZSBkaXZvcmNlOyBvciAoYikgY2hhbmdlIHRoaXMgdGVzdCBsaWtlIHNvOg0KPj4gU29y
-cnksIEkgZGlkbid0IGtub3cgd2hpY2ggQ2hyaXN0b3BoJ3MgcGF0Y2hlcyBuZWVkIHRvIGJlIHJl
-dmVydGVkPw0KPj4gQ291bGQgeW91IHRlbGwgbWUgdGhlIFVSTCBhYm91dCBDaHJpc3RvcGgncyBw
-YXRjaGVzPw0KPiBFaCwgaXQncyBhIHdob2xlIGxvbmcgc2VyaWVzIG9mIHBhdGNoZXMgc2N1dHRs
-aW5nIHZhcmlvdXMgcGFydHMgd2hlcmUgDQo+IHBtZW0gY291bGQgdGFsayB0byB0aGUgYmxvY2sg
-bGF5ZXIuICBJIGRvdWJ0IGhlJ2xsIGFjY2VwdCB5b3UgDQo+IHJldmVydGluZyBoaXMgcmVtb3Zh
-bCBjb2RlLg0KDQpXaGVyZSBjYW4gSSBmaW5kIHRoZSBDaHJpc3RvcGgncyBwYXRjaCBzZXQgeW91
-IG1lbnRpb25lZC4NCkkganVzdCB3YW50IHRvIGtub3cgdGhlIGNvbnRlbnQgb2YgQ2hyaXN0b3Bo
-J3MgcGF0Y2ggc2V0Lg0KDQo+IA0KPj4+ICAgIDEuIENyZWF0ZSBhIGxhcmdlIHNwYXJzZSBmaWxl
-IG9uICRURVNUX0RJUiBhbmQgbG9zZXR1cCB0aGF0IHNwYXJzZQ0KPj4+ICAgICAgIGZpbGUuICBU
-aGUgcmVzdWx0aW5nIGxvb3AgZGV2aWNlIHdpbGwgbm90IGhhdmUgZGF4IGNhcGFiaWxpdHkuDQo+
-Pj4NCj4+PiAgICAyLiBTZXQgdXAgdGhlIGRtdGhpbi9kbWxvZ3dyaXRlcyBzdGFjayBvbiB0b3Ag
-b2YgdGhpcyBsb29wIGRldmljZS4NCj4+Pg0KPj4+ICAgIDMuIENhbGwgbWtmcy54ZnMgd2l0aCB0
-aGUgU0NSQVRDSF9ERVYgKHdoaWNoIGhvcGVmdWxseSBpcyBhIHBtZW0NCj4+PiAgICAgICBkZXZp
-Y2UpIGFzIHRoZSByZWFsdGltZSBkZXZpY2UsIGFuZCBzZXQgdGhlIGRheGluaGVyaXQgYW5kIHJ0
-aW5oZXJpdA0KPj4+ICAgICAgIGZsYWdzIG9uIHRoZSByb290IGRpcmVjdG9yeS4gIFRoZSByZXN1
-bHQgaXMgYSBmaWxlc3lzdGVtIHdpdGggYSBkYXRhDQo+Pj4gICAgICAgc2VjdGlvbiB0aGF0IHRo
-ZSBrZXJuZWwgd2lsbCB0cmVhdCBhcyBhIHJlZ3VsYXIgYmxvY2sgZGV2aWNlLCBhDQo+Pj4gICAg
-ICAgcmVhbHRpbWUgc2VjdGlvbiBiYWNrZWQgYnkgcG1lbSwgYW5kIHRoZSBuZWNlc3NhcnkgZmxh
-Z3MgdG8gbWFrZQ0KPj4+ICAgICAgIHN1cmUgdGhhdCB0aGUgdGVzdCBmaWxlIHdpbGwgYWN0dWFs
-bHkgZ2V0IGZzZGF4IG1vZGUuDQo+Pj4NCj4+PiAgICA0LiBBY2tub3dsZWRnZSB0aGF0IHdlIG5v
-IGxvbmdlciBoYXZlIGFueSB3YXkgdG8gdGVzdCBNQVBfU1lOQw0KPj4+ICAgICAgIGZ1bmN0aW9u
-YWxpdHkgb24gZXh0NCwgd2hpY2ggbWVhbnMgdGhhdCBnZW5lcmljLzQ3MCBoYXMgdG8gbW92ZSB0
-bw0KPj4+ICAgICAgIHRlc3RzL3hmcy8uDQo+PiBTb3JyeSwgSSBkaWRuJ3QgdW5kZXJzdGFuZCB3
-aHkgdGhlIGFib3ZlIHRlc3QgY2hhbmdlIGNhbiBmaXggdGhlIGlzc3VlLg0KPiBYRlMgc3VwcG9y
-dHMgdHdvLWRldmljZSBmaWxlc3lzdGVtcyAtLSB0aGUgInJlYWx0aW1lIiBzZWN0aW9uLCBhbmQg
-dGhlIA0KPiAiZGF0YSIgc2VjdGlvbi4gIEZTIG1ldGFkYXRhIGFuZCBsb2cgYWxsIGxpdmUgaW4g
-dGhlICJkYXRhIiBzZWN0aW9uLg0KPiANCj4gU28gd2UgY2hhbmdlIHRoZSB0ZXN0IHRvIHNldCB1
-cCBzb21lIHJlZ3VsYXIgZmlsZXMsIGxvb3AtbW91bnQgdGhlIA0KPiBmaWxlcywgc2V0IHVwIHRo
-ZSByZXF1aXNpdGUgZG0tbG9nd3JpdGVzIHN0dWZmIGF0b3AgdGhlIGxvb3AgZGV2aWNlcywgDQo+
-IGFuZCBmb3JtYXQgdGhlIFhGUyB3aXRoIHRoZSBkYXRhIHNlY3Rpb24gYmFja2VkIGJ5IHRoZSBk
-bS1sb2d3cml0ZXMgDQo+IGRldmljZSwgYW5kIG1ha2UgdGhlIHJlYWx0aW1lIHNlY3Rpb24gYmFj
-a2VkIGJ5IHRoZSBwbWVtLg0KPiANCj4gVGhpcyB3YXkgdGhlIGxvZyByZXBsYXkgcHJvZ3JhbSBj
-YW4gYWN0dWFsbHkgZGlzY2FyZCB0aGUgZGF0YSBkZXZpY2UgDQo+IChiZWNhdXNlIGl0J3MgYSBy
-ZWd1bGFyIGZpbGUpIGFuZCByZXBsYXkgdGhlIGxvZyBmb3J3YXJkIHRvIHRoZSANCj4gcHJldW5t
-YXAgbWFyay4gIFRoZSBwbWVtIGRldmljZSBpcyBub3QgaW52b2x2ZWQgaW4gdGhlIHJlcGxheSBh
-dCBhbGwsIA0KPiBzaW5jZSBjaGFuZ2VzIHRvIGZpbGUgZGF0YSBhcmUgbmV2ZXIgbG9nZ2VkLiAg
-SXQgbm93IGJlY29tZXMgDQo+IGlycmVsZXZhbnQgdGhhdCBwbWVtIG5vIGxvbmdlciBzdXBwb3J0
-cyBkZXZpY2UgbWFwcGVyLg0KPiANCj4+IENvdWxkIHlvdSB0ZWxsIG1lIHdoaWNoIHN0ZXAgY2Fu
-IGRpc2NhcmQgWEZTIGxvZz8NCj4gKE5vbmUgb2YgdGhlIHN0ZXBzIGRvIHRoYXQuKQ0KPiANCj4+
-IEluIGFkZGl0aW9uLCBJIGRvbid0IGxpa2UgeW91ciBpZGVhIGFib3V0IHRoZSB0ZXN0IGNoYW5n
-ZSBiZWNhdXNlIGl0IA0KPj4gd2lsbCBtYWtlIGdlbmVyaWMvNDcwIGJlY29tZSB0aGUgc3BlY2lh
-bCB0ZXN0IGZvciBYRlMuIERvIHlvdSBrbm93IGlmIA0KPj4gd2UgY2FuIGZpeCB0aGUgaXNzdWUg
-YnkgY2hhbmdpbmcgdGhlIHRlc3QgaW4gYW5vdGhlciB3YXk/IGJsa2Rpc2NhcmQgDQo+PiAteiBj
-YW4gZml4IHRoZSBpc3N1ZSBiZWNhdXNlIGl0IGRvZXMgemVyby1maWxsIHJhdGhlciB0aGFuIGRp
-c2NhcmQgb24gdGhlIGJsb2NrIGRldmljZS4NCj4+IEhvd2V2ZXIsIGJsa2Rpc2NhcmQgLXogd2ls
-bCB0YWtlIGEgbG90IG9mIHRpbWUgd2hlbiB0aGUgYmxvY2sgZGV2aWNlIA0KPj4gaXMgbGFyZ2Uu
-DQo+IFdlbGwgd2UvY291bGQvICBqdXN0IGRvIHRoYXQgdG9vLCBidXQgdGhhdCB3aWxsIHN1Y2sg
-aWYgeW91IGhhdmUgMlRCIA0KPiBvZg0KPiBwbWVtLjspDQo+IA0KPiBNYXliZSBhcyBhbiBhbHRl
-cm5hdGl2ZSBwYXRoIHdlIGNvdWxkIGp1c3QgY3JlYXRlIGEgdmVyeSBzbWFsbCANCj4gZmlsZXN5
-c3RlbSBvbiB0aGUgcG1lbSBhbmQgdGhlbiBibGtkaXNjYXJkIC16IGl0Pw0KDQpHb29kIGlkZWEs
-IEkgaGF2ZSBzZW50IGEgcGF0Y2ggc2V0IHRvIGRvIGl0Lg0KaHR0cHM6Ly9sb3JlLmtlcm5lbC5v
-cmcvZnN0ZXN0cy8yMDIyMTAyMzA2NDgxMC44NDcxMTAtMS15YW5neC5qeUBmdWppdHN1LmNvbS9U
-LyN0DQoNCj4gDQo+IFRoYXQgc2FpZCAtLSBkb2VzIHBlcnNpc3RlbnQgbWVtb3J5IGFjdHVhbGx5
-IGhhdmUgYSBmdXR1cmU/ICBJbnRlbCANCj4gc2N1dHRsZWQgdGhlIGVudGlyZSBPcHRhbmUgcHJv
-ZHVjdCwgY3hsLm1lbSBzb3VuZHMgbGlrZSBleHBhbnNpb24gDQo+IGNoYXNzaXMgZnVsbCBvZiBE
-UkFNLCBhbmQgZnNkYXggaXMgaG9ycmlibHkgYnJva2VuIGluIDYuMCAod2VpcmQgDQo+IGtlcm5l
-bCBhc3NlcnRzIGV2ZXJ5d2hlcmUpIGFuZCA2LjEgKGV2ZXJ5IHRpbWUgSSBydW4gZnN0ZXN0cyBu
-b3cgSSBzZWUgDQo+IG1hc3NpdmUgZGF0YSBjb3JydXB0aW9uKS4NCg0KQXMgZmFyIGFzIEkga25v
-dywgY3hsLm1lbSB3aWxsIHRha2UgdXNlIG9mIG52ZGltbSBkcml2ZXIgYW5kIGNhbiBiZSB1c2Vk
-IGJ5IG1hbnkgZXhpc3RpbmcgYXBwbGljYXRpb25zLg0KDQpCZXN0IFJlZ2FyZHMsDQpYaWFvIFlh
-bmcNCg==
+On Fri, Oct 21, 2022 at 07:11:02PM -0700, Darrick J. Wong wrote:
+> On Thu, Oct 20, 2022 at 10:17:45PM +0800, Yang, Xiao/杨 晓 wrote:
+> > In addition, I don't like your idea about the test change because it will
+> > make generic/470 become the special test for XFS. Do you know if we can fix
+> > the issue by changing the test in another way? blkdiscard -z can fix the
+> > issue because it does zero-fill rather than discard on the block device.
+> > However, blkdiscard -z will take a lot of time when the block device is
+> > large.
+> 
+> Well we /could/ just do that too, but that will suck if you have 2TB of
+> pmem. ;)
+> 
+> Maybe as an alternative path we could just create a very small
+> filesystem on the pmem and then blkdiscard -z it?
+> 
+> That said -- does persistent memory actually have a future?  Intel
+> scuttled the entire Optane product, cxl.mem sounds like expansion
+> chassis full of DRAM, and fsdax is horribly broken in 6.0 (weird kernel
+> asserts everywhere) and 6.1 (every time I run fstests now I see massive
+> data corruption).
+
+Yup, I see the same thing. fsdax was a train wreck in 6.0 - broken
+on both ext4 and XFS. Now that I run a quick check on 6.1-rc1, I
+don't think that has changed at all - I still see lots of kernel
+warnings, data corruption and "XFS_IOC_CLONE_RANGE: Invalid
+argument" errors.
+
+If I turn off reflink, then instead of data corruption I get kernel
+warnings like this from fsx and fsstress workloads:
+
+[415478.558426] ------------[ cut here ]------------
+[415478.560548] WARNING: CPU: 12 PID: 1515260 at fs/dax.c:380 dax_insert_entry+0x2a5/0x320
+[415478.564028] Modules linked in:
+[415478.565488] CPU: 12 PID: 1515260 Comm: fsx Tainted: G        W 6.1.0-rc1-dgc+ #1615
+[415478.569221] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.15.0-1 04/01/2014
+[415478.572876] RIP: 0010:dax_insert_entry+0x2a5/0x320
+[415478.574980] Code: 08 48 83 c4 30 5b 5d 41 5c 41 5d 41 5e 41 5f c3 48 8b 58 20 48 8d 53 01 e9 65 ff ff ff 48 8b 58 20 48 8d 53 01 e9 50 ff ff ff <0f> 0b e9 70 ff ff ff 31 f6 4c 89 e7 e8 da ee a7 00 eb a4 48 81 e6
+[415478.582740] RSP: 0000:ffffc90002867b70 EFLAGS: 00010002
+[415478.584730] RAX: ffffea000f0d0800 RBX: 0000000000000001 RCX: 0000000000000001
+[415478.587487] RDX: ffffea0000000000 RSI: 000000000000003a RDI: ffffea000f0d0840
+[415478.590122] RBP: 0000000000000011 R08: 0000000000000000 R09: 0000000000000000
+[415478.592380] R10: ffff888800dc9c18 R11: 0000000000000001 R12: ffffc90002867c58
+[415478.594865] R13: ffff888800dc9c18 R14: ffffc90002867e18 R15: 0000000000000000
+[415478.596983] FS:  00007fd719fa2b80(0000) GS:ffff88883ec00000(0000) knlGS:0000000000000000
+[415478.599364] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[415478.600905] CR2: 00007fd71a1ad640 CR3: 00000005cf241006 CR4: 0000000000060ee0
+[415478.602883] Call Trace:
+[415478.603598]  <TASK>
+[415478.604229]  dax_fault_iter+0x240/0x600
+[415478.605410]  dax_iomap_pte_fault+0x19c/0x3d0
+[415478.606706]  __xfs_filemap_fault+0x1dd/0x2b0
+[415478.607744]  __do_fault+0x2e/0x1d0
+[415478.608587]  __handle_mm_fault+0xcec/0x17b0
+[415478.609593]  handle_mm_fault+0xd0/0x2a0
+[415478.610517]  exc_page_fault+0x1d9/0x810
+[415478.611398]  asm_exc_page_fault+0x22/0x30
+[415478.612311] RIP: 0033:0x7fd71a04b9ba
+[415478.613168] Code: 4d 29 c1 4c 29 c2 48 3b 15 db 95 11 00 0f 87 af 00 00 00 0f 10 01 0f 10 49 f0 0f 10 51 e0 0f 10 59 d0 48 83 e9 40 48 83 ea 40 <41> 0f 29 01 41 0f 29 49 f0 41 0f 29 51 e0 41 0f 29 59 d0 49 83 e9
+[415478.617083] RSP: 002b:00007ffcf277be18 EFLAGS: 00010206
+[415478.618213] RAX: 00007fd71a1a3fc5 RBX: 0000000000000fc5 RCX: 00007fd719f5a610
+[415478.619854] RDX: 000000000000964b RSI: 00007fd719f50fd5 RDI: 00007fd71a1a3fc5
+[415478.621286] RBP: 0000000000030fc5 R08: 000000000000000e R09: 00007fd71a1ad640
+[415478.622730] R10: 0000000000000001 R11: 00007fd71a1ad64e R12: 0000000000009699
+[415478.624164] R13: 000000000000a65e R14: 00007fd71a1a3000 R15: 0000000000000001
+[415478.625600]  </TASK>
+[415478.626087] ---[ end trace 0000000000000000 ]---
+
+Even generic/247 is generating a warning like this from xfs_io,
+which is a mmap vs DIO racer. Given that DIO doesn't exist for
+fsdax, this test turns into just a normal write() vs mmap() racer.
+
+Given these are the same fsdax infrastructure failures that I
+reported for 6.0, it is also likely that ext4 is still throwing
+them. IOWs, whatever got broke in the 6.0 cycle wasn't fixed in the
+6.1 cycle.
+
+> Frankly at this point I'm tempted just to turn of fsdax support for XFS
+> for the 6.1 LTS because I don't have time to fix it.
+
+/me shrugs
+
+Backporting fixes (whenever they come along) is a problem for the
+LTS kernel maintainer to deal with, not the upstream maintainer.
+
+IMO, the issue right now is that the DAX maintainers seem to have
+little interest in ensuring that the FSDAX infrastructure actually
+works correctly. If anything, they seem to want to make things
+harder for block based filesystems to use pmem devices and hence
+FSDAX. e.g. the direction of the DAX core away from block interfaces
+that filesystems need for their userspace tools to manage the
+storage.
+
+At what point do we simply say "the experiment failed, FSDAX is
+dead" and remove it from XFS altogether?
+
+Cheers,
+
+Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
