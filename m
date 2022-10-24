@@ -1,181 +1,158 @@
-Received: from mail-pf1-f181.google.com (mail-pf1-f181.google.com [209.85.210.181])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from NAM12-DM6-obe.outbound.protection.outlook.com (mail-dm6nam12on2055.outbound.protection.outlook.com [40.107.243.55])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4FFB7B
-	for <nvdimm@lists.linux.dev>; Sun, 23 Oct 2022 22:00:22 +0000 (UTC)
-Received: by mail-pf1-f181.google.com with SMTP id b185so1333310pfb.9
-        for <nvdimm@lists.linux.dev>; Sun, 23 Oct 2022 15:00:22 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=fromorbit-com.20210112.gappssmtp.com; s=20210112;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=hvIFbRsnY/vDy+taGpGboiBar50BevLz1lBfrbHmmSw=;
-        b=2K6CdRtZ5HzBar49k2LtiaW4FLoVKcjs3PX7dq9FckhdarNhspBzGdosOgBSuz/dFl
-         hqkurPNmdOALjzGHlf/R/AjdU4bgOD3OuS/7fwlCriJzk7e3+d0Mwrgg1jiDZBERrjA3
-         tPjsSEMV/bQFMwFk0aZRvlr80IT4EEcbjO/xZNKwZNZCfx+8s2raBuVEoZgGRF8qUzCo
-         e3VdHSUx68cvi2Dtq5rhCK0elIHYZ57ABlCP9JY3q0fC1wbee10T+p5t803KP0EOcmds
-         PKzKeyTQKjS424ssn94Dwhwx++97dTHY7MW4pTsHLa0hq6ZxUAMk5obAniRJJSKbNQM1
-         wpAA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=hvIFbRsnY/vDy+taGpGboiBar50BevLz1lBfrbHmmSw=;
-        b=lAYlf/atGOxvUQLPozov/oWyku0SIT52IFKIsdyXfuKI+l+xsCnF9P0UZA+t31Fs/6
-         DCr4MA8yo/KeA2LHwcNBqFw7P76KM4MOq18O+MwVA3t560cpjnMMY5li1hh9jQaq9wFQ
-         P7Dgd7v+AmB+skyCaw/RLJah0xmoiVm/muSw8vcy8CPbrXqh1wbqvuUgxRIVE7z4BGbx
-         6q9rJa4UFt9dqzvdZBl3YHdh2YwSI82uVwHFadUq2DDhUsOWqGj4+Wpm5BCWdXUUcUid
-         7G8SwASlt77EDpLCUspO/smEPudSzOwY0CGsAhjc99uYT0xHlypgrPyN23sKI9Bwo6oO
-         Tozw==
-X-Gm-Message-State: ACrzQf38Ut5Y9uQbRJmc7Np7aJkTHsTIEfBQC6QCIw6pDF5bONvKBJJ0
-	/4E75vGsM01WafAo4CoDdZ2Rpw==
-X-Google-Smtp-Source: AMsMyM5VwZrmUlSzb+1EZVG+tpjTbe3LySen3wNOfYDBTBo98hzEeyHHH/8b9UZAgnJ5FzV86+CCWw==
-X-Received: by 2002:aa7:8011:0:b0:567:70cc:5b78 with SMTP id j17-20020aa78011000000b0056770cc5b78mr26373798pfi.29.1666562422001;
-        Sun, 23 Oct 2022 15:00:22 -0700 (PDT)
-Received: from dread.disaster.area (pa49-181-106-210.pa.nsw.optusnet.com.au. [49.181.106.210])
-        by smtp.gmail.com with ESMTPSA id a3-20020aa78e83000000b0056beae3dee2sm14606pfr.145.2022.10.23.15.00.21
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 23 Oct 2022 15:00:21 -0700 (PDT)
-Received: from dave by dread.disaster.area with local (Exim 4.92.3)
-	(envelope-from <david@fromorbit.com>)
-	id 1omj10-005abc-AD; Mon, 24 Oct 2022 09:00:18 +1100
-Date: Mon, 24 Oct 2022 09:00:18 +1100
-From: Dave Chinner <david@fromorbit.com>
-To: "Darrick J. Wong" <djwong@kernel.org>
-Cc: =?utf-8?B?WWFuZywgWGlhby/mnagg5pmT?= <yangx.jy@fujitsu.com>,
-	=?utf-8?B?R290b3UsIFlhc3Vub3JpL+S6lOWztiDlurfmloc=?= <y-goto@fujitsu.com>,
-	Brian Foster <bfoster@redhat.com>,
-	"hch@infradead.org" <hch@infradead.org>,
-	=?utf-8?B?UnVhbiwgU2hpeWFuZy/pmK4g5LiW6Ziz?= <ruansy.fnst@fujitsu.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>,
-	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
-	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
-	zwisler@kernel.org, Jeff Moyer <jmoyer@redhat.com>,
-	dm-devel@redhat.com, toshi.kani@hpe.com
-Subject: Re: [PATCH] xfs: fail dax mount if reflink is enabled on a partition
-Message-ID: <20221023220018.GX3600936@dread.disaster.area>
-References: <YyIBMJzmbZsUBHpy@magnolia>
- <a6e7f4eb-0664-bbe8-98d2-f8386b226113@fujitsu.com>
- <e3d51a6b-12e9-2a19-1280-5fd9dd64117c@fujitsu.com>
- <deb54a77-90d3-df44-1880-61cce6e3f670@fujitsu.com>
- <1444b9b5-363a-163c-0513-55d1ea951799@fujitsu.com>
- <Yzt6eWLuX/RTjmjj@magnolia>
- <f196bcab-6aa2-6313-8a7c-f8ab409621b7@fujitsu.com>
- <Yzx64zGt2kTiDYaP@magnolia>
- <6a83a56e-addc-f3c4-2357-9589a49bf582@fujitsu.com>
- <Y1NRNtToQTjs0Dbd@magnolia>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2030620
+	for <nvdimm@lists.linux.dev>; Mon, 24 Oct 2022 01:48:02 +0000 (UTC)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=oKsYK8a/wnxRWyynpHSAfwSNIL1nEit5bxSxDi6jTFvzeCNPC2eo2rHq+3jlsXi5ysMkenET2LTCs/bTmYsU6zZjJCsfFNlqd7G0xPQPxNbSbwAwMKLLaziEzWxNL+cu+xK7cMtf4IUYV8tVCaAI/BKIByD1TWqTZWlp6FbX+1ycocUMKXERujbFExgWS5bw6KR2Iysdftq2bKi123bn7LGO59qBlsoAma/bZbbmAqQJDhE7E1zsgXPmamvwRPmb9sSPjpCjDXnbEW3VeoCdJ2GmCui9ng1wuNJAY05ti0/9MC6DtiCqSBsHPghPQdEQSyQfCMFynyf+Q4LlvdMZUQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=fsytFnsh7ofQTM+YuaLrSYjsEyzizBws5GSeHRuzYgc=;
+ b=Plkgb7JA9I4fo3o8bCvkQgzmX8ObhNmViTm/mgubpQGhFonVhAdachKDriVdbGt0CGxRsWkgZu41sMXySwQ9YhqsCR1iE9dfOLGMkd+VyEoCQ+Y+UwBkp8DCnlCEdmZaCQWefg4QuqnHbOqUOoWOdPuK4M5lABLSqns/lJcD4kKzpA/aAgqjKBa8OK1LLoo1Uv2RElc+e4dctxoQnjExd1KeM8cYzfWGPHt1bfE8Cvv/WWy1tanSnkAcoT6w0mVGr8/iHMdxteDmvOKjr6nTW60tcFbJdp7z4OntDPFq+hVCn/cfCk2DzkvaC18kxE0lcckz2Fi7Vl9QmHfpXPKHDg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=fsytFnsh7ofQTM+YuaLrSYjsEyzizBws5GSeHRuzYgc=;
+ b=Bs5sogEXU/OlRNxnEQyzYwZeLUB9V8sSWwg+VNwmuOjVOiaTyZbnzu/sO3Ev+VNqD1D0ZoBxWXMNPeorZopTaMkdNnIWEGMkaN30uc3ixa2V1G+khHu+skyB2DDhFfBq9ENJvCeNt073UHDikDdZkNbciFegJ7El+Ibg4ZMTelB622vPte7CNni3Jwwl4f12tqGEHX/sGxP5SR9hvbjCskCFtevAZtCk+EmtAlO7tNFyCK6A4Uo79SIlvWPPeZJizHxWmjWZnq5WAuMiDolu7ms4i/rMVqp+vlwUe6nwzoeKduuqGKrzQP9UqqrGbiiVLgY9zxWkRNxvxFoEYbXZjA==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from BYAPR12MB3176.namprd12.prod.outlook.com (2603:10b6:a03:134::26)
+ by CY5PR12MB6057.namprd12.prod.outlook.com (2603:10b6:930:2e::17) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5723.36; Mon, 24 Oct
+ 2022 01:48:00 +0000
+Received: from BYAPR12MB3176.namprd12.prod.outlook.com
+ ([fe80::6ed5:b1a6:b935:a4d8]) by BYAPR12MB3176.namprd12.prod.outlook.com
+ ([fe80::6ed5:b1a6:b935:a4d8%7]) with mapi id 15.20.5723.034; Mon, 24 Oct 2022
+ 01:48:00 +0000
+References: <166630293549.1017198.3833687373550679565.stgit@dwillia2-xfh.jf.intel.com>
+ <cbc23eba-990f-688e-d22b-0c0d103172cb@amd.com>
+ <6351d7105fe92_4da329467@dwillia2-xfh.jf.intel.com.notmuch>
+ <0d2efd01-956c-3e61-6bd0-81e449fad4f9@amd.com>
+User-agent: mu4e 1.8.10; emacs 28.2
+From: Alistair Popple <apopple@nvidia.com>
+To: Felix Kuehling <felix.kuehling@amd.com>
+Cc: Dan Williams <dan.j.williams@intel.com>, akpm@linux-foundation.org,
+ Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, "Darrick J.
+ Wong" <djwong@kernel.org>, Christoph Hellwig <hch@lst.de>, John Hubbard
+ <jhubbard@nvidia.com>, Alex Deucher <alexander.deucher@amd.com>, Christian
+ =?utf-8?Q?K=C3=B6nig?= <christian.koenig@amd.com>, "Pan, Xinhui"
+ <Xinhui.Pan@amd.com>,
+ David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Ben
+ Skeggs <bskeggs@redhat.com>, Karol Herbst <kherbst@redhat.com>, Lyude Paul
+ <lyude@redhat.com>, =?utf-8?B?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>,
+ Jason Gunthorpe
+ <jgg@nvidia.com>, linux-mm@kvack.org, dri-devel@lists.freedesktop.org,
+ nvdimm@lists.linux.dev
+Subject: Re: [PATCH] mm/memremap: Introduce pgmap_request_folio() using
+ pgmap offsets
+Date: Mon, 24 Oct 2022 12:44:34 +1100
+In-reply-to: <0d2efd01-956c-3e61-6bd0-81e449fad4f9@amd.com>
+Message-ID: <87tu3uq9fa.fsf@nvidia.com>
+Content-Type: text/plain
+X-ClientProxiedBy: SYXPR01CA0100.ausprd01.prod.outlook.com
+ (2603:10c6:0:2e::33) To BYAPR12MB3176.namprd12.prod.outlook.com
+ (2603:10b6:a03:134::26)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <Y1NRNtToQTjs0Dbd@magnolia>
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BYAPR12MB3176:EE_|CY5PR12MB6057:EE_
+X-MS-Office365-Filtering-Correlation-Id: b5b578c5-d880-4886-e376-08dab561c841
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info:
+	IHRoHIc20J9M9xhfz6kMvcYOVoH5c0SvMJVnQ9U2Dw3H6ZMg4bTPhmjowrNYOUPOPX9ttqZ3wS47gs5GwDh1RanYx3gcwzHmQ43T2XPDsHabGeuhjOcLzdw2lVg8OTxRSoE4rQ1gZQ5p5NTGCHnTD9TxQUsWd1l7cIFd5Z4GrOC8bDyc11NaMWjnagUvXh9oH6uRFSm8h9ULWTCd0r0hHX8EP3QI2wxJQDTICVicf6k+HuYkWbn6w5rcsHijzdARdXqpNQjwbG+gc14koN4vIx8xMJ4JvLE3a0X4hUKoxgQ+BPlc/SsiwnvO3A2hNVkEdm4EcBEjUv9xubQCGKtDV2pcS9IzTUeOiMyycqJD3znjicwoOGB9U39y87laW7oKK3Ft3DrNarTLrXBi/H+vdeP+IbfZA/x4QRZKLfhElcS7+cjPMv/wWHUFpKsynrSPsElqU2qGPbAsdy2dLe2TodbPJEqOEat/QHvA7lexBI/OBUsHTGpVcjcj19C0+gOXQRzu4Cx+02oiggwk2lsmq+pC8FF90Yga5WPs2bkLBUaXgJ/t4gikxmTGcjfhGfet0GEbY/np0UtUMRvauXp4j5ZFJqL63QI+wGD6x69rDuuPJrYv613DEe3VyZz4TSOUz874DJ2DumaJJSLxPwd4YtVUmw0XSdGuTFOx3CvjI7B4Zo7qJHNaHBvrouLz8N59G2UMFzDzup4FMIvXomblqg==
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BYAPR12MB3176.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230022)(4636009)(136003)(346002)(376002)(39860400002)(366004)(396003)(451199015)(36756003)(4326008)(38100700002)(6486002)(41300700001)(66476007)(66556008)(86362001)(83380400001)(2616005)(186003)(53546011)(478600001)(2906002)(6666004)(4001150100001)(316002)(7416002)(6916009)(6512007)(5660300002)(66946007)(6506007)(8676002)(54906003)(26005)(8936002);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?wUcV9rK1g3gZRHfhhSH6sJxlfPsxf+bxy8OUC8JOQHoFuvGQc3OxRaofOfB6?=
+ =?us-ascii?Q?678ifFIDeMvyasQm5jshgadm77A0FqdBKmlzH8EyARJEFUEgizwzaT6MuhzT?=
+ =?us-ascii?Q?U/aG98ebSXfX5yfPZ19II8KJHO95LWdUkHQaCjeAMJBDAoMX+bPKWr///yxM?=
+ =?us-ascii?Q?9mY+h0B9DyRkxsHI0iBLSLqo3+N4A3tIU/nvOtYyt2E4t/5h/Fi8sogbirlC?=
+ =?us-ascii?Q?VZWt7NU/3Bj0lGZK7h3risnMRti24aGAeyu8aBIJ70bJ7h6DwpQZnWZKlsNQ?=
+ =?us-ascii?Q?w8SjBOzths9dAyoutem1mw/p2st7KzvpFxkJ9NiOcLbzB8J9f5I23CiujysK?=
+ =?us-ascii?Q?vgbkTFULTk4+9M8qYg75Aj2F2tVwj6X+ztfPgCkW3z2SWP0HSHxngdJEwaOc?=
+ =?us-ascii?Q?mu/6czAgl+GAxZAmXWGPW93+pyqhS9hNPJpdcrSdRAdchuFnToOIvOzVmFuU?=
+ =?us-ascii?Q?jaH/bmDymzF/t9iLqhiGbnDZb05+rAC0VZB5oSlDtcJej0YsorNuvTtxfuwT?=
+ =?us-ascii?Q?oGSDuc1eQImoj2yj+xEqKfZexnCfClo4Szq0iOwvS2aSAnda3TDNeicsC2Ah?=
+ =?us-ascii?Q?kSNnDVdRTYGaWNQ8bwFFBwSY5F6T39IDqMbH9Yb1/7HGlKw/tiBol/pYduZO?=
+ =?us-ascii?Q?UuabO1LXON0RAvC5CJu+0UQEu2UUailhhm9FodfBttHnFrKZob/kd/OxNexy?=
+ =?us-ascii?Q?Z32ZWcKEGstepjv5Z3WB7Qz8Ol2vow2vuVlbLbfmndlSxwlzt8jnxGooyUib?=
+ =?us-ascii?Q?1OqQEvNZwSQnp1mRAOb0WV0nKcWbGtYEfoijF2OdgD7MsU12L4sTsJxoNitR?=
+ =?us-ascii?Q?ztKBZ5/FeoscWi1O9ltmJBMeKoW/BGC8yheGHKh80B6KfAq8ed6Ue4SJiHxk?=
+ =?us-ascii?Q?pGX3P5nWcstR6E2CZLbLeT53k2l/2K7jqWfazt8Vu/haP0jp7zkp5ukEOsBX?=
+ =?us-ascii?Q?6UdAZbludzzI//P+LMkBgHIZyNHXFEPkcJK+nlgeWfjy1/b4I6ISZPe0mUz/?=
+ =?us-ascii?Q?pW+mYb0ckZ3kdzyrmM3MwyhBixi/rBanISJn/l2AdMfbmrkva2Hff/CmIp7d?=
+ =?us-ascii?Q?XaA3kfK7/CHm7Ta/qSTYTcxLhgu7XNZALnsE7kymGjwsxIufkDdhDWSaptoh?=
+ =?us-ascii?Q?iGFdciHC86Oi+4dr4XZe9NkOEZSpN4hFJzxzvmML8aJc1TZfxvZFC/iOYBKw?=
+ =?us-ascii?Q?RHju7wnRlNOsKZtB/d9N3wKaBPQ3U6zeIvdI7z2sLWQvE+0FWc+YP9zWFoFZ?=
+ =?us-ascii?Q?GgJHiJpb21+Bm/k1tnXMOHqCbvMRkc9gNFAxfE4S77OH4ypFslI66q405n3X?=
+ =?us-ascii?Q?pGGvD3si+PIaHO0iIWpqTa7M5yjZ77O/GRlbzmKrITojoAXw9yo7DadfuFIO?=
+ =?us-ascii?Q?5bPLqYg5dmSw4ncPTdM3qbeBw5kgwki2d9BAYLgVYhUKP1J6aosdUBTJhEFL?=
+ =?us-ascii?Q?lc7Cap+EpjClIsLTaVsqLdnvwv0Io4Q0nMVPefwHvvpfJu6Lvghj/RB1e/vw?=
+ =?us-ascii?Q?aq+r3Dn5VW4nZXnG3s4BNhm18AhN6vMWfzyYfHXCaNiFKP5XzE/diXmG8GRg?=
+ =?us-ascii?Q?7WlgtbJY9gfLQzq5mwjnN3T5y0WMBh5i0zdjw7HY?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: b5b578c5-d880-4886-e376-08dab561c841
+X-MS-Exchange-CrossTenant-AuthSource: BYAPR12MB3176.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 24 Oct 2022 01:48:00.4750
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: My0vc+obwHjeNT9U9oDqMXKpwZLN9BmMS6OnQHxJRaWFdmRTN8q0Uc7LgkVHUgeiO/aSnPEbl0yoFNJ4MFy30w==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY5PR12MB6057
 
-On Fri, Oct 21, 2022 at 07:11:02PM -0700, Darrick J. Wong wrote:
-> On Thu, Oct 20, 2022 at 10:17:45PM +0800, Yang, Xiao/杨 晓 wrote:
-> > In addition, I don't like your idea about the test change because it will
-> > make generic/470 become the special test for XFS. Do you know if we can fix
-> > the issue by changing the test in another way? blkdiscard -z can fix the
-> > issue because it does zero-fill rather than discard on the block device.
-> > However, blkdiscard -z will take a lot of time when the block device is
-> > large.
-> 
-> Well we /could/ just do that too, but that will suck if you have 2TB of
-> pmem. ;)
-> 
-> Maybe as an alternative path we could just create a very small
-> filesystem on the pmem and then blkdiscard -z it?
-> 
-> That said -- does persistent memory actually have a future?  Intel
-> scuttled the entire Optane product, cxl.mem sounds like expansion
-> chassis full of DRAM, and fsdax is horribly broken in 6.0 (weird kernel
-> asserts everywhere) and 6.1 (every time I run fstests now I see massive
-> data corruption).
 
-Yup, I see the same thing. fsdax was a train wreck in 6.0 - broken
-on both ext4 and XFS. Now that I run a quick check on 6.1-rc1, I
-don't think that has changed at all - I still see lots of kernel
-warnings, data corruption and "XFS_IOC_CLONE_RANGE: Invalid
-argument" errors.
+Felix Kuehling <felix.kuehling@amd.com> writes:
 
-If I turn off reflink, then instead of data corruption I get kernel
-warnings like this from fsx and fsstress workloads:
+> On 2022-10-20 19:17, Dan Williams wrote:
+>> Felix Kuehling wrote:
+>>> Am 2022-10-20 um 17:56 schrieb Dan Williams:
+>>>>
+>>>> For now this only converts the callers to lookup the pgmap and generate
+>>>> the pgmap offset, but it does not do the deeper cleanup of teaching
+>>>> those call sites to generate those arguments without walking the page
+>>>> metadata. For next steps it appears the DEVICE_PRIVATE implementations
+>>>> could plumb the pgmap into the necessary callsites and switch to using
+>>>> gen_pool_alloc() to track which offsets of a pgmap are allocated.
 
-[415478.558426] ------------[ cut here ]------------
-[415478.560548] WARNING: CPU: 12 PID: 1515260 at fs/dax.c:380 dax_insert_entry+0x2a5/0x320
-[415478.564028] Modules linked in:
-[415478.565488] CPU: 12 PID: 1515260 Comm: fsx Tainted: G        W 6.1.0-rc1-dgc+ #1615
-[415478.569221] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.15.0-1 04/01/2014
-[415478.572876] RIP: 0010:dax_insert_entry+0x2a5/0x320
-[415478.574980] Code: 08 48 83 c4 30 5b 5d 41 5c 41 5d 41 5e 41 5f c3 48 8b 58 20 48 8d 53 01 e9 65 ff ff ff 48 8b 58 20 48 8d 53 01 e9 50 ff ff ff <0f> 0b e9 70 ff ff ff 31 f6 4c 89 e7 e8 da ee a7 00 eb a4 48 81 e6
-[415478.582740] RSP: 0000:ffffc90002867b70 EFLAGS: 00010002
-[415478.584730] RAX: ffffea000f0d0800 RBX: 0000000000000001 RCX: 0000000000000001
-[415478.587487] RDX: ffffea0000000000 RSI: 000000000000003a RDI: ffffea000f0d0840
-[415478.590122] RBP: 0000000000000011 R08: 0000000000000000 R09: 0000000000000000
-[415478.592380] R10: ffff888800dc9c18 R11: 0000000000000001 R12: ffffc90002867c58
-[415478.594865] R13: ffff888800dc9c18 R14: ffffc90002867e18 R15: 0000000000000000
-[415478.596983] FS:  00007fd719fa2b80(0000) GS:ffff88883ec00000(0000) knlGS:0000000000000000
-[415478.599364] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[415478.600905] CR2: 00007fd71a1ad640 CR3: 00000005cf241006 CR4: 0000000000060ee0
-[415478.602883] Call Trace:
-[415478.603598]  <TASK>
-[415478.604229]  dax_fault_iter+0x240/0x600
-[415478.605410]  dax_iomap_pte_fault+0x19c/0x3d0
-[415478.606706]  __xfs_filemap_fault+0x1dd/0x2b0
-[415478.607744]  __do_fault+0x2e/0x1d0
-[415478.608587]  __handle_mm_fault+0xcec/0x17b0
-[415478.609593]  handle_mm_fault+0xd0/0x2a0
-[415478.610517]  exc_page_fault+0x1d9/0x810
-[415478.611398]  asm_exc_page_fault+0x22/0x30
-[415478.612311] RIP: 0033:0x7fd71a04b9ba
-[415478.613168] Code: 4d 29 c1 4c 29 c2 48 3b 15 db 95 11 00 0f 87 af 00 00 00 0f 10 01 0f 10 49 f0 0f 10 51 e0 0f 10 59 d0 48 83 e9 40 48 83 ea 40 <41> 0f 29 01 41 0f 29 49 f0 41 0f 29 51 e0 41 0f 29 59 d0 49 83 e9
-[415478.617083] RSP: 002b:00007ffcf277be18 EFLAGS: 00010206
-[415478.618213] RAX: 00007fd71a1a3fc5 RBX: 0000000000000fc5 RCX: 00007fd719f5a610
-[415478.619854] RDX: 000000000000964b RSI: 00007fd719f50fd5 RDI: 00007fd71a1a3fc5
-[415478.621286] RBP: 0000000000030fc5 R08: 000000000000000e R09: 00007fd71a1ad640
-[415478.622730] R10: 0000000000000001 R11: 00007fd71a1ad64e R12: 0000000000009699
-[415478.624164] R13: 000000000000a65e R14: 00007fd71a1a3000 R15: 0000000000000001
-[415478.625600]  </TASK>
-[415478.626087] ---[ end trace 0000000000000000 ]---
+That's an interesting idea. I might take a look at converting hmm-tests
+to do this (and probably by extension Nouveau as the allocator is
+basically the same).
 
-Even generic/247 is generating a warning like this from xfs_io,
-which is a mmap vs DIO racer. Given that DIO doesn't exist for
-fsdax, this test turns into just a normal write() vs mmap() racer.
+Feel free to also add:
 
-Given these are the same fsdax infrastructure failures that I
-reported for 6.0, it is also likely that ext4 is still throwing
-them. IOWs, whatever got broke in the 6.0 cycle wasn't fixed in the
-6.1 cycle.
+Reviewed-by: Alistair Popple <apopple@nvidia.com>
 
-> Frankly at this point I'm tempted just to turn of fsdax support for XFS
-> for the 6.1 LTS because I don't have time to fix it.
+For the memremap/nouveau/hmm-test parts.
 
-/me shrugs
-
-Backporting fixes (whenever they come along) is a problem for the
-LTS kernel maintainer to deal with, not the upstream maintainer.
-
-IMO, the issue right now is that the DAX maintainers seem to have
-little interest in ensuring that the FSDAX infrastructure actually
-works correctly. If anything, they seem to want to make things
-harder for block based filesystems to use pmem devices and hence
-FSDAX. e.g. the direction of the DAX core away from block interfaces
-that filesystems need for their userspace tools to manage the
-storage.
-
-At what point do we simply say "the experiment failed, FSDAX is
-dead" and remove it from XFS altogether?
-
-Cheers,
-
-Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+>>> Wouldn't that duplicate whatever device memory allocator we already have
+>>> in our driver? Couldn't I just take the memory allocation from our TTM
+>>> allocator and make necessary pgmap_request_folio calls to allocate the
+>>> corresponding pages from the pgmap?
+>> I think you could, as long as the output from that allocator is a
+>> pgmap_offset rather than a pfn.
+>>
+>>> Or does the pgmap allocation need a finer granularity than the device
+>>> memory allocation?
+>> I would say the pgmap *allocation* happens at memremap_pages() time.
+>> pgmap_request_folio() is a request to put a pgmap page into service.
+>>
+>> So, yes, I think you can bring your own allocator for what offsets are
+>> in/out of service in pgmap space.
+>
+> Thank you for the explanation. The patch is
+>
+> Acked-by: Felix Kuehling <Felix.Kuehling@amd.com>
