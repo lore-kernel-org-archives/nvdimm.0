@@ -1,217 +1,336 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42504748E
-	for <nvdimm@lists.linux.dev>; Tue, 25 Oct 2022 17:56:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D31C0C433C1;
-	Tue, 25 Oct 2022 17:56:19 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1666720579;
-	bh=yoY7iLCYU7bzt4GaDkXzEUixBCzZ8DqXBG0ytNBixsU=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=sGOxpfrqH3n+hxbHscT2hCJAweA45hU3XDOfbyng2Rw1RSuZVYXmDxaa61Zj3IGAA
-	 u+6lDQdpV+pqSJNTrTP2zasaT1c6kcJzv7idqf6tlIFZ4VFDBO8gzJ4OrGjGhTWXXQ
-	 PdtJt6i0GDl0EHg9PufvzxNIQpBVY7pbNKBemqw+x0Lmff5PKKKNNMSDd1q5cKocr8
-	 YvcMXrE+jVIrWppzspmVO3mD4uMbVlB496Wg36qDLu4dSRqaaBOHiEOwbS0H6GG8ro
-	 /OwTkx/eMJt/MvPVJ1rZIY8i5UOn+kWGfCtJkslDIsQsvqIeVOZZHfjfnCFZn3WikR
-	 c/wiJAuXKNzVA==
-Date: Tue, 25 Oct 2022 10:56:19 -0700
-From: "Darrick J. Wong" <djwong@kernel.org>
-To: "ruansy.fnst@fujitsu.com" <ruansy.fnst@fujitsu.com>
-Cc: Dave Chinner <david@fromorbit.com>,
-	"yangx.jy@fujitsu.com" <yangx.jy@fujitsu.com>,
-	"Yasunori Gotou (Fujitsu)" <y-goto@fujitsu.com>,
-	Brian Foster <bfoster@redhat.com>,
-	"hch@infradead.org" <hch@infradead.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>,
-	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
-	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
-	"zwisler@kernel.org" <zwisler@kernel.org>,
-	Jeff Moyer <jmoyer@redhat.com>,
-	"dm-devel@redhat.com" <dm-devel@redhat.com>,
-	"toshi.kani@hpe.com" <toshi.kani@hpe.com>
-Subject: Re: [PATCH] xfs: fail dax mount if reflink is enabled on a partition
-Message-ID: <Y1gjQ4wNZr3ve2+K@magnolia>
-References: <1444b9b5-363a-163c-0513-55d1ea951799@fujitsu.com>
- <Yzt6eWLuX/RTjmjj@magnolia>
- <f196bcab-6aa2-6313-8a7c-f8ab409621b7@fujitsu.com>
- <Yzx64zGt2kTiDYaP@magnolia>
- <6a83a56e-addc-f3c4-2357-9589a49bf582@fujitsu.com>
- <Y1NRNtToQTjs0Dbd@magnolia>
- <20221023220018.GX3600936@dread.disaster.area>
- <OSBPR01MB2920CA997DDE891C06776279F42E9@OSBPR01MB2920.jpnprd01.prod.outlook.com>
- <20221024053109.GY3600936@dread.disaster.area>
- <dd00529c-d3ef-40e3-9dea-834c5203e3df@fujitsu.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43ED26FC7
+	for <nvdimm@lists.linux.dev>; Tue, 25 Oct 2022 20:05:30 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1666728330; x=1698264330;
+  h=subject:from:to:cc:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=f3Jh3AVXGV6VuJD1/X7liT3ATYe2I+2m+J6yWYsvcn0=;
+  b=S9OEzqPIMQISKJ1f9Gj7LF2dx9EQ4XTAnCzi+76OvFeYMDnoNphkh4dL
+   S4aEUDNK4RhnycjF6ohtS7Jbt5lh5GRVXeunKgWMsytChgywYlAnMK4eK
+   r0kZQVG8NKwCbSQzY+nduyO1hal/2u8VVl8rr6EwfcdJODHEWzVFoAP9r
+   J72VYADwQK3MPLMzPcVYbk0E8nSYVOQhFw0yTapU6KfWTjIigOC+x6Db4
+   HoIRJdax0BhI6SAb7/OKrDQAvLN65RM1WbYJeDZYoQykt9Z3tu1C/C4K2
+   6ryRZFHl9DF1R8BeTOAqfsZJLckBnlFFbImyL85GsrNRFV0u8B2lzQCnq
+   w==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10511"; a="288175642"
+X-IronPort-AV: E=Sophos;i="5.95,212,1661842800"; 
+   d="scan'208";a="288175642"
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Oct 2022 13:05:14 -0700
+X-IronPort-AV: E=McAfee;i="6500,9779,10511"; a="960948375"
+X-IronPort-AV: E=Sophos;i="5.95,212,1661842800"; 
+   d="scan'208";a="960948375"
+Received: from shines-mobl.amr.corp.intel.com (HELO dwillia2-xfh.jf.intel.com) ([10.209.106.233])
+  by fmsmga005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Oct 2022 13:05:13 -0700
+Subject: [PATCH v4] memregion: Add cpu_cache_invalidate_memregion() interface
+From: Dan Williams <dan.j.williams@intel.com>
+To: linux-cxl@vger.kernel.org
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>,
+ Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>,
+ x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>,
+ Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>,
+ Davidlohr Bueso <dave@stgolabs.net>, nvdimm@lists.linux.dev,
+ linux-kernel@vger.kernel.org
+Date: Tue, 25 Oct 2022 13:05:12 -0700
+Message-ID: <166672803035.2801111.9244172033971411169.stgit@dwillia2-xfh.jf.intel.com>
+User-Agent: StGit/0.18-3-g996c
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <dd00529c-d3ef-40e3-9dea-834c5203e3df@fujitsu.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 
-On Tue, Oct 25, 2022 at 02:26:50PM +0000, ruansy.fnst@fujitsu.com wrote:
-> 
-> 
-> 在 2022/10/24 13:31, Dave Chinner 写道:
-> > On Mon, Oct 24, 2022 at 03:17:52AM +0000, ruansy.fnst@fujitsu.com wrote:
-> >> 在 2022/10/24 6:00, Dave Chinner 写道:
-> >>> On Fri, Oct 21, 2022 at 07:11:02PM -0700, Darrick J. Wong wrote:
-> >>>> On Thu, Oct 20, 2022 at 10:17:45PM +0800, Yang, Xiao/杨 晓 wrote:
-> >>>>> In addition, I don't like your idea about the test change because it will
-> >>>>> make generic/470 become the special test for XFS. Do you know if we can fix
-> >>>>> the issue by changing the test in another way? blkdiscard -z can fix the
-> >>>>> issue because it does zero-fill rather than discard on the block device.
-> >>>>> However, blkdiscard -z will take a lot of time when the block device is
-> >>>>> large.
-> >>>>
-> >>>> Well we /could/ just do that too, but that will suck if you have 2TB of
-> >>>> pmem. ;)
-> >>>>
-> >>>> Maybe as an alternative path we could just create a very small
-> >>>> filesystem on the pmem and then blkdiscard -z it?
-> >>>>
-> >>>> That said -- does persistent memory actually have a future?  Intel
-> >>>> scuttled the entire Optane product, cxl.mem sounds like expansion
-> >>>> chassis full of DRAM, and fsdax is horribly broken in 6.0 (weird kernel
-> >>>> asserts everywhere) and 6.1 (every time I run fstests now I see massive
-> >>>> data corruption).
-> >>>
-> >>> Yup, I see the same thing. fsdax was a train wreck in 6.0 - broken
-> >>> on both ext4 and XFS. Now that I run a quick check on 6.1-rc1, I
-> >>> don't think that has changed at all - I still see lots of kernel
-> >>> warnings, data corruption and "XFS_IOC_CLONE_RANGE: Invalid
-> >>> argument" errors.
-> >>
-> >> Firstly, I think the "XFS_IOC_CLONE_RANGE: Invalid argument" error is
-> >> caused by the restrictions which prevent reflink work together with DAX:
-> >>
-> >> a. fs/xfs/xfs_ioctl.c:1141
-> >> /* Don't allow us to set DAX mode for a reflinked file for now. */
-> >> if ((fa->fsx_xflags & FS_XFLAG_DAX) && xfs_is_reflink_inode(ip))
-> >>          return -EINVAL;
-> >>
-> >> b. fs/xfs/xfs_iops.c:1174
-> >> /* Only supported on non-reflinked files. */
-> >> if (xfs_is_reflink_inode(ip))
-> >>          return false;
-> >>
-> >> These restrictions were removed in "drop experimental warning" patch[1].
-> >>    I think they should be separated from that patch.
-> >>
-> >> [1]
-> >> https://lore.kernel.org/linux-xfs/1663234002-17-1-git-send-email-ruansy.fnst@fujitsu.com/
-> >>
-> >>
-> >> Secondly, how the data corruption happened?
-> > 
-> > No idea - i"m just reporting that lots of fsx tests failed with data
-> > corruptions. I haven't had time to look at why, I'm still trying to
-> > sort out the fix for a different data corruption...
-> > 
-> >> Or which case failed?
-> > 
-> > *lots* of them failed with kernel warnings with reflink turned off:
-> > 
-> > SECTION       -- xfs_dax_noreflink
-> > =========================
-> > Failures: generic/051 generic/068 generic/075 generic/083
-> > generic/112 generic/127 generic/198 generic/231 generic/247
-> > generic/269 generic/270 generic/340 generic/344 generic/388
-> > generic/461 generic/471 generic/476 generic/519 generic/561 xfs/011
-> > xfs/013 xfs/073 xfs/297 xfs/305 xfs/517 xfs/538
-> > Failed 26 of 1079 tests
-> > 
-> > All of those except xfs/073 and generic/471 are failures due to
-> > warnings found in dmesg.
-> > 
-> > With reflink enabled, I terminated the run after g/075, g/091, g/112
-> > and generic/127 reported fsx data corruptions and g/051, g/068,
-> > g/075 and g/083 had reported kernel warnings in dmesg.
-> > 
-> >> Could
-> >> you give me more info (such as mkfs options, xfstests configs)?
-> > 
-> > They are exactly the same as last time I reported these problems.
-> > 
-> > For the "no reflink" test issues:
-> > 
-> > mkfs options are "-m reflink=0,rmapbt=1", mount options "-o
-> > dax=always" for both filesytems.  Config output at start of test
-> > run:
-> > 
-> > SECTION       -- xfs_dax_noreflink
-> > FSTYP         -- xfs (debug)
-> > PLATFORM      -- Linux/x86_64 test3 6.1.0-rc1-dgc+ #1615 SMP PREEMPT_DYNAMIC Wed Oct 19 12:24:16 AEDT 2022
-> > MKFS_OPTIONS  -- -f -m reflink=0,rmapbt=1 /dev/pmem1
-> > MOUNT_OPTIONS -- -o dax=always -o context=system_u:object_r:root_t:s0 /dev/pmem1 /mnt/scratch
-> > 
-> > pmem devices are a pair of fake 8GB pmem regions set up by kernel
-> > CLI via "memmap=8G!15G,8G!24G". I don't have anything special set up
-> > - the kernel config is kept minimal for these VMs - and the only
-> > kernel debug option I have turned on for these specific test runs is
-> > CONFIG_XFS_DEBUG=y.
-> 
-> Thanks for the detailed info.  But, in my environment (and my 
-> colleagues', and our real server with DCPMM) these failure cases (you 
-> mentioned above, in dax+non_reflink mode, with same test options) cannot 
-> reproduce.
-> 
-> Here's our test environment info:
->   - Ruan's env: fedora 36(v6.0-rc1) on kvm,pmem 2x4G:file backended
->   - Yang's env: fedora 35(v6.1-rc1) on kvm,pmem 2x1G:memmap=1G!1G,1G!2G
->   - Server's  : Ubuntu 20.04(v6.0-rc1) real machine,pmem 2x4G:real DCPMM
-> 
-> (To quickly confirm the difference, I just ran the failed 26 cases you 
-> mentioned above.)  Except for generic/471 and generic/519, which failed 
-> even when dax is off, the rest passed.
-> 
-> 
-> We don't want fsdax to be truned off.  Right now, I think the most 
-> important thing is solving the failed cases in dax+non_reflink mode. 
-> So, firstly, I have to reproduce those failures.  Is there any thing 
-> wrong with my test environments?  I konw you are using 'memmap=XXG!YYG' to 
-> simulate pmem.  So, (to Darrick) could you show me your config of dev 
-> environment and the 'testcloud'(I am guessing it's a server with real 
-> nvdimm just like ours)?
+From: Davidlohr Bueso <dave@stgolabs.net>
 
-Nope.  Since the announcement of pmem as a product, I have had 15
-minutes of acces to one preproduction prototype server with actual
-optane DIMMs in them.
+With CXL security features, global CPU cache flushing nvdimm requirements
+are no longer specific to that subsystem, even beyond the scope of
+security_ops. CXL will need such semantics for features not necessarily
+limited to persistent memory.
 
-I have /never/ had access to real hardware to test any of this, so it's
-all configured via libvirt to simulate pmem in qemu:
-https://lore.kernel.org/linux-xfs/YzXsavOWMSuwTBEC@magnolia/
+The functionality this is enabling is to be able to instantaneously
+secure erase potentially terabytes of memory at once and the kernel
+needs to be sure that none of the data from before the erase is still
+present in the cache. It is also used when unlocking a memory device
+where speculative reads and firmware accesses could have cached poison
+from before the device was unlocked. Lastly this facility is used when
+mapping new devices, or new capacity into an established physical
+address range. I.e. when the driver switches DeviceA mapping AddressX to
+DeviceB mapping AddressX then any cached data from DeviceA:AddressX
+needs to be invalidated.
 
-/run/mtrdisk/[gh].mem are both regular files on a tmpfs filesystem:
+This capability is typically only used once per-boot (for unlock), or
+once per bare metal provisioning event (secure erase), like when handing
+off the system to another tenant or decommissioning a device. It may
+also be used for dynamic CXL region provisioning.
 
-$ grep mtrdisk /proc/mounts
-none /run/mtrdisk tmpfs rw,relatime,size=82894848k,inode64 0 0
+Users must first call cpu_cache_has_invalidate_memregion() to know whether
+this functionality is available on the architecture. Only enable it on
+x86-64 via the wbinvd() hammer. Hypervisors are not supported as TDX
+guests may trigger a virtualization exception and may need proper handling
+to recover. See:
 
-$ ls -la /run/mtrdisk/[gh].mem
--rw-r--r-- 1 libvirt-qemu kvm 10739515392 Oct 24 18:09 /run/mtrdisk/g.mem
--rw-r--r-- 1 libvirt-qemu kvm 10739515392 Oct 24 19:28 /run/mtrdisk/h.mem
+   e2efb6359e62 ("ACPICA: Avoid cache flush inside virtual machines")
 
---D
+This global cache invalidation facility,
+cpu_cache_invalidate_memregion(), is exported to modules since NVDIMM
+and CXL support can be built as a module. However, the intent is that
+this facility is not available outside of specific "device-memory" use
+cases. To that end the API is scoped to a new "DEVMEM" module namespace
+that only applies to the NVDIMM and CXL subsystems.
 
-> 
-> 
-> (I just found I only tested on 4G and smaller pmem device.  I'll try the 
-> test on 8G pmem)
-> 
-> > 
-> > THe only difference between the noreflink and reflink runs is that I
-> > drop the "-m reflink=0" mkfs parameter. Otherwise they are identical
-> > and the errors I reported are from back-to-back fstests runs without
-> > rebooting the VM....
-> > 
-> > -Dave.
-> 
-> 
-> --
-> Thanks,
-> Ruan.
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: x86@kernel.org
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Signed-off-by: Davidlohr Bueso <dave@stgolabs.net>
+Co-developed-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+Changes since v3: https://lore.kernel.org/r/20220919110605.3696-1-dave@stgolabs.net
+- Add more details about the use of this facility in the memory
+  provisioning flow in the changelog
+- Introduce the DEVMEM symbol namespace to indicate that this facility is not
+  for general consumption (Dave H)
+- Update the kernel-doc for cpu_cache_invalidate_memregion() to clarify
+  that it is not to be used outside of the CXL and NVDIMM subsystems (Dave H)
+
+ arch/x86/Kconfig             |    1 +
+ arch/x86/mm/pat/set_memory.c |   15 +++++++++++++++
+ drivers/acpi/nfit/intel.c    |   43 ++++++++++++++++++++----------------------
+ include/linux/memregion.h    |   37 ++++++++++++++++++++++++++++++++++++
+ lib/Kconfig                  |    3 +++
+ 5 files changed, 76 insertions(+), 23 deletions(-)
+
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index 67745ceab0db..b68661d0633b 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -69,6 +69,7 @@ config X86
+ 	select ARCH_ENABLE_THP_MIGRATION if X86_64 && TRANSPARENT_HUGEPAGE
+ 	select ARCH_HAS_ACPI_TABLE_UPGRADE	if ACPI
+ 	select ARCH_HAS_CACHE_LINE_SIZE
++	select ARCH_HAS_CPU_CACHE_INVALIDATE_MEMREGION  if X86_64
+ 	select ARCH_HAS_CURRENT_STACK_POINTER
+ 	select ARCH_HAS_DEBUG_VIRTUAL
+ 	select ARCH_HAS_DEBUG_VM_PGTABLE	if !X86_PAE
+diff --git a/arch/x86/mm/pat/set_memory.c b/arch/x86/mm/pat/set_memory.c
+index 97342c42dda8..8650bb6481a8 100644
+--- a/arch/x86/mm/pat/set_memory.c
++++ b/arch/x86/mm/pat/set_memory.c
+@@ -330,6 +330,21 @@ void arch_invalidate_pmem(void *addr, size_t size)
+ EXPORT_SYMBOL_GPL(arch_invalidate_pmem);
+ #endif
+ 
++#ifdef CONFIG_ARCH_HAS_CPU_CACHE_INVALIDATE_MEMREGION
++bool cpu_cache_has_invalidate_memregion(void)
++{
++	return !cpu_feature_enabled(X86_FEATURE_HYPERVISOR);
++}
++EXPORT_SYMBOL_NS_GPL(cpu_cache_has_invalidate_memregion, DEVMEM);
++
++int cpu_cache_invalidate_memregion(int res_desc)
++{
++	wbinvd_on_all_cpus();
++	return 0;
++}
++EXPORT_SYMBOL_NS_GPL(cpu_cache_invalidate_memregion, DEVMEM);
++#endif
++
+ static void __cpa_flush_all(void *arg)
+ {
+ 	unsigned long cache = (unsigned long)arg;
+diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
+index 8dd792a55730..fa0e57e35162 100644
+--- a/drivers/acpi/nfit/intel.c
++++ b/drivers/acpi/nfit/intel.c
+@@ -3,6 +3,7 @@
+ #include <linux/libnvdimm.h>
+ #include <linux/ndctl.h>
+ #include <linux/acpi.h>
++#include <linux/memregion.h>
+ #include <asm/smp.h>
+ #include "intel.h"
+ #include "nfit.h"
+@@ -190,8 +191,6 @@ static int intel_security_change_key(struct nvdimm *nvdimm,
+ 	}
+ }
+ 
+-static void nvdimm_invalidate_cache(void);
+-
+ static int __maybe_unused intel_security_unlock(struct nvdimm *nvdimm,
+ 		const struct nvdimm_key_data *key_data)
+ {
+@@ -213,6 +212,9 @@ static int __maybe_unused intel_security_unlock(struct nvdimm *nvdimm,
+ 	if (!test_bit(NVDIMM_INTEL_UNLOCK_UNIT, &nfit_mem->dsm_mask))
+ 		return -ENOTTY;
+ 
++	if (!cpu_cache_has_invalidate_memregion())
++		return -EINVAL;
++
+ 	memcpy(nd_cmd.cmd.passphrase, key_data->data,
+ 			sizeof(nd_cmd.cmd.passphrase));
+ 	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
+@@ -228,7 +230,7 @@ static int __maybe_unused intel_security_unlock(struct nvdimm *nvdimm,
+ 	}
+ 
+ 	/* DIMM unlocked, invalidate all CPU caches before we read it */
+-	nvdimm_invalidate_cache();
++	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
+ 
+ 	return 0;
+ }
+@@ -297,8 +299,11 @@ static int __maybe_unused intel_security_erase(struct nvdimm *nvdimm,
+ 	if (!test_bit(cmd, &nfit_mem->dsm_mask))
+ 		return -ENOTTY;
+ 
++	if (!cpu_cache_has_invalidate_memregion())
++		return -EINVAL;
++
+ 	/* flush all cache before we erase DIMM */
+-	nvdimm_invalidate_cache();
++	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
+ 	memcpy(nd_cmd.cmd.passphrase, key->data,
+ 			sizeof(nd_cmd.cmd.passphrase));
+ 	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
+@@ -318,7 +323,7 @@ static int __maybe_unused intel_security_erase(struct nvdimm *nvdimm,
+ 	}
+ 
+ 	/* DIMM erased, invalidate all CPU caches before we read it */
+-	nvdimm_invalidate_cache();
++	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
+ 	return 0;
+ }
+ 
+@@ -341,6 +346,9 @@ static int __maybe_unused intel_security_query_overwrite(struct nvdimm *nvdimm)
+ 	if (!test_bit(NVDIMM_INTEL_QUERY_OVERWRITE, &nfit_mem->dsm_mask))
+ 		return -ENOTTY;
+ 
++	if (!cpu_cache_has_invalidate_memregion())
++		return -EINVAL;
++
+ 	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
+ 	if (rc < 0)
+ 		return rc;
+@@ -355,7 +363,7 @@ static int __maybe_unused intel_security_query_overwrite(struct nvdimm *nvdimm)
+ 	}
+ 
+ 	/* flush all cache before we make the nvdimms available */
+-	nvdimm_invalidate_cache();
++	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
+ 	return 0;
+ }
+ 
+@@ -380,8 +388,11 @@ static int __maybe_unused intel_security_overwrite(struct nvdimm *nvdimm,
+ 	if (!test_bit(NVDIMM_INTEL_OVERWRITE, &nfit_mem->dsm_mask))
+ 		return -ENOTTY;
+ 
++	if (!cpu_cache_has_invalidate_memregion())
++		return -EINVAL;
++
+ 	/* flush all cache before we erase DIMM */
+-	nvdimm_invalidate_cache();
++	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
+ 	memcpy(nd_cmd.cmd.passphrase, nkey->data,
+ 			sizeof(nd_cmd.cmd.passphrase));
+ 	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
+@@ -401,22 +412,6 @@ static int __maybe_unused intel_security_overwrite(struct nvdimm *nvdimm,
+ 	}
+ }
+ 
+-/*
+- * TODO: define a cross arch wbinvd equivalent when/if
+- * NVDIMM_FAMILY_INTEL command support arrives on another arch.
+- */
+-#ifdef CONFIG_X86
+-static void nvdimm_invalidate_cache(void)
+-{
+-	wbinvd_on_all_cpus();
+-}
+-#else
+-static void nvdimm_invalidate_cache(void)
+-{
+-	WARN_ON_ONCE("cache invalidation required after unlock\n");
+-}
+-#endif
+-
+ static const struct nvdimm_security_ops __intel_security_ops = {
+ 	.get_flags = intel_security_flags,
+ 	.freeze = intel_security_freeze,
+@@ -775,3 +770,5 @@ static const struct nvdimm_fw_ops __intel_fw_ops = {
+ };
+ 
+ const struct nvdimm_fw_ops *intel_fw_ops = &__intel_fw_ops;
++
++MODULE_IMPORT_NS(DEVMEM);
+diff --git a/include/linux/memregion.h b/include/linux/memregion.h
+index c04c4fd2e209..6667af64840d 100644
+--- a/include/linux/memregion.h
++++ b/include/linux/memregion.h
+@@ -20,4 +20,41 @@ static inline void memregion_free(int id)
+ {
+ }
+ #endif
++
++/**
++ * cpu_cache_invalidate_memregion - drop any CPU cached data for
++ *     memregions described by @res_desc
++ * @res_desc: one of the IORES_DESC_* types
++ *
++ * Perform cache maintenance after a memory event / operation that
++ * changes the contents of physical memory in a cache-incoherent manner.
++ * For example, device memory technologies like NVDIMM and CXL have
++ * device secure erase, or dynamic region provision features where such
++ * semantics.
++ *
++ * Limit the functionality to architectures that have an efficient way
++ * to writeback and invalidate potentially terabytes of memory at once.
++ * Note that this routine may or may not write back any dirty contents
++ * while performing the invalidation. It is only exported for the
++ * explicit usage of the NVDIMM and CXL modules in the 'DEVMEM' symbol
++ * namespace.
++ *
++ * Returns 0 on success or negative error code on a failure to perform
++ * the cache maintenance.
++ */
++#ifdef CONFIG_ARCH_HAS_CPU_CACHE_INVALIDATE_MEMREGION
++int cpu_cache_invalidate_memregion(int res_desc);
++bool cpu_cache_has_invalidate_memregion(void);
++#else
++static inline bool cpu_cache_has_invalidate_memregion(void)
++{
++	return false;
++}
++
++int cpu_cache_invalidate_memregion(int res_desc)
++{
++	WARN_ON_ONCE("CPU cache invalidation required");
++	return -EINVAL;
++}
++#endif
+ #endif /* _MEMREGION_H_ */
+diff --git a/lib/Kconfig b/lib/Kconfig
+index 9bbf8a4b2108..9eb514abcdec 100644
+--- a/lib/Kconfig
++++ b/lib/Kconfig
+@@ -672,6 +672,9 @@ config ARCH_HAS_PMEM_API
+ config MEMREGION
+ 	bool
+ 
++config ARCH_HAS_CPU_CACHE_INVALIDATE_MEMREGION
++	bool
++
+ config ARCH_HAS_MEMREMAP_COMPAT_ALIGN
+ 	bool
+ 
+
