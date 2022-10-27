@@ -1,233 +1,112 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from olivedrab.birch.relay.mailchannels.net (olivedrab.birch.relay.mailchannels.net [23.83.209.135])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14A6E7B
-	for <nvdimm@lists.linux.dev>; Thu, 27 Oct 2022 21:08:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5A08C433B5;
-	Thu, 27 Oct 2022 21:08:52 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1666904932;
-	bh=1bD/o+EvHYQU7AxSdFfSU7vvTCAjilQyIgQusXQCCZs=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=n2K29aSfnlUJaHzBZtWjNZJs52CNGuRO+vuRHFfPKBK87r1hS7vEUmRhqi4CJAd7h
-	 geyjCY0cvQasohWzcIFkvgf3rkHkJazBUQhKDwFo7alZgCJ5gG3DO1kbtMEJBxNAkQ
-	 VGa1r/RMsnqQpVckEEij+nr4/5POF8TFfmBUBRDPsAPpddw1i4C4z8affO3xyhJI2n
-	 fEBroZZXeBOwwRkq6X1rsBNXQt7rrutdZ2tC/Es/An4sgPuw3SZgcqwU0wBIblTma+
-	 oAPAZMgNc7IEWqW1KJr6GDIqqmeny4y6Q4/ZsQMcjguL4wOqZk5q5eUE1UjdoSe4Y9
-	 jWwVAUNuNJfHg==
-Date: Thu, 27 Oct 2022 14:08:52 -0700
-From: "Darrick J. Wong" <djwong@kernel.org>
-To: "ruansy.fnst@fujitsu.com" <ruansy.fnst@fujitsu.com>
-Cc: Dave Chinner <david@fromorbit.com>,
-	"yangx.jy@fujitsu.com" <yangx.jy@fujitsu.com>,
-	"Yasunori Gotou (Fujitsu)" <y-goto@fujitsu.com>,
-	Brian Foster <bfoster@redhat.com>,
-	"hch@infradead.org" <hch@infradead.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>,
-	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
-	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
-	"zwisler@kernel.org" <zwisler@kernel.org>,
-	Jeff Moyer <jmoyer@redhat.com>,
-	"dm-devel@redhat.com" <dm-devel@redhat.com>,
-	"toshi.kani@hpe.com" <toshi.kani@hpe.com>,
-	Theodore Ts'o <tytso@mit.edu>
-Subject: Re: [PATCH] xfs: fail dax mount if reflink is enabled on a partition
-Message-ID: <Y1rzZN0wgLcie47z@magnolia>
-References: <Yzt6eWLuX/RTjmjj@magnolia>
- <f196bcab-6aa2-6313-8a7c-f8ab409621b7@fujitsu.com>
- <Yzx64zGt2kTiDYaP@magnolia>
- <6a83a56e-addc-f3c4-2357-9589a49bf582@fujitsu.com>
- <Y1NRNtToQTjs0Dbd@magnolia>
- <20221023220018.GX3600936@dread.disaster.area>
- <OSBPR01MB2920CA997DDE891C06776279F42E9@OSBPR01MB2920.jpnprd01.prod.outlook.com>
- <20221024053109.GY3600936@dread.disaster.area>
- <dd00529c-d3ef-40e3-9dea-834c5203e3df@fujitsu.com>
- <Y1gjQ4wNZr3ve2+K@magnolia>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 197707B
+	for <nvdimm@lists.linux.dev>; Thu, 27 Oct 2022 22:08:27 +0000 (UTC)
+X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
+Received: from relay.mailchannels.net (localhost [127.0.0.1])
+	by relay.mailchannels.net (Postfix) with ESMTP id 113285410D4;
+	Thu, 27 Oct 2022 19:45:28 +0000 (UTC)
+Received: from pdx1-sub0-mail-a225 (unknown [127.0.0.6])
+	(Authenticated sender: dreamhost)
+	by relay.mailchannels.net (Postfix) with ESMTPA id 779D7540EBA;
+	Thu, 27 Oct 2022 19:45:27 +0000 (UTC)
+ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1666899927; a=rsa-sha256;
+	cv=none;
+	b=Tx3N8G61enaXP3hY00PQkoRRM+BDW4V3GjdXsV44o7sw1kknR/nSyveyG2GlGtgb9EZxjr
+	zyGv1mqC+Cg/Vsrvt3Jk2dH6zR6u5ThoUU6e9ysoDnbXLRtYdZSS0CRT76RwE6REfM7uyI
+	dHZ7XunaRTNXbkNsKLPyOc1G4+pszYdMbRBgNw7yR8UvV1n3lNPTmyvug6DIBhQjMkCS/D
+	h6XP4zzdiHYTkqR8UdZ/0JGlDIOojhr43mNk8HcGY5JknIIzCzBlMywqVYXS7IIJricye6
+	eFhOOFJFTPy0OvcsTUwYrZjhzD86g+5S5ZiztxepE1IofAWhpcID0v+M7T3G/g==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=mailchannels.net;
+	s=arc-2022; t=1666899927;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references:dkim-signature;
+	bh=LgCJNes0M/e9uOGlPfODNjUYtuk1rQXw4FrNx0CN4O4=;
+	b=YxvNjFPKWUt6mpgOpQcC90hhwgf1I+//m6iXB7aasdsKeaxWqyZYFyy+6L2iSYDBlD01sV
+	QXpQfFKLQLL3lJFijdFUilBP98jJiyMPgGqn/pmhUbKYiB0ogMNK9+0ruVA7BmDnLGwKlq
+	ePcMiJaTNLbauGQFaZ18z+FICVbltXtWDk9nYCxBEUnVEAEDm8rpQs0dOkNHffpfE6hPKy
+	lV+gRz+OHKAataxBeH1HqJwxyN5IJ2lwLs316gS9pWTLyVToQA5gVqCJhCpTsMTmJrlo36
+	su/rgV06Ex2tnBp2cP3WNI9DCE7HzSiU3R1Hppjhv2OpcdL41W1YbsgMoGTqQQ==
+ARC-Authentication-Results: i=1;
+	rspamd-7fb88f4dd5-crcnf;
+	auth=pass smtp.auth=dreamhost smtp.mailfrom=dave@stgolabs.net
+X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
+X-MC-Relay: Neutral
+X-MailChannels-SenderId: dreamhost|x-authsender|dave@stgolabs.net
+X-MailChannels-Auth-Id: dreamhost
+X-Minister-Cold: 411e9b1352b9e008_1666899927853_4160441994
+X-MC-Loop-Signature: 1666899927853:3360058680
+X-MC-Ingress-Time: 1666899927853
+Received: from pdx1-sub0-mail-a225 (pop.dreamhost.com [64.90.62.162])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
+	by 100.97.34.76 (trex/6.7.1);
+	Thu, 27 Oct 2022 19:45:27 +0000
+Received: from offworld (ip72-199-50-187.sd.sd.cox.net [72.199.50.187])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange ECDHE (P-256) server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	(Authenticated sender: dave@stgolabs.net)
+	by pdx1-sub0-mail-a225 (Postfix) with ESMTPSA id 4Myx3p2T7bz1G;
+	Thu, 27 Oct 2022 12:45:26 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=stgolabs.net;
+	s=dreamhost; t=1666899927;
+	bh=LgCJNes0M/e9uOGlPfODNjUYtuk1rQXw4FrNx0CN4O4=;
+	h=Date:From:To:Cc:Subject:Content-Type;
+	b=S861251m7hwlBl9VdDcTGQTXZ19uWIjz7MKZKMOzkvCb0tQZfFcwBMKLIoZZJvlHW
+	 LxthQP60HBgGOTqrxbbgsOG17hBYOlEebeLquGeC/2UbMwRVGpazOKupZTgjan+rzt
+	 r1UL2sA3QvPNHNYQWxqrkup5Um/UFec8NkdRNHlrDMOf0KfPT/4y2peFJZ7N08vkAs
+	 TemrAQ4bSKpu9c+hGYph5cyWbI6t2TWIbXQ9wwbGIO/3OlQ1qswhHTtBWZCdyfyxRb
+	 1dSC9Ka82m6e+uw9B8PaPd8FCo0RZccKvZlKSHeIBneIzlVveFLIkYRs7J8WwzOq0P
+	 kC28tuJhVaU3g==
+Date: Thu, 27 Oct 2022 12:23:41 -0700
+From: Davidlohr Bueso <dave@stgolabs.net>
+To: Dave Hansen <dave.hansen@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>, linux-cxl@vger.kernel.org,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+	"H. Peter Anvin" <hpa@zytor.com>, Andy Lutomirski <luto@kernel.org>,
+	Peter Zijlstra <peterz@infradead.org>, nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v4] memregion: Add cpu_cache_invalidate_memregion()
+ interface
+Message-ID: <20221027192341.flsnbnmptd4t32ki@offworld>
+References: <166672803035.2801111.9244172033971411169.stgit@dwillia2-xfh.jf.intel.com>
+ <3ce6ef93-2f47-eda3-f974-0cfea7f43766@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <Y1gjQ4wNZr3ve2+K@magnolia>
+In-Reply-To: <3ce6ef93-2f47-eda3-f974-0cfea7f43766@intel.com>
+User-Agent: NeoMutt/20220429
 
-[add tytso to cc since he asked about "How do you actually /get/ fsdax
-mode these days?" this morning]
+On Thu, 27 Oct 2022, Dave Hansen wrote:
 
-On Tue, Oct 25, 2022 at 10:56:19AM -0700, Darrick J. Wong wrote:
-> On Tue, Oct 25, 2022 at 02:26:50PM +0000, ruansy.fnst@fujitsu.com wrote:
-> > 
-> > 
-> > 在 2022/10/24 13:31, Dave Chinner 写道:
-> > > On Mon, Oct 24, 2022 at 03:17:52AM +0000, ruansy.fnst@fujitsu.com wrote:
-> > >> 在 2022/10/24 6:00, Dave Chinner 写道:
-> > >>> On Fri, Oct 21, 2022 at 07:11:02PM -0700, Darrick J. Wong wrote:
-> > >>>> On Thu, Oct 20, 2022 at 10:17:45PM +0800, Yang, Xiao/杨 晓 wrote:
-> > >>>>> In addition, I don't like your idea about the test change because it will
-> > >>>>> make generic/470 become the special test for XFS. Do you know if we can fix
-> > >>>>> the issue by changing the test in another way? blkdiscard -z can fix the
-> > >>>>> issue because it does zero-fill rather than discard on the block device.
-> > >>>>> However, blkdiscard -z will take a lot of time when the block device is
-> > >>>>> large.
-> > >>>>
-> > >>>> Well we /could/ just do that too, but that will suck if you have 2TB of
-> > >>>> pmem. ;)
-> > >>>>
-> > >>>> Maybe as an alternative path we could just create a very small
-> > >>>> filesystem on the pmem and then blkdiscard -z it?
-> > >>>>
-> > >>>> That said -- does persistent memory actually have a future?  Intel
-> > >>>> scuttled the entire Optane product, cxl.mem sounds like expansion
-> > >>>> chassis full of DRAM, and fsdax is horribly broken in 6.0 (weird kernel
-> > >>>> asserts everywhere) and 6.1 (every time I run fstests now I see massive
-> > >>>> data corruption).
-> > >>>
-> > >>> Yup, I see the same thing. fsdax was a train wreck in 6.0 - broken
-> > >>> on both ext4 and XFS. Now that I run a quick check on 6.1-rc1, I
-> > >>> don't think that has changed at all - I still see lots of kernel
-> > >>> warnings, data corruption and "XFS_IOC_CLONE_RANGE: Invalid
-> > >>> argument" errors.
-> > >>
-> > >> Firstly, I think the "XFS_IOC_CLONE_RANGE: Invalid argument" error is
-> > >> caused by the restrictions which prevent reflink work together with DAX:
-> > >>
-> > >> a. fs/xfs/xfs_ioctl.c:1141
-> > >> /* Don't allow us to set DAX mode for a reflinked file for now. */
-> > >> if ((fa->fsx_xflags & FS_XFLAG_DAX) && xfs_is_reflink_inode(ip))
-> > >>          return -EINVAL;
-> > >>
-> > >> b. fs/xfs/xfs_iops.c:1174
-> > >> /* Only supported on non-reflinked files. */
-> > >> if (xfs_is_reflink_inode(ip))
-> > >>          return false;
-> > >>
-> > >> These restrictions were removed in "drop experimental warning" patch[1].
-> > >>    I think they should be separated from that patch.
-> > >>
-> > >> [1]
-> > >> https://lore.kernel.org/linux-xfs/1663234002-17-1-git-send-email-ruansy.fnst@fujitsu.com/
-> > >>
-> > >>
-> > >> Secondly, how the data corruption happened?
-> > > 
-> > > No idea - i"m just reporting that lots of fsx tests failed with data
-> > > corruptions. I haven't had time to look at why, I'm still trying to
-> > > sort out the fix for a different data corruption...
-> > > 
-> > >> Or which case failed?
-> > > 
-> > > *lots* of them failed with kernel warnings with reflink turned off:
-> > > 
-> > > SECTION       -- xfs_dax_noreflink
-> > > =========================
-> > > Failures: generic/051 generic/068 generic/075 generic/083
-> > > generic/112 generic/127 generic/198 generic/231 generic/247
-> > > generic/269 generic/270 generic/340 generic/344 generic/388
-> > > generic/461 generic/471 generic/476 generic/519 generic/561 xfs/011
-> > > xfs/013 xfs/073 xfs/297 xfs/305 xfs/517 xfs/538
-> > > Failed 26 of 1079 tests
-> > > 
-> > > All of those except xfs/073 and generic/471 are failures due to
-> > > warnings found in dmesg.
-> > > 
-> > > With reflink enabled, I terminated the run after g/075, g/091, g/112
-> > > and generic/127 reported fsx data corruptions and g/051, g/068,
-> > > g/075 and g/083 had reported kernel warnings in dmesg.
-> > > 
-> > >> Could
-> > >> you give me more info (such as mkfs options, xfstests configs)?
-> > > 
-> > > They are exactly the same as last time I reported these problems.
-> > > 
-> > > For the "no reflink" test issues:
-> > > 
-> > > mkfs options are "-m reflink=0,rmapbt=1", mount options "-o
-> > > dax=always" for both filesytems.  Config output at start of test
-> > > run:
-> > > 
-> > > SECTION       -- xfs_dax_noreflink
-> > > FSTYP         -- xfs (debug)
-> > > PLATFORM      -- Linux/x86_64 test3 6.1.0-rc1-dgc+ #1615 SMP PREEMPT_DYNAMIC Wed Oct 19 12:24:16 AEDT 2022
-> > > MKFS_OPTIONS  -- -f -m reflink=0,rmapbt=1 /dev/pmem1
-> > > MOUNT_OPTIONS -- -o dax=always -o context=system_u:object_r:root_t:s0 /dev/pmem1 /mnt/scratch
-> > > 
-> > > pmem devices are a pair of fake 8GB pmem regions set up by kernel
-> > > CLI via "memmap=8G!15G,8G!24G". I don't have anything special set up
-> > > - the kernel config is kept minimal for these VMs - and the only
-> > > kernel debug option I have turned on for these specific test runs is
-> > > CONFIG_XFS_DEBUG=y.
-> > 
-> > Thanks for the detailed info.  But, in my environment (and my 
-> > colleagues', and our real server with DCPMM) these failure cases (you 
-> > mentioned above, in dax+non_reflink mode, with same test options) cannot 
-> > reproduce.
-> > 
-> > Here's our test environment info:
-> >   - Ruan's env: fedora 36(v6.0-rc1) on kvm,pmem 2x4G:file backended
-> >   - Yang's env: fedora 35(v6.1-rc1) on kvm,pmem 2x1G:memmap=1G!1G,1G!2G
-> >   - Server's  : Ubuntu 20.04(v6.0-rc1) real machine,pmem 2x4G:real DCPMM
-> > 
-> > (To quickly confirm the difference, I just ran the failed 26 cases you 
-> > mentioned above.)  Except for generic/471 and generic/519, which failed 
-> > even when dax is off, the rest passed.
-> > 
-> > 
-> > We don't want fsdax to be truned off.  Right now, I think the most 
-> > important thing is solving the failed cases in dax+non_reflink mode. 
-> > So, firstly, I have to reproduce those failures.  Is there any thing 
-> > wrong with my test environments?  I konw you are using 'memmap=XXG!YYG' to 
-> > simulate pmem.  So, (to Darrick) could you show me your config of dev 
-> > environment and the 'testcloud'(I am guessing it's a server with real 
-> > nvdimm just like ours)?
-> 
-> Nope.  Since the announcement of pmem as a product, I have had 15
-> minutes of acces to one preproduction prototype server with actual
-> optane DIMMs in them.
-> 
-> I have /never/ had access to real hardware to test any of this, so it's
-> all configured via libvirt to simulate pmem in qemu:
-> https://lore.kernel.org/linux-xfs/YzXsavOWMSuwTBEC@magnolia/
-> 
-> /run/mtrdisk/[gh].mem are both regular files on a tmpfs filesystem:
-> 
-> $ grep mtrdisk /proc/mounts
-> none /run/mtrdisk tmpfs rw,relatime,size=82894848k,inode64 0 0
-> 
-> $ ls -la /run/mtrdisk/[gh].mem
-> -rw-r--r-- 1 libvirt-qemu kvm 10739515392 Oct 24 18:09 /run/mtrdisk/g.mem
-> -rw-r--r-- 1 libvirt-qemu kvm 10739515392 Oct 24 19:28 /run/mtrdisk/h.mem
+>> diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+>> index 67745ceab0db..b68661d0633b 100644
+>> --- a/arch/x86/Kconfig
+>> +++ b/arch/x86/Kconfig
+>> @@ -69,6 +69,7 @@ config X86
+>>	select ARCH_ENABLE_THP_MIGRATION if X86_64 && TRANSPARENT_HUGEPAGE
+>>	select ARCH_HAS_ACPI_TABLE_UPGRADE	if ACPI
+>>	select ARCH_HAS_CACHE_LINE_SIZE
+>> +	select ARCH_HAS_CPU_CACHE_INVALIDATE_MEMREGION  if X86_64
+>
+>What is 64-bit only about this?
+>
+>I don't expect to have a lot of NVDIMMs or CXL devices on 32-bit
+>kernels, but it would be nice to remove this if it's not strictly
+>needed.  Or, to add a changelog nugget that says:
+>
+>	Restrict this to X86_64 kernels.  It would probably work on 32-
+>	bit, but there is no practical reason to use 32-bit kernels and
+>	no one is testing them.
 
-Also forgot to mention that the VM with the fake pmem attached has a
-script to do:
-
-ndctl create-namespace --mode fsdax --map dev -e namespace0.0 -f
-ndctl create-namespace --mode fsdax --map dev -e namespace1.0 -f
-
-Every time the pmem device gets recreated, because apparently that's the
-only way to get S_DAX mode nowadays?
-
---D
-
-> --D
-> 
-> > 
-> > 
-> > (I just found I only tested on 4G and smaller pmem device.  I'll try the 
-> > test on 8G pmem)
-> > 
-> > > 
-> > > THe only difference between the noreflink and reflink runs is that I
-> > > drop the "-m reflink=0" mkfs parameter. Otherwise they are identical
-> > > and the errors I reported are from back-to-back fstests runs without
-> > > rebooting the VM....
-> > > 
-> > > -Dave.
-> > 
-> > 
-> > --
-> > Thanks,
-> > Ruan.
+Yes, this was to further limit the potential users.
