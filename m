@@ -1,269 +1,233 @@
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09A5BD501
-	for <nvdimm@lists.linux.dev>; Thu, 27 Oct 2022 18:08:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1666894096; x=1698430096;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=GwNVRxTiCYFzojdPwmngirWE3nXMoSVqjyOK4NFJUVk=;
-  b=VAmTsvKW1laKmFyM3lIh/C0azj7p5Cln/LZXHKXKyDT248Alu5lx1DTb
-   /M7DjpjZXF3+jOSWSjKomrWY7YS5G7rL2TdBRE5aNFW2V7gb1cHwTerZ+
-   br+tq/58vTDjBGXNCokNyZHcg+6zSqvGxRnnuRGUqY8yHOBqaB+CQ0XOS
-   nNY/SALpZMX3ShSJcAzgAI18FLLk0TJr+4gYLW+0k6VzDBq1cEMDTg5p8
-   5d8S65ZD3pDgRjfv8E+0WorbyGYYLxUk6leBmFMj8osmYPg6YmxgKCByY
-   juKU/JUdfbawl46mpQC6ABpdxRQqZKYN5CQ590Y4mZbb2/6LyQwtJPE82
-   A==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10513"; a="334936134"
-X-IronPort-AV: E=Sophos;i="5.95,218,1661842800"; 
-   d="scan'208";a="334936134"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Oct 2022 11:08:09 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6500,9779,10513"; a="663715197"
-X-IronPort-AV: E=Sophos;i="5.95,218,1661842800"; 
-   d="scan'208";a="663715197"
-Received: from orsmsx603.amr.corp.intel.com ([10.22.229.16])
-  by orsmga008.jf.intel.com with ESMTP; 27 Oct 2022 11:08:09 -0700
-Received: from orsmsx610.amr.corp.intel.com (10.22.229.23) by
- ORSMSX603.amr.corp.intel.com (10.22.229.16) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.31; Thu, 27 Oct 2022 11:08:09 -0700
-Received: from orsedg603.ED.cps.intel.com (10.7.248.4) by
- orsmsx610.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.31 via Frontend Transport; Thu, 27 Oct 2022 11:08:09 -0700
-Received: from NAM12-DM6-obe.outbound.protection.outlook.com (104.47.59.174)
- by edgegateway.intel.com (134.134.137.100) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2375.31; Thu, 27 Oct 2022 11:08:08 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=NMyl0BmOwrswctK6vkWOpiB+6Rd14NaQPPa/JjW95fzmn24XavAaT8K0eZdWuEfd8Fczno6qSLTet5/EOQGT9NNbqZ67f2xOHTmsYni32v2UHXjoWhvHJBhMb81aiEdkpSaJWf2CI20eHsP7pG43K59NJdRhtlhMCqKPkIoytXI4kcPIAZKNQkBrfI1SFtGwN1N9Fao1W5ZbOxi6mNXOwRiTCEP/cIAc47efWn/Xc2zoqypkxrma7b3vjWW5AEWkIR4tAumvb+gzYGNfQX7nnP3YKHvxJK2uGsdC15A84TyFD8vOLVjAKpw9tSIzD4ctCLy0d4lRC6/aTDxX15JAlA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=diki5L5E3e9R/bCDwCEu7w65ozBI4PfymPB8UE4EazY=;
- b=HeKPADvQEONPQeZ71RML6EoC2mW3e/qUwKIdH2Eh8TKvMF0cKYjX8pSoHYG6JIuKcotT2hZH6rqFy2KHgWbc5prQu32cIlUhGXBmxAEgukMTtbkApGz3wa3SteRv0XztDRA80o1celDWpaeXeYGKyrw7Z8F9+6965QpvF0tF1Og8NUks2xxgv8BPbA4SO2ACB3ZNSeRGlLHkO15+LEPhmopD0zF9S0DoA+kX/UkQoUbXJfjNZBVJRPWp3Eewq3XdyMevvMxG6rBawdoG3ZX2WAvUbhRFq2Wu5DdVmyzkDo9Y4w5mrZRhMAFMyjGZ0eCgXj4VtY0Bre2sfzCPJpGx5w==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
- (2603:10b6:301:50::20) by MW5PR11MB5931.namprd11.prod.outlook.com
- (2603:10b6:303:198::9) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5723.34; Thu, 27 Oct
- 2022 18:08:03 +0000
-Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
- ([fe80::7d5a:684d:99f7:4e83]) by MWHPR1101MB2126.namprd11.prod.outlook.com
- ([fe80::7d5a:684d:99f7:4e83%12]) with mapi id 15.20.5746.023; Thu, 27 Oct
- 2022 18:08:02 +0000
-Date: Thu, 27 Oct 2022 11:07:49 -0700
-From: Dan Williams <dan.j.williams@intel.com>
-To: Dave Hansen <dave.hansen@intel.com>, Dan Williams
-	<dan.j.williams@intel.com>, <linux-cxl@vger.kernel.org>
-CC: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>,
-	Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>,
-	<x86@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Andy Lutomirski
-	<luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Davidlohr Bueso
-	<dave@stgolabs.net>, <nvdimm@lists.linux.dev>, <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v4] memregion: Add cpu_cache_invalidate_memregion()
- interface
-Message-ID: <635ac8f52615_11722294cf@dwillia2-mobl3.amr.corp.intel.com.notmuch>
-References: <166672803035.2801111.9244172033971411169.stgit@dwillia2-xfh.jf.intel.com>
- <3ce6ef93-2f47-eda3-f974-0cfea7f43766@intel.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <3ce6ef93-2f47-eda3-f974-0cfea7f43766@intel.com>
-X-ClientProxiedBy: BYAPR02CA0063.namprd02.prod.outlook.com
- (2603:10b6:a03:54::40) To MWHPR1101MB2126.namprd11.prod.outlook.com
- (2603:10b6:301:50::20)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14A6E7B
+	for <nvdimm@lists.linux.dev>; Thu, 27 Oct 2022 21:08:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5A08C433B5;
+	Thu, 27 Oct 2022 21:08:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1666904932;
+	bh=1bD/o+EvHYQU7AxSdFfSU7vvTCAjilQyIgQusXQCCZs=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=n2K29aSfnlUJaHzBZtWjNZJs52CNGuRO+vuRHFfPKBK87r1hS7vEUmRhqi4CJAd7h
+	 geyjCY0cvQasohWzcIFkvgf3rkHkJazBUQhKDwFo7alZgCJ5gG3DO1kbtMEJBxNAkQ
+	 VGa1r/RMsnqQpVckEEij+nr4/5POF8TFfmBUBRDPsAPpddw1i4C4z8affO3xyhJI2n
+	 fEBroZZXeBOwwRkq6X1rsBNXQt7rrutdZ2tC/Es/An4sgPuw3SZgcqwU0wBIblTma+
+	 oAPAZMgNc7IEWqW1KJr6GDIqqmeny4y6Q4/ZsQMcjguL4wOqZk5q5eUE1UjdoSe4Y9
+	 jWwVAUNuNJfHg==
+Date: Thu, 27 Oct 2022 14:08:52 -0700
+From: "Darrick J. Wong" <djwong@kernel.org>
+To: "ruansy.fnst@fujitsu.com" <ruansy.fnst@fujitsu.com>
+Cc: Dave Chinner <david@fromorbit.com>,
+	"yangx.jy@fujitsu.com" <yangx.jy@fujitsu.com>,
+	"Yasunori Gotou (Fujitsu)" <y-goto@fujitsu.com>,
+	Brian Foster <bfoster@redhat.com>,
+	"hch@infradead.org" <hch@infradead.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>,
+	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
+	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
+	"zwisler@kernel.org" <zwisler@kernel.org>,
+	Jeff Moyer <jmoyer@redhat.com>,
+	"dm-devel@redhat.com" <dm-devel@redhat.com>,
+	"toshi.kani@hpe.com" <toshi.kani@hpe.com>,
+	Theodore Ts'o <tytso@mit.edu>
+Subject: Re: [PATCH] xfs: fail dax mount if reflink is enabled on a partition
+Message-ID: <Y1rzZN0wgLcie47z@magnolia>
+References: <Yzt6eWLuX/RTjmjj@magnolia>
+ <f196bcab-6aa2-6313-8a7c-f8ab409621b7@fujitsu.com>
+ <Yzx64zGt2kTiDYaP@magnolia>
+ <6a83a56e-addc-f3c4-2357-9589a49bf582@fujitsu.com>
+ <Y1NRNtToQTjs0Dbd@magnolia>
+ <20221023220018.GX3600936@dread.disaster.area>
+ <OSBPR01MB2920CA997DDE891C06776279F42E9@OSBPR01MB2920.jpnprd01.prod.outlook.com>
+ <20221024053109.GY3600936@dread.disaster.area>
+ <dd00529c-d3ef-40e3-9dea-834c5203e3df@fujitsu.com>
+ <Y1gjQ4wNZr3ve2+K@magnolia>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MWHPR1101MB2126:EE_|MW5PR11MB5931:EE_
-X-MS-Office365-Filtering-Correlation-Id: dddd5942-cc24-486a-b12e-08dab8462ff2
-X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: h9YwZozm1i9rhPSkrgDCUboQ5Tmd2ZykiIGOSO/EyJjnaeR+LFVzk5esWqK55bT6gL8ZHuWVa0DwkSkxK6h1DI2vD6jKmZpMmXXqu1QlPXNAbDGcPqYYy96oW2BDBm4+R4LJRE4oielw7/sQ6WAS2wkkqPBwPgwu72w8tVfcQAQWIIxqokYH5lCaWXUkWaJapyXxLJXmT1St6PcX2pR8F4j1b1nNYOh3Dj9VPYvApBbHnyayI1PFfhXaoZUUOq0g0ozmPBDHp2WstI3N6PWMql1YHvtxYXOsJxDsNVyZkuRHG1jGS21AqJaXtRZ4RBoMazHrkDGLkA7gq8C3+MSf+oDOAHwC5FOBsShMR0Q/Mj+HKMR9D2+xQKDPOO2Gsjye4WA0DF8zS0uRKd9OBR0kI7bG60FmzU9Tmzy8rt2D1VFtw8dHljTB8Sy35uWvDvzs8jBuaMoEujUHWza0xAqmM3YgrPysyW1C/u2kqSOqGfQaCt7/PHdNR9Q52LunxOqyIjpYH/XbNThGBCNBjJq3CJ+RiwPPiuyUgKRXS8AziHGTcaK6oJpMiSX9La7MypIO5lvpSaNepfHcL68g/G+sC75wrjkaKoM4SNbQz16ViGytshygfwEnsBHzR8J4nDVtTzAHb2zZl4peumL94AT0k2/NWyLGsRQk1H0RstbUkknry/B/iERw37wJMftnhViuU3CDWLUrPAoXzjDeGfoibA==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1101MB2126.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230022)(136003)(39860400002)(376002)(366004)(396003)(346002)(451199015)(66899015)(82960400001)(86362001)(8936002)(7416002)(38100700002)(5660300002)(83380400001)(26005)(6512007)(9686003)(478600001)(8676002)(6666004)(6486002)(66476007)(110136005)(54906003)(316002)(186003)(66946007)(53546011)(4326008)(66556008)(2906002)(41300700001)(6506007);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?grlDp0+gMTktEL5CTumz5WPgolYCgf7W+WiKgFyNb0oIHkm+3evaTpkH8bs5?=
- =?us-ascii?Q?ResZRRlTXH6nvULh6FfqCarn4QvNd/3L7KRRthZ0PqRvHGKCKQCW+HLiSd9q?=
- =?us-ascii?Q?WLbmm7RsFwSuH7Xa360fTRXN+RltzOZbYQd/dk9LrIpenjteUDuPboKUUlbl?=
- =?us-ascii?Q?ePRXyxgk3RRc1KsXjisIVNwqNpr+LaNvPuHnUId4aLIA4ir+8h2a2H2cl+Tz?=
- =?us-ascii?Q?nSzKXrEDxWid5T5xGzJqsJqrd4nUJzvxT0oa10Ztmjwh7hrdl3K/n7n+j4VM?=
- =?us-ascii?Q?M3WoWJLmIdvpO5yZNW+eEfFZUc1NPkpJQz3D3bP0bmgO2uLYjDiBTEQ0oTeP?=
- =?us-ascii?Q?L7U0FFSf9OpnZn/t9mCKiInKphQvgCle5tJy6eTz1DAuAq2b3tSAsT7n8vij?=
- =?us-ascii?Q?f358a3n6Es1j1SLouZimMpFMjowzXAsLsZaY+RbPLXEbSuBW4oa0uSKjmgTS?=
- =?us-ascii?Q?R8F/y5nFP3kgQFvh3BwFIhvjt9OyrE/0fclX31gifgJL8Kqp77gXa/q7wuJY?=
- =?us-ascii?Q?rvkdl0K74pl+7VDCMzDVXikpQerGDUTZC1Xf2J/+f9K7xNhgAp5E2y9diTv+?=
- =?us-ascii?Q?VxaWisHaP18Eq3Jwc4EkEAf0VAhR80MvcIJHdjhthvwf6l8tavBGcxWDGeDC?=
- =?us-ascii?Q?pjT56LVlB1ksVBbzJZptksk/sLuDtAOZqz61+IVRCZj/fW30GFOQV4wWBlkz?=
- =?us-ascii?Q?rwmd44IARCvwUSEaTxLTUnv4TCYxNhllWoVh+SsQSacmfbC79i5saoK36w9g?=
- =?us-ascii?Q?IKFsrXDLbSJDOU+B9+r+hugN0UHJiSLIyHCfbvKuEikAq8sPVKRYU11NjYtl?=
- =?us-ascii?Q?W0y6FmUWoqbOlHY3wQF0LlT6uZaBYkP80CItPaNHlm3nDKoTAiygRUsg70FL?=
- =?us-ascii?Q?nwa6qk5e0KOQG6L7Vw4B2U8zHp3P547vZdP8fQemhrxtM935yZx4HaxNGSPj?=
- =?us-ascii?Q?vF/QxxqanRZP5qLVtXWKrSXYCNOYVQKP2wy0eZcQoXUS0xPzELro8dlNXCXi?=
- =?us-ascii?Q?YUEdiOEYA1k5YX5+r93IqB/qoe6/qVPgS3aMEUwuoN3Fyi0+wx/lttu5Nwp7?=
- =?us-ascii?Q?Gg20XNqq41qo88INhK418ysAmaDHCJgLUZZ9h1GsIY+nYKbcJr/jzZdR8ZRR?=
- =?us-ascii?Q?OD0tDecCMuF6MI4GHw9Oy9WdhOwfD9M76Ahu+oZjfVUVxxUletfi7AYn6o5X?=
- =?us-ascii?Q?XFNB8PQ5d0MWPWbFjSHTRokrv8ngJmIjMUWNxgi1aRLlvy5TVrg2sRHrIHUc?=
- =?us-ascii?Q?t63jPUI2cmsB1lMPEfzinpGSTRQtU0oiBks0u4Au00O7RuWvPiGxjNf+1Y6n?=
- =?us-ascii?Q?y2eP2ZcRIJNohxOrIbbuRdl/W9mOrZIlxPjRcJ7Tf6V0DyqgEn51+5Xuiau9?=
- =?us-ascii?Q?B7P3HyKZpp/LM0hxVmLaw3hvSHFRSViYQbUQCfBXrg/s7Tgo9H+KfGqeVDCy?=
- =?us-ascii?Q?uHIoSzZwJtYjGSNFNvjflO6UzKFhUz9W8cIz2GSey3aNkSQ6/alMPsbUsPAi?=
- =?us-ascii?Q?Qqz/cmu5Dj7PByYQzXZIoMb07bx1QKH5/mtRhKZOfUCp+RB9XvUfCxjBNulp?=
- =?us-ascii?Q?xsJFsgfsZj/vfPCEB8wj1CjlJzY/77G4rqNASQAF0zWQjhN1xvujvRdMvW7Z?=
- =?us-ascii?Q?hg=3D=3D?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: dddd5942-cc24-486a-b12e-08dab8462ff2
-X-MS-Exchange-CrossTenant-AuthSource: MWHPR1101MB2126.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 27 Oct 2022 18:08:02.3782
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: edmj+LC92Yb7lvwPQJjzPEmID3bnIgJY3HqhRB0IX0QxsaY0g14cvkzFzrwVuBjWy1ckW7FANb233py8PwVfcSU5BGw+ocy14sqwt27OlHA=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW5PR11MB5931
-X-OriginatorOrg: intel.com
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <Y1gjQ4wNZr3ve2+K@magnolia>
 
-Dave Hansen wrote:
-> On 10/25/22 13:05, Dan Williams wrote:
-> > Users must first call cpu_cache_has_invalidate_memregion() to know whether
-> > this functionality is available on the architecture. Only enable it on
-> > x86-64 via the wbinvd() hammer. Hypervisors are not supported as TDX
-> > guests may trigger a virtualization exception and may need proper handling
-> > to recover. See:
-> That sentence doesn't quite parse correctly.  Does it need to be "and
-> may trigger..."?
+[add tytso to cc since he asked about "How do you actually /get/ fsdax
+mode these days?" this morning]
 
-Yes, but I think this can be said more generally, and with more detail:
+On Tue, Oct 25, 2022 at 10:56:19AM -0700, Darrick J. Wong wrote:
+> On Tue, Oct 25, 2022 at 02:26:50PM +0000, ruansy.fnst@fujitsu.com wrote:
+> > 
+> > 
+> > 在 2022/10/24 13:31, Dave Chinner 写道:
+> > > On Mon, Oct 24, 2022 at 03:17:52AM +0000, ruansy.fnst@fujitsu.com wrote:
+> > >> 在 2022/10/24 6:00, Dave Chinner 写道:
+> > >>> On Fri, Oct 21, 2022 at 07:11:02PM -0700, Darrick J. Wong wrote:
+> > >>>> On Thu, Oct 20, 2022 at 10:17:45PM +0800, Yang, Xiao/杨 晓 wrote:
+> > >>>>> In addition, I don't like your idea about the test change because it will
+> > >>>>> make generic/470 become the special test for XFS. Do you know if we can fix
+> > >>>>> the issue by changing the test in another way? blkdiscard -z can fix the
+> > >>>>> issue because it does zero-fill rather than discard on the block device.
+> > >>>>> However, blkdiscard -z will take a lot of time when the block device is
+> > >>>>> large.
+> > >>>>
+> > >>>> Well we /could/ just do that too, but that will suck if you have 2TB of
+> > >>>> pmem. ;)
+> > >>>>
+> > >>>> Maybe as an alternative path we could just create a very small
+> > >>>> filesystem on the pmem and then blkdiscard -z it?
+> > >>>>
+> > >>>> That said -- does persistent memory actually have a future?  Intel
+> > >>>> scuttled the entire Optane product, cxl.mem sounds like expansion
+> > >>>> chassis full of DRAM, and fsdax is horribly broken in 6.0 (weird kernel
+> > >>>> asserts everywhere) and 6.1 (every time I run fstests now I see massive
+> > >>>> data corruption).
+> > >>>
+> > >>> Yup, I see the same thing. fsdax was a train wreck in 6.0 - broken
+> > >>> on both ext4 and XFS. Now that I run a quick check on 6.1-rc1, I
+> > >>> don't think that has changed at all - I still see lots of kernel
+> > >>> warnings, data corruption and "XFS_IOC_CLONE_RANGE: Invalid
+> > >>> argument" errors.
+> > >>
+> > >> Firstly, I think the "XFS_IOC_CLONE_RANGE: Invalid argument" error is
+> > >> caused by the restrictions which prevent reflink work together with DAX:
+> > >>
+> > >> a. fs/xfs/xfs_ioctl.c:1141
+> > >> /* Don't allow us to set DAX mode for a reflinked file for now. */
+> > >> if ((fa->fsx_xflags & FS_XFLAG_DAX) && xfs_is_reflink_inode(ip))
+> > >>          return -EINVAL;
+> > >>
+> > >> b. fs/xfs/xfs_iops.c:1174
+> > >> /* Only supported on non-reflinked files. */
+> > >> if (xfs_is_reflink_inode(ip))
+> > >>          return false;
+> > >>
+> > >> These restrictions were removed in "drop experimental warning" patch[1].
+> > >>    I think they should be separated from that patch.
+> > >>
+> > >> [1]
+> > >> https://lore.kernel.org/linux-xfs/1663234002-17-1-git-send-email-ruansy.fnst@fujitsu.com/
+> > >>
+> > >>
+> > >> Secondly, how the data corruption happened?
+> > > 
+> > > No idea - i"m just reporting that lots of fsx tests failed with data
+> > > corruptions. I haven't had time to look at why, I'm still trying to
+> > > sort out the fix for a different data corruption...
+> > > 
+> > >> Or which case failed?
+> > > 
+> > > *lots* of them failed with kernel warnings with reflink turned off:
+> > > 
+> > > SECTION       -- xfs_dax_noreflink
+> > > =========================
+> > > Failures: generic/051 generic/068 generic/075 generic/083
+> > > generic/112 generic/127 generic/198 generic/231 generic/247
+> > > generic/269 generic/270 generic/340 generic/344 generic/388
+> > > generic/461 generic/471 generic/476 generic/519 generic/561 xfs/011
+> > > xfs/013 xfs/073 xfs/297 xfs/305 xfs/517 xfs/538
+> > > Failed 26 of 1079 tests
+> > > 
+> > > All of those except xfs/073 and generic/471 are failures due to
+> > > warnings found in dmesg.
+> > > 
+> > > With reflink enabled, I terminated the run after g/075, g/091, g/112
+> > > and generic/127 reported fsx data corruptions and g/051, g/068,
+> > > g/075 and g/083 had reported kernel warnings in dmesg.
+> > > 
+> > >> Could
+> > >> you give me more info (such as mkfs options, xfstests configs)?
+> > > 
+> > > They are exactly the same as last time I reported these problems.
+> > > 
+> > > For the "no reflink" test issues:
+> > > 
+> > > mkfs options are "-m reflink=0,rmapbt=1", mount options "-o
+> > > dax=always" for both filesytems.  Config output at start of test
+> > > run:
+> > > 
+> > > SECTION       -- xfs_dax_noreflink
+> > > FSTYP         -- xfs (debug)
+> > > PLATFORM      -- Linux/x86_64 test3 6.1.0-rc1-dgc+ #1615 SMP PREEMPT_DYNAMIC Wed Oct 19 12:24:16 AEDT 2022
+> > > MKFS_OPTIONS  -- -f -m reflink=0,rmapbt=1 /dev/pmem1
+> > > MOUNT_OPTIONS -- -o dax=always -o context=system_u:object_r:root_t:s0 /dev/pmem1 /mnt/scratch
+> > > 
+> > > pmem devices are a pair of fake 8GB pmem regions set up by kernel
+> > > CLI via "memmap=8G!15G,8G!24G". I don't have anything special set up
+> > > - the kernel config is kept minimal for these VMs - and the only
+> > > kernel debug option I have turned on for these specific test runs is
+> > > CONFIG_XFS_DEBUG=y.
+> > 
+> > Thanks for the detailed info.  But, in my environment (and my 
+> > colleagues', and our real server with DCPMM) these failure cases (you 
+> > mentioned above, in dax+non_reflink mode, with same test options) cannot 
+> > reproduce.
+> > 
+> > Here's our test environment info:
+> >   - Ruan's env: fedora 36(v6.0-rc1) on kvm,pmem 2x4G:file backended
+> >   - Yang's env: fedora 35(v6.1-rc1) on kvm,pmem 2x1G:memmap=1G!1G,1G!2G
+> >   - Server's  : Ubuntu 20.04(v6.0-rc1) real machine,pmem 2x4G:real DCPMM
+> > 
+> > (To quickly confirm the difference, I just ran the failed 26 cases you 
+> > mentioned above.)  Except for generic/471 and generic/519, which failed 
+> > even when dax is off, the rest passed.
+> > 
+> > 
+> > We don't want fsdax to be truned off.  Right now, I think the most 
+> > important thing is solving the failed cases in dax+non_reflink mode. 
+> > So, firstly, I have to reproduce those failures.  Is there any thing 
+> > wrong with my test environments?  I konw you are using 'memmap=XXG!YYG' to 
+> > simulate pmem.  So, (to Darrick) could you show me your config of dev 
+> > environment and the 'testcloud'(I am guessing it's a server with real 
+> > nvdimm just like ours)?
+> 
+> Nope.  Since the announcement of pmem as a product, I have had 15
+> minutes of acces to one preproduction prototype server with actual
+> optane DIMMs in them.
+> 
+> I have /never/ had access to real hardware to test any of this, so it's
+> all configured via libvirt to simulate pmem in qemu:
+> https://lore.kernel.org/linux-xfs/YzXsavOWMSuwTBEC@magnolia/
+> 
+> /run/mtrdisk/[gh].mem are both regular files on a tmpfs filesystem:
+> 
+> $ grep mtrdisk /proc/mounts
+> none /run/mtrdisk tmpfs rw,relatime,size=82894848k,inode64 0 0
+> 
+> $ ls -la /run/mtrdisk/[gh].mem
+> -rw-r--r-- 1 libvirt-qemu kvm 10739515392 Oct 24 18:09 /run/mtrdisk/g.mem
+> -rw-r--r-- 1 libvirt-qemu kvm 10739515392 Oct 24 19:28 /run/mtrdisk/h.mem
 
-"Only enable on bare metal x86-64 vai the wbinvd() hammer. It is already
-the case that wbinvd() is problematic to allow in VMs due its global
-performance impact and KVM, for example, has been known to just trap and
-ignore the call. With confidential computing guest execution of wbinvd
-may even trigger an exception. As guests should not be messing with the
-bare metal address map cpu_cache_has_invalidate_memregion() returns
-false in those environments."
+Also forgot to mention that the VM with the fake pmem attached has a
+script to do:
 
-> > This global cache invalidation facility,
-> > cpu_cache_invalidate_memregion(), is exported to modules since NVDIMM
-> > and CXL support can be built as a module. However, the intent is that
-> > this facility is not available outside of specific "device-memory" use
-> > cases. To that end the API is scoped to a new "DEVMEM" module namespace
-> > that only applies to the NVDIMM and CXL subsystems.
-> 
-> Oh, thank $DEITY you're trying to limit the amount of code that has
-> access to this thing.
-> 
-> > diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-> > index 67745ceab0db..b68661d0633b 100644
-> > --- a/arch/x86/Kconfig
-> > +++ b/arch/x86/Kconfig
-> > @@ -69,6 +69,7 @@ config X86
-> >  	select ARCH_ENABLE_THP_MIGRATION if X86_64 && TRANSPARENT_HUGEPAGE
-> >  	select ARCH_HAS_ACPI_TABLE_UPGRADE	if ACPI
-> >  	select ARCH_HAS_CACHE_LINE_SIZE
-> > +	select ARCH_HAS_CPU_CACHE_INVALIDATE_MEMREGION  if X86_64
-> 
-> What is 64-bit only about this?
-> 
-> I don't expect to have a lot of NVDIMMs or CXL devices on 32-bit
-> kernels, but it would be nice to remove this if it's not strictly
-> needed.  Or, to add a changelog nugget that says:
-> 
-> 	Restrict this to X86_64 kernels.  It would probably work on 32-
-> 	bit, but there is no practical reason to use 32-bit kernels and
-> 	no one is testing them.
+ndctl create-namespace --mode fsdax --map dev -e namespace0.0 -f
+ndctl create-namespace --mode fsdax --map dev -e namespace1.0 -f
 
-I had to go recall this myself, but it looks like this is unnecessarily
-cargo culting the stance of ARCH_HAS_PMEM_API that arose from this
-change:
+Every time the pmem device gets recreated, because apparently that's the
+only way to get S_DAX mode nowadays?
 
-96601adb7451 x86, pmem: clarify that ARCH_HAS_PMEM_API implies PMEM mapped WB
+--D
 
-...that observed that on pure 32-bit x86 CPUs that non-temporal stores
-had weaker guarantees about whether writes would bypass the CPU cache.
-However, that commit is so old that it even talks about the interactions
-with the pcommit instruction. Suffice to say there is no X86_64
-dependency for wbinvd, I'll drop the dependency.
-
+> --D
 > 
-> >  	select ARCH_HAS_CURRENT_STACK_POINTER
-> >  	select ARCH_HAS_DEBUG_VIRTUAL
-> >  	select ARCH_HAS_DEBUG_VM_PGTABLE	if !X86_PAE
-> > diff --git a/arch/x86/mm/pat/set_memory.c b/arch/x86/mm/pat/set_memory.c
-> > index 97342c42dda8..8650bb6481a8 100644
-> > --- a/arch/x86/mm/pat/set_memory.c
-> > +++ b/arch/x86/mm/pat/set_memory.c
-> > @@ -330,6 +330,21 @@ void arch_invalidate_pmem(void *addr, size_t size)
-> >  EXPORT_SYMBOL_GPL(arch_invalidate_pmem);
-> >  #endif
-> >  
-> > +#ifdef CONFIG_ARCH_HAS_CPU_CACHE_INVALIDATE_MEMREGION
-> > +bool cpu_cache_has_invalidate_memregion(void)
-> > +{
-> > +	return !cpu_feature_enabled(X86_FEATURE_HYPERVISOR);
-> > +}
-> > +EXPORT_SYMBOL_NS_GPL(cpu_cache_has_invalidate_memregion, DEVMEM);
-> > +
-> > +int cpu_cache_invalidate_memregion(int res_desc)
-> > +{
-> > +	wbinvd_on_all_cpus();
-> > +	return 0;
-> > +}
-> 
-> Does this maybe also deserve a:
-> 
-> 	WARN_ON_ONCE(!cpu_cache_has_invalidate_memregion());
-> 
-> in case one of the cpu_cache_invalidate_memregion() paths missed a
-> cpu_cache_has_invalidate_memregion() check?
-
-Yeah, good idea.
-
-> 
-> > +/**
-> > + * cpu_cache_invalidate_memregion - drop any CPU cached data for
-> > + *     memregions described by @res_desc
-> > + * @res_desc: one of the IORES_DESC_* types
-> > + *
-> > + * Perform cache maintenance after a memory event / operation that
-> > + * changes the contents of physical memory in a cache-incoherent manner.
-> > + * For example, device memory technologies like NVDIMM and CXL have
-> > + * device secure erase, or dynamic region provision features where such
-> > + * semantics.
-> 
-> s/where/with/ ?
-
-Yes.
-
-> 
-> > + * Limit the functionality to architectures that have an efficient way
-> > + * to writeback and invalidate potentially terabytes of memory at once.
-> > + * Note that this routine may or may not write back any dirty contents
-> > + * while performing the invalidation. It is only exported for the
-> > + * explicit usage of the NVDIMM and CXL modules in the 'DEVMEM' symbol
-> > + * namespace.
-> > + *
-> > + * Returns 0 on success or negative error code on a failure to perform
-> > + * the cache maintenance.
-> > + */
-> 
-> WBINVD is a scary beast.  But, there's also no better alternative in the
-> architecture.  I don't think any of my comments above are deal breakers,
-> so from the x86 side:
-> 
-> Acked-by: Dave Hansen <dave.hansen@linux.intel.com>
-
-Thanks Dave, this unblocks a significant amount of CXL work.
+> > 
+> > 
+> > (I just found I only tested on 4G and smaller pmem device.  I'll try the 
+> > test on 8G pmem)
+> > 
+> > > 
+> > > THe only difference between the noreflink and reflink runs is that I
+> > > drop the "-m reflink=0" mkfs parameter. Otherwise they are identical
+> > > and the errors I reported are from back-to-back fstests runs without
+> > > rebooting the VM....
+> > > 
+> > > -Dave.
+> > 
+> > 
+> > --
+> > Thanks,
+> > Ruan.
