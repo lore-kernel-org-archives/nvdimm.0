@@ -1,203 +1,153 @@
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 819C7BA23
-	for <nvdimm@lists.linux.dev>; Thu, 27 Oct 2022 04:12:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA41146A6
+	for <nvdimm@lists.linux.dev>; Thu, 27 Oct 2022 16:18:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1666843976; x=1698379976;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=O4eiEAjxaG6cg4elrL28lRPI+xFw9hmdMs4HXX9pskE=;
-  b=AQpE2vthN53TDP98TkMTsTu3osEHf2Ingf0STvKaAejXqcoK8PsYYt0h
-   7lZ4SCiUFDhUxrimNGE5Mn5EFujLUVgLdZNSNyKapwwC/DEnZlSlkxqOQ
-   w0NkkKo60NCcDYihZt7nK5cuT7xgMjZzrT2NJVYwvcUbaRDL2UjUJXSU4
-   ItR5jHjL7XqW8Ha/OoH3qCDF4rr4RmN/0diryhojBENk0WJnA0JYYm60q
-   aWVHZNheaVwQEpmJmUDIxSZP8gGXsett3YKu+COn7M9AdN7NbqMLeOW8o
-   CGhjJf4PE+XC3Wvvcwbr/6sYifzHaM6CBfAaK//HeUjt7Ke6jV9bICskL
-   A==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10512"; a="309216649"
-X-IronPort-AV: E=Sophos;i="5.95,215,1661842800"; 
-   d="scan'208";a="309216649"
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Oct 2022 21:12:56 -0700
-X-IronPort-AV: E=McAfee;i="6500,9779,10512"; a="610209472"
-X-IronPort-AV: E=Sophos;i="5.95,215,1661842800"; 
-   d="scan'208";a="610209472"
-Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.209.1.141])
-  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Oct 2022 21:12:55 -0700
-From: alison.schofield@intel.com
-To: Vishal Verma <vishal.l.verma@intel.com>,
-	Dan Williams <dan.j.williams@intel.com>
-Cc: Alison Schofield <alison.schofield@intel.com>,
-	nvdimm@lists.linux.dev,
-	linux-cxl@vger.kernel.org
-Subject: [ndctl PATCH v2] cxl/test: add cxl_xor_region test
-Date: Wed, 26 Oct 2022 21:12:52 -0700
-Message-Id: <20221027041252.665456-1-alison.schofield@intel.com>
-X-Mailer: git-send-email 2.37.3
+  t=1666887506; x=1698423506;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=mio/fM7+F8nVUXn2ZcQlynlshnIvyeSjm66BSTRpQzQ=;
+  b=bz88LCtxT48j1UcxOUblNRNnBZAo/UwLB2t96JWTwM8nF/E/yRVaUcSC
+   TBPDvDfPmiVSXqNKysnbOUGSrZJVSt8qlzgbjTpnnEhnVX1pPYGR7WZc7
+   aXZbs2uLZMZ8HT5m93H8p2wO1sKL6XcLlbvJY549KU2VBzrqgZ+Ft+Z5H
+   /JeE/GBZqurVTQI0+biBt9OOIFVAicnJowRT4LMBiweIiAJMIUa72oCoQ
+   kNJ90aQEXkT8GfkUWUiH/vq81LL84noQSFCSFWi7bfZdLUstnB01nytAR
+   HlIJA3TAi/etJYSAfGlQbFZEkV4qPV8mkgerMLwj/7YQf6On7lUNB88ON
+   g==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10513"; a="309965842"
+X-IronPort-AV: E=Sophos;i="5.95,218,1661842800"; 
+   d="scan'208";a="309965842"
+Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Oct 2022 09:18:16 -0700
+X-IronPort-AV: E=McAfee;i="6500,9779,10513"; a="701401909"
+X-IronPort-AV: E=Sophos;i="5.95,218,1661842800"; 
+   d="scan'208";a="701401909"
+Received: from vstelter-mobl.amr.corp.intel.com (HELO [10.212.214.108]) ([10.212.214.108])
+  by fmsmga004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Oct 2022 09:18:15 -0700
+Message-ID: <3ce6ef93-2f47-eda3-f974-0cfea7f43766@intel.com>
+Date: Thu, 27 Oct 2022 09:18:13 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.2.2
+Subject: Re: [PATCH v4] memregion: Add cpu_cache_invalidate_memregion()
+ interface
+Content-Language: en-US
+To: Dan Williams <dan.j.williams@intel.com>, linux-cxl@vger.kernel.org
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>,
+ Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>,
+ x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>,
+ Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>,
+ Davidlohr Bueso <dave@stgolabs.net>, nvdimm@lists.linux.dev,
+ linux-kernel@vger.kernel.org
+References: <166672803035.2801111.9244172033971411169.stgit@dwillia2-xfh.jf.intel.com>
+From: Dave Hansen <dave.hansen@intel.com>
+In-Reply-To: <166672803035.2801111.9244172033971411169.stgit@dwillia2-xfh.jf.intel.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-From: Alison Schofield <alison.schofield@intel.com>
+On 10/25/22 13:05, Dan Williams wrote:
+> Users must first call cpu_cache_has_invalidate_memregion() to know whether
+> this functionality is available on the architecture. Only enable it on
+> x86-64 via the wbinvd() hammer. Hypervisors are not supported as TDX
+> guests may trigger a virtualization exception and may need proper handling
+> to recover. See:
+That sentence doesn't quite parse correctly.  Does it need to be "and
+may trigger..."?
 
-Exercise the kernel driver support of XOR math by creating regions
-with 1, 2, and 4-way interleaves using XOR interleave arithmetic.
+> This global cache invalidation facility,
+> cpu_cache_invalidate_memregion(), is exported to modules since NVDIMM
+> and CXL support can be built as a module. However, the intent is that
+> this facility is not available outside of specific "device-memory" use
+> cases. To that end the API is scoped to a new "DEVMEM" module namespace
+> that only applies to the NVDIMM and CXL subsystems.
 
-Use module parameter "interleave_arithmetic=1" to select the cxl_test
-topology that supports XOR math. XOR math is not used in the default
-cxl_test module.
+Oh, thank $DEITY you're trying to limit the amount of code that has
+access to this thing.
 
-Add this test to the 'cxl' suite so that it gets exercised routinely.
-If the topology defined in cxl_test changes, this test may require
-an update.
+> diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+> index 67745ceab0db..b68661d0633b 100644
+> --- a/arch/x86/Kconfig
+> +++ b/arch/x86/Kconfig
+> @@ -69,6 +69,7 @@ config X86
+>  	select ARCH_ENABLE_THP_MIGRATION if X86_64 && TRANSPARENT_HUGEPAGE
+>  	select ARCH_HAS_ACPI_TABLE_UPGRADE	if ACPI
+>  	select ARCH_HAS_CACHE_LINE_SIZE
+> +	select ARCH_HAS_CPU_CACHE_INVALIDATE_MEMREGION  if X86_64
 
-Signed-off-by: Alison Schofield <alison.schofield@intel.com>
----
-Depends on
-https://lore.kernel.org/linux-cxl/cover.1666841669.git.alison.schofield@intel.com/ 
+What is 64-bit only about this?
 
-Changes in v2
-- Update to match cxl_test topology changes
-- Remove 3-way interleave
-- Small naming updates
+I don't expect to have a lot of NVDIMMs or CXL devices on 32-bit
+kernels, but it would be nice to remove this if it's not strictly
+needed.  Or, to add a changelog nugget that says:
 
- test/cxl-xor-region.sh | 100 +++++++++++++++++++++++++++++++++++++++++
- test/meson.build       |   2 +
- 2 files changed, 102 insertions(+)
- create mode 100644 test/cxl-xor-region.sh
+	Restrict this to X86_64 kernels.  It would probably work on 32-
+	bit, but there is no practical reason to use 32-bit kernels and
+	no one is testing them.
 
-diff --git a/test/cxl-xor-region.sh b/test/cxl-xor-region.sh
-new file mode 100644
-index 000000000000..64a0b234896a
---- /dev/null
-+++ b/test/cxl-xor-region.sh
-@@ -0,0 +1,100 @@
-+#!/bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright (C) 2022 Intel Corporation. All rights reserved.
-+
-+. $(dirname $0)/common
-+
-+rc=1
-+
-+set -ex
-+
-+trap 'err $LINENO' ERR
-+
-+check_prereq "jq"
-+
-+modprobe -r cxl_test
-+modprobe cxl_test interleave_arithmetic=1
-+udevadm settle
-+
-+# THEORY OF OPERATION: Create x1,x2,x4 regions to exercise the XOR math
-+# option of the CXL driver. As with other cxl_test tests, changes to the
-+# CXL topology in tools/testing/cxl/test/cxl.c may require an update here.
-+
-+create_region()
-+{
-+	region=$($CXL create-region -d $decoder -m $memdevs | jq -r ".region")
-+
-+	if [[ ! $region ]]; then
-+		echo "create-region failed for $decoder"
-+		err "$LINENO"
-+	fi
-+
-+	$CXL destroy-region -f -b cxl_test "$region"
-+}
-+
-+setup_x1()
-+{
-+        # Find an x1 decoder
-+        decoder=$($CXL list -b cxl_test -D -d root | jq -r ".[] |
-+          select(.pmem_capable == true) |
-+          select(.nr_targets == 1) |
-+          .decoder")
-+
-+        # Find a memdev for this host-bridge
-+        port_dev0=$($CXL list -T -d $decoder | jq -r ".[] |
-+            .targets | .[] | select(.position == 0) | .target")
-+        mem0=$($CXL list -M -p $port_dev0 | jq -r ".[0].memdev")
-+        memdevs="$mem0"
-+}
-+
-+setup_x2()
-+{
-+        # Find an x2 decoder
-+        decoder=$($CXL list -b cxl_test -D -d root | jq -r ".[] |
-+          select(.pmem_capable == true) |
-+          select(.nr_targets == 2) |
-+          .decoder")
-+
-+        # Find a memdev for each host-bridge interleave position
-+        port_dev0=$($CXL list -T -d $decoder | jq -r ".[] |
-+            .targets | .[] | select(.position == 0) | .target")
-+        port_dev1=$($CXL list -T -d $decoder | jq -r ".[] |
-+            .targets | .[] | select(.position == 1) | .target")
-+        mem0=$($CXL list -M -p $port_dev0 | jq -r ".[0].memdev")
-+        mem1=$($CXL list -M -p $port_dev1 | jq -r ".[0].memdev")
-+        memdevs="$mem0 $mem1"
-+}
-+
-+setup_x4()
-+{
-+        # find x4 decoder
-+        decoder=$($CXL list -b cxl_test -D -d root | jq -r ".[] |
-+          select(.pmem_capable == true) |
-+          select(.nr_targets == 4) |
-+          .decoder")
-+
-+        # Find a memdev for each host-bridge interleave position
-+        port_dev0=$($CXL list -T -d $decoder | jq -r ".[] |
-+            .targets | .[] | select(.position == 0) | .target")
-+        port_dev1=$($CXL list -T -d $decoder | jq -r ".[] |
-+            .targets | .[] | select(.position == 1) | .target")
-+        port_dev2=$($CXL list -T -d $decoder | jq -r ".[] |
-+            .targets | .[] | select(.position == 2) | .target")
-+        port_dev3=$($CXL list -T -d $decoder | jq -r ".[] |
-+            .targets | .[] | select(.position == 3) | .target")
-+        mem0=$($CXL list -M -p $port_dev0 | jq -r ".[0].memdev")
-+        mem1=$($CXL list -M -p $port_dev1 | jq -r ".[1].memdev")
-+        mem2=$($CXL list -M -p $port_dev2 | jq -r ".[2].memdev")
-+        mem3=$($CXL list -M -p $port_dev3 | jq -r ".[3].memdev")
-+        memdevs="$mem0 $mem1 $mem2 $mem3"
-+}
-+
-+setup_x1
-+create_region
-+setup_x2
-+create_region
-+setup_x4
-+create_region
-+
-+modprobe -r cxl_test
-+
-diff --git a/test/meson.build b/test/meson.build
-index 5953c286d13f..89cae9e99dff 100644
---- a/test/meson.build
-+++ b/test/meson.build
-@@ -154,6 +154,7 @@ cxl_topo = find_program('cxl-topology.sh')
- cxl_sysfs = find_program('cxl-region-sysfs.sh')
- cxl_labels = find_program('cxl-labels.sh')
- cxl_create_region = find_program('cxl-create-region.sh')
-+cxl_xor_region = find_program('cxl-xor-region.sh')
- 
- tests = [
-   [ 'libndctl',               libndctl,		  'ndctl' ],
-@@ -182,6 +183,7 @@ tests = [
-   [ 'cxl-region-sysfs.sh',    cxl_sysfs,	  'cxl'   ],
-   [ 'cxl-labels.sh',          cxl_labels,	  'cxl'   ],
-   [ 'cxl-create-region.sh',   cxl_create_region,  'cxl'   ],
-+  [ 'cxl-xor-region.sh',      cxl_xor_region,     'cxl'   ],
- ]
- 
- if get_option('destructive').enabled()
--- 
-2.37.3
+>  	select ARCH_HAS_CURRENT_STACK_POINTER
+>  	select ARCH_HAS_DEBUG_VIRTUAL
+>  	select ARCH_HAS_DEBUG_VM_PGTABLE	if !X86_PAE
+> diff --git a/arch/x86/mm/pat/set_memory.c b/arch/x86/mm/pat/set_memory.c
+> index 97342c42dda8..8650bb6481a8 100644
+> --- a/arch/x86/mm/pat/set_memory.c
+> +++ b/arch/x86/mm/pat/set_memory.c
+> @@ -330,6 +330,21 @@ void arch_invalidate_pmem(void *addr, size_t size)
+>  EXPORT_SYMBOL_GPL(arch_invalidate_pmem);
+>  #endif
+>  
+> +#ifdef CONFIG_ARCH_HAS_CPU_CACHE_INVALIDATE_MEMREGION
+> +bool cpu_cache_has_invalidate_memregion(void)
+> +{
+> +	return !cpu_feature_enabled(X86_FEATURE_HYPERVISOR);
+> +}
+> +EXPORT_SYMBOL_NS_GPL(cpu_cache_has_invalidate_memregion, DEVMEM);
+> +
+> +int cpu_cache_invalidate_memregion(int res_desc)
+> +{
+> +	wbinvd_on_all_cpus();
+> +	return 0;
+> +}
 
+Does this maybe also deserve a:
+
+	WARN_ON_ONCE(!cpu_cache_has_invalidate_memregion());
+
+in case one of the cpu_cache_invalidate_memregion() paths missed a
+cpu_cache_has_invalidate_memregion() check?
+
+> +/**
+> + * cpu_cache_invalidate_memregion - drop any CPU cached data for
+> + *     memregions described by @res_desc
+> + * @res_desc: one of the IORES_DESC_* types
+> + *
+> + * Perform cache maintenance after a memory event / operation that
+> + * changes the contents of physical memory in a cache-incoherent manner.
+> + * For example, device memory technologies like NVDIMM and CXL have
+> + * device secure erase, or dynamic region provision features where such
+> + * semantics.
+
+s/where/with/ ?
+
+> + * Limit the functionality to architectures that have an efficient way
+> + * to writeback and invalidate potentially terabytes of memory at once.
+> + * Note that this routine may or may not write back any dirty contents
+> + * while performing the invalidation. It is only exported for the
+> + * explicit usage of the NVDIMM and CXL modules in the 'DEVMEM' symbol
+> + * namespace.
+> + *
+> + * Returns 0 on success or negative error code on a failure to perform
+> + * the cache maintenance.
+> + */
+
+WBINVD is a scary beast.  But, there's also no better alternative in the
+architecture.  I don't think any of my comments above are deal breakers,
+so from the x86 side:
+
+Acked-by: Dave Hansen <dave.hansen@linux.intel.com>
