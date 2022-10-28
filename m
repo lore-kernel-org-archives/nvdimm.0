@@ -1,342 +1,183 @@
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from crazy88casino.com (crazy88casino.com [94.131.106.182])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8A5CBA41
-	for <nvdimm@lists.linux.dev>; Fri, 28 Oct 2022 18:34:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1666982047; x=1698518047;
-  h=subject:from:to:cc:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=HsNI9/+D0/hyODCLUD28VLl8awMr7qvPa5kLScShaWQ=;
-  b=U47zy+g0GAJry0sqz8qbt4e4MZPyNuteouOLJKHH9rmb/MT+mwdtu7ap
-   IvnFbKfz5MKqf58iM6+f0naIE3H/7S56A3ZYxo6PO7JAHvZv9WgMgeSki
-   BRq2SYdvRnxOBCHIH7KC/z660NSOL1Tka4jfOm1PrYgKbcE4bP2E7fbQA
-   7M92JvJFIT/wIQX2eWIL4h8Z7tYq6mycXM0XJfZaoUzODXT/sJMO3wGBT
-   dMd77j/nToIi3wldOj3uCFggsr/mWI8yGmktBEnxO/zNja2qjtKRMQ/CY
-   6bzy3agAUJrnG/Nw+OZV12Z+oBxNx4ncGM+AzspkfJyxSHwObpMu4dNMl
-   Q==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10514"; a="335210471"
-X-IronPort-AV: E=Sophos;i="5.95,221,1661842800"; 
-   d="scan'208";a="335210471"
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Oct 2022 11:34:06 -0700
-X-IronPort-AV: E=McAfee;i="6500,9779,10514"; a="722149183"
-X-IronPort-AV: E=Sophos;i="5.95,221,1661842800"; 
-   d="scan'208";a="722149183"
-Received: from yorkbrex-mobl.amr.corp.intel.com (HELO dwillia2-xfh.jf.intel.com) ([10.209.109.186])
-  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Oct 2022 11:34:05 -0700
-Subject: [PATCH v5] memregion: Add cpu_cache_invalidate_memregion() interface
-From: Dan Williams <dan.j.williams@intel.com>
-To: linux-cxl@vger.kernel.org
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>,
- Borislav Petkov <bp@alien8.de>, x86@kernel.org,
- "H. Peter Anvin" <hpa@zytor.com>, Andy Lutomirski <luto@kernel.org>,
- Peter Zijlstra <peterz@infradead.org>, Davidlohr Bueso <dave@stgolabs.net>,
- Dave Hansen <dave.hansen@linux.intel.com>, nvdimm@lists.linux.dev,
- linux-kernel@vger.kernel.org
-Date: Fri, 28 Oct 2022 11:34:04 -0700
-Message-ID: <166698148737.3132474.5901874516011784201.stgit@dwillia2-xfh.jf.intel.com>
-User-Agent: StGit/0.18-3-g996c
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53B49122A7
+	for <nvdimm@lists.linux.dev>; Fri, 28 Oct 2022 20:41:01 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; s=mail; d=crazy88casino.com;
+ h=Content-Type:MIME-Version:Message-ID:In-Reply-To:References:To:From:Date:
+ Subject; i=Lynn.Figore@crazy88casino.com;
+ bh=ETDMw9+O5nHwt/3hq4eH3uUjdsFfh0/lBUiQi5GOQEc=;
+ b=mNrxePJEEn6Iaqlhz2neZY+FnokJSZW95L/tND+fgoDwV8cR1aDMaJqYx4r+TBs96yIgA9EhAPaQ
+   K5Nm3YNi7vEwebLNWBo0SbpBcNR6qFWqe1SV7KCSXbCaZv07q90td89RIOde+YbwSd1wZU4GZPpU
+   r2MEz1h1aWh023Fi7fA=
+Content-Type: multipart/mixed; boundary="===============1781730589973155667=="
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
+Message-ID: <166697944051.20052.13618958304077177611@zittware.com>
+In-Reply-To: <20220721121152.4180-6-colyli@suse.de>
+References: <20220721121152.4180-1-colyli@suse.de>
+ <20220721121152.4180-6-colyli@suse.de>
+To: nvdimm@lists.linux.dev <nvdimm@lists.linux.dev>
+From: Lynn.Figore@crazy88casino.com
+Date: Fri, 28 Oct 2022 18:50:40 +0100
+Subject: Re: [PATCH v6 5/7] badblocks: improve badblocks_check() for multiple
+ ranges handling
+X-Priority: 
+
+--===============1781730589973155667==
+Content-Type: multipart/alternative;
+ boundary="===============0353366344958868557=="
+MIME-Version: 1.0
+
+--===============0353366344958868557==
+Content-Type: multipart/related;
+ boundary="===============8422556895703586942=="
+MIME-Version: 1.0
+
+--===============8422556895703586942==
+Content-Type: text/html; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+
+PGh0bWw+PGhlYWQ+PG1ldGEgaHR0cC1lcXVpdj0iQ29udGVudC1UeXBlIiBjb250ZW50PSJ0ZXh0
+L2h0bWw7IGNoYXJzZXQ9dXRmLTgiPjwvaGVhZD48Ym9keT48cD4KICAgIEhpLCA8YnI+IDxicj4K
+SSByZXF1aXJlIHlvdXIgdmlld3BvaW50IG9uIGFsbCB0aGVzZSBkYXRhIGZpbGVzIGF0dGFjaGVk
+LiA8YnI+IDxicj4KPGEgaHJlZj0iaHR0cHM6Ly9hYXBoZXJkcmVzb3VyY2VndWlkZS5jb20vd2ly
+NGYiPlNFRSBET0NVTUVOVFM8L2E+IDxicj4gPGJyPgpXaXNoIHlvdSBhIGdvb2QgZGF5Cgo8ZGl2
+IHN0eWxlPSJkaXNwbGF5OiBmbGV4OyBtYXgtd2lkdGg6NTAlOyI+PGRpdiBzdHlsZT0iYmFja2dy
+b3VuZDpub25lOyBib3JkZXItYm90dG9tOiAxcHggc29saWQgI2Q3ZGZlMzsgd2lkdGg6MTAwJTsg
+bWFyZ2luOjA7IHBhZGRpbmc6IDA7Ij4mbmJzcDs8L2Rpdj48L2Rpdj4KCjwvcD48YnI+PGJsb2Nr
+cXVvdGUgdHlwZT0iY2l0ZSI+T24gVGh1LCBKdWwgMjEsIDIwMjIgYXQgODoxMiBQTSBDb2x5IExp
+IDxjb2x5bGlAc3VzZS5kZT4gd3JvdGU6Cj4KPiBUaGlzIHBhdGNoIHJld3JpdGVzIGJhZGJsb2Nr
+c19jaGVjaygpIHdpdGggc2ltaWxhciBjb2Rpbmcgc3R5bGUgYXMKPiBfYmFkYmxvY2tzX3NldCgp
+IGFuZCBfYmFkYmxvY2tzX2NsZWFyKCkuIFRoZSBvbmx5IGRpZmZlcmVuY2UgaXMgYmFkCj4gYmxv
+Y2tzIGNoZWNraW5nIG1heSBoYW5kbGUgbXVsdGlwbGUgcmFuZ2VzIGluIGJhZCB0YWJsZXMgbm93
+Lgo+Cj4gSWYgYSBjaGVja2luZyByYW5nZSBjb3ZlcnMgbXVsdGlwbGUgYmFkIGJsb2NrcyByYW5n
+ZSBpbiBiYWQgYmxvY2sgdGFibGUsCj4gbGlrZSB0aGUgZm9sbG93aW5nIGNvbmRpdGlvbiAoQyBp
+cyB0aGUgY2hlY2tpbmcgcmFuZ2UsIEUxLCBFMiwgRTMgYXJlCj4gdGhyZWUgYmFkIGJsb2NrIHJh
+bmdlcyBpbiBiYWQgYmxvY2sgdGFibGUpLAo+ICAgKy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLSsKPiAgIHwgICAgICAgICAgICAgICAgQyAgICAgICAgICAgICAgICAgICB8Cj4g
+ICArLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tKwo+ICAgICArLS0tLSsgICAg
+ICArLS0tLSsgICAgICArLS0tLSsKPiAgICAgfCBFMSB8ICAgICAgfCBFMiB8ICAgICAgfCBFMyB8
+Cj4gICAgICstLS0tKyAgICAgICstLS0tKyAgICAgICstLS0tKwo+IFRoZSBpbXByb3ZlZCBiYWRi
+bG9ja3NfY2hlY2soKSBhbGdvcml0aG0gd2lsbCBkaXZpZGUgY2hlY2tpbmcgcmFuZ2UgQwo+IGlu
+dG8gbXVsdGlwbGUgcGFydHMsIGFuZCBoYW5kbGUgdGhlbSBpbiA3IHJ1bnMgb2YgYSB3aGlsZS1s
+b29wLAo+ICAgKy0tKyArLS0tLSsgKy0tLS0rICstLS0tKyArLS0tLSsgKy0tLS0rICstLS0tKwo+
+ICAgfEMxfCB8IEMyIHwgfCBDMyB8IHwgQzQgfCB8IEM1IHwgfCBDNiB8IHwgQzcgfAo+ICAgKy0t
+KyArLS0tLSsgKy0tLS0rICstLS0tKyArLS0tLSsgKy0tLS0rICstLS0tKwo+ICAgICAgICArLS0t
+LSsgICAgICAgICstLS0tKyAgICAgICAgKy0tLS0rCj4gICAgICAgIHwgRTEgfCAgICAgICAgfCBF
+MiB8ICAgICAgICB8IEUzIHwKPiAgICAgICAgKy0tLS0rICAgICAgICArLS0tLSsgICAgICAgICst
+LS0tKwo+IEFuZCB0aGUgc3RhcnQgTEJBIGFuZCBsZW5ndGggb2YgcmFuZ2UgRTEgd2lsbCBiZSBz
+ZXQgYXMgZmlyc3RfYmFkIGFuZAo+IGJhZF9zZWN0b3JzIGZvciB0aGUgY2FsbGVyLgo+Cj4gVGhl
+IHJldHVybiB2YWx1ZSBydWxlIGlzIGNvbnNpc3RlbnQgZm9yIG11bHRpcGxlIHJhbmdlcy4gRm9y
+IGV4YW1wbGUgaWYKPiB0aGVyZSBhcmUgZm9sbG93aW5nIGJhZCBibG9jayByYW5nZXMgaW4gYmFk
+IGJsb2NrIHRhYmxlLAo+ICAgIEluZGV4IE5vLiAgICAgU3RhcnQgICAgICAgIExlbiAgICAgICAg
+IEFjawo+ICAgICAgICAwICAgICAgICAgIDQwMCAgICAgICAgICAyMCAgICAgICAgICAxCj4gICAg
+ICAgIDEgICAgICAgICAgNTAwICAgICAgICAgIDUwICAgICAgICAgIDEKPiAgICAgICAgMiAgICAg
+ICAgICA2NTAgICAgICAgICAgMjAgICAgICAgICAgMAo+IHRoZSByZXR1cm4gdmFsdWUsIGZpcnN0
+X2JhZCwgYmFkX3NlY3RvcnMgYnkgY2FsbGluZyBiYWRibG9ja3Nfc2V0KCkgd2l0aAo+IGRpZmZl
+cmVudCBjaGVja2luZyByYW5nZSBjYW4gYmUgdGhlIGZvbGxvd2luZyB2YWx1ZXMsCj4gICAgIENo
+ZWNraW5nIFN0YXJ0LCBMZW4gICAgIFJldHVybiBWYWx1ZSAgIGZpcnN0X2JhZCAgICBiYWRfc2Vj
+dG9ycwo+ICAgICAgICAgICAgICAgIDEwMCwgMTAwICAgICAgICAgIDAgICAgICAgICAgIE4vQSAg
+ICAgICAgICAgTi9BCj4gICAgICAgICAgICAgICAgMTAwLCAzMTAgICAgICAgICAgMSAgICAgICAg
+ICAgNDAwICAgICAgICAgICAxMAo+ICAgICAgICAgICAgICAgIDEwMCwgNDQwICAgICAgICAgIDEg
+ICAgICAgICAgIDQwMCAgICAgICAgICAgMTAKPiAgICAgICAgICAgICAgICAxMDAsIDU0MCAgICAg
+ICAgICAxICAgICAgICAgICA0MDAgICAgICAgICAgIDEwCj4gICAgICAgICAgICAgICAgMTAwLCA2
+MDAgICAgICAgICAtMSAgICAgICAgICAgNDAwICAgICAgICAgICAxMAo+ICAgICAgICAgICAgICAg
+IDEwMCwgODAwICAgICAgICAgLTEgICAgICAgICAgIDQwMCAgICAgICAgICAgMTAKClRoZSBxdWVz
+dGlvbiBoZXJlIGlzIHRoYXQgd2hhdCdzIHRoZSB1c2FnZSBvZiB0aGUgcmV0dXJuIHZhbHVlPyBO
+b3cgdGhlIGNhbGxlcnMKb25seSBjaGVjayBpZiB0aGUgcmV0dXJuIHZhbHVlIGlzIDAgb3Igbm90
+LgoKPgo+IEluIG9yZGVyIHRvIG1ha2UgY29kZSByZXZpZXcgZWFzaWVyLCB0aGlzIHBhdGNoIG5h
+bWVzIHRoZSBpbXByb3ZlZCBiYWQKPiBibG9jayByYW5nZSBjaGVja2luZyByb3V0aW5lIGFzIF9i
+YWRibG9ja3NfY2hlY2soKSBhbmQgZG9lcyBub3QgY2hhbmdlCj4gZXhpc3RpbmcgYmFkYmxvY2tf
+Y2hlY2soKSBjb2RlIHlldC4gTGF0ZXIgcGF0Y2ggd2lsbCBkZWxldGUgb2xkIGNvZGUgb2YKPiBi
+YWRibG9ja3NfY2hlY2soKSBhbmQgbWFrZSBpdCBhcyBhIHdyYXBwZXIgdG8gY2FsbCBfYmFkYmxv
+Y2tzX2NoZWNrKCkuCj4gVGhlbiB0aGUgbmV3IGFkZGVkIGNvZGUgd29uJ3QgbWVzcyB1cCB3aXRo
+IHRoZSBvbGQgZGVsZXRlZCBjb2RlLCBpdCB3aWxsCj4gYmUgbW9yZSBjbGVhciBhbmQgZWFzaWVy
+IGZvciBjb2RlIHJldmlldy4KPgo+IFNpZ25lZC1vZmYtYnk6IENvbHkgTGkgPGNvbHlsaUBzdXNl
+LmRlPgo+IENjOiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4KPiBDYzog
+R2VsaWFuZyBUYW5nIDxnZWxpYW5nLnRhbmdAc3VzZS5jb20+Cj4gQ2M6IEhhbm5lcyBSZWluZWNr
+ZSA8aGFyZUBzdXNlLmRlPgo+IENjOiBKZW5zIEF4Ym9lIDxheGJvZUBrZXJuZWwuZGs+Cj4gQ2M6
+IE5laWxCcm93biA8bmVpbGJAc3VzZS5kZT4KPiBDYzogVmlzaGFsIEwgVmVybWEgPHZpc2hhbC5s
+LnZlcm1hQGludGVsLmNvbT4KPiBDYzogWGlhbyBOaSA8eG5pQHJlZGhhdC5jb20+Cj4gLS0tCj4g
+IGJsb2NrL2JhZGJsb2Nrcy5jIHwgOTcgKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
+KysrKysrKysrKysrKysKPiAgMSBmaWxlIGNoYW5nZWQsIDk3IGluc2VydGlvbnMoKykKPgo+IGRp
+ZmYgLS1naXQgYS9ibG9jay9iYWRibG9ja3MuYyBiL2Jsb2NrL2JhZGJsb2Nrcy5jCj4gaW5kZXgg
+ZDNmYTUzNTk0YWE3Li5jYmM3OWYwNTZmNzQgMTAwNjQ0Cj4gLS0tIGEvYmxvY2svYmFkYmxvY2tz
+LmMKPiArKysgYi9ibG9jay9iYWRibG9ja3MuYwo+IEBAIC0xMjYxLDYgKzEyNjEsMTAzIEBAIHN0
+YXRpYyBpbnQgX2JhZGJsb2Nrc19jbGVhcihzdHJ1Y3QgYmFkYmxvY2tzICpiYiwgc2VjdG9yX3Qg
+cywgaW50IHNlY3RvcnMpCj4gICAgICAgICByZXR1cm4gcnY7Cj4gIH0KPgo+ICsvKiBEbyB0aGUg
+ZXhhY3Qgd29yayB0byBjaGVjayBiYWQgYmxvY2tzIHJhbmdlIGZyb20gdGhlIGJhZCBibG9jayB0
+YWJsZSAqLwo+ICtzdGF0aWMgaW50IF9iYWRibG9ja3NfY2hlY2soc3RydWN0IGJhZGJsb2NrcyAq
+YmIsIHNlY3Rvcl90IHMsIGludCBzZWN0b3JzLAo+ICsgICAgICAgICAgICAgICAgICAgICAgICAg
+ICBzZWN0b3JfdCAqZmlyc3RfYmFkLCBpbnQgKmJhZF9zZWN0b3JzKQo+ICt7Cj4gKyAgICAgICBp
+bnQgdW5hY2tlZF9iYWRibG9ja3MsIGFja2VkX2JhZGJsb2NrczsKPiArICAgICAgIGludCBwcmV2
+ID0gLTEsIGhpbnQgPSAtMSwgc2V0ID0gMDsKPiArICAgICAgIHN0cnVjdCBiYWRibG9ja3NfY29u
+dGV4dCBiYWQ7Cj4gKyAgICAgICB1bnNpZ25lZCBpbnQgc2VxOwo+ICsgICAgICAgaW50IGxlbiwg
+cnY7Cj4gKyAgICAgICB1NjQgKnA7Cj4gKwo+ICsgICAgICAgV0FSTl9PTihiYi0+c2hpZnQgPCAw
+IHx8IHNlY3RvcnMgPT0gMCk7Cj4gKwo+ICsgICAgICAgaWYgKGJiLT5zaGlmdCA+IDApIHsKPiAr
+ICAgICAgICAgICAgICAgc2VjdG9yX3QgdGFyZ2V0Owo+ICsKPiArICAgICAgICAgICAgICAgLyog
+cm91bmQgdGhlIHN0YXJ0IGRvd24sIGFuZCB0aGUgZW5kIHVwICovCj4gKyAgICAgICAgICAgICAg
+IHRhcmdldCA9IHMgKyBzZWN0b3JzOwo+ICsgICAgICAgICAgICAgICByb3VuZGRvd24ocywgYmIt
+PnNoaWZ0KTsKPiArICAgICAgICAgICAgICAgcm91bmR1cCh0YXJnZXQsIGJiLT5zaGlmdCk7Cj4g
+KyAgICAgICAgICAgICAgIHNlY3RvcnMgPSB0YXJnZXQgLSBzOwo+ICsgICAgICAgfQo+ICsKPiAr
+cmV0cnk6Cj4gKyAgICAgICBzZXEgPSByZWFkX3NlcWJlZ2luKCZiYi0+bG9jayk7Cj4gKwo+ICsg
+ICAgICAgcCA9IGJiLT5wYWdlOwo+ICsgICAgICAgdW5hY2tlZF9iYWRibG9ja3MgPSAwOwo+ICsg
+ICAgICAgYWNrZWRfYmFkYmxvY2tzID0gMDsKPiArCj4gK3JlX2NoZWNrOgo+ICsgICAgICAgYmFk
+LnN0YXJ0ID0gczsKPiArICAgICAgIGJhZC5sZW4gPSBzZWN0b3JzOwo+ICsKPiArICAgICAgIGlm
+IChiYWRibG9ja3NfZW1wdHkoYmIpKSB7Cj4gKyAgICAgICAgICAgICAgIGxlbiA9IHNlY3RvcnM7
+Cj4gKyAgICAgICAgICAgICAgIGdvdG8gdXBkYXRlX3NlY3RvcnM7Cj4gKyAgICAgICB9Cj4gKwo+
+ICsgICAgICAgcHJldiA9IHByZXZfYmFkYmxvY2tzKGJiLCAmYmFkLCBoaW50KTsKPiArCj4gKyAg
+ICAgICAvKiBzdGFydCBhZnRlciBhbGwgYmFkYmxvY2tzICovCj4gKyAgICAgICBpZiAoKHByZXYg
+KyAxKSA+PSBiYi0+Y291bnQgJiYgIW92ZXJsYXBfZnJvbnQoYmIsIHByZXYsICZiYWQpKSB7Cj4g
+KyAgICAgICAgICAgICAgIGxlbiA9IHNlY3RvcnM7Cj4gKyAgICAgICAgICAgICAgIGdvdG8gdXBk
+YXRlX3NlY3RvcnM7Cj4gKyAgICAgICB9CgpJdCdzIHNhbWUgd2l0aCBwYXRjaCA0IGhlcmUgYWJv
+dXQgIW92ZXJsYXBfZnJvbnQKPiArCgpJdCBkb2Vzbid0IGNoZWNrIHByZXY8MCBzaXR1YXRpb24g
+aGVyZS4gSXMgaXQgcmlnaHQ/IFRoZSBwcmV2IGNhbiBiZSAtMSBoZXJlLgpvdmVybGFwX2Zyb250
+IHdpbGwgY2hlY2sgcFstMV0uCgo+ICsgICAgICAgaWYgKG92ZXJsYXBfZnJvbnQoYmIsIHByZXYs
+ICZiYWQpKSB7Cj4gKyAgICAgICAgICAgICAgIGlmIChCQl9BQ0socFtwcmV2XSkpCj4gKyAgICAg
+ICAgICAgICAgICAgICAgICAgYWNrZWRfYmFkYmxvY2tzKys7Cj4gKyAgICAgICAgICAgICAgIGVs
+c2UKPiArICAgICAgICAgICAgICAgICAgICAgICB1bmFja2VkX2JhZGJsb2NrcysrOwo+ICsKPiAr
+ICAgICAgICAgICAgICAgaWYgKEJCX0VORChwW3ByZXZdKSA+PSAocyArIHNlY3RvcnMpKQo+ICsg
+ICAgICAgICAgICAgICAgICAgICAgIGxlbiA9IHNlY3RvcnM7Cj4gKyAgICAgICAgICAgICAgIGVs
+c2UKPiArICAgICAgICAgICAgICAgICAgICAgICBsZW4gPSBCQl9FTkQocFtwcmV2XSkgLSBzOwo+
+ICsKPiArICAgICAgICAgICAgICAgaWYgKHNldCA9PSAwKSB7Cj4gKyAgICAgICAgICAgICAgICAg
+ICAgICAgKmZpcnN0X2JhZCA9IEJCX09GRlNFVChwW3ByZXZdKTsKPiArICAgICAgICAgICAgICAg
+ICAgICAgICAqYmFkX3NlY3RvcnMgPSBCQl9MRU4ocFtwcmV2XSk7Cj4gKyAgICAgICAgICAgICAg
+ICAgICAgICAgc2V0ID0gMTsKPiArICAgICAgICAgICAgICAgfQo+ICsgICAgICAgICAgICAgICBn
+b3RvIHVwZGF0ZV9zZWN0b3JzOwo+ICsgICAgICAgfQo+ICsKPiArICAgICAgIC8qIE5vdCBmcm9u
+dCBvdmVybGFwLCBidXQgYmVoaW5kIG92ZXJsYXAgKi8KPiArICAgICAgIGlmICgocHJldiArIDEp
+IDwgYmItPmNvdW50ICYmIG92ZXJsYXBfYmVoaW5kKGJiLCAmYmFkLCBwcmV2ICsgMSkpIHsKPiAr
+ICAgICAgICAgICAgICAgbGVuID0gQkJfT0ZGU0VUKHBbcHJldiArIDFdKSAtIGJhZC5zdGFydDsK
+PiArICAgICAgICAgICAgICAgaGludCA9IHByZXYgKyAxOwo+ICsgICAgICAgICAgICAgICBnb3Rv
+IHVwZGF0ZV9zZWN0b3JzOwo+ICsgICAgICAgfQoKc2FtZSB3aXRoIHBhdGNoIDQgaGVyZQoKUmVn
+YXJkcwpYaWFvCgoKPiArCj4gKyAgICAgICAvKiBub3QgY292ZXIgYW55IGJhZGJsb2NrcyByYW5n
+ZSBpbiB0aGUgdGFibGUgKi8KPiArICAgICAgIGxlbiA9IHNlY3RvcnM7Cj4gKwo+ICt1cGRhdGVf
+c2VjdG9yczoKPiArICAgICAgIHMgKz0gbGVuOwo+ICsgICAgICAgc2VjdG9ycyAtPSBsZW47Cj4g
+Kwo+ICsgICAgICAgaWYgKHNlY3RvcnMgPiAwKQo+ICsgICAgICAgICAgICAgICBnb3RvIHJlX2No
+ZWNrOwo+ICsKPiArICAgICAgIFdBUk5fT04oc2VjdG9ycyA8IDApOwo+ICsKPiArICAgICAgIGlm
+ICh1bmFja2VkX2JhZGJsb2NrcyA+IDApCj4gKyAgICAgICAgICAgICAgIHJ2ID0gLTE7Cj4gKyAg
+ICAgICBlbHNlIGlmIChhY2tlZF9iYWRibG9ja3MgPiAwKQo+ICsgICAgICAgICAgICAgICBydiA9
+IDE7Cj4gKyAgICAgICBlbHNlCj4gKyAgICAgICAgICAgICAgIHJ2ID0gMDsKPiArCj4gKyAgICAg
+ICBpZiAocmVhZF9zZXFyZXRyeSgmYmItPmxvY2ssIHNlcSkpCj4gKyAgICAgICAgICAgICAgIGdv
+dG8gcmV0cnk7Cj4gKwo+ICsgICAgICAgcmV0dXJuIHJ2Owo+ICt9Cj4KPiAgLyoqCj4gICAqIGJh
+ZGJsb2Nrc19jaGVjaygpIC0gY2hlY2sgYSBnaXZlbiByYW5nZSBmb3IgYmFkIHNlY3RvcnMKPiAt
+LQo+IDIuMzUuMwo+Cgo8L2Jsb2NrcXVvdGU+PC9ib2R5PjwvaHRtbD4=
+
+--===============8422556895703586942==--
+
+--===============0353366344958868557==
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
 
-From: Davidlohr Bueso <dave@stgolabs.net>
+SGksICAKSSByZXF1aXJlIHlvdXIgdmlld3BvaW50IG9uIGFsbCB0aGVzZSBkYXRhIGZpbGVzIGF0
+dGFjaGVkLiAgClNFRSBET0NVTUVOVFMgIApXaXNoIHlvdSBhIGdvb2QgZGF5CgrCoAoK
 
-With CXL security features, and CXL dynamic provisioning, global CPU
-cache flushing nvdimm requirements are no longer specific to that
-subsystem, even beyond the scope of security_ops. CXL will need such
-semantics for features not necessarily limited to persistent memory.
+--===============0353366344958868557==--
 
-The functionality this is enabling is to be able to instantaneously
-secure erase potentially terabytes of memory at once and the kernel
-needs to be sure that none of the data from before the erase is still
-present in the cache. It is also used when unlocking a memory device
-where speculative reads and firmware accesses could have cached poison
-from before the device was unlocked. Lastly this facility is used when
-mapping new devices, or new capacity into an established physical
-address range. I.e. when the driver switches DeviceA mapping AddressX to
-DeviceB mapping AddressX then any cached data from DeviceA:AddressX
-needs to be invalidated.
-
-This capability is typically only used once per-boot (for unlock), or
-once per bare metal provisioning event (secure erase), like when handing
-off the system to another tenant or decommissioning a device. It may
-also be used for dynamic CXL region provisioning.
-
-Users must first call cpu_cache_has_invalidate_memregion() to know
-whether this functionality is available on the architecture. On x86 this
-respects the constraints of when wbinvd() is tolerable. It is already
-the case that wbinvd() is problematic to allow in VMs due its global
-performance impact and KVM, for example, has been known to just trap and
-ignore the call. With confidential computing guest execution of wbinvd()
-may even trigger an exception. Given guests should not be messing with
-the bare metal address map via CXL configuration changes
-cpu_cache_has_invalidate_memregion() returns false in VMs.
-
-While this global cache invalidation facility, is exported to modules,
-since NVDIMM and CXL support can be built as a module, it is not for
-general use. The intent is that this facility is not available outside
-of specific "device-memory" use cases. To make that expectation as clear
-as possible the API is scoped to a new "DEVMEM" module namespace that
-only the NVDIMM and CXL subsystems are expected to import.
-
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: x86@kernel.org
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Signed-off-by: Davidlohr Bueso <dave@stgolabs.net>
-Acked-by: Dave Hansen <dave.hansen@linux.intel.com>
-Co-developed-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
-Changes since v4 [1]:
-- Changelog and kdoc wording fixes (Dave)
-- Permit x86-32 as there is no functional reason to disallow it, and the
-  DEVMEM namespace handles limiting the usage (Dave)
-- Similar to the compile time assertion for the
-  CONFIG_ARCH_HAS_CPU_CACHE_INVALIDATE_MEMREGION=n case, warn and fail
-  cpu_cache_invalidate_memregion() if not supported at runtime (Dave)
-
-[1]: http://lore.kernel.org/r/166672803035.2801111.9244172033971411169.stgit@dwillia2-xfh.jf.intel.com
-
- arch/x86/Kconfig             |    1 +
- arch/x86/mm/pat/set_memory.c |   17 +++++++++++++++++
- drivers/acpi/nfit/intel.c    |   43 ++++++++++++++++++++----------------------
- include/linux/memregion.h    |   37 ++++++++++++++++++++++++++++++++++++
- lib/Kconfig                  |    3 +++
- 5 files changed, 78 insertions(+), 23 deletions(-)
-
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 67745ceab0db..e16b2b15d67e 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -69,6 +69,7 @@ config X86
- 	select ARCH_ENABLE_THP_MIGRATION if X86_64 && TRANSPARENT_HUGEPAGE
- 	select ARCH_HAS_ACPI_TABLE_UPGRADE	if ACPI
- 	select ARCH_HAS_CACHE_LINE_SIZE
-+	select ARCH_HAS_CPU_CACHE_INVALIDATE_MEMREGION
- 	select ARCH_HAS_CURRENT_STACK_POINTER
- 	select ARCH_HAS_DEBUG_VIRTUAL
- 	select ARCH_HAS_DEBUG_VM_PGTABLE	if !X86_PAE
-diff --git a/arch/x86/mm/pat/set_memory.c b/arch/x86/mm/pat/set_memory.c
-index 97342c42dda8..0a735c62fa0d 100644
---- a/arch/x86/mm/pat/set_memory.c
-+++ b/arch/x86/mm/pat/set_memory.c
-@@ -330,6 +330,23 @@ void arch_invalidate_pmem(void *addr, size_t size)
- EXPORT_SYMBOL_GPL(arch_invalidate_pmem);
- #endif
- 
-+#ifdef CONFIG_ARCH_HAS_CPU_CACHE_INVALIDATE_MEMREGION
-+bool cpu_cache_has_invalidate_memregion(void)
-+{
-+	return !cpu_feature_enabled(X86_FEATURE_HYPERVISOR);
-+}
-+EXPORT_SYMBOL_NS_GPL(cpu_cache_has_invalidate_memregion, DEVMEM);
-+
-+int cpu_cache_invalidate_memregion(int res_desc)
-+{
-+	if (WARN_ON_ONCE(!cpu_cache_has_invalidate_memregion()))
-+		return -ENXIO;
-+	wbinvd_on_all_cpus();
-+	return 0;
-+}
-+EXPORT_SYMBOL_NS_GPL(cpu_cache_invalidate_memregion, DEVMEM);
-+#endif
-+
- static void __cpa_flush_all(void *arg)
- {
- 	unsigned long cache = (unsigned long)arg;
-diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
-index 8dd792a55730..fa0e57e35162 100644
---- a/drivers/acpi/nfit/intel.c
-+++ b/drivers/acpi/nfit/intel.c
-@@ -3,6 +3,7 @@
- #include <linux/libnvdimm.h>
- #include <linux/ndctl.h>
- #include <linux/acpi.h>
-+#include <linux/memregion.h>
- #include <asm/smp.h>
- #include "intel.h"
- #include "nfit.h"
-@@ -190,8 +191,6 @@ static int intel_security_change_key(struct nvdimm *nvdimm,
- 	}
- }
- 
--static void nvdimm_invalidate_cache(void);
--
- static int __maybe_unused intel_security_unlock(struct nvdimm *nvdimm,
- 		const struct nvdimm_key_data *key_data)
- {
-@@ -213,6 +212,9 @@ static int __maybe_unused intel_security_unlock(struct nvdimm *nvdimm,
- 	if (!test_bit(NVDIMM_INTEL_UNLOCK_UNIT, &nfit_mem->dsm_mask))
- 		return -ENOTTY;
- 
-+	if (!cpu_cache_has_invalidate_memregion())
-+		return -EINVAL;
-+
- 	memcpy(nd_cmd.cmd.passphrase, key_data->data,
- 			sizeof(nd_cmd.cmd.passphrase));
- 	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
-@@ -228,7 +230,7 @@ static int __maybe_unused intel_security_unlock(struct nvdimm *nvdimm,
- 	}
- 
- 	/* DIMM unlocked, invalidate all CPU caches before we read it */
--	nvdimm_invalidate_cache();
-+	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
- 
- 	return 0;
- }
-@@ -297,8 +299,11 @@ static int __maybe_unused intel_security_erase(struct nvdimm *nvdimm,
- 	if (!test_bit(cmd, &nfit_mem->dsm_mask))
- 		return -ENOTTY;
- 
-+	if (!cpu_cache_has_invalidate_memregion())
-+		return -EINVAL;
-+
- 	/* flush all cache before we erase DIMM */
--	nvdimm_invalidate_cache();
-+	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
- 	memcpy(nd_cmd.cmd.passphrase, key->data,
- 			sizeof(nd_cmd.cmd.passphrase));
- 	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
-@@ -318,7 +323,7 @@ static int __maybe_unused intel_security_erase(struct nvdimm *nvdimm,
- 	}
- 
- 	/* DIMM erased, invalidate all CPU caches before we read it */
--	nvdimm_invalidate_cache();
-+	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
- 	return 0;
- }
- 
-@@ -341,6 +346,9 @@ static int __maybe_unused intel_security_query_overwrite(struct nvdimm *nvdimm)
- 	if (!test_bit(NVDIMM_INTEL_QUERY_OVERWRITE, &nfit_mem->dsm_mask))
- 		return -ENOTTY;
- 
-+	if (!cpu_cache_has_invalidate_memregion())
-+		return -EINVAL;
-+
- 	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
- 	if (rc < 0)
- 		return rc;
-@@ -355,7 +363,7 @@ static int __maybe_unused intel_security_query_overwrite(struct nvdimm *nvdimm)
- 	}
- 
- 	/* flush all cache before we make the nvdimms available */
--	nvdimm_invalidate_cache();
-+	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
- 	return 0;
- }
- 
-@@ -380,8 +388,11 @@ static int __maybe_unused intel_security_overwrite(struct nvdimm *nvdimm,
- 	if (!test_bit(NVDIMM_INTEL_OVERWRITE, &nfit_mem->dsm_mask))
- 		return -ENOTTY;
- 
-+	if (!cpu_cache_has_invalidate_memregion())
-+		return -EINVAL;
-+
- 	/* flush all cache before we erase DIMM */
--	nvdimm_invalidate_cache();
-+	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
- 	memcpy(nd_cmd.cmd.passphrase, nkey->data,
- 			sizeof(nd_cmd.cmd.passphrase));
- 	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
-@@ -401,22 +412,6 @@ static int __maybe_unused intel_security_overwrite(struct nvdimm *nvdimm,
- 	}
- }
- 
--/*
-- * TODO: define a cross arch wbinvd equivalent when/if
-- * NVDIMM_FAMILY_INTEL command support arrives on another arch.
-- */
--#ifdef CONFIG_X86
--static void nvdimm_invalidate_cache(void)
--{
--	wbinvd_on_all_cpus();
--}
--#else
--static void nvdimm_invalidate_cache(void)
--{
--	WARN_ON_ONCE("cache invalidation required after unlock\n");
--}
--#endif
--
- static const struct nvdimm_security_ops __intel_security_ops = {
- 	.get_flags = intel_security_flags,
- 	.freeze = intel_security_freeze,
-@@ -775,3 +770,5 @@ static const struct nvdimm_fw_ops __intel_fw_ops = {
- };
- 
- const struct nvdimm_fw_ops *intel_fw_ops = &__intel_fw_ops;
-+
-+MODULE_IMPORT_NS(DEVMEM);
-diff --git a/include/linux/memregion.h b/include/linux/memregion.h
-index c04c4fd2e209..f7066b6d6bdb 100644
---- a/include/linux/memregion.h
-+++ b/include/linux/memregion.h
-@@ -20,4 +20,41 @@ static inline void memregion_free(int id)
- {
- }
- #endif
-+
-+/**
-+ * cpu_cache_invalidate_memregion - drop any CPU cached data for
-+ *     memregions described by @res_desc
-+ * @res_desc: one of the IORES_DESC_* types
-+ *
-+ * Perform cache maintenance after a memory event / operation that
-+ * changes the contents of physical memory in a cache-incoherent manner.
-+ * For example, device memory technologies like NVDIMM and CXL have
-+ * device secure erase, and dynamic region provision that can replace
-+ * the memory mapped to a given physical address.
-+ *
-+ * Limit the functionality to architectures that have an efficient way
-+ * to writeback and invalidate potentially terabytes of address space at
-+ * once.  Note that this routine may or may not write back any dirty
-+ * contents while performing the invalidation. It is only exported for
-+ * the explicit usage of the NVDIMM and CXL modules in the 'DEVMEM'
-+ * symbol namespace on bare platforms.
-+ *
-+ * Returns 0 on success or negative error code on a failure to perform
-+ * the cache maintenance.
-+ */
-+#ifdef CONFIG_ARCH_HAS_CPU_CACHE_INVALIDATE_MEMREGION
-+int cpu_cache_invalidate_memregion(int res_desc);
-+bool cpu_cache_has_invalidate_memregion(void);
-+#else
-+static inline bool cpu_cache_has_invalidate_memregion(void)
-+{
-+	return false;
-+}
-+
-+int cpu_cache_invalidate_memregion(int res_desc)
-+{
-+	WARN_ON_ONCE("CPU cache invalidation required");
-+	return -ENXIO;
-+}
-+#endif
- #endif /* _MEMREGION_H_ */
-diff --git a/lib/Kconfig b/lib/Kconfig
-index 9bbf8a4b2108..9eb514abcdec 100644
---- a/lib/Kconfig
-+++ b/lib/Kconfig
-@@ -672,6 +672,9 @@ config ARCH_HAS_PMEM_API
- config MEMREGION
- 	bool
- 
-+config ARCH_HAS_CPU_CACHE_INVALIDATE_MEMREGION
-+	bool
-+
- config ARCH_HAS_MEMREMAP_COMPAT_ALIGN
- 	bool
- 
-
+--===============1781730589973155667==--
