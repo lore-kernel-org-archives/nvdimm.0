@@ -1,98 +1,181 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2615E10EB
-	for <nvdimm@lists.linux.dev>; Fri,  4 Nov 2022 07:31:20 +0000 (UTC)
-Received: from pps.filterd (m0098419.ppops.net [127.0.0.1])
-	by mx0b-001b2d01.pphosted.com (8.17.1.5/8.17.1.5) with ESMTP id 2A46bi2c012829;
-	Fri, 4 Nov 2022 07:31:08 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=subject : from : to : cc
- : date : message-id : content-type : content-transfer-encoding :
- mime-version; s=pp1; bh=u0Bf5ex/DksvDfhYW9rdcSByd45Q2+d5/DXWIL5wFH8=;
- b=PIZboCgxazkDUYMCL5xNt022GJN3nfh96S3B8LM+p7fdXSHFL9fW+miI4REVSpWale7N
- DmKyFqdoKFTkygNDgctFGcuJdOulUXvvm/XkgWiSz6LGPbQQQVeEdXGAAagGHCpjVmNj
- 7UksyzJ2J4Emm9LyUcOcqxK1392xPp3ZA983U1Y8LeEcie4G7tKPfULQuwvopa7VgSUu
- dxI5x6hIBUR7lk4BrYQtzZlQBNujQVkrWfhfjXzbZWlCe4UMQrzsCbY/hhDW7TLOxd0X
- qu2vRtPIBFef7WBoPfTMycEok07cgDpY2bDr/xNzBPyZrxeQr/91byp+zqlvBKwRd1iQ 6g== 
-Received: from ppma06ams.nl.ibm.com (66.31.33a9.ip4.static.sl-reverse.com [169.51.49.102])
-	by mx0b-001b2d01.pphosted.com (PPS) with ESMTPS id 3kmpt0vk3p-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 04 Nov 2022 07:31:08 +0000
-Received: from pps.filterd (ppma06ams.nl.ibm.com [127.0.0.1])
-	by ppma06ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 2A47LmKo029242;
-	Fri, 4 Nov 2022 07:31:06 GMT
-Received: from b06cxnps4074.portsmouth.uk.ibm.com (d06relay11.portsmouth.uk.ibm.com [9.149.109.196])
-	by ppma06ams.nl.ibm.com with ESMTP id 3kguej20yb-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 04 Nov 2022 07:31:06 +0000
-Received: from d06av25.portsmouth.uk.ibm.com (d06av25.portsmouth.uk.ibm.com [9.149.105.61])
-	by b06cxnps4074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 2A47V4d91114676
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 4 Nov 2022 07:31:04 GMT
-Received: from d06av25.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 37BD511C050;
-	Fri,  4 Nov 2022 07:31:04 +0000 (GMT)
-Received: from d06av25.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 2CF7B11C04C;
-	Fri,  4 Nov 2022 07:31:03 +0000 (GMT)
-Received: from [192.168.122.70] (unknown [9.43.104.193])
-	by d06av25.portsmouth.uk.ibm.com (Postfix) with ESMTP;
-	Fri,  4 Nov 2022 07:31:02 +0000 (GMT)
-Subject: [ndctl PATCH v2] ndctl: Fix the NDCTL_TIMEOUT environment variable
- parsing
-From: Shivaprasad G Bhat <sbhat@linux.ibm.com>
-To: vishal.l.verma@intel.com, nvdimm@lists.linux.dev
-Cc: dan.j.williams@intel.com, sbhat@linux.ibm.com
-Date: Fri, 04 Nov 2022 07:31:02 +0000
-Message-ID: <166754703982.18057.1825839184901260588.stgit@fedora>
-User-Agent: StGit/1.4
-Content-Type: text/plain; charset="utf-8"
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: Cc4yqTbd7mNH9f-dAsbPGOJ77VxMPGHX
-X-Proofpoint-ORIG-GUID: Cc4yqTbd7mNH9f-dAsbPGOJ77VxMPGHX
-Content-Transfer-Encoding: 7bit
-X-Proofpoint-UnRewURL: 0 URL was un-rewritten
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E48C1856
+	for <nvdimm@lists.linux.dev>; Fri,  4 Nov 2022 12:47:12 +0000 (UTC)
+Received: from fraeml735-chm.china.huawei.com (unknown [172.18.147.226])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4N3fx85Qy0z67gR6;
+	Fri,  4 Nov 2022 20:26:04 +0800 (CST)
+Received: from lhrpeml500005.china.huawei.com (7.191.163.240) by
+ fraeml735-chm.china.huawei.com (10.206.15.216) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31; Fri, 4 Nov 2022 13:28:12 +0100
+Received: from localhost (10.202.227.76) by lhrpeml500005.china.huawei.com
+ (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.31; Fri, 4 Nov
+ 2022 12:28:11 +0000
+Date: Fri, 4 Nov 2022 12:28:10 +0000
+From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+To: Dave Jiang <dave.jiang@intel.com>
+CC: <linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>,
+	<dan.j.williams@intel.com>, <bwidawsk@kernel.org>, <ira.weiny@intel.com>,
+	<vishal.l.verma@intel.com>, <alison.schofield@intel.com>, <dave@stgolabs.net>
+Subject: Re: [PATCH v2 03/19] tools/testing/cxl: Add "Get Security State"
+ opcode support
+Message-ID: <20221104122810.0000092c@Huawei.com>
+In-Reply-To: <166377430503.430546.4463791056925632016.stgit@djiang5-desk3.ch.intel.com>
+References: <166377414787.430546.3863229455285366312.stgit@djiang5-desk3.ch.intel.com>
+	<166377430503.430546.4463791056925632016.stgit@djiang5-desk3.ch.intel.com>
+Organization: Huawei Technologies Research and Development (UK) Ltd.
+X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.219,Aquarius:18.0.895,Hydra:6.0.545,FMLib:17.11.122.1
- definitions=2022-11-04_02,2022-11-03_01,2022-06-22_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 adultscore=0 phishscore=0
- mlxscore=0 suspectscore=0 priorityscore=1501 spamscore=0
- lowpriorityscore=0 clxscore=1011 bulkscore=0 mlxlogscore=999
- malwarescore=0 impostorscore=0 classifier=spam adjust=0 reason=mlx
- scancount=1 engine=8.12.0-2210170000 definitions=main-2211040047
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.202.227.76]
+X-ClientProxiedBy: lhrpeml500004.china.huawei.com (7.191.163.9) To
+ lhrpeml500005.china.huawei.com (7.191.163.240)
+X-CFilter-Loop: Reflected
 
-The strtoul(x, y, size) returns empty string on y when the x is "only"
-number with no other suffix strings. The code is checking if !null
-instead of comparing with empty string.
+On Wed, 21 Sep 2022 08:31:45 -0700
+Dave Jiang <dave.jiang@intel.com> wrote:
 
-Signed-off-by: Shivaprasad G Bhat <sbhat@linux.ibm.com>
----
-Changelog:
-Since v1:
-Link: https://lore.kernel.org/all/166373424779.231228.12814077203589935658.stgit@LAPTOP-TBQTPII8/
-* Avoid using strcmp
+> Add the emulation support for handling "Get Security State" opcode for a
+> CXL memory device for the cxl_test. The function will copy back device
+> security state bitmask to the output payload.
+> 
+> The security state data is added as platform_data for the mock mem device.
+> 
+> Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+FWIW LGTM
 
- ndctl/lib/libndctl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index ad54f06..77c31ab 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -334,7 +334,7 @@ NDCTL_EXPORT int ndctl_new(struct ndctl_ctx **ctx)
- 		char *end;
- 
- 		tmo = strtoul(env, &end, 0);
--		if (tmo < ULONG_MAX && !end)
-+		if (tmo < ULONG_MAX && !*end)
- 			c->timeout = tmo;
- 		dbg(c, "timeout = %ld\n", tmo);
- 	}
-
+> ---
+>  tools/testing/cxl/test/cxl.c       |   18 ++++++++++++++++++
+>  tools/testing/cxl/test/mem.c       |   20 ++++++++++++++++++++
+>  tools/testing/cxl/test/mem_pdata.h |   10 ++++++++++
+>  3 files changed, 48 insertions(+)
+>  create mode 100644 tools/testing/cxl/test/mem_pdata.h
+> 
+> diff --git a/tools/testing/cxl/test/cxl.c b/tools/testing/cxl/test/cxl.c
+> index a072b2d3e726..6dd286a52839 100644
+> --- a/tools/testing/cxl/test/cxl.c
+> +++ b/tools/testing/cxl/test/cxl.c
+> @@ -10,6 +10,7 @@
+>  #include <linux/mm.h>
+>  #include <cxlmem.h>
+>  #include "mock.h"
+> +#include "mem_pdata.h"
+>  
+>  #define NR_CXL_HOST_BRIDGES 2
+>  #define NR_CXL_ROOT_PORTS 2
+> @@ -629,8 +630,18 @@ static void mock_companion(struct acpi_device *adev, struct device *dev)
+>  
+>  static __init int cxl_test_init(void)
+>  {
+> +	struct cxl_mock_mem_pdata *mem_pdata;
+>  	int rc, i;
+>  
+> +	/*
+> +	 * Only a zeroed copy of this data structure is needed since no
+> +	 * additional initialization is needed for initial state.
+> +	 * platform_device_add_data() will make a copy of this data.
+> +	 */
+> +	mem_pdata = kzalloc(sizeof(*mem_pdata), GFP_KERNEL);
+> +	if (!mem_pdata)
+> +		return -ENOMEM;
+> +
+>  	register_cxl_mock_ops(&cxl_mock_ops);
+>  
+>  	cxl_mock_pool = gen_pool_create(ilog2(SZ_2M), NUMA_NO_NODE);
+> @@ -735,6 +746,12 @@ static __init int cxl_test_init(void)
+>  		pdev->dev.parent = &dport->dev;
+>  		set_dev_node(&pdev->dev, i % 2);
+>  
+> +		rc = platform_device_add_data(pdev, mem_pdata, sizeof(*mem_pdata));
+> +		if (rc) {
+> +			platform_device_put(pdev);
+> +			goto err_mem;
+> +		}
+> +
+>  		rc = platform_device_add(pdev);
+>  		if (rc) {
+>  			platform_device_put(pdev);
+> @@ -785,6 +802,7 @@ static __init int cxl_test_init(void)
+>  	gen_pool_destroy(cxl_mock_pool);
+>  err_gen_pool_create:
+>  	unregister_cxl_mock_ops(&cxl_mock_ops);
+> +	kfree(mem_pdata);
+>  	return rc;
+>  }
+>  
+> diff --git a/tools/testing/cxl/test/mem.c b/tools/testing/cxl/test/mem.c
+> index aa2df3a15051..9002a3ae3ea5 100644
+> --- a/tools/testing/cxl/test/mem.c
+> +++ b/tools/testing/cxl/test/mem.c
+> @@ -8,6 +8,7 @@
+>  #include <linux/sizes.h>
+>  #include <linux/bits.h>
+>  #include <cxlmem.h>
+> +#include "mem_pdata.h"
+>  
+>  #define LSA_SIZE SZ_128K
+>  #define DEV_SIZE SZ_2G
+> @@ -137,6 +138,22 @@ static int mock_partition_info(struct cxl_dev_state *cxlds,
+>  	return 0;
+>  }
+>  
+> +static int mock_get_security_state(struct cxl_dev_state *cxlds,
+> +				   struct cxl_mbox_cmd *cmd)
+> +{
+> +	struct cxl_mock_mem_pdata *mdata = dev_get_platdata(cxlds->dev);
+> +
+> +	if (cmd->size_in)
+> +		return -EINVAL;
+> +
+> +	if (cmd->size_out != sizeof(u32))
+> +		return -EINVAL;
+> +
+> +	memcpy(cmd->payload_out, &mdata->security_state, sizeof(u32));
+> +
+> +	return 0;
+> +}
+> +
+>  static int mock_get_lsa(struct cxl_dev_state *cxlds, struct cxl_mbox_cmd *cmd)
+>  {
+>  	struct cxl_mbox_get_lsa *get_lsa = cmd->payload_in;
+> @@ -230,6 +247,9 @@ static int cxl_mock_mbox_send(struct cxl_dev_state *cxlds, struct cxl_mbox_cmd *
+>  	case CXL_MBOX_OP_GET_HEALTH_INFO:
+>  		rc = mock_health_info(cxlds, cmd);
+>  		break;
+> +	case CXL_MBOX_OP_GET_SECURITY_STATE:
+> +		rc = mock_get_security_state(cxlds, cmd);
+> +		break;
+>  	default:
+>  		break;
+>  	}
+> diff --git a/tools/testing/cxl/test/mem_pdata.h b/tools/testing/cxl/test/mem_pdata.h
+> new file mode 100644
+> index 000000000000..6a7b111147eb
+> --- /dev/null
+> +++ b/tools/testing/cxl/test/mem_pdata.h
+> @@ -0,0 +1,10 @@
+> +/* SPDX-License-Identifier: GPL-2.0 */
+> +
+> +#ifndef _MEM_PDATA_H_
+> +#define _MEM_PDATA_H_
+> +
+> +struct cxl_mock_mem_pdata {
+> +	u32 security_state;
+> +};
+> +
+> +#endif
+> 
+> 
 
