@@ -1,38 +1,37 @@
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B2D7FD500
-	for <nvdimm@lists.linux.dev>; Sun,  6 Nov 2022 23:46:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C921D500
+	for <nvdimm@lists.linux.dev>; Sun,  6 Nov 2022 23:47:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1667778418; x=1699314418;
+  t=1667778424; x=1699314424;
   h=subject:from:to:cc:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=1m26oHecianIsW7mMpSdF2J3D9I0WaMck1/vbIPkuCQ=;
-  b=EiBz5L+5CnzCKp3Be5kCGAp0+oVOhU0vg8rIao/LVNnTwjZIgtp0bESm
-   HkFVguprB+IZeYTRok196rhOD4Ny/y9iw6PWMnUHIB1DV9hYTbXXr4qry
-   FPaun/9nfdHwJHWbelCP/m17qb17jjOeyQlU3BA4JkAU9zd+nnrDnEYtr
-   o+jykpc+bcrWHO11HtFK3WvS9IPST/WHhWe7fQIUpCuI1K0ULL0WXy50f
-   8WOMHtl9PIlpw/vl/ywB62DATB6pgTsXgBPgUw+adSple/BVF6JAD9GQT
-   t06O6aPyyYs9BstTxSroPtQj6EOZWyzpHtD0PWATG6A7paXx0HZ7QaXw9
-   g==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10523"; a="312052567"
+  bh=PmnMB0EJo7BqWBD1GuQkF9aVenGk+FT0gRp/npgZFcs=;
+  b=drm0XIy7oAv7i1fk7Jdn12Ip1AIbToHLt+rMcL5nIQQR9fPbtuRI+dLH
+   db3U6R8prJGeUMBGjKolgXANpMStFiifago44dsjJhM1iGhbKz/YpkylQ
+   K3mFo/ilojexlMZDb37ctYf3vbZjJk7N/qrOitBJpvBBUehCx3UHH9OG2
+   TpfaCM76FNFqdU9psMoBRvRW2WtUOy0pSShd+0DVuL/DTixbBJG2bqykk
+   qMPjzAxZvLJ5XoZzW50pcsojMsmEVSqNQlOI5TgBzM+Pwi3mRE71ClP/B
+   Cp93leCVk9qvPEbTegzKC4RBkl9/JhbaYntpliov1ymiefTj1qygeZ/EC
+   Q==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10523"; a="374541045"
 X-IronPort-AV: E=Sophos;i="5.96,143,1665471600"; 
-   d="scan'208";a="312052567"
+   d="scan'208";a="374541045"
 Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Nov 2022 15:46:58 -0800
-X-IronPort-AV: E=McAfee;i="6500,9779,10523"; a="964951323"
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Nov 2022 15:47:03 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10523"; a="964951346"
 X-IronPort-AV: E=Sophos;i="5.96,143,1665471600"; 
-   d="scan'208";a="964951323"
+   d="scan'208";a="964951346"
 Received: from durgasin-mobl.amr.corp.intel.com (HELO dwillia2-xfh.jf.intel.com) ([10.212.240.219])
-  by fmsmga005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Nov 2022 15:46:57 -0800
-Subject: [ndctl PATCH 02/15] ndctl/test: Add kernel backtrace detection to
- some dax tests
+  by fmsmga005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Nov 2022 15:47:03 -0800
+Subject: [ndctl PATCH 03/15] ndctl/clang-format: Move minimum version to 6
 From: Dan Williams <dan.j.williams@intel.com>
 To: vishal.l.verma@intel.com
 Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
-Date: Sun, 06 Nov 2022 15:46:57 -0800
-Message-ID: <166777841716.1238089.7618196736080256393.stgit@dwillia2-xfh.jf.intel.com>
+Date: Sun, 06 Nov 2022 15:47:03 -0800
+Message-ID: <166777842304.1238089.14893633815148907315.stgit@dwillia2-xfh.jf.intel.com>
 In-Reply-To: <166777840496.1238089.5601286140872803173.stgit@dwillia2-xfh.jf.intel.com>
 References: <166777840496.1238089.5601286140872803173.stgit@dwillia2-xfh.jf.intel.com>
 User-Agent: StGit/0.18-3-g996c
@@ -45,102 +44,128 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 
-It is useful to fail a test if it triggers a backtrace. Generalize the
-mechanism from test/cxl-topology.sh and add it to tests that want
-to validate clean kernel logs.
+Follow the kernel change that did the same:
+
+sed -i 's/^\(\s*\)#\(\S*\s\+\S*\) # Unknown to clang-format.*/\1\2/' .clang-format
+
+commit 96232c7d4f84 ("clang-format: Update to clang-format >= 6")
 
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- test/common              |   10 ++++++++++
- test/cxl-region-sysfs.sh |    4 +---
- test/cxl-topology.sh     |    5 +----
- test/dax.sh              |    2 ++
- test/daxdev-errors.sh    |    2 ++
- test/multi-dax.sh        |    2 ++
- 6 files changed, 18 insertions(+), 7 deletions(-)
+ .clang-format |   36 ++++++++++++++++++------------------
+ 1 file changed, 18 insertions(+), 18 deletions(-)
 
-diff --git a/test/common b/test/common
-index 65615cc09a3e..44cc352f6009 100644
---- a/test/common
-+++ b/test/common
-@@ -132,3 +132,13 @@ json2var()
- {
- 	sed -e "s/[{}\",]//g; s/\[//g; s/\]//g; s/:/=/g"
- }
-+
-+# check_dmesg
-+# $1: line number where this is called
-+check_dmesg()
-+{
-+	# validate no WARN or lockdep report during the run
-+	log=$(journalctl -r -k --since "-$((SECONDS+1))s")
-+	grep -q "Call Trace" <<< $log && err $1
-+	true
-+}
-diff --git a/test/cxl-region-sysfs.sh b/test/cxl-region-sysfs.sh
-index 63186b60dfec..e128406cd8c8 100644
---- a/test/cxl-region-sysfs.sh
-+++ b/test/cxl-region-sysfs.sh
-@@ -164,8 +164,6 @@ readarray -t endpoint < <($CXL free-dpa -t pmem ${mem[*]} |
- 			  jq -r ".[] | .decoder.decoder")
- echo "$region released ${#endpoint[@]} targets: ${endpoint[@]}"
+diff --git a/.clang-format b/.clang-format
+index b6169e15097c..f372823c3248 100644
+--- a/.clang-format
++++ b/.clang-format
+@@ -1,6 +1,6 @@
+ # SPDX-License-Identifier: GPL-2.0
+ #
+-# clang-format configuration file. Intended for clang-format >= 4.
++# clang-format configuration file. Intended for clang-format >= 6.
+ # Copied from Linux's .clang-format
+ #
+ # For more information, see:
+@@ -13,7 +13,7 @@ AccessModifierOffset: -4
+ AlignAfterOpenBracket: Align
+ AlignConsecutiveAssignments: false
+ AlignConsecutiveDeclarations: false
+-#AlignEscapedNewlines: Left # Unknown to clang-format-4.0
++AlignEscapedNewlines: Left
+ AlignOperands: true
+ AlignTrailingComments: false
+ AllowAllParametersOfDeclarationOnNextLine: false
+@@ -37,24 +37,24 @@ BraceWrapping:
+   AfterObjCDeclaration: false
+   AfterStruct: false
+   AfterUnion: false
+-  #AfterExternBlock: false # Unknown to clang-format-5.0
++  AfterExternBlock: false
+   BeforeCatch: false
+   BeforeElse: false
+   IndentBraces: false
+-  #SplitEmptyFunction: true # Unknown to clang-format-4.0
+-  #SplitEmptyRecord: true # Unknown to clang-format-4.0
+-  #SplitEmptyNamespace: true # Unknown to clang-format-4.0
++  SplitEmptyFunction: true
++  SplitEmptyRecord: true
++  SplitEmptyNamespace: true
+ BreakBeforeBinaryOperators: None
+ BreakBeforeBraces: Custom
+-#BreakBeforeInheritanceComma: false # Unknown to clang-format-4.0
++BreakBeforeInheritanceComma: false
+ BreakBeforeTernaryOperators: false
+ BreakConstructorInitializersBeforeComma: false
+-#BreakConstructorInitializers: BeforeComma # Unknown to clang-format-4.0
++BreakConstructorInitializers: BeforeComma
+ BreakAfterJavaFieldAnnotations: false
+ BreakStringLiterals: false
+ ColumnLimit: 80
+ CommentPragmas: '^ IWYU pragma:'
+-#CompactNamespaces: false # Unknown to clang-format-4.0
++CompactNamespaces: false
+ ConstructorInitializerAllOnOneLineOrOnePerLine: false
+ ConstructorInitializerIndentWidth: 8
+ ContinuationIndentWidth: 8
+@@ -62,7 +62,7 @@ Cpp11BracedListStyle: false
+ DerivePointerAlignment: false
+ DisableFormat: false
+ ExperimentalAutoDetectBinPacking: false
+-#FixNamespaceComments: false # Unknown to clang-format-4.0
++FixNamespaceComments: false
  
--# validate no WARN or lockdep report during the run
--log=$(journalctl -r -k --since "-$((SECONDS+1))s")
--grep -q "Call Trace" <<< $log && err "$LINENO"
-+check_dmesg "$LINENO"
+ # Taken from:
+ # while read -r sym; do
+@@ -118,13 +118,13 @@ ForEachMacros:
+   - 'ndctl_region_foreach'
+   - 'udev_list_entry_foreach'
  
- modprobe -r cxl_test
-diff --git a/test/cxl-topology.sh b/test/cxl-topology.sh
-index f7e390d22680..1f15d29f0600 100644
---- a/test/cxl-topology.sh
-+++ b/test/cxl-topology.sh
-@@ -169,9 +169,6 @@ done
- # validate that the bus can be disabled without issue
- $CXL disable-bus $root -f
+-#IncludeBlocks: Preserve # Unknown to clang-format-5.0
++IncludeBlocks: Preserve
+ IncludeCategories:
+   - Regex: '.*'
+     Priority: 1
+ IncludeIsMainRegex: '(Test)?$'
+ IndentCaseLabels: false
+-#IndentPPDirectives: None # Unknown to clang-format-5.0
++IndentPPDirectives: None
+ IndentWidth: 8
+ IndentWrappedFunctionNames: false
+ JavaScriptQuotes: Leave
+@@ -134,13 +134,13 @@ MacroBlockBegin: ''
+ MacroBlockEnd: ''
+ MaxEmptyLinesToKeep: 1
+ NamespaceIndentation: None
+-#ObjCBinPackProtocolList: Auto # Unknown to clang-format-5.0
++ObjCBinPackProtocolList: Auto
+ ObjCBlockIndentWidth: 8
+ ObjCSpaceAfterProperty: true
+ ObjCSpaceBeforeProtocolList: true
  
--
--# validate no WARN or lockdep report during the run
--log=$(journalctl -r -k --since "-$((SECONDS+1))s")
--grep -q "Call Trace" <<< $log && err "$LINENO"
-+check_dmesg "$LINENO"
- 
- modprobe -r cxl_test
-diff --git a/test/dax.sh b/test/dax.sh
-index bb9848b10ecc..3ffbc8079eba 100755
---- a/test/dax.sh
-+++ b/test/dax.sh
-@@ -118,4 +118,6 @@ else
- 	run_xfs
- fi
- 
-+check_dmesg "$LINENO"
-+
- exit 0
-diff --git a/test/daxdev-errors.sh b/test/daxdev-errors.sh
-index 7f79718113d0..84ef93499acf 100755
---- a/test/daxdev-errors.sh
-+++ b/test/daxdev-errors.sh
-@@ -71,6 +71,8 @@ if read sector len < /sys/bus/platform/devices/nfit_test.0/$busdev/$region/badbl
- fi
- [ -n "$sector" ] && echo "fail: $LINENO" && exit 1
- 
-+check_dmesg "$LINENO"
-+
- _cleanup
- 
- exit 0
-diff --git a/test/multi-dax.sh b/test/multi-dax.sh
-index 04070adb18e4..d471e1c96b5e 100755
---- a/test/multi-dax.sh
-+++ b/test/multi-dax.sh
-@@ -28,6 +28,8 @@ chardev1=$(echo $json | jq ". | select(.mode == \"devdax\") | .daxregion.devices
- json=$($NDCTL create-namespace -b $NFIT_TEST_BUS0 -r $region -t pmem -m devdax -a $ALIGN_SIZE -s 16M)
- chardev2=$(echo $json | jq ". | select(.mode == \"devdax\") | .daxregion.devices[0].chardev")
- 
-+check_dmesg "$LINENO"
-+
- _cleanup
- 
- exit 0
+ # Taken from git's rules
+-#PenaltyBreakAssignment: 10 # Unknown to clang-format-4.0
++PenaltyBreakAssignment: 10
+ PenaltyBreakBeforeFirstCallParameter: 30
+ PenaltyBreakComment: 10
+ PenaltyBreakFirstLessLess: 0
+@@ -151,14 +151,14 @@ PenaltyReturnTypeOnItsOwnLine: 60
+ PointerAlignment: Right
+ ReflowComments: false
+ SortIncludes: false
+-#SortUsingDeclarations: false # Unknown to clang-format-4.0
++SortUsingDeclarations: false
+ SpaceAfterCStyleCast: false
+ SpaceAfterTemplateKeyword: true
+ SpaceBeforeAssignmentOperators: true
+-#SpaceBeforeCtorInitializerColon: true # Unknown to clang-format-5.0
+-#SpaceBeforeInheritanceColon: true # Unknown to clang-format-5.0
++SpaceBeforeCtorInitializerColon: true
++SpaceBeforeInheritanceColon: true
+ SpaceBeforeParens: ControlStatements
+-#SpaceBeforeRangeBasedForLoopColon: true # Unknown to clang-format-5.0
++SpaceBeforeRangeBasedForLoopColon: true
+ SpaceInEmptyParentheses: false
+ SpacesBeforeTrailingComments: 1
+ SpacesInAngles: false
 
