@@ -1,33 +1,33 @@
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4180A15C8C
-	for <nvdimm@lists.linux.dev>; Mon,  7 Nov 2022 21:58:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B7102CA5
+	for <nvdimm@lists.linux.dev>; Mon,  7 Nov 2022 22:33:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1667858321; x=1699394321;
+  t=1667860408; x=1699396408;
   h=message-id:date:mime-version:subject:to:cc:references:
    from:in-reply-to:content-transfer-encoding;
-  bh=77y+6RWvz1s6W/CMCpJ5abMNoQxwDnKCZXzcy7wM1mk=;
-  b=N8vf7qRaYPXjGh7g/esEHs0AUmXOG02ttIr3myhcdloU7VmTUOzNgrDG
-   1I2tVMOVTo2SdsKM5vKfpyO8T955p62Zh7BZh84+FId7wZ6e8fSvmrmgl
-   fqRFEjlwh5IXHZdqEtf91EUG2QKwt7d1s9LQpRBsA8CatPYW1YgMsWV/H
-   sM7EvAX3HdMUFeYLy82bOuJRKuKZYL2mx50hiKe6576DPr2pCBLPOJnd3
-   rw/bGdXOwSchlkq6bR5BYiGtoKT+p/iIlv4HqmTJucYZsZCklaNFUxntB
-   8KB78xJHNTipKuPWV2F/3D5AoqhIHe2oZNpOWa8nL/Bv3JbhBBjjZa7DX
-   Q==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10524"; a="311687661"
+  bh=m5rfha3Wok8RrZKJ/vcZCl8d8m+xE9I6IXlmncR30Io=;
+  b=UJXuKudcKCIGwC0yQXeG8cTLJKA2SJj0MqEV8M7/rfo3KoAYZUyJDVQU
+   wX0yu0kUH1XLYAw7LTx0HJDzInpZazY8Fh1pNLdgPODJjBvmi+fVZ0ibC
+   Mwi8iFwq0hC3ikydoqTsqtVjyjVspfWk5lcpAbvYOm/6MaxlCZSTrS+ul
+   cBh+Q/RpeFQrj8qsPvwK5f/zRwBjC2msoiP6Pfw9vm2TNAGopVJBUxda8
+   hiUM8eai0dfrRUdO91oTMk3gZCFT4hfpyjdQmvxqsnYQFlyukXqDbNMi7
+   KmW7Ej+GQSyjw2+DzrcKTzdQ9N9yADKesBODmRxXGMrroZk+zRzeJbJD4
+   w==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10524"; a="298054551"
 X-IronPort-AV: E=Sophos;i="5.96,145,1665471600"; 
-   d="scan'208";a="311687661"
-Received: from fmsmga004.fm.intel.com ([10.253.24.48])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Nov 2022 13:58:40 -0800
-X-IronPort-AV: E=McAfee;i="6500,9779,10524"; a="705049005"
+   d="scan'208";a="298054551"
+Received: from fmsmga002.fm.intel.com ([10.253.24.26])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Nov 2022 14:33:27 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10524"; a="741685652"
 X-IronPort-AV: E=Sophos;i="5.96,145,1665471600"; 
-   d="scan'208";a="705049005"
+   d="scan'208";a="741685652"
 Received: from djiang5-mobl2.amr.corp.intel.com (HELO [10.213.168.235]) ([10.213.168.235])
-  by fmsmga004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Nov 2022 13:58:40 -0800
-Message-ID: <5d88bb70-a927-8261-1217-f1d865851c55@intel.com>
-Date: Mon, 7 Nov 2022 13:58:39 -0800
+  by fmsmga002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Nov 2022 14:33:26 -0800
+Message-ID: <cd657e82-393b-2762-09f4-ae9497e26537@intel.com>
+Date: Mon, 7 Nov 2022 14:33:26 -0800
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -36,124 +36,134 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
  Firefox/102.0 Thunderbird/102.4.1
-Subject: Re: [PATCH v2 13/19] tools/testing/cxl: Add "passphrase secure erase"
- opcode support
+Subject: Re: [PATCH v2 16/19] tools/testing/cxl: add mechanism to lock mem
+ device for testing
 Content-Language: en-US
 To: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
 Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
  dan.j.williams@intel.com, bwidawsk@kernel.org, ira.weiny@intel.com,
  vishal.l.verma@intel.com, alison.schofield@intel.com, dave@stgolabs.net
 References: <166377414787.430546.3863229455285366312.stgit@djiang5-desk3.ch.intel.com>
- <166377436599.430546.9691226328917294997.stgit@djiang5-desk3.ch.intel.com>
- <20221107153537.0000050e@Huawei.com>
+ <166377438336.430546.14222889528313880160.stgit@djiang5-desk3.ch.intel.com>
+ <20221107155658.000048d0@Huawei.com>
 From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <20221107153537.0000050e@Huawei.com>
+In-Reply-To: <20221107155658.000048d0@Huawei.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
 
 
-On 11/7/2022 7:35 AM, Jonathan Cameron wrote:
-> On Wed, 21 Sep 2022 08:32:46 -0700
+On 11/7/2022 7:56 AM, Jonathan Cameron wrote:
+> On Wed, 21 Sep 2022 08:33:03 -0700
 > Dave Jiang <dave.jiang@intel.com> wrote:
 > 
->> Add support to emulate a CXL mem device support the "passphrase secure
->> erase" operation.
+>> The mock cxl mem devs needs a way to go into "locked" status to simulate
+>> when the platform is rebooted. Add a sysfs mechanism so the device security
+>> state is set to "locked" and the frozen state bits are cleared.
 >>
 >> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> Hi Dave
+> 
+> A few minor comments below.
+> 
 >> ---
->>   tools/testing/cxl/test/mem.c |   56 ++++++++++++++++++++++++++++++++++++++++++
->>   1 file changed, 56 insertions(+)
+>>   tools/testing/cxl/test/cxl.c |   52 ++++++++++++++++++++++++++++++++++++++++--
+>>   1 file changed, 50 insertions(+), 2 deletions(-)
 >>
->> diff --git a/tools/testing/cxl/test/mem.c b/tools/testing/cxl/test/mem.c
->> index 840378d239bf..a0a58156c15a 100644
->> --- a/tools/testing/cxl/test/mem.c
->> +++ b/tools/testing/cxl/test/mem.c
->> @@ -356,6 +356,59 @@ static int mock_unlock_security(struct cxl_dev_state *cxlds, struct cxl_mbox_cmd
->>   	return 0;
->>   }
+>> diff --git a/tools/testing/cxl/test/cxl.c b/tools/testing/cxl/test/cxl.c
+>> index 6dd286a52839..7f76f494a0d4 100644
+>> --- a/tools/testing/cxl/test/cxl.c
+>> +++ b/tools/testing/cxl/test/cxl.c
+>> @@ -628,6 +628,45 @@ static void mock_companion(struct acpi_device *adev, struct device *dev)
+>>   #define SZ_512G (SZ_64G * 8)
+>>   #endif
 >>   
->> +static int mock_passphrase_erase(struct cxl_dev_state *cxlds, struct cxl_mbox_cmd *cmd)
+>> +static ssize_t security_lock_show(struct device *dev,
+>> +				  struct device_attribute *attr, char *buf)
 >> +{
->> +	struct cxl_mock_mem_pdata *mdata = dev_get_platdata(cxlds->dev);
->> +	struct cxl_pass_erase *erase;
+>> +	struct cxl_mock_mem_pdata *mdata = dev_get_platdata(dev);
 >> +
->> +	if (cmd->size_in != sizeof(*erase))
->> +		return -EINVAL;
->> +
->> +	if (cmd->size_out != 0)
->> +		return -EINVAL;
->> +
->> +	if (mdata->security_state & CXL_PMEM_SEC_STATE_FROZEN) {
->> +		cmd->return_code = CXL_MBOX_CMD_RC_SECURITY;
->> +		return -ENXIO;
->> +	}
->> +
+>> +	return sysfs_emit(buf, "%s\n", mdata->security_state & CXL_PMEM_SEC_STATE_LOCKED ?
+>> +			  "locked" : "unlocked");
 > 
-> I think we need to check also that the passphrase supplied is not the
-> master one in which case the lockout on user passphrase shouldn't matter.
+> It's called lock. So 1 or 0 seems sufficient to me rather than needing strings.
+> Particularly when you use an int to lock it.
 
-Ok.
+ok
 
 > 
->> +	if (mdata->security_state & CXL_PMEM_SEC_STATE_USER_PLIMIT) {
->> +		cmd->return_code = CXL_MBOX_CMD_RC_SECURITY;
->> +		return -ENXIO;
->> +	}
->> +
->> +	erase = cmd->payload_in;
->> +	if (erase->type == CXL_PMEM_SEC_PASS_MASTER &&
->> +	    mdata->security_state & CXL_PMEM_SEC_STATE_MASTER_PASS_SET &&
->> +	    memcmp(mdata->master_pass, erase->pass, NVDIMM_PASSPHRASE_LEN)) {
->> +		if (++mdata->master_limit == PASS_TRY_LIMIT)
-> 
-> It's harmless, but I'm not sure I like the adding to this when we've already
-> hit the limit.  Maybe only increment if not?
-
-I'll rework the whole thing and have helper function to handle this 
-since it's used in quite a few places.
-
-> 
->> +			mdata->security_state |= CXL_PMEM_SEC_STATE_MASTER_PLIMIT;
->> +		cmd->return_code = CXL_MBOX_CMD_RC_PASSPHRASE;
->> +		return -ENXIO;
->> +	}
->> +
->> +	if (erase->type == CXL_PMEM_SEC_PASS_USER &&
->> +	    mdata->security_state & CXL_PMEM_SEC_STATE_USER_PASS_SET &&
->> +	    memcmp(mdata->user_pass, erase->pass, NVDIMM_PASSPHRASE_LEN)) {
->> +		if (++mdata->user_limit == PASS_TRY_LIMIT)
->> +			mdata->security_state |= CXL_PMEM_SEC_STATE_USER_PLIMIT;
->> +		cmd->return_code = CXL_MBOX_CMD_RC_PASSPHRASE;
->> +		return -ENXIO;
->> +	}
->> +
->> +	if (erase->type == CXL_PMEM_SEC_PASS_USER) {
->> +		mdata->security_state &= ~CXL_PMEM_SEC_STATE_USER_PASS_SET;
->> +		mdata->user_limit = 0;
-> 
-> I think it would be more logical to set this to zero as part of the password
-> testing block above rather than down here.
-> 
-> I also 'think' the user passphrase is wiped even if the secure erase was
-> done with the master key.
-> "The user passphrase shall be disabled after secure erase, but the master passphrase, if set, shall
-> be unchanged" doesn't say anything about only if the user passphrase was the one used to
-> perform the erase.
-
-Yeah I'll rework this part.
-
-> 
->> +		memset(mdata->user_pass, 0, NVDIMM_PASSPHRASE_LEN);
->> +	} else if (erase->type == CXL_PMEM_SEC_PASS_MASTER) {
->> +		mdata->master_limit = 0;
->> +	}
->> +
->> +	mdata->security_state &= ~CXL_PMEM_SEC_STATE_LOCKED;
->> +
->> +	return 0;
 >> +}
 >> +
+>> +static ssize_t security_lock_store(struct device *dev, struct device_attribute *attr,
+>> +				   const char *buf, size_t count)
+>> +{
+>> +	struct cxl_mock_mem_pdata *mdata = dev_get_platdata(dev);
+>> +	u32 mask = CXL_PMEM_SEC_STATE_FROZEN | CXL_PMEM_SEC_STATE_USER_PLIMIT |
+>> +		   CXL_PMEM_SEC_STATE_MASTER_PLIMIT;
+>> +	int val;
+>> +
+>> +	if (kstrtoint(buf, 0, &val) < 0)
+>> +		return -EINVAL;
+>> +
+>> +	if (val == 1) {
+>> +		if (!(mdata->security_state & CXL_PMEM_SEC_STATE_USER_PASS_SET))
+>> +			return -ENXIO;
+>> +		mdata->security_state |= CXL_PMEM_SEC_STATE_LOCKED;
+>> +		mdata->security_state &= ~mask;
+>> +	} else {
+>> +		return -EINVAL;
+>> +	}
+>> +	return count;
+>> +}
+>> +
+>> +static DEVICE_ATTR_RW(security_lock);
+>> +
+>> +static struct attribute *cxl_mock_mem_attrs[] = {
+>> +	&dev_attr_security_lock.attr,
+>> +	NULL
+>> +};
+>> +ATTRIBUTE_GROUPS(cxl_mock_mem);
+>> +
+>>   static __init int cxl_test_init(void)
+>>   {
+>>   	struct cxl_mock_mem_pdata *mem_pdata;
+>> @@ -757,6 +796,11 @@ static __init int cxl_test_init(void)
+>>   			platform_device_put(pdev);
+>>   			goto err_mem;
+>>   		}
+>> +
+>> +		rc = device_add_groups(&pdev->dev, cxl_mock_mem_groups);
 > 
+> Can we just set pdev->dev.groups? and avoid dynamic part of this or need to
+> remove them manually?   I can't immediately find an example of this for
+> a platform_device but it's done for lots of other types.
+
+ok
+
+> 
+> 
+>> +		if (rc)
+>> +			goto err_mem;
+>> +
+>>   		cxl_mem[i] = pdev;
+>>   	}
+>>   
+>> @@ -811,8 +855,12 @@ static __exit void cxl_test_exit(void)
+>>   	int i;
+>>   
+>>   	platform_device_unregister(cxl_acpi);
+>> -	for (i = ARRAY_SIZE(cxl_mem) - 1; i >= 0; i--)
+>> -		platform_device_unregister(cxl_mem[i]);
+>> +	for (i = ARRAY_SIZE(cxl_mem) - 1; i >= 0; i--) {
+>> +		struct platform_device *pdev = cxl_mem[i];
+>> +
+>> +		device_remove_groups(&pdev->dev, cxl_mock_mem_groups);
+>> +		platform_device_unregister(pdev);
+>> +	}
+>>   	for (i = ARRAY_SIZE(cxl_switch_dport) - 1; i >= 0; i--)
+>>   		platform_device_unregister(cxl_switch_dport[i]);
+>>   	for (i = ARRAY_SIZE(cxl_switch_uport) - 1; i >= 0; i--)
+>>
+>>
 > 
 > 
