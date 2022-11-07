@@ -1,40 +1,41 @@
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 922EC15C91
-	for <nvdimm@lists.linux.dev>; Mon,  7 Nov 2022 22:43:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A914015C91
+	for <nvdimm@lists.linux.dev>; Mon,  7 Nov 2022 22:47:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1667861008; x=1699397008;
+  t=1667861277; x=1699397277;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=WBr/ODLmak37V+5k5Rj4YdeK0bKNwMyeBo7OieecAJM=;
-  b=A0TS+LuHqQsbHKi0AEZjhyQR1n1cDWJftbV9JPLptqhEKmRldXL728NG
-   USNPoDisrf24+1AO5soqNGWDieqTd7RVph9R39XwMOpg9EZ3UrvYoeT0d
-   23RmXw/4RL0EFRcityOivc0wS/NqlR8YHakwhzzUcR1qqDrjtZ7PJbhaM
-   lnvnP7ayuNCf4h6+SUEerpBo/RB9N64cZTV+8yjQkd9rqw3RjPkl2hkR0
-   568Rl3ykt02nw/Ge/pH0WsNzlNjjqi3Usj5axCfECEbgXGETObPCHfH0O
-   zG3Qf+YBYTv5NWMSw5eD+aDJEnka7WeTGTY8s7Bc0PxRFdLQrA/6yDT0g
-   A==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10524"; a="290263573"
+  bh=Aqf0w5kAD7DdapEu09eXoWqYNCSclhyGW5VCjVSkcS0=;
+  b=nAI26WJAAShSQ2UaLkxquBYkyp9N0BhicoCUl3pZSN/m0TCzgU+zkdlu
+   CoDR3y4kjL6dgutJDeCOW/W3N45fvmR6ExaTC78c4blu7dFOzoEMPdJ3w
+   tiVUG5qrC/FU0Y1Oxs0OM3SkN8g5Dy9GgY9uCnOIzzAgi4kul9RBfS462
+   WubPw4P13vjuW/YyQrnD7/yrCIMKZ0fo656eE9YI2S2zFt/PqXJiyXN8N
+   0q8AkEcUynWBn9OECgKzJYkd8greuLRafKNTBFQUxrZuANeOZa1Qzx9Qk
+   ZNTa0SZu+lUxZgz6c26DzNh3W/zRkwhvz69kanstL0O3qvKbVC7bIqyj7
+   Q==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10524"; a="312328934"
 X-IronPort-AV: E=Sophos;i="5.96,145,1665471600"; 
-   d="scan'208";a="290263573"
-Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Nov 2022 14:43:27 -0800
-X-IronPort-AV: E=McAfee;i="6500,9779,10524"; a="587147375"
+   d="scan'208";a="312328934"
+Received: from orsmga006.jf.intel.com ([10.7.209.51])
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Nov 2022 14:47:57 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10524"; a="614043889"
 X-IronPort-AV: E=Sophos;i="5.96,145,1665471600"; 
-   d="scan'208";a="587147375"
+   d="scan'208";a="614043889"
 Received: from aschofie-mobl2.amr.corp.intel.com (HELO aschofie-mobl2) ([10.209.100.77])
-  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Nov 2022 14:43:26 -0800
-Date: Mon, 7 Nov 2022 14:43:25 -0800
+  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Nov 2022 14:47:57 -0800
+Date: Mon, 7 Nov 2022 14:47:55 -0800
 From: Alison Schofield <alison.schofield@intel.com>
 To: Dan Williams <dan.j.williams@intel.com>
 Cc: vishal.l.verma@intel.com, linux-cxl@vger.kernel.org,
 	nvdimm@lists.linux.dev
-Subject: Re: [ndctl PATCH 09/15] cxl/region: Make ways an integer argument
-Message-ID: <Y2mKDV5MG3OZqwau@aschofie-mobl2>
+Subject: Re: [ndctl PATCH 06/15] cxl/list: Skip emitting pmem_size when it is
+ zero
+Message-ID: <Y2mLGxdAAQjcflbq@aschofie-mobl2>
 References: <166777840496.1238089.5601286140872803173.stgit@dwillia2-xfh.jf.intel.com>
- <166777845733.1238089.4849744927692588680.stgit@dwillia2-xfh.jf.intel.com>
+ <166777844020.1238089.5777920571190091563.stgit@dwillia2-xfh.jf.intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -43,141 +44,61 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <166777845733.1238089.4849744927692588680.stgit@dwillia2-xfh.jf.intel.com>
+In-Reply-To: <166777844020.1238089.5777920571190091563.stgit@dwillia2-xfh.jf.intel.com>
 
-On Sun, Nov 06, 2022 at 03:47:37PM -0800, Dan Williams wrote:
-> Since --ways does not take a unit value like --size, just make it an
-> integer argument directly and skip the hand coded conversion.
+On Sun, Nov 06, 2022 at 03:47:20PM -0800, Dan Williams wrote:
+> The typical case is that CXL devices are pure ram devices. Only emit
+> capacity sizes when they are non-zero to avoid confusion around whether
+> pmem is available via partitioning or not.
+> 
+> Do the same for ram_size on the odd case that someone builds a pure pmem
+> device.
 
-Just curious why not unsigned int for this and granularity?
-
+The cxl list man page needs a couple of examples updated.
 
 > 
 > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 > ---
->  cxl/region.c |   41 +++++++++++++++++++----------------------
->  1 file changed, 19 insertions(+), 22 deletions(-)
+>  cxl/json.c |   20 +++++++++++++-------
+>  1 file changed, 13 insertions(+), 7 deletions(-)
 > 
-> diff --git a/cxl/region.c b/cxl/region.c
-> index 334fcc291de7..494da5139c05 100644
-> --- a/cxl/region.c
-> +++ b/cxl/region.c
-> @@ -21,21 +21,23 @@
->  static struct region_params {
->  	const char *bus;
->  	const char *size;
-> -	const char *ways;
->  	const char *granularity;
->  	const char *type;
->  	const char *root_decoder;
->  	const char *region;
-> +	int ways;
->  	bool memdevs;
->  	bool force;
->  	bool human;
->  	bool debug;
-> -} param;
-> +} param = {
-> +	.ways = INT_MAX,
-> +};
->  
->  struct parsed_params {
->  	u64 size;
->  	u64 ep_min_size;
-> -	unsigned int ways;
-> +	int ways;
->  	unsigned int granularity;
->  	const char **targets;
->  	int num_targets;
-> @@ -63,9 +65,8 @@ OPT_BOOLEAN(0, "debug", &param.debug, "turn on debug")
->  OPT_STRING('s', "size", &param.size, \
->  	   "size in bytes or with a K/M/G etc. suffix", \
->  	   "total size desired for the resulting region."), \
-> -OPT_STRING('w', "ways", &param.ways, \
-> -	   "number of interleave ways", \
-> -	   "number of memdevs participating in the regions interleave set"), \
-> +OPT_INTEGER('w', "ways", &param.ways, \
-> +	    "number of memdevs participating in the regions interleave set"), \
->  OPT_STRING('g', "granularity", \
->  	   &param.granularity, "interleave granularity", \
->  	   "granularity of the interleave set"), \
-> @@ -126,15 +127,11 @@ static int parse_create_options(int argc, const char **argv,
->  		}
->  	}
->  
-> -	if (param.ways) {
-> -		unsigned long ways = strtoul(param.ways, NULL, 0);
-> -
-> -		if (ways == ULONG_MAX || (int)ways <= 0) {
-> -			log_err(&rl, "Invalid interleave ways: %s\n",
-> -				param.ways);
-> -			return -EINVAL;
-> -		}
-> -		p->ways = ways;
-> +	if (param.ways <= 0) {
-> +		log_err(&rl, "Invalid interleave ways: %d\n", param.ways);
-> +		return -EINVAL;
-> +	} else if (param.ways < INT_MAX) {
-> +		p->ways = param.ways;
->  	} else if (argc) {
->  		p->ways = argc;
->  	} else {
-> @@ -155,13 +152,13 @@ static int parse_create_options(int argc, const char **argv,
->  	}
->  
->  
-> -	if (argc > (int)p->ways) {
-> +	if (argc > p->ways) {
->  		for (i = p->ways; i < argc; i++)
->  			log_err(&rl, "extra argument: %s\n", p->targets[i]);
->  		return -EINVAL;
->  	}
->  
-> -	if (argc < (int)p->ways) {
-> +	if (argc < p->ways) {
->  		log_err(&rl,
->  			"too few target arguments (%d) for interleave ways (%u)\n",
->  			argc, p->ways);
-> @@ -253,7 +250,7 @@ static bool validate_memdev(struct cxl_memdev *memdev, const char *target,
->  
->  static int validate_config_memdevs(struct cxl_ctx *ctx, struct parsed_params *p)
+> diff --git a/cxl/json.c b/cxl/json.c
+> index 63c17519aba1..1b1669ab021d 100644
+> --- a/cxl/json.c
+> +++ b/cxl/json.c
+> @@ -305,7 +305,7 @@ struct json_object *util_cxl_memdev_to_json(struct cxl_memdev *memdev,
 >  {
-> -	unsigned int i, matched = 0;
-> +	int i, matched = 0;
+>  	const char *devname = cxl_memdev_get_devname(memdev);
+>  	struct json_object *jdev, *jobj;
+> -	unsigned long long serial;
+> +	unsigned long long serial, size;
+>  	int numa_node;
 >  
->  	for (i = 0; i < p->ways; i++) {
->  		struct cxl_memdev *memdev;
-> @@ -393,7 +390,8 @@ static int cxl_region_determine_granularity(struct cxl_region *region,
->  					    struct parsed_params *p)
->  {
->  	const char *devname = cxl_region_get_devname(region);
-> -	unsigned int granularity, ways;
-> +	unsigned int granularity;
-> +	int ways;
+>  	jdev = json_object_new_object();
+> @@ -316,13 +316,19 @@ struct json_object *util_cxl_memdev_to_json(struct cxl_memdev *memdev,
+>  	if (jobj)
+>  		json_object_object_add(jdev, "memdev", jobj);
 >  
->  	/* Default granularity will be the root decoder's granularity */
->  	granularity = cxl_decoder_get_interleave_granularity(p->root_decoder);
-> @@ -408,7 +406,7 @@ static int cxl_region_determine_granularity(struct cxl_region *region,
->  		return granularity;
+> -	jobj = util_json_object_size(cxl_memdev_get_pmem_size(memdev), flags);
+> -	if (jobj)
+> -		json_object_object_add(jdev, "pmem_size", jobj);
+> +	size = cxl_memdev_get_pmem_size(memdev);
+> +	if (size) {
+> +		jobj = util_json_object_size(size, flags);
+> +		if (jobj)
+> +			json_object_object_add(jdev, "pmem_size", jobj);
+> +	}
 >  
->  	ways = cxl_decoder_get_interleave_ways(p->root_decoder);
-> -	if (ways == 0 || ways == UINT_MAX) {
-> +	if (ways == 0 || ways == -1) {
->  		log_err(&rl, "%s: unable to determine root decoder ways\n",
->  			devname);
->  		return -ENXIO;
-> @@ -436,12 +434,11 @@ static int create_region(struct cxl_ctx *ctx, int *count,
->  {
->  	unsigned long flags = UTIL_JSON_TARGETS;
->  	struct json_object *jregion;
-> -	unsigned int i, granularity;
->  	struct cxl_region *region;
-> +	int i, rc, granularity;
->  	u64 size, max_extent;
->  	const char *devname;
->  	uuid_t uuid;
-> -	int rc;
+> -	jobj = util_json_object_size(cxl_memdev_get_ram_size(memdev), flags);
+> -	if (jobj)
+> -		json_object_object_add(jdev, "ram_size", jobj);
+> +	size = cxl_memdev_get_ram_size(memdev);
+> +	if (size) {
+> +		jobj = util_json_object_size(size, flags);
+> +		if (jobj)
+> +			json_object_object_add(jdev, "ram_size", jobj);
+> +	}
 >  
->  	rc = create_region_validate_config(ctx, p);
->  	if (rc)
+>  	if (flags & UTIL_JSON_HEALTH) {
+>  		jobj = util_cxl_memdev_health_to_json(memdev, flags);
 > 
