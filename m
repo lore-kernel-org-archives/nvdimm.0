@@ -1,41 +1,41 @@
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 878322F37
-	for <nvdimm@lists.linux.dev>; Mon,  7 Nov 2022 20:23:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1CBB115AD
+	for <nvdimm@lists.linux.dev>; Mon,  7 Nov 2022 20:36:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1667852622; x=1699388622;
+  t=1667853414; x=1699389414;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=ZNQpSdbft8os7UBc1T7ie740D4/M6gAht1R7k+2zG14=;
-  b=HhHhPpG/2ISEY0TfWiiXKyR1jzo9wWlVYVeBZv7sPF4AJkNCVB1GRVkj
-   sc4ltoEqDi9RJSk39m4K4vDBcPSHzcLzbWXeVD52FPeJCsabjMcL6O7n/
-   eYSWLakBJF4IxS5wvgfR/w2mvCQf7ebVywhzfXxtvzhlWULO12EgDTjUt
-   5X877hfcAPM5sACj1briepP7GG6MmIWr87wTOJK3dnJ984zjfB7QL+5pp
-   +/MkajZ6sV6Ni6WZf/HSR12ejUMy7tjA1Om8y0K7N87iXaubjNh2ZlRyF
-   fBqYNeVDvbgXWpfXIw50qD0O1isaCiF13YSHJdmlVv3aERLheoxN+7gHZ
-   g==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10524"; a="308140586"
+  bh=EvBJMt5izJ7lXkcPxO7wLj7Ll/WOJCkwBpH8+pZJIsQ=;
+  b=TP4S5H1P8rpWQRlZZSbzJwvz46IiHS6uR7f2Dla8hl6QwG5o15Q4zIwW
+   GI/2hWih4dNjr2tPLLaXEIWpETk8smnUktr4AdatYICdEaEBZxYI0I0hD
+   b4ZzKjyPIQRKYvLLg7L9iUejyjTfqXbF8ThFmoB6gpOw10WjIWPz7YLcI
+   VMY8xgIjEVHLSCeP1IVF/0vxx7p2B/H3oRRdp5Fg56FvURhaDT9Pi1dWb
+   ian+gicUiHxkZ8/o5yguau9ZpLk9UOgrX/4LutIDGJ9/q6zVl03ihJhjT
+   /QlkSS6txrD95+2oEUJr45DwX7x+RK2uHkAVTx8c1JgW+T1qHS8zK1dIa
+   w==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10524"; a="293887149"
 X-IronPort-AV: E=Sophos;i="5.96,145,1665471600"; 
-   d="scan'208";a="308140586"
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Nov 2022 12:23:42 -0800
-X-IronPort-AV: E=McAfee;i="6500,9779,10524"; a="725290475"
+   d="scan'208";a="293887149"
+Received: from fmsmga007.fm.intel.com ([10.253.24.52])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Nov 2022 12:36:52 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10524"; a="638517760"
 X-IronPort-AV: E=Sophos;i="5.96,145,1665471600"; 
-   d="scan'208";a="725290475"
+   d="scan'208";a="638517760"
 Received: from aschofie-mobl2.amr.corp.intel.com (HELO aschofie-mobl2) ([10.209.100.77])
-  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Nov 2022 12:23:41 -0800
-Date: Mon, 7 Nov 2022 12:23:39 -0800
+  by fmsmga007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Nov 2022 12:36:51 -0800
+Date: Mon, 7 Nov 2022 12:36:49 -0800
 From: Alison Schofield <alison.schofield@intel.com>
 To: Dan Williams <dan.j.williams@intel.com>
 Cc: vishal.l.verma@intel.com, linux-cxl@vger.kernel.org,
 	nvdimm@lists.linux.dev
-Subject: Re: [ndctl PATCH 06/15] cxl/list: Skip emitting pmem_size when it is
- zero
-Message-ID: <Y2lpS3COS9YdJnon@aschofie-mobl2>
+Subject: Re: [ndctl PATCH 13/15] cxl/region: Default to memdev mode for
+ create with no arguments
+Message-ID: <Y2lsYawI3eQayact@aschofie-mobl2>
 References: <166777840496.1238089.5601286140872803173.stgit@dwillia2-xfh.jf.intel.com>
- <166777844020.1238089.5777920571190091563.stgit@dwillia2-xfh.jf.intel.com>
+ <166777848122.1238089.2150948506074701593.stgit@dwillia2-xfh.jf.intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -44,68 +44,71 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <166777844020.1238089.5777920571190091563.stgit@dwillia2-xfh.jf.intel.com>
+In-Reply-To: <166777848122.1238089.2150948506074701593.stgit@dwillia2-xfh.jf.intel.com>
 
-On Sun, Nov 06, 2022 at 03:47:20PM -0800, Dan Williams wrote:
-> The typical case is that CXL devices are pure ram devices. Only emit
-> capacity sizes when they are non-zero to avoid confusion around whether
-> pmem is available via partitioning or not.
+On Sun, Nov 06, 2022 at 03:48:01PM -0800, Dan Williams wrote:
+> Allow for:
 > 
-> Do the same for ram_size on the odd case that someone builds a pure pmem
-> device.
+>    cxl create-region -d decoderX.Y
+> 
+> ...to assume (-m -w $(count of memdevs beneath decoderX.Y))
 
-Maybe a few more words around what confusion this seeks to avoid.
-The confusion being that a user may assign more meaning to the zero
-size value than it actually deserves. A zero value for either 
-pmem or ram, doesn't indicate the devices capability for either mode.
-Use the -I option to cxl list to include paritition info in the
-memdev listing. That will explicitly show the ram and pmem capabilities
-of the device.
+I'm not understanding what the change is here. Poked around a bit
+and still didn't get it. Help!
 
+Leaving out the -m leads to this:
+$ cxl create-region -d decoder3.3 mem0 mem1
+cxl region: parse_create_options: must specify option for target object types (-m)
+cxl region: cmd_create_region: created 0 regions
+
+Leaving out the the -m and the memdevs fails because the memdev order is
+not correct. 
+$ cxl create-region -d decoder3.3
+cxl region: create_region: region5: failed to set target0 to mem1
+cxl region: cmd_create_region: created 0 regions
+
+This still works, where I give the -m and the correct order of memdevs.
+cxl create-region -m -d decoder3.3 mem0 mem1
 
 > 
 > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 > ---
->  cxl/json.c |   20 +++++++++++++-------
->  1 file changed, 13 insertions(+), 7 deletions(-)
+>  cxl/region.c |   16 ++++++++--------
+>  1 file changed, 8 insertions(+), 8 deletions(-)
 > 
-> diff --git a/cxl/json.c b/cxl/json.c
-> index 63c17519aba1..1b1669ab021d 100644
-> --- a/cxl/json.c
-> +++ b/cxl/json.c
-> @@ -305,7 +305,7 @@ struct json_object *util_cxl_memdev_to_json(struct cxl_memdev *memdev,
->  {
->  	const char *devname = cxl_memdev_get_devname(memdev);
->  	struct json_object *jdev, *jobj;
-> -	unsigned long long serial;
-> +	unsigned long long serial, size;
->  	int numa_node;
+> diff --git a/cxl/region.c b/cxl/region.c
+> index aa0735194fa1..c0cf4ab350da 100644
+> --- a/cxl/region.c
+> +++ b/cxl/region.c
+> @@ -227,10 +227,13 @@ static int parse_create_options(struct cxl_ctx *ctx, int count,
+>  	}
 >  
->  	jdev = json_object_new_object();
-> @@ -316,13 +316,19 @@ struct json_object *util_cxl_memdev_to_json(struct cxl_memdev *memdev,
->  	if (jobj)
->  		json_object_object_add(jdev, "memdev", jobj);
+>  	/*
+> -	 * For all practical purposes, -m is the default target type, but
+> -	 * hold off on actively making that decision until a second target
+> -	 * option is available.
+> +	 * For all practical purposes, -m is the default target type, but hold
+> +	 * off on actively making that decision until a second target option is
+> +	 * available. Unless there are no arguments then just assume memdevs.
+>  	 */
+> +	if (!count)
+> +		param.memdevs = true;
+> +
+>  	if (!param.memdevs) {
+>  		log_err(&rl,
+>  			"must specify option for target object types (-m)\n");
+> @@ -272,11 +275,8 @@ static int parse_create_options(struct cxl_ctx *ctx, int count,
+>  		p->ways = count;
+>  		if (!validate_ways(p, count))
+>  			return -EINVAL;
+> -	} else {
+> -		log_err(&rl,
+> -			"couldn't determine interleave ways from options or arguments\n");
+> -		return -EINVAL;
+> -	}
+> +	} else
+> +		p->ways = p->num_memdevs;
 >  
-> -	jobj = util_json_object_size(cxl_memdev_get_pmem_size(memdev), flags);
-> -	if (jobj)
-> -		json_object_object_add(jdev, "pmem_size", jobj);
-> +	size = cxl_memdev_get_pmem_size(memdev);
-> +	if (size) {
-> +		jobj = util_json_object_size(size, flags);
-> +		if (jobj)
-> +			json_object_object_add(jdev, "pmem_size", jobj);
-> +	}
->  
-> -	jobj = util_json_object_size(cxl_memdev_get_ram_size(memdev), flags);
-> -	if (jobj)
-> -		json_object_object_add(jdev, "ram_size", jobj);
-> +	size = cxl_memdev_get_ram_size(memdev);
-> +	if (size) {
-> +		jobj = util_json_object_size(size, flags);
-> +		if (jobj)
-> +			json_object_object_add(jdev, "ram_size", jobj);
-> +	}
->  
->  	if (flags & UTIL_JSON_HEALTH) {
->  		jobj = util_cxl_memdev_health_to_json(memdev, flags);
+>  	if (param.granularity < INT_MAX) {
+>  		if (param.granularity <= 0) {
 > 
