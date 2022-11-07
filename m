@@ -1,41 +1,40 @@
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D489D15C91
-	for <nvdimm@lists.linux.dev>; Mon,  7 Nov 2022 22:38:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 922EC15C91
+	for <nvdimm@lists.linux.dev>; Mon,  7 Nov 2022 22:43:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1667860686; x=1699396686;
+  t=1667861008; x=1699397008;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=gk+m1oLnLqL/Bnd3bc3ai8PZSaLjI2UHczSfXwpuh48=;
-  b=eBST97RULA/3i2U4wVvIDU1p2wqdmLEv0kyR6pbSHN6NhDw4seeOMg2p
-   1twnDRDuFPZ6HRCBFZY6Q9pmqq46LPE9FT7dymH71hQKLE80Z+xDZ4RjN
-   I84faTA7x61jDPKLx0syvZp9WcjiwKzumZLsqRc/GzE5ZQKuHwpqj/Vs6
-   ScGwccOk/74GcXhz0G3y5tP6pR/yBvxF5kjrma0AtZRlji0zozWMhvwqG
-   TyxdOnkkwvxiU4hLpT49MraftYfYpD3FCaWsbAOAZmDP6XnJ/kgfjyTKm
-   iFJ/JEhPiWfOSI8xgQKqkQHAl2f29r8oHOj63xpW1wPT0XQKCXi/TEfNv
-   Q==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10524"; a="311694576"
+  bh=WBr/ODLmak37V+5k5Rj4YdeK0bKNwMyeBo7OieecAJM=;
+  b=A0TS+LuHqQsbHKi0AEZjhyQR1n1cDWJftbV9JPLptqhEKmRldXL728NG
+   USNPoDisrf24+1AO5soqNGWDieqTd7RVph9R39XwMOpg9EZ3UrvYoeT0d
+   23RmXw/4RL0EFRcityOivc0wS/NqlR8YHakwhzzUcR1qqDrjtZ7PJbhaM
+   lnvnP7ayuNCf4h6+SUEerpBo/RB9N64cZTV+8yjQkd9rqw3RjPkl2hkR0
+   568Rl3ykt02nw/Ge/pH0WsNzlNjjqi3Usj5axCfECEbgXGETObPCHfH0O
+   zG3Qf+YBYTv5NWMSw5eD+aDJEnka7WeTGTY8s7Bc0PxRFdLQrA/6yDT0g
+   A==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10524"; a="290263573"
 X-IronPort-AV: E=Sophos;i="5.96,145,1665471600"; 
-   d="scan'208";a="311694576"
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Nov 2022 14:38:06 -0800
-X-IronPort-AV: E=McAfee;i="6500,9779,10524"; a="778677751"
+   d="scan'208";a="290263573"
+Received: from orsmga003.jf.intel.com ([10.7.209.27])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Nov 2022 14:43:27 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10524"; a="587147375"
 X-IronPort-AV: E=Sophos;i="5.96,145,1665471600"; 
-   d="scan'208";a="778677751"
+   d="scan'208";a="587147375"
 Received: from aschofie-mobl2.amr.corp.intel.com (HELO aschofie-mobl2) ([10.209.100.77])
-  by fmsmga001-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Nov 2022 14:38:05 -0800
-Date: Mon, 7 Nov 2022 14:38:03 -0800
+  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Nov 2022 14:43:26 -0800
+Date: Mon, 7 Nov 2022 14:43:25 -0800
 From: Alison Schofield <alison.schofield@intel.com>
 To: Dan Williams <dan.j.williams@intel.com>
 Cc: vishal.l.verma@intel.com, linux-cxl@vger.kernel.org,
 	nvdimm@lists.linux.dev
-Subject: Re: [ndctl PATCH 14/15] cxl/test: Extend cxl-topology.sh for a
- single root-port host-bridge
-Message-ID: <Y2mIywG945vDPf1b@aschofie-mobl2>
+Subject: Re: [ndctl PATCH 09/15] cxl/region: Make ways an integer argument
+Message-ID: <Y2mKDV5MG3OZqwau@aschofie-mobl2>
 References: <166777840496.1238089.5601286140872803173.stgit@dwillia2-xfh.jf.intel.com>
- <166777848711.1238089.14027431355477472365.stgit@dwillia2-xfh.jf.intel.com>
+ <166777845733.1238089.4849744927692588680.stgit@dwillia2-xfh.jf.intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -44,113 +43,141 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <166777848711.1238089.14027431355477472365.stgit@dwillia2-xfh.jf.intel.com>
+In-Reply-To: <166777845733.1238089.4849744927692588680.stgit@dwillia2-xfh.jf.intel.com>
 
-On Sun, Nov 06, 2022 at 03:48:07PM -0800, Dan Williams wrote:
-> A recent extension of cxl_test adds 2 memory devices attached through a
-> switch to a single ported host-bridge to reproduce a bug report.
+On Sun, Nov 06, 2022 at 03:47:37PM -0800, Dan Williams wrote:
+> Since --ways does not take a unit value like --size, just make it an
+> integer argument directly and skip the hand coded conversion.
+
+Just curious why not unsigned int for this and granularity?
+
+
 > 
-> Reported-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-> Link: http://lore.kernel.org/r/20221010172057.00001559@huawei.com
 > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-
-Tested-by: Alison Schofield <alison.schofield@intel.com>
-
 > ---
->  test/cxl-topology.sh |   48 +++++++++++++++++++++++++++++-------------------
->  1 file changed, 29 insertions(+), 19 deletions(-)
+>  cxl/region.c |   41 +++++++++++++++++++----------------------
+>  1 file changed, 19 insertions(+), 22 deletions(-)
 > 
-> diff --git a/test/cxl-topology.sh b/test/cxl-topology.sh
-> index 1f15d29f0600..f1e0a2b01e98 100644
-> --- a/test/cxl-topology.sh
-> +++ b/test/cxl-topology.sh
-> @@ -29,27 +29,30 @@ count=$(jq "length" <<< $json)
->  root=$(jq -r ".[] | .bus" <<< $json)
+> diff --git a/cxl/region.c b/cxl/region.c
+> index 334fcc291de7..494da5139c05 100644
+> --- a/cxl/region.c
+> +++ b/cxl/region.c
+> @@ -21,21 +21,23 @@
+>  static struct region_params {
+>  	const char *bus;
+>  	const char *size;
+> -	const char *ways;
+>  	const char *granularity;
+>  	const char *type;
+>  	const char *root_decoder;
+>  	const char *region;
+> +	int ways;
+>  	bool memdevs;
+>  	bool force;
+>  	bool human;
+>  	bool debug;
+> -} param;
+> +} param = {
+> +	.ways = INT_MAX,
+> +};
 >  
+>  struct parsed_params {
+>  	u64 size;
+>  	u64 ep_min_size;
+> -	unsigned int ways;
+> +	int ways;
+>  	unsigned int granularity;
+>  	const char **targets;
+>  	int num_targets;
+> @@ -63,9 +65,8 @@ OPT_BOOLEAN(0, "debug", &param.debug, "turn on debug")
+>  OPT_STRING('s', "size", &param.size, \
+>  	   "size in bytes or with a K/M/G etc. suffix", \
+>  	   "total size desired for the resulting region."), \
+> -OPT_STRING('w', "ways", &param.ways, \
+> -	   "number of interleave ways", \
+> -	   "number of memdevs participating in the regions interleave set"), \
+> +OPT_INTEGER('w', "ways", &param.ways, \
+> +	    "number of memdevs participating in the regions interleave set"), \
+>  OPT_STRING('g', "granularity", \
+>  	   &param.granularity, "interleave granularity", \
+>  	   "granularity of the interleave set"), \
+> @@ -126,15 +127,11 @@ static int parse_create_options(int argc, const char **argv,
+>  		}
+>  	}
 >  
-> -# validate 2 host bridges under a root port
-> +# validate 2 or 3 host bridges under a root port
->  port_sort="sort_by(.port | .[4:] | tonumber)"
->  json=$($CXL list -b cxl_test -BP)
->  count=$(jq ".[] | .[\"ports:$root\"] | length" <<< $json)
-> -((count == 2)) || err "$LINENO"
-> +((count == 2)) || ((count == 3)) || err "$LINENO"
-> +bridges=$count
->  
->  bridge[0]=$(jq -r ".[] | .[\"ports:$root\"] | $port_sort | .[0].port" <<< $json)
->  bridge[1]=$(jq -r ".[] | .[\"ports:$root\"] | $port_sort | .[1].port" <<< $json)
-> +((bridges > 2)) && bridge[2]=$(jq -r ".[] | .[\"ports:$root\"] | $port_sort | .[2].port" <<< $json)
->  
-> +# validate root ports per host bridge
-> +check_host_bridge()
-> +{
-> +	json=$($CXL list -b cxl_test -T -p $1)
-> +	count=$(jq ".[] | .dports | length" <<< $json)
-> +	((count == $2)) || err "$3"
-> +}
->  
-> -# validate 2 root ports per host bridge
-> -json=$($CXL list -b cxl_test -T -p ${bridge[0]})
-> -count=$(jq ".[] | .dports | length" <<< $json)
-> -((count == 2)) || err "$LINENO"
+> -	if (param.ways) {
+> -		unsigned long ways = strtoul(param.ways, NULL, 0);
 > -
-> -json=$($CXL list -b cxl_test -T -p ${bridge[1]})
-> -count=$(jq ".[] | .dports | length" <<< $json)
-> -((count == 2)) || err "$LINENO"
-> +check_host_bridge ${bridge[0]} 2 $LINENO
-> +check_host_bridge ${bridge[1]} 2 $LINENO
-> +((bridges > 2)) && check_host_bridge ${bridge[2]} 1 $LINENO
->  
-> -
-> -# validate 2 switches per-root port
-> +# validate 2 switches per root-port
->  json=$($CXL list -b cxl_test -P -p ${bridge[0]})
->  count=$(jq ".[] | .[\"ports:${bridge[0]}\"] | length" <<< $json)
->  ((count == 2)) || err "$LINENO"
-> @@ -65,9 +68,9 @@ switch[2]=$(jq -r ".[] | .[\"ports:${bridge[1]}\"] | $port_sort | .[0].host" <<<
->  switch[3]=$(jq -r ".[] | .[\"ports:${bridge[1]}\"] | $port_sort | .[1].host" <<< $json)
->  
->  
-> -# validate the expected properties of the 4 root decoders
-> -# use the size of the first decoder to determine the cxl_test version /
-> -# properties
-> +# validate the expected properties of the 4 or 5 root decoders
-> +# use the size of the first decoder to determine the
-> +# cxl_test version / properties
->  json=$($CXL list -b cxl_test -D -d root)
->  port_id=${root:4}
->  port_id_len=${#port_id}
-> @@ -103,12 +106,19 @@ count=$(jq "[ $decoder_sort | .[3] |
->  	select(.nr_targets == 2) ] | length" <<< $json)
->  ((count == 1)) || err "$LINENO"
->  
-> +if [ $bridges -eq 3 ]; then
-> +	count=$(jq "[ $decoder_sort | .[4] |
-> +		select(.pmem_capable == true) |
-> +		select(.size == $decoder_base_size) |
-> +		select(.nr_targets == 1) ] | length" <<< $json)
-> +	((count == 1)) || err "$LINENO"
-> +fi
->  
-> -# check that all 8 cxl_test memdevs are enabled by default and have a
-> +# check that all 8 or 10 cxl_test memdevs are enabled by default and have a
->  # pmem size of 256M, or 1G
->  json=$($CXL list -b cxl_test -M)
->  count=$(jq "map(select(.pmem_size == $pmem_size)) | length" <<< $json)
-> -((count == 8)) || err "$LINENO"
-> +((bridges == 2 && count == 8 || bridges == 3 && count == 10)) || err "$LINENO"
+> -		if (ways == ULONG_MAX || (int)ways <= 0) {
+> -			log_err(&rl, "Invalid interleave ways: %s\n",
+> -				param.ways);
+> -			return -EINVAL;
+> -		}
+> -		p->ways = ways;
+> +	if (param.ways <= 0) {
+> +		log_err(&rl, "Invalid interleave ways: %d\n", param.ways);
+> +		return -EINVAL;
+> +	} else if (param.ways < INT_MAX) {
+> +		p->ways = param.ways;
+>  	} else if (argc) {
+>  		p->ways = argc;
+>  	} else {
+> @@ -155,13 +152,13 @@ static int parse_create_options(int argc, const char **argv,
+>  	}
 >  
 >  
->  # check that switch ports disappear after all of their memdevs have been
-> @@ -151,8 +161,8 @@ do
->  done
+> -	if (argc > (int)p->ways) {
+> +	if (argc > p->ways) {
+>  		for (i = p->ways; i < argc; i++)
+>  			log_err(&rl, "extra argument: %s\n", p->targets[i]);
+>  		return -EINVAL;
+>  	}
 >  
+> -	if (argc < (int)p->ways) {
+> +	if (argc < p->ways) {
+>  		log_err(&rl,
+>  			"too few target arguments (%d) for interleave ways (%u)\n",
+>  			argc, p->ways);
+> @@ -253,7 +250,7 @@ static bool validate_memdev(struct cxl_memdev *memdev, const char *target,
 >  
-> -# validate host bridge tear down
-> -for b in ${bridge[@]}
-> +# validate host bridge tear down for the first 2 bridges
-> +for b in ${bridge[0]} ${bridge[1]}
->  do
->  	$CXL disable-port $b -f
->  	json=$($CXL list -M -i -p $b)
+>  static int validate_config_memdevs(struct cxl_ctx *ctx, struct parsed_params *p)
+>  {
+> -	unsigned int i, matched = 0;
+> +	int i, matched = 0;
+>  
+>  	for (i = 0; i < p->ways; i++) {
+>  		struct cxl_memdev *memdev;
+> @@ -393,7 +390,8 @@ static int cxl_region_determine_granularity(struct cxl_region *region,
+>  					    struct parsed_params *p)
+>  {
+>  	const char *devname = cxl_region_get_devname(region);
+> -	unsigned int granularity, ways;
+> +	unsigned int granularity;
+> +	int ways;
+>  
+>  	/* Default granularity will be the root decoder's granularity */
+>  	granularity = cxl_decoder_get_interleave_granularity(p->root_decoder);
+> @@ -408,7 +406,7 @@ static int cxl_region_determine_granularity(struct cxl_region *region,
+>  		return granularity;
+>  
+>  	ways = cxl_decoder_get_interleave_ways(p->root_decoder);
+> -	if (ways == 0 || ways == UINT_MAX) {
+> +	if (ways == 0 || ways == -1) {
+>  		log_err(&rl, "%s: unable to determine root decoder ways\n",
+>  			devname);
+>  		return -ENXIO;
+> @@ -436,12 +434,11 @@ static int create_region(struct cxl_ctx *ctx, int *count,
+>  {
+>  	unsigned long flags = UTIL_JSON_TARGETS;
+>  	struct json_object *jregion;
+> -	unsigned int i, granularity;
+>  	struct cxl_region *region;
+> +	int i, rc, granularity;
+>  	u64 size, max_extent;
+>  	const char *devname;
+>  	uuid_t uuid;
+> -	int rc;
+>  
+>  	rc = create_region_validate_config(ctx, p);
+>  	if (rc)
 > 
