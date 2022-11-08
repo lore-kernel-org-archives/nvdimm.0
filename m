@@ -1,40 +1,40 @@
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49C608BF5
-	for <nvdimm@lists.linux.dev>; Tue,  8 Nov 2022 17:25:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 103E68BF5
+	for <nvdimm@lists.linux.dev>; Tue,  8 Nov 2022 17:25:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1667928351; x=1699464351;
+  t=1667928358; x=1699464358;
   h=subject:from:to:cc:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=ldKkSTrHg9AZi6xAg2GgEjlZKHkwfBvvW8OnrjIbADc=;
-  b=eeRIXucipa8okxBEXqgjklyHYxH+RIRlRX2ximNJjqsEH5x5Fv1L70uc
-   KjOlnfaMgS1l9QYV7MppOY5XTkRKRuYtbJ94wMv24eAmqEzJ5McQjkNLI
-   t/b1vWqUlEGcKGGlcHyBGV5ihvmKKzkfE2xvgmSxujk1dOlVyKnnbtWZP
-   WR9gY0pEgWEPn5ToEaDwS5iV9UsmdUCHpRlSqHy480To0ZsZ02ed1tBca
-   8vH+r2BVG9ArjAvk+rtM6uMIXxAz0wCkRNJjKoEJbFssp4A8b6yZlFZyd
-   +2IswgJwO3j1ypbv8mXFuxptk52hW+/vQ41RP7FFm9/yRHYLwHR8g+hSY
-   w==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10525"; a="298274629"
+  bh=Ajf6HubTFMIfnDgq3pFQk0wnESJOLbyI5U+4nv7STPI=;
+  b=bNvIzlnyxjL+9DGaWu/s6zOzqyiyjw6nbMp7LddZof8k3X1KFMvTXRxT
+   E+Wh4YoBPFAer/RQXR+3TwgPNGtrW1VB7m2EV0p1Kx6bHyd8Lnc9ludqg
+   jcYrw8K6nNHy4t6R4BiX4nS0rHy9SbrNjNxbQlekkqEhK/VBSfydlOlM/
+   3VL0DpVH19dhRZe8SX/HfSVqHlzDrtm7KZvOZiJUSWS8rTQdE8UxoFFPa
+   eDm6hshu6gMnEHR7kjBMGQbjpiUdF1Zmiu9vzUN8UHrvXq9caesakrP9u
+   7TxTZz49GXV16MAp2VTkQW/WCMqNzpSDzj7+EBGkIvI/0MVvM0bmtxJxf
+   Q==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10525"; a="311913663"
 X-IronPort-AV: E=Sophos;i="5.96,148,1665471600"; 
-   d="scan'208";a="298274629"
+   d="scan'208";a="311913663"
 Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Nov 2022 09:25:50 -0800
-X-IronPort-AV: E=McAfee;i="6500,9779,10525"; a="742038831"
+  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Nov 2022 09:25:56 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10525"; a="742038870"
 X-IronPort-AV: E=Sophos;i="5.96,148,1665471600"; 
-   d="scan'208";a="742038831"
+   d="scan'208";a="742038870"
 Received: from djiang5-desk3.ch.intel.com ([143.182.136.137])
-  by fmsmga002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Nov 2022 09:25:50 -0800
-Subject: [PATCH v3 05/18] cxl/pmem: Add Disable Passphrase security command
+  by fmsmga002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Nov 2022 09:25:56 -0800
+Subject: [PATCH v3 06/18] tools/testing/cxl: Add "Disable" security opcode
  support
 From: Dave Jiang <dave.jiang@intel.com>
 To: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
 Cc: dan.j.williams@intel.com, ira.weiny@intel.com, vishal.l.verma@intel.com,
  alison.schofield@intel.com, Jonathan.Cameron@huawei.com, dave@stgolabs.net
-Date: Tue, 08 Nov 2022 10:25:50 -0700
+Date: Tue, 08 Nov 2022 10:25:55 -0700
 Message-ID: 
- <166792835007.3767969.3343660676859386968.stgit@djiang5-desk3.ch.intel.com>
+ <166792835571.3767969.15066377405482894047.stgit@djiang5-desk3.ch.intel.com>
 In-Reply-To: 
  <166792815961.3767969.2621677491424623673.stgit@djiang5-desk3.ch.intel.com>
 References: 
@@ -49,118 +49,108 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 
-Create callback function to support the nvdimm_security_ops ->disable()
-callback. Translate the operation to send "Disable Passphrase" security
-command for CXL memory device. The operation supports disabling a
-passphrase for the CXL persistent memory device. In the original
-implementation of nvdimm_security_ops, this operation only supports
-disabling of the user passphrase. This is due to the NFIT version of
-disable passphrase only supported disabling of user passphrase. The CXL
-spec allows disabling of the master passphrase as well which
-nvidmm_security_ops does not support yet. In this commit, the callback
-function will only support user passphrase.
+Add support to emulate a CXL mem device support the "Disable Passphrase"
+operation. The operation supports disabling of either a user or a master
+passphrase. The emulation will provide support for both user and master
+passphrase.
 
-See CXL rev3.0 spec section 8.2.9.8.6.3 for reference.
-
-Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
 Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- drivers/cxl/core/mbox.c      |    1 +
- drivers/cxl/cxlmem.h         |    8 ++++++++
- drivers/cxl/security.c       |   26 ++++++++++++++++++++++++++
- include/uapi/linux/cxl_mem.h |    1 +
- 4 files changed, 36 insertions(+)
+ tools/testing/cxl/test/mem.c |   74 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 74 insertions(+)
 
-diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
-index cc08383499e6..2563325db0f6 100644
---- a/drivers/cxl/core/mbox.c
-+++ b/drivers/cxl/core/mbox.c
-@@ -67,6 +67,7 @@ static struct cxl_mem_command cxl_mem_commands[CXL_MEM_COMMAND_ID_MAX] = {
- 	CXL_CMD(GET_SCAN_MEDIA, 0, CXL_VARIABLE_PAYLOAD, 0),
- 	CXL_CMD(GET_SECURITY_STATE, 0, 0x4, 0),
- 	CXL_CMD(SET_PASSPHRASE, 0x60, 0, 0),
-+	CXL_CMD(DISABLE_PASSPHRASE, 0x40, 0, 0),
- };
- 
- /*
-diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
-index 725b08148524..9ad92f975b78 100644
---- a/drivers/cxl/cxlmem.h
-+++ b/drivers/cxl/cxlmem.h
-@@ -275,6 +275,7 @@ enum cxl_opcode {
- 	CXL_MBOX_OP_GET_SCAN_MEDIA	= 0x4305,
- 	CXL_MBOX_OP_GET_SECURITY_STATE	= 0x4500,
- 	CXL_MBOX_OP_SET_PASSPHRASE	= 0x4501,
-+	CXL_MBOX_OP_DISABLE_PASSPHRASE	= 0x4502,
- 	CXL_MBOX_OP_MAX			= 0x10000
- };
- 
-@@ -390,6 +391,13 @@ struct cxl_set_pass {
- 	u8 new_pass[NVDIMM_PASSPHRASE_LEN];
- } __packed;
- 
-+/* disable passphrase input payload */
-+struct cxl_disable_pass {
-+	u8 type;
-+	u8 reserved[31];
-+	u8 pass[NVDIMM_PASSPHRASE_LEN];
-+} __packed;
-+
- enum {
- 	CXL_PMEM_SEC_PASS_MASTER = 0,
- 	CXL_PMEM_SEC_PASS_USER,
-diff --git a/drivers/cxl/security.c b/drivers/cxl/security.c
-index 5365646230c3..85b4c1f86881 100644
---- a/drivers/cxl/security.c
-+++ b/drivers/cxl/security.c
-@@ -70,9 +70,35 @@ static int cxl_pmem_security_change_key(struct nvdimm *nvdimm,
- 	return rc;
+diff --git a/tools/testing/cxl/test/mem.c b/tools/testing/cxl/test/mem.c
+index 0fac0ca81290..d8bb30d82a8f 100644
+--- a/tools/testing/cxl/test/mem.c
++++ b/tools/testing/cxl/test/mem.c
+@@ -232,6 +232,77 @@ static int mock_set_passphrase(struct cxl_dev_state *cxlds, struct cxl_mbox_cmd
+ 	return -EINVAL;
  }
  
-+static int cxl_pmem_security_disable(struct nvdimm *nvdimm,
-+				     const struct nvdimm_key_data *key_data)
++static int mock_disable_passphrase(struct cxl_dev_state *cxlds, struct cxl_mbox_cmd *cmd)
 +{
-+	struct cxl_nvdimm *cxl_nvd = nvdimm_provider_data(nvdimm);
-+	struct cxl_memdev *cxlmd = cxl_nvd->cxlmd;
-+	struct cxl_dev_state *cxlds = cxlmd->cxlds;
-+	struct cxl_disable_pass dis_pass;
-+	int rc;
++	struct cxl_mock_mem_pdata *mdata = dev_get_platdata(cxlds->dev);
++	struct cxl_disable_pass *dis_pass;
 +
-+	/*
-+	 * While the CXL spec defines the ability to erase the master passphrase,
-+	 * the original nvdimm security ops does not provide that capability.
-+	 * The sysfs attribute exposed to user space assumes disable is for user
-+	 * passphrase only. In order to preserve the user interface, this callback
-+	 * will only support disable of user passphrase. The disable master passphrase
-+	 * ability will need to be added as a new callback.
-+	 */
-+	dis_pass.type = CXL_PMEM_SEC_PASS_USER;
-+	memcpy(dis_pass.pass, key_data->data, NVDIMM_PASSPHRASE_LEN);
++	if (cmd->size_in != sizeof(*dis_pass))
++		return -EINVAL;
 +
-+	rc = cxl_mbox_send_cmd(cxlds, CXL_MBOX_OP_DISABLE_PASSPHRASE,
-+			       &dis_pass, sizeof(dis_pass), NULL, 0);
-+	return rc;
++	if (cmd->size_out != 0)
++		return -EINVAL;
++
++	if (mdata->security_state & CXL_PMEM_SEC_STATE_FROZEN) {
++		cmd->return_code = CXL_MBOX_CMD_RC_SECURITY;
++		return -ENXIO;
++	}
++
++	dis_pass = cmd->payload_in;
++	switch (dis_pass->type) {
++	case CXL_PMEM_SEC_PASS_MASTER:
++		if (mdata->security_state & CXL_PMEM_SEC_STATE_MASTER_PLIMIT) {
++			cmd->return_code = CXL_MBOX_CMD_RC_SECURITY;
++			return -ENXIO;
++		}
++
++		if (!(mdata->security_state & CXL_PMEM_SEC_STATE_MASTER_PASS_SET)) {
++			cmd->return_code = CXL_MBOX_CMD_RC_SECURITY;
++			return -ENXIO;
++		}
++
++		if (memcmp(dis_pass->pass, mdata->master_pass, NVDIMM_PASSPHRASE_LEN)) {
++			master_plimit_check(mdata);
++			cmd->return_code = CXL_MBOX_CMD_RC_PASSPHRASE;
++			return -ENXIO;
++		}
++
++		mdata->master_limit = 0;
++		memset(mdata->master_pass, 0, NVDIMM_PASSPHRASE_LEN);
++		mdata->security_state &= ~CXL_PMEM_SEC_STATE_MASTER_PASS_SET;
++		return 0;
++
++	case CXL_PMEM_SEC_PASS_USER:
++		if (mdata->security_state & CXL_PMEM_SEC_STATE_USER_PLIMIT) {
++			cmd->return_code = CXL_MBOX_CMD_RC_SECURITY;
++			return -ENXIO;
++		}
++
++		if (!(mdata->security_state & CXL_PMEM_SEC_STATE_USER_PASS_SET)) {
++			cmd->return_code = CXL_MBOX_CMD_RC_SECURITY;
++			return -ENXIO;
++		}
++
++		if (memcmp(dis_pass->pass, mdata->user_pass, NVDIMM_PASSPHRASE_LEN)) {
++			user_plimit_check(mdata);
++			cmd->return_code = CXL_MBOX_CMD_RC_PASSPHRASE;
++			return -ENXIO;
++		}
++
++		mdata->user_limit = 0;
++		memset(mdata->user_pass, 0, NVDIMM_PASSPHRASE_LEN);
++		mdata->security_state &= ~(CXL_PMEM_SEC_STATE_USER_PASS_SET |
++					   CXL_PMEM_SEC_STATE_LOCKED);
++		return 0;
++
++	default:
++		cmd->return_code = CXL_MBOX_CMD_RC_INPUT;
++		return -EINVAL;
++	}
++
++	return 0;
 +}
 +
- static const struct nvdimm_security_ops __cxl_security_ops = {
- 	.get_flags = cxl_pmem_get_security_flags,
- 	.change_key = cxl_pmem_security_change_key,
-+	.disable = cxl_pmem_security_disable,
- };
- 
- const struct nvdimm_security_ops *cxl_security_ops = &__cxl_security_ops;
-diff --git a/include/uapi/linux/cxl_mem.h b/include/uapi/linux/cxl_mem.h
-index 9da047e9b038..f6d383a80f22 100644
---- a/include/uapi/linux/cxl_mem.h
-+++ b/include/uapi/linux/cxl_mem.h
-@@ -43,6 +43,7 @@
- 	___C(GET_SCAN_MEDIA, "Get Scan Media Results"),                   \
- 	___C(GET_SECURITY_STATE, "Get Security State"),			  \
- 	___C(SET_PASSPHRASE, "Set Passphrase"),				  \
-+	___C(DISABLE_PASSPHRASE, "Disable Passphrase"),			  \
- 	___C(MAX, "invalid / last command")
- 
- #define ___C(a, b) CXL_MEM_COMMAND_ID_##a
+ static int mock_get_lsa(struct cxl_dev_state *cxlds, struct cxl_mbox_cmd *cmd)
+ {
+ 	struct cxl_mbox_get_lsa *get_lsa = cmd->payload_in;
+@@ -331,6 +402,9 @@ static int cxl_mock_mbox_send(struct cxl_dev_state *cxlds, struct cxl_mbox_cmd *
+ 	case CXL_MBOX_OP_SET_PASSPHRASE:
+ 		rc = mock_set_passphrase(cxlds, cmd);
+ 		break;
++	case CXL_MBOX_OP_DISABLE_PASSPHRASE:
++		rc = mock_disable_passphrase(cxlds, cmd);
++		break;
+ 	default:
+ 		break;
+ 	}
 
 
