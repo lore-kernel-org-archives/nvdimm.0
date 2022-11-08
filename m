@@ -1,39 +1,40 @@
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0EDA78BF5
-	for <nvdimm@lists.linux.dev>; Tue,  8 Nov 2022 17:26:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DDA748BF5
+	for <nvdimm@lists.linux.dev>; Tue,  8 Nov 2022 17:26:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1667928404; x=1699464404;
+  t=1667928409; x=1699464409;
   h=subject:from:to:cc:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=rgBfxGOSIuZBdf1HzmO2rYPXOAWXLHIYVXQVQnsF3H4=;
-  b=R3x1Iyye33KLrp7mLEiUpmadTs5aHx0ikkCWHxpLZexBHz5NFYnSHvdk
-   GiCQk1vhEtiDmbnR+6b4mppaJLhuEF5umJ0trJ49SHKLtYy621gE+BRoF
-   ouNmwSZNsjzb27op3slVc5p+xHkDkgKbAo9sXDgrOjVorpF++IeFLPS3w
-   2sTUJF0TvHlkKwuMwtKi9IG6uLpveVh9UP/FaAcnIBNHDU6+Wn1HYURzg
-   kQOaG+U+9tb0/fAJw9pHkJvhSoSzxsHuyLI3wfXmnffY1kMFPR1ZEhkza
-   1g0su7pLGvDSYEKNSatseH3nY/v38PTGC/08ZdQHOKDTRnsqKokA7/90R
-   g==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10525"; a="310756027"
+  bh=VzbUPoB2aEKRXKYmIkZpw14gKni3GztCwc4m7Z9aTKM=;
+  b=bDWDgM+q9Mfey+VHyICsl7mf/LF0TPdkHQ2iCX7HAEk8Ncl56gBEGPsC
+   9zNv5zTrO41TCakPUXfEXEnGzpZvJTC51syus3NVr64NF1uCQnyeYriiO
+   1Rz4iUZsx2YQ+32zxeI0SjuU6QPo+MoEQY+d6Qch15TSwXg0aA4sxvpct
+   riSOQHV28XPDPOxyWkMNo4yywEfHtSPM1v4ferHTNupnAonii1wr/AahY
+   4+xB5RnALDBTQmlSKzlPkyBaA5roli9y5/qmyKTFWGFvyzOUNRXmP7U4Z
+   WSlw5Jtnb7lMyt4x5BiJvcZ4Bb+Ik7eUfcOGuyJTN+Vc6V1ygHIihBbN2
+   Q==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10525"; a="309465431"
 X-IronPort-AV: E=Sophos;i="5.96,148,1665471600"; 
-   d="scan'208";a="310756027"
-Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Nov 2022 09:26:43 -0800
-X-IronPort-AV: E=McAfee;i="6500,9779,10525"; a="669629906"
+   d="scan'208";a="309465431"
+Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Nov 2022 09:26:49 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10525"; a="705378631"
 X-IronPort-AV: E=Sophos;i="5.96,148,1665471600"; 
-   d="scan'208";a="669629906"
+   d="scan'208";a="705378631"
 Received: from djiang5-desk3.ch.intel.com ([143.182.136.137])
-  by orsmga001-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Nov 2022 09:26:42 -0800
-Subject: [PATCH v3 14/18] cxl/pmem: add id attribute to CXL based nvdimm
+  by fmsmga004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Nov 2022 09:26:48 -0800
+Subject: [PATCH v3 15/18] tools/testing/cxl: add mechanism to lock mem device
+ for testing
 From: Dave Jiang <dave.jiang@intel.com>
 To: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
 Cc: dan.j.williams@intel.com, ira.weiny@intel.com, vishal.l.verma@intel.com,
  alison.schofield@intel.com, Jonathan.Cameron@huawei.com, dave@stgolabs.net
-Date: Tue, 08 Nov 2022 10:26:42 -0700
+Date: Tue, 08 Nov 2022 10:26:48 -0700
 Message-ID: 
- <166792840255.3767969.7931186352678182941.stgit@djiang5-desk3.ch.intel.com>
+ <166792840837.3767969.8013121990529095896.stgit@djiang5-desk3.ch.intel.com>
 In-Reply-To: 
  <166792815961.3767969.2621677491424623673.stgit@djiang5-desk3.ch.intel.com>
 References: 
@@ -48,86 +49,72 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 
-Add an id group attribute for CXL based nvdimm object. The addition allows
-ndctl to display the "unique id" for the nvdimm. The serial number for the
-CXL memory device will be used for this id.
-
-[
-  {
-      "dev":"nmem10",
-      "id":"0x4",
-      "security":"disabled"
-  },
-]
-
-The id attribute is needed by the ndctl security key management to setup a
-keyblob with a unique file name tied to the mem device.
+The mock cxl mem devs needs a way to go into "locked" status to simulate
+when the platform is rebooted. Add a sysfs mechanism so the device security
+state is set to "locked" and the frozen state bits are cleared.
 
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- Documentation/ABI/testing/sysfs-bus-nvdimm |    6 ++++++
- drivers/cxl/pmem.c                         |   28 +++++++++++++++++++++++++++-
- 2 files changed, 33 insertions(+), 1 deletion(-)
+ tools/testing/cxl/test/cxl.c |   40 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 40 insertions(+)
 
-diff --git a/Documentation/ABI/testing/sysfs-bus-nvdimm b/Documentation/ABI/testing/sysfs-bus-nvdimm
-index 1c1f5acbf53d..91945211e53b 100644
---- a/Documentation/ABI/testing/sysfs-bus-nvdimm
-+++ b/Documentation/ABI/testing/sysfs-bus-nvdimm
-@@ -41,3 +41,9 @@ KernelVersion:  5.18
- Contact:        Kajol Jain <kjain@linux.ibm.com>
- Description:	(RO) This sysfs file exposes the cpumask which is designated to
- 		to retrieve nvdimm pmu event counter data.
-+
-+What:		/sys/bus/nd/devices/nmemX/id
-+Date:		November 2022
-+KernelVersion:	6.2
-+Contact:	Dave Jiang <dave.jiang@intel.com>
-+Description:	(RO) Show the id (serial) of the device.
-diff --git a/drivers/cxl/pmem.c b/drivers/cxl/pmem.c
-index 24bec4ca3866..9209c7dd72d0 100644
---- a/drivers/cxl/pmem.c
-+++ b/drivers/cxl/pmem.c
-@@ -48,6 +48,31 @@ static void unregister_nvdimm(void *nvdimm)
- 	cxl_nvd->bridge = NULL;
- }
+diff --git a/tools/testing/cxl/test/cxl.c b/tools/testing/cxl/test/cxl.c
+index 6dd286a52839..7384573e8b12 100644
+--- a/tools/testing/cxl/test/cxl.c
++++ b/tools/testing/cxl/test/cxl.c
+@@ -628,6 +628,45 @@ static void mock_companion(struct acpi_device *adev, struct device *dev)
+ #define SZ_512G (SZ_64G * 8)
+ #endif
  
-+static ssize_t id_show(struct device *dev, struct device_attribute *attr, char *buf)
++static ssize_t security_lock_show(struct device *dev,
++				  struct device_attribute *attr, char *buf)
 +{
-+	struct nvdimm *nvdimm = to_nvdimm(dev);
-+	struct cxl_nvdimm *cxl_nvd = nvdimm_provider_data(nvdimm);
-+	struct cxl_dev_state *cxlds = cxl_nvd->cxlmd->cxlds;
++	struct cxl_mock_mem_pdata *mdata = dev_get_platdata(dev);
 +
-+	return sysfs_emit(buf, "%lld\n", cxlds->serial);
++	return sysfs_emit(buf, "%u\n",
++			  !!(mdata->security_state & CXL_PMEM_SEC_STATE_LOCKED));
 +}
-+static DEVICE_ATTR_RO(id);
 +
-+static struct attribute *cxl_dimm_attributes[] = {
-+	&dev_attr_id.attr,
++static ssize_t security_lock_store(struct device *dev, struct device_attribute *attr,
++				   const char *buf, size_t count)
++{
++	struct cxl_mock_mem_pdata *mdata = dev_get_platdata(dev);
++	u32 mask = CXL_PMEM_SEC_STATE_FROZEN | CXL_PMEM_SEC_STATE_USER_PLIMIT |
++		   CXL_PMEM_SEC_STATE_MASTER_PLIMIT;
++	int val;
++
++	if (kstrtoint(buf, 0, &val) < 0)
++		return -EINVAL;
++
++	if (val == 1) {
++		if (!(mdata->security_state & CXL_PMEM_SEC_STATE_USER_PASS_SET))
++			return -ENXIO;
++		mdata->security_state |= CXL_PMEM_SEC_STATE_LOCKED;
++		mdata->security_state &= ~mask;
++	} else {
++		return -EINVAL;
++	}
++	return count;
++}
++
++static DEVICE_ATTR_RW(security_lock);
++
++static struct attribute *cxl_mock_mem_attrs[] = {
++	&dev_attr_security_lock.attr,
 +	NULL
 +};
++ATTRIBUTE_GROUPS(cxl_mock_mem);
 +
-+static const struct attribute_group cxl_dimm_attribute_group = {
-+	.name = "cxl",
-+	.attrs = cxl_dimm_attributes,
-+};
-+
-+static const struct attribute_group *cxl_dimm_attribute_groups[] = {
-+	&cxl_dimm_attribute_group,
-+	NULL
-+};
-+
- static int cxl_nvdimm_probe(struct device *dev)
+ static __init int cxl_test_init(void)
  {
- 	struct cxl_nvdimm *cxl_nvd = to_cxl_nvdimm(dev);
-@@ -77,7 +102,8 @@ static int cxl_nvdimm_probe(struct device *dev)
- 	set_bit(ND_CMD_GET_CONFIG_SIZE, &cmd_mask);
- 	set_bit(ND_CMD_GET_CONFIG_DATA, &cmd_mask);
- 	set_bit(ND_CMD_SET_CONFIG_DATA, &cmd_mask);
--	nvdimm = __nvdimm_create(cxl_nvb->nvdimm_bus, cxl_nvd, NULL, flags,
-+	nvdimm = __nvdimm_create(cxl_nvb->nvdimm_bus, cxl_nvd,
-+				 cxl_dimm_attribute_groups, flags,
- 				 cmd_mask, 0, NULL, NULL, cxl_security_ops, NULL);
- 	if (!nvdimm) {
- 		rc = -ENOMEM;
+ 	struct cxl_mock_mem_pdata *mem_pdata;
+@@ -752,6 +791,7 @@ static __init int cxl_test_init(void)
+ 			goto err_mem;
+ 		}
+ 
++		pdev->dev.groups = cxl_mock_mem_groups;
+ 		rc = platform_device_add(pdev);
+ 		if (rc) {
+ 			platform_device_put(pdev);
 
 
