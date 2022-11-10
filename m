@@ -1,85 +1,122 @@
-Received: from mailsrv.cs.umass.edu (mailsrv.cs.umass.edu [128.119.240.136])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B0FD107BA
-	for <nvdimm@lists.linux.dev>; Wed,  9 Nov 2022 22:06:14 +0000 (UTC)
-Received: from [192.168.50.148] (c-24-62-201-179.hsd1.ma.comcast.net [24.62.201.179])
-	by mailsrv.cs.umass.edu (Postfix) with ESMTPSA id 12939404008C;
-	Wed,  9 Nov 2022 16:59:55 -0500 (EST)
-Message-ID: <8635b40a-6e87-b5da-e63d-476309bbc80b@cs.umass.edu>
-Date: Wed, 9 Nov 2022 16:59:54 -0500
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1383D160
+	for <nvdimm@lists.linux.dev>; Thu, 10 Nov 2022 00:07:29 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1668038850; x=1699574850;
+  h=subject:from:to:cc:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=Nxd/PbylXCL9ZSk1tC2GClE+RNDCGz/YGjWjymwPubM=;
+  b=Zpkq3s9hoQHi6vxxZDUG4eN8Ip5KhXZFCl/eAhiepdTlKve1GyBsmmq9
+   gbDrxTsOC0ZVhUMRkUzxSVYeCQLdNyakYTzVHX7k0bl49yHr3uAq1mv1Z
+   d725Xo6ifEgew7n4TkSJMQKhql/jMYih7/Vi1rA0ernG7sXcd6acBmFYq
+   u86IffMBtjDCJm68/EnWj0bg6rcbvjMxQRcc+KhI8Ua7LLbL7i9JkEqeU
+   QyYDPrclJIGHHOkQSPOPHDO6/iEf0d1DkMNzVyIGX7lfIUr9HMJad+eZA
+   GJXtPx8LtOaIgq3WqFdzO5DCQ0BKSJhasWcr5YQnH7O6c7BaeqsMkwQBl
+   Q==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10526"; a="290880105"
+X-IronPort-AV: E=Sophos;i="5.96,152,1665471600"; 
+   d="scan'208";a="290880105"
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Nov 2022 16:07:29 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10526"; a="631442490"
+X-IronPort-AV: E=Sophos;i="5.96,152,1665471600"; 
+   d="scan'208";a="631442490"
+Received: from djiang5-desk3.ch.intel.com ([143.182.136.137])
+  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Nov 2022 16:07:28 -0800
+Subject: [PATCH v5 0/7] ndctl: cxl: add monitor support for trace events
+From: Dave Jiang <dave.jiang@intel.com>
+To: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
+Cc: dan.j.williams@intel.com, ira.weiny@intel.com, vishal.l.verma@intel.com,
+ alison.schofield@intel.com, rostedt@goodmis.org
+Date: Wed, 09 Nov 2022 17:07:28 -0700
+Message-ID: 
+ <166803877747.145141.11853418648969334939.stgit@djiang5-desk3.ch.intel.com>
+User-Agent: StGit/1.4
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
- Thunderbird/102.4.1
-Reply-To: moss@cs.umass.edu
-Content-Language: en-US
-From: Eliot Moss <moss@cs.umass.edu>
-To: nvdimm@lists.linux.dev
-Subject: Detecting whether hug pages are working with fsdax
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 
-Dear nvdimmers -
+This patch series for ndctl implements the monitor command for the cxl tool.
+The initial implementation will collect CXL trace events emitted by the
+kernel. libtraceevent and libtracefs will be used to parse the trace
+event buffer. The monitor will pend on an epoll fd and wait for new event
+entries to be posted. The output will be in json format. By default the events
+are emitted to stdio, but can also be logged to a file. Each event is converted
+to a JSON object and logged as such. All the fields exported are read by the
+monitor code and added to the JSON object.
 
-I tried following Darrick Wong's advice from this page:
+v5:
+- Remove unneeded header includes. (Vishal)
+- Reformat using git clang-format. (Vishal)
+- Change uuid string to 40 bytes allocation. (Vishal)
+- Change cxl_event_to_json_callback() to cxl_event_to_json(). (Vishal)
+- Change cxl_event_parse_cb() to cxl_event_parse(). (Vishal)
+- Squash patch 3 & 4. (Vishal)
+- Move common logging helper to util/log.c. (Vishal)
+- Squash patch 5 & 7. (Vishal)
+- Drop Alison's pid patch. (Vishal)
+- Fixup man page. (Vishal)
 
-https://nvdimm.wiki.kernel.org/2mib_fs_dax
+v4:
+- Fix num_to_json for less than int size (Ira)
+- Use TEP_FIELD flags to determine data type. (Steve)
+- Use tracefs_event_enable() instad of directly toggle sysfs via lib calls (Steve)
+- Remove tracefs_trace_is_on() in disable() call (Steve)
+- Update to use tep_data_pid() (Steve)
 
-In particular, these instructions:
-================================================================================
-The way that I normally do this is by looking at the filesystem DAX tracepoints:
+v3:
+- Change uuid parsing from u8[] to uuid_t (Alison)
+- Add event_name to event_ctx for filtering (Alison)
+- Add event_pid to event_ctx for filtering (Alison)
+- Add parse_event callback to event_ctx for filtering (Alison)
 
-# cd /sys/kernel/debug/tracing
-# echo 1 > events/fs_dax/dax_pmd_fault_done/enable
-<run test which faults in filesystem DAX mappings>
-We can then look at the dax_pmd_fault_done events in
+v2:
+- Simplify logging functions (Nathan)
+- Drop ndctl prefix (Vishal)
+- Reduce to single trace event system (Alison)
+- Add systemd startup file
+- Add man page
 
-/sys/kernel/debug/tracing/trace
-and see whether they were successful. An event that successfully faulted in a filesystem DAX PMD
-looks like this:
+---
 
-big-1434  [008] ....  1502.341229: dax_pmd_fault_done: dev 259:0 ino 0xc shared
-WRITE|ALLOW_RETRY|KILLABLE|USER address 0x10505000 vm_start 0x10200000 vm_end
-0x10700000 pgoff 0x305 max_pgoff 0x1400 NOPAGE
-The first thing to look at is the NOPAGE return value at the end of the line. This means that the
-fault succeeded and didn't return a page cache page, which is expected for DAX. A 2 MiB fault that
-failed and fell back to 4 KiB DAX faults will instead look like this:
+Dave Jiang (7):
+      ndctl: cxl: add helper function to parse trace event to json object
+      ndctl: cxl: add helper to parse through all current events
+      ndctl: cxl: add common function to enable/disable event trace
+      ndctl: move common logging functions from ndctl/monitor.c to util/log.c
+      ndctl: cxl: add monitor command for event trace events
+      ndctl: cxl: add systemd service for monitor
+      ndctl: cxl: add man page documentation for monitor
 
-small-1431  [008] ....  1499.402672: dax_pmd_fault_done: dev 259:0 ino 0xc shared
-WRITE|ALLOW_RETRY|KILLABLE|USER address 0x10420000 vm_start 0x10200000 vm_end
-0x10500000 pgoff 0x220 max_pgoff 0x3ffff FALLBACK
-You can see that this fault resulted in a fallback to 4 KiB faults via the FALLBACK return code at
-the end of the line. The rest of the data in this line can help you determine why the fallback
-happened. In this case it was because I intentionally created an mmap() area that was smaller than 2
-MiB.
-================================================================================
 
-I get no trace output whatsoever, whether I am using 2Mb huge pages or 1Gb
-huge pages.  My mmap calls are successful but I get no trace output at all,
-only this:
+ Documentation/cxl/cxl-monitor.txt |  62 ++++++++
+ Documentation/cxl/meson.build     |   1 +
+ cxl/builtin.h                     |   1 +
+ cxl/cxl-monitor.service           |   9 ++
+ cxl/cxl.c                         |   1 +
+ cxl/event_trace.c                 | 251 ++++++++++++++++++++++++++++++
+ cxl/event_trace.h                 |  27 ++++
+ cxl/meson.build                   |   8 +
+ cxl/monitor.c                     | 215 +++++++++++++++++++++++++
+ meson.build                       |   3 +
+ ndctl.spec.in                     |   1 +
+ ndctl/monitor.c                   |  41 +----
+ util/log.c                        |  34 ++++
+ util/log.h                        |   8 +-
+ 14 files changed, 624 insertions(+), 38 deletions(-)
+ create mode 100644 Documentation/cxl/cxl-monitor.txt
+ create mode 100644 cxl/cxl-monitor.service
+ create mode 100644 cxl/event_trace.c
+ create mode 100644 cxl/event_trace.h
+ create mode 100644 cxl/monitor.c
 
-================================================================================
-# tracer: nop
-#
-# entries-in-buffer/entries-written: 0/0   #P:63
-#
-#                                _-----=> irqs-off
-#                               / _----=> need-resched
-#                              | / _---=> hardirq/softirq
-#                              || / _--=> preempt-depth
-#                              ||| / _-=> migrate-disable
-#                              |||| /     delay
-#           TASK-PID     CPU#  |||||  TIMESTAMP  FUNCTION
-#              | |         |   |||||     |         |
-================================================================================
+--
 
-Any suggestions about what may be different in my system?  It is clear that we
-are mapping files created in an fdax file system, and that the contents of the
-files are changing.
-
-Regards - Eliot Moss
