@@ -1,173 +1,132 @@
-Received: from esa9.hc1455-7.c3s2.iphmx.com (esa9.hc1455-7.c3s2.iphmx.com [139.138.36.223])
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A07E2F50
-	for <nvdimm@lists.linux.dev>; Fri, 11 Nov 2022 09:25:15 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6500,9779,10527"; a="83748143"
-X-IronPort-AV: E=Sophos;i="5.96,156,1665414000"; 
-   d="scan'208";a="83748143"
-Received: from unknown (HELO yto-r2.gw.nic.fujitsu.com) ([218.44.52.218])
-  by esa9.hc1455-7.c3s2.iphmx.com with ESMTP; 11 Nov 2022 18:24:03 +0900
-Received: from yto-m4.gw.nic.fujitsu.com (yto-nat-yto-m4.gw.nic.fujitsu.com [192.168.83.67])
-	by yto-r2.gw.nic.fujitsu.com (Postfix) with ESMTP id A9FDADE50E
-	for <nvdimm@lists.linux.dev>; Fri, 11 Nov 2022 18:24:02 +0900 (JST)
-Received: from m3004.s.css.fujitsu.com (m3004.s.css.fujitsu.com [10.128.233.124])
-	by yto-m4.gw.nic.fujitsu.com (Postfix) with ESMTP id E9F5FF0FD9
-	for <nvdimm@lists.linux.dev>; Fri, 11 Nov 2022 18:24:01 +0900 (JST)
-Received: from localhost.localdomain (unknown [10.19.3.107])
-	by m3004.s.css.fujitsu.com (Postfix) with ESMTP id B3F0A20607A2;
-	Fri, 11 Nov 2022 18:24:01 +0900 (JST)
-From: Daisuke Matsuda <matsuda-daisuke@fujitsu.com>
-To: linux-rdma@vger.kernel.org,
-	leonro@nvidia.com,
-	jgg@nvidia.com,
-	zyjzyj2000@gmail.com
-Cc: nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org,
-	rpearsonhpe@gmail.com,
-	yangx.jy@fujitsu.com,
-	lizhijian@fujitsu.com,
-	y-goto@fujitsu.com,
-	Daisuke Matsuda <matsuda-daisuke@fujitsu.com>
-Subject: [RFC PATCH v2 7/7] RDMA/rxe: Add support for the traditional Atomic operations with ODP
-Date: Fri, 11 Nov 2022 18:22:28 +0900
-Message-Id: <07a8870f4c7aea3aa876727f8264ec4fb33ed774.1668157436.git.matsuda-daisuke@fujitsu.com>
-X-Mailer: git-send-email 2.31.1
-In-Reply-To: <cover.1668157436.git.matsuda-daisuke@fujitsu.com>
-References: <cover.1668157436.git.matsuda-daisuke@fujitsu.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20F5D20E7
+	for <nvdimm@lists.linux.dev>; Fri, 11 Nov 2022 10:28:05 +0000 (UTC)
+Received: from fraeml705-chm.china.huawei.com (unknown [172.18.147.200])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4N7vx01hv8z688hZ;
+	Fri, 11 Nov 2022 18:25:40 +0800 (CST)
+Received: from lhrpeml500005.china.huawei.com (7.191.163.240) by
+ fraeml705-chm.china.huawei.com (10.206.15.54) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
+ 15.1.2375.31; Fri, 11 Nov 2022 11:27:57 +0100
+Received: from localhost (10.45.151.252) by lhrpeml500005.china.huawei.com
+ (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.31; Fri, 11 Nov
+ 2022 10:27:56 +0000
+Date: Fri, 11 Nov 2022 10:27:53 +0000
+From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+To: Dave Jiang <dave.jiang@intel.com>
+CC: <linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>,
+	<dan.j.williams@intel.com>, <bwidawsk@kernel.org>, <ira.weiny@intel.com>,
+	<vishal.l.verma@intel.com>, <alison.schofield@intel.com>, <dave@stgolabs.net>
+Subject: Re: [PATCH v2 09/19] tools/testing/cxl: Add "Freeze Security State"
+ security opcode support
+Message-ID: <20221111102753.00001a26@Huawei.com>
+In-Reply-To: <57305aec-2d39-ce5a-0d47-ee1110834d26@intel.com>
+References: <166377414787.430546.3863229455285366312.stgit@djiang5-desk3.ch.intel.com>
+	<166377434213.430546.16329545604946404040.stgit@djiang5-desk3.ch.intel.com>
+	<20221107144411.000079eb@Huawei.com>
+	<57305aec-2d39-ce5a-0d47-ee1110834d26@intel.com>
+Organization: Huawei Technologies Research and Development (UK) Ltd.
+X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.45.151.252]
+X-ClientProxiedBy: lhrpeml500005.china.huawei.com (7.191.163.240) To
+ lhrpeml500005.china.huawei.com (7.191.163.240)
+X-CFilter-Loop: Reflected
 
-Enable 'fetch and add' and 'compare and swap' operations to manipulate
-data in an ODP-enabled MR. This is comprised of the following steps:
- 1. Check the driver page table(umem_odp->dma_list) to see if the target
-    page is both readable and writable.
- 2. If not, then trigger page fault to map the page.
- 3. Convert its user space address to a kernel logical address using PFNs
-    in the driver page table(umem_odp->pfn_list).
- 4. Execute the operation.
+On Mon, 7 Nov 2022 11:01:45 -0800
+Dave Jiang <dave.jiang@intel.com> wrote:
 
-umem_mutex is used to ensure that dma_list (an array of addresses of an MR)
-is not changed while it is checked and that the target page is not
-invalidated before data access completes.
+> On 11/7/2022 6:44 AM, Jonathan Cameron wrote:
+> > On Wed, 21 Sep 2022 08:32:22 -0700
+> > Dave Jiang <dave.jiang@intel.com> wrote:
+> >   
+> >> Add support to emulate a CXL mem device support the "Freeze Security State"
+> >> operation.
+> >>
+> >> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> >> ---
+> >>   tools/testing/cxl/test/mem.c |   27 +++++++++++++++++++++++++++
+> >>   1 file changed, 27 insertions(+)
+> >>
+> >> diff --git a/tools/testing/cxl/test/mem.c b/tools/testing/cxl/test/mem.c
+> >> index 40dccbeb9f30..b24119b0ea76 100644
+> >> --- a/tools/testing/cxl/test/mem.c
+> >> +++ b/tools/testing/cxl/test/mem.c
+> >> @@ -290,6 +290,30 @@ static int mock_disable_passphrase(struct cxl_dev_state *cxlds, struct cxl_mbox_
+> >>   	return 0;
+> >>   }
+> >>   
+> >> +static int mock_freeze_security(struct cxl_dev_state *cxlds, struct cxl_mbox_cmd *cmd)
+> >> +{
+> >> +	struct cxl_mock_mem_pdata *mdata = dev_get_platdata(cxlds->dev);
+> >> +
+> >> +	if (cmd->size_in != 0)
+> >> +		return -EINVAL;
+> >> +
+> >> +	if (cmd->size_out != 0)
+> >> +		return -EINVAL;
+> >> +
+> >> +	if (mdata->security_state & CXL_PMEM_SEC_STATE_FROZEN) {  
+> > 
+> > There are list of commands that should return invalid security state in
+> > 8.2.9.8.6.5 but doesn't include Freeze Security state.
+> > Hence I think this is idempotent and writing to frozen when frozen succeeds
+> > - it just doesn't change anything.  
+> 
+> Ok will return 0.
+> 
+> >   
+> >> +		cmd->return_code = CXL_MBOX_CMD_RC_SECURITY;
+> >> +		return -ENXIO;
+> >> +	}
+> >> +
+> >> +	if (!(mdata->security_state & CXL_PMEM_SEC_STATE_USER_PASS_SET)) {  
+> > 
+> > This needs a spec reference.  (which is another way of saying I'm not sure
+> > why it is here).  
+> 
+> Will remove. It feels like the spec around this area is rather sparse 
+> and missing a lot of details. i.e. freezing security w/o security set.
 
-Signed-off-by: Daisuke Matsuda <matsuda-daisuke@fujitsu.com>
----
- drivers/infiniband/sw/rxe/rxe.c      |  1 +
- drivers/infiniband/sw/rxe/rxe_loc.h  |  2 ++
- drivers/infiniband/sw/rxe/rxe_odp.c  | 45 ++++++++++++++++++++++++++++
- drivers/infiniband/sw/rxe/rxe_resp.c |  2 +-
- drivers/infiniband/sw/rxe/rxe_resp.h |  3 ++
- 5 files changed, 52 insertions(+), 1 deletion(-)
+Agreed on it being too sparse: Well volunteered to poke relevant standards groups ;)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe.c b/drivers/infiniband/sw/rxe/rxe.c
-index dd287fc60e9d..8190af3e9afe 100644
---- a/drivers/infiniband/sw/rxe/rxe.c
-+++ b/drivers/infiniband/sw/rxe/rxe.c
-@@ -88,6 +88,7 @@ static void rxe_init_device_param(struct rxe_dev *rxe)
- 		rxe->attr.odp_caps.per_transport_caps.rc_odp_caps |= IB_ODP_SUPPORT_RECV;
- 		rxe->attr.odp_caps.per_transport_caps.rc_odp_caps |= IB_ODP_SUPPORT_WRITE;
- 		rxe->attr.odp_caps.per_transport_caps.rc_odp_caps |= IB_ODP_SUPPORT_READ;
-+		rxe->attr.odp_caps.per_transport_caps.rc_odp_caps |= IB_ODP_SUPPORT_ATOMIC;
- 		rxe->attr.odp_caps.per_transport_caps.rc_odp_caps |= IB_ODP_SUPPORT_SRQ_RECV;
- 	}
- }
-diff --git a/drivers/infiniband/sw/rxe/rxe_loc.h b/drivers/infiniband/sw/rxe/rxe_loc.h
-index 8b19b6fdc497..6370dc31c83a 100644
---- a/drivers/infiniband/sw/rxe/rxe_loc.h
-+++ b/drivers/infiniband/sw/rxe/rxe_loc.h
-@@ -194,5 +194,7 @@ int rxe_create_user_odp_mr(struct ib_pd *pd, u64 start, u64 length, u64 iova,
- 			   int access_flags, struct rxe_mr *mr);
- int rxe_odp_mr_copy(struct rxe_mr *mr, u64 iova, void *addr, int length,
- 		    enum rxe_mr_copy_dir dir);
-+enum resp_states rxe_odp_atomic_ops(struct rxe_qp *qp, struct rxe_pkt_info *pkt,
-+				    struct rxe_mr *mr);
- 
- #endif /* RXE_LOC_H */
-diff --git a/drivers/infiniband/sw/rxe/rxe_odp.c b/drivers/infiniband/sw/rxe/rxe_odp.c
-index ba4723818ee7..00aab9071737 100644
---- a/drivers/infiniband/sw/rxe/rxe_odp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_odp.c
-@@ -289,3 +289,48 @@ int rxe_odp_mr_copy(struct rxe_mr *mr, u64 iova, void *addr, int length,
- 
- 	return err;
- }
-+
-+static inline void *rxe_odp_get_virt_atomic(struct rxe_qp *qp, struct rxe_mr *mr)
-+{
-+	struct ib_umem_odp *umem_odp = to_ib_umem_odp(mr->umem);
-+	u64 iova = qp->resp.va + qp->resp.offset;
-+	int idx;
-+	size_t offset;
-+
-+	if (rxe_odp_map_range(mr, iova, sizeof(char), 0))
-+		return NULL;
-+
-+	idx = (iova - ib_umem_start(umem_odp)) >> umem_odp->page_shift;
-+	offset = iova & (BIT(umem_odp->page_shift) - 1);
-+
-+	return rxe_odp_get_virt(umem_odp, idx, offset);
-+}
-+
-+enum resp_states rxe_odp_atomic_ops(struct rxe_qp *qp, struct rxe_pkt_info *pkt,
-+				    struct rxe_mr *mr)
-+{
-+	struct ib_umem_odp *umem_odp = to_ib_umem_odp(mr->umem);
-+	u64 *vaddr;
-+	int ret;
-+
-+	if (unlikely(!mr->odp_enabled))
-+		return RESPST_ERR_RKEY_VIOLATION;
-+
-+	/* If pagefault is not required, umem mutex will be held until an
-+	 * atomic operation completes. Otherwise, it is released and locked
-+	 * again in rxe_odp_map_range() to let invalidation handler do its
-+	 * work meanwhile.
-+	 */
-+	mutex_lock(&umem_odp->umem_mutex);
-+
-+	vaddr = (u64 *)rxe_odp_get_virt_atomic(qp, mr);
-+
-+	if (pkt->mask & RXE_ATOMIC_MASK)
-+		ret = rxe_process_atomic(qp, pkt, vaddr);
-+	else
-+		/* ATOMIC WRITE operation will come here. */
-+		ret = RESPST_ERR_RKEY_VIOLATION;
-+
-+	mutex_unlock(&umem_odp->umem_mutex);
-+	return ret;
-+}
-diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
-index 296b9ccee330..8e6a32c6c9e7 100644
---- a/drivers/infiniband/sw/rxe/rxe_resp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_resp.c
-@@ -647,7 +647,7 @@ static enum resp_states rxe_atomic_reply(struct rxe_qp *qp,
- 			return RESPST_ERR_RKEY_VIOLATION;
- 
- 		if (mr->odp_enabled)
--			ret = RESPST_ERR_UNSUPPORTED_OPCODE;
-+			ret = rxe_odp_atomic_ops(qp, pkt, mr);
- 		else
- 			ret = rxe_atomic_ops(qp, pkt, mr);
- 	} else
-diff --git a/drivers/infiniband/sw/rxe/rxe_resp.h b/drivers/infiniband/sw/rxe/rxe_resp.h
-index 121f0b998196..cb907b49175f 100644
---- a/drivers/infiniband/sw/rxe/rxe_resp.h
-+++ b/drivers/infiniband/sw/rxe/rxe_resp.h
-@@ -38,4 +38,7 @@ enum resp_states {
- 	RESPST_EXIT,
- };
- 
-+enum resp_states rxe_process_atomic(struct rxe_qp *qp,
-+				    struct rxe_pkt_info *pkt, u64 *vaddr);
-+
- #endif /* RXE_RESP_H */
--- 
-2.31.1
+Jonathan
+
+> 
+> >   
+> >> +		cmd->return_code = CXL_MBOX_CMD_RC_SECURITY;
+> >> +		return -ENXIO;
+> >> +	}
+> >> +
+> >> +	mdata->security_state |= CXL_PMEM_SEC_STATE_FROZEN;
+> >> +	return 0;
+> >> +}
+> >> +
+> >>   static int mock_get_lsa(struct cxl_dev_state *cxlds, struct cxl_mbox_cmd *cmd)
+> >>   {
+> >>   	struct cxl_mbox_get_lsa *get_lsa = cmd->payload_in;
+> >> @@ -392,6 +416,9 @@ static int cxl_mock_mbox_send(struct cxl_dev_state *cxlds, struct cxl_mbox_cmd *
+> >>   	case CXL_MBOX_OP_DISABLE_PASSPHRASE:
+> >>   		rc = mock_disable_passphrase(cxlds, cmd);
+> >>   		break;
+> >> +	case CXL_MBOX_OP_FREEZE_SECURITY:
+> >> +		rc = mock_freeze_security(cxlds, cmd);
+> >> +		break;
+> >>   	default:
+> >>   		break;
+> >>   	}
+> >>
+> >>  
+> > 
+> >   
 
