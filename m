@@ -1,141 +1,161 @@
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A23BB361
-	for <nvdimm@lists.linux.dev>; Thu, 10 Nov 2022 00:08:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6BCF62A
+	for <nvdimm@lists.linux.dev>; Fri, 11 Nov 2022 03:20:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1668038890; x=1699574890;
-  h=subject:from:to:cc:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=yAOtC6k/Gr4dNTMKOO78BnW1LvIBCpDNKx2BQ5dyxfA=;
-  b=Y2g2+mwFaNlON/Wefkcy31PGG9kFnvCcCtDIhlgJf89Gnp4/QxARxl/F
-   JvmWCDJCQq8+v/Gxr7fMa9jvg34vpY8d87tsLodi2Q++135V3UfzYEDEs
-   KDCjtOycyVwgDlC/mMvSscMwdcPcOusepMLe0qLlVsHiBZ00sAX7kzqDs
-   31ave6olKE02iFlgS4LAlE0WEeSG2ym4WIcQmUrkr377x5Dggs3P/nVgR
-   E5J/27VULiiX6THT8/dLbxdzd2HbIcAKhskFUl6FG4K4tVu1vRIsiOdpy
-   dyNs1N+z/K4QLXaaRtl6X2s7tSmXdIcJ7z4VBjDGX6D7mywHySpPY15Ce
-   w==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10526"; a="312928140"
-X-IronPort-AV: E=Sophos;i="5.96,152,1665471600"; 
-   d="scan'208";a="312928140"
-Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Nov 2022 16:08:10 -0800
-X-IronPort-AV: E=McAfee;i="6500,9779,10526"; a="882130336"
-X-IronPort-AV: E=Sophos;i="5.96,152,1665471600"; 
-   d="scan'208";a="882130336"
-Received: from djiang5-desk3.ch.intel.com ([143.182.136.137])
-  by fmsmga006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Nov 2022 16:08:09 -0800
-Subject: [PATCH v5 7/7] ndctl: cxl: add man page documentation for monitor
-From: Dave Jiang <dave.jiang@intel.com>
-To: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
-Cc: dan.j.williams@intel.com, ira.weiny@intel.com, vishal.l.verma@intel.com,
- alison.schofield@intel.com, rostedt@goodmis.org
-Date: Wed, 09 Nov 2022 17:08:09 -0700
-Message-ID: 
- <166803888924.145141.2305759221442551251.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: 
- <166803877747.145141.11853418648969334939.stgit@djiang5-desk3.ch.intel.com>
-References: 
- <166803877747.145141.11853418648969334939.stgit@djiang5-desk3.ch.intel.com>
-User-Agent: StGit/1.4
+  t=1668136812; x=1699672812;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=jUkCAYfbxlEUpB+Kch5mmsGnTydZUzk+4WocmIT1Hm4=;
+  b=nFgVCsVLadWVzizjCCcxYvWUQIHL3xdTy25bsSo/9MNJT/fmxGsOhe//
+   G1Ygkqp7kuSjSqLIUE6VyawYMZIhietpkjH7raIWINiTxWdsmhd1L9/tF
+   7nixvI0WjpOa6DD9hdgn3NlXqjV7s0O+Tduj+pJuN5Za8EdAd2ZWxYOma
+   9cCQd4KQb1oeJ6rYyaEiz+525UGAgzoqys0fmeE1mkyfjCwL2HYEtIgdo
+   l6MnahZEGwHBCC3ROs74ItImdyNVUm69a89lgs5CPJSDizaQt/8KnK1wi
+   wno0+1GM5n/3lnmsVncduFp5JE3py7bw//G1MspZ0w3WpZPGN7cMa/s/D
+   Q==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10527"; a="373638345"
+X-IronPort-AV: E=Sophos;i="5.96,155,1665471600"; 
+   d="scan'208";a="373638345"
+Received: from fmsmga002.fm.intel.com ([10.253.24.26])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Nov 2022 19:20:11 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10527"; a="743129950"
+X-IronPort-AV: E=Sophos;i="5.96,155,1665471600"; 
+   d="scan'208";a="743129950"
+Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.209.161.45])
+  by fmsmga002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Nov 2022 19:20:11 -0800
+From: alison.schofield@intel.com
+To: Dan Williams <dan.j.williams@intel.com>,
+	Ira Weiny <ira.weiny@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Ben Widawsky <bwidawsk@kernel.org>
+Cc: Alison Schofield <alison.schofield@intel.com>,
+	nvdimm@lists.linux.dev,
+	linux-cxl@vger.kernel.org
+Subject: [ndctl PATCH 0/3] Support poison list retrieval
+Date: Thu, 10 Nov 2022 19:20:03 -0800
+Message-Id: <cover.1668133294.git.alison.schofield@intel.com>
+X-Mailer: git-send-email 2.37.3
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-Add man page documentation to explain the usage of cxl monitor.
+From: Alison Schofield <alison.schofield@intel.com>
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- Documentation/cxl/cxl-monitor.txt |   62 +++++++++++++++++++++++++++++++++++++
- Documentation/cxl/meson.build     |    1 +
- 2 files changed, 63 insertions(+)
- create mode 100644 Documentation/cxl/cxl-monitor.txt
+Changes RFC->v1:
+- Resync with DaveJ's v5 monitor patchset. [1]
+  (It provides the event tracing functionality used here.)
+- Resync with the kernel patchset adding poison list support. [2]
+- Add cxl-get-poison.sh unit test to cxl test suite.
+- JSON object naming cleanups, replace spaces with '_'.
+- Use common event pid field to restrict events to this cxl list instance.
+- Use json_object_get_int64() for addresses.
+- Remove empty hpa fields. Add back with dpa->hpa translation.
 
-diff --git a/Documentation/cxl/cxl-monitor.txt b/Documentation/cxl/cxl-monitor.txt
-new file mode 100644
-index 000000000000..3fc992e4d4d9
---- /dev/null
-+++ b/Documentation/cxl/cxl-monitor.txt
-@@ -0,0 +1,62 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+cxl-monitor(1)
-+==============
-+
-+NAME
-+----
-+cxl-monitor - Monitor the CXL trace events
-+
-+SYNOPSIS
-+--------
-+[verse]
-+'cxl monitor' [<options>]
-+
-+DESCRIPTION
-+-----------
-+cxl-monitor is used for monitoring the CXL trace events emitted by
-+the kernel and convert them to json objects and dumping the json format
-+notifications to standard output or a logfile.
-+
-+EXAMPLES
-+--------
-+
-+Run a monitor as a daemon to monitor events and output to a log file.
-+[verse]
-+cxl monitor --daemon --log=/var/log/cxl-monitor.log
-+
-+Run a monitor as a one-shot command and output the notifications to stdio.
-+[verse]
-+cxl monitor
-+
-+Run a monitor daemon as a system service
-+[verse]
-+systemctl start cxl-monitor.service
-+
-+OPTIONS
-+-------
-+-l::
-+--log=::
-+	Send log messages to the specified destination.
-+	- "<file>":
-+	  Send log messages to specified <file>. When fopen() is not able
-+	  to open <file>, log messages will be forwarded to syslog.
-+	- "standard":
-+	  Send messages to standard output.
-+
-+The default log destination is '/var/log/cxl-monitor.log' if "--daemon" is specified,
-+otherwise 'standard'. Note that standard and relative path for <file>
-+will not work if "--daemon" is specified.
-+
-+--daemon::
-+	Run a monitor as a daemon.
-+
-+include::verbose-option.txt[]
-+
-+include::human-option.txt[]
-+
-+include::../copyright.txt[]
-+
-+SEE ALSO
-+--------
-+linkcxl:cxl-list[1]
-diff --git a/Documentation/cxl/meson.build b/Documentation/cxl/meson.build
-index 147ea7130211..a6d77ab8cbc2 100644
---- a/Documentation/cxl/meson.build
-+++ b/Documentation/cxl/meson.build
-@@ -45,6 +45,7 @@ cxl_manpages = [
-   'cxl-disable-region.txt',
-   'cxl-enable-region.txt',
-   'cxl-destroy-region.txt',
-+  'cxl-monitor.txt',
- ]
- 
- foreach man : cxl_manpages
+[1] https://lore.kernel.org/linux-cxl/166803877747.145141.11853418648969334939.stgit@djiang5-desk3.ch.intel.com/
+[2] https://lore.kernel.org/linux-cxl/cover.1668115235.git.alison.schofield@intel.com/
 
+The first patch adds a libcxl API for triggering the read of a
+poison list from a memory device. Users of that API will need to
+trace the kernel events to collect the error records.
+
+Patches 2 adds a PID filtering option to event tracing and then
+patches 3 & 4 add a pretty option, --media-errors to cxl list.
+The last patch (5) adds a unit test to the cxl test suite.
+
+Examples:
+cxl list -m mem2 --media-errors
+[
+  {
+    "memdev":"mem2",
+    "pmem_size":1073741824,
+    "ram_size":0,
+    "serial":2,
+    "host":"cxl_mem.2",
+    "media_errors":{
+      "nr_media_errors":2,
+      "media_error_records":[
+        {
+          "dpa":64,
+          "length":128,
+          "source":"Injected",
+          "flags":"Overflow,",
+          "overflow_time":1656711046
+        },
+        {
+          "dpa":192,
+          "length":192,
+          "source":"Internal",
+          "flags":"Overflow,",
+          "overflow_time":1656711046
+        },
+      ]
+    }
+  }
+]
+
+# cxl list -r region5 --media-errors
+[
+  {
+    "region":"region5",
+    "resource":1035623989248,
+    "size":2147483648,
+    "interleave_ways":2,
+    "interleave_granularity":4096,
+    "decode_state":"commit",
+    "media_errors":{
+      "nr_media_errors":2,
+      "media_error_records":[
+        {
+          "memdev":"mem2",
+          "dpa":0,
+          "length":64,
+          "source":"Internal",
+          "flags":"",
+          "overflow_time":0
+        },
+	{
+          "memdev":"mem5",
+          "dpa":0,
+          "length":256,
+          "source":"Injected",
+          "flags":"",
+          "overflow_time":0
+        }
+      ]
+    }
+  }
+]
+
+Alison Schofield (5):
+  libcxl: add interfaces for GET_POISON_LIST mailbox commands
+  cxl: add an optional pid check to event parsing
+  cxl/list: collect and parse the poison list records
+  cxl/list: add --media-errors option to cxl list
+  test: add a cxl-get-poison test
+
+ Documentation/cxl/cxl-list.txt |  64 ++++++++++++
+ cxl/event_trace.c              |   5 +
+ cxl/event_trace.h              |   1 +
+ cxl/filter.c                   |   2 +
+ cxl/filter.h                   |   1 +
+ cxl/json.c                     | 185 +++++++++++++++++++++++++++++++++
+ cxl/lib/libcxl.c               |  44 ++++++++
+ cxl/lib/libcxl.sym             |   6 ++
+ cxl/libcxl.h                   |   2 +
+ cxl/list.c                     |   2 +
+ test/cxl-get-poison.sh         |  78 ++++++++++++++
+ test/meson.build               |   2 +
+ 12 files changed, 392 insertions(+)
+ create mode 100644 test/cxl-get-poison.sh
+
+-- 
+2.37.3
 
