@@ -1,184 +1,166 @@
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-vk1-f170.google.com (mail-vk1-f170.google.com [209.85.221.170])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBB482582
-	for <nvdimm@lists.linux.dev>; Fri, 11 Nov 2022 10:43:38 +0000 (UTC)
-Received: from frapeml100003.china.huawei.com (unknown [172.18.147.206])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4N7wHC24DZz67DYv;
-	Fri, 11 Nov 2022 18:41:27 +0800 (CST)
-Received: from lhrpeml500005.china.huawei.com (7.191.163.240) by
- frapeml100003.china.huawei.com (7.182.85.60) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.31; Fri, 11 Nov 2022 11:43:36 +0100
-Received: from localhost (10.45.151.252) by lhrpeml500005.china.huawei.com
- (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.31; Fri, 11 Nov
- 2022 10:43:35 +0000
-Date: Fri, 11 Nov 2022 10:43:34 +0000
-From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-To: Dave Jiang <dave.jiang@intel.com>
-CC: <linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>,
-	<dan.j.williams@intel.com>, <ira.weiny@intel.com>,
-	<vishal.l.verma@intel.com>, <alison.schofield@intel.com>, <dave@stgolabs.net>
-Subject: Re: [PATCH v3 17/18] libnvdimm: Introduce
- CONFIG_NVDIMM_SECURITY_TEST flag
-Message-ID: <20221111104334.00003fcf@Huawei.com>
-In-Reply-To: <166792842000.3767969.18296572896453551207.stgit@djiang5-desk3.ch.intel.com>
-References: <166792815961.3767969.2621677491424623673.stgit@djiang5-desk3.ch.intel.com>
-	<166792842000.3767969.18296572896453551207.stgit@djiang5-desk3.ch.intel.com>
-Organization: Huawei Technologies Research and Development (UK) Ltd.
-X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A067B28FA
+	for <nvdimm@lists.linux.dev>; Fri, 11 Nov 2022 21:55:10 +0000 (UTC)
+Received: by mail-vk1-f170.google.com with SMTP id v81so2398336vkv.5
+        for <nvdimm@lists.linux.dev>; Fri, 11 Nov 2022 13:55:10 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=FBLvh8HDrSTVyJY825uCLCQg+DtN/s4Hedrzyz0sKsQ=;
+        b=qRUpMGjO41oswo0eWuEJnL4lA6NTT3EottV/MKOhv1tfm/fvdBrbl39qD6To/pMojR
+         IwOBWiSNm7tAIA4WarulF7NmnuUTnSQlYsVRd+fJJuwyIVVv09kapCofm75y04VBq8mk
+         NcITIDrEsTVstEUdOc6P1N9ujcKvGH7WtxppnDUYH8jfs0HonyGc9freox75/pgD0Yjd
+         c3aYqH6tbuXg5y7bssFWlZnSPDGYJk3pVMDsNJN0fbqJXKjcPrnt3iHCEtjqMaUU/PFz
+         rT3+NWDi9DWgY2SP04fOx8pSp9qR3pi1fhEuNKxivQdoLtdmNmTjlbeMsrXPhDKgJ1rR
+         30ig==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=FBLvh8HDrSTVyJY825uCLCQg+DtN/s4Hedrzyz0sKsQ=;
+        b=EwMEvIkJrnOllQGFXhWRaczIFV2GNSr5vesxIc/S8eal7NTkvru8YGAkTf6Mu+T9aO
+         MbN6otcdBmDLHLv8ytUFzIIztJ+J8S8bMekBhb7O9o5t+nRz/watmUwLpvLnR2sdD1/1
+         oaNaTKwX5K7lGQukUK076G8Kki1u5UDtJ+ZLn9VvSqTf6vmnGvkyEoBZfIDkgaqnm4ss
+         gMSw0a69pbMDTjFehJ7ltcDSoz4a8XDNKmYer7UoMYro6YWYETahJLN9HTkhPnncedVJ
+         1PSf46flbx8LicrFO59+GXMl/As8tH4U6r7gJSKdOn/rCLemlyfFPxj1jVldOGrN+hNl
+         PTVA==
+X-Gm-Message-State: ANoB5pmEBKsNBcFbRpCZT0UKZ9UO9jexA74GrENXm40L1KLnzIGxbI47
+	CTv7qs4aUYD7FOu++iPsoGcKuU6j8fm22v9FgK5Kzg==
+X-Google-Smtp-Source: AA0mqf6064Vn0CTjnLKRKzlBqbKkwGHDuSg2sxSCL5xzBsXvlzlPBQOwhe/EC0YWvSGl/TWX4sMwuQqebjxjD085XVs=
+X-Received: by 2002:a05:6122:852:b0:3b8:68cc:1d1d with SMTP id
+ 18-20020a056122085200b003b868cc1d1dmr2098111vkk.14.1668203709387; Fri, 11 Nov
+ 2022 13:55:09 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.45.151.252]
-X-ClientProxiedBy: lhrpeml100003.china.huawei.com (7.191.160.210) To
- lhrpeml500005.china.huawei.com (7.191.163.240)
-X-CFilter-Loop: Reflected
+References: <20221017171118.1588820-1-sammler@google.com> <CAM9Jb+ggq5L9XZZHhfA98XDO+P=8y-mT+ct0JFAtXRbsCuORsA@mail.gmail.com>
+ <CAFPP518-gU1M1XcHMHgpx=ZPPkSyjPmfOK6D+wM6t6vM6Ve6XQ@mail.gmail.com>
+ <CAM9Jb+hk0ZRtXnF+WVj0LiRiO7uH-jDydJrnUQ_57yTEcs--Dw@mail.gmail.com> <6359ab83d6e4d_4da3294d0@dwillia2-xfh.jf.intel.com.notmuch>
+In-Reply-To: <6359ab83d6e4d_4da3294d0@dwillia2-xfh.jf.intel.com.notmuch>
+From: Mina Almasry <almasrymina@google.com>
+Date: Fri, 11 Nov 2022 13:54:58 -0800
+Message-ID: <CAHS8izOYYV+dz3vPdbkipt1i1XAU-mvJOn6c_z-NJJwzUtWzDg@mail.gmail.com>
+Subject: Re: [PATCH v1] virtio_pmem: populate numa information
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>, Michael Sammler <sammler@google.com>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Ira Weiny <ira.weiny@intel.com>, Pasha Tatashin <pasha.tatashin@soleen.com>, nvdimm@lists.linux.dev, 
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-On Tue, 08 Nov 2022 10:27:00 -0700
-Dave Jiang <dave.jiang@intel.com> wrote:
+On Wed, Oct 26, 2022 at 2:50 PM Dan Williams <dan.j.williams@intel.com> wrote:
+>
+> Pankaj Gupta wrote:
+> > > > > Compute the numa information for a virtio_pmem device from the memory
+> > > > > range of the device. Previously, the target_node was always 0 since
+> > > > > the ndr_desc.target_node field was never explicitly set. The code for
+> > > > > computing the numa node is taken from cxl_pmem_region_probe in
+> > > > > drivers/cxl/pmem.c.
+> > > > >
+> > > > > Signed-off-by: Michael Sammler <sammler@google.com>
 
-> nfit_test overrode the security_show() sysfs attribute function in nvdimm
-> dimm_devs in order to allow testing of security unlock. With the
-> introduction of CXL security commands, the trick to override
-> security_show() becomes significantly more complicated. By introdcing a
-> security flag CONFIG_NVDIMM_SECURITY_TEST, libnvdimm can just toggle the
-> check via a compile option. In addition the original override can can be
-> removed from tools/testing/nvdimm/.
-> 
-> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-Trivial comment inline you may want to address.
+Tested-by: Mina Almasry <almasrymina@google.com>
 
-Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+I don't have much expertise on this driver, but with the help of this
+patch I was able to get memory tiering [1] emulation going on qemu. As
+far as I know there is no alternative to this emulation, and so I
+would love to see this or equivalent merged, if possible.
 
-> ---
->  drivers/nvdimm/Kconfig           |   13 +++++++++++++
->  drivers/nvdimm/dimm_devs.c       |    9 ++++++++-
->  drivers/nvdimm/security.c        |    4 ++++
->  tools/testing/nvdimm/Kbuild      |    1 -
->  tools/testing/nvdimm/dimm_devs.c |   30 ------------------------------
->  5 files changed, 25 insertions(+), 32 deletions(-)
->  delete mode 100644 tools/testing/nvdimm/dimm_devs.c
-> 
-> diff --git a/drivers/nvdimm/Kconfig b/drivers/nvdimm/Kconfig
-> index 5a29046e3319..0a13c53c926f 100644
-> --- a/drivers/nvdimm/Kconfig
-> +++ b/drivers/nvdimm/Kconfig
-> @@ -114,4 +114,17 @@ config NVDIMM_TEST_BUILD
->  	  core devm_memremap_pages() implementation and other
->  	  infrastructure.
->  
-> +config NVDIMM_SECURITY_TEST
-> +	bool "Nvdimm security test code toggle"
-> +	depends on NVDIMM_KEYS
-> +	help
-> +	  Debug flag for security testing when using nfit_test or cxl_test
-> +	  modules in tools/testing/.
-> +
-> +	  Select Y if using nfit_test or cxl_test for security testing.
-> +	  Accidentally selecting this option when not using cxl_test
-I'd drop the "Accidentally"
+This is what I have going to get memory tiering emulation:
 
-Selecting this option when ...
+In qemu, added these configs:
+      -object memory-backend-file,id=m4,share=on,mem-path="$path_to_virtio_pmem_file",size=2G
+\
+      -smp 2,sockets=2,maxcpus=2  \
+      -numa node,nodeid=0,memdev=m0 \
+      -numa node,nodeid=1,memdev=m1 \
+      -numa node,nodeid=2,memdev=m2,initiator=0 \
+      -numa node,nodeid=3,initiator=0 \
+      -device virtio-pmem-pci,memdev=m4,id=nvdimm1 \
 
-> +	  introduces 1 mailbox request to the CXL device to get security
-> +	  status for DIMM unlock operation or sysfs attribute "security"
-> +	  read.
-> +
->  endif
-> diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-> index c7c980577491..1fc081dcf631 100644
-> --- a/drivers/nvdimm/dimm_devs.c
-> +++ b/drivers/nvdimm/dimm_devs.c
-> @@ -349,11 +349,18 @@ static ssize_t available_slots_show(struct device *dev,
->  }
->  static DEVICE_ATTR_RO(available_slots);
->  
-> -__weak ssize_t security_show(struct device *dev,
-> +ssize_t security_show(struct device *dev,
->  		struct device_attribute *attr, char *buf)
->  {
->  	struct nvdimm *nvdimm = to_nvdimm(dev);
->  
-> +	/*
-> +	 * For the test version we need to poll the "hardware" in order
-> +	 * to get the updated status for unlock testing.
-> +	 */
-> +	if (IS_ENABLED(CONFIG_NVDIMM_SECURITY_TEST))
-> +		nvdimm->sec.flags = nvdimm_security_flags(nvdimm, NVDIMM_USER);
-> +
->  	if (test_bit(NVDIMM_SECURITY_OVERWRITE, &nvdimm->sec.flags))
->  		return sprintf(buf, "overwrite\n");
->  	if (test_bit(NVDIMM_SECURITY_DISABLED, &nvdimm->sec.flags))
-> diff --git a/drivers/nvdimm/security.c b/drivers/nvdimm/security.c
-> index 92af4c3ca0d3..12a3926f4289 100644
-> --- a/drivers/nvdimm/security.c
-> +++ b/drivers/nvdimm/security.c
-> @@ -177,6 +177,10 @@ static int __nvdimm_security_unlock(struct nvdimm *nvdimm)
->  			|| !nvdimm->sec.flags)
->  		return -EIO;
->  
-> +	/* While nfit_test does not need this, cxl_test does */
-> +	if (IS_ENABLED(CONFIG_NVDIMM_SECURITY_TEST))
-> +		nvdimm->sec.flags = nvdimm_security_flags(nvdimm, NVDIMM_USER);
-> +
->  	/* No need to go further if security is disabled */
->  	if (test_bit(NVDIMM_SECURITY_DISABLED, &nvdimm->sec.flags))
->  		return 0;
-> diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
-> index 5eb5c23b062f..8153251ea389 100644
-> --- a/tools/testing/nvdimm/Kbuild
-> +++ b/tools/testing/nvdimm/Kbuild
-> @@ -79,7 +79,6 @@ libnvdimm-$(CONFIG_BTT) += $(NVDIMM_SRC)/btt_devs.o
->  libnvdimm-$(CONFIG_NVDIMM_PFN) += $(NVDIMM_SRC)/pfn_devs.o
->  libnvdimm-$(CONFIG_NVDIMM_DAX) += $(NVDIMM_SRC)/dax_devs.o
->  libnvdimm-$(CONFIG_NVDIMM_KEYS) += $(NVDIMM_SRC)/security.o
-> -libnvdimm-y += dimm_devs.o
->  libnvdimm-y += libnvdimm_test.o
->  libnvdimm-y += config_check.o
->  
-> diff --git a/tools/testing/nvdimm/dimm_devs.c b/tools/testing/nvdimm/dimm_devs.c
-> deleted file mode 100644
-> index 57bd27dedf1f..000000000000
-> --- a/tools/testing/nvdimm/dimm_devs.c
-> +++ /dev/null
-> @@ -1,30 +0,0 @@
-> -// SPDX-License-Identifier: GPL-2.0
-> -/* Copyright Intel Corp. 2018 */
-> -#include <linux/init.h>
-> -#include <linux/module.h>
-> -#include <linux/moduleparam.h>
-> -#include <linux/nd.h>
-> -#include "pmem.h"
-> -#include "pfn.h"
-> -#include "nd.h"
-> -#include "nd-core.h"
-> -
-> -ssize_t security_show(struct device *dev,
-> -		struct device_attribute *attr, char *buf)
-> -{
-> -	struct nvdimm *nvdimm = to_nvdimm(dev);
-> -
-> -	/*
-> -	 * For the test version we need to poll the "hardware" in order
-> -	 * to get the updated status for unlock testing.
-> -	 */
-> -	nvdimm->sec.flags = nvdimm_security_flags(nvdimm, NVDIMM_USER);
-> -
-> -	if (test_bit(NVDIMM_SECURITY_DISABLED, &nvdimm->sec.flags))
-> -		return sprintf(buf, "disabled\n");
-> -	if (test_bit(NVDIMM_SECURITY_UNLOCKED, &nvdimm->sec.flags))
-> -		return sprintf(buf, "unlocked\n");
-> -	if (test_bit(NVDIMM_SECURITY_LOCKED, &nvdimm->sec.flags))
-> -		return sprintf(buf, "locked\n");
-> -	return -ENOTTY;
-> -}
-> 
-> 
+On boot, ran these commands:
+    ndctl_static create-namespace -e namespace0.0 -m devdax -f 1&> /dev/null
+    echo dax0.0 > /sys/bus/dax/drivers/device_dax/unbind
+    echo dax0.0 > /sys/bus/dax/drivers/kmem/new_id
+    for i in `ls /sys/devices/system/memory/`; do
+      state=$(cat "/sys/devices/system/memory/$i/state" 2&>/dev/null)
+      if [ "$state" == "offline" ]; then
+        echo online_movable > "/sys/devices/system/memory/$i/state"
+      fi
+    done
 
+Without this CL, I see the memory onlined in node 0 always, and is not
+a separate memory tier. With this CL and qemu configs, the memory is
+onlined in node 3 and is set as a separate memory tier, which enables
+qemu-based development:
+
+==> /sys/devices/virtual/memory_tiering/memory_tier22/nodelist <==
+3
+==> /sys/devices/virtual/memory_tiering/memory_tier4/nodelist <==
+0-2
+
+AFAIK there is no alternative to enabling memory tiering emulation in
+qemu, and would love to see this or equivalent merged, if possible.
+
+
+[1] https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/Documentation/ABI/testing/sysfs-kernel-mm-memory-tiers
+
+> > > > > ---
+> > > > >  drivers/nvdimm/virtio_pmem.c | 11 +++++++++--
+> > > > >  1 file changed, 9 insertions(+), 2 deletions(-)
+> > > > >
+> > > > > diff --git a/drivers/nvdimm/virtio_pmem.c b/drivers/nvdimm/virtio_pmem.c
+> > > > > index 20da455d2ef6..a92eb172f0e7 100644
+> > > > > --- a/drivers/nvdimm/virtio_pmem.c
+> > > > > +++ b/drivers/nvdimm/virtio_pmem.c
+> > > > > @@ -32,7 +32,6 @@ static int init_vq(struct virtio_pmem *vpmem)
+> > > > >  static int virtio_pmem_probe(struct virtio_device *vdev)
+> > > > >  {
+> > > > >         struct nd_region_desc ndr_desc = {};
+> > > > > -       int nid = dev_to_node(&vdev->dev);
+> > > > >         struct nd_region *nd_region;
+> > > > >         struct virtio_pmem *vpmem;
+> > > > >         struct resource res;
+> > > > > @@ -79,7 +78,15 @@ static int virtio_pmem_probe(struct virtio_device *vdev)
+> > > > >         dev_set_drvdata(&vdev->dev, vpmem->nvdimm_bus);
+> > > > >
+> > > > >         ndr_desc.res = &res;
+> > > > > -       ndr_desc.numa_node = nid;
+> > > > > +
+> > > > > +       ndr_desc.numa_node = memory_add_physaddr_to_nid(res.start);
+> > > > > +       ndr_desc.target_node = phys_to_target_node(res.start);
+> > > > > +       if (ndr_desc.target_node == NUMA_NO_NODE) {
+> > > > > +               ndr_desc.target_node = ndr_desc.numa_node;
+> > > > > +               dev_dbg(&vdev->dev, "changing target node from %d to %d",
+> > > > > +                       NUMA_NO_NODE, ndr_desc.target_node);
+> > > > > +       }
+> > > >
+> > > > As this memory later gets hotplugged using "devm_memremap_pages". I don't
+> > > > see if 'target_node' is used for fsdax case?
+> > > >
+> > > > It seems to me "target_node" is used mainly for volatile range above
+> > > > persistent memory ( e.g kmem driver?).
+> > > >
+> > > I am not sure if 'target_node' is used in the fsdax case, but it is
+> > > indeed used by the devdax/kmem driver when hotplugging the memory (see
+> > > 'dev_dax_kmem_probe' and '__dax_pmem_probe').
+> >
+> > Yes, but not currently for FS_DAX iiuc.
+>
+> The target_node is only used by the dax_kmem driver. In the FSDAX case
+> the memory (persistent or otherwise) is mapped behind a block-device.
+> That block-device has affinity to a CPU initiator, but that memory does
+> not itself have any NUMA affinity or identity as a target.
+>
+> So:
+>
+> block-device NUMA node == closest CPU initiator node to the device
+>
+> dax-device target node == memory only NUMA node target, after onlining
