@@ -1,92 +1,179 @@
-Received: from mail-ua1-f53.google.com (mail-ua1-f53.google.com [209.85.222.53])
+Received: from mail-oi1-f179.google.com (mail-oi1-f179.google.com [209.85.167.179])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 274E41110
-	for <nvdimm@lists.linux.dev>; Sun, 13 Nov 2022 11:32:57 +0000 (UTC)
-Received: by mail-ua1-f53.google.com with SMTP id g22so2809237uap.3
-        for <nvdimm@lists.linux.dev>; Sun, 13 Nov 2022 03:32:57 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3D2C6FC1
+	for <nvdimm@lists.linux.dev>; Sun, 13 Nov 2022 17:44:38 +0000 (UTC)
+Received: by mail-oi1-f179.google.com with SMTP id h132so9457908oif.2
+        for <nvdimm@lists.linux.dev>; Sun, 13 Nov 2022 09:44:38 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=3QZvRyD4M5+zFkbDYVhqBnw+Q9GmoKf7/UeDVhKpYoo=;
-        b=dPIz6bgV7rDD8gW2kNtZ+bKKj7qTFHbJbnAwN/sPkcbIclY5/ZrLy8rQlfcn38C5wl
-         CyPzOiqhGAYcAfyQd2fQ26hgxFtFuN4MCp1rpKbwkzzzFHpu1vaVMeTk8otm9mRHQhLs
-         oAOLHum09VrK7MelP/FPKwfv8xggfW5xHEikdEh66xBHEcfAe6q18azDyzSTE4lF4Cs+
-         WnygNKcRqyf6F3o+UNgMRqKMTmE7tkul/w6XB0rugqKwQSfl/BQ/jpwKlta0vVyiBAzI
-         tCM9nukH8PWin8iEzjioKCjN8Cj36eFnhYy/DkwzIokja7+6bFTvkbwI3Zy0qnSsszfk
-         vPZw==
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=vSpSXd4xBTYt0GhSjGvAmECM0CAegHMeid7wAuT1mCI=;
+        b=Iqmevfc8DicUj3o12i8cN1FEDRtwyxOcguIwcTFKcqAe80/LiALvG5Ux7cTbv0/Qiz
+         +oVmJFi8ks3IOjzlGVXZcUkakMo9RBY9EX81rPnYA4G1rOQ2Pu2SgL90vtAJ5h/f83ij
+         srA1uUj4/tRSjkb8P97SP4XieuvenNkQ9HSAIoH1sXBPRR+hDbjxBMip4wN8m1IeWHoJ
+         vGv6fSgUQzhqJ6AtJAC9H+Xnz+4miA/cCcJfFwOd6wY3rS1LH1SjwOja1TeNcTODQKq6
+         24pH1Xw5s192ck6v7MDwUX4tJnNeTfdZpuvacaQtGkeoS5PoLac3Kiv4nFadk8DDQSBZ
+         kHIg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=3QZvRyD4M5+zFkbDYVhqBnw+Q9GmoKf7/UeDVhKpYoo=;
-        b=lP3oB0/OQOkK8jIhJlp2j8b9GpSrUzehYRZcsWgo7Go5fo6aoZpN9QiCGV4IKUHBCr
-         ixa1KnWe0l8yBdzhsiVQKY8bgaZ0PH88EKh+Usg+bvS6ZzQjy9FKwlGOTPCT3SuUlfO3
-         iR9c32sUUo9UcNGCTvtM3TMwKglrWszkBao3386RnKOUdff1UHxXTgkc/CP7bvGTl8eZ
-         dcDF1Ee9u3cecHiLFApFKOF52AOI73dG+J4jHVzIxbnBkpSE/xDpHaDvuAfKkB0XQRpf
-         nX978ouipl22kJHM/BdTxskBFU4ACiHLWv9LiMYsN7tN/LB/XI7xiX8Nbe9au4r1t/NF
-         PKyQ==
-X-Gm-Message-State: ANoB5pljdWQ5OQ5dRHlUjHsBSv9H3IPsjDf8mT5052kSjuY+ffIH8LhI
-	om/XKJPsTGmImZ9Qqc7dxwdn4vH4QzMWPGCtUpI=
-X-Google-Smtp-Source: AA0mqf6lzzI7oOuLBkJTezEkfY4Josaj54aJ/MqWrp2JaM0BbPQwqbTXOMVJz9M8+sGJoNOx7/7X3yDibtJ9h3Jc0fY=
-X-Received: by 2002:ab0:3b5a:0:b0:415:8954:bd51 with SMTP id
- o26-20020ab03b5a000000b004158954bd51mr4455074uaw.97.1668339175936; Sun, 13
- Nov 2022 03:32:55 -0800 (PST)
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=vSpSXd4xBTYt0GhSjGvAmECM0CAegHMeid7wAuT1mCI=;
+        b=JEsB2QIuGHvzzZlwRZ067rAx+ASNB7j3V2NUgifLOju8g85Lz7VZ22773VncMJa5hV
+         KmKkNaS+GAMqlJ7CHOmX8/z7P6nej+EfGO09XnUP9QH12kAcDNBZL6/N7AHZaoLLj7aQ
+         /sfnSqUdnpNiwlAXrE98FUrN9dwLRaH8vNjd50sXZjWXuXLiDiKhFWHzDmqijOIgwA6/
+         wPIKB6HG1mypaj3r5jRO2YDicgs09bZZoROEWQOpSSoSi19psopN78dARRzfA4QRwXoM
+         NfJ98HLhlSI/U9OktUnpjOStaHWJ8fn4ICi3fhu/3Y6u8/D2IQ8Quiiud8SdQ9TmL6u4
+         pdAw==
+X-Gm-Message-State: ANoB5pllAIsOhJNy+yet8LaVRIZxilqohc9u20biR6Y5KTcHLHVfWv5n
+	z5FQHKAmWTyEnCcYcc9BOaNh28db3Kb/67o8ans=
+X-Google-Smtp-Source: AA0mqf763ayLv+C8H6TkBm9gazkkwsnig5L2IS08iwPvTaK9k+4imomma5TQkF2EOgRUOuaHbd7gupbF7f+r97FMxoA=
+X-Received: by 2002:aca:e156:0:b0:35a:3093:d3a with SMTP id
+ y83-20020acae156000000b0035a30930d3amr4646957oig.283.1668361478005; Sun, 13
+ Nov 2022 09:44:38 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20221113112653.12304-1-tegongkang@gmail.com>
-In-Reply-To: <20221113112653.12304-1-tegongkang@gmail.com>
-From: Kang Minchul <tegongkang@gmail.com>
-Date: Sun, 13 Nov 2022 20:32:44 +0900
-Message-ID: <CA+uqrQABhoUAoJ8S4iAKn-=zouDJu=jaB29BgL4oLa5jxtGeCg@mail.gmail.com>
-Subject: Re: [PATCH] ndtest: Remove redundant NULL check
-To: Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, 
-	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>
-Cc: nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org
+References: <20221017171118.1588820-1-sammler@google.com> <CAM9Jb+ggq5L9XZZHhfA98XDO+P=8y-mT+ct0JFAtXRbsCuORsA@mail.gmail.com>
+ <CAFPP518-gU1M1XcHMHgpx=ZPPkSyjPmfOK6D+wM6t6vM6Ve6XQ@mail.gmail.com>
+ <CAM9Jb+hk0ZRtXnF+WVj0LiRiO7uH-jDydJrnUQ_57yTEcs--Dw@mail.gmail.com>
+ <6359ab83d6e4d_4da3294d0@dwillia2-xfh.jf.intel.com.notmuch> <CAHS8izOYYV+dz3vPdbkipt1i1XAU-mvJOn6c_z-NJJwzUtWzDg@mail.gmail.com>
+In-Reply-To: <CAHS8izOYYV+dz3vPdbkipt1i1XAU-mvJOn6c_z-NJJwzUtWzDg@mail.gmail.com>
+From: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Date: Sun, 13 Nov 2022 18:44:26 +0100
+Message-ID: <CAM9Jb+j3MDq_HpaZXYaMWmc4OhXob9hQiLLeSvaJfGa2LoPBDw@mail.gmail.com>
+Subject: Re: [PATCH v1] virtio_pmem: populate numa information
+To: Mina Almasry <almasrymina@google.com>
+Cc: Dan Williams <dan.j.williams@intel.com>, Michael Sammler <sammler@google.com>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Ira Weiny <ira.weiny@intel.com>, Pasha Tatashin <pasha.tatashin@soleen.com>, nvdimm@lists.linux.dev, 
+	linux-kernel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-2022=EB=85=84 11=EC=9B=94 13=EC=9D=BC (=EC=9D=BC) =EC=98=A4=ED=9B=84 8:26, =
-Kang Minchul <tegongkang@gmail.com>=EB=8B=98=EC=9D=B4 =EC=9E=91=EC=84=B1:
+> > Pankaj Gupta wrote:
+> > > > > > Compute the numa information for a virtio_pmem device from the memory
+> > > > > > range of the device. Previously, the target_node was always 0 since
+> > > > > > the ndr_desc.target_node field was never explicitly set. The code for
+> > > > > > computing the numa node is taken from cxl_pmem_region_probe in
+> > > > > > drivers/cxl/pmem.c.
+> > > > > >
+> > > > > > Signed-off-by: Michael Sammler <sammler@google.com>
 >
-> This addresses cocci warning as follows:
-> WARNING: NULL check before some freeing functions is not needed.
+> Tested-by: Mina Almasry <almasrymina@google.com>
 >
-> Signed-off-by: Kang Minchul <tegongkang@gmail.com>
-> ---
->  tools/testing/nvdimm/test/ndtest.c | 3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
+> I don't have much expertise on this driver, but with the help of this
+> patch I was able to get memory tiering [1] emulation going on qemu. As
+> far as I know there is no alternative to this emulation, and so I
+> would love to see this or equivalent merged, if possible.
 >
-> diff --git a/tools/testing/nvdimm/test/ndtest.c b/tools/testing/nvdimm/te=
-st/ndtest.c
-> index 01ceb98c15a0..de4bc34bc47b 100644
-> --- a/tools/testing/nvdimm/test/ndtest.c
-> +++ b/tools/testing/nvdimm/test/ndtest.c
-> @@ -370,8 +370,7 @@ static void *ndtest_alloc_resource(struct ndtest_priv=
- *p, size_t size,
->  buf_err:
->         if (__dma && size >=3D DIMM_SIZE)
->                 gen_pool_free(ndtest_pool, __dma, size);
-> -       if (buf)
-> -               vfree(buf);
-> +       vfree(buf);
->         kfree(res);
+> This is what I have going to get memory tiering emulation:
 >
->         return NULL;
-> --
-> 2.34.1
+> In qemu, added these configs:
+>       -object memory-backend-file,id=m4,share=on,mem-path="$path_to_virtio_pmem_file",size=2G
+> \
+>       -smp 2,sockets=2,maxcpus=2  \
+>       -numa node,nodeid=0,memdev=m0 \
+>       -numa node,nodeid=1,memdev=m1 \
+>       -numa node,nodeid=2,memdev=m2,initiator=0 \
+>       -numa node,nodeid=3,initiator=0 \
+>       -device virtio-pmem-pci,memdev=m4,id=nvdimm1 \
 >
+> On boot, ran these commands:
+>     ndctl_static create-namespace -e namespace0.0 -m devdax -f 1&> /dev/null
+>     echo dax0.0 > /sys/bus/dax/drivers/device_dax/unbind
+>     echo dax0.0 > /sys/bus/dax/drivers/kmem/new_id
+>     for i in `ls /sys/devices/system/memory/`; do
+>       state=$(cat "/sys/devices/system/memory/$i/state" 2&>/dev/null)
+>       if [ "$state" == "offline" ]; then
+>         echo online_movable > "/sys/devices/system/memory/$i/state"
+>       fi
+>     done
 
-I just found an earlier discussion about the same patch as mine.
-Please ignore this patch.
+Nice to see the way to handle the virtio-pmem device memory through kmem driver
+and online the corresponding memory blocks to 'zone_movable'.
 
-Thanks.
+This also opens way to use this memory range directly irrespective of attached
+block device. Of course there won't be any persistent data guarantee. But good
+way to simulate memory tiering inside guest as demonstrated below.
+>
+> Without this CL, I see the memory onlined in node 0 always, and is not
+> a separate memory tier. With this CL and qemu configs, the memory is
+> onlined in node 3 and is set as a separate memory tier, which enables
+> qemu-based development:
+>
+> ==> /sys/devices/virtual/memory_tiering/memory_tier22/nodelist <==
+> 3
+> ==> /sys/devices/virtual/memory_tiering/memory_tier4/nodelist <==
+> 0-2
+>
+> AFAIK there is no alternative to enabling memory tiering emulation in
+> qemu, and would love to see this or equivalent merged, if possible.
 
-Kang Minchul
+Just wondering if Qemu vNVDIMM device can also achieve this?
+
+In any case, this patch is useful, So,
+Reviewed-by: Pankaj Gupta <pankaj.gupta@amd.com
+
+>
+>
+>
+> [1] https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/Documentation/ABI/testing/sysfs-kernel-mm-memory-tiers
+>
+> > > > > > ---
+> > > > > >  drivers/nvdimm/virtio_pmem.c | 11 +++++++++--
+> > > > > >  1 file changed, 9 insertions(+), 2 deletions(-)
+> > > > > >
+> > > > > > diff --git a/drivers/nvdimm/virtio_pmem.c b/drivers/nvdimm/virtio_pmem.c
+> > > > > > index 20da455d2ef6..a92eb172f0e7 100644
+> > > > > > --- a/drivers/nvdimm/virtio_pmem.c
+> > > > > > +++ b/drivers/nvdimm/virtio_pmem.c
+> > > > > > @@ -32,7 +32,6 @@ static int init_vq(struct virtio_pmem *vpmem)
+> > > > > >  static int virtio_pmem_probe(struct virtio_device *vdev)
+> > > > > >  {
+> > > > > >         struct nd_region_desc ndr_desc = {};
+> > > > > > -       int nid = dev_to_node(&vdev->dev);
+> > > > > >         struct nd_region *nd_region;
+> > > > > >         struct virtio_pmem *vpmem;
+> > > > > >         struct resource res;
+> > > > > > @@ -79,7 +78,15 @@ static int virtio_pmem_probe(struct virtio_device *vdev)
+> > > > > >         dev_set_drvdata(&vdev->dev, vpmem->nvdimm_bus);
+> > > > > >
+> > > > > >         ndr_desc.res = &res;
+> > > > > > -       ndr_desc.numa_node = nid;
+> > > > > > +
+> > > > > > +       ndr_desc.numa_node = memory_add_physaddr_to_nid(res.start);
+> > > > > > +       ndr_desc.target_node = phys_to_target_node(res.start);
+> > > > > > +       if (ndr_desc.target_node == NUMA_NO_NODE) {
+> > > > > > +               ndr_desc.target_node = ndr_desc.numa_node;
+> > > > > > +               dev_dbg(&vdev->dev, "changing target node from %d to %d",
+> > > > > > +                       NUMA_NO_NODE, ndr_desc.target_node);
+> > > > > > +       }
+> > > > >
+> > > > > As this memory later gets hotplugged using "devm_memremap_pages". I don't
+> > > > > see if 'target_node' is used for fsdax case?
+> > > > >
+> > > > > It seems to me "target_node" is used mainly for volatile range above
+> > > > > persistent memory ( e.g kmem driver?).
+> > > > >
+> > > > I am not sure if 'target_node' is used in the fsdax case, but it is
+> > > > indeed used by the devdax/kmem driver when hotplugging the memory (see
+> > > > 'dev_dax_kmem_probe' and '__dax_pmem_probe').
+> > >
+> > > Yes, but not currently for FS_DAX iiuc.
+> >
+> > The target_node is only used by the dax_kmem driver. In the FSDAX case
+> > the memory (persistent or otherwise) is mapped behind a block-device.
+> > That block-device has affinity to a CPU initiator, but that memory does
+> > not itself have any NUMA affinity or identity as a target.
+> >
+> > So:
+> >
+> > block-device NUMA node == closest CPU initiator node to the device
+> >
+> > dax-device target node == memory only NUMA node target, after onlining
