@@ -1,40 +1,40 @@
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8217779FA
-	for <nvdimm@lists.linux.dev>; Mon, 14 Nov 2022 20:33:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 402E78482
+	for <nvdimm@lists.linux.dev>; Mon, 14 Nov 2022 20:33:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1668457991; x=1699993991;
+  t=1668457998; x=1699993998;
   h=subject:from:to:cc:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=/KG3rMooqDz/BAjzdEiljJjcyA8/cH3LsLEumvkdptE=;
-  b=mtNsBJpoVQwNwJA2G2hQhNlONB5DSYjN4sc8bniKWu4msbsGxMLdQWiy
-   vG6ld27oCSormsaYjyj/ARrAsyzYe1rNwyWYsnkt/gPRKkp+oYX9GPBUq
-   bCjDzCEHREvXA6Iwsg2dr+sMsyE5/LXmFkUIUy+AdxbLXCvTbOsgy2D+k
-   ekD5qnP4yqsJETifYo1uOnGsZReJwQ55VBeyQZvH0UGJiDdCCLe7UKO9y
-   wmOpmXCTCy9Ky3BO2BRR9TgHSJzzVXX4F1Xdz5xL9+m4qRbhwuw3CWYzG
-   WPfoMxMACjFbWs4EMI2+Xrr5ASSlX3TBoTpOxFP/UoZ0r9nlfdZaTnOAn
-   A==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10531"; a="312080866"
+  bh=HIzLYkSJOaz2vYcR0Jw7JJ1mMfwUqK5vzf+nNcTzjZM=;
+  b=cNrvUw6UEc+j/X0/GSLs2oC9R7ygARMaNOy6+EcGZlhira+E0nWp0B6q
+   qKGspREPueWPtKlWHdMGyk3gI3/SOdGLeq8hYy6luDYBftUBKbE+r3sjN
+   P0oPm3hO5Xon9TFj38u1k4fZLmztzEfMNmBuTCpJSBjQhqPfmQgRGZGM3
+   DQnk4gtaRDC5rHzOn8xk2ajSS3FFGZVeMJbn5ze/XTLZ/MvznvIFP81wO
+   fWHxIqGd6oMkCuxRNaBn4qVlZYAR9LjGV+bSHTFr/uNk51SkfFTKdEpwd
+   HlwNVXdLADUfzvIGW8Y139q3W7eYMGiwGvbV5FfPXZ3wlWSjtIg6iOar1
+   Q==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10531"; a="291789882"
 X-IronPort-AV: E=Sophos;i="5.96,164,1665471600"; 
-   d="scan'208";a="312080866"
-Received: from fmsmga007.fm.intel.com ([10.253.24.52])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Nov 2022 12:33:10 -0800
-X-IronPort-AV: E=McAfee;i="6500,9779,10531"; a="640919882"
+   d="scan'208";a="291789882"
+Received: from orsmga001.jf.intel.com ([10.7.209.18])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Nov 2022 12:33:17 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10531"; a="671711540"
 X-IronPort-AV: E=Sophos;i="5.96,164,1665471600"; 
-   d="scan'208";a="640919882"
+   d="scan'208";a="671711540"
 Received: from djiang5-desk3.ch.intel.com ([143.182.136.137])
-  by fmsmga007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Nov 2022 12:33:10 -0800
-Subject: [PATCH v4 01/18] cxl/pmem: Introduce nvdimm_security_ops with
- ->get_flags() operation
+  by orsmga001-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Nov 2022 12:33:16 -0800
+Subject: [PATCH v4 02/18] tools/testing/cxl: Add "Get Security State" opcode
+ support
 From: Dave Jiang <dave.jiang@intel.com>
 To: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
 Cc: dan.j.williams@intel.com, ira.weiny@intel.com, vishal.l.verma@intel.com,
  alison.schofield@intel.com, Jonathan.Cameron@huawei.com, dave@stgolabs.net
-Date: Mon, 14 Nov 2022 13:33:10 -0700
+Date: Mon, 14 Nov 2022 13:33:15 -0700
 Message-ID: 
- <166845799004.2496228.5617534534519053073.stgit@djiang5-desk3.ch.intel.com>
+ <166845799577.2496228.11474011678071159946.stgit@djiang5-desk3.ch.intel.com>
 In-Reply-To: 
  <166845791969.2496228.8357488385523295841.stgit@djiang5-desk3.ch.intel.com>
 References: 
@@ -49,183 +49,134 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 
-Add nvdimm_security_ops support for CXL memory device with the introduction
-of the ->get_flags() callback function. This is part of the "Persistent
-Memory Data-at-rest Security" command set for CXL memory device support.
-The ->get_flags() function provides the security state of the persistent
-memory device defined by the CXL 3.0 spec section 8.2.9.8.6.1.
+Add the emulation support for handling "Get Security State" opcode for a
+CXL memory device for the cxl_test. The function will copy back device
+security state bitmask to the output payload.
 
+The security state data is added as platform_data for the mock mem device.
+
+Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
 Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- drivers/cxl/Makefile         |    2 +-
- drivers/cxl/core/mbox.c      |    1 +
- drivers/cxl/cxlmem.h         |    8 ++++++
- drivers/cxl/pmem.c           |    6 +++--
- drivers/cxl/security.c       |   56 ++++++++++++++++++++++++++++++++++++++++++
- include/uapi/linux/cxl_mem.h |    1 +
- tools/testing/cxl/Kbuild     |    1 +
- 7 files changed, 72 insertions(+), 3 deletions(-)
- create mode 100644 drivers/cxl/security.c
+ tools/testing/cxl/test/cxl.c       |   18 ++++++++++++++++++
+ tools/testing/cxl/test/mem.c       |   20 ++++++++++++++++++++
+ tools/testing/cxl/test/mem_pdata.h |   10 ++++++++++
+ 3 files changed, 48 insertions(+)
+ create mode 100644 tools/testing/cxl/test/mem_pdata.h
 
-diff --git a/drivers/cxl/Makefile b/drivers/cxl/Makefile
-index a78270794150..db321f48ba52 100644
---- a/drivers/cxl/Makefile
-+++ b/drivers/cxl/Makefile
-@@ -9,5 +9,5 @@ obj-$(CONFIG_CXL_PORT) += cxl_port.o
- cxl_mem-y := mem.o
- cxl_pci-y := pci.o
- cxl_acpi-y := acpi.o
--cxl_pmem-y := pmem.o
-+cxl_pmem-y := pmem.o security.o
- cxl_port-y := port.o
-diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
-index 16176b9278b4..8f4be61a76b5 100644
---- a/drivers/cxl/core/mbox.c
-+++ b/drivers/cxl/core/mbox.c
-@@ -65,6 +65,7 @@ static struct cxl_mem_command cxl_mem_commands[CXL_MEM_COMMAND_ID_MAX] = {
- 	CXL_CMD(GET_SCAN_MEDIA_CAPS, 0x10, 0x4, 0),
- 	CXL_CMD(SCAN_MEDIA, 0x11, 0, 0),
- 	CXL_CMD(GET_SCAN_MEDIA, 0, CXL_VARIABLE_PAYLOAD, 0),
-+	CXL_CMD(GET_SECURITY_STATE, 0, 0x4, 0),
- };
+diff --git a/tools/testing/cxl/test/cxl.c b/tools/testing/cxl/test/cxl.c
+index a072b2d3e726..6dd286a52839 100644
+--- a/tools/testing/cxl/test/cxl.c
++++ b/tools/testing/cxl/test/cxl.c
+@@ -10,6 +10,7 @@
+ #include <linux/mm.h>
+ #include <cxlmem.h>
+ #include "mock.h"
++#include "mem_pdata.h"
  
- /*
-diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
-index 88e3a8e54b6a..25d1d8fa7d1e 100644
---- a/drivers/cxl/cxlmem.h
-+++ b/drivers/cxl/cxlmem.h
-@@ -273,6 +273,7 @@ enum cxl_opcode {
- 	CXL_MBOX_OP_GET_SCAN_MEDIA_CAPS	= 0x4303,
- 	CXL_MBOX_OP_SCAN_MEDIA		= 0x4304,
- 	CXL_MBOX_OP_GET_SCAN_MEDIA	= 0x4305,
-+	CXL_MBOX_OP_GET_SECURITY_STATE	= 0x4500,
- 	CXL_MBOX_OP_MAX			= 0x10000
- };
+ #define NR_CXL_HOST_BRIDGES 2
+ #define NR_CXL_ROOT_PORTS 2
+@@ -629,8 +630,18 @@ static void mock_companion(struct acpi_device *adev, struct device *dev)
  
-@@ -372,6 +373,13 @@ struct cxl_mem_command {
- #define CXL_CMD_FLAG_FORCE_ENABLE BIT(0)
- };
+ static __init int cxl_test_init(void)
+ {
++	struct cxl_mock_mem_pdata *mem_pdata;
+ 	int rc, i;
  
-+#define CXL_PMEM_SEC_STATE_USER_PASS_SET	0x01
-+#define CXL_PMEM_SEC_STATE_MASTER_PASS_SET	0x02
-+#define CXL_PMEM_SEC_STATE_LOCKED		0x04
-+#define CXL_PMEM_SEC_STATE_FROZEN		0x08
-+#define CXL_PMEM_SEC_STATE_USER_PLIMIT		0x10
-+#define CXL_PMEM_SEC_STATE_MASTER_PLIMIT	0x20
++	/*
++	 * Only a zeroed copy of this data structure is needed since no
++	 * additional initialization is needed for initial state.
++	 * platform_device_add_data() will make a copy of this data.
++	 */
++	mem_pdata = kzalloc(sizeof(*mem_pdata), GFP_KERNEL);
++	if (!mem_pdata)
++		return -ENOMEM;
 +
- int cxl_mbox_send_cmd(struct cxl_dev_state *cxlds, u16 opcode, void *in,
- 		      size_t in_size, void *out, size_t out_size);
- int cxl_dev_state_identify(struct cxl_dev_state *cxlds);
-diff --git a/drivers/cxl/pmem.c b/drivers/cxl/pmem.c
-index 7dc0a2fa1a6b..24bec4ca3866 100644
---- a/drivers/cxl/pmem.c
-+++ b/drivers/cxl/pmem.c
-@@ -11,6 +11,8 @@
- #include "cxlmem.h"
- #include "cxl.h"
+ 	register_cxl_mock_ops(&cxl_mock_ops);
  
-+extern const struct nvdimm_security_ops *cxl_security_ops;
+ 	cxl_mock_pool = gen_pool_create(ilog2(SZ_2M), NUMA_NO_NODE);
+@@ -735,6 +746,12 @@ static __init int cxl_test_init(void)
+ 		pdev->dev.parent = &dport->dev;
+ 		set_dev_node(&pdev->dev, i % 2);
+ 
++		rc = platform_device_add_data(pdev, mem_pdata, sizeof(*mem_pdata));
++		if (rc) {
++			platform_device_put(pdev);
++			goto err_mem;
++		}
 +
- /*
-  * Ordered workqueue for cxl nvdimm device arrival and departure
-  * to coordinate bus rescans when a bridge arrives and trigger remove
-@@ -75,8 +77,8 @@ static int cxl_nvdimm_probe(struct device *dev)
- 	set_bit(ND_CMD_GET_CONFIG_SIZE, &cmd_mask);
- 	set_bit(ND_CMD_GET_CONFIG_DATA, &cmd_mask);
- 	set_bit(ND_CMD_SET_CONFIG_DATA, &cmd_mask);
--	nvdimm = nvdimm_create(cxl_nvb->nvdimm_bus, cxl_nvd, NULL, flags,
--			       cmd_mask, 0, NULL);
-+	nvdimm = __nvdimm_create(cxl_nvb->nvdimm_bus, cxl_nvd, NULL, flags,
-+				 cmd_mask, 0, NULL, NULL, cxl_security_ops, NULL);
- 	if (!nvdimm) {
- 		rc = -ENOMEM;
- 		goto out;
-diff --git a/drivers/cxl/security.c b/drivers/cxl/security.c
-new file mode 100644
-index 000000000000..806173084216
---- /dev/null
-+++ b/drivers/cxl/security.c
-@@ -0,0 +1,56 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/* Copyright(c) 2022 Intel Corporation. All rights reserved. */
-+#include <linux/libnvdimm.h>
-+#include <asm/unaligned.h>
-+#include <linux/module.h>
-+#include <linux/async.h>
-+#include <linux/slab.h>
-+#include "cxlmem.h"
-+#include "cxl.h"
-+
-+static unsigned long cxl_pmem_get_security_flags(struct nvdimm *nvdimm,
-+						 enum nvdimm_passphrase_type ptype)
+ 		rc = platform_device_add(pdev);
+ 		if (rc) {
+ 			platform_device_put(pdev);
+@@ -785,6 +802,7 @@ static __init int cxl_test_init(void)
+ 	gen_pool_destroy(cxl_mock_pool);
+ err_gen_pool_create:
+ 	unregister_cxl_mock_ops(&cxl_mock_ops);
++	kfree(mem_pdata);
+ 	return rc;
+ }
+ 
+diff --git a/tools/testing/cxl/test/mem.c b/tools/testing/cxl/test/mem.c
+index aa2df3a15051..9002a3ae3ea5 100644
+--- a/tools/testing/cxl/test/mem.c
++++ b/tools/testing/cxl/test/mem.c
+@@ -8,6 +8,7 @@
+ #include <linux/sizes.h>
+ #include <linux/bits.h>
+ #include <cxlmem.h>
++#include "mem_pdata.h"
+ 
+ #define LSA_SIZE SZ_128K
+ #define DEV_SIZE SZ_2G
+@@ -137,6 +138,22 @@ static int mock_partition_info(struct cxl_dev_state *cxlds,
+ 	return 0;
+ }
+ 
++static int mock_get_security_state(struct cxl_dev_state *cxlds,
++				   struct cxl_mbox_cmd *cmd)
 +{
-+	struct cxl_nvdimm *cxl_nvd = nvdimm_provider_data(nvdimm);
-+	struct cxl_memdev *cxlmd = cxl_nvd->cxlmd;
-+	struct cxl_dev_state *cxlds = cxlmd->cxlds;
-+	unsigned long security_flags = 0;
-+	u32 sec_out;
-+	int rc;
++	struct cxl_mock_mem_pdata *mdata = dev_get_platdata(cxlds->dev);
 +
-+	rc = cxl_mbox_send_cmd(cxlds, CXL_MBOX_OP_GET_SECURITY_STATE, NULL, 0,
-+			       &sec_out, sizeof(sec_out));
-+	if (rc < 0)
-+		return 0;
++	if (cmd->size_in)
++		return -EINVAL;
 +
-+	if (ptype == NVDIMM_MASTER) {
-+		if (sec_out & CXL_PMEM_SEC_STATE_MASTER_PASS_SET)
-+			set_bit(NVDIMM_SECURITY_UNLOCKED, &security_flags);
-+		else
-+			set_bit(NVDIMM_SECURITY_DISABLED, &security_flags);
-+		if (sec_out & CXL_PMEM_SEC_STATE_MASTER_PLIMIT)
-+			set_bit(NVDIMM_SECURITY_FROZEN, &security_flags);
-+		return security_flags;
-+	}
++	if (cmd->size_out != sizeof(u32))
++		return -EINVAL;
 +
-+	if (sec_out & CXL_PMEM_SEC_STATE_USER_PASS_SET) {
-+		if (sec_out & CXL_PMEM_SEC_STATE_FROZEN ||
-+		    sec_out & CXL_PMEM_SEC_STATE_USER_PLIMIT)
-+			set_bit(NVDIMM_SECURITY_FROZEN, &security_flags);
++	memcpy(cmd->payload_out, &mdata->security_state, sizeof(u32));
 +
-+		if (sec_out & CXL_PMEM_SEC_STATE_LOCKED)
-+			set_bit(NVDIMM_SECURITY_LOCKED, &security_flags);
-+		else
-+			set_bit(NVDIMM_SECURITY_UNLOCKED, &security_flags);
-+	} else {
-+		set_bit(NVDIMM_SECURITY_DISABLED, &security_flags);
-+	}
-+
-+	return security_flags;
++	return 0;
 +}
 +
-+static const struct nvdimm_security_ops __cxl_security_ops = {
-+	.get_flags = cxl_pmem_get_security_flags,
+ static int mock_get_lsa(struct cxl_dev_state *cxlds, struct cxl_mbox_cmd *cmd)
+ {
+ 	struct cxl_mbox_get_lsa *get_lsa = cmd->payload_in;
+@@ -230,6 +247,9 @@ static int cxl_mock_mbox_send(struct cxl_dev_state *cxlds, struct cxl_mbox_cmd *
+ 	case CXL_MBOX_OP_GET_HEALTH_INFO:
+ 		rc = mock_health_info(cxlds, cmd);
+ 		break;
++	case CXL_MBOX_OP_GET_SECURITY_STATE:
++		rc = mock_get_security_state(cxlds, cmd);
++		break;
+ 	default:
+ 		break;
+ 	}
+diff --git a/tools/testing/cxl/test/mem_pdata.h b/tools/testing/cxl/test/mem_pdata.h
+new file mode 100644
+index 000000000000..6a7b111147eb
+--- /dev/null
++++ b/tools/testing/cxl/test/mem_pdata.h
+@@ -0,0 +1,10 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++
++#ifndef _MEM_PDATA_H_
++#define _MEM_PDATA_H_
++
++struct cxl_mock_mem_pdata {
++	u32 security_state;
 +};
 +
-+const struct nvdimm_security_ops *cxl_security_ops = &__cxl_security_ops;
-diff --git a/include/uapi/linux/cxl_mem.h b/include/uapi/linux/cxl_mem.h
-index c71021a2a9ed..cdc6049683ce 100644
---- a/include/uapi/linux/cxl_mem.h
-+++ b/include/uapi/linux/cxl_mem.h
-@@ -41,6 +41,7 @@
- 	___C(GET_SCAN_MEDIA_CAPS, "Get Scan Media Capabilities"),         \
- 	___C(SCAN_MEDIA, "Scan Media"),                                   \
- 	___C(GET_SCAN_MEDIA, "Get Scan Media Results"),                   \
-+	___C(GET_SECURITY_STATE, "Get Security State"),			  \
- 	___C(MAX, "invalid / last command")
- 
- #define ___C(a, b) CXL_MEM_COMMAND_ID_##a
-diff --git a/tools/testing/cxl/Kbuild b/tools/testing/cxl/Kbuild
-index 500be85729cc..e4048a05b6ab 100644
---- a/tools/testing/cxl/Kbuild
-+++ b/tools/testing/cxl/Kbuild
-@@ -26,6 +26,7 @@ cxl_acpi-y += config_check.o
- obj-m += cxl_pmem.o
- 
- cxl_pmem-y := $(CXL_SRC)/pmem.o
-+cxl_pmem-y += $(CXL_SRC)/security.o
- cxl_pmem-y += config_check.o
- 
- obj-m += cxl_port.o
++#endif
 
 
