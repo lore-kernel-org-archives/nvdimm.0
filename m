@@ -1,356 +1,210 @@
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-vs1-f50.google.com (mail-vs1-f50.google.com [209.85.217.50])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E856579FD
-	for <nvdimm@lists.linux.dev>; Mon, 14 Nov 2022 18:50:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1668451851; x=1699987851;
-  h=subject:from:to:cc:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=GdDop3Zb517gVHlWLT6nRTwUKcnJ2dCYJ+r/uzuNVIM=;
-  b=jeVBzP4I73HMyUI8VUrfrwi8QQ/rBy7w1Nz8coQUcneQPWccub8RXwU3
-   ojjXbkCbnh3hDHHckgSk1WHiuRCISi5xu5TR/SAuGYZy6kFJnWpeJHWJR
-   MQTCSlVkGdj/l8d6tKVBYKrce01OX31Hn4xOsmQkL9F3PhXT+clgmZwgO
-   ZZviQGHiSDsx8ab/DKLVJ92vVQpwypGQOKmcqqNTWcAnktHtXALXbXE/B
-   k2dalqO5T3rzWTK3VhNLzuEbumsPuH2u6UrybXxOXe5r4XOLIm17s3P6r
-   Cext3F9dYEFsqg3cYUAqJj+EZGlvOIkJUY0B6Xu1Nk4HO+rV2a/Nh1hvV
-   g==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10531"; a="292450261"
-X-IronPort-AV: E=Sophos;i="5.96,164,1665471600"; 
-   d="scan'208";a="292450261"
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Nov 2022 10:50:51 -0800
-X-IronPort-AV: E=McAfee;i="6500,9779,10531"; a="727639068"
-X-IronPort-AV: E=Sophos;i="5.96,164,1665471600"; 
-   d="scan'208";a="727639068"
-Received: from shahr-mobl1.amr.corp.intel.com (HELO dwillia2-xfh.jf.intel.com) ([10.209.78.174])
-  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Nov 2022 10:50:50 -0800
-Subject: [PATCH v6] memregion: Add cpu_cache_invalidate_memregion() interface
-From: Dan Williams <dan.j.williams@intel.com>
-To: linux-cxl@vger.kernel.org
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>,
- Borislav Petkov <bp@alien8.de>, x86@kernel.org,
- "H. Peter Anvin" <hpa@zytor.com>, Andy Lutomirski <luto@kernel.org>,
- Peter Zijlstra <peterz@infradead.org>, Dave Jiang <dave.jiang@intel.com>,
- Davidlohr Bueso <dave@stgolabs.net>, Dave Hansen <dave.hansen@linux.intel.com>,
- nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org
-Date: Mon, 14 Nov 2022 10:50:49 -0800
-Message-ID: <166845177597.1351848.15454720528892170333.stgit@dwillia2-xfh.jf.intel.com>
-In-Reply-To: <166698148737.3132474.5901874516011784201.stgit@dwillia2-xfh.jf.intel.com>
-References: <166698148737.3132474.5901874516011784201.stgit@dwillia2-xfh.jf.intel.com>
-User-Agent: StGit/0.18-3-g996c
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F2FF749E
+	for <nvdimm@lists.linux.dev>; Mon, 14 Nov 2022 19:14:39 +0000 (UTC)
+Received: by mail-vs1-f50.google.com with SMTP id q127so12479798vsa.7
+        for <nvdimm@lists.linux.dev>; Mon, 14 Nov 2022 11:14:39 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=ppYNbwGBmFp60JGsjkd+4WjNN17srw2QFRc27Nuw4kM=;
+        b=aefewAI7GXQMCF4zxIt7Rf6T2cPnkSzrllgXa7FUxI9qT5MOICGJ2bUGc3mCxT4LOX
+         33B6J+rlFF4+p79fcdrzl6nHV2VEJVi3oGiuzs1uAWx5DH5+5u2KiwdEQNRyi+3CxJxp
+         RYlmsrghULjrf5CEy6rgGsHdsR+Ubya6Oz4kMsJkUazljNkqbNdfpl6UDdJdlkGeabRs
+         ufSZeCh7M+w7To6j/rQ279i2ddkYT4hG46xZeP/yGcEQuZkDjNt0yDjy4CiO4KTMV/bt
+         hVq+96/HD6Azy9ZPgGVykGPdivZAzdMrFVxRoV/KlCVsUyM0bNKqn+48mZnkwbt6aXi3
+         6BMQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=ppYNbwGBmFp60JGsjkd+4WjNN17srw2QFRc27Nuw4kM=;
+        b=B7SpBmn/9SDZf/yhP1PzxQsmTdRg6r7eqLilTJqfQolthqkEKi8PSvHrTRVj9Z8yHC
+         xWcRH75MCXx+d5GWnkUfMIftjg+Krp2SSBnJWT5QNw2AugHUtE4qIuq/Kn1PdmlfCXjN
+         cPLG+yEe/46AnR8q9nfk4B6VXW+6oFwcj+hufZEsa7WPTGb/IIzNJ38n56c/OZnXFDpx
+         EpNryhtIKmJTvcczlS55GVb1GmJJrQRq4d32X2pPE5kuAq1GBDOsOyzFh0ezMF1zx7vp
+         sWj/rq7UyKWhL8JX2CyOkqmS05zttj4OgVAYVgm20M0l0g9pL79WL3gYHXGS8NZqm4rm
+         b8Fg==
+X-Gm-Message-State: ANoB5pn1Wg99QI9kIV/DY8xW+YWAJG3d+MkgD7w6zaLu7RXoPCIpJPA5
+	wd7l8hqRjQmD5B8bI0QFmP+mosD71h4JfGvfBFlfcw==
+X-Google-Smtp-Source: AA0mqf6RLsB1ENKz3VM3rmc/6sfce0CAiGCTUb20MrAD03R5dH4uNh8HbsqmEwcDKscYBlck4GZaxm32VKYq6lPzpEo=
+X-Received: by 2002:a67:ce83:0:b0:3aa:1bff:a8a5 with SMTP id
+ c3-20020a67ce83000000b003aa1bffa8a5mr6911973vse.67.1668453278130; Mon, 14 Nov
+ 2022 11:14:38 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+References: <20221017171118.1588820-1-sammler@google.com> <CAM9Jb+ggq5L9XZZHhfA98XDO+P=8y-mT+ct0JFAtXRbsCuORsA@mail.gmail.com>
+ <CAFPP518-gU1M1XcHMHgpx=ZPPkSyjPmfOK6D+wM6t6vM6Ve6XQ@mail.gmail.com>
+ <CAM9Jb+hk0ZRtXnF+WVj0LiRiO7uH-jDydJrnUQ_57yTEcs--Dw@mail.gmail.com>
+ <6359ab83d6e4d_4da3294d0@dwillia2-xfh.jf.intel.com.notmuch>
+ <CAHS8izOYYV+dz3vPdbkipt1i1XAU-mvJOn6c_z-NJJwzUtWzDg@mail.gmail.com> <CAM9Jb+j3MDq_HpaZXYaMWmc4OhXob9hQiLLeSvaJfGa2LoPBDw@mail.gmail.com>
+In-Reply-To: <CAM9Jb+j3MDq_HpaZXYaMWmc4OhXob9hQiLLeSvaJfGa2LoPBDw@mail.gmail.com>
+From: Mina Almasry <almasrymina@google.com>
+Date: Mon, 14 Nov 2022 11:14:26 -0800
+Message-ID: <CAHS8izNgmwjwyTyFzXWKrM==nTO0CJEW3+mUoKmtYjPushL5-g@mail.gmail.com>
+Subject: Re: [PATCH v1] virtio_pmem: populate numa information
+To: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Cc: Dan Williams <dan.j.williams@intel.com>, Michael Sammler <sammler@google.com>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Ira Weiny <ira.weiny@intel.com>, Pasha Tatashin <pasha.tatashin@soleen.com>, nvdimm@lists.linux.dev, 
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-From: Davidlohr Bueso <dave@stgolabs.net>
+On Sun, Nov 13, 2022 at 9:44 AM Pankaj Gupta
+<pankaj.gupta.linux@gmail.com> wrote:
+>
+> > > Pankaj Gupta wrote:
+> > > > > > > Compute the numa information for a virtio_pmem device from the memory
+> > > > > > > range of the device. Previously, the target_node was always 0 since
+> > > > > > > the ndr_desc.target_node field was never explicitly set. The code for
+> > > > > > > computing the numa node is taken from cxl_pmem_region_probe in
+> > > > > > > drivers/cxl/pmem.c.
+> > > > > > >
+> > > > > > > Signed-off-by: Michael Sammler <sammler@google.com>
+> >
+> > Tested-by: Mina Almasry <almasrymina@google.com>
+> >
+> > I don't have much expertise on this driver, but with the help of this
+> > patch I was able to get memory tiering [1] emulation going on qemu. As
+> > far as I know there is no alternative to this emulation, and so I
+> > would love to see this or equivalent merged, if possible.
+> >
+> > This is what I have going to get memory tiering emulation:
+> >
+> > In qemu, added these configs:
+> >       -object memory-backend-file,id=m4,share=on,mem-path="$path_to_virtio_pmem_file",size=2G
+> > \
+> >       -smp 2,sockets=2,maxcpus=2  \
+> >       -numa node,nodeid=0,memdev=m0 \
+> >       -numa node,nodeid=1,memdev=m1 \
+> >       -numa node,nodeid=2,memdev=m2,initiator=0 \
+> >       -numa node,nodeid=3,initiator=0 \
+> >       -device virtio-pmem-pci,memdev=m4,id=nvdimm1 \
+> >
+> > On boot, ran these commands:
+> >     ndctl_static create-namespace -e namespace0.0 -m devdax -f 1&> /dev/null
+> >     echo dax0.0 > /sys/bus/dax/drivers/device_dax/unbind
+> >     echo dax0.0 > /sys/bus/dax/drivers/kmem/new_id
+> >     for i in `ls /sys/devices/system/memory/`; do
+> >       state=$(cat "/sys/devices/system/memory/$i/state" 2&>/dev/null)
+> >       if [ "$state" == "offline" ]; then
+> >         echo online_movable > "/sys/devices/system/memory/$i/state"
+> >       fi
+> >     done
+>
+> Nice to see the way to handle the virtio-pmem device memory through kmem driver
+> and online the corresponding memory blocks to 'zone_movable'.
+>
+> This also opens way to use this memory range directly irrespective of attached
+> block device. Of course there won't be any persistent data guarantee. But good
+> way to simulate memory tiering inside guest as demonstrated below.
+> >
+> > Without this CL, I see the memory onlined in node 0 always, and is not
+> > a separate memory tier. With this CL and qemu configs, the memory is
+> > onlined in node 3 and is set as a separate memory tier, which enables
+> > qemu-based development:
+> >
+> > ==> /sys/devices/virtual/memory_tiering/memory_tier22/nodelist <==
+> > 3
+> > ==> /sys/devices/virtual/memory_tiering/memory_tier4/nodelist <==
+> > 0-2
+> >
+> > AFAIK there is no alternative to enabling memory tiering emulation in
+> > qemu, and would love to see this or equivalent merged, if possible.
+>
+> Just wondering if Qemu vNVDIMM device can also achieve this?
+>
 
-With CXL security features, and CXL dynamic provisioning, global CPU
-cache flushing nvdimm requirements are no longer specific to that
-subsystem, even beyond the scope of security_ops. CXL will need such
-semantics for features not necessarily limited to persistent memory.
+I spent a few minutes on this. Please note I'm really not familiar
+with these drivers, but as far as I can tell the qemu vNVDIMM device
+has the same problem and needs a similar fix to this to what Michael
+did here. What I did with vNVDIMM qemu device:
 
-The functionality this is enabling is to be able to instantaneously
-secure erase potentially terabytes of memory at once and the kernel
-needs to be sure that none of the data from before the erase is still
-present in the cache. It is also used when unlocking a memory device
-where speculative reads and firmware accesses could have cached poison
-from before the device was unlocked. Lastly this facility is used when
-mapping new devices, or new capacity into an established physical
-address range. I.e. when the driver switches DeviceA mapping AddressX to
-DeviceB mapping AddressX then any cached data from DeviceA:AddressX
-needs to be invalidated.
+- Added these qemu configs:
+      -object memory-backend-file,id=m4,share=on,mem-path=./hello,size=2G,readonly=off
+\
+      -device nvdimm,id=nvdimm1,memdev=m4,unarmed=off \
 
-This capability is typically only used once per-boot (for unlock), or
-once per bare metal provisioning event (secure erase), like when handing
-off the system to another tenant or decommissioning a device. It may
-also be used for dynamic CXL region provisioning.
+- Ran the same commands in my previous email (they seem to apply to
+the vNVDIMM device without modification):
+    ndctl_static create-namespace -e namespace0.0 -m devdax -f 1&> /dev/null
+    echo dax0.0 > /sys/bus/dax/drivers/device_dax/unbind
+    echo dax0.0 > /sys/bus/dax/drivers/kmem/new_id
+    for i in `ls /sys/devices/system/memory/`; do
+      state=$(cat "/sys/devices/system/memory/$i/state" 2&>/dev/null)
+      if [ "$state" == "offline" ]; then
+        echo online_movable > "/sys/devices/system/memory/$i/state"
+      fi
+    done
 
-Users must first call cpu_cache_has_invalidate_memregion() to know
-whether this functionality is available on the architecture. On x86 this
-respects the constraints of when wbinvd() is tolerable. It is already
-the case that wbinvd() is problematic to allow in VMs due its global
-performance impact and KVM, for example, has been known to just trap and
-ignore the call. With confidential computing guest execution of wbinvd()
-may even trigger an exception. Given guests should not be messing with
-the bare metal address map via CXL configuration changes
-cpu_cache_has_invalidate_memregion() returns false in VMs.
+I see the memory from the vNVDIMM device get onlined on node0, and is
+not detected as a separate memory tier. I suspect that driver needs a
+similar fix to this one.
 
-While this global cache invalidation facility, is exported to modules,
-since NVDIMM and CXL support can be built as a module, it is not for
-general use. The intent is that this facility is not available outside
-of specific "device-memory" use cases. To make that expectation as clear
-as possible the API is scoped to a new "DEVMEM" module namespace that
-only the NVDIMM and CXL subsystems are expected to import.
-
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: x86@kernel.org
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Tested-by: Dave Jiang <dave.jiang@intel.com>
-Signed-off-by: Davidlohr Bueso <dave@stgolabs.net>
-Acked-by: Dave Hansen <dave.hansen@linux.intel.com>
-Co-developed-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
-Changes since v5 [1]:
-- A collection of build fixed reported by the 0day build robot
-
-[1]: http://lore.kernel.org/r/166698148737.3132474.5901874516011784201.stgit@dwillia2-xfh.jf.intel.com
-
- arch/x86/Kconfig             |    1 +
- arch/x86/mm/pat/set_memory.c |   18 ++++++++++++++++++
- drivers/acpi/nfit/intel.c    |   43 ++++++++++++++++++++----------------------
- include/linux/memregion.h    |   38 +++++++++++++++++++++++++++++++++++++
- lib/Kconfig                  |    3 +++
- 5 files changed, 80 insertions(+), 23 deletions(-)
-
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 67745ceab0db..e16b2b15d67e 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -69,6 +69,7 @@ config X86
- 	select ARCH_ENABLE_THP_MIGRATION if X86_64 && TRANSPARENT_HUGEPAGE
- 	select ARCH_HAS_ACPI_TABLE_UPGRADE	if ACPI
- 	select ARCH_HAS_CACHE_LINE_SIZE
-+	select ARCH_HAS_CPU_CACHE_INVALIDATE_MEMREGION
- 	select ARCH_HAS_CURRENT_STACK_POINTER
- 	select ARCH_HAS_DEBUG_VIRTUAL
- 	select ARCH_HAS_DEBUG_VM_PGTABLE	if !X86_PAE
-diff --git a/arch/x86/mm/pat/set_memory.c b/arch/x86/mm/pat/set_memory.c
-index 2e5a045731de..ef34ba21aa92 100644
---- a/arch/x86/mm/pat/set_memory.c
-+++ b/arch/x86/mm/pat/set_memory.c
-@@ -20,6 +20,7 @@
- #include <linux/kernel.h>
- #include <linux/cc_platform.h>
- #include <linux/set_memory.h>
-+#include <linux/memregion.h>
- 
- #include <asm/e820/api.h>
- #include <asm/processor.h>
-@@ -330,6 +331,23 @@ void arch_invalidate_pmem(void *addr, size_t size)
- EXPORT_SYMBOL_GPL(arch_invalidate_pmem);
- #endif
- 
-+#ifdef CONFIG_ARCH_HAS_CPU_CACHE_INVALIDATE_MEMREGION
-+bool cpu_cache_has_invalidate_memregion(void)
-+{
-+	return !cpu_feature_enabled(X86_FEATURE_HYPERVISOR);
-+}
-+EXPORT_SYMBOL_NS_GPL(cpu_cache_has_invalidate_memregion, DEVMEM);
-+
-+int cpu_cache_invalidate_memregion(int res_desc)
-+{
-+	if (WARN_ON_ONCE(!cpu_cache_has_invalidate_memregion()))
-+		return -ENXIO;
-+	wbinvd_on_all_cpus();
-+	return 0;
-+}
-+EXPORT_SYMBOL_NS_GPL(cpu_cache_invalidate_memregion, DEVMEM);
-+#endif
-+
- static void __cpa_flush_all(void *arg)
- {
- 	unsigned long cache = (unsigned long)arg;
-diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
-index 8dd792a55730..fa0e57e35162 100644
---- a/drivers/acpi/nfit/intel.c
-+++ b/drivers/acpi/nfit/intel.c
-@@ -3,6 +3,7 @@
- #include <linux/libnvdimm.h>
- #include <linux/ndctl.h>
- #include <linux/acpi.h>
-+#include <linux/memregion.h>
- #include <asm/smp.h>
- #include "intel.h"
- #include "nfit.h"
-@@ -190,8 +191,6 @@ static int intel_security_change_key(struct nvdimm *nvdimm,
- 	}
- }
- 
--static void nvdimm_invalidate_cache(void);
--
- static int __maybe_unused intel_security_unlock(struct nvdimm *nvdimm,
- 		const struct nvdimm_key_data *key_data)
- {
-@@ -213,6 +212,9 @@ static int __maybe_unused intel_security_unlock(struct nvdimm *nvdimm,
- 	if (!test_bit(NVDIMM_INTEL_UNLOCK_UNIT, &nfit_mem->dsm_mask))
- 		return -ENOTTY;
- 
-+	if (!cpu_cache_has_invalidate_memregion())
-+		return -EINVAL;
-+
- 	memcpy(nd_cmd.cmd.passphrase, key_data->data,
- 			sizeof(nd_cmd.cmd.passphrase));
- 	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
-@@ -228,7 +230,7 @@ static int __maybe_unused intel_security_unlock(struct nvdimm *nvdimm,
- 	}
- 
- 	/* DIMM unlocked, invalidate all CPU caches before we read it */
--	nvdimm_invalidate_cache();
-+	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
- 
- 	return 0;
- }
-@@ -297,8 +299,11 @@ static int __maybe_unused intel_security_erase(struct nvdimm *nvdimm,
- 	if (!test_bit(cmd, &nfit_mem->dsm_mask))
- 		return -ENOTTY;
- 
-+	if (!cpu_cache_has_invalidate_memregion())
-+		return -EINVAL;
-+
- 	/* flush all cache before we erase DIMM */
--	nvdimm_invalidate_cache();
-+	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
- 	memcpy(nd_cmd.cmd.passphrase, key->data,
- 			sizeof(nd_cmd.cmd.passphrase));
- 	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
-@@ -318,7 +323,7 @@ static int __maybe_unused intel_security_erase(struct nvdimm *nvdimm,
- 	}
- 
- 	/* DIMM erased, invalidate all CPU caches before we read it */
--	nvdimm_invalidate_cache();
-+	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
- 	return 0;
- }
- 
-@@ -341,6 +346,9 @@ static int __maybe_unused intel_security_query_overwrite(struct nvdimm *nvdimm)
- 	if (!test_bit(NVDIMM_INTEL_QUERY_OVERWRITE, &nfit_mem->dsm_mask))
- 		return -ENOTTY;
- 
-+	if (!cpu_cache_has_invalidate_memregion())
-+		return -EINVAL;
-+
- 	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
- 	if (rc < 0)
- 		return rc;
-@@ -355,7 +363,7 @@ static int __maybe_unused intel_security_query_overwrite(struct nvdimm *nvdimm)
- 	}
- 
- 	/* flush all cache before we make the nvdimms available */
--	nvdimm_invalidate_cache();
-+	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
- 	return 0;
- }
- 
-@@ -380,8 +388,11 @@ static int __maybe_unused intel_security_overwrite(struct nvdimm *nvdimm,
- 	if (!test_bit(NVDIMM_INTEL_OVERWRITE, &nfit_mem->dsm_mask))
- 		return -ENOTTY;
- 
-+	if (!cpu_cache_has_invalidate_memregion())
-+		return -EINVAL;
-+
- 	/* flush all cache before we erase DIMM */
--	nvdimm_invalidate_cache();
-+	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
- 	memcpy(nd_cmd.cmd.passphrase, nkey->data,
- 			sizeof(nd_cmd.cmd.passphrase));
- 	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
-@@ -401,22 +412,6 @@ static int __maybe_unused intel_security_overwrite(struct nvdimm *nvdimm,
- 	}
- }
- 
--/*
-- * TODO: define a cross arch wbinvd equivalent when/if
-- * NVDIMM_FAMILY_INTEL command support arrives on another arch.
-- */
--#ifdef CONFIG_X86
--static void nvdimm_invalidate_cache(void)
--{
--	wbinvd_on_all_cpus();
--}
--#else
--static void nvdimm_invalidate_cache(void)
--{
--	WARN_ON_ONCE("cache invalidation required after unlock\n");
--}
--#endif
--
- static const struct nvdimm_security_ops __intel_security_ops = {
- 	.get_flags = intel_security_flags,
- 	.freeze = intel_security_freeze,
-@@ -775,3 +770,5 @@ static const struct nvdimm_fw_ops __intel_fw_ops = {
- };
- 
- const struct nvdimm_fw_ops *intel_fw_ops = &__intel_fw_ops;
-+
-+MODULE_IMPORT_NS(DEVMEM);
-diff --git a/include/linux/memregion.h b/include/linux/memregion.h
-index c04c4fd2e209..bf83363807ac 100644
---- a/include/linux/memregion.h
-+++ b/include/linux/memregion.h
-@@ -3,6 +3,7 @@
- #define _MEMREGION_H_
- #include <linux/types.h>
- #include <linux/errno.h>
-+#include <linux/bug.h>
- 
- struct memregion_info {
- 	int target_node;
-@@ -20,4 +21,41 @@ static inline void memregion_free(int id)
- {
- }
- #endif
-+
-+/**
-+ * cpu_cache_invalidate_memregion - drop any CPU cached data for
-+ *     memregions described by @res_desc
-+ * @res_desc: one of the IORES_DESC_* types
-+ *
-+ * Perform cache maintenance after a memory event / operation that
-+ * changes the contents of physical memory in a cache-incoherent manner.
-+ * For example, device memory technologies like NVDIMM and CXL have
-+ * device secure erase, and dynamic region provision that can replace
-+ * the memory mapped to a given physical address.
-+ *
-+ * Limit the functionality to architectures that have an efficient way
-+ * to writeback and invalidate potentially terabytes of address space at
-+ * once.  Note that this routine may or may not write back any dirty
-+ * contents while performing the invalidation. It is only exported for
-+ * the explicit usage of the NVDIMM and CXL modules in the 'DEVMEM'
-+ * symbol namespace on bare platforms.
-+ *
-+ * Returns 0 on success or negative error code on a failure to perform
-+ * the cache maintenance.
-+ */
-+#ifdef CONFIG_ARCH_HAS_CPU_CACHE_INVALIDATE_MEMREGION
-+int cpu_cache_invalidate_memregion(int res_desc);
-+bool cpu_cache_has_invalidate_memregion(void);
-+#else
-+static inline bool cpu_cache_has_invalidate_memregion(void)
-+{
-+	return false;
-+}
-+
-+static inline int cpu_cache_invalidate_memregion(int res_desc)
-+{
-+	WARN_ON_ONCE("CPU cache invalidation required");
-+	return -ENXIO;
-+}
-+#endif
- #endif /* _MEMREGION_H_ */
-diff --git a/lib/Kconfig b/lib/Kconfig
-index 9bbf8a4b2108..9eb514abcdec 100644
---- a/lib/Kconfig
-+++ b/lib/Kconfig
-@@ -672,6 +672,9 @@ config ARCH_HAS_PMEM_API
- config MEMREGION
- 	bool
- 
-+config ARCH_HAS_CPU_CACHE_INVALIDATE_MEMREGION
-+	bool
-+
- config ARCH_HAS_MEMREMAP_COMPAT_ALIGN
- 	bool
- 
-
+> In any case, this patch is useful, So,
+> Reviewed-by: Pankaj Gupta <pankaj.gupta@amd.com
+>
+> >
+> >
+> >
+> > [1] https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/Documentation/ABI/testing/sysfs-kernel-mm-memory-tiers
+> >
+> > > > > > > ---
+> > > > > > >  drivers/nvdimm/virtio_pmem.c | 11 +++++++++--
+> > > > > > >  1 file changed, 9 insertions(+), 2 deletions(-)
+> > > > > > >
+> > > > > > > diff --git a/drivers/nvdimm/virtio_pmem.c b/drivers/nvdimm/virtio_pmem.c
+> > > > > > > index 20da455d2ef6..a92eb172f0e7 100644
+> > > > > > > --- a/drivers/nvdimm/virtio_pmem.c
+> > > > > > > +++ b/drivers/nvdimm/virtio_pmem.c
+> > > > > > > @@ -32,7 +32,6 @@ static int init_vq(struct virtio_pmem *vpmem)
+> > > > > > >  static int virtio_pmem_probe(struct virtio_device *vdev)
+> > > > > > >  {
+> > > > > > >         struct nd_region_desc ndr_desc = {};
+> > > > > > > -       int nid = dev_to_node(&vdev->dev);
+> > > > > > >         struct nd_region *nd_region;
+> > > > > > >         struct virtio_pmem *vpmem;
+> > > > > > >         struct resource res;
+> > > > > > > @@ -79,7 +78,15 @@ static int virtio_pmem_probe(struct virtio_device *vdev)
+> > > > > > >         dev_set_drvdata(&vdev->dev, vpmem->nvdimm_bus);
+> > > > > > >
+> > > > > > >         ndr_desc.res = &res;
+> > > > > > > -       ndr_desc.numa_node = nid;
+> > > > > > > +
+> > > > > > > +       ndr_desc.numa_node = memory_add_physaddr_to_nid(res.start);
+> > > > > > > +       ndr_desc.target_node = phys_to_target_node(res.start);
+> > > > > > > +       if (ndr_desc.target_node == NUMA_NO_NODE) {
+> > > > > > > +               ndr_desc.target_node = ndr_desc.numa_node;
+> > > > > > > +               dev_dbg(&vdev->dev, "changing target node from %d to %d",
+> > > > > > > +                       NUMA_NO_NODE, ndr_desc.target_node);
+> > > > > > > +       }
+> > > > > >
+> > > > > > As this memory later gets hotplugged using "devm_memremap_pages". I don't
+> > > > > > see if 'target_node' is used for fsdax case?
+> > > > > >
+> > > > > > It seems to me "target_node" is used mainly for volatile range above
+> > > > > > persistent memory ( e.g kmem driver?).
+> > > > > >
+> > > > > I am not sure if 'target_node' is used in the fsdax case, but it is
+> > > > > indeed used by the devdax/kmem driver when hotplugging the memory (see
+> > > > > 'dev_dax_kmem_probe' and '__dax_pmem_probe').
+> > > >
+> > > > Yes, but not currently for FS_DAX iiuc.
+> > >
+> > > The target_node is only used by the dax_kmem driver. In the FSDAX case
+> > > the memory (persistent or otherwise) is mapped behind a block-device.
+> > > That block-device has affinity to a CPU initiator, but that memory does
+> > > not itself have any NUMA affinity or identity as a target.
+> > >
+> > > So:
+> > >
+> > > block-device NUMA node == closest CPU initiator node to the device
+> > >
+> > > dax-device target node == memory only NUMA node target, after onlining
