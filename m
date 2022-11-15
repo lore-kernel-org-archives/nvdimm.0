@@ -1,237 +1,192 @@
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 730668496
-	for <nvdimm@lists.linux.dev>; Mon, 14 Nov 2022 22:49:35 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1668466175; x=1700002175;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=2I0K2TFL2TVl5aAsh7J0up3NE2o569V/jkbGL4BERJY=;
-  b=PCh77lQ/idHlPeMrk4NH7FMswbQRXYUcULcQAfvrOP/uYoDls9jrl287
-   AbvD7ZaLbgDiavp8Imkjx98k0nUDow1fg7dri3ukELdkxcu967ot9ERgv
-   syq4TEflwAziHufA3lJKMTUbPS5TYdWnd3hb+g9Ve2c7TDW/l6LEpxz1O
-   1YGSiRWRMMUqGWNkKNFjUuIwLBtHhKVJRNcJoLiDpPqDbU22c9PKqEjSu
-   muuzWlGQS6qXb5Zoy8/1jDynDslo90umlVGl7pECd4o7NfGbmaQoHf78k
-   yRQRW8/d9oo7PZwg3zm4xWgdweAMXfkGeDArLLvJVYKrdVBMdq6CDNpri
-   w==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10531"; a="295464620"
-X-IronPort-AV: E=Sophos;i="5.96,164,1665471600"; 
-   d="scan'208";a="295464620"
-Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Nov 2022 14:49:34 -0800
-X-IronPort-AV: E=McAfee;i="6500,9779,10531"; a="883719826"
-X-IronPort-AV: E=Sophos;i="5.96,164,1665471600"; 
-   d="scan'208";a="883719826"
-Received: from djiang5-mobl2.amr.corp.intel.com (HELO [10.212.53.251]) ([10.212.53.251])
-  by fmsmga006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Nov 2022 14:49:34 -0800
-Message-ID: <6c24d5c5-8ed2-2f88-5578-665b6eca1130@intel.com>
-Date: Mon, 14 Nov 2022 15:49:33 -0700
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4527D33C7
+	for <nvdimm@lists.linux.dev>; Tue, 15 Nov 2022 11:08:42 +0000 (UTC)
+Received: from fraeml701-chm.china.huawei.com (unknown [172.18.147.226])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4NBNdw4yy6z6880b;
+	Tue, 15 Nov 2022 19:06:12 +0800 (CST)
+Received: from lhrpeml500005.china.huawei.com (7.191.163.240) by
+ fraeml701-chm.china.huawei.com (10.206.15.50) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
+ 15.1.2375.31; Tue, 15 Nov 2022 12:08:32 +0100
+Received: from localhost (10.202.227.76) by lhrpeml500005.china.huawei.com
+ (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.31; Tue, 15 Nov
+ 2022 11:08:33 +0000
+Date: Tue, 15 Nov 2022 11:08:31 +0000
+From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+To: Dave Jiang <dave.jiang@intel.com>
+CC: <linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>,
+	<dan.j.williams@intel.com>, <ira.weiny@intel.com>,
+	<vishal.l.verma@intel.com>, <alison.schofield@intel.com>, <dave@stgolabs.net>
+Subject: Re: [PATCH v4 12/18] tools/testing/cxl: Add "passphrase secure
+ erase" opcode support
+Message-ID: <20221115110831.00001fa4@Huawei.com>
+In-Reply-To: <166845805415.2496228.732168029765896218.stgit@djiang5-desk3.ch.intel.com>
+References: <166845791969.2496228.8357488385523295841.stgit@djiang5-desk3.ch.intel.com>
+	<166845805415.2496228.732168029765896218.stgit@djiang5-desk3.ch.intel.com>
+Organization: Huawei Technologies Research and Development (UK) Ltd.
+X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
- Firefox/102.0 Thunderbird/102.4.1
-Subject: Re: [PATCH v4 13/18] nvdimm/cxl/pmem: Add support for master
- passphrase disable security command
-Content-Language: en-US
-To: Ben Cheatham <benjamin.cheatham@amd.com>, linux-cxl@vger.kernel.org,
- nvdimm@lists.linux.dev
-Cc: dan.j.williams@intel.com, ira.weiny@intel.com, vishal.l.verma@intel.com,
- alison.schofield@intel.com, Jonathan.Cameron@huawei.com, dave@stgolabs.net
-References: <166845791969.2496228.8357488385523295841.stgit@djiang5-desk3.ch.intel.com>
- <166845805988.2496228.8804764265372893076.stgit@djiang5-desk3.ch.intel.com>
- <1cc14f3f-6500-778a-087c-e7601f82adf3@amd.com>
-From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <1cc14f3f-6500-778a-087c-e7601f82adf3@amd.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.202.227.76]
+X-ClientProxiedBy: lhrpeml100003.china.huawei.com (7.191.160.210) To
+ lhrpeml500005.china.huawei.com (7.191.163.240)
+X-CFilter-Loop: Reflected
 
+On Mon, 14 Nov 2022 13:34:14 -0700
+Dave Jiang <dave.jiang@intel.com> wrote:
 
-
-On 11/14/2022 2:27 PM, Ben Cheatham wrote:
-> On 11/14/22 2:34 PM, Dave Jiang wrote:
->> The original nvdimm_security_ops ->disable() only supports user 
->> passphrase
->> for security disable. The CXL spec introduced the disabling of master
->> passphrase. Add a ->disable_master() callback to support this new 
->> operation
->> and leaving the old ->disable() mechanism alone. A "disable_master" 
->> command
->> is added for the sysfs attribute in order to allow command to be issued
->> from userspace. ndctl will need enabling in order to utilize this new
->> operation.
->>
->> Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
->> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
->> ---
->>   drivers/cxl/security.c    |   20 ++++++++++++++++++--
->>   drivers/nvdimm/security.c |   33 ++++++++++++++++++++++++++-------
->>   include/linux/libnvdimm.h |    2 ++
->>   3 files changed, 46 insertions(+), 9 deletions(-)
->>
->> diff --git a/drivers/cxl/security.c b/drivers/cxl/security.c
->> index 631a474939d6..f4df7d38e4cd 100644
->> --- a/drivers/cxl/security.c
->> +++ b/drivers/cxl/security.c
->> @@ -71,8 +71,9 @@ static int cxl_pmem_security_change_key(struct 
->> nvdimm *nvdimm,
->>       return rc;
->>   }
->> -static int cxl_pmem_security_disable(struct nvdimm *nvdimm,
->> -                     const struct nvdimm_key_data *key_data)
->> +static int __cxl_pmem_security_disable(struct nvdimm *nvdimm,
->> +                       const struct nvdimm_key_data *key_data,
->> +                       enum nvdimm_passphrase_type ptype)
->>   {
->>       struct cxl_nvdimm *cxl_nvd = nvdimm_provider_data(nvdimm);
->>       struct cxl_memdev *cxlmd = cxl_nvd->cxlmd;
->> @@ -88,6 +89,8 @@ static int cxl_pmem_security_disable(struct nvdimm 
->> *nvdimm,
->>        * will only support disable of user passphrase. The disable 
->> master passphrase
->>        * ability will need to be added as a new callback.
->>        */
->> +    dis_pass.type = ptype == NVDIMM_MASTER ?
->> +        CXL_PMEM_SEC_PASS_MASTER : CXL_PMEM_SEC_PASS_USER;
->>       dis_pass.type = CXL_PMEM_SEC_PASS_USER;
+> Add support to emulate a CXL mem device support the "passphrase secure
+> erase" operation.
 > 
-> Hey Dave,
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+The logic in here gives me a headache but I'm not sure it's correct yet...
+
+If you can figure out what is supposed to happen if this is called
+with Passphrase Type == master before the master passphrase has been set
+then you are doing better than me.
+
+Unlike for the User passphrase, where the language " .. and the user passphrase
+is not currently set or is not supported by the device, this value is ignored."
+to me implies we wipe the device and clear the non existent user pass phrase,
+the not set master passphrase case isn't covered as far as I can see.
+
+The user passphrase question raises a futher question (see inline)
+
+Thoughts?
+
+Other than that some suggestions inline but nothing functional, so up to you.
+Either way
+
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+
+> ---
+>  tools/testing/cxl/test/mem.c |   65 ++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 65 insertions(+)
 > 
-> I noticed that you are overwriting dis_pass.type with 
-> CXL_PMEM_SEC_PASS_USER after your added change here. I imagine that's 
-> not intentional considering the rest of the work in this patch!
+> diff --git a/tools/testing/cxl/test/mem.c b/tools/testing/cxl/test/mem.c
+> index 90607597b9a4..fc28f7cc147a 100644
+> --- a/tools/testing/cxl/test/mem.c
+> +++ b/tools/testing/cxl/test/mem.c
+> @@ -362,6 +362,68 @@ static int mock_unlock_security(struct cxl_dev_state *cxlds, struct cxl_mbox_cmd
+>  	return 0;
+>  }
+>  
+> +static int mock_passphrase_secure_erase(struct cxl_dev_state *cxlds,
+> +					struct cxl_mbox_cmd *cmd)
+> +{
+> +	struct cxl_mock_mem_pdata *mdata = dev_get_platdata(cxlds->dev);
+> +	struct cxl_pass_erase *erase;
+> +
+> +	if (cmd->size_in != sizeof(*erase))
+> +		return -EINVAL;
+> +
+> +	if (cmd->size_out != 0)
+> +		return -EINVAL;
+> +
+> +	erase = cmd->payload_in;
+> +	if (mdata->security_state & CXL_PMEM_SEC_STATE_FROZEN) {
+> +		cmd->return_code = CXL_MBOX_CMD_RC_SECURITY;
+> +		return -ENXIO;
+> +	}
+> +
+> +	if (mdata->security_state & CXL_PMEM_SEC_STATE_USER_PLIMIT &&
+> +	    erase->type == CXL_PMEM_SEC_PASS_USER) {
+> +		cmd->return_code = CXL_MBOX_CMD_RC_SECURITY;
+> +		return -ENXIO;
+> +	}
+> +
+> +	if (mdata->security_state & CXL_PMEM_SEC_STATE_MASTER_PLIMIT &&
+> +	    erase->type == CXL_PMEM_SEC_PASS_MASTER) {
+> +		cmd->return_code = CXL_MBOX_CMD_RC_SECURITY;
+> +		return -ENXIO;
+> +	}
+> +
+> +	if (erase->type == CXL_PMEM_SEC_PASS_MASTER &&
+> +	    mdata->security_state & CXL_PMEM_SEC_STATE_MASTER_PASS_SET) {
+> +		if (memcmp(mdata->master_pass, erase->pass, NVDIMM_PASSPHRASE_LEN)) {
+> +			master_plimit_check(mdata);
+> +			cmd->return_code = CXL_MBOX_CMD_RC_PASSPHRASE;
+> +			return -ENXIO;
+> +		}
+> +		mdata->master_limit = 0;
+> +		mdata->user_limit = 0;
+> +		mdata->security_state &= ~CXL_PMEM_SEC_STATE_USER_PASS_SET;
+> +		memset(mdata->user_pass, 0, NVDIMM_PASSPHRASE_LEN);
+> +		mdata->security_state &= ~CXL_PMEM_SEC_STATE_LOCKED;
+> +		return 0;
+> +	}
+What to do if the masterpass phrase isn't set?
+Even if we return 0, I'd slightly prefer to see that done locally so refactor as
+	if (erase->type == CXL_PMEM_SEC_PASS_MASTER) {
+		if (!(mdata->security_state & CXL_PMEM_SEC_STATATE_MASTER_PASS_SET)) {
+			return 0; /* ? */
+		if (memcmp)...
+	} else { /* CXL_PMEM_SEC_PASS_USER */ //or make it a switch.
 
-Hi Ben. Great catch! That was suppose to be replaced with the changed code.
+> +
+> +	if (erase->type == CXL_PMEM_SEC_PASS_USER &&
+> +	    mdata->security_state & CXL_PMEM_SEC_STATE_USER_PASS_SET) {
 
--       dis_pass.type = CXL_PMEM_SEC_PASS_USER;
-+       dis_pass.type = ptype == NVDIMM_MASTER ?
-+               CXL_PMEM_SEC_PASS_MASTER : CXL_PMEM_SEC_PASS_USER;
+Given we aren't actually scrambling the encryption keys (as we don't have any ;)
+it doesn't make a functional difference, but to line up with the spec, I would
+consider changing this to explicitly have the path for no user passphrase set.
 
-Thanks for the find.
+	if (erase->type == CXL_PMEM_SEC_PASS_USER) {
+		if (mdata->security_state & CXL_MEM_SEC_STATE_USER_PASS_SET) {
+		    	if (memcmp(mdata->user_pass, erase->pass, NVDIMM_PASSPHRASE_LEN)) {
+				user_plimit_check(mdata);
+				cmd->return_code = CXL_MBOX_CMD_RC_PASSPHRASE;
+				return -ENXIO;
+ 			}	
 
+			mdata->user_limit = 0;
+			mdata->security_state &= ~CXL_PMEM_SEC_STATE_USER_PASS_SET;
+			memset(mdata->user_pass, 0, NVDIMM_PASSPHRASE_LEN);
+		}
+		/* Change encryption keys */
+		return 0;
+	}
+
+> +		if (memcmp(mdata->user_pass, erase->pass, NVDIMM_PASSPHRASE_LEN)) {
+> +			user_plimit_check(mdata);
+> +			cmd->return_code = CXL_MBOX_CMD_RC_PASSPHRASE;
+> +			return -ENXIO;
+> +		}
+> +
+> +		mdata->user_limit = 0;
+> +		mdata->security_state &= ~CXL_PMEM_SEC_STATE_USER_PASS_SET;
+> +		memset(mdata->user_pass, 0, NVDIMM_PASSPHRASE_LEN);
+> +		return 0;
+> +	}
+> +
+> +	return 0;
+
+With above changes you can never reach here.
+
+> +}
+> +
+>  static int mock_get_lsa(struct cxl_dev_state *cxlds, struct cxl_mbox_cmd *cmd)
+>  {
+>  	struct cxl_mbox_get_lsa *get_lsa = cmd->payload_in;
+> @@ -470,6 +532,9 @@ static int cxl_mock_mbox_send(struct cxl_dev_state *cxlds, struct cxl_mbox_cmd *
+>  	case CXL_MBOX_OP_UNLOCK:
+>  		rc = mock_unlock_security(cxlds, cmd);
+>  		break;
+> +	case CXL_MBOX_OP_PASSPHRASE_SECURE_ERASE:
+> +		rc = mock_passphrase_secure_erase(cxlds, cmd);
+> +		break;
+>  	default:
+>  		break;
+>  	}
 > 
-> Ben
->>       memcpy(dis_pass.pass, key_data->data, NVDIMM_PASSPHRASE_LEN);
->> @@ -96,6 +99,18 @@ static int cxl_pmem_security_disable(struct nvdimm 
->> *nvdimm,
->>       return rc;
->>   }
->> +static int cxl_pmem_security_disable(struct nvdimm *nvdimm,
->> +                     const struct nvdimm_key_data *key_data)
->> +{
->> +    return __cxl_pmem_security_disable(nvdimm, key_data, NVDIMM_USER);
->> +}
->> +
->> +static int cxl_pmem_security_disable_master(struct nvdimm *nvdimm,
->> +                        const struct nvdimm_key_data *key_data)
->> +{
->> +    return __cxl_pmem_security_disable(nvdimm, key_data, NVDIMM_MASTER);
->> +}
->> +
->>   static int cxl_pmem_security_freeze(struct nvdimm *nvdimm)
->>   {
->>       struct cxl_nvdimm *cxl_nvd = nvdimm_provider_data(nvdimm);
->> @@ -163,6 +178,7 @@ static const struct nvdimm_security_ops 
->> __cxl_security_ops = {
->>       .freeze = cxl_pmem_security_freeze,
->>       .unlock = cxl_pmem_security_unlock,
->>       .erase = cxl_pmem_security_passphrase_erase,
->> +    .disable_master = cxl_pmem_security_disable_master,
->>   };
->>   const struct nvdimm_security_ops *cxl_security_ops = 
->> &__cxl_security_ops;
->> diff --git a/drivers/nvdimm/security.c b/drivers/nvdimm/security.c
->> index 8aefb60c42ff..92af4c3ca0d3 100644
->> --- a/drivers/nvdimm/security.c
->> +++ b/drivers/nvdimm/security.c
->> @@ -239,7 +239,8 @@ static int check_security_state(struct nvdimm 
->> *nvdimm)
->>       return 0;
->>   }
->> -static int security_disable(struct nvdimm *nvdimm, unsigned int keyid)
->> +static int security_disable(struct nvdimm *nvdimm, unsigned int keyid,
->> +                enum nvdimm_passphrase_type pass_type)
->>   {
->>       struct device *dev = &nvdimm->dev;
->>       struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
->> @@ -250,8 +251,13 @@ static int security_disable(struct nvdimm 
->> *nvdimm, unsigned int keyid)
->>       /* The bus lock should be held at the top level of the call 
->> stack */
->>       lockdep_assert_held(&nvdimm_bus->reconfig_mutex);
->> -    if (!nvdimm->sec.ops || !nvdimm->sec.ops->disable
->> -            || !nvdimm->sec.flags)
->> +    if (!nvdimm->sec.ops || !nvdimm->sec.flags)
->> +        return -EOPNOTSUPP;
->> +
->> +    if (pass_type == NVDIMM_USER && !nvdimm->sec.ops->disable)
->> +        return -EOPNOTSUPP;
->> +
->> +    if (pass_type == NVDIMM_MASTER && !nvdimm->sec.ops->disable_master)
->>           return -EOPNOTSUPP;
->>       rc = check_security_state(nvdimm);
->> @@ -263,12 +269,21 @@ static int security_disable(struct nvdimm 
->> *nvdimm, unsigned int keyid)
->>       if (!data)
->>           return -ENOKEY;
->> -    rc = nvdimm->sec.ops->disable(nvdimm, data);
->> -    dev_dbg(dev, "key: %d disable: %s\n", key_serial(key),
->> +    if (pass_type == NVDIMM_MASTER) {
->> +        rc = nvdimm->sec.ops->disable_master(nvdimm, data);
->> +        dev_dbg(dev, "key: %d disable_master: %s\n", key_serial(key),
->>               rc == 0 ? "success" : "fail");
->> +    } else {
->> +        rc = nvdimm->sec.ops->disable(nvdimm, data);
->> +        dev_dbg(dev, "key: %d disable: %s\n", key_serial(key),
->> +            rc == 0 ? "success" : "fail");
->> +    }
->>       nvdimm_put_key(key);
->> -    nvdimm->sec.flags = nvdimm_security_flags(nvdimm, NVDIMM_USER);
->> +    if (pass_type == NVDIMM_MASTER)
->> +        nvdimm->sec.ext_flags = nvdimm_security_flags(nvdimm, 
->> NVDIMM_MASTER);
->> +    else
->> +        nvdimm->sec.flags = nvdimm_security_flags(nvdimm, NVDIMM_USER);
->>       return rc;
->>   }
->> @@ -473,6 +488,7 @@ void nvdimm_security_overwrite_query(struct 
->> work_struct *work)
->>   #define OPS                            \
->>       C( OP_FREEZE,        "freeze",        1),    \
->>       C( OP_DISABLE,        "disable",        2),    \
->> +    C( OP_DISABLE_MASTER,    "disable_master",    2),    \
->>       C( OP_UPDATE,        "update",        3),    \
->>       C( OP_ERASE,        "erase",        2),    \
->>       C( OP_OVERWRITE,    "overwrite",        2),    \
->> @@ -524,7 +540,10 @@ ssize_t nvdimm_security_store(struct device *dev, 
->> const char *buf, size_t len)
->>           rc = nvdimm_security_freeze(nvdimm);
->>       } else if (i == OP_DISABLE) {
->>           dev_dbg(dev, "disable %u\n", key);
->> -        rc = security_disable(nvdimm, key);
->> +        rc = security_disable(nvdimm, key, NVDIMM_USER);
->> +    } else if (i == OP_DISABLE_MASTER) {
->> +        dev_dbg(dev, "disable_master %u\n", key);
->> +        rc = security_disable(nvdimm, key, NVDIMM_MASTER);
->>       } else if (i == OP_UPDATE || i == OP_MASTER_UPDATE) {
->>           dev_dbg(dev, "%s %u %u\n", ops[i].name, key, newkey);
->>           rc = security_update(nvdimm, key, newkey, i == OP_UPDATE
->> diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
->> index c74acfa1a3fe..3bf658a74ccb 100644
->> --- a/include/linux/libnvdimm.h
->> +++ b/include/linux/libnvdimm.h
->> @@ -183,6 +183,8 @@ struct nvdimm_security_ops {
->>       int (*overwrite)(struct nvdimm *nvdimm,
->>               const struct nvdimm_key_data *key_data);
->>       int (*query_overwrite)(struct nvdimm *nvdimm);
->> +    int (*disable_master)(struct nvdimm *nvdimm,
->> +                  const struct nvdimm_key_data *key_data);
->>   };
->>   enum nvdimm_fwa_state {
->>
->>
+> 
+
