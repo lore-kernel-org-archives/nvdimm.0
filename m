@@ -1,61 +1,104 @@
-Received: from mailsrv.cs.umass.edu (mailsrv.cs.umass.edu [128.119.240.136])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yb1-f202.google.com (mail-yb1-f202.google.com [209.85.219.202])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 615888AD0
-	for <nvdimm@lists.linux.dev>; Tue, 15 Nov 2022 21:15:53 +0000 (UTC)
-Received: from [192.168.50.148] (c-24-62-201-179.hsd1.ma.comcast.net [24.62.201.179])
-	by mailsrv.cs.umass.edu (Postfix) with ESMTPSA id CE26340376A5;
-	Tue, 15 Nov 2022 16:15:45 -0500 (EST)
-Message-ID: <d2a5fefa-f018-6063-0c3f-bf6bd845af8b@cs.umass.edu>
-Date: Tue, 15 Nov 2022 16:15:46 -0500
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1A908AD0
+	for <nvdimm@lists.linux.dev>; Tue, 15 Nov 2022 21:41:22 +0000 (UTC)
+Received: by mail-yb1-f202.google.com with SMTP id j73-20020a25d24c000000b006dca101748bso14328726ybg.14
+        for <nvdimm@lists.linux.dev>; Tue, 15 Nov 2022 13:41:22 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20210112;
+        h=cc:to:from:subject:message-id:mime-version:date:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=X2q2jXZbiR4aVk+j4cgzelsOGwbnws5+6EO0kS0q+IE=;
+        b=bc8gszccDarK7qqwempMPNtbikI8jkIOiq/wh6VybGdCVg6NwG/Nx85IKREmkFRuKU
+         wShAc4YefT81y8pFMR1rxelAe/RRgfpvpPmNlQEZEKpzo+c1M3/C7NJnGgjkinSTAxWr
+         qVKQ3wauGSA/Lewwmgqvq9e006mGZVpXq682GvsurpiaXjeSpHA3QRJTFqPGwKqgTeOm
+         YpeAyY7kri8DeFOmUx37xDNBusgu4XbtjicarUdIsq0DCAcH6Us3YD5wihN/jH4yP30k
+         7W198pKVPpm5ebcBI9A8BeOfWYWFyoQiE5lu9Q9bZIYmQ82aQhzPy9WzzxM2O19DPRLm
+         ZrRw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:from:subject:message-id:mime-version:date:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=X2q2jXZbiR4aVk+j4cgzelsOGwbnws5+6EO0kS0q+IE=;
+        b=x+sUkjLO/ijypQXCFIsbD6KwPawDpppbTaTOdeCJ9cWEHT4sWSOjA2f+Rek/PPZB56
+         BsE7EGbTZTdsaSWnvSvDXMr1i44QCRBZZUjzwCgyRpY3/OjEOqtPJxgNmW8W9lWph0rL
+         nDuQehJDNv8/HADrwf0pL5XVgiYcrImoC4JcxNxznOl8l+4CpwaEI61D1c9dWjcYorrj
+         IuiJKRZlWXNKs74+Al5mupuq0WoozTPWfKKJYGcqWguqoRwRFixF8t+tkDLlX0+JjhLe
+         wtdouRRuZEgu8r5U8PF+JXH2XK5fNxqtrPdZkqf0IuO60hgvYTlrzn+bUDS4gtOGKnCV
+         5vWg==
+X-Gm-Message-State: ANoB5pkHSmZe3IDNSqjUcM1EE+V0a/zIGgeXuIx1VO3JLAAYKRk/+yWL
+	kqrANfaYU7mbkjUk76x+uUPqgGAuwnoZ
+X-Google-Smtp-Source: AA0mqf7GgKCoXOCi2F46eSyK33OlF+GBC970TPtJzlizq2rWCFH+aPNwsJ8Zy7KnDh1jhzu4fIyuMGmvV68G
+X-Received: from sammler.c.googlers.com ([fda3:e722:ac3:cc00:2b:7d90:c0a8:43cd])
+ (user=sammler job=sendgmr) by 2002:a25:41d7:0:b0:6cb:8949:fdbb with SMTP id
+ o206-20020a2541d7000000b006cb8949fdbbmr18613201yba.328.1668548481659; Tue, 15
+ Nov 2022 13:41:21 -0800 (PST)
+Date: Tue, 15 Nov 2022 21:40:36 +0000
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
- Thunderbird/102.4.2
-Reply-To: moss@cs.umass.edu
-Content-Language: en-US
-From: Eliot Moss <moss@cs.umass.edu>
-To: Dan Williams <dan.j.williams@intel.com>,
- Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>
-Subject: Possible PMD (huge pages) bug in fs dax
-Cc: nvdimm@lists.linux.dev
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
+X-Mailer: git-send-email 2.38.1.431.g37b22c650d-goog
+Message-ID: <20221115214036.1571015-1-sammler@google.com>
+Subject: [PATCH v2] virtio_pmem: populate numa information
+From: Michael Sammler <sammler@google.com>
+To: Pankaj Gupta <pankaj.gupta.linux@gmail.com>, Dan Williams <dan.j.williams@intel.com>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Ira Weiny <ira.weiny@intel.com>, Pasha Tatashin <pasha.tatashin@soleen.com>, 
+	Mina Almasry <almasrymina@google.com>, nvdimm@lists.linux.dev, 
+	linux-kernel@vger.kernel.org
+Cc: Michael Sammler <sammler@google.com>, Pankaj Gupta <pankaj.gupta@amd.com>
+Content-Type: text/plain; charset="UTF-8"
 
-Folks - I posted already on nvdimm, but perhaps the topic did not quite grab
-anyone's attention.  I had had some trouble figuring all the details to get
-dax mapping of files from an xfs file system with underlying Optane DC memory
-going, but now have that working reliably.  But there is an odd behavior:
+Compute the numa information for a virtio_pmem device from the memory
+range of the device. Previously, the target_node was always 0 since
+the ndr_desc.target_node field was never explicitly set. The code for
+computing the numa node is taken from cxl_pmem_region_probe in
+drivers/cxl/pmem.c.
 
-When first mapping a file, I request mapping a 32 Gb range, aligned on a 1 Gb
-(and thus clearly on a 2 Mb) boundary.
+Signed-off-by: Michael Sammler <sammler@google.com>
+Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Reviewed-by: Pankaj Gupta <pankaj.gupta@amd.com>
+Tested-by: Mina Almasry <almasrymina@google.com>
+---
+Changes from v1:
+- added Reviewed-by and Tested-by
+- synced with mainline
 
-For each group of 8 Gb, the first 4095 entries map with a 2 Mb huge (PMD)
-page.  The 4096th one does FALLBACK.  I suspect some problem in
-dax.c:grab_mapping_entry or its callees, but am not personally well enough
-versed in either the dax code or the xarray implementation to dig further.
+drivers/nvdimm/virtio_pmem.c | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/nvdimm/virtio_pmem.c b/drivers/nvdimm/virtio_pmem.c
+index 20da455d2ef6..a92eb172f0e7 100644
+--- a/drivers/nvdimm/virtio_pmem.c
++++ b/drivers/nvdimm/virtio_pmem.c
+@@ -32,7 +32,6 @@ static int init_vq(struct virtio_pmem *vpmem)
+ static int virtio_pmem_probe(struct virtio_device *vdev)
+ {
+ 	struct nd_region_desc ndr_desc = {};
+-	int nid = dev_to_node(&vdev->dev);
+ 	struct nd_region *nd_region;
+ 	struct virtio_pmem *vpmem;
+ 	struct resource res;
+@@ -79,7 +78,15 @@ static int virtio_pmem_probe(struct virtio_device *vdev)
+ 	dev_set_drvdata(&vdev->dev, vpmem->nvdimm_bus);
 
-If you'd like a second puzzle :-) ... after completing this mapping, another
-thread accesses the whole range sequentially.  This results in NOPAGE fault
-handling for the first 4095+4095 2M regions that previously resulted in
-NOPAGE -- so far so good.  But it gives FALLBACK for the upper 16 Gb (except
-the two PMD regions it alrady gave FALLBACK for).
-
-
-I can provide trace output from a run if you'd like and all the ndctl, gdisk
--l, fdisk -l, and xfs_info details if you like.
-
-
-In my application, it would be nice if dax.c could deliver 1 Gb PUD size
-mappings as well, though it would appear that that would require more surgery
-on dax.c.  It would be somewhat analogous to what's already there, of course,
-but I don't mean to minimize the possible trickiness of it.  I realize I
-should submit that request as a separate thread :-) which I intend to do
-later.
-
-Regards - Eliot Moss
+ 	ndr_desc.res = &res;
+-	ndr_desc.numa_node = nid;
++
++	ndr_desc.numa_node = memory_add_physaddr_to_nid(res.start);
++	ndr_desc.target_node = phys_to_target_node(res.start);
++	if (ndr_desc.target_node == NUMA_NO_NODE) {
++		ndr_desc.target_node = ndr_desc.numa_node;
++		dev_dbg(&vdev->dev, "changing target node from %d to %d",
++			NUMA_NO_NODE, ndr_desc.target_node);
++	}
++
+ 	ndr_desc.flush = async_pmem_flush;
+ 	ndr_desc.provider_data = vdev;
+ 	set_bit(ND_REGION_PAGEMAP, &ndr_desc.flags);
+--
+2.38.1.431.g37b22c650d-goog
