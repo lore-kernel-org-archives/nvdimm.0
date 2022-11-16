@@ -1,39 +1,44 @@
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D2D412290
-	for <nvdimm@lists.linux.dev>; Wed, 16 Nov 2022 21:17:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92B0F12290
+	for <nvdimm@lists.linux.dev>; Wed, 16 Nov 2022 21:17:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1668633465; x=1700169465;
-  h=subject:from:to:cc:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=Fmu1CzrPmAYYcF8aVsck2BmYvCN9igytVBoqsAH4BhY=;
-  b=SYDuBDrTjKgeSM5b77MDJrgM0LxKwrQmI2NdN6Pf2jGS7kvlKPhz3rKx
-   cDIvoy89m7fqhb/0xsd1YJkJK3qvYx31MNkEKWTDoD0oNE7RtVqhnK69Z
-   eB0syQR/+5Ze5IQHWtx3RhbKeN/jpdCEbUgMhWnsaDp3YCpbxsmR/oWm8
-   yvWwVlalXbQI+xfOomZvHpOx6b9J2LXy1RtCs/44wgMcPxD8qeOTc7X0Q
-   2QiGckmUtnM/uFEh29P4EnXsHfz0A2F+7Xx+ssR6CZ/uD7kjF5jgMO3BC
-   d59NOLA+TlSonA2zedjASX39aGY/RtlaK4ZhK/6/Hzu9LI06v2f9WMfPw
-   g==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10533"; a="398957179"
+  t=1668633474; x=1700169474;
+  h=subject:from:to:cc:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=/KG3rMooqDz/BAjzdEiljJjcyA8/cH3LsLEumvkdptE=;
+  b=lJhKSVo+sDTW+JR+Uu2GkgrThcxzONEgzdXvu98KgZieQcArrcpWGhb8
+   FAmkGz+AFwPfHSQsGTizmZVHjmFnFoLEalU6z86mG+XjhNjNnUBWMgaIU
+   4fs5uyAMFjEg7lZgrWE4PD0OOl2pgQnbHTZVtJrdcrKr3R8ucCfIIB5kF
+   7sEDVuk1yboIk9YaueeoWJa3dmeXaI5zoET/XUSEwShWAWXIKFZDODgQ4
+   nsI166lyoW0c6XT3+gxrdeozTwpdykn9MfptUin3rsE2Wd5+s9ok++e3Y
+   NSB+rt8jNfTTpsDu8aFavsPlDdftv0xx9pmqL+cgjfW+mJZ8Q3Hi6nfWp
+   w==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10533"; a="314487594"
 X-IronPort-AV: E=Sophos;i="5.96,169,1665471600"; 
-   d="scan'208";a="398957179"
+   d="scan'208";a="314487594"
 Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Nov 2022 13:17:44 -0800
-X-IronPort-AV: E=McAfee;i="6500,9779,10533"; a="814238709"
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Nov 2022 13:17:50 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10533"; a="814238729"
 X-IronPort-AV: E=Sophos;i="5.96,169,1665471600"; 
-   d="scan'208";a="814238709"
+   d="scan'208";a="814238729"
 Received: from djiang5-desk3.ch.intel.com ([143.182.136.137])
-  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Nov 2022 13:17:43 -0800
-Subject: [PATCH v5 00/18] Introduce security commands for CXL pmem device
+  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Nov 2022 13:17:49 -0800
+Subject: [PATCH v5 01/18] cxl/pmem: Introduce nvdimm_security_ops with
+ ->get_flags() operation
 From: Dave Jiang <dave.jiang@intel.com>
 To: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
 Cc: dan.j.williams@intel.com, ira.weiny@intel.com, vishal.l.verma@intel.com,
  alison.schofield@intel.com, Jonathan.Cameron@huawei.com, dave@stgolabs.net,
  benjamin.cheatham@amd.com
-Date: Wed, 16 Nov 2022 14:17:43 -0700
+Date: Wed, 16 Nov 2022 14:17:49 -0700
 Message-ID: 
+ <166863346914.80269.2104235260504076729.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: 
+ <166863336073.80269.10366236775799773727.stgit@djiang5-desk3.ch.intel.com>
+References: 
  <166863336073.80269.10366236775799773727.stgit@djiang5-desk3.ch.intel.com>
 User-Agent: StGit/1.4
 Precedence: bulk
@@ -45,110 +50,183 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 
-This series adds the support for "Persistent Memory Data-at-rest Security"
-block of command set for the CXL Memory Devices. The enabling is done through
-the nvdimm_security_ops as the operations are very similar to the same
-operations that the persistent memory devices through NFIT provider support.
-This enabling does not include the security pass-through commands nor the
-Santize commands.
+Add nvdimm_security_ops support for CXL memory device with the introduction
+of the ->get_flags() callback function. This is part of the "Persistent
+Memory Data-at-rest Security" command set for CXL memory device support.
+The ->get_flags() function provides the security state of the persistent
+memory device defined by the CXL 3.0 spec section 8.2.9.8.6.1.
 
-Under the nvdimm_security_ops, this patch series will enable get_flags(),
-freeze(), change_key(), unlock(), disable(), and erase(). The disable() API
-does not support disabling of the master passphrase. To maintain established
-user ABI through the sysfs attribute "security", the "disable" command is
-left untouched and a new "disable_master" command is introduced with a new
-disable_master() API call for the nvdimm_security_ops().
-
-This series does not include plumbing to directly handle the security commands
-through cxl control util. The enabled security commands will still go through
-ndctl tool with this enabling.
-
-The first commit is from Davidlohr [1]. It's submitted separately and can be
-dropped. It's here for reference and 0-day testing convenience. The series does
-have dependency on the patch.
-
-[1]: https://lore.kernel.org/linux-cxl/166698148737.3132474.5901874516011784201.stgit@dwillia2-xfh.jf.intel.com/
-
-v5:
-- Fix unintended passphrase type overwrite for disable op. (Ben)
-- Fix passphrase secure erase emulation in cxl_test. (Jonathan)
-
-v4:
-- Revert check for master passphrase check in mock secure erase. (Jonathan)
-- Add user passphrase check for user password limit in mock secure erase. (Jonathan)
-- Add master passphrase check for master password limit in mock secure erase.
-
-v3:
-- Change all spec reference to v3. (Jonathan)
-- Remove errant commit log in patch 1. (Davidlohr)
-- Change return to -EINVAL for cpu_cache_has_invalidate_memregion() error. (Davidlohr)
-- Fix mock_freeze_security() to be spec compliant. (Jonathan)
-- Change OP_PASSPHRASE_ERASE to OP_PASSPHRASE_SECURE_ERASE. (Jonathan)
-- Fix mock_passphrase_erase to be spec compliant. (Jonathan)
-- Change password retry limit handling to helper function.
-- Add ABI documentation to new sysfs attribs. (Jonathan)
-- Have security_lock_show() emit 0 or 1 instead of "locked or "unlocked". (Jonathan)
-- Set pdev->dev.groups instead of using device_add_groups(). (Jonathan)
-- Add context to NVDIMM_SECURITY_TEST on possible side effects. (Jonathan)
-
-v2:
-- Rebased against Davidlohr's memregion flush call
-- Remove SECURITY Kconfig and merge with PMEM (Davidlohr & Jonathan)
-- Remove inclusion of ndctl.h from security.c (Davidlohr)
-- Return errno and leave out return_code for error cases not in spec for mock device (Jonathan)
-- Add comment for using NVDIMM_PASSPHRASE_LEN (Jonathan)
-- Put 'struct cxl_set_pass' on the stack instead of kmalloc (Jonathan)
-- Directly return in mock_set_passphrase() when done. (Jonathan)
-- Tie user interface change commenting for passphrase disable. (Jonathan)
-- Pass passphrase directly in command and remove copy. (Jonathan)
-- Remove state check to enable first time passphrase set in mock device.
-- Fix missing ptr assignment in mock secure erase
-- Tested against cxl_test with new cxl security test.
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
-
-Dave Jiang (18):
-      cxl/pmem: Introduce nvdimm_security_ops with ->get_flags() operation
-      tools/testing/cxl: Add "Get Security State" opcode support
-      cxl/pmem: Add "Set Passphrase" security command support
-      tools/testing/cxl: Add "Set Passphrase" opcode support
-      cxl/pmem: Add Disable Passphrase security command support
-      tools/testing/cxl: Add "Disable" security opcode support
-      cxl/pmem: Add "Freeze Security State" security command support
-      tools/testing/cxl: Add "Freeze Security State" security opcode support
-      cxl/pmem: Add "Unlock" security command support
-      tools/testing/cxl: Add "Unlock" security opcode support
-      cxl/pmem: Add "Passphrase Secure Erase" security command support
-      tools/testing/cxl: Add "passphrase secure erase" opcode support
-      nvdimm/cxl/pmem: Add support for master passphrase disable security command
-      cxl/pmem: add id attribute to CXL based nvdimm
-      tools/testing/cxl: add mechanism to lock mem device for testing
-      cxl/pmem: add provider name to cxl pmem dimm attribute group
-      libnvdimm: Introduce CONFIG_NVDIMM_SECURITY_TEST flag
-      cxl: add dimm_id support for __nvdimm_create()
-
-
- Documentation/ABI/testing/sysfs-bus-nvdimm |  12 +
- drivers/cxl/Makefile                       |   2 +-
- drivers/cxl/core/mbox.c                    |   6 +
- drivers/cxl/cxlmem.h                       |  44 +++
- drivers/cxl/pci.c                          |   4 +
- drivers/cxl/pmem.c                         |  44 ++-
- drivers/cxl/security.c                     | 185 ++++++++++++
- drivers/nvdimm/Kconfig                     |  12 +
- drivers/nvdimm/dimm_devs.c                 |   9 +-
- drivers/nvdimm/security.c                  |  37 ++-
- include/linux/libnvdimm.h                  |   2 +
- include/uapi/linux/cxl_mem.h               |   6 +
- tools/testing/cxl/Kbuild                   |   1 +
- tools/testing/cxl/test/cxl.c               |  58 ++++
- tools/testing/cxl/test/mem.c               | 331 +++++++++++++++++++++
- tools/testing/cxl/test/mem_pdata.h         |  16 +
- tools/testing/nvdimm/Kbuild                |   1 -
- tools/testing/nvdimm/dimm_devs.c           |  30 --
- 18 files changed, 758 insertions(+), 42 deletions(-)
+ drivers/cxl/Makefile         |    2 +-
+ drivers/cxl/core/mbox.c      |    1 +
+ drivers/cxl/cxlmem.h         |    8 ++++++
+ drivers/cxl/pmem.c           |    6 +++--
+ drivers/cxl/security.c       |   56 ++++++++++++++++++++++++++++++++++++++++++
+ include/uapi/linux/cxl_mem.h |    1 +
+ tools/testing/cxl/Kbuild     |    1 +
+ 7 files changed, 72 insertions(+), 3 deletions(-)
  create mode 100644 drivers/cxl/security.c
- create mode 100644 tools/testing/cxl/test/mem_pdata.h
- delete mode 100644 tools/testing/nvdimm/dimm_devs.c
 
---
+diff --git a/drivers/cxl/Makefile b/drivers/cxl/Makefile
+index a78270794150..db321f48ba52 100644
+--- a/drivers/cxl/Makefile
++++ b/drivers/cxl/Makefile
+@@ -9,5 +9,5 @@ obj-$(CONFIG_CXL_PORT) += cxl_port.o
+ cxl_mem-y := mem.o
+ cxl_pci-y := pci.o
+ cxl_acpi-y := acpi.o
+-cxl_pmem-y := pmem.o
++cxl_pmem-y := pmem.o security.o
+ cxl_port-y := port.o
+diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
+index 16176b9278b4..8f4be61a76b5 100644
+--- a/drivers/cxl/core/mbox.c
++++ b/drivers/cxl/core/mbox.c
+@@ -65,6 +65,7 @@ static struct cxl_mem_command cxl_mem_commands[CXL_MEM_COMMAND_ID_MAX] = {
+ 	CXL_CMD(GET_SCAN_MEDIA_CAPS, 0x10, 0x4, 0),
+ 	CXL_CMD(SCAN_MEDIA, 0x11, 0, 0),
+ 	CXL_CMD(GET_SCAN_MEDIA, 0, CXL_VARIABLE_PAYLOAD, 0),
++	CXL_CMD(GET_SECURITY_STATE, 0, 0x4, 0),
+ };
+ 
+ /*
+diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
+index 88e3a8e54b6a..25d1d8fa7d1e 100644
+--- a/drivers/cxl/cxlmem.h
++++ b/drivers/cxl/cxlmem.h
+@@ -273,6 +273,7 @@ enum cxl_opcode {
+ 	CXL_MBOX_OP_GET_SCAN_MEDIA_CAPS	= 0x4303,
+ 	CXL_MBOX_OP_SCAN_MEDIA		= 0x4304,
+ 	CXL_MBOX_OP_GET_SCAN_MEDIA	= 0x4305,
++	CXL_MBOX_OP_GET_SECURITY_STATE	= 0x4500,
+ 	CXL_MBOX_OP_MAX			= 0x10000
+ };
+ 
+@@ -372,6 +373,13 @@ struct cxl_mem_command {
+ #define CXL_CMD_FLAG_FORCE_ENABLE BIT(0)
+ };
+ 
++#define CXL_PMEM_SEC_STATE_USER_PASS_SET	0x01
++#define CXL_PMEM_SEC_STATE_MASTER_PASS_SET	0x02
++#define CXL_PMEM_SEC_STATE_LOCKED		0x04
++#define CXL_PMEM_SEC_STATE_FROZEN		0x08
++#define CXL_PMEM_SEC_STATE_USER_PLIMIT		0x10
++#define CXL_PMEM_SEC_STATE_MASTER_PLIMIT	0x20
++
+ int cxl_mbox_send_cmd(struct cxl_dev_state *cxlds, u16 opcode, void *in,
+ 		      size_t in_size, void *out, size_t out_size);
+ int cxl_dev_state_identify(struct cxl_dev_state *cxlds);
+diff --git a/drivers/cxl/pmem.c b/drivers/cxl/pmem.c
+index 7dc0a2fa1a6b..24bec4ca3866 100644
+--- a/drivers/cxl/pmem.c
++++ b/drivers/cxl/pmem.c
+@@ -11,6 +11,8 @@
+ #include "cxlmem.h"
+ #include "cxl.h"
+ 
++extern const struct nvdimm_security_ops *cxl_security_ops;
++
+ /*
+  * Ordered workqueue for cxl nvdimm device arrival and departure
+  * to coordinate bus rescans when a bridge arrives and trigger remove
+@@ -75,8 +77,8 @@ static int cxl_nvdimm_probe(struct device *dev)
+ 	set_bit(ND_CMD_GET_CONFIG_SIZE, &cmd_mask);
+ 	set_bit(ND_CMD_GET_CONFIG_DATA, &cmd_mask);
+ 	set_bit(ND_CMD_SET_CONFIG_DATA, &cmd_mask);
+-	nvdimm = nvdimm_create(cxl_nvb->nvdimm_bus, cxl_nvd, NULL, flags,
+-			       cmd_mask, 0, NULL);
++	nvdimm = __nvdimm_create(cxl_nvb->nvdimm_bus, cxl_nvd, NULL, flags,
++				 cmd_mask, 0, NULL, NULL, cxl_security_ops, NULL);
+ 	if (!nvdimm) {
+ 		rc = -ENOMEM;
+ 		goto out;
+diff --git a/drivers/cxl/security.c b/drivers/cxl/security.c
+new file mode 100644
+index 000000000000..806173084216
+--- /dev/null
++++ b/drivers/cxl/security.c
+@@ -0,0 +1,56 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/* Copyright(c) 2022 Intel Corporation. All rights reserved. */
++#include <linux/libnvdimm.h>
++#include <asm/unaligned.h>
++#include <linux/module.h>
++#include <linux/async.h>
++#include <linux/slab.h>
++#include "cxlmem.h"
++#include "cxl.h"
++
++static unsigned long cxl_pmem_get_security_flags(struct nvdimm *nvdimm,
++						 enum nvdimm_passphrase_type ptype)
++{
++	struct cxl_nvdimm *cxl_nvd = nvdimm_provider_data(nvdimm);
++	struct cxl_memdev *cxlmd = cxl_nvd->cxlmd;
++	struct cxl_dev_state *cxlds = cxlmd->cxlds;
++	unsigned long security_flags = 0;
++	u32 sec_out;
++	int rc;
++
++	rc = cxl_mbox_send_cmd(cxlds, CXL_MBOX_OP_GET_SECURITY_STATE, NULL, 0,
++			       &sec_out, sizeof(sec_out));
++	if (rc < 0)
++		return 0;
++
++	if (ptype == NVDIMM_MASTER) {
++		if (sec_out & CXL_PMEM_SEC_STATE_MASTER_PASS_SET)
++			set_bit(NVDIMM_SECURITY_UNLOCKED, &security_flags);
++		else
++			set_bit(NVDIMM_SECURITY_DISABLED, &security_flags);
++		if (sec_out & CXL_PMEM_SEC_STATE_MASTER_PLIMIT)
++			set_bit(NVDIMM_SECURITY_FROZEN, &security_flags);
++		return security_flags;
++	}
++
++	if (sec_out & CXL_PMEM_SEC_STATE_USER_PASS_SET) {
++		if (sec_out & CXL_PMEM_SEC_STATE_FROZEN ||
++		    sec_out & CXL_PMEM_SEC_STATE_USER_PLIMIT)
++			set_bit(NVDIMM_SECURITY_FROZEN, &security_flags);
++
++		if (sec_out & CXL_PMEM_SEC_STATE_LOCKED)
++			set_bit(NVDIMM_SECURITY_LOCKED, &security_flags);
++		else
++			set_bit(NVDIMM_SECURITY_UNLOCKED, &security_flags);
++	} else {
++		set_bit(NVDIMM_SECURITY_DISABLED, &security_flags);
++	}
++
++	return security_flags;
++}
++
++static const struct nvdimm_security_ops __cxl_security_ops = {
++	.get_flags = cxl_pmem_get_security_flags,
++};
++
++const struct nvdimm_security_ops *cxl_security_ops = &__cxl_security_ops;
+diff --git a/include/uapi/linux/cxl_mem.h b/include/uapi/linux/cxl_mem.h
+index c71021a2a9ed..cdc6049683ce 100644
+--- a/include/uapi/linux/cxl_mem.h
++++ b/include/uapi/linux/cxl_mem.h
+@@ -41,6 +41,7 @@
+ 	___C(GET_SCAN_MEDIA_CAPS, "Get Scan Media Capabilities"),         \
+ 	___C(SCAN_MEDIA, "Scan Media"),                                   \
+ 	___C(GET_SCAN_MEDIA, "Get Scan Media Results"),                   \
++	___C(GET_SECURITY_STATE, "Get Security State"),			  \
+ 	___C(MAX, "invalid / last command")
+ 
+ #define ___C(a, b) CXL_MEM_COMMAND_ID_##a
+diff --git a/tools/testing/cxl/Kbuild b/tools/testing/cxl/Kbuild
+index 500be85729cc..e4048a05b6ab 100644
+--- a/tools/testing/cxl/Kbuild
++++ b/tools/testing/cxl/Kbuild
+@@ -26,6 +26,7 @@ cxl_acpi-y += config_check.o
+ obj-m += cxl_pmem.o
+ 
+ cxl_pmem-y := $(CXL_SRC)/pmem.o
++cxl_pmem-y += $(CXL_SRC)/security.o
+ cxl_pmem-y += config_check.o
+ 
+ obj-m += cxl_port.o
+
 
