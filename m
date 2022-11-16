@@ -1,41 +1,40 @@
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1869C12290
-	for <nvdimm@lists.linux.dev>; Wed, 16 Nov 2022 21:18:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 03E9F12290
+	for <nvdimm@lists.linux.dev>; Wed, 16 Nov 2022 21:19:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1668633536; x=1700169536;
+  t=1668633547; x=1700169547;
   h=subject:from:to:cc:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=G74URw7M9oueTh+YyB2O0d+WftTdOtOzBbKPbYJXsWI=;
-  b=lDQYJw3jLet6DGZxXDDYGD74snp3Wd2YdW8KoNGmA57cp+qtMChv7hUv
-   gNvjivjr2LT/2gGdYuInak2rZYHaf+FE/5X8uO5siSCFr0yhe/CY9qHTJ
-   jhspJBUswyj0SFpLllWfCHNKpmPOS+kcnAyyCOQaSI1thS1p57fw4G/ro
-   8Mzq4sV0xCTFaD1dPW7mETqBxVb9raoFen1ZUP/CB56DO/4PusS5cJ6ML
-   rDVqVczR01WhbeEjvpbm++4OwYnKvYZ0yEcchs1gawHzxQynQcLQE7uYz
-   HBmCy24iJMRbgamzaDdwIN0oZ3enoxG6dsOaVAozu+Vn/aLPIJ6TOZFM7
-   A==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10533"; a="314487763"
+  bh=Js4USYcZRaJSpoXX1b4fn9SJ4aIXwvOtMXi1W+ZEWLk=;
+  b=nY6BNlGeWb2WJgMLIOLxwBkQEsxG6FNLUnbnZ4RYRtBm/WBcW+fbReSu
+   QLS5oOGqLoCR7lhKzYqU0e7pRHkt85pIz/8hPrXgtc5un/epODq/UaNm4
+   hfQlwvvdy1+S+8zFVJBKT9n5WcmVhR0f0kHqI8KWozfOuIavm3M+ZnyaO
+   7bCXY2adDYjLsPQQ3MgW3ocS8rL3yyMrzFuYu3fFPcHYzlJiCXCkZKOuz
+   16IuuGaFRS56c4xUpZG67rIL6L1sSiah4fNZZ3kLuMTsRofColZw0TUOW
+   DpqebdQLFecgqYwUt79wZHjK9A3MQldORvyatHBKEsiE7u3NwHGD5+sgd
+   g==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10533"; a="374805347"
 X-IronPort-AV: E=Sophos;i="5.96,169,1665471600"; 
-   d="scan'208";a="314487763"
+   d="scan'208";a="374805347"
 Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Nov 2022 13:18:55 -0800
-X-IronPort-AV: E=McAfee;i="6500,9779,10533"; a="617330348"
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Nov 2022 13:19:07 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10533"; a="617330410"
 X-IronPort-AV: E=Sophos;i="5.96,169,1665471600"; 
-   d="scan'208";a="617330348"
+   d="scan'208";a="617330410"
 Received: from djiang5-desk3.ch.intel.com ([143.182.136.137])
-  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Nov 2022 13:18:55 -0800
-Subject: [PATCH v5 12/18] tools/testing/cxl: Add "passphrase secure erase"
- opcode support
+  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Nov 2022 13:19:07 -0800
+Subject: [PATCH v5 14/18] cxl/pmem: add id attribute to CXL based nvdimm
 From: Dave Jiang <dave.jiang@intel.com>
 To: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
 Cc: dan.j.williams@intel.com, ira.weiny@intel.com, vishal.l.verma@intel.com,
  alison.schofield@intel.com, Jonathan.Cameron@huawei.com, dave@stgolabs.net,
  benjamin.cheatham@amd.com
-Date: Wed, 16 Nov 2022 14:18:54 -0700
+Date: Wed, 16 Nov 2022 14:19:06 -0700
 Message-ID: 
- <166863353476.80269.9465534200608919114.stgit@djiang5-desk3.ch.intel.com>
+ <166863354669.80269.13034158320684797571.stgit@djiang5-desk3.ch.intel.com>
 In-Reply-To: 
  <166863336073.80269.10366236775799773727.stgit@djiang5-desk3.ch.intel.com>
 References: 
@@ -50,118 +49,87 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 
-Add support to emulate a CXL mem device support the "passphrase secure
-erase" operation.
+Add an id group attribute for CXL based nvdimm object. The addition allows
+ndctl to display the "unique id" for the nvdimm. The serial number for the
+CXL memory device will be used for this id.
 
+[
+  {
+      "dev":"nmem10",
+      "id":"0x4",
+      "security":"disabled"
+  },
+]
+
+The id attribute is needed by the ndctl security key management to setup a
+keyblob with a unique file name tied to the mem device.
+
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 ---
- tools/testing/cxl/test/mem.c |   87 ++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 87 insertions(+)
+ Documentation/ABI/testing/sysfs-bus-nvdimm |    6 ++++++
+ drivers/cxl/pmem.c                         |   28 +++++++++++++++++++++++++++-
+ 2 files changed, 33 insertions(+), 1 deletion(-)
 
-diff --git a/tools/testing/cxl/test/mem.c b/tools/testing/cxl/test/mem.c
-index 90607597b9a4..38f1cea0a353 100644
---- a/tools/testing/cxl/test/mem.c
-+++ b/tools/testing/cxl/test/mem.c
-@@ -362,6 +362,90 @@ static int mock_unlock_security(struct cxl_dev_state *cxlds, struct cxl_mbox_cmd
- 	return 0;
+diff --git a/Documentation/ABI/testing/sysfs-bus-nvdimm b/Documentation/ABI/testing/sysfs-bus-nvdimm
+index 1c1f5acbf53d..91945211e53b 100644
+--- a/Documentation/ABI/testing/sysfs-bus-nvdimm
++++ b/Documentation/ABI/testing/sysfs-bus-nvdimm
+@@ -41,3 +41,9 @@ KernelVersion:  5.18
+ Contact:        Kajol Jain <kjain@linux.ibm.com>
+ Description:	(RO) This sysfs file exposes the cpumask which is designated to
+ 		to retrieve nvdimm pmu event counter data.
++
++What:		/sys/bus/nd/devices/nmemX/id
++Date:		November 2022
++KernelVersion:	6.2
++Contact:	Dave Jiang <dave.jiang@intel.com>
++Description:	(RO) Show the id (serial) of the device.
+diff --git a/drivers/cxl/pmem.c b/drivers/cxl/pmem.c
+index 24bec4ca3866..9209c7dd72d0 100644
+--- a/drivers/cxl/pmem.c
++++ b/drivers/cxl/pmem.c
+@@ -48,6 +48,31 @@ static void unregister_nvdimm(void *nvdimm)
+ 	cxl_nvd->bridge = NULL;
  }
  
-+static int mock_passphrase_secure_erase(struct cxl_dev_state *cxlds,
-+					struct cxl_mbox_cmd *cmd)
++static ssize_t id_show(struct device *dev, struct device_attribute *attr, char *buf)
 +{
-+	struct cxl_mock_mem_pdata *mdata = dev_get_platdata(cxlds->dev);
-+	struct cxl_pass_erase *erase;
++	struct nvdimm *nvdimm = to_nvdimm(dev);
++	struct cxl_nvdimm *cxl_nvd = nvdimm_provider_data(nvdimm);
++	struct cxl_dev_state *cxlds = cxl_nvd->cxlmd->cxlds;
 +
-+	if (cmd->size_in != sizeof(*erase))
-+		return -EINVAL;
-+
-+	if (cmd->size_out != 0)
-+		return -EINVAL;
-+
-+	erase = cmd->payload_in;
-+	if (mdata->security_state & CXL_PMEM_SEC_STATE_FROZEN) {
-+		cmd->return_code = CXL_MBOX_CMD_RC_SECURITY;
-+		return -ENXIO;
-+	}
-+
-+	if (mdata->security_state & CXL_PMEM_SEC_STATE_USER_PLIMIT &&
-+	    erase->type == CXL_PMEM_SEC_PASS_USER) {
-+		cmd->return_code = CXL_MBOX_CMD_RC_SECURITY;
-+		return -ENXIO;
-+	}
-+
-+	if (mdata->security_state & CXL_PMEM_SEC_STATE_MASTER_PLIMIT &&
-+	    erase->type == CXL_PMEM_SEC_PASS_MASTER) {
-+		cmd->return_code = CXL_MBOX_CMD_RC_SECURITY;
-+		return -ENXIO;
-+	}
-+
-+	switch (erase->type) {
-+	case CXL_PMEM_SEC_PASS_MASTER:
-+		/*
-+		 * The spec does not clearly define the behavior of the scenario
-+		 * where a master passphrase is passed in while the master
-+		 * passphrase is not set and user passphrase is not set. The
-+		 * code will take the assumption that it will behave the same
-+		 * as a CXL secure erase command without passphrase (0x4401).
-+		 */
-+		if (mdata->security_state & CXL_PMEM_SEC_STATE_MASTER_PASS_SET) {
-+			if (memcmp(mdata->master_pass, erase->pass,
-+				   NVDIMM_PASSPHRASE_LEN)) {
-+				master_plimit_check(mdata);
-+				cmd->return_code = CXL_MBOX_CMD_RC_PASSPHRASE;
-+				return -ENXIO;
-+			}
-+			mdata->master_limit = 0;
-+			mdata->user_limit = 0;
-+			mdata->security_state &= ~CXL_PMEM_SEC_STATE_USER_PASS_SET;
-+			memset(mdata->user_pass, 0, NVDIMM_PASSPHRASE_LEN);
-+			mdata->security_state &= ~CXL_PMEM_SEC_STATE_LOCKED;
-+		} else if (mdata->security_state & CXL_PMEM_SEC_STATE_USER_PASS_SET) {
-+			return -EINVAL;
-+		}
-+		/* Scramble encryption keys so that data is effectively erased */
-+		break;
-+	case CXL_PMEM_SEC_PASS_USER:
-+		/*
-+		 * The spec does not clearly define the behavior of the scenario
-+		 * where a user passphrase is passed in while the user
-+		 * passphrase is not set. The code will take the assumption that
-+		 * it will behave the same as a CXL secure erase command without
-+		 * passphrase (0x4401).
-+		 */
-+		if (mdata->security_state & CXL_PMEM_SEC_STATE_USER_PASS_SET) {
-+			if (memcmp(mdata->user_pass, erase->pass,
-+				   NVDIMM_PASSPHRASE_LEN)) {
-+				user_plimit_check(mdata);
-+				cmd->return_code = CXL_MBOX_CMD_RC_PASSPHRASE;
-+				return -ENXIO;
-+			}
-+			mdata->user_limit = 0;
-+			mdata->security_state &= ~CXL_PMEM_SEC_STATE_USER_PASS_SET;
-+			memset(mdata->user_pass, 0, NVDIMM_PASSPHRASE_LEN);
-+		}
-+		/* Scramble encryption keys so that data is effectively erased */
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	return 0;
++	return sysfs_emit(buf, "%lld\n", cxlds->serial);
 +}
++static DEVICE_ATTR_RO(id);
 +
- static int mock_get_lsa(struct cxl_dev_state *cxlds, struct cxl_mbox_cmd *cmd)
++static struct attribute *cxl_dimm_attributes[] = {
++	&dev_attr_id.attr,
++	NULL
++};
++
++static const struct attribute_group cxl_dimm_attribute_group = {
++	.name = "cxl",
++	.attrs = cxl_dimm_attributes,
++};
++
++static const struct attribute_group *cxl_dimm_attribute_groups[] = {
++	&cxl_dimm_attribute_group,
++	NULL
++};
++
+ static int cxl_nvdimm_probe(struct device *dev)
  {
- 	struct cxl_mbox_get_lsa *get_lsa = cmd->payload_in;
-@@ -470,6 +554,9 @@ static int cxl_mock_mbox_send(struct cxl_dev_state *cxlds, struct cxl_mbox_cmd *
- 	case CXL_MBOX_OP_UNLOCK:
- 		rc = mock_unlock_security(cxlds, cmd);
- 		break;
-+	case CXL_MBOX_OP_PASSPHRASE_SECURE_ERASE:
-+		rc = mock_passphrase_secure_erase(cxlds, cmd);
-+		break;
- 	default:
- 		break;
- 	}
+ 	struct cxl_nvdimm *cxl_nvd = to_cxl_nvdimm(dev);
+@@ -77,7 +102,8 @@ static int cxl_nvdimm_probe(struct device *dev)
+ 	set_bit(ND_CMD_GET_CONFIG_SIZE, &cmd_mask);
+ 	set_bit(ND_CMD_GET_CONFIG_DATA, &cmd_mask);
+ 	set_bit(ND_CMD_SET_CONFIG_DATA, &cmd_mask);
+-	nvdimm = __nvdimm_create(cxl_nvb->nvdimm_bus, cxl_nvd, NULL, flags,
++	nvdimm = __nvdimm_create(cxl_nvb->nvdimm_bus, cxl_nvd,
++				 cxl_dimm_attribute_groups, flags,
+ 				 cmd_mask, 0, NULL, NULL, cxl_security_ops, NULL);
+ 	if (!nvdimm) {
+ 		rc = -ENOMEM;
 
 
