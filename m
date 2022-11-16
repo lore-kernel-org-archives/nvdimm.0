@@ -1,154 +1,171 @@
-Received: from wout5-smtp.messagingengine.com (wout5-smtp.messagingengine.com [64.147.123.21])
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89CCE5CAD
-	for <nvdimm@lists.linux.dev>; Wed, 16 Nov 2022 12:46:39 +0000 (UTC)
-Received: from compute5.internal (compute5.nyi.internal [10.202.2.45])
-	by mailout.west.internal (Postfix) with ESMTP id D8C203200A9F;
-	Wed, 16 Nov 2022 07:46:36 -0500 (EST)
-Received: from mailfrontend1 ([10.202.2.162])
-  by compute5.internal (MEProxy); Wed, 16 Nov 2022 07:46:38 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=shutemov.name;
-	 h=cc:cc:content-type:date:date:from:from:in-reply-to
-	:in-reply-to:message-id:mime-version:references:reply-to:sender
-	:subject:subject:to:to; s=fm2; t=1668602796; x=1668689196; bh=/o
-	UukuCBSust6nyPKGbLJ3SIf7SSntyLyEuv7oQhiss=; b=dhyoKKhGqOzKfeYFrP
-	jkKLIWLVlIhYe2DSYp5tGE0/bar5vjOdTijMEKoBwwexXwDc86sHrl4RE9eSfRjX
-	QUzfR8qBMY45xI9xaRqAwObSohlEfTH+IJZ1ys2Sl5IErtXcxuRUznEbLgFmdNzu
-	JDT9MMYF3H6VloM/JKw4zGRz7Hk8iBTT+OD0LG3CLJUqdt1O3CvVxmaBjEy5GHFn
-	/OhWV3oP266+eI1bnhUE4lhlShavvvGOJ3/Lza0nZeJpvKlRK/cqIe1UqzCIcgY+
-	PafutUS2RbCSqpek8nGx68iY4bDr+MwS+TnQIXLrGiB9LwAG/6PVk1GuAD+dmKdw
-	d8Sw==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-type:date:date:feedback-id
-	:feedback-id:from:from:in-reply-to:in-reply-to:message-id
-	:mime-version:references:reply-to:sender:subject:subject:to:to
-	:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=
-	fm1; t=1668602796; x=1668689196; bh=/oUukuCBSust6nyPKGbLJ3SIf7SS
-	ntyLyEuv7oQhiss=; b=AvCc9us3lwT1uY97ryMsa0wvCYXwefewlvGh6SfCC7g6
-	Ai28R2lv3DV5b/yAoaI3JCEVGcnqqS5Do6casOdN/skoNZWJXMe5MuFREFyvb4+D
-	4JPeTgakZghuC4C3La2MzCSB+tcsAA0l4ya3nHqoveaOt1IxJV+8QiWAyZbPD+Wm
-	EYZFGc5t4bNCNtaAJ5VudOSBgmRZ9fz/Jchk0iGnOJgVBUPj1CmQc1JIAQWZtvMl
-	c/kVemeO0t4DmMVR30wt3lzVkKWSTb9rC6s2AbUyjYwPOWfqlN9NsXptWxXd1rEt
-	NXXoFVdz+f5upMYbwlNhz/6sBW8jzJxFwCEaLeQNFQ==
-X-ME-Sender: <xms:rNt0Y1CxwpDuv_0XE1z_aRFlNx-ARAWtzWqlutwsiqgE6jIeyOw9RA>
-    <xme:rNt0Yzh76avr0oywyyD4WaS1ziBEW0aQ9G9nz1d73SyOXL-2mthMnUfhplufzPSwh
-    2NudNFSGAFCm3TgQ40>
-X-ME-Received: <xmr:rNt0YwkfHhYyh3ypsi2gJ2Lam-ZZocg1R8p04HMLfUcU1oK1WWKamgqd-vWI80o8_WpmtA>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvgedrgeeigdegvdcutefuodetggdotefrodftvf
-    curfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfghnecu
-    uegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenuc
-    fjughrpeffhffvvefukfhfgggtuggjsehttddttddttddvnecuhfhrohhmpedfmfhirhhi
-    lhhlucetrdcuufhhuhhtvghmohhvfdcuoehkihhrihhllhesshhhuhhtvghmohhvrdhnrg
-    hmvgeqnecuggftrfgrthhtvghrnhephfeigefhtdefhedtfedthefghedutddvueehtedt
-    tdehjeeukeejgeeuiedvkedtnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpe
-    hmrghilhhfrhhomhepkhhirhhilhhlsehshhhuthgvmhhovhdrnhgrmhgv
-X-ME-Proxy: <xmx:rNt0Y_y45CkOdj-cqCg9Fu4LTFXucIHM2WhWugIS8UCI1rt-WRHahw>
-    <xmx:rNt0Y6TvKKHb5l5DY9ysgJCHYCV1HMTf3c7Tg_sewxituvlWgIiMtQ>
-    <xmx:rNt0Yyb90Qm9qd4NFkmYXPqrZHQcyvjbSFWb58bE7vf1pXdCGhDNHA>
-    <xmx:rNt0Y9HbpoFG0A-pSr_cncHgor3ILO_oTQfRQ3tFtYBlpYca5YcCTA>
-Feedback-ID: ie3994620:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Wed,
- 16 Nov 2022 07:46:35 -0500 (EST)
-Received: by box.shutemov.name (Postfix, from userid 1000)
-	id 49ADD104CEC; Wed, 16 Nov 2022 15:46:34 +0300 (+03)
-Date: Wed, 16 Nov 2022 15:46:34 +0300
-From: "Kirill A. Shutemov" <kirill@shutemov.name>
-To: Vishal Verma <vishal.l.verma@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-	nvdimm@lists.linux.dev,
-	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-	Dan Williams <dan.j.williams@intel.com>, liushixin2@huawei.com,
-	Chris Piper <chris.d.piper@intel.com>, stable@vger.kernel.org,
-	"Rafael J . Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 2/2] ACPI: HMAT: Fix initiator registration for
- single-initiator systems
-Message-ID: <20221116124634.nlvnsirdnlafdfeh@box.shutemov.name>
-References: <20221116075736.1909690-1-vishal.l.verma@intel.com>
- <20221116075736.1909690-3-vishal.l.verma@intel.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D4D745CAD
+	for <nvdimm@lists.linux.dev>; Wed, 16 Nov 2022 12:56:45 +0000 (UTC)
+Received: from fraeml709-chm.china.huawei.com (unknown [172.18.147.206])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4NC30B0jN6z6HJbh;
+	Wed, 16 Nov 2022 20:54:18 +0800 (CST)
+Received: from lhrpeml500005.china.huawei.com (7.191.163.240) by
+ fraeml709-chm.china.huawei.com (10.206.15.37) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31; Wed, 16 Nov 2022 13:56:41 +0100
+Received: from localhost (10.202.227.76) by lhrpeml500005.china.huawei.com
+ (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.31; Wed, 16 Nov
+ 2022 12:56:41 +0000
+Date: Wed, 16 Nov 2022 12:56:40 +0000
+From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+To: <alison.schofield@intel.com>
+CC: Dan Williams <dan.j.williams@intel.com>, Ira Weiny <ira.weiny@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>,
+	Ben Widawsky <bwidawsk@kernel.org>, <nvdimm@lists.linux.dev>,
+	<linux-cxl@vger.kernel.org>
+Subject: Re: [ndctl PATCH 1/5] libcxl: add interfaces for GET_POISON_LIST
+ mailbox commands
+Message-ID: <20221116125640.00006a68@Huawei.com>
+In-Reply-To: <73b2edf5ded979cb3164bcf2b76c4f300cdf2250.1668133294.git.alison.schofield@intel.com>
+References: <cover.1668133294.git.alison.schofield@intel.com>
+	<73b2edf5ded979cb3164bcf2b76c4f300cdf2250.1668133294.git.alison.schofield@intel.com>
+Organization: Huawei Technologies Research and Development (UK) Ltd.
+X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20221116075736.1909690-3-vishal.l.verma@intel.com>
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.202.227.76]
+X-ClientProxiedBy: lhrpeml100004.china.huawei.com (7.191.162.219) To
+ lhrpeml500005.china.huawei.com (7.191.163.240)
+X-CFilter-Loop: Reflected
 
-On Wed, Nov 16, 2022 at 12:57:36AM -0700, Vishal Verma wrote:
-> In a system with a single initiator node, and one or more memory-only
-> 'target' nodes, the memory-only node(s) would fail to register their
-> initiator node correctly. i.e. in sysfs:
+On Thu, 10 Nov 2022 19:20:04 -0800
+alison.schofield@intel.com wrote:
+
+> From: Alison Schofield <alison.schofield@intel.com>
 > 
->   # ls /sys/devices/system/node/node0/access0/targets/
->   node0
+> CXL devices maintain a list of locations that are poisoned or result
+> in poison if the addresses are accessed by the host.
 > 
-> Where as the correct behavior should be:
+> Per the spec (CXL 3.0 8.2.9.8.4.1), the device returns this Poison
+> list as a set of  Media Error Records that include the source of the
+> error, the starting device physical address and length.
 > 
->   # ls /sys/devices/system/node/node0/access0/targets/
->   node0 node1
+> Trigger the retrieval of the poison list by writing to the device
+> sysfs attribute: trigger_poison_list.
 > 
-> This happened because hmat_register_target_initiators() uses list_sort()
-> to sort the initiator list, but the sort comparision function
-> (initiator_cmp()) is overloaded to also set the node mask's bits.
+> Retrieval is offered by memdev or by region:
+> int cxl_memdev_trigger_poison_list(struct cxl_memdev *memdev);
+> int cxl_region_trigger_poison_list(struct cxl_region *region);
 > 
-> In a system with a single initiator, the list is singular, and list_sort
-> elides the comparision helper call. Thus the node mask never gets set,
-> and the subsequent search for the best initiator comes up empty.
+> This interface triggers the retrieval of the poison list from the
+> devices and logs the error records as kernel trace events named
+> 'cxl_poison'.
 > 
-> Add a new helper to sort the initiator list, and handle the singular
-> list corner case by setting the node mask for that explicitly.
-> 
-> Reported-by: Chris Piper <chris.d.piper@intel.com>
-> Cc: <stable@vger.kernel.org>
-> Cc: Rafael J. Wysocki <rafael@kernel.org>
-> Cc: Liu Shixin <liushixin2@huawei.com>
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+> Signed-off-by: Alison Schofield <alison.schofield@intel.com>
+Trivial comment inline + I haven't been tracking closely development
+of this tool closely so hopefully this will get other eyes on it who
+are more familiar.  With that in mind:
+
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+
 > ---
->  drivers/acpi/numa/hmat.c | 32 ++++++++++++++++++++++++++++++--
->  1 file changed, 30 insertions(+), 2 deletions(-)
+>  cxl/lib/libcxl.c   | 44 ++++++++++++++++++++++++++++++++++++++++++++
+>  cxl/lib/libcxl.sym |  6 ++++++
+>  cxl/libcxl.h       |  2 ++
+>  3 files changed, 52 insertions(+)
 > 
-> diff --git a/drivers/acpi/numa/hmat.c b/drivers/acpi/numa/hmat.c
-> index 144a84f429ed..cd20b0e9cdfa 100644
-> --- a/drivers/acpi/numa/hmat.c
-> +++ b/drivers/acpi/numa/hmat.c
-> @@ -573,6 +573,30 @@ static int initiator_cmp(void *priv, const struct list_head *a,
->  	return ia->processor_pxm - ib->processor_pxm;
+> diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
+> index e8c5d4444dd0..1a8a8eb0ffcb 100644
+> --- a/cxl/lib/libcxl.c
+> +++ b/cxl/lib/libcxl.c
+> @@ -1331,6 +1331,50 @@ CXL_EXPORT int cxl_memdev_disable_invalidate(struct cxl_memdev *memdev)
+>  	return 0;
 >  }
 >  
-> +static int initiators_to_nodemask(unsigned long *p_nodes)
+> +CXL_EXPORT int cxl_memdev_trigger_poison_list(struct cxl_memdev *memdev)
 > +{
-> +	/*
-> +	 * list_sort doesn't call @cmp (initiator_cmp) for 0 or 1 sized lists.
-> +	 * For a single-initiator system with other memory-only nodes, this
-> +	 * means an empty p_nodes mask, since that is set by initiator_cmp().
-> +	 * Special case the singular list, and make sure the node mask gets set
-> +	 * appropriately.
-> +	 */
-> +	if (list_empty(&initiators))
+> +	struct cxl_ctx *ctx = cxl_memdev_get_ctx(memdev);
+> +	char *path = memdev->dev_buf;
+> +	int len = memdev->buf_len, rc;
+> +
+> +	if (snprintf(path, len, "%s/trigger_poison_list", memdev->dev_path) >=
+> +	    len) {
+
+Ugly line break choice to break mid argument..
+	if (snprintf(path, len, "%s/trigger_poison_list",
+		     memdev->dev_path) >= len) {
+would be better.
+
+> +		err(ctx, "%s: buffer too small\n",
+> +		    cxl_memdev_get_devname(memdev));
 > +		return -ENXIO;
-> +
-> +	if (list_is_singular(&initiators)) {
-> +		struct memory_initiator *initiator = list_first_entry(
-> +			&initiators, struct memory_initiator, node);
-> +
-> +		set_bit(initiator->processor_pxm, p_nodes);
-> +		return 0;
 > +	}
-> +
-> +	list_sort(p_nodes, &initiators, initiator_cmp);
+> +	rc = sysfs_write_attr(ctx, path, "1\n");
+> +	if (rc < 0) {
+> +		fprintf(stderr,
+> +			"%s: Failed write sysfs attr trigger_poison_list\n",
+> +			cxl_memdev_get_devname(memdev));
+> +		return rc;
+> +	}
 > +	return 0;
 > +}
 > +
+> +CXL_EXPORT int cxl_region_trigger_poison_list(struct cxl_region *region)
+> +{
+> +	struct cxl_ctx *ctx = cxl_region_get_ctx(region);
+> +	char *path = region->dev_buf;
+> +	int len = region->buf_len, rc;
+> +
+> +	if (snprintf(path, len, "%s/trigger_poison_list", region->dev_path) >=
+> +	    len) {
+as above.
 
-Hm. I think it indicates that these set_bit()s do not belong to
-initiator_cmp().
+> +		err(ctx, "%s: buffer too small\n",
+> +		    cxl_region_get_devname(region));
+> +		return -ENXIO;
+> +	}
+> +	rc = sysfs_write_attr(ctx, path, "1\n");
+> +	if (rc < 0) {
+> +		fprintf(stderr,
+> +			"%s: Failed write sysfs attr trigger_poison_list\n",
+> +			cxl_region_get_devname(region));
+> +		return rc;
+> +	}
+> +	return 0;
+> +}
+> +
+>  CXL_EXPORT int cxl_memdev_enable(struct cxl_memdev *memdev)
+>  {
+>  	struct cxl_ctx *ctx = cxl_memdev_get_ctx(memdev);
+> diff --git a/cxl/lib/libcxl.sym b/cxl/lib/libcxl.sym
+> index 8bb91e05638b..ecf98e6c7af2 100644
+> --- a/cxl/lib/libcxl.sym
+> +++ b/cxl/lib/libcxl.sym
+> @@ -217,3 +217,9 @@ global:
+>  	cxl_decoder_get_max_available_extent;
+>  	cxl_decoder_get_region;
+>  } LIBCXL_2;
+> +
+> +LIBCXL_4 {
+> +global:
+> +	cxl_memdev_trigger_poison_list;
+> +	cxl_region_trigger_poison_list;
+> +} LIBCXL_3;
+> diff --git a/cxl/libcxl.h b/cxl/libcxl.h
+> index 9fe4e99263dd..5ebdf0879325 100644
+> --- a/cxl/libcxl.h
+> +++ b/cxl/libcxl.h
+> @@ -375,6 +375,8 @@ enum cxl_setpartition_mode {
+>  
+>  int cxl_cmd_partition_set_mode(struct cxl_cmd *cmd,
+>  		enum cxl_setpartition_mode mode);
+> +int cxl_memdev_trigger_poison_list(struct cxl_memdev *memdev);
+> +int cxl_region_trigger_poison_list(struct cxl_region *region);
+>  
+>  #ifdef __cplusplus
+>  } /* extern "C" */
 
-Maybe remove both set_bit() from the compare helper and walk the list
-separately to initialize the node mask? I think it will be easier to
-follow.
-
--- 
-  Kiryl Shutsemau / Kirill A. Shutemov
