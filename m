@@ -1,174 +1,154 @@
-Received: from wout3-smtp.messagingengine.com (wout3-smtp.messagingengine.com [64.147.123.19])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B872A33D1
-	for <nvdimm@lists.linux.dev>; Wed, 16 Nov 2022 20:44:57 +0000 (UTC)
-Received: from compute5.internal (compute5.nyi.internal [10.202.2.45])
-	by mailout.west.internal (Postfix) with ESMTP id 13E02320096B;
-	Wed, 16 Nov 2022 15:44:56 -0500 (EST)
-Received: from mailfrontend1 ([10.202.2.162])
-  by compute5.internal (MEProxy); Wed, 16 Nov 2022 15:44:56 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=shutemov.name;
-	 h=cc:cc:content-transfer-encoding:content-type:date:date:from
-	:from:in-reply-to:in-reply-to:message-id:mime-version:references
-	:reply-to:sender:subject:subject:to:to; s=fm2; t=1668631495; x=
-	1668717895; bh=YOfiesPEOAuUBSKKpRAQrX3e3W+dT8d3FBCanuP8ktQ=; b=N
-	08txJlUzUDG1GQF4uRqGt7udIYP7fS7l3NRcYysByYbhCMbq9e4xqDHSxNBTV2Km
-	iofRM+eUOJUo5KznvBAdG1FV9cnpjnSKGEBomqIK0CsXtW5COSjS5juZ/Z3h82Ox
-	h2ZGcaZPeYmlCwxeWieupmAMQoHy6E0e14aerd6V9MUqBb29y3/QQaLmp4Iuh2ES
-	evJczTWPL5xpf2mrDLvmBRdgulCX9Vv0VdLiSzjMF8oXJt6KIJ6kwEBAK6qUsld/
-	EXvgkk4G4BZXUocLVYa4LYh+GyZMcZy9iooNv7EXPcmRQ29ssGGHaY45J07lb9cY
-	2b/3xJcdaMFFDqkgEUIEQ==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:date:date:feedback-id:feedback-id:from:from
-	:in-reply-to:in-reply-to:message-id:mime-version:references
-	:reply-to:sender:subject:subject:to:to:x-me-proxy:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm1; t=1668631495; x=
-	1668717895; bh=YOfiesPEOAuUBSKKpRAQrX3e3W+dT8d3FBCanuP8ktQ=; b=i
-	rvJFQALqk2m9ETraqa9ybGitP5C4ZLZOREAwq/aM/bBoX3Olp2w6i4x8qommR4te
-	8rFDrvzIMHx7lbqzFGiHVH705dNMhp2Z5zrmeQFBDQqDFgHBzKVD1vA+o1PyDQTU
-	eCLPr++CCOYVUuVHCDF+k5g2e4s8pt48qUC49WUQjq7doSgZ544WPwpC5KpKOJnQ
-	qd9Q+tOyUR3zaXfVIcaRZkGRswv697bU13T85ZDVK8PNceJ0obtpcZmG8fa+ZQ7s
-	riqbnzN03UFJLupeOoPqEpvXOtI1LpmHkIeP2WXIO/NUdy3ZA3HZCvbMezN1fSYx
-	bChB5SkSSvIvOnxikL+2A==
-X-ME-Sender: <xms:xkt1Y69JOZNpI_wbdvb1KFo-TZjZwVAVzTyxlX6KBkXP5LxLjweC9Q>
-    <xme:xkt1Y6u14R5FT9QgNTummNSxZNGEZHvzNs1Ykuq1JncpSxkwH2aernhZW7ZxVeCyj
-    1i5BveRucWlDAoOiXE>
-X-ME-Received: <xmr:xkt1YwBUVqqE0fzE3zmiS6L_SVchxo4nPKvKOnx-RiJ8qyuPwrCVys79au8ZDYFJGfSJUw>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvgedrgeeigddufeelucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
-    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
-    cujfgurhepfffhvfevuffkfhggtggugfgjsehtkedttddttddunecuhfhrohhmpedfkhhi
-    rhhilhhlsehshhhuthgvmhhovhdrnhgrmhgvfdcuoehkihhrihhllhesshhhuhhtvghmoh
-    hvrdhnrghmvgeqnecuggftrfgrthhtvghrnhepleehvefgieeukeekvddvudevieeikeeu
-    gfeghfejjedvfeeivdfhtddtueetgfejnecuvehluhhsthgvrhfuihiivgeptdenucfrrg
-    hrrghmpehmrghilhhfrhhomhepkhhirhhilhhlsehshhhuthgvmhhovhdrnhgrmhgv
-X-ME-Proxy: <xmx:xkt1YycwHcuJnoD6aYa_kB3bvM122-QDPK1Ckm0uSUPnyTtD63aq5Q>
-    <xmx:xkt1Y_NO6CaWKcg5UjVEBkXKC2wensON05H0-ATI4CKaZ8WMcOVMqA>
-    <xmx:xkt1Y8mLwkr77TPCSWOnYyE_iJh08HpiI4Gu8SYD_f-I848HOZUyMg>
-    <xmx:x0t1Y4g8QjR1NfGjP8caFLxuYxTZRZYaNKw7p11BwBV0AtjfEIQcjw>
-Feedback-ID: ie3994620:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Wed,
- 16 Nov 2022 15:44:54 -0500 (EST)
-Received: by box.shutemov.name (Postfix, from userid 1000)
-	id 1BEF1109702; Wed, 16 Nov 2022 23:44:51 +0300 (+03)
-Date: Wed, 16 Nov 2022 23:44:51 +0300
-From: "kirill@shutemov.name" <kirill@shutemov.name>
-To: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Cc: "Piper, Chris D" <chris.d.piper@intel.com>,
-	"rafael@kernel.org" <rafael@kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"Williams, Dan J" <dan.j.williams@intel.com>,
-	"Wysocki, Rafael J" <rafael.j.wysocki@intel.com>,
-	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-	"stable@vger.kernel.org" <stable@vger.kernel.org>,
-	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
-	"liushixin2@huawei.com" <liushixin2@huawei.com>
-Subject: Re: [PATCH 2/2] ACPI: HMAT: Fix initiator registration for
- single-initiator systems
-Message-ID: <20221116204451.rmh6lq7vilajg7ss@box.shutemov.name>
-References: <20221116075736.1909690-1-vishal.l.verma@intel.com>
- <20221116075736.1909690-3-vishal.l.verma@intel.com>
- <20221116124634.nlvnsirdnlafdfeh@box.shutemov.name>
- <b29163f4e39d28c3656b468a52a63b34073cb933.camel@intel.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D2D412290
+	for <nvdimm@lists.linux.dev>; Wed, 16 Nov 2022 21:17:44 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1668633465; x=1700169465;
+  h=subject:from:to:cc:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=Fmu1CzrPmAYYcF8aVsck2BmYvCN9igytVBoqsAH4BhY=;
+  b=SYDuBDrTjKgeSM5b77MDJrgM0LxKwrQmI2NdN6Pf2jGS7kvlKPhz3rKx
+   cDIvoy89m7fqhb/0xsd1YJkJK3qvYx31MNkEKWTDoD0oNE7RtVqhnK69Z
+   eB0syQR/+5Ze5IQHWtx3RhbKeN/jpdCEbUgMhWnsaDp3YCpbxsmR/oWm8
+   yvWwVlalXbQI+xfOomZvHpOx6b9J2LXy1RtCs/44wgMcPxD8qeOTc7X0Q
+   2QiGckmUtnM/uFEh29P4EnXsHfz0A2F+7Xx+ssR6CZ/uD7kjF5jgMO3BC
+   d59NOLA+TlSonA2zedjASX39aGY/RtlaK4ZhK/6/Hzu9LI06v2f9WMfPw
+   g==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10533"; a="398957179"
+X-IronPort-AV: E=Sophos;i="5.96,169,1665471600"; 
+   d="scan'208";a="398957179"
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Nov 2022 13:17:44 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10533"; a="814238709"
+X-IronPort-AV: E=Sophos;i="5.96,169,1665471600"; 
+   d="scan'208";a="814238709"
+Received: from djiang5-desk3.ch.intel.com ([143.182.136.137])
+  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Nov 2022 13:17:43 -0800
+Subject: [PATCH v5 00/18] Introduce security commands for CXL pmem device
+From: Dave Jiang <dave.jiang@intel.com>
+To: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
+Cc: dan.j.williams@intel.com, ira.weiny@intel.com, vishal.l.verma@intel.com,
+ alison.schofield@intel.com, Jonathan.Cameron@huawei.com, dave@stgolabs.net,
+ benjamin.cheatham@amd.com
+Date: Wed, 16 Nov 2022 14:17:43 -0700
+Message-ID: 
+ <166863336073.80269.10366236775799773727.stgit@djiang5-desk3.ch.intel.com>
+User-Agent: StGit/1.4
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <b29163f4e39d28c3656b468a52a63b34073cb933.camel@intel.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 
-On Wed, Nov 16, 2022 at 06:02:32PM +0000, Verma, Vishal L wrote:
-> On Wed, 2022-11-16 at 15:46 +0300, Kirill A. Shutemov wrote:
-> > On Wed, Nov 16, 2022 at 12:57:36AM -0700, Vishal Verma wrote:
-> > > In a system with a single initiator node, and one or more memory-only
-> > > 'target' nodes, the memory-only node(s) would fail to register their
-> > > initiator node correctly. i.e. in sysfs:
-> > > 
-> > >   # ls /sys/devices/system/node/node0/access0/targets/
-> > >   node0
-> > > 
-> > > Where as the correct behavior should be:
-> > > 
-> > >   # ls /sys/devices/system/node/node0/access0/targets/
-> > >   node0 node1
-> > > 
-> > > This happened because hmat_register_target_initiators() uses list_sort()
-> > > to sort the initiator list, but the sort comparision function
-> > > (initiator_cmp()) is overloaded to also set the node mask's bits.
-> > > 
-> > > In a system with a single initiator, the list is singular, and list_sort
-> > > elides the comparision helper call. Thus the node mask never gets set,
-> > > and the subsequent search for the best initiator comes up empty.
-> > > 
-> > > Add a new helper to sort the initiator list, and handle the singular
-> > > list corner case by setting the node mask for that explicitly.
-> > > 
-> > > Reported-by: Chris Piper <chris.d.piper@intel.com>
-> > > Cc: <stable@vger.kernel.org>
-> > > Cc: Rafael J. Wysocki <rafael@kernel.org>
-> > > Cc: Liu Shixin <liushixin2@huawei.com>
-> > > Cc: Dan Williams <dan.j.williams@intel.com>
-> > > Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
-> > > ---
-> > >  drivers/acpi/numa/hmat.c | 32 ++++++++++++++++++++++++++++++--
-> > >  1 file changed, 30 insertions(+), 2 deletions(-)
-> > > 
-> > > diff --git a/drivers/acpi/numa/hmat.c b/drivers/acpi/numa/hmat.c
-> > > index 144a84f429ed..cd20b0e9cdfa 100644
-> > > --- a/drivers/acpi/numa/hmat.c
-> > > +++ b/drivers/acpi/numa/hmat.c
-> > > @@ -573,6 +573,30 @@ static int initiator_cmp(void *priv, const struct list_head *a,
-> > >         return ia->processor_pxm - ib->processor_pxm;
-> > >  }
-> > >  
-> > > +static int initiators_to_nodemask(unsigned long *p_nodes)
-> > > +{
-> > > +       /*
-> > > +        * list_sort doesn't call @cmp (initiator_cmp) for 0 or 1 sized lists.
-> > > +        * For a single-initiator system with other memory-only nodes, this
-> > > +        * means an empty p_nodes mask, since that is set by initiator_cmp().
-> > > +        * Special case the singular list, and make sure the node mask gets set
-> > > +        * appropriately.
-> > > +        */
-> > > +       if (list_empty(&initiators))
-> > > +               return -ENXIO;
-> > > +
-> > > +       if (list_is_singular(&initiators)) {
-> > > +               struct memory_initiator *initiator = list_first_entry(
-> > > +                       &initiators, struct memory_initiator, node);
-> > > +
-> > > +               set_bit(initiator->processor_pxm, p_nodes);
-> > > +               return 0;
-> > > +       }
-> > > +
-> > > +       list_sort(p_nodes, &initiators, initiator_cmp);
-> > > +       return 0;
-> > > +}
-> > > +
-> > 
-> > Hm. I think it indicates that these set_bit()s do not belong to
-> > initiator_cmp().
-> > 
-> > Maybe remove both set_bit() from the compare helper and walk the list
-> > separately to initialize the node mask? I think it will be easier to
-> > follow.
-> 
-> 
-> Yes - I thuoght about this, but went with the seemingly less intrusive
-> change. I can send a v2 which separates out the set_bit()s. I agree
-> that's cleaner and easier to follow than overloading initiator_cmp().
+This series adds the support for "Persistent Memory Data-at-rest Security"
+block of command set for the CXL Memory Devices. The enabling is done through
+the nvdimm_security_ops as the operations are very similar to the same
+operations that the persistent memory devices through NFIT provider support.
+This enabling does not include the security pass-through commands nor the
+Santize commands.
 
-Yes, please make v2.
+Under the nvdimm_security_ops, this patch series will enable get_flags(),
+freeze(), change_key(), unlock(), disable(), and erase(). The disable() API
+does not support disabling of the master passphrase. To maintain established
+user ABI through the sysfs attribute "security", the "disable" command is
+left untouched and a new "disable_master" command is introduced with a new
+disable_master() API call for the nvdimm_security_ops().
 
-With current implementation set_bit() can be called multiple times on the
-same initiator, depending on placement of the initiator in the list.
-It is totally wrong place.
+This series does not include plumbing to directly handle the security commands
+through cxl control util. The enabled security commands will still go through
+ndctl tool with this enabling.
 
--- 
-  Kiryl Shutsemau / Kirill A. Shutemov
+The first commit is from Davidlohr [1]. It's submitted separately and can be
+dropped. It's here for reference and 0-day testing convenience. The series does
+have dependency on the patch.
+
+[1]: https://lore.kernel.org/linux-cxl/166698148737.3132474.5901874516011784201.stgit@dwillia2-xfh.jf.intel.com/
+
+v5:
+- Fix unintended passphrase type overwrite for disable op. (Ben)
+- Fix passphrase secure erase emulation in cxl_test. (Jonathan)
+
+v4:
+- Revert check for master passphrase check in mock secure erase. (Jonathan)
+- Add user passphrase check for user password limit in mock secure erase. (Jonathan)
+- Add master passphrase check for master password limit in mock secure erase.
+
+v3:
+- Change all spec reference to v3. (Jonathan)
+- Remove errant commit log in patch 1. (Davidlohr)
+- Change return to -EINVAL for cpu_cache_has_invalidate_memregion() error. (Davidlohr)
+- Fix mock_freeze_security() to be spec compliant. (Jonathan)
+- Change OP_PASSPHRASE_ERASE to OP_PASSPHRASE_SECURE_ERASE. (Jonathan)
+- Fix mock_passphrase_erase to be spec compliant. (Jonathan)
+- Change password retry limit handling to helper function.
+- Add ABI documentation to new sysfs attribs. (Jonathan)
+- Have security_lock_show() emit 0 or 1 instead of "locked or "unlocked". (Jonathan)
+- Set pdev->dev.groups instead of using device_add_groups(). (Jonathan)
+- Add context to NVDIMM_SECURITY_TEST on possible side effects. (Jonathan)
+
+v2:
+- Rebased against Davidlohr's memregion flush call
+- Remove SECURITY Kconfig and merge with PMEM (Davidlohr & Jonathan)
+- Remove inclusion of ndctl.h from security.c (Davidlohr)
+- Return errno and leave out return_code for error cases not in spec for mock device (Jonathan)
+- Add comment for using NVDIMM_PASSPHRASE_LEN (Jonathan)
+- Put 'struct cxl_set_pass' on the stack instead of kmalloc (Jonathan)
+- Directly return in mock_set_passphrase() when done. (Jonathan)
+- Tie user interface change commenting for passphrase disable. (Jonathan)
+- Pass passphrase directly in command and remove copy. (Jonathan)
+- Remove state check to enable first time passphrase set in mock device.
+- Fix missing ptr assignment in mock secure erase
+- Tested against cxl_test with new cxl security test.
+---
+
+Dave Jiang (18):
+      cxl/pmem: Introduce nvdimm_security_ops with ->get_flags() operation
+      tools/testing/cxl: Add "Get Security State" opcode support
+      cxl/pmem: Add "Set Passphrase" security command support
+      tools/testing/cxl: Add "Set Passphrase" opcode support
+      cxl/pmem: Add Disable Passphrase security command support
+      tools/testing/cxl: Add "Disable" security opcode support
+      cxl/pmem: Add "Freeze Security State" security command support
+      tools/testing/cxl: Add "Freeze Security State" security opcode support
+      cxl/pmem: Add "Unlock" security command support
+      tools/testing/cxl: Add "Unlock" security opcode support
+      cxl/pmem: Add "Passphrase Secure Erase" security command support
+      tools/testing/cxl: Add "passphrase secure erase" opcode support
+      nvdimm/cxl/pmem: Add support for master passphrase disable security command
+      cxl/pmem: add id attribute to CXL based nvdimm
+      tools/testing/cxl: add mechanism to lock mem device for testing
+      cxl/pmem: add provider name to cxl pmem dimm attribute group
+      libnvdimm: Introduce CONFIG_NVDIMM_SECURITY_TEST flag
+      cxl: add dimm_id support for __nvdimm_create()
+
+
+ Documentation/ABI/testing/sysfs-bus-nvdimm |  12 +
+ drivers/cxl/Makefile                       |   2 +-
+ drivers/cxl/core/mbox.c                    |   6 +
+ drivers/cxl/cxlmem.h                       |  44 +++
+ drivers/cxl/pci.c                          |   4 +
+ drivers/cxl/pmem.c                         |  44 ++-
+ drivers/cxl/security.c                     | 185 ++++++++++++
+ drivers/nvdimm/Kconfig                     |  12 +
+ drivers/nvdimm/dimm_devs.c                 |   9 +-
+ drivers/nvdimm/security.c                  |  37 ++-
+ include/linux/libnvdimm.h                  |   2 +
+ include/uapi/linux/cxl_mem.h               |   6 +
+ tools/testing/cxl/Kbuild                   |   1 +
+ tools/testing/cxl/test/cxl.c               |  58 ++++
+ tools/testing/cxl/test/mem.c               | 331 +++++++++++++++++++++
+ tools/testing/cxl/test/mem_pdata.h         |  16 +
+ tools/testing/nvdimm/Kbuild                |   1 -
+ tools/testing/nvdimm/dimm_devs.c           |  30 --
+ 18 files changed, 758 insertions(+), 42 deletions(-)
+ create mode 100644 drivers/cxl/security.c
+ create mode 100644 tools/testing/cxl/test/mem_pdata.h
+ delete mode 100644 tools/testing/nvdimm/dimm_devs.c
+
+--
+
