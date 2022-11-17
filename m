@@ -1,117 +1,146 @@
-Received: from wout1-smtp.messagingengine.com (wout1-smtp.messagingengine.com [64.147.123.24])
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1AD2815C9A
-	for <nvdimm@lists.linux.dev>; Wed, 16 Nov 2022 23:55:00 +0000 (UTC)
-Received: from compute4.internal (compute4.nyi.internal [10.202.2.44])
-	by mailout.west.internal (Postfix) with ESMTP id 8FBA832003C0;
-	Wed, 16 Nov 2022 18:54:59 -0500 (EST)
-Received: from mailfrontend1 ([10.202.2.162])
-  by compute4.internal (MEProxy); Wed, 16 Nov 2022 18:55:00 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=shutemov.name;
-	 h=cc:cc:content-type:date:date:from:from:in-reply-to
-	:in-reply-to:message-id:mime-version:references:reply-to:sender
-	:subject:subject:to:to; s=fm2; t=1668642899; x=1668729299; bh=E6
-	JF0cEeUYzVPtpcCWq54L+1lUQkLjUmOjkjEOpTZQs=; b=HxYk+rY3975eYJAPSW
-	Ph7ZU1IwAnV4TanjbmZUbDB6VzD/zAZfucXLQXGfvHyoibQO0lD1E2qcwXsf3Alp
-	7PPDHs2Y7WKoBapqB+/iV0/iTm0RXFCMrsgHaag5LHGYqbiLx/IuUsTwkZsCbBRG
-	0Z3zd3w0NkBhAfzrNz8A/8Ll+OU1CmIwCLOtNvkPGmvh7+EjfSFMHTGC7Xjqz3Wn
-	wi7vbkyOHminV0tsPsCiMU3LBwZeDZ9ErNMA4tICmPEqmoCe6R+Ei1yI4avkZ9wy
-	leIpyBk4x1WB7nUXHJu1FP4KLZZ+rVhChhJNTuarphOpvXAIlq4Vknwov//y13RI
-	s8sg==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-type:date:date:feedback-id
-	:feedback-id:from:from:in-reply-to:in-reply-to:message-id
-	:mime-version:references:reply-to:sender:subject:subject:to:to
-	:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=
-	fm1; t=1668642899; x=1668729299; bh=E6JF0cEeUYzVPtpcCWq54L+1lUQk
-	LjUmOjkjEOpTZQs=; b=G07M2l3GSh3PLRpUpbkrFfJDVMCtKW0iGwiKO8yVW688
-	ZPOucYUGnER+7H6ToVIvXVQDpXtrNMor5uRwNLLAKXFG9fk5/97wq7YoI0/rNtLd
-	IWWocrNz3QIS/18Ltl2wAuGImJe8BZizYkyzEoz29+wFZBwXrrjnnY4Vw+5naKL/
-	1QQ9Ol7iYPlEtwt+C0WBLRenclkgXHuCJvxo3anJr/aJmTRWP7Q/9ujfOd8KSnjl
-	VABLD32s5ltm4PfAvK7gBzffZyDqQTO9BFVPARHIElY2Gu5jV0YDLka5u6YlmMFL
-	0kUe9ac6M5uXZ4U43WwFBojxgvm5W+DQNIGNHJaJLw==
-X-ME-Sender: <xms:Unh1Y854ORzk8SFRgynH9lD4k_-BLpT6Vg3ODpSR1Vcs_p_sVrMZyg>
-    <xme:Unh1Y96f3_BXmDZJ0FjEkx0fsO4UhHjD3_O2O04XZdLpFg-nlIP5BwgDJD9SA1yLv
-    zBCtXTsXwOrwcxKrSY>
-X-ME-Received: <xmr:Unh1Y7fd4FQnxXfNnAs_lVR-Ad9HbRsJXxBHKEG-UNlH3z-s5DLQ-AdYoRnBPYubNhnp3A>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvgedrgeejgdduiecutefuodetggdotefrodftvf
-    curfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfghnecu
-    uegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenuc
-    fjughrpeffhffvvefukfhfgggtuggjsehttddttddttddvnecuhfhrohhmpedfmfhirhhi
-    lhhlucetrdcuufhhuhhtvghmohhvfdcuoehkihhrihhllhesshhhuhhtvghmohhvrdhnrg
-    hmvgeqnecuggftrfgrthhtvghrnhephfeigefhtdefhedtfedthefghedutddvueehtedt
-    tdehjeeukeejgeeuiedvkedtnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpe
-    hmrghilhhfrhhomhepkhhirhhilhhlsehshhhuthgvmhhovhdrnhgrmhgv
-X-ME-Proxy: <xmx:Unh1YxI9iIYdKgHxx2SGafkvR7A5ElwzVHFEn0Dgj5n8wQrEVljFbw>
-    <xmx:Unh1YwLxu9M0RFU14x20Qo__UDf-WabQX-f-fkbHcvELqCyBSXadCA>
-    <xmx:Unh1YywGTGww3BJL_IVBSnir7p7Ut6GxjQPE6OWW3E-wURkQ0M9CNg>
-    <xmx:U3h1Y1XGTsKaY2E1nHo6LGGHZAd7Gxgkw29BGhfWxjRD5Qq8EuHuRQ>
-Feedback-ID: ie3994620:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Wed,
- 16 Nov 2022 18:54:58 -0500 (EST)
-Received: by box.shutemov.name (Postfix, from userid 1000)
-	id 9E6CC109702; Thu, 17 Nov 2022 02:54:55 +0300 (+03)
-Date: Thu, 17 Nov 2022 02:54:55 +0300
-From: "Kirill A. Shutemov" <kirill@shutemov.name>
-To: Vishal Verma <vishal.l.verma@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-	linux-kernel@vger.kernel.org, Chris Piper <chris.d.piper@intel.com>,
-	nvdimm@lists.linux.dev, linux-acpi@vger.kernel.org,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	"Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Liu Shixin <liushixin2@huawei.com>, stable@vger.kernel.org
-Subject: Re: [PATCH v2 2/2] ACPI: HMAT: Fix initiator registration for
- single-initiator systems
-Message-ID: <20221116235455.74nqyfdcqe72mhbi@box.shutemov.name>
-References: <20221116-acpi_hmat_fix-v2-0-3712569be691@intel.com>
- <20221116-acpi_hmat_fix-v2-2-3712569be691@intel.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6360F23A2
+	for <nvdimm@lists.linux.dev>; Thu, 17 Nov 2022 11:26:10 +0000 (UTC)
+Received: from fraeml713-chm.china.huawei.com (unknown [172.18.147.206])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4NCcx92D98z67bjw;
+	Thu, 17 Nov 2022 19:23:41 +0800 (CST)
+Received: from lhrpeml500005.china.huawei.com (7.191.163.240) by
+ fraeml713-chm.china.huawei.com (10.206.15.32) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31; Thu, 17 Nov 2022 12:26:07 +0100
+Received: from localhost (10.202.227.76) by lhrpeml500005.china.huawei.com
+ (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.31; Thu, 17 Nov
+ 2022 11:26:06 +0000
+Date: Thu, 17 Nov 2022 11:26:06 +0000
+From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+To: Dave Jiang <dave.jiang@intel.com>
+CC: <linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>,
+	<dan.j.williams@intel.com>, <ira.weiny@intel.com>,
+	<vishal.l.verma@intel.com>, <alison.schofield@intel.com>, <dave@stgolabs.net>
+Subject: Re: [PATCH v4 12/18] tools/testing/cxl: Add "passphrase secure
+ erase" opcode support
+Message-ID: <20221117112606.00000f17@Huawei.com>
+In-Reply-To: <bbe4be20-5f2e-077f-009a-4ece6b1c9324@intel.com>
+References: <166845791969.2496228.8357488385523295841.stgit@djiang5-desk3.ch.intel.com>
+	<166845805415.2496228.732168029765896218.stgit@djiang5-desk3.ch.intel.com>
+	<20221115110831.00001fa4@Huawei.com>
+	<a8ed61db-9bf1-410c-b4e6-7042f48a67ff@intel.com>
+	<14ae41bc-2d63-460b-5ac5-a4d94aa39982@intel.com>
+	<20221116114335.00006a3d@Huawei.com>
+	<bbe4be20-5f2e-077f-009a-4ece6b1c9324@intel.com>
+Organization: Huawei Technologies Research and Development (UK) Ltd.
+X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20221116-acpi_hmat_fix-v2-2-3712569be691@intel.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: quoted-printable
+X-Originating-IP: [10.202.227.76]
+X-ClientProxiedBy: lhrpeml500006.china.huawei.com (7.191.161.198) To
+ lhrpeml500005.china.huawei.com (7.191.163.240)
+X-CFilter-Loop: Reflected
 
-On Wed, Nov 16, 2022 at 04:37:37PM -0700, Vishal Verma wrote:
-> In a system with a single initiator node, and one or more memory-only
-> 'target' nodes, the memory-only node(s) would fail to register their
-> initiator node correctly. i.e. in sysfs:
-> 
->   # ls /sys/devices/system/node/node0/access0/targets/
->   node0
-> 
-> Where as the correct behavior should be:
-> 
->   # ls /sys/devices/system/node/node0/access0/targets/
->   node0 node1
-> 
-> This happened because hmat_register_target_initiators() uses list_sort()
-> to sort the initiator list, but the sort comparision function
-> (initiator_cmp()) is overloaded to also set the node mask's bits.
-> 
-> In a system with a single initiator, the list is singular, and list_sort
-> elides the comparision helper call. Thus the node mask never gets set,
-> and the subsequent search for the best initiator comes up empty.
-> 
-> Add a new helper to consume the sorted initiator list, and generate the
-> nodemask, decoupling it from the overloaded initiator_cmp() comparision
-> callback. This prevents the singular list corner case naturally, and
-> makes the code easier to follow as well.
-> 
-> Cc: <stable@vger.kernel.org>
-> Cc: Rafael J. Wysocki <rafael@kernel.org>
-> Cc: Liu Shixin <liushixin2@huawei.com>
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-> Reported-by: Chris Piper <chris.d.piper@intel.com>
-> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+On Wed, 16 Nov 2022 14:54:02 -0700
+Dave Jiang <dave.jiang@intel.com> wrote:
 
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+> On 11/16/2022 3:43 AM, Jonathan Cameron wrote:
+> > On Tue, 15 Nov 2022 10:01:53 -0700
+> > Dave Jiang <dave.jiang@intel.com> wrote:
+> >  =20
+> >> On 11/15/2022 7:57 AM, Dave Jiang wrote: =20
+> >>>
+> >>>
+> >>> On 11/15/2022 3:08 AM, Jonathan Cameron wrote: =20
+> >>>> On Mon, 14 Nov 2022 13:34:14 -0700
+> >>>> Dave Jiang <dave.jiang@intel.com> wrote:
+> >>>>    =20
+> >>>>> Add support to emulate a CXL mem device support the "passphrase sec=
+ure
+> >>>>> erase" operation.
+> >>>>>
+> >>>>> Signed-off-by: Dave Jiang <dave.jiang@intel.com> =20
+> >>>> The logic in here gives me a headache but I'm not sure it's correct
+> >>>> yet...
+> >>>>
+> >>>> If you can figure out what is supposed to happen if this is called
+> >>>> with Passphrase Type =3D=3D master before the master passphrase has =
+been set
+> >>>> then you are doing better than me.
+> >>>>
+> >>>> Unlike for the User passphrase, where the language " .. and the user
+> >>>> passphrase
+> >>>> is not currently set or is not supported by the device, this value is
+> >>>> ignored."
+> >>>> to me implies we wipe the device and clear the non existent user pass
+> >>>> phrase,
+> >>>> the not set master passphrase case isn't covered as far as I can see.
+> >>>>
+> >>>> The user passphrase question raises a futher question (see inline)
+> >>>>
+> >>>> Thoughts? =20
+> >>>
+> >>> Guess this is what happens when you bolt on master passphrase support
+> >>> after defining the spec without its existence, and then move it to a
+> >>> different spec and try to maintain compatibility between the two in
+> >>> order to not fork the hardware/firmware....
+> >>>
+> >>> Should we treat the no passphrase set instance the same as sending a
+> >>> Secure Erase (Opcode 4401h)? And then the only case left is no master
+> >>> pass set but user pass is set.
+> >>>
+> >>> if (!master_pass_set && pass_type_master) {
+> >>>   =A0=A0=A0=A0if (user_pass_set)
+> >>>   =A0=A0=A0=A0=A0=A0=A0 return -EINVAL;
+> >>>   =A0=A0=A0=A0else
+> >>>   =A0=A0=A0=A0=A0=A0=A0 secure_erase;
+> >>> }
+> >>>    =20
+> >> This is the current change:
+> >>
+> >> +       switch (erase->type) {
+> >> +       case CXL_PMEM_SEC_PASS_MASTER:
+> >> +               if (mdata->security_state & CXL_PMEM_SEC_STATE_MASTER_=
+PASS_SET) {
+> >> +                       if (memcmp(mdata->master_pass, erase->pass,
+> >> +                                  NVDIMM_PASSPHRASE_LEN)) {
+> >> +                               master_plimit_check(mdata);
+> >> +                               cmd->return_code =3D CXL_MBOX_CMD_RC_P=
+ASSPHRASE;
+> >> +                               return -ENXIO;
+> >> +                       }
+> >> +                       mdata->master_limit =3D 0;
+> >> +                       mdata->user_limit =3D 0;
+> >> +                       mdata->security_state &=3D ~CXL_PMEM_SEC_STATE=
+_USER_PASS_SET;
+> >> +                       memset(mdata->user_pass, 0, NVDIMM_PASSPHRASE_=
+LEN);
+> >> +                       mdata->security_state &=3D ~CXL_PMEM_SEC_STATE=
+_LOCKED; =20
+> >  =20
+> >> +               } else if (mdata->security_state & CXL_PMEM_SEC_STATE_=
+USER_PASS_SET) {
+> >> +                       return -EINVAL;
+> >> +               } =20
+>=20
+> So while looking at 8.2.9.8.6.3 I stumbled on this line: "When the=20
+> master passphrase is disabled, the device shall return Invalid Input for=
+=20
+> the Passphrase Secure Erase command with the master passphrase". I=20
+> suppose the above would reduce to just else {} instead?
 
--- 
-  Kiryl Shutsemau / Kirill A. Shutemov
+Good spot. Agreed, this one is just an else.  Definitely a case for a refer=
+ence
+to the spec though!
+
+> And it probably=20
+> wouldn't hurt to have the spec duplicate this line under the passphrase=20
+> secure erase section as well.
+
+Would be nice :)
+
