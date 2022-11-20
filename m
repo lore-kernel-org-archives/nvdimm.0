@@ -1,43 +1,41 @@
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C263BA492
-	for <nvdimm@lists.linux.dev>; Fri, 18 Nov 2022 22:07:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E5E736C
+	for <nvdimm@lists.linux.dev>; Sun, 20 Nov 2022 01:37:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1668809227; x=1700345227;
-  h=subject:from:to:cc:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=mWQZ3PVAGchY87Zz3Kb5JxiQou2wQeFBeO8vWJo/3fc=;
-  b=ACMLPCtMunRrRbfzU0fVgjPDzTHGpdiWV3GNSBW2KxoaLf/lPD4+on/0
-   eUwYVMcOsZx8bG7METWjUtYfndCS8Zw9lgoYqgIhSW6Fyb5l7XlMUDrk3
-   2B7PbptSlQzmn3MCwYMstXna23olUtfXuftP5KBXmtiSwyB3fPt/Xo4g0
-   v8oCSzwDJvZBV1myi9Uk6PEg8NkcdCAbgrHX9kY+dJl23W40qeLh/Dvpy
-   YVG1/pr1qQL6dfhVVzVKb8WfpCFH/JyTJ9A9ckmJRJYNCr8ni89YZ9b8x
-   nHqPF5mDNBxpDFdjIRhmYmw67F3HkP+BGrb3M2gSfOKY1dl18bI2DrqSt
+  t=1668908271; x=1700444271;
+  h=subject:from:to:cc:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=9sVjahp8+Ff3XIBZSoFFjnud1C6/9g5OJkYPdCd/D+M=;
+  b=DrqFPh/U6rMu4DlIG6Kj65uBHWcLeErUVEYPKx/ccN91hxgvLnnmQN+A
+   KnLhZibdWCZAAcTeC3nu/ZlnxlMgg/DFnX7bBmiY58cbYe/EOkKGdC369
+   ouY0wjkCVadzFpBC4UjlsigEK5k7ONm0ZoNYac9Dk0IWsH231avC8vF1r
+   56DLIDgnNWRBeY1GUmhg0XYS9MfYyalzDuqxYyRkABDAs3HAi/bWbBq6a
+   xDnKdaCpXPwU1Cyk6JZDlhrYgCVJpzm6gCRmpbXNTJcxFuSeGHEVHwINs
+   D5VOeQ5VyaHiFZKrKV0juqwsl53bIiKvSqT68ce70VGrE3y4A2OJanFjd
    g==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10535"; a="311949778"
-X-IronPort-AV: E=Sophos;i="5.96,175,1665471600"; 
-   d="scan'208";a="311949778"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Nov 2022 14:07:07 -0800
-X-IronPort-AV: E=McAfee;i="6500,9779,10535"; a="671467163"
-X-IronPort-AV: E=Sophos;i="5.96,175,1665471600"; 
-   d="scan'208";a="671467163"
-Received: from djiang5-desk3.ch.intel.com ([143.182.136.137])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Nov 2022 14:07:06 -0800
-Subject: [PATCH v6] tools/testing/cxl: Add "passphrase secure erase" opcode
- support
-From: Dave Jiang <dave.jiang@intel.com>
-To: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
-Cc: dan.j.williams@intel.com, ira.weiny@intel.com, vishal.l.verma@intel.com,
- alison.schofield@intel.com, Jonathan.Cameron@huawei.com
-Date: Fri, 18 Nov 2022 15:07:05 -0700
-Message-ID: 
- <166880914520.808133.4307384879965818528.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <20221117135738.00005557@Huawei.com>
-References: <20221117135738.00005557@Huawei.com>
-User-Agent: StGit/1.4
+X-IronPort-AV: E=McAfee;i="6500,9779,10536"; a="293747344"
+X-IronPort-AV: E=Sophos;i="5.96,178,1665471600"; 
+   d="scan'208";a="293747344"
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Nov 2022 17:37:50 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10536"; a="815321850"
+X-IronPort-AV: E=Sophos;i="5.96,178,1665471600"; 
+   d="scan'208";a="815321850"
+Received: from thoff-mobl2.amr.corp.intel.com (HELO dwillia2-xfh.jf.intel.com) ([10.251.16.82])
+  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Nov 2022 17:37:49 -0800
+Subject: [PATCH] device-dax: Fix duplicate 'hmem' device registration
+From: Dan Williams <dan.j.williams@intel.com>
+To: nvdimm@lists.linux.dev
+Cc: Tallam Mahendra Kumar <tallam.mahendra.kumar@intel.com>,
+ Mustafa Hajeer <mustafa.hajeer@intel.com>,
+ Vishal Verma <vishal.l.verma@intel.com>, linux-mm@kvack.org,
+ linux-cxl@vger.kernel.org
+Date: Sat, 19 Nov 2022 17:37:49 -0800
+Message-ID: <166890823379.4183293.15333502171004313377.stgit@dwillia2-xfh.jf.intel.com>
+User-Agent: StGit/0.18-3-g996c
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -47,140 +45,102 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 
-Add support to emulate a CXL mem device support the "passphrase secure
-erase" operation.
+So called "soft-reserved" memory is an EFI conventional memory range
+with the EFI_MEMORY_SP attribute set. That attribute indicates that the
+memory is not part of the platform general purpose memory pool and may
+want some consideration from the system administrator about whether to
+keep that memory set aside for dedicated access through device-dax (map
+a device file), or assigned to the page allocator as another general
+purpose memory node target.
 
-Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Absent an ACPI HMAT table the default device-dax registration creates
+coarse grained devices that are delineated by EFI Memory Map entries.
+With the HMAT the devices are delineated by the finer grained ranges
+associated with the proximity domain of the memory target. I.e. the HMAT
+describes the properties of performance differentiated memory and each
+unique performance description results in a unique target proximity
+domain where each memory proximity domain has an associated SRAT entry
+that delineates the address range.
+
+The intent was that SRAT-defined device-dax instances are registered
+first. Then any left-over address range with the EFI_MEMORY_SP
+attribute, but not covered by the SRAT, would have a coarse grained
+device-dax instance established. However, the scheme to detect what
+ranges are left to be assigned to a device was buggy and resulted in
+multiple overlapping device-dax instances. Fix this by using explicit
+tracking for which ranges have been handled.
+
+Now, this new approach may leave memory stranded in the presence of
+broken platform firmware that fails to fully describe all EFI_MEMORY_SP
+ranges in the HMAT. That requires a deeper fix if it becomes a problem
+in practice.
+
+Reported-by: "Tallam Mahendra Kumar" <tallam.mahendra.kumar@intel.com>
+Reported-by: Mustafa Hajeer <mustafa.hajeer@intel.com>
+Debugged-by: Vishal Verma <vishal.l.verma@intel.com>
+Tested-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+I plan to take this through the nvdimm tree with some other dax / HMAT
+related fixups.
 
-v6:
-- Change behavior for no master set while issue secure erase per spec.
-- Add spec references in comments (Jonathan)
-- Add Jonathan review tag.
+ drivers/dax/hmem/device.c |   24 +++++++++++++++---------
+ 1 file changed, 15 insertions(+), 9 deletions(-)
 
- tools/testing/cxl/test/mem.c |  102 ++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 102 insertions(+)
-
-diff --git a/tools/testing/cxl/test/mem.c b/tools/testing/cxl/test/mem.c
-index 90607597b9a4..fbd033afb7af 100644
---- a/tools/testing/cxl/test/mem.c
-+++ b/tools/testing/cxl/test/mem.c
-@@ -362,6 +362,105 @@ static int mock_unlock_security(struct cxl_dev_state *cxlds, struct cxl_mbox_cmd
- 	return 0;
- }
+diff --git a/drivers/dax/hmem/device.c b/drivers/dax/hmem/device.c
+index 97086fab698e..903325aac991 100644
+--- a/drivers/dax/hmem/device.c
++++ b/drivers/dax/hmem/device.c
+@@ -8,6 +8,13 @@
+ static bool nohmem;
+ module_param_named(disable, nohmem, bool, 0444);
  
-+static int mock_passphrase_secure_erase(struct cxl_dev_state *cxlds,
-+					struct cxl_mbox_cmd *cmd)
-+{
-+	struct cxl_mock_mem_pdata *mdata = dev_get_platdata(cxlds->dev);
-+	struct cxl_pass_erase *erase;
++static struct resource hmem_active = {
++	.name = "HMEM devices",
++	.start = 0,
++	.end = -1,
++	.flags = IORESOURCE_MEM,
++};
 +
-+	if (cmd->size_in != sizeof(*erase))
-+		return -EINVAL;
-+
-+	if (cmd->size_out != 0)
-+		return -EINVAL;
-+
-+	erase = cmd->payload_in;
-+	if (mdata->security_state & CXL_PMEM_SEC_STATE_FROZEN) {
-+		cmd->return_code = CXL_MBOX_CMD_RC_SECURITY;
-+		return -ENXIO;
-+	}
-+
-+	if (mdata->security_state & CXL_PMEM_SEC_STATE_USER_PLIMIT &&
-+	    erase->type == CXL_PMEM_SEC_PASS_USER) {
-+		cmd->return_code = CXL_MBOX_CMD_RC_SECURITY;
-+		return -ENXIO;
-+	}
-+
-+	if (mdata->security_state & CXL_PMEM_SEC_STATE_MASTER_PLIMIT &&
-+	    erase->type == CXL_PMEM_SEC_PASS_MASTER) {
-+		cmd->return_code = CXL_MBOX_CMD_RC_SECURITY;
-+		return -ENXIO;
-+	}
-+
-+	switch (erase->type) {
-+	case CXL_PMEM_SEC_PASS_MASTER:
-+		/*
-+		 * The spec does not clearly define the behavior of the scenario
-+		 * where a master passphrase is passed in while the master
-+		 * passphrase is not set and user passphrase is not set. The
-+		 * code will take the assumption that it will behave the same
-+		 * as a CXL secure erase command without passphrase (0x4401).
-+		 */
-+		if (mdata->security_state & CXL_PMEM_SEC_STATE_MASTER_PASS_SET) {
-+			if (memcmp(mdata->master_pass, erase->pass,
-+				   NVDIMM_PASSPHRASE_LEN)) {
-+				master_plimit_check(mdata);
-+				cmd->return_code = CXL_MBOX_CMD_RC_PASSPHRASE;
-+				return -ENXIO;
-+			}
-+			mdata->master_limit = 0;
-+			mdata->user_limit = 0;
-+			mdata->security_state &= ~CXL_PMEM_SEC_STATE_USER_PASS_SET;
-+			memset(mdata->user_pass, 0, NVDIMM_PASSPHRASE_LEN);
-+			mdata->security_state &= ~CXL_PMEM_SEC_STATE_LOCKED;
-+		} else {
-+			/*
-+			 * CXL rev3 8.2.9.8.6.3 Disable Passphrase
-+			 * When master passphrase is disabled, the device shall
-+			 * return Invalid Input for the Passphrase Secure Erase
-+			 * command with master passphrase.
-+			 */
-+			return -EINVAL;
-+		}
-+		/* Scramble encryption keys so that data is effectively erased */
-+		break;
-+	case CXL_PMEM_SEC_PASS_USER:
-+		/*
-+		 * The spec does not clearly define the behavior of the scenario
-+		 * where a user passphrase is passed in while the user
-+		 * passphrase is not set. The code will take the assumption that
-+		 * it will behave the same as a CXL secure erase command without
-+		 * passphrase (0x4401).
-+		 */
-+		if (mdata->security_state & CXL_PMEM_SEC_STATE_USER_PASS_SET) {
-+			if (memcmp(mdata->user_pass, erase->pass,
-+				   NVDIMM_PASSPHRASE_LEN)) {
-+				user_plimit_check(mdata);
-+				cmd->return_code = CXL_MBOX_CMD_RC_PASSPHRASE;
-+				return -ENXIO;
-+			}
-+			mdata->user_limit = 0;
-+			mdata->security_state &= ~CXL_PMEM_SEC_STATE_USER_PASS_SET;
-+			memset(mdata->user_pass, 0, NVDIMM_PASSPHRASE_LEN);
-+		}
-+
-+		/*
-+		 * CXL rev3 Table 8-118
-+		 * If user passphrase is not set or supported by device, current
-+		 * passphrase value is ignored. Will make the assumption that
-+		 * the operation will proceed as secure erase w/o passphrase
-+		 * since spec is not explicit.
-+		 */
-+
-+		/* Scramble encryption keys so that data is effectively erased */
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
- static int mock_get_lsa(struct cxl_dev_state *cxlds, struct cxl_mbox_cmd *cmd)
+ void hmem_register_device(int target_nid, struct resource *r)
  {
- 	struct cxl_mbox_get_lsa *get_lsa = cmd->payload_in;
-@@ -470,6 +569,9 @@ static int cxl_mock_mbox_send(struct cxl_dev_state *cxlds, struct cxl_mbox_cmd *
- 	case CXL_MBOX_OP_UNLOCK:
- 		rc = mock_unlock_security(cxlds, cmd);
- 		break;
-+	case CXL_MBOX_OP_PASSPHRASE_SECURE_ERASE:
-+		rc = mock_passphrase_secure_erase(cxlds, cmd);
-+		break;
- 	default:
- 		break;
+ 	/* define a clean / non-busy resource for the platform device */
+@@ -41,6 +48,12 @@ void hmem_register_device(int target_nid, struct resource *r)
+ 		goto out_pdev;
  	}
-
+ 
++	if (!__request_region(&hmem_active, res.start, resource_size(&res),
++			      dev_name(&pdev->dev), 0)) {
++		dev_dbg(&pdev->dev, "hmem range %pr already active\n", &res);
++		goto out_active;
++	}
++
+ 	pdev->dev.numa_node = numa_map_to_online_node(target_nid);
+ 	info = (struct memregion_info) {
+ 		.target_node = target_nid,
+@@ -66,6 +79,8 @@ void hmem_register_device(int target_nid, struct resource *r)
+ 	return;
+ 
+ out_resource:
++	__release_region(&hmem_active, res.start, resource_size(&res));
++out_active:
+ 	platform_device_put(pdev);
+ out_pdev:
+ 	memregion_free(id);
+@@ -73,15 +88,6 @@ void hmem_register_device(int target_nid, struct resource *r)
+ 
+ static __init int hmem_register_one(struct resource *res, void *data)
+ {
+-	/*
+-	 * If the resource is not a top-level resource it was already
+-	 * assigned to a device by the HMAT parsing.
+-	 */
+-	if (res->parent != &iomem_resource) {
+-		pr_info("HMEM: skip %pr, already claimed\n", res);
+-		return 0;
+-	}
+-
+ 	hmem_register_device(phys_to_target_node(res->start), res);
+ 
+ 	return 0;
 
