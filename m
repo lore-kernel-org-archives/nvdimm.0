@@ -1,70 +1,106 @@
-Received: from cstnet.cn (smtp84.cstnet.cn [159.226.251.84])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id E438DA20
-	for <nvdimm@lists.linux.dev>; Tue, 22 Nov 2022 02:41:33 +0000 (UTC)
-Received: from localhost.localdomain (unknown [124.16.138.125])
-	by APP-05 (Coremail) with SMTP id zQCowABHTe0PNXxjw1WrAA--.4511S2;
-	Tue, 22 Nov 2022 10:33:52 +0800 (CST)
-From: Jiasheng Jiang <jiasheng@iscas.ac.cn>
-To: dan.j.williams@intel.com,
-	vishal.l.verma@intel.com,
-	dave.jiang@intel.com,
-	ira.weiny@intel.com
-Cc: nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org,
-	Jiasheng Jiang <jiasheng@iscas.ac.cn>
-Subject: [PATCH] libnvdimm: Add check for nd_dax_alloc
-Date: Tue, 22 Nov 2022 10:33:50 +0800
-Message-Id: <20221122023350.29128-1-jiasheng@iscas.ac.cn>
-X-Mailer: git-send-email 2.25.1
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC942107A1
+	for <nvdimm@lists.linux.dev>; Tue, 22 Nov 2022 17:34:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1669138450;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:mime-version:mime-version:content-type:content-type;
+	bh=iMI9Pyh6WEs286zRH2M4856YHZY7Qv3CDC5yTcNM5R4=;
+	b=JO+7t8+c8sO4zpZR8hXZHw4shdSA9roMGzGFVsIMl5lggWA7mL/okWvGxMnJMNn52qt+k3
+	sfKtFG251dqDA119rSVmiQSFdB4taVxAFa+HLsLX1u+jK9DNb7j0W0eEPW0DznXkpFFXz2
+	K+ZzxKX/12TsMV+AMC7G9DSEBp2raPE=
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-191-qP5dVW6VPJahWMNpI5NwoQ-1; Tue, 22 Nov 2022 12:34:09 -0500
+X-MC-Unique: qP5dVW6VPJahWMNpI5NwoQ-1
+Received: from smtp.corp.redhat.com (int-mx09.intmail.prod.int.rdu2.redhat.com [10.11.54.9])
+	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 7E7F9185A794
+	for <nvdimm@lists.linux.dev>; Tue, 22 Nov 2022 17:34:09 +0000 (UTC)
+Received: from segfault.boston.devel.redhat.com (segfault.boston.devel.redhat.com [10.19.60.26])
+	by smtp.corp.redhat.com (Postfix) with ESMTPS id 6CF0447505E
+	for <nvdimm@lists.linux.dev>; Tue, 22 Nov 2022 17:34:09 +0000 (UTC)
+From: Jeff Moyer <jmoyer@redhat.com>
+To: nvdimm@lists.linux.dev
+Subject: [ndctl patch] security.sh: ensure a user keyring is linked into the session keyring
+X-PGP-KeyID: 1F78E1B4
+X-PGP-CertKey: F6FE 280D 8293 F72C 65FD  5A58 1FF8 A7CA 1F78 E1B4
+Date: Tue, 22 Nov 2022 12:38:01 -0500
+Message-ID: <x49a64iq492.fsf@segfault.boston.devel.redhat.com>
+User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:zQCowABHTe0PNXxjw1WrAA--.4511S2
-X-Coremail-Antispam: 1UD129KBjvdXoW7Jw4kZFWDAFWfCr48ur4rXwb_yoW3Kwb_Kr
-	17Zr92vFWjkwnayr43tr1fuFyvyr4vgr1kWr4jgry3A3yjkr13XrWkur9xCrZagF48AFnr
-	uw1qvFy7uFyxCjkaLaAFLSUrUUUUUb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
-	9fnUUIcSsGvfJTRUUUbwkFF20E14v26r4j6ryUM7CY07I20VC2zVCF04k26cxKx2IYs7xG
-	6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rwA2F7IY1VAKz4vEj48ve4kI8w
-	A2z4x0Y4vE2Ix0cI8IcVAFwI0_tr0E3s1l84ACjcxK6xIIjxv20xvEc7CjxVAFwI0_Gr1j
-	6F4UJwA2z4x0Y4vEx4A2jsIE14v26rxl6s0DM28EF7xvwVC2z280aVCY1x0267AKxVW0oV
-	Cq3wAS0I0E0xvYzxvE52x082IY62kv0487Mc02F40EFcxC0VAKzVAqx4xG6I80ewAv7VC0
-	I7IYx2IY67AKxVWUJVWUGwAv7VC2z280aVAFwI0_Jr0_Gr1lOx8S6xCaFVCjc4AY6r1j6r
-	4UM4x0Y48IcxkI7VAKI48JM4x0x7Aq67IIx4CEVc8vx2IErcIFxwCF04k20xvY0x0EwIxG
-	rwCFx2IqxVCFs4IE7xkEbVWUJVW8JwC20s026c02F40E14v26r1j6r18MI8I3I0E7480Y4
-	vE14v26r106r1rMI8E67AF67kF1VAFwI0_JF0_Jw1lIxkGc2Ij64vIr41lIxAIcVC0I7IY
-	x2IY67AKxVWUJVWUCwCI42IY6xIIjxv20xvEc7CjxVAFwI0_Jr0_Gr1lIxAIcVCF04k26c
-	xKx2IYs7xG6r1j6r1xMIIF0xvEx4A2jsIE14v26r1j6r4UMIIF0xvEx4A2jsIEc7CjxVAF
-	wI0_Jr0_GrUvcSsGvfC2KfnxnUUI43ZEXa7VUbXdbUUUUUU==
-X-Originating-IP: [124.16.138.125]
-X-CM-SenderInfo: pmld2xxhqjqxpvfd2hldfou0/
+X-Scanned-By: MIMEDefang 3.1 on 10.11.54.9
+X-Mimecast-Spam-Score: 0
+X-Mimecast-Originator: redhat.com
+Content-Type: text/plain
 
-As the nd_dax_alloc may return NULL pointer,
-it should be better to add check for the return
-value, as same as the one in nd_dax_create().
+The restraint test harness is started via a systemd unit file.  In this
+environment, there is no user keyring linked into the session keyring:
 
-Fixes: c5ed9268643c ("libnvdimm, dax: autodetect support")
-Signed-off-by: Jiasheng Jiang <jiasheng@iscas.ac.cn>
----
- drivers/nvdimm/dax_devs.c | 2 ++
- 1 file changed, 2 insertions(+)
+# keyctl show
+Session Keyring
+ 406647380 --alswrv      0     0  keyring: _ses
+ 148623625 ----s-rv      0     0   \_ user: invocation_id
 
-diff --git a/drivers/nvdimm/dax_devs.c b/drivers/nvdimm/dax_devs.c
-index 7f4a9d28b670..9efe62b95dd8 100644
---- a/drivers/nvdimm/dax_devs.c
-+++ b/drivers/nvdimm/dax_devs.c
-@@ -106,6 +106,8 @@ int nd_dax_probe(struct device *dev, struct nd_namespace_common *ndns)
+As a result, the security.sh test fails.  The logs show:
+
+++ keyctl show
+++ grep -Eo '_uid.[0-9]+'
+++ head -1
+++ cut -d. -f2-
++ uid=
++ '[' '' -ne 0 ']'
+/root/rpmbuild/BUILD/ndctl-71.1/test/security.sh: line 245: [: : integer expression expected
+
+and:
+
++ keyctl search @u encrypted nvdimm:cdab-0a-07e0-feffffff
+keyctl_search: Required key not available
++ keyctl search @u user nvdimm-master
+keyctl_search: Required key not available
+++ hostname
++ '[' -f /etc/ndctl/keys/nvdimm_cdab-0a-07e0-feffffff_storageqe-40.sqe.lab.eng.bos.redhat.com.blob ']'
++ setup_keys
++ '[' '!' -d /etc/ndctl/keys ']'
++ '[' -f /etc/ndctl/keys/nvdimm-master.blob ']'
++ '[' -f /etc/ndctl/keys/tpm.handle ']'
++ dd if=/dev/urandom bs=1 count=32
++ keyctl padd user nvdimm-master @u
+++ keyctl search @u user nvdimm-master
++ keyctl pipe 416513477
+keyctl_read_alloc: Permission denied
+++ err 47
++++ basename /root/rpmbuild/BUILD/ndctl-71.1/test/security.sh
+++ echo test/security.sh: failed at line 47
+++ '[' -n '' ']'
+++ exit 1
+
+To fix this, create a new session keyring and link in the user keyring
+from within the script.
+
+Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
+
+diff --git a/test/security.sh b/test/security.sh
+index 34c4977..1aa8488 100755
+--- a/test/security.sh
++++ b/test/security.sh
+@@ -43,6 +43,9 @@ setup_keys()
+ 		backup_handle=1
+ 	fi
  
- 	nvdimm_bus_lock(&ndns->dev);
- 	nd_dax = nd_dax_alloc(nd_region);
-+	if (!nd_dax)
-+		return -ENOMEM;
- 	nd_pfn = &nd_dax->nd_pfn;
- 	dax_dev = nd_pfn_devinit(nd_pfn, ndns);
- 	nvdimm_bus_unlock(&ndns->dev);
--- 
-2.25.1
++	# Make sure there is a session and a user keyring linked into it
++	keyctl new_session
++	keyctl link @u @s
+ 	dd if=/dev/urandom bs=1 count=32 2>/dev/null | keyctl padd user "$masterkey" @u
+ 	keyctl pipe "$(keyctl search @u user $masterkey)" > "$masterpath"
+ }
 
