@@ -1,39 +1,39 @@
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8590B33D7
-	for <nvdimm@lists.linux.dev>; Thu, 24 Nov 2022 18:34:48 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E779033D7
+	for <nvdimm@lists.linux.dev>; Thu, 24 Nov 2022 18:34:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1669314888; x=1700850888;
+  t=1669314894; x=1700850894;
   h=subject:from:to:cc:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=aV+/cM6b73eWdg2x7Tz4eOIdoh7/evTs8OLYlWdrq1w=;
-  b=GFW/TnJMHzYfxysLV5W/ehty9K0XAlEK1LqINogYn7j4MlIabSwI60tH
-   FCPCTY/1SWjxbDMjzybEF9nQiDtn1AdnBrSb1SQwoKT0xUnsCHkde6lGM
-   buT0BwWvIunniqTnxyEX50ahVFsmO/vplFVooEGWkquUHJ/eSTn7mTtEx
-   kBiYLn+VADfPYgEh6oIA/zdjb+bnE0tFcZTqII9OoHwTqDBMf6u31dRk9
-   6qFS/EuReVvT2MrECpgKeIVaUxJVZTn3CIo9pcB4mZW4WuKopHNVZGA8R
-   raGVwIerNTPmLckHJWT/RWem3J3RjYFHlK2YDUNX0dsY5h4spn6rGi5sl
-   Q==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10541"; a="316171513"
+  bh=rryzQDPnuxerd/eN6C6ddKzsjRuJ6ixaTFCtQWVeNeg=;
+  b=R3/W/UnYN+aKk9FveLltb7RMT1mQm4JsvsURzG5YiHbqHvXB7IovdycG
+   UyCgZlDfr0YjEtX21FOFQKyrluNWWyzFIY7RmUc2qKqad0mc9XC0saIyO
+   zKCgi8QKO62ivM5ZzGh9B+Sjjcbr6wg+Z5FLIaovVGvoZOkMrLcjJ5MEb
+   SDxVjPVCJR4gNjJ1tLgaBQqVHUAFkRsDkj1zWNgcDd5j/pg0umY9CDiHZ
+   c0EuNMG6Dgg85msbCRcMHkB9KP+Usqyn4By6xVMGbAjHOe4JQNGjCwkrS
+   cSnmRGE3ED6uQoPaObpOAUSSrLhrbuWc4WsQtS0OcGaObLTGjF5QHDnL7
+   A==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10541"; a="301913056"
 X-IronPort-AV: E=Sophos;i="5.96,190,1665471600"; 
-   d="scan'208";a="316171513"
+   d="scan'208";a="301913056"
 Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Nov 2022 10:34:48 -0800
-X-IronPort-AV: E=McAfee;i="6500,9779,10541"; a="705839175"
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Nov 2022 10:34:54 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10541"; a="705839207"
 X-IronPort-AV: E=Sophos;i="5.96,190,1665471600"; 
-   d="scan'208";a="705839175"
+   d="scan'208";a="705839207"
 Received: from aglevin-mobl3.amr.corp.intel.com (HELO dwillia2-xfh.jf.intel.com) ([10.209.65.252])
-  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Nov 2022 10:34:47 -0800
-Subject: [PATCH v4 02/12] cxl/region: Drop redundant pmem region release
- handling
+  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Nov 2022 10:34:53 -0800
+Subject: [PATCH v4 03/12] cxl/pmem: Refactor nvdimm device registration,
+ delete the workqueue
 From: Dan Williams <dan.j.williams@intel.com>
 To: linux-cxl@vger.kernel.org
 Cc: rrichter@amd.com, terry.bowman@amd.com, bhelgaas@google.com,
  dave.jiang@intel.com, nvdimm@lists.linux.dev
-Date: Thu, 24 Nov 2022 10:34:47 -0800
-Message-ID: <166931488702.2104015.8136316701135603449.stgit@dwillia2-xfh.jf.intel.com>
+Date: Thu, 24 Nov 2022 10:34:52 -0800
+Message-ID: <166931489283.2104015.7355891921648975475.stgit@dwillia2-xfh.jf.intel.com>
 In-Reply-To: <166931487492.2104015.15204324083515120776.stgit@dwillia2-xfh.jf.intel.com>
 References: <166931487492.2104015.15204324083515120776.stgit@dwillia2-xfh.jf.intel.com>
 User-Agent: StGit/0.18-3-g996c
@@ -46,189 +46,623 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 
-Now that a cxl_nvdimm object can only experience ->remove() via an
-unregistration event (because the cxl_nvdimm bind attributes are
-suppressed), additional cleanups are possible.
+The three objects 'struct cxl_nvdimm_bridge', 'struct cxl_nvdimm', and
+'struct cxl_pmem_region' manage CXL persistent memory resources. The
+bridge represents base platform resources, the nvdimm represents one or
+more endpoints, and the region is a collection of nvdimms that
+contribute to an assembled address range.
 
-It is already the case that the removal of a cxl_memdev object triggers
-->remove() on any associated region. With that mechanism in place there
-is no need for the cxl_nvdimm removal to trigger the same. Just rely on
-cxl_region_detach() to tear down the whole cxl_pmem_region.
+Their relationship is such that a region is torn down if any component
+endpoints are removed. All regions and endpoints are torn down if the
+foundational bridge device goes down.
+
+A workqueue was deployed to manage these interdependencies, but it is
+difficult to reason about, and fragile. A recent attempt to take the CXL
+root device lock in the cxl_mem driver was reported by lockdep as
+colliding with the flush_work() in the cxl_pmem flows.
+
+Instead of the workqueue, arrange for all pmem/nvdimm devices to be torn
+down immediately and hierarchically. A similar change is made to both
+the 'cxl_nvdimm' and 'cxl_pmem_region' objects. For bisect-ability both
+changes are made in the same patch which unfortunately makes the patch
+bigger than desired.
+
+Arrange for cxl_memdev and cxl_region to register a cxl_nvdimm and
+cxl_pmem_region as a devres release action of the bridge device.
+Additionally, include a devres release action of the cxl_memdev or
+cxl_region device that triggers the bridge's release action if an endpoint
+exits before the bridge. I.e. this allows either unplugging the bridge,
+or unplugging and endpoint to result in the same cleanup actions.
+
+To keep the patch smaller the cleanup of the now defunct workqueue
+infrastructure is saved for a follow-on patch.
 
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/cxl/core/pmem.c |    2 -
- drivers/cxl/cxl.h       |    1 -
- drivers/cxl/pmem.c      |   90 -----------------------------------------------
- 3 files changed, 93 deletions(-)
+ drivers/cxl/core/pmem.c      |   70 ++++++++++++++++++++----
+ drivers/cxl/core/region.c    |   54 ++++++++++++++++++-
+ drivers/cxl/cxl.h            |    7 ++
+ drivers/cxl/cxlmem.h         |    4 +
+ drivers/cxl/mem.c            |    9 +++
+ drivers/cxl/pci.c            |    3 -
+ drivers/cxl/pmem.c           |  122 ++++++++++++------------------------------
+ tools/testing/cxl/test/mem.c |    3 -
+ 8 files changed, 164 insertions(+), 108 deletions(-)
 
 diff --git a/drivers/cxl/core/pmem.c b/drivers/cxl/core/pmem.c
-index 36aa5070d902..1d12a8206444 100644
+index 1d12a8206444..647b3a30638e 100644
 --- a/drivers/cxl/core/pmem.c
 +++ b/drivers/cxl/core/pmem.c
-@@ -188,7 +188,6 @@ static void cxl_nvdimm_release(struct device *dev)
+@@ -219,7 +219,8 @@ EXPORT_SYMBOL_NS_GPL(to_cxl_nvdimm, CXL);
+ 
+ static struct lock_class_key cxl_nvdimm_key;
+ 
+-static struct cxl_nvdimm *cxl_nvdimm_alloc(struct cxl_memdev *cxlmd)
++static struct cxl_nvdimm *cxl_nvdimm_alloc(struct cxl_nvdimm_bridge *cxl_nvb,
++					   struct cxl_memdev *cxlmd)
  {
- 	struct cxl_nvdimm *cxl_nvd = to_cxl_nvdimm(dev);
- 
--	xa_destroy(&cxl_nvd->pmem_regions);
- 	kfree(cxl_nvd);
- }
- 
-@@ -231,7 +230,6 @@ static struct cxl_nvdimm *cxl_nvdimm_alloc(struct cxl_memdev *cxlmd)
+ 	struct cxl_nvdimm *cxl_nvd;
+ 	struct device *dev;
+@@ -230,6 +231,7 @@ static struct cxl_nvdimm *cxl_nvdimm_alloc(struct cxl_memdev *cxlmd)
  
  	dev = &cxl_nvd->dev;
  	cxl_nvd->cxlmd = cxlmd;
--	xa_init(&cxl_nvd->pmem_regions);
++	cxlmd->cxl_nvd = cxl_nvd;
  	device_initialize(dev);
  	lockdep_set_class(&dev->mutex, &cxl_nvdimm_key);
  	device_set_pm_not_required(dev);
+@@ -240,27 +242,52 @@ static struct cxl_nvdimm *cxl_nvdimm_alloc(struct cxl_memdev *cxlmd)
+ 	return cxl_nvd;
+ }
+ 
+-static void cxl_nvd_unregister(void *dev)
++static void cxl_nvd_unregister(void *_cxl_nvd)
+ {
+-	device_unregister(dev);
++	struct cxl_nvdimm *cxl_nvd = _cxl_nvd;
++	struct cxl_memdev *cxlmd = cxl_nvd->cxlmd;
++
++	device_lock_assert(&cxlmd->cxl_nvb->dev);
++	cxl_nvd->cxlmd = NULL;
++	cxlmd->cxl_nvd = NULL;
++	device_unregister(&cxl_nvd->dev);
++}
++
++static void cxlmd_release_nvdimm(void *_cxlmd)
++{
++	struct cxl_memdev *cxlmd = _cxlmd;
++	struct cxl_nvdimm_bridge *cxl_nvb = cxlmd->cxl_nvb;
++
++	device_lock(&cxl_nvb->dev);
++	if (cxlmd->cxl_nvd)
++		devm_release_action(&cxl_nvb->dev, cxl_nvd_unregister,
++				    cxlmd->cxl_nvd);
++	device_unlock(&cxl_nvb->dev);
++	put_device(&cxl_nvb->dev);
+ }
+ 
+ /**
+  * devm_cxl_add_nvdimm() - add a bridge between a cxl_memdev and an nvdimm
+- * @host: same host as @cxlmd
+  * @cxlmd: cxl_memdev instance that will perform LIBNVDIMM operations
+  *
+  * Return: 0 on success negative error code on failure.
+  */
+-int devm_cxl_add_nvdimm(struct device *host, struct cxl_memdev *cxlmd)
++int devm_cxl_add_nvdimm(struct cxl_memdev *cxlmd)
+ {
++	struct cxl_nvdimm_bridge *cxl_nvb = cxl_find_nvdimm_bridge(&cxlmd->dev);
+ 	struct cxl_nvdimm *cxl_nvd;
+ 	struct device *dev;
+ 	int rc;
+ 
+-	cxl_nvd = cxl_nvdimm_alloc(cxlmd);
+-	if (IS_ERR(cxl_nvd))
+-		return PTR_ERR(cxl_nvd);
++	if (!cxl_nvb)
++		return -ENODEV;
++
++	cxl_nvd = cxl_nvdimm_alloc(cxl_nvb, cxlmd);
++	if (IS_ERR(cxl_nvd)) {
++		rc = PTR_ERR(cxl_nvd);
++		goto err_alloc;
++	}
++	cxlmd->cxl_nvb = cxl_nvb;
+ 
+ 	dev = &cxl_nvd->dev;
+ 	rc = dev_set_name(dev, "pmem%d", cxlmd->id);
+@@ -271,13 +298,34 @@ int devm_cxl_add_nvdimm(struct device *host, struct cxl_memdev *cxlmd)
+ 	if (rc)
+ 		goto err;
+ 
+-	dev_dbg(host, "%s: register %s\n", dev_name(dev->parent),
+-		dev_name(dev));
++	dev_dbg(&cxlmd->dev, "register %s\n", dev_name(dev));
+ 
+-	return devm_add_action_or_reset(host, cxl_nvd_unregister, dev);
++	/*
++	 * Remove this nvdimm connection if either the top-level PMEM
++	 * bridge goes down, or the endpoint device goes through
++	 * ->remove().
++	 */
++	device_lock(&cxl_nvb->dev);
++	if (cxl_nvb->dev.driver)
++		rc = devm_add_action_or_reset(&cxl_nvb->dev, cxl_nvd_unregister,
++					      cxl_nvd);
++	else
++		rc = -ENXIO;
++	device_unlock(&cxl_nvb->dev);
++
++	if (rc)
++		goto err_alloc;
++
++	/* @cxlmd carries a reference on @cxl_nvb until cxlmd_release_nvdimm */
++	return devm_add_action_or_reset(&cxlmd->dev, cxlmd_release_nvdimm, cxlmd);
+ 
+ err:
+ 	put_device(dev);
++err_alloc:
++	put_device(&cxl_nvb->dev);
++	cxlmd->cxl_nvb = NULL;
++	cxlmd->cxl_nvd = NULL;
++
+ 	return rc;
+ }
+ EXPORT_SYMBOL_NS_GPL(devm_cxl_add_nvdimm, CXL);
+diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
+index f9ae5ad284ff..e73bec828032 100644
+--- a/drivers/cxl/core/region.c
++++ b/drivers/cxl/core/region.c
+@@ -1812,6 +1812,7 @@ static struct lock_class_key cxl_pmem_region_key;
+ static struct cxl_pmem_region *cxl_pmem_region_alloc(struct cxl_region *cxlr)
+ {
+ 	struct cxl_region_params *p = &cxlr->params;
++	struct cxl_nvdimm_bridge *cxl_nvb;
+ 	struct cxl_pmem_region *cxlr_pmem;
+ 	struct device *dev;
+ 	int i;
+@@ -1839,6 +1840,14 @@ static struct cxl_pmem_region *cxl_pmem_region_alloc(struct cxl_region *cxlr)
+ 		struct cxl_memdev *cxlmd = cxled_to_memdev(cxled);
+ 		struct cxl_pmem_region_mapping *m = &cxlr_pmem->mapping[i];
+ 
++		if (i == 0) {
++			cxl_nvb = cxl_find_nvdimm_bridge(&cxlmd->dev);
++			if (!cxl_nvb) {
++				cxlr_pmem = ERR_PTR(-ENODEV);
++				goto out;
++			}
++			cxlr->cxl_nvb = cxl_nvb;
++		}
+ 		m->cxlmd = cxlmd;
+ 		get_device(&cxlmd->dev);
+ 		m->start = cxled->dpa_res->start;
+@@ -1848,6 +1857,7 @@ static struct cxl_pmem_region *cxl_pmem_region_alloc(struct cxl_region *cxlr)
+ 
+ 	dev = &cxlr_pmem->dev;
+ 	cxlr_pmem->cxlr = cxlr;
++	cxlr->cxlr_pmem = cxlr_pmem;
+ 	device_initialize(dev);
+ 	lockdep_set_class(&dev->mutex, &cxl_pmem_region_key);
+ 	device_set_pm_not_required(dev);
+@@ -1860,9 +1870,30 @@ static struct cxl_pmem_region *cxl_pmem_region_alloc(struct cxl_region *cxlr)
+ 	return cxlr_pmem;
+ }
+ 
+-static void cxlr_pmem_unregister(void *dev)
++static void cxlr_pmem_unregister(void *_cxlr_pmem)
++{
++	struct cxl_pmem_region *cxlr_pmem = _cxlr_pmem;
++	struct cxl_region *cxlr = cxlr_pmem->cxlr;
++	struct cxl_nvdimm_bridge *cxl_nvb = cxlr->cxl_nvb;
++
++	device_lock_assert(&cxl_nvb->dev);
++	cxlr->cxlr_pmem = NULL;
++	cxlr_pmem->cxlr = NULL;
++	device_unregister(&cxlr_pmem->dev);
++}
++
++static void cxlr_release_nvdimm(void *_cxlr)
+ {
+-	device_unregister(dev);
++	struct cxl_region *cxlr = _cxlr;
++	struct cxl_nvdimm_bridge *cxl_nvb = cxlr->cxl_nvb;
++
++	device_lock(&cxl_nvb->dev);
++	if (cxlr->cxlr_pmem)
++		devm_release_action(&cxl_nvb->dev, cxlr_pmem_unregister,
++				    cxlr->cxlr_pmem);
++	device_unlock(&cxl_nvb->dev);
++	cxlr->cxl_nvb = NULL;
++	put_device(&cxl_nvb->dev);
+ }
+ 
+ /**
+@@ -1874,12 +1905,14 @@ static void cxlr_pmem_unregister(void *dev)
+ static int devm_cxl_add_pmem_region(struct cxl_region *cxlr)
+ {
+ 	struct cxl_pmem_region *cxlr_pmem;
++	struct cxl_nvdimm_bridge *cxl_nvb;
+ 	struct device *dev;
+ 	int rc;
+ 
+ 	cxlr_pmem = cxl_pmem_region_alloc(cxlr);
+ 	if (IS_ERR(cxlr_pmem))
+ 		return PTR_ERR(cxlr_pmem);
++	cxl_nvb = cxlr->cxl_nvb;
+ 
+ 	dev = &cxlr_pmem->dev;
+ 	rc = dev_set_name(dev, "pmem_region%d", cxlr->id);
+@@ -1893,10 +1926,25 @@ static int devm_cxl_add_pmem_region(struct cxl_region *cxlr)
+ 	dev_dbg(&cxlr->dev, "%s: register %s\n", dev_name(dev->parent),
+ 		dev_name(dev));
+ 
+-	return devm_add_action_or_reset(&cxlr->dev, cxlr_pmem_unregister, dev);
++	device_lock(&cxl_nvb->dev);
++	if (cxl_nvb->dev.driver)
++		rc = devm_add_action_or_reset(&cxl_nvb->dev,
++					      cxlr_pmem_unregister, cxlr_pmem);
++	else
++		rc = -ENXIO;
++	device_unlock(&cxl_nvb->dev);
++
++	if (rc)
++		goto err_bridge;
++
++	/* @cxlr carries a reference on @cxl_nvb until cxlr_release_nvdimm */
++	return devm_add_action_or_reset(&cxlr->dev, cxlr_release_nvdimm, cxlr);
+ 
+ err:
+ 	put_device(dev);
++err_bridge:
++	put_device(&cxl_nvb->dev);
++	cxlr->cxl_nvb = NULL;
+ 	return rc;
+ }
+ 
 diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
-index 7d07127eade3..4ac7938eaf6c 100644
+index 4ac7938eaf6c..9b5ba9626636 100644
 --- a/drivers/cxl/cxl.h
 +++ b/drivers/cxl/cxl.h
-@@ -424,7 +424,6 @@ struct cxl_nvdimm {
- 	struct device dev;
- 	struct cxl_memdev *cxlmd;
- 	struct cxl_nvdimm_bridge *bridge;
--	struct xarray pmem_regions;
+@@ -386,6 +386,8 @@ struct cxl_region_params {
+  * @id: This region's id. Id is globally unique across all regions
+  * @mode: Endpoint decoder allocation / access mode
+  * @type: Endpoint decoder target type
++ * @cxl_nvb: nvdimm bridge for coordinating @cxlr_pmem shutdown
++ * @cxlr_pmem: (for pmem regions) cached copy of the nvdimm bridge
+  * @params: active + config params for the region
+  */
+ struct cxl_region {
+@@ -393,6 +395,8 @@ struct cxl_region {
+ 	int id;
+ 	enum cxl_decoder_mode mode;
+ 	enum cxl_decoder_type type;
++	struct cxl_nvdimm_bridge *cxl_nvb;
++	struct cxl_pmem_region *cxlr_pmem;
+ 	struct cxl_region_params params;
  };
  
- struct cxl_pmem_region_mapping {
+@@ -438,7 +442,6 @@ struct cxl_pmem_region {
+ 	struct device dev;
+ 	struct cxl_region *cxlr;
+ 	struct nd_region *nd_region;
+-	struct cxl_nvdimm_bridge *bridge;
+ 	struct range hpa_range;
+ 	int nr_mappings;
+ 	struct cxl_pmem_region_mapping mapping[];
+@@ -637,7 +640,7 @@ struct cxl_nvdimm_bridge *devm_cxl_add_nvdimm_bridge(struct device *host,
+ struct cxl_nvdimm *to_cxl_nvdimm(struct device *dev);
+ bool is_cxl_nvdimm(struct device *dev);
+ bool is_cxl_nvdimm_bridge(struct device *dev);
+-int devm_cxl_add_nvdimm(struct device *host, struct cxl_memdev *cxlmd);
++int devm_cxl_add_nvdimm(struct cxl_memdev *cxlmd);
+ struct cxl_nvdimm_bridge *cxl_find_nvdimm_bridge(struct device *dev);
+ 
+ #ifdef CONFIG_CXL_REGION
+diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
+index 88e3a8e54b6a..c1c9960ab05f 100644
+--- a/drivers/cxl/cxlmem.h
++++ b/drivers/cxl/cxlmem.h
+@@ -35,6 +35,8 @@
+  * @cdev: char dev core object for ioctl operations
+  * @cxlds: The device state backing this device
+  * @detach_work: active memdev lost a port in its ancestry
++ * @cxl_nvb: coordinate removal of @cxl_nvd if present
++ * @cxl_nvd: optional bridge to an nvdimm if the device supports pmem
+  * @id: id number of this memdev instance.
+  */
+ struct cxl_memdev {
+@@ -42,6 +44,8 @@ struct cxl_memdev {
+ 	struct cdev cdev;
+ 	struct cxl_dev_state *cxlds;
+ 	struct work_struct detach_work;
++	struct cxl_nvdimm_bridge *cxl_nvb;
++	struct cxl_nvdimm *cxl_nvd;
+ 	int id;
+ };
+ 
+diff --git a/drivers/cxl/mem.c b/drivers/cxl/mem.c
+index 64ccf053d32c..549b6b499bae 100644
+--- a/drivers/cxl/mem.c
++++ b/drivers/cxl/mem.c
+@@ -48,6 +48,7 @@ static int cxl_mem_dpa_show(struct seq_file *file, void *data)
+ static int cxl_mem_probe(struct device *dev)
+ {
+ 	struct cxl_memdev *cxlmd = to_cxl_memdev(dev);
++	struct cxl_dev_state *cxlds = cxlmd->cxlds;
+ 	struct cxl_port *parent_port;
+ 	struct cxl_dport *dport;
+ 	struct dentry *dentry;
+@@ -95,6 +96,14 @@ static int cxl_mem_probe(struct device *dev)
+ 	if (rc)
+ 		return rc;
+ 
++	if (resource_size(&cxlds->pmem_res) && IS_ENABLED(CONFIG_CXL_PMEM)) {
++		rc = devm_cxl_add_nvdimm(cxlmd);
++		if (rc == -ENODEV)
++			dev_info(dev, "PMEM disabled by platform\n");
++		else
++			return rc;
++	}
++
+ 	/*
+ 	 * The kernel may be operating out of CXL memory on this device,
+ 	 * there is no spec defined way to determine whether this device
+diff --git a/drivers/cxl/pci.c b/drivers/cxl/pci.c
+index 621a0522b554..e15da405b948 100644
+--- a/drivers/cxl/pci.c
++++ b/drivers/cxl/pci.c
+@@ -503,9 +503,6 @@ static int cxl_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+ 	if (IS_ERR(cxlmd))
+ 		return PTR_ERR(cxlmd);
+ 
+-	if (resource_size(&cxlds->pmem_res) && IS_ENABLED(CONFIG_CXL_PMEM))
+-		rc = devm_cxl_add_nvdimm(&pdev->dev, cxlmd);
+-
+ 	return rc;
+ }
+ 
 diff --git a/drivers/cxl/pmem.c b/drivers/cxl/pmem.c
-index 946e171e7d4a..652f00fc68ca 100644
+index 652f00fc68ca..73357d0c3f25 100644
 --- a/drivers/cxl/pmem.c
 +++ b/drivers/cxl/pmem.c
-@@ -27,26 +27,7 @@ static void clear_exclusive(void *cxlds)
- 
- static void unregister_nvdimm(void *nvdimm)
+@@ -34,26 +34,16 @@ static int cxl_nvdimm_probe(struct device *dev)
  {
--	struct cxl_nvdimm *cxl_nvd = nvdimm_provider_data(nvdimm);
--	struct cxl_nvdimm_bridge *cxl_nvb = cxl_nvd->bridge;
--	struct cxl_pmem_region *cxlr_pmem;
--	unsigned long index;
+ 	struct cxl_nvdimm *cxl_nvd = to_cxl_nvdimm(dev);
+ 	struct cxl_memdev *cxlmd = cxl_nvd->cxlmd;
++	struct cxl_nvdimm_bridge *cxl_nvb = cxlmd->cxl_nvb;
+ 	unsigned long flags = 0, cmd_mask = 0;
+ 	struct cxl_dev_state *cxlds = cxlmd->cxlds;
+-	struct cxl_nvdimm_bridge *cxl_nvb;
+ 	struct nvdimm *nvdimm;
+ 	int rc;
+ 
+-	cxl_nvb = cxl_find_nvdimm_bridge(dev);
+-	if (!cxl_nvb)
+-		return -ENXIO;
 -
 -	device_lock(&cxl_nvb->dev);
--	dev_set_drvdata(&cxl_nvd->dev, NULL);
--	xa_for_each(&cxl_nvd->pmem_regions, index, cxlr_pmem) {
--		get_device(&cxlr_pmem->dev);
--		device_unlock(&cxl_nvb->dev);
--
--		device_release_driver(&cxlr_pmem->dev);
--		put_device(&cxlr_pmem->dev);
--
--		device_lock(&cxl_nvb->dev);
+-	if (!cxl_nvb->nvdimm_bus) {
+-		rc = -ENXIO;
+-		goto out;
 -	}
+-
+ 	set_exclusive_cxl_commands(cxlds, exclusive_cmds);
+ 	rc = devm_add_action_or_reset(dev, clear_exclusive, cxlds);
+ 	if (rc)
+-		goto out;
++		return rc;
+ 
+ 	set_bit(NDD_LABELING, &flags);
+ 	set_bit(ND_CMD_GET_CONFIG_SIZE, &cmd_mask);
+@@ -61,19 +51,11 @@ static int cxl_nvdimm_probe(struct device *dev)
+ 	set_bit(ND_CMD_SET_CONFIG_DATA, &cmd_mask);
+ 	nvdimm = nvdimm_create(cxl_nvb->nvdimm_bus, cxl_nvd, NULL, flags,
+ 			       cmd_mask, 0, NULL);
+-	if (!nvdimm) {
+-		rc = -ENOMEM;
+-		goto out;
+-	}
++	if (!nvdimm)
++		return -ENOMEM;
+ 
+ 	dev_set_drvdata(dev, nvdimm);
+-	cxl_nvd->bridge = cxl_nvb;
+-	rc = devm_add_action_or_reset(dev, unregister_nvdimm, nvdimm);
+-out:
 -	device_unlock(&cxl_nvb->dev);
+-	put_device(&cxl_nvb->dev);
 -
- 	nvdimm_delete(nvdimm);
--	cxl_nvd->bridge = NULL;
+-	return rc;
++	return devm_add_action_or_reset(dev, unregister_nvdimm, nvdimm);
  }
  
- static int cxl_nvdimm_probe(struct device *dev)
-@@ -243,21 +224,6 @@ static int cxl_nvdimm_release_driver(struct device *dev, void *cxl_nvb)
- 	return 0;
+ static struct cxl_driver cxl_nvdimm_driver = {
+@@ -200,6 +182,16 @@ static int cxl_pmem_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 	return cxl_pmem_nvdimm_ctl(nvdimm, cmd, buf, buf_len);
  }
  
--static int cxl_pmem_region_release_driver(struct device *dev, void *cxl_nvb)
--{
--	struct cxl_pmem_region *cxlr_pmem;
--
--	if (!is_cxl_pmem_region(dev))
--		return 0;
--
--	cxlr_pmem = to_cxl_pmem_region(dev);
--	if (cxlr_pmem->bridge != cxl_nvb)
--		return 0;
--
--	device_release_driver(dev);
++static void unregister_nvdimm_bus(void *_cxl_nvb)
++{
++	struct cxl_nvdimm_bridge *cxl_nvb = _cxl_nvb;
++	struct nvdimm_bus *nvdimm_bus = cxl_nvb->nvdimm_bus;
++
++	cxl_nvb->nvdimm_bus = NULL;
++	nvdimm_bus_unregister(nvdimm_bus);
++}
++
++
+ static bool online_nvdimm_bus(struct cxl_nvdimm_bridge *cxl_nvb)
+ {
+ 	if (cxl_nvb->nvdimm_bus)
+@@ -303,23 +295,21 @@ static int cxl_nvdimm_bridge_probe(struct device *dev)
+ {
+ 	struct cxl_nvdimm_bridge *cxl_nvb = to_cxl_nvdimm_bridge(dev);
+ 
+-	if (cxl_nvb->state == CXL_NVB_DEAD)
+-		return -ENXIO;
++	cxl_nvb->nd_desc = (struct nvdimm_bus_descriptor){
++		.provider_name = "CXL",
++		.module = THIS_MODULE,
++		.ndctl = cxl_pmem_ctl,
++	};
+ 
+-	if (cxl_nvb->state == CXL_NVB_NEW) {
+-		cxl_nvb->nd_desc = (struct nvdimm_bus_descriptor) {
+-			.provider_name = "CXL",
+-			.module = THIS_MODULE,
+-			.ndctl = cxl_pmem_ctl,
+-		};
++	cxl_nvb->nvdimm_bus =
++		nvdimm_bus_register(&cxl_nvb->dev, &cxl_nvb->nd_desc);
+ 
+-		INIT_WORK(&cxl_nvb->state_work, cxl_nvb_update_state);
+-	}
++	if (!cxl_nvb->nvdimm_bus)
++		return -ENOMEM;
+ 
+-	cxl_nvb->state = CXL_NVB_ONLINE;
+-	cxl_nvdimm_bridge_state_work(cxl_nvb);
++	INIT_WORK(&cxl_nvb->state_work, cxl_nvb_update_state);
+ 
 -	return 0;
++	return devm_add_action_or_reset(dev, unregister_nvdimm_bus, cxl_nvb);
+ }
+ 
+ static struct cxl_driver cxl_nvdimm_bridge_driver = {
+@@ -332,11 +322,6 @@ static struct cxl_driver cxl_nvdimm_bridge_driver = {
+ 	},
+ };
+ 
+-static int match_cxl_nvdimm(struct device *dev, void *data)
+-{
+-	return is_cxl_nvdimm(dev);
 -}
 -
- static void offline_nvdimm_bus(struct cxl_nvdimm_bridge *cxl_nvb,
- 			       struct nvdimm_bus *nvdimm_bus)
+ static void unregister_nvdimm_region(void *nd_region)
  {
-@@ -269,8 +235,6 @@ static void offline_nvdimm_bus(struct cxl_nvdimm_bridge *cxl_nvb,
- 	 * nvdimm_bus_unregister() rips the nvdimm objects out from
- 	 * underneath them.
- 	 */
--	bus_for_each_dev(&cxl_bus_type, NULL, cxl_nvb,
--			 cxl_pmem_region_release_driver);
- 	bus_for_each_dev(&cxl_bus_type, NULL, cxl_nvb,
- 			 cxl_nvdimm_release_driver);
- 	nvdimm_bus_unregister(nvdimm_bus);
-@@ -378,48 +342,6 @@ static void unregister_nvdimm_region(void *nd_region)
  	nvdimm_region_delete(nd_region);
- }
+@@ -357,8 +342,8 @@ static int cxl_pmem_region_probe(struct device *dev)
+ 	struct nd_mapping_desc mappings[CXL_DECODER_MAX_INTERLEAVE];
+ 	struct cxl_pmem_region *cxlr_pmem = to_cxl_pmem_region(dev);
+ 	struct cxl_region *cxlr = cxlr_pmem->cxlr;
++	struct cxl_nvdimm_bridge *cxl_nvb = cxlr->cxl_nvb;
+ 	struct cxl_pmem_region_info *info = NULL;
+-	struct cxl_nvdimm_bridge *cxl_nvb;
+ 	struct nd_interleave_set *nd_set;
+ 	struct nd_region_desc ndr_desc;
+ 	struct cxl_nvdimm *cxl_nvd;
+@@ -366,28 +351,12 @@ static int cxl_pmem_region_probe(struct device *dev)
+ 	struct resource *res;
+ 	int rc, i = 0;
  
--static int cxl_nvdimm_add_region(struct cxl_nvdimm *cxl_nvd,
--				 struct cxl_pmem_region *cxlr_pmem)
--{
--	int rc;
--
--	rc = xa_insert(&cxl_nvd->pmem_regions, (unsigned long)cxlr_pmem,
--		       cxlr_pmem, GFP_KERNEL);
--	if (rc)
--		return rc;
--
--	get_device(&cxlr_pmem->dev);
--	return 0;
--}
--
--static void cxl_nvdimm_del_region(struct cxl_nvdimm *cxl_nvd,
--				  struct cxl_pmem_region *cxlr_pmem)
--{
--	/*
--	 * It is possible this is called without a corresponding
--	 * cxl_nvdimm_add_region for @cxlr_pmem
--	 */
--	cxlr_pmem = xa_erase(&cxl_nvd->pmem_regions, (unsigned long)cxlr_pmem);
--	if (cxlr_pmem)
--		put_device(&cxlr_pmem->dev);
--}
--
--static void release_mappings(void *data)
--{
--	int i;
--	struct cxl_pmem_region *cxlr_pmem = data;
--	struct cxl_nvdimm_bridge *cxl_nvb = cxlr_pmem->bridge;
+-	cxl_nvb = cxl_find_nvdimm_bridge(&cxlr_pmem->mapping[0].cxlmd->dev);
+-	if (!cxl_nvb) {
+-		dev_dbg(dev, "bridge not found\n");
+-		return -ENXIO;
+-	}
+-	cxlr_pmem->bridge = cxl_nvb;
 -
 -	device_lock(&cxl_nvb->dev);
--	for (i = 0; i < cxlr_pmem->nr_mappings; i++) {
--		struct cxl_pmem_region_mapping *m = &cxlr_pmem->mapping[i];
--		struct cxl_nvdimm *cxl_nvd = m->cxl_nvd;
--
--		cxl_nvdimm_del_region(cxl_nvd, cxlr_pmem);
+-	if (!cxl_nvb->nvdimm_bus) {
+-		dev_dbg(dev, "nvdimm bus not found\n");
+-		rc = -ENXIO;
+-		goto out_nvb;
 -	}
--	device_unlock(&cxl_nvb->dev);
--}
 -
- static void cxlr_pmem_remove_resource(void *res)
- {
- 	remove_resource(res);
-@@ -508,10 +430,6 @@ static int cxl_pmem_region_probe(struct device *dev)
- 		goto out_nvb;
+ 	memset(&mappings, 0, sizeof(mappings));
+ 	memset(&ndr_desc, 0, sizeof(ndr_desc));
+ 
+ 	res = devm_kzalloc(dev, sizeof(*res), GFP_KERNEL);
+-	if (!res) {
+-		rc = -ENOMEM;
+-		goto out_nvb;
+-	}
++	if (!res)
++		return -ENOMEM;
+ 
+ 	res->name = "Persistent Memory";
+ 	res->start = cxlr_pmem->hpa_range.start;
+@@ -397,11 +366,11 @@ static int cxl_pmem_region_probe(struct device *dev)
+ 
+ 	rc = insert_resource(&iomem_resource, res);
+ 	if (rc)
+-		goto out_nvb;
++		return rc;
+ 
+ 	rc = devm_add_action_or_reset(dev, cxlr_pmem_remove_resource, res);
+ 	if (rc)
+-		goto out_nvb;
++		return rc;
+ 
+ 	ndr_desc.res = res;
+ 	ndr_desc.provider_data = cxlr_pmem;
+@@ -415,39 +384,23 @@ static int cxl_pmem_region_probe(struct device *dev)
  	}
  
--	rc = devm_add_action_or_reset(dev, release_mappings, cxlr_pmem);
--	if (rc)
--		goto out_nvd;
--
+ 	nd_set = devm_kzalloc(dev, sizeof(*nd_set), GFP_KERNEL);
+-	if (!nd_set) {
+-		rc = -ENOMEM;
+-		goto out_nvb;
+-	}
++	if (!nd_set)
++		return -ENOMEM;
+ 
+ 	ndr_desc.memregion = cxlr->id;
+ 	set_bit(ND_REGION_CXL, &ndr_desc.flags);
+ 	set_bit(ND_REGION_PERSIST_MEMCTRL, &ndr_desc.flags);
+ 
+ 	info = kmalloc_array(cxlr_pmem->nr_mappings, sizeof(*info), GFP_KERNEL);
+-	if (!info) {
+-		rc = -ENOMEM;
+-		goto out_nvb;
+-	}
++	if (!info)
++		return -ENOMEM;
+ 
  	for (i = 0; i < cxlr_pmem->nr_mappings; i++) {
  		struct cxl_pmem_region_mapping *m = &cxlr_pmem->mapping[i];
  		struct cxl_memdev *cxlmd = m->cxlmd;
-@@ -538,14 +456,6 @@ static int cxl_pmem_region_probe(struct device *dev)
- 			goto out_nvd;
- 		}
- 
--		/*
--		 * Pin the region per nvdimm device as those may be released
--		 * out-of-order with respect to the region, and a single nvdimm
--		 * maybe associated with multiple regions
--		 */
--		rc = cxl_nvdimm_add_region(cxl_nvd, cxlr_pmem);
--		if (rc)
+ 		struct cxl_dev_state *cxlds = cxlmd->cxlds;
+-		struct device *d;
+-
+-		d = device_find_child(&cxlmd->dev, NULL, match_cxl_nvdimm);
+-		if (!d) {
+-			dev_dbg(dev, "[%d]: %s: no cxl_nvdimm found\n", i,
+-				dev_name(&cxlmd->dev));
+-			rc = -ENODEV;
 -			goto out_nvd;
- 		m->cxl_nvd = cxl_nvd;
- 		mappings[i] = (struct nd_mapping_desc) {
- 			.nvdimm = nvdimm,
+-		}
+ 
+-		/* safe to drop ref now with bridge lock held */
+-		put_device(d);
+-
+-		cxl_nvd = to_cxl_nvdimm(d);
++		cxl_nvd = cxlmd->cxl_nvd;
+ 		nvdimm = dev_get_drvdata(&cxl_nvd->dev);
+ 		if (!nvdimm) {
+ 			dev_dbg(dev, "[%d]: %s: no nvdimm found\n", i,
+@@ -488,9 +441,6 @@ static int cxl_pmem_region_probe(struct device *dev)
+ 				      cxlr_pmem->nd_region);
+ out_nvd:
+ 	kfree(info);
+-out_nvb:
+-	device_unlock(&cxl_nvb->dev);
+-	put_device(&cxl_nvb->dev);
+ 
+ 	return rc;
+ }
+diff --git a/tools/testing/cxl/test/mem.c b/tools/testing/cxl/test/mem.c
+index aa2df3a15051..a4ee8e61dd60 100644
+--- a/tools/testing/cxl/test/mem.c
++++ b/tools/testing/cxl/test/mem.c
+@@ -285,9 +285,6 @@ static int cxl_mock_mem_probe(struct platform_device *pdev)
+ 	if (IS_ERR(cxlmd))
+ 		return PTR_ERR(cxlmd);
+ 
+-	if (resource_size(&cxlds->pmem_res) && IS_ENABLED(CONFIG_CXL_PMEM))
+-		rc = devm_cxl_add_nvdimm(dev, cxlmd);
+-
+ 	return 0;
+ }
+ 
 
