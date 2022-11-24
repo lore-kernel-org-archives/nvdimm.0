@@ -1,126 +1,106 @@
-Received: from mail-wm1-f41.google.com (mail-wm1-f41.google.com [209.85.128.41])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail1.bemta34.messagelabs.com (mail1.bemta34.messagelabs.com [195.245.231.2])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B741723AE
-	for <nvdimm@lists.linux.dev>; Thu, 24 Nov 2022 10:20:38 +0000 (UTC)
-Received: by mail-wm1-f41.google.com with SMTP id 5so958389wmo.1
-        for <nvdimm@lists.linux.dev>; Thu, 24 Nov 2022 02:20:38 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=rnU65IZVW7Ew6pXFCL1FtPt2utdOW4krxPUWMRLq6dI=;
-        b=EgMvq8mHE7e9oJjxfwGGMI0X6RsU/hnpmrya0a46qA+IRz44kL+ygVKseMw8/tu+kf
-         DrbXwSab0lsyvQKswhXK9kEI+f8Yq976XJcnaE2mLQ5o04rud4i9rmG5x0YaK+CtFA6Z
-         uYSl3zKMTyIjQ1p7tiU1NHMqCHbKfOStQ/C0CimShiFhTItfIU5CrnCZoWkElSV7F4N/
-         hCx1YHbGHZvwycPG31H0Q5MX1Auvf7cou9SgYnu9dMyiiD1hPP4kWtO3eC6kGaB6E3X3
-         HfAsALjTF+NQjuVHCOtm5FlQ4WtwNFgIrXNZW2p91GOkQzUVhH0pe+uBCw7esVsEcrt3
-         ZFJg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=rnU65IZVW7Ew6pXFCL1FtPt2utdOW4krxPUWMRLq6dI=;
-        b=o8kk+O6T4Ia0aw41LZc4ipRJLlenQi3jl+RfLhmd1HoOgTPl29KQ8HFHcTEZNn5XW8
-         ZY4jFWh7jCCnryeIWYb/wvDXz7N/deY8shNVzjfn9Kfpapeq941/eaEBQu37ozsJld3k
-         Hp1Vc3a0K1eawon02Z9iCHDuqZzcwujim1pk0P6i49juWC9VZBD+2IbYzWvg2XfoSVlI
-         4bY29PUdhPjvYsHneVZAa/NJ9kmnfYtgAu6+HbogTuGKWDrDKhvY974DbAaieSsX45FJ
-         /Ntjv045W+OU06BZbAAPbEQB4ppMYgHg2WT3hwCPg6ZqErrkhsd7DUiTre2HiDyMIrBS
-         XUug==
-X-Gm-Message-State: ANoB5pn2ES8TTKLC7W1+aZ6PEroF7dHEW5mcJ6+EY6ZvkVN/ekyCkylm
-	yEBHJ6L/+bQxJ1ycBt/Rk3U=
-X-Google-Smtp-Source: AA0mqf7ia4WrQ4g+SdUZVhm18xb1EDYT2SKib81dQozI+h18g4Sgieac0ayfG6ouLIMxwe3cUPnzOw==
-X-Received: by 2002:a05:600c:3107:b0:3c6:e1b5:71c2 with SMTP id g7-20020a05600c310700b003c6e1b571c2mr9475161wmo.94.1669285236811;
-        Thu, 24 Nov 2022 02:20:36 -0800 (PST)
-Received: from localhost ([102.36.222.112])
-        by smtp.gmail.com with ESMTPSA id y7-20020a1c4b07000000b003b4c979e6bcsm4940983wma.10.2022.11.24.02.20.35
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 24 Nov 2022 02:20:36 -0800 (PST)
-Date: Thu, 24 Nov 2022 13:20:30 +0300
-From: Dan Carpenter <error27@gmail.com>
-To: dan.j.williams@intel.com
-Cc: nvdimm@lists.linux.dev
-Subject: [bug report] libnvdimm: fix mishandled nvdimm_clear_poison() return
- value
-Message-ID: <Y39FbkGEvQ8TcS1d@kili>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 601E12585
+	for <nvdimm@lists.linux.dev>; Thu, 24 Nov 2022 14:55:13 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fujitsu.com;
+	s=170520fj; t=1669301711; i=@fujitsu.com;
+	bh=alQ7R5Jh0NErV3HrxzICAC/+0mUOPP9X/aFaPsHC9FA=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type;
+	b=FLsiwZGfCHP45lQpVpgj6eO4NpEeQgX9uPYR97QjHyJ5ijI+t2qWitMp4oPx8cWQ9
+	 D7GNOe11wh9E4pAw5dMsmHAZe8FcbNfU9XQo/Cyn7+Fr6L8onY9A7+2xc5VmfTihua
+	 uhDeiNt52ackZGCTBCzl3iHQlpHJIZIkZWDknRUPVmzdCmyM3ykPmSLx+M103Egb9G
+	 SM6IBsbOxg5JDvO9RWJnGZhFyQU40Th3w7798NQRN6d2xfrLIQPawKhJDdkDDC0aq1
+	 VknjI7wEnzfkG8QwmPSHJckUsgx7KygMZZngVfOWissO0FlB+0r7TuaSE55e6f6aLN
+	 +DcT1/B2a02Kg==
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFnrLIsWRWlGSWpSXmKPExsViZ8ORpHu+tT7
+  ZYEMTp8X0qRcYLbYcu8docfkJn8WevSdZLC7vmsNmsevPDnaLlT/+sDqwe5xaJOGxeM9LJo9N
+  qzrZPF5snsno8XmTXABrFGtmXlJ+RQJrxq4b7AXfOCturNzO2sDYwdHFyMUhJLCRUWLq+eeME
+  M4SJok/G95AOXsZJSY8/s7axcjJwSagI3FhwV8gm4NDRKBa4tZSNpAws4CXxNrXG5hBbGEBE4
+  lNa2aC2SwCqhLTV30Hs3kFXCQ+Xp3BBGJLCChITHn4HiouKHFy5hMWiDkSEgdfvGAGGS8hoCQ
+  xszseorxCYtasNqhWNYmr5zYxT2Dkn4WkexaS7gWMTKsYzYpTi8pSi3QNzfSSijLTM0pyEzNz
+  9BKrdBP1Ukt1y1OLS3SN9BLLi/VSi4v1iitzk3NS9PJSSzYxAsM8pVhx6w7GG8v+6B1ilORgU
+  hLlvZVTnyzEl5SfUpmRWJwRX1Sak1p8iFGGg0NJgtejHignWJSanlqRlpkDjDmYtAQHj5IIr3
+  s5UJq3uCAxtzgzHSJ1itGYY23Dgb3MHJP+XNvLLMSSl5+XKiXO+7IJqFQApDSjNA9uECwVXGK
+  UlRLmZWRgYBDiKUgtys0sQZV/xSjOwagkzKvRAjSFJzOvBG7fK6BTmIBOeapTB3JKSSJCSqqB
+  6Shj+s97PB/L3Vev+1p0PC3pW5py+qmkd7OrL1qVvz0lO6m4brt+7FH3fNbUL6pb79+cwvp1R
+  /qquOeOmy0fu2zZafxbPTUn7UThTa6GK39v6a28cDkmLKvh7Q+vs1s4b957YPvUymD39gQJpS
+  SxB/aHLM+05xu3lgnWLv3j//uUuZufE+/Kbb/9DmUfZvpg63jh0Upd8+cpF93cJfh6ghZKbVA
+  Xkaj0fH74+L5a+8cn9jY27G5PWcq/3+hJ4/k1ifOn2c5xdLoUNCNqv/3VszmO89bcXdCQJLgr
+  rOesSUOFRNPZ2KTlSqZtG3IOLbB/EtsscE02gH1O+oWJ64sV68v/ZelzaKX/MJv2cG5WmxJLc
+  UaioRZzUXEiAPCOJaKAAwAA
+X-Env-Sender: ruansy.fnst@fujitsu.com
+X-Msg-Ref: server-16.tower-565.messagelabs.com!1669301710!39516!1
+X-Originating-IP: [62.60.8.98]
+X-SYMC-ESS-Client-Auth: outbound-route-from=pass
+X-StarScan-Received:
+X-StarScan-Version: 9.101.1; banners=-,-,-
+X-VirusChecked: Checked
+Received: (qmail 16235 invoked from network); 24 Nov 2022 14:55:11 -0000
+Received: from unknown (HELO n03ukasimr03.n03.fujitsu.local) (62.60.8.98)
+  by server-16.tower-565.messagelabs.com with ECDHE-RSA-AES256-GCM-SHA384 encrypted SMTP; 24 Nov 2022 14:55:11 -0000
+Received: from n03ukasimr03.n03.fujitsu.local (localhost [127.0.0.1])
+	by n03ukasimr03.n03.fujitsu.local (Postfix) with ESMTP id C9C411AE;
+	Thu, 24 Nov 2022 14:55:10 +0000 (GMT)
+Received: from R01UKEXCASM126.r01.fujitsu.local (R01UKEXCASM126 [10.183.43.178])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by n03ukasimr03.n03.fujitsu.local (Postfix) with ESMTPS id BE7F41AD;
+	Thu, 24 Nov 2022 14:55:10 +0000 (GMT)
+Received: from localhost.localdomain (10.167.225.141) by
+ R01UKEXCASM126.r01.fujitsu.local (10.183.43.178) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.32; Thu, 24 Nov 2022 14:55:07 +0000
+From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+To: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
+	<nvdimm@lists.linux.dev>, <linux-fsdevel@vger.kernel.org>
+CC: <djwong@kernel.org>, <david@fromorbit.com>, <dan.j.williams@intel.com>
+Subject: [PATCH 0/2] fsdax,xfs: fix warning messages
+Date: Thu, 24 Nov 2022 14:54:52 +0000
+Message-ID: <1669301694-16-1-git-send-email-ruansy.fnst@fujitsu.com>
+X-Mailer: git-send-email 1.8.3.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: text/plain
+X-Originating-IP: [10.167.225.141]
+X-ClientProxiedBy: G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.80) To
+ R01UKEXCASM126.r01.fujitsu.local (10.183.43.178)
+X-Virus-Scanned: ClamAV using ClamSMTP
 
-Hello Dan Williams,
+Many testcases failed in dax+reflink mode with warning message in dmesg.
+This also effects dax+noreflink mode if we run the test after a
+dax+reflink test.  So, the most urgent thing is solving the warning
+messages.
 
-The patch 868f036fee4b: "libnvdimm: fix mishandled
-nvdimm_clear_poison() return value" from Dec 16, 2016, leads to the
-following Smatch static checker warnings:
+Patch 1 fixes some mistakes and adds handling of CoW cases not
+previously considered (srcmap is HOLE or UNWRITTEN).
+Patch 2 adds the implementation of unshare for fsdax.
 
-    drivers/nvdimm/claim.c:287 nsio_rw_bytes() warn:
-    replace divide condition 'cleared / 512' with 'cleared >= 512'
+With these fixes, most warning messages in dax_associate_entry() are
+gone.  But honestly, generic/388 will randomly failed with the warning.
+The case shutdown the xfs when fsstress is running, and do it for many
+times.  I think the reason is that dax pages in use are not able to be
+invalidated in time when fs is shutdown.  The next time dax page to be
+associated, it still remains the mapping value set last time.  I'll keep
+on solving it.
 
-    drivers/nvdimm/bus.c:210 nvdimm_account_cleared_poison() warn:
-    replace divide condition 'cleared / 512' with 'cleared >= 512'
+The warning message in dax_writeback_one() can also be fixed because of
+the dax unshare.
 
-drivers/nvdimm/claim.c
-    252 static int nsio_rw_bytes(struct nd_namespace_common *ndns,
-    253                 resource_size_t offset, void *buf, size_t size, int rw,
-    254                 unsigned long flags)
-    255 {
-    256         struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
-    257         unsigned int sz_align = ALIGN(size + (offset & (512 - 1)), 512);
-    258         sector_t sector = offset >> 9;
-    259         int rc = 0, ret = 0;
-    260 
-    261         if (unlikely(!size))
-    262                 return 0;
-    263 
-    264         if (unlikely(offset + size > nsio->size)) {
-    265                 dev_WARN_ONCE(&ndns->dev, 1, "request out of range\n");
-    266                 return -EFAULT;
-    267         }
-    268 
-    269         if (rw == READ) {
-    270                 if (unlikely(is_bad_pmem(&nsio->bb, sector, sz_align)))
-    271                         return -EIO;
-    272                 if (copy_mc_to_kernel(buf, nsio->addr + offset, size) != 0)
-    273                         return -EIO;
-    274                 return 0;
-    275         }
-    276 
-    277         if (unlikely(is_bad_pmem(&nsio->bb, sector, sz_align))) {
-    278                 if (IS_ALIGNED(offset, 512) && IS_ALIGNED(size, 512)
-    279                                 && !(flags & NVDIMM_IO_ATOMIC)) {
-    280                         long cleared;
-    281 
-    282                         might_sleep();
-    283                         cleared = nvdimm_clear_poison(&ndns->dev,
-    284                                         nsio->res.start + offset, size);
-    285                         if (cleared < size)
-    286                                 rc = -EIO;
---> 287                         if (cleared > 0 && cleared / 512) {
-                                                   ^^^^^^^^^^^^^
-Smatch suggests changing this to "&& cleared >= 512" but it doesn't make
-sense to say if (cleared > 0 && cleared >= 512) {.  Probably what was
-instead intended was "if (cleared > 0 && (cleared % 512) == 0) {"?
 
-    288                                 cleared /= 512;
-    289                                 badblocks_clear(&nsio->bb, sector, cleared);
-    290                         }
-    291                         arch_invalidate_pmem(nsio->addr + offset, size);
-    292                 } else
-    293                         rc = -EIO;
-    294         }
-    295 
-    296         memcpy_flushcache(nsio->addr + offset, buf, size);
-    297         ret = nvdimm_flush(to_nd_region(ndns->dev.parent), NULL);
-    298         if (ret)
-    299                 rc = ret;
-    300 
-    301         return rc;
-    302 }
+Shiyang Ruan (2):
+  fsdax,xfs: fix warning messages at dax_[dis]associate_entry()
+  fsdax,xfs: port unshare to fsdax
 
-regards,
-dan carpenter
+ fs/dax.c             | 166 ++++++++++++++++++++++++++++++-------------
+ fs/xfs/xfs_iomap.c   |   6 +-
+ fs/xfs/xfs_reflink.c |   8 ++-
+ include/linux/dax.h  |   2 +
+ 4 files changed, 129 insertions(+), 53 deletions(-)
+
+-- 
+2.38.1
+
