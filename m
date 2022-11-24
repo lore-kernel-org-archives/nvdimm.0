@@ -1,182 +1,162 @@
-Received: from mail1.bemta37.messagelabs.com (mail1.bemta37.messagelabs.com [85.158.142.2])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47D682F28
-	for <nvdimm@lists.linux.dev>; Thu, 24 Nov 2022 14:55:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fujitsu.com;
-	s=170520fj; t=1669301718; i=@fujitsu.com;
-	bh=ol5k0lY8l/ReA1M7nu2Fvofzj3cLcmX+yKyrNJUp2tQ=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type;
-	b=oeyNqrLfBTMCBURHgjslINWpkYSts+y7zERiXyK2KzRxvPpZbsFld52wA8Hb4i1Jg
-	 lDPNAt+UT3w1M5Q0PypXv2andWmp0H4lf70GY7cs1Fps6L+FiS9M4wg3HI96vu1qDW
-	 DbZqWrP3ILg01HkhWTnlNZ0YSwTV1XSt0PoSKHS1CKFSNHCf7R2fDfGbEaYXAdKYKZ
-	 71Yf3Ap5B4SZu1/k51qa632UTnqJKnmIsp5MiRmUIhf151qBL0iCQRSGgEE1+uXk2y
-	 Gn2n6AM+gNUAzJcd0Wqt3QGu/FbGQTOs8T1P0keYChi5SyD/Z/IxCSR3h3agfbQii4
-	 2vFauNiAgHxTQ==
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFmpmleJIrShJLcpLzFFi42Kxs+HYrHu1tT7
-  Z4NIEHYvpUy8wWmw5do/R4vITPos9e0+yWFzeNYfNYtefHewWK3/8YXVg9zi1SMJj8Z6XTB6b
-  VnWyebzYPJPR4/MmuQDWKNbMvKT8igTWjNvn7QraJSruzJjF2sC4SKSLkZNDSGAjo8SFtepdj
-  FxA9hImiU2vj7JDOHsZJQ4vXMwIUsUmoCNxYcFf1i5GDg4RgWqJW0vZQMLMAl4Sa19vYAYJCw
-  uYSmzYqQISZhFQlWie9YsdxOYVcJGYNP8ImC0hoCAx5eF7ZhCbU8BVYnfTc7BWIaCavl+2EOW
-  CEidnPmGBmC4hcfDFC7ASCQEliZnd8RBTKiRmzWpjgrDVJK6e28Q8gVFwFpLuWUi6FzAyrWI0
-  L04tKkst0jUy0EsqykzPKMlNzMzRS6zSTdRLLdXNyy8qydA11EssL9ZLLS7WK67MTc5J0ctLL
-  dnECIyJlOKkxB2Mfcv+6B1ilORgUhLlvZVTnyzEl5SfUpmRWJwRX1Sak1p8iFGGg0NJgtejHi
-  gnWJSanlqRlpkDjE+YtAQHj5IIr3s5UJq3uCAxtzgzHSJ1itGYY23Dgb3MHFNn/9vPLMSSl5+
-  XKiXOG9QCVCoAUppRmgc3CJY2LjHKSgnzMjIwMAjxFKQW5WaWoMq/YhTnYFQS5pUAJiEhnsy8
-  Erh9r4BOYQI65alOHcgpJYkIKakGJrmUtxMYqyVf59tf++StKmbEmBNV5fti/88Du6v6+VNmz
-  mHeo+/WV8l/eVWEaLFB6PpEZ/7XX5burBSIVPlakWBw5KXNzzOWhywDlkRF59zRlX57ZJHRQu
-  trR/xK0p9f73d4cvD2vQNhN93MH9y5dXRWGdM3yYZvjJM//Y4/cMKdM3RK7j2FD+39y4rOvui
-  0lD02aYOiowqzfHButohW7LLd3vY3JrELxvppWH6bconzSlpVU+KTdTH8i3unTnjE/iGweGn8
-  8vs3tu3s3s9t92iB05dgflNnVY/MuZIzOLUl/Taf7K98ePrICb5ny+SbOhRnxMwraeUW/5iVn
-  JB8u3VZ05v68z9rNSdrB9VdUGIpzkg01GIuKk4EAErFLrCWAwAA
-X-Env-Sender: ruansy.fnst@fujitsu.com
-X-Msg-Ref: server-4.tower-728.messagelabs.com!1669301717!42856!1
-X-Originating-IP: [62.60.8.179]
-X-SYMC-ESS-Client-Auth: outbound-route-from=pass
-X-StarScan-Received:
-X-StarScan-Version: 9.101.1; banners=-,-,-
-X-VirusChecked: Checked
-Received: (qmail 32153 invoked from network); 24 Nov 2022 14:55:17 -0000
-Received: from unknown (HELO n03ukasimr04.n03.fujitsu.local) (62.60.8.179)
-  by server-4.tower-728.messagelabs.com with ECDHE-RSA-AES256-GCM-SHA384 encrypted SMTP; 24 Nov 2022 14:55:17 -0000
-Received: from n03ukasimr04.n03.fujitsu.local (localhost [127.0.0.1])
-	by n03ukasimr04.n03.fujitsu.local (Postfix) with ESMTP id 1D6E0151;
-	Thu, 24 Nov 2022 14:55:17 +0000 (GMT)
-Received: from R01UKEXCASM126.r01.fujitsu.local (R01UKEXCASM126 [10.183.43.178])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by n03ukasimr04.n03.fujitsu.local (Postfix) with ESMTPS id 10E79150;
-	Thu, 24 Nov 2022 14:55:17 +0000 (GMT)
-Received: from localhost.localdomain (10.167.225.141) by
- R01UKEXCASM126.r01.fujitsu.local (10.183.43.178) with Microsoft SMTP Server
- (TLS) id 15.0.1497.32; Thu, 24 Nov 2022 14:55:14 +0000
-From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-To: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
-	<nvdimm@lists.linux.dev>, <linux-fsdevel@vger.kernel.org>
-CC: <djwong@kernel.org>, <david@fromorbit.com>, <dan.j.williams@intel.com>
-Subject: [PATCH 2/2] fsdax,xfs: port unshare to fsdax
-Date: Thu, 24 Nov 2022 14:54:54 +0000
-Message-ID: <1669301694-16-3-git-send-email-ruansy.fnst@fujitsu.com>
-X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1669301694-16-1-git-send-email-ruansy.fnst@fujitsu.com>
-References: <1669301694-16-1-git-send-email-ruansy.fnst@fujitsu.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C993C1C05
+	for <nvdimm@lists.linux.dev>; Thu, 24 Nov 2022 18:34:36 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1669314876; x=1700850876;
+  h=subject:from:to:cc:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=uovkNp7KYAXOFKZpoVE/uu1pW0qGLiaOQNj5Lx1hcZw=;
+  b=lHtVPZWdTehoRVY1tNg/GSLLXQb5IjA2jUzlin9fReO50o49ZF0XSc74
+   oAEwywBLSNdlkGxqkMC95iL++FoysgYQSPleO5slySZ6f3oqyEutS5btz
+   fTDDdyicF52S7npyV0gTwov7RJyAPoWHIb8wqSVV4KwFHBCJ8AaLwqX0G
+   rPOKG8nYCM/QAXUFbNXSU6yHrR+JDTuVF98BIHhzZ239PYxmz1Dqbf0va
+   mJj5+bvp5Tjuho/MsBhBoInN4xQ0NFVr0v88Z8/fWdRaKD59aftugVPeu
+   VdX+5MdcNS2FbdtmclJEVQX4nvbZHhoBU+D7ESo2ntXqNIt1+sd+2eNF5
+   Q==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10541"; a="400642017"
+X-IronPort-AV: E=Sophos;i="5.96,190,1665471600"; 
+   d="scan'208";a="400642017"
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Nov 2022 10:34:36 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10541"; a="705839121"
+X-IronPort-AV: E=Sophos;i="5.96,190,1665471600"; 
+   d="scan'208";a="705839121"
+Received: from aglevin-mobl3.amr.corp.intel.com (HELO dwillia2-xfh.jf.intel.com) ([10.209.65.252])
+  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Nov 2022 10:34:35 -0800
+Subject: [PATCH v4 00/12] cxl: Add support for Restricted CXL hosts (RCD
+ mode)
+From: Dan Williams <dan.j.williams@intel.com>
+To: linux-cxl@vger.kernel.org
+Cc: Terry Bowman <terry.bowman@amd.com>,
+ "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+ Robert Richter <rrichter@amd.com>, rrichter@amd.com, terry.bowman@amd.com,
+ bhelgaas@google.com, dave.jiang@intel.com, nvdimm@lists.linux.dev
+Date: Thu, 24 Nov 2022 10:34:35 -0800
+Message-ID: <166931487492.2104015.15204324083515120776.stgit@dwillia2-xfh.jf.intel.com>
+User-Agent: StGit/0.18-3-g996c
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.167.225.141]
-X-ClientProxiedBy: G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.80) To
- R01UKEXCASM126.r01.fujitsu.local (10.183.43.178)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 
-Implement unshare in fsdax mode: copy data from srcmap to iomap.
+Changes since v3 [1]:
+- Rework / simplify CXL to LIBNVDIMM coordination to remove a
+  flush_work() locking dependency from underneath the root device lock.
+- Move the root device rescan to a workqueue
+- Connect RCDs directly as endpoints reachable through a CXL host bridge
+  as a dport, i.e. drop the extra dport indirection from v3
+- Add unit test infrastructure for an RCD configuration
 
-Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+[1]: http://lore.kernel.org/r/20221109104059.766720-1-rrichter@amd.com/
+
 ---
- fs/dax.c             | 52 ++++++++++++++++++++++++++++++++++++++++++++
- fs/xfs/xfs_reflink.c |  8 +++++--
- include/linux/dax.h  |  2 ++
- 3 files changed, 60 insertions(+), 2 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 5ea7c0926b7f..3d0bf68ab6b0 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1235,6 +1235,58 @@ static vm_fault_t dax_pmd_load_hole(struct xa_state *xas, struct vm_fault *vmf,
- }
- #endif /* CONFIG_FS_DAX_PMD */
- 
-+static s64 dax_unshare_iter(struct iomap_iter *iter)
-+{
-+	struct iomap *iomap = &iter->iomap;
-+	const struct iomap *srcmap = iomap_iter_srcmap(iter);
-+	loff_t pos = iter->pos;
-+	loff_t length = iomap_length(iter);
-+	int id = 0;
-+	s64 ret = 0;
-+	void *daddr = NULL, *saddr = NULL;
-+
-+	/* don't bother with blocks that are not shared to start with */
-+	if (!(iomap->flags & IOMAP_F_SHARED))
-+		return length;
-+	/* don't bother with holes or unwritten extents */
-+	if (srcmap->type == IOMAP_HOLE || srcmap->type == IOMAP_UNWRITTEN)
-+		return length;
-+
-+	id = dax_read_lock();
-+	ret = dax_iomap_direct_access(iomap, pos, length, &daddr, NULL);
-+	if (ret < 0)
-+		goto out_unlock;
-+
-+	ret = dax_iomap_direct_access(srcmap, pos, length, &saddr, NULL);
-+	if (ret < 0)
-+		goto out_unlock;
-+
-+	ret = copy_mc_to_kernel(daddr, saddr, length);
-+	if (ret)
-+		ret = -EIO;
-+
-+out_unlock:
-+	dax_read_unlock(id);
-+	return ret;
-+}
-+
-+int dax_file_unshare(struct inode *inode, loff_t pos, loff_t len,
-+		const struct iomap_ops *ops)
-+{
-+	struct iomap_iter iter = {
-+		.inode		= inode,
-+		.pos		= pos,
-+		.len		= len,
-+		.flags		= IOMAP_WRITE | IOMAP_UNSHARE | IOMAP_DAX,
-+	};
-+	int ret;
-+
-+	while ((ret = iomap_iter(&iter, ops)) > 0)
-+		iter.processed = dax_unshare_iter(&iter);
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(dax_file_unshare);
-+
- static int dax_memzero(struct iomap_iter *iter, loff_t pos, size_t size)
- {
- 	const struct iomap *iomap = &iter->iomap;
-diff --git a/fs/xfs/xfs_reflink.c b/fs/xfs/xfs_reflink.c
-index 93bdd25680bc..fe46bce8cae6 100644
---- a/fs/xfs/xfs_reflink.c
-+++ b/fs/xfs/xfs_reflink.c
-@@ -1693,8 +1693,12 @@ xfs_reflink_unshare(
- 
- 	inode_dio_wait(inode);
- 
--	error = iomap_file_unshare(inode, offset, len,
--			&xfs_buffered_write_iomap_ops);
-+	if (IS_DAX(inode))
-+		error = dax_file_unshare(inode, offset, len,
-+				&xfs_dax_write_iomap_ops);
-+	else
-+		error = iomap_file_unshare(inode, offset, len,
-+				&xfs_buffered_write_iomap_ops);
- 	if (error)
- 		goto out;
- 
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index ba985333e26b..2b5ecb591059 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -205,6 +205,8 @@ static inline void dax_unlock_mapping_entry(struct address_space *mapping,
- }
- #endif
- 
-+int dax_file_unshare(struct inode *inode, loff_t pos, loff_t len,
-+		const struct iomap_ops *ops);
- int dax_zero_range(struct inode *inode, loff_t pos, loff_t len, bool *did_zero,
- 		const struct iomap_ops *ops);
- int dax_truncate_page(struct inode *inode, loff_t pos, bool *did_zero,
--- 
-2.38.1
+>From [PATCH v4 10/12] cxl/port: Add RCD endpoint port enumeration
 
+Unlike a CXL memory expander in a VH topology that has at least one
+intervening 'struct cxl_port' instance between itself and the CXL root
+device, an RCD attaches one-level higher. For example:
+
+               VH
+          ┌──────────┐
+          │ ACPI0017 │
+          │  root0   │
+          └─────┬────┘
+                │
+          ┌─────┴────┐
+          │  dport0  │
+    ┌─────┤ ACPI0016 ├─────┐
+    │     │  port1   │     │
+    │     └────┬─────┘     │
+    │          │           │
+ ┌──┴───┐   ┌──┴───┐   ┌───┴──┐
+ │dport0│   │dport1│   │dport2│
+ │ RP0  │   │ RP1  │   │ RP2  │
+ └──────┘   └──┬───┘   └──────┘
+               │
+           ┌───┴─────┐
+           │endpoint0│
+           │  port2  │
+           └─────────┘
+
+...vs:
+
+              RCH
+          ┌──────────┐
+          │ ACPI0017 │
+          │  root0   │
+          └────┬─────┘
+               │
+           ┌───┴────┐
+           │ dport0 │
+           │ACPI0016│
+           └───┬────┘
+               │
+          ┌────┴─────┐
+          │endpoint0 │
+          │  port1   │
+          └──────────┘
+
+So arrange for endpoint port in the RCH/RCD case to appear directly
+connected to the host-bridge in its singular role as a dport. Compare
+that to the VH case where the host-bridge serves a dual role as a
+'cxl_dport' for the CXL root device *and* a 'cxl_port' upstream port for
+the Root Ports in the Root Complex that are modeled as 'cxl_dport'
+instances in the CXL topology.
+
+Another deviation from the VH case is that RCDs may need to look up
+their component registers from the Root Complex Register Block (RCRB).
+That platform firmware specified RCRB area is cached by the cxl_acpi
+driver and conveyed via the host-bridge dport to the cxl_mem driver to
+perform the cxl_rcrb_to_component() lookup for the endpoint port
+(See 9.11.8 CXL Devices Attached to an RCH for the lookup of the
+upstream port component registers).
+
+---
+
+Dan Williams (9):
+      cxl/acpi: Simplify cxl_nvdimm_bridge probing
+      cxl/region: Drop redundant pmem region release handling
+      cxl/pmem: Refactor nvdimm device registration, delete the workqueue
+      cxl/pmem: Remove the cxl_pmem_wq and related infrastructure
+      cxl/acpi: Move rescan to the workqueue
+      tools/testing/cxl: Make mock CEDT parsing more robust
+      cxl/mem: Move devm_cxl_add_endpoint() from cxl_core to cxl_mem
+      cxl/port: Add RCD endpoint port enumeration
+      tools/testing/cxl: Add an RCH topology
+
+Robert Richter (2):
+      cxl/ACPI: Register CXL host ports by bridge device
+      cxl/acpi: Extract component registers of restricted hosts from RCRB
+
+Terry Bowman (1):
+      cxl/acpi: Set ACPI's CXL _OSC to indicate CXL1.1 support
+
+
+ drivers/acpi/pci_root.c       |    1 
+ drivers/cxl/acpi.c            |  105 +++++++++---
+ drivers/cxl/core/core.h       |    8 -
+ drivers/cxl/core/pmem.c       |   94 +++++++----
+ drivers/cxl/core/port.c       |  111 +++++++------
+ drivers/cxl/core/region.c     |   54 ++++++
+ drivers/cxl/core/regs.c       |   56 +++++++
+ drivers/cxl/cxl.h             |   46 +++--
+ drivers/cxl/cxlmem.h          |   15 ++
+ drivers/cxl/mem.c             |   72 ++++++++
+ drivers/cxl/pci.c             |   13 +-
+ drivers/cxl/pmem.c            |  351 +++++------------------------------------
+ tools/testing/cxl/Kbuild      |    1 
+ tools/testing/cxl/test/cxl.c  |  241 ++++++++++++++++++++++------
+ tools/testing/cxl/test/mem.c  |   40 ++++-
+ tools/testing/cxl/test/mock.c |   19 ++
+ tools/testing/cxl/test/mock.h |    3 
+ 17 files changed, 712 insertions(+), 518 deletions(-)
+
+base-commit: 3b39fd6cf12ceda2a2582dcb9b9ee9f4d197b857
