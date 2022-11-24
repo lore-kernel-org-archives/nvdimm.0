@@ -1,41 +1,40 @@
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C993C1C05
-	for <nvdimm@lists.linux.dev>; Thu, 24 Nov 2022 18:34:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D5AB33F9
+	for <nvdimm@lists.linux.dev>; Thu, 24 Nov 2022 18:34:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1669314876; x=1700850876;
-  h=subject:from:to:cc:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=uovkNp7KYAXOFKZpoVE/uu1pW0qGLiaOQNj5Lx1hcZw=;
-  b=lHtVPZWdTehoRVY1tNg/GSLLXQb5IjA2jUzlin9fReO50o49ZF0XSc74
-   oAEwywBLSNdlkGxqkMC95iL++FoysgYQSPleO5slySZ6f3oqyEutS5btz
-   fTDDdyicF52S7npyV0gTwov7RJyAPoWHIb8wqSVV4KwFHBCJ8AaLwqX0G
-   rPOKG8nYCM/QAXUFbNXSU6yHrR+JDTuVF98BIHhzZ239PYxmz1Dqbf0va
-   mJj5+bvp5Tjuho/MsBhBoInN4xQ0NFVr0v88Z8/fWdRaKD59aftugVPeu
-   VdX+5MdcNS2FbdtmclJEVQX4nvbZHhoBU+D7ESo2ntXqNIt1+sd+2eNF5
-   Q==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10541"; a="400642017"
+  t=1669314883; x=1700850883;
+  h=subject:from:to:cc:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=OQiwZ/nryesuXAudkk9d/wumNNOOVa/gKNYS/Q4OFZA=;
+  b=elrvH4SWUh+y1Y0C6ZEWJd3VhdRIid52vSb4QQ4m/xQyH0gqBoxdtLXO
+   YqgAvFntcspVtvi00muksuOfcpjk8RBXtW7YaKQKxBs+vVdE4r+ZqaLS5
+   W5Dp1cVpYGN79yC/jRDQhfTSNR2ivE1qVjxk6lIXi7WUsrKmbHQmw5Rfv
+   v+7iZLxUz522PKvS/SICVF+kQxHE6wKrDAFmnm/iWh33TzFITVGmx/gJq
+   w2obdEAtL2Kku6Zh9UinhxZ9mExqjDCa5rDsmeXUwA2mjT8ymAvYFsxfh
+   5IxHMwo8IwnOAp76tDziyjfMXXNDT5dQnK9TwXS5iZCKNn71ixA1ipqQy
+   w==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10541"; a="376494012"
 X-IronPort-AV: E=Sophos;i="5.96,190,1665471600"; 
-   d="scan'208";a="400642017"
+   d="scan'208";a="376494012"
 Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Nov 2022 10:34:36 -0800
-X-IronPort-AV: E=McAfee;i="6500,9779,10541"; a="705839121"
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Nov 2022 10:34:42 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10541"; a="705839139"
 X-IronPort-AV: E=Sophos;i="5.96,190,1665471600"; 
-   d="scan'208";a="705839121"
+   d="scan'208";a="705839139"
 Received: from aglevin-mobl3.amr.corp.intel.com (HELO dwillia2-xfh.jf.intel.com) ([10.209.65.252])
-  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Nov 2022 10:34:35 -0800
-Subject: [PATCH v4 00/12] cxl: Add support for Restricted CXL hosts (RCD
- mode)
+  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Nov 2022 10:34:41 -0800
+Subject: [PATCH v4 01/12] cxl/acpi: Simplify cxl_nvdimm_bridge probing
 From: Dan Williams <dan.j.williams@intel.com>
 To: linux-cxl@vger.kernel.org
-Cc: Terry Bowman <terry.bowman@amd.com>,
- "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
- Robert Richter <rrichter@amd.com>, rrichter@amd.com, terry.bowman@amd.com,
- bhelgaas@google.com, dave.jiang@intel.com, nvdimm@lists.linux.dev
-Date: Thu, 24 Nov 2022 10:34:35 -0800
-Message-ID: <166931487492.2104015.15204324083515120776.stgit@dwillia2-xfh.jf.intel.com>
+Cc: rrichter@amd.com, terry.bowman@amd.com, bhelgaas@google.com,
+ dave.jiang@intel.com, nvdimm@lists.linux.dev
+Date: Thu, 24 Nov 2022 10:34:41 -0800
+Message-ID: <166931488125.2104015.15224170137566912020.stgit@dwillia2-xfh.jf.intel.com>
+In-Reply-To: <166931487492.2104015.15204324083515120776.stgit@dwillia2-xfh.jf.intel.com>
+References: <166931487492.2104015.15204324083515120776.stgit@dwillia2-xfh.jf.intel.com>
 User-Agent: StGit/0.18-3-g996c
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -44,119 +43,71 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 
-Changes since v3 [1]:
-- Rework / simplify CXL to LIBNVDIMM coordination to remove a
-  flush_work() locking dependency from underneath the root device lock.
-- Move the root device rescan to a workqueue
-- Connect RCDs directly as endpoints reachable through a CXL host bridge
-  as a dport, i.e. drop the extra dport indirection from v3
-- Add unit test infrastructure for an RCD configuration
+The 'struct cxl_nvdimm_bridge' object advertises platform CXL PMEM
+resources. It coordinates with libnvdimm to attach nvdimm devices and
+regions for each corresponding CXL object. That coordination is
+complicated, i.e. difficult to reason about, and it turns out redundant.
+It is already the case that the CXL core knows how to tear down a
+cxl_region when a cxl_memdev goes through ->remove(), so that pathway
+can be extended to directly cleanup cxl_nvdimm and cxl_pmem_region
+objects.
 
-[1]: http://lore.kernel.org/r/20221109104059.766720-1-rrichter@amd.com/
+Towards the goal of ripping out the cxl_nvdimm_bridge state machine,
+arrange for cxl_acpi to optionally pre-load the cxl_pmem driver so that
+the nvdimm bridge is active synchronously with
+devm_cxl_add_nvdimm_bridge(), and remove all the bind attributes for the
+cxl_nvdimm* objects since the cxl root device and cxl_memdev bind
+attributes are sufficient.
 
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+ drivers/cxl/acpi.c |    1 +
+ drivers/cxl/pmem.c |    9 +++++++++
+ 2 files changed, 10 insertions(+)
 
->From [PATCH v4 10/12] cxl/port: Add RCD endpoint port enumeration
+diff --git a/drivers/cxl/acpi.c b/drivers/cxl/acpi.c
+index fb9f72813067..c540da0cbf1e 100644
+--- a/drivers/cxl/acpi.c
++++ b/drivers/cxl/acpi.c
+@@ -539,3 +539,4 @@ module_platform_driver(cxl_acpi_driver);
+ MODULE_LICENSE("GPL v2");
+ MODULE_IMPORT_NS(CXL);
+ MODULE_IMPORT_NS(ACPI);
++MODULE_SOFTDEP("pre: cxl_pmem");
+diff --git a/drivers/cxl/pmem.c b/drivers/cxl/pmem.c
+index 4c627d67281a..946e171e7d4a 100644
+--- a/drivers/cxl/pmem.c
++++ b/drivers/cxl/pmem.c
+@@ -99,6 +99,9 @@ static struct cxl_driver cxl_nvdimm_driver = {
+ 	.name = "cxl_nvdimm",
+ 	.probe = cxl_nvdimm_probe,
+ 	.id = CXL_DEVICE_NVDIMM,
++	.drv = {
++		.suppress_bind_attrs = true,
++	},
+ };
+ 
+ static int cxl_pmem_get_config_size(struct cxl_dev_state *cxlds,
+@@ -360,6 +363,9 @@ static struct cxl_driver cxl_nvdimm_bridge_driver = {
+ 	.probe = cxl_nvdimm_bridge_probe,
+ 	.remove = cxl_nvdimm_bridge_remove,
+ 	.id = CXL_DEVICE_NVDIMM_BRIDGE,
++	.drv = {
++		.suppress_bind_attrs = true,
++	},
+ };
+ 
+ static int match_cxl_nvdimm(struct device *dev, void *data)
+@@ -583,6 +589,9 @@ static struct cxl_driver cxl_pmem_region_driver = {
+ 	.name = "cxl_pmem_region",
+ 	.probe = cxl_pmem_region_probe,
+ 	.id = CXL_DEVICE_PMEM_REGION,
++	.drv = {
++		.suppress_bind_attrs = true,
++	},
+ };
+ 
+ /*
 
-Unlike a CXL memory expander in a VH topology that has at least one
-intervening 'struct cxl_port' instance between itself and the CXL root
-device, an RCD attaches one-level higher. For example:
-
-               VH
-          ┌──────────┐
-          │ ACPI0017 │
-          │  root0   │
-          └─────┬────┘
-                │
-          ┌─────┴────┐
-          │  dport0  │
-    ┌─────┤ ACPI0016 ├─────┐
-    │     │  port1   │     │
-    │     └────┬─────┘     │
-    │          │           │
- ┌──┴───┐   ┌──┴───┐   ┌───┴──┐
- │dport0│   │dport1│   │dport2│
- │ RP0  │   │ RP1  │   │ RP2  │
- └──────┘   └──┬───┘   └──────┘
-               │
-           ┌───┴─────┐
-           │endpoint0│
-           │  port2  │
-           └─────────┘
-
-...vs:
-
-              RCH
-          ┌──────────┐
-          │ ACPI0017 │
-          │  root0   │
-          └────┬─────┘
-               │
-           ┌───┴────┐
-           │ dport0 │
-           │ACPI0016│
-           └───┬────┘
-               │
-          ┌────┴─────┐
-          │endpoint0 │
-          │  port1   │
-          └──────────┘
-
-So arrange for endpoint port in the RCH/RCD case to appear directly
-connected to the host-bridge in its singular role as a dport. Compare
-that to the VH case where the host-bridge serves a dual role as a
-'cxl_dport' for the CXL root device *and* a 'cxl_port' upstream port for
-the Root Ports in the Root Complex that are modeled as 'cxl_dport'
-instances in the CXL topology.
-
-Another deviation from the VH case is that RCDs may need to look up
-their component registers from the Root Complex Register Block (RCRB).
-That platform firmware specified RCRB area is cached by the cxl_acpi
-driver and conveyed via the host-bridge dport to the cxl_mem driver to
-perform the cxl_rcrb_to_component() lookup for the endpoint port
-(See 9.11.8 CXL Devices Attached to an RCH for the lookup of the
-upstream port component registers).
-
----
-
-Dan Williams (9):
-      cxl/acpi: Simplify cxl_nvdimm_bridge probing
-      cxl/region: Drop redundant pmem region release handling
-      cxl/pmem: Refactor nvdimm device registration, delete the workqueue
-      cxl/pmem: Remove the cxl_pmem_wq and related infrastructure
-      cxl/acpi: Move rescan to the workqueue
-      tools/testing/cxl: Make mock CEDT parsing more robust
-      cxl/mem: Move devm_cxl_add_endpoint() from cxl_core to cxl_mem
-      cxl/port: Add RCD endpoint port enumeration
-      tools/testing/cxl: Add an RCH topology
-
-Robert Richter (2):
-      cxl/ACPI: Register CXL host ports by bridge device
-      cxl/acpi: Extract component registers of restricted hosts from RCRB
-
-Terry Bowman (1):
-      cxl/acpi: Set ACPI's CXL _OSC to indicate CXL1.1 support
-
-
- drivers/acpi/pci_root.c       |    1 
- drivers/cxl/acpi.c            |  105 +++++++++---
- drivers/cxl/core/core.h       |    8 -
- drivers/cxl/core/pmem.c       |   94 +++++++----
- drivers/cxl/core/port.c       |  111 +++++++------
- drivers/cxl/core/region.c     |   54 ++++++
- drivers/cxl/core/regs.c       |   56 +++++++
- drivers/cxl/cxl.h             |   46 +++--
- drivers/cxl/cxlmem.h          |   15 ++
- drivers/cxl/mem.c             |   72 ++++++++
- drivers/cxl/pci.c             |   13 +-
- drivers/cxl/pmem.c            |  351 +++++------------------------------------
- tools/testing/cxl/Kbuild      |    1 
- tools/testing/cxl/test/cxl.c  |  241 ++++++++++++++++++++++------
- tools/testing/cxl/test/mem.c  |   40 ++++-
- tools/testing/cxl/test/mock.c |   19 ++
- tools/testing/cxl/test/mock.h |    3 
- 17 files changed, 712 insertions(+), 518 deletions(-)
-
-base-commit: 3b39fd6cf12ceda2a2582dcb9b9ee9f4d197b857
