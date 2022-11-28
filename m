@@ -1,135 +1,118 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1AFDE8F42
-	for <nvdimm@lists.linux.dev>; Mon, 28 Nov 2022 15:20:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1669648818;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=ZIdnnqvMc5cIRTMPhso6FvqNHNn8Nd8a+6iVlFTx5N8=;
-	b=ebFxSldJG15fIBzCDngpnlItWI9VTIbep1E9HlBP9sh5Sp+3OaVIxOQshO/zYaS61Ic8Hi
-	kafTG3bol2lrHAbhWxxyLTZlkv+11dUdUa1B3KjhpxPHovJnSqiLCWv4LCNDY9xIGktdXz
-	FXaA8bjXNDMylpLxc3ner6L2UGIvm/4=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-609-0mrKm-JVNmiGvACfrS40lQ-1; Mon, 28 Nov 2022 10:20:15 -0500
-X-MC-Unique: 0mrKm-JVNmiGvACfrS40lQ-1
-Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.rdu2.redhat.com [10.11.54.5])
-	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 36279886064;
-	Mon, 28 Nov 2022 15:20:15 +0000 (UTC)
-Received: from segfault.boston.devel.redhat.com (segfault.boston.devel.redhat.com [10.19.60.26])
-	by smtp.corp.redhat.com (Postfix) with ESMTPS id 1A0034EA52;
-	Mon, 28 Nov 2022 15:20:15 +0000 (UTC)
-From: Jeff Moyer <jmoyer@redhat.com>
-To: Dan Carpenter <error27@gmail.com>
-Cc: dan.j.williams@intel.com,  nvdimm@lists.linux.dev
-Subject: Re: [bug report] libnvdimm: fix mishandled nvdimm_clear_poison() return value
-References: <Y39FbkGEvQ8TcS1d@kili>
-X-PGP-KeyID: 1F78E1B4
-X-PGP-CertKey: F6FE 280D 8293 F72C 65FD  5A58 1FF8 A7CA 1F78 E1B4
-Date: Mon, 28 Nov 2022 10:24:07 -0500
-In-Reply-To: <Y39FbkGEvQ8TcS1d@kili> (Dan Carpenter's message of "Thu, 24 Nov
-	2022 13:20:30 +0300")
-Message-ID: <x49r0xnksq0.fsf@segfault.boston.devel.redhat.com>
-User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8540F8F51
+	for <nvdimm@lists.linux.dev>; Mon, 28 Nov 2022 15:39:04 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1669649944; x=1701185944;
+  h=message-id:date:mime-version:subject:to:references:from:
+   in-reply-to:content-transfer-encoding;
+  bh=TZk6wcwrVkPB0rocy/KRAy0ihgseKtiw6A/AVOhQYEk=;
+  b=H3E60o/EcOzuyAqwPS3yRHch1Fn9B9rBLG+hNMn0iez726u+xIAZqwXT
+   nXXiQXM+JSwhR8Ls98iFKNb0tkpWv95vRg4rtRHkoa3Ql/h2e+P9qNDze
+   gUHnGwyAxhFzXoystXvqhW1A3xJGlhcaRkHktu0DjnGl63A2QuOKFj9pu
+   Xx+Z7XLOzWi1zpZB3Br4VkNz8aS6xcvoBK9RKaKOkE0hDghCyRcpedn4x
+   23mjwrSNY42f++R6nlc7OxoIB8w4QzYzOVEdIspR/yIIGNkV3vu0lmuEh
+   lbDYRi3m12uzMNtzD1bW8UrBhBzcMFhem6cqZc5AEwvldhkbfBk1lBVII
+   w==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10545"; a="377005171"
+X-IronPort-AV: E=Sophos;i="5.96,200,1665471600"; 
+   d="scan'208";a="377005171"
+Received: from orsmga006.jf.intel.com ([10.7.209.51])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Nov 2022 07:36:24 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10545"; a="621091015"
+X-IronPort-AV: E=Sophos;i="5.96,200,1665471600"; 
+   d="scan'208";a="621091015"
+Received: from djiang5-mobl2.amr.corp.intel.com (HELO [10.209.161.118]) ([10.209.161.118])
+  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Nov 2022 07:36:24 -0800
+Message-ID: <f923dfc0-9cdd-eb61-3480-b8bd595f50ba@intel.com>
+Date: Mon, 28 Nov 2022 08:36:23 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 3.1 on 10.11.54.5
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: redhat.com
-Content-Type: text/plain
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
+ Firefox/102.0 Thunderbird/102.5.0
+Subject: Re: [ndctl patch] security.sh: ensure a user keyring is linked into
+ the session keyring
+Content-Language: en-US
+To: Jeff Moyer <jmoyer@redhat.com>, nvdimm@lists.linux.dev
+References: <x49a64iq492.fsf@segfault.boston.devel.redhat.com>
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <x49a64iq492.fsf@segfault.boston.devel.redhat.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Dan Carpenter <error27@gmail.com> writes:
 
-> Hello Dan Williams,
->
-> The patch 868f036fee4b: "libnvdimm: fix mishandled
-> nvdimm_clear_poison() return value" from Dec 16, 2016, leads to the
-> following Smatch static checker warnings:
->
->     drivers/nvdimm/claim.c:287 nsio_rw_bytes() warn:
->     replace divide condition 'cleared / 512' with 'cleared >= 512'
->
->     drivers/nvdimm/bus.c:210 nvdimm_account_cleared_poison() warn:
->     replace divide condition 'cleared / 512' with 'cleared >= 512'
->
-> drivers/nvdimm/claim.c
->     252 static int nsio_rw_bytes(struct nd_namespace_common *ndns,
->     253                 resource_size_t offset, void *buf, size_t size, int rw,
->     254                 unsigned long flags)
->     255 {
->     256         struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
->     257         unsigned int sz_align = ALIGN(size + (offset & (512 - 1)), 512);
->     258         sector_t sector = offset >> 9;
->     259         int rc = 0, ret = 0;
->     260 
->     261         if (unlikely(!size))
->     262                 return 0;
->     263 
->     264         if (unlikely(offset + size > nsio->size)) {
->     265                 dev_WARN_ONCE(&ndns->dev, 1, "request out of range\n");
->     266                 return -EFAULT;
->     267         }
->     268 
->     269         if (rw == READ) {
->     270                 if (unlikely(is_bad_pmem(&nsio->bb, sector, sz_align)))
->     271                         return -EIO;
->     272                 if (copy_mc_to_kernel(buf, nsio->addr + offset, size) != 0)
->     273                         return -EIO;
->     274                 return 0;
->     275         }
->     276 
->     277         if (unlikely(is_bad_pmem(&nsio->bb, sector, sz_align))) {
->     278                 if (IS_ALIGNED(offset, 512) && IS_ALIGNED(size, 512)
->     279                                 && !(flags & NVDIMM_IO_ATOMIC)) {
->     280                         long cleared;
->     281 
->     282                         might_sleep();
->     283                         cleared = nvdimm_clear_poison(&ndns->dev,
->     284                                         nsio->res.start + offset, size);
->     285                         if (cleared < size)
->     286                                 rc = -EIO;
-> --> 287                         if (cleared > 0 && cleared / 512) {
->                                                    ^^^^^^^^^^^^^
-> Smatch suggests changing this to "&& cleared >= 512" but it doesn't make
-> sense to say if (cleared > 0 && cleared >= 512) {.  Probably what was
-> instead intended was "if (cleared > 0 && (cleared % 512) == 0) {"?
 
-No, it is correct as written.  cleared is the number of bytes cleared.
-The badblocks_clear interface takes 512 byte sectors as an input.  We
-only want to call badblocks_clear if we cleared /at least/ one sector.
+On 11/22/2022 10:38 AM, Jeff Moyer wrote:
+> The restraint test harness is started via a systemd unit file.  In this
+> environment, there is no user keyring linked into the session keyring:
+> 
+> # keyctl show
+> Session Keyring
+>   406647380 --alswrv      0     0  keyring: _ses
+>   148623625 ----s-rv      0     0   \_ user: invocation_id
+> 
+> As a result, the security.sh test fails.  The logs show:
+> 
+> ++ keyctl show
+> ++ grep -Eo '_uid.[0-9]+'
+> ++ head -1
+> ++ cut -d. -f2-
+> + uid=
+> + '[' '' -ne 0 ']'
+> /root/rpmbuild/BUILD/ndctl-71.1/test/security.sh: line 245: [: : integer expression expected
+> 
+> and:
+> 
+> + keyctl search @u encrypted nvdimm:cdab-0a-07e0-feffffff
+> keyctl_search: Required key not available
+> + keyctl search @u user nvdimm-master
+> keyctl_search: Required key not available
+> ++ hostname
+> + '[' -f /etc/ndctl/keys/nvdimm_cdab-0a-07e0-feffffff_storageqe-40.sqe.lab.eng.bos.redhat.com.blob ']'
+> + setup_keys
+> + '[' '!' -d /etc/ndctl/keys ']'
+> + '[' -f /etc/ndctl/keys/nvdimm-master.blob ']'
+> + '[' -f /etc/ndctl/keys/tpm.handle ']'
+> + dd if=/dev/urandom bs=1 count=32
+> + keyctl padd user nvdimm-master @u
+> ++ keyctl search @u user nvdimm-master
+> + keyctl pipe 416513477
+> keyctl_read_alloc: Permission denied
+> ++ err 47
+> +++ basename /root/rpmbuild/BUILD/ndctl-71.1/test/security.sh
+> ++ echo test/security.sh: failed at line 47
+> ++ '[' -n '' ']'
+> ++ exit 1
+> 
+> To fix this, create a new session keyring and link in the user keyring
+> from within the script.
+> 
+> Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
 
-It could probably use a comment, though.  :)
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
 
-Cheers,
-Jeff
+Thanks Jeff!
 
->
->     288                                 cleared /= 512;
->     289                                 badblocks_clear(&nsio->bb, sector, cleared);
->     290                         }
->     291                         arch_invalidate_pmem(nsio->addr + offset, size);
->     292                 } else
->     293                         rc = -EIO;
->     294         }
->     295 
->     296         memcpy_flushcache(nsio->addr + offset, buf, size);
->     297         ret = nvdimm_flush(to_nd_region(ndns->dev.parent), NULL);
->     298         if (ret)
->     299                 rc = ret;
->     300 
->     301         return rc;
->     302 }
->
-> regards,
-> dan carpenter
-
+> 
+> diff --git a/test/security.sh b/test/security.sh
+> index 34c4977..1aa8488 100755
+> --- a/test/security.sh
+> +++ b/test/security.sh
+> @@ -43,6 +43,9 @@ setup_keys()
+>   		backup_handle=1
+>   	fi
+>   
+> +	# Make sure there is a session and a user keyring linked into it
+> +	keyctl new_session
+> +	keyctl link @u @s
+>   	dd if=/dev/urandom bs=1 count=32 2>/dev/null | keyctl padd user "$masterkey" @u
+>   	keyctl pipe "$(keyctl search @u user $masterkey)" > "$masterpath"
+>   }
+> 
+> 
