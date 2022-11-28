@@ -1,85 +1,81 @@
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D84DAD25
-	for <nvdimm@lists.linux.dev>; Mon, 28 Nov 2022 22:28:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 414C3AD27
+	for <nvdimm@lists.linux.dev>; Mon, 28 Nov 2022 22:42:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1669674521; x=1701210521;
+  t=1669675333; x=1701211333;
   h=date:from:to:cc:subject:message-id:references:
    in-reply-to:mime-version;
-  bh=Tu8S979iM/QiMOj0YhcZl2NAHDPFcvdoNF1eam6uWmo=;
-  b=CXktgj6AOAMt8YWMUWikz9lfHBxWC7h4UaZAwkxAcX2/EMWnNGBdlusq
-   7RoZ9FM90m4iJT04axL3SnEvHqwG6SlXTTHQ/+5HBLgocabx3eCIHzqqv
-   +QjM6H6pmjNF7t7Rcrxy3f31D5sySojMH6Z9sX9aT6dXjMNMd8ntY3+bb
-   MP/lY1nMHaMmI4zIXscnf+A2nR3VcxuyXzF+5ZnJ94QOjM43FrlwvW4sW
-   kDAfuIdKUW/xqF8L1tjbjqQRh2EwJzyMNEzATpQGmMji3kgRghWQy7nlW
-   drjrYFA38EgK3U0idz3ZOIw3d82UQ7L9zSWokQDucQa1jHeAoVRanIcT5
-   Q==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10545"; a="298312608"
+  bh=yVClKg6pIeYJNmx7Q3Xqv5gMfGGrAa/fAsa3EFCFB8k=;
+  b=LRn0HnYN+v2WckmzW6AWk/f949VnUlWF8Oj+7mMNUTIwnkfesjYXsPey
+   Vi7tAX+1RfeTRACIQb4ORZYyypxJIicOU6Ui/gUOr5Soz78Ky7CyGombH
+   MgKal5NSOqiyrraFSuBfKriARimbIGyJjongDYATJlekEORDTWdvKr4k6
+   /NmNnHBnlLsPAXUPkrmHfuFD4Yhszv9cT0tqo5E2J/3BFyt49sJ5OEwos
+   nmSU7Gn+9wKRbcvEXFBg3B9NTPcR1kFEGJ2i4antqW13XOBm38voN04Uh
+   uXVbI2Z1+mBFx6iVipvj7m06xzhT2d3z5BvhJJsszSQtelQXGx7E+BPvC
+   w==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10545"; a="302548870"
 X-IronPort-AV: E=Sophos;i="5.96,201,1665471600"; 
-   d="scan'208";a="298312608"
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Nov 2022 14:28:40 -0800
+   d="scan'208";a="302548870"
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Nov 2022 14:41:56 -0800
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6500,9779,10545"; a="785807003"
+X-IronPort-AV: E=McAfee;i="6500,9779,10545"; a="972444080"
 X-IronPort-AV: E=Sophos;i="5.96,201,1665471600"; 
-   d="scan'208";a="785807003"
-Received: from fmsmsx601.amr.corp.intel.com ([10.18.126.81])
-  by fmsmga001.fm.intel.com with ESMTP; 28 Nov 2022 14:28:29 -0800
-Received: from fmsmsx612.amr.corp.intel.com (10.18.126.92) by
- fmsmsx601.amr.corp.intel.com (10.18.126.81) with Microsoft SMTP Server
+   d="scan'208";a="972444080"
+Received: from orsmsx603.amr.corp.intel.com ([10.22.229.16])
+  by fmsmga005.fm.intel.com with ESMTP; 28 Nov 2022 14:41:54 -0800
+Received: from orsmsx610.amr.corp.intel.com (10.22.229.23) by
+ ORSMSX603.amr.corp.intel.com (10.22.229.16) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.16; Mon, 28 Nov 2022 14:28:27 -0800
-Received: from fmsmsx603.amr.corp.intel.com (10.18.126.83) by
- fmsmsx612.amr.corp.intel.com (10.18.126.92) with Microsoft SMTP Server
+ 15.1.2507.16; Mon, 28 Nov 2022 14:41:53 -0800
+Received: from orsedg603.ED.cps.intel.com (10.7.248.4) by
+ orsmsx610.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.16; Mon, 28 Nov 2022 14:28:27 -0800
-Received: from fmsedg601.ED.cps.intel.com (10.1.192.135) by
- fmsmsx603.amr.corp.intel.com (10.18.126.83) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.16 via Frontend Transport; Mon, 28 Nov 2022 14:28:27 -0800
-Received: from NAM10-DM6-obe.outbound.protection.outlook.com (104.47.58.103)
- by edgegateway.intel.com (192.55.55.70) with Microsoft SMTP Server
+ 15.1.2507.16 via Frontend Transport; Mon, 28 Nov 2022 14:41:53 -0800
+Received: from NAM02-DM3-obe.outbound.protection.outlook.com (104.47.56.46) by
+ edgegateway.intel.com (134.134.137.100) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.16; Mon, 28 Nov 2022 14:28:26 -0800
+ 15.1.2507.16; Mon, 28 Nov 2022 14:41:53 -0800
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=XazwUqOhPToRZ+X+7wGj+4aXVSS63tUCeIciAqw4yCxpRMJvF/6bmqBKn5a18gqv/R9Mo8BDKP8BKKXcLueQREWMfdJgW6r5QKFB1amhLAbjtlyBpimEGcOBC6TV7Qf0/JS5dkCGiqJsE9B+qNrxHyi1vPjAu3qDTPZqCv268rOOTje1P4uyIsgwc8id397Py8sxRYC6ZL0X3Av9zErFE19Oc5NTCX4vTPhw/NDTuOHZuwi1N6mrzrjEumrCLgGRJd2nyzufgEWj2y4zV9zV/yrv8JSRcaRBXKKUnVlHRqLM9QvCCeWGbzUAVRQNicXxpW8lwHkWsU0G5xkSiHNo5g==
+ b=jEa3A5VnLU0RHIXsozeynAhd3upNnRV5TCC+SSy7TNPEKiGfVbTHirJ25KIgqufurBFeCJLjwA+YT/gIvjOWV7ZU1yg8hxsqMH7pQBqUNzwF5l0GnI2YNG3DMMvvID9Wj2XJDL+egYfkRKZBSq6licLgSovVajVVSAGI1EONYoBPYAORE7ahGfD92bgB/MzTnGQpzhcjaS7YsfzVFxJh71bf5wbaxf3lm1RBhSaEA06C1NjIEDvNH6M+0ZZfj3cpnjCC0gEhmuVRMwbgHqvfLIal2UcXSQ2mmG6g4xlvEnAdIZMzYhEYeLzzp/SUUhaoMEQjOvM8AgHC1JhWq3rMbQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=qAcS7bAo6FohKLHqxVKNYqlv6YL9gdIrZc9wp/0B3yw=;
- b=Eqk5EyQYDsSWc8ZoExWyFSckAkmK6D7+g58wdO6+1dawHDO/IE8ed7plA2rIf87yb20UjeTW5I6U1MKCXeXDjefA8HAgOPSi5V5crEMCLqFVhMBbYZ6OsJmcUv+f95uwqfVrEgvKmZW4kZhbH5eqM5zKLpkSoRF7ZbGRG+43fMvIHbGE11Q7wcUpSsZnElesr5Q2/fDxziMdC7T7L+gQR4BwwostIsdifwuwWVoKu2WMgAcCqgBqvHfReWHN2OyhlQHL33GWTGXOaCbVICF5QQIby2ZF2lzirNbZ7EBOeoW6YOK6qjam3dfCBoTMqb5syvqcV6Az6Er6WYvpyBZkMQ==
+ bh=SSU/yvkYlsU/63QoP1P+R4MPeDfwxGtgl/51VI/d4rM=;
+ b=IS2CTZ5T2NyvasSdCqKQ21U0L5IqUTi+MGY4Cq8tclzNz7nhslsZKbeS44HntLhyOzbgMG0CZnfetr/xwA1H7eOpMCB/EqLD5nkqFdML5tHQSnN/0QQi59+hAJnlz0sSYn/kXbwCK+p6i0bUiv6gd9g1nk3hnLWht7YR04L0N1A4wrzsQQBv7hBJZRee1OSDAp9iPdpUG0qS8yBKqos08Xn+/mDg0u6pqiJMpevtXNzgHied/sc11TzDoywN3D8y6KziUGp7HhdovXpTKFPmvvMaWT+Y9bLuQ/M4IBFNLw6a7KrtTj6xmUddDPVoSuwLxsoMuVJXFnf+ZW52WU9p/g==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
  dkim=pass header.d=intel.com; arc=none
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=intel.com;
 Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
- (2603:10b6:301:50::20) by SJ0PR11MB4847.namprd11.prod.outlook.com
- (2603:10b6:a03:2d9::8) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5857.23; Mon, 28 Nov
- 2022 22:28:19 +0000
+ (2603:10b6:301:50::20) by CY5PR11MB6461.namprd11.prod.outlook.com
+ (2603:10b6:930:33::17) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5857.20; Mon, 28 Nov
+ 2022 22:41:51 +0000
 Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
  ([fe80::340d:cb77:604d:b0b]) by MWHPR1101MB2126.namprd11.prod.outlook.com
  ([fe80::340d:cb77:604d:b0b%9]) with mapi id 15.20.5857.023; Mon, 28 Nov 2022
- 22:28:19 +0000
-Date: Mon, 28 Nov 2022 14:28:17 -0800
+ 22:41:51 +0000
+Date: Mon, 28 Nov 2022 14:41:49 -0800
 From: Dan Williams <dan.j.williams@intel.com>
 To: Alison Schofield <alison.schofield@intel.com>, Dan Williams
 	<dan.j.williams@intel.com>
 CC: <linux-cxl@vger.kernel.org>, <rrichter@amd.com>, <terry.bowman@amd.com>,
 	<bhelgaas@google.com>, <dave.jiang@intel.com>, <nvdimm@lists.linux.dev>
 Subject: Re: [PATCH v4 11/12] tools/testing/cxl: Add an RCH topology
-Message-ID: <6385360147c09_3cbe029425@dwillia2-xfh.jf.intel.com.notmuch>
+Message-ID: <6385392d6bd_3cbe02945b@dwillia2-xfh.jf.intel.com.notmuch>
 References: <166931487492.2104015.15204324083515120776.stgit@dwillia2-xfh.jf.intel.com>
  <166931493816.2104015.8749844490243672146.stgit@dwillia2-xfh.jf.intel.com>
  <Y4ULS+UsNiEeD97l@aschofie-mobl2>
 Content-Type: text/plain; charset="us-ascii"
 Content-Disposition: inline
 In-Reply-To: <Y4ULS+UsNiEeD97l@aschofie-mobl2>
-X-ClientProxiedBy: BYAPR03CA0022.namprd03.prod.outlook.com
- (2603:10b6:a02:a8::35) To MWHPR1101MB2126.namprd11.prod.outlook.com
+X-ClientProxiedBy: BY3PR04CA0011.namprd04.prod.outlook.com
+ (2603:10b6:a03:217::16) To MWHPR1101MB2126.namprd11.prod.outlook.com
  (2603:10b6:301:50::20)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -88,53 +84,53 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MWHPR1101MB2126:EE_|SJ0PR11MB4847:EE_
-X-MS-Office365-Filtering-Correlation-Id: 86db5b03-ec48-4626-6747-08dad18fd9d6
+X-MS-TrafficTypeDiagnostic: MWHPR1101MB2126:EE_|CY5PR11MB6461:EE_
+X-MS-Office365-Filtering-Correlation-Id: 3f4a64c0-6413-4d40-d888-08dad191bdda
 X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: YdtdC4m2wYLIbxFLR+Beae429ZPVV8+0u45ZM4DFUoj6v6bYzuUJIhRFVfUeBTIUrRRlcprDOFoGXbcG7V8l0itNN1aX2CaBP3JLm1A1E9pdjTfKsyUBCM1RjMTK4DIzv1Ex+vtb0Wo6fnKc61s29DgJ473lPio6iwi4pVORgbdkX6hHCTzQRvNFG4m8UvrDu6Q+rqJIsGRqT8nlgVINfolkoGW6eFOFTWH3iR660UembEeHrvJxOjgxxe0geU+qsCJjcwmcyB2fhoFn3omvTuDNjcaUo1/S4ntE0uLpn7+Kp//+xgeEjPaK7V9vXphgpbnOrRUi4tQw2tQL1Kqf5HEfTM1L9jT58Ii4dKgMceT8aDJhlxmqhYqLMAaDwm4dahpKJkDE0ZLMNLPVEnmA46+qzoUCtPjHoAVEAsqGUoDUxObLXzIJJWxALp3lBGkNsRWmgY5KwC/25oKSMZWtEKxGFe4B27iZ7HLXTwVFjanJzDsNEcio9SHv6JDlVzbTtg4EiNU0WAkDziNolRqEEwNvlFvpxTiXGY3U1ptA9/FwcA5tbY0DYrTRWM6iXyeaXGP4scKwsEEGtiOQU2s5xY1PYC5/vxvExKe6HdwO4/dKJIho4bfbMnHh2j2XPNj4GJXUacKfo3kCd41jmeKMfQ==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1101MB2126.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230022)(136003)(346002)(366004)(376002)(39860400002)(396003)(451199015)(5660300002)(66556008)(66476007)(4326008)(8676002)(8936002)(41300700001)(110136005)(66946007)(6486002)(2906002)(316002)(478600001)(86362001)(9686003)(6512007)(26005)(6506007)(186003)(83380400001)(38100700002)(82960400001);DIR:OUT;SFP:1102;
+X-Microsoft-Antispam-Message-Info: 2mHUG4UsWg4DhEaid7V4GVSNr4DH8ap2cTiOAWHb9vHtdRXNQQMKeOThtrd5+0WGnO5f7w7YP087huGwkKmB46j2kaiSDHau8wXUoWQytnoA7CN1rhBe7jSf3ThJB9+VX7316hK498p/5+u/wirFKyun2BuvpPamkEW+CfnRieCGZMMfOg3OdmhkcdoVBGaVaszBEXBXQhp5LjWT9eZJdYnWDBhhYSowbY561C7eqGXmRYJ+FSvF6lQcgv4c72BRx3o57qnq94K050KLQFdp47rj0YK6lgCWPQS/j3TgOQNvhIIjHwRuTAQ+rVqEdS8zcgzESA/6YIr4uJbg5JoTtufxgiSaeBuSnGaSw4cD9x8/iHmu1xTegKLMBj7th8cPwNJsXCuiIg/8/SIURvDLIOOa4KVIIcz4NOt0vnLRdw69Z9mf+ksrBrjnDCoypyRvC1OwZoQSj1BoHF4rD77hxgnwwfJtFmRT3E82X48x8TtxIx9obij/d0OaLuyCiZGmqTijRexYWsBAESM28yYnJr4I/3KKgih6Icu0wZHdeETFS1Kl9LmDd80F29Qe6klJNLLNo7IkR5jiaat8pNPB5AWYYku6V4TpSM7lsXmF271k5XC73DSG+EXfzJEvH63NV9B7eTvwgnhKsLChd5uxdQ==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1101MB2126.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230022)(39860400002)(346002)(366004)(396003)(376002)(136003)(451199015)(478600001)(6486002)(186003)(41300700001)(316002)(38100700002)(6506007)(82960400001)(110136005)(26005)(9686003)(6512007)(8676002)(66476007)(66556008)(4326008)(66946007)(5660300002)(8936002)(86362001)(2906002);DIR:OUT;SFP:1102;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?0sNNTEzqdtarXGX81Tpk1//ujjKc5pOrz1pPv4M3/7vnYCw9D0tMZWqEB+x7?=
- =?us-ascii?Q?cSPPdJL3torBgpl3W+CxOxyp7bfU+ZbfGJuZcrQ774HMVjvWvYG62HPVJKzv?=
- =?us-ascii?Q?8XdXOvssMBwJhECWoKxRYNAvskgZWlRf3wROyz9IHb50YKm/z7UlPejLcY3/?=
- =?us-ascii?Q?nkqsEBTzcPzyRP6nM5twrDfuFpxnl9ML2caX2tfUx+ImClbuIXQ/wAGJyuLN?=
- =?us-ascii?Q?lb94QBlx7z8Fqfq/noncGVR857GwHtHtNgDswCPIBQ3sG9C8/NPfORC9EP5r?=
- =?us-ascii?Q?IG5Ip/uRoNjk253u7RaFpYrzPWDz/hjRGr1t1Xbq7Nkd6R92ZjdGpWf22bA9?=
- =?us-ascii?Q?HpGuiCH5+qfbhAuH/imtFGp3gGUJ46U0zoTah3mTpazLerV5ZcO2g1VIAZoi?=
- =?us-ascii?Q?nN6x5CchNBTmJIOnVH7yFUht2zmU6soJtaLBVtotyJ1huM/WswGCOJyxY+7y?=
- =?us-ascii?Q?3VRfxSzaC0Z6I5aQxpqXc35aTOoVnePxIFbvogetH0VwGX0Hmj5jBpZ9zXS1?=
- =?us-ascii?Q?tLLR5+GT300EGgS32/ZqNiQawJOkaOW3ER/aKiw52EiMh9jY47wqDGjyv1fw?=
- =?us-ascii?Q?gf+x5YbfkDwPHf6i1tl0LRoVj+x5Cca2gb+jzDBawwsfYi3oEK3xWcTZRn08?=
- =?us-ascii?Q?Hh4StOOpoAG9Y7P65h5+NIlSwaJOu1FgzO45qyaKrzSwvDJgY7pqSSaUl6ND?=
- =?us-ascii?Q?t/haUR0ByhMVIsglkv2W/xPlFhgisaPgU1n2X0ymSK0U1M1tF6FfEdu/ZjBV?=
- =?us-ascii?Q?1Z1iUIpLa7mY60jC6Fvu46r4x/pSS7NvyTluxVnhBWjvBny4iO+WX5XLj890?=
- =?us-ascii?Q?B28kf0jHX1SqxKn9jXEakA01DHD3u2JERljyb++Yu1mIJMtPpgLnuCR9SRQr?=
- =?us-ascii?Q?xtShxNFqo6l/scvmka8147MzbU39LXDP9NeDNgXbPMsOVO7iUxkIKdst4TlC?=
- =?us-ascii?Q?loaqTJgHl27wA9pXRcnEnrzDqnzaZj778nZ79IfEb92CxXW5VRoI27RqPxV/?=
- =?us-ascii?Q?xhYtM7hodkb6JqFTbxSLarG09e9/rmo6rF2CfiglCYizd4NYYXQFIfrBNe2n?=
- =?us-ascii?Q?GYmVwXwHHcEWxqNTvdYvwDOp3VwTe4WL/ax4E2rb0HqerD8hLMwAjLaDR47+?=
- =?us-ascii?Q?q6DUJgPjXFe3HYGfTyoGTaAydVbTLXZFpyYXgvmMPb1ZMG7RCjLvLNHPTfCx?=
- =?us-ascii?Q?aMre/9fDKm+WAgIvUCH6s6a5HMQjpPcZmd/RIUDJ/cLI2Gi23KhBZhzHv3rt?=
- =?us-ascii?Q?uslETVVBeLxNp0HtVqsZwqvMAEjqPXc4AjB9CNZBZCFSgmljBevdQuZjLDkA?=
- =?us-ascii?Q?owlUziH2V/mm2ZYOmMCk6Z4Gg+r5LqI2r8V2kA44HVgeP7xwalolaGfs/7mV?=
- =?us-ascii?Q?0exaoveprrpno3PpxtssYVINFxnBnCLE+DqkuqYrDdmooLB8BGCZoLk491pP?=
- =?us-ascii?Q?uTj0OAXaW7VVjV7kM+E/iCUh/zM7++537s7slTW/36rkptrhQo9uJLGc90f0?=
- =?us-ascii?Q?o2L26qRwtJd+DeCychYBt5FqTv/7Q44vXCzoF2D2NAbDTDZ1TqOxoM9+Hez/?=
- =?us-ascii?Q?VdnecqBOQKxNx1j2xx+ypCqzZ+VgcGeoSqyZD73kA0MuEG5NRVkf2shoOWoo?=
- =?us-ascii?Q?WA=3D=3D?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: 86db5b03-ec48-4626-6747-08dad18fd9d6
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?tHUdEsTifaFK1yipXceQ8fq7Qpq5p6P/oCrWP0zV/74Igk8tnAWSDInHgTek?=
+ =?us-ascii?Q?CY8kYhVyAml+CUfPbz5aEUOFm+uSDHnRqn5j5JxyJCv9LOn2XKAr5uypYY4O?=
+ =?us-ascii?Q?RxWOwYvtbgXwaU5jGmAna6u4UnLA84PBmekB+tyU7DPyaRkHqvGND8qL5x6l?=
+ =?us-ascii?Q?+lEMkvHX2ntaLTH1g7TQJ6tTzi817C8UJ8Vv73Hx5ICKT7eD37P4XDhfdLlX?=
+ =?us-ascii?Q?D0sEGVXdrt7OsZ0SYFClwmmIcc9YqzKRb6Dz7OZu3E/59euyq/ACkgLG8hmH?=
+ =?us-ascii?Q?/BJZECUVEy8/HDy5jNOPOcFUF6N9XJ4NUyeGxUgPi7mzmfDWb7Kie1c0U80M?=
+ =?us-ascii?Q?GXyzlekC4OaNVkjx85Z8skatJk1MgIouTUKGEY+nBzfaKcNoExIUl9gYjrz1?=
+ =?us-ascii?Q?9ZXMQSpNYmj+Uim7NpCXp6BTT4xfTGe9YouaVik25C8j9LRkmDGmpZfeD8fY?=
+ =?us-ascii?Q?dFVIV/hdgyPEZWCKERL/ALPnuESHpjgM0kBg9oSBt0VXF7sTOxOQC7/pkccb?=
+ =?us-ascii?Q?pEn2+wTSGFJjsclR4pQLn8KlMBwLy0egQxrKKaMpEHl1rJu5nshViddA9uBg?=
+ =?us-ascii?Q?4rpwu51hD4WmMpY/GZZbqJMLB6542mPmI7TmqkqAVFOFEHFR1Kr//ikDqyFp?=
+ =?us-ascii?Q?txJjN5MwXKXFCmm3/ZVei2CZCmDviQ8rE4F2+hzhnTCLP189PazNFCGRBcju?=
+ =?us-ascii?Q?Zso9RpRF0DL6wPcj7XSm0UVyByA//rWOI2bzRv/suCfUC7W71aiyeeaL+XZM?=
+ =?us-ascii?Q?gsHqtYZndECfrlntXOBfPjqWcWFS+c1Y1vAGn6E7LGL5q8SAB/ZgzZlHzMFB?=
+ =?us-ascii?Q?MQUl6f3nQtek5g7tSrkLeVyOZ+W2zpL+E23o42eLPh6DvvkWi2Rw+idnlk12?=
+ =?us-ascii?Q?plNiXtKpoms5NzoIEfmFAz2udf05jwEvMtN9vzGJTrx6rAYBeL14b3gfmj/K?=
+ =?us-ascii?Q?EdRvt88a3Aw6V3VjvxW+Utbkc1eadd2puxDtRUOXX+mP/OtyGfACDa2n6jOb?=
+ =?us-ascii?Q?lorfKinZKpy5QLQYmf0GkEby+yOJOi0mLJrE3Q/mMk3qRGYvujj0c5cqP+aM?=
+ =?us-ascii?Q?F6JSbOei6dR+QoYmzUEfY0wvpZYAACXiKLG2iXAMRt+Bhy7hC2UXWr9EIm8y?=
+ =?us-ascii?Q?8aH6kP2OFJiKJ8TnVPUQwMZPChdSkEUMW02dktSa7es0cVZtZ97sCt1Ee55m?=
+ =?us-ascii?Q?eimnSIS8Co0P1unSvTYGG6nufdzoprRWzwXmQfbgLKf4YFN4K9f0CSVk75Bz?=
+ =?us-ascii?Q?lHymga1DUR4o6URtkVD1DczG5QaJtGPiymtQ9l4tDFvuqAJ6EPpUjwadCQhu?=
+ =?us-ascii?Q?RjdyvIMCzqPuxL6U3YGciwewzulZul73UFcsjn04N7AfiWXSfDcwp6yt6iw7?=
+ =?us-ascii?Q?ZEU5AUfBBGy6qXUXdX91JYqIVTd+hRjwmcK6dBGA8gu2lBbC12z3NxtEU2sG?=
+ =?us-ascii?Q?PPEuuUBdfdNYx+aeoYoKlnwsDIqiALV+CmWOrbPUae5dhZHHo3SbtqCIvXy7?=
+ =?us-ascii?Q?BRiToMGdOQxODQ6W+NrDt5W6obYFlXo5hvjlMEeaF4iTBM0xcyjzzHC5+Iq+?=
+ =?us-ascii?Q?pA9JCWABZr88Hk2O7XpVx57+8qkxwy6Sat8M7wZmiPl2muixXHriEJoVdu43?=
+ =?us-ascii?Q?3g=3D=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: 3f4a64c0-6413-4d40-d888-08dad191bdda
 X-MS-Exchange-CrossTenant-AuthSource: MWHPR1101MB2126.namprd11.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 28 Nov 2022 22:28:19.2988
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 28 Nov 2022 22:41:51.3608
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: QEADOWfHv5KQOXrxrdSe/djfvcsIV01KsOj476LVF1xxuMK07XZcB6zABvWMPu0vfw0AtRHPG9DvaQFZjtFMpyvv+cH4XxC9rA0aagmbmdU=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ0PR11MB4847
+X-MS-Exchange-CrossTenant-UserPrincipalName: OrqMavH4K6GtvozA77GcmxPYsFvMR/wb5kPJj3SZHDQu3TAbbyFMUGABaHwSM3NteuJfwW+LBxzk08zqmjYpyrrqNg9sZgqRKfuixYBgKxA=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY5PR11MB6461
 X-OriginatorOrg: intel.com
 
 Alison Schofield wrote:
@@ -152,20 +148,13 @@ Alison Schofield wrote:
 > 
 > Reviewed-by: Alison Schofield <alison.schofield@intel.com>
 > 
-> How can this host bridge and device be used? Should I be looking in
-> the spec to see the limitations on a 1.1 usage?
+> How can this host bridge and device be used?
 
-Yes, CXL 3.0 9.11.8 "CXL Devices Attached to an RCH" is the best
-starting point.
-
-> Expect it to behave like VH topo? Expect graceful failure where it
-> doesn't?  I'm just after a starting point for understanding how the
-> 1.1 world fits in.
-
-The expectation is that an RCH topology is a strict subset of a VH
-topology. I think of it as VH minus device-interleaving and hotplug.
-Once you have found the CXL component register block the enabling can be
-shared between 1.1 and 2.0. So, for example see all the different
-component registers listed in CXL 3.0 Table 8-22. Where that block is
-available to "D1" and "D2" the driver enabling can be shared. The only
-difference is how to find those component registers.
+Answering the direct question... it's not good for much more than
+testing enumeration. The expectation is that RCH hosts will be
+configured by BIOS and most likely Linux driver only ever needs to read
+the configuration, not change it.  So most of the excitement from a
+cxl_test perspective is in the enumeration. The rest of the RCH enabling
+will be for error handling for errors that impact regions set up by
+BIOS. That testing will need hardware, or QEMU, but I do not expect RCH
+topologies to show up in QEMU any time soon, if ever.
