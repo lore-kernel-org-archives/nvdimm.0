@@ -1,278 +1,167 @@
 Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EB948F5D
-	for <nvdimm@lists.linux.dev>; Mon, 28 Nov 2022 16:28:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8AABAA461
+	for <nvdimm@lists.linux.dev>; Mon, 28 Nov 2022 18:20:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1669652903; x=1701188903;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=GRWBeQCozIXpeMCdz1qRg21oTO6+7frgdRV4wZXZf4E=;
-  b=ZlQmqq7VJcT4jkhsmhzQUe4L5jy/tc0dyG9KMS2odN6+VoDwweRikezs
-   RxWYCFE4Ovacqo8KRLYsGFz5LInVpy7K9XuQvGEUSO9vcw8pB+EfmXss6
-   72MbVmgejunfMV5fXOSYeYUooh60jRtQNu0EAKiMXJZ4z220D5a+IQPBT
-   9znjd4+buLmp1QTLdfWAOrO4P/0ew9aMKPew1L8lov9qqRVPrLvyqczsh
-   RKxYpq4TEBG9xTcCD3d63plcRo3jGkOIcTIVkRA76fnYbKy5lWy/JIv5d
-   t/0/JLhFQRetv/GwoXWQFDmmaK3Z/PHE/Hu2mf5cvIN8s0AQPdWyALwyS
-   w==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10545"; a="377022397"
+  t=1669659640; x=1701195640;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=NLDi8d0jli8L2v1N6DYnjREatDJezrYUfs6aH31bPc4=;
+  b=HsxeeX9k+UW9cC3MXbcoX3ysiWSVQQP+Urhg8MNrhWCnr4Nt6kptJ+B9
+   rvdprhncR9ozdNQQRjlUFLU+jOC1rT25Yh9I4XFDFTMVYt3cx3W3DQ5af
+   hFxneVex9qiIuFVPwnzkRjknP70iMHBXKYoRaz3W9aIDJqZqRrnoAVRGJ
+   da28x6idEWnd98MN5xaX9NHrlX6NBdpThtllWZMzgyD9MZEHEBYEkjh9i
+   X9/7j7iedgYiLetc23U5C1iHotCXqNjwrW1i67q7DgKbLL97rvd4G39yJ
+   MpLPldHsiWp4jSq3Ko+VV5Wy33LVf9kZ8ZzmYqi0p0mJvoZYYyFZhWD+l
+   Q==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10545"; a="377061560"
 X-IronPort-AV: E=Sophos;i="5.96,200,1665471600"; 
-   d="scan'208";a="377022397"
-Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Nov 2022 08:28:23 -0800
-X-IronPort-AV: E=McAfee;i="6500,9779,10545"; a="749452616"
+   d="scan'208";a="377061560"
+Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Nov 2022 10:20:39 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10545"; a="712071276"
 X-IronPort-AV: E=Sophos;i="5.96,200,1665471600"; 
-   d="scan'208";a="749452616"
-Received: from djiang5-mobl2.amr.corp.intel.com (HELO [10.209.161.118]) ([10.209.161.118])
-  by fmsmga002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Nov 2022 08:28:22 -0800
-Message-ID: <9f5f2990-3b6a-1d8a-a3f9-0f5d184b85f9@intel.com>
-Date: Mon, 28 Nov 2022 09:28:21 -0700
+   d="scan'208";a="712071276"
+Received: from aschofie-mobl2.amr.corp.intel.com (HELO aschofie-mobl2) ([10.209.3.241])
+  by fmsmga004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Nov 2022 10:20:39 -0800
+Date: Mon, 28 Nov 2022 10:20:37 -0800
+From: Alison Schofield <alison.schofield@intel.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-cxl@vger.kernel.org, rrichter@amd.com, terry.bowman@amd.com,
+	bhelgaas@google.com, dave.jiang@intel.com, nvdimm@lists.linux.dev
+Subject: Re: [PATCH v4 06/12] tools/testing/cxl: Make mock CEDT parsing more
+ robust
+Message-ID: <Y4T79QhJR2WzwEgY@aschofie-mobl2>
+References: <166931487492.2104015.15204324083515120776.stgit@dwillia2-xfh.jf.intel.com>
+ <166931491054.2104015.16722069708509650823.stgit@dwillia2-xfh.jf.intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
- Firefox/102.0 Thunderbird/102.5.0
-Subject: Re: [PATCH v4 10/12] cxl/port: Add RCD endpoint port enumeration
-Content-Language: en-US
-To: Dan Williams <dan.j.williams@intel.com>, linux-cxl@vger.kernel.org
-Cc: rrichter@amd.com, terry.bowman@amd.com, bhelgaas@google.com,
- nvdimm@lists.linux.dev
-References: <166931487492.2104015.15204324083515120776.stgit@dwillia2-xfh.jf.intel.com>
- <166931493266.2104015.8062923429837042172.stgit@dwillia2-xfh.jf.intel.com>
-From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <166931493266.2104015.8062923429837042172.stgit@dwillia2-xfh.jf.intel.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <166931491054.2104015.16722069708509650823.stgit@dwillia2-xfh.jf.intel.com>
 
+On Thu, Nov 24, 2022 at 10:35:10AM -0800, Dan Williams wrote:
+> Accept any cxl_test topology device as the first argument in
+> cxl_chbs_context. This is in preparation for reworking the detection of
+> the component registers across VH and RCH topologies. Move
+> mock_acpi_table_parse_cedt() beneath the definition of is_mock_port()
+> and use is_mock_port() instead of the explicit mock cxl_acpi device
+> check.
 
+I'll ACK this change, alhtough I don't appreciate the code move and modify
+in the same patch. It hides the diff.
 
-On 11/24/2022 11:35 AM, Dan Williams wrote:
-> Unlike a CXL memory expander in a VH topology that has at least one
-> intervening 'struct cxl_port' instance between itself and the CXL root
-> device, an RCD attaches one-level higher. For example:
-> 
->                 VH
->            ┌──────────┐
->            │ ACPI0017 │
->            │  root0   │
->            └─────┬────┘
->                  │
->            ┌─────┴────┐
->            │  dport0  │
->      ┌─────┤ ACPI0016 ├─────┐
->      │     │  port1   │     │
->      │     └────┬─────┘     │
->      │          │           │
->   ┌──┴───┐   ┌──┴───┐   ┌───┴──┐
->   │dport0│   │dport1│   │dport2│
->   │ RP0  │   │ RP1  │   │ RP2  │
->   └──────┘   └──┬───┘   └──────┘
->                 │
->             ┌───┴─────┐
->             │endpoint0│
->             │  port2  │
->             └─────────┘
-> 
-> ...vs:
-> 
->                RCH
->            ┌──────────┐
->            │ ACPI0017 │
->            │  root0   │
->            └────┬─────┘
->                 │
->             ┌───┴────┐
->             │ dport0 │
->             │ACPI0016│
->             └───┬────┘
->                 │
->            ┌────┴─────┐
->            │endpoint0 │
->            │  port1   │
->            └──────────┘
-> 
-> So arrange for endpoint port in the RCH/RCD case to appear directly
-> connected to the host-bridge in its singular role as a dport. Compare
-> that to the VH case where the host-bridge serves a dual role as a
-> 'cxl_dport' for the CXL root device *and* a 'cxl_port' upstream port for
-> the Root Ports in the Root Complex that are modeled as 'cxl_dport'
-> instances in the CXL topology.
-> 
-> Another deviation from the VH case is that RCDs may need to look up
-> their component registers from the Root Complex Register Block (RCRB).
-> That platform firmware specified RCRB area is cached by the cxl_acpi
-> driver and conveyed via the host-bridge dport to the cxl_mem driver to
-> perform the cxl_rcrb_to_component() lookup for the endpoint port
-> (See 9.11.8 CXL Devices Attached to an RCH for the lookup of the
-> upstream port component registers).
+The commit msg seems needlessly vague. Why not state what was done?
+Something like: 'Accept any topology device in cxl_chbs_context'
+
 > 
 > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 > ---
->   drivers/cxl/core/port.c |   11 +++++++++--
->   drivers/cxl/cxlmem.h    |    2 ++
->   drivers/cxl/mem.c       |   31 ++++++++++++++++++++++++-------
->   drivers/cxl/pci.c       |   10 ++++++++++
->   4 files changed, 45 insertions(+), 9 deletions(-)
+>  tools/testing/cxl/test/cxl.c |   80 +++++++++++++++++++++---------------------
+>  1 file changed, 40 insertions(+), 40 deletions(-)
 > 
-> diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
-> index c7f58282b2c1..2385ee00eb9a 100644
-> --- a/drivers/cxl/core/port.c
-> +++ b/drivers/cxl/core/port.c
-> @@ -1358,8 +1358,17 @@ int devm_cxl_enumerate_ports(struct cxl_memdev *cxlmd)
->   {
->   	struct device *dev = &cxlmd->dev;
->   	struct device *iter;
-> +	struct cxl_dport *dport;
-> +	struct cxl_port *port;
->   	int rc;
->   
-> +	/*
-> +	 * Skip intermediate port enumeration in the RCH case, there
-> +	 * are no ports in between a host bridge and an endpoint.
-> +	 */
-> +	if (cxlmd->cxlds->rcd)
-> +		return 0;
-> +
->   	rc = devm_add_action_or_reset(&cxlmd->dev, cxl_detach_ep, cxlmd);
->   	if (rc)
->   		return rc;
-> @@ -1373,8 +1382,6 @@ int devm_cxl_enumerate_ports(struct cxl_memdev *cxlmd)
->   	for (iter = dev; iter; iter = grandparent(iter)) {
->   		struct device *dport_dev = grandparent(iter);
->   		struct device *uport_dev;
-> -		struct cxl_dport *dport;
-> -		struct cxl_port *port;
->   
->   		if (!dport_dev)
->   			return 0;
-> diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
-> index e082991bc58c..35d485d041f0 100644
-> --- a/drivers/cxl/cxlmem.h
-> +++ b/drivers/cxl/cxlmem.h
-> @@ -201,6 +201,7 @@ struct cxl_endpoint_dvsec_info {
->    * @dev: The device associated with this CXL state
->    * @regs: Parsed register blocks
->    * @cxl_dvsec: Offset to the PCIe device DVSEC
-> + * @rcd: operating in RCD mode (CXL 3.0 9.11.8 CXL Devices Attached to an RCH)
->    * @payload_size: Size of space for payload
->    *                (CXL 2.0 8.2.8.4.3 Mailbox Capabilities Register)
->    * @lsa_size: Size of Label Storage Area
-> @@ -235,6 +236,7 @@ struct cxl_dev_state {
->   	struct cxl_regs regs;
->   	int cxl_dvsec;
->   
-> +	bool rcd;
->   	size_t payload_size;
->   	size_t lsa_size;
->   	struct mutex mbox_mutex; /* Protects device mailbox and firmware */
-> diff --git a/drivers/cxl/mem.c b/drivers/cxl/mem.c
-> index aa63ce8c7ca6..9a655b4b5e52 100644
-> --- a/drivers/cxl/mem.c
-> +++ b/drivers/cxl/mem.c
-> @@ -45,12 +45,13 @@ static int cxl_mem_dpa_show(struct seq_file *file, void *data)
->   	return 0;
->   }
->   
-> -static int devm_cxl_add_endpoint(struct cxl_memdev *cxlmd,
-> +static int devm_cxl_add_endpoint(struct device *host, struct cxl_memdev *cxlmd,
->   				 struct cxl_dport *parent_dport)
->   {
->   	struct cxl_port *parent_port = parent_dport->port;
->   	struct cxl_dev_state *cxlds = cxlmd->cxlds;
->   	struct cxl_port *endpoint, *iter, *down;
-> +	resource_size_t component_reg_phys;
->   	int rc;
->   
->   	/*
-> @@ -65,8 +66,18 @@ static int devm_cxl_add_endpoint(struct cxl_memdev *cxlmd,
->   		ep->next = down;
->   	}
->   
-> -	endpoint = devm_cxl_add_port(&parent_port->dev, &cxlmd->dev,
-> -				     cxlds->component_reg_phys, parent_dport);
-> +	/*
-> +	 * The component registers for an RCD might come from the
-> +	 * host-bridge RCRB if they are not already mapped via the
-> +	 * typical register locator mechanism.
-> +	 */
-> +	if (parent_dport->rch && cxlds->component_reg_phys == CXL_RESOURCE_NONE)
-> +		component_reg_phys = cxl_rcrb_to_component(
-> +			&cxlmd->dev, parent_dport->rcrb, CXL_RCRB_DOWNSTREAM);
-
-Should this be CXL_RCRB_UPSTREAM?
-
-> +	else
-> +		component_reg_phys = cxlds->component_reg_phys;
-> +	endpoint = devm_cxl_add_port(host, &cxlmd->dev, component_reg_phys,
-> +				     parent_dport);
->   	if (IS_ERR(endpoint))
->   		return PTR_ERR(endpoint);
->   
-> @@ -87,6 +98,7 @@ static int cxl_mem_probe(struct device *dev)
->   {
->   	struct cxl_memdev *cxlmd = to_cxl_memdev(dev);
->   	struct cxl_dev_state *cxlds = cxlmd->cxlds;
-> +	struct device *endpoint_parent;
->   	struct cxl_port *parent_port;
->   	struct cxl_dport *dport;
->   	struct dentry *dentry;
-> @@ -119,17 +131,22 @@ static int cxl_mem_probe(struct device *dev)
->   		return -ENXIO;
->   	}
->   
-> -	device_lock(&parent_port->dev);
-> -	if (!parent_port->dev.driver) {
-> +	if (dport->rch)
-> +		endpoint_parent = parent_port->uport;
-> +	else
-> +		endpoint_parent = &parent_port->dev;
-> +
-> +	device_lock(endpoint_parent);
-> +	if (!endpoint_parent->driver) {
->   		dev_err(dev, "CXL port topology %s not enabled\n",
->   			dev_name(&parent_port->dev));
->   		rc = -ENXIO;
->   		goto unlock;
->   	}
->   
-> -	rc = devm_cxl_add_endpoint(cxlmd, dport);
-> +	rc = devm_cxl_add_endpoint(endpoint_parent, cxlmd, dport);
->   unlock:
-> -	device_unlock(&parent_port->dev);
-> +	device_unlock(endpoint_parent);
->   	put_device(&parent_port->dev);
->   	if (rc)
->   		return rc;
-> diff --git a/drivers/cxl/pci.c b/drivers/cxl/pci.c
-> index e15da405b948..73ff6c33a0c0 100644
-> --- a/drivers/cxl/pci.c
-> +++ b/drivers/cxl/pci.c
-> @@ -433,6 +433,15 @@ static void devm_cxl_pci_create_doe(struct cxl_dev_state *cxlds)
->   	}
->   }
->   
+> diff --git a/tools/testing/cxl/test/cxl.c b/tools/testing/cxl/test/cxl.c
+> index facfcd11cb67..42a34650dd2f 100644
+> --- a/tools/testing/cxl/test/cxl.c
+> +++ b/tools/testing/cxl/test/cxl.c
+> @@ -320,46 +320,6 @@ static int populate_cedt(void)
+>  	return 0;
+>  }
+>  
+> -/*
+> - * WARNING, this hack assumes the format of 'struct
+> - * cxl_cfmws_context' and 'struct cxl_chbs_context' share the property that
+> - * the first struct member is the device being probed by the cxl_acpi
+> - * driver.
+> - */
+> -struct cxl_cedt_context {
+> -	struct device *dev;
+> -};
+> -
+> -static int mock_acpi_table_parse_cedt(enum acpi_cedt_type id,
+> -				      acpi_tbl_entry_handler_arg handler_arg,
+> -				      void *arg)
+> -{
+> -	struct cxl_cedt_context *ctx = arg;
+> -	struct device *dev = ctx->dev;
+> -	union acpi_subtable_headers *h;
+> -	unsigned long end;
+> -	int i;
+> -
+> -	if (dev != &cxl_acpi->dev)
+> -		return acpi_table_parse_cedt(id, handler_arg, arg);
+> -
+> -	if (id == ACPI_CEDT_TYPE_CHBS)
+> -		for (i = 0; i < ARRAY_SIZE(mock_cedt.chbs); i++) {
+> -			h = (union acpi_subtable_headers *)&mock_cedt.chbs[i];
+> -			end = (unsigned long)&mock_cedt.chbs[i + 1];
+> -			handler_arg(h, arg, end);
+> -		}
+> -
+> -	if (id == ACPI_CEDT_TYPE_CFMWS)
+> -		for (i = 0; i < ARRAY_SIZE(mock_cfmws); i++) {
+> -			h = (union acpi_subtable_headers *) mock_cfmws[i];
+> -			end = (unsigned long) h + mock_cfmws[i]->header.length;
+> -			handler_arg(h, arg, end);
+> -		}
+> -
+> -	return 0;
+> -}
+> -
+>  static bool is_mock_bridge(struct device *dev)
+>  {
+>  	int i;
+> @@ -410,6 +370,46 @@ static bool is_mock_port(struct device *dev)
+>  	return false;
+>  }
+>  
 > +/*
-> + * Assume that any RCIEP that emits the CXL memory expander class code
-> + * is an RCD
+> + * WARNING, this hack assumes the format of 'struct cxl_cfmws_context'
+> + * and 'struct cxl_chbs_context' share the property that the first
+> + * struct member is cxl_test device being probed by the cxl_acpi
+> + * driver.
 > + */
-> +static bool is_cxl_restricted(struct pci_dev *pdev)
+> +struct cxl_cedt_context {
+> +	struct device *dev;
+> +};
+> +
+> +static int mock_acpi_table_parse_cedt(enum acpi_cedt_type id,
+> +				      acpi_tbl_entry_handler_arg handler_arg,
+> +				      void *arg)
 > +{
-> +	return pci_pcie_type(pdev) == PCI_EXP_TYPE_RC_END;
+> +	struct cxl_cedt_context *ctx = arg;
+> +	struct device *dev = ctx->dev;
+> +	union acpi_subtable_headers *h;
+> +	unsigned long end;
+> +	int i;
+> +
+> +	if (!is_mock_port(dev) && !is_mock_dev(dev))
+> +		return acpi_table_parse_cedt(id, handler_arg, arg);
+> +
+> +	if (id == ACPI_CEDT_TYPE_CHBS)
+> +		for (i = 0; i < ARRAY_SIZE(mock_cedt.chbs); i++) {
+> +			h = (union acpi_subtable_headers *)&mock_cedt.chbs[i];
+> +			end = (unsigned long)&mock_cedt.chbs[i + 1];
+> +			handler_arg(h, arg, end);
+> +		}
+> +
+> +	if (id == ACPI_CEDT_TYPE_CFMWS)
+> +		for (i = 0; i < ARRAY_SIZE(mock_cfmws); i++) {
+> +			h = (union acpi_subtable_headers *) mock_cfmws[i];
+> +			end = (unsigned long) h + mock_cfmws[i]->header.length;
+> +			handler_arg(h, arg, end);
+> +		}
+> +
+> +	return 0;
 > +}
 > +
->   static int cxl_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
->   {
->   	struct cxl_register_map map;
-> @@ -455,6 +464,7 @@ static int cxl_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
->   	if (IS_ERR(cxlds))
->   		return PTR_ERR(cxlds);
->   
-> +	cxlds->rcd = is_cxl_restricted(pdev);
->   	cxlds->serial = pci_get_dsn(pdev);
->   	cxlds->cxl_dvsec = pci_find_dvsec_capability(
->   		pdev, PCI_DVSEC_VENDOR_ID_CXL, CXL_DVSEC_PCIE_DEVICE);
+>  static int host_bridge_index(struct acpi_device *adev)
+>  {
+>  	return adev - host_bridge;
 > 
