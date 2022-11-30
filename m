@@ -1,150 +1,509 @@
-Received: from NAM10-MW2-obe.outbound.protection.outlook.com (mail-mw2nam10on2081.outbound.protection.outlook.com [40.107.94.81])
+Received: from mail3.bemta32.messagelabs.com (mail3.bemta32.messagelabs.com [195.245.230.82])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F123A29
-	for <nvdimm@lists.linux.dev>; Wed, 30 Nov 2022 08:16:43 +0000 (UTC)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=jseitvNI8I63G0DI/p8Jcvrb3VZ18geg6abWPfBSF4CwyGTNt+jRR/nWTAtJffONDAOGD1QMDCxWe/igu//hjRs0nVYkZ0RWXHIuvg2jiTKMkGGRciuoNxz3eWRIB0AalhchO4oS5sydDIY8hCP196smQbzmXT+sO4MxxTbGiJvrddquE6iNHgEpk+iABGeGJFJPYYN0gh9X1DuNiADRepDKU8i9ipRr6UpoTnDdJptnvtvQUT18GYQocmBdtqKLYD5Kxo8+NAi88FtACd0rP4T3aM8vZyiurgrq3+L/83MwQVvHlZV+1Jz6yiXmsrsiPk6awd/ioS/b1HTHyzduCQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=SirpUZr4CB0Y9NbeDZUiTitO21tkgNOg7RqruX9RlNo=;
- b=E+euxxTj9vVqyJbaYcJYaJ0H8vG7Yvm9UkVW3au9tEMrRY8hLYxAef5Be5X25UnYlmjmHxUaWXJsTdFdg2He1IRv/8HwhQb3k4QfWprIK/EzRYvPtRcmnnWYrJEDYcrjHKyNd4cskQuTJyw7z/D5E0EcoEMioTCdzGNaOYH/Vdtp9fAydDSwLF+geccOkgMeYS2COBuOVkD7K47bqL1ouVahCeEtAGXZUzK4rpzo9E865uVbFdSBvVpAYARluiZrL5Cz07sjPkMpZsq0lUz9dfneJyIPwIh1ftVwzcJGdand+SNFFUtEsdyY/TmB9ACsumRonaNqaXEt9NJNuaSGoQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 165.204.84.17) smtp.rcpttodomain=intel.com smtp.mailfrom=amd.com; dmarc=pass
- (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
- dkim=none (message not signed); arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=SirpUZr4CB0Y9NbeDZUiTitO21tkgNOg7RqruX9RlNo=;
- b=Wflb9foZGMkz6YtbR+3keQ3pE84UH/eJs7q4CcL26CMIyHh9W8m4FO0qF3dKRBpLQ15q21gCX0YTOtrXNpcoSX6VzxH/EssYwaFFTZ53rDQa8s6aCAnx+s81GWt6xqpoQtBU8M8ggObEtViBeYdDOx2APo2aqnraPvzSOxEjCUI=
-Received: from DM6PR06CA0032.namprd06.prod.outlook.com (2603:10b6:5:120::45)
- by IA1PR12MB6065.namprd12.prod.outlook.com (2603:10b6:208:3ef::7) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5857.23; Wed, 30 Nov
- 2022 08:16:40 +0000
-Received: from DS1PEPF0000E631.namprd02.prod.outlook.com
- (2603:10b6:5:120:cafe::a6) by DM6PR06CA0032.outlook.office365.com
- (2603:10b6:5:120::45) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5857.23 via Frontend
- Transport; Wed, 30 Nov 2022 08:16:40 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
- smtp.mailfrom=amd.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=amd.com;
-Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
- 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
- client-ip=165.204.84.17; helo=SATLEXMB04.amd.com; pr=C
-Received: from SATLEXMB04.amd.com (165.204.84.17) by
- DS1PEPF0000E631.mail.protection.outlook.com (10.167.17.135) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.20.5857.17 via Frontend Transport; Wed, 30 Nov 2022 08:16:40 +0000
-Received: from rric.localdomain (10.180.168.240) by SATLEXMB04.amd.com
- (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.34; Wed, 30 Nov
- 2022 02:16:38 -0600
-Date: Wed, 30 Nov 2022 09:16:23 +0100
-From: Robert Richter <rrichter@amd.com>
-To: Dan Williams <dan.j.williams@intel.com>
-CC: <linux-cxl@vger.kernel.org>, Terry Bowman <terry.bowman@amd.com>, "Rafael
- J. Wysocki" <rafael.j.wysocki@intel.com>, <bhelgaas@google.com>,
-	<dave.jiang@intel.com>, <nvdimm@lists.linux.dev>
-Subject: Re: [PATCH v4 12/12] cxl/acpi: Set ACPI's CXL _OSC to indicate
- CXL1.1 support
-Message-ID: <Y4cRV/Sj0epVW7bE@rric.localdomain>
-References: <166931487492.2104015.15204324083515120776.stgit@dwillia2-xfh.jf.intel.com>
- <166931494367.2104015.9411254827419714457.stgit@dwillia2-xfh.jf.intel.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA7E7A42
+	for <nvdimm@lists.linux.dev>; Wed, 30 Nov 2022 08:58:44 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fujitsu.com;
+	s=170520fj; t=1669798723; i=@fujitsu.com;
+	bh=UqefX3w7nz8Qysb/jCMNTBimkhTHy3MAVGa8Qu9IR0M=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type:Content-Transfer-Encoding;
+	b=cHTUhUOVLWPGMc9escmCPwehEtQcCEGAo3a6uLH/9MzOoE3UP+54H6FLbU0CDJqFJ
+	 1x8iJqjFKsK6Wv7qQYGoyvQjCeLWSL+iERbKwlHdwsL5LSEYz9nVJn/iZPa3MTSyWk
+	 B0BvOagNFEyp100LfNbpTUr4HSUqBIuWBS7xrDlsYFn32MdtoO5x/ri/6OtbVdTDYO
+	 WI0fmJMK+w9Z1DKpxGKX7oY3De+vcWUgqNG3p9hXgB1ejhyzefNVU23qb3gbXHqhj6
+	 b3wLkP6rmGrTtDnNWQTi0H3cRcsG3/KXZ/YGV4WIMCx5Q1gmapQ4HsGIHOu/51xuF7
+	 qpkjrK46EIsRA==
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFprPKsWRWlGSWpSXmKPExsViZ8ORpOsk3Z5
+  sMHudpMX0qRcYLbYcu8docfkJn8WevSdZLC7vmsNmsevPDnaLlT/+sDqwe5xaJOGxeM9LJo9N
+  qzrZPF5snsno8XmTXABrFGtmXlJ+RQJrRsuJh4wFV4orLv08wdbAuDa6i5GLQ0hgI6PEpWM7G
+  SGcJUwSW25fYu5i5ARytjFKfJmkBWLzCthJHDt4nwXEZhFQlVh3bRUrRFxQ4uTMJ2BxUYFkib
+  7+mWwgtrBAuMS3TyvZQWwRAU2JI9+uMYHYzALrGSW2dApCLJvNKHGgYzNYM5uAjsSFBX/BhnI
+  KaEi0L7vGCNFgIbH4zUF2CFteonnrbLDjJAQUJRruz2GCsCskZs1qg7LVJK6e28Q8gVFoFpL7
+  ZiEZNQvJqAWMzKsYTYtTi8pSi3SN9ZKKMtMzSnITM3P0Eqt0E/VSS3XLU4tLdA31EsuL9VKLi
+  /WKK3OTc1L08lJLNjECYymlmK16B+PbpX/0DjFKcjApifLqi7cnC/El5adUZiQWZ8QXleakFh
+  9ilOHgUJLg/QiSEyxKTU+tSMvMAcY1TFqCg0dJhLdQGCjNW1yQmFucmQ6ROsVozLG24cBeZo5
+  Jf67tZRZiycvPS5US5zWSBCoVACnNKM2DGwRLN5cYZaWEeRkZGBiEeApSi3IzS1DlXzGKczAq
+  CfMGgdzDk5lXArfvFdApTECnRIq1gZxSkoiQkmpg6tM9uUpkyb60HPaQ/wKG+9nLS3wKPpWX7
+  Z+7ru543NXbUTNdV/JeVlSs2Pt4n5/pHcePknEsj8883thb6t7/dx/PLNYjQcz+Eavro/a6Kn
+  vaMUZPKPbucNw3efnWtZ8q1O3uVan/lZo+z+Cskbvde1E+tZkfvHPLqy0miKw7lRyYtPv21ve
+  3n+tVnX6+x3yGVY7YFrMIGaW99W+zgz/7bvgrsIS76Unh/neq23pu7llzYNUbXpa2U1eD3b43
+  NUl+M1Kev9HvGE/XzACuwH/zL+3ukfOdtOL08Vdn2EOunclRnpGYUcyTb/nubvqnBcKrl89Z7
+  ixdWnHofum/1066/iEVHFsUnZ0cC+U3fAsMUGIpzkg01GIuKk4EAAPizR6yAwAA
+X-Env-Sender: ruansy.fnst@fujitsu.com
+X-Msg-Ref: server-3.tower-585.messagelabs.com!1669798722!36612!1
+X-Originating-IP: [62.60.8.98]
+X-SYMC-ESS-Client-Auth: outbound-route-from=pass
+X-StarScan-Received:
+X-StarScan-Version: 9.101.1; banners=-,-,-
+X-VirusChecked: Checked
+Received: (qmail 9632 invoked from network); 30 Nov 2022 08:58:42 -0000
+Received: from unknown (HELO n03ukasimr03.n03.fujitsu.local) (62.60.8.98)
+  by server-3.tower-585.messagelabs.com with ECDHE-RSA-AES256-GCM-SHA384 encrypted SMTP; 30 Nov 2022 08:58:42 -0000
+Received: from n03ukasimr03.n03.fujitsu.local (localhost [127.0.0.1])
+	by n03ukasimr03.n03.fujitsu.local (Postfix) with ESMTP id 030561AE;
+	Wed, 30 Nov 2022 08:58:42 +0000 (GMT)
+Received: from R01UKEXCASM126.r01.fujitsu.local (R01UKEXCASM126 [10.183.43.178])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by n03ukasimr03.n03.fujitsu.local (Postfix) with ESMTPS id EB0FB1AC;
+	Wed, 30 Nov 2022 08:58:41 +0000 (GMT)
+Received: from [10.167.216.27] (10.167.216.27) by
+ R01UKEXCASM126.r01.fujitsu.local (10.183.43.178) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.32; Wed, 30 Nov 2022 08:58:38 +0000
+Message-ID: <7aa0a212-4cc8-04bc-10ea-4f0c47915623@fujitsu.com>
+Date: Wed, 30 Nov 2022 16:58:32 +0800
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <166931494367.2104015.9411254827419714457.stgit@dwillia2-xfh.jf.intel.com>
-X-Originating-IP: [10.180.168.240]
-X-ClientProxiedBy: SATLEXMB03.amd.com (10.181.40.144) To SATLEXMB04.amd.com
- (10.181.40.145)
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DS1PEPF0000E631:EE_|IA1PR12MB6065:EE_
-X-MS-Office365-Filtering-Correlation-Id: eb767e15-c67d-43f1-5b26-08dad2ab356e
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info:
-	0WvEYGDJOiVMUiYTU5nU/51qvdjDdauorgHprQq/P82nUErqa2vQNKn6mujuReUSIGrVf4E5L1Cp9Xgw4jtyQmQTWDQCV50qzV7cwcVhJnzcEr3oUafs5H5GyV19YyLSUQ+IhvrFgqyMhPjek6/R5oRWKXKVCZz+Cj49dRT0WGfajJdZV7Ze8SdcNdyPzlfrLr+uwWrB0RkcyKuEQ9RqJCWwqm1MVDHlw9OmQI/0DMYvI8wqLxScfr5ozCC77bykKuqsJyrHWp3S0oXPbj6BbahI3J5uEjiUCaiFrFD2bwiNMK//16L1ASLjvimBnH9xKd0+5zmrOaDix2cr5VoDSPlTFiDZRb+nHBjTahpbLokuLT6+FvS3uADnOHUFY6W4kKqT3Zzv7HeXCVvTij4zDte2s/DlYYegHuVvm+yaW8+0QFl0y5kjesiPQaX2eVzslk1R2nBCVmmTjSTtdP3rE2g5W2oZy17Dyr/YJzBi5V8FE1R+1j29bJB3ueAPUTbJ8ZZmlYzu6bp/W3Bs4o2GK4ichLc1ZyNDRh+LnINm9+zHnf6ilmLOjRyMH7RYDFEA0snpwSYCPBwJsYplvPg81yNlEk1QYukWjG6Xk6SzZ18Z0VwFO/DpvJuV9NCyImsqfqSeDyvCulBj6vlOCYl5JJ2dOMKoCKUautUp+KME0YivSyVjJ6EDpQxqWRcSEYvVPA7uJlZW8SvTaSk89P44mMmzdvdqCUq3PlfWsduTEtQ=
-X-Forefront-Antispam-Report:
-	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230022)(4636009)(376002)(346002)(396003)(136003)(39860400002)(451199015)(46966006)(36840700001)(40470700004)(81166007)(40480700001)(55016003)(356005)(7696005)(9686003)(26005)(41300700001)(8936002)(4326008)(8676002)(478600001)(70206006)(70586007)(40460700003)(6666004)(36860700001)(316002)(5660300002)(82740400003)(2906002)(426003)(83380400001)(54906003)(53546011)(47076005)(336012)(6916009)(186003)(16526019)(82310400005)(36900700001);DIR:OUT;SFP:1101;
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 Nov 2022 08:16:40.3230
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: eb767e15-c67d-43f1-5b26-08dad2ab356e
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	DS1PEPF0000E631.namprd02.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR12MB6065
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
+ Thunderbird/102.4.2
+Subject: Re: [PATCH 1/2] fsdax,xfs: fix warning messages at
+ dax_[dis]associate_entry()
+To: "Darrick J. Wong" <djwong@kernel.org>
+CC: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
+	<nvdimm@lists.linux.dev>, <linux-fsdevel@vger.kernel.org>,
+	<david@fromorbit.com>, <dan.j.williams@intel.com>
+References: <1669301694-16-1-git-send-email-ruansy.fnst@fujitsu.com>
+ <1669301694-16-2-git-send-email-ruansy.fnst@fujitsu.com>
+ <Y4bXTywl3PQTY3Er@magnolia>
+From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+In-Reply-To: <Y4bXTywl3PQTY3Er@magnolia>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.167.216.27]
+X-ClientProxiedBy: G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.80) To
+ R01UKEXCASM126.r01.fujitsu.local (10.183.43.178)
+X-Virus-Scanned: ClamAV using ClamSMTP
 
-On 24.11.22 10:35:43, Dan Williams wrote:
-> From: Terry Bowman <terry.bowman@amd.com>
+
+
+在 2022/11/30 12:08, Darrick J. Wong 写道:
+> On Thu, Nov 24, 2022 at 02:54:53PM +0000, Shiyang Ruan wrote:
+>> This patch fixes the warning message reported in dax_associate_entry()
+>> and dax_disassociate_entry().
 > 
-> ACPI includes a CXL _OSC for the OS to communicate what it knows of CXL
-> device topologies. To date Linux has added support for CXL 2.0 (VH) port
-> topologies, hotplug, and error handling. Now that the driver also know
-> how to enumerate CXL 1.1 (RCH) port topologies, indicate that capability
-> via CXL _OSC. See CXL3.0 Table 9-26 'Interpretation of CXL _OSC Support
-> Field'
+> Hmm, that's quite a bit to put in a single patch, but I'll try to get
+> through this...
+
+Oh sorry...
+
 > 
-> Signed-off-by: Terry Bowman <terry.bowman@amd.com>
-> Signed-off-by: Robert Richter <rrichter@amd.com>
-> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> [djbw: wordsmith changelog]
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+>> 1. reset page->mapping and ->index when refcount counting down to 0.
+>> 2. set IOMAP_F_SHARED flag when iomap read to allow one dax page to be
+>> associated more than once for not only write but also read.
+> 
+> That makes sense, I think.
+> 
+>> 3. should zero the edge (when not aligned) if srcmap is HOLE or
+> 
+> When is IOMAP_F_SHARED set on the /source/ mapping?
 
-I have had a reworded version of this in the pipe too, esp. version
-strings were dropped in favor of VH and RCD mode. You might want to
-consider that one:
+In fs/xfs/xfs_iomap.c: xfs_direct_write_iomap_begin(): goto 
+out_found_cow tag, srcmap is *not set* when the source extent is HOLE, 
+then only iomap is set with IOMAP_F_SHARED flag.
 
--- >8 --
+Now we come to iomap iter, when we get the srcmap by calling 
+iomap_iter_srcmap(iter), the iomap will be returned (because srcmap 
+isn't set).  So, in this case, srcmap == iomap, we can think the source 
+extent is a HOLE if srcmap->flag & IOMAP_F_SHARED != 0
 
-From 260e04d5d34c6d37a1866b73a5e229d1ceddf272 Mon Sep 17 00:00:00 2001
-From: Terry Bowman <terry.bowman@amd.com>
-Date: Mon, 14 Nov 2022 10:03:30 -0600
-Subject: [PATCH v5] cxl/acpi: Set ACPI's CXL _OSC to indicate RCD mode support
+> 
+>> UNWRITTEN.
+>> 4. iterator of two files in dedupe should be executed side by side, not
+>> nested.
+> 
+> Why?  Also, this seems like a separate change?
 
-ACPI uses the CXL _OSC support method to communicate the available CXL
-functionality to FW. The CXL _OSC support method includes a field to
-indicate the OS is capable of RCD mode. FW can potentially change it's
-operation depending on the _OSC support method reported by the OS.
+Explain below.
 
-The ACPI driver currently only sets the ACPI _OSC support method to
-indicate CXL VH mode. Change the capability reported to also include
-CXL RCD mode.
+> 
+>> 5. use xfs_dax_write_iomap_ops for xfs zero and truncate.
+> 
+> Makes sense.
+> 
+>> Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+>> ---
+>>   fs/dax.c           | 114 ++++++++++++++++++++++++++-------------------
+>>   fs/xfs/xfs_iomap.c |   6 +--
+>>   2 files changed, 69 insertions(+), 51 deletions(-)
+>>
+>> diff --git a/fs/dax.c b/fs/dax.c
+>> index 1c6867810cbd..5ea7c0926b7f 100644
+>> --- a/fs/dax.c
+>> +++ b/fs/dax.c
+>> @@ -398,7 +398,7 @@ static void dax_disassociate_entry(void *entry, struct address_space *mapping,
+>>   		WARN_ON_ONCE(trunc && page_ref_count(page) > 1);
+>>   		if (dax_mapping_is_cow(page->mapping)) {
+>>   			/* keep the CoW flag if this page is still shared */
+>> -			if (page->index-- > 0)
+>> +			if (page->index-- > 1)
+> 
+> Hmm.  So if the fsdax "page" sharing factor drops from 2 to 1, we'll now
+> null out the mapping and index?  Before, we only did that when it
+> dropped from 1 to 0.
+> 
+> Does this leave the page with no mapping?  And I guess a subsequent
+> access will now take a fault to map it back in?
 
-[1] CXL3.0 Table 9-26 'Interpretation of CXL _OSC Support Field'
+I confused it with --page->index, the result of "page->index--" is 
+page->index itself.
 
-Signed-off-by: Terry Bowman <terry.bowman@amd.com>
-[rrichter@amd.com: Reworded patch description.]
-Signed-off-by: Robert Richter <rrichter@amd.com>
----
- drivers/acpi/pci_root.c | 1 +
- 1 file changed, 1 insertion(+)
+So, assume:
+this time, refcount is 2, >1,     minus 1 to 1, then continue;
+next time, refcount is 1, not >1, minus 1 to 0, then clear the 
+page->mapping.
 
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index 4e3db20e9cbb..b3c202d2a433 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -493,6 +493,7 @@ static u32 calculate_cxl_support(void)
- 	u32 support;
- 
- 	support = OSC_CXL_2_0_PORT_DEV_REG_ACCESS_SUPPORT;
-+	support |= OSC_CXL_1_1_PORT_REG_ACCESS_SUPPORT;
- 	if (pci_aer_available())
- 		support |= OSC_CXL_PROTOCOL_ERR_REPORTING_SUPPORT;
- 	if (IS_ENABLED(CONFIG_HOTPLUG_PCI_PCIE))
--- 
-2.30.2
 
+> 
+>>   				continue;
+>>   		} else
+>>   			WARN_ON_ONCE(page->mapping && page->mapping != mapping);
+>> @@ -840,12 +840,6 @@ static bool dax_fault_is_synchronous(const struct iomap_iter *iter,
+>>   		(iter->iomap.flags & IOMAP_F_DIRTY);
+>>   }
+>>   
+>> -static bool dax_fault_is_cow(const struct iomap_iter *iter)
+>> -{
+>> -	return (iter->flags & IOMAP_WRITE) &&
+>> -		(iter->iomap.flags & IOMAP_F_SHARED);
+>> -}
+>> -
+>>   /*
+>>    * By this point grab_mapping_entry() has ensured that we have a locked entry
+>>    * of the appropriate size so we don't have to worry about downgrading PMDs to
+>> @@ -859,13 +853,14 @@ static void *dax_insert_entry(struct xa_state *xas, struct vm_fault *vmf,
+>>   {
+>>   	struct address_space *mapping = vmf->vma->vm_file->f_mapping;
+>>   	void *new_entry = dax_make_entry(pfn, flags);
+>> -	bool dirty = !dax_fault_is_synchronous(iter, vmf->vma);
+>> -	bool cow = dax_fault_is_cow(iter);
+>> +	bool write = iter->flags & IOMAP_WRITE;
+>> +	bool dirty = write && !dax_fault_is_synchronous(iter, vmf->vma);
+>> +	bool shared = iter->iomap.flags & IOMAP_F_SHARED;
+>>   
+>>   	if (dirty)
+>>   		__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
+>>   
+>> -	if (cow || (dax_is_zero_entry(entry) && !(flags & DAX_ZERO_PAGE))) {
+>> +	if (shared || (dax_is_zero_entry(entry) && !(flags & DAX_ZERO_PAGE))) {
+> 
+> Ah, ok, so now we're yanking the mapping if the extent is shared,
+> presumably so that...
+> 
+>>   		unsigned long index = xas->xa_index;
+>>   		/* we are replacing a zero page with block mapping */
+>>   		if (dax_is_pmd_entry(entry))
+>> @@ -877,12 +872,12 @@ static void *dax_insert_entry(struct xa_state *xas, struct vm_fault *vmf,
+>>   
+>>   	xas_reset(xas);
+>>   	xas_lock_irq(xas);
+>> -	if (cow || dax_is_zero_entry(entry) || dax_is_empty_entry(entry)) {
+>> +	if (shared || dax_is_zero_entry(entry) || dax_is_empty_entry(entry)) {
+>>   		void *old;
+>>   
+>>   		dax_disassociate_entry(entry, mapping, false);
+>>   		dax_associate_entry(new_entry, mapping, vmf->vma, vmf->address,
+>> -				cow);
+>> +				shared);
+> 
+> ...down here we can rebuild the association, but this time we'll set the
+> page->mapping to PAGE_MAPPING_DAX_COW?  I see a lot of similar changes,
+> so I'm guessing this is how you fixed the failures that were a result of
+> read file A -> reflink A to B -> read file B sequences?
+
+Yes, it even failed when mapreading a page shared by two extent of ONE 
+file.  But I remember that I had tested these cases before...
+
+> 
+>>   		/*
+>>   		 * Only swap our new entry into the page cache if the current
+>>   		 * entry is a zero page or an empty entry.  If a normal PTE or
+>> @@ -902,7 +897,7 @@ static void *dax_insert_entry(struct xa_state *xas, struct vm_fault *vmf,
+>>   	if (dirty)
+>>   		xas_set_mark(xas, PAGECACHE_TAG_DIRTY);
+>>   
+>> -	if (cow)
+>> +	if (write && shared)
+>>   		xas_set_mark(xas, PAGECACHE_TAG_TOWRITE);
+>>   
+>>   	xas_unlock_irq(xas);
+>> @@ -1107,23 +1102,35 @@ static int dax_iomap_cow_copy(loff_t pos, uint64_t length, size_t align_size,
+> 
+> I think this function isn't well named.  It's copying into the parts of
+> the @daddr page that are *not* covered by @pos/@length.  In other words,
+> it's really copying *around* the range that's supplied, isn't it?
+
+Yes, I used to name it "dax_iomap_copy_edge()", which is not so good 
+too.  I'm not good at naming.
+
+> 
+>>   	loff_t end = pos + length;
+>>   	loff_t pg_end = round_up(end, align_size);
+>>   	bool copy_all = head_off == 0 && end == pg_end;
+>> +	/* write zero at edge if srcmap is a HOLE or IOMAP_UNWRITTEN */
+>> +	bool zero_edge = srcmap->flags & IOMAP_F_SHARED ||
+> 
+> When is IOMAP_F_SHARED set on the /source/ mapping?  I don't understand
+> that circumstance, so I don't understand why we want to zero around in
+> that case.
+
+Please see explanation above.
+
+> 
+>> +			 srcmap->type == IOMAP_UNWRITTEN;
+> 
+> Though it's self evident why we'd do that if the source map is
+> unwritten.
+
+The new allocated destination pages for CoW is not all zeroed, not like 
+new allocated page cache.  Old data remains on it.  So, if the source 
+extent doesn't contain valid data (HOLE and UNWRITTEN extent), we need 
+to zero the destination range around the @pos+@length.
+
+> 
+>>   	void *saddr = 0;
+>>   	int ret = 0;
+>>   
+>> -	ret = dax_iomap_direct_access(srcmap, pos, size, &saddr, NULL);
+>> -	if (ret)
+>> -		return ret;
+>> +	if (!zero_edge) {
+>> +		ret = dax_iomap_direct_access(srcmap, pos, size, &saddr, NULL);
+>> +		if (ret)
+>> +			return ret;
+>> +	}
+>>   
+>>   	if (copy_all) {
+>> -		ret = copy_mc_to_kernel(daddr, saddr, length);
+>> -		return ret ? -EIO : 0;
+>> +		if (zero_edge)
+>> +			memset(daddr, 0, size);
+>> +		else
+>> +			ret = copy_mc_to_kernel(daddr, saddr, length);
+>> +		goto out;
+>>   	}
+>>   
+>>   	/* Copy the head part of the range */
+>>   	if (head_off) {
+>> -		ret = copy_mc_to_kernel(daddr, saddr, head_off);
+>> -		if (ret)
+>> -			return -EIO;
+>> +		if (zero_edge)
+>> +			memset(daddr, 0, head_off);
+>> +		else {
+>> +			ret = copy_mc_to_kernel(daddr, saddr, head_off);
+>> +			if (ret)
+>> +				return -EIO;
+>> +		}
+>>   	}
+>>   
+>>   	/* Copy the tail part of the range */
+>> @@ -1131,12 +1138,19 @@ static int dax_iomap_cow_copy(loff_t pos, uint64_t length, size_t align_size,
+>>   		loff_t tail_off = head_off + length;
+>>   		loff_t tail_len = pg_end - end;
+>>   
+>> -		ret = copy_mc_to_kernel(daddr + tail_off, saddr + tail_off,
+>> -					tail_len);
+>> -		if (ret)
+>> -			return -EIO;
+>> +		if (zero_edge)
+>> +			memset(daddr + tail_off, 0, tail_len);
+>> +		else {
+>> +			ret = copy_mc_to_kernel(daddr + tail_off,
+>> +						saddr + tail_off, tail_len);
+>> +			if (ret)
+>> +				return -EIO;
+>> +		}
+>>   	}
+>> -	return 0;
+>> +out:
+>> +	if (zero_edge)
+>> +		dax_flush(srcmap->dax_dev, daddr, size);
+>> +	return ret ? -EIO : 0;
+>>   }
+>>   
+>>   /*
+>> @@ -1235,13 +1249,9 @@ static int dax_memzero(struct iomap_iter *iter, loff_t pos, size_t size)
+>>   	if (ret < 0)
+>>   		return ret;
+>>   	memset(kaddr + offset, 0, size);
+>> -	if (srcmap->addr != iomap->addr) {
+>> -		ret = dax_iomap_cow_copy(pos, size, PAGE_SIZE, srcmap,
+>> -					 kaddr);
+>> -		if (ret < 0)
+>> -			return ret;
+>> -		dax_flush(iomap->dax_dev, kaddr, PAGE_SIZE);
+>> -	} else
+>> +	if (iomap->flags & IOMAP_F_SHARED)
+>> +		ret = dax_iomap_cow_copy(pos, size, PAGE_SIZE, srcmap, kaddr);
+>> +	else
+>>   		dax_flush(iomap->dax_dev, kaddr + offset, size);
+>>   	return ret;
+>>   }
+>> @@ -1258,6 +1268,15 @@ static s64 dax_zero_iter(struct iomap_iter *iter, bool *did_zero)
+>>   	if (srcmap->type == IOMAP_HOLE || srcmap->type == IOMAP_UNWRITTEN)
+>>   		return length;
+>>   
+>> +	/*
+>> +	 * invalidate the pages whose sharing state is to be changed
+>> +	 * because of CoW.
+>> +	 */
+>> +	if (iomap->flags & IOMAP_F_SHARED)
+>> +		invalidate_inode_pages2_range(iter->inode->i_mapping,
+>> +					      pos >> PAGE_SHIFT,
+>> +					      (pos + length - 1) >> PAGE_SHIFT);
+>> +
+>>   	do {
+>>   		unsigned offset = offset_in_page(pos);
+>>   		unsigned size = min_t(u64, PAGE_SIZE - offset, length);
+>> @@ -1318,12 +1337,13 @@ static loff_t dax_iomap_iter(const struct iomap_iter *iomi,
+>>   		struct iov_iter *iter)
+>>   {
+>>   	const struct iomap *iomap = &iomi->iomap;
+>> -	const struct iomap *srcmap = &iomi->srcmap;
+>> +	const struct iomap *srcmap = iomap_iter_srcmap(iomi);
+>>   	loff_t length = iomap_length(iomi);
+>>   	loff_t pos = iomi->pos;
+>>   	struct dax_device *dax_dev = iomap->dax_dev;
+>>   	loff_t end = pos + length, done = 0;
+>>   	bool write = iov_iter_rw(iter) == WRITE;
+>> +	bool cow = write && iomap->flags & IOMAP_F_SHARED;
+>>   	ssize_t ret = 0;
+>>   	size_t xfer;
+>>   	int id;
+>> @@ -1350,7 +1370,7 @@ static loff_t dax_iomap_iter(const struct iomap_iter *iomi,
+>>   	 * into page tables. We have to tear down these mappings so that data
+>>   	 * written by write(2) is visible in mmap.
+>>   	 */
+>> -	if (iomap->flags & IOMAP_F_NEW) {
+>> +	if (iomap->flags & IOMAP_F_NEW || cow) {
+>>   		invalidate_inode_pages2_range(iomi->inode->i_mapping,
+>>   					      pos >> PAGE_SHIFT,
+>>   					      (end - 1) >> PAGE_SHIFT);
+>> @@ -1384,8 +1404,7 @@ static loff_t dax_iomap_iter(const struct iomap_iter *iomi,
+>>   			break;
+>>   		}
+>>   
+>> -		if (write &&
+>> -		    srcmap->type != IOMAP_HOLE && srcmap->addr != iomap->addr) {
+>> +		if (cow) {
+>>   			ret = dax_iomap_cow_copy(pos, length, PAGE_SIZE, srcmap,
+>>   						 kaddr);
+>>   			if (ret)
+>> @@ -1532,7 +1551,7 @@ static vm_fault_t dax_fault_iter(struct vm_fault *vmf,
+>>   		struct xa_state *xas, void **entry, bool pmd)
+>>   {
+>>   	const struct iomap *iomap = &iter->iomap;
+>> -	const struct iomap *srcmap = &iter->srcmap;
+>> +	const struct iomap *srcmap = iomap_iter_srcmap(iter);
+>>   	size_t size = pmd ? PMD_SIZE : PAGE_SIZE;
+>>   	loff_t pos = (loff_t)xas->xa_index << PAGE_SHIFT;
+>>   	bool write = iter->flags & IOMAP_WRITE;
+>> @@ -1563,8 +1582,7 @@ static vm_fault_t dax_fault_iter(struct vm_fault *vmf,
+>>   
+>>   	*entry = dax_insert_entry(xas, vmf, iter, *entry, pfn, entry_flags);
+>>   
+>> -	if (write &&
+>> -	    srcmap->type != IOMAP_HOLE && srcmap->addr != iomap->addr) {
+>> +	if (write && iomap->flags & IOMAP_F_SHARED) {
+>>   		err = dax_iomap_cow_copy(pos, size, size, srcmap, kaddr);
+>>   		if (err)
+>>   			return dax_fault_return(err);
+>> @@ -1936,15 +1954,15 @@ int dax_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
+> 
+> Does the dedupe change need to be in this patch?  It looks ok both
+> before and after, so I don't know why it's necessary.
+
+I'll separate this in next version.
+
+This is the old version:
+	while ((ret = iomap_iter(&src_iter, ops)) > 0) {
+		while ((ret = iomap_iter(&dst_iter, ops)) > 0) {
+			dst_iter.processed = dax_range_compare_iter(&src_iter,
+						&dst_iter, len, same);
+		}
+		if (ret <= 0)
+			src_iter.processed = ret;
+	}
+The inner iter (iomap_begin, actor, iomap_end) may loop more than once. 
+In this case, the inner dest_iter updates its iomap, but the outer 
+src_iter still keeps the old.  The comparison of new dest_iomap and old 
+src_iomap is meanless and it causes the bug.
+
+So, we need to make the two iters able to update their iomaps together.
+
+> 
+> Welp, thank you for fixing the problems, at least.  After a couple of
+> days it looks like the serious problems have cleared up.
+> 
+
+I didn't test the dax code well.  Sorry...
+
+
+--
+Thanks,
+Ruan.
+
+> --D
+> 
+>>   		.len		= len,
+>>   		.flags		= IOMAP_DAX,
+>>   	};
+>> -	int ret;
+>> +	int ret, compared = 0;
+>>   
+>> -	while ((ret = iomap_iter(&src_iter, ops)) > 0) {
+>> -		while ((ret = iomap_iter(&dst_iter, ops)) > 0) {
+>> -			dst_iter.processed = dax_range_compare_iter(&src_iter,
+>> -						&dst_iter, len, same);
+>> -		}
+>> -		if (ret <= 0)
+>> -			src_iter.processed = ret;
+>> +	while ((ret = iomap_iter(&src_iter, ops)) > 0 &&
+>> +	       (ret = iomap_iter(&dst_iter, ops)) > 0) {
+>> +		compared = dax_range_compare_iter(&src_iter, &dst_iter, len,
+>> +						  same);
+>> +		if (compared < 0)
+>> +			return ret;
+>> +		src_iter.processed = dst_iter.processed = compared;
+>>   	}
+>>   	return ret;
+>>   }
+>> diff --git a/fs/xfs/xfs_iomap.c b/fs/xfs/xfs_iomap.c
+>> index 07da03976ec1..d9401d0300ad 100644
+>> --- a/fs/xfs/xfs_iomap.c
+>> +++ b/fs/xfs/xfs_iomap.c
+>> @@ -1215,7 +1215,7 @@ xfs_read_iomap_begin(
+>>   		return error;
+>>   	error = xfs_bmapi_read(ip, offset_fsb, end_fsb - offset_fsb, &imap,
+>>   			       &nimaps, 0);
+>> -	if (!error && (flags & IOMAP_REPORT))
+>> +	if (!error && ((flags & IOMAP_REPORT) || IS_DAX(inode)))
+>>   		error = xfs_reflink_trim_around_shared(ip, &imap, &shared);
+>>   	xfs_iunlock(ip, lockmode);
+>>   
+>> @@ -1370,7 +1370,7 @@ xfs_zero_range(
+>>   
+>>   	if (IS_DAX(inode))
+>>   		return dax_zero_range(inode, pos, len, did_zero,
+>> -				      &xfs_direct_write_iomap_ops);
+>> +				      &xfs_dax_write_iomap_ops);
+>>   	return iomap_zero_range(inode, pos, len, did_zero,
+>>   				&xfs_buffered_write_iomap_ops);
+>>   }
+>> @@ -1385,7 +1385,7 @@ xfs_truncate_page(
+>>   
+>>   	if (IS_DAX(inode))
+>>   		return dax_truncate_page(inode, pos, did_zero,
+>> -					&xfs_direct_write_iomap_ops);
+>> +					&xfs_dax_write_iomap_ops);
+>>   	return iomap_truncate_page(inode, pos, did_zero,
+>>   				   &xfs_buffered_write_iomap_ops);
+>>   }
+>> -- 
+>> 2.38.1
+>>
