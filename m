@@ -1,40 +1,39 @@
 Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBD2479C0
-	for <nvdimm@lists.linux.dev>; Wed, 30 Nov 2022 19:23:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9485F79C0
+	for <nvdimm@lists.linux.dev>; Wed, 30 Nov 2022 19:23:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1669836199; x=1701372199;
+  t=1669836205; x=1701372205;
   h=subject:from:to:cc:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=88azzkZzbVlSHS6kW7zwXOr9B3rybc+KeSXbL0S7NOQ=;
-  b=V1mSxkxs+b00Fe0mjrHKQRfT0m3tgv8m2hfN+xY0ezYmeVmx0UIswMtt
-   XdK3TqxhN9C1Y2fIE+W3g0qW2Ij8AkHChDktV2Gh3dmKGy6ZXRPhSrWla
-   lOte4YRmHpMWHgw9DsElyVg+IAySIX9+hzbnUlRGNWDLUA4g9SLjpTWRW
-   lEB1ElKdrYhsqvsR9Rep2kbrW/xzB/UugEBUplnra5KAxehMD8RI5Y2M+
-   Uox94E4DrLDiOs/lRpjdLJ1LkwISXCwygioYfYvptjN9MFPDGPcPhU6a9
-   k7HZURJM526Csj9AFxn6Pw4Iz6EcKrKSwezYk0q3y8X1QUklpuLr8y8YF
-   Q==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10547"; a="313118777"
+  bh=HB2mu3vlQjvxETa6YGLhbaj71HlkoxbGVkNoisAHxLg=;
+  b=gHsAmk+Dn6mGNaLDXmF+ZTL1NiXJS2SB9mJFcLCRsVkZp8xAnrcsvP5O
+   TDpQ7MWjNElHz1kita0MORvhJxJOzTv1RzSsIqCHmEcEqBs+pHOtiB8vH
+   prjco+H/vhj8jcNrr0LPOI0SLd2mOEnwepAn8SKMLNtxVJCRFnNHxL2r/
+   9aK6U/l+jcJw1B7BWe851ObPpq9/EWjNuEQCN38tHh9m9MMTC+PAuwqla
+   a+WqL+FANByfaiDVXFbdy5nnvMhP1JiZ0DIvS7YePrgsFFWGmmmOrprtN
+   xgFbkM7lXhvMl6uJH8hQ5UwmoADmMHDxiBkteGn2bjMiDD5qmXEYMDkPR
+   A==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10547"; a="313118820"
 X-IronPort-AV: E=Sophos;i="5.96,207,1665471600"; 
-   d="scan'208";a="313118777"
+   d="scan'208";a="313118820"
 Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Nov 2022 11:23:19 -0800
-X-IronPort-AV: E=McAfee;i="6500,9779,10547"; a="889415487"
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Nov 2022 11:23:25 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10547"; a="889415532"
 X-IronPort-AV: E=Sophos;i="5.96,207,1665471600"; 
-   d="scan'208";a="889415487"
+   d="scan'208";a="889415532"
 Received: from djiang5-desk3.ch.intel.com ([143.182.136.137])
-  by fmsmga006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Nov 2022 11:23:19 -0800
-Subject: [PATCH v7 19/20] acpi/nfit: bypass cpu_cache_invalidate_memregion()
- when in test config
+  by fmsmga006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Nov 2022 11:23:24 -0800
+Subject: [PATCH v7 20/20] cxl: add dimm_id support for __nvdimm_create()
 From: Dave Jiang <dave.jiang@intel.com>
 To: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
 Cc: dan.j.williams@intel.com, ira.weiny@intel.com, vishal.l.verma@intel.com,
  alison.schofield@intel.com, Jonathan.Cameron@huawei.com, dave@stgolabs.net
-Date: Wed, 30 Nov 2022 12:23:18 -0700
+Date: Wed, 30 Nov 2022 12:23:24 -0700
 Message-ID: 
- <166983619896.2734609.7192339006218947870.stgit@djiang5-desk3.ch.intel.com>
+ <166983620459.2734609.10175456773200251184.stgit@djiang5-desk3.ch.intel.com>
 In-Reply-To: 
  <166983606451.2734609.4050644229630259452.stgit@djiang5-desk3.ch.intel.com>
 References: 
@@ -49,133 +48,81 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 
-Bypass cpu_cache_invalidate_memregion() and checks when doing testing
-using CONFIG_NVDIMM_SECURITY_TEST flag. The bypass allows testing on
-QEMU where cpu_cache_has_invalidate_memregion() fails. Usage of
-cpu_cache_invalidate_memregion() is not needed for nfit_test security
-testing.
+Set the cxlds->serial as the dimm_id to be fed to __nvdimm_create(). The
+security code uses that as the key description for the security key of the
+memory device. The nvdimm unlock code cannot find the respective key
+without the dimm_id.
 
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Link: https://lore.kernel.org/r/166863357043.80269.4337575149671383294.stgit@djiang5-desk3.ch.intel.com
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/nfit/intel.c |   51 +++++++++++++++++++++++++++++++++++++--------
- 1 file changed, 42 insertions(+), 9 deletions(-)
+ drivers/cxl/core/pmem.c |   10 ++++++++++
+ drivers/cxl/cxl.h       |    3 +++
+ drivers/cxl/pmem.c      |    3 ++-
+ 3 files changed, 15 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
-index fa0e57e35162..38069f10c316 100644
---- a/drivers/acpi/nfit/intel.c
-+++ b/drivers/acpi/nfit/intel.c
-@@ -191,6 +191,39 @@ static int intel_security_change_key(struct nvdimm *nvdimm,
- 	}
- }
- 
-+static bool intel_has_invalidate_memregion(struct nvdimm *nvdimm)
-+{
-+	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
-+	struct acpi_nfit_desc *acpi_desc = nfit_mem->acpi_desc;
-+	struct device *dev = acpi_desc->dev;
-+
-+	if (!cpu_cache_has_invalidate_memregion()) {
-+		if (IS_ENABLED(CONFIG_NVDIMM_SECURITY_TEST)) {
-+			dev_warn_once(dev,
-+				      "Bypassing cpu_cache_has_invalidate_memregion() check for testing!\n");
-+			return true;
-+		}
-+		return false;
-+	}
-+
-+	return true;
-+}
-+
-+static void intel_invalidate_memregion(struct nvdimm *nvdimm)
-+{
-+	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
-+	struct acpi_nfit_desc *acpi_desc = nfit_mem->acpi_desc;
-+	struct device *dev = acpi_desc->dev;
-+
-+	if (IS_ENABLED(CONFIG_NVDIMM_SECURITY_TEST)) {
-+		dev_warn_once(dev,
-+			      "Bypassing cpu_cache_invalidate_memergion() for testing!\n");
-+		return;
-+	}
-+
-+	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
-+}
-+
- static int __maybe_unused intel_security_unlock(struct nvdimm *nvdimm,
- 		const struct nvdimm_key_data *key_data)
+diff --git a/drivers/cxl/core/pmem.c b/drivers/cxl/core/pmem.c
+index 36aa5070d902..f985d41f8f8e 100644
+--- a/drivers/cxl/core/pmem.c
++++ b/drivers/cxl/core/pmem.c
+@@ -224,6 +224,7 @@ static struct cxl_nvdimm *cxl_nvdimm_alloc(struct cxl_memdev *cxlmd)
  {
-@@ -212,7 +245,7 @@ static int __maybe_unused intel_security_unlock(struct nvdimm *nvdimm,
- 	if (!test_bit(NVDIMM_INTEL_UNLOCK_UNIT, &nfit_mem->dsm_mask))
- 		return -ENOTTY;
+ 	struct cxl_nvdimm *cxl_nvd;
+ 	struct device *dev;
++	int rc;
  
--	if (!cpu_cache_has_invalidate_memregion())
-+	if (!intel_has_invalidate_memregion(nvdimm))
- 		return -EINVAL;
+ 	cxl_nvd = kzalloc(sizeof(*cxl_nvd), GFP_KERNEL);
+ 	if (!cxl_nvd)
+@@ -239,6 +240,15 @@ static struct cxl_nvdimm *cxl_nvdimm_alloc(struct cxl_memdev *cxlmd)
+ 	dev->bus = &cxl_bus_type;
+ 	dev->type = &cxl_nvdimm_type;
  
- 	memcpy(nd_cmd.cmd.passphrase, key_data->data,
-@@ -230,7 +263,7 @@ static int __maybe_unused intel_security_unlock(struct nvdimm *nvdimm,
- 	}
- 
- 	/* DIMM unlocked, invalidate all CPU caches before we read it */
--	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
-+	intel_invalidate_memregion(nvdimm);
- 
- 	return 0;
- }
-@@ -299,11 +332,11 @@ static int __maybe_unused intel_security_erase(struct nvdimm *nvdimm,
- 	if (!test_bit(cmd, &nfit_mem->dsm_mask))
- 		return -ENOTTY;
- 
--	if (!cpu_cache_has_invalidate_memregion())
-+	if (!intel_has_invalidate_memregion(nvdimm))
- 		return -EINVAL;
- 
- 	/* flush all cache before we erase DIMM */
--	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
-+	intel_invalidate_memregion(nvdimm);
- 	memcpy(nd_cmd.cmd.passphrase, key->data,
- 			sizeof(nd_cmd.cmd.passphrase));
- 	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
-@@ -323,7 +356,7 @@ static int __maybe_unused intel_security_erase(struct nvdimm *nvdimm,
- 	}
- 
- 	/* DIMM erased, invalidate all CPU caches before we read it */
--	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
-+	intel_invalidate_memregion(nvdimm);
- 	return 0;
++	rc = snprintf(cxl_nvd->dev_id, CXL_DEV_ID_LEN, "%llx",
++		      cxlmd->cxlds->serial);
++	if (rc <= 0) {
++		kfree(cxl_nvd);
++		if (rc == 0)
++			rc = -ENXIO;
++		return ERR_PTR(rc);
++	}
++
+ 	return cxl_nvd;
  }
  
-@@ -346,7 +379,7 @@ static int __maybe_unused intel_security_query_overwrite(struct nvdimm *nvdimm)
- 	if (!test_bit(NVDIMM_INTEL_QUERY_OVERWRITE, &nfit_mem->dsm_mask))
- 		return -ENOTTY;
+diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
+index 7d07127eade3..b433e541a054 100644
+--- a/drivers/cxl/cxl.h
++++ b/drivers/cxl/cxl.h
+@@ -420,11 +420,14 @@ struct cxl_nvdimm_bridge {
+ 	enum cxl_nvdimm_brige_state state;
+ };
  
--	if (!cpu_cache_has_invalidate_memregion())
-+	if (!intel_has_invalidate_memregion(nvdimm))
- 		return -EINVAL;
++#define CXL_DEV_ID_LEN 19
++
+ struct cxl_nvdimm {
+ 	struct device dev;
+ 	struct cxl_memdev *cxlmd;
+ 	struct cxl_nvdimm_bridge *bridge;
+ 	struct xarray pmem_regions;
++	u8 dev_id[CXL_DEV_ID_LEN]; /* for nvdimm, string of 'serial' */
+ };
  
- 	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
-@@ -363,7 +396,7 @@ static int __maybe_unused intel_security_query_overwrite(struct nvdimm *nvdimm)
- 	}
- 
- 	/* flush all cache before we make the nvdimms available */
--	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
-+	intel_invalidate_memregion(nvdimm);
- 	return 0;
- }
- 
-@@ -388,11 +421,11 @@ static int __maybe_unused intel_security_overwrite(struct nvdimm *nvdimm,
- 	if (!test_bit(NVDIMM_INTEL_OVERWRITE, &nfit_mem->dsm_mask))
- 		return -ENOTTY;
- 
--	if (!cpu_cache_has_invalidate_memregion())
-+	if (!intel_has_invalidate_memregion(nvdimm))
- 		return -EINVAL;
- 
- 	/* flush all cache before we erase DIMM */
--	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
-+	intel_invalidate_memregion(nvdimm);
- 	memcpy(nd_cmd.cmd.passphrase, nkey->data,
- 			sizeof(nd_cmd.cmd.passphrase));
- 	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
+ struct cxl_pmem_region_mapping {
+diff --git a/drivers/cxl/pmem.c b/drivers/cxl/pmem.c
+index 403e41bcbf2b..ab40c93c44e5 100644
+--- a/drivers/cxl/pmem.c
++++ b/drivers/cxl/pmem.c
+@@ -117,7 +117,8 @@ static int cxl_nvdimm_probe(struct device *dev)
+ 	set_bit(ND_CMD_SET_CONFIG_DATA, &cmd_mask);
+ 	nvdimm = __nvdimm_create(cxl_nvb->nvdimm_bus, cxl_nvd,
+ 				 cxl_dimm_attribute_groups, flags,
+-				 cmd_mask, 0, NULL, NULL, cxl_security_ops, NULL);
++				 cmd_mask, 0, NULL, cxl_nvd->dev_id,
++				 cxl_security_ops, NULL);
+ 	if (!nvdimm) {
+ 		rc = -ENOMEM;
+ 		goto out;
 
 
