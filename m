@@ -1,250 +1,150 @@
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from NAM10-MW2-obe.outbound.protection.outlook.com (mail-mw2nam10on2081.outbound.protection.outlook.com [40.107.94.81])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DECAB81C
-	for <nvdimm@lists.linux.dev>; Wed, 30 Nov 2022 07:05:48 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1669791948; x=1701327948;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=+fgmJM2UvY5iDfOrskxfgnEnb1Y1ijvVz7oTg6btRSQ=;
-  b=GwHiByiHBUk8/U+7JYdTmqtVe/ZWoiWzOpqRRlD0JZiTSt/Y/AdeOfl/
-   qVdoBG3/PQoh+iSbfKFl11zrTIpGeoc9t5dnWUazGtKbwakVMkJSgUl0g
-   dh0vSu0eKsSL17CZEfrfQuZo1RDnaBgEFlg8yp/GgK5V8SxxdSvE8mCYM
-   BtNK7m+wqo70pLWoUdDsfJlADNR8dzm0pl0KjztRLt7Dvdbc7oddMqHYG
-   PoKMVr2iWoU3RxVDpJPEI6zk+YcQYHB8UBZa/D2nz6pU39dkoudyPDM7H
-   +6KF4j/AVDE6bZ97yJFGVY+oYjiy0sD0hSdXKfAvUwxZCRXeQe16Mji7p
-   A==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10546"; a="295019535"
-X-IronPort-AV: E=Sophos;i="5.96,205,1665471600"; 
-   d="scan'208";a="295019535"
-Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Nov 2022 23:05:48 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6500,9779,10546"; a="750213995"
-X-IronPort-AV: E=Sophos;i="5.96,205,1665471600"; 
-   d="scan'208";a="750213995"
-Received: from orsmsx601.amr.corp.intel.com ([10.22.229.14])
-  by fmsmga002.fm.intel.com with ESMTP; 29 Nov 2022 23:05:47 -0800
-Received: from orsmsx601.amr.corp.intel.com (10.22.229.14) by
- ORSMSX601.amr.corp.intel.com (10.22.229.14) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.16; Tue, 29 Nov 2022 23:05:47 -0800
-Received: from orsedg603.ED.cps.intel.com (10.7.248.4) by
- orsmsx601.amr.corp.intel.com (10.22.229.14) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.16 via Frontend Transport; Tue, 29 Nov 2022 23:05:47 -0800
-Received: from NAM11-BN8-obe.outbound.protection.outlook.com (104.47.58.168)
- by edgegateway.intel.com (134.134.137.100) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.16; Tue, 29 Nov 2022 23:05:46 -0800
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F123A29
+	for <nvdimm@lists.linux.dev>; Wed, 30 Nov 2022 08:16:43 +0000 (UTC)
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=mm5m3KiXrdF3oCbajPlkoksFg2hgSVWtDlAhGFpsoqeNXa6IeLjXKLfbOtZV2jTxdPjhZM30RCzJrrmN83CEp2D3+R9SYaZ8gqIcC2KcSU+f1Vcir4m4HIhXowNOS2BbMYkVFF9JmqQFVUnW0YBxhTGQTcdzGH95d+t0qEluBKZ7gYGExBYTZrsbOVc4MT9aufRHFpF9WcIbj82HzzpnMe4EqhNiFmSt0SEQGEgqOHlODg0McpXWVDISEDoROCbt7AaTg1gTb2qvjo9cE2wl6oKeh8xWW/X6hEjqQA6YVCV1AfK5yLZtlOhG8tF7qHL7Hf2oM8yHsbdXsOP7yEkn6g==
+ b=jseitvNI8I63G0DI/p8Jcvrb3VZ18geg6abWPfBSF4CwyGTNt+jRR/nWTAtJffONDAOGD1QMDCxWe/igu//hjRs0nVYkZ0RWXHIuvg2jiTKMkGGRciuoNxz3eWRIB0AalhchO4oS5sydDIY8hCP196smQbzmXT+sO4MxxTbGiJvrddquE6iNHgEpk+iABGeGJFJPYYN0gh9X1DuNiADRepDKU8i9ipRr6UpoTnDdJptnvtvQUT18GYQocmBdtqKLYD5Kxo8+NAi88FtACd0rP4T3aM8vZyiurgrq3+L/83MwQVvHlZV+1Jz6yiXmsrsiPk6awd/ioS/b1HTHyzduCQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=5xWIR3xurpuz6iifss8dYXa+BQCOJLsugQ5+2IIuxwk=;
- b=Irj10EjenKB08Mwsh34+zYCrr7zQg+EurDeRB5dchewax87ILXEuWzStgKpuID9qDRtpPA5NgMRGBY7Zexe29krsshtPcFT1yJYE1HKgc/8C/Fzi3N8Na9N0wVYMD6tz6PomFatBDzS8b0RA2ZnY3+yd2OBL/AZPrJmSU93XTBPbyNnFMucEiE2pbanAR8siMbt5DI2yIiwwGiyPhScFBjcoLMvrQG5INKAxjpXHrKdiMi9WTxROT8VyRWxhngmZrlMF0Y8n7r0bl7nzR4mMwrHcDBNigsMAvRg5n14DdmErAwQvqdSVpGqO9z6clTyVT8BNEpXiwc2hhgBbXLp0Rw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
- (2603:10b6:301:50::20) by SA2PR11MB5035.namprd11.prod.outlook.com
- (2603:10b6:806:116::21) with Microsoft SMTP Server (version=TLS1_2,
+ bh=SirpUZr4CB0Y9NbeDZUiTitO21tkgNOg7RqruX9RlNo=;
+ b=E+euxxTj9vVqyJbaYcJYaJ0H8vG7Yvm9UkVW3au9tEMrRY8hLYxAef5Be5X25UnYlmjmHxUaWXJsTdFdg2He1IRv/8HwhQb3k4QfWprIK/EzRYvPtRcmnnWYrJEDYcrjHKyNd4cskQuTJyw7z/D5E0EcoEMioTCdzGNaOYH/Vdtp9fAydDSwLF+geccOkgMeYS2COBuOVkD7K47bqL1ouVahCeEtAGXZUzK4rpzo9E865uVbFdSBvVpAYARluiZrL5Cz07sjPkMpZsq0lUz9dfneJyIPwIh1ftVwzcJGdand+SNFFUtEsdyY/TmB9ACsumRonaNqaXEt9NJNuaSGoQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 165.204.84.17) smtp.rcpttodomain=intel.com smtp.mailfrom=amd.com; dmarc=pass
+ (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
+ dkim=none (message not signed); arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=SirpUZr4CB0Y9NbeDZUiTitO21tkgNOg7RqruX9RlNo=;
+ b=Wflb9foZGMkz6YtbR+3keQ3pE84UH/eJs7q4CcL26CMIyHh9W8m4FO0qF3dKRBpLQ15q21gCX0YTOtrXNpcoSX6VzxH/EssYwaFFTZ53rDQa8s6aCAnx+s81GWt6xqpoQtBU8M8ggObEtViBeYdDOx2APo2aqnraPvzSOxEjCUI=
+Received: from DM6PR06CA0032.namprd06.prod.outlook.com (2603:10b6:5:120::45)
+ by IA1PR12MB6065.namprd12.prod.outlook.com (2603:10b6:208:3ef::7) with
+ Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5857.23; Wed, 30 Nov
- 2022 07:05:39 +0000
-Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
- ([fe80::340d:cb77:604d:b0b]) by MWHPR1101MB2126.namprd11.prod.outlook.com
- ([fe80::340d:cb77:604d:b0b%9]) with mapi id 15.20.5857.023; Wed, 30 Nov 2022
- 07:05:39 +0000
-Date: Tue, 29 Nov 2022 23:05:30 -0800
-From: Dan Williams <dan.j.williams@intel.com>
-To: "Darrick J. Wong" <djwong@kernel.org>, Dan Williams
-	<dan.j.williams@intel.com>
-CC: Shiyang Ruan <ruansy.fnst@fujitsu.com>, <linux-kernel@vger.kernel.org>,
-	<linux-xfs@vger.kernel.org>, <nvdimm@lists.linux.dev>,
-	<linux-fsdevel@vger.kernel.org>, <david@fromorbit.com>,
-	<akpm@linux-foundation.org>
-Subject: Re: [PATCH 0/2] fsdax,xfs: fix warning messages
-Message-ID: <638700ba5db1_c95729435@dwillia2-mobl3.amr.corp.intel.com.notmuch>
-References: <1669301694-16-1-git-send-email-ruansy.fnst@fujitsu.com>
- <6386d512ce3fc_c9572944e@dwillia2-mobl3.amr.corp.intel.com.notmuch>
- <Y4bZGvP8Ozp+4De/@magnolia>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <Y4bZGvP8Ozp+4De/@magnolia>
-X-ClientProxiedBy: BYAPR06CA0023.namprd06.prod.outlook.com
- (2603:10b6:a03:d4::36) To MWHPR1101MB2126.namprd11.prod.outlook.com
- (2603:10b6:301:50::20)
+ 2022 08:16:40 +0000
+Received: from DS1PEPF0000E631.namprd02.prod.outlook.com
+ (2603:10b6:5:120:cafe::a6) by DM6PR06CA0032.outlook.office365.com
+ (2603:10b6:5:120::45) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5857.23 via Frontend
+ Transport; Wed, 30 Nov 2022 08:16:40 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
+ smtp.mailfrom=amd.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=amd.com;
+Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
+ 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
+ client-ip=165.204.84.17; helo=SATLEXMB04.amd.com; pr=C
+Received: from SATLEXMB04.amd.com (165.204.84.17) by
+ DS1PEPF0000E631.mail.protection.outlook.com (10.167.17.135) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.20.5857.17 via Frontend Transport; Wed, 30 Nov 2022 08:16:40 +0000
+Received: from rric.localdomain (10.180.168.240) by SATLEXMB04.amd.com
+ (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.34; Wed, 30 Nov
+ 2022 02:16:38 -0600
+Date: Wed, 30 Nov 2022 09:16:23 +0100
+From: Robert Richter <rrichter@amd.com>
+To: Dan Williams <dan.j.williams@intel.com>
+CC: <linux-cxl@vger.kernel.org>, Terry Bowman <terry.bowman@amd.com>, "Rafael
+ J. Wysocki" <rafael.j.wysocki@intel.com>, <bhelgaas@google.com>,
+	<dave.jiang@intel.com>, <nvdimm@lists.linux.dev>
+Subject: Re: [PATCH v4 12/12] cxl/acpi: Set ACPI's CXL _OSC to indicate
+ CXL1.1 support
+Message-ID: <Y4cRV/Sj0epVW7bE@rric.localdomain>
+References: <166931487492.2104015.15204324083515120776.stgit@dwillia2-xfh.jf.intel.com>
+ <166931494367.2104015.9411254827419714457.stgit@dwillia2-xfh.jf.intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <166931494367.2104015.9411254827419714457.stgit@dwillia2-xfh.jf.intel.com>
+X-Originating-IP: [10.180.168.240]
+X-ClientProxiedBy: SATLEXMB03.amd.com (10.181.40.144) To SATLEXMB04.amd.com
+ (10.181.40.145)
+X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MWHPR1101MB2126:EE_|SA2PR11MB5035:EE_
-X-MS-Office365-Filtering-Correlation-Id: 661513f7-f1e0-446a-c23b-08dad2a148a1
+X-MS-TrafficTypeDiagnostic: DS1PEPF0000E631:EE_|IA1PR12MB6065:EE_
+X-MS-Office365-Filtering-Correlation-Id: eb767e15-c67d-43f1-5b26-08dad2ab356e
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: whxcUbZ8H+Rx8Go4H5r3MV4mgDo6QP/HbbNOzqr1V91lmrB/+uxAWtR202PCkcbaBxFlhgXlxMCi1Z90U+NdPLrBDJq8NMMNckTtSrFAO18lAtCjR+/GTJD22TuyrMdEaZD2njACkCL/t1B7rmEQJHdwQYmUoHt/IKVN/ZRoYoe3l73j4EIinBFbQSYeunqq/4Q8mcg9L4toNJgz9CkiiwsU0B2jfrq5T+K2TfQLlZOaAsun8/ygyEm3oLUMuYNCpMMlatL6SRR+Z7LTSB2SQ4wuKhxBLN3NgeEq/I5GjA0tBUvNHx1pDGo3lp4K11EcCjLIAWOeM8XNy59NZS5kdfYrP7hKbad84r1jcotGUG8W0l1otkaFkThQwT+ARRjPzeDhRNVxnrZ77tNeDx2upi+ItCjaB/PdatPlgr68AtSBnOS2zNHH0SoYPO+KG0OgvAICzdlb+apHfthqDN5mevu/fY0n/9ArrewNtXzN6wAOro67sCrlntepj+xkQe1LE+k7pqka9wHjqyPkK294l5ZbYry04ZrS52/7Sm6Y5tbRzl3ahwrrguurofF1qA3ECYpR+AkStRCt2Db9pDGK9hcUy7cg7++XFJnx+tCZoTZnF+UxQcOr7EYue7A5HXuWyOAI1DE02FNWeNsZgK8AEGC4Fl0PSRb/wVOgYclbUyehGDuJTYN8k6OCsS+4OG1kMLi62/zsqu+OTgDarKR5QQ==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1101MB2126.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230022)(396003)(136003)(346002)(366004)(39860400002)(376002)(451199015)(83380400001)(186003)(86362001)(38100700002)(316002)(82960400001)(66899015)(15650500001)(2906002)(110136005)(66476007)(66556008)(41300700001)(8676002)(4326008)(8936002)(66946007)(5660300002)(6506007)(6512007)(478600001)(6666004)(9686003)(26005)(6486002)(966005);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?/xjGjkwEXRfcrYW/iU4y+X/BZR7ykGHGoEjafRHTjMMdUPS2ZUCcXts554Gt?=
- =?us-ascii?Q?bRTXA8B+60vW0gm2ZMm3p4nrerTKyVzSwWrTyTAdzUfd5dG3lhTofBjrw0hZ?=
- =?us-ascii?Q?AAbTOqg1+uK6uvf/QO9JlfGtikwPOw8U+GxMK5EEX6ffaMc5AJIMwLAa3vXY?=
- =?us-ascii?Q?fzIWu7eRMJNZ6w/WcPdpnYUBkus3CXmhNdkpSCwWx/xkxtP8L7V0AaYU9+6W?=
- =?us-ascii?Q?dxYK8Z3ADQtheALunXMiazQE5MsUUAe4290CPHpQTajz0KycXzJXAmLVLC3Q?=
- =?us-ascii?Q?Nq9VoE+093qi8dFgIBAjDi6/6D2LfqNBhP1DqH3ODuLu2cS/+00FrRDGy/t5?=
- =?us-ascii?Q?3QPw+ZN2okUDWEPtg/3J3W6MOCJQIJwuq260KxMPYRYOOQfYGDlQF6XMvED7?=
- =?us-ascii?Q?xnwxYyHUKvjh0W0yUqZ0ynYRtDWRS+l2j1+ntI7mpu14djrIrxEsK+nv1Yku?=
- =?us-ascii?Q?5I68yaH+95HfwCDzyG92ChlyIzsMJwgsvDBWhEUvSyJHNt3srL561w8GB+X9?=
- =?us-ascii?Q?MMUBIMB5KmsDyjzLPtLzVyQJVIRXI+F33u+E2C3v/C/nZ1QPIl8CmK2fNbIo?=
- =?us-ascii?Q?1oZJBeWOkadYEjRRESikUlj/dSmuDxT1a4AXMnYJC0QvPnkOgvRiT5dAmyGT?=
- =?us-ascii?Q?T7PEIlmr1t8FbEPCKJ+S3lBHmGHgTrQS+oJlYWL6JV3ZB0uLZh2NjbvzK4R6?=
- =?us-ascii?Q?K+mYcYgoY0mV/gL8EMQVkLhBjESRLXb0Zg+R6IRnOAwzKE9GJXNnHTwrnnsM?=
- =?us-ascii?Q?A5tCN1MW6q5NcIFIlXsaYgmmVJsQj8stlHwT3Fk7VY+WUvfdYgNAtavOLmm9?=
- =?us-ascii?Q?lXUnfBbHK5gOnkWT3nbw+ZDCnFSh4X3nFDswRQ3BF4iMaIHZ6qK/Vqmp0Fwl?=
- =?us-ascii?Q?DHWy4Z8UGdFbReWXQ6jZzOQoDlNimJ+qoNGYD7ArIengqS07pnp8WeAjSczq?=
- =?us-ascii?Q?3Z9aPxFX6qpVEEjWfvX1BMnq926q418RwG39d79ZtIXlEwL+xRnOAeugIM/N?=
- =?us-ascii?Q?dcdUeg5lKdsZdT1ivyyrqn2Uk3VQAgvUJaDQzLp/id3K5P+kJKnhz/Smowra?=
- =?us-ascii?Q?qCTcL72vRM5SjDAc9VpSamXNUwKRWnh00sy5jq94dNByY4T29q1Ho0cO+vM3?=
- =?us-ascii?Q?6YMKG2ec/FJPMBK6YbpkEJ8p/qq4IcDFLf4+vydCjTaGNwQ1EnUi6RqZJ7SF?=
- =?us-ascii?Q?L2h7uhnXvMSksafHviYCEOEntFmBVGY6Alk8fbWLudHtKyOcxr6TWoQkHBT3?=
- =?us-ascii?Q?+5tG4HsaB8acObbBCH9Aeq6mR2z8Ov4JDoIAgwA6QWlNmPZI9fC3lLwRPXTW?=
- =?us-ascii?Q?t7hCiVPuMqzEj5kz3cg/NLAUyz8lFYSswB5Ler2ohsRQpIEtxDPXOjyNkbl2?=
- =?us-ascii?Q?pDbnvHMxpbv52s+cmsmxuxizyu0x8WPTv2gXQC2knkusQ8TZW/AaqsDviZqV?=
- =?us-ascii?Q?Zj08Tq9Kek60m/QILK+m6sCLgKbBQHWcm97mqiKUfLOa1r7hYqHeg66miStI?=
- =?us-ascii?Q?8V8uM4tivzO7v6sPmx1LF59HCVwMoai3tPLpWcWJVnAHZXa7ssklbDKuDLKl?=
- =?us-ascii?Q?NNl8xEsfHMwUFCK9mURDi47F2sd6kUQ1DjyJ9IAo690ZonNa7j0jrrig7WRx?=
- =?us-ascii?Q?DA=3D=3D?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: 661513f7-f1e0-446a-c23b-08dad2a148a1
-X-MS-Exchange-CrossTenant-AuthSource: MWHPR1101MB2126.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 Nov 2022 07:05:39.0379
+X-Microsoft-Antispam-Message-Info:
+	0WvEYGDJOiVMUiYTU5nU/51qvdjDdauorgHprQq/P82nUErqa2vQNKn6mujuReUSIGrVf4E5L1Cp9Xgw4jtyQmQTWDQCV50qzV7cwcVhJnzcEr3oUafs5H5GyV19YyLSUQ+IhvrFgqyMhPjek6/R5oRWKXKVCZz+Cj49dRT0WGfajJdZV7Ze8SdcNdyPzlfrLr+uwWrB0RkcyKuEQ9RqJCWwqm1MVDHlw9OmQI/0DMYvI8wqLxScfr5ozCC77bykKuqsJyrHWp3S0oXPbj6BbahI3J5uEjiUCaiFrFD2bwiNMK//16L1ASLjvimBnH9xKd0+5zmrOaDix2cr5VoDSPlTFiDZRb+nHBjTahpbLokuLT6+FvS3uADnOHUFY6W4kKqT3Zzv7HeXCVvTij4zDte2s/DlYYegHuVvm+yaW8+0QFl0y5kjesiPQaX2eVzslk1R2nBCVmmTjSTtdP3rE2g5W2oZy17Dyr/YJzBi5V8FE1R+1j29bJB3ueAPUTbJ8ZZmlYzu6bp/W3Bs4o2GK4ichLc1ZyNDRh+LnINm9+zHnf6ilmLOjRyMH7RYDFEA0snpwSYCPBwJsYplvPg81yNlEk1QYukWjG6Xk6SzZ18Z0VwFO/DpvJuV9NCyImsqfqSeDyvCulBj6vlOCYl5JJ2dOMKoCKUautUp+KME0YivSyVjJ6EDpQxqWRcSEYvVPA7uJlZW8SvTaSk89P44mMmzdvdqCUq3PlfWsduTEtQ=
+X-Forefront-Antispam-Report:
+	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230022)(4636009)(376002)(346002)(396003)(136003)(39860400002)(451199015)(46966006)(36840700001)(40470700004)(81166007)(40480700001)(55016003)(356005)(7696005)(9686003)(26005)(41300700001)(8936002)(4326008)(8676002)(478600001)(70206006)(70586007)(40460700003)(6666004)(36860700001)(316002)(5660300002)(82740400003)(2906002)(426003)(83380400001)(54906003)(53546011)(47076005)(336012)(6916009)(186003)(16526019)(82310400005)(36900700001);DIR:OUT;SFP:1101;
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 Nov 2022 08:16:40.3230
  (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: po6z5VmIkiUnN0W5rhcY3OpFrDZbW6LBAPjZEeJBAhiE18nkcdzhtyECAVMFiKmP4jCqXUeIuTLAzclkiWfIr/ifsjQPQngk2lm6rtJsRjc=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA2PR11MB5035
-X-OriginatorOrg: intel.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: eb767e15-c67d-43f1-5b26-08dad2ab356e
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	DS1PEPF0000E631.namprd02.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR12MB6065
 
-Darrick J. Wong wrote:
-> On Tue, Nov 29, 2022 at 07:59:14PM -0800, Dan Williams wrote:
-> > [ add Andrew ]
-> > 
-> > Shiyang Ruan wrote:
-> > > Many testcases failed in dax+reflink mode with warning message in dmesg.
-> > > This also effects dax+noreflink mode if we run the test after a
-> > > dax+reflink test.  So, the most urgent thing is solving the warning
-> > > messages.
-> > > 
-> > > Patch 1 fixes some mistakes and adds handling of CoW cases not
-> > > previously considered (srcmap is HOLE or UNWRITTEN).
-> > > Patch 2 adds the implementation of unshare for fsdax.
-> > > 
-> > > With these fixes, most warning messages in dax_associate_entry() are
-> > > gone.  But honestly, generic/388 will randomly failed with the warning.
-> > > The case shutdown the xfs when fsstress is running, and do it for many
-> > > times.  I think the reason is that dax pages in use are not able to be
-> > > invalidated in time when fs is shutdown.  The next time dax page to be
-> > > associated, it still remains the mapping value set last time.  I'll keep
-> > > on solving it.
-> > > 
-> > > The warning message in dax_writeback_one() can also be fixed because of
-> > > the dax unshare.
-> > 
-> > Thank you for digging in on this, I had been pinned down on CXL tasks
-> > and worried that we would need to mark FS_DAX broken for a cycle, so
-> > this is timely.
-> > 
-> > My only concern is that these patches look to have significant collisions with
-> > the fsdax page reference counting reworks pending in linux-next. Although,
-> > those are still sitting in mm-unstable:
-> > 
-> > http://lore.kernel.org/r/20221108162059.2ee440d5244657c4f16bdca0@linux-foundation.org
-> > 
-> > My preference would be to move ahead with both in which case I can help
-> > rebase these fixes on top. In that scenario everything would go through
-> > Andrew.
-> > 
-> > However, if we are getting too late in the cycle for that path I think
-> > these dax-fixes take precedence, and one more cycle to let the page
-> > reference count reworks sit is ok.
+On 24.11.22 10:35:43, Dan Williams wrote:
+> From: Terry Bowman <terry.bowman@amd.com>
 > 
-> Well now that raises some interesting questions -- dax and reflink are
-> totally broken on 6.1.  I was thinking about cramming them into 6.2 as a
-> data corruption fix on the grounds that is not an acceptable state of
-> affairs.
-
-I agree it's not an acceptable state of affairs, but for 6.1 the answer
-may be to just revert to dax+reflink being forbidden again. The fact
-that no end user has noticed is probably a good sign that we can disable
-that without any one screaming. That may be the easy answer for 6.2 as
-well given how late this all is.
-
-> OTOH we're past -rc7, which is **really late** to be changing core code.
-> Then again, there aren't so many fsdax users and nobody's complained
-> about 6.0/6.1 being busted, so perhaps the risk of regression isn't so
-> bad?  Then again, that could be a sign that this could wait, if you and
-> Andrew are really eager to merge the reworks.
-
-The page reference counting has also been languishing for a long time. A
-6.2 merge would be nice, it relieves maintenance burden, but they do not
-start to have real end user implications until CXL memory hotplug
-platforms arrive and the warts in the reference counting start to show
-real problems in production.
-
-> Just looking at the stuff that's still broken with dax+reflink -- I
-> noticed that xfs/550-552 (aka the dax poison tests) are still regressing
-> on reflink filesystems.
-
-That's worrying because the whole point of reworking dax, xfs, and
-mm/memory-failure all at once was to handle the collision of poison and
-reflink'd dax files.
-
-> So, uh, what would this patchset need to change if the "fsdax page
-> reference counting reworks" were applied?  Would it be changing the page
-> refcount instead of stashing that in page->index?
-
-Nah, it's things like switching from pages to folios and shifting how
-dax goes from pfns to pages.
-
-https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git/commit/?h=mm-unstable&id=cca48ba3196
-
-Ideally fsdax would never deal in pfns at all and do everything in terms
-of offsets relative to a 'struct dax_device'.
-
-My gut is saying these patches, the refcount reworks, and the
-dax+reflink fixes, are important but not end user critical. One more
-status quo release does not hurt, and we can circle back to get this all
-straightened early in v6.3.
-
-I.e. just revert:
-
-35fcd75af3ed xfs: fail dax mount if reflink is enabled on a partition
-
-...for v6.1-rc8 and get back to this early in the New Year.
-
+> ACPI includes a CXL _OSC for the OS to communicate what it knows of CXL
+> device topologies. To date Linux has added support for CXL 2.0 (VH) port
+> topologies, hotplug, and error handling. Now that the driver also know
+> how to enumerate CXL 1.1 (RCH) port topologies, indicate that capability
+> via CXL _OSC. See CXL3.0 Table 9-26 'Interpretation of CXL _OSC Support
+> Field'
 > 
-> --D
-> 
-> > > Shiyang Ruan (2):
-> > >   fsdax,xfs: fix warning messages at dax_[dis]associate_entry()
-> > >   fsdax,xfs: port unshare to fsdax
-> > > 
-> > >  fs/dax.c             | 166 ++++++++++++++++++++++++++++++-------------
-> > >  fs/xfs/xfs_iomap.c   |   6 +-
-> > >  fs/xfs/xfs_reflink.c |   8 ++-
-> > >  include/linux/dax.h  |   2 +
-> > >  4 files changed, 129 insertions(+), 53 deletions(-)
-> > > 
-> > > -- 
-> > > 2.38.1
+> Signed-off-by: Terry Bowman <terry.bowman@amd.com>
+> Signed-off-by: Robert Richter <rrichter@amd.com>
+> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> [djbw: wordsmith changelog]
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
+I have had a reworded version of this in the pipe too, esp. version
+strings were dropped in favor of VH and RCD mode. You might want to
+consider that one:
+
+-- >8 --
+
+From 260e04d5d34c6d37a1866b73a5e229d1ceddf272 Mon Sep 17 00:00:00 2001
+From: Terry Bowman <terry.bowman@amd.com>
+Date: Mon, 14 Nov 2022 10:03:30 -0600
+Subject: [PATCH v5] cxl/acpi: Set ACPI's CXL _OSC to indicate RCD mode support
+
+ACPI uses the CXL _OSC support method to communicate the available CXL
+functionality to FW. The CXL _OSC support method includes a field to
+indicate the OS is capable of RCD mode. FW can potentially change it's
+operation depending on the _OSC support method reported by the OS.
+
+The ACPI driver currently only sets the ACPI _OSC support method to
+indicate CXL VH mode. Change the capability reported to also include
+CXL RCD mode.
+
+[1] CXL3.0 Table 9-26 'Interpretation of CXL _OSC Support Field'
+
+Signed-off-by: Terry Bowman <terry.bowman@amd.com>
+[rrichter@amd.com: Reworded patch description.]
+Signed-off-by: Robert Richter <rrichter@amd.com>
+---
+ drivers/acpi/pci_root.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index 4e3db20e9cbb..b3c202d2a433 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -493,6 +493,7 @@ static u32 calculate_cxl_support(void)
+ 	u32 support;
+ 
+ 	support = OSC_CXL_2_0_PORT_DEV_REG_ACCESS_SUPPORT;
++	support |= OSC_CXL_1_1_PORT_REG_ACCESS_SUPPORT;
+ 	if (pci_aer_available())
+ 		support |= OSC_CXL_PROTOCOL_ERR_REPORTING_SUPPORT;
+ 	if (IS_ENABLED(CONFIG_HOTPLUG_PCI_PCIE))
+-- 
+2.30.2
 
