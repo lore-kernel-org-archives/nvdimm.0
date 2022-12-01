@@ -1,40 +1,39 @@
 Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 479D910782
-	for <nvdimm@lists.linux.dev>; Thu,  1 Dec 2022 21:33:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BEBFD10782
+	for <nvdimm@lists.linux.dev>; Thu,  1 Dec 2022 21:34:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1669930435; x=1701466435;
+  t=1669930441; x=1701466441;
   h=subject:from:to:cc:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=TegZIsam1nSMAQmPeHmk/pxm0gQ3ZGqOoamFiUvGsRo=;
-  b=Ok2AV7Y3VDfGKR5WYud8zOv8vO9b3rX6YrsdL/yCFxBMk1qB6s4I23ob
-   K3A25h1NDRwe3+uFKy778P6xOw/+6wAqcSetIjoiJNV3RXk5+kKXn/XdR
-   YppQ8Zldy7Rc9qh5XzyYM3JiM+L6O8AAR4ueFsnfNZ46oHCIS2U71Ahvf
-   auiF8z0MxqN62BYZlVg9R+ohmP+p7MQD/34ezOI33mvzVNeT+qZgLR3Wm
-   v4J7y5eEbhWo7xXntaxqu0G9I65yRR5uSVlAuU09CBTg0tLKADU2KhzpY
-   TTwnbEXUhwi3WDZTn2aftvuJIUAlJBPg/IYZddM6HKxMw+9l5CJW5OoCg
-   w==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10548"; a="313443227"
+  bh=BMWTUtyQ3mFXBeVZIovcW6DkDvK5UbNqcaGYd+cE13A=;
+  b=IgUOGiox+NksR7FqcB2+yGpjn28ywdDt9BXBGMu9JrdWCvOLy7gLQFm0
+   AWTZaSxOIXNvj675xxqYNBaqEfxWWqaaYclBma+jxkGcUtJ+ID2fVs3vZ
+   jVePN9ELfYvL3AsX1Ysxb/tnYt4QrAKCl8PNtoIMiCpw50jDS99QcC7sV
+   ijkKL0TFPJLTzKkDf4P1FukLLTJviGgOmbkMG+/Cd92qsqq7rPkjP9IEx
+   mr+WEsrQmo/sOVoIPyRil38qcefPYI7IIFf+BZ5TYPHIG5hBe0k+F2AMe
+   obV3G2CJu/xhpmGk67ESdV/NAAQHGxGTedqstfXdVZTFYFTSBlrUCVuVt
+   A==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10548"; a="313443252"
 X-IronPort-AV: E=Sophos;i="5.96,210,1665471600"; 
-   d="scan'208";a="313443227"
+   d="scan'208";a="313443252"
 Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Dec 2022 13:33:55 -0800
-X-IronPort-AV: E=McAfee;i="6500,9779,10548"; a="675594776"
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Dec 2022 13:34:00 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10548"; a="675594787"
 X-IronPort-AV: E=Sophos;i="5.96,210,1665471600"; 
-   d="scan'208";a="675594776"
+   d="scan'208";a="675594787"
 Received: from navarrof-mobl1.amr.corp.intel.com (HELO dwillia2-xfh.jf.intel.com) ([10.212.177.235])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Dec 2022 13:33:54 -0800
-Subject: [PATCH v6 06/12] tools/testing/cxl: Make mock CEDT parsing more
- robust
+  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Dec 2022 13:34:00 -0800
+Subject: [PATCH v6 07/12] cxl/ACPI: Register CXL host ports by bridge device
 From: Dan Williams <dan.j.williams@intel.com>
 To: linux-cxl@vger.kernel.org
-Cc: Alison Schofield <alison.schofield@intel.com>,
- Robert Richter <rrichter@amd.com>, rrichter@amd.com, terry.bowman@amd.com,
+Cc: Robert Richter <rrichter@amd.com>, Robert Richter <rrichter@amd.com>,
+ alison.schofield@intel.com, rrichter@amd.com, terry.bowman@amd.com,
  bhelgaas@google.com, dave.jiang@intel.com, nvdimm@lists.linux.dev
-Date: Thu, 01 Dec 2022 13:33:54 -0800
-Message-ID: <166993043433.1882361.17651413716599606118.stgit@dwillia2-xfh.jf.intel.com>
+Date: Thu, 01 Dec 2022 13:33:59 -0800
+Message-ID: <166993043978.1882361.16238060349889579369.stgit@dwillia2-xfh.jf.intel.com>
 In-Reply-To: <166993040066.1882361.5484659873467120859.stgit@dwillia2-xfh.jf.intel.com>
 References: <166993040066.1882361.5484659873467120859.stgit@dwillia2-xfh.jf.intel.com>
 User-Agent: StGit/0.18-3-g996c
@@ -47,49 +46,136 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 
-Accept any cxl_test topology device as the first argument in
-cxl_chbs_context.
+From: Robert Richter <rrichter@amd.com>
 
-This is in preparation for reworking the detection of the component
-registers across VH and RCH topologies. Move
-mock_acpi_table_parse_cedt() beneath the definition of is_mock_port()
-and use is_mock_port() instead of the explicit mock cxl_acpi device
-check.
+A port of a CXL host bridge links to the bridge's ACPI device
+(&adev->dev) with its corresponding uport/dport device (uport_dev and
+dport_dev respectively). The device is not a direct parent device in
+the PCI topology as pdev->dev.parent points to a PCI bridge's (struct
+pci_host_bridge) device. The following CXL memory device hierarchy
+would be valid for an endpoint once an RCD EP would be enabled (note
+this will be done in a later patch):
 
-Acked-by: Alison Schofield <alison.schofield@intel.com>
+VH mode:
+
+ cxlmd->dev.parent->parent
+        ^^^\^^^^^^\ ^^^^^^\
+            \      \       pci_dev (Type 1, Downstream Port)
+             \      pci_dev (Type 0, PCI Express Endpoint)
+              cxl mem device
+
+RCD mode:
+
+ cxlmd->dev.parent->parent
+        ^^^\^^^^^^\ ^^^^^^\
+            \      \       pci_host_bridge
+             \      pci_dev (Type 0, RCiEP)
+              cxl mem device
+
+In VH mode a downstream port is created by port enumeration and thus
+always exists.
+
+Now, in RCD mode the host bridge also already exists but it references
+to an ACPI device. A port lookup by the PCI device's parent device
+will fail as a direct link to the registered port is missing. The ACPI
+device of the bridge must be determined first.
+
+To prevent this, change port registration of a CXL host to use the
+bridge device instead. Do this also for the VH case as port topology
+will better reflect the PCI topology then.
+
+Signed-off-by: Robert Richter <rrichter@amd.com>
+[djbw: rebase on brige mocking]
 Reviewed-by: Robert Richter <rrichter@amd.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- tools/testing/cxl/test/cxl.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ drivers/cxl/acpi.c |   35 +++++++++++++++++++----------------
+ 1 file changed, 19 insertions(+), 16 deletions(-)
 
-diff --git a/tools/testing/cxl/test/cxl.c b/tools/testing/cxl/test/cxl.c
-index facfcd11cb67..8acf52b7dab2 100644
---- a/tools/testing/cxl/test/cxl.c
-+++ b/tools/testing/cxl/test/cxl.c
-@@ -320,10 +320,12 @@ static int populate_cedt(void)
+diff --git a/drivers/cxl/acpi.c b/drivers/cxl/acpi.c
+index b8407b77aff6..50d82376097c 100644
+--- a/drivers/cxl/acpi.c
++++ b/drivers/cxl/acpi.c
+@@ -193,35 +193,34 @@ static int add_host_bridge_uport(struct device *match, void *arg)
+ {
+ 	struct cxl_port *root_port = arg;
+ 	struct device *host = root_port->dev.parent;
+-	struct acpi_device *bridge = to_cxl_host_bridge(host, match);
++	struct acpi_device *hb = to_cxl_host_bridge(host, match);
+ 	struct acpi_pci_root *pci_root;
+ 	struct cxl_dport *dport;
+ 	struct cxl_port *port;
++	struct device *bridge;
+ 	int rc;
+ 
+-	if (!bridge)
++	if (!hb)
+ 		return 0;
+ 
+-	dport = cxl_find_dport_by_dev(root_port, match);
++	pci_root = acpi_pci_find_root(hb->handle);
++	bridge = pci_root->bus->bridge;
++	dport = cxl_find_dport_by_dev(root_port, bridge);
+ 	if (!dport) {
+ 		dev_dbg(host, "host bridge expected and not found\n");
+ 		return 0;
+ 	}
+ 
+-	/*
+-	 * Note that this lookup already succeeded in
+-	 * to_cxl_host_bridge(), so no need to check for failure here
+-	 */
+-	pci_root = acpi_pci_find_root(bridge->handle);
+-	rc = devm_cxl_register_pci_bus(host, match, pci_root->bus);
++	rc = devm_cxl_register_pci_bus(host, bridge, pci_root->bus);
+ 	if (rc)
+ 		return rc;
+ 
+-	port = devm_cxl_add_port(host, match, dport->component_reg_phys, dport);
++	port = devm_cxl_add_port(host, bridge, dport->component_reg_phys,
++				 dport);
+ 	if (IS_ERR(port))
+ 		return PTR_ERR(port);
+ 
+-	dev_info(pci_root->bus->bridge, "host supports CXL\n");
++	dev_info(bridge, "host supports CXL\n");
+ 
  	return 0;
  }
+@@ -253,18 +252,20 @@ static int cxl_get_chbcr(union acpi_subtable_headers *header, void *arg,
+ static int add_host_bridge_dport(struct device *match, void *arg)
+ {
+ 	acpi_status status;
++	struct device *bridge;
+ 	unsigned long long uid;
+ 	struct cxl_dport *dport;
+ 	struct cxl_chbs_context ctx;
++	struct acpi_pci_root *pci_root;
+ 	struct cxl_port *root_port = arg;
+ 	struct device *host = root_port->dev.parent;
+-	struct acpi_device *bridge = to_cxl_host_bridge(host, match);
++	struct acpi_device *hb = to_cxl_host_bridge(host, match);
  
-+static bool is_mock_port(struct device *dev);
-+
- /*
-- * WARNING, this hack assumes the format of 'struct
-- * cxl_cfmws_context' and 'struct cxl_chbs_context' share the property that
-- * the first struct member is the device being probed by the cxl_acpi
-+ * WARNING, this hack assumes the format of 'struct cxl_cfmws_context'
-+ * and 'struct cxl_chbs_context' share the property that the first
-+ * struct member is cxl_test device being probed by the cxl_acpi
-  * driver.
-  */
- struct cxl_cedt_context {
-@@ -340,7 +342,7 @@ static int mock_acpi_table_parse_cedt(enum acpi_cedt_type id,
- 	unsigned long end;
- 	int i;
+-	if (!bridge)
++	if (!hb)
+ 		return 0;
  
--	if (dev != &cxl_acpi->dev)
-+	if (!is_mock_port(dev) && !is_mock_dev(dev))
- 		return acpi_table_parse_cedt(id, handler_arg, arg);
+-	status = acpi_evaluate_integer(bridge->handle, METHOD_NAME__UID, NULL,
+-				       &uid);
++	status =
++		acpi_evaluate_integer(hb->handle, METHOD_NAME__UID, NULL, &uid);
+ 	if (status != AE_OK) {
+ 		dev_err(match, "unable to retrieve _UID\n");
+ 		return -ENODEV;
+@@ -285,7 +286,9 @@ static int add_host_bridge_dport(struct device *match, void *arg)
  
- 	if (id == ACPI_CEDT_TYPE_CHBS)
+ 	dev_dbg(match, "CHBCR found: 0x%08llx\n", (u64)ctx.chbcr);
+ 
+-	dport = devm_cxl_add_dport(root_port, match, uid, ctx.chbcr);
++	pci_root = acpi_pci_find_root(hb->handle);
++	bridge = pci_root->bus->bridge;
++	dport = devm_cxl_add_dport(root_port, bridge, uid, ctx.chbcr);
+ 	if (IS_ERR(dport))
+ 		return PTR_ERR(dport);
+ 
 
