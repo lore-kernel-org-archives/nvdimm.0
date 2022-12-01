@@ -1,114 +1,314 @@
-Received: from NAM04-BN8-obe.outbound.protection.outlook.com (mail-bn8nam04on2042.outbound.protection.outlook.com [40.107.100.42])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0352310798
-	for <nvdimm@lists.linux.dev>; Thu,  1 Dec 2022 22:59:20 +0000 (UTC)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=FvAXKTsB2SNpRzbC0kNBq7wHuq3DWoFxSdfK7xmxKA26+yQuYD47ndVOR2EMNNvcLODlO3yYQj3V/wvdXrTaa4WoogVs8sbY0njkge9hF350Shpmm+x/FoAD4JEdmyfm3Nt+g1r0t5d5dxl+OT+2hayHzMOTADh4nzPXrf98HQNa2nyVIbC6GPVAbnNlh3uIn7Ya6QX32WH6j9Bc+cRhn1l1Gy0LEaqWkTIzea/LDe+8d0wkWhvgCRVrJBPhCQ1kGVp70VWdHEG8KR+Gb+bzCC9Ow37HbQlyYuLr9cNBOj1SaBMsXwdyNPz/xa6tKfh4tYga6CNRhGb4gzcIhgV0NA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=7eEZmSYPvMTFOP4fQcDQVo7VG/jwgYu6D8H1YOi4nAM=;
- b=VGNU3lmfeXV8z7zjlvrASsEojRkXS2Sw6t8fwZGHdRdpO33jyixURdGQafFa9ROFPWexIaadKMNUnJP5rxhmTfZWisbq2joM+U1GAo9ZNKo2lQuoGhGqC/jApNGCD5apZ36D7VUuuJ6OW4UfyFdxhXv1+vumaFlyPCKuljIW93FheJugU4h1wNmQpb1qKZ8eWk+m6aQWzgziBj8/oSAE6UmC8hKkCxiLWuH0M82J06QESSYYpHQG+v32wurVM7bkVNsPz0rUWFFuMNIIe5N2JOtHBjFgGFP1O0CjfsS0oPAQsieC0oav8wmlShcAs/absCgKAJb+TMwT6kwCU5Glng==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 165.204.84.17) smtp.rcpttodomain=intel.com smtp.mailfrom=amd.com; dmarc=pass
- (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
- dkim=none (message not signed); arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=7eEZmSYPvMTFOP4fQcDQVo7VG/jwgYu6D8H1YOi4nAM=;
- b=OUK5NLX9dSER8iFrHV/byPx7Lp/gFOcm1Gn3ZKxKzjWPdngT2iH8L1zjLvE/IUoVEWHUzn9UiP72YbceLvxh0WQUkLEgmTfvVBFRu49lGnfbT4mrq3o8C/L0zreTSlnueE7Vdne5O+EfCtAuDco7PqAsXinCSpqEs4OMmAq2w5o=
-Received: from BN0PR08CA0005.namprd08.prod.outlook.com (2603:10b6:408:142::20)
- by CY8PR12MB7659.namprd12.prod.outlook.com (2603:10b6:930:9f::20) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5880.8; Thu, 1 Dec
- 2022 22:59:18 +0000
-Received: from BN8NAM11FT023.eop-nam11.prod.protection.outlook.com
- (2603:10b6:408:142:cafe::44) by BN0PR08CA0005.outlook.office365.com
- (2603:10b6:408:142::20) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5857.23 via Frontend
- Transport; Thu, 1 Dec 2022 22:59:13 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
- smtp.mailfrom=amd.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=amd.com;
-Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
- 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
- client-ip=165.204.84.17; helo=SATLEXMB04.amd.com; pr=C
-Received: from SATLEXMB04.amd.com (165.204.84.17) by
- BN8NAM11FT023.mail.protection.outlook.com (10.13.177.103) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.20.5834.8 via Frontend Transport; Thu, 1 Dec 2022 22:59:13 +0000
-Received: from rric.localdomain (10.180.168.240) by SATLEXMB04.amd.com
- (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.34; Thu, 1 Dec
- 2022 16:59:09 -0600
-Date: Thu, 1 Dec 2022 23:59:06 +0100
-From: Robert Richter <rrichter@amd.com>
-To: Dan Williams <dan.j.williams@intel.com>
-CC: <linux-cxl@vger.kernel.org>, Terry Bowman <terry.bowman@amd.com>, "Rafael
- J. Wysocki" <rafael.j.wysocki@intel.com>, <bhelgaas@google.com>,
-	<dave.jiang@intel.com>, <nvdimm@lists.linux.dev>
-Subject: Re: [PATCH v4 00/12] cxl: Add support for Restricted CXL hosts (RCD
- mode)
-Message-ID: <Y4kxuo/QmlkKiego@rric.localdomain>
-References: <166931487492.2104015.15204324083515120776.stgit@dwillia2-xfh.jf.intel.com>
- <Y4Z5G7fpnEw6uTmJ@rric.localdomain>
- <6387c43084d69_3cbe029493@dwillia2-xfh.jf.intel.com.notmuch>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4238410798
+	for <nvdimm@lists.linux.dev>; Thu,  1 Dec 2022 23:00:28 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1669935628; x=1701471628;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=5PPaafeME2gnNtdkFkBCHZhfy0JrZKvhOUDagZMuGGA=;
+  b=bLyAub1fUC9Z2C5fJn1H3tq9CABo+sOqK8UIXTijrYhx41i/+BSL19Qg
+   71RTfN61Lvlu4v8kRidO51LpMyKN0Xsqg0RD2Xy2LHi90KetpZH6l/lsc
+   xk6+0+o2f5Hc7drzuN+j/acVWU88w6PGpA30i3///rubdi182QZ7GT3dk
+   /ZqWhRsm1zG7IxciFb81gwxWl9NIfs1kA1GFrbSLwgXl0jHiqxPXIq3F4
+   jvNCuD16nQ2Hq6g2n/+CnP/F6vQNQcmDrJuMLO8uOiuOEA+Z8jRfod1xE
+   zgSU5N55ewqwMyZDN2zF/4KNspi6zmZCTf4N75DJEpQrChghMMRXKsK6N
+   Q==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10548"; a="402098397"
+X-IronPort-AV: E=Sophos;i="5.96,210,1665471600"; 
+   d="scan'208";a="402098397"
+Received: from fmsmga007.fm.intel.com ([10.253.24.52])
+  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Dec 2022 15:00:26 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10548"; a="646940259"
+X-IronPort-AV: E=Sophos;i="5.96,210,1665471600"; 
+   d="scan'208";a="646940259"
+Received: from djiang5-mobl2.amr.corp.intel.com (HELO [10.212.66.184]) ([10.212.66.184])
+  by fmsmga007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Dec 2022 15:00:26 -0800
+Message-ID: <22c63a9c-5ea3-46c5-f22a-e15ad1686b3c@intel.com>
+Date: Thu, 1 Dec 2022 16:00:25 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <6387c43084d69_3cbe029493@dwillia2-xfh.jf.intel.com.notmuch>
-X-Originating-IP: [10.180.168.240]
-X-ClientProxiedBy: SATLEXMB03.amd.com (10.181.40.144) To SATLEXMB04.amd.com
- (10.181.40.145)
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BN8NAM11FT023:EE_|CY8PR12MB7659:EE_
-X-MS-Office365-Filtering-Correlation-Id: 5ae3ccef-d3c2-4499-51e7-08dad3efaa3e
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info:
-	Y8RdIYIatOJVyhoQLqSZ2FJI6/Sps/fBOco+tkZf8IncXva4ZSdDjqnFUwOWSdcMS3L9RTvRR1yKf/tbgpCz5f0tLxEqR1Oy/I0Z43opqtgAepUtRCLNkhQNFdLchM826mhtl27p1ROS9SWT3+AZjibOamoXwmYn8M3O2CAMlO5W2/m1uXBjLcNEA7D7uQT5YEsHIwyalayr1R8FBAI6WwM79OGgOSe+muV54v+KJKcuTB2kTQ2feAyuDZsvM6MxpGSaU1SP/TmVoXPrEH3IYRrvsPef5+QVNihVz01NmNJzUp/y7rrgN4pxVAqnEwkzUA2V80ZHhoY1SRpw/258OIxmtLG368RHfMMjsUWbf/vZHioekY9Ji7Zj6erGcsKlYRcPuH+0luQec9cML+yeZEles2+tlddXINU2u2lQnh4TSG6VBRctfOOTbzq9xR6oH5BEDuR1ToQDTd9ScQPsmhEw+kLKgq/0hTLRptCkKtZ/xgf9KPad7kQArej5OOVfVrqjKEFexjOMEj4kh1MKHbi/XLKnfQxdiTo6jgGf/tMGUYCelUCu1nPFKm0GYBoH/lkKxusoiNutU4KLE9aQUVKMEFnyg7AlVsGLA5pAclGZre1iXhaX1vXBQdFwM26jMSxWASALymUhoYXVpEHhCrlsw+XPyV/3UWrGhFYaXvmQm0Dfj8CYhnQiNRGgiEbgzETLncj+WTS+Dnh6QGbUEMwH2UO0Z+/4SDMY4xEynSo=
-X-Forefront-Antispam-Report:
-	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230022)(4636009)(376002)(136003)(346002)(39860400002)(396003)(451199015)(46966006)(36840700001)(40470700004)(426003)(36860700001)(316002)(54906003)(83380400001)(6916009)(47076005)(5660300002)(55016003)(40480700001)(4744005)(40460700003)(2906002)(4326008)(70586007)(41300700001)(70206006)(81166007)(356005)(8676002)(82740400003)(6666004)(8936002)(478600001)(9686003)(186003)(16526019)(336012)(53546011)(7696005)(82310400005)(26005)(36900700001);DIR:OUT;SFP:1101;
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 01 Dec 2022 22:59:13.1014
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 5ae3ccef-d3c2-4499-51e7-08dad3efaa3e
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	BN8NAM11FT023.eop-nam11.prod.protection.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY8PR12MB7659
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
+ Firefox/102.0 Thunderbird/102.5.0
+Subject: Re: [PATCH 4/5] nvdimm/region: Move cache management to the region
+ driver
+Content-Language: en-US
+To: Dan Williams <dan.j.williams@intel.com>, linux-cxl@vger.kernel.org
+Cc: Jonathan.Cameron@huawei.com, nvdimm@lists.linux.dev, dave@stgolabs.net
+References: <166993219354.1995348.12912519920112533797.stgit@dwillia2-xfh.jf.intel.com>
+ <166993221550.1995348.16843505129579060258.stgit@dwillia2-xfh.jf.intel.com>
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <166993221550.1995348.16843505129579060258.stgit@dwillia2-xfh.jf.intel.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On 30.11.22 12:59:28, Dan Williams wrote:
-> Robert Richter wrote:
-> > Dan,
-> > 
-> > On 24.11.22 10:34:35, Dan Williams wrote:
-> > > Changes since v3 [1]:
-> > > - Rework / simplify CXL to LIBNVDIMM coordination to remove a
-> > >   flush_work() locking dependency from underneath the root device lock.
-> > > - Move the root device rescan to a workqueue
-> > > - Connect RCDs directly as endpoints reachable through a CXL host bridge
-> > >   as a dport, i.e. drop the extra dport indirection from v3
-> > > - Add unit test infrastructure for an RCD configuration
-> > 
-> > thank you for this posting.
-> > 
-> > Patches #1-#6 are not really prerequisites (except for a trivial
-> > conflict), right? I only reviewed them starting with #6.
+
+
+On 12/1/2022 3:03 PM, Dan Williams wrote:
+> Now that cpu_cache_invalidate_memregion() is generically available, use
+> it to centralize CPU cache management in the nvdimm region driver.
 > 
-> In fact they are pre-requisites because of this hunk in:
+> This trades off removing redundant per-dimm CPU cache flushing with an
+> opportunistic flush on every region disable event to cover the case of
+> sensitive dirty data in the cache being written back to media after a
+> secure erase / overwrite event.
+> 
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-Thanks for the explanation of using device_lock() here.
+One minor bit below, otherwise
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+>   drivers/acpi/nfit/intel.c    |   25 ---------------------
+>   drivers/nvdimm/region.c      |   11 +++++++++
+>   drivers/nvdimm/region_devs.c |   49 +++++++++++++++++++++++++++++++++++++++++-
+>   drivers/nvdimm/security.c    |    6 +++++
+>   include/linux/libnvdimm.h    |    5 ++++
+>   5 files changed, 70 insertions(+), 26 deletions(-)
+> 
+> diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
+> index fa0e57e35162..3902759abcba 100644
+> --- a/drivers/acpi/nfit/intel.c
+> +++ b/drivers/acpi/nfit/intel.c
+> @@ -212,9 +212,6 @@ static int __maybe_unused intel_security_unlock(struct nvdimm *nvdimm,
+>   	if (!test_bit(NVDIMM_INTEL_UNLOCK_UNIT, &nfit_mem->dsm_mask))
+>   		return -ENOTTY;
+>   
+> -	if (!cpu_cache_has_invalidate_memregion())
+> -		return -EINVAL;
+> -
+>   	memcpy(nd_cmd.cmd.passphrase, key_data->data,
+>   			sizeof(nd_cmd.cmd.passphrase));
+>   	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
+> @@ -229,9 +226,6 @@ static int __maybe_unused intel_security_unlock(struct nvdimm *nvdimm,
+>   		return -EIO;
+>   	}
+>   
+> -	/* DIMM unlocked, invalidate all CPU caches before we read it */
+> -	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
+> -
+>   	return 0;
+>   }
+>   
+> @@ -299,11 +293,6 @@ static int __maybe_unused intel_security_erase(struct nvdimm *nvdimm,
+>   	if (!test_bit(cmd, &nfit_mem->dsm_mask))
+>   		return -ENOTTY;
+>   
+> -	if (!cpu_cache_has_invalidate_memregion())
+> -		return -EINVAL;
+> -
+> -	/* flush all cache before we erase DIMM */
+> -	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
+>   	memcpy(nd_cmd.cmd.passphrase, key->data,
+>   			sizeof(nd_cmd.cmd.passphrase));
+>   	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
+> @@ -322,8 +311,6 @@ static int __maybe_unused intel_security_erase(struct nvdimm *nvdimm,
+>   		return -ENXIO;
+>   	}
+>   
+> -	/* DIMM erased, invalidate all CPU caches before we read it */
+> -	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
+>   	return 0;
+>   }
+>   
+> @@ -346,9 +333,6 @@ static int __maybe_unused intel_security_query_overwrite(struct nvdimm *nvdimm)
+>   	if (!test_bit(NVDIMM_INTEL_QUERY_OVERWRITE, &nfit_mem->dsm_mask))
+>   		return -ENOTTY;
+>   
+> -	if (!cpu_cache_has_invalidate_memregion())
+> -		return -EINVAL;
+> -
+>   	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
+>   	if (rc < 0)
+>   		return rc;
+> @@ -362,8 +346,6 @@ static int __maybe_unused intel_security_query_overwrite(struct nvdimm *nvdimm)
+>   		return -ENXIO;
+>   	}
+>   
+> -	/* flush all cache before we make the nvdimms available */
+> -	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
+>   	return 0;
+>   }
+>   
+> @@ -388,11 +370,6 @@ static int __maybe_unused intel_security_overwrite(struct nvdimm *nvdimm,
+>   	if (!test_bit(NVDIMM_INTEL_OVERWRITE, &nfit_mem->dsm_mask))
+>   		return -ENOTTY;
+>   
+> -	if (!cpu_cache_has_invalidate_memregion())
+> -		return -EINVAL;
+> -
+> -	/* flush all cache before we erase DIMM */
+> -	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
+>   	memcpy(nd_cmd.cmd.passphrase, nkey->data,
+>   			sizeof(nd_cmd.cmd.passphrase));
+>   	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
+> @@ -770,5 +747,3 @@ static const struct nvdimm_fw_ops __intel_fw_ops = {
+>   };
+>   
+>   const struct nvdimm_fw_ops *intel_fw_ops = &__intel_fw_ops;
+> -
+> -MODULE_IMPORT_NS(DEVMEM);
+> diff --git a/drivers/nvdimm/region.c b/drivers/nvdimm/region.c
+> index 390123d293ea..88dc062af5f8 100644
+> --- a/drivers/nvdimm/region.c
+> +++ b/drivers/nvdimm/region.c
+> @@ -2,6 +2,7 @@
+>   /*
+>    * Copyright(c) 2013-2015 Intel Corporation. All rights reserved.
+>    */
+> +#include <linux/memregion.h>
+>   #include <linux/cpumask.h>
+>   #include <linux/module.h>
+>   #include <linux/device.h>
+> @@ -100,6 +101,16 @@ static void nd_region_remove(struct device *dev)
+>   	 */
+>   	sysfs_put(nd_region->bb_state);
+>   	nd_region->bb_state = NULL;
+> +
+> +	/*
+> +	 * Try to flush caches here since a disabled region may be subject to
+> +	 * secure erase while disabled, and previous dirty data should not be
+> +	 * written back to a new instance of the region. This only matters on
+> +	 * bare metal where security commands are available, so silent failure
+> +	 * here is ok.
+> +	 */
+> +	if (cpu_cache_has_invalidate_memregion())
+> +		cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
+>   }
+>   
+>   static int child_notify(struct device *dev, void *data)
+> diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+> index e0875d369762..c73e3b1fd0a6 100644
+> --- a/drivers/nvdimm/region_devs.c
+> +++ b/drivers/nvdimm/region_devs.c
+> @@ -59,13 +59,57 @@ static int nvdimm_map_flush(struct device *dev, struct nvdimm *nvdimm, int dimm,
+>   	return 0;
+>   }
+>   
+> +static int nd_region_invalidate_memregion(struct nd_region *nd_region)
+> +{
+> +	int i, incoherent = 0;
+> +
+> +	for (i = 0; i < nd_region->ndr_mappings; i++) {
+> +		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
+> +		struct nvdimm *nvdimm = nd_mapping->nvdimm;
+> +
+> +		if (test_bit(NDD_INCOHERENT, &nvdimm->flags))
+> +			incoherent++;
+> +	}
+> +
+> +	if (!incoherent)
+> +		return 0;
+> +
+> +	if (!cpu_cache_has_invalidate_memregion()) {
+> +		if (IS_ENABLED(CONFIG_NVDIMM_SECURITY_TEST)) {
+> +			dev_warn(
+> +				&nd_region->dev,
+> +				"Bypassing cpu_cache_invalidate_memergion() for testing!\n");
+> +			goto out;
+> +		} else {
+> +			dev_err(&nd_region->dev,
+> +				"Failed to synchronize CPU cache state\n");
+> +			return -ENXIO;
+> +		}
+> +	}
+> +
+> +	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
+> +out:
+> +	for (i = 0; i < nd_region->ndr_mappings; i++) {
+> +		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
+> +		struct nvdimm *nvdimm = nd_mapping->nvdimm;
+> +
+> +		clear_bit(NDD_INCOHERENT, &nvdimm->flags);
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+>   int nd_region_activate(struct nd_region *nd_region)
+>   {
+> -	int i, j, num_flush = 0;
+> +	int i, j, rc, num_flush = 0;
+>   	struct nd_region_data *ndrd;
+>   	struct device *dev = &nd_region->dev;
+>   	size_t flush_data_size = sizeof(void *);
+>   
+> +	rc = nd_region_invalidate_memregion(nd_region);
+> +	if (rc)
+> +		return rc;
+> +
+>   	nvdimm_bus_lock(&nd_region->dev);
+>   	for (i = 0; i < nd_region->ndr_mappings; i++) {
+>   		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
+> @@ -85,6 +129,7 @@ int nd_region_activate(struct nd_region *nd_region)
+>   	}
+>   	nvdimm_bus_unlock(&nd_region->dev);
+>   
+> +
 
--Robert
+Extraneous blankline
+
+DJ
+
+>   	ndrd = devm_kzalloc(dev, sizeof(*ndrd) + flush_data_size, GFP_KERNEL);
+>   	if (!ndrd)
+>   		return -ENOMEM;
+> @@ -1222,3 +1267,5 @@ int nd_region_conflict(struct nd_region *nd_region, resource_size_t start,
+>   
+>   	return device_for_each_child(&nvdimm_bus->dev, &ctx, region_conflict);
+>   }
+> +
+> +MODULE_IMPORT_NS(DEVMEM);
+> diff --git a/drivers/nvdimm/security.c b/drivers/nvdimm/security.c
+> index 6814339b3dab..a03e3c45f297 100644
+> --- a/drivers/nvdimm/security.c
+> +++ b/drivers/nvdimm/security.c
+> @@ -208,6 +208,8 @@ static int __nvdimm_security_unlock(struct nvdimm *nvdimm)
+>   	rc = nvdimm->sec.ops->unlock(nvdimm, data);
+>   	dev_dbg(dev, "key: %d unlock: %s\n", key_serial(key),
+>   			rc == 0 ? "success" : "fail");
+> +	if (rc == 0)
+> +		set_bit(NDD_INCOHERENT, &nvdimm->flags);
+>   
+>   	nvdimm_put_key(key);
+>   	nvdimm->sec.flags = nvdimm_security_flags(nvdimm, NVDIMM_USER);
+> @@ -374,6 +376,8 @@ static int security_erase(struct nvdimm *nvdimm, unsigned int keyid,
+>   		return -ENOKEY;
+>   
+>   	rc = nvdimm->sec.ops->erase(nvdimm, data, pass_type);
+> +	if (rc == 0)
+> +		set_bit(NDD_INCOHERENT, &nvdimm->flags);
+>   	dev_dbg(dev, "key: %d erase%s: %s\n", key_serial(key),
+>   			pass_type == NVDIMM_MASTER ? "(master)" : "(user)",
+>   			rc == 0 ? "success" : "fail");
+> @@ -408,6 +412,8 @@ static int security_overwrite(struct nvdimm *nvdimm, unsigned int keyid)
+>   		return -ENOKEY;
+>   
+>   	rc = nvdimm->sec.ops->overwrite(nvdimm, data);
+> +	if (rc == 0)
+> +		set_bit(NDD_INCOHERENT, &nvdimm->flags);
+>   	dev_dbg(dev, "key: %d overwrite submission: %s\n", key_serial(key),
+>   			rc == 0 ? "success" : "fail");
+>   
+> diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+> index 3bf658a74ccb..af38252ad704 100644
+> --- a/include/linux/libnvdimm.h
+> +++ b/include/linux/libnvdimm.h
+> @@ -35,6 +35,11 @@ enum {
+>   	NDD_WORK_PENDING = 4,
+>   	/* dimm supports namespace labels */
+>   	NDD_LABELING = 6,
+> +	/*
+> +	 * dimm contents have changed requiring invalidation of CPU caches prior
+> +	 * to activation of a region that includes this device
+> +	 */
+> +	NDD_INCOHERENT = 7,
+>   
+>   	/* need to set a limit somewhere, but yes, this is likely overkill */
+>   	ND_IOCTL_MAX_BUFLEN = SZ_4M,
+> 
