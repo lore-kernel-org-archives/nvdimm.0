@@ -1,157 +1,497 @@
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 53217107A0
-	for <nvdimm@lists.linux.dev>; Thu,  1 Dec 2022 23:48:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF043107A0
+	for <nvdimm@lists.linux.dev>; Thu,  1 Dec 2022 23:55:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1669938529; x=1701474529;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=t+dLeT3FcTjpP3/rJpe292ejWEMYHK47AMxVZv5N8Xw=;
-  b=AR5l2TeLB9Gm3qTdrNndszTgdpAtpEs4ns+ZNkAkL0cOvigG8S/UOBnc
-   KMoFpmQPLqyQyCZXiKv+lotJ383ubcc6sgcVk2CC+xK2GgDmSWX6V8zUb
-   kGvkrVMYodjbwdK5xRk2xVlm58jRImv0XiOWQZnHxFHGAPnNrMClUp0E1
-   TywWjCW+MaXf9C/qm9lQR5timSaqfrgPGwM2U+QX2fCQ4/RwFyhrr8KyQ
-   MsgrZD4zDvpYup8matJzjFgbJLbMxlIPKLvvFVpIQh4uZRmP5IXJMOMUS
-   79qJ7+E0a3bjnGr0JHi3PccUYS/gcn/QI8MlvQxGqftiQxcl2e95oS0dD
-   A==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10548"; a="402106635"
+  t=1669938925; x=1701474925;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=dlKv2RCSzi1cG1c6J+OZDJYtNwY/hYQjEHwcXnVjQgo=;
+  b=L9B9bNJ+dt9sF26kZm0h+zv+uOUXjqG/jxUfbI1rhqfs8WGaQMJQF59O
+   NsRpPow4rcNOxT86bJcYTJaIHB3y9gVM4vCRawnUpwlKlxy3e4lLf5YgN
+   RTj5Zg+UiuU7r5UpLpAAqzjtkFzsNgnuAqmiGJJGXVGIv9Ct+Ge2QX15N
+   glyuaqM/n+rcK+g7RNyixr83X/6jlD1ZQjzUfk3AydKVO+VZjqYGJFoQn
+   QYyB5sQQoCUKmtBh0tjc4dfiCGtQQvgS5bSPmUnwVETCwv8lEBnI7d+dF
+   k8K6iilvwPM0mHP3whHeT1XNqE1biqc4Uh3V3knm3iQaoDZmCblvs4ENi
+   Q==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10548"; a="314530808"
 X-IronPort-AV: E=Sophos;i="5.96,210,1665471600"; 
-   d="scan'208";a="402106635"
-Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Dec 2022 15:48:48 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6500,9779,10548"; a="889933636"
+   d="scan'208";a="314530808"
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Dec 2022 15:55:25 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10548"; a="973709159"
 X-IronPort-AV: E=Sophos;i="5.96,210,1665471600"; 
-   d="scan'208";a="889933636"
-Received: from orsmsx601.amr.corp.intel.com ([10.22.229.14])
-  by fmsmga006.fm.intel.com with ESMTP; 01 Dec 2022 15:48:48 -0800
-Received: from orsmsx610.amr.corp.intel.com (10.22.229.23) by
- ORSMSX601.amr.corp.intel.com (10.22.229.14) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.16; Thu, 1 Dec 2022 15:48:47 -0800
-Received: from ORSEDG601.ED.cps.intel.com (10.7.248.6) by
- orsmsx610.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.16 via Frontend Transport; Thu, 1 Dec 2022 15:48:47 -0800
-Received: from NAM04-DM6-obe.outbound.protection.outlook.com (104.47.73.44) by
- edgegateway.intel.com (134.134.137.102) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.16; Thu, 1 Dec 2022 15:48:46 -0800
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=gQ2Slw82sw1b/ABkDOdXiAyCIMko+4PJwLEw3SIxzMzC9i0i4Gc8oIhEuU9Z2YqNcQI8R4BKA7ZqTmFl23UogDsABnLV5Z9f3BwHLlY5k5LUcTKrRg2asmQmcIup6AavXcCMIhhJBXRi9UFJR1hv0j+WXDfMGw+5DMBxLMhtTsFDqIBM26gNCtBCwE8HORwwxoBzKTyccaP71mqizjfRJxUksLBPaJ6J6lIBHIROH3FNZn1zL0J1BM6+cBrZkgFeAsjbZeQpgyi2kaWOgaa4opRLtPM2x1uQBTju9kyCAFElJgqTLYyo09eXw2JL2vb0OXVXqVNOwcnv5Ce8ZFcDng==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=p2+aAereqgL0juzpN332EIw1G7zT6zakQtXI2UE1TgI=;
- b=VBUWROZB7tVtC9JqVH3NVYpMNJX3mtVVI0pb3NuEMmg2GnFHMEmQ1uPkxvv7fNK/oKw8xIlyqxx7xAvnK4BJ+IW2CWGpBCrBfy5Bl0iDwQq7r2Z8lYoNwO7I4XLV08NSkb0nC3xPPepmQbFyuPtwToZkhYsukq5DbC6qvMTuN4JpTai67/mMb22xKELwfUHJObsr/YUQCQc8WFwOZJQX9WXxo4MfkimVBWjF9QWnLwtL1V09IdWGssLej0te2IfBBE/Gv7qhRYM+mAq42IQAdTTk6XUyMQ/J0GCQ9gVUB2ScnJmUNxMQyq2UdJzT+rHxb/49pjamuoOlAlDVM30ojg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
- (2603:10b6:301:50::20) by MW3PR11MB4588.namprd11.prod.outlook.com
- (2603:10b6:303:54::19) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5857.23; Thu, 1 Dec
- 2022 23:48:40 +0000
-Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
- ([fe80::340d:cb77:604d:b0b]) by MWHPR1101MB2126.namprd11.prod.outlook.com
- ([fe80::340d:cb77:604d:b0b%9]) with mapi id 15.20.5880.008; Thu, 1 Dec 2022
- 23:48:40 +0000
-Date: Thu, 1 Dec 2022 15:48:27 -0800
-From: Dan Williams <dan.j.williams@intel.com>
-To: Robert Richter <rrichter@amd.com>, Dan Williams <dan.j.williams@intel.com>
-CC: <linux-cxl@vger.kernel.org>, <terry.bowman@amd.com>,
-	<bhelgaas@google.com>, <dave.jiang@intel.com>, <nvdimm@lists.linux.dev>
-Subject: Re: [PATCH v4 10/12] cxl/port: Add RCD endpoint port enumeration
-Message-ID: <63893d4b4cc2e_3cbe02943f@dwillia2-xfh.jf.intel.com.notmuch>
-References: <166931487492.2104015.15204324083515120776.stgit@dwillia2-xfh.jf.intel.com>
- <166931493266.2104015.8062923429837042172.stgit@dwillia2-xfh.jf.intel.com>
- <Y4kuJgjes4a+vjuQ@rric.localdomain>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <Y4kuJgjes4a+vjuQ@rric.localdomain>
-X-ClientProxiedBy: SJ0PR05CA0198.namprd05.prod.outlook.com
- (2603:10b6:a03:330::23) To MWHPR1101MB2126.namprd11.prod.outlook.com
- (2603:10b6:301:50::20)
+   d="scan'208";a="973709159"
+Received: from djiang5-mobl2.amr.corp.intel.com (HELO [10.212.66.184]) ([10.212.66.184])
+  by fmsmga005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Dec 2022 15:55:24 -0800
+Message-ID: <38c2f273-b449-8247-3a84-1caa24fd657c@intel.com>
+Date: Thu, 1 Dec 2022 16:55:24 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MWHPR1101MB2126:EE_|MW3PR11MB4588:EE_
-X-MS-Office365-Filtering-Correlation-Id: 4444f65f-ca7a-4420-450b-08dad3f691a2
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: nQ4oKSBhNym6tPDeCEX3TlAteBRg/jmqLCe8wgwhHhNSqKbLwQQtebZNTK0JihTqW/4jVkDGJjlDzaSVUxKKABfuoA4rlsZeTnyrOPElXuW6K9h/xTSyjA+V5tbF7wo74oKzjGBruDaovJh9jCwhSIBXrmDFePIRzbt3eZz54OqmyOqFxpgB4079LT5O3oGOm+k2vWoP5wybICsYh37e1Jw2eGm2M4z3vCtd/2GwtPp+ChpuwcjWBGdcDAGVEHIHb8vtVq06MVP7rXjroPu2spzopltN9E7kBQ4TtawwnOOMXq81egbJmzV8n4HVyUs+VyrR0vzhRhU1nOYRUp4d+4/cZp8zTzSvzL1b2osACLf8X0yR4oDX+rbWgKEuj2ImdnQi/B/qJ2qgzGue7eO45rVRzgxFgBXK9DB7pCWotuHeaU9gvGQgNhbaLcviIGFzXHko7rOvTMDpZitYea9S8su6AXFGpJxgtkWzorqmHILmreSH+iiJN2zW6wJk1kEFE3SR2ta0kr903aYcAPfkrDdtrd8RFTL/r+wnrqPvshSRRTGoetCnG/eH0dhdAbM4tbKU3pv3gnyPbl7P8Hz/QPPpz4A0+xxXRAq/GCun44tVekAjlznN7+3X+HBanN9n+KFGEVZdQyyxGiH6chKsrg==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1101MB2126.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230022)(39860400002)(396003)(366004)(346002)(376002)(136003)(451199015)(2906002)(83380400001)(82960400001)(9686003)(38100700002)(66946007)(66556008)(8676002)(26005)(6512007)(66476007)(53546011)(6486002)(478600001)(6666004)(6506007)(41300700001)(186003)(8936002)(5660300002)(4326008)(316002)(110136005)(4744005)(86362001);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?K8iDtLNcvryYpV8I0NGvThwo83xNPiGU3jJHwGUZb4YOK4zzOlK2DC2E/QlX?=
- =?us-ascii?Q?ebWg3K5Jyo/84dw8JCrdDiTSozViPJL0RNvQWJQ6yIjry5AoLuQRIj9T1j+3?=
- =?us-ascii?Q?1p3TU9WWyvzipQpRqJF0hylMFp0uWYxHizS1Y6rwqSYbol2f4inIgATNzWfZ?=
- =?us-ascii?Q?p1VUsfbIrN4DPNNJY9lXXAMoMiHVDgvg13Bbe7MTgfwQDfyJPjBhUTROFPza?=
- =?us-ascii?Q?e8Mi4vZC1khMyeYJ+s3QRbrATBYFWHYyqY2F4jaAp1VuqyoUMQQUnoaXZUmC?=
- =?us-ascii?Q?XTaDJFQmMXWdy58V88/yaZcrEFPr3lk+V/JvkiOVUveXd5x2B9PGpjLYPXUn?=
- =?us-ascii?Q?acusS1XTcmzPjHICGCVIdiX0SNBvv5pBXyrfHuJmW1KCbF7ZUNWnUUGXhOVt?=
- =?us-ascii?Q?lUt2975817y3+XdlX3oGlzfrWBa0/CuZrBgzSXQYY26u2P8GN6S0S5t8LcGI?=
- =?us-ascii?Q?qk1J5ORXKBzns/2+2fxthq/cO14OahQ/hpo7zBatEnBRyp2OcWLNTb0nRKT+?=
- =?us-ascii?Q?+s+Pv1ht28YZr7XfXh67Z5q0nOEzTrUQEapb57IrWloyr/v9dD1WpWqfBCpw?=
- =?us-ascii?Q?AAhggPl1wlct02ksowEb7qFsQflBPPqc1l9y4CzagFsP8JKVNj5NcPaKuMtT?=
- =?us-ascii?Q?aUNd/iS2/XvC/pAWnvfvYw9YIpc9cwYmHQUyuYlkgd45LpxO06Dkpd2jTT9Y?=
- =?us-ascii?Q?B9kFh2MdpjqrUQxOrWrzP4tHFlzUrEcUE7ID27+TqbONMGCgZpnlplT5rq6K?=
- =?us-ascii?Q?C58a0VaGmwD0Sa5xG+KY8TVSobMIFRSuQHaWgK7sWPor5KOqOS+uih48D76y?=
- =?us-ascii?Q?0r5denvUMzar5pxUvh9r5WPj4BpVE45Xf498KH4jCFtM2dExn2jxk5uduE/B?=
- =?us-ascii?Q?pU2KEOyNp9Mre0GQXkVlHfWBidTx6jROegURspklYl4rkPQvqdL61aLB6DJg?=
- =?us-ascii?Q?Fqpt1i3R/h7jb5rzfLFXKGGGvl3lIr7sBxudvmxPw+4F0TFBVSgAuK4VZSRi?=
- =?us-ascii?Q?wHodd3T+y6gNR3aATszN0vWPEwudLK++wU20Vek5ETf5QjytIbYMHWFhpDN3?=
- =?us-ascii?Q?KeaL39IFQ/W+WjsEtHbcWOjwoe1+yocf+6TSThjEWR1CZ+8Dm39DexHeBdtS?=
- =?us-ascii?Q?TSpBpsOlYhJSzxwpjBSofXKVYxalKmk41TmYwJoyYda9wM8aCHbawP8LeCeL?=
- =?us-ascii?Q?GwKAvo0TOew7s5Uj/06bwFL9yLP4a9cHrZX+FlImpao4CErsbgiLl8NRaYk5?=
- =?us-ascii?Q?Rk7h7KW/YtVCDVkjvKIk4+KAfmA7Ev8HoCZuzRkmNcjNCnnQ+MuTiydX3AZj?=
- =?us-ascii?Q?C0P/ku1Dv3OoxQ9zMQBOfgw3y8u1fofjjVw01c7HClLDSTWix10RgbJ9dmqk?=
- =?us-ascii?Q?MPXGWGWaKvA4CwjWr9m5c0rseSx5tS1MK04JMNUyGDvwU8jbvtm1Vm5I9HCR?=
- =?us-ascii?Q?UV7rSyTadrgzEkmGNCrZDQmdwgabr8oRrTGoISdIKDYnX0CcOyJ2AQwZhNRa?=
- =?us-ascii?Q?WbV5AWX8cWaER4cW32p/MaalrmE16ODZ4/0AtazS7j60g3WknmBnks4RlXh3?=
- =?us-ascii?Q?aEqr3T8fOaRT1wr427U/q/9lVMofs67aa1r48ssCn3lSlVRT2H2Ie5v3EN4K?=
- =?us-ascii?Q?Dw=3D=3D?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: 4444f65f-ca7a-4420-450b-08dad3f691a2
-X-MS-Exchange-CrossTenant-AuthSource: MWHPR1101MB2126.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 01 Dec 2022 23:48:40.5403
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: YlZsoG53M5RWKG4vxFrnhIAXYBPJux4Uvcs95ZW36XgFsO/XxnVceb07zOrj4ABExKFrAA7uBkADSCcWCVpsIqRlZjcGu4N0CXvGd67T4I0=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW3PR11MB4588
-X-OriginatorOrg: intel.com
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
+ Firefox/102.0 Thunderbird/102.5.0
+Subject: Re: [PATCH v6 08/12] cxl/acpi: Extract component registers of
+ restricted hosts from RCRB
+Content-Language: en-US
+To: Dan Williams <dan.j.williams@intel.com>, linux-cxl@vger.kernel.org
+Cc: Terry Bowman <terry.bowman@amd.com>, Robert Richter <rrichter@amd.com>,
+ alison.schofield@intel.com, bhelgaas@google.com, nvdimm@lists.linux.dev
+References: <166993040066.1882361.5484659873467120859.stgit@dwillia2-xfh.jf.intel.com>
+ <166993044524.1882361.2539922887413208807.stgit@dwillia2-xfh.jf.intel.com>
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <166993044524.1882361.2539922887413208807.stgit@dwillia2-xfh.jf.intel.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Robert Richter wrote:
-> On 24.11.22 10:35:32, Dan Williams wrote:
-> 
-> > diff --git a/drivers/cxl/mem.c b/drivers/cxl/mem.c
-> 
-> > @@ -119,17 +131,22 @@ static int cxl_mem_probe(struct device *dev)
-> >  		return -ENXIO;
-> >  	}
-> >  
-> > -	device_lock(&parent_port->dev);
-> > -	if (!parent_port->dev.driver) {
-> > +	if (dport->rch)
-> > +		endpoint_parent = parent_port->uport;
-> > +	else
-> > +		endpoint_parent = &parent_port->dev;
-> > +
-> > +	device_lock(endpoint_parent);
-> > +	if (!endpoint_parent->driver) {
-> >  		dev_err(dev, "CXL port topology %s not enabled\n",
-> >  			dev_name(&parent_port->dev));
-> 
-> This must be dev_name(endpoint_parent) here.
 
-Indeed, good catch.
+
+On 12/1/2022 2:34 PM, Dan Williams wrote:
+> From: Robert Richter <rrichter@amd.com>
+> 
+> A downstream port must be connected to a component register block.
+> For restricted hosts the base address is determined from the RCRB. The
+> RCRB is provided by the host's CEDT CHBS entry. Rework CEDT parser to
+> get the RCRB and add code to extract the component register block from
+> it.
+> 
+> RCRB's BAR[0..1] point to the component block containing CXL subsystem
+> component registers. MEMBAR extraction follows the PCI base spec here,
+> esp. 64 bit extraction and memory range alignment (6.0, 7.5.1.2.1). The
+> RCRB base address is cached in the cxl_dport per-host bridge so that the
+> upstream port component registers can be retrieved later by an RCD
+> (RCIEP) associated with the host bridge.
+> 
+> Note: Right now the component register block is used for HDM decoder
+> capability only which is optional for RCDs. If unsupported by the RCD,
+> the HDM init will fail. It is future work to bypass it in this case.
+> 
+> Co-developed-by: Terry Bowman <terry.bowman@amd.com>
+> Signed-off-by: Terry Bowman <terry.bowman@amd.com>
+> Signed-off-by: Robert Richter <rrichter@amd.com>
+> Link: https://lore.kernel.org/r/Y4dsGZ24aJlxSfI1@rric.localdomain
+> [djbw: introduce devm_cxl_add_rch_dport()]
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+
+> ---
+>   drivers/cxl/acpi.c            |   51 ++++++++++++++++++++++++++++-----
+>   drivers/cxl/core/port.c       |   53 ++++++++++++++++++++++++++++++----
+>   drivers/cxl/core/regs.c       |   64 +++++++++++++++++++++++++++++++++++++++++
+>   drivers/cxl/cxl.h             |   16 ++++++++++
+>   tools/testing/cxl/Kbuild      |    1 +
+>   tools/testing/cxl/test/cxl.c  |   10 ++++++
+>   tools/testing/cxl/test/mock.c |   19 ++++++++++++
+>   tools/testing/cxl/test/mock.h |    3 ++
+>   8 files changed, 203 insertions(+), 14 deletions(-)
+> 
+> diff --git a/drivers/cxl/acpi.c b/drivers/cxl/acpi.c
+> index 50d82376097c..db8173f3ee10 100644
+> --- a/drivers/cxl/acpi.c
+> +++ b/drivers/cxl/acpi.c
+> @@ -9,6 +9,8 @@
+>   #include "cxlpci.h"
+>   #include "cxl.h"
+>   
+> +#define CXL_RCRB_SIZE	SZ_8K
+> +
+>   static unsigned long cfmws_to_decoder_flags(int restrictions)
+>   {
+>   	unsigned long flags = CXL_DECODER_F_ENABLE;
+> @@ -211,6 +213,11 @@ static int add_host_bridge_uport(struct device *match, void *arg)
+>   		return 0;
+>   	}
+>   
+> +	if (dport->rch) {
+> +		dev_info(bridge, "host supports CXL (restricted)\n");
+> +		return 0;
+> +	}
+> +
+>   	rc = devm_cxl_register_pci_bus(host, bridge, pci_root->bus);
+>   	if (rc)
+>   		return rc;
+> @@ -226,9 +233,11 @@ static int add_host_bridge_uport(struct device *match, void *arg)
+>   }
+>   
+>   struct cxl_chbs_context {
+> -	struct device *dev;
+> -	unsigned long long uid;
+> -	resource_size_t chbcr;
+> +	struct device		*dev;
+> +	unsigned long long	uid;
+> +	resource_size_t		rcrb;
+> +	resource_size_t		chbcr;
+> +	u32			cxl_version;
+>   };
+>   
+>   static int cxl_get_chbcr(union acpi_subtable_headers *header, void *arg,
+> @@ -244,7 +253,25 @@ static int cxl_get_chbcr(union acpi_subtable_headers *header, void *arg,
+>   
+>   	if (ctx->uid != chbs->uid)
+>   		return 0;
+> -	ctx->chbcr = chbs->base;
+> +
+> +	ctx->cxl_version = chbs->cxl_version;
+> +	ctx->rcrb = CXL_RESOURCE_NONE;
+> +	ctx->chbcr = CXL_RESOURCE_NONE;
+> +
+> +	if (!chbs->base)
+> +		return 0;
+> +
+> +	if (chbs->cxl_version != ACPI_CEDT_CHBS_VERSION_CXL11) {
+> +		ctx->chbcr = chbs->base;
+> +		return 0;
+> +	}
+> +
+> +	if (chbs->length != CXL_RCRB_SIZE)
+> +		return 0;
+> +
+> +	ctx->rcrb = chbs->base;
+> +	ctx->chbcr = cxl_rcrb_to_component(ctx->dev, chbs->base,
+> +					   CXL_RCRB_DOWNSTREAM);
+>   
+>   	return 0;
+>   }
+> @@ -274,21 +301,29 @@ static int add_host_bridge_dport(struct device *match, void *arg)
+>   	dev_dbg(match, "UID found: %lld\n", uid);
+>   
+>   	ctx = (struct cxl_chbs_context) {
+> -		.dev = host,
+> +		.dev = match,
+>   		.uid = uid,
+>   	};
+>   	acpi_table_parse_cedt(ACPI_CEDT_TYPE_CHBS, cxl_get_chbcr, &ctx);
+>   
+> -	if (ctx.chbcr == 0) {
+> +	if (ctx.rcrb != CXL_RESOURCE_NONE)
+> +		dev_dbg(match, "RCRB found for UID %lld: %pa\n", uid, &ctx.rcrb);
+> +
+> +	if (ctx.chbcr == CXL_RESOURCE_NONE) {
+>   		dev_warn(match, "No CHBS found for Host Bridge (UID %lld)\n", uid);
+>   		return 0;
+>   	}
+>   
+> -	dev_dbg(match, "CHBCR found: 0x%08llx\n", (u64)ctx.chbcr);
+> +	dev_dbg(match, "CHBCR found: %pa\n", &ctx.chbcr);
+>   
+>   	pci_root = acpi_pci_find_root(hb->handle);
+>   	bridge = pci_root->bus->bridge;
+> -	dport = devm_cxl_add_dport(root_port, bridge, uid, ctx.chbcr);
+> +	if (ctx.cxl_version == ACPI_CEDT_CHBS_VERSION_CXL11)
+> +		dport = devm_cxl_add_rch_dport(root_port, bridge, uid,
+> +					       ctx.chbcr, ctx.rcrb);
+> +	else
+> +		dport = devm_cxl_add_dport(root_port, bridge, uid,
+> +					   ctx.chbcr);
+>   	if (IS_ERR(dport))
+>   		return PTR_ERR(dport);
+>   
+> diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
+> index d225267c69bb..dae2ca31885e 100644
+> --- a/drivers/cxl/core/port.c
+> +++ b/drivers/cxl/core/port.c
+> @@ -628,6 +628,8 @@ static struct cxl_port *cxl_port_alloc(struct device *uport,
+>   			iter = to_cxl_port(iter->dev.parent);
+>   		if (iter->host_bridge)
+>   			port->host_bridge = iter->host_bridge;
+> +		else if (parent_dport->rch)
+> +			port->host_bridge = parent_dport->dport;
+>   		else
+>   			port->host_bridge = iter->uport;
+>   		dev_dbg(uport, "host-bridge: %s\n", dev_name(port->host_bridge));
+> @@ -899,10 +901,10 @@ static void cxl_dport_unlink(void *data)
+>   	sysfs_remove_link(&port->dev.kobj, link_name);
+>   }
+>   
+> -static struct cxl_dport *__devm_cxl_add_dport(struct cxl_port *port,
+> -					      struct device *dport_dev,
+> -					      int port_id,
+> -					      resource_size_t component_reg_phys)
+> +static struct cxl_dport *
+> +__devm_cxl_add_dport(struct cxl_port *port, struct device *dport_dev,
+> +		     int port_id, resource_size_t component_reg_phys,
+> +		     resource_size_t rcrb)
+>   {
+>   	char link_name[CXL_TARGET_STRLEN];
+>   	struct cxl_dport *dport;
+> @@ -932,6 +934,9 @@ static struct cxl_dport *__devm_cxl_add_dport(struct cxl_port *port,
+>   	dport->port_id = port_id;
+>   	dport->component_reg_phys = component_reg_phys;
+>   	dport->port = port;
+> +	if (rcrb != CXL_RESOURCE_NONE)
+> +		dport->rch = true;
+> +	dport->rcrb = rcrb;
+>   
+>   	cond_cxl_root_lock(port);
+>   	rc = add_dport(port, dport);
+> @@ -956,7 +961,7 @@ static struct cxl_dport *__devm_cxl_add_dport(struct cxl_port *port,
+>   }
+>   
+>   /**
+> - * devm_cxl_add_dport - append downstream port data to a cxl_port
+> + * devm_cxl_add_dport - append VH downstream port data to a cxl_port
+>    * @port: the cxl_port that references this dport
+>    * @dport_dev: firmware or PCI device representing the dport
+>    * @port_id: identifier for this dport in a decoder's target list
+> @@ -973,7 +978,7 @@ struct cxl_dport *devm_cxl_add_dport(struct cxl_port *port,
+>   	struct cxl_dport *dport;
+>   
+>   	dport = __devm_cxl_add_dport(port, dport_dev, port_id,
+> -				     component_reg_phys);
+> +				     component_reg_phys, CXL_RESOURCE_NONE);
+>   	if (IS_ERR(dport)) {
+>   		dev_dbg(dport_dev, "failed to add dport to %s: %ld\n",
+>   			dev_name(&port->dev), PTR_ERR(dport));
+> @@ -986,6 +991,42 @@ struct cxl_dport *devm_cxl_add_dport(struct cxl_port *port,
+>   }
+>   EXPORT_SYMBOL_NS_GPL(devm_cxl_add_dport, CXL);
+>   
+> +/**
+> + * devm_cxl_add_rch_dport - append RCH downstream port data to a cxl_port
+> + * @port: the cxl_port that references this dport
+> + * @dport_dev: firmware or PCI device representing the dport
+> + * @port_id: identifier for this dport in a decoder's target list
+> + * @component_reg_phys: optional location of CXL component registers
+> + * @rcrb: mandatory location of a Root Complex Register Block
+> + *
+> + * See CXL 3.0 9.11.8 CXL Devices Attached to an RCH
+> + */
+> +struct cxl_dport *devm_cxl_add_rch_dport(struct cxl_port *port,
+> +					 struct device *dport_dev, int port_id,
+> +					 resource_size_t component_reg_phys,
+> +					 resource_size_t rcrb)
+> +{
+> +	struct cxl_dport *dport;
+> +
+> +	if (rcrb == CXL_RESOURCE_NONE) {
+> +		dev_dbg(&port->dev, "failed to add RCH dport, missing RCRB\n");
+> +		return ERR_PTR(-EINVAL);
+> +	}
+> +
+> +	dport = __devm_cxl_add_dport(port, dport_dev, port_id,
+> +				     component_reg_phys, rcrb);
+> +	if (IS_ERR(dport)) {
+> +		dev_dbg(dport_dev, "failed to add RCH dport to %s: %ld\n",
+> +			dev_name(&port->dev), PTR_ERR(dport));
+> +	} else {
+> +		dev_dbg(dport_dev, "RCH dport added to %s\n",
+> +			dev_name(&port->dev));
+> +	}
+> +
+> +	return dport;
+> +}
+> +EXPORT_SYMBOL_NS_GPL(devm_cxl_add_rch_dport, CXL);
+> +
+>   static int add_ep(struct cxl_ep *new)
+>   {
+>   	struct cxl_port *port = new->dport->port;
+> diff --git a/drivers/cxl/core/regs.c b/drivers/cxl/core/regs.c
+> index ec178e69b18f..28ed0ec8ee3e 100644
+> --- a/drivers/cxl/core/regs.c
+> +++ b/drivers/cxl/core/regs.c
+> @@ -307,3 +307,67 @@ int cxl_find_regblock(struct pci_dev *pdev, enum cxl_regloc_type type,
+>   	return -ENODEV;
+>   }
+>   EXPORT_SYMBOL_NS_GPL(cxl_find_regblock, CXL);
+> +
+> +resource_size_t cxl_rcrb_to_component(struct device *dev,
+> +				      resource_size_t rcrb,
+> +				      enum cxl_rcrb which)
+> +{
+> +	resource_size_t component_reg_phys;
+> +	u32 bar0, bar1;
+> +	void *addr;
+> +	u16 cmd;
+> +	u32 id;
+> +
+> +	if (which == CXL_RCRB_UPSTREAM)
+> +		rcrb += SZ_4K;
+> +
+> +	/*
+> +	 * RCRB's BAR[0..1] point to component block containing CXL
+> +	 * subsystem component registers. MEMBAR extraction follows
+> +	 * the PCI Base spec here, esp. 64 bit extraction and memory
+> +	 * ranges alignment (6.0, 7.5.1.2.1).
+> +	 */
+> +	if (!request_mem_region(rcrb, SZ_4K, "CXL RCRB"))
+> +		return CXL_RESOURCE_NONE;
+> +	addr = ioremap(rcrb, SZ_4K);
+> +	if (!addr) {
+> +		dev_err(dev, "Failed to map region %pr\n", addr);
+> +		release_mem_region(rcrb, SZ_4K);
+> +		return CXL_RESOURCE_NONE;
+> +	}
+> +
+> +	id = readl(addr + PCI_VENDOR_ID);
+> +	cmd = readw(addr + PCI_COMMAND);
+> +	bar0 = readl(addr + PCI_BASE_ADDRESS_0);
+> +	bar1 = readl(addr + PCI_BASE_ADDRESS_1);
+> +	iounmap(addr);
+> +	release_mem_region(rcrb, SZ_4K);
+> +
+> +	/*
+> +	 * Sanity check, see CXL 3.0 Figure 9-8 CXL Device that Does Not
+> +	 * Remap Upstream Port and Component Registers
+> +	 */
+> +	if (id == U32_MAX) {
+> +		if (which == CXL_RCRB_DOWNSTREAM)
+> +			dev_err(dev, "Failed to access Downstream Port RCRB\n");
+> +		return CXL_RESOURCE_NONE;
+> +	}
+> +	if (!(cmd & PCI_COMMAND_MEMORY))
+> +		return CXL_RESOURCE_NONE;
+> +	if (bar0 & (PCI_BASE_ADDRESS_MEM_TYPE_1M | PCI_BASE_ADDRESS_SPACE_IO))
+> +		return CXL_RESOURCE_NONE;
+> +
+> +	component_reg_phys = bar0 & PCI_BASE_ADDRESS_MEM_MASK;
+> +	if (bar0 & PCI_BASE_ADDRESS_MEM_TYPE_64)
+> +		component_reg_phys |= ((u64)bar1) << 32;
+> +
+> +	if (!component_reg_phys)
+> +		return CXL_RESOURCE_NONE;
+> +
+> +	/* MEMBAR is block size (64k) aligned. */
+> +	if (!IS_ALIGNED(component_reg_phys, CXL_COMPONENT_REG_BLOCK_SIZE))
+> +		return CXL_RESOURCE_NONE;
+> +
+> +	return component_reg_phys;
+> +}
+> +EXPORT_SYMBOL_NS_GPL(cxl_rcrb_to_component, CXL);
+> diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
+> index 281b1db5a271..1342e4e61537 100644
+> --- a/drivers/cxl/cxl.h
+> +++ b/drivers/cxl/cxl.h
+> @@ -223,6 +223,14 @@ enum cxl_regloc_type;
+>   int cxl_find_regblock(struct pci_dev *pdev, enum cxl_regloc_type type,
+>   		      struct cxl_register_map *map);
+>   
+> +enum cxl_rcrb {
+> +	CXL_RCRB_DOWNSTREAM,
+> +	CXL_RCRB_UPSTREAM,
+> +};
+> +resource_size_t cxl_rcrb_to_component(struct device *dev,
+> +				      resource_size_t rcrb,
+> +				      enum cxl_rcrb which);
+> +
+>   #define CXL_RESOURCE_NONE ((resource_size_t) -1)
+>   #define CXL_TARGET_STRLEN 20
+>   
+> @@ -486,12 +494,16 @@ cxl_find_dport_by_dev(struct cxl_port *port, const struct device *dport_dev)
+>    * @dport: PCI bridge or firmware device representing the downstream link
+>    * @port_id: unique hardware identifier for dport in decoder target list
+>    * @component_reg_phys: downstream port component registers
+> + * @rcrb: base address for the Root Complex Register Block
+> + * @rch: Indicate whether this dport was enumerated in RCH or VH mode
+>    * @port: reference to cxl_port that contains this downstream port
+>    */
+>   struct cxl_dport {
+>   	struct device *dport;
+>   	int port_id;
+>   	resource_size_t component_reg_phys;
+> +	resource_size_t rcrb;
+> +	bool rch;
+>   	struct cxl_port *port;
+>   };
+>   
+> @@ -561,6 +573,10 @@ bool schedule_cxl_memdev_detach(struct cxl_memdev *cxlmd);
+>   struct cxl_dport *devm_cxl_add_dport(struct cxl_port *port,
+>   				     struct device *dport, int port_id,
+>   				     resource_size_t component_reg_phys);
+> +struct cxl_dport *devm_cxl_add_rch_dport(struct cxl_port *port,
+> +					 struct device *dport_dev, int port_id,
+> +					 resource_size_t component_reg_phys,
+> +					 resource_size_t rcrb);
+>   
+>   struct cxl_decoder *to_cxl_decoder(struct device *dev);
+>   struct cxl_root_decoder *to_cxl_root_decoder(struct device *dev);
+> diff --git a/tools/testing/cxl/Kbuild b/tools/testing/cxl/Kbuild
+> index 500be85729cc..9e4d94e81723 100644
+> --- a/tools/testing/cxl/Kbuild
+> +++ b/tools/testing/cxl/Kbuild
+> @@ -10,6 +10,7 @@ ldflags-y += --wrap=devm_cxl_add_passthrough_decoder
+>   ldflags-y += --wrap=devm_cxl_enumerate_decoders
+>   ldflags-y += --wrap=cxl_await_media_ready
+>   ldflags-y += --wrap=cxl_hdm_decode_init
+> +ldflags-y += --wrap=cxl_rcrb_to_component
+>   
+>   DRIVERS := ../../../drivers
+>   CXL_SRC := $(DRIVERS)/cxl
+> diff --git a/tools/testing/cxl/test/cxl.c b/tools/testing/cxl/test/cxl.c
+> index 8acf52b7dab2..c1e395a5b8f7 100644
+> --- a/tools/testing/cxl/test/cxl.c
+> +++ b/tools/testing/cxl/test/cxl.c
+> @@ -696,6 +696,15 @@ static int mock_cxl_port_enumerate_dports(struct cxl_port *port)
+>   	return 0;
+>   }
+>   
+> +resource_size_t mock_cxl_rcrb_to_component(struct device *dev,
+> +					   resource_size_t rcrb,
+> +					   enum cxl_rcrb which)
+> +{
+> +	dev_dbg(dev, "rcrb: %pa which: %d\n", &rcrb, which);
+> +
+> +	return 0;
+> +}
+> +
+>   static struct cxl_mock_ops cxl_mock_ops = {
+>   	.is_mock_adev = is_mock_adev,
+>   	.is_mock_bridge = is_mock_bridge,
+> @@ -704,6 +713,7 @@ static struct cxl_mock_ops cxl_mock_ops = {
+>   	.is_mock_dev = is_mock_dev,
+>   	.acpi_table_parse_cedt = mock_acpi_table_parse_cedt,
+>   	.acpi_evaluate_integer = mock_acpi_evaluate_integer,
+> +	.cxl_rcrb_to_component = mock_cxl_rcrb_to_component,
+>   	.acpi_pci_find_root = mock_acpi_pci_find_root,
+>   	.devm_cxl_port_enumerate_dports = mock_cxl_port_enumerate_dports,
+>   	.devm_cxl_setup_hdm = mock_cxl_setup_hdm,
+> diff --git a/tools/testing/cxl/test/mock.c b/tools/testing/cxl/test/mock.c
+> index bce6a21df0d5..5dface08e0de 100644
+> --- a/tools/testing/cxl/test/mock.c
+> +++ b/tools/testing/cxl/test/mock.c
+> @@ -224,6 +224,25 @@ int __wrap_cxl_hdm_decode_init(struct cxl_dev_state *cxlds,
+>   }
+>   EXPORT_SYMBOL_NS_GPL(__wrap_cxl_hdm_decode_init, CXL);
+>   
+> +resource_size_t __wrap_cxl_rcrb_to_component(struct device *dev,
+> +					     resource_size_t rcrb,
+> +					     enum cxl_rcrb which)
+> +{
+> +	int index;
+> +	resource_size_t component_reg_phys;
+> +	struct cxl_mock_ops *ops = get_cxl_mock_ops(&index);
+> +
+> +	if (ops && ops->is_mock_port(dev))
+> +		component_reg_phys =
+> +			ops->cxl_rcrb_to_component(dev, rcrb, which);
+> +	else
+> +		component_reg_phys = cxl_rcrb_to_component(dev, rcrb, which);
+> +	put_cxl_mock_ops(index);
+> +
+> +	return component_reg_phys;
+> +}
+> +EXPORT_SYMBOL_NS_GPL(__wrap_cxl_rcrb_to_component, CXL);
+> +
+>   MODULE_LICENSE("GPL v2");
+>   MODULE_IMPORT_NS(ACPI);
+>   MODULE_IMPORT_NS(CXL);
+> diff --git a/tools/testing/cxl/test/mock.h b/tools/testing/cxl/test/mock.h
+> index 738f24e3988a..ef33f159375e 100644
+> --- a/tools/testing/cxl/test/mock.h
+> +++ b/tools/testing/cxl/test/mock.h
+> @@ -15,6 +15,9 @@ struct cxl_mock_ops {
+>   					     acpi_string pathname,
+>   					     struct acpi_object_list *arguments,
+>   					     unsigned long long *data);
+> +	resource_size_t (*cxl_rcrb_to_component)(struct device *dev,
+> +						 resource_size_t rcrb,
+> +						 enum cxl_rcrb which);
+>   	struct acpi_pci_root *(*acpi_pci_find_root)(acpi_handle handle);
+>   	bool (*is_mock_bus)(struct pci_bus *bus);
+>   	bool (*is_mock_port)(struct device *dev);
+> 
