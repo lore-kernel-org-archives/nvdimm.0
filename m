@@ -1,33 +1,33 @@
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4238410798
-	for <nvdimm@lists.linux.dev>; Thu,  1 Dec 2022 23:00:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 536E710798
+	for <nvdimm@lists.linux.dev>; Thu,  1 Dec 2022 23:04:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1669935628; x=1701471628;
+  t=1669935895; x=1701471895;
   h=message-id:date:mime-version:subject:to:cc:references:
    from:in-reply-to:content-transfer-encoding;
-  bh=5PPaafeME2gnNtdkFkBCHZhfy0JrZKvhOUDagZMuGGA=;
-  b=bLyAub1fUC9Z2C5fJn1H3tq9CABo+sOqK8UIXTijrYhx41i/+BSL19Qg
-   71RTfN61Lvlu4v8kRidO51LpMyKN0Xsqg0RD2Xy2LHi90KetpZH6l/lsc
-   xk6+0+o2f5Hc7drzuN+j/acVWU88w6PGpA30i3///rubdi182QZ7GT3dk
-   /ZqWhRsm1zG7IxciFb81gwxWl9NIfs1kA1GFrbSLwgXl0jHiqxPXIq3F4
-   jvNCuD16nQ2Hq6g2n/+CnP/F6vQNQcmDrJuMLO8uOiuOEA+Z8jRfod1xE
-   zgSU5N55ewqwMyZDN2zF/4KNspi6zmZCTf4N75DJEpQrChghMMRXKsK6N
-   Q==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10548"; a="402098397"
+  bh=NJaYWrjN1dWCNJ+8bV7Z4k16ZHYjzZL3IYXD4Bolmbw=;
+  b=mGf4JfRUMLzibZP8wChy6TCKHa/6UHybKW79bj71c1rcCsHPuKLyYnMy
+   qtMi6VSEAphltF2aitkW0nq+HKV71jrTRDN9L07L3De5QT7BMv2JmFOpM
+   F6UMIk6RBoNFIP8IQYHxiedOReU7CVKoCecV/4oUa2thZkAFyWRDfuAv5
+   DHXz6QqRSQbF9zJXE62JwgazIg63N0qRn1L8TwwxlvVjPsoer03F1rfL4
+   /YAKIn+fWjJ8xa17e0L41I6rdS4SXIToch/GL3s9wZI63IbA35dHbNRk2
+   Gim/sJHaDts7xmT/0U3bb0ZizY19jxv60+6s9ExKQVe9xbxu+stcBl9Nn
+   w==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10548"; a="296172292"
 X-IronPort-AV: E=Sophos;i="5.96,210,1665471600"; 
-   d="scan'208";a="402098397"
-Received: from fmsmga007.fm.intel.com ([10.253.24.52])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Dec 2022 15:00:26 -0800
-X-IronPort-AV: E=McAfee;i="6500,9779,10548"; a="646940259"
+   d="scan'208";a="296172292"
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Dec 2022 15:04:54 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10548"; a="708258949"
 X-IronPort-AV: E=Sophos;i="5.96,210,1665471600"; 
-   d="scan'208";a="646940259"
+   d="scan'208";a="708258949"
 Received: from djiang5-mobl2.amr.corp.intel.com (HELO [10.212.66.184]) ([10.212.66.184])
-  by fmsmga007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Dec 2022 15:00:26 -0800
-Message-ID: <22c63a9c-5ea3-46c5-f22a-e15ad1686b3c@intel.com>
-Date: Thu, 1 Dec 2022 16:00:25 -0700
+  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Dec 2022 15:04:54 -0800
+Message-ID: <1e3e3ef4-4268-3823-187f-4347f52c52e0@intel.com>
+Date: Thu, 1 Dec 2022 16:04:53 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -36,279 +36,233 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
  Firefox/102.0 Thunderbird/102.5.0
-Subject: Re: [PATCH 4/5] nvdimm/region: Move cache management to the region
- driver
+Subject: Re: [PATCH 5/5] cxl/region: Manage CPU caches relative to DPA
+ invalidation events
 Content-Language: en-US
 To: Dan Williams <dan.j.williams@intel.com>, linux-cxl@vger.kernel.org
 Cc: Jonathan.Cameron@huawei.com, nvdimm@lists.linux.dev, dave@stgolabs.net
 References: <166993219354.1995348.12912519920112533797.stgit@dwillia2-xfh.jf.intel.com>
- <166993221550.1995348.16843505129579060258.stgit@dwillia2-xfh.jf.intel.com>
+ <166993222098.1995348.16604163596374520890.stgit@dwillia2-xfh.jf.intel.com>
 From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <166993221550.1995348.16843505129579060258.stgit@dwillia2-xfh.jf.intel.com>
+In-Reply-To: <166993222098.1995348.16604163596374520890.stgit@dwillia2-xfh.jf.intel.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
 
 
 On 12/1/2022 3:03 PM, Dan Williams wrote:
-> Now that cpu_cache_invalidate_memregion() is generically available, use
-> it to centralize CPU cache management in the nvdimm region driver.
+> A "DPA invalidation event" is any scenario where the contents of a DPA
+> (Device Physical Address) is modified in a way that is incoherent with
+> CPU caches, or if the HPA (Host Physical Address) to DPA association
+> changes due to a remapping event.
 > 
-> This trades off removing redundant per-dimm CPU cache flushing with an
-> opportunistic flush on every region disable event to cover the case of
-> sensitive dirty data in the cache being written back to media after a
-> secure erase / overwrite event.
+> PMEM security events like Unlock and Passphrase Secure Erase already
+> manage caches through LIBNVDIMM, so that leaves HPA to DPA remap events
+> that need cache management by the CXL core. Those only happen when the
+> boot time CXL configuration has changed. That event occurs when
+> userspace attaches an endpoint decoder to a region configuration, and
+> that region is subsequently activated.
+> 
+> The implications of not invalidating caches between remap events is that
+> reads from the region at different points in time may return different
+> results due to stale cached data from the previous HPA to DPA mapping.
+> Without a guarantee that the region contents after cxl_region_probe()
+> are written before being read (a layering-violation assumption that
+> cxl_region_probe() can not make) the CXL subsystem needs to ensure that
+> reads that precede writes see consistent results.
+> 
+> A CONFIG_CXL_REGION_INVALIDATION_TEST option is added to support debug
+> and unit testing of the CXL implementation in QEMU or other environments
+> where cpu_cache_has_invalidate_memregion() returns false. This may prove
+> too restrictive for QEMU where the HDM decoders are emulated, but in
+> that case the CXL subsystem needs some new mechanism / indication that
+> the HDM decoder is emulated and not a passthrough of real hardware.
 > 
 > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-One minor bit below, otherwise
 Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+
 > ---
->   drivers/acpi/nfit/intel.c    |   25 ---------------------
->   drivers/nvdimm/region.c      |   11 +++++++++
->   drivers/nvdimm/region_devs.c |   49 +++++++++++++++++++++++++++++++++++++++++-
->   drivers/nvdimm/security.c    |    6 +++++
->   include/linux/libnvdimm.h    |    5 ++++
->   5 files changed, 70 insertions(+), 26 deletions(-)
+>   drivers/cxl/Kconfig       |   18 ++++++++++++++++++
+>   drivers/cxl/core/region.c |   31 +++++++++++++++++++++++++++++++
+>   drivers/cxl/cxl.h         |    8 ++++++++
+>   drivers/cxl/security.c    |   14 --------------
+>   4 files changed, 57 insertions(+), 14 deletions(-)
 > 
-> diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
-> index fa0e57e35162..3902759abcba 100644
-> --- a/drivers/acpi/nfit/intel.c
-> +++ b/drivers/acpi/nfit/intel.c
-> @@ -212,9 +212,6 @@ static int __maybe_unused intel_security_unlock(struct nvdimm *nvdimm,
->   	if (!test_bit(NVDIMM_INTEL_UNLOCK_UNIT, &nfit_mem->dsm_mask))
->   		return -ENOTTY;
+> diff --git a/drivers/cxl/Kconfig b/drivers/cxl/Kconfig
+> index 768ced3d6fe8..0ac53c422c31 100644
+> --- a/drivers/cxl/Kconfig
+> +++ b/drivers/cxl/Kconfig
+> @@ -111,4 +111,22 @@ config CXL_REGION
+>   	select MEMREGION
+>   	select GET_FREE_REGION
 >   
-> -	if (!cpu_cache_has_invalidate_memregion())
-> -		return -EINVAL;
-> -
->   	memcpy(nd_cmd.cmd.passphrase, key_data->data,
->   			sizeof(nd_cmd.cmd.passphrase));
->   	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
-> @@ -229,9 +226,6 @@ static int __maybe_unused intel_security_unlock(struct nvdimm *nvdimm,
->   		return -EIO;
->   	}
->   
-> -	/* DIMM unlocked, invalidate all CPU caches before we read it */
-> -	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
-> -
->   	return 0;
->   }
->   
-> @@ -299,11 +293,6 @@ static int __maybe_unused intel_security_erase(struct nvdimm *nvdimm,
->   	if (!test_bit(cmd, &nfit_mem->dsm_mask))
->   		return -ENOTTY;
->   
-> -	if (!cpu_cache_has_invalidate_memregion())
-> -		return -EINVAL;
-> -
-> -	/* flush all cache before we erase DIMM */
-> -	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
->   	memcpy(nd_cmd.cmd.passphrase, key->data,
->   			sizeof(nd_cmd.cmd.passphrase));
->   	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
-> @@ -322,8 +311,6 @@ static int __maybe_unused intel_security_erase(struct nvdimm *nvdimm,
->   		return -ENXIO;
->   	}
->   
-> -	/* DIMM erased, invalidate all CPU caches before we read it */
-> -	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
->   	return 0;
->   }
->   
-> @@ -346,9 +333,6 @@ static int __maybe_unused intel_security_query_overwrite(struct nvdimm *nvdimm)
->   	if (!test_bit(NVDIMM_INTEL_QUERY_OVERWRITE, &nfit_mem->dsm_mask))
->   		return -ENOTTY;
->   
-> -	if (!cpu_cache_has_invalidate_memregion())
-> -		return -EINVAL;
-> -
->   	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
->   	if (rc < 0)
->   		return rc;
-> @@ -362,8 +346,6 @@ static int __maybe_unused intel_security_query_overwrite(struct nvdimm *nvdimm)
->   		return -ENXIO;
->   	}
->   
-> -	/* flush all cache before we make the nvdimms available */
-> -	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
->   	return 0;
->   }
->   
-> @@ -388,11 +370,6 @@ static int __maybe_unused intel_security_overwrite(struct nvdimm *nvdimm,
->   	if (!test_bit(NVDIMM_INTEL_OVERWRITE, &nfit_mem->dsm_mask))
->   		return -ENOTTY;
->   
-> -	if (!cpu_cache_has_invalidate_memregion())
-> -		return -EINVAL;
-> -
-> -	/* flush all cache before we erase DIMM */
-> -	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
->   	memcpy(nd_cmd.cmd.passphrase, nkey->data,
->   			sizeof(nd_cmd.cmd.passphrase));
->   	rc = nvdimm_ctl(nvdimm, ND_CMD_CALL, &nd_cmd, sizeof(nd_cmd), NULL);
-> @@ -770,5 +747,3 @@ static const struct nvdimm_fw_ops __intel_fw_ops = {
->   };
->   
->   const struct nvdimm_fw_ops *intel_fw_ops = &__intel_fw_ops;
-> -
-> -MODULE_IMPORT_NS(DEVMEM);
-> diff --git a/drivers/nvdimm/region.c b/drivers/nvdimm/region.c
-> index 390123d293ea..88dc062af5f8 100644
-> --- a/drivers/nvdimm/region.c
-> +++ b/drivers/nvdimm/region.c
-> @@ -2,6 +2,7 @@
->   /*
->    * Copyright(c) 2013-2015 Intel Corporation. All rights reserved.
->    */
-> +#include <linux/memregion.h>
->   #include <linux/cpumask.h>
->   #include <linux/module.h>
->   #include <linux/device.h>
-> @@ -100,6 +101,16 @@ static void nd_region_remove(struct device *dev)
->   	 */
->   	sysfs_put(nd_region->bb_state);
->   	nd_region->bb_state = NULL;
+> +config CXL_REGION_INVALIDATION_TEST
+> +	bool "CXL: Region Cache Management Bypass (TEST)"
+> +	depends on CXL_REGION
+> +	help
+> +	  CXL Region management and security operations potentially invalidate
+> +	  the content of CPU caches without notifiying those caches to
+> +	  invalidate the affected cachelines. The CXL Region driver attempts
+> +	  to invalidate caches when those events occur.  If that invalidation
+> +	  fails the region will fail to enable.  Reasons for cache
+> +	  invalidation failure are due to the CPU not providing a cache
+> +	  invalidation mechanism. For example usage of wbinvd is restricted to
+> +	  bare metal x86. However, for testing purposes toggling this option
+> +	  can disable that data integrity safety and proceed with enabling
+> +	  regions when there might be conflicting contents in the CPU cache.
 > +
-> +	/*
-> +	 * Try to flush caches here since a disabled region may be subject to
-> +	 * secure erase while disabled, and previous dirty data should not be
-> +	 * written back to a new instance of the region. This only matters on
-> +	 * bare metal where security commands are available, so silent failure
-> +	 * here is ok.
-> +	 */
-> +	if (cpu_cache_has_invalidate_memregion())
-> +		cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
+> +	  If unsure, or if this kernel is meant for production environments,
+> +	  say N.
+> +
+>   endif
+> diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
+> index 1bc2ebefa2a5..3a6c3f84015f 100644
+> --- a/drivers/cxl/core/region.c
+> +++ b/drivers/cxl/core/region.c
+> @@ -1403,6 +1403,8 @@ static int attach_target(struct cxl_region *cxlr, const char *decoder, int pos)
+>   		goto out;
+>   	down_read(&cxl_dpa_rwsem);
+>   	rc = cxl_region_attach(cxlr, to_cxl_endpoint_decoder(dev), pos);
+> +	if (rc == 0)
+> +		set_bit(CXL_REGION_F_INCOHERENT, &cxlr->flags);
+>   	up_read(&cxl_dpa_rwsem);
+>   	up_write(&cxl_region_rwsem);
+>   out:
+> @@ -1900,6 +1902,30 @@ static int devm_cxl_add_pmem_region(struct cxl_region *cxlr)
+>   	return rc;
 >   }
 >   
->   static int child_notify(struct device *dev, void *data)
-> diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-> index e0875d369762..c73e3b1fd0a6 100644
-> --- a/drivers/nvdimm/region_devs.c
-> +++ b/drivers/nvdimm/region_devs.c
-> @@ -59,13 +59,57 @@ static int nvdimm_map_flush(struct device *dev, struct nvdimm *nvdimm, int dimm,
->   	return 0;
->   }
->   
-> +static int nd_region_invalidate_memregion(struct nd_region *nd_region)
+> +static int cxl_region_invalidate_memregion(struct cxl_region *cxlr)
 > +{
-> +	int i, incoherent = 0;
-> +
-> +	for (i = 0; i < nd_region->ndr_mappings; i++) {
-> +		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
-> +		struct nvdimm *nvdimm = nd_mapping->nvdimm;
-> +
-> +		if (test_bit(NDD_INCOHERENT, &nvdimm->flags))
-> +			incoherent++;
-> +	}
-> +
-> +	if (!incoherent)
+> +	if (!test_bit(CXL_REGION_F_INCOHERENT, &cxlr->flags))
 > +		return 0;
 > +
 > +	if (!cpu_cache_has_invalidate_memregion()) {
-> +		if (IS_ENABLED(CONFIG_NVDIMM_SECURITY_TEST)) {
+> +		if (IS_ENABLED(CONFIG_CXL_REGION_INVALIDATION_TEST)) {
 > +			dev_warn(
-> +				&nd_region->dev,
+> +				&cxlr->dev,
 > +				"Bypassing cpu_cache_invalidate_memergion() for testing!\n");
-> +			goto out;
+> +			clear_bit(CXL_REGION_F_INCOHERENT, &cxlr->flags);
+> +			return 0;
 > +		} else {
-> +			dev_err(&nd_region->dev,
+> +			dev_err(&cxlr->dev,
 > +				"Failed to synchronize CPU cache state\n");
 > +			return -ENXIO;
 > +		}
 > +	}
 > +
-> +	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
-> +out:
-> +	for (i = 0; i < nd_region->ndr_mappings; i++) {
-> +		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
-> +		struct nvdimm *nvdimm = nd_mapping->nvdimm;
-> +
-> +		clear_bit(NDD_INCOHERENT, &nvdimm->flags);
-> +	}
-> +
+> +	cpu_cache_invalidate_memregion(IORES_DESC_CXL);
+> +	clear_bit(CXL_REGION_F_INCOHERENT, &cxlr->flags);
 > +	return 0;
 > +}
 > +
->   int nd_region_activate(struct nd_region *nd_region)
+>   static int cxl_region_probe(struct device *dev)
 >   {
-> -	int i, j, num_flush = 0;
-> +	int i, j, rc, num_flush = 0;
->   	struct nd_region_data *ndrd;
->   	struct device *dev = &nd_region->dev;
->   	size_t flush_data_size = sizeof(void *);
->   
-> +	rc = nd_region_invalidate_memregion(nd_region);
-> +	if (rc)
-> +		return rc;
-> +
->   	nvdimm_bus_lock(&nd_region->dev);
->   	for (i = 0; i < nd_region->ndr_mappings; i++) {
->   		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
-> @@ -85,6 +129,7 @@ int nd_region_activate(struct nd_region *nd_region)
+>   	struct cxl_region *cxlr = to_cxl_region(dev);
+> @@ -1915,12 +1941,16 @@ static int cxl_region_probe(struct device *dev)
+>   	if (p->state < CXL_CONFIG_COMMIT) {
+>   		dev_dbg(&cxlr->dev, "config state: %d\n", p->state);
+>   		rc = -ENXIO;
+> +		goto out;
 >   	}
->   	nvdimm_bus_unlock(&nd_region->dev);
 >   
+> +	rc = cxl_region_invalidate_memregion(cxlr);
 > +
-
-Extraneous blankline
-
-DJ
-
->   	ndrd = devm_kzalloc(dev, sizeof(*ndrd) + flush_data_size, GFP_KERNEL);
->   	if (!ndrd)
->   		return -ENOMEM;
-> @@ -1222,3 +1267,5 @@ int nd_region_conflict(struct nd_region *nd_region, resource_size_t start,
+>   	/*
+>   	 * From this point on any path that changes the region's state away from
+>   	 * CXL_CONFIG_COMMIT is also responsible for releasing the driver.
+>   	 */
+> +out:
+>   	up_read(&cxl_region_rwsem);
 >   
->   	return device_for_each_child(&nvdimm_bus->dev, &ctx, region_conflict);
+>   	if (rc)
+> @@ -1953,4 +1983,5 @@ void cxl_region_exit(void)
 >   }
-> +
+>   
+>   MODULE_IMPORT_NS(CXL);
 > +MODULE_IMPORT_NS(DEVMEM);
-> diff --git a/drivers/nvdimm/security.c b/drivers/nvdimm/security.c
-> index 6814339b3dab..a03e3c45f297 100644
-> --- a/drivers/nvdimm/security.c
-> +++ b/drivers/nvdimm/security.c
-> @@ -208,6 +208,8 @@ static int __nvdimm_security_unlock(struct nvdimm *nvdimm)
->   	rc = nvdimm->sec.ops->unlock(nvdimm, data);
->   	dev_dbg(dev, "key: %d unlock: %s\n", key_serial(key),
->   			rc == 0 ? "success" : "fail");
-> +	if (rc == 0)
-> +		set_bit(NDD_INCOHERENT, &nvdimm->flags);
+>   MODULE_ALIAS_CXL(CXL_DEVICE_REGION);
+> diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
+> index b433e541a054..e5e1abceeca7 100644
+> --- a/drivers/cxl/cxl.h
+> +++ b/drivers/cxl/cxl.h
+> @@ -380,12 +380,19 @@ struct cxl_region_params {
+>   	int nr_targets;
+>   };
 >   
->   	nvdimm_put_key(key);
->   	nvdimm->sec.flags = nvdimm_security_flags(nvdimm, NVDIMM_USER);
-> @@ -374,6 +376,8 @@ static int security_erase(struct nvdimm *nvdimm, unsigned int keyid,
->   		return -ENOKEY;
+> +/*
+> + * Flag whether this region needs to have its HPA span synchronized with
+> + * CPU cache state at region activation time.
+> + */
+> +#define CXL_REGION_F_INCOHERENT 0
+> +
+>   /**
+>    * struct cxl_region - CXL region
+>    * @dev: This region's device
+>    * @id: This region's id. Id is globally unique across all regions
+>    * @mode: Endpoint decoder allocation / access mode
+>    * @type: Endpoint decoder target type
+> + * @flags: Region state flags
+>    * @params: active + config params for the region
+>    */
+>   struct cxl_region {
+> @@ -393,6 +400,7 @@ struct cxl_region {
+>   	int id;
+>   	enum cxl_decoder_mode mode;
+>   	enum cxl_decoder_type type;
+> +	unsigned long flags;
+>   	struct cxl_region_params params;
+>   };
 >   
->   	rc = nvdimm->sec.ops->erase(nvdimm, data, pass_type);
-> +	if (rc == 0)
-> +		set_bit(NDD_INCOHERENT, &nvdimm->flags);
->   	dev_dbg(dev, "key: %d erase%s: %s\n", key_serial(key),
->   			pass_type == NVDIMM_MASTER ? "(master)" : "(user)",
->   			rc == 0 ? "success" : "fail");
-> @@ -408,6 +412,8 @@ static int security_overwrite(struct nvdimm *nvdimm, unsigned int keyid)
->   		return -ENOKEY;
+> diff --git a/drivers/cxl/security.c b/drivers/cxl/security.c
+> index cbd005ceb091..5484d4eecfd1 100644
+> --- a/drivers/cxl/security.c
+> +++ b/drivers/cxl/security.c
+> @@ -120,17 +120,12 @@ static int cxl_pmem_security_unlock(struct nvdimm *nvdimm,
+>   	u8 pass[NVDIMM_PASSPHRASE_LEN];
+>   	int rc;
 >   
->   	rc = nvdimm->sec.ops->overwrite(nvdimm, data);
-> +	if (rc == 0)
-> +		set_bit(NDD_INCOHERENT, &nvdimm->flags);
->   	dev_dbg(dev, "key: %d overwrite submission: %s\n", key_serial(key),
->   			rc == 0 ? "success" : "fail");
+> -	if (!cpu_cache_has_invalidate_memregion())
+> -		return -EINVAL;
+> -
+>   	memcpy(pass, key_data->data, NVDIMM_PASSPHRASE_LEN);
+>   	rc = cxl_mbox_send_cmd(cxlds, CXL_MBOX_OP_UNLOCK,
+>   			       pass, NVDIMM_PASSPHRASE_LEN, NULL, 0);
+>   	if (rc < 0)
+>   		return rc;
 >   
-> diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-> index 3bf658a74ccb..af38252ad704 100644
-> --- a/include/linux/libnvdimm.h
-> +++ b/include/linux/libnvdimm.h
-> @@ -35,6 +35,11 @@ enum {
->   	NDD_WORK_PENDING = 4,
->   	/* dimm supports namespace labels */
->   	NDD_LABELING = 6,
-> +	/*
-> +	 * dimm contents have changed requiring invalidation of CPU caches prior
-> +	 * to activation of a region that includes this device
-> +	 */
-> +	NDD_INCOHERENT = 7,
+> -	/* DIMM unlocked, invalidate all CPU caches before we read it */
+> -	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
+>   	return 0;
+>   }
 >   
->   	/* need to set a limit somewhere, but yes, this is likely overkill */
->   	ND_IOCTL_MAX_BUFLEN = SZ_4M,
+> @@ -144,21 +139,14 @@ static int cxl_pmem_security_passphrase_erase(struct nvdimm *nvdimm,
+>   	struct cxl_pass_erase erase;
+>   	int rc;
+>   
+> -	if (!cpu_cache_has_invalidate_memregion())
+> -		return -EINVAL;
+> -
+>   	erase.type = ptype == NVDIMM_MASTER ?
+>   		CXL_PMEM_SEC_PASS_MASTER : CXL_PMEM_SEC_PASS_USER;
+>   	memcpy(erase.pass, key->data, NVDIMM_PASSPHRASE_LEN);
+> -	/* Flush all cache before we erase mem device */
+> -	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
+>   	rc = cxl_mbox_send_cmd(cxlds, CXL_MBOX_OP_PASSPHRASE_SECURE_ERASE,
+>   			       &erase, sizeof(erase), NULL, 0);
+>   	if (rc < 0)
+>   		return rc;
+>   
+> -	/* mem device erased, invalidate all CPU caches before data is read */
+> -	cpu_cache_invalidate_memregion(IORES_DESC_PERSISTENT_MEMORY);
+>   	return 0;
+>   }
+>   
+> @@ -173,5 +161,3 @@ static const struct nvdimm_security_ops __cxl_security_ops = {
+>   };
+>   
+>   const struct nvdimm_security_ops *cxl_security_ops = &__cxl_security_ops;
+> -
+> -MODULE_IMPORT_NS(DEVMEM);
 > 
