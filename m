@@ -1,313 +1,162 @@
-Received: from NAM10-BN7-obe.outbound.protection.outlook.com (mail-bn7nam10on2042.outbound.protection.outlook.com [40.107.92.42])
+Received: from mail1.bemta37.messagelabs.com (mail1.bemta37.messagelabs.com [85.158.142.2])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44A136FCB
-	for <nvdimm@lists.linux.dev>; Thu,  1 Dec 2022 15:23:51 +0000 (UTC)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=kww9gz5rY9nbSeUXaivvJ7df5STC312eLSt9HISma958FvbJyRrt5plx1zTpwU3DRbwXEnfS3gBuYiAhgdscMkL5DGr2fErpo6/Iypquoq3bo/iWwELQUjMW+tmJslfkwXzgVpXG9Ih7E4nclk06QZrZUtiuCPi4xrOvwAxGD0AH0rCgz/I5R8e8b1SVU1RnilX907FRZjtCW74IBwxFqTdKVCPTmhSHikY4zCc8OTFV/7iWv/c13fbxr460p5erZSY3UsqntJ4iaG3kt5moktLyCSQFNpARiegp89Wl49iZQ0I7rrwhO/xfiTAyer2jPVhELqHNgKbgs1J5JSD+9Q==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=UTA5ns9FOeivGcmFfbJEsUp6qAAzg9fCrLYJPXMANKY=;
- b=UpMulcT4NuBnd0YA5ysvwW8dKILAuZAwSncw1dre2C5TNKfNIoiYpZgRVkxOSCvP123ztNrZ2ZLpNsanbKObwEEi8RtXkglViHTRA1F4ggsY8/+ZMTCU1/rsrctpMPeY/ZQTRK7OazHXuI3HuwQ0Qjz2K4yxOGYJ/9imVDrffCozmT6PV98kyGVskJLSzXMLilzLOflOkbynV/j9S7IRvol/qgQu1LlhdVpoXX+0BpGEX6ALC0VVd6/tQGznpV+nYz6UosoBKrsl2kVTmnsG4Mc+IyI17kMDNbUx+ZFNlV0ly9UD5N0FuH7qjRtKppwLRr2F7IUqedIfr2qHciZ93w==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 165.204.84.17) smtp.rcpttodomain=intel.com smtp.mailfrom=amd.com; dmarc=pass
- (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
- dkim=none (message not signed); arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=UTA5ns9FOeivGcmFfbJEsUp6qAAzg9fCrLYJPXMANKY=;
- b=zO66WyfQUzZSd5NfyXT2gyjeDYSX9YS6ueAy1UmVl3TNR+G0vO2FTgIp1JUSCGZGlV9dZReDUJ8Tgexg1lDraf3QHAtumutYtr4rbdPYTUTQsSc7w6Cz5Zotk3LX7DCBxoOT6aKG5iiV+e+Tr31Tjf3DjsP0HN5WwSZ249xcCMs=
-Received: from DM6PR12CA0029.namprd12.prod.outlook.com (2603:10b6:5:1c0::42)
- by IA1PR12MB6308.namprd12.prod.outlook.com (2603:10b6:208:3e4::14) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5857.23; Thu, 1 Dec
- 2022 15:23:48 +0000
-Received: from DS1PEPF0000E656.namprd02.prod.outlook.com
- (2603:10b6:5:1c0:cafe::60) by DM6PR12CA0029.outlook.office365.com
- (2603:10b6:5:1c0::42) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5880.8 via Frontend
- Transport; Thu, 1 Dec 2022 15:23:48 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
- smtp.mailfrom=amd.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=amd.com;
-Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
- 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
- client-ip=165.204.84.17; helo=SATLEXMB04.amd.com; pr=C
-Received: from SATLEXMB04.amd.com (165.204.84.17) by
- DS1PEPF0000E656.mail.protection.outlook.com (10.167.18.68) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.20.5880.8 via Frontend Transport; Thu, 1 Dec 2022 15:23:47 +0000
-Received: from rric.localdomain (10.180.168.240) by SATLEXMB04.amd.com
- (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.34; Thu, 1 Dec
- 2022 09:23:44 -0600
-Date: Thu, 1 Dec 2022 16:23:41 +0100
-From: Robert Richter <rrichter@amd.com>
-To: Dan Williams <dan.j.williams@intel.com>
-CC: <linux-cxl@vger.kernel.org>, <terry.bowman@amd.com>,
-	<bhelgaas@google.com>, <dave.jiang@intel.com>, <nvdimm@lists.linux.dev>
-Subject: Re: [PATCH v4 10/12] cxl/port: Add RCD endpoint port enumeration
-Message-ID: <Y4jG/WElCcO3wYD5@rric.localdomain>
-References: <166931487492.2104015.15204324083515120776.stgit@dwillia2-xfh.jf.intel.com>
- <166931493266.2104015.8062923429837042172.stgit@dwillia2-xfh.jf.intel.com>
- <Y4U+92BzA+O7fjNE@rric.localdomain>
- <6385516eaa45a_3cbe02944d@dwillia2-xfh.jf.intel.com.notmuch>
- <Y4Z4I4madYxKNT7g@rric.localdomain>
- <6387bf64519d1_3cbe0294de@dwillia2-xfh.jf.intel.com.notmuch>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF9F06FCB
+	for <nvdimm@lists.linux.dev>; Thu,  1 Dec 2022 15:29:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fujitsu.com;
+	s=170520fj; t=1669908556; i=@fujitsu.com;
+	bh=M3V54yXNaDCv18NT2Zq41mSST490q6ZHooF3Zeq79mc=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type;
+	b=soDIyJMX9qTu0D8AqGhLxDxCQo9M0utzGxUnTRl318yvK/4EDRuuUImQvWbkd0APV
+	 3G/0LjfMIMtFYtC/dFwoPPyYUo1MQw5sHGxbFrBRqKGNUcsb39NGyITOJBI6/dGvwS
+	 JXh3aCiY5a6nDCp8kVVKx/BW7NYnz31N6/Yg53syPU+P5pc7z2+Lq239koSE9y6vZv
+	 Tnj4d4AgAVbuv3JmUWzcTvRU2cWO/+H4OPkbyciEiOmWyhq52lqqav0wFNmXHuG3Ei
+	 WuHYKxTKTxvZPG9E3jKkaUv3TTBSYQJ5aaSkchgidokrmsDNL1sXQHEdCqkeu7+fkj
+	 3KIH69Xx5kXZQ==
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFmpileJIrShJLcpLzFFi42Kxs+FI1PU+0ZF
+  scG+OtcWc9WvYLKZPvcBoseXYPUaLy0/4LPbsPclicXnXHDaLXX92sFus/PGH1YHD49QiCY/F
+  e14yeWxa1cnmcWLGbxaPF5tnMnp83iQXwBbFmpmXlF+RwJpxcPse5oIHGhUtbR8YGxhfKXYxc
+  nEICWxhlPjcsZsVwlnOJLGnZxeQwwnk7GGUePXXDsRmE9CRuLDgL1Ccg0NEoFri1lI2kDCzQI
+  bE8St/mEFsYQFziUVfZ7CDlLAIqEgcnhMOEuYVcJE4deIRWImEgILElIfvmSHighInZz5hgRg
+  jIXHwxQtmkFYJASWJmd3xEOUVErNmtTFB2GoSV89tYp7AyD8LSfcsJN0LGJlWMZoVpxaVpRbp
+  muslFWWmZ5TkJmbm6CVW6SbqpZbq5uUXlWToGuollhfrpRYX6xVX5ibnpOjlpZZsYgQGfkpxw
+  s8djBuX/dE7xCjJwaQkyqu9ryNZiC8pP6UyI7E4I76oNCe1+BCjDAeHkgRvyh6gnGBRanpqRV
+  pmDjAKYdISHDxKIrx8x4DSvMUFibnFmekQqVOM9hxrGw7sZebY8ABETvpzDUhOnf1vP7MQS15
+  +XqqUOO9FkDYBkLaM0jy4obCkcYlRVkqYl5GBgUGIpyC1KDezBFX+FaM4B6OSMO+2bUBTeDLz
+  SuB2vwI6iwnorEixNpCzShIRUlINTD2nzj536Fm6/e6C30/uHHYs8X38oTFy/n155o1T/Favt
+  b5X6eqqnror5gjT5e9rr5v8EWmuvpkvpbc7OomX38ZhuvZieec12nstOKvivu/b5ZAfGRls/l
+  f91JeoeV+yJk449+ZFg5j00mSDYoPFk+3WRn/IPfLQY5Gml6P+/mdL8runbTsoOsFwecyxtFj
+  2rSbcHHOnXUqWX8Cl/lT16GnFDP2dEhHam4R9Xuw+YDsxik/mW6/fq5MSFzRmau9K3FXIqSH8
+  7NQL60kBjCnbtFXZjmlv37to88ODJ30OvdJi7FTTmXv+indt6YVfzBunqW15fnZP9kShXqvAx
+  OPH9ZliRX7dDJqr0itg1TrDZZ4SS3FGoqEWc1FxIgBKSgzUlQMAAA==
+X-Env-Sender: ruansy.fnst@fujitsu.com
+X-Msg-Ref: server-21.tower-745.messagelabs.com!1669908555!279337!1
+X-Originating-IP: [62.60.8.97]
+X-SYMC-ESS-Client-Auth: outbound-route-from=pass
+X-StarScan-Received:
+X-StarScan-Version: 9.101.1; banners=-,-,-
+X-VirusChecked: Checked
+Received: (qmail 11053 invoked from network); 1 Dec 2022 15:29:15 -0000
+Received: from unknown (HELO n03ukasimr01.n03.fujitsu.local) (62.60.8.97)
+  by server-21.tower-745.messagelabs.com with ECDHE-RSA-AES256-GCM-SHA384 encrypted SMTP; 1 Dec 2022 15:29:15 -0000
+Received: from n03ukasimr01.n03.fujitsu.local (localhost [127.0.0.1])
+	by n03ukasimr01.n03.fujitsu.local (Postfix) with ESMTP id 45FCE1001A4;
+	Thu,  1 Dec 2022 15:29:15 +0000 (GMT)
+Received: from R01UKEXCASM126.r01.fujitsu.local (R01UKEXCASM126 [10.183.43.178])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by n03ukasimr01.n03.fujitsu.local (Postfix) with ESMTPS id 399611001A3;
+	Thu,  1 Dec 2022 15:29:15 +0000 (GMT)
+Received: from localhost.localdomain (10.167.225.141) by
+ R01UKEXCASM126.r01.fujitsu.local (10.183.43.178) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.42; Thu, 1 Dec 2022 15:29:11 +0000
+From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+To: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
+	<nvdimm@lists.linux.dev>, <linux-fsdevel@vger.kernel.org>
+CC: <djwong@kernel.org>, <david@fromorbit.com>, <dan.j.williams@intel.com>,
+	<akpm@linux-foundation.org>
+Subject: [PATCH v2 0/8] fsdax,xfs: fix warning messages
+Date: Thu, 1 Dec 2022 15:28:50 +0000
+Message-ID: <1669908538-55-1-git-send-email-ruansy.fnst@fujitsu.com>
+X-Mailer: git-send-email 1.8.3.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <6387bf64519d1_3cbe0294de@dwillia2-xfh.jf.intel.com.notmuch>
-X-Originating-IP: [10.180.168.240]
-X-ClientProxiedBy: SATLEXMB04.amd.com (10.181.40.145) To SATLEXMB04.amd.com
- (10.181.40.145)
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DS1PEPF0000E656:EE_|IA1PR12MB6308:EE_
-X-MS-Office365-Filtering-Correlation-Id: a6f3e44a-b9cf-4072-086d-08dad3b00afd
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info:
-	b18y6B5rHvTzABpcN1w6/RacVS4k6bco314+8MWQiuCxYd79zkx419AMVcC5im0RGCQ6m8S7RgbjRkL6yYjGzzEuwHYVafSMCfWtor6tJS/Nh5aAlmeZL+sGnrDrqkSY2MkBzdWJThJluluXzBXDi3CYrrCiiz81Hp8Ramzh0mOS1ef1C7MYhxdMN8dYDGwpGErTdSEasnfZot7LLV4MdYdMQ3HD6uBZQLoy0BhPujDhmwb6idrgVn7P2hW5OLI11fWm9evhoA6Yh0jkUGdM2UPgdtI1aiY9wAJdXHcd0AwKElUOUu4WiVkfi/TvkOmK1NMRel4k70oAiLI+C4twb0rwBE8Ss3+bDO1dF58hiUJBZHrIfs83sQ7iZaKe/av+cGZX7JsYCURl9qmWB68oDuaZ1JH1gOwV/U396Dk7m12YJ7wjvgQKI0C96jsTiNVi2MEQsMtMKHscWsnqQHvLqszzChEgh4nnvFAYYEZc27yVndelVsJLxf8QYyxvg0p59tQ4bZZtBpgObt76Eby1qm6cv4t7xxsFv8EcSR1WHZq69UkzAJYo459UCZDHNBDcer84tN1bIA63NMA7fr1tFfeX9OF5oGdwqTmSsq1UQkPhi+fdk7L+TsMKnjsOuh2Fexv4p1INv/LcHmFGM57PgTRrmJuNb0EQqeA5alDHOw6BEwuqBNNavHG2vZUsVQV09vC3xy50AHh6Dvf8zbT6kGEoQLOwNazJHyPWnJc9Zqo=
-X-Forefront-Antispam-Report:
-	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230022)(4636009)(376002)(39860400002)(346002)(396003)(136003)(451199015)(46966006)(40470700004)(36840700001)(426003)(47076005)(9686003)(81166007)(7696005)(478600001)(16526019)(356005)(55016003)(6666004)(40460700003)(40480700001)(2906002)(186003)(82740400003)(82310400005)(53546011)(83380400001)(336012)(70586007)(5660300002)(26005)(316002)(36860700001)(8676002)(8936002)(54906003)(4326008)(41300700001)(70206006)(6916009)(36900700001);DIR:OUT;SFP:1101;
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 01 Dec 2022 15:23:47.7625
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: a6f3e44a-b9cf-4072-086d-08dad3b00afd
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	DS1PEPF0000E656.namprd02.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR12MB6308
+Content-Type: text/plain
+X-Originating-IP: [10.167.225.141]
+X-ClientProxiedBy: G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.80) To
+ R01UKEXCASM126.r01.fujitsu.local (10.183.43.178)
+X-Virus-Scanned: ClamAV using ClamSMTP
 
-On 30.11.22 12:39:00, Dan Williams wrote:
-> Robert Richter wrote:
-> > On 28.11.22 16:25:18, Dan Williams wrote:
-> > > Robert Richter wrote:
-> > > > On 24.11.22 10:35:32, Dan Williams wrote:
-> > > > > Unlike a CXL memory expander in a VH topology that has at least one
-> > > > > intervening 'struct cxl_port' instance between itself and the CXL root
-> > > > > device, an RCD attaches one-level higher. For example:
-> > > > > 
-> > > > >                VH
-> > > > >           ┌──────────┐
-> > > > >           │ ACPI0017 │
-> > > > >           │  root0   │
-> > > > >           └─────┬────┘
-> > > > >                 │
-> > > > >           ┌─────┴────┐
-> > > > >           │  dport0  │
-> > > > >     ┌─────┤ ACPI0016 ├─────┐
-> > > > >     │     │  port1   │     │
-> > > > >     │     └────┬─────┘     │
-> > > > >     │          │           │
-> > > > >  ┌──┴───┐   ┌──┴───┐   ┌───┴──┐
-> > > > >  │dport0│   │dport1│   │dport2│
-> > > > >  │ RP0  │   │ RP1  │   │ RP2  │
-> > > > >  └──────┘   └──┬───┘   └──────┘
-> > > > >                │
-> > > > >            ┌───┴─────┐
-> > > > >            │endpoint0│
-> > > > >            │  port2  │
-> > > > >            └─────────┘
-> > > > > 
-> > > > > ...vs:
-> > > > > 
-> > > > >               RCH
-> > > > >           ┌──────────┐
-> > > > >           │ ACPI0017 │
-> > > > >           │  root0   │
-> > > > >           └────┬─────┘
-> > > > >                │
-> > > > >            ┌───┴────┐
-> > > > >            │ dport0 │
-> > > > >            │ACPI0016│
-> > > > >            └───┬────┘
-> > > > >                │
-> > > > >           ┌────┴─────┐
-> > > > >           │endpoint0 │
-> > > > >           │  port1   │
-> > > > >           └──────────┘
-> > > > > 
-> > > > > So arrange for endpoint port in the RCH/RCD case to appear directly
-> > > > > connected to the host-bridge in its singular role as a dport. Compare
-> > > > > that to the VH case where the host-bridge serves a dual role as a
-> > > > > 'cxl_dport' for the CXL root device *and* a 'cxl_port' upstream port for
-> > > > > the Root Ports in the Root Complex that are modeled as 'cxl_dport'
-> > > > > instances in the CXL topology.
-> > > > > 
-> > > > > Another deviation from the VH case is that RCDs may need to look up
-> > > > > their component registers from the Root Complex Register Block (RCRB).
-> > > > > That platform firmware specified RCRB area is cached by the cxl_acpi
-> > > > > driver and conveyed via the host-bridge dport to the cxl_mem driver to
-> > > > > perform the cxl_rcrb_to_component() lookup for the endpoint port
-> > > > > (See 9.11.8 CXL Devices Attached to an RCH for the lookup of the
-> > > > > upstream port component registers).
-> > > > > 
-> > > > > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> > > > > ---
-> > > > >  drivers/cxl/core/port.c |   11 +++++++++--
-> > > > >  drivers/cxl/cxlmem.h    |    2 ++
-> > > > >  drivers/cxl/mem.c       |   31 ++++++++++++++++++++++++-------
-> > > > >  drivers/cxl/pci.c       |   10 ++++++++++
-> > > > >  4 files changed, 45 insertions(+), 9 deletions(-)
-> > > > > 
-> > > > > diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
-> > > > > index c7f58282b2c1..2385ee00eb9a 100644
-> > > > > --- a/drivers/cxl/core/port.c
-> > > > > +++ b/drivers/cxl/core/port.c
-> > > > > @@ -1358,8 +1358,17 @@ int devm_cxl_enumerate_ports(struct cxl_memdev *cxlmd)
-> > > > >  {
-> > > > >  	struct device *dev = &cxlmd->dev;
-> > > > >  	struct device *iter;
-> > > > > +	struct cxl_dport *dport;
-> > > > > +	struct cxl_port *port;
-> > > > 
-> > > > There is no direct need to move that code here.
-> > > > 
-> > > > If you want to clean that up in this patch too, then leave a comment
-> > > > in the change log?
-> > > 
-> > > Oh, good point, must have been left over from an earlier revision of the
-> > > patch, dropped it.
-> > > 
-> > > > 
-> > > > >  	int rc;
-> > > > >  
-> > > > > +	/*
-> > > > > +	 * Skip intermediate port enumeration in the RCH case, there
-> > > > > +	 * are no ports in between a host bridge and an endpoint.
-> > > > > +	 */
-> > > > > +	if (cxlmd->cxlds->rcd)
-> > > > > +		return 0;
-> > > > > +
-> > > > >  	rc = devm_add_action_or_reset(&cxlmd->dev, cxl_detach_ep, cxlmd);
-> > > > >  	if (rc)
-> > > > >  		return rc;
-> > > > > @@ -1373,8 +1382,6 @@ int devm_cxl_enumerate_ports(struct cxl_memdev *cxlmd)
-> > > > >  	for (iter = dev; iter; iter = grandparent(iter)) {
-> > > > >  		struct device *dport_dev = grandparent(iter);
-> > > > >  		struct device *uport_dev;
-> > > > > -		struct cxl_dport *dport;
-> > > > > -		struct cxl_port *port;
-> > > > >  
-> > > > >  		if (!dport_dev)
-> > > > >  			return 0;
-> > > > > diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
-> > > > > index e082991bc58c..35d485d041f0 100644
-> > > > > --- a/drivers/cxl/cxlmem.h
-> > > > > +++ b/drivers/cxl/cxlmem.h
-> > > > > @@ -201,6 +201,7 @@ struct cxl_endpoint_dvsec_info {
-> > > > >   * @dev: The device associated with this CXL state
-> > > > >   * @regs: Parsed register blocks
-> > > > >   * @cxl_dvsec: Offset to the PCIe device DVSEC
-> > > > > + * @rcd: operating in RCD mode (CXL 3.0 9.11.8 CXL Devices Attached to an RCH)
-> > > > >   * @payload_size: Size of space for payload
-> > > > >   *                (CXL 2.0 8.2.8.4.3 Mailbox Capabilities Register)
-> > > > >   * @lsa_size: Size of Label Storage Area
-> > > > > @@ -235,6 +236,7 @@ struct cxl_dev_state {
-> > > > >  	struct cxl_regs regs;
-> > > > >  	int cxl_dvsec;
-> > > > >  
-> > > > > +	bool rcd;
-> > > > >  	size_t payload_size;
-> > > > >  	size_t lsa_size;
-> > > > >  	struct mutex mbox_mutex; /* Protects device mailbox and firmware */
-> > > > > diff --git a/drivers/cxl/mem.c b/drivers/cxl/mem.c
-> > > > > index aa63ce8c7ca6..9a655b4b5e52 100644
-> > > > > --- a/drivers/cxl/mem.c
-> > > > > +++ b/drivers/cxl/mem.c
-> > > > > @@ -45,12 +45,13 @@ static int cxl_mem_dpa_show(struct seq_file *file, void *data)
-> > > > >  	return 0;
-> > > > >  }
-> > > > >  
-> > > > > -static int devm_cxl_add_endpoint(struct cxl_memdev *cxlmd,
-> > > > > +static int devm_cxl_add_endpoint(struct device *host, struct cxl_memdev *cxlmd,
-> > > > >  				 struct cxl_dport *parent_dport)
-> > > > >  {
-> > > > >  	struct cxl_port *parent_port = parent_dport->port;
-> > > > >  	struct cxl_dev_state *cxlds = cxlmd->cxlds;
-> > > > >  	struct cxl_port *endpoint, *iter, *down;
-> > > > > +	resource_size_t component_reg_phys;
-> > > > >  	int rc;
-> > > > >  
-> > > > >  	/*
-> > > > > @@ -65,8 +66,18 @@ static int devm_cxl_add_endpoint(struct cxl_memdev *cxlmd,
-> > > > >  		ep->next = down;
-> > > > >  	}
-> > > > >  
-> > > > > -	endpoint = devm_cxl_add_port(&parent_port->dev, &cxlmd->dev,
-> > > > > -				     cxlds->component_reg_phys, parent_dport);
-> > > > > +	/*
-> > > > > +	 * The component registers for an RCD might come from the
-> > > > > +	 * host-bridge RCRB if they are not already mapped via the
-> > > > > +	 * typical register locator mechanism.
-> > > > > +	 */
-> > > > > +	if (parent_dport->rch && cxlds->component_reg_phys == CXL_RESOURCE_NONE)
-> > > > > +		component_reg_phys = cxl_rcrb_to_component(
-> > > > > +			&cxlmd->dev, parent_dport->rcrb, CXL_RCRB_DOWNSTREAM);
-> > > > 
-> > > > As already commented: this must be the upstream RCRB here.
-> > > > 
-> > > > > +	else
-> > > > > +		component_reg_phys = cxlds->component_reg_phys;
-> > > > > +	endpoint = devm_cxl_add_port(host, &cxlmd->dev, component_reg_phys,
-> > > > > +				     parent_dport);
-> > > > 
-> > > > Looking at CXL 3.0 spec, table 8-22, there are the various sources of
-> > > > component registers listed. For RCD we need: D1, DP1, UP1 (optional
-> > > > R).
-> > > > 
-> > > > 	D1:	endpoint->component_reg_phys;
-> > > > 	UP1:	parent_port-component_reg_phys; (missing in RCH topology)
-> > > > 	DP1:	parent_dport->component_reg_phys;
-> > > > 
-> > > > I don't see how all of them could be stored in this data layout as the
-> > > > cxl host port is missing.
-> > > 
-> > > If I am understanding your concern correctly, that's handled here:
-> > > 
-> > >     if (parent_dport->rch && cxlds->component_reg_phys == CXL_RESOURCE_NONE)
-> > > 
-> > > In the D1 case cxlds->component_reg_phys will be valid since the
-> > > component registers were visible via the register locator DVSEC and
-> > > retrieved by cxl_pci. In the UP1 case cxlds->component_reg_phys is
-> > > invalid and the driver falls back to the RCRB. DP1 is handled in
-> > > cxl_acpi. I.e. the D1 and UP1 cases do not co-exist.
-> > 
-> > What I mean is we must store all 3 component reg base addresses for
-> > later access. E.g., if there is an AER error of a pci dev or the host,
-> > we must (depending on the error details) access CXL RAS status of
-> > either D1, UP1 or DP1. So for all 3 of them there must be a way to
-> > determine this walking through the port hierarchy. In the above list
-> > of locations I don't where UP1's component reg base address is stored.
-> 
-> So I think we are reading the specification differently. I am comparing
-> Figure 9-7 "CXL Device Remaps Upstream Port and Component Registers" and
-> Figure Figure 9-8 "CXL Device that Does Not Remap Upstream Port and
-> Component Registers" and noting that there is never a case where three
-> sets of component registers are visible. It is either DP1 connected to
-> UP1 (Figure 9-7) or DP1 connected to D1 (Figure 9-8). There is never a
-> case where the code needs to consider UP1 and D1 component registers at
-> the same time because those things are identical just enumerated
-> differently depending on how the endpoint is implemented.
+Changes since v1:
+ 1. Added a snippet of the warning message and some of the failed cases
+ 2. Separated the patch for easily review
+ 3. Added page->share and its helper functions
+ 4. Included the patch[1] that removes the restrictions of fsdax and reflink
+[1] https://lore.kernel.org/linux-xfs/1663234002-17-1-git-send-email-ruansy.fnst@fujitsu.com/
 
-Yes, the spec is ambiguous here. Looking at CXL 3.0, Figure 12-3 I
-also tend to agree the RCiEP's CXL RAS cap is used for that ("UP Z
-sends an error message to all CXL.io Functions that are affected by
-this error."). Unfortunately 12.2.1.2 does not state where the CXL RAS
-Capability that logs the error resides.
+Many testcases failed in dax+reflink mode with warning message in dmesg.
+Such as generic/051,075,127.  The warning message is like this:
+[  775.509337] ------------[ cut here ]------------
+[  775.509636] WARNING: CPU: 1 PID: 16815 at fs/dax.c:386 dax_insert_entry.cold+0x2e/0x69
+[  775.510151] Modules linked in: auth_rpcgss oid_registry nfsv4 algif_hash af_alg af_packet nft_reject_inet nf_reject_ipv4 nf_reject_ipv6 nft_reject nft_ct nft_chain_nat iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 ip_set nf_tables nfnetlink ip6table_filter ip6_tables iptable_filter ip_tables x_tables dax_pmem nd_pmem nd_btt sch_fq_codel configfs xfs libcrc32c fuse
+[  775.524288] CPU: 1 PID: 16815 Comm: fsx Kdump: loaded Tainted: G        W          6.1.0-rc4+ #164 eb34e4ee4200c7cbbb47de2b1892c5a3e027fd6d
+[  775.524904] Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS Arch Linux 1.16.0-3-3 04/01/2014
+[  775.525460] RIP: 0010:dax_insert_entry.cold+0x2e/0x69
+[  775.525797] Code: c7 c7 18 eb e0 81 48 89 4c 24 20 48 89 54 24 10 e8 73 6d ff ff 48 83 7d 18 00 48 8b 54 24 10 48 8b 4c 24 20 0f 84 e3 e9 b9 ff <0f> 0b e9 dc e9 b9 ff 48 c7 c6 a0 20 c3 81 48 c7 c7 f0 ea e0 81 48
+[  775.526708] RSP: 0000:ffffc90001d57b30 EFLAGS: 00010082
+[  775.527042] RAX: 000000000000002a RBX: 0000000000000000 RCX: 0000000000000042
+[  775.527396] RDX: ffffea000a0f6c80 RSI: ffffffff81dfab1b RDI: 00000000ffffffff
+[  775.527819] RBP: ffffea000a0f6c40 R08: 0000000000000000 R09: ffffffff820625e0
+[  775.528241] R10: ffffc90001d579d8 R11: ffffffff820d2628 R12: ffff88815fc98320
+[  775.528598] R13: ffffc90001d57c18 R14: 0000000000000000 R15: 0000000000000001
+[  775.528997] FS:  00007f39fc75d740(0000) GS:ffff88817bc80000(0000) knlGS:0000000000000000
+[  775.529474] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[  775.529800] CR2: 00007f39fc772040 CR3: 0000000107eb6001 CR4: 00000000003706e0
+[  775.530214] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+[  775.530592] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+[  775.531002] Call Trace:
+[  775.531230]  <TASK>
+[  775.531444]  dax_fault_iter+0x267/0x6c0
+[  775.531719]  dax_iomap_pte_fault+0x198/0x3d0
+[  775.532002]  __xfs_filemap_fault+0x24a/0x2d0 [xfs aa8d25411432b306d9554da38096f4ebb86bdfe7]
+[  775.532603]  __do_fault+0x30/0x1e0
+[  775.532903]  do_fault+0x314/0x6c0
+[  775.533166]  __handle_mm_fault+0x646/0x1250
+[  775.533480]  handle_mm_fault+0xc1/0x230
+[  775.533810]  do_user_addr_fault+0x1ac/0x610
+[  775.534110]  exc_page_fault+0x63/0x140
+[  775.534389]  asm_exc_page_fault+0x22/0x30
+[  775.534678] RIP: 0033:0x7f39fc55820a
+[  775.534950] Code: 00 01 00 00 00 74 99 83 f9 c0 0f 87 7b fe ff ff c5 fe 6f 4e 20 48 29 fe 48 83 c7 3f 49 8d 0c 10 48 83 e7 c0 48 01 fe 48 29 f9 <f3> a4 c4 c1 7e 7f 00 c4 c1 7e 7f 48 20 c5 f8 77 c3 0f 1f 44 00 00
+[  775.535839] RSP: 002b:00007ffc66a08118 EFLAGS: 00010202
+[  775.536157] RAX: 00007f39fc772001 RBX: 0000000000042001 RCX: 00000000000063c1
+[  775.536537] RDX: 0000000000006400 RSI: 00007f39fac42050 RDI: 00007f39fc772040
+[  775.536919] RBP: 0000000000006400 R08: 00007f39fc772001 R09: 0000000000042000
+[  775.537304] R10: 0000000000000001 R11: 0000000000000246 R12: 0000000000000001
+[  775.537694] R13: 00007f39fc772000 R14: 0000000000006401 R15: 0000000000000003
+[  775.538086]  </TASK>
+[  775.538333] ---[ end trace 0000000000000000 ]---
 
--Robert
+This also effects dax+noreflink mode if we run the test after a
+dax+reflink test.  So, the most urgent thing is solving the warning
+messages.
+
+With these fixes, most warning messages in dax_associate_entry() are
+gone.  But honestly, generic/388 will randomly failed with the warning.
+The case shutdown the xfs when fsstress is running, and do it for many
+times.  I think the reason is that dax pages in use are not able to be
+invalidated in time when fs is shutdown.  The next time dax page to be
+associated, it still remains the mapping value set last time.  I'll keep
+on solving it.
+
+The warning message in dax_writeback_one() can also be fixed because of
+the dax unshare.
+
+
+Shiyang Ruan (8):
+  fsdax: introduce page->share for fsdax in reflink mode
+  fsdax: invalidate pages when CoW
+  fsdax: zero the edges if source is HOLE or UNWRITTEN
+  fsdax,xfs: set the shared flag when file extent is shared
+  fsdax: dedupe: iter two files at the same time
+  xfs: use dax ops for zero and truncate in fsdax mode
+  fsdax,xfs: port unshare to fsdax
+  xfs: remove restrictions for fsdax and reflink
+
+ fs/dax.c                   | 220 +++++++++++++++++++++++++------------
+ fs/xfs/xfs_ioctl.c         |   4 -
+ fs/xfs/xfs_iomap.c         |   6 +-
+ fs/xfs/xfs_iops.c          |   4 -
+ fs/xfs/xfs_reflink.c       |   8 +-
+ include/linux/dax.h        |   2 +
+ include/linux/mm_types.h   |   5 +-
+ include/linux/page-flags.h |   2 +-
+ 8 files changed, 166 insertions(+), 85 deletions(-)
+
+-- 
+2.38.1
 
