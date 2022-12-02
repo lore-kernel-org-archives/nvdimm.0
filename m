@@ -1,97 +1,188 @@
-Received: from mail-qv1-f48.google.com (mail-qv1-f48.google.com [209.85.219.48])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63BC44C71
-	for <nvdimm@lists.linux.dev>; Fri,  2 Dec 2022 15:59:50 +0000 (UTC)
-Received: by mail-qv1-f48.google.com with SMTP id r15so3676865qvm.6
-        for <nvdimm@lists.linux.dev>; Fri, 02 Dec 2022 07:59:50 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=content-transfer-encoding:in-reply-to:subject:organization
-         :references:cc:to:content-language:user-agent:mime-version:date
-         :message-id:from:sender:from:to:cc:subject:date:message-id:reply-to;
-        bh=cPzx2hLWGTaW5By9gQFzFihvIZmO3/hpOtbLChgMY3Q=;
-        b=jZZhbejWjetSz80O5+Jxno73nWvt+U32Cob/W4y51jinbfaHMI2W/x1YWri4uT7SPt
-         fHqLa18VLNR0ILy0OJzwN0lJ6uWdY2JDB52+xPJ0U8Si78pVc0KSdTkUg3RB2TkqCXEm
-         WP96XT/9zqK98AaNkZXqw8mG4kaHgs0H+TtBUem+gVQOEiCES8kvRR40wt9Rm7d1bRFC
-         PKELCorf1MUpa647ljULaZOj4Yk+85Qc4cOlULfEiOtm0SYDQlZxuvpwL6BBlVmZ7eFK
-         +kTUHJlm3VBNrOOGPqtBpDjGkE283wbAstS9F6bSevoObX9YXwC4OvMzngV9isPiAa20
-         z9hQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:in-reply-to:subject:organization
-         :references:cc:to:content-language:user-agent:mime-version:date
-         :message-id:from:sender:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=cPzx2hLWGTaW5By9gQFzFihvIZmO3/hpOtbLChgMY3Q=;
-        b=6g2EgS/hjv8K1vrY0U1o+IO595F7rTsl5KT5X/U5dx6dEAcKPkPc62Snlk1FdWK94/
-         ggMkvXQy6xYLbS6PJ725EJSj08IQvEvF2AnySyFBIbTBmyaV7tmFU3wW4V11AbQL/LVn
-         jdwyKnsCLC7oEh9QP1D2rp/sNB3ImiEvg5scU4LbaJq+vX4Z0td/W6mumzcIBQsW8URZ
-         6xQi037SWCLCxKCJRgD7aHcK33VY/EnexMG1Qz5Dj1CQ82IfzaQazH4lDOzA95dEFan3
-         HJfuqLS3qZcl1v0qak/nwD08kqw48Zt3TRsRlomhWe2wKzdqQnbvCXSUbw25PiJFVS0R
-         XlIw==
-X-Gm-Message-State: ANoB5pnKQUfnl+5Ymd4GS7RoiCa8sTsRM4NVKXdXrcsk074uxHkDYzQG
-	ey+PAifqgxPWgrZdNKt+zMXq3eBOzC4=
-X-Google-Smtp-Source: AA0mqf6SsV+WqvUyoTAF2WBT88zFIvRitZ0GyO5yfJdonHYg3h94MGW5cHcALI9zI5Z9CRz5ldyx4g==
-X-Received: by 2002:a05:6214:310d:b0:4bc:1455:43c6 with SMTP id ks13-20020a056214310d00b004bc145543c6mr47083119qvb.89.1669996789168;
-        Fri, 02 Dec 2022 07:59:49 -0800 (PST)
-Received: from [10.230.45.5] ([38.32.73.2])
-        by smtp.gmail.com with ESMTPSA id bk17-20020a05620a1a1100b006f9f3c0c63csm5842768qkb.32.2022.12.02.07.59.48
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 02 Dec 2022 07:59:48 -0800 (PST)
-Sender: Alexander Motin <mavbsd@gmail.com>
-From: Alexander Motin <mav@FreeBSD.org>
-X-Google-Original-From: Alexander Motin <mav@ixsystems.com>
-Message-ID: <454036c5-ab16-db4a-f0db-b6640a6d5a57@ixsystems.com>
-Date: Fri, 2 Dec 2022 10:59:47 -0500
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A9314C71
+	for <nvdimm@lists.linux.dev>; Fri,  2 Dec 2022 16:11:24 +0000 (UTC)
+Received: from frapeml500006.china.huawei.com (unknown [172.18.147.226])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4NNyXW6vm0z687L9;
+	Sat,  3 Dec 2022 00:08:11 +0800 (CST)
+Received: from lhrpeml500005.china.huawei.com (7.191.163.240) by
+ frapeml500006.china.huawei.com (7.182.85.219) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31; Fri, 2 Dec 2022 17:11:21 +0100
+Received: from localhost (10.202.227.76) by lhrpeml500005.china.huawei.com
+ (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.34; Fri, 2 Dec
+ 2022 16:11:21 +0000
+Date: Fri, 2 Dec 2022 16:11:20 +0000
+From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+To: Dan Williams <dan.j.williams@intel.com>
+CC: <linux-cxl@vger.kernel.org>, Robert Richter <rrichter@amd.com>,
+	<alison.schofield@intel.com>, <terry.bowman@amd.com>, <bhelgaas@google.com>,
+	<dave.jiang@intel.com>, <nvdimm@lists.linux.dev>
+Subject: Re: [PATCH v6 07/12] cxl/ACPI: Register CXL host ports by bridge
+ device
+Message-ID: <20221202161120.00005be9@Huawei.com>
+In-Reply-To: <166993043978.1882361.16238060349889579369.stgit@dwillia2-xfh.jf.intel.com>
+References: <166993040066.1882361.5484659873467120859.stgit@dwillia2-xfh.jf.intel.com>
+	<166993043978.1882361.16238060349889579369.stgit@dwillia2-xfh.jf.intel.com>
+Organization: Huawei Technologies Research and Development (UK) Ltd.
+X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; FreeBSD amd64; rv:91.0) Gecko/20100101
- Thunderbird/91.13.0
-Content-Language: en-US
-To: Alison Schofield <alison.schofield@intel.com>
-Cc: nvdimm@lists.linux.dev
-References: <20221117210935.5717-1-mav@ixsystems.com>
- <Y3awuiWbbJFcqJdt@aschofie-mobl2>
- <8de44383-d2a6-2dfd-098d-f221232fafbf@ixsystems.com>
-Organization: iXsystems, Inc.
-Subject: Re: [ndctl PATCH] libndctl/msft: Improve "smart" state reporting
-In-Reply-To: <8de44383-d2a6-2dfd-098d-f221232fafbf@ixsystems.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.202.227.76]
+X-ClientProxiedBy: lhrpeml100006.china.huawei.com (7.191.160.224) To
+ lhrpeml500005.china.huawei.com (7.191.163.240)
+X-CFilter-Loop: Reflected
 
-On 17.11.2022 17:41, Alexander Motin wrote:
-> On 17.11.2022 17:07, Alison Schofield wrote:
->> On Thu, Nov 17, 2022 at 04:09:36PM -0500, Alexander Motin wrote:
->>> Previous code reported "smart" state based on number of bits
->>> set in the module health field.  But actually any single bit
->>> set there already means critical failure.  Rework the logic
->>> according to specification, properly reporting non-critical
->>> state in case of warning threshold reached, critical in case
->>> of any module health bit set or error threshold reached and
->>> fatal if NVDIMM exhausted its life time.  In attempt to
->>> report the cause of failure in absence of better methods,
->>> report reached thresholds as more or less matching alarms.
->>>
->>> While there clean up the code, making it more uniform with
->>> others and allowing more methods to be implemented later.
->>
->> Hi Alexander,
->>
->> Perhaps this would be better presented in 2 patches:
->> 1)the cleanup and then 2) improvement of smart state reporting.
+On Thu, 01 Dec 2022 13:33:59 -0800
+Dan Williams <dan.j.williams@intel.com> wrote:
+
+> From: Robert Richter <rrichter@amd.com>
 > 
-> Done.
-Pardon my ignorance about the processes here, but what's about review on 
-on the merits after two weeks?  Any more thoughts after I fixed the 
-"procedural issue":
-https://lore.kernel.org/nvdimm/20221117223749.6783-1-mav@ixsystems.com/T/#t
+> A port of a CXL host bridge links to the bridge's ACPI device
+> (&adev->dev) with its corresponding uport/dport device (uport_dev and
+> dport_dev respectively). The device is not a direct parent device in
+> the PCI topology as pdev->dev.parent points to a PCI bridge's (struct
+> pci_host_bridge) device. The following CXL memory device hierarchy
+> would be valid for an endpoint once an RCD EP would be enabled (note
+> this will be done in a later patch):
+> 
+> VH mode:
+> 
+>  cxlmd->dev.parent->parent
+>         ^^^\^^^^^^\ ^^^^^^\
+>             \      \       pci_dev (Type 1, Downstream Port)
+>              \      pci_dev (Type 0, PCI Express Endpoint)
+>               cxl mem device
+> 
+> RCD mode:
+> 
+>  cxlmd->dev.parent->parent
+>         ^^^\^^^^^^\ ^^^^^^\
+>             \      \       pci_host_bridge
+>              \      pci_dev (Type 0, RCiEP)
+>               cxl mem device
+> 
+> In VH mode a downstream port is created by port enumeration and thus
+> always exists.
+> 
+> Now, in RCD mode the host bridge also already exists but it references
+> to an ACPI device. A port lookup by the PCI device's parent device
+> will fail as a direct link to the registered port is missing. The ACPI
+> device of the bridge must be determined first.
+> 
+> To prevent this, change port registration of a CXL host to use the
+> bridge device instead. Do this also for the VH case as port topology
+> will better reflect the PCI topology then.
+> 
+> Signed-off-by: Robert Richter <rrichter@amd.com>
+> [djbw: rebase on brige mocking]
+> Reviewed-by: Robert Richter <rrichter@amd.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Trivial comment inline. Looks fine to me otherwise...
 
-Thanks.
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 
--- 
-Alexander Motin
+
+> ---
+>  drivers/cxl/acpi.c |   35 +++++++++++++++++++----------------
+>  1 file changed, 19 insertions(+), 16 deletions(-)
+> 
+> diff --git a/drivers/cxl/acpi.c b/drivers/cxl/acpi.c
+> index b8407b77aff6..50d82376097c 100644
+> --- a/drivers/cxl/acpi.c
+> +++ b/drivers/cxl/acpi.c
+> @@ -193,35 +193,34 @@ static int add_host_bridge_uport(struct device *match, void *arg)
+>  {
+>  	struct cxl_port *root_port = arg;
+>  	struct device *host = root_port->dev.parent;
+> -	struct acpi_device *bridge = to_cxl_host_bridge(host, match);
+> +	struct acpi_device *hb = to_cxl_host_bridge(host, match);
+>  	struct acpi_pci_root *pci_root;
+>  	struct cxl_dport *dport;
+>  	struct cxl_port *port;
+> +	struct device *bridge;
+>  	int rc;
+>  
+> -	if (!bridge)
+> +	if (!hb)
+>  		return 0;
+>  
+> -	dport = cxl_find_dport_by_dev(root_port, match);
+> +	pci_root = acpi_pci_find_root(hb->handle);
+> +	bridge = pci_root->bus->bridge;
+> +	dport = cxl_find_dport_by_dev(root_port, bridge);
+>  	if (!dport) {
+>  		dev_dbg(host, "host bridge expected and not found\n");
+>  		return 0;
+>  	}
+>  
+> -	/*
+> -	 * Note that this lookup already succeeded in
+> -	 * to_cxl_host_bridge(), so no need to check for failure here
+> -	 */
+> -	pci_root = acpi_pci_find_root(bridge->handle);
+> -	rc = devm_cxl_register_pci_bus(host, match, pci_root->bus);
+> +	rc = devm_cxl_register_pci_bus(host, bridge, pci_root->bus);
+>  	if (rc)
+>  		return rc;
+>  
+> -	port = devm_cxl_add_port(host, match, dport->component_reg_phys, dport);
+> +	port = devm_cxl_add_port(host, bridge, dport->component_reg_phys,
+> +				 dport);
+>  	if (IS_ERR(port))
+>  		return PTR_ERR(port);
+>  
+> -	dev_info(pci_root->bus->bridge, "host supports CXL\n");
+> +	dev_info(bridge, "host supports CXL\n");
+>  
+>  	return 0;
+>  }
+> @@ -253,18 +252,20 @@ static int cxl_get_chbcr(union acpi_subtable_headers *header, void *arg,
+>  static int add_host_bridge_dport(struct device *match, void *arg)
+>  {
+>  	acpi_status status;
+> +	struct device *bridge;
+>  	unsigned long long uid;
+>  	struct cxl_dport *dport;
+>  	struct cxl_chbs_context ctx;
+> +	struct acpi_pci_root *pci_root;
+>  	struct cxl_port *root_port = arg;
+>  	struct device *host = root_port->dev.parent;
+> -	struct acpi_device *bridge = to_cxl_host_bridge(host, match);
+> +	struct acpi_device *hb = to_cxl_host_bridge(host, match);
+>  
+> -	if (!bridge)
+> +	if (!hb)
+>  		return 0;
+>  
+> -	status = acpi_evaluate_integer(bridge->handle, METHOD_NAME__UID, NULL,
+> -				       &uid);
+> +	status =
+> +		acpi_evaluate_integer(hb->handle, METHOD_NAME__UID, NULL, &uid);
+
+Bit ugly.  Maybe a good case for a slightly longer line!
+
+>  	if (status != AE_OK) {
+>  		dev_err(match, "unable to retrieve _UID\n");
+>  		return -ENODEV;
+> @@ -285,7 +286,9 @@ static int add_host_bridge_dport(struct device *match, void *arg)
+>  
+>  	dev_dbg(match, "CHBCR found: 0x%08llx\n", (u64)ctx.chbcr);
+>  
+> -	dport = devm_cxl_add_dport(root_port, match, uid, ctx.chbcr);
+> +	pci_root = acpi_pci_find_root(hb->handle);
+> +	bridge = pci_root->bus->bridge;
+> +	dport = devm_cxl_add_dport(root_port, bridge, uid, ctx.chbcr);
+>  	if (IS_ERR(dport))
+>  		return PTR_ERR(dport);
+>  
+> 
+
