@@ -1,243 +1,101 @@
-Received: from mail1.bemta34.messagelabs.com (mail1.bemta34.messagelabs.com [195.245.231.1])
+Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3B2A1C2B
-	for <nvdimm@lists.linux.dev>; Fri,  2 Dec 2022 09:26:02 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fujitsu.com;
-	s=170520fj; t=1669973161; i=@fujitsu.com;
-	bh=7Gh67qKW0EaWHKgn5AoVn9psrj7yKSlvOKC1gXmit9M=;
-	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type;
-	b=Qmosm8omzUsPVuQCzidCKcRa1vj79KIdvtncPuVfSzeuswDyAZVAFeDr/ngYEZDXM
-	 okkQDpjpswGK7+FQEmbkQeN/E5sgSHPBYwUKN1V2Hhp6fE/z4S+KEwwnxuV8H1zyMg
-	 im0gMBXDqJSHGYt/co6N2TrC3CQBzfyVXgq5+w0SN9LMonyPVfOGCDoFX9+2EJBe6b
-	 0ad7azCsjQX5lGzPWK+50ZnsfCfq5ux9jzkTfP/QUDynz68GzSUuhH3cdZ9BtrIoaz
-	 5+5kbgCx2kXsebs/CH4yxEe14du+FRFTSdlsxPAuyTi2tEFD3JSlCW7ktB9TJEXLxs
-	 qWmBqE93vJbRw==
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFvrHIsWRWlGSWpSXmKPExsViZ8MxSXfFkc5
-  kg46dUhZz1q9hs5g+9QKjxZZj9xgtLj/hs9iz9ySLxeVdc9gsdv3ZwW6x8scfVgcOj1OLJDwW
-  73nJ5LFpVSebx4kZv1k8XmyeyejxeZNcAFsUa2ZeUn5FAmvGhVVn2At6dCp2zP7J3MB4TLmLk
-  YtDSGALo8TOQ6dYIJzlTBInO06wQTh7GCWar9wEynBysAnoSFxY8Je1i5GDQ0SgWuLWUjaQML
-  NAhsTxK3+YQWxhAT+Jzb/XgMVZBFQk1j85xgRi8wq4Ssz8fw7MlhBQkJjy8D1YPSdQfNv8t4w
-  gtpCAi8Sej0eZIeoFJU7OfMICMV9C4uCLF8wgayUElCRmdsdDjKmQmDWrDWqkmsTVc5uYJzAK
-  zkLSPQtJ9wJGplWMZsWpRWWpRbqGlnpJRZnpGSW5iZk5eolVuol6qaW65anFJbpGeonlxXqpx
-  cV6xZW5yTkpenmpJZsYgdGSUqy4bgfj9GV/9A4xSnIwKYnyvlrWmSzEl5SfUpmRWJwRX1Sak1
-  p8iFGGg0NJgpf1AFBOsCg1PbUiLTMHGLkwaQkOHiUR3vd7gdK8xQWJucWZ6RCpU4yKUuK8uw4
-  BJQRAEhmleXBtsGRxiVFWSpiXkYGBQYinILUoN7MEVf4VozgHo5Iwb/U+oCk8mXklcNNfAS1m
-  AlocKdYGsrgkESEl1cBU8f26R3/gQ42ZcpdeOc3wZHx78PmmVZ4yxwJy1TyvvZyms/V/6v06v
-  fNnd8wLPn1o1dbXbJxXrj2+yc7AceBnIdPp53tsFp3mNLxwwO2U5pujko9b5rxmmX7+RVnkjH
-  8zBWp1chM7ig+nMXEdeXiqTO64n+KxfcpzFhUnNUvXeWrWVf+4YS7n2Xjop6Fpdoh7ff5ni4D
-  ff279P6y1XXKWaOCkDZ5/nrhcj9/UoMp5quiGlYmbwJKuK/1fZ0rcffAgoFs/PvKs2+932ZfX
-  KEqyS/rcWvozkHENp4q+ds3+nNSF0Vc+2ff6J80TP3xj7o+tnA13/7qEXZ7Ufiro9OQs81OzT
-  l3y/uDJXnnA1O+jsBJLcUaioRZzUXEiAFCjZoWRAwAA
-X-Env-Sender: ruansy.fnst@fujitsu.com
-X-Msg-Ref: server-9.tower-571.messagelabs.com!1669973160!153515!1
-X-Originating-IP: [62.60.8.146]
-X-SYMC-ESS-Client-Auth: outbound-route-from=pass
-X-StarScan-Received:
-X-StarScan-Version: 9.101.1; banners=-,-,-
-X-VirusChecked: Checked
-Received: (qmail 7087 invoked from network); 2 Dec 2022 09:26:00 -0000
-Received: from unknown (HELO n03ukasimr02.n03.fujitsu.local) (62.60.8.146)
-  by server-9.tower-571.messagelabs.com with ECDHE-RSA-AES256-GCM-SHA384 encrypted SMTP; 2 Dec 2022 09:26:00 -0000
-Received: from n03ukasimr02.n03.fujitsu.local (localhost [127.0.0.1])
-	by n03ukasimr02.n03.fujitsu.local (Postfix) with ESMTP id 1B5471000D7;
-	Fri,  2 Dec 2022 09:26:00 +0000 (GMT)
-Received: from R01UKEXCASM126.r01.fujitsu.local (R01UKEXCASM126 [10.183.43.178])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by n03ukasimr02.n03.fujitsu.local (Postfix) with ESMTPS id 0E01B1000D5;
-	Fri,  2 Dec 2022 09:26:00 +0000 (GMT)
-Received: from localhost.localdomain (10.167.225.141) by
- R01UKEXCASM126.r01.fujitsu.local (10.183.43.178) with Microsoft SMTP Server
- (TLS) id 15.0.1497.42; Fri, 2 Dec 2022 09:25:56 +0000
-From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-To: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
-	<nvdimm@lists.linux.dev>, <linux-fsdevel@vger.kernel.org>
-CC: <djwong@kernel.org>, <david@fromorbit.com>, <dan.j.williams@intel.com>,
-	<akpm@linux-foundation.org>
-Subject: [PATCH v2.1 3/8] fsdax: zero the edges if source is HOLE or UNWRITTEN
-Date: Fri, 2 Dec 2022 09:25:45 +0000
-Message-ID: <1669973145-318-1-git-send-email-ruansy.fnst@fujitsu.com>
-X-Mailer: git-send-email 1.8.3.1
-In-Reply-To: <1669908538-55-4-git-send-email-ruansy.fnst@fujitsu.com>
-References: <1669908538-55-4-git-send-email-ruansy.fnst@fujitsu.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6B8A7B
+	for <nvdimm@lists.linux.dev>; Fri,  2 Dec 2022 11:30:57 +0000 (UTC)
+Received: from pps.filterd (m0098420.ppops.net [127.0.0.1])
+	by mx0b-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 2B2A1gqL027540;
+	Fri, 2 Dec 2022 11:30:39 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : date :
+ mime-version : subject : to : references : from : in-reply-to :
+ content-type : content-transfer-encoding; s=pp1;
+ bh=bXnrN96716jI50ZykIoGWceX50TUjGnbm+DdSyDwJek=;
+ b=S7L4JLPwsD3WpD0B+FxO4jX2sT+Hk+/kWDXCqc5HbcR3KwCIBxk93B4BN5YPkqAFJeh5
+ l6TTYw4OQxZSNEdonObTzwT9/1ss0wOeDYYngRpiHlziU5M/Nq6rQB6+3MJaycvca09Z
+ 9sUsHZ/kVVUo8PgKjtk/sFJlsQucyS8C5fkqFnlp1bdpq7wIhs1MBj+5JgznWaaq/pU0
+ Rb6Svd+QfEoBx+nbJfwOv7TPAKBUDCx5LhgvyXgeLGgoWutzmVuKp/2AkZ8xRAESozwX
+ olC5RMnxdB6Vz7SY9a339vd10kqvBj6UMJEudA4FUegSFV6Zfcj5x+vJN0CMosezM8uh NQ== 
+Received: from ppma03ams.nl.ibm.com (62.31.33a9.ip4.static.sl-reverse.com [169.51.49.98])
+	by mx0b-001b2d01.pphosted.com (PPS) with ESMTPS id 3m7f8gswqc-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 02 Dec 2022 11:30:39 +0000
+Received: from pps.filterd (ppma03ams.nl.ibm.com [127.0.0.1])
+	by ppma03ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 2B2BLUuE010055;
+	Fri, 2 Dec 2022 11:30:37 GMT
+Received: from b06avi18878370.portsmouth.uk.ibm.com (b06avi18878370.portsmouth.uk.ibm.com [9.149.26.194])
+	by ppma03ams.nl.ibm.com with ESMTP id 3m3ae9h32s-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 02 Dec 2022 11:30:37 +0000
+Received: from d06av23.portsmouth.uk.ibm.com (d06av23.portsmouth.uk.ibm.com [9.149.105.59])
+	by b06avi18878370.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 2B2BVIU310486458
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Fri, 2 Dec 2022 11:31:18 GMT
+Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 1810BA4040;
+	Fri,  2 Dec 2022 11:30:35 +0000 (GMT)
+Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 033BDA4051;
+	Fri,  2 Dec 2022 11:30:33 +0000 (GMT)
+Received: from [9.43.50.154] (unknown [9.43.50.154])
+	by d06av23.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+	Fri,  2 Dec 2022 11:30:32 +0000 (GMT)
+Message-ID: <e74d9636-5886-07d6-e333-f447b3587a86@linux.ibm.com>
+Date: Fri, 2 Dec 2022 16:59:23 +0530
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-Originating-IP: [10.167.225.141]
-X-ClientProxiedBy: G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.80) To
- R01UKEXCASM126.r01.fujitsu.local (10.183.43.178)
-X-Virus-Scanned: ClamAV using ClamSMTP
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.5.0
+Subject: Re: [PATCH] ndtest: Add checks for devm_kcalloc
+Content-Language: en-US
+To: Yuan Can <yuancan@huawei.com>, dan.j.williams@intel.com,
+        vishal.l.verma@intel.com, dave.jiang@intel.com, ira.weiny@intel.com,
+        jane.chu@oracle.com, dave.hansen@linux.intel.com, santosh@fossix.org,
+        nvdimm@lists.linux.dev
+References: <20221125020825.37125-1-yuancan@huawei.com>
+From: Shivaprasad G Bhat <sbhat@linux.ibm.com>
+In-Reply-To: <20221125020825.37125-1-yuancan@huawei.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-ORIG-GUID: Yf6nYqtc0Ca0L61MCwku6mn_PjST3v22
+X-Proofpoint-GUID: Yf6nYqtc0Ca0L61MCwku6mn_PjST3v22
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.219,Aquarius:18.0.923,Hydra:6.0.545,FMLib:17.11.122.1
+ definitions=2022-12-02_04,2022-12-01_01,2022-06-22_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 adultscore=0 clxscore=1011
+ impostorscore=0 malwarescore=0 bulkscore=0 mlxlogscore=981
+ lowpriorityscore=0 spamscore=0 mlxscore=0 phishscore=0 suspectscore=0
+ priorityscore=1501 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2210170000 definitions=main-2212020086
 
-If srcmap contains invalid data, such as HOLE and UNWRITTEN, the dest
-page should be zeroed.  Otherwise, since it's a pmem, old data may
-remains on the dest page, the result of CoW will be incorrect.
+On 11/25/22 07:38, Yuan Can wrote:
+> As the devm_kcalloc may return NULL, the return value needs to be checked
+> to avoid NULL poineter dereference.
 
-The function name is also not easy to understand, rename it to
-"dax_iomap_copy_around()", which means it copys data around the range.
+s/poineter/pointer
 
-Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Reviewed-by: Darrick J. Wong <djwong@kernel.org>
----
- fs/dax.c | 79 +++++++++++++++++++++++++++++++++++---------------------
- 1 file changed, 49 insertions(+), 30 deletions(-)
+Patch looks good to me otherwise.
 
-diff --git a/fs/dax.c b/fs/dax.c
-index a77739f2abe7..f12645d6f3c8 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1092,7 +1092,8 @@ static int dax_iomap_direct_access(const struct iomap *iomap, loff_t pos,
- }
- 
- /**
-- * dax_iomap_cow_copy - Copy the data from source to destination before write
-+ * dax_iomap_copy_around - Prepare for an unaligned write to a shared/cow page
-+ * by copying the data before and after the range to be written.
-  * @pos:	address to do copy from.
-  * @length:	size of copy operation.
-  * @align_size:	aligned w.r.t align_size (either PMD_SIZE or PAGE_SIZE)
-@@ -1101,35 +1102,50 @@ static int dax_iomap_direct_access(const struct iomap *iomap, loff_t pos,
-  *
-  * This can be called from two places. Either during DAX write fault (page
-  * aligned), to copy the length size data to daddr. Or, while doing normal DAX
-- * write operation, dax_iomap_actor() might call this to do the copy of either
-+ * write operation, dax_iomap_iter() might call this to do the copy of either
-  * start or end unaligned address. In the latter case the rest of the copy of
-- * aligned ranges is taken care by dax_iomap_actor() itself.
-+ * aligned ranges is taken care by dax_iomap_iter() itself.
-+ * If the srcmap contains invalid data, such as HOLE and UNWRITTEN, zero the
-+ * area to make sure no old data remains.
-  */
--static int dax_iomap_cow_copy(loff_t pos, uint64_t length, size_t align_size,
-+static int dax_iomap_copy_around(loff_t pos, uint64_t length, size_t align_size,
- 		const struct iomap *srcmap, void *daddr)
- {
- 	loff_t head_off = pos & (align_size - 1);
- 	size_t size = ALIGN(head_off + length, align_size);
- 	loff_t end = pos + length;
- 	loff_t pg_end = round_up(end, align_size);
-+	/* copy_all is usually in page fault case */
- 	bool copy_all = head_off == 0 && end == pg_end;
-+	/* zero the edges if srcmap is a HOLE or IOMAP_UNWRITTEN */
-+	bool zero_edge = srcmap->flags & IOMAP_F_SHARED ||
-+			 srcmap->type == IOMAP_UNWRITTEN;
- 	void *saddr = 0;
- 	int ret = 0;
- 
--	ret = dax_iomap_direct_access(srcmap, pos, size, &saddr, NULL);
--	if (ret)
--		return ret;
-+	if (!zero_edge) {
-+		ret = dax_iomap_direct_access(srcmap, pos, size, &saddr, NULL);
-+		if (ret)
-+			return ret;
-+	}
- 
- 	if (copy_all) {
--		ret = copy_mc_to_kernel(daddr, saddr, length);
--		return ret ? -EIO : 0;
-+		if (zero_edge)
-+			memset(daddr, 0, size);
-+		else
-+			ret = copy_mc_to_kernel(daddr, saddr, length);
-+		goto out;
- 	}
- 
- 	/* Copy the head part of the range */
- 	if (head_off) {
--		ret = copy_mc_to_kernel(daddr, saddr, head_off);
--		if (ret)
--			return -EIO;
-+		if (zero_edge)
-+			memset(daddr, 0, head_off);
-+		else {
-+			ret = copy_mc_to_kernel(daddr, saddr, head_off);
-+			if (ret)
-+				return -EIO;
-+		}
- 	}
- 
- 	/* Copy the tail part of the range */
-@@ -1137,12 +1153,19 @@ static int dax_iomap_cow_copy(loff_t pos, uint64_t length, size_t align_size,
- 		loff_t tail_off = head_off + length;
- 		loff_t tail_len = pg_end - end;
- 
--		ret = copy_mc_to_kernel(daddr + tail_off, saddr + tail_off,
--					tail_len);
--		if (ret)
--			return -EIO;
-+		if (zero_edge)
-+			memset(daddr + tail_off, 0, tail_len);
-+		else {
-+			ret = copy_mc_to_kernel(daddr + tail_off,
-+						saddr + tail_off, tail_len);
-+			if (ret)
-+				return -EIO;
-+		}
- 	}
--	return 0;
-+out:
-+	if (zero_edge)
-+		dax_flush(srcmap->dax_dev, daddr, size);
-+	return ret ? -EIO : 0;
- }
- 
- /*
-@@ -1241,13 +1264,10 @@ static int dax_memzero(struct iomap_iter *iter, loff_t pos, size_t size)
- 	if (ret < 0)
- 		return ret;
- 	memset(kaddr + offset, 0, size);
--	if (srcmap->addr != iomap->addr) {
--		ret = dax_iomap_cow_copy(pos, size, PAGE_SIZE, srcmap,
--					 kaddr);
--		if (ret < 0)
--			return ret;
--		dax_flush(iomap->dax_dev, kaddr, PAGE_SIZE);
--	} else
-+	if (iomap->flags & IOMAP_F_SHARED)
-+		ret = dax_iomap_copy_around(pos, size, PAGE_SIZE, srcmap,
-+					    kaddr);
-+	else
- 		dax_flush(iomap->dax_dev, kaddr + offset, size);
- 	return ret;
- }
-@@ -1401,8 +1421,8 @@ static loff_t dax_iomap_iter(const struct iomap_iter *iomi,
- 		}
- 
- 		if (cow) {
--			ret = dax_iomap_cow_copy(pos, length, PAGE_SIZE, srcmap,
--						 kaddr);
-+			ret = dax_iomap_copy_around(pos, length, PAGE_SIZE,
-+						    srcmap, kaddr);
- 			if (ret)
- 				break;
- 		}
-@@ -1547,7 +1567,7 @@ static vm_fault_t dax_fault_iter(struct vm_fault *vmf,
- 		struct xa_state *xas, void **entry, bool pmd)
- {
- 	const struct iomap *iomap = &iter->iomap;
--	const struct iomap *srcmap = &iter->srcmap;
-+	const struct iomap *srcmap = iomap_iter_srcmap(iter);
- 	size_t size = pmd ? PMD_SIZE : PAGE_SIZE;
- 	loff_t pos = (loff_t)xas->xa_index << PAGE_SHIFT;
- 	bool write = iter->flags & IOMAP_WRITE;
-@@ -1578,9 +1598,8 @@ static vm_fault_t dax_fault_iter(struct vm_fault *vmf,
- 
- 	*entry = dax_insert_entry(xas, vmf, iter, *entry, pfn, entry_flags);
- 
--	if (write &&
--	    srcmap->type != IOMAP_HOLE && srcmap->addr != iomap->addr) {
--		err = dax_iomap_cow_copy(pos, size, size, srcmap, kaddr);
-+	if (write && iomap->flags & IOMAP_F_SHARED) {
-+		err = dax_iomap_copy_around(pos, size, size, srcmap, kaddr);
- 		if (err)
- 			return dax_fault_return(err);
- 	}
--- 
-2.38.1
-
+> Fixes: 9399ab61ad82 ("ndtest: Add dimms to the two buses")
+> Signed-off-by: Yuan Can <yuancan@huawei.com>
+> ---
+>   tools/testing/nvdimm/test/ndtest.c | 2 ++
+>   1 file changed, 2 insertions(+)
+>
+> diff --git a/tools/testing/nvdimm/test/ndtest.c b/tools/testing/nvdimm/test/ndtest.c
+> index 01ceb98c15a0..94fbb9d0fb6a 100644
+> --- a/tools/testing/nvdimm/test/ndtest.c
+> +++ b/tools/testing/nvdimm/test/ndtest.c
+> @@ -849,6 +849,8 @@ static int ndtest_probe(struct platform_device *pdev)
+>   				   sizeof(dma_addr_t), GFP_KERNEL);
+>   	p->dimm_dma = devm_kcalloc(&p->pdev.dev, NUM_DCR,
+>   				  sizeof(dma_addr_t), GFP_KERNEL);
+> +	if (!p->dcr_dma || !p->label_dma || !p->dimm_dma)
+> +		return -ENOMEM;
+>   
+>   	rc = ndtest_nvdimm_init(p);
+>   	if (rc)
