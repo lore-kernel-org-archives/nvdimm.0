@@ -1,31 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 957577B
-	for <nvdimm@lists.linux.dev>; Fri,  2 Dec 2022 00:05:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3BD4CC43150;
-	Fri,  2 Dec 2022 00:05:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D4917B
+	for <nvdimm@lists.linux.dev>; Fri,  2 Dec 2022 00:05:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 689C7C433D6;
+	Fri,  2 Dec 2022 00:05:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1669939538;
-	bh=L6gBULzhRK7OzgCLtfjp0tObT6lwTFeGydXQwDKFfuk=;
+	s=k20201202; t=1669939557;
+	bh=IiyeaxPs1EhycV7peY0dBQYNbMUN49afQfqrUQHkEN0=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=AFNa4HAUVNlhARyuZW89QcJfCEhpDVZfAximztn5gJjqfia5fU6wXOGMwYoXNV/Da
-	 jEvzG7bmCGisu0B1vC6cD8ExXWesbkPElbPgWH0zLaAaP6B0+2c3wkIF716fqgQ9LP
-	 ur7HipbKaPkCTeNGCRja0aJzLcUranYd//32/Y3xLg6bBPG6K9Zjqd7aIvh2mDIhEt
-	 euqq0i9vXsBR69y1Kh+lkVlHPc1qMOKRKh1DHLpLmy4TYgU4aQEZ5757mMs2fM+WeX
-	 fWuVjeh30Th6ETK6FTOqZoOIDs+2H8+EHy5ZigvF0aqv1Mgmap+PINku4SGCDDB+1g
-	 3NQnfLfSBfY4Q==
-Date: Thu, 1 Dec 2022 16:05:37 -0800
+	b=eyDO0VhDx1Pp6jGfI1Xr4ASibW0lwj74pBQbNpHOlFB1z67REe5U86dIMwo+tvB9r
+	 WCx5fRLPRoQ8uiYSt7JHhXQmgQi7B4f4D1B7rW8FpUx8SxDYfiPyGyNDvduN4OXq6+
+	 gpkZzvmtKwYFUfwfvpHQ2HAGNBMNgL3QfmyAH6JQFzOeenyY54G+fr0yvvf9G0ADZv
+	 WHd1cnH1q+q5qD5bI34s1GCHwMo/El4vGCDRiqaWwQzWDQuKqRnARgP7l0Q7ugfGp+
+	 HxcbOuHQd9uABhgaZ9LyeDn7PFIFB8SjA5w0my3uHCnqkMkKaKGLXHLa+noQjZbzVj
+	 Vx3cFppGgkQGA==
+Date: Thu, 1 Dec 2022 16:05:57 -0800
 From: "Darrick J. Wong" <djwong@kernel.org>
 To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
 Cc: linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org,
 	nvdimm@lists.linux.dev, linux-fsdevel@vger.kernel.org,
 	david@fromorbit.com, dan.j.williams@intel.com,
 	akpm@linux-foundation.org
-Subject: Re: [PATCH v2 5/8] fsdax: dedupe: iter two files at the same time
-Message-ID: <Y4lBUX/XzCjrRQCc@magnolia>
+Subject: Re: [PATCH v2 6/8] xfs: use dax ops for zero and truncate in fsdax
+ mode
+Message-ID: <Y4lBZUEkK/oYHeX9@magnolia>
 References: <1669908538-55-1-git-send-email-ruansy.fnst@fujitsu.com>
- <1669908701-93-1-git-send-email-ruansy.fnst@fujitsu.com>
+ <1669908730-131-1-git-send-email-ruansy.fnst@fujitsu.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -34,54 +35,44 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1669908701-93-1-git-send-email-ruansy.fnst@fujitsu.com>
+In-Reply-To: <1669908730-131-1-git-send-email-ruansy.fnst@fujitsu.com>
 
-On Thu, Dec 01, 2022 at 03:31:41PM +0000, Shiyang Ruan wrote:
-> The iomap_iter() on a range of one file may loop more than once.  In
-> this case, the inner dst_iter can update its iomap but the outer
-> src_iter can't.  This may cause the wrong remapping in filesystem.  Let
-> them called at the same time.
+On Thu, Dec 01, 2022 at 03:32:10PM +0000, Shiyang Ruan wrote:
+> Zero and truncate on a dax file may execute CoW.  So use dax ops which
+> contains end work for CoW.
 > 
 > Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
 
-Thank you for adding that explanation, it makes the problem much more
-obvious. :)
-
+LGTM
 Reviewed-by: Darrick J. Wong <djwong@kernel.org>
 
 --D
 
 > ---
->  fs/dax.c | 16 ++++++++--------
->  1 file changed, 8 insertions(+), 8 deletions(-)
+>  fs/xfs/xfs_iomap.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 > 
-> diff --git a/fs/dax.c b/fs/dax.c
-> index f1eb59bee0b5..354be56750c2 100644
-> --- a/fs/dax.c
-> +++ b/fs/dax.c
-> @@ -1964,15 +1964,15 @@ int dax_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
->  		.len		= len,
->  		.flags		= IOMAP_DAX,
->  	};
-> -	int ret;
-> +	int ret, compared = 0;
+> diff --git a/fs/xfs/xfs_iomap.c b/fs/xfs/xfs_iomap.c
+> index 881de99766ca..d9401d0300ad 100644
+> --- a/fs/xfs/xfs_iomap.c
+> +++ b/fs/xfs/xfs_iomap.c
+> @@ -1370,7 +1370,7 @@ xfs_zero_range(
 >  
-> -	while ((ret = iomap_iter(&src_iter, ops)) > 0) {
-> -		while ((ret = iomap_iter(&dst_iter, ops)) > 0) {
-> -			dst_iter.processed = dax_range_compare_iter(&src_iter,
-> -						&dst_iter, len, same);
-> -		}
-> -		if (ret <= 0)
-> -			src_iter.processed = ret;
-> +	while ((ret = iomap_iter(&src_iter, ops)) > 0 &&
-> +	       (ret = iomap_iter(&dst_iter, ops)) > 0) {
-> +		compared = dax_range_compare_iter(&src_iter, &dst_iter, len,
-> +						  same);
-> +		if (compared < 0)
-> +			return ret;
-> +		src_iter.processed = dst_iter.processed = compared;
->  	}
->  	return ret;
+>  	if (IS_DAX(inode))
+>  		return dax_zero_range(inode, pos, len, did_zero,
+> -				      &xfs_direct_write_iomap_ops);
+> +				      &xfs_dax_write_iomap_ops);
+>  	return iomap_zero_range(inode, pos, len, did_zero,
+>  				&xfs_buffered_write_iomap_ops);
+>  }
+> @@ -1385,7 +1385,7 @@ xfs_truncate_page(
+>  
+>  	if (IS_DAX(inode))
+>  		return dax_truncate_page(inode, pos, did_zero,
+> -					&xfs_direct_write_iomap_ops);
+> +					&xfs_dax_write_iomap_ops);
+>  	return iomap_truncate_page(inode, pos, did_zero,
+>  				   &xfs_buffered_write_iomap_ops);
 >  }
 > -- 
 > 2.38.1
