@@ -1,87 +1,121 @@
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC1304C89
-	for <nvdimm@lists.linux.dev>; Fri,  2 Dec 2022 17:06:02 +0000 (UTC)
-Received: from fraeml745-chm.china.huawei.com (unknown [172.18.147.207])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4NNzlY75WGz6880b;
-	Sat,  3 Dec 2022 01:02:49 +0800 (CST)
-Received: from lhrpeml500005.china.huawei.com (7.191.163.240) by
- fraeml745-chm.china.huawei.com (10.206.15.226) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.31; Fri, 2 Dec 2022 18:05:59 +0100
-Received: from localhost (10.202.227.76) by lhrpeml500005.china.huawei.com
- (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.34; Fri, 2 Dec
- 2022 17:05:58 +0000
-Date: Fri, 2 Dec 2022 17:05:58 +0000
-From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-To: Dan Williams <dan.j.williams@intel.com>
-CC: <linux-cxl@vger.kernel.org>, Terry Bowman <terry.bowman@amd.com>, "Robert
- Richter" <rrichter@amd.com>, <alison.schofield@intel.com>,
-	<bhelgaas@google.com>, <dave.jiang@intel.com>, <nvdimm@lists.linux.dev>
-Subject: Re: [PATCH v6 12/12] cxl/acpi: Set ACPI's CXL _OSC to indicate RCD
- mode support
-Message-ID: <20221202170558.00003481@Huawei.com>
-In-Reply-To: <166993046717.1882361.10587956243041624761.stgit@dwillia2-xfh.jf.intel.com>
-References: <166993040066.1882361.5484659873467120859.stgit@dwillia2-xfh.jf.intel.com>
-	<166993046717.1882361.10587956243041624761.stgit@dwillia2-xfh.jf.intel.com>
-Organization: Huawei Technologies Research and Development (UK) Ltd.
-X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A7867480
+	for <nvdimm@lists.linux.dev>; Fri,  2 Dec 2022 20:18:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0366EC433C1;
+	Fri,  2 Dec 2022 20:18:00 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+	s=korg; t=1670012281;
+	bh=vzzVaosh6o8JL4+OzaJBhy3ljlqNHLgnYfdJDBqdxdM=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=Qiy/Rz8BpdMFrfatVnHWOKxqNt2djdf4PTkeB4ZV0Tyn/Jb62vwuneHFMPvFBOLkw
+	 w+r2SMd4NOzTl+0auLMbL5P9Ju/DUFPVUf9f6PpA331zT7i0awPSCxDvrLwf3LVuOZ
+	 5NfKJOs/ikde+UrvqNcQBJIVEwVlRSMNBkhNHLXY=
+Date: Fri, 2 Dec 2022 12:18:00 -0800
+From: Andrew Morton <akpm@linux-foundation.org>
+To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Cc: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
+ <nvdimm@lists.linux.dev>, <linux-fsdevel@vger.kernel.org>,
+ <djwong@kernel.org>, <david@fromorbit.com>, <dan.j.williams@intel.com>
+Subject: Re: [PATCH v2.1 1/8] fsdax: introduce page->share for fsdax in
+ reflink mode
+Message-Id: <20221202121800.598afc7a5124561069f91014@linux-foundation.org>
+In-Reply-To: <1669972991-246-1-git-send-email-ruansy.fnst@fujitsu.com>
+References: <1669908538-55-2-git-send-email-ruansy.fnst@fujitsu.com>
+	<1669972991-246-1-git-send-email-ruansy.fnst@fujitsu.com>
+X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-redhat-linux-gnu)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.202.227.76]
-X-ClientProxiedBy: lhrpeml500006.china.huawei.com (7.191.161.198) To
- lhrpeml500005.china.huawei.com (7.191.163.240)
-X-CFilter-Loop: Reflected
 
-On Thu, 01 Dec 2022 13:34:27 -0800
-Dan Williams <dan.j.williams@intel.com> wrote:
+On Fri, 2 Dec 2022 09:23:11 +0000 Shiyang Ruan <ruansy.fnst@fujitsu.com> wrote:
 
-> From: Terry Bowman <terry.bowman@amd.com>
+> fsdax page is used not only when CoW, but also mapread. To make the it
+> easily understood, use 'share' to indicate that the dax page is shared
+> by more than one extent.  And add helper functions to use it.
 > 
-> ACPI uses the CXL _OSC support method to communicate the available CXL
-> functionality to FW. The CXL _OSC support method includes a field to
-> indicate the OS is capable of RCD mode. FW can potentially change it's
-> operation depending on the _OSC support method reported by the OS.
+> Also, the flag needs to be renamed to PAGE_MAPPING_DAX_SHARED.
 > 
-> The ACPI driver currently only sets the ACPI _OSC support method to
-> indicate CXL VH mode. Change the capability reported to also include
-> CXL RCD mode.
-> 
-> [1] CXL3.0 Table 9-26 'Interpretation of CXL _OSC Support Field'
-> 
-> Signed-off-by: Terry Bowman <terry.bowman@amd.com>
-> [rrichter@amd.com: Reworded patch description.]
-> Signed-off-by: Robert Richter <rrichter@amd.com>
-> Link: http://lore.kernel.org/r/Y4cRV/Sj0epVW7bE@rric.localdomain
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Mostly for completeness rather than because a review of this patch
-brings any value as it's 'obviously correct'.
 
-Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+For those who are wondering what changed, I queued the below incremental
+patch.
 
-> ---
->  drivers/acpi/pci_root.c |    1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-> index 4e3db20e9cbb..b3c202d2a433 100644
-> --- a/drivers/acpi/pci_root.c
-> +++ b/drivers/acpi/pci_root.c
-> @@ -493,6 +493,7 @@ static u32 calculate_cxl_support(void)
->  	u32 support;
->  
->  	support = OSC_CXL_2_0_PORT_DEV_REG_ACCESS_SUPPORT;
-> +	support |= OSC_CXL_1_1_PORT_REG_ACCESS_SUPPORT;
->  	if (pci_aer_available())
->  		support |= OSC_CXL_PROTOCOL_ERR_REPORTING_SUPPORT;
->  	if (IS_ENABLED(CONFIG_HOTPLUG_PCI_PCIE))
-> 
+
+From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Subject: fsdax: introduce page->share for fsdax in reflink mode
+Date: Fri, 2 Dec 2022 09:23:11 +0000
+
+rename several functions
+
+Link: https://lkml.kernel.org/r/1669972991-246-1-git-send-email-ruansy.fnst@fujitsu.com
+Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Darrick J. Wong <djwong@kernel.org>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ fs/dax.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+--- a/fs/dax.c~fsdax-introduce-page-share-for-fsdax-in-reflink-mode-fix
++++ a/fs/dax.c
+@@ -334,7 +334,7 @@ static unsigned long dax_end_pfn(void *e
+ 	for (pfn = dax_to_pfn(entry); \
+ 			pfn < dax_end_pfn(entry); pfn++)
+ 
+-static inline bool dax_mapping_is_shared(struct page *page)
++static inline bool dax_page_is_shared(struct page *page)
+ {
+ 	return (unsigned long)page->mapping == PAGE_MAPPING_DAX_SHARED;
+ }
+@@ -343,7 +343,7 @@ static inline bool dax_mapping_is_shared
+  * Set the page->mapping with PAGE_MAPPING_DAX_SHARED flag, increase the
+  * refcount.
+  */
+-static inline void dax_mapping_set_shared(struct page *page)
++static inline void dax_page_bump_sharing(struct page *page)
+ {
+ 	if ((uintptr_t)page->mapping != PAGE_MAPPING_DAX_SHARED) {
+ 		/*
+@@ -357,7 +357,7 @@ static inline void dax_mapping_set_share
+ 	page->share++;
+ }
+ 
+-static inline unsigned long dax_mapping_decrease_shared(struct page *page)
++static inline unsigned long dax_page_drop_sharing(struct page *page)
+ {
+ 	return --page->share;
+ }
+@@ -381,7 +381,7 @@ static void dax_associate_entry(void *en
+ 		struct page *page = pfn_to_page(pfn);
+ 
+ 		if (shared) {
+-			dax_mapping_set_shared(page);
++			dax_page_bump_sharing(page);
+ 		} else {
+ 			WARN_ON_ONCE(page->mapping);
+ 			page->mapping = mapping;
+@@ -402,9 +402,9 @@ static void dax_disassociate_entry(void
+ 		struct page *page = pfn_to_page(pfn);
+ 
+ 		WARN_ON_ONCE(trunc && page_ref_count(page) > 1);
+-		if (dax_mapping_is_shared(page)) {
++		if (dax_page_is_shared(page)) {
+ 			/* keep the shared flag if this page is still shared */
+-			if (dax_mapping_decrease_shared(page) > 0)
++			if (dax_page_drop_sharing(page) > 0)
+ 				continue;
+ 		} else
+ 			WARN_ON_ONCE(page->mapping && page->mapping != mapping);
+_
 
