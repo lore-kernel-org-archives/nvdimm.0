@@ -1,196 +1,202 @@
-Received: from NAM10-BN7-obe.outbound.protection.outlook.com (mail-bn7nam10on2049.outbound.protection.outlook.com [40.107.92.49])
+Received: from mail1.bemta34.messagelabs.com (mail1.bemta34.messagelabs.com [195.245.231.3])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBD30187E
-	for <nvdimm@lists.linux.dev>; Fri,  2 Dec 2022 08:21:13 +0000 (UTC)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=IJj4pjYAutyXZeIj1rfLf23TvQdOk9DCBjatY9egqseQ6YpY0/r2sqmEWY2RP4ESCdy3fkhPk7Pt9Tm9CXxL16iNgXtLNvYcS69GlfAKo5gvm1Mj7HHuqkgzkw56ZkXycCaBss9FMzMtEgDWK4qgNGCUnfQAJLkWMdWNg3KCNE/xhO/lMbUHzbsozjSm0rmxSidszr2uqSEUdYWccFeJMxH3u8DQqfQB1ZDrZlDiPUDe3YMWLfQjr/4Lqmb81htIrisxeussXlEfaO1PEgSicolRwYVqFHgetlWWKqaBRXy544TyX2P9mMSyoR8FW8plKtF0V1cV8UZd4Iu1iW4xQg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=wn6HYYtzsrhX5W7n/MtWScLNoubn5Sm1OMmpNvMHMTU=;
- b=dqEU3ng4rPNKiwLyIcr2wc74RKVAVWz1qm3vHNWnxD7rJYCVvp9YohQNwFaZd0utemFvYviFCGfjy1RuB6+4qpbV7uFz/mVUOXbIKHqv3XC5EaUZqo92xSduQiJ3mdWmcFCuy/ZM2Z4D/6gUYZAPdCPAKvR8DIKTbnmqRLRI2rAfJuv4yq3N5qBBmySaXTe+LbmAUvKMacqH+fgPFhGZVvl+XOep+pcQrmwOOW05VIUuZv8mfGLk6cM00zNZuDvWCcgjvkNOEniClkjKIvSX91eS3nN2OO75eJRNEkKgqAHSjXW0kTlmkNjgfdqzESX/7bQ13ItXiDRqfqh/Wtvfog==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 165.204.84.17) smtp.rcpttodomain=intel.com smtp.mailfrom=amd.com; dmarc=pass
- (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
- dkim=none (message not signed); arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=wn6HYYtzsrhX5W7n/MtWScLNoubn5Sm1OMmpNvMHMTU=;
- b=nPoWvClcBqJ8RSkNtVf1H/89rXvtUEH911uPSi77gP4VAd6tn3IMmEfXomrDTD4kI2CvCEAlnAZT0wN4NqiJe6fER4REY3j7hzKf2WimpyRvF4kAE5JLN1MAaoOnPtKAevqzDJINI66Es76k+gtq0komMO3CoUnObkw9UKzSujQ=
-Received: from BN9P221CA0023.NAMP221.PROD.OUTLOOK.COM (2603:10b6:408:10a::11)
- by MW4PR12MB5642.namprd12.prod.outlook.com (2603:10b6:303:187::9) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5834.15; Fri, 2 Dec
- 2022 08:21:11 +0000
-Received: from BN8NAM11FT080.eop-nam11.prod.protection.outlook.com
- (2603:10b6:408:10a:cafe::be) by BN9P221CA0023.outlook.office365.com
- (2603:10b6:408:10a::11) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5880.10 via Frontend
- Transport; Fri, 2 Dec 2022 08:21:10 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
- smtp.mailfrom=amd.com; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=amd.com;
-Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
- 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
- client-ip=165.204.84.17; helo=SATLEXMB04.amd.com; pr=C
-Received: from SATLEXMB04.amd.com (165.204.84.17) by
- BN8NAM11FT080.mail.protection.outlook.com (10.13.176.82) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.20.5880.10 via Frontend Transport; Fri, 2 Dec 2022 08:21:10 +0000
-Received: from rric.localdomain (10.180.168.240) by SATLEXMB04.amd.com
- (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.34; Fri, 2 Dec
- 2022 02:21:05 -0600
-Date: Fri, 2 Dec 2022 09:21:00 +0100
-From: Robert Richter <rrichter@amd.com>
-To: Dan Williams <dan.j.williams@intel.com>
-CC: <linux-cxl@vger.kernel.org>, <alison.schofield@intel.com>,
-	<terry.bowman@amd.com>, <bhelgaas@google.com>, <dave.jiang@intel.com>,
-	<nvdimm@lists.linux.dev>
-Subject: Re: [PATCH v6 10/12] cxl/port: Add RCD endpoint port enumeration
-Message-ID: <Y4m1bCugC/6e1LTQ@rric.localdomain>
-References: <166993040066.1882361.5484659873467120859.stgit@dwillia2-xfh.jf.intel.com>
- <166993045621.1882361.1730100141527044744.stgit@dwillia2-xfh.jf.intel.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D07411C2B
+	for <nvdimm@lists.linux.dev>; Fri,  2 Dec 2022 09:23:29 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fujitsu.com;
+	s=170520fj; t=1669973008; i=@fujitsu.com;
+	bh=MH3WZcJVYCwNNo6ke4z/7i9M7MvmuAOO+p63FGtt8bE=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type;
+	b=fpIcmHabA79RXZZi6H0iB8hyyLZpXHKPhEuGhz8J1l5ki4fA1P8D3ppjPRW+KBeEh
+	 BaGK8w6CxjVKqMmNcQc47bdXXca+XWx2/SO6S6qvB3xstFCSqZ49hCjt2sNXcetx3o
+	 uF1vQuWYJsLQRyk9vuOhhbSyxb2r9C9SzIh4lolboQuAfvYkOsa+2PcziK4OTsKce1
+	 elY6f1W9fUscdb0gxuytL3s9CkDKW+wQgexFZiujoiBnzKv3iLrZxPABZx/xjkrWVC
+	 9kCTTsDqd7wGmg1gkKYJqdG/SWHbkvt6uRc6ao1x8x+bLOIJukkgM9ATa78EbTw9lH
+	 nO/Vf44Ejwesg==
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFvrLIsWRWlGSWpSXmKPExsViZ8MxSZf/SGe
+  ywf+VQhZz1q9hs5g+9QKjxZZj9xgtLj/hs9iz9ySLxeVdc9gsdv3ZwW6x8scfVgcOj1OLJDwW
+  73nJ5LFpVSebx4kZv1k8XmyeyejxeZNcAFsUa2ZeUn5FAmvGuV1H2QuWK1d82WLXwLhCtouRi
+  0NIYAujxJrvn1khnOVMEuuOrWeGcPYwSlx8epOti5GTg01AR+LCgr9AVRwcIgLVEreWgoWZBT
+  Ikjl/5wwxiCwsESPx8MYcJxGYRUJFomPINrIZXwFVi1d17rCC2hICCxJSH78HqOYHiBx49ZAS
+  xhQRcJL69nccKUS8ocXLmExaI+RISB1+8YAZZKyGgJDGzOx5iTIXErFltTBC2msTVc5uYJzAK
+  zkLSPQtJ9wJGplWMZsWpRWWpRbqGFnpJRZnpGSW5iZk5eolVuol6qaW65anFJbpGeonlxXqpx
+  cV6xZW5yTkpenmpJZsYgbGSUqx+cgfjhmV/9A4xSnIwKYnyvlrWmSzEl5SfUpmRWJwRX1Sak1
+  p8iFGGg0NJgpf1AFBOsCg1PbUiLTMHGLcwaQkOHiUR3vd7gdK8xQWJucWZ6RCpU4yKUuK8uw4
+  BJQRAEhmleXBtsFRxiVFWSpiXkYGBQYinILUoN7MEVf4VozgHo5Iwb/U+oCk8mXklcNNfAS1m
+  AlocKdYGsrgkESEl1cDkfLycXSV36WLB+UskLrabi2d86HF0We0jpxOXmup5zv95+tXFnUvm6
+  FzZFb0hdqKy9CWGozWPLQxPcHO7vmBbd/BZ/s4LD2fn2Tg0LOA0u7ziSeLSoq5738771W6RrT
+  mqbqaq6aH3+dySVbIT1GwlvTwNL+7XC6sIXLv1RJrbl6MiG24/PnvgUNjVdO31bxX2dO1T1+A
+  w4m1o+G7hcGZqxYXueb7t0myhpvVCavKBdsdn6AstFPo2ZcX6rfOvpnNPnbj9+ApHho1r1Tft
+  D03tYCwrYGZqfaF5TLbx7ZeAd8fVbmVHLN3Q1BmjcEDQo9GwySqDvSyuq51H7YHtHn+tIle72
+  v+NISeVjnBc/KTEUpyRaKjFXFScCADwne0JkAMAAA==
+X-Env-Sender: ruansy.fnst@fujitsu.com
+X-Msg-Ref: server-10.tower-548.messagelabs.com!1669973007!186501!1
+X-Originating-IP: [62.60.8.146]
+X-SYMC-ESS-Client-Auth: outbound-route-from=pass
+X-StarScan-Received:
+X-StarScan-Version: 9.101.1; banners=-,-,-
+X-VirusChecked: Checked
+Received: (qmail 14904 invoked from network); 2 Dec 2022 09:23:27 -0000
+Received: from unknown (HELO n03ukasimr02.n03.fujitsu.local) (62.60.8.146)
+  by server-10.tower-548.messagelabs.com with ECDHE-RSA-AES256-GCM-SHA384 encrypted SMTP; 2 Dec 2022 09:23:27 -0000
+Received: from n03ukasimr02.n03.fujitsu.local (localhost [127.0.0.1])
+	by n03ukasimr02.n03.fujitsu.local (Postfix) with ESMTP id EA6DE1000E7;
+	Fri,  2 Dec 2022 09:23:26 +0000 (GMT)
+Received: from R01UKEXCASM126.r01.fujitsu.local (R01UKEXCASM126 [10.183.43.178])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by n03ukasimr02.n03.fujitsu.local (Postfix) with ESMTPS id E76E11000DB;
+	Fri,  2 Dec 2022 09:23:26 +0000 (GMT)
+Received: from localhost.localdomain (10.167.225.141) by
+ R01UKEXCASM126.r01.fujitsu.local (10.183.43.178) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.42; Fri, 2 Dec 2022 09:23:23 +0000
+From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+To: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
+	<nvdimm@lists.linux.dev>, <linux-fsdevel@vger.kernel.org>
+CC: <djwong@kernel.org>, <david@fromorbit.com>, <dan.j.williams@intel.com>,
+	<akpm@linux-foundation.org>
+Subject: [PATCH v2.1 1/8] fsdax: introduce page->share for fsdax in reflink mode
+Date: Fri, 2 Dec 2022 09:23:11 +0000
+Message-ID: <1669972991-246-1-git-send-email-ruansy.fnst@fujitsu.com>
+X-Mailer: git-send-email 1.8.3.1
+In-Reply-To: <1669908538-55-2-git-send-email-ruansy.fnst@fujitsu.com>
+References: <1669908538-55-2-git-send-email-ruansy.fnst@fujitsu.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <166993045621.1882361.1730100141527044744.stgit@dwillia2-xfh.jf.intel.com>
-X-Originating-IP: [10.180.168.240]
-X-ClientProxiedBy: SATLEXMB04.amd.com (10.181.40.145) To SATLEXMB04.amd.com
- (10.181.40.145)
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BN8NAM11FT080:EE_|MW4PR12MB5642:EE_
-X-MS-Office365-Filtering-Correlation-Id: ad760d59-e666-44e2-a371-08dad43e2b65
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info:
-	r1v/LddsJv9kJ/8eRvOMeXGRGat3DXn1xEds17r/Um1Z5jviC6GP0gYG3nSzhm8HxMRvZJUzksZX6Ji3jH1kV2QrHQzwDgOuAGncaEycduOyDWfjrREM4Yhnl9w3v9BMsiVI6m3Kakw/V7xAzLtxHXN8+r4OLq9ei/p1DCATOe4xQNK/2uabNAad7sYdsiuBwJ8N+gUpC5R5sSXuUTm3uFC3i0d3PhhXTvHqvRdJW9VQO6yobxi1CyqsiPqvZe1wFhzzm3v0jhWJ54u/4BSIwvVpW4pmNLp1RIjPVJztfA2FgxYUA+ZjxwzV+9hBoCinUsy2GbOPMDjRKRbp1TGRYtpKeNylNXu3v6c5pR9xbCuoBs3taA7HBF1uiJshPf7mc3LYoTH7ztqCbRiXMyP9YrO2bifkEcdd8mypsYp4WXxJQRYX4LfF7rLQoBYy4lqqOx0dK/lK6/XLgvBLwpp/r1aSZzd20uZcBlZCai9CjRe8MskfJ38LJCJvtvedhZjgOalzRUqgNM7zTgjCMa3Clspg7XN3YiK8RDWMHgcSfETrOCc2ejGP5FKwZCpYq4phbA0Wn6K69J/g8b4f5HLiFbbNKbVJ36Jy3rPC4ed1u6P/KkM3ZapHSYgDY/OfEEK71Xl7O+eIzLBqufuPal2xttfZXsEuvV6erqJipwkNP194RjcFxYNS/d7xhIKVos8eQjU4/bsZU3SGy6mI1X4uubJRgscL181vHkas/wWEPlI=
-X-Forefront-Antispam-Report:
-	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230022)(4636009)(39860400002)(136003)(376002)(346002)(396003)(451199015)(36840700001)(46966006)(40470700004)(4326008)(47076005)(81166007)(82740400003)(426003)(41300700001)(8676002)(316002)(40480700001)(54906003)(70206006)(6916009)(82310400005)(40460700003)(26005)(186003)(36860700001)(16526019)(83380400001)(356005)(7696005)(336012)(478600001)(70586007)(9686003)(6666004)(55016003)(2906002)(5660300002)(53546011)(8936002)(36900700001);DIR:OUT;SFP:1101;
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 02 Dec 2022 08:21:10.7019
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: ad760d59-e666-44e2-a371-08dad43e2b65
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
-X-MS-Exchange-CrossTenant-AuthSource:
-	BN8NAM11FT080.eop-nam11.prod.protection.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW4PR12MB5642
+Content-Type: text/plain
+X-Originating-IP: [10.167.225.141]
+X-ClientProxiedBy: G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.80) To
+ R01UKEXCASM126.r01.fujitsu.local (10.183.43.178)
+X-Virus-Scanned: ClamAV using ClamSMTP
 
-On 01.12.22 13:34:16, Dan Williams wrote:
-> Unlike a CXL memory expander in a VH topology that has at least one
-> intervening 'struct cxl_port' instance between itself and the CXL root
-> device, an RCD attaches one-level higher. For example:
-> 
->                VH
->           ┌──────────┐
->           │ ACPI0017 │
->           │  root0   │
->           └─────┬────┘
->                 │
->           ┌─────┴────┐
->           │  dport0  │
->     ┌─────┤ ACPI0016 ├─────┐
->     │     │  port1   │     │
->     │     └────┬─────┘     │
->     │          │           │
->  ┌──┴───┐   ┌──┴───┐   ┌───┴──┐
->  │dport0│   │dport1│   │dport2│
->  │ RP0  │   │ RP1  │   │ RP2  │
->  └──────┘   └──┬───┘   └──────┘
->                │
->            ┌───┴─────┐
->            │endpoint0│
->            │  port2  │
->            └─────────┘
-> 
-> ...vs:
-> 
->               RCH
->           ┌──────────┐
->           │ ACPI0017 │
->           │  root0   │
->           └────┬─────┘
->                │
->            ┌───┴────┐
->            │ dport0 │
->            │ACPI0016│
->            └───┬────┘
->                │
->           ┌────┴─────┐
->           │endpoint0 │
->           │  port1   │
->           └──────────┘
-> 
-> So arrange for endpoint port in the RCH/RCD case to appear directly
-> connected to the host-bridge in its singular role as a dport. Compare
-> that to the VH case where the host-bridge serves a dual role as a
-> 'cxl_dport' for the CXL root device *and* a 'cxl_port' upstream port for
-> the Root Ports in the Root Complex that are modeled as 'cxl_dport'
-> instances in the CXL topology.
-> 
-> Another deviation from the VH case is that RCDs may need to look up
-> their component registers from the Root Complex Register Block (RCRB).
-> That platform firmware specified RCRB area is cached by the cxl_acpi
-> driver and conveyed via the host-bridge dport to the cxl_mem driver to
-> perform the cxl_rcrb_to_component() lookup for the endpoint port
-> (See 9.11.8 CXL Devices Attached to an RCH for the lookup of the
-> upstream port component registers).
-> 
-> Tested-by: Robert Richter <rrichter@amd.com>
+fsdax page is used not only when CoW, but also mapread. To make the it
+easily understood, use 'share' to indicate that the dax page is shared
+by more than one extent.  And add helper functions to use it.
 
-With the one comment below addressed you can also add my:
+Also, the flag needs to be renamed to PAGE_MAPPING_DAX_SHARED.
 
-Reviewed-by: Robert Richter <rrichter@amd.com>
+Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+---
+ fs/dax.c                   | 38 ++++++++++++++++++++++----------------
+ include/linux/mm_types.h   |  5 ++++-
+ include/linux/page-flags.h |  2 +-
+ 3 files changed, 27 insertions(+), 18 deletions(-)
 
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> ---
->  drivers/cxl/core/port.c |    7 +++++++
->  drivers/cxl/cxlmem.h    |    2 ++
->  drivers/cxl/mem.c       |   31 ++++++++++++++++++++++++-------
->  drivers/cxl/pci.c       |   10 ++++++++++
->  4 files changed, 43 insertions(+), 7 deletions(-)
+diff --git a/fs/dax.c b/fs/dax.c
+index 1c6867810cbd..edbacb273ab5 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -334,35 +334,41 @@ static unsigned long dax_end_pfn(void *entry)
+ 	for (pfn = dax_to_pfn(entry); \
+ 			pfn < dax_end_pfn(entry); pfn++)
+ 
+-static inline bool dax_mapping_is_cow(struct address_space *mapping)
++static inline bool dax_page_is_shared(struct page *page)
+ {
+-	return (unsigned long)mapping == PAGE_MAPPING_DAX_COW;
++	return (unsigned long)page->mapping == PAGE_MAPPING_DAX_SHARED;
+ }
+ 
+ /*
+- * Set the page->mapping with FS_DAX_MAPPING_COW flag, increase the refcount.
++ * Set the page->mapping with PAGE_MAPPING_DAX_SHARED flag, increase the
++ * refcount.
+  */
+-static inline void dax_mapping_set_cow(struct page *page)
++static inline void dax_page_bump_sharing(struct page *page)
+ {
+-	if ((uintptr_t)page->mapping != PAGE_MAPPING_DAX_COW) {
++	if ((uintptr_t)page->mapping != PAGE_MAPPING_DAX_SHARED) {
+ 		/*
+ 		 * Reset the index if the page was already mapped
+ 		 * regularly before.
+ 		 */
+ 		if (page->mapping)
+-			page->index = 1;
+-		page->mapping = (void *)PAGE_MAPPING_DAX_COW;
++			page->share = 1;
++		page->mapping = (void *)PAGE_MAPPING_DAX_SHARED;
+ 	}
+-	page->index++;
++	page->share++;
++}
++
++static inline unsigned long dax_page_drop_sharing(struct page *page)
++{
++	return --page->share;
+ }
+ 
+ /*
+- * When it is called in dax_insert_entry(), the cow flag will indicate that
++ * When it is called in dax_insert_entry(), the shared flag will indicate that
+  * whether this entry is shared by multiple files.  If so, set the page->mapping
+- * FS_DAX_MAPPING_COW, and use page->index as refcount.
++ * PAGE_MAPPING_DAX_SHARED, and use page->share as refcount.
+  */
+ static void dax_associate_entry(void *entry, struct address_space *mapping,
+-		struct vm_area_struct *vma, unsigned long address, bool cow)
++		struct vm_area_struct *vma, unsigned long address, bool shared)
+ {
+ 	unsigned long size = dax_entry_size(entry), pfn, index;
+ 	int i = 0;
+@@ -374,8 +380,8 @@ static void dax_associate_entry(void *entry, struct address_space *mapping,
+ 	for_each_mapped_pfn(entry, pfn) {
+ 		struct page *page = pfn_to_page(pfn);
+ 
+-		if (cow) {
+-			dax_mapping_set_cow(page);
++		if (shared) {
++			dax_page_bump_sharing(page);
+ 		} else {
+ 			WARN_ON_ONCE(page->mapping);
+ 			page->mapping = mapping;
+@@ -396,9 +402,9 @@ static void dax_disassociate_entry(void *entry, struct address_space *mapping,
+ 		struct page *page = pfn_to_page(pfn);
+ 
+ 		WARN_ON_ONCE(trunc && page_ref_count(page) > 1);
+-		if (dax_mapping_is_cow(page->mapping)) {
+-			/* keep the CoW flag if this page is still shared */
+-			if (page->index-- > 0)
++		if (dax_page_is_shared(page)) {
++			/* keep the shared flag if this page is still shared */
++			if (dax_page_drop_sharing(page) > 0)
+ 				continue;
+ 		} else
+ 			WARN_ON_ONCE(page->mapping && page->mapping != mapping);
+diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
+index 500e536796ca..f46cac3657ad 100644
+--- a/include/linux/mm_types.h
++++ b/include/linux/mm_types.h
+@@ -103,7 +103,10 @@ struct page {
+ 			};
+ 			/* See page-flags.h for PAGE_MAPPING_FLAGS */
+ 			struct address_space *mapping;
+-			pgoff_t index;		/* Our offset within mapping. */
++			union {
++				pgoff_t index;		/* Our offset within mapping. */
++				unsigned long share;	/* share count for fsdax */
++			};
+ 			/**
+ 			 * @private: Mapping-private opaque data.
+ 			 * Usually used for buffer_heads if PagePrivate.
+diff --git a/include/linux/page-flags.h b/include/linux/page-flags.h
+index 0b0ae5084e60..c8a3aa02278d 100644
+--- a/include/linux/page-flags.h
++++ b/include/linux/page-flags.h
+@@ -641,7 +641,7 @@ PAGEFLAG_FALSE(VmemmapSelfHosted, vmemmap_self_hosted)
+  * Different with flags above, this flag is used only for fsdax mode.  It
+  * indicates that this page->mapping is now under reflink case.
+  */
+-#define PAGE_MAPPING_DAX_COW	0x1
++#define PAGE_MAPPING_DAX_SHARED	0x1
+ 
+ static __always_inline bool folio_mapping_flags(struct folio *folio)
+ {
+-- 
+2.38.1
 
-> diff --git a/drivers/cxl/mem.c b/drivers/cxl/mem.c
-
-> @@ -119,17 +131,22 @@ static int cxl_mem_probe(struct device *dev)
->  		return -ENXIO;
->  	}
->  
-> -	device_lock(&parent_port->dev);
-> -	if (!parent_port->dev.driver) {
-> +	if (dport->rch)
-> +		endpoint_parent = parent_port->uport;
-> +	else
-> +		endpoint_parent = &parent_port->dev;
-> +
-> +	device_lock(endpoint_parent);
-> +	if (!endpoint_parent->driver) {
->  		dev_err(dev, "CXL port topology %s not enabled\n",
->  			dev_name(&parent_port->dev));
-
-Already reported: dev_name(endpoint_parent)
-
->  		rc = -ENXIO;
->  		goto unlock;
->  	}
->  
-> -	rc = devm_cxl_add_endpoint(cxlmd, dport);
-> +	rc = devm_cxl_add_endpoint(endpoint_parent, cxlmd, dport);
->  unlock:
-> -	device_unlock(&parent_port->dev);
-> +	device_unlock(endpoint_parent);
->  	put_device(&parent_port->dev);
->  	if (rc)
->  		return rc;
