@@ -1,117 +1,109 @@
-Received: from hamster.birch.relay.mailchannels.net (hamster.birch.relay.mailchannels.net [23.83.209.80])
+Received: from NAM11-CO1-obe.outbound.protection.outlook.com (mail-co1nam11on2049.outbound.protection.outlook.com [40.107.220.49])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89A0210E6
-	for <nvdimm@lists.linux.dev>; Fri,  2 Dec 2022 06:39:56 +0000 (UTC)
-X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
-Received: from relay.mailchannels.net (localhost [127.0.0.1])
-	by relay.mailchannels.net (Postfix) with ESMTP id 9812E101F76;
-	Fri,  2 Dec 2022 02:09:09 +0000 (UTC)
-Received: from pdx1-sub0-mail-a256.dreamhost.com (unknown [127.0.0.6])
-	(Authenticated sender: dreamhost)
-	by relay.mailchannels.net (Postfix) with ESMTPA id 24498101F31;
-	Fri,  2 Dec 2022 02:09:09 +0000 (UTC)
-ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1669946949; a=rsa-sha256;
-	cv=none;
-	b=Rqvy3RUSlLLa1RQOEU22fZ7AV80iuQ7Wy/8IdK5FPljgzU2eUxma1LTDKt5g9uHTxTqnsb
-	kr8yK/MrTOZYA4T+AGAeeeQDdn2Ow3QXcRI6+sY9wnyrGySyA+wADenyBRFPJpfLV5FA7+
-	QwHTbS9MCN6YxvL9ofYwImsuJCbNjErXE94ZyvO8lCOg6saS3NYlkEDPncVYSF1oULPLJx
-	bq/8TXM7aARHuB/P7duZcaYZtIl5ts/BROptyz9ljgoG+1T3cTXTjm0L0BzUCuCzoaS082
-	EcbwRSSni3Diyei/xIqqP6rzMCKhbMfXiClL9XetTilbgku8bkj+NgM+Z5TRww==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
- d=mailchannels.net;
-	s=arc-2022; t=1669946949;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references:dkim-signature;
-	bh=ZEGf0dZSGTElTTBmwy85ZHKSEGx6K8XIitMKRvHd7lA=;
-	b=NQtP8yK3QZxfOr8w4QVGidLb0hMoqL1pn+7jeGljl/usH8/8IdMesZtK4glfPtQ0YwJGAy
-	TirOi5rPjtbxXx5LG4iV8yBjWs6jUAGehEJ/ixa49qptFVaAMdZt0J7mmJaoNIugtfA8kq
-	pnqPAYvpOATLuYGvsbJ7iF2dybf5BP7KyCyOb+kvuEbM+Tz5LFSmojjfb3aLiIwMpcePZd
-	ALzP4FWYIVOP1OGJa3ZbkAJ6W1//nIOFrMkAIvChHkFlbcdEcGO+w7wJKs9ZzgoC1lgVep
-	2XPLXQbbzS4AT2Oop9QsKhlZT1QdDcgEzGYzmQCGsY4zirsSHcPbb9QWIYy7gg==
-ARC-Authentication-Results: i=1;
-	rspamd-7bd68c5946-vwsx5;
-	auth=pass smtp.auth=dreamhost smtp.mailfrom=dave@stgolabs.net
-X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
-X-MC-Relay: Neutral
-X-MailChannels-SenderId: dreamhost|x-authsender|dave@stgolabs.net
-X-MailChannels-Auth-Id: dreamhost
-X-Exultant-Stretch: 2cb3d65d6964c8a5_1669946949419_331043249
-X-MC-Loop-Signature: 1669946949418:1109263677
-X-MC-Ingress-Time: 1669946949418
-Received: from pdx1-sub0-mail-a256.dreamhost.com (pop.dreamhost.com
- [64.90.62.162])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
-	by 100.109.138.39 (trex/6.7.1);
-	Fri, 02 Dec 2022 02:09:09 +0000
-Received: from offworld (unknown [104.36.25.245])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (P-256) server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	(Authenticated sender: dave@stgolabs.net)
-	by pdx1-sub0-mail-a256.dreamhost.com (Postfix) with ESMTPSA id 4NNbwN0nYYz1s;
-	Thu,  1 Dec 2022 18:09:08 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=stgolabs.net;
-	s=dreamhost; t=1669946948;
-	bh=ZEGf0dZSGTElTTBmwy85ZHKSEGx6K8XIitMKRvHd7lA=;
-	h=Date:From:To:Cc:Subject:Content-Type;
-	b=qQ1TMm+NboCLDR0I2LRIjg5DbGDH0h2lBxZH7vUaXsBLFvegjTIO/EOsmT5PCDpnV
-	 Ygta8ZlHHZmIezzZmSot9+W380OAHkqkB18m7+Gg5fpfzrxLSON7n/xfsM9DoeonxK
-	 LmYj0hj8gHF5iRV42dL57llZoYw351vEhOGpPFqzLgdo+cWQk9EkImUJY2eg+qQMJP
-	 OSEC/ABR6gPTqXDlSEstHDMc5cUBffKV26erqyKEbJgndOao30IvEMMWmh8Pzp2H19
-	 GwhV25ian8JUstRdIL+PufhLHbS9fcphS97W2L7XyiqpYdiYV9UsgyZpQIWBAFO2Sg
-	 XSB6Je020S7EQ==
-Date: Thu, 1 Dec 2022 17:45:23 -0800
-From: Davidlohr Bueso <dave@stgolabs.net>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9A661C03
+	for <nvdimm@lists.linux.dev>; Fri,  2 Dec 2022 08:05:52 +0000 (UTC)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=UBJ6FKHw/FChlPnydiREl4QNUkIiqmcbkBSR7u0Gy0lIx6fRpVKgfbvmiwHd5MjrKz1RonWWuq9cTKQGVKsOgsfPEUIXcg7Cd4la2aeQT8Odfq8U9SYqdp+V7tR+BQ1Q/cikn+w5t2CIw+2L993ChMXReBmGmkv0bDFt7+Uowqm7W34xK/bG2OCU+FgLS8m0X5i0D/kC5qORNev46BCdrEQOwtEPEWzFHN0bS15hp6MfFx1y5cI2IBMzBS0OSAPuujU+V5NfwFxJ1S6iO2p15EGJZE00DYuROeFlQ8FNYACR8lNE/RyhCFVehMVe7eYgMtlRLnOV3bm4MkZC129HSQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=aDHfx1IP+y5tMJrLwAkSN5FlbkcywJuBmbLye0hGeWc=;
+ b=FaH/h8p5NZrvUWqNIT1kso+9tuV7BAZMB5Kd1XZ1rV9LGG0rczjx4v24JHS7ODuxp6IEywCzkdzZVJ7LIMtfcYUUHkO3APP66LwrwQ1O0s9q+v2yFYyOXDLGBc1GHVfR14Z/HckGKiFArTF1axcxumtS3lMm96ELfQWbuOI0SdONuxRB7NsbTZqoU90p2fZaqGFh4bP+UiwZV44hUqxK4kZSyK1vQORH+jlM1AtvVrX6GSWF7BzD+zKY3egFbWRaKMzyRcKCmYPvzkFsB80DImPjcnh3o9toXdJsUZFROmIL4i7wMb7O3CLPaN3ELn5/IeRSxEbwqh19TOIHuRWKpQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 165.204.84.17) smtp.rcpttodomain=intel.com smtp.mailfrom=amd.com; dmarc=pass
+ (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
+ dkim=none (message not signed); arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=aDHfx1IP+y5tMJrLwAkSN5FlbkcywJuBmbLye0hGeWc=;
+ b=M620jPajkR6r5g9r4ECQW9zmBIb/SrUMl3+v3XrahZ1ZD0FnvTHKRaX+XMvrEqFRC2RLXvTw8R5Xx0BGkMYFhIiTTRn1ZJ/xVvwKTwnO/SU20cERJDRlxVVEt+A6he/0cUH3v2aUadzGcRbl6YkmdNxIrlv5AULKyCBQHwLBRM4=
+Received: from BN0PR04CA0022.namprd04.prod.outlook.com (2603:10b6:408:ee::27)
+ by IA0PR12MB8206.namprd12.prod.outlook.com (2603:10b6:208:403::11) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5880.10; Fri, 2 Dec
+ 2022 08:05:50 +0000
+Received: from BN8NAM11FT037.eop-nam11.prod.protection.outlook.com
+ (2603:10b6:408:ee:cafe::48) by BN0PR04CA0022.outlook.office365.com
+ (2603:10b6:408:ee::27) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5880.10 via Frontend
+ Transport; Fri, 2 Dec 2022 08:05:50 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
+ smtp.mailfrom=amd.com; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=amd.com;
+Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
+ 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
+ client-ip=165.204.84.17; helo=SATLEXMB04.amd.com; pr=C
+Received: from SATLEXMB04.amd.com (165.204.84.17) by
+ BN8NAM11FT037.mail.protection.outlook.com (10.13.177.182) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.20.5880.8 via Frontend Transport; Fri, 2 Dec 2022 08:05:50 +0000
+Received: from rric.localdomain (10.180.168.240) by SATLEXMB04.amd.com
+ (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.34; Fri, 2 Dec
+ 2022 02:05:48 -0600
+Date: Fri, 2 Dec 2022 09:05:27 +0100
+From: Robert Richter <rrichter@amd.com>
 To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-cxl@vger.kernel.org, stable@vger.kernel.org,
-	Jonathan.Cameron@huawei.com, dave.jiang@intel.com,
-	nvdimm@lists.linux.dev
-Subject: Re: [PATCH 2/5] cxl/region: Fix missing probe failure
-Message-ID: <20221202014523.twkiqa3ewkhp6zdb@offworld>
-References: <166993219354.1995348.12912519920112533797.stgit@dwillia2-xfh.jf.intel.com>
- <166993220462.1995348.1698008475198427361.stgit@dwillia2-xfh.jf.intel.com>
+CC: <linux-cxl@vger.kernel.org>, Alison Schofield
+	<alison.schofield@intel.com>, <terry.bowman@amd.com>, <bhelgaas@google.com>,
+	<dave.jiang@intel.com>, <nvdimm@lists.linux.dev>
+Subject: Re: [PATCH v6 11/12] tools/testing/cxl: Add an RCH topology
+Message-ID: <Y4mxWP7nitYpkDwe@rric.localdomain>
+References: <166993040066.1882361.5484659873467120859.stgit@dwillia2-xfh.jf.intel.com>
+ <166993046170.1882361.12460762475782283638.stgit@dwillia2-xfh.jf.intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Disposition: inline
-In-Reply-To: <166993220462.1995348.1698008475198427361.stgit@dwillia2-xfh.jf.intel.com>
-User-Agent: NeoMutt/20220429
+In-Reply-To: <166993046170.1882361.12460762475782283638.stgit@dwillia2-xfh.jf.intel.com>
+X-Originating-IP: [10.180.168.240]
+X-ClientProxiedBy: SATLEXMB04.amd.com (10.181.40.145) To SATLEXMB04.amd.com
+ (10.181.40.145)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BN8NAM11FT037:EE_|IA0PR12MB8206:EE_
+X-MS-Office365-Filtering-Correlation-Id: 1090ded3-633b-4d32-fa81-08dad43c06c9
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info:
+	XG1jn4iLZsxUndAjEVphn7R6D8YSBbZmjr3vspHW4eO9tYfNDw43QDEaBh5EfMpKLS/IShdP/XTq6RdUmyMMESsLoMTbeKZtMtf15LRSIVufI1CJ9RwId9y3EEUAgWjnvXSVWgRt/x5HAQPhybqjAuhJrlSsgNW+BxTiCB9kOLsPuIDC83TUWtYOo/xG2IHBe0zU3bWBpen/Xj8ZtY3GTvYCzXJTI2sscAxgcK3demRqJGhe3xaRFCyLjuBVoIkpINHt1Igfs9kgONOopJIvi1fYg2k4wprIeVfEGnSuXAxufzNb5Yko5s1joxv7taPRnk7voFEvxITFZyi7XkgfQJOdfAKwMGUFkxHdp6FlZFxs7MexlTdPlRParLdFi8kUdxUWQfmmWEAbDYLRDVrpKFBfvBWLYe+b7N+XrC/p2pjbI0/5rHsaKtrRbsIj34JX+BVelKNdvhX8wLyPHuwoGgbOtL1jaKh6VOmUnYzOU9duOX3nT5RtBVIQjsmwr9rPk8PGUia6fc5GUiwTKTeYmbg80g8OKAxEbiBRk7BRal89ojkbCTpxnsEKwvQPPrvoryZ/37CeZ21sMhrHCoXLGxHwkQcruNpjrF/PU/d+t5xsoycHB866edaCuioNXEEFFrBDJ5FzEEyQje7LAqsUhol8Nb5lKGsyMl/2PB0hbRrqPOOCK4ZnXCPBFu0yrjlH1wTOCUJ1N2fcbr65eEZowzyX/GwzIo/vAk7DmyvDZzw=
+X-Forefront-Antispam-Report:
+	CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(13230022)(4636009)(376002)(396003)(136003)(346002)(39860400002)(451199015)(36840700001)(46966006)(40470700004)(9686003)(70586007)(26005)(53546011)(7696005)(8676002)(70206006)(4326008)(6666004)(478600001)(186003)(16526019)(41300700001)(336012)(8936002)(4744005)(5660300002)(47076005)(426003)(83380400001)(2906002)(36860700001)(40480700001)(55016003)(81166007)(356005)(82740400003)(316002)(54906003)(6916009)(82310400005)(40460700003)(36900700001);DIR:OUT;SFP:1101;
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 02 Dec 2022 08:05:50.2904
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 1090ded3-633b-4d32-fa81-08dad43c06c9
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	BN8NAM11FT037.eop-nam11.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA0PR12MB8206
 
-On Thu, 01 Dec 2022, Dan Williams wrote:
+On 01.12.22 13:34:21, Dan Williams wrote:
+> In an RCH topology a CXL host-bridge as Root Complex Integrated Endpoint
+> the represents the memory expander. Unlike a VH topology there is no
+> CXL/PCIE Root Port that host the endpoint. The CXL subsystem maps this
+> as the CXL root object (ACPI0017 on ACPI based systems) targeting the
+> host-bridge as a dport, per usual, but then that dport directly hosts
+> the endpoint port.
+> 
+> Mock up that configuration with a 4th host-bridge that has a 'cxl_rcd'
+> device instance as its immediate child.
+> 
+> Reviewed-by: Alison Schofield <alison.schofield@intel.com>
 
->cxl_region_probe() allows for regions not in the 'commit' state to be
->enabled. Fail probe when the region is not committed otherwise the
->kernel may indicate that an address range is active when none of the
->decoders are active.
->
->Fixes: 8d48817df6ac ("cxl/region: Add region driver boiler plate")
->Cc: <stable@vger.kernel.org>
->Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Robert Richter <rrichter@amd.com>
 
-Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
-
->---
-> drivers/cxl/core/region.c |    3 +++
-> 1 file changed, 3 insertions(+)
->
->diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
->index f9ae5ad284ff..1bc2ebefa2a5 100644
->--- a/drivers/cxl/core/region.c
->+++ b/drivers/cxl/core/region.c
->@@ -1923,6 +1923,9 @@ static int cxl_region_probe(struct device *dev)
->	 */
->	up_read(&cxl_region_rwsem);
->
->+	if (rc)
->+		return rc;
->+
->	switch (cxlr->mode) {
->	case CXL_DECODER_PMEM:
->		return devm_cxl_add_pmem_region(cxlr);
->
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+>  tools/testing/cxl/test/cxl.c |  151 +++++++++++++++++++++++++++++++++++++++---
+>  tools/testing/cxl/test/mem.c |   37 ++++++++++
+>  2 files changed, 176 insertions(+), 12 deletions(-)
