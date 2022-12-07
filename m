@@ -1,152 +1,620 @@
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from mx0b-00069f02.pphosted.com (mx0b-00069f02.pphosted.com [205.220.177.32])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF2AD8C1A
-	for <nvdimm@lists.linux.dev>; Wed,  7 Dec 2022 21:48:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1670449732; x=1701985732;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=3MfMlWEh4blhAhl2IHVwrWnXn350Cwp6Nq2gGUPb3VI=;
-  b=lDREimz7sbgCYVtxW2WW0BvxoCdJCse0fxx8dHeuky436GbnMHYW32Vt
-   gIspN3DJb044Yr7YXSwHu5cqr2erXv20795Kio9HGe/IF5aBRNeOtxUtK
-   JpTeLT14OOfLjLiqi7Ywcc8OjI62dAs0ICqaISWimFJfPZnOk9raO8IQm
-   yk4R2ieK2QIV0mncDb3z6aHngz7NNjzgSj4fDiKtfmeE9kCuqwx4AYoIr
-   twxEx7Wam83IGB4ghW9swUigijwJGl3CDh/U002wvCwRmQ9cPyLyhpVyI
-   Anl5d08GJroPsK8k6uLjs9CKSiUFnN7lo2TXiUSRUHo3vyZrG0ytqEheA
-   A==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10554"; a="296703651"
-X-IronPort-AV: E=Sophos;i="5.96,225,1665471600"; 
-   d="scan'208";a="296703651"
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Dec 2022 13:48:51 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6500,9779,10554"; a="789052764"
-X-IronPort-AV: E=Sophos;i="5.96,225,1665471600"; 
-   d="scan'208";a="789052764"
-Received: from fmsmsx601.amr.corp.intel.com ([10.18.126.81])
-  by fmsmga001.fm.intel.com with ESMTP; 07 Dec 2022 13:48:51 -0800
-Received: from fmsmsx602.amr.corp.intel.com (10.18.126.82) by
- fmsmsx601.amr.corp.intel.com (10.18.126.81) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.16; Wed, 7 Dec 2022 13:48:50 -0800
-Received: from fmsedg601.ED.cps.intel.com (10.1.192.135) by
- fmsmsx602.amr.corp.intel.com (10.18.126.82) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.16 via Frontend Transport; Wed, 7 Dec 2022 13:48:50 -0800
-Received: from NAM04-MW2-obe.outbound.protection.outlook.com (104.47.73.174)
- by edgegateway.intel.com (192.55.55.70) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.16; Wed, 7 Dec 2022 13:48:49 -0800
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=QFoyryxEvvzkokI+UbEkjXbExzvibEjj97g3Nqct7W8zfEUPwhAPG4y+FlClaBpf/k468N/9EA60aT2H28nObMs7/kGUIfdU+7iSWcVqpQ8pxnVb3V51qLjNBO5HE/1gXEcO7+2BVa9xYpcEmpHztoV22XvppogjkTyrQHNmiXXM1knISsmOj+s5LoJGXQz3ZSonhY5B3jjLUhSXzbN8jeehz9Dv3nzOr/uYEWchr5/5D6+J6u/7y0rsEBBexBMbPGh01I2dbl37LNOCM6Q5lKiZChHg+JpYPkyUixmh9Skb1ILKIZbuJ9hkZwKGOKt7VfvJwMJKTC22eTnNQrm/EA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=HhKNXLafVfQaBPUeBsNGB2LA89rh0qevgtV6Fnz8VpM=;
- b=UvtMcm6hf6W81Nc0l/KDb+zSkMWV4TJk0EqDYfOAVwlq+NWVrhBGycYGP3M3zN7SaOlRzxigBA+TFylfnwcSJoAEhyahn/PyPcMGTo1swJWu9B7hHwTVmgMGKSnAFjg0DqibMOW+0jDKfOWh8xjTskQZietOU1XvkD+9RC9VEt46Glb/IVX9b0zD5IHKtvfUF0UEro6p4h7v4AmfcBgjkAFi6JoBAgNcM6NDOSST9v/BqRgM/hQltA/o83NEtdqMCf+LdcA1h3fPMfA/1gjkeWnfVVRPViKD32zroSnf9D/ONQs2Yksdk9QXeWXmHskj2E55NzTQizrxNcA1JF49fA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
- (2603:10b6:301:50::20) by DS0PR11MB7264.namprd11.prod.outlook.com
- (2603:10b6:8:13b::5) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5880.14; Wed, 7 Dec
- 2022 21:48:42 +0000
-Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
- ([fe80::340d:cb77:604d:b0b]) by MWHPR1101MB2126.namprd11.prod.outlook.com
- ([fe80::340d:cb77:604d:b0b%9]) with mapi id 15.20.5880.014; Wed, 7 Dec 2022
- 21:48:42 +0000
-Date: Wed, 7 Dec 2022 13:48:40 -0800
-From: Dan Williams <dan.j.williams@intel.com>
-To: Vishal Verma <vishal.l.verma@intel.com>, <nvdimm@lists.linux.dev>
-CC: Dan Williams <dan.j.williams@intel.com>, Alison Schofield
-	<alison.schofield@intel.com>, Vishal Verma <vishal.l.verma@intel.com>,
-	<linux-cxl@vger.kernel.org>
-Subject: RE: [PATCH ndctl 2/2] meson.build: add a check argument to
- run_command
-Message-ID: <63910a38753b_3cbe029478@dwillia2-xfh.jf.intel.com.notmuch>
-References: <20221206-vv-misc-v1-0-4c5bd58c90ca@intel.com>
- <20221206-vv-misc-v1-2-4c5bd58c90ca@intel.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20221206-vv-misc-v1-2-4c5bd58c90ca@intel.com>
-X-ClientProxiedBy: BYAPR07CA0017.namprd07.prod.outlook.com
- (2603:10b6:a02:bc::30) To MWHPR1101MB2126.namprd11.prod.outlook.com
- (2603:10b6:301:50::20)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E345B28E1
+	for <nvdimm@lists.linux.dev>; Wed,  7 Dec 2022 22:32:19 +0000 (UTC)
+Received: from pps.filterd (m0246631.ppops.net [127.0.0.1])
+	by mx0b-00069f02.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 2B7LwlWc000925;
+	Wed, 7 Dec 2022 22:32:10 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
+ subject : date : message-id : mime-version : content-transfer-encoding;
+ s=corp-2022-7-12; bh=bHjdPI16NflxtOl0jq6/sazIK1JpsfMkTubhyLAA19k=;
+ b=FmpV5EJAOMPl9JFiIs9kcRSE84ndNN1+7Ff9uoSWfFuO1dy57JOBRF9OHasdzCCfRhyj
+ /MsMoEiBzMP4bcRkdiF+Gh2NeiyUU7z8NoQ3/NaTudEDd/gwfGqxFUkQj0buJM8Hoh1V
+ GuLnGAxtfIVroaaPd0DwJauc9cbnU8LRXzES6YKttlDCr4Qj4xC0LNHxBkFFpqpFVvaG
+ bA7Ehe49L2RoHsnEd7s02o/xuMOB9PkezuC6m7CynAiWNPTNYKTJ4S/SJz0lKn3Py8EJ
+ yhLkXiRnMYXv0p4yvV3eFQGtH3fjurkhvhzBP9GWi9jUbKrjf8DYZ73anAQBm9xU5k3E Tw== 
+Received: from phxpaimrmta03.imrmtpd1.prodappphxaev1.oraclevcn.com (phxpaimrmta03.appoci.oracle.com [138.1.37.129])
+	by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 3maudusj21-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Wed, 07 Dec 2022 22:32:09 +0000
+Received: from pps.filterd (phxpaimrmta03.imrmtpd1.prodappphxaev1.oraclevcn.com [127.0.0.1])
+	by phxpaimrmta03.imrmtpd1.prodappphxaev1.oraclevcn.com (8.17.1.5/8.17.1.5) with ESMTP id 2B7L2sc7021655;
+	Wed, 7 Dec 2022 22:32:08 GMT
+Received: from pps.reinject (localhost [127.0.0.1])
+	by phxpaimrmta03.imrmtpd1.prodappphxaev1.oraclevcn.com (PPS) with ESMTPS id 3maa8gk19s-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Wed, 07 Dec 2022 22:32:08 +0000
+Received: from phxpaimrmta03.imrmtpd1.prodappphxaev1.oraclevcn.com (phxpaimrmta03.imrmtpd1.prodappphxaev1.oraclevcn.com [127.0.0.1])
+	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 2B7MW751026134;
+	Wed, 7 Dec 2022 22:32:07 GMT
+Received: from bm-iostat-test-2.osdevelopmeniad.oraclevcn.com (bm-iostat-test-2.allregionaliads.osdevelopmeniad.oraclevcn.com [100.100.255.177])
+	by phxpaimrmta03.imrmtpd1.prodappphxaev1.oraclevcn.com (PPS) with ESMTP id 3maa8gk18a-1;
+	Wed, 07 Dec 2022 22:32:07 +0000
+From: Gulam Mohamed <gulam.mohamed@oracle.com>
+To: linux-block@vger.kernel.org
+Cc: axboe@kernel.dk, philipp.reisner@linbit.com, lars.ellenberg@linbit.com,
+        christoph.boehmwalder@linbit.com, minchan@kernel.org,
+        ngupta@vflare.org, senozhatsky@chromium.org, colyli@suse.de,
+        kent.overstreet@gmail.com, agk@redhat.com, snitzer@kernel.org,
+        dm-devel@redhat.com, song@kernel.org, dan.j.williams@intel.com,
+        vishal.l.verma@intel.com, dave.jiang@intel.com, ira.weiny@intel.com,
+        junxiao.bi@oracle.com, gulam.mohamed@oracle.com,
+        martin.petersen@oracle.com, kch@nvidia.com, drbd-dev@lists.linbit.com,
+        linux-kernel@vger.kernel.org, linux-bcache@vger.kernel.org,
+        linux-raid@vger.kernel.org, nvdimm@lists.linux.dev,
+        konrad.wilk@oracle.com, joe.jin@oracle.com
+Subject: [RFC for-6.2/block V2] block: Change the granularity of io ticks from ms to ns
+Date: Wed,  7 Dec 2022 22:32:04 +0000
+Message-Id: <20221207223204.22459-1-gulam.mohamed@oracle.com>
+X-Mailer: git-send-email 2.31.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MWHPR1101MB2126:EE_|DS0PR11MB7264:EE_
-X-MS-Office365-Filtering-Correlation-Id: b79a2685-7b81-4060-7dcc-08dad89cce94
-X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: id1nqmuKp0jFnepfC2kOgXuC1kkaU14s8/A2unPm8Y4sQMFoL1vvCXVPZtJB2j63/DPcqbYmoUH0ay7HZua+BDaVyrzQ/v7oTFmVuKaW06uq+VqfJgDH4xKirhY8/YNuICU0aCkp8rxWXRfgdqxs15BzFruiWjquPKGr+/Wc6CuwEfmYpP9K5KJ//ulZd7HlrSzrwXrhg+mJDFNXZUTVqMlE4JiBm8fq4L0rlKe1etN1DbvFoq0fwNXCrbkrYSIzv7IV1pO2hUdsQVTKMYbxfPj5vhfobGKm9jnJb/DZ1y2jx0nXgckFxlXQXniZqQ5hKaaouUZphH68F4SIcefZI9YA7RoQNwPnSKIxudSn9VDRXyQyKDdgT+HaYuvzH8LYV4dHDb7P4h8Z8U5+Xc47x7m3S0poNvRtAX9pjDope2S+6jcSz60EwkkzHEIZagmOeKWIgcJlIZfV/KMRwbugWl7CnHe/ENOb4b452wR+42Yb2O15yBi6fCtYl2wJaq7TQjLUFUkkMkx1DUhVIbdXvczrn2qyTJ+Kmz9R2iKr1u3gzGr9lT/5DLFhOJoOVyTcjDgynUaJ2CeHN0hUQ4ep1MhelSeXHDNrNON9u7E1fOroCmXvbjLCPDpC3hnxaNyKmS05OQMIeUbCHWHoEjJyXO4ZhOFKaRO6qbxF+PJiDrI=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1101MB2126.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230022)(346002)(366004)(136003)(376002)(396003)(39860400002)(451199015)(966005)(82960400001)(38100700002)(66946007)(83380400001)(4326008)(66556008)(66476007)(26005)(6506007)(6512007)(9686003)(186003)(5660300002)(2906002)(8936002)(4744005)(41300700001)(54906003)(316002)(6486002)(86362001)(478600001)(8676002);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?WHbcEGg/i/HTjMG1HLtLixrpKbGs7V7JNcwXpPoMjq/8k/9nUijC8gfgQ622?=
- =?us-ascii?Q?euEp2cnpVjGd68PBimwdwKJYU9fBYjRtALa0vImI6htOyWlXHsAFGLcIMBvD?=
- =?us-ascii?Q?xl+9trbt+nWHEGbhdxmYGISjE3bi7xLi3peSGgdl33pj6Rq4rihR/dBFZ5ey?=
- =?us-ascii?Q?pVxEME5S/eH5zcSdU93ZKhV9TNOtQEem9n9xrq6iBrBGsiZIcT8EDDeNWwiX?=
- =?us-ascii?Q?RSsl66qVBxAx6eaXQnnJSud4tR/vQent57eyp21kq5Cv11O7Rlr1Ug3/97ag?=
- =?us-ascii?Q?++D3bjdS1rJTAzWi04L5Dk9bESWssjODFbioKlVizm7f3YJuVXy29HYspM6+?=
- =?us-ascii?Q?wsYW9mPvAbGNHmcC8/93rzvUfPydHIeDmLKlwDzv75k9IHS+YCjKCThJxw9W?=
- =?us-ascii?Q?2UI8avuFX/Eo6IG5S1qJsfTMNaRvPw5SBXvh99EqoPsSTMKISMS7mU78PYAx?=
- =?us-ascii?Q?JLUEofW0sIhn7puiW2OnrFOPB/JG8Ypl1vcs4+x8JA9cWas8D9UobLgUbrIO?=
- =?us-ascii?Q?DMK7UCwlsmdkXF/7pK4/vMJ2Qg/Qyqgnpr6vAH17hptoOMUrCAfDEfR8003g?=
- =?us-ascii?Q?neU9ZrQ87B6VWQY0n/igZOnqfRMFdkJ/LkAutbniOlYEY1kgcWD5ZSk6smSQ?=
- =?us-ascii?Q?+Y8I7oBGZO2SlXpciNyP2NvarJ9njCl7bFLlpLLq+WO/PSoBPE29j5e1EXP4?=
- =?us-ascii?Q?ail/m2Qph2k8HRq3NaZbHRXnDXdNAmZQJutaFJToiNtIylJARHZDjv4PwAfQ?=
- =?us-ascii?Q?JHbvv0EbikpABST72mqNyTbO0d12ojE6eNrg5UcwBjKZR1gXDrn+Pvbg5GcK?=
- =?us-ascii?Q?LitwAQvUB0OZHMJj6CVCnfveuaNVxxPxKnt7VhOgex1EG5qWamwY76ze2TrF?=
- =?us-ascii?Q?QRt7DrcYChEDnRJrKi5F6akMQuWbMEDrv6Ml4BqO3iErlb6lPpkVjQa+WF6s?=
- =?us-ascii?Q?QLM6s5y+GU+oN0kOVwK9lqgwNSdpmRVW+LkhZlAVv3rogs5IejaijzKfg+mH?=
- =?us-ascii?Q?ogOqAZ1a5HCLc2sjDG+VaAN7fOQkqzHXNSuBer59pC4HnU+Kenm9xu9Z+aGE?=
- =?us-ascii?Q?YU/97JF7OEQmEF8Ajk0FZVQK/F9wjw3T43Xp8c57JcydsZ4dnAFJYqW9djbN?=
- =?us-ascii?Q?2DFN5P0I9SX6RI+ZS+dKGDmqAq7TXPaiGOrhv8wvqqAKj115rKinPUVEP9yd?=
- =?us-ascii?Q?Nq+F7iFCNrSyGmWfCFUwo1sHeCvj55fRaFPpuz7ZdeCutJ6jfT0gXyu1Ifqw?=
- =?us-ascii?Q?WCi+mx9aX+0nZ3GOdl1QkJPXzqdiGSQPiOrK6pTpXvsAJ7AGubs/60F/FFz3?=
- =?us-ascii?Q?MoZuK+YpwnUrA6Y4keHJiLpO4HeFou6VwfMVEtfFib3W5mrY7r5kf35z/W64?=
- =?us-ascii?Q?2lGKSZqGq1K95Mx7ue2WBOGRrn9YPH4EnFCMxxj0UTffJleQ9mRG+cMrpzo9?=
- =?us-ascii?Q?/y77TB5L5Z6CkfJG2j+I1+/S7lTZjN3xZRR2QzJv/j9g4f3lCa0BHF7BLirP?=
- =?us-ascii?Q?KNDkQg73y6CgXPzrmYgRvGK8QNbS8hBPe5XAvvgTmbleLFi7Lbs9r9XQgZJD?=
- =?us-ascii?Q?jVYzC0d6y4VBO5/ZPDGtKufqTVDLI7elc8tclzgICWSsT5z4/+EJaamLXdrc?=
- =?us-ascii?Q?3A=3D=3D?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: b79a2685-7b81-4060-7dcc-08dad89cce94
-X-MS-Exchange-CrossTenant-AuthSource: MWHPR1101MB2126.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Dec 2022 21:48:42.0557
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 8FncKodsYmnYb2TE/XDyXVoCN5BNKIKu88sEke64tx0mpd+JnPQHdhVaf+MX1R5F/+OLUcyVOEdspPmw6yu41oY1eFm1baq83RgCy1s5DbE=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS0PR11MB7264
-X-OriginatorOrg: intel.com
+Content-Transfer-Encoding: 8bit
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.205,Aquarius:18.0.923,Hydra:6.0.545,FMLib:17.11.122.1
+ definitions=2022-12-07_11,2022-12-07_01,2022-06-22_01
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxlogscore=999 bulkscore=0
+ suspectscore=0 phishscore=0 malwarescore=0 mlxscore=0 spamscore=0
+ adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2210170000 definitions=main-2212070190
+X-Proofpoint-ORIG-GUID: C6f5vW5EqGc79MVYXDqnxbthtxPCKO1U
+X-Proofpoint-GUID: C6f5vW5EqGc79MVYXDqnxbthtxPCKO1U
 
-Vishal Verma wrote:
-> Meson has started to warn about:
-> 
->   WARNING: You should add the boolean check kwarg to the run_command call.
->          It currently defaults to false,
->          but it will default to true in future releases of meson.
->          See also: https://github.com/mesonbuild/meson/issues/9300
-> 
-> There is one instance of run_command() in the top-level meson.build
-> which elides the explicit check argument. Since we don't care about the
-> result of clean_config.sh (if any config.h are found they will be
-> cleaned, and if none are found, we're fine), add a 'check: false'
-> argument to this and squelch the warning.
+As per the review comment from Jens Axboe, I am re-sending this patch
+against "for-6.2/block".
 
-Looks good to me:
 
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Use ktime to change the granularity of IO accounting in block layer from
+milli-seconds to nano-seconds to get the proper latency values for the
+devices whose latency is in micro-seconds. After changing the granularity
+to nano-seconds the iostat command, which was showing incorrect values for
+%util, is now showing correct values.
+
+We did not work on the patch to drop the logic for
+STAT_PRECISE_TIMESTAMPS yet. Will do it if this patch is ok.
+
+The iostat command was run after starting the fio with following command
+on an NVME disk. For the same fio command, the iostat %util was showing
+~100% for the disks whose latencies are in the range of microseconds.
+With the kernel changes (granularity to nano-seconds), the %util was
+showing correct values. Following are the details of the test and their
+output:
+
+fio command
+-----------
+[global]
+bs=128K
+iodepth=1
+direct=1
+ioengine=libaio
+group_reporting
+time_based
+runtime=90
+thinktime=1ms
+numjobs=1
+name=raw-write
+rw=randrw
+ignore_error=EIO:EIO
+[job1]
+filename=/dev/nvme0n1
+
+Correct values after kernel changes:
+====================================
+iostat output
+-------------
+iostat -d /dev/nvme0n1 -x 1
+
+Device            r_await w_await aqu-sz rareq-sz wareq-sz  svctm  %util
+nvme0n1              0.08    0.05   0.06   128.00   128.00   0.07   6.50
+
+Device            r_await w_await aqu-sz rareq-sz wareq-sz  svctm  %util
+nvme0n1              0.08    0.06   0.06   128.00   128.00   0.07   6.30
+
+Device            r_await w_await aqu-sz rareq-sz wareq-sz  svctm  %util
+nvme0n1              0.06    0.05   0.06   128.00   128.00   0.06   5.70
+
+From fio
+--------
+Read Latency: clat (usec): min=32, max=2335, avg=79.54, stdev=29.95
+Write Latency: clat (usec): min=38, max=130, avg=57.76, stdev= 3.25
+
+Values before kernel changes
+============================
+iostat output
+-------------
+
+iostat -d /dev/nvme0n1 -x 1
+
+Device            r_await w_await aqu-sz rareq-sz wareq-sz  svctm  %util
+nvme0n1              0.08    0.06   0.06   128.00   128.00   1.07  97.70
+
+Device            r_await w_await aqu-sz rareq-sz wareq-sz  svctm  %util
+nvme0n1              0.08    0.06   0.06   128.00   128.00   1.08  98.80
+
+Device            r_await w_await aqu-sz rareq-sz wareq-sz  svctm  %util
+nvme0n1              0.08    0.05   0.06   128.00   128.00   1.06  97.20
+
+From fio
+--------
+Read Latency: clat (usec): min=33, max=468, avg=79.56, stdev=28.04
+Write Latency: clat (usec): min=9, max=139, avg=57.10, stdev= 3.79
+
+Changes in V2:
+1. Changed the try_cmpxchg() to try_cmpxchg64() in function
+   update_io_ticks()as the values being compared are u64 which was giving
+   a build error on i386 and microblaze
+
+Signed-off-by: Gulam Mohamed <gulam.mohamed@oracle.com>
+---
+ block/blk-core.c                  | 28 ++++++++++++++--------------
+ block/blk-mq.c                    |  4 ++--
+ block/blk.h                       |  2 +-
+ block/genhd.c                     |  8 ++++----
+ drivers/block/drbd/drbd_debugfs.c |  4 ++--
+ drivers/block/drbd/drbd_int.h     |  2 +-
+ drivers/block/zram/zram_drv.c     |  4 ++--
+ drivers/md/bcache/request.c       | 10 +++++-----
+ drivers/md/dm-core.h              |  2 +-
+ drivers/md/dm.c                   |  8 ++++----
+ drivers/md/md.h                   |  2 +-
+ drivers/md/raid1.h                |  2 +-
+ drivers/md/raid10.h               |  2 +-
+ drivers/md/raid5.c                |  2 +-
+ drivers/nvdimm/btt.c              |  2 +-
+ drivers/nvdimm/pmem.c             |  2 +-
+ include/linux/blk_types.h         |  2 +-
+ include/linux/blkdev.h            | 12 ++++++------
+ include/linux/part_stat.h         |  2 +-
+ 19 files changed, 50 insertions(+), 50 deletions(-)
+
+diff --git a/block/blk-core.c b/block/blk-core.c
+index 8ab21dd01cd1..d500d08a3d7b 100644
+--- a/block/blk-core.c
++++ b/block/blk-core.c
+@@ -927,13 +927,13 @@ int iocb_bio_iopoll(struct kiocb *kiocb, struct io_comp_batch *iob,
+ }
+ EXPORT_SYMBOL_GPL(iocb_bio_iopoll);
+ 
+-void update_io_ticks(struct block_device *part, unsigned long now, bool end)
++void update_io_ticks(struct block_device *part, u64 now, bool end)
+ {
+-	unsigned long stamp;
++	u64 stamp;
+ again:
+ 	stamp = READ_ONCE(part->bd_stamp);
+-	if (unlikely(time_after(now, stamp))) {
+-		if (likely(try_cmpxchg(&part->bd_stamp, &stamp, now)))
++	if (unlikely(time_after64(now, stamp))) {
++		if (likely(try_cmpxchg64(&part->bd_stamp, &stamp, now)))
+ 			__part_stat_add(part, io_ticks, end ? now - stamp : 1);
+ 	}
+ 	if (part->bd_partno) {
+@@ -942,9 +942,9 @@ void update_io_ticks(struct block_device *part, unsigned long now, bool end)
+ 	}
+ }
+ 
+-unsigned long bdev_start_io_acct(struct block_device *bdev,
+-				 unsigned int sectors, enum req_op op,
+-				 unsigned long start_time)
++u64 bdev_start_io_acct(struct block_device *bdev,
++		       unsigned int sectors, enum req_op op,
++		       u64 start_time)
+ {
+ 	const int sgrp = op_stat_group(op);
+ 
+@@ -965,29 +965,29 @@ EXPORT_SYMBOL(bdev_start_io_acct);
+  *
+  * Returns the start time that should be passed back to bio_end_io_acct().
+  */
+-unsigned long bio_start_io_acct(struct bio *bio)
++u64 bio_start_io_acct(struct bio *bio)
+ {
+ 	return bdev_start_io_acct(bio->bi_bdev, bio_sectors(bio),
+-				  bio_op(bio), jiffies);
++				  bio_op(bio), ktime_get_ns());
+ }
+ EXPORT_SYMBOL_GPL(bio_start_io_acct);
+ 
+ void bdev_end_io_acct(struct block_device *bdev, enum req_op op,
+-		      unsigned long start_time)
++		      u64 start_time)
+ {
+ 	const int sgrp = op_stat_group(op);
+-	unsigned long now = READ_ONCE(jiffies);
+-	unsigned long duration = now - start_time;
++	u64  now = ktime_get_ns();
++	u64  duration = now - start_time;
+ 
+ 	part_stat_lock();
+ 	update_io_ticks(bdev, now, true);
+-	part_stat_add(bdev, nsecs[sgrp], jiffies_to_nsecs(duration));
++	part_stat_add(bdev, nsecs[sgrp], duration);
+ 	part_stat_local_dec(bdev, in_flight[op_is_write(op)]);
+ 	part_stat_unlock();
+ }
+ EXPORT_SYMBOL(bdev_end_io_acct);
+ 
+-void bio_end_io_acct_remapped(struct bio *bio, unsigned long start_time,
++void bio_end_io_acct_remapped(struct bio *bio, u64 start_time,
+ 			      struct block_device *orig_bdev)
+ {
+ 	bdev_end_io_acct(orig_bdev, bio_op(bio), start_time);
+diff --git a/block/blk-mq.c b/block/blk-mq.c
+index 4e6b3ccd4989..e544fffd397e 100644
+--- a/block/blk-mq.c
++++ b/block/blk-mq.c
+@@ -975,7 +975,7 @@ static void __blk_account_io_done(struct request *req, u64 now)
+ 	const int sgrp = op_stat_group(req_op(req));
+ 
+ 	part_stat_lock();
+-	update_io_ticks(req->part, jiffies, true);
++	update_io_ticks(req->part, ktime_get_ns(), true);
+ 	part_stat_inc(req->part, ios[sgrp]);
+ 	part_stat_add(req->part, nsecs[sgrp], now - req->start_time_ns);
+ 	part_stat_unlock();
+@@ -1007,7 +1007,7 @@ static void __blk_account_io_start(struct request *rq)
+ 		rq->part = rq->q->disk->part0;
+ 
+ 	part_stat_lock();
+-	update_io_ticks(rq->part, jiffies, false);
++	update_io_ticks(rq->part, ktime_get_ns(), false);
+ 	part_stat_unlock();
+ }
+ 
+diff --git a/block/blk.h b/block/blk.h
+index 8900001946c7..8997435ad4a0 100644
+--- a/block/blk.h
++++ b/block/blk.h
+@@ -341,7 +341,7 @@ static inline bool blk_do_io_stat(struct request *rq)
+ 	return (rq->rq_flags & RQF_IO_STAT) && !blk_rq_is_passthrough(rq);
+ }
+ 
+-void update_io_ticks(struct block_device *part, unsigned long now, bool end);
++void update_io_ticks(struct block_device *part, u64 now, bool end);
+ 
+ static inline void req_set_nomerge(struct request_queue *q, struct request *req)
+ {
+diff --git a/block/genhd.c b/block/genhd.c
+index 03a96d6473e1..616565de8d03 100644
+--- a/block/genhd.c
++++ b/block/genhd.c
+@@ -959,7 +959,7 @@ ssize_t part_stat_show(struct device *dev,
+ 
+ 	if (inflight) {
+ 		part_stat_lock();
+-		update_io_ticks(bdev, jiffies, true);
++		update_io_ticks(bdev, ktime_get_ns(), true);
+ 		part_stat_unlock();
+ 	}
+ 	part_stat_read_all(bdev, &stat);
+@@ -979,7 +979,7 @@ ssize_t part_stat_show(struct device *dev,
+ 		(unsigned long long)stat.sectors[STAT_WRITE],
+ 		(unsigned int)div_u64(stat.nsecs[STAT_WRITE], NSEC_PER_MSEC),
+ 		inflight,
+-		jiffies_to_msecs(stat.io_ticks),
++		(unsigned int)div_u64(stat.io_ticks, NSEC_PER_MSEC),
+ 		(unsigned int)div_u64(stat.nsecs[STAT_READ] +
+ 				      stat.nsecs[STAT_WRITE] +
+ 				      stat.nsecs[STAT_DISCARD] +
+@@ -1237,7 +1237,7 @@ static int diskstats_show(struct seq_file *seqf, void *v)
+ 
+ 		if (inflight) {
+ 			part_stat_lock();
+-			update_io_ticks(hd, jiffies, true);
++			update_io_ticks(hd, ktime_get_ns(), true);
+ 			part_stat_unlock();
+ 		}
+ 		part_stat_read_all(hd, &stat);
+@@ -1260,7 +1260,7 @@ static int diskstats_show(struct seq_file *seqf, void *v)
+ 			   (unsigned int)div_u64(stat.nsecs[STAT_WRITE],
+ 							NSEC_PER_MSEC),
+ 			   inflight,
+-			   jiffies_to_msecs(stat.io_ticks),
++			   (unsigned int)div_u64(stat.io_ticks, NSEC_PER_MSEC),
+ 			   (unsigned int)div_u64(stat.nsecs[STAT_READ] +
+ 						 stat.nsecs[STAT_WRITE] +
+ 						 stat.nsecs[STAT_DISCARD] +
+diff --git a/drivers/block/drbd/drbd_debugfs.c b/drivers/block/drbd/drbd_debugfs.c
+index a72c096aa5b1..49d39d607175 100644
+--- a/drivers/block/drbd/drbd_debugfs.c
++++ b/drivers/block/drbd/drbd_debugfs.c
+@@ -105,7 +105,7 @@ static void seq_print_one_request(struct seq_file *m, struct drbd_request *req,
+ 		(s & RQ_WRITE) ? "W" : "R");
+ 
+ #define RQ_HDR_2 "\tstart\tin AL\tsubmit"
+-	seq_printf(m, "\t%d", jiffies_to_msecs(now - req->start_jif));
++	seq_printf(m, "\t%d", jiffies_to_msecs(now - nsecs_to_jiffies(req->start_jif)));
+ 	seq_print_age_or_dash(m, s & RQ_IN_ACT_LOG, now - req->in_actlog_jif);
+ 	seq_print_age_or_dash(m, s & RQ_LOCAL_PENDING, now - req->pre_submit_jif);
+ 
+@@ -171,7 +171,7 @@ static void seq_print_waiting_for_AL(struct seq_file *m, struct drbd_resource *r
+ 			/* if the oldest request does not wait for the activity log
+ 			 * it is not interesting for us here */
+ 			if (req && !(req->rq_state & RQ_IN_ACT_LOG))
+-				jif = req->start_jif;
++				jif = nsecs_to_jiffies(req->start_jif);
+ 			else
+ 				req = NULL;
+ 			spin_unlock_irq(&device->resource->req_lock);
+diff --git a/drivers/block/drbd/drbd_int.h b/drivers/block/drbd/drbd_int.h
+index ae713338aa46..8e4d3b2eb99d 100644
+--- a/drivers/block/drbd/drbd_int.h
++++ b/drivers/block/drbd/drbd_int.h
+@@ -236,7 +236,7 @@ struct drbd_request {
+ 	struct list_head req_pending_local;
+ 
+ 	/* for generic IO accounting */
+-	unsigned long start_jif;
++	u64 start_jif;
+ 
+ 	/* for DRBD internal statistics */
+ 
+diff --git a/drivers/block/zram/zram_drv.c b/drivers/block/zram/zram_drv.c
+index 966aab902d19..5376b67b88c6 100644
+--- a/drivers/block/zram/zram_drv.c
++++ b/drivers/block/zram/zram_drv.c
+@@ -1662,7 +1662,7 @@ static int zram_rw_page(struct block_device *bdev, sector_t sector,
+ 	u32 index;
+ 	struct zram *zram;
+ 	struct bio_vec bv;
+-	unsigned long start_time;
++	u64 start_time;
+ 
+ 	if (PageTransHuge(page))
+ 		return -ENOTSUPP;
+@@ -1682,7 +1682,7 @@ static int zram_rw_page(struct block_device *bdev, sector_t sector,
+ 	bv.bv_offset = 0;
+ 
+ 	start_time = bdev_start_io_acct(bdev->bd_disk->part0,
+-			SECTORS_PER_PAGE, op, jiffies);
++			SECTORS_PER_PAGE, op, ktime_get_ns());
+ 	ret = zram_bvec_rw(zram, &bv, index, offset, op, NULL);
+ 	bdev_end_io_acct(bdev->bd_disk->part0, op, start_time);
+ out:
+diff --git a/drivers/md/bcache/request.c b/drivers/md/bcache/request.c
+index 3427555b0cca..8798b1eb6d2d 100644
+--- a/drivers/md/bcache/request.c
++++ b/drivers/md/bcache/request.c
+@@ -476,7 +476,7 @@ struct search {
+ 	unsigned int		cache_missed:1;
+ 
+ 	struct block_device	*orig_bdev;
+-	unsigned long		start_time;
++	u64			start_time;
+ 
+ 	struct btree_op		op;
+ 	struct data_insert_op	iop;
+@@ -714,7 +714,7 @@ static void search_free(struct closure *cl)
+ 
+ static inline struct search *search_alloc(struct bio *bio,
+ 		struct bcache_device *d, struct block_device *orig_bdev,
+-		unsigned long start_time)
++		u64 start_time)
+ {
+ 	struct search *s;
+ 
+@@ -1065,7 +1065,7 @@ static void cached_dev_nodata(struct closure *cl)
+ 
+ struct detached_dev_io_private {
+ 	struct bcache_device	*d;
+-	unsigned long		start_time;
++	u64			start_time;
+ 	bio_end_io_t		*bi_end_io;
+ 	void			*bi_private;
+ 	struct block_device	*orig_bdev;
+@@ -1094,7 +1094,7 @@ static void detached_dev_end_io(struct bio *bio)
+ }
+ 
+ static void detached_dev_do_request(struct bcache_device *d, struct bio *bio,
+-		struct block_device *orig_bdev, unsigned long start_time)
++		struct block_device *orig_bdev, u64 start_time)
+ {
+ 	struct detached_dev_io_private *ddip;
+ 	struct cached_dev *dc = container_of(d, struct cached_dev, disk);
+@@ -1173,7 +1173,7 @@ void cached_dev_submit_bio(struct bio *bio)
+ 	struct block_device *orig_bdev = bio->bi_bdev;
+ 	struct bcache_device *d = orig_bdev->bd_disk->private_data;
+ 	struct cached_dev *dc = container_of(d, struct cached_dev, disk);
+-	unsigned long start_time;
++	u64 start_time;
+ 	int rw = bio_data_dir(bio);
+ 
+ 	if (unlikely((d->c && test_bit(CACHE_SET_IO_DISABLE, &d->c->flags)) ||
+diff --git a/drivers/md/dm-core.h b/drivers/md/dm-core.h
+index 6c6bd24774f2..e620fd878b08 100644
+--- a/drivers/md/dm-core.h
++++ b/drivers/md/dm-core.h
+@@ -284,7 +284,7 @@ struct dm_io {
+ 	unsigned short magic;
+ 	blk_short_t flags;
+ 	spinlock_t lock;
+-	unsigned long start_time;
++	u64 start_time;
+ 	void *data;
+ 	struct dm_io *next;
+ 	struct dm_stats_aux stats_aux;
+diff --git a/drivers/md/dm.c b/drivers/md/dm.c
+index e1ea3a7bd9d9..53ea18ac28f7 100644
+--- a/drivers/md/dm.c
++++ b/drivers/md/dm.c
+@@ -482,7 +482,7 @@ static int dm_blk_ioctl(struct block_device *bdev, fmode_t mode,
+ 
+ u64 dm_start_time_ns_from_clone(struct bio *bio)
+ {
+-	return jiffies_to_nsecs(clone_to_tio(bio)->io->start_time);
++	return clone_to_tio(bio)->io->start_time;
+ }
+ EXPORT_SYMBOL_GPL(dm_start_time_ns_from_clone);
+ 
+@@ -494,7 +494,7 @@ static bool bio_is_flush_with_data(struct bio *bio)
+ static void dm_io_acct(struct dm_io *io, bool end)
+ {
+ 	struct dm_stats_aux *stats_aux = &io->stats_aux;
+-	unsigned long start_time = io->start_time;
++	u64 start_time = io->start_time;
+ 	struct mapped_device *md = io->md;
+ 	struct bio *bio = io->orig_bio;
+ 	unsigned int sectors;
+@@ -527,7 +527,7 @@ static void dm_io_acct(struct dm_io *io, bool end)
+ 
+ 		dm_stats_account_io(&md->stats, bio_data_dir(bio),
+ 				    sector, sectors,
+-				    end, start_time, stats_aux);
++				    end, nsecs_to_jiffies(start_time), stats_aux);
+ 	}
+ }
+ 
+@@ -589,7 +589,7 @@ static struct dm_io *alloc_io(struct mapped_device *md, struct bio *bio)
+ 	io->orig_bio = bio;
+ 	io->md = md;
+ 	spin_lock_init(&io->lock);
+-	io->start_time = jiffies;
++	io->start_time = ktime_get_ns();
+ 	io->flags = 0;
+ 
+ 	if (static_branch_unlikely(&stats_enabled))
+diff --git a/drivers/md/md.h b/drivers/md/md.h
+index 554a9026669a..df73c1d1d960 100644
+--- a/drivers/md/md.h
++++ b/drivers/md/md.h
+@@ -711,7 +711,7 @@ struct md_thread {
+ 
+ struct md_io_acct {
+ 	struct bio *orig_bio;
+-	unsigned long start_time;
++	u64 start_time;
+ 	struct bio bio_clone;
+ };
+ 
+diff --git a/drivers/md/raid1.h b/drivers/md/raid1.h
+index ebb6788820e7..0fb5a1148745 100644
+--- a/drivers/md/raid1.h
++++ b/drivers/md/raid1.h
+@@ -157,7 +157,7 @@ struct r1bio {
+ 	sector_t		sector;
+ 	int			sectors;
+ 	unsigned long		state;
+-	unsigned long		start_time;
++	u64			start_time;
+ 	struct mddev		*mddev;
+ 	/*
+ 	 * original bio going to /dev/mdx
+diff --git a/drivers/md/raid10.h b/drivers/md/raid10.h
+index 8c072ce0bc54..4cf3eec89bf3 100644
+--- a/drivers/md/raid10.h
++++ b/drivers/md/raid10.h
+@@ -123,7 +123,7 @@ struct r10bio {
+ 	sector_t		sector;	/* virtual sector number */
+ 	int			sectors;
+ 	unsigned long		state;
+-	unsigned long		start_time;
++	u64			start_time;
+ 	struct mddev		*mddev;
+ 	/*
+ 	 * original bio going to /dev/mdx
+diff --git a/drivers/md/raid5.c b/drivers/md/raid5.c
+index 7b820b81d8c2..8f4364f4bda0 100644
+--- a/drivers/md/raid5.c
++++ b/drivers/md/raid5.c
+@@ -5474,7 +5474,7 @@ static void raid5_align_endio(struct bio *bi)
+ 	struct r5conf *conf;
+ 	struct md_rdev *rdev;
+ 	blk_status_t error = bi->bi_status;
+-	unsigned long start_time = md_io_acct->start_time;
++	u64 start_time = md_io_acct->start_time;
+ 
+ 	bio_put(bi);
+ 
+diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+index 0297b7882e33..8fc1d5da747c 100644
+--- a/drivers/nvdimm/btt.c
++++ b/drivers/nvdimm/btt.c
+@@ -1442,7 +1442,7 @@ static void btt_submit_bio(struct bio *bio)
+ 	struct bio_integrity_payload *bip = bio_integrity(bio);
+ 	struct btt *btt = bio->bi_bdev->bd_disk->private_data;
+ 	struct bvec_iter iter;
+-	unsigned long start;
++	u64 start;
+ 	struct bio_vec bvec;
+ 	int err = 0;
+ 	bool do_acct;
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 96e6e9a5f235..b5b7a709e1ab 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -202,7 +202,7 @@ static void pmem_submit_bio(struct bio *bio)
+ 	int ret = 0;
+ 	blk_status_t rc = 0;
+ 	bool do_acct;
+-	unsigned long start;
++	u64 start;
+ 	struct bio_vec bvec;
+ 	struct bvec_iter iter;
+ 	struct pmem_device *pmem = bio->bi_bdev->bd_disk->private_data;
+diff --git a/include/linux/blk_types.h b/include/linux/blk_types.h
+index e0b098089ef2..6ffa0ca80217 100644
+--- a/include/linux/blk_types.h
++++ b/include/linux/blk_types.h
+@@ -41,7 +41,7 @@ struct block_device {
+ 	sector_t		bd_start_sect;
+ 	sector_t		bd_nr_sectors;
+ 	struct disk_stats __percpu *bd_stats;
+-	unsigned long		bd_stamp;
++	u64			bd_stamp;
+ 	bool			bd_read_only;	/* read-only policy */
+ 	dev_t			bd_dev;
+ 	atomic_t		bd_openers;
+diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
+index 2db2ad72af0f..cdb8954bd73c 100644
+--- a/include/linux/blkdev.h
++++ b/include/linux/blkdev.h
+@@ -1433,14 +1433,14 @@ static inline void blk_wake_io_task(struct task_struct *waiter)
+ 		wake_up_process(waiter);
+ }
+ 
+-unsigned long bdev_start_io_acct(struct block_device *bdev,
++u64 bdev_start_io_acct(struct block_device *bdev,
+ 				 unsigned int sectors, enum req_op op,
+-				 unsigned long start_time);
++				 u64  start_time);
+ void bdev_end_io_acct(struct block_device *bdev, enum req_op op,
+-		unsigned long start_time);
++		u64 start_time);
+ 
+-unsigned long bio_start_io_acct(struct bio *bio);
+-void bio_end_io_acct_remapped(struct bio *bio, unsigned long start_time,
++u64 bio_start_io_acct(struct bio *bio);
++void bio_end_io_acct_remapped(struct bio *bio, u64 start_time,
+ 		struct block_device *orig_bdev);
+ 
+ /**
+@@ -1448,7 +1448,7 @@ void bio_end_io_acct_remapped(struct bio *bio, unsigned long start_time,
+  * @bio:	bio to end account for
+  * @start_time:	start time returned by bio_start_io_acct()
+  */
+-static inline void bio_end_io_acct(struct bio *bio, unsigned long start_time)
++static inline void bio_end_io_acct(struct bio *bio, u64 start_time)
+ {
+ 	return bio_end_io_acct_remapped(bio, start_time, bio->bi_bdev);
+ }
+diff --git a/include/linux/part_stat.h b/include/linux/part_stat.h
+index abeba356bc3f..85c50235693c 100644
+--- a/include/linux/part_stat.h
++++ b/include/linux/part_stat.h
+@@ -10,7 +10,7 @@ struct disk_stats {
+ 	unsigned long sectors[NR_STAT_GROUPS];
+ 	unsigned long ios[NR_STAT_GROUPS];
+ 	unsigned long merges[NR_STAT_GROUPS];
+-	unsigned long io_ticks;
++	u64 io_ticks;
+ 	local_t in_flight[2];
+ };
+ 
+-- 
+2.31.1
+
