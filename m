@@ -1,38 +1,38 @@
 Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B880CA460
-	for <nvdimm@lists.linux.dev>; Thu,  8 Dec 2022 21:28:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDEA4A460
+	for <nvdimm@lists.linux.dev>; Thu,  8 Dec 2022 21:28:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1670534932; x=1702070932;
+  t=1670534938; x=1702070938;
   h=subject:from:to:cc:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=Oo+YDC2MaJSBfiBtU5WPJPPsRqc63yK4zGMMsoyeCMg=;
-  b=fqyrURT0tPbT9wN/RAF5xbhqy/8xufkEQf8tccTz9ELl9dPd59bszw5r
-   koEFPmNDTK7cM0Fc7s29CCiyQWKcZR5WrD/tu16FJS3pKdZzSzArKWPSe
-   9itIA53yRXriF6sjz8NbSGDM0eBYOZTAJUvC63Vexj9bgucHvQBzxRtEf
-   k8+calU1qxuobzoT014rjVc7YreCyVevil6GkJMEoVdNjZvIGhBnn9BSO
-   5OmXNgUzOnJ9j+CZJg03q4YDUcPi8vGOqwUwY0QtkTCkMiZKee5PgjiIA
-   Y8ffWRLm3PjxUqzvLKIBqLf3l7P9lXOiTEBpZAaV9uBH5pSITq8UspHA4
-   g==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10555"; a="319170370"
+  bh=b5zCfVzP38kgV3vnEfsEYSIHMCATSezT0YD9e5AI4I0=;
+  b=SlpY7/GVIjIAnskb1LFuaJLBBAxWIZPlB4prTAe8qqvrAQIFvDlqc3A3
+   HK0hsGgk5UlQLuVKpVvTjiiIDSxQW+9f4PaYU8b5b5wH2UM1mPhxccmTl
+   RsOrkt8+q6mlpejZL2NfxKYEnsImbQBDXJ4xu84qjzPw/6nE8trcsmu7V
+   IE3pHM28Gt7Z+fKu0UuUHEiTT/g+C1Zb/3BS76FElyRbkqu1keLWCwTXl
+   nXOQvtAcP/Qo+H0CdNLX4ZrdYGF+zBimp8mHUj6HzsnuNGsRGbFrIL5JU
+   ybQIRyiN1Xp68HlXXt1ZeuPT3/4vRD7V+DtZ57EE65eqeUjwkmyMHnX8P
+   Q==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10555"; a="319170391"
 X-IronPort-AV: E=Sophos;i="5.96,228,1665471600"; 
-   d="scan'208";a="319170370"
+   d="scan'208";a="319170391"
 Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Dec 2022 13:28:52 -0800
-X-IronPort-AV: E=McAfee;i="6500,9779,10555"; a="753756164"
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Dec 2022 13:28:58 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10555"; a="753756193"
 X-IronPort-AV: E=Sophos;i="5.96,228,1665471600"; 
-   d="scan'208";a="753756164"
+   d="scan'208";a="753756193"
 Received: from kputnam-mobl1.amr.corp.intel.com (HELO dwillia2-xfh.jf.intel.com) ([10.251.25.149])
-  by fmsmga002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Dec 2022 13:28:51 -0800
-Subject: [ndctl PATCH v2 09/18] cxl/filter: Return json-c topology
+  by fmsmga002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Dec 2022 13:28:57 -0800
+Subject: [ndctl PATCH v2 10/18] cxl/list: Record cxl objects in json objects
 From: Dan Williams <dan.j.williams@intel.com>
 To: linux-cxl@vger.kernel.org
 Cc: vishal.l.verma@intel.com, alison.schofield@intel.com,
  nvdimm@lists.linux.dev, vishal.l.verma@intel.com
-Date: Thu, 08 Dec 2022 13:28:50 -0800
-Message-ID: <167053493095.582963.5155962994216061570.stgit@dwillia2-xfh.jf.intel.com>
+Date: Thu, 08 Dec 2022 13:28:57 -0800
+Message-ID: <167053493696.582963.9963151335296712050.stgit@dwillia2-xfh.jf.intel.com>
 In-Reply-To: <167053487710.582963.17616889985000817682.stgit@dwillia2-xfh.jf.intel.com>
 References: <167053487710.582963.17616889985000817682.stgit@dwillia2-xfh.jf.intel.com>
 User-Agent: StGit/0.18-3-g996c
@@ -45,148 +45,89 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 
-In preparation for cxl_filter_walk() to be used to collect and publish cxl
-objects for other utilities, return the resulting json_object directly.
-Move the responsibility of freeing and optionally printing the object to
-the caller.
+In preparation for reusing 'cxl list' object selection in other utilities,
+like 'cxl create-region', record the associated cxl object in the json
+object. For example, enable 'cxl create-region -d decoderX.Y' to lookup the
+memdevs that result from 'cxl list -M -d decoderX.Y'.
+
+This sets up future design decisions for code that wants to walk the
+topology. It can either open-code its own object walk, or get the json-c
+representation of a query and use that. Unless the use case knows exactly
+the object it wants it is likely more powerful to specify a
+cxl_filter_walk() query and then walk the topology result.
 
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- cxl/filter.c |   30 ++++++------------------------
- cxl/filter.h |   22 +++++++++++++++++++++-
- cxl/list.c   |    7 ++++++-
- 3 files changed, 33 insertions(+), 26 deletions(-)
+ cxl/json.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/cxl/filter.c b/cxl/filter.c
-index 040e7deefb3e..8499450ded01 100644
---- a/cxl/filter.c
-+++ b/cxl/filter.c
-@@ -672,23 +672,6 @@ util_cxl_decoder_filter_by_region(struct cxl_decoder *decoder,
- 	return decoder;
- }
- 
--static unsigned long params_to_flags(struct cxl_filter_params *param)
--{
--	unsigned long flags = 0;
--
--	if (param->idle)
--		flags |= UTIL_JSON_IDLE;
--	if (param->human)
--		flags |= UTIL_JSON_HUMAN;
--	if (param->health)
--		flags |= UTIL_JSON_HEALTH;
--	if (param->targets)
--		flags |= UTIL_JSON_TARGETS;
--	if (param->partition)
--		flags |= UTIL_JSON_PARTITION;
--	return flags;
--}
--
- static void splice_array(struct cxl_filter_params *p, struct json_object *jobjs,
- 			 struct json_object *platform,
- 			 const char *container_name, bool do_container)
-@@ -1027,11 +1010,12 @@ walk_children:
+diff --git a/cxl/json.c b/cxl/json.c
+index 292e8428ccee..844bc089a4b7 100644
+--- a/cxl/json.c
++++ b/cxl/json.c
+@@ -365,6 +365,8 @@ struct json_object *util_cxl_memdev_to_json(struct cxl_memdev *memdev,
+ 		if (jobj)
+ 			json_object_object_add(jdev, "partition_info", jobj);
  	}
++
++	json_object_set_userdata(jdev, memdev, NULL);
+ 	return jdev;
  }
  
--int cxl_filter_walk(struct cxl_ctx *ctx, struct cxl_filter_params *p)
-+struct json_object *cxl_filter_walk(struct cxl_ctx *ctx,
-+				    struct cxl_filter_params *p)
- {
- 	struct json_object *jdevs = NULL, *jbuses = NULL, *jports = NULL;
- 	struct json_object *jplatform = json_object_new_array();
--	unsigned long flags = params_to_flags(p);
-+	unsigned long flags = cxl_filter_to_flags(p);
- 	struct json_object *jportdecoders = NULL;
- 	struct json_object *jbusdecoders = NULL;
- 	struct json_object *jepdecoders = NULL;
-@@ -1044,7 +1028,7 @@ int cxl_filter_walk(struct cxl_ctx *ctx, struct cxl_filter_params *p)
+@@ -423,6 +425,7 @@ void util_cxl_dports_append_json(struct json_object *jport,
+ 			json_object_object_add(jdport, "id", jobj);
  
- 	if (!jplatform) {
- 		dbg(p, "platform object allocation failure\n");
--		return -ENOMEM;
-+		return NULL;
+ 		json_object_array_add(jdports, jdport);
++		json_object_set_userdata(jdport, dport, NULL);
  	}
  
- 	janondevs = json_object_new_array();
-@@ -1232,9 +1216,7 @@ walk_children:
- 		     top_level_objs > 1);
- 	splice_array(p, jregions, jplatform, "regions", top_level_objs > 1);
+ 	json_object_object_add(jport, "dports", jdports);
+@@ -446,6 +449,7 @@ struct json_object *util_cxl_bus_to_json(struct cxl_bus *bus,
+ 	if (jobj)
+ 		json_object_object_add(jbus, "provider", jobj);
  
--	util_display_json_array(stdout, jplatform, flags);
--
--	return 0;
-+	return jplatform;
- err:
- 	json_object_put(janondevs);
- 	json_object_put(jbuses);
-@@ -1246,5 +1228,5 @@ err:
- 	json_object_put(jepdecoders);
- 	json_object_put(jregions);
- 	json_object_put(jplatform);
--	return -ENOMEM;
-+	return NULL;
++	json_object_set_userdata(jbus, bus, NULL);
+ 	return jbus;
  }
-diff --git a/cxl/filter.h b/cxl/filter.h
-index 256df49c3d0c..2bda6ddd77ca 100644
---- a/cxl/filter.h
-+++ b/cxl/filter.h
-@@ -5,6 +5,7 @@
  
- #include <stdbool.h>
- #include <util/log.h>
-+#include <util/json.h>
+@@ -570,6 +574,7 @@ struct json_object *util_cxl_decoder_to_json(struct cxl_decoder *decoder,
+ 					       jobj);
+ 	}
  
- struct cxl_filter_params {
- 	const char *memdev_filter;
-@@ -59,6 +60,25 @@ struct cxl_dport *util_cxl_dport_filter_by_memdev(struct cxl_dport *dport,
- 						  const char *serial);
- struct cxl_decoder *util_cxl_decoder_filter(struct cxl_decoder *decoder,
- 					    const char *__ident);
--int cxl_filter_walk(struct cxl_ctx *ctx, struct cxl_filter_params *param);
-+struct json_object *cxl_filter_walk(struct cxl_ctx *ctx,
-+				    struct cxl_filter_params *param);
-+
-+static inline unsigned long cxl_filter_to_flags(struct cxl_filter_params *param)
-+{
-+	unsigned long flags = 0;
-+
-+	if (param->idle)
-+		flags |= UTIL_JSON_IDLE;
-+	if (param->human)
-+		flags |= UTIL_JSON_HUMAN;
-+	if (param->health)
-+		flags |= UTIL_JSON_HEALTH;
-+	if (param->targets)
-+		flags |= UTIL_JSON_TARGETS;
-+	if (param->partition)
-+		flags |= UTIL_JSON_PARTITION;
-+	return flags;
-+}
-+
- bool cxl_filter_has(const char *needle, const char *__filter);
- #endif /* _CXL_UTIL_FILTER_H_ */
-diff --git a/cxl/list.c b/cxl/list.c
-index 8c48fbbaaec3..2026de2b548b 100644
---- a/cxl/list.c
-+++ b/cxl/list.c
-@@ -72,6 +72,7 @@ int cmd_list(int argc, const char **argv, struct cxl_ctx *ctx)
- 		"cxl list [<options>]",
- 		NULL
- 	};
-+	struct json_object *jtopology;
- 	int i;
- 
- 	argc = parse_options(argc, argv, options, u, 0);
-@@ -140,5 +141,9 @@ int cmd_list(int argc, const char **argv, struct cxl_ctx *ctx)
- 		param.endpoints = true;
- 
- 	dbg(&param, "walk topology\n");
--	return cxl_filter_walk(ctx, &param);
-+	jtopology = cxl_filter_walk(ctx, &param);
-+	if (!jtopology)
-+		return -ENOMEM;
-+	util_display_json_array(stdout, jtopology, cxl_filter_to_flags(&param));
-+	return 0;
++	json_object_set_userdata(jdecoder, decoder, NULL);
+ 	return jdecoder;
  }
+ 
+@@ -628,6 +633,7 @@ void util_cxl_mappings_append_json(struct json_object *jregion,
+ 			json_object_object_add(jmapping, "decoder", jobj);
+ 
+ 		json_object_array_add(jmappings, jmapping);
++		json_object_set_userdata(jmapping, mapping, NULL);
+ 	}
+ 
+ 	json_object_object_add(jregion, "mappings", jmappings);
+@@ -693,6 +699,7 @@ struct json_object *util_cxl_region_to_json(struct cxl_region *region,
+ 
+ 	util_cxl_mappings_append_json(jregion, region, flags);
+ 
++	json_object_set_userdata(jregion, region, NULL);
+ 	return jregion;
+ }
+ 
+@@ -765,6 +772,7 @@ void util_cxl_targets_append_json(struct json_object *jdecoder,
+ 			json_object_object_add(jtarget, "id", jobj);
+ 
+ 		json_object_array_add(jtargets, jtarget);
++		json_object_set_userdata(jtarget, target, NULL);
+ 	}
+ 
+ 	json_object_object_add(jdecoder, "targets", jtargets);
+@@ -807,6 +815,7 @@ static struct json_object *__util_cxl_port_to_json(struct cxl_port *port,
+ 			json_object_object_add(jport, "state", jobj);
+ 	}
+ 
++	json_object_set_userdata(jport, port, NULL);
+ 	return jport;
+ }
+ 
 
