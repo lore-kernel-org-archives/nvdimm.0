@@ -1,86 +1,86 @@
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5804362C
-	for <nvdimm@lists.linux.dev>; Thu,  8 Dec 2022 03:36:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 045B763B
+	for <nvdimm@lists.linux.dev>; Thu,  8 Dec 2022 04:09:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1670470597; x=1702006597;
+  t=1670472584; x=1702008584;
   h=date:from:to:cc:subject:message-id:references:
    in-reply-to:mime-version;
-  bh=BKKkfApDqv64mRhixd/k74By5Oiios0mlbJ0WG3QYwM=;
-  b=bocM9Qqo8IpCU/sr3L2Wegulstg+rW49Il7AsrmBwpKph46lJyAFc35E
-   ZCeenBmWLG94RsytsfTVfAvZy5cFny7eyuxdCTk80nwzjOVG3uwzBXI47
-   prUpvIryf+gt3wrCgXNhJiA1rKNvLLobKbROie9bY7ZVNqZr5G1Azyxa9
-   79zyMDEdmsd8ik1mAbm37diSTlP36BLU46OwLXM3p7uFHYGk/iJIpVGNV
-   m8T0ruCspgzuydHaq3rbhI0TXcm/wOXS4zTqZCrZt3rZH0dogqbhR8fW6
-   ubkW3vOMFGahurC795CkvrLm0EUSLOirAz8aKg38LHfLYOVlzSS8HOPaK
-   w==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10554"; a="315781641"
+  bh=iRdz1g/qcdwC/9bktX5ZIP5y+ui2mQ9dEnDiaquL0cg=;
+  b=Ye0aobFFQ0N5Gfi3Zv9gl/TF/52pXWQm1YX/lx9CI6LsO/jMdQKmehrE
+   zwp9aEnMS/07NoFXTL1RnKMwg4Ta4YW1MzuRxHV4AtxPzC/HtYr233bcJ
+   d18xYWZFa241BSr26kg5wSTP64P+EtRQXaI6sPOO723gZ7x/Yfmp48x/a
+   WM17EZ/Gdst5yb7veXXDlVYwb785d0zeh6xC9NLKKTq7NQwxGEdnp7mZ4
+   zBXZBNkGSKQkU89ryq73S7oYj2H3PSbFpNfdTcfu2KuiAsH8I+/Ei1ACp
+   pDu5FWSHzVr7nmssF5bLFzJC7H+gk6v+UUTOiSbII5lxE4174e1CmsKql
+   Q==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10554"; a="296761695"
 X-IronPort-AV: E=Sophos;i="5.96,226,1665471600"; 
-   d="scan'208";a="315781641"
-Received: from orsmga004.jf.intel.com ([10.7.209.38])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Dec 2022 19:36:36 -0800
+   d="scan'208";a="296761695"
+Received: from fmsmga006.fm.intel.com ([10.253.24.20])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Dec 2022 20:09:43 -0800
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6500,9779,10554"; a="771332895"
+X-IronPort-AV: E=McAfee;i="6500,9779,10554"; a="892062103"
 X-IronPort-AV: E=Sophos;i="5.96,226,1665471600"; 
-   d="scan'208";a="771332895"
+   d="scan'208";a="892062103"
 Received: from fmsmsx603.amr.corp.intel.com ([10.18.126.83])
-  by orsmga004.jf.intel.com with ESMTP; 07 Dec 2022 19:36:36 -0800
+  by fmsmga006.fm.intel.com with ESMTP; 07 Dec 2022 20:09:43 -0800
 Received: from fmsmsx612.amr.corp.intel.com (10.18.126.92) by
  fmsmsx603.amr.corp.intel.com (10.18.126.83) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.16; Wed, 7 Dec 2022 19:36:35 -0800
-Received: from fmsmsx603.amr.corp.intel.com (10.18.126.83) by
+ 15.1.2507.16; Wed, 7 Dec 2022 20:09:43 -0800
+Received: from fmsmsx610.amr.corp.intel.com (10.18.126.90) by
  fmsmsx612.amr.corp.intel.com (10.18.126.92) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.16; Wed, 7 Dec 2022 19:36:35 -0800
+ 15.1.2507.16; Wed, 7 Dec 2022 20:09:42 -0800
 Received: from fmsedg601.ED.cps.intel.com (10.1.192.135) by
- fmsmsx603.amr.corp.intel.com (10.18.126.83) with Microsoft SMTP Server
+ fmsmsx610.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.16 via Frontend Transport; Wed, 7 Dec 2022 19:36:35 -0800
-Received: from NAM11-CO1-obe.outbound.protection.outlook.com (104.47.56.169)
- by edgegateway.intel.com (192.55.55.70) with Microsoft SMTP Server
+ 15.1.2507.16 via Frontend Transport; Wed, 7 Dec 2022 20:09:42 -0800
+Received: from NAM12-MW2-obe.outbound.protection.outlook.com (104.47.66.47) by
+ edgegateway.intel.com (192.55.55.70) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.16; Wed, 7 Dec 2022 19:36:35 -0800
+ 15.1.2507.16; Wed, 7 Dec 2022 20:09:42 -0800
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=hvng0tnn/lKCjs8j60AmuzYQo/XA0mWas8VloU02NfstvfZ7EG2q+mbxq4h6XepRtH9PxDtom1psCoU2v2AY1aEpQWwA3dNcim+dfrLawJfFob1/khoMZnDD8xzG7TAMifPlst3V94Y0tP8iR37DDTBY4FmCaIxFSPgyXsuqc4dMOlutyBFQSewuGxj1dch0vKyRyjnnAVGhkXskX/kdHHytbs50KYBPxjBjZ5K+1rapbrOTL01t+QVQ8fuFFHUlWDdNAwpEptcmo7EGNsLzhps9A26eiTbutLpkL2LY5eZktTfrjMeXH86yY2GLHME+lyP+hvaSwIpdlDpoBU/b+w==
+ b=g5olhjkGfRKxSFth8uiMUQm+qCCzNSKd0bY/1Vaj+mIe6M6mkmyXznWnrOtQKQ+SD6mtQK2EOSUSbGQ11/CrPp61dGZIolz5oIpUAalmUvDZttKI6AcjaepkxVM/Hd2W2HGUR61RXLDpDgqDrU9mYHrqTrOMkbTFMQ0nqjSZBo73f/fS2hoOFvnidE1wVw31QUUjIJX2jq5qjinxBDJy8xe8EgP//OB13IJTPwtYh4jhN3osTHevvmAfILoinW806ibmfNXUTVhHsi58zM6lPfVNCQqwuECvLHjjPKkSnDWvPcBY8TTgBMAzLakoCQ7luNPRIuKW68EwDrNM2SHV3Q==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=zJm2ffknxWvTF0rWidXNlBnTaCU7XFs43YAA//Pkjl4=;
- b=gP8RnH0WTpAa2faCh4pMp9YP5czuCbAJ01V+Fd1Ry9MG1Cml+wjzfrTMAEKqhpxbmNh5Yw1XAs4Nx7jZMqiY9FVmyl8p8qbYAoAc6I53MwgcnCUr+4ZxEpqplYBTsD3tmakCL62WZbrguAUe6Ul4nGr3sMUFistood5MPA0zRdZSXNIir6BmIUBLLMOKgda0TIVV7XRyoHGHmZECQ31M5HZbj81acLgDCl0p7IXuM0Bongwct48JN1CWsERnv+3xF/ChtS4UhGqjOD0+M4MRhQ3e/ASTfMTeZhvI7mlUjVEJ1tZHLPgoMyyxJSIKQaMSnW2BY3PyPXqd0QMinjac9g==
+ bh=r86NQjxJzcx1HFa+UbrowewnElLBNPqV7psPxqQwMVk=;
+ b=PypVvFg+PVaADK8gKsHaMUxnQy1hP3iaFFAdyycG/dpC5UofzHDCtg2zm/04qhzX1cPTqQb1brwrc0T3MhqGFPlbOR9gryIm+ZJMU+gvg+HLvp+8Nv6V0AQFoaRqkUp55iT8m0iKNz+NSyFbD1uYrEFnnmyAPmsOHbv8SClM30rsI07LpQhz33xADvUy+KAVwqjVypllh3ZlQZEctOlrKRghF5Xy/dL5enx7/70NwCjpy+IQJ9YRvPFhvAovWDaasOF/MLe7dQGJyX/DTFtelzSRD8huWz/aVDQU5t1joFLVxpV1F5baghd4ONwjp7372Ksam5/6VKYNl/pmtJP9Hg==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
  dkim=pass header.d=intel.com; arc=none
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=intel.com;
 Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
- (2603:10b6:301:50::20) by PH7PR11MB7052.namprd11.prod.outlook.com
- (2603:10b6:510:20f::10) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5857.22; Thu, 8 Dec
- 2022 03:36:33 +0000
+ (2603:10b6:301:50::20) by CH3PR11MB7893.namprd11.prod.outlook.com
+ (2603:10b6:610:12e::11) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5880.14; Thu, 8 Dec
+ 2022 04:09:40 +0000
 Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
  ([fe80::340d:cb77:604d:b0b]) by MWHPR1101MB2126.namprd11.prod.outlook.com
  ([fe80::340d:cb77:604d:b0b%9]) with mapi id 15.20.5880.014; Thu, 8 Dec 2022
- 03:36:33 +0000
-Date: Wed, 7 Dec 2022 19:36:22 -0800
+ 04:09:40 +0000
+Date: Wed, 7 Dec 2022 20:09:36 -0800
 From: Dan Williams <dan.j.williams@intel.com>
 To: Alison Schofield <alison.schofield@intel.com>, Dan Williams
 	<dan.j.williams@intel.com>
 CC: <vishal.l.verma@intel.com>, <linux-cxl@vger.kernel.org>,
 	<nvdimm@lists.linux.dev>
-Subject: Re: [ndctl PATCH 06/15] cxl/list: Skip emitting pmem_size when it is
- zero
-Message-ID: <63915bb66e55_c957294d6@dwillia2-mobl3.amr.corp.intel.com.notmuch>
+Subject: Re: [ndctl PATCH 13/15] cxl/region: Default to memdev mode for
+ create with no arguments
+Message-ID: <639163807f5c_c9572948@dwillia2-mobl3.amr.corp.intel.com.notmuch>
 References: <166777840496.1238089.5601286140872803173.stgit@dwillia2-xfh.jf.intel.com>
- <166777844020.1238089.5777920571190091563.stgit@dwillia2-xfh.jf.intel.com>
- <Y2lpS3COS9YdJnon@aschofie-mobl2>
+ <166777848122.1238089.2150948506074701593.stgit@dwillia2-xfh.jf.intel.com>
+ <Y2lsYawI3eQayact@aschofie-mobl2>
 Content-Type: text/plain; charset="us-ascii"
 Content-Disposition: inline
-In-Reply-To: <Y2lpS3COS9YdJnon@aschofie-mobl2>
-X-ClientProxiedBy: BYAPR02CA0042.namprd02.prod.outlook.com
- (2603:10b6:a03:54::19) To MWHPR1101MB2126.namprd11.prod.outlook.com
+In-Reply-To: <Y2lsYawI3eQayact@aschofie-mobl2>
+X-ClientProxiedBy: SJ0PR03CA0049.namprd03.prod.outlook.com
+ (2603:10b6:a03:33e::24) To MWHPR1101MB2126.namprd11.prod.outlook.com
  (2603:10b6:301:50::20)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -89,71 +89,153 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MWHPR1101MB2126:EE_|PH7PR11MB7052:EE_
-X-MS-Office365-Filtering-Correlation-Id: 9872acb2-3683-430e-f947-08dad8cd66cf
+X-MS-TrafficTypeDiagnostic: MWHPR1101MB2126:EE_|CH3PR11MB7893:EE_
+X-MS-Office365-Filtering-Correlation-Id: ae130821-07d4-48b5-7dab-08dad8d20647
 X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: mOPG2TD4d04apOq/vaaDRY/WqTU/HbFkDJk+mZRy1YKUroT3RSCvzGcXChkiF7+gA7y68bdEhFVWHSFBM3Dfc0vN8au0avirZjxOkb22+RKg0IIJj//NBgf/4tetsXdFYKG0I2uLhuduxdNoRUc4v1rt1EdwEfREdiPMsHioNEprTp353U/mCdjLXW1KdKT/XrKfLnmlYi8C3M8sim097p+OpVMOT+aQr3o9Famulm2ETz8xQDnpmdfR4zRmdqgzJzAfU41G0t15zVW4U0f/Orpldd1Ip0RNnxIot4W/yi5rmry0QD9avclPOF5SryNWActO1GOD/80INdSdoQQrwSG+59Up1xQZuf9r7bHMqyuY6UOCsXa4m2Ha8QWpf2gOtOQbDh+YyQo16PS1/BddLLa5+vqUHnzT4zN4gOdmFnrejY7gU2yvdnCxqqh3PcFQiuwH7FwxlN3KSpAkoR/bJ88PK08VZA0XPWxOY2/dUqauEROpNknvkrK1n5Yen6AkcYKNdAT29qjZcvDvf6x5MeO8S4DhWe56TIaJjf0z5Jvz2ZbH4Ix1rttk3MmCq0cUv4azzVz34CoEEKMVsq2Fzxr7kt45zBwj9A3c+3/LpfK0WuHC3OSrLhk/runSqnigPEZdjlbLBHjXnNHazc5XHQ==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1101MB2126.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230022)(136003)(376002)(346002)(39860400002)(396003)(366004)(451199015)(316002)(4326008)(41300700001)(6512007)(186003)(86362001)(110136005)(38100700002)(5660300002)(26005)(9686003)(82960400001)(4744005)(2906002)(8936002)(66946007)(478600001)(6486002)(6506007)(6666004)(66476007)(8676002)(66556008);DIR:OUT;SFP:1102;
+X-Microsoft-Antispam-Message-Info: cAydn2AZdh4SzAv8fGLtF/8e77QoJjTZrjmKUWRXvEWT8kMAzRmbjk1BI2WDA8B6sNHqNCKIFCiP95IBx9m7P73Y3V93IXqliZHlPrq7+ErgQZBlFYViwl/FjUt7QD7rSudgsx2gZMnMvHoHS+KH4DBYWiLknTbaZDmWWevYaQKv8pRia+YMYVB3JHNNx4FdPDUWdqBkSKPITRlZN/WK8PoB+wrt9ZDI8irbPxy5odIK0K0A+AlP9hDIx/FnRnghlGn13vIlimAU14EQ/sYTOvfeCjMh268gOpTgDYz7G6v2ltw2tC+zUZ7ji2+vRn2Eti2sWuz+8aInieDmNSMZnoNchuEpBDaZiKJ7ExH8ND0TiCI9LGNW9z1rA7gWQP+bnauyF9gPWI7FPEXDkhflqkaJUN1mdROvk55qeBNVZpH9EHSLo5KQnGqlkweH6HJ8RtL1ejXl6cjzdiyAIOATcAVbQxVA41S+ZqmE2qVbxkpB8GStbCpyLavSlerJAdYPFOJn/kH1d6EZBI7ZPezX9nr3IJD/zol5Jg3CBcsNhu3oOhY0x+mmJ492NIEvEN0rYUeZtuChWB9esQRcwNgpophAbBcOV0kQqr+JHaoWQRDFs708FlztgNvrpDCiD9XTzGOWJz0Z4G/xLPw8E+OW3A==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1101MB2126.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230022)(39860400002)(376002)(366004)(346002)(396003)(136003)(451199015)(86362001)(6486002)(6506007)(478600001)(8936002)(26005)(5660300002)(6666004)(82960400001)(4326008)(316002)(41300700001)(83380400001)(6512007)(2906002)(66476007)(110136005)(66946007)(66556008)(9686003)(38100700002)(8676002)(186003);DIR:OUT;SFP:1102;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?RH8PZEB/gfHKJwLQBZVGkabx23C2ifWyLeFUESLYRmg9eoP69OvZBSlTjxeb?=
- =?us-ascii?Q?DuZl7386idd5QoI+fURqCo65YW8XLQnigXwdhKL+J5XnvxSOS92pGdqezOHs?=
- =?us-ascii?Q?/hR/OQ/z8JCJdA8Mqr6rlrRyb3QDz8eXEeQqozZKiOfpmNMJ17uI9Ek1igml?=
- =?us-ascii?Q?HIcXIoxCORXfUoqrMPh0iV0oJqXWbFvZVnxR/tKy6unod+5OmiUwMdrgZicw?=
- =?us-ascii?Q?H4DRnoUnHy+z7SVSECW6CgHtFMe+1Chis7CH/2Cs+uYfyeXIRzV+dLt4Nw3q?=
- =?us-ascii?Q?3grTBx22TQJaq2NBj/vIRJ+XClM4n4rdVtWvldocC2mNVKs9LtI30bVOajo/?=
- =?us-ascii?Q?iuMbbs5YuE5NMdw2taUhddOkMerN9M1kZFEM5kiLF1UHHUzkFY+9baqigVlr?=
- =?us-ascii?Q?E0s/Tv7/ZQHLKoTT2n+yo3s8pHIj993a99FIjH7ZU2Yt6RNetoAFD0LAOgNu?=
- =?us-ascii?Q?1bRbcBJcCWWfdlfg33EclSNmXrP/JnRdbHW8mqGLt4vns8z8ySxXrky1MvjF?=
- =?us-ascii?Q?2bY5ZdH8iI/tThFugxbMP8JtbVLzmsw+4SHV/s9Z1NFMxa9g4ig0iX5SXtL2?=
- =?us-ascii?Q?MSQjgu0S754SuNqVdcSocbzjyFwbthSuIsHencfymcnEaBSP6KB9zlq64bXs?=
- =?us-ascii?Q?sP9MYwm7NtddsMnF3n1g+lo00kS8SFbmJTq5r3eEmq4xz8LIC5etfpI1s1Uu?=
- =?us-ascii?Q?4ZP5+DfknXv8c1QkZYKvD1GalVBs78claAZ7drRkJrygNR4vanKrZp+iVC+4?=
- =?us-ascii?Q?++1ZsZzdNzzDqZanBDPQP7c30Xh1hyetnQ/0X6tIU/uCM6mb6uh8+ZabZweR?=
- =?us-ascii?Q?6ytTFHKVMUnJShD/MCZkEORtqj+OCy3raF1Q+TvHn686DZ/dHh5BNw6cCnwb?=
- =?us-ascii?Q?3Yd6ewv2WacCUK6b8pLRIx2bKtFIrRflJ12QxMVPwVUI7A4x6eqC39cg1sg8?=
- =?us-ascii?Q?bBjUjwLHGvMfR8deqyfdj4CJGxwG3pWTlY/pof5Ezex0Cj+CmpNiXXptl+Cd?=
- =?us-ascii?Q?b9jKlwmAF4JDwPUkn1SJj7JVCUmXJcsvcfPA9tHWQivl5ZWKnaFP1q5CirDF?=
- =?us-ascii?Q?JAQ+o1uTS7+nsJwI4BBPdWfZjnnfG/tNalIqeZf+UD7PUQqMLgGh/oNTQ8L4?=
- =?us-ascii?Q?qo/Al9UY6S1Yg1fe1r6WsgHJBljg++kfmocjA6/9Od/c06HRLQPisD6F74a/?=
- =?us-ascii?Q?QUtTnnT8dzFVIs07FG2ybvKMyjEiJjDAXuJawtS08N1LroT7rAy8wSlEu01k?=
- =?us-ascii?Q?xp2S9+I5M1+ysGI6DZ+Fo9KTa/MWIH+DmkHCI4svQzQntwTR9w3jsNdzYXyQ?=
- =?us-ascii?Q?d9rg0a09EEVRrtqe8Ie/XzkM+EupLTEakNk/F9f4j0rkQ7PnJePH7m9DnE0Q?=
- =?us-ascii?Q?MZeKCB/gxlNXQMgVXtNAT2PO7VVFuU9EbILgu9gtmNJuMh/XheS22Ex5TIyJ?=
- =?us-ascii?Q?9Z/apiNOOd9YG2PbWOG2oodXW0AudlODjEUZCj11vo871jUg5lY7BxhAWwYF?=
- =?us-ascii?Q?eGt2cpj5aZVTtEAzBn6BkIhuyQ4nX3E/IuusA1wbCvhWBKE6+IFKm1j9nbs7?=
- =?us-ascii?Q?O53nG9wgO/xDOeZOfTExlRlNSLd4cRmhAKwugLiU2eY1WVWvK3p9h6FJvTO4?=
- =?us-ascii?Q?Cw=3D=3D?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: 9872acb2-3683-430e-f947-08dad8cd66cf
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?uFyIavAcSRpI/z/NwIkUMgObttpb4gK8jTHY+3R2DY47soDAnlqYPGsicnHu?=
+ =?us-ascii?Q?9lJvmKvTC3qhaN3jNjHhmzf6uGSJ1DiqRFDf6pkd4ZXx4ILVkCtXnrjnO1bx?=
+ =?us-ascii?Q?dLDp7YHwHxN0hT0pnWF2WppalLzYYTD3XtgrgTrT2bSArzUQpZ/m1lWcK8z4?=
+ =?us-ascii?Q?HUCwCcxkvwIapxWuGfSUNzo7JSvFpldGVyFOk47P0aZWtN3KWXuVt7FyvwUq?=
+ =?us-ascii?Q?mCi5JLskjVUoXVjbJi9rBM3uibvnhCnvIlxBF/l8SP96bYsjKVGl7YAcF3UG?=
+ =?us-ascii?Q?+AbV+7v05LFvSq4sF7+BFyrWjMvJW9pYEhxHCEcypbp3SLSfsap1ZpTk7iYO?=
+ =?us-ascii?Q?XN3MU/wT7vhUpsfV42biRnwLXV0Am32hV7FW0qE1+WbtY6IX7q53/i1zE+gf?=
+ =?us-ascii?Q?hIdX/OgTr4PrdQtJGsbuV152CODB6QSDo+HMMri3ATqqcZw2E8jlfyNgZrMz?=
+ =?us-ascii?Q?RH5W+NmHF2JA9akhH5dZz7Eqo47VSU3MjztM9qZev1Q38gBLRGqi8k5R0blZ?=
+ =?us-ascii?Q?dmGUW03/SkV/Jm0eQNaTHVHYaJYFFmY0hSf/O/Iqoul/hVhcIKNE5v4K4ycm?=
+ =?us-ascii?Q?2xCZdd+K4bDIH3iQV0fSFmp23qCNeFm/HVQWbap1Ahnoj4gOeN4okvTeiwJk?=
+ =?us-ascii?Q?n3CE7a80WcjHz1sTJhYk+ixNsZMVWvsXVqwfBg9DWVyIXMs3RtDy0Ooi7CVF?=
+ =?us-ascii?Q?g5CNsychoCr0pv1U6iH+KdoqSyvDxC/U9zejuoV+R4L3EeIHFbTzKJnsFvMj?=
+ =?us-ascii?Q?8SX0hu/DpKt33yJwKTorOhd5o/Nm3YvyvXDtqwOR71L++49Mm5L+eyPDy/Gc?=
+ =?us-ascii?Q?GLizYVx9PCn4NlK/LkHUssSOw2NKoAUgA5d2Kurw5gf949XL3P3brZz6Kb5c?=
+ =?us-ascii?Q?f6mZzV9kr4celKeivoaHizg7StClqsvX0hPPlaKxBdI0M183dapVZQ53LBVG?=
+ =?us-ascii?Q?sFuu8mXGs0365ibyhlK151vrl4SFR6G7WWRf3yfwpV/MU5Az00D3K4sBnuT7?=
+ =?us-ascii?Q?WegMH0pmDgKYUlIZrzODYdTbqo9Y7rKpERmlneuYmxsvSRGhSO7ZgTXFL+TT?=
+ =?us-ascii?Q?b/w3v/6MECxeLpaVhYQIVeW4cHwygPUJJ441fy6REHo6kaxzS8h+pcgzIrkY?=
+ =?us-ascii?Q?HvBM5tSsdSF0iuUP20Etjexyk0I5/aOW6LsxHsdXx2h+6oNnE1FMhGG7oiqi?=
+ =?us-ascii?Q?uk21HDfa6hAcdeM0O4RgVheZPAPmXq6Zkl4zewPr1IBdCNh3KeaMG++Wx9Wp?=
+ =?us-ascii?Q?CVWj4RbKOapXsZ2SIDGQ//i6sPEjjrxscj2jnxthTd/QF3jezH9/w+XEwwDA?=
+ =?us-ascii?Q?dV2dwWoD8nVBmtfNtnlLgf7B0HKqRpU0VhLlIqj2IKTFu1wLUDrNCJXcMQyB?=
+ =?us-ascii?Q?fddk8epc9JllIFv6KLOdTdD6Z59jkfeLDoe7EE//dXAO3dUjl0bGVrfWRdny?=
+ =?us-ascii?Q?QEof9KtrXp7NCEQn9wSapaO4IkoRcCJQVPhnX2lR3WoX2wh4A+zXsO2bPNB6?=
+ =?us-ascii?Q?mZwvcSMms6kVzVVfaNvGao6u5RG0OtHf5So5tUZD7TT10d22rqZaZx+Ect7z?=
+ =?us-ascii?Q?tGpmX7ZerirMflw5vNvOp5pIb50D3Bvnx7rdujZ89LlMw0JueSHfK+3UXfRk?=
+ =?us-ascii?Q?Jw=3D=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: ae130821-07d4-48b5-7dab-08dad8d20647
 X-MS-Exchange-CrossTenant-AuthSource: MWHPR1101MB2126.namprd11.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Dec 2022 03:36:33.3959
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Dec 2022 04:09:39.6894
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 2PHvbsyboT8G1lMSv9GaoUaggFcJBksF6/SRR5zZifSR5qzhA5xL2ELi2Im4hLyIbOzMmYnRY7Ct5Py5cnV+Fadzzz9OdDRBzSdQr/1Ztns=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR11MB7052
+X-MS-Exchange-CrossTenant-UserPrincipalName: nbFBjKZsgaVZ7k+fcyd/z5A1bSObV1AvWpGbgtvURJs0hjM4kiUWvDdPhvtEX3uBWSRqwq8PscYNorl0l55aPtWMOFGp1r01qNxho53QKVs=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH3PR11MB7893
 X-OriginatorOrg: intel.com
 
 Alison Schofield wrote:
-> On Sun, Nov 06, 2022 at 03:47:20PM -0800, Dan Williams wrote:
-> > The typical case is that CXL devices are pure ram devices. Only emit
-> > capacity sizes when they are non-zero to avoid confusion around whether
-> > pmem is available via partitioning or not.
+> On Sun, Nov 06, 2022 at 03:48:01PM -0800, Dan Williams wrote:
+> > Allow for:
 > > 
-> > Do the same for ram_size on the odd case that someone builds a pure pmem
-> > device.
+> >    cxl create-region -d decoderX.Y
+> > 
+> > ...to assume (-m -w $(count of memdevs beneath decoderX.Y))
 > 
-> Maybe a few more words around what confusion this seeks to avoid.
-> The confusion being that a user may assign more meaning to the zero
-> size value than it actually deserves. A zero value for either 
-> pmem or ram, doesn't indicate the devices capability for either mode.
-> Use the -I option to cxl list to include paritition info in the
-> memdev listing. That will explicitly show the ram and pmem capabilities
-> of the device.
+> I'm not understanding what the change is here. Poked around a bit
+> and still didn't get it. Help!
 > 
+> Leaving out the -m leads to this:
+> $ cxl create-region -d decoder3.3 mem0 mem1
+> cxl region: parse_create_options: must specify option for target object types (-m)
+> cxl region: cmd_create_region: created 0 regions
+> 
+> Leaving out the the -m and the memdevs fails because the memdev order is
+> not correct. 
+> $ cxl create-region -d decoder3.3
+> cxl region: create_region: region5: failed to set target0 to mem1
+> cxl region: cmd_create_region: created 0 regions
+> 
+> This still works, where I give the -m and the correct order of memdevs.
+> cxl create-region -m -d decoder3.3 mem0 mem1
 
-I went ahead and added this verbatim to the changelog, thanks!
+I fixed up the man page to clarify that this is a possibility when
+eliding the target list:
+
+diff --git a/Documentation/cxl/cxl-create-region.txt b/Documentation/cxl/cxl-create-region.txt
+index e0e6818cfdd1..286779eff9ed 100644
+--- a/Documentation/cxl/cxl-create-region.txt
++++ b/Documentation/cxl/cxl-create-region.txt
+@@ -53,16 +53,18 @@ OPTIONS
+ -------
+ <target(s)>::
+ The CXL targets that should be used to form the region. The number of
+-'target' arguments must match the '--ways' option (if provided). The
+-targets are memdev names such as 'mem0', 'mem1' etc.
++'target' arguments must match the '--ways' option (if provided).
+ 
+ include::bus-option.txt[]
+ 
+ -m::
+ --memdevs::
+        Indicate that the non-option arguments for 'target(s)' refer to memdev
+-       names. Currently this is the only option supported, and must be
+-       specified.
++       device names. If this option is omitted and no targets are specified
++       then create-region uses the equivalent of 'cxl list -M -d $decoder'
++       internally as the target list. Note that depending on the topology, for
++       example with switches, the automatic target list ordering may not be
++       valid and manual specification of the target list is required.
+ 
+ -s::
+ --size=::
+
+> 
+> > 
+> > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> > ---
+> >  cxl/region.c |   16 ++++++++--------
+> >  1 file changed, 8 insertions(+), 8 deletions(-)
+> > 
+> > diff --git a/cxl/region.c b/cxl/region.c
+> > index aa0735194fa1..c0cf4ab350da 100644
+> > --- a/cxl/region.c
+> > +++ b/cxl/region.c
+> > @@ -227,10 +227,13 @@ static int parse_create_options(struct cxl_ctx *ctx, int count,
+> >  	}
+> >  
+> >  	/*
+> > -	 * For all practical purposes, -m is the default target type, but
+> > -	 * hold off on actively making that decision until a second target
+> > -	 * option is available.
+> > +	 * For all practical purposes, -m is the default target type, but hold
+> > +	 * off on actively making that decision until a second target option is
+> > +	 * available. Unless there are no arguments then just assume memdevs.
+> >  	 */
+> > +	if (!count)
+> > +		param.memdevs = true;
+> > +
+> >  	if (!param.memdevs) {
+> >  		log_err(&rl,
+> >  			"must specify option for target object types (-m)\n");
+> > @@ -272,11 +275,8 @@ static int parse_create_options(struct cxl_ctx *ctx, int count,
+> >  		p->ways = count;
+> >  		if (!validate_ways(p, count))
+> >  			return -EINVAL;
+> > -	} else {
+> > -		log_err(&rl,
+> > -			"couldn't determine interleave ways from options or arguments\n");
+> > -		return -EINVAL;
+> > -	}
+> > +	} else
+> > +		p->ways = p->num_memdevs;
+> >  
+> >  	if (param.granularity < INT_MAX) {
+> >  		if (param.granularity <= 0) {
+> > 
+
+
