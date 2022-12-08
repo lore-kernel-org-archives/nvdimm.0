@@ -1,314 +1,266 @@
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA5A18F68
-	for <nvdimm@lists.linux.dev>; Thu,  8 Dec 2022 19:21:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FEB28F6F
+	for <nvdimm@lists.linux.dev>; Thu,  8 Dec 2022 19:48:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1670527273; x=1702063273;
-  h=from:to:subject:date:message-id:references:in-reply-to:
-   content-id:content-transfer-encoding:mime-version;
-  bh=Hfgzf9sTD2hUekDXxae0T7Gz7DLTfn5QAM/u892HZh0=;
-  b=jg0A0pNjjqjdH59PvH9nJh/24uvNjdSHcEdElq0gr3A/FopSq5v33t8B
-   3Ag8zy9IdhC/3mQIerlyBC0nY48IhMB9iaU0nkQqao6ZRfvA9vCGbit3F
-   dk2DL1LZED8ypCF3FlTQTqcingasGsswD4Xqh20XrqTvrTdJCISB2J6J0
-   xujAFYzynvNyRcRdhxz7aPQ0jpOEdFkG2sb0ZqAB5WoSIxbqw9TvqovSg
-   c09CEY4rvPHpktw8b6F3Tu9HG8r9DGPYdzTDrmnxnFIhNhkp2XhpK45KT
-   MNS22uymeqBFr5HWPon3H/Vmrf/rtI2XIX/f/0lUb09KS7Doh5J3JGAMt
-   A==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10555"; a="403531314"
+  t=1670528911; x=1702064911;
+  h=message-id:date:mime-version:subject:to:references:from:
+   in-reply-to:content-transfer-encoding;
+  bh=F/M4PnFUFuLnGqR/xVxIQ8JgWte8egJXXg2MIHnsMq0=;
+  b=YyE9pptC/kz9JS2Q4L/UE+2GJTeki6N+TmVblr6vH9Gfa1deAS2PoT2m
+   JXTbr4/AstjH9k/Ou86zq6QSyz5MioyH49qTrgakz75Qln8atMVx9oIAi
+   y6ueeuYH5RzwNEimZPi9llY2q/JfyUzSQsUjSxkUxiYR7yyej1LcXN3XM
+   4CKWwbHhyqn5x9oarU6PBEHRXU8nZ17TvScsyIkD4aH88h6VM845Y92jx
+   n+eN9coYQ0Q+CQPJ4dcIcKhemCa5/7R95XswSG6OM01n0SPHnn9Nd8qyC
+   spnzHXtAodSZkADseaqlBC0KUXvX81Pvkq76icN8GP1b/XwP62PN7O/LD
+   w==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10555"; a="314918696"
 X-IronPort-AV: E=Sophos;i="5.96,227,1665471600"; 
-   d="scan'208";a="403531314"
-Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Dec 2022 11:21:11 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6500,9779,10555"; a="597467379"
+   d="scan'208";a="314918696"
+Received: from fmsmga002.fm.intel.com ([10.253.24.26])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Dec 2022 11:48:30 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10555"; a="753721082"
 X-IronPort-AV: E=Sophos;i="5.96,227,1665471600"; 
-   d="scan'208";a="597467379"
-Received: from fmsmsx601.amr.corp.intel.com ([10.18.126.81])
-  by orsmga003.jf.intel.com with ESMTP; 08 Dec 2022 11:21:11 -0800
-Received: from fmsmsx610.amr.corp.intel.com (10.18.126.90) by
- fmsmsx601.amr.corp.intel.com (10.18.126.81) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.16; Thu, 8 Dec 2022 11:21:10 -0800
-Received: from FMSEDG603.ED.cps.intel.com (10.1.192.133) by
- fmsmsx610.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.16 via Frontend Transport; Thu, 8 Dec 2022 11:21:10 -0800
-Received: from NAM11-CO1-obe.outbound.protection.outlook.com (104.47.56.171)
- by edgegateway.intel.com (192.55.55.68) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.16; Thu, 8 Dec 2022 11:21:09 -0800
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=S0WMc+4rOtaflmQGQnPK60X1zCsOwwyTWhlOd+KS5jjb0ivpH0pG06QOfvoc1r1W8/DODJ3gTIklmomlMg/kR2vJj1ZWM2dSGiy9CvNn8UYdCs36He4S2nRzONNgz17YFM7gD9PT/S88Y1oxeZArIVaHbFi0iSyLGcJuCrcYwuWYCV1iOFQmwA4U2tO/JBaLSZXhx7TyQ5CdO6EkVo1VWv2xc78uacqX9sf4jRtH3dGDFQnhvZM7IFNnoWM1iQ2W7JgAzMWYo74q2AA2Su62Av6VaAGDmOBj7mAJ3K8kNpNtAHVQicfvDtm1nN/FHupXwFd08wDhVBl20WNIhIm1Ug==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=Hfgzf9sTD2hUekDXxae0T7Gz7DLTfn5QAM/u892HZh0=;
- b=O8NEMb4x3Eh8cHXyORLIB8a9L/AP/3+2OTsMBaeaNh4GZj0MYFw1Jr+9uU8qD1ApDKMN9FihRbf9MiiTJ2bmKmx9s5QC+8XzS1gQrl3XANsetqJaedZ+gdcW+id7d9sCSUCN7Apship8cYD0mgjTpTOmOfVP4riZBFqhSP2lNDHn8VWPlnNIEtWeglBrn+aVNpiwOkVE28umGDbWq8hWYFZKdT7V5KSefbYxMZ+EObvIDiwaRuydA7vBtnKCnfuSsGcqTYI987pZqqB9+Yj6oOoXEO/XQHvHN90etjLwaHwdy/JuynN3YlAnVGgeJeRe3lUy6hkhiF1MnbPA5rxxaA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Received: from MN2PR11MB3999.namprd11.prod.outlook.com (2603:10b6:208:154::32)
- by BN0PR11MB5710.namprd11.prod.outlook.com (2603:10b6:408:14a::15) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5880.14; Thu, 8 Dec
- 2022 19:21:08 +0000
-Received: from MN2PR11MB3999.namprd11.prod.outlook.com
- ([fe80::82bb:46b:3969:c919]) by MN2PR11MB3999.namprd11.prod.outlook.com
- ([fe80::82bb:46b:3969:c919%4]) with mapi id 15.20.5880.014; Thu, 8 Dec 2022
- 19:21:08 +0000
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-To: "Jiang, Dave" <dave.jiang@intel.com>, "linux-cxl@vger.kernel.org"
-	<linux-cxl@vger.kernel.org>, "nvdimm@lists.linux.dev"
-	<nvdimm@lists.linux.dev>
-Subject: Re: [ndctl PATCH v2] ndctl: create disable master passphrase support
-Thread-Topic: [ndctl PATCH v2] ndctl: create disable master passphrase support
-Thread-Index: AQHZCyZNtZffYuPK9UCxXzax+MI4TK5kXiMA
-Date: Thu, 8 Dec 2022 19:21:08 +0000
-Message-ID: <fde0b79dd6cac3e5cdcf38b6ca4a02fe1a569b5b.camel@intel.com>
-References: <167051867684.1382144.2464381152738802540.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <167051867684.1382144.2464381152738802540.stgit@djiang5-desk3.ch.intel.com>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-user-agent: Evolution 3.46.2 (3.46.2-1.fc37) 
-authentication-results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-x-ms-publictraffictype: Email
-x-ms-traffictypediagnostic: MN2PR11MB3999:EE_|BN0PR11MB5710:EE_
-x-ms-office365-filtering-correlation-id: f8038c86-28b1-40f9-4dd8-08dad9515bf4
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: I1Npo8RLqr5O0nwrXBLpydqfNaH3zKvPjgyyn2gn+En08Y1IJfzAlAMu3bdSmxlD8v0bog2dYM2DqZ0CvdSWRgSdH9YLwxZJYclrWBsKJy7O9tJwsuD+3yqXHb4tH5vNNolD3PnZZl6zEAViNvtEqMed7FrHpYijFasvKlytRKXF8X2kNfmXlJOtlA7cv/dVWo1sV1Z/Thihsil1SuG3HBawKEFfZfi6Z88XXfhgbJh5Ehj56S0/oyIbJMP1CdezjJ/Xy70PN93QlChggDLyEmyufXzMqDhHJmEQi+vMnhUlhCHTkkGgU1DKUeUiPnqBY3mHHMiv+ray323CSNoFBYI60HGcWZxwVf4mukZh+PhtZfukMuNPNCwmiRARmXvx1FmFRrrrOrE2hHJKrvoFOvTOVDZJAj/Ueb2EZuKZQd4ete2fe4PGj7oh/pHawr5wqOPcfKM8BT2rVEN5WYJGQCe1M4S0t6cGyIVWYV3Qf6QvwS36tZW7dAgH3xQgDAnHjYp14sWBO5f4HDJtTCg/oHw9WNIVub5dRrqBiNmGvS/8o1ln2UoGHUGp1VNigihzolEZcGb1UwZpaFM1jClhAnwhtAIzlezK2aUwwYVrUPNMt9Y7dOdOGaYLGjyC+i4QLg1A1fJnD7dhng4Q1wmsULnIkwqJqD9iypKRZ0veUz4FIhxZpSTj5tZh9BcSwSZIJHOYqkukH3nP0lor5ltPPg==
-x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MN2PR11MB3999.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230022)(376002)(136003)(39860400002)(396003)(366004)(346002)(451199015)(6506007)(38070700005)(83380400001)(110136005)(2906002)(26005)(6512007)(186003)(41300700001)(2616005)(316002)(36756003)(66476007)(8936002)(5660300002)(66556008)(71200400001)(86362001)(122000001)(66946007)(64756008)(76116006)(82960400001)(66446008)(8676002)(91956017)(478600001)(38100700002)(6486002);DIR:OUT;SFP:1102;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0: =?utf-8?B?SWdvMmNRRWhMRmxwQUFmRnQwOXRYK3dDbkprMGVGeHVlZU1iRDZRNmllbzll?=
- =?utf-8?B?SWw4OTBlY090bHJTWFR0L3pTZEVSbENoRVh4aVFSVXk2L1N5TnhLMEEzSW42?=
- =?utf-8?B?VHpKK1JwRUdVVTBPeHd0a05kaHFUdENJSWNwN01zNWdRbEZhby81RXFYRjQw?=
- =?utf-8?B?bUtqM1UvdUJpMWZWZ3BkUzNkM3lFYmJLc3p3VWlOWW5SKzNSSnZTVUdNMVlB?=
- =?utf-8?B?K1VzSXM5RW5Sd3BwOHlJV2pMUkdzUFpvTHZmQjlGZTAwdFUwUW1BR0o4eE1H?=
- =?utf-8?B?UjZkL3JBeVZXclpTb1hoMStDRmdUdHg2MmlrT0Y3OFhac3I2SmJHSi84cUVJ?=
- =?utf-8?B?TVN3Q1Nia0JUM2k3ZXFpS2wwZ2xMb1ZRYS9Kc2ZhQ0RsWXlDa01Ga2xsSHBz?=
- =?utf-8?B?OUZ4cEhIc0Mvem9WVHBsV3k2RHRuM1c1cmJiLzYyVUZZRFowdEs0c3d2T2sv?=
- =?utf-8?B?Z2VXTDF3ODJ5eTRDL083eFpMOExvZzVuQ2pvc0lkT05KUmlUMHgyMVFPb1Z5?=
- =?utf-8?B?OWloSVgyYnd1WTZFWWlEZVhJN2hsenJCUW9nY3h2MlNPS0hQYnpwUWdDUGxV?=
- =?utf-8?B?QTNRWGhZWmZQVXBQZzgvTjE1a2pyUDlLZ3N1K1Naem1wUDNTSFZ1Q3NLZW4y?=
- =?utf-8?B?RDhPQXk5dHhXWDhHQVhHU0doaDFrb2h3VFVXWmxId09FT3FLZjhxWkpiMkVq?=
- =?utf-8?B?WGhtbVJzbUllTnJBMWJKWGFqZ1VaM2UwWDdIZXhmakNxSWJOK1hrb0dmSjI3?=
- =?utf-8?B?aTFyb1JxV0E5cFdTRWxWZURWVWJDcFR1ekM5L3lzN0ZxcEJPMmplQU9JcVQ2?=
- =?utf-8?B?dnpWb2FnWnNpQm5uRlNRYlV6THJ2cm5iTlh5WFIyNGhCL2FHRmRSZG83aDVN?=
- =?utf-8?B?cW9IYlpXRmpFS0FNbWhwdDdtTUhxSUJBdlVWckhpYnRtZ3REQUJZZzBlSkFy?=
- =?utf-8?B?cDBPUDI3QnJtbkprby9qcWl2dnlxTjAzN1pLM25NWmZYZmtCMlhNc0VBV1Ir?=
- =?utf-8?B?RytrbzZyM1pBdFh4TmJlenJYazZIUnQyYUJhUzlPbUZDS2hSVkZ4RE1IdEF3?=
- =?utf-8?B?Rkc1RlVWQUY4ZjBXNHNQV1ZYeEh5V0w0Umtja3ZGUGlScThoUXZhTUg5Vm5X?=
- =?utf-8?B?VytPblU0dE1MQTdxYzhKaXQrQUZpUTd6YzJsVGJhd2tlRHpUeEhkSnlSOEtQ?=
- =?utf-8?B?bys5ZExIaUVwLzBwK2Q4VXJza01GcDZJcDBzUG5OalJUSVZCbkdwWXoxdVg2?=
- =?utf-8?B?enpmYXYwS0hGQTdKZFFHQWFoUWZUWUlFMnZ5azI2VHAwc29McVluOGxwYktl?=
- =?utf-8?B?amZhbzFzOTJCdXprTWpVWnZCeWlLdXdZRU5QUmtHS2g3N3hhcTRySjVBMCts?=
- =?utf-8?B?TEw4Smk0ZXk3K1owWUlsUkpacnYyUGsxL01TSXZXTkZqNDQwSndaMGRRc1RR?=
- =?utf-8?B?OTYybXdVN1FveXFraEF0Q2xHZWsxRmFYd2NFQXB5R3NTZ2hPNTZzNnBzMGVC?=
- =?utf-8?B?Qmt5aTk4Rm0wTGdGU1ZsTnhqZW9DVFRSd2VUV29rcWRnOVJGd0FncnVsbi82?=
- =?utf-8?B?RDJqTXdkOTRMR2pNSWtjQXBKRmJ5NUk3M1ZhdjJWNk5GbGpyR3IzdU9qam1a?=
- =?utf-8?B?SFlDcjFoai9qMFFZT3hXU3FibDRiVVRNd0V6eEpoNWxYMG8zZ1FiTFh6WDdp?=
- =?utf-8?B?TURwUlA4V3hYQ0hwdG0rV0s5TDhXekp2a0Mwa0xDcU9VaCtUdkNsQ3gzWTNE?=
- =?utf-8?B?UENhQ1NQVmRxNVRZTUkyb2NnL3p3cmRYRFg1YzZSWk1qTThSVENtYXRKengy?=
- =?utf-8?B?MTZVT2pYQXdqWVlmN2drMzVsQWlvNnlKM1JuRS9HNUhWNVlVbW5DZFhJNC9y?=
- =?utf-8?B?WlpVNVBwdThCZkEzSnZKUVV6dnFqQjBzK2lYOHlsVlpoNWNleGgyNjRGRmNT?=
- =?utf-8?B?bUoybWpzYmJObHFiWjJHOGpsaUxQRDRxWldIeUl3WHdVRk1HS1R4MDRrN0VN?=
- =?utf-8?B?dFpHTWlERWhUR2NZWENBR3pQQkNOQlo3cnplVEk2THU1bzNRUGZmZHBsN2x1?=
- =?utf-8?B?RDNJOGo4ZEphdVZtVzJ6SHd4c0pBSzRCQkNrWmt6LzJzSm1vNmdjT08zT0FC?=
- =?utf-8?B?NG5sbjY4Z25yejJIemtrQWJEVVUvQWd6Q1d2R0g2UysyZVVwTDhjenAyYy8y?=
- =?utf-8?B?bEE9PQ==?=
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <FE8B2C1F2E68EF4D80C5F6DC904B31E3@namprd11.prod.outlook.com>
-Content-Transfer-Encoding: base64
+   d="scan'208";a="753721082"
+Received: from djiang5-mobl2.amr.corp.intel.com (HELO [10.212.107.194]) ([10.212.107.194])
+  by fmsmga002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Dec 2022 11:48:30 -0800
+Message-ID: <766c01a9-5620-6068-0a1f-f989db2f3b5d@intel.com>
+Date: Thu, 8 Dec 2022 12:48:29 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: MN2PR11MB3999.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: f8038c86-28b1-40f9-4dd8-08dad9515bf4
-X-MS-Exchange-CrossTenant-originalarrivaltime: 08 Dec 2022 19:21:08.4349
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: s1ThDZFuT3ETD/1/JXuQQALVmSPaHaj8yGVc6vYwZfADtwSME3Hl1gr2CQF+F2meLKwMhhqpY65Ja5N9ijOr0wuP+uiEHGuCCN5oZ1XNiUU=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BN0PR11MB5710
-X-OriginatorOrg: intel.com
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
+ Firefox/102.0 Thunderbird/102.5.1
+Subject: Re: [ndctl PATCH v2] ndctl: create disable master passphrase support
+Content-Language: en-US
+To: "Verma, Vishal L" <vishal.l.verma@intel.com>,
+ "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
+ "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>
+References: <167051867684.1382144.2464381152738802540.stgit@djiang5-desk3.ch.intel.com>
+ <fde0b79dd6cac3e5cdcf38b6ca4a02fe1a569b5b.camel@intel.com>
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <fde0b79dd6cac3e5cdcf38b6ca4a02fe1a569b5b.camel@intel.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-T24gVGh1LCAyMDIyLTEyLTA4IGF0IDA5OjU4IC0wNzAwLCBEYXZlIEppYW5nIHdyb3RlOgo+IFRo
-ZSBjeGwgc3BlYyBzdXBwb3J0cyBkaXNhYmxpbmcgb2YgbWFzdGVyIHBhc3NwaHJhc2UuIFRoaXMg
-aXMgYSBuZXcgY29tbWFuZAo+IHRoYXQgcHJldmlvdXNseSB3YXMgbm90IHN1cHBvcnRlZCB0aHJv
-dWdoIG52ZGltbS4gQWRkIHN1cHBvcnQgY29tbWFuZCB0bwo+IHN1cHBvcnQgIm1hc3RlciBwYXNz
-aHByYXNlIGRpc2FibGUiLgo+IAo+IFNpZ25lZC1vZmYtYnk6IERhdmUgSmlhbmcgPGRhdmUuamlh
-bmdAaW50ZWwuY29tPgo+IC0tLQo+IAo+IHYyOgo+IC0gQWRkIG1hbiBwYWdlIChWaXNoYWwpCj4g
-Cj4gwqBEb2N1bWVudGF0aW9uL25kY3RsL21lc29uLmJ1aWxkIHzCoMKgwqAgMSArCj4gwqBuZGN0
-bC9idWlsdGluLmjCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCB8wqDCoMKgIDEgKwo+
-IMKgbmRjdGwvZGltbS5jwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgfMKg
-wqAgMjUgKysrKysrKysrKysrKysrKysrKysrKysrLQo+IMKgbmRjdGwva2V5cy5jwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgfMKgwqAgMTUgKysrKysrKysrKystLS0tCj4g
-wqBuZGN0bC9rZXlzLmjCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCB8wqDC
-oMKgIDUgKysrLS0KPiDCoG5kY3RsL2xpYi9kaW1tLmPCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqAgfMKgwqDCoCA5ICsrKysrKysrKwo+IMKgbmRjdGwvbGliL2xpYm5kY3RsLnN5bcKgwqDC
-oMKgwqDCoMKgwqDCoCB8wqDCoMKgIDQgKysrKwo+IMKgbmRjdGwvbGlibmRjdGwuaMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoCB8wqDCoMKgIDEgKwo+IMKgbmRjdGwvbmRjdGwuY8KgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCB8wqDCoMKgIDEgKwo+IMKgOSBmaWxlcyBj
-aGFuZ2VkLCA1NSBpbnNlcnRpb25zKCspLCA3IGRlbGV0aW9ucygtKQo+IAo+IGRpZmYgLS1naXQg
-YS9Eb2N1bWVudGF0aW9uL25kY3RsL21lc29uLmJ1aWxkIGIvRG9jdW1lbnRhdGlvbi9uZGN0bC9t
-ZXNvbi5idWlsZAo+IGluZGV4IGI4MjYzNWE0Y2M0Yi4uYTIyMDYwNTM4NjMyIDEwMDY0NAo+IC0t
-LSBhL0RvY3VtZW50YXRpb24vbmRjdGwvbWVzb24uYnVpbGQKPiArKysgYi9Eb2N1bWVudGF0aW9u
-L25kY3RsL21lc29uLmJ1aWxkCj4gQEAgLTU3LDYgKzU3LDcgQEAgbmRjdGxfbWFucGFnZXMgPSBb
-Cj4gwqDCoCAnbmRjdGwtc2V0dXAtcGFzc3BocmFzZS50eHQnLAo+IMKgwqAgJ25kY3RsLXVwZGF0
-ZS1wYXNzcGhyYXNlLnR4dCcsCj4gwqDCoCAnbmRjdGwtcmVtb3ZlLXBhc3NwaHJhc2UudHh0JywK
-PiArwqAgJ25kY3RsLXJlbW92ZS1tYXN0ZXItcGFzc3BocmFzZS50eHQnLAo+IMKgwqAgJ25kY3Rs
-LWZyZWV6ZS1zZWN1cml0eS50eHQnLAo+IMKgwqAgJ25kY3RsLXNhbml0aXplLWRpbW0udHh0JywK
-PiDCoMKgICduZGN0bC1sb2FkLWtleXMudHh0JywKPiBkaWZmIC0tZ2l0IGEvbmRjdGwvYnVpbHRp
-bi5oIGIvbmRjdGwvYnVpbHRpbi5oCj4gaW5kZXggZDNkYmJiMWFmYmRkLi5hZjc1OWVmMGNiZmEg
-MTAwNjQ0Cj4gLS0tIGEvbmRjdGwvYnVpbHRpbi5oCj4gKysrIGIvbmRjdGwvYnVpbHRpbi5oCj4g
-QEAgLTM5LDYgKzM5LDcgQEAgaW50IGNtZF9pbmplY3Rfc21hcnQoaW50IGFyZ2MsIGNvbnN0IGNo
-YXIgKiphcmd2LCBzdHJ1Y3QgbmRjdGxfY3R4ICpjdHgpOwo+IMKgaW50IGNtZF9zZXR1cF9wYXNz
-cGhyYXNlKGludCBhcmdjLCBjb25zdCBjaGFyICoqYXJndiwgc3RydWN0IG5kY3RsX2N0eCAqY3R4
-KTsKPiDCoGludCBjbWRfdXBkYXRlX3Bhc3NwaHJhc2UoaW50IGFyZ2MsIGNvbnN0IGNoYXIgKiph
-cmd2LCBzdHJ1Y3QgbmRjdGxfY3R4ICpjdHgpOwo+IMKgaW50IGNtZF9yZW1vdmVfcGFzc3BocmFz
-ZShpbnQgYXJnYywgY29uc3QgY2hhciAqKmFyZ3YsIHN0cnVjdCBuZGN0bF9jdHggKmN0eCk7Cj4g
-K2ludCBjbWRfcmVtb3ZlX21hc3Rlcl9wYXNzcGhyYXNlKGludCBhcmdjLCBjb25zdCBjaGFyICoq
-YXJndiwgc3RydWN0IG5kY3RsX2N0eCAqY3R4KTsKPiDCoGludCBjbWRfZnJlZXplX3NlY3VyaXR5
-KGludCBhcmdjLCBjb25zdCBjaGFyICoqYXJndiwgc3RydWN0IG5kY3RsX2N0eCAqY3R4KTsKPiDC
-oGludCBjbWRfc2FuaXRpemVfZGltbShpbnQgYXJnYywgY29uc3QgY2hhciAqKmFyZ3YsIHN0cnVj
-dCBuZGN0bF9jdHggKmN0eCk7Cj4gwqBpbnQgY21kX2xvYWRfa2V5cyhpbnQgYXJnYywgY29uc3Qg
-Y2hhciAqKmFyZ3YsIHN0cnVjdCBuZGN0bF9jdHggKmN0eCk7Cj4gZGlmZiAtLWdpdCBhL25kY3Rs
-L2RpbW0uYyBiL25kY3RsL2RpbW0uYwo+IGluZGV4IGFjN2M1MjcwZTk3MS4uZGY5NWFjODk1NDU4
-IDEwMDY0NAo+IC0tLSBhL25kY3RsL2RpbW0uYwo+ICsrKyBiL25kY3RsL2RpbW0uYwo+IEBAIC0x
-MDI4LDcgKzEwMjgsMTkgQEAgc3RhdGljIGludCBhY3Rpb25fcmVtb3ZlX3Bhc3NwaHJhc2Uoc3Ry
-dWN0IG5kY3RsX2RpbW0gKmRpbW0sCj4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBy
-ZXR1cm4gLUVPUE5PVFNVUFA7Cj4gwqDCoMKgwqDCoMKgwqDCoH0KPiDCoAo+IC3CoMKgwqDCoMKg
-wqDCoHJldHVybiBuZGN0bF9kaW1tX3JlbW92ZV9rZXkoZGltbSk7Cj4gK8KgwqDCoMKgwqDCoMKg
-cmV0dXJuIG5kY3RsX2RpbW1fcmVtb3ZlX2tleShkaW1tLCBORF9VU0VSX0tFWSk7Cj4gK30KPiAr
-Cj4gK3N0YXRpYyBpbnQgYWN0aW9uX3JlbW92ZV9tYXN0ZXJfcGFzc3BocmFzZShzdHJ1Y3QgbmRj
-dGxfZGltbSAqZGltbSwKPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgc3RydWN0IGFj
-dGlvbl9jb250ZXh0ICphY3R4KQo+ICt7Cj4gK8KgwqDCoMKgwqDCoMKgaWYgKG5kY3RsX2RpbW1f
-Z2V0X3NlY3VyaXR5KGRpbW0pIDwgMCkgewo+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqBlcnJvcigiJXM6IHNlY3VyaXR5IG9wZXJhdGlvbiBub3Qgc3VwcG9ydGVkXG4iLAo+ICvCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oG5kY3RsX2RpbW1fZ2V0X2Rldm5hbWUoZGltbSkpOwo+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqByZXR1cm4gLUVPUE5PVFNVUFA7Cj4gK8KgwqDCoMKgwqDCoMKgfQo+ICsKPiArwqDC
-oMKgwqDCoMKgwqByZXR1cm4gbmRjdGxfZGltbV9yZW1vdmVfa2V5KGRpbW0sIE5EX01BU1RFUl9L
-RVkpOwo+IMKgfQo+IMKgCj4gwqBzdGF0aWMgaW50IGFjdGlvbl9zZWN1cml0eV9mcmVlemUoc3Ry
-dWN0IG5kY3RsX2RpbW0gKmRpbW0sCj4gQEAgLTE1OTUsNiArMTYwNywxNyBAQCBpbnQgY21kX3Jl
-bW92ZV9wYXNzcGhyYXNlKGludCBhcmdjLCBjb25zdCBjaGFyICoqYXJndiwgdm9pZCAqY3R4KQo+
-IMKgwqDCoMKgwqDCoMKgwqByZXR1cm4gY291bnQgPj0gMCA/IDAgOiBFWElUX0ZBSUxVUkU7Cj4g
-wqB9Cj4gwqAKPiAraW50IGNtZF9yZW1vdmVfbWFzdGVyX3Bhc3NwaHJhc2UoaW50IGFyZ2MsIGNv
-bnN0IGNoYXIgKiphcmd2LCB2b2lkICpjdHgpCj4gK3sKPiArwqDCoMKgwqDCoMKgwqBpbnQgY291
-bnQgPSBkaW1tX2FjdGlvbihhcmdjLCBhcmd2LCBjdHgsIGFjdGlvbl9yZW1vdmVfbWFzdGVyX3Bh
-c3NwaHJhc2UsCj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqBiYXNlX29wdGlvbnMsCj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqAibmRjdGwgcmVtb3ZlLW1hc3Rlci1wYXNzcGhyYXNlIDxubWVtMD4gWzxubWVtMT4u
-LjxubWVtTj5dIFs8b3B0aW9ucz5dIik7Cj4gKwo+ICvCoMKgwqDCoMKgwqDCoGZwcmludGYoc3Rk
-ZXJyLCAibWFzdGVyIHBhc3NwaHJhc2UgcmVtb3ZlZCBmb3IgJWQgbm1lbSVzLlxuIiwgY291bnQg
-Pj0gMCA/IGNvdW50IDogMCwKPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoGNvdW50ID4gMSA/ICJzIiA6ICIiKTsKPiArwqDCoMKgwqDCoMKgwqByZXR1cm4g
-Y291bnQgPj0gMCA/IDAgOiBFWElUX0ZBSUxVUkU7Cj4gK30KPiArCj4gwqBpbnQgY21kX2ZyZWV6
-ZV9zZWN1cml0eShpbnQgYXJnYywgY29uc3QgY2hhciAqKmFyZ3YsIHZvaWQgKmN0eCkKPiDCoHsK
-PiDCoMKgwqDCoMKgwqDCoMKgaW50IGNvdW50ID0gZGltbV9hY3Rpb24oYXJnYywgYXJndiwgY3R4
-LCBhY3Rpb25fc2VjdXJpdHlfZnJlZXplLCBiYXNlX29wdGlvbnMsCj4gZGlmZiAtLWdpdCBhL25k
-Y3RsL2tleXMuYyBiL25kY3RsL2tleXMuYwo+IGluZGV4IDJmMzNiOGZiNDg4Yy4uOWJjNTU4ODAy
-YmM0IDEwMDY0NAo+IC0tLSBhL25kY3RsL2tleXMuYwo+ICsrKyBiL25kY3RsL2tleXMuYwo+IEBA
-IC02MDIsMTcgKzYwMiwyNCBAQCBzdGF0aWMgaW50IGRpc2NhcmRfa2V5KHN0cnVjdCBuZGN0bF9k
-aW1tICpkaW1tKQo+IMKgwqDCoMKgwqDCoMKgwqByZXR1cm4gMDsKPiDCoH0KPiDCoAo+IC1pbnQg
-bmRjdGxfZGltbV9yZW1vdmVfa2V5KHN0cnVjdCBuZGN0bF9kaW1tICpkaW1tKQo+ICtpbnQgbmRj
-dGxfZGltbV9yZW1vdmVfa2V5KHN0cnVjdCBuZGN0bF9kaW1tICpkaW1tLCBlbnVtIG5kY3RsX2tl
-eV90eXBlIGtleV90eXBlKQo+IMKgewo+IMKgwqDCoMKgwqDCoMKgwqBrZXlfc2VyaWFsX3Qga2V5
-Owo+IMKgwqDCoMKgwqDCoMKgwqBpbnQgcmM7Cj4gwqAKPiAtwqDCoMKgwqDCoMKgwqBrZXkgPSBj
-aGVja19kaW1tX2tleShkaW1tLCB0cnVlLCBORF9VU0VSX0tFWSk7Cj4gK8KgwqDCoMKgwqDCoMKg
-a2V5ID0gY2hlY2tfZGltbV9rZXkoZGltbSwgdHJ1ZSwga2V5X3R5cGUpOwo+IMKgwqDCoMKgwqDC
-oMKgwqBpZiAoa2V5IDwgMCkKPiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHJldHVy
-biBrZXk7Cj4gwqAKPiAtwqDCoMKgwqDCoMKgwqByYyA9IHJ1bl9rZXlfb3AoZGltbSwga2V5LCBu
-ZGN0bF9kaW1tX2Rpc2FibGVfcGFzc3BocmFzZSwKPiAtwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoCJyZW1vdmUgcGFzc3BocmFzZSIpOwo+ICvCoMKgwqDCoMKg
-wqDCoGlmIChrZXlfdHlwZSA9PSBORF9VU0VSX0tFWSkKPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgcmMgPSBydW5fa2V5X29wKGRpbW0sIGtleSwgbmRjdGxfZGltbV9kaXNhYmxlX3Bh
-c3NwaHJhc2UsCj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgInJlbW92ZSBwYXNzcGhyYXNlIik7Cj4gK8KgwqDCoMKgwqDCoMKg
-ZWxzZSBpZiAoa2V5X3R5cGUgPT0gTkRfTUFTVEVSX0tFWSkKPiArwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgcmMgPSBydW5fa2V5X29wKGRpbW0sIGtleSwgbmRjdGxfZGltbV9kaXNhYmxl
-X21hc3Rlcl9wYXNzcGhyYXNlLAo+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCJyZW1vdmUgbWFzdGVyIHBhc3NwaHJhc2UiKTsK
-PiArwqDCoMKgwqDCoMKgwqBlbHNlCj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHJl
-dHVybiAtRUlOVkFMOwo+ICsKPiDCoMKgwqDCoMKgwqDCoMKgaWYgKHJjIDwgMCkKPiDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHJldHVybiByYzsKPiDCoAo+IGRpZmYgLS1naXQgYS9u
-ZGN0bC9rZXlzLmggYi9uZGN0bC9rZXlzLmgKPiBpbmRleCAwM2NiNTA5ZTY0MDQuLjllNzczMTlj
-MmFlNiAxMDA2NDQKPiAtLS0gYS9uZGN0bC9rZXlzLmgKPiArKysgYi9uZGN0bC9rZXlzLmgKPiBA
-QCAtMjUsNyArMjUsNyBAQCBpbnQgbmRjdGxfZGltbV9zZXR1cF9rZXkoc3RydWN0IG5kY3RsX2Rp
-bW0gKmRpbW0sIGNvbnN0IGNoYXIgKmtlaywKPiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgZW51bSBuZGN0bF9rZXlfdHlwZSBr
-ZXlfdHlwZSk7Cj4gwqBpbnQgbmRjdGxfZGltbV91cGRhdGVfa2V5KHN0cnVjdCBuZGN0bF9kaW1t
-ICpkaW1tLCBjb25zdCBjaGFyICprZWssCj4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGVudW0gbmRjdGxfa2V5X3R5cGUga2V5
-X3R5cGUpOwo+IC1pbnQgbmRjdGxfZGltbV9yZW1vdmVfa2V5KHN0cnVjdCBuZGN0bF9kaW1tICpk
-aW1tKTsKPiAraW50IG5kY3RsX2RpbW1fcmVtb3ZlX2tleShzdHJ1Y3QgbmRjdGxfZGltbSAqZGlt
-bSwgZW51bSBuZGN0bF9rZXlfdHlwZSBrZXlfdHlwZSk7Cj4gwqBpbnQgbmRjdGxfZGltbV9zZWN1
-cmVfZXJhc2Vfa2V5KHN0cnVjdCBuZGN0bF9kaW1tICpkaW1tLAo+IMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgZW51bSBuZGN0bF9rZXlfdHlwZSBrZXlfdHlwZSk7Cj4gwqBpbnQgbmRj
-dGxfZGltbV9vdmVyd3JpdGVfa2V5KHN0cnVjdCBuZGN0bF9kaW1tICpkaW1tKTsKPiBAQCAtNDcs
-NyArNDcsOCBAQCBzdGF0aWMgaW5saW5lIGludCBuZGN0bF9kaW1tX3VwZGF0ZV9rZXkoc3RydWN0
-IG5kY3RsX2RpbW0gKmRpbW0sCj4gwqDCoMKgwqDCoMKgwqDCoHJldHVybiAtRU9QTk9UU1VQUDsK
-PiDCoH0KPiDCoAo+IC1zdGF0aWMgaW5saW5lIGludCBuZGN0bF9kaW1tX3JlbW92ZV9rZXkoc3Ry
-dWN0IG5kY3RsX2RpbW0gKmRpbW0pCj4gK3N0YXRpYyBpbmxpbmUgaW50IG5kY3RsX2RpbW1fcmVt
-b3ZlX2tleShzdHJ1Y3QgbmRjdGxfZGltbSAqZGltbSwKPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgZW51bSBuZGN0bF9rZXlfdHlwZSBrZXlfdHlwZSkKPiDCoHsKPiDCoMKgwqDCoMKg
-wqDCoMKgcmV0dXJuIC1FT1BOT1RTVVBQOwo+IMKgfQo+IGRpZmYgLS1naXQgYS9uZGN0bC9saWIv
-ZGltbS5jIGIvbmRjdGwvbGliL2RpbW0uYwo+IGluZGV4IDllMzZlMjg5ZGNjMi4uOTkzNjE4M2Fm
-MjkyIDEwMDY0NAo+IC0tLSBhL25kY3RsL2xpYi9kaW1tLmMKPiArKysgYi9uZGN0bC9saWIvZGlt
-bS5jCj4gQEAgLTc1Nyw2ICs3NTcsMTUgQEAgTkRDVExfRVhQT1JUIGludCBuZGN0bF9kaW1tX2Rp
-c2FibGVfcGFzc3BocmFzZShzdHJ1Y3QgbmRjdGxfZGltbSAqZGltbSwKPiDCoMKgwqDCoMKgwqDC
-oMKgcmV0dXJuIHdyaXRlX3NlY3VyaXR5KGRpbW0sIGJ1Zik7Cj4gwqB9Cj4gwqAKPiArTkRDVExf
-RVhQT1JUIGludCBuZGN0bF9kaW1tX2Rpc2FibGVfbWFzdGVyX3Bhc3NwaHJhc2Uoc3RydWN0IG5k
-Y3RsX2RpbW0gKmRpbW0sCj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGxvbmcga2V5
-KQo+ICt7Cj4gK8KgwqDCoMKgwqDCoMKgY2hhciBidWZbU1lTRlNfQVRUUl9TSVpFXTsKPiArCj4g
-K8KgwqDCoMKgwqDCoMKgc3ByaW50ZihidWYsICJkaXNhYmxlX21hc3RlciAlbGRcbiIsIGtleSk7
-Cj4gK8KgwqDCoMKgwqDCoMKgcmV0dXJuIHdyaXRlX3NlY3VyaXR5KGRpbW0sIGJ1Zik7Cj4gK30K
-PiArCj4gwqBORENUTF9FWFBPUlQgaW50IG5kY3RsX2RpbW1fZnJlZXplX3NlY3VyaXR5KHN0cnVj
-dCBuZGN0bF9kaW1tICpkaW1tKQo+IMKgewo+IMKgwqDCoMKgwqDCoMKgwqByZXR1cm4gd3JpdGVf
-c2VjdXJpdHkoZGltbSwgImZyZWV6ZSIpOwo+IGRpZmYgLS1naXQgYS9uZGN0bC9saWIvbGlibmRj
-dGwuc3ltIGIvbmRjdGwvbGliL2xpYm5kY3RsLnN5bQo+IGluZGV4IGYxZjllZGQ0YjZmZi4uYzkz
-MzE2M2MwMzgwIDEwMDY0NAo+IC0tLSBhL25kY3RsL2xpYi9saWJuZGN0bC5zeW0KPiArKysgYi9u
-ZGN0bC9saWIvbGlibmRjdGwuc3ltCj4gQEAgLTQ2MiwzICs0NjIsNyBAQCBMSUJORENUTF8yNiB7
-Cj4gwqBMSUJORENUTF8yNyB7Cj4gwqDCoMKgwqDCoMKgwqDCoG5kY3RsX2RpbW1fcmVmcmVzaF9m
-bGFnczsKPiDCoH0gTElCTkRDVExfMjY7Cj4gKwo+ICtMSUJORENUTF8yOCB7Cj4gK8KgwqDCoMKg
-wqDCoMKgbmRjdGxfZGltbV9kaXNhYmxlX21hc3Rlcl9wYXNzcGhyYXNlOwo+ICt9IExJQk5EQ1RM
-XzI3Owo+IGRpZmYgLS1naXQgYS9uZGN0bC9saWJuZGN0bC5oIGIvbmRjdGwvbGlibmRjdGwuaAo+
-IGluZGV4IDU3Y2Y5M2Q4ZDE1MS4uYzUyZTgyYTZmODI2IDEwMDY0NAo+IC0tLSBhL25kY3RsL2xp
-Ym5kY3RsLmgKPiArKysgYi9uZGN0bC9saWJuZGN0bC5oCj4gQEAgLTc2NSw2ICs3NjUsNyBAQCBi
-b29sIG5kY3RsX2RpbW1fc2VjdXJpdHlfaXNfZnJvemVuKHN0cnVjdCBuZGN0bF9kaW1tICpkaW1t
-KTsKPiDCoGludCBuZGN0bF9kaW1tX3VwZGF0ZV9wYXNzcGhyYXNlKHN0cnVjdCBuZGN0bF9kaW1t
-ICpkaW1tLAo+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgbG9uZyBja2V5LCBsb25n
-IG5rZXkpOwo+IMKgaW50IG5kY3RsX2RpbW1fZGlzYWJsZV9wYXNzcGhyYXNlKHN0cnVjdCBuZGN0
-bF9kaW1tICpkaW1tLCBsb25nIGtleSk7Cj4gK2ludCBuZGN0bF9kaW1tX2Rpc2FibGVfbWFzdGVy
-X3Bhc3NwaHJhc2Uoc3RydWN0IG5kY3RsX2RpbW0gKmRpbW0sIGxvbmcga2V5KTsKPiDCoGludCBu
-ZGN0bF9kaW1tX2ZyZWV6ZV9zZWN1cml0eShzdHJ1Y3QgbmRjdGxfZGltbSAqZGltbSk7Cj4gwqBp
-bnQgbmRjdGxfZGltbV9zZWN1cmVfZXJhc2Uoc3RydWN0IG5kY3RsX2RpbW0gKmRpbW0sIGxvbmcg
-a2V5KTsKPiDCoGludCBuZGN0bF9kaW1tX292ZXJ3cml0ZShzdHJ1Y3QgbmRjdGxfZGltbSAqZGlt
-bSwgbG9uZyBrZXkpOwo+IGRpZmYgLS1naXQgYS9uZGN0bC9uZGN0bC5jIGIvbmRjdGwvbmRjdGwu
-Ywo+IGluZGV4IDMxZDJjNWUzNTkzOS4uZWViY2FmN2FhOTE1IDEwMDY0NAo+IC0tLSBhL25kY3Rs
-L25kY3RsLmMKPiArKysgYi9uZGN0bC9uZGN0bC5jCj4gQEAgLTg0LDYgKzg0LDcgQEAgc3RhdGlj
-IHN0cnVjdCBjbWRfc3RydWN0IGNvbW1hbmRzW10gPSB7Cj4gwqDCoMKgwqDCoMKgwqDCoHsgInNl
-dHVwLXBhc3NwaHJhc2UiLCB7IGNtZF9zZXR1cF9wYXNzcGhyYXNlIH0gfSwKPiDCoMKgwqDCoMKg
-wqDCoMKgeyAidXBkYXRlLXBhc3NwaHJhc2UiLCB7IGNtZF91cGRhdGVfcGFzc3BocmFzZSB9IH0s
-Cj4gwqDCoMKgwqDCoMKgwqDCoHsgInJlbW92ZS1wYXNzcGhyYXNlIiwgeyBjbWRfcmVtb3ZlX3Bh
-c3NwaHJhc2UgfSB9LAo+ICvCoMKgwqDCoMKgwqDCoHsgInJlbW92ZS1tYXN0ZXItcGFzc3BocmFz
-ZSIsIHsgY21kX3JlbW92ZV9tYXN0ZXJfcGFzc3BocmFzZSB9IH0sCgpBY3R1YWxseSAtIGFueSBy
-ZWFzb24gZm9yIHRoaXMgdG8gYmUgYSBuZXcgY29tbWFuZCBlbnRpcmVseT8Kc2V0dXAtcGFzc3Bo
-cmFzZSBqdXN0IHVzZXMgYW4gb3B0aW9uICctbScgdG8gaW5kaWNhdGUgdGhhdCB3ZSdyZQpvcGVy
-YXRpbmcgb24gdGhlIG1hc3RlciBwYXNzcGhyYXNlLiBXaHkgbm90IGp1c3QgYWRkIGFuIG9wdGlv
-biB0byB0aGUKZXhpc3RpbmcgcmVtb3ZlLXBhc3NwaHJhc2UgY29tbWFuZCB0b28gc28gd2UgaGF2
-ZSBwYXJpdHk/Cgo+IMKgwqDCoMKgwqDCoMKgwqB7ICJmcmVlemUtc2VjdXJpdHkiLCB7IGNtZF9m
-cmVlemVfc2VjdXJpdHkgfSB9LAo+IMKgwqDCoMKgwqDCoMKgwqB7ICJzYW5pdGl6ZS1kaW1tIiwg
-eyBjbWRfc2FuaXRpemVfZGltbSB9IH0sCj4gwqAjaWZkZWYgRU5BQkxFX0tFWVVUSUxTCj4gCj4g
-Cgo=
+
+
+On 12/8/2022 12:21 PM, Verma, Vishal L wrote:
+> On Thu, 2022-12-08 at 09:58 -0700, Dave Jiang wrote:
+>> The cxl spec supports disabling of master passphrase. This is a new command
+>> that previously was not supported through nvdimm. Add support command to
+>> support "master passhprase disable".
+>>
+>> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+>> ---
+>>
+>> v2:
+>> - Add man page (Vishal)
+>>
+>>   Documentation/ndctl/meson.build |    1 +
+>>   ndctl/builtin.h                 |    1 +
+>>   ndctl/dimm.c                    |   25 ++++++++++++++++++++++++-
+>>   ndctl/keys.c                    |   15 +++++++++++----
+>>   ndctl/keys.h                    |    5 +++--
+>>   ndctl/lib/dimm.c                |    9 +++++++++
+>>   ndctl/lib/libndctl.sym          |    4 ++++
+>>   ndctl/libndctl.h                |    1 +
+>>   ndctl/ndctl.c                   |    1 +
+>>   9 files changed, 55 insertions(+), 7 deletions(-)
+>>
+>> diff --git a/Documentation/ndctl/meson.build b/Documentation/ndctl/meson.build
+>> index b82635a4cc4b..a22060538632 100644
+>> --- a/Documentation/ndctl/meson.build
+>> +++ b/Documentation/ndctl/meson.build
+>> @@ -57,6 +57,7 @@ ndctl_manpages = [
+>>     'ndctl-setup-passphrase.txt',
+>>     'ndctl-update-passphrase.txt',
+>>     'ndctl-remove-passphrase.txt',
+>> +  'ndctl-remove-master-passphrase.txt',
+>>     'ndctl-freeze-security.txt',
+>>     'ndctl-sanitize-dimm.txt',
+>>     'ndctl-load-keys.txt',
+>> diff --git a/ndctl/builtin.h b/ndctl/builtin.h
+>> index d3dbbb1afbdd..af759ef0cbfa 100644
+>> --- a/ndctl/builtin.h
+>> +++ b/ndctl/builtin.h
+>> @@ -39,6 +39,7 @@ int cmd_inject_smart(int argc, const char **argv, struct ndctl_ctx *ctx);
+>>   int cmd_setup_passphrase(int argc, const char **argv, struct ndctl_ctx *ctx);
+>>   int cmd_update_passphrase(int argc, const char **argv, struct ndctl_ctx *ctx);
+>>   int cmd_remove_passphrase(int argc, const char **argv, struct ndctl_ctx *ctx);
+>> +int cmd_remove_master_passphrase(int argc, const char **argv, struct ndctl_ctx *ctx);
+>>   int cmd_freeze_security(int argc, const char **argv, struct ndctl_ctx *ctx);
+>>   int cmd_sanitize_dimm(int argc, const char **argv, struct ndctl_ctx *ctx);
+>>   int cmd_load_keys(int argc, const char **argv, struct ndctl_ctx *ctx);
+>> diff --git a/ndctl/dimm.c b/ndctl/dimm.c
+>> index ac7c5270e971..df95ac895458 100644
+>> --- a/ndctl/dimm.c
+>> +++ b/ndctl/dimm.c
+>> @@ -1028,7 +1028,19 @@ static int action_remove_passphrase(struct ndctl_dimm *dimm,
+>>                  return -EOPNOTSUPP;
+>>          }
+>>   
+>> -       return ndctl_dimm_remove_key(dimm);
+>> +       return ndctl_dimm_remove_key(dimm, ND_USER_KEY);
+>> +}
+>> +
+>> +static int action_remove_master_passphrase(struct ndctl_dimm *dimm,
+>> +               struct action_context *actx)
+>> +{
+>> +       if (ndctl_dimm_get_security(dimm) < 0) {
+>> +               error("%s: security operation not supported\n",
+>> +                               ndctl_dimm_get_devname(dimm));
+>> +               return -EOPNOTSUPP;
+>> +       }
+>> +
+>> +       return ndctl_dimm_remove_key(dimm, ND_MASTER_KEY);
+>>   }
+>>   
+>>   static int action_security_freeze(struct ndctl_dimm *dimm,
+>> @@ -1595,6 +1607,17 @@ int cmd_remove_passphrase(int argc, const char **argv, void *ctx)
+>>          return count >= 0 ? 0 : EXIT_FAILURE;
+>>   }
+>>   
+>> +int cmd_remove_master_passphrase(int argc, const char **argv, void *ctx)
+>> +{
+>> +       int count = dimm_action(argc, argv, ctx, action_remove_master_passphrase,
+>> +                       base_options,
+>> +                       "ndctl remove-master-passphrase <nmem0> [<nmem1>..<nmemN>] [<options>]");
+>> +
+>> +       fprintf(stderr, "master passphrase removed for %d nmem%s.\n", count >= 0 ? count : 0,
+>> +                       count > 1 ? "s" : "");
+>> +       return count >= 0 ? 0 : EXIT_FAILURE;
+>> +}
+>> +
+>>   int cmd_freeze_security(int argc, const char **argv, void *ctx)
+>>   {
+>>          int count = dimm_action(argc, argv, ctx, action_security_freeze, base_options,
+>> diff --git a/ndctl/keys.c b/ndctl/keys.c
+>> index 2f33b8fb488c..9bc558802bc4 100644
+>> --- a/ndctl/keys.c
+>> +++ b/ndctl/keys.c
+>> @@ -602,17 +602,24 @@ static int discard_key(struct ndctl_dimm *dimm)
+>>          return 0;
+>>   }
+>>   
+>> -int ndctl_dimm_remove_key(struct ndctl_dimm *dimm)
+>> +int ndctl_dimm_remove_key(struct ndctl_dimm *dimm, enum ndctl_key_type key_type)
+>>   {
+>>          key_serial_t key;
+>>          int rc;
+>>   
+>> -       key = check_dimm_key(dimm, true, ND_USER_KEY);
+>> +       key = check_dimm_key(dimm, true, key_type);
+>>          if (key < 0)
+>>                  return key;
+>>   
+>> -       rc = run_key_op(dimm, key, ndctl_dimm_disable_passphrase,
+>> -                       "remove passphrase");
+>> +       if (key_type == ND_USER_KEY)
+>> +               rc = run_key_op(dimm, key, ndctl_dimm_disable_passphrase,
+>> +                               "remove passphrase");
+>> +       else if (key_type == ND_MASTER_KEY)
+>> +               rc = run_key_op(dimm, key, ndctl_dimm_disable_master_passphrase,
+>> +                               "remove master passphrase");
+>> +       else
+>> +               return -EINVAL;
+>> +
+>>          if (rc < 0)
+>>                  return rc;
+>>   
+>> diff --git a/ndctl/keys.h b/ndctl/keys.h
+>> index 03cb509e6404..9e77319c2ae6 100644
+>> --- a/ndctl/keys.h
+>> +++ b/ndctl/keys.h
+>> @@ -25,7 +25,7 @@ int ndctl_dimm_setup_key(struct ndctl_dimm *dimm, const char *kek,
+>>                                  enum ndctl_key_type key_type);
+>>   int ndctl_dimm_update_key(struct ndctl_dimm *dimm, const char *kek,
+>>                                  enum ndctl_key_type key_type);
+>> -int ndctl_dimm_remove_key(struct ndctl_dimm *dimm);
+>> +int ndctl_dimm_remove_key(struct ndctl_dimm *dimm, enum ndctl_key_type key_type);
+>>   int ndctl_dimm_secure_erase_key(struct ndctl_dimm *dimm,
+>>                  enum ndctl_key_type key_type);
+>>   int ndctl_dimm_overwrite_key(struct ndctl_dimm *dimm);
+>> @@ -47,7 +47,8 @@ static inline int ndctl_dimm_update_key(struct ndctl_dimm *dimm,
+>>          return -EOPNOTSUPP;
+>>   }
+>>   
+>> -static inline int ndctl_dimm_remove_key(struct ndctl_dimm *dimm)
+>> +static inline int ndctl_dimm_remove_key(struct ndctl_dimm *dimm,
+>> +               enum ndctl_key_type key_type)
+>>   {
+>>          return -EOPNOTSUPP;
+>>   }
+>> diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
+>> index 9e36e289dcc2..9936183af292 100644
+>> --- a/ndctl/lib/dimm.c
+>> +++ b/ndctl/lib/dimm.c
+>> @@ -757,6 +757,15 @@ NDCTL_EXPORT int ndctl_dimm_disable_passphrase(struct ndctl_dimm *dimm,
+>>          return write_security(dimm, buf);
+>>   }
+>>   
+>> +NDCTL_EXPORT int ndctl_dimm_disable_master_passphrase(struct ndctl_dimm *dimm,
+>> +               long key)
+>> +{
+>> +       char buf[SYSFS_ATTR_SIZE];
+>> +
+>> +       sprintf(buf, "disable_master %ld\n", key);
+>> +       return write_security(dimm, buf);
+>> +}
+>> +
+>>   NDCTL_EXPORT int ndctl_dimm_freeze_security(struct ndctl_dimm *dimm)
+>>   {
+>>          return write_security(dimm, "freeze");
+>> diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
+>> index f1f9edd4b6ff..c933163c0380 100644
+>> --- a/ndctl/lib/libndctl.sym
+>> +++ b/ndctl/lib/libndctl.sym
+>> @@ -462,3 +462,7 @@ LIBNDCTL_26 {
+>>   LIBNDCTL_27 {
+>>          ndctl_dimm_refresh_flags;
+>>   } LIBNDCTL_26;
+>> +
+>> +LIBNDCTL_28 {
+>> +       ndctl_dimm_disable_master_passphrase;
+>> +} LIBNDCTL_27;
+>> diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
+>> index 57cf93d8d151..c52e82a6f826 100644
+>> --- a/ndctl/libndctl.h
+>> +++ b/ndctl/libndctl.h
+>> @@ -765,6 +765,7 @@ bool ndctl_dimm_security_is_frozen(struct ndctl_dimm *dimm);
+>>   int ndctl_dimm_update_passphrase(struct ndctl_dimm *dimm,
+>>                  long ckey, long nkey);
+>>   int ndctl_dimm_disable_passphrase(struct ndctl_dimm *dimm, long key);
+>> +int ndctl_dimm_disable_master_passphrase(struct ndctl_dimm *dimm, long key);
+>>   int ndctl_dimm_freeze_security(struct ndctl_dimm *dimm);
+>>   int ndctl_dimm_secure_erase(struct ndctl_dimm *dimm, long key);
+>>   int ndctl_dimm_overwrite(struct ndctl_dimm *dimm, long key);
+>> diff --git a/ndctl/ndctl.c b/ndctl/ndctl.c
+>> index 31d2c5e35939..eebcaf7aa915 100644
+>> --- a/ndctl/ndctl.c
+>> +++ b/ndctl/ndctl.c
+>> @@ -84,6 +84,7 @@ static struct cmd_struct commands[] = {
+>>          { "setup-passphrase", { cmd_setup_passphrase } },
+>>          { "update-passphrase", { cmd_update_passphrase } },
+>>          { "remove-passphrase", { cmd_remove_passphrase } },
+>> +       { "remove-master-passphrase", { cmd_remove_master_passphrase } },
+> 
+> Actually - any reason for this to be a new command entirely?
+> setup-passphrase just uses an option '-m' to indicate that we're
+> operating on the master passphrase. Why not just add an option to the
+> existing remove-passphrase command too so we have parity?
+
+I'll take a look. I don't recall why I made the decision to do this.
+
+> 
+>>          { "freeze-security", { cmd_freeze_security } },
+>>          { "sanitize-dimm", { cmd_sanitize_dimm } },
+>>   #ifdef ENABLE_KEYUTILS
+>>
+>>
+> 
