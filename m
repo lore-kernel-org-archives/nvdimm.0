@@ -1,174 +1,123 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f182.google.com (mail-pf1-f182.google.com [209.85.210.182])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB5D9621
-	for <nvdimm@lists.linux.dev>; Thu,  8 Dec 2022 01:26:43 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 692E2C433C1;
-	Thu,  8 Dec 2022 01:26:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1670462803;
-	bh=w4h8E1rUddz+mzBNAte5bv9cCRd0SRyTRAA9Do+iWsk=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=n/ohPV9MwZHrqQxBjPgAylUX9/OWK8wUbAmjSnllSWuL9w/F268nHhTJPdqm+UXnK
-	 xVQjr4FOPp6VuPT7WuWgpKihnO7ecRzKodBcEU5uQ3qBcNoHK/1PTIdU35ID7Pfz8/
-	 k1wJtkUDXn4MZQIV8mfPxXCg8qlaPyoCs6KU0jb+euz/XKnEq9boQDckirgwuaI/BJ
-	 L/1kmvzTJKPR5Y7gsHwXoZ/9ii8Rh8MZvjGL+dl6lKpgFfcesJWEDlEVo0OEQs6oUZ
-	 bEgdDCt2logJCy+AO7HUSAn6rl19IsGNqDrUzna79Y/QlZ2FujKA1dUtqNM6j1Edtq
-	 tgp0nj466NesA==
-Date: Wed, 7 Dec 2022 17:26:42 -0800
-From: "Darrick J. Wong" <djwong@kernel.org>
-To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Cc: linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org,
-	nvdimm@lists.linux.dev, linux-mm@kvack.org,
-	linux-fsdevel@vger.kernel.org, dan.j.williams@intel.com,
-	david@fromorbit.com, akpm@linux-foundation.org,
-	allison.henderson@oracle.com
-Subject: Re: [PATCH v2.2 1/8] fsdax: introduce page->share for fsdax in
- reflink mode
-Message-ID: <Y5E9UgUyidulL2yp@magnolia>
-References: <1669908538-55-2-git-send-email-ruansy.fnst@fujitsu.com>
- <1670381359-53-1-git-send-email-ruansy.fnst@fujitsu.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27B2862C
+	for <nvdimm@lists.linux.dev>; Thu,  8 Dec 2022 02:55:33 +0000 (UTC)
+Received: by mail-pf1-f182.google.com with SMTP id 124so247635pfy.0
+        for <nvdimm@lists.linux.dev>; Wed, 07 Dec 2022 18:55:33 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=kernel-dk.20210112.gappssmtp.com; s=20210112;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=+YnwWLbC1k13FDuBmbkgFl4RERtAqz8Hk2l0zfW6u80=;
+        b=fU4y3lEGFEK3oscBjLkN1vxfgNM/FZidlQ+rI70OHvgxD0rXJh0EwSK3e2bczFqMkA
+         tO2LwtPOEAYZtGQjimEXQ8aStoM+oHrRCZpJNDNOrJTKI/JHeBOK30eol6bW+IR4iBg5
+         6bvbpaQVxY9TyhU2N+c7QQA9h+c23vE28pNce8JLnQVD9Bz7KVFAZVNBp+U4WY4PzC6f
+         oXQvkaSCLJVDYLe3bcQFvuvQN3QZ2UfyLUBGJaQmSeDW96IREZIk3AzUiqppD7zsYIqk
+         Vd2qy53kRGJVHi8kjxDmOkqm8yZRn4/hLIi6OYpVIqVtAFlNgX78uWUxSxkcznrsySrQ
+         SZ+w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=+YnwWLbC1k13FDuBmbkgFl4RERtAqz8Hk2l0zfW6u80=;
+        b=7JumNO/oqFKPAHpORim4iHT9utzk6qSI0ew7ee72XpAn84aQHOzrxQ9Uiww6T+Zyig
+         ycpjgjTpwcorw13SkdmbDXcu4JAa83fKPKxh4PeSWK7nsQFYjj0Xg6+sH/gVt0R/m6cQ
+         KvBBqqN1W4hwczNagaHBPc4IvMp8Cr6t1oAPGAdRpMjCFPYyMlRafBfqDLa3lcKlT7ym
+         izFWGV1nJ1S4eaBuU70pOr1UbAPfIUODu6qvuyn5aHbwhzqUyt+NSZbxlhTs1CBMmT3m
+         GOHVOfzhEVbjiTFGcBd6QMr+E9YSAjRaMKTCAOORTeBop9ypv6/ge7B282C6Fnwlu1Ej
+         gVvw==
+X-Gm-Message-State: ANoB5pmFLVJHh5m2BYhucvJj6VZzNjCwIUBql6NZ3Id/7gzit0wq534Y
+	SvE3IqF/noOrLtjwD4pUbiHJCA==
+X-Google-Smtp-Source: AA0mqf4GKdTwpvzKHdR+jWKD59yHhtQiQj6o4bMAawT3TKX0knE/TZzrpzeE/R5qCEqb2PjMIqK3qA==
+X-Received: by 2002:a63:d151:0:b0:478:c28a:2f36 with SMTP id c17-20020a63d151000000b00478c28a2f36mr13058187pgj.182.1670468133285;
+        Wed, 07 Dec 2022 18:55:33 -0800 (PST)
+Received: from [192.168.1.136] ([198.8.77.157])
+        by smtp.gmail.com with ESMTPSA id n13-20020a170903404d00b0016d773aae60sm15211981pla.19.2022.12.07.18.55.30
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 07 Dec 2022 18:55:32 -0800 (PST)
+Message-ID: <4d118f20-9006-0af9-8d97-0d28d85a3585@kernel.dk>
+Date: Wed, 7 Dec 2022 19:55:30 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1670381359-53-1-git-send-email-ruansy.fnst@fujitsu.com>
+User-Agent: Mozilla/5.0 (X11; Linux aarch64; rv:102.0) Gecko/20100101
+ Thunderbird/102.5.1
+Subject: Re: [RFC for-6.2/block V2] block: Change the granularity of io ticks
+ from ms to ns
+Content-Language: en-US
+To: Keith Busch <kbusch@kernel.org>,
+ Chaitanya Kulkarni <chaitanyak@nvidia.com>
+Cc: Gulam Mohamed <gulam.mohamed@oracle.com>,
+ "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>,
+ "philipp.reisner@linbit.com" <philipp.reisner@linbit.com>,
+ "lars.ellenberg@linbit.com" <lars.ellenberg@linbit.com>,
+ "christoph.boehmwalder@linbit.com" <christoph.boehmwalder@linbit.com>,
+ "minchan@kernel.org" <minchan@kernel.org>,
+ "ngupta@vflare.org" <ngupta@vflare.org>,
+ "senozhatsky@chromium.org" <senozhatsky@chromium.org>,
+ "colyli@suse.de" <colyli@suse.de>,
+ "kent.overstreet@gmail.com" <kent.overstreet@gmail.com>,
+ "agk@redhat.com" <agk@redhat.com>, "snitzer@kernel.org"
+ <snitzer@kernel.org>, "dm-devel@redhat.com" <dm-devel@redhat.com>,
+ "song@kernel.org" <song@kernel.org>,
+ "dan.j.williams@intel.com" <dan.j.williams@intel.com>,
+ "vishal.l.verma@intel.com" <vishal.l.verma@intel.com>,
+ "dave.jiang@intel.com" <dave.jiang@intel.com>,
+ "ira.weiny@intel.com" <ira.weiny@intel.com>,
+ "junxiao.bi@oracle.com" <junxiao.bi@oracle.com>,
+ "martin.petersen@oracle.com" <martin.petersen@oracle.com>,
+ "drbd-dev@lists.linbit.com" <drbd-dev@lists.linbit.com>,
+ "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+ "linux-bcache@vger.kernel.org" <linux-bcache@vger.kernel.org>,
+ "linux-raid@vger.kernel.org" <linux-raid@vger.kernel.org>,
+ "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
+ "konrad.wilk@oracle.com" <konrad.wilk@oracle.com>,
+ "joe.jin@oracle.com" <joe.jin@oracle.com>
+References: <20221207223204.22459-1-gulam.mohamed@oracle.com>
+ <abaa2003-4ddf-5ef9-d62c-1708a214609d@kernel.dk>
+ <09be5cbe-9251-d28c-e91a-3f2e5e9e99f2@nvidia.com>
+ <Y5Exa1TV/2VLcEWR@kbusch-mbp>
+From: Jens Axboe <axboe@kernel.dk>
+In-Reply-To: <Y5Exa1TV/2VLcEWR@kbusch-mbp>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Wed, Dec 07, 2022 at 02:49:19AM +0000, Shiyang Ruan wrote:
-> fsdax page is used not only when CoW, but also mapread. To make the it
-> easily understood, use 'share' to indicate that the dax page is shared
-> by more than one extent.  And add helper functions to use it.
+On 12/7/22 5:35?PM, Keith Busch wrote:
+> On Wed, Dec 07, 2022 at 11:17:12PM +0000, Chaitanya Kulkarni wrote:
+>> On 12/7/22 15:08, Jens Axboe wrote:
+>>>
+>>> My default peak testing runs at 122M IOPS. That's also the peak IOPS of
+>>> the devices combined, and with iostats disabled. If I enabled iostats,
+>>> then the performance drops to 112M IOPS. It's no longer device limited,
+>>> that's a drop of about 8.2%.
+>>>
+>>
+>> Wow, clearly not acceptable that's exactly I asked for perf
+>> numbers :).
 > 
-> Also, the flag needs to be renamed to PAGE_MAPPING_DAX_SHARED.
+> For the record, we did say per-io ktime_get() has a measurable
+> performance harm and should be aggregated.
 > 
-> Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-> Reviewed-by: Allison Henderson <allison.henderson@oracle.com>
+>   https://www.spinics.net/lists/linux-block/msg89937.html
 
-Looks fine to me,
-Reviewed-by: Darrick J. Wong <djwong@kernel.org>
+Yes, I iterated that in the v1 posting as well, and mentioned it was the
+reason the time batching was done. From the results I posted, if you
+look at a profile of the run, here are the time related additions:
 
---D
++   27.22%  io_uring  [kernel.vmlinux]  [k] read_tsc
++    4.37%  io_uring  [kernel.vmlinux]  [k] ktime_get
 
-> ---
->  fs/dax.c                   | 38 ++++++++++++++++++++++----------------
->  include/linux/mm_types.h   |  5 ++++-
->  include/linux/page-flags.h |  2 +-
->  3 files changed, 27 insertions(+), 18 deletions(-)
-> 
-> diff --git a/fs/dax.c b/fs/dax.c
-> index 1c6867810cbd..84fadea08705 100644
-> --- a/fs/dax.c
-> +++ b/fs/dax.c
-> @@ -334,35 +334,41 @@ static unsigned long dax_end_pfn(void *entry)
->  	for (pfn = dax_to_pfn(entry); \
->  			pfn < dax_end_pfn(entry); pfn++)
->  
-> -static inline bool dax_mapping_is_cow(struct address_space *mapping)
-> +static inline bool dax_page_is_shared(struct page *page)
->  {
-> -	return (unsigned long)mapping == PAGE_MAPPING_DAX_COW;
-> +	return page->mapping == PAGE_MAPPING_DAX_SHARED;
->  }
->  
->  /*
-> - * Set the page->mapping with FS_DAX_MAPPING_COW flag, increase the refcount.
-> + * Set the page->mapping with PAGE_MAPPING_DAX_SHARED flag, increase the
-> + * refcount.
->   */
-> -static inline void dax_mapping_set_cow(struct page *page)
-> +static inline void dax_page_share_get(struct page *page)
->  {
-> -	if ((uintptr_t)page->mapping != PAGE_MAPPING_DAX_COW) {
-> +	if (page->mapping != PAGE_MAPPING_DAX_SHARED) {
->  		/*
->  		 * Reset the index if the page was already mapped
->  		 * regularly before.
->  		 */
->  		if (page->mapping)
-> -			page->index = 1;
-> -		page->mapping = (void *)PAGE_MAPPING_DAX_COW;
-> +			page->share = 1;
-> +		page->mapping = PAGE_MAPPING_DAX_SHARED;
->  	}
-> -	page->index++;
-> +	page->share++;
-> +}
-> +
-> +static inline unsigned long dax_page_share_put(struct page *page)
-> +{
-> +	return --page->share;
->  }
->  
->  /*
-> - * When it is called in dax_insert_entry(), the cow flag will indicate that
-> + * When it is called in dax_insert_entry(), the shared flag will indicate that
->   * whether this entry is shared by multiple files.  If so, set the page->mapping
-> - * FS_DAX_MAPPING_COW, and use page->index as refcount.
-> + * PAGE_MAPPING_DAX_SHARED, and use page->share as refcount.
->   */
->  static void dax_associate_entry(void *entry, struct address_space *mapping,
-> -		struct vm_area_struct *vma, unsigned long address, bool cow)
-> +		struct vm_area_struct *vma, unsigned long address, bool shared)
->  {
->  	unsigned long size = dax_entry_size(entry), pfn, index;
->  	int i = 0;
-> @@ -374,8 +380,8 @@ static void dax_associate_entry(void *entry, struct address_space *mapping,
->  	for_each_mapped_pfn(entry, pfn) {
->  		struct page *page = pfn_to_page(pfn);
->  
-> -		if (cow) {
-> -			dax_mapping_set_cow(page);
-> +		if (shared) {
-> +			dax_page_share_get(page);
->  		} else {
->  			WARN_ON_ONCE(page->mapping);
->  			page->mapping = mapping;
-> @@ -396,9 +402,9 @@ static void dax_disassociate_entry(void *entry, struct address_space *mapping,
->  		struct page *page = pfn_to_page(pfn);
->  
->  		WARN_ON_ONCE(trunc && page_ref_count(page) > 1);
-> -		if (dax_mapping_is_cow(page->mapping)) {
-> -			/* keep the CoW flag if this page is still shared */
-> -			if (page->index-- > 0)
-> +		if (dax_page_is_shared(page)) {
-> +			/* keep the shared flag if this page is still shared */
-> +			if (dax_page_share_put(page) > 0)
->  				continue;
->  		} else
->  			WARN_ON_ONCE(page->mapping && page->mapping != mapping);
-> diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
-> index 500e536796ca..f46cac3657ad 100644
-> --- a/include/linux/mm_types.h
-> +++ b/include/linux/mm_types.h
-> @@ -103,7 +103,10 @@ struct page {
->  			};
->  			/* See page-flags.h for PAGE_MAPPING_FLAGS */
->  			struct address_space *mapping;
-> -			pgoff_t index;		/* Our offset within mapping. */
-> +			union {
-> +				pgoff_t index;		/* Our offset within mapping. */
-> +				unsigned long share;	/* share count for fsdax */
-> +			};
->  			/**
->  			 * @private: Mapping-private opaque data.
->  			 * Usually used for buffer_heads if PagePrivate.
-> diff --git a/include/linux/page-flags.h b/include/linux/page-flags.h
-> index 0b0ae5084e60..d8e94f2f704a 100644
-> --- a/include/linux/page-flags.h
-> +++ b/include/linux/page-flags.h
-> @@ -641,7 +641,7 @@ PAGEFLAG_FALSE(VmemmapSelfHosted, vmemmap_self_hosted)
->   * Different with flags above, this flag is used only for fsdax mode.  It
->   * indicates that this page->mapping is now under reflink case.
->   */
-> -#define PAGE_MAPPING_DAX_COW	0x1
-> +#define PAGE_MAPPING_DAX_SHARED	((void *)0x1)
->  
->  static __always_inline bool folio_mapping_flags(struct folio *folio)
->  {
-> -- 
-> 2.38.1
-> 
+which are #1 and $4, respectively. That's a LOT of added overhead. Not
+sure why people think time keeping is free, particularly high
+granularity time keeping. It's definitely not, and adding 2-3 per IO is
+very noticeable.
+
+-- 
+Jens Axboe
+
