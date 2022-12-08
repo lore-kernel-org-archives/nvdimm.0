@@ -1,33 +1,33 @@
 Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FEB28F6F
-	for <nvdimm@lists.linux.dev>; Thu,  8 Dec 2022 19:48:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBC068F6F
+	for <nvdimm@lists.linux.dev>; Thu,  8 Dec 2022 19:49:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1670528911; x=1702064911;
+  t=1670528959; x=1702064959;
   h=message-id:date:mime-version:subject:to:references:from:
    in-reply-to:content-transfer-encoding;
-  bh=F/M4PnFUFuLnGqR/xVxIQ8JgWte8egJXXg2MIHnsMq0=;
-  b=YyE9pptC/kz9JS2Q4L/UE+2GJTeki6N+TmVblr6vH9Gfa1deAS2PoT2m
-   JXTbr4/AstjH9k/Ou86zq6QSyz5MioyH49qTrgakz75Qln8atMVx9oIAi
-   y6ueeuYH5RzwNEimZPi9llY2q/JfyUzSQsUjSxkUxiYR7yyej1LcXN3XM
-   4CKWwbHhyqn5x9oarU6PBEHRXU8nZ17TvScsyIkD4aH88h6VM845Y92jx
-   n+eN9coYQ0Q+CQPJ4dcIcKhemCa5/7R95XswSG6OM01n0SPHnn9Nd8qyC
-   spnzHXtAodSZkADseaqlBC0KUXvX81Pvkq76icN8GP1b/XwP62PN7O/LD
-   w==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10555"; a="314918696"
+  bh=oDj3djzomZUe5BUF6q4I6No8tcMC0elRAxv3zcNPqTY=;
+  b=P+au6/mPrTGNOGXoLg9T8fx0U05zZQ/Eysq63ir7bcb6TPc4oWBqCCLE
+   0oJZ0fN/a5jvQJNboDKrgqIHzLlBOFu7D/cF5wb+WhhLOnH8xlQHUYItO
+   NLaXkWV7VfZUmMN0nTUjp/jgzYqlH9bAB+QknWdipehZ2oysysUNT6jO8
+   sNj3Z8A2T1/IEZ+lqZMCmGEoyx4+T4Mjqag1kjsyg2TR+vO+tkwPYvO2s
+   MAHKggZ1hVUuHrFqgBQh06g2NBL+mB4eVdu78Xn3vHViJHeZf2TYizwiF
+   IEGDxIdE5fVCEQQg4GvJsdAixooBFPDzKzSqmFNjujOlPkW5Q3iUml5c9
+   A==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10555"; a="314918889"
 X-IronPort-AV: E=Sophos;i="5.96,227,1665471600"; 
-   d="scan'208";a="314918696"
+   d="scan'208";a="314918889"
 Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Dec 2022 11:48:30 -0800
-X-IronPort-AV: E=McAfee;i="6500,9779,10555"; a="753721082"
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Dec 2022 11:49:19 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10555"; a="753721231"
 X-IronPort-AV: E=Sophos;i="5.96,227,1665471600"; 
-   d="scan'208";a="753721082"
+   d="scan'208";a="753721231"
 Received: from djiang5-mobl2.amr.corp.intel.com (HELO [10.212.107.194]) ([10.212.107.194])
-  by fmsmga002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Dec 2022 11:48:30 -0800
-Message-ID: <766c01a9-5620-6068-0a1f-f989db2f3b5d@intel.com>
-Date: Thu, 8 Dec 2022 12:48:29 -0700
+  by fmsmga002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Dec 2022 11:49:18 -0800
+Message-ID: <42c4ab49-6427-04bd-500d-c3a732e25b11@intel.com>
+Date: Thu, 8 Dec 2022 12:49:18 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -42,19 +42,24 @@ To: "Verma, Vishal L" <vishal.l.verma@intel.com>,
  "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
  "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>
 References: <167051867684.1382144.2464381152738802540.stgit@djiang5-desk3.ch.intel.com>
- <fde0b79dd6cac3e5cdcf38b6ca4a02fe1a569b5b.camel@intel.com>
+ <c71b3a90ec0d98a82c1b43c42498289458ef9eb4.camel@intel.com>
 From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <fde0b79dd6cac3e5cdcf38b6ca4a02fe1a569b5b.camel@intel.com>
+In-Reply-To: <c71b3a90ec0d98a82c1b43c42498289458ef9eb4.camel@intel.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 
 
 
-On 12/8/2022 12:21 PM, Verma, Vishal L wrote:
+On 12/8/2022 12:17 PM, Verma, Vishal L wrote:
 > On Thu, 2022-12-08 at 09:58 -0700, Dave Jiang wrote:
 >> The cxl spec supports disabling of master passphrase. This is a new command
 >> that previously was not supported through nvdimm. Add support command to
 >> support "master passhprase disable".
+> 
+> Extra 'support' in this sentence?
+
+yep
+> 
 >>
 >> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 >> ---
@@ -71,6 +76,11 @@ On 12/8/2022 12:21 PM, Verma, Vishal L wrote:
 >>   ndctl/lib/libndctl.sym          |    4 ++++
 >>   ndctl/libndctl.h                |    1 +
 >>   ndctl/ndctl.c                   |    1 +
+> 
+> Did you forget to git-add ndctl-remove-master-passphrase.txt?
+
+seems so :(
+> 
 >>   9 files changed, 55 insertions(+), 7 deletions(-)
 >>
 >> diff --git a/Documentation/ndctl/meson.build b/Documentation/ndctl/meson.build
@@ -249,15 +259,6 @@ On 12/8/2022 12:21 PM, Verma, Vishal L wrote:
 >>          { "update-passphrase", { cmd_update_passphrase } },
 >>          { "remove-passphrase", { cmd_remove_passphrase } },
 >> +       { "remove-master-passphrase", { cmd_remove_master_passphrase } },
-> 
-> Actually - any reason for this to be a new command entirely?
-> setup-passphrase just uses an option '-m' to indicate that we're
-> operating on the master passphrase. Why not just add an option to the
-> existing remove-passphrase command too so we have parity?
-
-I'll take a look. I don't recall why I made the decision to do this.
-
-> 
 >>          { "freeze-security", { cmd_freeze_security } },
 >>          { "sanitize-dimm", { cmd_sanitize_dimm } },
 >>   #ifdef ENABLE_KEYUTILS
