@@ -1,247 +1,311 @@
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB14F33CA
-	for <nvdimm@lists.linux.dev>; Thu,  8 Dec 2022 16:58:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE3078F68
+	for <nvdimm@lists.linux.dev>; Thu,  8 Dec 2022 19:17:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1670518701; x=1702054701;
-  h=subject:from:to:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=kae5VifZrT9gzyfsGgTvij8HwuuZp8cFzVDOFu7TL0k=;
-  b=AW1t/Nwnb91RVY/lZRccjTaXu9QXvE6p79IDXvPb+EDMMxcl+BQKi0AZ
-   P4zk7gLWSo4WiaOBQqPZxt7eo1SCMSpH4XRedl/G1am1xA4paoOxt2m5e
-   eAyCaOxfVMIIUJy1C3FxKzOxzL0qqNwQzehWskvFCClEcXjGf8kbZDnYd
-   wqgDOEx81puETcFCobFeBEs8SU+mSXZoz/ZkFZvjLrydYWP0tFtOcVYPm
-   F1IVfUMppEle9HNBGOLIQ5F5TJ9vBeYOHFa3XN+Rm7bNyS3Y7Eo6fJufL
-   fn1O8KouUdOwzd/+c4LxSllWXMBh+g6Y1Z/f3gtfoM4IoYDpZTDW32fhy
-   Q==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10555"; a="315942711"
+  t=1670527074; x=1702063074;
+  h=from:to:subject:date:message-id:references:in-reply-to:
+   content-id:content-transfer-encoding:mime-version;
+  bh=BxkypKFYlNLtKGZM3PZlsdd92hbTT56OjdgDb2kUwtw=;
+  b=IDw3TPPbwtd/w8Bc3soZoAmMeu4jHc1rLq06Rj91AW53u7fdPdzDD9aQ
+   AJdHF2VFIdjgPomi13b6+dpSuOZBAMmTVtPURoniDJINlCi5fdPlQV22C
+   SpxSE6vgTDfzAzveGNcFr/tWq1tmMkdxzowD+3bteZ1UNGvPt/s1BqvIZ
+   TtHKQbpCyiiAo83VRE2LJKsrH/XmnJ2QSu9N/6XNEte5H8xUYegylREW+
+   2k6hGWlaQf/v4eEJ3NOKlK2Ae29x+CiH/xQlW0q6YITfUrUhM5pcNLDtJ
+   5vzPJV3V80g2nqdh4rH0rqtC2iXWbchC0NIGyZICXTG8wwpdeVdeuRW2S
+   g==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10555"; a="381583587"
 X-IronPort-AV: E=Sophos;i="5.96,227,1665471600"; 
-   d="scan'208";a="315942711"
-Received: from fmsmga004.fm.intel.com ([10.253.24.48])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Dec 2022 08:58:21 -0800
-X-IronPort-AV: E=McAfee;i="6500,9779,10555"; a="715679309"
+   d="scan'208";a="381583587"
+Received: from fmsmga003.fm.intel.com ([10.253.24.29])
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Dec 2022 11:17:38 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6500,9779,10555"; a="735930575"
 X-IronPort-AV: E=Sophos;i="5.96,227,1665471600"; 
-   d="scan'208";a="715679309"
-Received: from djiang5-desk3.ch.intel.com ([143.182.136.137])
-  by fmsmga004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Dec 2022 08:58:21 -0800
-Subject: [ndctl PATCH v2] ndctl: create disable master passphrase support
-From: Dave Jiang <dave.jiang@intel.com>
-To: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
- vishal.l.verma@intel.com
-Date: Thu, 08 Dec 2022 09:58:20 -0700
-Message-ID: 
- <167051867684.1382144.2464381152738802540.stgit@djiang5-desk3.ch.intel.com>
-User-Agent: StGit/1.4
+   d="scan'208";a="735930575"
+Received: from fmsmsx602.amr.corp.intel.com ([10.18.126.82])
+  by FMSMGA003.fm.intel.com with ESMTP; 08 Dec 2022 11:17:38 -0800
+Received: from fmsmsx610.amr.corp.intel.com (10.18.126.90) by
+ fmsmsx602.amr.corp.intel.com (10.18.126.82) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.16; Thu, 8 Dec 2022 11:17:38 -0800
+Received: from fmsedg601.ED.cps.intel.com (10.1.192.135) by
+ fmsmsx610.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.16 via Frontend Transport; Thu, 8 Dec 2022 11:17:38 -0800
+Received: from NAM11-CO1-obe.outbound.protection.outlook.com (104.47.56.174)
+ by edgegateway.intel.com (192.55.55.70) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.16; Thu, 8 Dec 2022 11:17:38 -0800
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=oCLqKsFZLU22W7APMiqERJD5hwbZ9Vldpa0F5dZqWpbiuVYwHTyUFqTU/mz0toSCTVOgK1ahmdZorZMQ2fP2otV4woSX3P/gUsGaH4JLvGJoOXkjp2F+dA8lp8Eb4yGylJrdlR3UV89U7VJJ08+5f5p2d1S+kjC8/nN1ZOIIT9WXrPjudJjSlnZEOC8xSgL2wGvjsrqmBjoMfKhjSz2dY0Fb2eMpBDnuXn+8PlWlEQAdHVGqJlT+79e2qHYrQEd1KFciQUvrFufDM5KG1LUngHy/g7+31kQWW2xolgVP3OSLOGHqIEhXqzS+Oue4oTnW6VYIB6GxpOsQi5FYs3De0A==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=BxkypKFYlNLtKGZM3PZlsdd92hbTT56OjdgDb2kUwtw=;
+ b=L4B+F7VOmeupsqql4NJFpgY40NOOsY7ERe8fcTb76qqSrfgxPwrs8uYThLTE+b1D7Q7ALGz5gpKEhPIohbgSURW/VKELJUVspedNsOfvA9Fzy81Vr9LfO+9hqFKOWuLiCgYbFvmVAv6ywqH7vVoRaLUZdTnv+N/uzpj2AF+pbWcDDZNz+baCabS/yK9loMOBngfIQu5Wf/MCzimhZaH7U6VzZBcA0OfeLyesCu8BwtZFsLnVEjUR81ZhGiW+BCWtVOm9BuioGAcs0bJleGabR8WpJ88Beo4WuprCiCIUMdnWOZNQbHKfjDn3Zj3smPVOLJiXkMBh3G3ZQ2bie7reeA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Received: from MN2PR11MB3999.namprd11.prod.outlook.com (2603:10b6:208:154::32)
+ by BL3PR11MB6508.namprd11.prod.outlook.com (2603:10b6:208:38f::5) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5880.14; Thu, 8 Dec
+ 2022 19:17:36 +0000
+Received: from MN2PR11MB3999.namprd11.prod.outlook.com
+ ([fe80::82bb:46b:3969:c919]) by MN2PR11MB3999.namprd11.prod.outlook.com
+ ([fe80::82bb:46b:3969:c919%4]) with mapi id 15.20.5880.014; Thu, 8 Dec 2022
+ 19:17:36 +0000
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+To: "Jiang, Dave" <dave.jiang@intel.com>, "linux-cxl@vger.kernel.org"
+	<linux-cxl@vger.kernel.org>, "nvdimm@lists.linux.dev"
+	<nvdimm@lists.linux.dev>
+Subject: Re: [ndctl PATCH v2] ndctl: create disable master passphrase support
+Thread-Topic: [ndctl PATCH v2] ndctl: create disable master passphrase support
+Thread-Index: AQHZCyZNtZffYuPK9UCxXzax+MI4TK5kXSYA
+Date: Thu, 8 Dec 2022 19:17:36 +0000
+Message-ID: <c71b3a90ec0d98a82c1b43c42498289458ef9eb4.camel@intel.com>
+References: <167051867684.1382144.2464381152738802540.stgit@djiang5-desk3.ch.intel.com>
+In-Reply-To: <167051867684.1382144.2464381152738802540.stgit@djiang5-desk3.ch.intel.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+user-agent: Evolution 3.46.2 (3.46.2-1.fc37) 
+authentication-results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+x-ms-publictraffictype: Email
+x-ms-traffictypediagnostic: MN2PR11MB3999:EE_|BL3PR11MB6508:EE_
+x-ms-office365-filtering-correlation-id: cba5f76a-c5b5-47ac-6eb4-08dad950dd60
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: RXnL5lTZldTmyrVb6Q0Uv844FU+EKmOrtV38lAh+g6Gp4Xs+eOqJJmzWkqWZNxO5j5d2HMTjAP3SpbasEZPXsusCkX8dyjybQqJyxnXGrq8lIW6F3tShbRQwTUQUbNRG4JsUx+DlqNzhIMjYK03SNK1RggkGrxsukae9HYu4AdFeDy2KNZGYrdoJqFPy4nf0cEsCQ221wV46dOA5hlNiuFXB0/MvW9U+k9YDJasL1JZXEogH8wziMI17Trwq70gGoZZuVmZfMhrN3lG1xN/VMPn7qJEO/ExIrqXIxgHuiDDgT0eD1qvau2JRskPbququmzmV00Rs+vQujGpBaSgyPLReCfm+MUwUVxgPL9Qqj13IHBWM8stlv/Q3S6jTAoyDp6K+/XycGoL98/L8kmY71u1L9YEMjk9fOXsp/MI9wrXxNfKQO4MM49erLUdYKsa/zKPp01PxjfIikPTnizAClOjh5dlDzBt6Q7hKxyVZhNbs/5ZNQGaeg8unoWnE2zIx45GKV6vxIiGYafky4Ysj2dyriwSLB5ZjzIwRxVL9q7BZ6YZBd9MpZdxMcB78gf+dstFpL6tCztwp9C9hG81CuRfkokGfI/b76wGz4Sr3TdYuvkAi514axf0ErFscJV8sLOnMk1D+BSCzTDKo2B6h6WQf4Y0IIH03iKIB99/yYjERCCtvR+h2Q0Ez02LlF8T7lKdMjR9lVUEo1ExKHu5gKA==
+x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MN2PR11MB3999.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230022)(346002)(39860400002)(136003)(396003)(376002)(366004)(451199015)(83380400001)(38070700005)(6506007)(76116006)(186003)(6512007)(86362001)(2906002)(26005)(110136005)(71200400001)(2616005)(316002)(41300700001)(36756003)(5660300002)(8936002)(66946007)(64756008)(91956017)(66556008)(66476007)(122000001)(66446008)(478600001)(6486002)(82960400001)(8676002)(38100700002);DIR:OUT;SFP:1102;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0: =?utf-8?B?L2NuSHl3VmxsK2lESFluUEVFWjFKZEEzVHJlS1hweWh5Z3BsUTBTcFhpL1Fh?=
+ =?utf-8?B?NVNNYUt3RzZkWWx4WWRrWmpkMW9JQ29Kek5rSWs0MTU2eFV2ZWVnME1waXZ0?=
+ =?utf-8?B?cWIvREJDcDUxUExyNURoYjRHRTZNWU5CRGFET2tPdmQwTVBPd21ydWFwRDl0?=
+ =?utf-8?B?NHFZcldrMFg4eWVBQ1JhWHhjN2FUaUNXRFRERWM5NXV6YWVDUkJnNi9YRGtQ?=
+ =?utf-8?B?U0xQY0JyeGVoTzBzNXcwWkdtODEwNW40SkFPY1VCOVpBNWdNNUVrVG14alV0?=
+ =?utf-8?B?MFkyNkxDc2p2KzJzN0RVUkw4SVBSeTNFUDg3emtjRzdiZW5RL0VuVzdrRWRT?=
+ =?utf-8?B?UmdJdEJ4TVhIT2M1R2k5TWxCUXlZcGliSlc2TGlPM01Jd3RZbnI1RnFOcXJF?=
+ =?utf-8?B?VG84VFZQSWhBOGVVZ0NmVzl2dy9INHVyV3BNUE84VFI2Y3VuWFZid2tGZWs4?=
+ =?utf-8?B?RmhsdFVsZ1IwZDZNM1ZPY2JjTEkyTjdjZmNlZnBhZjY3TEs1b1Qxb0NzeFR5?=
+ =?utf-8?B?bDRJL0JYYkRUdHBpdlgvc2Z5MjJWVGRpbStzeWc3VytzMktyV3R5VE5BOHFG?=
+ =?utf-8?B?b1lzNUxxSlVSdDdJUlc5VWE3Q2tBOCtJQ1FLa29BRVVTdDAwU2xuWXlJcTM4?=
+ =?utf-8?B?WGpSTG5zSVUvNHJZVzQwU2l2QUkvbFNQSEIwWXhLSkdXVWNoaWl2T0djSzRs?=
+ =?utf-8?B?eW5ZZmlocTBRL05EVDBMNzBPdm9JVG5oRWtDNFcwY0ZmVWR5RHplakxwb1BD?=
+ =?utf-8?B?clo3UE5UNjR3citGMTJuQllxV0w5bElGZDRTRzV0ZHJpRzFFMEo5eFMxcDZ3?=
+ =?utf-8?B?UXFFMjVEUlNuL1J5M2J4cm1UUG44bVg1Zk9pMkExbjg1WGdCS0k2d3FxUUVW?=
+ =?utf-8?B?UWhSVVV5SEhua291V0dINDJUQ3p6OC93UDJsbUZVdUE0M2xyb0RPV3pzWkpI?=
+ =?utf-8?B?aFpUKzBOakwyVnNwM0xVSzdKeVo3eitmcjBEbS9GVGE5V3hZMitjNmUvYXZY?=
+ =?utf-8?B?bWhxczBKN2VxcktOM1BXQjBNTGVyYldobzRheWxVTTN0MkhmSGwvSkQwdmtq?=
+ =?utf-8?B?aUFxZTV1Uk1vb0I1Q0dIMnphakYvQmRqT093dWZJNEt0UlhWb0tCd21EOHQz?=
+ =?utf-8?B?b2ZzK3VZMUdpT1hHNnFEWFVJc0pleFVTT2lubnI0cUxVelV3blQ0YWlWL2hp?=
+ =?utf-8?B?MW5yNFlvVGxtVWF6T0c5bmduaUpJSFNrYnJ0S211NWdyOG0wZXZOaGZZOHpx?=
+ =?utf-8?B?RHE0ZW04NWx0akVUbTBTallvQzZmRVNJSTlxRVZTaXJub0Z0NytCVDdxNENF?=
+ =?utf-8?B?Zlp5WW15NFl2UUw5ZzdERTIrYzBsdWluRE03Sm9xL3Zwc0c0VEwvdlh4RDQ4?=
+ =?utf-8?B?dk1LUWhLbTRzOGJPTUtJY21vUTd6NHA1T1dGMjBqVUphSnhKZ3hRSkxJQ1Rz?=
+ =?utf-8?B?VmhkbTVzTnhXSmJRQ09MN0I1eWRUemJzRnNXWlhMQzlJQTdKQ2oydXZzN3NT?=
+ =?utf-8?B?dTFTekEzZ203aUp6QVZsdjk3VDB2UlNBYnZnVXd5QzZwVjljbVlUR1lFSkpF?=
+ =?utf-8?B?UTdTeENrM1VKZHhWUkgzNWZuNUlCTy9YUHJuN3o0WkVrMXU1ZnNtWHVUQVIy?=
+ =?utf-8?B?UnczWkpCOGxaV1ZldGJ3R1pQUDJLVTM3alU2eVBONVFaS2hsb1NXWXlVL2di?=
+ =?utf-8?B?dkdDVlBjNFQxdjFMZWxNcWI5ek8ySXpwSmdNdDZ0M0JlVXBDOVJ1SnhGQ1pt?=
+ =?utf-8?B?bEhIWjhLem5GT3VXeG8rOENvNWN4VXNrRFM2cHdtUGd1YXBnNnQrNHFUN3VX?=
+ =?utf-8?B?NlZGR1ZIdE1RM3BRMTRWeGFTOEVkVDhDSGVFSDQ3VWIrRnBHdDdZSlgrMG9N?=
+ =?utf-8?B?UGJrY2E0OERlczlsTUxLdWM5SFlGV2Y2ME90NjlYMTgxQjNsSmpkU3p5aERH?=
+ =?utf-8?B?d20wa3JiNWpjcVlmMm5SMGlCMmN3OFpnKzZhc1dER1Q2am9TVmo3MmlISTdF?=
+ =?utf-8?B?ZCtYVkphS2hPd0FFMWkxb1MvUmkzNklKR3EvaWxKbExkNHhML0RUZ1FnTUc3?=
+ =?utf-8?B?N1Z5eXRjZDdhV3k1VzVSZzJNTFM2bGljZWpMb0FVc1RES2dZeFNQeFk3WUpM?=
+ =?utf-8?B?bTFETDZ3NldlNkxudHVpeGxaQ01jR0VxeWJ6TUlWR1I2aU0vTWE5NXdia0tW?=
+ =?utf-8?B?VWc9PQ==?=
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <1EFFCF1146C7664CB1FB334F34CB3942@namprd11.prod.outlook.com>
+Content-Transfer-Encoding: base64
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: MN2PR11MB3999.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: cba5f76a-c5b5-47ac-6eb4-08dad950dd60
+X-MS-Exchange-CrossTenant-originalarrivaltime: 08 Dec 2022 19:17:36.0729
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: qxg+OJ1WAqUN/Ry4ikOK6JxUB8ycKx/611oiQlt2UHp4Wg8fuKU2xhWM2vBZoMxBnMnfwe4XQCNgvZJXBWUwVCFf0DzuT6kdk7W8Vv0C/1k=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BL3PR11MB6508
+X-OriginatorOrg: intel.com
 
-The cxl spec supports disabling of master passphrase. This is a new command
-that previously was not supported through nvdimm. Add support command to
-support "master passhprase disable".
-
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
-
-v2:
-- Add man page (Vishal)
-
- Documentation/ndctl/meson.build |    1 +
- ndctl/builtin.h                 |    1 +
- ndctl/dimm.c                    |   25 ++++++++++++++++++++++++-
- ndctl/keys.c                    |   15 +++++++++++----
- ndctl/keys.h                    |    5 +++--
- ndctl/lib/dimm.c                |    9 +++++++++
- ndctl/lib/libndctl.sym          |    4 ++++
- ndctl/libndctl.h                |    1 +
- ndctl/ndctl.c                   |    1 +
- 9 files changed, 55 insertions(+), 7 deletions(-)
-
-diff --git a/Documentation/ndctl/meson.build b/Documentation/ndctl/meson.build
-index b82635a4cc4b..a22060538632 100644
---- a/Documentation/ndctl/meson.build
-+++ b/Documentation/ndctl/meson.build
-@@ -57,6 +57,7 @@ ndctl_manpages = [
-   'ndctl-setup-passphrase.txt',
-   'ndctl-update-passphrase.txt',
-   'ndctl-remove-passphrase.txt',
-+  'ndctl-remove-master-passphrase.txt',
-   'ndctl-freeze-security.txt',
-   'ndctl-sanitize-dimm.txt',
-   'ndctl-load-keys.txt',
-diff --git a/ndctl/builtin.h b/ndctl/builtin.h
-index d3dbbb1afbdd..af759ef0cbfa 100644
---- a/ndctl/builtin.h
-+++ b/ndctl/builtin.h
-@@ -39,6 +39,7 @@ int cmd_inject_smart(int argc, const char **argv, struct ndctl_ctx *ctx);
- int cmd_setup_passphrase(int argc, const char **argv, struct ndctl_ctx *ctx);
- int cmd_update_passphrase(int argc, const char **argv, struct ndctl_ctx *ctx);
- int cmd_remove_passphrase(int argc, const char **argv, struct ndctl_ctx *ctx);
-+int cmd_remove_master_passphrase(int argc, const char **argv, struct ndctl_ctx *ctx);
- int cmd_freeze_security(int argc, const char **argv, struct ndctl_ctx *ctx);
- int cmd_sanitize_dimm(int argc, const char **argv, struct ndctl_ctx *ctx);
- int cmd_load_keys(int argc, const char **argv, struct ndctl_ctx *ctx);
-diff --git a/ndctl/dimm.c b/ndctl/dimm.c
-index ac7c5270e971..df95ac895458 100644
---- a/ndctl/dimm.c
-+++ b/ndctl/dimm.c
-@@ -1028,7 +1028,19 @@ static int action_remove_passphrase(struct ndctl_dimm *dimm,
- 		return -EOPNOTSUPP;
- 	}
- 
--	return ndctl_dimm_remove_key(dimm);
-+	return ndctl_dimm_remove_key(dimm, ND_USER_KEY);
-+}
-+
-+static int action_remove_master_passphrase(struct ndctl_dimm *dimm,
-+		struct action_context *actx)
-+{
-+	if (ndctl_dimm_get_security(dimm) < 0) {
-+		error("%s: security operation not supported\n",
-+				ndctl_dimm_get_devname(dimm));
-+		return -EOPNOTSUPP;
-+	}
-+
-+	return ndctl_dimm_remove_key(dimm, ND_MASTER_KEY);
- }
- 
- static int action_security_freeze(struct ndctl_dimm *dimm,
-@@ -1595,6 +1607,17 @@ int cmd_remove_passphrase(int argc, const char **argv, void *ctx)
- 	return count >= 0 ? 0 : EXIT_FAILURE;
- }
- 
-+int cmd_remove_master_passphrase(int argc, const char **argv, void *ctx)
-+{
-+	int count = dimm_action(argc, argv, ctx, action_remove_master_passphrase,
-+			base_options,
-+			"ndctl remove-master-passphrase <nmem0> [<nmem1>..<nmemN>] [<options>]");
-+
-+	fprintf(stderr, "master passphrase removed for %d nmem%s.\n", count >= 0 ? count : 0,
-+			count > 1 ? "s" : "");
-+	return count >= 0 ? 0 : EXIT_FAILURE;
-+}
-+
- int cmd_freeze_security(int argc, const char **argv, void *ctx)
- {
- 	int count = dimm_action(argc, argv, ctx, action_security_freeze, base_options,
-diff --git a/ndctl/keys.c b/ndctl/keys.c
-index 2f33b8fb488c..9bc558802bc4 100644
---- a/ndctl/keys.c
-+++ b/ndctl/keys.c
-@@ -602,17 +602,24 @@ static int discard_key(struct ndctl_dimm *dimm)
- 	return 0;
- }
- 
--int ndctl_dimm_remove_key(struct ndctl_dimm *dimm)
-+int ndctl_dimm_remove_key(struct ndctl_dimm *dimm, enum ndctl_key_type key_type)
- {
- 	key_serial_t key;
- 	int rc;
- 
--	key = check_dimm_key(dimm, true, ND_USER_KEY);
-+	key = check_dimm_key(dimm, true, key_type);
- 	if (key < 0)
- 		return key;
- 
--	rc = run_key_op(dimm, key, ndctl_dimm_disable_passphrase,
--			"remove passphrase");
-+	if (key_type == ND_USER_KEY)
-+		rc = run_key_op(dimm, key, ndctl_dimm_disable_passphrase,
-+				"remove passphrase");
-+	else if (key_type == ND_MASTER_KEY)
-+		rc = run_key_op(dimm, key, ndctl_dimm_disable_master_passphrase,
-+				"remove master passphrase");
-+	else
-+		return -EINVAL;
-+
- 	if (rc < 0)
- 		return rc;
- 
-diff --git a/ndctl/keys.h b/ndctl/keys.h
-index 03cb509e6404..9e77319c2ae6 100644
---- a/ndctl/keys.h
-+++ b/ndctl/keys.h
-@@ -25,7 +25,7 @@ int ndctl_dimm_setup_key(struct ndctl_dimm *dimm, const char *kek,
- 				enum ndctl_key_type key_type);
- int ndctl_dimm_update_key(struct ndctl_dimm *dimm, const char *kek,
- 				enum ndctl_key_type key_type);
--int ndctl_dimm_remove_key(struct ndctl_dimm *dimm);
-+int ndctl_dimm_remove_key(struct ndctl_dimm *dimm, enum ndctl_key_type key_type);
- int ndctl_dimm_secure_erase_key(struct ndctl_dimm *dimm,
- 		enum ndctl_key_type key_type);
- int ndctl_dimm_overwrite_key(struct ndctl_dimm *dimm);
-@@ -47,7 +47,8 @@ static inline int ndctl_dimm_update_key(struct ndctl_dimm *dimm,
- 	return -EOPNOTSUPP;
- }
- 
--static inline int ndctl_dimm_remove_key(struct ndctl_dimm *dimm)
-+static inline int ndctl_dimm_remove_key(struct ndctl_dimm *dimm,
-+		enum ndctl_key_type key_type)
- {
- 	return -EOPNOTSUPP;
- }
-diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
-index 9e36e289dcc2..9936183af292 100644
---- a/ndctl/lib/dimm.c
-+++ b/ndctl/lib/dimm.c
-@@ -757,6 +757,15 @@ NDCTL_EXPORT int ndctl_dimm_disable_passphrase(struct ndctl_dimm *dimm,
- 	return write_security(dimm, buf);
- }
- 
-+NDCTL_EXPORT int ndctl_dimm_disable_master_passphrase(struct ndctl_dimm *dimm,
-+		long key)
-+{
-+	char buf[SYSFS_ATTR_SIZE];
-+
-+	sprintf(buf, "disable_master %ld\n", key);
-+	return write_security(dimm, buf);
-+}
-+
- NDCTL_EXPORT int ndctl_dimm_freeze_security(struct ndctl_dimm *dimm)
- {
- 	return write_security(dimm, "freeze");
-diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-index f1f9edd4b6ff..c933163c0380 100644
---- a/ndctl/lib/libndctl.sym
-+++ b/ndctl/lib/libndctl.sym
-@@ -462,3 +462,7 @@ LIBNDCTL_26 {
- LIBNDCTL_27 {
- 	ndctl_dimm_refresh_flags;
- } LIBNDCTL_26;
-+
-+LIBNDCTL_28 {
-+	ndctl_dimm_disable_master_passphrase;
-+} LIBNDCTL_27;
-diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index 57cf93d8d151..c52e82a6f826 100644
---- a/ndctl/libndctl.h
-+++ b/ndctl/libndctl.h
-@@ -765,6 +765,7 @@ bool ndctl_dimm_security_is_frozen(struct ndctl_dimm *dimm);
- int ndctl_dimm_update_passphrase(struct ndctl_dimm *dimm,
- 		long ckey, long nkey);
- int ndctl_dimm_disable_passphrase(struct ndctl_dimm *dimm, long key);
-+int ndctl_dimm_disable_master_passphrase(struct ndctl_dimm *dimm, long key);
- int ndctl_dimm_freeze_security(struct ndctl_dimm *dimm);
- int ndctl_dimm_secure_erase(struct ndctl_dimm *dimm, long key);
- int ndctl_dimm_overwrite(struct ndctl_dimm *dimm, long key);
-diff --git a/ndctl/ndctl.c b/ndctl/ndctl.c
-index 31d2c5e35939..eebcaf7aa915 100644
---- a/ndctl/ndctl.c
-+++ b/ndctl/ndctl.c
-@@ -84,6 +84,7 @@ static struct cmd_struct commands[] = {
- 	{ "setup-passphrase", { cmd_setup_passphrase } },
- 	{ "update-passphrase", { cmd_update_passphrase } },
- 	{ "remove-passphrase", { cmd_remove_passphrase } },
-+	{ "remove-master-passphrase", { cmd_remove_master_passphrase } },
- 	{ "freeze-security", { cmd_freeze_security } },
- 	{ "sanitize-dimm", { cmd_sanitize_dimm } },
- #ifdef ENABLE_KEYUTILS
-
-
+T24gVGh1LCAyMDIyLTEyLTA4IGF0IDA5OjU4IC0wNzAwLCBEYXZlIEppYW5nIHdyb3RlOgo+IFRo
+ZSBjeGwgc3BlYyBzdXBwb3J0cyBkaXNhYmxpbmcgb2YgbWFzdGVyIHBhc3NwaHJhc2UuIFRoaXMg
+aXMgYSBuZXcgY29tbWFuZAo+IHRoYXQgcHJldmlvdXNseSB3YXMgbm90IHN1cHBvcnRlZCB0aHJv
+dWdoIG52ZGltbS4gQWRkIHN1cHBvcnQgY29tbWFuZCB0bwo+IHN1cHBvcnQgIm1hc3RlciBwYXNz
+aHByYXNlIGRpc2FibGUiLgoKRXh0cmEgJ3N1cHBvcnQnIGluIHRoaXMgc2VudGVuY2U/Cgo+IAo+
+IFNpZ25lZC1vZmYtYnk6IERhdmUgSmlhbmcgPGRhdmUuamlhbmdAaW50ZWwuY29tPgo+IC0tLQo+
+IAo+IHYyOgo+IC0gQWRkIG1hbiBwYWdlIChWaXNoYWwpCj4gCj4gwqBEb2N1bWVudGF0aW9uL25k
+Y3RsL21lc29uLmJ1aWxkIHzCoMKgwqAgMSArCj4gwqBuZGN0bC9idWlsdGluLmjCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoCB8wqDCoMKgIDEgKwo+IMKgbmRjdGwvZGltbS5jwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgfMKgwqAgMjUgKysrKysrKysrKysrKysr
+KysrKysrKysrLQo+IMKgbmRjdGwva2V5cy5jwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqAgfMKgwqAgMTUgKysrKysrKysrKystLS0tCj4gwqBuZGN0bC9rZXlzLmjCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCB8wqDCoMKgIDUgKysrLS0KPiDCoG5kY3Rs
+L2xpYi9kaW1tLmPCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgfMKgwqDCoCA5ICsrKysr
+KysrKwo+IMKgbmRjdGwvbGliL2xpYm5kY3RsLnN5bcKgwqDCoMKgwqDCoMKgwqDCoCB8wqDCoMKg
+IDQgKysrKwo+IMKgbmRjdGwvbGlibmRjdGwuaMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oCB8wqDCoMKgIDEgKwo+IMKgbmRjdGwvbmRjdGwuY8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoCB8wqDCoMKgIDEgKwoKRGlkIHlvdSBmb3JnZXQgdG8gZ2l0LWFkZCBuZGN0bC1y
+ZW1vdmUtbWFzdGVyLXBhc3NwaHJhc2UudHh0PwoKPiDCoDkgZmlsZXMgY2hhbmdlZCwgNTUgaW5z
+ZXJ0aW9ucygrKSwgNyBkZWxldGlvbnMoLSkKPiAKPiBkaWZmIC0tZ2l0IGEvRG9jdW1lbnRhdGlv
+bi9uZGN0bC9tZXNvbi5idWlsZCBiL0RvY3VtZW50YXRpb24vbmRjdGwvbWVzb24uYnVpbGQKPiBp
+bmRleCBiODI2MzVhNGNjNGIuLmEyMjA2MDUzODYzMiAxMDA2NDQKPiAtLS0gYS9Eb2N1bWVudGF0
+aW9uL25kY3RsL21lc29uLmJ1aWxkCj4gKysrIGIvRG9jdW1lbnRhdGlvbi9uZGN0bC9tZXNvbi5i
+dWlsZAo+IEBAIC01Nyw2ICs1Nyw3IEBAIG5kY3RsX21hbnBhZ2VzID0gWwo+IMKgwqAgJ25kY3Rs
+LXNldHVwLXBhc3NwaHJhc2UudHh0JywKPiDCoMKgICduZGN0bC11cGRhdGUtcGFzc3BocmFzZS50
+eHQnLAo+IMKgwqAgJ25kY3RsLXJlbW92ZS1wYXNzcGhyYXNlLnR4dCcsCj4gK8KgICduZGN0bC1y
+ZW1vdmUtbWFzdGVyLXBhc3NwaHJhc2UudHh0JywKPiDCoMKgICduZGN0bC1mcmVlemUtc2VjdXJp
+dHkudHh0JywKPiDCoMKgICduZGN0bC1zYW5pdGl6ZS1kaW1tLnR4dCcsCj4gwqDCoCAnbmRjdGwt
+bG9hZC1rZXlzLnR4dCcsCj4gZGlmZiAtLWdpdCBhL25kY3RsL2J1aWx0aW4uaCBiL25kY3RsL2J1
+aWx0aW4uaAo+IGluZGV4IGQzZGJiYjFhZmJkZC4uYWY3NTllZjBjYmZhIDEwMDY0NAo+IC0tLSBh
+L25kY3RsL2J1aWx0aW4uaAo+ICsrKyBiL25kY3RsL2J1aWx0aW4uaAo+IEBAIC0zOSw2ICszOSw3
+IEBAIGludCBjbWRfaW5qZWN0X3NtYXJ0KGludCBhcmdjLCBjb25zdCBjaGFyICoqYXJndiwgc3Ry
+dWN0IG5kY3RsX2N0eCAqY3R4KTsKPiDCoGludCBjbWRfc2V0dXBfcGFzc3BocmFzZShpbnQgYXJn
+YywgY29uc3QgY2hhciAqKmFyZ3YsIHN0cnVjdCBuZGN0bF9jdHggKmN0eCk7Cj4gwqBpbnQgY21k
+X3VwZGF0ZV9wYXNzcGhyYXNlKGludCBhcmdjLCBjb25zdCBjaGFyICoqYXJndiwgc3RydWN0IG5k
+Y3RsX2N0eCAqY3R4KTsKPiDCoGludCBjbWRfcmVtb3ZlX3Bhc3NwaHJhc2UoaW50IGFyZ2MsIGNv
+bnN0IGNoYXIgKiphcmd2LCBzdHJ1Y3QgbmRjdGxfY3R4ICpjdHgpOwo+ICtpbnQgY21kX3JlbW92
+ZV9tYXN0ZXJfcGFzc3BocmFzZShpbnQgYXJnYywgY29uc3QgY2hhciAqKmFyZ3YsIHN0cnVjdCBu
+ZGN0bF9jdHggKmN0eCk7Cj4gwqBpbnQgY21kX2ZyZWV6ZV9zZWN1cml0eShpbnQgYXJnYywgY29u
+c3QgY2hhciAqKmFyZ3YsIHN0cnVjdCBuZGN0bF9jdHggKmN0eCk7Cj4gwqBpbnQgY21kX3Nhbml0
+aXplX2RpbW0oaW50IGFyZ2MsIGNvbnN0IGNoYXIgKiphcmd2LCBzdHJ1Y3QgbmRjdGxfY3R4ICpj
+dHgpOwo+IMKgaW50IGNtZF9sb2FkX2tleXMoaW50IGFyZ2MsIGNvbnN0IGNoYXIgKiphcmd2LCBz
+dHJ1Y3QgbmRjdGxfY3R4ICpjdHgpOwo+IGRpZmYgLS1naXQgYS9uZGN0bC9kaW1tLmMgYi9uZGN0
+bC9kaW1tLmMKPiBpbmRleCBhYzdjNTI3MGU5NzEuLmRmOTVhYzg5NTQ1OCAxMDA2NDQKPiAtLS0g
+YS9uZGN0bC9kaW1tLmMKPiArKysgYi9uZGN0bC9kaW1tLmMKPiBAQCAtMTAyOCw3ICsxMDI4LDE5
+IEBAIHN0YXRpYyBpbnQgYWN0aW9uX3JlbW92ZV9wYXNzcGhyYXNlKHN0cnVjdCBuZGN0bF9kaW1t
+ICpkaW1tLAo+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgcmV0dXJuIC1FT1BOT1RT
+VVBQOwo+IMKgwqDCoMKgwqDCoMKgwqB9Cj4gwqAKPiAtwqDCoMKgwqDCoMKgwqByZXR1cm4gbmRj
+dGxfZGltbV9yZW1vdmVfa2V5KGRpbW0pOwo+ICvCoMKgwqDCoMKgwqDCoHJldHVybiBuZGN0bF9k
+aW1tX3JlbW92ZV9rZXkoZGltbSwgTkRfVVNFUl9LRVkpOwo+ICt9Cj4gKwo+ICtzdGF0aWMgaW50
+IGFjdGlvbl9yZW1vdmVfbWFzdGVyX3Bhc3NwaHJhc2Uoc3RydWN0IG5kY3RsX2RpbW0gKmRpbW0s
+Cj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHN0cnVjdCBhY3Rpb25fY29udGV4dCAq
+YWN0eCkKPiArewo+ICvCoMKgwqDCoMKgwqDCoGlmIChuZGN0bF9kaW1tX2dldF9zZWN1cml0eShk
+aW1tKSA8IDApIHsKPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgZXJyb3IoIiVzOiBz
+ZWN1cml0eSBvcGVyYXRpb24gbm90IHN1cHBvcnRlZFxuIiwKPiArwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBuZGN0bF9kaW1tX2dl
+dF9kZXZuYW1lKGRpbW0pKTsKPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgcmV0dXJu
+IC1FT1BOT1RTVVBQOwo+ICvCoMKgwqDCoMKgwqDCoH0KPiArCj4gK8KgwqDCoMKgwqDCoMKgcmV0
+dXJuIG5kY3RsX2RpbW1fcmVtb3ZlX2tleShkaW1tLCBORF9NQVNURVJfS0VZKTsKPiDCoH0KPiDC
+oAo+IMKgc3RhdGljIGludCBhY3Rpb25fc2VjdXJpdHlfZnJlZXplKHN0cnVjdCBuZGN0bF9kaW1t
+ICpkaW1tLAo+IEBAIC0xNTk1LDYgKzE2MDcsMTcgQEAgaW50IGNtZF9yZW1vdmVfcGFzc3BocmFz
+ZShpbnQgYXJnYywgY29uc3QgY2hhciAqKmFyZ3YsIHZvaWQgKmN0eCkKPiDCoMKgwqDCoMKgwqDC
+oMKgcmV0dXJuIGNvdW50ID49IDAgPyAwIDogRVhJVF9GQUlMVVJFOwo+IMKgfQo+IMKgCj4gK2lu
+dCBjbWRfcmVtb3ZlX21hc3Rlcl9wYXNzcGhyYXNlKGludCBhcmdjLCBjb25zdCBjaGFyICoqYXJn
+diwgdm9pZCAqY3R4KQo+ICt7Cj4gK8KgwqDCoMKgwqDCoMKgaW50IGNvdW50ID0gZGltbV9hY3Rp
+b24oYXJnYywgYXJndiwgY3R4LCBhY3Rpb25fcmVtb3ZlX21hc3Rlcl9wYXNzcGhyYXNlLAo+ICvC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgYmFzZV9vcHRpb25z
+LAo+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIm5kY3Rs
+IHJlbW92ZS1tYXN0ZXItcGFzc3BocmFzZSA8bm1lbTA+IFs8bm1lbTE+Li48bm1lbU4+XSBbPG9w
+dGlvbnM+XSIpOwo+ICsKPiArwqDCoMKgwqDCoMKgwqBmcHJpbnRmKHN0ZGVyciwgIm1hc3RlciBw
+YXNzcGhyYXNlIHJlbW92ZWQgZm9yICVkIG5tZW0lcy5cbiIsIGNvdW50ID49IDAgPyBjb3VudCA6
+IDAsCj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBjb3Vu
+dCA+IDEgPyAicyIgOiAiIik7Cj4gK8KgwqDCoMKgwqDCoMKgcmV0dXJuIGNvdW50ID49IDAgPyAw
+IDogRVhJVF9GQUlMVVJFOwo+ICt9Cj4gKwo+IMKgaW50IGNtZF9mcmVlemVfc2VjdXJpdHkoaW50
+IGFyZ2MsIGNvbnN0IGNoYXIgKiphcmd2LCB2b2lkICpjdHgpCj4gwqB7Cj4gwqDCoMKgwqDCoMKg
+wqDCoGludCBjb3VudCA9IGRpbW1fYWN0aW9uKGFyZ2MsIGFyZ3YsIGN0eCwgYWN0aW9uX3NlY3Vy
+aXR5X2ZyZWV6ZSwgYmFzZV9vcHRpb25zLAo+IGRpZmYgLS1naXQgYS9uZGN0bC9rZXlzLmMgYi9u
+ZGN0bC9rZXlzLmMKPiBpbmRleCAyZjMzYjhmYjQ4OGMuLjliYzU1ODgwMmJjNCAxMDA2NDQKPiAt
+LS0gYS9uZGN0bC9rZXlzLmMKPiArKysgYi9uZGN0bC9rZXlzLmMKPiBAQCAtNjAyLDE3ICs2MDIs
+MjQgQEAgc3RhdGljIGludCBkaXNjYXJkX2tleShzdHJ1Y3QgbmRjdGxfZGltbSAqZGltbSkKPiDC
+oMKgwqDCoMKgwqDCoMKgcmV0dXJuIDA7Cj4gwqB9Cj4gwqAKPiAtaW50IG5kY3RsX2RpbW1fcmVt
+b3ZlX2tleShzdHJ1Y3QgbmRjdGxfZGltbSAqZGltbSkKPiAraW50IG5kY3RsX2RpbW1fcmVtb3Zl
+X2tleShzdHJ1Y3QgbmRjdGxfZGltbSAqZGltbSwgZW51bSBuZGN0bF9rZXlfdHlwZSBrZXlfdHlw
+ZSkKPiDCoHsKPiDCoMKgwqDCoMKgwqDCoMKga2V5X3NlcmlhbF90IGtleTsKPiDCoMKgwqDCoMKg
+wqDCoMKgaW50IHJjOwo+IMKgCj4gLcKgwqDCoMKgwqDCoMKga2V5ID0gY2hlY2tfZGltbV9rZXko
+ZGltbSwgdHJ1ZSwgTkRfVVNFUl9LRVkpOwo+ICvCoMKgwqDCoMKgwqDCoGtleSA9IGNoZWNrX2Rp
+bW1fa2V5KGRpbW0sIHRydWUsIGtleV90eXBlKTsKPiDCoMKgwqDCoMKgwqDCoMKgaWYgKGtleSA8
+IDApCj4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqByZXR1cm4ga2V5Owo+IMKgCj4g
+LcKgwqDCoMKgwqDCoMKgcmMgPSBydW5fa2V5X29wKGRpbW0sIGtleSwgbmRjdGxfZGltbV9kaXNh
+YmxlX3Bhc3NwaHJhc2UsCj4gLcKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqAicmVtb3ZlIHBhc3NwaHJhc2UiKTsKPiArwqDCoMKgwqDCoMKgwqBpZiAoa2V5X3R5
+cGUgPT0gTkRfVVNFUl9LRVkpCj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHJjID0g
+cnVuX2tleV9vcChkaW1tLCBrZXksIG5kY3RsX2RpbW1fZGlzYWJsZV9wYXNzcGhyYXNlLAo+ICvC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoCJyZW1vdmUgcGFzc3BocmFzZSIpOwo+ICvCoMKgwqDCoMKgwqDCoGVsc2UgaWYgKGtleV90
+eXBlID09IE5EX01BU1RFUl9LRVkpCj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHJj
+ID0gcnVuX2tleV9vcChkaW1tLCBrZXksIG5kY3RsX2RpbW1fZGlzYWJsZV9tYXN0ZXJfcGFzc3Bo
+cmFzZSwKPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqAicmVtb3ZlIG1hc3RlciBwYXNzcGhyYXNlIik7Cj4gK8KgwqDCoMKgwqDC
+oMKgZWxzZQo+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqByZXR1cm4gLUVJTlZBTDsK
+PiArCj4gwqDCoMKgwqDCoMKgwqDCoGlmIChyYyA8IDApCj4gwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqByZXR1cm4gcmM7Cj4gwqAKPiBkaWZmIC0tZ2l0IGEvbmRjdGwva2V5cy5oIGIv
+bmRjdGwva2V5cy5oCj4gaW5kZXggMDNjYjUwOWU2NDA0Li45ZTc3MzE5YzJhZTYgMTAwNjQ0Cj4g
+LS0tIGEvbmRjdGwva2V5cy5oCj4gKysrIGIvbmRjdGwva2V5cy5oCj4gQEAgLTI1LDcgKzI1LDcg
+QEAgaW50IG5kY3RsX2RpbW1fc2V0dXBfa2V5KHN0cnVjdCBuZGN0bF9kaW1tICpkaW1tLCBjb25z
+dCBjaGFyICprZWssCj4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoGVudW0gbmRjdGxfa2V5X3R5cGUga2V5X3R5cGUpOwo+IMKg
+aW50IG5kY3RsX2RpbW1fdXBkYXRlX2tleShzdHJ1Y3QgbmRjdGxfZGltbSAqZGltbSwgY29uc3Qg
+Y2hhciAqa2VrLAo+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqBlbnVtIG5kY3RsX2tleV90eXBlIGtleV90eXBlKTsKPiAtaW50
+IG5kY3RsX2RpbW1fcmVtb3ZlX2tleShzdHJ1Y3QgbmRjdGxfZGltbSAqZGltbSk7Cj4gK2ludCBu
+ZGN0bF9kaW1tX3JlbW92ZV9rZXkoc3RydWN0IG5kY3RsX2RpbW0gKmRpbW0sIGVudW0gbmRjdGxf
+a2V5X3R5cGUga2V5X3R5cGUpOwo+IMKgaW50IG5kY3RsX2RpbW1fc2VjdXJlX2VyYXNlX2tleShz
+dHJ1Y3QgbmRjdGxfZGltbSAqZGltbSwKPiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oGVudW0gbmRjdGxfa2V5X3R5cGUga2V5X3R5cGUpOwo+IMKgaW50IG5kY3RsX2RpbW1fb3Zlcndy
+aXRlX2tleShzdHJ1Y3QgbmRjdGxfZGltbSAqZGltbSk7Cj4gQEAgLTQ3LDcgKzQ3LDggQEAgc3Rh
+dGljIGlubGluZSBpbnQgbmRjdGxfZGltbV91cGRhdGVfa2V5KHN0cnVjdCBuZGN0bF9kaW1tICpk
+aW1tLAo+IMKgwqDCoMKgwqDCoMKgwqByZXR1cm4gLUVPUE5PVFNVUFA7Cj4gwqB9Cj4gwqAKPiAt
+c3RhdGljIGlubGluZSBpbnQgbmRjdGxfZGltbV9yZW1vdmVfa2V5KHN0cnVjdCBuZGN0bF9kaW1t
+ICpkaW1tKQo+ICtzdGF0aWMgaW5saW5lIGludCBuZGN0bF9kaW1tX3JlbW92ZV9rZXkoc3RydWN0
+IG5kY3RsX2RpbW0gKmRpbW0sCj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGVudW0g
+bmRjdGxfa2V5X3R5cGUga2V5X3R5cGUpCj4gwqB7Cj4gwqDCoMKgwqDCoMKgwqDCoHJldHVybiAt
+RU9QTk9UU1VQUDsKPiDCoH0KPiBkaWZmIC0tZ2l0IGEvbmRjdGwvbGliL2RpbW0uYyBiL25kY3Rs
+L2xpYi9kaW1tLmMKPiBpbmRleCA5ZTM2ZTI4OWRjYzIuLjk5MzYxODNhZjI5MiAxMDA2NDQKPiAt
+LS0gYS9uZGN0bC9saWIvZGltbS5jCj4gKysrIGIvbmRjdGwvbGliL2RpbW0uYwo+IEBAIC03NTcs
+NiArNzU3LDE1IEBAIE5EQ1RMX0VYUE9SVCBpbnQgbmRjdGxfZGltbV9kaXNhYmxlX3Bhc3NwaHJh
+c2Uoc3RydWN0IG5kY3RsX2RpbW0gKmRpbW0sCj4gwqDCoMKgwqDCoMKgwqDCoHJldHVybiB3cml0
+ZV9zZWN1cml0eShkaW1tLCBidWYpOwo+IMKgfQo+IMKgCj4gK05EQ1RMX0VYUE9SVCBpbnQgbmRj
+dGxfZGltbV9kaXNhYmxlX21hc3Rlcl9wYXNzcGhyYXNlKHN0cnVjdCBuZGN0bF9kaW1tICpkaW1t
+LAo+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBsb25nIGtleSkKPiArewo+ICvCoMKg
+wqDCoMKgwqDCoGNoYXIgYnVmW1NZU0ZTX0FUVFJfU0laRV07Cj4gKwo+ICvCoMKgwqDCoMKgwqDC
+oHNwcmludGYoYnVmLCAiZGlzYWJsZV9tYXN0ZXIgJWxkXG4iLCBrZXkpOwo+ICvCoMKgwqDCoMKg
+wqDCoHJldHVybiB3cml0ZV9zZWN1cml0eShkaW1tLCBidWYpOwo+ICt9Cj4gKwo+IMKgTkRDVExf
+RVhQT1JUIGludCBuZGN0bF9kaW1tX2ZyZWV6ZV9zZWN1cml0eShzdHJ1Y3QgbmRjdGxfZGltbSAq
+ZGltbSkKPiDCoHsKPiDCoMKgwqDCoMKgwqDCoMKgcmV0dXJuIHdyaXRlX3NlY3VyaXR5KGRpbW0s
+ICJmcmVlemUiKTsKPiBkaWZmIC0tZ2l0IGEvbmRjdGwvbGliL2xpYm5kY3RsLnN5bSBiL25kY3Rs
+L2xpYi9saWJuZGN0bC5zeW0KPiBpbmRleCBmMWY5ZWRkNGI2ZmYuLmM5MzMxNjNjMDM4MCAxMDA2
+NDQKPiAtLS0gYS9uZGN0bC9saWIvbGlibmRjdGwuc3ltCj4gKysrIGIvbmRjdGwvbGliL2xpYm5k
+Y3RsLnN5bQo+IEBAIC00NjIsMyArNDYyLDcgQEAgTElCTkRDVExfMjYgewo+IMKgTElCTkRDVExf
+Mjcgewo+IMKgwqDCoMKgwqDCoMKgwqBuZGN0bF9kaW1tX3JlZnJlc2hfZmxhZ3M7Cj4gwqB9IExJ
+Qk5EQ1RMXzI2Owo+ICsKPiArTElCTkRDVExfMjggewo+ICvCoMKgwqDCoMKgwqDCoG5kY3RsX2Rp
+bW1fZGlzYWJsZV9tYXN0ZXJfcGFzc3BocmFzZTsKPiArfSBMSUJORENUTF8yNzsKPiBkaWZmIC0t
+Z2l0IGEvbmRjdGwvbGlibmRjdGwuaCBiL25kY3RsL2xpYm5kY3RsLmgKPiBpbmRleCA1N2NmOTNk
+OGQxNTEuLmM1MmU4MmE2ZjgyNiAxMDA2NDQKPiAtLS0gYS9uZGN0bC9saWJuZGN0bC5oCj4gKysr
+IGIvbmRjdGwvbGlibmRjdGwuaAo+IEBAIC03NjUsNiArNzY1LDcgQEAgYm9vbCBuZGN0bF9kaW1t
+X3NlY3VyaXR5X2lzX2Zyb3plbihzdHJ1Y3QgbmRjdGxfZGltbSAqZGltbSk7Cj4gwqBpbnQgbmRj
+dGxfZGltbV91cGRhdGVfcGFzc3BocmFzZShzdHJ1Y3QgbmRjdGxfZGltbSAqZGltbSwKPiDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGxvbmcgY2tleSwgbG9uZyBua2V5KTsKPiDCoGlu
+dCBuZGN0bF9kaW1tX2Rpc2FibGVfcGFzc3BocmFzZShzdHJ1Y3QgbmRjdGxfZGltbSAqZGltbSwg
+bG9uZyBrZXkpOwo+ICtpbnQgbmRjdGxfZGltbV9kaXNhYmxlX21hc3Rlcl9wYXNzcGhyYXNlKHN0
+cnVjdCBuZGN0bF9kaW1tICpkaW1tLCBsb25nIGtleSk7Cj4gwqBpbnQgbmRjdGxfZGltbV9mcmVl
+emVfc2VjdXJpdHkoc3RydWN0IG5kY3RsX2RpbW0gKmRpbW0pOwo+IMKgaW50IG5kY3RsX2RpbW1f
+c2VjdXJlX2VyYXNlKHN0cnVjdCBuZGN0bF9kaW1tICpkaW1tLCBsb25nIGtleSk7Cj4gwqBpbnQg
+bmRjdGxfZGltbV9vdmVyd3JpdGUoc3RydWN0IG5kY3RsX2RpbW0gKmRpbW0sIGxvbmcga2V5KTsK
+PiBkaWZmIC0tZ2l0IGEvbmRjdGwvbmRjdGwuYyBiL25kY3RsL25kY3RsLmMKPiBpbmRleCAzMWQy
+YzVlMzU5MzkuLmVlYmNhZjdhYTkxNSAxMDA2NDQKPiAtLS0gYS9uZGN0bC9uZGN0bC5jCj4gKysr
+IGIvbmRjdGwvbmRjdGwuYwo+IEBAIC04NCw2ICs4NCw3IEBAIHN0YXRpYyBzdHJ1Y3QgY21kX3N0
+cnVjdCBjb21tYW5kc1tdID0gewo+IMKgwqDCoMKgwqDCoMKgwqB7ICJzZXR1cC1wYXNzcGhyYXNl
+IiwgeyBjbWRfc2V0dXBfcGFzc3BocmFzZSB9IH0sCj4gwqDCoMKgwqDCoMKgwqDCoHsgInVwZGF0
+ZS1wYXNzcGhyYXNlIiwgeyBjbWRfdXBkYXRlX3Bhc3NwaHJhc2UgfSB9LAo+IMKgwqDCoMKgwqDC
+oMKgwqB7ICJyZW1vdmUtcGFzc3BocmFzZSIsIHsgY21kX3JlbW92ZV9wYXNzcGhyYXNlIH0gfSwK
+PiArwqDCoMKgwqDCoMKgwqB7ICJyZW1vdmUtbWFzdGVyLXBhc3NwaHJhc2UiLCB7IGNtZF9yZW1v
+dmVfbWFzdGVyX3Bhc3NwaHJhc2UgfSB9LAo+IMKgwqDCoMKgwqDCoMKgwqB7ICJmcmVlemUtc2Vj
+dXJpdHkiLCB7IGNtZF9mcmVlemVfc2VjdXJpdHkgfSB9LAo+IMKgwqDCoMKgwqDCoMKgwqB7ICJz
+YW5pdGl6ZS1kaW1tIiwgeyBjbWRfc2FuaXRpemVfZGltbSB9IH0sCj4gwqAjaWZkZWYgRU5BQkxF
+X0tFWVVUSUxTCj4gCj4gCgo=
