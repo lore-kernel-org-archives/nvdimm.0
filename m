@@ -1,135 +1,174 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DDA2372
-	for <nvdimm@lists.linux.dev>; Thu,  8 Dec 2022 00:37:17 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1670459836;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=Na/DatNEjlEBtkHIEc2JrPJeXMI6lGrn4tJNlRzZp9M=;
-	b=DVlN9pioplIMljEPyvkESlQxss4No4N9Pl5F0+eq5wcmQf9dyl/kFVCX/+41vIcVsfHxmZ
-	HWkONxPbyNZeE/OI1jHWdGMQl5Zxev0l6rVf/twGdEBB8AxSLH2dSgbQTa0V/Kmn3nExGv
-	lzxgW0d68RGSpmQdaOe8DNi+MCEjO+4=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-650-qCYLgktkODafZ8b_0srOJg-1; Wed, 07 Dec 2022 19:37:11 -0500
-X-MC-Unique: qCYLgktkODafZ8b_0srOJg-1
-Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.rdu2.redhat.com [10.11.54.3])
-	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 572CA185A79C;
-	Thu,  8 Dec 2022 00:37:10 +0000 (UTC)
-Received: from T590 (ovpn-8-18.pek2.redhat.com [10.72.8.18])
-	by smtp.corp.redhat.com (Postfix) with ESMTPS id 247241121314;
-	Thu,  8 Dec 2022 00:36:54 +0000 (UTC)
-Date: Thu, 8 Dec 2022 08:36:49 +0800
-From: Ming Lei <ming.lei@redhat.com>
-To: Gulam Mohamed <gulam.mohamed@oracle.com>
-Cc: linux-block@vger.kernel.org, axboe@kernel.dk,
-	philipp.reisner@linbit.com, lars.ellenberg@linbit.com,
-	christoph.boehmwalder@linbit.com, minchan@kernel.org,
-	ngupta@vflare.org, senozhatsky@chromium.org, colyli@suse.de,
-	kent.overstreet@gmail.com, agk@redhat.com, snitzer@kernel.org,
-	dm-devel@redhat.com, song@kernel.org, dan.j.williams@intel.com,
-	vishal.l.verma@intel.com, dave.jiang@intel.com, ira.weiny@intel.com,
-	junxiao.bi@oracle.com, martin.petersen@oracle.com, kch@nvidia.com,
-	drbd-dev@lists.linbit.com, linux-kernel@vger.kernel.org,
-	linux-bcache@vger.kernel.org, linux-raid@vger.kernel.org,
-	nvdimm@lists.linux.dev, konrad.wilk@oracle.com, joe.jin@oracle.com,
-	ming.lei@redhat.com
-Subject: Re: [RFC for-6.2/block V2] block: Change the granularity of io ticks
- from ms to ns
-Message-ID: <Y5ExoZ+7Am6Nm8+h@T590>
-References: <20221207223204.22459-1-gulam.mohamed@oracle.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB5D9621
+	for <nvdimm@lists.linux.dev>; Thu,  8 Dec 2022 01:26:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 692E2C433C1;
+	Thu,  8 Dec 2022 01:26:43 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1670462803;
+	bh=w4h8E1rUddz+mzBNAte5bv9cCRd0SRyTRAA9Do+iWsk=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=n/ohPV9MwZHrqQxBjPgAylUX9/OWK8wUbAmjSnllSWuL9w/F268nHhTJPdqm+UXnK
+	 xVQjr4FOPp6VuPT7WuWgpKihnO7ecRzKodBcEU5uQ3qBcNoHK/1PTIdU35ID7Pfz8/
+	 k1wJtkUDXn4MZQIV8mfPxXCg8qlaPyoCs6KU0jb+euz/XKnEq9boQDckirgwuaI/BJ
+	 L/1kmvzTJKPR5Y7gsHwXoZ/9ii8Rh8MZvjGL+dl6lKpgFfcesJWEDlEVo0OEQs6oUZ
+	 bEgdDCt2logJCy+AO7HUSAn6rl19IsGNqDrUzna79Y/QlZ2FujKA1dUtqNM6j1Edtq
+	 tgp0nj466NesA==
+Date: Wed, 7 Dec 2022 17:26:42 -0800
+From: "Darrick J. Wong" <djwong@kernel.org>
+To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Cc: linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org,
+	nvdimm@lists.linux.dev, linux-mm@kvack.org,
+	linux-fsdevel@vger.kernel.org, dan.j.williams@intel.com,
+	david@fromorbit.com, akpm@linux-foundation.org,
+	allison.henderson@oracle.com
+Subject: Re: [PATCH v2.2 1/8] fsdax: introduce page->share for fsdax in
+ reflink mode
+Message-ID: <Y5E9UgUyidulL2yp@magnolia>
+References: <1669908538-55-2-git-send-email-ruansy.fnst@fujitsu.com>
+ <1670381359-53-1-git-send-email-ruansy.fnst@fujitsu.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20221207223204.22459-1-gulam.mohamed@oracle.com>
-X-Scanned-By: MIMEDefang 3.1 on 10.11.54.3
+In-Reply-To: <1670381359-53-1-git-send-email-ruansy.fnst@fujitsu.com>
 
-On Wed, Dec 07, 2022 at 10:32:04PM +0000, Gulam Mohamed wrote:
-> As per the review comment from Jens Axboe, I am re-sending this patch
-> against "for-6.2/block".
+On Wed, Dec 07, 2022 at 02:49:19AM +0000, Shiyang Ruan wrote:
+> fsdax page is used not only when CoW, but also mapread. To make the it
+> easily understood, use 'share' to indicate that the dax page is shared
+> by more than one extent.  And add helper functions to use it.
 > 
+> Also, the flag needs to be renamed to PAGE_MAPPING_DAX_SHARED.
 > 
-> Use ktime to change the granularity of IO accounting in block layer from
-> milli-seconds to nano-seconds to get the proper latency values for the
-> devices whose latency is in micro-seconds. After changing the granularity
-> to nano-seconds the iostat command, which was showing incorrect values for
-> %util, is now showing correct values.
+> Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+> Reviewed-by: Allison Henderson <allison.henderson@oracle.com>
 
-Please add the theory behind why using nano-seconds can get correct accounting.
+Looks fine to me,
+Reviewed-by: Darrick J. Wong <djwong@kernel.org>
 
-> 
-> We did not work on the patch to drop the logic for
-> STAT_PRECISE_TIMESTAMPS yet. Will do it if this patch is ok.
-> 
-> The iostat command was run after starting the fio with following command
-> on an NVME disk. For the same fio command, the iostat %util was showing
-> ~100% for the disks whose latencies are in the range of microseconds.
-> With the kernel changes (granularity to nano-seconds), the %util was
-> showing correct values. Following are the details of the test and their
-> output:
-> 
-> fio command
-> -----------
-> [global]
-> bs=128K
-> iodepth=1
-> direct=1
-> ioengine=libaio
-> group_reporting
-> time_based
-> runtime=90
-> thinktime=1ms
-> numjobs=1
-> name=raw-write
-> rw=randrw
-> ignore_error=EIO:EIO
-> [job1]
-> filename=/dev/nvme0n1
-> 
-> Correct values after kernel changes:
-> ====================================
-> iostat output
-> -------------
-> iostat -d /dev/nvme0n1 -x 1
-> 
-> Device            r_await w_await aqu-sz rareq-sz wareq-sz  svctm  %util
-> nvme0n1              0.08    0.05   0.06   128.00   128.00   0.07   6.50
-> 
-> Device            r_await w_await aqu-sz rareq-sz wareq-sz  svctm  %util
-> nvme0n1              0.08    0.06   0.06   128.00   128.00   0.07   6.30
-> 
-> Device            r_await w_await aqu-sz rareq-sz wareq-sz  svctm  %util
-> nvme0n1              0.06    0.05   0.06   128.00   128.00   0.06   5.70
-> 
-> From fio
-> --------
-> Read Latency: clat (usec): min=32, max=2335, avg=79.54, stdev=29.95
-> Write Latency: clat (usec): min=38, max=130, avg=57.76, stdev= 3.25
+--D
 
-Can you explain a bit why the above %util is correct?
-
-BTW, %util is usually not important for SSDs, please see 'man iostat':
-
-     %util
-            Percentage of elapsed time during which I/O requests were issued to the device (bandwidth  uti‐
-            lization for the device). Device saturation occurs when this value is close to 100% for devices
-            serving requests serially.  But for devices serving requests in parallel, such as  RAID  arrays
-            and modern SSDs, this number does not reflect their performance limits.
-
-
-Thanks, 
-Ming
-
+> ---
+>  fs/dax.c                   | 38 ++++++++++++++++++++++----------------
+>  include/linux/mm_types.h   |  5 ++++-
+>  include/linux/page-flags.h |  2 +-
+>  3 files changed, 27 insertions(+), 18 deletions(-)
+> 
+> diff --git a/fs/dax.c b/fs/dax.c
+> index 1c6867810cbd..84fadea08705 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -334,35 +334,41 @@ static unsigned long dax_end_pfn(void *entry)
+>  	for (pfn = dax_to_pfn(entry); \
+>  			pfn < dax_end_pfn(entry); pfn++)
+>  
+> -static inline bool dax_mapping_is_cow(struct address_space *mapping)
+> +static inline bool dax_page_is_shared(struct page *page)
+>  {
+> -	return (unsigned long)mapping == PAGE_MAPPING_DAX_COW;
+> +	return page->mapping == PAGE_MAPPING_DAX_SHARED;
+>  }
+>  
+>  /*
+> - * Set the page->mapping with FS_DAX_MAPPING_COW flag, increase the refcount.
+> + * Set the page->mapping with PAGE_MAPPING_DAX_SHARED flag, increase the
+> + * refcount.
+>   */
+> -static inline void dax_mapping_set_cow(struct page *page)
+> +static inline void dax_page_share_get(struct page *page)
+>  {
+> -	if ((uintptr_t)page->mapping != PAGE_MAPPING_DAX_COW) {
+> +	if (page->mapping != PAGE_MAPPING_DAX_SHARED) {
+>  		/*
+>  		 * Reset the index if the page was already mapped
+>  		 * regularly before.
+>  		 */
+>  		if (page->mapping)
+> -			page->index = 1;
+> -		page->mapping = (void *)PAGE_MAPPING_DAX_COW;
+> +			page->share = 1;
+> +		page->mapping = PAGE_MAPPING_DAX_SHARED;
+>  	}
+> -	page->index++;
+> +	page->share++;
+> +}
+> +
+> +static inline unsigned long dax_page_share_put(struct page *page)
+> +{
+> +	return --page->share;
+>  }
+>  
+>  /*
+> - * When it is called in dax_insert_entry(), the cow flag will indicate that
+> + * When it is called in dax_insert_entry(), the shared flag will indicate that
+>   * whether this entry is shared by multiple files.  If so, set the page->mapping
+> - * FS_DAX_MAPPING_COW, and use page->index as refcount.
+> + * PAGE_MAPPING_DAX_SHARED, and use page->share as refcount.
+>   */
+>  static void dax_associate_entry(void *entry, struct address_space *mapping,
+> -		struct vm_area_struct *vma, unsigned long address, bool cow)
+> +		struct vm_area_struct *vma, unsigned long address, bool shared)
+>  {
+>  	unsigned long size = dax_entry_size(entry), pfn, index;
+>  	int i = 0;
+> @@ -374,8 +380,8 @@ static void dax_associate_entry(void *entry, struct address_space *mapping,
+>  	for_each_mapped_pfn(entry, pfn) {
+>  		struct page *page = pfn_to_page(pfn);
+>  
+> -		if (cow) {
+> -			dax_mapping_set_cow(page);
+> +		if (shared) {
+> +			dax_page_share_get(page);
+>  		} else {
+>  			WARN_ON_ONCE(page->mapping);
+>  			page->mapping = mapping;
+> @@ -396,9 +402,9 @@ static void dax_disassociate_entry(void *entry, struct address_space *mapping,
+>  		struct page *page = pfn_to_page(pfn);
+>  
+>  		WARN_ON_ONCE(trunc && page_ref_count(page) > 1);
+> -		if (dax_mapping_is_cow(page->mapping)) {
+> -			/* keep the CoW flag if this page is still shared */
+> -			if (page->index-- > 0)
+> +		if (dax_page_is_shared(page)) {
+> +			/* keep the shared flag if this page is still shared */
+> +			if (dax_page_share_put(page) > 0)
+>  				continue;
+>  		} else
+>  			WARN_ON_ONCE(page->mapping && page->mapping != mapping);
+> diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
+> index 500e536796ca..f46cac3657ad 100644
+> --- a/include/linux/mm_types.h
+> +++ b/include/linux/mm_types.h
+> @@ -103,7 +103,10 @@ struct page {
+>  			};
+>  			/* See page-flags.h for PAGE_MAPPING_FLAGS */
+>  			struct address_space *mapping;
+> -			pgoff_t index;		/* Our offset within mapping. */
+> +			union {
+> +				pgoff_t index;		/* Our offset within mapping. */
+> +				unsigned long share;	/* share count for fsdax */
+> +			};
+>  			/**
+>  			 * @private: Mapping-private opaque data.
+>  			 * Usually used for buffer_heads if PagePrivate.
+> diff --git a/include/linux/page-flags.h b/include/linux/page-flags.h
+> index 0b0ae5084e60..d8e94f2f704a 100644
+> --- a/include/linux/page-flags.h
+> +++ b/include/linux/page-flags.h
+> @@ -641,7 +641,7 @@ PAGEFLAG_FALSE(VmemmapSelfHosted, vmemmap_self_hosted)
+>   * Different with flags above, this flag is used only for fsdax mode.  It
+>   * indicates that this page->mapping is now under reflink case.
+>   */
+> -#define PAGE_MAPPING_DAX_COW	0x1
+> +#define PAGE_MAPPING_DAX_SHARED	((void *)0x1)
+>  
+>  static __always_inline bool folio_mapping_flags(struct folio *folio)
+>  {
+> -- 
+> 2.38.1
+> 
