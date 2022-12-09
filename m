@@ -1,41 +1,41 @@
-Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0222C63C5
-	for <nvdimm@lists.linux.dev>; Fri,  9 Dec 2022 17:30:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9197963C5
+	for <nvdimm@lists.linux.dev>; Fri,  9 Dec 2022 17:31:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1670607027; x=1702143027;
+  t=1670607070; x=1702143070;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=+eDfnn6Xmsq/t/YriPqKyeOq86DpZRh5e35y/nIH5Bw=;
-  b=ZBRoHtqCmaubZs2xh4T4tk+GRWq87LQ4EW1D8PAcwkuYm/svHI6UojNJ
-   WlHVdOZy1QmYF1T8/CMpqmKsfjgtZ/fnfEvl7nz0iy5IiWLEhvRU9gt7m
-   LiHU4ciimGQTs9wbvD3vyiWsFqisPTetFFgeEMwJn1FSNdi15TpBsycFX
-   OzZEuLulQXe4J2atmHCL7cgFeMUzueHSG+PchF3Fc97gcINY8hW7wPVso
-   Lp9ERLvIgTbySMlv4Bzo/2Hbmy+xyOOw9Rgc0UeDC1dzxX/HQy4KTN9BV
-   76ypozuAtAK+3ACLavdDf49HlTzGxVocUGtyuhoY5wcnfezHXpnLT1ikS
-   g==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10556"; a="379721871"
+  bh=yfud0huBpFkFfK81UcoRpbIUlLAjoGz0cGt/RQa8v9I=;
+  b=l0HqgXMlByVe0zNPsJZkqlidEJrtRZqB3oZO2swNyMeBiUhdq075xeMI
+   PZyyMwO2BOanUGvf/r/9bhOiDlZuIf3Aimixb1eHbV8Lvvmy+G0kBfoKE
+   qIJmldoemGyXF3cfFJ1VI2GSPnd1+AxTsB3tPV6U93VhXrHVL+RwKAz8c
+   F1XvyZZkF+p43NlNdLYBNc1hKdlV6+LeVf9dPle9qWgAD1hnh+xvtxxIk
+   F4fl/mL82NQKUaPxR0Ij2PUyMmNKL4VPWteMx2NTDAwYE10SOX+9f5+KZ
+   ZEv1Xfx0RhVkchCRFJ+d/heLAiVJSIjpDfIBQ6YfSyU4Ru2Zy4D7fC0Y5
+   Q==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10556"; a="344546353"
 X-IronPort-AV: E=Sophos;i="5.96,230,1665471600"; 
-   d="scan'208";a="379721871"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Dec 2022 09:30:25 -0800
-X-IronPort-AV: E=McAfee;i="6500,9779,10556"; a="678216234"
+   d="scan'208";a="344546353"
+Received: from fmsmga003.fm.intel.com ([10.253.24.29])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Dec 2022 09:31:09 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10556"; a="736280557"
 X-IronPort-AV: E=Sophos;i="5.96,230,1665471600"; 
-   d="scan'208";a="678216234"
+   d="scan'208";a="736280557"
 Received: from aschofie-mobl2.amr.corp.intel.com (HELO aschofie-mobl2) ([10.212.227.125])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Dec 2022 09:30:25 -0800
-Date: Fri, 9 Dec 2022 09:30:23 -0800
+  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Dec 2022 09:31:09 -0800
+Date: Fri, 9 Dec 2022 09:31:07 -0800
 From: Alison Schofield <alison.schofield@intel.com>
 To: Dan Williams <dan.j.williams@intel.com>
 Cc: linux-cxl@vger.kernel.org, vishal.l.verma@intel.com,
 	nvdimm@lists.linux.dev
-Subject: Re: [ndctl PATCH v2 12/18] cxl/region: Make granularity an integer
- argument
-Message-ID: <Y5Nwr/7rQ5G4r+MV@aschofie-mobl2>
+Subject: Re: [ndctl PATCH v2 14/18] cxl/region: Trim region size by max
+ available extent
+Message-ID: <Y5Nw2z/u+OFG/nFd@aschofie-mobl2>
 References: <167053487710.582963.17616889985000817682.stgit@dwillia2-xfh.jf.intel.com>
- <167053494873.582963.9998892394422308576.stgit@dwillia2-xfh.jf.intel.com>
+ <167053496075.582963.15276731392463349632.stgit@dwillia2-xfh.jf.intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -44,100 +44,56 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <167053494873.582963.9998892394422308576.stgit@dwillia2-xfh.jf.intel.com>
+In-Reply-To: <167053496075.582963.15276731392463349632.stgit@dwillia2-xfh.jf.intel.com>
 
-On Thu, Dec 08, 2022 at 01:29:08PM -0800, Dan Williams wrote:
-> Since --granularity does not take a unit value like --size, just make it an
-> integer argument directly and skip the hand coded conversion.
-> 
+On Thu, Dec 08, 2022 at 01:29:20PM -0800, Dan Williams wrote:
+> When a size is not specified, limit the size to either the available DPA
+> capacity, or the max available extent in the root decoder, whichever is
+> smaller.
 
 Reviewed-by: Alison Schofield <alison.schofield@intel.com>
-
+> 
 > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 > ---
->  cxl/region.c |   26 +++++++++++---------------
->  1 file changed, 11 insertions(+), 15 deletions(-)
+>  cxl/region.c |    7 ++++++-
+>  1 file changed, 6 insertions(+), 1 deletion(-)
 > 
 > diff --git a/cxl/region.c b/cxl/region.c
-> index 494da5139c05..c6d7d1a973a8 100644
+> index 36ebc8e5210f..286c358f1a34 100644
 > --- a/cxl/region.c
 > +++ b/cxl/region.c
-> @@ -21,24 +21,25 @@
->  static struct region_params {
->  	const char *bus;
->  	const char *size;
-> -	const char *granularity;
->  	const char *type;
->  	const char *root_decoder;
->  	const char *region;
->  	int ways;
-> +	int granularity;
->  	bool memdevs;
->  	bool force;
->  	bool human;
->  	bool debug;
->  } param = {
->  	.ways = INT_MAX,
-> +	.granularity = INT_MAX,
->  };
+> @@ -544,6 +544,7 @@ static int create_region(struct cxl_ctx *ctx, int *count,
+>  	unsigned long flags = UTIL_JSON_TARGETS;
+>  	struct json_object *jregion;
+>  	struct cxl_region *region;
+> +	bool default_size = true;
+>  	int i, rc, granularity;
+>  	u64 size, max_extent;
+>  	const char *devname;
+> @@ -555,6 +556,7 @@ static int create_region(struct cxl_ctx *ctx, int *count,
 >  
->  struct parsed_params {
->  	u64 size;
->  	u64 ep_min_size;
->  	int ways;
-> -	unsigned int granularity;
-> +	int granularity;
->  	const char **targets;
->  	int num_targets;
->  	struct cxl_decoder *root_decoder;
-> @@ -67,9 +68,8 @@ OPT_STRING('s', "size", &param.size, \
->  	   "total size desired for the resulting region."), \
->  OPT_INTEGER('w', "ways", &param.ways, \
->  	    "number of memdevs participating in the regions interleave set"), \
-> -OPT_STRING('g', "granularity", \
-> -	   &param.granularity, "interleave granularity", \
-> -	   "granularity of the interleave set"), \
-> +OPT_INTEGER('g', "granularity", &param.granularity,  \
-> +	    "granularity of the interleave set"), \
->  OPT_STRING('t', "type", &param.type, \
->  	   "region type", "region type - 'pmem' or 'ram'"), \
->  OPT_BOOLEAN('m', "memdevs", &param.memdevs, \
-> @@ -140,18 +140,15 @@ static int parse_create_options(int argc, const char **argv,
+>  	if (p->size) {
+>  		size = p->size;
+> +		default_size = false;
+>  	} else if (p->ep_min_size) {
+>  		size = p->ep_min_size * p->ways;
+>  	} else {
+> @@ -567,13 +569,16 @@ static int create_region(struct cxl_ctx *ctx, int *count,
+>  			cxl_decoder_get_devname(p->root_decoder));
 >  		return -EINVAL;
 >  	}
->  
-> -	if (param.granularity) {
-> -		unsigned long granularity = strtoul(param.granularity, NULL, 0);
-> -
-> -		if (granularity == ULONG_MAX || (int)granularity <= 0) {
-> -			log_err(&rl, "Invalid interleave granularity: %s\n",
-> +	if (param.granularity < INT_MAX) {
-> +		if (param.granularity <= 0) {
-> +			log_err(&rl, "Invalid interleave granularity: %d\n",
->  				param.granularity);
->  			return -EINVAL;
->  		}
-> -		p->granularity = granularity;
-> +		p->granularity = param.granularity;
+> -	if (size > max_extent) {
+> +	if (!default_size && size > max_extent) {
+>  		log_err(&rl,
+>  			"%s: region size %#lx exceeds max available space\n",
+>  			cxl_decoder_get_devname(p->root_decoder), size);
+>  		return -ENOSPC;
 >  	}
 >  
-> -
->  	if (argc > p->ways) {
->  		for (i = p->ways; i < argc; i++)
->  			log_err(&rl, "extra argument: %s\n", p->targets[i]);
-> @@ -390,12 +387,11 @@ static int cxl_region_determine_granularity(struct cxl_region *region,
->  					    struct parsed_params *p)
->  {
->  	const char *devname = cxl_region_get_devname(region);
-> -	unsigned int granularity;
-> -	int ways;
-> +	int granularity, ways;
->  
->  	/* Default granularity will be the root decoder's granularity */
->  	granularity = cxl_decoder_get_interleave_granularity(p->root_decoder);
-> -	if (granularity == 0 || granularity == UINT_MAX) {
-> +	if (granularity == 0 || granularity == -1) {
->  		log_err(&rl, "%s: unable to determine root decoder granularity\n",
->  			devname);
->  		return -ENXIO;
+> +	if (size > max_extent)
+> +		size = ALIGN_DOWN(max_extent, SZ_256M * p->ways);
+> +
+>  	if (p->mode == CXL_DECODER_MODE_PMEM) {
+>  		region = cxl_decoder_create_pmem_region(p->root_decoder);
+>  		if (!region) {
 > 
