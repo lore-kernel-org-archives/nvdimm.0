@@ -1,41 +1,41 @@
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D7297E8
-	for <nvdimm@lists.linux.dev>; Fri,  9 Dec 2022 04:09:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AC0963C5
+	for <nvdimm@lists.linux.dev>; Fri,  9 Dec 2022 17:14:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1670558940; x=1702094940;
+  t=1670606040; x=1702142040;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=1/zYcSV/SMbQgnbbBHrn4JHR89TJfYNUO6XHr1AbNac=;
-  b=A1DYi0KQ7xdfh7Fr4DpoMT3H4MiGhBOtFHvahCIgBivqJxna3YCj/97T
-   SRisr2oGrQ1ya0z0SxPO9LIX+/eKrRbC1oojaHmSMpR9//mWmSnxOa9Vf
-   OLrEEpGs8imaoqKmOQA2I1ga4dg2dqx788blD9klAutIjdc1QxZWJpz+g
-   osBBnlYdwe1rtADGqo+tRzZcMIwDmeCagD6Pk9m7ZkR5QZesONM/Zq9hh
-   DGcS50GkQH9G7ljsqMqwWgdnR88WhoQ1cA0ISqogcm9noDcW8xGk/RiJU
-   AHxReRqD5No0m6YhtDE2kyVsOYRM/6NmOLdErHzHIQIQF/u7sEuAJ+tAW
-   A==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10555"; a="381681526"
+  bh=z7IE4fiXaS7oKlKyMlkL5FpaDU2NlOtji0Z/A0adz08=;
+  b=mtiIWB6MuhjcavyqVlYy95oVi0ErI8rXzntvWpOZiQJGpAo3BbcV5X+Y
+   wUEU2KMiXVdwdjusV4zIdrBD+QxeDNhjmhokvwZK0WigMlYHZrrB5kpzQ
+   PSeCN0IbLrgw88Mt4YtSmAXM9jJkQGGQ096xkgtgtvXHxDyJBIhCemFop
+   8oGFG35hycjDpJgvZ+B+LnqMAvxcdPPeJWKCmvKoRTtbZWnFF56K4mhJI
+   LqedBwbq3dSzSMm1XAHEcsPVp0vYotrUOZbiPPx2niKYRQOC24TvMajfF
+   dKrBzTw/erYhN90oHl/b8Xy34h7w8oJCuITSvWoezdONRoc9bf9tf6Dwc
+   Q==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10556"; a="315142037"
 X-IronPort-AV: E=Sophos;i="5.96,230,1665471600"; 
-   d="scan'208";a="381681526"
-Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Dec 2022 20:08:59 -0800
-X-IronPort-AV: E=McAfee;i="6500,9779,10555"; a="892517663"
+   d="scan'208";a="315142037"
+Received: from orsmga004.jf.intel.com ([10.7.209.38])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Dec 2022 09:13:42 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10556"; a="771918355"
 X-IronPort-AV: E=Sophos;i="5.96,230,1665471600"; 
-   d="scan'208";a="892517663"
-Received: from aschofie-mobl2.amr.corp.intel.com (HELO aschofie-mobl2) ([10.212.199.197])
-  by fmsmga006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Dec 2022 20:08:59 -0800
-Date: Thu, 8 Dec 2022 20:08:57 -0800
+   d="scan'208";a="771918355"
+Received: from xinjunwa-mobl.amr.corp.intel.com (HELO aschofie-mobl2) ([10.212.227.125])
+  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Dec 2022 09:13:42 -0800
+Date: Fri, 9 Dec 2022 09:13:40 -0800
 From: Alison Schofield <alison.schofield@intel.com>
 To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-cxl@vger.kernel.org, vishal.l.verma@intel.com,
-	nvdimm@lists.linux.dev
-Subject: Re: [ndctl PATCH v2 16/18] cxl/region: Autoselect memdevs for
- create-region
-Message-ID: <Y5K02d+nKhySs49Z@aschofie-mobl2>
+Cc: linux-cxl@vger.kernel.org, Yi Zhang <yi.zhang@redhat.com>,
+	vishal.l.verma@intel.com, nvdimm@lists.linux.dev
+Subject: Re: [ndctl PATCH v2 01/18] ndctl/test: Move firmware-update.sh to
+ the 'destructive' set
+Message-ID: <Y5NsxBeoL5nxSdAI@aschofie-mobl2>
 References: <167053487710.582963.17616889985000817682.stgit@dwillia2-xfh.jf.intel.com>
- <167053497261.582963.1274754281124548404.stgit@dwillia2-xfh.jf.intel.com>
+ <167053488383.582963.12851797514973259163.stgit@dwillia2-xfh.jf.intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -44,96 +44,41 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <167053497261.582963.1274754281124548404.stgit@dwillia2-xfh.jf.intel.com>
+In-Reply-To: <167053488383.582963.12851797514973259163.stgit@dwillia2-xfh.jf.intel.com>
 
-On Thu, Dec 08, 2022 at 01:29:32PM -0800, Dan Williams wrote:
-> Now that parse_create_region() uses cxl_filter_walk() to gather memdevs
-> use that as the target list in case no target list is provided. In other
-> words the result of "cxl list -M -d $decoder" returns all the potential
-> memdevs that can comprise a region under $decoder, so just go ahead and
-> try to use that as the target list by default.
-> 
-> Note though that the order of devices returned by cxl_filter_walk() may
-> not be a suitable region creation order. So this porcelain helps for
-> simple topologies, but needs a follow-on patch to sort the memdevs by
-> valid region order, and/or discover cases where deviceA or deviceB can
-> be in the region, but not both.
-> 
-> Outside of those cases:
-> 
->    cxl create-region -d decoderX.Y
-> 
-> ...is sufficient to create a region.
+On Thu, Dec 08, 2022 at 01:28:03PM -0800, Dan Williams wrote:
+> The firmware update test attempts a system-suspend test which may break
+> systems that have a broken driver, or otherwise are not prepared to support
+> suspend.
 > 
 
 Reviewed-by: Alison Schofield <alison.schofield@intel.com>
 
+> Link: https://github.com/pmem/ndctl/issues/221
+> Reported-by: Yi Zhang <yi.zhang@redhat.com>
 > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 > ---
->  Documentation/cxl/cxl-create-region.txt |   10 ++++++----
->  cxl/region.c                            |   16 ++++++++--------
->  2 files changed, 14 insertions(+), 12 deletions(-)
+>  test/meson.build |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> diff --git a/Documentation/cxl/cxl-create-region.txt b/Documentation/cxl/cxl-create-region.txt
-> index e0e6818cfdd1..286779eff9ed 100644
-> --- a/Documentation/cxl/cxl-create-region.txt
-> +++ b/Documentation/cxl/cxl-create-region.txt
-> @@ -53,16 +53,18 @@ OPTIONS
->  -------
->  <target(s)>::
->  The CXL targets that should be used to form the region. The number of
-> -'target' arguments must match the '--ways' option (if provided). The
-> -targets are memdev names such as 'mem0', 'mem1' etc.
-> +'target' arguments must match the '--ways' option (if provided).
+> diff --git a/test/meson.build b/test/meson.build
+> index 5953c286d13f..c31d8eac66c5 100644
+> --- a/test/meson.build
+> +++ b/test/meson.build
+> @@ -170,7 +170,6 @@ tests = [
+>    [ 'btt-errors.sh',          btt_errors,	  'ndctl' ],
+>    [ 'hugetlb',                hugetlb,		  'ndctl' ],
+>    [ 'btt-pad-compat.sh',      btt_pad_compat,	  'ndctl' ],
+> -  [ 'firmware-update.sh',     firmware_update,	  'ndctl' ],
+>    [ 'ack-shutdown-count-set', ack_shutdown_count, 'ndctl' ],
+>    [ 'rescan-partitions.sh',   rescan_partitions,  'ndctl' ],
+>    [ 'inject-smart.sh',        inject_smart,	  'ndctl' ],
+> @@ -196,6 +195,7 @@ if get_option('destructive').enabled()
+>    mmap_test = find_program('mmap.sh')
 >  
->  include::bus-option.txt[]
->  
->  -m::
->  --memdevs::
->  	Indicate that the non-option arguments for 'target(s)' refer to memdev
-> -	names. Currently this is the only option supported, and must be
-> -	specified.
-> +	device names. If this option is omitted and no targets are specified
-> +	then create-region uses the equivalent of 'cxl list -M -d $decoder'
-> +	internally as the target list. Note that depending on the topology, for
-> +	example with switches, the automatic target list ordering may not be
-> +	valid and manual specification of the target list is required.
->  
->  -s::
->  --size=::
-> diff --git a/cxl/region.c b/cxl/region.c
-> index 286c358f1a34..15cac64a158c 100644
-> --- a/cxl/region.c
-> +++ b/cxl/region.c
-> @@ -269,10 +269,13 @@ static int parse_create_options(struct cxl_ctx *ctx, int count,
->  	}
->  
->  	/*
-> -	 * For all practical purposes, -m is the default target type, but
-> -	 * hold off on actively making that decision until a second target
-> -	 * option is available.
-> +	 * For all practical purposes, -m is the default target type, but hold
-> +	 * off on actively making that decision until a second target option is
-> +	 * available. Unless there are no arguments then just assume memdevs.
->  	 */
-> +	if (!count)
-> +		param.memdevs = true;
-> +
->  	if (!param.memdevs) {
->  		log_err(&rl,
->  			"must specify option for target object types (-m)\n");
-> @@ -314,11 +317,8 @@ static int parse_create_options(struct cxl_ctx *ctx, int count,
->  		p->ways = count;
->  		if (!validate_ways(p, count))
->  			return -EINVAL;
-> -	} else {
-> -		log_err(&rl,
-> -			"couldn't determine interleave ways from options or arguments\n");
-> -		return -EINVAL;
-> -	}
-> +	} else
-> +		p->ways = p->num_memdevs;
->  
->  	if (param.granularity < INT_MAX) {
->  		if (param.granularity <= 0) {
+>    tests += [
+> +    [ 'firmware-update.sh',     firmware_update,	  'ndctl' ],
+>      [ 'pmem-ns',           pmem_ns,	   'ndctl' ],
+>      [ 'sub-section.sh',    sub_section,	   'dax'   ],
+>      [ 'dax-dev',           dax_dev,	   'dax'   ],
 > 
