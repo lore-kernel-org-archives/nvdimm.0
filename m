@@ -1,86 +1,76 @@
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF51C63D2
-	for <nvdimm@lists.linux.dev>; Fri,  9 Dec 2022 18:06:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42DD010E5
+	for <nvdimm@lists.linux.dev>; Sun, 11 Dec 2022 01:54:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1670609174; x=1702145174;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=zizsUwsa/xUZ3I8vQgmE7uTyY49lePeL2818Dm2LgjA=;
-  b=Q/cMwVxcc65UVGIyWbsNlpb/cZrz7GxnXWfXbMW9k45pVHAcO2JjjJph
-   v2fFXPXxnSAJOpScZKulQj4WJSGGtOGOMCKgCRe1mPtAzBnDzNt1EzKag
-   PQ56TG6DExdQeHDeiruDXY9M9eZ/6apgh+nifzIVWNUQpRoJ1Y5Kfldo1
-   Yttcs/hO6atq7+83t7n8Zn0+SFiznqDLSlh7wLt0aJbWt0alodITzFGIP
-   3ORUqzDVXrK0OCYMAh9B8LXF6kAWiD/nkKwaGUcNaSmbMqgrtCxr/H+X5
-   vlUs+U9ZHUcxvnsOnBhAAHDg5HlliRndFB7gdJYiUTKBqMz68gTJRW2KX
-   w==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10556"; a="403771719"
-X-IronPort-AV: E=Sophos;i="5.96,230,1665471600"; 
-   d="scan'208";a="403771719"
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Dec 2022 10:06:14 -0800
+  t=1670723670; x=1702259670;
+  h=date:from:to:cc:subject:message-id:mime-version;
+  bh=nA6V+UeuC0kcHE0CB5Kv+A+Ut6mFlwwqjElTcOuo6H4=;
+  b=bubOPc9z0BX84YFsDv4X1KTgp5c+IJoQ9twRctvc2Gxccw/+wLdxK20W
+   88YrDl3P3R1kjaOR5o8usjEx/5PTIBM2EhAYzSyGduNkaoTjQM95by02f
+   atkfE0gTQmxXsMW2+SycL/KmZNTpiB5OtpM9ivDIXYDVgCqIzaFuB+KYR
+   VYQ2/C5eXuF81efpT9ou1BYQbHOZTDK/rseheGoVLKTC/kDXwKVOxiIUG
+   uVRFlY7PDrjfdz3sco6P/fsbozAv8Acn6o2dmgC+L97tvSIHTNiFQAOd4
+   JiRp3VAJ+OTccCC0TzMoK9GnQQG7SuIp0DS6uVJysc++N6LKDZXuC/cJ6
+   A==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10557"; a="305307756"
+X-IronPort-AV: E=Sophos;i="5.96,235,1665471600"; 
+   d="scan'208";a="305307756"
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Dec 2022 17:54:29 -0800
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6500,9779,10556"; a="821803991"
-X-IronPort-AV: E=Sophos;i="5.96,232,1665471600"; 
-   d="scan'208";a="821803991"
-Received: from fmsmsx603.amr.corp.intel.com ([10.18.126.83])
-  by orsmga005.jf.intel.com with ESMTP; 09 Dec 2022 10:06:13 -0800
-Received: from fmsmsx610.amr.corp.intel.com (10.18.126.90) by
- fmsmsx603.amr.corp.intel.com (10.18.126.83) with Microsoft SMTP Server
+X-IronPort-AV: E=McAfee;i="6500,9779,10557"; a="641375941"
+X-IronPort-AV: E=Sophos;i="5.96,235,1665471600"; 
+   d="scan'208";a="641375941"
+Received: from orsmsx602.amr.corp.intel.com ([10.22.229.15])
+  by orsmga007.jf.intel.com with ESMTP; 10 Dec 2022 17:54:29 -0800
+Received: from orsmsx610.amr.corp.intel.com (10.22.229.23) by
+ ORSMSX602.amr.corp.intel.com (10.22.229.15) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.16; Fri, 9 Dec 2022 10:06:13 -0800
-Received: from fmsmsx610.amr.corp.intel.com (10.18.126.90) by
- fmsmsx610.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
+ 15.1.2507.16; Sat, 10 Dec 2022 17:54:29 -0800
+Received: from orsedg603.ED.cps.intel.com (10.7.248.4) by
+ orsmsx610.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.16; Fri, 9 Dec 2022 10:06:12 -0800
-Received: from fmsedg601.ED.cps.intel.com (10.1.192.135) by
- fmsmsx610.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.16 via Frontend Transport; Fri, 9 Dec 2022 10:06:12 -0800
-Received: from NAM12-DM6-obe.outbound.protection.outlook.com (104.47.59.175)
- by edgegateway.intel.com (192.55.55.70) with Microsoft SMTP Server
+ 15.1.2507.16 via Frontend Transport; Sat, 10 Dec 2022 17:54:29 -0800
+Received: from NAM04-BN8-obe.outbound.protection.outlook.com (104.47.74.44) by
+ edgegateway.intel.com (134.134.137.100) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.16; Fri, 9 Dec 2022 10:06:12 -0800
+ 15.1.2507.16; Sat, 10 Dec 2022 17:54:28 -0800
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=fh0A1c/Kc0kIshLbrUDmj7PWGKtpavzQQUk7qkkOnklYMYm6oAc8Ys+IXzfo4oLN1Q16EtdIc8bmPJOcydDGY+a/Mw4jFGQcirrTZAOUZYgpJIxOHkIVMxAmU/fm/ey1dHFx6uyv5K8wimw3x4BOY2GHmVhIn9bQJN+avAElMDSvx3FhKY9p9JuBpEw+E/QDhtVYqKDgTdxgzQCdbocVwBH3tp0vK5tw16/EsZrvpDzCdYl161wWZeHjbha4qPi7aYK+Ivv2jRl881hPyoZ+8gCRnEBezlSWiWUn4sSFd6K6t8G7D+5eAvvBvzEko8+NQnNocFKXTnfJMgj6137qiQ==
+ b=en0MQLC4XiDj8mIGwf/YEve3fiaUn1ozf7ScmqZFUSBQfsLUlHedTztMkRzXDNQzVzzmo+2sYhPDPhn8OdzCqFtWPtbxRC4NU0yTDsoOviuwo4/4kMpzrRSbeMUwS7U8ovNVNxLLXULCfCl8lqN4KlHY3i+1lFGpCTtFqsij718fMygFZT2j//gnjAt9Y6Izjz4BoyzcO1DaIc9uoJ7P7tIxBRBPO0j7RCaNHMG8PvxL5jD3wQFzVYBamGw6zYilELxybl5rOEg7g1rAL3OYnKeP7FJrON3jPEhNjZzlrqPxUVgMOpKLJ3srBq2ziBl0KVqskJHi46m8M9fCn41pqw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=G0yVVrdhiMPIRT8S6yV91E3iEeTtsbloP4b4ij3AzhA=;
- b=dGo5s9zyobRufl/we1F+GsBgzSOTxZ899ORxqYtbcNOdm1/zZf34+qHshkpXv89hOZ6J3zccrKFBNYKJ0pib8fRdLNWo7E23wfD7ucfhxYFg+dAchcs5/lVGJpi+Tv1yvB/Rd/b9O1gCBGhtTG6CUyYRm9dUhZIe4kf1td3sUbH9dKhid3NODoNVDlxTOH7az0oWMMHx5VFBmaNjfxPaWKqwv8IwlmBjZduqI7C07fZ/euA91f8B5miS6BAgZXvPyBgw8t4uIjaE0yBD9TGSOwAlOMrviqAmz5fi7bx1GA0wO93Naqky8PgMoPxzkLZr7CMNoJ2sntvN6iD//KKFog==
+ bh=eEABLpuIGG9IryLuTFeHcTlFItD5MZyS4n3cMJJsG0I=;
+ b=CiriXF/zPCApJBs3kPdB6SPFsfkeBwzB8cM5sOpUYdPm0l7CtbGssbGRMoQGpVf7BKgJjDfa9fxU+ssqb5t8oKonAJjgZ6RoIEUXnm/JzLAzKpxKCsEEHIEoYLvMTUg86PO74wE2AeMlWfVhwvUcNtvlvcINDSoqcETiyjBOJg9sTrs2sevIj4ZiCdcigWe+XweQ8yPcvBEpxFfZI7D/gAknrZjDIddFugvsCOVZoKOI8vGBPgb6LaxIfcZdgEO/5CTYHFx9bV9RmHSofzqqLwaHf5SpqY79fHAh3QEO3gVl/0uIl58kgqsR8ituS0ndgXqOg9pZ8+VJHbj1/LtRMA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
  dkim=pass header.d=intel.com; arc=none
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=intel.com;
 Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
- (2603:10b6:301:50::20) by SA1PR11MB5779.namprd11.prod.outlook.com
- (2603:10b6:806:232::22) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5880.11; Fri, 9 Dec
- 2022 18:06:10 +0000
+ (2603:10b6:301:50::20) by CY8PR11MB7196.namprd11.prod.outlook.com
+ (2603:10b6:930:94::8) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5880.19; Sun, 11 Dec
+ 2022 01:54:21 +0000
 Received: from MWHPR1101MB2126.namprd11.prod.outlook.com
  ([fe80::340d:cb77:604d:b0b]) by MWHPR1101MB2126.namprd11.prod.outlook.com
- ([fe80::340d:cb77:604d:b0b%9]) with mapi id 15.20.5880.019; Fri, 9 Dec 2022
- 18:06:09 +0000
-Date: Fri, 9 Dec 2022 10:06:07 -0800
+ ([fe80::340d:cb77:604d:b0b%9]) with mapi id 15.20.5880.019; Sun, 11 Dec 2022
+ 01:54:14 +0000
+Date: Sat, 10 Dec 2022 17:54:02 -0800
 From: Dan Williams <dan.j.williams@intel.com>
-To: Alison Schofield <alison.schofield@intel.com>, Dan Williams
-	<dan.j.williams@intel.com>
-CC: <linux-cxl@vger.kernel.org>, <vishal.l.verma@intel.com>,
-	<nvdimm@lists.linux.dev>
-Subject: Re: [ndctl PATCH v2 15/18] cxl/Documentation: Fix whitespace typos
- in create-region man page
-Message-ID: <6393790f8bc12_579c129434@dwillia2-xfh.jf.intel.com.notmuch>
-References: <167053487710.582963.17616889985000817682.stgit@dwillia2-xfh.jf.intel.com>
- <167053496662.582963.12739035781728195815.stgit@dwillia2-xfh.jf.intel.com>
- <Y5NxYqD7Bgo2nT0W@aschofie-mobl2>
+To: <torvalds@linux-foundation.org>
+CC: <linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>,
+	<linux-acpi@vger.kernel.org>, <linux-pci@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>
+Subject: [GIT PULL] Compute Express Link (CXL) for 6.2
+Message-ID: <6395383a608a5_4962d294e9@dwillia2-mobl3.amr.corp.intel.com.notmuch>
 Content-Type: text/plain; charset="us-ascii"
 Content-Disposition: inline
-In-Reply-To: <Y5NxYqD7Bgo2nT0W@aschofie-mobl2>
-X-ClientProxiedBy: BYAPR03CA0027.namprd03.prod.outlook.com
- (2603:10b6:a02:a8::40) To MWHPR1101MB2126.namprd11.prod.outlook.com
+X-ClientProxiedBy: SJ0PR03CA0097.namprd03.prod.outlook.com
+ (2603:10b6:a03:333::12) To MWHPR1101MB2126.namprd11.prod.outlook.com
  (2603:10b6:301:50::20)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -89,70 +79,281 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: MWHPR1101MB2126:EE_|SA1PR11MB5779:EE_
-X-MS-Office365-Filtering-Correlation-Id: 53732001-7a80-44c1-dddf-08dada100cb5
+X-MS-TrafficTypeDiagnostic: MWHPR1101MB2126:EE_|CY8PR11MB7196:EE_
+X-MS-Office365-Filtering-Correlation-Id: bf465913-96c9-411b-50ec-08dadb1a9b16
 X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: MpBaMs784gdHTaUzlllmGNOhf3Ekg9pp+jlxh69Z17hjIfPfiKsGhWhtfVBxi7O1vDteiRWztcBXy/EtZTHK5OdNe7F+A2YL98iD4GdjOWa5/jYy751F9zV4XAYW702F5Z1SQowty7Yse+R4aE7umtfrim7ig4Qa7/+EYNtFEspabDIDwZ0UWPpBMkGMaUNQfMk73m76LGs4PHAk30OY98FwxaQUMx7teNIT7jLUngITqC8X2347Bfcv8j4rbbwpvcbvKDJGB35y9xf0WJy0i/R22D4bfcpCCKoMIO3nnns9aTz/iIj5lNjVkuzqiCKIPC12tYfsAwDHPvpDaBz2J50WyanSzNKnJ8G3NdJK6cFdwwy2WYFu5SO9EbPfIRKxxIbC+2+3yE9nkTBvHn8348KUhWT+IPcJEKHc14ahAgYVDq/f9jlcv1MmQRblpKhAKPmPn02usrqQUlP5X7V/p1iS92IrsgRHw8FJK+hS3IyysCtf5S4rjOPy5oCUmVGkxz1CTj2z1Xgw2/h9ldmQsz6kPeCpgQ2qeWA/5gy4f0PVqKsKtswkFaeJ/ptfm92bsXnYcAnalfrXDrHiXb8wImEmoLTsif2y398HhyCVzFTaqHmoTRbMIeKNFsP7GZBpkoWOIZDfxoCmLv8Kw4bbGw==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1101MB2126.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230022)(39860400002)(346002)(396003)(376002)(366004)(136003)(451199015)(478600001)(86362001)(6506007)(6486002)(66476007)(316002)(66556008)(2906002)(82960400001)(8936002)(8676002)(41300700001)(110136005)(4326008)(66946007)(9686003)(6512007)(26005)(4744005)(38100700002)(5660300002)(186003);DIR:OUT;SFP:1102;
+X-Microsoft-Antispam-Message-Info: 26XXsJ33TyLegHzsKGJnyKS8TEQpDoxATADzc0Kx0fkBo+4taOhiNpQMBwaJmmB9JGIgDcU0afwIiExyuQEHAmNdHS2TghIbZPkaI3/6kQXrPQRA1FyUOUgKBVr7AU7oLL7PezlalO9DgLUpbAvz8Zs9VT7Ywkky0BJIY0M6kDys3ZP3EWRXeiQeTQs6FVyXmiIqRLWwle8L452czs8wRxiShadkmSlUWr8qqBqpwi3OlzVXC4uiIX6/ZR/d3XLsLyVUOh5O0ZgO6Qi6p7voGlzuBssJKTfzLvUOxEJiU4nSc76oHJCHCMDyhnz8ax49H6fLfbArImjFd39p2/gO/pB4GvNIKCXVLfC7bK5wVMLAEOSWVZjJDUSQkXsQjkMbHdNU6T1O6LWfEO0FXEFgSM+ic7WHXSNKSPy/TKmyi4glX9BSmNl9NeEvlCwQRfvO0gj05x2xVpu3oF3hmYFqIxn2W0yYfmt/fFaS6AW85P5ilHK4085FkZFQlB6Ewz9A1auNmTXn3H5HDE6GvAHODHbh/qE9E/h+vmYRrBNgIDfBJvD+JZOZ042ABOwEhNjy7MSRWW46ZzD7h6LEj8KpWUixJCiXA9ZHC3e5iOK0HSOGTizfF+H/rq5L2CxkXYclTxn1RsJjhDlSLh/Igf4vyQ==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1101MB2126.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230022)(136003)(376002)(396003)(366004)(39860400002)(346002)(451199015)(478600001)(6666004)(6486002)(41300700001)(5660300002)(8676002)(4326008)(316002)(2906002)(6916009)(66946007)(66476007)(66556008)(8936002)(86362001)(38100700002)(6512007)(9686003)(26005)(6506007)(83380400001)(186003)(82960400001);DIR:OUT;SFP:1102;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?M2lhUyiQeB9aSwZMjmha05K4MYvq5GX91ZuV2ZDHEhLHfC1VQxPSDDMxw3nc?=
- =?us-ascii?Q?QSdqOEfliLha6qu5Yu8xgiAEQ7PTePr/Ok6TZ/OMrOVEKOdwaQ+Ek1oELcXF?=
- =?us-ascii?Q?bmqOERMEnWxgExLqY7f9nzq9w/0HSwZdUM6xlZIXYeHB00CKjaEvIYeg7ij+?=
- =?us-ascii?Q?4jN6EgoYhrARZdGHh4lMPyDD9b55Qhk5nyfNIsrSBhMhUKuBN8GuAwr4au2L?=
- =?us-ascii?Q?m0jYrdjzGKXP9GzTzfB4LkFgMGaklR03vQaPpXImnYeAgnS6taaL8igO5W/f?=
- =?us-ascii?Q?2Z35Ne5/U9dd3pqknTpVTTYEjR0GvzpN07aOlzw9XyByoMyGK5KVhSaWTW6y?=
- =?us-ascii?Q?Huz94bumrfFW+p3Jh8sajcaf8+AcimNL4WSzUJGnDbRW+sUyo5xZossfowg5?=
- =?us-ascii?Q?E4TSzo64Ryfo+y4QFJ37KNJlGlzMSnF0zWD922eGAHZnOExWtbmTtuL3KCZi?=
- =?us-ascii?Q?MMbHEkiQgfqouRMgvEeNSniy/o/ilmBQLb7bmVVgmt94CE9nWBiKcWNsWwFb?=
- =?us-ascii?Q?qhl7Sx6U8oTxhK2rmGuIAwmLo7Lg2q3dKQ5iUV6k6F3deqcaPz0pKT+K5vfN?=
- =?us-ascii?Q?HyQbDoKQVFl6yHgIBLLWBUqYNK7ciYdpGfI6mwEAw+W3GGlCQhI0yX0BHHzQ?=
- =?us-ascii?Q?l9AWcEG8k4vJd4/1+Th+S/xH5y6aOglNa0erHBr5QJvjM+gkM2GP7nEbY8IY?=
- =?us-ascii?Q?HT25xiVxg9sHCqp+5i8l09IdlsIIVwMSR8wLHZcz9tSFTCG0TN134SBwrWSf?=
- =?us-ascii?Q?nyKvJOgq/s9g7Hm1+vnecv1BRR6PBM7Soi6wOfoz+be9Ec9aGNl47iS5I8M1?=
- =?us-ascii?Q?CLw+tVdxOMUNHD+BsiKOtf5olHJSEnOJnJNfwtoBZqoKJumiZ5yKRwSNZb7r?=
- =?us-ascii?Q?Y6jfPoo1hzQ0Atl6XrJ4Kwf/hCvGWtfBY+wDtfZYOaJzrsLcCNzsaccgOJ1r?=
- =?us-ascii?Q?bnYwPSxOEMFq7LgVX4J6nSyhwdpFTGZrSyQusdXpPS1ic7vqF/GbbWa0dMKc?=
- =?us-ascii?Q?HI5M9iMswnKu9Zpvdfylzs8xAR8O4clP5Q2hGSiqy5wXh4NRW+v/x26krLOn?=
- =?us-ascii?Q?z/kpiIMYHBh0VEry9qSahRxZ/chaV06mlbSFJbpfqdVTTer7EX0QHDu7rMnr?=
- =?us-ascii?Q?u5Pvw3wfMCZ5fMcFU6tDZCyMz7EoBa+IWmB2yo07uMesApJm1ozotXQJbMWI?=
- =?us-ascii?Q?Yt/hARSyD3yMOnsoCKI2CW6TuSuQYpnIT+dGUoFHDP2PCVh6nvQyMDErsQeY?=
- =?us-ascii?Q?sx4U2/upINgQpANBw2d8DJPeYLHlquMb1B4HgteGkp5YrFQjT2i2fejD+drH?=
- =?us-ascii?Q?b7p1IDY8Ezh5Thd8MifjHZ7ZAw1yTlyw0L179ixPhv/CPB6IQtGZBbDxi74f?=
- =?us-ascii?Q?F+D3p0F2JNBN3suvosijk86s6v/8Ip2xNnzvH+divvBBHgb5RZEEElFJggep?=
- =?us-ascii?Q?XV3UJ/xx3GogJT8NMIP/+RIXfRXlCODj/Iw5YVJnR9sF8ngKNtpRBR43ARSz?=
- =?us-ascii?Q?D7hs+cuu2td7i1hxGhGAfD7EmwsI8QCF2cXebyeQ5VnBiGT4EFiE9fJn4fk8?=
- =?us-ascii?Q?WFrOGcSRDRy25lgr2QExiiiwf6KLSJvN/T42WdPlfyD3tlDWsTHO7YlIb8CO?=
- =?us-ascii?Q?oA=3D=3D?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: 53732001-7a80-44c1-dddf-08dada100cb5
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?Za8C3b5nlXfgNLXbg5ipT88jdZp3Old0vb/ZmdVXeYfLWbD5Hh/LbSsi66V5?=
+ =?us-ascii?Q?nNVgn/RJ4n7/roFXXFGaV0tITA16PMmF4ZZ0iVAKQFdxRvgteAUIT1APqpcB?=
+ =?us-ascii?Q?6i9HJ1Zx0E5H6Wm4/Zl0NGtYgmdc04g0uoRbhEzlPMZgeTh45yt+arH0p30G?=
+ =?us-ascii?Q?5O5VJ021lp1M5m3waVQ0ztFu6WbWjDfmikAfSjhQr5d9ub3ZjAUlwvPfdpjg?=
+ =?us-ascii?Q?eRWWciiTjh2ntwbjWOCpxNQyDPqwRuYoVlLjswGYgz12c4saorogMo1napNz?=
+ =?us-ascii?Q?jvh2yFD3fZd/DVS2/yvu92jLvzd15VQnkvF9w4FhA0uXfglF/pIcSUuR+OO0?=
+ =?us-ascii?Q?4Sw225PSgH36LX9qxDqinFB3j+V7AtwDEnKp0AvUOqHRHf57fmqSfi5uu+y9?=
+ =?us-ascii?Q?iePY1e4lczCv78q3kuJjIBcbuz1fFIe7gdPsUB6+6MKFSGiHul5YB1GeSFZY?=
+ =?us-ascii?Q?4ezaiXrZz0S2reNaktQ9TzVJ/2ZZLbwKvABtUK0E4D33R9EUh04I1oOae3fn?=
+ =?us-ascii?Q?EjMSXcEh8eObdEUkgI873XfR1J0zRqVsalCFXWji00EkMdpyH+R89tO8l2+X?=
+ =?us-ascii?Q?kC1hO047mRICkbQWmtxhWCOEK0LQXkLCu67hQa3z3vjesjYUIehEh/dx+y0N?=
+ =?us-ascii?Q?MLwIYDis70S3wyCylXAoQmz76wk9FIi9UOm4ArklW4UiYgLH+Og0PCG2wssc?=
+ =?us-ascii?Q?wjGvxPrWdSmDjlJrH5HjjpMWy+2U4m4I3aNur4x4KjxV/v70TnQwFD+PJb9z?=
+ =?us-ascii?Q?akoTRJi60AzDz+Cr5RN1MUeTMFe4MldkQaViyCRw8UdN0IGbhr0JIp5PQaBL?=
+ =?us-ascii?Q?D2pXkM8rtvej3a1d7hGiw/Z00OCPgPuqaofwunPGuRhnjntxIvOtCnpLXBmK?=
+ =?us-ascii?Q?jMXMWp/RolY+jJVIszhTZmve8h+piPr/Z2ANTYq+qZAhiijC0hRAdr6enxzn?=
+ =?us-ascii?Q?xBfceMGIBWMN5WzwJuz3Btgl9AENnmqMAAmqtlzjPk3lxMWYkTJ6ue6YBBh6?=
+ =?us-ascii?Q?PiN8K5gAtHXeQ49gxjbaVD+ELvl6ztp40/y9X51WzmizCFUE6JXq5lov6+X1?=
+ =?us-ascii?Q?ZoRl6ASoHTMVbqdOlhwwG8nGUDaRwmhwWmxtuJ3JXBMpFqWIYzuocK/dEiGu?=
+ =?us-ascii?Q?YD6MxC1SxkLJ7NylX7TPcWaKYMxsCikHcFiQtpmzoI8waxdmNPnuN26QPMTO?=
+ =?us-ascii?Q?4+g+p+YWO4353GQsgeaUDWai0NqINjGOMQXagsLZAOEHg+nmlxL43HsbqzG0?=
+ =?us-ascii?Q?7w493eYWV0QPA+KVAjLXcYsy2lHmSb0QflajkcR8unz4SXdo5wK+KJIccg1I?=
+ =?us-ascii?Q?PAU4jMYZCxSejYGAzyTe07WwmDAQqfXEIanHcUqNSgNvQG7SUoYNXc3zFqGp?=
+ =?us-ascii?Q?XY+28+k7FR79u5ZKPq0orMysBwPYN0oVpTdqgMQmkaxhQbdWnR/ugRmsR6Kk?=
+ =?us-ascii?Q?Lh4Y0VIPkcO0KZuD2Bwr4QcltgTplIzhtgxhVM9BPcXMPRrjTvEArciDt3QD?=
+ =?us-ascii?Q?aGqSolWfIZDaVPSmYGyK8/V5Eo+N8BhR1vByVnJ1loNOFXCIAntrClBwdgNO?=
+ =?us-ascii?Q?GLtkGp0l4ejvbMu5WsMSR85zUYGSmE5CR4dKk1m1eruYtTzqrWJGOM2ECwRb?=
+ =?us-ascii?Q?yA=3D=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: bf465913-96c9-411b-50ec-08dadb1a9b16
 X-MS-Exchange-CrossTenant-AuthSource: MWHPR1101MB2126.namprd11.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 09 Dec 2022 18:06:09.5798
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 11 Dec 2022 01:54:14.6566
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 7IZGxDvD/hE3CuzJ0kbg/NNA8kViV/k1HYbSIo3LISx8ZDG8/Ckpe+qJn4X6PLeLTNWZ1AobvkTfTjAaDw6s7POXhQPSs2DLmGRVN3GWuH0=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA1PR11MB5779
+X-MS-Exchange-CrossTenant-UserPrincipalName: aW+9VBWeuDBJOUJPIu/6i2fsSkAvxx0Dayz/kZe0As3ZrNIbD4K2JlKPrdyZD9ScEEm0z0UATM1W59VdwhqfQxOlUjby0QJqI80SPlZnCrg=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY8PR11MB7196
 X-OriginatorOrg: intel.com
 
-Alison Schofield wrote:
-> On Thu, Dec 08, 2022 at 01:29:26PM -0800, Dan Williams wrote:
-> 
-> Missing SOB and commit log
+Hi Linus, please pull from:
 
-Whoops, moved too fast and broke things.
+  git://git.kernel.org/pub/scm/linux/kernel/git/cxl/cxl tags/cxl-for-6.2
 
-Vishal, feel free to add:
+...to receive the CXL update for v6.2.
+
+While it may seem backwards, the CXL update this time around includes
+some focus on CXL 1.x enabling where the work to date had been with CXL
+2.0 (VH topologies) in mind.  First generation CXL can mostly be
+supported via BIOS, similar to DDR, however it became clear there are
+use cases for OS native CXL error handling and some CXL 3.0 endpoint
+features can be deployed on CXL 1.x hosts (Restricted CXL Host (RCH)
+topologies). So, this update brings RCH topologies into the Linux CXL
+device model.
+
+In support of the ongoing CXL 2.0+ enabling 2 new core kernel
+facilities are added. One is the ability for the kernel to flag
+collisions between userspace access to PCI configuration registers and
+kernel accesses. This is brought on by the PCIe Data-Object-Exchange
+(DOE) facility, a hardware mailbox over config-cycles. The other is a
+cpu_cache_invalidate_memregion() API that maps to wbinvd_on_all_cpus()
+on x86. To prevent abuse it is disabled in guest VMs and architectures
+that do not support it yet. The CXL paths that need it, dynamic memory
+region creation and security commands (erase / unlock), are disabled
+when it is not present.
+
+As for the CXL 2.0+ this cycle the subsystem gains support Persistent
+Memory Security commands, error handling in response to PCIe AER
+notifications, and support for the "XOR" host bridge interleave
+algorithm.
+
+That last feature, "XOR" interleave support, is built on top of the
+ACPICA update for this cycle [1]. The shortlog and diffstat below are
+from a test merge with the pending ACPI updates. So either pull the ACPI
+tree first, or understand you will get some unrelated ACPICA updates in
+this pull.
+
+This has all appeared in -next with no known outstanding issues. The
+x86, ACPI, and PCI touches have acks from their respective maintainers.
+
+[1]: f350c68e3cd5 ("ACPICA: Add CXL 3.0 structures (CXIMS & RDPAS) to the CEDT table")
 
 ---
-The 'create-region' man page had some typos when it was first created.
-Clean them up per syntax expectations.
 
-Fixes: 21b089025178 ("cxl: add a 'create-region' command")
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
+The following changes since commit f0c4d9fc9cc9462659728d168387191387e903cc:
 
-...or let me know if you want a resend.
+  Linux 6.1-rc4 (2022-11-06 15:07:11 -0800)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/cxl/cxl tags/cxl-for-6.2
+
+for you to fetch changes up to f04facfb993de47e2133b2b842d72b97b1c50162:
+
+  cxl/region: Fix memdev reuse check (2022-12-08 13:03:47 -0800)
+
+----------------------------------------------------------------
+cxl for 6.2
+
+- Add the cpu_cache_invalidate_memregion() API for cache flushing in
+  response to physical memory reconfiguration, or memory-side data
+  invalidation from operations like secure erase or memory-device unlock.
+
+- Add a facility for the kernel to warn about collisions between kernel
+  and userspace access to PCI configuration registers
+
+- Add support for Restricted CXL Host (RCH) topologies (formerly CXL 1.1)
+
+- Add handling and reporting of CXL errors reported via the PCIe AER
+  mechanism
+
+- Add support for CXL Persistent Memory Security commands
+
+- Add support for the "XOR" algorithm for CXL host bridge interleave
+
+- Rework / simplify CXL to NVDIMM interactions
+
+- Miscellaneous cleanups and fixes
+
+----------------------------------------------------------------
+
+Adam Manzanares (1):
+      cxl: Replace HDM decoder granularity magic numbers
+
+Alison Schofield (3):
+      cxl/acpi: Support CXL XOR Interleave Math (CXIMS)
+      tools/testing/cxl: Add XOR Math support to cxl_test
+      cxl/acpi: Fail decoder add if CXIMS for HBIG is missing
+
+Colin Ian King (1):
+      cxl/region: Fix spelling mistake "memergion" -> "memregion"
+
+Dan Williams (34):
+      tools/testing/cxl: Add bridge mocking support
+      cxl/acpi: Simplify cxl_nvdimm_bridge probing
+      cxl/region: Drop redundant pmem region release handling
+      cxl/pmem: Refactor nvdimm device registration, delete the workqueue
+      cxl/pmem: Remove the cxl_pmem_wq and related infrastructure
+      cxl/acpi: Move rescan to the workqueue
+      tools/testing/cxl: Make mock CEDT parsing more robust
+      cxl/region: Fix missing probe failure
+      cxl/pmem: Enforce keyctl ABI for PMEM security
+      nvdimm/region: Move cache management to the region driver
+      cxl/region: Manage CPU caches relative to DPA invalidation events
+      cxl/pci: Cleanup repeated code in cxl_probe_regs() helpers
+      cxl/pci: Cleanup cxl_map_device_regs()
+      cxl/pci: Kill cxl_map_regs()
+      cxl/core/regs: Make cxl_map_{component, device}_regs() device generic
+      cxl/port: Limit the port driver to just the HDM Decoder Capability
+      cxl/pci: Prepare for mapping RAS Capability Structure
+      cxl/pci: Find and map the RAS Capability Structure
+      cxl/pci: Add (hopeful) error handling support
+      Merge "ACPICA: Add CXL 3.0 structures..." into for-6.2/cxl-xor
+      cxl/mem: Move devm_cxl_add_endpoint() from cxl_core to cxl_mem
+      cxl/port: Add RCD endpoint port enumeration
+      tools/testing/cxl: Add an RCH topology
+      Merge branch 'for-6.2/cxl-security' into for-6.2/cxl
+      Merge branch 'for-6.2/cxl-aer' into for-6.2/cxl
+      Merge branch 'for-6.2/cxl-xor' into for-6.2/cxl
+      cxl/regs: Fix sparse warning
+      tools/testing/cxl: Require cache invalidation bypass
+      cxl/security: Fix Get Security State output payload endian handling
+      cxl/mbox: Enable cxl_mbox_send_cmd() users to validate output size
+      cxl/mbox: Add variable output size validation for internal commands
+      cxl/security: Drop security command ioctl uapi
+      cxl/pci: Add some type-safety to the AER trace points
+      cxl/pci: Remove endian confusion
+
+Dave Jiang (23):
+      cxl/pmem: Introduce nvdimm_security_ops with ->get_flags() operation
+      tools/testing/cxl: Add "Get Security State" opcode support
+      cxl/pmem: Add "Set Passphrase" security command support
+      tools/testing/cxl: Add "Set Passphrase" opcode support
+      cxl/pmem: Add Disable Passphrase security command support
+      tools/testing/cxl: Add "Disable" security opcode support
+      cxl/pmem: Add "Freeze Security State" security command support
+      tools/testing/cxl: Add "Freeze Security State" security opcode support
+      cxl/pmem: Add "Unlock" security command support
+      tools/testing/cxl: Add "Unlock" security opcode support
+      cxl/pmem: Add "Passphrase Secure Erase" security command support
+      tools/testing/cxl: Add "passphrase secure erase" opcode support
+      nvdimm/cxl/pmem: Add support for master passphrase disable security command
+      cxl/pmem: add id attribute to CXL based nvdimm
+      tools/testing/cxl: add mechanism to lock mem device for testing
+      cxl/pmem: add provider name to cxl pmem dimm attribute group
+      libnvdimm: Introduce CONFIG_NVDIMM_SECURITY_TEST flag
+      cxl: add dimm_id support for __nvdimm_create()
+      cxl/pci: add tracepoint events for CXL RAS
+      PCI/AER: Add optional logging callback for correctable error
+      cxl/pci: Add callback to log AER correctable error
+      cxl: update names for interleave granularity conversion macros
+      cxl: update names for interleave ways conversion macros
+
+Davidlohr Bueso (1):
+      memregion: Add cpu_cache_invalidate_memregion() interface
+
+Fan Ni (1):
+      cxl/region: Fix memdev reuse check
+
+Ira Weiny (2):
+      PCI: Allow drivers to request exclusive config regions
+      cxl/doe: Request exclusive DOE access
+
+Robert Richter (8):
+      cxl/core: Remove duplicate declaration of devm_cxl_iomap_block()
+      cxl/core: Check physical address before mapping it in devm_cxl_iomap_block()
+      cxl: Unify debug messages when calling devm_cxl_add_port()
+      cxl: Unify debug messages when calling devm_cxl_add_dport()
+      cxl/acpi: Improve debug messages in cxl_acpi_probe()
+      cxl/ACPI: Register CXL host ports by bridge device
+      cxl/acpi: Extract component registers of restricted hosts from RCRB
+      cxl/acpi: Warn about an invalid CHBCR in an existing CHBS entry
+
+Terry Bowman (1):
+      cxl/acpi: Set ACPI's CXL _OSC to indicate RCD mode support
+
+ Documentation/ABI/testing/sysfs-bus-nvdimm |  14 +
+ Documentation/PCI/pci-error-recovery.rst   |   7 +
+ arch/x86/Kconfig                           |   1 +
+ arch/x86/mm/pat/set_memory.c               |  18 ++
+ drivers/acpi/nfit/intel.c                  |  30 +-
+ drivers/acpi/pci_root.c                    |   1 +
+ drivers/cxl/Kconfig                        |  18 ++
+ drivers/cxl/Makefile                       |   2 +-
+ drivers/cxl/acpi.c                         | 275 ++++++++++++++---
+ drivers/cxl/core/core.h                    |   8 -
+ drivers/cxl/core/hdm.c                     |  45 +--
+ drivers/cxl/core/mbox.c                    | 102 ++++---
+ drivers/cxl/core/memdev.c                  |   1 +
+ drivers/cxl/core/pci.c                     |   5 +-
+ drivers/cxl/core/pmem.c                    | 109 ++++---
+ drivers/cxl/core/port.c                    | 216 +++++++++-----
+ drivers/cxl/core/region.c                  | 112 ++++++-
+ drivers/cxl/core/regs.c                    | 242 ++++++++++-----
+ drivers/cxl/cxl.h                          | 140 +++++----
+ drivers/cxl/cxlmem.h                       |  64 +++-
+ drivers/cxl/cxlpci.h                       |   9 -
+ drivers/cxl/mem.c                          |  74 ++++-
+ drivers/cxl/pci.c                          | 228 ++++++++++++---
+ drivers/cxl/pmem.c                         | 407 ++++++--------------------
+ drivers/cxl/security.c                     | 202 +++++++++++++
+ drivers/nvdimm/Kconfig                     |  12 +
+ drivers/nvdimm/dimm_devs.c                 |   9 +-
+ drivers/nvdimm/region.c                    |  11 +
+ drivers/nvdimm/region_devs.c               |  50 +++-
+ drivers/nvdimm/security.c                  |  43 ++-
+ drivers/pci/pci-sysfs.c                    |   7 +
+ drivers/pci/pcie/aer.c                     |   8 +-
+ drivers/pci/probe.c                        |   6 +
+ include/linux/ioport.h                     |   2 +
+ include/linux/libnvdimm.h                  |   7 +
+ include/linux/memregion.h                  |  38 +++
+ include/linux/pci.h                        |  20 ++
+ include/trace/events/cxl.h                 | 112 +++++++
+ include/uapi/linux/pci_regs.h              |   1 +
+ kernel/resource.c                          |  13 +-
+ lib/Kconfig                                |   3 +
+ tools/testing/cxl/Kbuild                   |   2 +
+ tools/testing/cxl/config_check.c           |   2 +
+ tools/testing/cxl/test/cxl.c               | 303 +++++++++++++++++--
+ tools/testing/cxl/test/mem.c               | 453 ++++++++++++++++++++++++++++-
+ tools/testing/cxl/test/mock.c              |  19 ++
+ tools/testing/cxl/test/mock.h              |   3 +
+ tools/testing/nvdimm/Kbuild                |   1 -
+ tools/testing/nvdimm/dimm_devs.c           |  30 --
+ 49 files changed, 2649 insertions(+), 836 deletions(-)
+ create mode 100644 drivers/cxl/security.c
+ create mode 100644 include/trace/events/cxl.h
+ delete mode 100644 tools/testing/nvdimm/dimm_devs.c
