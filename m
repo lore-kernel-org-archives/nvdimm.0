@@ -1,75 +1,53 @@
-Received: from metis.ext.pengutronix.de (metis.ext.pengutronix.de [85.220.165.71])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FE856FD9
-	for <nvdimm@lists.linux.dev>; Mon, 12 Dec 2022 22:07:41 +0000 (UTC)
-Received: from drehscheibe.grey.stw.pengutronix.de ([2a0a:edc0:0:c01:1d::a2])
-	by metis.ext.pengutronix.de with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
-	(Exim 4.92)
-	(envelope-from <ukl@pengutronix.de>)
-	id 1p4qxO-0002Kj-6x; Mon, 12 Dec 2022 23:07:30 +0100
-Received: from [2a0a:edc0:0:900:1d::77] (helo=ptz.office.stw.pengutronix.de)
-	by drehscheibe.grey.stw.pengutronix.de with esmtp (Exim 4.94.2)
-	(envelope-from <ukl@pengutronix.de>)
-	id 1p4qxL-0046gk-6A; Mon, 12 Dec 2022 23:07:27 +0100
-Received: from ukl by ptz.office.stw.pengutronix.de with local (Exim 4.94.2)
-	(envelope-from <ukl@pengutronix.de>)
-	id 1p4qxL-004bmJ-0z; Mon, 12 Dec 2022 23:07:27 +0100
-From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
-To: Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>
-Cc: nvdimm@lists.linux.dev,
-	kernel@pengutronix.de
-Subject: [PATCH] dax/hmem: Drop empty platform remove function
-Date: Mon, 12 Dec 2022 23:07:25 +0100
-Message-Id: <20221212220725.3778201-1-u.kleine-koenig@pengutronix.de>
-X-Mailer: git-send-email 2.38.1
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5415E7475
+	for <nvdimm@lists.linux.dev>; Mon, 12 Dec 2022 22:46:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id F2487C433D2;
+	Mon, 12 Dec 2022 22:46:23 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1670885184;
+	bh=MstQfPbhIAU7j4DKA3OFGf5pW7AaPX/kJtPtU1oAINA=;
+	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+	b=duJ/O74l5PkZ/768MtkNWpVY9AIK+xovaiy1zKdLSZQHbW3NwNQ0s8RFiev68WktA
+	 qQXuJqasT7wIonS+TJU/iXLe015GCKV2HVhl/a94a0GDa37il2RAHV403eHlZ7Vtux
+	 VHF/to7MQsoPLKeIpsj+kk+nMno8GuLRy1EEhg4yBUhhLNYfRlLouQ4Go/xkHRSBVi
+	 LT4rluBqUwK4Yjib6q4kYRAhjJV8EEQApolXiBvLUIiWGxgeZmoUNwdGfvBHt7q9Fz
+	 wAKge3MVXG7aLxP35w3C10asxcYU4clvM3srWGUB5fu4VmBBFGd6Gg7YnRvyfYiKmg
+	 +vUbYZ+6DwqgQ==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id DFC4CC00448;
+	Mon, 12 Dec 2022 22:46:23 +0000 (UTC)
+Subject: Re: [GIT PULL] Compute Express Link (CXL) for 6.2
+From: pr-tracker-bot@kernel.org
+In-Reply-To: <6395383a608a5_4962d294e9@dwillia2-mobl3.amr.corp.intel.com.notmuch>
+References: <6395383a608a5_4962d294e9@dwillia2-mobl3.amr.corp.intel.com.notmuch>
+X-PR-Tracked-List-Id: <linux-acpi.vger.kernel.org>
+X-PR-Tracked-Message-Id: <6395383a608a5_4962d294e9@dwillia2-mobl3.amr.corp.intel.com.notmuch>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/cxl/cxl tags/cxl-for-6.2
+X-PR-Tracked-Commit-Id: f04facfb993de47e2133b2b842d72b97b1c50162
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: c1f0fcd85d3d66f002fc1a4986363840fcca766d
+Message-Id: <167088518390.6748.16216442840433238533.pr-tracker-bot@kernel.org>
+Date: Mon, 12 Dec 2022 22:46:23 +0000
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: torvalds@linux-foundation.org, linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-X-Developer-Signature: v=1; a=openpgp-sha256; l=856; i=u.kleine-koenig@pengutronix.de; h=from:subject; bh=YhSbY8UQAb9rmdMMS7pvVmbF98yOuu6f/TXb+2WGuQ0=; b=owEBbQGS/pANAwAKAcH8FHityuwJAcsmYgBjl6YaHW2rk/tgsW4GaYxmNVWIcKWooXeQSyWLnh9Z 1A20dAOJATMEAAEKAB0WIQR+cioWkBis/z50pAvB/BR4rcrsCQUCY5emGgAKCRDB/BR4rcrsCYQDCA CPDrWPIlVVdVE93JwSQ8wVt+l+ykaRkR3RePKpU3+7l9/Ujr0/WgpUjOpny93IKicT/qa00rJ5HIdG EMhUkm76/VazLHwUa70g3COVI7CJBbHrjnkHNLvA+w0HfmbvQKrOjIKYUeWvYrNknCVec1vH66s7OX HZjUD4LREV2hP/lOrLD+W613sdZT5N+6gAbMIX6O9kTMW2V43jQopt7/FEGgEQNgZm3yMK8uBePzbZ QqztW7qRKgh9BrlwmbEXoKECxRJUAEMLognmCFk6mC0l2waQQmn49ISQnKFDooAfReXR2wWA5J3i7P wyWk5thzusgwxqyXHRMD5vNjIWWAuh
-X-Developer-Key: i=u.kleine-koenig@pengutronix.de; a=openpgp; fpr=0D2511F322BFAB1C1580266BE2DCDD9132669BD6
-Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2a0a:edc0:0:c01:1d::a2
-X-SA-Exim-Mail-From: ukl@pengutronix.de
-X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
-X-PTX-Original-Recipient: nvdimm@lists.linux.dev
 
-A remove callback just returning 0 is equivalent to no remove callback
-at all. So drop the useless function.
+The pull request you sent on Sat, 10 Dec 2022 17:54:02 -0800:
 
-Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
----
- drivers/dax/hmem/hmem.c | 7 -------
- 1 file changed, 7 deletions(-)
+> git://git.kernel.org/pub/scm/linux/kernel/git/cxl/cxl tags/cxl-for-6.2
 
-diff --git a/drivers/dax/hmem/hmem.c b/drivers/dax/hmem/hmem.c
-index 1bf040dbc834..c7351e0dc8ff 100644
---- a/drivers/dax/hmem/hmem.c
-+++ b/drivers/dax/hmem/hmem.c
-@@ -44,15 +44,8 @@ static int dax_hmem_probe(struct platform_device *pdev)
- 	return 0;
- }
- 
--static int dax_hmem_remove(struct platform_device *pdev)
--{
--	/* devm handles teardown */
--	return 0;
--}
--
- static struct platform_driver dax_hmem_driver = {
- 	.probe = dax_hmem_probe,
--	.remove = dax_hmem_remove,
- 	.driver = {
- 		.name = "hmem",
- 	},
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/c1f0fcd85d3d66f002fc1a4986363840fcca766d
 
-base-commit: 830b3c68c1fb1e9176028d02ef86f3cf76aa2476
+Thank you!
+
 -- 
-2.38.1
-
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
