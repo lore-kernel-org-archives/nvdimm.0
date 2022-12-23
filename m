@@ -1,22 +1,22 @@
-Received: from esa6.hc1455-7.c3s2.iphmx.com (esa6.hc1455-7.c3s2.iphmx.com [68.232.139.139])
+Received: from esa2.hc1455-7.c3s2.iphmx.com (esa2.hc1455-7.c3s2.iphmx.com [207.54.90.48])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43FCE23A2
-	for <nvdimm@lists.linux.dev>; Fri, 23 Dec 2022 06:53:36 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6500,9779,10569"; a="102069672"
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBD1F23A0
+	for <nvdimm@lists.linux.dev>; Fri, 23 Dec 2022 06:55:39 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6500,9779,10569"; a="101163241"
 X-IronPort-AV: E=Sophos;i="5.96,267,1665414000"; 
-   d="scan'208";a="102069672"
-Received: from unknown (HELO oym-r4.gw.nic.fujitsu.com) ([210.162.30.92])
-  by esa6.hc1455-7.c3s2.iphmx.com with ESMTP; 23 Dec 2022 15:52:24 +0900
+   d="scan'208";a="101163241"
+Received: from unknown (HELO oym-r3.gw.nic.fujitsu.com) ([210.162.30.91])
+  by esa2.hc1455-7.c3s2.iphmx.com with ESMTP; 23 Dec 2022 15:52:27 +0900
 Received: from oym-m1.gw.nic.fujitsu.com (oym-nat-oym-m1.gw.nic.fujitsu.com [192.168.87.58])
-	by oym-r4.gw.nic.fujitsu.com (Postfix) with ESMTP id B68EF7E116
-	for <nvdimm@lists.linux.dev>; Fri, 23 Dec 2022 15:52:23 +0900 (JST)
+	by oym-r3.gw.nic.fujitsu.com (Postfix) with ESMTP id 032E3D6476
+	for <nvdimm@lists.linux.dev>; Fri, 23 Dec 2022 15:52:25 +0900 (JST)
 Received: from m3003.s.css.fujitsu.com (m3003.s.css.fujitsu.com [10.128.233.114])
-	by oym-m1.gw.nic.fujitsu.com (Postfix) with ESMTP id DF04DF66E8
-	for <nvdimm@lists.linux.dev>; Fri, 23 Dec 2022 15:52:17 +0900 (JST)
+	by oym-m1.gw.nic.fujitsu.com (Postfix) with ESMTP id 4150DD8C86
+	for <nvdimm@lists.linux.dev>; Fri, 23 Dec 2022 15:52:24 +0900 (JST)
 Received: from localhost.localdomain (unknown [10.19.3.107])
-	by m3003.s.css.fujitsu.com (Postfix) with ESMTP id 980B4200B2A8;
-	Fri, 23 Dec 2022 15:52:17 +0900 (JST)
+	by m3003.s.css.fujitsu.com (Postfix) with ESMTP id EDD2C200B2A8;
+	Fri, 23 Dec 2022 15:52:23 +0900 (JST)
 From: Daisuke Matsuda <matsuda-daisuke@fujitsu.com>
 To: linux-rdma@vger.kernel.org,
 	leonro@nvidia.com,
@@ -29,9 +29,9 @@ Cc: nvdimm@lists.linux.dev,
 	lizhijian@fujitsu.com,
 	y-goto@fujitsu.com,
 	Daisuke Matsuda <matsuda-daisuke@fujitsu.com>
-Subject: [PATCH for-next v3 2/7] RDMA/rxe: Always schedule works before accessing user MRs
-Date: Fri, 23 Dec 2022 15:51:53 +0900
-Message-Id: <53e045f842a5519eb905c447eeff9441de609fdb.1671772917.git.matsuda-daisuke@fujitsu.com>
+Subject: [PATCH for-next v3 4/7] RDMA/rxe: Add page invalidation support
+Date: Fri, 23 Dec 2022 15:51:55 +0900
+Message-Id: <97b0362e256dd3eb022d81c30941edd8fb0caba9.1671772917.git.matsuda-daisuke@fujitsu.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <cover.1671772917.git.matsuda-daisuke@fujitsu.com>
 References: <cover.1671772917.git.matsuda-daisuke@fujitsu.com>
@@ -44,116 +44,67 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-TM-AS-GCONF: 00
 
-Both responder and completer can sleep to execute page-fault when used
-with ODP, and page-fault handler can be invoked when they are going to
-access user MRs, so works must be scheduled in such cases.
+On page invalidation, an MMU notifier callback is invoked to unmap DMA
+addresses and update the driver page table(umem_odp->dma_list). The
+callback is registered when an ODP-enabled MR is created.
 
 Signed-off-by: Daisuke Matsuda <matsuda-daisuke@fujitsu.com>
 ---
- drivers/infiniband/sw/rxe/rxe_comp.c | 20 ++++++++++++++++++--
- drivers/infiniband/sw/rxe/rxe_loc.h  |  4 ++--
- drivers/infiniband/sw/rxe/rxe_recv.c |  4 ++--
- drivers/infiniband/sw/rxe/rxe_resp.c | 15 ++++++++++-----
- 4 files changed, 32 insertions(+), 11 deletions(-)
+ drivers/infiniband/sw/rxe/Makefile  |  2 ++
+ drivers/infiniband/sw/rxe/rxe_odp.c | 34 +++++++++++++++++++++++++++++
+ 2 files changed, 36 insertions(+)
+ create mode 100644 drivers/infiniband/sw/rxe/rxe_odp.c
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_comp.c b/drivers/infiniband/sw/rxe/rxe_comp.c
-index 046bbacce37c..421f4ffe51a3 100644
---- a/drivers/infiniband/sw/rxe/rxe_comp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_comp.c
-@@ -124,13 +124,29 @@ void retransmit_timer(struct timer_list *t)
- 	}
- }
- 
--void rxe_comp_queue_pkt(struct rxe_qp *qp, struct sk_buff *skb)
-+void rxe_comp_queue_pkt(struct rxe_pkt_info *pkt, struct sk_buff *skb)
- {
-+	struct rxe_qp *qp = pkt->qp;
- 	int must_sched;
- 
- 	skb_queue_tail(&qp->resp_pkts, skb);
- 
--	must_sched = skb_queue_len(&qp->resp_pkts) > 1;
-+	/* Schedule a work item if processing READ or ATOMIC acks.
-+	 * In these cases, completer may sleep to access ODP-enabled MRs.
-+	 */
-+	switch (pkt->opcode) {
-+	case IB_OPCODE_RC_RDMA_READ_RESPONSE_ONLY:
-+	case IB_OPCODE_RC_RDMA_READ_RESPONSE_FIRST:
-+	case IB_OPCODE_RC_RDMA_READ_RESPONSE_MIDDLE:
-+	case IB_OPCODE_RC_RDMA_READ_RESPONSE_LAST:
-+	case IB_OPCODE_RC_ATOMIC_ACKNOWLEDGE:
-+		must_sched = 1;
-+		break;
+diff --git a/drivers/infiniband/sw/rxe/Makefile b/drivers/infiniband/sw/rxe/Makefile
+index 5395a581f4bb..93134f1d1d0c 100644
+--- a/drivers/infiniband/sw/rxe/Makefile
++++ b/drivers/infiniband/sw/rxe/Makefile
+@@ -23,3 +23,5 @@ rdma_rxe-y := \
+ 	rxe_task.o \
+ 	rxe_net.o \
+ 	rxe_hw_counters.o
 +
-+	default:
-+		must_sched = skb_queue_len(&qp->resp_pkts) > 1;
-+	}
++rdma_rxe-$(CONFIG_INFINIBAND_ON_DEMAND_PAGING) += rxe_odp.o
+diff --git a/drivers/infiniband/sw/rxe/rxe_odp.c b/drivers/infiniband/sw/rxe/rxe_odp.c
+new file mode 100644
+index 000000000000..0787a9b19646
+--- /dev/null
++++ b/drivers/infiniband/sw/rxe/rxe_odp.c
+@@ -0,0 +1,34 @@
++// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
++/*
++ * Copyright (c) 2022 Fujitsu Ltd. All rights reserved.
++ */
 +
- 	if (must_sched != 0)
- 		rxe_counter_inc(SKB_TO_PKT(skb)->rxe, RXE_CNT_COMPLETER_SCHED);
- 
-diff --git a/drivers/infiniband/sw/rxe/rxe_loc.h b/drivers/infiniband/sw/rxe/rxe_loc.h
-index 948ce4902b10..d567aa65b5e0 100644
---- a/drivers/infiniband/sw/rxe/rxe_loc.h
-+++ b/drivers/infiniband/sw/rxe/rxe_loc.h
-@@ -176,9 +176,9 @@ int rxe_icrc_init(struct rxe_dev *rxe);
- int rxe_icrc_check(struct sk_buff *skb, struct rxe_pkt_info *pkt);
- void rxe_icrc_generate(struct sk_buff *skb, struct rxe_pkt_info *pkt);
- 
--void rxe_resp_queue_pkt(struct rxe_qp *qp, struct sk_buff *skb);
-+void rxe_resp_queue_pkt(struct rxe_pkt_info *pkt, struct sk_buff *skb);
- 
--void rxe_comp_queue_pkt(struct rxe_qp *qp, struct sk_buff *skb);
-+void rxe_comp_queue_pkt(struct rxe_pkt_info *pkt, struct sk_buff *skb);
- 
- static inline unsigned int wr_opcode_mask(int opcode, struct rxe_qp *qp)
- {
-diff --git a/drivers/infiniband/sw/rxe/rxe_recv.c b/drivers/infiniband/sw/rxe/rxe_recv.c
-index 434a693cd4a5..01d07572a56f 100644
---- a/drivers/infiniband/sw/rxe/rxe_recv.c
-+++ b/drivers/infiniband/sw/rxe/rxe_recv.c
-@@ -174,9 +174,9 @@ static int hdr_check(struct rxe_pkt_info *pkt)
- static inline void rxe_rcv_pkt(struct rxe_pkt_info *pkt, struct sk_buff *skb)
- {
- 	if (pkt->mask & RXE_REQ_MASK)
--		rxe_resp_queue_pkt(pkt->qp, skb);
-+		rxe_resp_queue_pkt(pkt, skb);
- 	else
--		rxe_comp_queue_pkt(pkt->qp, skb);
-+		rxe_comp_queue_pkt(pkt, skb);
- }
- 
- static void rxe_rcv_mcast_pkt(struct rxe_dev *rxe, struct sk_buff *skb)
-diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
-index d9134a00a529..991550baef8c 100644
---- a/drivers/infiniband/sw/rxe/rxe_resp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_resp.c
-@@ -85,15 +85,20 @@ static char *resp_state_name[] = {
- };
- 
- /* rxe_recv calls here to add a request packet to the input queue */
--void rxe_resp_queue_pkt(struct rxe_qp *qp, struct sk_buff *skb)
-+void rxe_resp_queue_pkt(struct rxe_pkt_info *pkt, struct sk_buff *skb)
- {
--	int must_sched;
--	struct rxe_pkt_info *pkt = SKB_TO_PKT(skb);
-+	int must_sched = 1;
-+	struct rxe_qp *qp = pkt->qp;
- 
- 	skb_queue_tail(&qp->req_pkts, skb);
- 
--	must_sched = (pkt->opcode == IB_OPCODE_RC_RDMA_READ_REQUEST) ||
--			(skb_queue_len(&qp->req_pkts) > 1);
-+	/* responder can sleep to access an ODP-enabled MR. Always schedule
-+	 * work items for non-zero-byte operations, RDMA READ, and ATOMIC
-+	 * operations.
-+	 */
-+	if ((skb_queue_len(&qp->req_pkts) == 1) && (payload_size(pkt) == 0)
-+	    && !(pkt->mask & RXE_READ_OR_ATOMIC_MASK))
-+		must_sched = 0;
- 
- 	if (must_sched)
- 		rxe_sched_task(&qp->resp.task);
++#include <rdma/ib_umem_odp.h>
++
++static bool rxe_ib_invalidate_range(struct mmu_interval_notifier *mni,
++				    const struct mmu_notifier_range *range,
++				    unsigned long cur_seq)
++{
++	struct ib_umem_odp *umem_odp =
++		container_of(mni, struct ib_umem_odp, notifier);
++	unsigned long start;
++	unsigned long end;
++
++	if (!mmu_notifier_range_blockable(range))
++		return false;
++
++	mutex_lock(&umem_odp->umem_mutex);
++	mmu_interval_set_seq(mni, cur_seq);
++
++	start = max_t(u64, ib_umem_start(umem_odp), range->start);
++	end = min_t(u64, ib_umem_end(umem_odp), range->end);
++
++	ib_umem_odp_unmap_dma_pages(umem_odp, start, end);
++
++	mutex_unlock(&umem_odp->umem_mutex);
++	return true;
++}
++
++const struct mmu_interval_notifier_ops rxe_mn_ops = {
++	.invalidate = rxe_ib_invalidate_range,
++};
 -- 
 2.31.1
 
