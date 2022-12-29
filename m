@@ -1,58 +1,161 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mail1.bemta32.messagelabs.com (mail1.bemta32.messagelabs.com [195.245.230.2])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3853CED1
-	for <nvdimm@lists.linux.dev>; Thu, 29 Dec 2022 07:02:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D0DCC433D2;
-	Thu, 29 Dec 2022 07:02:49 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1672297369;
-	bh=ZuXJhWxTiKK7rNV5+l64eAbjpD7WZx3v0R5AYbUoqOY=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=msZEjdMQFLp6RpIcuVr6Z/h76NOyUxXFChn2R69b9AQdizE2lkG5d+sozkDgu8Ngo
-	 CmuMZ1CP0rWTOxLhijuvMv+mao7wspAlchrjQyCV5JpnJzhw5tZT7RpFKZNmanK39l
-	 Ze1vflbh2xldEE1sjXV5mv9+Mn3ljI6ii7W5vNcALSb1x+BBJuS8StH/IK1SSPrlb7
-	 cDM9Ak9AWGQwoIucVJsVU/j1IymNIAfXfTnsWy1tl+5j33q2PjtTX/l1wVttrm2Wtg
-	 z/76m+thVJWXiKN8riGAHG61W7o4Q9nrtdvi9F+qSb9XoX6EM7SCws3tUiWmXg+Oyv
-	 z0n9v0hc5AS9w==
-Date: Thu, 29 Dec 2022 09:02:45 +0200
-From: Leon Romanovsky <leon@kernel.org>
-To: Bob Pearson <rpearsonhpe@gmail.com>
-Cc: Daisuke Matsuda <matsuda-daisuke@fujitsu.com>,
-	linux-rdma@vger.kernel.org, jgg@nvidia.com, zyjzyj2000@gmail.com,
-	nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org,
-	yangx.jy@fujitsu.com, lizhijian@fujitsu.com, y-goto@fujitsu.com
-Subject: Re: [PATCH for-next v3 1/7] RDMA/rxe: Convert triple tasklets to use
- workqueue
-Message-ID: <Y607lVbzs9PTd0m+@unreal>
-References: <cover.1671772917.git.matsuda-daisuke@fujitsu.com>
- <d2f6b3aca61fe1858a97cda94691eece6b0e60bd.1671772917.git.matsuda-daisuke@fujitsu.com>
- <53a2fca7-d98a-acef-8b18-d36a5a16d176@gmail.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE8691389
+	for <nvdimm@lists.linux.dev>; Thu, 29 Dec 2022 08:23:27 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fujitsu.com;
+	s=170520fj; t=1672302206; i=@fujitsu.com;
+	bh=SUSAOyphF+B29lskscxDvTF3FQCewU2rscBGHhh6gm4=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type:Content-Transfer-Encoding;
+	b=FjqWGmTuFguN7i+NUk81QEUGiW8CeKad7QUINXYTukOPyE5khuoATs0HniXwcpbn2
+	 lIkN8gSvbMAdrQ/XeLdJtQImFVu9vLIR2G/ZwnVNqrdfDnh+c2/L3yRMGlJr4r7JD0
+	 7wfU33sUye7vLx3sikmain6l+oR6dbBr3v0NMxuEDwKuUSvNbCysTYRQvipuN74MAQ
+	 nllZfIGy02JtktXivHkXnHSv9lOA6NPcs2yVK/kJCAO16fQKMCjZOoTnZSmqTcKD4i
+	 cjMmDbylN42AiqOHv1NgslfvuO3WOINBLNFhdiRivLOnRTLmD5jJ8s5iSwuhX9DYc4
+	 3dJ6bAH6hRHdA==
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFlrCKsWRWlGSWpSXmKPExsViZ8ORpFvjtzb
+  Z4PkyfYs569ewWUyfeoHRYsuxe4wWl5/wWezZe5LF4vKuOWwWu/7sYLdY+eMPqwOHx6lFEh6L
+  97xk8ti0qpPN48SM3yweLzbPZPT4vEkugC2KNTMvKb8igTXj0KuJjAWXJCru/rzC1MC4SLiLk
+  YtDSGAjo0THw4ksEM5iJonLZ68yQzg7GCVeX/rG1MXIycErYCex9OgZMJtFQFXi8cMv7BBxQY
+  mTM5+wgNiiAskSL45+YwSxhQWsJaaufczaxcjBISJQKnHqYxZImFmgWmLi3/NQ85sYJVafmsg
+  MkmAT0JG4sOAvK4jNKeAp8WHlX2aIBguJxW8OskPY8hLNW2eDxSUElCR6G96zQtgVErNmtTFB
+  2GoSV89tYp7AKDQLyXmzkIyahWTUAkbmVYxmxalFZalFuoYmeklFmekZJbmJmTl6iVW6iXqpp
+  brlqcUluoZ6ieXFeqnFxXrFlbnJOSl6eaklmxiBEZZSzLZqB+OvZX/0DjFKcjApifJm2K1NFu
+  JLyk+pzEgszogvKs1JLT7EKMPBoSTBG+YNlBMsSk1PrUjLzAFGO0xagoNHSYR3Hkiat7ggMbc
+  4Mx0idYpRl2Ntw4G9zEIsefl5qVLivI6+QEUCIEUZpXlwI2CJ5xKjrJQwLyMDA4MQT0FqUW5m
+  Car8K0ZxDkYlYd54H6ApPJl5JXCbXgEdwQR0xIdDK0GOKElESEk1MEm8KLrSwRd5fEkt370To
+  hWHo/5HPZxkqnrqiLOTl0fbgbl7rnCtSVQR7bp39vjlDen8NrWLNe7v6phVsX4/5467lpYurr
+  fvTxeW2TpRkNG961pboNDhKXe/uHH6GLIqiDi/27oiTdhj88Se2PDDBhNZU3adE2K/bfdO/g7
+  jmsTQydwsZ24krJzLzZ6y9N/52SU7mBx00/PL1ylJzStme+PpeMnq5rzAlAnmWZXBnrPmri9T
+  yhZmUp7zZ4IHg9Dhm1l1b25q/Kk2+smw5CK34NMnU+WqqiQvNDpH+kQ6rrlmJia1IO36FYv8r
+  t7+68Y1l2NdV6nGme6eYhuhuHud2hkBuQkfryyceaGt3WLjOiWW4oxEQy3mouJEAD4S2ja3Aw
+  AA
+X-Env-Sender: ruansy.fnst@fujitsu.com
+X-Msg-Ref: server-9.tower-587.messagelabs.com!1672302204!842!1
+X-Originating-IP: [62.60.8.98]
+X-SYMC-ESS-Client-Auth: outbound-route-from=pass
+X-StarScan-Received:
+X-StarScan-Version: 9.101.2; banners=-,-,-
+X-VirusChecked: Checked
+Received: (qmail 12139 invoked from network); 29 Dec 2022 08:23:24 -0000
+Received: from unknown (HELO n03ukasimr03.n03.fujitsu.local) (62.60.8.98)
+  by server-9.tower-587.messagelabs.com with ECDHE-RSA-AES256-GCM-SHA384 encrypted SMTP; 29 Dec 2022 08:23:24 -0000
+Received: from n03ukasimr03.n03.fujitsu.local (localhost [127.0.0.1])
+	by n03ukasimr03.n03.fujitsu.local (Postfix) with ESMTP id 517BD1B1;
+	Thu, 29 Dec 2022 08:23:24 +0000 (GMT)
+Received: from R01UKEXCASM126.r01.fujitsu.local (R01UKEXCASM126 [10.183.43.178])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by n03ukasimr03.n03.fujitsu.local (Postfix) with ESMTPS id 4604B7B;
+	Thu, 29 Dec 2022 08:23:24 +0000 (GMT)
+Received: from [10.167.201.145] (10.167.201.145) by
+ R01UKEXCASM126.r01.fujitsu.local (10.183.43.178) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.42; Thu, 29 Dec 2022 08:23:20 +0000
+Message-ID: <5bbe8d22-0cdb-9c6f-d568-c183c4bd7dbe@fujitsu.com>
+Date: Thu, 29 Dec 2022 16:23:13 +0800
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <53a2fca7-d98a-acef-8b18-d36a5a16d176@gmail.com>
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
+ Thunderbird/102.6.1
+Subject: Re: [PATCH v2 0/8] fsdax,xfs: fix warning messages
+To: Dan Williams <dan.j.williams@intel.com>, <djwong@kernel.org>,
+	<david@fromorbit.com>, <akpm@linux-foundation.org>
+CC: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
+	<nvdimm@lists.linux.dev>, <linux-fsdevel@vger.kernel.org>
+References: <1669908538-55-1-git-send-email-ruansy.fnst@fujitsu.com>
+ <638aa4a298879_3cbe0294ba@dwillia2-xfh.jf.intel.com.notmuch>
+From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+In-Reply-To: <638aa4a298879_3cbe0294ba@dwillia2-xfh.jf.intel.com.notmuch>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.167.201.145]
+X-ClientProxiedBy: G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.80) To
+ R01UKEXCASM126.r01.fujitsu.local (10.183.43.178)
+X-Virus-Scanned: ClamAV using ClamSMTP
 
-On Wed, Dec 28, 2022 at 10:56:11AM -0600, Bob Pearson wrote:
-> On 12/23/22 00:51, Daisuke Matsuda wrote:
-> > In order to implement On-Demand Paging on the rxe driver, triple tasklets
-> > (requester, responder, and completer) must be allowed to sleep so that they
-> > can trigger page fault when pages being accessed are not present.
-> > 
-> > This patch replaces the tasklets with a workqueue, but still allows direct-
-> > call of works from softirq context if it is obvious that MRs are not going
-> > to be accessed and there is no work being processed in the workqueue.
+
+
+在 2022/12/3 9:21, Dan Williams 写道:
+> Shiyang Ruan wrote:
+>> Changes since v1:
+>>   1. Added a snippet of the warning message and some of the failed cases
+>>   2. Separated the patch for easily review
+>>   3. Added page->share and its helper functions
+>>   4. Included the patch[1] that removes the restrictions of fsdax and reflink
+>> [1] https://lore.kernel.org/linux-xfs/1663234002-17-1-git-send-email-ruansy.fnst@fujitsu.com/
+>>
+...
+>>
+>> This also effects dax+noreflink mode if we run the test after a
+>> dax+reflink test.  So, the most urgent thing is solving the warning
+>> messages.
+>>
+>> With these fixes, most warning messages in dax_associate_entry() are
+>> gone.  But honestly, generic/388 will randomly failed with the warning.
+>> The case shutdown the xfs when fsstress is running, and do it for many
+>> times.  I think the reason is that dax pages in use are not able to be
+>> invalidated in time when fs is shutdown.  The next time dax page to be
+>> associated, it still remains the mapping value set last time.  I'll keep
+>> on solving it.
 > 
-> There are already at least two patch sets that do this waiting to get upstream
+> This one also sounds like it is going to be relevant for CXL PMEM, and
+> the improvements to the reference counting. CXL has a facility where the
+> driver asserts that no more writes are in-flight to the device so that
+> the device can assert a clean shutdown. Part of that will be making sure
+> that page access ends at fs shutdown.
 
-I don't see any unhandled RXE series, except of this one patch [1],
-which is one out larger series.
+I was trying to locate the root cause of the fail on generic/388.  But 
+since it's a fsstress test, I can't relpay the operation sequence to 
+help me locate the operations.  So, I tried to replace fsstress with 
+fsx, which can do replay after the case fails, but it can't reproduce 
+the fail.  I think another important factor is that fsstress tests with 
+multiple threads.  So, for now, it's hard for me to locate the cause by 
+running the test.
 
-[1] https://patchwork.kernel.org/project/linux-rdma/patch/20221029031331.64518-1-rpearsonhpe@gmail.com/
+Then I updated the kernel to the latest v6.2-rc1 and run generic/388 for 
+many times.  The warning dmesg doesn't show any more.
 
-> Bob
+How is your test on this case?  Does it still fail on the latest kernel? 
+  If so, I think I have to keep on locating the cause, and need your advice.
+
+
+--
+Thanks,
+Ruan.
+
+> 
+>> The warning message in dax_writeback_one() can also be fixed because of
+>> the dax unshare.
+>>
+>>
+>> Shiyang Ruan (8):
+>>    fsdax: introduce page->share for fsdax in reflink mode
+>>    fsdax: invalidate pages when CoW
+>>    fsdax: zero the edges if source is HOLE or UNWRITTEN
+>>    fsdax,xfs: set the shared flag when file extent is shared
+>>    fsdax: dedupe: iter two files at the same time
+>>    xfs: use dax ops for zero and truncate in fsdax mode
+>>    fsdax,xfs: port unshare to fsdax
+>>    xfs: remove restrictions for fsdax and reflink
+>>
+>>   fs/dax.c                   | 220 +++++++++++++++++++++++++------------
+>>   fs/xfs/xfs_ioctl.c         |   4 -
+>>   fs/xfs/xfs_iomap.c         |   6 +-
+>>   fs/xfs/xfs_iops.c          |   4 -
+>>   fs/xfs/xfs_reflink.c       |   8 +-
+>>   include/linux/dax.h        |   2 +
+>>   include/linux/mm_types.h   |   5 +-
+>>   include/linux/page-flags.h |   2 +-
+>>   8 files changed, 166 insertions(+), 85 deletions(-)
+>>
+>> -- 
+>> 2.38.1
+>>
+>>
+> 
+> 
