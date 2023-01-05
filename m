@@ -1,73 +1,63 @@
-Received: from mailsrv.cs.umass.edu (mailsrv.cs.umass.edu [128.119.240.136])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7188EB03
-	for <nvdimm@lists.linux.dev>; Thu,  5 Jan 2023 17:08:22 +0000 (UTC)
-Received: from [192.168.50.148] (c-24-62-201-179.hsd1.ma.comcast.net [24.62.201.179])
-	by mailsrv.cs.umass.edu (Postfix) with ESMTPSA id D88D14032BA7;
-	Thu,  5 Jan 2023 12:08:18 -0500 (EST)
-Message-ID: <558d0ff1-4658-a11b-5a6d-0be0a3a6799c@cs.umass.edu>
-Date: Thu, 5 Jan 2023 12:08:18 -0500
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E471EB0F
+	for <nvdimm@lists.linux.dev>; Thu,  5 Jan 2023 17:35:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB2C9C433D2;
+	Thu,  5 Jan 2023 17:35:56 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1672940157;
+	bh=f7505iY1BWFNhj1WcA6eV90W1WFeuS0jIlveKOJSDFM=;
+	h=Date:From:To:Cc:Subject:Reply-To:References:In-Reply-To:From;
+	b=J+px0FgEMy5oRWTkLUBZEiQ7myhWbq0YAioqxnPvWVRzHuxvMs3I1mfgmTF2ocpz9
+	 1QQYvUiB/W0yLU5GwRRQvvMmbcfH27cgw7UUm7/Ljf68J1u8/7P7SW9WBoYpGTatTZ
+	 r6Rc+OFlMpusHMESLFoM6mQPK099Rtoyb+scui2TlfjvU1UIm4WCvI2Zyonu2MaDMY
+	 5WwBia3Z4JheCYF6RIVb2Re4KmLJVOUi0+edFYQSTAJKYEaXY02Uv8Xkq+EF97sTTf
+	 oDWisdJmrwWTVRkr7a+iraA5fmHJihGhwcOwj05Axm/dV0pYfyjhI6J9YkXmr/aMLb
+	 +H0RcRoOGP9Ug==
+Received: by paulmck-ThinkPad-P17-Gen-1.home (Postfix, from userid 1000)
+	id 94C005C0544; Thu,  5 Jan 2023 09:35:56 -0800 (PST)
+Date: Thu, 5 Jan 2023 09:35:56 -0800
+From: "Paul E. McKenney" <paulmck@kernel.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: rcu@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-team@meta.com,
+	rostedt@goodmis.org, Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>, nvdimm@lists.linux.dev
+Subject: Re: [PATCH rcu 11/27] drivers/dax: Remove "select SRCU"
+Message-ID: <20230105173556.GC4028633@paulmck-ThinkPad-P17-Gen-1>
+Reply-To: paulmck@kernel.org
+References: <20230105003759.GA1769545@paulmck-ThinkPad-P17-Gen-1>
+ <20230105003813.1770367-11-paulmck@kernel.org>
+ <63b6ff5c6b954_5178e2945b@dwillia2-xfh.jf.intel.com.notmuch>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
- Thunderbird/102.6.1
-Reply-To: moss@cs.umass.edu
-Subject: Re: nvdimm fsdax metadata
-Content-Language: en-US
-To: "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>
-References: <87ec52d6-23ba-48fb-8cc7-ffbb0738c305@cs.umass.edu>
- <63b701a2c1400_5178e2949c@dwillia2-xfh.jf.intel.com.notmuch>
-From: Eliot Moss <moss@cs.umass.edu>
-In-Reply-To: <63b701a2c1400_5178e2949c@dwillia2-xfh.jf.intel.com.notmuch>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <63b6ff5c6b954_5178e2945b@dwillia2-xfh.jf.intel.com.notmuch>
 
-On 1/5/2023 11:58 AM, Dan Williams wrote:
-> Eliot Moss wrote:
->> The configuration guidance for nvdimm indicates that fsdax mode requires 64
->> byte of metadata per 4K bytes of nvdimm.  The map= command line argument can
->> be used to control whether that metadata is stored in the nvdimm or regular
->> (presumably DRAM) memory.  We were pondering this as wonder what the metadata
->> is used for.  I am thinking someone on this list can clarify.  Thanks!
+On Thu, Jan 05, 2023 at 08:48:28AM -0800, Dan Williams wrote:
+> Paul E. McKenney wrote:
+> > Now that the SRCU Kconfig option is unconditionally selected, there is
+> > no longer any point in selecting it.  Therefore, remove the "select SRCU"
+> > Kconfig statements.
+> > 
+> > Signed-off-by: Paul E. McKenney <paulmck@kernel.org>
+> > Cc: Dan Williams <dan.j.williams@intel.com>
+> > Cc: Vishal Verma <vishal.l.verma@intel.com>
+> > Cc: Dave Jiang <dave.jiang@intel.com>
+> > Cc: <nvdimm@lists.linux.dev>
 > 
-> sizeof(struct page) == 64 (in most cases)
+> Acked-by: Dan Williams <dan.j.williams@intel.com>
 > 
-> 'struct page' is the object that describes the state of physical memory
-> pages to the rest of the kernel. Matthew wrote a useful summary of
-> 'struct page' here:
-> 
-> https://blogs.oracle.com/linux/post/struct-page-the-linux-physical-page-frame-data-structure
+> Let me know if I should pick this up directly, otherwise I assume this
+> will go in along with the rest of the set.
 
-Excellent coverage - makes sense!  Thank you, Dan.
+Thank you, Dan!  I will apply your ack on my next rebase.  I do plan to
+send this along with the rest of the set, but if you do decide to take
+it, please just let me know.
 
->> Eliot Moss
->>
->> PS: Concerning that huge pages mapping question from a while back, is there an
->> fsdax group / list to which I could post that for followup?  Thanks - EM
-> 
-> The 'fsdax' topic ties together linux-mm@kvack.org,
-> linux-fsdevel@vger.kernel.org, and nvdimm@lists.linux.dev. So it depends
-> on what aspect you're digging into. When in doubt you can start here on
-> nvdimm@lists.linux.dev and folks here can help route. IIRC you had a
-> question about storage allocation alignment and huge mappings? I forgot
-> the details of the questionover the holiday break.
-
-The issue is this.  When mapping a large region, fsdax will *mostly* use
-2Mb pages.  It won't use 1Gb pages at all (that would be an enhancement
-request, I suppose), but it strangely decided to do certain 2Mb regions
-(which *could* be mapped with a 2Mb huge page) using 4Kb pages.  A
-possible clue is that when first mapping the region, it is the *last*
-2Mb region that gets split into 4Kb pages.  This suggests some kind of
-boundary condition not being handled in the desired way (though the
-result still *works*, just with more TLB miss overhead).
-
-Sounds like re-posting the original query to linux-mm and linux-fsdevel
-might be appropriate since it has to do with mmaping files on fsdax
-file systems.
-
-Best - Eliot
+							Thanx, Paul
