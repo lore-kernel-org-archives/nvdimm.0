@@ -1,79 +1,85 @@
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9D7A7474
-	for <nvdimm@lists.linux.dev>; Tue, 10 Jan 2023 23:09:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9331817EA
+	for <nvdimm@lists.linux.dev>; Wed, 11 Jan 2023 22:46:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1673392195; x=1704928195;
-  h=from:date:subject:mime-version:content-transfer-encoding:
-   message-id:references:in-reply-to:to:cc;
-  bh=P4hPdW8+bePoAaxzhoqscfaaJ238PGmVdQhKGufS+7Y=;
-  b=CGOD0DTgMhn5D9v61hM3orQnWr0My6RGldFr4wq9j9gOUYecYlPzLQj1
-   ZprYSbf39FeV1kZ5g4KEMqdp9ekv9BmYYLjvfr15TkVOzaXJVdBBTXvBU
-   fTuaeaIV9Qb8om+zIhJneI3PJgg6gckGlKDrr2HXiaKXFz4QxKuBW4N4w
-   wNr/qB2TnGIR6XJjjcK3JYO4JumEZ2Ig0P72W5mE2QYqH3UDeilyZRjQm
-   HOs6AoEMk0OBXiIcmnHvvpWLY+QXlS8TuGquj8/GLfJQ3lUwbTAiKQ22Y
-   Dwka/7jOgLrat2pZGkTcX5sgRYJsmEFmKstgk3JpJyxXd4aEQ+1HiWR9u
-   w==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10586"; a="321981274"
-X-IronPort-AV: E=Sophos;i="5.96,315,1665471600"; 
-   d="scan'208";a="321981274"
-Received: from fmsmga007.fm.intel.com ([10.253.24.52])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Jan 2023 15:09:53 -0800
-X-IronPort-AV: E=McAfee;i="6500,9779,10586"; a="659155916"
-X-IronPort-AV: E=Sophos;i="5.96,315,1665471600"; 
-   d="scan'208";a="659155916"
-Received: from ffallaha-mobl.amr.corp.intel.com (HELO vverma7-desk1.local) ([10.212.116.179])
-  by fmsmga007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Jan 2023 15:09:52 -0800
-From: Vishal Verma <vishal.l.verma@intel.com>
-Date: Tue, 10 Jan 2023 16:09:17 -0700
-Subject: [PATCH ndctl 4/4] cxl/region: fix a comment typo
+  t=1673477161; x=1705013161;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=pn+2kbMSqRmm1Q5olrfumiTZKGc1LSazcnURq8/HAyE=;
+  b=XsuvDu/GajnG+o0Z97Vs816aeLWlQq9TrI68/lLxAGejALISOCrS5NaF
+   +qapaF4GL0gs6RzuVAkGyOkjwSTLCoq9AGpvCljHTUElW3QBceM5Y5ba6
+   l2Po1e61PD+ZRsNkQP1ZGzBdyEf+3S9IWfGwDbVuFos5zozSGpMSI2IUn
+   ov1jC8fRTod6/V9MU4WKXK/lOB8b4WeRLDrh2tFg2Qzeoy3x6MTQcaN5w
+   DgNUe1RZhSTQc6p6ismtvzrY4myO6FWmMR7MZ4ZcKrBTWxdK2PE9bm5Os
+   pHVcRVaJ2KhhnCddVuxYhuCbyGrIIsP0cKIzsfe0C8sZmwJjQo/sPN/f2
+   Q==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10586"; a="324794138"
+X-IronPort-AV: E=Sophos;i="5.96,318,1665471600"; 
+   d="scan'208";a="324794138"
+Received: from orsmga002.jf.intel.com ([10.7.209.21])
+  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jan 2023 14:46:01 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10586"; a="657573831"
+X-IronPort-AV: E=Sophos;i="5.96,318,1665471600"; 
+   d="scan'208";a="657573831"
+Received: from aschofie-mobl2.amr.corp.intel.com (HELO aschofie-mobl2) ([10.212.147.120])
+  by orsmga002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jan 2023 14:46:00 -0800
+Date: Wed, 11 Jan 2023 14:45:59 -0800
+From: Alison Schofield <alison.schofield@intel.com>
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
+	Dave Jiang <dave.jiang@intel.com>,
+	Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH ndctl 1/4] ndctl/lib: fix usage of a non NUL-terminated
+ string
+Message-ID: <Y788J2sr4WaE9V3i@aschofie-mobl2>
+References: <20230110-vv-coverity-fixes-v1-0-c7ee6c76b200@intel.com>
+ <20230110-vv-coverity-fixes-v1-1-c7ee6c76b200@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20230110-vv-coverity-fixes-v1-4-c7ee6c76b200@intel.com>
-References: <20230110-vv-coverity-fixes-v1-0-c7ee6c76b200@intel.com>
-In-Reply-To: <20230110-vv-coverity-fixes-v1-0-c7ee6c76b200@intel.com>
-To: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
-Cc: Dave Jiang <dave.jiang@intel.com>, Dan Williams <dan.j.williams@intel.com>,
- Vishal Verma <vishal.l.verma@intel.com>
-X-Mailer: b4 0.12-dev-cc11a
-X-Developer-Signature: v=1; a=openpgp-sha256; l=813;
- i=vishal.l.verma@intel.com; h=from:subject:message-id;
- bh=P4hPdW8+bePoAaxzhoqscfaaJ238PGmVdQhKGufS+7Y=;
- b=owGbwMvMwCXGf25diOft7jLG02pJDMl7P9j/r16f9PzrvM5ly4XUb3J2ZxTtZuTbwnm5JnjBxVsp
- WVtndpSyMIhxMciKKbL83fOR8Zjc9nyewARHmDmsTCBDGLg4BWAiRnMZGbY/O7iLP3LWkt25mcxZ5f
- eeaIaI9LgWVXoeyTju12Q5SZmR4eP8cx/tX2y9N29qZ8x+Zp6HG753JGTNqzpbs/dos26DJysA
-X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp;
- fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230110-vv-coverity-fixes-v1-1-c7ee6c76b200@intel.com>
 
-Fix a typo: s/separted/separated/
+On Tue, Jan 10, 2023 at 04:09:14PM -0700, Vishal Verma wrote:
+> Static analysis reports that in add_region(), a buffer from pread()
+> won't have NUL-termination. Hence passing it to strtol subsequently can
+> be wrong. Manually add the termination after pread() to fix this.
+> 
+> Fixes: c64cc150a21e ("ndctl: add support in libndctl to provide deep flush")
+> Cc: Dave Jiang <dave.jiang@intel.com>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+> ---
+>  ndctl/lib/libndctl.c | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+> index f32f704..ddbdd9a 100644
+> --- a/ndctl/lib/libndctl.c
+> +++ b/ndctl/lib/libndctl.c
+> @@ -2750,6 +2750,8 @@ static void *add_region(void *parent, int id, const char *region_base)
+>  		goto out;
+>  	}
+>  
+> +	/* pread() doesn't add NUL termination */
+> +	buf[1] = 0;
+>  	perm = strtol(buf, NULL, 0);
+>  	if (perm == 0) {
+>  		close(region->flush_fd);
+> 
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- cxl/region.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+This diff is annoying because it didn't include enough to show the
+pread().  Made me open up file ;)
 
-diff --git a/cxl/region.c b/cxl/region.c
-index 89be9b5..efe05aa 100644
---- a/cxl/region.c
-+++ b/cxl/region.c
-@@ -103,7 +103,7 @@ static const struct option destroy_options[] = {
- 
- /*
-  * Convert an array of strings that can be a mixture of single items, a
-- * command separted list, or a space separated list, into a flattened
-+ * command separated list, or a space separated list, into a flattened
-  * comma-separated string. That single string can then be used as a
-  * filter argument to cxl_filter_walk(), or an ordering constraint for
-  * json_object_array_sort()
+Reviewed-by: Alison Schofield <alison.schofield@intel.com>
 
--- 
-2.39.0
+
+> -- 
+> 2.39.0
+> 
