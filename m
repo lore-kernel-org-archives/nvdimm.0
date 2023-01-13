@@ -1,98 +1,230 @@
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt1-f172.google.com (mail-qt1-f172.google.com [209.85.160.172])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE1987EF
-	for <nvdimm@lists.linux.dev>; Fri, 13 Jan 2023 17:18:26 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1673630306; x=1705166306;
-  h=from:date:subject:mime-version:content-transfer-encoding:
-   message-id:to:cc;
-  bh=czDPd7cRgkAhGvDLUHzw8TzbNVK7GhsXxCrOpxgVpjI=;
-  b=V+WwUQ5eKWW9+Igs7DFLdEF/GCnRO1q10dJQOTIt7wnK+aQ1iOYe2sgJ
-   delzJBfglDGWxF5SIDKaY9JvW/LeCYfbH4zE75i3t6DmtLhlAgIEnHNgN
-   Rtg3T+rST5DjJa4AFBANSJ8HLY3pHxC60OQWOdowMuP+9kkemcodqNAkY
-   bYQiVoVDVG/G8yb7/ZIGBUjYUZbAQcLwF5Ul+C76z4BLTrmqJjIF4uUD9
-   oKKplEW1EOteXkxFWPC1zZ1xkz994u7Wc7kenYdo6D8Uc9uGSHQNR/x0w
-   IBURbf3KJ0Wdch/QQSTu0F+DlFKAaHxfs+GU2hNcARWEOHUuw6jFhUQE0
-   w==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10589"; a="326103486"
-X-IronPort-AV: E=Sophos;i="5.97,214,1669104000"; 
-   d="scan'208";a="326103486"
-Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Jan 2023 09:16:29 -0800
-X-IronPort-AV: E=McAfee;i="6500,9779,10589"; a="903626543"
-X-IronPort-AV: E=Sophos;i="5.97,214,1669104000"; 
-   d="scan'208";a="903626543"
-Received: from ajlopez1-mobl.amr.corp.intel.com (HELO vverma7-desk1.local) ([10.212.14.206])
-  by fmsmga006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Jan 2023 09:16:28 -0800
-From: Vishal Verma <vishal.l.verma@intel.com>
-Date: Fri, 13 Jan 2023 10:16:21 -0700
-Subject: [PATCH ndctl] test/cxl-xor-region.sh: skip instead of fail for
- missing cxl_test
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84CBDAD4A
+	for <nvdimm@lists.linux.dev>; Fri, 13 Jan 2023 17:28:59 +0000 (UTC)
+Received: by mail-qt1-f172.google.com with SMTP id a25so12444498qto.10
+        for <nvdimm@lists.linux.dev>; Fri, 13 Jan 2023 09:28:59 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ixsystems.com; s=google;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=quj/d6YhK1xwyQgQrm9ayPJfpa/2mWRFvcRY9gifr/k=;
+        b=KVZsY/gbUCwANvUMfIz/8lkQD5FmMpxCFDID3nOIrOxmuej9L58TkXFvpNkXVS35De
+         wBdaT16+f7RSCMJdbxLdNTrb+CyWZGs3KGOCc+9m1AUvKVqBmaRWAqi3VIddhZax9UlG
+         YKja5rMDsps8Gbd1U4k+ulvX5vjIcarpbGDWIzDCWWgwkbXwUJfHLRY0Sav54A2v0VTK
+         ZcmOwWOXouC/QqH/syeJIiBY7R7nKEr2Li9DYdXLXkP/4wpk9YFqzeh5spqBxKnRBPkB
+         TinvndcI2ZZB/fwaNVAF6DL/NURInyUTvCEItwKwE4FAEJ+ZFXh+4F8AlJSjUJ7buZI0
+         vicA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=quj/d6YhK1xwyQgQrm9ayPJfpa/2mWRFvcRY9gifr/k=;
+        b=wFVF4PYTST4ouzJW/VAWGDaSj5EpUmq3B3J1eiYQmWT1H53XAKXmLcK1QH9nkELMN0
+         l6ArM5WD4et2FAwwdO+VxgFUdearDoBIpDnoZ9pD7KNNs3MNbEAAZGTinHQmBA/QabsZ
+         mAryXu5z71nsPg1AZXF8lHdimBXr8VxI4mfiWC4JJ9MbKQiebijTZm8k7fj8zPs0MiAj
+         nsGFu5F2TYmsFPSB/M7kcNhSCc0SeDjtinl+rZLUWKUDGWaFxlNm7qcy1k+uZwuPv1Q2
+         YJQi7MqxO19T499+DywgQW6vJPf2IsIDb9YfuWtU8LB8Z/e1ooIcrpfHvIIsiXclQrqh
+         p2iA==
+X-Gm-Message-State: AFqh2kqb0Szjd064CCT6opAVzX8PjSjGpujEo+viwRV7zLMOHUzKqXmN
+	X/v8LfY+c8IKbXaFjcTTygMbLmvBrwaSlroYXkLT8nqaHVDNBHxnnDHw2PsIME3WaPo3YrFPytd
+	NMBOzFugjoeZw6SWWr+xjVX9WzCeWUXr5ABONRSteaBXeh+lq7D6+58+vqa1Bzs4rVi9X
+X-Google-Smtp-Source: AMrXdXuUbK0rpPehJGWks0A/jjy/V80x+ZinlFqR8pTieaLchCfSTqcBMgWMM5EFHofmDZGapuJs8Q==
+X-Received: by 2002:ac8:67d8:0:b0:3ae:1ef:16d8 with SMTP id r24-20020ac867d8000000b003ae01ef16d8mr24863637qtp.2.1673630938058;
+        Fri, 13 Jan 2023 09:28:58 -0800 (PST)
+Received: from testm50.mav.ixsystems.net ([38.32.73.2])
+        by smtp.gmail.com with ESMTPSA id t34-20020a05622a182200b003a527d29a41sm10817157qtc.75.2023.01.13.09.28.57
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 13 Jan 2023 09:28:57 -0800 (PST)
+From: Alexander Motin <mav@ixsystems.com>
+To: nvdimm@lists.linux.dev
+Cc: Lijun Pan <Lijun.Pan@dell.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Alexander Motin <mav@ixsystems.com>
+Subject: [ndctl PATCH 1/2 v2 RESEND] libndctl/msft: Cleanup the code
+Date: Fri, 13 Jan 2023 12:27:32 -0500
+Message-Id: <20230113172732.1122643-1-mav@ixsystems.com>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20230112-vv-xor-test-skip-v1-1-92ddc619ba6c@intel.com>
-X-B4-Tracking: v=1; b=H4sIAOWRwWMC/x2NywqEMAwAf0Vy3kBbH4f9lWUP1UYNQiyJFEH89
- 617HIZhLjBSJoN3c4FSYeNdKvhXA9MaZSHkVBmCC63zPmApeO6KB9mBtnHGNlI398kNPXVQszE
- a4ahRpvUJM0liWR6TlWY+/7PP975/c/kp23wAAAA=
-To: linux-cxl@vger.kernel.org
-Cc: nvdimm@lists.linux.dev, Alison Schofield <alison.schofield@intel.com>, 
- Vishal Verma <vishal.l.verma@intel.com>
-X-Mailer: b4 0.12-dev-78c63
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1120;
- i=vishal.l.verma@intel.com; h=from:subject:message-id;
- bh=czDPd7cRgkAhGvDLUHzw8TzbNVK7GhsXxCrOpxgVpjI=;
- b=owGbwMvMwCXGf25diOft7jLG02pJDMkHJ76RuuEQ9WqrclDckoMnd8/ZlPxp6pUX8yZ7Lwyu2qPy
- 53zht45SFgYxLgZZMUWWv3s+Mh6T257PE5jgCDOHlQlkCAMXpwBMxHY9w//EA6nqJwRNpjD1+F7/M6
- tzV3Zi7g9m0dz51rWmZxZ0CXoxMryqWa7+NjOs9rbVjFq52d9u98vq5NVOjZnRKxuWdDBIgR8A
-X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp;
- fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
+Content-Transfer-Encoding: 8bit
 
-Fix cxl-xor-region.sh to correctly skip if cxl_test is unavailable by
-returning the special code '77' if the modprobe fails.
+Clean up the code, making it more uniform with others and
+allowing more methods to be implemented later:
+ - remove nonsense NDN_MSFT_CMD_SMART definition, replacing it
+with real commands, primarity NDN_MSFT_CMD_NHEALTH;
+ - allow sending arbitrary commands and add their descriptions;
+ - add custom cmd_is_supported method to allow monitor mode.
 
-Link: https://github.com/pmem/ndctl/issues/229
-Fixes: 05486f8bf154 ("cxl/test: add cxl_xor_region test")
-Cc: Alison Schofield <alison.schofield@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Alexander Motin <mav@ixsystems.com>
 ---
- test/cxl-xor-region.sh | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ ndctl/lib/msft.c | 58 ++++++++++++++++++++++++++++++++++++++----------
+ ndctl/lib/msft.h | 13 ++++-------
+ 2 files changed, 50 insertions(+), 21 deletions(-)
 
-diff --git a/test/cxl-xor-region.sh b/test/cxl-xor-region.sh
-index 5c2108c..1962327 100644
---- a/test/cxl-xor-region.sh
-+++ b/test/cxl-xor-region.sh
-@@ -4,7 +4,7 @@
+diff --git a/ndctl/lib/msft.c b/ndctl/lib/msft.c
+index 3112799..efc7fe1 100644
+--- a/ndctl/lib/msft.c
++++ b/ndctl/lib/msft.c
+@@ -2,6 +2,7 @@
+ // Copyright (C) 2016-2017 Dell, Inc.
+ // Copyright (C) 2016 Hewlett Packard Enterprise Development LP
+ // Copyright (C) 2016-2020, Intel Corporation.
++/* Copyright (C) 2022 iXsystems, Inc. */
+ #include <stdlib.h>
+ #include <limits.h>
+ #include <util/log.h>
+@@ -12,12 +13,39 @@
+ #define CMD_MSFT(_c) ((_c)->msft)
+ #define CMD_MSFT_SMART(_c) (CMD_MSFT(_c)->u.smart.data)
  
- . $(dirname $0)/common
++static const char *msft_cmd_desc(int fn)
++{
++	static const char * const descs[] = {
++		[NDN_MSFT_CMD_CHEALTH] = "critical_health",
++		[NDN_MSFT_CMD_NHEALTH] = "nvdimm_health",
++		[NDN_MSFT_CMD_EHEALTH] = "es_health",
++	};
++	const char *desc;
++
++	if (fn >= (int) ARRAY_SIZE(descs))
++		return "unknown";
++	desc = descs[fn];
++	if (!desc)
++		return "unknown";
++	return desc;
++}
++
++static bool msft_cmd_is_supported(struct ndctl_dimm *dimm, int cmd)
++{
++	/* Handle this separately to support monitor mode */
++	if (cmd == ND_CMD_SMART)
++		return true;
++
++	return !!(dimm->cmd_mask & (1ULL << cmd));
++}
++
+ static u32 msft_get_firmware_status(struct ndctl_cmd *cmd)
+ {
+ 	return cmd->msft->u.smart.status;
+ }
  
--rc=1
-+rc=77
+-static struct ndctl_cmd *msft_dimm_cmd_new_smart(struct ndctl_dimm *dimm)
++static struct ndctl_cmd *alloc_msft_cmd(struct ndctl_dimm *dimm,
++		unsigned int func, size_t in_size, size_t out_size)
+ {
+ 	struct ndctl_bus *bus = ndctl_dimm_get_bus(dimm);
+ 	struct ndctl_ctx *ctx = ndctl_bus_get_ctx(bus);
+@@ -30,12 +58,12 @@ static struct ndctl_cmd *msft_dimm_cmd_new_smart(struct ndctl_dimm *dimm)
+ 		return NULL;
+ 	}
  
- set -ex
+-	if (test_dimm_dsm(dimm, NDN_MSFT_CMD_SMART) == DIMM_DSM_UNSUPPORTED) {
++	if (test_dimm_dsm(dimm, func) == DIMM_DSM_UNSUPPORTED) {
+ 		dbg(ctx, "unsupported function\n");
+ 		return NULL;
+ 	}
  
-@@ -15,6 +15,7 @@ check_prereq "jq"
- modprobe -r cxl_test
- modprobe cxl_test interleave_arithmetic=1
- udevadm settle
-+rc=1
+-	size = sizeof(*cmd) + sizeof(struct ndn_pkg_msft);
++	size = sizeof(*cmd) + sizeof(struct nd_cmd_pkg) + in_size + out_size;
+ 	cmd = calloc(1, size);
+ 	if (!cmd)
+ 		return NULL;
+@@ -45,25 +73,30 @@ static struct ndctl_cmd *msft_dimm_cmd_new_smart(struct ndctl_dimm *dimm)
+ 	cmd->type = ND_CMD_CALL;
+ 	cmd->size = size;
+ 	cmd->status = 1;
++	cmd->get_firmware_status = msft_get_firmware_status;
  
- # THEORY OF OPERATION: Create x1,2,3,4 regions to exercise the XOR math
- # option of the CXL driver. As with other cxl_test tests, changes to the
-
----
-base-commit: b73e4e0390aae822bc91b8bf72430e6f0e84d668
-change-id: 20230112-vv-xor-test-skip-3ae4f5d065e4
-
-Best regards,
+ 	msft = CMD_MSFT(cmd);
+ 	msft->gen.nd_family = NVDIMM_FAMILY_MSFT;
+-	msft->gen.nd_command = NDN_MSFT_CMD_SMART;
++	msft->gen.nd_command = func;
+ 	msft->gen.nd_fw_size = 0;
+-	msft->gen.nd_size_in = offsetof(struct ndn_msft_smart, status);
+-	msft->gen.nd_size_out = sizeof(msft->u.smart);
++	msft->gen.nd_size_in = in_size;
++	msft->gen.nd_size_out = out_size;
+ 	msft->u.smart.status = 0;
+-	cmd->get_firmware_status = msft_get_firmware_status;
+ 
+ 	return cmd;
+ }
+ 
++static struct ndctl_cmd *msft_dimm_cmd_new_smart(struct ndctl_dimm *dimm)
++{
++	return (alloc_msft_cmd(dimm, NDN_MSFT_CMD_NHEALTH,
++			0, sizeof(struct ndn_msft_smart)));
++}
++
+ static int msft_smart_valid(struct ndctl_cmd *cmd)
+ {
+ 	if (cmd->type != ND_CMD_CALL ||
+-	    cmd->size != sizeof(*cmd) + sizeof(struct ndn_pkg_msft) ||
+ 	    CMD_MSFT(cmd)->gen.nd_family != NVDIMM_FAMILY_MSFT ||
+-	    CMD_MSFT(cmd)->gen.nd_command != NDN_MSFT_CMD_SMART ||
++	    CMD_MSFT(cmd)->gen.nd_command != NDN_MSFT_CMD_NHEALTH ||
+ 	    cmd->status != 0)
+ 		return cmd->status < 0 ? cmd->status : -EINVAL;
+ 	return 0;
+@@ -80,9 +113,8 @@ static unsigned int msft_cmd_smart_get_flags(struct ndctl_cmd *cmd)
+ 	}
+ 
+ 	/* below health data can be retrieved via MSFT _DSM function 11 */
+-	return NDN_MSFT_SMART_HEALTH_VALID |
+-		NDN_MSFT_SMART_TEMP_VALID |
+-		NDN_MSFT_SMART_USED_VALID;
++	return ND_SMART_HEALTH_VALID | ND_SMART_TEMP_VALID |
++	    ND_SMART_USED_VALID;
+ }
+ 
+ static unsigned int num_set_bit_health(__u16 num)
+@@ -171,6 +203,8 @@ static int msft_cmd_xlat_firmware_status(struct ndctl_cmd *cmd)
+ }
+ 
+ struct ndctl_dimm_ops * const msft_dimm_ops = &(struct ndctl_dimm_ops) {
++	.cmd_desc = msft_cmd_desc,
++	.cmd_is_supported = msft_cmd_is_supported,
+ 	.new_smart = msft_dimm_cmd_new_smart,
+ 	.smart_get_flags = msft_cmd_smart_get_flags,
+ 	.smart_get_health = msft_cmd_smart_get_health,
+diff --git a/ndctl/lib/msft.h b/ndctl/lib/msft.h
+index 978cc11..8d246a5 100644
+--- a/ndctl/lib/msft.h
++++ b/ndctl/lib/msft.h
+@@ -2,21 +2,16 @@
+ /* Copyright (C) 2016-2017 Dell, Inc. */
+ /* Copyright (C) 2016 Hewlett Packard Enterprise Development LP */
+ /* Copyright (C) 2014-2020, Intel Corporation. */
++/* Copyright (C) 2022 iXsystems, Inc. */
+ #ifndef __NDCTL_MSFT_H__
+ #define __NDCTL_MSFT_H__
+ 
+ enum {
+-	NDN_MSFT_CMD_QUERY = 0,
+-
+-	/* non-root commands */
+-	NDN_MSFT_CMD_SMART = 11,
++	NDN_MSFT_CMD_CHEALTH = 10,
++	NDN_MSFT_CMD_NHEALTH = 11,
++	NDN_MSFT_CMD_EHEALTH = 12,
+ };
+ 
+-/* NDN_MSFT_CMD_SMART */
+-#define NDN_MSFT_SMART_HEALTH_VALID	ND_SMART_HEALTH_VALID
+-#define NDN_MSFT_SMART_TEMP_VALID	ND_SMART_TEMP_VALID
+-#define NDN_MSFT_SMART_USED_VALID	ND_SMART_USED_VALID
+-
+ /*
+  * This is actually function 11 data,
+  * This is the closest I can find to match smart
 -- 
-Vishal Verma <vishal.l.verma@intel.com>
+2.30.2
 
