@@ -1,81 +1,74 @@
-Received: from metis.ext.pengutronix.de (metis.ext.pengutronix.de [85.220.165.71])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 017648F44
-	for <nvdimm@lists.linux.dev>; Thu, 12 Jan 2023 21:57:13 +0000 (UTC)
-Received: from drehscheibe.grey.stw.pengutronix.de ([2a0a:edc0:0:c01:1d::a2])
-	by metis.ext.pengutronix.de with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
-	(Exim 4.92)
-	(envelope-from <ukl@pengutronix.de>)
-	id 1pG5ZE-0005sk-Cx; Thu, 12 Jan 2023 22:57:00 +0100
-Received: from [2a0a:edc0:0:900:1d::77] (helo=ptz.office.stw.pengutronix.de)
-	by drehscheibe.grey.stw.pengutronix.de with esmtp (Exim 4.94.2)
-	(envelope-from <ukl@pengutronix.de>)
-	id 1pG5ZD-005cqP-62; Thu, 12 Jan 2023 22:56:59 +0100
-Received: from ukl by ptz.office.stw.pengutronix.de with local (Exim 4.94.2)
-	(envelope-from <ukl@pengutronix.de>)
-	id 1pG5ZC-00CN36-IN; Thu, 12 Jan 2023 22:56:58 +0100
-Date: Thu, 12 Jan 2023 22:56:58 +0100
-From: Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>, nvdimm@lists.linux.dev,
-	kernel@pengutronix.de
-Subject: Re: [PATCH] dax/hmem: Drop empty platform remove function
-Message-ID: <20230112215658.q74wtxaw57iss267@pengutronix.de>
-References: <20221212220725.3778201-1-u.kleine-koenig@pengutronix.de>
- <6397f58686d6d_b05d1294dc@dwillia2-xfh.jf.intel.com.notmuch>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30F90364
+	for <nvdimm@lists.linux.dev>; Fri, 13 Jan 2023 00:11:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F20B1C433AE;
+	Fri, 13 Jan 2023 00:11:34 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1673568695;
+	bh=zptD60J3Cgt8c0EJaqWm6Hr2VBVz43WogJYOiD1uaCA=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=NeLRKlF0bGaJujtGzLQoo5wOqPOWMj2ogv6jHaUpUKDczJJtA0Fs51mBlLovS1yf3
+	 o7g538PWMJeFU4s/+DJdMZrRGWmhIAWkMDhki0eX+MGoJEBVGeIeXSfoBwSY8vmWyO
+	 5UbEMMANXT6cZJ5HvAIbIOOh5XCTy5FWWarkaVJCMGzhNe7qXAQMiEmlFKfN1e0ehQ
+	 aDcVBF6PVIt6c7l+k81P1IKTnbl5yojYnK/xkRzT0gnH6blVw1LmYnP90c43VmmNEZ
+	 ejdVQ949m1uHjn2ueTMVa6eFuBOky7bNK06wLDFH2cYbM5mcaUyzpP8VhpzCXsLPAY
+	 /QESHRjpYfxig==
+Received: by paulmck-ThinkPad-P17-Gen-1.home (Postfix, from userid 1000)
+	id 9CB625C10CA; Thu, 12 Jan 2023 16:11:34 -0800 (PST)
+From: "Paul E. McKenney" <paulmck@kernel.org>
+To: rcu@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org,
+	kernel-team@meta.com,
+	rostedt@goodmis.org,
+	"Paul E. McKenney" <paulmck@kernel.org>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	nvdimm@lists.linux.dev,
+	John Ogness <john.ogness@linutronix.de>
+Subject: [PATCH rcu v2 04/20] drivers/dax: Remove "select SRCU"
+Date: Thu, 12 Jan 2023 16:11:16 -0800
+Message-Id: <20230113001132.3375334-4-paulmck@kernel.org>
+X-Mailer: git-send-email 2.31.1.189.g2e36527f23
+In-Reply-To: <20230113001103.GA3374173@paulmck-ThinkPad-P17-Gen-1>
+References: <20230113001103.GA3374173@paulmck-ThinkPad-P17-Gen-1>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="ictlcrhm65tmwfl2"
-Content-Disposition: inline
-In-Reply-To: <6397f58686d6d_b05d1294dc@dwillia2-xfh.jf.intel.com.notmuch>
-X-SA-Exim-Connect-IP: 2a0a:edc0:0:c01:1d::a2
-X-SA-Exim-Mail-From: ukl@pengutronix.de
-X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
-X-PTX-Original-Recipient: nvdimm@lists.linux.dev
+Content-Transfer-Encoding: 8bit
 
+Now that the SRCU Kconfig option is unconditionally selected, there is
+no longer any point in selecting it.  Therefore, remove the "select SRCU"
+Kconfig statements.
 
---ictlcrhm65tmwfl2
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Paul E. McKenney <paulmck@kernel.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: <nvdimm@lists.linux.dev>
+Acked-by: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: John Ogness <john.ogness@linutronix.de>
+---
+ drivers/dax/Kconfig | 1 -
+ 1 file changed, 1 deletion(-)
 
-On Mon, Dec 12, 2022 at 07:46:14PM -0800, Dan Williams wrote:
-> Uwe Kleine-K=F6nig wrote:
-> > A remove callback just returning 0 is equivalent to no remove callback
-> > at all. So drop the useless function.
->=20
-> Looks good, applied.
+diff --git a/drivers/dax/Kconfig b/drivers/dax/Kconfig
+index 5fdf269a822e5..2bf5123e48279 100644
+--- a/drivers/dax/Kconfig
++++ b/drivers/dax/Kconfig
+@@ -1,7 +1,6 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ menuconfig DAX
+ 	tristate "DAX: direct access to differentiated memory"
+-	select SRCU
+ 	default m if NVDIMM_DAX
+ 
+ if DAX
+-- 
+2.31.1.189.g2e36527f23
 
-Thanks. I wonder why the patch doesn't appear in next though. Is this
-deliberate?
-
-Best regards
-Uwe
-
---=20
-Pengutronix e.K.                           | Uwe Kleine-K=F6nig            |
-Industrial Linux Solutions                 | https://www.pengutronix.de/ |
-
---ictlcrhm65tmwfl2
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCgAdFiEEfnIqFpAYrP8+dKQLwfwUeK3K7AkFAmPAgicACgkQwfwUeK3K
-7AmNvggAlzOTrzqqNLKCsVvBVm30biDV6rkpyT/8ld9acqoVG2zw4m0hME28U7T8
-Szose5VqGl1GDsfHX9Z00C3OLg+w+rfw7u77Gfc6XE4kQk/cgYDc6iwg0td56p44
-TV7xfTlE0viaUwMntuRBLVuhAlykgm4qDWuQn0KSqUTVuo9Ps8B4u5/xfkiq6qlT
-olRmMNVu918EKPUkrZFL87l4ksAluw3HyE20dwwMTglO20+MfYx89z70Sj8Q7SMI
-4ocLPM2risBjwdN+K9hDrHQudAyebmZ97BWB/AZci9j+iIiOCM5PHDxh7D8gFeRz
-WhkIcbVwkOtcJnH5RxTFtwV4YEIUzA==
-=JTvU
------END PGP SIGNATURE-----
-
---ictlcrhm65tmwfl2--
