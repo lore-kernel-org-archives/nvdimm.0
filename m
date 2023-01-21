@@ -1,95 +1,155 @@
-Received: from mail-wm1-f51.google.com (mail-wm1-f51.google.com [209.85.128.51])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from NAM12-MW2-obe.outbound.protection.outlook.com (mail-mw2nam12on2079.outbound.protection.outlook.com [40.107.244.79])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36E9317C8
-	for <nvdimm@lists.linux.dev>; Fri, 20 Jan 2023 05:22:11 +0000 (UTC)
-Received: by mail-wm1-f51.google.com with SMTP id m15so3156444wms.4
-        for <nvdimm@lists.linux.dev>; Thu, 19 Jan 2023 21:22:11 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=ZPUNBOEvi+EfT+XJWJvekQT2sNWEjQ5PxX/U+WoCuzc=;
-        b=YBIwhB603yUqIdel1BN1aQ2kRRXRXqB2ePnBo3AkabEKkIGyDyo6TflF9PCi7R+hXF
-         uM7KoCMnU6bNghykefMWau8xbi8kmQEoq0eKHop8Onk0DBVr0FMBryV2/DhXMkUxVxyW
-         +25pM8oejnfFKv2WQMqpFfhuNf+U+R7cRkBTKzRS9Ng0t/RojLDy6qWw6EkKgyf4PkPT
-         B2XYSyWpzPB9g9N21dEcnHRVUJwkRPSEsgEo5PUsnNMF1+YfJkhVuxfLSEFilB4J2Mtk
-         EohULOeh+ymbakO1zDxwI+oXnMV/seI/uIkLI/7sPHX5TxRBoO190pVfz9VszRXppNYv
-         aKXQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=ZPUNBOEvi+EfT+XJWJvekQT2sNWEjQ5PxX/U+WoCuzc=;
-        b=pdnPKzaHFSKLsbnEH94kXdP/KkcrfE+fefxWtdXJltTPLUExlZIwGCA2wKZdWSGMjr
-         1JKCcmVq9DGcpO4I7+lezkGEEJg/yTgAB8lin7VD3Fbm5bByHaq21a4PsoksBeZcFFR1
-         alaUBsNZs5Ez8Anc2/ZoH9ipL9Sh8n8Zj7S2YfkIo/Kw9IFQaw/xSiz9LUU+lA8mXITh
-         J0SulFrIVDbO5H/yT4x0YibDBMe+bORJmKTL+OnKtWnIB4NKMcZH8ArEfwgqe+LFKctg
-         kTtvbn+VTXqkfdRWo82m3UFMVquiERCuF2KlAEbMd/CGlOQwK6AEtr+JjDN0J0c0v+Yn
-         RrEw==
-X-Gm-Message-State: AFqh2kqYyba9PVkP4lsCKXtBeSXwg7a8RS005RjI3CnzR7BJc7dLV9bR
-	8P7/4Gyma6KLQbZAfS3yhQM=
-X-Google-Smtp-Source: AMrXdXvzl4+RN1WjgYUz4tRPCvty5ZKlP8ibxlgMTYBueXvwytqo0rr34srYHacHIL0AlSzaowxE1A==
-X-Received: by 2002:a05:600c:3b1b:b0:3da:11d7:dba3 with SMTP id m27-20020a05600c3b1b00b003da11d7dba3mr12497450wms.5.1674192129466;
-        Thu, 19 Jan 2023 21:22:09 -0800 (PST)
-Received: from localhost ([102.36.222.112])
-        by smtp.gmail.com with ESMTPSA id k16-20020a05600c0b5000b003db0a08694bsm1118757wmr.8.2023.01.19.21.22.08
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 19 Jan 2023 21:22:09 -0800 (PST)
-Date: Fri, 20 Jan 2023 08:22:06 +0300
-From: Dan Carpenter <error27@gmail.com>
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>, nvdimm@lists.linux.dev,
-	linux-acpi@vger.kernel.org, kernel-janitors@vger.kernel.org,
-	cip-dev <cip-dev@lists.cip-project.org>,
-	Harshit Mogalapalli <harshit.m.mogalapalli@oracle.com>
-Subject: Re: [PATCH v2] ACPI: NFIT: prevent underflow in acpi_nfit_ctl()
-Message-ID: <Y8ok/oCxzOhFDEQ+@kadam>
-References: <Y8ldQn1v4r5i5WLX@kadam>
- <x49y1py5wcd.fsf@segfault.boston.devel.redhat.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6723A7E;
+	Sat, 21 Jan 2023 15:03:15 +0000 (UTC)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=da1GLpMN+46623RGkXrjz+yydCdg6wQYCSYysaqdxIXihRB69lZ0Lk1uO2+E/zqcSAhmVsFTZGegx3PWyP4OoTNVLLOm72qvWtOIirKnWecIZ71QK2uO2w2GOH9lLGkyPEzhg1tSPsoduaRKgWd+MDd2lhOftGH95AttK4fkCimS+1Dp7uRbtU62/czuVQxXxXuNNChFz7BAaD1viKTKBoIF/3fTyXzBeEMgJegYme9ENwimwpIp3Svk3sQaZK9MmlYAHq+Y0ZlqeC7w2ADZO192A14jMAy4m5e8G+RoNGFBQTq1VmQUWYHKDuLeZAwG9dXqvfo8zbpQ+kgshRp/5w==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=y5bkh5dkw3jlgawWlJroImGy5kmIR021Jist+9JrbGo=;
+ b=ivFIrrVt6dbyrxwO/YG3jPrxWRrbG5p128Ft+aVBofK2X/z1/y7S2kCauDMog3DAGvJoIkwudJmrWlR7cIGrgd3sTw7ID8EZYj/3IBJduidc73TwOL3XHnVZxJSEKD2Vtn1S3/5AtBFsQIg9WN0jD3CQXxCCDJmwtYkURdpxPT0G9tbUkbDrxLiKNmH23pC4dVHphJnW3ol2HalDWH8p+ugAr5Is1I5DBUjlpms0KLwQiZqPot57kyff6McRjGCFMNGSmeVb2r1TuIVRGkDHJrt/kNej12VIffv/fOhXfsC1cdhmbmpAmewLbzvQxXYoa3TQ//QTmOTV/8H1hDQJfA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=y5bkh5dkw3jlgawWlJroImGy5kmIR021Jist+9JrbGo=;
+ b=WlWaU14NPkou5u/h/G8mNCzCiNN23WWd0/cQxRfqIwGTK81QH635qtVBhSThWThhf/VZbxqgksIGLuzSBHIX7B8XTuoe2zvrarYi6FsklHtm/jW9fbSPyYZmloYnlW0q4gG/1DSKS78Q2uSgYFEkxDgAmuxmZSg8JIQHVLFOyXfW+xc2qSfa6fYgjvBB7lMGhY540XscJfnFN+x/UF3y8Ui5UuugNoOw0CHfmWIEnqYBpYL1xY0+edmlBxCwRKgxzhArCqS+kIUrfW12VaMX7rjmThoKlip+TLjgz1/JT06qlp2oZS6l1a1BwjIOaHDyMdgdLyj3sD7dni9VYRXF4w==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from LV2PR12MB5869.namprd12.prod.outlook.com (2603:10b6:408:176::16)
+ by MW4PR12MB7167.namprd12.prod.outlook.com (2603:10b6:303:225::19) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6002.27; Sat, 21 Jan
+ 2023 15:03:13 +0000
+Received: from LV2PR12MB5869.namprd12.prod.outlook.com
+ ([fe80::f8b0:df13:5f8d:12a]) by LV2PR12MB5869.namprd12.prod.outlook.com
+ ([fe80::f8b0:df13:5f8d:12a%9]) with mapi id 15.20.6002.013; Sat, 21 Jan 2023
+ 15:03:06 +0000
+Date: Sat, 21 Jan 2023 11:03:05 -0400
+From: Jason Gunthorpe <jgg@nvidia.com>
+To: lsf-pc@lists.linuxfoundation.org, linux-mm@kvack.org,
+	iommu@lists.linux.dev, linux-rdma@vger.kernel.org
+Cc: Matthew Wilcox <willy@infradead.org>, Christoph Hellwig <hch@lst.de>,
+	Joao Martins <joao.m.martins@oracle.com>,
+	John Hubbard <jhubbard@nvidia.com>,
+	Logan Gunthorpe <logang@deltatee.com>,
+	Ming Lei <ming.lei@redhat.com>, linux-block@vger.kernel.org,
+	netdev@vger.kernel.org, linux-mm@kvack.org,
+	linux-rdma@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	nvdimm@lists.linux.dev
+Subject: [LSF/MM/BPF proposal]: Physr discussion
+Message-ID: <Y8v+qVZ8OmodOCQ9@nvidia.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+X-ClientProxiedBy: MN2PR02CA0027.namprd02.prod.outlook.com
+ (2603:10b6:208:fc::40) To LV2PR12MB5869.namprd12.prod.outlook.com
+ (2603:10b6:408:176::16)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <x49y1py5wcd.fsf@segfault.boston.devel.redhat.com>
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: LV2PR12MB5869:EE_|MW4PR12MB7167:EE_
+X-MS-Office365-Filtering-Correlation-Id: d602da7c-5402-4b94-bfa4-08dafbc09a19
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info:
+	CRMnbebuCwY2XUAUG4zSwIe1enDOU/bfPiLcADCdQWxpsMCkdoJxHYf+cjIoUZr0NB9zAFxBWbxtCvRqATlQWLYjPoQbGR8HtbMM3sCogJQZGMHYmL6H8sT8yeRg/U4YDYLGC43S75B5xNvJvace83NECE8PxAVPWQTh66/lCHMId+12NsKq6ajdT6rZVUPnh0dAhynnwoyHpI8WlD9qNjK9z9vDSJz2t1cLg4zeTdAFmzzEhw3GjPPvBY9/hZThbMe//HOTRrpyBpJnewnFpcN1/4iwos+01yYdpe348F/aDtA0x1xNlUAtoR5LJt1/9xgC3tYUH+HK3ll9/BCI8b4KbG47SVArAXz4bQrj9/hMW4weqCmZMxoz6FtIFXtY9VOqoFiEU4/4zN1zLyo7WYCWr+dyduK4bW3EK8a2dR5SXWckscDqA1/r83Zb5RlY2yfUDTmzsPNYjFTeqABjjZqqUKeAWHgHpbWdBhO9u+1u/DpF26/zzKGpzUOQbT42SNynbGmzgp10wEvDuoOex5gc6+4ZBx7k5zASKCgX05U5vmq1huJm22wAMdZwJ5Dm2eSegKXO7P/ishk6d2LScQLI0X8jSEiV57uO2KqFRYECJcOj20aKI3PptY2nldJYVyh/pHQFWjeVm8f2C98qx3GyHxMlkKjiD0TOmEejlk6f/U12cIzVM1mo7u4AWftwlhdEaPVG+jHkNTqsSc2CeT69J1112T4exZLRVgIfpYMxlAwJEQKbbJTEmq/V7MnJZ3jvlTEfGNnscM9llCIzm5dWWJjLx0L9dLXkAN5TTKUw2hcPyVvJrhyire921RQO
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:LV2PR12MB5869.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230022)(4636009)(39860400002)(366004)(376002)(136003)(396003)(346002)(451199015)(2616005)(36756003)(6512007)(6486002)(966005)(478600001)(26005)(186003)(5660300002)(7416002)(66476007)(6506007)(41300700001)(2906002)(8936002)(54906003)(4326008)(316002)(66946007)(8676002)(66556008)(86362001)(38100700002)(67856001);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?F3BtidbfOpqNrP0AWXf8iW9XqvsJOhqseIZ2Oll+rGUOB/hTWmy3UCsqFod7?=
+ =?us-ascii?Q?EHZJ48jGqvFDAuVpNk3DepjhbbhpO1E0BMOBmAfJ4rKCqKGwS2KpsrM9LWFR?=
+ =?us-ascii?Q?7eJxJthEf/0oBMBDcvB3Jt8cnGJ7A586GXqzmVnJNd6DzfGCgB1d79l6RcS8?=
+ =?us-ascii?Q?hCRwH6IaEUT2KnG8Ds7MBt0UEpJ2jYR7MtjV33rMMXx2AmfyYIvKsWDfzRUe?=
+ =?us-ascii?Q?ZpHG62etWXCkt+DvDL7X4tDN/YG9gxM/xej6jWOQeXAX78AfXpKo0tSw9i1V?=
+ =?us-ascii?Q?bflChshYSj51Y69JQBNf2y2XYY+VSBRPSrQFfwgWBPi2St2owQOjbTDYVfFv?=
+ =?us-ascii?Q?Z8RH+DpQoG9IpJ7RQ0Ra1Xs2NWuODxG0RknEASsZahiaRgzmLJVqIBVRNBOg?=
+ =?us-ascii?Q?eYULA7UsBkIaZiM/L7HahjyEL5fTXiRkqbA5y+dWwnFW/YvIauyIBc0pZqU4?=
+ =?us-ascii?Q?5LoKOMezuI6aVGejSzTfIN/vZG4lg4w082yiC53xU4Jq5XG0ka9OkpE94Uc2?=
+ =?us-ascii?Q?e9Dcte51ghX0eXrxLMrlcyOX/SkFHxAaxIV8srbzj56mA8tM0zCACEBFoy2G?=
+ =?us-ascii?Q?LSWLWCPj4B+KdOquV84fsUN3l9UpNXFAjuqApmyTofj1d6PTLqia+phcgrOx?=
+ =?us-ascii?Q?2DyS8lXJEoykDS4JCNH42JwSfCnOOALsNjcFOk1PY6J8nPnLzH7Ct13SDcI3?=
+ =?us-ascii?Q?/j5DvU+OlUxeZYitNQN9HH9TWwzDKx0HFfIykfSAw25WAq/PnnF3sqJDJnaz?=
+ =?us-ascii?Q?osvsWOEJ2zQcS6bb4dDIsNPBRnENan6Zp/XwTNOH0mnPC6GiWlMatL8TtmBZ?=
+ =?us-ascii?Q?qVw3R+jjsbumSmMWEzkT0q1fKGwaV+5GQbVLF/yCQHhFAU3m/wKRwwk3cWtp?=
+ =?us-ascii?Q?CQ1QmGSKvKwkYF0ANWtCGKsU1xr3TuAyQFpHPBBrJwVMsTD+CXmyXZFBIRUN?=
+ =?us-ascii?Q?gc36PyLroat6wu2kmYVAvkRu484uJOXLT5uGjWXaNmNfFia1RSzHcyD0oXKT?=
+ =?us-ascii?Q?FzzS0D0bMDG4Zo/DaWXDx1tixhc2iz53HaKOVZuRh+BE82yGW05HhJ2BGONG?=
+ =?us-ascii?Q?6VEQKTSz6akReE6feMADA0IxXewPkJZncMebPBJWvQpnMpgzdaYnZHeNyxPQ?=
+ =?us-ascii?Q?gjDqWDs1xtnqJW6m8IXXQOizVpC6e1EthJul59fkqSAfP3pb5nrIpGjAMqkk?=
+ =?us-ascii?Q?9G3rw7HbWISHlhPUVGFWBY9EskHVQdlQavSiyhtU2IBTaU+AcRU3QALi6x9H?=
+ =?us-ascii?Q?RgCwVdgoqmKN1w4Y3VoRSp8wWoutCeskSGpDtrLPA/fJhR46wJRYgB6zpriX?=
+ =?us-ascii?Q?ue5d/zzAGN4yGE3RaztmUfL8jYn8niqrz/EbYRz/fF6pGHr/OpQkQ6VrjYz5?=
+ =?us-ascii?Q?q2j506TjFvq0PWNP4GhYaBTcqxIu1EIc48oKTruujAlv2nEzEtyYvhchKkmt?=
+ =?us-ascii?Q?RV1IC9yWhf6cThBjmr+gQLmSj25bh9yXPeOLST+fvT7lYe4lW3xsrZn/Sn1S?=
+ =?us-ascii?Q?UU8FwZw8HaCkkoKaXuZ3BM8/Da4FHDmanqT2JIxQWrbewVODe1pj5aV6pYfJ?=
+ =?us-ascii?Q?jsHWLEC2J8rISIaIWyRmJPK3PbxUJC1AIS4lXOBs?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: d602da7c-5402-4b94-bfa4-08dafbc09a19
+X-MS-Exchange-CrossTenant-AuthSource: LV2PR12MB5869.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 Jan 2023 15:03:06.5736
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: 7FLLeQpTT5r0fWJNmbBRqDe+jOyxVxW50i+u69QNjWEcPeRiCqI2DsfTswcC9pgN
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW4PR12MB7167
 
-On Thu, Jan 19, 2023 at 11:21:22AM -0500, Jeff Moyer wrote:
-> Dan Carpenter <error27@gmail.com> writes:
-> 
-> > The concern here would be that "family" is negative and we pass a
-> > negative value to test_bit() resulting in an out of bounds read
-> > and potentially a crash.
-> 
-> I don't see how this can happen.  Do you have a particular scenario in
-> mind?
-> 
+I would like to have a session at LSF to talk about Matthew's
+physr discussion starter:
 
-This is from static analysis.  My main thinking was:
+ https://lore.kernel.org/linux-mm/YdyKWeU0HTv8m7wD@casper.infradead.org/
 
-1) The static checker says that this comes from the user.
-2) Every upper bounds check should have a lower bounds check.
-3) family is passed to array_index_nospec() so we must not trust it.
+I have become interested in this with some immediacy because of
+IOMMUFD and this other discussion with Christoph:
 
-But looking closer today here is what the checker is concerned about:
+ https://lore.kernel.org/kvm/4-v2-472615b3877e+28f7-vfio_dma_buf_jgg@nvidia.com/
+    
+Which results in, more or less, we have no way to do P2P DMA
+operations without struct page - and from the RDMA side solving this
+well at the DMA API means advancing at least some part of the physr
+idea.
 
-	func = cmd_to_func(nfit_mem, cmd, call_pkg, &family);
+So - my objective is to enable to DMA API to "DMA map" something that
+is not a scatterlist, may or may not contain struct pages, but can
+still contain P2P DMA data. From there I would move RDMA MR's to use
+this new API, modify DMABUF to export it, complete the above VFIO
+series, and finally, use all of this to add back P2P support to VFIO
+when working with IOMMUFD by allowing IOMMUFD to obtain a safe
+reference to the VFIO memory using DMABUF. From there we'd want to see
+pin_user_pages optimized, and that also will need some discussion how
+best to structure it.
 
-Assume "nfit_mem" is NULL but "call_pkg" is non NULL (user input from
-__nd_ioctl() or ars_get_status().  In that case family is unchecked user
-input.
+I also have several ideas on how something like physr can optimize the
+iommu driver ops when working with dma-iommu.c and IOMMUFD.
 
-But probably, it's not possible for nfit_mem to be NULL in those caller
-functions?
+I've been working on an implementation and hope to have something
+draft to show on the lists in a few weeks. It is pretty clear there
+are several interesting decisions to make that I think will benefit
+from a live discussion.
 
-regards,
-dan carpenter
+Providing a kernel-wide alternative to scatterlist is something that
+has general interest across all the driver subsystems. I've started to
+view the general problem rather like xarray where the main focus is to
+create the appropriate abstraction and then go about transforming
+users to take advatange of the cleaner abstraction. scatterlist
+suffers here because it has an incredibly leaky API, a huge number of
+(often sketchy driver) users, and has historically been very difficult
+to improve.
 
+The session would quickly go over the current state of whatever the
+mailing list discussion evolves into and an open discussion around the
+different ideas.
+
+Thanks,
+Jason
