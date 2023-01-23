@@ -1,70 +1,69 @@
-Received: from mail-pl1-f176.google.com (mail-pl1-f176.google.com [209.85.214.176])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06A277C;
-	Mon, 23 Jan 2023 19:47:26 +0000 (UTC)
-Received: by mail-pl1-f176.google.com with SMTP id jm10so12470321plb.13;
-        Mon, 23 Jan 2023 11:47:26 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=YBsOuBeZmizkCpiObnueSyLNHUyq18ijoTACbxi/qCw=;
-        b=YNSKaun5tSykYRXFo8DuSx8MGNu7dJOI7hW/N6d/u/8zvescwCrTxm0iWr6DC+Pf2A
-         U8E1ZmuR8HCoAVCkDWRDIAq6oauFmx+Ab7TZlCNSJ2B+GEmCYuX4Y2TK+ZvRz48b8sl0
-         h1hN56ewEBb9XbQ6HU8N5agK9QRrVw3RSl/vmObYAUlnkzpef2AZYeHhpFeln4mRaXha
-         HL+d5xKOAnDqC71KCBtq33dumT9WD3TjvuzaJeDcIuk1AiZ9ig60vboGMNXDDLiUGEQ9
-         V4Zkzvpw1+AK4sO0VFVOAhZKIct9PwHOYeAutftdogK/7W1MHtU4t9sMdmutPBD7+XsL
-         4TGg==
-X-Gm-Message-State: AFqh2kp5Ub46u0/pqABx1BycOj/c2/J9+/Jv8CzPku23ktxaLS6c3qRK
-	ucWYFVTbPc3wK7ovjW7h+3s=
-X-Google-Smtp-Source: AMrXdXvfK5mbs8dNd8I/pgphfjpkG9tj7Pxsz/hA5VFQ+HwYWwvNOoHEYzZM9wNmI4uRnGef/Yze9g==
-X-Received: by 2002:a17:90a:b002:b0:229:932:a0f3 with SMTP id x2-20020a17090ab00200b002290932a0f3mr27137965pjq.27.1674503246346;
-        Mon, 23 Jan 2023 11:47:26 -0800 (PST)
-Received: from ?IPV6:2620:15c:211:201:dbe2:4986:5f46:bb00? ([2620:15c:211:201:dbe2:4986:5f46:bb00])
-        by smtp.gmail.com with ESMTPSA id gd23-20020a17090b0fd700b00212e5fe09d7sm39962pjb.10.2023.01.23.11.47.24
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 23 Jan 2023 11:47:25 -0800 (PST)
-Message-ID: <771236a2-b746-368d-f15f-23585f760ebd@acm.org>
-Date: Mon, 23 Jan 2023 11:47:23 -0800
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC25F7C;
+	Mon, 23 Jan 2023 20:11:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=Ngc+CXDl+DsRbq3lWnI7piUsiNzsOROjyFJIUEysZJs=; b=bzGhtmRO6jbeOsswarmJVeMnGJ
+	PR20MTV7RYmNRA5+zVjh3RcdblbYIX4PfGRdkeeHrOAAV7hgxTnV1765Sf+h/I8B4try7AX2xbAMH
+	kX6i05ioo31SJlQy0wRDHcgHiNtCRQXKQCMqs/zCWD3tGqW94g9gx8HCkkuLKi4yAzCjaYVc8fBGr
+	TWgqD8jt+62nusrZ/wgiFi56Ux+3t2Bnaj3HTWys8MriCwhBHt6Y24JfixJ/WPUoRUIGNwMsRNnj1
+	pCw2z0L/V4dWwjgEkLiqcH7V47hwyDBHv0XTxRr5vJ7mL8PdD0MVQdl9hXxA/GnuUlUlTGr9i8bf+
+	Nd/0SwTA==;
+Received: from willy by casper.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
+	id 1pK3AE-004Uoy-A2; Mon, 23 Jan 2023 20:11:34 +0000
+Date: Mon, 23 Jan 2023 20:11:34 +0000
+From: Matthew Wilcox <willy@infradead.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Jason Gunthorpe via Lsf-pc <lsf-pc@lists.linux-foundation.org>,
+	lsf-pc@lists.linuxfoundation.org, linux-mm@kvack.org,
+	iommu@lists.linux.dev, linux-rdma@vger.kernel.org,
+	nvdimm@lists.linux.dev, John Hubbard <jhubbard@nvidia.com>,
+	Ming Lei <ming.lei@redhat.com>, linux-block@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, netdev@vger.kernel.org,
+	Joao Martins <joao.m.martins@oracle.com>,
+	Logan Gunthorpe <logang@deltatee.com>,
+	Christoph Hellwig <hch@lst.de>
+Subject: Re: [Lsf-pc] [LSF/MM/BPF proposal]: Physr discussion
+Message-ID: <Y87p9i0vCZo/3Qa0@casper.infradead.org>
+References: <Y8v+qVZ8OmodOCQ9@nvidia.com>
+ <63cee1d3eaaef_3a36e529488@dwillia2-xfh.jf.intel.com.notmuch>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.5.1
-Subject: Re: [LSF/MM/BPF proposal]: Physr discussion
-Content-Language: en-US
-To: Jason Gunthorpe <jgg@nvidia.com>, Matthew Wilcox <willy@infradead.org>
-Cc: lsf-pc@lists.linuxfoundation.org, linux-mm@kvack.org,
- iommu@lists.linux.dev, linux-rdma@vger.kernel.org,
- Christoph Hellwig <hch@lst.de>, Joao Martins <joao.m.martins@oracle.com>,
- John Hubbard <jhubbard@nvidia.com>, Logan Gunthorpe <logang@deltatee.com>,
- Ming Lei <ming.lei@redhat.com>, linux-block@vger.kernel.org,
- netdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
- nvdimm@lists.linux.dev, Shakeel Butt <shakeelb@google.com>
-References: <Y8v+qVZ8OmodOCQ9@nvidia.com>
- <Y84OyQSKHelPOkW3@casper.infradead.org> <Y86PRiNCUIKbfUZz@nvidia.com>
-From: Bart Van Assche <bvanassche@acm.org>
-In-Reply-To: <Y86PRiNCUIKbfUZz@nvidia.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <63cee1d3eaaef_3a36e529488@dwillia2-xfh.jf.intel.com.notmuch>
 
-On 1/23/23 05:44, Jason Gunthorpe wrote:
-> I've gone from quite a different starting point - I've been working
-> DMA API upwards, so what does the dma_map_XX look like, what APIs do
-> we need to support the dma_map_ops implementations to iterate/etc, how
-> do we form and return the dma mapped list, how does P2P, with all the
-> checks, actually work, etc. These help inform what we want from the
-> "phyr" as an API.
+On Mon, Jan 23, 2023 at 11:36:51AM -0800, Dan Williams wrote:
+> Jason Gunthorpe via Lsf-pc wrote:
+> > I would like to have a session at LSF to talk about Matthew's
+> > physr discussion starter:
+> > 
+> >  https://lore.kernel.org/linux-mm/YdyKWeU0HTv8m7wD@casper.infradead.org/
+> > 
+> > I have become interested in this with some immediacy because of
+> > IOMMUFD and this other discussion with Christoph:
+> > 
+> >  https://lore.kernel.org/kvm/4-v2-472615b3877e+28f7-vfio_dma_buf_jgg@nvidia.com/
+> 
+> I think this is a worthwhile discussion. My main hangup with 'struct
+> page' elimination in general is that if anything needs to be allocated
 
-I'm interested in this topic. I'm wondering whether eliminating 
-scatterlists could help to make the block layer faster.
+You're the first one to bring up struct page elimination.  Neither Jason
+nor I have that as our motivation.  But there are reasons why struct page
+is a bad data structure, and Xen proves that you don't need to have such
+a data structure in order to do I/O.
 
-Thanks,
+> When I read "general interest across all the driver subsystems" it is
+> hard not to ask "have all possible avenues to enable 'struct page' been
+> exhausted?"
 
-Bart.
-
+Yes, we should definitely expend yet more resources chasing a poor
+implementation.
