@@ -1,159 +1,144 @@
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yb1-f175.google.com (mail-yb1-f175.google.com [209.85.219.175])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCA566FB1
-	for <nvdimm@lists.linux.dev>; Wed, 25 Jan 2023 19:11:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1674673883; x=1706209883;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=+lVhK5+1dgmYygKB+FmrYpDfiJKi8axDWk4Bg4RoAh8=;
-  b=XiwuRVPcqLbcr/1zMDNl6ipewu3/ut+yiPdCa8+/68t+B4itFsxKpt0y
-   6ZDKCke4D+gEPoojBAWTZJs7edXYQXQ9C87FpQ1g/Uh5j5hLXzEUvnPW8
-   ysNruewPwZlWDHcLRsOS7FzY2Q6sRrEckvghBC3KSJIOVdIdI6lWjFLqT
-   RsHQcBAuDGCZAe8tQjeVXAflFCG2CfXUCk51cEsiE7Esg3NKMaPW2QUWj
-   44nj7M8sjC4J1VqNWMgDcWm1EVhMjSt2fo+wD+wk550HVmFWLEwkKjpSY
-   LE4ggjVmnD+jBLZDn8uJ9TPjzIS9gjKXxwQ4Ibwgsail2wXLeYfWsdL7f
-   w==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10601"; a="328735305"
-X-IronPort-AV: E=Sophos;i="5.97,246,1669104000"; 
-   d="scan'208";a="328735305"
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Jan 2023 11:11:23 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6500,9779,10601"; a="725993589"
-X-IronPort-AV: E=Sophos;i="5.97,246,1669104000"; 
-   d="scan'208";a="725993589"
-Received: from orsmsx603.amr.corp.intel.com ([10.22.229.16])
-  by fmsmga008.fm.intel.com with ESMTP; 25 Jan 2023 11:11:22 -0800
-Received: from orsmsx610.amr.corp.intel.com (10.22.229.23) by
- ORSMSX603.amr.corp.intel.com (10.22.229.16) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.16; Wed, 25 Jan 2023 11:11:22 -0800
-Received: from orsmsx610.amr.corp.intel.com (10.22.229.23) by
- ORSMSX610.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.16; Wed, 25 Jan 2023 11:11:22 -0800
-Received: from ORSEDG601.ED.cps.intel.com (10.7.248.6) by
- orsmsx610.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.16 via Frontend Transport; Wed, 25 Jan 2023 11:11:22 -0800
-Received: from NAM04-BN8-obe.outbound.protection.outlook.com (104.47.74.48) by
- edgegateway.intel.com (134.134.137.102) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.16; Wed, 25 Jan 2023 11:11:20 -0800
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=Tjkk/xTf3BV5aTuJIlHwpHZe5HnQTZwr++57mIDANUwiHScoogh0S07cBDpvEV+jQfO+R3moxLa+LDSoqET+vtCMQcO0lRB8NRvR5plD00szKWMbjK6TkvI7IsVX17/XJvcI73o8bmMEL0pUp8eRLvQ21wqE2HhxLSlZeH6FS9o9UM/4nHv0oQcyKzs4R2DMjEXkUpDCbOsYG20AelkgZ+1QcD7eNOklHzR9hoItBTloamkECq9ClMG2hPsRxtzxL/7WxNTA0adj7vt+bOjqGxyhrG+NdScvhM2Cr/+eSSkWmbMFW7567Qc7GSRGuSR7OTYbG9DPZMzBeqwDK2qbmA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=sjjIKkJIzqcT7p01g4O1DUrO88IPkALzkUqhWHupqEU=;
- b=YH1ydN374Ng3VuIdnuOYJO/G/A8nOhhLvhVdQHtcRjbtqjncllg2MY1iizUq3E/1MSsaS6bWm7AyvS/nDuNWSY7I1o2fPOK5ryssWodN8JnYvPMyz5sLsGytLruqZk1MR1voso2EvKDG0PMpXsg7yokjUKLWlnBKSIe7erjsPFV+J6zF+IpMUf6meD4vMfcIyKNwBypOxOFbihpw3I26gk9xOsrLSFh7aiqG0wpCWOM1l7qPMj1JpLhUPbsJR0h86C+SYTQ/+2mpDTpzrRIq1TbVuQLmKZryK59Wc982qO8dsDeKWChgbhYdLqOcHdQp3yoXtkaArL8BAPZeh6Uc4g==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from PH8PR11MB8107.namprd11.prod.outlook.com (2603:10b6:510:256::6)
- by MW4PR11MB7079.namprd11.prod.outlook.com (2603:10b6:303:22b::9) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6043.21; Wed, 25 Jan
- 2023 19:11:18 +0000
-Received: from PH8PR11MB8107.namprd11.prod.outlook.com
- ([fe80::421b:865b:f356:7dfc]) by PH8PR11MB8107.namprd11.prod.outlook.com
- ([fe80::421b:865b:f356:7dfc%5]) with mapi id 15.20.6002.033; Wed, 25 Jan 2023
- 19:11:18 +0000
-Date: Wed, 25 Jan 2023 11:11:15 -0800
-From: Dan Williams <dan.j.williams@intel.com>
-To: Christophe JAILLET <christophe.jaillet@wanadoo.fr>, Dan Williams
-	<dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, "Dave
- Jiang" <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>
-CC: <linux-kernel@vger.kernel.org>, <kernel-janitors@vger.kernel.org>,
-	Christophe JAILLET <christophe.jaillet@wanadoo.fr>, <nvdimm@lists.linux.dev>
-Subject: RE: [PATCH v2] nvdimm: Use kstrtobool() instead of strtobool()
-Message-ID: <63d17ed343624_3a36e5294ac@dwillia2-xfh.jf.intel.com.notmuch>
-References: <7565f107952e31fad2bc825b8c533df70c498537.1673686195.git.christophe.jaillet@wanadoo.fr>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <7565f107952e31fad2bc825b8c533df70c498537.1673686195.git.christophe.jaillet@wanadoo.fr>
-X-ClientProxiedBy: CY5PR22CA0068.namprd22.prod.outlook.com
- (2603:10b6:930:80::11) To PH8PR11MB8107.namprd11.prod.outlook.com
- (2603:10b6:510:256::6)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E926E6FBF
+	for <nvdimm@lists.linux.dev>; Wed, 25 Jan 2023 19:22:08 +0000 (UTC)
+Received: by mail-yb1-f175.google.com with SMTP id 188so24325598ybi.9
+        for <nvdimm@lists.linux.dev>; Wed, 25 Jan 2023 11:22:08 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=azRxZ4iz/UmvW0JqPrqtZcKNmaFt9MhDUKzgc4KSKbs=;
+        b=idbJO946IIJ5xclJl8K3ScrKphDS9TF1tg1AgsB8MPco32Ta3+qR61NnmqeUtsnx6v
+         goCUeETP5lzAzmASwAR43MDdzy2mxaLRi4K6yZE3Q+T5C1FUbuWCmQDSDtqKn5s2e6iw
+         g3L5+Ey8VBu5ZDVtB0a1Axssd66xmU+yYweeF+hE6jQwYilC1xMJq5jCj+NjIEVUsfL4
+         tw7nY9DM/DzPYd8vrkO+1JZY6FVSYBMjhRJz+WIxF8k5j1BI+Qpdb88Is7APtmnyodC7
+         tcl2VYHmnzhTEoT5QVoxpB++zHDpcXCuz10aLB8wrCQNw685txpV1MvZDG3GANSg7b1j
+         9Xwg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=azRxZ4iz/UmvW0JqPrqtZcKNmaFt9MhDUKzgc4KSKbs=;
+        b=f/PLFGPasaEI3zoSxUeqbCWAUFczOP0YfUYnM0EDuZS88Kn3F3VpThz3/qaHPtft00
+         ZbwWhkXbVFcqhVwI6MDseQwbWwsw7r5zjKSGDXFDkynPMqU38oXpdHpxFbC+I0tc7DEh
+         InuMPfkgBbAoHkUdtCupHqBYZju0ExPk/yKTYhNOqh4vAUbsZtfzEDd0Iq+TdpILGJ9d
+         bp70vqGQa9KoPWLA7cF2mrh2jPp/NIJ2EwJLA4EiS9BpmJifIcgbRAR9gwgQo3r17Cwl
+         tDF5rb9MaIxfLOjYPSlP16ROJg8f7P3G7aU6HCN4fZ5tSmShiRB9XMre9Gj0XiC2Inx2
+         y+xg==
+X-Gm-Message-State: AO0yUKVrbBVJBr5nTRks/7YJ2CQQBXXgM87ZJiXFt8BRwDYXGbUkTv1Q
+	3blsSAZRwH7THpQcSk7ABAU64lafq8Z20kPv6HLv3w==
+X-Google-Smtp-Source: AK7set9Keebho/efVX9+GO9rxFk2PCEOZWbQBvt6Ld/Tpsz3uuvCSMXu6oGPdxC/ITtQ87qnzhMkMAEzeywlAhveKx4=
+X-Received: by 2002:a25:c247:0:b0:80b:6201:bee7 with SMTP id
+ s68-20020a25c247000000b0080b6201bee7mr946541ybf.340.1674674527537; Wed, 25
+ Jan 2023 11:22:07 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: PH8PR11MB8107:EE_|MW4PR11MB7079:EE_
-X-MS-Office365-Filtering-Correlation-Id: 7b3b10cf-31c7-4225-f2ad-08daff07efff
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: mMgdJW0YOsnY6ubJMvxPxeLPQMTrEG5h7DM2dTUjhutW52sGADQ+6RAcx1P4iLvJOZl8b5sMdJQy4GMv7AcyIr5mDl3hPE9707ZsIjHOMDcPzYfXJTouaNeYKNLNG2kDjQgHVrks132q8QajQGOIUyXXn4BasjpZ+yQTI5xBJzgEq21HOLjv+mUePLkWfw+7WkzWKqpT0EQ96As/Ll1CDR5ZOgxWTQc1Nj9ACs2R5qqneXn9Ify5LJ0xRNlpvAWaLlu/vJyN5SxjPq83oRPZRpMl73tLIxQjeNmwqQ1OgN+n89JQP2zxrmiW/BOamZYQplzat3KtOoVcG5RaBzvkUV3QjTwKN4ctVkfQI9FiV/2IrQVlHiGqS3m8f/veWQCxyqXOiStGKQOeEAMKKB3WzTv/qnY9zDD6aBZoV+ki5cmS3p5+cPMVdT+4qEsUaON2662DCFBsk92hqrF35zJ5bupQsJOSyW6Tw3Uqtx382D8Ubiar+AL1rWHO1MMp9PPRJUSOAwuQlJcILinqOX8T7pxYjMYPGDKIWDnKSToGlvB5rauTHqHSg3gSzD7qH094b1RPdZYnmgMSX+B7t5OKtrFZ902NeC4zBn5DeGIURWxHT+eTQ1pwHEA4HxYh5WXlzbrk9lFL6/6DnUeiKCeIsw==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH8PR11MB8107.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230025)(366004)(136003)(396003)(346002)(39860400002)(376002)(451199018)(186003)(6506007)(86362001)(26005)(9686003)(6512007)(110136005)(6636002)(316002)(66556008)(4326008)(8676002)(66946007)(66476007)(2906002)(41300700001)(6486002)(6666004)(8936002)(478600001)(5660300002)(4744005)(83380400001)(82960400001)(38100700002);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?gXsucJ8TXumOv7ohSVvR0g7a+QyFvdzmcwUaXX6Ek9qKBO3O5tnT59FQr7jJ?=
- =?us-ascii?Q?whUUMD9f6ZU144iAK0x5pV3ZSUWSl/flBCpQ7ntRJJG05WED5pKxsbJ1SKPb?=
- =?us-ascii?Q?qZdO3mJXgFjjdAzGw+g77dbIDordz3uW8fDODouvhqy47lZCv9EtTTtwFWC0?=
- =?us-ascii?Q?kxb9YepulzUwf8XZ1QmPF9G8MjOGO73RJ23wzvnACefv6hyp/vfHDOIRaJvn?=
- =?us-ascii?Q?J9NoiGxYreMZpVK7ZchM7zL1ntH5+5mND8rCJ4XNx+aZ9JBgc1WQc188ogtZ?=
- =?us-ascii?Q?ptb6WaQBh1e++EHrRYkfuRo+qCiO5Mp9qYWOrXZFAIuUx6V/pTLusi/XJJR5?=
- =?us-ascii?Q?GkSLItzxrcKPA0uMJX6QdV7tRddTlyYig1NWR5CT9dmwFpaV0OQQr21yzZVM?=
- =?us-ascii?Q?BfE45eLBaMVqSN+6sjhVzFXgWJqk2Hg9dLx9933a1brINmvtRF3WwzqpzqBt?=
- =?us-ascii?Q?MuH92zKERcetvH6Lx3DiC4g7aBl6Vki/JFqJZGD3R18+xxbXywdp/YuEhDlC?=
- =?us-ascii?Q?G3fME5oIKiS/iM9nFHgKdzbzDL29UXeaH9wFcTd2nK0OfevWPwHYk7+CKf3q?=
- =?us-ascii?Q?VdKwhbsh2VUD6shHOqJVSKTOp4dgeoDV/Ho7P/Kc3MujBNxP5Bokwl7075rD?=
- =?us-ascii?Q?DD3hX7Bu5lEfBf0KUc6EQQYYcuMoqMUZWfhtskR5eeb9L4nX3DtyyYMwcy70?=
- =?us-ascii?Q?zKBQaoXfYJPl5SisyYxZ9LUMHp/NRR6ZayVckjO0g5N70yd6uwz4g+MC34Ft?=
- =?us-ascii?Q?P/8fC5qQTJfl3lI5h/2SuxPRMfQBYPCSR5oWeWOUb8VyxeEza+kgtAYm9VEW?=
- =?us-ascii?Q?GuRr0W1x14aYJdShXR41rJlJFZgULB2tK8hUOSgJWbFnugaC+6gNKnVBr39U?=
- =?us-ascii?Q?bHgXftUvlr3FpzYDgN0aSRK15LDbHbJrqall4CVeykuL7ERyOP9J/gsO+YaT?=
- =?us-ascii?Q?/dbqhspaVZsz69EzBeQrKq8uUJumX5yWXv169TGR3mPavkH8IwRD3C3gHXhF?=
- =?us-ascii?Q?45FEpWjx63Y2U56+9G4diGESxJW3e6oRMKMg1DD8YYjcnn2TafDW5zkgW9dK?=
- =?us-ascii?Q?QGS4Z1Ws2CO6w5MFSs2Zgyhhcnm/hlFTFe/eIdHCBOzn3Ujel3XhJSUDTWav?=
- =?us-ascii?Q?53OF4oZ05LrYvyP0OR9qEXUIHv12xzejAvdi4kZe+TBx1vDVu8/2/7tszCNK?=
- =?us-ascii?Q?nd0aU3C/k6SmHNiM3Ue1g+F7VzKBwdl72VbSdcPvnnoIhjQIcp8Cv9PbCKPQ?=
- =?us-ascii?Q?zRlv5eMyPoyYWe8Vm4qdXWCG00vWxS/NMscTSN75aHd+LSO+hb3z3fiB/Fs/?=
- =?us-ascii?Q?DPm0obvjxHVQm5LSq5X2rrA1Iruu1Nnoh0CWozk28n22xu8qUPXbn4fS6MyL?=
- =?us-ascii?Q?5QwXAN1Ap4YzCAcR0lEEsPZf7D+ve4RzH1YUXe8x+4K38OkRFaBsI/Rcyg8p?=
- =?us-ascii?Q?oFxi9GWcbGD7BTqhjtdF2Ri8rEHgokly2fn7pPxNxdI+EP75TOD4cFwoGY6I?=
- =?us-ascii?Q?e7ZTMR0Gjf9qIIAQskpIt8Q7bIxYuqia94+X586P/Je9yzxvGnX3tENBo0lp?=
- =?us-ascii?Q?De/oS3K6n/gks09gMWTgeprbUZBWe0V8FxlhOcSh5DAA+sLR7ueto32e/XCh?=
- =?us-ascii?Q?kA=3D=3D?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: 7b3b10cf-31c7-4225-f2ad-08daff07efff
-X-MS-Exchange-CrossTenant-AuthSource: PH8PR11MB8107.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 Jan 2023 19:11:18.4760
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: xG70rKsTfrdhcha5rWEgo3sVhIHGzYeenDkqm4VmZAAvix3NiDNBX81xDW6v5kYxNPQlmgAWkRG742LmxiYqfG5nGlAhBxricxyJZT+Izi4=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW4PR11MB7079
-X-OriginatorOrg: intel.com
+References: <20230125083851.27759-1-surenb@google.com> <20230125083851.27759-2-surenb@google.com>
+ <Y9Dx0cPXF2yoLwww@hirez.programming.kicks-ass.net> <CAJuCfpEcVCZaCGzc-Wim25eaV5e6YG1YJAAdKwZ6JHViB0z8aw@mail.gmail.com>
+ <Y9F28J9njAtwifuL@casper.infradead.org>
+In-Reply-To: <Y9F28J9njAtwifuL@casper.infradead.org>
+From: Suren Baghdasaryan <surenb@google.com>
+Date: Wed, 25 Jan 2023 11:21:56 -0800
+Message-ID: <CAJuCfpHO7g-5GZep0e7r=dFTBhVHpN3R_pHMGOqetgrKyYzMFQ@mail.gmail.com>
+Subject: Re: [PATCH v2 1/6] mm: introduce vma->vm_flags modifier functions
+To: Matthew Wilcox <willy@infradead.org>
+Cc: Peter Zijlstra <peterz@infradead.org>, akpm@linux-foundation.org, michel@lespinasse.org, 
+	jglisse@google.com, mhocko@suse.com, vbabka@suse.cz, hannes@cmpxchg.org, 
+	mgorman@techsingularity.net, dave@stgolabs.net, liam.howlett@oracle.com, 
+	ldufour@linux.ibm.com, paulmck@kernel.org, luto@kernel.org, 
+	songliubraving@fb.com, peterx@redhat.com, david@redhat.com, 
+	dhowells@redhat.com, hughd@google.com, bigeasy@linutronix.de, 
+	kent.overstreet@linux.dev, punit.agrawal@bytedance.com, lstoakes@gmail.com, 
+	peterjung1337@gmail.com, rientjes@google.com, axelrasmussen@google.com, 
+	joelaf@google.com, minchan@google.com, jannh@google.com, shakeelb@google.com, 
+	tatashin@google.com, edumazet@google.com, gthelen@google.com, 
+	gurua@google.com, arjunroy@google.com, soheil@google.com, 
+	hughlynch@google.com, leewalsh@google.com, posk@google.com, will@kernel.org, 
+	aneesh.kumar@linux.ibm.com, npiggin@gmail.com, chenhuacai@kernel.org, 
+	tglx@linutronix.de, mingo@redhat.com, bp@alien8.de, 
+	dave.hansen@linux.intel.com, richard@nod.at, anton.ivanov@cambridgegreys.com, 
+	johannes@sipsolutions.net, qianweili@huawei.com, wangzhou1@hisilicon.com, 
+	herbert@gondor.apana.org.au, davem@davemloft.net, vkoul@kernel.org, 
+	airlied@gmail.com, daniel@ffwll.ch, maarten.lankhorst@linux.intel.com, 
+	mripard@kernel.org, tzimmermann@suse.de, l.stach@pengutronix.de, 
+	krzysztof.kozlowski@linaro.org, patrik.r.jakobsson@gmail.com, 
+	matthias.bgg@gmail.com, robdclark@gmail.com, quic_abhinavk@quicinc.com, 
+	dmitry.baryshkov@linaro.org, tomba@kernel.org, hjc@rock-chips.com, 
+	heiko@sntech.de, ray.huang@amd.com, kraxel@redhat.com, sre@kernel.org, 
+	mcoquelin.stm32@gmail.com, alexandre.torgue@foss.st.com, tfiga@chromium.org, 
+	m.szyprowski@samsung.com, mchehab@kernel.org, dimitri.sivanich@hpe.com, 
+	zhangfei.gao@linaro.org, jejb@linux.ibm.com, martin.petersen@oracle.com, 
+	dgilbert@interlog.com, hdegoede@redhat.com, mst@redhat.com, 
+	jasowang@redhat.com, alex.williamson@redhat.com, deller@gmx.de, 
+	jayalk@intworks.biz, viro@zeniv.linux.org.uk, nico@fluxnic.net, 
+	xiang@kernel.org, chao@kernel.org, tytso@mit.edu, adilger.kernel@dilger.ca, 
+	miklos@szeredi.hu, mike.kravetz@oracle.com, muchun.song@linux.dev, 
+	bhe@redhat.com, andrii@kernel.org, yoshfuji@linux-ipv6.org, 
+	dsahern@kernel.org, kuba@kernel.org, pabeni@redhat.com, perex@perex.cz, 
+	tiwai@suse.com, haojian.zhuang@gmail.com, robert.jarzmik@free.fr, 
+	linux-mm@kvack.org, linux-arm-kernel@lists.infradead.org, 
+	linuxppc-dev@lists.ozlabs.org, x86@kernel.org, linux-kernel@vger.kernel.org, 
+	linux-graphics-maintainer@vmware.com, linux-ia64@vger.kernel.org, 
+	linux-arch@vger.kernel.org, loongarch@lists.linux.dev, kvm@vger.kernel.org, 
+	linux-s390@vger.kernel.org, linux-sgx@vger.kernel.org, 
+	linux-um@lists.infradead.org, linux-acpi@vger.kernel.org, 
+	linux-crypto@vger.kernel.org, nvdimm@lists.linux.dev, 
+	dmaengine@vger.kernel.org, amd-gfx@lists.freedesktop.org, 
+	dri-devel@lists.freedesktop.org, etnaviv@lists.freedesktop.org, 
+	linux-samsung-soc@vger.kernel.org, intel-gfx@lists.freedesktop.org, 
+	linux-mediatek@lists.infradead.org, linux-arm-msm@vger.kernel.org, 
+	freedreno@lists.freedesktop.org, linux-rockchip@lists.infradead.org, 
+	linux-tegra@vger.kernel.org, virtualization@lists.linux-foundation.org, 
+	xen-devel@lists.xenproject.org, linux-stm32@st-md-mailman.stormreply.com, 
+	linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, 
+	linux-accelerators@lists.ozlabs.org, sparclinux@vger.kernel.org, 
+	linux-scsi@vger.kernel.org, linux-staging@lists.linux.dev, 
+	target-devel@vger.kernel.org, linux-usb@vger.kernel.org, 
+	netdev@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-aio@kvack.org, 
+	linux-fsdevel@vger.kernel.org, linux-erofs@lists.ozlabs.org, 
+	linux-ext4@vger.kernel.org, devel@lists.orangefs.org, 
+	kexec@lists.infradead.org, linux-xfs@vger.kernel.org, bpf@vger.kernel.org, 
+	linux-perf-users@vger.kernel.org, kasan-dev@googlegroups.com, 
+	selinux@vger.kernel.org, alsa-devel@alsa-project.org, kernel-team@android.com
+Content-Type: text/plain; charset="UTF-8"
 
-Christophe JAILLET wrote:
-> strtobool() is the same as kstrtobool().
-> However, the latter is more used within the kernel.
-> 
-> In order to remove strtobool() and slightly simplify kstrtox.h, switch to
-> the other function name.
-> 
-> While at it, include the corresponding header file (<linux/kstrtox.h>)
-> 
-> Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-> ---
-> This patch was already sent as a part of a serie ([1]) that axed all usages
-> of strtobool().
-> Most of the patches have been merged in -next.
-> 
-> I synch'ed with latest -next and re-send the remaining ones as individual
-> patches.
-> 
-> Changes in v2:
->   - synch with latest -next.
+On Wed, Jan 25, 2023 at 10:37 AM Matthew Wilcox <willy@infradead.org> wrote:
+>
+> On Wed, Jan 25, 2023 at 08:49:50AM -0800, Suren Baghdasaryan wrote:
+> > On Wed, Jan 25, 2023 at 1:10 AM Peter Zijlstra <peterz@infradead.org> wrote:
+> > > > +     /*
+> > > > +      * Flags, see mm.h.
+> > > > +      * WARNING! Do not modify directly.
+> > > > +      * Use {init|reset|set|clear|mod}_vm_flags() functions instead.
+> > > > +      */
+> > > > +     unsigned long vm_flags;
+> > >
+> > > We have __private and ACCESS_PRIVATE() to help with enforcing this.
+> >
+> > Thanks for pointing this out, Peter! I guess for that I'll need to
+> > convert all read accesses and provide get_vm_flags() too? That will
+> > cause some additional churt (a quick search shows 801 hits over 248
+> > files) but maybe it's worth it? I think Michal suggested that too in
+> > another patch. Should I do that while we are at it?
+>
+> Here's a trick I saw somewhere in the VFS:
+>
+>         union {
+>                 const vm_flags_t vm_flags;
+>                 vm_flags_t __private __vm_flags;
+>         };
+>
+> Now it can be read by anybody but written only by those using
+> ACCESS_PRIVATE.
 
-Looks good, applied for v6.3.
+Huh, this is quite nice! I think it does not save us from the cases
+when vma->vm_flags is passed by a reference and modified indirectly,
+like in ksm_madvise()? Though maybe such usecases are so rare (I found
+only 2 cases) that we can ignore this?
