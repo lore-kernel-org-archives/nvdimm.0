@@ -1,57 +1,58 @@
-Received: from mail-yw1-f182.google.com (mail-yw1-f182.google.com [209.85.128.182])
+Received: from mail-yw1-f175.google.com (mail-yw1-f175.google.com [209.85.128.175])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8ECA04C84
-	for <nvdimm@lists.linux.dev>; Wed, 25 Jan 2023 16:50:04 +0000 (UTC)
-Received: by mail-yw1-f182.google.com with SMTP id 00721157ae682-4ff1fa82bbbso225474257b3.10
-        for <nvdimm@lists.linux.dev>; Wed, 25 Jan 2023 08:50:04 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E8B24C84
+	for <nvdimm@lists.linux.dev>; Wed, 25 Jan 2023 16:55:25 +0000 (UTC)
+Received: by mail-yw1-f175.google.com with SMTP id 00721157ae682-4a263c4ddbaso272946827b3.0
+        for <nvdimm@lists.linux.dev>; Wed, 25 Jan 2023 08:55:25 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=google.com; s=20210112;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=9oBkpwDuDP6Raat/HRHsNpx8MqzIjjZSJojQEumXoyE=;
-        b=telMSbMEB1I/JdT8E+AOlYPkvLPDxj1UCnywL1f/zz+GxB6zyzUgN+Q3Q48l8AYc8X
-         qS5rmRFlzboD9JIVNM4srPZju+Dc0OvfYTnyPjpp4sHdEutwmKfLXtqzcN+4YmFBRVgu
-         A3oTpxaFO/E/7LaM1iu3pe6Iv0CmRV+MC10+sbVUAqr2eeBPD17IhS27buTMH3bCJoMu
-         fEQq5XzvwDAqtF1fp8r2H4g3vh98tijISo+CkjBRkXWvZWGfdkjpWZzF8VgIKtCc5sLs
-         +bZFNae0CmrxcmnBVuga8Dg0CQRlWnW+6m8p+riuFjzQ8BSrHATHKU3+MoO2RS3dWuby
-         cPfQ==
+        bh=49H+5dcfdqsESvQ4qNxkOgTxyGkRYtaMvRra0jMgwoI=;
+        b=S433Z2p/j0oEnqzhdMbCoBVS6yLsoVuhPxi7PQkxnyRK8RoE5tlGqQCWFiSx/y2EvP
+         VAUU6f5te6yd0FF3QKoXQk59fXSc40Ni99FjmOhoS8uoMeuhfG+AT8hg6vTHrAcNtls7
+         iMIrnMdjSfEnhMBuERTLvpM6IdVwE9wobd2Cb3XY0VBKEUGGTBatMri522T6kyoxGdRv
+         R/YHI2CzXA+66ssNNRD0kBHVPl8TI5ear6XOrgI2lTdtmT0YpMoSddNSDob6lG0ADoLk
+         +xTQAwFZ3i/oeH+aroOYDwlOGwYRh8N7mvnq0HFpqRIYUl+jcTUyG7X+0g74P9WaFx1x
+         4nDw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=9oBkpwDuDP6Raat/HRHsNpx8MqzIjjZSJojQEumXoyE=;
-        b=NWRi1mL6aPRf0MbL7auVeTRk0eLbX1vEjQJMRTOJ6A001kKZ35HDqDbYE6O1vTo8bG
-         oOPuVirOugHz9ezI8eDWCGOXeq/7qqEof6KhExnJetFBPFKTFZm0qvJC14KQQHrNRGrs
-         +eVr1GMxruHXnP/1Cgvu4ZcbqPxOTZaa5cUcUG0M8dC5e7RjRbxA4lAMJJerd/yQ1MQA
-         A9WJu8zI5cbXaGVW2QI77pURMbVf9Bx8RwW+bNXrWSVj+oTXl8H8fXMcOjagmiJl3WCi
-         n4L8RegDAB4twVgPiy3d/12TKWg38frxEwMusVoh9tIAlN/+rw3lnLCN9l20GefpmnuA
-         ey+A==
-X-Gm-Message-State: AFqh2kr5oHCP0hKFxk4fqQCPDqhJIw9cMi1Rdr/UjNfvWeMh5ZUVB3LN
-	yN5zrfMUWz+y5RLa7Cpij+X23dyEt5m/iFyXjoNC3Q==
-X-Google-Smtp-Source: AMrXdXsah5c2WKVW38d6ZSr7pPop+n/mEJC53KDRGLQOXrHcU20AK6F0ktCN8HrtzVAtxjIN7wyafP19A/nGyLOtNU8=
-X-Received: by 2002:a81:1d2:0:b0:433:f1c0:3f1c with SMTP id
- 201-20020a8101d2000000b00433f1c03f1cmr4401576ywb.438.1674665403087; Wed, 25
- Jan 2023 08:50:03 -0800 (PST)
+        bh=49H+5dcfdqsESvQ4qNxkOgTxyGkRYtaMvRra0jMgwoI=;
+        b=GhXUBQ0WVH/zuzMtqLDFE9pbskfa4hXGCK0EwoNDwgpKkzv7P9ktdhHOb+ozRgkWpF
+         eZvt3qDyDIpyhrR/+892uOu10E++uoMDg1eJo1u3pImGvxfk0HRjntDIpR3iffFlNxNq
+         SrZAnqg9PIrkhAUB7IGuCO1d5b/fdtS/hl1YZVAXfaEnX8GN9oH3UPs5gG3BAHomJ890
+         Pt4k8saXyUUfY86XG0OXl8PxsSfOc5fmZ/89qFg1CkYoeB8e9oquyNNGQVkrDEa2d1dc
+         eOqNmI2Uqnib+ty3UGlcr9XBzkzmr7+DwDq2GppUyrpnpqqI1+26p/0V8DeG6Vot/FUU
+         KNxw==
+X-Gm-Message-State: AO0yUKU5s4+k8AUvPQBhXjWY93UV2YT+Y/HX7Xk8VfSm2cvVpjmybDxY
+	AAYPRcUyAVfG4n9sRn3Md7Qo/BRLqqXLYxViBoESIw==
+X-Google-Smtp-Source: AK7set/FwLbWx6yiqkzvjcGbe3t+VxnD8xj+/iXHUbjRIwB0jRkvrcCR+VhH4DhOMzxTzJJlzd0h1TxaYfABci/YfRk=
+X-Received: by 2002:a0d:d456:0:b0:507:26dc:ebd with SMTP id
+ w83-20020a0dd456000000b0050726dc0ebdmr239978ywd.455.1674665724181; Wed, 25
+ Jan 2023 08:55:24 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20230125083851.27759-1-surenb@google.com> <20230125083851.27759-2-surenb@google.com>
- <Y9Dx0cPXF2yoLwww@hirez.programming.kicks-ass.net>
-In-Reply-To: <Y9Dx0cPXF2yoLwww@hirez.programming.kicks-ass.net>
+References: <20230125083851.27759-1-surenb@google.com> <20230125083851.27759-4-surenb@google.com>
+ <Y9D2zXpy+9iyZNun@dhcp22.suse.cz>
+In-Reply-To: <Y9D2zXpy+9iyZNun@dhcp22.suse.cz>
 From: Suren Baghdasaryan <surenb@google.com>
-Date: Wed, 25 Jan 2023 08:49:50 -0800
-Message-ID: <CAJuCfpEcVCZaCGzc-Wim25eaV5e6YG1YJAAdKwZ6JHViB0z8aw@mail.gmail.com>
-Subject: Re: [PATCH v2 1/6] mm: introduce vma->vm_flags modifier functions
-To: Peter Zijlstra <peterz@infradead.org>
+Date: Wed, 25 Jan 2023 08:55:12 -0800
+Message-ID: <CAJuCfpG7KWnj3J_t4nN1R4gfiM5jgjsiTfL55hNa=Uvz4E835g@mail.gmail.com>
+Subject: Re: [PATCH v2 3/6] mm: replace vma->vm_flags direct modifications
+ with modifier calls
+To: Michal Hocko <mhocko@suse.com>
 Cc: akpm@linux-foundation.org, michel@lespinasse.org, jglisse@google.com, 
-	mhocko@suse.com, vbabka@suse.cz, hannes@cmpxchg.org, 
-	mgorman@techsingularity.net, dave@stgolabs.net, willy@infradead.org, 
-	liam.howlett@oracle.com, ldufour@linux.ibm.com, paulmck@kernel.org, 
+	vbabka@suse.cz, hannes@cmpxchg.org, mgorman@techsingularity.net, 
+	dave@stgolabs.net, willy@infradead.org, liam.howlett@oracle.com, 
+	peterz@infradead.org, ldufour@linux.ibm.com, paulmck@kernel.org, 
 	luto@kernel.org, songliubraving@fb.com, peterx@redhat.com, david@redhat.com, 
 	dhowells@redhat.com, hughd@google.com, bigeasy@linutronix.de, 
 	kent.overstreet@linux.dev, punit.agrawal@bytedance.com, lstoakes@gmail.com, 
@@ -108,33 +109,43 @@ Cc: akpm@linux-foundation.org, michel@lespinasse.org, jglisse@google.com,
 	selinux@vger.kernel.org, alsa-devel@alsa-project.org, kernel-team@android.com
 Content-Type: text/plain; charset="UTF-8"
 
-On Wed, Jan 25, 2023 at 1:10 AM Peter Zijlstra <peterz@infradead.org> wrote:
+On Wed, Jan 25, 2023 at 1:30 AM 'Michal Hocko' via kernel-team
+<kernel-team@android.com> wrote:
 >
-> On Wed, Jan 25, 2023 at 12:38:46AM -0800, Suren Baghdasaryan wrote:
+> On Wed 25-01-23 00:38:48, Suren Baghdasaryan wrote:
+> > Replace direct modifications to vma->vm_flags with calls to modifier
+> > functions to be able to track flag changes and to keep vma locking
+> > correctness.
 >
-> > diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
-> > index 2d6d790d9bed..6c7c70bf50dd 100644
-> > --- a/include/linux/mm_types.h
-> > +++ b/include/linux/mm_types.h
-> > @@ -491,7 +491,13 @@ struct vm_area_struct {
-> >        * See vmf_insert_mixed_prot() for discussion.
-> >        */
-> >       pgprot_t vm_page_prot;
-> > -     unsigned long vm_flags;         /* Flags, see mm.h. */
-> > +
-> > +     /*
-> > +      * Flags, see mm.h.
-> > +      * WARNING! Do not modify directly.
-> > +      * Use {init|reset|set|clear|mod}_vm_flags() functions instead.
-> > +      */
-> > +     unsigned long vm_flags;
->
-> We have __private and ACCESS_PRIVATE() to help with enforcing this.
+> Is this a manual (git grep) based work or have you used Coccinele for
+> the patch generation?
 
-Thanks for pointing this out, Peter! I guess for that I'll need to
-convert all read accesses and provide get_vm_flags() too? That will
-cause some additional churt (a quick search shows 801 hits over 248
-files) but maybe it's worth it? I think Michal suggested that too in
-another patch. Should I do that while we are at it?
+It was a manual "search and replace" and in the process I temporarily
+renamed vm_flags to ensure I did not miss any usage.
 
+>
+> My potentially incomplete check
+> $ git grep ">[[:space:]]*vm_flags[[:space:]]*[&|^]="
+>
+> shows that nothing should be left after this. There is still quite a lot
+> of direct checks of the flags (more than 600). Maybe it would be good to
+> make flags accessible only via accessors which would also prevent any
+> future direct setting of those flags in uncontrolled way as well.
+
+Yes, I think Peter's suggestion in the first patch would also require
+that. Much more churn but probably worth it for the future
+maintenance. I'll add a patch which converts all readers as well.
+
+>
+> Anyway
+> Acked-by: Michal Hocko <mhocko@suse.com>
+
+Thanks for all the reviews!
+
+> --
+> Michal Hocko
+> SUSE Labs
+>
+> --
+> To unsubscribe from this group and stop receiving emails from it, send an email to kernel-team+unsubscribe@android.com.
 >
