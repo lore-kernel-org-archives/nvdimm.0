@@ -1,139 +1,186 @@
-Received: from mail-yb1-f169.google.com (mail-yb1-f169.google.com [209.85.219.169])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FFAC6FA5
-	for <nvdimm@lists.linux.dev>; Wed, 25 Jan 2023 17:22:36 +0000 (UTC)
-Received: by mail-yb1-f169.google.com with SMTP id m199so8144627ybm.4
-        for <nvdimm@lists.linux.dev>; Wed, 25 Jan 2023 09:22:36 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=IqJXv+IInDU1mKTOWecSjx46uIp9RhIiEah7PjvPLrg=;
-        b=QlZyecSvRJAlH7daZiVbTmdMCDJawwIkjqybbPcYd50INvCOOFwycJjGFsDCENBvPF
-         JeBM9yeOQDknmaZC6LT0p7wlzLAJo3QYgAn7K1xQNCTJjPrh6oinOxgRNGwGedAqUfeH
-         4EF6oknHwKU0N6BIZOc0CJi1hrgM4W0zxm3gicvvOuEGF7JC9HCNICDdMPEAz6Lz/B5y
-         FN2dpyuojKkpe3r7ipsFxRIyHaJ4nJmkiiUGkQy6aOsuBhBZ3WzwUsGkq0uXDlGTKFEH
-         iRh4N/trPN148wcbBUC1DmqB3ErHQLF9n9pkmMXooLK6oXyXf0aS41iIJv2buhnN7zSu
-         X8Bw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=IqJXv+IInDU1mKTOWecSjx46uIp9RhIiEah7PjvPLrg=;
-        b=76Q9yKMFff767hQSTe9FrKt1w0R7LHFdWTvxL/90LdjYfygEcpXiS48HaoE6tu0k3e
-         ctxZuKU2o3RfuxWpfv0an/COQ/UhBQNh6CULe1+N+MaTVwoyH7Vz46goeFKdb7M4QuYS
-         iZP0HZnaD6cwr7oQAqB/KaJVaWn+1jaND0ArIAP9a6GD/fHjgIDlj2dnkQfUj08rnvRH
-         q2G387EBdUiK5YExdMS4qu6e0KlTYWsb18e2kMNSagESXUVJDNFrCjmiEB02cEXDYpdN
-         2b/agT4OuaP5y+SwrSnH3qyOuERo4XFHfyJJ6xsYm4h3dpsD/05Deb3dqikTlEaEN1sx
-         Zskw==
-X-Gm-Message-State: AFqh2kqzJIfU0HEMMHD/a50+sQ8TmFtJKrMyAj8dX5IDk+pKWMtRxZO5
-	EJHlfAzR45IQFykfk4rruANgKI8Jn0mjTXtJL3AwGA==
-X-Google-Smtp-Source: AMrXdXv634nY3BrnZ3PlTUGlyUi8i7L3YenO2gMgxW5qJ4tF6Xha6yZp+2FFeWeU8OQrXrCFeHpomo5nr++haHZW7UI=
-X-Received: by 2002:a25:a408:0:b0:800:28d4:6936 with SMTP id
- f8-20020a25a408000000b0080028d46936mr2303639ybi.431.1674667354997; Wed, 25
- Jan 2023 09:22:34 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DF386FA1
+	for <nvdimm@lists.linux.dev>; Wed, 25 Jan 2023 17:59:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1674669546; x=1706205546;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=TB1usJA6A+0V9D2E8qR5757kQJTtgcSM0SFKk6JJu+Q=;
+  b=hOZS2IIEK9lE6RTVsFsfYizndVNs4cxebuzxRzZEM8oznZl9hHBFcSfO
+   grErGAYeOAd2TrNLmqWYITWut/MDEYUhYm7+7F0dOyF63msrFrOz4bVr7
+   5jFedap2thOXCAIybctw5LNHbzwNonin16zXfIDybFzQ+ZwJN1ycl1yZ4
+   l/6GJ0QsN/DCbpFE9sNn/JnE4bWfO756lfEfB2o8MMz50v5r+xLmA5Uv8
+   Mayl/msHWM+2iD/okMBatRJ+P0eR4+R+45+hspkFCqxrzwF8LaChKBPjh
+   aZLbeg1KEgOcZ0+SGauxBhvc/9XzybMsLPlhewe52kCjxK7JkLYn9nu/Y
+   A==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10601"; a="325303341"
+X-IronPort-AV: E=Sophos;i="5.97,246,1669104000"; 
+   d="scan'208";a="325303341"
+Received: from orsmga001.jf.intel.com ([10.7.209.18])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Jan 2023 09:59:04 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6500,9779,10601"; a="694810271"
+X-IronPort-AV: E=Sophos;i="5.97,246,1669104000"; 
+   d="scan'208";a="694810271"
+Received: from fmsmsx602.amr.corp.intel.com ([10.18.126.82])
+  by orsmga001.jf.intel.com with ESMTP; 25 Jan 2023 09:59:04 -0800
+Received: from fmsmsx610.amr.corp.intel.com (10.18.126.90) by
+ fmsmsx602.amr.corp.intel.com (10.18.126.82) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.16; Wed, 25 Jan 2023 09:59:03 -0800
+Received: from fmsmsx610.amr.corp.intel.com (10.18.126.90) by
+ fmsmsx610.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.16; Wed, 25 Jan 2023 09:59:03 -0800
+Received: from fmsedg602.ED.cps.intel.com (10.1.192.136) by
+ fmsmsx610.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.16 via Frontend Transport; Wed, 25 Jan 2023 09:59:03 -0800
+Received: from NAM11-CO1-obe.outbound.protection.outlook.com (104.47.56.177)
+ by edgegateway.intel.com (192.55.55.71) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.16; Wed, 25 Jan 2023 09:59:01 -0800
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=IR8xRGgjVLUVCKwsEoZ4FYOzrZwb/ehbgOMpSLWLcWbffOu5wzObdhDe1YdTb5DQ/TDXsAeCWBS+hP+oVsQs5wM0B5t2uJYCDlTOxmnGewaEuIw15CRiUMO74bfIPAIZHA9EnFxIe2L9WeVupx5P/ZKSg+6XLhy08zStPKagfC8/NfAdS5FxJY78wdsqthYyHfaNKBDRu0hrc7y5+ZzXEqhYCBwkV1bniXPpq6H/RabNslLVpjjYOPVqUx1EmVbqxl4ARPP4DGFpv++75zfolGUGPZnOZIbiw+5D3YDgNgzDVt/746dnLDMZsX4erfbNta21DVqI1PYucoDJ983juQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=gyQa9Ba2sNpBgfVg6L+J4JLzJIPqQpqkjoH95HYJHkE=;
+ b=QqoQWZ/zdgTJrTIrRRLkinvkf1W1BJ9vv8gPJ7f99IX8I/Tml9KnX+T+gBV6TEBGTxoMAGw+Gx9SrKZYzsJeje57Eig3IOrXLz0JXT9xWR5IZhxe0438AJ9AAcHwMV8HYKRQGvqBUAu5Rfk3ZdNd9pKoeAR6QblZ/OnTMwoMR9bg2gB/Tu8e5FvPdjjH2yyNBCwxUAW1wukSv0qzpKHS/3+LyLeT2gOdq3zLv/KaDCWUiWa/GDNU7BEGl/OJfFtOjrp5EsstF+L6xaCxig+rp/IF6a0hPss29nwUwYbUvpkMR5dp5MU6YeH/DT81hXQ5cCQqeOiou7x6ZpWajPl9KA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from PH8PR11MB8107.namprd11.prod.outlook.com (2603:10b6:510:256::6)
+ by CY8PR11MB6963.namprd11.prod.outlook.com (2603:10b6:930:58::10) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6043.20; Wed, 25 Jan
+ 2023 17:59:00 +0000
+Received: from PH8PR11MB8107.namprd11.prod.outlook.com
+ ([fe80::421b:865b:f356:7dfc]) by PH8PR11MB8107.namprd11.prod.outlook.com
+ ([fe80::421b:865b:f356:7dfc%5]) with mapi id 15.20.6002.033; Wed, 25 Jan 2023
+ 17:59:00 +0000
+Date: Wed, 25 Jan 2023 09:58:56 -0800
+From: Dan Williams <dan.j.williams@intel.com>
+To: Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>, Minchan Kim
+	<minchan@kernel.org>, Sergey Senozhatsky <senozhatsky@chromium.org>, "Dan
+ Williams" <dan.j.williams@intel.com>, Vishal Verma
+	<vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, Ira Weiny
+	<ira.weiny@intel.com>
+CC: Andrew Morton <akpm@linux-foundation.org>, <linux-block@vger.kernel.org>,
+	<nvdimm@lists.linux.dev>, <linux-fsdevel@vger.kernel.org>,
+	<linux-mm@kvack.org>
+Subject: RE: [PATCH 1/7] mpage: stop using bdev_{read,write}_page
+Message-ID: <63d16de08ab5e_3a36e52944e@dwillia2-xfh.jf.intel.com.notmuch>
+References: <20230125133436.447864-1-hch@lst.de>
+ <20230125133436.447864-2-hch@lst.de>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20230125133436.447864-2-hch@lst.de>
+X-ClientProxiedBy: CY5PR15CA0142.namprd15.prod.outlook.com
+ (2603:10b6:930:67::8) To PH8PR11MB8107.namprd11.prod.outlook.com
+ (2603:10b6:510:256::6)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20230125083851.27759-1-surenb@google.com> <20230125083851.27759-5-surenb@google.com>
- <Y9D4rWEsajV/WfNx@dhcp22.suse.cz> <CAJuCfpGd2eG0RSMte9OVgsRVWPo+Sj7+t8EOo8o_iKzZoh1MXA@mail.gmail.com>
- <Y9Fh9joU3vTCwYbX@dhcp22.suse.cz>
-In-Reply-To: <Y9Fh9joU3vTCwYbX@dhcp22.suse.cz>
-From: Suren Baghdasaryan <surenb@google.com>
-Date: Wed, 25 Jan 2023 09:22:23 -0800
-Message-ID: <CAJuCfpEJ1U2UHBNhLx4gggN3PLZKP5RejiZL_U5ZLxU_wdviVg@mail.gmail.com>
-Subject: Re: [PATCH v2 4/6] mm: replace vma->vm_flags indirect modification in ksm_madvise
-To: Michal Hocko <mhocko@suse.com>
-Cc: akpm@linux-foundation.org, michel@lespinasse.org, jglisse@google.com, 
-	vbabka@suse.cz, hannes@cmpxchg.org, mgorman@techsingularity.net, 
-	dave@stgolabs.net, willy@infradead.org, liam.howlett@oracle.com, 
-	peterz@infradead.org, ldufour@linux.ibm.com, paulmck@kernel.org, 
-	luto@kernel.org, songliubraving@fb.com, peterx@redhat.com, david@redhat.com, 
-	dhowells@redhat.com, hughd@google.com, bigeasy@linutronix.de, 
-	kent.overstreet@linux.dev, punit.agrawal@bytedance.com, lstoakes@gmail.com, 
-	peterjung1337@gmail.com, rientjes@google.com, axelrasmussen@google.com, 
-	joelaf@google.com, minchan@google.com, jannh@google.com, shakeelb@google.com, 
-	tatashin@google.com, edumazet@google.com, gthelen@google.com, 
-	gurua@google.com, arjunroy@google.com, soheil@google.com, 
-	hughlynch@google.com, leewalsh@google.com, posk@google.com, will@kernel.org, 
-	aneesh.kumar@linux.ibm.com, npiggin@gmail.com, chenhuacai@kernel.org, 
-	tglx@linutronix.de, mingo@redhat.com, bp@alien8.de, 
-	dave.hansen@linux.intel.com, richard@nod.at, anton.ivanov@cambridgegreys.com, 
-	johannes@sipsolutions.net, qianweili@huawei.com, wangzhou1@hisilicon.com, 
-	herbert@gondor.apana.org.au, davem@davemloft.net, vkoul@kernel.org, 
-	airlied@gmail.com, daniel@ffwll.ch, maarten.lankhorst@linux.intel.com, 
-	mripard@kernel.org, tzimmermann@suse.de, l.stach@pengutronix.de, 
-	krzysztof.kozlowski@linaro.org, patrik.r.jakobsson@gmail.com, 
-	matthias.bgg@gmail.com, robdclark@gmail.com, quic_abhinavk@quicinc.com, 
-	dmitry.baryshkov@linaro.org, tomba@kernel.org, hjc@rock-chips.com, 
-	heiko@sntech.de, ray.huang@amd.com, kraxel@redhat.com, sre@kernel.org, 
-	mcoquelin.stm32@gmail.com, alexandre.torgue@foss.st.com, tfiga@chromium.org, 
-	m.szyprowski@samsung.com, mchehab@kernel.org, dimitri.sivanich@hpe.com, 
-	zhangfei.gao@linaro.org, jejb@linux.ibm.com, martin.petersen@oracle.com, 
-	dgilbert@interlog.com, hdegoede@redhat.com, mst@redhat.com, 
-	jasowang@redhat.com, alex.williamson@redhat.com, deller@gmx.de, 
-	jayalk@intworks.biz, viro@zeniv.linux.org.uk, nico@fluxnic.net, 
-	xiang@kernel.org, chao@kernel.org, tytso@mit.edu, adilger.kernel@dilger.ca, 
-	miklos@szeredi.hu, mike.kravetz@oracle.com, muchun.song@linux.dev, 
-	bhe@redhat.com, andrii@kernel.org, yoshfuji@linux-ipv6.org, 
-	dsahern@kernel.org, kuba@kernel.org, pabeni@redhat.com, perex@perex.cz, 
-	tiwai@suse.com, haojian.zhuang@gmail.com, robert.jarzmik@free.fr, 
-	linux-mm@kvack.org, linux-arm-kernel@lists.infradead.org, 
-	linuxppc-dev@lists.ozlabs.org, x86@kernel.org, linux-kernel@vger.kernel.org, 
-	linux-graphics-maintainer@vmware.com, linux-ia64@vger.kernel.org, 
-	linux-arch@vger.kernel.org, loongarch@lists.linux.dev, kvm@vger.kernel.org, 
-	linux-s390@vger.kernel.org, linux-sgx@vger.kernel.org, 
-	linux-um@lists.infradead.org, linux-acpi@vger.kernel.org, 
-	linux-crypto@vger.kernel.org, nvdimm@lists.linux.dev, 
-	dmaengine@vger.kernel.org, amd-gfx@lists.freedesktop.org, 
-	dri-devel@lists.freedesktop.org, etnaviv@lists.freedesktop.org, 
-	linux-samsung-soc@vger.kernel.org, intel-gfx@lists.freedesktop.org, 
-	linux-mediatek@lists.infradead.org, linux-arm-msm@vger.kernel.org, 
-	freedreno@lists.freedesktop.org, linux-rockchip@lists.infradead.org, 
-	linux-tegra@vger.kernel.org, virtualization@lists.linux-foundation.org, 
-	xen-devel@lists.xenproject.org, linux-stm32@st-md-mailman.stormreply.com, 
-	linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, 
-	linux-accelerators@lists.ozlabs.org, sparclinux@vger.kernel.org, 
-	linux-scsi@vger.kernel.org, linux-staging@lists.linux.dev, 
-	target-devel@vger.kernel.org, linux-usb@vger.kernel.org, 
-	netdev@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-aio@kvack.org, 
-	linux-fsdevel@vger.kernel.org, linux-erofs@lists.ozlabs.org, 
-	linux-ext4@vger.kernel.org, devel@lists.orangefs.org, 
-	kexec@lists.infradead.org, linux-xfs@vger.kernel.org, bpf@vger.kernel.org, 
-	linux-perf-users@vger.kernel.org, kasan-dev@googlegroups.com, 
-	selinux@vger.kernel.org, alsa-devel@alsa-project.org, kernel-team@android.com
-Content-Type: text/plain; charset="UTF-8"
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: PH8PR11MB8107:EE_|CY8PR11MB6963:EE_
+X-MS-Office365-Filtering-Correlation-Id: bfc37a2c-6942-41d6-a1d4-08dafefdd604
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: nAYwSPHtbdk5wlYiC073WQs02vcXvMC2Oauwj1XlOpoCsJJ7W+eiipnTG0Bro5ITMqdWaiOQkLUSg7sizSKX5ZkNVhg0pGt8HAA7mYMXz5JF77X7P3mBbmwwQtuPnPKMmDFMD4gIozCxKiXbQ8pE9FX2PVuUJF8ZcmG3o3DhQfHKjS5356P+gM01B4eIiq9RQSyQBcQu4Kkava8yHoNeKUpFeTg3Dx94dltiBGnGcMahtaK+s1FOWxHYdwxICOyFowfGpHFszac5uhWG380NgajaLKK2Ga51Ku11FFS1A8rKVqUf5odgtQFsXlY82oSJGs2CDImet00oS8Qbl2V1v6wk4PGObUdKrSEf/cG/KXXSFb96wkm/EfQqeOpjybYVOJ6jX/8FmuIAyqYYD2gjbpcLlTnjwQ6ZXNp+xO7zZ1GNBtLJ+a8WAETXt4nQzEdKslefbL43XbP26OZFLUeV91C4fubPaWjzlpH72u8U95W5gU4+ix6aq7bD4DfWD0DP0+utVrlB3HktrXCyaASEM52MKgHEDNr3R9ipH/3iaez27elYpnYbRsaPvvu5qdg9zt7sqplMOdJBpokRAwaAacpKRH592LJFsF84SHAe9aBFLvVJLAfHrgXpN8z+F+VslIRap9UNP65kum3+jMfXuQ==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH8PR11MB8107.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230025)(346002)(136003)(396003)(366004)(39860400002)(376002)(451199018)(38100700002)(86362001)(82960400001)(316002)(6636002)(110136005)(478600001)(2906002)(66476007)(41300700001)(66556008)(4326008)(66946007)(8676002)(5660300002)(8936002)(6512007)(26005)(186003)(6506007)(9686003)(83380400001)(6486002)(6666004);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?HC53SR0jliP0KEvHw6BW5VQeuBWV4g7Mj5I56zudVIvmUgpO6mf6inyTCRl+?=
+ =?us-ascii?Q?PaQUNRM8N3svvpK/DzkzeB1ltmXlui25UOcBKRtfLZlwMgG7GhRSP3OLTAKK?=
+ =?us-ascii?Q?mgMejcVs5FGEIASTD2K8b21VqbPimeP5xkEsnREb29yZFIDavEnh6rIt+7yf?=
+ =?us-ascii?Q?+r/qPt4BxIPUwcvr6BHT1hSwaBlGTZ6LmhM6LApFuaFTdPoZXEioBYLB/1Ej?=
+ =?us-ascii?Q?ILpaLJCboAmNNUbh3UbQh9kGGbNg/PRTVGxEzpCRt4lZUboUF0kXmn0cs9X/?=
+ =?us-ascii?Q?MU12L+06q7gs/QGrVUO36N1iYUjdicZkw/Wzhlpds/xpML7/ldYdvhqtZ3ZN?=
+ =?us-ascii?Q?zC3+NhGqTsf8O+I/p7uhQu1Xq8Yf1mwkEl4WXk0NjyfAr8A07YyYnjLU4+pI?=
+ =?us-ascii?Q?6tuvsKYqSr47Yze/IHiR0re9mUcIBxULD0SLWcmPrITNMADJAGsVQhqnVaPg?=
+ =?us-ascii?Q?7dMRkfmK6DPRtZjqnbJMdxORaBdcOW0t1iV9vDfgZ7IoOfTLMwGJvGESIByz?=
+ =?us-ascii?Q?G4wy5dNWXdP2rPyblRoibHqEBGh6u8YLKw2ROHa0dGxBttW7FSlxbiaMhRUA?=
+ =?us-ascii?Q?zmDp1sdsOwwB8hklbcek3YDmKm79k5mXmG8TH/gYiQHR3kynyiTYkQ0Kn4KA?=
+ =?us-ascii?Q?jGo7CkfIjemkiE+Z+o6w6tLjSAFIbTnAllCKVtHebJziz4E2h83tRASHijE7?=
+ =?us-ascii?Q?yl1bxKjStqO52u6LXKwg9lAn8pUkN02DQ9lHN/REb4ymUzJkh/WZL33L80BW?=
+ =?us-ascii?Q?6HY2HCvpdRmidYQJwgP7GeNmP2TWwTN7cTKWimh9A1FfKq5bN3OBVxZ1KOZm?=
+ =?us-ascii?Q?PNBEelT8jXk4Q2jDucM0s/bfConit/I7tTg33JwtAfYxMf76qSB6y+Y+YrqQ?=
+ =?us-ascii?Q?sQg+zeHnjx3Bb2RpoJJ9G3fRpEpwvqkddOZwc38JgLz2KUnPBNCVTerxb8ZD?=
+ =?us-ascii?Q?eg6zPYoxoCke3SnhBiq0CEINmSR3W6udvDiLXPzMvJFS7xzLbILwWsj/CTEW?=
+ =?us-ascii?Q?BNw2ZcARZV5P8lZ9TVWzLMtN2gIBHS2nlpJoOvI+ytkp6YbkPJS/I007IZDx?=
+ =?us-ascii?Q?ppJdH7M1fAJ3hrxxta662I152qt7GYslA55NpbItozY7grKP2u+O4fUA48SF?=
+ =?us-ascii?Q?XoW1VA6iuiPb9BPzYuMpyvaC/5uabBKle726gFP1y2jFsfShxwJkt4GlFnXA?=
+ =?us-ascii?Q?kuYz+0ef+UEkwEqbsQ6JLpuCVmSN78kH2ZSsT841ClvzZMRf67Jpr9QCjhAW?=
+ =?us-ascii?Q?p431PKPaao+WPVOulcbK3sfXbOR+UjJSo+IB+8lB/7UlQUqMAcYFtPOZSiuj?=
+ =?us-ascii?Q?db4xnNQR67oGop3It46XoE0hdBi0ka5PtR9GGajB0GxWCkvLpn5bLKou9j/k?=
+ =?us-ascii?Q?rJ+3ewfdLVf01HO5cAfcCM7mCrgG9FMtFezi1nsDYLvGXsDrAWBXwjN3c+xd?=
+ =?us-ascii?Q?KZ80xqnnRTvS6WMaEn/jDBGrn/6Q9g8ZNZve9zeKOe1cz/DOol1QU0pUWcaS?=
+ =?us-ascii?Q?F0OpFUJxhRjmhAxpL8Btd/UlbHJummaZq/fUpcrsEIYkTXuINZAjssYRk8ps?=
+ =?us-ascii?Q?VhVIraFQRuKbwhWbE8iHij6lP2bvaNjbJg8wNW8y79x9OH29PMu3Ll7E62Fz?=
+ =?us-ascii?Q?ew=3D=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: bfc37a2c-6942-41d6-a1d4-08dafefdd604
+X-MS-Exchange-CrossTenant-AuthSource: PH8PR11MB8107.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 Jan 2023 17:58:59.9030
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: ycE+DctptIMwXxdTc2YQH9vq6v+BNr0s8rloZYGvKJNuc19pIQJAPPFD7iKpLDnrGwiluA6GtQ3sMJuIAdevmORWuPuHDuPczv45zumEsjo=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY8PR11MB6963
+X-OriginatorOrg: intel.com
 
-On Wed, Jan 25, 2023 at 9:08 AM Michal Hocko <mhocko@suse.com> wrote:
->
-> On Wed 25-01-23 08:57:48, Suren Baghdasaryan wrote:
-> > On Wed, Jan 25, 2023 at 1:38 AM 'Michal Hocko' via kernel-team
-> > <kernel-team@android.com> wrote:
-> > >
-> > > On Wed 25-01-23 00:38:49, Suren Baghdasaryan wrote:
-> > > > Replace indirect modifications to vma->vm_flags with calls to modifier
-> > > > functions to be able to track flag changes and to keep vma locking
-> > > > correctness. Add a BUG_ON check in ksm_madvise() to catch indirect
-> > > > vm_flags modification attempts.
-> > >
-> > > Those BUG_ONs scream to much IMHO. KSM is an MM internal code so I
-> > > gueess we should be willing to trust it.
-> >
-> > Yes, but I really want to prevent an indirect misuse since it was not
-> > easy to find these. If you feel strongly about it I will remove them
-> > or if you have a better suggestion I'm all for it.
->
-> You can avoid that by making flags inaccesible directly, right?
+Christoph Hellwig wrote:
+> These are micro-optimizations for synchronous I/O, which do not matter
+> compared to all the other inefficiencies in the legacy buffer_head
+> based mpage code.
+> 
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> ---
+>  fs/mpage.c | 10 ----------
+>  1 file changed, 10 deletions(-)
+> 
+> diff --git a/fs/mpage.c b/fs/mpage.c
+> index 0f8ae954a57903..124550cfac4a70 100644
+> --- a/fs/mpage.c
+> +++ b/fs/mpage.c
+> @@ -269,11 +269,6 @@ static struct bio *do_mpage_readpage(struct mpage_readpage_args *args)
+>  
+>  alloc_new:
+>  	if (args->bio == NULL) {
+> -		if (first_hole == blocks_per_page) {
+> -			if (!bdev_read_page(bdev, blocks[0] << (blkbits - 9),
+> -								&folio->page))
+> -				goto out;
+> -		}
+>  		args->bio = bio_alloc(bdev, bio_max_segs(args->nr_pages), opf,
+>  				      gfp);
+>  		if (args->bio == NULL)
+> @@ -579,11 +574,6 @@ static int __mpage_writepage(struct page *page, struct writeback_control *wbc,
+>  
+>  alloc_new:
+>  	if (bio == NULL) {
+> -		if (first_unmapped == blocks_per_page) {
+> -			if (!bdev_write_page(bdev, blocks[0] << (blkbits - 9),
+> -								page, wbc))
+> -				goto out;
+> -		}
+>  		bio = bio_alloc(bdev, BIO_MAX_VECS,
+>  				REQ_OP_WRITE | wbc_to_write_flags(wbc),
+>  				GFP_NOFS);
+> -- 
+> 2.39.0
+> 
 
-Ah, you mean Peter's suggestion of using __private? I guess that would
-cover it. I'll drop these BUG_ONs in the next version. Thanks!
+Makes sense,
 
->
-> --
-> Michal Hocko
-> SUSE Labs
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
