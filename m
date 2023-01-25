@@ -1,143 +1,269 @@
-Received: from NAM10-DM6-obe.outbound.protection.outlook.com (mail-dm6nam10on2076.outbound.protection.outlook.com [40.107.93.76])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yw1-f202.google.com (mail-yw1-f202.google.com [209.85.128.202])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49154EA4;
-	Tue, 24 Jan 2023 06:15:21 +0000 (UTC)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=fwtpwqr93O6xRNasTVBgW2oF8FsRn9CtKSshN2mNIC8EqShkIDMFeHogif+ZrNvtGIbPPpgpKSFQnuRcrthU1YSXhbZXf1sVS5JvD6bDVAvQM+bWwlU+5zuZeri+rWvyRYH5KHEVLBlrwkOrPlVDI+WrM1z7mnOaA0/50YOHwGt/AAeaestuyjk+JF0cq8zCgx3GSnADD7jLZWWI4jgW3clXtu8K9WdKNZb8nh460iFgHZ4lB0xsXacQ83uzUonE1bFLc9m09GGRQhfkQ+Vl5u8jn5nKBnob6KZABxgPMnZw4El91GaQh1JG3HHyHQnP+gC98HXbr60Zt2y72xiL8Q==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=Bu2Nex2cIEfNsT0o2G25HNrMCHBP376sWYWQA60xJDM=;
- b=lRqCWmxoejpqr7zxh7HvO98ifT3U4IygS8kl6+mFnacHp5sEsEnb0UaoiU1edwtRZ8OwdMVFSpKcb1Rlili3/820ZJvI6jnliJvYSYMVYxiQu0UnQwUwQIIHr7xMgCA7wp1ddFW4OgMmHBpPJrDuAdOZQwW6ZdOPi6Lu1gUDxk/pXWu/mGuYgMFlhJ6iUuXkjoaqDqjIavAXZ+fE/+pvcfjUNlJiJRiHwD2QP+d1KWHRJ6FwGhuHwIEsBZoH8WWvJJo1f0oyQzQS0w4xQe/L3koqhDhy4FD/EdXu14aFtikEPZp5ZzpsJTrXO71NnWk3PwpCb9j0o72Y99nxE27SYA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=Bu2Nex2cIEfNsT0o2G25HNrMCHBP376sWYWQA60xJDM=;
- b=RYI84IDw7fx8E6z9JuCUtuRQ4qvjmYBPvA/Yp6gFNtkeusMNCdzWHmW+epNaUVbOCCzMqwtsdHAhUNyIdXhNNHZV7D2to8WZmRsvWa4nnGMUX/QD56Q9AN63u8JRa8nKZq39xhVxFW8WgC7dffRZXM9pEZiyr31tvswlHuAVdZ5kY2NN4pjTzgrgznudAh488WiIth3jEPnLw7hnEHWe82YqHFcjt1IToV4dJhhcbSU+Qi2aYNrW/UCCH5G5vHWMvSWxhphW7N7EXg3nQ6wtn1bXceDAeMLqriQFMPRYOdhHDk4Go+ErGTk5KaILtQexZH05Fc5FON3dBFdHv57aYQ==
-Received: from MW2PR12MB4667.namprd12.prod.outlook.com (2603:10b6:302:12::28)
- by PH7PR12MB8013.namprd12.prod.outlook.com (2603:10b6:510:27c::16) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6002.33; Tue, 24 Jan
- 2023 06:15:18 +0000
-Received: from MW2PR12MB4667.namprd12.prod.outlook.com
- ([fe80::b84c:b6e:dc0:8d7]) by MW2PR12MB4667.namprd12.prod.outlook.com
- ([fe80::b84c:b6e:dc0:8d7%2]) with mapi id 15.20.6002.033; Tue, 24 Jan 2023
- 06:15:18 +0000
-From: Chaitanya Kulkarni <chaitanyak@nvidia.com>
-To: "lsf-pc@lists.linuxfoundation.org" <lsf-pc@lists.linuxfoundation.org>,
-	Bart Van Assche <bvanassche@acm.org>, Jason Gunthorpe <jgg@nvidia.com>,
-	Matthew Wilcox <willy@infradead.org>
-CC: "linux-mm@kvack.org" <linux-mm@kvack.org>, "iommu@lists.linux.dev"
-	<iommu@lists.linux.dev>, "linux-rdma@vger.kernel.org"
-	<linux-rdma@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, Joao Martins
-	<joao.m.martins@oracle.com>, John Hubbard <jhubbard@nvidia.com>, Logan
- Gunthorpe <logang@deltatee.com>, Ming Lei <ming.lei@redhat.com>,
-	"linux-block@vger.kernel.org" <linux-block@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, Shakeel Butt
-	<shakeelb@google.com>
-Subject: Re: [LSF/MM/BPF proposal]: Physr discussion
-Thread-Topic: [LSF/MM/BPF proposal]: Physr discussion
-Thread-Index: AQHZLamA3iTNPLXsDkOaW3tA+bsD5q6rbS2AgACZLACAAGVZgIAAr3EA
-Date: Tue, 24 Jan 2023 06:15:18 +0000
-Message-ID: <bcd58332-c9ba-2c5e-71bb-3dabfa068856@nvidia.com>
-References: <Y8v+qVZ8OmodOCQ9@nvidia.com>
- <Y84OyQSKHelPOkW3@casper.infradead.org> <Y86PRiNCUIKbfUZz@nvidia.com>
- <771236a2-b746-368d-f15f-23585f760ebd@acm.org>
-In-Reply-To: <771236a2-b746-368d-f15f-23585f760ebd@acm.org>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-user-agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.9.0
-authentication-results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-x-ms-publictraffictype: Email
-x-ms-traffictypediagnostic: MW2PR12MB4667:EE_|PH7PR12MB8013:EE_
-x-ms-office365-filtering-correlation-id: c834c03d-2766-4dce-66c4-08dafdd25dd4
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info:
- vAZEFNdscJjKVTDcbHdwjE0Yx8sbVXyUZRIavUXkA6XGw3lbbFwb434VGMsJ0GReFGsNIEGosHjhfLbqmCoRXdw+cs7tLKsh/q1fscJUF2kAlZyA1pByqeEwIsKuNPVsfxvg9rnE2S+TcwGwyKTYpdq60hoZT+ujAgnSuyUm6ld46JV6aDBUx1cKr/++nAb8SuuyRJQUMjl+8UYYP60oWvfV2U7oZIHxTZV38ikqcYgAV7+8rUBcbgeN1DtHUW3xSl/7OIsai3ccEdnN5EX+1f4exB9033vjsWX+ts0OUt7/t1h+5XUemuaZSbdHotNSzVbfWXQIVYpNTIEVHCNFprrIL3kC6bSub06fZ1wRefGOPVtDwHdF3whS6ReZmtBIHv2jIjBrAoQDXkGyuBDejlNrezQIFoDyZbSL2KpchR7Q5xcwNZU7xUQriQ3ryRNNbR0elvPB5wNBpxwPsqkdWqhBR2ReATY2yCN0Y82PByiOeuPVcscbaq4ho7XOJBECTquVDEyQ1xps0SQyVP+ZA8vV6bJ2ie8n7e1HQGX5u3Fc1/4dxXz++FWMnjVLNyxjsUeOP73q2NXHyA2OTeW6351kq2QONxNAcHgqBF5cNPqhTLFZly45xmBvZsPyPYUcd3KUejOU6mCPDruDB0x+KIwXpeg9fB4DaiJresYaIN5qi/L2zMNLtG9+ZT9x3Knoyr1NktxslWAv1VKlD06TjzliGn3jc7xBHY3w2L7FVo09qyH5jNVldTgGLaj7f8hBCNuIzH9WJdMN/NcHi7nPkg==
-x-forefront-antispam-report:
- CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MW2PR12MB4667.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230022)(4636009)(396003)(136003)(376002)(39860400002)(346002)(366004)(451199015)(122000001)(83380400001)(38100700002)(31696002)(86362001)(38070700005)(2906002)(4744005)(5660300002)(41300700001)(8936002)(7416002)(4326008)(186003)(66446008)(8676002)(6512007)(26005)(6506007)(316002)(76116006)(66556008)(64756008)(53546011)(2616005)(66476007)(54906003)(66946007)(478600001)(71200400001)(6486002)(110136005)(91956017)(31686004)(36756003)(45980500001)(43740500002);DIR:OUT;SFP:1101;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0:
- =?utf-8?B?OC9aMldNc1lNMnFYSEhpV3ZER3lkRXJWcEJjM1V2dkt4STQ2M1dsRk5mWVQ1?=
- =?utf-8?B?OUdPZ3NRWWZlVmQrem16blRXMnlKWnZ2a1REL1dmRjZpR3ZCeEVkbkVidkZj?=
- =?utf-8?B?QzREUjdlQkk5c2trb2ZZc2I5ZEFMdjM2UVdxdUd3K1B5UW8wS0VTLzZzNFJk?=
- =?utf-8?B?QlFaVGlUdFIwQkRDZTg0d3diRWdRSmVqeHUrZ09mKzBiRE0wK1lxTmNDTWZV?=
- =?utf-8?B?VTJJK1JmRmwvMlA1UWNYLzFhQnVNbk0yOHpRRmFqaU4zL1hzekpKc0RydldO?=
- =?utf-8?B?QWhEUFBTN3FFbjdrWEQwNW5tVjBjc0xZc3hUODRld1pSUGNKVTFRcXhrcHZo?=
- =?utf-8?B?UHZidEc5U3BMZjdaUVp0NWl1ZUxpY1FXTWExNlppZ1hMa3lSM0R0S2dEek9P?=
- =?utf-8?B?SUNrazFSeVJTZzlMdEdWd2lJaGthQmN2dGFMaFJHWC9lV0lqWGJzRzJnWW5n?=
- =?utf-8?B?RVU3OGNlTTV3YnhvaTVjRklJYWdCYkxPeUdEM1pFSnc0RW5HaFRQQTdYcElZ?=
- =?utf-8?B?R3E1VWVTcm9vOEtYbU5UVnFBSzA2aXd6S2EreFgxSGRKY2NVVUxtTC9iRFlj?=
- =?utf-8?B?V1I4YWNPYkpnMGgzSVdTWmVzeXdLZndOa1BDaEVkRSs4S0lhQkFKNG5YdHNu?=
- =?utf-8?B?U3lJUzVncEtHZG5HWGpLdkcwTXVTUFRCaTMrNnM2V2tyYWIrRHFDVzkzaFY3?=
- =?utf-8?B?RTh4bzVrclNJZ21GZlZnbkhWak9xWjlReGcyQk5RVDZCZC8vQmlzNzlva0Fj?=
- =?utf-8?B?M0RJSzZSYVQwNXUxU29rM0xyZzFtQk54QTIrV1I1OEtmUXpjckZNSGh3T3g4?=
- =?utf-8?B?ZGFWWUxnMUZYWWpyZC9BYVNUa0E3Z0VVMk94U3lYcklzdFlYdlVod3lnVjVu?=
- =?utf-8?B?cFQ3V0EyL3kwcDB5N2R1aDZ0elM3VEpoOGZjL1R1MnkwYUJoTkRjWExFZ214?=
- =?utf-8?B?OFZBMS91ZkE4YjlvMS9MRW5iVXg4a0xnUHphNU1IeGRSeThVbTJ2WFlEOHln?=
- =?utf-8?B?MUtUU2JZVHhtTjhMUTVndFBldjVqY0JHWDhpVldyVUVOSHp2QlVwc3JrRnZC?=
- =?utf-8?B?OFlGOUZ3bVM3YVFneUZEWFRnTDZ5SkV3dE80aDlwQk9WaWtyeVpaQi95WWpZ?=
- =?utf-8?B?cGVSV3hRSFhubWl4L2lDUGdBVGJrZENCb0x5dTR1MjZxVCtnaUc3MllIS2wy?=
- =?utf-8?B?bWVxSzRrU1dSS1h6N1NMeVMwLzlLYWxOS2tiWmxOWEF3WGpwSS9yajBXYldH?=
- =?utf-8?B?WXE2NUVKcEViaktaSFdTQ2UzV3NhQUI3N0dabFlKc2wvekpzcnpUaWM4VDVu?=
- =?utf-8?B?aVJzblZKc2F4RVV2QXJIRk5yQVA2WDczd2xXUHB4aGNZY3AxekJVdmJIRHRz?=
- =?utf-8?B?MTZuWXBydzVqQ2QvSnQ3NFIxWnpZQkZwNGVCa3c3OEI0Z3VwbEtlT21KYXpH?=
- =?utf-8?B?c2lNVk0zdnYxVEdiSjRtU0d6UjErT3RNMGJHN2htYlBJb1dGVm45Z2RiTHBu?=
- =?utf-8?B?Tjdpd3lFYjVmYkREY2VuVVZFdXMyZ2YzSlFEcVNIbk80RDRSS3pRRis1eURG?=
- =?utf-8?B?eGRtY3NvTnJrNGgzM3A4NFEramVOaXhKZ1M4VGVyS2k5Y2lMYU5OcENsSkEy?=
- =?utf-8?B?VGdhWXNzOXpkTVlPVGxrNDVWU1h4NlJmcGl4V0ZSUklEeDExR0VIK2dkOHN2?=
- =?utf-8?B?UTM4ZHdmS1AyOFAzU3A2bXlGK05JcHhSU2Z4RS9YRlNhZnFlUS9GaVZJenVt?=
- =?utf-8?B?Q2h1ZVR3Mys3TzZQM0hqOXlUejg5MUJFOCtqRDJDbnd3cXB4YWI5V0xpcTN4?=
- =?utf-8?B?OXBFV0huT3FGN2YybGVBNXExZXV3b2JjV3BIOG9qbHRYYTZ0MUFHWVZCZ3Fu?=
- =?utf-8?B?a3lnZ1NRUFk1RnlmY1dmTHlsSW9xMVMyTXpZd2hqelY4bmF1dTVJakxtb2lr?=
- =?utf-8?B?MUU4RjVhOFA2WHduNldIamloRFNVOUJOMk9ZeFhVTDY1eHpEZ0ZUSkRZQjdt?=
- =?utf-8?B?R0pmK1h2ZTNiNmo3bytoTkxMMWdRUUZmemxvMlQ2ek1pNjZGZytPWmNCZEdK?=
- =?utf-8?B?MzZoY0VyM2pXZVBCRDBtdGo5RmNWQVlMc3MzV3pNdk8wWno5dnJJSkpDM28y?=
- =?utf-8?Q?EStqts3Clr1rD39rR1JJWUkRs?=
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <ABD20B45826F23438CA133533E8AB1DF@namprd12.prod.outlook.com>
-Content-Transfer-Encoding: base64
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C528139F
+	for <nvdimm@lists.linux.dev>; Wed, 25 Jan 2023 08:38:57 +0000 (UTC)
+Received: by mail-yw1-f202.google.com with SMTP id 00721157ae682-4b34cf67fb6so179869187b3.6
+        for <nvdimm@lists.linux.dev>; Wed, 25 Jan 2023 00:38:57 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20210112;
+        h=cc:to:from:subject:message-id:mime-version:date:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=gBh0+9Ej4fdZiBcL1FEtjjBddEyxpct0JkyXcSRf3Wg=;
+        b=lB4btchvNlTfCRHflexrgCXbRXFvyy8g1gFK/OMeKiIJNh1tqeN9E/OUXMnf2U4uji
+         YYT9ZG6Uz9BNIXcJPuB6IBGSNwEdssClBGTD7I8F8xN9feCnsNR77DeUemH49gSW7JIZ
+         i8Fyk+8dX7xmZBgb/4LlxS50DWuY+p/ZAvE5rke3AXUvgG50Y7E3pTP3J2Z3NRLwRPG+
+         tuCoTtjvQeclLyeusopPtZIO8LUuu13+9dnLJ2g+6d0g96WjPTO8eD8l7HbwyilzSGVH
+         oGzLOV4is7gwgAYTgd7llD5IZe+pWMCF81FsE6KNSAjCT9NY1E+DcM18ZvHUvuruVpcX
+         WOLw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:from:subject:message-id:mime-version:date:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=gBh0+9Ej4fdZiBcL1FEtjjBddEyxpct0JkyXcSRf3Wg=;
+        b=fp0IQQplfHk4VLt26hwcy98/NQg0aOuf67wKyKOKxl5jLLMDr62J/bH3+oxH667ZLF
+         TtHfmaY5SxAhNRfcbql4vtqhn6SVrfA8gp9lCd5fQ4S28TbR591KBmPBorVcwhSP7ld1
+         vMsVZnYtDgrK3z8TgUlz0c4NLXsPqHSxG9g+OPXlzEMlf3s04yZBxTAUqR1l9vfTYIEV
+         c9Kf6KWhm6bdKvHTpKJP4+W48kEwgCoFGCb3dp5+AV24iyh1xRmite3k9W4ReIUq7XtH
+         VQ7CpzvUBVPpp3msHGaDh6h5eHny9jc/vMr+jR2sRjTI9jQhMId2e5xG5NFL40EDTGdg
+         2Gng==
+X-Gm-Message-State: AFqh2koyjVQVIxpSD9lHXFvJFgo1XIdzaI18Phi6T3AFOQb740uYz2l5
+	Tj4o0v271Od+Zi8nic1ztxMOzMWjZX0=
+X-Google-Smtp-Source: AMrXdXtLI+TT5dUaC9pRI2aKjkmKt7tjdC79b+se6AwZUh4jJJgCSUqcAubWc2ByjewYclrfSPgwiLKmrmw=
+X-Received: from surenb-desktop.mtv.corp.google.com ([2620:15c:211:200:f7b0:20e8:ce66:f98])
+ (user=surenb job=sendgmr) by 2002:a05:6902:34f:b0:6f9:7bf9:8fc7 with SMTP id
+ e15-20020a056902034f00b006f97bf98fc7mr3373858ybs.279.1674635936246; Wed, 25
+ Jan 2023 00:38:56 -0800 (PST)
+Date: Wed, 25 Jan 2023 00:38:45 -0800
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-MIME-Version: 1.0
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: MW2PR12MB4667.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: c834c03d-2766-4dce-66c4-08dafdd25dd4
-X-MS-Exchange-CrossTenant-originalarrivaltime: 24 Jan 2023 06:15:18.5194
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: 3Sfbl0l3FSPXFsSalKgqyYXrJv4JuFUjwSZLLvJtPwIBSb6jJL8XiUA3HJAgcquw80JaZB/Rw4vufJJOEP/R9g==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR12MB8013
+Mime-Version: 1.0
+X-Mailer: git-send-email 2.39.1.405.gd4c25cc71f-goog
+Message-ID: <20230125083851.27759-1-surenb@google.com>
+Subject: [PATCH v2 0/6] introduce vm_flags modifier functions
+From: Suren Baghdasaryan <surenb@google.com>
+To: akpm@linux-foundation.org
+Cc: michel@lespinasse.org, jglisse@google.com, mhocko@suse.com, vbabka@suse.cz, 
+	hannes@cmpxchg.org, mgorman@techsingularity.net, dave@stgolabs.net, 
+	willy@infradead.org, liam.howlett@oracle.com, peterz@infradead.org, 
+	ldufour@linux.ibm.com, paulmck@kernel.org, luto@kernel.org, 
+	songliubraving@fb.com, peterx@redhat.com, david@redhat.com, 
+	dhowells@redhat.com, hughd@google.com, bigeasy@linutronix.de, 
+	kent.overstreet@linux.dev, punit.agrawal@bytedance.com, lstoakes@gmail.com, 
+	peterjung1337@gmail.com, rientjes@google.com, axelrasmussen@google.com, 
+	joelaf@google.com, minchan@google.com, jannh@google.com, shakeelb@google.com, 
+	tatashin@google.com, edumazet@google.com, gthelen@google.com, 
+	gurua@google.com, arjunroy@google.com, soheil@google.com, 
+	hughlynch@google.com, leewalsh@google.com, posk@google.com, will@kernel.org, 
+	aneesh.kumar@linux.ibm.com, npiggin@gmail.com, chenhuacai@kernel.org, 
+	tglx@linutronix.de, mingo@redhat.com, bp@alien8.de, 
+	dave.hansen@linux.intel.com, richard@nod.at, anton.ivanov@cambridgegreys.com, 
+	johannes@sipsolutions.net, qianweili@huawei.com, wangzhou1@hisilicon.com, 
+	herbert@gondor.apana.org.au, davem@davemloft.net, vkoul@kernel.org, 
+	airlied@gmail.com, daniel@ffwll.ch, maarten.lankhorst@linux.intel.com, 
+	mripard@kernel.org, tzimmermann@suse.de, l.stach@pengutronix.de, 
+	krzysztof.kozlowski@linaro.org, patrik.r.jakobsson@gmail.com, 
+	matthias.bgg@gmail.com, robdclark@gmail.com, quic_abhinavk@quicinc.com, 
+	dmitry.baryshkov@linaro.org, tomba@kernel.org, hjc@rock-chips.com, 
+	heiko@sntech.de, ray.huang@amd.com, kraxel@redhat.com, sre@kernel.org, 
+	mcoquelin.stm32@gmail.com, alexandre.torgue@foss.st.com, tfiga@chromium.org, 
+	m.szyprowski@samsung.com, mchehab@kernel.org, dimitri.sivanich@hpe.com, 
+	zhangfei.gao@linaro.org, jejb@linux.ibm.com, martin.petersen@oracle.com, 
+	dgilbert@interlog.com, hdegoede@redhat.com, mst@redhat.com, 
+	jasowang@redhat.com, alex.williamson@redhat.com, deller@gmx.de, 
+	jayalk@intworks.biz, viro@zeniv.linux.org.uk, nico@fluxnic.net, 
+	xiang@kernel.org, chao@kernel.org, tytso@mit.edu, adilger.kernel@dilger.ca, 
+	miklos@szeredi.hu, mike.kravetz@oracle.com, muchun.song@linux.dev, 
+	bhe@redhat.com, andrii@kernel.org, yoshfuji@linux-ipv6.org, 
+	dsahern@kernel.org, kuba@kernel.org, pabeni@redhat.com, perex@perex.cz, 
+	tiwai@suse.com, haojian.zhuang@gmail.com, robert.jarzmik@free.fr, 
+	linux-mm@kvack.org, linux-arm-kernel@lists.infradead.org, 
+	linuxppc-dev@lists.ozlabs.org, x86@kernel.org, linux-kernel@vger.kernel.org, 
+	linux-graphics-maintainer@vmware.com, linux-ia64@vger.kernel.org, 
+	linux-arch@vger.kernel.org, loongarch@lists.linux.dev, kvm@vger.kernel.org, 
+	linux-s390@vger.kernel.org, linux-sgx@vger.kernel.org, 
+	linux-um@lists.infradead.org, linux-acpi@vger.kernel.org, 
+	linux-crypto@vger.kernel.org, nvdimm@lists.linux.dev, 
+	dmaengine@vger.kernel.org, amd-gfx@lists.freedesktop.org, 
+	dri-devel@lists.freedesktop.org, etnaviv@lists.freedesktop.org, 
+	linux-samsung-soc@vger.kernel.org, intel-gfx@lists.freedesktop.org, 
+	linux-mediatek@lists.infradead.org, linux-arm-msm@vger.kernel.org, 
+	freedreno@lists.freedesktop.org, linux-rockchip@lists.infradead.org, 
+	linux-tegra@vger.kernel.org, virtualization@lists.linux-foundation.org, 
+	xen-devel@lists.xenproject.org, linux-stm32@st-md-mailman.stormreply.com, 
+	linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, 
+	linux-accelerators@lists.ozlabs.org, sparclinux@vger.kernel.org, 
+	linux-scsi@vger.kernel.org, linux-staging@lists.linux.dev, 
+	target-devel@vger.kernel.org, linux-usb@vger.kernel.org, 
+	netdev@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-aio@kvack.org, 
+	linux-fsdevel@vger.kernel.org, linux-erofs@lists.ozlabs.org, 
+	linux-ext4@vger.kernel.org, devel@lists.orangefs.org, 
+	kexec@lists.infradead.org, linux-xfs@vger.kernel.org, bpf@vger.kernel.org, 
+	linux-perf-users@vger.kernel.org, kasan-dev@googlegroups.com, 
+	selinux@vger.kernel.org, alsa-devel@alsa-project.org, kernel-team@android.com, 
+	surenb@google.com
+Content-Type: text/plain; charset="UTF-8"
 
-T24gMS8yMy8yMyAxMTo0NywgQmFydCBWYW4gQXNzY2hlIHdyb3RlOg0KPiBPbiAxLzIzLzIzIDA1
-OjQ0LCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6DQo+PiBJJ3ZlIGdvbmUgZnJvbSBxdWl0ZSBhIGRp
-ZmZlcmVudCBzdGFydGluZyBwb2ludCAtIEkndmUgYmVlbiB3b3JraW5nDQo+PiBETUEgQVBJIHVw
-d2FyZHMsIHNvIHdoYXQgZG9lcyB0aGUgZG1hX21hcF9YWCBsb29rIGxpa2UsIHdoYXQgQVBJcyBk
-bw0KPj4gd2UgbmVlZCB0byBzdXBwb3J0IHRoZSBkbWFfbWFwX29wcyBpbXBsZW1lbnRhdGlvbnMg
-dG8gaXRlcmF0ZS9ldGMsIGhvdw0KPj4gZG8gd2UgZm9ybSBhbmQgcmV0dXJuIHRoZSBkbWEgbWFw
-cGVkIGxpc3QsIGhvdyBkb2VzIFAyUCwgd2l0aCBhbGwgdGhlDQo+PiBjaGVja3MsIGFjdHVhbGx5
-IHdvcmssIGV0Yy4gVGhlc2UgaGVscCBpbmZvcm0gd2hhdCB3ZSB3YW50IGZyb20gdGhlDQo+PiAi
-cGh5ciIgYXMgYW4gQVBJLg0KPiANCj4gSSdtIGludGVyZXN0ZWQgaW4gdGhpcyB0b3BpYy4gSSdt
-IHdvbmRlcmluZyB3aGV0aGVyIGVsaW1pbmF0aW5nIA0KPiBzY2F0dGVybGlzdHMgY291bGQgaGVs
-cCB0byBtYWtlIHRoZSBibG9jayBsYXllciBmYXN0ZXIuDQo+IA0KPiBUaGFua3MsDQo+IA0KPiBC
-YXJ0Lg0KPiANCg0KSSB0aGluayBpdCB3aWxsIGJlIHZlcnkgaW50ZXJlc3RpbmcgdG8gZGlzY3Vz
-cyB0aGlzIGluIGdyZWF0IGRldGFpbA0KYW5kIGNvbWUgdXAgd2l0aCB0aGUgcGxhbi4NCg0KKzEg
-ZnJvbSBtZS4NCg0KLWNrDQoNCg==
+This patchset was originally published as a part of per-VMA locking [1] and
+was split after suggestion that it's viable on its own and to facilitate
+the review process. It is now a preprequisite for the next version of per-VMA
+lock patchset, which reuses vm_flags modifier functions to lock the VMA when
+vm_flags are being updated.
+
+VMA vm_flags modifications are usually done under exclusive mmap_lock
+protection because this attrubute affects other decisions like VMA merging
+or splitting and races should be prevented. Introduce vm_flags modifier
+functions to enforce correct locking.
+
+[1] https://lore.kernel.org/all/20230109205336.3665937-1-surenb@google.com/
+
+The patchset applies cleanly over mm-unstable branch of mm tree.
+
+My apologies for an extremely large distribution list. The patch touches
+lots of files and many are in arch/ and drivers/.
+
+Suren Baghdasaryan (6):
+  mm: introduce vma->vm_flags modifier functions
+  mm: replace VM_LOCKED_CLEAR_MASK with VM_LOCKED_MASK
+  mm: replace vma->vm_flags direct modifications with modifier calls
+  mm: replace vma->vm_flags indirect modification in ksm_madvise
+  mm: introduce mod_vm_flags_nolock and use it in untrack_pfn
+  mm: export dump_mm()
+
+ arch/arm/kernel/process.c                     |  2 +-
+ arch/ia64/mm/init.c                           |  8 +--
+ arch/loongarch/include/asm/tlb.h              |  2 +-
+ arch/powerpc/kvm/book3s_hv_uvmem.c            |  5 +-
+ arch/powerpc/kvm/book3s_xive_native.c         |  2 +-
+ arch/powerpc/mm/book3s64/subpage_prot.c       |  2 +-
+ arch/powerpc/platforms/book3s/vas-api.c       |  2 +-
+ arch/powerpc/platforms/cell/spufs/file.c      | 14 ++---
+ arch/s390/mm/gmap.c                           |  8 +--
+ arch/x86/entry/vsyscall/vsyscall_64.c         |  2 +-
+ arch/x86/kernel/cpu/sgx/driver.c              |  2 +-
+ arch/x86/kernel/cpu/sgx/virt.c                |  2 +-
+ arch/x86/mm/pat/memtype.c                     | 14 +++--
+ arch/x86/um/mem_32.c                          |  2 +-
+ drivers/acpi/pfr_telemetry.c                  |  2 +-
+ drivers/android/binder.c                      |  3 +-
+ drivers/char/mspec.c                          |  2 +-
+ drivers/crypto/hisilicon/qm.c                 |  2 +-
+ drivers/dax/device.c                          |  2 +-
+ drivers/dma/idxd/cdev.c                       |  2 +-
+ drivers/gpu/drm/amd/amdgpu/amdgpu_gem.c       |  2 +-
+ drivers/gpu/drm/amd/amdkfd/kfd_chardev.c      |  4 +-
+ drivers/gpu/drm/amd/amdkfd/kfd_doorbell.c     |  4 +-
+ drivers/gpu/drm/amd/amdkfd/kfd_events.c       |  4 +-
+ drivers/gpu/drm/amd/amdkfd/kfd_process.c      |  4 +-
+ drivers/gpu/drm/drm_gem.c                     |  2 +-
+ drivers/gpu/drm/drm_gem_dma_helper.c          |  3 +-
+ drivers/gpu/drm/drm_gem_shmem_helper.c        |  2 +-
+ drivers/gpu/drm/drm_vm.c                      |  8 +--
+ drivers/gpu/drm/etnaviv/etnaviv_gem.c         |  2 +-
+ drivers/gpu/drm/exynos/exynos_drm_gem.c       |  4 +-
+ drivers/gpu/drm/gma500/framebuffer.c          |  2 +-
+ drivers/gpu/drm/i810/i810_dma.c               |  2 +-
+ drivers/gpu/drm/i915/gem/i915_gem_mman.c      |  4 +-
+ drivers/gpu/drm/mediatek/mtk_drm_gem.c        |  2 +-
+ drivers/gpu/drm/msm/msm_gem.c                 |  2 +-
+ drivers/gpu/drm/omapdrm/omap_gem.c            |  3 +-
+ drivers/gpu/drm/rockchip/rockchip_drm_gem.c   |  3 +-
+ drivers/gpu/drm/tegra/gem.c                   |  5 +-
+ drivers/gpu/drm/ttm/ttm_bo_vm.c               |  3 +-
+ drivers/gpu/drm/virtio/virtgpu_vram.c         |  2 +-
+ drivers/gpu/drm/vmwgfx/vmwgfx_ttm_glue.c      |  2 +-
+ drivers/gpu/drm/xen/xen_drm_front_gem.c       |  3 +-
+ drivers/hsi/clients/cmt_speech.c              |  2 +-
+ drivers/hwtracing/intel_th/msu.c              |  2 +-
+ drivers/hwtracing/stm/core.c                  |  2 +-
+ drivers/infiniband/hw/hfi1/file_ops.c         |  4 +-
+ drivers/infiniband/hw/mlx5/main.c             |  4 +-
+ drivers/infiniband/hw/qib/qib_file_ops.c      | 13 +++--
+ drivers/infiniband/hw/usnic/usnic_ib_verbs.c  |  2 +-
+ .../infiniband/hw/vmw_pvrdma/pvrdma_verbs.c   |  2 +-
+ .../common/videobuf2/videobuf2-dma-contig.c   |  2 +-
+ .../common/videobuf2/videobuf2-vmalloc.c      |  2 +-
+ drivers/media/v4l2-core/videobuf-dma-contig.c |  2 +-
+ drivers/media/v4l2-core/videobuf-dma-sg.c     |  4 +-
+ drivers/media/v4l2-core/videobuf-vmalloc.c    |  2 +-
+ drivers/misc/cxl/context.c                    |  2 +-
+ drivers/misc/habanalabs/common/memory.c       |  2 +-
+ drivers/misc/habanalabs/gaudi/gaudi.c         |  4 +-
+ drivers/misc/habanalabs/gaudi2/gaudi2.c       |  8 +--
+ drivers/misc/habanalabs/goya/goya.c           |  4 +-
+ drivers/misc/ocxl/context.c                   |  4 +-
+ drivers/misc/ocxl/sysfs.c                     |  2 +-
+ drivers/misc/open-dice.c                      |  4 +-
+ drivers/misc/sgi-gru/grufile.c                |  4 +-
+ drivers/misc/uacce/uacce.c                    |  2 +-
+ drivers/sbus/char/oradax.c                    |  2 +-
+ drivers/scsi/cxlflash/ocxl_hw.c               |  2 +-
+ drivers/scsi/sg.c                             |  2 +-
+ .../staging/media/atomisp/pci/hmm/hmm_bo.c    |  2 +-
+ drivers/staging/media/deprecated/meye/meye.c  |  4 +-
+ .../media/deprecated/stkwebcam/stk-webcam.c   |  2 +-
+ drivers/target/target_core_user.c             |  2 +-
+ drivers/uio/uio.c                             |  2 +-
+ drivers/usb/core/devio.c                      |  3 +-
+ drivers/usb/mon/mon_bin.c                     |  3 +-
+ drivers/vdpa/vdpa_user/iova_domain.c          |  2 +-
+ drivers/vfio/pci/vfio_pci_core.c              |  2 +-
+ drivers/vhost/vdpa.c                          |  2 +-
+ drivers/video/fbdev/68328fb.c                 |  2 +-
+ drivers/video/fbdev/core/fb_defio.c           |  4 +-
+ drivers/xen/gntalloc.c                        |  2 +-
+ drivers/xen/gntdev.c                          |  4 +-
+ drivers/xen/privcmd-buf.c                     |  2 +-
+ drivers/xen/privcmd.c                         |  4 +-
+ fs/aio.c                                      |  2 +-
+ fs/cramfs/inode.c                             |  2 +-
+ fs/erofs/data.c                               |  2 +-
+ fs/exec.c                                     |  4 +-
+ fs/ext4/file.c                                |  2 +-
+ fs/fuse/dax.c                                 |  2 +-
+ fs/hugetlbfs/inode.c                          |  4 +-
+ fs/orangefs/file.c                            |  3 +-
+ fs/proc/task_mmu.c                            |  2 +-
+ fs/proc/vmcore.c                              |  3 +-
+ fs/userfaultfd.c                              |  2 +-
+ fs/xfs/xfs_file.c                             |  2 +-
+ include/linux/mm.h                            | 51 +++++++++++++++++--
+ include/linux/mm_types.h                      |  8 ++-
+ include/linux/pgtable.h                       |  5 +-
+ kernel/bpf/ringbuf.c                          |  4 +-
+ kernel/bpf/syscall.c                          |  4 +-
+ kernel/events/core.c                          |  2 +-
+ kernel/fork.c                                 |  2 +-
+ kernel/kcov.c                                 |  2 +-
+ kernel/relay.c                                |  2 +-
+ mm/debug.c                                    |  1 +
+ mm/hugetlb.c                                  |  4 +-
+ mm/khugepaged.c                               |  2 +
+ mm/ksm.c                                      |  2 +
+ mm/madvise.c                                  |  2 +-
+ mm/memory.c                                   | 19 +++----
+ mm/memremap.c                                 |  4 +-
+ mm/mlock.c                                    | 12 ++---
+ mm/mmap.c                                     | 32 +++++++-----
+ mm/mprotect.c                                 |  2 +-
+ mm/mremap.c                                   |  8 +--
+ mm/nommu.c                                    | 11 ++--
+ mm/secretmem.c                                |  2 +-
+ mm/shmem.c                                    |  2 +-
+ mm/vmalloc.c                                  |  2 +-
+ net/ipv4/tcp.c                                |  4 +-
+ security/selinux/selinuxfs.c                  |  6 +--
+ sound/core/oss/pcm_oss.c                      |  2 +-
+ sound/core/pcm_native.c                       |  9 ++--
+ sound/soc/pxa/mmp-sspa.c                      |  2 +-
+ sound/usb/usx2y/us122l.c                      |  4 +-
+ sound/usb/usx2y/usX2Yhwdep.c                  |  2 +-
+ sound/usb/usx2y/usx2yhwdeppcm.c               |  2 +-
+ 129 files changed, 292 insertions(+), 233 deletions(-)
+
+-- 
+2.39.1
+
