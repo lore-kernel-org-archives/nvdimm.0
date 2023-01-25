@@ -1,127 +1,192 @@
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF8221FB4
-	for <nvdimm@lists.linux.dev>; Wed, 25 Jan 2023 18:34:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE7F16FB1
+	for <nvdimm@lists.linux.dev>; Wed, 25 Jan 2023 18:38:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1674671687; x=1706207687;
-  h=from:date:subject:mime-version:content-transfer-encoding:
-   message-id:to:cc;
-  bh=DLIRvXMdKH0hTEcM4b9xtXkEm+HmcMdb8x6cxdoVsZE=;
-  b=iYf6/UAaBbqSqOaYgFEKzCmYUfTe13UmSd957x8mBTP/ZrJ9VI3Xiprv
-   KWO0r2bCuMzfCXsk9xjJDsxEr1NPKRDBe0Yks/EsgHsLNPKUdepGtVFzR
-   DmjJGWN3aCfSeiGQty9CrjnupsmImVNX3GmNeBfwEoChldH10mSoRV/Rz
-   EFS1AFm0db8O1PK7VAq9vj1f7e9x7W/V0bwwIEQPEsdsOtFCw+/1Khbvs
-   8gFN2bVAFhZOoTZaDGE2o2Rmv/RgNt3A3333eQ8KobIUqphHPqltlDm6G
-   DSzdUPFH8kjmH7hU+UYTWo0B3tGaKYtGhsFJOc/eQo9r6Qfd1/oBvk+j7
-   w==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10601"; a="326666757"
+  t=1674671924; x=1706207924;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=cjJlmbsBJqA2otXOfFc4i1k2x0jo01D67fOxrZxjL10=;
+  b=FkbWcd4qcd9nwPHoeltSlde9DDLN8gTk233qzOyXLuOLJZmB3UgRAc8W
+   D69Ti5FI96qPdXhItHDJ2XguCL6d7Z0kVL3J3TG7YAHGNn3o4sszw9dkQ
+   saxIxcre4enPfrQj23jmfaF6/WI6n1rWcir+Nm/oMpaUoYcw8mDk6W/jZ
+   feSUGB5itlt7G2Dg24YZFo8O95UH+caZBPn/Apu1aDVc3xxq5HHdQUNif
+   dYncoEIrJaOtFi9PJtdRKMq4JjidUhV1PdJr5Nu8SCSN9DJJb2/G92Oe5
+   4JqIOR/qE/D1saauErVNFtFlqC/yyMxJ3OUvfEUrqTzmdqM+jwzxIIeZf
+   g==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10601"; a="391150327"
 X-IronPort-AV: E=Sophos;i="5.97,246,1669104000"; 
-   d="scan'208";a="326666757"
-Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Jan 2023 10:34:42 -0800
-X-IronPort-AV: E=McAfee;i="6500,9779,10601"; a="991364139"
+   d="scan'208";a="391150327"
+Received: from fmsmga002.fm.intel.com ([10.253.24.26])
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Jan 2023 10:38:44 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6500,9779,10601"; a="770834697"
 X-IronPort-AV: E=Sophos;i="5.97,246,1669104000"; 
-   d="scan'208";a="991364139"
-Received: from ssgirme-mobl2.amr.corp.intel.com (HELO vverma7-desk1.local) ([10.212.29.187])
-  by fmsmga005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Jan 2023 10:34:42 -0800
-From: Vishal Verma <vishal.l.verma@intel.com>
-Date: Wed, 25 Jan 2023 11:34:18 -0700
-Subject: [PATCH] ACPI: NFIT: fix a potential deadlock during NFIT teardown
+   d="scan'208";a="770834697"
+Received: from fmsmsx601.amr.corp.intel.com ([10.18.126.81])
+  by fmsmga002.fm.intel.com with ESMTP; 25 Jan 2023 10:38:44 -0800
+Received: from fmsmsx611.amr.corp.intel.com (10.18.126.91) by
+ fmsmsx601.amr.corp.intel.com (10.18.126.81) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.16; Wed, 25 Jan 2023 10:38:43 -0800
+Received: from fmsmsx610.amr.corp.intel.com (10.18.126.90) by
+ fmsmsx611.amr.corp.intel.com (10.18.126.91) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.16; Wed, 25 Jan 2023 10:38:43 -0800
+Received: from FMSEDG603.ED.cps.intel.com (10.1.192.133) by
+ fmsmsx610.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.16 via Frontend Transport; Wed, 25 Jan 2023 10:38:43 -0800
+Received: from NAM11-BN8-obe.outbound.protection.outlook.com (104.47.58.169)
+ by edgegateway.intel.com (192.55.55.68) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.16; Wed, 25 Jan 2023 10:38:42 -0800
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=Emeasv8tfmarsj+1UxXvdH9K8YLfsUnfASAaEY0Vt5pZ4rJaa1uB5OY4Qwzv/k60xd65vQSo+4Q/ADHmihbfs01N1yWSJPXCSjnlxwygMxMIoTY/1f+eKbmL7pEjmlMClR4v5UYBj+oxXKVCMYbx0wTLfKDJRH63PONA6MierWbMspOZ8EFeHd8/92vfMEtpO/iDqoCCemmoB34KRqc0MNZ/9ChCNpwjkSGGPv9kAVxv9cLAmTHbvHS5GJ5cYNouoIbP19exdWYRQNTRiDqEcA6C/Y+jOYunX4B00Q8rFmd/zkmYG5b5odblEre1FZ811WDNdMhOIgtb3XOUFJtg6Q==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=snFB5qfw7aNAw5sHQ2vQeXZVp6MuttF/LdLpK3eVoKU=;
+ b=hjOKukWXNgyFkJag0WZ0GlmuhbWMe6UoLkcfqFUpwAMRndsLwp/QtpNlJzWABR/tW/oo2S4vJdIgTKRdTarVvaali+3HKDeNINe99WcySbBnw2iTRoxL0fsdz420iIRTgiOmTdPeFy/Ul6o8IQEmhrpeshHUPXLV7+vsB3aFERZA+H/6aGEjSd3Agk1nbFxfF+SOrsqB659pqb+g+Zx4HX24DOsiLPeZPWZnVyEYjRNwM0UdbPLk6KSi2IHQcBfvlKq1Ub43caaWoFmBHOojO4HvJEH4hVtH2qJfTTYV2DgfeOt3P7Gje/vD7cC89YZ0iLPwxg7qyIP9Y0QP0ubepA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from PH8PR11MB8107.namprd11.prod.outlook.com (2603:10b6:510:256::6)
+ by SJ0PR11MB5024.namprd11.prod.outlook.com (2603:10b6:a03:2dd::24) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6043.21; Wed, 25 Jan
+ 2023 18:38:40 +0000
+Received: from PH8PR11MB8107.namprd11.prod.outlook.com
+ ([fe80::421b:865b:f356:7dfc]) by PH8PR11MB8107.namprd11.prod.outlook.com
+ ([fe80::421b:865b:f356:7dfc%5]) with mapi id 15.20.6002.033; Wed, 25 Jan 2023
+ 18:38:40 +0000
+Date: Wed, 25 Jan 2023 10:38:34 -0800
+From: Dan Williams <dan.j.williams@intel.com>
+To: Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>, Minchan Kim
+	<minchan@kernel.org>, Sergey Senozhatsky <senozhatsky@chromium.org>, "Dan
+ Williams" <dan.j.williams@intel.com>, Vishal Verma
+	<vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, Ira Weiny
+	<ira.weiny@intel.com>
+CC: Andrew Morton <akpm@linux-foundation.org>, <linux-block@vger.kernel.org>,
+	<nvdimm@lists.linux.dev>, <linux-fsdevel@vger.kernel.org>,
+	<linux-mm@kvack.org>
+Subject: RE: [PATCH 7/7] block: remove ->rw_page
+Message-ID: <63d1772ae1bfd_3a36e529479@dwillia2-xfh.jf.intel.com.notmuch>
+References: <20230125133436.447864-1-hch@lst.de>
+ <20230125133436.447864-8-hch@lst.de>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20230125133436.447864-8-hch@lst.de>
+X-ClientProxiedBy: BL1PR13CA0120.namprd13.prod.outlook.com
+ (2603:10b6:208:2b9::35) To PH8PR11MB8107.namprd11.prod.outlook.com
+ (2603:10b6:510:256::6)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20230112-acpi_nfit_lockdep-v1-1-660be4dd10be@intel.com>
-X-B4-Tracking: v=1; b=H4sIACl20WMC/x2N0QqDMAwAf0XybMF2orBfGSI1TWdYiaVVGYj/v
- rDHOzjugkqFqcKzuaDQyZU3UbBtA7h6eZPhoAyuc4/OWmc8Zp4l8j6nDT+BsnFDH8bYWxpwBO0
- WX8ksxQuuWsqRkspcKPL3P3pN9/0Dl7n4oXgAAAA=
-To: Dan Williams <dan.j.williams@intel.com>, 
- Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>, 
- "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>
-Cc: nvdimm@lists.linux.dev, linux-acpi@vger.kernel.org, 
- linux-kernel@vger.kernel.org, Vishal Verma <vishal.l.verma@intel.com>
-X-Mailer: b4 0.12.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=2708;
- i=vishal.l.verma@intel.com; h=from:subject:message-id;
- bh=DLIRvXMdKH0hTEcM4b9xtXkEm+HmcMdb8x6cxdoVsZE=;
- b=owGbwMvMwCXGf25diOft7jLG02pJDMkXy2yffTuc+V6KKz1C4fa1Faa1n8o2zJpZLXP+iUVD0CGH
- A53sHaUsDGJcDLJiiix/93xkPCa3PZ8nMMERZg4rE8gQBi5OAZhI80OG/14hX3uXHj5xR2C3zXk5sf
- WnZTkve4hrRoR79jwS+bzokzYjQ+PrnLkVX0xWS0wxjlJUEHHv00yP5QvvK2b04Xvgyb2FFwA=
-X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp;
- fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: PH8PR11MB8107:EE_|SJ0PR11MB5024:EE_
+X-MS-Office365-Filtering-Correlation-Id: b8671f18-07e3-4a30-e04b-08daff03610a
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: wZKHECNcRq0c8Nlp/iRCNel3NO6OJi1ixK2xmTYXdYFtIfKP4GxGckQR1kouFs0XG/VzHEy2cJK/ZjbEyffQhjpHIYYf6uDfxIjQBbDXj/xCBQfYS8AW6pCxjCgJrwmI492TOpNUa1AdnAyMLjoYiZD7rYZTAbM8faFoevaJ49nr6YzFaf1X6odFDL5JYxnTsV8lDWSWL8hR7h6H8ml5wI/QEdFT2Osm4sE8vbJkDJgyhdRTv7Ldc1fdpruYqMfq21vl51H4qVmZVPNw3mxVu0Fjz3yduCvTUIWOTSX72ocmBC/pE+oDVEk/0zJMaZGIZTOlXBtqbRAr0MHNttjgU6k7Ll4V8II36Ovj4Sq+wPGZxqWwy9zs0Sn0FIyy7NWO42YZ3nY4owPJw7fK6O9ACxXYFEqFYY85WKWkRyX5WhV/c5+AphQL/M9YCKviILx6eHcG/HWl9L9MnEeieYNpdNV+vmBOZBeBSr54YAKh98jAWm3m8vPA/SUdxfjhO8qrvfgDy2n5P6n1M3JK6s+0X2LaKIHzY/ISAwJtfJLK03AnG0kKZIIbh6WCG5IuJINGvvsnaVQH1oUAgim2Yq0NbvU7vk7X039EeNl15E7a2/fSgtYWlh2+1e2J1R9iOQe0+ec6pVo8zsSgVnKzmcnvxg==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH8PR11MB8107.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230025)(376002)(136003)(396003)(366004)(346002)(39860400002)(451199018)(41300700001)(8936002)(38100700002)(2906002)(82960400001)(5660300002)(83380400001)(6486002)(6506007)(86362001)(186003)(6512007)(26005)(478600001)(6666004)(9686003)(66946007)(66476007)(66556008)(4326008)(8676002)(316002)(6636002)(110136005);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?XzlqRaHFNJs4n+tmsYwAyBp/s4trqZWYYvqeLawXtE2FxKBcQ6io+pMIHv/J?=
+ =?us-ascii?Q?VzttMNPDyMXWVmh+vPn2VS+3yP6scKQOvNlrapaD1spA+M02k09ZdnA27aed?=
+ =?us-ascii?Q?0Il1I8X0EtezX/kE0QUuoA/FzhbKWT/medF10BSOWM9GmKuEpMVzDxp/kppW?=
+ =?us-ascii?Q?t4RLX9GpgioUoAJEUi72j706JrcW3QWKRHLpHtU065QDP9wEaHhF2NrcXtZo?=
+ =?us-ascii?Q?3qMadttOWGih1FHfSCmSs8c2yemTGVRWdvGDABvPBF3Uv5nHDVSyUJGY8o2g?=
+ =?us-ascii?Q?Olu0Vjpl+UxE/QDW1edIS0K9dvXm8on4DCy8isUc61nIEa+f8lDd86lDz9Bx?=
+ =?us-ascii?Q?8eyfDhnHhaOkJe7BvCUdzlHgd/w8IyFIgbhhr54iy9s7me78JPmiTfRKk+55?=
+ =?us-ascii?Q?PSwBTQfc7MSE6NVTgUOgNsrxHWWgPkzMDrRn4Vm3Ad1lBjZkrOc5Z8jCjtaK?=
+ =?us-ascii?Q?iwcRGf/6JOkzkQVDidg0wwrLogg2vNG/aoo57qL0NKB8UbPLezoObpmBRpzZ?=
+ =?us-ascii?Q?etsl9hlB3kPinBAg026OrKbUq44RQbqWS4QZJCuoHyYe1ZJip6a14KjMzsIQ?=
+ =?us-ascii?Q?4qoEf5GvDK/pSvd+5NvqpTRYKuzh5r9Q/7pSpQJVgvr2t8yLldNqOi4FJdbi?=
+ =?us-ascii?Q?OSCS6HokA7JhTmGWVrBdO+6kn4+m0XgRaeC66L+bIfrZaVBqnO7Jjsz4rKeO?=
+ =?us-ascii?Q?GnwtdT0SNIkbiY8h4fLsllgnKymI1oK74tD4y1/71VEVMrsml1ZDFXAiajkO?=
+ =?us-ascii?Q?orf+qbn7NEWSKVf8O+SaTxWCXMMz3EOTGfipQQQZLsnV1rheivIJ9P5k8ZkI?=
+ =?us-ascii?Q?OEUGNVF+y+eVCxvlq6gC6KmY7d/XLtl6FuDaDYkd367BoMCgsN0msCHqxSjx?=
+ =?us-ascii?Q?aC0WkFyy7n1/6ZPHd102BjytODJMBr4L1/GwCvDBz8BRAIjntdN38yfw4bQB?=
+ =?us-ascii?Q?yyaVTFQIOVnbkIb/cF1xA23Q0a1CY8/yzy3sriljtowU/paBhHZXI/s/vM/y?=
+ =?us-ascii?Q?kyKt+Bz3yvYc5uqqyxiSnPf898kOhN/Yppun24neTLCmPhfc/ZHzU+Llm3uP?=
+ =?us-ascii?Q?NLBQRkkHv+IOSwwaQNAXUV5g7f/4WhERO4N8IYZetJfZcSyRKGX+nubE7DCW?=
+ =?us-ascii?Q?X1hRzrMk+EDGZUKN3IIDAUX4RjkAloXI1bQo6Uv+1ejHHcuIj78o+2Wehgbr?=
+ =?us-ascii?Q?MbmfPwr8/AwFFHEhFYTqbjtFFQjTZZyit2U5WGNuEwRbSBA324thBx+lt+b2?=
+ =?us-ascii?Q?vjr/u+Aqa84ez1QJBT+SV1dH3LID87Hbrfv6ItjhVTUoxdb19F5XO4sCCogF?=
+ =?us-ascii?Q?Nh6w92o7Q13tLOy68CV+Cv8Azz0CWRi5a3h6WBEv6R3VnoJkBp7I7BZpv9h5?=
+ =?us-ascii?Q?Z4nph88qCiQaS7v+Ae8WNJSYeW1GYzVHJT1ZKT/wslHXFhadjIYnpx8BuLe2?=
+ =?us-ascii?Q?VQo2bop2B63szt2hC5zIrNbPFknPXBiI+Nlrg47OMr39BWxE9mCNYsabeBHc?=
+ =?us-ascii?Q?CDrKBi9C/RzpD2PjlzJceFR6BryLm/UcmEdO2TodQ+9x9ays/Rxv1sUcxC/9?=
+ =?us-ascii?Q?e8+4fZVV3NCEgi7icPOyENAs1JugTBzgwv3em0EenBCFiZOG/5aLcs7R5wBB?=
+ =?us-ascii?Q?Sg=3D=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: b8671f18-07e3-4a30-e04b-08daff03610a
+X-MS-Exchange-CrossTenant-AuthSource: PH8PR11MB8107.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 Jan 2023 18:38:40.5996
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: 60yrdDvIB+4fECgpCMu6K/Uv6m5KoF1+a3/+ivawN/rPrqop2wE8ILkyIARF4Z2ZrZvSXAO9yKMWCDtKr/iuuyz6dkXyMLGuSWp0MDCfKLo=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ0PR11MB5024
+X-OriginatorOrg: intel.com
 
-Lockdep reports that acpi_nfit_shutdown() may deadlock against an
-opportune acpi_nfit_scrub(). acpi_nfit_scrub () is run from inside a
-'work' and therefore has already acquired workqueue-internal locks. It
-also acquiires acpi_desc->init_mutex. acpi_nfit_shutdown() first
-acquires init_mutex, and was subsequently attempting to cancel any
-pending workqueue items. This reversed locking order causes a potential
-deadlock:
+Christoph Hellwig wrote:
+> The ->rw_page method is a special purpose bypass of the usual bio
+> handling path that is limited to single-page reads and writes and
+> synchronous which causes a lot of extra code in the drivers, callers
+> and the block layer.
+> 
+> The only remaining user is the MM swap code.  Switch that swap code to
+> simply submit a single-vec on-stack bio an synchronously wait on it
+> based on a newly added QUEUE_FLAG_SYNCHRONOUS flag set by the drivers
+> that currently implement ->rw_page instead.  While this touches one
+> extra cache line and executes extra code, it simplifies the block
+> layer and drivers and ensures that all feastures are properly supported
+> by all drivers, e.g. right now ->rw_page bypassed cgroup writeback
+> entirely.
+> 
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> ---
+>  block/bdev.c                  | 78 -----------------------------------
+>  drivers/block/brd.c           | 15 +------
+>  drivers/block/zram/zram_drv.c | 61 +--------------------------
+>  drivers/nvdimm/btt.c          | 16 +------
+>  drivers/nvdimm/pmem.c         | 24 +----------
+>  include/linux/blkdev.h        | 12 +++---
+>  mm/page_io.c                  | 53 ++++++++++++++----------
+>  mm/swapfile.c                 |  2 +-
+>  8 files changed, 44 insertions(+), 217 deletions(-)
+> 
+[..]
+> diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
+> index 89f51d68c68ad6..1bffe8f44ae9a8 100644
+> --- a/include/linux/blkdev.h
+> +++ b/include/linux/blkdev.h
+> @@ -555,6 +555,7 @@ struct request_queue {
+>  #define QUEUE_FLAG_IO_STAT	7	/* do disk/partitions IO accounting */
+>  #define QUEUE_FLAG_NOXMERGES	9	/* No extended merges */
+>  #define QUEUE_FLAG_ADD_RANDOM	10	/* Contributes to random pool */
+> +#define QUEUE_FLAG_SYNCHRONOUS	11	/* always complets in submit context */
 
-    ======================================================
-    WARNING: possible circular locking dependency detected
-    6.2.0-rc3 #116 Tainted: G           O     N
-    ------------------------------------------------------
-    libndctl/1958 is trying to acquire lock:
-    ffff888129b461c0 ((work_completion)(&(&acpi_desc->dwork)->work)){+.+.}-{0:0}, at: __flush_work+0x43/0x450
+s/complets/completes/
 
-    but task is already holding lock:
-    ffff888129b460e8 (&acpi_desc->init_mutex){+.+.}-{3:3}, at: acpi_nfit_shutdown+0x87/0xd0 [nfit]
+>  #define QUEUE_FLAG_SAME_FORCE	12	/* force complete on same CPU */
+>  #define QUEUE_FLAG_INIT_DONE	14	/* queue is initialized */
+>  #define QUEUE_FLAG_STABLE_WRITES 15	/* don't modify blks until WB is done */
+> @@ -1252,6 +1253,12 @@ static inline bool bdev_nonrot(struct block_device *bdev)
+>  	return blk_queue_nonrot(bdev_get_queue(bdev));
+>  }
+>  
 
-    which lock already depends on the new lock.
+Other than that, this looks good and passes regression:
 
-    ...
-
-    Possible unsafe locking scenario:
-
-          CPU0                    CPU1
-          ----                    ----
-     lock(&acpi_desc->init_mutex);
-                                  lock((work_completion)(&(&acpi_desc->dwork)->work));
-                                  lock(&acpi_desc->init_mutex);
-     lock((work_completion)(&(&acpi_desc->dwork)->work));
-
-    *** DEADLOCK ***
-
-Since the workqueue manipulation is protected by its own internal locking,
-the cancellation of pending work doesn't need to be done under
-acpi_desc->init_mutex. Move cancel_delayed_work_sync() outside the
-init_mutex to fix the deadlock. Any work that starts after
-acpi_nfit_shutdown() drops the lock will see ARS_CANCEL, and the
-cancel_delayed_work_sync() will safely flush it out.
-
-Reported-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- drivers/acpi/nfit/core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index f1cc5ec6a3b6..4e48d6db05eb 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -3297,8 +3297,8 @@ void acpi_nfit_shutdown(void *data)
- 
- 	mutex_lock(&acpi_desc->init_mutex);
- 	set_bit(ARS_CANCEL, &acpi_desc->scrub_flags);
--	cancel_delayed_work_sync(&acpi_desc->dwork);
- 	mutex_unlock(&acpi_desc->init_mutex);
-+	cancel_delayed_work_sync(&acpi_desc->dwork);
- 
- 	/*
- 	 * Bounce the nvdimm bus lock to make sure any in-flight
-
----
-base-commit: b7bfaa761d760e72a969d116517eaa12e404c262
-change-id: 20230112-acpi_nfit_lockdep-264d7f41e6c7
-
-Best regards,
--- 
-Vishal Verma <vishal.l.verma@intel.com>
-
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
