@@ -1,69 +1,133 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86E4E1FAC;
-	Thu, 26 Jan 2023 09:39:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B1DBC433D2;
-	Thu, 26 Jan 2023 09:39:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB7312594;
+	Thu, 26 Jan 2023 14:48:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05241C4339B;
+	Thu, 26 Jan 2023 14:48:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1674725962;
-	bh=ZVfkZK/3rtmQ0HI/dGtBJXuuEqesnN3UrC2d9Id/22U=;
+	s=k20201202; t=1674744532;
+	bh=WNohoknU9nLfbwIXeO77neZ4yMyv64MASZK2UIAfOfc=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=jPHR1tsysvXfEcAXi3dVKJzUK+/pBcLMN81V0rrV3lmJSitmZ4dzX2dg51hi5IejN
-	 7zEL7Xap67RZv3VIzSlaiGiUZdkRohbmuBt6g1G6k/ZDi5w4ErbGUQzamGymp/2NAN
-	 /pJpCqLuAJbsS7TQBPReskyZpzFgV+3QY8OuQL/WhZVfC+T0+8u9vOvjEiG2Oyz3az
-	 QJ0nBWa4aWc9iOXY1sXphvYX2+rpFeNABo5LS/x4hv9HRfZpwHSA0CMCq+G8UuXlKn
-	 +pNbjyotsjQUd9+f7lksSfZ3pI2eP1YfAMNkOmd6YHDneNBbuqYHPRthY6aI1BzTUE
-	 4YD93KKDkzx3g==
-Date: Thu, 26 Jan 2023 11:39:07 +0200
+	b=OyaVsT5ePzTFS76R1FH5KLxOUgzscan6sLv55lgf+totKkalpj5P4hTJ0CFzpg2nB
+	 FjnAcEI6WBL0tfwF/TTw8b+wwY6a9pfQDEoFaNDhDzv4Bx4E//TKL2HIis05iqFTqA
+	 6cWnwUhcKJagQmydnhE9MWdKN98RZA7QH0/g2op6Qc+WX5kkWc6P8AxP1IQok4d4Iv
+	 rC+rDq5bfpCpp87TX2zmlNbavkxhh4pjEZT5VQ1/5GQQQR5j3P3SiDxYUla0TLmDmY
+	 tHoanGw9DWG+oAt/RnrhsxsQ7gltrsJN75kvWssUX4MOKayClNcjWM9UluK5fqquNs
+	 P9OGQuC06AeFQ==
+Date: Thu, 26 Jan 2023 16:48:04 +0200
 From: Mike Rapoport <rppt@kernel.org>
-To: Matthew Wilcox <willy@infradead.org>
-Cc: Jason Gunthorpe <jgg@nvidia.com>, lsf-pc@lists.linuxfoundation.org,
-	linux-mm@kvack.org, iommu@lists.linux.dev,
-	linux-rdma@vger.kernel.org, Christoph Hellwig <hch@lst.de>,
-	Joao Martins <joao.m.martins@oracle.com>,
-	John Hubbard <jhubbard@nvidia.com>,
-	Logan Gunthorpe <logang@deltatee.com>,
-	Ming Lei <ming.lei@redhat.com>, linux-block@vger.kernel.org,
-	netdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	nvdimm@lists.linux.dev, Shakeel Butt <shakeelb@google.com>
-Subject: Re: [LSF/MM/BPF proposal]: Physr discussion
-Message-ID: <Y9JKO7FITJQ7dxAv@kernel.org>
-References: <Y8v+qVZ8OmodOCQ9@nvidia.com>
- <Y84OyQSKHelPOkW3@casper.infradead.org>
+To: Suren Baghdasaryan <surenb@google.com>
+Cc: akpm@linux-foundation.org, michel@lespinasse.org, jglisse@google.com,
+	mhocko@suse.com, vbabka@suse.cz, hannes@cmpxchg.org,
+	mgorman@techsingularity.net, dave@stgolabs.net, willy@infradead.org,
+	liam.howlett@oracle.com, peterz@infradead.org,
+	ldufour@linux.ibm.com, paulmck@kernel.org, luto@kernel.org,
+	songliubraving@fb.com, peterx@redhat.com, david@redhat.com,
+	dhowells@redhat.com, hughd@google.com, bigeasy@linutronix.de,
+	kent.overstreet@linux.dev, punit.agrawal@bytedance.com,
+	lstoakes@gmail.com, peterjung1337@gmail.com, rientjes@google.com,
+	axelrasmussen@google.com, joelaf@google.com, minchan@google.com,
+	jannh@google.com, shakeelb@google.com, tatashin@google.com,
+	edumazet@google.com, gthelen@google.com, gurua@google.com,
+	arjunroy@google.com, soheil@google.com, hughlynch@google.com,
+	leewalsh@google.com, posk@google.com, will@kernel.org,
+	aneesh.kumar@linux.ibm.com, npiggin@gmail.com,
+	chenhuacai@kernel.org, tglx@linutronix.de, mingo@redhat.com,
+	bp@alien8.de, dave.hansen@linux.intel.com, richard@nod.at,
+	anton.ivanov@cambridgegreys.com, johannes@sipsolutions.net,
+	qianweili@huawei.com, wangzhou1@hisilicon.com,
+	herbert@gondor.apana.org.au, davem@davemloft.net, vkoul@kernel.org,
+	airlied@gmail.com, daniel@ffwll.ch,
+	maarten.lankhorst@linux.intel.com, mripard@kernel.org,
+	tzimmermann@suse.de, l.stach@pengutronix.de,
+	krzysztof.kozlowski@linaro.org, patrik.r.jakobsson@gmail.com,
+	matthias.bgg@gmail.com, robdclark@gmail.com,
+	quic_abhinavk@quicinc.com, dmitry.baryshkov@linaro.org,
+	tomba@kernel.org, hjc@rock-chips.com, heiko@sntech.de,
+	ray.huang@amd.com, kraxel@redhat.com, sre@kernel.org,
+	mcoquelin.stm32@gmail.com, alexandre.torgue@foss.st.com,
+	tfiga@chromium.org, m.szyprowski@samsung.com, mchehab@kernel.org,
+	dimitri.sivanich@hpe.com, zhangfei.gao@linaro.org,
+	jejb@linux.ibm.com, martin.petersen@oracle.com,
+	dgilbert@interlog.com, hdegoede@redhat.com, mst@redhat.com,
+	jasowang@redhat.com, alex.williamson@redhat.com, deller@gmx.de,
+	jayalk@intworks.biz, viro@zeniv.linux.org.uk, nico@fluxnic.net,
+	xiang@kernel.org, chao@kernel.org, tytso@mit.edu,
+	adilger.kernel@dilger.ca, miklos@szeredi.hu,
+	mike.kravetz@oracle.com, muchun.song@linux.dev, bhe@redhat.com,
+	andrii@kernel.org, yoshfuji@linux-ipv6.org, dsahern@kernel.org,
+	kuba@kernel.org, pabeni@redhat.com, perex@perex.cz, tiwai@suse.com,
+	haojian.zhuang@gmail.com, robert.jarzmik@free.fr,
+	linux-mm@kvack.org, linux-arm-kernel@lists.infradead.org,
+	linuxppc-dev@lists.ozlabs.org, x86@kernel.org,
+	linux-kernel@vger.kernel.org, linux-graphics-maintainer@vmware.com,
+	linux-ia64@vger.kernel.org, linux-arch@vger.kernel.org,
+	loongarch@lists.linux.dev, kvm@vger.kernel.org,
+	linux-s390@vger.kernel.org, linux-sgx@vger.kernel.org,
+	linux-um@lists.infradead.org, linux-acpi@vger.kernel.org,
+	linux-crypto@vger.kernel.org, nvdimm@lists.linux.dev,
+	dmaengine@vger.kernel.org, amd-gfx@lists.freedesktop.org,
+	dri-devel@lists.freedesktop.org, etnaviv@lists.freedesktop.org,
+	linux-samsung-soc@vger.kernel.org, intel-gfx@lists.freedesktop.org,
+	linux-mediatek@lists.infradead.org, linux-arm-msm@vger.kernel.org,
+	freedreno@lists.freedesktop.org, linux-rockchip@lists.infradead.org,
+	linux-tegra@vger.kernel.org,
+	virtualization@lists.linux-foundation.org,
+	xen-devel@lists.xenproject.org,
+	linux-stm32@st-md-mailman.stormreply.com,
+	linux-rdma@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-accelerators@lists.ozlabs.org, sparclinux@vger.kernel.org,
+	linux-scsi@vger.kernel.org, linux-staging@lists.linux.dev,
+	target-devel@vger.kernel.org, linux-usb@vger.kernel.org,
+	netdev@vger.kernel.org, linux-fbdev@vger.kernel.org,
+	linux-aio@kvack.org, linux-fsdevel@vger.kernel.org,
+	linux-erofs@lists.ozlabs.org, linux-ext4@vger.kernel.org,
+	devel@lists.orangefs.org, kexec@lists.infradead.org,
+	linux-xfs@vger.kernel.org, bpf@vger.kernel.org,
+	linux-perf-users@vger.kernel.org, kasan-dev@googlegroups.com,
+	selinux@vger.kernel.org, alsa-devel@alsa-project.org,
+	kernel-team@android.com
+Subject: Re: [PATCH v2 6/6] mm: export dump_mm()
+Message-ID: <Y9KSpNJ4y0GMwkrW@kernel.org>
+References: <20230125083851.27759-1-surenb@google.com>
+ <20230125083851.27759-7-surenb@google.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <Y84OyQSKHelPOkW3@casper.infradead.org>
+In-Reply-To: <20230125083851.27759-7-surenb@google.com>
 
-On Mon, Jan 23, 2023 at 04:36:25AM +0000, Matthew Wilcox wrote:
-> On Sat, Jan 21, 2023 at 11:03:05AM -0400, Jason Gunthorpe wrote:
-> > I would like to have a session at LSF to talk about Matthew's
-> > physr discussion starter:
-> > 
-> >  https://lore.kernel.org/linux-mm/YdyKWeU0HTv8m7wD@casper.infradead.org/
+On Wed, Jan 25, 2023 at 12:38:51AM -0800, Suren Baghdasaryan wrote:
+> mmap_assert_write_locked() is used in vm_flags modifiers. Because
+> mmap_assert_write_locked() uses dump_mm() and vm_flags are sometimes
+> modified from from inside a module, it's necessary to export
+> dump_mm() function.
 > 
-> I'm definitely interested in discussing phyrs (even if you'd rather
-> pronounce it "fizzers" than "fires" ;-)
+> Signed-off-by: Suren Baghdasaryan <surenb@google.com>
 
-I'm also interested in this discussion. With my accent it will be фыр,
-though ;-)
- 
-> > I've been working on an implementation and hope to have something
-> > draft to show on the lists in a few weeks. It is pretty clear there
-> > are several interesting decisions to make that I think will benefit
-> > from a live discussion.
+Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
+
+> ---
+>  mm/debug.c | 1 +
+>  1 file changed, 1 insertion(+)
 > 
-> Cool!  Here's my latest noodlings:
-> https://git.infradead.org/users/willy/pagecache.git/shortlog/refs/heads/phyr
-> 
-> Just the top two commits; the other stuff is unrelated.  Shakeel has
-> also been interested in this.
-> 
+> diff --git a/mm/debug.c b/mm/debug.c
+> index 9d3d893dc7f4..96d594e16292 100644
+> --- a/mm/debug.c
+> +++ b/mm/debug.c
+> @@ -215,6 +215,7 @@ void dump_mm(const struct mm_struct *mm)
+>  		mm->def_flags, &mm->def_flags
+>  	);
+>  }
+> +EXPORT_SYMBOL(dump_mm);
+>  
+>  static bool page_init_poisoning __read_mostly = true;
+>  
+> -- 
+> 2.39.1
 > 
