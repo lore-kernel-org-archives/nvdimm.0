@@ -1,64 +1,52 @@
-Received: from mail3.bemta32.messagelabs.com (mail3.bemta32.messagelabs.com [195.245.230.81])
+Received: from ms.lwn.net (ms.lwn.net [45.79.88.28])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6A134408
-	for <nvdimm@lists.linux.dev>; Thu,  2 Feb 2023 12:34:04 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fujitsu.com;
-	s=170520fj; t=1675341243; i=@fujitsu.com;
-	bh=J3fIpU6tmL9uRL1TDcHv8hQsLLABkSDshjR6iG+9dYE=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type;
-	b=mabZLUorSxmuOO5995L+EDuu79jEgyRZGmhHqwyEgoMP1ovKN4dRS0it5oG9fWqVK
-	 9IMrsuRnxKG2dzCX8qi+Lc+pBbtk0vvEsoCw9VRtXxOjBx6WAalrxa/vqhk+oot//d
-	 H7iyehNpdjgXZZLyvI4nmJZpIlCLat3eBCtV0N4J++wdqKaOFSciX7yV6/xDgFeGX7
-	 EjxIGDEeWmjdCim6DDGbZfRPkYDGoBqCtdQFX9xIxu6wqR9NnhfpjLU2rb4IkaKNEz
-	 DhQYaqwulQqrW71r6hEUBOpoxVM4Uzu/TgTYIgNmBs71ZXps9PKqvvwxqjoblI/PVK
-	 Cc1OsHrlUdn5g==
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFnrEIsWRWlGSWpSXmKPExsViZ8ORpLtr7e1
-  kg/l/2S3mrF/DZjF96gVGiy3H7jFaXH7CZ7Fn70kWi11/drBbrPzxh9WB3ePUIgmPxXteMnls
-  WtXJ5nFixm8WjxebZzJ6fN4kF8AWxZqZl5RfkcCa0bP2CWPBE5aKxe1nGRsYm1i6GLk4hAQ2M
-  kp8ud7HCOEsZZI49uAHK4Szl1GiZ+JT9i5GTg42AR2JCwv+soLYIgLREm8eTgCLMws0M0pcu+
-  EPYgsLuEu8W36VGcRmEVCRmDLlEVg9r4CLxOYFP8DiEgIKElMevmeGiAtKnJz5hAVijoTEwRc
-  vgOIcQDVKEjO74yHKKyVaP/xigbDVJK6e28Q8gZF/FpLuWUi6FzAyrWI0K04tKkst0jW00Esq
-  ykzPKMlNzMzRS6zSTdRLLdUtTy0u0TXUSywv1kstLtYrrsxNzknRy0st2cQIDPqUYrZ3OxhX9
-  f3VO8QoycGkJMqb1387WYgvKT+lMiOxOCO+qDQntfgQowwHh5IE77Y1QDnBotT01Iq0zBxgBM
-  KkJTh4lER4axcBpXmLCxJzizPTIVKnGBWlxHlDQfoEQBIZpXlwbbCov8QoKyXMy8jAwCDEU5B
-  alJtZgir/ilGcg1FJmPfXCqApPJl5JXDTXwEtZgJafNf6JsjikkSElFQDU9n0Slcl+VDBmu9C
-  hvNblYUn9z98Kf/sZ3fgyWIO3zUyek7NassjChk3/pzzKfK9hdfGN78XBzY1ydrbayVdTTvEO
-  63mxL8Xjxd3Xuw+dro+L2/d9CMaab+u7WjlrRVztN9VUyQ499VFzp63V565vG1sM2ZLPPJoYw
-  ZLwwLhKXF7M1S3/jqi/0xayOrpxQeKL22uy9+PdJshq7HIgVnn0hGrpKsBB3Q+WDmJCGxqOam
-  VP7dUeg9P2eQyl3MynsJqt196XXkVYuI7f8eJy+uTXzi1/txsGTynweT9tf5on1fxj42f3tie
-  d/WPuc5V7r3NOv1Pn537e0JGZGnXbtftKz3KTyVdCyzf0qEyx33vSSWW4oxEQy3mouJEAOzZz
-  eB1AwAA
-X-Env-Sender: ruansy.fnst@fujitsu.com
-X-Msg-Ref: server-22.tower-585.messagelabs.com!1675341241!62076!1
-X-Originating-IP: [62.60.8.98]
-X-SYMC-ESS-Client-Auth: outbound-route-from=pass
-X-StarScan-Received:
-X-StarScan-Version: 9.102.2; banners=-,-,-
-X-VirusChecked: Checked
-Received: (qmail 15427 invoked from network); 2 Feb 2023 12:34:02 -0000
-Received: from unknown (HELO n03ukasimr03.n03.fujitsu.local) (62.60.8.98)
-  by server-22.tower-585.messagelabs.com with ECDHE-RSA-AES256-GCM-SHA384 encrypted SMTP; 2 Feb 2023 12:34:02 -0000
-Received: from n03ukasimr03.n03.fujitsu.local (localhost [127.0.0.1])
-	by n03ukasimr03.n03.fujitsu.local (Postfix) with ESMTP id A02B71AE;
-	Thu,  2 Feb 2023 12:34:01 +0000 (GMT)
-Received: from R01UKEXCASM223.r01.fujitsu.local (R01UKEXCASM223 [10.182.185.121])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF9658F54
+	for <nvdimm@lists.linux.dev>; Thu,  2 Feb 2023 18:09:11 +0000 (UTC)
+Received: from localhost (unknown [IPv6:2601:281:8300:73::5f6])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by n03ukasimr03.n03.fujitsu.local (Postfix) with ESMTPS id 8F6551AC;
-	Thu,  2 Feb 2023 12:34:01 +0000 (GMT)
-Received: from localhost.localdomain (10.167.225.141) by
- R01UKEXCASM223.r01.fujitsu.local (10.182.185.121) with Microsoft SMTP Server
- (TLS) id 15.0.1497.42; Thu, 2 Feb 2023 12:33:58 +0000
-From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-To: <linux-xfs@vger.kernel.org>, <nvdimm@lists.linux.dev>,
-	<linux-fsdevel@vger.kernel.org>
-CC: <djwong@kernel.org>, <david@fromorbit.com>, <dan.j.williams@intel.com>,
-	<akpm@linux-foundation.org>, <ruansy.fnst@fujitsu.com>
-Subject: [PATCH] fsdax: dax_unshare_iter() should return a valid length
-Date: Thu, 2 Feb 2023 12:33:47 +0000
-Message-ID: <1675341227-14-1-git-send-email-ruansy.fnst@fujitsu.com>
-X-Mailer: git-send-email 1.8.3.1
+	by ms.lwn.net (Postfix) with ESMTPSA id 48D347DE;
+	Thu,  2 Feb 2023 18:09:05 +0000 (UTC)
+DKIM-Filter: OpenDKIM Filter v2.11.0 ms.lwn.net 48D347DE
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=lwn.net; s=20201203;
+	t=1675361345; bh=2+a4mZYwqT3vzf0UQzfkcA5CdDxOuo7YvzN9jr8nkig=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
+	b=gY7ULbf3et5D4Qc/CNx/w7sCxqXxX6fR0sNacSV7nefpdle702hp6si3iizN6qwiE
+	 uEIY7Q78a9h2RN4xfonCmMXE/H1WHGv23zZbRY3a8TD9z3xCs5/ly7iH92i4XVhMfk
+	 m1+3SrM+pmOm5qUcXvYL8szbXDpSICOPir4Ff+tNZ80bHoZS0uhfOu3aabBosNVFfP
+	 7pgupe9C5u4Sz6v8uZtM64S9OiXXXwx07OTa5szwYHdV6XxaRnf+mq/MpKQwaSbzh0
+	 jfCb5rfx6sWATpmne99lGmlwL/b8o+ggGmLTspO1j2VtBWLoL4M3uxU9erIgFeIYC3
+	 b3TsgnsFP3UgQ==
+From: Jonathan Corbet <corbet@lwn.net>
+To: Randy Dunlap <rdunlap@infradead.org>, linux-kernel@vger.kernel.org
+Cc: Randy Dunlap <rdunlap@infradead.org>, linux-doc@vger.kernel.org, Tejun
+ Heo <tj@kernel.org>, Zefan Li <lizefan.x@bytedance.com>, Johannes Weiner
+ <hannes@cmpxchg.org>, cgroups@vger.kernel.org, Alasdair Kergon
+ <agk@redhat.com>, Mike Snitzer <snitzer@kernel.org>, dm-devel@redhat.com,
+ Mauro Carvalho Chehab <mchehab@kernel.org>, linux-media@vger.kernel.org,
+ linux-mm@kvack.org, Dan Williams <dan.j.williams@intel.com>, Vishal Verma
+ <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>,
+ nvdimm@lists.linux.dev, Vinod Koul <vkoul@kernel.org>,
+ dmaengine@vger.kernel.org, Song Liu <song@kernel.org>,
+ linux-raid@vger.kernel.org, Greg Kroah-Hartman
+ <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, Jean Delvare
+ <jdelvare@suse.com>, Guenter Roeck <linux@roeck-us.net>,
+ linux-hwmon@vger.kernel.org, Jiri Pirko <jiri@nvidia.com>, "David S.
+ Miller" <davem@davemloft.net>, Eric Dumazet <edumazet@google.com>, Jakub
+ Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
+ netdev@vger.kernel.org, "Paul E. McKenney" <paulmck@kernel.org>, Frederic
+ Weisbecker <frederic@kernel.org>, Neeraj Upadhyay
+ <quic_neeraju@quicinc.com>, Josh Triplett <josh@joshtriplett.org>,
+ rcu@vger.kernel.org, "James E.J. Bottomley" <jejb@linux.ibm.com>, "Martin
+ K. Petersen" <martin.petersen@oracle.com>, linux-scsi@vger.kernel.org,
+ sparclinux@vger.kernel.org
+Subject: Re: [PATCH 0/9] Documentation: correct lots of spelling errors
+ (series 2)
+In-Reply-To: <20230129231053.20863-1-rdunlap@infradead.org>
+References: <20230129231053.20863-1-rdunlap@infradead.org>
+Date: Thu, 02 Feb 2023 11:09:04 -0700
+Message-ID: <875yckvt1b.fsf@meer.lwn.net>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -66,32 +54,38 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain
-X-Originating-IP: [10.167.225.141]
-X-ClientProxiedBy: G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.80) To
- R01UKEXCASM223.r01.fujitsu.local (10.182.185.121)
-X-Virus-Scanned: ClamAV using ClamSMTP
 
-The copy_mc_to_kernel() will return 0 if it executed successfully.
-Then the return value should be set to the length it copied.
+Randy Dunlap <rdunlap@infradead.org> writes:
 
-Fixes: d984648e428b ("fsdax,xfs: port unshare to fsdax")
-Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
----
- fs/dax.c | 1 +
- 1 file changed, 1 insertion(+)
+> Maintainers of specific kernel subsystems are only Cc-ed on their
+> respective patches, not the entire series. [if all goes well]
+>
+> These patches are based on linux-next-20230127.
 
-diff --git a/fs/dax.c b/fs/dax.c
-index c48a3a93ab29..a5b4deb5def3 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1274,6 +1274,7 @@ static s64 dax_unshare_iter(struct iomap_iter *iter)
- 	ret = copy_mc_to_kernel(daddr, saddr, length);
- 	if (ret)
- 		ret = -EIO;
-+	ret = length;
- 
- out_unlock:
- 	dax_read_unlock(id);
--- 
-2.39.1
+So I've applied a bunch of these
 
+>  [PATCH 1/9] Documentation: admin-guide: correct spelling
+>  [PATCH 2/9] Documentation: driver-api: correct spelling
+
+applied
+
+>  [PATCH 3/9] Documentation: hwmon: correct spelling
+>  [PATCH 4/9] Documentation: networking: correct spelling
+>  [PATCH 5/9] Documentation: RCU: correct spelling
+
+These have been taken up elsewhere
+
+>  [PATCH 6/9] Documentation: scsi/ChangeLog*: correct spelling
+>  [PATCH 7/9] Documentation: scsi: correct spelling
+
+I've left these for the SCSI folks for now.  Do we *really* want to be
+fixing spelling in ChangeLog files from almost 20 years ago?
+
+>  [PATCH 8/9] Documentation: sparc: correct spelling
+>  [PATCH 9/9] Documentation: userspace-api: correct spelling
+
+Applied.
+
+Thanks,
+
+jon
