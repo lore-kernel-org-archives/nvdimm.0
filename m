@@ -1,160 +1,69 @@
-Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B2188F60
-	for <nvdimm@lists.linux.dev>; Thu,  2 Feb 2023 18:55:52 +0000 (UTC)
-Received: from pps.filterd (m0127361.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 312HIFVv002326;
-	Thu, 2 Feb 2023 18:55:15 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : subject :
- from : reply-to : to : cc : date : in-reply-to : references : content-type
- : mime-version : content-transfer-encoding; s=pp1;
- bh=YS8OxqX6Xa4ReQhYwflKc5aSv/9TMKB2gRMMZTEJZEM=;
- b=CFDCGulP3P9Xe+2FAp6xgIgRdBQw74UWN3jgGISv3dFzGsARHrCHm0mKBX/ELGDgttez
- O2meJewgXXM7+teNdX1OhLZrAIM2aVkDVTHAidhbq037PYHO8U582Sv4uDmN9nO7C+H0
- Ct6DdO3veQD6OKh6pBbNXbO7fmZB2GLhEks2HUnbj9M40HZLiGUM/0/PZYRpNZFTZABc
- KUw69DyK4MX540GbhWsmE2ikKCZ2qfXEtoCa6lzKc4HwYnA/+A4P1qpvOVXru7Rg7Eu5
- s6n0B3YDRpfXh9P9tepOpIUV6KxgO+ZDzTxLDiaQq2Q5zExlYDSpXCevnb+PR2ZAq65+ Hg== 
-Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3ngeuff37e-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 02 Feb 2023 18:55:15 +0000
-Received: from m0127361.ppops.net (m0127361.ppops.net [127.0.0.1])
-	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 312InxkL010732;
-	Thu, 2 Feb 2023 18:55:14 GMT
-Received: from ppma03wdc.us.ibm.com (ba.79.3fa9.ip4.static.sl-reverse.com [169.63.121.186])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3ngeuff36u-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 02 Feb 2023 18:55:14 +0000
-Received: from pps.filterd (ppma03wdc.us.ibm.com [127.0.0.1])
-	by ppma03wdc.us.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 312IQsak007753;
-	Thu, 2 Feb 2023 18:55:12 GMT
-Received: from smtprelay04.dal12v.mail.ibm.com ([9.208.130.102])
-	by ppma03wdc.us.ibm.com (PPS) with ESMTPS id 3ncvtf51nu-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 02 Feb 2023 18:55:12 +0000
-Received: from b03ledav001.gho.boulder.ibm.com ([9.17.130.232])
-	by smtprelay04.dal12v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 312ItBP011600580
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Thu, 2 Feb 2023 18:55:12 GMT
-Received: from b03ledav001.gho.boulder.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 90C1C6E050;
-	Thu,  2 Feb 2023 18:57:22 +0000 (GMT)
-Received: from b03ledav001.gho.boulder.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id A3D826E04E;
-	Thu,  2 Feb 2023 18:57:16 +0000 (GMT)
-Received: from lingrow.int.hansenpartnership.com (unknown [9.211.110.248])
-	by b03ledav001.gho.boulder.ibm.com (Postfix) with ESMTP;
-	Thu,  2 Feb 2023 18:57:15 +0000 (GMT)
-Message-ID: <ac6270fe1dba1b3398dc2b830cf9bda5c89a7a3d.camel@linux.ibm.com>
-Subject: Re: [dm-devel] [PATCH 0/9] Documentation: correct lots of spelling
- errors (series 2)
-From: James Bottomley <jejb@linux.ibm.com>
-Reply-To: jejb@linux.ibm.com
-To: Jonathan Corbet <corbet@lwn.net>, Bart Van Assche <bvanassche@acm.org>,
-        Randy Dunlap <rdunlap@infradead.org>, linux-kernel@vger.kernel.org
-Cc: nvdimm@lists.linux.dev, linux-doc@vger.kernel.org,
-        Song Liu
- <song@kernel.org>, dm-devel@redhat.com,
-        netdev@vger.kernel.org, Zefan Li
- <lizefan.x@bytedance.com>,
-        sparclinux@vger.kernel.org,
-        Neeraj Upadhyay
- <quic_neeraju@quicinc.com>,
-        Alasdair Kergon <agk@redhat.com>, Dave Jiang
- <dave.jiang@intel.com>,
-        linux-scsi@vger.kernel.org, Vishal Verma
- <vishal.l.verma@intel.com>,
-        Jakub Kicinski <kuba@kernel.org>, Paolo Abeni
- <pabeni@redhat.com>,
-        Guenter Roeck <linux@roeck-us.net>, linux-media@vger.kernel.org,
-        Jean Delvare <jdelvare@suse.com>,
-        "Paul E.
- McKenney" <paulmck@kernel.org>,
-        Frederic Weisbecker <frederic@kernel.org>,
-        Mike Snitzer <snitzer@kernel.org>,
-        Josh Triplett <josh@joshtriplett.org>, linux-raid@vger.kernel.org,
-        Tejun Heo <tj@kernel.org>, Jiri Pirko
- <jiri@nvidia.com>,
-        cgroups@vger.kernel.org, Dan Williams
- <dan.j.williams@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-hwmon@vger.kernel.org, rcu@vger.kernel.org,
-        "Martin K. Petersen"
- <martin.petersen@oracle.com>, linux-mm@kvack.org,
-        Greg Kroah-Hartman
- <gregkh@linuxfoundation.org>,
-        linux-usb@vger.kernel.org, Eric Dumazet
- <edumazet@google.com>,
-        Vinod Koul <vkoul@kernel.org>, Johannes Weiner
- <hannes@cmpxchg.org>,
-        dmaengine@vger.kernel.org, "David S. Miller"
- <davem@davemloft.net>
-Date: Thu, 02 Feb 2023 13:54:33 -0500
-In-Reply-To: <87o7qbvra9.fsf@meer.lwn.net>
-References: <20230129231053.20863-1-rdunlap@infradead.org>
-	 <875yckvt1b.fsf@meer.lwn.net>
-	 <a2c560bb-3b5c-ca56-c5c2-93081999281d@infradead.org>
-	 <8540c721-6bb9-3542-d9bd-940b59d3a7a4@acm.org>
-	 <87o7qbvra9.fsf@meer.lwn.net>
-Content-Type: text/plain; charset="UTF-8"
-User-Agent: Evolution 3.42.4 
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 087FC3201
+	for <nvdimm@lists.linux.dev>; Thu,  2 Feb 2023 20:56:48 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1675371409; x=1706907409;
+  h=subject:from:to:cc:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=ZFUwU3TZtHxOAeWJmjwXZ5BEGZIVE58r8GafhRWlncM=;
+  b=lymEUaqEkY1hR+W3A8H0nXWbYJg+luaaI1Gb3hFvcdez9Bxr24BU/IAd
+   rgPC/nYtkkapL7rhlPYEVbZ8fhWdPgEYl/SD8I7KoFJWRRPGoY3DV1K9N
+   y3p1qSc2qOqYw/qYwtLLEdpErBHNs1ZcW4JpnLAvhbN4JvSgLZppXGoAZ
+   9Zs8OJ2UWbOM+MJl0aCyhcpnSIEkgCcrHMC42dvec+DiUgVvxBBivRlnL
+   PUlNogT/Ecd8kCmJhB7P1Z+JIOBZXBTPfneN54D6iOaBJ9ZKRr1+PMXjU
+   EncGe3+xKA1xHv5MCLcYDIlFd2GXMsRCaUI3s3AAUNO2fBXgSsAd+gP44
+   g==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10609"; a="328586546"
+X-IronPort-AV: E=Sophos;i="5.97,268,1669104000"; 
+   d="scan'208";a="328586546"
+Received: from fmsmga003.fm.intel.com ([10.253.24.29])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Feb 2023 12:56:48 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10609"; a="754204483"
+X-IronPort-AV: E=Sophos;i="5.97,268,1669104000"; 
+   d="scan'208";a="754204483"
+Received: from rcoolman-mobl.amr.corp.intel.com (HELO dwillia2-xfh.jf.intel.com) ([10.212.163.245])
+  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Feb 2023 12:56:48 -0800
+Subject: [PATCH] daxctl: Fix memblock enumeration off-by-one
+From: Dan Williams <dan.j.williams@intel.com>
+To: vishal.l.verma@intel.com
+Cc: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
+Date: Thu, 02 Feb 2023 12:56:47 -0800
+Message-ID: <167537140762.3268840.2926966718345830138.stgit@dwillia2-xfh.jf.intel.com>
+User-Agent: StGit/0.18-3-g996c
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: rINHRxV1D64-5YqYmvXoiq9bBKTirX1e
-X-Proofpoint-ORIG-GUID: eZPeQqFlkdhx5p58topJeC6q8R4gRCuD
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.219,Aquarius:18.0.930,Hydra:6.0.562,FMLib:17.11.122.1
- definitions=2023-02-02_12,2023-02-02_01,2022-06-22_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 lowpriorityscore=0
- mlxlogscore=999 mlxscore=0 malwarescore=0 priorityscore=1501
- impostorscore=0 bulkscore=0 phishscore=0 spamscore=0 clxscore=1011
- suspectscore=0 adultscore=0 classifier=spam adjust=0 reason=mlx
- scancount=1 engine=8.12.0-2212070000 definitions=main-2302020166
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 
-On Thu, 2023-02-02 at 11:46 -0700, Jonathan Corbet wrote:
-> Bart Van Assche <bvanassche@acm.org> writes:
-> 
-> > On 2/2/23 10:33, Randy Dunlap wrote:
-> > > On 2/2/23 10:09, Jonathan Corbet wrote:
-> > > > Randy Dunlap <rdunlap@infradead.org> writes:
-> > > > >   [PATCH 6/9] Documentation: scsi/ChangeLog*: correct
-> > > > > spelling
-> > > > >   [PATCH 7/9] Documentation: scsi: correct spelling
-> > > > 
-> > > > I've left these for the SCSI folks for now.  Do we *really*
-> > > > want to be
-> > > > fixing spelling in ChangeLog files from almost 20 years ago?
-> > > 
-> > > That's why I made it a separate patch -- so the SCSI folks can
-> > > decide that...
-> > 
-> > How about removing the Documentation/scsi/ChangeLog.* files? I'm
-> > not sure these changelogs are still useful since these duplicate
-> > information that is already available in the output of git log
-> > ${driver_directory}.
-> 
-> Actually, the information in those files mostly predates the git era,
-> so you won't find it that way.  I *still* question their value,
-> though...
+A memblock is an inclusive memory range. Bound the search by the last
+address in the memory block.
 
-In the pre-source control days they were the answer to the GPLv2
-Section 2 requirement to " carry prominent notices stating that you
-changed the files and the date of any change." 
+Found by wondering why an offline 32-block (at 128MB == 4GB) range was
+reported as 33 blocks with one online.
 
-If you remove the files you may run afoul of the GPLv2 Section 1
-requirement to "keep intact all the notices that refer to this
-License".  Of course, nowadays we assume the source control does this
-for us, so people rarely think of these requirements, but for files
-that predate source control I think you need to consider the licence
-implications.
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ daxctl/lib/libdaxctl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-James
-
+diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
+index 5703992f5b88..d990479d8585 100644
+--- a/daxctl/lib/libdaxctl.c
++++ b/daxctl/lib/libdaxctl.c
+@@ -1477,7 +1477,7 @@ static int memblock_in_dev(struct daxctl_memory *mem, const char *memblock)
+ 		err(ctx, "%s: Unable to determine resource\n", devname);
+ 		return -EACCES;
+ 	}
+-	dev_end = dev_start + daxctl_dev_get_size(dev);
++	dev_end = dev_start + daxctl_dev_get_size(dev) - 1;
+ 
+ 	memblock_size = daxctl_memory_get_block_size(mem);
+ 	if (!memblock_size) {
 
