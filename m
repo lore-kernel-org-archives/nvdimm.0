@@ -1,138 +1,115 @@
-Received: from mail-pg1-f179.google.com (mail-pg1-f179.google.com [209.85.215.179])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail3.bemta32.messagelabs.com (mail3.bemta32.messagelabs.com [195.245.230.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B55A12771B
-	for <nvdimm@lists.linux.dev>; Sun,  5 Feb 2023 21:50:05 +0000 (UTC)
-Received: by mail-pg1-f179.google.com with SMTP id 141so7030114pgc.0
-        for <nvdimm@lists.linux.dev>; Sun, 05 Feb 2023 13:50:05 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=fromorbit-com.20210112.gappssmtp.com; s=20210112;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=h7yJpiP9ttw5sFfLyFtqc0KGl8DklAykC2zfpl3J1T0=;
-        b=Sy6WO6aUbt4hKJI79krfYMxHyrk8VlNpZFJCscjnaf0dsl5WUq31QJSrKvkMtQIaza
-         EihA37h2D2LwC+6MaXmtTMsPZL/p9MyUxMS9kdpzLDu0jEeMTwRw17E10TchJzuiLTyp
-         jrGU7LZSvlpKECTzI6x2jpq7GW6foI37PRVUtckaO+b++7hmWyYymrrrdJucpnk0IGcA
-         7fUy8W0DeTe6f9XQ0rXzO6B+K0YyjsIoWs0iGHMbi3zvdTe2V/dN4y80uskdkr7ryzrO
-         /zKGNWHUODK7nylWFEqljJV+7XUzs4LKVVUb4h4mpsMLzFO2Xln/JIVQW7jF3oC1bKid
-         lkqA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=h7yJpiP9ttw5sFfLyFtqc0KGl8DklAykC2zfpl3J1T0=;
-        b=SVIfNo1qHoxpbyFogRaBVxX5OFlHoBkeQQGW+CI/zpGDtM0etvX/KxKp4RZ4lrPMrx
-         NC18YVMAP7lZiWmiVjiCfl+xMZ3CALfFFpVNMNiPWh/2dtmBROQZJqrSLTallQXLH8Ts
-         5TWpV7gMap1ZQ/JDnmEWZ2xmR6jZAR/F+6tj4sznIGWC+XQXRb1EgKnqVdE8xhtzYyzu
-         j96D14De4mKt/NXZrNAdQVPMQoV2CqhRhdWb5dAJQzvXLR940mhVeGn/heo7LsYDXW+5
-         DWl29xdyTnm1+8Cz/zWHpzpJ8GSnA+wTfqCNxevnRC+cPV8N/nb/3Dy8UZf3PRkWvV8J
-         AaCg==
-X-Gm-Message-State: AO0yUKUx5W5OuNwXTHFjG93+Dkninf979bJ8FRJO6X/1WWINHfU2kS1S
-	243hWuEP6+k7OxrSi4mNA8k/rQ==
-X-Google-Smtp-Source: AK7set/Qbh4FDtzACwf+BWf7UNO2tnGdJAA6iW0zDj8wSxkzi8r3CMK8bAHVC0ZExvoKYvkFgHaAyQ==
-X-Received: by 2002:a62:1dc2:0:b0:592:4502:fb0 with SMTP id d185-20020a621dc2000000b0059245020fb0mr16441670pfd.0.1675633805007;
-        Sun, 05 Feb 2023 13:50:05 -0800 (PST)
-Received: from dread.disaster.area (pa49-181-4-128.pa.nsw.optusnet.com.au. [49.181.4.128])
-        by smtp.gmail.com with ESMTPSA id y10-20020a056a001c8a00b0058119caa82csm5497038pfw.205.2023.02.05.13.50.04
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 05 Feb 2023 13:50:04 -0800 (PST)
-Received: from dave by dread.disaster.area with local (Exim 4.92.3)
-	(envelope-from <david@fromorbit.com>)
-	id 1pOmtc-00Bo2z-SX; Mon, 06 Feb 2023 08:50:00 +1100
-Date: Mon, 6 Feb 2023 08:50:00 +1100
-From: Dave Chinner <david@fromorbit.com>
-To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Cc: linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org,
-	nvdimm@lists.linux.dev, linux-mm@kvack.org,
-	linux-fsdevel@vger.kernel.org, djwong@kernel.org,
-	dan.j.williams@intel.com, hch@infradead.org, jane.chu@oracle.com
-Subject: Re: [PATCH v9 3/3] mm, pmem, xfs: Introduce MF_MEM_REMOVE for unbind
-Message-ID: <20230205215000.GT360264@dread.disaster.area>
-References: <1675522718-88-1-git-send-email-ruansy.fnst@fujitsu.com>
- <1675522718-88-4-git-send-email-ruansy.fnst@fujitsu.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55EDC23A0
+	for <nvdimm@lists.linux.dev>; Mon,  6 Feb 2023 06:46:14 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fujitsu.com;
+	s=170520fj; t=1675665972; i=@fujitsu.com;
+	bh=8tDYHNWMpUBfn2W8rtNUEQrr/Lx/KtmFpqOm7bf5zQI=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type:Content-Transfer-Encoding;
+	b=x/XU+I3vkY/snNMoCAM/Q/te6FSxTJEf60Xnb/zrFJUUov70ue0p8e8wke8j4UX/s
+	 I6AT7V8sLv+JvrsjvpmMjJ895YeTQH1WjKo13SltqC/C4oY2+HqJsDVjZiZiuNUVEi
+	 5Tmrk/9cWpNqCZ5Zc8XfeuMeaizZwi4kh54eoQEkU759+tqQ04D+yaItl+JMdgHfSG
+	 WqoyWHzlLgCmdn0OIhhRVYZ4NJLTL9pnwWdm9KLG9NHjiJUKA8pEMYBfdDAaD/Z/Ao
+	 4iTpnSnDMaMZUCsPfJ+DBXYcrFL/2efiwCAJpqfhIxVItcNut4/dirdG69CiOdVd1v
+	 Lji+JGr0wwiUQ==
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFtrAKsWRWlGSWpSXmKPExsViZ8ORqKuz6EG
+  ywemHFhbTp15gtNhy7B6jxeUnfBanJyxistj9+iabxZ69J1ksLu+aw2Zxb81/Votdf3awW6z8
+  8YfV4vePOWwO3B6nFkl4bF6h5bF4z0smj02rOtk8Nn2axO7xYvNMRo+PT2+xeHzeJBfAEcWam
+  ZeUX5HAmvHywxrmgg1sFa09v5gaGC+xdDFycQgJbGGUeHnqOzuEs4JJYt6/g1DONkaJi19+sH
+  YxcnLwCthJ/Jr1hA3EZhFQkehq6WWEiAtKnJz5hAXEFhVIljh2vhWsRljATaJh5x0gm4NDREB
+  D4s0WI5CZzAIdTBJ712xkhFiwnFGiY/ZLZpAGNgEdiQsL/oIt4xQwkfi49wU7iM0sYCGx+M1B
+  KFteonnrbGaQoRICShIzu+NBwhIClRKtH36xQNhqElfPbWKewCg0C8l5s5BMmoVk0gJG5lWMZ
+  sWpRWWpRbqGZnpJRZnpGSW5iZk5eolVuol6qaW65anFJbqGeonlxXqpxcV6xZW5yTkpenmpJZ
+  sYgRGZUsz8cgfjib6/eocYJTmYlER5+/3vJgvxJeWnVGYkFmfEF5XmpBYfYpTh4FCS4A2Y8yB
+  ZSLAoNT21Ii0zB5gcYNISHDxKIryXpwOleYsLEnOLM9MhUqcYFaXEeYMXAiUEQBIZpXlwbbCE
+  dIlRVkqYl5GBgUGIpyC1KDezBFX+FaM4B6OSMK/oPKApPJl5JXDTXwEtZgJa3G1wF2RxSSJCS
+  qqBSXCR5j0pid67FqWLbqzXV/yWLZOa47+8+Lvp5YhWqwkHGOf7NZ+f9+HP5Ou75VdP4Vtiln
+  jIQX3alssRHoyyzu92mayYsKLx89Ok5y8FdIXM98yZvsCBXy9RYEKbhlzx7qtKv5enHDSbnCO
+  yeHFAUc7LEE/dV/fKbi86XjXDp+TysUrZC88OFFZ/2Nm2rn+G59W26lt398WrqWwoDTpfVetq
+  127/gV3z0/HEA3+23DSvyjI26rGtc6rcvNw+ZbNF9U+pFpO1J4L3eq94f917SdKEVfWWpa4lf
+  q+SGxke2xp5nX37e11s3KmDz9lbC9/O+bWH8QtzrqmmfdsfeebHUWUn+TjDtji9PuPocUEtUY
+  mlOCPRUIu5qDgRAPjkbkDDAwAA
+X-Env-Sender: ruansy.fnst@fujitsu.com
+X-Msg-Ref: server-23.tower-585.messagelabs.com!1675665964!299649!1
+X-Originating-IP: [62.60.8.97]
+X-SYMC-ESS-Client-Auth: outbound-route-from=pass
+X-StarScan-Received:
+X-StarScan-Version: 9.102.2; banners=-,-,-
+X-VirusChecked: Checked
+Received: (qmail 2381 invoked from network); 6 Feb 2023 06:46:04 -0000
+Received: from unknown (HELO n03ukasimr01.n03.fujitsu.local) (62.60.8.97)
+  by server-23.tower-585.messagelabs.com with ECDHE-RSA-AES256-GCM-SHA384 encrypted SMTP; 6 Feb 2023 06:46:04 -0000
+Received: from n03ukasimr01.n03.fujitsu.local (localhost [127.0.0.1])
+	by n03ukasimr01.n03.fujitsu.local (Postfix) with ESMTP id 77186100188;
+	Mon,  6 Feb 2023 06:46:04 +0000 (GMT)
+Received: from R01UKEXCASM223.r01.fujitsu.local (R01UKEXCASM223 [10.182.185.121])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by n03ukasimr01.n03.fujitsu.local (Postfix) with ESMTPS id 6A116100182;
+	Mon,  6 Feb 2023 06:46:04 +0000 (GMT)
+Received: from [192.168.50.5] (10.167.225.141) by
+ R01UKEXCASM223.r01.fujitsu.local (10.182.185.121) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.42; Mon, 6 Feb 2023 06:46:00 +0000
+Message-ID: <0b8551a2-1d46-8ac8-5073-5b094507975a@fujitsu.com>
+Date: Mon, 6 Feb 2023 14:45:53 +0800
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1675522718-88-4-git-send-email-ruansy.fnst@fujitsu.com>
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
+ Thunderbird/102.7.1
+Subject: Re: [PATCH v9 1/3] xfs: fix the calculation of length and end
+To: Matthew Wilcox <willy@infradead.org>
+CC: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
+	<nvdimm@lists.linux.dev>, <linux-mm@kvack.org>,
+	<linux-fsdevel@vger.kernel.org>, <djwong@kernel.org>,
+	<dan.j.williams@intel.com>, <david@fromorbit.com>, <hch@infradead.org>,
+	<jane.chu@oracle.com>
+References: <1675522718-88-1-git-send-email-ruansy.fnst@fujitsu.com>
+ <1675522718-88-2-git-send-email-ruansy.fnst@fujitsu.com>
+ <Y9+WHXyA2GufLWpw@casper.infradead.org>
+From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+In-Reply-To: <Y9+WHXyA2GufLWpw@casper.infradead.org>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.167.225.141]
+X-ClientProxiedBy: G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.80) To
+ R01UKEXCASM223.r01.fujitsu.local (10.182.185.121)
+X-Virus-Scanned: ClamAV using ClamSMTP
 
-On Sat, Feb 04, 2023 at 02:58:38PM +0000, Shiyang Ruan wrote:
-> This patch is inspired by Dan's "mm, dax, pmem: Introduce
-> dev_pagemap_failure()"[1].  With the help of dax_holder and
-> ->notify_failure() mechanism, the pmem driver is able to ask filesystem
-> (or mapped device) on it to unmap all files in use and notify processes
-> who are using those files.
 
-.....
 
-> @@ -182,12 +188,24 @@ xfs_dax_notify_failure(
->  	struct xfs_mount	*mp = dax_holder(dax_dev);
->  	u64			ddev_start;
->  	u64			ddev_end;
-> +	int			error;
->  
->  	if (!(mp->m_super->s_flags & SB_BORN)) {
->  		xfs_warn(mp, "filesystem is not ready for notify_failure()!");
->  		return -EIO;
->  	}
->  
-> +	if (mf_flags & MF_MEM_PRE_REMOVE) {
-> +		xfs_info(mp, "device is about to be removed!");
-> +		down_write(&mp->m_super->s_umount);
-> +		error = sync_filesystem(mp->m_super);
-> +		/* invalidate_inode_pages2() invalidates dax mapping */
-> +		super_drop_pagecache(mp->m_super, invalidate_inode_pages2);
-> +		up_write(&mp->m_super->s_umount);
+在 2023/2/5 19:42, Matthew Wilcox 写道:
+> On Sat, Feb 04, 2023 at 02:58:36PM +0000, Shiyang Ruan wrote:
+>> @@ -222,8 +222,8 @@ xfs_dax_notify_failure(
+>>   		len -= ddev_start - offset;
+>>   		offset = 0;
+>>   	}
+>> -	if (offset + len > ddev_end)
+>> -		len -= ddev_end - offset;
+>> +	if (offset + len - 1 > ddev_end)
+>> +		len -= offset + len - 1 - ddev_end;
+> 
+> This _looks_ wrong.  Are you sure it shouldn't be:
+> 
+> 		len = ddev_end - offset + 1;
+> 
 
-I really don't like this.
+It is to make sure the range won't beyond the end of device.
 
-super_drop_pagecache() doesn't guarantee that everything is removed
-from cache. It is racy - it doesn't touch inodes being freed or
-being instantiated, nor does it prevent concurrent accesses to the
-inodes from re-instantiating page cache pages and dirtying them
-after the inode has been scanned by super_drop_pagecache().
+But actually, both of us are rgiht.
+   Mine: len -= offset + len - 1 - ddev_end;
+      => len = len - (offset + len - 1 - ddev_end);
+      => len = len - offset - len + 1 + ddev_end;
+      => len = ddev_end - offset + 1;          --> Yours
 
-If we are about to remove the block device and we want to guarantee
-that the filesystem is cleaned and stable before the device gets
-yanked out from under running applications, then we have to
-guarantee that we stall the running applications trying to modify
-the filesystem between the MF_MEM_PRE_REMOVE and the actual removal
-event that then shuts down the filesystem. Invalidating the page
-cache is not enough to guarantee this.
+I forgot to simplify it.  Will fix.
 
-Keep in mind that we're going to walk the rmap after writing the
-data to kill any processes that have mmap()d files in the filesystem
-after we've dropped the page cache - the page cache invalidation
-doesn't change this at all - and this will kill any active userspace
-DAX mappings before the device is unplugged. So I don't actually see
-how walking the page cache to invalidate it here actually helps
-"invalidate dax mapping" reliably as new write page faults on dax
-VMAs can still occur between super_drop_pagecache() and the rmap
-walk triggering kills on processes with DAX mapped VMAs.
 
-We also don't care if read-only operations race with device unplug -
-they are going to get EIO the moment the device is actually
-unplugged or the filesystem is shutdown anyway, so it doesn't matter
-if reads race with the device remove event.  Hence all we really
-care about here is not dirtying the filesystem after we've started
-processing the MF_MEM_PRE_REMOVE event.
-
-Realistically, I think we need to freeze the filesystem here to
-prevent racing modifications occurring during the rmap + VMA walk +
-proc kill. That could be write() IO dirtying new data or other
-transactions running dirtying the journal/metadata. Both
-sync_filesystem() and super_drop_pagecache() operate on current
-state - they don't prevent future dax mapping instantiation or
-dirtying from happening on the device, so they don't prevent this...
-
-Cheers,
-
-Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+--
+Thanks,
+Ruan.
