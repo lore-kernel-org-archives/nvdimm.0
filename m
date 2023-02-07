@@ -1,115 +1,124 @@
-Received: from mail3.bemta32.messagelabs.com (mail3.bemta32.messagelabs.com [195.245.230.18])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55EDC23A0
-	for <nvdimm@lists.linux.dev>; Mon,  6 Feb 2023 06:46:14 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fujitsu.com;
-	s=170520fj; t=1675665972; i=@fujitsu.com;
-	bh=8tDYHNWMpUBfn2W8rtNUEQrr/Lx/KtmFpqOm7bf5zQI=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type:Content-Transfer-Encoding;
-	b=x/XU+I3vkY/snNMoCAM/Q/te6FSxTJEf60Xnb/zrFJUUov70ue0p8e8wke8j4UX/s
-	 I6AT7V8sLv+JvrsjvpmMjJ895YeTQH1WjKo13SltqC/C4oY2+HqJsDVjZiZiuNUVEi
-	 5Tmrk/9cWpNqCZ5Zc8XfeuMeaizZwi4kh54eoQEkU759+tqQ04D+yaItl+JMdgHfSG
-	 WqoyWHzlLgCmdn0OIhhRVYZ4NJLTL9pnwWdm9KLG9NHjiJUKA8pEMYBfdDAaD/Z/Ao
-	 4iTpnSnDMaMZUCsPfJ+DBXYcrFL/2efiwCAJpqfhIxVItcNut4/dirdG69CiOdVd1v
-	 Lji+JGr0wwiUQ==
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFtrAKsWRWlGSWpSXmKPExsViZ8ORqKuz6EG
-  ywemHFhbTp15gtNhy7B6jxeUnfBanJyxistj9+iabxZ69J1ksLu+aw2Zxb81/Votdf3awW6z8
-  8YfV4vePOWwO3B6nFkl4bF6h5bF4z0smj02rOtk8Nn2axO7xYvNMRo+PT2+xeHzeJBfAEcWam
-  ZeUX5HAmvHywxrmgg1sFa09v5gaGC+xdDFycQgJbGGUeHnqOzuEs4JJYt6/g1DONkaJi19+sH
-  YxcnLwCthJ/Jr1hA3EZhFQkehq6WWEiAtKnJz5hAXEFhVIljh2vhWsRljATaJh5x0gm4NDREB
-  D4s0WI5CZzAIdTBJ712xkhFiwnFGiY/ZLZpAGNgEdiQsL/oIt4xQwkfi49wU7iM0sYCGx+M1B
-  KFteonnrbGaQoRICShIzu+NBwhIClRKtH36xQNhqElfPbWKewCg0C8l5s5BMmoVk0gJG5lWMZ
-  sWpRWWpRbqGZnpJRZnpGSW5iZk5eolVuol6qaW65anFJbqGeonlxXqpxcV6xZW5yTkpenmpJZ
-  sYgRGZUsz8cgfjib6/eocYJTmYlER5+/3vJgvxJeWnVGYkFmfEF5XmpBYfYpTh4FCS4A2Y8yB
-  ZSLAoNT21Ii0zB5gcYNISHDxKIryXpwOleYsLEnOLM9MhUqcYFaXEeYMXAiUEQBIZpXlwbbCE
-  dIlRVkqYl5GBgUGIpyC1KDezBFX+FaM4B6OSMK/oPKApPJl5JXDTXwEtZgJa3G1wF2RxSSJCS
-  qqBSXCR5j0pid67FqWLbqzXV/yWLZOa47+8+Lvp5YhWqwkHGOf7NZ+f9+HP5Ou75VdP4Vtiln
-  jIQX3alssRHoyyzu92mayYsKLx89Ok5y8FdIXM98yZvsCBXy9RYEKbhlzx7qtKv5enHDSbnCO
-  yeHFAUc7LEE/dV/fKbi86XjXDp+TysUrZC88OFFZ/2Nm2rn+G59W26lt398WrqWwoDTpfVetq
-  127/gV3z0/HEA3+23DSvyjI26rGtc6rcvNw+ZbNF9U+pFpO1J4L3eq94f917SdKEVfWWpa4lf
-  q+SGxke2xp5nX37e11s3KmDz9lbC9/O+bWH8QtzrqmmfdsfeebHUWUn+TjDtji9PuPocUEtUY
-  mlOCPRUIu5qDgRAPjkbkDDAwAA
-X-Env-Sender: ruansy.fnst@fujitsu.com
-X-Msg-Ref: server-23.tower-585.messagelabs.com!1675665964!299649!1
-X-Originating-IP: [62.60.8.97]
-X-SYMC-ESS-Client-Auth: outbound-route-from=pass
-X-StarScan-Received:
-X-StarScan-Version: 9.102.2; banners=-,-,-
-X-VirusChecked: Checked
-Received: (qmail 2381 invoked from network); 6 Feb 2023 06:46:04 -0000
-Received: from unknown (HELO n03ukasimr01.n03.fujitsu.local) (62.60.8.97)
-  by server-23.tower-585.messagelabs.com with ECDHE-RSA-AES256-GCM-SHA384 encrypted SMTP; 6 Feb 2023 06:46:04 -0000
-Received: from n03ukasimr01.n03.fujitsu.local (localhost [127.0.0.1])
-	by n03ukasimr01.n03.fujitsu.local (Postfix) with ESMTP id 77186100188;
-	Mon,  6 Feb 2023 06:46:04 +0000 (GMT)
-Received: from R01UKEXCASM223.r01.fujitsu.local (R01UKEXCASM223 [10.182.185.121])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by n03ukasimr01.n03.fujitsu.local (Postfix) with ESMTPS id 6A116100182;
-	Mon,  6 Feb 2023 06:46:04 +0000 (GMT)
-Received: from [192.168.50.5] (10.167.225.141) by
- R01UKEXCASM223.r01.fujitsu.local (10.182.185.121) with Microsoft SMTP Server
- (TLS) id 15.0.1497.42; Mon, 6 Feb 2023 06:46:00 +0000
-Message-ID: <0b8551a2-1d46-8ac8-5073-5b094507975a@fujitsu.com>
-Date: Mon, 6 Feb 2023 14:45:53 +0800
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D08027480
+	for <nvdimm@lists.linux.dev>; Tue,  7 Feb 2023 19:16:53 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1675797413; x=1707333413;
+  h=from:subject:date:message-id:mime-version:
+   content-transfer-encoding:to:cc;
+  bh=Cj2RALqAObYfvR8W+o15d2ZFKZgU2s7oBAZfRhTwT90=;
+  b=PcADMr7M1i4/H7sD2WM2CMAex2w8AAMUyoZLxOFJL+41RJFdJ6rYpzCv
+   h4jSBxbSrqJ2QK0t32cGv8KvncaoNpHb/SLsFGPF6FjWL38MFCLL7GSZq
+   tb88R24lx8j1M/WqPY8P8elVX760k4y4Rl8JMGeTqVKlIxzr+WEuC9Mmv
+   zhmzFdSuySnMFC9J6Vs9zE/HglMRFLSqWo28H++3beviIs0aeqDe6pM0W
+   NO/SG6hKXxRkZ/dZoAbBAtCiCEYneSYIKbljnnc4v2JmfIEfw9mpDcu0a
+   c/GYLkjXWDWXK4nSEErZuQA6dpmip9/cI8HwYAWLN6SkbahkhkAN2ygPp
+   g==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10614"; a="331733972"
+X-IronPort-AV: E=Sophos;i="5.97,278,1669104000"; 
+   d="scan'208";a="331733972"
+Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Feb 2023 11:16:53 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10614"; a="735649801"
+X-IronPort-AV: E=Sophos;i="5.97,278,1669104000"; 
+   d="scan'208";a="735649801"
+Received: from fvanegas-mobl.amr.corp.intel.com (HELO vverma7-desk1.local) ([10.209.109.6])
+  by fmsmga004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Feb 2023 11:16:52 -0800
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH ndctl 0/7] cxl: add support for listing and creating
+ volatile regions
+Date: Tue, 07 Feb 2023 12:16:26 -0700
+Message-Id: <20230120-vv-volatile-regions-v1-0-b42b21ee8d0b@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
- Thunderbird/102.7.1
-Subject: Re: [PATCH v9 1/3] xfs: fix the calculation of length and end
-To: Matthew Wilcox <willy@infradead.org>
-CC: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
-	<nvdimm@lists.linux.dev>, <linux-mm@kvack.org>,
-	<linux-fsdevel@vger.kernel.org>, <djwong@kernel.org>,
-	<dan.j.williams@intel.com>, <david@fromorbit.com>, <hch@infradead.org>,
-	<jane.chu@oracle.com>
-References: <1675522718-88-1-git-send-email-ruansy.fnst@fujitsu.com>
- <1675522718-88-2-git-send-email-ruansy.fnst@fujitsu.com>
- <Y9+WHXyA2GufLWpw@casper.infradead.org>
-From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-In-Reply-To: <Y9+WHXyA2GufLWpw@casper.infradead.org>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.167.225.141]
-X-ClientProxiedBy: G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.80) To
- R01UKEXCASM223.r01.fujitsu.local (10.182.185.121)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAIqj4mMC/x2NQQqDQAxFryJZNxBHLNirlC7GMY4BiZKUQRDv3
+ rHLx/uPf4KzCTu8mhOMi7hsWqF9NJCWqJlRpsoQKHTUBsJSsGxr/MrKaJzr3JGe3dBT4rkfCGo
+ 5RmccLWpa7nZnnUTzbXbjWY7/3/tzXT/a1m0JfwAAAA==
+To: linux-cxl@vger.kernel.org
+Cc: Gregory Price <gregory.price@memverge.com>, 
+ Jonathan Cameron <Jonathan.Cameron@Huawei.com>, 
+ Davidlohr Bueso <dave@stgolabs.net>, 
+ Dan Williams <dan.j.williams@intel.com>, 
+ Vishal Verma <vishal.l.verma@intel.com>, nvdimm@lists.linux.dev
+X-Mailer: b4 0.13-dev-ada30
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2900;
+ i=vishal.l.verma@intel.com; h=from:subject:message-id;
+ bh=Cj2RALqAObYfvR8W+o15d2ZFKZgU2s7oBAZfRhTwT90=;
+ b=owGbwMvMwCXGf25diOft7jLG02pJDMmPFi8u89tU83H1g7mFwubfZygkPdfzb79nfk85zKBWa
+ qHPgVrnjlIWBjEuBlkxRZa/ez4yHpPbns8TmOAIM4eVCWQIAxenAEyEYwojw73VkqJcj8yzpBX9
+ t8zkuRfUw5YWaLmRW0svoOMhQ3xKD8P/1GkXDSOuzg8/v25fbtm2Y/3TdzRPaPmacnj6vE+h0xx
+ zWAA=
+X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp;
+ fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
 
+While enumeration of ram type regions already works in libcxl and
+cxl-cli, it lacked an attribute to indicate pmem vs. ram. Add a new
+'type' attribute to region listings to address this. Additionally, add
+support for creating ram regions to the cxl-create-region command. The
+region listings are also updated with dax-region information for
+volatile regions.
 
+This also includes fixed for a few bugs / usability issues identified
+along the way - patches 1, 4, and 6. Patch 5 is a usability improvement
+where based on decoder capabilities, the type of a region can be
+inferred for the create-region command.
 
-在 2023/2/5 19:42, Matthew Wilcox 写道:
-> On Sat, Feb 04, 2023 at 02:58:36PM +0000, Shiyang Ruan wrote:
->> @@ -222,8 +222,8 @@ xfs_dax_notify_failure(
->>   		len -= ddev_start - offset;
->>   		offset = 0;
->>   	}
->> -	if (offset + len > ddev_end)
->> -		len -= ddev_end - offset;
->> +	if (offset + len - 1 > ddev_end)
->> +		len -= offset + len - 1 - ddev_end;
-> 
-> This _looks_ wrong.  Are you sure it shouldn't be:
-> 
-> 		len = ddev_end - offset + 1;
-> 
+These have been tested against the ram-region additions to cxl_test
+which are part of the kernel support patch set[1].
+Additionally, tested against qemu using a WIP branch for volatile
+support found here[2]. The 'run_qemu' script has a branch that creates
+volatile memdevs in addition to pmem ones. This is also in a branch[3]
+since it depends on [2].
 
-It is to make sure the range won't beyond the end of device.
+These cxl-cli / libcxl patches themselves are also available in a
+branch at [4].
 
-But actually, both of us are rgiht.
-   Mine: len -= offset + len - 1 - ddev_end;
-      => len = len - (offset + len - 1 - ddev_end);
-      => len = len - offset - len + 1 + ddev_end;
-      => len = ddev_end - offset + 1;          --> Yours
+[1]: https://lore.kernel.org/linux-cxl/167564534874.847146.5222419648551436750.stgit@dwillia2-xfh.jf.intel.com/
+[2]: https://gitlab.com/jic23/qemu/-/commits/cxl-2023-01-26
+[3]: https://github.com/pmem/run_qemu/commits/vv/ram-memdevs
+[4]: https://github.com/pmem/ndctl/tree/vv/volatile-regions
 
-I forgot to simplify it.  Will fix.
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+Dan Williams (2):
+      cxl/list: Include regions in the verbose listing
+      cxl/list: Enumerate device-dax properties for regions
 
+Vishal Verma (5):
+      cxl/region: skip region_actions for region creation
+      cxl: add a type attribute to region listings
+      cxl: add core plumbing for creation of ram regions
+      cxl/region: accept user-supplied UUIDs for pmem regions
+      cxl/region: determine region type based on root decoder capability
 
---
-Thanks,
-Ruan.
+ Documentation/cxl/cxl-create-region.txt |  6 ++-
+ Documentation/cxl/cxl-list.txt          | 31 +++++++++++++
+ Documentation/cxl/lib/libcxl.txt        |  8 ++++
+ cxl/lib/private.h                       |  2 +
+ cxl/lib/libcxl.c                        | 72 ++++++++++++++++++++++++++++--
+ cxl/filter.h                            |  3 ++
+ cxl/libcxl.h                            |  3 ++
+ cxl/filter.c                            |  1 +
+ cxl/json.c                              | 21 +++++++++
+ cxl/list.c                              |  3 ++
+ cxl/region.c                            | 79 ++++++++++++++++++++++++++++++---
+ cxl/lib/libcxl.sym                      |  7 +++
+ cxl/lib/meson.build                     |  1 +
+ cxl/meson.build                         |  3 ++
+ 14 files changed, 229 insertions(+), 11 deletions(-)
+---
+base-commit: 08720628d2ba469e203a18c0b1ffbd90f4bfab1d
+change-id: 20230120-vv-volatile-regions-063950cef590
+
+Best regards,
+-- 
+Vishal Verma <vishal.l.verma@intel.com>
+
