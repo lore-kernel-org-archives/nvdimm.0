@@ -1,90 +1,86 @@
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mail3-relais-sop.national.inria.fr (mail3-relais-sop.national.inria.fr [192.134.164.104])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 350FF79D0
-	for <nvdimm@lists.linux.dev>; Wed,  8 Feb 2023 22:13:00 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1675894380; x=1707430380;
-  h=from:date:subject:mime-version:content-transfer-encoding:
-   message-id:to:cc;
-  bh=7hmAWX2TkK4bLtgksYcYEaN57Y50IHbQGEZGoOyhGeM=;
-  b=a/mlgzMwtJNU1VMgaMw89WNFOWRuuAoRqEv6qulmy3MuF3XRfkINrfqh
-   eSm9of5VRRfdq70wPyhnWbk9s1EnZ7wYsQ7ZK1giht4s/7ep5FRd9hFHm
-   aBwF56E+kQKV7au692OrUYKLBfDphmKnSTo3k0n9tQjrEu4wMsUC3DozW
-   slI35B0VNhEFz9/Jiyl8CivywyWBisMJ3asPjz+6stv7YPAO1LZ0peiZf
-   xpPj50w9t2M1LMzU6QTB/3/CkwRssXpo8Oz8rOcY2mEVI7/Vfm+Yi/A5l
-   /GkIrAqrHezUG1lnsjZv1QQKYrAiSOQB92aVhRe3mwZdNV6Aykqhoxhdu
-   g==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10615"; a="317944606"
-X-IronPort-AV: E=Sophos;i="5.97,281,1669104000"; 
-   d="scan'208";a="317944606"
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Feb 2023 14:12:59 -0800
-X-IronPort-AV: E=McAfee;i="6500,9779,10615"; a="731039509"
-X-IronPort-AV: E=Sophos;i="5.97,281,1669104000"; 
-   d="scan'208";a="731039509"
-Received: from laarmstr-mobl.amr.corp.intel.com (HELO vverma7-desk1.local) ([10.251.6.109])
-  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Feb 2023 14:12:58 -0800
-From: Vishal Verma <vishal.l.verma@intel.com>
-Date: Wed, 08 Feb 2023 15:12:48 -0700
-Subject: [PATCH ndctl] meson.build: fix version for v75
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5147C33EA
+	for <nvdimm@lists.linux.dev>; Thu,  9 Feb 2023 11:05:59 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+  d=inria.fr; s=dc;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=JmItCF/Hc3iPs7Ks538UlyC8NCqGwOSthlT2H4VZr0Y=;
+  b=ZXkW9FyaSmUgOLCRyeqZMrPe36YkHENMgjMO6d8Fbo5lBbOxeN8dCpr6
+   GbzVAAgPebDKZKbOfrDGJEEjtUAGfhvYl6N3bQoEapqprPej+ei/BiZyq
+   MPde4ZhRuEUrhxZEqafE5pwJwjbY8Z2zQ+NV+skSKvPPjPkeuotp7JOv0
+   M=;
+Authentication-Results: mail3-relais-sop.national.inria.fr; dkim=none (message not signed) header.i=none; spf=SoftFail smtp.mailfrom=Brice.Goglin@inria.fr; dmarc=fail (p=none dis=none) d=inria.fr
+X-IronPort-AV: E=Sophos;i="5.97,283,1669071600"; 
+   d="scan'208";a="47293240"
+Received: from unknown (HELO [193.50.110.246]) ([193.50.110.246])
+  by mail3-relais-sop.national.inria.fr with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Feb 2023 12:04:48 +0100
+Message-ID: <e885b2a7-0405-153c-a578-b863a4e00977@inria.fr>
+Date: Thu, 9 Feb 2023 12:04:47 +0100
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.13.0
+Subject: Re: [PATCH ndctl v2 0/7] cxl: add support for listing and creating
+ volatile regions
+Content-Language: en-US
+To: Vishal Verma <vishal.l.verma@intel.com>, linux-cxl@vger.kernel.org
+Cc: Gregory Price <gregory.price@memverge.com>,
+ Jonathan Cameron <Jonathan.Cameron@Huawei.com>,
+ Davidlohr Bueso <dave@stgolabs.net>, Dan Williams
+ <dan.j.williams@intel.com>, nvdimm@lists.linux.dev,
+ Ira Weiny <ira.weiny@intel.com>
+References: <20230120-vv-volatile-regions-v2-0-4ea6253000e5@intel.com>
+From: Brice Goglin <Brice.Goglin@inria.fr>
+In-Reply-To: <20230120-vv-volatile-regions-v2-0-4ea6253000e5@intel.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
-Message-Id: <20230208-v75-fix-version-v1-1-cb90e3740011@intel.com>
-X-B4-Tracking: v=1; b=H4sIAF8e5GMC/x2NQQrDMAwEvxJ0rsBxYhr6ldKDHW8TXdQggymE/
- L12j8PssCcVmKDQYzjJUKXIRxuMt4HWPeoGltyYvPOT827heg/8li9XWN/yPIYlzX7KAYFalWI
- BJ4u67r07oFl06+YwtPD/9Xxd1w98Qa6HewAAAA==
-To: nvdimm@lists.linux.dev
-Cc: Dan Williams <dan.j.williams@intel.com>, linux-cxl@vger.kernel.org, 
- =?utf-8?q?Michal_Such=C3=A1nek?= <msuchanek@suse.de>, 
- Vishal Verma <vishal.l.verma@intel.com>
-X-Mailer: b4 0.13-dev-ada30
-X-Developer-Signature: v=1; a=openpgp-sha256; l=899;
- i=vishal.l.verma@intel.com; h=from:subject:message-id;
- bh=7hmAWX2TkK4bLtgksYcYEaN57Y50IHbQGEZGoOyhGeM=;
- b=owGbwMvMwCXGf25diOft7jLG02pJDMlP5LI2W2V4dPhPDU1aoJgfNKlgd+3r2dHzC2+o/hPb/
- MT8+EmpjlIWBjEuBlkxRZa/ez4yHpPbns8TmOAIM4eVCWQIAxenAExEs5nhn7aJcGTLlvY5Lv8m
- q3/RP3LDZ8fOL5Pmn8ivmJcTVagVuI+R4ebRx+bnl76639e13EA/SHQ2zylz1n+6CYmt3m4zQgU
- mMwIA
-X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp;
- fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
 
-The v75 release neglected to update the meson.build version to 75.
-This results in the build and '--version' commands to output a v74 based
-version. Update this to 75 now for the git tree and subsequently have a
-v75.1 branch / release if needed.
 
-Reported-by: Michal Suchánek <msuchanek@suse.de>
-Link: https://github.com/pmem/ndctl/issues/230
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- meson.build | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Le 08/02/2023 à 21:00, Vishal Verma a écrit :
+> While enumeration of ram type regions already works in libcxl and
+> cxl-cli, it lacked an attribute to indicate pmem vs. ram. Add a new
+> 'type' attribute to region listings to address this. Additionally, add
+> support for creating ram regions to the cxl-create-region command. The
+> region listings are also updated with dax-region information for
+> volatile regions.
+>
+> This also includes fixed for a few bugs / usability issues identified
+> along the way - patches 1, 4, and 6. Patch 5 is a usability improvement
+> where based on decoder capabilities, the type of a region can be
+> inferred for the create-region command.
+>
+> These have been tested against the ram-region additions to cxl_test
+> which are part of the kernel support patch set[1].
+> Additionally, tested against qemu using a WIP branch for volatile
+> support found here[2]. The 'run_qemu' script has a branch that creates
+> volatile memdevs in addition to pmem ones. This is also in a branch[3]
+> since it depends on [2].
+>
+> These cxl-cli / libcxl patches themselves are also available in a
+> branch at [4].
+>
+> [1]: https://lore.kernel.org/linux-cxl/167564534874.847146.5222419648551436750.stgit@dwillia2-xfh.jf.intel.com/
+> [2]: https://gitlab.com/jic23/qemu/-/commits/cxl-2023-01-26
+> [3]: https://github.com/pmem/run_qemu/commits/vv/ram-memdevs
+> [4]: https://github.com/pmem/ndctl/tree/vv/volatile-regions
 
-diff --git a/meson.build b/meson.build
-index 2a96cb3..6a1b32e 100644
---- a/meson.build
-+++ b/meson.build
-@@ -1,5 +1,5 @@
- project('ndctl', 'c',
--  version : '74',
-+  version : '75',
-   license : [
-     'GPL-2.0',
-     'LGPL-2.1',
 
----
-base-commit: eee8fa6cea7403f3998c7a3e23a881b85e661664
-change-id: 20230208-v75-fix-version-4158b423d5e5
+Hello Vishal
 
-Best regards,
--- 
-Vishal Verma <vishal.l.verma@intel.com>
+I am trying to play with this but all my attempts failed so far. Could 
+you provide Qemu and cxl-cli command-lines to get a volatile region 
+enabled in a Qemu VM?
+
+Thanks
+
+Brice
+
+
 
