@@ -1,41 +1,41 @@
 Received: from mailout1.w2.samsung.com (mailout1.w2.samsung.com [211.189.100.11])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37211624
-	for <nvdimm@lists.linux.dev>; Fri, 10 Feb 2023 00:48:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 112C9624
+	for <nvdimm@lists.linux.dev>; Fri, 10 Feb 2023 01:04:16 +0000 (UTC)
 Received: from uscas1p1.samsung.com (unknown [182.198.245.206])
-	by mailout1.w2.samsung.com (KnoxPortal) with ESMTP id 20230210004800usoutp013e0fbed2ead7679c0d7349e3957cfc78~CUBlLM1Ds1883818838usoutp01p;
-	Fri, 10 Feb 2023 00:48:00 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout1.w2.samsung.com 20230210004800usoutp013e0fbed2ead7679c0d7349e3957cfc78~CUBlLM1Ds1883818838usoutp01p
+	by mailout1.w2.samsung.com (KnoxPortal) with ESMTP id 20230210010415usoutp01b7d025530d62a69085735646c9e6219b~CUPxIfwOS2881828818usoutp01Z;
+	Fri, 10 Feb 2023 01:04:15 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout1.w2.samsung.com 20230210010415usoutp01b7d025530d62a69085735646c9e6219b~CUPxIfwOS2881828818usoutp01Z
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-	s=mail20170921; t=1675990080;
-	bh=Mt5Xpnv9VP1UGo5HGLzB0EqMKVyiGbFxTRZgxxhYt04=;
+	s=mail20170921; t=1675991055;
+	bh=0EEQh5W2Bvjs4G7zvzoGd3VEHHVppgdIbvBei+EY+PI=;
 	h=From:To:CC:Subject:Date:In-Reply-To:References:From;
-	b=rOL23rd+NeAG+tSjR5ij1gTPLmH2RP2TD85xb7n+37EE6dRZyIKq/Z0y4fr0XY1lC
-	 gjNr6MWDzB9SGYqXgfYdJlcBloAtQ4dVsYmkO7kMDvnQnEaPb5yqtay5OeJQUVKBce
-	 irtItCE6/R616gmWNruKLz2+uWbjHKBPn2MF2biM=
-Received: from ussmges1new.samsung.com (u109.gpu85.samsung.co.kr
-	[203.254.195.109]) by uscas1p2.samsung.com (KnoxPortal) with ESMTP id
-	20230210004800uscas1p25b7e0c0ca7ea3712ae0237efd59189d0~CUBlDKJLR0481004810uscas1p21;
-	Fri, 10 Feb 2023 00:48:00 +0000 (GMT)
+	b=cFunXDSav1Kfj9l0+1sDygf8el8C+F3rBdv4Z8VNPiAZj0+MejyVr6xhd4HxqweYx
+	 I/aVAGjf+xByioI1BZ4TfM3QeGP1NHV2UX9AhRIMqFzGD8s0QPvmsKeEeplA4vbgXx
+	 KOIan2k912pOlOjkAgF/pNaYiR6+25FwMpQZTFJs=
+Received: from ussmges3new.samsung.com (u112.gpu85.samsung.co.kr
+	[203.254.195.112]) by uscas1p1.samsung.com (KnoxPortal) with ESMTP id
+	20230210010415uscas1p1096a85fbcd4d7552fd23df46288c01b2~CUPw7o1MQ3177231772uscas1p1B;
+	Fri, 10 Feb 2023 01:04:15 +0000 (GMT)
 Received: from uscas1p2.samsung.com ( [182.198.245.207]) by
-	ussmges1new.samsung.com (USCPEMTA) with SMTP id 57.62.06976.04495E36; Thu, 
-	9 Feb 2023 19:48:00 -0500 (EST)
-Received: from ussmgxs2new.samsung.com (u91.gpu85.samsung.co.kr
-	[203.254.195.91]) by uscas1p1.samsung.com (KnoxPortal) with ESMTP id
-	20230210004800uscas1p1b66223937b4d5519341a61ef304e1a44~CUBklChAA1758017580uscas1p1b;
-	Fri, 10 Feb 2023 00:48:00 +0000 (GMT)
-X-AuditID: cbfec36d-d99ff70000011b40-f0-63e594403ee7
-Received: from SSI-EX1.ssi.samsung.com ( [105.128.2.145]) by
-	ussmgxs2new.samsung.com (USCPEXMTA) with SMTP id 70.00.17110.F3495E36; Thu, 
-	9 Feb 2023 19:48:00 -0500 (EST)
+	ussmges3new.samsung.com (USCPEMTA) with SMTP id D6.E6.12196.F0895E36; Thu, 
+	9 Feb 2023 20:04:15 -0500 (EST)
+Received: from ussmgxs3new.samsung.com (u92.gpu85.samsung.co.kr
+	[203.254.195.92]) by uscas1p1.samsung.com (KnoxPortal) with ESMTP id
+	20230210010415uscas1p1211243c08bc794b314f7b20bdad93267~CUPwlRDQJ2996429964uscas1p1L;
+	Fri, 10 Feb 2023 01:04:15 +0000 (GMT)
+X-AuditID: cbfec370-83dfe70000012fa4-8e-63e5980f4552
+Received: from SSI-EX2.ssi.samsung.com ( [105.128.2.145]) by
+	ussmgxs3new.samsung.com (USCPEXMTA) with SMTP id 65.01.11346.E0895E36; Thu, 
+	9 Feb 2023 20:04:15 -0500 (EST)
 Received: from SSI-EX2.ssi.samsung.com (105.128.2.227) by
-	SSI-EX1.ssi.samsung.com (105.128.2.226) with Microsoft SMTP Server
+	SSI-EX2.ssi.samsung.com (105.128.2.227) with Microsoft SMTP Server
 	(version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
-	15.1.2375.24; Thu, 9 Feb 2023 16:47:58 -0800
+	15.1.2375.24; Thu, 9 Feb 2023 17:04:09 -0800
 Received: from SSI-EX2.ssi.samsung.com ([105.128.2.227]) by
 	SSI-EX2.ssi.samsung.com ([105.128.2.227]) with mapi id 15.01.2375.024; Thu,
-	9 Feb 2023 16:47:58 -0800
+	9 Feb 2023 17:04:09 -0800
 From: Fan Ni <fan.ni@samsung.com>
 To: Vishal Verma <vishal.l.verma@intel.com>
 CC: "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, Gregory Price
@@ -43,19 +43,21 @@ CC: "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, Gregory Price
 	<Jonathan.Cameron@Huawei.com>, Davidlohr Bueso <dave@stgolabs.net>, Dan
 	Williams <dan.j.williams@intel.com>, "nvdimm@lists.linux.dev"
 	<nvdimm@lists.linux.dev>
-Subject: Re: [PATCH ndctl 2/7] cxl: add a type attribute to region listings
-Thread-Topic: [PATCH ndctl 2/7] cxl: add a type attribute to region listings
-Thread-Index: AQHZPOlRNlvbzTcc4Eiy6Y5XXc/N8Q==
-Date: Fri, 10 Feb 2023 00:47:57 +0000
-Message-ID: <20230210004738.GA883957@bgt-140510-bm03>
-In-Reply-To: <20230120-vv-volatile-regions-v1-2-b42b21ee8d0b@intel.com>
+Subject: Re: [PATCH ndctl 3/7] cxl: add core plumbing for creation of ram
+ regions
+Thread-Topic: [PATCH ndctl 3/7] cxl: add core plumbing for creation of ram
+	regions
+Thread-Index: AQHZPOuUxRarl1GRc0+x0qZV9Jxmlw==
+Date: Fri, 10 Feb 2023 01:04:09 +0000
+Message-ID: <20230210010409.GB883957@bgt-140510-bm03>
+In-Reply-To: <20230120-vv-volatile-regions-v1-3-b42b21ee8d0b@intel.com>
 Accept-Language: en-US
 Content-Language: en-US
 X-MS-Has-Attach: 
 X-MS-TNEF-Correlator: 
 x-originating-ip: [105.128.2.176]
 Content-Type: text/plain; charset="us-ascii"
-Content-ID: <B78DF59F19B26A49BE47C1807B5BF688@ssi.samsung.com>
+Content-ID: <7BE46873DDDD9B4C8AF59EEB9C39DE2B@ssi.samsung.com>
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -64,177 +66,226 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-CFilter-Loop: Reflected
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFtrIKsWRmVeSWpSXmKPExsWy7djX87oOU54mG3xo1rSYPvUCo8Xqm2sY
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFlrHKsWRmVeSWpSXmKPExsWy7djX87r8M54mG9zslrCYPvUCo8Xqm2sY
 	LRqaHrFYrFp4jc3i/KxTLBYrf/xhtbg14RiTA7tHy5G3rB6L97xk8nixeSajx8aP/9k9ps6u
-	9/i8SS6ALYrLJiU1J7MstUjfLoErY/vUt+wFXZoV0zfPY29gfKzYxcjJISFgInGx7xFLFyMX
-	h5DASkaJ67M62CCcViaJfZd+M8JUXXjazgyRWMsocbV/JSuE85FRYsvL5UwQzlJGiTl7NrCB
-	tLAJKErs69oOZosIaEtMWPYBrINZYAGTxPxPH8HmCgt4S3xcfZUJoshH4t7KbywQtp7Ewbc3
-	wWpYBFQlWn7MBBvEK2Aq8XRiBzOIzSngLjF36UawXkYBMYnvp9aA2cwC4hK3nsxngrhbUGLR
-	7D3MELaYxL9dD9kgbEWJ+99fskPU60gs2P2JDcK2k1i2uIcZwtaWWLbwNTPEXkGJkzOfsED0
-	SkocXHEDHGISAnc4JPb9boAGkovEocn/oGxpib93lwEdwQFkJ0us+sgFEc6RmL9kC9Qca4mF
-	f9YzTWBUmYXk7FlITpqF5KRZSE6aheSkBYysqxjFS4uLc9NTiw3zUsv1ihNzi0vz0vWS83M3
-	MQJT1el/h3N3MO649VHvECMTB+MhRgkOZiUR3u8THycL8aYkVlalFuXHF5XmpBYfYpTmYFES
-	5zW0PZksJJCeWJKanZpakFoEk2Xi4JRqYHLyvtpy81hnrtviBQccT+741KD2/maF4LPLFdWV
-	i8sfnlm96NeJ+ZNqDn1clfc0YsvOaVeeNx6dPmf5Dd2fWuYxCyq6BQI/FBYu/bP6adO56SqX
-	mxw2F/z7lPz92Oltt3WX28+a4O166krTDcm8AO3svR57Wxis5O7Ev3nFO+N83m4Hub+JJx+L
-	3FJiSMvXSVRYw1VhYfv0x4HpHIJK049sj/VddybT4HXIscyHF35MyIz7uOjPwotmwv+FDSyU
-	mqafKzQ2L371YvWnItmzRwI5So4+eH3v4O10wz0hy3in2Pt2Sn3P5HH7lVVkWft3h8k5mX1M
-	x5OSPsjbu32pdClbY1VZwPayaP6E/WfKfpzNVmIpzkg01GIuKk4EAEd9vqXEAwAA
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFjrHIsWRmVeSWpSXmKPExsWS2cA0UddhytNkg4nfOS2mT73AaLH65hpG
+	9/i8SS6ALYrLJiU1J7MstUjfLoEr4+vD46wFE4wrJk94wtzA2KbZxcjJISFgIjH1VQtbFyMX
+	h5DASkaJWZuXsEM4rUwSZ1b9YIapenhmHzNEYi2jxPy7T1khnI+MEg/WPWCCcJYySlz69I0J
+	pIVNQFFiX9d2NhBbREBbYsKyD2AdzAILmCTmf/rICJIQFgiW+DxxPiNEUYjEm/9P2SFsPYmO
+	21fA4iwCqhJb77wEG8QrYCpxrfMZC4jNKeAuseHnJjCbUUBM4vupNWCLmQXEJW49mc8Ecbeg
+	xKLZe6B+EJP4t+shG4StKHH/+0t2iHodiQW7PwHFOYBsO4m93xwhwtoSyxa+ZoZYKyhxcuYT
+	FohWSYmDK25A2Q84JBZ2R0LYLhKtk59BrZWWmL7mMgvISAmBZIlVH7kgwjkS85dsgWq1llj4
+	Zz3TBEaVWUiOnoXkoFkIB81CctAsJActYGRdxSheWlycm55abJyXWq5XnJhbXJqXrpecn7uJ
+	EZikTv87XLCD8datj3qHGJk4GA8xSnAwK4nwfp/4OFmINyWxsiq1KD++qDQntfgQozQHi5I4
+	r6HtyWQhgfTEktTs1NSC1CKYLBMHp1QDU+PKI0Uv6iz8Pq2ocNvGxPLazE84cMtdjY+TE46e
+	F2i6WVCy7aXnXbOy4qi4/XtMTuUe4g6YuqK3xV2Lxe31acv4k6LaTzZNMeT1E9fV+P0ickvG
+	3f3pnCfV1rWqTF+Z3uRq9k2f+/Pizeu+NEsIfGP7dUFSpMbuWd/S95MLbSye3Wa3PH5z465K
+	J0ONdaEv1b5rS3sLfBdh3dlfque+wMZ+Bu/5kADB+YraP7vPLH2saGEplT81dVaYfHnYWbu+
+	tY/M9mY3OvwxkVS4du7a3YVvDgS7Kh1xr69d78PKLqt/s+zhhQm6QVHMnE9OqAr26eXdvLNq
+	+q6F5uzZcqUcj9+sCLtz5kBHjWGX/ecgJZbijERDLeai4kQABZtB+cEDAAA=
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFjrLIsWRmVeSWpSXmKPExsWS2cA0UZd/xtNkg+k/WC2mT73AaLH65hpG
 	i4amRywWqxZeY7M4P+sUi8XKH39YLW5NOMbkwO7RcuQtq8fiPS+ZPF5snsnosfHjf3aPqbPr
-	PT5vkgtgi+KySUnNySxLLdK3S+DK2D71LXtBl2bF9M3z2BsYHyt2MXJySAiYSFx42s4MYgsJ
-	rGaU+DcruouRC8j+yCixYfkjJghnKaPEma2zwarYBBQl9nVtZwOxRQS0JSYs+8AKUsQsMI9J
-	4sK5a4wgCWEBb4mPq68yQRT5SNxb+Y0FwtaTOPj2JlgNi4CqRMuPmWCDeAVMJZ5O7IA6o5lR
-	4tSKSBCbU8BdYu7SjWBzGAXEJL6fWgNmMwuIS9x6Mp8J4gUBiSV7zjND2KISLx//Y4WwFSXu
-	f3/JDlGvI7Fg9yc2CNtOYtniHmYIW1ti2cLXzBA3CEqcnPmEBaJXUuLgihssExglZiFZNwvJ
-	qFlIRs1CMmoWklELGFlXMYqXFhfnplcUG+WllusVJ+YWl+al6yXn525iBEb56X+Ho3cw3r71
-	Ue8QIxMH4yFGCQ5mJRHe7xMfJwvxpiRWVqUW5ccXleakFh9ilOZgURLnfRk1MV5IID2xJDU7
-	NbUgtQgmy8TBKdXAZPg1V9Bd7krWvZwPkzocnLOVzX6EHt+VpeHy4WOoy7+K9bPm8cQHnfSf
-	IW34RrGlqiTls7Dhqb98GQf59RINTK/KKfKl338l+ldD957/8dw5B8tNTjJKlpqXtsvPFFmQ
-	/vaGsoT/cTtnU37LP9E5yQuXTenYeGF12Marm1aqPvB1u/qkepuzXfGD+X/v+jvnfJJas+eD
-	ubiTwcQ/n/S/WuvF2c+KP8xzvexygOfNtMOddecmuDde//2kSOPUHZ1507ldZ00QMfjDIuYQ
-	rr3VJKA39WhEQO+J172RUw9pcqWKBZr+81gXt92nTKW8wMRt5ay/IvIxz+2iK3a4fN/AdKoh
-	Z99rnrW8EXGLz15TYinOSDTUYi4qTgQAJy4vbWEDAAA=
-X-CMS-MailID: 20230210004800uscas1p1b66223937b4d5519341a61ef304e1a44
+	PT5vkgtgi+KySUnNySxLLdK3S+DK+PrwOGvBBOOKyROeMDcwtml2MXJySAiYSDw8s4+5i5GL
+	Q0hgNaPEok8zWSCcj4wSbXPesUE4Sxklmm7dYgRpYRNQlNjXtZ0NxBYR0JaYsOwDK0gRs8A8
+	JokL566BFQkLBEt8njgfyOYAKgqR2PbfCKJeT6Lj9hWwEhYBVYmtd16CzeEVMJW41vkManMz
+	o8TGzodgCU4Bd4kNPzexgNiMAmIS30+tYQKxmQXEJW49mc8E8YOAxJI955khbFGJl4//sULY
+	ihL3v79kh6jXkViw+xMbyD3MAnYSe785QoS1JZYtfM0McYOgxMmZT1ggWiUlDq64wTKBUWIW
+	km2zkEyahTBpFpJJs5BMWsDIuopRvLS4ODe9otg4L7Vcrzgxt7g0L10vOT93EyMwxk//Oxyz
+	g/HerY96hxiZOBgPMUpwMCuJ8H6f+DhZiDclsbIqtSg/vqg0J7X4EKM0B4uSOK9H7MR4IYH0
+	xJLU7NTUgtQimCwTB6dUA5O5S9LbF2cSi3qYikNa2LVM1jAKcQa8XsB3WDRAji8zteNg1D2Z
+	rj8HNtgnui7K3ZmwdmN/36e877IOrSVp4oda2MpVnoeqL9yTEBPpz3ufPWJD073q2VPZTBbv
+	eDpXLn9X/5dG63nTpNS89E5Jt3f933ja+M2BWR9/O77QFXy2Oi3ml5Rrw2238v9KG/9Etq/S
+	uRWT72Zb3v0gb1rn/lSDmJuXP/m81WO6+j7uz85M12ef+/LNOq+GuDHqvdwWsKwubNXH6rUq
+	pyuNQ6LMe28Vu3rM/CWw6LTp9V+l94If2VlM55Ur8RLdIJP/Z4tvlJ+ydhzfzdxPgV7cP4qu
+	HWh+xRihe2TNzJLOdQGRSizFGYmGWsxFxYkAbEgRoGADAAA=
+X-CMS-MailID: 20230210010415uscas1p1211243c08bc794b314f7b20bdad93267
 CMS-TYPE: 301P
-X-CMS-RootMailID: 20230210004800uscas1p1b66223937b4d5519341a61ef304e1a44
+X-CMS-RootMailID: 20230210010415uscas1p1211243c08bc794b314f7b20bdad93267
 References: <20230120-vv-volatile-regions-v1-0-b42b21ee8d0b@intel.com>
-	<20230120-vv-volatile-regions-v1-2-b42b21ee8d0b@intel.com>
-	<CGME20230210004800uscas1p1b66223937b4d5519341a61ef304e1a44@uscas1p1.samsung.com>
+	<20230120-vv-volatile-regions-v1-3-b42b21ee8d0b@intel.com>
+	<CGME20230210010415uscas1p1211243c08bc794b314f7b20bdad93267@uscas1p1.samsung.com>
 
-On Tue, Feb 07, 2023 at 12:16:28PM -0700, Vishal Verma wrote:
-> In preparation for enumerating and creating 'volatile' or 'ram' type
-> regions, add a 'type' attribute to region listings, so these can be
-> distinguished from 'pmem' type regions easily. This depends on a new
-> 'mode' attribute for region objects in sysfs. For older kernels that
-> lack this, region listings will simply omit emitting this attribute,
-> but otherwise not treat it as a failure.
+On Tue, Feb 07, 2023 at 12:16:29PM -0700, Vishal Verma wrote:
+> Add support in libcxl to create ram regions through a new
+> cxl_decoder_create_ram_region() API, which works similarly to its pmem
+> sibling.
+>=20
+> Enable ram region creation in cxl-cli, with the only differences from
+> the pmem flow being:
+>   1/ Use the above create_ram_region API, and
+>   2/ Elide setting the UUID, since ram regions don't have one
 >=20
 > Cc: Dan Williams <dan.j.williams@intel.com>
 > Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 
 Reviewed-by: Fan Ni <fan.ni@samsung.com>
 
+One minor thing, there exists some code format inconsistency in
+cxl/region.c file (not introduced by the patch). For exmaple,
+the "switch" sometimes is followed with a space but sometime not.
+
 > ---
->  Documentation/cxl/lib/libcxl.txt |  1 +
->  cxl/lib/private.h                |  1 +
->  cxl/lib/libcxl.c                 | 11 +++++++++++
->  cxl/libcxl.h                     |  1 +
->  cxl/json.c                       |  5 +++++
->  cxl/lib/libcxl.sym               |  5 +++++
->  6 files changed, 24 insertions(+)
+>  Documentation/cxl/cxl-create-region.txt |  3 ++-
+>  cxl/lib/libcxl.c                        | 22 +++++++++++++++++++---
+>  cxl/libcxl.h                            |  1 +
+>  cxl/region.c                            | 32 +++++++++++++++++++++++++++=
++----
+>  cxl/lib/libcxl.sym                      |  1 +
+>  5 files changed, 51 insertions(+), 8 deletions(-)
 >=20
-> diff --git a/Documentation/cxl/lib/libcxl.txt b/Documentation/cxl/lib/lib=
-cxl.txt
-> index f9af376..dbc4b56 100644
-> --- a/Documentation/cxl/lib/libcxl.txt
-> +++ b/Documentation/cxl/lib/libcxl.txt
-> @@ -550,6 +550,7 @@ int cxl_region_get_id(struct cxl_region *region);
->  const char *cxl_region_get_devname(struct cxl_region *region);
->  void cxl_region_get_uuid(struct cxl_region *region, uuid_t uu);
->  unsigned long long cxl_region_get_size(struct cxl_region *region);
-> +enum cxl_decoder_mode cxl_region_get_mode(struct cxl_region *region);
->  unsigned long long cxl_region_get_resource(struct cxl_region *region);
->  unsigned int cxl_region_get_interleave_ways(struct cxl_region *region);
->  unsigned int cxl_region_get_interleave_granularity(struct cxl_region *re=
-gion);
-> diff --git a/cxl/lib/private.h b/cxl/lib/private.h
-> index f8871bd..306dc3a 100644
-> --- a/cxl/lib/private.h
-> +++ b/cxl/lib/private.h
-> @@ -149,6 +149,7 @@ struct cxl_region {
->  	unsigned int interleave_ways;
->  	unsigned int interleave_granularity;
->  	enum cxl_decode_state decode_state;
-> +	enum cxl_decoder_mode mode;
->  	struct kmod_module *module;
->  	struct list_head mappings;
->  };
+> diff --git a/Documentation/cxl/cxl-create-region.txt b/Documentation/cxl/=
+cxl-create-region.txt
+> index 286779e..ada0e52 100644
+> --- a/Documentation/cxl/cxl-create-region.txt
+> +++ b/Documentation/cxl/cxl-create-region.txt
+> @@ -80,7 +80,8 @@ include::bus-option.txt[]
+>  -U::
+>  --uuid=3D::
+>  	Specify a UUID for the new region. This shouldn't usually need to be
+> -	specified, as one will be generated by default.
+> +	specified, as one will be generated by default. Only applicable to
+> +	pmem regions.
+> =20
+>  -w::
+>  --ways=3D::
 > diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
-> index 4205a58..83f628b 100644
+> index 83f628b..c5b9b18 100644
 > --- a/cxl/lib/libcxl.c
 > +++ b/cxl/lib/libcxl.c
-> @@ -561,6 +561,12 @@ static void *add_cxl_region(void *parent, int id, co=
-nst char *cxlregion_base)
->  	else
->  		region->decode_state =3D strtoul(buf, NULL, 0);
-> =20
-> +	sprintf(path, "%s/mode", cxlregion_base);
-> +	if (sysfs_read_attr(ctx, path, buf) < 0)
-> +		region->mode =3D CXL_DECODER_MODE_NONE;
-> +	else
-> +		region->mode =3D cxl_decoder_mode_from_ident(buf);
-> +
->  	sprintf(path, "%s/modalias", cxlregion_base);
->  	if (sysfs_read_attr(ctx, path, buf) =3D=3D 0)
->  		region->module =3D util_modalias_to_module(ctx, buf);
-> @@ -686,6 +692,11 @@ CXL_EXPORT unsigned long long cxl_region_get_resourc=
-e(struct cxl_region *region)
->  	return region->start;
+> @@ -2234,8 +2234,8 @@ cxl_decoder_get_region(struct cxl_decoder *decoder)
+>  	return NULL;
 >  }
 > =20
-> +CXL_EXPORT enum cxl_decoder_mode cxl_region_get_mode(struct cxl_region *=
-region)
+> -CXL_EXPORT struct cxl_region *
+> -cxl_decoder_create_pmem_region(struct cxl_decoder *decoder)
+> +static struct cxl_region *cxl_decoder_create_region(struct cxl_decoder *=
+decoder,
+> +						    enum cxl_decoder_mode mode)
+>  {
+>  	struct cxl_ctx *ctx =3D cxl_decoder_get_ctx(decoder);
+>  	char *path =3D decoder->dev_buf;
+> @@ -2243,7 +2243,11 @@ cxl_decoder_create_pmem_region(struct cxl_decoder =
+*decoder)
+>  	struct cxl_region *region;
+>  	int rc;
+> =20
+> -	sprintf(path, "%s/create_pmem_region", decoder->dev_path);
+> +	if (mode =3D=3D CXL_DECODER_MODE_PMEM)
+> +		sprintf(path, "%s/create_pmem_region", decoder->dev_path);
+> +	else if (mode =3D=3D CXL_DECODER_MODE_RAM)
+> +		sprintf(path, "%s/create_ram_region", decoder->dev_path);
+> +
+>  	rc =3D sysfs_read_attr(ctx, path, buf);
+>  	if (rc < 0) {
+>  		err(ctx, "failed to read new region name: %s\n",
+> @@ -2282,6 +2286,18 @@ cxl_decoder_create_pmem_region(struct cxl_decoder =
+*decoder)
+>  	return region;
+>  }
+> =20
+> +CXL_EXPORT struct cxl_region *
+> +cxl_decoder_create_pmem_region(struct cxl_decoder *decoder)
 > +{
-> +	return region->mode;
+> +	return cxl_decoder_create_region(decoder, CXL_DECODER_MODE_PMEM);
 > +}
 > +
->  CXL_EXPORT unsigned int
->  cxl_region_get_interleave_ways(struct cxl_region *region)
+> +CXL_EXPORT struct cxl_region *
+> +cxl_decoder_create_ram_region(struct cxl_decoder *decoder)
+> +{
+> +	return cxl_decoder_create_region(decoder, CXL_DECODER_MODE_RAM);
+> +}
+> +
+>  CXL_EXPORT int cxl_decoder_get_nr_targets(struct cxl_decoder *decoder)
 >  {
+>  	return decoder->nr_targets;
 > diff --git a/cxl/libcxl.h b/cxl/libcxl.h
-> index d699af8..e6cca11 100644
+> index e6cca11..904156c 100644
 > --- a/cxl/libcxl.h
 > +++ b/cxl/libcxl.h
-> @@ -273,6 +273,7 @@ const char *cxl_region_get_devname(struct cxl_region =
-*region);
->  void cxl_region_get_uuid(struct cxl_region *region, uuid_t uu);
->  unsigned long long cxl_region_get_size(struct cxl_region *region);
->  unsigned long long cxl_region_get_resource(struct cxl_region *region);
-> +enum cxl_decoder_mode cxl_region_get_mode(struct cxl_region *region);
->  unsigned int cxl_region_get_interleave_ways(struct cxl_region *region);
->  unsigned int cxl_region_get_interleave_granularity(struct cxl_region *re=
-gion);
->  struct cxl_decoder *cxl_region_get_target_decoder(struct cxl_region *reg=
-ion,
-> diff --git a/cxl/json.c b/cxl/json.c
-> index 0fc44e4..f625380 100644
-> --- a/cxl/json.c
-> +++ b/cxl/json.c
-> @@ -827,6 +827,7 @@ void util_cxl_mappings_append_json(struct json_object=
- *jregion,
->  struct json_object *util_cxl_region_to_json(struct cxl_region *region,
->  					     unsigned long flags)
->  {
-> +	enum cxl_decoder_mode mode =3D cxl_region_get_mode(region);
->  	const char *devname =3D cxl_region_get_devname(region);
->  	struct json_object *jregion, *jobj;
->  	u64 val;
-> @@ -853,6 +854,10 @@ struct json_object *util_cxl_region_to_json(struct c=
-xl_region *region,
->  			json_object_object_add(jregion, "size", jobj);
->  	}
-> =20
-> +	jobj =3D json_object_new_string(cxl_decoder_mode_name(mode));
-> +	if (jobj)
-> +		json_object_object_add(jregion, "type", jobj);
+> @@ -213,6 +213,7 @@ cxl_decoder_get_interleave_granularity(struct cxl_dec=
+oder *decoder);
+>  unsigned int cxl_decoder_get_interleave_ways(struct cxl_decoder *decoder=
+);
+>  struct cxl_region *cxl_decoder_get_region(struct cxl_decoder *decoder);
+>  struct cxl_region *cxl_decoder_create_pmem_region(struct cxl_decoder *de=
+coder);
+> +struct cxl_region *cxl_decoder_create_ram_region(struct cxl_decoder *dec=
+oder);
+>  struct cxl_decoder *cxl_decoder_get_by_name(struct cxl_ctx *ctx,
+>  					    const char *ident);
+>  struct cxl_memdev *cxl_decoder_get_memdev(struct cxl_decoder *decoder);
+> diff --git a/cxl/region.c b/cxl/region.c
+> index 38aa142..0945a14 100644
+> --- a/cxl/region.c
+> +++ b/cxl/region.c
+> @@ -380,7 +380,22 @@ static void collect_minsize(struct cxl_ctx *ctx, str=
+uct parsed_params *p)
+>  		struct json_object *jobj =3D
+>  			json_object_array_get_idx(p->memdevs, i);
+>  		struct cxl_memdev *memdev =3D json_object_get_userdata(jobj);
+> -		u64 size =3D cxl_memdev_get_pmem_size(memdev);
+> +		u64 size;
 > +
->  	val =3D cxl_region_get_interleave_ways(region);
->  	if (val < INT_MAX) {
->  		jobj =3D json_object_new_int(val);
+> +		switch(p->mode) {
+> +		case CXL_DECODER_MODE_RAM:
+> +			size =3D cxl_memdev_get_ram_size(memdev);
+> +			break;
+> +		case CXL_DECODER_MODE_PMEM:
+> +			size =3D cxl_memdev_get_pmem_size(memdev);
+> +			break;
+> +		default:
+> +			/*
+> +			 * This will 'poison' ep_min_size with a 0, and
+> +			 * subsequently cause the region creation to fail.
+> +			 */
+> +			size =3D 0;
+> +		}
+> =20
+>  		if (!p->ep_min_size)
+>  			p->ep_min_size =3D size;
+> @@ -589,8 +604,15 @@ static int create_region(struct cxl_ctx *ctx, int *c=
+ount,
+>  				param.root_decoder);
+>  			return -ENXIO;
+>  		}
+> +	} else if (p->mode =3D=3D CXL_DECODER_MODE_RAM) {
+> +		region =3D cxl_decoder_create_ram_region(p->root_decoder);
+> +		if (!region) {
+> +			log_err(&rl, "failed to create region under %s\n",
+> +				param.root_decoder);
+> +			return -ENXIO;
+> +		}
+>  	} else {
+> -		log_err(&rl, "region type '%s' not supported yet\n",
+> +		log_err(&rl, "region type '%s' is not supported\n",
+>  			param.type);
+>  		return -EOPNOTSUPP;
+>  	}
+> @@ -602,10 +624,12 @@ static int create_region(struct cxl_ctx *ctx, int *=
+count,
+>  		goto out;
+>  	granularity =3D rc;
+> =20
+> -	uuid_generate(uuid);
+>  	try(cxl_region, set_interleave_granularity, region, granularity);
+>  	try(cxl_region, set_interleave_ways, region, p->ways);
+> -	try(cxl_region, set_uuid, region, uuid);
+> +	if (p->mode =3D=3D CXL_DECODER_MODE_PMEM) {
+> +		uuid_generate(uuid);
+> +		try(cxl_region, set_uuid, region, uuid);
+> +	}
+>  	try(cxl_region, set_size, region, size);
+> =20
+>  	for (i =3D 0; i < p->ways; i++) {
 > diff --git a/cxl/lib/libcxl.sym b/cxl/lib/libcxl.sym
-> index 6bc0810..9832d09 100644
+> index 9832d09..84f60ad 100644
 > --- a/cxl/lib/libcxl.sym
 > +++ b/cxl/lib/libcxl.sym
-> @@ -242,3 +242,8 @@ global:
->  	cxl_target_get_firmware_node;
->  	cxl_dport_get_firmware_node;
->  } LIBCXL_3;
-> +
-> +LIBCXL_5 {
-> +global:
-> +	cxl_region_get_mode;
-> +} LIBCXL_4;
+> @@ -246,4 +246,5 @@ global:
+>  LIBCXL_5 {
+>  global:
+>  	cxl_region_get_mode;
+> +	cxl_decoder_create_ram_region;
+>  } LIBCXL_4;
 >=20
 > --=20
 > 2.39.1
