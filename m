@@ -1,281 +1,242 @@
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mailout1.w2.samsung.com (mailout1.w2.samsung.com [211.189.100.11])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42DD62F29
-	for <nvdimm@lists.linux.dev>; Thu,  9 Feb 2023 19:18:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1675970300; x=1707506300;
-  h=from:to:cc:subject:date:message-id:references:
-   in-reply-to:content-id:content-transfer-encoding:
-   mime-version;
-  bh=8erhFvrZ3oVJW3s5Qo6QkYWeXA1a1dyamOcKYBS1pRY=;
-  b=YENm06P8RsyG0Frp1qVaoauvPx5XFad6H7XXWWLe9rIsQMfK45WKqcDd
-   BzjpBgWD407f4kzf+2j4y30ltqjUOMpoF6LgpiQypd1R2tQ7oQCB1c+eD
-   MxfLY0FMSuk/w+JVA6QQ/yo47HNmCyUc5HOoS1Pp5UyN2R960RqhQqHA+
-   MWtH7gk4zBgHfKmvsrKKVI0bWmnegjlY6RXPyeTg3e+h5NgmXp23ID7ae
-   6WOLPgOms902H+Pz9r38AvdC9+FsiVFCEuGvpfhVCexBfVZm7+yzKbbgq
-   2+2awhemdZNzafUINc5z7cUZ3MF+UWCiejrcb624+Kjs2pFtG5QWzu2WQ
-   A==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10616"; a="394817662"
-X-IronPort-AV: E=Sophos;i="5.97,284,1669104000"; 
-   d="scan'208";a="394817662"
-Received: from orsmga004.jf.intel.com ([10.7.209.38])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Feb 2023 11:17:55 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6500,9779,10616"; a="791707327"
-X-IronPort-AV: E=Sophos;i="5.97,284,1669104000"; 
-   d="scan'208";a="791707327"
-Received: from orsmsx601.amr.corp.intel.com ([10.22.229.14])
-  by orsmga004.jf.intel.com with ESMTP; 09 Feb 2023 11:17:55 -0800
-Received: from orsmsx611.amr.corp.intel.com (10.22.229.24) by
- ORSMSX601.amr.corp.intel.com (10.22.229.14) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.16; Thu, 9 Feb 2023 11:17:55 -0800
-Received: from orsmsx610.amr.corp.intel.com (10.22.229.23) by
- ORSMSX611.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.16; Thu, 9 Feb 2023 11:17:55 -0800
-Received: from orsedg603.ED.cps.intel.com (10.7.248.4) by
- orsmsx610.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.16 via Frontend Transport; Thu, 9 Feb 2023 11:17:55 -0800
-Received: from NAM10-MW2-obe.outbound.protection.outlook.com (104.47.55.100)
- by edgegateway.intel.com (134.134.137.100) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.16; Thu, 9 Feb 2023 11:17:54 -0800
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=fCvg0vHaqh56X1wcL5Yl0RE1qri9uJv0/p74BGSYyzmyTJM60P/JbTcnfGe9i6kSp7UNLbWBxA+H51WSRHEckBuD9w4OYpfanCxy2YLszq0gAl/3lMVAep5zxH33/sK+nC21rqs42Xepy4ewAWPIBeIdatquFKNRGepnENkzw0HDnzTYvPIxy7ZNyBb4N9C9LGbB5B2Ouj7T2fGbytsIAdP3JKaSX/x1+2de/UFHBa0QP29mJeH+MkwiKPPTIyH8KdrogKqPu+WhCW8ilBu3EyNkj7jud0YYjyVclwcSdJznFXMHvzktAxfpbj+r1P0pNooaUP89/Qwzo1PNH7pdMA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=8erhFvrZ3oVJW3s5Qo6QkYWeXA1a1dyamOcKYBS1pRY=;
- b=cTTPWU8244vvsDki7/ujcTITrW19cV2lKIUKT6AIiiZ757O08fQsYWJbkuuRA5/QxM5Rrk4KobYez6aicCh+Wq8CYmGbBZvXlo83JBR1nLPghtLtvR3tMB22cM2Fqtf3BNPsI/6syi2Exizs705JCq/no8KwFTLUr5u3HfuDl41IawmtKQA5FGrUCiISLKIEuK4Tg/ebizsAkk8T12mz4CGfTBemaKBn2UtbXJqXzum3wdpU4TwvE39iNkRDQXoxVg0sRw6ZdeU06icG1WmjhKUIItY8Oi8kRj17NQ7bwIFlY97M7KgzFdYOlTWmD/Ojeq2Xgduq3jlt6F2GFxpB6Q==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Received: from MN2PR11MB3999.namprd11.prod.outlook.com (2603:10b6:208:154::32)
- by PH7PR11MB7429.namprd11.prod.outlook.com (2603:10b6:510:270::7) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6086.17; Thu, 9 Feb
- 2023 19:17:52 +0000
-Received: from MN2PR11MB3999.namprd11.prod.outlook.com
- ([fe80::35af:d7a8:8484:627]) by MN2PR11MB3999.namprd11.prod.outlook.com
- ([fe80::35af:d7a8:8484:627%5]) with mapi id 15.20.6086.017; Thu, 9 Feb 2023
- 19:17:52 +0000
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-To: "Brice.Goglin@inria.fr" <Brice.Goglin@inria.fr>,
-	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>
-CC: "Williams, Dan J" <dan.j.williams@intel.com>, "gregory.price@memverge.com"
-	<gregory.price@memverge.com>, "Jonathan.Cameron@Huawei.com"
-	<Jonathan.Cameron@Huawei.com>, "dave@stgolabs.net" <dave@stgolabs.net>,
-	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, "Weiny, Ira"
-	<ira.weiny@intel.com>
-Subject: Re: [PATCH ndctl v2 0/7] cxl: add support for listing and creating
- volatile regions
-Thread-Topic: [PATCH ndctl v2 0/7] cxl: add support for listing and creating
- volatile regions
-Thread-Index: AQHZO/gbBJC7CY/oZUetvSQPmVeN9a7GdLSAgACJwgA=
-Date: Thu, 9 Feb 2023 19:17:52 +0000
-Message-ID: <a5e4aff9f300d9b603111983165754b35c89c612.camel@intel.com>
-References: <20230120-vv-volatile-regions-v2-0-4ea6253000e5@intel.com>
-	 <e885b2a7-0405-153c-a578-b863a4e00977@inria.fr>
-In-Reply-To: <e885b2a7-0405-153c-a578-b863a4e00977@inria.fr>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37211624
+	for <nvdimm@lists.linux.dev>; Fri, 10 Feb 2023 00:48:08 +0000 (UTC)
+Received: from uscas1p1.samsung.com (unknown [182.198.245.206])
+	by mailout1.w2.samsung.com (KnoxPortal) with ESMTP id 20230210004800usoutp013e0fbed2ead7679c0d7349e3957cfc78~CUBlLM1Ds1883818838usoutp01p;
+	Fri, 10 Feb 2023 00:48:00 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout1.w2.samsung.com 20230210004800usoutp013e0fbed2ead7679c0d7349e3957cfc78~CUBlLM1Ds1883818838usoutp01p
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
+	s=mail20170921; t=1675990080;
+	bh=Mt5Xpnv9VP1UGo5HGLzB0EqMKVyiGbFxTRZgxxhYt04=;
+	h=From:To:CC:Subject:Date:In-Reply-To:References:From;
+	b=rOL23rd+NeAG+tSjR5ij1gTPLmH2RP2TD85xb7n+37EE6dRZyIKq/Z0y4fr0XY1lC
+	 gjNr6MWDzB9SGYqXgfYdJlcBloAtQ4dVsYmkO7kMDvnQnEaPb5yqtay5OeJQUVKBce
+	 irtItCE6/R616gmWNruKLz2+uWbjHKBPn2MF2biM=
+Received: from ussmges1new.samsung.com (u109.gpu85.samsung.co.kr
+	[203.254.195.109]) by uscas1p2.samsung.com (KnoxPortal) with ESMTP id
+	20230210004800uscas1p25b7e0c0ca7ea3712ae0237efd59189d0~CUBlDKJLR0481004810uscas1p21;
+	Fri, 10 Feb 2023 00:48:00 +0000 (GMT)
+Received: from uscas1p2.samsung.com ( [182.198.245.207]) by
+	ussmges1new.samsung.com (USCPEMTA) with SMTP id 57.62.06976.04495E36; Thu, 
+	9 Feb 2023 19:48:00 -0500 (EST)
+Received: from ussmgxs2new.samsung.com (u91.gpu85.samsung.co.kr
+	[203.254.195.91]) by uscas1p1.samsung.com (KnoxPortal) with ESMTP id
+	20230210004800uscas1p1b66223937b4d5519341a61ef304e1a44~CUBklChAA1758017580uscas1p1b;
+	Fri, 10 Feb 2023 00:48:00 +0000 (GMT)
+X-AuditID: cbfec36d-d99ff70000011b40-f0-63e594403ee7
+Received: from SSI-EX1.ssi.samsung.com ( [105.128.2.145]) by
+	ussmgxs2new.samsung.com (USCPEXMTA) with SMTP id 70.00.17110.F3495E36; Thu, 
+	9 Feb 2023 19:48:00 -0500 (EST)
+Received: from SSI-EX2.ssi.samsung.com (105.128.2.227) by
+	SSI-EX1.ssi.samsung.com (105.128.2.226) with Microsoft SMTP Server
+	(version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
+	15.1.2375.24; Thu, 9 Feb 2023 16:47:58 -0800
+Received: from SSI-EX2.ssi.samsung.com ([105.128.2.227]) by
+	SSI-EX2.ssi.samsung.com ([105.128.2.227]) with mapi id 15.01.2375.024; Thu,
+	9 Feb 2023 16:47:58 -0800
+From: Fan Ni <fan.ni@samsung.com>
+To: Vishal Verma <vishal.l.verma@intel.com>
+CC: "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, Gregory Price
+	<gregory.price@memverge.com>, Jonathan Cameron
+	<Jonathan.Cameron@Huawei.com>, Davidlohr Bueso <dave@stgolabs.net>, Dan
+	Williams <dan.j.williams@intel.com>, "nvdimm@lists.linux.dev"
+	<nvdimm@lists.linux.dev>
+Subject: Re: [PATCH ndctl 2/7] cxl: add a type attribute to region listings
+Thread-Topic: [PATCH ndctl 2/7] cxl: add a type attribute to region listings
+Thread-Index: AQHZPOlRNlvbzTcc4Eiy6Y5XXc/N8Q==
+Date: Fri, 10 Feb 2023 00:47:57 +0000
+Message-ID: <20230210004738.GA883957@bgt-140510-bm03>
+In-Reply-To: <20230120-vv-volatile-regions-v1-2-b42b21ee8d0b@intel.com>
 Accept-Language: en-US
 Content-Language: en-US
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-user-agent: Evolution 3.46.3 (3.46.3-1.fc37) 
-authentication-results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-x-ms-publictraffictype: Email
-x-ms-traffictypediagnostic: MN2PR11MB3999:EE_|PH7PR11MB7429:EE_
-x-ms-office365-filtering-correlation-id: d10ea2b4-7b16-4273-17dd-08db0ad25716
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: IVJ2/oyB3OaMH/csMisZErnhJteCQZ0FSk9sbts2gJ7bH2h+K1B7doLh5M8GhDlIXIAQVFBcVdhH0Z/T1WckQCh/HM6iyk+ki82zBOPk4LBAGUosu4IBF/+XLA+xT+FXCR7pEBP9QfX/SLg+wEU22fOHcTj182VMnieaFYQaGAVzOxDFmO1+rSgPcL4LLzugnpkzZcRmDYsRIrP3VsKaMSZycgcCpXZkM4E8hghkbmV28+1UAZI7jQSsxPBEHH4RBa9B6SGdq+xXfK2MBwYF8tCsUTHey15WCHZKd3cuQ2gb//pDy/hq4WxZ5yKnQPotXLNUx5rgixPJ316WtM0h9pLh6qF35pSw8wyghY8zcI3+6e+HUEnly22JkRM65qZR8OrkKFBx38jaELtG03ji8u6ZHOuQJ70fH8lHTl9KemE6aVKPmKALIFZxNknixCjcIEH11YX7P8rZsZwzPnTihYeQFAe6jEQXbPpqe0lxHv/bifPMV9JhQlGP/7JZDbICc2Q7MbjiueB9ZMZGR6KAi+FaOry8KfvqddiInwHrIvpO+PAyEW6ZkRr4YZGmAPYMyTdoMa0QlAY+tmmOdl8a/34G369H7wEaG9NZOlgS59wBXo9IEIDow55mxnjhh9E10v55tFvcgotNlcrPFdqfAU9YUSmODgIdQH50zm6MlYGIzAL/3OQZ2FzoHMBXNkFrC/36L+UYRCJE0HxIiX+q6DFzoHM0//tuMiAx0HmX99ChetJ2fcj5/Byp1qxonnp25TwN1Q7hiRH/odbRIVYwlA==
-x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MN2PR11MB3999.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230025)(396003)(346002)(136003)(39860400002)(376002)(366004)(451199018)(6506007)(316002)(8936002)(107886003)(6512007)(26005)(186003)(478600001)(38070700005)(2906002)(71200400001)(83380400001)(54906003)(110136005)(5660300002)(36756003)(6486002)(966005)(66476007)(66446008)(64756008)(66946007)(91956017)(76116006)(66556008)(84970400001)(41300700001)(86362001)(8676002)(66574015)(4326008)(38100700002)(82960400001)(2616005)(122000001);DIR:OUT;SFP:1102;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0: =?utf-8?B?ZnZsWDFGQWtPa3VyZng3bVdOUjRUSjd3Z1drK1pqNncvTzVBMHBwelc4VFpn?=
- =?utf-8?B?dVplem5zWHppSVhHaS9jZ0l1RVdXVUNwWGd4UHR5a2JMZ2JwdW9ZZ09rYy9t?=
- =?utf-8?B?eWRvZW0vNGR4dlBkZnR2UkNYRFJMZDYxcUw1SUtISnlvNHJkbnZNMnNMUVlV?=
- =?utf-8?B?Q3FlRjBNTDRwZDNEemdjOE14bE9LalNiamlPbjdNVlBpWGFGcTYrUW1lVFNE?=
- =?utf-8?B?MHZIcFZMdkM5T2tLODdMMXFtbHBNbEw1elRDdXlsWDh6Nlp5VWpNSXhDTTlM?=
- =?utf-8?B?N1pmVy8yZ0hUUlByWU1yU2FNTkxwUkoyRTA1Y0pmeWt1dEc0WE51dzE0ZGZy?=
- =?utf-8?B?UXhHcGszMzFsaHpEYmdtRDBGU01ncnNDZUk3Y1QvSnVPOVFTRjZQUnpXQkFJ?=
- =?utf-8?B?M0RTaTNJMll1U1ltM2IzNU1EbmdNWGRwOWx2WE5YTDdQa21FRWVLYWJMODBG?=
- =?utf-8?B?OUkyZWhFVjU2bzZ0Q212ZG9XekZUVlNTTURnUXhMSkJxZit3VjJMbDF4ZDRy?=
- =?utf-8?B?V0duNTRQWm9ONkFwNjhmY0FnbHZLcHdKRG9SVTU5YkpFQXNiaUNQR295Y2Za?=
- =?utf-8?B?SlkyNG9iRUZ4WDV2aGt6bTFrbGt2Wk1MRjFrOFdKenh6NnVhak9ZNFdJTGVZ?=
- =?utf-8?B?SDNPUExNTCttRjUwV01ndklpT0dNbmNvQVNiOWlGZ0YrVkZrWGU2R0Q5bVdJ?=
- =?utf-8?B?aDhNUGdvU2VJaUhndW5ubmVlWUZieDVJK0ltQUYzekw5TkpNN21JU3pVYjY5?=
- =?utf-8?B?VCttK2ZsM0FhQmpEbjAyOTZNZjJTU2g5aVJXYjVZUjRKS09pOHVaOTlJMnVQ?=
- =?utf-8?B?M0EraERKVjZ6SGdpdWJjeFEzTTJnaXBqYzhDVkVEUUlPbjNtTUxQODJWQlNU?=
- =?utf-8?B?QkE0WkkxcUk5ZnQ0SDVrcjVjMHJwV2EwaWlrazR5cXFIYVE4WkdIdWxHaXJr?=
- =?utf-8?B?eVZ6cjdVMUpZbGxDdlFSU2RMTmtpS0pjM3ZZRlRKTUVzNndGUGhkWFNtbHNq?=
- =?utf-8?B?YkVhQWlBL0haeW1XVExnbVp6dnJvWXFOUGNySyt4aGJ1Z2hTMDJhcnVOWkJv?=
- =?utf-8?B?NVFmbWxETFdCRG9JcmFCNlJSanJsOTFyZCtQZkhmaTRjekxxbkxpRFFNSXlu?=
- =?utf-8?B?ckRzQXJxdUE0TUNZUm94UldXSjUwNmZHYlRNWVBQd28yMXltOUtraG9vZE0r?=
- =?utf-8?B?S3ZlMGtVNWtTVnNTLzdLNjlFODdwcDBaSHZmdms1SHV3N2tQL2NCNDZzVTE3?=
- =?utf-8?B?d1hNUE5icmtGMU1PNDByeFQzOG9pUlFaS0hvMFR2SlBpVDNrZnNReXF2OUc0?=
- =?utf-8?B?UnFvb21DY3NyR29mYjhwUnNTMHV4MXpmb3Zyc1ZPTDBvL3gxcjBRcURVdnp0?=
- =?utf-8?B?cTEwUVhLMFk2T0xscTdjME1Vc0RJVWdxU2pIWVFXOE03TGhqZEVwR3NqUDkw?=
- =?utf-8?B?WHY0aDV1RGRiMENLU1EveVg4Mlhtc0VPTG9lZmkvNTJVSHcrOFhuOStDcld2?=
- =?utf-8?B?b0FzRmJMQkVKaFpIYVBhMHk3eGZIdHV3elR6d1hXZHdFcmZTK3BkT3NMcGhw?=
- =?utf-8?B?cjRzaGkzVEhEVXV1b2crZE8waGlPc09XMDZ5cmhacnhZeDZLTWR5MHZIaTlB?=
- =?utf-8?B?NnpTWjBURldkNDY4Z2U4MnRoYWNUL2N5R0IybGJMMW1CYnRSMSs1aFBncjFk?=
- =?utf-8?B?Y1dHY0lxY20vakpwMVZWQzB0TzI2aXZhK3hvQzBxVDlLYzduVnlOUDJERUIv?=
- =?utf-8?B?cFhuc3NhbmY2dzl2bWZwZytobTBFWTdrVGkreVEyME9iV1VwYXkxTitFQ2Mw?=
- =?utf-8?B?eEo2cDlwUGNoM0pEVlRPbXUxSXRsSmJuOWUyZnVNRFN6M0hxSy8rSlJlYmFQ?=
- =?utf-8?B?ZVo0ZS9BSUhreHlHUGM0Q3VYcWp0aG54SHF1WkI5dC9xd3MxYk03S21NRzBH?=
- =?utf-8?B?elNZMnRhbjVjTkY1cUJzVzhYdVVwNVhKTHBPWkVmRTRMcnVTc3dYdUdkUUJ0?=
- =?utf-8?B?SHc0aldVejVNaDg5cHYxK2tVTXpsbGxBdUg4MEF1UWUyVjMyN2Zkejg1eHVt?=
- =?utf-8?B?d2s5S2VheHVsUDJ5QmpoMGpnUjNWaVpUNnM1MkxXd2pUc3FBdlE4UFFPalZp?=
- =?utf-8?B?WDM0Tm9UZlpHMjNNc3pOWHRDSXI2eG1yVVY5UWxTakwvQWxOdTZKaEMyK28w?=
- =?utf-8?B?anc9PQ==?=
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <FEF974DCE0F41A4ABA3CC6AC0F8C5CC5@namprd11.prod.outlook.com>
-Content-Transfer-Encoding: base64
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-originating-ip: [105.128.2.176]
+Content-Type: text/plain; charset="us-ascii"
+Content-ID: <B78DF59F19B26A49BE47C1807B5BF688@ssi.samsung.com>
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: MN2PR11MB3999.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: d10ea2b4-7b16-4273-17dd-08db0ad25716
-X-MS-Exchange-CrossTenant-originalarrivaltime: 09 Feb 2023 19:17:52.3376
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: cIUXlCfUO6FcNYDtzppbx19300trnNU2YvxvnpewaluDn1NHsXwgvvWKK53ksnGtjjKvVqZoVBwdEqXwCKhw0c/h8G/9DjDV3Jf6JIT2G00=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR11MB7429
-X-OriginatorOrg: intel.com
+X-CFilter-Loop: Reflected
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFtrIKsWRmVeSWpSXmKPExsWy7djX87oOU54mG3xo1rSYPvUCo8Xqm2sY
+	LRqaHrFYrFp4jc3i/KxTLBYrf/xhtbg14RiTA7tHy5G3rB6L97xk8nixeSajx8aP/9k9ps6u
+	9/i8SS6ALYrLJiU1J7MstUjfLoErY/vUt+wFXZoV0zfPY29gfKzYxcjJISFgInGx7xFLFyMX
+	h5DASkaJ67M62CCcViaJfZd+M8JUXXjazgyRWMsocbV/JSuE85FRYsvL5UwQzlJGiTl7NrCB
+	tLAJKErs69oOZosIaEtMWPYBrINZYAGTxPxPH8HmCgt4S3xcfZUJoshH4t7KbywQtp7Ewbc3
+	wWpYBFQlWn7MBBvEK2Aq8XRiBzOIzSngLjF36UawXkYBMYnvp9aA2cwC4hK3nsxngrhbUGLR
+	7D3MELaYxL9dD9kgbEWJ+99fskPU60gs2P2JDcK2k1i2uIcZwtaWWLbwNTPEXkGJkzOfsED0
+	SkocXHEDHGISAnc4JPb9boAGkovEocn/oGxpib93lwEdwQFkJ0us+sgFEc6RmL9kC9Qca4mF
+	f9YzTWBUmYXk7FlITpqF5KRZSE6aheSkBYysqxjFS4uLc9NTiw3zUsv1ihNzi0vz0vWS83M3
+	MQJT1el/h3N3MO649VHvECMTB+MhRgkOZiUR3u8THycL8aYkVlalFuXHF5XmpBYfYpTmYFES
+	5zW0PZksJJCeWJKanZpakFoEk2Xi4JRqYHLyvtpy81hnrtviBQccT+741KD2/maF4LPLFdWV
+	i8sfnlm96NeJ+ZNqDn1clfc0YsvOaVeeNx6dPmf5Dd2fWuYxCyq6BQI/FBYu/bP6adO56SqX
+	mxw2F/z7lPz92Oltt3WX28+a4O166krTDcm8AO3svR57Wxis5O7Ev3nFO+N83m4Hub+JJx+L
+	3FJiSMvXSVRYw1VhYfv0x4HpHIJK049sj/VddybT4HXIscyHF35MyIz7uOjPwotmwv+FDSyU
+	mqafKzQ2L371YvWnItmzRwI5So4+eH3v4O10wz0hy3in2Pt2Sn3P5HH7lVVkWft3h8k5mX1M
+	x5OSPsjbu32pdClbY1VZwPayaP6E/WfKfpzNVmIpzkg01GIuKk4EAEd9vqXEAwAA
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFjrHIsWRmVeSWpSXmKPExsWS2cA0UddhytNkg4nfOS2mT73AaLH65hpG
+	i4amRywWqxZeY7M4P+sUi8XKH39YLW5NOMbkwO7RcuQtq8fiPS+ZPF5snsnosfHjf3aPqbPr
+	PT5vkgtgi+KySUnNySxLLdK3S+DK2D71LXtBl2bF9M3z2BsYHyt2MXJySAiYSFx42s4MYgsJ
+	rGaU+DcruouRC8j+yCixYfkjJghnKaPEma2zwarYBBQl9nVtZwOxRQS0JSYs+8AKUsQsMI9J
+	4sK5a4wgCWEBb4mPq68yQRT5SNxb+Y0FwtaTOPj2JlgNi4CqRMuPmWCDeAVMJZ5O7IA6o5lR
+	4tSKSBCbU8BdYu7SjWBzGAXEJL6fWgNmMwuIS9x6Mp8J4gUBiSV7zjND2KISLx//Y4WwFSXu
+	f3/JDlGvI7Fg9yc2CNtOYtniHmYIW1ti2cLXzBA3CEqcnPmEBaJXUuLgihssExglZiFZNwvJ
+	qFlIRs1CMmoWklELGFlXMYqXFhfnplcUG+WllusVJ+YWl+al6yXn525iBEb56X+Ho3cw3r71
+	Ue8QIxMH4yFGCQ5mJRHe7xMfJwvxpiRWVqUW5ccXleakFh9ilOZgURLnfRk1MV5IID2xJDU7
+	NbUgtQgmy8TBKdXAZPg1V9Bd7krWvZwPkzocnLOVzX6EHt+VpeHy4WOoy7+K9bPm8cQHnfSf
+	IW34RrGlqiTls7Dhqb98GQf59RINTK/KKfKl338l+ldD957/8dw5B8tNTjJKlpqXtsvPFFmQ
+	/vaGsoT/cTtnU37LP9E5yQuXTenYeGF12Marm1aqPvB1u/qkepuzXfGD+X/v+jvnfJJas+eD
+	ubiTwcQ/n/S/WuvF2c+KP8xzvexygOfNtMOddecmuDde//2kSOPUHZ1507ldZ00QMfjDIuYQ
+	rr3VJKA39WhEQO+J172RUw9pcqWKBZr+81gXt92nTKW8wMRt5ay/IvIxz+2iK3a4fN/AdKoh
+	Z99rnrW8EXGLz15TYinOSDTUYi4qTgQAJy4vbWEDAAA=
+X-CMS-MailID: 20230210004800uscas1p1b66223937b4d5519341a61ef304e1a44
+CMS-TYPE: 301P
+X-CMS-RootMailID: 20230210004800uscas1p1b66223937b4d5519341a61ef304e1a44
+References: <20230120-vv-volatile-regions-v1-0-b42b21ee8d0b@intel.com>
+	<20230120-vv-volatile-regions-v1-2-b42b21ee8d0b@intel.com>
+	<CGME20230210004800uscas1p1b66223937b4d5519341a61ef304e1a44@uscas1p1.samsung.com>
 
-T24gVGh1LCAyMDIzLTAyLTA5IGF0IDEyOjA0ICswMTAwLCBCcmljZSBHb2dsaW4gd3JvdGU6DQo+
-IA0KPiBMZSAwOC8wMi8yMDIzIMOgIDIxOjAwLCBWaXNoYWwgVmVybWEgYSDDqWNyaXTCoDoNCj4g
-PiBXaGlsZSBlbnVtZXJhdGlvbiBvZiByYW0gdHlwZSByZWdpb25zIGFscmVhZHkgd29ya3MgaW4g
-bGliY3hsIGFuZA0KPiA+IGN4bC1jbGksIGl0IGxhY2tlZCBhbiBhdHRyaWJ1dGUgdG8gaW5kaWNh
-dGUgcG1lbSB2cy4gcmFtLiBBZGQgYSBuZXcNCj4gPiAndHlwZScgYXR0cmlidXRlIHRvIHJlZ2lv
-biBsaXN0aW5ncyB0byBhZGRyZXNzIHRoaXMuIEFkZGl0aW9uYWxseSwgYWRkDQo+ID4gc3VwcG9y
-dCBmb3IgY3JlYXRpbmcgcmFtIHJlZ2lvbnMgdG8gdGhlIGN4bC1jcmVhdGUtcmVnaW9uIGNvbW1h
-bmQuIFRoZQ0KPiA+IHJlZ2lvbiBsaXN0aW5ncyBhcmUgYWxzbyB1cGRhdGVkIHdpdGggZGF4LXJl
-Z2lvbiBpbmZvcm1hdGlvbiBmb3INCj4gPiB2b2xhdGlsZSByZWdpb25zLg0KPiA+IA0KPiA+IFRo
-aXMgYWxzbyBpbmNsdWRlcyBmaXhlZCBmb3IgYSBmZXcgYnVncyAvIHVzYWJpbGl0eSBpc3N1ZXMg
-aWRlbnRpZmllZA0KPiA+IGFsb25nIHRoZSB3YXkgLSBwYXRjaGVzIDEsIDQsIGFuZCA2LiBQYXRj
-aCA1IGlzIGEgdXNhYmlsaXR5IGltcHJvdmVtZW50DQo+ID4gd2hlcmUgYmFzZWQgb24gZGVjb2Rl
-ciBjYXBhYmlsaXRpZXMsIHRoZSB0eXBlIG9mIGEgcmVnaW9uIGNhbiBiZQ0KPiA+IGluZmVycmVk
-IGZvciB0aGUgY3JlYXRlLXJlZ2lvbiBjb21tYW5kLg0KPiA+IA0KPiA+IFRoZXNlIGhhdmUgYmVl
-biB0ZXN0ZWQgYWdhaW5zdCB0aGUgcmFtLXJlZ2lvbiBhZGRpdGlvbnMgdG8gY3hsX3Rlc3QNCj4g
-PiB3aGljaCBhcmUgcGFydCBvZiB0aGUga2VybmVsIHN1cHBvcnQgcGF0Y2ggc2V0WzFdLg0KPiA+
-IEFkZGl0aW9uYWxseSwgdGVzdGVkIGFnYWluc3QgcWVtdSB1c2luZyBhIFdJUCBicmFuY2ggZm9y
-IHZvbGF0aWxlDQo+ID4gc3VwcG9ydCBmb3VuZCBoZXJlWzJdLiBUaGUgJ3J1bl9xZW11JyBzY3Jp
-cHQgaGFzIGEgYnJhbmNoIHRoYXQgY3JlYXRlcw0KPiA+IHZvbGF0aWxlIG1lbWRldnMgaW4gYWRk
-aXRpb24gdG8gcG1lbSBvbmVzLiBUaGlzIGlzIGFsc28gaW4gYSBicmFuY2hbM10NCj4gPiBzaW5j
-ZSBpdCBkZXBlbmRzIG9uIFsyXS4NCj4gPiANCj4gPiBUaGVzZSBjeGwtY2xpIC8gbGliY3hsIHBh
-dGNoZXMgdGhlbXNlbHZlcyBhcmUgYWxzbyBhdmFpbGFibGUgaW4gYQ0KPiA+IGJyYW5jaCBhdCBb
-NF0uDQo+ID4gDQo+ID4gWzFdOiBodHRwczovL2xvcmUua2VybmVsLm9yZy9saW51eC1jeGwvMTY3
-NTY0NTM0ODc0Ljg0NzE0Ni41MjIyNDE5NjQ4NTUxNDM2NzUwLnN0Z2l0QGR3aWxsaWEyLXhmaC5q
-Zi5pbnRlbC5jb20vDQo+ID4gWzJdOiBodHRwczovL2dpdGxhYi5jb20vamljMjMvcWVtdS8tL2Nv
-bW1pdHMvY3hsLTIwMjMtMDEtMjYNCj4gPiBbM106IGh0dHBzOi8vZ2l0aHViLmNvbS9wbWVtL3J1
-bl9xZW11L2NvbW1pdHMvdnYvcmFtLW1lbWRldnMNCj4gPiBbNF06IGh0dHBzOi8vZ2l0aHViLmNv
-bS9wbWVtL25kY3RsL3RyZWUvdnYvdm9sYXRpbGUtcmVnaW9ucw0KPiANCj4gDQo+IEhlbGxvIFZp
-c2hhbA0KPiANCj4gSSBhbSB0cnlpbmcgdG8gcGxheSB3aXRoIHRoaXMgYnV0IGFsbCBteSBhdHRl
-bXB0cyBmYWlsZWQgc28gZmFyLiBDb3VsZCANCj4geW91IHByb3ZpZGUgUWVtdSBhbmQgY3hsLWNs
-aSBjb21tYW5kLWxpbmVzIHRvIGdldCBhIHZvbGF0aWxlIHJlZ2lvbiANCj4gZW5hYmxlZCBpbiBh
-IFFlbXUgVk0/DQoNCkhpIEJyaWNlLA0KDQpHcmVnIGhhZCBwb3N0ZWQgaGlzIHdvcmtpbmcgY29u
-ZmlnIGluIGFub3RoZXIgdGhyZWFkOg0KaHR0cHM6Ly9sb3JlLmtlcm5lbC5vcmcvbGludXgtY3hs
-L1k5c01zMEZHdWxRU0llOXRAbWVtdmVyZ2UuY29tLw0KDQpJJ3ZlIGFsc28gcGFzdGVkIGJlbG93
-LCB0aGUgcWVtdSBjb21tYW5kIGxpbmUgZ2VuZXJhdGVkIGJ5IHRoZSBydW5fcWVtdQ0Kc2NyaXB0
-IEkgcmVmZXJlbmNlZC4gKE5vdGUgdGhhdCB0aGlzIGFkZHMgYSBidW5jaCBvZiBzdHVmZiBub3Qg
-c3RyaWN0bHkNCm5lZWRlZCBmb3IgYSBtaW5pbWFsIENYTCBjb25maWd1cmF0aW9uIC0geW91IGNh
-biBjZXJ0YWlubHkgdHJpbSBhIGxvdA0Kb2YgdGhhdCBvdXQgLSB0aGlzIGlzIGp1c3QgdGhlIGRl
-ZmF1bHQgc2V0dXAgdGhhdCBpcyBnZW5lcmF0ZWQgYW5kIEkNCnVzdWFsbHkgcnVuKS4NCg0KRmVl
-bCBmcmVlIHRvIHBvc3Qgd2hhdCBlcnJvcnMgLyBwcm9ibGVtcyB5b3UncmUgaGl0dGluZyBhbmQg
-d2UgY2FuDQpkZWJ1ZyBmdXJ0aGVyIGZyb20gdGhlcmUuDQoNClRoYW5rcw0KVmlzaGFsDQoNCg0K
-JCBydW5fcWVtdS5zaCAtZyAtLWN4bCAtLWN4bC1kZWJ1ZyAtLXJ3IC1yIG5vbmUgLS1jbWRsaW5l
-DQovaG9tZS92dmVybWE3L2dpdC9xZW11L2J1aWxkL3FlbXUtc3lzdGVtLXg4Nl82NCANCi1tYWNo
-aW5lIHEzNSxhY2NlbD1rdm0sbnZkaW1tPW9uLGN4bD1vbiANCi1tIDgxOTJNLHNsb3RzPTQsbWF4
-bWVtPTQwOTY0TSANCi1zbXAgOCxzb2NrZXRzPTIsY29yZXM9Mix0aHJlYWRzPTIgDQotZW5hYmxl
-LWt2bSANCi1kaXNwbGF5IG5vbmUgDQotbm9ncmFwaGljIA0KLWRyaXZlIGlmPXBmbGFzaCxmb3Jt
-YXQ9cmF3LHVuaXQ9MCxmaWxlPU9WTUZfQ09ERS5mZCxyZWFkb25seT1vbiANCi1kcml2ZSBpZj1w
-Zmxhc2gsZm9ybWF0PXJhdyx1bml0PTEsZmlsZT1PVk1GX1ZBUlMuZmQgDQotZGVidWdjb24gZmls
-ZTp1ZWZpX2RlYnVnLmxvZyANCi1nbG9iYWwgaXNhLWRlYnVnY29uLmlvYmFzZT0weDQwMiANCi1k
-cml2ZSBmaWxlPXJvb3QuaW1nLGZvcm1hdD1yYXcsbWVkaWE9ZGlzayANCi1rZXJuZWwgLi9ta29z
-aS5leHRyYS9saWIvbW9kdWxlcy82LjIuMC1yYzYrL3ZtbGludXogDQotaW5pdHJkIG1rb3NpLmV4
-dHJhL2Jvb3QvaW5pdHJhbWZzLTYuMi4wLXJjMisuaW1nIA0KLWFwcGVuZCBzZWxpbnV4PTAgYXVk
-aXQ9MCBjb25zb2xlPXR0eTAgY29uc29sZT10dHlTMCByb290PS9kZXYvc2RhMiBpZ25vcmVfbG9n
-bGV2ZWwgcncgY3hsX2FjcGkuZHluZGJnPStmcGxtIGN4bF9wY2kuZHluZGJnPStmcGxtIGN4bF9j
-b3JlLmR5bmRiZz0rZnBsbSBjeGxfbWVtLmR5bmRiZz0rZnBsbSBjeGxfcG1lbS5keW5kYmc9K2Zw
-bG0gY3hsX3BvcnQuZHluZGJnPStmcGxtIGN4bF9yZWdpb24uZHluZGJnPStmcGxtIGN4bF90ZXN0
-LmR5bmRiZz0rZnBsbSBjeGxfbW9jay5keW5kYmc9K2ZwbG0gY3hsX21vY2tfbWVtLmR5bmRiZz0r
-ZnBsbSBtZW1tYXA9MkchNEcgZWZpX2Zha2VfbWVtPTJHQDZHOjB4NDAwMDAgDQotZGV2aWNlIGUx
-MDAwLG5ldGRldj1uZXQwLG1hYz01Mjo1NDowMDoxMjozNDo1NiANCi1uZXRkZXYgdXNlcixpZD1u
-ZXQwLGhvc3Rmd2Q9dGNwOjoxMDAyMi06MjIgDQotb2JqZWN0IG1lbW9yeS1iYWNrZW5kLWZpbGUs
-aWQ9Y3hsLW1lbTAsc2hhcmU9b24sbWVtLXBhdGg9Y3hsdGVzdDAucmF3LHNpemU9MjU2TSANCi1v
-YmplY3QgbWVtb3J5LWJhY2tlbmQtZmlsZSxpZD1jeGwtbWVtMSxzaGFyZT1vbixtZW0tcGF0aD1j
-eGx0ZXN0MS5yYXcsc2l6ZT0yNTZNIA0KLW9iamVjdCBtZW1vcnktYmFja2VuZC1maWxlLGlkPWN4
-bC1tZW0yLHNoYXJlPW9uLG1lbS1wYXRoPWN4bHRlc3QyLnJhdyxzaXplPTI1Nk0gDQotb2JqZWN0
-IG1lbW9yeS1iYWNrZW5kLWZpbGUsaWQ9Y3hsLW1lbTMsc2hhcmU9b24sbWVtLXBhdGg9Y3hsdGVz
-dDMucmF3LHNpemU9MjU2TSANCi1vYmplY3QgbWVtb3J5LWJhY2tlbmQtcmFtLGlkPWN4bC1tZW00
-LHNoYXJlPW9uLHNpemU9MjU2TSANCi1vYmplY3QgbWVtb3J5LWJhY2tlbmQtcmFtLGlkPWN4bC1t
-ZW01LHNoYXJlPW9uLHNpemU9MjU2TSANCi1vYmplY3QgbWVtb3J5LWJhY2tlbmQtcmFtLGlkPWN4
-bC1tZW02LHNoYXJlPW9uLHNpemU9MjU2TSANCi1vYmplY3QgbWVtb3J5LWJhY2tlbmQtcmFtLGlk
-PWN4bC1tZW03LHNoYXJlPW9uLHNpemU9MjU2TSANCi1vYmplY3QgbWVtb3J5LWJhY2tlbmQtZmls
-ZSxpZD1jeGwtbHNhMCxzaGFyZT1vbixtZW0tcGF0aD1sc2EwLnJhdyxzaXplPTFLIA0KLW9iamVj
-dCBtZW1vcnktYmFja2VuZC1maWxlLGlkPWN4bC1sc2ExLHNoYXJlPW9uLG1lbS1wYXRoPWxzYTEu
-cmF3LHNpemU9MUsgDQotb2JqZWN0IG1lbW9yeS1iYWNrZW5kLWZpbGUsaWQ9Y3hsLWxzYTIsc2hh
-cmU9b24sbWVtLXBhdGg9bHNhMi5yYXcsc2l6ZT0xSyANCi1vYmplY3QgbWVtb3J5LWJhY2tlbmQt
-ZmlsZSxpZD1jeGwtbHNhMyxzaGFyZT1vbixtZW0tcGF0aD1sc2EzLnJhdyxzaXplPTFLIA0KLWRl
-dmljZSBweGItY3hsLGlkPWN4bC4wLGJ1cz1wY2llLjAsYnVzX25yPTUzIA0KLWRldmljZSBweGIt
-Y3hsLGlkPWN4bC4xLGJ1cz1wY2llLjAsYnVzX25yPTE5MSANCi1kZXZpY2UgY3hsLXJwLGlkPWhi
-MHJwMCxidXM9Y3hsLjAsY2hhc3Npcz0wLHNsb3Q9MCxwb3J0PTAgDQotZGV2aWNlIGN4bC1ycCxp
-ZD1oYjBycDEsYnVzPWN4bC4wLGNoYXNzaXM9MCxzbG90PTEscG9ydD0xIA0KLWRldmljZSBjeGwt
-cnAsaWQ9aGIwcnAyLGJ1cz1jeGwuMCxjaGFzc2lzPTAsc2xvdD0yLHBvcnQ9MiANCi1kZXZpY2Ug
-Y3hsLXJwLGlkPWhiMHJwMyxidXM9Y3hsLjAsY2hhc3Npcz0wLHNsb3Q9Myxwb3J0PTMgDQotZGV2
-aWNlIGN4bC1ycCxpZD1oYjFycDAsYnVzPWN4bC4xLGNoYXNzaXM9MCxzbG90PTQscG9ydD0wIA0K
-LWRldmljZSBjeGwtcnAsaWQ9aGIxcnAxLGJ1cz1jeGwuMSxjaGFzc2lzPTAsc2xvdD01LHBvcnQ9
-MSANCi1kZXZpY2UgY3hsLXJwLGlkPWhiMXJwMixidXM9Y3hsLjEsY2hhc3Npcz0wLHNsb3Q9Nixw
-b3J0PTIgDQotZGV2aWNlIGN4bC1ycCxpZD1oYjFycDMsYnVzPWN4bC4xLGNoYXNzaXM9MCxzbG90
-PTcscG9ydD0zIA0KLWRldmljZSBjeGwtdHlwZTMsYnVzPWhiMHJwMCxtZW1kZXY9Y3hsLW1lbTAs
-aWQ9Y3hsLWRldjAsbHNhPWN4bC1sc2EwIA0KLWRldmljZSBjeGwtdHlwZTMsYnVzPWhiMHJwMSxt
-ZW1kZXY9Y3hsLW1lbTEsaWQ9Y3hsLWRldjEsbHNhPWN4bC1sc2ExIA0KLWRldmljZSBjeGwtdHlw
-ZTMsYnVzPWhiMXJwMCxtZW1kZXY9Y3hsLW1lbTIsaWQ9Y3hsLWRldjIsbHNhPWN4bC1sc2EyIA0K
-LWRldmljZSBjeGwtdHlwZTMsYnVzPWhiMXJwMSxtZW1kZXY9Y3hsLW1lbTMsaWQ9Y3hsLWRldjMs
-bHNhPWN4bC1sc2EzIA0KLWRldmljZSBjeGwtdHlwZTMsYnVzPWhiMHJwMix2b2xhdGlsZS1tZW1k
-ZXY9Y3hsLW1lbTQsaWQ9Y3hsLWRldjQgDQotZGV2aWNlIGN4bC10eXBlMyxidXM9aGIwcnAzLHZv
-bGF0aWxlLW1lbWRldj1jeGwtbWVtNSxpZD1jeGwtZGV2NSANCi1kZXZpY2UgY3hsLXR5cGUzLGJ1
-cz1oYjFycDIsdm9sYXRpbGUtbWVtZGV2PWN4bC1tZW02LGlkPWN4bC1kZXY2IA0KLWRldmljZSBj
-eGwtdHlwZTMsYnVzPWhiMXJwMyx2b2xhdGlsZS1tZW1kZXY9Y3hsLW1lbTcsaWQ9Y3hsLWRldjcg
-DQotTSBjeGwtZm13LjAudGFyZ2V0cy4wPWN4bC4wLGN4bC1mbXcuMC5zaXplPTRHLGN4bC1mbXcu
-MC5pbnRlcmxlYXZlLWdyYW51bGFyaXR5PThrLGN4bC1mbXcuMS50YXJnZXRzLjA9Y3hsLjAsY3hs
-LWZtdy4xLnRhcmdldHMuMT1jeGwuMSxjeGwtZm13LjEuc2l6ZT00RyxjeGwtZm13LjEuaW50ZXJs
-ZWF2ZS1ncmFudWxhcml0eT04ayANCi1vYmplY3QgbWVtb3J5LWJhY2tlbmQtcmFtLGlkPW1lbTAs
-c2l6ZT0yMDQ4TSANCi1udW1hIG5vZGUsbm9kZWlkPTAsbWVtZGV2PW1lbTAsIA0KLW51bWEgY3B1
-LG5vZGUtaWQ9MCxzb2NrZXQtaWQ9MCANCi1vYmplY3QgbWVtb3J5LWJhY2tlbmQtcmFtLGlkPW1l
-bTEsc2l6ZT0yMDQ4TSANCi1udW1hIG5vZGUsbm9kZWlkPTEsbWVtZGV2PW1lbTEsIA0KLW51bWEg
-Y3B1LG5vZGUtaWQ9MSxzb2NrZXQtaWQ9MSANCi1vYmplY3QgbWVtb3J5LWJhY2tlbmQtcmFtLGlk
-PW1lbTIsc2l6ZT0yMDQ4TSANCi1udW1hIG5vZGUsbm9kZWlkPTIsbWVtZGV2PW1lbTIsIA0KLW9i
-amVjdCBtZW1vcnktYmFja2VuZC1yYW0saWQ9bWVtMyxzaXplPTIwNDhNIA0KLW51bWEgbm9kZSxu
-b2RlaWQ9MyxtZW1kZXY9bWVtMywgDQotbnVtYSBub2RlLG5vZGVpZD00LCANCi1vYmplY3QgbWVt
-b3J5LWJhY2tlbmQtZmlsZSxpZD1udm1lbTAsc2hhcmU9b24sbWVtLXBhdGg9bnZkaW1tLTAsc2l6
-ZT0xNjM4NE0sYWxpZ249MUcgDQotZGV2aWNlIG52ZGltbSxtZW1kZXY9bnZtZW0wLGlkPW52MCxs
-YWJlbC1zaXplPTJNLG5vZGU9NCANCi1udW1hIG5vZGUsbm9kZWlkPTUsIA0KLW9iamVjdCBtZW1v
-cnktYmFja2VuZC1maWxlLGlkPW52bWVtMSxzaGFyZT1vbixtZW0tcGF0aD1udmRpbW0tMSxzaXpl
-PTE2Mzg0TSxhbGlnbj0xRyANCi1kZXZpY2UgbnZkaW1tLG1lbWRldj1udm1lbTEsaWQ9bnYxLGxh
-YmVsLXNpemU9Mk0sbm9kZT01IA0KLW51bWEgZGlzdCxzcmM9MCxkc3Q9MCx2YWw9MTAgDQotbnVt
-YSBkaXN0LHNyYz0wLGRzdD0xLHZhbD0yMSANCi1udW1hIGRpc3Qsc3JjPTAsZHN0PTIsdmFsPTEy
-IA0KLW51bWEgZGlzdCxzcmM9MCxkc3Q9Myx2YWw9MjEgDQotbnVtYSBkaXN0LHNyYz0wLGRzdD00
-LHZhbD0xNyANCi1udW1hIGRpc3Qsc3JjPTAsZHN0PTUsdmFsPTI4IA0KLW51bWEgZGlzdCxzcmM9
-MSxkc3Q9MSx2YWw9MTAgDQotbnVtYSBkaXN0LHNyYz0xLGRzdD0yLHZhbD0yMSANCi1udW1hIGRp
-c3Qsc3JjPTEsZHN0PTMsdmFsPTEyIA0KLW51bWEgZGlzdCxzcmM9MSxkc3Q9NCx2YWw9MjggDQot
-bnVtYSBkaXN0LHNyYz0xLGRzdD01LHZhbD0xNyANCi1udW1hIGRpc3Qsc3JjPTIsZHN0PTIsdmFs
-PTEwIA0KLW51bWEgZGlzdCxzcmM9Mixkc3Q9Myx2YWw9MjEgDQotbnVtYSBkaXN0LHNyYz0yLGRz
-dD00LHZhbD0yOCANCi1udW1hIGRpc3Qsc3JjPTIsZHN0PTUsdmFsPTI4IA0KLW51bWEgZGlzdCxz
-cmM9Myxkc3Q9Myx2YWw9MTAgDQotbnVtYSBkaXN0LHNyYz0zLGRzdD00LHZhbD0yOCANCi1udW1h
-IGRpc3Qsc3JjPTMsZHN0PTUsdmFsPTI4IA0KLW51bWEgZGlzdCxzcmM9NCxkc3Q9NCx2YWw9MTAg
-DQotbnVtYSBkaXN0LHNyYz00LGRzdD01LHZhbD0yOCANCi1udW1hIGRpc3Qsc3JjPTUsZHN0PTUs
-dmFsPTEwIA0KDQo=
+On Tue, Feb 07, 2023 at 12:16:28PM -0700, Vishal Verma wrote:
+> In preparation for enumerating and creating 'volatile' or 'ram' type
+> regions, add a 'type' attribute to region listings, so these can be
+> distinguished from 'pmem' type regions easily. This depends on a new
+> 'mode' attribute for region objects in sysfs. For older kernels that
+> lack this, region listings will simply omit emitting this attribute,
+> but otherwise not treat it as a failure.
+>=20
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+
+Reviewed-by: Fan Ni <fan.ni@samsung.com>
+
+> ---
+>  Documentation/cxl/lib/libcxl.txt |  1 +
+>  cxl/lib/private.h                |  1 +
+>  cxl/lib/libcxl.c                 | 11 +++++++++++
+>  cxl/libcxl.h                     |  1 +
+>  cxl/json.c                       |  5 +++++
+>  cxl/lib/libcxl.sym               |  5 +++++
+>  6 files changed, 24 insertions(+)
+>=20
+> diff --git a/Documentation/cxl/lib/libcxl.txt b/Documentation/cxl/lib/lib=
+cxl.txt
+> index f9af376..dbc4b56 100644
+> --- a/Documentation/cxl/lib/libcxl.txt
+> +++ b/Documentation/cxl/lib/libcxl.txt
+> @@ -550,6 +550,7 @@ int cxl_region_get_id(struct cxl_region *region);
+>  const char *cxl_region_get_devname(struct cxl_region *region);
+>  void cxl_region_get_uuid(struct cxl_region *region, uuid_t uu);
+>  unsigned long long cxl_region_get_size(struct cxl_region *region);
+> +enum cxl_decoder_mode cxl_region_get_mode(struct cxl_region *region);
+>  unsigned long long cxl_region_get_resource(struct cxl_region *region);
+>  unsigned int cxl_region_get_interleave_ways(struct cxl_region *region);
+>  unsigned int cxl_region_get_interleave_granularity(struct cxl_region *re=
+gion);
+> diff --git a/cxl/lib/private.h b/cxl/lib/private.h
+> index f8871bd..306dc3a 100644
+> --- a/cxl/lib/private.h
+> +++ b/cxl/lib/private.h
+> @@ -149,6 +149,7 @@ struct cxl_region {
+>  	unsigned int interleave_ways;
+>  	unsigned int interleave_granularity;
+>  	enum cxl_decode_state decode_state;
+> +	enum cxl_decoder_mode mode;
+>  	struct kmod_module *module;
+>  	struct list_head mappings;
+>  };
+> diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
+> index 4205a58..83f628b 100644
+> --- a/cxl/lib/libcxl.c
+> +++ b/cxl/lib/libcxl.c
+> @@ -561,6 +561,12 @@ static void *add_cxl_region(void *parent, int id, co=
+nst char *cxlregion_base)
+>  	else
+>  		region->decode_state =3D strtoul(buf, NULL, 0);
+> =20
+> +	sprintf(path, "%s/mode", cxlregion_base);
+> +	if (sysfs_read_attr(ctx, path, buf) < 0)
+> +		region->mode =3D CXL_DECODER_MODE_NONE;
+> +	else
+> +		region->mode =3D cxl_decoder_mode_from_ident(buf);
+> +
+>  	sprintf(path, "%s/modalias", cxlregion_base);
+>  	if (sysfs_read_attr(ctx, path, buf) =3D=3D 0)
+>  		region->module =3D util_modalias_to_module(ctx, buf);
+> @@ -686,6 +692,11 @@ CXL_EXPORT unsigned long long cxl_region_get_resourc=
+e(struct cxl_region *region)
+>  	return region->start;
+>  }
+> =20
+> +CXL_EXPORT enum cxl_decoder_mode cxl_region_get_mode(struct cxl_region *=
+region)
+> +{
+> +	return region->mode;
+> +}
+> +
+>  CXL_EXPORT unsigned int
+>  cxl_region_get_interleave_ways(struct cxl_region *region)
+>  {
+> diff --git a/cxl/libcxl.h b/cxl/libcxl.h
+> index d699af8..e6cca11 100644
+> --- a/cxl/libcxl.h
+> +++ b/cxl/libcxl.h
+> @@ -273,6 +273,7 @@ const char *cxl_region_get_devname(struct cxl_region =
+*region);
+>  void cxl_region_get_uuid(struct cxl_region *region, uuid_t uu);
+>  unsigned long long cxl_region_get_size(struct cxl_region *region);
+>  unsigned long long cxl_region_get_resource(struct cxl_region *region);
+> +enum cxl_decoder_mode cxl_region_get_mode(struct cxl_region *region);
+>  unsigned int cxl_region_get_interleave_ways(struct cxl_region *region);
+>  unsigned int cxl_region_get_interleave_granularity(struct cxl_region *re=
+gion);
+>  struct cxl_decoder *cxl_region_get_target_decoder(struct cxl_region *reg=
+ion,
+> diff --git a/cxl/json.c b/cxl/json.c
+> index 0fc44e4..f625380 100644
+> --- a/cxl/json.c
+> +++ b/cxl/json.c
+> @@ -827,6 +827,7 @@ void util_cxl_mappings_append_json(struct json_object=
+ *jregion,
+>  struct json_object *util_cxl_region_to_json(struct cxl_region *region,
+>  					     unsigned long flags)
+>  {
+> +	enum cxl_decoder_mode mode =3D cxl_region_get_mode(region);
+>  	const char *devname =3D cxl_region_get_devname(region);
+>  	struct json_object *jregion, *jobj;
+>  	u64 val;
+> @@ -853,6 +854,10 @@ struct json_object *util_cxl_region_to_json(struct c=
+xl_region *region,
+>  			json_object_object_add(jregion, "size", jobj);
+>  	}
+> =20
+> +	jobj =3D json_object_new_string(cxl_decoder_mode_name(mode));
+> +	if (jobj)
+> +		json_object_object_add(jregion, "type", jobj);
+> +
+>  	val =3D cxl_region_get_interleave_ways(region);
+>  	if (val < INT_MAX) {
+>  		jobj =3D json_object_new_int(val);
+> diff --git a/cxl/lib/libcxl.sym b/cxl/lib/libcxl.sym
+> index 6bc0810..9832d09 100644
+> --- a/cxl/lib/libcxl.sym
+> +++ b/cxl/lib/libcxl.sym
+> @@ -242,3 +242,8 @@ global:
+>  	cxl_target_get_firmware_node;
+>  	cxl_dport_get_firmware_node;
+>  } LIBCXL_3;
+> +
+> +LIBCXL_5 {
+> +global:
+> +	cxl_region_get_mode;
+> +} LIBCXL_4;
+>=20
+> --=20
+> 2.39.1
+>=20
+> =
