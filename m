@@ -1,293 +1,173 @@
-Received: from mailout1.w2.samsung.com (mailout1.w2.samsung.com [211.189.100.11])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 112C9624
-	for <nvdimm@lists.linux.dev>; Fri, 10 Feb 2023 01:04:16 +0000 (UTC)
-Received: from uscas1p1.samsung.com (unknown [182.198.245.206])
-	by mailout1.w2.samsung.com (KnoxPortal) with ESMTP id 20230210010415usoutp01b7d025530d62a69085735646c9e6219b~CUPxIfwOS2881828818usoutp01Z;
-	Fri, 10 Feb 2023 01:04:15 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout1.w2.samsung.com 20230210010415usoutp01b7d025530d62a69085735646c9e6219b~CUPxIfwOS2881828818usoutp01Z
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-	s=mail20170921; t=1675991055;
-	bh=0EEQh5W2Bvjs4G7zvzoGd3VEHHVppgdIbvBei+EY+PI=;
-	h=From:To:CC:Subject:Date:In-Reply-To:References:From;
-	b=cFunXDSav1Kfj9l0+1sDygf8el8C+F3rBdv4Z8VNPiAZj0+MejyVr6xhd4HxqweYx
-	 I/aVAGjf+xByioI1BZ4TfM3QeGP1NHV2UX9AhRIMqFzGD8s0QPvmsKeEeplA4vbgXx
-	 KOIan2k912pOlOjkAgF/pNaYiR6+25FwMpQZTFJs=
-Received: from ussmges3new.samsung.com (u112.gpu85.samsung.co.kr
-	[203.254.195.112]) by uscas1p1.samsung.com (KnoxPortal) with ESMTP id
-	20230210010415uscas1p1096a85fbcd4d7552fd23df46288c01b2~CUPw7o1MQ3177231772uscas1p1B;
-	Fri, 10 Feb 2023 01:04:15 +0000 (GMT)
-Received: from uscas1p2.samsung.com ( [182.198.245.207]) by
-	ussmges3new.samsung.com (USCPEMTA) with SMTP id D6.E6.12196.F0895E36; Thu, 
-	9 Feb 2023 20:04:15 -0500 (EST)
-Received: from ussmgxs3new.samsung.com (u92.gpu85.samsung.co.kr
-	[203.254.195.92]) by uscas1p1.samsung.com (KnoxPortal) with ESMTP id
-	20230210010415uscas1p1211243c08bc794b314f7b20bdad93267~CUPwlRDQJ2996429964uscas1p1L;
-	Fri, 10 Feb 2023 01:04:15 +0000 (GMT)
-X-AuditID: cbfec370-83dfe70000012fa4-8e-63e5980f4552
-Received: from SSI-EX2.ssi.samsung.com ( [105.128.2.145]) by
-	ussmgxs3new.samsung.com (USCPEXMTA) with SMTP id 65.01.11346.E0895E36; Thu, 
-	9 Feb 2023 20:04:15 -0500 (EST)
-Received: from SSI-EX2.ssi.samsung.com (105.128.2.227) by
-	SSI-EX2.ssi.samsung.com (105.128.2.227) with Microsoft SMTP Server
-	(version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
-	15.1.2375.24; Thu, 9 Feb 2023 17:04:09 -0800
-Received: from SSI-EX2.ssi.samsung.com ([105.128.2.227]) by
-	SSI-EX2.ssi.samsung.com ([105.128.2.227]) with mapi id 15.01.2375.024; Thu,
-	9 Feb 2023 17:04:09 -0800
-From: Fan Ni <fan.ni@samsung.com>
-To: Vishal Verma <vishal.l.verma@intel.com>
-CC: "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, Gregory Price
-	<gregory.price@memverge.com>, Jonathan Cameron
-	<Jonathan.Cameron@Huawei.com>, Davidlohr Bueso <dave@stgolabs.net>, Dan
-	Williams <dan.j.williams@intel.com>, "nvdimm@lists.linux.dev"
-	<nvdimm@lists.linux.dev>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1CB3624
+	for <nvdimm@lists.linux.dev>; Fri, 10 Feb 2023 01:10:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1675991452; x=1707527452;
+  h=from:to:cc:subject:date:message-id:references:
+   in-reply-to:content-id:content-transfer-encoding:
+   mime-version;
+  bh=gojcScSSsR5ZY86S0gx+tfuTLyKlpv4MWembfSM2i8s=;
+  b=nj/3EPyQF9z4payiKLo4aAB63PpBItXx1YuanB8VTx/Mp/341RgfMpTz
+   GUAFUX98UFtHzhOlOBYciJkGg/kn93QyShBY+R6jLPH7LI6cWvflbP94j
+   mI6pJ9E+5avD0vI1HCLbFgyKCAp7V1WPqNYPDQv6MPvlj5CvxhtX1vnGj
+   tnX5gs4aBH67jTahT0x3E2n4gNZyXAASeb9ZJ8OOEAEF8Xf+hWbZPNCbV
+   +st2aIw71Gly5iWCdaEncm9C3XK90lZCf5/2uox54NY7X0m/VW8hpz7KN
+   0OfhUfmpebfowdkioMcA/KriCXr2iihwRdjMwcAL9CgABC1Ni5wiC6FKJ
+   A==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10616"; a="318317067"
+X-IronPort-AV: E=Sophos;i="5.97,285,1669104000"; 
+   d="scan'208";a="318317067"
+Received: from orsmga003.jf.intel.com ([10.7.209.27])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Feb 2023 17:10:52 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6500,9779,10616"; a="617728822"
+X-IronPort-AV: E=Sophos;i="5.97,285,1669104000"; 
+   d="scan'208";a="617728822"
+Received: from orsmsx603.amr.corp.intel.com ([10.22.229.16])
+  by orsmga003.jf.intel.com with ESMTP; 09 Feb 2023 17:10:52 -0800
+Received: from orsmsx610.amr.corp.intel.com (10.22.229.23) by
+ ORSMSX603.amr.corp.intel.com (10.22.229.16) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.16; Thu, 9 Feb 2023 17:10:51 -0800
+Received: from orsedg603.ED.cps.intel.com (10.7.248.4) by
+ orsmsx610.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.16 via Frontend Transport; Thu, 9 Feb 2023 17:10:51 -0800
+Received: from NAM11-BN8-obe.outbound.protection.outlook.com (104.47.58.168)
+ by edgegateway.intel.com (134.134.137.100) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.16; Thu, 9 Feb 2023 17:10:50 -0800
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=SaSgY1F2tHeAVjuDGNDaJTjBssYs/RFq9Y8fK+zlnp7JZPsIDUdoXeOb9vUNjROcXgBEs/Z/XaSv09S2jgmgOw3/SzO6pcT9AqpBBxAMTAnJxrTSKyuieg9h2WNSUvWp/GfVhTl8kn+q2ocNYu7USipAtTB2n6CfukHG5II1XN83K82Q1SmmiC8qDAlHMfCZzxACxa/58dl9OonLIWg4vRpO05tQp22zNTHy6zf7hOgbBe26aAcVTPiI43IfTBdz+cGRTg0XRZJZjwSg3jJJ7AGsv36cN5RoO8fwmhmxD76ySfkU/GJTRT+d68vSs3efrbh9BUzyrVWRKgFEq4DZ3w==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=gojcScSSsR5ZY86S0gx+tfuTLyKlpv4MWembfSM2i8s=;
+ b=fg8vqFXuq32ksFE0ZuDYFMXsyboepgXVmgG4twd1fJh4rwvL2KVtlcVG577PNIWNPfbphp0ZY8oEqNEgCHCy2du7Uye4hab1fQAGacVmrgKlMpMvjXRewQIloXwyPVuW47EinM60HZj3nlaFB9tkBPaszCi3mJCmoI5bBOl3LFE8+AmNwQxT6eLvOZ7a3yWKsZFvCDghOl58R7vHy7mavZz3kHveThcrjx6Uyb4wIR4cJSkcNAdPkCZIM9mQw9m8WNnaHQNzPtgDoHxbQLR7jdzG9qGMbzg3fCmkTL70mh3/lov5/G6YdkcoOQ2sZ0vYYoi33izt/MFc1umtNh/w9Q==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Received: from MN2PR11MB3999.namprd11.prod.outlook.com (2603:10b6:208:154::32)
+ by LV2PR11MB5974.namprd11.prod.outlook.com (2603:10b6:408:17e::10) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6086.17; Fri, 10 Feb
+ 2023 01:10:47 +0000
+Received: from MN2PR11MB3999.namprd11.prod.outlook.com
+ ([fe80::35af:d7a8:8484:627]) by MN2PR11MB3999.namprd11.prod.outlook.com
+ ([fe80::35af:d7a8:8484:627%5]) with mapi id 15.20.6086.017; Fri, 10 Feb 2023
+ 01:10:45 +0000
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+To: "fan.ni@samsung.com" <fan.ni@samsung.com>
+CC: "Williams, Dan J" <dan.j.williams@intel.com>, "gregory.price@memverge.com"
+	<gregory.price@memverge.com>, "linux-cxl@vger.kernel.org"
+	<linux-cxl@vger.kernel.org>, "Jonathan.Cameron@Huawei.com"
+	<Jonathan.Cameron@Huawei.com>, "dave@stgolabs.net" <dave@stgolabs.net>,
+	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>
 Subject: Re: [PATCH ndctl 3/7] cxl: add core plumbing for creation of ram
  regions
 Thread-Topic: [PATCH ndctl 3/7] cxl: add core plumbing for creation of ram
-	regions
-Thread-Index: AQHZPOuUxRarl1GRc0+x0qZV9Jxmlw==
-Date: Fri, 10 Feb 2023 01:04:09 +0000
-Message-ID: <20230210010409.GB883957@bgt-140510-bm03>
-In-Reply-To: <20230120-vv-volatile-regions-v1-3-b42b21ee8d0b@intel.com>
+ regions
+Thread-Index: AQHZOyjQmol0gElqfEWoXyX0vnCTrq7HYNeAgAAB1YA=
+Date: Fri, 10 Feb 2023 01:10:44 +0000
+Message-ID: <4bfa274f616bc6167439d5a822b60bf4c7121f0e.camel@intel.com>
+References: <20230120-vv-volatile-regions-v1-0-b42b21ee8d0b@intel.com>
+	 <20230120-vv-volatile-regions-v1-3-b42b21ee8d0b@intel.com>
+	 <CGME20230210010415uscas1p1211243c08bc794b314f7b20bdad93267@uscas1p1.samsung.com>
+	 <20230210010409.GB883957@bgt-140510-bm03>
+In-Reply-To: <20230210010409.GB883957@bgt-140510-bm03>
 Accept-Language: en-US
 Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-originating-ip: [105.128.2.176]
-Content-Type: text/plain; charset="us-ascii"
-Content-ID: <7BE46873DDDD9B4C8AF59EEB9C39DE2B@ssi.samsung.com>
-Content-Transfer-Encoding: quoted-printable
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+user-agent: Evolution 3.46.3 (3.46.3-1.fc37) 
+authentication-results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+x-ms-publictraffictype: Email
+x-ms-traffictypediagnostic: MN2PR11MB3999:EE_|LV2PR11MB5974:EE_
+x-ms-office365-filtering-correlation-id: a93bf7d9-b7c8-4c8e-5a61-08db0b03a2cb
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: 5D1Lp6JDAJZtYHPacLymRZe9xmai043lGx4eXqGdma/yGxRiBgrXjuVbUGeB24tNJVBzhlOYNEzUe95T/scG0RTs3khiutqOPIa3cvxi3Fln2rL9YfbIxtk/d0agThz/1Fs6We4uDEmWWFrTLqVpFchMh40el8kZ9/Hzjz4IAdL/7RoJPfV9mY9GuE88BauhYbsQu0hVDKP7/gS/Pn/hT++2M8aLpq0yWZuR3EhNAVMTMxMwoLw6SQ1/68LHmE8DiBphKqsAnv4yfPnZw2gcawejNcot0L0IeXjkflLB7Wo+gYVDG6mHJDSbp+b77PLAeBrr8RJ2XJINomM7wYGueNWqAN6NEbusIjxpPPSMkNxb7N1lGhA1/i3PCh4P6YTuKPAIpTGFnYcgaHZ3JN/82strxidu6m6zPFZigqHebJl82P9qjdnWARccCTxjissYjGySoKVTuic6PXkhRGdfagqFc2qa9mDY1P01WlrFa4z/jOnGPAz5KQz/6Aduj7bFJHqpEVq2X7YmXjEZJQqsOvINviDeqj/5nREzQ3yqjnmObP5+HaL/kG6DeRufOVc4na1ryrxlJAu79VCGmixDDaYqXsg1Uk+ZdoClBGEXnFE+brlaBUHIhpiQJ0zb/k78UNcEMjckK9rqV80M28w3fgY2hnPDKZNuymWo5mSYQvm4/7ysuwwJcOovsNbGpLJ3QYMUppMRg8Fh15IlDEO7ww==
+x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MN2PR11MB3999.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230025)(346002)(136003)(366004)(39860400002)(396003)(376002)(451199018)(122000001)(82960400001)(38100700002)(8936002)(6512007)(186003)(26005)(5660300002)(6486002)(2616005)(36756003)(4744005)(38070700005)(71200400001)(4326008)(478600001)(6506007)(76116006)(66946007)(66556008)(91956017)(64756008)(316002)(6916009)(8676002)(66476007)(86362001)(66446008)(54906003)(2906002)(41300700001);DIR:OUT;SFP:1102;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0: =?utf-8?B?WGZpcVFXWTFsdlNyQ0V3dGlKSlFBVHptYzFCVk9hSytvWFlxMGpSQUNsNENI?=
+ =?utf-8?B?OWM4RlI4aFlQTThCTmVyUm9CdVZGN0IwVmVUY3VUYlhrYVZBT09kbEs1N3VO?=
+ =?utf-8?B?RDNidHAvWmxZb3FlczRLcFdtaVZCb0JWWVcreC9sekFFd2hiS1gwaHVTVUJT?=
+ =?utf-8?B?elU3YUVSZWRtU25ISEJXWTEzK1F6OElZVzhadDNqK1lMcEU1Ky96ajdReWwv?=
+ =?utf-8?B?U1cvYWxKenppaUlIMlM3QTFnSlB3c0I2TkZSVWpKcGEzeERndDFORzZ4aVRS?=
+ =?utf-8?B?V25xWk4zUzJOZkdjNFMzMDY2dVVjQmN1V2JkN2J1Nkh6Vm5lYUNZOVNMbzla?=
+ =?utf-8?B?ZmlkNjQ0Ung5ZzRZQ0p1VGhrVk83dWd0ZGVwc25sN2tSVHhpRHptckNNa1hv?=
+ =?utf-8?B?UElYdy9VbTZkMlgyUWVCYTYvbjM5MUZSOGUzZGZvQ2s3cFNSeUs3dkwxemox?=
+ =?utf-8?B?UlZVbjR0RlJNUHFoMkRFNzdiL1pHb1hhZndDRnJ4d0ZYOXBEclhVeHNmRFhM?=
+ =?utf-8?B?Qm9ZTkt6cUUzNjhtL0dnUnN5SHRCODFmVXVmQ1RjZXVZNHpBNWQwVWZTc1l3?=
+ =?utf-8?B?UlIzSVZlaEJ2TVZtcmtFYnRzY2V2ZVFwc3F6N3p5NDVieXhaaGFVc25UNkg4?=
+ =?utf-8?B?RzZndGxxcWdMd2o3bEZQSHpKMVVtdzN4eFFoaWlwTkR4NWZidnFlV0hBUnBn?=
+ =?utf-8?B?L3JwbmZzOGJ0MjVwWktxcHdKL1cyS1l1L1N2S05Cak54cGhOSUZDTmIvM2NG?=
+ =?utf-8?B?eWJVanJ4cDd6dlpYUTlyczR6ZGRPaWxMWWJiT0ljYnlZZU13WU95S1Ywalpn?=
+ =?utf-8?B?KzAwRyt5d1YyZHlYYU03WjJnQ29MZzhyd2RBQXRNdnZ0YWQ2U0c4UlNPc29C?=
+ =?utf-8?B?VDVyUEdIZ1VWMnpGWkk0eVdCMC9qODZhU2tvMzNtV2U5b0lzQWwxNVVBTjRi?=
+ =?utf-8?B?M0FYWWxGdFk4MHllak5OTlVsRkZzS0orUG5oNVFFMFh6bUN2MkprWVJ5YitQ?=
+ =?utf-8?B?ZG84K1FHcVNiWTRwSm1rTkUybjdRNlNXQitIS0dGN25qbWxqQWM1UHU4UlFu?=
+ =?utf-8?B?ZEhrQmpNUWNGM3hlQ2NnWjA4ZHh2VTdlVjQ5dE9vUmJTdVZIVnNQTHpZL3hD?=
+ =?utf-8?B?SHpwYzgvVndnU3E2UzUrdSt6M29TNFVLcE1OWHR3bUNENDd4VHJQSFhMa3dq?=
+ =?utf-8?B?dlFhNlJndm5ITVd5aXAwdjNSckJOcnRWdFBsLzExUFcxb0M0NkpBRE85d3Vx?=
+ =?utf-8?B?ZzdmNGN1RHMzcDlVWjhRM0FqK04vcTBiYTFYa2xMbG9KWFJYaEZoZDJFaXVC?=
+ =?utf-8?B?WWpDc1k4NHRmTWNKRTFqTlFyTWx3TlZpWkYyL1NTdXVFWU5UQVEzK3NkSm02?=
+ =?utf-8?B?WWluUTB2WWxVVHEyQ1cyS0h1a25NUDhOTS9CWk5DUVY4TlBjWUhTdlFDemFI?=
+ =?utf-8?B?SDk5b1RpZGdtMklyZ0Z1K25IdGtXb1JUWVJRQzBCMnNlQVA4TURJVXM3ZzBE?=
+ =?utf-8?B?OU8wMWtvM3pKSnBBY2FhbC9pOXVGc3o5WnRuRDYrd2tkaGlvRmFkc2FzVFkv?=
+ =?utf-8?B?NVM1SmFlN0lsWlNENi9oUkQ4MzhoYUJpdjljSjFTL2J1cEtvdE4zSGtJdVpT?=
+ =?utf-8?B?cnZaVy9TN0NSVFlpVGM3cFNEMmxnbUw0TzZWWGY4aG9lRnhDS0NGbFFUOGc1?=
+ =?utf-8?B?cGpzODRldmhkbVZqYXlneDFaWUt4ZVp4Mlltb2lvODZaVlZqSGdiRk84ZHFP?=
+ =?utf-8?B?aFdUaFJrRFZqL3VxaU03YWtQckxOc0t6elE2dFJmcGJVek96bDNyb2RCWDht?=
+ =?utf-8?B?eFYrb0FraGhodEdqT1AyOEFvMVQ2dmNCOVpFLzdTYzhpaEY3YzkycFNNZjda?=
+ =?utf-8?B?WXhmYkwrcEJFRnFkL21NQW1ISW43eUFWcHEwWkNER2s1K1dJcTY5U0VXbjc2?=
+ =?utf-8?B?a1NyRmxzaUpzV0tvUUVwZHVHTld5NDBCNUhSZE9BUlpoNVZUTmFTYlhCNVhM?=
+ =?utf-8?B?QVJEQmMyK1RrU2V3U2FIRzBONU1ZR2dKV0xNZExBSXpGRlFJeGRnUzRFNkZ0?=
+ =?utf-8?B?a2pyYXNHQ1RBS2pDZ2plRkZXcnVaK3ExcC9ZZlZqcFY5TDNZT1dsZitSQnla?=
+ =?utf-8?B?bHVmZUpLeSt5Z3p4dVNVbFl2TWM0eEFRSUc2aXh4MGlZV09nbGVWaG9yY1d0?=
+ =?utf-8?B?WGc9PQ==?=
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <2F1FFBB5EE79294292F0290119FFADA4@namprd11.prod.outlook.com>
+Content-Transfer-Encoding: base64
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-CFilter-Loop: Reflected
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFlrHKsWRmVeSWpSXmKPExsWy7djX87r8M54mG9zslrCYPvUCo8Xqm2sY
-	LRqaHrFYrFp4jc3i/KxTLBYrf/xhtbg14RiTA7tHy5G3rB6L97xk8nixeSajx8aP/9k9ps6u
-	9/i8SS6ALYrLJiU1J7MstUjfLoEr4+vD46wFE4wrJk94wtzA2KbZxcjJISFgIjH1VQtbFyMX
-	h5DASkaJWZuXsEM4rUwSZ1b9YIapenhmHzNEYi2jxPy7T1khnI+MEg/WPWCCcJYySlz69I0J
-	pIVNQFFiX9d2NhBbREBbYsKyD2AdzAILmCTmf/rICJIQFgiW+DxxPiNEUYjEm/9P2SFsPYmO
-	21fA4iwCqhJb77wEG8QrYCpxrfMZC4jNKeAuseHnJjCbUUBM4vupNWCLmQXEJW49mc8Ecbeg
-	xKLZe6B+EJP4t+shG4StKHH/+0t2iHodiQW7PwHFOYBsO4m93xwhwtoSyxa+ZoZYKyhxcuYT
-	FohWSYmDK25A2Q84JBZ2R0LYLhKtk59BrZWWmL7mMgvISAmBZIlVH7kgwjkS85dsgWq1llj4
-	Zz3TBEaVWUiOnoXkoFkIB81CctAsJActYGRdxSheWlycm55abJyXWq5XnJhbXJqXrpecn7uJ
-	EZikTv87XLCD8datj3qHGJk4GA8xSnAwK4nwfp/4OFmINyWxsiq1KD++qDQntfgQozQHi5I4
-	r6HtyWQhgfTEktTs1NSC1CKYLBMHp1QDU+PKI0Uv6iz8Pq2ocNvGxPLazE84cMtdjY+TE46e
-	F2i6WVCy7aXnXbOy4qi4/XtMTuUe4g6YuqK3xV2Lxe31acv4k6LaTzZNMeT1E9fV+P0ickvG
-	3f3pnCfV1rWqTF+Z3uRq9k2f+/Pizeu+NEsIfGP7dUFSpMbuWd/S95MLbSye3Wa3PH5z465K
-	J0ONdaEv1b5rS3sLfBdh3dlfque+wMZ+Bu/5kADB+YraP7vPLH2saGEplT81dVaYfHnYWbu+
-	tY/M9mY3OvwxkVS4du7a3YVvDgS7Kh1xr69d78PKLqt/s+zhhQm6QVHMnE9OqAr26eXdvLNq
-	+q6F5uzZcqUcj9+sCLtz5kBHjWGX/ecgJZbijERDLeai4kQABZtB+cEDAAA=
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFjrLIsWRmVeSWpSXmKPExsWS2cA0UZd/xtNkg+k/WC2mT73AaLH65hpG
-	i4amRywWqxZeY7M4P+sUi8XKH39YLW5NOMbkwO7RcuQtq8fiPS+ZPF5snsnosfHjf3aPqbPr
-	PT5vkgtgi+KySUnNySxLLdK3S+DK+PrwOGvBBOOKyROeMDcwtml2MXJySAiYSDw8s4+5i5GL
-	Q0hgNaPEok8zWSCcj4wSbXPesUE4Sxklmm7dYgRpYRNQlNjXtZ0NxBYR0JaYsOwDK0gRs8A8
-	JokL566BFQkLBEt8njgfyOYAKgqR2PbfCKJeT6Lj9hWwEhYBVYmtd16CzeEVMJW41vkManMz
-	o8TGzodgCU4Bd4kNPzexgNiMAmIS30+tYQKxmQXEJW49mc8E8YOAxJI955khbFGJl4//sULY
-	ihL3v79kh6jXkViw+xMbyD3MAnYSe785QoS1JZYtfM0McYOgxMmZT1ggWiUlDq64wTKBUWIW
-	km2zkEyahTBpFpJJs5BMWsDIuopRvLS4ODe9otg4L7Vcrzgxt7g0L10vOT93EyMwxk//Oxyz
-	g/HerY96hxiZOBgPMUpwMCuJ8H6f+DhZiDclsbIqtSg/vqg0J7X4EKM0B4uSOK9H7MR4IYH0
-	xJLU7NTUgtQimCwTB6dUA5O5S9LbF2cSi3qYikNa2LVM1jAKcQa8XsB3WDRAji8zteNg1D2Z
-	rj8HNtgnui7K3ZmwdmN/36e877IOrSVp4oda2MpVnoeqL9yTEBPpz3ufPWJD073q2VPZTBbv
-	eDpXLn9X/5dG63nTpNS89E5Jt3f933ja+M2BWR9/O77QFXy2Oi3ml5Rrw2238v9KG/9Etq/S
-	uRWT72Zb3v0gb1rn/lSDmJuXP/m81WO6+j7uz85M12ef+/LNOq+GuDHqvdwWsKwubNXH6rUq
-	pyuNQ6LMe28Vu3rM/CWw6LTp9V+l94If2VlM55Ur8RLdIJP/Z4tvlJ+ydhzfzdxPgV7cP4qu
-	HWh+xRihe2TNzJLOdQGRSizFGYmGWsxFxYkAbEgRoGADAAA=
-X-CMS-MailID: 20230210010415uscas1p1211243c08bc794b314f7b20bdad93267
-CMS-TYPE: 301P
-X-CMS-RootMailID: 20230210010415uscas1p1211243c08bc794b314f7b20bdad93267
-References: <20230120-vv-volatile-regions-v1-0-b42b21ee8d0b@intel.com>
-	<20230120-vv-volatile-regions-v1-3-b42b21ee8d0b@intel.com>
-	<CGME20230210010415uscas1p1211243c08bc794b314f7b20bdad93267@uscas1p1.samsung.com>
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: MN2PR11MB3999.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: a93bf7d9-b7c8-4c8e-5a61-08db0b03a2cb
+X-MS-Exchange-CrossTenant-originalarrivaltime: 10 Feb 2023 01:10:44.6475
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: RZNg4ogOR3YoFpDMtjeuIc9vJFR299Mtz66L9bd/TzzvdbMlDJ5OO0T27dnP8LjDAqafTKDwYwe6wJ7JWoea4ze2nJOJobR6DcymwwpNehc=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: LV2PR11MB5974
+X-OriginatorOrg: intel.com
 
-On Tue, Feb 07, 2023 at 12:16:29PM -0700, Vishal Verma wrote:
-> Add support in libcxl to create ram regions through a new
-> cxl_decoder_create_ram_region() API, which works similarly to its pmem
-> sibling.
->=20
-> Enable ram region creation in cxl-cli, with the only differences from
-> the pmem flow being:
->   1/ Use the above create_ram_region API, and
->   2/ Elide setting the UUID, since ram regions don't have one
->=20
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
-
-Reviewed-by: Fan Ni <fan.ni@samsung.com>
-
-One minor thing, there exists some code format inconsistency in
-cxl/region.c file (not introduced by the patch). For exmaple,
-the "switch" sometimes is followed with a space but sometime not.
-
-> ---
->  Documentation/cxl/cxl-create-region.txt |  3 ++-
->  cxl/lib/libcxl.c                        | 22 +++++++++++++++++++---
->  cxl/libcxl.h                            |  1 +
->  cxl/region.c                            | 32 +++++++++++++++++++++++++++=
-+----
->  cxl/lib/libcxl.sym                      |  1 +
->  5 files changed, 51 insertions(+), 8 deletions(-)
->=20
-> diff --git a/Documentation/cxl/cxl-create-region.txt b/Documentation/cxl/=
-cxl-create-region.txt
-> index 286779e..ada0e52 100644
-> --- a/Documentation/cxl/cxl-create-region.txt
-> +++ b/Documentation/cxl/cxl-create-region.txt
-> @@ -80,7 +80,8 @@ include::bus-option.txt[]
->  -U::
->  --uuid=3D::
->  	Specify a UUID for the new region. This shouldn't usually need to be
-> -	specified, as one will be generated by default.
-> +	specified, as one will be generated by default. Only applicable to
-> +	pmem regions.
-> =20
->  -w::
->  --ways=3D::
-> diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
-> index 83f628b..c5b9b18 100644
-> --- a/cxl/lib/libcxl.c
-> +++ b/cxl/lib/libcxl.c
-> @@ -2234,8 +2234,8 @@ cxl_decoder_get_region(struct cxl_decoder *decoder)
->  	return NULL;
->  }
-> =20
-> -CXL_EXPORT struct cxl_region *
-> -cxl_decoder_create_pmem_region(struct cxl_decoder *decoder)
-> +static struct cxl_region *cxl_decoder_create_region(struct cxl_decoder *=
-decoder,
-> +						    enum cxl_decoder_mode mode)
->  {
->  	struct cxl_ctx *ctx =3D cxl_decoder_get_ctx(decoder);
->  	char *path =3D decoder->dev_buf;
-> @@ -2243,7 +2243,11 @@ cxl_decoder_create_pmem_region(struct cxl_decoder =
-*decoder)
->  	struct cxl_region *region;
->  	int rc;
-> =20
-> -	sprintf(path, "%s/create_pmem_region", decoder->dev_path);
-> +	if (mode =3D=3D CXL_DECODER_MODE_PMEM)
-> +		sprintf(path, "%s/create_pmem_region", decoder->dev_path);
-> +	else if (mode =3D=3D CXL_DECODER_MODE_RAM)
-> +		sprintf(path, "%s/create_ram_region", decoder->dev_path);
-> +
->  	rc =3D sysfs_read_attr(ctx, path, buf);
->  	if (rc < 0) {
->  		err(ctx, "failed to read new region name: %s\n",
-> @@ -2282,6 +2286,18 @@ cxl_decoder_create_pmem_region(struct cxl_decoder =
-*decoder)
->  	return region;
->  }
-> =20
-> +CXL_EXPORT struct cxl_region *
-> +cxl_decoder_create_pmem_region(struct cxl_decoder *decoder)
-> +{
-> +	return cxl_decoder_create_region(decoder, CXL_DECODER_MODE_PMEM);
-> +}
-> +
-> +CXL_EXPORT struct cxl_region *
-> +cxl_decoder_create_ram_region(struct cxl_decoder *decoder)
-> +{
-> +	return cxl_decoder_create_region(decoder, CXL_DECODER_MODE_RAM);
-> +}
-> +
->  CXL_EXPORT int cxl_decoder_get_nr_targets(struct cxl_decoder *decoder)
->  {
->  	return decoder->nr_targets;
-> diff --git a/cxl/libcxl.h b/cxl/libcxl.h
-> index e6cca11..904156c 100644
-> --- a/cxl/libcxl.h
-> +++ b/cxl/libcxl.h
-> @@ -213,6 +213,7 @@ cxl_decoder_get_interleave_granularity(struct cxl_dec=
-oder *decoder);
->  unsigned int cxl_decoder_get_interleave_ways(struct cxl_decoder *decoder=
-);
->  struct cxl_region *cxl_decoder_get_region(struct cxl_decoder *decoder);
->  struct cxl_region *cxl_decoder_create_pmem_region(struct cxl_decoder *de=
-coder);
-> +struct cxl_region *cxl_decoder_create_ram_region(struct cxl_decoder *dec=
-oder);
->  struct cxl_decoder *cxl_decoder_get_by_name(struct cxl_ctx *ctx,
->  					    const char *ident);
->  struct cxl_memdev *cxl_decoder_get_memdev(struct cxl_decoder *decoder);
-> diff --git a/cxl/region.c b/cxl/region.c
-> index 38aa142..0945a14 100644
-> --- a/cxl/region.c
-> +++ b/cxl/region.c
-> @@ -380,7 +380,22 @@ static void collect_minsize(struct cxl_ctx *ctx, str=
-uct parsed_params *p)
->  		struct json_object *jobj =3D
->  			json_object_array_get_idx(p->memdevs, i);
->  		struct cxl_memdev *memdev =3D json_object_get_userdata(jobj);
-> -		u64 size =3D cxl_memdev_get_pmem_size(memdev);
-> +		u64 size;
-> +
-> +		switch(p->mode) {
-> +		case CXL_DECODER_MODE_RAM:
-> +			size =3D cxl_memdev_get_ram_size(memdev);
-> +			break;
-> +		case CXL_DECODER_MODE_PMEM:
-> +			size =3D cxl_memdev_get_pmem_size(memdev);
-> +			break;
-> +		default:
-> +			/*
-> +			 * This will 'poison' ep_min_size with a 0, and
-> +			 * subsequently cause the region creation to fail.
-> +			 */
-> +			size =3D 0;
-> +		}
-> =20
->  		if (!p->ep_min_size)
->  			p->ep_min_size =3D size;
-> @@ -589,8 +604,15 @@ static int create_region(struct cxl_ctx *ctx, int *c=
-ount,
->  				param.root_decoder);
->  			return -ENXIO;
->  		}
-> +	} else if (p->mode =3D=3D CXL_DECODER_MODE_RAM) {
-> +		region =3D cxl_decoder_create_ram_region(p->root_decoder);
-> +		if (!region) {
-> +			log_err(&rl, "failed to create region under %s\n",
-> +				param.root_decoder);
-> +			return -ENXIO;
-> +		}
->  	} else {
-> -		log_err(&rl, "region type '%s' not supported yet\n",
-> +		log_err(&rl, "region type '%s' is not supported\n",
->  			param.type);
->  		return -EOPNOTSUPP;
->  	}
-> @@ -602,10 +624,12 @@ static int create_region(struct cxl_ctx *ctx, int *=
-count,
->  		goto out;
->  	granularity =3D rc;
-> =20
-> -	uuid_generate(uuid);
->  	try(cxl_region, set_interleave_granularity, region, granularity);
->  	try(cxl_region, set_interleave_ways, region, p->ways);
-> -	try(cxl_region, set_uuid, region, uuid);
-> +	if (p->mode =3D=3D CXL_DECODER_MODE_PMEM) {
-> +		uuid_generate(uuid);
-> +		try(cxl_region, set_uuid, region, uuid);
-> +	}
->  	try(cxl_region, set_size, region, size);
-> =20
->  	for (i =3D 0; i < p->ways; i++) {
-> diff --git a/cxl/lib/libcxl.sym b/cxl/lib/libcxl.sym
-> index 9832d09..84f60ad 100644
-> --- a/cxl/lib/libcxl.sym
-> +++ b/cxl/lib/libcxl.sym
-> @@ -246,4 +246,5 @@ global:
->  LIBCXL_5 {
->  global:
->  	cxl_region_get_mode;
-> +	cxl_decoder_create_ram_region;
->  } LIBCXL_4;
->=20
-> --=20
-> 2.39.1
->=20
-> =
+T24gRnJpLCAyMDIzLTAyLTEwIGF0IDAxOjA0ICswMDAwLCBGYW4gTmkgd3JvdGU6DQo+IE9uIFR1
+ZSwgRmViIDA3LCAyMDIzIGF0IDEyOjE2OjI5UE0gLTA3MDAsIFZpc2hhbCBWZXJtYSB3cm90ZToN
+Cj4gPiBBZGQgc3VwcG9ydCBpbiBsaWJjeGwgdG8gY3JlYXRlIHJhbSByZWdpb25zIHRocm91Z2gg
+YSBuZXcNCj4gPiBjeGxfZGVjb2Rlcl9jcmVhdGVfcmFtX3JlZ2lvbigpIEFQSSwgd2hpY2ggd29y
+a3Mgc2ltaWxhcmx5IHRvIGl0cyBwbWVtDQo+ID4gc2libGluZy4NCj4gPiANCj4gPiBFbmFibGUg
+cmFtIHJlZ2lvbiBjcmVhdGlvbiBpbiBjeGwtY2xpLCB3aXRoIHRoZSBvbmx5IGRpZmZlcmVuY2Vz
+IGZyb20NCj4gPiB0aGUgcG1lbSBmbG93IGJlaW5nOg0KPiA+IMKgIDEvIFVzZSB0aGUgYWJvdmUg
+Y3JlYXRlX3JhbV9yZWdpb24gQVBJLCBhbmQNCj4gPiDCoCAyLyBFbGlkZSBzZXR0aW5nIHRoZSBV
+VUlELCBzaW5jZSByYW0gcmVnaW9ucyBkb24ndCBoYXZlIG9uZQ0KPiA+IA0KPiA+IENjOiBEYW4g
+V2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBW
+aXNoYWwgVmVybWEgPHZpc2hhbC5sLnZlcm1hQGludGVsLmNvbT4NCj4gDQo+IFJldmlld2VkLWJ5
+OiBGYW4gTmkgPGZhbi5uaUBzYW1zdW5nLmNvbT4NCg0KSGkgRmFuLA0KDQpXb3VsZCB5b3UgbWlu
+ZCByZXNwb25kaW5nIG9uIHYyIG9mIHRoaXMgc2VyaWVzIC0gYjQgZG9lc24ndCB3YW50IHRvDQpw
+aWNrIHVwIHRyYWlsZXJzIGZyb20gdjEgbm93IHRoYXQgdjIgaGFzIGJlZW4gc2VudCBvdXQuDQoN
+Cj4gDQo+IE9uZSBtaW5vciB0aGluZywgdGhlcmUgZXhpc3RzIHNvbWUgY29kZSBmb3JtYXQgaW5j
+b25zaXN0ZW5jeSBpbg0KPiBjeGwvcmVnaW9uLmMgZmlsZSAobm90IGludHJvZHVjZWQgYnkgdGhl
+IHBhdGNoKS4gRm9yIGV4bWFwbGUsDQo+IHRoZSAic3dpdGNoIiBzb21ldGltZXMgaXMgZm9sbG93
+ZWQgd2l0aCBhIHNwYWNlIGJ1dCBzb21ldGltZSBub3QuDQoNCkFoIHRoYW5rcywgSSdsbCB0YWtl
+IGEgbG9vayBhbmQgc2VuZCBzZXBhcmF0ZSBjbGVhbnVwIHBhdGNoZXMuDQoNCg0KDQo=
