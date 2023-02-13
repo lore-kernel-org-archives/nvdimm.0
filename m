@@ -1,125 +1,197 @@
-Received: from mailout2.w2.samsung.com (mailout2.w2.samsung.com [211.189.100.12])
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C33DAD52
-	for <nvdimm@lists.linux.dev>; Mon, 13 Feb 2023 21:39:22 +0000 (UTC)
-Received: from uscas1p1.samsung.com (unknown [182.198.245.206])
-	by mailout2.w2.samsung.com (KnoxPortal) with ESMTP id 20230213213916usoutp028905d3ea545478a2fc181ad1eab10959~DgB7tH-8t0679806798usoutp02_;
-	Mon, 13 Feb 2023 21:39:16 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout2.w2.samsung.com 20230213213916usoutp028905d3ea545478a2fc181ad1eab10959~DgB7tH-8t0679806798usoutp02_
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-	s=mail20170921; t=1676324356;
-	bh=apffgPHQo2OKd2kN82/EeOwUBe+9ozPjYP2UmTtQ2b4=;
-	h=From:To:CC:Subject:Date:References:From;
-	b=Je4iQm/G5l7jl8usGRHNmcFGrggcTAKAKTKTN2r5BeKtUAQmcxv6H9KIP3IhqWdn2
-	 99lnHHw8f22ZIBOu28Hk3FWpZ2hfbW3sWVlu85QS7FwkZIrgYVJmT8GYF92jZT5Peg
-	 y12KBY+WBlAicKeD3uNNNeNHDzWMI+NeO7yVIs0I=
-Received: from ussmges1new.samsung.com (u109.gpu85.samsung.co.kr
-	[203.254.195.109]) by uscas1p2.samsung.com (KnoxPortal) with ESMTP id
-	20230213213916uscas1p250505b5d7452cfe6af763a6ed3d84ba3~DgB7mUo8Z1155611556uscas1p2l;
-	Mon, 13 Feb 2023 21:39:16 +0000 (GMT)
-Received: from uscas1p2.samsung.com ( [182.198.245.207]) by
-	ussmges1new.samsung.com (USCPEMTA) with SMTP id 66.58.06976.40EAAE36; Mon,
-	13 Feb 2023 16:39:16 -0500 (EST)
-Received: from ussmgxs1new.samsung.com (u89.gpu85.samsung.co.kr
-	[203.254.195.89]) by uscas1p2.samsung.com (KnoxPortal) with ESMTP id
-	20230213213916uscas1p2ee91a53c14ec5ddcb31322212af6cdaa~DgB7NCbTl1771417714uscas1p2H;
-	Mon, 13 Feb 2023 21:39:16 +0000 (GMT)
-X-AuditID: cbfec36d-d99ff70000011b40-40-63eaae04beac
-Received: from SSI-EX1.ssi.samsung.com ( [105.128.2.145]) by
-	ussmgxs1new.samsung.com (USCPEXMTA) with SMTP id 6F.9B.11378.30EAAE36; Mon,
-	13 Feb 2023 16:39:15 -0500 (EST)
-Received: from SSI-EX3.ssi.samsung.com (105.128.2.228) by
-	SSI-EX1.ssi.samsung.com (105.128.2.226) with Microsoft SMTP Server
-	(version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
-	15.1.2375.24; Mon, 13 Feb 2023 13:39:15 -0800
-Received: from SSI-EX3.ssi.samsung.com ([105.128.5.228]) by
-	SSI-EX3.ssi.samsung.com ([105.128.5.228]) with mapi id 15.01.2375.024; Mon,
-	13 Feb 2023 13:39:15 -0800
-From: Adam Manzanares <a.manzanares@samsung.com>
-To: "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
-	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>
-CC: Fan Ni <fan.ni@samsung.com>, "dave@stgolabs.net" <dave@stgolabs.net>,
-	"vishal.l.verma@intel.com" <vishal.l.verma@intel.com>, Adam Manzanares
-	<a.manzanares@samsung.com>
-Subject: [ndctl PATCH] daxctl: Skip over memory failure node status
-Thread-Topic: [ndctl PATCH] daxctl: Skip over memory failure node status
-Thread-Index: AQHZP/OehnE/B2wTYkm5lOWEJwqLyw==
-Date: Mon, 13 Feb 2023 21:39:15 +0000
-Message-ID: <20230213213853.436788-1-a.manzanares@samsung.com>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-originating-ip: [105.128.2.176]
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFA042F21
+	for <nvdimm@lists.linux.dev>; Mon, 13 Feb 2023 23:10:36 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1676329837; x=1707865837;
+  h=date:from:to:cc:subject:message-id:references:
+   content-transfer-encoding:in-reply-to:mime-version;
+  bh=eo79m/QB0L/UD9nbfsS1kZrA8KJUgQ/mwa4C94AL+QE=;
+  b=OG/tN0iB4fmroXolx99R9cj5T73m4/OK55kJuycUnQOB2V7bj0VD6fuO
+   lukl86HB1c26MwOWUU56YaL34+55jJzOKv595xsF2CFyUAVsjH6n3RoI+
+   qI8MyTPs8w8fX53W2si7Ny4X1710feXkSsflycduGKBmEaz7uH/HoqFFi
+   vmxLnsdASLJejgkbVBL7CVg1YSjWLGlViyJlFEctPnWvqMwDeZal8elpa
+   v4nnp52HkGyLYgfyB1u2RnKGbp5kDAdmjanChxsXPJdmqrTr44GDk4uOS
+   JDbRUeLD1IjWiWr9y7kcmFgtm5aFbWoHnB1qNIgBIXJFy+/Dpnq3D3qNA
+   A==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10620"; a="314667433"
+X-IronPort-AV: E=Sophos;i="5.97,294,1669104000"; 
+   d="scan'208";a="314667433"
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Feb 2023 15:10:35 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6500,9779,10620"; a="811783986"
+X-IronPort-AV: E=Sophos;i="5.97,294,1669104000"; 
+   d="scan'208";a="811783986"
+Received: from orsmsx602.amr.corp.intel.com ([10.22.229.15])
+  by fmsmga001.fm.intel.com with ESMTP; 13 Feb 2023 15:10:35 -0800
+Received: from orsmsx611.amr.corp.intel.com (10.22.229.24) by
+ ORSMSX602.amr.corp.intel.com (10.22.229.15) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.16; Mon, 13 Feb 2023 15:10:34 -0800
+Received: from ORSEDG602.ED.cps.intel.com (10.7.248.7) by
+ orsmsx611.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.16 via Frontend Transport; Mon, 13 Feb 2023 15:10:34 -0800
+Received: from NAM02-BN1-obe.outbound.protection.outlook.com (104.47.51.48) by
+ edgegateway.intel.com (134.134.137.103) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.16; Mon, 13 Feb 2023 15:10:34 -0800
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=QVMJLC8/lU9Shlz3nA8XYmm8CBg4DkS9r85zVQgCGZhi9M0ihJ+MWIQrtX0CI9iCiUuEoyETys5D1koBjdjSSTxl/sRFlCYjqWn9mZtVYnweXMAz0P9Bw/IwV/lVBh1roPIAucfsJu+wuu3Gro+SE3gaDHshBNNHawKQigTQAnzYNr1m/6BsG0t0WWN+7o2AsyFzGNr68xvGH6FCZYH6X9jSnepkmdAVgf3sjUrVTCTKZ8pjUNNVWo5VwwQ7xVQokpjtRp35gqrbi56XwCMb6c6WkKlHIQymIBPORKxc2cdnID9ZQRFGf8PdGhElJg1//RPa2RjMNFiaGYd8q7m+nQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=cfPZZ2DIPcsDz0fN9ZrvpHv1Y/572ZDvMtrhmUIbJEw=;
+ b=VnOcjtW12jb+IeFyWXHinhy0X67k2USJVo1yaHBzmS2wws7IKbDjZcQ+7GrWShTVOqf7ao3f0mNHusK3DIXkJM1JOpDtHTuXCPIhqaeoF4Y9JYHH+IT+Tpb0Z6twFUJl3299qTcJ4Absga6v8mIrlVFYWjM7UV4mw9pJ0YenfJmuNTdrKSjEfm+5b0uEYLIx9zcHDMDj8qXtHpgs6ZyHZdHWi1wM8PTFlL5xKuXGBmx+CTVGc3217bT1LgM2NuYo3I1zGEP3PA/DRL8zVdSsibYddXgzQzvjoN8JAviiCsOEybp4bHm+w4Lp4TMHppYfWGTplHRMxuxw0YEtn3CXsA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from PH8PR11MB8107.namprd11.prod.outlook.com (2603:10b6:510:256::6)
+ by IA1PR11MB6148.namprd11.prod.outlook.com (2603:10b6:208:3ec::20) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6086.24; Mon, 13 Feb
+ 2023 23:10:32 +0000
+Received: from PH8PR11MB8107.namprd11.prod.outlook.com
+ ([fe80::421b:865b:f356:7dfc]) by PH8PR11MB8107.namprd11.prod.outlook.com
+ ([fe80::421b:865b:f356:7dfc%6]) with mapi id 15.20.6086.023; Mon, 13 Feb 2023
+ 23:10:32 +0000
+Date: Mon, 13 Feb 2023 15:10:29 -0800
+From: Dan Williams <dan.j.williams@intel.com>
+To: Brice Goglin <Brice.Goglin@inria.fr>, Dan Williams
+	<dan.j.williams@intel.com>, Jonathan Cameron <Jonathan.Cameron@huawei.com>
+CC: "Verma, Vishal L" <vishal.l.verma@intel.com>, "linux-cxl@vger.kernel.org"
+	<linux-cxl@vger.kernel.org>, "gregory.price@memverge.com"
+	<gregory.price@memverge.com>, "dave@stgolabs.net" <dave@stgolabs.net>,
+	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, "Weiny, Ira"
+	<ira.weiny@intel.com>
+Subject: Re: [PATCH ndctl v2 0/7] cxl: add support for listing and creating
+ volatile regions
+Message-ID: <63eac36548e93_2739242943d@dwillia2-xfh.jf.intel.com.notmuch>
+References: <20230120-vv-volatile-regions-v2-0-4ea6253000e5@intel.com>
+ <e885b2a7-0405-153c-a578-b863a4e00977@inria.fr>
+ <a5e4aff9f300d9b603111983165754b35c89c612.camel@intel.com>
+ <34a03b27-923c-7bb0-d77a-b0fddc535160@inria.fr>
+ <20230210124307.00003be0@Huawei.com>
+ <7e2605a8-cd49-4d6f-9f62-07ff6edd50d8@inria.fr>
+ <63e6f52057bc_36c729483@dwillia2-xfh.jf.intel.com.notmuch>
+ <b7a4b785-10c5-53d9-0f6b-eadd80b94d31@inria.fr>
 Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <b7a4b785-10c5-53d9-0f6b-eadd80b94d31@inria.fr>
+X-ClientProxiedBy: BYAPR08CA0004.namprd08.prod.outlook.com
+ (2603:10b6:a03:100::17) To PH8PR11MB8107.namprd11.prod.outlook.com
+ (2603:10b6:510:256::6)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-CFilter-Loop: Reflected
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFupileLIzCtJLcpLzFFi42LZduzreV2Wda+SDf7PlbJYfXMNo8X5WadY
-	LFb++MNqcWvCMSYHFo/Fe14yebzYPJPRY+rseo/Pm+QCWKK4bFJSczLLUov07RK4Mpas6mYv
-	eMVe0fjlCHsD42a2LkZODgkBE4mPW2+zdzFycQgJrGSUuPx2PiuE08oksf/jBFaYqk+v17NA
-	JNYySqxde5QJJCEk8IlR4u38dIjEMkaJBVOWgs1lEzCQ+H18IzOILSJQIHHozAWwbmaB9YwS
-	7Vd2Ao3l4BAWcJZ4u9wEosZDYlpjAyuErSdx4PUhFhCbRUBVYvmRVWBzeAXsJD58bARbzCgg
-	JvH91Bowm1lAXOLWk/lMEJcKSiyavYcZwhaT+LfrIdSfihL3v79kh6jXk7gxdQobhK0tsWzh
-	a6j5ghInZz5hgaiXlDi44gbYzRICvRwSK4+sg0q4SFxbfRlqmbTE1etToZblS+xquwJlV0hc
-	fd0NtdhaYuGf9VCH8kn8/fWIEeR3CQFeiY42oQmMSrOQvDALyXmzkJw3C8l5CxhZVjGKlxYX
-	56anFhvmpZbrFSfmFpfmpesl5+duYgQml9P/DufuYNxx66PeIUYmDsZDjBIczEoivMJPXyQL
-	8aYkVlalFuXHF5XmpBYfYpTmYFES5zW0PZksJJCeWJKanZpakFoEk2Xi4JRqYJqSP0fht5nx
-	DY0JZdcPnva5vjvPXdvYbf9SXVeGA2zLT68Nqd3Wm5dw0LTV+eL7QJ7lxXtLJ+hLrMiaXrJF
-	VL/rzqc1fo73uWZnux1LOcnw8o27e+L7n0zT3ulZJgRZZF7Im5VwJv3D6kNcpf4nW/t/Twq0
-	frR9+1kXjQ8L9IKeL1G37NPZUxtYf1nqhGuNhr6R091HwfNK5/z8/j0s3ejpwbnNWzMn35+5
-	V5dRbp9A0OyZd3+pnDNde9elwMx/4txQKdnCZ7OPZGWU7Zlz46/pisxqMYmVQXsXK00+/FTh
-	zA1NoacbBRkuTF90etbs1q6IGbu5G0veOmYfMJDcOvGZVVXFbufEm+fs/Sri2CcrsRRnJBpq
-	MRcVJwIAmpf9sZ0DAAA=
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFmphkeLIzCtJLcpLzFFi42LJbGCaqMu87lWywcVPVharb65htDg/6xSL
-	xcoff1gtbk04xuTA4rF4z0smjxebZzJ6TJ1d7/F5k1wASxSXTUpqTmZZapG+XQJXxpJV3ewF
-	r9grGr8cYW9g3MzWxcjJISFgIvHp9XqWLkYuDiGB1YwSx1fsZIVwPjFKbJp8iBGkSkhgGaPE
-	obviIDabgIHE7+MbmUFsEYECiUNnLoB1MwusZ5RovwLSzcEhLOAs8Xa5CUSNh8S0xgZWCFtP
-	4sDrQywgNouAqsTyI6vA5vAK2El8+NjIBGIzCohJfD+1BsxmFhCXuPVkPhPEpQISS/acZ4aw
-	RSVePv7HCmErStz//pIdol5P4sbUKWwQtrbEsoWvoeYLSpyc+YQFol5S4uCKGywTGEVnIVkx
-	C0n7LCTts5C0L2BkWcUoXlpcnJteUWyYl1quV5yYW1yal66XnJ+7iREYUaf/HY7cwXj01ke9
-	Q4xMHIyHGCU4mJVEeIWfvkgW4k1JrKxKLcqPLyrNSS0+xCjNwaIkzivkOjFeSCA9sSQ1OzW1
-	ILUIJsvEwSnVwMRnqazhlT/NKmXeNGcHo8fbqirvOGq4TJ6n1Ne1avXRSeKLY1hMbGc4bBfr
-	nLFsV6Puu8qDU5m3Z5XpvfA5znub8+J2I2VVw5cdxjJFbbXtLmv23r1h+0tOft7X1+eKvwqU
-	ZF3W2afIsHiJqVigRC/XLF5ezV3r1n5e59/S9E7+XblF/dRzIo/km2c/qd3+xfXpl/2r3mUe
-	OSDIO8emSFlrWmG3RoDA5755Ctwr63jYPPjdvl7d1Kx2wqfS4M3RV9x3/Nrro8QCbC4LBDOc
-	ynE4scxHwvXnEuZJW7WTfnV3brTbb/bH7vIm/ryOY8LHv1hbxwcKMX48v8Dyq861I7eTzhYV
-	dS01a61iYa4rU2Ipzkg01GIuKk4EAGbb/+kXAwAA
-X-CMS-MailID: 20230213213916uscas1p2ee91a53c14ec5ddcb31322212af6cdaa
-CMS-TYPE: 301P
-X-CMS-RootMailID: 20230213213916uscas1p2ee91a53c14ec5ddcb31322212af6cdaa
-References: <CGME20230213213916uscas1p2ee91a53c14ec5ddcb31322212af6cdaa@uscas1p2.samsung.com>
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: PH8PR11MB8107:EE_|IA1PR11MB6148:EE_
+X-MS-Office365-Filtering-Correlation-Id: aeec71e9-2e88-4f67-8bef-08db0e178104
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: Px9eR83MgVKNd7z3VSAM83c/hsSPXaGBx/UuqkK37o7egjItNQMfxa1Bp3dJT/d5pVEzAWxxAAJgGi+MFvsV3Ur6Zh7oWoYo+3FNmkM2G92NvujngvrazUiTUj57MkIqwf5WPDeIIwFQBJ/uttMrnerg0GQfUiTKILy5Acdjice2HABjc8WJlxNHzcxaXpQxAFb/HxX5suITu+vlWle4KjA1Ndiv2ABVoQ9DkrzWNX1Vdqt/IsOoy7Cc5vUn/+RKR3NzqVTFWupj+FZULb7eKhcivEBsPTQQDQrdiezU1f2EBcilVUXqIowoaa3GABLQhaAp/TH0sOUUWrTqszGrxxD7dvxopha2w+1XrWV9d1yGCNJ+60OZjiUkoOWvEk093s2lFXX8WucmiSFO1rsral9q7Wr3ghq4rRW+wBy8OgCbkJOHZHRhXZJjWbghpfHdzarNAoi0aSGwozsB1Fct1kHnfocA2XH9MkwoX3dzBMpWuiV1lJ2yjX8sGh9zsDXl1MD5zeXVgx+oipvVne+dEh2KGifslkqmWlD7JmKPefYYTNltDba0WT7HTaZe5w+AMwt8/z+bHbL+q2nVyIFItDTeenvN1c9X+E46lycl9A25gjsUn4Y1efnfTqXEd7yuCnYcFsM+YFVRvHZN7gsBXg==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH8PR11MB8107.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230025)(136003)(376002)(366004)(39860400002)(346002)(396003)(451199018)(66556008)(66476007)(82960400001)(41300700001)(6486002)(4326008)(8676002)(5660300002)(8936002)(66946007)(86362001)(66899018)(38100700002)(107886003)(83380400001)(26005)(6666004)(6506007)(9686003)(6512007)(186003)(478600001)(66574015)(54906003)(110136005)(316002)(2906002);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?iso-8859-1?Q?/krjrGXkOErqJzYIxmpmYC7wg0Zc/Uq2C/VhbLXAJS4mOKRlyzy00iq2uO?=
+ =?iso-8859-1?Q?YLnfJ2Gtx0raMQWp4c6/hv+KtKegrGtxWVTLyH6uVGG/aPBYQ/8G/EsSI5?=
+ =?iso-8859-1?Q?VK1kEdpDwPKGMxXPMm2Z01rzoD65XZSUIrFFOjdJG8Ec1LW54J1PGp3+VV?=
+ =?iso-8859-1?Q?Jt6nw5Mc+hwqdhGzskyuqJgR3B3vvMC2Ol+qWOx3/nJOY8tYvnKqUZPC23?=
+ =?iso-8859-1?Q?4GBMCpdHUMm2zL1ygA15saKtiMsXBRMPsY75YLYtno1gANiPor8DaAa6KL?=
+ =?iso-8859-1?Q?uPiwiXuZhdDxTMECQpc13QuWzN1zbnIEGu+V4nFGAdjSbRXqsQpWblKLP3?=
+ =?iso-8859-1?Q?VBhkvz/8BEUSW5nIzIqcMzJaes7cT/jqDu40A6Ovvx5kBycK/ux8LrGAs6?=
+ =?iso-8859-1?Q?GyJRXfO9PXZzaxwRABMcrHWy+GNQR39ZovzadAIBarnAtRfamDHVdFuZMN?=
+ =?iso-8859-1?Q?e7EbTPHLCSA6h7D9Xy3S5btMBqvSlQJQml2UG2M3QAa7dK0X+TkScBTVO5?=
+ =?iso-8859-1?Q?uaawvqIbPMmcI8eG6NXvHqxwszdYDJtfFeD0kMqVvumdu9tzu/yT5X2tYe?=
+ =?iso-8859-1?Q?r/3bpJev0k4hLJ/NtXqR4nEtfjJmHuVgH4O1FhSZo0bxGKI6JgS0n/W0Em?=
+ =?iso-8859-1?Q?FKoWHgLcSns6FcL4GKYExEBCI0aX2LisuRpUGXMrquakDFvfVM+phy3TEW?=
+ =?iso-8859-1?Q?I80cPJRL/5prIOJwL4A8SU8efjfBm3OhqjGmMqyAbyc9efMZuXpNRjbXXg?=
+ =?iso-8859-1?Q?noxn+3mX4Bh9Eo5H/4spQikAbwJYa4YTay2NNQY8mwR+HtqTq09dkoeD3x?=
+ =?iso-8859-1?Q?bvOtRR+seFKvMzfchGWuilN8X61XqgVvRCEDe9FBptRX1lgEOlMJJivL5h?=
+ =?iso-8859-1?Q?H028gCl8bdELHjvv4y/eaCHSq9wjm8UfIOpmMx3fXe2Ml4YE9gCm36BNDX?=
+ =?iso-8859-1?Q?NpUpuqT5OLspIwQgLFfLEJybwYoCM0sHHlM5K0qeMfhs3e2AX52zRVsUCh?=
+ =?iso-8859-1?Q?q+KgxZaxYi34pENDXrlnXjZIPmUkipdkpskI2MwuIgjzM4ToikfrmR7+0p?=
+ =?iso-8859-1?Q?fo/LYCdrWUzzaI5FysZJrVpUb/7rGEM58rng9sLqo744x74NnzDGN/r5od?=
+ =?iso-8859-1?Q?GDcj9TXYr0zagMaqILrzfZYfZqKZ80pSnRkOn7Ue5h0OjCR+US2NkXQcfM?=
+ =?iso-8859-1?Q?W5gbbWBiwP+3zzieFDryBLpSelqmCxRVcVDDLJSIKR2E8iMKfEB7NU8wik?=
+ =?iso-8859-1?Q?d8EbFHh7ZUwcKWlAn8D7OVRLFA1tjSo7GU2whNU/CGplMHu6S3DHMR5W/w?=
+ =?iso-8859-1?Q?CNugl3LPFx1DsFU5/wnWRuYz8LljHIXx6nEAyiaxbL2nrzHDpNn6R5leDb?=
+ =?iso-8859-1?Q?vWeHqlEkEkfEQYvpc7r4OaGDe3Njir2+xpJvqWN7URgfiPMM9xIoRXRcuk?=
+ =?iso-8859-1?Q?TcNANB7QrZ40kfHpBVzeptHlFh3nS7Ho5rpzBwVG6Y+nTnriPWMwmWOgc9?=
+ =?iso-8859-1?Q?Z/TfYvxlTd3Xiangejgf4C6dmJ8AtOrxb7F/XvK3lYCAM+tgDmxNDg9gzJ?=
+ =?iso-8859-1?Q?2AR/79iARF5TYLqFBGjR5a5IVQ7DsEfpRn2+7bCLc3k9/3CfztaiKGMxR+?=
+ =?iso-8859-1?Q?/cvm9xZkueSnlCwoF/XAHX1BuBQ6RZjHZBQkiXTybzCF+I72jI/WbVrQ?=
+ =?iso-8859-1?Q?=3D=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: aeec71e9-2e88-4f67-8bef-08db0e178104
+X-MS-Exchange-CrossTenant-AuthSource: PH8PR11MB8107.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 13 Feb 2023 23:10:31.7164
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: yIj5slwsuLYkhkWbMeWOGZJTAVhQz4XMN6ryEIwaneKv0SldyJN2VyisDdOobaxRRr67DT+5ELwBG70mZ568Z6chcRwrJWyWz+3zV/40ybw=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR11MB6148
+X-OriginatorOrg: intel.com
 
-When trying to match a dax device to a memblock physical address
-memblock_in_dev will fail if the the phys_index sysfs file does
-not exist in the memblock. Currently the memory failure directory
-associated with a node is currently interpreted as a memblock.
-Skip over the memory_failure directory within the node directory.
+Brice Goglin wrote:
+> Le 11/02/2023 à 02:53, Dan Williams a écrit :
+> 
+> > Brice Goglin wrote:
+> > [..]
+> >>>> By the way, once configured in system ram, my CXL ram is merged into an
+> >>>> existing "normal" NUMA node. How do I tell Qemu that a CXL region should
+> >>>> be part of a new NUMA node? I assume that's what's going to happen on
+> >>>> real hardware?
+> >>> We don't yet have kernel code to deal with assigning a new NUMA node.
+> >>> Was on the todo list in last sync call I think.
+> >>
+> > In fact, there is no plan to support "new" NUMA node creation. A node
+> > can only be onlined / populated from set of static nodes defined by
+> > platform-firmware. The set of static nodes is defined by the union of
+> > all the proximity domain numbers in the SRAT as well as a node per
+> > CFMWS / QTG id. See:
+> >
+> >      fd49f99c1809 ACPI: NUMA: Add a node and memblk for each CFMWS not in SRAT
+> >
+> > ...for the CXL node enumeration scheme.
+> >
+> > Once you have a node per CFMWS then it is up to CDAT and the QTG DSM to
+> > group devices by window. This scheme attempts to be as simple as
+> > possible, but no simpler. If more granularity is necessary in practice,
+> > that would be a good discussion to have soonish.. LSF/MM comes to mind.
+> 
+> Actually I was mistaken, there's already a new NUMA node when creating
+> a region under Qemu, but my tools ignored it because it's empty.
+> After daxctl online-memory, things look good.
+> 
+> Can you clarify your above sentences on a real node? If I connect two
+> memory expanders on two slots of the same CPU, do I get a single CFMWS or two?
+> What if I connect two devices to a single slot across a CXL switch?
 
-Signed-off-by: Adam Manzanares <a.manzanares@samsung.com>
----
- daxctl/lib/libdaxctl.c | 2 ++
- 1 file changed, 2 insertions(+)
+Ultimately the answer is "ask your platform vendor", because this is a
+firmware decision. However, my expectation is that since the ACPI HMAT
+requires a proximity domain per distinct performance class, and because
+the ACPI HMAT needs to distinguish the memory that is "attached" to a
+CPU initiator domain, that CXL will at a minimum be described in a
+proximity domain distinct from "local DRAM".
 
-diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
-index d990479..b27a8af 100644
---- a/daxctl/lib/libdaxctl.c
-+++ b/daxctl/lib/libdaxctl.c
-@@ -1552,6 +1552,8 @@ static int daxctl_memory_op(struct daxctl_memory *mem=
-, enum memory_op op)
- 	errno =3D 0;
- 	while ((de =3D readdir(node_dir)) !=3D NULL) {
- 		if (strncmp(de->d_name, "memory", 6) =3D=3D 0) {
-+			if (strncmp(de->d_name, "memory_", 7) =3D=3D 0)
-+				continue;
- 			rc =3D memblock_in_dev(mem, de->d_name);
- 			if (rc < 0)
- 				goto out_dir;
---=20
-2.39.0
+The number of CFMWS windows published is gated by the degrees of freedom
+platform-firmware wants to give the OS relative to the number of CXL
+host-bridges in the system. One scheme that seems plausible is one CFMWS
+window for each host-bridge / x1 interleave (to maximize RAS) and one
+CFMWS with all host-bridges interleaved together (to maximize
+performance).
+
+The above is just my personal opinion as a Linux kernel developer, a
+platform implementation is free to be as restrictive or generous as it
+wants with CFMWS resources.
