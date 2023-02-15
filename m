@@ -1,20 +1,20 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A341D2E5
-	for <nvdimm@lists.linux.dev>; Wed, 15 Feb 2023 20:46:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B44C3C4339C;
-	Wed, 15 Feb 2023 20:46:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D701D2F2F
+	for <nvdimm@lists.linux.dev>; Wed, 15 Feb 2023 20:46:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37F44C4339C;
+	Wed, 15 Feb 2023 20:46:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1676493970;
-	bh=/zloXCJRxoVTnh5ZAKvTgJOmkQBS8OVbWKrLyxTz0RA=;
+	s=k20201202; t=1676494003;
+	bh=B+lJ34fJtr6JYae+SXPoMmqz5fHA87kogxqn90Yo0fw=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=A4YXoKer2Glw2aBpp0zV1LXfG85Wf6WncoDhQiM0z0T+MXpMffuYhFqfpIJZNEiuz
-	 Ev/hCCxZ2PAgPwC/+OVSEv6e1VGwVVBZfpJow70cWjsfeGD8dxe1hQKPnwmGYEH1Yb
-	 XKCyqwSyL+6h+0lpUpBFPrRcxWfqiKIkkKOEFqbIgXaBek65c+eit9Y7VjAMZgXlal
-	 Xz0KaljbTJfhNXZ0vnSGzx/qdDIRbab9DpanKly+MyvanwGX+cS6aaWJZXlzzOYoqT
-	 az7RUaS4apA2Fcb38i6tFkOIpb9odiztbaBWbYBDiBjUoWCrfe7Lr7PiJu0OJUZjba
-	 YW8fQ7/N3GRdw==
+	b=IMGUBj7FA9L9ZLNs2azY8tohFt79fLrLnnwHVfQc22WEFw2Ax5I3nA5UEIn6c7aSx
+	 Ak93skjiIJ+GczIlAnTzHMsD4zSA1wyes4/WlMLrJ40N2rsU8fGsQnTzGkiGY4tyHA
+	 /oFzRbmlKKGP30+SH9laHhcomakvThwZoomtEecQug3fq/TvlaU2tgLBTi5Yr6/WIW
+	 /bYiyfp5j/rRqBLpZ/1icC22RPAuYPcLj7hPEFkyD2RPd8Qk+ZsunNPTCQFvPR5f6p
+	 xq3wY5geDPAZh8VOCU0RqO19nnj6TZX2wMU8v2cdNaKhCA+BOiWm9kLXwG3ELkygru
+	 jHHwutGhCOL3A==
 From: Sasha Levin <sashal@kernel.org>
 To: linux-kernel@vger.kernel.org,
 	stable@vger.kernel.org
@@ -26,12 +26,12 @@ Cc: Vishal Verma <vishal.l.verma@intel.com>,
 	rafael@kernel.org,
 	nvdimm@lists.linux.dev,
 	linux-acpi@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.1 09/24] ACPI: NFIT: fix a potential deadlock during NFIT teardown
-Date: Wed, 15 Feb 2023 15:45:32 -0500
-Message-Id: <20230215204547.2760761-9-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.15 06/12] ACPI: NFIT: fix a potential deadlock during NFIT teardown
+Date: Wed, 15 Feb 2023 15:46:28 -0500
+Message-Id: <20230215204637.2761073-6-sashal@kernel.org>
 X-Mailer: git-send-email 2.39.0
-In-Reply-To: <20230215204547.2760761-1-sashal@kernel.org>
-References: <20230215204547.2760761-1-sashal@kernel.org>
+In-Reply-To: <20230215204637.2761073-1-sashal@kernel.org>
+References: <20230215204637.2761073-1-sashal@kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -96,10 +96,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index ae5f4acf26753..6d4ac934cd499 100644
+index 7dd80acf92c78..2575d6c51f898 100644
 --- a/drivers/acpi/nfit/core.c
 +++ b/drivers/acpi/nfit/core.c
-@@ -3297,8 +3297,8 @@ void acpi_nfit_shutdown(void *data)
+@@ -3676,8 +3676,8 @@ void acpi_nfit_shutdown(void *data)
  
  	mutex_lock(&acpi_desc->init_mutex);
  	set_bit(ARS_CANCEL, &acpi_desc->scrub_flags);
