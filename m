@@ -1,35 +1,35 @@
 Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E48036F
-	for <nvdimm@lists.linux.dev>; Sat, 18 Feb 2023 00:40:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A183390
+	for <nvdimm@lists.linux.dev>; Sat, 18 Feb 2023 00:40:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1676680835; x=1708216835;
+  t=1676680837; x=1708216837;
   h=from:date:subject:mime-version:content-transfer-encoding:
    message-id:references:in-reply-to:to:cc;
-  bh=9UeQUR+hYc76x7YfmfwMiEJR1+Ro6FeZ9RipZ0udPiY=;
-  b=fS1TIF0A/PlBP+FHEewEV09gmQSM0qbREFQa/NJ6afCIvnweFfTtrVHb
-   NWVZUONrp9iyld4I6v6JYB9MsA1jhes2cKPNNvi8TLGELGwE5CdlyWbNp
-   e6j0V1OlC6EPnv1fPYTn0jpFI+W4b3F3EIME1icudlGhQCZLrot8guTs0
-   Gw3dSjdJ19NekdRI9aCGBF9K8/UTzgKiX+k3ejYdgBq6/Y3WSGDAXYnFs
-   wapKSEgPyoficG3KZMGhNd6U6dGwZWX6JzJEfknm162gTyPos/X9VafZL
-   20uLoT+znAW51lQBIADVqBFo9c/JYQCozk3+RNpbewgyryQejsBoBGnxV
-   A==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10624"; a="311754225"
+  bh=4mXc8aXzC2a5QQ64fr2TipWZlLxkknQajmWzGZWeva0=;
+  b=U8BgfDbzk3iWL/1mgtVQKAUcDmlO2+Sp8ZXCUjW2lMxSvU3LAURWTdHp
+   q9oEOWukZI9/Mb3JedMHsO06JvU/XKJQmZ3NMnsN5+MTrNwhj9+KP3Fr5
+   lRzdProUAwk/pdizEHidD0K0tBrrCjqtIFRC0jX+hqnJHbeNVaT93aP3j
+   JyeDGMl5vQYtvuxCVWJAS3Ex+9dyXcnbtUNt//TloOgK0xmWuqw4hJFcu
+   MZW6AljYJe7gsPPjJJadmF5rqLoB3/rdXA55dRd0nMiZ4cT6jRD2Ux00z
+   BA3yJBAnA7/UKEOE8RQqtfiehO8J9BbPCb2In3xLXLxjalaryHBuUIYmK
+   w==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10624"; a="311754227"
 X-IronPort-AV: E=Sophos;i="5.97,306,1669104000"; 
-   d="scan'208";a="311754225"
+   d="scan'208";a="311754227"
 Received: from orsmga005.jf.intel.com ([10.7.209.41])
   by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Feb 2023 16:40:32 -0800
-X-IronPort-AV: E=McAfee;i="6500,9779,10624"; a="844749005"
+X-IronPort-AV: E=McAfee;i="6500,9779,10624"; a="844749009"
 X-IronPort-AV: E=Sophos;i="5.97,306,1669104000"; 
-   d="scan'208";a="844749005"
+   d="scan'208";a="844749009"
 Received: from basavana-mobl.amr.corp.intel.com (HELO vverma7-desk1.local) ([10.209.2.127])
   by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Feb 2023 16:40:32 -0800
 From: Vishal Verma <vishal.l.verma@intel.com>
-Date: Fri, 17 Feb 2023 17:40:23 -0700
-Subject: [PATCH ndctl 2/3] cxl/monitor: retain error code in
- monitor_event()
+Date: Fri, 17 Feb 2023 17:40:24 -0700
+Subject: [PATCH ndctl 3/3] test/cxl-security.sh: avoid intermittent
+ failures due to sasync probe
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -38,7 +38,7 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20230217-coverity-fixes-v1-2-043fac896a40@intel.com>
+Message-Id: <20230217-coverity-fixes-v1-3-043fac896a40@intel.com>
 References: <20230217-coverity-fixes-v1-0-043fac896a40@intel.com>
 In-Reply-To: <20230217-coverity-fixes-v1-0-043fac896a40@intel.com>
 To: linux-cxl@vger.kernel.org
@@ -46,46 +46,46 @@ Cc: nvdimm@lists.linux.dev, Dave Jiang <dave.jiang@intel.com>,
  Dan Williams <dan.j.williams@intel.com>, 
  Vishal Verma <vishal.l.verma@intel.com>
 X-Mailer: b4 0.13-dev-ada30
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1113;
+X-Developer-Signature: v=1; a=openpgp-sha256; l=896;
  i=vishal.l.verma@intel.com; h=from:subject:message-id;
- bh=9UeQUR+hYc76x7YfmfwMiEJR1+Ro6FeZ9RipZ0udPiY=;
- b=owGbwMvMwCXGf25diOft7jLG02pJDMkf5Oq7Dz7oPdK202man3ff7srrsX2e1t6rzix8utVA3
- 9vz82r9jlIWBjEuBlkxRZa/ez4yHpPbns8TmOAIM4eVCWQIAxenAEzk5U6Gf6o3Ox4vXb1mb3bk
- bcl1SXfSZE2vme8+HnE4SuMZb/+CjXcY/lfYH5H58mD1Nb0LU9ze3eKatvb1V8tFhz1ObRK4WXX
- Dt58BAA==
+ bh=4mXc8aXzC2a5QQ64fr2TipWZlLxkknQajmWzGZWeva0=;
+ b=owGbwMvMwCXGf25diOft7jLG02pJDMkf5OqLBFx1l6UXlB2W6bmTu9Zyy50dsq83SVoWZz1Yz
+ xYg7D+7o5SFQYyLQVZMkeXvno+Mx+S25/MEJjjCzGFlAhnCwMUpABN5y8Lwhz8r8Gl//o/jXjWR
+ vz0fZByLcvvMuVdn844g4Y5tal+yfRkZemJfe3efblUuTnmvsXJP0bX55vHzp04892vh144FLXd
+ WcQMA
 X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp;
  fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
 
-Static analysis reports that the error unwinding path in monitor_event()
-overwrites 'rc' with the return from cxl_event_tracing_disable(). This
-masks the actual error code from either epoll_wait() or
-cxl_parse_events() which is the one that should be propagated.
+This test failed intermittently because the ndctl-list operation right
+after a 'modprobe cxl_test' could race the actual nmem devices getting
+loaded.
 
-Print a spot error in case there's an error while disabling tracing, but
-otherwise retain the rc from the main body of the function.
+Since CXL device probes are asynchronous, and cxl_acpi might've kicked
+off a cxl_bus_rescan(), a cxl_flush() (via cxl_wait_probe()) can ensure
+everything is loaded.
 
-Fixes: 299f69f974a6 ("cxl/monitor: add a new monitor command for CXL trace events")
+Add a plain cxl-list right after the modprobe to allow for a flush/wait
+cycle.
+
 Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
+Suggested-by: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- cxl/monitor.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ test/security.sh | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/cxl/monitor.c b/cxl/monitor.c
-index 31e6f98..749f472 100644
---- a/cxl/monitor.c
-+++ b/cxl/monitor.c
-@@ -130,7 +130,8 @@ static int monitor_event(struct cxl_ctx *ctx)
- 	}
+diff --git a/test/security.sh b/test/security.sh
+index 04f630e..fb04aa6 100755
+--- a/test/security.sh
++++ b/test/security.sh
+@@ -225,6 +225,7 @@ if [ "$uid" -ne 0 ]; then
+ fi
  
- parse_err:
--	rc = cxl_event_tracing_disable(inst);
-+	if (cxl_event_tracing_disable(inst) < 0)
-+		err(&monitor, "failed to disable tracing\n");
- event_en_err:
- epoll_ctl_err:
- 	close(fd);
+ modprobe "$KMOD_TEST"
++cxl list
+ setup
+ check_prereq "keyctl"
+ rc=1
 
 -- 
 2.39.1
