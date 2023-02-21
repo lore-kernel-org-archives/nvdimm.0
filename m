@@ -1,81 +1,109 @@
-Received: from mail-pl1-f173.google.com (mail-pl1-f173.google.com [209.85.214.173])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail1.bemta32.messagelabs.com (mail1.bemta32.messagelabs.com [195.245.230.66])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F128320D
-	for <nvdimm@lists.linux.dev>; Mon, 20 Feb 2023 21:25:11 +0000 (UTC)
-Received: by mail-pl1-f173.google.com with SMTP id e5so3936149plg.8
-        for <nvdimm@lists.linux.dev>; Mon, 20 Feb 2023 13:25:11 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=fromorbit-com.20210112.gappssmtp.com; s=20210112;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=QESLl69yTFuw/UHokvPcBCupvaRLpWJFOxU9lYfGwWo=;
-        b=N5kDy3DCypsUjNTIL6uKqPnIi4VuPmqW/5tC0XFeR4brBKCtKvN+UyuKUVGmY06M0r
-         sqU4mlP5niEuq7PrXx4wZlFEqrMe/1cE7qvgAttb/jZOt6T6Egg+dd5TkiAeo1q3igMx
-         woZqabfyycCzfKIe/OhmkQwObwKvDhvIXyYKUmG5xYEwZbx4LydK6tsL5DkHVdGaQPz+
-         UGFB1y7LLPxMky0ZXcdRcqO+b/sepsCmbJ53Ch2qjYGFnID2tPRxSkN3Zh/KKk/yL8wh
-         vSrFRSU0KA0AVOYVMpFoth6W5HDuoBsUQ3CGaOipNmKzGGSydVezHT3ZivmEpURxhaKy
-         Tkyw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=QESLl69yTFuw/UHokvPcBCupvaRLpWJFOxU9lYfGwWo=;
-        b=EQ1YL7rMCX+m111ZN4QAiCa6seFGv4KKT42MuytXWziOLzXRLTs/FSX9AmobXJ0jEH
-         +fGCM7qAW2rctkVHnOuuYXE+z5Rs3lhmxHr+9pvz6zSWd0DPlZbvlBd0/OzfqJ8iBWX7
-         ZoY6kszvVeP2RBc5ATDLskG+nYgNweF2DhPQ7U/O9MJBZ6peEMcECCYIbrxvc83x7qrU
-         e3aZ6uIsG1kTs+TaxWI/yakFEiiDB7CKI9yBBt1CpDzrVGqdI3wQAa5h4/dsrzciybxP
-         A5sT7/+DEngJ3ROts5BfK7ahRsJw2RyaJEryvD8sMEbuv3o+LXpakRX3KwN5r9gong8J
-         Pifg==
-X-Gm-Message-State: AO0yUKXP2X0jMBIU3c9Y5Ffm1DC6El1LCy1ttcNs/CTtSMIrdila2H6U
-	hZ4XLEeWNTDumJxHafrfrlMFvA==
-X-Google-Smtp-Source: AK7set/7p/rU3G5m3+Tu0pQdEIVeL6cGQ6eHnMmFlnj9qkTBEkSagKYJEBYzfb8nFNFw6MFe34UtYQ==
-X-Received: by 2002:a17:903:234b:b0:196:595b:2580 with SMTP id c11-20020a170903234b00b00196595b2580mr2854902plh.0.1676928310567;
-        Mon, 20 Feb 2023 13:25:10 -0800 (PST)
-Received: from dread.disaster.area (pa49-186-4-237.pa.vic.optusnet.com.au. [49.186.4.237])
-        by smtp.gmail.com with ESMTPSA id h8-20020a170902748800b0019a7c890c61sm8337880pll.252.2023.02.20.13.25.09
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 20 Feb 2023 13:25:09 -0800 (PST)
-Received: from dave by dread.disaster.area with local (Exim 4.92.3)
-	(envelope-from <david@fromorbit.com>)
-	id 1pUDek-0007sH-Ij; Tue, 21 Feb 2023 08:25:06 +1100
-Date: Tue, 21 Feb 2023 08:25:06 +1100
-From: Dave Chinner <david@fromorbit.com>
-To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Cc: linux-xfs@vger.kernel.org, nvdimm@lists.linux.dev,
-	linux-fsdevel@vger.kernel.org, linux-mm@kvack.org,
-	djwong@kernel.org, dan.j.williams@intel.com, hch@infradead.org,
-	jane.chu@oracle.com, akpm@linux-foundation.org, willy@infradead.org
-Subject: Re: [PATCH v10 2/3] fs: introduce super_drop_pagecache()
-Message-ID: <20230220212506.GS360264@dread.disaster.area>
-References: <1676645312-13-1-git-send-email-ruansy.fnst@fujitsu.com>
- <1676645312-13-3-git-send-email-ruansy.fnst@fujitsu.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1099EA4
+	for <nvdimm@lists.linux.dev>; Tue, 21 Feb 2023 01:58:09 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fujitsu.com;
+	s=170520fj; t=1676944688; i=@fujitsu.com;
+	bh=p5LQ96v2FUqck9sbaRQNfMpeltTdQczG7e4+IeL+63g=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type:Content-Transfer-Encoding;
+	b=eiPDD7fWoyhDZDHfHYzOzBm2UkRb6Jv+f3Cu40yB29j7qn+zsokYUsezmmDXJvFZs
+	 d5lRXLnNJIrddYSpCl70D7QASvPxBMq/glvTdY7lRyKL8peJXImOnKK//e2gA+QMrn
+	 Kn+G1VJcRn5gjTiv0m2GN2bQPJeQgG1H2t8FZqa5GGaBXOZp47KKfxY52p5gaSCOir
+	 O/8UFzq/qfGJGvBIjITZkPrPvF+nyolWd9r2jHRIChgQTlL6ua3fALXSbUo1wNK8BW
+	 A7EVilvid0eQCmAQ3/kTUE/fp+JbDjEdiCUxYyRZG4btQZMtUxRa0fMP9lkEVFRmQf
+	 bKkIL+/XJkFYw==
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFtrMKsWRWlGSWpSXmKPExsViZ8MxSVdX9Uu
+  yweoOU4s569ewWUyfeoHRYsuxe4wWl5/wWZyesIjJYvfrm2wWe/aeZLG4t+Y/q8WuPzvYLVb+
+  +MNq8fvHHDYHbo9TiyQ8Nq/Q8li85yWTx6ZVnWwemz5NYvc4MeM3i8eLzTMZPT4+vcXi8XmTX
+  ABnFGtmXlJ+RQJrxoTO62wFa9kqtu6az9TAuJS1i5GLQ0hgC6PEx6tP2SGcFUwS1zYvgcpsZ5
+  RofbiHrYuRk4NXwE7i9ftljCA2i4CqxLs9z1gh4oISJ2c+YQGxRQWSJY6dbwWrFxZwlNh1rA2
+  sRkRATWLSpB3MIDazQAuTxJbuChBbSGAto8S7c8YgNpuAjsSFBX/B6jkFrCTaV51jgai3kFj8
+  5iA7hC0v0bx1NtAcDg4JASWJmd3xIGEJgUqJ1g+/WCBsNYmr5zYxT2AUmoXkullIJs1CMmkBI
+  /MqRtPi1KKy1CJdI72kosz0jJLcxMwcvcQq3US91FLd8tTiEl1DvcTyYr3U4mK94src5JwUvb
+  zUkk2MwLhMKWbr3sG4vvev3iFGSQ4mJVHeb6c+JwvxJeWnVGYkFmfEF5XmpBYfYpTh4FCS4D2
+  i9CVZSLAoNT21Ii0zB5giYNISHDxKIrzG/EBp3uKCxNzizHSI1ClGRSlx3kQVoIQASCKjNA+u
+  DZaWLjHKSgnzMjIwMAjxFKQW5WaWoMq/YhTnYFQS5lUDmcKTmVcCN/0V0GImoMXuPz6ALC5JR
+  EhJNTB5rSk5sCXV/G5+8P7Pvf/loyUnc54MdXX0Oapa6Xl2v1dO+uXQur3Xd55V02nO/eR4wz
+  4s9bjg/NAd/val9zr+n7569mhl+6uObck89ysLYvbVTxF6eDO7rilpsrorl0PxQolDK2YUrQq
+  ekBfygGfKgndTlkXMO2irfiK1+YXTpEbGwksrvlu4FHh93DFlVtP6MCH5JZlJ+Rz1vxaxTZsu
+  vi55/7JE7xKm6282qmSrPDjF8zy6puv1nIIblXOWBHyZemXzU5lHsabsO19OlmjVEDC1CfVe0
+  5P3Lyo2OVFHUGXlz6Jfpee+qAid//nmoBrjkeapT8ucQvx5Wy+1x2lkKChumyxwM/N7Ts6B3U
+  eVWIozEg21mIuKEwGCeOF5xgMAAA==
+X-Env-Sender: ruansy.fnst@fujitsu.com
+X-Msg-Ref: server-6.tower-591.messagelabs.com!1676944685!494971!1
+X-Originating-IP: [62.60.8.146]
+X-SYMC-ESS-Client-Auth: outbound-route-from=pass
+X-StarScan-Received:
+X-StarScan-Version: 9.102.2; banners=-,-,-
+X-VirusChecked: Checked
+Received: (qmail 21281 invoked from network); 21 Feb 2023 01:58:05 -0000
+Received: from unknown (HELO n03ukasimr02.n03.fujitsu.local) (62.60.8.146)
+  by server-6.tower-591.messagelabs.com with ECDHE-RSA-AES256-GCM-SHA384 encrypted SMTP; 21 Feb 2023 01:58:05 -0000
+Received: from n03ukasimr02.n03.fujitsu.local (localhost [127.0.0.1])
+	by n03ukasimr02.n03.fujitsu.local (Postfix) with ESMTP id 6B29C1000DC;
+	Tue, 21 Feb 2023 01:58:05 +0000 (GMT)
+Received: from R01UKEXCASM223.r01.fujitsu.local (R01UKEXCASM223 [10.182.185.121])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by n03ukasimr02.n03.fujitsu.local (Postfix) with ESMTPS id 5EE4C1000D2;
+	Tue, 21 Feb 2023 01:58:05 +0000 (GMT)
+Received: from [192.168.50.5] (10.167.225.141) by
+ R01UKEXCASM223.r01.fujitsu.local (10.182.185.121) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.42; Tue, 21 Feb 2023 01:58:01 +0000
+Message-ID: <b872f2e8-c451-697b-e9cf-63c5bae52a8a@fujitsu.com>
+Date: Tue, 21 Feb 2023 09:57:52 +0800
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1676645312-13-3-git-send-email-ruansy.fnst@fujitsu.com>
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
+ Thunderbird/102.7.1
+Subject: Re: [PATCH v10 2/3] fs: introduce super_drop_pagecache()
+To: Dave Chinner <david@fromorbit.com>
+CC: <linux-xfs@vger.kernel.org>, <nvdimm@lists.linux.dev>,
+	<linux-fsdevel@vger.kernel.org>, <linux-mm@kvack.org>, <djwong@kernel.org>,
+	<dan.j.williams@intel.com>, <hch@infradead.org>, <jane.chu@oracle.com>,
+	<akpm@linux-foundation.org>, <willy@infradead.org>
+References: <1676645312-13-1-git-send-email-ruansy.fnst@fujitsu.com>
+ <1676645312-13-3-git-send-email-ruansy.fnst@fujitsu.com>
+ <20230220212506.GS360264@dread.disaster.area>
+From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+In-Reply-To: <20230220212506.GS360264@dread.disaster.area>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.167.225.141]
+X-ClientProxiedBy: G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.80) To
+ R01UKEXCASM223.r01.fujitsu.local (10.182.185.121)
+X-Virus-Scanned: ClamAV using ClamSMTP
 
-On Fri, Feb 17, 2023 at 02:48:31PM +0000, Shiyang Ruan wrote:
-> xfs_notify_failure.c requires a method to invalidate all dax mappings.
-> drop_pagecache_sb() can do this but it is a static function and only
-> build with CONFIG_SYSCTL.  Now, move its implementation into super.c and
-> call it super_drop_pagecache().  Use its second argument as invalidator
-> so that we can choose which invalidate method to use.
+
+
+在 2023/2/21 5:25, Dave Chinner 写道:
+> On Fri, Feb 17, 2023 at 02:48:31PM +0000, Shiyang Ruan wrote:
+>> xfs_notify_failure.c requires a method to invalidate all dax mappings.
+>> drop_pagecache_sb() can do this but it is a static function and only
+>> build with CONFIG_SYSCTL.  Now, move its implementation into super.c and
+>> call it super_drop_pagecache().  Use its second argument as invalidator
+>> so that we can choose which invalidate method to use.
+>>
+>> Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
 > 
-> Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+> I got no repsonse last time, so I'll just post a link to the
+> concerns I stated about this:
+> 
+> https://lore.kernel.org/linux-xfs/20230205215000.GT360264@dread.disaster.area/
 
-I got no repsonse last time, so I'll just post a link to the
-concerns I stated about this:
+Please see patch 3.  I changed the code: freeze the fs, then drop its 
+caches.
 
-https://lore.kernel.org/linux-xfs/20230205215000.GT360264@dread.disaster.area/
 
--Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+--
+Thanks,
+Ruan.
+
+> 
+> -Dave.
