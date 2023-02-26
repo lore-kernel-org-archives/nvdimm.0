@@ -1,53 +1,83 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f182.google.com (mail-pl1-f182.google.com [209.85.214.182])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D27B194
-	for <nvdimm@lists.linux.dev>; Sat, 25 Feb 2023 17:33:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id A532DC433EF;
-	Sat, 25 Feb 2023 17:33:01 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1677346381;
-	bh=6NZHfqzfAo19cNKksjq+o/SCM1i/OjyrFCDF9l0TwoA=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-	b=WctzGEymlJyadp8JqsSHP/WF4T9ifp7V2Ncs+kUXh8+9kmhDwylIIg7wMyiowEQug
-	 4+rCFJx4oiOJOeci1LKGaaQRgCzs/gJEnNS9y4p3J7BBZkyQYIhiyzhumGI70AVetP
-	 dkx1VKZn7poFipoONQRx5nPN5eVJw6K20TWVhUDQvBrYrV0eYkTd1p5Fz6hKJklz/t
-	 c8tQY1PpFB/aeNxNoXFPDJkgW7hYNvz6HnH2UC1PMHXqw3g4eb2iI5ydwYG123FLic
-	 sAtnhT7YB1W9/7BFeEUKPSBsQV9n4Zfpf5YnWJGREp38Xe+SpAZH1oCZs2xY3keUH6
-	 vdLeo5E3dufZQ==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 93D3FE68D26;
-	Sat, 25 Feb 2023 17:33:01 +0000 (UTC)
-Subject: Re: [GIT PULL] Compute Express Link (CXL) for 6.3
-From: pr-tracker-bot@kernel.org
-In-Reply-To: <63f5a4e2277b1_c94229453@dwillia2-mobl3.amr.corp.intel.com.notmuch>
-References: <63f5a4e2277b1_c94229453@dwillia2-mobl3.amr.corp.intel.com.notmuch>
-X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
-X-PR-Tracked-Message-Id: <63f5a4e2277b1_c94229453@dwillia2-mobl3.amr.corp.intel.com.notmuch>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/cxl/cxl tags/cxl-for-6.3
-X-PR-Tracked-Commit-Id: e686c32590f40bffc45f105c04c836ffad3e531a
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 7c3dc440b1f5c75f45e24430f913e561dc82a419
-Message-Id: <167734638160.8970.6794755420865287571.pr-tracker-bot@kernel.org>
-Date: Sat, 25 Feb 2023 17:33:01 +0000
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: torvalds@linux-foundation.org, linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1384D364
+	for <nvdimm@lists.linux.dev>; Sun, 26 Feb 2023 05:56:23 +0000 (UTC)
+Received: by mail-pl1-f182.google.com with SMTP id l15so3650580pls.1
+        for <nvdimm@lists.linux.dev>; Sat, 25 Feb 2023 21:56:23 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=ps7PPtmkV1wfKAGYjMd8DEEZ2jaRpzCcvl95Jx3hG3Q=;
+        b=Y919pzF9HjdPEaxqQJ3+VWrmE1yAwv8f1ShwtatXfaJUlb7xwQvIwMwUpNvk2mLeyl
+         pA32wARnZRm4Gpb1FfjbmSD/+EAEbSQpnevuVDFENf+vYTZG6nIKtGR5n9oY3Sd7sFOF
+         OmBgtdNi2CpuKXOqJeTCa4Q3j4VmS40yBR8ecf2IzCnLqE5GlOp2BFvlVrr5i1T5hdLY
+         WLqId5aIFRo/5K9UETp0FidD5KkHmlbq2DiO1Sl97sDwcvSi3Wqj3TJVOKn5LeDqomqW
+         ApwT2tjdgMniuvvBclPE0xryR4QodJXofvRckFQGZ7XQhr+X8zoH2KxhwpzrjaxCFOhI
+         EyBA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=ps7PPtmkV1wfKAGYjMd8DEEZ2jaRpzCcvl95Jx3hG3Q=;
+        b=JNOD86vF6hyTyeZzG6/TQ35p5OcQ58AWDaxXHnTxdcag+E7/Vh0xxMG/IFfcIpEsk0
+         WxKBqKB8bzRmZvOA16qsVoKXSBlFDqD5ZPgUggYnZveINnTQ4J7gV47fO8JY69aQtLSf
+         Js1M+j56w4W0aQJRaeSmH9Fxsro8j76Zo5d390gty+wDccnepRu/A4LmLHkLy7pBqGoA
+         2PWL5FhtEeTtrINvT+nCQecBggzyCixkyR1pUaqSRoPKMjq38tkN54AY4oZvOrSX8COy
+         hKc+6RAj5Wld1bIflFMVFTv6PeWtk5I7f2OnU715/NIS7jgrmlQ4xUvGUZV9QNwHXrno
+         LBWw==
+X-Gm-Message-State: AO0yUKVhjcXptX/+LrSlyB1ADDeEg6uXaOnLJvp3BQoivCfZiDvz3FMg
+	5AvMElW2D7q8jwpDaXTRGrI=
+X-Google-Smtp-Source: AK7set/USgLACHG20TuGc+NO2lmQmZsRDGjXQY8KMULXPcThNbFtj/fymqPVEE9UHRF7kgsjlxr24A==
+X-Received: by 2002:a17:903:230f:b0:189:5ef4:6ae9 with SMTP id d15-20020a170903230f00b001895ef46ae9mr27273116plh.45.1677390983349;
+        Sat, 25 Feb 2023 21:56:23 -0800 (PST)
+Received: from passwd123-ThinkStation-P920.. ([222.20.94.23])
+        by smtp.gmail.com with ESMTPSA id v1-20020a1709028d8100b00189e7cb8b89sm2081471plo.127.2023.02.25.21.56.20
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 25 Feb 2023 21:56:22 -0800 (PST)
+From: Kang Chen <void0red@gmail.com>
+To: dan.j.williams@intel.com
+Cc: vishal.l.verma@intel.com,
+	dave.jiang@intel.com,
+	ira.weiny@intel.com,
+	nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org,
+	Kang Chen <void0red@gmail.com>
+Subject: [PATCH] nvdimm: check for null return of devm_kmalloc in nd_pfn_probe
+Date: Sun, 26 Feb 2023 13:56:15 +0800
+Message-Id: <20230226055615.2518149-1-void0red@gmail.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-The pull request you sent on Tue, 21 Feb 2023 21:15:14 -0800:
+devm_kmalloc may fails, pfn_sb might be null and will cause
+null pointer dereference later.
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/cxl/cxl tags/cxl-for-6.3
+Signed-off-by: Kang Chen <void0red@gmail.com>
+---
+ drivers/nvdimm/pfn_devs.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/7c3dc440b1f5c75f45e24430f913e561dc82a419
-
-Thank you!
-
+diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
+index af7d93015..d24fad175 100644
+--- a/drivers/nvdimm/pfn_devs.c
++++ b/drivers/nvdimm/pfn_devs.c
+@@ -640,6 +640,8 @@ int nd_pfn_probe(struct device *dev, struct nd_namespace_common *ndns)
+ 	if (!pfn_dev)
+ 		return -ENOMEM;
+ 	pfn_sb = devm_kmalloc(dev, sizeof(*pfn_sb), GFP_KERNEL);
++	if (!pfn_sb)
++		return -ENOMEM;
+ 	nd_pfn = to_nd_pfn(pfn_dev);
+ 	nd_pfn->pfn_sb = pfn_sb;
+ 	rc = nd_pfn_validate(nd_pfn, PFN_SIG);
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+2.34.1
+
