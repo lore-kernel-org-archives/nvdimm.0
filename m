@@ -1,83 +1,91 @@
-Received: from mail-pl1-f182.google.com (mail-pl1-f182.google.com [209.85.214.182])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1384D364
-	for <nvdimm@lists.linux.dev>; Sun, 26 Feb 2023 05:56:23 +0000 (UTC)
-Received: by mail-pl1-f182.google.com with SMTP id l15so3650580pls.1
-        for <nvdimm@lists.linux.dev>; Sat, 25 Feb 2023 21:56:23 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=ps7PPtmkV1wfKAGYjMd8DEEZ2jaRpzCcvl95Jx3hG3Q=;
-        b=Y919pzF9HjdPEaxqQJ3+VWrmE1yAwv8f1ShwtatXfaJUlb7xwQvIwMwUpNvk2mLeyl
-         pA32wARnZRm4Gpb1FfjbmSD/+EAEbSQpnevuVDFENf+vYTZG6nIKtGR5n9oY3Sd7sFOF
-         OmBgtdNi2CpuKXOqJeTCa4Q3j4VmS40yBR8ecf2IzCnLqE5GlOp2BFvlVrr5i1T5hdLY
-         WLqId5aIFRo/5K9UETp0FidD5KkHmlbq2DiO1Sl97sDwcvSi3Wqj3TJVOKn5LeDqomqW
-         ApwT2tjdgMniuvvBclPE0xryR4QodJXofvRckFQGZ7XQhr+X8zoH2KxhwpzrjaxCFOhI
-         EyBA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=ps7PPtmkV1wfKAGYjMd8DEEZ2jaRpzCcvl95Jx3hG3Q=;
-        b=JNOD86vF6hyTyeZzG6/TQ35p5OcQ58AWDaxXHnTxdcag+E7/Vh0xxMG/IFfcIpEsk0
-         WxKBqKB8bzRmZvOA16qsVoKXSBlFDqD5ZPgUggYnZveINnTQ4J7gV47fO8JY69aQtLSf
-         Js1M+j56w4W0aQJRaeSmH9Fxsro8j76Zo5d390gty+wDccnepRu/A4LmLHkLy7pBqGoA
-         2PWL5FhtEeTtrINvT+nCQecBggzyCixkyR1pUaqSRoPKMjq38tkN54AY4oZvOrSX8COy
-         hKc+6RAj5Wld1bIflFMVFTv6PeWtk5I7f2OnU715/NIS7jgrmlQ4xUvGUZV9QNwHXrno
-         LBWw==
-X-Gm-Message-State: AO0yUKVhjcXptX/+LrSlyB1ADDeEg6uXaOnLJvp3BQoivCfZiDvz3FMg
-	5AvMElW2D7q8jwpDaXTRGrI=
-X-Google-Smtp-Source: AK7set/USgLACHG20TuGc+NO2lmQmZsRDGjXQY8KMULXPcThNbFtj/fymqPVEE9UHRF7kgsjlxr24A==
-X-Received: by 2002:a17:903:230f:b0:189:5ef4:6ae9 with SMTP id d15-20020a170903230f00b001895ef46ae9mr27273116plh.45.1677390983349;
-        Sat, 25 Feb 2023 21:56:23 -0800 (PST)
-Received: from passwd123-ThinkStation-P920.. ([222.20.94.23])
-        by smtp.gmail.com with ESMTPSA id v1-20020a1709028d8100b00189e7cb8b89sm2081471plo.127.2023.02.25.21.56.20
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 25 Feb 2023 21:56:22 -0800 (PST)
-From: Kang Chen <void0red@gmail.com>
-To: dan.j.williams@intel.com
-Cc: vishal.l.verma@intel.com,
-	dave.jiang@intel.com,
-	ira.weiny@intel.com,
-	nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org,
-	Kang Chen <void0red@gmail.com>
-Subject: [PATCH] nvdimm: check for null return of devm_kmalloc in nd_pfn_probe
-Date: Sun, 26 Feb 2023 13:56:15 +0800
-Message-Id: <20230226055615.2518149-1-void0red@gmail.com>
-X-Mailer: git-send-email 2.34.1
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B875F3D6D
+	for <nvdimm@lists.linux.dev>; Sun, 26 Feb 2023 20:46:14 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1677444374; x=1708980374;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=yCc4efC8cY7GxC7vi0Q/diJGr+xUNtuVSECJB7VfUkI=;
+  b=lap/Jh80U+mBpkKy6FP0EBJY994acBvtp31fkV83C0Q3YdcoYT7dOeQJ
+   1maTVi818IV47u549NDv/ZZ6PpLE3a7aVHaV9tSKSQGAPjSfvG0P1fXR8
+   1KPC72linaBZj2pprQnlv8FytVcO8D9JN7/oJqyzJVrH7W46UzChjf/T9
+   5bLHkmm6BrepgBmMrwynCVEFt0OwzQsVw9onfyl1J5TQPV7Z9nNcte0wC
+   wKO1CN3PAGmY5umdDCuc8aqvkISpbySTRUsWtwabE8GND8a+izP7JrZls
+   /1Rg2N13PKHijmdmK0G1F8i6soHjcmp3bNrGxyfGYvuimsqqyXG5ulkWr
+   w==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10633"; a="332466213"
+X-IronPort-AV: E=Sophos;i="5.97,330,1669104000"; 
+   d="scan'208";a="332466213"
+Received: from orsmga001.jf.intel.com ([10.7.209.18])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Feb 2023 12:46:14 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10633"; a="705910358"
+X-IronPort-AV: E=Sophos;i="5.97,330,1669104000"; 
+   d="scan'208";a="705910358"
+Received: from aschofie-mobl2.amr.corp.intel.com (HELO aschofie-mobl2) ([10.209.83.169])
+  by orsmga001-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Feb 2023 12:46:13 -0800
+Date: Sun, 26 Feb 2023 12:46:12 -0800
+From: Alison Schofield <alison.schofield@intel.com>
+To: Kang Chen <void0red@gmail.com>
+Cc: dan.j.williams@intel.com, vishal.l.verma@intel.com,
+	dave.jiang@intel.com, ira.weiny@intel.com, nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] nvdimm: check for null return of devm_kmalloc in
+ nd_pfn_probe
+Message-ID: <Y/vFFDiXw6J5LD3X@aschofie-mobl2>
+References: <20230226055615.2518149-1-void0red@gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230226055615.2518149-1-void0red@gmail.com>
 
-devm_kmalloc may fails, pfn_sb might be null and will cause
-null pointer dereference later.
+On Sun, Feb 26, 2023 at 01:56:15PM +0800, Kang Chen wrote:
+> devm_kmalloc may fails, pfn_sb might be null and will cause
+> null pointer dereference later.
+> 
+> Signed-off-by: Kang Chen <void0red@gmail.com>
+> ---
+>  drivers/nvdimm/pfn_devs.c | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
+> index af7d93015..d24fad175 100644
+> --- a/drivers/nvdimm/pfn_devs.c
+> +++ b/drivers/nvdimm/pfn_devs.c
+> @@ -640,6 +640,8 @@ int nd_pfn_probe(struct device *dev, struct nd_namespace_common *ndns)
+>  	if (!pfn_dev)
+>  		return -ENOMEM;
+>  	pfn_sb = devm_kmalloc(dev, sizeof(*pfn_sb), GFP_KERNEL);
+> +	if (!pfn_sb)
+> +		return -ENOMEM;
+>  	nd_pfn = to_nd_pfn(pfn_dev);
+>  	nd_pfn->pfn_sb = pfn_sb;
+>  	rc = nd_pfn_validate(nd_pfn, PFN_SIG);
 
-Signed-off-by: Kang Chen <void0red@gmail.com>
----
- drivers/nvdimm/pfn_devs.c | 2 ++
- 1 file changed, 2 insertions(+)
+Hi Kang,
 
-diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
-index af7d93015..d24fad175 100644
---- a/drivers/nvdimm/pfn_devs.c
-+++ b/drivers/nvdimm/pfn_devs.c
-@@ -640,6 +640,8 @@ int nd_pfn_probe(struct device *dev, struct nd_namespace_common *ndns)
- 	if (!pfn_dev)
- 		return -ENOMEM;
- 	pfn_sb = devm_kmalloc(dev, sizeof(*pfn_sb), GFP_KERNEL);
-+	if (!pfn_sb)
-+		return -ENOMEM;
- 	nd_pfn = to_nd_pfn(pfn_dev);
- 	nd_pfn->pfn_sb = pfn_sb;
- 	rc = nd_pfn_validate(nd_pfn, PFN_SIG);
--- 
-2.34.1
+I too, think the code is clearer if the failure to alloc is addressed
+immediately. In this case, it seems we can't just return -ENOMEM.
+The original code is detecting that NULL pfn_sb in nd_pfn_validate(),
+and then doing this cleanup upon return:
 
+	if (rc < 0) {
+                nd_detach_ndns(pfn_dev, &nd_pfn->ndns);
+                put_device(pfn_dev);
+
+Perhaps refactor a bit to go right to the cleanup, as opposed to calling
+nd_pfn_validate() when !pfn_sb.
+
+Alison
+
+> -- 
+> 2.34.1
+> 
+> 
