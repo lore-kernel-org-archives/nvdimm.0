@@ -1,96 +1,125 @@
-Received: from mail-pj1-f47.google.com (mail-pj1-f47.google.com [209.85.216.47])
+Received: from mail-pj1-f44.google.com (mail-pj1-f44.google.com [209.85.216.44])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DC51291F
-	for <nvdimm@lists.linux.dev>; Sun, 26 Feb 2023 23:51:01 +0000 (UTC)
-Received: by mail-pj1-f47.google.com with SMTP id x34so4395206pjj.0
-        for <nvdimm@lists.linux.dev>; Sun, 26 Feb 2023 15:51:01 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29271160
+	for <nvdimm@lists.linux.dev>; Mon, 27 Feb 2023 00:08:02 +0000 (UTC)
+Received: by mail-pj1-f44.google.com with SMTP id 6-20020a17090a190600b00237c5b6ecd7so3863314pjg.4
+        for <nvdimm@lists.linux.dev>; Sun, 26 Feb 2023 16:08:02 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=fromorbit-com.20210112.gappssmtp.com; s=20210112;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=ZRz1s/KRyO2Uxle7inVvqWM+4+Zegth9BIYrB8VHgJo=;
-        b=Mk9tRRfW308oYU3sLQ9yDdi2b3JL5istzYA1UAT00A3pKm3FAvG/xGqJ5/miW1RysM
-         /CqsMcjdybw8Bo9iiRVpNU4Umt6d5Gt9dh5zmiVrlCp7366v3Ujk/vxERazGT2EObXDs
-         E2ROzMGJwFWIVc/swERCL/ssQ2fhO90sCYWSVt1gUFeIUCyhCIHM4BDpaJn9PMlH+CTW
-         Upx+Na8pZmYuq4FwymuNcI8m2JTDaJmk4E8oui+2O4xDj3fWiLc1QFoWfPpoYniyuSoI
-         qsEGgGD9WGutpkTiQ3JcoO3/2xVfqOozEew6jMBI54emEqIMDlChsH8cQpY7QSG4Os5Z
-         lG2A==
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=2MTXMIlz/dV0iBnAtnBofs7P8vQ/S8XF/YLaf2+qt2M=;
+        b=d+9lTc6+OUhmOYiqKJRCk50VavmXC3N+7KWcPckDoUDZ7l9ArueFObChf7lgiN4W3O
+         rDBuiNPw/HIcX57OdOLNhgHiFmcGwnD79/SOOGcwtymHix3+X/XzEHRyw3zpv0z/P5WG
+         Ram63RCw70PMOGgNfVW9Nq497QRvJV8T+VLX001rXCzg1c+MucbcNx8ml1LkUFnLgjvg
+         OOfwSep0SdFwhfpoXtZVUgN+wUlAK8I5FqdhYfyiD6d5Gnsv/nPEDYExpqdBilqAWdV1
+         r0eDZGj71Ek7FH3jpx5YtBCAt9f6S1gMLqTLvzMjt5HnIeL1DnKVwIb1SpLvDiD/Cm35
+         XC/A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=ZRz1s/KRyO2Uxle7inVvqWM+4+Zegth9BIYrB8VHgJo=;
-        b=7pCzczg42TZ769BGw+z7FVUrbUREPAhkETkpZ42p++hQwqZKm8UX+Bntv7Iiq+ylnh
-         EZEVmozYa58jxOyZjHVtjbIV0O7TMFThDR6Q4QBAQWMOdE5vmZQmZ6Slh8KZqQ8ZQ6AA
-         w0127DX18TUl+6SPXXeHWEVeMGVzjMA84AZoycUVYjkO3OnMClaC8TK19B0py/5fXsEs
-         b2foBe0n60LpvCAvdMZJLqSqGFOOriNel2gPEytWuX2gMCMMY2JEGAQaj09FRqLQvp8z
-         woYhNDMfzxxP8yuZbiiiyZ01BVlE5rqs+OzZH4Qs/oDBMa2SiL11KndmlHNLDLSPNCJF
-         9/Ig==
-X-Gm-Message-State: AO0yUKUKU0OhxG3RPOjPipQfJOuoa6fEXSt/eWM2zSAg3p+0kOrIK790
-	uwnVRPNjiCXG3COLUB7RbNHf6Q==
-X-Google-Smtp-Source: AK7set9nFy4/f6XcyXZVPqFl639UstSp++qbIKME5kqRCmc5ElckiPp+IUv8d1xCQl78ZiAXr5MTlg==
-X-Received: by 2002:a17:902:eccc:b0:19c:387c:bd65 with SMTP id a12-20020a170902eccc00b0019c387cbd65mr28220861plh.10.1677455460789;
-        Sun, 26 Feb 2023 15:51:00 -0800 (PST)
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=2MTXMIlz/dV0iBnAtnBofs7P8vQ/S8XF/YLaf2+qt2M=;
+        b=JWPV2rjde8GxZxfH8QyIl86XQEJMmOJtuRjp8jAJSB3dyiMXWBF3DrlvVfKfWRR/1c
+         LwVN091KRC5cF5BpoJLdKEoXtAmTZWCN82RqTr7bVUmjwejgeJoUvd3RBJScf3BBlHet
+         K2VPu/w3BQqwGFY0hKlnG4SpG0TnPkiqE0bIDYzHpk61jKL9fAPVcWchw5JFvMrcomn+
+         wQ07d59W46wbUMPsxTud5rJcGqux6zc4j06NzC0hP8Q8U/zLU0y7mHUfele+4LuhnauD
+         JCqkIC0M7FqbXohdw+gigIKVQBFANLaSWWqLgxJ22gh90+oteIpY/QILUl4owOiTodW8
+         Pl0Q==
+X-Gm-Message-State: AO0yUKU6KscXdtaVeAvEwuWcQBy3w4WVB/iJt3V7NjRsYy5ANTVew9d/
+	Sw/wpw7nTrZwsygyhQrvmsugig==
+X-Google-Smtp-Source: AK7set8+PnfY2B8V9G4CP2Lj8RDaQp+dmHVQXgLREsohum+UH1nqFrxnkjraneEwoMXVj1dLQJOeqw==
+X-Received: by 2002:a05:6a20:3ca6:b0:cc:8e18:420f with SMTP id b38-20020a056a203ca600b000cc8e18420fmr10210968pzj.35.1677456482521;
+        Sun, 26 Feb 2023 16:08:02 -0800 (PST)
 Received: from dread.disaster.area (pa49-186-4-237.pa.vic.optusnet.com.au. [49.186.4.237])
-        by smtp.gmail.com with ESMTPSA id d13-20020a170902aa8d00b00198d7b52eefsm3129186plr.257.2023.02.26.15.51.00
+        by smtp.gmail.com with ESMTPSA id k26-20020aa790da000000b005d6dff9bbecsm2979685pfk.62.2023.02.26.16.08.01
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 26 Feb 2023 15:51:00 -0800 (PST)
+        Sun, 26 Feb 2023 16:08:02 -0800 (PST)
 Received: from dave by dread.disaster.area with local (Exim 4.92.3)
 	(envelope-from <david@fromorbit.com>)
-	id 1pWQnB-002WaD-LN; Mon, 27 Feb 2023 10:50:57 +1100
-Date: Mon, 27 Feb 2023 10:50:57 +1100
+	id 1pWR3f-002Wx8-CQ; Mon, 27 Feb 2023 11:07:59 +1100
+Date: Mon, 27 Feb 2023 11:07:59 +1100
 From: Dave Chinner <david@fromorbit.com>
 To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
 Cc: linux-xfs@vger.kernel.org, nvdimm@lists.linux.dev,
 	linux-fsdevel@vger.kernel.org, linux-mm@kvack.org,
 	djwong@kernel.org, dan.j.williams@intel.com, hch@infradead.org,
 	jane.chu@oracle.com, akpm@linux-foundation.org, willy@infradead.org
-Subject: Re: [PATCH v10 2/3] fs: introduce super_drop_pagecache()
-Message-ID: <20230226235057.GY360264@dread.disaster.area>
+Subject: Re: [PATCH v10 3/3] mm, pmem, xfs: Introduce MF_MEM_REMOVE for unbind
+Message-ID: <20230227000759.GZ360264@dread.disaster.area>
 References: <1676645312-13-1-git-send-email-ruansy.fnst@fujitsu.com>
- <1676645312-13-3-git-send-email-ruansy.fnst@fujitsu.com>
- <20230220212506.GS360264@dread.disaster.area>
- <b872f2e8-c451-697b-e9cf-63c5bae52a8a@fujitsu.com>
+ <1676645312-13-4-git-send-email-ruansy.fnst@fujitsu.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <b872f2e8-c451-697b-e9cf-63c5bae52a8a@fujitsu.com>
+In-Reply-To: <1676645312-13-4-git-send-email-ruansy.fnst@fujitsu.com>
 
-On Tue, Feb 21, 2023 at 09:57:52AM +0800, Shiyang Ruan wrote:
+On Fri, Feb 17, 2023 at 02:48:32PM +0000, Shiyang Ruan wrote:
+> This patch is inspired by Dan's "mm, dax, pmem: Introduce
+> dev_pagemap_failure()"[1].  With the help of dax_holder and
+> ->notify_failure() mechanism, the pmem driver is able to ask filesystem
+> (or mapped device) on it to unmap all files in use and notify processes
+> who are using those files.
 > 
+> Call trace:
+> trigger unbind
+>  -> unbind_store()
+>   -> ... (skip)
+>    -> devres_release_all()   # was pmem driver ->remove() in v1
+>     -> kill_dax()
+>      -> dax_holder_notify_failure(dax_dev, 0, U64_MAX, MF_MEM_PRE_REMOVE)
+>       -> xfs_dax_notify_failure()
 > 
-> 在 2023/2/21 5:25, Dave Chinner 写道:
-> > On Fri, Feb 17, 2023 at 02:48:31PM +0000, Shiyang Ruan wrote:
-> > > xfs_notify_failure.c requires a method to invalidate all dax mappings.
-> > > drop_pagecache_sb() can do this but it is a static function and only
-> > > build with CONFIG_SYSCTL.  Now, move its implementation into super.c and
-> > > call it super_drop_pagecache().  Use its second argument as invalidator
-> > > so that we can choose which invalidate method to use.
-> > > 
-> > > Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-> > 
-> > I got no repsonse last time, so I'll just post a link to the
-> > concerns I stated about this:
-> > 
-> > https://lore.kernel.org/linux-xfs/20230205215000.GT360264@dread.disaster.area/
+> Introduce MF_MEM_PRE_REMOVE to let filesystem know this is a remove
+> event.  So do not shutdown filesystem directly if something not
+> supported, or if failure range includes metadata area.  Make sure all
+> files and processes are handled correctly.
 > 
-> Please see patch 3.  I changed the code: freeze the fs, then drop its
-> caches.
+> [1]: https://lore.kernel.org/linux-mm/161604050314.1463742.14151665140035795571.stgit@dwillia2-desk3.amr.corp.intel.com/
+> 
+> Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
 
-Neither the patch nor the cover letter have a changelog in them
-that mention you changed anything. Please, at least, keep a change
-log in the cover letter so that people know what has changed from
-version to version without having to look at every patch and line of
-code again.
+.....
+
+> ---
+> @@ -225,6 +242,15 @@ xfs_dax_notify_failure(
+>  	if (offset + len - 1 > ddev_end)
+>  		len = ddev_end - offset + 1;
+>  
+> +	if (mf_flags & MF_MEM_PRE_REMOVE) {
+> +		xfs_info(mp, "device is about to be removed!");
+> +		error = freeze_super(mp->m_super);
+> +		if (error)
+> +			return error;
+> +		/* invalidate_inode_pages2() invalidates dax mapping */
+> +		super_drop_pagecache(mp->m_super, invalidate_inode_pages2);
+> +	}
+
+Why do you still need to drop the pagecache here? My suggestion was
+to replace it with freezing the filesystem at this point is to stop
+it being dirtied further before the device remove actually occurs.
+The userspace processes will be killed, their DAX mappings reclaimed
+and the filesystem shut down before device removal occurs, so
+super_drop_pagecache() is largely superfluous as it doesn't actually
+provide any protection against racing with new mappings or dirtying
+of existing/newly created mappings.
+
+Freezing doesn't stop the creation of new mappings, either, it just
+cleans all the dirty mappings and halts anything that is trying to
+dirty existing clean mappings. It's not until we kill the userspace
+processes that new mappings will be stopped, and it's not until we
+shut the filesystem down that the filesystem itself will stop
+accessing the storage.
+
+Hence I don't see why you retained super_drop_pagecache() here at
+all. Can you explain why it is still needed?
 
 -Dave.
 -- 
