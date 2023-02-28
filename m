@@ -1,100 +1,110 @@
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yw1-f174.google.com (mail-yw1-f174.google.com [209.85.128.174])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E13FF3D9F
-	for <nvdimm@lists.linux.dev>; Tue, 28 Feb 2023 15:28:22 +0000 (UTC)
-Received: from lhrpeml500005.china.huawei.com (unknown [172.18.147.201])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4PR0y94zN1z6J7dy;
-	Tue, 28 Feb 2023 23:04:17 +0800 (CST)
-Received: from localhost (10.202.227.76) by lhrpeml500005.china.huawei.com
- (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.21; Tue, 28 Feb
- 2023 15:09:12 +0000
-Date: Tue, 28 Feb 2023 15:09:11 +0000
-From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-To: Dave Jiang <dave.jiang@intel.com>
-CC: <linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>,
-	<dan.j.williams@intel.com>, <ira.weiny@intel.com>,
-	<vishal.l.verma@intel.com>, <alison.schofield@intel.com>, <dave@stgolabs.net>
-Subject: Re: [PATCH v7 01/20] cxl/pmem: Introduce nvdimm_security_ops with
- ->get_flags() operation
-Message-ID: <20230228150911.00002535@Huawei.com>
-In-Reply-To: <166983609611.2734609.13231854299523325319.stgit@djiang5-desk3.ch.intel.com>
-References: <166983606451.2734609.4050644229630259452.stgit@djiang5-desk3.ch.intel.com>
-	<166983609611.2734609.13231854299523325319.stgit@djiang5-desk3.ch.intel.com>
-Organization: Huawei Technologies Research and Development (UK) Ltd.
-X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE0EC9475
+	for <nvdimm@lists.linux.dev>; Tue, 28 Feb 2023 20:59:53 +0000 (UTC)
+Received: by mail-yw1-f174.google.com with SMTP id 00721157ae682-536c02eea4dso310379227b3.4
+        for <nvdimm@lists.linux.dev>; Tue, 28 Feb 2023 12:59:53 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=H15Wgrg45uphokJUqJE+ge3DLPSULLnvrd4PVO7cLLc=;
+        b=fF7yR1zieU4gkviG5qrWrdfSWhtKPGGWlvtMBXv4KHBDu0aJ3gWsucs0SnY/VXu9xI
+         98ilQKazhvCJdc/WBewUB+5SWcdhorii7J1pOeAzos6f/dQqHZdg02M4AtOUfeTq8eOO
+         f09htTPMG/pkdx7lHQGqeX5kSZIxN5OkkPfc77FKJnyPHYn11vG35NdgnRPHPkAFKcea
+         XgImIWOsGyc18s8CqlKSzyo64N6r/4hd/TI5CyRtFIgPb+s+gMlpDT8KVNO9m7c21yRW
+         SoYMoaCOLdsdFi4o18FJKo606Yo0hMRNZOz6SykPjzCGVDwzVDiSukBxaNiAwswCzVE4
+         k7xA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=H15Wgrg45uphokJUqJE+ge3DLPSULLnvrd4PVO7cLLc=;
+        b=Faj02TPTXj2zUMwhOWZsQvriN3wAdRDbGodVB+XyEkZ4fv04H/5mDX1dC/HWTWu0s9
+         sJXgdmYJ/XLVFwP8nLtoJ4SzBlRUYe9xfmhudcjWdykrqLKPidFEiXh3mz+3XNFiDpIX
+         KEmv0GVURxlvM/zZ4/gAHaTr1/0zNoB/201FOS2SVFDyPKeb+NULLCmUQx8a0G0nkBxd
+         cMEnCKA6pS3Ga8BaT6GrsP9ANy1Pfm9fs2AOXwdEDv4lI6f6B24JXSrGWP07KicRXzTt
+         7uis7E1Mu+4aPs/BJHHvOVkgkRXqQSLuSD/VTvCtdMZusENx31F/viKs6ZthOGKuJs29
+         b9MQ==
+X-Gm-Message-State: AO0yUKXR1spirLU4eDouQ5/0f/GwFH8YQPh3tsZQ6FVkKrJkKVbLOlY2
+	T64A9x3/Q8tj7PsgH+r3gJ8OpDVCDJkxSLdwycYwCQ==
+X-Google-Smtp-Source: AK7set+d6vs4ymgWzsVBho7zIKcb2AoIn1quNMhQ7GG855RnJ+2d+gNas87Vdn9aekeC5XgvBudues+ObsH6EIGw7ZY=
+X-Received: by 2002:a5b:8b:0:b0:90d:af77:9ca6 with SMTP id b11-20020a5b008b000000b0090daf779ca6mr2178238ybp.7.1677617992660;
+ Tue, 28 Feb 2023 12:59:52 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.202.227.76]
-X-ClientProxiedBy: lhrpeml500004.china.huawei.com (7.191.163.9) To
- lhrpeml500005.china.huawei.com (7.191.163.240)
-X-CFilter-Loop: Reflected
+References: <Y8v+qVZ8OmodOCQ9@nvidia.com>
+In-Reply-To: <Y8v+qVZ8OmodOCQ9@nvidia.com>
+From: "T.J. Mercier" <tjmercier@google.com>
+Date: Tue, 28 Feb 2023 12:59:41 -0800
+Message-ID: <CABdmKX3kJZKsOQSi=4+RE8D3AF=-823B9WV11sC4WH67hjzqSQ@mail.gmail.com>
+Subject: Re: [LSF/MM/BPF proposal]: Physr discussion
+To: Jason Gunthorpe <jgg@nvidia.com>
+Cc: lsf-pc@lists.linuxfoundation.org, linux-mm@kvack.org, 
+	iommu@lists.linux.dev, linux-rdma@vger.kernel.org, 
+	Matthew Wilcox <willy@infradead.org>, Christoph Hellwig <hch@lst.de>, 
+	Joao Martins <joao.m.martins@oracle.com>, John Hubbard <jhubbard@nvidia.com>, 
+	Logan Gunthorpe <logang@deltatee.com>, Ming Lei <ming.lei@redhat.com>, linux-block@vger.kernel.org, 
+	netdev@vger.kernel.org, dri-devel@lists.freedesktop.org, 
+	nvdimm@lists.linux.dev
+Content-Type: text/plain; charset="UTF-8"
 
-On Wed, 30 Nov 2022 12:21:36 -0700
-Dave Jiang <dave.jiang@intel.com> wrote:
+On Sat, Jan 21, 2023 at 7:03 AM Jason Gunthorpe <jgg@nvidia.com> wrote:
+>
+> I would like to have a session at LSF to talk about Matthew's
+> physr discussion starter:
+>
+>  https://lore.kernel.org/linux-mm/YdyKWeU0HTv8m7wD@casper.infradead.org/
+>
+> I have become interested in this with some immediacy because of
+> IOMMUFD and this other discussion with Christoph:
+>
+>  https://lore.kernel.org/kvm/4-v2-472615b3877e+28f7-vfio_dma_buf_jgg@nvidia.com/
+>
+> Which results in, more or less, we have no way to do P2P DMA
+> operations without struct page - and from the RDMA side solving this
+> well at the DMA API means advancing at least some part of the physr
+> idea.
+>
+> So - my objective is to enable to DMA API to "DMA map" something that
+> is not a scatterlist, may or may not contain struct pages, but can
+> still contain P2P DMA data. From there I would move RDMA MR's to use
+> this new API, modify DMABUF to export it, complete the above VFIO
+> series, and finally, use all of this to add back P2P support to VFIO
+> when working with IOMMUFD by allowing IOMMUFD to obtain a safe
+> reference to the VFIO memory using DMABUF. From there we'd want to see
+> pin_user_pages optimized, and that also will need some discussion how
+> best to structure it.
+>
+> I also have several ideas on how something like physr can optimize the
+> iommu driver ops when working with dma-iommu.c and IOMMUFD.
+>
+> I've been working on an implementation and hope to have something
+> draft to show on the lists in a few weeks. It is pretty clear there
+> are several interesting decisions to make that I think will benefit
+> from a live discussion.
+>
+> Providing a kernel-wide alternative to scatterlist is something that
+> has general interest across all the driver subsystems. I've started to
+> view the general problem rather like xarray where the main focus is to
+> create the appropriate abstraction and then go about transforming
+> users to take advatange of the cleaner abstraction. scatterlist
+> suffers here because it has an incredibly leaky API, a huge number of
+> (often sketchy driver) users, and has historically been very difficult
+> to improve.
+>
+> The session would quickly go over the current state of whatever the
+> mailing list discussion evolves into and an open discussion around the
+> different ideas.
+>
+> Thanks,
+> Jason
+>
 
-> Add nvdimm_security_ops support for CXL memory device with the introduction
-> of the ->get_flags() callback function. This is part of the "Persistent
-> Memory Data-at-rest Security" command set for CXL memory device support.
-> The ->get_flags() function provides the security state of the persistent
-> memory device defined by the CXL 3.0 spec section 8.2.9.8.6.1.
-> 
-> Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-> Link: https://lore.kernel.org/r/166863346914.80269.2104235260504076729.stgit@djiang5-desk3.ch.intel.com
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Hi Dave / Dan,
-
-Just looking at build warnings with current upstream with W=1 C=1 and it highlights
-and oddity with this patch.
-
-
-> diff --git a/drivers/cxl/pmem.c b/drivers/cxl/pmem.c
-> index 4c627d67281a..efffc731c2ec 100644
-> --- a/drivers/cxl/pmem.c
-> +++ b/drivers/cxl/pmem.c
-> @@ -11,6 +11,8 @@
->  #include "cxlmem.h"
->  #include "cxl.h"
->  
-> +extern const struct nvdimm_security_ops *cxl_security_ops;
-Why not push this into a header as...
-> +
->  /*
->   * Ordered workqueue for cxl nvdimm device arrival and departure
->   * to coordinate bus rescans when a bridge arrives and trigger remove
-> @@ -78,8 +80,8 @@ static int cxl_nvdimm_probe(struct device *dev)
->  	set_bit(ND_CMD_GET_CONFIG_SIZE, &cmd_mask);
->  	set_bit(ND_CMD_GET_CONFIG_DATA, &cmd_mask);
->  	set_bit(ND_CMD_SET_CONFIG_DATA, &cmd_mask);
-> -	nvdimm = nvdimm_create(cxl_nvb->nvdimm_bus, cxl_nvd, NULL, flags,
-> -			       cmd_mask, 0, NULL);
-> +	nvdimm = __nvdimm_create(cxl_nvb->nvdimm_bus, cxl_nvd, NULL, flags,
-> +				 cmd_mask, 0, NULL, NULL, cxl_security_ops, NULL);
->  	if (!nvdimm) {
->  		rc = -ENOMEM;
->  		goto out;
-> diff --git a/drivers/cxl/security.c b/drivers/cxl/security.c
-> new file mode 100644
-> index 000000000000..806173084216
-> --- /dev/null
-> +++ b/drivers/cxl/security.c
-
-> +
-> +static const struct nvdimm_security_ops __cxl_security_ops = {
-> +	.get_flags = cxl_pmem_get_security_flags,
-> +};
-> +
-> +const struct nvdimm_security_ops *cxl_security_ops = &__cxl_security_ops;
-
-otherwise this triggers a should static warning as the compiler can't see the extern
-definition.
-
-Jonathan
+Hi, I'm interested in participating in this discussion!
