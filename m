@@ -1,158 +1,100 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72D1833FA
-	for <nvdimm@lists.linux.dev>; Tue, 28 Feb 2023 14:04:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1677593053;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=1ESrld006RWsyPkhdVerW4JO9w3LuFA1DAtayIv7Uao=;
-	b=cTt6imcK48pkduuip5E0TE2eAhSFNO99seWi2cZrqLfKzeL7xKxArmpPuoqmH/xixtHn9Q
-	TgyJKQ/vd+WBonHYpfmhmsJ64dVuJKjmD29lyaBd8rLS+OBtJGPErJ0r78IeyjkgIF/8/8
-	UzXLtIE4RpdaB7D4M+OpzcNW6NwLdJs=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-80-ee3cnWmIMkS4QAFkSqBm9Q-1; Tue, 28 Feb 2023 09:04:05 -0500
-X-MC-Unique: ee3cnWmIMkS4QAFkSqBm9Q-1
-Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.rdu2.redhat.com [10.11.54.5])
-	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mimecast-mx02.redhat.com (Postfix) with ESMTPS id C74C61871D9A;
-	Tue, 28 Feb 2023 14:03:56 +0000 (UTC)
-Received: from localhost (ovpn-13-194.pek2.redhat.com [10.72.13.194])
-	by smtp.corp.redhat.com (Postfix) with ESMTPS id 4401418EC6;
-	Tue, 28 Feb 2023 14:03:54 +0000 (UTC)
-Date: Tue, 28 Feb 2023 22:03:49 +0800
-From: Baoquan He <bhe@redhat.com>
-To: "lizhijian@fujitsu.com" <lizhijian@fujitsu.com>
-Cc: "kexec@lists.infradead.org" <kexec@lists.infradead.org>,
-	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
-	"linux-mm@kvack.org" <linux-mm@kvack.org>,
-	"vgoyal@redhat.com" <vgoyal@redhat.com>,
-	"dyoung@redhat.com" <dyoung@redhat.com>,
-	"vishal.l.verma@intel.com" <vishal.l.verma@intel.com>,
-	"dan.j.williams@intel.com" <dan.j.williams@intel.com>,
-	"dave.jiang@intel.com" <dave.jiang@intel.com>,
-	"horms@verge.net.au" <horms@verge.net.au>,
-	"k-hagio-ab@nec.com" <k-hagio-ab@nec.com>,
-	"akpm@linux-foundation.org" <akpm@linux-foundation.org>,
-	"Yasunori Gotou (Fujitsu)" <y-goto@fujitsu.com>,
-	"yangx.jy@fujitsu.com" <yangx.jy@fujitsu.com>,
-	"ruansy.fnst@fujitsu.com" <ruansy.fnst@fujitsu.com>
-Subject: Re: [RFC][nvdimm][crash] pmem memmap dump support
-Message-ID: <Y/4JxQtnmYrZgVwF@MiWiFi-R3L-srv>
-References: <3c752fc2-b6a0-2975-ffec-dba3edcf4155@fujitsu.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E13FF3D9F
+	for <nvdimm@lists.linux.dev>; Tue, 28 Feb 2023 15:28:22 +0000 (UTC)
+Received: from lhrpeml500005.china.huawei.com (unknown [172.18.147.201])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4PR0y94zN1z6J7dy;
+	Tue, 28 Feb 2023 23:04:17 +0800 (CST)
+Received: from localhost (10.202.227.76) by lhrpeml500005.china.huawei.com
+ (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.21; Tue, 28 Feb
+ 2023 15:09:12 +0000
+Date: Tue, 28 Feb 2023 15:09:11 +0000
+From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+To: Dave Jiang <dave.jiang@intel.com>
+CC: <linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>,
+	<dan.j.williams@intel.com>, <ira.weiny@intel.com>,
+	<vishal.l.verma@intel.com>, <alison.schofield@intel.com>, <dave@stgolabs.net>
+Subject: Re: [PATCH v7 01/20] cxl/pmem: Introduce nvdimm_security_ops with
+ ->get_flags() operation
+Message-ID: <20230228150911.00002535@Huawei.com>
+In-Reply-To: <166983609611.2734609.13231854299523325319.stgit@djiang5-desk3.ch.intel.com>
+References: <166983606451.2734609.4050644229630259452.stgit@djiang5-desk3.ch.intel.com>
+	<166983609611.2734609.13231854299523325319.stgit@djiang5-desk3.ch.intel.com>
+Organization: Huawei Technologies Research and Development (UK) Ltd.
+X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <3c752fc2-b6a0-2975-ffec-dba3edcf4155@fujitsu.com>
-X-Scanned-By: MIMEDefang 3.1 on 10.11.54.5
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: redhat.com
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-Originating-IP: [10.202.227.76]
+X-ClientProxiedBy: lhrpeml500004.china.huawei.com (7.191.163.9) To
+ lhrpeml500005.china.huawei.com (7.191.163.240)
+X-CFilter-Loop: Reflected
 
-On 02/23/23 at 06:24am, lizhijian@fujitsu.com wrote:
-> Hello folks,
-> 
-> This mail raises a pmem memmap dump requirement and possible solutions, but they are all still premature.
-> I really hope you can provide some feedback.
-> 
-> pmem memmap can also be called pmem metadata here.
-> 
-> ### Background and motivate overview ###
-> ---
-> Crash dump is an important feature for trouble shooting of kernel. It is the final way to chase what
-> happened at the kernel panic, slowdown, and so on. It is the most important tool for customer support.
-> However, a part of data on pmem is not included in crash dump, it may cause difficulty to analyze
-> trouble around pmem (especially Filesystem-DAX).
-> 
-> 
-> A pmem namespace in "fsdax" or "devdax" mode requires allocation of per-page metadata[1]. The allocation
-> can be drawn from either mem(system memory) or dev(pmem device), see `ndctl help create-namespace` for
-> more details. In fsdax, struct page array becomes very important, it is one of the key data to find
-> status of reverse map.
-> 
-> So, when metadata was stored in pmem, even pmem's per-page metadata will not be dumped. That means
-> troubleshooters are unable to check more details about pmem from the dumpfile.
-> 
-> ### Make pmem memmap dump support ###
-> ---
-> Our goal is that whether metadata is stored on mem or pmem, its metadata can be dumped and then the
-> crash-utilities can read more details about the pmem. Of course, this feature can be enabled/disabled.
-> 
-> First, based on our previous investigation, according to the location of metadata and the scope of
-> dump, we can divide it into the following four cases: A, B, C, D.
-> It should be noted that although we mentioned case A&B below, we do not want these two cases to be
-> part of this feature, because dumping the entire pmem will consume a lot of space, and more importantly,
-> it may contain user sensitive data.
-> 
-> +-------------+----------+------------+
-> |\+--------+\     metadata location   |
-> |            ++-----------------------+
-> | dump scope  |  mem     |   PMEM     |
-> +-------------+----------+------------+
-> | entire pmem |     A    |     B      |
-> +-------------+----------+------------+
-> | metadata    |     C    |     D      |
-> +-------------+----------+------------+
-> 
-> Case A&B: unsupported
-> - Only the regions listed in PT_LOAD in vmcore are dumpable. This can be resolved by adding the pmem
-> region into vmcore's PT_LOADs in kexec-tools.
-> - For makedumpfile which will assume that all page objects of the entire region described in PT_LOADs
-> are readable, and then skips/excludes the specific page according to its attributes. But in the case
-> of pmem, 1st kernel only allocates page objects for the namespaces of pmem, so makedumpfile will throw
-> errors[2] when specific -d options are specified.
-> Accordingly, we should make makedumpfile to ignore these errors if it's pmem region.
-> 
-> Because these above cases are not in our goal, we must consider how to prevent the data part of pmem
-> from reading by the dump application(makedumpfile).
-> 
-> Case C: native supported
-> metadata is stored in mem, and the entire mem/ram is dumpable.
-> 
-> Case D: unsupported && need your input
-> To support this situation, the makedumpfile needs to know the location of metadata for each pmem
-> namespace and the address and size of metadata in the pmem [start, end)
-> 
-> We have thought of a few possible options:
-> 
-> 1) In the 2nd kernel, with the help of the information from /sys/bus/nd/devices/{namespaceX.Y, daxX.Y, pfnX.Y}
-> exported by pmem drivers, makedumpfile is able to calculate the address and size of metadata
-> 2) In the 1st kernel, add a new symbol to the vmcore. The symbol is associated with the layout of
-> each namespace. The makedumpfile reads the symbol and figures out the address and size of the metadata.
-> 3) others ?
-> 
-> But then we found that we have always ignored a user case, that is, the user could save the dumpfile
-> to the pmem. Neither of these two options can solve this problem, because the pmem drivers will
-> re-initialize the metadata during the pmem drivers loading process, which leads to the metadata
-> we dumped is inconsistent with the metadata at the moment of the crash happening.
-> Simply, can we just disable the pmem directly in 2nd kernel so that previous metadata will not be
-> destroyed? But this operation will bring us inconvenience that 2nd kernel doesn’t allow user storing
-> dumpfile on the filesystem/partition based on pmem.
+On Wed, 30 Nov 2022 12:21:36 -0700
+Dave Jiang <dave.jiang@intel.com> wrote:
 
-1) In kernel side, export info of pmem meta data;
-2) in makedumpfile size, add an option to specify if we want to dump
-   pmem meta data; An option or in dump level?
-3) In glue script, detect and warn if pmem data is in pmem and wanted,
-   and dump target is the same pmem.
+> Add nvdimm_security_ops support for CXL memory device with the introduction
+> of the ->get_flags() callback function. This is part of the "Persistent
+> Memory Data-at-rest Security" command set for CXL memory device support.
+> The ->get_flags() function provides the security state of the persistent
+> memory device defined by the CXL 3.0 spec section 8.2.9.8.6.1.
+> 
+> Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> Link: https://lore.kernel.org/r/166863346914.80269.2104235260504076729.stgit@djiang5-desk3.ch.intel.com
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Hi Dave / Dan,
 
-Does this work for you?
+Just looking at build warnings with current upstream with W=1 C=1 and it highlights
+and oddity with this patch.
 
-Not sure if above items are all do-able. As for parking pmem device
-till in kdump kernel, I believe intel pmem expert know how to achieve
-that. If there's no way to park pmem during kdump jumping, case D) is
-daydream.
 
-Thanks
-Baoquan
+> diff --git a/drivers/cxl/pmem.c b/drivers/cxl/pmem.c
+> index 4c627d67281a..efffc731c2ec 100644
+> --- a/drivers/cxl/pmem.c
+> +++ b/drivers/cxl/pmem.c
+> @@ -11,6 +11,8 @@
+>  #include "cxlmem.h"
+>  #include "cxl.h"
+>  
+> +extern const struct nvdimm_security_ops *cxl_security_ops;
+Why not push this into a header as...
+> +
+>  /*
+>   * Ordered workqueue for cxl nvdimm device arrival and departure
+>   * to coordinate bus rescans when a bridge arrives and trigger remove
+> @@ -78,8 +80,8 @@ static int cxl_nvdimm_probe(struct device *dev)
+>  	set_bit(ND_CMD_GET_CONFIG_SIZE, &cmd_mask);
+>  	set_bit(ND_CMD_GET_CONFIG_DATA, &cmd_mask);
+>  	set_bit(ND_CMD_SET_CONFIG_DATA, &cmd_mask);
+> -	nvdimm = nvdimm_create(cxl_nvb->nvdimm_bus, cxl_nvd, NULL, flags,
+> -			       cmd_mask, 0, NULL);
+> +	nvdimm = __nvdimm_create(cxl_nvb->nvdimm_bus, cxl_nvd, NULL, flags,
+> +				 cmd_mask, 0, NULL, NULL, cxl_security_ops, NULL);
+>  	if (!nvdimm) {
+>  		rc = -ENOMEM;
+>  		goto out;
+> diff --git a/drivers/cxl/security.c b/drivers/cxl/security.c
+> new file mode 100644
+> index 000000000000..806173084216
+> --- /dev/null
+> +++ b/drivers/cxl/security.c
 
+> +
+> +static const struct nvdimm_security_ops __cxl_security_ops = {
+> +	.get_flags = cxl_pmem_get_security_flags,
+> +};
+> +
+> +const struct nvdimm_security_ops *cxl_security_ops = &__cxl_security_ops;
+
+otherwise this triggers a should static warning as the compiler can't see the extern
+definition.
+
+Jonathan
