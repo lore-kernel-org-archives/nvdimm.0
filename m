@@ -1,163 +1,158 @@
-Received: from mail1.bemta37.messagelabs.com (mail1.bemta37.messagelabs.com [85.158.142.1])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A68DA57
-	for <nvdimm@lists.linux.dev>; Mon, 27 Feb 2023 10:06:58 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fujitsu.com;
-	s=170520fj; t=1677492416; i=@fujitsu.com;
-	bh=kn2Vp6WJgOrQzbMBhvCHz2oSn3RJLwTNnYDWT0jl7Cc=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type:Content-Transfer-Encoding;
-	b=koraLTrYlbR95you/2452Wtpd9PYBDutiyMgt9grAnNfYK1/oekpnio+WRVSkFPDu
-	 Mv0mToXi9or9cvmKLqXdY3tf9CJxivML3iYq1Bc27xuqMeyjfkC1v/cjvNYU09nAq3
-	 raDN0v3XwZIto+YIg+g6Dj+TXjokJtZWm3C1VcUa4PXhym8MRhLhs5C+bkT28rzZgm
-	 jB4mDG0mOtTgvf3lqa0Eaap5+4Fiuax/IpCy+hCk8dO8kKcw9GVQIeuEhOS9lomHDj
-	 HXpRlpxft83DnJTf6hn2RaYMK9TJ0HSQ8L6UdE3kjFE2A03L5GVRObwPCN3r8i94/u
-	 +8WJDDCzcFLKA==
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFtrCKsWRWlGSWpSXmKPExsViZ8ORpLu14U+
-  ywbQuAYs569ewWUyfeoHRYsuxe4wWl5/wWZyesIjJYvfrm2wWe/aeZLG4t+Y/q8WuPzvYLVb+
-  +MNq8fvHHDYHbo9TiyQ8Nq/Q8li85yWTx6ZVnWwemz5NYvc4MeM3i8eLzTMZPT4+vcXi8XmTX
-  ABnFGtmXlJ+RQJrxrqTm1kLLolXLGo9wtbAuE64i5GLQ0hgI6PE3M+rGSGcpUwS1xd1sUM42x
-  kl5mzdB+RwcvAK2Encmj6XFcRmEVCVuL7hNFRcUOLkzCcsILaoQLLEsfOtbF2MHBzCAn4SF9a
-  Yg4RFBNQkJk3awQxiMwu0MEls6a6AmL+WUWLfojawBJuAjsSFBX9ZQXo5Bawkbm9mhai3kFj8
-  5iA7hC0v0bx1NjNIiYSAksTM7niQsIRApUTrh18sELaaxNVzm5gnMArNQnLcLCSTZiGZtICRe
-  RWjeXFqUVlqka6huV5SUWZ6RkluYmaOXmKVbqJeaqluXn5RSYauoV5iebFeanGxXnFlbnJOil
-  5easkmRmBkphQn3dnBuLPvr94hRkkOJiVR3kVOf5KF+JLyUyozEosz4otKc1KLDzHKcHAoSfA
-  2lADlBItS01Mr0jJzgEkCJi3BwaMkwqteBJTmLS5IzC3OTIdInWJUlBLn9aoFSgiAJDJK8+Da
-  YInpEqOslDAvIwMDgxBPQWpRbmYJqvwrRnEORiVh3qIqoCk8mXklcNNfAS1mAlq8/eEPkMUli
-  QgpqQamVO9H95ecqvbN/MMgH//96FuBku3lp27qd0TuuHO3Uzp3+1r1Gel/uE77lKy9YypQe0
-  2zQVtnx9G4MzU5hqHL0h/P64vcf3VOZ05vmlbsNTMV93zX+uwVT0UijrSJZMV58p1Rlr3xfO0
-  MJY0qY7O43t0epiv+cjBrV87/JcPpcy3ndN+qX+3/2XMTT5xccvAE76aln/a9OResxRcdUTv9
-  77HINNX5bBGX//i0dHVtidrHp38sa8OOP8wLhTNqpu35N9+OQz9gzd9sVo7fHt8jzgT8/G8jO
-  olJ9LuC5IVIg3dszwI0T3Qtk9DZOXtrgJ2JRN1blc36ZWnFDidPa9js3LpT++vW7ddVvqUkGN
-  xQYinOSDTUYi4qTgQAnarrQscDAAA=
-X-Env-Sender: ruansy.fnst@fujitsu.com
-X-Msg-Ref: server-19.tower-728.messagelabs.com!1677492404!204198!1
-X-Originating-IP: [62.60.8.98]
-X-SYMC-ESS-Client-Auth: outbound-route-from=pass
-X-StarScan-Received:
-X-StarScan-Version: 9.103.1; banners=-,-,-
-X-VirusChecked: Checked
-Received: (qmail 30840 invoked from network); 27 Feb 2023 10:06:45 -0000
-Received: from unknown (HELO n03ukasimr03.n03.fujitsu.local) (62.60.8.98)
-  by server-19.tower-728.messagelabs.com with ECDHE-RSA-AES256-GCM-SHA384 encrypted SMTP; 27 Feb 2023 10:06:45 -0000
-Received: from n03ukasimr03.n03.fujitsu.local (localhost [127.0.0.1])
-	by n03ukasimr03.n03.fujitsu.local (Postfix) with ESMTP id 83DF11AD;
-	Mon, 27 Feb 2023 10:06:44 +0000 (GMT)
-Received: from R01UKEXCASM223.r01.fujitsu.local (R01UKEXCASM223 [10.182.185.121])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72D1833FA
+	for <nvdimm@lists.linux.dev>; Tue, 28 Feb 2023 14:04:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1677593053;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=1ESrld006RWsyPkhdVerW4JO9w3LuFA1DAtayIv7Uao=;
+	b=cTt6imcK48pkduuip5E0TE2eAhSFNO99seWi2cZrqLfKzeL7xKxArmpPuoqmH/xixtHn9Q
+	TgyJKQ/vd+WBonHYpfmhmsJ64dVuJKjmD29lyaBd8rLS+OBtJGPErJ0r78IeyjkgIF/8/8
+	UzXLtIE4RpdaB7D4M+OpzcNW6NwLdJs=
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-80-ee3cnWmIMkS4QAFkSqBm9Q-1; Tue, 28 Feb 2023 09:04:05 -0500
+X-MC-Unique: ee3cnWmIMkS4QAFkSqBm9Q-1
+Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.rdu2.redhat.com [10.11.54.5])
+	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by n03ukasimr03.n03.fujitsu.local (Postfix) with ESMTPS id 77AB51AC;
-	Mon, 27 Feb 2023 10:06:44 +0000 (GMT)
-Received: from [192.168.50.5] (10.167.225.141) by
- R01UKEXCASM223.r01.fujitsu.local (10.182.185.121) with Microsoft SMTP Server
- (TLS) id 15.0.1497.42; Mon, 27 Feb 2023 10:06:40 +0000
-Message-ID: <56e0a5e8-74db-95eb-d6fb-5d4a3b5cb156@fujitsu.com>
-Date: Mon, 27 Feb 2023 18:06:28 +0800
+	by mimecast-mx02.redhat.com (Postfix) with ESMTPS id C74C61871D9A;
+	Tue, 28 Feb 2023 14:03:56 +0000 (UTC)
+Received: from localhost (ovpn-13-194.pek2.redhat.com [10.72.13.194])
+	by smtp.corp.redhat.com (Postfix) with ESMTPS id 4401418EC6;
+	Tue, 28 Feb 2023 14:03:54 +0000 (UTC)
+Date: Tue, 28 Feb 2023 22:03:49 +0800
+From: Baoquan He <bhe@redhat.com>
+To: "lizhijian@fujitsu.com" <lizhijian@fujitsu.com>
+Cc: "kexec@lists.infradead.org" <kexec@lists.infradead.org>,
+	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
+	"linux-mm@kvack.org" <linux-mm@kvack.org>,
+	"vgoyal@redhat.com" <vgoyal@redhat.com>,
+	"dyoung@redhat.com" <dyoung@redhat.com>,
+	"vishal.l.verma@intel.com" <vishal.l.verma@intel.com>,
+	"dan.j.williams@intel.com" <dan.j.williams@intel.com>,
+	"dave.jiang@intel.com" <dave.jiang@intel.com>,
+	"horms@verge.net.au" <horms@verge.net.au>,
+	"k-hagio-ab@nec.com" <k-hagio-ab@nec.com>,
+	"akpm@linux-foundation.org" <akpm@linux-foundation.org>,
+	"Yasunori Gotou (Fujitsu)" <y-goto@fujitsu.com>,
+	"yangx.jy@fujitsu.com" <yangx.jy@fujitsu.com>,
+	"ruansy.fnst@fujitsu.com" <ruansy.fnst@fujitsu.com>
+Subject: Re: [RFC][nvdimm][crash] pmem memmap dump support
+Message-ID: <Y/4JxQtnmYrZgVwF@MiWiFi-R3L-srv>
+References: <3c752fc2-b6a0-2975-ffec-dba3edcf4155@fujitsu.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
- Thunderbird/102.7.1
-Subject: Re: [PATCH v10 3/3] mm, pmem, xfs: Introduce MF_MEM_REMOVE for unbind
-To: Dave Chinner <david@fromorbit.com>
-CC: <linux-xfs@vger.kernel.org>, <nvdimm@lists.linux.dev>,
-	<linux-fsdevel@vger.kernel.org>, <linux-mm@kvack.org>, <djwong@kernel.org>,
-	<dan.j.williams@intel.com>, <hch@infradead.org>, <jane.chu@oracle.com>,
-	<akpm@linux-foundation.org>, <willy@infradead.org>
-References: <1676645312-13-1-git-send-email-ruansy.fnst@fujitsu.com>
- <1676645312-13-4-git-send-email-ruansy.fnst@fujitsu.com>
- <20230227000759.GZ360264@dread.disaster.area>
-From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-In-Reply-To: <20230227000759.GZ360264@dread.disaster.area>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+In-Reply-To: <3c752fc2-b6a0-2975-ffec-dba3edcf4155@fujitsu.com>
+X-Scanned-By: MIMEDefang 3.1 on 10.11.54.5
+X-Mimecast-Spam-Score: 0
+X-Mimecast-Originator: redhat.com
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.167.225.141]
-X-ClientProxiedBy: G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.80) To
- R01UKEXCASM223.r01.fujitsu.local (10.182.185.121)
-X-Virus-Scanned: ClamAV using ClamSMTP
 
-
-
-在 2023/2/27 8:07, Dave Chinner 写道:
-> On Fri, Feb 17, 2023 at 02:48:32PM +0000, Shiyang Ruan wrote:
->> This patch is inspired by Dan's "mm, dax, pmem: Introduce
->> dev_pagemap_failure()"[1].  With the help of dax_holder and
->> ->notify_failure() mechanism, the pmem driver is able to ask filesystem
->> (or mapped device) on it to unmap all files in use and notify processes
->> who are using those files.
->>
->> Call trace:
->> trigger unbind
->>   -> unbind_store()
->>    -> ... (skip)
->>     -> devres_release_all()   # was pmem driver ->remove() in v1
->>      -> kill_dax()
->>       -> dax_holder_notify_failure(dax_dev, 0, U64_MAX, MF_MEM_PRE_REMOVE)
->>        -> xfs_dax_notify_failure()
->>
->> Introduce MF_MEM_PRE_REMOVE to let filesystem know this is a remove
->> event.  So do not shutdown filesystem directly if something not
->> supported, or if failure range includes metadata area.  Make sure all
->> files and processes are handled correctly.
->>
->> [1]: https://lore.kernel.org/linux-mm/161604050314.1463742.14151665140035795571.stgit@dwillia2-desk3.amr.corp.intel.com/
->>
->> Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+On 02/23/23 at 06:24am, lizhijian@fujitsu.com wrote:
+> Hello folks,
 > 
-> .....
+> This mail raises a pmem memmap dump requirement and possible solutions, but they are all still premature.
+> I really hope you can provide some feedback.
 > 
->> ---
->> @@ -225,6 +242,15 @@ xfs_dax_notify_failure(
->>   	if (offset + len - 1 > ddev_end)
->>   		len = ddev_end - offset + 1;
->>   
->> +	if (mf_flags & MF_MEM_PRE_REMOVE) {
->> +		xfs_info(mp, "device is about to be removed!");
->> +		error = freeze_super(mp->m_super);
->> +		if (error)
->> +			return error;
->> +		/* invalidate_inode_pages2() invalidates dax mapping */
->> +		super_drop_pagecache(mp->m_super, invalidate_inode_pages2);
->> +	}
+> pmem memmap can also be called pmem metadata here.
 > 
-> Why do you still need to drop the pagecache here? My suggestion was
-> to replace it with freezing the filesystem at this point is to stop
-> it being dirtied further before the device remove actually occurs.
-> The userspace processes will be killed, their DAX mappings reclaimed
-> and the filesystem shut down before device removal occurs, so
-> super_drop_pagecache() is largely superfluous as it doesn't actually
-> provide any protection against racing with new mappings or dirtying
-> of existing/newly created mappings.
+> ### Background and motivate overview ###
+> ---
+> Crash dump is an important feature for trouble shooting of kernel. It is the final way to chase what
+> happened at the kernel panic, slowdown, and so on. It is the most important tool for customer support.
+> However, a part of data on pmem is not included in crash dump, it may cause difficulty to analyze
+> trouble around pmem (especially Filesystem-DAX).
 > 
-> Freezing doesn't stop the creation of new mappings, either, it just
-> cleans all the dirty mappings and halts anything that is trying to
-
-This is the point I wasn't aware of.
-
-> dirty existing clean mappings. It's not until we kill the userspace
-> processes that new mappings will be stopped, and it's not until we
-> shut the filesystem down that the filesystem itself will stop
-> accessing the storage.
 > 
-> Hence I don't see why you retained super_drop_pagecache() here at
-> all. Can you explain why it is still needed?
-
-
-So I was just afraid that it's not enough for rmap & processes killer to 
-invalidate the dax mappings.  If something error happened during the 
-rmap walker, the fs will shutdown and there is no chance to invalidate 
-the rest mappings whose user didn't be killed yet.
-
-Now that freezing the fs is enough, I will remove the drop cache code.
-
-
---
-Thanks,
-Ruan.
-
+> A pmem namespace in "fsdax" or "devdax" mode requires allocation of per-page metadata[1]. The allocation
+> can be drawn from either mem(system memory) or dev(pmem device), see `ndctl help create-namespace` for
+> more details. In fsdax, struct page array becomes very important, it is one of the key data to find
+> status of reverse map.
 > 
-> -Dave.
+> So, when metadata was stored in pmem, even pmem's per-page metadata will not be dumped. That means
+> troubleshooters are unable to check more details about pmem from the dumpfile.
+> 
+> ### Make pmem memmap dump support ###
+> ---
+> Our goal is that whether metadata is stored on mem or pmem, its metadata can be dumped and then the
+> crash-utilities can read more details about the pmem. Of course, this feature can be enabled/disabled.
+> 
+> First, based on our previous investigation, according to the location of metadata and the scope of
+> dump, we can divide it into the following four cases: A, B, C, D.
+> It should be noted that although we mentioned case A&B below, we do not want these two cases to be
+> part of this feature, because dumping the entire pmem will consume a lot of space, and more importantly,
+> it may contain user sensitive data.
+> 
+> +-------------+----------+------------+
+> |\+--------+\     metadata location   |
+> |            ++-----------------------+
+> | dump scope  |  mem     |   PMEM     |
+> +-------------+----------+------------+
+> | entire pmem |     A    |     B      |
+> +-------------+----------+------------+
+> | metadata    |     C    |     D      |
+> +-------------+----------+------------+
+> 
+> Case A&B: unsupported
+> - Only the regions listed in PT_LOAD in vmcore are dumpable. This can be resolved by adding the pmem
+> region into vmcore's PT_LOADs in kexec-tools.
+> - For makedumpfile which will assume that all page objects of the entire region described in PT_LOADs
+> are readable, and then skips/excludes the specific page according to its attributes. But in the case
+> of pmem, 1st kernel only allocates page objects for the namespaces of pmem, so makedumpfile will throw
+> errors[2] when specific -d options are specified.
+> Accordingly, we should make makedumpfile to ignore these errors if it's pmem region.
+> 
+> Because these above cases are not in our goal, we must consider how to prevent the data part of pmem
+> from reading by the dump application(makedumpfile).
+> 
+> Case C: native supported
+> metadata is stored in mem, and the entire mem/ram is dumpable.
+> 
+> Case D: unsupported && need your input
+> To support this situation, the makedumpfile needs to know the location of metadata for each pmem
+> namespace and the address and size of metadata in the pmem [start, end)
+> 
+> We have thought of a few possible options:
+> 
+> 1) In the 2nd kernel, with the help of the information from /sys/bus/nd/devices/{namespaceX.Y, daxX.Y, pfnX.Y}
+> exported by pmem drivers, makedumpfile is able to calculate the address and size of metadata
+> 2) In the 1st kernel, add a new symbol to the vmcore. The symbol is associated with the layout of
+> each namespace. The makedumpfile reads the symbol and figures out the address and size of the metadata.
+> 3) others ?
+> 
+> But then we found that we have always ignored a user case, that is, the user could save the dumpfile
+> to the pmem. Neither of these two options can solve this problem, because the pmem drivers will
+> re-initialize the metadata during the pmem drivers loading process, which leads to the metadata
+> we dumped is inconsistent with the metadata at the moment of the crash happening.
+> Simply, can we just disable the pmem directly in 2nd kernel so that previous metadata will not be
+> destroyed? But this operation will bring us inconvenience that 2nd kernel doesn’t allow user storing
+> dumpfile on the filesystem/partition based on pmem.
+
+1) In kernel side, export info of pmem meta data;
+2) in makedumpfile size, add an option to specify if we want to dump
+   pmem meta data; An option or in dump level?
+3) In glue script, detect and warn if pmem data is in pmem and wanted,
+   and dump target is the same pmem.
+
+Does this work for you?
+
+Not sure if above items are all do-able. As for parking pmem device
+till in kdump kernel, I believe intel pmem expert know how to achieve
+that. If there's no way to park pmem during kdump jumping, case D) is
+daydream.
+
+Thanks
+Baoquan
+
