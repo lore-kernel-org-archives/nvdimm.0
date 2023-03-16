@@ -1,94 +1,148 @@
-Received: from metis.ext.pengutronix.de (metis.ext.pengutronix.de [85.220.165.71])
+Received: from mail1.bemta32.messagelabs.com (mail1.bemta32.messagelabs.com [195.245.230.65])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2ADB8C17
-	for <nvdimm@lists.linux.dev>; Mon, 13 Mar 2023 21:26:29 +0000 (UTC)
-Received: from drehscheibe.grey.stw.pengutronix.de ([2a0a:edc0:0:c01:1d::a2])
-	by metis.ext.pengutronix.de with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
-	(Exim 4.92)
-	(envelope-from <ukl@pengutronix.de>)
-	id 1pbpg2-00081X-CX; Mon, 13 Mar 2023 22:25:54 +0100
-Received: from [2a0a:edc0:0:900:1d::77] (helo=ptz.office.stw.pengutronix.de)
-	by drehscheibe.grey.stw.pengutronix.de with esmtp (Exim 4.94.2)
-	(envelope-from <ukl@pengutronix.de>)
-	id 1pbpg0-003w5l-5I; Mon, 13 Mar 2023 22:25:52 +0100
-Received: from ukl by ptz.office.stw.pengutronix.de with local (Exim 4.94.2)
-	(envelope-from <ukl@pengutronix.de>)
-	id 1pbpfz-004fMW-Gh; Mon, 13 Mar 2023 22:25:51 +0100
-Date: Mon, 13 Mar 2023 22:25:51 +0100
-From: Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>, kernel@pengutronix.de,
-	nvdimm@lists.linux.dev
-Subject: Re: [PATCH] dax/hmem: Drop empty platform remove function
-Message-ID: <20230313212551.pckzjktf35lhyni2@pengutronix.de>
-References: <20221212220725.3778201-1-u.kleine-koenig@pengutronix.de>
- <6397f58686d6d_b05d1294dc@dwillia2-xfh.jf.intel.com.notmuch>
- <20230112215658.q74wtxaw57iss267@pengutronix.de>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9E572561
+	for <nvdimm@lists.linux.dev>; Thu, 16 Mar 2023 08:39:20 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fujitsu.com;
+	s=170520fj; t=1678955959; i=@fujitsu.com;
+	bh=oZtuWDGunY1ClYYaSiGU19IL3y8YDGQY4nCM0guUtHE=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type;
+	b=C0rmfDS6aGBmoL5j6AikQ4WaKRWM+v+KdMNOcaEGaQ92wFy+0Ug0qBF6LY1R2Pja2
+	 8n27uzANX5fnqAYoyj3ybH3ZvOti4MnLxtB47gV/NimY+qbsNeTHyxApaIDwzsEHl+
+	 M24bcL5uO2Jz0sZUpGfD/4Ta3KIJjlIGJx9x0tO3CwaXFOw7dZXMijb93d3l0ph3AL
+	 f0wOjF72Dtomq9FtbBTlDCgr6CXcsroeMgjE4tzwwqWgJtg4n9gisbdTWh0s+Rnp+Q
+	 0AcDcBQJOZEM2b720KcHjJfvsGxbphVYa4QviLkk9kCslfSihaC6oYwZq859Lu0r2u
+	 iqsMtkgKQhOTw==
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFrrIIsWRWlGSWpSXmKPExsViZ8ORpLvtqlC
+  Kwb6FshbTp15gtDhxs5HNYv/T5ywWl3fNYbNY+eMPq8WtCceYHNg8Fu95yeTxYvNMRo/Pm+QC
+  mKNYM/OS8isSWDNWrV7LWNAkVDFh0gvGBsaT/F2MXBxCAhsZJa6uPMoM4Sxhkpi28CAbhHOAU
+  aL3yS0gh5ODTUBD4l7LTUaQhIhAC6PEmanNrCAJZgE3iU1vZrOD2MICkRKT2zcyg9gsAqoSK+
+  8vZQSxeQUcJZ5uOAcWlxBQkJjy8D0zRFxQ4uTMJywQcyQkDr54ARTnAKpRkpjZHQ9RXiHROP0
+  QE4StJnH13CbmCYz8s5B0z0LSvYCRaRWjWXFqUVlqka6RgV5SUWZ6RkluYmaOXmKVbqJeaqlu
+  eWpxia6hXmJ5sV5qcbFecWVuck6KXl5qySZGYEinFDPu3cE4ue+v3iFGSQ4mJVHeP2sEUoT4k
+  vJTKjMSizPii0pzUosPMcpwcChJ8E66JJQiJFiUmp5akZaZA4wvmLQEB4+SCO+Es0Bp3uKCxN
+  zizHSI1ClGRSlx3r4rQAkBkERGaR5cGyymLzHKSgnzMjIwMAjxFKQW5WaWoMq/YhTnYFQS5k0
+  BmcKTmVcCN/0V0GImoMW88wRAFpckIqSkGpi2OotYdm00qHJ9N73hpUXpkYqdbbP9bym/juOJ
+  meVbqFHebDJ1bViW7udK9tp5LybGNW1+euh/XqQDj5PYIza35wbpC6ezxZof+OVgPve+lavHd
+  9eiCPk5urLNB7aZ5m2on94/+2NOZ4/OL65vV4W0tI8zHqh5KKbfbsbHlZlf8IGTW6d49c8Taa
+  zCr1Yu6fbNdBKY/u/cZIMHO7yfCJ2fu2HJ8j2r+2a85RXLZ9Uu+7x6he/SEq3ALskjdsUFZ8O
+  qrj99faJMb4O/2DWfXK9Hop8faTQJPKwIbP4+8f3DrC0zFD1MdbTaV7L4+LUbSO0VV07Ufj99
+  67KdZzRiVumyR/15fabZ//BUm9klR5RYijMSDbWYi4oTAR22xDJkAwAA
+X-Env-Sender: lizhijian@fujitsu.com
+X-Msg-Ref: server-13.tower-587.messagelabs.com!1678955958!201468!1
+X-Originating-IP: [62.60.8.98]
+X-SYMC-ESS-Client-Auth: outbound-route-from=pass
+X-StarScan-Received:
+X-StarScan-Version: 9.104.1; banners=-,-,-
+X-VirusChecked: Checked
+Received: (qmail 10356 invoked from network); 16 Mar 2023 08:39:18 -0000
+Received: from unknown (HELO n03ukasimr03.n03.fujitsu.local) (62.60.8.98)
+  by server-13.tower-587.messagelabs.com with ECDHE-RSA-AES256-GCM-SHA384 encrypted SMTP; 16 Mar 2023 08:39:18 -0000
+Received: from n03ukasimr03.n03.fujitsu.local (localhost [127.0.0.1])
+	by n03ukasimr03.n03.fujitsu.local (Postfix) with ESMTP id 147131AD;
+	Thu, 16 Mar 2023 08:39:18 +0000 (GMT)
+Received: from R01UKEXCASM121.r01.fujitsu.local (R01UKEXCASM121 [10.183.43.173])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by n03ukasimr03.n03.fujitsu.local (Postfix) with ESMTPS id 0937E1AC;
+	Thu, 16 Mar 2023 08:39:18 +0000 (GMT)
+Received: from 79ee2ba95dc2.localdomain (10.167.225.141) by
+ R01UKEXCASM121.r01.fujitsu.local (10.183.43.173) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.42; Thu, 16 Mar 2023 08:39:15 +0000
+From: Li Zhijian <lizhijian@fujitsu.com>
+To: <dan.j.williams@intel.com>, <vishal.l.verma@intel.com>,
+	<dave.jiang@intel.com>, <ira.weiny@intel.com>, <nvdimm@lists.linux.dev>
+CC: <linux-kernel@vger.kernel.org>, Li Zhijian <lizhijian@fujitsu.com>
+Subject: [PATCH] nvdimm: nvdimm_bus_register: Avoid adding device to the unregistered bus
+Date: Thu, 16 Mar 2023 08:38:51 +0000
+Message-ID: <1678955931-2-1-git-send-email-lizhijian@fujitsu.com>
+X-Mailer: git-send-email 1.8.3.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="nxqypmwtckviqp42"
-Content-Disposition: inline
-In-Reply-To: <20230112215658.q74wtxaw57iss267@pengutronix.de>
-X-SA-Exim-Connect-IP: 2a0a:edc0:0:c01:1d::a2
-X-SA-Exim-Mail-From: ukl@pengutronix.de
-X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
-X-PTX-Original-Recipient: nvdimm@lists.linux.dev
+Content-Type: text/plain
+X-Originating-IP: [10.167.225.141]
+X-ClientProxiedBy: G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.80) To
+ R01UKEXCASM121.r01.fujitsu.local (10.183.43.173)
+X-Virus-Scanned: ClamAV using ClamSMTP
 
+nvdimm_bus_register() could be called from other modules, such as nfit,
+but it can only be called after the nvdimm_bus_type is registered.
 
---nxqypmwtckviqp42
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+ BUG: kernel NULL pointer dereference, address: 0000000000000098
+ #PF: supervisor read access in kernel mode
+ #PF: error_code(0x0000) - not-present page
+ PGD 0 P4D 0
+ Oops: 0000 [#1] PREEMPT SMP PTI
+ CPU: 0 PID: 117 Comm: systemd-udevd Not tainted 6.2.0-rc6-pmem+ #97
+ Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.16.0-0-gd239552ce722-prebuilt.qemu.org 04/01/2014
+ RIP: 0010:bus_add_device+0x58/0x150
+ Call Trace:
+  <TASK>
+  device_add+0x3ac/0x980
+  nvdimm_bus_register+0x16d/0x1d0
+  acpi_nfit_init+0xb72/0x1f90 [nfit]
+  acpi_nfit_add+0x1d5/0x200 [nfit]
+  acpi_device_probe+0x45/0x160
+  really_probe+0xce/0x390
+  __driver_probe_device+0x78/0x180
+  driver_probe_device+0x1e/0x90
+  __driver_attach+0xd6/0x1d0
+  bus_for_each_dev+0x7b/0xc0
+  bus_add_driver+0x1ac/0x200
+  driver_register+0x8f/0xf0
+  nfit_init+0x164/0xff0 [nfit]
+  do_one_initcall+0x5b/0x320
+  do_init_module+0x4c/0x1f0
+  __do_sys_finit_module+0xb4/0x130
+  do_syscall_64+0x3b/0x90
+  entry_SYSCALL_64_after_hwframe+0x72/0xdc
 
-On Thu, Jan 12, 2023 at 10:56:58PM +0100, Uwe Kleine-K=F6nig wrote:
-> On Mon, Dec 12, 2022 at 07:46:14PM -0800, Dan Williams wrote:
-> > Uwe Kleine-K=F6nig wrote:
-> > > A remove callback just returning 0 is equivalent to no remove callback
-> > > at all. So drop the useless function.
-> >=20
-> > Looks good, applied.
->=20
-> Thanks. I wonder why the patch doesn't appear in next though. Is this
-> deliberate?
+Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
+---
+ drivers/nvdimm/bus.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-Hmm, strange. This patch didn't make it in, but the same patch submitted
-by you later with a different commit log eventually made it in.
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index ada61bbf49c1..ea66053072cb 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -28,6 +28,7 @@
+ static int nvdimm_bus_major;
+ struct class *nd_class;
+ static DEFINE_IDA(nd_ida);
++static bool nvdimm_bus_type_registered;
+ 
+ static int to_nd_device_type(struct device *dev)
+ {
+@@ -337,6 +338,10 @@ struct nvdimm_bus *nvdimm_bus_register(struct device *parent,
+ 	struct nvdimm_bus *nvdimm_bus;
+ 	int rc;
+ 
++	if (!nvdimm_bus_type_registered) {
++		pr_warn("nvdimm bus type is not registered\n");
++		return NULL;
++	}
+ 	nvdimm_bus = kzalloc(sizeof(*nvdimm_bus), GFP_KERNEL);
+ 	if (!nvdimm_bus)
+ 		return NULL;
+@@ -1321,6 +1326,7 @@ int __init nvdimm_bus_init(void)
+ 	if (rc)
+ 		goto err_nd_bus;
+ 
++	nvdimm_bus_type_registered = true;
+ 	return 0;
+ 
+  err_nd_bus:
+@@ -1343,4 +1349,5 @@ void nvdimm_bus_exit(void)
+ 	unregister_chrdev(nvdimm_major, "dimmctl");
+ 	bus_unregister(&nvdimm_bus_type);
+ 	ida_destroy(&nd_ida);
++	nvdimm_bus_type_registered = false;
+ }
+-- 
+1.8.3.1
 
-v2 from Feb 10 2023
-(https://lore.kernel.org/r/167602001664.1924368.9102029637928071240.stgit@d=
-willia2-xfh.jf.intel.com)
-was applied as 84fe17f8e9c68a4389c6e89b7ce3b4651b359989, initial series fro=
-m Feb 05
-(https://lore.kernel.org/all/167564542679.847146.17174404738816053065.stgit=
-@dwillia2-xfh.jf.intel.com)
-
-I feel a bit humbugged,
-Uwe
-
---=20
-Pengutronix e.K.                           | Uwe Kleine-K=F6nig            |
-Industrial Linux Solutions                 | https://www.pengutronix.de/ |
-
---nxqypmwtckviqp42
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCgAdFiEEfnIqFpAYrP8+dKQLwfwUeK3K7AkFAmQPlNwACgkQwfwUeK3K
-7AnQEQf/TYuICkfvC2J7/UsX+0V8bpdzVGAvlVLBLRBuHmBZ9V4ljoboIdF/GSKY
-Yl1f1RZ2hZwJ6eaFifnvRpun2BOE4WtCfc0G12DCAoZL/7BpTMwPpX0egHww5+KY
-Xr+mqOkxmFVDLtFqt+EYYdMACJhzYDv1iEGIWR4PD9mD0CylS4v35jv/I0c8LwGg
-WkbIs3cEn5XQxLbryCfEMnMXJb3NeVzMj4aKmrQuC9qTynqfIdiA0bLG7gGj9G5+
-lkiTB8bf/FvFuz+L2qrGNJEZ2ppoGjVuM2XoxExQwuAH+WYGPxv5HMyBvSoqUD+A
-0OUoLPn9zkSZdVfdJR6CFf77FIBoCQ==
-=/8Oi
------END PGP SIGNATURE-----
-
---nxqypmwtckviqp42--
