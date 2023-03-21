@@ -1,184 +1,273 @@
-Received: from holidaytaxi.info (holidaytaxi.info [45.144.31.152])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 324D79460
-	for <nvdimm@lists.linux.dev>; Tue, 21 Mar 2023 14:25:36 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; s=mail; d=holidaytaxi.info;
- h=Content-Type:MIME-Version:Message-ID:In-Reply-To:References:To:From:Date:
- Subject; i=Robert.Nocerino@holidaytaxi.info;
- bh=VoWps3J22womfAxNxbUn/agw04Tl8lGRWbEVY7/UelA=;
- b=zJD/SUXNvwA/+y/rBtlslvoybz/Ai4NAESXg/9JoT46WCsmwA9wdms6fKpiJzTe+aXzykuW29HG+
-   nvl4QCmd5UDR3JOwTQ2dbJWXD602B/sHldCeHcgnjXZ0vYstZF+h4Ym6sGcdU/y+f+zqLQ2wpI6d
-   MRqHVMcZBjxFhGUv1a0=
-Content-Type: multipart/mixed; boundary="===============4742421014857630441=="
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24202C952
+	for <nvdimm@lists.linux.dev>; Tue, 21 Mar 2023 15:13:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B76D0C433EF;
+	Tue, 21 Mar 2023 15:13:39 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1679411619;
+	bh=0Iwy/vDqt7mXeicFOYkbKbYVA6PpicVIbc2RJjP5C5w=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=rm/TBm5HfiLwVKpaRdbApnoyQi0uEg1tvjLbR8fem1lrcwqoV0KgXzlHJE9DF9qgh
+	 wzBnqOSpqVNuzvv9D7V9Q6wVn0XxcR+OiNAW5TcjY6RgNT7N8+EKJuZC/DLA9qJ+tZ
+	 MSfKWYF6rTg7Uxq6TfskE0PBdlPZAtSzIUdkFyqmO/lQvm4paaYkBrm6jQNptyVK4H
+	 vLNWpAoy4BLqD6c7UzDOaXfoYg3YfwLcx13mh7yPjxHivxA2quoeM0XTTtnivd/0v2
+	 S63Td/76u69FidkhYG1QTCMWsJ6coSyVU8AqtYN7/GK78lBdizegA9EJKnfWXnmZFB
+	 aY1GpR1uFXh+Q==
+Date: Tue, 21 Mar 2023 08:13:39 -0700
+From: "Darrick J. Wong" <djwong@kernel.org>
+To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Cc: linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+	nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org,
+	david@fromorbit.com, dan.j.williams@intel.com,
+	akpm@linux-foundation.org
+Subject: Re: [RFC PATCH] xfs: check shared state of when CoW, update reflink
+ flag when io ends
+Message-ID: <20230321151339.GA11376@frogsfrogsfrogs>
+References: <1679025588-21-1-git-send-email-ruansy.fnst@fujitsu.com>
+ <20230317203505.GK11394@frogsfrogsfrogs>
+ <011cd163-4e6b-40b9-beeb-7fbc55b3a369@fujitsu.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Message-ID: <167939743487.8780.13802624212663338618@zittware.com>
-In-Reply-To: <20220721121152.4180-6-colyli@suse.de>
-References: <20220721121152.4180-1-colyli@suse.de>
- <20220721121152.4180-6-colyli@suse.de>
-To: nvdimm@lists.linux.dev <nvdimm@lists.linux.dev>
-From: Robert.Nocerino@holidaytaxi.info
-Date: Tue, 21 Mar 2023 04:17:14 -0700
-Subject: Re: [PATCH v6 5/7] badblocks: improve badblocks_check() for multiple
- ranges handling
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <011cd163-4e6b-40b9-beeb-7fbc55b3a369@fujitsu.com>
 
---===============4742421014857630441==
-Content-Type: multipart/alternative;
- boundary="===============2498269545679260557=="
-MIME-Version: 1.0
+On Mon, Mar 20, 2023 at 06:02:05PM +0800, Shiyang Ruan wrote:
+> 
+> 
+> 在 2023/3/18 4:35, Darrick J. Wong 写道:
+> > On Fri, Mar 17, 2023 at 03:59:48AM +0000, Shiyang Ruan wrote:
+> > > As is mentioned[1] before, the generic/388 will randomly fail with dmesg
+> > > warning.  This case uses fsstress with a lot of random operations.  It is hard
+> > > to  reproduce.  Finally I found a 100% reproduce condition, which is setting
+> > > the seed to 1677104360.  So I changed the generic/388 code: removed the loop
+> > > and used the code below instad:
+> > > ```
+> > > ($FSSTRESS_PROG $FSSTRESS_AVOID -d $SCRATCH_MNT -v -s 1677104360 -n 221 -p 1 >> $seqres.full) > /dev/null 2>&1
+> > > ($FSSTRESS_PROG $FSSTRESS_AVOID -d $SCRATCH_MNT -v -s 1677104360 -n 221 -p 1 >> $seqres.full) > /dev/null 2>&1
+> > > _check_dmesg_for dax_insert_entry
+> > > ```
+> > > 
+> > > According to the operations log, and kernel debug log I added, I found that
+> > > the reflink flag of one inode won't be unset even if there's no more shared
+> > > extents any more.
+> > >    Then write to this file again.  Because of the reflink flag, xfs thinks it
+> > >      needs cow, and extent(called it extA) will be CoWed to a new
+> > >      extent(called it extB) incorrectly.  And extA is not used any more,
+> > >      but didn't be unmapped (didn't do dax_disassociate_entry()).
+> > 
+> > IOWs, dax_iomap_copy_around (or something very near it) should be
+> > calling dax_disassociate_entry on the source range after copying extA's
+> > contents to extB to drop its page->shared count?
+> 
+> If extA is a shared extent, its pages will be disassociated correctly by
+> invalidate_inode_pages2_range() in dax_iomap_iter().
+> 
+> But the problem is that extA is not shared but now be CoWed,
 
---===============2498269545679260557==
-Content-Type: multipart/related;
- boundary="===============8572927769898931632=="
-MIME-Version: 1.0
+Aha!  Ok, I hadn't realized that extA is not shared...
 
---===============8572927769898931632==
-Content-Type: text/html; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: base64
+> invalidate_inode_pages2_range() is also called but it can't disassociate the
+> old page (because the page is marked dirty, can't be invalidated)
 
-PGh0bWw+PGhlYWQ+PG1ldGEgaHR0cC1lcXVpdj0iQ29udGVudC1UeXBlIiBjb250ZW50PSJ0ZXh0
-L2h0bWw7IGNoYXJzZXQ9dXRmLTgiPjwvaGVhZD48Ym9keT48cD4KICAgIEhlbGxvIFRoZXJlLCA8
-YnI+IDxicj4KSWYgeW91J3ZlIGdvdCBpbnF1aXJpZXMgcmVnYXJkaW5nIHRoZSBidXNpbmVzcyBw
-cmVzZW50YXRpb24sIHBsZWFzZSBnZXQgaW4gdG91Y2ggd2l0aCBtZS4gPGJyPiA8YnI+CjxhIGhy
-ZWY9Imh0dHBzOi8vdHJ1Y2tkcml2ZXJjYXJlZXJzdXJ2ZXkuY29tL3NwZTRwIj5WSUVXIERFVEFJ
-TFM8L2E+IDxicj4gPGJyPgpDaGVlcnMsCgo8ZGl2IHN0eWxlPSJkaXNwbGF5OiBmbGV4OyBtYXgt
-d2lkdGg6NTAlOyI+PGRpdiBzdHlsZT0iYmFja2dyb3VuZDpub25lOyBib3JkZXItYm90dG9tOiAx
-cHggc29saWQgI2Q3ZGZlMzsgd2lkdGg6NTAlOyBtYXJnaW46MDsgcGFkZGluZzogMDsiPiZuYnNw
-OzwvZGl2PjwvZGl2PjwvcD48YnI+PGJsb2NrcXVvdGUgdHlwZT0iY2l0ZSI+T24gVGh1LCBKdWwg
-MjEsIDIwMjIgYXQgODoxMiBQTSBDb2x5IExpIDxjb2x5bGlAc3VzZS5kZT4gd3JvdGU6Cj4KPiBU
-aGlzIHBhdGNoIHJld3JpdGVzIGJhZGJsb2Nrc19jaGVjaygpIHdpdGggc2ltaWxhciBjb2Rpbmcg
-c3R5bGUgYXMKPiBfYmFkYmxvY2tzX3NldCgpIGFuZCBfYmFkYmxvY2tzX2NsZWFyKCkuIFRoZSBv
-bmx5IGRpZmZlcmVuY2UgaXMgYmFkCj4gYmxvY2tzIGNoZWNraW5nIG1heSBoYW5kbGUgbXVsdGlw
-bGUgcmFuZ2VzIGluIGJhZCB0YWJsZXMgbm93Lgo+Cj4gSWYgYSBjaGVja2luZyByYW5nZSBjb3Zl
-cnMgbXVsdGlwbGUgYmFkIGJsb2NrcyByYW5nZSBpbiBiYWQgYmxvY2sgdGFibGUsCj4gbGlrZSB0
-aGUgZm9sbG93aW5nIGNvbmRpdGlvbiAoQyBpcyB0aGUgY2hlY2tpbmcgcmFuZ2UsIEUxLCBFMiwg
-RTMgYXJlCj4gdGhyZWUgYmFkIGJsb2NrIHJhbmdlcyBpbiBiYWQgYmxvY2sgdGFibGUpLAo+ICAg
-Ky0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSsKPiAgIHwgICAgICAgICAgICAg
-ICAgQyAgICAgICAgICAgICAgICAgICB8Cj4gICArLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tKwo+ICAgICArLS0tLSsgICAgICArLS0tLSsgICAgICArLS0tLSsKPiAgICAgfCBF
-MSB8ICAgICAgfCBFMiB8ICAgICAgfCBFMyB8Cj4gICAgICstLS0tKyAgICAgICstLS0tKyAgICAg
-ICstLS0tKwo+IFRoZSBpbXByb3ZlZCBiYWRibG9ja3NfY2hlY2soKSBhbGdvcml0aG0gd2lsbCBk
-aXZpZGUgY2hlY2tpbmcgcmFuZ2UgQwo+IGludG8gbXVsdGlwbGUgcGFydHMsIGFuZCBoYW5kbGUg
-dGhlbSBpbiA3IHJ1bnMgb2YgYSB3aGlsZS1sb29wLAo+ICAgKy0tKyArLS0tLSsgKy0tLS0rICst
-LS0tKyArLS0tLSsgKy0tLS0rICstLS0tKwo+ICAgfEMxfCB8IEMyIHwgfCBDMyB8IHwgQzQgfCB8
-IEM1IHwgfCBDNiB8IHwgQzcgfAo+ICAgKy0tKyArLS0tLSsgKy0tLS0rICstLS0tKyArLS0tLSsg
-Ky0tLS0rICstLS0tKwo+ICAgICAgICArLS0tLSsgICAgICAgICstLS0tKyAgICAgICAgKy0tLS0r
-Cj4gICAgICAgIHwgRTEgfCAgICAgICAgfCBFMiB8ICAgICAgICB8IEUzIHwKPiAgICAgICAgKy0t
-LS0rICAgICAgICArLS0tLSsgICAgICAgICstLS0tKwo+IEFuZCB0aGUgc3RhcnQgTEJBIGFuZCBs
-ZW5ndGggb2YgcmFuZ2UgRTEgd2lsbCBiZSBzZXQgYXMgZmlyc3RfYmFkIGFuZAo+IGJhZF9zZWN0
-b3JzIGZvciB0aGUgY2FsbGVyLgo+Cj4gVGhlIHJldHVybiB2YWx1ZSBydWxlIGlzIGNvbnNpc3Rl
-bnQgZm9yIG11bHRpcGxlIHJhbmdlcy4gRm9yIGV4YW1wbGUgaWYKPiB0aGVyZSBhcmUgZm9sbG93
-aW5nIGJhZCBibG9jayByYW5nZXMgaW4gYmFkIGJsb2NrIHRhYmxlLAo+ICAgIEluZGV4IE5vLiAg
-ICAgU3RhcnQgICAgICAgIExlbiAgICAgICAgIEFjawo+ICAgICAgICAwICAgICAgICAgIDQwMCAg
-ICAgICAgICAyMCAgICAgICAgICAxCj4gICAgICAgIDEgICAgICAgICAgNTAwICAgICAgICAgIDUw
-ICAgICAgICAgIDEKPiAgICAgICAgMiAgICAgICAgICA2NTAgICAgICAgICAgMjAgICAgICAgICAg
-MAo+IHRoZSByZXR1cm4gdmFsdWUsIGZpcnN0X2JhZCwgYmFkX3NlY3RvcnMgYnkgY2FsbGluZyBi
-YWRibG9ja3Nfc2V0KCkgd2l0aAo+IGRpZmZlcmVudCBjaGVja2luZyByYW5nZSBjYW4gYmUgdGhl
-IGZvbGxvd2luZyB2YWx1ZXMsCj4gICAgIENoZWNraW5nIFN0YXJ0LCBMZW4gICAgIFJldHVybiBW
-YWx1ZSAgIGZpcnN0X2JhZCAgICBiYWRfc2VjdG9ycwo+ICAgICAgICAgICAgICAgIDEwMCwgMTAw
-ICAgICAgICAgIDAgICAgICAgICAgIE4vQSAgICAgICAgICAgTi9BCj4gICAgICAgICAgICAgICAg
-MTAwLCAzMTAgICAgICAgICAgMSAgICAgICAgICAgNDAwICAgICAgICAgICAxMAo+ICAgICAgICAg
-ICAgICAgIDEwMCwgNDQwICAgICAgICAgIDEgICAgICAgICAgIDQwMCAgICAgICAgICAgMTAKPiAg
-ICAgICAgICAgICAgICAxMDAsIDU0MCAgICAgICAgICAxICAgICAgICAgICA0MDAgICAgICAgICAg
-IDEwCj4gICAgICAgICAgICAgICAgMTAwLCA2MDAgICAgICAgICAtMSAgICAgICAgICAgNDAwICAg
-ICAgICAgICAxMAo+ICAgICAgICAgICAgICAgIDEwMCwgODAwICAgICAgICAgLTEgICAgICAgICAg
-IDQwMCAgICAgICAgICAgMTAKClRoZSBxdWVzdGlvbiBoZXJlIGlzIHRoYXQgd2hhdCdzIHRoZSB1
-c2FnZSBvZiB0aGUgcmV0dXJuIHZhbHVlPyBOb3cgdGhlIGNhbGxlcnMKb25seSBjaGVjayBpZiB0
-aGUgcmV0dXJuIHZhbHVlIGlzIDAgb3Igbm90LgoKPgo+IEluIG9yZGVyIHRvIG1ha2UgY29kZSBy
-ZXZpZXcgZWFzaWVyLCB0aGlzIHBhdGNoIG5hbWVzIHRoZSBpbXByb3ZlZCBiYWQKPiBibG9jayBy
-YW5nZSBjaGVja2luZyByb3V0aW5lIGFzIF9iYWRibG9ja3NfY2hlY2soKSBhbmQgZG9lcyBub3Qg
-Y2hhbmdlCj4gZXhpc3RpbmcgYmFkYmxvY2tfY2hlY2soKSBjb2RlIHlldC4gTGF0ZXIgcGF0Y2gg
-d2lsbCBkZWxldGUgb2xkIGNvZGUgb2YKPiBiYWRibG9ja3NfY2hlY2soKSBhbmQgbWFrZSBpdCBh
-cyBhIHdyYXBwZXIgdG8gY2FsbCBfYmFkYmxvY2tzX2NoZWNrKCkuCj4gVGhlbiB0aGUgbmV3IGFk
-ZGVkIGNvZGUgd29uJ3QgbWVzcyB1cCB3aXRoIHRoZSBvbGQgZGVsZXRlZCBjb2RlLCBpdCB3aWxs
-Cj4gYmUgbW9yZSBjbGVhciBhbmQgZWFzaWVyIGZvciBjb2RlIHJldmlldy4KPgo+IFNpZ25lZC1v
-ZmYtYnk6IENvbHkgTGkgPGNvbHlsaUBzdXNlLmRlPgo+IENjOiBEYW4gV2lsbGlhbXMgPGRhbi5q
-LndpbGxpYW1zQGludGVsLmNvbT4KPiBDYzogR2VsaWFuZyBUYW5nIDxnZWxpYW5nLnRhbmdAc3Vz
-ZS5jb20+Cj4gQ2M6IEhhbm5lcyBSZWluZWNrZSA8aGFyZUBzdXNlLmRlPgo+IENjOiBKZW5zIEF4
-Ym9lIDxheGJvZUBrZXJuZWwuZGs+Cj4gQ2M6IE5laWxCcm93biA8bmVpbGJAc3VzZS5kZT4KPiBD
-YzogVmlzaGFsIEwgVmVybWEgPHZpc2hhbC5sLnZlcm1hQGludGVsLmNvbT4KPiBDYzogWGlhbyBO
-aSA8eG5pQHJlZGhhdC5jb20+Cj4gLS0tCj4gIGJsb2NrL2JhZGJsb2Nrcy5jIHwgOTcgKysrKysr
-KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysKPiAgMSBmaWxlIGNoYW5n
-ZWQsIDk3IGluc2VydGlvbnMoKykKPgo+IGRpZmYgLS1naXQgYS9ibG9jay9iYWRibG9ja3MuYyBi
-L2Jsb2NrL2JhZGJsb2Nrcy5jCj4gaW5kZXggZDNmYTUzNTk0YWE3Li5jYmM3OWYwNTZmNzQgMTAw
-NjQ0Cj4gLS0tIGEvYmxvY2svYmFkYmxvY2tzLmMKPiArKysgYi9ibG9jay9iYWRibG9ja3MuYwo+
-IEBAIC0xMjYxLDYgKzEyNjEsMTAzIEBAIHN0YXRpYyBpbnQgX2JhZGJsb2Nrc19jbGVhcihzdHJ1
-Y3QgYmFkYmxvY2tzICpiYiwgc2VjdG9yX3QgcywgaW50IHNlY3RvcnMpCj4gICAgICAgICByZXR1
-cm4gcnY7Cj4gIH0KPgo+ICsvKiBEbyB0aGUgZXhhY3Qgd29yayB0byBjaGVjayBiYWQgYmxvY2tz
-IHJhbmdlIGZyb20gdGhlIGJhZCBibG9jayB0YWJsZSAqLwo+ICtzdGF0aWMgaW50IF9iYWRibG9j
-a3NfY2hlY2soc3RydWN0IGJhZGJsb2NrcyAqYmIsIHNlY3Rvcl90IHMsIGludCBzZWN0b3JzLAo+
-ICsgICAgICAgICAgICAgICAgICAgICAgICAgICBzZWN0b3JfdCAqZmlyc3RfYmFkLCBpbnQgKmJh
-ZF9zZWN0b3JzKQo+ICt7Cj4gKyAgICAgICBpbnQgdW5hY2tlZF9iYWRibG9ja3MsIGFja2VkX2Jh
-ZGJsb2NrczsKPiArICAgICAgIGludCBwcmV2ID0gLTEsIGhpbnQgPSAtMSwgc2V0ID0gMDsKPiAr
-ICAgICAgIHN0cnVjdCBiYWRibG9ja3NfY29udGV4dCBiYWQ7Cj4gKyAgICAgICB1bnNpZ25lZCBp
-bnQgc2VxOwo+ICsgICAgICAgaW50IGxlbiwgcnY7Cj4gKyAgICAgICB1NjQgKnA7Cj4gKwo+ICsg
-ICAgICAgV0FSTl9PTihiYi0+c2hpZnQgPCAwIHx8IHNlY3RvcnMgPT0gMCk7Cj4gKwo+ICsgICAg
-ICAgaWYgKGJiLT5zaGlmdCA+IDApIHsKPiArICAgICAgICAgICAgICAgc2VjdG9yX3QgdGFyZ2V0
-Owo+ICsKPiArICAgICAgICAgICAgICAgLyogcm91bmQgdGhlIHN0YXJ0IGRvd24sIGFuZCB0aGUg
-ZW5kIHVwICovCj4gKyAgICAgICAgICAgICAgIHRhcmdldCA9IHMgKyBzZWN0b3JzOwo+ICsgICAg
-ICAgICAgICAgICByb3VuZGRvd24ocywgYmItPnNoaWZ0KTsKPiArICAgICAgICAgICAgICAgcm91
-bmR1cCh0YXJnZXQsIGJiLT5zaGlmdCk7Cj4gKyAgICAgICAgICAgICAgIHNlY3RvcnMgPSB0YXJn
-ZXQgLSBzOwo+ICsgICAgICAgfQo+ICsKPiArcmV0cnk6Cj4gKyAgICAgICBzZXEgPSByZWFkX3Nl
-cWJlZ2luKCZiYi0+bG9jayk7Cj4gKwo+ICsgICAgICAgcCA9IGJiLT5wYWdlOwo+ICsgICAgICAg
-dW5hY2tlZF9iYWRibG9ja3MgPSAwOwo+ICsgICAgICAgYWNrZWRfYmFkYmxvY2tzID0gMDsKPiAr
-Cj4gK3JlX2NoZWNrOgo+ICsgICAgICAgYmFkLnN0YXJ0ID0gczsKPiArICAgICAgIGJhZC5sZW4g
-PSBzZWN0b3JzOwo+ICsKPiArICAgICAgIGlmIChiYWRibG9ja3NfZW1wdHkoYmIpKSB7Cj4gKyAg
-ICAgICAgICAgICAgIGxlbiA9IHNlY3RvcnM7Cj4gKyAgICAgICAgICAgICAgIGdvdG8gdXBkYXRl
-X3NlY3RvcnM7Cj4gKyAgICAgICB9Cj4gKwo+ICsgICAgICAgcHJldiA9IHByZXZfYmFkYmxvY2tz
-KGJiLCAmYmFkLCBoaW50KTsKPiArCj4gKyAgICAgICAvKiBzdGFydCBhZnRlciBhbGwgYmFkYmxv
-Y2tzICovCj4gKyAgICAgICBpZiAoKHByZXYgKyAxKSA+PSBiYi0+Y291bnQgJiYgIW92ZXJsYXBf
-ZnJvbnQoYmIsIHByZXYsICZiYWQpKSB7Cj4gKyAgICAgICAgICAgICAgIGxlbiA9IHNlY3RvcnM7
-Cj4gKyAgICAgICAgICAgICAgIGdvdG8gdXBkYXRlX3NlY3RvcnM7Cj4gKyAgICAgICB9CgpJdCdz
-IHNhbWUgd2l0aCBwYXRjaCA0IGhlcmUgYWJvdXQgIW92ZXJsYXBfZnJvbnQKPiArCgpJdCBkb2Vz
-bid0IGNoZWNrIHByZXY8MCBzaXR1YXRpb24gaGVyZS4gSXMgaXQgcmlnaHQ/IFRoZSBwcmV2IGNh
-biBiZSAtMSBoZXJlLgpvdmVybGFwX2Zyb250IHdpbGwgY2hlY2sgcFstMV0uCgo+ICsgICAgICAg
-aWYgKG92ZXJsYXBfZnJvbnQoYmIsIHByZXYsICZiYWQpKSB7Cj4gKyAgICAgICAgICAgICAgIGlm
-IChCQl9BQ0socFtwcmV2XSkpCj4gKyAgICAgICAgICAgICAgICAgICAgICAgYWNrZWRfYmFkYmxv
-Y2tzKys7Cj4gKyAgICAgICAgICAgICAgIGVsc2UKPiArICAgICAgICAgICAgICAgICAgICAgICB1
-bmFja2VkX2JhZGJsb2NrcysrOwo+ICsKPiArICAgICAgICAgICAgICAgaWYgKEJCX0VORChwW3By
-ZXZdKSA+PSAocyArIHNlY3RvcnMpKQo+ICsgICAgICAgICAgICAgICAgICAgICAgIGxlbiA9IHNl
-Y3RvcnM7Cj4gKyAgICAgICAgICAgICAgIGVsc2UKPiArICAgICAgICAgICAgICAgICAgICAgICBs
-ZW4gPSBCQl9FTkQocFtwcmV2XSkgLSBzOwo+ICsKPiArICAgICAgICAgICAgICAgaWYgKHNldCA9
-PSAwKSB7Cj4gKyAgICAgICAgICAgICAgICAgICAgICAgKmZpcnN0X2JhZCA9IEJCX09GRlNFVChw
-W3ByZXZdKTsKPiArICAgICAgICAgICAgICAgICAgICAgICAqYmFkX3NlY3RvcnMgPSBCQl9MRU4o
-cFtwcmV2XSk7Cj4gKyAgICAgICAgICAgICAgICAgICAgICAgc2V0ID0gMTsKPiArICAgICAgICAg
-ICAgICAgfQo+ICsgICAgICAgICAgICAgICBnb3RvIHVwZGF0ZV9zZWN0b3JzOwo+ICsgICAgICAg
-fQo+ICsKPiArICAgICAgIC8qIE5vdCBmcm9udCBvdmVybGFwLCBidXQgYmVoaW5kIG92ZXJsYXAg
-Ki8KPiArICAgICAgIGlmICgocHJldiArIDEpIDwgYmItPmNvdW50ICYmIG92ZXJsYXBfYmVoaW5k
-KGJiLCAmYmFkLCBwcmV2ICsgMSkpIHsKPiArICAgICAgICAgICAgICAgbGVuID0gQkJfT0ZGU0VU
-KHBbcHJldiArIDFdKSAtIGJhZC5zdGFydDsKPiArICAgICAgICAgICAgICAgaGludCA9IHByZXYg
-KyAxOwo+ICsgICAgICAgICAgICAgICBnb3RvIHVwZGF0ZV9zZWN0b3JzOwo+ICsgICAgICAgfQoK
-c2FtZSB3aXRoIHBhdGNoIDQgaGVyZQoKUmVnYXJkcwpYaWFvCgoKPiArCj4gKyAgICAgICAvKiBu
-b3QgY292ZXIgYW55IGJhZGJsb2NrcyByYW5nZSBpbiB0aGUgdGFibGUgKi8KPiArICAgICAgIGxl
-biA9IHNlY3RvcnM7Cj4gKwo+ICt1cGRhdGVfc2VjdG9yczoKPiArICAgICAgIHMgKz0gbGVuOwo+
-ICsgICAgICAgc2VjdG9ycyAtPSBsZW47Cj4gKwo+ICsgICAgICAgaWYgKHNlY3RvcnMgPiAwKQo+
-ICsgICAgICAgICAgICAgICBnb3RvIHJlX2NoZWNrOwo+ICsKPiArICAgICAgIFdBUk5fT04oc2Vj
-dG9ycyA8IDApOwo+ICsKPiArICAgICAgIGlmICh1bmFja2VkX2JhZGJsb2NrcyA+IDApCj4gKyAg
-ICAgICAgICAgICAgIHJ2ID0gLTE7Cj4gKyAgICAgICBlbHNlIGlmIChhY2tlZF9iYWRibG9ja3Mg
-PiAwKQo+ICsgICAgICAgICAgICAgICBydiA9IDE7Cj4gKyAgICAgICBlbHNlCj4gKyAgICAgICAg
-ICAgICAgIHJ2ID0gMDsKPiArCj4gKyAgICAgICBpZiAocmVhZF9zZXFyZXRyeSgmYmItPmxvY2ss
-IHNlcSkpCj4gKyAgICAgICAgICAgICAgIGdvdG8gcmV0cnk7Cj4gKwo+ICsgICAgICAgcmV0dXJu
-IHJ2Owo+ICt9Cj4KPiAgLyoqCj4gICAqIGJhZGJsb2Nrc19jaGVjaygpIC0gY2hlY2sgYSBnaXZl
-biByYW5nZSBmb3IgYmFkIHNlY3RvcnMKPiAtLQo+IDIuMzUuMwo+Cgo8L2Jsb2NrcXVvdGU+PC9i
-b2R5PjwvaHRtbD4=
+...so what marked the old page dirty?   Was it the case that the
+unshared extA got marked dirty, then later someone created a cow
+reservation (extB, I guess) that covered the already dirty extA?
 
---===============8572927769898931632==--
+Should we be transferring the dirty state from A to B here before the
+invalidate_inode_pages2_range ?
 
---===============2498269545679260557==
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: base64
+> Is the behavior to do CoW on a non-shared extent allowed?
 
-SGVsbG8gVGhlcmUsICAKSWYgeW91J3ZlIGdvdCBpbnF1aXJpZXMgcmVnYXJkaW5nIHRoZSBidXNp
-bmVzcyBwcmVzZW50YXRpb24sIHBsZWFzZSBnZXQgaW4gdG91Y2ggd2l0aCBtZS4gIApWSUVXIERF
-VEFJTFMgIApDaGVlcnMsCgrCoA==
+In general, yes, XFS allows COW on non-shared extents.  The (cow) extent
+size hint provides for cowing the unshared blocks adjacent to a shared
+block to try to combat fragmentation.
 
---===============2498269545679260557==--
+> > 
+> > >    The next time we mapwrite to another file, xfs will allocate extA for it,
+> > >      page fault handler do dax_associate_entry().  BUT bucause the extA didn't
+> > >      be unmapped, it still stores old file's info in page->mapping,->index.
+> > >      Then, It reports dmesg warning when it try to sotre the new file's info.
+> > > 
+> > > So, I think:
+> > >    1. reflink flag should be updated after CoW operations.
+> > >    2. xfs_reflink_allocate_cow() should add "if extent is shared" to determine
+> > >       xfs do CoW or not.
+> > > 
+> > > I made the fix patch, it can resolve the fail of generic/388.  But it causes
+> > > other cases fail: generic/127, generic/263, generic/616, xfs/315 xfs/421. I'm
+> > > not sure if the fix is right, or I have missed something somewhere.  Please
+> > > give me some advice.
+> > > 
+> > > Thank you very much!!
+> > > 
+> > > [1]: https://lore.kernel.org/linux-xfs/1669908538-55-1-git-send-email-ruansy.fnst@fujitsu.com/
+> > > 
+> > > Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+> > > ---
+> > >   fs/xfs/xfs_reflink.c | 44 ++++++++++++++++++++++++++++++++++++++++++++
+> > >   fs/xfs/xfs_reflink.h |  2 ++
+> > >   2 files changed, 46 insertions(+)
+> > > 
+> > > diff --git a/fs/xfs/xfs_reflink.c b/fs/xfs/xfs_reflink.c
+> > > index f5dc46ce9803..a6b07f5c1db2 100644
+> > > --- a/fs/xfs/xfs_reflink.c
+> > > +++ b/fs/xfs/xfs_reflink.c
+> > > @@ -154,6 +154,40 @@ xfs_reflink_find_shared(
+> > >   	return error;
+> > >   }
+> > > +int xfs_reflink_extent_is_shared(
+> > > +	struct xfs_inode	*ip,
+> > > +	struct xfs_bmbt_irec	*irec,
+> > > +	bool			*shared)
+> > > +{
+> > > +	struct xfs_mount	*mp = ip->i_mount;
+> > > +	struct xfs_perag	*pag;
+> > > +	xfs_agblock_t		agbno;
+> > > +	xfs_extlen_t		aglen;
+> > > +	xfs_agblock_t		fbno;
+> > > +	xfs_extlen_t		flen;
+> > > +	int			error = 0;
+> > > +
+> > > +	*shared = false;
+> > > +
+> > > +	/* Holes, unwritten, and delalloc extents cannot be shared */
+> > > +	if (!xfs_bmap_is_written_extent(irec))
+> > > +		return 0;
+> > > +
+> > > +	pag = xfs_perag_get(mp, XFS_FSB_TO_AGNO(mp, irec->br_startblock));
+> > > +	agbno = XFS_FSB_TO_AGBNO(mp, irec->br_startblock);
+> > > +	aglen = irec->br_blockcount;
+> > > +	error = xfs_reflink_find_shared(pag, NULL, agbno, aglen, &fbno, &flen,
+> > > +			true);
+> > > +	xfs_perag_put(pag);
+> > > +	if (error)
+> > > +		return error;
+> > > +
+> > > +	if (fbno != NULLAGBLOCK)
+> > > +		*shared = true;
+> > > +
+> > > +	return 0;
+> > > +}
+> > > +
+> > >   /*
+> > >    * Trim the mapping to the next block where there's a change in the
+> > >    * shared/unshared status.  More specifically, this means that we
+> > > @@ -533,6 +567,12 @@ xfs_reflink_allocate_cow(
+> > >   		xfs_ifork_init_cow(ip);
+> > >   	}
+> > > +	error = xfs_reflink_extent_is_shared(ip, imap, shared);
+> > > +	if (error)
+> > > +		return error;
+> > > +	if (!*shared)
+> > > +		return 0;
+> > > +
+> > >   	error = xfs_find_trim_cow_extent(ip, imap, cmap, shared, &found);
+> > >   	if (error || !*shared)
+> > >   		return error;
+> > > @@ -834,6 +874,10 @@ xfs_reflink_end_cow_extent(
+> > >   	/* Remove the mapping from the CoW fork. */
+> > >   	xfs_bmap_del_extent_cow(ip, &icur, &got, &del);
+> > > +	error = xfs_reflink_clear_inode_flag(ip, &tp);
+> > 
+> > This will disable COW on /all/ blocks in the entire file, including the
+> > shared ones.  At a bare minimum you'd have to scan the entire data fork
+> > to ensure there are no shared extents.  That's probably why doing this
+> > causes so many new regressions.
+> 
+> This function will search for shared extent before actually clearing the
+> flag.  If no shared extent found, the flag won't be cleared.  The name of
+> this function is not very accurate.
 
---===============4742421014857630441==--
+Oh, right.  I forgot that _reflink_clear_inode_flag walks the entire
+data fork looking for shared extents, and only clears the flag if it
+doesn't find any.
+
+That said, if (say) this is a large sparse file with 300 million extent
+records and extent 299,999,999 is shared, this is going to make write
+completions realllllly slow, as each completion now has to perform its
+own walk...
+
+> BTW, in my thought, the reflink flag is to indicate if a file is now
+> containing any shared extents or not.  So, it should be cleared immediately
+> if no extents shared any more.  Is this right?
+
+...which is why we don't clear the flag immediately.  Or ever.  Only
+repairs take the time to do that.
+
+--D
+
+> 
+> 
+> --
+> Thanks,
+> Ruan.
+> 
+> PS: Let me paste the log of failed tests:
+> generic/127, generic/263, generic/616 are fsx tests.  Their fail message are
+> meaningless.  I am looking into their difference between good/bad results.
+> 
+> xfs/315 0s ... - output mismatch (see
+> /root/xts/results//dax_reflink/xfs/315.out.bad)
+>     --- tests/xfs/315.out       2022-08-03 10:56:02.696212673 +0800
+>     +++ /root/xts/results//dax_reflink/xfs/315.out.bad  2023-03-20
+> 17:48:01.780369739 +0800
+>     @@ -7,7 +7,6 @@
+>      Inject error
+>      CoW a few blocks
+>      FS should be shut down, touch will fail
+>     -touch: cannot touch 'SCRATCH_MNT/badfs': Input/output error
+>      Remount to replay log
+>      FS should be online, touch should succeed
+>      Check files again
+>     ...
+>     (Run 'diff -u /root/xts/tests/xfs/315.out
+> /root/xts/results//dax_reflink/xfs/315.out.bad'  to see the entire diff)
+> xfs/421 1s ... - output mismatch (see
+> /root/xts/results//dax_reflink/xfs/421.out.bad)
+>     --- tests/xfs/421.out       2022-08-03 10:56:02.706212718 +0800
+>     +++ /root/xts/results//dax_reflink/xfs/421.out.bad  2023-03-20
+> 17:48:02.222369739 +0800
+>     @@ -14,8 +14,6 @@
+>      Whence     Result
+>      DATA       0
+>      HOLE       131072
+>     -DATA       196608
+>     -HOLE       262144
+>      Compare files
+>      c2803804acc9936eef8aab42c119bfac  SCRATCH_MNT/test-421/file1
+>     ...
+>     (Run 'diff -u /root/xts/tests/xfs/421.out
+> /root/xts/results//dax_reflink/xfs/421.out.bad'  to see the entire diff)
+> 
+> > 
+> > --D
+> > 
+> > > +	if (error)
+> > > +		goto out_cancel;
+> > > +
+> > >   	error = xfs_trans_commit(tp);
+> > >   	xfs_iunlock(ip, XFS_ILOCK_EXCL);
+> > >   	if (error)
+> > > diff --git a/fs/xfs/xfs_reflink.h b/fs/xfs/xfs_reflink.h
+> > > index 65c5dfe17ecf..d5835814bce6 100644
+> > > --- a/fs/xfs/xfs_reflink.h
+> > > +++ b/fs/xfs/xfs_reflink.h
+> > > @@ -16,6 +16,8 @@ static inline bool xfs_is_cow_inode(struct xfs_inode *ip)
+> > >   	return xfs_is_reflink_inode(ip) || xfs_is_always_cow_inode(ip);
+> > >   }
+> > > +int xfs_reflink_extent_is_shared(struct xfs_inode *ip,
+> > > +		struct xfs_bmbt_irec *irec, bool *shared);
+> > >   extern int xfs_reflink_trim_around_shared(struct xfs_inode *ip,
+> > >   		struct xfs_bmbt_irec *irec, bool *shared);
+> > >   int xfs_bmap_trim_cow(struct xfs_inode *ip, struct xfs_bmbt_irec *imap,
+> > > -- 
+> > > 2.39.2
+> > > 
