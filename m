@@ -1,214 +1,184 @@
-Received: from mail3.bemta32.messagelabs.com (mail3.bemta32.messagelabs.com [195.245.230.17])
+Received: from holidaytaxi.info (holidaytaxi.info [45.144.31.152])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D31AF2FB3
-	for <nvdimm@lists.linux.dev>; Tue, 21 Mar 2023 11:00:17 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fujitsu.com;
-	s=170520fj; t=1679396416; i=@fujitsu.com;
-	bh=9Q4eeFSM3h3UH6eFVO+VHu7SN3t55EOvO+MXrJMIkpY=;
-	h=Message-ID:Date:MIME-Version:Subject:From:To:CC:References:
-	 In-Reply-To:Content-Type:Content-Transfer-Encoding;
-	b=UMguMWEQcsy/gU+BcV2qqgTv6JqGEjLcSsLaPMGYln9uljBw8oSgeUoazkPj11zDm
-	 pde0jerQBEi51VLmaOO2bTwakjJMKzO1LIENvc5n28K6bVwS+k36si/yk2qEhL1eX7
-	 9HxJyTwai36PT0NUoGnT7MUPnt8eMqOIIRicBw0A/2+3pRHR+Dh3MKQyBuBHQKtSjh
-	 BZMiK0CXbIh/wovnRk1T6PELCEMR7DzZT62g4H9TdaWnNUqyY8kXuLADdFPKJXJX3I
-	 79mvNLaYPcRCFyfldzZevP6AN/q2pMCo8pvp9HTceDmYRAoW0o0WPe+Ot91IZHo6es
-	 8JrjkZe4u7W+A==
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFtrHKsWRWlGSWpSXmKPExsViZ8ORpGvRJ5l
-  iMO+TisWc9WvYLKZPvcBoseXYPUaLy0/4LE5PWMRksfv1TTaLPXtPsljcW/Of1WLXnx3sFit/
-  /GG1+P1jDpsDt8epRRIem1doeSze85LJY9OqTjaPTZ8msXucmPGbxePF5pmMHh+f3mLx+LxJL
-  oAzijUzLym/IoE14+n8dSwF91Ur1i4waWBsku9i5OIQEtjIKLGt6QgLhLOESWLtlUusXYycQM
-  42RolNv01AbF4BO4mWh+cZuxg5OFgEVCWmtfFBhAUlTs58wgJiiwokSxw738oGUiIs4CdxYY0
-  5SJhNQEfiwoK/YBNFBNQkJk3awQxiMwu0MEls6a6AWPuQUWLu2y6wBKeAvcT6C49ZIIosJBa/
-  OcgOYctLNG+dDVYjIaAkcfHrHVYIu0KicfohJghbTeLquU3MExiFZiE5bxaSUbOQjFrAyLyK0
-  aw4tagstUjX0FwvqSgzPaMkNzEzRy+xSjdRL7VUtzy1uETXUC+xvFgvtbhYr7gyNzknRS8vtW
-  QTIzAqU4qZy3cwbu/7q3eIUZKDSUmU95eJZIoQX1J+SmVGYnFGfFFpTmrxIUYZDg4lCd5T3UA
-  5waLU9NSKtMwcYIKASUtw8CiJ8C6qAErzFhck5hZnpkOkTjHqcqxtOLCXWYglLz8vVUqcN6oX
-  qEgApCijNA9uBCxZXWKUlRLmZWRgYBDiKUgtys0sQZV/xSjOwagkzLujA2gKT2ZeCdymV0BHM
-  AEdETdDAuSIkkSElFQDU5ttySvna9/PR2wpsJ8yf5Egz4OpkbILvSZqXOs41Hhr/4XeRfK3K3
-  3/3W032z83qHhxwlleNk2+3XLf7RO7A6b7LDjN5Jp++MYD1SNr//yx/NwsmVe29vLmvE6fU0/
-  mlnftKdC68mb6rrDHt74nJs9f+/LaxdRdVw1u5/zvlT4SMnWiVNI297r3bDtMyzc36Utv18uW
-  D9kSq7Ip1Zf5vJOs2peyOSE9W3Q/p8emOfCnHlLZuNXrVNn7Kzu5NhfVVh9f8mnJGu4jWf/2N
-  V/Sm/Sh3pJBNL5gk7HO5MzO4zqx/1RPCDrny3CpTVyZ/6nOPSJtbW/pZdd423exi+s1M44/O8
-  dSkyf7ZQ//VIt+cyWW4oxEQy3mouJEANcsYpbRAwAA
-X-Env-Sender: ruansy.fnst@fujitsu.com
-X-Msg-Ref: server-21.tower-585.messagelabs.com!1679396408!13765!1
-X-Originating-IP: [62.60.8.98]
-X-SYMC-ESS-Client-Auth: outbound-route-from=pass
-X-StarScan-Received:
-X-StarScan-Version: 9.104.1; banners=-,-,-
-X-VirusChecked: Checked
-Received: (qmail 11941 invoked from network); 21 Mar 2023 11:00:08 -0000
-Received: from unknown (HELO n03ukasimr03.n03.fujitsu.local) (62.60.8.98)
-  by server-21.tower-585.messagelabs.com with ECDHE-RSA-AES256-GCM-SHA384 encrypted SMTP; 21 Mar 2023 11:00:08 -0000
-Received: from n03ukasimr03.n03.fujitsu.local (localhost [127.0.0.1])
-	by n03ukasimr03.n03.fujitsu.local (Postfix) with ESMTP id 1E7811B0;
-	Tue, 21 Mar 2023 11:00:08 +0000 (GMT)
-Received: from R01UKEXCASM121.r01.fujitsu.local (R01UKEXCASM121 [10.183.43.173])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by n03ukasimr03.n03.fujitsu.local (Postfix) with ESMTPS id 1295F1AF;
-	Tue, 21 Mar 2023 11:00:08 +0000 (GMT)
-Received: from [192.168.50.5] (10.167.234.230) by
- R01UKEXCASM121.r01.fujitsu.local (10.183.43.173) with Microsoft SMTP Server
- (TLS) id 15.0.1497.42; Tue, 21 Mar 2023 11:00:03 +0000
-Message-ID: <b1d9fc03-1a71-a75f-f87b-5819991e4eb2@fujitsu.com>
-Date: Tue, 21 Mar 2023 18:59:56 +0800
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 324D79460
+	for <nvdimm@lists.linux.dev>; Tue, 21 Mar 2023 14:25:36 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; s=mail; d=holidaytaxi.info;
+ h=Content-Type:MIME-Version:Message-ID:In-Reply-To:References:To:From:Date:
+ Subject; i=Robert.Nocerino@holidaytaxi.info;
+ bh=VoWps3J22womfAxNxbUn/agw04Tl8lGRWbEVY7/UelA=;
+ b=zJD/SUXNvwA/+y/rBtlslvoybz/Ai4NAESXg/9JoT46WCsmwA9wdms6fKpiJzTe+aXzykuW29HG+
+   nvl4QCmd5UDR3JOwTQ2dbJWXD602B/sHldCeHcgnjXZ0vYstZF+h4Ym6sGcdU/y+f+zqLQ2wpI6d
+   MRqHVMcZBjxFhGUv1a0=
+Content-Type: multipart/mixed; boundary="===============4742421014857630441=="
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
- Thunderbird/102.7.1
-Subject: Re: [PATCH v10 3/3] mm, pmem, xfs: Introduce MF_MEM_REMOVE for unbind
-From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-To: Dave Chinner <david@fromorbit.com>
-CC: <linux-xfs@vger.kernel.org>, <nvdimm@lists.linux.dev>,
-	<linux-fsdevel@vger.kernel.org>, <linux-mm@kvack.org>, <djwong@kernel.org>,
-	<dan.j.williams@intel.com>, <hch@infradead.org>, <jane.chu@oracle.com>,
-	<akpm@linux-foundation.org>, <willy@infradead.org>
-References: <1676645312-13-1-git-send-email-ruansy.fnst@fujitsu.com>
- <1676645312-13-4-git-send-email-ruansy.fnst@fujitsu.com>
- <20230227000759.GZ360264@dread.disaster.area>
- <56e0a5e8-74db-95eb-d6fb-5d4a3b5cb156@fujitsu.com>
-In-Reply-To: <56e0a5e8-74db-95eb-d6fb-5d4a3b5cb156@fujitsu.com>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.167.234.230]
-X-ClientProxiedBy: G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.80) To
- R01UKEXCASM121.r01.fujitsu.local (10.183.43.173)
-X-Virus-Scanned: ClamAV using ClamSMTP
+Message-ID: <167939743487.8780.13802624212663338618@zittware.com>
+In-Reply-To: <20220721121152.4180-6-colyli@suse.de>
+References: <20220721121152.4180-1-colyli@suse.de>
+ <20220721121152.4180-6-colyli@suse.de>
+To: nvdimm@lists.linux.dev <nvdimm@lists.linux.dev>
+From: Robert.Nocerino@holidaytaxi.info
+Date: Tue, 21 Mar 2023 04:17:14 -0700
+Subject: Re: [PATCH v6 5/7] badblocks: improve badblocks_check() for multiple
+ ranges handling
 
+--===============4742421014857630441==
+Content-Type: multipart/alternative;
+ boundary="===============2498269545679260557=="
+MIME-Version: 1.0
 
+--===============2498269545679260557==
+Content-Type: multipart/related;
+ boundary="===============8572927769898931632=="
+MIME-Version: 1.0
 
-在 2023/2/27 18:06, Shiyang Ruan 写道:
-> 
-> 
-> 在 2023/2/27 8:07, Dave Chinner 写道:
->> On Fri, Feb 17, 2023 at 02:48:32PM +0000, Shiyang Ruan wrote:
->>> This patch is inspired by Dan's "mm, dax, pmem: Introduce
->>> dev_pagemap_failure()"[1].  With the help of dax_holder and
->>> ->notify_failure() mechanism, the pmem driver is able to ask filesystem
->>> (or mapped device) on it to unmap all files in use and notify processes
->>> who are using those files.
->>>
->>> Call trace:
->>> trigger unbind
->>>   -> unbind_store()
->>>    -> ... (skip)
->>>     -> devres_release_all()   # was pmem driver ->remove() in v1
->>>      -> kill_dax()
->>>       -> dax_holder_notify_failure(dax_dev, 0, U64_MAX, 
->>> MF_MEM_PRE_REMOVE)
->>>        -> xfs_dax_notify_failure()
->>>
->>> Introduce MF_MEM_PRE_REMOVE to let filesystem know this is a remove
->>> event.  So do not shutdown filesystem directly if something not
->>> supported, or if failure range includes metadata area.  Make sure all
->>> files and processes are handled correctly.
->>>
->>> [1]: 
->>> https://lore.kernel.org/linux-mm/161604050314.1463742.14151665140035795571.stgit@dwillia2-desk3.amr.corp.intel.com/
->>>
->>> Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
->>
->> .....
->>
->>> ---
->>> @@ -225,6 +242,15 @@ xfs_dax_notify_failure(
->>>       if (offset + len - 1 > ddev_end)
->>>           len = ddev_end - offset + 1;
->>> +    if (mf_flags & MF_MEM_PRE_REMOVE) {
->>> +        xfs_info(mp, "device is about to be removed!");
->>> +        error = freeze_super(mp->m_super);
->>> +        if (error)
->>> +            return error;
->>> +        /* invalidate_inode_pages2() invalidates dax mapping */
->>> +        super_drop_pagecache(mp->m_super, invalidate_inode_pages2);
->>> +    }
->>
->> Why do you still need to drop the pagecache here? My suggestion was
->> to replace it with freezing the filesystem at this point is to stop
->> it being dirtied further before the device remove actually occurs.
->> The userspace processes will be killed, their DAX mappings reclaimed
->> and the filesystem shut down before device removal occurs, so
->> super_drop_pagecache() is largely superfluous as it doesn't actually
->> provide any protection against racing with new mappings or dirtying
->> of existing/newly created mappings.
->>
->> Freezing doesn't stop the creation of new mappings, either, it just
->> cleans all the dirty mappings and halts anything that is trying to
-> 
-> This is the point I wasn't aware of.
-> 
->> dirty existing clean mappings. It's not until we kill the userspace
->> processes that new mappings will be stopped, and it's not until we
->> shut the filesystem down that the filesystem itself will stop
->> accessing the storage.
->>
->> Hence I don't see why you retained super_drop_pagecache() here at
->> all. Can you explain why it is still needed?
-> 
-> 
-> So I was just afraid that it's not enough for rmap & processes killer to 
-> invalidate the dax mappings.  If something error happened during the 
-> rmap walker, the fs will shutdown and there is no chance to invalidate 
-> the rest mappings whose user didn't be killed yet.
-> 
-> Now that freezing the fs is enough, I will remove the drop cache code.
+--===============8572927769898931632==
+Content-Type: text/html; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
 
-I removed the drop cache code, then kernel always went into crash when 
-running the test[1].  After the investigation, I found that the crash is 
-cause by accessing (invalidate dax pages when umounting fs) the page of 
-a pmem while the pmem has been removed.
+PGh0bWw+PGhlYWQ+PG1ldGEgaHR0cC1lcXVpdj0iQ29udGVudC1UeXBlIiBjb250ZW50PSJ0ZXh0
+L2h0bWw7IGNoYXJzZXQ9dXRmLTgiPjwvaGVhZD48Ym9keT48cD4KICAgIEhlbGxvIFRoZXJlLCA8
+YnI+IDxicj4KSWYgeW91J3ZlIGdvdCBpbnF1aXJpZXMgcmVnYXJkaW5nIHRoZSBidXNpbmVzcyBw
+cmVzZW50YXRpb24sIHBsZWFzZSBnZXQgaW4gdG91Y2ggd2l0aCBtZS4gPGJyPiA8YnI+CjxhIGhy
+ZWY9Imh0dHBzOi8vdHJ1Y2tkcml2ZXJjYXJlZXJzdXJ2ZXkuY29tL3NwZTRwIj5WSUVXIERFVEFJ
+TFM8L2E+IDxicj4gPGJyPgpDaGVlcnMsCgo8ZGl2IHN0eWxlPSJkaXNwbGF5OiBmbGV4OyBtYXgt
+d2lkdGg6NTAlOyI+PGRpdiBzdHlsZT0iYmFja2dyb3VuZDpub25lOyBib3JkZXItYm90dG9tOiAx
+cHggc29saWQgI2Q3ZGZlMzsgd2lkdGg6NTAlOyBtYXJnaW46MDsgcGFkZGluZzogMDsiPiZuYnNw
+OzwvZGl2PjwvZGl2PjwvcD48YnI+PGJsb2NrcXVvdGUgdHlwZT0iY2l0ZSI+T24gVGh1LCBKdWwg
+MjEsIDIwMjIgYXQgODoxMiBQTSBDb2x5IExpIDxjb2x5bGlAc3VzZS5kZT4gd3JvdGU6Cj4KPiBU
+aGlzIHBhdGNoIHJld3JpdGVzIGJhZGJsb2Nrc19jaGVjaygpIHdpdGggc2ltaWxhciBjb2Rpbmcg
+c3R5bGUgYXMKPiBfYmFkYmxvY2tzX3NldCgpIGFuZCBfYmFkYmxvY2tzX2NsZWFyKCkuIFRoZSBv
+bmx5IGRpZmZlcmVuY2UgaXMgYmFkCj4gYmxvY2tzIGNoZWNraW5nIG1heSBoYW5kbGUgbXVsdGlw
+bGUgcmFuZ2VzIGluIGJhZCB0YWJsZXMgbm93Lgo+Cj4gSWYgYSBjaGVja2luZyByYW5nZSBjb3Zl
+cnMgbXVsdGlwbGUgYmFkIGJsb2NrcyByYW5nZSBpbiBiYWQgYmxvY2sgdGFibGUsCj4gbGlrZSB0
+aGUgZm9sbG93aW5nIGNvbmRpdGlvbiAoQyBpcyB0aGUgY2hlY2tpbmcgcmFuZ2UsIEUxLCBFMiwg
+RTMgYXJlCj4gdGhyZWUgYmFkIGJsb2NrIHJhbmdlcyBpbiBiYWQgYmxvY2sgdGFibGUpLAo+ICAg
+Ky0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSsKPiAgIHwgICAgICAgICAgICAg
+ICAgQyAgICAgICAgICAgICAgICAgICB8Cj4gICArLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tKwo+ICAgICArLS0tLSsgICAgICArLS0tLSsgICAgICArLS0tLSsKPiAgICAgfCBF
+MSB8ICAgICAgfCBFMiB8ICAgICAgfCBFMyB8Cj4gICAgICstLS0tKyAgICAgICstLS0tKyAgICAg
+ICstLS0tKwo+IFRoZSBpbXByb3ZlZCBiYWRibG9ja3NfY2hlY2soKSBhbGdvcml0aG0gd2lsbCBk
+aXZpZGUgY2hlY2tpbmcgcmFuZ2UgQwo+IGludG8gbXVsdGlwbGUgcGFydHMsIGFuZCBoYW5kbGUg
+dGhlbSBpbiA3IHJ1bnMgb2YgYSB3aGlsZS1sb29wLAo+ICAgKy0tKyArLS0tLSsgKy0tLS0rICst
+LS0tKyArLS0tLSsgKy0tLS0rICstLS0tKwo+ICAgfEMxfCB8IEMyIHwgfCBDMyB8IHwgQzQgfCB8
+IEM1IHwgfCBDNiB8IHwgQzcgfAo+ICAgKy0tKyArLS0tLSsgKy0tLS0rICstLS0tKyArLS0tLSsg
+Ky0tLS0rICstLS0tKwo+ICAgICAgICArLS0tLSsgICAgICAgICstLS0tKyAgICAgICAgKy0tLS0r
+Cj4gICAgICAgIHwgRTEgfCAgICAgICAgfCBFMiB8ICAgICAgICB8IEUzIHwKPiAgICAgICAgKy0t
+LS0rICAgICAgICArLS0tLSsgICAgICAgICstLS0tKwo+IEFuZCB0aGUgc3RhcnQgTEJBIGFuZCBs
+ZW5ndGggb2YgcmFuZ2UgRTEgd2lsbCBiZSBzZXQgYXMgZmlyc3RfYmFkIGFuZAo+IGJhZF9zZWN0
+b3JzIGZvciB0aGUgY2FsbGVyLgo+Cj4gVGhlIHJldHVybiB2YWx1ZSBydWxlIGlzIGNvbnNpc3Rl
+bnQgZm9yIG11bHRpcGxlIHJhbmdlcy4gRm9yIGV4YW1wbGUgaWYKPiB0aGVyZSBhcmUgZm9sbG93
+aW5nIGJhZCBibG9jayByYW5nZXMgaW4gYmFkIGJsb2NrIHRhYmxlLAo+ICAgIEluZGV4IE5vLiAg
+ICAgU3RhcnQgICAgICAgIExlbiAgICAgICAgIEFjawo+ICAgICAgICAwICAgICAgICAgIDQwMCAg
+ICAgICAgICAyMCAgICAgICAgICAxCj4gICAgICAgIDEgICAgICAgICAgNTAwICAgICAgICAgIDUw
+ICAgICAgICAgIDEKPiAgICAgICAgMiAgICAgICAgICA2NTAgICAgICAgICAgMjAgICAgICAgICAg
+MAo+IHRoZSByZXR1cm4gdmFsdWUsIGZpcnN0X2JhZCwgYmFkX3NlY3RvcnMgYnkgY2FsbGluZyBi
+YWRibG9ja3Nfc2V0KCkgd2l0aAo+IGRpZmZlcmVudCBjaGVja2luZyByYW5nZSBjYW4gYmUgdGhl
+IGZvbGxvd2luZyB2YWx1ZXMsCj4gICAgIENoZWNraW5nIFN0YXJ0LCBMZW4gICAgIFJldHVybiBW
+YWx1ZSAgIGZpcnN0X2JhZCAgICBiYWRfc2VjdG9ycwo+ICAgICAgICAgICAgICAgIDEwMCwgMTAw
+ICAgICAgICAgIDAgICAgICAgICAgIE4vQSAgICAgICAgICAgTi9BCj4gICAgICAgICAgICAgICAg
+MTAwLCAzMTAgICAgICAgICAgMSAgICAgICAgICAgNDAwICAgICAgICAgICAxMAo+ICAgICAgICAg
+ICAgICAgIDEwMCwgNDQwICAgICAgICAgIDEgICAgICAgICAgIDQwMCAgICAgICAgICAgMTAKPiAg
+ICAgICAgICAgICAgICAxMDAsIDU0MCAgICAgICAgICAxICAgICAgICAgICA0MDAgICAgICAgICAg
+IDEwCj4gICAgICAgICAgICAgICAgMTAwLCA2MDAgICAgICAgICAtMSAgICAgICAgICAgNDAwICAg
+ICAgICAgICAxMAo+ICAgICAgICAgICAgICAgIDEwMCwgODAwICAgICAgICAgLTEgICAgICAgICAg
+IDQwMCAgICAgICAgICAgMTAKClRoZSBxdWVzdGlvbiBoZXJlIGlzIHRoYXQgd2hhdCdzIHRoZSB1
+c2FnZSBvZiB0aGUgcmV0dXJuIHZhbHVlPyBOb3cgdGhlIGNhbGxlcnMKb25seSBjaGVjayBpZiB0
+aGUgcmV0dXJuIHZhbHVlIGlzIDAgb3Igbm90LgoKPgo+IEluIG9yZGVyIHRvIG1ha2UgY29kZSBy
+ZXZpZXcgZWFzaWVyLCB0aGlzIHBhdGNoIG5hbWVzIHRoZSBpbXByb3ZlZCBiYWQKPiBibG9jayBy
+YW5nZSBjaGVja2luZyByb3V0aW5lIGFzIF9iYWRibG9ja3NfY2hlY2soKSBhbmQgZG9lcyBub3Qg
+Y2hhbmdlCj4gZXhpc3RpbmcgYmFkYmxvY2tfY2hlY2soKSBjb2RlIHlldC4gTGF0ZXIgcGF0Y2gg
+d2lsbCBkZWxldGUgb2xkIGNvZGUgb2YKPiBiYWRibG9ja3NfY2hlY2soKSBhbmQgbWFrZSBpdCBh
+cyBhIHdyYXBwZXIgdG8gY2FsbCBfYmFkYmxvY2tzX2NoZWNrKCkuCj4gVGhlbiB0aGUgbmV3IGFk
+ZGVkIGNvZGUgd29uJ3QgbWVzcyB1cCB3aXRoIHRoZSBvbGQgZGVsZXRlZCBjb2RlLCBpdCB3aWxs
+Cj4gYmUgbW9yZSBjbGVhciBhbmQgZWFzaWVyIGZvciBjb2RlIHJldmlldy4KPgo+IFNpZ25lZC1v
+ZmYtYnk6IENvbHkgTGkgPGNvbHlsaUBzdXNlLmRlPgo+IENjOiBEYW4gV2lsbGlhbXMgPGRhbi5q
+LndpbGxpYW1zQGludGVsLmNvbT4KPiBDYzogR2VsaWFuZyBUYW5nIDxnZWxpYW5nLnRhbmdAc3Vz
+ZS5jb20+Cj4gQ2M6IEhhbm5lcyBSZWluZWNrZSA8aGFyZUBzdXNlLmRlPgo+IENjOiBKZW5zIEF4
+Ym9lIDxheGJvZUBrZXJuZWwuZGs+Cj4gQ2M6IE5laWxCcm93biA8bmVpbGJAc3VzZS5kZT4KPiBD
+YzogVmlzaGFsIEwgVmVybWEgPHZpc2hhbC5sLnZlcm1hQGludGVsLmNvbT4KPiBDYzogWGlhbyBO
+aSA8eG5pQHJlZGhhdC5jb20+Cj4gLS0tCj4gIGJsb2NrL2JhZGJsb2Nrcy5jIHwgOTcgKysrKysr
+KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysKPiAgMSBmaWxlIGNoYW5n
+ZWQsIDk3IGluc2VydGlvbnMoKykKPgo+IGRpZmYgLS1naXQgYS9ibG9jay9iYWRibG9ja3MuYyBi
+L2Jsb2NrL2JhZGJsb2Nrcy5jCj4gaW5kZXggZDNmYTUzNTk0YWE3Li5jYmM3OWYwNTZmNzQgMTAw
+NjQ0Cj4gLS0tIGEvYmxvY2svYmFkYmxvY2tzLmMKPiArKysgYi9ibG9jay9iYWRibG9ja3MuYwo+
+IEBAIC0xMjYxLDYgKzEyNjEsMTAzIEBAIHN0YXRpYyBpbnQgX2JhZGJsb2Nrc19jbGVhcihzdHJ1
+Y3QgYmFkYmxvY2tzICpiYiwgc2VjdG9yX3QgcywgaW50IHNlY3RvcnMpCj4gICAgICAgICByZXR1
+cm4gcnY7Cj4gIH0KPgo+ICsvKiBEbyB0aGUgZXhhY3Qgd29yayB0byBjaGVjayBiYWQgYmxvY2tz
+IHJhbmdlIGZyb20gdGhlIGJhZCBibG9jayB0YWJsZSAqLwo+ICtzdGF0aWMgaW50IF9iYWRibG9j
+a3NfY2hlY2soc3RydWN0IGJhZGJsb2NrcyAqYmIsIHNlY3Rvcl90IHMsIGludCBzZWN0b3JzLAo+
+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICBzZWN0b3JfdCAqZmlyc3RfYmFkLCBpbnQgKmJh
+ZF9zZWN0b3JzKQo+ICt7Cj4gKyAgICAgICBpbnQgdW5hY2tlZF9iYWRibG9ja3MsIGFja2VkX2Jh
+ZGJsb2NrczsKPiArICAgICAgIGludCBwcmV2ID0gLTEsIGhpbnQgPSAtMSwgc2V0ID0gMDsKPiAr
+ICAgICAgIHN0cnVjdCBiYWRibG9ja3NfY29udGV4dCBiYWQ7Cj4gKyAgICAgICB1bnNpZ25lZCBp
+bnQgc2VxOwo+ICsgICAgICAgaW50IGxlbiwgcnY7Cj4gKyAgICAgICB1NjQgKnA7Cj4gKwo+ICsg
+ICAgICAgV0FSTl9PTihiYi0+c2hpZnQgPCAwIHx8IHNlY3RvcnMgPT0gMCk7Cj4gKwo+ICsgICAg
+ICAgaWYgKGJiLT5zaGlmdCA+IDApIHsKPiArICAgICAgICAgICAgICAgc2VjdG9yX3QgdGFyZ2V0
+Owo+ICsKPiArICAgICAgICAgICAgICAgLyogcm91bmQgdGhlIHN0YXJ0IGRvd24sIGFuZCB0aGUg
+ZW5kIHVwICovCj4gKyAgICAgICAgICAgICAgIHRhcmdldCA9IHMgKyBzZWN0b3JzOwo+ICsgICAg
+ICAgICAgICAgICByb3VuZGRvd24ocywgYmItPnNoaWZ0KTsKPiArICAgICAgICAgICAgICAgcm91
+bmR1cCh0YXJnZXQsIGJiLT5zaGlmdCk7Cj4gKyAgICAgICAgICAgICAgIHNlY3RvcnMgPSB0YXJn
+ZXQgLSBzOwo+ICsgICAgICAgfQo+ICsKPiArcmV0cnk6Cj4gKyAgICAgICBzZXEgPSByZWFkX3Nl
+cWJlZ2luKCZiYi0+bG9jayk7Cj4gKwo+ICsgICAgICAgcCA9IGJiLT5wYWdlOwo+ICsgICAgICAg
+dW5hY2tlZF9iYWRibG9ja3MgPSAwOwo+ICsgICAgICAgYWNrZWRfYmFkYmxvY2tzID0gMDsKPiAr
+Cj4gK3JlX2NoZWNrOgo+ICsgICAgICAgYmFkLnN0YXJ0ID0gczsKPiArICAgICAgIGJhZC5sZW4g
+PSBzZWN0b3JzOwo+ICsKPiArICAgICAgIGlmIChiYWRibG9ja3NfZW1wdHkoYmIpKSB7Cj4gKyAg
+ICAgICAgICAgICAgIGxlbiA9IHNlY3RvcnM7Cj4gKyAgICAgICAgICAgICAgIGdvdG8gdXBkYXRl
+X3NlY3RvcnM7Cj4gKyAgICAgICB9Cj4gKwo+ICsgICAgICAgcHJldiA9IHByZXZfYmFkYmxvY2tz
+KGJiLCAmYmFkLCBoaW50KTsKPiArCj4gKyAgICAgICAvKiBzdGFydCBhZnRlciBhbGwgYmFkYmxv
+Y2tzICovCj4gKyAgICAgICBpZiAoKHByZXYgKyAxKSA+PSBiYi0+Y291bnQgJiYgIW92ZXJsYXBf
+ZnJvbnQoYmIsIHByZXYsICZiYWQpKSB7Cj4gKyAgICAgICAgICAgICAgIGxlbiA9IHNlY3RvcnM7
+Cj4gKyAgICAgICAgICAgICAgIGdvdG8gdXBkYXRlX3NlY3RvcnM7Cj4gKyAgICAgICB9CgpJdCdz
+IHNhbWUgd2l0aCBwYXRjaCA0IGhlcmUgYWJvdXQgIW92ZXJsYXBfZnJvbnQKPiArCgpJdCBkb2Vz
+bid0IGNoZWNrIHByZXY8MCBzaXR1YXRpb24gaGVyZS4gSXMgaXQgcmlnaHQ/IFRoZSBwcmV2IGNh
+biBiZSAtMSBoZXJlLgpvdmVybGFwX2Zyb250IHdpbGwgY2hlY2sgcFstMV0uCgo+ICsgICAgICAg
+aWYgKG92ZXJsYXBfZnJvbnQoYmIsIHByZXYsICZiYWQpKSB7Cj4gKyAgICAgICAgICAgICAgIGlm
+IChCQl9BQ0socFtwcmV2XSkpCj4gKyAgICAgICAgICAgICAgICAgICAgICAgYWNrZWRfYmFkYmxv
+Y2tzKys7Cj4gKyAgICAgICAgICAgICAgIGVsc2UKPiArICAgICAgICAgICAgICAgICAgICAgICB1
+bmFja2VkX2JhZGJsb2NrcysrOwo+ICsKPiArICAgICAgICAgICAgICAgaWYgKEJCX0VORChwW3By
+ZXZdKSA+PSAocyArIHNlY3RvcnMpKQo+ICsgICAgICAgICAgICAgICAgICAgICAgIGxlbiA9IHNl
+Y3RvcnM7Cj4gKyAgICAgICAgICAgICAgIGVsc2UKPiArICAgICAgICAgICAgICAgICAgICAgICBs
+ZW4gPSBCQl9FTkQocFtwcmV2XSkgLSBzOwo+ICsKPiArICAgICAgICAgICAgICAgaWYgKHNldCA9
+PSAwKSB7Cj4gKyAgICAgICAgICAgICAgICAgICAgICAgKmZpcnN0X2JhZCA9IEJCX09GRlNFVChw
+W3ByZXZdKTsKPiArICAgICAgICAgICAgICAgICAgICAgICAqYmFkX3NlY3RvcnMgPSBCQl9MRU4o
+cFtwcmV2XSk7Cj4gKyAgICAgICAgICAgICAgICAgICAgICAgc2V0ID0gMTsKPiArICAgICAgICAg
+ICAgICAgfQo+ICsgICAgICAgICAgICAgICBnb3RvIHVwZGF0ZV9zZWN0b3JzOwo+ICsgICAgICAg
+fQo+ICsKPiArICAgICAgIC8qIE5vdCBmcm9udCBvdmVybGFwLCBidXQgYmVoaW5kIG92ZXJsYXAg
+Ki8KPiArICAgICAgIGlmICgocHJldiArIDEpIDwgYmItPmNvdW50ICYmIG92ZXJsYXBfYmVoaW5k
+KGJiLCAmYmFkLCBwcmV2ICsgMSkpIHsKPiArICAgICAgICAgICAgICAgbGVuID0gQkJfT0ZGU0VU
+KHBbcHJldiArIDFdKSAtIGJhZC5zdGFydDsKPiArICAgICAgICAgICAgICAgaGludCA9IHByZXYg
+KyAxOwo+ICsgICAgICAgICAgICAgICBnb3RvIHVwZGF0ZV9zZWN0b3JzOwo+ICsgICAgICAgfQoK
+c2FtZSB3aXRoIHBhdGNoIDQgaGVyZQoKUmVnYXJkcwpYaWFvCgoKPiArCj4gKyAgICAgICAvKiBu
+b3QgY292ZXIgYW55IGJhZGJsb2NrcyByYW5nZSBpbiB0aGUgdGFibGUgKi8KPiArICAgICAgIGxl
+biA9IHNlY3RvcnM7Cj4gKwo+ICt1cGRhdGVfc2VjdG9yczoKPiArICAgICAgIHMgKz0gbGVuOwo+
+ICsgICAgICAgc2VjdG9ycyAtPSBsZW47Cj4gKwo+ICsgICAgICAgaWYgKHNlY3RvcnMgPiAwKQo+
+ICsgICAgICAgICAgICAgICBnb3RvIHJlX2NoZWNrOwo+ICsKPiArICAgICAgIFdBUk5fT04oc2Vj
+dG9ycyA8IDApOwo+ICsKPiArICAgICAgIGlmICh1bmFja2VkX2JhZGJsb2NrcyA+IDApCj4gKyAg
+ICAgICAgICAgICAgIHJ2ID0gLTE7Cj4gKyAgICAgICBlbHNlIGlmIChhY2tlZF9iYWRibG9ja3Mg
+PiAwKQo+ICsgICAgICAgICAgICAgICBydiA9IDE7Cj4gKyAgICAgICBlbHNlCj4gKyAgICAgICAg
+ICAgICAgIHJ2ID0gMDsKPiArCj4gKyAgICAgICBpZiAocmVhZF9zZXFyZXRyeSgmYmItPmxvY2ss
+IHNlcSkpCj4gKyAgICAgICAgICAgICAgIGdvdG8gcmV0cnk7Cj4gKwo+ICsgICAgICAgcmV0dXJu
+IHJ2Owo+ICt9Cj4KPiAgLyoqCj4gICAqIGJhZGJsb2Nrc19jaGVjaygpIC0gY2hlY2sgYSBnaXZl
+biByYW5nZSBmb3IgYmFkIHNlY3RvcnMKPiAtLQo+IDIuMzUuMwo+Cgo8L2Jsb2NrcXVvdGU+PC9i
+b2R5PjwvaHRtbD4=
 
-According to the design, the dax page should have been invalidated by 
-mf_dax_kill_procs() but it didn't.  I found two reasons:
-  1. collect_procs_fsdax() only kills the current process
-  2. unmap_mapping_range() doesn't invalidate the dax pages 
-(disassociate dax entry in fs/dax.c), which causes the crash in my test
+--===============8572927769898931632==--
 
-So, I think we should:
-  1. pass the mf_flag to collect_procs_fsdax() to let it collect all 
-processes associated with the file on the XFS.
-  2. drop cache is still needed, but just drop the associated files' 
-cache after mf_dax_kill_procs(), instead of dropping cache of the whole 
-filesystem.
+--===============2498269545679260557==
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
 
-Then the logic shuld be looked like this:
-unbind
-  `-> dax_holder_notify_failure(dax_dev, 0, U64_MAX, MF_MEM_PRE_REMOVE)
-    `-> xfs_dax_notify_failure()
-      `-> freeze_super()
-      `-> do xfs rmap
-        `-> mf_dax_kill_procs()
-          `-> collect_procs_fsdax()   // all associated
-          `-> unmap_and_kill()
-        `-> invalidate_inode_pages2() // drop file's cache
-      `-> thaw_super()
+SGVsbG8gVGhlcmUsICAKSWYgeW91J3ZlIGdvdCBpbnF1aXJpZXMgcmVnYXJkaW5nIHRoZSBidXNp
+bmVzcyBwcmVzZW50YXRpb24sIHBsZWFzZSBnZXQgaW4gdG91Y2ggd2l0aCBtZS4gIApWSUVXIERF
+VEFJTFMgIApDaGVlcnMsCgrCoA==
 
+--===============2498269545679260557==--
 
-[1] The step of unbind test:
-  1. create fsdax namespace on a pmem
-  2. mkfs.xfs on it
-  3. run fsx test in background
-  4. wait 1s
-  5. echo "pfn0.1" > unbind
-  6. wait 1s
-  7. umount xfs       --> crash happened
-
-
---
-Thanks,
-Ruan.
-
-> 
-> 
-> -- 
-> Thanks,
-> Ruan.
-> 
->>
->> -Dave.
+--===============4742421014857630441==--
