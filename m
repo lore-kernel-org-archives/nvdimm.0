@@ -1,164 +1,214 @@
-Received: from esa15.fujitsucc.c3s2.iphmx.com (esa15.fujitsucc.c3s2.iphmx.com [68.232.156.107])
+Received: from mail3.bemta32.messagelabs.com (mail3.bemta32.messagelabs.com [195.245.230.17])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7D377C
-	for <nvdimm@lists.linux.dev>; Tue, 21 Mar 2023 03:20:44 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
-  d=fujitsu.com; i=@fujitsu.com; q=dns/txt; s=fj1;
-  t=1679368845; x=1710904845;
-  h=from:to:cc:subject:date:message-id:references:
-   in-reply-to:content-id:content-transfer-encoding:
-   mime-version;
-  bh=eSL6fCzmFqIdKFZm4vsxehj7fZ/XAvf17Y7TaU/lK5U=;
-  b=J7z5BCDN9KHruTI3aWXupZmWMHJa95/lD6/oHpu4iyNQCtQ/BNJzSenl
-   g3tXO+opjRhJwZ7ywhVTBbf2n4LAfDv6pwTKda9GXgVg2Ua6tLz37RkU1
-   2gJq1PZlWdz932PSncFlaoJUl7+qKTCfpHjI/fYLpS5Q+3u1TiXmhi2Dm
-   jwfHUHS3Rtc53fuDl5Fqa9GaR/9LhTXTm8gQjlwKyp9GDCyjqlTbJOSLe
-   85BbHKN7ngC+xbpJWcjR61C9PEVAt1WrL6070d+lRkM9nCzceZyLzEeB2
-   XHWULHcAKpiaPXF8tC5yfI08fCtA7MEc89W1RT9v3o9NGhVbeEMbaSbxx
-   w==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10655"; a="79806074"
-X-IronPort-AV: E=Sophos;i="5.98,277,1673881200"; 
-   d="scan'208";a="79806074"
-Received: from mail-os0jpn01lp2112.outbound.protection.outlook.com (HELO JPN01-OS0-obe.outbound.protection.outlook.com) ([104.47.23.112])
-  by ob1.fujitsucc.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Mar 2023 12:19:32 +0900
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=gelIL5VD2w5GpKnu/7zcyEHvaKsz1zcO2GvLAgwv1Yrtcz9zNxS4/yO4z/QxHAOCgUGpsXhlJ5YZAWZy+rL44l4qXbtal1EuVGaUqRcOdLr0D+Qh5seURNXmL6Zx6eBkoOPPQ8fCU821yC/pJ2xS/A1Tzg4HpAabab7M66FS9srjw398SreYnBMUNR0fYvZy7kwYFOEP0g/3zpWkYS9NZf5RAbbf3Ewd0RYw3kE2enjA1n5uHKemTNIVPkWk1YcaJEK6w9qWu4i5cU6nk/MF9v31mSchDHiDgOt/m3QMIqhK1AIkI6E9eNdELipKBJRdcw+jw1x/QVlXgsBmxCW09g==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=eSL6fCzmFqIdKFZm4vsxehj7fZ/XAvf17Y7TaU/lK5U=;
- b=HYWwtINtpgY3Ue3cbgkc/sute+Pl4TGlf3kx3jvJC/LyQaCZpN33QBzkwjIhKXWCjR6IKPrH6Dchmdf3NbgNAJsRrWRT4r4m/YZY4x8p8jU+eVnad90DwrncQhd8Nq3hi0MwWNqX2TqmWgD/VvB1E/zPgFjBFJrS2+m4Ofy4K/A4tagh7pprJlEemPxERjjmwcfZDEVM3MR4GKKwRH0itO4/UeGcXQrCuY/8UTJh7zBo3fToAI4iNhDaOmImoqYz+/VOljJ6R+gGLDEfKof5z6p3mG8esZZcciG4odxIzfK+NTmagwozk3KxhKHzthPk8L7vgHtZTFUNixfY27W21A==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=fujitsu.com; dmarc=pass action=none header.from=fujitsu.com;
- dkim=pass header.d=fujitsu.com; arc=none
-Received: from OS3PR01MB10390.jpnprd01.prod.outlook.com
- (2603:1096:604:1fb::14) by OS3PR01MB9978.jpnprd01.prod.outlook.com
- (2603:1096:604:1e7::5) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6178.37; Tue, 21 Mar
- 2023 03:19:27 +0000
-Received: from OS3PR01MB10390.jpnprd01.prod.outlook.com
- ([fe80::777c:ddcc:cdd0:7ec2]) by OS3PR01MB10390.jpnprd01.prod.outlook.com
- ([fe80::777c:ddcc:cdd0:7ec2%8]) with mapi id 15.20.6178.037; Tue, 21 Mar 2023
- 03:19:27 +0000
-From: "lizhijian@fujitsu.com" <lizhijian@fujitsu.com>
-To: Dan Williams <dan.j.williams@intel.com>, "vishal.l.verma@intel.com"
-	<vishal.l.verma@intel.com>, "dave.jiang@intel.com" <dave.jiang@intel.com>,
-	"ira.weiny@intel.com" <ira.weiny@intel.com>, "nvdimm@lists.linux.dev"
-	<nvdimm@lists.linux.dev>
-CC: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] nvdimm: nvdimm_bus_register: Avoid adding device to the
- unregistered bus
-Thread-Topic: [PATCH] nvdimm: nvdimm_bus_register: Avoid adding device to the
- unregistered bus
-Thread-Index:
- AQHZV+LVN1DLpX/+y0yTP+b0+z/XPa79j4OAgACkEICAAEgHgIAEddSAgAECAACAAJNlgIAABdQAgAALdAA=
-Date: Tue, 21 Mar 2023 03:19:27 +0000
-Message-ID: <f6f97630-5a45-3e75-bb34-b0bdb66c1bee@fujitsu.com>
-References: <1678955931-2-1-git-send-email-lizhijian@fujitsu.com>
- <64133bcbbe368_269929415@dwillia2-xfh.jf.intel.com.notmuch>
- <ca55bea9-d2a8-ccce-010e-a26f6003a059@fujitsu.com>
- <641401d75d039_1dee294a1@dwillia2-mobl3.amr.corp.intel.com.notmuch>
- <eae85bab-cdb6-b8b3-8014-2e7f3916bfe2@fujitsu.com>
- <6418981ac577c_1dee2948f@dwillia2-mobl3.amr.corp.intel.com.notmuch>
- <cfa1a053-b99b-c22e-b80c-4b92f5f4e225@fujitsu.com>
- <641918a2cf2d3_26992942@dwillia2-xfh.jf.intel.com.notmuch>
-In-Reply-To: <641918a2cf2d3_26992942@dwillia2-xfh.jf.intel.com.notmuch>
-Accept-Language: en-US, zh-CN
-Content-Language: en-US
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-user-agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.8.0
-authentication-results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=fujitsu.com;
-x-ms-publictraffictype: Email
-x-ms-traffictypediagnostic: OS3PR01MB10390:EE_|OS3PR01MB9978:EE_
-x-ms-office365-filtering-correlation-id: 605a4047-81c6-4524-fb04-08db29bb140c
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info:
- T+wkbQrioiTj7WsgHQqqiV1lEeO/sYAO1QaT1u6jniZ+FNu9Ng0v/Vdk/waVz/JYZ0oqQKHuCXZ0dV7iBC4n4mq+SOB5ZqZCaLI8qVYrHWWsSgqvzbe5a6VAAlUsGGf5tTg+yU60id5DR/iRkTocil0aZTSsfXy2FgmmYoBiG2zyhlOfQMAt6RV0amczir0hxc5PS6niqt4WfaZmPjhx/HkWKsZ2otZlp9vSunXxmTrprZlDhoIDi+GV12XPxHelFtjY9KTi1okje9mohTYm5fAznHkDSby15vnslBMyR2JYfSOeuH7d+wnhofxvVT6bSeCg8aD4gt2T9NeDiQD3UgUMMf2fazgtJV3Fe+I2pPhcFZiTl6P7A8vTOYJSZAHCIQvaS8zGs3Bmc5KpDr/Yg7arlMxPz4TqZJE4jz24cHSUJxPPF/fF3aohRsvdmE6D7YtgaPHP91gPowwGe9QUASqVCuYC2EJWKpLz3UuKiJJ2tuHdMCk+InjNXR/94u2kDLtnO1h3A7kAq356HeO54hVsZUFgnm9Ah/tYhbl2ezJNRFBb2Oz0AEHGQWFxVN6ku1JOH3Hsz1vbe3bLZbXQ4hLDMAlQD9WnhWaXpW/IE1xdQF0/8bYbGOjEFdiznin5vq/yw5KE7E4w4WpyhTMc7R6a1EnRMwb8d2ecVvcvJVrwHNm3wHlQxmqbXRkTs38my4DZRQn9o67qR7LQW419Ft7DVoiqAE1HQYZvmyxyvJQp1gIhK7Y9Q8XpL8UYM8yq1I2LzwKPAukssbbmOimCk0mdvigoQ08cn8eExklX7C8=
-x-forefront-antispam-report:
- CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:OS3PR01MB10390.jpnprd01.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230025)(4636009)(396003)(346002)(39860400002)(366004)(136003)(376002)(451199018)(1590799015)(38100700002)(31696002)(1580799012)(71200400001)(86362001)(110136005)(4744005)(316002)(66556008)(66946007)(85182001)(36756003)(64756008)(4326008)(66446008)(8676002)(5660300002)(41300700001)(8936002)(91956017)(76116006)(66476007)(2906002)(478600001)(122000001)(31686004)(2616005)(38070700005)(6512007)(186003)(6506007)(26005)(6486002)(53546011)(82960400001)(43740500002)(45980500001);DIR:OUT;SFP:1101;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0:
- =?utf-8?B?U3JqMkcxWTY5UGZaKzMxcTU1clhSTXQ5a01FODgrUTNTUndQbWlUenJZTG1U?=
- =?utf-8?B?U2I2NzJ3U0NyT1FHUnRyTjloLzY5dnE5d1JlUUFwVjFnaW9PVE1vMU5hSTFq?=
- =?utf-8?B?b0xkejFOcytqTVljVU9UMjUxczljTmRXSVFCVU9nbG4xeGtiVy8xYUYyZ1cz?=
- =?utf-8?B?SituS0x2TFpCZ0ljNHFQaW90aHBsTXlKNGY0NGo3M3N0ZkJuMHpUbGhSVVh2?=
- =?utf-8?B?SUFZODBsN2JocElwa0s5YXplOC9jZnFMNjkzSlhQenBBcXlwZkNjV3EwTTd2?=
- =?utf-8?B?aEhBS2ZDRURMSWFaWGdiWkFRbDFVVkZpd093M0FUS0ZlOGZSQzlQN1pGQ1hk?=
- =?utf-8?B?c1U1dGZwRzR4cVFQckZRY3BEUWtZOFRzNU9lS0cvRjM1ZDQzS3A2RVhRbnEr?=
- =?utf-8?B?a1RZdUtrTmVaVzhlZ0Q5bG1rRTdxdlZTZmNVL2dreHRWTDdnR1FsaFJuMzFF?=
- =?utf-8?B?THljWjNjUnBSNGdNYlJ5TmdxOVRtNXhFUHF2QlZmNldPVXB4bENicUY3MHZq?=
- =?utf-8?B?UTd0SnRrUGw2ZkRsMHhERWE4K2l2N0JpK013Tm8rVzVTaVVwRkI1b2VsWEx5?=
- =?utf-8?B?Q2JKVkcyT1FNdVhiUzRPRFFjL0FUTmZGTGRMSE05WEZ1MDdtbEJBUzlJcE16?=
- =?utf-8?B?ZjgyZ0RFM0FZeVlxNU5yTUZYVHJGZ0F1TXIraHJQaFFQV0g4WTh1NjMwci9Q?=
- =?utf-8?B?dGNPNzljYTVhWW81M2ZXdWVzNnZHMFkwUVd0bG0zQk50V2QyWENadUp0SkFB?=
- =?utf-8?B?OXhuakdJU0FFRmZkWS96ZEZBbmxsQXJET2dHLytTTjdPZU1ZNC9MV05hMXpn?=
- =?utf-8?B?ejNjYWtNVGtpT2h6azBINk9SMGVmS3c1SFYwTGt4aW9CTitVYXk3RHMxNUV5?=
- =?utf-8?B?YnlWdkpXaldVbUsvdEJzSGErWTBYZDV1MVlLeCtKSGdZZ1B5M0RWcnFPZ3NE?=
- =?utf-8?B?NEY0N3U5NlR4MFl6NUQrYlBPOUlOSzVSY3I2TkgzcDZuSGdnNnZGQkZXclRD?=
- =?utf-8?B?ZkpZcFBJVmhRKzdqN2cyM2gzck14UlA0MG9pdnBFaVNFQ3lha3QrMlZRTE1W?=
- =?utf-8?B?YmJGcjlpVW4wZWwyTFJKR01ONldhalBqdy9teWVyVzhQUGE4ZW9ZUUJycCtm?=
- =?utf-8?B?b1NabE0zSEJIUWFxTzB2Q3BNMzVhbWg5bU83S2hpemZ2OHgrYVI2RTEyZjUv?=
- =?utf-8?B?TzZYNFpvU1lYZjM4cEJIdENiTXBqZDVydkx0R0J5WDE5YStGVWpoRkRkKzlS?=
- =?utf-8?B?a3ZpZzN2dmw0RzVRQkdnbWpSQngyL2VYU0FQcWNiTXhWTEV5bVdYN1V6dVpV?=
- =?utf-8?B?VEFRVEtKYkVLYmZIbjUwTHh2b0l4bmxHWFZsYk8wZzgwY2FZa3lpOXMrQk83?=
- =?utf-8?B?eGsyTkJtSVp4QUtEOG5MMHB1RUlpZ0NYQlg5L0JleDF1WjFxUW0zckZEWU4w?=
- =?utf-8?B?K0cyRjdUcmlScS9ubURGaHJjelZWbDNnbjJQeC9Vakk3dU5JdTlmWXQxZjNR?=
- =?utf-8?B?eUxiUHBxa0FuK0dmdnhyRFI4dFNaR3AyeVhqTThGTWhJc1g3YzRCQXFjdENv?=
- =?utf-8?B?OHFsMnc4T2JlS3Q2ekxlWmlQaDQ2alhvREM4SzMvRmVpc2llQjZxMWpWMDh5?=
- =?utf-8?B?M3dNQ1EvbmNWdm5RZXdlSEtpTHNEcVk0SlEzaU5hVldYQWhCcE5POFByUkRG?=
- =?utf-8?B?WE00T3ZHUFRCOXhTVW9ONWxUbmR4ZXEwM2xQd1o1OGVXWGFubWdSWHJBYjN2?=
- =?utf-8?B?bzVYbHJBc09GalFwbDNoL1U0UTNWTE5FeDE2bVR5bWVZZXh6UWhXNGtPTVhL?=
- =?utf-8?B?TTljMCtIVTBqOHhieEgyYVhjUXBRVThiUUJBOG8ybXpjNVlXa0VNTlhDck9r?=
- =?utf-8?B?SUJ1SU5RL1F1Qmh3Q0tpaldhVkNRaERvOWEvcXYrVWV2U2lZRXdIRllSSVVl?=
- =?utf-8?B?ZTJKa3lheGg4Wk1Lam9aUVlYS3FrMVBPTGhDMVl6ajJoOU0yRnZYM2NiVGds?=
- =?utf-8?B?TGZpTlMvdmRxWm43eTNrTk55OUdsWitYcDRKWWhtdXBpUm9jTURUMVhBRXgw?=
- =?utf-8?B?N2Z4V2owNzBreHRSMVNpdmZhM0N1UHpzVlhIbXVwOXlSY1lWUDZ2WFhoOXRz?=
- =?utf-8?B?ZzgwdlNJb2R5M0dCSWZ6ekVMNkhOZ21LOUhHVlJheXpTYkhXYkpKQ1ZFdmFD?=
- =?utf-8?B?enc9PQ==?=
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <BA91D37CF197454E93646B4C106B9492@jpnprd01.prod.outlook.com>
-Content-Transfer-Encoding: base64
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D31AF2FB3
+	for <nvdimm@lists.linux.dev>; Tue, 21 Mar 2023 11:00:17 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fujitsu.com;
+	s=170520fj; t=1679396416; i=@fujitsu.com;
+	bh=9Q4eeFSM3h3UH6eFVO+VHu7SN3t55EOvO+MXrJMIkpY=;
+	h=Message-ID:Date:MIME-Version:Subject:From:To:CC:References:
+	 In-Reply-To:Content-Type:Content-Transfer-Encoding;
+	b=UMguMWEQcsy/gU+BcV2qqgTv6JqGEjLcSsLaPMGYln9uljBw8oSgeUoazkPj11zDm
+	 pde0jerQBEi51VLmaOO2bTwakjJMKzO1LIENvc5n28K6bVwS+k36si/yk2qEhL1eX7
+	 9HxJyTwai36PT0NUoGnT7MUPnt8eMqOIIRicBw0A/2+3pRHR+Dh3MKQyBuBHQKtSjh
+	 BZMiK0CXbIh/wovnRk1T6PELCEMR7DzZT62g4H9TdaWnNUqyY8kXuLADdFPKJXJX3I
+	 79mvNLaYPcRCFyfldzZevP6AN/q2pMCo8pvp9HTceDmYRAoW0o0WPe+Ot91IZHo6es
+	 8JrjkZe4u7W+A==
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFtrHKsWRWlGSWpSXmKPExsViZ8ORpGvRJ5l
+  iMO+TisWc9WvYLKZPvcBoseXYPUaLy0/4LE5PWMRksfv1TTaLPXtPsljcW/Of1WLXnx3sFit/
+  /GG1+P1jDpsDt8epRRIem1doeSze85LJY9OqTjaPTZ8msXucmPGbxePF5pmMHh+f3mLx+LxJL
+  oAzijUzLym/IoE14+n8dSwF91Ur1i4waWBsku9i5OIQEtjIKLGt6QgLhLOESWLtlUusXYycQM
+  42RolNv01AbF4BO4mWh+cZuxg5OFgEVCWmtfFBhAUlTs58wgJiiwokSxw738oGUiIs4CdxYY0
+  5SJhNQEfiwoK/YBNFBNQkJk3awQxiMwu0MEls6a6AWPuQUWLu2y6wBKeAvcT6C49ZIIosJBa/
+  OcgOYctLNG+dDVYjIaAkcfHrHVYIu0KicfohJghbTeLquU3MExiFZiE5bxaSUbOQjFrAyLyK0
+  aw4tagstUjX0FwvqSgzPaMkNzEzRy+xSjdRL7VUtzy1uETXUC+xvFgvtbhYr7gyNzknRS8vtW
+  QTIzAqU4qZy3cwbu/7q3eIUZKDSUmU95eJZIoQX1J+SmVGYnFGfFFpTmrxIUYZDg4lCd5T3UA
+  5waLU9NSKtMwcYIKASUtw8CiJ8C6qAErzFhck5hZnpkOkTjHqcqxtOLCXWYglLz8vVUqcN6oX
+  qEgApCijNA9uBCxZXWKUlRLmZWRgYBDiKUgtys0sQZV/xSjOwagkzLujA2gKT2ZeCdymV0BHM
+  AEdETdDAuSIkkSElFQDU5ttySvna9/PR2wpsJ8yf5Egz4OpkbILvSZqXOs41Hhr/4XeRfK3K3
+  3/3W032z83qHhxwlleNk2+3XLf7RO7A6b7LDjN5Jp++MYD1SNr//yx/NwsmVe29vLmvE6fU0/
+  mlnftKdC68mb6rrDHt74nJs9f+/LaxdRdVw1u5/zvlT4SMnWiVNI297r3bDtMyzc36Utv18uW
+  D9kSq7Ip1Zf5vJOs2peyOSE9W3Q/p8emOfCnHlLZuNXrVNn7Kzu5NhfVVh9f8mnJGu4jWf/2N
+  V/Sm/Sh3pJBNL5gk7HO5MzO4zqx/1RPCDrny3CpTVyZ/6nOPSJtbW/pZdd423exi+s1M44/O8
+  dSkyf7ZQ//VIt+cyWW4oxEQy3mouJEANcsYpbRAwAA
+X-Env-Sender: ruansy.fnst@fujitsu.com
+X-Msg-Ref: server-21.tower-585.messagelabs.com!1679396408!13765!1
+X-Originating-IP: [62.60.8.98]
+X-SYMC-ESS-Client-Auth: outbound-route-from=pass
+X-StarScan-Received:
+X-StarScan-Version: 9.104.1; banners=-,-,-
+X-VirusChecked: Checked
+Received: (qmail 11941 invoked from network); 21 Mar 2023 11:00:08 -0000
+Received: from unknown (HELO n03ukasimr03.n03.fujitsu.local) (62.60.8.98)
+  by server-21.tower-585.messagelabs.com with ECDHE-RSA-AES256-GCM-SHA384 encrypted SMTP; 21 Mar 2023 11:00:08 -0000
+Received: from n03ukasimr03.n03.fujitsu.local (localhost [127.0.0.1])
+	by n03ukasimr03.n03.fujitsu.local (Postfix) with ESMTP id 1E7811B0;
+	Tue, 21 Mar 2023 11:00:08 +0000 (GMT)
+Received: from R01UKEXCASM121.r01.fujitsu.local (R01UKEXCASM121 [10.183.43.173])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by n03ukasimr03.n03.fujitsu.local (Postfix) with ESMTPS id 1295F1AF;
+	Tue, 21 Mar 2023 11:00:08 +0000 (GMT)
+Received: from [192.168.50.5] (10.167.234.230) by
+ R01UKEXCASM121.r01.fujitsu.local (10.183.43.173) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.42; Tue, 21 Mar 2023 11:00:03 +0000
+Message-ID: <b1d9fc03-1a71-a75f-f87b-5819991e4eb2@fujitsu.com>
+Date: Tue, 21 Mar 2023 18:59:56 +0800
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-Exchange-AntiSpam-ExternalHop-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-ExternalHop-MessageData-0:
-	ZLU6HfDjDB5IaGofbBYIA1gqU/xPpq1czv+018+Fg9lWtvLtLK0gYDYc9FjbNHxUGuNezBe/wWKr7Wf6QhqWIJ0gZtm7W97FCR4dms/0JHtJtqD3CsCCXKZH7l14xkqV/O8M2PS13XCYhQDnky+eX7l6zTyNHCNA2t8pJIHDr1lRT/bfTSKRQKYqYF2WJ/RxZtKhk8tZyeersTCOnTKh6T6HE2sfv6B7MocXwBqoFB8U11xS6H6dVB8DPkEKaLakaym50yMHQiyea7qPny52H6uHVzLZQDdIzfJhf8eiRoXkBhyoJs0ULK7wLH4uFD7jnesaVgSCc/f/9ZPb4LH8fkKBMmE6GBdtX9P1WWWiO4GBJYM1SZwywnXZ0OsI7yIz9a69Dnu9Ch91huzgwb220WGh0ytq1rhvXLN/floH+U605gPebR8yAgf8PG7FOL73sVmoCzOMX3rjJsl2C6jrlZhZV/rRsUSgZi6fFxUfxMMDEDVS7bjmAWlbH41EXwFgZf1urQJNk8Ym5F0c+pFGiCjls2mASp9AaCQhnaxUMY5Du87o4JViG0np2qf6RDA0fy0HMyZA7+kqYODlLRYFGJdT10hBrt2G4wA1zqwPmdsXVF+cqkD/4n7C+Xl+QHMSIww0R101zflBYPfk7D+Ss76toi1qUgTKoyl0FA9qLtooXaDOpSPqmfJi7n+iD4/WIGGdV8mA0Fbx2nGjEZP9NaCXlbaLKfCXPmzV86MZ09BuSXzBtJN5Qj6oJ+x6kXO5zQAOYrCzEyb3/Ipcl8Tz1M8HhM6YjnAHmXYy1w3VOi9zEgsA3NOESUiS6gVMRwhobtPslHFt3mWKJg5c5YSYGA==
-X-OriginatorOrg: fujitsu.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: OS3PR01MB10390.jpnprd01.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 605a4047-81c6-4524-fb04-08db29bb140c
-X-MS-Exchange-CrossTenant-originalarrivaltime: 21 Mar 2023 03:19:27.4606
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: a19f121d-81e1-4858-a9d8-736e267fd4c7
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: un2/57LaiZA/TKYyYc9+pYgNAgp7G1ZLVobtfWBBH3b7MUmcAu7ysplPnevFdDCrkh3rty9mC7KjRBd6gsYcrQ==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: OS3PR01MB9978
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
+ Thunderbird/102.7.1
+Subject: Re: [PATCH v10 3/3] mm, pmem, xfs: Introduce MF_MEM_REMOVE for unbind
+From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+To: Dave Chinner <david@fromorbit.com>
+CC: <linux-xfs@vger.kernel.org>, <nvdimm@lists.linux.dev>,
+	<linux-fsdevel@vger.kernel.org>, <linux-mm@kvack.org>, <djwong@kernel.org>,
+	<dan.j.williams@intel.com>, <hch@infradead.org>, <jane.chu@oracle.com>,
+	<akpm@linux-foundation.org>, <willy@infradead.org>
+References: <1676645312-13-1-git-send-email-ruansy.fnst@fujitsu.com>
+ <1676645312-13-4-git-send-email-ruansy.fnst@fujitsu.com>
+ <20230227000759.GZ360264@dread.disaster.area>
+ <56e0a5e8-74db-95eb-d6fb-5d4a3b5cb156@fujitsu.com>
+In-Reply-To: <56e0a5e8-74db-95eb-d6fb-5d4a3b5cb156@fujitsu.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.167.234.230]
+X-ClientProxiedBy: G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.80) To
+ R01UKEXCASM121.r01.fujitsu.local (10.183.43.173)
+X-Virus-Scanned: ClamAV using ClamSMTP
 
-DQoNCk9uIDIxLzAzLzIwMjMgMTA6MzgsIERhbiBXaWxsaWFtcyB3cm90ZToNCj4gbGl6aGlqaWFu
-QGZ1aml0c3UuY29tIHdyb3RlOg0KPiBbLi5dDQo+Pj4gTm93IEkgZG8gdGhpbmsgaXQgd291bGQg
-YmUgYSBnb29kIGlkZWEgdG8gZmFpbCBkZXZpY2VfYWRkKCkgaWYgdGhlIGJ1cw0KPj4+IGlzIG5v
-dCByZWdpc3RlcmVkLA0KPj4NCj4+IEJUVywgYmVsb3cgbGluZSAzNjk6IGRldmljZV9hZGQoKSBk
-aWRuJ3QgZmFpbCBpbiBwcmFjdGljYWwuDQo+Pg0KPiANCj4gSSB0aGluayB0aGF0J3Mgb2sgYmVj
-YXVzZSB0aGUgZGV2aWNlIGdldHMgYWRkZWQsIGJ1dCBuZXZlciBwcm9iZWQgZHVlIHRvDQo+IHRo
-aXMgcGFydCBvZiB0aGF0IGNvbW1pdCBJIHJlZmVyZW5jZWQ6DQoNClZlcnkgdGhhbmtzIGZvciB5
-b3VyIGV4cGxhbmF0aW9uLg0KDQo+IA0KPiBAQCAtNTAzLDIwICs1MTcsMjEgQEAgaW50IGJ1c19h
-ZGRfZGV2aWNlKHN0cnVjdCBkZXZpY2UgKmRldikNCj4gICAgKi8NCj4gICB2b2lkIGJ1c19wcm9i
-ZV9kZXZpY2Uoc3RydWN0IGRldmljZSAqZGV2KQ0KPiAgIHsNCj4gLSAgICAgICBzdHJ1Y3QgYnVz
-X3R5cGUgKmJ1cyA9IGRldi0+YnVzOw0KPiArICAgICAgIHN0cnVjdCBzdWJzeXNfcHJpdmF0ZSAq
-c3AgPSBidXNfdG9fc3Vic3lzKGRldi0+YnVzKTsNCj4gICAgICAgICAgc3RydWN0IHN1YnN5c19p
-bnRlcmZhY2UgKnNpZjsNCj4gICANCj4gLSAgICAgICBpZiAoIWJ1cykNCj4gKyAgICAgICBpZiAo
-IXNwKQ0KPiAgICAgICAgICAgICAgICAgIHJldHVybjsNCj4gICANCj4gDQo+IC4uLnNvIGl0IGRv
-ZXMgd2hhdCB5b3Ugd2FudCB3aGljaCBpcyBkaXNhYmxlIHRoZSBsaWJudmRpbW0gc3Vic3lzdGVt
-DQo+IGZyb20gYmluZGluZyB0byBhbnkgZGV2aWNlcyB3aXRob3V0IGNyYXNoaW5nLg0KDQpZZXMs
-IGl0J3MgZmluZSBlbm91Z2ggdG8gbWUuDQo=
+
+
+在 2023/2/27 18:06, Shiyang Ruan 写道:
+> 
+> 
+> 在 2023/2/27 8:07, Dave Chinner 写道:
+>> On Fri, Feb 17, 2023 at 02:48:32PM +0000, Shiyang Ruan wrote:
+>>> This patch is inspired by Dan's "mm, dax, pmem: Introduce
+>>> dev_pagemap_failure()"[1].  With the help of dax_holder and
+>>> ->notify_failure() mechanism, the pmem driver is able to ask filesystem
+>>> (or mapped device) on it to unmap all files in use and notify processes
+>>> who are using those files.
+>>>
+>>> Call trace:
+>>> trigger unbind
+>>>   -> unbind_store()
+>>>    -> ... (skip)
+>>>     -> devres_release_all()   # was pmem driver ->remove() in v1
+>>>      -> kill_dax()
+>>>       -> dax_holder_notify_failure(dax_dev, 0, U64_MAX, 
+>>> MF_MEM_PRE_REMOVE)
+>>>        -> xfs_dax_notify_failure()
+>>>
+>>> Introduce MF_MEM_PRE_REMOVE to let filesystem know this is a remove
+>>> event.  So do not shutdown filesystem directly if something not
+>>> supported, or if failure range includes metadata area.  Make sure all
+>>> files and processes are handled correctly.
+>>>
+>>> [1]: 
+>>> https://lore.kernel.org/linux-mm/161604050314.1463742.14151665140035795571.stgit@dwillia2-desk3.amr.corp.intel.com/
+>>>
+>>> Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+>>
+>> .....
+>>
+>>> ---
+>>> @@ -225,6 +242,15 @@ xfs_dax_notify_failure(
+>>>       if (offset + len - 1 > ddev_end)
+>>>           len = ddev_end - offset + 1;
+>>> +    if (mf_flags & MF_MEM_PRE_REMOVE) {
+>>> +        xfs_info(mp, "device is about to be removed!");
+>>> +        error = freeze_super(mp->m_super);
+>>> +        if (error)
+>>> +            return error;
+>>> +        /* invalidate_inode_pages2() invalidates dax mapping */
+>>> +        super_drop_pagecache(mp->m_super, invalidate_inode_pages2);
+>>> +    }
+>>
+>> Why do you still need to drop the pagecache here? My suggestion was
+>> to replace it with freezing the filesystem at this point is to stop
+>> it being dirtied further before the device remove actually occurs.
+>> The userspace processes will be killed, their DAX mappings reclaimed
+>> and the filesystem shut down before device removal occurs, so
+>> super_drop_pagecache() is largely superfluous as it doesn't actually
+>> provide any protection against racing with new mappings or dirtying
+>> of existing/newly created mappings.
+>>
+>> Freezing doesn't stop the creation of new mappings, either, it just
+>> cleans all the dirty mappings and halts anything that is trying to
+> 
+> This is the point I wasn't aware of.
+> 
+>> dirty existing clean mappings. It's not until we kill the userspace
+>> processes that new mappings will be stopped, and it's not until we
+>> shut the filesystem down that the filesystem itself will stop
+>> accessing the storage.
+>>
+>> Hence I don't see why you retained super_drop_pagecache() here at
+>> all. Can you explain why it is still needed?
+> 
+> 
+> So I was just afraid that it's not enough for rmap & processes killer to 
+> invalidate the dax mappings.  If something error happened during the 
+> rmap walker, the fs will shutdown and there is no chance to invalidate 
+> the rest mappings whose user didn't be killed yet.
+> 
+> Now that freezing the fs is enough, I will remove the drop cache code.
+
+I removed the drop cache code, then kernel always went into crash when 
+running the test[1].  After the investigation, I found that the crash is 
+cause by accessing (invalidate dax pages when umounting fs) the page of 
+a pmem while the pmem has been removed.
+
+According to the design, the dax page should have been invalidated by 
+mf_dax_kill_procs() but it didn't.  I found two reasons:
+  1. collect_procs_fsdax() only kills the current process
+  2. unmap_mapping_range() doesn't invalidate the dax pages 
+(disassociate dax entry in fs/dax.c), which causes the crash in my test
+
+So, I think we should:
+  1. pass the mf_flag to collect_procs_fsdax() to let it collect all 
+processes associated with the file on the XFS.
+  2. drop cache is still needed, but just drop the associated files' 
+cache after mf_dax_kill_procs(), instead of dropping cache of the whole 
+filesystem.
+
+Then the logic shuld be looked like this:
+unbind
+  `-> dax_holder_notify_failure(dax_dev, 0, U64_MAX, MF_MEM_PRE_REMOVE)
+    `-> xfs_dax_notify_failure()
+      `-> freeze_super()
+      `-> do xfs rmap
+        `-> mf_dax_kill_procs()
+          `-> collect_procs_fsdax()   // all associated
+          `-> unmap_and_kill()
+        `-> invalidate_inode_pages2() // drop file's cache
+      `-> thaw_super()
+
+
+[1] The step of unbind test:
+  1. create fsdax namespace on a pmem
+  2. mkfs.xfs on it
+  3. run fsx test in background
+  4. wait 1s
+  5. echo "pfn0.1" > unbind
+  6. wait 1s
+  7. umount xfs       --> crash happened
+
+
+--
+Thanks,
+Ruan.
+
+> 
+> 
+> -- 
+> Thanks,
+> Ruan.
+> 
+>>
+>> -Dave.
