@@ -1,13 +1,58 @@
-Received: from mailsrv.cs.umass.edu (mailsrv.cs.umass.edu [128.119.240.136])
+Received: from mail1.bemta32.messagelabs.com (mail1.bemta32.messagelabs.com [195.245.230.65])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72D0817CE
-	for <nvdimm@lists.linux.dev>; Thu, 23 Mar 2023 03:20:15 +0000 (UTC)
-Received: from [192.168.50.148] (c-24-62-201-179.hsd1.ma.comcast.net [24.62.201.179])
-	by mailsrv.cs.umass.edu (Postfix) with ESMTPSA id F28234029631;
-	Wed, 22 Mar 2023 23:10:04 -0400 (EDT)
-Message-ID: <95253bde-dcdd-d454-fa72-75b341b40fe0@cs.umass.edu>
-Date: Wed, 22 Mar 2023 23:10:03 -0400
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB23423C3
+	for <nvdimm@lists.linux.dev>; Thu, 23 Mar 2023 06:48:38 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fujitsu.com;
+	s=170520fj; t=1679554117; i=@fujitsu.com;
+	bh=4Ji5iOeGj1sImY9DQL0Wwp9iTAdvBigTe0fFfY/aGx8=;
+	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
+	 In-Reply-To:Content-Type:Content-Transfer-Encoding;
+	b=YcgTSHTk42dMzZ9sQvULjC+NjFlFrvbf8wMy40oAsa3F35TMGRsl89dBvJTQGHFR8
+	 lhx94mZ+uf3rE3QrU68VjMp7CDKkrvvIfJipJWSzHE6GLVNBY97rnfm725OAdCWZxg
+	 niymDcWAW63EvTo/ngB6x9nFRej7rVlOSOJMWn8RMvOOHKaoOC9kvEOri+Cz+11i2n
+	 G/ayR3uVTqP4YDbuwKmMx8JPFCZccOu/gOovEXqkcNQ5FvBqSgPeoCH2Zwc5vqll2r
+	 WIYKerYfpQWEFdo73Fl8Veq0W0EGsqXc4nLonrZf6wvqybGEFfoVoBz9C3AcKoXzl0
+	 /StbxXTbW4mMg==
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFupjleJIrShJLcpLzFFi42Kxs+GYpOv8TTr
+  FoG+CvsWc9WvYLKZPvcBoMXt6M5PFnr0nWSxW/vjDavH7xxw2BzaPzSu0PBbvecnkcWLGbxaP
+  F5tnMnqcWXCE3ePzJrkAtijWzLyk/IoE1oxF3/awFjxlreja0MnewPiLpYuRi0NIYAujREPvF
+  MYuRk4gZzmTxPN+WQh7G6PEhU/MIDavgJ1E04n3YDUsAqoSD9fdZIGIC0qcnPkEzBYVSJY4dr
+  6VDcQWFvCTWL2qhxXEFhHQlVj1fBczyDJmgUZGiYsz25ggNjczShw/sRRsKpuAjsSFBX/BOjg
+  FvCUmL1oNFmcWsJBY/OYgO4QtL9G8dTbYRRICShIXv95hhbArJBqnH2KCsNUkrp7bxDyBUWgW
+  kgNnIRk1C8moBYzMqxhNi1OLylKLdE31kooy0zNKchMzc/QSq3QT9VJLdctTi0t0DfUSy4v1U
+  ouL9Yorc5NzUvTyUks2MQKjKaWYxWwHY3vfX71DjJIcTEqivBKh0ilCfEn5KZUZicUZ8UWlOa
+  nFhxhlODiUJHj5vgLlBItS01Mr0jJzgJENk5bg4FES4W1/CZTmLS5IzC3OTIdInWJUlBLnff0
+  FKCEAksgozYNrgyWTS4yyUsK8jAwMDEI8BalFuZklqPKvGMU5GJWEeQ1AtvNk5pXATX8FtJgJ
+  aHHcDAmQxSWJCCmpBqbt75LvrVbetEv7t+Yft3IOc4a+tJ2K6nvLU+/J80sdXaexY9WvGrEDE
+  Sl/1C9YZ79JT78bc+raYe5bWZ9PKv8xCF1V4jRFfYPBFP3efXZvNptwcYhdyNx0MnzKsqQGh8
+  22Z+ZtEFlz/vfM22IhQlPTyvX3ZP4JM9HYJPhCuPWJx9UVcycVdM94pxb1bfX6h+oVD+LrebR
+  c1214prm/q+TNC+Ub++yLPNdHrbojV6ZbI1m+1StD1C6YL0XoK9faMJdLvhq/d/ps2xJm4Ppr
+  5+bzel+z9vkdWWHSYucxe5LIueeObmz22wsOLPvsNOUtv8SO/6vMmy1ll4j8XuZe4nDGbZtvy
+  IWjL7fMVw9QWmSnxFKckWioxVxUnAgAjlJR0aEDAAA=
+X-Env-Sender: ruansy.fnst@fujitsu.com
+X-Msg-Ref: server-8.tower-591.messagelabs.com!1679554115!176067!1
+X-Originating-IP: [62.60.8.146]
+X-SYMC-ESS-Client-Auth: outbound-route-from=pass
+X-StarScan-Received:
+X-StarScan-Version: 9.104.1; banners=-,-,-
+X-VirusChecked: Checked
+Received: (qmail 30912 invoked from network); 23 Mar 2023 06:48:35 -0000
+Received: from unknown (HELO n03ukasimr02.n03.fujitsu.local) (62.60.8.146)
+  by server-8.tower-591.messagelabs.com with ECDHE-RSA-AES256-GCM-SHA384 encrypted SMTP; 23 Mar 2023 06:48:35 -0000
+Received: from n03ukasimr02.n03.fujitsu.local (localhost [127.0.0.1])
+	by n03ukasimr02.n03.fujitsu.local (Postfix) with ESMTP id 5711010032D;
+	Thu, 23 Mar 2023 06:48:35 +0000 (GMT)
+Received: from R01UKEXCASM121.r01.fujitsu.local (R01UKEXCASM121 [10.183.43.173])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by n03ukasimr02.n03.fujitsu.local (Postfix) with ESMTPS id 5337E10032B;
+	Thu, 23 Mar 2023 06:48:35 +0000 (GMT)
+Received: from [192.168.50.5] (10.167.234.230) by
+ R01UKEXCASM121.r01.fujitsu.local (10.183.43.173) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.42; Thu, 23 Mar 2023 06:48:32 +0000
+Message-ID: <0d219eb0-0f58-e667-0d86-be158ea2030f@fujitsu.com>
+Date: Thu, 23 Mar 2023 14:48:25 +0800
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -15,89 +60,45 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
- Thunderbird/102.8.0
-Reply-To: moss@cs.umass.edu
-Subject: Re: Determining if optane memory is installed
-Content-Language: en-US
-To: Dan Williams <dan.j.williams@intel.com>, Ian Rogers <irogers@google.com>,
- nvdimm@lists.linux.dev
-Cc: linux-perf-users <linux-perf-users@vger.kernel.org>,
- "Taylor, Perry" <perry.taylor@intel.com>,
- "Biggers, Caleb" <caleb.biggers@intel.com>,
- "Alt, Samantha" <samantha.alt@intel.com>,
- "Liang, Kan" <kan.liang@linux.intel.com>
-References: <CAP-5=fV_A0A8-BnfaWFoXX2a284UDp8JHvaBLC_FXPzW5GT+=Q@mail.gmail.com>
- <641bbe1eced26_1b98bb29440@dwillia2-xfh.jf.intel.com.notmuch>
-From: Eliot Moss <moss@cs.umass.edu>
-In-Reply-To: <641bbe1eced26_1b98bb29440@dwillia2-xfh.jf.intel.com.notmuch>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+ Thunderbird/102.7.1
+Subject: Re: [PATCH] fsdax: dedupe should compare the min of two iters' length
+To: Andrew Morton <akpm@linux-foundation.org>
+CC: <linux-fsdevel@vger.kernel.org>, <nvdimm@lists.linux.dev>,
+	<dan.j.williams@intel.com>, <willy@infradead.org>, <jack@suse.cz>
+References: <1679469958-2-1-git-send-email-ruansy.fnst@fujitsu.com>
+ <20230322161236.f90c21c8f668f551ee19d80b@linux-foundation.org>
+From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+In-Reply-To: <20230322161236.f90c21c8f668f551ee19d80b@linux-foundation.org>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.167.234.230]
+X-ClientProxiedBy: G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.80) To
+ R01UKEXCASM121.r01.fujitsu.local (10.183.43.173)
+X-Virus-Scanned: ClamAV using ClamSMTP
 
-On 3/22/2023 10:49 PM, Dan Williams wrote:
-> Ian Rogers wrote:
->> Hi nvdimm@,
->>
->> In the perf tool there are metrics for platforms like cascade lake
->> where we're collecting data for optane memory [1] but if optane memory
->> isn't installed then the counters will always read 0. Is there a
->> relatively simple way of determining if Optane memory is installed?
->> For example, the presence of a file in /sys/devices. I'd like to
->> integrate detection of this and make the perf metrics more efficient
->> for the case where Optane memory isn't installed.
-> 
-> In simple terms the presence of an ACPI NFIT table is probably enough to
-> tell you that the platform has persistent memory of some form:
-> 
->      test -e /sys/firmware/acpi/tables/NFIT
-> 
-> ...if you need precision to tell the difference between battery backed
-> NVDIMMs and Optane memory then you are looking for something like:
-> 
->      ndctl list -D
-> 
-> ...which gathers NVDIMM device data from sysfs and spits it out in json
-> of the form:
-> 
->      {
->        "dev":"nmem0",
->        "id":"cdab-0a-07e0-ffffffff",
->        "handle":0,
->        "phys_id":0,
->        "security:":"disabled"
->      }
-> 
-> ...where the id string follow the format defined here:
-> 
-> https://uefi.org/htmlspecs/ACPI_Spec_6_4_html/05_ACPI_Software_Programming_Model/ACPI_Software_Programming_Model.html#nvdimm-representation-format
-> 
-> ...and then you would need to know the id string of Optane devices vs
-> other NVDIMM vendors, which I think is overkill for what seems like a
-> simple case of hide counters that will never increment.
 
-Cool!  My older machine with first gen Optane DC shows:
 
-     "id":"8089-a2-1911-0000148d",
-     "id":"8089-a2-1911-00001546",
-     "id":"8089-a2-1911-0000173c",
-     "id":"8089-a2-1911-00001781",
-     "id":"8089-a2-1911-00001a7f",
-     "id":"8089-a2-1911-00001a8e",
-     "id":"8089-a2-1911-00001a9c",
-     "id":"8089-a2-1911-00001aba",
-     "id":"8089-a2-1911-00001b0a",
-     "id":"8089-a2-1911-00001b1f",
-     "id":"8089-a2-1911-00001b31",
-     "id":"8089-a2-1911-00001b33",
+在 2023/3/23 7:12, Andrew Morton 写道:
+> On Wed, 22 Mar 2023 07:25:58 +0000 Shiyang Ruan <ruansy.fnst@fujitsu.com> wrote:
+> 
+>> In an dedupe corporation iter loop, the length of iomap_iter decreases
+>> because it implies the remaining length after each iteration.  The
+>> compare function should use the min length of the current iters, not the
+>> total length.
+> 
+> Please describe the user-visible runtime effects of this flaw, thanks.
 
-My newer one with second gen shows:
+This patch fixes fail of generic/561, with test config:
 
-     "id":"8089-a2-2134-00000027",
-     "id":"8089-a2-2134-00000156",
-     "id":"8089-a2-2134-00000159",
-     "id":"8089-a2-2134-00000317",
-     "id":"8089-a2-2134-00000709",
-     "id":"8089-a2-2134-0000091e",
-     "id":"8089-a2-2134-00000935",
-     "id":"8089-a2-2134-00000981",
+export TEST_DEV=/dev/pmem0
+export TEST_DIR=/mnt/test
+export SCRATCH_DEV=/dev/pmem1
+export SCRATCH_MNT=/mnt/scratch
+export MKFS_OPTIONS="-m reflink=1,rmapbt=1"
+export MOUNT_OPTIONS="-o dax"
+export XFS_MOUNT_OPTIONS="-o dax"
 
-Enjoy!  Eliot Moss
+
+--
+Thanks,
+Ruan.
