@@ -1,224 +1,143 @@
-Received: from mail1.bemta37.messagelabs.com (mail1.bemta37.messagelabs.com [85.158.142.112])
+Received: from mail1.bemta32.messagelabs.com (mail1.bemta32.messagelabs.com [195.245.230.2])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 78AFF3C24
-	for <nvdimm@lists.linux.dev>; Fri, 24 Mar 2023 09:49:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85F4C443C
+	for <nvdimm@lists.linux.dev>; Fri, 24 Mar 2023 10:28:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fujitsu.com;
-	s=170520fj; t=1679651356; i=@fujitsu.com;
-	bh=Pxpk4CSw0qrpM2DP+X1AdjLT3KYQnQt8U9Qz9IB7N+U=;
-	h=Message-ID:Date:MIME-Version:Subject:From:To:CC:References:
-	 In-Reply-To:Content-Type:Content-Transfer-Encoding;
-	b=wRrqAhZq/4Yj0ectfoivQwTsfOHqmkGelD0V0/AEQsPj2mQG3F9NQU0bywwt0o9ke
-	 7VnnPZidpLCt7SD1nH1igc6gQOgUTXMJJ6lJAjkLESlGNaO3mt+OrWHl9hltO4Sdar
-	 obtO56zs2Mh1nRCPhCdwmNeWnUD7Ig/0zbIJQ4NUHp+xKkQWh6rxazFHNmKXQ8HKEm
-	 e+hH2CL35WMVPDHKvJIw7X2wmmqqu3nSizqv8B+dridieTEAQJWhPR3rxWfQoIwSg8
-	 D2S90Jw+cjl2qCzW1u3Vr2ShZTdcZriLymdYCqUt0rmOv3upXF5Kmkrl52d+PcjppL
-	 SkPKIlIYW84qA==
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFjrEKsWRWlGSWpSXmKPExsViZ8ORpCtdJJt
-  isGOhnMWc9WvYLKZPvcBoseXYPUaLy0/4LE5PWMRksfv1TTaLPXtPsljcW/Of1WLXnx3sFit/
-  /GG1+P1jDpsDt8epRRIem1doeSze85LJY9OqTjaPTZ8msXucmPGbxePF5pmMHh+f3mLx+LxJL
-  oAzijUzLym/IoE1Y9akBvaCHo2Kps8XGBsYdyh2MXJxCAlsZJTY//wBG4SzhEliSUMDE4SzjV
-  Fiw+Ib7F2MnBy8AnYSWzbNZAaxWQRUJV4tmMwGEReUODnzCQuILSqQLHHsfCtQnINDWMBP4sI
-  ac5Awm4COxIUFf1lBbBEBNYlJk3aAjWEWaGGS2NJdAbFrKpPEuWVNTCAJTgF7iUXd96CKLCQW
-  vznIDmHLSzRvnQ0WlxBQkrj49Q4rhF0h0Tj9EBOErSZx9dwm5gmMQrOQnDcLyahZSEYtYGRex
-  WhenFpUllqka2iil1SUmZ5RkpuYmaOXWKWbqJdaqpuXX1SSoWuol1herJdaXKxXXJmbnJOil5
-  dasokRGJ0pxYnHdzC+6vurd4hRkoNJSZRXIlQ6RYgvKT+lMiOxOCO+qDQntfgQowwHh5IEr1a
-  BbIqQYFFqempFWmYOMFHApCU4eJREeNdnAaV5iwsSc4sz0yFSpxh1OdY2HNjLLMSSl5+XKiXO
-  G1EIVCQAUpRRmgc3Apa0LjHKSgnzMjIwMAjxFKQW5WaWoMq/YhTnYFQS5tXMBZrCk5lXArfpF
-  dARTEBHONfIgBxRkoiQkmpgKuc4EBDT9bzHvyPzY5QHy6nk5zEJD1zUBU+mXzjQsENW90dkT2
-  5wyewnbBvW/GoMFxU5q5wf5R91Os7k9OOHH953X79v/9h85VSL6TOv3Pli4cz0sXrSpVNOzZo
-  /Ej7GTdfvXch1+WHWO3XDIC/T7/f37dlbrzM7fNLKKz/609OkmxatlfJ1KAj0PLtu78eLj64a
-  H7fePqutn3/bNimried1PI5U7rFOKIuQOCX18YJlekPk9eLGuYynX4Zl/zf/H/jze+ZlZi19v
-  14bZbVTz87O9+rPzPzBLF6dUN9tfLSwyO/SXv7klaprDY6+ETHs0qzNNJp9hdHSxYljS92eN1
-  O9ZlgfF45vO/lgY0WCEktxRqKhFnNRcSIA4qC5ctUDAAA=
+	s=170520fj; t=1679653710; i=@fujitsu.com;
+	bh=Q/bH+Td5mtaZDBbP5aHrv4xc85YaJ+KduTCswEaO3j8=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type;
+	b=ELxEXRQvlz1/CLKFc/PsKCOEBPXW2CCA5z4zH+Qeyrd9+z71FvVSCdVzW0Ucl8qTh
+	 p15LvMTAizncXem2GG1QCZetltnX4f44SilPcHQnRb+3HYzzG1niRcXuD+HPamMhwF
+	 BvF4tElsaSlaZC24DAH0N7hWuMLZaA+kRAy0lt18RJSn3Z0wAciaWbdbyqIMi2/BCP
+	 /SM0MlFwPQJaQ+06oaVfX7CUJKfktgMh1XUcwSMsoUEBiirgAE2wRcNeVB8CYucGWu
+	 6r+ULLas4Lp4JI7rPpmszOo1elJvIqP41KsqB9nFT2IVKAkxIcP/9TSc1CJZgDm7hO
+	 hv03LK4E9/Kzw==
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFnrLIsWRWlGSWpSXmKPExsViZ8OxWde3Wjb
+  FYP87VYs569ewWUyfeoHR4vITPovZ05uZLPbsPclisevPDnaLlT/+sFr8/jGHzYHDY/MKLY/F
+  e14yeWxa1cnmcWLGbxaPF5tnMnqcWXCE3ePzJrkA9ijWzLyk/IoE1oy/V58xF/QKVEzf+Iaxg
+  XEFbxcjF4eQwEZGifdNB9ggnMVMEifm3mOHcI4xSvybtp+pi5GTg01AR+LCgr+sILaIQLTE/D
+  l/mUFsZoEKicZF/8BsYQFTiSlLZoPVswioSmw6Np0NxOYVcJb48WUuO4gtIaAgMeXhe2aIuKD
+  EyZlPWCDmSEgcfPGCGaJGSeLi1zusEDbQ/OmHmCBsNYmr5zYxT2Dkn4WkfRaS9gWMTKsYzYpT
+  i8pSi3QNjfSSijLTM0pyEzNz9BKrdBP1Ukt1y1OLS3QN9RLLi/VSi4v1iitzk3NS9PJSSzYxA
+  mMhpZj5xQ7GH31/9Q4xSnIwKYnySoRKpwjxJeWnVGYkFmfEF5XmpBYfYpTh4FCS4GWqkE0REi
+  xKTU+tSMvMAcYlTFqCg0dJhLe6ECjNW1yQmFucmQ6ROsWoKCXOe7YSKCEAksgozYNrg6WCS4y
+  yUsK8jAwMDEI8BalFuZklqPKvGMU5GJWEeW+UA03hycwrgZv+CmgxE9Bi5xoZkMUliQgpqQam
+  Gua2nH1hCucLNrx7tUcs+nzMLc8P8ZFbHr5KmDyPd+W20H/20h1rvJ1WbD77nc8zwGRnjyhbI
+  Kez3Uy9sIoZZ+6HShWeWbD42J6H/zhzZ/5xZlmjVMG6xSbk18msLTfu3LBNmxszy5NZvT5bYK
+  305LPawcpaOkXV7yap+bz6eOuEbt65l1F6ly/tvH7lo5lPPIvhF0fhysOiE5s6799JKNpQaWu
+  d9q7sS8pWq9lyYfoZ62Y6Tvz/YP/zR4+uzvl9Z9I/gU1NaUFKARON2+WLD6j9mHfT+l7VPC8r
+  ya6bgosvTr055dQ+tnRNP3Hmcxd3n567zsfjTNqrL8Wci3OSIyyZjIybN1g842FcHpW+S4mlO
+  CPRUIu5qDgRAPRRKAeAAwAA
 X-Env-Sender: ruansy.fnst@fujitsu.com
-X-Msg-Ref: server-2.tower-732.messagelabs.com!1679651354!283082!1
-X-Originating-IP: [62.60.8.98]
+X-Msg-Ref: server-20.tower-591.messagelabs.com!1679653709!709252!1
+X-Originating-IP: [62.60.8.179]
 X-SYMC-ESS-Client-Auth: outbound-route-from=pass
 X-StarScan-Received:
 X-StarScan-Version: 9.104.1; banners=-,-,-
 X-VirusChecked: Checked
-Received: (qmail 27032 invoked from network); 24 Mar 2023 09:49:15 -0000
-Received: from unknown (HELO n03ukasimr03.n03.fujitsu.local) (62.60.8.98)
-  by server-2.tower-732.messagelabs.com with ECDHE-RSA-AES256-GCM-SHA384 encrypted SMTP; 24 Mar 2023 09:49:15 -0000
-Received: from n03ukasimr03.n03.fujitsu.local (localhost [127.0.0.1])
-	by n03ukasimr03.n03.fujitsu.local (Postfix) with ESMTP id C28BC1AF;
-	Fri, 24 Mar 2023 09:49:14 +0000 (GMT)
+Received: (qmail 5527 invoked from network); 24 Mar 2023 10:28:29 -0000
+Received: from unknown (HELO n03ukasimr04.n03.fujitsu.local) (62.60.8.179)
+  by server-20.tower-591.messagelabs.com with ECDHE-RSA-AES256-GCM-SHA384 encrypted SMTP; 24 Mar 2023 10:28:29 -0000
+Received: from n03ukasimr04.n03.fujitsu.local (localhost [127.0.0.1])
+	by n03ukasimr04.n03.fujitsu.local (Postfix) with ESMTP id 2F5B0150;
+	Fri, 24 Mar 2023 10:28:29 +0000 (GMT)
 Received: from R01UKEXCASM121.r01.fujitsu.local (R01UKEXCASM121 [10.183.43.173])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by n03ukasimr03.n03.fujitsu.local (Postfix) with ESMTPS id B61461AE;
-	Fri, 24 Mar 2023 09:49:14 +0000 (GMT)
-Received: from [192.168.50.5] (10.167.234.230) by
+	by n03ukasimr04.n03.fujitsu.local (Postfix) with ESMTPS id 2296C73;
+	Fri, 24 Mar 2023 10:28:29 +0000 (GMT)
+Received: from d6710f1449dd.g08.fujitsu.local (10.167.234.230) by
  R01UKEXCASM121.r01.fujitsu.local (10.183.43.173) with Microsoft SMTP Server
- (TLS) id 15.0.1497.42; Fri, 24 Mar 2023 09:49:10 +0000
-Message-ID: <7ba8c1f6-b9fe-714a-cd40-2b9e17ea61e7@fujitsu.com>
-Date: Fri, 24 Mar 2023 17:49:04 +0800
+ (TLS) id 15.0.1497.42; Fri, 24 Mar 2023 10:28:25 +0000
+From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+To: <linux-fsdevel@vger.kernel.org>, <nvdimm@lists.linux.dev>,
+	<linux-xfs@vger.kernel.org>
+CC: <dan.j.williams@intel.com>, <willy@infradead.org>, <jack@suse.cz>,
+	<akpm@linux-foundation.org>, <djwong@kernel.org>
+Subject: [PATCH] fsdax: force clear dirty mark if CoW
+Date: Fri, 24 Mar 2023 10:28:00 +0000
+Message-ID: <1679653680-2-1-git-send-email-ruansy.fnst@fujitsu.com>
+X-Mailer: git-send-email 1.8.3.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
- Thunderbird/102.7.1
-Subject: Re: [PATCH v10 3/3] mm, pmem, xfs: Introduce MF_MEM_REMOVE for unbind
-From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-To: Dave Chinner <david@fromorbit.com>
-CC: <linux-xfs@vger.kernel.org>, <nvdimm@lists.linux.dev>,
-	<linux-fsdevel@vger.kernel.org>, <linux-mm@kvack.org>, <djwong@kernel.org>,
-	<dan.j.williams@intel.com>, <hch@infradead.org>, <jane.chu@oracle.com>,
-	<akpm@linux-foundation.org>, <willy@infradead.org>
-References: <1676645312-13-1-git-send-email-ruansy.fnst@fujitsu.com>
- <1676645312-13-4-git-send-email-ruansy.fnst@fujitsu.com>
- <20230227000759.GZ360264@dread.disaster.area>
- <56e0a5e8-74db-95eb-d6fb-5d4a3b5cb156@fujitsu.com>
- <b1d9fc03-1a71-a75f-f87b-5819991e4eb2@fujitsu.com>
-In-Reply-To: <b1d9fc03-1a71-a75f-f87b-5819991e4eb2@fujitsu.com>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 X-Originating-IP: [10.167.234.230]
 X-ClientProxiedBy: G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.80) To
  R01UKEXCASM121.r01.fujitsu.local (10.183.43.173)
 X-Virus-Scanned: ClamAV using ClamSMTP
 
+XFS allows CoW on non-shared extents to combat fragmentation[1].  The
+old non-shared extent could be mwrited before, its dax entry is marked
+dirty.  To be able to delete this entry, clear its dirty mark before
+invalidate_inode_pages2_range().
 
+[1] https://lore.kernel.org/linux-xfs/20230321151339.GA11376@frogsfrogsfrogs/
 
-在 2023/3/21 18:59, Shiyang Ruan 写道:
-> 
-> 
-> 在 2023/2/27 18:06, Shiyang Ruan 写道:
->>
->>
->> 在 2023/2/27 8:07, Dave Chinner 写道:
->>> On Fri, Feb 17, 2023 at 02:48:32PM +0000, Shiyang Ruan wrote:
->>>> This patch is inspired by Dan's "mm, dax, pmem: Introduce
->>>> dev_pagemap_failure()"[1].  With the help of dax_holder and
->>>> ->notify_failure() mechanism, the pmem driver is able to ask filesystem
->>>> (or mapped device) on it to unmap all files in use and notify processes
->>>> who are using those files.
->>>>
->>>> Call trace:
->>>> trigger unbind
->>>>   -> unbind_store()
->>>>    -> ... (skip)
->>>>     -> devres_release_all()   # was pmem driver ->remove() in v1
->>>>      -> kill_dax()
->>>>       -> dax_holder_notify_failure(dax_dev, 0, U64_MAX, 
->>>> MF_MEM_PRE_REMOVE)
->>>>        -> xfs_dax_notify_failure()
->>>>
->>>> Introduce MF_MEM_PRE_REMOVE to let filesystem know this is a remove
->>>> event.  So do not shutdown filesystem directly if something not
->>>> supported, or if failure range includes metadata area.  Make sure all
->>>> files and processes are handled correctly.
->>>>
->>>> [1]: 
->>>> https://lore.kernel.org/linux-mm/161604050314.1463742.14151665140035795571.stgit@dwillia2-desk3.amr.corp.intel.com/
->>>>
->>>> Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
->>>
->>> .....
->>>
->>>> ---
->>>> @@ -225,6 +242,15 @@ xfs_dax_notify_failure(
->>>>       if (offset + len - 1 > ddev_end)
->>>>           len = ddev_end - offset + 1;
->>>> +    if (mf_flags & MF_MEM_PRE_REMOVE) {
->>>> +        xfs_info(mp, "device is about to be removed!");
->>>> +        error = freeze_super(mp->m_super);
->>>> +        if (error)
->>>> +            return error;
->>>> +        /* invalidate_inode_pages2() invalidates dax mapping */
->>>> +        super_drop_pagecache(mp->m_super, invalidate_inode_pages2);
->>>> +    }
->>>
->>> Why do you still need to drop the pagecache here? My suggestion was
->>> to replace it with freezing the filesystem at this point is to stop
->>> it being dirtied further before the device remove actually occurs.
->>> The userspace processes will be killed, their DAX mappings reclaimed
->>> and the filesystem shut down before device removal occurs, so
->>> super_drop_pagecache() is largely superfluous as it doesn't actually
->>> provide any protection against racing with new mappings or dirtying
->>> of existing/newly created mappings.
->>>
->>> Freezing doesn't stop the creation of new mappings, either, it just
->>> cleans all the dirty mappings and halts anything that is trying to
->>
->> This is the point I wasn't aware of.
->>
->>> dirty existing clean mappings. It's not until we kill the userspace
->>> processes that new mappings will be stopped, and it's not until we
->>> shut the filesystem down that the filesystem itself will stop
->>> accessing the storage.
->>>
->>> Hence I don't see why you retained super_drop_pagecache() here at
->>> all. Can you explain why it is still needed?
->>
->>
->> So I was just afraid that it's not enough for rmap & processes killer 
->> to invalidate the dax mappings.  If something error happened during 
->> the rmap walker, the fs will shutdown and there is no chance to 
->> invalidate the rest mappings whose user didn't be killed yet.
->>
->> Now that freezing the fs is enough, I will remove the drop cache code.
-> 
-> I removed the drop cache code, then kernel always went into crash when 
-> running the test[1].  After the investigation, I found that the crash is 
-> cause by accessing (invalidate dax pages when umounting fs) the page of 
-> a pmem while the pmem has been removed.
-> 
-> According to the design, the dax page should have been invalidated by 
-> mf_dax_kill_procs() but it didn't.  I found two reasons:
->   1. collect_procs_fsdax() only kills the current process
->   2. unmap_mapping_range() doesn't invalidate the dax pages 
-> (disassociate dax entry in fs/dax.c), which causes the crash in my test
-> 
-> So, I think we should:
->   1. pass the mf_flag to collect_procs_fsdax() to let it collect all 
-> processes associated with the file on the XFS.
->   2. drop cache is still needed, but just drop the associated files' 
-> cache after mf_dax_kill_procs(), instead of dropping cache of the whole 
-> filesystem.
-> 
-> Then the logic shuld be looked like this:
-> unbind
->   `-> dax_holder_notify_failure(dax_dev, 0, U64_MAX, MF_MEM_PRE_REMOVE)
->     `-> xfs_dax_notify_failure()
->       `-> freeze_super()
->       `-> do xfs rmap
->         `-> mf_dax_kill_procs()
->           `-> collect_procs_fsdax()   // all associated
->           `-> unmap_and_kill()
->         `-> invalidate_inode_pages2() // drop file's cache
->       `-> thaw_super()
-> 
-> 
-> [1] The step of unbind test:
->   1. create fsdax namespace on a pmem
->   2. mkfs.xfs on it
->   3. run fsx test in background
->   4. wait 1s
->   5. echo "pfn0.1" > unbind
->   6. wait 1s
->   7. umount xfs       --> crash happened
-> 
+Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+---
+ fs/dax.c | 37 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 37 insertions(+)
 
-Hi,
+diff --git a/fs/dax.c b/fs/dax.c
+index 5d2e9b10030e..2ababb89918d 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -781,6 +781,33 @@ static int __dax_invalidate_entry(struct address_space *mapping,
+ 	return ret;
+ }
+ 
++static int __dax_clear_dirty_range(struct address_space *mapping,
++		pgoff_t start, pgoff_t end)
++{
++	XA_STATE(xas, &mapping->i_pages, start);
++	unsigned int scanned = 0;
++	void *entry;
++
++	xas_lock_irq(&xas);
++	xas_for_each(&xas, entry, end) {
++		entry = get_unlocked_entry(&xas, 0);
++		xas_clear_mark(&xas, PAGECACHE_TAG_DIRTY);
++		xas_clear_mark(&xas, PAGECACHE_TAG_TOWRITE);
++		put_unlocked_entry(&xas, entry, WAKE_NEXT);
++
++		if (++scanned % XA_CHECK_SCHED)
++			continue;
++
++		xas_pause(&xas);
++		xas_unlock_irq(&xas);
++		cond_resched();
++		xas_lock_irq(&xas);
++	}
++	xas_unlock_irq(&xas);
++
++	return 0;
++}
++
+ /*
+  * Delete DAX entry at @index from @mapping.  Wait for it
+  * to be unlocked before deleting it.
+@@ -1440,6 +1467,16 @@ static loff_t dax_iomap_iter(const struct iomap_iter *iomi,
+ 	 * written by write(2) is visible in mmap.
+ 	 */
+ 	if (iomap->flags & IOMAP_F_NEW || cow) {
++		/*
++		 * Filesystem allows CoW on non-shared extents. The src extents
++		 * may have been mmapped with dirty mark before. To be able to
++		 * invalidate its dax entries, we need to clear the dirty mark
++		 * in advance.
++		 */
++		if (cow)
++			__dax_clear_dirty_range(iomi->inode->i_mapping,
++						pos >> PAGE_SHIFT,
++						(end - 1) >> PAGE_SHIFT);
+ 		invalidate_inode_pages2_range(iomi->inode->i_mapping,
+ 					      pos >> PAGE_SHIFT,
+ 					      (end - 1) >> PAGE_SHIFT);
+-- 
+2.39.2
 
-Any comments?
-
-
-> 
-> -- 
-> Thanks,
-> Ruan.
-> 
->>
->>
->> -- 
->> Thanks,
->> Ruan.
->>
->>>
->>> -Dave.
