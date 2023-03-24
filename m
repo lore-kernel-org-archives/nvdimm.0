@@ -1,119 +1,78 @@
-Received: from mail1.bemta37.messagelabs.com (mail1.bemta37.messagelabs.com [85.158.142.112])
+Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BC7917C9
-	for <nvdimm@lists.linux.dev>; Fri, 24 Mar 2023 01:51:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fujitsu.com;
-	s=170520fj; t=1679622672; i=@fujitsu.com;
-	bh=YXDfWY42T6qJONVQUy0U7qSy0bQjE512aKax5Mg1h+g=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type:Content-Transfer-Encoding;
-	b=YMGbvUatmXw2F9DWAw+vI/DNEObTeDkrlZ/B5iF7UWOUjmKZOhDwMd9JtgXUHXSjY
-	 c9QDCJs6vai5ZYrpMDSu7+T0UitzRLgcD6O1AcpOaFB8HUA/P038KcA9wPhvxCFw0b
-	 3yT6hsOLy66T8gVueejSfOfK8asZcbanugen5DYF6k4dgBwXwF4kBPkkTdJGg8juzk
-	 f05cbJNUKAtdOe4DeH2mJvQqEw4imivwdNqgOkeiJV6nM7hi2y6Plkg8WvWG7LtRZn
-	 RkZf2qzQmuyDrxA6oAj39YAFMDHO0+9g1m/DsGgTGyAqwVWfXaUQpGX6mgvTfwtewV
-	 BIgkRAx0m+Ebw==
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFprJKsWRWlGSWpSXmKPExsViZ8ORpMvJJJt
-  i0NMuYTFn/Ro2i+lTLzBaXH7CZzF7ejOTxZ69J1ksVv74w2rx+8ccNgd2j80rtDwW73nJ5LFp
-  VSebx4kZv1k8XmyeyehxZsERdo/Pm+QC2KNYM/OS8isSWDPm/t/OWvCZs6Ll6hy2BsZ+ji5GL
-  g4hgY2MEtd+XGSDcJYwSTxbsYgVwtnGKPF/0wOgDCcHr4CdRPfTZywgNouAqsTK1ZNYIeKCEi
-  dnPgGLiwokSxw73wpUz8EhLBAqcXSNI0hYREBXYtXzXcwgM5kFpjNKTGpqYYRY8J1RYsLxlWC
-  D2AR0JC4s+Atmcwp4S1zbdooZxGYWsJBY/OYgO4QtL9G8dTZYXEJASeLi1zusEHaFROP0Q0wQ
-  tprE1XObmCcwCs1Cct8sJKNmIRm1gJF5FaNZcWpRWWqRrqleUlFmekZJbmJmjl5ilW6iXmqpb
-  l5+UUmGrqFeYnmxXmpxsV5xZW5yTopeXmrJJkZgjKUUJzPsYOzs+6t3iFGSg0lJlFciVDpFiC
-  8pP6UyI7E4I76oNCe1+BCjDAeHkgSv63+ZFCHBotT01Iq0zBxgvMOkJTh4lER45/0DSvMWFyT
-  mFmemQ6ROMSpKifMaMMimCAmAJDJK8+DaYCnmEqOslDAvIwMDgxBPQWpRbmYJqvwrRnEORiVh
-  3jcg23ky80rgpr8CWswEtNi5BmxxSSJCSqqBScD2l8TrHsllQpN5sgLWbz39MG7Xyua48+oCB
-  +f8loqsurt63beF36ZN6Ixnd0jdf+rHlqVrOMv4p57KSb59pkOOVz02bkrSwecXm0xWWd9b9J
-  lLcs/5mw93FB+oFo/yP/XlWeGNM/373/+3ET9Y7W67rODTxV0ftY5+E02Rje1POlzJ/94sSGW
-  z2P6rbalXm4Ubk/xzphnuO7lwvY3TvLcOUTcDJ6yza7igd2bVZJZrMtIhTN49nOcyLDn3cjRL
-  r9ylqKOQxVagrrZs2Z8wt3k6sZkuP4/86f/t6hgnvOWtlsX2J+oL6u4/OHuscWHKwoda9i7Gy
-  pVMSyvvppkky37e+P/y7vD3U1O8/ZS/OiuxFGckGmoxFxUnAgAF+rL5rAMAAA==
-X-Env-Sender: ruansy.fnst@fujitsu.com
-X-Msg-Ref: server-4.tower-745.messagelabs.com!1679622664!650496!1
-X-Originating-IP: [62.60.8.98]
-X-SYMC-ESS-Client-Auth: outbound-route-from=pass
-X-StarScan-Received:
-X-StarScan-Version: 9.104.1; banners=-,-,-
-X-VirusChecked: Checked
-Received: (qmail 19407 invoked from network); 24 Mar 2023 01:51:05 -0000
-Received: from unknown (HELO n03ukasimr03.n03.fujitsu.local) (62.60.8.98)
-  by server-4.tower-745.messagelabs.com with ECDHE-RSA-AES256-GCM-SHA384 encrypted SMTP; 24 Mar 2023 01:51:05 -0000
-Received: from n03ukasimr03.n03.fujitsu.local (localhost [127.0.0.1])
-	by n03ukasimr03.n03.fujitsu.local (Postfix) with ESMTP id BB3E21B0;
-	Fri, 24 Mar 2023 01:51:04 +0000 (GMT)
-Received: from R01UKEXCASM121.r01.fujitsu.local (R01UKEXCASM121 [10.183.43.173])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by n03ukasimr03.n03.fujitsu.local (Postfix) with ESMTPS id AFBEF1AF;
-	Fri, 24 Mar 2023 01:51:04 +0000 (GMT)
-Received: from [192.168.50.5] (10.167.234.230) by
- R01UKEXCASM121.r01.fujitsu.local (10.183.43.173) with Microsoft SMTP Server
- (TLS) id 15.0.1497.42; Fri, 24 Mar 2023 01:51:01 +0000
-Message-ID: <a30006e8-2896-259e-293b-2a5d873d42aa@fujitsu.com>
-Date: Fri, 24 Mar 2023 09:50:54 +0800
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5490317DB
+	for <nvdimm@lists.linux.dev>; Fri, 24 Mar 2023 03:33:42 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Transfer-Encoding:
+	Content-Type:MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:
+	Sender:Reply-To:Content-ID:Content-Description;
+	bh=aoVoYqw2sGU3juxL566B/0c85hBiRXMIG7hy2YSbB4U=; b=nuK2qION5jOJWvYUcu10uoBodb
+	v3coHW5MrPt+9lwFPo5ZfB7nEy3VBesm9+OHkk2NVzNLHec/nO6NNuxA0sO03pjfOOX0LJIC8Jnh3
+	o+gIrYw8/ZZ2dj6aGVSybJ5tqfxOhExMXQGcdNtN9Qa1eKc7GycXuuNxoURhaI9PbUdB7ALjZgEkB
+	kl/F9SdflZYOfbvGvPwkPlbXpex2Eo55q6YgeSoAvMV7rLP5kk/3iQDqY7sLR00BIDC9i9Pl5/s07
+	ktdNbBaKu9Fb1VNHpNZomhEGmmvRDqM3+wkH+CK3MuPMrD/nUuUrq1upzkFNGw0Ak8Aq8YzFlL2Rk
+	S9r8AikA==;
+Received: from willy by casper.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
+	id 1pfYBD-004XIe-Fv; Fri, 24 Mar 2023 03:33:28 +0000
+Date: Fri, 24 Mar 2023 03:33:27 +0000
+From: Matthew Wilcox <willy@infradead.org>
+To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
+	dan.j.williams@intel.com, jack@suse.cz, djwong@kernel.org
+Subject: Re: [PATCH] fsdax: unshare: zero destination if srcmap is HOLE or
+ UNWRITTEN
+Message-ID: <ZB0aB7DzhzuyaM9Z@casper.infradead.org>
+References: <1679483469-2-1-git-send-email-ruansy.fnst@fujitsu.com>
+ <20230322160311.89efea3493db4c4ccad40a25@linux-foundation.org>
+ <a41f0ea1-c704-7a2e-db6d-93e8bd4fcdea@fujitsu.com>
+ <20230323151112.1cc3cf57b35f2dc704ff1af8@linux-foundation.org>
+ <a30006e8-2896-259e-293b-2a5d873d42aa@fujitsu.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
- Thunderbird/102.7.1
-Subject: Re: [PATCH] fsdax: unshare: zero destination if srcmap is HOLE or
- UNWRITTEN
-To: Andrew Morton <akpm@linux-foundation.org>
-CC: <linux-fsdevel@vger.kernel.org>, <nvdimm@lists.linux.dev>,
-	<dan.j.williams@intel.com>, <willy@infradead.org>, <jack@suse.cz>,
-	<djwong@kernel.org>
-References: <1679483469-2-1-git-send-email-ruansy.fnst@fujitsu.com>
- <20230322160311.89efea3493db4c4ccad40a25@linux-foundation.org>
- <a41f0ea1-c704-7a2e-db6d-93e8bd4fcdea@fujitsu.com>
- <20230323151112.1cc3cf57b35f2dc704ff1af8@linux-foundation.org>
-From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-In-Reply-To: <20230323151112.1cc3cf57b35f2dc704ff1af8@linux-foundation.org>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.167.234.230]
-X-ClientProxiedBy: G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.80) To
- R01UKEXCASM121.r01.fujitsu.local (10.183.43.173)
-X-Virus-Scanned: ClamAV using ClamSMTP
+In-Reply-To: <a30006e8-2896-259e-293b-2a5d873d42aa@fujitsu.com>
 
-
-
-在 2023/3/24 6:11, Andrew Morton 写道:
-> On Thu, 23 Mar 2023 14:50:38 +0800 Shiyang Ruan <ruansy.fnst@fujitsu.com> wrote:
+On Fri, Mar 24, 2023 at 09:50:54AM +0800, Shiyang Ruan wrote:
 > 
->>
->>
->> 在 2023/3/23 7:03, Andrew Morton 写道:
->>> On Wed, 22 Mar 2023 11:11:09 +0000 Shiyang Ruan <ruansy.fnst@fujitsu.com> wrote:
->>>
->>>> unshare copies data from source to destination. But if the source is
->>>> HOLE or UNWRITTEN extents, we should zero the destination, otherwise the
->>>> result will be unexpectable.
->>>
->>> Please provide much more detail on the user-visible effects of the bug.
->>> For example, are we leaking kernel memory contents to userspace?
->>
->> This fixes fail of generic/649.
 > 
-> OK, but this doesn't really help.  I'm trying to determine whether this
-> fix should be backported into -stable kernels and whether it should be
-> fast-tracked into Linus's current -rc tree.
+> 在 2023/3/24 6:11, Andrew Morton 写道:
+> > On Thu, 23 Mar 2023 14:50:38 +0800 Shiyang Ruan <ruansy.fnst@fujitsu.com> wrote:
+> > 
+> > > 
+> > > 
+> > > 在 2023/3/23 7:03, Andrew Morton 写道:
+> > > > On Wed, 22 Mar 2023 11:11:09 +0000 Shiyang Ruan <ruansy.fnst@fujitsu.com> wrote:
+> > > > 
+> > > > > unshare copies data from source to destination. But if the source is
+> > > > > HOLE or UNWRITTEN extents, we should zero the destination, otherwise the
+> > > > > result will be unexpectable.
+> > > > 
+> > > > Please provide much more detail on the user-visible effects of the bug.
+> > > > For example, are we leaking kernel memory contents to userspace?
+> > > 
+> > > This fixes fail of generic/649.
+> > 
+> > OK, but this doesn't really help.  I'm trying to determine whether this
+> > fix should be backported into -stable kernels and whether it should be
+> > fast-tracked into Linus's current -rc tree.
+> > 
+> > But to determine this I (and others) need to know what effect the bug
+> > has upon our users.
 > 
-> But to determine this I (and others) need to know what effect the bug
-> has upon our users.
+> I didn't get any bug report form users.  I just found this by running
+> xfstests.  The phenomenon of this problem is: if we funshare a reflinked
+> file which contains HOLE extents, the result of the HOLE extents should be
+> zero but actually not (unexpectable data).
 
-I didn't get any bug report form users.  I just found this by running 
-xfstests.  The phenomenon of this problem is: if we funshare a reflinked 
-file which contains HOLE extents, the result of the HOLE extents should 
-be zero but actually not (unexpectable data).
-
-The other patch also has no reports from users.
-
-
---
-Thanks,
-Ruan.
+You still aren't answering the question.  If this did happen to a user,
+what would they see in the file?  Random data?  Something somebody else
+wrote some time ago?  A copy of /etc/passwd, perhaps?  A copy of your
+credit card number?
