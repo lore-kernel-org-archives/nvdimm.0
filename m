@@ -1,31 +1,36 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25B188F71
-	for <nvdimm@lists.linux.dev>; Fri, 24 Mar 2023 20:34:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 986E1C433D2;
-	Fri, 24 Mar 2023 20:34:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFA7E8F71
+	for <nvdimm@lists.linux.dev>; Fri, 24 Mar 2023 20:44:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41AC3C433D2;
+	Fri, 24 Mar 2023 20:44:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1679690055;
-	bh=0XrfIjT1HzllGbUgpFppNSNIjorIYRmjLQ/b09+uonc=;
+	s=korg; t=1679690675;
+	bh=E+q9BVKMXnsSuuNWE3t11Nolq2S02u98RDYORR6z1P4=;
 	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=Eax47RYlRW8awJxRcfVbThj3YrvrJpWoIOPvs/SovFqsP4ofR97yB+UnemOVMLk5D
-	 i+FEE2sBpwJIkEIReTSySu27giahCZ66EEveHK7vU21V46eCbxZlm04qdEiIGoG4vh
-	 DzBH8t2P3Qf2wIqr+0qQkf9efus8xEipDOz9MoRs=
-Date: Fri, 24 Mar 2023 13:34:14 -0700
+	b=gK2r0F6hyL+xPnA7Ss+wNARgQvSmvU/T6PDg9lmynhkTQis67eFl1rjJPfm9I3am0
+	 WnaXp0n2aG7+0DrNAqrSk/Bo0XW79QN++4HmK6K4pbFCQq90TSbOl1elRfmnbC8BUp
+	 jrR9XJA8YXGV8MxcQ2OugFldPfQTOmru58wU9xjM=
+Date: Fri, 24 Mar 2023 13:44:34 -0700
 From: Andrew Morton <akpm@linux-foundation.org>
 To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Cc: <linux-fsdevel@vger.kernel.org>, <nvdimm@lists.linux.dev>,
- <dan.j.williams@intel.com>, <willy@infradead.org>, <jack@suse.cz>
-Subject: Re: [PATCH] fsdax: dedupe should compare the min of two iters'
- length
-Message-Id: <20230324133414.c0fa29239383e8f5930c3ceb@linux-foundation.org>
-In-Reply-To: <a34449ea-4571-2528-9047-f02079e47818@fujitsu.com>
-References: <1679469958-2-1-git-send-email-ruansy.fnst@fujitsu.com>
-	<20230322161236.f90c21c8f668f551ee19d80b@linux-foundation.org>
-	<0d219eb0-0f58-e667-0d86-be158ea2030f@fujitsu.com>
-	<20230323151201.98d54f8d85f83c636568eacc@linux-foundation.org>
-	<a34449ea-4571-2528-9047-f02079e47818@fujitsu.com>
+Cc: Matthew Wilcox <willy@infradead.org>, <linux-fsdevel@vger.kernel.org>,
+ <nvdimm@lists.linux.dev>, <dan.j.williams@intel.com>, <jack@suse.cz>,
+ <djwong@kernel.org>
+Subject: Re: [PATCH] fsdax: unshare: zero destination if srcmap is HOLE or
+ UNWRITTEN
+Message-Id: <20230324134434.9f005404a90cb44bdb9a8c49@linux-foundation.org>
+In-Reply-To: <cf8419ae-e1ce-ee8b-6346-3bcb49f59cc2@fujitsu.com>
+References: <1679483469-2-1-git-send-email-ruansy.fnst@fujitsu.com>
+	<20230322160311.89efea3493db4c4ccad40a25@linux-foundation.org>
+	<a41f0ea1-c704-7a2e-db6d-93e8bd4fcdea@fujitsu.com>
+	<20230323151112.1cc3cf57b35f2dc704ff1af8@linux-foundation.org>
+	<a30006e8-2896-259e-293b-2a5d873d42aa@fujitsu.com>
+	<ZB0aB7DzhzuyaM9Z@casper.infradead.org>
+	<4aee7cfd-09d6-43a1-3d8c-15fe5274446b@fujitsu.com>
+	<ZB0kRXVFXOJg0rQC@casper.infradead.org>
+	<cf8419ae-e1ce-ee8b-6346-3bcb49f59cc2@fujitsu.com>
 X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -36,14 +41,21 @@ Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 
-On Fri, 24 Mar 2023 12:19:46 +0800 Shiyang Ruan <ruansy.fnst@fujitsu.com> wrote:
+On Fri, 24 Mar 2023 12:28:07 +0800 Shiyang Ruan <ruansy.fnst@fujitsu.com> wrote:
 
-> > Again, how does the bug impact real-world kernel users?
+> > ie it's the data that was in whatever file happened to use that space
+> > last, so this is a security bug because it's a data leak, and a backport
+> > is needed, and you should have indicated that by putting a cc: stable
+> > tag on the patch?
 > 
-> The dedupe command will fail with -EIO if the range is larger than one 
-> page size and not aligned to the page size.  Also report warning in dmesg:
-> 
-> [ 4338.498374] ------------[ cut here ]------------
-> [ 4338.498689] WARNING: CPU: 3 PID: 1415645 at fs/iomap/iter.c:16 
+> Yes, cc stable is needed.  Then should I send a new patch with the tag 
+> added?
 
-OK, thanks.  I added the above to the changelog and added cc:stable.
+Thanks.  I updated the changelog and added cc:stable.
+
+: unshare copies data from source to destination.  But if the source is
+: HOLE or UNWRITTEN extents, we should zero the destination, otherwise
+: the HOLE or UNWRITTEN part will be user-visible old data of the new
+: allocated extent because it wasn't cleared.
+: 
+: Found by running generic/649 while mounting with -o dax=always on pmem.
