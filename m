@@ -1,141 +1,107 @@
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from mout.web.de (mout.web.de [217.72.192.78])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CC072918
-	for <nvdimm@lists.linux.dev>; Fri, 14 Apr 2023 15:22:38 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1681485758; x=1713021758;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:content-transfer-encoding:in-reply-to;
-  bh=B0jHdxZzYwrgZFCx/7w9FS8F32WExkZ7+uG6frX+Lvc=;
-  b=XVy80j2m1BwhFXcAU8pTTZY1UrWD1LJMOLFzmgmz+YBE8eOtoj1VHQRZ
-   zHIJ3i+fWqM1r9OSS4VMah7c3vLacilTsoUOntdTzPNc38fa1sUznHtRn
-   WWQBDljI9BzLlfOonCFKF3zudbkAuxbhHgnrYPvWsq5nVQsUetswnjKcR
-   P+/gi47w9W4Ew59FF/31Hsd+W5D9WCGy6q/pDg2Lribpna7e3e9t28B/y
-   f19UDBZwHWFn9Un+dTL8aBAo74IR1dya/oLZYIvuOMkodGcmMhueWj1KF
-   moGqsksQzEToSyPfLRJKvlCCHAQeQYJ2d/hirtED8TgzpdSMkaars8a4R
-   A==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10680"; a="324116535"
-X-IronPort-AV: E=Sophos;i="5.99,197,1677571200"; 
-   d="scan'208";a="324116535"
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Apr 2023 08:22:37 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10680"; a="667220419"
-X-IronPort-AV: E=Sophos;i="5.99,197,1677571200"; 
-   d="scan'208";a="667220419"
-Received: from aschofie-mobl2.amr.corp.intel.com (HELO aschofie-mobl2) ([10.212.243.67])
-  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Apr 2023 08:22:36 -0700
-Date: Fri, 14 Apr 2023 08:22:34 -0700
-From: Alison Schofield <alison.schofield@intel.com>
-To: Markus Elfring <Markus.Elfring@web.de>
-Cc: kernel-janitors@vger.kernel.org, nvdimm@lists.linux.dev,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
-	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
-	Vishal Verma <vishal.l.verma@intel.com>, cocci@inria.fr,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] nvdimm: Replace the usage of a variable by a direct
- function call in nd_pfn_validate()
-Message-ID: <ZDlvunCNe9yWykIE@aschofie-mobl2>
-References: <40c60719-4bfe-b1a4-ead7-724b84637f55@web.de>
- <1a11455f-ab57-dce0-1677-6beb8492a257@web.de>
- <d2403b7a-c6cd-4ee9-2a35-86ea57554eec@web.de>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D86C7C
+	for <nvdimm@lists.linux.dev>; Fri, 14 Apr 2023 16:51:47 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=web.de; s=s29768273;
+	t=1681491079; i=markus.elfring@web.de;
+	bh=7nD+hEQaPjnww32CWdc/UR1nStO0xW9DOusf4LVwQNQ=;
+	h=X-UI-Sender-Class:Date:Subject:To:Cc:References:From:In-Reply-To;
+	b=M6OsQoz23eBPz/1N7QpvDOsXXtowmrywPuLVamntpVSNVfxzcd8+Y9hpdZzoWD48T
+	 kjrqc8k+8LoPdexeRC915pgmgVQrXSloqKYkAL/WK1D2tk4mj9QXEiRr31WaQl+lkC
+	 LAJLjQwepL4oQMPlnzPq7QjtpkzTccsAGM+PMCq+DApVry0n+hOeDSONCy2sI1OO0C
+	 +ycSh1Bf5xs7HO/L8jA7vTWgf+p7xoZNHM48UQHFW3ibYmwd/UGOlLz89TspuuWRf6
+	 GoHVX1JrPr6HXw7DSv8rFAS2sGTy6aqp5cFXjocwRQ9Y5fxQq0VANRl2FD0gG4zGQy
+	 sWUSKHwavsQBw==
+X-UI-Sender-Class: 814a7b36-bfc1-4dae-8640-3722d8ec6cd6
+Received: from [192.168.178.21] ([94.31.85.83]) by smtp.web.de (mrweb106
+ [213.165.67.124]) with ESMTPSA (Nemesis) id 1M3m5B-1pndtE2Oyh-000c7R; Fri, 14
+ Apr 2023 18:51:19 +0200
+Message-ID: <88f4dd20-4159-2b66-3adc-9a5a68f9eec7@web.de>
+Date: Fri, 14 Apr 2023 18:50:59 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <d2403b7a-c6cd-4ee9-2a35-86ea57554eec@web.de>
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.10.0
+Subject: Re: [PATCH] nvdimm: Replace the usage of a variable by a direct
+ function call in nd_pfn_validate()
+To: Alison Schofield <alison.schofield@intel.com>,
+ kernel-janitors@vger.kernel.org, nvdimm@lists.linux.dev,
+ Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+ Dan Williams <dan.j.williams@intel.com>, Dave Jiang <dave.jiang@intel.com>,
+ Ira Weiny <ira.weiny@intel.com>,
+ Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+ Vishal Verma <vishal.l.verma@intel.com>
+Cc: cocci@inria.fr, LKML <linux-kernel@vger.kernel.org>
+References: <40c60719-4bfe-b1a4-ead7-724b84637f55@web.de>
+ <1a11455f-ab57-dce0-1677-6beb8492a257@web.de>
+ <d2403b7a-c6cd-4ee9-2a35-86ea57554eec@web.de>
+ <ZDlvunCNe9yWykIE@aschofie-mobl2>
+Content-Language: en-GB
+From: Markus Elfring <Markus.Elfring@web.de>
+In-Reply-To: <ZDlvunCNe9yWykIE@aschofie-mobl2>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+X-Provags-ID: V03:K1:Th2Vsng4IBnqMEGxDs5NLMWicod2yCw5AlSUK1+Qflo/78XeEFv
+ 7Psgibs+exN0g0PXs1R94UkZbO24fUu9ZoFj06lqWa6eEeAbqxyRg20tKPNrME6RVLl3pNr
+ iOgDclbyPinwzJOtXK5xjVegSIP10k/LOjrHbzF305U4y/dxNkupkFikGuIpjSnmHIRqBqK
+ I2IuvDFCGKFgrO9zZnemA==
+X-Spam-Flag: NO
+UI-OutboundReport: notjunk:1;M01:P0:M/nWoDIxv50=;0mCNXib4bKkw1/b34M049Hi5goY
+ KihL+6gd2Et/8D5yYeBqaPetLLxzfvh8rYXh3ddMmRdGRlAhijTAYaBZ7/5wlCy+Gu6lgjEgM
+ v3wQ+6Tsf89bHi3KigVp/GNJVYJzITFJa7ex++rDgvMRI4wTEmTv3cg9Sta7osGtrBvDCRzi7
+ dEDrmG4KVjKzrsD6jsJS3XfTKLyp26aCfAA+7Cj7iXvGwSDxOIV+y0lOs3KLgCZ5zwwARjf7y
+ InXwNPFEMxvLs4p3nk6MzKrZ5wKbm3v6a7FOx2Y38tVnhBB7119VWSPLHHgDdmIbMpgwkD6C/
+ clwLx09v0OxLqrZRUT0pMOXUw0rlhNdPdunsq5eBvG8H/TjEdNKEOh6Q5TBgkLWlOm6pQyx0o
+ mDT2J8z8Tzp9q9l2X+QAVkEn1e9WjOfmsZ6nP5sT4JWmeRBpg/gXu6V1XvJSnPN12JqZ0J/Zy
+ xQCmodR3oBgMy8q2Y+zqOru8GTQBeNWGuKcjgzqeG7jGIuRGGyCtR5eh8jILRTr6din4JUIrR
+ ssNFdBoPL4umqL2uN83ba7mqnV6DgoYQD13BP4XxDdFJ47ixdv/JaeqFLCbAt3UyJ35SPr2gU
+ BO7hZSFHGfHFKS9jYKD3YJT+av8T3nK5A1eOZo8VTZ5UDteNSIXLdA/l9Hl9Un/Uk3IIKQqcx
+ 2UsOxshok+SlTN20DKZt3bWFc9TYqgDXBEPD5TXMOBcoAVSZ+tgEJ1rZNVypvGOHFP1kd61eV
+ sE2y3xqmqG3EPNzjlx1u37u03HiE1q3QrW5EALi+MEiDaAUOJCES27Ck4KdT+CemXPvEhFcLy
+ FpMvEYVihEnPwM9wpjPuq7w5pdR+tGU/u1LNHz0YK8Ojk7Rf57Pl3itwYEJwkCm1CPbsFSOeE
+ PKpao394P/keV1kVc5cnp4/ShjmYkCqoHmjwV3Wz/ugZ3qfgZlmnnrUel
 
-On Fri, Apr 14, 2023 at 12:12:37PM +0200, Markus Elfring wrote:
-> Date: Fri, 14 Apr 2023 12:01:15 +0200
-> 
-> The address of a data structure member was determined before
-> a corresponding null pointer check in the implementation of
-> the function “nd_pfn_validate”.
-> 
-> Thus avoid the risk for undefined behaviour by replacing the usage of
-> the local variable “parent_uuid” by a direct function call within
-> a later condition check.
+>> The address of a data structure member was determined before
+>> a corresponding null pointer check in the implementation of
+>> the function =E2=80=9Cnd_pfn_validate=E2=80=9D.
+>>
+>> Thus avoid the risk for undefined behaviour by replacing the usage of
+>> the local variable =E2=80=9Cparent_uuid=E2=80=9D by a direct function c=
+all within
+>> a later condition check.
+>
+> Hi Markus,
+>
+> I think I understand what you are saying above, but I don't follow
+> how that applies here. This change seems to be a nice simplification,
+> parent_uuid, is used once, just grab it when needed.
 
-Hi Markus,
-
-I think I understand what you are saying above, but I don't follow
-how that applies here. This change seems to be a nice simplification,
-parent_uuid, is used once, just grab it when needed.
-
-What is the risk of undefined behavior?
-
-> 
-> This issue was detected by using the Coccinelle software.
-Which cocci script?
-
-> 
-> Fixes: d1c6e08e7503649e4a4f3f9e700e2c05300b6379 ("libnvdimm/labels: Add uuid helpers")
-
-This fixes tag seems to be the wrong tag. It is a tag from when the
-uuid helpers were introduce, not where parent_uuid was first introduced
-and used. I'm not clear this warrants a Fixes tag anyway. Is there
-really a bug here? Perhaps I'm missing something in the previous
-explanation of risk.
-
-checkpatch is WARNING on the tag format:
-WARNING: Please use correct Fixes: style 'Fixes: <12 chars of sha1> ("<title line>")' - ie: 'Fixes: d1c6e08e7503 ("libnvdimm/labels: Add uuid helpers")'
-#17:
-    Fixes: d1c6e08e7503649e4a4f3f9e700e2c05300b6379 ("libnvdimm/labels: Add uuid helpers")
-
-checkpatch is also WARNING on the commit msg:
-WARNING: Possible unwrapped commit description (prefer a maximum 75 chars per line)
-#5:
-    nvdimm: Replace the usage of a variable by a direct function call in nd_pfn_validate()
-
-Also, possible only my pet peeve, the long commit message spoils my
-pretty 80 column view. Please trim it to not wrap here:
-
-$git log --oneline pfn_devs.c
-52b639e56a46 nvdimm: Replace the usage of a variable by a direct function call in nd_pfn_validate()
-c91d71363084 nvdimm: Support sizeof(struct page) > MAX_STRUCT_PAGE_SIZE
-6e9f05dc66f9 libnvdimm/pfn_dev: increase MAX_STRUCT_PAGE_SIZE
-81beea55cb74 nvdimm: Drop nd_device_lock()
-4a0079bc7aae nvdimm: Replace lockdep_mutex with local lock classes
-322cbb50de71 block: remove genhd.h
-
-Alison
+Thanks for your positive feedback.
 
 
-> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-> ---
->  drivers/nvdimm/pfn_devs.c | 3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
-> 
-> diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
-> index af7d9301520c..f14cbfa500ed 100644
-> --- a/drivers/nvdimm/pfn_devs.c
-> +++ b/drivers/nvdimm/pfn_devs.c
-> @@ -456,7 +456,6 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
->  	unsigned long align, start_pad;
->  	struct nd_pfn_sb *pfn_sb = nd_pfn->pfn_sb;
->  	struct nd_namespace_common *ndns = nd_pfn->ndns;
-> -	const uuid_t *parent_uuid = nd_dev_to_uuid(&ndns->dev);
-> 
->  	if (!pfn_sb || !ndns)
->  		return -ENODEV;
-> @@ -476,7 +475,7 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
->  		return -ENODEV;
->  	pfn_sb->checksum = cpu_to_le64(checksum);
-> 
-> -	if (memcmp(pfn_sb->parent_uuid, parent_uuid, 16) != 0)
-> +	if (memcmp(pfn_sb->parent_uuid, nd_dev_to_uuid(&ndns->dev), 16) != 0)
->  		return -ENODEV;
-> 
->  	if (__le16_to_cpu(pfn_sb->version_minor) < 1) {
-> --
-> 2.40.0
-> 
+> What is the risk of undefined behavior?
+
+See also:
+https://wiki.sei.cmu.edu/confluence/display/c/EXP34-C.+Do+not+dereference+=
+null+pointers?focusedCommentId=3D405504137#comment-405504137
+
+
+>> This issue was detected by using the Coccinelle software.
+> Which cocci script?
+
+See also:
+Reconsidering pointer dereferences before null pointer checks (with SmPL)
+https://lore.kernel.org/cocci/1a11455f-ab57-dce0-1677-6beb8492a257@web.de/
+https://sympa.inria.fr/sympa/arc/cocci/2023-04/msg00021.html
+
+
+How do you think about to review and improve any similarly affected softwa=
+re components?
+
+Regards,
+Markus
