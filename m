@@ -1,35 +1,36 @@
 Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDBF7638
-	for <nvdimm@lists.linux.dev>; Sat, 22 Apr 2023 03:10:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71BC463E
+	for <nvdimm@lists.linux.dev>; Sat, 22 Apr 2023 03:10:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1682133005; x=1713669005;
+  t=1682133007; x=1713669007;
   h=from:date:subject:mime-version:content-transfer-encoding:
    message-id:references:in-reply-to:to:cc;
-  bh=vHqERkez6Tg5usfHgvgIchuLxIFTEu7KTMXlaAxFW+U=;
-  b=e2WXYbUdxD0eGVgpQ0NI3FtooSAiR4Ybw9Je3G8rPYhRlYAFR+y3rqPb
-   sDVL4M2iAbufLYO+md1xF3Byn87kfMHhUESqqLky6Xwqz5LahNpyySk2X
-   lXB5Bv3XGy3VAv16c8JcWDDzencMv8Z3orJSDMzWvVkOxZmSEXvACVD13
-   smUtBz7KehpyqMMz6qWL8JSe7+VZ9n53MnO0beFDVhRJ1COH6eRWeN4tO
-   GkQ9vvnAYDv0ypJA2HkOJgNvkrh8mPcUlKeFKfeZFTOCvHR4WUzXxLxO7
-   0XRD8z4wu+0GVeRRNxdv4IzbiLauICerhakJX/390NjLW4Ip70X3RoXGS
-   A==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10687"; a="343609100"
+  bh=zNG8XgHeVoCgrLpsepTOZ1HTcQzK8ar5KP4hS+0libI=;
+  b=bAIoImfTKtzzlUypzBqFgKxRM/aMzurF4ERKjsktKKAQJXLijpfKMHuv
+   b7v5QIF+VIskUKgbG3pFNaGNhOjIpBpuEQH0/XSxPcjx+uHv4M1M8kCu/
+   4TkeHgIk0xRZ6mabopARzjKNTHunsd08XQzJ9Ryp6Y/LdsDqS042HSPXN
+   QFzsMl13/AjfSTQX21sCQHe/iTD4bLp6uOzsMg7S9BHjj/ci8/G5drkD0
+   0V2fTDTQWb+Kxv3hKREbMqh5fkPti73GiFWaCEI1RtWv7sha7CVU/Q+2u
+   Z8goO8ldpnhnPOjW+ZnaQYas3SIPannwmGQUtLMFiQWTZxf8o/ZT6Qu1y
+   g==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10687"; a="343609101"
 X-IronPort-AV: E=Sophos;i="5.99,216,1677571200"; 
-   d="scan'208";a="343609100"
+   d="scan'208";a="343609101"
 Received: from fmsmga008.fm.intel.com ([10.253.24.58])
   by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Apr 2023 20:10:04 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10687"; a="757092365"
+X-IronPort-AV: E=McAfee;i="6600,9927,10687"; a="757092376"
 X-IronPort-AV: E=Sophos;i="5.99,216,1677571200"; 
-   d="scan'208";a="757092365"
+   d="scan'208";a="757092376"
 Received: from jwostman-mobl2.amr.corp.intel.com (HELO [192.168.1.200]) ([10.212.111.101])
   by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Apr 2023 20:10:04 -0700
 From: Vishal Verma <vishal.l.verma@intel.com>
-Date: Fri, 21 Apr 2023 21:10:00 -0600
-Subject: [PATCH ndctl 2/5] cxl/list: print firmware info in memdev listings
+Date: Fri, 21 Apr 2023 21:10:01 -0600
+Subject: [PATCH ndctl 3/5] cxl/fw_loader: add APIs to get current state of
+ the FW loader mechanism
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -38,7 +39,7 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20230405-vv-fw_update-v1-2-722a7a5baea3@intel.com>
+Message-Id: <20230405-vv-fw_update-v1-3-722a7a5baea3@intel.com>
 References: <20230405-vv-fw_update-v1-0-722a7a5baea3@intel.com>
 In-Reply-To: <20230405-vv-fw_update-v1-0-722a7a5baea3@intel.com>
 To: linux-cxl@vger.kernel.org
@@ -47,348 +48,283 @@ Cc: nvdimm@lists.linux.dev, Alison Schofield <alison.schofield@intel.com>,
  Dan Williams <dan.j.williams@intel.com>, 
  Vishal Verma <vishal.l.verma@intel.com>
 X-Mailer: b4 0.13-dev-2eb1a
-X-Developer-Signature: v=1; a=openpgp-sha256; l=9629;
+X-Developer-Signature: v=1; a=openpgp-sha256; l=8054;
  i=vishal.l.verma@intel.com; h=from:subject:message-id;
- bh=vHqERkez6Tg5usfHgvgIchuLxIFTEu7KTMXlaAxFW+U=;
- b=owGbwMvMwCXGf25diOft7jLG02pJDCnOAdxfL+X07ptgeJlx1lvPY9dWC7kYPKxZto5F17pU0
- zb0zd11HaUsDGJcDLJiiix/93xkPCa3PZ8nMMERZg4rE8gQBi5OAZjIMWdGhoubZvmeEMrMu3n4
- 9aavfROc2fepVOtIXOM73zP1wWon0yiGv/LHnDTEOZZ9UDrxtPpUrOgVyakb66Y9mHbLf9mrrzH
- 9X3gB
+ bh=zNG8XgHeVoCgrLpsepTOZ1HTcQzK8ar5KP4hS+0libI=;
+ b=owGbwMvMwCXGf25diOft7jLG02pJDCnOAdxluZffhdncuh2zQ75obkyxBvPBJW/vMqeuf+N6T
+ tE5gmt6RykLgxgXg6yYIsvfPR8Zj8ltz+cJTHCEmcPKBDKEgYtTACbyexsjw7XdYqVPmxPSJhqf
+ 3jLj0j+1v77XNvpWz3QMfVB0aulrbkdGhh8SF9c5pF7g+H1i+hyeWrWZh/bLfzkhOZfxS5XU7K2
+ be9gA
 X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp;
  fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
 
-Add libcxl APIs to send a 'Get Firmware Info' mailbox command, and
-accessors for its data fields. Add a json representation of this data,
-and add an option to cxl-list to display it under memdev listings.
+Add a way to interface with the firmware loader mechanism for cxl
+memdevs. Add APIs to retrieve the current status of the fw loader, and
+the remaining size if a fw upload is in progress. Display these in the
+'firmware' section of memdev listings.
 
 Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- cxl/lib/private.h  | 21 +++++++++++++
- cxl/lib/libcxl.c   | 90 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
- cxl/filter.h       |  3 ++
- cxl/libcxl.h       |  7 +++++
- cxl/json.c         | 84 ++++++++++++++++++++++++++++++++++++++++++++++++++
- cxl/list.c         |  3 ++
- cxl/lib/libcxl.sym |  6 ++++
- 7 files changed, 214 insertions(+)
+ cxl/lib/private.h  |  10 ++++++
+ cxl/lib/libcxl.c   | 100 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ cxl/libcxl.h       |  27 +++++++++++++++
+ cxl/json.c         |  13 +++++++
+ cxl/lib/libcxl.sym |   2 ++
+ 5 files changed, 152 insertions(+)
 
 diff --git a/cxl/lib/private.h b/cxl/lib/private.h
-index d648992..590d719 100644
+index 590d719..95e0c43 100644
 --- a/cxl/lib/private.h
 +++ b/cxl/lib/private.h
-@@ -9,6 +9,7 @@
- #include <ccan/endian/endian.h>
- #include <ccan/short_types/short_types.h>
- #include <util/size.h>
-+#include <util/bitmap.h>
+@@ -20,6 +20,15 @@ struct cxl_pmem {
+ 	char *dev_path;
+ };
  
- #define CXL_EXPORT __attribute__ ((visibility("default")))
++struct cxl_fw_loader {
++	char *dev_path;
++	char *loading;
++	char *data;
++	char *remaining;
++	char *cancel;
++	char *status;
++};
++
+ struct cxl_endpoint;
+ struct cxl_memdev {
+ 	int id, major, minor;
+@@ -39,6 +48,7 @@ struct cxl_memdev {
+ 	struct cxl_pmem *pmem;
+ 	unsigned long long serial;
+ 	struct cxl_endpoint *endpoint;
++	struct cxl_fw_loader *fwl;
+ };
  
-@@ -233,6 +234,26 @@ struct cxl_cmd_get_health_info {
- 	le32 pmem_errors;
- } __attribute__((packed));
- 
-+/* CXL 3.0 8.2.9.3.1 Get Firmware Info */
-+struct cxl_cmd_get_fw_info {
-+	u8 num_slots;
-+	u8 slot_info;
-+	u8 activation_cap;
-+	u8 reserved[13];
-+	char slot_1_revision[0x10];
-+	char slot_2_revision[0x10];
-+	char slot_3_revision[0x10];
-+	char slot_4_revision[0x10];
-+} __attribute__((packed));
-+
-+#define CXL_FW_INFO_CUR_SLOT_MASK	GENMASK(2, 0)
-+#define CXL_FW_INFO_NEXT_SLOT_MASK	GENMASK(5, 3)
-+#define CXL_FW_INFO_NEXT_SLOT_SHIFT	(3)
-+#define CXL_FW_INFO_HAS_LIVE_ACTIVATE	BIT(0)
-+
-+#define CXL_FW_VERSION_STR_LEN		16
-+#define CXL_FW_MAX_SLOTS		4
-+
- /* CXL 3.0 8.2.9.8.3.2 Get Alert Configuration */
- struct cxl_cmd_get_alert_config {
- 	u8 valid_alerts;
+ struct cxl_dport {
 diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
-index 59e5bdb..75490fd 100644
+index 75490fd..86873d7 100644
 --- a/cxl/lib/libcxl.c
 +++ b/cxl/lib/libcxl.c
-@@ -3917,6 +3917,96 @@ CXL_EXPORT struct cxl_cmd *cxl_cmd_new_set_partition(struct cxl_memdev *memdev,
- 	return cmd;
+@@ -63,12 +63,25 @@ static void free_pmem(struct cxl_pmem *pmem)
+ 	}
  }
  
-+CXL_EXPORT struct cxl_cmd *cxl_cmd_new_get_fw_info(struct cxl_memdev *memdev)
++static void free_fwl(struct cxl_fw_loader *fwl)
 +{
-+	return cxl_cmd_new_generic(memdev, CXL_MEM_COMMAND_ID_GET_FW_INFO);
++	if (fwl) {
++		free(fwl->loading);
++		free(fwl->data);
++		free(fwl->remaining);
++		free(fwl->cancel);
++		free(fwl->status);
++		free(fwl);
++	}
 +}
 +
-+static struct cxl_cmd_get_fw_info *cmd_to_get_fw_info(struct cxl_cmd *cmd)
+ static void free_memdev(struct cxl_memdev *memdev, struct list_head *head)
+ {
+ 	if (head)
+ 		list_del_from(head, &memdev->list);
+ 	kmod_module_unref(memdev->module);
+ 	free_pmem(memdev->pmem);
++	free_fwl(memdev->fwl);
+ 	free(memdev->firmware_version);
+ 	free(memdev->dev_buf);
+ 	free(memdev->dev_path);
+@@ -1174,6 +1187,45 @@ static void *add_cxl_pmem(void *parent, int id, const char *br_base)
+ 	return NULL;
+ }
+ 
++static int add_cxl_memdev_fwl(struct cxl_memdev *memdev,
++			      const char *cxlmem_base)
 +{
-+	if (cxl_cmd_validate_status(cmd, CXL_MEM_COMMAND_ID_GET_FW_INFO))
-+		return NULL;
++	const char *devname = cxl_memdev_get_devname(memdev);
++	struct cxl_fw_loader *fwl;
 +
-+	return cmd->output_payload;
++	fwl = calloc(1, sizeof(*fwl));
++	if (!fwl)
++		return -ENOMEM;
++
++	if (asprintf(&fwl->loading, "%s/firmware/%s/loading", cxlmem_base,
++		     devname) < 0)
++		goto err_read;
++	if (asprintf(&fwl->data, "%s/firmware/%s/data", cxlmem_base, devname) <
++	    0)
++		goto err_read;
++	if (asprintf(&fwl->remaining, "%s/firmware/%s/remaining_size",
++		     cxlmem_base, devname) < 0)
++		goto err_read;
++	if (asprintf(&fwl->cancel, "%s/firmware/%s/cancel", cxlmem_base,
++		     devname) < 0)
++		goto err_read;
++	if (asprintf(&fwl->status, "%s/firmware/%s/status", cxlmem_base,
++		     devname) < 0)
++		goto err_read;
++
++	memdev->fwl = fwl;
++	return 0;
++
++ err_read:
++	free(fwl->loading);
++	free(fwl->data);
++	free(fwl->remaining);
++	free(fwl->cancel);
++	free(fwl->status);
++	free(fwl);
++	return -ENOMEM;
 +}
 +
-+CXL_EXPORT unsigned int cxl_cmd_fw_info_get_num_slots(struct cxl_cmd *cmd)
+ static void *add_cxl_memdev(void *parent, int id, const char *cxlmem_base)
+ {
+ 	const char *devname = devpath_to_devname(cxlmem_base);
+@@ -1263,6 +1315,9 @@ static void *add_cxl_memdev(void *parent, int id, const char *cxlmem_base)
+ 
+ 	device_parse(ctx, cxlmem_base, "pmem", memdev, add_cxl_pmem);
+ 
++	if (add_cxl_memdev_fwl(memdev, cxlmem_base))
++		goto err_read;
++
+ 	cxl_memdev_foreach(ctx, memdev_dup)
+ 		if (memdev_dup->id == memdev->id) {
+ 			free_memdev(memdev, NULL);
+@@ -1373,6 +1428,51 @@ CXL_EXPORT const char *cxl_memdev_get_firmware_verison(struct cxl_memdev *memdev
+ 	return memdev->firmware_version;
+ }
+ 
++static enum cxl_fwl_status cxl_fwl_get_status(struct cxl_memdev *memdev)
 +{
-+	struct cxl_cmd_get_fw_info *c = cmd_to_get_fw_info(cmd);
++	const char *devname = cxl_memdev_get_devname(memdev);
++	struct cxl_ctx *ctx = cxl_memdev_get_ctx(memdev);
++	struct cxl_fw_loader *fwl = memdev->fwl;
++	char buf[SYSFS_ATTR_SIZE];
++	int rc;
 +
-+	if (!c)
-+		return 0;
-+
-+	return c->num_slots;
-+}
-+
-+CXL_EXPORT unsigned int cxl_cmd_fw_info_get_active_slot(struct cxl_cmd *cmd)
-+{
-+	struct cxl_cmd_get_fw_info *c = cmd_to_get_fw_info(cmd);
-+
-+	if (!c)
-+		return 0;
-+
-+	return c->slot_info & CXL_FW_INFO_CUR_SLOT_MASK;
-+}
-+
-+CXL_EXPORT unsigned int cxl_cmd_fw_info_get_staged_slot(struct cxl_cmd *cmd)
-+{
-+	struct cxl_cmd_get_fw_info *c = cmd_to_get_fw_info(cmd);
-+
-+	if (!c)
-+		return 0;
-+
-+	return (c->slot_info & CXL_FW_INFO_NEXT_SLOT_MASK) >>
-+	       CXL_FW_INFO_NEXT_SLOT_SHIFT;
-+}
-+
-+CXL_EXPORT bool cxl_cmd_fw_info_get_online_activate_capable(struct cxl_cmd *cmd)
-+{
-+	struct cxl_cmd_get_fw_info *c = cmd_to_get_fw_info(cmd);
-+
-+	if (!c)
-+		return false;
-+
-+	return !!(c->activation_cap & CXL_FW_INFO_HAS_LIVE_ACTIVATE);
-+}
-+
-+CXL_EXPORT int cxl_cmd_fw_info_get_fw_ver(struct cxl_cmd *cmd, int slot,
-+					  char *buf, unsigned int len)
-+{
-+	struct cxl_cmd_get_fw_info *c = cmd_to_get_fw_info(cmd);
-+	char *fw_ver;
-+
-+	if (!c)
-+		return -ENXIO;
-+	if (!len)
-+		return -EINVAL;
-+
-+	switch(slot) {
-+	case 1:
-+		fw_ver = &c->slot_1_revision[0];
-+		break;
-+	case 2:
-+		fw_ver = &c->slot_2_revision[0];
-+		break;
-+	case 3:
-+		fw_ver = &c->slot_3_revision[0];
-+		break;
-+	case 4:
-+		fw_ver = &c->slot_4_revision[0];
-+		break;
-+	default:
-+		return -EINVAL;
++	rc = sysfs_read_attr(ctx, fwl->status, buf);
++	if (rc < 0) {
++		err(ctx, "%s: failed to get fw loader status (%s)\n", devname,
++		    strerror(-rc));
++		return CXL_FWL_STATUS_UNKNOWN;
 +	}
 +
-+	if (fw_ver[0] == 0)
-+		return -ENOENT;
-+
-+	memcpy(buf, fw_ver, min(len, (unsigned int)CXL_FW_VERSION_STR_LEN));
-+
-+	return 0;
++	return cxl_fwl_status_from_ident(buf);
 +}
 +
- CXL_EXPORT int cxl_cmd_submit(struct cxl_cmd *cmd)
++CXL_EXPORT bool cxl_memdev_fw_update_in_progress(struct cxl_memdev *memdev)
++{
++	int status = cxl_fwl_get_status(memdev);
++
++	if (status == CXL_FWL_STATUS_IDLE)
++		return false;
++	return true;
++}
++
++CXL_EXPORT size_t cxl_memdev_fw_update_get_remaining(struct cxl_memdev *memdev)
++{
++	const char *devname = cxl_memdev_get_devname(memdev);
++	struct cxl_ctx *ctx = cxl_memdev_get_ctx(memdev);
++	struct cxl_fw_loader *fwl = memdev->fwl;
++	char buf[SYSFS_ATTR_SIZE];
++	int rc;
++
++	rc = sysfs_read_attr(ctx, fwl->remaining, buf);
++	if (rc < 0) {
++		err(ctx, "%s: failed to get fw loader remaining size (%s)\n",
++		    devname, strerror(-rc));
++		return 0;
++	}
++
++	return strtoull(buf, NULL, 0);
++}
++
+ static void bus_invalidate(struct cxl_bus *bus)
  {
- 	struct cxl_memdev *memdev = cmd->memdev;
-diff --git a/cxl/filter.h b/cxl/filter.h
-index 595cde7..3f65990 100644
---- a/cxl/filter.h
-+++ b/cxl/filter.h
-@@ -27,6 +27,7 @@ struct cxl_filter_params {
- 	bool human;
- 	bool health;
- 	bool partition;
-+	bool fw;
- 	bool alert_config;
- 	bool dax;
- 	int verbose;
-@@ -81,6 +82,8 @@ static inline unsigned long cxl_filter_to_flags(struct cxl_filter_params *param)
- 		flags |= UTIL_JSON_TARGETS;
- 	if (param->partition)
- 		flags |= UTIL_JSON_PARTITION;
-+	if (param->fw)
-+		flags |= UTIL_JSON_FIRMWARE;
- 	if (param->alert_config)
- 		flags |= UTIL_JSON_ALERT_CONFIG;
- 	if (param->dax)
+ 	struct cxl_ctx *ctx = cxl_bus_get_ctx(bus);
 diff --git a/cxl/libcxl.h b/cxl/libcxl.h
-index 54d9f10..99e1b76 100644
+index 99e1b76..7509abe 100644
 --- a/cxl/libcxl.h
 +++ b/cxl/libcxl.h
-@@ -68,6 +68,13 @@ int cxl_memdev_read_label(struct cxl_memdev *memdev, void *buf, size_t length,
- 		size_t offset);
- int cxl_memdev_write_label(struct cxl_memdev *memdev, void *buf, size_t length,
- 		size_t offset);
-+struct cxl_cmd *cxl_cmd_new_get_fw_info(struct cxl_memdev *memdev);
-+unsigned int cxl_cmd_fw_info_get_num_slots(struct cxl_cmd *cmd);
-+unsigned int cxl_cmd_fw_info_get_active_slot(struct cxl_cmd *cmd);
-+unsigned int cxl_cmd_fw_info_get_staged_slot(struct cxl_cmd *cmd);
-+bool cxl_cmd_fw_info_get_online_activate_capable(struct cxl_cmd *cmd);
-+int cxl_cmd_fw_info_get_fw_ver(struct cxl_cmd *cmd, int slot, char *buf,
-+			       unsigned int len);
+@@ -33,6 +33,31 @@ void *cxl_get_userdata(struct cxl_ctx *ctx);
+ void cxl_set_private_data(struct cxl_ctx *ctx, void *data);
+ void *cxl_get_private_data(struct cxl_ctx *ctx);
  
- #define cxl_memdev_foreach(ctx, memdev) \
-         for (memdev = cxl_memdev_get_first(ctx); \
-diff --git a/cxl/json.c b/cxl/json.c
-index e87bdd4..e6bb061 100644
---- a/cxl/json.c
-+++ b/cxl/json.c
-@@ -12,6 +12,84 @@
- #include "json.h"
- #include "../daxctl/json.h"
- 
-+#define CXL_FW_VERSION_STR_LEN	16
-+#define CXL_FW_MAX_SLOTS	4
++enum cxl_fwl_status {
++	CXL_FWL_STATUS_UNKNOWN,
++	CXL_FWL_STATUS_IDLE,
++	CXL_FWL_STATUS_RECEIVING,
++	CXL_FWL_STATUS_PREPARING,
++	CXL_FWL_STATUS_TRANSFERRING,
++	CXL_FWL_STATUS_PROGRAMMING,
++};
 +
-+static struct json_object *util_cxl_memdev_fw_to_json(
-+		struct cxl_memdev *memdev, unsigned long flags)
++static inline enum cxl_fwl_status cxl_fwl_status_from_ident(char *status)
 +{
-+	struct json_object *jobj;
-+	struct json_object *jfw;
-+	u32 field, num_slots;
-+	struct cxl_cmd *cmd;
-+	int rc, i;
++	if (strcmp(status, "idle") == 0)
++		return CXL_FWL_STATUS_IDLE;
++	if (strcmp(status, "receiving") == 0)
++		return CXL_FWL_STATUS_RECEIVING;
++	if (strcmp(status, "preparing") == 0)
++		return CXL_FWL_STATUS_PREPARING;
++	if (strcmp(status, "transferring") == 0)
++		return CXL_FWL_STATUS_TRANSFERRING;
++	if (strcmp(status, "programming") == 0)
++		return CXL_FWL_STATUS_PROGRAMMING;
 +
-+	jfw = json_object_new_object();
-+	if (!jfw)
-+		return NULL;
-+	if (!memdev)
-+		goto err_jobj;
-+
-+	cmd = cxl_cmd_new_get_fw_info(memdev);
-+	if (!cmd)
-+		goto err_jobj;
-+
-+	rc = cxl_cmd_submit(cmd);
-+	if (rc < 0)
-+		goto err_cmd;
-+	rc = cxl_cmd_get_mbox_status(cmd);
-+	if (rc != 0)
-+		goto err_cmd;
-+
-+	/* fw_info fields */
-+	num_slots = cxl_cmd_fw_info_get_num_slots(cmd);
-+	jobj = json_object_new_int(num_slots);
-+	if (jobj)
-+		json_object_object_add(jfw, "num_slots", jobj);
-+
-+	field = cxl_cmd_fw_info_get_active_slot(cmd);
-+	jobj = json_object_new_int(field);
-+	if (jobj)
-+		json_object_object_add(jfw, "active_slot", jobj);
-+
-+	field = cxl_cmd_fw_info_get_staged_slot(cmd);
-+	if (field > 0 && field <= num_slots) {
-+		jobj = json_object_new_int(field);
-+		if (jobj)
-+			json_object_object_add(jfw, "staged_slot", jobj);
-+	}
-+
-+	rc = cxl_cmd_fw_info_get_online_activate_capable(cmd);
-+	jobj = json_object_new_boolean(rc);
-+	if (jobj)
-+		json_object_object_add(jfw, "online_activate_capable", jobj);
-+
-+	for (i = 1; i <= CXL_FW_MAX_SLOTS; i++) {
-+		char fw_ver[CXL_FW_VERSION_STR_LEN + 1];
-+		char jkey[16];
-+
-+		rc = cxl_cmd_fw_info_get_fw_ver(cmd, i, fw_ver,
-+						CXL_FW_VERSION_STR_LEN);
-+		if (rc)
-+			continue;
-+		fw_ver[CXL_FW_VERSION_STR_LEN] = 0;
-+		snprintf(jkey, 16, "slot_%d_version", i);
-+		jobj = json_object_new_string(fw_ver);
-+		if (jobj)
-+			json_object_object_add(jfw, jkey, jobj);
-+	}
-+
-+	cxl_cmd_unref(cmd);
-+	return jfw;
-+
-+err_cmd:
-+	cxl_cmd_unref(cmd);
-+err_jobj:
-+	json_object_put(jfw);
-+	return NULL;
-+
++	return CXL_FWL_STATUS_UNKNOWN;
 +}
 +
- static struct json_object *util_cxl_memdev_health_to_json(
- 		struct cxl_memdev *memdev, unsigned long flags)
- {
-@@ -552,6 +630,12 @@ struct json_object *util_cxl_memdev_to_json(struct cxl_memdev *memdev,
- 			json_object_object_add(jdev, "partition_info", jobj);
+ struct cxl_memdev;
+ struct cxl_memdev *cxl_memdev_get_first(struct cxl_ctx *ctx);
+ struct cxl_memdev *cxl_memdev_get_next(struct cxl_memdev *memdev);
+@@ -48,6 +73,8 @@ struct cxl_ctx *cxl_memdev_get_ctx(struct cxl_memdev *memdev);
+ unsigned long long cxl_memdev_get_pmem_size(struct cxl_memdev *memdev);
+ unsigned long long cxl_memdev_get_ram_size(struct cxl_memdev *memdev);
+ const char *cxl_memdev_get_firmware_verison(struct cxl_memdev *memdev);
++bool cxl_memdev_fw_update_in_progress(struct cxl_memdev *memdev);
++size_t cxl_memdev_fw_update_get_remaining(struct cxl_memdev *memdev);
+ 
+ /* ABI spelling mistakes are forever */
+ static inline const char *cxl_memdev_get_firmware_version(
+diff --git a/cxl/json.c b/cxl/json.c
+index e6bb061..5dc0bd3 100644
+--- a/cxl/json.c
++++ b/cxl/json.c
+@@ -22,6 +22,7 @@ static struct json_object *util_cxl_memdev_fw_to_json(
+ 	struct json_object *jfw;
+ 	u32 field, num_slots;
+ 	struct cxl_cmd *cmd;
++	size_t remaining;
+ 	int rc, i;
+ 
+ 	jfw = json_object_new_object();
+@@ -79,6 +80,18 @@ static struct json_object *util_cxl_memdev_fw_to_json(
+ 			json_object_object_add(jfw, jkey, jobj);
  	}
  
-+	if (flags & UTIL_JSON_FIRMWARE) {
-+		jobj = util_cxl_memdev_fw_to_json(memdev, flags);
++	rc = cxl_memdev_fw_update_in_progress(memdev);
++	jobj = json_object_new_boolean(rc);
++	if (jobj)
++		json_object_object_add(jfw, "fw_update_in_progress", jobj);
++
++	if (rc == true) {
++		remaining = cxl_memdev_fw_update_get_remaining(memdev);
++		jobj = util_json_object_size(remaining, flags);
 +		if (jobj)
-+			json_object_object_add(jdev, "firmware", jobj);
++			json_object_object_add(jfw, "remaining_size", jobj);
 +	}
 +
- 	json_object_set_userdata(jdev, memdev, NULL);
- 	return jdev;
- }
-diff --git a/cxl/list.c b/cxl/list.c
-index c01154e..93ba51e 100644
---- a/cxl/list.c
-+++ b/cxl/list.c
-@@ -53,6 +53,8 @@ static const struct option options[] = {
- 		    "include memory device health information"),
- 	OPT_BOOLEAN('I', "partition", &param.partition,
- 		    "include memory device partition information"),
-+	OPT_BOOLEAN('F', "firmware", &param.fw,
-+		    "include memory device firmware information"),
- 	OPT_BOOLEAN('A', "alert-config", &param.alert_config,
- 		    "include alert configuration information"),
- 	OPT_INCR('v', "verbose", &param.verbose, "increase output detail"),
-@@ -116,6 +118,7 @@ int cmd_list(int argc, const char **argv, struct cxl_ctx *ctx)
- 	case 3:
- 		param.health = true;
- 		param.partition = true;
-+		param.fw = true;
- 		param.alert_config = true;
- 		param.dax = true;
- 		/* fallthrough */
+ 	cxl_cmd_unref(cmd);
+ 	return jfw;
+ 
 diff --git a/cxl/lib/libcxl.sym b/cxl/lib/libcxl.sym
-index 1c6177c..16a8671 100644
+index 16a8671..9438877 100644
 --- a/cxl/lib/libcxl.sym
 +++ b/cxl/lib/libcxl.sym
-@@ -248,4 +248,10 @@ global:
- 	cxl_region_get_mode;
- 	cxl_decoder_create_ram_region;
- 	cxl_region_get_daxctl_region;
-+	cxl_cmd_new_get_fw_info;
-+	cxl_cmd_fw_info_get_num_slots;
-+	cxl_cmd_fw_info_get_active_slot;
-+	cxl_cmd_fw_info_get_staged_slot;
-+	cxl_cmd_fw_info_get_online_activate_capable;
-+	cxl_cmd_fw_info_get_fw_ver;
+@@ -254,4 +254,6 @@ global:
+ 	cxl_cmd_fw_info_get_staged_slot;
+ 	cxl_cmd_fw_info_get_online_activate_capable;
+ 	cxl_cmd_fw_info_get_fw_ver;
++	cxl_memdev_fw_update_in_progress;
++	cxl_memdev_fw_update_get_remaining;
  } LIBCXL_4;
 
 -- 
