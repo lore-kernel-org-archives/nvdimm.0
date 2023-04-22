@@ -1,36 +1,36 @@
 Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 71BC463E
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F077C638
 	for <nvdimm@lists.linux.dev>; Sat, 22 Apr 2023 03:10:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
   t=1682133007; x=1713669007;
   h=from:date:subject:mime-version:content-transfer-encoding:
    message-id:references:in-reply-to:to:cc;
-  bh=zNG8XgHeVoCgrLpsepTOZ1HTcQzK8ar5KP4hS+0libI=;
-  b=bAIoImfTKtzzlUypzBqFgKxRM/aMzurF4ERKjsktKKAQJXLijpfKMHuv
-   b7v5QIF+VIskUKgbG3pFNaGNhOjIpBpuEQH0/XSxPcjx+uHv4M1M8kCu/
-   4TkeHgIk0xRZ6mabopARzjKNTHunsd08XQzJ9Ryp6Y/LdsDqS042HSPXN
-   QFzsMl13/AjfSTQX21sCQHe/iTD4bLp6uOzsMg7S9BHjj/ci8/G5drkD0
-   0V2fTDTQWb+Kxv3hKREbMqh5fkPti73GiFWaCEI1RtWv7sha7CVU/Q+2u
-   Z8goO8ldpnhnPOjW+ZnaQYas3SIPannwmGQUtLMFiQWTZxf8o/ZT6Qu1y
-   g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10687"; a="343609101"
+  bh=a43/Y1KLgts2XRVilsrTojz96R4JG5ikNcl92jBCG7E=;
+  b=FZsoKmZM2u0+3IteR7FvYiF0q2F3Q5O5Ro4LW901XpCWTmRc/GV+MUtc
+   pCdbgJqbKxMoFHigTlDnCtFiU3hq/fSlCIbBTmcHo2PKMAfAWnRLkEsVE
+   ndIqRIEeJOHGm/P88GFjpf+paVecCbvDz8CCVrZLPTjvGLm/c5mCbgcYJ
+   GvsGvyQ8uCdpqUxrow2Ov7oJtk3/XvqqFzArnBliN21bKSSQTYDS+vzAg
+   CY+znNqRPfdd4bAZmqdVmL4LKWlbXDMiYSfhNHYKghFTkN1n9f6EvvuxI
+   MeRqhvbof8JJ3vV3MKnF325+G6vfsfzj40PporRBmjtzkEp+vLB+sfd9f
+   A==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10687"; a="343609106"
 X-IronPort-AV: E=Sophos;i="5.99,216,1677571200"; 
-   d="scan'208";a="343609101"
+   d="scan'208";a="343609106"
 Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Apr 2023 20:10:04 -0700
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Apr 2023 20:10:05 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10687"; a="757092376"
+X-IronPort-AV: E=McAfee;i="6600,9927,10687"; a="757092403"
 X-IronPort-AV: E=Sophos;i="5.99,216,1677571200"; 
-   d="scan'208";a="757092376"
+   d="scan'208";a="757092403"
 Received: from jwostman-mobl2.amr.corp.intel.com (HELO [192.168.1.200]) ([10.212.111.101])
-  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Apr 2023 20:10:04 -0700
+  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Apr 2023 20:10:05 -0700
 From: Vishal Verma <vishal.l.verma@intel.com>
-Date: Fri, 21 Apr 2023 21:10:01 -0600
-Subject: [PATCH ndctl 3/5] cxl/fw_loader: add APIs to get current state of
- the FW loader mechanism
+Date: Fri, 21 Apr 2023 21:10:03 -0600
+Subject: [PATCH ndctl 5/5] test/cxl-update-firmware: add a unit test for
+ firmware update
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -39,7 +39,7 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20230405-vv-fw_update-v1-3-722a7a5baea3@intel.com>
+Message-Id: <20230405-vv-fw_update-v1-5-722a7a5baea3@intel.com>
 References: <20230405-vv-fw_update-v1-0-722a7a5baea3@intel.com>
 In-Reply-To: <20230405-vv-fw_update-v1-0-722a7a5baea3@intel.com>
 To: linux-cxl@vger.kernel.org
@@ -48,284 +48,249 @@ Cc: nvdimm@lists.linux.dev, Alison Schofield <alison.schofield@intel.com>,
  Dan Williams <dan.j.williams@intel.com>, 
  Vishal Verma <vishal.l.verma@intel.com>
 X-Mailer: b4 0.13-dev-2eb1a
-X-Developer-Signature: v=1; a=openpgp-sha256; l=8054;
+X-Developer-Signature: v=1; a=openpgp-sha256; l=5565;
  i=vishal.l.verma@intel.com; h=from:subject:message-id;
- bh=zNG8XgHeVoCgrLpsepTOZ1HTcQzK8ar5KP4hS+0libI=;
- b=owGbwMvMwCXGf25diOft7jLG02pJDCnOAdxluZffhdncuh2zQ75obkyxBvPBJW/vMqeuf+N6T
- tE5gmt6RykLgxgXg6yYIsvfPR8Zj8ltz+cJTHCEmcPKBDKEgYtTACbyexsjw7XdYqVPmxPSJhqf
- 3jLj0j+1v77XNvpWz3QMfVB0aulrbkdGhh8SF9c5pF7g+H1i+hyeWrWZh/bLfzkhOZfxS5XU7K2
- be9gA
+ bh=a43/Y1KLgts2XRVilsrTojz96R4JG5ikNcl92jBCG7E=;
+ b=owGbwMvMwCXGf25diOft7jLG02pJDCnOAdx/XKN/7fgq0+2WLbz3jovVlVVJh/ZV/T1whdFa4
+ E4u+9HwjlIWBjEuBlkxRZa/ez4yHpPbns8TmOAIM4eVCWQIAxenAEwkeScjw/xV749nLL88+eHV
+ +s2fpwZeK738T+OfoJuXn+Mio4NzyhQYGbZdb280DKzrTzVZcO3I2trXk6I/fg9fsdhMYIGckXJ
+ xExsA
 X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp;
  fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
 
-Add a way to interface with the firmware loader mechanism for cxl
-memdevs. Add APIs to retrieve the current status of the fw loader, and
-the remaining size if a fw upload is in progress. Display these in the
-'firmware' section of memdev listings.
+Add a unit test to exercise the different operating modes of the
+cxl-update-firmware command. Perform an update synchronously,
+asynchronously, on multiple devices, and attempt cancellation of an
+in-progress update.
 
 Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- cxl/lib/private.h  |  10 ++++++
- cxl/lib/libcxl.c   | 100 +++++++++++++++++++++++++++++++++++++++++++++++++++++
- cxl/libcxl.h       |  27 +++++++++++++++
- cxl/json.c         |  13 +++++++
- cxl/lib/libcxl.sym |   2 ++
- 5 files changed, 152 insertions(+)
+ test/cxl-update-firmware.sh | 195 ++++++++++++++++++++++++++++++++++++++++++++
+ test/meson.build            |   2 +
+ 2 files changed, 197 insertions(+)
 
-diff --git a/cxl/lib/private.h b/cxl/lib/private.h
-index 590d719..95e0c43 100644
---- a/cxl/lib/private.h
-+++ b/cxl/lib/private.h
-@@ -20,6 +20,15 @@ struct cxl_pmem {
- 	char *dev_path;
- };
- 
-+struct cxl_fw_loader {
-+	char *dev_path;
-+	char *loading;
-+	char *data;
-+	char *remaining;
-+	char *cancel;
-+	char *status;
-+};
+diff --git a/test/cxl-update-firmware.sh b/test/cxl-update-firmware.sh
+new file mode 100755
+index 0000000..c6cd742
+--- /dev/null
++++ b/test/cxl-update-firmware.sh
+@@ -0,0 +1,195 @@
++#!/bin/bash
++# SPDX-License-Identifier: GPL-2.0
++# Copyright (C) 2023 Intel Corporation. All rights reserved.
 +
- struct cxl_endpoint;
- struct cxl_memdev {
- 	int id, major, minor;
-@@ -39,6 +48,7 @@ struct cxl_memdev {
- 	struct cxl_pmem *pmem;
- 	unsigned long long serial;
- 	struct cxl_endpoint *endpoint;
-+	struct cxl_fw_loader *fwl;
- };
- 
- struct cxl_dport {
-diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
-index 75490fd..86873d7 100644
---- a/cxl/lib/libcxl.c
-+++ b/cxl/lib/libcxl.c
-@@ -63,12 +63,25 @@ static void free_pmem(struct cxl_pmem *pmem)
- 	}
- }
- 
-+static void free_fwl(struct cxl_fw_loader *fwl)
++. $(dirname $0)/common
++
++rc=77
++
++set -ex
++
++trap 'err $LINENO' ERR
++
++check_prereq "jq"
++check_prereq "dd"
++check_prereq "sha256sum"
++
++modprobe -r cxl_test
++modprobe cxl_test
++rc=1
++
++mk_fw_file()
 +{
-+	if (fwl) {
-+		free(fwl->loading);
-+		free(fwl->data);
-+		free(fwl->remaining);
-+		free(fwl->cancel);
-+		free(fwl->status);
-+		free(fwl);
-+	}
++	size="$1"
++
++	if [[ ! $size ]]; then
++		err "$LINENO"
++	fi
++	if (( size > 64 )); then
++		err "$LINENO"
++	fi
++
++	fw_file="$(mktemp -p /tmp fw_file_XXXX)"
++	dd if=/dev/urandom of="$fw_file" bs=1M count="$size"
++	echo "$fw_file"
 +}
 +
- static void free_memdev(struct cxl_memdev *memdev, struct list_head *head)
- {
- 	if (head)
- 		list_del_from(head, &memdev->list);
- 	kmod_module_unref(memdev->module);
- 	free_pmem(memdev->pmem);
-+	free_fwl(memdev->fwl);
- 	free(memdev->firmware_version);
- 	free(memdev->dev_buf);
- 	free(memdev->dev_path);
-@@ -1174,6 +1187,45 @@ static void *add_cxl_pmem(void *parent, int id, const char *br_base)
- 	return NULL;
- }
- 
-+static int add_cxl_memdev_fwl(struct cxl_memdev *memdev,
-+			      const char *cxlmem_base)
++find_memdevs()
 +{
-+	const char *devname = cxl_memdev_get_devname(memdev);
-+	struct cxl_fw_loader *fwl;
++	count="$1"
 +
-+	fwl = calloc(1, sizeof(*fwl));
-+	if (!fwl)
-+		return -ENOMEM;
++	if [[ ! $count ]]; then
++		count=1
++	fi
 +
-+	if (asprintf(&fwl->loading, "%s/firmware/%s/loading", cxlmem_base,
-+		     devname) < 0)
-+		goto err_read;
-+	if (asprintf(&fwl->data, "%s/firmware/%s/data", cxlmem_base, devname) <
-+	    0)
-+		goto err_read;
-+	if (asprintf(&fwl->remaining, "%s/firmware/%s/remaining_size",
-+		     cxlmem_base, devname) < 0)
-+		goto err_read;
-+	if (asprintf(&fwl->cancel, "%s/firmware/%s/cancel", cxlmem_base,
-+		     devname) < 0)
-+		goto err_read;
-+	if (asprintf(&fwl->status, "%s/firmware/%s/status", cxlmem_base,
-+		     devname) < 0)
-+		goto err_read;
-+
-+	memdev->fwl = fwl;
-+	return 0;
-+
-+ err_read:
-+	free(fwl->loading);
-+	free(fwl->data);
-+	free(fwl->remaining);
-+	free(fwl->cancel);
-+	free(fwl->status);
-+	free(fwl);
-+	return -ENOMEM;
++	"$CXL" list -M -b "$CXL_TEST_BUS" \
++		| jq -r '.[] | select(.host | startswith("cxl_mem.")) | .memdev' \
++		| head -"$count"
 +}
 +
- static void *add_cxl_memdev(void *parent, int id, const char *cxlmem_base)
- {
- 	const char *devname = devpath_to_devname(cxlmem_base);
-@@ -1263,6 +1315,9 @@ static void *add_cxl_memdev(void *parent, int id, const char *cxlmem_base)
- 
- 	device_parse(ctx, cxlmem_base, "pmem", memdev, add_cxl_pmem);
- 
-+	if (add_cxl_memdev_fwl(memdev, cxlmem_base))
-+		goto err_read;
-+
- 	cxl_memdev_foreach(ctx, memdev_dup)
- 		if (memdev_dup->id == memdev->id) {
- 			free_memdev(memdev, NULL);
-@@ -1373,6 +1428,51 @@ CXL_EXPORT const char *cxl_memdev_get_firmware_verison(struct cxl_memdev *memdev
- 	return memdev->firmware_version;
- }
- 
-+static enum cxl_fwl_status cxl_fwl_get_status(struct cxl_memdev *memdev)
++do_update_fw()
 +{
-+	const char *devname = cxl_memdev_get_devname(memdev);
-+	struct cxl_ctx *ctx = cxl_memdev_get_ctx(memdev);
-+	struct cxl_fw_loader *fwl = memdev->fwl;
-+	char buf[SYSFS_ATTR_SIZE];
-+	int rc;
-+
-+	rc = sysfs_read_attr(ctx, fwl->status, buf);
-+	if (rc < 0) {
-+		err(ctx, "%s: failed to get fw loader status (%s)\n", devname,
-+		    strerror(-rc));
-+		return CXL_FWL_STATUS_UNKNOWN;
-+	}
-+
-+	return cxl_fwl_status_from_ident(buf);
++	"$CXL" update-firmware -b "$CXL_TEST_BUS" "$@"
 +}
 +
-+CXL_EXPORT bool cxl_memdev_fw_update_in_progress(struct cxl_memdev *memdev)
++wait_complete()
 +{
-+	int status = cxl_fwl_get_status(memdev);
++	mem="$1"  # single memdev, not a list
++	max_wait="$2"  # in seconds
++	waited=0
 +
-+	if (status == CXL_FWL_STATUS_IDLE)
-+		return false;
-+	return true;
++	while true; do
++		json="$("$CXL" list -m "$mem" -F)"
++		in_prog="$(jq -r '.[].firmware.fw_update_in_progress' <<< "$json")"
++		if [[ $in_prog == "true" ]]; then
++			sleep 1
++			waited="$((waited + 1))"
++			continue
++		else
++			break
++		fi
++		if (( waited == max_wait )); then
++			echo "completion timeout for $mem"
++			err "$LINENO"
++		fi
++	done
 +}
 +
-+CXL_EXPORT size_t cxl_memdev_fw_update_get_remaining(struct cxl_memdev *memdev)
++validate_json_state()
 +{
-+	const char *devname = cxl_memdev_get_devname(memdev);
-+	struct cxl_ctx *ctx = cxl_memdev_get_ctx(memdev);
-+	struct cxl_fw_loader *fwl = memdev->fwl;
-+	char buf[SYSFS_ATTR_SIZE];
-+	int rc;
++	json="$1"
++	state="$2"
 +
-+	rc = sysfs_read_attr(ctx, fwl->remaining, buf);
-+	if (rc < 0) {
-+		err(ctx, "%s: failed to get fw loader remaining size (%s)\n",
-+		    devname, strerror(-rc));
-+		return 0;
-+	}
-+
-+	return strtoull(buf, NULL, 0);
++	while read -r in_prog_state; do
++		if [[ $in_prog_state == $state ]]; then
++			continue
++		else
++			echo "expected fw_update_in_progress:$state"
++			err "$LINENO"
++		fi
++	done < <(jq -r '.[].firmware.fw_update_in_progress' <<< "$json")
 +}
 +
- static void bus_invalidate(struct cxl_bus *bus)
- {
- 	struct cxl_ctx *ctx = cxl_bus_get_ctx(bus);
-diff --git a/cxl/libcxl.h b/cxl/libcxl.h
-index 99e1b76..7509abe 100644
---- a/cxl/libcxl.h
-+++ b/cxl/libcxl.h
-@@ -33,6 +33,31 @@ void *cxl_get_userdata(struct cxl_ctx *ctx);
- void cxl_set_private_data(struct cxl_ctx *ctx, void *data);
- void *cxl_get_private_data(struct cxl_ctx *ctx);
- 
-+enum cxl_fwl_status {
-+	CXL_FWL_STATUS_UNKNOWN,
-+	CXL_FWL_STATUS_IDLE,
-+	CXL_FWL_STATUS_RECEIVING,
-+	CXL_FWL_STATUS_PREPARING,
-+	CXL_FWL_STATUS_TRANSFERRING,
-+	CXL_FWL_STATUS_PROGRAMMING,
-+};
-+
-+static inline enum cxl_fwl_status cxl_fwl_status_from_ident(char *status)
++validate_fw_update_in_progress()
 +{
-+	if (strcmp(status, "idle") == 0)
-+		return CXL_FWL_STATUS_IDLE;
-+	if (strcmp(status, "receiving") == 0)
-+		return CXL_FWL_STATUS_RECEIVING;
-+	if (strcmp(status, "preparing") == 0)
-+		return CXL_FWL_STATUS_PREPARING;
-+	if (strcmp(status, "transferring") == 0)
-+		return CXL_FWL_STATUS_TRANSFERRING;
-+	if (strcmp(status, "programming") == 0)
-+		return CXL_FWL_STATUS_PROGRAMMING;
-+
-+	return CXL_FWL_STATUS_UNKNOWN;
++	validate_json_state "$1" "true"
 +}
 +
- struct cxl_memdev;
- struct cxl_memdev *cxl_memdev_get_first(struct cxl_ctx *ctx);
- struct cxl_memdev *cxl_memdev_get_next(struct cxl_memdev *memdev);
-@@ -48,6 +73,8 @@ struct cxl_ctx *cxl_memdev_get_ctx(struct cxl_memdev *memdev);
- unsigned long long cxl_memdev_get_pmem_size(struct cxl_memdev *memdev);
- unsigned long long cxl_memdev_get_ram_size(struct cxl_memdev *memdev);
- const char *cxl_memdev_get_firmware_verison(struct cxl_memdev *memdev);
-+bool cxl_memdev_fw_update_in_progress(struct cxl_memdev *memdev);
-+size_t cxl_memdev_fw_update_get_remaining(struct cxl_memdev *memdev);
- 
- /* ABI spelling mistakes are forever */
- static inline const char *cxl_memdev_get_firmware_version(
-diff --git a/cxl/json.c b/cxl/json.c
-index e6bb061..5dc0bd3 100644
---- a/cxl/json.c
-+++ b/cxl/json.c
-@@ -22,6 +22,7 @@ static struct json_object *util_cxl_memdev_fw_to_json(
- 	struct json_object *jfw;
- 	u32 field, num_slots;
- 	struct cxl_cmd *cmd;
-+	size_t remaining;
- 	int rc, i;
- 
- 	jfw = json_object_new_object();
-@@ -79,6 +80,18 @@ static struct json_object *util_cxl_memdev_fw_to_json(
- 			json_object_object_add(jfw, jkey, jobj);
- 	}
- 
-+	rc = cxl_memdev_fw_update_in_progress(memdev);
-+	jobj = json_object_new_boolean(rc);
-+	if (jobj)
-+		json_object_object_add(jfw, "fw_update_in_progress", jobj);
++validate_fw_update_idle()
++{
++	validate_json_state "$1" "false"
++}
 +
-+	if (rc == true) {
-+		remaining = cxl_memdev_fw_update_get_remaining(memdev);
-+		jobj = util_json_object_size(remaining, flags);
-+		if (jobj)
-+			json_object_object_add(jfw, "remaining_size", jobj);
-+	}
++validate_staged_slot()
++{
++	json="$1"
++	slot="$2"
 +
- 	cxl_cmd_unref(cmd);
- 	return jfw;
++	while read -r staged_slot; do
++		if [[ $staged_slot == $slot ]]; then
++			continue
++		else
++			echo "expected staged_slot:$slot"
++			err "$LINENO"
++		fi
++	done < <(jq -r '.[].firmware.staged_slot' <<< "$json")
++}
++
++check_sha()
++{
++	mem="$1"
++	file="$2"
++	csum_path="/sys/bus/platform/devices/cxl_mem.${mem#mem}/fw_buf_checksum"
++
++	mem_csum="$(cat "$csum_path")"
++	file_csum="$(sha256sum "$file" | awk '{print $1}')"
++
++	if [[ $mem_csum != $file_csum ]]; then
++		echo "checksum failure for mem$mem"
++		err "$LINENO"
++	fi
++}
++
++test_blocking_update()
++{
++	file="$(mk_fw_file 8)"
++	mem="$(find_memdevs 1)"
++	json=$(do_update_fw -F "$file" --wait "$mem")
++	validate_fw_update_idle "$json"
++	# cxl_test's starting slot is '2', so staged should be 3
++	validate_staged_slot "$json" 3
++	check_sha "$mem" "$file"
++	rm "$file"
++}
++
++test_nonblocking_update()
++{
++	file="$(mk_fw_file 16)"
++	mem="$(find_memdevs 1)"
++	json=$(do_update_fw -F "$file" "$mem")
++	validate_fw_update_in_progress "$json"
++	wait_complete "$mem" 15
++	validate_fw_update_idle "$("$CXL" list -m "$mem" -F)"
++	check_sha "$mem" "$file"
++	rm "$file"
++}
++
++test_multiple_memdev()
++{
++	num_mems=2
++
++	file="$(mk_fw_file 16)"
++	declare -a mems
++	mems=( $(find_memdevs "$num_mems") )
++	json="$(do_update_fw -F "$file" "${mems[@]}")"
++	validate_fw_update_in_progress "$json"
++	# use the in-band wait this time
++	json="$(do_update_fw --wait "${mems[@]}")"
++	validate_fw_update_idle "$json"
++	for mem in ${mems[@]}; do
++		check_sha "$mem" "$file"
++	done
++	rm "$file"
++}
++
++test_cancel()
++{
++	file="$(mk_fw_file 16)"
++	mem="$(find_memdevs 1)"
++	json=$(do_update_fw -F "$file" "$mem")
++	validate_fw_update_in_progress "$json"
++	do_update_fw --cancel "$mem"
++	# cancellation is asynchronous, and the result looks the same as idle
++	wait_complete "$mem" 15
++	validate_fw_update_idle "$("$CXL" list -m "$mem" -F)"
++	# no need to check_sha
++	rm "$file"
++}
++
++test_blocking_update
++test_nonblocking_update
++test_multiple_memdev
++test_cancel
++
++check_dmesg "$LINENO"
++modprobe -r cxl_test
+diff --git a/test/meson.build b/test/meson.build
+index a956885..0f4d3c4 100644
+--- a/test/meson.build
++++ b/test/meson.build
+@@ -155,6 +155,7 @@ cxl_sysfs = find_program('cxl-region-sysfs.sh')
+ cxl_labels = find_program('cxl-labels.sh')
+ cxl_create_region = find_program('cxl-create-region.sh')
+ cxl_xor_region = find_program('cxl-xor-region.sh')
++cxl_update_firmware = find_program('cxl-update-firmware.sh')
  
-diff --git a/cxl/lib/libcxl.sym b/cxl/lib/libcxl.sym
-index 16a8671..9438877 100644
---- a/cxl/lib/libcxl.sym
-+++ b/cxl/lib/libcxl.sym
-@@ -254,4 +254,6 @@ global:
- 	cxl_cmd_fw_info_get_staged_slot;
- 	cxl_cmd_fw_info_get_online_activate_capable;
- 	cxl_cmd_fw_info_get_fw_ver;
-+	cxl_memdev_fw_update_in_progress;
-+	cxl_memdev_fw_update_get_remaining;
- } LIBCXL_4;
+ tests = [
+   [ 'libndctl',               libndctl,		  'ndctl' ],
+@@ -198,6 +199,7 @@ if get_option('destructive').enabled()
+ 
+   tests += [
+     [ 'firmware-update.sh',     firmware_update,	  'ndctl' ],
++    [ 'cxl-update-firmware.sh', cxl_update_firmware,      'cxl'   ],
+     [ 'pmem-ns',           pmem_ns,	   'ndctl' ],
+     [ 'sub-section.sh',    sub_section,	   'dax'   ],
+     [ 'dax-dev',           dax_dev,	   'dax'   ],
 
 -- 
 2.40.0
