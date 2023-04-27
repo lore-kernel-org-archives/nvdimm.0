@@ -1,22 +1,22 @@
-Received: from esa8.hc1455-7.c3s2.iphmx.com (esa8.hc1455-7.c3s2.iphmx.com [139.138.61.253])
+Received: from esa2.hc1455-7.c3s2.iphmx.com (esa2.hc1455-7.c3s2.iphmx.com [207.54.90.48])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3D19257D
-	for <nvdimm@lists.linux.dev>; Thu, 27 Apr 2023 10:20:08 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6600,9927,10692"; a="103132928"
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0D0F2572
+	for <nvdimm@lists.linux.dev>; Thu, 27 Apr 2023 10:20:07 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6600,9927,10692"; a="115055355"
 X-IronPort-AV: E=Sophos;i="5.99,230,1677510000"; 
-   d="scan'208";a="103132928"
-Received: from unknown (HELO yto-r2.gw.nic.fujitsu.com) ([218.44.52.218])
-  by esa8.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Apr 2023 19:18:57 +0900
-Received: from yto-m2.gw.nic.fujitsu.com (yto-nat-yto-m2.gw.nic.fujitsu.com [192.168.83.65])
-	by yto-r2.gw.nic.fujitsu.com (Postfix) with ESMTP id DCE54DE527
-	for <nvdimm@lists.linux.dev>; Thu, 27 Apr 2023 19:18:54 +0900 (JST)
+   d="scan'208";a="115055355"
+Received: from unknown (HELO yto-r3.gw.nic.fujitsu.com) ([218.44.52.219])
+  by esa2.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Apr 2023 19:19:02 +0900
+Received: from yto-m1.gw.nic.fujitsu.com (yto-nat-yto-m1.gw.nic.fujitsu.com [192.168.83.64])
+	by yto-r3.gw.nic.fujitsu.com (Postfix) with ESMTP id 70C44E8521
+	for <nvdimm@lists.linux.dev>; Thu, 27 Apr 2023 19:18:59 +0900 (JST)
 Received: from kws-ab1.gw.nic.fujitsu.com (kws-ab1.gw.nic.fujitsu.com [192.51.206.11])
-	by yto-m2.gw.nic.fujitsu.com (Postfix) with ESMTP id 19665D35F6
-	for <nvdimm@lists.linux.dev>; Thu, 27 Apr 2023 19:18:54 +0900 (JST)
+	by yto-m1.gw.nic.fujitsu.com (Postfix) with ESMTP id 90D3BCFF97
+	for <nvdimm@lists.linux.dev>; Thu, 27 Apr 2023 19:18:58 +0900 (JST)
 Received: from FNSTPC.g08.fujitsu.local (unknown [10.167.226.45])
-	by kws-ab1.gw.nic.fujitsu.com (Postfix) with ESMTP id 71D921145FC8;
-	Thu, 27 Apr 2023 19:18:51 +0900 (JST)
+	by kws-ab1.gw.nic.fujitsu.com (Postfix) with ESMTP id 8D6B01145FC8;
+	Thu, 27 Apr 2023 19:18:55 +0900 (JST)
 From: Li Zhijian <lizhijian@fujitsu.com>
 To: x86@kernel.org,
 	nvdimm@lists.linux.dev,
@@ -29,9 +29,9 @@ Cc: linux-kernel@vger.kernel.org,
 	Baoquan He <bhe@redhat.com>,
 	Vivek Goyal <vgoyal@redhat.com>,
 	Dave Young <dyoung@redhat.com>
-Subject: [RFC PATCH v2 makedumpfile 1/3] elf_info.c: Introduce is_pmem_pt_load_range
-Date: Thu, 27 Apr 2023 18:18:36 +0800
-Message-Id: <20230427101838.12267-6-lizhijian@fujitsu.com>
+Subject: [RFC PATCH v2 makedumpfile 3/3] makedumpfile.c: Allow excluding metadata of pmem region
+Date: Thu, 27 Apr 2023 18:18:38 +0800
+Message-Id: <20230427101838.12267-8-lizhijian@fujitsu.com>
 X-Mailer: git-send-email 2.40.0
 In-Reply-To: <20230427101838.12267-1-lizhijian@fujitsu.com>
 References: <20230427101838.12267-1-lizhijian@fujitsu.com>
@@ -46,108 +46,334 @@ X-TM-AS-GCONF: 00
 X-TM-AS-Product-Ver: IMSS-9.1.0.1408-9.0.0.1002-27590.006
 X-TM-AS-User-Approved-Sender: Yes
 X-TMASE-Version: IMSS-9.1.0.1408-9.0.1002-27590.006
-X-TMASE-Result: 10--6.656400-10.000000
-X-TMASE-MatchedRID: g7nni+nG95B15zj/0di3Q2/6CCblACLhCZa9cSpBObnAuQ0xDMaXkH4q
-	tYI9sRE/j6kCfX0Edc4cG6dIciYEQpcLewwAa76fxvp0tuDMx3kXaMhZSeVFDLgbJOZ434BsCeW
-	hs1FY/qX/t6IqZwsJBsYGS5HBZwU4r78SC5iivxwURSScn+QSXt0H8LFZNFG7bkV4e2xSge7fAH
-	kd3wwbgyRebciNZz82XbRAX+BXE40cqC7zaDCQoh/BXqwE9HSW
+X-TMASE-Result: 10--17.343100-10.000000
+X-TMASE-MatchedRID: 9L013dfUpyvvnOSC+jk4DioiRKlBVkYI2+EDPw+8xrc6FHRWx2FGsL8F
+	Hrw7frluf146W0iUu2uCJEtlOxU1W01QH6PUk2DDutvHF25zoU+u2GmdldmiUHH5y9+1Ef464rl
+	+FHG3VoCuNMNPg+YVh/Na/9C36NYhcxNXyOjdrDtYUconbBJWJBeK/B+WKxKsuzdiHYg4JjNOyY
+	xJZlS6a2+74QBQ4LHTNyno03YkG3nS5A6Ae0UgqqzGfgakLdjaoR62RNvkvOuysPB8dBBorUX1x
+	YMqj/2QjNfBKGsNCNcr9TEMd9mL1I0TO6yT9XrPAoNa2r+Edw2061diBteN175TVqwOzxj8o6yI
+	pLdrAfigzMqEdGA7shh6q/5LKwqLlwV2iaAfSWcURSScn+QSXt0H8LFZNFG7JQhrLH5KSJ0=
 X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
 
-It checks BIT(4) of Elf64_Phdr, currently only the former 3 bits are used
-by ELF. In kexec-tool, we extend the BIT(4) to indicate pmem or not.
-
-dump_Elf_load:                phys_start         phys_end       virt_start         virt_end  is_pmem
-dump_Elf_load: LOAD[ 0]         6b800000         6e42c000 ffffffffbcc00000 ffffffffbf82c000    false
-dump_Elf_load: LOAD[ 1]             1000            9fc00 ffff975980001000 ffff97598009fc00    false
-dump_Elf_load: LOAD[ 2]           100000         7f000000 ffff975980100000 ffff9759ff000000    false
-dump_Elf_load: LOAD[ 3]         bf000000         bffd7000 ffff975a3f000000 ffff975a3ffd7000    false
-dump_Elf_load: LOAD[ 4]        100000000        140000000 ffff975a80000000 ffff975ac0000000    false
-dump_Elf_load: LOAD[ 5]        140000000        23e200000 ffff975ac0000000 ffff975bbe200000     true
+Extend -d option(BIT(5)) to allow user excluding metadata
 
 CC: Baoquan He <bhe@redhat.com>
 CC: Vivek Goyal <vgoyal@redhat.com>
 CC: Dave Young <dyoung@redhat.com>
 Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
 ---
- elf_info.c | 31 +++++++++++++++++++++++++++----
- elf_info.h |  1 +
- 2 files changed, 28 insertions(+), 4 deletions(-)
+ makedumpfile.c | 143 ++++++++++++++++++++++++++++++++++++++++++++++---
+ makedumpfile.h |  10 +++-
+ 2 files changed, 145 insertions(+), 8 deletions(-)
 
-diff --git a/elf_info.c b/elf_info.c
-index bc24083655d6..41b36b2804d2 100644
---- a/elf_info.c
-+++ b/elf_info.c
-@@ -43,6 +43,7 @@ struct pt_load_segment {
- 	unsigned long long	phys_end;
- 	unsigned long long	virt_start;
- 	unsigned long long	virt_end;
-+	int			is_pmem;
- };
+diff --git a/makedumpfile.c b/makedumpfile.c
+index 98c3b8c7ced9..e4d036505311 100644
+--- a/makedumpfile.c
++++ b/makedumpfile.c
+@@ -100,6 +100,7 @@ mdf_pfn_t pfn_user;
+ mdf_pfn_t pfn_free;
+ mdf_pfn_t pfn_hwpoison;
+ mdf_pfn_t pfn_offline;
++mdf_pfn_t pfn_pmem_metadata;
+ mdf_pfn_t pfn_pmem_userdata;
+ mdf_pfn_t pfn_elf_excluded;
  
- static int			nr_cpus;             /* number of cpu */
-@@ -153,6 +154,8 @@ check_elf_format(int fd, char *filename, int *phnum, unsigned int *num_load)
- 	return FALSE;
- }
+@@ -1623,6 +1624,7 @@ get_symbol_info(void)
+ 	SYMBOL_INIT(mem_map, "mem_map");
+ 	SYMBOL_INIT(vmem_map, "vmem_map");
+ 	SYMBOL_INIT(mem_section, "mem_section");
++	SYMBOL_INIT(devm_memmap_vmcore_head, "devm_memmap_vmcore_head");
+ 	SYMBOL_INIT(pkmap_count, "pkmap_count");
+ 	SYMBOL_INIT_NEXT(pkmap_count_next, "pkmap_count");
+ 	SYMBOL_INIT(system_utsname, "system_utsname");
+@@ -1727,6 +1729,11 @@ get_structure_info(void)
+ 		info->flag_use_count = FALSE;
+ 	}
  
-+#define PF_DEV (1 << 4)
++	SIZE_INIT(devm_memmap_vmcore, "devm_memmap_vmcore");
++	OFFSET_INIT(devm_memmap_vmcore.entry, "devm_memmap_vmcore", "entry");
++	OFFSET_INIT(devm_memmap_vmcore.start, "devm_memmap_vmcore", "start");
++	OFFSET_INIT(devm_memmap_vmcore.end, "devm_memmap_vmcore", "end");
 +
- static int
- dump_Elf_load(Elf64_Phdr *prog, int num_load)
- {
-@@ -170,17 +173,37 @@ dump_Elf_load(Elf64_Phdr *prog, int num_load)
- 	pls->virt_end    = pls->virt_start + prog->p_memsz;
- 	pls->file_offset = prog->p_offset;
- 	pls->file_size   = prog->p_filesz;
-+	pls->is_pmem     = !!(prog->p_flags & PF_DEV);
+ 	OFFSET_INIT(page.mapping, "page", "mapping");
+ 	OFFSET_INIT(page._mapcount, "page", "_mapcount");
+ 	OFFSET_INIT(page.private, "page", "private");
+@@ -2757,6 +2764,7 @@ read_vmcoreinfo(void)
+ 	READ_SYMBOL("mem_map", mem_map);
+ 	READ_SYMBOL("vmem_map", vmem_map);
+ 	READ_SYMBOL("mem_section", mem_section);
++	READ_SYMBOL("devm_memmap_vmcore_head", devm_memmap_vmcore_head);
+ 	READ_SYMBOL("pkmap_count", pkmap_count);
+ 	READ_SYMBOL("pkmap_count_next", pkmap_count_next);
+ 	READ_SYMBOL("system_utsname", system_utsname);
+@@ -2805,6 +2813,7 @@ read_vmcoreinfo(void)
+ 	READ_STRUCTURE_SIZE("pageflags", pageflags);
+ 	READ_STRUCTURE_SIZE("vmemmap_backing", vmemmap_backing);
+ 	READ_STRUCTURE_SIZE("mmu_psize_def", mmu_psize_def);
++	READ_STRUCTURE_SIZE("devm_memmap_vmcore", devm_memmap_vmcore);
  
- 	if (num_load == 0)
--		DEBUG_MSG("%8s %16s %16s %16s %16s\n", "",
--			"phys_start", "phys_end", "virt_start", "virt_end");
-+		DEBUG_MSG("%8s %16s %16s %16s %16s %8s\n", "",
-+			"phys_start", "phys_end", "virt_start", "virt_end",
-+			"is_pmem");
  
--	DEBUG_MSG("LOAD[%2d] %16llx %16llx %16llx %16llx\n", num_load,
--		pls->phys_start, pls->phys_end, pls->virt_start, pls->virt_end);
-+	DEBUG_MSG("LOAD[%2d] %16llx %16llx %16llx %16llx %8s\n", num_load,
-+		pls->phys_start, pls->phys_end, pls->virt_start, pls->virt_end,
-+		pls->is_pmem ? "true": "false");
+ 	READ_MEMBER_OFFSET("page.flags", page.flags);
+@@ -2852,6 +2861,9 @@ read_vmcoreinfo(void)
+ 	READ_MEMBER_OFFSET("mmu_psize_def.shift", mmu_psize_def.shift);
+ 	READ_MEMBER_OFFSET("cpu_spec.mmu_features", cpu_spec.mmu_features);
+ 	READ_MEMBER_OFFSET("uts_namespace.name", uts_namespace.name);
++	READ_MEMBER_OFFSET("devm_memmap_vmcore.entry", devm_memmap_vmcore.entry);
++	READ_MEMBER_OFFSET("devm_memmap_vmcore.start", devm_memmap_vmcore.start);
++	READ_MEMBER_OFFSET("devm_memmap_vmcore.end", devm_memmap_vmcore.end);
  
- 	return TRUE;
+ 	READ_STRUCTURE_SIZE("printk_log", printk_log);
+ 	READ_STRUCTURE_SIZE("printk_ringbuffer", printk_ringbuffer);
+@@ -3210,6 +3222,88 @@ pgdat4:
+ 	return SYMBOL(contig_page_data);
  }
  
-+int is_pmem_pt_load_range(unsigned long long start, unsigned long long end)
++struct devm_memmap_entry {
++	unsigned long start, end;
++	struct devm_memmap_entry *next;
++};
++
++static struct devm_memmap_entry *devm_memmap;
++
++static void pmem_add_next(unsigned long start, unsigned long end)
 +{
-+	int i;
-+	struct pt_load_segment *pls;
++	struct devm_memmap_entry *tail = devm_memmap, *node;
 +
-+	for (i = 0; i < num_pt_loads; i++) {
-+		pls = &pt_loads[i];
-+		if (pls->is_pmem && pls->phys_start == NOT_PADDR)
++	node = calloc(1, sizeof(*node));
++	if (!node)
++		return;
++
++	node->start = start;
++	node->end = end;
++	node->next = NULL;
++
++	if (!devm_memmap) {
++		devm_memmap = node;
++		return;
++	}
++
++	while (tail->next)
++		tail = tail->next;
++
++	tail->next = node;
++}
++
++static void dump_pmem_metadata(int i)
++{
++	long head_next;
++	long entry, head = SYMBOL(devm_memmap_vmcore_head);
++	long devm_entry, start_p, end_p;
++	unsigned long start, end;
++	static int cnt = 0;
++
++	entry = head;
++
++	if (head == NOT_FOUND_SYMBOL ||
++	    OFFSET(list_head.next) == NOT_FOUND_STRUCTURE ||
++	    OFFSET(devm_memmap_vmcore.start) == NOT_FOUND_STRUCTURE ||
++	    OFFSET(devm_memmap_vmcore.end) == NOT_FOUND_STRUCTURE ||
++	    OFFSET(devm_memmap_vmcore.entry) == NOT_FOUND_STRUCTURE)
++		return;
++
++	MSG("list_head.next: %ld\n", OFFSET(list_head.next));
++	MSG("devm_memmap_vmcore.start: %ld\n", OFFSET(devm_memmap_vmcore.start));
++	MSG("devm_memmap_vmcore.end: %ld\n", OFFSET(devm_memmap_vmcore.end));
++	MSG("devm_memmap_vmcore.entry: %ld\n", OFFSET(devm_memmap_vmcore.entry));
++
++again:
++	if (!readmem(VADDR, entry + OFFSET(list_head.next), &head_next, sizeof(head_next)))
++		return;
++
++	if (head_next == head) {
++		return;
++	}
++
++	entry = head_next;
++
++	devm_entry = entry - OFFSET(devm_memmap_vmcore.entry);
++	start_p = devm_entry + OFFSET(devm_memmap_vmcore.start);
++	end_p = devm_entry + OFFSET(devm_memmap_vmcore.end);
++
++	if (!readmem(VADDR, start_p, &start, sizeof(unsigned long))) {
++		goto fail;
++	}
++
++	if (!readmem(VADDR, end_p, &end, sizeof(unsigned long))) {
++		goto fail;
++	}
++
++	MSG("devm_memmap_vmcore[%d]: addr: %lx, [%lx - %lx )\n", cnt++, devm_entry, start, end);
++	pmem_add_next(start, end);
++	goto again;
++
++fail:
++	return;
++}
++
+ void
+ dump_mem_map(mdf_pfn_t pfn_start, mdf_pfn_t pfn_end,
+     unsigned long mem_map, int num_mm)
+@@ -3728,6 +3822,7 @@ get_mem_section(unsigned int mem_section_size, unsigned long *mem_maps,
+ 		return FALSE;
+ 	}
+ 
++	dump_pmem_metadata(1);
+ 	/*
+ 	 * There was a report that the first validation wrongly returned TRUE
+ 	 * with -x vmlinux and SPARSEMEM_EXTREME v2 on s390x, so skip it.
+@@ -6311,6 +6406,30 @@ exclude_range(mdf_pfn_t *counter, mdf_pfn_t pfn, mdf_pfn_t endpfn,
+ 	}
+ }
+ 
++static int is_pmem_metadata_range(unsigned long start, unsigned long end)
++{
++	struct devm_memmap_entry *head = devm_memmap;
++
++	while (head) {
++		if (head->start <= start && head->end >= end)
 +			return TRUE;
-+		if (pls->is_pmem && pls->phys_start != NOT_PADDR &&
-+		    pls->phys_start <= start && pls->phys_end >= end)
-+			return TRUE;
++		head = head->next;
 +	}
 +
 +	return FALSE;
 +}
 +
- static off_t
- offset_next_note(void *note)
- {
-diff --git a/elf_info.h b/elf_info.h
-index d5416b32cdd7..a08d59a331f6 100644
---- a/elf_info.h
-+++ b/elf_info.h
-@@ -64,6 +64,7 @@ int get_pt_load_extents(int idx,
- 	off_t *file_offset,
- 	off_t *file_size);
- unsigned int get_num_pt_loads(void);
-+int is_pmem_pt_load_range(unsigned long long start, unsigned long long end);
++static void cleanup_pmem_metadata(void)
++{
++	struct devm_memmap_entry *head = devm_memmap;
++
++	while (head) {
++		struct devm_memmap_entry *next = head->next;
++		free(head);
++		head = next;
++	}
++}
++
+ int
+ __exclude_unnecessary_pages(unsigned long mem_map,
+     mdf_pfn_t pfn_start, mdf_pfn_t pfn_end, struct cycle *cycle)
+@@ -6381,9 +6500,17 @@ __exclude_unnecessary_pages(unsigned long mem_map,
  
- void set_nr_cpus(int num);
- int get_nr_cpus(void);
+ 		is_pmem = is_pmem_pt_load_range(pfn << PAGESHIFT(), (pfn + 1) << PAGESHIFT());
+ 		if (is_pmem) {
+-			pfn_pmem_userdata++;
+-			clear_bit_on_2nd_bitmap_for_kernel(pfn, cycle);
+-			continue;
++			if (is_pmem_metadata_range(pfn, pfn + 1)) {
++				if (info->dump_level & DL_EXCLUDE_PMEM_META) {
++					pfn_pmem_metadata++;
++					clear_bit_on_2nd_bitmap_for_kernel(pfn, cycle);
++					continue;
++				}
++			} else {
++				pfn_pmem_userdata++;
++				clear_bit_on_2nd_bitmap_for_kernel(pfn, cycle);
++				continue;
++			}
+ 		}
+ 
+ 		index_pg = pfn % PGMM_CACHED;
+@@ -8092,7 +8219,7 @@ write_elf_pages_cyclic(struct cache_data *cd_header, struct cache_data *cd_page)
+ 	 * Reset counter for debug message.
+ 	 */
+ 	if (info->flag_cyclic) {
+-		pfn_zero = pfn_cache = pfn_cache_private = 0;
++		pfn_zero = pfn_cache = pfn_cache_private = pfn_pmem_metadata = 0;
+ 		pfn_user = pfn_free = pfn_hwpoison = pfn_offline = pfn_pmem_userdata = 0;
+ 		pfn_memhole = info->max_mapnr;
+ 	}
+@@ -9430,7 +9557,7 @@ write_kdump_pages_and_bitmap_cyclic(struct cache_data *cd_header, struct cache_d
+ 		/*
+ 		 * Reset counter for debug message.
+ 		 */
+-		pfn_zero = pfn_cache = pfn_cache_private = 0;
++		pfn_zero = pfn_cache = pfn_cache_private = pfn_pmem_metadata = 0;
+ 		pfn_user = pfn_free = pfn_hwpoison = pfn_offline = pfn_pmem_userdata = 0;
+ 		pfn_memhole = info->max_mapnr;
+ 
+@@ -10380,7 +10507,7 @@ print_report(void)
+ 	pfn_original = info->max_mapnr - pfn_memhole;
+ 
+ 	pfn_excluded = pfn_zero + pfn_cache + pfn_cache_private + pfn_pmem_userdata
+-	    + pfn_user + pfn_free + pfn_hwpoison + pfn_offline;
++	    + pfn_user + pfn_free + pfn_hwpoison + pfn_offline + pfn_pmem_metadata;
+ 
+ 	REPORT_MSG("\n");
+ 	REPORT_MSG("Original pages  : 0x%016llx\n", pfn_original);
+@@ -10396,6 +10523,7 @@ print_report(void)
+ 	REPORT_MSG("    Free pages              : 0x%016llx\n", pfn_free);
+ 	REPORT_MSG("    Hwpoison pages          : 0x%016llx\n", pfn_hwpoison);
+ 	REPORT_MSG("    Offline pages           : 0x%016llx\n", pfn_offline);
++	REPORT_MSG("    pmem metadata pages     : 0x%016llx\n", pfn_pmem_metadata);
+ 	REPORT_MSG("    pmem userdata pages     : 0x%016llx\n", pfn_pmem_userdata);
+ 	REPORT_MSG("  Remaining pages  : 0x%016llx\n",
+ 	    pfn_original - pfn_excluded);
+@@ -10437,7 +10565,7 @@ print_mem_usage(void)
+ 	pfn_original = info->max_mapnr - pfn_memhole;
+ 
+ 	pfn_excluded = pfn_zero + pfn_cache + pfn_cache_private + pfn_pmem_userdata
+-	    + pfn_user + pfn_free + pfn_hwpoison + pfn_offline;
++	    + pfn_user + pfn_free + pfn_hwpoison + pfn_offline + pfn_pmem_metadata;
+ 	shrinking = (pfn_original - pfn_excluded) * 100;
+ 	shrinking = shrinking / pfn_original;
+ 	total_size = info->page_size * pfn_original;
+@@ -12403,6 +12531,7 @@ out:
+ 		}
+ 	}
+ 	free_elf_info();
++	cleanup_pmem_metadata();
+ 
+ 	return retcd;
+ }
+diff --git a/makedumpfile.h b/makedumpfile.h
+index 21dec7d1145c..790fa698bb0e 100644
+--- a/makedumpfile.h
++++ b/makedumpfile.h
+@@ -206,7 +206,7 @@ test_bit(int nr, unsigned long addr)
+  * Dump Level
+  */
+ #define MIN_DUMP_LEVEL		(0)
+-#define MAX_DUMP_LEVEL		(31)
++#define MAX_DUMP_LEVEL		(63)
+ #define NUM_ARRAY_DUMP_LEVEL	(MAX_DUMP_LEVEL + 1) /* enough to allocate
+ 							all the dump_level */
+ #define DL_EXCLUDE_ZERO		(0x001) /* Exclude Pages filled with Zeros */
+@@ -216,6 +216,7 @@ test_bit(int nr, unsigned long addr)
+ 				           with Private Pages */
+ #define DL_EXCLUDE_USER_DATA	(0x008) /* Exclude UserProcessData Pages */
+ #define DL_EXCLUDE_FREE		(0x010)	/* Exclude Free Pages */
++#define DL_EXCLUDE_PMEM_META	(0x020)	/* Exclude pmem metadata Pages */
+ 
+ 
+ /*
+@@ -1711,6 +1712,7 @@ struct symbol_table {
+ 	unsigned long long	mem_map;
+ 	unsigned long long	vmem_map;
+ 	unsigned long long	mem_section;
++	unsigned long long	devm_memmap_vmcore_head;
+ 	unsigned long long	pkmap_count;
+ 	unsigned long long	pkmap_count_next;
+ 	unsigned long long	system_utsname;
+@@ -1817,6 +1819,7 @@ struct size_table {
+ 	long	node_memblk_s;
+ 	long	nodemask_t;
+ 	long	printk_log;
++	long	devm_memmap_vmcore;
+ 
+ 	/*
+ 	 * for lockless printk ringbuffer
+@@ -1896,6 +1899,11 @@ struct offset_table {
+ 		long	next;
+ 		long	prev;
+ 	} list_head;
++	struct devm_memmap_vmcore {
++		long	entry;
++		long	start;
++		long	end;
++	} devm_memmap_vmcore;
+ 	struct node_memblk_s {
+ 		long	start_paddr;
+ 		long	size;
 -- 
 2.29.2
 
