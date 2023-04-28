@@ -1,94 +1,153 @@
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 21ED36101
-	for <nvdimm@lists.linux.dev>; Fri, 28 Apr 2023 16:06:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EF0E3D8E
+	for <nvdimm@lists.linux.dev>; Fri, 28 Apr 2023 18:59:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1682698018; x=1714234018;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=J08f/hTWevMWIxBOMCnPQYnNGa60d/STH9HrXUvb4VA=;
-  b=dAV6CZcWjUITb8XaATOcbKBMGwsk+dpqqq+5i4lMClerFuHmfIhCvFhB
-   B+I2TRhp81+o1VjYUjM5SN3BJvs3nmLd7/Qj4GvmqTikvYmnn9jV/Dz3Q
-   rtTWs9/ZPWMSqWGgqAXOZ7xKfAnWDub3ENvdjLY5q4jdfi/K1I0HCBSgI
-   Mwa+JxGFlrv0XTX0yPvkKZt2KUY+cosRu7qS06N58F+2FSrY1K1DUgA18
-   Y/Ut2p3KkDTmz0RgPV03Vd97CK6MtfNwXRg+m1V33UpOnqJTrBnA1qT9t
-   Ey82c2pt5R88fIQ7UyXb5jWUJJdTphuO8EtvkS/Uc48S2QDh/moPozrSh
+  t=1682708362; x=1714244362;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=Qe4HOdF+ptXwX3Qo4poATeeYyH+2WcUjxHPbAjgk7Z0=;
+  b=ZzSWk0b8XN9dDI+ih6tANNbzjkwIL3bzvIPDWb9YiIJPruUvHnAP8sFB
+   wAknFBfMSL3bwKvzPlRRhaMhyssuq9D/tXcoU7PhpLTK/vLpc1yBX+uuP
+   lmkCme4+ADLxZL1xuWpAsFzfgyXIh/OoYBOHUXF6oZTZ/HXW4J8Gqo/M2
+   6rm2drphd/Ts98ehoOBW3I+nnIm7DqgvnsBemtXEHcQXv1Sll4ZjGKlVj
+   LjpGiRkTpdj/bw+fSL9dd9j2sDXBJoQsRGdUg70U4+z6A0V02kjvj790L
+   qQI6qzkXwZkikLu6JtMzAsCinLELoYjOABWuy5vJBLh5m6hV5aBWcQocx
    Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10694"; a="375780631"
+X-IronPort-AV: E=McAfee;i="6600,9927,10694"; a="328167513"
 X-IronPort-AV: E=Sophos;i="5.99,235,1677571200"; 
-   d="scan'208";a="375780631"
-Received: from fmsmga007.fm.intel.com ([10.253.24.52])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Apr 2023 09:06:57 -0700
+   d="scan'208";a="328167513"
+Received: from fmsmga003.fm.intel.com ([10.253.24.29])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Apr 2023 11:59:21 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10694"; a="697588275"
+X-IronPort-AV: E=McAfee;i="6600,9927,10694"; a="784340818"
 X-IronPort-AV: E=Sophos;i="5.99,235,1677571200"; 
-   d="scan'208";a="697588275"
-Received: from djiang5-mobl3.amr.corp.intel.com (HELO [10.212.108.170]) ([10.212.108.170])
-  by fmsmga007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Apr 2023 09:06:57 -0700
-Message-ID: <20661e33-3fa5-ef03-0860-fa20f540a3f6@intel.com>
-Date: Fri, 28 Apr 2023 09:06:56 -0700
+   d="scan'208";a="784340818"
+Received: from fmsmsx602.amr.corp.intel.com ([10.18.126.82])
+  by FMSMGA003.fm.intel.com with ESMTP; 28 Apr 2023 11:59:21 -0700
+Received: from fmsmsx602.amr.corp.intel.com (10.18.126.82) by
+ fmsmsx602.amr.corp.intel.com (10.18.126.82) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.23; Fri, 28 Apr 2023 11:59:21 -0700
+Received: from fmsedg601.ED.cps.intel.com (10.1.192.135) by
+ fmsmsx602.amr.corp.intel.com (10.18.126.82) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.23 via Frontend Transport; Fri, 28 Apr 2023 11:59:21 -0700
+Received: from NAM11-BN8-obe.outbound.protection.outlook.com (104.47.58.169)
+ by edgegateway.intel.com (192.55.55.70) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.23; Fri, 28 Apr 2023 11:59:20 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=HQJZOw6zo3O+XlUF41OdNbgQPoE7nh3rVPk0Wd1UWIF1V+uU/3DbOjxdgnp3WhBVtTpvuO2+bY5dZdeHJQR/dqwAxv6BkLx3yAqhVm/kTRTYTLGc/8kBkHKiavcRQKJlrIxi5a+bTC1GNp2RF82eQsQI6fkaNFJFADtcDN+m+NSBaS0c45uIGdVhlq8CsenaZt5DLkYhXSm4y5wSSVoRi3dVJPac5GRy9OKr+ceBRJXjy1XcSUTGNwMlkcQ+jvjJUQxmE6DyHi4l1DOQlrFZUY/g76E+nww6kmTihfIeI2Xo85bO2l7T0LU5i5HzmI27fJEyAq65yRt3juBJ1mGDwQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=wsDhoIRR1uusgGPNcCq+IKrBlmypDjc9pwr0IUPfgV0=;
+ b=JU5rXDt/w9iArZBUx7RsmU0LhW6qO2SCdeBVWHiDHRYV3yQzVO+DHzonuQ75/eBaRmZS5DRGbnALWHRrJWjl8QyWu5eQuVMRMgQ0sZA4TluD552KNUs7v1PBHRFPNBJC5rm/eXBSkvzsH69gfNa4N5SHRcMRhexSwtm6hVO4rprJY4hrBo8F2gs0ZMgEPhvvEG/+0QpfYGUciOY19n7MTk9F6UiXEZSJRNm+Z5gUcUxrIVBYyicmX9oYy5GyzPJJ2A/mgNa70X4oHShLYcGEljcM28cK2P5FPZXf5TJLRpnlpcKAEmJSIQMDFjNCAg0CZin1OlYY54X3KHf15Db6tg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from PH8PR11MB8107.namprd11.prod.outlook.com (2603:10b6:510:256::6)
+ by SJ2PR11MB7716.namprd11.prod.outlook.com (2603:10b6:a03:4f2::18) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6319.34; Fri, 28 Apr
+ 2023 18:59:18 +0000
+Received: from PH8PR11MB8107.namprd11.prod.outlook.com
+ ([fe80::95c6:c77e:733b:eee5]) by PH8PR11MB8107.namprd11.prod.outlook.com
+ ([fe80::95c6:c77e:733b:eee5%6]) with mapi id 15.20.6340.020; Fri, 28 Apr 2023
+ 18:59:17 +0000
+Date: Fri, 28 Apr 2023 11:59:14 -0700
+From: Dan Williams <dan.j.williams@intel.com>
+To: Li Zhijian <lizhijian@fujitsu.com>, <x86@kernel.org>,
+	<nvdimm@lists.linux.dev>, <kexec@lists.infradead.org>
+CC: <linux-kernel@vger.kernel.org>, <y-goto@fujitsu.com>,
+	<yangx.jy@fujitsu.com>, <ruansy.fnst@fujitsu.com>
+Subject: RE: [RFC PATCH v2 0/3] pmem memmap dump support
+Message-ID: <644c17823cf83_13303129460@dwillia2-xfh.jf.intel.com.notmuch>
+References: <20230427101838.12267-1-lizhijian@fujitsu.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20230427101838.12267-1-lizhijian@fujitsu.com>
+X-ClientProxiedBy: SJ0PR03CA0159.namprd03.prod.outlook.com
+ (2603:10b6:a03:338::14) To PH8PR11MB8107.namprd11.prod.outlook.com
+ (2603:10b6:510:256::6)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Firefox/102.0 Thunderbird/102.10.0
-Subject: Re: [PATCH 4/4] test: Fix dangling pointer warning
-Content-Language: en-US
-To: Dan Williams <dan.j.williams@intel.com>, vishal.l.verma@intel.com
-Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
-References: <168236637159.1027628.7560967008080605819.stgit@dwillia2-xfh.jf.intel.com>
- <168236639399.1027628.5866455518934998684.stgit@dwillia2-xfh.jf.intel.com>
-From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <168236639399.1027628.5866455518934998684.stgit@dwillia2-xfh.jf.intel.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: PH8PR11MB8107:EE_|SJ2PR11MB7716:EE_
+X-MS-Office365-Filtering-Correlation-Id: 2df34b94-1445-45d4-742b-08db481aaa96
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: vtplahSq/ayTrcnfeywFxU2HLTUH9xeHY3pFSXwqTHouZ4uAi6D21N3fGZmepNfyptihIAjBRxcJaY902+AYDO5vhW7Sw6GJ4j+eLEkP/iXHsT+8BwcOqI/qkOufuQgOKaWZhf2+0AEfv0442FWm38UlbyPNTgtd92PMmdwt5LXZk4jZXe5HHEh5/uYaXAQ2HTGpBM20cWrxQFwSgRgNxOe+pW1a1cH4Y6OkamUrF4pJc54VQFtbNBalDebVkQ2ckaOtK6wPnebET/Y1alvSYC3NOyfKHPz+RjSyW81bcUH3klFnC4+0jPid47uj67JYI4OZX0uL+su8lckmO3ZQISMp1EkrVWaKDDcRWVF+yeDu8mdRr6vcVxYpBsDpfr6CjJh0vE56Cgp9+Pd6BVMUP4CjkrFpHTLtzLHNB3reaWN5EyrtVIJnxOfnH1KrG5oKvdt62X6uay8WbHDBdpIrLJYtARjDzCFwC7HmxdzjzLPFMwux/k0Z+EccvlkfzFbEFmx/ZZM0sNIe1cABhwBqJrHzqo0xrwctEA9JsPNnrVw=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH8PR11MB8107.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230028)(376002)(396003)(136003)(346002)(366004)(39860400002)(451199021)(66556008)(478600001)(4744005)(8936002)(86362001)(4326008)(5660300002)(38100700002)(8676002)(2906002)(66946007)(316002)(82960400001)(66476007)(41300700001)(966005)(186003)(26005)(9686003)(6512007)(6506007)(6486002)(83380400001)(6666004);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?wX1OQpSk0IjRU49rQYwnOtqWKxwanoHKby6istuJ0BR4bqqfy/5ZQPCj3bz5?=
+ =?us-ascii?Q?V+yP4OIw/o6F9gpmFfeuMkz7ZSux86jx7hHlkCx7rKlodZjLXOiM9fd8T2bu?=
+ =?us-ascii?Q?RjXXbwp1g08Crnp5GU9XvalKISaasZA1JYDCcQe3ikC+4aueTCiFjXSZ0VVV?=
+ =?us-ascii?Q?NhN37fIZmTds7hUS+CE7YuWycJCGke2TdQDXqP7OK4PFoqQm63YU8mHXS+Q3?=
+ =?us-ascii?Q?DruTNXBgsvdR0ttNEFSk1MI4c7INe6n7x7DhZmInL90kzybFogFr0/29NU6Q?=
+ =?us-ascii?Q?g/S/HiEayoo5wHXXQFfdgitjpXlNosOTOKa5U6PdEbKbFVyzcdwZwIbC56la?=
+ =?us-ascii?Q?3A481Za5CMhZX09UzC2T5UJZYVemf9a9mysahFeuqXJlhoLvX8kkn80URJRC?=
+ =?us-ascii?Q?5qq1BMTwbwt0Ujs1wArIwH/Jlnek4cuWI+1n8qKafoCExOBD/oRnuo01i1ZV?=
+ =?us-ascii?Q?apExSssfuJYMxwhEEwe6qg0fjjGWhNKNxl3SWYrqTaf0nqHvEp7p6Bx8dWcY?=
+ =?us-ascii?Q?60vcXJ3ocv4hOSZ5oNv+1dl0hRHDWzR9Pcc2r8aqnK0/89AD/aMcMQPhNv5a?=
+ =?us-ascii?Q?cQgnDHc3+pBU5cxvbE693eauns3Aau7u84ob1PkHtCx/u32VwUEwGt3spH3w?=
+ =?us-ascii?Q?VJusZ8UR91EWx5Lre6QmibPD9M6k+HEjpH0hptrDM/fJPQBtc7+MXuPVjp2G?=
+ =?us-ascii?Q?IajgubmDmYD3t6lFsCAzPvlkckC6Mx4VznlfwqdK3+OSwe9kaRAjKYuodOyi?=
+ =?us-ascii?Q?Ls4nd0wCdQBfSYcT8t/Mws664tGCR4uIk5dKJf6spGvK6RNTnl/Tlatp1MTi?=
+ =?us-ascii?Q?0RcXF9r1GurkFpyARFFhFdw0+QOTF1zRG16CR9wC3AhjedKncWNGBXTlXUgH?=
+ =?us-ascii?Q?XdKhspR+v4ydF83igugbyMGQbQu4ImfAefqfg3BSrYfxrqcD1czjQH3/hg+R?=
+ =?us-ascii?Q?2fYE9bWeDBxD5PjAbvwdsmbtGDQCuPiDCPoOE9TWtkuhwLvBimc3g3uUT3hv?=
+ =?us-ascii?Q?EZCwDOKt5ZWJNk66+N8PsFIPNaxl8q5gcVSdUKmW57AL6ycv7lTUib/flHEm?=
+ =?us-ascii?Q?+P4nmU0khKXnl2uc5l7egtWktB/p1CFWiRSL0GmIiSGEC0WzENEfMim633az?=
+ =?us-ascii?Q?N/MTrVyRmiyemTOCxDJMY5AVb82d24wkzf5CPM/0es5T8j4fUty7VBPus32V?=
+ =?us-ascii?Q?TNxdPRYDyltZnWMIDAT5hUbmdIH7TopO7oHJqcYusnADLcHI6Zy4u/7T8ddx?=
+ =?us-ascii?Q?1ErGOwyTkB3H0SHZ76FvNr56RAbqYqh5Xbl/WoDUu8vqkuXwzms+c4Qg3Yyy?=
+ =?us-ascii?Q?dsgXlf3q+uPsPIQfHpGCTUk5dEjBzMZ8kossxitQ9KeIwij5Y99QpwhNNiYe?=
+ =?us-ascii?Q?gVOoW/UrJ8KaUmetzWmCGDIR+1tE8P+VfOT6OCOrOg7d06HZgM41WSoGUNK9?=
+ =?us-ascii?Q?31J+ok6wMw89J8VtP86Sv+klI8Dl6OiGOxlXDmXYr/3GoOVNGBn9enhH99Aa?=
+ =?us-ascii?Q?Wfz5qkOYTKT+/HRsicVo9SydsJZXgujQjoz9VJpsS5xiKpKFJRhAw2Rs2/zL?=
+ =?us-ascii?Q?9u83gJ4+EFfjlnMduk25/mSBdYYW0TtKQcsmlOIj8SicGts3/KZXRIAuY6on?=
+ =?us-ascii?Q?aQ=3D=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: 2df34b94-1445-45d4-742b-08db481aaa96
+X-MS-Exchange-CrossTenant-AuthSource: PH8PR11MB8107.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 28 Apr 2023 18:59:17.4403
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: Fxv9X+8V9o404hDptYotnhOcna2Ng30F4XBIfJPz2eqHa8cbvY17Kh0XeS54vyMYRq6J7ndIspQXMF2UtrSiE5M83bOir9o19TXgphh+858=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ2PR11MB7716
+X-OriginatorOrg: intel.com
 
+Li Zhijian wrote:
+> Hello folks,
+> 
+> About 2 months ago, we posted our first RFC[3] and received your kindly feedback. Thank you :)
+> Now, I'm back with the code.
+> 
+> Currently, this RFC has already implemented to supported case D*. And the case A&B is disabled
+> deliberately in makedumpfile. It includes changes in 3 source code as below:
 
+I think the reason this patchkit is difficult to follow is that it
+spends a lot of time describing a chosen solution, but not enough time
+describing the problem and the tradeoffs.
 
-On 4/24/23 12:59 PM, Dan Williams wrote:
-> gcc (13.0.1 20230421 (Red Hat 13.0.1-0)) complains:
-> 
-> ../test/libndctl.c: In function ‘check_commands’:
-> ../test/libndctl.c:2313:20: warning: storing the address of local variable
-> ‘__check_dimm_cmds’ in ‘check_cmds’ [-Wdangling-poiter=]
-> 
-> ...fix it by showing the compiler that the local setting does not escape
-> the function.
-> 
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+For example why is updating /proc/vmcore with pmem metadata the chosen
+solution? Why not leave the kernel out of it and have makedumpfile
+tooling aware of how to parse persistent memory namespace info-blocks
+and retrieve that dump itself? This is what I proposed here:
 
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+http://lore.kernel.org/r/641484f7ef780_a52e2940@dwillia2-mobl3.amr.corp.intel.com.notmuch
 
-> ---
->   test/libndctl.c |    4 +++-
->   1 file changed, 3 insertions(+), 1 deletion(-)
-> 
-> diff --git a/test/libndctl.c b/test/libndctl.c
-> index 51245cf4ea98..858110c4dbc1 100644
-> --- a/test/libndctl.c
-> +++ b/test/libndctl.c
-> @@ -2322,7 +2322,8 @@ static int check_commands(struct ndctl_bus *bus, struct ndctl_dimm *dimm,
->   					ndctl_bus_get_provider(bus),
->   					ndctl_dimm_get_id(dimm),
->   					ndctl_dimm_get_cmd_name(dimm, i));
-> -			return -ENXIO;
-> +			rc = -ENXIO;
-> +			break;
->   		}
->   
->   		if (!check->check_fn)
-> @@ -2331,6 +2332,7 @@ static int check_commands(struct ndctl_bus *bus, struct ndctl_dimm *dimm,
->   		if (rc)
->   			break;
->   	}
-> +	check_cmds = NULL;
->   
->   	for (i = 0; i < ARRAY_SIZE(__check_dimm_cmds); i++) {
->   		if (__check_dimm_cmds[i].cmd)
-> 
-> 
+...but never got an answer, or I missed the answer.
