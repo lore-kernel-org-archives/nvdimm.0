@@ -1,63 +1,105 @@
-Received: from mail-pl1-f174.google.com (mail-pl1-f174.google.com [209.85.214.174])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4928B17FE9
-	for <nvdimm@lists.linux.dev>; Tue,  9 May 2023 15:34:00 +0000 (UTC)
-Received: by mail-pl1-f174.google.com with SMTP id d9443c01a7336-1aaff9c93a5so41705015ad.2
-        for <nvdimm@lists.linux.dev>; Tue, 09 May 2023 08:34:00 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1683646440; x=1686238440;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=Q0vGxqKgTtdJba+JT4w9Z+FB1d5UBN7wUwHlV8IbLpQ=;
-        b=X3j75nOcQoPXR8ecV0DRmJJImcCH/QUUn7pjlIxXCrBWY20Ab3o45ojfnVTVRKFQRQ
-         XOUIM/pqvDx5VpZptheJ5zZpXFtkt4p+/unf1YUBfJTvPmOzUdikIPKqT4RYtDY9wbMH
-         RgnVJKwmNoPmTBhWXFRdNM+aBsJlFuuzqfQsn6Uq+LGKOjpep6gLtxo2Wp+kfl7TCT+6
-         aMjnrVGEKWpSKN3VR+e8dSH+CNOUmHUWlPLm8GorrK9Y44JuBjVUfd2AP1Lr/XSlsb78
-         6ew6hc94POQk5zM7GjTM8zFWD2h4K31AHVraYyuwnqvj4s7dhDgACoyhOqH5CJLOGEj1
-         Cy9g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1683646440; x=1686238440;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=Q0vGxqKgTtdJba+JT4w9Z+FB1d5UBN7wUwHlV8IbLpQ=;
-        b=SxT6BxFfxmkXDZsjg0QgPScryE4sj2oIFN0mUj2gujjVnxz8BkECJSQ0Ue0LWUFIsz
-         42e4V5ve1OGXcf6fWO/hc8+P4qSdsATXkpcr2MsQSDvLGXRbwhdo7dPI7/p2Hkuu/kTb
-         A7RV+KoZnvI6VCYZeNuBJ9EGa14KAiMHFdY8GHbEsr1j3NZFnZrz6WNMisDrEuN7YyG1
-         S8UAHuNEbuQWufxeXZ337Nh9guwqRun7C06qYBuTOyQDOX5pUzgINLOLj+dvsJ2Rao+0
-         oh4FDpQsS+5orFp/GtmnoTC+l/XLfjpKBDM9kWifK9oE2S1B8gABoc2PA/k+Ubg+XuLU
-         tfmg==
-X-Gm-Message-State: AC+VfDyQ1KfiozLquJEk5Q9Fp6KhSHMcyPZH6FfN/x9RVFi2ADXF/9l7
-	++JWSzRM/y4M931MEMkGS5k=
-X-Google-Smtp-Source: ACHHUZ5Wgicv45Pi3yWn3FCiD1DPy6gM7DeL7KwOdwsq0DyURA19W0EqdJZnpK8egd29KUM4AVZ2yw==
-X-Received: by 2002:a17:903:11c3:b0:1ab:160c:526d with SMTP id q3-20020a17090311c300b001ab160c526dmr15521943plh.22.1683646439676;
-        Tue, 09 May 2023 08:33:59 -0700 (PDT)
-Received: from minwoo-desktop ([1.230.133.98])
-        by smtp.gmail.com with ESMTPSA id n10-20020a170902d2ca00b001aaf13db1acsm1714418plc.276.2023.05.09.08.33.57
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 09 May 2023 08:33:59 -0700 (PDT)
-Date: Wed, 10 May 2023 00:33:54 +0900
-From: Minwoo Im <minwoo.im.dev@gmail.com>
-To: Yi Zhang <yi.zhang@redhat.com>
-Cc: nvdimm@lists.linux.dev, vishal.l.verma@intel.com,
-	dan.j.williams@intel.com
-Subject: Re: [PATCH ndctl] typo fix: ovewrite -> overwrite
-Message-ID: <ZFpn4rNvkePYL78/@minwoo-desktop>
-References: <20230509230005.2122950-1-yi.zhang@redhat.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 164DC17FE0
+	for <nvdimm@lists.linux.dev>; Tue,  9 May 2023 17:32:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1683653578; x=1715189578;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=9c9rODCEChw8HkLEJmiJj2jDB4UiE+/DfspcG/XxYQs=;
+  b=josG3C2L3PTJgcptS50S2pqGzSUhehhos1Xi6lLNmGdKbT+CfLnXodnG
+   FXNEMNwQG1XBrEN2oMCLkRGv7pRLkHXBXkJdXrNmxW/6t/0Qn6O29O450
+   rFMX3S37Aa2JXHL2x/iihbO+W5ews8Xe1ojQXi2StwRbi7r3YCfSMXyUg
+   DwF7GP//tIZVa6qZeUfwy8E4zUKaEiBMs4bwp/We2Ri7CKSZSwVyDyQ5O
+   tXyg1ldlYfByLRrHzTzTKY2LuRTXmrcRSDlShhYGXpH8MPsQBFUIpOO1Z
+   JIcXT8feYJ4aDTBj5GPxnExdwUzgDz1I5UXD3GJAQdua1nIwMz2C2tlIZ
+   g==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10705"; a="353065943"
+X-IronPort-AV: E=Sophos;i="5.99,262,1677571200"; 
+   d="scan'208";a="353065943"
+Received: from orsmga001.jf.intel.com ([10.7.209.18])
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 May 2023 10:31:56 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10705"; a="731824461"
+X-IronPort-AV: E=Sophos;i="5.99,262,1677571200"; 
+   d="scan'208";a="731824461"
+Received: from dcovax-mobl.amr.corp.intel.com (HELO [10.212.97.226]) ([10.212.97.226])
+  by orsmga001-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 May 2023 10:31:55 -0700
+Message-ID: <d6626276-2822-61f5-6b5e-296a49ffbea1@intel.com>
+Date: Tue, 9 May 2023 10:31:55 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20230509230005.2122950-1-yi.zhang@redhat.com>
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Firefox/102.0 Thunderbird/102.10.0
+Subject: Re: [ndctl PATCH 1/3] cxl/list: Fix typo in cxl-list documentation
+Content-Language: en-US
+To: Minwoo Im <minwoo.im.dev@gmail.com>, linux-cxl@vger.kernel.org,
+ nvdimm@lists.linux.dev
+Cc: Dan Williams <dan.j.williams@intel.com>,
+ Vishal Verma <vishal.l.verma@intel.com>
+References: <20230509152427.6920-1-minwoo.im.dev@gmail.com>
+ <20230509152427.6920-2-minwoo.im.dev@gmail.com>
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <20230509152427.6920-2-minwoo.im.dev@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On 23-05-10 07:00:04, Yi Zhang wrote:
-> Fix typos in Documentation/ndctl/ndctl-sanitize-dimm.txt and ndctl/lib/dimm.c
+
+
+On 5/9/23 8:24 AM, Minwoo Im wrote:
+> s/the returned the returned object/the returned object
+> s/ellided/elided
+> s/hierararchy/hierarchy
+> s/specifed/specified
+> s/identidier/identifier
+> s/scenerios/scenarios
 > 
-> Signed-off-by: Yi Zhang <yi.zhang@redhat.com>
+> Signed-off-by: Minwoo Im <minwoo.im.dev@gmail.com>
 
-Reviewed-by: Minwoo Im <minwoo.im.dev@gmail.com>
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+
+> ---
+>   Documentation/cxl/cxl-list.txt | 10 +++++-----
+>   1 file changed, 5 insertions(+), 5 deletions(-)
+> 
+> diff --git a/Documentation/cxl/cxl-list.txt b/Documentation/cxl/cxl-list.txt
+> index c64d65d3ffbe..838de4086678 100644
+> --- a/Documentation/cxl/cxl-list.txt
+> +++ b/Documentation/cxl/cxl-list.txt
+> @@ -18,9 +18,9 @@ instances along with some of their major attributes.
+>   Options can be specified to limit the output to specific objects. When a
+>   single object type is specified the return json object is an array of
+>   just those objects, when multiple objects types are specified the
+> -returned the returned object may be an array of arrays with the inner
+> -array named for the given object type. The top-level arrays are ellided
+> -when the objects can nest under a higher object-type in the hierararchy.
+> +returned object may be an array of arrays with the inner
+> +array named for the given object type. The top-level arrays are elided
+> +when the objects can nest under a higher object-type in the hierarchy.
+>   The potential top-level array names and their nesting properties are:
+>   
+>   "anon memdevs":: (disabled memory devices) do not nest
+> @@ -34,7 +34,7 @@ The potential top-level array names and their nesting properties are:
+>   "endpoint decoders":: nest under endpoints, or ports (if endpoints are
+>      not emitted) or buses (if endpoints and ports are not emitted)
+>   
+> -Filters can by specifed as either a single identidier, a space separated
+> +Filters can be specified as either a single identifier, a space separated
+>   quoted string, or a comma separated list. When multiple filter
+>   identifiers are specified within a filter string, like "-m
+>   mem0,mem1,mem2", they are combined as an 'OR' filter.  When multiple
+> @@ -263,7 +263,7 @@ OPTIONS
+>   --buses::
+>   	Include 'bus' / CXL root object(s) in the listing. Typically, on ACPI
+>   	systems the bus object is a singleton associated with the ACPI0017
+> -	device, but there are test scenerios where there may be multiple CXL
+> +	device, but there are test scenarios where there may be multiple CXL
+>   	memory hierarchies.
+>   ----
+>   # cxl list -B
