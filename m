@@ -1,86 +1,90 @@
-Received: from mail-pl1-f180.google.com (mail-pl1-f180.google.com [209.85.214.180])
+Received: from mail-pl1-f173.google.com (mail-pl1-f173.google.com [209.85.214.173])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D6B847499
-	for <nvdimm@lists.linux.dev>; Tue,  9 May 2023 15:25:00 +0000 (UTC)
-Received: by mail-pl1-f180.google.com with SMTP id d9443c01a7336-1ab1b79d3a7so41430895ad.3
-        for <nvdimm@lists.linux.dev>; Tue, 09 May 2023 08:25:00 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A898E17FE6
+	for <nvdimm@lists.linux.dev>; Tue,  9 May 2023 15:30:45 +0000 (UTC)
+Received: by mail-pl1-f173.google.com with SMTP id d9443c01a7336-1aae5c2423dso58884985ad.3
+        for <nvdimm@lists.linux.dev>; Tue, 09 May 2023 08:30:45 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1683645900; x=1686237900;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=TX3aP/5DthuPCekKZDcqCd6crocwyObcAs1lRnioK90=;
-        b=F5MUoBUE5u7DgsnADrU5ePszG0mAePgoJ0z1HVnRECMkTIO8vxBhxasZ7uC203/mk0
-         eJophLn+d41ivCp0VZ0mekoyPYXrbfTTw98yEMc/534O0JJlQW4gNfsE2q4oYoZHeU82
-         +2gmUQeRDsxRBLXFtwlhKorwSPaPybs0rsGVaurZlbo9H+KL3sNzcScM65Zr2IuOgu7q
-         L5w5GctN9NyaN9IIvUfAOZ1Gf6kxwm8QP9Ddpp+yUlANGtmtA/CWkpEKGfbaZbym5WJD
-         t1nP/ZL8eIMtxsK5qCXOl9MkFjSQcRp/lHvOC4Bmfna6HzMjLdiQP0vtMJlrgzALUYZM
-         r7cA==
+        d=gmail.com; s=20221208; t=1683646245; x=1686238245;
+        h=content-disposition:mime-version:message-id:subject:to:from:date
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=l7Kfo5IoYaNITwCS7KZb9AEWHVN5q9jOIDAvAT9AqOw=;
+        b=GXPSX8ExSi7KHfhO/6v4hOCe16Q9vNVbKrR4QOAQ3O3SzLB+Pnaw+gZ+/jIZTvz5m3
+         CAa98t4PLZwr7Ijt+tp8S8dlexzqNVtym+vLckKPTJc++p4aL24RReKl6zmZIH8NPDhb
+         Qp1QwxAPS3ANNf+UnnsHkswnyfl2l+ZDgEfoM2RFbxSEpaHoymh5sdM5KaqEdG01C6qL
+         Vn3p8LHX6kf7NfjoMg6I6qQ4oC5dW8jKBh2szTjFk42fjMJLpy1P0YFlyJIw26MEQXL3
+         tFJUe4nwFa54fyasVvICKofuc3f2WwfsUpTtL6rYC/Y73rX/SXEAQWg2wJB8VZeSwbbh
+         InDQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1683645900; x=1686237900;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=TX3aP/5DthuPCekKZDcqCd6crocwyObcAs1lRnioK90=;
-        b=YlCCCUxdPVniyOTRFeC6fqxzfEgr2kPcoLUPMM+cJdOnpcP+HMvZXEsvg5L6vAaHui
-         HJkOtV/0Jm/luDOAt2CXjLubBATuz9dxfKbi/dBJHneLRR7fJAn7UmLM3tC8ylxujsXB
-         TbNgI1UGUk3nq6KukUmpXtuheSdRkSe6q4z+9zWrg4wVbvKHzUWPJLFOG/RpX+x+Pgwt
-         YPc+q80f5fgdKoGQXb6Ps4hDLJDcBcSQelVMfJfQ7N96xWYg1/4wqO+QXeJskn3HmmZw
-         8NfhlE/OQdVHfg7L+/u4t+WYrWQAgLJgUq4kfcSuj66PjPxwhe5i8igvLv8/ZwGSroZL
-         CV+Q==
-X-Gm-Message-State: AC+VfDyYEmef9CJr95laXIzOtD0jsdfKjnP4hV0Figxk4pHrm+IInaxj
-	l6PVFlEhqoFF10I9qA048Bo=
-X-Google-Smtp-Source: ACHHUZ7qgn7AWYXmlGL/WnKq4Wk7cwfgJorb5hF6+xT0HWc/i8XXrOIez/uRh4nQJe7Z+IERMa3vbA==
-X-Received: by 2002:a17:903:2308:b0:19d:778:ff5 with SMTP id d8-20020a170903230800b0019d07780ff5mr18797505plh.15.1683645900506;
-        Tue, 09 May 2023 08:25:00 -0700 (PDT)
-Received: from localhost ([1.230.133.98])
-        by smtp.gmail.com with ESMTPSA id j9-20020a17090276c900b001aaeaa27dd5sm1697344plt.252.2023.05.09.08.24.59
+        d=1e100.net; s=20221208; t=1683646245; x=1686238245;
+        h=content-disposition:mime-version:message-id:subject:to:from:date
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=l7Kfo5IoYaNITwCS7KZb9AEWHVN5q9jOIDAvAT9AqOw=;
+        b=eKa3f44ObDZ75yPBM3702E6VSEnPWpYXG+FDYlkDVedKE83umpn3wIKivYdGOhyS0J
+         GCeM3ZeTEgjbU7y5MYKG/LYeELloGDwyTgV8H9h55uPcUsWLmqBhKKTukUiovPwo4xxw
+         U9EkElPFE9p5FIH4rkPqxFRy2qif6kyw8pxXLdlU1NqgHpobkK4T5/1NzctFGKvxiMxa
+         HQmEVmSO3ekSmu0vsXPdwBgKUKTDUocdzv5iVxsZ1SPzvZCsuU3qkgQIQ8coXRVoSkcN
+         Wnmu193yd0qj0gMAr0wfSCAPJONCzje20G16S9WRBkOHAo1J+2DPkX2JAwqledFj6hLe
+         G4FQ==
+X-Gm-Message-State: AC+VfDxv0DezKTosP071bEvE2MVZ4422k7fMwgGhzJy83Kwh4xXKlrO1
+	I3A48n+C07BYWEXziR5PgUoeNXST5KY=
+X-Google-Smtp-Source: ACHHUZ4yAbFTXp+9NWzeX7WmWaR2uMzGlq8yNtb1Pf9WAxKkJ8rzbuXvV6ELPHtK3pLRsbFoK8+Gjg==
+X-Received: by 2002:a17:902:cec2:b0:1a8:1f41:59ba with SMTP id d2-20020a170902cec200b001a81f4159bamr17262823plg.38.1683646244697;
+        Tue, 09 May 2023 08:30:44 -0700 (PDT)
+Received: from minwoo-desktop ([1.230.133.98])
+        by smtp.gmail.com with ESMTPSA id 13-20020a170902e9cd00b001ab0669d84csm1750195plk.26.2023.05.09.08.30.43
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 09 May 2023 08:25:00 -0700 (PDT)
+        Tue, 09 May 2023 08:30:44 -0700 (PDT)
+Date: Wed, 10 May 2023 00:30:40 +0900
 From: Minwoo Im <minwoo.im.dev@gmail.com>
-To: linux-cxl@vger.kernel.org,
-	nvdimm@lists.linux.dev
-Cc: Dave Jiang <dave.jiang@intel.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Minwoo Im <minwoo.im.dev@gmail.com>
-Subject: [ndctl PATCH 3/3] cxl: fix changed function name in a comment
-Date: Wed, 10 May 2023 00:24:27 +0900
-Message-Id: <20230509152427.6920-4-minwoo.im.dev@gmail.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20230509152427.6920-1-minwoo.im.dev@gmail.com>
-References: <20230509152427.6920-1-minwoo.im.dev@gmail.com>
+To: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
+Subject: ndctl-v77: LIBCXL_5 not found
+Message-ID: <ZFpnIICkh3Wpqmn/@minwoo-desktop>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-cxl_memdev_target_find_decoder() has been renamed to
-cxl_memdev_find_decoder in Commit 21b089025178 ("cxl: add a
-'create-region' command").  Fix function name in a comment.
+Hello ndctl,
 
-Signed-off-by: Minwoo Im <minwoo.im.dev@gmail.com>
+With the recent tag (v77), after building it with the following
+commands, `cxl` command is not albe to find `LIBCXL_5` version from the
+/lib/libcxl.so.1 installed.
+
+	meson build
+	ninja -C build
+	meson install -C build
+
+	root@vm:~/work/ndctl.git# cxl
+	cxl: /lib/libcxl.so.1: version `LIBCXL_5' not found (required by cxl)
+	root@vm:~/work/ndctl.git# ls -l /lib/libcxl.so.1
+	lrwxrwxrwx 1 root root 15 May  9 15:28 /lib/libcxl.so.1 -> libcxl.so.1.1.3
+
+I'm not pretty certain how to go through with this, but I'm using v77
+with the following patch which might not be a good one to solve it.
+
+
 ---
- cxl/region.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+diff --git a/meson.build b/meson.build
+index 50e83cf770a2..665b8e958178 100644
+--- a/meson.build
++++ b/meson.build
+@@ -307,7 +307,7 @@ LIBDAXCTL_AGE=5
 
-diff --git a/cxl/region.c b/cxl/region.c
-index 71f152d9e5a5..45f0c6a3771c 100644
---- a/cxl/region.c
-+++ b/cxl/region.c
-@@ -676,7 +676,7 @@ static int create_region(struct cxl_ctx *ctx, int *count,
- 		}
- 		if (cxl_decoder_get_mode(ep_decoder) != p->mode) {
- 			/*
--			 * The memdev_target_find_decoder() helper returns a free
-+			 * The cxl_memdev_find_decoder() helper returns a free
- 			 * decoder whose size has been checked for 0.
- 			 * Thus it is safe to change the mode here if needed.
- 			 */
--- 
-2.34.1
+ LIBCXL_CURRENT=5
+ LIBCXL_REVISION=0
+-LIBCXL_AGE=4
++LIBCXL_AGE=5
 
+ root_inc = include_directories(['.', 'ndctl', ])
+
+
+
+It would be great if any folks here can provide advices on this.
+
+Thanks,
