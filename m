@@ -1,28 +1,28 @@
-Received: from esa12.hc1455-7.c3s2.iphmx.com (esa12.hc1455-7.c3s2.iphmx.com [139.138.37.100])
+Received: from esa4.hc1455-7.c3s2.iphmx.com (esa4.hc1455-7.c3s2.iphmx.com [68.232.139.117])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 870F51774C
-	for <nvdimm@lists.linux.dev>; Thu, 11 May 2023 07:38:22 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6600,9927,10706"; a="95802003"
-X-IronPort-AV: E=Sophos;i="5.99,266,1677510000"; 
-   d="scan'208";a="95802003"
-Received: from unknown (HELO oym-r1.gw.nic.fujitsu.com) ([210.162.30.89])
-  by esa12.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 May 2023 16:37:10 +0900
-Received: from oym-m1.gw.nic.fujitsu.com (oym-nat-oym-m1.gw.nic.fujitsu.com [192.168.87.58])
-	by oym-r1.gw.nic.fujitsu.com (Postfix) with ESMTP id DA151C1484
-	for <nvdimm@lists.linux.dev>; Thu, 11 May 2023 16:37:08 +0900 (JST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B4757461
+	for <nvdimm@lists.linux.dev>; Fri, 12 May 2023 08:12:15 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6600,9927,10707"; a="116428798"
+X-IronPort-AV: E=Sophos;i="5.99,269,1677510000"; 
+   d="scan'208";a="116428798"
+Received: from unknown (HELO yto-r2.gw.nic.fujitsu.com) ([218.44.52.218])
+  by esa4.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2023 17:11:05 +0900
+Received: from yto-m4.gw.nic.fujitsu.com (yto-nat-yto-m4.gw.nic.fujitsu.com [192.168.83.67])
+	by yto-r2.gw.nic.fujitsu.com (Postfix) with ESMTP id 0F787DE50D
+	for <nvdimm@lists.linux.dev>; Fri, 12 May 2023 17:11:02 +0900 (JST)
 Received: from kws-ab2.gw.nic.fujitsu.com (kws-ab2.gw.nic.fujitsu.com [192.51.206.12])
-	by oym-m1.gw.nic.fujitsu.com (Postfix) with ESMTP id 0B0961570C
-	for <nvdimm@lists.linux.dev>; Thu, 11 May 2023 16:37:08 +0900 (JST)
+	by yto-m4.gw.nic.fujitsu.com (Postfix) with ESMTP id 5829AD3F03
+	for <nvdimm@lists.linux.dev>; Fri, 12 May 2023 17:11:01 +0900 (JST)
 Received: from localhost.localdomain (unknown [10.167.226.45])
-	by kws-ab2.gw.nic.fujitsu.com (Postfix) with ESMTP id 356BC23406AA;
-	Thu, 11 May 2023 16:37:07 +0900 (JST)
+	by kws-ab2.gw.nic.fujitsu.com (Postfix) with ESMTP id 6E41723409E4;
+	Fri, 12 May 2023 17:11:00 +0900 (JST)
 From: Li Zhijian <lizhijian@fujitsu.com>
 To: nvdimm@lists.linux.dev
 Cc: Li Zhijian <lizhijian@fujitsu.com>
-Subject: [ndctl PATCH] rpmbuild.sh: Abort script when an error occurs
-Date: Thu, 11 May 2023 15:36:57 +0800
-Message-Id: <20230511073657.706429-1-lizhijian@fujitsu.com>
+Subject: [ndctl PATCH] meson.build: add libtracefs version >=1.2.0 dependency
+Date: Fri, 12 May 2023 16:10:26 +0800
+Message-Id: <20230512081026.735459-1-lizhijian@fujitsu.com>
 X-Mailer: git-send-email 2.31.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -32,47 +32,46 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-TM-AS-GCONF: 00
-X-TM-AS-Product-Ver: IMSS-9.1.0.1408-9.0.0.1002-27618.006
+X-TM-AS-Product-Ver: IMSS-9.1.0.1408-9.0.0.1002-27620.005
 X-TM-AS-User-Approved-Sender: Yes
-X-TMASE-Version: IMSS-9.1.0.1408-9.0.1002-27618.006
-X-TMASE-Result: 10--3.112100-10.000000
-X-TMASE-MatchedRID: w/VW/btTjlMdKunVoZzJfxlxrtI3TxRkltF+xW+zhUjMB0kPsl40w8YH
-	4yY++5KbKqrQ7lLcMnyREZKGpLMFWS/7QU2czuUNfOaYwP8dcX4Z9kiZvd+oBFQuGn5b9r2ZGuZ
-	6ecEUKf3i8zVgXoAltsYlDcGKIsCCC24oEZ6SpSmcfuxsiY4QFKUE62PDBEOUOgdlHLkT2kUM5G
-	/jExC4iaOkSsepCmPuWuHRfVDnK67vq5uAyLZAOJzibi28ID28jOMKzCDqObAO6UbIpXfCtJsNE
-	GpLafrrLM/nEDLP056e+TDiyH/49wxfkLAfkNNSaAZk0sEcY14=
+X-TMASE-Version: IMSS-9.1.0.1408-9.0.1002-27620.005
+X-TMASE-Result: 10--1.577200-10.000000
+X-TMASE-MatchedRID: a4Q7dosAlP4sn4hNIyLkvtMJkd+MUUHPDAyo2i9/A6giB3Nk/d/KP4tU
+	W2TdSbkoIvrftAIhWmJQSXzTnhrdGHeeA+rySyNtfOaYwP8dcX59LQinZ4QefCP/VFuTOXUTae6
+	hIZpj4MuOhzOa6g8KrR6RZML74K+LbM/5Mzx1TetBA++9372rIAHFTcGO5eXZxUXZ+N1rJUh9PD
+	69q1zXjGvIb6cjGBX3lDpNRJjUaz1B+ibYcc4XGhXBt/mUREyAj/ZFF9Wfm7hNy7ppG0IjcFQqk
+	0j7vLVUewMSBDreIdk=
 X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
 
-Abort early so that the real error message can be noticed easily.
-==========================
-$ ./rpmbuild.sh
-Found CMake: /usr/bin/cmake (3.18.4)
-Run-time dependency libtraceevent found: NO (tried pkgconfig and cmake)
+Compile with libtracefs < 1.2.0(1.0.2 in Fedora33) will get errors:
 
-../meson.build:147:2: ERROR: Dependency "libtraceevent" not found, tried pkgconfig and cmake
-
-A full log can be found at /path/to/ndctl/build/meson-logs/meson-log.txt
-FAILED: build.ninja
-...
+/usr/bin/ld: cxl/cxl.p/event_trace.c.o: in function `cxl_event_tracing_enable':
+/path/to/ndctl/build/../cxl/event_trace.c:238: undefined reference to `tracefs_event_enable'
+/usr/bin/ld: /path/to/ndctl/build/../cxl/event_trace.c:242: undefined reference to `tracefs_trace_is_on'
+/usr/bin/ld: /path/to/ndctl/build/../cxl/event_trace.c:245: undefined reference to `tracefs_trace_on'
+/usr/bin/ld: cxl/cxl.p/event_trace.c.o: in function `cxl_event_tracing_disable':
+/path/to/ndctl/build/../cxl/event_trace.c:251: undefined reference to `tracefs_trace_off'
+/usr/bin/ld: cxl/cxl.p/monitor.c.o: in function `monitor_event':
+/path/to/ndctl/build/../cxl/monitor.c:74: undefined reference to `tracefs_instance_file_open'
 
 Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
 ---
- rpmbuild.sh | 2 +-
+ meson.build | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/rpmbuild.sh b/rpmbuild.sh
-index d9823e5eda61..d952f96aa8c1 100755
---- a/rpmbuild.sh
-+++ b/rpmbuild.sh
-@@ -10,7 +10,7 @@ if ./git-version | grep -q dirty; then
- 	exit 1
- fi
- if [ ! -f $spec ]; then
--	meson compile -C build rhel/ndctl.spec
-+	meson compile -C build rhel/ndctl.spec || exit
- 	spec=$(dirname $0)/build/rhel/ndctl.spec
- fi
- ./make-git-snapshot.sh
+diff --git a/meson.build b/meson.build
+index 50e83cf770a2..50cb4800ab9b 100644
+--- a/meson.build
++++ b/meson.build
+@@ -145,7 +145,7 @@ uuid = dependency('uuid')
+ json = dependency('json-c')
+ if get_option('libtracefs').enabled()
+   traceevent = dependency('libtraceevent')
+-  tracefs = dependency('libtracefs')
++  tracefs = dependency('libtracefs', version : '>=1.2.0')
+ endif
+ 
+ if get_option('docs').enabled()
 -- 
 2.29.2
 
