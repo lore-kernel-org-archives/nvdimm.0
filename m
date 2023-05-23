@@ -1,91 +1,65 @@
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from dggsgout12.his.huawei.com (unknown [45.249.212.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D0E114A9C
-	for <nvdimm@lists.linux.dev>; Mon, 22 May 2023 15:22:48 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1684768968; x=1716304968;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=B+VCFjsrJW/lh7B61VjWVRHmyHm6MpEB6o9V7PhypQQ=;
-  b=jjEyX5oWuigriSSKx+p09Jlnm3ncVZb1U6SYicRkY1SW3zRSAQ+a7o+N
-   iUgGg7GuOrzNyEqXZyvBLT9X/9qTRojlm9VxwG5UZefbYQGnFdj1fG28K
-   bvhH2+9t+8ILXXqYmEnSM39dhY5yq5dMh1vqHMBLUyNyaslsnEM+ZAN8A
-   jWGKGSA+lBDc8+8nAf4TIdQ2jCqr+ummft7l2ReeEWU/7Gd2yszmBSfgC
-   B1Rk8aOBdqStLNSD9HpZhvsIVJDUv65my+JzXXojAWncwd29GtaE3pP6Q
-   wz/OhKHnxol+WXs4YLyvqesIhHb+dWZsDlIvQu8V6uuz+EGYlGftGjoDU
-   Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10718"; a="381182209"
-X-IronPort-AV: E=Sophos;i="6.00,184,1681196400"; 
-   d="scan'208";a="381182209"
-Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 May 2023 08:22:46 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10718"; a="703554971"
-X-IronPort-AV: E=Sophos;i="6.00,184,1681196400"; 
-   d="scan'208";a="703554971"
-Received: from djiang5-mobl3.amr.corp.intel.com (HELO [10.213.173.219]) ([10.213.173.219])
-  by orsmga002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 May 2023 08:22:45 -0700
-Message-ID: <67717c6d-de28-795a-74f8-e1fed71e627a@intel.com>
-Date: Mon, 22 May 2023 08:22:44 -0700
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F3405383
+	for <nvdimm@lists.linux.dev>; Tue, 23 May 2023 02:55:44 +0000 (UTC)
+Received: from mail02.huawei.com (unknown [172.30.67.153])
+	by dggsgout12.his.huawei.com (SkyGuard) with ESMTP id 4QQJR56nXZz4f3khx
+	for <nvdimm@lists.linux.dev>; Tue, 23 May 2023 10:38:41 +0800 (CST)
+Received: from [10.174.179.247] (unknown [10.174.179.247])
+	by APP4 (Coremail) with SMTP id gCh0CgAHvbAyJ2xk9nwPKA--.33442S3;
+	Tue, 23 May 2023 10:38:43 +0800 (CST)
+Message-ID: <daca108d-4dd3-ecbf-c630-69d4bc2b96c0@huaweicloud.com>
+Date: Tue, 23 May 2023 10:38:41 +0800
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Firefox/102.0 Thunderbird/102.10.0
-Subject: Re: [PATCH 3/3] libnvdimm: mark 'security_show' static again
-Content-Language: en-US
-To: Arnd Bergmann <arnd@kernel.org>, Dan Williams <dan.j.williams@intel.com>,
- Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>,
- Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Arnd Bergmann <arnd@arndb.de>,
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- Hans de Goede <hdegoede@redhat.com>, nvdimm@lists.linux.dev,
- linux-kernel@vger.kernel.org
-References: <20230516201415.556858-1-arnd@kernel.org>
- <20230516201415.556858-3-arnd@kernel.org>
-From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <20230516201415.556858-3-arnd@kernel.org>
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.10.0
+Subject: Re: [PATCH v6 0/7] badblocks improvement for multiple bad block
+ ranges
+To: Coly Li <colyli@suse.de>, linux-block@vger.kernel.org
+Cc: nvdimm@lists.linux.dev, linux-raid@vger.kernel.org,
+ Dan Williams <dan.j.williams@intel.com>, Geliang Tang
+ <geliang.tang@suse.com>, Hannes Reinecke <hare@suse.de>,
+ Jens Axboe <axboe@kernel.dk>, NeilBrown <neilb@suse.de>,
+ Richard Fan <richard.fan@suse.com>, Vishal L Verma
+ <vishal.l.verma@intel.com>, Wols Lists <antlists@youngman.org.uk>,
+ Xiao Ni <xni@redhat.com>
+References: <20220721121152.4180-1-colyli@suse.de>
+From: Li Nan <linan666@huaweicloud.com>
+In-Reply-To: <20220721121152.4180-1-colyli@suse.de>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
+X-CM-TRANSID:gCh0CgAHvbAyJ2xk9nwPKA--.33442S3
+X-Coremail-Antispam: 1UD129KBjDUn29KB7ZKAUJUUUUU529EdanIXcx71UUUUU7v73
+	VFW2AGmfu7bjvjm3AaLaJ3UjIYCTnIWjp_UUUYB7kC6x804xWl14x267AKxVW8JVW5JwAF
+	c2x0x2IEx4CE42xK8VAvwI8IcIk0rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII
+	0Yj41l84x0c7CEw4AK67xGY2AK021l84ACjcxK6xIIjxv20xvE14v26w1j6s0DM28EF7xv
+	wVC0I7IYx2IY6xkF7I0E14v26r4UJVWxJr1l84ACjcxK6I8E87Iv67AKxVW0oVCq3wA2z4
+	x0Y4vEx4A2jsIEc7CjxVAFwI0_GcCE3s1lnxkEFVAIw20F6cxK64vIFxWle2I262IYc4CY
+	6c8Ij28IcVAaY2xG8wAqx4xG64xvF2IEw4CE5I8CrVC2j2WlYx0E2Ix0cI8IcVAFwI0_Jr
+	0_Jr4lYx0Ex4A2jsIE14v26r1j6r4UMcvjeVCFs4IE7xkEbVWUJVW8JwACjcxG0xvEwIxG
+	rwACI402YVCY1x02628vn2kIc2xKxwCYjI0SjxkI62AI1cAE67vIY487MxAIw28IcxkI7V
+	AKI48JMxC20s026xCaFVCjc4AY6r1j6r4UMI8I3I0E5I8CrVAFwI0_Jr0_Jr4lx2IqxVCj
+	r7xvwVAFwI0_JrI_JrWlx4CE17CEb7AF67AKxVWUtVW8ZwCIc40Y0x0EwIxGrwCI42IY6x
+	IIjxv20xvE14v26r1j6r1xMIIF0xvE2Ix0cI8IcVCY1x0267AKxVW8JVWxJwCI42IY6xAI
+	w20EY4v20xvaj40_WFyUJVCq3wCI42IY6I8E87Iv67AKxVWUJVW8JwCI42IY6I8E87Iv6x
+	kF7I0E14v26r4j6r4UJbIYCTnIWIevJa73UjIFyTuYvjxUFfHjUUUUU
+X-CM-SenderInfo: polqt0awwwqx5xdzvxpfor3voofrz/
+X-CFilter-Loop: Reflected
 
+Hi Coly Li,
 
+Recently, I have been trying to fix the bug of backblocks settings, and 
+I found that your patch series has already fixed the bug. This patch 
+series has not been applied to mainline at present, may I ask if you 
+still plan to continue working on it?
 
-On 5/16/23 1:14 PM, Arnd Bergmann wrote:
-> From: Arnd Bergmann <arnd@arndb.de>
-> 
-> The security_show() function was made global and __weak at some
-> point to allow overriding it. The override was removed later, but
-> it remains global, which causes a warning about the missing
-> declaration:
-> 
-> drivers/nvdimm/dimm_devs.c:352:9: error: no previous prototype for 'security_show'
-> 
-> This is also not an appropriate name for a global symbol in the
-> kernel, so just make it static again.
-> 
-> Fixes: 15a8348707ff ("libnvdimm: Introduce CONFIG_NVDIMM_SECURITY_TEST flag")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+-- 
+Thanks,
+Nan
 
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-> ---
->   drivers/nvdimm/dimm_devs.c | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-> index 957f7c3d17ba..10c3cb6a574a 100644
-> --- a/drivers/nvdimm/dimm_devs.c
-> +++ b/drivers/nvdimm/dimm_devs.c
-> @@ -349,7 +349,7 @@ static ssize_t available_slots_show(struct device *dev,
->   }
->   static DEVICE_ATTR_RO(available_slots);
->   
-> -ssize_t security_show(struct device *dev,
-> +static ssize_t security_show(struct device *dev,
->   		struct device_attribute *attr, char *buf)
->   {
->   	struct nvdimm *nvdimm = to_nvdimm(dev);
