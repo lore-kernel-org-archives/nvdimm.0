@@ -1,314 +1,211 @@
-Received: from esa12.hc1455-7.c3s2.iphmx.com (esa12.hc1455-7.c3s2.iphmx.com [139.138.37.100])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 741986FBF
-	for <nvdimm@lists.linux.dev>; Thu, 25 May 2023 05:38:03 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6600,9927,10720"; a="97352199"
-X-IronPort-AV: E=Sophos;i="6.00,190,1681138800"; 
-   d="scan'208";a="97352199"
-Received: from unknown (HELO yto-r2.gw.nic.fujitsu.com) ([218.44.52.218])
-  by esa12.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 May 2023 14:36:51 +0900
-Received: from yto-m3.gw.nic.fujitsu.com (yto-nat-yto-m3.gw.nic.fujitsu.com [192.168.83.66])
-	by yto-r2.gw.nic.fujitsu.com (Postfix) with ESMTP id 944C9C68E1
-	for <nvdimm@lists.linux.dev>; Thu, 25 May 2023 14:36:49 +0900 (JST)
-Received: from aks-ab1.gw.nic.fujitsu.com (aks-ab1.gw.nic.fujitsu.com [192.51.207.11])
-	by yto-m3.gw.nic.fujitsu.com (Postfix) with ESMTP id D8CE114163
-	for <nvdimm@lists.linux.dev>; Thu, 25 May 2023 14:36:48 +0900 (JST)
-Received: from [192.168.122.212] (unknown [10.167.226.45])
-	by aks-ab1.gw.nic.fujitsu.com (Postfix) with ESMTP id 6CB792FC685A;
-	Thu, 25 May 2023 14:36:47 +0900 (JST)
-Subject: Re: [RFC PATCH v2 0/3] pmem memmap dump support
-From: "Li, Zhijian" <lizhijian@fujitsu.com>
-To: Dan Williams <dan.j.williams@intel.com>, bhe@redhat.com
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
- "Yasunori Gotou (Fujitsu)" <y-goto@fujitsu.com>,
- "Xiao Yang (Fujitsu)" <yangx.jy@fujitsu.com>,
- "Shiyang Ruan (Fujitsu)" <ruansy.fnst@fujitsu.com>,
- "x86@kernel.org" <x86@kernel.org>,
- "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
- "kexec@lists.infradead.org" <kexec@lists.infradead.org>
-References: <20230427101838.12267-1-lizhijian@fujitsu.com>
- <644c17823cf83_13303129460@dwillia2-xfh.jf.intel.com.notmuch>
- <774fd596-5481-aeff-aace-8785158728ea@fujitsu.com>
- <0fe0d69e-e33b-cf45-c957-68a8159d29ab@fujitsu.com>
-Message-ID: <f8aff5b7-4892-9ccb-8079-abd87e9ab8b0@fujitsu.com>
-Date: Thu, 25 May 2023 13:36:46 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
- Thunderbird/78.1.1
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A86D03D7C
+	for <nvdimm@lists.linux.dev>; Thu, 25 May 2023 15:28:32 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1685028512; x=1716564512;
+  h=message-id:date:subject:to:cc:references:from:
+   in-reply-to:content-transfer-encoding:mime-version;
+  bh=+XdZDVZGCmeX6RqcR4aynKiA97krXjfdJsV14z/wnEw=;
+  b=N0bb6rIhOWlW1kgWmfFq+7LupkveSxKNXlVrqUatTfPzdF4QmqspvNhZ
+   wW28SfpXHO68IbmWGptJFFU87Jit+0BWKkICuOsnRxRX54uwLIX7/4daW
+   rfSWRurFciUjg0n8LHVGUUUTw27d7C8VmeflqGOCiWHirdthB3BeIXKdD
+   IhT/qy/JAZS7G15a5eZEgQTWMnwrnbNLxs2sgtFQD+tPJMcM0hXA+qGsl
+   IM2qEBH4fbuS8Tkd8ArwQfaVVhvKvQkU7ln9kXsm3HkeCPghFRayIK3TV
+   SaTtqk32j5z0RhI56xkahl07exVGPnX+CZL8iiAHek9THDMwLpD88I7t8
+   A==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10721"; a="351430471"
+X-IronPort-AV: E=Sophos;i="6.00,191,1681196400"; 
+   d="scan'208";a="351430471"
+Received: from fmsmga006.fm.intel.com ([10.253.24.20])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 May 2023 08:28:31 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10721"; a="951479456"
+X-IronPort-AV: E=Sophos;i="6.00,191,1681196400"; 
+   d="scan'208";a="951479456"
+Received: from orsmsx602.amr.corp.intel.com ([10.22.229.15])
+  by fmsmga006.fm.intel.com with ESMTP; 25 May 2023 08:28:30 -0700
+Received: from orsmsx611.amr.corp.intel.com (10.22.229.24) by
+ ORSMSX602.amr.corp.intel.com (10.22.229.15) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.23; Thu, 25 May 2023 08:28:30 -0700
+Received: from orsmsx603.amr.corp.intel.com (10.22.229.16) by
+ ORSMSX611.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.23; Thu, 25 May 2023 08:28:29 -0700
+Received: from ORSEDG601.ED.cps.intel.com (10.7.248.6) by
+ orsmsx603.amr.corp.intel.com (10.22.229.16) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.23 via Frontend Transport; Thu, 25 May 2023 08:28:29 -0700
+Received: from NAM04-DM6-obe.outbound.protection.outlook.com (104.47.73.40) by
+ edgegateway.intel.com (134.134.137.102) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.23; Thu, 25 May 2023 08:28:29 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=iliTgJplXFv3B1lkUaqAQu1XtyTgdjyaF/zNungQJcH58dpW5TZS4TU4ov7IP5uHav5o+pqdISkIq5kMzrBBcWh0IJOZtBw22ejNAEWKdKucDDPDfTO9yOrUMuFMFhHxay7W+Gfbjlgv56RMIH5a/gMinZK81DRkZJFumKmYQHj5mNykYaBrfm/zxy++fQu4JHQpx6C6bg79xVen4dA7zGyQlvMrkZvLg8ziaPsx1BwBFe/P2GzbVVoZMMiFff10Mf3qNMQBf1GFkUHrdAbYWYX9zZgmqM/NfbcQekXQhgdMUmfofWBFebfRoa2iuPhelF8MCRZXKVVDa61U7at1Xw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=q7pndQvEnejs3Bd/xOb5gbjNuCV/q8n0lksNao0lO48=;
+ b=gD8u/6a3CjYImu+Nz25fQOrZQG8FVDj0HzF/NhHezyrmXBLzcDbliGYVAquWpm1rQZ7p79hqSm57MOrmxlrM1hwsqWeg2yEh2hCajpoOfNXYFaw3CAueRkjjqXO8gziqhQMr15l6nHdHgvqzL0lSiBruJa+FEXsT8viQ62tIxtNEIDXMcA5zGXOVhyxD8Rv8S3Ps+XC0ERkRqFJmcOag8rSkbcTpBMoVK0cvcVxsuwemsuPFoeJMNo/LkqINAXJStt+fILs7d7+jetsLi6hlPNMZ3nHj0nZkFQvOzKn1GA1flMV9eQmv0KjvSzjeCZHwJyNzogvJyRe/rVQuwhR3Sw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from PH7PR11MB5984.namprd11.prod.outlook.com (2603:10b6:510:1e3::15)
+ by SJ0PR11MB5118.namprd11.prod.outlook.com (2603:10b6:a03:2dd::19) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6433.17; Thu, 25 May
+ 2023 15:28:28 +0000
+Received: from PH7PR11MB5984.namprd11.prod.outlook.com
+ ([fe80::b315:faf6:e706:ca61]) by PH7PR11MB5984.namprd11.prod.outlook.com
+ ([fe80::b315:faf6:e706:ca61%5]) with mapi id 15.20.6411.028; Thu, 25 May 2023
+ 15:28:27 +0000
+Message-ID: <43b38130-19fa-26b5-f7b3-8429c5230c66@intel.com>
+Date: Thu, 25 May 2023 08:28:24 -0700
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Betterbird/102.11.0
+Subject: Re: [ndctl PATCH 2/2] README.md: document CXL unit tests
+To: Li Zhijian <lizhijian@fujitsu.com>, <nvdimm@lists.linux.dev>
+CC: <linux-cxl@vger.kernel.org>
+References: <20230523035704.826188-1-lizhijian@fujitsu.com>
+ <20230523035704.826188-2-lizhijian@fujitsu.com>
+Content-Language: en-US
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <20230523035704.826188-2-lizhijian@fujitsu.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: SJ0PR03CA0368.namprd03.prod.outlook.com
+ (2603:10b6:a03:3a1::13) To PH7PR11MB5984.namprd11.prod.outlook.com
+ (2603:10b6:510:1e3::15)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <0fe0d69e-e33b-cf45-c957-68a8159d29ab@fujitsu.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
-X-TM-AS-GCONF: 00
-X-TM-AS-Product-Ver: IMSS-9.1.0.1408-9.0.0.1002-27648.005
-X-TM-AS-User-Approved-Sender: Yes
-X-TMASE-Version: IMSS-9.1.0.1408-9.0.1002-27648.005
-X-TMASE-Result: 10--36.427300-10.000000
-X-TMASE-MatchedRID: YmTIeYLGqWmPvrMjLFD6eCkMR2LAnMRpThn37FFP5A2Z6U7QhkqRnjig
-	xUJufWBq8GZ6UXtd/D8knOGoeIQzlrLPlm4wh/ZC71L6f9O5B+bHbztUafrIJrwxqSK0GSPRJf5
-	otvavOZdfShUER1/uQrIR2fkfALoSk3+L/4zTFEMF7cpFXK76Tb/I3arxTrviHpyu/FxYOKH6NX
-	Oh/Q26I55+Yz1Sdwy4b6fm/8CuE09LyNFBdZE0R6zGfgakLdjanY+2FiS7N53PWp1UK7zV94X8M
-	Gul6j45WeYbg0RZpl1DTrJAgvBeWaUEDxO9eWwq93bduyx/IZzEOsCKZvLZAdVtkV1dqmwpFTcl
-	NALNY0cWeucbks6Qtsano5bsVuqHb6wZx1ul0pwvz6alF1rVgye0Z6pse6+bhJsTo2dS2dm/BR6
-	8O365bn9eOltIlLtrdthZ52U1v6XwR+yx9wo5ahFbgtHjUWLyUrr7Qc5WhKgQRik6+J7XSf9hZe
-	ynbNVArY6OTSUV7oJEPm1gqq01NcZjWS+/cngMvR08UROkEAeok0CD5UnL64Ajsy+r+wvnLHCPR
-	rZVF/euMZ3gmgaUtf+d8LoybRqLv9CQXR/hM+TfSQNpZkETVEhdBJqHdZ1jF7XImrociEcEgwlH
-	ZNfFor3SKCxDfa5Nh/v5z8O9WopdfABN5LHDU7hXT+72mpTN1LV3ye5rrQEz91mDYZLM5XGk47q
-	JAyS/XICzc9HFHLudqC2fLtk9xE1+zyfzlN7ygxsfzkNRlfJoFT3KzpHqEw6wQI72z4YedB0ntd
-	9Tzp7iRhduhvElsvJT+hf62k2YIbZSWXZZ520=
-X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: PH7PR11MB5984:EE_|SJ0PR11MB5118:EE_
+X-MS-Office365-Filtering-Correlation-Id: 4f951fd4-e445-4d04-187a-08db5d34aff5
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: J3bLd83en48ol80yIH9sxLH8shufFvXh0Ewvi/MylSftXP41QikRahDDQDI8OyIUo7VDPgA7vbHobX8q4PHKO5jeqYgFnYXGz9NfmeCAKrHf8LCLEwMIVobSJQd+zZsJm4jgIWrb2Wdo8CQ8ai+IkOWCJCmBcwDuP54wfxGXj84AyipHPifIzTjCfHlDCQX8SbkExhlB/ka9J4o01YkeK6hKRCLK8eT1Uy1TCibPC4O31SFYdf/78sdAQWnxygbyWGn2fDVQIsFDtD5e32108qcPUX5W1/AWXxHt7ISwS5QhYJHABXXNmPaZjnVS4cNp3Jj/lL1yxxuPKU7s6u/YJ0V5/tfksPiikE1hUEJnJdkjYGWE3vz7AeYnOHe2ChIw1vHNoY9vfwyd7U7xuTq4hvjh3CwXyuC66W0xzCDqus6jm+w8HGenOAavEEl99m32dKwKji+MdILlHlPsZAMW5OCyi82PylWLgnSQUSUoEJwouIiORj2v9gd/gOES/6hjbycW7yGF1wEHNQu+Od1SgkkBYObofiIvhd5F4jjBU2m2oZo7tiavkhRo3tCtiIW+QC4RTQE4rbfRBXPbGD9pYwP56tCWkWyspWch/J7+wHcRLkp+AO6Rc/MNICieCvUKvybIe/hNQyUaMWe/ZCweJQ==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH7PR11MB5984.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230028)(346002)(366004)(136003)(376002)(396003)(39860400002)(451199021)(2906002)(186003)(6666004)(31686004)(4326008)(86362001)(41300700001)(6486002)(66476007)(83380400001)(66946007)(66556008)(36756003)(26005)(31696002)(316002)(966005)(44832011)(82960400001)(478600001)(2616005)(53546011)(6512007)(6506007)(38100700002)(5660300002)(8676002)(8936002)(43740500002)(45980500001);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?Q1FmQzJ6RXF5VXNESmZrNlNqVjdVaHoxcHJZVTJLVzZ0V2NHd1JNQmN1WVdS?=
+ =?utf-8?B?YlNMeHB0SEJSY05VUGlhZTRvZXpHYndyVEdDSDJuUTZNTkd6N0NFb0ZoSWNw?=
+ =?utf-8?B?MTRDZDd5UFNxVk9RYUltd1o5Tnl2cVNaVldYOXFsNlNwOERlam45SmdEajl2?=
+ =?utf-8?B?QWQyZDFLbVViL1p3VTUwc2xDR1dtb1h2WEpiMWd5b1JNWlJ1bnB2dkx0QUd1?=
+ =?utf-8?B?TXNvM3B6R2UxMmhtS2hGR0IrYVh5ZTg1cTh2ejhzNzdjQXhuUmh2cUxzUnF0?=
+ =?utf-8?B?MEdSWDZKaUlXNEdmRG9HdlZVVTg3ZlVGNlFQRm9wZ3lndFV4dW1YNEhMQjNP?=
+ =?utf-8?B?cThWRDVOaVVram9oTGhTb1FuZGpBKzYrZlNOQWRyM01sMUJpaXhlN3ZpNXpF?=
+ =?utf-8?B?TXBkdHVKamRac3NvVHh3ZGRqd1NxSzVyTlVDclg2bnY5ckhJWVk5MmwxdGk4?=
+ =?utf-8?B?TWtCVHFaZHIyMGlsdmV1WHdENDh4bmYyY0pMREtjUzFUUWtMbzhqMkNrMHVZ?=
+ =?utf-8?B?MThOTjFkMnkxTWluTUVLNmNJZXd6dVJMRVFHcnVjalFrUC83RnVaT0tsV09R?=
+ =?utf-8?B?allTQjI2T2lLbEJMcEFvb2M3bnBDT3ZOWVpVMHovd09DRHIwZmZjZU1mUk5X?=
+ =?utf-8?B?Z1hwSEwxbm03bXJta3hPdGJmdW1WeGVZZ0crVkhpaU1Ga2xnWjJYT1VUMS9p?=
+ =?utf-8?B?M0VnSHNRcE1yWU8yMEhocEJBU2xLQW1LbUovSXBqYmxkOHdaellCc2tVRm1z?=
+ =?utf-8?B?YkdzS3EvNmRheDBiWWpXeEpDY0FHeGxOcnRBeDYxeSthSktJTmNMQ0lESFpW?=
+ =?utf-8?B?eStWaHo3QTF4VGR6bEZGTGFzZTFOWjZEL204emJhdklSZVB6Mi9iZW83Y0lV?=
+ =?utf-8?B?SjVJU3RNS3N1MGtGYUIvV09NaTErSUNvQWQ0a0lSWStrNDRYeU5nQitKb2lx?=
+ =?utf-8?B?bDlTeGZEbnF4c1p2N0o4bzlBcVRvV000MlB3cWtWSjdTak1mYWsyQjc2SFhS?=
+ =?utf-8?B?eTdxak9sSEF0VGhjci9VQ1VhZlBoNGp2MGtxZjB0eXdCNjJYSDRoV3Jzdjhp?=
+ =?utf-8?B?T3pjNzNrRmlqWjhmT09tNUdFaFdQQ3ZkZS9IZ3dIU3BndjRvKzVRc3VydTJk?=
+ =?utf-8?B?TkFBcC9GTm1id1I2UFJ3bVArWWZYYlNBNnJHN0RrQXMvd1F6aHdFczc1ZXZt?=
+ =?utf-8?B?U1ZNOVR5UTA4enF6QldLR05sa1BXT0tsaGdjMW1GRUFBZ3UydG51VW5CbXpR?=
+ =?utf-8?B?SGRnQjlvc1lzZnB5bFRYMlRheHdpRzNOQmxqWWptSXVIT0dORHd3eWJ3Vm5L?=
+ =?utf-8?B?SXJqSDFsL3RhQkI4TlpDdno4ZlZQVUJFaTdybGhCOW15MTBmQksrOVV6TUxo?=
+ =?utf-8?B?OXI2Z1FPOFBILytZQ1V4Wko5blo1QlJJQ0hCWjhyV0o2QjBqWHNyTm5lUFJ1?=
+ =?utf-8?B?TVNFblZOTEFWcXNzd2liRkFVQTNsZDdQbWgzcEliRTdQTzU5cllXNnROV1Vr?=
+ =?utf-8?B?OE9JUFNEcmMwbFpFeWJtTEh1eGphWHhMZlRWd0ZIZDEvQnZaK2ZhUWljbDVJ?=
+ =?utf-8?B?SlI0VkJxdTdwRFROZ1FvUDRjZHhKYUMybGxGbTZwMTEwT3lWb09LT284VzNp?=
+ =?utf-8?B?dyt6UVlXQTIxVHA0R1ZmNlZDRCtPc2hKWWl6N0xJOGlibFBXZnpvUWFCaW5E?=
+ =?utf-8?B?Q1NQelM3N253KzBEZGRDcCtTdXl5ZS9tSDRPcmxVcWVkVWxrNlh2NG9TRFJC?=
+ =?utf-8?B?SXl3Qi9VVEVoNGRKYktjVDRIMkdhYnhwWjNPWVQ2ZGxnNjgvS082eGhNdFY3?=
+ =?utf-8?B?L0RqYmVDKzdnUjNhKzFlWXBPalR3eENEYWJUNGJVYksxcktpSzNadWhCbm9Y?=
+ =?utf-8?B?WTZwMEVucmZYKytzcERUTGRmbUQ3bUY2OWd5VnZhcVJiN0x5Y2FJQ2N6S2pD?=
+ =?utf-8?B?L05LMjJ1K29UT1E0VTFpZTNmNTE3OHJTc2pnM2RjaklyNkxST0p1dVBvOTVL?=
+ =?utf-8?B?NEprcElmRUpXS0FlT1RiV1JBYU1IcjR1ZXlJTk5RRFBra3h3THMvcHkyL3dR?=
+ =?utf-8?B?S2dSTGNqSTAyTGFkZytvWnZFR0JJOEN0aUtDa1RnZ1p5cm95OGZxTzIvdGRn?=
+ =?utf-8?Q?9mJDRSRImMHx6N8xvoaGlp6FL?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: 4f951fd4-e445-4d04-187a-08db5d34aff5
+X-MS-Exchange-CrossTenant-AuthSource: PH7PR11MB5984.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 May 2023 15:28:27.7253
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: KIFDv7GdyfjyRrcKV0RHlMjFzKlhmxngzC/u1LeS0GSpim04Ir/AJ7puxZc+qFoG2rUOVCHJA83MOkfve+X2/g==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ0PR11MB5118
+X-OriginatorOrg: intel.com
 
-Ping
 
-Baoquan, Dan
+On 5/22/23 20:57, Li Zhijian wrote:
+> It requires some CLX specific kconfigs and testing purpose module
+>
+> Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
+> ---
+>   README.md | 17 +++++++++++++++--
+>   1 file changed, 15 insertions(+), 2 deletions(-)
+>
+> diff --git a/README.md b/README.md
+> index 7c7cf0dd065d..521e2582fb05 100644
+> --- a/README.md
+> +++ b/README.md
+> @@ -39,8 +39,8 @@ https://nvdimm.wiki.kernel.org/start
+>   
+>   Unit Tests
+>   ==========
+> -The unit tests run by `meson test` require the nfit_test.ko module to be
+> -loaded.  To build and install nfit_test.ko:
+> +The unit tests run by `meson test` require the nfit_test.ko and cxl_test.ko modules to be
+> +loaded.  To build and install nfit_test.ko and cxl_test.ko:
+>   
+>   1. Obtain the kernel source.  For example,
+>      `git clone -b libnvdimm-for-next git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git`
+> @@ -70,6 +70,13 @@ loaded.  To build and install nfit_test.ko:
+>      CONFIG_NVDIMM_DAX=y
+>      CONFIG_DEV_DAX_PMEM=m
+>      CONFIG_ENCRYPTED_KEYS=y
+> +   CONFIG_CXL_BUS=m
+> +   CONFIG_CXL_PCI=m
+> +   CONFIG_CXL_ACPI=m
+> +   CONFIG_CXL_PMEM=m
+> +   CONFIG_CXL_MEM=m
+> +   CONFIG_CXL_PORT=m
+> +   CONFIG_DEV_DAX_CXL=m
 
-Sorry to bother you again.
+Probably should have a separate entry for CXL configs for testing. 
+There's a cxl.git at kernel.org as well.
 
-Could you further comment a word or two on this set?
+Also will need:
+
+CONFIG_NVDIMM_SECURITY_TEST=y
+
+CONFIG_CXL_REGION_INVALIDATION_TEST=y
 
 
-Thanks
-Zhijian
 
-
-on 5/10/2023 6:41 PM, Zhijian Li (Fujitsu) wrote:
-> Hi Dan
->
->
-> on 5/8/2023 5:45 PM, Zhijian Li (Fujitsu) wrote:
->> Dan,
->>
->>
->> On 29/04/2023 02:59, Dan Williams wrote:
->>> Li Zhijian wrote:
->>>> Hello folks,
->>>>
->>>> About 2 months ago, we posted our first RFC[3] and received your kindly feedback. Thank you :)
->>>> Now, I'm back with the code.
->>>>
->>>> Currently, this RFC has already implemented to supported case D*. And the case A&B is disabled
->>>> deliberately in makedumpfile. It includes changes in 3 source code as below:
->>> I think the reason this patchkit is difficult to follow is that it
->>> spends a lot of time describing a chosen solution, but not enough time
->>> describing the problem and the tradeoffs.
->>>
->>> For example why is updating /proc/vmcore with pmem metadata the chosen
->>> solution? Why not leave the kernel out of it and have makedumpfile
->>> tooling aware of how to parse persistent memory namespace info-blocks
->>> and retrieve that dump itself? This is what I proposed here:
->>>
->>> http://lore.kernel.org/r/641484f7ef780_a52e2940@dwillia2-mobl3.amr.corp.intel.com.notmuch
->> Sorry for the late reply. I'm just back from the vacation.
->> And sorry again for missing your previous *important* information in V1.
->>
->> Your proposal also sounds to me with less kernel changes, but more ndctl coupling with makedumpfile tools.
->> In my current understanding, it will includes following source changes.
-> The kernel and makedumpfile has updated. It's still in a early stage, but in order to make sure I'm following your proposal.
-> i want to share the changes with you early. Alternatively, you are able to refer to my github for the full details.
-> https://github.com/zhijianli88/makedumpfile/commit/8ebfe38c015cfca0545cb3b1d7a6cc9a58fc9bb3
->
-> If I'm going the wrong way, fee free to let me know :)
->
->
->> -----------+-------------------------------------------------------------------+
->> Source     |                      changes                                      |
->> -----------+-------------------------------------------------------------------+
->> I.         | 1. enter force_raw in kdump kernel automatically(avoid metadata being updated again)|
-> kernel should adapt it so that the metadata of pmem will be updated again in the kdump kernel:
->
-> diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-> index c60ec0b373c5..2e59be8b9c78 100644
-> --- a/drivers/nvdimm/namespace_devs.c
-> +++ b/drivers/nvdimm/namespace_devs.c
-> @@ -8,6 +8,7 @@
->    #include <linux/slab.h>
->    #include <linux/list.h>
->    #include <linux/nd.h>
-> +#include <linux/crash_dump.h>
->    #include "nd-core.h"
->    #include "pmem.h"
->    #include "pfn.h"
-> @@ -1504,6 +1505,8 @@ struct nd_namespace_common *nvdimm_namespace_common_probe(struct device *dev)
->                           return ERR_PTR(-ENODEV);
->           }
->    
-> +       if (is_kdump_kernel())
-> +               ndns->force_raw = true;
->           return ndns;
->    }
->    EXPORT_SYMBOL(nvdimm_namespace_common_probe);
->
->> kernel     |                                                                   |
->>               | 2. mark the whole pmem's PT_LOAD for kexec_file_load(2) syscall   |
->> -----------+-------------------------------------------------------------------+
->> II. kexec- | 1. mark the whole pmem's PT_LOAD for kexe_load(2) syscall         |
->> tool       |                                                                   |
->> -----------+-------------------------------------------------------------------+
->> III.       | 1. parse the infoblock and calculate the boundaries of userdata and metadata   |
->> makedump-  | 2. skip pmem userdata region                                      |
->> file       | 3. exclude pmem metadata region if needed                         |
->> -----------+-------------------------------------------------------------------+
->>
->> I will try rewrite it with your proposal ASAP
-> inspect_pmem_namespace() will walk the namespaces and the read its resource.start and infoblock. With this
-> information, we can calculate the boundaries of userdata and metadata easily. But currently this changes are
-> strongly coupling with the ndctl/pmem which looks a bit messy and ugly.
->
-> ============makedumpfile=======
->
-> diff --git a/Makefile b/Makefile
-> index a289e41ef44d..4b4ded639cfd 100644
-> --- a/Makefile
-> +++ b/Makefile
-> @@ -50,7 +50,7 @@ OBJ_PART=$(patsubst %.c,%.o,$(SRC_PART))
->    SRC_ARCH = arch/arm.c arch/arm64.c arch/x86.c arch/x86_64.c arch/ia64.c arch/ppc64.c arch/s390x.c arch/ppc.c arch/sparc64.c arch/mips64.c arch/loongarch64.c
->    OBJ_ARCH=$(patsubst %.c,%.o,$(SRC_ARCH))
->    
-> -LIBS = -ldw -lbz2 -ldl -lelf -lz
-> +LIBS = -ldw -lbz2 -ldl -lelf -lz -lndctl
->    ifneq ($(LINKTYPE), dynamic)
->    LIBS := -static $(LIBS) -llzma
->    endif
-> diff --git a/makedumpfile.c b/makedumpfile.c
-> index 98c3b8c7ced9..db68d05a29f9 100644
-> --- a/makedumpfile.c
-> +++ b/makedumpfile.c
-> @@ -27,6 +27,8 @@
->    #include <limits.h>
->    #include <assert.h>
->    #include <zlib.h>
-> +#include <sys/types.h>
-> +#include <ndctl/libndctl.h>
->
+>      ```
+>   
+>   1. Build and install the unit test enabled libnvdimm modules in the
+> @@ -77,8 +84,14 @@ loaded.  To build and install nfit_test.ko:
+>      the `depmod` that runs during the final `modules_install`
+>   
+>      ```
+> +   # For nfit_test.ko
+>      make M=tools/testing/nvdimm
+>      sudo make M=tools/testing/nvdimm modules_install
 > +
-> +#define INFOBLOCK_SZ (8192)
-> +#define SZ_4K (4096)
-> +#define PFN_SIG_LEN 16
+> +   # For cxl_test.ko
+> +   make M=tools/testing/cxl
+> +   sudo make M=tools/testing/cxl modules_install
 > +
-> +typedef uint64_t u64;
-> +typedef int64_t s64;
-> +typedef uint32_t u32;
-> +typedef int32_t s32;
-> +typedef uint16_t u16;
-> +typedef int16_t s16;
-> +typedef uint8_t u8;
-> +typedef int8_t s8;
-> +
-> +typedef int64_t le64;
-> +typedef int32_t le32;
-> +typedef int16_t le16;
-> +
-> +struct pfn_sb {
-> +       u8 signature[PFN_SIG_LEN];
-> +       u8 uuid[16];
-> +       u8 parent_uuid[16];
-> +       le32 flags;
-> +       le16 version_major;
-> +       le16 version_minor;
-> +       le64 dataoff; /* relative to namespace_base + start_pad */
-> +       le64 npfns;
-> +       le32 mode;
-> +       /* minor-version-1 additions for section alignment */
-> +       le32 start_pad;
-> +       le32 end_trunc;
-> +       /* minor-version-2 record the base alignment of the mapping */
-> +       le32 align;
-> +       /* minor-version-3 guarantee the padding and flags are zero */
-> +       /* minor-version-4 record the page size and struct page size */
-> +       le32 page_size;
-> +       le16 page_struct_size;
-> +       u8 padding[3994];
-> +       le64 checksum;
-> +};
-> +
-> +static int nd_read_infoblock_dataoff(struct ndctl_namespace *ndns)
-> +{
-> +       int fd, rc;
-> +       char path[50];
-> +       char buf[INFOBLOCK_SZ + 1];
-> +       struct pfn_sb *pfn_sb = (struct pfn_sb *)(buf + SZ_4K);
-> +
-> +       sprintf(path, "/dev/%s", ndctl_namespace_get_block_device(ndns));
-> +
-> +       fd = open(path, O_RDONLY|O_EXCL);
-> +       if (fd < 0)
-> +               return -1;
-> +
-> +
-> +       rc = read(fd, buf, INFOBLOCK_SZ);
-> +       if (rc < INFOBLOCK_SZ) {
-> +               return -1;
-> +       }
-> +
-> +       return pfn_sb->dataoff;
-> +}
-> +
-> +int inspect_pmem_namespace(void)
-> +{
-> +       struct ndctl_ctx *ctx;
-> +       struct ndctl_bus *bus;
-> +       int rc = -1;
-> +
-> +       fprintf(stderr, "\n\ninspect_pmem_namespace!!\n\n");
-> +       rc = ndctl_new(&ctx);
-> +       if (rc)
-> +               return -1;
-> +
-> +       ndctl_bus_foreach(ctx, bus) {
-> +               struct ndctl_region *region;
-> +
-> +               ndctl_region_foreach(bus, region) {
-> +                       struct ndctl_namespace *ndns;
-> +
-> +                       ndctl_namespace_foreach(region, ndns) {
-> +                               enum ndctl_namespace_mode mode;
-> +                               long long start, end_metadata;
-> +
-> +                               mode = ndctl_namespace_get_mode(ndns);
-> +                               /* kdump kernel should set force_raw, mode become *safe* */
-> +                               if (mode == NDCTL_NS_MODE_SAFE) {
-> +                                       fprintf(stderr, "Only raw can be dumpable\n");
-> +                                       continue;
-> +                               }
-> +
-> +                               start = ndctl_namespace_get_resource(ndns);
-> +                               end_metadata = nd_read_infoblock_dataoff(ndns);
-> +
-> +                               /* metadata really starts from 2M alignment */
-> +                               if (start != ULLONG_MAX && end_metadata > 2 * 1024 * 1024) // 2M
-> +                                       pmem_add_next(start, end_metadata);
-> +                       }
-> +               }
-> +       }
-> +
-> +       ndctl_unref(ctx);
-> +       return 0;
-> +}
-> +
->
-> Thanks
-> Zhijian
->
->
->
->> Thanks again
->>
->> Thanks
->> Zhijian
->>
->>> ...but never got an answer, or I missed the answer.
->> _______________________________________________
->> kexec mailing list
->> kexec@lists.infradead.org
->> http://lists.infradead.org/mailman/listinfo/kexec
-> _______________________________________________
-> kexec mailing list
-> kexec@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/kexec
-
+>      sudo make modules_install
+>      ```
+>   
