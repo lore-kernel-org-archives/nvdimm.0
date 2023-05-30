@@ -1,75 +1,85 @@
-Received: from mx0b-00069f02.pphosted.com (mx0b-00069f02.pphosted.com [205.220.177.32])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A0CC19924
-	for <nvdimm@lists.linux.dev>; Tue, 30 May 2023 19:17:48 +0000 (UTC)
-Received: from pps.filterd (m0246632.ppops.net [127.0.0.1])
-	by mx0b-00069f02.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 34UE4Awj009447;
-	Tue, 30 May 2023 19:17:30 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=message-id : date :
- subject : from : to : references : in-reply-to : content-type :
- content-transfer-encoding : mime-version; s=corp-2023-03-30;
- bh=zjYVB+jHF0BlEYk3zqkQWPZV3//UO6NGbEFJATP8JhU=;
- b=rpxaINf6vjgp3Z3Umk7Vs7GVlEoNhZZGfbT1qVqNifzYe27XHnt4wrlHNzIeg3aQ8Us4
- +PJLTcdJuE9mKX/SvKLMk7YCmSuj9YqJUrdwb+bWYuew5h4N6/0qc2rU0Tgy7gkWp4Rc
- N71DFfifUb6U113pSfUBeAUcZWDSutzQTSYOiTsB60fyqAabiUWA1r0M5r/XVgdYYcXy
- BAjTNQTjZLDdXgFxMHWHSflIbKn7HjG8cQJoyyyZ2Jt/QJDJZtbV2IZmccBW/TN6yQjr
- AOhTuT+CFdV4o822Gts+2sAsufjvNxUgtwHmdXDvT48XvfARPJYOz0cjkkJKo4AIG7zg mQ== 
-Received: from iadpaimrmta03.imrmtpd1.prodappiadaev1.oraclevcn.com (iadpaimrmta03.appoci.oracle.com [130.35.103.27])
-	by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 3qvhmekmn4-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 30 May 2023 19:17:29 +0000
-Received: from pps.filterd (iadpaimrmta03.imrmtpd1.prodappiadaev1.oraclevcn.com [127.0.0.1])
-	by iadpaimrmta03.imrmtpd1.prodappiadaev1.oraclevcn.com (8.17.1.19/8.17.1.19) with ESMTP id 34UHmGDF003698;
-	Tue, 30 May 2023 19:17:28 GMT
-Received: from nam12-dm6-obe.outbound.protection.outlook.com (mail-dm6nam12lp2168.outbound.protection.outlook.com [104.47.59.168])
-	by iadpaimrmta03.imrmtpd1.prodappiadaev1.oraclevcn.com (PPS) with ESMTPS id 3qv4ybxykv-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 30 May 2023 19:17:28 +0000
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB4F5200BC
+	for <nvdimm@lists.linux.dev>; Tue, 30 May 2023 21:38:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1685482699; x=1717018699;
+  h=message-id:date:subject:to:cc:references:from:
+   in-reply-to:content-transfer-encoding:mime-version;
+  bh=Ad2YUtGOLsWxfUQoAwlFyuT/Fg14cX4QN2jE3r/Aw2U=;
+  b=h5AXdtWfl5BFGVID3f26e4/odTjz//PW3kcUpqYl5LVpTbx4TReGgaHB
+   aLXgrlBIz1tOqZO7oonY+c7DwHf69f21wR1E8HL6p5S5bjZWOuK+E861l
+   SAHKojWwVn6mCczINGPS1YcF8IBqHzZcvTGc2utQ8ZF4MlNF86fKt44Le
+   wYm0lWqwslhf4R1wE5A2jt77QY+f/xM0qwj+3tPyL/n/ta0KoDnkwlbTQ
+   YO6vUEGL12OEaqugbmNaKJCqFs6z5Y8NOlUfwu3qmoeQRioZ1IfY809Ag
+   9vv2XfPNbQMJNnqvWmqPfRTcGXQWaIuhNaYErH7jaPD5urv3plz1paHBY
+   g==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10726"; a="353897058"
+X-IronPort-AV: E=Sophos;i="6.00,205,1681196400"; 
+   d="scan'208";a="353897058"
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 May 2023 14:38:19 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10726"; a="850954045"
+X-IronPort-AV: E=Sophos;i="6.00,205,1681196400"; 
+   d="scan'208";a="850954045"
+Received: from orsmsx603.amr.corp.intel.com ([10.22.229.16])
+  by fmsmga001.fm.intel.com with ESMTP; 30 May 2023 14:38:18 -0700
+Received: from orsmsx602.amr.corp.intel.com (10.22.229.15) by
+ ORSMSX603.amr.corp.intel.com (10.22.229.16) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.23; Tue, 30 May 2023 14:38:18 -0700
+Received: from ORSEDG601.ED.cps.intel.com (10.7.248.6) by
+ orsmsx602.amr.corp.intel.com (10.22.229.15) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.23 via Frontend Transport; Tue, 30 May 2023 14:38:18 -0700
+Received: from NAM11-BN8-obe.outbound.protection.outlook.com (104.47.58.168)
+ by edgegateway.intel.com (134.134.137.102) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.23; Tue, 30 May 2023 14:38:18 -0700
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=X7tdop4AsIdzgcTa8vQ77/jWizrn5uZLaGMmVwQc+aRiutDzYOryn29WlAzMVuy7ImaaT4DK0SL+JLTdHoY6TJbWEWNAgexT/PhZ7UK9b5ksABKBO3wUzVMnZm4rmB6G5bsCiGnxnRgd1Zhv16UY6klMkWI/hreeeobW9Iy9oKN/+B4F8E04Uqyf5DRFs/EuAtY8bLic+jw1TD4X4aTZ1qssMibTGO60F68suw2dgqaR5/D+mncSIgIlo+Deymuu5eFFsuf9yIRfAkwAczincPv2xV39kKiZyMgYGla5Q7YgHapG8ONrhtEjJ0Bq/KOZMJUXhWebIGxqi/YIMY97wQ==
+ b=jhGUR4+40PlTDNGp+iFVh56S1ZWqi1Zify2EAkobGnOS07yeYbwyRV/+2usJWAQL3NAJxWAJRn+ki5DozZE+X+hnnv6idfp6VsABBLEmvQLhZ2YciRFldrbjfxd3B+NIh3FbasckhI/a4rUJBtIKo+YBvczcWCNsi/GPwfXaQ0gGr4KGWMpsPNyxd3ki+7szrHW3Mn/PGtArm35aeDplzOtAlm4pjYrvxHaILmjDLFHRYqqkPEFl28/bxfMenANCenET4yeddgGP/ElDbJiW1cXhsWD/JttW+ye0QMirFhn0NEvv0WEE6OOq2rR+nBVj5Zu5pBw6Rek1S12EYf/Haw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=zjYVB+jHF0BlEYk3zqkQWPZV3//UO6NGbEFJATP8JhU=;
- b=Yf69dBP5FunHjA6+/Cf2xrxk8bISedfeEuuJu+oy/Q0YeI96d6gb34FySE+tRKk07D1csyfDHMt0J9ugH4Ev7jQLjwtmEz2EZ+Yd7JvfA1mjxlitBs1pNPn0yg1f2IlPUsEP+MOwMZokC+Xp6XnkyCHI+NHkY2i7SLCzQbb7xLAtGy8BXqfAPCaDoYli+pgf+bXGIW2v3CEfB8gdDBy6T/kYpKsYKmZ/3BRhbYpTB8PGmKw5IIpfqXFwXJoOnXoKY7y8kjapfR9UyvcGWVgh2fdqk8238kwzqjZlEqwAX2RbHKcNtUCOHuISIqLoedo5fJfFUfVqf15rWvj0Jw4Ytg==
+ bh=JDLhtYqglbe6Iq81UJfoUHRY7heENfMOzJ8IqrcZ63w=;
+ b=WOhk/r/o/qdYhIGQIAcAjrKX5yUEwO1GlUh5o+95Toql6lebImF7TybRTOuuASyksKV7Zw+eddpKSkn/9g4hZo1jsGw8ScvahyAMNMEHr3ViT9kZJG5k80hL8dPCNRrlm2+ouimv+w+SREeK20B0kVBMkk3g884D2df7THX85MD6t+tWpVWc9umTFLrYBdq3wB+9pForrBhAYdTtKsyh+XXIMx2szYbiyrsPZXPdeX7GgYwRXmb2P5Tn0F9eGdRXtli2+XuTllp5R8XqaMWMa7dca4kbNWrCbjAJ0YWrtb0chKd0V0fC4gH3Vpq8s0ufG0BBWUC1lnbtbUxf0q7+Eg==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
- dkim=pass header.d=oracle.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=zjYVB+jHF0BlEYk3zqkQWPZV3//UO6NGbEFJATP8JhU=;
- b=DPXTsMR4NA5aoWKF6ZKmP8bFsb++WQ52nBSE0I+z5IDBOsAguT9WQRaEtKsU74DjeeRdZDbKqsKM6S9YMj697kqykTJINpAWsKveW4Mea1jenMRyq9FazP2rmpxKVoKqZUKqmPbRJWXOQaoZ59K8/p7HPzJQLkFgfnjxUk/Bv3s=
-Received: from SJ0PR10MB4429.namprd10.prod.outlook.com (2603:10b6:a03:2d1::14)
- by SJ2PR10MB7584.namprd10.prod.outlook.com (2603:10b6:a03:547::20) with
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from PH7PR11MB5984.namprd11.prod.outlook.com (2603:10b6:510:1e3::15)
+ by SA1PR11MB5779.namprd11.prod.outlook.com (2603:10b6:806:232::22) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6433.23; Tue, 30 May
- 2023 19:17:26 +0000
-Received: from SJ0PR10MB4429.namprd10.prod.outlook.com
- ([fe80::256d:125b:8053:eeb9]) by SJ0PR10MB4429.namprd10.prod.outlook.com
- ([fe80::256d:125b:8053:eeb9%6]) with mapi id 15.20.6433.022; Tue, 30 May 2023
- 19:17:26 +0000
-Message-ID: <cc03b826-5e0e-8535-627f-71ca3c07a7a6@oracle.com>
-Date: Tue, 30 May 2023 12:17:22 -0700
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
- Thunderbird/102.9.1
-Subject: Re: [PATCH v4 1/1] dax: enable dax fault handler to report
- VM_FAULT_HWPOISON
+ 2023 21:38:16 +0000
+Received: from PH7PR11MB5984.namprd11.prod.outlook.com
+ ([fe80::6b5e:ef4b:bd3:36d2]) by PH7PR11MB5984.namprd11.prod.outlook.com
+ ([fe80::6b5e:ef4b:bd3:36d2%4]) with mapi id 15.20.6433.022; Tue, 30 May 2023
+ 21:38:16 +0000
+Message-ID: <7cdf6d5f-72f4-2794-c305-fda6042d320f@intel.com>
+Date: Tue, 30 May 2023 14:38:13 -0700
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Betterbird/102.11.0
+Subject: Re: [ndctl PATCH 2/2] README.md: document CXL unit tests
+To: "Zhijian Li (Fujitsu)" <lizhijian@fujitsu.com>, "nvdimm@lists.linux.dev"
+	<nvdimm@lists.linux.dev>
+CC: "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>
+References: <20230523035704.826188-1-lizhijian@fujitsu.com>
+ <20230523035704.826188-2-lizhijian@fujitsu.com>
+ <43b38130-19fa-26b5-f7b3-8429c5230c66@intel.com>
+ <d77dbd2e-452e-ab91-d045-e89fd7a7a9f9@fujitsu.com>
 Content-Language: en-US
-From: Jane Chu <jane.chu@oracle.com>
-To: dan.j.williams@intel.com, vishal.l.verma@intel.com, dave.jiang@intel.com,
-        ira.weiny@intel.com, willy@infradead.org, viro@zeniv.linux.org.uk,
-        brauner@kernel.org, nvdimm@lists.linux.dev,
-        linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org
-References: <20230509054714.1746956-1-jane.chu@oracle.com>
- <20230509054714.1746956-2-jane.chu@oracle.com>
-In-Reply-To: <20230509054714.1746956-2-jane.chu@oracle.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: SN7PR04CA0105.namprd04.prod.outlook.com
- (2603:10b6:806:122::20) To SJ0PR10MB4429.namprd10.prod.outlook.com
- (2603:10b6:a03:2d1::14)
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <d77dbd2e-452e-ab91-d045-e89fd7a7a9f9@fujitsu.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: BYAPR07CA0013.namprd07.prod.outlook.com
+ (2603:10b6:a02:bc::26) To PH7PR11MB5984.namprd11.prod.outlook.com
+ (2603:10b6:510:1e3::15)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -77,272 +87,170 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SJ0PR10MB4429:EE_|SJ2PR10MB7584:EE_
-X-MS-Office365-Filtering-Correlation-Id: 6baa10d3-4563-4837-2caf-08db61428122
+X-MS-TrafficTypeDiagnostic: PH7PR11MB5984:EE_|SA1PR11MB5779:EE_
+X-MS-Office365-Filtering-Correlation-Id: e79d66ce-04bc-4dec-e1c9-08db61562d65
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: 
-	g1hHnw7+8HfkJdXTCmx9cDz7q0UfIVP4EbYxLitTBoDJBEAVv53aW+hn45c5wvxeIhvliOR/yGErzozvMxe7+CHXEr3siD4y+d2PHDL9cro0ynmE7vKuzOED9z4XFHBnHvCJYomHevNkU3Y4ONLXpdMQTIZkKfOLPLp17gLAkyDHJF5RIYSh0aa9cTx2E2wzAWZVUvl75fC+jZlHwjwmw5gxoPvSokxMnoKjks/CCCmrJN3putHQuVIu/t1gANGgfv11pf5+bzmN1RBq54CZD+gs348oekW/3Wl9OJF/JJKTAAYWJfTF11YUR04C/rRRCwE8/46Xcnm9evzmcZodreb2cVjRLDpZSBZBoniRG+u0jTgT31WnEwfkhigz02kcoDzuwTFDSM9V/fQ51aw2aJJa3J8bCsoqIs/vKPNlbNxWrkMkDqiR4NTJKdz+l9mW3FqjOBsRExz+yIp+rQfpCPw4NO4do6df+YCnepOHCDGzAo84WkGe1AbiFHDrbV3HEHm1847iV1OTM2hDCw6BlQ2D/cpLp1ekg6fBYekh+dG9KorHxjihaLzLxa+6C9yREJwhJUQqjt2PsGEVa5R5RH0Ox0FB8rnCV/T+wRZz3eEub0lHoZT1gLWBTlV5iJHx7eYGF9MehyVEOlCkF6gYOn+MJ3QgLzdNiUW0yEdNocU=
-X-Forefront-Antispam-Report: 
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SJ0PR10MB4429.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230028)(136003)(39860400002)(396003)(366004)(376002)(346002)(451199021)(6486002)(26005)(6506007)(6512007)(53546011)(186003)(6666004)(2906002)(316002)(5660300002)(41300700001)(7416002)(36756003)(44832011)(8676002)(8936002)(478600001)(921005)(38100700002)(31686004)(86362001)(31696002)(2616005)(66476007)(66946007)(66556008)(83380400001)(45980500001)(43740500002);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam-Message-Info: mOj8bgRwraP84SEm1DLUbkYxWDhwp9BZFLM9sGgzmb2EkRSCyv7p7qCH/XfEnADFv56C+WJ+k72z4JnvTI/p6qxULqw3+VN92R22a2w8xW4gONCPZXlphNQW6UitypZXrlaFqa9yFo3cgGP3H/AHYUrZhg2NSosls5JOfkwIi3urOppmQei7SpF+hVZM1NhH4K5BQFkOgUK4vK7XnQI4xu7fek94bGUCvqqel7f+6j7KeVe4bw5d4NniO2MJk6XWF2Wtq14LfFfP+y+QmxFB+lpmJHuPJEH7j6/MlW9JhF2dWH/qrA3f1rRnUREkYqiN1RuSBDpASV2EbCftAJx5PRxUsUnoyG++8LyfIIfWiXCQihv1TW8acpdbiT86M7sGSZF1WAuVOfLBox6VKjIm05xo2tOckz2THPgU0jOROz0de6DLJa5G0oK44L+89UAQbVXnhoIg93bkztalheW7UhmDDGa4ryDLwCvMFrkLWZpQ8k8jgcNmvEk0fihD05Wk8+jyNZOC8iL7VAl4BkxYIW2WFLtSMoUexq0pfc2LX2m6tkG5g1Ut5PpiWF2KTiLI3dm4P7sq2DcyRpP/e0CpG1Ym43riRyLARkoavhyR3+V/5FEdYBPoD0zg90MWC+8ccYev1H6iMxKvLN5DHvk5Uw==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH7PR11MB5984.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230028)(366004)(346002)(136003)(376002)(396003)(39860400002)(451199021)(478600001)(110136005)(5660300002)(44832011)(8676002)(8936002)(86362001)(36756003)(2906002)(31696002)(66556008)(66946007)(4326008)(66476007)(316002)(82960400001)(38100700002)(41300700001)(2616005)(83380400001)(53546011)(186003)(31686004)(6506007)(26005)(6512007)(966005)(6486002)(6666004)(43740500002)(45980500001);DIR:OUT;SFP:1102;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: 
-	=?utf-8?B?czc3ZmF6RmlzWDQrdE43RHpvZVkrd2VLQjRUa1E3UFNHVVhmZUhySUN4UVVx?=
- =?utf-8?B?N0gwUFU3b3A1b3U4d0xIVkQ2MXBjMC9sdW9SWG1Dd0ZVMXR6eC9TYUs4VEQw?=
- =?utf-8?B?R3M5c3pOb0Z3T3ArOVI0VHcxei9jcHFUZFJhZWdBYURFVjhJWUhQOW5QVlpL?=
- =?utf-8?B?eFVteWNFbmtzUmNpYlJmb0N4encyS1NaN3o4TmJPalF0Q0cvRjl0VU8ra3M4?=
- =?utf-8?B?UWdnbjhWMDJaVVM2elNzZzJJOG1jMEozWEpFUXFDZGdpaVNucW11T2VwSGUr?=
- =?utf-8?B?eWxJTFM5Yjh2S1ZBTHp2WWNvanBzTlMydGF0RUIzWm1jTjA0WEk0WndBOFI3?=
- =?utf-8?B?aC8xcHFpOGpTQlpxY01Ic0hyQVE4TWRLUHhpWUJ3NU84YjM4VHpHMXQyQTJE?=
- =?utf-8?B?VzVseDRpS2hXQzA1YWZvYnhUZFd6OExMUmxta28vbCtpTTRCSWtZejdyYi9a?=
- =?utf-8?B?SFRaUm9RekxXdUdxbnZPVGIxMnJmYXRPejlBNXp1eTBndjJETzEyWVVyRHF1?=
- =?utf-8?B?WE9OWW4wU29WUXdzZkdvejVBUldCSlhwVkNhVzN4ZTAxK2UyY1h5dUEwWXZn?=
- =?utf-8?B?cHRnMmV3bFRwTjVOaVBQaVoyMzljTUgwdzk5WjBBczJ5MTJIck5NVHlibUVn?=
- =?utf-8?B?ZXdDZUw0L3Y4b0hSR25MaXJHMk15S0tiRDI2M0V6SVlZSjZuSDlYUDEwMTFO?=
- =?utf-8?B?dHVvd3ZuZXBVVWtaVW0vU2QrQUVjNnRiU3pENzdNWDRBSm5FZ0l1clh5bjNE?=
- =?utf-8?B?ZmxseEszU3U5K1lvYXB0Tko3SjdhNUlqWDFaYk1pZ1ljSCtjYXlNVlhyckFZ?=
- =?utf-8?B?ZFRUSHV4dHZGYjdiV1ZCWHBjd0JaMzROcENtWjA1R3RlQndWamU1dk93VHl5?=
- =?utf-8?B?S29EWGM0S25qTmNiVHg1SWVEc00wRjgyRWFLazVGNTdvZEVGaFpFNGRBenhT?=
- =?utf-8?B?ZGRjb1JiRk1xcUJSa3ZZWG1xcFdEMmU2NUx2T1p1TUREUXJoYXRCM1gzQTU5?=
- =?utf-8?B?M3FEejJJZVNjSitjbm1LWFhBQi8wNE9BNUNBeFhUbGdFbGszNlBqU0pnZnd4?=
- =?utf-8?B?V2wvZUdPejgrazI2YXY5ZDVZYTNlQ21GQ0IyblMzY1VjNnQ0N2VkVld0YXMr?=
- =?utf-8?B?WTZZY3A4MFpvWjhXdnRqdU1rSlgxTjdSdzk4SHp3RGwzem5vY2FVRUhJS2FI?=
- =?utf-8?B?dG9XSTU4S0RkWURpNUp2UFF5enJvL2oyVzBEVVU3UnEyZTBiSGZZZ3haekJX?=
- =?utf-8?B?c0ZNc3NZN2FBRW5JeVVJci9PWGxDV3NTZkE0Qkh2SVlnblc3eGlpTTBsVGFW?=
- =?utf-8?B?aDMxbmtEeWdOUnFwcURNSUhqRndWVjNFVTNBNTlJZktWeVZKQTZWNTk1N1B4?=
- =?utf-8?B?SndoZThvd0lCS2ZvNForcDI2MDQ0Si8xb2RVNk1obmQxY1dIbERIUkNuSVhv?=
- =?utf-8?B?bVhNMlQ3VjJVL2krRjAvcXJ4N2F4WmdtSTg4UGxvY2N2eTZOWHdQOEpzWWl1?=
- =?utf-8?B?Y0pzUE1tZEw1MURhSFA5QzVqWmpOSlFIUG5MQ29kaTRlTHFBSjV0OFBWdGN5?=
- =?utf-8?B?VmFzZFNCMlI5YTh0ajhnR0JGS0FDdDAzSGFHTHNLTDJDRUVaZXdXTGFtMGhO?=
- =?utf-8?B?YW0yYUk3aUF3R2Z4aXVNSjVwRXhMZmxyVTlVRHFReFZXMHJBWHNLQ2xXd1Jk?=
- =?utf-8?B?Z29PdEpJY25NT1E5M25SMUZtWkZZZWFVYXBHK3ZMaWZtc2lFZnZmaEpWNHJa?=
- =?utf-8?B?ZlA3MitWVUw2TW9CbjNteHpLelhZbzE3KzNTaHZXTjJDUTlTNlJCcG01emQx?=
- =?utf-8?B?Zkt0eCsvY3Z0WEFsY1ByN241SGNyVm1ZVkxGR1pFc1F2b3FHT2ZwQ1N4M09X?=
- =?utf-8?B?VmZ1MGNiRE1PU3hnTjI0aHlYaENZSWRPQXlxS1RVOFJjVk5EVFhxMmFiSmFY?=
- =?utf-8?B?TGxERFpSUFRkU296NXdZMHVoMlY4a0dhNzJld0dkdjJTbXhnTUdIOUwwOFZ4?=
- =?utf-8?B?UHYyUjEyd2JETHpkTkMyRStzYytmdlJJRk42aVRTSmF0MDFOejVtNEFkdjZi?=
- =?utf-8?B?OVdpQWdOUjdMRExCQkN5NmdCbloxSi9vZVJMc2F3RW5tWFBFWlJUeXFURUdQ?=
- =?utf-8?Q?4zUYOkyg20JZCFwPj/3NErytd?=
-X-MS-Exchange-AntiSpam-ExternalHop-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-ExternalHop-MessageData-0: 
-	=?utf-8?B?NVhudzNlekRTaE5sWU5GelBuZUdnVlFPNzhkN3I3MGoyMlkyVENhZU1FKzMz?=
- =?utf-8?B?RTBwZ1UwZngrVStGNTFCOTYwMFovenQwZXVKVmdNVDk0Rjl4Zk50QzAyK2VB?=
- =?utf-8?B?R0d4c2ZHaStzN2xZUDB0Y3RkV09vRnQ4NFErMmQzc081RE5ERzcrZlpTRlNp?=
- =?utf-8?B?Ry8xajBaQWFRRkNHRzhTb1dSS1dmQWs0RGNEODlhSTZYSnY1MlBOaGRMMGRt?=
- =?utf-8?B?TUFJMytuTjVaZmpuZXdIc1Q5NjA3WUNCN0NhQ0JHMTc4alZ0R1IzdDByYWx0?=
- =?utf-8?B?NmJSTzVnOXM5K2x3LzVFMkpNeHJ5NHJwREtDTFhIN3MxczdnVFhiM0t1NDY2?=
- =?utf-8?B?V0NBRWNqZ1J0M2tiK0pyVXMxOWJGM3V4QU15WmE3VDdkN3lJV0QwaGYxZjM5?=
- =?utf-8?B?UitvTjAvUC8xemN0UG5CazJiQ2JwRm1wYzBrcVk5OERicmlDcmQydENFRW5T?=
- =?utf-8?B?L0NacmJnWkNMeU1QUzlHdlZkV3VWak5jb3pLdWtBT2Y3L2NRaitldTRMalRN?=
- =?utf-8?B?RFRFZHZORDVsOG50YUVCdnRTVDRTWW1TRktDOHQ5ZWgzTW92Z0dabWpTQ2Yv?=
- =?utf-8?B?eFY3MU16Wlp3Rzl5RkVGZVBiK2tlSU5KMXJDWTVtMFQ4UmJPcUViRkhUYXRl?=
- =?utf-8?B?RHJlNDJCenZLRnZvSmhWU0R2SWtzbERaUUJ1TGNUcDNIS3ZjMmJoTU15TjNs?=
- =?utf-8?B?OXZzMnQ2ZzRtZzhRcFNpdW9TRzRDaWpuQmVQc2h2UEhwWEZ2Y3hxWmFQcURB?=
- =?utf-8?B?RTJlZ1lrZURsV09aQ0FwRHZuWEJHZHhJUGNXeklLWkVJVDRwMm9HN3QyUlJu?=
- =?utf-8?B?eUp4MGR2ZlZUVTZBRFRtWUcyYkNBbDRaakxlZDdQUUxuUHpzSGU4VTBILzM1?=
- =?utf-8?B?RkJ0elZFN0U3NUZXWjBpZnBaMnBMZnNreWY0Tm1rTDh1YUVpVnFlQW1kVjEz?=
- =?utf-8?B?VDBFL3NXaGNYRzFRZEZWZVNRRlV6Vm9kMlNDVmg3MHRVZ1NEMWJSR2dicXh5?=
- =?utf-8?B?YzBOdFlKVFBvSStQMm1wQ3hscHRNNitlR0RHWUhtRWs3c1hzU3ZsOVl3eGZO?=
- =?utf-8?B?dHZaejFLVWNQZldhcUdSMytqQmNCWllrREhXUE4rMHljekh1VVI0ZTEvTG9p?=
- =?utf-8?B?STZxb2xhUUxibjR2MlVXenhZamtjVU82NzlSOGlldkRXLzluN3BRS2xLaHZy?=
- =?utf-8?B?eXBIM1JtYVc4Z2tmc1lTQUhZeDNoMnYxRmlWLzBjWkJxS0V6WU1RWWJ3bVUy?=
- =?utf-8?Q?Ym+yHO/KYtr8q4W?=
-X-OriginatorOrg: oracle.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 6baa10d3-4563-4837-2caf-08db61428122
-X-MS-Exchange-CrossTenant-AuthSource: SJ0PR10MB4429.namprd10.prod.outlook.com
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?d3BmMHNCVnR1M1VrcmtKLzBYT2FqbkQ1Q1o1OVFFZDF6YUUwRm9sQldpNWN2?=
+ =?utf-8?B?eGJYR1o1aTlqcEsyQ0xtQnRybnBnVEJzSzhYQWNOalNFVmtqUWNBOTVMNFMr?=
+ =?utf-8?B?VDZDU21JTngrK0h0WWlCT3lRMWw3S0xmU2ZiYWJDR1FWUXdSRHA2WFl0elZs?=
+ =?utf-8?B?Z1FNMmdib0phQjRoVW5EbjY5QWRwSXd0bmtvQVcwYm5rdFdJbmFaRUFIMHlq?=
+ =?utf-8?B?MlM4bkgxT0EyUU5YblpsY01BeHZNSXhSTHJUcTBtOWhBZ2VRMVlEM2hvbU5E?=
+ =?utf-8?B?SW4vMHRwK0hxTmc1ZVB3bVJlTmZwYWkxRXFZS0g5anY4OG1sNERONjhqNGJI?=
+ =?utf-8?B?UjIyMEtMVWkvdVdNN3F4ZTVzcElCUFVLV1d1ZjI4TWtPd2xPYnI2Q2FRaTIv?=
+ =?utf-8?B?ekFhUUJpQjRMVXArUldtdWxHTmtUbzhORDA1b1J0RjdQbXpiNTJzOHB5MWNw?=
+ =?utf-8?B?NFNvSlV2MFF1SGVPTWlvbm41WmN5N292MFVENFVieUY5RjZJc3J2ekg4Zk5x?=
+ =?utf-8?B?N3I5OVN5cDh5NVJZRzM2ZC9sbXVMc0pzQjFFeXprMzhUN1FBYUIwMGhQWHFl?=
+ =?utf-8?B?ZldpdFFPNWRnbXh5Slp1MnlERncydkVpUEl4Y2ZiZ2hwRzcxeWw1cHZKYjd2?=
+ =?utf-8?B?RjJKZzFDcEJEblFaazg1Y0o0UzhVblpUbm5IMGlNZXlhcTV4OEFvV295amdI?=
+ =?utf-8?B?ZEduMUdTck1MZXlkVjU1WFZwQVZwODViSGNFVnc3bmN3M2k0REdoOGRTM0o1?=
+ =?utf-8?B?M0QwQ1VDeTdTTVBwT3NRdXg0MmpacWx0UnZZdlVoYkJPcTFtejlYUFpYKzEy?=
+ =?utf-8?B?Q0UwaSt6MGt3OWNyaVFJV3FsbXJ0TnFBQ0dMazhERGhvZGNrVWl2cW5tZnFT?=
+ =?utf-8?B?cmxMM1FJYnBlOXdXUmVURmNaa0FKTmMwY25ZRllqeElQSVJXYmk5TTZKakNX?=
+ =?utf-8?B?ZjJkbmwrT3F4T2Q4bm90MDRkdEhJZ2tvc1pEZUVNNEJHNWdFMkticUU0R2J4?=
+ =?utf-8?B?dS9nME1tV0IzK0U1ZUwrQU1oWEdUeDlKOVhwaWg5ZGM2cjV1Z0ZzaEpPQVJx?=
+ =?utf-8?B?YjNjN1VVU0sxUXZqNmRlUEVEY2NpbGtRUzdLU200azlmK25EMFovQStUOGNs?=
+ =?utf-8?B?SjF0M3VkekN2MnhzdUJDUHJzL1VvL2N2bjZvY05BMGllU1RkRm8wSHBhNklM?=
+ =?utf-8?B?aUxPWXRJbkdyZGVRckQwL0kwbkdkZFpGYUhQVkhoWDUwVzF1Y29YYzZnb3Fz?=
+ =?utf-8?B?THNneUlpU2poSzZiQnkrSTlaMkdJZVVMdTdXTzdLbDhWSHo2SFJPQUlPeW1o?=
+ =?utf-8?B?OVVUenY2bUgxWmc2d2NmbHRhelJicDYxK2lzY2ZXTitMdGI2YnIydVEwTDNJ?=
+ =?utf-8?B?V1RmSHV6RXFhbW1QU0oxakhpbWg3Tjg3YUtrTU4wR2g4T0VSYkUvb1RTNHZP?=
+ =?utf-8?B?Z2N5T3V1VDhSQVo2cWU4Z3VaUFAxY2kzL25WVzkwZWpGVTVpVUtPZnVDeGpl?=
+ =?utf-8?B?SDVxcmRMRGh0bVUwMEtTWk82V3hPTDFWUzNFYnJyNlFQNUxPOEFQUGNGcmdq?=
+ =?utf-8?B?ZEY2bEFXV2M4b2RTYjUvMzlTaTRrSXdpaUlYRVU4V1ArRGZjdkpoVVErM3lT?=
+ =?utf-8?B?ciszOE05Vk5XVlBMcHEyYVdVMFhORUJGV1ZrcWZCcW4ydTA4YlcwSXE0RG9j?=
+ =?utf-8?B?MmN3WldhK3BEVnVqTHBQMzJ6NDV6ODVvZ2NXNjVZb1BsN1RVU2w1OTZ5M1Vk?=
+ =?utf-8?B?TGJ2SnBoaHBkdHVKbmpIVXdDRW92bzYyKzZ0dGdELzY0L005SURyZCtUQnBk?=
+ =?utf-8?B?bUlFL1ZOa291eEFFSXVXaGJEdkZ5bm8vWkloWm0wQm4wMGZ4MlVSaWp2NUhl?=
+ =?utf-8?B?eXVBdURGbWV0T2FCcUt6dTZiQzY4eVFGVTVsQndMRDJmeWpoazRCR2E4N25O?=
+ =?utf-8?B?NDEvTVQ4dUswbVFHZzJ1UkljbzlldmE5Rmswbno5bUJNOWJ4SGRweklmM0dJ?=
+ =?utf-8?B?ZFQ1M004TDN3WGhwVlFJd3pKMTk0YmxSM3BEZHhpQ05UbFRzN2VvYU91MDYx?=
+ =?utf-8?B?ZTlKaDc2Q085bGxrTlVsaU91KzRQdXR4NXBCTVFoYnIzTDU5WmtZd2ROV1Jk?=
+ =?utf-8?Q?U0bOQpXu8F66uY2kGnPiVyBHf?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: e79d66ce-04bc-4dec-e1c9-08db61562d65
+X-MS-Exchange-CrossTenant-AuthSource: PH7PR11MB5984.namprd11.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 May 2023 19:17:26.7228
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 May 2023 21:38:16.1639
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: ieSB38ltbph3vYlsVww8q3cLLLHcHYwxjlyX2ldGH4GN9LHl3Zt5fCN7o5z9DhIij/j/zxYWyxEiqlTBc85GjA==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ2PR10MB7584
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.254,Aquarius:18.0.957,Hydra:6.0.573,FMLib:17.11.176.26
- definitions=2023-05-30_14,2023-05-30_01,2023-05-22_02
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 spamscore=0 mlxlogscore=999
- adultscore=0 malwarescore=0 bulkscore=0 suspectscore=0 mlxscore=0
- phishscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2304280000 definitions=main-2305300155
-X-Proofpoint-ORIG-GUID: stL5wcl_CksZDSL55kpyydIJrQjRuzpX
-X-Proofpoint-GUID: stL5wcl_CksZDSL55kpyydIJrQjRuzpX
+X-MS-Exchange-CrossTenant-UserPrincipalName: ttioLepojbz0aVeReg4n7P0MuBoKmWfh4pLzR/iDuPF9gNyM2+ZcCEvdLWmIxz4EPe1BeV9TzzjT8riV5+jA4w==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA1PR11MB5779
+X-OriginatorOrg: intel.com
 
-Ping... Is there any further concern?
 
--jane
+On 5/25/23 21:01, Zhijian Li (Fujitsu) wrote:
+>
+> On 25/05/2023 23:28, Dave Jiang wrote:
+>> On 5/22/23 20:57, Li Zhijian wrote:
+>>> It requires some CLX specific kconfigs and testing purpose module
+>>>
+>>> Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
+>>> ---
+>>>    README.md | 17 +++++++++++++++--
+>>>    1 file changed, 15 insertions(+), 2 deletions(-)
+>>>
+>>> diff --git a/README.md b/README.md
+>>> index 7c7cf0dd065d..521e2582fb05 100644
+>>> --- a/README.md
+>>> +++ b/README.md
+>>> @@ -39,8 +39,8 @@ https://nvdimm.wiki.kernel.org/start
+>>>    Unit Tests
+>>>    ==========
+>>> -The unit tests run by `meson test` require the nfit_test.ko module to be
+>>> -loaded.  To build and install nfit_test.ko:
+>>> +The unit tests run by `meson test` require the nfit_test.ko and cxl_test.ko modules to be
+>>> +loaded.  To build and install nfit_test.ko and cxl_test.ko:
+>>>    1. Obtain the kernel source.  For example,
+>>>       `git clone -b libnvdimm-for-next git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git`
+>>> @@ -70,6 +70,13 @@ loaded.  To build and install nfit_test.ko:
+>>>       CONFIG_NVDIMM_DAX=y
+>>>       CONFIG_DEV_DAX_PMEM=m
+>>>       CONFIG_ENCRYPTED_KEYS=y
+>>> +   CONFIG_CXL_BUS=m
+>>> +   CONFIG_CXL_PCI=m
+>>> +   CONFIG_CXL_ACPI=m
+>>> +   CONFIG_CXL_PMEM=m
+>>> +   CONFIG_CXL_MEM=m
+>>> +   CONFIG_CXL_PORT=m
+>>> +   CONFIG_DEV_DAX_CXL=m
+>> Probably should have a separate entry for CXL configs for testing. There's a cxl.git at kernel.org as well.
+>>
+>> Also will need:
+>>
+>> CONFIG_NVDIMM_SECURITY_TEST=y
+>>
+> I also noticed that Yi have sent a patch to add this and some other kconfigs
+> https://lore.kernel.org/nvdimm/20230516121730.2561605-1-yi.zhang@redhat.com/T/#u
+>
+>> CONFIG_CXL_REGION_INVALIDATION_TEST=y
+> Yes, i indeed missed it.
+>
+> I insert a section before *run the test* as below. A markdown preview of README.md
+> Please take another look.
+>
+> diff --git a/README.md b/README.md
+> index 7c7cf0dd065d..324d179ac4ea 100644
+> --- a/README.md
+> +++ b/README.md
+> @@ -82,6 +82,32 @@ loaded.  To build and install nfit_test.ko:
+>       sudo make modules_install
+>       ```
+>    
+> +1. CXL test
+> +
+> +   The unit tests will also run CXL test by default. In order to make the
+> +   CXL test work properly, we need to install the cxl_test.ko as well.
+> +
+> +   Obtain the CXL kernel source(optional).  For example,
+> +   `git clone -b pending git://git.kernel.org/pub/scm/linux/kernel/git/cxl/cxl.git`
+> +
+> +   Enable CXL specific kernel configurations
+> +   ```
+> +   CONFIG_CXL_BUS=m
+> +   CONFIG_CXL_PCI=m
+> +   CONFIG_CXL_ACPI=m
+> +   CONFIG_CXL_PMEM=m
+> +   CONFIG_CXL_MEM=m
+> +   CONFIG_CXL_PORT=m
+> +   CONFIG_CXL_REGION=y
+> +   CONFIG_CXL_REGION_INVALIDATION_TEST=y
+> +   CONFIG_DEV_DAX_CXL=m
+> +   ```
+> +   Install cxl_test.ko
+> +   ```For cxl_test.ko
+> +   make M=tools/testing/cxl
+> +   sudo make M=tools/testing/cxl modules_install
+> +   sudo make modules_install
+> +   ```
+>    1. Now run `meson test -C build` in the ndctl source directory, or `ndctl test`,
+>       if ndctl was built with `-Dtest=enabled` as a configuration option to meson.
 
-On 5/8/2023 10:47 PM, Jane Chu wrote:
-> When multiple processes mmap() a dax file, then at some point,
-> a process issues a 'load' and consumes a hwpoison, the process
-> receives a SIGBUS with si_code = BUS_MCEERR_AR and with si_lsb
-> set for the poison scope. Soon after, any other process issues
-> a 'load' to the poisoned page (that is unmapped from the kernel
-> side by memory_failure), it receives a SIGBUS with
-> si_code = BUS_ADRERR and without valid si_lsb.
-> 
-> This is confusing to user, and is different from page fault due
-> to poison in RAM memory, also some helpful information is lost.
-> 
-> Channel dax backend driver's poison detection to the filesystem
-> such that instead of reporting VM_FAULT_SIGBUS, it could report
-> VM_FAULT_HWPOISON.
-> 
-> If user level block IO syscalls fail due to poison, the errno will
-> be converted to EIO to maintain block API consistency.
-> 
-> Signed-off-by: Jane Chu <jane.chu@oracle.com>
-> ---
->   drivers/dax/super.c          |  5 ++++-
->   drivers/nvdimm/pmem.c        |  2 +-
->   drivers/s390/block/dcssblk.c |  3 ++-
->   fs/dax.c                     | 11 ++++++-----
->   fs/fuse/virtio_fs.c          |  3 ++-
->   include/linux/dax.h          |  5 +++++
->   include/linux/mm.h           |  2 ++
->   7 files changed, 22 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-> index c4c4728a36e4..0da9232ea175 100644
-> --- a/drivers/dax/super.c
-> +++ b/drivers/dax/super.c
-> @@ -203,6 +203,8 @@ size_t dax_copy_to_iter(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
->   int dax_zero_page_range(struct dax_device *dax_dev, pgoff_t pgoff,
->   			size_t nr_pages)
->   {
-> +	int ret;
-> +
->   	if (!dax_alive(dax_dev))
->   		return -ENXIO;
->   	/*
-> @@ -213,7 +215,8 @@ int dax_zero_page_range(struct dax_device *dax_dev, pgoff_t pgoff,
->   	if (nr_pages != 1)
->   		return -EIO;
->   
-> -	return dax_dev->ops->zero_page_range(dax_dev, pgoff, nr_pages);
-> +	ret = dax_dev->ops->zero_page_range(dax_dev, pgoff, nr_pages);
-> +	return dax_mem2blk_err(ret);
->   }
->   EXPORT_SYMBOL_GPL(dax_zero_page_range);
->   
-> diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-> index ceea55f621cc..46e094e56159 100644
-> --- a/drivers/nvdimm/pmem.c
-> +++ b/drivers/nvdimm/pmem.c
-> @@ -260,7 +260,7 @@ __weak long __pmem_direct_access(struct pmem_device *pmem, pgoff_t pgoff,
->   		long actual_nr;
->   
->   		if (mode != DAX_RECOVERY_WRITE)
-> -			return -EIO;
-> +			return -EHWPOISON;
->   
->   		/*
->   		 * Set the recovery stride is set to kernel page size because
-> diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
-> index c09f2e053bf8..ee47ac520cd4 100644
-> --- a/drivers/s390/block/dcssblk.c
-> +++ b/drivers/s390/block/dcssblk.c
-> @@ -54,7 +54,8 @@ static int dcssblk_dax_zero_page_range(struct dax_device *dax_dev,
->   	rc = dax_direct_access(dax_dev, pgoff, nr_pages, DAX_ACCESS,
->   			&kaddr, NULL);
->   	if (rc < 0)
-> -		return rc;
-> +		return dax_mem2blk_err(rc);
-> +
->   	memset(kaddr, 0, nr_pages << PAGE_SHIFT);
->   	dax_flush(dax_dev, kaddr, nr_pages << PAGE_SHIFT);
->   	return 0;
-> diff --git a/fs/dax.c b/fs/dax.c
-> index 2ababb89918d..a26eb5abfdc0 100644
-> --- a/fs/dax.c
-> +++ b/fs/dax.c
-> @@ -1148,7 +1148,7 @@ static int dax_iomap_copy_around(loff_t pos, uint64_t length, size_t align_size,
->   	if (!zero_edge) {
->   		ret = dax_iomap_direct_access(srcmap, pos, size, &saddr, NULL);
->   		if (ret)
-> -			return ret;
-> +			return dax_mem2blk_err(ret);
->   	}
->   
->   	if (copy_all) {
-> @@ -1310,7 +1310,7 @@ static s64 dax_unshare_iter(struct iomap_iter *iter)
->   
->   out_unlock:
->   	dax_read_unlock(id);
-> -	return ret;
-> +	return dax_mem2blk_err(ret);
->   }
->   
->   int dax_file_unshare(struct inode *inode, loff_t pos, loff_t len,
-> @@ -1342,7 +1342,8 @@ static int dax_memzero(struct iomap_iter *iter, loff_t pos, size_t size)
->   	ret = dax_direct_access(iomap->dax_dev, pgoff, 1, DAX_ACCESS, &kaddr,
->   				NULL);
->   	if (ret < 0)
-> -		return ret;
-> +		return dax_mem2blk_err(ret);
-> +
->   	memset(kaddr + offset, 0, size);
->   	if (iomap->flags & IOMAP_F_SHARED)
->   		ret = dax_iomap_copy_around(pos, size, PAGE_SIZE, srcmap,
-> @@ -1498,7 +1499,7 @@ static loff_t dax_iomap_iter(const struct iomap_iter *iomi,
->   
->   		map_len = dax_direct_access(dax_dev, pgoff, PHYS_PFN(size),
->   				DAX_ACCESS, &kaddr, NULL);
-> -		if (map_len == -EIO && iov_iter_rw(iter) == WRITE) {
-> +		if (map_len == -EHWPOISON && iov_iter_rw(iter) == WRITE) {
->   			map_len = dax_direct_access(dax_dev, pgoff,
->   					PHYS_PFN(size), DAX_RECOVERY_WRITE,
->   					&kaddr, NULL);
-> @@ -1506,7 +1507,7 @@ static loff_t dax_iomap_iter(const struct iomap_iter *iomi,
->   				recovery = true;
->   		}
->   		if (map_len < 0) {
-> -			ret = map_len;
-> +			ret = dax_mem2blk_err(map_len);
->   			break;
->   		}
->   
-> diff --git a/fs/fuse/virtio_fs.c b/fs/fuse/virtio_fs.c
-> index 4d8d4f16c727..5f1be1da92ce 100644
-> --- a/fs/fuse/virtio_fs.c
-> +++ b/fs/fuse/virtio_fs.c
-> @@ -775,7 +775,8 @@ static int virtio_fs_zero_page_range(struct dax_device *dax_dev,
->   	rc = dax_direct_access(dax_dev, pgoff, nr_pages, DAX_ACCESS, &kaddr,
->   			       NULL);
->   	if (rc < 0)
-> -		return rc;
-> +		return dax_mem2blk_err(rc);
-> +
->   	memset(kaddr, 0, nr_pages << PAGE_SHIFT);
->   	dax_flush(dax_dev, kaddr, nr_pages << PAGE_SHIFT);
->   	return 0;
-> diff --git a/include/linux/dax.h b/include/linux/dax.h
-> index bf6258472e49..a4e97acf60f5 100644
-> --- a/include/linux/dax.h
-> +++ b/include/linux/dax.h
-> @@ -261,6 +261,11 @@ static inline bool dax_mapping(struct address_space *mapping)
->   	return mapping->host && IS_DAX(mapping->host);
->   }
->   
-> +static inline int dax_mem2blk_err(int err)
-> +{
-> +	return (err == -EHWPOISON) ? -EIO : err;
-> +}
-> +
->   #ifdef CONFIG_DEV_DAX_HMEM_DEVICES
->   void hmem_register_resource(int target_nid, struct resource *r);
->   #else
-> diff --git a/include/linux/mm.h b/include/linux/mm.h
-> index 1f79667824eb..e4c974587659 100644
-> --- a/include/linux/mm.h
-> +++ b/include/linux/mm.h
-> @@ -3217,6 +3217,8 @@ static inline vm_fault_t vmf_error(int err)
->   {
->   	if (err == -ENOMEM)
->   		return VM_FAULT_OOM;
-> +	else if (err == -EHWPOISON)
-> +		return VM_FAULT_HWPOISON;
->   	return VM_FAULT_SIGBUS;
->   }
->   
+
+LGTM
+
+
+>
+>
+>>
+>>
+>>>       ```
+>>>    1. Build and install the unit test enabled libnvdimm modules in the
+>>> @@ -77,8 +84,14 @@ loaded.  To build and install nfit_test.ko:
+>>>       the `depmod` that runs during the final `modules_install`
+>>>       ```
+>>> +   # For nfit_test.ko
+>>>       make M=tools/testing/nvdimm
+>>>       sudo make M=tools/testing/nvdimm modules_install
+>>> +
+>>> +   # For cxl_test.ko
+>>> +   make M=tools/testing/cxl
+>>> +   sudo make M=tools/testing/cxl modules_install
+>>> +
+>>>       sudo make modules_install
+>>>       ```
