@@ -1,78 +1,49 @@
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9BB89FBE8;
-	Thu,  1 Jun 2023 13:21:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C400B23423
+	for <nvdimm@lists.linux.dev>; Thu,  1 Jun 2023 13:42:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1685625709; x=1717161709;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=LDh3/ulcjpVzc1kWMXWyk72lw2x2F5XCJG1Yb1dhhKw=;
-  b=IIifFB/XN7cmxihAwzfPaOsSrnwyTQa4g/nwQeIkyX7s+6NMiOI4eNIW
-   pw9v3j8cHzqARqPY5CIVqhW1z/SWMcWVNMXPsuQmv5svvEtSsP3nf/QRg
-   ktc+Q5cXPm8l3nOXXWQTHTm6gwzyTKTbi9gsXg0H9lrC1eQMOJFhgeA4Y
-   NsFbMX5X5IdobzoGGwp3aki2kUAZaPx0MkpTKpT8xHJwgtlstYFUQTG3H
-   KiICLv90iFWOTY5Se8r9HR9Y8wmlXeq43DPXxKv6Lho/+Ym+D9XredWrq
-   WvfAZ1xz+wQVQAC6C318CHV4WADG6qy3lyssLxL7DTjTT5Jux0Ndfg0uD
+  t=1685626955; x=1717162955;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=hM51g4LvmO5TXW4gm++QbkwmPKMxxaZZYt1NUl8p1KA=;
+  b=JnXk73K6rKZF3U4PVGqZBA3NFmAFVDafYStdEbLa0JpVwr2EtQ/B1a+d
+   8E0zWaxIgrFKcqL2fyjjusOi7+98gX86RSDhPOKnUtxPIdDaWQYoKBVp6
+   zjVLhQ/OiykAx40BxIU0D8xnnTzcVW3Kan2Ps4p9wOUiQfxQEC3qSj4+V
+   gO5SxZMHTZjN4aY2MXUnx3lO3/V3sktVeS71VAuBnSDSUDbHynG0DUjWl
+   U7DnIcNf7HwgpwMEFEEsmEb73C1MGuorZwRiNfOvHbfG9jCtde8u4K/ti
+   dwJy1NSItSS4sWul/cG/qmI+ZFRycNGrAOaRMNghEpkJPmkG1O3hSSyuw
    g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10728"; a="335174006"
+X-IronPort-AV: E=McAfee;i="6600,9927,10728"; a="419066882"
 X-IronPort-AV: E=Sophos;i="6.00,210,1681196400"; 
-   d="scan'208";a="335174006"
-Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Jun 2023 06:21:48 -0700
+   d="scan'208";a="419066882"
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Jun 2023 06:18:40 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10728"; a="1037487848"
+X-IronPort-AV: E=McAfee;i="6600,9927,10728"; a="881601530"
 X-IronPort-AV: E=Sophos;i="6.00,210,1681196400"; 
-   d="scan'208";a="1037487848"
+   d="scan'208";a="881601530"
 Received: from hextor.igk.intel.com ([10.123.220.6])
-  by fmsmga005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Jun 2023 06:21:40 -0700
+  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Jun 2023 06:18:38 -0700
 From: Michal Wilczynski <michal.wilczynski@intel.com>
-To: rafael@kernel.org,
-	lenb@kernel.org,
-	dan.j.williams@intel.com,
-	vishal.l.verma@intel.com,
-	dave.jiang@intel.com,
-	ira.weiny@intel.com,
-	rui.zhang@intel.com,
-	jdelvare@suse.com,
-	linux@roeck-us.net,
-	jic23@kernel.org,
-	lars@metafoo.de,
-	bleung@chromium.org,
-	yu.c.chen@intel.com,
-	hdegoede@redhat.com,
-	markgross@kernel.org,
-	luzmaximilian@gmail.com,
-	corentin.chary@gmail.com,
-	jprvita@gmail.com,
-	cascardo@holoscopio.com,
-	don@syst.com.br,
-	pali@kernel.org,
-	jwoithe@just42.net,
-	matan@svgalib.org,
-	kenneth.t.chan@gmail.com,
-	malattia@linux.it,
-	jeremy@system76.com,
-	productdev@system76.com,
-	herton@canonical.com,
-	coproscefalo@gmail.com,
-	tytso@mit.edu,
-	Jason@zx2c4.com,
-	robert.moore@intel.com
-Cc: linux-acpi@vger.kernel.org,
+To: Dan Williams <dan.j.williams@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Ira Weiny <ira.weiny@intel.com>,
+	"Rafael J. Wysocki" <rafael@kernel.org>,
+	Len Brown <lenb@kernel.org>
+Cc: Michal Wilczynski <michal.wilczynski@intel.com>,
 	nvdimm@lists.linux.dev,
-	linux-hwmon@vger.kernel.org,
-	linux-iio@vger.kernel.org,
-	chrome-platform@lists.linux.dev,
-	platform-driver-x86@vger.kernel.org,
-	acpi4asus-user@lists.sourceforge.net,
-	Michal Wilczynski <michal.wilczynski@intel.com>,
-	acpica-devel@lists.linuxfoundation.org
-Subject: [PATCH v4 35/35] acpi/bus: Remove notify callback and flags
-Date: Thu,  1 Jun 2023 15:21:37 +0200
-Message-Id: <20230601132137.301802-1-michal.wilczynski@intel.com>
+	linux-acpi@vger.kernel.org,
+	platform-driver-x86@vger.kernel.org
+Subject: [PATCH v4 07/35] acpi/nfit: Move handler installing logic to driver
+Date: Thu,  1 Jun 2023 15:17:10 +0200
+Message-Id: <20230601131739.300760-8-michal.wilczynski@intel.com>
 X-Mailer: git-send-email 2.37.2
+In-Reply-To: <20230601131739.300760-3-michal.wilczynski@intel.com>
+References: <20230601131739.300760-3-michal.wilczynski@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -81,42 +52,85 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-As callback has been replaced by drivers installing their handlers in
-.add it's presence is not useful anymore.
+Currently logic for installing notifications from ACPI devices is
+implemented using notify callback in struct acpi_driver. Preparations
+are being made to replace acpi_driver with more generic struct
+platform_driver, which doesn't contain notify callback. Furthermore
+as of now handlers are being called indirectly through
+acpi_notify_device(), which decreases performance.
 
-Remove .notify callback and flags variable from struct acpi_driver,
-as they're not needed anymore.
+Call acpi_device_install_event_handler() at the end of .add() callback.
+Call acpi_device_remove_event_handler() at the beginning of .remove()
+callback. Change arguments passed to the notify callback to match with
+what's required by acpi_device_install_event_handler().
 
 Signed-off-by: Michal Wilczynski <michal.wilczynski@intel.com>
 ---
- include/acpi/acpi_bus.h | 3 ---
- 1 file changed, 3 deletions(-)
+ drivers/acpi/nfit/core.c | 25 ++++++++++++++++---------
+ 1 file changed, 16 insertions(+), 9 deletions(-)
 
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index 7fb411438b6f..3326794d5b70 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -151,12 +151,10 @@ struct acpi_hotplug_context {
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 07204d482968..633c34513071 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -3312,6 +3312,15 @@ void acpi_nfit_shutdown(void *data)
+ }
+ EXPORT_SYMBOL_GPL(acpi_nfit_shutdown);
  
- typedef int (*acpi_op_add) (struct acpi_device * device);
- typedef void (*acpi_op_remove) (struct acpi_device *device);
--typedef void (*acpi_op_notify) (struct acpi_device * device, u32 event);
++static void acpi_nfit_notify(acpi_handle handle, u32 event, void *data)
++{
++	struct acpi_device *device = data;
++
++	device_lock(&device->dev);
++	__acpi_nfit_notify(&device->dev, handle, event);
++	device_unlock(&device->dev);
++}
++
+ static int acpi_nfit_add(struct acpi_device *adev)
+ {
+ 	struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER, NULL };
+@@ -3368,12 +3377,18 @@ static int acpi_nfit_add(struct acpi_device *adev)
  
- struct acpi_device_ops {
- 	acpi_op_add add;
- 	acpi_op_remove remove;
--	acpi_op_notify notify;
+ 	if (rc)
+ 		return rc;
+-	return devm_add_action_or_reset(dev, acpi_nfit_shutdown, acpi_desc);
++
++	rc = devm_add_action_or_reset(dev, acpi_nfit_shutdown, acpi_desc);
++	if (rc)
++		return rc;
++
++	return acpi_device_install_event_handler(adev, ACPI_DEVICE_NOTIFY, acpi_nfit_notify);
+ }
+ 
+ static void acpi_nfit_remove(struct acpi_device *adev)
+ {
+ 	/* see acpi_nfit_unregister */
++	acpi_device_remove_event_handler(adev, ACPI_DEVICE_NOTIFY, acpi_nfit_notify);
+ }
+ 
+ static void acpi_nfit_update_notify(struct device *dev, acpi_handle handle)
+@@ -3446,13 +3461,6 @@ void __acpi_nfit_notify(struct device *dev, acpi_handle handle, u32 event)
+ }
+ EXPORT_SYMBOL_GPL(__acpi_nfit_notify);
+ 
+-static void acpi_nfit_notify(struct acpi_device *adev, u32 event)
+-{
+-	device_lock(&adev->dev);
+-	__acpi_nfit_notify(&adev->dev, adev->handle, event);
+-	device_unlock(&adev->dev);
+-}
+-
+ static const struct acpi_device_id acpi_nfit_ids[] = {
+ 	{ "ACPI0012", 0 },
+ 	{ "", 0 },
+@@ -3465,7 +3473,6 @@ static struct acpi_driver acpi_nfit_driver = {
+ 	.ops = {
+ 		.add = acpi_nfit_add,
+ 		.remove = acpi_nfit_remove,
+-		.notify = acpi_nfit_notify,
+ 	},
  };
  
- #define ACPI_DRIVER_ALL_NOTIFY_EVENTS	0x1	/* system AND device events */
-@@ -165,7 +163,6 @@ struct acpi_driver {
- 	char name[80];
- 	char class[80];
- 	const struct acpi_device_id *ids; /* Supported Hardware IDs */
--	unsigned int flags;
- 	struct acpi_device_ops ops;
- 	struct device_driver drv;
- 	struct module *owner;
 -- 
 2.40.1
 
