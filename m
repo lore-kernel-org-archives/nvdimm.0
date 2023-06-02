@@ -1,22 +1,22 @@
-Received: from esa9.hc1455-7.c3s2.iphmx.com (esa9.hc1455-7.c3s2.iphmx.com [139.138.36.223])
+Received: from esa1.hc1455-7.c3s2.iphmx.com (esa1.hc1455-7.c3s2.iphmx.com [207.54.90.47])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 701D318AEF
-	for <nvdimm@lists.linux.dev>; Fri,  2 Jun 2023 10:27:21 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6600,9927,10728"; a="107447917"
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D95518AE5
+	for <nvdimm@lists.linux.dev>; Fri,  2 Jun 2023 10:28:18 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6600,9927,10728"; a="119124199"
 X-IronPort-AV: E=Sophos;i="6.00,212,1681138800"; 
-   d="scan'208";a="107447917"
-Received: from unknown (HELO oym-r3.gw.nic.fujitsu.com) ([210.162.30.91])
-  by esa9.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Jun 2023 19:27:12 +0900
-Received: from oym-m3.gw.nic.fujitsu.com (oym-nat-oym-m3.gw.nic.fujitsu.com [192.168.87.60])
-	by oym-r3.gw.nic.fujitsu.com (Postfix) with ESMTP id 6877DCA1E8
-	for <nvdimm@lists.linux.dev>; Fri,  2 Jun 2023 19:27:10 +0900 (JST)
+   d="scan'208";a="119124199"
+Received: from unknown (HELO yto-r3.gw.nic.fujitsu.com) ([218.44.52.219])
+  by esa1.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Jun 2023 19:27:08 +0900
+Received: from yto-m2.gw.nic.fujitsu.com (yto-nat-yto-m2.gw.nic.fujitsu.com [192.168.83.65])
+	by yto-r3.gw.nic.fujitsu.com (Postfix) with ESMTP id 37A21C3F80
+	for <nvdimm@lists.linux.dev>; Fri,  2 Jun 2023 19:27:05 +0900 (JST)
 Received: from kws-ab4.gw.nic.fujitsu.com (kws-ab4.gw.nic.fujitsu.com [192.51.206.22])
-	by oym-m3.gw.nic.fujitsu.com (Postfix) with ESMTP id 91E0FD9A89
-	for <nvdimm@lists.linux.dev>; Fri,  2 Jun 2023 19:27:09 +0900 (JST)
+	by yto-m2.gw.nic.fujitsu.com (Postfix) with ESMTP id 6A4A9D67CE
+	for <nvdimm@lists.linux.dev>; Fri,  2 Jun 2023 19:27:04 +0900 (JST)
 Received: from localhost.localdomain (unknown [10.167.234.230])
-	by kws-ab4.gw.nic.fujitsu.com (Postfix) with ESMTP id 89B3840FE2;
-	Fri,  2 Jun 2023 19:27:08 +0900 (JST)
+	by kws-ab4.gw.nic.fujitsu.com (Postfix) with ESMTP id 730392F4C31;
+	Fri,  2 Jun 2023 19:27:02 +0900 (JST)
 From: Li Zhijian <lizhijian@fujitsu.com>
 To: kexec@lists.infradead.org,
 	nvdimm@lists.linux.dev
@@ -27,14 +27,22 @@ Cc: linux-kernel@vger.kernel.org,
 	y-goto@fujitsu.com,
 	yangx.jy@fujitsu.com,
 	Li Zhijian <lizhijian@fujitsu.com>,
+	Borislav Petkov <bp@alien8.de>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Dave Young <dyoung@redhat.com>,
+	Eric Biederman <ebiederm@xmission.com>,
+	"H. Peter Anvin" <hpa@zytor.com>,
+	Ingo Molnar <mingo@redhat.com>,
+	Ira Weiny <ira.weiny@intel.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Vishal Verma <vishal.l.verma@intel.com>,
 	Vivek Goyal <vgoyal@redhat.com>,
-	Dave Young <dyoung@redhat.com>
-Subject: [RFC PATCH makedumpfile v3 3/3] makedumpfile: get metadata boundaries from pmem's infoblock
-Date: Fri,  2 Jun 2023 18:26:56 +0800
-Message-Id: <20230602102656.131654-8-lizhijian@fujitsu.com>
+	x86@kernel.org
+Subject: [RFC PATCH v3 0/3] pmem memmap dump support
+Date: Fri,  2 Jun 2023 18:26:49 +0800
+Message-Id: <20230602102656.131654-1-lizhijian@fujitsu.com>
 X-Mailer: git-send-email 2.31.1
-In-Reply-To: <20230602102656.131654-1-lizhijian@fujitsu.com>
-References: <20230602102656.131654-1-lizhijian@fujitsu.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -46,355 +54,208 @@ X-TM-AS-GCONF: 00
 X-TM-AS-Product-Ver: IMSS-9.1.0.1417-9.0.0.1002-27666.006
 X-TM-AS-User-Approved-Sender: Yes
 X-TMASE-Version: IMSS-9.1.0.1417-9.0.1002-27666.006
-X-TMASE-Result: 10--22.341900-10.000000
-X-TMASE-MatchedRID: 44XoofGiUa/SFChHF48gQTiEPRj9j9rvUh4weWPqOWS638ZUY6gSd1YI
-	HeJwbhUqNmVYIPY+Gy2YlVLttZCaEDBF7stuNMMxEVuC0eNRYvLxKR2kbb+f1wYkj8pwyAod12k
-	t5HuVFgCbKneFtGQ4N1LlTv2kQ2/LP06ke90qDvPum6Nvy6t3NgmWvXEqQTm5wLkNMQzGl5B+Kr
-	WCPbERP2XM/1LvxbWDZva/ER92lB2cfX6Ug1yFMM36paW7ZnFoGB9/bxS68hPk6Qbi+9i6Dz/zI
-	kvUoSsdD7X3CqobQahpM4uQJ+eFBvdZ3f2rISMmfOaYwP8dcX6BiLDUCsch2+uLH9BII+4qlfC3
-	WuSrCNRwmg9/GN+fyAQTZYEbCLsYrJKo/rFyHQGVOwZbcOalSxZSD+Gbjz3IWH7Bxw4ADCPmKXL
-	lUHkJC+EjtnMuJXJurgv6vPEWDp7YsZWA4GRU5h1qGr6sYOf/wJjn8yqLU6I1Y73PdzvXZKKJ8y
-	eXnfHAZZ1LvVb67BW23YOnZxHtRsOrmarpjDAkngIgpj8eDcAZ1CdBJOsoY8RB0bsfrpPI6T/LT
-	DsmJmg=
+X-TMASE-Result: 10--27.366500-10.000000
+X-TMASE-MatchedRID: vYzBBoYqFnIL0MkR8StpMHzmmMD/HXF+1QQ6Jx/fflZdXeeZrNJbgtSH
+	nJDq2yhM8Xo3NKXpyhevaHVEeXCQcbF6nptaEfP/KQxHYsCcxGn0swHSFcVJ6J4Q+L3BXIWuT1z
+	kvtd51Lg3hBXKCg/wwFQq+dhQEIHhk7vOomzD71wK3Ma88LL+boIw3bnTjwR6+OO8YTtOnsLJFa
+	y2oiD2TjuQeheTvyfknALOVSaqFWVn8E7VhPK+pqJVTu7sjgg1homn0bwgVmkfmRnL8RBuBBpP9
+	70zHN/Y1oO1QnWfbjp/iseCANV019DFhoVadDNxBe3KRVyu+k2/yN2q8U674pArM4zg1+iSGNtH
+	9cKwddarbBryRVQGjVW5uDlybuu3uHnt1UKh315i71i5on34Kj/FEHo4adva6ljkEk+hhAeYFC8
+	uMwGxQQUz8cUeDqKoj0RC7hmppJv8esyAp1A0ZwmyVrMCuJ9SY/8hgefJn7BLIy6IPbYWFx2rrG
+	e8rZbLZwtNYoYGSjw2mtxMhqolwypD3qhltGUjtT4jIeGRd/W/mvr+BRd9bnUJIpqzDt/HqgqKT
+	3T4weX9UygY5s61EU1i01tCTSuDH8dePSFct0l9SSAOK4bGf9Fb0ZIwh4Su31GNm6M+JKTiuX4U
+	cbdWgBcfmI3+RkHYDMsOoTK7WFBtnFZPAvryPrqQyAveNtg6uoYFb0nRiqM8cwBuO6HB3xg4MG1
+	tpr1J9XlZDxPHq+BgLfJxky5aUlFL3FSfuOf23QqJN4m15UGuLG21Eb4T8wZZ8N3RvTMxo8WMkQ
+	Wv6iXBcIE78YqRWo6HM5rqDwqtlExlQIQeRG0=
 X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
 
-some code are copied from ndctl.
+Hello folks,
 
-This change requires libndctl which provides interface to walk through
-all existing namespaces.
+After sending out the previous version of the patch set, we received some comments,
+and we really appreciate your input. However, as you can see, the current patch
+set is still in its early stages, especially in terms of the solution selection,
+which may still undergo changes.
 
-This also requires the namespace entered the force_raw mode(the kernel will
-ensure that).
+Changes in V3:
+Mainly based on the understanding from the first version, I implemented the proposal
+suggested by Dan. In the kdump kernel, the device's superblock is read through
+a device file interface to calculate the metadata range. In the second version,
+the first kernel writes the metadata range to vmcoreinfo, and after kdump occurs,
+the kdump kernel can directly read it from /proc/vmcore.
 
-The resource interface provides the start of namespace, and device's
-superblock provides the usedata's offset of namespace. According to this
-information, we can caculate the scope of metadata.
+Comparing these two approaches, the advantage of Version 3 is fewer kernel
+modifications, but the downside is the introduction of a new external library,
+libndctl, to search for each namespace, which introduces a higher level of
+coupling with ndctl.
 
-A new dump level(-d 63) is introduced to skip the metadata as well in
-this patch.
+One important thing to note about both V2 and V3 is the introduction of a new
+ELF flag, PF_DEV, to indicate whether a range is on a device. I'm not sure if
+there are better alternatives or if we can use this flag internally without
+exposing it in elf.h.
+
+We greatly appreciate your feedback and would like to hear your response.
+
+In RFC stage, I folded these 3 projects in this same cover letter for reviewing convenience.
+kernel(3):
+  nvdimm: set force_raw=1 in kdump kernel
+  x86/crash: Add pmem region into PT_LOADs of vmcore
+  kernel/kexec_file: Mark pmem region with new flag PF_DEV
+kexec-tools(1):
+  kexec: Add and mark pmem region into PT_LOADs
+makedumpfile(3):
+  elf_info.c: Introduce is_pmem_pt_load_range
+  makedumpfile.c: Exclude all pmem pages
+  makedumpfile: get metadata boundaries from pmem's infoblock
+
+Currently, this RFC has already implemented to supported case D*. And the case A&B is disabled
+deliberately in makedumpfile.
+---
+
+pmem memmap can also be called pmem metadata here.
+
+### Background and motivate overview ###
+---
+Crash dump is an important feature for trouble shooting of kernel. It is the final way to chase what
+happened at the kernel panic, slowdown, and so on. It is the most important tool for customer support.
+However, a part of data on pmem is not included in crash dump, it may cause difficulty to analyze
+trouble around pmem (especially Filesystem-DAX).
+
+A pmem namespace in "fsdax" or "devdax" mode requires allocation of per-page metadata[1]. The allocation
+can be drawn from either mem(system memory) or dev(pmem device), see `ndctl help create-namespace` for
+more details. In fsdax, struct page array becomes very important, it is one of the key data to find
+status of reverse map.
+
+So, when metadata was stored in pmem, even pmem's per-page metadata will not be dumped. That means
+troubleshooters are unable to check more details about pmem from the dumpfile.
+
+### Make pmem memmap dump support ###
+---
+Our goal is that whether metadata is stored on mem or pmem, its metadata can be dumped and then the
+crash-utilities can read more details about the pmem. Of course, this feature can be enabled/disabled.
+
+First, based on our previous investigation, according to the location of metadata and the scope of
+dump, we can divide it into the following four cases: A, B, C, D.
+It should be noted that although we mentioned case A&B below, we do not want these two cases to be
+part of this feature, because dumping the entire pmem will consume a lot of space, and more importantly,
+it may contain user sensitive data.
+
++-------------+----------+------------+
+|\+--------+\     metadata location   |
+|            ++-----------------------+
+| dump scope  |  mem     |   PMEM     |
++-------------+----------+------------+
+| entire pmem |     A    |     B      |
++-------------+----------+------------+
+| metadata    |     C    |     D      |
++-------------+----------+------------+
+
+### Testing ###
+Only x86_64 are tested. Please note that we have to disable the 2nd kernel's libnvdimm to ensure the
+metadata in 2nd kernel will not be touched again.
+
+below 2 commits use sha256 to check the metadata in 1st kernel during panic and makedumpfile in 2nd kernel.
+https://github.com/zhijianli88/makedumpfile/commit/91a135be6980e6e87b9e00b909aaaf8ef9566ec0
+https://github.com/zhijianli88/linux/commit/55bef07f8f0b2e587737b796e73b92f242947e5a
+
+### TODO ###
+Only x86 are fully supported for both kexec_load(2) and kexec_file_load(2)
+kexec_file_load(2) on other architectures are TODOs.
+---
+[1] Pmem region layout:
+   ^<--namespace0.0---->^<--namespace0.1------>^
+   |                    |                      |
+   +--+m----------------+--+m------------------+---------------------+-+a
+   |++|e                |++|e                  |                     |+|l
+   |++|t                |++|t                  |                     |+|i
+   |++|a                |++|a                  |                     |+|g
+   |++|d  namespace0.0  |++|d  namespace0.1    |     un-allocated    |+|n
+   |++|a    fsdax       |++|a     devdax       |                     |+|m
+   |++|t                |++|t                  |                     |+|e
+   +--+a----------------+--+a------------------+---------------------+-+n
+   |                                                                   |t
+   v<-----------------------pmem region------------------------------->v
+
+[2] https://lore.kernel.org/linux-mm/70F971CF-1A96-4D87-B70C-B971C2A1747C@roc.cs.umass.edu/T/
+[3] https://lore.kernel.org/linux-mm/3c752fc2-b6a0-2975-ffec-dba3edcf4155@fujitsu.com/
+
+### makedumpfile output in case B ####
+kdump.sh[224]: makedumpfile: version 1.7.2++ (released on 20 Oct 2022)
+kdump.sh[224]: command line: makedumpfile -l --message-level 31 -d 31 /proc/vmcore /sysroot/var/crash/127.0.0.1-2023-04-21-02:50:57//vmcore-incomplete
+kdump.sh[224]: sadump: does not have partition header
+kdump.sh[224]: sadump: read dump device as unknown format
+kdump.sh[224]: sadump: unknown format
+kdump.sh[224]:                phys_start         phys_end       virt_start         virt_end  is_pmem
+kdump.sh[224]: LOAD[ 0]          1000000          3c26000 ffffffff81000000 ffffffff83c26000    false
+kdump.sh[224]: LOAD[ 1]           100000         7f000000 ffff888000100000 ffff88807f000000    false
+kdump.sh[224]: LOAD[ 2]         bf000000         bffd7000 ffff8880bf000000 ffff8880bffd7000    false
+kdump.sh[224]: LOAD[ 3]        100000000        140000000 ffff888100000000 ffff888140000000    false
+kdump.sh[224]: LOAD[ 4]        140000000        23e200000 ffff888140000000 ffff88823e200000     true
+kdump.sh[224]: Linux kdump
+kdump.sh[224]: VMCOREINFO   :
+kdump.sh[224]:   OSRELEASE=6.3.0-rc3-pmem-bad+
+kdump.sh[224]:   BUILD-ID=0546bd82db93706799d3eea38194ac648790aa85
+kdump.sh[224]:   PAGESIZE=4096
+kdump.sh[224]: page_size    : 4096
+kdump.sh[224]:   SYMBOL(init_uts_ns)=ffffffff82671300
+kdump.sh[224]:   OFFSET(uts_namespace.name)=0
+kdump.sh[224]:   SYMBOL(node_online_map)=ffffffff826bbe08
+kdump.sh[224]:   SYMBOL(swapper_pg_dir)=ffffffff82446000
+kdump.sh[224]:   SYMBOL(_stext)=ffffffff81000000
+kdump.sh[224]:   SYMBOL(vmap_area_list)=ffffffff82585fb0
+kdump.sh[224]:   SYMBOL(devm_memmap_vmcore_head)=ffffffff825603c0
+kdump.sh[224]:   SIZE(devm_memmap_vmcore)=40
+kdump.sh[224]:   OFFSET(devm_memmap_vmcore.entry)=0
+kdump.sh[224]:   OFFSET(devm_memmap_vmcore.start)=16
+kdump.sh[224]:   OFFSET(devm_memmap_vmcore.end)=24
+kdump.sh[224]:   SYMBOL(mem_section)=ffff88813fff4000
+kdump.sh[224]:   LENGTH(mem_section)=2048
+kdump.sh[224]:   SIZE(mem_section)=16
+kdump.sh[224]:   OFFSET(mem_section.section_mem_map)=0
+...
+kdump.sh[224]: STEP [Checking for memory holes  ] : 0.012699 seconds
+kdump.sh[224]: STEP [Excluding unnecessary pages] : 0.538059 seconds
+kdump.sh[224]: STEP [Copying data               ] : 0.995418 seconds
+kdump.sh[224]: STEP [Copying data               ] : 0.000067 seconds
+kdump.sh[224]: Writing erase info...
+kdump.sh[224]: offset_eraseinfo: 5d02266, size_eraseinfo: 0
+kdump.sh[224]: Original pages  : 0x00000000001c0cfd
+kdump.sh[224]:   Excluded pages   : 0x00000000001a58d2
+kdump.sh[224]:     Pages filled with zero  : 0x0000000000006805
+kdump.sh[224]:     Non-private cache pages : 0x0000000000019e93
+kdump.sh[224]:     Private cache pages     : 0x0000000000077572
+kdump.sh[224]:     User process data pages : 0x0000000000002c3b
+kdump.sh[224]:     Free pages              : 0x0000000000010e8d
+kdump.sh[224]:     Hwpoison pages          : 0x0000000000000000
+kdump.sh[224]:     Offline pages           : 0x0000000000000000
+kdump.sh[224]:     pmem metadata pages     : 0x0000000000000000
+kdump.sh[224]:     pmem userdata pages     : 0x00000000000fa200
+kdump.sh[224]:   Remaining pages  : 0x000000000001b42b
+kdump.sh[224]:   (The number of pages is reduced to 6%.)
+kdump.sh[224]: Memory Hole     : 0x000000000007d503
+kdump.sh[224]: --------------------------------------------------
+kdump.sh[224]: Total pages     : 0x000000000023e200
+kdump.sh[224]: Write bytes     : 97522590
+kdump.sh[224]: Cache hit: 191669, miss: 292, hit rate: 99.8%
+kdump.sh[224]: The dumpfile is saved to /sysroot/var/crash/127.0.0.1-2023-04-21-02:50:57//vmcore-incomplete.
+kdump.sh[224]: makedumpfile Completed.
 
 CC: Baoquan He <bhe@redhat.com>
-CC: Vivek Goyal <vgoyal@redhat.com>
+CC: Borislav Petkov <bp@alien8.de>
+CC: Dan Williams <dan.j.williams@intel.com>
+CC: Dave Hansen <dave.hansen@linux.intel.com>
+CC: Dave Jiang <dave.jiang@intel.com>
 CC: Dave Young <dyoung@redhat.com>
+CC: Eric Biederman <ebiederm@xmission.com>
+CC: "H. Peter Anvin" <hpa@zytor.com>
+CC: Ingo Molnar <mingo@redhat.com>
+CC: Ira Weiny <ira.weiny@intel.com>
+CC: Thomas Gleixner <tglx@linutronix.de>
+CC: Vishal Verma <vishal.l.verma@intel.com>
+CC: Vivek Goyal <vgoyal@redhat.com>
+CC: x86@kernel.org
 CC: kexec@lists.infradead.org
-Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
----
- Makefile       |   2 +-
- makedumpfile.c | 196 +++++++++++++++++++++++++++++++++++++++++++++++--
- makedumpfile.h |   3 +-
- 3 files changed, 192 insertions(+), 9 deletions(-)
+CC: nvdimm@lists.linux.dev
 
-diff --git a/Makefile b/Makefile
-index 0608035e913f..fd0a792c5647 100644
---- a/Makefile
-+++ b/Makefile
-@@ -50,7 +50,7 @@ OBJ_PART=$(patsubst %.c,%.o,$(SRC_PART))
- SRC_ARCH = arch/arm.c arch/arm64.c arch/x86.c arch/x86_64.c arch/ia64.c arch/ppc64.c arch/s390x.c arch/ppc.c arch/sparc64.c arch/mips64.c arch/loongarch64.c
- OBJ_ARCH=$(patsubst %.c,%.o,$(SRC_ARCH))
- 
--LIBS = -ldw -lbz2 -ldl -lelf -lz
-+LIBS = -ldw -lbz2 -ldl -lelf -lz -lndctl
- ifneq ($(LINKTYPE), dynamic)
- LIBS := -static $(LIBS) -llzma
- endif
-diff --git a/makedumpfile.c b/makedumpfile.c
-index f304f752b0ec..b68d261f3d1e 100644
---- a/makedumpfile.c
-+++ b/makedumpfile.c
-@@ -27,6 +27,8 @@
- #include <limits.h>
- #include <assert.h>
- #include <zlib.h>
-+#include <sys/types.h>
-+#include <ndctl/libndctl.h>
- 
- struct symbol_table	symbol_table;
- struct size_table	size_table;
-@@ -100,6 +102,7 @@ mdf_pfn_t pfn_user;
- mdf_pfn_t pfn_free;
- mdf_pfn_t pfn_hwpoison;
- mdf_pfn_t pfn_offline;
-+mdf_pfn_t pfn_pmem_metadata;
- mdf_pfn_t pfn_pmem_userdata;
- mdf_pfn_t pfn_elf_excluded;
- 
-@@ -6374,6 +6377,173 @@ exclude_range(mdf_pfn_t *counter, mdf_pfn_t pfn, mdf_pfn_t endpfn,
- 	}
- }
- 
-+struct pmem_metadata_node {
-+	unsigned long long start;
-+	unsigned long long end;
-+	struct pmem_metadata_node *next;
-+} pmem_metadata_head;
-+
-+struct pmem_metadata_node *pmem_head = NULL;
-+
-+static void pmem_add_next(unsigned long long start, unsigned long long dataoff)
-+{
-+	struct pmem_metadata_node *tail = pmem_head, *node;
-+
-+	node = calloc(1, sizeof(*node));
-+	if (!node)
-+		return;
-+
-+	node->start = start >> info->page_shift;
-+	node->end = (start + dataoff) >> info->page_shift;
-+	node->next = NULL;
-+
-+	if (!pmem_head) {
-+		pmem_head = node;
-+		return;
-+	}
-+	while (tail->next)
-+		tail = tail->next;
-+	tail->next = node;
-+}
-+
-+static void cleanup_pmem_metadata(void)
-+{
-+	struct pmem_metadata_node *head = pmem_head;
-+	while (head) {
-+		struct pmem_metadata_node *next = head->next;
-+		free(head);
-+		head = next;
-+	}
-+}
-+
-+static int is_pmem_metadata_range(unsigned long long start, unsigned long long end)
-+{
-+	struct pmem_metadata_node *head = pmem_head;
-+	while (head) {
-+		if (head->start <= start && head->end > end)
-+			return TRUE;
-+		head = head->next;
-+	}
-+
-+	return FALSE;
-+}
-+
-+static void dump_pmem_range(void)
-+{
-+	int i = 0;
-+	struct pmem_metadata_node *node= pmem_head;
-+
-+	fprintf(stderr, "dump_pmem_range start......\n\n\n");
-+	while (node) {
-+		fprintf(stderr, "namespace[%d]: metadata[%llx, %llx]\n", i++, node->start, node->end);
-+		node = node->next;
-+	}
-+	fprintf(stderr, "dump_pmem_range end........\n\n\n");
-+}
-+
-+#define INFOBLOCK_SZ (8192)
-+#define SZ_4K (4096)
-+#define PFN_SIG_LEN 16
-+
-+typedef uint64_t u64;
-+typedef int64_t s64;
-+typedef uint32_t u32;
-+typedef int32_t s32;
-+typedef uint16_t u16;
-+typedef int16_t s16;
-+typedef uint8_t u8;
-+typedef int8_t s8;
-+
-+typedef int64_t le64;
-+typedef int32_t le32;
-+typedef int16_t le16;
-+
-+struct pfn_sb {
-+	u8 signature[PFN_SIG_LEN];
-+	u8 uuid[16];
-+	u8 parent_uuid[16];
-+	le32 flags;
-+	le16 version_major;
-+	le16 version_minor;
-+	le64 dataoff; /* relative to namespace_base + start_pad */
-+	le64 npfns;
-+	le32 mode;
-+	/* minor-version-1 additions for section alignment */
-+	le32 start_pad;
-+	le32 end_trunc;
-+	/* minor-version-2 record the base alignment of the mapping */
-+	le32 align;
-+	/* minor-version-3 guarantee the padding and flags are zero */
-+	/* minor-version-4 record the page size and struct page size */
-+	le32 page_size;
-+	le16 page_struct_size;
-+	u8 padding[3994];
-+	le64 checksum;
-+};
-+
-+static int nd_read_infoblock_dataoff(struct ndctl_namespace *ndns)
-+{
-+	int fd, rc;
-+	char path[50];
-+	char buf[INFOBLOCK_SZ + 1];
-+	struct pfn_sb *pfn_sb = (struct pfn_sb *)(buf + SZ_4K);
-+
-+	sprintf(path, "/dev/%s", ndctl_namespace_get_block_device(ndns));
-+
-+	fd = open(path, O_RDONLY|O_EXCL);
-+	if (fd < 0)
-+		return -1;
-+
-+	rc = read(fd, buf, INFOBLOCK_SZ);
-+	if (rc < INFOBLOCK_SZ) {
-+		return -1;
-+	}
-+
-+	return pfn_sb->dataoff;
-+}
-+
-+int inspect_pmem_namespace(void)
-+{
-+	struct ndctl_ctx *ctx;
-+	struct ndctl_bus *bus;
-+	int rc = -1;
-+
-+	fprintf(stderr, "\n\ninspect_pmem_namespace!!\n\n");
-+	rc = ndctl_new(&ctx);
-+	if (rc)
-+		return -1;
-+
-+	ndctl_bus_foreach(ctx, bus) {
-+		struct ndctl_region *region;
-+
-+		ndctl_region_foreach(bus, region) {
-+			struct ndctl_namespace *ndns;
-+
-+			ndctl_namespace_foreach(region, ndns) {
-+				enum ndctl_namespace_mode mode;
-+				long long start, end_metadata;
-+
-+				mode = ndctl_namespace_get_mode(ndns);
-+				/* kdump kernel should set force_raw, mode become *safe* */
-+				if (mode == NDCTL_NS_MODE_SAFE) {
-+					fprintf(stderr, "Only raw can be dumpable\n");
-+					continue;
-+				}
-+
-+				start = ndctl_namespace_get_resource(ndns);
-+				end_metadata = nd_read_infoblock_dataoff(ndns);
-+
-+				/* metadata really starts from 2M alignment */
-+				if (start != ULLONG_MAX && end_metadata > 2 * 1024 * 1024) // 2M
-+					pmem_add_next(start, end_metadata);
-+			}
-+		}
-+	}
-+
-+	ndctl_unref(ctx);
-+	return 0;
-+}
-+
- int
- __exclude_unnecessary_pages(unsigned long mem_map,
-     mdf_pfn_t pfn_start, mdf_pfn_t pfn_end, struct cycle *cycle)
-@@ -6447,9 +6617,17 @@ __exclude_unnecessary_pages(unsigned long mem_map,
- 
- 		is_pmem = is_pmem_pt_load_range(pfn << PAGESHIFT(), (pfn + 1) << PAGESHIFT());
- 		if (is_pmem) {
--			pfn_pmem_userdata++;
--			clear_bit_on_2nd_bitmap_for_kernel(pfn, cycle);
--			continue;
-+			if (is_pmem_metadata_range(pfn, pfn + 1)) {
-+				if (info->dump_level & DL_EXCLUDE_PMEM_META) {
-+					pfn_pmem_metadata++;
-+					clear_bit_on_2nd_bitmap_for_kernel(pfn, cycle);
-+					continue;
-+				}
-+			} else {
-+				pfn_pmem_userdata++;
-+				clear_bit_on_2nd_bitmap_for_kernel(pfn, cycle);
-+				continue;
-+			}
- 		}
- 
- 		index_pg = pfn % PGMM_CACHED;
-@@ -8130,7 +8308,7 @@ write_elf_pages_cyclic(struct cache_data *cd_header, struct cache_data *cd_page)
- 	 * Reset counter for debug message.
- 	 */
- 	if (info->flag_cyclic) {
--		pfn_zero = pfn_cache = pfn_cache_private = 0;
-+		pfn_zero = pfn_cache = pfn_cache_private = pfn_pmem_metadata = 0;
- 		pfn_user = pfn_free = pfn_hwpoison = pfn_offline = pfn_pmem_userdata = 0;
- 		pfn_memhole = info->max_mapnr;
- 	}
-@@ -9468,7 +9646,7 @@ write_kdump_pages_and_bitmap_cyclic(struct cache_data *cd_header, struct cache_d
- 		/*
- 		 * Reset counter for debug message.
- 		 */
--		pfn_zero = pfn_cache = pfn_cache_private = 0;
-+		pfn_zero = pfn_cache = pfn_cache_private = pfn_pmem_metadata = 0;
- 		pfn_user = pfn_free = pfn_hwpoison = pfn_offline = pfn_pmem_userdata = 0;
- 		pfn_memhole = info->max_mapnr;
- 
-@@ -10418,7 +10596,7 @@ print_report(void)
- 	pfn_original = info->max_mapnr - pfn_memhole;
- 
- 	pfn_excluded = pfn_zero + pfn_cache + pfn_cache_private + pfn_pmem_userdata
--	    + pfn_user + pfn_free + pfn_hwpoison + pfn_offline;
-+	    + pfn_user + pfn_free + pfn_hwpoison + pfn_offline + pfn_pmem_metadata;
- 
- 	REPORT_MSG("\n");
- 	REPORT_MSG("Original pages  : 0x%016llx\n", pfn_original);
-@@ -10434,6 +10612,7 @@ print_report(void)
- 	REPORT_MSG("    Free pages              : 0x%016llx\n", pfn_free);
- 	REPORT_MSG("    Hwpoison pages          : 0x%016llx\n", pfn_hwpoison);
- 	REPORT_MSG("    Offline pages           : 0x%016llx\n", pfn_offline);
-+	REPORT_MSG("    pmem metadata pages     : 0x%016llx\n", pfn_pmem_metadata);
- 	REPORT_MSG("    pmem userdata pages     : 0x%016llx\n", pfn_pmem_userdata);
- 	REPORT_MSG("  Remaining pages  : 0x%016llx\n",
- 	    pfn_original - pfn_excluded);
-@@ -10475,7 +10654,7 @@ print_mem_usage(void)
- 	pfn_original = info->max_mapnr - pfn_memhole;
- 
- 	pfn_excluded = pfn_zero + pfn_cache + pfn_cache_private + pfn_pmem_userdata
--	    + pfn_user + pfn_free + pfn_hwpoison + pfn_offline;
-+	    + pfn_user + pfn_free + pfn_hwpoison + pfn_offline + pfn_pmem_metadata;
- 	shrinking = (pfn_original - pfn_excluded) * 100;
- 	shrinking = shrinking / pfn_original;
- 	total_size = info->page_size * pfn_original;
-@@ -10768,6 +10947,8 @@ create_dumpfile(void)
- 		}
- 	}
- 
-+	inspect_pmem_namespace();
-+	dump_pmem_range();
- 	print_vtop();
- 
- 	num_retry = 0;
-@@ -12441,6 +12622,7 @@ out:
- 		}
- 	}
- 	free_elf_info();
-+	cleanup_pmem_metadata();
- 
- 	return retcd;
- }
-diff --git a/makedumpfile.h b/makedumpfile.h
-index 85e5a4932983..ecb2fb4d7a4c 100644
---- a/makedumpfile.h
-+++ b/makedumpfile.h
-@@ -206,7 +206,7 @@ test_bit(int nr, unsigned long addr)
-  * Dump Level
-  */
- #define MIN_DUMP_LEVEL		(0)
--#define MAX_DUMP_LEVEL		(31)
-+#define MAX_DUMP_LEVEL		(63)
- #define NUM_ARRAY_DUMP_LEVEL	(MAX_DUMP_LEVEL + 1) /* enough to allocate
- 							all the dump_level */
- #define DL_EXCLUDE_ZERO		(0x001) /* Exclude Pages filled with Zeros */
-@@ -216,6 +216,7 @@ test_bit(int nr, unsigned long addr)
- 				           with Private Pages */
- #define DL_EXCLUDE_USER_DATA	(0x008) /* Exclude UserProcessData Pages */
- #define DL_EXCLUDE_FREE		(0x010)	/* Exclude Free Pages */
-+#define DL_EXCLUDE_PMEM_META   (0x020) /* Exclude pmem metadata Pages */
- 
- 
- /*
 -- 
 2.29.2
 
