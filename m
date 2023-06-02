@@ -1,22 +1,22 @@
 Received: from esa2.hc1455-7.c3s2.iphmx.com (esa2.hc1455-7.c3s2.iphmx.com [207.54.90.48])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED54618AEF
-	for <nvdimm@lists.linux.dev>; Fri,  2 Jun 2023 10:28:20 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6600,9927,10728"; a="119220278"
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3A2B18AEF
+	for <nvdimm@lists.linux.dev>; Fri,  2 Jun 2023 10:28:22 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6600,9927,10728"; a="119220281"
 X-IronPort-AV: E=Sophos;i="6.00,212,1681138800"; 
-   d="scan'208";a="119220278"
-Received: from unknown (HELO yto-r3.gw.nic.fujitsu.com) ([218.44.52.219])
-  by esa2.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Jun 2023 19:27:10 +0900
-Received: from yto-m2.gw.nic.fujitsu.com (yto-nat-yto-m2.gw.nic.fujitsu.com [192.168.83.65])
-	by yto-r3.gw.nic.fujitsu.com (Postfix) with ESMTP id 4A78DC3F94
-	for <nvdimm@lists.linux.dev>; Fri,  2 Jun 2023 19:27:07 +0900 (JST)
+   d="scan'208";a="119220281"
+Received: from unknown (HELO oym-r4.gw.nic.fujitsu.com) ([210.162.30.92])
+  by esa2.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Jun 2023 19:27:11 +0900
+Received: from oym-m1.gw.nic.fujitsu.com (oym-nat-oym-m1.gw.nic.fujitsu.com [192.168.87.58])
+	by oym-r4.gw.nic.fujitsu.com (Postfix) with ESMTP id D5463DDC60
+	for <nvdimm@lists.linux.dev>; Fri,  2 Jun 2023 19:27:08 +0900 (JST)
 Received: from kws-ab4.gw.nic.fujitsu.com (kws-ab4.gw.nic.fujitsu.com [192.51.206.22])
-	by yto-m2.gw.nic.fujitsu.com (Postfix) with ESMTP id 7DEB2D67D1
-	for <nvdimm@lists.linux.dev>; Fri,  2 Jun 2023 19:27:06 +0900 (JST)
+	by oym-m1.gw.nic.fujitsu.com (Postfix) with ESMTP id 09470D88D2
+	for <nvdimm@lists.linux.dev>; Fri,  2 Jun 2023 19:27:08 +0900 (JST)
 Received: from localhost.localdomain (unknown [10.167.234.230])
-	by kws-ab4.gw.nic.fujitsu.com (Postfix) with ESMTP id A65F4E4AA6;
-	Fri,  2 Jun 2023 19:27:05 +0900 (JST)
+	by kws-ab4.gw.nic.fujitsu.com (Postfix) with ESMTP id 0034040FE2;
+	Fri,  2 Jun 2023 19:27:06 +0900 (JST)
 From: Li Zhijian <lizhijian@fujitsu.com>
 To: kexec@lists.infradead.org,
 	nvdimm@lists.linux.dev
@@ -27,10 +27,11 @@ Cc: linux-kernel@vger.kernel.org,
 	y-goto@fujitsu.com,
 	yangx.jy@fujitsu.com,
 	Li Zhijian <lizhijian@fujitsu.com>,
-	Eric Biederman <ebiederm@xmission.com>
-Subject: [RFC PATCH v3 3/3] kernel/kexec_file: Mark pmem region with new flag PF_DEV
-Date: Fri,  2 Jun 2023 18:26:52 +0800
-Message-Id: <20230602102656.131654-4-lizhijian@fujitsu.com>
+	Vivek Goyal <vgoyal@redhat.com>,
+	Dave Young <dyoung@redhat.com>
+Subject: [RFC PATCH makedumpfile v3 1/3] elf_info.c: Introduce is_pmem_pt_load_range
+Date: Fri,  2 Jun 2023 18:26:54 +0800
+Message-Id: <20230602102656.131654-6-lizhijian@fujitsu.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <20230602102656.131654-1-lizhijian@fujitsu.com>
 References: <20230602102656.131654-1-lizhijian@fujitsu.com>
@@ -45,68 +46,109 @@ X-TM-AS-GCONF: 00
 X-TM-AS-Product-Ver: IMSS-9.1.0.1417-9.0.0.1002-27666.006
 X-TM-AS-User-Approved-Sender: Yes
 X-TMASE-Version: IMSS-9.1.0.1417-9.0.1002-27666.006
-X-TMASE-Result: 10--6.493600-10.000000
-X-TMASE-MatchedRID: 9KRLfRi0EIdXk4HjwySOxx1kSRHxj+Z5W+HVwTKSJIbfghYDxv+lXYyt
-	cTfY0Fk5Fcbst+g5Co4SHwgOjzzIf6GGOyqBK41vEXjPIvKd74BMkOX0UoduubgbJOZ434BsXMi
-	+6Pt1uebPz9CYF+mMT7BRAkACNnr7lwV2iaAfSWcURSScn+QSXhhJCIHRlO51+gtHj7OwNO0kL2
-	NLniq3NW48jxF4hJknuYLQT0SIw8Y4aBTofN3FK6vjRgCarhn/
+X-TMASE-Result: 10--6.061400-10.000000
+X-TMASE-MatchedRID: uYOEf1I6Oo115zj/0di3Q+6bo2/Lq3c20MQw+++ihy86FHRWx2FGsL8F
+	Hrw7frluf146W0iUu2uMQUNNVv3RZFsSYoQIc1cjSHCU59h5KrHjLrHqvAiSy0/cRvj5stP609D
+	6Rw2zIrP6Ss9HyBHBXv2MF5HVqqgBYwDOL7t3RyGeAiCmPx4NwBnUJ0Ek6yhjxEHRux+uk8h+IC
+	quNi0WJEs4O5JlDkki+KxOPxgcX3fuuoHGzHNMZnPOHbXzO9lIftwZ3X11IV0=
 X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
 
-For pmem, metadata is specific to the namespace rather than the entire
-pmem region. Therefore, ranges that have not yet created a namespace or
-are unusable due to alignment reasons will not be associated with metadata.
+It checks BIT(4) of Elf64_Phdr, currently only the former 3 bits are used
+by ELF. In kexec-tool, we extend the BIT(4) to indicate pmem or not.
 
-When an application attempts to access regions that do not have
-corresponding metadata, it will encounter an access error. With this flag,
-the dumping applications are able to know this access error, and then
-take special actions correspondingly.
+dump_Elf_load:                phys_start         phys_end       virt_start         virt_end  is_pmem
+dump_Elf_load: LOAD[ 0]         6b800000         6e42c000 ffffffffbcc00000 ffffffffbf82c000    false
+dump_Elf_load: LOAD[ 1]             1000            9fc00 ffff975980001000 ffff97598009fc00    false
+dump_Elf_load: LOAD[ 2]           100000         7f000000 ffff975980100000 ffff9759ff000000    false
+dump_Elf_load: LOAD[ 3]         bf000000         bffd7000 ffff975a3f000000 ffff975a3ffd7000    false
+dump_Elf_load: LOAD[ 4]        100000000        140000000 ffff975a80000000 ffff975ac0000000    false
+dump_Elf_load: LOAD[ 5]        140000000        23e200000 ffff975ac0000000 ffff975bbe200000     true
 
-This is kexec_file_load() specific, for the traditional kexec_load(),
-kexec-tools will have a similar change.
-
-CC: Eric Biederman <ebiederm@xmission.com>
 CC: Baoquan He <bhe@redhat.com>
+CC: Vivek Goyal <vgoyal@redhat.com>
+CC: Dave Young <dyoung@redhat.com>
 CC: kexec@lists.infradead.org
 Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
 ---
- kernel/kexec_file.c | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+ elf_info.c | 31 +++++++++++++++++++++++++++----
+ elf_info.h |  1 +
+ 2 files changed, 28 insertions(+), 4 deletions(-)
 
-diff --git a/kernel/kexec_file.c b/kernel/kexec_file.c
-index f989f5f1933b..0d5b516b96ee 100644
---- a/kernel/kexec_file.c
-+++ b/kernel/kexec_file.c
-@@ -29,6 +29,8 @@
- #include <linux/vmalloc.h>
- #include "kexec_internal.h"
+diff --git a/elf_info.c b/elf_info.c
+index bc24083655d6..41b36b2804d2 100644
+--- a/elf_info.c
++++ b/elf_info.c
+@@ -43,6 +43,7 @@ struct pt_load_segment {
+ 	unsigned long long	phys_end;
+ 	unsigned long long	virt_start;
+ 	unsigned long long	virt_end;
++	int			is_pmem;
+ };
+ 
+ static int			nr_cpus;             /* number of cpu */
+@@ -153,6 +154,8 @@ check_elf_format(int fd, char *filename, int *phnum, unsigned int *num_load)
+ 	return FALSE;
+ }
  
 +#define PF_DEV (1 << 4)
 +
- #ifdef CONFIG_KEXEC_SIG
- static bool sig_enforce = IS_ENABLED(CONFIG_KEXEC_SIG_FORCE);
+ static int
+ dump_Elf_load(Elf64_Phdr *prog, int num_load)
+ {
+@@ -170,17 +173,37 @@ dump_Elf_load(Elf64_Phdr *prog, int num_load)
+ 	pls->virt_end    = pls->virt_start + prog->p_memsz;
+ 	pls->file_offset = prog->p_offset;
+ 	pls->file_size   = prog->p_filesz;
++	pls->is_pmem     = !!(prog->p_flags & PF_DEV);
  
-@@ -1221,6 +1223,12 @@ int crash_exclude_mem_range(struct crash_mem *mem,
- 	return 0;
+ 	if (num_load == 0)
+-		DEBUG_MSG("%8s %16s %16s %16s %16s\n", "",
+-			"phys_start", "phys_end", "virt_start", "virt_end");
++		DEBUG_MSG("%8s %16s %16s %16s %16s %8s\n", "",
++			"phys_start", "phys_end", "virt_start", "virt_end",
++			"is_pmem");
+ 
+-	DEBUG_MSG("LOAD[%2d] %16llx %16llx %16llx %16llx\n", num_load,
+-		pls->phys_start, pls->phys_end, pls->virt_start, pls->virt_end);
++	DEBUG_MSG("LOAD[%2d] %16llx %16llx %16llx %16llx %8s\n", num_load,
++		pls->phys_start, pls->phys_end, pls->virt_start, pls->virt_end,
++		pls->is_pmem ? "true": "false");
+ 
+ 	return TRUE;
  }
  
-+static bool is_pmem_range(u64 start, u64 size)
++int is_pmem_pt_load_range(unsigned long long start, unsigned long long end)
 +{
-+	return REGION_INTERSECTS == region_intersects(start, size,
-+			IORESOURCE_MEM, IORES_DESC_PERSISTENT_MEMORY);
++	int i;
++	struct pt_load_segment *pls;
++
++	for (i = 0; i < num_pt_loads; i++) {
++		pls = &pt_loads[i];
++		if (pls->is_pmem && pls->phys_start == NOT_PADDR)
++			return TRUE;
++		if (pls->is_pmem && pls->phys_start != NOT_PADDR &&
++		    pls->phys_start <= start && pls->phys_end >= end)
++			return TRUE;
++	}
++
++	return FALSE;
 +}
 +
- int crash_prepare_elf64_headers(struct crash_mem *mem, int need_kernel_map,
- 			  void **addr, unsigned long *sz)
+ static off_t
+ offset_next_note(void *note)
  {
-@@ -1302,6 +1310,8 @@ int crash_prepare_elf64_headers(struct crash_mem *mem, int need_kernel_map,
+diff --git a/elf_info.h b/elf_info.h
+index d5416b32cdd7..a08d59a331f6 100644
+--- a/elf_info.h
++++ b/elf_info.h
+@@ -64,6 +64,7 @@ int get_pt_load_extents(int idx,
+ 	off_t *file_offset,
+ 	off_t *file_size);
+ unsigned int get_num_pt_loads(void);
++int is_pmem_pt_load_range(unsigned long long start, unsigned long long end);
  
- 		phdr->p_type = PT_LOAD;
- 		phdr->p_flags = PF_R|PF_W|PF_X;
-+		if (is_pmem_range(mstart, mend - mstart))
-+			phdr->p_flags |= PF_DEV;
- 		phdr->p_offset  = mstart;
- 
- 		phdr->p_paddr = mstart;
+ void set_nr_cpus(int num);
+ int get_nr_cpus(void);
 -- 
 2.29.2
 
