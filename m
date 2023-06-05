@@ -1,298 +1,174 @@
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from mailout1.w2.samsung.com (mailout1.w2.samsung.com [211.189.100.11])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75421261D7
-	for <nvdimm@lists.linux.dev>; Mon,  5 Jun 2023 20:21:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1685996475; x=1717532475;
-  h=from:date:subject:mime-version:content-transfer-encoding:
-   message-id:references:in-reply-to:to:cc;
-  bh=LlVEQrDPE8IPCzrGqxiaHepxm+PhW003Qczq56Mw48s=;
-  b=M9MsuDsJWmFTuM8tlLW5e/ioF0SEsyjCivp90M6DMNLDqr77yBgJiP/S
-   kydBXh5UXMWZQNAXJNOUg/5RZD2V0TOy1/HhXVU+Aa19AefatRPTMcJ9c
-   MftkIOIoy4Gt8aC0fj3aTAV/z84bqMgjz27vZtkVpoFEq0ld+4gQ3Bql+
-   9GuJxMOu2LLasTU7oknM1o4jYafxMW8ho+Lmn9lb0ZXdFUVSUzhPISl4u
-   wO9A8l3rZ4TOTZL59xqEAwZtRho9wXSXMML4fcN+Eg2HDoO9THHuslTJp
-   FE9l3IIlJfROcBOyJu/8ofZFRhAjQnPErcC2QvovmUT9KhG2HmO4moavR
-   Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10732"; a="336093186"
-X-IronPort-AV: E=Sophos;i="6.00,218,1681196400"; 
-   d="scan'208";a="336093186"
-Received: from orsmga004.jf.intel.com ([10.7.209.38])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Jun 2023 13:21:12 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10732"; a="832934323"
-X-IronPort-AV: E=Sophos;i="6.00,218,1681196400"; 
-   d="scan'208";a="832934323"
-Received: from kmsalzbe-mobl1.amr.corp.intel.com (HELO [192.168.1.200]) ([10.209.52.9])
-  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Jun 2023 13:21:12 -0700
-From: Vishal Verma <vishal.l.verma@intel.com>
-Date: Mon, 05 Jun 2023 14:21:07 -0600
-Subject: [PATCH ndctl v2 5/5] test/cxl-update-firmware: add a unit test for
- firmware update
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C76A3261C8
+	for <nvdimm@lists.linux.dev>; Mon,  5 Jun 2023 20:54:19 +0000 (UTC)
+Received: from uscas1p2.samsung.com (unknown [182.198.245.207])
+	by mailout1.w2.samsung.com (KnoxPortal) with ESMTP id 20230605204544usoutp01512aca7cd99ccab652b6616998fe19c7~l3jKYeNgz0716607166usoutp01f;
+	Mon,  5 Jun 2023 20:45:44 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout1.w2.samsung.com 20230605204544usoutp01512aca7cd99ccab652b6616998fe19c7~l3jKYeNgz0716607166usoutp01f
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
+	s=mail20170921; t=1685997944;
+	bh=8fwyt5sdvkgpbX/KDX0BPiD3sC2x3LEM8rmegEnX7Z8=;
+	h=From:To:CC:Subject:Date:In-Reply-To:References:From;
+	b=sr9viXp8LylmZ8VomphcrYanfliK6AKuxO97sCZPr33V9EXu+X/k1jLBYn+Su6GQ9
+	 gSOJPmhhTnD9X+hQKwFM2f2sVAcuo1PDyfNW0t4a6q8Ot3DXwcmTCMVXi1P0caGAHW
+	 OeJvF5j35Fc6k2Dfde9yLMeyh8/QnOCuyfKw0ctg=
+Received: from ussmges3new.samsung.com (u112.gpu85.samsung.co.kr
+	[203.254.195.112]) by uscas1p2.samsung.com (KnoxPortal) with ESMTP id
+	20230605204544uscas1p2afbdc014ce73cc0ec53e85d07693fc9a~l3jKN-BKG2163921639uscas1p2v;
+	Mon,  5 Jun 2023 20:45:44 +0000 (GMT)
+Received: from uscas1p1.samsung.com ( [182.198.245.206]) by
+	ussmges3new.samsung.com (USCPEMTA) with SMTP id DB.94.62237.8794E746; Mon, 
+	5 Jun 2023 16:45:44 -0400 (EDT)
+Received: from ussmgxs3new.samsung.com (u92.gpu85.samsung.co.kr
+	[203.254.195.92]) by uscas1p1.samsung.com (KnoxPortal) with ESMTP id
+	20230605204543uscas1p19d1b3a00134805c5c3e738dea4ee4728~l3jJ5l8D42077320773uscas1p13;
+	Mon,  5 Jun 2023 20:45:43 +0000 (GMT)
+X-AuditID: cbfec370-823ff7000001f31d-26-647e4978ea1c
+Received: from SSI-EX3.ssi.samsung.com ( [105.128.2.146]) by
+	ussmgxs3new.samsung.com (USCPEXMTA) with SMTP id 56.8C.64580.7794E746; Mon, 
+	5 Jun 2023 16:45:43 -0400 (EDT)
+Received: from SSI-EX2.ssi.samsung.com (105.128.2.227) by
+	SSI-EX3.ssi.samsung.com (105.128.2.228) with Microsoft SMTP Server
+	(version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
+	15.1.2375.24; Mon, 5 Jun 2023 13:45:43 -0700
+Received: from SSI-EX2.ssi.samsung.com ([105.128.2.227]) by
+	SSI-EX2.ssi.samsung.com ([105.128.2.227]) with mapi id 15.01.2375.024; Mon,
+	5 Jun 2023 13:45:43 -0700
+From: Fan Ni <fan.ni@samsung.com>
+To: Dan Williams <dan.j.williams@intel.com>
+CC: "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
+	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, Adam Manzanares
+	<a.manzanares@samsung.com>, "dave@stgolabs.net" <dave@stgolabs.net>,
+	"nmtadam.samsung@gmail.com" <nmtadam.samsung@gmail.com>, "nifan@outlook.com"
+	<nifan@outlook.com>
+Subject: Re: [PATCH 1/4] dax: Fix dax_mapping_release() use after free
+Thread-Topic: [PATCH 1/4] dax: Fix dax_mapping_release() use after free
+Thread-Index: AQHZl+6y6TFi408Er0usyJDFtX2K7g==
+Date: Mon, 5 Jun 2023 20:45:43 +0000
+Message-ID: <20230605204535.GA2344865@bgt-140510-bm03>
+In-Reply-To: <168577283412.1672036.16111545266174261446.stgit@dwillia2-xfh.jf.intel.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-originating-ip: [105.128.2.176]
+Content-Type: text/plain; charset="us-ascii"
+Content-ID: <4D9A649F9B0C674486759D78CF16B203@ssi.samsung.com>
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20230405-vv-fw_update-v2-5-a778a15e860b@intel.com>
-References: <20230405-vv-fw_update-v2-0-a778a15e860b@intel.com>
-In-Reply-To: <20230405-vv-fw_update-v2-0-a778a15e860b@intel.com>
-To: linux-cxl@vger.kernel.org
-Cc: nvdimm@lists.linux.dev, Alison Schofield <alison.schofield@intel.com>, 
- Ira Weiny <ira.weiny@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
- Dan Williams <dan.j.williams@intel.com>, 
- Vishal Verma <vishal.l.verma@intel.com>
-X-Mailer: b4 0.13-dev-02a79
-X-Developer-Signature: v=1; a=openpgp-sha256; l=5613;
- i=vishal.l.verma@intel.com; h=from:subject:message-id;
- bh=LlVEQrDPE8IPCzrGqxiaHepxm+PhW003Qczq56Mw48s=;
- b=owGbwMvMwCXGf25diOft7jLG02pJDCl1ztteWJkL7XxhwWdldGPmOp9Ven/VdCzc4qLyj12bd
- 67Jty2so5SFQYyLQVZMkeXvno+Mx+S25/MEJjjCzGFlAhnCwMUpABN5H8zwTyUkY+E9myXymT3d
- Xh/K/MKOzT0z41Sn8hE1A20pb8NrLYwMF9vZ53qtYT2zd+/WJ83ZSpr6qxqXbJ7WGPPZendzb/F
- MbgA=
-X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp;
- fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
+X-CFilter-Loop: Reflected
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFlrJKsWRmVeSWpSXmKPExsWy7djXc7oVnnUpBms72S2mT73AaLH65hpG
+	i/OzTrFYPJ/4nMli6ZJHzBYrf/xhdWDz2DnrLrvH4j0vmTxebJ7J6LH59Qtmj6mz6z0+b5IL
+	YIvisklJzcksSy3St0vgyniyy6GgWbji5p6JjA2MN/m7GDk5JARMJDb0bGXpYuTiEBJYySjx
+	oPcrE4TTyiTxpWcqO0xVS+sOqMRaRoklXy9BOR8ZJU4172QFqRISWMoosWiTD4jNJqAosa9r
+	OxuILSKgLTFxzkFmkAZmgbVMEvN2XmUCSQgLuEks/dfGCFHkLtHS3cQOYetJTOneDVTDwcEi
+	oCLxtk8GJMwrYCbxffI9ZhCbUyBC4sCddWCtjAJiEt9PrQEbySwgLnHryXwmiKsFJRbN3sMM
+	YYtJ/Nv1kA3CVpS4//0lO0S9jsSC3Z/YIGw7iXMdl6BsbYllC18zQ+wVlDg58wkLRK+kxMEV
+	N8DhJSFwhUOirX0CNIhcJE7sOQC1WFpi+prLLCD3SwgkS6z6yAURzpGYv2QL1BxriYV/1jNN
+	YFSZheTsWUhOmoXkpFlITpqF5KQFjKyrGMVLi4tz01OLjfNSy/WKE3OLS/PS9ZLzczcxAlPT
+	6X+HC3Yw3rr1Ue8QIxMH4yFGCQ5mJRHeXV7VKUK8KYmVValF+fFFpTmpxYcYpTlYlMR5DW1P
+	JgsJpCeWpGanphakFsFkmTg4pRqYNiYWXrH2a5pc9Gebj1a122+rFMNqG4dltfMZWlRtzab+
+	uNN79ZbU210FDt+0F+QHO5fHRgkXXDb468MxR3BleLOOo7jnzAqlyZHOqf+M40TjEnZ98fZ8
+	P0Pz9OKSkIy8F+dnz7nNGCcbd3f1mdDvFvfE/2hHnfcXf3Zni9jUiJ2P3a5/vNSbY7Dnz4JP
+	XL7SF3ZdffRBu+dWzK+915e8el3J/+Tdom8nb4k/OjJPr8t4xtGIsuQXXctt5u86KfFcT+ji
+	YckP4RyZ++xeyf3vmqAT+/rWvYuzWyKkXs0tPP/oTerERrdbTxz+zDFzK2fyrj4UszdwW4u5
+	Ne9EIe51bau/r7iWZrc15HtxtGrtOiWW4oxEQy3mouJEAN8J91O8AwAA
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFjrJIsWRmVeSWpSXmKPExsWS2cA0Sbfcsy7F4Pg2PYvpUy8wWqy+uYbR
+	4vysUywWzyc+Z7JYuuQRs8XKH39YHdg8ds66y+6xeM9LJo8Xm2cyemx+/YLZY+rseo/Pm+QC
+	2KK4bFJSczLLUov07RK4Mp7scihoFq64uWciYwPjTf4uRk4OCQETiZbWHUxdjFwcQgKrGSUu
+	7dvECuF8ZJSYOL8HKrOUUWLxkT8sIC1sAooS+7q2s4HYIgLaEhPnHGQGKWIWWMskMW/nVSaQ
+	hLCAm8TSf22MEEXuEi3dTewQtp7ElO7dQDUcHCwCKhJv+2RAwrwCZhLfJ99jhlv2s30K2BxO
+	gQiJA3fWgc1hFBCT+H5qDVicWUBc4taT+UwQPwhILNlznhnCFpV4+fgfK4StKHH/+0t2iHod
+	iQW7P7FB2HYS5zouQdnaEssWvmaGOEJQ4uTMJywQvZISB1fcYJnAKDELybpZSEbNQjJqFpJR
+	s5CMWsDIuopRvLS4ODe9otg4L7Vcrzgxt7g0L10vOT93EyMwtk//Oxyzg/HerY96hxiZOBgP
+	MUpwMCuJ8O7yqk4R4k1JrKxKLcqPLyrNSS0+xCjNwaIkzusROzFeSCA9sSQ1OzW1ILUIJsvE
+	wSnVwDQlbtPmyI/yCr61rIJ3Tqt8vL5t+dnqRoP6FIkcn1fl2q3sO+ZG6+T/W3CH75ZQiaHw
+	os9rfsmf8AjQ0JIvejk3qpz7XdZ5Dh3dYP+NT7qmJNdv3fq75cqZewL6vdfr3qbtrH5y/V/q
+	QaEDa64HvDki4zLT4N3St3VJf8KO7ZgVcErMJbBROzX8nP5rgR6BI7pTA/jslifcu6MQK3f9
+	rp+f8uW6VWc5hTYt9mzIb27ye+pw8rBb3iU/lpqurvVdZgWfdzUxbgsMfPVk1ZU6tj16ivf3
+	6p22OHYtZ3sM86aP348esFWwup2g/bRZZO7f6QKLH86b9uDc3vkV6+Y5Hg85u8AmhSGy1aWh
+	PnP1Rl4lluKMREMt5qLiRAAOmN/sXAMAAA==
+X-CMS-MailID: 20230605204543uscas1p19d1b3a00134805c5c3e738dea4ee4728
+CMS-TYPE: 301P
+X-CMS-RootMailID: 20230605204543uscas1p19d1b3a00134805c5c3e738dea4ee4728
+References: <168577282846.1672036.13848242151310480001.stgit@dwillia2-xfh.jf.intel.com>
+	<168577283412.1672036.16111545266174261446.stgit@dwillia2-xfh.jf.intel.com>
+	<CGME20230605204543uscas1p19d1b3a00134805c5c3e738dea4ee4728@uscas1p1.samsung.com>
 
-Add a unit test to exercise the different operating modes of the
-cxl-update-firmware command. Perform an update synchronously,
-asynchronously, on multiple devices, and attempt cancellation of an
-in-progress update.
+On Fri, Jun 02, 2023 at 11:13:54PM -0700, Dan Williams wrote:
+> A CONFIG_DEBUG_KOBJECT_RELEASE test of removing a device-dax region
+> provider (like modprobe -r dax_hmem) yields:
+>=20
+>  kobject: 'mapping0' (ffff93eb460e8800): kobject_release, parent 00000000=
+00000000 (delayed 2000)
+>  [..]
+>  DEBUG_LOCKS_WARN_ON(1)
+>  WARNING: CPU: 23 PID: 282 at kernel/locking/lockdep.c:232 __lock_acquire=
++0x9fc/0x2260
+>  [..]
+>  RIP: 0010:__lock_acquire+0x9fc/0x2260
+>  [..]
+>  Call Trace:
+>   <TASK>
+>  [..]
+>   lock_acquire+0xd4/0x2c0
+>   ? ida_free+0x62/0x130
+>   _raw_spin_lock_irqsave+0x47/0x70
+>   ? ida_free+0x62/0x130
+>   ida_free+0x62/0x130
+>   dax_mapping_release+0x1f/0x30
+>   device_release+0x36/0x90
+>   kobject_delayed_cleanup+0x46/0x150
+>=20
+> Due to attempting ida_free() on an ida object that has already been
+> freed. Devices typically only hold a reference on their parent while
+> registered. If a child needs a parent object to complete its release it
+> needs to hold a reference that it drops from its release callback.
+> Arrange for a dax_mapping to pin its parent dev_dax instance until
+> dax_mapping_release().
+>=20
+> Fixes: 0b07ce872a9e ("device-dax: introduce 'mapping' devices")
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- test/cxl-update-firmware.sh | 195 ++++++++++++++++++++++++++++++++++++++++++++
- test/meson.build            |   2 +
- 2 files changed, 197 insertions(+)
+Reviewed-by: Fan Ni <fan.ni@samsung.com>
 
-diff --git a/test/cxl-update-firmware.sh b/test/cxl-update-firmware.sh
-new file mode 100755
-index 0000000..c6cd742
---- /dev/null
-+++ b/test/cxl-update-firmware.sh
-@@ -0,0 +1,195 @@
-+#!/bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright (C) 2023 Intel Corporation. All rights reserved.
-+
-+. $(dirname $0)/common
-+
-+rc=77
-+
-+set -ex
-+
-+trap 'err $LINENO' ERR
-+
-+check_prereq "jq"
-+check_prereq "dd"
-+check_prereq "sha256sum"
-+
-+modprobe -r cxl_test
-+modprobe cxl_test
-+rc=1
-+
-+mk_fw_file()
-+{
-+	size="$1"
-+
-+	if [[ ! $size ]]; then
-+		err "$LINENO"
-+	fi
-+	if (( size > 64 )); then
-+		err "$LINENO"
-+	fi
-+
-+	fw_file="$(mktemp -p /tmp fw_file_XXXX)"
-+	dd if=/dev/urandom of="$fw_file" bs=1M count="$size"
-+	echo "$fw_file"
-+}
-+
-+find_memdevs()
-+{
-+	count="$1"
-+
-+	if [[ ! $count ]]; then
-+		count=1
-+	fi
-+
-+	"$CXL" list -M -b "$CXL_TEST_BUS" \
-+		| jq -r '.[] | select(.host | startswith("cxl_mem.")) | .memdev' \
-+		| head -"$count"
-+}
-+
-+do_update_fw()
-+{
-+	"$CXL" update-firmware -b "$CXL_TEST_BUS" "$@"
-+}
-+
-+wait_complete()
-+{
-+	mem="$1"  # single memdev, not a list
-+	max_wait="$2"  # in seconds
-+	waited=0
-+
-+	while true; do
-+		json="$("$CXL" list -m "$mem" -F)"
-+		in_prog="$(jq -r '.[].firmware.fw_update_in_progress' <<< "$json")"
-+		if [[ $in_prog == "true" ]]; then
-+			sleep 1
-+			waited="$((waited + 1))"
-+			continue
-+		else
-+			break
-+		fi
-+		if (( waited == max_wait )); then
-+			echo "completion timeout for $mem"
-+			err "$LINENO"
-+		fi
-+	done
-+}
-+
-+validate_json_state()
-+{
-+	json="$1"
-+	state="$2"
-+
-+	while read -r in_prog_state; do
-+		if [[ $in_prog_state == $state ]]; then
-+			continue
-+		else
-+			echo "expected fw_update_in_progress:$state"
-+			err "$LINENO"
-+		fi
-+	done < <(jq -r '.[].firmware.fw_update_in_progress' <<< "$json")
-+}
-+
-+validate_fw_update_in_progress()
-+{
-+	validate_json_state "$1" "true"
-+}
-+
-+validate_fw_update_idle()
-+{
-+	validate_json_state "$1" "false"
-+}
-+
-+validate_staged_slot()
-+{
-+	json="$1"
-+	slot="$2"
-+
-+	while read -r staged_slot; do
-+		if [[ $staged_slot == $slot ]]; then
-+			continue
-+		else
-+			echo "expected staged_slot:$slot"
-+			err "$LINENO"
-+		fi
-+	done < <(jq -r '.[].firmware.staged_slot' <<< "$json")
-+}
-+
-+check_sha()
-+{
-+	mem="$1"
-+	file="$2"
-+	csum_path="/sys/bus/platform/devices/cxl_mem.${mem#mem}/fw_buf_checksum"
-+
-+	mem_csum="$(cat "$csum_path")"
-+	file_csum="$(sha256sum "$file" | awk '{print $1}')"
-+
-+	if [[ $mem_csum != $file_csum ]]; then
-+		echo "checksum failure for mem$mem"
-+		err "$LINENO"
-+	fi
-+}
-+
-+test_blocking_update()
-+{
-+	file="$(mk_fw_file 8)"
-+	mem="$(find_memdevs 1)"
-+	json=$(do_update_fw -F "$file" --wait "$mem")
-+	validate_fw_update_idle "$json"
-+	# cxl_test's starting slot is '2', so staged should be 3
-+	validate_staged_slot "$json" 3
-+	check_sha "$mem" "$file"
-+	rm "$file"
-+}
-+
-+test_nonblocking_update()
-+{
-+	file="$(mk_fw_file 16)"
-+	mem="$(find_memdevs 1)"
-+	json=$(do_update_fw -F "$file" "$mem")
-+	validate_fw_update_in_progress "$json"
-+	wait_complete "$mem" 15
-+	validate_fw_update_idle "$("$CXL" list -m "$mem" -F)"
-+	check_sha "$mem" "$file"
-+	rm "$file"
-+}
-+
-+test_multiple_memdev()
-+{
-+	num_mems=2
-+
-+	file="$(mk_fw_file 16)"
-+	declare -a mems
-+	mems=( $(find_memdevs "$num_mems") )
-+	json="$(do_update_fw -F "$file" "${mems[@]}")"
-+	validate_fw_update_in_progress "$json"
-+	# use the in-band wait this time
-+	json="$(do_update_fw --wait "${mems[@]}")"
-+	validate_fw_update_idle "$json"
-+	for mem in ${mems[@]}; do
-+		check_sha "$mem" "$file"
-+	done
-+	rm "$file"
-+}
-+
-+test_cancel()
-+{
-+	file="$(mk_fw_file 16)"
-+	mem="$(find_memdevs 1)"
-+	json=$(do_update_fw -F "$file" "$mem")
-+	validate_fw_update_in_progress "$json"
-+	do_update_fw --cancel "$mem"
-+	# cancellation is asynchronous, and the result looks the same as idle
-+	wait_complete "$mem" 15
-+	validate_fw_update_idle "$("$CXL" list -m "$mem" -F)"
-+	# no need to check_sha
-+	rm "$file"
-+}
-+
-+test_blocking_update
-+test_nonblocking_update
-+test_multiple_memdev
-+test_cancel
-+
-+check_dmesg "$LINENO"
-+modprobe -r cxl_test
-diff --git a/test/meson.build b/test/meson.build
-index a956885..0f4d3c4 100644
---- a/test/meson.build
-+++ b/test/meson.build
-@@ -155,6 +155,7 @@ cxl_sysfs = find_program('cxl-region-sysfs.sh')
- cxl_labels = find_program('cxl-labels.sh')
- cxl_create_region = find_program('cxl-create-region.sh')
- cxl_xor_region = find_program('cxl-xor-region.sh')
-+cxl_update_firmware = find_program('cxl-update-firmware.sh')
- 
- tests = [
-   [ 'libndctl',               libndctl,		  'ndctl' ],
-@@ -198,6 +199,7 @@ if get_option('destructive').enabled()
- 
-   tests += [
-     [ 'firmware-update.sh',     firmware_update,	  'ndctl' ],
-+    [ 'cxl-update-firmware.sh', cxl_update_firmware,      'cxl'   ],
-     [ 'pmem-ns',           pmem_ns,	   'ndctl' ],
-     [ 'sub-section.sh',    sub_section,	   'dax'   ],
-     [ 'dax-dev',           dax_dev,	   'dax'   ],
-
--- 
-2.40.1
-
+>  drivers/dax/bus.c |    5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
+>=20
+> diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+> index 227800053309..aee695f86b44 100644
+> --- a/drivers/dax/bus.c
+> +++ b/drivers/dax/bus.c
+> @@ -635,10 +635,12 @@ EXPORT_SYMBOL_GPL(alloc_dax_region);
+>  static void dax_mapping_release(struct device *dev)
+>  {
+>  	struct dax_mapping *mapping =3D to_dax_mapping(dev);
+> -	struct dev_dax *dev_dax =3D to_dev_dax(dev->parent);
+> +	struct device *parent =3D dev->parent;
+> +	struct dev_dax *dev_dax =3D to_dev_dax(parent);
+> =20
+>  	ida_free(&dev_dax->ida, mapping->id);
+>  	kfree(mapping);
+> +	put_device(parent);
+>  }
+> =20
+>  static void unregister_dax_mapping(void *data)
+> @@ -778,6 +780,7 @@ static int devm_register_dax_mapping(struct dev_dax *=
+dev_dax, int range_id)
+>  	dev =3D &mapping->dev;
+>  	device_initialize(dev);
+>  	dev->parent =3D &dev_dax->dev;
+> +	get_device(dev->parent);
+>  	dev->type =3D &dax_mapping_type;
+>  	dev_set_name(dev, "mapping%d", mapping->id);
+>  	rc =3D device_add(dev);
+>=20
+> =
