@@ -1,88 +1,125 @@
-Received: from mail-ej1-f50.google.com (mail-ej1-f50.google.com [209.85.218.50])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 117796FC3
-	for <nvdimm@lists.linux.dev>; Mon,  5 Jun 2023 17:07:57 +0000 (UTC)
-Received: by mail-ej1-f50.google.com with SMTP id a640c23a62f3a-977fae250easo12103466b.1
-        for <nvdimm@lists.linux.dev>; Mon, 05 Jun 2023 10:07:57 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1685984876; x=1688576876;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=HZGakePAKwplYG/llAo4FkXZmbuykUNqGGuE67aJlhQ=;
-        b=lrg/t58PSWKHrNNn3mPUZpfdZ+0Do6qrhg2hSGVc79yMAF6CKtNdBGuUUn2dFRAUOO
-         XzvTIwB7J0ktahIFc9IhPR9JXMF56XFbeFYoJg4bR3PrnRq7SReN7bQ8OoKiMS9d9PWs
-         VNw1FCVjaQomLmRIcHPtsojt3mxyGhXx+XfBRpEVSENajfGqD2iJ7KHbMLr3951AnpxG
-         JwZ9FPs+ShrHN5JdDQLoDtXpzvhEpeUdmPEcJrcFPOYq2Xg1jvmgmxFwZ/JaTdl9o23s
-         cW3cTkyAXajcPlUWdqIJIvhouchmFJHBiHNDkOG1mkIL1ZUtIVjzF9fpaWS6LWwkZ2AZ
-         8dIg==
-X-Gm-Message-State: AC+VfDwNxqjphaMH8K3hkz0rmNW26VKV/AQTkN23r3g6wITJc15rp2p+
-	2IKLp8kEB2duNf2tV0qQCCa47ZAwyEy5xsyBLbym5nzm
-X-Google-Smtp-Source: ACHHUZ4y6QX2tq8E27by6YkCxR3PmJMiktMABs4n4JVAUpCSd+lhY388IXN+mErboDW/wtCtUakJxEJ57qmSY1TQ/Zc=
-X-Received: by 2002:a17:906:778a:b0:977:ead3:c91 with SMTP id
- s10-20020a170906778a00b00977ead30c91mr1215071ejm.1.1685984875965; Mon, 05 Jun
- 2023 10:07:55 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDA42DDC0
+	for <nvdimm@lists.linux.dev>; Mon,  5 Jun 2023 20:21:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1685996471; x=1717532471;
+  h=from:subject:date:message-id:mime-version:
+   content-transfer-encoding:to:cc;
+  bh=81sx6UUTH7YrmfPTbmZ8hZtmX/56vuvO4aJSVPZN/Y8=;
+  b=DNP9ninuY1Hj+cdW/O+j6252yhw3WMY6JysLR0XNUNV/ytkujL4Ri9gk
+   wXDjVOipMhWoU0+8qlfYjUNxg3T3lt9o5/6W49H2qdQXNZOldv/LXC96o
+   DZC+7csSKffmBKpp45fRDlMHr73sFaeCLvNyL+l/7dN1yIxAkq1+nZ4Uj
+   +Ps/SEACl7+S7SKdm34Fv8Cco8ADOdHZxMujOIrxOJYaFJcbLtziUc+fx
+   nsHHMpvpbunEWIIFYdIi+eW9DV1zoumOltxyEFC+FcDYgqQE3TTA1Nl5G
+   2LraRkDA3/qBhuZ6VGyvuUSLaOXI9MICJzPEGhbtWobI8CsVmg3WZgnlj
+   Q==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10732"; a="336093170"
+X-IronPort-AV: E=Sophos;i="6.00,218,1681196400"; 
+   d="scan'208";a="336093170"
+Received: from orsmga004.jf.intel.com ([10.7.209.38])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Jun 2023 13:21:11 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10732"; a="832934294"
+X-IronPort-AV: E=Sophos;i="6.00,218,1681196400"; 
+   d="scan'208";a="832934294"
+Received: from kmsalzbe-mobl1.amr.corp.intel.com (HELO [192.168.1.200]) ([10.209.52.9])
+  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Jun 2023 13:21:10 -0700
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH ndctl v2 0/5] cxl: firmware update support for libcxl and
+ cxl-cli
+Date: Mon, 05 Jun 2023 14:21:02 -0600
+Message-Id: <20230405-vv-fw_update-v2-0-a778a15e860b@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20230516201415.556858-1-arnd@kernel.org> <780579b5-3900-da14-3acd-a4d24e02e4ba@intel.com>
-In-Reply-To: <780579b5-3900-da14-3acd-a4d24e02e4ba@intel.com>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Mon, 5 Jun 2023 19:07:44 +0200
-Message-ID: <CAJZ5v0hPLnFmWiv2DHh=U0FHkeu0A8yTwz7Mn8=jfenrP6wFGA@mail.gmail.com>
-Subject: Re: [PATCH 1/3] acpi: nfit: add declaration in a local header
-To: Dave Jiang <dave.jiang@intel.com>, Arnd Bergmann <arnd@kernel.org>
-Cc: Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, 
-	Ira Weiny <ira.weiny@intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Arnd Bergmann <arnd@arndb.de>, 
-	Len Brown <lenb@kernel.org>, nvdimm@lists.linux.dev, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAK5DfmQC/3WNQQ6CMBBFr0K6dkxpbYiuvIchZtoOMIkW0mLVE
+ O5uYe/y/Z+Xt4hEkSmJS7WISJkTj6GAOlTCDRh6AvaFhZJKy5M0kDN07/tr8jgTnKXxyujOWW1
+ FUSwmAhsxuGGTJgqeQ789U6SOP3vo1hYeOM1j/O7dXG/rn0SuQUKjFDZoLBLqK4eZHkc3PkW7r
+ usPVUi3+8IAAAA=
+To: linux-cxl@vger.kernel.org
+Cc: nvdimm@lists.linux.dev, Alison Schofield <alison.schofield@intel.com>, 
+ Ira Weiny <ira.weiny@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+ Dan Williams <dan.j.williams@intel.com>, 
+ Vishal Verma <vishal.l.verma@intel.com>
+X-Mailer: b4 0.13-dev-02a79
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2866;
+ i=vishal.l.verma@intel.com; h=from:subject:message-id;
+ bh=81sx6UUTH7YrmfPTbmZ8hZtmX/56vuvO4aJSVPZN/Y8=;
+ b=owGbwMvMwCXGf25diOft7jLG02pJDCl1zlsr/GPULbnmbql2e+hsuOTkRe9dr82m880xnvvyh
+ /zPc3/WdpSyMIhxMciKKbL83fOR8Zjc9nyewARHmDmsTCBDGLg4BWAie5sYGTaE3vR5oVV8qzS6
+ L42v9/Q1re+ZWdoNk5gSxGt+Pnk5+w0jw5Xcb0f/nN6vo38u8OMkEeO2jFan3zLXrQ1XnPkSuTr
+ sPgcA
+X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp;
+ fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
 
-On Mon, May 22, 2023 at 5:22=E2=80=AFPM Dave Jiang <dave.jiang@intel.com> w=
-rote:
->
->
->
-> On 5/16/23 1:14 PM, Arnd Bergmann wrote:
-> > From: Arnd Bergmann <arnd@arndb.de>
-> >
-> > The nfit_intel_shutdown_status() function has a __weak defintion
-> > in nfit.c and an override in acpi_nfit_test.c for testing
-> > purposes. This works without an extern declaration, but causes
-> > a W=3D1 build warning:
-> >
-> > drivers/acpi/nfit/core.c:1717:13: error: no previous prototype for 'nfi=
-t_intel_shutdown_status' [-Werror=3Dmissing-prototypes]
-> >
-> > Add a declaration in a header that gets included from both
-> > sides to shut up the warning and ensure that the prototypes
-> > actually match.
-> >
-> > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
->
-> Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+Patch 1 is a preparatory patch that teaches memdev based commands to
+filter their operand memdevs by bus. This helps restricting unit test
+operations to the cxl_test bus.
 
-Applied as 6.5 material, thanks!
+Patches 2 and 3 add firmware information to the CXL memdev listing. This
+is derived from the 'Get FW Info' mailbox command as well as state
+information in the kernel's firmware loader mechanism in sysfs.
 
-> > ---
-> >   drivers/acpi/nfit/nfit.h | 2 ++
-> >   1 file changed, 2 insertions(+)
-> >
-> > diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
-> > index 6023ad61831a..573bc0de2990 100644
-> > --- a/drivers/acpi/nfit/nfit.h
-> > +++ b/drivers/acpi/nfit/nfit.h
-> > @@ -347,4 +347,6 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_=
-desc, struct nvdimm *nvdimm,
-> >   void acpi_nfit_desc_init(struct acpi_nfit_desc *acpi_desc, struct dev=
-ice *dev);
-> >   bool intel_fwa_supported(struct nvdimm_bus *nvdimm_bus);
-> >   extern struct device_attribute dev_attr_firmware_activate_noidle;
-> > +void nfit_intel_shutdown_status(struct nfit_mem *nfit_mem);
-> > +
-> >   #endif /* __NFIT_H__ */
+Patch 4 adds the libcxl APIs to perform a firmware update, and to cancel
+an in-progress update, and the cxl-cli command to use these APIs to
+start, wait for, and cancel firmware updates. A man page for the new
+command is added as well.
+
+Patch 5 adds a unit test to exercise all the features described above in
+a cxl_test environment.
+
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+Changes in v2:
+- Add the missing Documentation/cxl/cxl-update-firmware file to the patchset
+- Change &foo->bar[0] to foo->bar in a few places (Dave)
+- clean up error path freeing in add_cxl_memdev_fwl() (Dave)
+- Link to v1: https://lore.kernel.org/r/20230405-vv-fw_update-v1-0-722a7a5baea3@intel.com
+
+---
+Vishal Verma (5):
+      cxl/memdev.c: allow filtering memdevs by bus
+      cxl/list: print firmware info in memdev listings
+      cxl/fw_loader: add APIs to get current state of the FW loader mechanism
+      cxl: add an update-firmware command
+      test/cxl-update-firmware: add a unit test for firmware update
+
+ Documentation/cxl/cxl-disable-memdev.txt  |   2 +
+ Documentation/cxl/cxl-enable-memdev.txt   |   2 +
+ Documentation/cxl/cxl-free-dpa.txt        |   2 +
+ Documentation/cxl/cxl-read-labels.txt     |   2 +
+ Documentation/cxl/cxl-reserve-dpa.txt     |   2 +
+ Documentation/cxl/cxl-set-partition.txt   |   2 +
+ Documentation/cxl/cxl-update-firmware.txt |  85 +++++++++
+ Documentation/cxl/cxl-write-labels.txt    |   3 +
+ cxl/lib/private.h                         |  36 ++++
+ cxl/lib/libcxl.c                          | 299 ++++++++++++++++++++++++++++++
+ cxl/builtin.h                             |   1 +
+ cxl/filter.h                              |   5 +
+ cxl/libcxl.h                              |  36 ++++
+ cxl/cxl.c                                 |   1 +
+ cxl/filter.c                              |  19 ++
+ cxl/json.c                                |  97 ++++++++++
+ cxl/list.c                                |   3 +
+ cxl/memdev.c                              |  77 +++++++-
+ Documentation/cxl/meson.build             |   1 +
+ cxl/lib/libcxl.sym                        |  10 +
+ test/cxl-update-firmware.sh               | 195 +++++++++++++++++++
+ test/meson.build                          |   2 +
+ 22 files changed, 881 insertions(+), 1 deletion(-)
+---
+base-commit: b830c4af984e72e5849c0705669aad2ffa19db13
+change-id: 20230405-vv-fw_update-905d253fcb3b
+
+Best regards,
+-- 
+Vishal Verma <vishal.l.verma@intel.com>
+
