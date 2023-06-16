@@ -1,209 +1,192 @@
-Received: from mailout2.samsung.com (mailout2.samsung.com [203.254.224.25])
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C2EA7626
-	for <nvdimm@lists.linux.dev>; Fri, 16 Jun 2023 01:16:16 +0000 (UTC)
-Received: from epcas2p2.samsung.com (unknown [182.195.41.54])
-	by mailout2.samsung.com (KnoxPortal) with ESMTP id 20230616010614epoutp028b6b0807f7599c4d147446e76b70e9e7~o-jd4J98y2814528145epoutp02S
-	for <nvdimm@lists.linux.dev>; Fri, 16 Jun 2023 01:06:14 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout2.samsung.com 20230616010614epoutp028b6b0807f7599c4d147446e76b70e9e7~o-jd4J98y2814528145epoutp02S
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-	s=mail20170921; t=1686877574;
-	bh=vA9DFA9kELh2hhQR8GlB+evZh96ipZlMIxxWmmxZZ8Q=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=LAKWifA3/Nw6Gq8o9MKL5E9lLIiYZhZBodLKMhZTCbD7vjknEPj7oYMTUUs/+/Epu
-	 cr0oI+gYCi+xJvhaQeq+8+Av+RTY+cKLzgsTPP/H7xp9AiuPxtwDyftI/OUDr9w4yv
-	 uHtzKFnEHuHNAtyYNyIPJQ+kFdUQMO4x4+vbnmAQ=
-Received: from epsnrtp4.localdomain (unknown [182.195.42.165]) by
-	epcas2p3.samsung.com (KnoxPortal) with ESMTP id
-	20230616010614epcas2p3fc3062a13d2516da02d3bdd2057feeb7~o-jdX_U-h0162901629epcas2p34;
-	Fri, 16 Jun 2023 01:06:14 +0000 (GMT)
-Received: from epsmges2p1.samsung.com (unknown [182.195.36.91]) by
-	epsnrtp4.localdomain (Postfix) with ESMTP id 4Qj1FK3THFz4x9Pw; Fri, 16 Jun
-	2023 01:06:13 +0000 (GMT)
-Received: from epcas2p1.samsung.com ( [182.195.41.53]) by
-	epsmges2p1.samsung.com (Symantec Messaging Gateway) with SMTP id
-	A0.4F.11450.585BB846; Fri, 16 Jun 2023 10:06:13 +0900 (KST)
-Received: from epsmtrp2.samsung.com (unknown [182.195.40.14]) by
-	epcas2p4.samsung.com (KnoxPortal) with ESMTPA id
-	20230616010613epcas2p4970d8588a29154fa355e14f44943a80b~o-jchl8_41248912489epcas2p4A;
-	Fri, 16 Jun 2023 01:06:13 +0000 (GMT)
-Received: from epsmgms1p2.samsung.com (unknown [182.195.42.42]) by
-	epsmtrp2.samsung.com (KnoxPortal) with ESMTP id
-	20230616010613epsmtrp20a0b05e074b3b5f12846d04a6cd28142~o-jcfo7GX2823928239epsmtrp2Y;
-	Fri, 16 Jun 2023 01:06:13 +0000 (GMT)
-X-AuditID: b6c32a45-1dbff70000022cba-7c-648bb5859e7f
-Received: from epsmtip1.samsung.com ( [182.195.34.30]) by
-	epsmgms1p2.samsung.com (Symantec Messaging Gateway) with SMTP id
-	45.2A.28392.485BB846; Fri, 16 Jun 2023 10:06:13 +0900 (KST)
-Received: from jehoon-Precision-7920-Tower.dsn.sec.samsung.com (unknown
-	[10.229.83.133]) by epsmtip1.samsung.com (KnoxPortal) with ESMTPA id
-	20230616010612epsmtip1a7eca9e25b89c5fdda7b35ac1ff49f64~o-jcTTNJI1453014530epsmtip1a;
-	Fri, 16 Jun 2023 01:06:12 +0000 (GMT)
-From: Jehoon PARK <jehoon.park@samsung.com>
-To: linux-cxl@vger.kernel.org
-Cc: nvdimm@lists.linux.dev, Alison Schofield <alison.schofield@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>,
-	Ben Widawsky <bwidawsk@kernel.org>, Dan Williams <dan.j.williams@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>, Jehoon Park <jehoon.park@samsung.com>
-Subject: [ndctl PATCH 2/2] libcxl: Fix accessors for temperature field to
- support negative value
-Date: Fri, 16 Jun 2023 10:08:41 +0900
-Message-Id: <20230616010841.3632-3-jehoon.park@samsung.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20230616010841.3632-1-jehoon.park@samsung.com>
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFnrGKsWRmVeSWpSXmKPExsWy7bCmqW7r1u4Ug8bzUhZ3H19gs2ievJjR
-	YvrUC4wWJ242slnsf/qcxeLA6wZ2i/OzTrFYrPzxh9Xi1oRjTA6cHov3vGTy2LSqk83jxeaZ
-	jB59W1YxenzeJBfAGpVtk5GamJJapJCal5yfkpmXbqvkHRzvHG9qZmCoa2hpYa6kkJeYm2qr
-	5OIToOuWmQN0kJJCWWJOKVAoILG4WEnfzqYov7QkVSEjv7jEVim1ICWnwLxArzgxt7g0L10v
-	L7XEytDAwMgUqDAhO6NrzVu2gm/SFQfnf2NrYFwq3sXIySEhYCKxs/8rSxcjF4eQwA5Gid0P
-	T7FBOJ8YJZZuvgmV+cwosWzPUjaYlql7LzFBJHYxShz4uheqpZdJYs3lZ4wgVWwC2hLtfW/B
-	bBEBWYnmdQ/AOpgFNjBJrFh4jLmLkYNDWCBJ4ukWG5AaFgFViXXvzzGB2LwC1hIdK68yQWyT
-	l1i94QAziM0pYCMxbcdbsDkSApfYJaZfussMUeQiMXXVLRYIW1ji1fEt7BC2lMTnd3uhzs6X
-	+HnyFiuEXSDx6csHqHpjiXc3n7OC3MMsoCmxfpc+iCkhoCxxBGIiswCfRMfhv+wQYV6JjjYh
-	iEZVia7jHxghbGmJw1eOQh3jIdF67wA0SPoZJV53PGKawCg3C2HBAkbGVYxiqQXFuempxUYF
-	hvAYS87P3cQITnBarjsYJ7/9oHeIkYmD8RCjBAezkgjvshNdKUK8KYmVValF+fFFpTmpxYcY
-	TYFhN5FZSjQ5H5hi80riDU0sDUzMzAzNjUwNzJXEeaVtTyYLCaQnlqRmp6YWpBbB9DFxcEo1
-	MC2IeiCXeyz6VcPF73WPhd9YTWua7VKWv0ebx9Bt9f7DkndWfwxbc8ug+P/u287FFTo751ZU
-	6gXvEkh/spHjSeFyNtc5rf+nzRK/uSqF/baryhHVig5Fzb1i0R4eDR8FN9s+u63B49Z3M9z7
-	ZPFMk+R9LddmLEy7+/95m11NBV9mgGGK0uM33//bXRSqlroye7Kbar1zaf4fPgXBp9OXxb43
-	T8id8a3xaOH+kJo/kw/01p3y3Nq1MejMK7e2hZPLPqnFndJ4t/a6n0N6z36+7ENfLhkZTtWQ
-	YbxUry92SL9f986/RRG+kT9boz7rT/cX9K35EPb38DVdszpxf/lVPG073njMlJ3xocBw1/cZ
-	a5VYijMSDbWYi4oTAeu3qXz5AwAA
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFlrELMWRmVeSWpSXmKPExsWy7bCSnG7r1u4UgxOTmS3uPr7AZtE8eTGj
-	xfSpFxgtTtxsZLPY//Q5i8WB1w3sFudnnWKxWPnjD6vFrQnHmBw4PRbvecnksWlVJ5vHi80z
-	GT36tqxi9Pi8SS6ANYrLJiU1J7MstUjfLoEro2vNW7aCb9IVB+d/Y2tgXCrexcjJISFgIjF1
-	7yWmLkYuDiGBHYwSPUf3sUAkpCXuNV9hh7CFJe63HGGFKOpmkth49SIjSIJNQFuive8tmC0i
-	ICvRvO4B2CRmgR1MEge39DKBJIQFEiR2rVgHNolFQFVi3ftzYHFeAWuJjpVXmSA2yEus3nCA
-	GcTmFLCRmLbjLVhcCKjm+ofP7BMY+RYwMqxilEwtKM5Nzy02LDDKSy3XK07MLS7NS9dLzs/d
-	xAgORi2tHYx7Vn3QO8TIxMF4iFGCg1lJhHfZia4UId6UxMqq1KL8+KLSnNTiQ4zSHCxK4rwX
-	uk7GCwmkJ5akZqemFqQWwWSZODilGpikP/GcXhhdvtHhhLs7T4m88bWS2P0cEd9m5T0/13Cm
-	7t4RjSutCbXWVzO7Z/Eo6LXUyO879NSo92qHpPnt7HQutTlPkkVv8gWI6jj2fNge1b26Id9w
-	J2toSOfMU9xluwQUZtifzp0yrdr0Z47edKv4lvNlS9uz7vBdn2h6Kv1Aq1Ny66JFQf8vlzU2
-	vQ2cdXev3AGvY7F7RE4929hQ5hMwT+jwN/WLHAsjeq9ZLjSptzjcpVF7L2a9wMOaqPTHSl1L
-	vJRrxXbPKXy4b+nOulNCfR53TfbpvbnQ9n7O0itXjitGGoU7fy3p+MbHZGW1y0rCwsLi6T29
-	8rpFu+0ijPdPnxbv7zlDs9ytplfqmxJLcUaioRZzUXEiALmEdDO1AgAA
-X-CMS-MailID: 20230616010613epcas2p4970d8588a29154fa355e14f44943a80b
-X-Msg-Generator: CA
-Content-Type: text/plain; charset="utf-8"
-X-Sendblock-Type: AUTO_CONFIDENTIAL
-CMS-TYPE: 102P
-DLP-Filter: Pass
-X-CFilter-Loop: Reflected
-X-CMS-RootMailID: 20230616010613epcas2p4970d8588a29154fa355e14f44943a80b
-References: <20230616010841.3632-1-jehoon.park@samsung.com>
-	<CGME20230616010613epcas2p4970d8588a29154fa355e14f44943a80b@epcas2p4.samsung.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7BF41627
+	for <nvdimm@lists.linux.dev>; Fri, 16 Jun 2023 01:23:02 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1686878582; x=1718414582;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=9rEBLM8cuACwsqk2eBmkmzcxYlbkkUFr5ExJXaCnzt0=;
+  b=HoXBr3WVo/MqFsUAhc8M/kvLZ12NMQNZCdlzd9tzRC5K36BRt3Crhlhm
+   sxtN924+PiZlDu1n+UDb2aJGYGP0Ta18dVCJZYPTUc+xaLWia7FcyCkjK
+   iokCv91pOLvUnGwbxfIblpseKUVaKsW5g072/M7JPH9YtYzWnUoYoXAV+
+   c8s6GuvuwenMJycoTOIIUUTp4UVqk1bELvn8CVd8J1mRDTuCBOWqjkkUC
+   CRDVAWpz3sKpJwlHgrT0DkCggjZptvwMxWS7rnpFA7pgPvqxME3TiNSKJ
+   /HzP7AFocLbR9738u27lRWVkpadyq9V4nb2YMoDr+cjzOBzws0t1H7BuS
+   w==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10742"; a="343825529"
+X-IronPort-AV: E=Sophos;i="6.00,246,1681196400"; 
+   d="scan'208";a="343825529"
+Received: from orsmga003.jf.intel.com ([10.7.209.27])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Jun 2023 18:22:47 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10742"; a="662985126"
+X-IronPort-AV: E=Sophos;i="6.00,246,1681196400"; 
+   d="scan'208";a="662985126"
+Received: from orsmsx603.amr.corp.intel.com ([10.22.229.16])
+  by orsmga003.jf.intel.com with ESMTP; 15 Jun 2023 18:22:47 -0700
+Received: from orsmsx610.amr.corp.intel.com (10.22.229.23) by
+ ORSMSX603.amr.corp.intel.com (10.22.229.16) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.23; Thu, 15 Jun 2023 18:22:47 -0700
+Received: from orsedg603.ED.cps.intel.com (10.7.248.4) by
+ orsmsx610.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.23 via Frontend Transport; Thu, 15 Jun 2023 18:22:47 -0700
+Received: from NAM10-BN7-obe.outbound.protection.outlook.com (104.47.70.109)
+ by edgegateway.intel.com (134.134.137.100) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.23; Thu, 15 Jun 2023 18:22:46 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=jocBTGTueZBqI8todTOgy/HE/grLMOoX9vLZE8sr6jfQ8X8hwU5r2NDRT97QYXIZ9bUVkbU76Ce4e881ikD3ifbV/tzJaoCYTgkkP8dM44N3JAdgndGrDG/4wDclGKg+IKnwjj1O5Xd9Q5Ce/epO29x+amKgd9L8dn12WDcPMyk+O2J554zPdewhUosyHIgZa9wHyZTfeoX00tP9Oh0fmMU2lTyWyuwgn2C/yLlu5fp+/RjCOmW1quBUNCbW+gEBebsmzjDeWWTJgPL+Ck488USQGaKYoSxFQAY9Hi/eHbQuZTAaxBOZuLnlj0uP//dS4EGhFIt4Zhm2EXQn/EBZig==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=9Cn9+V6qlwJzXMk+aCAyR6kj9PLXsvd0XEFsAQ6hIl4=;
+ b=iZwH/rZbGNRkOyp1R9BYRzcjb5Zj7CrLHW0+e4QNZZW1YJ1ARty80CyxIDwEfk+hDapv0r9ylRuzHwSUS2JjWopuXnfHHz6AtPf/PrTgLJJgC5V/tcDMSLT2BoHAEK81xmfkHxdz64V+dYDSa4RYvkOaxw7mV0dPI0sDuJSWCqhMN3tHyyKPDTeTbIAVMX5a3slQkDIk16yW9GEhHljHrJLkfhkPGyKrr+t9V8hyCYFCeNQ6oA13QWtdhMJJYwUpnUuEC1kmd0XcSLCT068NXhcykwW4xAxmIr1EZMbjSNJy3HeXf0k1nxpvh63fiHwVc+vI88pJMTOJyHtuxx1KRg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from BY1PR11MB8127.namprd11.prod.outlook.com (2603:10b6:a03:531::20)
+ by IA1PR11MB6220.namprd11.prod.outlook.com (2603:10b6:208:3e8::11) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6500.27; Fri, 16 Jun
+ 2023 01:22:39 +0000
+Received: from BY1PR11MB8127.namprd11.prod.outlook.com
+ ([fe80::e527:9093:f7ea:d514]) by BY1PR11MB8127.namprd11.prod.outlook.com
+ ([fe80::e527:9093:f7ea:d514%5]) with mapi id 15.20.6477.037; Fri, 16 Jun 2023
+ 01:22:39 +0000
+Date: Thu, 15 Jun 2023 18:22:36 -0700
+From: Dan Williams <dan.j.williams@intel.com>
+To: Ira Weiny <ira.weiny@intel.com>, Dan Williams <dan.j.williams@intel.com>,
+	<nvdimm@lists.linux.dev>
+CC: Yongqiang Liu <liuyongqiang13@huawei.com>, Paul Cassella
+	<cassella@hpe.com>, Ira Weiny <ira.weiny@intel.com>,
+	<linux-cxl@vger.kernel.org>
+Subject: Re: [PATCH 3/4] dax: Introduce alloc_dev_dax_id()
+Message-ID: <648bb95cd38e8_142af8294c6@dwillia2-xfh.jf.intel.com.notmuch>
+References: <168577282846.1672036.13848242151310480001.stgit@dwillia2-xfh.jf.intel.com>
+ <168577284563.1672036.13493034988900989554.stgit@dwillia2-xfh.jf.intel.com>
+ <647bfd7e1ef3_4c9842941c@iweiny-mobl.notmuch>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <647bfd7e1ef3_4c9842941c@iweiny-mobl.notmuch>
+X-ClientProxiedBy: SJ0PR03CA0010.namprd03.prod.outlook.com
+ (2603:10b6:a03:33a::15) To BY1PR11MB8127.namprd11.prod.outlook.com
+ (2603:10b6:a03:531::20)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
+MIME-Version: 1.0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BY1PR11MB8127:EE_|IA1PR11MB6220:EE_
+X-MS-Office365-Filtering-Correlation-Id: cd982f46-1eb5-4321-103a-08db6e082c6e
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: 7gxPHGPIV1/YgSh/MSEAz+++uh0mwFfmQq2f0hz8MQHq0pEvl+ibpYhR0SllIrC5cnKfpsqJCNX20p0QkY8oIWbdMYO9XyGTHpR3nc7ctayEYq2s4UCdyrlrAfXKRKqglH/aEEBks0GVJgSlLlyp0ZY1HaFHFR+5vhI5WtGCTou6wM8FxiGlyXRy87dGEsRkJjJ8B2IdjyJ0xr3FvvJ2r11dNCeufDbhfqbcLUzoSHZmB2gZd5RjyoBh9H1TrwoLY79LOQwMtZ8MQH6cf55/hMQ/t3wV6gLH7mI2ieBZLY5LC1Wxa7koesNDNi9vEPEZ/LQxCpZMEt8yanLCHXl+WpWHIoIWJYfcE8z5OmMg89AtphPPQkfuD88OmeBGDcynhx+1mcqVYcv0T4NyWSeJ+f23IA3XjrPV1PGLBB4FmYz1pJCzAPpeZPSI+qgGxTJ1Cmiq7YGw2G5yuVxToT9SdJEcQHkYLXP9MCjQBwclYIuuDcAygYSDnkwpO4KHl8aPiqVcqK/735qFaql/WTGWBc+uZC9k6+FGkQoICeGtzj1UTkTWy2m5zvSvl0ok3xKoWmJHDyU8ph4Hy0DN6m54Bw==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BY1PR11MB8127.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230028)(396003)(39860400002)(346002)(136003)(366004)(376002)(451199021)(5660300002)(478600001)(54906003)(8936002)(41300700001)(966005)(316002)(8676002)(6486002)(6506007)(186003)(110136005)(4326008)(66556008)(66476007)(66946007)(6666004)(26005)(9686003)(6512007)(83380400001)(2906002)(38100700002)(82960400001)(86362001);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?N0ZcdAWA1jBOH+sCQ01ibXmHq8wOeMntHncFmgeZ5FlOKDIiKHMtz7PxfkHL?=
+ =?us-ascii?Q?86O4IF41SuiQ+w7v3HQivjl1YgOTidk6fSGdAX6yvsfLKx1wc+poLTNSvb/r?=
+ =?us-ascii?Q?jhoFas42dWTWMzy3GMSbBVy9vb9HTD+7BjEIV5/e09BlAXoThbRaPZUHOpAs?=
+ =?us-ascii?Q?zKYGvvWFgvbb0gQuZLrdWJrj1kX2yQrcWj3fEB4o33ZPWxbrkafyzSlj6Le4?=
+ =?us-ascii?Q?7TpwxOF59mcKoK2yqVdIA412AX/1TjWh4HVIjsRqxCPWQMndStimvuQq55Hs?=
+ =?us-ascii?Q?sg07B4CikR27amgTexeCbbspeo2GOHRXXrN8A2JsZDvnHKPL9ty6mWIdLufh?=
+ =?us-ascii?Q?NBRMyWsXi6ZI8JDtxJqNcCvtD1G9TMBSPJigDqeP1wDCGxkFQNZezB4cEZWx?=
+ =?us-ascii?Q?5uMw/UiqNOyvELp577zXigcc3qKJRTlweetBEwETsshYSab0jrSwe7+iYFou?=
+ =?us-ascii?Q?UcJK3ROXHt+nIcJ0ZWAsTRGRZ66lzJ1CHF1rQFwrjaUWGffpMNpiL71ehQA1?=
+ =?us-ascii?Q?YwY8UZHUcB5vE1g8t7DtP3uoiDoiNkjoot5Iw1AFEozDcsdt/lNRKW/1vKym?=
+ =?us-ascii?Q?GQ+FfNdu/6FHtKNdd/Xyms4meysdb+o/fnzoNX1AtqiYVasTYDPrQNFIIBFl?=
+ =?us-ascii?Q?65dQZGsLyRtQhckd1+75uGvpD0uacm6KFlRpWgRJ2heqGQG6tqpwvIRVpHPt?=
+ =?us-ascii?Q?r2GDgHSgs84xM1XdNeWP2CPy9znR16Hz9WL5OWGNSLGVcKIPW8PtHyUWqn8v?=
+ =?us-ascii?Q?CqOkSMmofxCsa18iz4WMP1fFtmbtFaJ2IFck+SgSdNiqM7qrw4Y0KXw/ZRxU?=
+ =?us-ascii?Q?KZEiLhrmH/qc5wm14i1nYWLwqxMcA9mE+mq2xcEmhyhuyM7vCEZ2v3T/m9dq?=
+ =?us-ascii?Q?FsEuUC8wr0CllBWL4JAlMDaMGVgy1R+DAmnvvrbb0+avab4o9aQahQRsvMUp?=
+ =?us-ascii?Q?ofH+sE/Dnapz+4/DPuyaCvdb4NRp7BaecjN8UqJMkBeAjra66ehKn5MaG64m?=
+ =?us-ascii?Q?E9X8PZxOPPm9waBfwHawDAjH37xVQSQH0nCy9TzpSzwNkfZRBFI/fx9cOieu?=
+ =?us-ascii?Q?OuvJhcnre8K8RvqjwZx3cVdplG2t8eE5GsGhkJMPj24+LoEKUJJvLhK4odYr?=
+ =?us-ascii?Q?km4as0i6rN6p9r7jpNRSYh3BbbJaPHzj3Sm3Mm3vs9qLk/9Nqbn/Miayn6hu?=
+ =?us-ascii?Q?Gm9rMqE61rCoSaPfcndQry+YJ1Oud81UXBBoz8f7m154i7A0nNvNLC1hNchh?=
+ =?us-ascii?Q?scU7C2MZpclZfiRql+jb90ATUWtwCH4krNQvCjBNkVmKcGyv2lE6pFqC44wy?=
+ =?us-ascii?Q?OIYauLuJiko5zoWft9SQpEcErPze7h1X+2Ik04aiavbnjDCoeLnTA6A4Dn62?=
+ =?us-ascii?Q?wpPrljfVTscDF/6/aWeP9UYGjv4KTPYk2W22T/EjziY1wRoRqzxter1R7kDL?=
+ =?us-ascii?Q?OgDJFwtmef283eTW+7v/0NqzwFiY8Jy9ymFYZRdDkSPuPvXEaEb7z3jdHuw6?=
+ =?us-ascii?Q?JvwSaOeKR+AGh4+ucdG2+kU9SlcYjZuklpJZUivjYLo7O10EiYoImDVUSVfL?=
+ =?us-ascii?Q?rzqNv1UVbdEA9aedruK8zOZzm3zWa52A3Fc46XBcgd2VIRM93OxHLME4UZRf?=
+ =?us-ascii?Q?KA=3D=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: cd982f46-1eb5-4321-103a-08db6e082c6e
+X-MS-Exchange-CrossTenant-AuthSource: BY1PR11MB8127.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 16 Jun 2023 01:22:38.9152
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: B8eJusNekWJnpEAsNEKGXy2AD+hLhrmPdGxxMSfUbcYkLwR16eaDPJJfy6zA/YCaSKvIXZu9JGGqeEsimOn7zLptrXVk41Oln4hJvuI4M/Q=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR11MB6220
+X-OriginatorOrg: intel.com
 
-From: Jehoon Park <jehoon.park@samsung.com>
+Ira Weiny wrote:
+> Dan Williams wrote:
+> > The reference counting of dax_region objects is needlessly complicated,
+> > has lead to confusion [1], and has hidden a bug [2]. Towards cleaning up
+> > that mess introduce alloc_dev_dax_id() to minimize the holding of a
+> > dax_region reference to only what dev_dax_release() needs, the
+> > dax_region->ida.
+> > 
+> > Part of the reason for the mess was the design to dereference a
+> > dax_region in all cases in free_dev_dax_id() even if the id was
+> > statically assigned by the upper level dax_region driver. Remove the
+> > need to call "is_static(dax_region)" by tracking whether the id is
+> > dynamic directly in the dev_dax instance itself.
+> > 
+> > With that flag the dax_region pinning and release per dev_dax instance
+> > can move to alloc_dev_dax_id() and free_dev_dax_id() respectively.
+> > 
+> > A follow-on cleanup address the unnecessary references in the dax_region
+> > setup and drivers.
+> > 
+> > Fixes: 0f3da14a4f05 ("device-dax: introduce 'seed' devices")
+> > Link: http://lore.kernel.org/r/20221203095858.612027-1-liuyongqiang13@huawei.com [1]
+> > Link: http://lore.kernel.org/r/3cf0890b-4eb0-e70e-cd9c-2ecc3d496263@hpe.com [2]
+> > Reported-by: Yongqiang Liu <liuyongqiang13@huawei.com>
+> > Reported-by: Paul Cassella <cassella@hpe.com>
+> > Reported-by: Ira Weiny <ira.weiny@intel.com>
+> > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+[..]
+> > @@ -1326,6 +1340,7 @@ struct dev_dax *devm_create_dev_dax(struct dev_dax_data *data)
+> >  	if (!dev_dax)
+> >  		return ERR_PTR(-ENOMEM);
+> >  
+> > +	dev_dax->region = dax_region;
+> 
+> Overall I like that this reference is not needed to be carried and/or
+> managed by the callers.
+> 
+> However, here you are referencing the dax_region from the dev_dax in an
+> unrelated place to where the reference matters (in id management).
+> 
+> Could alloc_dev_dax_id() change to:
+> 
+> static int alloc_dev_dax_id(struct dev_dax *dev_dax, struct dax_region *dax_region)
+> {
+> ...
+> }
+> 
+> Then make this assignment next to where the kref is taken so it is clear
+> that this is the only user of the reference?
+> 
+> I did not pick up on the fact this reference was only needed to free the
+> id at all in reviewing the code and I think this would make it even more
+> clear.
 
-Add a new macro function to retrieve a signed value such as a temperature.
-Replace indistinguishable error numbers with debug message.
-
-Signed-off-by: Jehoon Park <jehoon.park@samsung.com>
----
- cxl/lib/libcxl.c | 36 ++++++++++++++++++++++++++----------
- 1 file changed, 26 insertions(+), 10 deletions(-)
-
-diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
-index 769cd8a..fca7faa 100644
---- a/cxl/lib/libcxl.c
-+++ b/cxl/lib/libcxl.c
-@@ -3452,11 +3452,21 @@ cxl_cmd_alert_config_get_life_used_prog_warn_threshold(struct cxl_cmd *cmd)
- 			 life_used_prog_warn_threshold);
- }
- 
-+#define cmd_get_field_s16(cmd, n, N, field)				\
-+do {									\
-+	struct cxl_cmd_##n *c =						\
-+		(struct cxl_cmd_##n *)cmd->send_cmd->out.payload;	\
-+	int rc = cxl_cmd_validate_status(cmd, CXL_MEM_COMMAND_ID_##N);	\
-+	if (rc)								\
-+		return 0xffff;						\
-+	return (int16_t)le16_to_cpu(c->field);					\
-+} while(0)
-+
- CXL_EXPORT int
- cxl_cmd_alert_config_get_dev_over_temperature_crit_alert_threshold(
- 	struct cxl_cmd *cmd)
- {
--	cmd_get_field_u16(cmd, get_alert_config, GET_ALERT_CONFIG,
-+	cmd_get_field_s16(cmd, get_alert_config, GET_ALERT_CONFIG,
- 			  dev_over_temperature_crit_alert_threshold);
- }
- 
-@@ -3464,7 +3474,7 @@ CXL_EXPORT int
- cxl_cmd_alert_config_get_dev_under_temperature_crit_alert_threshold(
- 	struct cxl_cmd *cmd)
- {
--	cmd_get_field_u16(cmd, get_alert_config, GET_ALERT_CONFIG,
-+	cmd_get_field_s16(cmd, get_alert_config, GET_ALERT_CONFIG,
- 			  dev_under_temperature_crit_alert_threshold);
- }
- 
-@@ -3472,7 +3482,7 @@ CXL_EXPORT int
- cxl_cmd_alert_config_get_dev_over_temperature_prog_warn_threshold(
- 	struct cxl_cmd *cmd)
- {
--	cmd_get_field_u16(cmd, get_alert_config, GET_ALERT_CONFIG,
-+	cmd_get_field_s16(cmd, get_alert_config, GET_ALERT_CONFIG,
- 			  dev_over_temperature_prog_warn_threshold);
- }
- 
-@@ -3480,7 +3490,7 @@ CXL_EXPORT int
- cxl_cmd_alert_config_get_dev_under_temperature_prog_warn_threshold(
- 	struct cxl_cmd *cmd)
- {
--	cmd_get_field_u16(cmd, get_alert_config, GET_ALERT_CONFIG,
-+	cmd_get_field_s16(cmd, get_alert_config, GET_ALERT_CONFIG,
- 			  dev_under_temperature_prog_warn_threshold);
- }
- 
-@@ -3695,28 +3705,34 @@ static int health_info_get_life_used_raw(struct cxl_cmd *cmd)
- CXL_EXPORT int cxl_cmd_health_info_get_life_used(struct cxl_cmd *cmd)
- {
- 	int rc = health_info_get_life_used_raw(cmd);
-+	struct cxl_ctx *ctx = cxl_memdev_get_ctx(cmd->memdev);
- 
- 	if (rc < 0)
--		return rc;
-+		dbg(ctx, "%s: Invalid command status\n",
-+		    cxl_memdev_get_devname(cmd->memdev));
- 	if (rc == CXL_CMD_HEALTH_INFO_LIFE_USED_NOT_IMPL)
--		return -EOPNOTSUPP;
-+		dbg(ctx, "%s: Life Used not implemented\n",
-+		    cxl_memdev_get_devname(cmd->memdev));
- 	return rc;
- }
- 
- static int health_info_get_temperature_raw(struct cxl_cmd *cmd)
- {
--	cmd_get_field_u16(cmd, get_health_info, GET_HEALTH_INFO,
-+	cmd_get_field_s16(cmd, get_health_info, GET_HEALTH_INFO,
- 				 temperature);
- }
- 
- CXL_EXPORT int cxl_cmd_health_info_get_temperature(struct cxl_cmd *cmd)
- {
- 	int rc = health_info_get_temperature_raw(cmd);
-+	struct cxl_ctx *ctx = cxl_memdev_get_ctx(cmd->memdev);
- 
--	if (rc < 0)
--		return rc;
-+	if (rc == 0xffff)
-+		dbg(ctx, "%s: Invalid command status\n",
-+		    cxl_memdev_get_devname(cmd->memdev));
- 	if (rc == CXL_CMD_HEALTH_INFO_TEMPERATURE_NOT_IMPL)
--		return -EOPNOTSUPP;
-+		dbg(ctx, "%s: Device Temperature not implemented\n",
-+		    cxl_memdev_get_devname(cmd->memdev));
- 	return rc;
- }
- 
--- 
-2.17.1
-
+I hesitate only for symmetry reasons. I.e. that there are many interfaces in
+this file, in addition to free_dev_dax_id(), where @dax_region is
+implicitly retrieved from the @dev_dax.
