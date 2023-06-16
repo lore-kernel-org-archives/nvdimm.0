@@ -1,32 +1,32 @@
 Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B6821ACA9
-	for <nvdimm@lists.linux.dev>; Fri, 16 Jun 2023 16:51:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE2C31ACAC
+	for <nvdimm@lists.linux.dev>; Fri, 16 Jun 2023 16:51:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1686934272; x=1718470272;
+  t=1686934277; x=1718470277;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=YgJs53JcsAi+GPoM5qs7RjcNG38TJwxYF403LVi9ZLQ=;
-  b=NBMg3ZZAmKcFc0Gl47tLxF+FPK/BNuV70fOXZObRZ+oTMR7h/RGx+mwI
-   yO2rXY/gXvT4XtQS0BAOgKu3bN3K0meAdWF0K0tUrqpsVTKqZslfZXGRs
-   gNMKLo8FwckDVhFBrC67mcV8T0lfteWBFYjGZblMKYcYqL5aZeaJHRgW4
-   cHkeZQEzg5iNvfVR4eexFA0m9zjMySbbejK09yyihuL8CRGdj07R+H6Te
-   ozScPKLF1MHtUNjz5OpcxBtkp2fBOb7KZJcTZ2a04dW7VFqsM6Hh2sUQz
-   fKsZcIhLsu19WfZlTEV+S9OoGlqYIORyg4VgE1OzQuRkBlTvMeY1Zgeb6
-   Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10743"; a="422913029"
+  bh=i3LCbxXW1I/fk6aNkEWMrCEmBGj4eZySi8syJ1vaMOg=;
+  b=aseYtAuFNXa6jZaOk8jLw3MRXs08jPkL3+gubqgvBkkbcJ6dPcL+q3al
+   47BM1cCbKYHWxcxmF0emoMh5/CqRbVhFGTu8PBcbdu+SwLDchs+X7tTyh
+   tYCrSjYdknaQXHD0v5Hxhpxgs80I081aFLop87sPbEuE2c/ZpwbUDWHEe
+   xfM9XvMnukk1NIZIfwfRBNiB8Zsfy+6CpINeFDEhMN+9aO2fTVUHtZ5Ha
+   RiLhG8kr0jS1F/Gu5B3sORuIkumiXmAdaskrblWz/jxjDnB8ZrjXqob2J
+   D49VfA3odWqAPQciFm2NSWBnGdSaFiyZJU9dNWl67lzvKo/h5ZKjCA/7y
+   A==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10743"; a="422913043"
 X-IronPort-AV: E=Sophos;i="6.00,248,1681196400"; 
-   d="scan'208";a="422913029"
+   d="scan'208";a="422913043"
 Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Jun 2023 09:51:12 -0700
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Jun 2023 09:51:17 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10743"; a="707154175"
+X-IronPort-AV: E=McAfee;i="6600,9927,10743"; a="707154194"
 X-IronPort-AV: E=Sophos;i="6.00,248,1681196400"; 
-   d="scan'208";a="707154175"
+   d="scan'208";a="707154194"
 Received: from powerlab.fi.intel.com ([10.237.71.25])
-  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Jun 2023 09:51:08 -0700
+  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Jun 2023 09:51:12 -0700
 From: Michal Wilczynski <michal.wilczynski@intel.com>
 To: linux-acpi@vger.kernel.org
 Cc: rafael@kernel.org,
@@ -40,9 +40,9 @@ Cc: rafael@kernel.org,
 	nvdimm@lists.linux.dev,
 	Michal Wilczynski <michal.wilczynski@intel.com>,
 	"Rafael J . Wysocki" <rafael.j.wysocki@intel.com>
-Subject: [PATCH v5 05/10] acpi/battery: Move handler installing logic to driver
-Date: Fri, 16 Jun 2023 19:50:29 +0300
-Message-ID: <20230616165034.3630141-6-michal.wilczynski@intel.com>
+Subject: [PATCH v5 06/10] acpi/hed: Move handler installing logic to driver
+Date: Fri, 16 Jun 2023 19:50:30 +0300
+Message-ID: <20230616165034.3630141-7-michal.wilczynski@intel.com>
 X-Mailer: git-send-email 2.41.0
 In-Reply-To: <20230616165034.3630141-1-michal.wilczynski@intel.com>
 References: <20230616165034.3630141-1-michal.wilczynski@intel.com>
@@ -67,91 +67,61 @@ callback. Change arguments passed to the notify function to match with
 what's required by acpi_install_notify_handler(). Remove .notify
 callback initialization in acpi_driver.
 
-While at it, fix lack of whitespaces in .remove() callback.
-
 Suggested-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Michal Wilczynski <michal.wilczynski@intel.com>
 ---
- drivers/acpi/battery.c | 30 ++++++++++++++++++++++++------
- 1 file changed, 24 insertions(+), 6 deletions(-)
+ drivers/acpi/hed.c | 17 ++++++++++++++---
+ 1 file changed, 14 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index 9c67ed02d797..6337e7b1f6e1 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -1034,11 +1034,14 @@ static void acpi_battery_refresh(struct acpi_battery *battery)
- }
- 
- /* Driver Interface */
--static void acpi_battery_notify(struct acpi_device *device, u32 event)
-+static void acpi_battery_notify(acpi_handle handle, u32 event, void *data)
+diff --git a/drivers/acpi/hed.c b/drivers/acpi/hed.c
+index 78d44e3fe129..8f54560c6d1c 100644
+--- a/drivers/acpi/hed.c
++++ b/drivers/acpi/hed.c
+@@ -42,22 +42,34 @@ EXPORT_SYMBOL_GPL(unregister_acpi_hed_notifier);
+  * it is used by HEST Generic Hardware Error Source with notify type
+  * SCI.
+  */
+-static void acpi_hed_notify(struct acpi_device *device, u32 event)
++static void acpi_hed_notify(acpi_handle handle, u32 event, void *data)
  {
--	struct acpi_battery *battery = acpi_driver_data(device);
-+	struct acpi_device *device = data;
-+	struct acpi_battery *battery;
- 	struct power_supply *old;
- 
-+	battery = acpi_driver_data(device);
-+
- 	if (!battery)
- 		return;
- 	old = battery->bat;
-@@ -1212,13 +1215,23 @@ static int acpi_battery_add(struct acpi_device *device)
- 
- 	device_init_wakeup(&device->dev, 1);
- 
--	return result;
-+	result = acpi_dev_install_notify_handler(device,
-+						 ACPI_ALL_NOTIFY,
-+						 acpi_battery_notify);
-+	if (result)
-+		goto fail_deinit_wakup_and_unregister;
-+
-+	return 0;
- 
-+fail_deinit_wakup_and_unregister:
-+	device_init_wakeup(&device->dev, 0);
-+	unregister_pm_notifier(&battery->pm_nb);
- fail:
- 	sysfs_remove_battery(battery);
- 	mutex_destroy(&battery->lock);
- 	mutex_destroy(&battery->sysfs_lock);
- 	kfree(battery);
-+
- 	return result;
+ 	blocking_notifier_call_chain(&acpi_hed_notify_list, 0, NULL);
  }
  
-@@ -1228,10 +1241,17 @@ static void acpi_battery_remove(struct acpi_device *device)
+ static int acpi_hed_add(struct acpi_device *device)
+ {
++	int err;
++
+ 	/* Only one hardware error device */
+ 	if (hed_handle)
+ 		return -EINVAL;
+ 	hed_handle = device->handle;
+-	return 0;
++
++	err = acpi_dev_install_notify_handler(device,
++					      ACPI_DEVICE_NOTIFY,
++					      acpi_hed_notify);
++	if (err)
++		hed_handle = NULL;
++
++	return err;
+ }
  
- 	if (!device || !acpi_driver_data(device))
- 		return;
--	device_init_wakeup(&device->dev, 0);
-+
- 	battery = acpi_driver_data(device);
-+
+ static void acpi_hed_remove(struct acpi_device *device)
+ {
 +	acpi_dev_remove_notify_handler(device,
-+				       ACPI_ALL_NOTIFY,
-+				       acpi_battery_notify);
-+
-+	device_init_wakeup(&device->dev, 0);
- 	unregister_pm_notifier(&battery->pm_nb);
- 	sysfs_remove_battery(battery);
-+
- 	mutex_destroy(&battery->lock);
- 	mutex_destroy(&battery->sysfs_lock);
- 	kfree(battery);
-@@ -1264,11 +1284,9 @@ static struct acpi_driver acpi_battery_driver = {
- 	.name = "battery",
- 	.class = ACPI_BATTERY_CLASS,
- 	.ids = battery_device_ids,
--	.flags = ACPI_DRIVER_ALL_NOTIFY_EVENTS,
++				       ACPI_DEVICE_NOTIFY,
++				       acpi_hed_notify);
+ 	hed_handle = NULL;
+ }
+ 
+@@ -68,7 +80,6 @@ static struct acpi_driver acpi_hed_driver = {
  	.ops = {
- 		.add = acpi_battery_add,
- 		.remove = acpi_battery_remove,
--		.notify = acpi_battery_notify,
- 		},
- 	.drv.pm = &acpi_battery_pm,
+ 		.add = acpi_hed_add,
+ 		.remove = acpi_hed_remove,
+-		.notify = acpi_hed_notify,
+ 	},
  };
+ module_acpi_driver(acpi_hed_driver);
 -- 
 2.41.0
 
