@@ -1,182 +1,93 @@
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A4C016407
-	for <nvdimm@lists.linux.dev>; Tue, 20 Jun 2023 13:43:42 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1687268622; x=1718804622;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=wJFT45mXHu2VYSBTid4Fx2G7pBq4rpZdnv2B9GIjYAw=;
-  b=oAseMAdAW8x4RmlF/NH2y831zUbzY5drQl57ZJtoz72M5iUkdxyzDDnx
-   p2FBT/ALmKB9UO78Ly6lweqlWBaDRKg+F2d3LpMNsW28+X1z6z+f9AAY7
-   j+8geXd2JYVg+UiY0z01otNRuWsHMklS7RdJVL+Cxwm64jHhJcIPxsPCS
-   20uYzL0XFfJMPo5BiT9xgEeG52M0E9T6F/RSCwE/VEnEo2i4weIN7sC86
-   MX9wndeKEhYV5PzhEelzGe3fO2WrFs1GCYIKgCFuM9GfPaSgEdxl7UMJ+
-   +ZPRbzwCoMfoexRY/ItAMx/nhxK/v/CWTjYsM7q6YKb40Vio5Dj8fw6WP
-   Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10747"; a="446235007"
-X-IronPort-AV: E=Sophos;i="6.00,257,1681196400"; 
-   d="scan'208";a="446235007"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Jun 2023 06:43:41 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10747"; a="743788080"
-X-IronPort-AV: E=Sophos;i="6.00,257,1681196400"; 
-   d="scan'208";a="743788080"
-Received: from fmsmsx601.amr.corp.intel.com ([10.18.126.81])
-  by orsmga008.jf.intel.com with ESMTP; 20 Jun 2023 06:43:40 -0700
-Received: from fmsmsx610.amr.corp.intel.com (10.18.126.90) by
- fmsmsx601.amr.corp.intel.com (10.18.126.81) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.23; Tue, 20 Jun 2023 06:43:40 -0700
-Received: from fmsmsx610.amr.corp.intel.com (10.18.126.90) by
- fmsmsx610.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.23; Tue, 20 Jun 2023 06:43:40 -0700
-Received: from FMSEDG603.ED.cps.intel.com (10.1.192.133) by
- fmsmsx610.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.23 via Frontend Transport; Tue, 20 Jun 2023 06:43:40 -0700
-Received: from NAM12-MW2-obe.outbound.protection.outlook.com (104.47.66.43) by
- edgegateway.intel.com (192.55.55.68) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.23; Tue, 20 Jun 2023 06:43:40 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=Rw4PwNL60/fljLpEXNz1Po+O5raul9IsvbQR3BLvK7+CztHSI5CLXVGSKwuwthg1Wmd+RVazbUqwhLvUAQL3DqLpMfauktvij6fFmB3jHCKZAUG6WLsVY0cTaoqhm4KAjzydNT61F6xFitANuZ4MQSYy7Gt/cwDCq2bltBLvPZeKe2dc8IAs53czNZGsEQZAwV+4Yq1YUfMWcTnDO8UfiGDTb7xYN8J1MX+C+jJT0zu1qDyPf6lXDimoLdkk8UXcK6Tp9yMM3zDx6qZIQE5ggzo7FCcxNddksWWcQUFGEFTvT3A4V1BU/oOldhyHkfEZ9WP1vNLpPPb+r2DmHYGoLQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=suEmMTw4eS6QBQuN60SUo9m6DdYo6YkiUJInAX+Ys5M=;
- b=hRA+7DWyjVeavpfOk+Bc7i3LzEgh3Br2GuCqkmuOEG+91aOHt07y08sYx5d0RnKLjOgOjq/L4NjMBZ29Ww0AodC0FM7ioDyRNbBncCMRek6ip4ka1a8+skj/OKEFKsWGCpdmvIqbNrl8YdL7n2osrPNQQb25+08xIxZoRBDQFRftsK6TZKtV16VLavwye6fIfPcxC7ZxcVNXTWgdRxeFvBiIR+LLDGm84x96zAjEePdJkDHAqDVxCkrKyEmUHG63PFR0gHSwz2SNo9SVrZ5ssGn3sMobrSx8eVFj0NyESyb6TjvELVEXgcVroodcrNdIyeeq5v53MqnIrO1akzQsyA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from SA1PR11MB6733.namprd11.prod.outlook.com (2603:10b6:806:25c::17)
- by BN9PR11MB5452.namprd11.prod.outlook.com (2603:10b6:408:101::16) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6500.37; Tue, 20 Jun
- 2023 13:43:38 +0000
-Received: from SA1PR11MB6733.namprd11.prod.outlook.com
- ([fe80::7237:cab8:f7f:52a5]) by SA1PR11MB6733.namprd11.prod.outlook.com
- ([fe80::7237:cab8:f7f:52a5%7]) with mapi id 15.20.6500.036; Tue, 20 Jun 2023
- 13:43:38 +0000
-Date: Tue, 20 Jun 2023 06:43:31 -0700
-From: Ira Weiny <ira.weiny@intel.com>
-To: Jiasheng Jiang <jiasheng@iscas.ac.cn>, <dan.j.williams@intel.com>,
-	<vishal.l.verma@intel.com>, <dave.jiang@intel.com>, <ira.weiny@intel.com>,
-	<oohall@gmail.com>, <aneesh.kumar@linux.ibm.com>
-CC: <nvdimm@lists.linux.dev>, <linux-kernel@vger.kernel.org>, Jiasheng Jiang
-	<jiasheng@iscas.ac.cn>
-Subject: Re: [PATCH] libnvdimm/of_pmem: Add check and kfree for kstrdup
-Message-ID: <6491ad03658ff_28e7294a5@iweiny-mobl.notmuch>
-References: <20230619033623.11044-1-jiasheng@iscas.ac.cn>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20230619033623.11044-1-jiasheng@iscas.ac.cn>
-X-ClientProxiedBy: BY5PR17CA0014.namprd17.prod.outlook.com
- (2603:10b6:a03:1b8::27) To SA1PR11MB6733.namprd11.prod.outlook.com
- (2603:10b6:806:25c::17)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2185915CF
+	for <nvdimm@lists.linux.dev>; Tue, 20 Jun 2023 14:34:54 +0000 (UTC)
+Received: from pps.filterd (m0353726.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 35KE8kuR006675;
+	Tue, 20 Jun 2023 14:34:39 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
+ : date : message-id : mime-version : content-transfer-encoding; s=pp1;
+ bh=7K/xsQqVPbIPN37kjzszKxy8hUlBb8VKcQNWTP2aNZk=;
+ b=YrRc2nily0Mxdazm5AXcppS3MolSKDWRYB9SPqjxhConKjAmqcITOIaLIMkc4UTRqRMS
+ EQq/0m0hvWvMyyvNoSCs2J8mFRQtmZLWTLC+xlNXQUJPvm8FnTM7C+muqns5e1WuqYT3
+ s90yy81hRkoCVZdCJQoltKKjj0kftTtamD3IehyH98VSBN+1UetN7AqIuv5NS10Mavjs
+ EZw8JHECD+5xymvvv+kAsiztbUHwxyGfJ8elhHWv8GCNIYAbGUy+UGbtZd4XgK8P+lil
+ Nmv4TxlWfRZr4nwU2MHBmSgBRFz6/EZAx9kBwykO3jIqnWoBvAfV7DYqBXgiMu8d3PKy dg== 
+Received: from ppma03ams.nl.ibm.com (62.31.33a9.ip4.static.sl-reverse.com [169.51.49.98])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3rbda9sc9v-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 20 Jun 2023 14:34:38 +0000
+Received: from pps.filterd (ppma03ams.nl.ibm.com [127.0.0.1])
+	by ppma03ams.nl.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 35KDl90a030431;
+	Tue, 20 Jun 2023 14:03:40 GMT
+Received: from smtprelay05.fra02v.mail.ibm.com ([9.218.2.225])
+	by ppma03ams.nl.ibm.com (PPS) with ESMTPS id 3r94f523u3-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 20 Jun 2023 14:03:40 +0000
+Received: from smtpav07.fra02v.mail.ibm.com (smtpav07.fra02v.mail.ibm.com [10.20.54.106])
+	by smtprelay05.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 35KE3aUQ23659116
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Tue, 20 Jun 2023 14:03:36 GMT
+Received: from smtpav07.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id CD0BE2004B;
+	Tue, 20 Jun 2023 14:03:36 +0000 (GMT)
+Received: from smtpav07.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id C0A6920040;
+	Tue, 20 Jun 2023 14:03:34 +0000 (GMT)
+Received: from tarunpc.in.ibm.com (unknown [9.199.157.25])
+	by smtpav07.fra02v.mail.ibm.com (Postfix) with ESMTP;
+	Tue, 20 Jun 2023 14:03:34 +0000 (GMT)
+From: Tarun Sahu <tsahu@linux.ibm.com>
+To: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, dave.jiang@intel.com,
+        dan.j.williams@intel.com, vishal.l.verma@intel.com,
+        aneesh.kumar@linux.ibm.com, jaypatel@linux.ibm.com,
+        tsahu@linux.ibm.com
+Subject: [PATCH] dax/kmem: Pass valid argument to memory_group_register_static
+Date: Tue, 20 Jun 2023 19:33:32 +0530
+Message-Id: <20230620140332.30578-1-tsahu@linux.ibm.com>
+X-Mailer: git-send-email 2.31.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SA1PR11MB6733:EE_|BN9PR11MB5452:EE_
-X-MS-Office365-Filtering-Correlation-Id: 14f25aee-440c-47ff-20dc-08db719459d9
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: WUtP9SOHT2iFXkQ9COQuPwMNPXUPasHBfJ/uG+hlptWIrIbaWzPt9DDVNSUdefSHZuQpnS0tZkBjtkYua4QtjQgo9Hi9hdaaPjKWkUacjUr6RfEPlu0uwL+p3mHREiMDe2o7aSZx0IhYcmnJRUoYsQRma1AIgP6yeD/aV9yaTIwJjOJktoBMmh3w/FW2Xy8BbXKA7rvXQEcdx4IwBNMv3UrSk0TQ4skNwSFUFn/ADngaKPw38RD1kRwyNn+w7ysgsv4xWPedd8KGdqj3crVMwuUxqxkgyWHL7+Aw36V/fL3519c7S+zWutXdDGaZkJQsjTFns77t6F0X96wgyOOnN1pS9nwwgQ2BS3J4akalRt+OMl8Yh6/5Noemnslm8DaMH1foNQfJAVZ8buWgc11pUaclUh66xA05ZyR50u3ERNq3pjRpFsfUzAHDbXldZ66RWuCYDDR4cfttRypzKOb9X/3agtCH2FxblGbxpgiFQEX/ki7PyNxAYegFaYtN8PlR0ZDIPuwKldoymUVdRJ2AgEPXFsam+OzHc9C4cY+biG/YinYTSzv2x30IisUIvUQK
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA1PR11MB6733.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230028)(39860400002)(136003)(346002)(366004)(396003)(376002)(451199021)(6666004)(6486002)(478600001)(83380400001)(186003)(9686003)(6512007)(6506007)(26005)(38100700002)(86362001)(82960400001)(8676002)(5660300002)(8936002)(316002)(2906002)(41300700001)(4326008)(66476007)(66556008)(66946007)(44832011);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?sDkd815OyUBThUPoHwn771XYtbfeufAV75MebyeA8Bg4jbQd0TinDKpt2Lk/?=
- =?us-ascii?Q?8PqxvUxWnNpF1a3/WKWXv8sfT+UJBhTTGsYTXrERdhshjDuGehr2vv6p2DnX?=
- =?us-ascii?Q?gs9t+u0+jEu2XuiIXU2EC1ETWt+S7At3d+0W5s5e+F7h6XcRWFCMRRj1V45A?=
- =?us-ascii?Q?70hUJ9pbkW/RK6+9TaddNHM2nFiKnPIm2IqY4lz9WASkYBMLvfE115CnxIL3?=
- =?us-ascii?Q?ncLlXc5Y6Vn7cDP2OmarxPfwgHeEwz1G7Nav19Sbr+rPTqu4cw3nMEhyeZ6A?=
- =?us-ascii?Q?t5CKASaabIYfvs/znJ2AdHe16c64B//kYv4p0Hu6xlkg+cTaoCAV+IK37BIK?=
- =?us-ascii?Q?OrIwTi5W5Kw5YMe0do+SRgHfkJ1DYdNIIcGvlYYPpln9fqlFQvlvDQ4d5sFg?=
- =?us-ascii?Q?8xa8B7vMEAw+JC5wxYaRcTF5yJUd4540/SQg12y+ZHoIHlQBBwzQmoLzWgSs?=
- =?us-ascii?Q?2otYjLtZckMCSzNaRSVsIeBg07RbWiAJewIKh17Oz7yMhEfOcXvbvf1QToaq?=
- =?us-ascii?Q?u2eT/n/PrTpOSx9WfDdlWpSEGdy37rrv0u6SFTsa7jIcLJaco8aQg/QhS4sV?=
- =?us-ascii?Q?A9K11f1MTnXZeRG/rNbDALyL5EM/2i+705Oqed5FLkA6S9FBbFEOHq8s26ls?=
- =?us-ascii?Q?UWFOQ9w0FRl9gr7jaLuduVhPtJnmiHrr5KB+Xr8EbWJqyXHscqrcW0ArG3v8?=
- =?us-ascii?Q?AzJ1zI98XjzrNXHncXPqo26HLvTeEWwc16q5DQHRg1ALFw4Erzb/TFo5LA6s?=
- =?us-ascii?Q?KszyYJkAIhXEm/1dPgfBKEXy7Ri6D/RScU5t9O24nsLykxAmWj+B/t23tR41?=
- =?us-ascii?Q?At3/FZRuLanAfiGxs7oJ/OxMqkmUiYe7Ue7JF+ODFO2NjacG8t72NxbbnEd8?=
- =?us-ascii?Q?Te0O+nC75NgRvN/9ZgGgUndN0UOjutzJ9/XTpTm3P2YEGd+3Oa5/DOhXgji4?=
- =?us-ascii?Q?yrjvGhWr8bykCWXAXOkP3P0KiGjcs0k/bs2kYVwUgsH9EQ4QgpuY+4LnrkUu?=
- =?us-ascii?Q?smWhlHyke5ZVuYrzRnUgzIMOkJO8cf8ZPzisD46hm4Hmkf3CmIff1IKSfQ94?=
- =?us-ascii?Q?FudVjA1GW3wrDgPTrwFZF9S9gJi1rV7n2z/bHiHMAYMo0PYd82N9mrxHndAb?=
- =?us-ascii?Q?ht1YV+PW1zpisqZt15cV4MjB8T5aBRD3+xMY3W4M/d3Q6ewS7++JzLp6GQH+?=
- =?us-ascii?Q?zFiZRTTf9RHrunsIAOb6iRLBMnCuWxwfTM0p2PU/eN4Vv5oDjKIB8ht1aDI+?=
- =?us-ascii?Q?Y+b+XOXWd1rijDorUJie80o5pb8uyaEZcbvNeqwl4WlNCEeHofr8wmMx0G3j?=
- =?us-ascii?Q?xLTb4aOjVg2lRcN54C0pt+/XP3sXwFWA48PSThikZ0cwtCtoPKhQYi68DWZ+?=
- =?us-ascii?Q?ix304T1bQSW42BRKD/9IGHG5DHRqzlucFyOiNf4YcARbSp6GCFwXU50omn0j?=
- =?us-ascii?Q?JkwkgXBG9A8itJBsfvJ880lI/4j6bmQcXOqry1VAudjYou9X/IbjWpbI5DEf?=
- =?us-ascii?Q?CLuLqeb8QUYy/+g6+qSWVZwjAAzMh0DOOuHgsWaQKnR951StxSwGyMA1tV87?=
- =?us-ascii?Q?e6/Cm/Su4dncbBR13h1Iqn9H3lEG6Y2b0kF9QMK5?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: 14f25aee-440c-47ff-20dc-08db719459d9
-X-MS-Exchange-CrossTenant-AuthSource: SA1PR11MB6733.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 20 Jun 2023 13:43:38.3250
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 9P0vehPMRW0y2eT+TzuN9/IvKqzgVqGh+EzG+RDQFjbo9Lm4aX2VrUhf3acOFyapnHotAzu/c3JZRsAzvt5f1w==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BN9PR11MB5452
-X-OriginatorOrg: intel.com
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: HL3Nuj0em6Fb1yUMU-9ZvkkBmytcqfY_
+X-Proofpoint-ORIG-GUID: HL3Nuj0em6Fb1yUMU-9ZvkkBmytcqfY_
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.254,Aquarius:18.0.957,Hydra:6.0.591,FMLib:17.11.176.26
+ definitions=2023-06-20_10,2023-06-16_01,2023-05-22_02
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxscore=0 bulkscore=0
+ mlxlogscore=999 priorityscore=1501 adultscore=0 phishscore=0
+ malwarescore=0 suspectscore=0 impostorscore=0 clxscore=1015 spamscore=0
+ lowpriorityscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2305260000 definitions=main-2306200131
 
-Jiasheng Jiang wrote:
-> Add check for the return value of kstrdup() and return the error
-> if it fails in order to avoid NULL pointer dereference.
-> Moreover, use kfree() in the later error handling in order to avoid
-> memory leak.
-> 
-> Fixes: 49bddc73d15c ("libnvdimm/of_pmem: Provide a unique name for bus provider")
-> Signed-off-by: Jiasheng Jiang <jiasheng@iscas.ac.cn>
-> ---
->  drivers/nvdimm/of_pmem.c | 6 ++++++
->  1 file changed, 6 insertions(+)
-> 
-> diff --git a/drivers/nvdimm/of_pmem.c b/drivers/nvdimm/of_pmem.c
-> index 10dbdcdfb9ce..fe6edb7e6631 100644
-> --- a/drivers/nvdimm/of_pmem.c
-> +++ b/drivers/nvdimm/of_pmem.c
-> @@ -31,11 +31,17 @@ static int of_pmem_region_probe(struct platform_device *pdev)
->  		return -ENOMEM;
->  
->  	priv->bus_desc.provider_name = kstrdup(pdev->name, GFP_KERNEL);
-> +	if (!priv->bus_desc.provider_name) {
-> +		kfree(priv);
-> +		return -ENOMEM;
-> +	}
-> +
->  	priv->bus_desc.module = THIS_MODULE;
->  	priv->bus_desc.of_node = np;
->  
->  	priv->bus = bus = nvdimm_bus_register(&pdev->dev, &priv->bus_desc);
->  	if (!bus) {
-> +		kfree(priv->bus_desc.provider_name);
+memory_group_register_static takes maximum number of pages as the argument
+while dev_dax_kmem_probe passes total_len (in bytes) as the argument.
 
-Nice catch!
+Signed-off-by: Tarun Sahu <tsahu@linux.ibm.com>
+---
+ drivers/dax/kmem.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-However, this free needs to happen in of_pmem_region_remove() as well.
-
-Ira
-
->  		kfree(priv);
->  		return -ENODEV;
->  	}
-> -- 
-> 2.25.1
-> 
-
+diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
+index 7b36db6f1cbd..898ca9505754 100644
+--- a/drivers/dax/kmem.c
++++ b/drivers/dax/kmem.c
+@@ -99,7 +99,7 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
+ 	if (!data->res_name)
+ 		goto err_res_name;
+ 
+-	rc = memory_group_register_static(numa_node, total_len);
++	rc = memory_group_register_static(numa_node, PFN_UP(total_len));
+ 	if (rc < 0)
+ 		goto err_reg_mgid;
+ 	data->mgid = rc;
+-- 
+2.31.1
 
