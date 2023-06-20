@@ -1,136 +1,205 @@
-Received: from dggsgout11.his.huawei.com (unknown [45.249.212.51])
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46AB9139B
-	for <nvdimm@lists.linux.dev>; Tue, 20 Jun 2023 02:56:33 +0000 (UTC)
-Received: from mail02.huawei.com (unknown [172.30.67.143])
-	by dggsgout11.his.huawei.com (SkyGuard) with ESMTP id 4QlWVb6wRdz4f5CCp
-	for <nvdimm@lists.linux.dev>; Tue, 20 Jun 2023 10:56:23 +0800 (CST)
-Received: from huaweicloud.com (unknown [10.175.124.27])
-	by APP4 (Coremail) with SMTP id gCh0CgD3rLBUFZFk5hRpMA--.62381S4;
-	Tue, 20 Jun 2023 10:56:22 +0800 (CST)
-From: Hou Tao <houtao@huaweicloud.com>
-To: Dan Williams <dan.j.williams@intel.com>,
-	Jens Axboe <axboe@kernel.dk>
-Cc: linux-block@vger.kernel.org,
-	nvdimm@lists.linux.dev,
-	virtualization@lists.linux-foundation.org,
-	Pankaj Gupta <pankaj.gupta.linux@gmail.com>,
-	Christoph Hellwig <hch@infradead.org>,
-	houtao1@huawei.com
-Subject: [PATCH] virtio_pmem: do flush synchronously
-Date: Tue, 20 Jun 2023 11:28:38 +0800
-Message-Id: <20230620032838.1598793-1-houtao@huaweicloud.com>
-X-Mailer: git-send-email 2.29.2
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 700A914286
+	for <nvdimm@lists.linux.dev>; Tue, 20 Jun 2023 13:15:18 +0000 (UTC)
+Received: from pps.filterd (m0353724.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 35KD94PA016292;
+	Tue, 20 Jun 2023 13:14:52 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
+ : in-reply-to : references : date : message-id : mime-version :
+ content-type; s=pp1; bh=H3BTlpVBypn/HUSJmwRVHEmC2PE6s+8bLrqyH4SKjio=;
+ b=rykL9/vrDus2UGuiv2B8ecixd3wfY+XxpMSZ6LrzBTuN7m+sKbwfiLTU7tu2keZhZLj3
+ hRavxxIt0FeMvmHP65mj2U2F6pz9DzEqXXaesH4JzTtnFK3kh+sxfZ16XXdInAFaiVfF
+ pT/miH0IXMZUlQsWVtusjm1e4YmBgutEEHYs4qvGORiJ0r38cnkNRmOsCRDMoJnfc88J
+ 6uTFOAK1OG5Sbuv+TKlqmUcCVWyjWxY/CVg2OqmSKs9ecvJRjZ60U1Y8Ar02InAS4FFa
+ ZO7N7E46cB8FPWCbCZ70deKDJxt/Wg/9dy7cHf//dA96N+VWJ2lIkPvfStDi1IMlfVPP xA== 
+Received: from pps.reinject (localhost [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3rbcg88jqe-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 20 Jun 2023 13:14:51 +0000
+Received: from m0353724.ppops.net (m0353724.ppops.net [127.0.0.1])
+	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 35KDBWBl000800;
+	Tue, 20 Jun 2023 13:14:51 GMT
+Received: from ppma03ams.nl.ibm.com (62.31.33a9.ip4.static.sl-reverse.com [169.51.49.98])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3rbcg88jpj-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 20 Jun 2023 13:14:50 +0000
+Received: from pps.filterd (ppma03ams.nl.ibm.com [127.0.0.1])
+	by ppma03ams.nl.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 35K2uqrY021786;
+	Tue, 20 Jun 2023 13:14:48 GMT
+Received: from smtprelay06.fra02v.mail.ibm.com ([9.218.2.230])
+	by ppma03ams.nl.ibm.com (PPS) with ESMTPS id 3r94f52309-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 20 Jun 2023 13:14:48 +0000
+Received: from smtpav02.fra02v.mail.ibm.com (smtpav02.fra02v.mail.ibm.com [10.20.54.101])
+	by smtprelay06.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 35KDEkL642337012
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Tue, 20 Jun 2023 13:14:46 GMT
+Received: from smtpav02.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 2135720040;
+	Tue, 20 Jun 2023 13:14:46 +0000 (GMT)
+Received: from smtpav02.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 53CFC20043;
+	Tue, 20 Jun 2023 13:14:42 +0000 (GMT)
+Received: from tarunpc (unknown [9.199.157.25])
+	by smtpav02.fra02v.mail.ibm.com (Postfix) with ESMTPS;
+	Tue, 20 Jun 2023 13:14:42 +0000 (GMT)
+From: Tarun Sahu <tsahu@linux.ibm.com>
+To: Vishal Verma <vishal.l.verma@intel.com>,
+        "Rafael J. Wysocki"
+ <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
+        Andrew Morton
+ <akpm@linux-foundation.org>,
+        David Hildenbrand <david@redhat.com>,
+        Oscar
+ Salvador <osalvador@suse.de>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Dave Jiang <dave.jiang@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-mm@kvack.org, nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
+        Huang Ying <ying.huang@intel.com>,
+        Dave Hansen
+ <dave.hansen@linux.intel.com>,
+        Vishal Verma <vishal.l.verma@intel.com>, aneesh.kumar@linux.ibm.com
+Subject: Re: [PATCH 3/3] dax/kmem: Always enroll hotplugged memory for
+ memmap_on_memory
+In-Reply-To: <20230613-vv-kmem_memmap-v1-3-f6de9c6af2c6@intel.com>
+References: <20230613-vv-kmem_memmap-v1-0-f6de9c6af2c6@intel.com>
+ <20230613-vv-kmem_memmap-v1-3-f6de9c6af2c6@intel.com>
+Date: Tue, 20 Jun 2023 18:44:40 +0530
+Message-ID: <87zg4uwa0v.fsf@linux.ibm.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:gCh0CgD3rLBUFZFk5hRpMA--.62381S4
-X-Coremail-Antispam: 1UD129KBjvJXoWxJF48Ar1DXrWUKw18AF15CFg_yoW5AFy3pr
-	90gay3Kr4UGFs3Canrta1UKFyfZa1kGFZrWFWruw4xAFZFyF1DKw1UXa4Fqa45tryrGFW7
-	XFWkJw1jqa47AFJanT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDU0xBIdaVrnRJUUUgEb4IE77IF4wAFF20E14v26r4j6ryUM7CY07I20VC2zVCF04k2
-	6cxKx2IYs7xG6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rwA2F7IY1VAKz4
-	vEj48ve4kI8wA2z4x0Y4vE2Ix0cI8IcVAFwI0_tr0E3s1l84ACjcxK6xIIjxv20xvEc7Cj
-	xVAFwI0_Gr1j6F4UJwA2z4x0Y4vEx4A2jsIE14v26rxl6s0DM28EF7xvwVC2z280aVCY1x
-	0267AKxVW0oVCq3wAS0I0E0xvYzxvE52x082IY62kv0487Mc02F40EFcxC0VAKzVAqx4xG
-	6I80ewAv7VC0I7IYx2IY67AKxVWUJVWUGwAv7VC2z280aVAFwI0_Jr0_Gr1lOx8S6xCaFV
-	Cjc4AY6r1j6r4UM4x0Y48IcxkI7VAKI48JMxAIw28IcxkI7VAKI48JMxC20s026xCaFVCj
-	c4AY6r1j6r4UMI8I3I0E5I8CrVAFwI0_Jr0_Jr4lx2IqxVCjr7xvwVAFwI0_JrI_JrWlx4
-	CE17CEb7AF67AKxVWUtVW8ZwCIc40Y0x0EwIxGrwCI42IY6xIIjxv20xvE14v26r1j6r1x
-	MIIF0xvE2Ix0cI8IcVCY1x0267AKxVWUJVW8JwCI42IY6xAIw20EY4v20xvaj40_WFyUJV
-	Cq3wCI42IY6I8E87Iv67AKxVWUJVW8JwCI42IY6I8E87Iv6xkF7I0E14v26r4j6r4UJbIY
-	CTnIWIevJa73UjIFyTuYvjxUrR6zUUUUU
-X-CM-SenderInfo: xkrx3t3r6k3tpzhluzxrxghudrp/
-X-CFilter-Loop: Reflected
+Content-Type: text/plain
+X-TM-AS-GCONF: 00
+X-Proofpoint-ORIG-GUID: k445iHDRACRzPCIxEzPCR5_a3eK4s88q
+X-Proofpoint-GUID: uz0hnxRkr9FUlWfHMTCrnrTx7dGX1Mqi
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.254,Aquarius:18.0.957,Hydra:6.0.591,FMLib:17.11.176.26
+ definitions=2023-06-20_09,2023-06-16_01,2023-05-22_02
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
+ adultscore=0 mlxscore=0 suspectscore=0 lowpriorityscore=0 impostorscore=0
+ mlxlogscore=999 phishscore=0 malwarescore=0 bulkscore=0 clxscore=1011
+ spamscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2305260000 definitions=main-2306200117
 
-From: Hou Tao <houtao1@huawei.com>
 
-The following warning was reported when doing fsync on a pmem device:
+Hi Vishal,
 
- ------------[ cut here ]------------
- WARNING: CPU: 2 PID: 384 at block/blk-core.c:751 submit_bio_noacct+0x340/0x520
- Modules linked in:
- CPU: 2 PID: 384 Comm: mkfs.xfs Not tainted 6.4.0-rc7+ #154
- Hardware name: QEMU Standard PC (i440FX + PIIX, 1996)
- RIP: 0010:submit_bio_noacct+0x340/0x520
- ......
- Call Trace:
-  <TASK>
-  ? asm_exc_invalid_op+0x1b/0x20
-  ? submit_bio_noacct+0x340/0x520
-  ? submit_bio_noacct+0xd5/0x520
-  submit_bio+0x37/0x60
-  async_pmem_flush+0x79/0xa0
-  nvdimm_flush+0x17/0x40
-  pmem_submit_bio+0x370/0x390
-  __submit_bio+0xbc/0x190
-  submit_bio_noacct_nocheck+0x14d/0x370
-  submit_bio_noacct+0x1ef/0x520
-  submit_bio+0x55/0x60
-  submit_bio_wait+0x5a/0xc0
-  blkdev_issue_flush+0x44/0x60
+Vishal Verma <vishal.l.verma@intel.com> writes:
 
-The root cause is that submit_bio_noacct() needs bio_op() is either
-WRITE or ZONE_APPEND for flush bio and async_pmem_flush() doesn't assign
-REQ_OP_WRITE when allocating flush bio.
+> With DAX memory regions originating from CXL memory expanders or
+> NVDIMMs, the kmem driver may be hot-adding huge amounts of system memory
+> on a system without enough 'regular' main memory to support the memmap
+> for it. To avoid this, ensure that all kmem managed hotplugged memory is
+> added with the MHP_MEMMAP_ON_MEMORY flag to place the memmap on the
+> new memory region being hot added.
+>
 
-The reason for allocating a new flush bio is to execute the flush
-command asynchrously and doesn't want to block the original submit_bio()
-invocation. However the original submit_bio() will be blocked anyway,
-because the nested submit_bio() for the flush bio just places the flush
-bio in current->bio_list and the original submit_bio() only returns
-after submitting all bio in bio_list.
+Some architectures doesn't have support for MEMMAP_ON_MEMORY, bypassing
+the check mhp_memmap_on_memory() might cause problems on such
+architectures (for e.g PPC64).
 
-So just removing the allocation of new flush bio and do synchronous
-flush directly.
-
-Fixes: b4a6bb3a67aa ("block: add a sanity check for non-write flush/fua bios")
-Signed-off-by: Hou Tao <houtao1@huawei.com>
----
-Hi Jens & Dan,
-
-I found Pankaj was working on the optimization of virtio-pmem flush bio
-[0], but considering the last status update was 1/12/2022, so could you
-please pick the patch up for v6.7 and we can do the flush optimization
-later ?
-
-[0]: https://lore.kernel.org/lkml/20220111161937.56272-1-pankaj.gupta.linux@gmail.com/T/
-
- drivers/nvdimm/nd_virtio.c | 16 ----------------
- 1 file changed, 16 deletions(-)
-
-diff --git a/drivers/nvdimm/nd_virtio.c b/drivers/nvdimm/nd_virtio.c
-index c6a648fd8744..a7d510f446e0 100644
---- a/drivers/nvdimm/nd_virtio.c
-+++ b/drivers/nvdimm/nd_virtio.c
-@@ -100,22 +100,6 @@ static int virtio_pmem_flush(struct nd_region *nd_region)
- /* The asynchronous flush callback function */
- int async_pmem_flush(struct nd_region *nd_region, struct bio *bio)
- {
--	/*
--	 * Create child bio for asynchronous flush and chain with
--	 * parent bio. Otherwise directly call nd_region flush.
--	 */
--	if (bio && bio->bi_iter.bi_sector != -1) {
--		struct bio *child = bio_alloc(bio->bi_bdev, 0, REQ_PREFLUSH,
--					      GFP_ATOMIC);
--
--		if (!child)
--			return -ENOMEM;
--		bio_clone_blkg_association(child, bio);
--		child->bi_iter.bi_sector = -1;
--		bio_chain(child, bio);
--		submit_bio(child);
--		return 0;
--	}
- 	if (virtio_pmem_flush(nd_region))
- 		return -EIO;
- 
--- 
-2.29.2
-
+> To do this, call add_memory() in chunks of memory_block_size_bytes() as
+> that is a requirement for memmap_on_memory. Additionally, Use the
+> mhp_flag to force the memmap_on_memory checks regardless of the
+> respective module parameter setting.
+>
+> Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: Andrew Morton <akpm@linux-foundation.org>
+> Cc: David Hildenbrand <david@redhat.com>
+> Cc: Oscar Salvador <osalvador@suse.de>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Cc: Dave Jiang <dave.jiang@intel.com>
+> Cc: Dave Hansen <dave.hansen@linux.intel.com>
+> Cc: Huang Ying <ying.huang@intel.com>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+> ---
+>  drivers/dax/kmem.c | 49 ++++++++++++++++++++++++++++++++++++-------------
+>  1 file changed, 36 insertions(+), 13 deletions(-)
+>
+> diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
+> index 7b36db6f1cbd..0751346193ef 100644
+> --- a/drivers/dax/kmem.c
+> +++ b/drivers/dax/kmem.c
+> @@ -12,6 +12,7 @@
+>  #include <linux/mm.h>
+>  #include <linux/mman.h>
+>  #include <linux/memory-tiers.h>
+> +#include <linux/memory_hotplug.h>
+>  #include "dax-private.h"
+>  #include "bus.h"
+>  
+> @@ -105,6 +106,7 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
+>  	data->mgid = rc;
+>  
+>  	for (i = 0; i < dev_dax->nr_range; i++) {
+> +		u64 cur_start, cur_len, remaining;
+>  		struct resource *res;
+>  		struct range range;
+>  
+> @@ -137,21 +139,42 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
+>  		res->flags = IORESOURCE_SYSTEM_RAM;
+>  
+>  		/*
+> -		 * Ensure that future kexec'd kernels will not treat
+> -		 * this as RAM automatically.
+> +		 * Add memory in chunks of memory_block_size_bytes() so that
+> +		 * it is considered for MHP_MEMMAP_ON_MEMORY
+> +		 * @range has already been aligned to memory_block_size_bytes(),
+> +		 * so the following loop will always break it down cleanly.
+>  		 */
+> -		rc = add_memory_driver_managed(data->mgid, range.start,
+> -				range_len(&range), kmem_name, MHP_NID_IS_MGID);
+> +		cur_start = range.start;
+> +		cur_len = memory_block_size_bytes();
+> +		remaining = range_len(&range);
+> +		while (remaining) {
+> +			mhp_t mhp_flags = MHP_NID_IS_MGID;
+>  
+> -		if (rc) {
+> -			dev_warn(dev, "mapping%d: %#llx-%#llx memory add failed\n",
+> -					i, range.start, range.end);
+> -			remove_resource(res);
+> -			kfree(res);
+> -			data->res[i] = NULL;
+> -			if (mapped)
+> -				continue;
+> -			goto err_request_mem;
+> +			if (mhp_supports_memmap_on_memory(cur_len,
+> +							  MHP_MEMMAP_ON_MEMORY))
+> +				mhp_flags |= MHP_MEMMAP_ON_MEMORY;
+> +			/*
+> +			 * Ensure that future kexec'd kernels will not treat
+> +			 * this as RAM automatically.
+> +			 */
+> +			rc = add_memory_driver_managed(data->mgid, cur_start,
+> +						       cur_len, kmem_name,
+> +						       mhp_flags);
+> +
+> +			if (rc) {
+> +				dev_warn(dev,
+> +					 "mapping%d: %#llx-%#llx memory add failed\n",
+> +					 i, cur_start, cur_start + cur_len - 1);
+> +				remove_resource(res);
+> +				kfree(res);
+> +				data->res[i] = NULL;
+> +				if (mapped)
+> +					continue;
+> +				goto err_request_mem;
+> +			}
+> +
+> +			cur_start += cur_len;
+> +			remaining -= cur_len;
+>  		}
+>  		mapped++;
+>  	}
+>
+> -- 
+> 2.40.1
