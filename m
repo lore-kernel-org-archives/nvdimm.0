@@ -1,109 +1,140 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.220.29])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F30D611CA1
-	for <nvdimm@lists.linux.dev>; Wed, 21 Jun 2023 13:28:47 +0000 (UTC)
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id 226A11FE70;
-	Wed, 21 Jun 2023 13:28:40 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1687354120; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=kjdJelqDTVhJUB/xjRe3YFSz+MZjkGpTSPWW+f3VVfc=;
-	b=VT7erQCIx5B9U482i18hc1ZfkKVW5obeo78ahGlb6a59CHtH8U1LW82pxwZbTip6OD1Gt6
-	sC2KmiSWjoL6ARe4oO3vYd8l2tVpbcFIDWUSc22Y3+femt7NA3QfN6rNqYREqJuF63W/JR
-	Tqm+WnHIP1ge31S2kNosLapdStp5nfg=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1687354120;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=kjdJelqDTVhJUB/xjRe3YFSz+MZjkGpTSPWW+f3VVfc=;
-	b=e/dOLJvQtsColjPEN4nfhF32U0kiM6zDcysERVE6H/veBdnsWn0VH7/G3pND2UbiZh0kBj
-	WURBZsifNDv5h1Cg==
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-	(No client certificate requested)
-	by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 14CC3134B1;
-	Wed, 21 Jun 2023 13:28:40 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([192.168.254.65])
-	by imap2.suse-dmz.suse.de with ESMTPSA
-	id YMMHBQj7kmSmaAAAMHmgww
-	(envelope-from <jack@suse.cz>); Wed, 21 Jun 2023 13:28:40 +0000
-Received: by quack3.suse.cz (Postfix, from userid 1000)
-	id A2190A075D; Wed, 21 Jun 2023 15:28:39 +0200 (CEST)
-Date: Wed, 21 Jun 2023 15:28:39 +0200
-From: Jan Kara <jack@suse.cz>
-To: Colin Ian King <colin.i.king@gmail.com>
-Cc: Dan Williams <dan.j.williams@intel.com>,
-	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
-	Alexander Viro <viro@zeniv.linux.org.uk>,
-	Christian Brauner <brauner@kernel.org>,
-	linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
-	kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH][next] fsdax: remove redundant variable 'error'
-Message-ID: <20230621132839.rvu2pvhcizhbzmyf@quack3>
-References: <20230621130256.2676126-1-colin.i.king@gmail.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E4D218C2E
+	for <nvdimm@lists.linux.dev>; Wed, 21 Jun 2023 15:50:37 +0000 (UTC)
+Received: from pps.filterd (m0360083.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 35LFSPb1019257;
+	Wed, 21 Jun 2023 15:50:37 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
+ : date : message-id : mime-version : content-transfer-encoding; s=pp1;
+ bh=ApW7QKwFmZ2+/cQsgFVRC7YnEf5TnKE2evhfKwNIank=;
+ b=HNj76NOwhQFfFuLuc+Ek7NohLDHBv9zdkcRqClBwApizJ4vSR9YalXz6MfSnVgU6RbgI
+ K5ds4dlS1+bHWr6HIMnYiArTd08DZ9hsMX29GI3ZEd4jUn5PtkcvmTkrN8pHbOQSUj1E
+ Z2G1ZKWTzvaJPYbOHVodWnNklvUIGJJ5IskH7BZciqr7ixenFNy+qWEBsnp+NO+/zY+7
+ GqpX/65iIE4P+7yPqOxHnkPttsI8bO9xbt0obZpa16kWmWf4LSs5m9xH8m2bpm+3vijy
+ oxH/WiYA6ZPMUnW8KrvUMTTj/udIKin0zsZQTXK/NiSGRykeTxzY6k5zIPYHXZkOdWDB Kw== 
+Received: from ppma04fra.de.ibm.com (6a.4a.5195.ip4.static.sl-reverse.com [149.81.74.106])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3rc3vn0ta8-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Wed, 21 Jun 2023 15:50:36 +0000
+Received: from pps.filterd (ppma04fra.de.ibm.com [127.0.0.1])
+	by ppma04fra.de.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 35L97h1X017775;
+	Wed, 21 Jun 2023 15:50:34 GMT
+Received: from smtprelay02.fra02v.mail.ibm.com ([9.218.2.226])
+	by ppma04fra.de.ibm.com (PPS) with ESMTPS id 3r94f5a578-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Wed, 21 Jun 2023 15:50:34 +0000
+Received: from smtpav03.fra02v.mail.ibm.com (smtpav03.fra02v.mail.ibm.com [10.20.54.102])
+	by smtprelay02.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 35LFoUQ021496404
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Wed, 21 Jun 2023 15:50:30 GMT
+Received: from smtpav03.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 89DD42004B;
+	Wed, 21 Jun 2023 15:50:30 +0000 (GMT)
+Received: from smtpav03.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 0FA5720040;
+	Wed, 21 Jun 2023 15:50:28 +0000 (GMT)
+Received: from tarunpc.ibmuc.com (unknown [9.43.112.18])
+	by smtpav03.fra02v.mail.ibm.com (Postfix) with ESMTP;
+	Wed, 21 Jun 2023 15:50:27 +0000 (GMT)
+From: Tarun Sahu <tsahu@linux.ibm.com>
+To: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, dave.jiang@intel.com,
+        dan.j.williams@intel.com, vishal.l.verma@intel.com,
+        aneesh.kumar@linux.ibm.com, jaypatel@linux.ibm.com,
+        tsahu@linux.ibm.com
+Subject: [PATCH v3] dax/kmem: Pass valid argument to memory_group_register_static
+Date: Wed, 21 Jun 2023 21:20:25 +0530
+Message-Id: <20230621155025.370672-1-tsahu@linux.ibm.com>
+X-Mailer: git-send-email 2.31.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230621130256.2676126-1-colin.i.king@gmail.com>
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: tV9BvsWNFqM54FmnW5_1TUU7WqWGftns
+X-Proofpoint-ORIG-GUID: tV9BvsWNFqM54FmnW5_1TUU7WqWGftns
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.254,Aquarius:18.0.957,Hydra:6.0.591,FMLib:17.11.176.26
+ definitions=2023-06-21_08,2023-06-16_01,2023-05-22_02
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 malwarescore=0 spamscore=0
+ priorityscore=1501 impostorscore=0 suspectscore=0 bulkscore=0
+ lowpriorityscore=0 mlxlogscore=999 adultscore=0 clxscore=1015 phishscore=0
+ mlxscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2305260000 definitions=main-2306210131
 
-On Wed 21-06-23 14:02:56, Colin Ian King wrote:
-> The variable 'error' is being assigned a value that is never read,
-> the assignment and the variable and redundant and can be removed.
-> Cleans up clang scan build warning:
-> 
-> fs/dax.c:1880:10: warning: Although the value stored to 'error' is
-> used in the enclosing expression, the value is never actually read
-> from 'error' [deadcode.DeadStores]
-> 
-> Signed-off-by: Colin Ian King <colin.i.king@gmail.com>
+memory_group_register_static takes maximum number of pages as the argument
+while dev_dax_kmem_probe passes total_len (in bytes) as the argument.
 
-Yeah, good spotting. Feel free to add:
+IIUC, I don't see any crash/panic impact as such. As,
+memory_group_register_static just set the max_pages limit which is used in
+auto_movable_zone_for_pfn to determine the zone.
 
-Reviewed-by: Jan Kara <jack@suse.cz>
+which might cause these condition to behave differently,
 
-								Honza
+This will be true always so jump will happen to kernel_zone
+    ...
+    if (!auto_movable_can_online_movable(NUMA_NO_NODE, group, nr_pages))
+        goto kernel_zone;
 
-> ---
->  fs/dax.c | 3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
-> 
-> diff --git a/fs/dax.c b/fs/dax.c
-> index 2ababb89918d..cb36c6746fc4 100644
-> --- a/fs/dax.c
-> +++ b/fs/dax.c
-> @@ -1830,7 +1830,6 @@ static vm_fault_t dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
->  	vm_fault_t ret = VM_FAULT_FALLBACK;
->  	pgoff_t max_pgoff;
->  	void *entry;
-> -	int error;
->  
->  	if (vmf->flags & FAULT_FLAG_WRITE)
->  		iter.flags |= IOMAP_WRITE;
-> @@ -1877,7 +1876,7 @@ static vm_fault_t dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
->  	}
->  
->  	iter.pos = (loff_t)xas.xa_index << PAGE_SHIFT;
-> -	while ((error = iomap_iter(&iter, ops)) > 0) {
-> +	while (iomap_iter(&iter, ops) > 0) {
->  		if (iomap_length(&iter) < PMD_SIZE)
->  			continue; /* actually breaks out of the loop */
->  
-> -- 
-> 2.39.2
-> 
+    ...
+    kernel_zone:
+        return default_kernel_zone_for_pfn(nid, pfn, nr_pages);
+
+Here, In below, zone_intersects compare range will be larger as nr_pages
+will be higher (derived from total_len passed in dev_dax_kmem_probe).
+
+    ...
+    static struct zone *default_kernel_zone_for_pfn(int nid, unsigned long start_pfn,
+    		unsigned long nr_pages)
+    {
+    	struct pglist_data *pgdat = NODE_DATA(nid);
+    	int zid;
+
+    	for (zid = 0; zid < ZONE_NORMAL; zid++) {
+    		struct zone *zone = &pgdat->node_zones[zid];
+
+    		if (zone_intersects(zone, start_pfn, nr_pages))
+    			return zone;
+    	}
+
+    	return &pgdat->node_zones[ZONE_NORMAL];
+    }
+
+Incorrect zone will be returned here, which in later time might cause bigger
+problem.
+
+Fixes: eedf634aac3b ("dax/kmem: use a single static memory group for a single probed unit")
+Signed-off-by: Tarun Sahu <tsahu@linux.ibm.com>
+Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+V3<-V2
+1. Removed skip characters.
+
+V2<-V1
+1. Added more details to commit message
+
+
+ drivers/dax/kmem.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
+index 7b36db6f1cbd..898ca9505754 100644
+--- a/drivers/dax/kmem.c
++++ b/drivers/dax/kmem.c
+@@ -99,7 +99,7 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
+ 	if (!data->res_name)
+ 		goto err_res_name;
+ 
+-	rc = memory_group_register_static(numa_node, total_len);
++	rc = memory_group_register_static(numa_node, PFN_UP(total_len));
+ 	if (rc < 0)
+ 		goto err_reg_mgid;
+ 	data->mgid = rc;
 -- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+2.31.1
+
