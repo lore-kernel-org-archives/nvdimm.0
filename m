@@ -1,99 +1,122 @@
-Received: from mail-wr1-f54.google.com (mail-wr1-f54.google.com [209.85.221.54])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from dggsgout11.his.huawei.com (unknown [45.249.212.51])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDD3813AEA
-	for <nvdimm@lists.linux.dev>; Wed, 21 Jun 2023 13:02:59 +0000 (UTC)
-Received: by mail-wr1-f54.google.com with SMTP id ffacd0b85a97d-3090d3e9c92so6751557f8f.2
-        for <nvdimm@lists.linux.dev>; Wed, 21 Jun 2023 06:02:59 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1687352578; x=1689944578;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=p1snc3z/xTJ1VfTgS+xUuvVWJtWsmykCdplUwtlGRSE=;
-        b=Lv4pPl5dm1tsCSiRwC/EEKizLn2tjonFfrmr7Oafj5RDquW7/Ldy5JXUJ8F0yhXkc1
-         0ci9gANBVnN3QjvRMNMK9oBQ/9ET93rXCqnGxOmfxpUbEcicRtPwyOJ3wQ/wdSb6gIBQ
-         VIZykLT714hMtjOr9RyqgpNHJw7xxpKzoL+oWLgPXcewKCg9e3Oz5cFWQ8X/CbUWVoKW
-         A3T9SK5CRgsPQe1H5O7agHVTpp9ajp/9calCpm8iEXyCJdXOaGPhQh03ma1uaQ8E65jo
-         nyyj9jZlBiIFuaegbONQDlVBg7UK/ZAMu0rXnzJY0Et/1eYjgw3Ur6ejQZbF1B68NfKk
-         aYHg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1687352578; x=1689944578;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=p1snc3z/xTJ1VfTgS+xUuvVWJtWsmykCdplUwtlGRSE=;
-        b=OAYZc1s6Gt76HucTPNjG0DUI2SRBMEZMtbsoWSlXVPHpMdj6T0st0DE0reOpwGa3us
-         WFPBkadaxKXjw2Ki0ISBXsMre+Qb1Bw+4RynFLlJPyLBcm4/uRqm5eBH9ii10XA6zTT0
-         k9A/0IepEVnsyE+RWozOBIsVHpNz9wl4cTd2tuAUuYfV3+Za1Uq1UM3QIn+/zoF71X95
-         GrXqggdPYoCTnFZYDnc0NVG9A2mTDAxthoysJecIv2Cg296WS0YMhTND/1UM8C3PyuuH
-         NaIYFpOTcPg54pucmcUMwfAF0CBZW+thFHtJNPBQPTreoaSXuwVVViWA1RC0n4Yv/Hw4
-         zNDA==
-X-Gm-Message-State: AC+VfDwgKrvAsHqzIPvGOMtjKXH98Xs19a12nqT/6UurmPOwvQSSegFn
-	mE4E8/7p5mnjm6ze4PzNXdE=
-X-Google-Smtp-Source: ACHHUZ5rBNQwgTcud7BCqacDwmxN/UgQThg2UpRWHJDkiKd0tH6NmS6ySa/0h+ZN+TOtXqP9XTNOpw==
-X-Received: by 2002:adf:f30b:0:b0:311:1390:7b55 with SMTP id i11-20020adff30b000000b0031113907b55mr14800141wro.68.1687352577531;
-        Wed, 21 Jun 2023 06:02:57 -0700 (PDT)
-Received: from localhost (cpc154979-craw9-2-0-cust193.16-3.cable.virginm.net. [80.193.200.194])
-        by smtp.gmail.com with ESMTPSA id w18-20020a5d6812000000b0030ae69920c9sm4413853wru.53.2023.06.21.06.02.56
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 21 Jun 2023 06:02:56 -0700 (PDT)
-From: Colin Ian King <colin.i.king@gmail.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9222713AEA
+	for <nvdimm@lists.linux.dev>; Wed, 21 Jun 2023 13:11:37 +0000 (UTC)
+Received: from mail02.huawei.com (unknown [172.30.67.143])
+	by dggsgout11.his.huawei.com (SkyGuard) with ESMTP id 4QmP5p4chRz4f4DjN
+	for <nvdimm@lists.linux.dev>; Wed, 21 Jun 2023 21:11:26 +0800 (CST)
+Received: from huaweicloud.com (unknown [10.175.124.27])
+	by APP4 (Coremail) with SMTP id gCh0CgD3rLD79pJknOjSMA--.61999S4;
+	Wed, 21 Jun 2023 21:11:25 +0800 (CST)
+From: Hou Tao <houtao@huaweicloud.com>
 To: Dan Williams <dan.j.williams@intel.com>,
-	Matthew Wilcox <willy@infradead.org>,
-	Jan Kara <jack@suse.cz>,
-	Alexander Viro <viro@zeniv.linux.org.uk>,
-	Christian Brauner <brauner@kernel.org>,
-	linux-fsdevel@vger.kernel.org,
-	nvdimm@lists.linux.dev
-Cc: kernel-janitors@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH][next] fsdax: remove redundant variable 'error'
-Date: Wed, 21 Jun 2023 14:02:56 +0100
-Message-Id: <20230621130256.2676126-1-colin.i.king@gmail.com>
-X-Mailer: git-send-email 2.39.2
+	Jens Axboe <axboe@kernel.dk>,
+	Christoph Hellwig <hch@infradead.org>
+Cc: linux-block@vger.kernel.org,
+	nvdimm@lists.linux.dev,
+	virtualization@lists.linux-foundation.org,
+	Pankaj Gupta <pankaj.gupta.linux@gmail.com>,
+	houtao1@huawei.com
+Subject: [PATCH v2] virtio_pmem: add the missing REQ_OP_WRITE for flush bio
+Date: Wed, 21 Jun 2023 21:43:40 +0800
+Message-Id: <20230621134340.878461-1-houtao@huaweicloud.com>
+X-Mailer: git-send-email 2.29.2
+In-Reply-To: <ZJLpYMC8FgtZ0k2k@infradead.org>
+References: <ZJLpYMC8FgtZ0k2k@infradead.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:gCh0CgD3rLD79pJknOjSMA--.61999S4
+X-Coremail-Antispam: 1UD129KBjvJXoWxJF48Ar1DXrWUKw18AF15CFg_yoW5Jw17pr
+	90kay3tr4UGF4fuanrta12gFyfX3WDGrZrKFWfuw1xAFZrAF1DKw1DWa4Fga4UCry8Gay7
+	JFykJw1jqryDZaDanT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUUyjb4IE77IF4wAFF20E14v26r4j6ryUM7CY07I20VC2zVCF04k2
+	6cxKx2IYs7xG6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rwA2F7IY1VAKz4
+	vEj48ve4kI8wA2z4x0Y4vE2Ix0cI8IcVAFwI0_Xr0_Ar1l84ACjcxK6xIIjxv20xvEc7Cj
+	xVAFwI0_Gr1j6F4UJwA2z4x0Y4vEx4A2jsIE14v26rxl6s0DM28EF7xvwVC2z280aVCY1x
+	0267AKxVW0oVCq3wAS0I0E0xvYzxvE52x082IY62kv0487Mc02F40EFcxC0VAKzVAqx4xG
+	6I80ewAv7VC0I7IYx2IY67AKxVWUJVWUGwAv7VC2z280aVAFwI0_Jr0_Gr1lOx8S6xCaFV
+	Cjc4AY6r1j6r4UM4x0Y48IcxkI7VAKI48JMxAIw28IcxkI7VAKI48JMxC20s026xCaFVCj
+	c4AY6r1j6r4UMI8I3I0E5I8CrVAFwI0_Jr0_Jr4lx2IqxVCjr7xvwVAFwI0_JrI_JrWlx4
+	CE17CEb7AF67AKxVWUtVW8ZwCIc40Y0x0EwIxGrwCI42IY6xIIjxv20xvE14v26r1j6r1x
+	MIIF0xvE2Ix0cI8IcVCY1x0267AKxVWUJVW8JwCI42IY6xAIw20EY4v20xvaj40_Wr1j6r
+	W3Jr1lIxAIcVC2z280aVAFwI0_Jr0_Gr1lIxAIcVC2z280aVCY1x0267AKxVW8JVW8JrUv
+	cSsGvfC2KfnxnUUI43ZEXa7IU1zuWJUUUUU==
+X-CM-SenderInfo: xkrx3t3r6k3tpzhluzxrxghudrp/
+X-CFilter-Loop: Reflected
 
-The variable 'error' is being assigned a value that is never read,
-the assignment and the variable and redundant and can be removed.
-Cleans up clang scan build warning:
+From: Hou Tao <houtao1@huawei.com>
 
-fs/dax.c:1880:10: warning: Although the value stored to 'error' is
-used in the enclosing expression, the value is never actually read
-from 'error' [deadcode.DeadStores]
+The following warning was reported when doing fsync on a pmem device:
 
-Signed-off-by: Colin Ian King <colin.i.king@gmail.com>
+ ------------[ cut here ]------------
+ WARNING: CPU: 2 PID: 384 at block/blk-core.c:751 submit_bio_noacct+0x340/0x520
+ Modules linked in:
+ CPU: 2 PID: 384 Comm: mkfs.xfs Not tainted 6.4.0-rc7+ #154
+ Hardware name: QEMU Standard PC (i440FX + PIIX, 1996)
+ RIP: 0010:submit_bio_noacct+0x340/0x520
+ ......
+ Call Trace:
+  <TASK>
+  ? asm_exc_invalid_op+0x1b/0x20
+  ? submit_bio_noacct+0x340/0x520
+  ? submit_bio_noacct+0xd5/0x520
+  submit_bio+0x37/0x60
+  async_pmem_flush+0x79/0xa0
+  nvdimm_flush+0x17/0x40
+  pmem_submit_bio+0x370/0x390
+  __submit_bio+0xbc/0x190
+  submit_bio_noacct_nocheck+0x14d/0x370
+  submit_bio_noacct+0x1ef/0x520
+  submit_bio+0x55/0x60
+  submit_bio_wait+0x5a/0xc0
+  blkdev_issue_flush+0x44/0x60
+
+The root cause is that submit_bio_noacct() needs bio_op() is either
+WRITE or ZONE_APPEND for flush bio and async_pmem_flush() doesn't assign
+REQ_OP_WRITE when allocating flush bio, so submit_bio_noacct just fail
+the flush bio.
+
+Simply fix it by adding the missing REQ_OP_WRITE for flush bio. And we
+could fix the flush order issue and do flush optimization later.
+
+Fixes: b4a6bb3a67aa ("block: add a sanity check for non-write flush/fua bios")
+Signed-off-by: Hou Tao <houtao1@huawei.com>
 ---
- fs/dax.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+v2:
+  * do a minimal fix first (Suggested by Christoph)
+v1: https://lore.kernel.org/linux-block/ZJLpYMC8FgtZ0k2k@infradead.org/T/#t
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 2ababb89918d..cb36c6746fc4 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1830,7 +1830,6 @@ static vm_fault_t dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
- 	vm_fault_t ret = VM_FAULT_FALLBACK;
- 	pgoff_t max_pgoff;
- 	void *entry;
--	int error;
+Hi Jens & Dan,
+
+I found Pankaj was working on the fix and optimization of virtio-pmem
+flush bio [0], but considering the last status update was 1/12/2022, so
+could you please pick the patch up for v6.4 and we can do the flush fix
+and optimization later ?
+
+[0]: https://lore.kernel.org/lkml/20220111161937.56272-1-pankaj.gupta.linux@gmail.com/T/
+
+ drivers/nvdimm/nd_virtio.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/nvdimm/nd_virtio.c b/drivers/nvdimm/nd_virtio.c
+index c6a648fd8744..97098099f8a3 100644
+--- a/drivers/nvdimm/nd_virtio.c
++++ b/drivers/nvdimm/nd_virtio.c
+@@ -105,7 +105,7 @@ int async_pmem_flush(struct nd_region *nd_region, struct bio *bio)
+ 	 * parent bio. Otherwise directly call nd_region flush.
+ 	 */
+ 	if (bio && bio->bi_iter.bi_sector != -1) {
+-		struct bio *child = bio_alloc(bio->bi_bdev, 0, REQ_PREFLUSH,
++		struct bio *child = bio_alloc(bio->bi_bdev, 0, REQ_OP_WRITE | REQ_PREFLUSH,
+ 					      GFP_ATOMIC);
  
- 	if (vmf->flags & FAULT_FLAG_WRITE)
- 		iter.flags |= IOMAP_WRITE;
-@@ -1877,7 +1876,7 @@ static vm_fault_t dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
- 	}
- 
- 	iter.pos = (loff_t)xas.xa_index << PAGE_SHIFT;
--	while ((error = iomap_iter(&iter, ops)) > 0) {
-+	while (iomap_iter(&iter, ops) > 0) {
- 		if (iomap_length(&iter) < PMD_SIZE)
- 			continue; /* actually breaks out of the loop */
- 
+ 		if (!child)
 -- 
-2.39.2
+2.29.2
 
