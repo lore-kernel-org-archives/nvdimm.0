@@ -1,294 +1,194 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02A90191
-	for <nvdimm@lists.linux.dev>; Fri, 23 Jun 2023 12:35:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1687523717;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=kOH7WzwTI4VChT7oNEuEyQV7U0mT1MDvKKV+43PfARA=;
-	b=BHdygKPuwkEQvm9NofhaAU0hq/Kb24wXNiDy9L2Tyvj8P8auUdrSi6LSPwdYEzDzIJk7xk
-	g2ijwrlM+A4IlZC82q2vM89lWtyowwojBBM3exarDwTMVzm4Mjm2RT9FPLKyS7DQA/7E3p
-	7S6rBumCqDwRM3kL5SAGMogUoPz/J1w=
-Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com
- [209.85.128.72]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-641-vEqfyOwxMNmMWZZ2NK6SxQ-1; Fri, 23 Jun 2023 08:35:14 -0400
-X-MC-Unique: vEqfyOwxMNmMWZZ2NK6SxQ-1
-Received: by mail-wm1-f72.google.com with SMTP id 5b1f17b1804b1-3fa77cc7df1so4326135e9.3
-        for <nvdimm@lists.linux.dev>; Fri, 23 Jun 2023 05:35:14 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1687523713; x=1690115713;
-        h=content-transfer-encoding:in-reply-to:organization:from:references
-         :cc:to:content-language:subject:user-agent:mime-version:date
-         :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=kOH7WzwTI4VChT7oNEuEyQV7U0mT1MDvKKV+43PfARA=;
-        b=Nx0WBptW7tHBX7maO5uk8Xt5IH3qQTu26g+dXPj3y2aVPT4ZnNq4Ed33x+L5y44UXs
-         7b7aDlKxie55VNHMiQUefIGAjhJGVu2JJlORzAzY9YpuK4xveLiocCDHb9HrPjcLVw4y
-         MPwXkzw79/CiBnWQmjFYsG03dU28LMKJrd1EDvGvhx0gtbRsO5G9ezfGjklbr4vehYfe
-         i3DW1Ci+F0xpo3dx3g5i4agq8iLzRPFrtrwog67LLvK7le83wU0eDojkM82s7678PQ2d
-         pwbZGEmBzvaSmZgBi8XZ25rG8tX7VDkNviNZ+UZcPoSL73J3xxeI0SIUvs2cdIfHQSq5
-         tmFQ==
-X-Gm-Message-State: AC+VfDy6dQ1HUOFOBI1eL1cAi4cbsprBKbZLy47zEvWoYFPnddcjHJgt
-	e06EPCuV16MsE+Z5qdjWpsUY1g/Fvtm7HCP57o72cUtvNnuwgLtUqVP7/BOCkqut9RNi3wGnxvv
-	8jV0RsPJ1IFhMyR7L
-X-Received: by 2002:a05:600c:299:b0:3f9:ba2:5d19 with SMTP id 25-20020a05600c029900b003f90ba25d19mr12835816wmk.33.1687523713257;
-        Fri, 23 Jun 2023 05:35:13 -0700 (PDT)
-X-Google-Smtp-Source: ACHHUZ6Y0g/ua8drcZZs4ihly3xkcq6phAdx3XddFTb5zM1PH+jlNfkw8ytfERFImOnmq5MJYMecVQ==
-X-Received: by 2002:a05:600c:299:b0:3f9:ba2:5d19 with SMTP id 25-20020a05600c029900b003f90ba25d19mr12835796wmk.33.1687523712888;
-        Fri, 23 Jun 2023 05:35:12 -0700 (PDT)
-Received: from ?IPV6:2003:cb:c729:1700:9783:58ba:9db:1221? (p200300cbc7291700978358ba09db1221.dip0.t-ipconnect.de. [2003:cb:c729:1700:9783:58ba:9db:1221])
-        by smtp.gmail.com with ESMTPSA id p8-20020a7bcc88000000b003f7e4639aabsm2310854wma.10.2023.06.23.05.35.11
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 23 Jun 2023 05:35:12 -0700 (PDT)
-Message-ID: <c0f51e0e-63ba-2cd2-fb07-a924a081a3fe@redhat.com>
-Date: Fri, 23 Jun 2023 14:35:11 +0200
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62FA5100B3
+	for <nvdimm@lists.linux.dev>; Fri, 23 Jun 2023 17:19:29 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1687540769; x=1719076769;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=tHIsAlqWAAAaC4HEnIaNnd12wvkLuC4p5w8WFJFAgUo=;
+  b=cF3O7FUaMGW6l4qfAVgtQx1ejV7dFZW+cWpbtf8p+QSPfnfEYKIQ6/I3
+   ktpBbX1qL8YbwXftZ8NTIxdnNkP5qL3sUpC14npeOva9e19dhrQwNMEP0
+   fY4Hw06EtvY+Ygy6n07G2n3boVpHpHtZliomz46KdxX0UMKTsPrMUluD0
+   ImFhv8X+zZeNVWp/obUVuqUcp02JyHXnx50zEqx3HAU5JTOaoKkvFDlJu
+   mfaOBJTEkGkg/AcIuvsDcNP8X21oIt6GBNkYGsvLZph4wlPROueWerRqv
+   57fNjSjATrFSmdP+arkift4j2Vtbb6FCO2U7JlRvQNPNChyaE+m5AIuQD
+   Q==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10750"; a="350584220"
+X-IronPort-AV: E=Sophos;i="6.01,152,1684825200"; 
+   d="scan'208";a="350584220"
+Received: from orsmga006.jf.intel.com ([10.7.209.51])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Jun 2023 10:18:00 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10750"; a="692736025"
+X-IronPort-AV: E=Sophos;i="6.01,152,1684825200"; 
+   d="scan'208";a="692736025"
+Received: from orsmsx603.amr.corp.intel.com ([10.22.229.16])
+  by orsmga006.jf.intel.com with ESMTP; 23 Jun 2023 10:17:50 -0700
+Received: from orsmsx611.amr.corp.intel.com (10.22.229.24) by
+ ORSMSX603.amr.corp.intel.com (10.22.229.16) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.23; Fri, 23 Jun 2023 10:17:49 -0700
+Received: from orsmsx610.amr.corp.intel.com (10.22.229.23) by
+ ORSMSX611.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.27; Fri, 23 Jun 2023 10:17:48 -0700
+Received: from ORSEDG601.ED.cps.intel.com (10.7.248.6) by
+ orsmsx610.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.27 via Frontend Transport; Fri, 23 Jun 2023 10:17:48 -0700
+Received: from NAM10-DM6-obe.outbound.protection.outlook.com (104.47.58.107)
+ by edgegateway.intel.com (134.134.137.102) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.23; Fri, 23 Jun 2023 10:17:46 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=XFyrHNHoa+nKQXJI2TjMAfLz4ttmqU0+yo3P4DlrXr7oPqeSCl51QKg838frIRwmzHYy/pwJu61c4uoc2ri2fspafVRa496/gu6OEZI68aBqtAh4GeOV4r+LLW/CqFJ3PmBOfKpwRvEltzGafXEJB7lkl+JHLSDA3Z4VGlZL6pgvjJhTQeMo3qV34dTd+P/5ojvjO2wpn3HjbrJM91QLlE3TrsFp7a5r9U62icAxzOD9a/zi0GNjSN/T6+zcw/Ad6wRYJfiNLrj4mAWKkKKtYR7bB/ls+Y6XdeURDDF7opAh15D7+2XB8ZylJdUyRZbksybfbhjsY3ed4dCJ190KaA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=T8lU/R8ij8+VNcvawlP88cqz5hTTwpEPie7Ua3QPjM0=;
+ b=i52Wb3ZZH70chhJ04Im4vYkzgqlbD08IESaGYpXLPCxPLAvjqJzdgxM9uneo/XUQqaXnewE3RgHJx/kkTNGa3L+J8n8PlWh9TrSMDXjAvxKQ60Sf7SPo2VU2wscjyVqGRBY5Zu5roxF1N050Z0Ghowc39X1wlKa+xi+iiBF//9d89hU4+jjdz1Gi6GOSlZ6/ovZ8gA0HZzO6sGLkhA1DrHS3gctsA7TGsvAPWVU9Qktvxu8+B0bdl/F5N5Tk6/VjHsUeo3kZNuUAz5IKyzOnGPBfEwwJv4XQhOvQOqbaSmeI9I2XTY/OeE1ULfEM0yWtLlhlv8mRVRLXjmCLgLFGXw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from SA1PR11MB6733.namprd11.prod.outlook.com (2603:10b6:806:25c::17)
+ by PH8PR11MB6999.namprd11.prod.outlook.com (2603:10b6:510:221::14) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6500.35; Fri, 23 Jun
+ 2023 17:17:45 +0000
+Received: from SA1PR11MB6733.namprd11.prod.outlook.com
+ ([fe80::7237:cab8:f7f:52a5]) by SA1PR11MB6733.namprd11.prod.outlook.com
+ ([fe80::7237:cab8:f7f:52a5%7]) with mapi id 15.20.6521.024; Fri, 23 Jun 2023
+ 17:17:44 +0000
+Date: Fri, 23 Jun 2023 10:17:38 -0700
+From: Ira Weiny <ira.weiny@intel.com>
+To: Jiasheng Jiang <jiasheng@iscas.ac.cn>, <ira.weiny@intel.com>,
+	<dan.j.williams@intel.com>, <vishal.l.verma@intel.com>,
+	<dave.jiang@intel.com>, <oohall@gmail.com>, <aneesh.kumar@linux.ibm.com>
+CC: <nvdimm@lists.linux.dev>, <linux-kernel@vger.kernel.org>, Jiasheng Jiang
+	<jiasheng@iscas.ac.cn>
+Subject: Re: [PATCH] libnvdimm/of_pmem: Replace kstrdup with devm_kstrdup and
+ add check
+Message-ID: <6495d3b226de0_4ccfa294f0@iweiny-mobl.notmuch>
+References: <20230622143232.16863-1-jiasheng@iscas.ac.cn>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20230622143232.16863-1-jiasheng@iscas.ac.cn>
+X-ClientProxiedBy: SJ0PR13CA0067.namprd13.prod.outlook.com
+ (2603:10b6:a03:2c4::12) To SA1PR11MB6733.namprd11.prod.outlook.com
+ (2603:10b6:806:25c::17)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.12.0
-Subject: Re: [PATCH 1/3] mm/memory_hotplug: Allow an override for the
- memmap_on_memory param
-To: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
- Vishal Verma <vishal.l.verma@intel.com>,
- "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
- Andrew Morton <akpm@linux-foundation.org>, Oscar Salvador
- <osalvador@suse.de>, Dan Williams <dan.j.williams@intel.com>,
- Dave Jiang <dave.jiang@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-mm@kvack.org, nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
- Huang Ying <ying.huang@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
-References: <20230613-vv-kmem_memmap-v1-0-f6de9c6af2c6@intel.com>
- <20230613-vv-kmem_memmap-v1-1-f6de9c6af2c6@intel.com>
- <87mt0qy3j9.fsf@linux.ibm.com>
-From: David Hildenbrand <david@redhat.com>
-Organization: Red Hat
-In-Reply-To: <87mt0qy3j9.fsf@linux.ibm.com>
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: redhat.com
-Content-Language: en-US
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: SA1PR11MB6733:EE_|PH8PR11MB6999:EE_
+X-MS-Office365-Filtering-Correlation-Id: 82f6401b-bcbc-415b-99c4-08db740dc1ca
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: bSQ500rp8P5vTxCOzwXjxT7kRnRNPiRS3hV71UdZ2qN96eebBTyVNUQ14wrRzq0NInFysSfZNKOiwok8NijDSn2sdIcGtxaHf5Qtqa1ZFG+qyHkr/lIonAfPX8ptZ3dN3Lv90+Qn1IjfakZEKRWWAz9eNthskDQsMsZZyko7T4EoZL/+1t0ecFEp1+gM5bjdtuS9aDc0fwOItuw/Vz77mLm7zoLPiQ7F8iL2XUNVsNMVxm9IxKfVw6yYjLW14toRZFhADfAGvsvrFmQ0OkABwa0inoQ8asUF+F6GSm8f/5+vIJHzVv5RmlfRdfasgka8VpWjCyMxMxdP4pvQibNw1WZmmsJ3Yf7bTs8S9h2dY3xJpsdVXTtIWL2K7uZiS1P9LyPVlgkBVdJ+wzcNKitbnqJidNz8cF1Lpd/orGeM33eL9PWc/75rCBGkPaDViBOmmsWUQJeYf87kgf2rM+a7Q+R11TtX+RsPWtQ9I65qZ9LuKF4OgvjQ8xhsmYTPDQ1mPaJF2u69zEU6YCe+vUf2pqLwRY7CqOM31nMhlSK6lY7uxWo98vsq1FUTyzyjn13t
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA1PR11MB6733.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230028)(396003)(376002)(366004)(39860400002)(136003)(346002)(451199021)(478600001)(66476007)(66946007)(66556008)(41300700001)(8676002)(4326008)(83380400001)(38100700002)(6486002)(44832011)(2906002)(6666004)(86362001)(5660300002)(8936002)(316002)(26005)(6506007)(6512007)(9686003)(186003)(82960400001);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?J0uiube4jq8vs8ebvD4l70KzpKH88f1mtEvvKqYTffkNZN81msXzTdsqMHBj?=
+ =?us-ascii?Q?5ZwS9Ovih3IYk4mCgayQOQjGzf7kYWNdf0yjfD6Zv6H9iIAcooNYgAPcbNbk?=
+ =?us-ascii?Q?R31vzYJPtLquKhVFdjB/0hCg5IZ6em5nV21IfbkaC3KaMPEqqcGhMzCUyL2X?=
+ =?us-ascii?Q?o1Kc/ZjDOc7G6QDOAFlqMgyRwb/CYsAYirNz59KtqgqGMeNW0rANt+idHadR?=
+ =?us-ascii?Q?bXLthuwTeiDmxtFY1trpmj+SgKOS12Wu3Qso42ebg1IXJjsQRHtEXGd7oQNm?=
+ =?us-ascii?Q?ETssN8B/buNT71sSRZuOouBXD9NAWEaKwj2KcY3NuCBtO5nhKPnWMGx4XxBZ?=
+ =?us-ascii?Q?actsza//5+bpUETVr/hQy9gZTP1slynvLiOqdAXSbEG2yfbV4VVBbJgcLSz0?=
+ =?us-ascii?Q?7z7HBFO63XLyFX2jtnM5I97+eros8kb64WpKTqrO327gBP7IxaHoJ/2x+Nob?=
+ =?us-ascii?Q?dOnWUq7qM3eImqVpAyADO07N3x4UZZtkbGmWzRDxfqom1basIMW+GHwUvzop?=
+ =?us-ascii?Q?1wZzZ3KpDMZBXQFYV2AwnESLkeuSxXeSevebZySYSCaEGcklRFSWEHlMhDFw?=
+ =?us-ascii?Q?UbekA8knn2biSyY6xpiA3W0KVXoWYV/OJ/sQfJVB/zRaxI42CEdq/OuFsY5K?=
+ =?us-ascii?Q?VF3y7HnvHRlT7MldMsjeP3srj4ep5HmDV8H4D3XwHADpJgjdDkmvsyKa/mj3?=
+ =?us-ascii?Q?CHtVy4u/khqzdiJLXYUm0w+1WgCoSZM/R/c1HcmRQ6Vsw36P4PsWkjdwG/2q?=
+ =?us-ascii?Q?eBDdBMTNWQ7+yjUttrNKw9A27Bf55oSLyUF/YCBNg1yqMphf0h6v0N/ooUTq?=
+ =?us-ascii?Q?x24Sb7/XGgCjG38V99M5RZmJJvUhIvstoSwW0DlVxuUEPqCcqH+HKfFFnW4J?=
+ =?us-ascii?Q?fFF9WKYao79FsVDkwk0cxAiLNVtbFFFPyF95GjEQRqPmV6wM5+ecx4YxOKKd?=
+ =?us-ascii?Q?vUvz6Ja4cBQ6s3DIEBAb5SZMJGJIFKSOVxdHhEDzbLdhPRH5uN1PXfCwQT/1?=
+ =?us-ascii?Q?1HU4d1kB7wPxk2vUD9QCa3Ws3TXre00PSnrNvHfQMkHUnGwZ2RcPjcDbwKc/?=
+ =?us-ascii?Q?S4xTbSKL/rMYIOlABUS5CuChywwNGOlFZSDbtY4DL2y/XZ8lW99TI6O5qKwz?=
+ =?us-ascii?Q?rBedFhLKt/oHnPpmv66KOt2jxt5tvwhY5kvhKZy/vljOfItfquK8DOq2dgnh?=
+ =?us-ascii?Q?CPA6qr/hPEhT+rgEHFfYWsHVbfYBZZpdJAE+LWi8ZCIKboRJaBK/fQzkY1jv?=
+ =?us-ascii?Q?TOM+RYQAZ9lzw2lQg1MdaOzyAK6OeYccoLX6n6Jmb38G13czGbaFx+7grz2P?=
+ =?us-ascii?Q?jcRbvW2eIuJbG5E7KNrljDaCWd0OUSYcJLbF6boMbjxIF0G3gihUM3/X7w9p?=
+ =?us-ascii?Q?CajzroKfU6hGDe6neTf6AdCUB7EGwBPH7XOVy/Bt/que16Z6YpDoKzUGRkgk?=
+ =?us-ascii?Q?PPpbwZEOUAvTs5CZVA5dBKPQYpphbfFze9KM82LAiDMxLycn4IamTpLEM4Xv?=
+ =?us-ascii?Q?khx9kGjxtaQ15dZByWRIU+iRplH+uPM4kmF5FpFCICY2i2zytFheBf0y5yZZ?=
+ =?us-ascii?Q?Ot3gQzyatNPqpMAhwhoM7alziqTla7dhMhhOoukp?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: 82f6401b-bcbc-415b-99c4-08db740dc1ca
+X-MS-Exchange-CrossTenant-AuthSource: SA1PR11MB6733.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 23 Jun 2023 17:17:44.1071
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: fIa/5JFFaHTuCdI7R2UYCwpzjl3Pq5gLTzu2gWupRrVe06Foz7IjjNaEAl1s+qOtV7o2idOXzkvu5LBxIBvKDQ==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH8PR11MB6999
+X-OriginatorOrg: intel.com
 
-On 23.06.23 10:40, Aneesh Kumar K.V wrote:
-> Vishal Verma <vishal.l.verma@intel.com> writes:
+Jiasheng Jiang wrote:
+> Replace kstrdup() with devm_kstrdup() to avoid memory leak and
+> add check for the return value of the devm_kstrdup() to avoid
+> NULL pointer dereference
 > 
->> For memory hotplug to consider MHP_MEMMAP_ON_MEMORY behavior, the
->> 'memmap_on_memory' module parameter was a hard requirement.
->>
->> In preparation for the dax/kmem driver to use memmap_on_memory
->> semantics, arrange for the module parameter check to be bypassed via the
->> appropriate mhp_flag.
->>
->> Recall that the kmem driver could contribute huge amounts of hotplugged
->> memory originating from special purposes devices such as CXL memory
->> expanders. In some cases memmap_on_memory may be the /only/ way this new
->> memory can be hotplugged. Hence it makes sense for kmem to have a way to
->> force memmap_on_memory without depending on a module param, if all the
->> other conditions for it are met.
->>
->> The only other user of this interface is acpi/acpi_memoryhotplug.c,
->> which only enables the mhp_flag if an initial
->> mhp_supports_memmap_on_memory() test passes. Maintain the existing
->> behavior and semantics for this by performing the initial check from
->> acpi without the MHP_MEMMAP_ON_MEMORY flag, so its decision falls back
->> to the module parameter.
->>
->> Cc: "Rafael J. Wysocki" <rafael@kernel.org>
->> Cc: Len Brown <lenb@kernel.org>
->> Cc: Andrew Morton <akpm@linux-foundation.org>
->> Cc: David Hildenbrand <david@redhat.com>
->> Cc: Oscar Salvador <osalvador@suse.de>
->> Cc: Dan Williams <dan.j.williams@intel.com>
->> Cc: Dave Jiang <dave.jiang@intel.com>
->> Cc: Dave Hansen <dave.hansen@linux.intel.com>
->> Cc: Huang Ying <ying.huang@intel.com>
->> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
->> ---
->>   include/linux/memory_hotplug.h |  2 +-
->>   drivers/acpi/acpi_memhotplug.c |  2 +-
->>   mm/memory_hotplug.c            | 24 ++++++++++++++++--------
->>   3 files changed, 18 insertions(+), 10 deletions(-)
->>
->> diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
->> index 9fcbf5706595..c9ddcd3cad70 100644
->> --- a/include/linux/memory_hotplug.h
->> +++ b/include/linux/memory_hotplug.h
->> @@ -358,7 +358,7 @@ extern struct zone *zone_for_pfn_range(int online_type, int nid,
->>   extern int arch_create_linear_mapping(int nid, u64 start, u64 size,
->>   				      struct mhp_params *params);
->>   void arch_remove_linear_mapping(u64 start, u64 size);
->> -extern bool mhp_supports_memmap_on_memory(unsigned long size);
->> +extern bool mhp_supports_memmap_on_memory(unsigned long size, mhp_t mhp_flags);
->>   #endif /* CONFIG_MEMORY_HOTPLUG */
->>   
->>   #endif /* __LINUX_MEMORY_HOTPLUG_H */
->> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
->> index 24f662d8bd39..119d3bb49753 100644
->> --- a/drivers/acpi/acpi_memhotplug.c
->> +++ b/drivers/acpi/acpi_memhotplug.c
->> @@ -211,7 +211,7 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
->>   		if (!info->length)
->>   			continue;
->>   
->> -		if (mhp_supports_memmap_on_memory(info->length))
->> +		if (mhp_supports_memmap_on_memory(info->length, 0))
->>   			mhp_flags |= MHP_MEMMAP_ON_MEMORY;
->>   		result = __add_memory(mgid, info->start_addr, info->length,
->>   				      mhp_flags);
->> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
->> index 8e0fa209d533..bb3845830922 100644
->> --- a/mm/memory_hotplug.c
->> +++ b/mm/memory_hotplug.c
->> @@ -1283,15 +1283,21 @@ static int online_memory_block(struct memory_block *mem, void *arg)
->>   	return device_online(&mem->dev);
->>   }
->>   
->> -bool mhp_supports_memmap_on_memory(unsigned long size)
->> +bool mhp_supports_memmap_on_memory(unsigned long size, mhp_t mhp_flags)
->>   {
->>   	unsigned long nr_vmemmap_pages = size / PAGE_SIZE;
->>   	unsigned long vmemmap_size = nr_vmemmap_pages * sizeof(struct page);
->>   	unsigned long remaining_size = size - vmemmap_size;
->>   
->>   	/*
->> -	 * Besides having arch support and the feature enabled at runtime, we
->> -	 * need a few more assumptions to hold true:
->> +	 * The MHP_MEMMAP_ON_MEMORY flag indicates a caller that wants to force
->> +	 * memmap_on_memory (if other conditions are met), regardless of the
->> +	 * module parameter. drivers/dax/kmem.c is an example, where large
->> +	 * amounts of hotplug memory may come from, and the only option to
->> +	 * successfully online all of it is to place the memmap on this memory.
->> +	 *
->> +	 * Besides having arch support and the feature enabled at runtime or
->> +	 * via the mhp_flag, we need a few more assumptions to hold true:
->>   	 *
->>   	 * a) We span a single memory block: memory onlining/offlinin;g happens
->>   	 *    in memory block granularity. We don't want the vmemmap of online
->> @@ -1315,10 +1321,12 @@ bool mhp_supports_memmap_on_memory(unsigned long size)
->>   	 *       altmap as an alternative source of memory, and we do not exactly
->>   	 *       populate a single PMD.
->>   	 */
->> -	return mhp_memmap_on_memory() &&
->> -	       size == memory_block_size_bytes() &&
->> -	       IS_ALIGNED(vmemmap_size, PMD_SIZE) &&
->> -	       IS_ALIGNED(remaining_size, (pageblock_nr_pages << PAGE_SHIFT));
->> +
->> +	if ((mhp_flags & MHP_MEMMAP_ON_MEMORY) || mhp_memmap_on_memory())
->> +		return size == memory_block_size_bytes() &&
->> +		       IS_ALIGNED(vmemmap_size, PMD_SIZE) &&
->> +		       IS_ALIGNED(remaining_size, (pageblock_nr_pages << PAGE_SHIFT));
->> +	return false;
->>   }
->>   
->>   /*
->> @@ -1375,7 +1383,7 @@ int __ref add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
->>   	 * Self hosted memmap array
->>   	 */
->>   	if (mhp_flags & MHP_MEMMAP_ON_MEMORY) {
->> -		if (!mhp_supports_memmap_on_memory(size)) {
->> +		if (!mhp_supports_memmap_on_memory(size, mhp_flags)) {
->>   			ret = -EINVAL;
->>   			goto error;
->>   		}
->>
+> Fixes: 49bddc73d15c ("libnvdimm/of_pmem: Provide a unique name for bus provider")
+> Signed-off-by: Jiasheng Jiang <jiasheng@iscas.ac.cn>
+
+V2?  references to the first fix and review?
+
+> ---
+>  drivers/nvdimm/of_pmem.c | 7 ++++++-
+>  1 file changed, 6 insertions(+), 1 deletion(-)
 > 
-> I was working on enabling memmap_on_memory for ppc64 and came across
-> this. Can we do this as below?
-> 
-> commit d55eddf71032cad3e057d8fa4c61ad2b8e05aaa8
-> Author: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-> Date:   Fri Jun 23 12:11:31 2023 +0530
-> 
->      mm/hotplug: Allow to force enable memmap on memory
->      
->      In some cases like DAX kmem, we want to enable memmap on memory
->      even if we have memory_hotplug.memmap_on_memory disabled. This
->      patch enables such usage. DAX kmem can use MHP_MEMMAP_ON_MEMORY
->      directly to request for memmap on memory.
->      
->      Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-> 
-> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-> index 24f662d8bd39..4d0096fc4cc2 100644
-> --- a/drivers/acpi/acpi_memhotplug.c
-> +++ b/drivers/acpi/acpi_memhotplug.c
-> @@ -211,8 +211,7 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
->   		if (!info->length)
->   			continue;
->   
-> -		if (mhp_supports_memmap_on_memory(info->length))
-> -			mhp_flags |= MHP_MEMMAP_ON_MEMORY;
-> +		mhp_flags |= get_memmap_on_memory_flags();
->   		result = __add_memory(mgid, info->start_addr, info->length,
->   				      mhp_flags);
->   
-> diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
-> index 9fcbf5706595..f7f534084393 100644
-> --- a/include/linux/memory_hotplug.h
-> +++ b/include/linux/memory_hotplug.h
-> @@ -359,6 +359,13 @@ extern int arch_create_linear_mapping(int nid, u64 start, u64 size,
->   				      struct mhp_params *params);
->   void arch_remove_linear_mapping(u64 start, u64 size);
->   extern bool mhp_supports_memmap_on_memory(unsigned long size);
-> +bool mhp_memmap_on_memory(void);
->   #endif /* CONFIG_MEMORY_HOTPLUG */
->   
-> +static inline unsigned long get_memmap_on_memory_flags(void)
-> +{
-> +	if (mhp_memmap_on_memory())
-> +		return MHP_MEMMAP_ON_MEMORY;
-> +	return 0;
-> +}
->   #endif /* __LINUX_MEMORY_HOTPLUG_H */
-> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-> index eb18d1ac7e84..85d29909fd89 100644
-> --- a/mm/memory_hotplug.c
-> +++ b/mm/memory_hotplug.c
-> @@ -50,7 +50,7 @@ static bool memmap_on_memory __ro_after_init;
->   module_param(memmap_on_memory, bool, 0444);
->   MODULE_PARM_DESC(memmap_on_memory, "Enable memmap on memory for memory hotplug");
->   
-> -static inline bool mhp_memmap_on_memory(void)
-> +bool mhp_memmap_on_memory(void)
->   {
->   	return memmap_on_memory;
->   }
-> @@ -1316,10 +1316,9 @@ bool mhp_supports_memmap_on_memory(unsigned long size)
->   	 *       altmap as an alternative source of memory, and we do not exactly
->   	 *       populate a single PMD.
->   	 */
-> -	return mhp_memmap_on_memory() &&
-> -	       size == memory_block_size_bytes() &&
-> -	       IS_ALIGNED(vmemmap_size, PMD_SIZE) &&
-> -	       IS_ALIGNED(remaining_size, (pageblock_nr_pages << PAGE_SHIFT));
-> +	return size == memory_block_size_bytes() &&
-> +		IS_ALIGNED(vmemmap_size, PMD_SIZE) &&
-> +		IS_ALIGNED(remaining_size, (pageblock_nr_pages << PAGE_SHIFT));
->   }
->   
->   /*
+> diff --git a/drivers/nvdimm/of_pmem.c b/drivers/nvdimm/of_pmem.c
+> index 10dbdcdfb9ce..5106dfe0147b 100644
+> --- a/drivers/nvdimm/of_pmem.c
+> +++ b/drivers/nvdimm/of_pmem.c
+> @@ -30,7 +30,12 @@ static int of_pmem_region_probe(struct platform_device *pdev)
+>  	if (!priv)
+>  		return -ENOMEM;
+>  
+> -	priv->bus_desc.provider_name = kstrdup(pdev->name, GFP_KERNEL);
+> +	priv->bus_desc.provider_name = devm_kstrdup(pdev->name, GFP_KERNEL);
+
+Again, thanks for finding and trying to fix this but you did not even compile
+test this.  :-(
+
+/**     
+ * devm_kstrdup - Allocate resource managed space and
+ *                copy an existing string into that.
+ * @dev: Device to allocate memory for
+ * @s: the string to duplicate
+ * @gfp: the GFP mask used in the devm_kmalloc() call when
+ *       allocating memory
+ * RETURNS:
+ * Pointer to allocated string on success, NULL on failure.
+ */     
+char *devm_kstrdup(struct device *dev, const char *s, gfp_t gfp)
+                   ^^^^^^^^^^^^^^^^^^
+                   ??????????????????
+
+Ira
+
+> +	if (!priv->bus_desc.provider_name) {
+> +		kfree(priv);
+> +		return -ENOMEM;
+> +	}
+> +
+>  	priv->bus_desc.module = THIS_MODULE;
+>  	priv->bus_desc.of_node = np;
+>  
+> -- 
+> 2.25.1
 > 
 
-Any forced enablement will have to cleanly handle try_remove_memory() as 
-well.
-
-memmap_on_memory needs a doc update then, and even the "forced 
-enablement" has to still be explicitly enabled by the admin.
-
-... but I'm still not convinced that memmap_on_memory should be 
-overridden. Needs good justification.
-
--- 
-Cheers,
-
-David / dhildenb
 
