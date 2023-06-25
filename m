@@ -1,128 +1,158 @@
-Received: from dggsgout11.his.huawei.com (unknown [45.249.212.51])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55D327F
-	for <nvdimm@lists.linux.dev>; Sun, 25 Jun 2023 01:54:30 +0000 (UTC)
-Received: from mail02.huawei.com (unknown [172.30.67.143])
-	by dggsgout11.his.huawei.com (SkyGuard) with ESMTP id 4QpYth4nDRz4f3v5P
-	for <nvdimm@lists.linux.dev>; Sun, 25 Jun 2023 09:54:20 +0800 (CST)
-Received: from huaweicloud.com (unknown [10.175.124.27])
-	by APP4 (Coremail) with SMTP id gCh0CgA30JNJnpdkw_XiMQ--.23029S4;
-	Sun, 25 Jun 2023 09:54:19 +0800 (CST)
-From: Hou Tao <houtao@huaweicloud.com>
-To: Dan Williams <dan.j.williams@intel.com>,
-	Jens Axboe <axboe@kernel.dk>,
-	Christoph Hellwig <hch@infradead.org>,
-	Pankaj Gupta <pankaj.gupta.linux@gmail.com>
-Cc: linux-block@vger.kernel.org,
-	nvdimm@lists.linux.dev,
-	virtualization@lists.linux-foundation.org,
-	houtao1@huawei.com
-Subject: [PATCH v3] virtio_pmem: add the missing REQ_OP_WRITE for flush bio
-Date: Sun, 25 Jun 2023 10:26:33 +0800
-Message-Id: <20230625022633.2753877-1-houtao@huaweicloud.com>
-X-Mailer: git-send-email 2.29.2
-In-Reply-To: <ZJL3+E5P+Yw5jDKy@infradead.org>
-References: <ZJL3+E5P+Yw5jDKy@infradead.org>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7414645
+	for <nvdimm@lists.linux.dev>; Sun, 25 Jun 2023 05:51:49 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1687672309; x=1719208309;
+  h=date:from:to:subject:message-id:references:in-reply-to:
+   mime-version;
+  bh=ePH3bQ0xqEhLeKjArd3r8GW6oA7uzKMXCN+a/HHYU0Q=;
+  b=UzTIvj6ffLG+fJVT16A4K8jJj5zMtfXRnn4dGkqhe9X8NcVkvbrjwDK9
+   umzZPdery6G2G5Y3SPPvHwM0bjtV88j1VCVsFLVoFYeoiKwgBm8A6q0n2
+   55dUiRA2zbkXy2tbVAqp7Ovkx3frEps/my2zQgi/pFKotiKQgOaGbjb8t
+   c4FVJrXN3JuWTebLw9GKqKpy1lcP7VjLz2NOauJgjSku4pnDn2ZAdN+BI
+   wmk2GBU1ips4ltnVNAwHmF8m6xpPEetxJ3g0rxznR81tGKyg/1enhbo30
+   VxeW7ECqLOw1aGPOLW/IpU2mw4wNEKqdoe73EWeIBD6HpMgT3x+n0+3cX
+   Q==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10751"; a="359898634"
+X-IronPort-AV: E=Sophos;i="6.01,156,1684825200"; 
+   d="scan'208";a="359898634"
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Jun 2023 22:51:48 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10751"; a="1046081125"
+X-IronPort-AV: E=Sophos;i="6.01,156,1684825200"; 
+   d="scan'208";a="1046081125"
+Received: from orsmsx602.amr.corp.intel.com ([10.22.229.15])
+  by fmsmga005.fm.intel.com with ESMTP; 24 Jun 2023 22:51:48 -0700
+Received: from orsmsx601.amr.corp.intel.com (10.22.229.14) by
+ ORSMSX602.amr.corp.intel.com (10.22.229.15) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.23; Sat, 24 Jun 2023 22:51:48 -0700
+Received: from ORSEDG602.ED.cps.intel.com (10.7.248.7) by
+ orsmsx601.amr.corp.intel.com (10.22.229.14) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.23 via Frontend Transport; Sat, 24 Jun 2023 22:51:48 -0700
+Received: from NAM02-SN1-obe.outbound.protection.outlook.com (104.47.57.45) by
+ edgegateway.intel.com (134.134.137.103) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.23; Sat, 24 Jun 2023 22:51:47 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=Y+/qmzSC8IfUGk0LbVfJZr4HRiOeiCZIzWxGftprmRGfMOIa0Ujk6vs4X36t2fsS9T69ewxrnGQGhHJ4ylikFfSF7tnm9jNyUh7mvC/cLLFuc1l8SMXmYplvttgqyRN0Wk5xYhGktCrDE08JyZcMRTqQkMLbD2BAthPqnNTMO4WZxe8EyTwIkSOnfhQc07aZzmPeLqBmfg5R/swnMyWYOW6buFsM93h/HLSkAlWhCVBKPlJmLPGMOglqJjx5JpMyEAxYNfippF9Dyt2NIx1CRB8S8t58QvQT9vn0IlcNZ/RXaQKRyLWFOAOvmbyXCPBHAm4afs3oXrKdkvRbzhtamw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=VMzX9VY/hoxvi4pGJ26AW4l1NTeCRFlTtze2FciUnlQ=;
+ b=aMSDidrPZHu0amYkHXskKS+gXy8MmQD4lGTpfbafiLHE9ysEQy3zH0GAMSADD1BryJV5MLpQoKLKIqHZs7SzKZFLf1T1Pd3bRHVNR5h5YebaxnKgRFhCypgJY1yEE3J3TGbngcCUHndT7BagNsmC1YV4F5MVhZC1tEQZmOP9Zcux1vnyGQvwrCrLHtQ5iBRP/fSDJYDjxOegmmCLIznuhjDI+0W7z1PABc6PvWPxekCGgmCrYFgR5CibqnrnLgh8cpii/gjSVbggMdDGy0+0yFeS9jHHKJuYoBOhxMI372Uks/IYXuThvn/mVpga7xhnMPmOqLsP1BUiWH4LoOpClw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from PH8PR11MB8107.namprd11.prod.outlook.com (2603:10b6:510:256::6)
+ by LV3PR11MB8604.namprd11.prod.outlook.com (2603:10b6:408:1ae::18) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6521.23; Sun, 25 Jun
+ 2023 05:51:45 +0000
+Received: from PH8PR11MB8107.namprd11.prod.outlook.com
+ ([fe80::aeb:12b5:6ac9:fab0]) by PH8PR11MB8107.namprd11.prod.outlook.com
+ ([fe80::aeb:12b5:6ac9:fab0%7]) with mapi id 15.20.6500.029; Sun, 25 Jun 2023
+ 05:51:45 +0000
+Date: Sat, 24 Jun 2023 22:51:42 -0700
+From: Dan Williams <dan.j.williams@intel.com>
+To: Jane Chu <jane.chu@oracle.com>, <dan.j.williams@intel.com>,
+	<vishal.l.verma@intel.com>, <dave.jiang@intel.com>, <ira.weiny@intel.com>,
+	<willy@infradead.org>, <viro@zeniv.linux.org.uk>, <brauner@kernel.org>,
+	<nvdimm@lists.linux.dev>, <linux-kernel@vger.kernel.org>,
+	<linux-fsdevel@vger.kernel.org>
+Subject: RE: [PATCH v5 1/1] dax: enable dax fault handler to report
+ VM_FAULT_HWPOISON
+Message-ID: <6497d5ee65a8f_2ed729471@dwillia2-xfh.jf.intel.com.notmuch>
+References: <20230615181325.1327259-1-jane.chu@oracle.com>
+ <20230615181325.1327259-2-jane.chu@oracle.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20230615181325.1327259-2-jane.chu@oracle.com>
+X-ClientProxiedBy: MW4PR03CA0072.namprd03.prod.outlook.com
+ (2603:10b6:303:b6::17) To PH8PR11MB8107.namprd11.prod.outlook.com
+ (2603:10b6:510:256::6)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:gCh0CgA30JNJnpdkw_XiMQ--.23029S4
-X-Coremail-Antispam: 1UD129KBjvJXoWxGr1xZw1UKF4xWw17JFW8Zwb_yoW5Xr13pr
-	90kayaqr47GF4I9anFya12gFyfX3WDGrZrKFWfuw4fZFZrAF1DGw1vgFyFqa4DGrW8Gaya
-	yFWkJr1jqryUZaDanT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDU0xBIdaVrnRJUUUgKb4IE77IF4wAFF20E14v26r4j6ryUM7CY07I20VC2zVCF04k2
-	6cxKx2IYs7xG6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rwA2F7IY1VAKz4
-	vEj48ve4kI8wA2z4x0Y4vE2Ix0cI8IcVAFwI0_tr0E3s1l84ACjcxK6xIIjxv20xvEc7Cj
-	xVAFwI0_Gr1j6F4UJwA2z4x0Y4vEx4A2jsIE14v26rxl6s0DM28EF7xvwVC2z280aVCY1x
-	0267AKxVW0oVCq3wAS0I0E0xvYzxvE52x082IY62kv0487Mc02F40EFcxC0VAKzVAqx4xG
-	6I80ewAv7VC0I7IYx2IY67AKxVWUJVWUGwAv7VC2z280aVAFwI0_Jr0_Gr1lOx8S6xCaFV
-	Cjc4AY6r1j6r4UM4x0Y48IcxkI7VAKI48JMxAIw28IcxkI7VAKI48JMxC20s026xCaFVCj
-	c4AY6r1j6r4UMI8I3I0E5I8CrVAFwI0_Jr0_Jr4lx2IqxVCjr7xvwVAFwI0_JrI_JrWlx4
-	CE17CEb7AF67AKxVWUtVW8ZwCIc40Y0x0EwIxGrwCI42IY6xIIjxv20xvE14v26r1j6r1x
-	MIIF0xvE2Ix0cI8IcVCY1x0267AKxVWUJVW8JwCI42IY6xAIw20EY4v20xvaj40_WFyUJV
-	Cq3wCI42IY6I8E87Iv67AKxVWUJVW8JwCI42IY6I8E87Iv6xkF7I0E14v26r1j6r4UYxBI
-	daVFxhVjvjDU0xZFpf9x07UWE__UUUUU=
-X-CM-SenderInfo: xkrx3t3r6k3tpzhluzxrxghudrp/
-X-CFilter-Loop: Reflected
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: PH8PR11MB8107:EE_|LV3PR11MB8604:EE_
+X-MS-Office365-Filtering-Correlation-Id: d9aac3cb-3377-474b-0d9e-08db754041f8
+X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: eI0A+Fb6hLLNuU1vx2O/utom15s0kR38Gz9DQeQfhUpW0SEepdDfDp8Xxx3ZsnlIVgZNzL4h1epDmvBAxERf1rqSB10XuP1QUmRNrgjuirymyo/+SL/UJBZHmoJKnB4L2KIRRB+sGrBKsqCxCRFnY7PsKclX0YYIT/jXW7WPRtOP/cyp5k6986Kfpg5tlNljqXv8kEU3V2cKDEkSfwwml5gIn5eaxGJqq89vJmzoxsfzg0pwYMO/uD5ZuKKwTtTlZN6XCKtHfsRCodbIOG5uem6Okoa3XHx23ptxHAtr7Tqfi2v1sdAaGeXwsfs8jEWNhV6zDMG8M4xRQa3OTcNtXhSrELQpvKtIOEGddowMUwaIs2ox9T2Oqig7hvyJbQgLekxBpFZf/7ZpP1QuX7w0xnbi3tXY6kWATY0FdK5rKH6r6k0UeBBL5vhbl0woqt+qjSKw2IyBNse3gEvNnjKD7GTEUamZXWU9/wV8tkPg4qV8k+vibWqO3WTSYDkazKsMZK4GDLuIPhqmtJT5KFum9Pr9je0pjG+xFoZdY8lLiB5O3G9Q1QGhYag+scjCOQm5QsU9BRb+I250WnTf4cZZzKfCmlLFEH5yIsPCTZrMOb8=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH8PR11MB8107.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230028)(136003)(366004)(396003)(39860400002)(346002)(376002)(451199021)(8936002)(8676002)(66476007)(66556008)(66946007)(41300700001)(316002)(6506007)(9686003)(26005)(186003)(6512007)(478600001)(6666004)(6486002)(2906002)(4744005)(5660300002)(82960400001)(921005)(38100700002)(86362001)(83380400001);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?vlPPwaJK5Uz4ycyT6uuazA8db6LbserTlUr8/bh3hUeAEfWKFgZoID9r4+cw?=
+ =?us-ascii?Q?Ur/0H5plRo29yr0tszB1ZLzHLl7HuIzxTh8d9qjWg96Vx/FnWcs0WyAKtfD/?=
+ =?us-ascii?Q?G178mf+8zjxviNpL6x+EgiwRP0Gt5gPx0rRnG+DatE1R2U9iFR6a24ctw/fT?=
+ =?us-ascii?Q?Weuae9rAP8Q4Udu9C4gm5V1VUqTj6vIz7udsMM2l4+BL8y0wLsHAi6nuCn7E?=
+ =?us-ascii?Q?wZhiXFQn989cuNPaFnkblczw/tlsBrUvzTykI/OqzDe8SO+Tg+W4KO4awoR4?=
+ =?us-ascii?Q?wIWDzxw9CGA5drQHc1juAXzLlYjXRSJE7OFOMJJQD5xePoLCmCIJz+KYn6hq?=
+ =?us-ascii?Q?xdhY5zUYO11syTavDs5AGj9fdsndOMt2wFJ2sS3zuwXBbrdDdXutg3yGTIn3?=
+ =?us-ascii?Q?H9KmUXnC/EXF23q1HzsfE3pHMr9g/A4pJBo+RZH/3PL1O0pNK36vutBSHSC8?=
+ =?us-ascii?Q?y/XIIkde7hHGeHnduUs36VVcUL3gc4y1O4QEG5FxWAhitVgrJnA5pazUBxtz?=
+ =?us-ascii?Q?ZdL8SwVjPPJtVZtnMTzj/G2DD+Lyv0K2Z7P6/b87EpyCv2xzQkXMABYZ2VUu?=
+ =?us-ascii?Q?L7X0cfSTI5dTpAbE4HYZM/WcODlzXqlhhrapIL7yjG03ilsYIcCTnbhz8Frm?=
+ =?us-ascii?Q?2dsC1s4zU876pqCX9WZwndfhIYYDn8VcBtdz3k/U9BzIurkyhNUd+LxTEBS1?=
+ =?us-ascii?Q?1qeeOcW0yl6Cepz+7WVaho3ke/7FZcGC42GadTNmIyj1Ar5uZPhgWmzJDlT5?=
+ =?us-ascii?Q?3+YaxL0TjUriZZoIqAki6O5cnJyh6mkn26i45o0+Bt9FLsbhgYth0TVkgwfh?=
+ =?us-ascii?Q?KezI/1eLnmayVtDiBWIldRJZZQi3LEO1A9JA4BlPciLQTj1YhLDSYa/E/T+D?=
+ =?us-ascii?Q?/GyZE4EJ7RDEtkl8tMyqViBTik6KhIOYjTHmnK2ClmumLe9V3uC1+NtuDgrC?=
+ =?us-ascii?Q?7LC8T/OmRnpkfap2r2sc7SSZsslmWauaIImO+EV1QG+PXbiGHzh24M8CkZKN?=
+ =?us-ascii?Q?0BxRY0YSNaAKb5wPzQFp2WXJEkpCqjzYSoiR33VAU45RHNj0Jyl3781QBL10?=
+ =?us-ascii?Q?+D1+tglaOGAPdE+8ng76fF9oAqg/DL1I1av4kOkzMMVQEesrHrywf7g1+Abc?=
+ =?us-ascii?Q?Oz2VnCNVT4JUfM1XAwiBTOTTVwKtZ8t2BU/IxFl0n08YUWWCEd7YymW8/ooK?=
+ =?us-ascii?Q?0RVe90bGOw+AMT1a20arXP2624DgvI/+p8UTfHgkt1TDk+7JY09xtBN+kmmO?=
+ =?us-ascii?Q?MPJt0siJ50lD8U2bU3pH4c1/cQqHdPqibAhxADboXdq2OoNoAaZPaCWj8GgR?=
+ =?us-ascii?Q?l4CDFyrjws0YnfZKwqeq1j0B9BHWRKMAXnahIiWyUwigYNcznkDN3LgKPVnt?=
+ =?us-ascii?Q?MZ49qP6jgrIox3xqKU9WXbKgbZiMY+7a6EyVg6+gEV6T7RrTU6rLtSAXljSY?=
+ =?us-ascii?Q?8NTiZbNi/pidZCu0VnSOeRxcFXDTGr3Yv4mjq9tC6HjujQxkI25a2JNce1Ru?=
+ =?us-ascii?Q?rtWrY9fcow43Nl2frsRGsCoIgHu/E9xOdn9ts4yOVXVepi1SODAtHgLiK+KA?=
+ =?us-ascii?Q?QbuuSp4ogT8IcO0/R1H3+QdmfJepXKzDTsss69Y+oPiaD4wGeGkQCpJWIbmr?=
+ =?us-ascii?Q?zA=3D=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: d9aac3cb-3377-474b-0d9e-08db754041f8
+X-MS-Exchange-CrossTenant-AuthSource: PH8PR11MB8107.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 Jun 2023 05:51:44.9949
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: XdWGMFXgxicjHa/leTC5TJ7P2CSt5r2N2X1n7TBfzgp9ICpJc3CtJJmMSTM34RCu3ERvRR7TziZFL3NPEkNriz5YqB/qLXcI8Ovq1F1KaWw=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: LV3PR11MB8604
+X-OriginatorOrg: intel.com
 
-From: Hou Tao <houtao1@huawei.com>
+Jane Chu wrote:
+> When multiple processes mmap() a dax file, then at some point,
+> a process issues a 'load' and consumes a hwpoison, the process
+> receives a SIGBUS with si_code = BUS_MCEERR_AR and with si_lsb
+> set for the poison scope. Soon after, any other process issues
+> a 'load' to the poisoned page (that is unmapped from the kernel
+> side by memory_failure), it receives a SIGBUS with
+> si_code = BUS_ADRERR and without valid si_lsb.
+> 
+> This is confusing to user, and is different from page fault due
+> to poison in RAM memory, also some helpful information is lost.
+> 
+> Channel dax backend driver's poison detection to the filesystem
+> such that instead of reporting VM_FAULT_SIGBUS, it could report
+> VM_FAULT_HWPOISON.
+> 
+> If user level block IO syscalls fail due to poison, the errno will
+> be converted to EIO to maintain block API consistency.
+> 
+> Signed-off-by: Jane Chu <jane.chu@oracle.com>
 
-When doing mkfs.xfs on a pmem device, the following warning was
-reported and :
-
- ------------[ cut here ]------------
- WARNING: CPU: 2 PID: 384 at block/blk-core.c:751 submit_bio_noacct
- Modules linked in:
- CPU: 2 PID: 384 Comm: mkfs.xfs Not tainted 6.4.0-rc7+ #154
- Hardware name: QEMU Standard PC (i440FX + PIIX, 1996)
- RIP: 0010:submit_bio_noacct+0x340/0x520
- ......
- Call Trace:
-  <TASK>
-  ? asm_exc_invalid_op+0x1b/0x20
-  ? submit_bio_noacct+0x340/0x520
-  ? submit_bio_noacct+0xd5/0x520
-  submit_bio+0x37/0x60
-  async_pmem_flush+0x79/0xa0
-  nvdimm_flush+0x17/0x40
-  pmem_submit_bio+0x370/0x390
-  __submit_bio+0xbc/0x190
-  submit_bio_noacct_nocheck+0x14d/0x370
-  submit_bio_noacct+0x1ef/0x520
-  submit_bio+0x55/0x60
-  submit_bio_wait+0x5a/0xc0
-  blkdev_issue_flush+0x44/0x60
-
-The root cause is that submit_bio_noacct() needs bio_op() is either
-WRITE or ZONE_APPEND for flush bio and async_pmem_flush() doesn't assign
-REQ_OP_WRITE when allocating flush bio, so submit_bio_noacct just fail
-the flush bio.
-
-Simply fix it by adding the missing REQ_OP_WRITE for flush bio. And we
-could fix the flush order issue and do flush optimization later.
-
-Fixes: b4a6bb3a67aa ("block: add a sanity check for non-write flush/fua bios")
-Signed-off-by: Hou Tao <houtao1@huawei.com>
----
-v3:
- * adjust the overly long lines in both commit message and code
-
-v2: https://lore.kernel.org/linux-block/20230621134340.878461-1-houtao@huaweicloud.com
- * do a minimal fix first (Suggested by Christoph)
-
-v1: https://lore.kernel.org/linux-block/ZJLpYMC8FgtZ0k2k@infradead.org/T/#t
-
-Hi Jens & Dan,
-
-I found Pankaj was working on the optimization of virtio-pmem flush bio
-[0], but considering the last status update was 1/12/2022, so could you
-please pick the patch up for v6.4 and we can do the flush optimization
-later ?
-
-[0]: https://lore.kernel.org/lkml/20220111161937.56272-1-pankaj.gupta.linux@gmail.com/T/
-
- drivers/nvdimm/nd_virtio.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/nvdimm/nd_virtio.c b/drivers/nvdimm/nd_virtio.c
-index c6a648fd8744..1f8c667c6f1e 100644
---- a/drivers/nvdimm/nd_virtio.c
-+++ b/drivers/nvdimm/nd_virtio.c
-@@ -105,7 +105,8 @@ int async_pmem_flush(struct nd_region *nd_region, struct bio *bio)
- 	 * parent bio. Otherwise directly call nd_region flush.
- 	 */
- 	if (bio && bio->bi_iter.bi_sector != -1) {
--		struct bio *child = bio_alloc(bio->bi_bdev, 0, REQ_PREFLUSH,
-+		struct bio *child = bio_alloc(bio->bi_bdev, 0,
-+					      REQ_OP_WRITE | REQ_PREFLUSH,
- 					      GFP_ATOMIC);
- 
- 		if (!child)
--- 
-2.29.2
-
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
