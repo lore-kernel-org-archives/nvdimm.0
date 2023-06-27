@@ -1,77 +1,100 @@
-Received: from mout.web.de (mout.web.de [212.227.15.14])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yw1-f178.google.com (mail-yw1-f178.google.com [209.85.128.178])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7838A1FBA
-	for <nvdimm@lists.linux.dev>; Tue, 27 Jun 2023 06:08:57 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=web.de;
- s=s29768273; t=1687846115; x=1688450915; i=markus.elfring@web.de;
- bh=kyZti+N13n/eg1XA3RWpnN8jDbqX61Mapv0U85O1QJo=;
- h=X-UI-Sender-Class:Date:Subject:To:Cc:References:From:In-Reply-To;
- b=N/5+8cC2YBxYK2xgU8R5oWdmatdgKIAftONomBwVQhC/xMPrEcs0ec2i+h1yeMRT1TlWe+o
- 96rUKRGG9ahSN6mHq5R8CmY3irbeH+DqTjhqZL8CWdm8ZDoAUw+wRF6H0AXvMqZPtD1Cx16Uf
- HW1TD0JlLG1khv+kT+8D7G7Q2RMp9NtPkEw6HUZQesKn06EWxAW+jWW69V74X6yoSjSoFD12/
- i5OY8ANdImSqL44yS1V4OYTfLzDKGr4UeSN3rQvSI+wYzXqrCoNhWLsugZN1c6r1aZfYQJkt8
- TOkpvlMxxuibA4qhQN/Pm/KPmkhL8nw3H3tDe1BaoWIBXbeU4Y2A==
-X-UI-Sender-Class: 814a7b36-bfc1-4dae-8640-3722d8ec6cd6
-Received: from [192.168.178.21] ([94.31.82.83]) by smtp.web.de (mrweb005
- [213.165.67.108]) with ESMTPSA (Nemesis) id 1MWi5s-1qXhO63pW4-00WzyW; Tue, 27
- Jun 2023 08:08:34 +0200
-Message-ID: <be3db57c-29d0-cfc9-f0cc-1765b672c57e@web.de>
-Date: Tue, 27 Jun 2023 08:08:19 +0200
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 088E5EC2
+	for <nvdimm@lists.linux.dev>; Tue, 27 Jun 2023 09:03:33 +0000 (UTC)
+Received: by mail-yw1-f178.google.com with SMTP id 00721157ae682-5701e8f2b79so45769337b3.0
+        for <nvdimm@lists.linux.dev>; Tue, 27 Jun 2023 02:03:33 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1687856613; x=1690448613;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=3JRXqOPDxr4QzRMMDLYJq0XKW1q8XBXCSaZThNRBCew=;
+        b=mE5jFny6UV9jwzFH2kdgzn+kA8tg+0ObEk8GMgbgX1aKuaf4uvcd01zZP4G5n4RNjd
+         90gmFzEXmdZIdrY1w7ItMQhnFcs9a3F3EP/n5doFq6BQhj9N6ZI+z9X1K7p2GUO4EGQE
+         H+I1VY672DsAwq+FNkhA0xy/1Lhu5oD3DR9vfJM6UGS02MNyPHb9k6GyDUB4OYaRF1+D
+         EPbVjgxcPLYSpk2pmujrC20GQYV0QonH8+ZxquJ0bhcekXGOFzwlpM4dqL1hIXuI89Kk
+         h1GMIHsQoPzbxh/3Jlaj8QMjHGSaIedtggBGcoume+3Zj0vc/yJuZn57lGOEUVSY4ZOx
+         fYNw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1687856613; x=1690448613;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=3JRXqOPDxr4QzRMMDLYJq0XKW1q8XBXCSaZThNRBCew=;
+        b=lhJBbrBwzWalrJ/wYq0oIB69YWKyc+iS8SlOL9xeRTpQXBnKg7NM2ETR4i7L0JLwPj
+         5DmBFTVi7yZUUNvQgoBndcKTzVo5CFGJkjjQJ4KgVCwCN/Q/e1NIJJJ6dsqbQNDjTD5q
+         HE/cWv0xwzMDI1B71u5u/z7PnBxFxuG6rE72YELTpF64BN48WHecu27yLMnW3ScD1GxX
+         +FXd9/7YxvCLvURjmRU5lb8RKpLu46Jh4GWoRSLmmBeK5sUdgAXFuRA1vcfVFuf85pCU
+         j39J9J62llevBQfdkY6bBKSUkCMxaHAR1nLL5CuZRMIC0j6AtnMVC7rdLVD5u/QMoSTq
+         YgKA==
+X-Gm-Message-State: AC+VfDyA46G6Y4ccrYOFaUNtVwLRjFC6nIonXVzkO26HNsjqxFlvO928
+	dJh/4uMRtBot6WDHpcYg2vb/Bva3kfDeqjbCn1M=
+X-Google-Smtp-Source: ACHHUZ52xbjPsIYXfu8+enac29eP8hqzEgDNDTsDHFkBPFfW/h07pg0eSEKwcFbhJDVFhgRyKvuTHSazwi3qPVgHwCI=
+X-Received: by 2002:a25:b325:0:b0:bfe:ade3:e59c with SMTP id
+ l37-20020a25b325000000b00bfeade3e59cmr17387287ybj.64.1687856612790; Tue, 27
+ Jun 2023 02:03:32 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.12.0
-Subject: Re: [v5 0/1] dax: enable dax fault handler to report
- VM_FAULT_HWPOISON
-To: Jane Chu <jane.chu@oracle.com>, nvdimm@lists.linux.dev,
- linux-fsdevel@vger.kernel.org, kernel-janitors@vger.kernel.org
-Cc: LKML <linux-kernel@vger.kernel.org>,
- Alexander Viro <viro@zeniv.linux.org.uk>,
- Christian Brauner <brauner@kernel.org>,
- Dan Williams <dan.j.williams@intel.com>, Dave Jiang <dave.jiang@intel.com>,
- Ira Weiny <ira.weiny@intel.com>, Matthew Wilcox <willy@infradead.org>,
- Vishal Verma <vishal.l.verma@intel.com>
-References: <20230615181325.1327259-1-jane.chu@oracle.com>
- <b57afc45-6bf8-3849-856f-2873e60fcf97@web.de>
- <18ca0017-821b-595c-0d5a-25adb04196c1@oracle.com>
-Content-Language: en-GB
-From: Markus Elfring <Markus.Elfring@web.de>
-In-Reply-To: <18ca0017-821b-595c-0d5a-25adb04196c1@oracle.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-Provags-ID: V03:K1:fdbUZZO32IgHwZluWxmMqT/FRq+d+sTbjHLEPUp4ZGqm1YqrYN5
- A0Ii8Bwgum0XUwXxZuNULreyYpmVUa/5Fv8tybRxjwmZf7YOYDFrH9j/6pIC1okOJO+WUED
- rNypPqMu6bjdnIVnEJywBU9YoEg8QXKuqF9n7AkJUtw1qCAwFTsFG0e2WBGYiKpI1ke3ZIX
- laVTYoY7b7p15Vt7ddKZg==
-X-Spam-Flag: NO
-UI-OutboundReport: notjunk:1;M01:P0:6sekaRNOfuM=;ZjX02JN1LV3w65TrCfOlxL4pjll
- x38CGstj5lEw5extchG6BXfoSWcdgQxptjYhyAbz85y1uKFQ7QlOZRAAByn85UE4f5mpiZ3jT
- Nk/VtGD1Pa5tGvRaISChQGIzVMWYTc0Y/8DIYtfqBKiJFOwjiCw22Ap0gQ/7AyUSdcWfqsGO+
- 45KwmFCFhcf5mChJB5R5eG8XEhlRXzOxI2We/JWrHDsU1RwX9zr+hKNVJ54iy3Ur5MNpBU+eM
- X8yc1+cF7ROPpu5aiziDgAFGxU4ZeSFG/prAB12sIe3tiaMBxG46+cEwwW4tIFGHerJIdrDW+
- +e8MIExl1SmcgRqiTfHf+Rq7OXWeHKgU1eMc2wMq/zYo8QmZNJYk4xx5W9sZphpxC4UgYu/cf
- ln+HRliG+M98eKtPAlmahy214oXyJnhiBozNUEfmZQot5SIHhbDmJobgxviTXoXjfMKnvE2ll
- 2M+7/V809IBTZhP3spFSO9YpleddLvFbu7x1/VGn01DBN7Cp4oy39pT7fzge9d86S2gwiX9cn
- H93rnQrMiKcdjTXpFFxCHrqi0CdhSar5BnRG9DqzsmdToXwWtC5lL+0UH+U8zrj8X/2NeSs3U
- FifvAVqRBqh6kTC4dmsni4z8DQ6SoeOxRuP/QpD/QVsuYgEGAh4TRH+eB9e7QMiYHVR00Ei6z
- TeLFYcXKshEQAOlYvLyKiipIf+uM0+TpuvCxsFphldRlzU3QkxWmHBMtwMwNFVeZOo6fB3e2q
- /BBAfVpTTpJJwo/iU3mswSaeIOUnYrK6fS1wV8hP0zEloIICPh5PrON1kYfSMXY3XcOaVzfNw
- 4sDCBu7QqWcXc9h4EU8OZm9zJriIbnG4K9vqzPn6brILeIIdlg+DFg6oATbFC+yyazO6HlRxp
- krGaGyOKfjsulHZ1AXAS9Wv0Fz/ETiTdUWYecAPapRjPhX4wPJNk4QbuqNgE+jwHDn9HvJEbw
- qyPxjQ==
+References: <ZJL3+E5P+Yw5jDKy@infradead.org> <20230625022633.2753877-1-houtao@huaweicloud.com>
+In-Reply-To: <20230625022633.2753877-1-houtao@huaweicloud.com>
+From: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Date: Tue, 27 Jun 2023 11:03:21 +0200
+Message-ID: <CAM9Jb+hrspvxXi87buwkUmhHczaC6qian36OxcMkXx=6pseOrQ@mail.gmail.com>
+Subject: Re: [PATCH v3] virtio_pmem: add the missing REQ_OP_WRITE for flush bio
+To: Hou Tao <houtao@huaweicloud.com>
+Cc: Dan Williams <dan.j.williams@intel.com>, Jens Axboe <axboe@kernel.dk>, 
+	Christoph Hellwig <hch@infradead.org>, linux-block@vger.kernel.org, nvdimm@lists.linux.dev, 
+	virtualization@lists.linux-foundation.org, houtao1@huawei.com
+Content-Type: text/plain; charset="UTF-8"
 
-> The thought was to put descriptions unsuitable for commit header in the cover letter.
+> From: Hou Tao <houtao1@huawei.com>
+>
+> When doing mkfs.xfs on a pmem device, the following warning was
+> reported and :
+>
+>  ------------[ cut here ]------------
+>  WARNING: CPU: 2 PID: 384 at block/blk-core.c:751 submit_bio_noacct
+>  Modules linked in:
+>  CPU: 2 PID: 384 Comm: mkfs.xfs Not tainted 6.4.0-rc7+ #154
+>  Hardware name: QEMU Standard PC (i440FX + PIIX, 1996)
+>  RIP: 0010:submit_bio_noacct+0x340/0x520
+>  ......
+>  Call Trace:
+>   <TASK>
+>   ? asm_exc_invalid_op+0x1b/0x20
+>   ? submit_bio_noacct+0x340/0x520
+>   ? submit_bio_noacct+0xd5/0x520
+>   submit_bio+0x37/0x60
+>   async_pmem_flush+0x79/0xa0
+>   nvdimm_flush+0x17/0x40
+>   pmem_submit_bio+0x370/0x390
+>   __submit_bio+0xbc/0x190
+>   submit_bio_noacct_nocheck+0x14d/0x370
+>   submit_bio_noacct+0x1ef/0x520
+>   submit_bio+0x55/0x60
+>   submit_bio_wait+0x5a/0xc0
+>   blkdev_issue_flush+0x44/0x60
+>
+> The root cause is that submit_bio_noacct() needs bio_op() is either
+> WRITE or ZONE_APPEND for flush bio and async_pmem_flush() doesn't assign
+> REQ_OP_WRITE when allocating flush bio, so submit_bio_noacct just fail
+> the flush bio.
+>
+> Simply fix it by adding the missing REQ_OP_WRITE for flush bio. And we
+> could fix the flush order issue and do flush optimization later.
+>
+> Fixes: b4a6bb3a67aa ("block: add a sanity check for non-write flush/fua bios")
+> Signed-off-by: Hou Tao <houtao1@huawei.com>
 
-How do you think about to put additional information below triple dashes
-(or even into improved change descriptions)?
+With 6.3+ stable Cc, Feel free to add:
 
-See also:
-https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/Documentation/process/submitting-patches.rst?h=v6.4#n686
+Reviewed-by: Pankaj Gupta <pankaj.gupta@amd.com>
+Tested-by: Pankaj Gupta <pankaj.gupta@amd.com>
 
-Regards,
-Markus
+Thanks,
+Pankaj
