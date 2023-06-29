@@ -1,40 +1,40 @@
-Received: from mail-ej1-f48.google.com (mail-ej1-f48.google.com [209.85.218.48])
+Received: from mail-lj1-f172.google.com (mail-lj1-f172.google.com [209.85.208.172])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7759134AF
-	for <nvdimm@lists.linux.dev>; Thu, 29 Jun 2023 15:58:13 +0000 (UTC)
-Received: by mail-ej1-f48.google.com with SMTP id a640c23a62f3a-98dfd15aae1so24990366b.0
-        for <nvdimm@lists.linux.dev>; Thu, 29 Jun 2023 08:58:13 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2BF512B89
+	for <nvdimm@lists.linux.dev>; Thu, 29 Jun 2023 16:06:07 +0000 (UTC)
+Received: by mail-lj1-f172.google.com with SMTP id 38308e7fff4ca-2b588fa06d3so2391701fa.1
+        for <nvdimm@lists.linux.dev>; Thu, 29 Jun 2023 09:06:07 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1688054292; x=1690646292;
+        d=1e100.net; s=20221208; t=1688054766; x=1690646766;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=/qetn1nrmN6G9CR9gXQ9Em61uIidpmKRRe6NZOrRfh0=;
-        b=bPPi7RURDv909cWZd8PNbQf2zpmTlEqN1QRCKiyO1gzWLFWHYstAnALniAfO54cbBd
-         SnzlevVK4V5CIFnCbbLyrWgMT2dk/aFCT4K32EvqAXMdMSjcA+fe1S07LI5p8WI9YukN
-         cflWw40rFxOLKRT4YqhiygC+4B5kPO2qoEvHI0zNrl2Sb4IwE74hkgId7Pu3kuEeiUMD
-         XPDu2wuL0I9GTM5wq0hlMwRREqEou9TjFG6kYyiOgob73xSUioyIsobU+SSJdwWoC1TN
-         6mfkOKTmD/XKsxRgxTBnRxzRVpykO5VrOz6nMxEwTaRsVgpeTqxjL4c5Jl2qecw496fY
-         G55Q==
-X-Gm-Message-State: AC+VfDyQyJlaEGm7iuer5ko9zT6ijpYXJUS0oUI7JrQPuOoHJCjHuk9T
-	/eNZZUvWM7HKnxVUFWEf73dgT39vbNknttnjXqA=
-X-Google-Smtp-Source: ACHHUZ7+pEVSf5OQUS/L9yOGMCIw+NnHEsH8WFpD3o92yk1tDC27bL5HKJgEqqmZ2HElw6dwaudN/vgTvTilF1g5RzA=
-X-Received: by 2002:a17:906:6493:b0:987:6960:36c5 with SMTP id
- e19-20020a170906649300b00987696036c5mr27088527ejm.6.1688054291833; Thu, 29
- Jun 2023 08:58:11 -0700 (PDT)
+        bh=ntbPBy9hL81QsIqvjwYhJyNuvTZOUVlNvwxpzjeFHfM=;
+        b=cmMalPtRjnbEfTu2w4cVsQSimzq6dnnEQbqCUJzELE/k6X4cTaNskk0B9LSJfvZw+u
+         oOeB1M+p88xgSiEiuC2tTlismfMDWkmr6ksSad+vjMDSx2rLnFhgTVsAlKVuk8ZiyLz+
+         VSSf8nQDbSOo2C4J7hghDVD0uyJ9WnJmBNHNvr573CcO3OJsL/Xus2XfoTJGDuWgAZqD
+         FCg+cEToDquWOprOEVbTAPtj0W14Qt7jNIB6wf0QKbwrLWZ8NNYBBYNc7A+wxxah/+RA
+         2m1AvdGDwqtTbsCtr4v9WzFDObj1cqjJHbr8Hcb+Ky7MTGrDi/c2PWucO1MILD8T3++D
+         PbNQ==
+X-Gm-Message-State: ABy/qLaCCFNHiqEE6VFjH63AP4/AgEzaaafl9mXMdz08CTt09Fg3Jy+u
+	Avi14DhnWQzLcgDCtBZ7JNTAj6D0+mkkQ1EkxEE=
+X-Google-Smtp-Source: APBJJlEBeNzBQoTEpcMIau50F2Gui9AM3lBLb2enorCyrJ6R7CueEN1gDl0LhpN3gVgaDLrcFOBjIILOG0ucvKIjtRY=
+X-Received: by 2002:a2e:9844:0:b0:2b6:a882:129c with SMTP id
+ e4-20020a2e9844000000b002b6a882129cmr210688ljj.0.1688054765305; Thu, 29 Jun
+ 2023 09:06:05 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20230616165034.3630141-1-michal.wilczynski@intel.com> <20230616165034.3630141-5-michal.wilczynski@intel.com>
-In-Reply-To: <20230616165034.3630141-5-michal.wilczynski@intel.com>
+References: <20230616165034.3630141-1-michal.wilczynski@intel.com> <20230616165034.3630141-6-michal.wilczynski@intel.com>
+In-Reply-To: <20230616165034.3630141-6-michal.wilczynski@intel.com>
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Thu, 29 Jun 2023 17:58:00 +0200
-Message-ID: <CAJZ5v0hZ-2Ee0DCcgzHJrOikRTOJuCbEbQj24xui_-vmbd+47Q@mail.gmail.com>
-Subject: Re: [PATCH v5 04/10] acpi/video: Move handler installing logic to driver
+Date: Thu, 29 Jun 2023 18:05:54 +0200
+Message-ID: <CAJZ5v0i1-7p-V0nFHoNWHDXRZ-xvVwTXJKM387PTP1d4k7Wrdg@mail.gmail.com>
+Subject: Re: [PATCH v5 05/10] acpi/battery: Move handler installing logic to driver
 To: Michal Wilczynski <michal.wilczynski@intel.com>
 Cc: linux-acpi@vger.kernel.org, rafael@kernel.org, dan.j.williams@intel.com, 
 	vishal.l.verma@intel.com, lenb@kernel.org, dave.jiang@intel.com, 
@@ -59,93 +59,101 @@ On Fri, Jun 16, 2023 at 6:51=E2=80=AFPM Michal Wilczynski
 > what's required by acpi_install_notify_handler(). Remove .notify
 > callback initialization in acpi_driver.
 >
+> While at it, fix lack of whitespaces in .remove() callback.
+>
 > Suggested-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > Signed-off-by: Michal Wilczynski <michal.wilczynski@intel.com>
 > ---
->  drivers/acpi/acpi_video.c | 26 ++++++++++++++++++++++----
->  1 file changed, 22 insertions(+), 4 deletions(-)
+>  drivers/acpi/battery.c | 30 ++++++++++++++++++++++++------
+>  1 file changed, 24 insertions(+), 6 deletions(-)
 >
-> diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
-> index 62f4364e4460..60b7013d0009 100644
-> --- a/drivers/acpi/acpi_video.c
-> +++ b/drivers/acpi/acpi_video.c
-> @@ -77,7 +77,7 @@ static DEFINE_MUTEX(video_list_lock);
->  static LIST_HEAD(video_bus_head);
->  static int acpi_video_bus_add(struct acpi_device *device);
->  static void acpi_video_bus_remove(struct acpi_device *device);
-> -static void acpi_video_bus_notify(struct acpi_device *device, u32 event)=
-;
-> +static void acpi_video_bus_notify(acpi_handle handle, u32 event, void *d=
-ata);
->
->  /*
->   * Indices in the _BCL method response: the first two items are special,
-> @@ -104,7 +104,6 @@ static struct acpi_driver acpi_video_bus =3D {
->         .ops =3D {
->                 .add =3D acpi_video_bus_add,
->                 .remove =3D acpi_video_bus_remove,
-> -               .notify =3D acpi_video_bus_notify,
->                 },
->  };
->
-> @@ -1527,12 +1526,15 @@ static int acpi_video_bus_stop_devices(struct acp=
-i_video_bus *video)
->                                   acpi_osi_is_win8() ? 0 : 1);
+> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+> index 9c67ed02d797..6337e7b1f6e1 100644
+> --- a/drivers/acpi/battery.c
+> +++ b/drivers/acpi/battery.c
+> @@ -1034,11 +1034,14 @@ static void acpi_battery_refresh(struct acpi_batt=
+ery *battery)
 >  }
 >
-> -static void acpi_video_bus_notify(struct acpi_device *device, u32 event)
-> +static void acpi_video_bus_notify(acpi_handle handle, u32 event, void *d=
-ata)
+>  /* Driver Interface */
+> -static void acpi_battery_notify(struct acpi_device *device, u32 event)
+> +static void acpi_battery_notify(acpi_handle handle, u32 event, void *dat=
+a)
 >  {
-> -       struct acpi_video_bus *video =3D acpi_driver_data(device);
+> -       struct acpi_battery *battery =3D acpi_driver_data(device);
 > +       struct acpi_device *device =3D data;
-> +       struct acpi_video_bus *video;
->         struct input_dev *input;
->         int keycode =3D 0;
+> +       struct acpi_battery *battery;
+>         struct power_supply *old;
 >
-> +       video =3D acpi_driver_data(device);
+> +       battery =3D acpi_driver_data(device);
 > +
->         if (!video || !video->input)
+>         if (!battery)
 >                 return;
+>         old =3D battery->bat;
+> @@ -1212,13 +1215,23 @@ static int acpi_battery_add(struct acpi_device *d=
+evice)
 >
-> @@ -2053,8 +2055,20 @@ static int acpi_video_bus_add(struct acpi_device *=
-device)
+>         device_init_wakeup(&device->dev, 1);
 >
->         acpi_video_bus_add_notify_handler(video);
->
-> +       error =3D acpi_dev_install_notify_handler(device,
-> +                                               ACPI_DEVICE_NOTIFY,
-> +                                               acpi_video_bus_notify);
-> +       if (error)
-> +               goto err_remove_and_unregister_video;
+> -       return result;
+> +       result =3D acpi_dev_install_notify_handler(device,
+> +                                                ACPI_ALL_NOTIFY,
+> +                                                acpi_battery_notify);
+> +       if (result)
+> +               goto fail_deinit_wakup_and_unregister;
 
-This label name is a bit too long and the second half of it doesn't
-really add any value IMV.  err_remove would be sufficient.
+You could call the label "fail_pm", for example, which would be more
+concise and so slightly easier to follow, without any loss of clarity
+AFAICS.
 
 > +
->         return 0;
+> +       return 0;
 >
-> +err_remove_and_unregister_video:
-> +       mutex_lock(&video_list_lock);
-> +       list_del(&video->entry);
-> +       mutex_unlock(&video_list_lock);
-> +       acpi_video_bus_remove_notify_handler(video);
-> +       acpi_video_bus_unregister_backlight(video);
->  err_put_video:
->         acpi_video_bus_put_devices(video);
->         kfree(video->attached_array);
-> @@ -2075,6 +2089,10 @@ static void acpi_video_bus_remove(struct acpi_devi=
-ce *device)
+> +fail_deinit_wakup_and_unregister:
+> +       device_init_wakeup(&device->dev, 0);
+> +       unregister_pm_notifier(&battery->pm_nb);
+>  fail:
+>         sysfs_remove_battery(battery);
+>         mutex_destroy(&battery->lock);
+>         mutex_destroy(&battery->sysfs_lock);
+>         kfree(battery);
+> +
+>         return result;
+>  }
 >
->         video =3D acpi_driver_data(device);
+> @@ -1228,10 +1241,17 @@ static void acpi_battery_remove(struct acpi_devic=
+e *device)
 >
+>         if (!device || !acpi_driver_data(device))
+>                 return;
+> -       device_init_wakeup(&device->dev, 0);
+> +
+>         battery =3D acpi_driver_data(device);
+> +
 > +       acpi_dev_remove_notify_handler(device,
-> +                                      ACPI_DEVICE_NOTIFY,
-> +                                      acpi_video_bus_notify);
+> +                                      ACPI_ALL_NOTIFY,
+> +                                      acpi_battery_notify);
 > +
->         mutex_lock(&video_list_lock);
->         list_del(&video->entry);
->         mutex_unlock(&video_list_lock);
+> +       device_init_wakeup(&device->dev, 0);
+>         unregister_pm_notifier(&battery->pm_nb);
+>         sysfs_remove_battery(battery);
+> +
+>         mutex_destroy(&battery->lock);
+>         mutex_destroy(&battery->sysfs_lock);
+>         kfree(battery);
+> @@ -1264,11 +1284,9 @@ static struct acpi_driver acpi_battery_driver =3D =
+{
+>         .name =3D "battery",
+>         .class =3D ACPI_BATTERY_CLASS,
+>         .ids =3D battery_device_ids,
+> -       .flags =3D ACPI_DRIVER_ALL_NOTIFY_EVENTS,
+>         .ops =3D {
+>                 .add =3D acpi_battery_add,
+>                 .remove =3D acpi_battery_remove,
+> -               .notify =3D acpi_battery_notify,
+>                 },
+>         .drv.pm =3D &acpi_battery_pm,
+>  };
 > --
 > 2.41.0
 >
