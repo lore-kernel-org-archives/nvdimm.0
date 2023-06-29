@@ -1,159 +1,94 @@
-Received: from mail-lj1-f172.google.com (mail-lj1-f172.google.com [209.85.208.172])
+Received: from mail-ej1-f46.google.com (mail-ej1-f46.google.com [209.85.218.46])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2BF512B89
-	for <nvdimm@lists.linux.dev>; Thu, 29 Jun 2023 16:06:07 +0000 (UTC)
-Received: by mail-lj1-f172.google.com with SMTP id 38308e7fff4ca-2b588fa06d3so2391701fa.1
-        for <nvdimm@lists.linux.dev>; Thu, 29 Jun 2023 09:06:07 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39B7712B89
+	for <nvdimm@lists.linux.dev>; Thu, 29 Jun 2023 16:07:06 +0000 (UTC)
+Received: by mail-ej1-f46.google.com with SMTP id a640c23a62f3a-98e2865e2f2so22181866b.0
+        for <nvdimm@lists.linux.dev>; Thu, 29 Jun 2023 09:07:05 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1688054766; x=1690646766;
+        d=1e100.net; s=20221208; t=1688054824; x=1690646824;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=ntbPBy9hL81QsIqvjwYhJyNuvTZOUVlNvwxpzjeFHfM=;
-        b=cmMalPtRjnbEfTu2w4cVsQSimzq6dnnEQbqCUJzELE/k6X4cTaNskk0B9LSJfvZw+u
-         oOeB1M+p88xgSiEiuC2tTlismfMDWkmr6ksSad+vjMDSx2rLnFhgTVsAlKVuk8ZiyLz+
-         VSSf8nQDbSOo2C4J7hghDVD0uyJ9WnJmBNHNvr573CcO3OJsL/Xus2XfoTJGDuWgAZqD
-         FCg+cEToDquWOprOEVbTAPtj0W14Qt7jNIB6wf0QKbwrLWZ8NNYBBYNc7A+wxxah/+RA
-         2m1AvdGDwqtTbsCtr4v9WzFDObj1cqjJHbr8Hcb+Ky7MTGrDi/c2PWucO1MILD8T3++D
-         PbNQ==
-X-Gm-Message-State: ABy/qLaCCFNHiqEE6VFjH63AP4/AgEzaaafl9mXMdz08CTt09Fg3Jy+u
-	Avi14DhnWQzLcgDCtBZ7JNTAj6D0+mkkQ1EkxEE=
-X-Google-Smtp-Source: APBJJlEBeNzBQoTEpcMIau50F2Gui9AM3lBLb2enorCyrJ6R7CueEN1gDl0LhpN3gVgaDLrcFOBjIILOG0ucvKIjtRY=
-X-Received: by 2002:a2e:9844:0:b0:2b6:a882:129c with SMTP id
- e4-20020a2e9844000000b002b6a882129cmr210688ljj.0.1688054765305; Thu, 29 Jun
- 2023 09:06:05 -0700 (PDT)
+        bh=9xfZ/TTJf1ZjgTOZZ4dAslTfGuQT8e+I59Ry3r/mWbg=;
+        b=FPsolf4CWJKjsuyXGhb2xzFNPJQiBZxaR+E22BuHQq92IE4Qw01lHiCX56oiU7NwJ6
+         Jv0UVhqj9fBqo9liE3D8jLghUSzhv05mjanFi0xPTd6OPZsHHjFclmX/Fpol18DA/58Z
+         Ew/Em9JD8vR7Z6DGRG7vkWY+Dplq1jGaRZAMf86Snj3a12OpjFHxcf7pYUi1HtIQ+2Ix
+         CNNxzecgYtkfiw2XE74Q5r/afQvJsWsdMVH6H2h4oCXmIGNQ7IvpfXtVM+jK//vfbTd4
+         x68V7hPRUIx3/a2yNoiSynd1Ir0kLTKqtXzDcqU0M6Nb3gOd7Mkkzi0zI+tV59iNXgEk
+         HG+w==
+X-Gm-Message-State: AC+VfDwblITSgY88nrIf4mc6biEOu1D80LyEYSEkIVe+nBgi6fa3Jbe1
+	kucbhNtcOMXgD2wha0oOX+JBhPgpclS94tKTN4A=
+X-Google-Smtp-Source: ACHHUZ7cgRYS8YYVr3hCgsEpgcP5bbQZjvy53V/YLYKMqwUMwZxw17sb6Umt8V35dOqpNIQVa2PqIZJi+LLWZLBY/tI=
+X-Received: by 2002:a17:906:7a45:b0:988:8e7a:d953 with SMTP id
+ i5-20020a1709067a4500b009888e7ad953mr2397442ejo.1.1688054824132; Thu, 29 Jun
+ 2023 09:07:04 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20230616165034.3630141-1-michal.wilczynski@intel.com> <20230616165034.3630141-6-michal.wilczynski@intel.com>
-In-Reply-To: <20230616165034.3630141-6-michal.wilczynski@intel.com>
+References: <20230616165034.3630141-1-michal.wilczynski@intel.com> <20230616165034.3630141-8-michal.wilczynski@intel.com>
+In-Reply-To: <20230616165034.3630141-8-michal.wilczynski@intel.com>
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Thu, 29 Jun 2023 18:05:54 +0200
-Message-ID: <CAJZ5v0i1-7p-V0nFHoNWHDXRZ-xvVwTXJKM387PTP1d4k7Wrdg@mail.gmail.com>
-Subject: Re: [PATCH v5 05/10] acpi/battery: Move handler installing logic to driver
+Date: Thu, 29 Jun 2023 18:06:53 +0200
+Message-ID: <CAJZ5v0jjwk+jVsULD8nyguc7p00Sn3Hyxq7=PLNzpj-Fz6H6sg@mail.gmail.com>
+Subject: Re: [PATCH v5 07/10] acpi/nfit: Move acpi_nfit_notify() before acpi_nfit_add()
 To: Michal Wilczynski <michal.wilczynski@intel.com>
 Cc: linux-acpi@vger.kernel.org, rafael@kernel.org, dan.j.williams@intel.com, 
 	vishal.l.verma@intel.com, lenb@kernel.org, dave.jiang@intel.com, 
 	ira.weiny@intel.com, rui.zhang@intel.com, linux-kernel@vger.kernel.org, 
-	nvdimm@lists.linux.dev, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>
+	nvdimm@lists.linux.dev
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
 On Fri, Jun 16, 2023 at 6:51=E2=80=AFPM Michal Wilczynski
 <michal.wilczynski@intel.com> wrote:
 >
-> Currently logic for installing notifications from ACPI devices is
-> implemented using notify callback in struct acpi_driver. Preparations
-> are being made to replace acpi_driver with more generic struct
-> platform_driver, which doesn't contain notify callback. Furthermore
-> as of now handlers are being called indirectly through
-> acpi_notify_device(), which decreases performance.
+> To use new style of installing event handlers acpi_nfit_notify() needs
+> to be known inside acpi_nfit_add(). Move acpi_nfit_notify() upwards in
+> the file, so it can be used inside acpi_nfit_add().
 >
-> Call acpi_dev_install_notify_handler() at the end of .add() callback.
-> Call acpi_dev_remove_notify_handler() at the beginning of .remove()
-> callback. Change arguments passed to the notify function to match with
-> what's required by acpi_install_notify_handler(). Remove .notify
-> callback initialization in acpi_driver.
->
-> While at it, fix lack of whitespaces in .remove() callback.
->
-> Suggested-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > Signed-off-by: Michal Wilczynski <michal.wilczynski@intel.com>
 > ---
->  drivers/acpi/battery.c | 30 ++++++++++++++++++++++++------
->  1 file changed, 24 insertions(+), 6 deletions(-)
+>  drivers/acpi/nfit/core.c | 14 +++++++-------
+>  1 file changed, 7 insertions(+), 7 deletions(-)
 >
-> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-> index 9c67ed02d797..6337e7b1f6e1 100644
-> --- a/drivers/acpi/battery.c
-> +++ b/drivers/acpi/battery.c
-> @@ -1034,11 +1034,14 @@ static void acpi_battery_refresh(struct acpi_batt=
-ery *battery)
+> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> index 07204d482968..aff79cbc2190 100644
+> --- a/drivers/acpi/nfit/core.c
+> +++ b/drivers/acpi/nfit/core.c
+> @@ -3312,6 +3312,13 @@ void acpi_nfit_shutdown(void *data)
 >  }
+>  EXPORT_SYMBOL_GPL(acpi_nfit_shutdown);
 >
->  /* Driver Interface */
-> -static void acpi_battery_notify(struct acpi_device *device, u32 event)
-> +static void acpi_battery_notify(acpi_handle handle, u32 event, void *dat=
-a)
+> +static void acpi_nfit_notify(struct acpi_device *adev, u32 event)
+> +{
+> +       device_lock(&adev->dev);
+> +       __acpi_nfit_notify(&adev->dev, adev->handle, event);
+> +       device_unlock(&adev->dev);
+> +}
+> +
+>  static int acpi_nfit_add(struct acpi_device *adev)
 >  {
-> -       struct acpi_battery *battery =3D acpi_driver_data(device);
-> +       struct acpi_device *device =3D data;
-> +       struct acpi_battery *battery;
->         struct power_supply *old;
->
-> +       battery =3D acpi_driver_data(device);
-> +
->         if (!battery)
->                 return;
->         old =3D battery->bat;
-> @@ -1212,13 +1215,23 @@ static int acpi_battery_add(struct acpi_device *d=
-evice)
->
->         device_init_wakeup(&device->dev, 1);
->
-> -       return result;
-> +       result =3D acpi_dev_install_notify_handler(device,
-> +                                                ACPI_ALL_NOTIFY,
-> +                                                acpi_battery_notify);
-> +       if (result)
-> +               goto fail_deinit_wakup_and_unregister;
-
-You could call the label "fail_pm", for example, which would be more
-concise and so slightly easier to follow, without any loss of clarity
-AFAICS.
-
-> +
-> +       return 0;
->
-> +fail_deinit_wakup_and_unregister:
-> +       device_init_wakeup(&device->dev, 0);
-> +       unregister_pm_notifier(&battery->pm_nb);
->  fail:
->         sysfs_remove_battery(battery);
->         mutex_destroy(&battery->lock);
->         mutex_destroy(&battery->sysfs_lock);
->         kfree(battery);
-> +
->         return result;
+>         struct acpi_buffer buf =3D { ACPI_ALLOCATE_BUFFER, NULL };
+> @@ -3446,13 +3453,6 @@ void __acpi_nfit_notify(struct device *dev, acpi_h=
+andle handle, u32 event)
 >  }
+>  EXPORT_SYMBOL_GPL(__acpi_nfit_notify);
 >
-> @@ -1228,10 +1241,17 @@ static void acpi_battery_remove(struct acpi_devic=
-e *device)
->
->         if (!device || !acpi_driver_data(device))
->                 return;
-> -       device_init_wakeup(&device->dev, 0);
-> +
->         battery =3D acpi_driver_data(device);
-> +
-> +       acpi_dev_remove_notify_handler(device,
-> +                                      ACPI_ALL_NOTIFY,
-> +                                      acpi_battery_notify);
-> +
-> +       device_init_wakeup(&device->dev, 0);
->         unregister_pm_notifier(&battery->pm_nb);
->         sysfs_remove_battery(battery);
-> +
->         mutex_destroy(&battery->lock);
->         mutex_destroy(&battery->sysfs_lock);
->         kfree(battery);
-> @@ -1264,11 +1284,9 @@ static struct acpi_driver acpi_battery_driver =3D =
-{
->         .name =3D "battery",
->         .class =3D ACPI_BATTERY_CLASS,
->         .ids =3D battery_device_ids,
-> -       .flags =3D ACPI_DRIVER_ALL_NOTIFY_EVENTS,
->         .ops =3D {
->                 .add =3D acpi_battery_add,
->                 .remove =3D acpi_battery_remove,
-> -               .notify =3D acpi_battery_notify,
->                 },
->         .drv.pm =3D &acpi_battery_pm,
->  };
+> -static void acpi_nfit_notify(struct acpi_device *adev, u32 event)
+> -{
+> -       device_lock(&adev->dev);
+> -       __acpi_nfit_notify(&adev->dev, adev->handle, event);
+> -       device_unlock(&adev->dev);
+> -}
+> -
+>  static const struct acpi_device_id acpi_nfit_ids[] =3D {
+>         { "ACPI0012", 0 },
+>         { "", 0 },
 > --
-> 2.41.0
->
+
+Please fold this patch into the next one.  By itself, it is an
+artificial change IMV.
