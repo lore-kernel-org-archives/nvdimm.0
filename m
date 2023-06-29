@@ -1,151 +1,113 @@
-Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f49.google.com (mail-ej1-f49.google.com [209.85.218.49])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2BA4810959;
-	Thu, 29 Jun 2023 12:03:40 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1688040221; x=1719576221;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=MBbSbcK9F4Hh8jsyxNjcbnUbWXs38VmIRaYcEIVQG+g=;
-  b=MCVLY5iYAe+iUwgmK6BTMUcMhMl6nyx7A6rLFTpBN95ixpV53Wk0HQ8y
-   Nd8zHadniYjZ+Pc6aY0pdzT2U/I+zabZ5WgOE0xqnYooYl28kW1Uj/itp
-   iEheulCzoXnkLimi+C4uj0swAwqM+GpaVXUmieAXSR6jty8fhwmUSGbqj
-   vccyRrfUcYOyyqa/+awo7d362qcVVWV+bLgeX0r0mtdmrWHhbiGWIQqKL
-   HCUGGSFalz7sBZB/hk0b8UHwaiAnBG8ki9fzkAf2CuxsVXhYY+Fn6odkj
-   d791az6w2RZcZyTukRqHdFxFMJiKIWu/pgVsRCNZMeso+67vIkDQDmGpB
-   Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10755"; a="425759060"
-X-IronPort-AV: E=Sophos;i="6.01,168,1684825200"; 
-   d="scan'208";a="425759060"
-Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Jun 2023 05:03:28 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10755"; a="667488588"
-X-IronPort-AV: E=Sophos;i="6.01,168,1684825200"; 
-   d="scan'208";a="667488588"
-Received: from lkp-server01.sh.intel.com (HELO 783282924a45) ([10.239.97.150])
-  by orsmga003.jf.intel.com with ESMTP; 29 Jun 2023 05:03:25 -0700
-Received: from kbuild by 783282924a45 with local (Exim 4.96)
-	(envelope-from <lkp@intel.com>)
-	id 1qEqMu-000E7d-21;
-	Thu, 29 Jun 2023 12:03:24 +0000
-Date: Thu, 29 Jun 2023 20:02:52 +0800
-From: kernel test robot <lkp@intel.com>
-To: Shiyang Ruan <ruansy.fnst@fujitsu.com>, linux-fsdevel@vger.kernel.org,
-	nvdimm@lists.linux.dev, linux-xfs@vger.kernel.org,
-	linux-mm@kvack.org
-Cc: oe-kbuild-all@lists.linux.dev, dan.j.williams@intel.com,
-	willy@infradead.org, jack@suse.cz, akpm@linux-foundation.org,
-	djwong@kernel.org, mcgrof@kernel.org
-Subject: Re: [PATCH v12 2/2] mm, pmem, xfs: Introduce MF_MEM_REMOVE for unbind
-Message-ID: <202306291954.zqVvCUZ5-lkp@intel.com>
-References: <20230629081651.253626-3-ruansy.fnst@fujitsu.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CAE0B12B89
+	for <nvdimm@lists.linux.dev>; Thu, 29 Jun 2023 15:56:03 +0000 (UTC)
+Received: by mail-ej1-f49.google.com with SMTP id a640c23a62f3a-98502b12fd4so21601266b.1
+        for <nvdimm@lists.linux.dev>; Thu, 29 Jun 2023 08:56:03 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1688054162; x=1690646162;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=NanhwP3ZvzSNrv3gc9fvxwRqCsfI8QWgmtWgVz7PxTU=;
+        b=KXze9yrvsVFW76iv0+KFLbo8LQQrQsd5ic25Hk55dPkb63z71PXxnhu2h5VfrhbAUm
+         E79Ku1ODLXS68+A8GAjhlvcxmBdrbc10AMpb1FtXNKoYdLf9VTBmLhOPCe6ARDEyKAtI
+         Qi7Y6GXDvHmXUASyrBcYIddsJPeJMbY0qlzZiV8p/eUj6tjDxtxRY3IxYeX+iqq73Zj4
+         TI6m4HtZjCwDPMoXrzEhAHkT3U2GmuHB5zVjW/Nv8hcq9VbSKQNpsB/luP76yzUESce8
+         YyK0uoVk1ST+Xu3LAbDFTjlDxbHqOhn019k0rVE+A1eNuDzJa6+lMuh+ycZPKJh2j9FX
+         GBDw==
+X-Gm-Message-State: AC+VfDxrvX+BZ70hK0fM0cDDqmJuEq5C2/rY+CdHRVqa6WZTRypm+w3S
+	mXolv2pbzTcu22iIqlf/5X+bGHgZ2CgBavkYv9o=
+X-Google-Smtp-Source: ACHHUZ6JS90WyEgMYObZ9p9DRC2xaF5Mo3SHtPTnXmhMUmPa+3yMH2tHtxa/bayz2xhkDknvPVpKxFBXvXNpMQ8USYc=
+X-Received: by 2002:a17:906:7496:b0:988:815c:ba09 with SMTP id
+ e22-20020a170906749600b00988815cba09mr2452887ejl.4.1688054161659; Thu, 29 Jun
+ 2023 08:56:01 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230629081651.253626-3-ruansy.fnst@fujitsu.com>
+References: <20230616165034.3630141-1-michal.wilczynski@intel.com> <20230616165034.3630141-4-michal.wilczynski@intel.com>
+In-Reply-To: <20230616165034.3630141-4-michal.wilczynski@intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Thu, 29 Jun 2023 17:55:50 +0200
+Message-ID: <CAJZ5v0ippMo1Haa-YFszyWZNgUE_pPUtkFngQWjUyjJe4tm94g@mail.gmail.com>
+Subject: Re: [PATCH v5 03/10] acpi/ac: Move handler installing logic to driver
+To: Michal Wilczynski <michal.wilczynski@intel.com>
+Cc: linux-acpi@vger.kernel.org, rafael@kernel.org, dan.j.williams@intel.com, 
+	vishal.l.verma@intel.com, lenb@kernel.org, dave.jiang@intel.com, 
+	ira.weiny@intel.com, rui.zhang@intel.com, linux-kernel@vger.kernel.org, 
+	nvdimm@lists.linux.dev, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hi Shiyang,
+On Fri, Jun 16, 2023 at 6:51=E2=80=AFPM Michal Wilczynski
+<michal.wilczynski@intel.com> wrote:
+>
+> Currently logic for installing notifications from ACPI devices is
+> implemented using notify callback in struct acpi_driver. Preparations
+> are being made to replace acpi_driver with more generic struct
+> platform_driver, which doesn't contain notify callback. Furthermore
+> as of now handlers are being called indirectly through
+> acpi_notify_device(), which decreases performance.
+>
+> Call acpi_dev_install_notify_handler() at the end of .add() callback.
+> Call acpi_dev_remove_notify_handler() at the beginning of .remove()
+> callback. Change arguments passed to the notify function to match with
+> what's required by acpi_install_notify_handler(). Remove .notify
+> callback initialization in acpi_driver.
+>
+> Suggested-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Signed-off-by: Michal Wilczynski <michal.wilczynski@intel.com>
+> ---
+>  drivers/acpi/ac.c | 33 ++++++++++++++++++++++++---------
+>  1 file changed, 24 insertions(+), 9 deletions(-)
+>
+> diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
+> index 1ace70b831cd..207ee3c85bad 100644
+> --- a/drivers/acpi/ac.c
+> +++ b/drivers/acpi/ac.c
+> @@ -34,7 +34,7 @@ MODULE_LICENSE("GPL");
+>
+>  static int acpi_ac_add(struct acpi_device *device);
+>  static void acpi_ac_remove(struct acpi_device *device);
+> -static void acpi_ac_notify(struct acpi_device *device, u32 event);
+> +static void acpi_ac_notify(acpi_handle handle, u32 event, void *data);
+>
+>  static const struct acpi_device_id ac_device_ids[] =3D {
+>         {"ACPI0003", 0},
+> @@ -54,11 +54,9 @@ static struct acpi_driver acpi_ac_driver =3D {
+>         .name =3D "ac",
+>         .class =3D ACPI_AC_CLASS,
+>         .ids =3D ac_device_ids,
+> -       .flags =3D ACPI_DRIVER_ALL_NOTIFY_EVENTS,
+>         .ops =3D {
+>                 .add =3D acpi_ac_add,
+>                 .remove =3D acpi_ac_remove,
+> -               .notify =3D acpi_ac_notify,
+>                 },
+>         .drv.pm =3D &acpi_ac_pm,
+>  };
+> @@ -128,9 +126,12 @@ static enum power_supply_property ac_props[] =3D {
+>  };
+>
+>  /* Driver Model */
+> -static void acpi_ac_notify(struct acpi_device *device, u32 event)
+> +static void acpi_ac_notify(acpi_handle handle, u32 event, void *data)
+>  {
+> -       struct acpi_ac *ac =3D acpi_driver_data(device);
 
-kernel test robot noticed the following build errors:
+This line doesn't need to be changed.  Just add the device variable
+definition above it.
 
-[auto build test ERROR on akpm-mm/mm-everything]
+And the same pattern is present in the other patches in the series.
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Shiyang-Ruan/xfs-fix-the-calculation-for-end-and-length/20230629-161913
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git mm-everything
-patch link:    https://lore.kernel.org/r/20230629081651.253626-3-ruansy.fnst%40fujitsu.com
-patch subject: [PATCH v12 2/2] mm, pmem, xfs: Introduce MF_MEM_REMOVE for unbind
-config: x86_64-kexec (https://download.01.org/0day-ci/archive/20230629/202306291954.zqVvCUZ5-lkp@intel.com/config)
-compiler: gcc-12 (Debian 12.2.0-14) 12.2.0
-reproduce: (https://download.01.org/0day-ci/archive/20230629/202306291954.zqVvCUZ5-lkp@intel.com/reproduce)
-
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202306291954.zqVvCUZ5-lkp@intel.com/
-
-All errors (new ones prefixed by >>):
-
-   fs/xfs/xfs_notify_failure.c: In function 'xfs_dax_notify_failure_freeze':
->> fs/xfs/xfs_notify_failure.c:127:33: error: 'FREEZE_HOLDER_KERNEL' undeclared (first use in this function)
-     127 |         while (freeze_super(sb, FREEZE_HOLDER_KERNEL) != 0) {
-         |                                 ^~~~~~~~~~~~~~~~~~~~
-   fs/xfs/xfs_notify_failure.c:127:33: note: each undeclared identifier is reported only once for each function it appears in
->> fs/xfs/xfs_notify_failure.c:127:16: error: too many arguments to function 'freeze_super'
-     127 |         while (freeze_super(sb, FREEZE_HOLDER_KERNEL) != 0) {
-         |                ^~~~~~~~~~~~
-   In file included from include/linux/huge_mm.h:8,
-                    from include/linux/mm.h:988,
-                    from fs/xfs/kmem.h:11,
-                    from fs/xfs/xfs_linux.h:24,
-                    from fs/xfs/xfs.h:22,
-                    from fs/xfs/xfs_notify_failure.c:6:
-   include/linux/fs.h:2289:12: note: declared here
-    2289 | extern int freeze_super(struct super_block *super);
-         |            ^~~~~~~~~~~~
-   fs/xfs/xfs_notify_failure.c: In function 'xfs_dax_notify_failure_thaw':
-   fs/xfs/xfs_notify_failure.c:140:32: error: 'FREEZE_HOLDER_KERNEL' undeclared (first use in this function)
-     140 |         error = thaw_super(sb, FREEZE_HOLDER_KERNEL);
-         |                                ^~~~~~~~~~~~~~~~~~~~
->> fs/xfs/xfs_notify_failure.c:140:17: error: too many arguments to function 'thaw_super'
-     140 |         error = thaw_super(sb, FREEZE_HOLDER_KERNEL);
-         |                 ^~~~~~~~~~
-   include/linux/fs.h:2290:12: note: declared here
-    2290 | extern int thaw_super(struct super_block *super);
-         |            ^~~~~~~~~~
->> fs/xfs/xfs_notify_failure.c:148:24: error: 'FREEZE_HOLDER_USERSPACE' undeclared (first use in this function)
-     148 |         thaw_super(sb, FREEZE_HOLDER_USERSPACE);
-         |                        ^~~~~~~~~~~~~~~~~~~~~~~
-   fs/xfs/xfs_notify_failure.c:148:9: error: too many arguments to function 'thaw_super'
-     148 |         thaw_super(sb, FREEZE_HOLDER_USERSPACE);
-         |         ^~~~~~~~~~
-   include/linux/fs.h:2290:12: note: declared here
-    2290 | extern int thaw_super(struct super_block *super);
-         |            ^~~~~~~~~~
-
-
-vim +/FREEZE_HOLDER_KERNEL +127 fs/xfs/xfs_notify_failure.c
-
-   119	
-   120	static void
-   121	xfs_dax_notify_failure_freeze(
-   122		struct xfs_mount	*mp)
-   123	{
-   124		struct super_block 	*sb = mp->m_super;
-   125	
-   126		/* Wait until no one is holding the FREEZE_HOLDER_KERNEL. */
- > 127		while (freeze_super(sb, FREEZE_HOLDER_KERNEL) != 0) {
-   128			// Shall we just wait, or print warning then return -EBUSY?
-   129			delay(HZ / 10);
-   130		}
-   131	}
-   132	
-   133	static void
-   134	xfs_dax_notify_failure_thaw(
-   135		struct xfs_mount	*mp)
-   136	{
-   137		struct super_block	*sb = mp->m_super;
-   138		int			error;
-   139	
- > 140		error = thaw_super(sb, FREEZE_HOLDER_KERNEL);
-   141		if (error)
-   142			xfs_emerg(mp, "still frozen after notify failure, err=%d",
-   143				  error);
-   144		/*
-   145		 * Also thaw userspace call anyway because the device is about to be
-   146		 * removed immediately.
-   147		 */
- > 148		thaw_super(sb, FREEZE_HOLDER_USERSPACE);
-   149	}
-   150	
-
--- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+> +       struct acpi_device *device =3D data;
+> +       struct acpi_ac *ac;
+> +
+> +       ac =3D acpi_driver_data(device);
+>
+>         if (!ac)
+>                 return;
