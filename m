@@ -1,28 +1,28 @@
-Received: from mail-ej1-f42.google.com (mail-ej1-f42.google.com [209.85.218.42])
+Received: from mail-lj1-f169.google.com (mail-lj1-f169.google.com [209.85.208.169])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68AA479E6
-	for <nvdimm@lists.linux.dev>; Fri, 30 Jun 2023 11:01:01 +0000 (UTC)
-Received: by mail-ej1-f42.google.com with SMTP id a640c23a62f3a-991f9148334so48490466b.1
-        for <nvdimm@lists.linux.dev>; Fri, 30 Jun 2023 04:01:01 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10C11125DD
+	for <nvdimm@lists.linux.dev>; Fri, 30 Jun 2023 11:04:30 +0000 (UTC)
+Received: by mail-lj1-f169.google.com with SMTP id 38308e7fff4ca-2b6c3e23c5fso4566351fa.0
+        for <nvdimm@lists.linux.dev>; Fri, 30 Jun 2023 04:04:30 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1688122859; x=1690714859;
+        d=1e100.net; s=20221208; t=1688123069; x=1690715069;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=SwNNfkXcsdEjK6snSksErOen+E6g37LU4cCW5pLNENE=;
-        b=iKbhLNQy1Qijca6xGA7Zi09yVp609adhZMLvcLXonjpQoIf0qm36SBhUdmGajT8stX
-         hgJ9jMPV4QrJqV7IxA2nklQ74qu0oKtjsswJAd9Zhf2A7kSmG3yGsRICkF1Eh6lMHed2
-         sfvXs49gXJXqoTAkUNh1ZARGXRTV7uf4kFOabkFoc8hFpmwXQ6V7Pd8Nz0oBCn+16oOV
-         6qoO05DCgLlDdbALxwUHCa0FOqcd2VuLIxzbhAh71GeYbTTW6VJHxWw44MUSQqdj7vOl
-         EspA9NsDYx6tHSNM+E0jSK2Vr4fdRDpC3jLWpL2I6PNTBl+B/QpnMEdCErS0KfqMFwQO
-         mg5w==
-X-Gm-Message-State: ABy/qLYUsx+QZkYshtG4fsXeYDed6MDbYTCfbnfGtAy5IJk2NBUYeTeZ
-	dXEgKYaJqZl3lIu59dKgoOzbI3ao/XRscFjQ7HkXa1HD
-X-Google-Smtp-Source: APBJJlGK4UDcNmucxCHKV3pZgbCuIjN9vNC4LfEB1wY5GDUITfZC3itQ/WtMXIfcasxAJH0vSWVFHewGzBbf/wuenwk=
-X-Received: by 2002:a17:906:594b:b0:987:f332:5329 with SMTP id
- g11-20020a170906594b00b00987f3325329mr1488661ejr.1.1688122859289; Fri, 30 Jun
- 2023 04:00:59 -0700 (PDT)
+        bh=A07KMdYL5lwtSiNQs9uf0BCUOmidGfNE7gu5dbduzz4=;
+        b=RNgqJa/ouNnKE/U2p4fa45NLTH7hKATyACm4H8TPamawllvd191Sf404RfMM80vUWI
+         TYzJIUVurYTyvkXzIGPbdsE8gSAvZ1nnuODqW7+OhfyQHgV69uGwCyAN/09KFoKaUvNF
+         OARnXhqu/t1Qu5Tu36fgSwDT62BU9n03/0NXhtEuJRosylYoucqjMoQpNJhqzmMFUwS7
+         XBkEL6lDNLBA9n6vV6u84doY9xHzjDcAaxkBfowBcAiYzWqmg8woiKzlC14nKtt45zeY
+         5s9zJAEs7P53fzD2RstUCI64XCYDGx9q9HWzACn3g5tCpVOHxyiTCD3l9C2evZ4oPt7V
+         gqJw==
+X-Gm-Message-State: ABy/qLb37cyUqbFP2cUHnIQ0+I39nEJ8KkXBLAjnJokWZAV1Ct9fhMpc
+	zR6bmwUPkGU2oNdHtEVunk05foZvxIj0DDlRTUleWf0o
+X-Google-Smtp-Source: APBJJlF84Z7MEMYLZcp2VfasQuRS8ZyWLfVEDomr86EbZXXaJb4YKeVw/k4pFkw68brAtYWA4X5t2UoM06gQM64Ar1U=
+X-Received: by 2002:a2e:a41a:0:b0:2b6:9ebc:d8c4 with SMTP id
+ p26-20020a2ea41a000000b002b69ebcd8c4mr1748262ljn.0.1688123068602; Fri, 30 Jun
+ 2023 04:04:28 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -30,87 +30,53 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 References: <20230616165034.3630141-1-michal.wilczynski@intel.com>
- <20230616165034.3630141-10-michal.wilczynski@intel.com> <CAJZ5v0gcokw72q5uX-3pbBEZtJdCaWHN1vat8yPNQ3SXMgeD4g@mail.gmail.com>
- <d4ebf8ba-6f95-d20c-d7fb-e97b6535f71f@intel.com>
-In-Reply-To: <d4ebf8ba-6f95-d20c-d7fb-e97b6535f71f@intel.com>
+ <20230616165034.3630141-9-michal.wilczynski@intel.com> <CAJZ5v0hPY=nermvRKiyqGg4R+jLW13B-MUr0exEuEnw33VUj7g@mail.gmail.com>
+ <699b327d-acea-c51d-874a-85133b74a73c@intel.com>
+In-Reply-To: <699b327d-acea-c51d-874a-85133b74a73c@intel.com>
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Fri, 30 Jun 2023 13:00:48 +0200
-Message-ID: <CAJZ5v0hXCA3cdqRms2RaQtzH8PnBNsm++nakQS5sSa0EHboa-Q@mail.gmail.com>
-Subject: Re: [PATCH v5 09/10] acpi/nfit: Move handler installing logic to driver
+Date: Fri, 30 Jun 2023 13:04:17 +0200
+Message-ID: <CAJZ5v0jpcas1TLGVR5Cic-bz4YkkAVypShj0sfEKUmy+930vVA@mail.gmail.com>
+Subject: Re: [PATCH v5 08/10] acpi/nfit: Improve terminator line in acpi_nfit_ids
 To: "Wilczynski, Michal" <michal.wilczynski@intel.com>
 Cc: "Rafael J. Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org, dan.j.williams@intel.com, 
 	vishal.l.verma@intel.com, lenb@kernel.org, dave.jiang@intel.com, 
 	ira.weiny@intel.com, rui.zhang@intel.com, linux-kernel@vger.kernel.org, 
-	nvdimm@lists.linux.dev, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>
+	nvdimm@lists.linux.dev
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Jun 30, 2023 at 11:55=E2=80=AFAM Wilczynski, Michal
+On Fri, Jun 30, 2023 at 11:52=E2=80=AFAM Wilczynski, Michal
 <michal.wilczynski@intel.com> wrote:
 >
 >
 >
-> On 6/29/2023 6:18 PM, Rafael J. Wysocki wrote:
+> On 6/29/2023 6:14 PM, Rafael J. Wysocki wrote:
 > > On Fri, Jun 16, 2023 at 6:51=E2=80=AFPM Michal Wilczynski
 > > <michal.wilczynski@intel.com> wrote:
-> >> Currently logic for installing notifications from ACPI devices is
-> >> implemented using notify callback in struct acpi_driver. Preparations
-> >> are being made to replace acpi_driver with more generic struct
-> >> platform_driver, which doesn't contain notify callback. Furthermore
-> >> as of now handlers are being called indirectly through
-> >> acpi_notify_device(), which decreases performance.
-> >>
-> >> Call acpi_dev_install_notify_handler() at the end of .add() callback.
-> >> Call acpi_dev_remove_notify_handler() at the beginning of .remove()
-> >> callback. Change arguments passed to the notify function to match with
-> >> what's required by acpi_install_notify_handler(). Remove .notify
-> >> callback initialization in acpi_driver.
-> >>
-> >> Suggested-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >> Signed-off-by: Michal Wilczynski <michal.wilczynski@intel.com>
-> >> ---
-> >>  drivers/acpi/nfit/core.c | 24 ++++++++++++++++++------
-> >>  1 file changed, 18 insertions(+), 6 deletions(-)
-> >>
-> >> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-> >> index 95930e9d776c..a281bdfee8a0 100644
-> >> --- a/drivers/acpi/nfit/core.c
-> >> +++ b/drivers/acpi/nfit/core.c
-> >> @@ -3312,11 +3312,13 @@ void acpi_nfit_shutdown(void *data)
-> >>  }
-> >>  EXPORT_SYMBOL_GPL(acpi_nfit_shutdown);
-> >>
-> >> -static void acpi_nfit_notify(struct acpi_device *adev, u32 event)
-> >> +static void acpi_nfit_notify(acpi_handle handle, u32 event, void *dat=
-a)
-> >>  {
-> >> -       device_lock(&adev->dev);
-> >> -       __acpi_nfit_notify(&adev->dev, adev->handle, event);
-> >> -       device_unlock(&adev->dev);
-> > It's totally not necessary to rename the ACPI device variable here.
-> >
-> > Just add
-> >
-> > struct acpi_device *adev =3D data;
-> >
-> > to this function.
+> >> Currently terminator line contains redunant characters.
+> > Well, they are terminating the list properly AFAICS, so they aren't
+> > redundant and the size of it before and after the change is actually
+> > the same, isn't it?
 >
-> Sure, is adev a preferred name for acpi_device ?
+> This syntax is correct of course, but we have an internal guidelines spec=
+ifically
+> saying that terminator line should NOT contain a comma at the end. Justif=
+ication:
+>
+> "Terminator line is established for the data structure arrays which may h=
+ave unknown,
+> to the caller, sizes. The purpose of it is to stop iteration over an arra=
+y and avoid
+> out-of-boundary access. Nevertheless, we may apply a bit more stricter ru=
+le to avoid
+> potential, but unlike, event of adding the entry after terminator, alread=
+y at compile time.
+> This will be achieved by not putting comma at the end of terminator line"
 
-In new code, it is.
+This certainly applies to any new code.
 
-In the existing code, it depends.  If you do a one-line change, it is
-better to retain the original naming (for the sake of clarity of the
-change itself).  If you rearrange it completely, you may as well
-change the names while at it.  And there is a spectrum in between.
+The existing code, however, is what it is and the question is how much
+of an improvement the given change makes.
 
->  I've seen a mix of different naming
-> in drivers, some use device, adev, acpi_dev and so on. I suppose it's not=
- a big deal, but
-> it would be good to know.
-
-Personally, I prefer adev, but this isn't a very strong preference.
-
-Using "device" as a name of a struct acpi_device object (or a pointer
-to one of these for that matter) is slightly misleading IMV, because
-those things represent AML entities rather than actual hardware.
+So yes, it may not follow the current rules for new code, but then it
+may not be worth changing to follow these rules anyway.
