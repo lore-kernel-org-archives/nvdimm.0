@@ -1,212 +1,99 @@
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from dggsgout12.his.huawei.com (unknown [45.249.212.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D43B3846B
-	for <nvdimm@lists.linux.dev>; Thu, 29 Jun 2023 20:54:35 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1688072075; x=1719608075;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=tj0LD+iElOjuI+ahLd3ebVr9wrrkmzYV7BTA6vBBCjw=;
-  b=CDCXI874kEHGcq1Gqnzz4i4hIyi68uU4j9sWK8nPsqST45DRYkqVvo5V
-   TlOtIZ8AFyAdGRJZDX06EtxfpXzy64QW/JIBxYXxR36wmRj6NLcRspDuK
-   PeyVQHM9+y0Jgw/r7R++0zQcza9h9bcEW4nvKnMXLNW1ZF5e1PiH8n9iD
-   zQJrhTpAklNi8ivIjLeKiw2iEJZ+wMfHhjgEhrrENgyJGsatEN9n+8Y2W
-   0q4Xn+i4OqECR+3xiIxnoG9Yo2G2cMxVqOf+68vjz1FM4lNHTWecm52zE
-   UmoFWbuJfA3Y0z1I/wLU1vOUnsFrrvCdCseJyyU3bybkr3G9uA1NBJCEz
-   A==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10756"; a="428266952"
-X-IronPort-AV: E=Sophos;i="6.01,169,1684825200"; 
-   d="scan'208";a="428266952"
-Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Jun 2023 13:54:34 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10756"; a="1047963575"
-X-IronPort-AV: E=Sophos;i="6.01,169,1684825200"; 
-   d="scan'208";a="1047963575"
-Received: from orsmsx602.amr.corp.intel.com ([10.22.229.15])
-  by fmsmga005.fm.intel.com with ESMTP; 29 Jun 2023 13:54:34 -0700
-Received: from orsmsx611.amr.corp.intel.com (10.22.229.24) by
- ORSMSX602.amr.corp.intel.com (10.22.229.15) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.27; Thu, 29 Jun 2023 13:54:33 -0700
-Received: from orsmsx602.amr.corp.intel.com (10.22.229.15) by
- ORSMSX611.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.27; Thu, 29 Jun 2023 13:54:33 -0700
-Received: from ORSEDG602.ED.cps.intel.com (10.7.248.7) by
- orsmsx602.amr.corp.intel.com (10.22.229.15) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.27 via Frontend Transport; Thu, 29 Jun 2023 13:54:33 -0700
-Received: from NAM11-BN8-obe.outbound.protection.outlook.com (104.47.58.168)
- by edgegateway.intel.com (134.134.137.103) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.27; Thu, 29 Jun 2023 13:54:32 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=bWv/e16GV/iTa563PVBE5BGfTHf2rquVOu3CWcjdB9V/XxpvJz+ruC+MQzvGWxIbuse+JM17vkHmD87h3gwDlrBLfeme8IEv2spxp1mumdnTDVXmf+0kSVnNXNZycMRRHhAGewQDYqlteT0WTZJk5R35j08B/EJ9zLV3sQFw/aMgVh37pKiim0+aSu1x/UXMw7nnH8wsLbi+VFq98PxjEvyAhZeqYWRFWrSZvU24ZVtrE0yTSvKi186WhNzN7Ayjv6HpqSKXetUWfPHnTS0RbW/yGaQPZMqIjdKj4siFpshz8DXethK8TVMML5tWcFvoFgcc3xOk9ksaoR+y6iDZ9w==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=GhwGazaHb/I+hBMoxozK/fwZe37V1HP8VnWsfp1BtNs=;
- b=AGka/MSakM297Uu8quQW+xkoCzmX8gEu83atcuGw5g7RqXwEUKn4dq+N/KDaLGtEBTyHJTRap3f9FQTIEUkD96r16EHiyicw8gY4f7xMpN47X+t3eAwcrb7E7j8r3ApNPYDW9GJ07eS4qPK4UmgHSUow9NVociyKScIrIx3JwubmVeyyVpXG0yStgsjEd3hhAqVCDFH0Z9FsfuVBoYaZAV+x5/+zODNrXGfP++p/S8kB5BuR/3iKU+8hi2jVPWjzJHH+HeCWtRyUBDinE7pYYrwZZQJ1VtqXyb596OqDLj5BmS1A1HPN0NMe788z42nXy+Q5WZrNdJ6uA57zoHwKrQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from PH8PR11MB8107.namprd11.prod.outlook.com (2603:10b6:510:256::6)
- by CY8PR11MB6842.namprd11.prod.outlook.com (2603:10b6:930:61::11) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6500.37; Thu, 29 Jun
- 2023 20:54:30 +0000
-Received: from PH8PR11MB8107.namprd11.prod.outlook.com
- ([fe80::aeb:12b5:6ac9:fab0]) by PH8PR11MB8107.namprd11.prod.outlook.com
- ([fe80::aeb:12b5:6ac9:fab0%7]) with mapi id 15.20.6500.029; Thu, 29 Jun 2023
- 20:54:30 +0000
-Date: Thu, 29 Jun 2023 13:54:27 -0700
-From: Dan Williams <dan.j.williams@intel.com>
-To: Michal Wilczynski <michal.wilczynski@intel.com>,
-	<linux-acpi@vger.kernel.org>
-CC: <rafael@kernel.org>, <dan.j.williams@intel.com>,
-	<vishal.l.verma@intel.com>, <lenb@kernel.org>, <dave.jiang@intel.com>,
-	<ira.weiny@intel.com>, <rui.zhang@intel.com>, <linux-kernel@vger.kernel.org>,
-	<nvdimm@lists.linux.dev>, Michal Wilczynski <michal.wilczynski@intel.com>,
-	"Rafael J . Wysocki" <rafael.j.wysocki@intel.com>
-Subject: RE: [PATCH v5 09/10] acpi/nfit: Move handler installing logic to
- driver
-Message-ID: <649def832ce1f_11e68529491@dwillia2-xfh.jf.intel.com.notmuch>
-References: <20230616165034.3630141-1-michal.wilczynski@intel.com>
- <20230616165034.3630141-10-michal.wilczynski@intel.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20230616165034.3630141-10-michal.wilczynski@intel.com>
-X-ClientProxiedBy: MW4PR03CA0048.namprd03.prod.outlook.com
- (2603:10b6:303:8e::23) To PH8PR11MB8107.namprd11.prod.outlook.com
- (2603:10b6:510:256::6)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B601136D
+	for <nvdimm@lists.linux.dev>; Fri, 30 Jun 2023 02:40:50 +0000 (UTC)
+Received: from mail02.huawei.com (unknown [172.30.67.143])
+	by dggsgout12.his.huawei.com (SkyGuard) with ESMTP id 4QsfL41XL4z4f3v78
+	for <nvdimm@lists.linux.dev>; Fri, 30 Jun 2023 10:25:16 +0800 (CST)
+Received: from [10.174.176.117] (unknown [10.174.176.117])
+	by APP1 (Coremail) with SMTP id cCh0CgDHLCcJPZ5k4ZicMA--.28386S2;
+	Fri, 30 Jun 2023 10:25:17 +0800 (CST)
+Subject: Re: [PATCH v2] virtio_pmem: add the missing REQ_OP_WRITE for flush
+ bio
+To: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Cc: Dan Williams <dan.j.williams@intel.com>, Jens Axboe <axboe@kernel.dk>,
+ Christoph Hellwig <hch@infradead.org>, linux-block@vger.kernel.org,
+ nvdimm@lists.linux.dev, virtualization@lists.linux-foundation.org,
+ houtao1@huawei.com
+References: <ZJLpYMC8FgtZ0k2k@infradead.org>
+ <20230621134340.878461-1-houtao@huaweicloud.com>
+ <CAM9Jb+j8-DWdRMsXJNiHm_UK5Nx6L2=a2PnRL=m3sMyQz4cXLw@mail.gmail.com>
+From: Hou Tao <houtao@huaweicloud.com>
+Message-ID: <d484a89f-8aaf-c0ae-5c12-f9a87b62384c@huaweicloud.com>
+Date: Fri, 30 Jun 2023 10:25:13 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
+ Thunderbird/78.6.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: PH8PR11MB8107:EE_|CY8PR11MB6842:EE_
-X-MS-Office365-Filtering-Correlation-Id: 6ad76c26-2564-4419-37b6-08db78e3088d
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: K9sfaZCUTPJtTBiXSfYWIPZyNt9CquBsZEjgNEZcA8hGuEpyt+DbZDhaTlZ8HZzX7LxXe6pcw3vSgvac+Q3rUvWmGXRYMSb/b/wlkvVWL8sQSyxu9dwIN3KZA2kWqwvfohEa5fN4aBup7Bo8tCQOt4J2fPzLIykVC43fSDPwC8S9081wIwiza9MPWs14xhZVkvRdnwGnQ/c2bg8zL/Uw+Bj6lUuinPWbODcr3evlH55bDSlb0plQc/t4n8gC8IoEcAithlsKBa/T40VGw1OO0Rm3UeauaF1nNvNmiXkRvz6pWJfTMJiwrB1BX/I8rND+zn4dgs6L/y6C8PxaUzGjwGk2M6mF5BNqbIGRpljwj5O5riT/HSIAV5EsD/JoDBBMFssEDj3CFMTnH/vC4C+3wwMwu7Wm9EeBcRmJQyIGrjD4UAy9v88xrmLzL9MYnaWKfBOLDupUbRjV0YQ+Ff8Vx0NH7vZWDCTqs0DULPjLMqZJz3bz+W1p3WNPaVZat8VYbegWbCycT17Mk2PujrNgQzlwmc52rhlwE/j+4uIF5O4bWtW8A992qOtrfS4vHcdU
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH8PR11MB8107.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230028)(346002)(396003)(376002)(136003)(39860400002)(366004)(451199021)(83380400001)(2906002)(5660300002)(8676002)(8936002)(86362001)(316002)(4326008)(41300700001)(26005)(186003)(66556008)(66476007)(66946007)(6506007)(6512007)(9686003)(107886003)(54906003)(6486002)(6666004)(478600001)(38100700002)(82960400001);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?9JafkKq/wrQgisCfwNMN6AOfqYoS1sTCFckxgdosKC1I/NZqQAZOPP+Qd6z9?=
- =?us-ascii?Q?UEi6Fgsk/EXGCeVjeWOVSnnV302ybvuA90nSmmWXF5AA7eygsPzccOVgM0ma?=
- =?us-ascii?Q?ghMcVMMTxVOuIE0gNN300LteVywMSiP0kIMbxYzKetBjA1hKJs8kJFGYPcVJ?=
- =?us-ascii?Q?DZrqVs4NOwrmLvbABrXLs5aFc+U0NBJxl2EomNX1qW1tGvyLAEZckM5ot9DF?=
- =?us-ascii?Q?8frre4vU1mKZICvxbgXJ9xvAq5y36LzQcJUO55paAT1dTpm6LVE7sNqsD6oe?=
- =?us-ascii?Q?FPpqF/Db4aMdGOv6lBbtyNzgd8ei7aM4AVF2EM2CNQ3mla09oTQVlcHaF+z9?=
- =?us-ascii?Q?DYC3RS/OFYsTtD852ZGWoV0ILrg8jjhVbxoztklLQlfsbbncA6QSbZAf3EMa?=
- =?us-ascii?Q?iNmrp0jXUAN8HGOtUSSKtPvg4UJnbmDI3cAfuXXlH/yNPgBG565DoaExvdtz?=
- =?us-ascii?Q?ioZD4DXxWQdEzELxEOL4Xw+m3IFGj09jkcc2dGjaLtSATT0UmoUI8YHUmzXX?=
- =?us-ascii?Q?8ZQOCA6HqdNm2DHBnFotpdu1RGAmz8R+DzsUUmqn3MM528b2+oHBRog4UMJn?=
- =?us-ascii?Q?UwLnEJ7aJFk/dF0X738mJn3J8jnHv9YSoKfL1CT9hze5jrqwsPRTJyK2IdJP?=
- =?us-ascii?Q?EeI2IazerYQQuH7TdQjdM5OQvSScqSqW4DINuXX0P7iEsB7uKe+sgOETmno2?=
- =?us-ascii?Q?aPo1XxYnSgJJyEULU7+VSQeori92Ww9YgMJuutytY3acCZLaTXlrkNN+KP2N?=
- =?us-ascii?Q?m4LppIcz/SFt1SxnHJUK5ff7SmuOA1F/pRtFvTLnnqrfle0bdAQsmVP4gpvH?=
- =?us-ascii?Q?GWp/LIiIScUPGo0LDfz2TC+poByk/0wYojUBpVIYzZK1JYF5EtSuEnmURA1x?=
- =?us-ascii?Q?Tquy3/6WjOeDFZsx630Jp9mvVvceq2NFVAAycnXf8Tsi/U5BRf+w7igqjahF?=
- =?us-ascii?Q?yxALom5KNKghBcC1O7xHPRSGenxeoInjI4B9yGnM4htsS/5ga1bJq4cI9zh6?=
- =?us-ascii?Q?2VFTiBq1SWNaE6zQVNYn989xF7/GBu2CmKfNlhR79JKBUilXDs+V7+Zwj34B?=
- =?us-ascii?Q?8oDyMCLiZG6+aBIvQVSbauKzed6W83m0rQO3eAi+LOYTBG8tS1PTpitK5PFI?=
- =?us-ascii?Q?+eJYXXJFy3hpsI5k0nQcV9j1Roy9u3pLto8Gb38emtKYSUkOsq50ObJu0Het?=
- =?us-ascii?Q?CNHO4kcnxtKi0kelBLcO0YhY5hdACrCaAzhcIjc6+PNgvpKmsNd+o/6Mg7nL?=
- =?us-ascii?Q?2PJHOaJkwZE2Vh7QLmWvBjQeNo7lcNSMuOHPifDEW8oVJqs+jnqib4CAwVmf?=
- =?us-ascii?Q?y4S0sMpwlq3qVLf/FVtzu+EITN0/YdXPwCRvtYZLYQ5SPMEJTEk6WgvXf45a?=
- =?us-ascii?Q?X2JYAT2ypeiZBHmEJ/sgfVpRsonlbK2Z4KTReN/P63WWf5BIOHt9GSoa7lob?=
- =?us-ascii?Q?5XwjmZKZ3xtYsEtPqxrTIovqTzhXLScd1mBhHjCFenDl4mB7mQt3WAyaxwoe?=
- =?us-ascii?Q?4FIulKXKWLGgmoJBPtgUFq1cHiMtrisluH2klKvBTieme62qw342/U96hHoW?=
- =?us-ascii?Q?S7NEESMtkmUACYioz/hzAKn5o1VyIZnA2OkStiuU+1cWu4YPbz9FK06heLub?=
- =?us-ascii?Q?Xw=3D=3D?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: 6ad76c26-2564-4419-37b6-08db78e3088d
-X-MS-Exchange-CrossTenant-AuthSource: PH8PR11MB8107.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 29 Jun 2023 20:54:30.2598
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: Ge2JaPNfUEHQgfi7yQiBkn3gRCZFZhNCVyhgao8t/l38Q49NpUXBX75MqtvtFxMcR8v5yTYUzY/Ft1DxhGQNbahXSbednNjCrrlWIglamTI=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY8PR11MB6842
-X-OriginatorOrg: intel.com
+In-Reply-To: <CAM9Jb+j8-DWdRMsXJNiHm_UK5Nx6L2=a2PnRL=m3sMyQz4cXLw@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
+X-CM-TRANSID:cCh0CgDHLCcJPZ5k4ZicMA--.28386S2
+X-Coremail-Antispam: 1UD129KBjvJXoW7WrW7KryUJw4rGrW8Aw43KFg_yoW8WF1rpr
+	sxtayayrZrJFZ8u3WxXa18GryFgwn7WrZ7GrWrX3y8Kry2yF1DGrn5WFy0q397Ary8GFW2
+	qFW0qw1YvrWDZaDanT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUUyEb4IE77IF4wAFF20E14v26r4j6ryUM7CY07I20VC2zVCF04k2
+	6cxKx2IYs7xG6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rwA2F7IY1VAKz4
+	vEj48ve4kI8wA2z4x0Y4vE2Ix0cI8IcVAFwI0_tr0E3s1l84ACjcxK6xIIjxv20xvEc7Cj
+	xVAFwI0_Gr1j6F4UJwA2z4x0Y4vEx4A2jsIE14v26rxl6s0DM28EF7xvwVC2z280aVCY1x
+	0267AKxVW0oVCq3wAS0I0E0xvYzxvE52x082IY62kv0487Mc02F40EFcxC0VAKzVAqx4xG
+	6I80ewAv7VC0I7IYx2IY67AKxVWUJVWUGwAv7VC2z280aVAFwI0_Jr0_Gr1lOx8S6xCaFV
+	Cjc4AY6r1j6r4UM4x0Y48IcVAKI48JMxk0xIA0c2IEe2xFo4CEbIxvr21l42xK82IYc2Ij
+	64vIr41l4I8I3I0E4IkC6x0Yz7v_Jr0_Gr1lx2IqxVAqx4xG67AKxVWUJVWUGwC20s026x
+	8GjcxK67AKxVWUGVWUWwC2zVAF1VAY17CE14v26r1q6r43MIIYrxkI7VAKI48JMIIF0xvE
+	2Ix0cI8IcVAFwI0_Jr0_JF4lIxAIcVC0I7IYx2IY6xkF7I0E14v26r1j6r4UMIIF0xvE42
+	xK8VAvwI8IcIk0rVWrZr1j6s0DMIIF0xvEx4A2jsIE14v26r1j6r4UMIIF0xvEx4A2jsIE
+	c7CjxVAFwI0_Jr0_GrUvcSsGvfC2KfnxnUUI43ZEXa7IU1zuWJUUUUU==
+X-CM-SenderInfo: xkrx3t3r6k3tpzhluzxrxghudrp/
+X-CFilter-Loop: Reflected
 
-Michal Wilczynski wrote:
-> Currently logic for installing notifications from ACPI devices is
-> implemented using notify callback in struct acpi_driver. Preparations
-> are being made to replace acpi_driver with more generic struct
-> platform_driver, which doesn't contain notify callback. Furthermore
-> as of now handlers are being called indirectly through
-> acpi_notify_device(), which decreases performance.
-> 
-> Call acpi_dev_install_notify_handler() at the end of .add() callback.
-> Call acpi_dev_remove_notify_handler() at the beginning of .remove()
-> callback. Change arguments passed to the notify function to match with
-> what's required by acpi_install_notify_handler(). Remove .notify
-> callback initialization in acpi_driver.
-> 
-> Suggested-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Signed-off-by: Michal Wilczynski <michal.wilczynski@intel.com>
-> ---
->  drivers/acpi/nfit/core.c | 24 ++++++++++++++++++------
->  1 file changed, 18 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-> index 95930e9d776c..a281bdfee8a0 100644
-> --- a/drivers/acpi/nfit/core.c
-> +++ b/drivers/acpi/nfit/core.c
-> @@ -3312,11 +3312,13 @@ void acpi_nfit_shutdown(void *data)
->  }
->  EXPORT_SYMBOL_GPL(acpi_nfit_shutdown);
->  
-> -static void acpi_nfit_notify(struct acpi_device *adev, u32 event)
-> +static void acpi_nfit_notify(acpi_handle handle, u32 event, void *data)
->  {
-> -	device_lock(&adev->dev);
-> -	__acpi_nfit_notify(&adev->dev, adev->handle, event);
-> -	device_unlock(&adev->dev);
-> +	struct acpi_device *device = data;
-> +
-> +	device_lock(&device->dev);
-> +	__acpi_nfit_notify(&device->dev, handle, event);
-> +	device_unlock(&device->dev);
->  }
->  
->  static int acpi_nfit_add(struct acpi_device *adev)
-> @@ -3375,12 +3377,23 @@ static int acpi_nfit_add(struct acpi_device *adev)
->  
->  	if (rc)
->  		return rc;
-> -	return devm_add_action_or_reset(dev, acpi_nfit_shutdown, acpi_desc);
-> +
-> +	rc = devm_add_action_or_reset(dev, acpi_nfit_shutdown, acpi_desc);
-> +	if (rc)
-> +		return rc;
-> +
-> +	return acpi_dev_install_notify_handler(adev,
-> +					       ACPI_DEVICE_NOTIFY,
-> +					       acpi_nfit_notify);
->  }
->  
->  static void acpi_nfit_remove(struct acpi_device *adev)
->  {
->  	/* see acpi_nfit_unregister */
-> +
-> +	acpi_dev_remove_notify_handler(adev,
-> +				       ACPI_DEVICE_NOTIFY,
-> +				       acpi_nfit_notify);
+Hi Pankaj,
 
-Please use devm to trigger this release rather than making
-acpi_nfit_remove() contain any logic.
+On 6/22/2023 4:35 PM, Pankaj Gupta wrote:
+>> The following warning was reported when doing fsync on a pmem device:
+>>
+>>  ------------[ cut here ]------------
+>>  WARNING: CPU: 2 PID: 384 at block/blk-core.c:751 submit_bio_noacct+0x340/0x520
+SNIP
+>> Hi Jens & Dan,
+>>
+>> I found Pankaj was working on the fix and optimization of virtio-pmem
+>> flush bio [0], but considering the last status update was 1/12/2022, so
+>> could you please pick the patch up for v6.4 and we can do the flush fix
+>> and optimization later ?
+>>
+>> [0]: https://lore.kernel.org/lkml/20220111161937.56272-1-pankaj.gupta.linux@gmail.com/T/
+>>
+>>  drivers/nvdimm/nd_virtio.c | 2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/nvdimm/nd_virtio.c b/drivers/nvdimm/nd_virtio.c
+>> index c6a648fd8744..97098099f8a3 100644
+>> --- a/drivers/nvdimm/nd_virtio.c
+>> +++ b/drivers/nvdimm/nd_virtio.c
+>> @@ -105,7 +105,7 @@ int async_pmem_flush(struct nd_region *nd_region, struct bio *bio)
+>>          * parent bio. Otherwise directly call nd_region flush.
+>>          */
+>>         if (bio && bio->bi_iter.bi_sector != -1) {
+>> -               struct bio *child = bio_alloc(bio->bi_bdev, 0, REQ_PREFLUSH,
+>> +               struct bio *child = bio_alloc(bio->bi_bdev, 0, REQ_OP_WRITE | REQ_PREFLUSH,
+>>                                               GFP_ATOMIC);
+>>
+>>                 if (!child)
+> Fix looks good to me. Will give a run soon.
+>
+> Yes, [0] needs to be completed. Curious to know if you guys using
+> virtio-pmem device?
+Sorry about missing the question. We are plan to use DAX to do page
+cache offload and now we are just do experiment with virtio-pmem and
+nd-pmem.
 
-An additional cleanup opportunity with the ->add() path fully devm
-instrumented would be to just delete acpi_nfit_remove() since it is
-optional and serves no purpose.
+> Thanks,
+> Pankaj
+
