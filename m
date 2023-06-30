@@ -1,150 +1,65 @@
-Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yb1-f175.google.com (mail-yb1-f175.google.com [209.85.219.175])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1388C15BC
-	for <nvdimm@lists.linux.dev>; Fri, 30 Jun 2023 04:32:26 +0000 (UTC)
-Received: from pps.filterd (m0353723.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 35U3XO0v022754;
-	Fri, 30 Jun 2023 03:41:53 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
- : in-reply-to : references : date : message-id : mime-version :
- content-type; s=pp1; bh=B1CW1DrvWrT1T4qGGfA0jnCPLsgt+8lZqZbPxtbBKe4=;
- b=Q199RAYkh0GWA3nzuO29PoKN/jao/SbWBZHUJpXrFwFl95B2jo9emr7Zphh9T8Hu0W4/
- KTW8G3DLkVB87HByfLJWV/ve/wdxHJrYzO7LiYT3YF3wIyw1j6IZAVUhn2+LR6yXVSjL
- ydQ1cVZaYyn8WH6m1xsHksQE5+CZffXTYuBLqtaLsKZBgHjXEmJj7ncOLxfNdFRMI/IN
- vQk0aw4LH++MtvAjiyTYyWFA2l9p8XXMToYd2vdxPooMkCUzehBjXLhXMrUH9CQR24Kz
- mqbTCN1WIvyHvHVqNW/HGMfYLV0gC0o5SnrS6dvb9RgM5f6obY1yQtkmRhTlHOUWqz+T kg== 
-Received: from ppma03ams.nl.ibm.com (62.31.33a9.ip4.static.sl-reverse.com [169.51.49.98])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3rhq8108u0-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 30 Jun 2023 03:41:53 +0000
-Received: from pps.filterd (ppma03ams.nl.ibm.com [127.0.0.1])
-	by ppma03ams.nl.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 35U2fQUQ029312;
-	Fri, 30 Jun 2023 03:41:51 GMT
-Received: from smtprelay03.fra02v.mail.ibm.com ([9.218.2.224])
-	by ppma03ams.nl.ibm.com (PPS) with ESMTPS id 3rdr453wua-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 30 Jun 2023 03:41:51 +0000
-Received: from smtpav01.fra02v.mail.ibm.com (smtpav01.fra02v.mail.ibm.com [10.20.54.100])
-	by smtprelay03.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 35U3flat18743834
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 30 Jun 2023 03:41:47 GMT
-Received: from smtpav01.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 878BF2004B;
-	Fri, 30 Jun 2023 03:41:47 +0000 (GMT)
-Received: from smtpav01.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id ADD1F20043;
-	Fri, 30 Jun 2023 03:41:45 +0000 (GMT)
-Received: from tarunpc (unknown [9.199.157.25])
-	by smtpav01.fra02v.mail.ibm.com (Postfix) with ESMTPS;
-	Fri, 30 Jun 2023 03:41:45 +0000 (GMT)
-From: Tarun Sahu <tsahu@linux.ibm.com>
-To: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, dave.jiang@intel.com,
-        dan.j.williams@intel.com, vishal.l.verma@intel.com,
-        aneesh.kumar@linux.ibm.com, jaypatel@linux.ibm.com
-Subject: Re: [PATCH v3] dax/kmem: Pass valid argument to
- memory_group_register_static
-In-Reply-To: <20230621155025.370672-1-tsahu@linux.ibm.com>
-References: <20230621155025.370672-1-tsahu@linux.ibm.com>
-Date: Fri, 30 Jun 2023 09:11:43 +0530
-Message-ID: <87cz1daa6g.fsf@linux.ibm.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E763F1FB8
+	for <nvdimm@lists.linux.dev>; Fri, 30 Jun 2023 04:45:16 +0000 (UTC)
+Received: by mail-yb1-f175.google.com with SMTP id 3f1490d57ef6-c01e1c0402cso1309759276.0
+        for <nvdimm@lists.linux.dev>; Thu, 29 Jun 2023 21:45:16 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1688100315; x=1690692315;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=Jy+2wKbAO2OzvWqyWD+QWcNE+oPQupQFExebUvFAsfo=;
+        b=ghKITAnwxQw7NSpKuygbhDmD94YR1hQb/uj1vFbMFql9/u2srmFuIb/W+cpESRyn2h
+         RU2ekTuMlvo+X/7imkCNMwaY0eaVILkxILRPxdVXxIjMqlexjHp80UreyYCm+L9uA3jv
+         ak3kNZVMP4GbGf0F5UUNXKlQ9m+gtUBvj4F8rHZ6y3ebA6SmdgKl/1RsW30IXqHugBvD
+         o/RpcO0uAIXSUdfkh1vwPHohMbc6zkwAH9AMJsQnxlhGenXhlLObnnS9u7EPtXZHf3/f
+         UlhW4mX2roxz4dKaPfR5lJG6Z947ZQD3gMOYAgvsp6sGFGRK80VHiEOY3Ihq7EMmNoos
+         79dg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1688100315; x=1690692315;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=Jy+2wKbAO2OzvWqyWD+QWcNE+oPQupQFExebUvFAsfo=;
+        b=hgloaTmYQYGvFK7wNqsNPqXTQQntAXzJeSG61rrRpTxGdQ4I6a9rNVTU4Osn/h29KS
+         kpe2b6zz+1WR0G/33zTnxVONZWegtk3F7eEXcUt5Jc1CXNR6qxCBGhuqxP4dNU4/aYOf
+         eoMV9B0iAljrfi3YSmEkeV/ANASaQCvS/WY+SGhUkUmFuVH0eg8d8Z0hNRTQbIzOev8N
+         3qRot/kecwt32nbR+aEqogOjBHL+y4w83HmkVoR5IvYypO2TvRldMw9oQYbRuTrBvmyt
+         yJvYQUrZ7COTBg/wRMGB5mpsXka9dv+h4t9J4VcaCDucu/CM3Fap9XBqAwLB0VZ+SCJc
+         8DrA==
+X-Gm-Message-State: ABy/qLaLXFD0H7YkRwIFPxUI0ymjF4jDjyg+QNe7orrF4YG7tjlp8dyn
+	8CTNCGjeXuwmPxZWvVSEEi3oGmS6vjkz1ogZ/UM6c/eYN/M=
+X-Google-Smtp-Source: APBJJlGjtUStSn0IYr/tNUDx8CYFb9y2ynomg5kQwyGnJPZ+JRYhx2RhsFRJ3+ShB+zXUszAflU79OvOlJyuT/eXags=
+X-Received: by 2002:a25:a489:0:b0:c16:a8f7:7afd with SMTP id
+ g9-20020a25a489000000b00c16a8f77afdmr1607987ybi.45.1688100315563; Thu, 29 Jun
+ 2023 21:45:15 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-TM-AS-GCONF: 00
-X-Proofpoint-ORIG-GUID: 91-uvh5JY-SRRCM4OE5_Vua_DkZ2dQkZ
-X-Proofpoint-GUID: 91-uvh5JY-SRRCM4OE5_Vua_DkZ2dQkZ
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.254,Aquarius:18.0.957,Hydra:6.0.591,FMLib:17.11.176.26
- definitions=2023-06-29_10,2023-06-27_01,2023-05-22_02
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 impostorscore=0
- lowpriorityscore=0 clxscore=1011 bulkscore=0 suspectscore=0
- mlxlogscore=999 malwarescore=0 priorityscore=1501 spamscore=0 mlxscore=0
- adultscore=0 phishscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2305260000 definitions=main-2306300029
+References: <ZJLpYMC8FgtZ0k2k@infradead.org> <20230621134340.878461-1-houtao@huaweicloud.com>
+ <CAM9Jb+j8-DWdRMsXJNiHm_UK5Nx6L2=a2PnRL=m3sMyQz4cXLw@mail.gmail.com> <d484a89f-8aaf-c0ae-5c12-f9a87b62384c@huaweicloud.com>
+In-Reply-To: <d484a89f-8aaf-c0ae-5c12-f9a87b62384c@huaweicloud.com>
+From: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Date: Fri, 30 Jun 2023 06:45:03 +0200
+Message-ID: <CAM9Jb+i6qGVNRMJHG_=_NLkrzcnjn=Sa=YZJsJeA3K19ib__Zw@mail.gmail.com>
+Subject: Re: [PATCH v2] virtio_pmem: add the missing REQ_OP_WRITE for flush bio
+To: Hou Tao <houtao@huaweicloud.com>
+Cc: Dan Williams <dan.j.williams@intel.com>, Jens Axboe <axboe@kernel.dk>, 
+	Christoph Hellwig <hch@infradead.org>, linux-block@vger.kernel.org, nvdimm@lists.linux.dev, 
+	virtualization@lists.linux-foundation.org, houtao1@huawei.com
+Content-Type: text/plain; charset="UTF-8"
 
+> > Yes, [0] needs to be completed. Curious to know if you guys using
+> > virtio-pmem device?
+> Sorry about missing the question. We are plan to use DAX to do page
+> cache offload and now we are just do experiment with virtio-pmem and
+> nd-pmem.
 
-Hi,
+Sounds good. Thank you for answering!
 
-This is just a gentle reminder, If any other information is needed.
-
-Tarun Sahu <tsahu@linux.ibm.com> writes:
-
-> memory_group_register_static takes maximum number of pages as the argument
-> while dev_dax_kmem_probe passes total_len (in bytes) as the argument.
->
-> IIUC, I don't see any crash/panic impact as such. As,
-> memory_group_register_static just set the max_pages limit which is used in
-> auto_movable_zone_for_pfn to determine the zone.
->
-> which might cause these condition to behave differently,
->
-> This will be true always so jump will happen to kernel_zone
->     ...
->     if (!auto_movable_can_online_movable(NUMA_NO_NODE, group, nr_pages))
->         goto kernel_zone;
->
->     ...
->     kernel_zone:
->         return default_kernel_zone_for_pfn(nid, pfn, nr_pages);
->
-> Here, In below, zone_intersects compare range will be larger as nr_pages
-> will be higher (derived from total_len passed in dev_dax_kmem_probe).
->
->     ...
->     static struct zone *default_kernel_zone_for_pfn(int nid, unsigned long start_pfn,
->     		unsigned long nr_pages)
->     {
->     	struct pglist_data *pgdat = NODE_DATA(nid);
->     	int zid;
->
->     	for (zid = 0; zid < ZONE_NORMAL; zid++) {
->     		struct zone *zone = &pgdat->node_zones[zid];
->
->     		if (zone_intersects(zone, start_pfn, nr_pages))
->     			return zone;
->     	}
->
->     	return &pgdat->node_zones[ZONE_NORMAL];
->     }
->
-> Incorrect zone will be returned here, which in later time might cause bigger
-> problem.
->
-> Fixes: eedf634aac3b ("dax/kmem: use a single static memory group for a single probed unit")
-> Signed-off-by: Tarun Sahu <tsahu@linux.ibm.com>
-> Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
-> ---
-> V3<-V2
-> 1. Removed skip characters.
->
-> V2<-V1
-> 1. Added more details to commit message
->
->
->  drivers/dax/kmem.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
-> index 7b36db6f1cbd..898ca9505754 100644
-> --- a/drivers/dax/kmem.c
-> +++ b/drivers/dax/kmem.c
-> @@ -99,7 +99,7 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
->  	if (!data->res_name)
->  		goto err_res_name;
->  
-> -	rc = memory_group_register_static(numa_node, total_len);
-> +	rc = memory_group_register_static(numa_node, PFN_UP(total_len));
->  	if (rc < 0)
->  		goto err_reg_mgid;
->  	data->mgid = rc;
-> -- 
-> 2.31.1
-
-
-~Tarun
+Best regards,
+Pankaj
