@@ -1,53 +1,125 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E1C3C2F0
-	for <nvdimm@lists.linux.dev>; Sat,  1 Jul 2023 16:12:03 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 24C5EC433CA;
-	Sat,  1 Jul 2023 16:12:03 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1688227923;
-	bh=M0PDgaOnQIx4mh1sMnVuyY+C9pRZqgcDrieVFxpmVBY=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-	b=Xn/vEAFJ+rtyiTqtDmBThXSGWgM/H8jKTi/pRLUTvy+fp4PdzLHiwf+Bggx6/H3VP
-	 wuwqkUjZNPtQZzgjQwzIvhMkiHY/D52Kor0fYPFZvpCda86L6zqGF/SpA5/R3Abge1
-	 Wk7lqfm+0xqo0gBGy4mC2ubSn4zzXrkysvWWeV2sysMbBz0Q7+tFK3nGZGs7K/9vX+
-	 jlLTqpVKlbE+oZObdzJlPyu5AIPjT3RPapy3VgTEbpW/l+g4iGhGmqQ1igr8Z9yo9u
-	 s3mmEPUdlgXT7Jh+cXgpguBLcWujilhVKSzaZXHQUiEiTxqOt6t1L+tpTE1P2+fdy2
-	 YevB/UuBJoZDA==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 09A27C6445B;
-	Sat,  1 Jul 2023 16:12:03 +0000 (UTC)
-Subject: Re: [GIT PULL] NVDIMM and DAX for 6.5
-From: pr-tracker-bot@kernel.org
-In-Reply-To: <b40d43f78d320324c7a65ec0f3162524a4781c4c.camel@intel.com>
-References: <b40d43f78d320324c7a65ec0f3162524a4781c4c.camel@intel.com>
-X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
-X-PR-Tracked-Message-Id: <b40d43f78d320324c7a65ec0f3162524a4781c4c.camel@intel.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git tags/libnvdimm-for-6.5
-X-PR-Tracked-Commit-Id: 1ea7ca1b090145519aad998679222f0a14ab8fce
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 0a1c979c6b7dfe5b6c105d0f0f9f068b5eb07e25
-Message-Id: <168822792302.621.8262643616504738837.pr-tracker-bot@kernel.org>
-Date: Sat, 01 Jul 2023 16:12:03 +0000
-To: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Cc: "Torvalds, Linus" <torvalds@linux-foundation.org>, "Williams, Dan J" <dan.j.williams@intel.com>, "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C2C6A34
+	for <nvdimm@lists.linux.dev>; Mon,  3 Jul 2023 08:03:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1688371395; x=1719907395;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=Ou+WLzTPwdntIetfd+7MaSPig1ii75haZd/L4ui/vkg=;
+  b=ZOXK64uwmrHdZzZNy4YbhUu5rOO3LL0w5dw6AQ96Dkej/A4ZBAUJGrmu
+   43iAXm1uU6xzqkE43XvqOUhQDOGelH9jXtgswURmmCuqkRX7KQ52YekWA
+   oP2Dv3+g8syPk3qm0PRmZE/k32X9ZNCUVwUIUB15hk/b9cDl8ZOQsV2E+
+   gYM2WYiDcTBUQnUciWoQL0+lg7o3/h5OdUHVdb6HP9FWdguGSFQsvXYQS
+   bPzNEHfA5svXFpIyOV0192wtezFDe74+UbqTz9CIRyBNEyRXW2ZDi165g
+   M2QrONzt6APclAg4RqQmu0Iq0cM+VvJi5dlbKoe5tX/0j91zUYp/Y1/Vr
+   g==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10759"; a="366303998"
+X-IronPort-AV: E=Sophos;i="6.01,177,1684825200"; 
+   d="scan'208";a="366303998"
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Jul 2023 01:03:14 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10759"; a="862994498"
+X-IronPort-AV: E=Sophos;i="6.01,177,1684825200"; 
+   d="scan'208";a="862994498"
+Received: from powerlab.fi.intel.com ([10.237.71.25])
+  by fmsmga001-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Jul 2023 01:03:11 -0700
+From: Michal Wilczynski <michal.wilczynski@intel.com>
+To: linux-acpi@vger.kernel.org
+Cc: rafael@kernel.org,
+	dan.j.williams@intel.com,
+	vishal.l.verma@intel.com,
+	lenb@kernel.org,
+	dave.jiang@intel.com,
+	ira.weiny@intel.com,
+	rui.zhang@intel.com,
+	linux-kernel@vger.kernel.org,
+	nvdimm@lists.linux.dev,
+	Michal Wilczynski <michal.wilczynski@intel.com>
+Subject: [PATCH v7 0/9] Remove .notify callback in acpi_device_ops
+Date: Mon,  3 Jul 2023 11:02:43 +0300
+Message-ID: <20230703080252.2899090-1-michal.wilczynski@intel.com>
+X-Mailer: git-send-email 2.41.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-The pull request you sent on Fri, 30 Jun 2023 19:17:47 +0000:
+*** IMPORTANT ***
+This is part 1 - only drivers in acpi directory to ease up review
+process. Rest of the drivers will be handled in separate patchsets.
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git tags/libnvdimm-for-6.5
+Currently drivers support ACPI event handlers by defining .notify
+callback in acpi_device_ops. This solution is suboptimal as event
+handler installer installs intermediary function acpi_notify_device as a
+handler in every driver. Also this approach requires extra variable
+'flags' for specifying event types that the driver want to subscribe to.
+Additionally this is a pre-work required to align acpi_driver with
+platform_driver and eventually replace acpi_driver with platform_driver.
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/0a1c979c6b7dfe5b6c105d0f0f9f068b5eb07e25
+Remove .notify callback from the acpi_device_ops. Replace it with each
+driver installing and removing it's event handlers.
 
-Thank you!
+This is part 1 - only drivers in acpi directory to ease up review
+process.
+
+v7:
+ - fix warning by declaring acpi_nfit_remove_notify_handler() as static
+
+v6:
+ - fixed unnecessary RCT in all drivers, as it's not a purpose of
+   this patch series
+ - changed error label names to simplify them
+ - dropped commit that remove a comma
+ - squashed commit moving code for nfit
+ - improved nfit driver to use devm instead of .remove()
+ - re-based as Rafael changes [1] are merged already
+
+v5:
+ - rebased on top of Rafael changes [1], they're not merged yet
+ - fixed rollback in multiple drivers so they don't leak resources on
+   failure
+ - made this part 1, meaning only drivers in acpi directory, rest of
+   the drivers will be handled in separate patchsets to ease up review
+
+v4:
+ - added one commit for previously missed driver sony-laptop,
+   refactored return statements, added NULL check for event installer
+v3:
+ - lkp still reported some failures for eeepc, fujitsu and
+   toshiba_bluetooth, fix those
+v2:
+ - fix compilation errors for drivers
+
+[1]: https://lore.kernel.org/linux-acpi/1847933.atdPhlSkOF@kreacher/
+
+Michal Wilczynski (9):
+  acpi/bus: Introduce wrappers for ACPICA event handler install/remove
+  acpi/bus: Set driver_data to NULL every time .add() fails
+  acpi/ac: Move handler installing logic to driver
+  acpi/video: Move handler installing logic to driver
+  acpi/battery: Move handler installing logic to driver
+  acpi/hed: Move handler installing logic to driver
+  acpi/nfit: Move handler installing logic to driver
+  acpi/nfit: Remove unnecessary .remove callback
+  acpi/thermal: Move handler installing logic to driver
+
+ drivers/acpi/ac.c         | 29 ++++++++++++++++++-------
+ drivers/acpi/acpi_video.c | 22 ++++++++++++++++---
+ drivers/acpi/battery.c    | 26 +++++++++++++++++-----
+ drivers/acpi/bus.c        | 30 +++++++++++++++++++++++++-
+ drivers/acpi/hed.c        | 17 ++++++++++++---
+ drivers/acpi/nfit/core.c  | 45 +++++++++++++++++++++++++++------------
+ drivers/acpi/thermal.c    | 25 +++++++++++++++++-----
+ include/acpi/acpi_bus.h   |  6 ++++++
+ 8 files changed, 161 insertions(+), 39 deletions(-)
 
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+2.41.0
+
