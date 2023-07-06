@@ -1,142 +1,89 @@
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from cstnet.cn (smtp25.cstnet.cn [159.226.251.25])
+	(using TLSv1.2 with cipher DHE-RSA-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF16F7E8
-	for <nvdimm@lists.linux.dev>; Thu,  6 Jul 2023 06:46:00 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1688625960; x=1720161960;
-  h=from:to:cc:subject:in-reply-to:references:date:
-   message-id:mime-version;
-  bh=mRVVHAmFZ45/3wNp4nf90MXw/IuSIO9dhVaqP8s/mB0=;
-  b=GmC+OpbhVVb6pIYMDxkCnq5zzGS/OpwVlmJOahBAyQ4XZzZLSgVBlDSD
-   vLUwz/IHwkFTk7P8C9dvltE9qxmzRnsvU4BwcT+JWsoA0njEghXubB2LS
-   WRz1GEOko/MVjhxaNOVpJHMfWYNEDsSD1Gh935yvKRClGA0EgPaEsdXuS
-   eFpoYKEJdrI8k3SYuad26QoFtjDb9qkStcxt59Nhi38Egai4k6pTMGf/E
-   /z2owcq3RDSXrHabTE3dW9J1ax63xyA+2q8vLreYSyau9ZbiHrSNo/wQw
-   u7UGN8C0YwBDnjYH5FZ73f6wzzMawTEyHGwf/nRHdKvhJYdkbyGhSYSse
-   Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10762"; a="360994587"
-X-IronPort-AV: E=Sophos;i="6.01,185,1684825200"; 
-   d="scan'208";a="360994587"
-Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Jul 2023 23:45:59 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10762"; a="1049969094"
-X-IronPort-AV: E=Sophos;i="6.01,185,1684825200"; 
-   d="scan'208";a="1049969094"
-Received: from yhuang6-desk2.sh.intel.com (HELO yhuang6-desk2.ccr.corp.intel.com) ([10.238.208.55])
-  by fmsmga005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Jul 2023 23:45:57 -0700
-From: "Huang, Ying" <ying.huang@intel.com>
-To: Miaohe Lin <linmiaohe@huawei.com>
-Cc: <akpm@linux-foundation.org>,  <dan.j.williams@intel.com>,
-  <vishal.l.verma@intel.com>,  <dave.jiang@intel.com>,
-  <nvdimm@lists.linux.dev>,  <linux-cxl@vger.kernel.org>, Aneesh Kumar K.V
- <aneesh.kumar@linux.ibm.com>,
-  <linux-mm@kvack.org>,  <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] memory tier: rename destroy_memory_type() to
- put_memory_type()
-In-Reply-To: <20230706063905.543800-1-linmiaohe@huawei.com> (Miaohe Lin's
-	message of "Thu, 6 Jul 2023 14:39:05 +0800")
-References: <20230706063905.543800-1-linmiaohe@huawei.com>
-User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/28.2 (gnu/linux)
-Date: Thu, 06 Jul 2023 14:44:12 +0800
-Message-ID: <87o7kph743.fsf@yhuang6-desk2.ccr.corp.intel.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 093AE1309F
+	for <nvdimm@lists.linux.dev>; Thu,  6 Jul 2023 09:05:35 +0000 (UTC)
+Received: from ed3e173716be.home.arpa (unknown [124.16.138.129])
+	by APP-05 (Coremail) with SMTP id zQCowADX3rJAgqZkbVj+CA--.43353S2;
+	Thu, 06 Jul 2023 16:58:40 +0800 (CST)
+From: Jiasheng Jiang <jiasheng@iscas.ac.cn>
+To: ira.weiny@intel.com,
+	dan.j.williams@intel.com,
+	vishal.l.verma@intel.com,
+	dave.jiang@intel.com,
+	oohall@gmail.com,
+	aneesh.kumar@linux.ibm.com
+Cc: nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org,
+	Jiasheng Jiang <jiasheng@iscas.ac.cn>
+Subject: [PATCH v3] libnvdimm/of_pmem: Replace kstrdup with devm_kstrdup and add check
+Date: Thu,  6 Jul 2023 16:58:39 +0800
+Message-Id: <20230706085839.31145-1-jiasheng@iscas.ac.cn>
+X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ascii
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:zQCowADX3rJAgqZkbVj+CA--.43353S2
+X-Coremail-Antispam: 1UD129KBjvdXoWruFWfWr4fZrW5ZrWrAFWfGrg_yoWkAFcEkr
+	40va43Xr1UC39I9wnIkwnakF9Ikw4UuFWrurnYq3ZxJFZ8GF13JrWUAws8G393Xrn7JFsx
+	ur4qqFZ8Wr9rGjkaLaAFLSUrUUUUUb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
+	9fnUUIcSsGvfJTRUUUbc8FF20E14v26r4j6ryUM7CY07I20VC2zVCF04k26cxKx2IYs7xG
+	6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rwA2F7IY1VAKz4vEj48ve4kI8w
+	A2z4x0Y4vE2Ix0cI8IcVAFwI0_Gr0_Xr1l84ACjcxK6xIIjxv20xvEc7CjxVAFwI0_Gr0_
+	Cr1l84ACjcxK6I8E87Iv67AKxVW8Jr0_Cr1UM28EF7xvwVC2z280aVCY1x0267AKxVWxJr
+	0_GcWle2I262IYc4CY6c8Ij28IcVAaY2xG8wAqx4xG64xvF2IEw4CE5I8CrVC2j2WlYx0E
+	2Ix0cI8IcVAFwI0_Jr0_Jr4lYx0Ex4A2jsIE14v26r1j6r4UMcvjeVCFs4IE7xkEbVWUJV
+	W8JwACjcxG0xvY0x0EwIxGrwACjI8F5VA0II8E6IAqYI8I648v4I1lc2xSY4AK67AK6r43
+	MxAIw28IcxkI7VAKI48JMxC20s026xCaFVCjc4AY6r1j6r4UMI8I3I0E5I8CrVAFwI0_Jr
+	0_Jr4lx2IqxVCjr7xvwVAFwI0_JrI_JrWlx4CE17CEb7AF67AKxVWUtVW8ZwCIc40Y0x0E
+	wIxGrwCI42IY6xIIjxv20xvE14v26r1j6r1xMIIF0xvE2Ix0cI8IcVCY1x0267AKxVWUJV
+	W8JwCI42IY6xAIw20EY4v20xvaj40_Jr0_JF4lIxAIcVC2z280aVAFwI0_Jr0_Gr1lIxAI
+	cVC2z280aVCY1x0267AKxVWUJVW8JbIYCTnIWIevJa73UjIFyTuYvjfUeHUDDUUUU
+X-Originating-IP: [124.16.138.129]
+X-CM-SenderInfo: pmld2xxhqjqxpvfd2hldfou0/
 
-Miaohe Lin <linmiaohe@huawei.com> writes:
+Replace kstrdup() with devm_kstrdup() to avoid memory leak and
+add check for the return value of the devm_kstrdup() to avoid
+NULL pointer dereference
 
-> It appears that destroy_memory_type() isn't a very good name because
-> we usually will not free the memory_type here. So rename it to a more
-> appropriate name i.e. put_memory_type().
->
-> Suggested-by: Huang, Ying <ying.huang@intel.com>
-> Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Fixes: 49bddc73d15c ("libnvdimm/of_pmem: Provide a unique name for bus provider")
+Signed-off-by: Jiasheng Jiang <jiasheng@iscas.ac.cn>
+---
+Changelog:
 
-LGTM, Thanks!
+v2 -> v3:
 
-Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
+1. Correct the usage of devm_kstrdup().
 
-> ---
->  drivers/dax/kmem.c           | 4 ++--
->  include/linux/memory-tiers.h | 4 ++--
->  mm/memory-tiers.c            | 6 +++---
->  3 files changed, 7 insertions(+), 7 deletions(-)
->
-> diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
-> index 898ca9505754..c57acb73e3db 100644
-> --- a/drivers/dax/kmem.c
-> +++ b/drivers/dax/kmem.c
-> @@ -264,7 +264,7 @@ static int __init dax_kmem_init(void)
->  	return rc;
->  
->  error_dax_driver:
-> -	destroy_memory_type(dax_slowmem_type);
-> +	put_memory_type(dax_slowmem_type);
->  err_dax_slowmem_type:
->  	kfree_const(kmem_name);
->  	return rc;
-> @@ -275,7 +275,7 @@ static void __exit dax_kmem_exit(void)
->  	dax_driver_unregister(&device_dax_kmem_driver);
->  	if (!any_hotremove_failed)
->  		kfree_const(kmem_name);
-> -	destroy_memory_type(dax_slowmem_type);
-> +	put_memory_type(dax_slowmem_type);
->  }
->  
->  MODULE_AUTHOR("Intel Corporation");
-> diff --git a/include/linux/memory-tiers.h b/include/linux/memory-tiers.h
-> index fc9647b1b4f9..437441cdf78f 100644
-> --- a/include/linux/memory-tiers.h
-> +++ b/include/linux/memory-tiers.h
-> @@ -33,7 +33,7 @@ struct memory_dev_type {
->  #ifdef CONFIG_NUMA
->  extern bool numa_demotion_enabled;
->  struct memory_dev_type *alloc_memory_type(int adistance);
-> -void destroy_memory_type(struct memory_dev_type *memtype);
-> +void put_memory_type(struct memory_dev_type *memtype);
->  void init_node_memory_type(int node, struct memory_dev_type *default_type);
->  void clear_node_memory_type(int node, struct memory_dev_type *memtype);
->  #ifdef CONFIG_MIGRATION
-> @@ -68,7 +68,7 @@ static inline struct memory_dev_type *alloc_memory_type(int adistance)
->  	return NULL;
->  }
->  
-> -static inline void destroy_memory_type(struct memory_dev_type *memtype)
-> +static inline void put_memory_type(struct memory_dev_type *memtype)
->  {
->  
->  }
-> diff --git a/mm/memory-tiers.c b/mm/memory-tiers.c
-> index 1719fa3bcf02..c49ab03f49b1 100644
-> --- a/mm/memory-tiers.c
-> +++ b/mm/memory-tiers.c
-> @@ -560,11 +560,11 @@ struct memory_dev_type *alloc_memory_type(int adistance)
->  }
->  EXPORT_SYMBOL_GPL(alloc_memory_type);
->  
-> -void destroy_memory_type(struct memory_dev_type *memtype)
-> +void put_memory_type(struct memory_dev_type *memtype)
->  {
->  	kref_put(&memtype->kref, release_memtype);
->  }
-> -EXPORT_SYMBOL_GPL(destroy_memory_type);
-> +EXPORT_SYMBOL_GPL(put_memory_type);
->  
->  void init_node_memory_type(int node, struct memory_dev_type *memtype)
->  {
-> @@ -586,7 +586,7 @@ void clear_node_memory_type(int node, struct memory_dev_type *memtype)
->  	 */
->  	if (!node_memory_types[node].map_count) {
->  		node_memory_types[node].memtype = NULL;
-> -		destroy_memory_type(memtype);
-> +		put_memory_type(memtype);
->  	}
->  	mutex_unlock(&memory_tier_lock);
->  }
+v1 -> v2:
+
+1. Replace kstrdup() with devm_kstrdup().
+---
+ drivers/nvdimm/of_pmem.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/nvdimm/of_pmem.c b/drivers/nvdimm/of_pmem.c
+index 10dbdcdfb9ce..1d2b1ab5b737 100644
+--- a/drivers/nvdimm/of_pmem.c
++++ b/drivers/nvdimm/of_pmem.c
+@@ -30,7 +30,12 @@ static int of_pmem_region_probe(struct platform_device *pdev)
+ 	if (!priv)
+ 		return -ENOMEM;
+ 
+-	priv->bus_desc.provider_name = kstrdup(pdev->name, GFP_KERNEL);
++	priv->bus_desc.provider_name = devm_kstrdup(&pdev->dev, pdev->name, GFP_KERNEL);
++	if (!priv->bus_desc.provider_name) {
++		kfree(priv);
++		return -ENOMEM;
++	}
++
+ 	priv->bus_desc.module = THIS_MODULE;
+ 	priv->bus_desc.of_node = np;
+ 
+-- 
+2.25.1
+
