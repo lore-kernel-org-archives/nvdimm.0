@@ -1,131 +1,133 @@
-Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr1-f44.google.com (mail-wr1-f44.google.com [209.85.221.44])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 395538F6A
-	for <nvdimm@lists.linux.dev>; Thu,  6 Jul 2023 13:30:15 +0000 (UTC)
-Received: from canpemm500002.china.huawei.com (unknown [172.30.72.53])
-	by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4QxcJh5BrJzMqHn;
-	Thu,  6 Jul 2023 21:07:48 +0800 (CST)
-Received: from [10.174.151.185] (10.174.151.185) by
- canpemm500002.china.huawei.com (7.192.104.244) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.27; Thu, 6 Jul 2023 21:11:02 +0800
-Subject: Re: [PATCH] memory tier: rename destroy_memory_type() to
- put_memory_type()
-To: Xiao Yang <yangx.jy@fujitsu.com>
-CC: <ying.huang@intel.com>, <nvdimm@lists.linux.dev>,
-	<linux-cxl@vger.kernel.org>, <linux-mm@kvack.org>,
-	<linux-kernel@vger.kernel.org>, <akpm@linux-foundation.org>,
-	<dan.j.williams@intel.com>, <vishal.l.verma@intel.com>,
-	<dave.jiang@intel.com>
-References: <20230706063905.543800-1-linmiaohe@huawei.com>
- <7956e695-3eac-25ef-4412-3a0ff33e3574@fujitsu.com>
-From: Miaohe Lin <linmiaohe@huawei.com>
-Message-ID: <428b3127-6b48-c19f-ae87-a1975b162e5c@huawei.com>
-Date: Thu, 6 Jul 2023 21:11:02 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
- Thunderbird/78.6.0
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A424F1855
+	for <nvdimm@lists.linux.dev>; Sat,  8 Jul 2023 08:40:41 +0000 (UTC)
+Received: by mail-wr1-f44.google.com with SMTP id ffacd0b85a97d-31590e4e27aso218002f8f.1
+        for <nvdimm@lists.linux.dev>; Sat, 08 Jul 2023 01:40:41 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google; t=1688805639; x=1691397639;
+        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=Bg5jwRfmaxJRk/T1b94KrbyPwszc1sFgHMz8MsKb73A=;
+        b=KuLEahlqLjG9N9ynMwwryTLykWK0C1O4nb4tV6Nyd8Z1VukEmWA+yE1yME31BU+N7G
+         oSgmhbvb2AVxKEqVKiYaQyvCCkTTS40l4+wKIK+OcvdxyGAuftJ9YZZL4yizuPxz/4iL
+         rk+e7ofz+hRPM9LZA5fjLhjVkLnsOeNPhqZ7qizeXggEOJCKZRr0uFxnzAZWWNmqqz/I
+         wb4lyBl+JmdtmiLg4caEu4l4Clj1i3Ky4i02Aw9YPhasAjzyWDmaKLKKL2UEl5tK6Wml
+         tLTkCkMNCuTRkvkVkMMOKmSOSlDBN9++isDplTDU+FqzDFP3hMb3Po1tiGnl3+6FcDll
+         989A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1688805639; x=1691397639;
+        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=Bg5jwRfmaxJRk/T1b94KrbyPwszc1sFgHMz8MsKb73A=;
+        b=SWElgExj/i9Om+D5LDIwtMpMl7FdQ54Rs+MYf6OudtPS57z1GcpHQANqE02eaUCpI+
+         9IPX6a2lh+zerdkfYGtOwBxwy/y+Ww2cOFmf1iXZMwKIuQR+8BgedV/cn0HnVqwdpu3c
+         CJlZn2Zm/eqyqaTKPSNpYxYxspTUatFGR0rOz0qoojgUZ3oItyPGWj1/54ggVfaAlfLt
+         WJCp8ezZXaaYJ8KKvemg5VLtK5+yX1h9QMoOhWmbAMmxuxHVCw/rs69Jc/SIpcomrLz5
+         BB0RYuYIF7T/Z41C/GvsshGkylvFiM+EJzGzJBKUXx65QcmM9+r9E+85ciukm/aG0kiW
+         CIEg==
+X-Gm-Message-State: ABy/qLYsgS7AcgH5cpChJ+G35Y5XN9FHUii3x5T365qa7RNrW4hrOJxO
+	P1Jg5XncecP5LQSjwKkN0e3wBg==
+X-Google-Smtp-Source: APBJJlFoVPJ3B4K8Pa8lNU17PaAUd3p7Q58KQeKPARsyfui27A++FIfLqqPcYBLcwWaNd59JeyxWUw==
+X-Received: by 2002:adf:f210:0:b0:314:2fdd:28ef with SMTP id p16-20020adff210000000b003142fdd28efmr6416684wro.18.1688805639308;
+        Sat, 08 Jul 2023 01:40:39 -0700 (PDT)
+Received: from localhost ([102.36.222.112])
+        by smtp.gmail.com with ESMTPSA id f14-20020adff44e000000b003142ea7a661sm6451034wrp.21.2023.07.08.01.40.35
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 08 Jul 2023 01:40:37 -0700 (PDT)
+Date: Sat, 8 Jul 2023 11:40:32 +0300
+From: Dan Carpenter <dan.carpenter@linaro.org>
+To: dan.j.williams@intel.com
+Cc: nvdimm@lists.linux.dev
+Subject: [bug report] libnvdimm: fix mishandled nvdimm_clear_poison() return
+ value
+Message-ID: <90d3d353-28e9-4f6d-b141-a9b7157d5514@moroto.mountain>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <7956e695-3eac-25ef-4412-3a0ff33e3574@fujitsu.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.174.151.185]
-X-ClientProxiedBy: dggems703-chm.china.huawei.com (10.3.19.180) To
- canpemm500002.china.huawei.com (7.192.104.244)
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-On 2023/7/6 19:58, Xiao Yang wrote:
-> On 2023/7/6 14:39, Miaohe Lin wrote:
->> It appears that destroy_memory_type() isn't a very good name because
->> we usually will not free the memory_type here. So rename it to a more
->> appropriate name i.e. put_memory_type().
->>
->> Suggested-by: Huang, Ying <ying.huang@intel.com>
->> Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
->> ---
->>   drivers/dax/kmem.c           | 4 ++--
->>   include/linux/memory-tiers.h | 4 ++--
->>   mm/memory-tiers.c            | 6 +++---
->>   3 files changed, 7 insertions(+), 7 deletions(-)
->>
->> diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
->> index 898ca9505754..c57acb73e3db 100644
->> --- a/drivers/dax/kmem.c
->> +++ b/drivers/dax/kmem.c
->> @@ -264,7 +264,7 @@ static int __init dax_kmem_init(void)
->>       return rc;
->>     error_dax_driver:
->> -    destroy_memory_type(dax_slowmem_type);
->> +    put_memory_type(dax_slowmem_type);
->>   err_dax_slowmem_type:
->>       kfree_const(kmem_name);
->>       return rc;
->> @@ -275,7 +275,7 @@ static void __exit dax_kmem_exit(void)
->>       dax_driver_unregister(&device_dax_kmem_driver);
->>       if (!any_hotremove_failed)
->>           kfree_const(kmem_name);
->> -    destroy_memory_type(dax_slowmem_type);
->> +    put_memory_type(dax_slowmem_type);
->>   }
->>     MODULE_AUTHOR("Intel Corporation");
->> diff --git a/include/linux/memory-tiers.h b/include/linux/memory-tiers.h
->> index fc9647b1b4f9..437441cdf78f 100644
->> --- a/include/linux/memory-tiers.h
->> +++ b/include/linux/memory-tiers.h
->> @@ -33,7 +33,7 @@ struct memory_dev_type {
->>   #ifdef CONFIG_NUMA
->>   extern bool numa_demotion_enabled;
->>   struct memory_dev_type *alloc_memory_type(int adistance);
->> -void destroy_memory_type(struct memory_dev_type *memtype);
->> +void put_memory_type(struct memory_dev_type *memtype);
->>   void init_node_memory_type(int node, struct memory_dev_type *default_type);
->>   void clear_node_memory_type(int node, struct memory_dev_type *memtype);
->>   #ifdef CONFIG_MIGRATION
->> @@ -68,7 +68,7 @@ static inline struct memory_dev_type *alloc_memory_type(int adistance)
->>       return NULL;
->>   }
->>   -static inline void destroy_memory_type(struct memory_dev_type *memtype)
->> +static inline void put_memory_type(struct memory_dev_type *memtype)
->>   {
->>     }
->> diff --git a/mm/memory-tiers.c b/mm/memory-tiers.c
->> index 1719fa3bcf02..c49ab03f49b1 100644
->> --- a/mm/memory-tiers.c
->> +++ b/mm/memory-tiers.c
->> @@ -560,11 +560,11 @@ struct memory_dev_type *alloc_memory_type(int adistance)
->>   }
->>   EXPORT_SYMBOL_GPL(alloc_memory_type);
->>   -void destroy_memory_type(struct memory_dev_type *memtype)
->> +void put_memory_type(struct memory_dev_type *memtype)
->>   {
->>       kref_put(&memtype->kref, release_memtype);
->>   }
->> -EXPORT_SYMBOL_GPL(destroy_memory_type);
->> +EXPORT_SYMBOL_GPL(put_memory_type);
->>     void init_node_memory_type(int node, struct memory_dev_type *memtype)
->>   {
->> @@ -586,7 +586,7 @@ void clear_node_memory_type(int node, struct memory_dev_type *memtype)
->>        */
->>       if (!node_memory_types[node].map_count) {
->>           node_memory_types[node].memtype = NULL;
->> -        destroy_memory_type(memtype);
->> +        put_memory_type(memtype);
-> Hi Maohe,
-> 
-> I didn't find that destroy_memory_type(memtype) is called here on mainline kernel. Did I miss something?
+Hello Dan Williams,
 
-It's on linux-next tree:
- https://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git/commit/?id=e5bf0402b80d80b66e9765b2c160b5199a5c7d3b
+The patch 868f036fee4b: "libnvdimm: fix mishandled
+nvdimm_clear_poison() return value" from Dec 16, 2016, leads to the
+following Smatch static checker warning:
 
-> 
-> Other than that, it looks good to me.
-> Reviewed-by: Xiao Yang <yangx.jy@fujitsu.com>
+	drivers/nvdimm/claim.c:285 nsio_rw_bytes()
+	warn: error code type promoted to positive: 'cleared'
 
-Thanks for your review and comment.
+drivers/nvdimm/claim.c
+    252 static int nsio_rw_bytes(struct nd_namespace_common *ndns,
+    253                 resource_size_t offset, void *buf, size_t size, int rw,
+    254                 unsigned long flags)
+    255 {
+    256         struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
+    257         unsigned int sz_align = ALIGN(size + (offset & (512 - 1)), 512);
+    258         sector_t sector = offset >> 9;
+    259         int rc = 0, ret = 0;
+    260 
+    261         if (unlikely(!size))
+    262                 return 0;
+    263 
+    264         if (unlikely(offset + size > nsio->size)) {
+    265                 dev_WARN_ONCE(&ndns->dev, 1, "request out of range\n");
+    266                 return -EFAULT;
+    267         }
+    268 
+    269         if (rw == READ) {
+    270                 if (unlikely(is_bad_pmem(&nsio->bb, sector, sz_align)))
+    271                         return -EIO;
+    272                 if (copy_mc_to_kernel(buf, nsio->addr + offset, size) != 0)
+    273                         return -EIO;
+    274                 return 0;
+    275         }
+    276 
+    277         if (unlikely(is_bad_pmem(&nsio->bb, sector, sz_align))) {
+    278                 if (IS_ALIGNED(offset, 512) && IS_ALIGNED(size, 512)
+    279                                 && !(flags & NVDIMM_IO_ATOMIC)) {
+    280                         long cleared;
+    281 
+    282                         might_sleep();
+    283                         cleared = nvdimm_clear_poison(&ndns->dev,
+    284                                         nsio->res.start + offset, size);
+--> 285                         if (cleared < size)
+    286                                 rc = -EIO;
 
+cleared is long and size is unsigned long so negative error codes are
+treated as success.  We know that size is in increments of 512.  Is size
+== 0 and error?  Maybe it should be:
+
+	if (cleared < 0)
+		rc = cleared;
+	else if (cleared == 0 || cleared < size)
+		rc = -EIO;
+	else
+		badblocks_clear(&nsio->bb, sector, cleared / 512);
+
+	arch_invalidate_pmem(nsio->addr + offset, size);
+
+
+    287                         if (cleared > 0 && cleared / 512) {
+    288                                 cleared /= 512;
+    289                                 badblocks_clear(&nsio->bb, sector, cleared);
+    290                         }
+    291                         arch_invalidate_pmem(nsio->addr + offset, size);
+    292                 } else
+    293                         rc = -EIO;
+    294         }
+    295 
+    296         memcpy_flushcache(nsio->addr + offset, buf, size);
+    297         ret = nvdimm_flush(to_nd_region(ndns->dev.parent), NULL);
+    298         if (ret)
+    299                 rc = ret;
+    300 
+    301         return rc;
+    302 }
+
+regards,
+dan carpenter
