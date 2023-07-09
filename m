@@ -1,133 +1,179 @@
-Received: from mail-wr1-f44.google.com (mail-wr1-f44.google.com [209.85.221.44])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from esa4.hc1455-7.c3s2.iphmx.com (esa4.hc1455-7.c3s2.iphmx.com [68.232.139.117])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A424F1855
-	for <nvdimm@lists.linux.dev>; Sat,  8 Jul 2023 08:40:41 +0000 (UTC)
-Received: by mail-wr1-f44.google.com with SMTP id ffacd0b85a97d-31590e4e27aso218002f8f.1
-        for <nvdimm@lists.linux.dev>; Sat, 08 Jul 2023 01:40:41 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1688805639; x=1691397639;
-        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=Bg5jwRfmaxJRk/T1b94KrbyPwszc1sFgHMz8MsKb73A=;
-        b=KuLEahlqLjG9N9ynMwwryTLykWK0C1O4nb4tV6Nyd8Z1VukEmWA+yE1yME31BU+N7G
-         oSgmhbvb2AVxKEqVKiYaQyvCCkTTS40l4+wKIK+OcvdxyGAuftJ9YZZL4yizuPxz/4iL
-         rk+e7ofz+hRPM9LZA5fjLhjVkLnsOeNPhqZ7qizeXggEOJCKZRr0uFxnzAZWWNmqqz/I
-         wb4lyBl+JmdtmiLg4caEu4l4Clj1i3Ky4i02Aw9YPhasAjzyWDmaKLKKL2UEl5tK6Wml
-         tLTkCkMNCuTRkvkVkMMOKmSOSlDBN9++isDplTDU+FqzDFP3hMb3Po1tiGnl3+6FcDll
-         989A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1688805639; x=1691397639;
-        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=Bg5jwRfmaxJRk/T1b94KrbyPwszc1sFgHMz8MsKb73A=;
-        b=SWElgExj/i9Om+D5LDIwtMpMl7FdQ54Rs+MYf6OudtPS57z1GcpHQANqE02eaUCpI+
-         9IPX6a2lh+zerdkfYGtOwBxwy/y+Ww2cOFmf1iXZMwKIuQR+8BgedV/cn0HnVqwdpu3c
-         CJlZn2Zm/eqyqaTKPSNpYxYxspTUatFGR0rOz0qoojgUZ3oItyPGWj1/54ggVfaAlfLt
-         WJCp8ezZXaaYJ8KKvemg5VLtK5+yX1h9QMoOhWmbAMmxuxHVCw/rs69Jc/SIpcomrLz5
-         BB0RYuYIF7T/Z41C/GvsshGkylvFiM+EJzGzJBKUXx65QcmM9+r9E+85ciukm/aG0kiW
-         CIEg==
-X-Gm-Message-State: ABy/qLYsgS7AcgH5cpChJ+G35Y5XN9FHUii3x5T365qa7RNrW4hrOJxO
-	P1Jg5XncecP5LQSjwKkN0e3wBg==
-X-Google-Smtp-Source: APBJJlFoVPJ3B4K8Pa8lNU17PaAUd3p7Q58KQeKPARsyfui27A++FIfLqqPcYBLcwWaNd59JeyxWUw==
-X-Received: by 2002:adf:f210:0:b0:314:2fdd:28ef with SMTP id p16-20020adff210000000b003142fdd28efmr6416684wro.18.1688805639308;
-        Sat, 08 Jul 2023 01:40:39 -0700 (PDT)
-Received: from localhost ([102.36.222.112])
-        by smtp.gmail.com with ESMTPSA id f14-20020adff44e000000b003142ea7a661sm6451034wrp.21.2023.07.08.01.40.35
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 08 Jul 2023 01:40:37 -0700 (PDT)
-Date: Sat, 8 Jul 2023 11:40:32 +0300
-From: Dan Carpenter <dan.carpenter@linaro.org>
-To: dan.j.williams@intel.com
-Cc: nvdimm@lists.linux.dev
-Subject: [bug report] libnvdimm: fix mishandled nvdimm_clear_poison() return
- value
-Message-ID: <90d3d353-28e9-4f6d-b141-a9b7157d5514@moroto.mountain>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80C23522E
+	for <nvdimm@lists.linux.dev>; Sun,  9 Jul 2023 11:51:58 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6600,9927,10765"; a="123951979"
+X-IronPort-AV: E=Sophos;i="6.01,192,1684767600"; 
+   d="scan'208";a="123951979"
+Received: from unknown (HELO oym-r4.gw.nic.fujitsu.com) ([210.162.30.92])
+  by esa4.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Jul 2023 20:50:46 +0900
+Received: from oym-m1.gw.nic.fujitsu.com (oym-nat-oym-m1.gw.nic.fujitsu.com [192.168.87.58])
+	by oym-r4.gw.nic.fujitsu.com (Postfix) with ESMTP id 9C955DA68D
+	for <nvdimm@lists.linux.dev>; Sun,  9 Jul 2023 20:50:43 +0900 (JST)
+Received: from kws-ab4.gw.nic.fujitsu.com (kws-ab4.gw.nic.fujitsu.com [192.51.206.22])
+	by oym-m1.gw.nic.fujitsu.com (Postfix) with ESMTP id D3D61D4F44
+	for <nvdimm@lists.linux.dev>; Sun,  9 Jul 2023 20:50:42 +0900 (JST)
+Received: from [10.167.215.54] (unknown [10.167.215.54])
+	by kws-ab4.gw.nic.fujitsu.com (Postfix) with ESMTP id 4FC906BC48;
+	Sun,  9 Jul 2023 20:50:42 +0900 (JST)
+Message-ID: <697878b5-ecea-3172-695c-db9191548216@fujitsu.com>
+Date: Sun, 9 Jul 2023 19:50:41 +0800
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.11.0
+Subject: Re: [NDCTL PATCH] cxl/region: Always use the correct target position
+To: nvdimm@lists.linux.dev
+Cc: linux-cxl@vger.kernel.org
+References: <20230630151245.1318-1-yangx.jy@fujitsu.com>
+From: Xiao Yang <yangx.jy@fujitsu.com>
+In-Reply-To: <20230630151245.1318-1-yangx.jy@fujitsu.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-TM-AS-GCONF: 00
+X-TM-AS-Product-Ver: IMSS-9.1.0.1417-9.0.0.1002-27740.007
+X-TM-AS-User-Approved-Sender: Yes
+X-TMASE-Version: IMSS-9.1.0.1417-9.0.1002-27740.007
+X-TMASE-Result: 10--23.468000-10.000000
+X-TMASE-MatchedRID: 6Yvl3or3fgqPvrMjLFD6eDo39wOA02LhG24YVeuZGmOZtziFUn+D+eAf
+	SNitoKTvLluBF7lCexn0lZqQGuQv90zOmjZzSvazrmLeMrcoM6gL8TGleseLPMiCh8yBqE+tK7m
+	JD0QzrgT4EXi5HZwxNmDe3UNYdGMnNp8NVhNwDC6/QNwZdfw3FVF5adRR2Ej1b3Wpj9NSXKy/BR
+	68O365bn9eOltIlLtr8Pwm1A0EoTfmh3qTH3T2BM69emDs42ddfS0Ip2eEHny+qryzYw2E8LLn+
+	0Vm71Lc+x/oWSsuvysLbigRnpKlKSBuGJWwgxAra7leoU/OMhPyMXSQdzxi9A==
+X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
 
-Hello Dan Williams,
+Hi all,
 
-The patch 868f036fee4b: "libnvdimm: fix mishandled
-nvdimm_clear_poison() return value" from Dec 16, 2016, leads to the
-following Smatch static checker warning:
+Kindly ping.
 
-	drivers/nvdimm/claim.c:285 nsio_rw_bytes()
-	warn: error code type promoted to positive: 'cleared'
+This patch can only fixes the case that 2 way interleave is enabled 
+across 2 CXL host bridges and each host bridge has 1 CXL Root Port.
+PS: In other word, this patch is wrong when 2 way interleave is enabled 
+across 2 CXL host bridges and each host bridge has 2 CXL Root Ports.
 
-drivers/nvdimm/claim.c
-    252 static int nsio_rw_bytes(struct nd_namespace_common *ndns,
-    253                 resource_size_t offset, void *buf, size_t size, int rw,
-    254                 unsigned long flags)
-    255 {
-    256         struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
-    257         unsigned int sz_align = ALIGN(size + (offset & (512 - 1)), 512);
-    258         sector_t sector = offset >> 9;
-    259         int rc = 0, ret = 0;
-    260 
-    261         if (unlikely(!size))
-    262                 return 0;
-    263 
-    264         if (unlikely(offset + size > nsio->size)) {
-    265                 dev_WARN_ONCE(&ndns->dev, 1, "request out of range\n");
-    266                 return -EFAULT;
-    267         }
-    268 
-    269         if (rw == READ) {
-    270                 if (unlikely(is_bad_pmem(&nsio->bb, sector, sz_align)))
-    271                         return -EIO;
-    272                 if (copy_mc_to_kernel(buf, nsio->addr + offset, size) != 0)
-    273                         return -EIO;
-    274                 return 0;
-    275         }
-    276 
-    277         if (unlikely(is_bad_pmem(&nsio->bb, sector, sz_align))) {
-    278                 if (IS_ALIGNED(offset, 512) && IS_ALIGNED(size, 512)
-    279                                 && !(flags & NVDIMM_IO_ATOMIC)) {
-    280                         long cleared;
-    281 
-    282                         might_sleep();
-    283                         cleared = nvdimm_clear_poison(&ndns->dev,
-    284                                         nsio->res.start + offset, size);
---> 285                         if (cleared < size)
-    286                                 rc = -EIO;
+I am trying to find a better solution. If you have any suggestion, 
+please let me know.
 
-cleared is long and size is unsigned long so negative error codes are
-treated as success.  We know that size is in increments of 512.  Is size
-== 0 and error?  Maybe it should be:
+Best Regards,
+Xiao Yang
 
-	if (cleared < 0)
-		rc = cleared;
-	else if (cleared == 0 || cleared < size)
-		rc = -EIO;
-	else
-		badblocks_clear(&nsio->bb, sector, cleared / 512);
-
-	arch_invalidate_pmem(nsio->addr + offset, size);
-
-
-    287                         if (cleared > 0 && cleared / 512) {
-    288                                 cleared /= 512;
-    289                                 badblocks_clear(&nsio->bb, sector, cleared);
-    290                         }
-    291                         arch_invalidate_pmem(nsio->addr + offset, size);
-    292                 } else
-    293                         rc = -EIO;
-    294         }
-    295 
-    296         memcpy_flushcache(nsio->addr + offset, buf, size);
-    297         ret = nvdimm_flush(to_nd_region(ndns->dev.parent), NULL);
-    298         if (ret)
-    299                 rc = ret;
-    300 
-    301         return rc;
-    302 }
-
-regards,
-dan carpenter
+On 2023/6/30 23:12, Xiao Yang wrote:
+> create_region() uses the wrong target position in some cases.
+> For example, cxl create-region command fails to create a new
+> region in 2 way interleave set when mem0 connects target1(position:1)
+> and mem1 connects target0(position:0):
+> 
+> $ cxl list -M -P -D -T -u
+> [
+>    {
+>      "ports":[
+>        {
+>          "port":"port1",
+>          "host":"pci0000:16",
+>          "depth":1,
+>          "nr_dports":1,
+>          "dports":[
+>            {
+>              "dport":"0000:16:00.0",
+>              "id":"0"
+>            }
+>          ],
+>          "memdevs:port1":[
+>            {
+>              "memdev":"mem0",
+>              "ram_size":"512.00 MiB (536.87 MB)",
+>              "serial":"0",
+>              "host":"0000:17:00.0"
+>            }
+>          ]
+>        },
+>        {
+>          "port":"port2",
+>          "host":"pci0000:0c",
+>          "depth":1,
+>          "nr_dports":1,
+>          "dports":[
+>            {
+>              "dport":"0000:0c:00.0",
+>              "id":"0"
+>            }
+>          ],
+>          "memdevs:port2":[
+>            {
+>              "memdev":"mem1",
+>              "ram_size":"512.00 MiB (536.87 MB)",
+>              "serial":"0",
+>              "host":"0000:0d:00.0"
+>            }
+>          ]
+>        }
+>      ]
+>    },
+>    {
+>      "root decoders":[
+>        {
+>          "decoder":"decoder0.0",
+>          "resource":"0x750000000",
+>          "size":"4.00 GiB (4.29 GB)",
+>          "interleave_ways":2,
+>          "interleave_granularity":8192,
+>          "max_available_extent":"4.00 GiB (4.29 GB)",
+>          "pmem_capable":true,
+>          "volatile_capable":true,
+>          "accelmem_capable":true,
+>          "nr_targets":2,
+>          "targets":[
+>            {
+>              "target":"pci0000:16",
+>              "alias":"ACPI0016:00",
+>              "position":1,
+>              "id":"0x16"
+>            },
+>            {
+>              "target":"pci0000:0c",
+>              "alias":"ACPI0016:01",
+>              "position":0,
+>              "id":"0xc"
+>            }
+>          ]
+>        }
+>      ]
+>    }
+> ]
+> 
+> $ cxl create-region -t ram -d decoder0.0 -m mem0 mem1
+> cxl region: create_region: region0: failed to set target0 to mem0
+> cxl region: cmd_create_region: created 0 regions
+> 
+> Signed-off-by: Xiao Yang <yangx.jy@fujitsu.com>
+> ---
+>   cxl/region.c | 4 +++-
+>   1 file changed, 3 insertions(+), 1 deletion(-)
+> 
+> diff --git a/cxl/region.c b/cxl/region.c
+> index 07ce4a3..946b5ff 100644
+> --- a/cxl/region.c
+> +++ b/cxl/region.c
+> @@ -667,6 +667,8 @@ static int create_region(struct cxl_ctx *ctx, int *count,
+>   		struct json_object *jobj =
+>   			json_object_array_get_idx(p->memdevs, i);
+>   		struct cxl_memdev *memdev = json_object_get_userdata(jobj);
+> +		struct cxl_target *target = cxl_decoder_get_target_by_memdev(p->root_decoder,
+> +										memdev);
+>   
+>   		ep_decoder = cxl_memdev_find_decoder(memdev);
+>   		if (!ep_decoder) {
+> @@ -683,7 +685,7 @@ static int create_region(struct cxl_ctx *ctx, int *count,
+>   			try(cxl_decoder, set_mode, ep_decoder, p->mode);
+>   		}
+>   		try(cxl_decoder, set_dpa_size, ep_decoder, size/p->ways);
+> -		rc = cxl_region_set_target(region, i, ep_decoder);
+> +		rc = cxl_region_set_target(region, cxl_target_get_position(target), ep_decoder);
+>   		if (rc) {
+>   			log_err(&rl, "%s: failed to set target%d to %s\n",
+>   				devname, i, cxl_memdev_get_devname(memdev));
