@@ -1,65 +1,96 @@
-Received: from imap4.hz.codethink.co.uk (imap4.hz.codethink.co.uk [188.40.203.114])
+Received: from esa5.hc1455-7.c3s2.iphmx.com (esa5.hc1455-7.c3s2.iphmx.com [68.232.139.130])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FD79182A1
-	for <nvdimm@lists.linux.dev>; Tue, 11 Jul 2023 09:56:56 +0000 (UTC)
-Received: from [134.238.52.102] (helo=[10.8.4.2])
-	by imap4.hz.codethink.co.uk with esmtpsa  (Exim 4.94.2 #2 (Debian))
-	id 1qJ9ng-00BpLQ-OI; Tue, 11 Jul 2023 10:36:53 +0100
-Message-ID: <a066097a-b02e-eee0-c57a-27dd7fbe6989@codethink.co.uk>
-Date: Tue, 11 Jul 2023 10:36:49 +0100
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7502F18B10
+	for <nvdimm@lists.linux.dev>; Tue, 11 Jul 2023 11:55:07 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6600,9927,10767"; a="123651478"
+X-IronPort-AV: E=Sophos;i="6.01,196,1684767600"; 
+   d="scan'208";a="123651478"
+Received: from unknown (HELO yto-r3.gw.nic.fujitsu.com) ([218.44.52.219])
+  by esa5.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jul 2023 20:53:57 +0900
+Received: from yto-m1.gw.nic.fujitsu.com (yto-nat-yto-m1.gw.nic.fujitsu.com [192.168.83.64])
+	by yto-r3.gw.nic.fujitsu.com (Postfix) with ESMTP id A9DC1D501A
+	for <nvdimm@lists.linux.dev>; Tue, 11 Jul 2023 20:53:54 +0900 (JST)
+Received: from kws-ab3.gw.nic.fujitsu.com (kws-ab3.gw.nic.fujitsu.com [192.51.206.21])
+	by yto-m1.gw.nic.fujitsu.com (Postfix) with ESMTP id E6D93CFBC3
+	for <nvdimm@lists.linux.dev>; Tue, 11 Jul 2023 20:53:53 +0900 (JST)
+Received: from localhost.localdomain (unknown [10.167.234.230])
+	by kws-ab3.gw.nic.fujitsu.com (Postfix) with ESMTP id 3C19D20077BB3;
+	Tue, 11 Jul 2023 20:53:53 +0900 (JST)
+From: Li Zhijian <lizhijian@fujitsu.com>
+To: nvdimm@lists.linux.dev,
+	alison.schofield@intel.com
+Cc: linux-cxl@vger.kernel.org,
+	Li Zhijian <lizhijian@fujitsu.com>
+Subject: [ndctl PATCH v4 0/4] cxl/monitor and ndctl/monitor fixes
+Date: Tue, 11 Jul 2023 19:53:40 +0800
+Message-Id: <20230711115344.562823-1-lizhijian@fujitsu.com>
+X-Mailer: git-send-email 2.31.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.12.0
-Subject: Re: [PATCH] ACPI: NFIT: limit string attribute write
-Content-Language: en-GB
-To: nvdimm@lists.linux.dev
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org
-References: <20230711092244.22527-1-ben.dooks@codethink.co.uk>
-From: Ben Dooks <ben.dooks@codethink.co.uk>
-Organization: Codethink Limited.
-In-Reply-To: <20230711092244.22527-1-ben.dooks@codethink.co.uk>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-TM-AS-Product-Ver: IMSS-9.1.0.1417-9.0.0.1002-27744.006
+X-TM-AS-User-Approved-Sender: Yes
+X-TMASE-Version: IMSS-9.1.0.1417-9.0.1002-27744.006
+X-TMASE-Result: 10--12.270100-10.000000
+X-TMASE-MatchedRID: abh1Ba7f5/Ck+AYa0R5ReDBgCmbnj9JmeQYwLifQh6TQarzCEH4/6k7O
+	1kmXN49bdZ+iOIKZPqKY2UnY8YSSrbyftOl1RBuHX9knSHW8uXVc8r3LfPzYa6CjQPEjtbB0KZQ
+	/22HSWdWcrQThtVmcVoZ8hVKNlDAflrdKJAp7UJnkKCFOKwAEzEsY9G/RZ3FC33Nl3elSfsp9/A
+	4bJF/PM2y5fJhI8kWvsSi51GiVI1KUhduZoKKMKPSG/+sPtZVkZFW4zmF+QEJ2pfRE/ZIxx6m7P
+	pyf7RSRu+U+TVUiqnWAMuqetGVetsgO3bswsOnS3QfwsVk0UbtuRXh7bFKB7nieVFIFjPpQZWJr
+	lTtYkBpzCkjdA54NZSENpV1Zlh4KlExlQIQeRG0=
+X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
 
-On 11/07/2023 10:22, Ben Dooks wrote:
-> If we're writing what could be an arbitrary sized string into an attribute
-> we should probably use sysfs_emit() just to be safe. Most of the other
-> attriubtes are some sort of integer so unlikely to be an issue so not
-> altered at this time.
-> 
-> Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
-> ---
-> v2:
->    - use sysfs_emit() instead of snprintf.
-> ---
->   drivers/acpi/nfit/core.c | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-> index 9213b426b125..d7e9d9cd16d2 100644
-> --- a/drivers/acpi/nfit/core.c
-> +++ b/drivers/acpi/nfit/core.c
-> @@ -1579,7 +1579,7 @@ static ssize_t id_show(struct device *dev,
->   {
->   	struct nfit_mem *nfit_mem = to_nfit_mem(dev);
->   
-> -	return sprintf(buf, "%s\n", nfit_mem->id);
-> +	return snprintf(buf, PAGE_SIZE, "%s\n", nfit_mem->id);
->   }
->   static DEVICE_ATTR_RO(id);
->   
+V4:
+  - Add reviewed tags and minor fixes including comment style and
+changelog update
+  - combine "cxl/monitor: use strcmp to compare the reserved word" and
+    "ndctl/monitor: use strcmp to compare the reserved word" to one
+    patch
+  - Drop "cxl/monitor: always log started message" which would break a
+    json output.
 
-whoops, forgot to add before hitting ammend...
+V3:
+- update comit log of patch3 and patch6 per Dave's comments.
+
+V2:
+- exchange order of previous patch1 and patch2
+- add reviewed tag in patch5
+- commit log improvements
+
+It mainly fix monitor not working when log file is specified. For
+example
+$ cxl monitor -l ./cxl-monitor.log
+It seems that someone missed something at the begining.
+
+Furture, it compares the filename with reserved word more accurately
+
+patch1-2: It re-enables logfile(including default_log) functionality
+and simplify the sanity check in the combination relative path file
+and daemon mode.
+
+patch3 and patch6 change strncmp to strcmp to compare the acurrate
+reserved words.
+
+
+*** BLURB HERE ***
+
+Li Zhijian (4):
+  cxl/monitor: Enable default_log and refactor sanity check
+  cxl/monitor: replace monitor.log_file with monitor.ctx.log_file
+  ndctl: use strcmp for reserved word in monitor commands
+  Documentation/cxl/cxl-monitor.txt: Fix inaccurate description
+
+ Documentation/cxl/cxl-monitor.txt |  3 +--
+ cxl/monitor.c                     | 43 ++++++++++++++++---------------
+ ndctl/monitor.c                   |  4 +--
+ 3 files changed, 25 insertions(+), 25 deletions(-)
 
 -- 
-Ben Dooks				http://www.codethink.co.uk/
-Senior Engineer				Codethink - Providing Genius
-
-https://www.codethink.co.uk/privacy.html
+2.29.2
 
