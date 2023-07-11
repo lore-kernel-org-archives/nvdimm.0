@@ -1,24 +1,24 @@
-Received: from imap5.colo.codethink.co.uk (imap5.colo.codethink.co.uk [78.40.148.171])
+Received: from imap4.hz.codethink.co.uk (imap4.hz.codethink.co.uk [188.40.203.114])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 700071774D
-	for <nvdimm@lists.linux.dev>; Tue, 11 Jul 2023 09:22:48 +0000 (UTC)
-Received: from 82-132-229-125.dab.02.net ([82.132.229.125] helo=rainbowdash)
-	by imap5.colo.codethink.co.uk with esmtpsa  (Exim 4.94.2 #2 (Debian))
-	id 1qJ9a2-007IDs-Qa; Tue, 11 Jul 2023 10:22:46 +0100
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C569182B3
+	for <nvdimm@lists.linux.dev>; Tue, 11 Jul 2023 09:37:15 +0000 (UTC)
+Received: from [134.238.52.102] (helo=rainbowdash)
+	by imap4.hz.codethink.co.uk with esmtpsa  (Exim 4.94.2 #2 (Debian))
+	id 1qJ9o0-00BpMC-Q6; Tue, 11 Jul 2023 10:37:12 +0100
 Received: from ben by rainbowdash with local (Exim 4.96)
 	(envelope-from <ben@rainbowdash>)
-	id 1qJ9a1-0005rY-1a;
-	Tue, 11 Jul 2023 10:22:45 +0100
+	id 1qJ9nx-0006AL-2p;
+	Tue, 11 Jul 2023 10:37:09 +0100
 From: Ben Dooks <ben.dooks@codethink.co.uk>
 To: nvdimm@lists.linux.dev
 Cc: linux-acpi@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	lenb@kernel.org,
 	Ben Dooks <ben.dooks@codethink.co.uk>
-Subject: [PATCH] ACPI: NFIT: limit string attribute write
-Date: Tue, 11 Jul 2023 10:22:44 +0100
-Message-Id: <20230711092244.22527-1-ben.dooks@codethink.co.uk>
+Subject: [PATCH v2] ACPI: NFIT: limit string attribute write
+Date: Tue, 11 Jul 2023 10:37:08 +0100
+Message-Id: <20230711093708.23692-1-ben.dooks@codethink.co.uk>
 X-Mailer: git-send-email 2.40.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
