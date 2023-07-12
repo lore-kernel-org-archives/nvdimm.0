@@ -1,80 +1,68 @@
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from imap4.hz.codethink.co.uk (imap4.hz.codethink.co.uk [188.40.203.114])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D68EF1E508
-	for <nvdimm@lists.linux.dev>; Tue, 11 Jul 2023 18:13:59 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1689099239; x=1720635239;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=8Yv/cZ6RYNvsCj4aSBTsKLXR9mnOz02x1pNaZWd/vrU=;
-  b=QFD+t/WdryPdFp6CTcsQgAwuDO8WKt21aueGw9DWe4gP8X3OTDSvTCv6
-   76mIIw6ZlgukdYcyTHKO+w+r40HQLLYDcJrzUIl3YBShXAAAgZoZEuGJW
-   p5y/xWTow3sBooqHiMJNFMMnG2hYrmKnP5nq5V8w/XQI6wzJEMQBlbFyi
-   wkuDgiEfzH8R5c4xmqGLAAs2daroLYpIJjnMruYjzhzfO2uPFl1jlZHJM
-   b2D+R28YTedWGuhEXn4lmu75iOfDSakhaj6N953ja+UBam6f8oCBTPBf5
-   J8UlvtOCNqi8B3U/oHicqayIrA5V9kJtau6yiS4uowJ7cVZ6ChiSfpFKA
-   Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10768"; a="354580631"
-X-IronPort-AV: E=Sophos;i="6.01,197,1684825200"; 
-   d="scan'208";a="354580631"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jul 2023 10:58:35 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10768"; a="750863490"
-X-IronPort-AV: E=Sophos;i="6.01,197,1684825200"; 
-   d="scan'208";a="750863490"
-Received: from aschofie-mobl2.amr.corp.intel.com (HELO aschofie-mobl2) ([10.212.140.181])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jul 2023 10:58:35 -0700
-Date: Tue, 11 Jul 2023 10:58:33 -0700
-From: Alison Schofield <alison.schofield@intel.com>
-To: Li Zhijian <lizhijian@fujitsu.com>
-Cc: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
-	Dave Jiang <dave.jiang@intel.com>
-Subject: Re: [ndctl PATCH v4 4/4] Documentation/cxl/cxl-monitor.txt: Fix
- inaccurate description
-Message-ID: <ZK2YSQPSPbofvV7y@aschofie-mobl2>
-References: <20230711115344.562823-1-lizhijian@fujitsu.com>
- <20230711115344.562823-5-lizhijian@fujitsu.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97FF3200A0
+	for <nvdimm@lists.linux.dev>; Wed, 12 Jul 2023 09:57:58 +0000 (UTC)
+Received: from [134.238.52.102] (helo=[10.8.4.22])
+	by imap4.hz.codethink.co.uk with esmtpsa  (Exim 4.94.2 #2 (Debian))
+	id 1qJWbV-00CShV-Ka; Wed, 12 Jul 2023 10:57:50 +0100
+Message-ID: <cd21c350-467c-6c77-7e4c-928a3982b5ed@codethink.co.uk>
+Date: Wed, 12 Jul 2023 10:57:46 +0100
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230711115344.562823-5-lizhijian@fujitsu.com>
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.12.0
+Subject: Re: [PATCH v2] ACPI: NFIT: limit string attribute write
+Content-Language: en-GB
+To: Dave Jiang <dave.jiang@intel.com>, nvdimm@lists.linux.dev
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org
+References: <20230711093708.23692-1-ben.dooks@codethink.co.uk>
+ <b17104fe-a743-e933-288b-9245887b3a2c@intel.com>
+From: Ben Dooks <ben.dooks@codethink.co.uk>
+Organization: Codethink Limited.
+In-Reply-To: <b17104fe-a743-e933-288b-9245887b3a2c@intel.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-On Tue, Jul 11, 2023 at 07:53:44PM +0800, Li Zhijian wrote:
-> No syslog is supported by cxl-monitor
+On 11/07/2023 16:28, Dave Jiang wrote:
+> 
+> 
+> On 7/11/23 02:37, Ben Dooks wrote:
+>> If we're writing what could be an arbitrary sized string into an 
+>> attribute
+>> we should probably use sysfs_emit() just to be safe. Most of the other
+>> attriubtes are some sort of integer so unlikely to be an issue so not
+>> altered at this time.
+>>
+>> Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
+>> ---
+>> v2:
+>>    - use sysfs_emit() instead of snprintf.
+>> ---
+>>   drivers/acpi/nfit/core.c | 2 +-
+>>   1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+>> index 9213b426b125..d7e9d9cd16d2 100644
+>> --- a/drivers/acpi/nfit/core.c
+>> +++ b/drivers/acpi/nfit/core.c
+>> @@ -1579,7 +1579,7 @@ static ssize_t id_show(struct device *dev,
+>>   {
+>>       struct nfit_mem *nfit_mem = to_nfit_mem(dev);
+>> -    return sprintf(buf, "%s\n", nfit_mem->id);
+>> +    return snprintf(buf, PAGE_SIZE, "%s\n", nfit_mem->id);
+> 
+> Doesn't look like you updated your patch with your new changes....
 
-Reviewed-by: Alison Schofield <alison.schofield@intel.com>
+Ooops, sorry about that. Will sort that for v2++
 
-> 
-> Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-> Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
-> ---
-> V2: add Reviewed-by tag
-> ---
->  Documentation/cxl/cxl-monitor.txt | 3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
-> 
-> diff --git a/Documentation/cxl/cxl-monitor.txt b/Documentation/cxl/cxl-monitor.txt
-> index 3fc992e4d4d9..c284099f16c3 100644
-> --- a/Documentation/cxl/cxl-monitor.txt
-> +++ b/Documentation/cxl/cxl-monitor.txt
-> @@ -39,8 +39,7 @@ OPTIONS
->  --log=::
->  	Send log messages to the specified destination.
->  	- "<file>":
-> -	  Send log messages to specified <file>. When fopen() is not able
-> -	  to open <file>, log messages will be forwarded to syslog.
-> +	  Send log messages to specified <file>.
->  	- "standard":
->  	  Send messages to standard output.
->  
-> -- 
-> 2.29.2
-> 
+-- 
+Ben Dooks				http://www.codethink.co.uk/
+Senior Engineer				Codethink - Providing Genius
+
+https://www.codethink.co.uk/privacy.html
+
