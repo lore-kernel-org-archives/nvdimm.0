@@ -1,74 +1,128 @@
-Received: from mail-yb1-f175.google.com (mail-yb1-f175.google.com [209.85.219.175])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from dggsgout12.his.huawei.com (unknown [45.249.212.56])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9AE6679D1
-	for <nvdimm@lists.linux.dev>; Thu, 13 Jul 2023 08:23:11 +0000 (UTC)
-Received: by mail-yb1-f175.google.com with SMTP id 3f1490d57ef6-ca4a6e11f55so367574276.1
-        for <nvdimm@lists.linux.dev>; Thu, 13 Jul 2023 01:23:11 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1689236590; x=1691828590;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=dmUvvFe5/0RHDgOhcRqf73PLJ/xjj5ik+Mt9yz3hpVE=;
-        b=JDjaxMNSCA2W0kv8QauUN8XGyZ37DEvH44KOJRlwppaz0znXSKXj+Qgcfdoq6EAXa4
-         QLkRvTydaY6wacC+a5/60no89snaYyzToT1xWjTLc9LdU7NsY3GHXvY2cCCnfGeapMG1
-         aMoKt4kFsQP6UvZTkEyJjIwLLv24UVO93sHO0jRGTEbFW4ml+l9mibdrohZQ3pRngmGk
-         Jx8r492MtUrOHqZIyPIcLUM0bOzdBGX6yhtJHVq+Cc03uvzn6pBKDC3g9wfenQU//yC+
-         7XObtu+QiwlXokKBOMBV0b8cKzrU5TCYy1nS0wrB9j8opf3aXU4c51q7yt9bxbJ1ZJBp
-         ZS3A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1689236590; x=1691828590;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=dmUvvFe5/0RHDgOhcRqf73PLJ/xjj5ik+Mt9yz3hpVE=;
-        b=GSGPlabZinpFMiNTRw9Kzfz1uSZ8z/yMnZNjs/ZZC/sqZHg+R3kEF+0lDZa83EYHnf
-         hwlhqUsyGEfIbmbKv0l/v0zlauMOhdS+dNb8Cikj2+vEOVikJKKMj8SG9Q728YkSsfOT
-         UWcFJPgJOh4+yYiaPIobwl2DXy3E7navRpGdm5Spa+uuE4ITUIAJrdJOM5kFuKLg8hAK
-         BSZvIKPgliAlY4KT34YGwwbHyrBeVADEWOPk6S7WMkZp9yRc/ZLnwduCzrTB4dsjn3V4
-         Arll62wzpbggfLuCAzzW+YDLhPrwHqaLuFtNLSMr+2xaTwAEJsaokGCMcUcA0exnmGNd
-         3X4A==
-X-Gm-Message-State: ABy/qLYypmqfbggAqjtlg4QwvAYyVcHSCTwqpy9biuhcA2y8LBUuLcKr
-	rJiWsMvgKTePiSoezuY108eaEMzYrCAdkYGjixY=
-X-Google-Smtp-Source: APBJJlEbHvkCZjLi15/lidg5v2R1Yh9AOdIR1j8W6aRCyJXeU1xYrlBOnMGufB+qGA9cE/p+Bndff1yvmURZvndbsdI=
-X-Received: by 2002:a25:d1c1:0:b0:c1a:b0e2:e930 with SMTP id
- i184-20020a25d1c1000000b00c1ab0e2e930mr945563ybg.3.1689236590340; Thu, 13 Jul
- 2023 01:23:10 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C50D17AAF
+	for <nvdimm@lists.linux.dev>; Thu, 13 Jul 2023 13:22:16 +0000 (UTC)
+Received: from mail02.huawei.com (unknown [172.30.67.153])
+	by dggsgout12.his.huawei.com (SkyGuard) with ESMTP id 4R1wHx2gdVz4f3lXB
+	for <nvdimm@lists.linux.dev>; Thu, 13 Jul 2023 21:22:05 +0800 (CST)
+Received: from huaweicloud.com (unknown [10.175.124.27])
+	by APP4 (Coremail) with SMTP id gCh0CgBH_rF6+q9kCg2GNw--.20068S4;
+	Thu, 13 Jul 2023 21:22:03 +0800 (CST)
+From: Hou Tao <houtao@huaweicloud.com>
+To: Pankaj Gupta <pankaj.gupta.linux@gmail.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>
+Cc: Jens Axboe <axboe@kernel.dk>,
+	Christoph Hellwig <hch@infradead.org>,
+	Chaitanya Kulkarni <kch@nvidia.com>,
+	linux-block@vger.kernel.org,
+	nvdimm@lists.linux.dev,
+	virtualization@lists.linux-foundation.org,
+	houtao1@huawei.com
+Subject: [PATCH v4] virtio_pmem: add the missing REQ_OP_WRITE for flush bio
+Date: Thu, 13 Jul 2023 21:54:13 +0800
+Message-Id: <20230713135413.2946622-1-houtao@huaweicloud.com>
+X-Mailer: git-send-email 2.29.2
+In-Reply-To: <CAM9Jb+g5rrvmw8xCcwe3REK4x=RymrcqQ8cZavwWoWu7BH+8wA@mail.gmail.com>
+References: <CAM9Jb+g5rrvmw8xCcwe3REK4x=RymrcqQ8cZavwWoWu7BH+8wA@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <ZJL3+E5P+Yw5jDKy@infradead.org> <20230625022633.2753877-1-houtao@huaweicloud.com>
- <CAM9Jb+hrspvxXi87buwkUmhHczaC6qian36OxcMkXx=6pseOrQ@mail.gmail.com>
-In-Reply-To: <CAM9Jb+hrspvxXi87buwkUmhHczaC6qian36OxcMkXx=6pseOrQ@mail.gmail.com>
-From: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
-Date: Thu, 13 Jul 2023 10:23:01 +0200
-Message-ID: <CAM9Jb+g5rrvmw8xCcwe3REK4x=RymrcqQ8cZavwWoWu7BH+8wA@mail.gmail.com>
-Subject: Re: [PATCH v3] virtio_pmem: add the missing REQ_OP_WRITE for flush bio
-To: Hou Tao <houtao@huaweicloud.com>
-Cc: Dan Williams <dan.j.williams@intel.com>, Jens Axboe <axboe@kernel.dk>, 
-	Christoph Hellwig <hch@infradead.org>, linux-block@vger.kernel.org, nvdimm@lists.linux.dev, 
-	virtualization@lists.linux-foundation.org, houtao1@huawei.com, 
-	Vishal Verma <vishal.l.verma@intel.com>, Chaitanya Kulkarni <chaitanyak@nvidia.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:gCh0CgBH_rF6+q9kCg2GNw--.20068S4
+X-Coremail-Antispam: 1UD129KBjvJXoWxGr1xZw1UKF4xWw17JFW8Zwb_yoW5Gw48pr
+	13Ca4agr47GF4IkanrXa129F92qa1DGr9rWFWfuw1fZFW7AF1UKw1vgFyFqa4DtrW8Gaya
+	yF97Jr1jq34DZFJanT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUUk2b4IE77IF4wAFF20E14v26r4j6ryUM7CY07I20VC2zVCF04k2
+	6cxKx2IYs7xG6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rwA2F7IY1VAKz4
+	vEj48ve4kI8wA2z4x0Y4vE2Ix0cI8IcVAFwI0_Ar0_tr1l84ACjcxK6xIIjxv20xvEc7Cj
+	xVAFwI0_Cr0_Gr1UM28EF7xvwVC2z280aVAFwI0_GcCE3s1l84ACjcxK6I8E87Iv6xkF7I
+	0E14v26rxl6s0DM2AIxVAIcxkEcVAq07x20xvEncxIr21l5I8CrVACY4xI64kE6c02F40E
+	x7xfMcIj6xIIjxv20xvE14v26r1j6r18McIj6I8E87Iv67AKxVWUJVW8JwAm72CE4IkC6x
+	0Yz7v_Jr0_Gr1lF7xvr2IYc2Ij64vIr41lFIxGxcIEc7CjxVA2Y2ka0xkIwI1l42xK82IY
+	c2Ij64vIr41l4I8I3I0E4IkC6x0Yz7v_Jr0_Gr1lx2IqxVAqx4xG67AKxVWUJVWUGwC20s
+	026x8GjcxK67AKxVWUGVWUWwC2zVAF1VAY17CE14v26r1q6r43MIIYrxkI7VAKI48JMIIF
+	0xvE2Ix0cI8IcVAFwI0_Jr0_JF4lIxAIcVC0I7IYx2IY6xkF7I0E14v26r1j6r4UMIIF0x
+	vE42xK8VAvwI8IcIk0rVWrJr0_WFyUJwCI42IY6I8E87Iv67AKxVWUJVW8JwCI42IY6I8E
+	87Iv6xkF7I0E14v26r4j6r4UJbIYCTnIWIevJa73UjIFyTuYvjxUrR6zUUUUU
+X-CM-SenderInfo: xkrx3t3r6k3tpzhluzxrxghudrp/
+X-CFilter-Loop: Reflected
 
-+Cc Vishal,
+From: Hou Tao <houtao1@huawei.com>
 
-> > Fixes: b4a6bb3a67aa ("block: add a sanity check for non-write flush/fua bios")
-> > Signed-off-by: Hou Tao <houtao1@huawei.com>
->
-> With 6.3+ stable Cc, Feel free to add:
+When doing mkfs.xfs on a pmem device, the following warning was
+reported:
 
-Hi Dan, Vishal,
+ ------------[ cut here ]------------
+ WARNING: CPU: 2 PID: 384 at block/blk-core.c:751 submit_bio_noacct
+ Modules linked in:
+ CPU: 2 PID: 384 Comm: mkfs.xfs Not tainted 6.4.0-rc7+ #154
+ Hardware name: QEMU Standard PC (i440FX + PIIX, 1996)
+ RIP: 0010:submit_bio_noacct+0x340/0x520
+ ......
+ Call Trace:
+  <TASK>
+  ? submit_bio_noacct+0xd5/0x520
+  submit_bio+0x37/0x60
+  async_pmem_flush+0x79/0xa0
+  nvdimm_flush+0x17/0x40
+  pmem_submit_bio+0x370/0x390
+  __submit_bio+0xbc/0x190
+  submit_bio_noacct_nocheck+0x14d/0x370
+  submit_bio_noacct+0x1ef/0x520
+  submit_bio+0x55/0x60
+  submit_bio_wait+0x5a/0xc0
+  blkdev_issue_flush+0x44/0x60
 
-Do you have any suggestion on this patch? Or can we queue this please?
+The root cause is that submit_bio_noacct() needs bio_op() is either
+WRITE or ZONE_APPEND for flush bio and async_pmem_flush() doesn't assign
+REQ_OP_WRITE when allocating flush bio, so submit_bio_noacct just fail
+the flush bio.
 
-Hi Hou,
+Simply fix it by adding the missing REQ_OP_WRITE for flush bio. And we
+could fix the flush order issue and do flush optimization later.
 
-Could you please send a new version with Cc stable or as per any
-suggestions from maintainers.
+Cc: stable@vger.kernel.org # 6.3+
+Fixes: b4a6bb3a67aa ("block: add a sanity check for non-write flush/fua bios")
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Chaitanya Kulkarni <kch@nvidia.com>
+Reviewed-by: Pankaj Gupta <pankaj.gupta@amd.com>
+Tested-by: Pankaj Gupta <pankaj.gupta@amd.com>
+Signed-off-by: Hou Tao <houtao1@huawei.com>
+---
+v4:
+ * add stable Cc
+ * collect Rvb and Tested-by tags
 
-Thanks,
-Pankaj
+v3: https://lore.kernel.org/linux-block/20230625022633.2753877-1-houtao@huaweicloud.com
+ * adjust the overly long lines in both commit message and code
+
+v2: https://lore.kernel.org/linux-block/20230621134340.878461-1-houtao@huaweicloud.com
+ * do a minimal fix first (Suggested by Christoph)
+
+v1: https://lore.kernel.org/linux-block/ZJLpYMC8FgtZ0k2k@infradead.org/T/#t
+
+ drivers/nvdimm/nd_virtio.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/nvdimm/nd_virtio.c b/drivers/nvdimm/nd_virtio.c
+index c6a648fd8744..1f8c667c6f1e 100644
+--- a/drivers/nvdimm/nd_virtio.c
++++ b/drivers/nvdimm/nd_virtio.c
+@@ -105,7 +105,8 @@ int async_pmem_flush(struct nd_region *nd_region, struct bio *bio)
+ 	 * parent bio. Otherwise directly call nd_region flush.
+ 	 */
+ 	if (bio && bio->bi_iter.bi_sector != -1) {
+-		struct bio *child = bio_alloc(bio->bi_bdev, 0, REQ_PREFLUSH,
++		struct bio *child = bio_alloc(bio->bi_bdev, 0,
++					      REQ_OP_WRITE | REQ_PREFLUSH,
+ 					      GFP_ATOMIC);
+ 
+ 		if (!child)
+-- 
+2.29.2
+
