@@ -1,222 +1,81 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yb1-f179.google.com (mail-yb1-f179.google.com [209.85.219.179])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 732A16117
-	for <nvdimm@lists.linux.dev>; Thu, 13 Jul 2023 07:23:28 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1689233007;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=DgHHNUMQekCLPFyLoFSxMBSAfdXYCTsaZ05jN1ABgoY=;
-	b=aoZqzl3+ZAwf6X+7CwmSRnD0nqaHNS0pXHY5LP/SNgISdpAYXTL/fr6Tp0nQkViAYZo1AI
-	qSV8P7/vd+rn3cWNOH76syWLz7JddRCo75buZQdb0J4IeqBDnEYqvK/dkuO3l9zb+vg1Wl
-	He82lwGbgZDKRhi8FHw9jXfEnEdRPLQ=
-Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com
- [209.85.128.72]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-187-J8mhSXxuO2igDlvFgp1Bwg-1; Thu, 13 Jul 2023 03:23:26 -0400
-X-MC-Unique: J8mhSXxuO2igDlvFgp1Bwg-1
-Received: by mail-wm1-f72.google.com with SMTP id 5b1f17b1804b1-3fbb34f7224so1695175e9.2
-        for <nvdimm@lists.linux.dev>; Thu, 13 Jul 2023 00:23:25 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B846263A0
+	for <nvdimm@lists.linux.dev>; Thu, 13 Jul 2023 08:17:28 +0000 (UTC)
+Received: by mail-yb1-f179.google.com with SMTP id 3f1490d57ef6-c5f98fc4237so359704276.2
+        for <nvdimm@lists.linux.dev>; Thu, 13 Jul 2023 01:17:28 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1689236247; x=1691828247;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=An/lgfGfphqbX1hL0oKKGBUnuYFAW5BJf6INYxK4Dxo=;
+        b=fMaMqgzEJcFheU9cUMf4jHc+VgZuKRcayfupFiAAHVSZwN2eGuJ0iY9WSnRCT+k1aF
+         rqGTZ7/bWxogAyhv6Ke0+0lk8P83qa3dmlrEhXp+npJV3hpadt87H3WJztjnolYYQMnK
+         skmlT/ZvhgFN8CT/sINe/QIBki05k3+/sJa3RwYEIUWiB5z9bzvm1/qP0lO42C3//ReJ
+         +Iq0t7xow5sWHz427kMkYiTIXxW2kq/M5kNJq760tMQ+czB85Mh1gd+wi2phmxP1X6C4
+         qnBwE8MWo418C2GFTXXcm6dhOlNyhCLbOPJ4DtqBs8ZDiNa0g7kaHecEdGA8C/z0JjIa
+         hP+A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1689233005; x=1691825005;
-        h=content-transfer-encoding:in-reply-to:subject:organization:from
-         :content-language:references:cc:to:user-agent:mime-version:date
-         :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
+        d=1e100.net; s=20221208; t=1689236247; x=1691828247;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=DgHHNUMQekCLPFyLoFSxMBSAfdXYCTsaZ05jN1ABgoY=;
-        b=aZo8KNRmeVZo7b9gSVu3EwondKUXDArFUzH2X0o6hs6yhI0/wDXsC+9MqcOR/zVFLw
-         H5iPf4h32F5dLe4t6+v26uNTlRz/n+aHzix/3U2obmHGhk+Mepjo07iHgMQpak13FQkN
-         ON25IIfBF894q7wCVJr33pXAlh1M5PHpXX8NGNtzhSaE0Cgu13yXk/z4VGnKy76XJSPD
-         KFvRTbJBxXBuSlYiZ36OfOzRJP73ASHY1fHFJSdEKMalLPlqorZ+U5+y8uWEBnVLjlCH
-         jnNCBnPCdIw2ivhEI0TvT8yjHUppDCQbzBAlJZtOL0CEU9hGwUNN033N4UxPywnR6wH3
-         ry1g==
-X-Gm-Message-State: ABy/qLYRQNwZ7AppWuYaEwfVLFG+oAhYKDWph7hWvNNYL9epzSds7RT7
-	ghYCbqqZpnT4QwqXUWOmJAOUsuNyINE826VRFcX4lmQmwdosDosKoOKX4myzlLzI7WdTF0/tBlv
-	PHVEa8oyy8XOTQHMk
-X-Received: by 2002:a7b:c8cf:0:b0:3fa:984d:7e99 with SMTP id f15-20020a7bc8cf000000b003fa984d7e99mr700229wml.22.1689233004717;
-        Thu, 13 Jul 2023 00:23:24 -0700 (PDT)
-X-Google-Smtp-Source: APBJJlEHp1Dof1hZ5eLgX91wy7JzHUlL7TjMzwPfLhPZe9l5XN/YJjOHJ27klX1+mumUVy1mVfYk1Q==
-X-Received: by 2002:a7b:c8cf:0:b0:3fa:984d:7e99 with SMTP id f15-20020a7bc8cf000000b003fa984d7e99mr700199wml.22.1689233004294;
-        Thu, 13 Jul 2023 00:23:24 -0700 (PDT)
-Received: from ?IPV6:2003:cb:c717:6100:2da7:427e:49a5:e07? (p200300cbc71761002da7427e49a50e07.dip0.t-ipconnect.de. [2003:cb:c717:6100:2da7:427e:49a5:e07])
-        by smtp.gmail.com with ESMTPSA id l15-20020a1c790f000000b003fc01f7b415sm15246910wme.39.2023.07.13.00.23.23
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 13 Jul 2023 00:23:23 -0700 (PDT)
-Message-ID: <ee0c84ff-6d97-3b7c-88a8-dd00797c2999@redhat.com>
-Date: Thu, 13 Jul 2023 09:23:22 +0200
+        bh=An/lgfGfphqbX1hL0oKKGBUnuYFAW5BJf6INYxK4Dxo=;
+        b=NrWg+rfOltoG66cnEUUlmYuDCiDAdgIyitOHcID8NaAeu3vLDyKGvV2UV9mCV5iWMf
+         wJYjGCGLlUXQrWdCQn8m4/WVoR/1y0pcs2Xc/bYdT4JnUBxTED2ZlhObelEh2d6ypLlh
+         LHVS5bdlaTrgMdr5lJOMHZsvjNBPJGA7+8CUamZ0+bxop3jd5Uvk0yx0aGsfOMpzHmWK
+         BffaZYrWJKstALTZHoN5TZZnKfj9QeleDGj8eC/h2UCTGw9yiBMhSgNY3cu2UwiO4+IQ
+         Ga6hCKXC1IyMR77zgDSM1uZurDZ1ApGoE4OsFpDl5g+j7kYP5Q60FlwJ49TBcdMJPpWu
+         zJdg==
+X-Gm-Message-State: ABy/qLZR/VAFzp0tL/MGmw8lAPFR817bHRsFTbwJOLtikIii7xoDRiMu
+	tNbDNk553DXAMVGce0Xqbs82BL3O/+hNnBmfFSw=
+X-Google-Smtp-Source: APBJJlEIV5MP79fSqL2cxlOxBR4Hvs8OKm8tFgJmSWtKz6UW7+XN4NUCM/wRKHTmCQ2+6zGY59R6Z268+NkTfzQy0Mw=
+X-Received: by 2002:a25:f43:0:b0:c3d:25af:45ec with SMTP id
+ 64-20020a250f43000000b00c3d25af45ecmr686366ybp.41.1689236247458; Thu, 13 Jul
+ 2023 01:17:27 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.12.0
-To: "Verma, Vishal L" <vishal.l.verma@intel.com>,
- "akpm@linux-foundation.org" <akpm@linux-foundation.org>,
- "rafael@kernel.org" <rafael@kernel.org>,
- "osalvador@suse.de" <osalvador@suse.de>,
- "aneesh.kumar@linux.ibm.com" <aneesh.kumar@linux.ibm.com>,
- "Williams, Dan J" <dan.j.williams@intel.com>,
- "lenb@kernel.org" <lenb@kernel.org>, "Jiang, Dave" <dave.jiang@intel.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>,
- "linux-mm@kvack.org" <linux-mm@kvack.org>,
- "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
- "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
- "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
- "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
- "dave.hansen@linux.intel.com" <dave.hansen@linux.intel.com>
-References: <20230613-vv-kmem_memmap-v1-0-f6de9c6af2c6@intel.com>
- <20230613-vv-kmem_memmap-v1-3-f6de9c6af2c6@intel.com>
- <aadbedeb-424d-a146-392d-d56680263691@redhat.com>
- <87edleplkn.fsf@linux.ibm.com>
- <1df12885-9ae4-6aef-1a31-91ecd5a18d24@redhat.com>
- <5a8e9b1b6c8d6d9e5405ca35abb9be3ed09761c3.camel@intel.com>
-From: David Hildenbrand <david@redhat.com>
-Organization: Red Hat
-Subject: Re: [PATCH 3/3] dax/kmem: Always enroll hotplugged memory for
- memmap_on_memory
-In-Reply-To: <5a8e9b1b6c8d6d9e5405ca35abb9be3ed09761c3.camel@intel.com>
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: redhat.com
-Content-Language: en-US
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+References: <ZJL3+E5P+Yw5jDKy@infradead.org> <20230625022633.2753877-1-houtao@huaweicloud.com>
+ <7f49a5ad-8b34-c00c-9270-8d782200c78c@nvidia.com>
+In-Reply-To: <7f49a5ad-8b34-c00c-9270-8d782200c78c@nvidia.com>
+From: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Date: Thu, 13 Jul 2023 10:17:18 +0200
+Message-ID: <CAM9Jb+jpRCKHxykW5-obnkzhzyPoiZupVAMcb=dTq6h+ajRHFQ@mail.gmail.com>
+Subject: Re: [PATCH v3] virtio_pmem: add the missing REQ_OP_WRITE for flush bio
+To: Chaitanya Kulkarni <chaitanyak@nvidia.com>
+Cc: Hou Tao <houtao@huaweicloud.com>, Dan Williams <dan.j.williams@intel.com>, 
+	Jens Axboe <axboe@kernel.dk>, Christoph Hellwig <hch@infradead.org>, 
+	"linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, 
+	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, 
+	"virtualization@lists.linux-foundation.org" <virtualization@lists.linux-foundation.org>, 
+	"houtao1@huawei.com" <houtao1@huawei.com>, Vishal Verma <vishal.l.verma@intel.com>
+Content-Type: text/plain; charset="UTF-8"
 
-On 13.07.23 08:45, Verma, Vishal L wrote:
-> On Tue, 2023-07-11 at 17:21 +0200, David Hildenbrand wrote:
->> On 11.07.23 16:30, Aneesh Kumar K.V wrote:
->>> David Hildenbrand <david@redhat.com> writes:
->>>>
->>>> Maybe the better alternative is teach
->>>> add_memory_resource()/try_remove_memory() to do that internally.
->>>>
->>>> In the add_memory_resource() case, it might be a loop around that
->>>> memmap_on_memory + arch_add_memory code path (well, and the error path
->>>> also needs adjustment):
->>>>
->>>>          /*
->>>>           * Self hosted memmap array
->>>>           */
->>>>          if (mhp_flags & MHP_MEMMAP_ON_MEMORY) {
->>>>                  if (!mhp_supports_memmap_on_memory(size)) {
->>>>                          ret = -EINVAL;
->>>>                          goto error;
->>>>                  }
->>>>                  mhp_altmap.free = PHYS_PFN(size);
->>>>                  mhp_altmap.base_pfn = PHYS_PFN(start);
->>>>                  params.altmap = &mhp_altmap;
->>>>          }
->>>>
->>>>          /* call arch's memory hotadd */
->>>>          ret = arch_add_memory(nid, start, size, &params);
->>>>          if (ret < 0)
->>>>                  goto error;
->>>>
->>>>
->>>> Note that we want to handle that on a per memory-block basis, because we
->>>> don't want the vmemmap of memory block #2 to end up on memory block #1.
->>>> It all gets messy with memory onlining/offlining etc otherwise ...
->>>>
->>>
->>> I tried to implement this inside add_memory_driver_managed() and also
->>> within dax/kmem. IMHO doing the error handling inside dax/kmem is
->>> better. Here is how it looks:
->>>
->>> 1. If any blocks got added before (mapped > 0) we loop through all successful request_mem_regions
->>> 2. For each succesful request_mem_regions if any blocks got added, we
->>> keep the resource. If none got added, we will kfree the resource
->>>
->>
->> Doing this unconditional splitting outside of
->> add_memory_driver_managed() is undesirable for at least two reasons
->>
->> 1) You end up always creating individual entries in the resource tree
->>      (/proc/iomem) even if MHP_MEMMAP_ON_MEMORY is not effective.
->> 2) As we call arch_add_memory() in memory block granularity (e.g., 128
->>      MiB on x86), we might not make use of large PUDs (e.g., 1 GiB) in the
->>      identify mapping -- even if MHP_MEMMAP_ON_MEMORY is not effective.
->>
->> While you could sense for support and do the split based on that, it
->> will be beneficial for other users (especially DIMMs) if we do that
->> internally -- where we already know if MHP_MEMMAP_ON_MEMORY can be
->> effective or not.
-> 
-> I'm taking a shot at implementing the splitting internally in
-> memory_hotplug.c. The caller (kmem) side does become trivial with this
-> approach, but there's a slight complication if I don't have the module
-> param override (patch 1 of this series).
-> 
-> The kmem diff now looks like:
-> 
->     diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
->     index 898ca9505754..8be932f63f90 100644
->     --- a/drivers/dax/kmem.c
->     +++ b/drivers/dax/kmem.c
->     @@ -105,6 +105,8 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
->             data->mgid = rc;
->      
->             for (i = 0; i < dev_dax->nr_range; i++) {
->     +               mhp_t mhp_flags = MHP_NID_IS_MGID | MHP_MEMMAP_ON_MEMORY |
->     +                                 MHP_SPLIT_MEMBLOCKS;
->                     struct resource *res;
->                     struct range range;
->      
->     @@ -141,7 +143,7 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
->                      * this as RAM automatically.
->                      */
->                     rc = add_memory_driver_managed(data->mgid, range.start,
->     -                               range_len(&range), kmem_name, MHP_NID_IS_MGID);
->     +                               range_len(&range), kmem_name, mhp_flags);
->      
->                     if (rc) {
->                             dev_warn(dev, "mapping%d: %#llx-%#llx memory add failed\n",
->     
-> 
+> I've failed to understand why we should wait for [0] ...
 
-Why do we need the MHP_SPLIT_MEMBLOCKS?
+Sorry, missed to answer before. The optimization was to make the
+virtio-pmem interface completely
+asynchronous and coalesce the flush requests. As this uses the
+asynchronous behavior of virtio bus
+there is no stall of guest vCPU, so this optimization intends to solve below:
 
-In add_memory_driver_managed(), if memmap_on_memory = 1 AND is effective for a
-single memory block, you can simply split up internally, no?
+- Guest IO submitting thread can do other other operations till the
+host flush completes.
+- As all the guest flush work on one virtio-pmem device. If there is
+single flush in queue all the subsequent flush would wait enabling
+request coalescing.
 
-Essentially in add_memory_resource() something like
+Currently, its solved by splitting the bio request to parent & child.
+But this results in preorder issue (As PREFLUSH happens after the
+first fsync, because of the way how bio_submit() works). I think the
+preflush order issue will still remain after this patch. But currently
+this interface is broken in mainline. So, this patch fixes the issue.
 
-if (mhp_flags & MHP_MEMMAP_ON_MEMORY &&
-     mhp_supports_memmap_on_memory(memory_block_size_bytes())) {
-	for (cur_start = start, cur_start < start + size;
-	     cur_start += memory_block_size_bytes()) {
-		mhp_altmap.free = PHYS_PFN(memory_block_size_bytes());
-		mhp_altmap.base_pfn = PHYS_PFN(start);
-		params.altmap = &mhp_altmap;
 
-		ret = arch_add_memory(nid, start,
-				      memory_block_size_bytes(), &params);
-		if (ret < 0) ...
-
-		ret = create_memory_block_devices(start, memory_block_size_bytes(),
-						  mhp_altmap.alloc, group);
-		if (ret) ...
-		
-	}
-} else {
-	/* old boring stuff */
-}
-
-Of course, doing it a bit cleaner, factoring out adding of mem+creating devices into
-a helper so we can use it on the other path, avoiding repeating memory_block_size_bytes()
-...
-
-If any adding of memory failed, we remove what we already added. That works, because as
-long as we're holding the relevant locks, memory cannot get onlined in the meantime.
-
-Then we only have to teach remove_memory() to deal with individual blocks when finding
-blocks that have an altmap.
-
--- 
-Cheers,
-
-David / dhildenb
-
+Thanks,
+Pankaj
