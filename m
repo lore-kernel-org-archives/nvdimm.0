@@ -1,156 +1,102 @@
-Received: from smtp.smtpout.orange.fr (smtp-23.smtpout.orange.fr [80.12.242.23])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 2AEBF539F
-	for <nvdimm@lists.linux.dev>; Thu, 13 Jul 2023 05:20:26 +0000 (UTC)
-Received: from pop-os.home ([86.243.2.178])
-	by smtp.orange.fr with ESMTPA
-	id JoHLqljqIGqNMJoHLqvxHU; Thu, 13 Jul 2023 06:50:13 +0200
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=wanadoo.fr;
-	s=t20230301; t=1689223813;
-	bh=OIO6SGvjdu5q95AKttYaweX2kv13SEJFYyGhl5Ix5MU=;
-	h=From:To:Cc:Subject:Date;
-	b=D6aJTxES5TE1G/CFp5XvTb2PZdxCaLGx3SH+sJG8S/01CDdGPONxOBpZdrpkunkVD
-	 j2kIr5AYo6oMJzAvJbwvk0DJDXE5C+EsU9AyXbFAbOfHIvzC+MPVDTQkWPjZk04DIf
-	 Gm7jJdIsKKaR58N13iaubLsUn4Drc61jYeOkFihkH7U5KF0FWVIuzjD/tmrTsy4cFM
-	 8TbqmO9/Jc6cEhaSpSYy/ZeAbXfbzYKzK8ZLPHM8+MsxLZ1/5nOdK5s6cgYn+iMGao
-	 OQU5UJ3u2F9WP4iraRqwd1vwuu+9Kp0ZAH2ct02IXzMDxCdlX1p+oXGFmKzkIitESW
-	 8ecSApggwqb0Q==
-X-ME-Helo: pop-os.home
-X-ME-Auth: Y2hyaXN0b3BoZS5qYWlsbGV0QHdhbmFkb28uZnI=
-X-ME-Date: Thu, 13 Jul 2023 06:50:13 +0200
-X-ME-IP: 86.243.2.178
-From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-To: akpm@linux-foundation.org,
-	Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Ira Weiny <ira.weiny@intel.com>
-Cc: linux-kernel@vger.kernel.org,
-	kernel-janitors@vger.kernel.org,
-	Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
-	nvdimm@lists.linux.dev
-Subject: [PATCH v3] nvdimm: Use kstrtobool() instead of strtobool()
-Date: Thu, 13 Jul 2023 06:50:09 +0200
-Message-Id: <75a5ff07902e34fad9bc821b8c533d070c498537.1673686195.git.christophe.jaillet@wanadoo.fr>
-X-Mailer: git-send-email 2.34.1
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEB7553A4
+	for <nvdimm@lists.linux.dev>; Thu, 13 Jul 2023 05:25:31 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1689225931; x=1720761931;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=PqMtmngtRcubSkXM9hoe5DDxR3B47yx0wzaPIxBHvLI=;
+  b=hXZmT6xXpUab9KPVJh3IiAT/7pBQgBAYOP6c4r8Gl+0YMZ4r1rSrw5l4
+   UUo06Ve0cre+S3f4z0Hy/g3jEtW+2eKxfAjIYe7HxToIqaXLLMimz4zGf
+   xBuAEvJ6FdjSufwprPWONewfC/EG+0BSrmYfVsBWCOZfQD6QJBRRV5ul4
+   20uLXekIbz3cY2VJwTIwBNg6gV4d3EjbZtnPuYNzkkDI1QDtLXrqSZj/W
+   qmnc814iU7CGLpQn9SBZuVmK0RyeozM6F0KEY+lq0O+mnUc5qhX6m0bgV
+   8jVUTOK+958zYzsN0hNPQ+d5S83xaCA5JkNPwbR1YBPUicIkXJ68DxYra
+   Q==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10769"; a="355006662"
+X-IronPort-AV: E=Sophos;i="6.01,201,1684825200"; 
+   d="scan'208";a="355006662"
+Received: from fmsmga006.fm.intel.com ([10.253.24.20])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jul 2023 22:25:31 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10769"; a="968470497"
+X-IronPort-AV: E=Sophos;i="6.01,201,1684825200"; 
+   d="scan'208";a="968470497"
+Received: from aschofie-mobl2.amr.corp.intel.com (HELO aschofie-mobl2) ([10.212.210.253])
+  by fmsmga006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jul 2023 22:25:30 -0700
+Date: Wed, 12 Jul 2023 22:25:25 -0700
+From: Alison Schofield <alison.schofield@intel.com>
+To: Ben Dooks <ben.dooks@codethink.co.uk>
+Cc: nvdimm@lists.linux.dev, linux-acpi@vger.kernel.org
+Subject: Re: [RESEND v2] ACPI: NFIT: limit string attribute write
+Message-ID: <ZK+KxTWNQDm+mDhj@aschofie-mobl2>
+References: <20230712115753.20688-1-ben.dooks@codethink.co.uk>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230712115753.20688-1-ben.dooks@codethink.co.uk>
 
-strtobool() is the same as kstrtobool().
-However, the latter is more used within the kernel.
+On Wed, Jul 12, 2023 at 12:57:53PM +0100, Ben Dooks wrote:
+> If we're writing what could be an arbitrary sized string into an attribute
+> we should probably use sysfs_emit() just to be safe. Most of the other
+> attriubtes are some sort of integer so unlikely to be an issue so not
+> altered at this time.
 
-In order to remove strtobool() and slightly simplify kstrtox.h, switch to
-the other function name.
+Hi Ben,
 
-While at it, include the corresponding header file (<linux/kstrtox.h>)
+Documentation/process/submitting-patches.rst says:
+"Don't add "RESEND" when you are submitting a modified version of your
+patch or patch series - "RESEND" only applies to resubmission of a
+patch or patch series which have not been modified in any way from the
+previous submission."
 
-Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
-Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
----
-This patch was already sent as a part of a serie ([1]) that axed all usages
-of strtobool().
-Most of the patches have been merged in -next.
+I see maybe you are going to go back and use sysfs_emit in all the
+_show functions. I'd suggest either justify it as either a) or b),
+Both are more explicit than 'just to be safe'
 
-I synch'ed with latest -next and re-send the remaining ones as individual
-patches.
+a) following the recommendations of Documentation/filesystems/sysfs.rst
+which says to only use sysfs_emit in show() functions.
 
-Even if R-b and told that it was applied for v6.3, it is still not in -next.
-This is the very last patch of the initial serie that remains un-applied.
+b) explain that you are doing it because sprintf does not know the
+PAGE_SIZE maximum of the temporary buffer used for outputting sysfs
+content requests and it's possible to overrun the buffer length.
 
-After it, strtobool() can be removed from linux/kstrtox.h.
+I vote for doing 'em all!
 
-Changes in v3:
-  - synch with latest -next.
-  - Adding R-b tag
-  - Adding in cc: akpm@linux-foundation.org
+Alison
 
-Changes in v2:
-  - synch with latest -next.
-  - https://lore.kernel.org/all/7565f107952e31fad2bc825b8c533df70c498537.1673686195.git.christophe.jaillet@wanadoo.fr/
 
-[1]: https://lore.kernel.org/all/cover.1667336095.git.christophe.jaillet@wanadoo.fr/
----
- drivers/nvdimm/namespace_devs.c | 3 ++-
- drivers/nvdimm/pmem.c           | 3 ++-
- drivers/nvdimm/region_devs.c    | 5 +++--
- 3 files changed, 7 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-index c60ec0b373c5..07177eadc56e 100644
---- a/drivers/nvdimm/namespace_devs.c
-+++ b/drivers/nvdimm/namespace_devs.c
-@@ -2,6 +2,7 @@
- /*
-  * Copyright(c) 2013-2015 Intel Corporation. All rights reserved.
-  */
-+#include <linux/kstrtox.h>
- #include <linux/module.h>
- #include <linux/device.h>
- #include <linux/sort.h>
-@@ -1338,7 +1339,7 @@ static ssize_t force_raw_store(struct device *dev,
- 		struct device_attribute *attr, const char *buf, size_t len)
- {
- 	bool force_raw;
--	int rc = strtobool(buf, &force_raw);
-+	int rc = kstrtobool(buf, &force_raw);
- 
- 	if (rc)
- 		return rc;
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 80ded5a2838a..f2a336c6d8c6 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -17,6 +17,7 @@
- #include <linux/moduleparam.h>
- #include <linux/badblocks.h>
- #include <linux/memremap.h>
-+#include <linux/kstrtox.h>
- #include <linux/vmalloc.h>
- #include <linux/blk-mq.h>
- #include <linux/pfn_t.h>
-@@ -385,7 +386,7 @@ static ssize_t write_cache_store(struct device *dev,
- 	bool write_cache;
- 	int rc;
- 
--	rc = strtobool(buf, &write_cache);
-+	rc = kstrtobool(buf, &write_cache);
- 	if (rc)
- 		return rc;
- 	dax_write_cache(pmem->dax_dev, write_cache);
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index 83dbf398ea84..f5872de7ea5a 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -5,6 +5,7 @@
- #include <linux/scatterlist.h>
- #include <linux/memregion.h>
- #include <linux/highmem.h>
-+#include <linux/kstrtox.h>
- #include <linux/sched.h>
- #include <linux/slab.h>
- #include <linux/hash.h>
-@@ -275,7 +276,7 @@ static ssize_t deep_flush_store(struct device *dev, struct device_attribute *att
- 		const char *buf, size_t len)
- {
- 	bool flush;
--	int rc = strtobool(buf, &flush);
-+	int rc = kstrtobool(buf, &flush);
- 	struct nd_region *nd_region = to_nd_region(dev);
- 
- 	if (rc)
-@@ -530,7 +531,7 @@ static ssize_t read_only_store(struct device *dev,
- 		struct device_attribute *attr, const char *buf, size_t len)
- {
- 	bool ro;
--	int rc = strtobool(buf, &ro);
-+	int rc = kstrtobool(buf, &ro);
- 	struct nd_region *nd_region = to_nd_region(dev);
- 
- 	if (rc)
--- 
-2.34.1
-
+> 
+> Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
+> ---
+> v2:
+>   - use sysfs_emit() instead of snprintf.
+> ---
+>  drivers/acpi/nfit/core.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> index 9213b426b125..59c354137627 100644
+> --- a/drivers/acpi/nfit/core.c
+> +++ b/drivers/acpi/nfit/core.c
+> @@ -1579,7 +1579,7 @@ static ssize_t id_show(struct device *dev,
+>  {
+>  	struct nfit_mem *nfit_mem = to_nfit_mem(dev);
+>  
+> -	return sprintf(buf, "%s\n", nfit_mem->id);
+> +	return sysfs_emit(buf, "%s\n", nfit_mem->id);
+>  }
+>  static DEVICE_ATTR_RO(id);
+>  
+> -- 
+> 2.40.1
+> 
+> 
