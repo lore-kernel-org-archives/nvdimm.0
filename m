@@ -1,178 +1,354 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from esa4.hc1455-7.c3s2.iphmx.com (esa4.hc1455-7.c3s2.iphmx.com [68.232.139.117])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2069510F0
-	for <nvdimm@lists.linux.dev>; Fri, 14 Jul 2023 08:35:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1689323752;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=fH2TVmHvkuGKbv2hcI4xKi7nRAASFrz5xNlTKuAGh58=;
-	b=SELPjBVbjQwxBrAHze8MiMgBNlSDroeeqI011MisB30qlD9YrS4NX6MTd3TBTt/XmcMN+Q
-	uU24xjQ5TS0mjhuO9lO9FgsUiifiGItTTW1K+fif7Abkun/PhYOhxg36HkjzTeX7m30EhG
-	iGvuaGJ8V9spmjiGDjTUGzWEDy4OPfY=
-Received: from mail-wr1-f69.google.com (mail-wr1-f69.google.com
- [209.85.221.69]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-540-OG27FpcLMQ256FJexivY9g-1; Fri, 14 Jul 2023 04:35:51 -0400
-X-MC-Unique: OG27FpcLMQ256FJexivY9g-1
-Received: by mail-wr1-f69.google.com with SMTP id ffacd0b85a97d-315926005c9so1003450f8f.0
-        for <nvdimm@lists.linux.dev>; Fri, 14 Jul 2023 01:35:51 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1689323750; x=1691915750;
-        h=content-transfer-encoding:in-reply-to:subject:organization:from
-         :references:cc:to:content-language:user-agent:mime-version:date
-         :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=fH2TVmHvkuGKbv2hcI4xKi7nRAASFrz5xNlTKuAGh58=;
-        b=fLTSn2LWD1uN0kvLmSUyC0PSPYHefzZuO6h4LeIochacK3Q0oVWg4FP/DUcF+mEV54
-         1lFVD7STLDUhV1w8ZxLidlpoAcJe7sG/e2rzAfA3uuoZLCIiQcEMcKzvP6CFuCfy7R0z
-         ZYrOCjcvwoW34mtOuujTccOTrh0wmOU8/rlBR8YGi9AGSvzy2Je/i4Dziq8+6gd0DunL
-         o7EADfe8vWtKIM2Pm3hItg7qvvvAOggRQpgTE/OkFKFTGxvO6nviq3V8nwl53nUJDkpE
-         lKvhn2HlaXDxVZyt4DCgk7kX5Xs674QlcXg0yVhVMa0ZVsMphVyJHLoL7w6zqrifrpfq
-         2hvQ==
-X-Gm-Message-State: ABy/qLadHhturmNgVH8K0t4DzhzeBZotBMjvyzvZBiZiIZiI9NF4whxs
-	eGY18fJwtWm/m4ZKzIZd0V+z4YKJTCfdJCKDVcj5+eo9uha6McsK/IW8DYh4eSGqpzamRfCHl2/
-	CmS/fp3jWJOenzO6b
-X-Received: by 2002:a5d:4006:0:b0:314:21b4:8322 with SMTP id n6-20020a5d4006000000b0031421b48322mr3144970wrp.10.1689323750013;
-        Fri, 14 Jul 2023 01:35:50 -0700 (PDT)
-X-Google-Smtp-Source: APBJJlGnmP51HKlsUWs7J70Wsu4Nis9jH3dnqaKZpH2XGHxORN4tmFKjwWx8/wDgKSU/KYu85DXo5Q==
-X-Received: by 2002:a5d:4006:0:b0:314:21b4:8322 with SMTP id n6-20020a5d4006000000b0031421b48322mr3144944wrp.10.1689323749637;
-        Fri, 14 Jul 2023 01:35:49 -0700 (PDT)
-Received: from ?IPV6:2003:cb:c70a:4500:8a9e:a24a:133d:86bb? (p200300cbc70a45008a9ea24a133d86bb.dip0.t-ipconnect.de. [2003:cb:c70a:4500:8a9e:a24a:133d:86bb])
-        by smtp.gmail.com with ESMTPSA id l18-20020a5d6752000000b0031434cebcd8sm10132122wrw.33.2023.07.14.01.35.48
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 14 Jul 2023 01:35:49 -0700 (PDT)
-Message-ID: <cfeecd92-3aa4-a07d-b71a-793531785692@redhat.com>
-Date: Fri, 14 Jul 2023 10:35:47 +0200
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DAFA0D507
+	for <nvdimm@lists.linux.dev>; Fri, 14 Jul 2023 09:08:11 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6600,9927,10770"; a="124673952"
+X-IronPort-AV: E=Sophos;i="6.01,204,1684767600"; 
+   d="scan'208";a="124673952"
+Received: from unknown (HELO yto-r3.gw.nic.fujitsu.com) ([218.44.52.219])
+  by esa4.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jul 2023 18:08:04 +0900
+Received: from yto-m4.gw.nic.fujitsu.com (yto-nat-yto-m4.gw.nic.fujitsu.com [192.168.83.67])
+	by yto-r3.gw.nic.fujitsu.com (Postfix) with ESMTP id 852E3C3F8C
+	for <nvdimm@lists.linux.dev>; Fri, 14 Jul 2023 18:08:01 +0900 (JST)
+Received: from kws-ab3.gw.nic.fujitsu.com (kws-ab3.gw.nic.fujitsu.com [192.51.206.21])
+	by yto-m4.gw.nic.fujitsu.com (Postfix) with ESMTP id B4008C4A15
+	for <nvdimm@lists.linux.dev>; Fri, 14 Jul 2023 18:08:00 +0900 (JST)
+Received: from edo.cn.fujitsu.com (edo.cn.fujitsu.com [10.167.33.5])
+	by kws-ab3.gw.nic.fujitsu.com (Postfix) with ESMTP id 3894F2007684D
+	for <nvdimm@lists.linux.dev>; Fri, 14 Jul 2023 18:08:00 +0900 (JST)
+Received: from [192.168.50.5] (unknown [10.167.234.230])
+	by edo.cn.fujitsu.com (Postfix) with ESMTP id 384AA1A0071;
+	Fri, 14 Jul 2023 17:07:59 +0800 (CST)
+Message-ID: <2840406d-0b7d-9897-87f6-ef3627e9ed5d@fujitsu.com>
+Date: Fri, 14 Jul 2023 17:07:58 +0800
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
  Thunderbird/102.12.0
-To: Jeff Moyer <jmoyer@redhat.com>, Dan Williams <dan.j.williams@intel.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>,
- "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>,
- Andrew Morton <akpm@linux-foundation.org>, Oscar Salvador
- <osalvador@suse.de>, Dave Jiang <dave.jiang@intel.com>,
- linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-mm@kvack.org, nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
- Huang Ying <ying.huang@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
-References: <20230613-vv-kmem_memmap-v1-0-f6de9c6af2c6@intel.com>
- <29c9b998-f453-59f2-5084-9b4482b489cf@redhat.com>
- <x49fs5r7hj1.fsf@segfault.boston.devel.redhat.com>
-From: David Hildenbrand <david@redhat.com>
-Organization: Red Hat
-Subject: Re: [PATCH 0/3] mm: use memmap_on_memory semantics for dax/kmem
-In-Reply-To: <x49fs5r7hj1.fsf@segfault.boston.devel.redhat.com>
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: redhat.com
-Content-Language: en-US
+Subject: Re: [PATCH v12 2/2] mm, pmem, xfs: Introduce MF_MEM_REMOVE for unbind
+From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+To: djwong@kernel.org
+Cc: linux-mm@kvack.org, linux-xfs@vger.kernel.org, nvdimm@lists.linux.dev,
+ linux-fsdevel@vger.kernel.org, dan.j.williams@intel.com,
+ willy@infradead.org, jack@suse.cz, akpm@linux-foundation.org,
+ mcgrof@kernel.org
+References: <20230629081651.253626-1-ruansy.fnst@fujitsu.com>
+ <20230629081651.253626-3-ruansy.fnst@fujitsu.com>
+In-Reply-To: <20230629081651.253626-3-ruansy.fnst@fujitsu.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-TM-AS-Product-Ver: IMSS-9.1.0.1417-9.0.0.1002-27750.005
+X-TM-AS-User-Approved-Sender: Yes
+X-TMASE-Version: IMSS-9.1.0.1417-9.0.1002-27750.005
+X-TMASE-Result: 10--19.497300-10.000000
+X-TMASE-MatchedRID: 00R5yCKmLzqPvrMjLFD6eI61Z+HJnvsO1QQ6Jx/fflZYC5LPd7BvbXWJ
+	7dvKS5ZkYsXN3CL0nEm3W71613vN7Ja3SiQKe1CZtT4jIeGRd/WTDZOVfIlqXsevg9JZNdIszIa
+	2RGUjJmiI2CAno9ubYWwWBQOse0fpkmoOfourmHQD2WXLXdz+Afi4nVERfgwdUFiDuGDvnz1576
+	my5Ixjujt8E1FvI1h+0htCm4AReYyKOc/QAD5CQYA7SSmAp7NEC5HdxA3MwScR34ro7k23nb8FH
+	rw7frluvDBM/avXIoa+GyEBMTgQ9t7Rfb2Mc0ONb/oIJuUAIuEFeeAjqMW+l4EBeX0uQ+npMBbl
+	t7zglMEb2wL6PXU3h0K3WEb5CMhwM8kGBcxKxM11e7Xbb6Im2knSHQovAWuA4Jg2aOOdYIKRcyU
+	BIWzD8RR7J3ZruAlBJ7WhME6YJBUSfBCDQJnFm/CW/PNRRp/ZgjDdudOPBHqe38zXnNg9Qw6+rP
+	zHX18bBfsWZGGl0AmdqC2fLtk9xL9ZdlL8eonaRjjVhf+j/woNlf30fAUOwiq2rl3dzGQ1A/3R8
+	k/14e0=
+X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
 
-On 13.07.23 21:12, Jeff Moyer wrote:
-> David Hildenbrand <david@redhat.com> writes:
+Hi Darrick,
+
+Thanks for applying the 1st patch.
+
+Now, since this patch is based on the new freeze_super()/thaw_super() 
+api[1], I'd like to ask what's the plan for this api?  It seems to have 
+missed the v6.5-rc1.
+
+[1] 
+https://lore.kernel.org/linux-xfs/168688010689.860947.1788875898367401950.stgit@frogsfrogsfrogs/
+
+
+--
+Thanks,
+Ruan.
+
+
+在 2023/6/29 16:16, Shiyang Ruan 写道:
+> This patch is inspired by Dan's "mm, dax, pmem: Introduce
+> dev_pagemap_failure()"[1].  With the help of dax_holder and
+> ->notify_failure() mechanism, the pmem driver is able to ask filesystem
+> on it to unmap all files in use, and notify processes who are using
+> those files.
 > 
->> On 16.06.23 00:00, Vishal Verma wrote:
->>> The dax/kmem driver can potentially hot-add large amounts of memory
->>> originating from CXL memory expanders, or NVDIMMs, or other 'device
->>> memories'. There is a chance there isn't enough regular system memory
->>> available to fit ythe memmap for this new memory. It's therefore
->>> desirable, if all other conditions are met, for the kmem managed memory
->>> to place its memmap on the newly added memory itself.
->>>
->>> Arrange for this by first allowing for a module parameter override for
->>> the mhp_supports_memmap_on_memory() test using a flag, adjusting the
->>> only other caller of this interface in dirvers/acpi/acpi_memoryhotplug.c,
->>> exporting the symbol so it can be called by kmem.c, and finally changing
->>> the kmem driver to add_memory() in chunks of memory_block_size_bytes().
->>
->> 1) Why is the override a requirement here? Just let the admin
->> configure it then then add conditional support for kmem.
->>
->> 2) I recall that there are cases where we don't want the memmap to
->> land on slow memory (which online_movable would achieve). Just imagine
->> the slow PMEM case. So this might need another configuration knob on
->> the kmem side.
+> Call trace:
+> trigger unbind
+>   -> unbind_store()
+>    -> ... (skip)
+>     -> devres_release_all()
+>      -> kill_dax()
+>       -> dax_holder_notify_failure(dax_dev, 0, U64_MAX, MF_MEM_PRE_REMOVE)
+>        -> xfs_dax_notify_failure()
+>        `-> freeze_super()             // freeze (kernel call)
+>        `-> do xfs rmap
+>        ` -> mf_dax_kill_procs()
+>        `  -> collect_procs_fsdax()    // all associated processes
+>        `  -> unmap_and_kill()
+>        ` -> invalidate_inode_pages2_range() // drop file's cache
+>        `-> thaw_super()               // thaw (both kernel & user call)
 > 
->  From my memory, the case where you don't want the memmap to land on
-> *persistent memory* is when the device is small (such as NVDIMM-N), and
-> you want to reserve as much space as possible for the application data.
-> This has nothing to do with the speed of access.
-
-Now that you mention it, I also do remember the origin of the altmap --
-to achieve exactly that: place the memmap on the device.
-
-commit 4b94ffdc4163bae1ec73b6e977ffb7a7da3d06d3
-Author: Dan Williams <dan.j.williams@intel.com>
-Date:   Fri Jan 15 16:56:22 2016 -0800
-
-     x86, mm: introduce vmem_altmap to augment vmemmap_populate()
-     
-     In support of providing struct page for large persistent memory
-     capacities, use struct vmem_altmap to change the default policy for
-     allocating memory for the memmap array.  The default vmemmap_populate()
-     allocates page table storage area from the page allocator.  Given
-     persistent memory capacities relative to DRAM it may not be feasible to
-     store the memmap in 'System Memory'.  Instead vmem_altmap represents
-     pre-allocated "device pages" to satisfy vmemmap_alloc_block_buf()
-     requests.
-
-In PFN_MODE_PMEM (and only then), we use the altmap (don't see a way to
-configure it).
-
-
-BUT that case is completely different from the "System RAM" mode. The memmap
-of an NVDIMM in pmem mode is barely used by core-mm (i.e., not the buddy).
-
-In comparison, if the buddy and everybody else works on the memmap in
-"System RAM", it's much more significant if that resides on slow memory.
-
-
-Looking at
-
-commit 9b6e63cbf85b89b2dbffa4955dbf2df8250e5375
-Author: Michal Hocko <mhocko@suse.com>
-Date:   Tue Oct 3 16:16:19 2017 -0700
-
-     mm, page_alloc: add scheduling point to memmap_init_zone
-     
-     memmap_init_zone gets a pfn range to initialize and it can be really
-     large resulting in a soft lockup on non-preemptible kernels
-     
-       NMI watchdog: BUG: soft lockup - CPU#31 stuck for 23s! [kworker/u642:5:1720]
-       [...]
-       task: ffff88ecd7e902c0 ti: ffff88eca4e50000 task.ti: ffff88eca4e50000
-       RIP: move_pfn_range_to_zone+0x185/0x1d0
-       [...]
-       Call Trace:
-         devm_memremap_pages+0x2c7/0x430
-         pmem_attach_disk+0x2fd/0x3f0 [nd_pmem]
-         nvdimm_bus_probe+0x64/0x110 [libnvdimm]
-
-
-It's hard to tell if that was only required due to the memmap for these devices
-being that large, or also partially because the access to the memmap is slower
-that it makes a real difference.
-
-
-I recall that we're also often using ZONE_MOVABLE on such slow memory
-to not end up placing other kernel data structures on there: especially,
-user space page tables as I've been told.
-
-
-@Dan, any insight on the performance aspects when placing the memmap on
-(slow) memory and having that memory be consumed by the buddy where we frequently
-operate on the memmap?
-
--- 
-Cheers,
-
-David / dhildenb
-
+> Introduce MF_MEM_PRE_REMOVE to let filesystem know this is a remove
+> event.  Use the exclusive freeze/thaw[2] to lock the filesystem to prevent
+> new dax mapping from being created.  Do not shutdown filesystem directly
+> if configuration is not supported, or if failure range includes metadata
+> area.  Make sure all files and processes(not only the current progress)
+> are handled correctly.  Also drop the cache of associated files before
+> pmem is removed.
+> 
+> [1]: https://lore.kernel.org/linux-mm/161604050314.1463742.14151665140035795571.stgit@dwillia2-desk3.amr.corp.intel.com/
+> [2]: https://lore.kernel.org/linux-xfs/168688010689.860947.1788875898367401950.stgit@frogsfrogsfrogs/
+> 
+> Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+> ---
+>   drivers/dax/super.c         |  3 +-
+>   fs/xfs/xfs_notify_failure.c | 86 ++++++++++++++++++++++++++++++++++---
+>   include/linux/mm.h          |  1 +
+>   mm/memory-failure.c         | 17 ++++++--
+>   4 files changed, 96 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+> index c4c4728a36e4..2e1a35e82fce 100644
+> --- a/drivers/dax/super.c
+> +++ b/drivers/dax/super.c
+> @@ -323,7 +323,8 @@ void kill_dax(struct dax_device *dax_dev)
+>   		return;
+>   
+>   	if (dax_dev->holder_data != NULL)
+> -		dax_holder_notify_failure(dax_dev, 0, U64_MAX, 0);
+> +		dax_holder_notify_failure(dax_dev, 0, U64_MAX,
+> +				MF_MEM_PRE_REMOVE);
+>   
+>   	clear_bit(DAXDEV_ALIVE, &dax_dev->flags);
+>   	synchronize_srcu(&dax_srcu);
+> diff --git a/fs/xfs/xfs_notify_failure.c b/fs/xfs/xfs_notify_failure.c
+> index 4a9bbd3fe120..f6ec56b76db6 100644
+> --- a/fs/xfs/xfs_notify_failure.c
+> +++ b/fs/xfs/xfs_notify_failure.c
+> @@ -22,6 +22,7 @@
+>   
+>   #include <linux/mm.h>
+>   #include <linux/dax.h>
+> +#include <linux/fs.h>
+>   
+>   struct xfs_failure_info {
+>   	xfs_agblock_t		startblock;
+> @@ -73,10 +74,16 @@ xfs_dax_failure_fn(
+>   	struct xfs_mount		*mp = cur->bc_mp;
+>   	struct xfs_inode		*ip;
+>   	struct xfs_failure_info		*notify = data;
+> +	struct address_space		*mapping;
+> +	pgoff_t				pgoff;
+> +	unsigned long			pgcnt;
+>   	int				error = 0;
+>   
+>   	if (XFS_RMAP_NON_INODE_OWNER(rec->rm_owner) ||
+>   	    (rec->rm_flags & (XFS_RMAP_ATTR_FORK | XFS_RMAP_BMBT_BLOCK))) {
+> +		/* Continue the query because this isn't a failure. */
+> +		if (notify->mf_flags & MF_MEM_PRE_REMOVE)
+> +			return 0;
+>   		notify->want_shutdown = true;
+>   		return 0;
+>   	}
+> @@ -92,14 +99,55 @@ xfs_dax_failure_fn(
+>   		return 0;
+>   	}
+>   
+> -	error = mf_dax_kill_procs(VFS_I(ip)->i_mapping,
+> -				  xfs_failure_pgoff(mp, rec, notify),
+> -				  xfs_failure_pgcnt(mp, rec, notify),
+> -				  notify->mf_flags);
+> +	mapping = VFS_I(ip)->i_mapping;
+> +	pgoff = xfs_failure_pgoff(mp, rec, notify);
+> +	pgcnt = xfs_failure_pgcnt(mp, rec, notify);
+> +
+> +	/* Continue the rmap query if the inode isn't a dax file. */
+> +	if (dax_mapping(mapping))
+> +		error = mf_dax_kill_procs(mapping, pgoff, pgcnt,
+> +					  notify->mf_flags);
+> +
+> +	/* Invalidate the cache in dax pages. */
+> +	if (notify->mf_flags & MF_MEM_PRE_REMOVE)
+> +		invalidate_inode_pages2_range(mapping, pgoff,
+> +					      pgoff + pgcnt - 1);
+> +
+>   	xfs_irele(ip);
+>   	return error;
+>   }
+>   
+> +static void
+> +xfs_dax_notify_failure_freeze(
+> +	struct xfs_mount	*mp)
+> +{
+> +	struct super_block 	*sb = mp->m_super;
+> +
+> +	/* Wait until no one is holding the FREEZE_HOLDER_KERNEL. */
+> +	while (freeze_super(sb, FREEZE_HOLDER_KERNEL) != 0) {
+> +		// Shall we just wait, or print warning then return -EBUSY?
+> +		delay(HZ / 10);
+> +	}
+> +}
+> +
+> +static void
+> +xfs_dax_notify_failure_thaw(
+> +	struct xfs_mount	*mp)
+> +{
+> +	struct super_block	*sb = mp->m_super;
+> +	int			error;
+> +
+> +	error = thaw_super(sb, FREEZE_HOLDER_KERNEL);
+> +	if (error)
+> +		xfs_emerg(mp, "still frozen after notify failure, err=%d",
+> +			  error);
+> +	/*
+> +	 * Also thaw userspace call anyway because the device is about to be
+> +	 * removed immediately.
+> +	 */
+> +	thaw_super(sb, FREEZE_HOLDER_USERSPACE);
+> +}
+> +
+>   static int
+>   xfs_dax_notify_ddev_failure(
+>   	struct xfs_mount	*mp,
+> @@ -120,7 +168,7 @@ xfs_dax_notify_ddev_failure(
+>   
+>   	error = xfs_trans_alloc_empty(mp, &tp);
+>   	if (error)
+> -		return error;
+> +		goto out;
+>   
+>   	for (; agno <= end_agno; agno++) {
+>   		struct xfs_rmap_irec	ri_low = { };
+> @@ -165,11 +213,23 @@ xfs_dax_notify_ddev_failure(
+>   	}
+>   
+>   	xfs_trans_cancel(tp);
+> +
+> +	/*
+> +	 * Determine how to shutdown the filesystem according to the
+> +	 * error code and flags.
+> +	 */
+>   	if (error || notify.want_shutdown) {
+>   		xfs_force_shutdown(mp, SHUTDOWN_CORRUPT_ONDISK);
+>   		if (!error)
+>   			error = -EFSCORRUPTED;
+> -	}
+> +	} else if (mf_flags & MF_MEM_PRE_REMOVE)
+> +		xfs_force_shutdown(mp, SHUTDOWN_FORCE_UMOUNT);
+> +
+> +out:
+> +	/* Thaw the fs if it is freezed before. */
+> +	if (mf_flags & MF_MEM_PRE_REMOVE)
+> +		xfs_dax_notify_failure_thaw(mp);
+> +
+>   	return error;
+>   }
+>   
+> @@ -197,6 +257,8 @@ xfs_dax_notify_failure(
+>   
+>   	if (mp->m_logdev_targp && mp->m_logdev_targp->bt_daxdev == dax_dev &&
+>   	    mp->m_logdev_targp != mp->m_ddev_targp) {
+> +		if (mf_flags & MF_MEM_PRE_REMOVE)
+> +			return 0;
+>   		xfs_err(mp, "ondisk log corrupt, shutting down fs!");
+>   		xfs_force_shutdown(mp, SHUTDOWN_CORRUPT_ONDISK);
+>   		return -EFSCORRUPTED;
+> @@ -210,6 +272,12 @@ xfs_dax_notify_failure(
+>   	ddev_start = mp->m_ddev_targp->bt_dax_part_off;
+>   	ddev_end = ddev_start + bdev_nr_bytes(mp->m_ddev_targp->bt_bdev) - 1;
+>   
+> +	/* Notify failure on the whole device. */
+> +	if (offset == 0 && len == U64_MAX) {
+> +		offset = ddev_start;
+> +		len = bdev_nr_bytes(mp->m_ddev_targp->bt_bdev);
+> +	}
+> +
+>   	/* Ignore the range out of filesystem area */
+>   	if (offset + len - 1 < ddev_start)
+>   		return -ENXIO;
+> @@ -226,6 +294,12 @@ xfs_dax_notify_failure(
+>   	if (offset + len - 1 > ddev_end)
+>   		len = ddev_end - offset + 1;
+>   
+> +	if (mf_flags & MF_MEM_PRE_REMOVE) {
+> +		xfs_info(mp, "device is about to be removed!");
+> +		/* Freeze fs to prevent new mappings from being created. */
+> +		xfs_dax_notify_failure_freeze(mp);
+> +	}
+> +
+>   	return xfs_dax_notify_ddev_failure(mp, BTOBB(offset), BTOBB(len),
+>   			mf_flags);
+>   }
+> diff --git a/include/linux/mm.h b/include/linux/mm.h
+> index 27ce77080c79..a80c255b88d2 100644
+> --- a/include/linux/mm.h
+> +++ b/include/linux/mm.h
+> @@ -3576,6 +3576,7 @@ enum mf_flags {
+>   	MF_UNPOISON = 1 << 4,
+>   	MF_SW_SIMULATED = 1 << 5,
+>   	MF_NO_RETRY = 1 << 6,
+> +	MF_MEM_PRE_REMOVE = 1 << 7,
+>   };
+>   int mf_dax_kill_procs(struct address_space *mapping, pgoff_t index,
+>   		      unsigned long count, int mf_flags);
+> diff --git a/mm/memory-failure.c b/mm/memory-failure.c
+> index 5b663eca1f29..483b75f2fcfb 100644
+> --- a/mm/memory-failure.c
+> +++ b/mm/memory-failure.c
+> @@ -688,7 +688,7 @@ static void add_to_kill_fsdax(struct task_struct *tsk, struct page *p,
+>    */
+>   static void collect_procs_fsdax(struct page *page,
+>   		struct address_space *mapping, pgoff_t pgoff,
+> -		struct list_head *to_kill)
+> +		struct list_head *to_kill, bool pre_remove)
+>   {
+>   	struct vm_area_struct *vma;
+>   	struct task_struct *tsk;
+> @@ -696,8 +696,15 @@ static void collect_procs_fsdax(struct page *page,
+>   	i_mmap_lock_read(mapping);
+>   	read_lock(&tasklist_lock);
+>   	for_each_process(tsk) {
+> -		struct task_struct *t = task_early_kill(tsk, true);
+> +		struct task_struct *t = tsk;
+>   
+> +		/*
+> +		 * Search for all tasks while MF_MEM_PRE_REMOVE, because the
+> +		 * current may not be the one accessing the fsdax page.
+> +		 * Otherwise, search for the current task.
+> +		 */
+> +		if (!pre_remove)
+> +			t = task_early_kill(tsk, true);
+>   		if (!t)
+>   			continue;
+>   		vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff, pgoff) {
+> @@ -1793,6 +1800,7 @@ int mf_dax_kill_procs(struct address_space *mapping, pgoff_t index,
+>   	dax_entry_t cookie;
+>   	struct page *page;
+>   	size_t end = index + count;
+> +	bool pre_remove = mf_flags & MF_MEM_PRE_REMOVE;
+>   
+>   	mf_flags |= MF_ACTION_REQUIRED | MF_MUST_KILL;
+>   
+> @@ -1804,9 +1812,10 @@ int mf_dax_kill_procs(struct address_space *mapping, pgoff_t index,
+>   		if (!page)
+>   			goto unlock;
+>   
+> -		SetPageHWPoison(page);
+> +		if (!pre_remove)
+> +			SetPageHWPoison(page);
+>   
+> -		collect_procs_fsdax(page, mapping, index, &to_kill);
+> +		collect_procs_fsdax(page, mapping, index, &to_kill, pre_remove);
+>   		unmap_and_kill(&to_kill, page_to_pfn(page), mapping,
+>   				index, mf_flags);
+>   unlock:
