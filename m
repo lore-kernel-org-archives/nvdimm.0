@@ -1,45 +1,45 @@
-Received: from mailout3.samsung.com (mailout3.samsung.com [203.254.224.33])
+Received: from mailout4.samsung.com (mailout4.samsung.com [203.254.224.34])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0AC9A7468
-	for <nvdimm@lists.linux.dev>; Mon, 17 Jul 2023 06:26:28 +0000 (UTC)
-Received: from epcas2p2.samsung.com (unknown [182.195.41.54])
-	by mailout3.samsung.com (KnoxPortal) with ESMTP id 20230717062621epoutp03ee985381eb652e8c0a588f6e2f49c5f7~yk6zyXGcA0705207052epoutp03w
-	for <nvdimm@lists.linux.dev>; Mon, 17 Jul 2023 06:26:21 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout3.samsung.com 20230717062621epoutp03ee985381eb652e8c0a588f6e2f49c5f7~yk6zyXGcA0705207052epoutp03w
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CF1F7468
+	for <nvdimm@lists.linux.dev>; Mon, 17 Jul 2023 06:26:35 +0000 (UTC)
+Received: from epcas2p4.samsung.com (unknown [182.195.41.56])
+	by mailout4.samsung.com (KnoxPortal) with ESMTP id 20230717062626epoutp042cf9bc18afe541149f74d68c472f3af9~yk65CBAZ20399503995epoutp04W
+	for <nvdimm@lists.linux.dev>; Mon, 17 Jul 2023 06:26:26 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout4.samsung.com 20230717062626epoutp042cf9bc18afe541149f74d68c472f3af9~yk65CBAZ20399503995epoutp04W
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-	s=mail20170921; t=1689575181;
-	bh=343GDxI0wcEZOH17UW8PWp8JHqa5QWX542+Vz5JNrXU=;
-	h=From:To:Cc:Subject:Date:References:From;
-	b=g3UOpjBYxD6ouDJyIvTX7CxsbBRNCeTfO/hLoZzBEjAbNjgZ+VLS/wsv9E+S06ll9
-	 smQepWHX7Ilwm3yWAeqePGMb3AayH1zd914wVTfo0xkNIdAepkZno4V3lcbDcr86+7
-	 xh/cCnPQFYzaVyXKU0i+fYRFxqxRH6ZiX/ksg018=
-Received: from epsnrtp4.localdomain (unknown [182.195.42.165]) by
-	epcas2p4.samsung.com (KnoxPortal) with ESMTP id
-	20230717062618epcas2p434a1ec31dff746e9bfa28f45269f457f~yk6w3kLs33214932149epcas2p43;
-	Mon, 17 Jul 2023 06:26:18 +0000 (GMT)
-Received: from epsmges2p4.samsung.com (unknown [182.195.36.91]) by
-	epsnrtp4.localdomain (Postfix) with ESMTP id 4R4BtK3HwSz4x9Q2; Mon, 17 Jul
-	2023 06:26:17 +0000 (GMT)
-Received: from epcas2p3.samsung.com ( [182.195.41.55]) by
-	epsmges2p4.samsung.com (Symantec Messaging Gateway) with SMTP id
-	54.DF.32393.90FD4B46; Mon, 17 Jul 2023 15:26:17 +0900 (KST)
+	s=mail20170921; t=1689575186;
+	bh=J5pfay+vlkQzijjCfhEB6lCY4J+B6tZrRk6bAir7ttg=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=fI8pMMEDdfzjtvdBd59TerDaCkBYOIVc97nlrmrbXekcpdzkzk+cCOCppbsb10/kO
+	 iqZjgcFa9Vs2oauDcvOIm4ZcBnPZ3MFG2pXbY3FEUKWenpYXgHWem9cahgshwn9a7G
+	 a5qxY9Tq7hmGePIyeLLEI0DeuXbSi813721aBzIQ=
+Received: from epsnrtp1.localdomain (unknown [182.195.42.162]) by
+	epcas2p3.samsung.com (KnoxPortal) with ESMTP id
+	20230717062626epcas2p3b5b4d2e28f4219513a38aa33cf858e08~yk64fhWZy0784607846epcas2p3c;
+	Mon, 17 Jul 2023 06:26:26 +0000 (GMT)
+Received: from epsmges2p2.samsung.com (unknown [182.195.36.100]) by
+	epsnrtp1.localdomain (Postfix) with ESMTP id 4R4BtT54T0z4x9Pv; Mon, 17 Jul
+	2023 06:26:25 +0000 (GMT)
+Received: from epcas2p4.samsung.com ( [182.195.41.56]) by
+	epsmges2p2.samsung.com (Symantec Messaging Gateway) with SMTP id
+	16.8E.40133.11FD4B46; Mon, 17 Jul 2023 15:26:25 +0900 (KST)
 Received: from epsmtrp2.samsung.com (unknown [182.195.40.14]) by
-	epcas2p4.samsung.com (KnoxPortal) with ESMTPA id
-	20230717062617epcas2p46229ab9feac5a094afd44761e2b9a403~yk6v6wDzJ3214932149epcas2p40;
-	Mon, 17 Jul 2023 06:26:17 +0000 (GMT)
-Received: from epsmgmcp1.samsung.com (unknown [182.195.42.82]) by
+	epcas2p2.samsung.com (KnoxPortal) with ESMTPA id
+	20230717062624epcas2p2c5a14cb450b04ccc0ccd2292312d9636~yk63N8kX13261632616epcas2p2z;
+	Mon, 17 Jul 2023 06:26:24 +0000 (GMT)
+Received: from epsmgms1p1new.samsung.com (unknown [182.195.42.41]) by
 	epsmtrp2.samsung.com (KnoxPortal) with ESMTP id
-	20230717062617epsmtrp267759406cd3c9b63ad904cbca367f171~yk6v5ujVX0833708337epsmtrp2Z;
-	Mon, 17 Jul 2023 06:26:17 +0000 (GMT)
-X-AuditID: b6c32a48-adffa70000007e89-9c-64b4df0976a5
+	20230717062624epsmtrp20af06d8ef2adeb0a1cc010ce2dd367e5~yk63M4Zok0871408714epsmtrp2N;
+	Mon, 17 Jul 2023 06:26:24 +0000 (GMT)
+X-AuditID: b6c32a46-4edb870000009cc5-97-64b4df11f83e
 Received: from epsmtip2.samsung.com ( [182.195.34.31]) by
-	epsmgmcp1.samsung.com (Symantec Messaging Gateway) with SMTP id
-	8B.85.64355.80FD4B46; Mon, 17 Jul 2023 15:26:16 +0900 (KST)
+	epsmgms1p1new.samsung.com (Symantec Messaging Gateway) with SMTP id
+	75.9F.34491.01FD4B46; Mon, 17 Jul 2023 15:26:24 +0900 (KST)
 Received: from jehoon-Precision-7920-Tower.dsn.sec.samsung.com (unknown
 	[10.229.83.133]) by epsmtip2.samsung.com (KnoxPortal) with ESMTPA id
-	20230717062616epsmtip293c57187f77f7e828c0e792911165408~yk6vtBs9X1407514075epsmtip2e;
-	Mon, 17 Jul 2023 06:26:16 +0000 (GMT)
+	20230717062624epsmtip259361e9fe7e20a78254512b004bd0a84~yk62_uWHm1559215592epsmtip2i;
+	Mon, 17 Jul 2023 06:26:24 +0000 (GMT)
 From: Jehoon Park <jehoon.park@samsung.com>
 To: linux-cxl@vger.kernel.org
 Cc: nvdimm@lists.linux.dev, Alison Schofield <alison.schofield@intel.com>,
@@ -48,82 +48,95 @@ Cc: nvdimm@lists.linux.dev, Alison Schofield <alison.schofield@intel.com>,
 	Davidlohr Bueso <dave@stgolabs.net>, Jonathan Cameron
 	<jonathan.cameron@huawei.com>, Kyungsan Kim <ks0204.kim@samsung.com>,
 	Junhyeok Im <junhyeok.im@samsung.com>, Jehoon Park <jehoon.park@samsung.com>
-Subject: [ndctl PATCH RESEND 0/2] Fix accessors for temperature field when
- it is negative
-Date: Mon, 17 Jul 2023 15:29:06 +0900
-Message-Id: <20230717062908.8292-1-jehoon.park@samsung.com>
+Subject: [ndctl PATCH RESEND 1/2] cxl: Update a revision by CXL 3.0
+ specification
+Date: Mon, 17 Jul 2023 15:29:07 +0900
+Message-Id: <20230717062908.8292-2-jehoon.park@samsung.com>
 X-Mailer: git-send-email 2.17.1
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFnrFKsWRmVeSWpSXmKPExsWy7bCmuS7n/S0pBrvuSljcfXyBzWL61AuM
+In-Reply-To: <20230717062908.8292-1-jehoon.park@samsung.com>
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFvrBKsWRmVeSWpSXmKPExsWy7bCmha7g/S0pBs+WKVrcfXyBzWL61AuM
 	FiduNrJZrL65htFi/9PnLBYHXjewW6xaeI3NYvHRGcwWR/dwWJyfdYrFYuWPP6wWtyYcY3Lg
 	8Wg58pbVY/Gel0weLzbPZPTo27KK0WPq7HqPz5vkAtiism0yUhNTUosUUvOS81My89JtlbyD
 	453jTc0MDHUNLS3MlRTyEnNTbZVcfAJ03TJzgE5UUihLzCkFCgUkFhcr6dvZFOWXlqQqZOQX
-	l9gqpRak5BSYF+gVJ+YWl+al6+WlllgZGhgYmQIVJmRnfN76iL3gLkfFrVU1DYw97F2MHBwS
-	AiYSn15KdzFycQgJ7GCUeDLzPyuE84lR4tOMTWxwzob+k8xdjJxgHVPPf4eq2skocevhBCin
-	l0li0qOrLCBVbALaEve3b2ADsUUEZCWa1z1gAiliFtjMLLFs5zmwhLBAtET35mZGEJtFQFWi
-	b+9HsGZeAWuJQwefM0Ksk5dYveEAM0izhMA5domFB+ewQCRcJBZ/OM0OYQtLvDq+BcqWkvj8
-	bi8bhJ0v8fPkLVYIu0Di05cPUL3GEu9uPmcFhQCzgKbE+l36kMBQljhyC6yCWYBPouPwX2gY
-	8Up0tAlBNKpKdB3/AHWZtMThK0ehgeIh8ftkM9hSIYFYidbnW1kmMMrOQpi/gJFxFaNYakFx
-	bnpqsVGBCTyOkvNzNzGCE52Wxw7G2W8/6B1iZOJgPMQowcGsJML7fdWmFCHelMTKqtSi/Pii
-	0pzU4kOMpsDgmsgsJZqcD0y1eSXxhiaWBiZmZobmRqYG5krivPda56YICaQnlqRmp6YWpBbB
-	9DFxcEo1MLX+Vtxx72PgdpGyNSVir5bplrrJvwivN7Jcu6dkP8/kyauPcB9aKNbUJWiXv6tk
-	+lf1hM26lqwKj07IO3x/dTP/UeP88DixbNcszqjQlR22fTnMUivf+x6/npSerRZ45PQJkS0y
-	GyuzN1f6bJh9O2pz9w8uR4mAivBFh1IP1xamVaQdWXp7g/Sf7Ss1LqaHyK3Nst3pXBn1PuvA
-	+vA/mXpTmHR04qwjtPJfRDSyN2nuulLqf/zzh+g/2Y0Ly4QCJyhtC6zqsj34x+vnm22Z/0XZ
-	GXsaPJoC75+oOGX7+kp4zenzGXs3577SXT277uy5prbQl8VuXB9eNvmZnsmSm8v5pr/1SJKl
-	lmzdqw4GJZbijERDLeai4kQAVVpGF/0DAAA=
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFprGLMWRmVeSWpSXmKPExsWy7bCSvC7n/S0pBu/5Le4+vsBmMX3qBUaL
-	Ezcb2SxW31zDaLH/6XMWiwOvG9gtVi28xmax+OgMZoujezgszs86xWKx8scfVotbE44xOfB4
-	tBx5y+qxeM9LJo8Xm2cyevRtWcXoMXV2vcfnTXIBbFFcNimpOZllqUX6dglcGZ+3PmIvuMtR
-	cWtVTQNjD3sXIyeHhICJxNTz31m7GLk4hAS2M0qs3bKDDSIhLXGv+QpUkbDE/ZYjUEXdTBJv
-	LnwAK2IT0Ja4v30DmC0iICvRvO4BE0gRs8BeZomOmedZQRLCApESl7ZcAbNZBFQl+vZ+ZAGx
-	eQWsJQ4dfM4IsUFeYvWGA8wTGHkWMDKsYhRNLSjOTc9NLjDUK07MLS7NS9dLzs/dxAgOOq2g
-	HYzL1v/VO8TIxMF4iFGCg1lJhPf7qk0pQrwpiZVVqUX58UWlOanFhxilOViUxHmVczpThATS
-	E0tSs1NTC1KLYLJMHJxSDUxKbVMz01+e/L9pzYU/2letH2Xyh119XpHOtVCkTCB1yUbNKbzp
-	YSvk5A317EVL8xV28txP7fjrFx0X/uqqiNKi4u3XUj4xRHM19Iu+vPAph21xrrQU6yzD2oCF
-	56Xuhj6SOBLlpjafpT383INki857tyf+3mv4JOaVqdMhOVbthm2LFfw+MqTV/JzdWFbXcPel
-	SPv+H7dSJj1W9jh+JSlSZRKj5Iz4/XXnNY+yvNmn76Hn9jxWLi096b51T10al9W2Fdtvu90U
-	eXzeTrhOzurHo+p520/WXp5jb3cvmmfvlKysmrcb//+YlftvTojJNoP/tqI/J5UU/ynNbyjS
-	vKFQE7JkkYvv9IM2ER9eOyqxFGckGmoxFxUnAgB1HFPhqQIAAA==
-X-CMS-MailID: 20230717062617epcas2p46229ab9feac5a094afd44761e2b9a403
+	l9gqpRak5BSYF+gVJ+YWl+al6+WlllgZGhgYmQIVJmRnXL48kbFgCWfF9kv9jA2Mt9m7GDk5
+	JARMJHpWLWPrYuTiEBLYwShx/edidgjnE6PEp+unmSCcb4wS2+aegWvZt/I3I0RiL6PEmTOL
+	mCGcXiaJzm0dTCBVbALaEve3b2ADsUUEZCWa1z0AG8UssJlZYtnOc2AJYYFgiflP28HGsgio
+	Styf/hKsmVfAWuJ/5yYmiHXyEqs3HGAGsTkFbCRmTP/KCBH/yi6xbZ8BhO0i8f3gaTYIW1ji
+	1fEtUKdKSXx+txcqni/x8+QtVgi7QOLTlw8sELaxxLubz4HiHEDHaUqs36UPYkoIKEscuQVW
+	wSzAJ9Fx+C87RJhXoqNNCKJRVaLr+AeoY6QlDl85ygxhe0h0rV3MCgmSfkaJpU8+M01glJuF
+	sGABI+MqRrHUguLc9NRiowIjeIwl5+duYgQnQS23HYxT3n7QO8TIxMF4iFGCg1lJhPf7qk0p
+	QrwpiZVVqUX58UWlOanFhxhNgUE3kVlKNDkfmIbzSuINTSwNTMzMDM2NTA3MlcR577XOTRES
+	SE8sSc1OTS1ILYLpY+LglGpgMnwQUzTDbrrExLk37kxRdI3UZg26N3/rMS5pi5K9i54l703h
+	bBaIZXDVNyts31n1/UXjrMtPWueumsKoMvPQvEOHb2Z8d6iP0ayb8GH6NHPW25MSjT/tOTNT
+	39LunfmdTYsZ92kve1+4KmS9n1r6NnO7wCcbFXndohnWTV5V90roaOJptTU793wPclg5a/38
+	b58P7DvVVRN9+0/S7pzTAp98TI3ZX03akLrL11vLzm5B4I+HpdsXFtucjfBnmfmV4cQ766nT
+	OdtU1APCK71nT29aoZT1ZJYly7Jbey3LmyI/fXSL4E1PX/hDudx5fd/JSeHL2suyuHOEtRo/
+	H4tInHF3Z1R+vI5t+mNhNad8NiWW4oxEQy3mouJEAC86mZkLBAAA
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFtrCLMWRmVeSWpSXmKPExsWy7bCSvK7A/S0pBuuajCzuPr7AZjF96gVG
+	ixM3G9ksVt9cw2ix/+lzFosDrxvYLVYtvMZmsfjoDGaLo3s4LM7POsVisfLHH1aLWxOOMTnw
+	eLQcecvqsXjPSyaPF5tnMnr0bVnF6DF1dr3H501yAWxRXDYpqTmZZalF+nYJXBmXL09kLFjC
+	WbH9Uj9jA+Nt9i5GTg4JAROJfSt/M3YxcnEICexmlNj/BiYhLXGv+QqULSxxv+UIK0RRN5PE
+	us/bmEESbALaEve3b2ADsUUEZCWa1z1gAiliFtjLLNEx8zwrSEJYIFBi1sqFYJNYBFQl7k9/
+	yQRi8wpYS/zv3MQEsUFeYvWGA2BDOQVsJGZM/8oIYgsB1Tx48Zt5AiPfAkaGVYySqQXFuem5
+	xYYFhnmp5XrFibnFpXnpesn5uZsYwQGrpbmDcfuqD3qHGJk4GA8xSnAwK4nwfl+1KUWINyWx
+	siq1KD++qDQntfgQozQHi5I4r/iL3hQhgfTEktTs1NSC1CKYLBMHp1QDk8T2kwuk9sv9PazG
+	sexsfutJh5+dijsspnSHRi0LmyPasesK57NZqQ3uHBwX+GoT/t//OJHBRufCgiWsjKuW/tp8
+	h8c6hXXhvvX/XzPU8s5TOBKzYJPI8rrXMT0bmy8c+3hu3o2+qmcnTHfKXjmTYXXD8P43X/mI
+	YosDO3Ywvlr8o7/5x7K7q/kfvC173fU+3FJ726kWpRals/5XOTuWln1I8T8wwd8uIbvML2eD
+	2TOdvXWKjPGLrm3WWSda9ZtrYlFfVeLaTx4e/PellzwyWyOUNmWn+HKOiotuvK+zZ+xbqh7z
+	7mV8Y2TRIomY5/ybZ/+Ws92/9ZXdReYjSnKLFlQIOTBH67K4lO48ET3JpUmJpTgj0VCLuag4
+	EQCbSymNxwIAAA==
+X-CMS-MailID: 20230717062624epcas2p2c5a14cb450b04ccc0ccd2292312d9636
 X-Msg-Generator: CA
 Content-Type: text/plain; charset="utf-8"
 X-Sendblock-Type: AUTO_CONFIDENTIAL
 CMS-TYPE: 102P
 DLP-Filter: Pass
 X-CFilter-Loop: Reflected
-X-CMS-RootMailID: 20230717062617epcas2p46229ab9feac5a094afd44761e2b9a403
-References: <CGME20230717062617epcas2p46229ab9feac5a094afd44761e2b9a403@epcas2p4.samsung.com>
+X-CMS-RootMailID: 20230717062624epcas2p2c5a14cb450b04ccc0ccd2292312d9636
+References: <20230717062908.8292-1-jehoon.park@samsung.com>
+	<CGME20230717062624epcas2p2c5a14cb450b04ccc0ccd2292312d9636@epcas2p2.samsung.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 
-In CXL 3.0 SPEC, 8.2.9.8.3.1 and 8.2.9.8.3.2 define temperature fields
-as a 2's complement value. However, they are retrieved by the same accessor
-for unsigned value. This causes inaccuracy when the value is negative.
+Update the value of device temperature field when it is not implemented.
+(CXL 3.0 8.2.9.8.3.1)
 
-The first patch updates the pre-defined value for temperature field of
-the Get Health Info command when it is not implemented by complying
-CXL 3.0 specification. (CXL 3.0 8.2.9.8.3.1)
+Signed-off-by: Jehoon Park <jehoon.park@samsung.com>
+---
+ cxl/json.c        | 2 +-
+ cxl/lib/private.h | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-The second patch fixes accessors for temperature fields.
-Add a new payload accessor for a signed value, then use it for retrieving
-temperature properly. Remove negative error numbers since they are not
-distinguishable from the retrieved value because it could be negative.
-They are replaced by debug message.
-
-Jehoon Park (2):
-  cxl: Update a revision by CXL 3.0 specification
-  libcxl: Fix accessors for temperature field to support negative value
-
- cxl/json.c        |  2 +-
- cxl/lib/libcxl.c  | 36 ++++++++++++++++++++++++++----------
- cxl/lib/private.h |  2 +-
- 3 files changed, 28 insertions(+), 12 deletions(-)
-
-
-base-commit: 7f75ce36ce3a0d41ed74d4e2dfcfd41a6fd7fe40
+diff --git a/cxl/json.c b/cxl/json.c
+index 9a4b5c7..3661eb9 100644
+--- a/cxl/json.c
++++ b/cxl/json.c
+@@ -155,7 +155,7 @@ static struct json_object *util_cxl_memdev_health_to_json(
+ 	}
+ 
+ 	field = cxl_cmd_health_info_get_temperature(cmd);
+-	if (field != 0xffff) {
++	if (field != 0x7fff) {
+ 		jobj = json_object_new_int(field);
+ 		if (jobj)
+ 			json_object_object_add(jhealth, "temperature", jobj);
+diff --git a/cxl/lib/private.h b/cxl/lib/private.h
+index d49b560..e92592d 100644
+--- a/cxl/lib/private.h
++++ b/cxl/lib/private.h
+@@ -324,7 +324,7 @@ struct cxl_cmd_set_partition {
+ #define CXL_CMD_HEALTH_INFO_EXT_CORRECTED_PERSISTENT_WARNING		(1)
+ 
+ #define CXL_CMD_HEALTH_INFO_LIFE_USED_NOT_IMPL				0xff
+-#define CXL_CMD_HEALTH_INFO_TEMPERATURE_NOT_IMPL			0xffff
++#define CXL_CMD_HEALTH_INFO_TEMPERATURE_NOT_IMPL			0x7fff
+ 
+ static inline int check_kmod(struct kmod_ctx *kmod_ctx)
+ {
 -- 
 2.17.1
 
