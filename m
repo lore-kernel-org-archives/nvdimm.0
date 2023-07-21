@@ -1,32 +1,32 @@
 Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF463363
-	for <nvdimm@lists.linux.dev>; Fri, 21 Jul 2023 01:45:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB11E363
+	for <nvdimm@lists.linux.dev>; Fri, 21 Jul 2023 01:45:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1689903921; x=1721439921;
+  t=1689903925; x=1721439925;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=fvluWJnQxPJxRNFSQvnsXlILnnh9VajCo65nakKALGw=;
-  b=BkoIgn06qYdFbabVQEbcj9ozXAlMpp3TO7hNZD/DqbCIWLsStD7144Sp
-   PAb86j7xqCUFSEgVW9uvWmZF2HTVoCsl2r2bZDGB1lyGOjd+WEWOzJUMl
-   YSAuQsAnrhxhgeGt2WpcVxE/29MwRwmDoss3VzFLaa4sVcpQEUwdm1n7V
-   5yoifHmxV1eI9/FtFHfCpPj5TRl9CV9zCWgNUWDy927Hxh3aCpRapmfoe
-   KG3RY3hEaB9j1KJC4ArZttKLKwM/1L/duOf0YJcS0/4wwDznwmscu+fvR
-   YPmy3xkJUI700bSpKb6j1vEq3tY9uo9FcPpAjzsoRXBiSfRFVmmwxq04Y
-   Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10777"; a="347214195"
+  bh=WgH5xLOkBW2Y/oZqJhHhP4ppJv8kSHk1fii5X3wpokk=;
+  b=WNVErJpj3YN0pcLnn6tk2EyAdJbLs9Kys8Py9kBCXQBS5TGcd7EHoFHv
+   1Y2E4vp6qjbs8c29Z4nnroDnVpnbPyqdG77I719TmKdgeTrdD30S4vQZp
+   0OC29zarG8fTP0DLPBAfsXVcX4Mt70kMEoMLA1iJvIt5b4RnmkkRM7KAA
+   4P6e5NCUJI4pPmjXh10DWtiXL+7IRSWXrCYHrlD+3Ys52d8FzhVZWd+oU
+   Ldve3DJHZkNC90sLOU0QZsjN6MpLw6S4f1QzEhhAXvdnPcbC0OYISgUuE
+   xvCYMDFGmmOKH45kMaU1NNakuhWv9TFN1c05V8byWhf3t9WpS4zlsRtU3
+   w==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10777"; a="347214213"
 X-IronPort-AV: E=Sophos;i="6.01,220,1684825200"; 
-   d="scan'208";a="347214195"
+   d="scan'208";a="347214213"
 Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Jul 2023 18:45:20 -0700
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Jul 2023 18:45:25 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10777"; a="724671128"
+X-IronPort-AV: E=McAfee;i="6600,9927,10777"; a="724671167"
 X-IronPort-AV: E=Sophos;i="6.01,220,1684825200"; 
-   d="scan'208";a="724671128"
+   d="scan'208";a="724671167"
 Received: from yanfeng1-mobl.ccr.corp.intel.com (HELO yhuang6-mobl2.ccr.corp.intel.com) ([10.255.29.24])
-  by orsmga002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Jul 2023 18:45:14 -0700
+  by orsmga002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Jul 2023 18:45:20 -0700
 From: Huang Ying <ying.huang@intel.com>
 To: Andrew Morton <akpm@linux-foundation.org>
 Cc: linux-mm@kvack.org,
@@ -46,9 +46,9 @@ Cc: linux-mm@kvack.org,
 	Michal Hocko <mhocko@kernel.org>,
 	Yang Shi <shy828301@gmail.com>,
 	Rafael J Wysocki <rafael.j.wysocki@intel.com>
-Subject: [PATCH RESEND 3/4] acpi, hmat: calculate abstract distance with HMAT
-Date: Fri, 21 Jul 2023 09:29:31 +0800
-Message-Id: <20230721012932.190742-4-ying.huang@intel.com>
+Subject: [PATCH RESEND 4/4] dax, kmem: calculate abstract distance with general interface
+Date: Fri, 21 Jul 2023 09:29:32 +0800
+Message-Id: <20230721012932.190742-5-ying.huang@intel.com>
 X-Mailer: git-send-email 2.39.2
 In-Reply-To: <20230721012932.190742-1-ying.huang@intel.com>
 References: <20230721012932.190742-1-ying.huang@intel.com>
@@ -60,14 +60,19 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-A memory tiering abstract distance calculation algorithm based on ACPI
-HMAT is implemented.  The basic idea is as follows.
+Previously, a fixed abstract distance MEMTIER_DEFAULT_DAX_ADISTANCE is
+used for slow memory type in kmem driver.  This limits the usage of
+kmem driver, for example, it cannot be used for HBM (high bandwidth
+memory).
 
-The performance attributes of system default DRAM nodes are recorded
-as the base line.  Whose abstract distance is MEMTIER_ADISTANCE_DRAM.
-Then, the ratio of the abstract distance of a memory node (target) to
-MEMTIER_ADISTANCE_DRAM is scaled based on the ratio of the performance
-attributes of the node to that of the default DRAM nodes.
+So, we use the general abstract distance calculation mechanism in kmem
+drivers to get more accurate abstract distance on systems with proper
+support.  The original MEMTIER_DEFAULT_DAX_ADISTANCE is used as
+fallback only.
+
+Now, multiple memory types may be managed by kmem.  These memory types
+are put into the "kmem_memory_types" list and protected by
+kmem_memory_type_lock.
 
 Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
@@ -82,215 +87,160 @@ Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Yang Shi <shy828301@gmail.com>
 Cc: Rafael J Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/numa/hmat.c     | 138 ++++++++++++++++++++++++++++++++++-
- include/linux/memory-tiers.h |   2 +
- mm/memory-tiers.c            |   2 +-
- 3 files changed, 140 insertions(+), 2 deletions(-)
+ drivers/dax/kmem.c           | 54 +++++++++++++++++++++++++++---------
+ include/linux/memory-tiers.h |  2 ++
+ mm/memory-tiers.c            |  2 +-
+ 3 files changed, 44 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/acpi/numa/hmat.c b/drivers/acpi/numa/hmat.c
-index 2dee0098f1a9..306a912090f0 100644
---- a/drivers/acpi/numa/hmat.c
-+++ b/drivers/acpi/numa/hmat.c
-@@ -24,6 +24,7 @@
- #include <linux/node.h>
- #include <linux/sysfs.h>
- #include <linux/dax.h>
-+#include <linux/memory-tiers.h>
+diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
+index 898ca9505754..837165037231 100644
+--- a/drivers/dax/kmem.c
++++ b/drivers/dax/kmem.c
+@@ -49,14 +49,40 @@ struct dax_kmem_data {
+ 	struct resource *res[];
+ };
  
- static u8 hmat_revision;
- static int hmat_disable __initdata;
-@@ -759,6 +760,137 @@ static int hmat_callback(struct notifier_block *self,
- 	return NOTIFY_OK;
- }
- 
-+static int hmat_adistance_disabled;
-+static struct node_hmem_attrs default_dram_attrs;
+-static struct memory_dev_type *dax_slowmem_type;
++static DEFINE_MUTEX(kmem_memory_type_lock);
++static LIST_HEAD(kmem_memory_types);
 +
-+static void dump_hmem_attrs(struct node_hmem_attrs *attrs)
++static struct memory_dev_type *kmem_find_alloc_memorty_type(int adist)
 +{
-+	pr_cont("read_latency: %u, write_latency: %u, read_bandwidth: %u, write_bandwidth: %u\n",
-+		attrs->read_latency, attrs->write_latency,
-+		attrs->read_bandwidth, attrs->write_bandwidth);
-+}
++	bool found = false;
++	struct memory_dev_type *mtype;
 +
-+static void disable_hmat_adistance_algorithm(void)
-+{
-+	hmat_adistance_disabled = true;
-+}
-+
-+static int hmat_init_default_dram_attrs(void)
-+{
-+	struct memory_target *target;
-+	struct node_hmem_attrs *attrs;
-+	int nid, pxm;
-+	int nid_dram = NUMA_NO_NODE;
-+
-+	if (default_dram_attrs.read_latency +
-+	    default_dram_attrs.write_latency != 0)
-+		return 0;
-+
-+	if (!default_dram_type)
-+		return -EIO;
-+
-+	for_each_node_mask(nid, default_dram_type->nodes) {
-+		pxm = node_to_pxm(nid);
-+		target = find_mem_target(pxm);
-+		if (!target)
-+			continue;
-+		attrs = &target->hmem_attrs[1];
-+		if (nid_dram == NUMA_NO_NODE) {
-+			if (attrs->read_latency + attrs->write_latency == 0 ||
-+			    attrs->read_bandwidth + attrs->write_bandwidth == 0) {
-+				pr_info("hmat: invalid hmem attrs for default DRAM node: %d,\n",
-+					nid);
-+				pr_info("  ");
-+				dump_hmem_attrs(attrs);
-+				pr_info("  disable hmat based abstract distance algorithm.\n");
-+				disable_hmat_adistance_algorithm();
-+				return -EIO;
-+			}
-+			nid_dram = nid;
-+			default_dram_attrs = *attrs;
-+			continue;
-+		}
-+
-+		/*
-+		 * The performance of all default DRAM nodes is expected
-+		 * to be same (that is, the variation is less than 10%).
-+		 * And it will be used as base to calculate the abstract
-+		 * distance of other memory nodes.
-+		 */
-+		if (abs(attrs->read_latency - default_dram_attrs.read_latency) * 10 >
-+		    default_dram_attrs.read_latency ||
-+		    abs(attrs->write_latency - default_dram_attrs.write_latency) * 10 >
-+		    default_dram_attrs.write_latency ||
-+		    abs(attrs->read_bandwidth - default_dram_attrs.read_bandwidth) * 10 >
-+		    default_dram_attrs.read_bandwidth) {
-+			pr_info("hmat: hmem attrs for DRAM nodes mismatch.\n");
-+			pr_info("  node %d:", nid_dram);
-+			dump_hmem_attrs(&default_dram_attrs);
-+			pr_info("  node %d:", nid);
-+			dump_hmem_attrs(attrs);
-+			pr_info("  disable hmat based abstract distance algorithm.\n");
-+			disable_hmat_adistance_algorithm();
-+			return -EIO;
++	mutex_lock(&kmem_memory_type_lock);
++	list_for_each_entry(mtype, &kmem_memory_types, list) {
++		if (mtype->adistance == adist) {
++			found = true;
++			break;
 +		}
 +	}
++	if (!found) {
++		mtype = alloc_memory_type(adist);
++		if (!IS_ERR(mtype))
++			list_add(&mtype->list, &kmem_memory_types);
++	}
++	mutex_unlock(&kmem_memory_type_lock);
 +
-+	return 0;
++	return mtype;
 +}
 +
-+static int hmat_calculate_adistance(struct notifier_block *self,
-+				    unsigned long nid, void *data)
-+{
-+	static DECLARE_BITMAP(p_nodes, MAX_NUMNODES);
-+	struct memory_target *target;
-+	struct node_hmem_attrs *attrs;
-+	int *adist = data;
-+	int pxm;
-+
-+	if (hmat_adistance_disabled)
-+		return NOTIFY_OK;
-+
-+	pxm = node_to_pxm(nid);
-+	target = find_mem_target(pxm);
-+	if (!target)
-+		return NOTIFY_OK;
-+
-+	if (hmat_init_default_dram_attrs())
-+		return NOTIFY_OK;
-+
-+	mutex_lock(&target_lock);
-+	hmat_update_target_attrs(target, p_nodes, 1);
-+	mutex_unlock(&target_lock);
-+
-+	attrs = &target->hmem_attrs[1];
-+
-+	if (attrs->read_latency + attrs->write_latency == 0 ||
-+	    attrs->read_bandwidth + attrs->write_bandwidth == 0)
-+		return NOTIFY_OK;
-+
-+	/*
-+	 * The abstract distance of a memory node is in direct
-+	 * proportion to its memory latency (read + write) and
-+	 * inversely proportional to its memory bandwidth (read +
-+	 * write).  The abstract distance, memory latency, and memory
-+	 * bandwidth of the default DRAM nodes are used as the base.
-+	 */
-+	*adist = MEMTIER_ADISTANCE_DRAM *
-+		(attrs->read_latency + attrs->write_latency) /
-+		(default_dram_attrs.read_latency +
-+		 default_dram_attrs.write_latency) *
-+		(default_dram_attrs.read_bandwidth +
-+		 default_dram_attrs.write_bandwidth) /
-+		(attrs->read_bandwidth + attrs->write_bandwidth);
-+
-+	return NOTIFY_STOP;
-+}
-+
-+static __meminitdata struct notifier_block hmat_adist_nb =
-+{
-+	.notifier_call = hmat_calculate_adistance,
-+	.priority = 100,
-+};
-+
- static __init void hmat_free_structures(void)
+ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
  {
- 	struct memory_target *target, *tnext;
-@@ -801,6 +933,7 @@ static __init int hmat_init(void)
- 	struct acpi_table_header *tbl;
- 	enum acpi_hmat_type i;
- 	acpi_status status;
-+	int usage;
+ 	struct device *dev = &dev_dax->dev;
+ 	unsigned long total_len = 0;
+ 	struct dax_kmem_data *data;
++	struct memory_dev_type *mtype;
+ 	int i, rc, mapped = 0;
+ 	int numa_node;
++	int adist = MEMTIER_DEFAULT_DAX_ADISTANCE;
  
- 	if (srat_disabled() || hmat_disable)
- 		return 0;
-@@ -841,8 +974,11 @@ static __init int hmat_init(void)
- 	hmat_register_targets();
+ 	/*
+ 	 * Ensure good NUMA information for the persistent memory.
+@@ -71,6 +97,11 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
+ 		return -EINVAL;
+ 	}
  
- 	/* Keep the table and structures if the notifier may use them */
--	if (!hotplug_memory_notifier(hmat_callback, HMAT_CALLBACK_PRI))
-+	usage = !hotplug_memory_notifier(hmat_callback, HMAT_CALLBACK_PRI);
-+	usage += !register_mt_adistance_algorithm(&hmat_adist_nb);
-+	if (usage)
- 		return 0;
++	mt_calc_adistance(numa_node, &adist);
++	mtype = kmem_find_alloc_memorty_type(adist);
++	if (IS_ERR(mtype))
++		return PTR_ERR(mtype);
 +
- out_put:
- 	hmat_free_structures();
- 	acpi_put_table(tbl);
+ 	for (i = 0; i < dev_dax->nr_range; i++) {
+ 		struct range range;
+ 
+@@ -88,7 +119,7 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
+ 		return -EINVAL;
+ 	}
+ 
+-	init_node_memory_type(numa_node, dax_slowmem_type);
++	init_node_memory_type(numa_node, mtype);
+ 
+ 	rc = -ENOMEM;
+ 	data = kzalloc(struct_size(data, res, dev_dax->nr_range), GFP_KERNEL);
+@@ -167,7 +198,7 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
+ err_res_name:
+ 	kfree(data);
+ err_dax_kmem_data:
+-	clear_node_memory_type(numa_node, dax_slowmem_type);
++	clear_node_memory_type(numa_node, mtype);
+ 	return rc;
+ }
+ 
+@@ -219,7 +250,7 @@ static void dev_dax_kmem_remove(struct dev_dax *dev_dax)
+ 		 * for that. This implies this reference will be around
+ 		 * till next reboot.
+ 		 */
+-		clear_node_memory_type(node, dax_slowmem_type);
++		clear_node_memory_type(node, NULL);
+ 	}
+ }
+ #else
+@@ -251,12 +282,6 @@ static int __init dax_kmem_init(void)
+ 	if (!kmem_name)
+ 		return -ENOMEM;
+ 
+-	dax_slowmem_type = alloc_memory_type(MEMTIER_DEFAULT_DAX_ADISTANCE);
+-	if (IS_ERR(dax_slowmem_type)) {
+-		rc = PTR_ERR(dax_slowmem_type);
+-		goto err_dax_slowmem_type;
+-	}
+-
+ 	rc = dax_driver_register(&device_dax_kmem_driver);
+ 	if (rc)
+ 		goto error_dax_driver;
+@@ -264,18 +289,21 @@ static int __init dax_kmem_init(void)
+ 	return rc;
+ 
+ error_dax_driver:
+-	destroy_memory_type(dax_slowmem_type);
+-err_dax_slowmem_type:
+ 	kfree_const(kmem_name);
+ 	return rc;
+ }
+ 
+ static void __exit dax_kmem_exit(void)
+ {
++	struct memory_dev_type *mtype, *mtn;
++
+ 	dax_driver_unregister(&device_dax_kmem_driver);
+ 	if (!any_hotremove_failed)
+ 		kfree_const(kmem_name);
+-	destroy_memory_type(dax_slowmem_type);
++	list_for_each_entry_safe(mtype, mtn, &kmem_memory_types, list) {
++		list_del(&mtype->list);
++		destroy_memory_type(mtype);
++	}
+ }
+ 
+ MODULE_AUTHOR("Intel Corporation");
 diff --git a/include/linux/memory-tiers.h b/include/linux/memory-tiers.h
-index c6429e624244..9377239c8d34 100644
+index 9377239c8d34..aca22220cb5c 100644
 --- a/include/linux/memory-tiers.h
 +++ b/include/linux/memory-tiers.h
-@@ -33,6 +33,7 @@ struct memory_dev_type {
- 
- #ifdef CONFIG_NUMA
- extern bool numa_demotion_enabled;
-+extern struct memory_dev_type *default_dram_type;
- struct memory_dev_type *alloc_memory_type(int adistance);
- void destroy_memory_type(struct memory_dev_type *memtype);
- void init_node_memory_type(int node, struct memory_dev_type *default_type);
-@@ -64,6 +65,7 @@ static inline bool node_is_toptier(int node)
- #else
- 
- #define numa_demotion_enabled	false
-+#define default_dram_type	NULL
- /*
-  * CONFIG_NUMA implementation returns non NULL error.
-  */
+@@ -24,6 +24,8 @@ struct memory_tier;
+ struct memory_dev_type {
+ 	/* list of memory types that are part of same tier as this type */
+ 	struct list_head tier_sibiling;
++	/* list of memory types that are managed by one driver */
++	struct list_head list;
+ 	/* abstract distance for this specific memory type */
+ 	int adistance;
+ 	/* Nodes of same abstract distance */
 diff --git a/mm/memory-tiers.c b/mm/memory-tiers.c
-index 1e55fbe2ad51..9a734ef2edfb 100644
+index 9a734ef2edfb..38005c60fa2d 100644
 --- a/mm/memory-tiers.c
 +++ b/mm/memory-tiers.c
-@@ -37,7 +37,7 @@ struct node_memory_type_map {
- static DEFINE_MUTEX(memory_tier_lock);
- static LIST_HEAD(memory_tiers);
- static struct node_memory_type_map node_memory_types[MAX_NUMNODES];
--static struct memory_dev_type *default_dram_type;
-+struct memory_dev_type *default_dram_type;
- 
- static struct bus_type memory_tier_subsys = {
- 	.name = "memory_tiering",
+@@ -581,7 +581,7 @@ EXPORT_SYMBOL_GPL(init_node_memory_type);
+ void clear_node_memory_type(int node, struct memory_dev_type *memtype)
+ {
+ 	mutex_lock(&memory_tier_lock);
+-	if (node_memory_types[node].memtype == memtype)
++	if (node_memory_types[node].memtype == memtype || !memtype)
+ 		node_memory_types[node].map_count--;
+ 	/*
+ 	 * If we umapped all the attached devices to this node,
 -- 
 2.39.2
 
