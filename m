@@ -1,50 +1,50 @@
 Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A89711E513
-	for <nvdimm@lists.linux.dev>; Fri, 21 Jul 2023 12:21:14 +0000 (UTC)
-Received: from pps.filterd (m0356517.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 36LCFEqI014189;
-	Fri, 21 Jul 2023 12:20:53 GMT
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8100B10F4
+	for <nvdimm@lists.linux.dev>; Sun, 23 Jul 2023 14:53:52 +0000 (UTC)
+Received: from pps.filterd (m0353728.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 36NE7aiD003504;
+	Sun, 23 Jul 2023 14:53:31 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
- : in-reply-to : references : date : message-id : content-type :
- mime-version; s=pp1; bh=bzxwg2k7BPkZXd8HHFLnqIzU24q3iPDU7xep8XanVbc=;
- b=o6B8cX3lQOhDD9HklRZA5KSVtMkfkC5my/lxi0fLcQqOY0+nBI/O3+Sg5VLw62LbRtYB
- G298EovwslScJDGYSdNZwU/cb+zhOWlYyeRYrZbKTlK7//3cjsbeA3OhQQguYbhVSJ3c
- 2jGpPpnO14t5LnMYhRofaObY2cy2tLJgttC6cP/VFQmtusrhXUJhlC8DIK5XBv1WZMNw
- BTXN8pAGHcfABZCqmdWzKdFeZTmVeY/bPmIdYG1VUMVML8g0a0F51BWvfYwiVAT7c/9V
- yYxOfNOiALS17rPQ6JMGQ31j1u3Q9KipqzW6KApW3QPtMlE/jytTcsmtW21+QQxZGxnc gA== 
+ : in-reply-to : references : date : message-id : mime-version :
+ content-type; s=pp1; bh=UOUQ0aIG3tMZ1kPV0iy5M7XtmGItPeZ5AGFodoLAnZI=;
+ b=hVavILof0mNPNiAs4RRSPmnEUhHl6vXQWYuqDHG09PHfSE8e1HZVTgo3i3CLhzJJL0mG
+ q5G4N+htgl41fu2gJET8Qdpod+QGJGuncjcbUEiQ4fgdRVR7O3hQK6J4xh1CWYVR0pFB
+ P6ojYQLpRzNN0OC3KErc0dO2iWAC7Voozq8cNUsO1LMXtQq4YzM25d5viJCfW1BYTUI/
+ lph3UwkGswwR11jhGhyoNbS0lpccYWGbpKE5WiNomqb5huAsehsFU/sod/oqtmWMvITx
+ OgVMzllIw6SO1ahU5xUNVlDA81iWnIOF0ly/yfCycAkOYmBQSIZfV5DZSsphXtlhAThy 4w== 
 Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3ryc7gadne-1
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3s0mw8wqee-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 21 Jul 2023 12:20:53 +0000
-Received: from m0356517.ppops.net (m0356517.ppops.net [127.0.0.1])
-	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 36LC7N08019305;
-	Fri, 21 Jul 2023 12:20:52 GMT
+	Sun, 23 Jul 2023 14:53:30 +0000
+Received: from m0353728.ppops.net (m0353728.ppops.net [127.0.0.1])
+	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 36NEkFf3024226;
+	Sun, 23 Jul 2023 14:53:30 GMT
 Received: from ppma22.wdc07v.mail.ibm.com (5c.69.3da9.ip4.static.sl-reverse.com [169.61.105.92])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3ryc7gadn1-1
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3s0mw8wqe8-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 21 Jul 2023 12:20:52 +0000
+	Sun, 23 Jul 2023 14:53:29 +0000
 Received: from pps.filterd (ppma22.wdc07v.mail.ibm.com [127.0.0.1])
-	by ppma22.wdc07v.mail.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 36LB0jS4003394;
-	Fri, 21 Jul 2023 12:20:50 GMT
-Received: from smtprelay06.dal12v.mail.ibm.com ([172.16.1.8])
-	by ppma22.wdc07v.mail.ibm.com (PPS) with ESMTPS id 3rv65xxcch-1
+	by ppma22.wdc07v.mail.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 36NC0qYD014384;
+	Sun, 23 Jul 2023 14:53:28 GMT
+Received: from smtprelay03.dal12v.mail.ibm.com ([172.16.1.5])
+	by ppma22.wdc07v.mail.ibm.com (PPS) with ESMTPS id 3s0stxcb0w-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 21 Jul 2023 12:20:50 +0000
-Received: from smtpav02.wdc07v.mail.ibm.com (smtpav02.wdc07v.mail.ibm.com [10.39.53.229])
-	by smtprelay06.dal12v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 36LCKosb2425478
+	Sun, 23 Jul 2023 14:53:28 +0000
+Received: from smtpav01.dal12v.mail.ibm.com (smtpav01.dal12v.mail.ibm.com [10.241.53.100])
+	by smtprelay03.dal12v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 36NErRD05046898
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 21 Jul 2023 12:20:50 GMT
-Received: from smtpav02.wdc07v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id D8A8758059;
-	Fri, 21 Jul 2023 12:20:49 +0000 (GMT)
-Received: from smtpav02.wdc07v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 5FA585805C;
-	Fri, 21 Jul 2023 12:20:44 +0000 (GMT)
-Received: from skywalker.linux.ibm.com (unknown [9.43.117.127])
-	by smtpav02.wdc07v.mail.ibm.com (Postfix) with ESMTP;
-	Fri, 21 Jul 2023 12:20:44 +0000 (GMT)
+	Sun, 23 Jul 2023 14:53:27 GMT
+Received: from smtpav01.dal12v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id ACC1158062;
+	Sun, 23 Jul 2023 14:53:27 +0000 (GMT)
+Received: from smtpav01.dal12v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id ADF9158059;
+	Sun, 23 Jul 2023 14:53:22 +0000 (GMT)
+Received: from skywalker.linux.ibm.com (unknown [9.43.39.113])
+	by smtpav01.dal12v.mail.ibm.com (Postfix) with ESMTP;
+	Sun, 23 Jul 2023 14:53:22 +0000 (GMT)
 X-Mailer: emacs 29.0.91 (via feedmail 11-beta-1 I)
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 To: Vishal Verma <vishal.l.verma@intel.com>,
@@ -64,27 +64,26 @@ Subject: Re: [PATCH v2 2/3] mm/memory_hotplug: split memmap_on_memory
 In-Reply-To: <20230720-vv-kmem_memmap-v2-2-88bdaab34993@intel.com>
 References: <20230720-vv-kmem_memmap-v2-0-88bdaab34993@intel.com>
  <20230720-vv-kmem_memmap-v2-2-88bdaab34993@intel.com>
-Date: Fri, 21 Jul 2023 17:50:41 +0530
-Message-ID: <87edl1a21y.fsf@linux.ibm.com>
-Content-Type: text/plain
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: __nofeciHubpvhFGmR6_V6kErUgitUXn
-X-Proofpoint-ORIG-GUID: bBR0yVoOR_y30Vymj85jF5ojPEKJnZat
-X-Proofpoint-UnRewURL: 0 URL was un-rewritten
+Date: Sun, 23 Jul 2023 20:23:19 +0530
+Message-ID: <87a5vmadcw.fsf@linux.ibm.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
+Content-Type: text/plain
+X-TM-AS-GCONF: 00
+X-Proofpoint-ORIG-GUID: D-UmcYDsQlgdmR3uA39CuKFCIjjXE_7f
+X-Proofpoint-GUID: Mp5Xv6-BD6HwkUxJNdGxki9y-wcKUbtL
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.254,Aquarius:18.0.957,Hydra:6.0.591,FMLib:17.11.176.26
- definitions=2023-07-21_07,2023-07-20_01,2023-05-22_02
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 lowpriorityscore=0
- bulkscore=0 mlxlogscore=999 malwarescore=0 priorityscore=1501
- suspectscore=0 adultscore=0 mlxscore=0 spamscore=0 clxscore=1011
- impostorscore=0 phishscore=0 classifier=spam adjust=0 reason=mlx
- scancount=1 engine=8.12.0-2306200000 definitions=main-2307210108
+ definitions=2023-07-23_04,2023-07-20_01,2023-05-22_02
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 suspectscore=0 phishscore=0
+ spamscore=0 impostorscore=0 priorityscore=1501 mlxlogscore=999
+ clxscore=1015 adultscore=0 malwarescore=0 bulkscore=0 mlxscore=0
+ lowpriorityscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2306200000 definitions=main-2307230135
 
 Vishal Verma <vishal.l.verma@intel.com> writes:
 
@@ -104,14 +103,6 @@ Vishal Verma <vishal.l.verma@intel.com> writes:
 > it are met,. Teach try_remove_memory() to also expect that a memory
 > range being removed might have been split up into memblock sized chunks,
 > and to loop through those as needed.
->
-
-This conflicts with https://lore.kernel.org/linux-mm/20230718024409.95742-1-aneesh.kumar@linux.ibm.com/
-IIUC Andrew was planning add that series to -mm. Also that patchset makes
-some of related changes in this patch not required. Can you rebase this
-series on top of that ? 
-
-
 >
 > Cc: Andrew Morton <akpm@linux-foundation.org>
 > Cc: David Hildenbrand <david@redhat.com>
@@ -197,6 +188,17 @@ series on top of that ?
 > +			if (ret)
 > +				goto error;
 > +		}
+
+We should handle the below error details here. 
+
+1) If we hit an error after some blocks got added, should we iterate over rest of the dev_dax->nr_range.
+2) With some blocks added if we return a failure here, we remove the
+resource in dax_kmem. Is that ok? 
+
+IMHO error handling with partial creation of memory blocks in a resource range should be
+documented with this change.
+
+
 > +	} else {
 > +		ret = add_memory_create_devices(nid, group, start, size, mhp_flags);
 > +		if (ret)
