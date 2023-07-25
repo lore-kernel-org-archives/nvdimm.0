@@ -1,125 +1,113 @@
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from insect.birch.relay.mailchannels.net (insect.birch.relay.mailchannels.net [23.83.209.93])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9645E4C6D
-	for <nvdimm@lists.linux.dev>; Tue, 25 Jul 2023 03:16:24 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1690254984; x=1721790984;
-  h=from:to:cc:subject:references:date:in-reply-to:
-   message-id:mime-version;
-  bh=eXqEf3qlKPxbWMmz2TfO/Y35RDERdVQkGU4AZ8/UTeY=;
-  b=k77MfzbH8Xg133JCoC2ULtHsEdH7oybY3z7HYJHy6KRwJzQY9pTFIXJ+
-   yyppUV7Gojh+ZMI+q6n1kp4voq70MmuGw4cf6wVY0yqtTlDsqaF9IdsdM
-   CcDhRFIcc/uIfSZQiorAU3lMhPCZq3jEORilhhcHGk5gLwRZ/yUbzPzAD
-   lv4BMrP2jBGlrKpHroIFLG3r7y6HlinmG76aNGt46k4EsBp1ncytvfYmA
-   y3a+04vDIbELVev6MKE2nWgMfmowjMtTRSNi9tk2m8PSPG7A2ej1tCLFE
-   2Eb11FUY8bpFambxlEANf8zhEFmkZ0p+Q6gaYTRpvN/S7XZHkYE5w4/6N
-   g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10781"; a="347211944"
-X-IronPort-AV: E=Sophos;i="6.01,229,1684825200"; 
-   d="scan'208";a="347211944"
-Received: from fmsmga007.fm.intel.com ([10.253.24.52])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Jul 2023 20:16:23 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10781"; a="729174386"
-X-IronPort-AV: E=Sophos;i="6.01,229,1684825200"; 
-   d="scan'208";a="729174386"
-Received: from yhuang6-desk2.sh.intel.com (HELO yhuang6-desk2.ccr.corp.intel.com) ([10.238.208.55])
-  by fmsmga007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Jul 2023 20:16:19 -0700
-From: "Huang, Ying" <ying.huang@intel.com>
-To: Alistair Popple <apopple@nvidia.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>,  <linux-mm@kvack.org>,
-  <linux-kernel@vger.kernel.org>,  <linux-cxl@vger.kernel.org>,
-  <nvdimm@lists.linux.dev>,  <linux-acpi@vger.kernel.org>,  "Aneesh Kumar K
- . V" <aneesh.kumar@linux.ibm.com>,  Wei Xu <weixugc@google.com>,  Dan
- Williams <dan.j.williams@intel.com>,  Dave Hansen <dave.hansen@intel.com>,
-  "Davidlohr Bueso" <dave@stgolabs.net>,  Johannes Weiner
- <hannes@cmpxchg.org>,  "Jonathan Cameron" <Jonathan.Cameron@huawei.com>,
-  Michal Hocko <mhocko@kernel.org>,  Yang Shi <shy828301@gmail.com>,
-  Rafael J Wysocki <rafael.j.wysocki@intel.com>, Dave Jiang
- <dave.jiang@intel.com>
-Subject: Re: [PATCH RESEND 1/4] memory tiering: add abstract distance
- calculation algorithms management
-References: <20230721012932.190742-1-ying.huang@intel.com>
-	<20230721012932.190742-2-ying.huang@intel.com>
-	<87r0owzqdc.fsf@nvdebian.thelocal>
-Date: Tue, 25 Jul 2023 11:14:38 +0800
-In-Reply-To: <87r0owzqdc.fsf@nvdebian.thelocal> (Alistair Popple's message of
-	"Tue, 25 Jul 2023 12:13:49 +1000")
-Message-ID: <87r0owy95t.fsf@yhuang6-desk2.ccr.corp.intel.com>
-User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/28.2 (gnu/linux)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDE425381
+	for <nvdimm@lists.linux.dev>; Tue, 25 Jul 2023 03:51:32 +0000 (UTC)
+X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
+Received: from relay.mailchannels.net (localhost [127.0.0.1])
+	by relay.mailchannels.net (Postfix) with ESMTP id 303FF7A095A;
+	Tue, 25 Jul 2023 02:32:16 +0000 (UTC)
+Received: from pdx1-sub0-mail-a238.dreamhost.com (unknown [127.0.0.6])
+	(Authenticated sender: dreamhost)
+	by relay.mailchannels.net (Postfix) with ESMTPA id BAFB17A0DA5;
+	Tue, 25 Jul 2023 02:32:15 +0000 (UTC)
+ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1690252335; a=rsa-sha256;
+	cv=none;
+	b=N0B+5rutyBNQs9RL3SCw+giIHYIihXkkuV1Xm/p1sxjvnYZvaVy1E8eGGdyTTRp4UFlgCN
+	CD155UDhD3ViRC6XVYCdkHHJkL8AZ4WOgz4fmTzDxgvIJNrhhySwV1zxtmjoRpxdlpoRyw
+	VHSoMmndxohF0xLU2VskBgwlh+zj+DwL22MsutCBc4AyVudk+pq7JM4n/EPNzpj5PoxvEY
+	rgCDxsGQP78/1xcbPIcIHLADeGYbp1ZZy38de8I1z/88DcwCOZYIWW7uVoBpLUIEALRUNl
+	m+vizFpx4Lai3B8iuDwhT+LLUIVGwFWHTH6XFnAMBy5RWOmI49efeEKg8xqqXw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=mailchannels.net;
+	s=arc-2022; t=1690252335;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding:dkim-signature;
+	bh=vIffOyHWUajXXyDkcdL4xL9IhUhevqQb6E/xmdaqZw4=;
+	b=dW0C9Gc9zjz0N9Ss4yfd/4MQ8BOWtD2U63sByanEBwGc3ekCgeIipgRn/y7BC1muXk3uhZ
+	qeuL+Vh0/vE5ocNuDww+sSetif0bG9Yewar4yEXRR9o1b7JARTRBPGKrbJokw24MfR7WOG
+	ei/uW7bkCgFOPLs1jj4lkv113tBB4pzUXJMLWU4IWTjj57ZtWNCIICWMyi0xW22gikTE5Z
+	dy6RcntoEsEiKdYJEJo+tgMvzJ0Nt6a99rpEXbU+Sq04EojBNw88AAufXj9scJOncUiWhf
+	fC7nCIai2QChLnuxC5OvvgjxWntnV1i8uYBo8ecZazXZQnPp0Hz1LB/xNfElPQ==
+ARC-Authentication-Results: i=1;
+	rspamd-86948d5c96-g5jjg;
+	auth=pass smtp.auth=dreamhost smtp.mailfrom=dave@stgolabs.net
+X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
+X-MC-Relay: Neutral
+X-MailChannels-SenderId: dreamhost|x-authsender|dave@stgolabs.net
+X-MailChannels-Auth-Id: dreamhost
+X-Sponge-Lettuce: 1cc2ec1b2b926199_1690252336021_938143172
+X-MC-Loop-Signature: 1690252336021:3210302020
+X-MC-Ingress-Time: 1690252336021
+Received: from pdx1-sub0-mail-a238.dreamhost.com (pop.dreamhost.com
+ [64.90.62.162])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
+	by 100.107.136.40 (trex/6.9.1);
+	Tue, 25 Jul 2023 02:32:16 +0000
+Received: from localhost.localdomain (ip72-199-50-187.sd.sd.cox.net [72.199.50.187])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	(Authenticated sender: dave@stgolabs.net)
+	by pdx1-sub0-mail-a238.dreamhost.com (Postfix) with ESMTPSA id 4R91JZ40jSz6s;
+	Mon, 24 Jul 2023 19:32:13 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=stgolabs.net;
+	s=dreamhost; t=1690252335;
+	bh=vIffOyHWUajXXyDkcdL4xL9IhUhevqQb6E/xmdaqZw4=;
+	h=From:To:Cc:Subject:Date:Content-Transfer-Encoding;
+	b=Q0Nz/qXUrxrKqbxvACYpUn0M1LCkU8U+NvwiWKHsDIf+baYb7Ba9ZxW8LKRb5y8Va
+	 rn5VeKiZQXJFQmKLgwSVb24vKKnBNxKLtIT+eIguje4ZBbCqH50G24itwE4xzumoCY
+	 iHaDNQvdSKBkTl1TQGBmO984FmFKHHKVJs+DKYAUMq3HFaShf0W8FSJBM8t4RhR4QV
+	 bGo8gkt5FAhxUme0AfPcxDqkmhl9DbzjmOyWba5SmQ85NEw2Uq8ZatzsvwHCSmMxQ1
+	 p5nELNRdf0o5Lv8EPpoQAD80Rk96g6JkZ1X/h/UdL3xxVv4exCU6URIJf876jz/b6S
+	 AQ3BqCqXvSdWA==
+From: Davidlohr Bueso <dave@stgolabs.net>
+To: vishal.l.verma@intel.com
+Cc: dave.jiang@intel.com,
+	nvdimm@lists.linux.dev,
+	dave@stgolabs.net
+Subject: [ndctl PATCH] ndctl/security: fix Theory of Operation typos
+Date: Mon, 24 Jul 2023 18:54:57 -0700
+Message-ID: <20230725015457.31084-1-dave@stgolabs.net>
+X-Mailer: git-send-email 2.41.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ascii
+Content-Transfer-Encoding: 8bit
 
-Hi, Alistair,
+Noticed while reading the file.
 
-Thanks a lot for comments!
+Signed-off-by: Davidlohr Bueso <dave@stgolabs.net>
+---
+ Documentation/ndctl/intel-nvdimm-security.txt | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Alistair Popple <apopple@nvidia.com> writes:
+diff --git a/Documentation/ndctl/intel-nvdimm-security.txt b/Documentation/ndctl/intel-nvdimm-security.txt
+index 88b305b81978..4ae7ed517279 100644
+--- a/Documentation/ndctl/intel-nvdimm-security.txt
++++ b/Documentation/ndctl/intel-nvdimm-security.txt
+@@ -4,7 +4,7 @@ THEORY OF OPERATION
+ -------------------
+ The Intel Device Specific Methods (DSM) specification v1.7 and v1.8 [1]
+ introduced the following security management operations:
+-enable passhprase, update passphrase, unlock DIMM, disable security,
++enable passphrase, update passphrase, unlock DIMM, disable security,
+ freeze security, secure (crypto) erase, overwrite, master passphrase
+ enable, master passphrase update, and master passphrase secure erase.
+ 
+@@ -115,7 +115,7 @@ This is invoked using `--overwrite` option for ndctl 'sanitize-dimm'.
+ The overwrite operation wipes the entire NVDIMM. The operation can take a
+ significant amount of time. NOTE: When the command returns successfully,
+ it just means overwrite has been successfully started, and not that the
+-overwrite is complete. Subsequently, 'ndctl wait-overwrite'can be used
++overwrite is complete. Subsequently, 'ndctl wait-overwrite' can be used
+ to wait for the NVDIMMs that are performing overwrite. Upon successful
+ completion of an overwrite, the WBINVD instruction is issued by the kernel.
+ If both --crypto-erase and --overwrite options are supplied, then
+-- 
+2.41.0
 
-> Huang Ying <ying.huang@intel.com> writes:
->
->> The abstract distance may be calculated by various drivers, such as
->> ACPI HMAT, CXL CDAT, etc.  While it may be used by various code which
->> hot-add memory node, such as dax/kmem etc.  To decouple the algorithm
->> users and the providers, the abstract distance calculation algorithms
->> management mechanism is implemented in this patch.  It provides
->> interface for the providers to register the implementation, and
->> interface for the users.
->
-> I wonder if we need this level of decoupling though? It seems to me like
-> it would be simpler and better for drivers to calculate the abstract
-> distance directly themselves by calling the desired algorithm (eg. ACPI
-> HMAT) and pass this when creating the nodes rather than having a
-> notifier chain.
-
-Per my understanding, ACPI HMAT and memory device drivers (such as
-dax/kmem) may belong to different subsystems (ACPI vs. dax).  It's not
-good to call functions across subsystems directly.  So, I think it's
-better to use a general subsystem: memory-tier.c to decouple them.  If
-it turns out that a notifier chain is unnecessary, we can use some
-function pointers instead.
-
-> At the moment it seems we've only identified two possible algorithms
-> (ACPI HMAT and CXL CDAT) and I don't think it would make sense for one
-> of those to fallback to the other based on priority, so why not just
-> have drivers call the correct algorithm directly?
-
-For example, we have a system with PMEM (persistent memory, Optane
-DCPMM, or AEP, or something else) in DIMM slots and CXL.mem connected
-via CXL link to a remote memory pool.  We will need ACPI HMAT for PMEM
-and CXL CDAT for CXL.mem.  One way is to make dax/kmem identify the
-types of the device and call corresponding algorithms.  The other way
-(suggested by this series) is to make dax/kmem call a notifier chain,
-then CXL CDAT or ACPI HMAT can identify the type of device and calculate
-the distance if the type is correct for them.  I don't think that it's
-good to make dax/kem to know every possible types of memory devices.
-
->> Multiple algorithm implementations can cooperate via calculating
->> abstract distance for different memory nodes.  The preference of
->> algorithm implementations can be specified via
->> priority (notifier_block.priority).
->
-> How/what decides the priority though? That seems like something better
-> decided by a device driver than the algorithm driver IMHO.
-
-Do we need the memory device driver specific priority?  Or we just share
-a common priority?  For example, the priority of CXL CDAT is always
-higher than that of ACPI HMAT?  Or architecture specific?
-
-And, I don't think that we are forced to use the general notifier chain
-interface in all memory device drivers.  If the memory device driver has
-better understanding of the memory device, it can use other way to
-determine abstract distance.  For example, a CXL memory device driver
-can identify abstract distance by itself.  While other memory device drivers
-can use the general notifier chain interface at the same time.
-
---
-Best Regards,
-Huang, Ying
