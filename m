@@ -1,114 +1,107 @@
-Received: from esa10.hc1455-7.c3s2.iphmx.com (esa10.hc1455-7.c3s2.iphmx.com [139.138.36.225])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ABEB1538F
-	for <nvdimm@lists.linux.dev>; Tue, 25 Jul 2023 05:34:33 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6600,9927,10781"; a="113462191"
-X-IronPort-AV: E=Sophos;i="6.01,229,1684767600"; 
-   d="scan'208";a="113462191"
-Received: from unknown (HELO yto-r1.gw.nic.fujitsu.com) ([218.44.52.217])
-  by esa10.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Jul 2023 14:33:22 +0900
-Received: from yto-m2.gw.nic.fujitsu.com (yto-nat-yto-m2.gw.nic.fujitsu.com [192.168.83.65])
-	by yto-r1.gw.nic.fujitsu.com (Postfix) with ESMTP id 708EBDAE10
-	for <nvdimm@lists.linux.dev>; Tue, 25 Jul 2023 14:33:20 +0900 (JST)
-Received: from kws-ab3.gw.nic.fujitsu.com (kws-ab3.gw.nic.fujitsu.com [192.51.206.21])
-	by yto-m2.gw.nic.fujitsu.com (Postfix) with ESMTP id 9EC92D5E93
-	for <nvdimm@lists.linux.dev>; Tue, 25 Jul 2023 14:33:19 +0900 (JST)
-Received: from edo.cn.fujitsu.com (edo.cn.fujitsu.com [10.167.33.5])
-	by kws-ab3.gw.nic.fujitsu.com (Postfix) with ESMTP id 1B0BB200501A4
-	for <nvdimm@lists.linux.dev>; Tue, 25 Jul 2023 14:33:19 +0900 (JST)
-Received: from [192.168.50.5] (unknown [10.167.234.230])
-	by edo.cn.fujitsu.com (Postfix) with ESMTP id 829531A0006;
-	Tue, 25 Jul 2023 13:33:18 +0800 (CST)
-Message-ID: <32cb262a-8ae6-60ba-2032-f02973f44a1e@fujitsu.com>
-Date: Tue, 25 Jul 2023 13:33:18 +0800
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4CAA538F
+	for <nvdimm@lists.linux.dev>; Tue, 25 Jul 2023 06:50:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1690267813; x=1721803813;
+  h=from:to:cc:subject:in-reply-to:references:date:
+   message-id:mime-version;
+  bh=sMXp8XuVx7sja1Zb9TfJOl/mMXazPG34qUPoSd0z870=;
+  b=HFVfU2t4zk9Zw8cgzUHlLkdcAJLqDetJtUJ1J0DzwoMjaz3HvY00J+an
+   zV1g4oFv6d6sjszSbYkCTfxEIPMXAWM/o0ypyDA3lar3E86C/oZiXEDF1
+   QpOUWigIs80AkzlWoeWiItoBxRs/YUYxaWpmZsb7Vvb8id00XKhKJ80a/
+   crpwr8h+NrQQWqqGH4R2kDI90AUfyUcaOxnFWR7Ss36GVByMJuHrl5Olb
+   GgzOwx14M0x6ZQOOcz8d54q8sFwVBqs2xR/ciMi5r7983dU8e4/J+Y11X
+   y8XCuBxpW6TKdQm7g5Wj4DMUZgfBo1iW6GTpWpdjcqwQ+Fc12tKJMA9R2
+   Q==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10781"; a="347242154"
+X-IronPort-AV: E=Sophos;i="6.01,230,1684825200"; 
+   d="scan'208";a="347242154"
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Jul 2023 23:50:02 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10781"; a="1056698073"
+X-IronPort-AV: E=Sophos;i="6.01,230,1684825200"; 
+   d="scan'208";a="1056698073"
+Received: from yhuang6-desk2.sh.intel.com (HELO yhuang6-desk2.ccr.corp.intel.com) ([10.238.208.55])
+  by fmsmga005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Jul 2023 23:49:39 -0700
+From: "Huang, Ying" <ying.huang@intel.com>
+To: Alistair Popple <apopple@nvidia.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>,  <linux-mm@kvack.org>,
+  <linux-kernel@vger.kernel.org>,  <linux-cxl@vger.kernel.org>,
+  <nvdimm@lists.linux.dev>,  <linux-acpi@vger.kernel.org>,  "Aneesh Kumar K
+ . V" <aneesh.kumar@linux.ibm.com>,  Wei Xu <weixugc@google.com>,  Dan
+ Williams <dan.j.williams@intel.com>,  Dave Hansen <dave.hansen@intel.com>,
+  "Davidlohr Bueso" <dave@stgolabs.net>,  Johannes Weiner
+ <hannes@cmpxchg.org>,  "Jonathan Cameron" <Jonathan.Cameron@huawei.com>,
+  Michal Hocko <mhocko@kernel.org>,  Yang Shi <shy828301@gmail.com>,
+  Rafael J Wysocki <rafael.j.wysocki@intel.com>
+Subject: Re: [PATCH RESEND 3/4] acpi, hmat: calculate abstract distance with
+ HMAT
+In-Reply-To: <87ila8zo80.fsf@nvdebian.thelocal> (Alistair Popple's message of
+	"Tue, 25 Jul 2023 12:45:01 +1000")
+References: <20230721012932.190742-1-ying.huang@intel.com>
+	<20230721012932.190742-4-ying.huang@intel.com>
+	<87ila8zo80.fsf@nvdebian.thelocal>
+User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/28.2 (gnu/linux)
+Date: Tue, 25 Jul 2023 14:47:47 +0800
+Message-ID: <87h6psxzak.fsf@yhuang6-desk2.ccr.corp.intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
- Thunderbird/102.12.0
-Subject: Re: [PATCH] nfit: remove redundant list_for_each_entry
-To: Alison Schofield <alison.schofield@intel.com>
-Cc: dan.j.williams@intel.com, vishal.l.verma@intel.com,
- nvdimm@lists.linux.dev, linux-acpi@vger.kernel.org, lenb@kernel.org
-References: <20230719080526.2436951-1-ruansy.fnst@fujitsu.com>
- <ZL7/mctQSQ7rtK3X@aschofie-mobl2>
-From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-In-Reply-To: <ZL7/mctQSQ7rtK3X@aschofie-mobl2>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-TM-AS-Product-Ver: IMSS-9.1.0.1417-9.0.0.1002-27772.005
-X-TM-AS-User-Approved-Sender: Yes
-X-TMASE-Version: IMSS-9.1.0.1417-9.0.1002-27772.005
-X-TMASE-Result: 10--9.638400-10.000000
-X-TMASE-MatchedRID: GnNqJBi8oAePvrMjLFD6eC0UvD/exuSe2q80vLACqaeqvcIF1TcLYLBk
-	jjdoOP1bzIVGiRcEkmlv6X20arg6Ogc/ZGDhY009v0DcGXX8NxV+tO36GYDlsrcIt210bWgIvwU
-	evDt+uW5/XjpbSJS7a1Tdr6jAw79q7EfODkWa3rKeAiCmPx4NwFkMvWAuahr8AsMBg/gBdVHudj
-	nWXAurTyAHAopEd76vSCFvCmrHwbZsH8NdYqTbnwFbVR12U3tBSTxjLVwsneMh5dLKIVvSMQ==
-X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
+Content-Type: text/plain; charset=ascii
 
+Alistair Popple <apopple@nvidia.com> writes:
 
+> Huang Ying <ying.huang@intel.com> writes:
+>
+>> A memory tiering abstract distance calculation algorithm based on ACPI
+>> HMAT is implemented.  The basic idea is as follows.
+>>
+>> The performance attributes of system default DRAM nodes are recorded
+>> as the base line.  Whose abstract distance is MEMTIER_ADISTANCE_DRAM.
+>> Then, the ratio of the abstract distance of a memory node (target) to
+>> MEMTIER_ADISTANCE_DRAM is scaled based on the ratio of the performance
+>> attributes of the node to that of the default DRAM nodes.
+>
+> The problem I encountered here with the calculations is that HBM memory
+> ended up in a lower-tiered node which isn't what I wanted (at least when
+> that HBM is attached to a GPU say).
 
-在 2023/7/25 6:47, Alison Schofield 写道:
-> On Wed, Jul 19, 2023 at 04:05:26PM +0800, Shiyang Ruan wrote:
->> The first for_each only do acpi_nfit_init_ars() for NFIT_SPA_VOLATILE
->> and NFIT_SPA_PM, which can be moved to next one.
-> 
-> Can the result of nfit_spa_type(nfit_spa->spa) change as a result of
-> the first switch statement? That would be a reason why they are separate.
+I have tested the series on a server machine with HBM (pure HBM, not
+attached to a GPU).  Where, HBM is placed in a higher tier than DRAM.
 
-nfit_spa_type() just gets the type of *spa by querying a type-uuid 
-table.  Also, according to the code shown below, we can find that it 
-doesn't change anything.
+> I suspect this is because the calculations are based on the CPU
+> point-of-view (access1) which still sees lower bandwidth to remote HBM
+> than local DRAM, even though the remote GPU has higher bandwidth access
+> to that memory. Perhaps we need to be considering access0 as well?
+> Ie. HBM directly attached to a generic initiator should be in a higher
+> tier regardless of CPU access characteristics?
 
-int nfit_spa_type(struct acpi_nfit_system_address *spa)
-{
-	guid_t guid;
-	int i;
+What's your requirements for memory tiers on the machine?  I guess you
+want to put GPU attache HBM in a higher tier and put DRAM in a lower
+tier.  So, cold HBM pages can be demoted to DRAM when there are memory
+pressure on HBM?  This sounds reasonable from GPU point of view.
 
-	import_guid(&guid, spa->range_guid);
-	for (i = 0; i < NFIT_UUID_MAX; i++)
-		if (guid_equal(to_nfit_uuid(i), &guid))
-			return i;
-	return -1;
-}
+The above requirements may be satisfied via calculating abstract
+distance based on access0 (or combined with access1).  But I suspect
+this will be a general solution.  I guess that any memory devices that
+are used mainly by the memory initiators other than CPUs want to put
+themselves in a higher memory tier than DRAM, regardless of its
+access0.
+
+One solution is to put GPU HBM in the highest memory tier (with smallest
+abstract distance) always in GPU device driver regardless its HMAT
+performance attributes.  Is it possible?
+
+> That said I'm not entirely convinced the HMAT tables I'm testing against
+> are accurate/complete.
 
 --
-Thanks,
-Ruan.
-
-> 
-> Alison
-> 
->>
->> Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
->> ---
->>   drivers/acpi/nfit/core.c | 8 --------
->>   1 file changed, 8 deletions(-)
->>
->> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
->> index 07204d482968..4090a0a0505c 100644
->> --- a/drivers/acpi/nfit/core.c
->> +++ b/drivers/acpi/nfit/core.c
->> @@ -2971,14 +2971,6 @@ static int acpi_nfit_register_regions(struct acpi_nfit_desc *acpi_desc)
->>   		case NFIT_SPA_VOLATILE:
->>   		case NFIT_SPA_PM:
->>   			acpi_nfit_init_ars(acpi_desc, nfit_spa);
->> -			break;
->> -		}
->> -	}
->> -
->> -	list_for_each_entry(nfit_spa, &acpi_desc->spas, list) {
->> -		switch (nfit_spa_type(nfit_spa->spa)) {
->> -		case NFIT_SPA_VOLATILE:
->> -		case NFIT_SPA_PM:
->>   			/* register regions and kick off initial ARS run */
->>   			rc = ars_register(acpi_desc, nfit_spa);
->>   			if (rc)
->> -- 
->> 2.41.0
->>
+Best Regards,
+Huang, Ying
