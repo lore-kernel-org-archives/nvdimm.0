@@ -1,59 +1,85 @@
-Received: from NAM11-CO1-obe.outbound.protection.outlook.com (mail-co1nam11on2065.outbound.protection.outlook.com [40.107.220.65])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 484A214260
-	for <nvdimm@lists.linux.dev>; Tue, 25 Jul 2023 08:26:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C005B1549F
+	for <nvdimm@lists.linux.dev>; Tue, 25 Jul 2023 15:14:51 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1690298091; x=1721834091;
+  h=message-id:date:subject:to:cc:references:from:
+   in-reply-to:content-transfer-encoding:mime-version;
+  bh=eS2rMcZkGGkU+IPQzM0SUHJjeraQKObrrywr6VXKuco=;
+  b=lXMMoWNYX+i609QDjxaa51G8U2YzHBtAWjZM6C3DePB9Do9j5AajLoSx
+   WEBylZd/fPa4Dm9v8rHbOcAhk8Ur0eFxX2j8wT2bLFQt4cd31n5zApyQY
+   qQlfhTefjf7dBF/3QRar52yIwcjK1ue73QFcqQai+rzEBDIwBxWG6e4OA
+   BuUzj4DJoV/b/Tw7w+Iwx45tW6+tgi/BtukJeo0shg81u3G4q1Fa2w4N1
+   m/+Ao2hY3eqWLUo205PT55NkgrzZtMUwDnJ2mJSSbdCq3X3XgLxE3ethg
+   JKhF8U7rJWo193Cm3Mrox254H6VutB1+/6AYHBS8YKmTxJUFD2C7RPeOC
+   w==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10782"; a="357759529"
+X-IronPort-AV: E=Sophos;i="6.01,230,1684825200"; 
+   d="scan'208";a="357759529"
+Received: from orsmga002.jf.intel.com ([10.7.209.21])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Jul 2023 08:14:39 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10782"; a="726149401"
+X-IronPort-AV: E=Sophos;i="6.01,230,1684825200"; 
+   d="scan'208";a="726149401"
+Received: from fmsmsx603.amr.corp.intel.com ([10.18.126.83])
+  by orsmga002.jf.intel.com with ESMTP; 25 Jul 2023 08:14:38 -0700
+Received: from fmsmsx611.amr.corp.intel.com (10.18.126.91) by
+ fmsmsx603.amr.corp.intel.com (10.18.126.83) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.27; Tue, 25 Jul 2023 08:14:38 -0700
+Received: from fmsmsx610.amr.corp.intel.com (10.18.126.90) by
+ fmsmsx611.amr.corp.intel.com (10.18.126.91) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.27; Tue, 25 Jul 2023 08:14:38 -0700
+Received: from fmsedg601.ED.cps.intel.com (10.1.192.135) by
+ fmsmsx610.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.27 via Frontend Transport; Tue, 25 Jul 2023 08:14:38 -0700
+Received: from NAM12-DM6-obe.outbound.protection.outlook.com (104.47.59.172)
+ by edgegateway.intel.com (192.55.55.70) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.27; Tue, 25 Jul 2023 08:14:37 -0700
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=RNFVufOSmLSjzOPw5fzYSHZrHAZmyDz7HyDNQW4Ly1m1SeVPKaZnHBJlfVrW1BQqEKtS98UZNhW6az8gcgyeajj+Cp6OZa3VAOfthidwf0n8IH7McNWA25i1EeyA+4/lCiKsBINwZAOarp1wYPBGEbJhuZUFHhq4hGKktkWY7Ndumlffk3lXV8WySpDzQQwk6FsO+bNEiee39TnMNTvOAD+h2sebDdj/lc3HDZxwGY2o3ikoA2Mi1udxGAAFdnG+QijycMRlY667YLi2Ox9RG21YEqIUt4l+/FfiMm+299z0fhppJ1VQwrROADKDVgb4iU+3pCULxKjJvbHpl3vxdw==
+ b=Pl9AlDc6Z6H+YoDDWOoKd7nUW8pI1uz28vAczy0qbzgTwgWGFdVtMon6U96JJ0q0mRVTxBBha8T/ZZ0iNp3VQD0DnkUmMM2+OHIdBvlBxlkvCxMHuozT8qE5oJ9raXxAVqXwiDS7Kh/Ud68ePmfoR9uoIzJjpsVpNctOfysmE0fWRXgUGNXmHXdSa4D6APWIIYJvYAMYPwGQzJPInh0OdJ1nvOKcGr3wTEZiboNaY0S/yqeR+XnKzJDztxyG0csYmkqalucfGNWZqnaDOXW0GOnW/4WO7kI1BSUyZeutVJSwczl7zL3YGxnOnqIog0HisE3L/wqp1UfMVyV3ZPt+Fw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=mL+wS0JMxmWjb8oDX1q+GUX5YeM5tB+twsw7HeFaRME=;
- b=ejcNKpgcyE6XDy1mpeem0f5UWYfvJGb2MnyJ27OyNaAz0kkGOmeOK4G+td3l3RcZvwKmtBqx0cTlpNiuUw+0jVfXbf+OmRS5pyUAZhwiaVAAaHe9FKNd+veCvUI/9YHVpfjAhInHjgszlJLGYC8kLjZktGlu3k8e5ttkVciacKAEQ4EOURHOc9eDOCZ5+zTdCOCO0tDjDdJpjrVpHjO+bO8BGin9xXvwnVekvSkJOIXB2HbJlSORxyzWghCFAdw5TFI0+6WcSPxSQmPWBAtuuqL4kxlt9hGwgyCsUvm7J426nkYaZmzailDtxMCekT80y5/Via4Io0BLlimRII/VAA==
+ bh=jYgP81yawcK7lvTdan7n+SGQMVbC4lenoEZCi6CPJUk=;
+ b=JtG720plBwkG7CcnI9L058u3AXSbGEla4H2jGJ881sB1JrWrbUL/eDYdNsbSKsvDMY1qm6P1Lxdu8+UpMGREDCVzx2tZpf9agfz9DhSyJ/y++LBaCK++Kf0NOH5wntQnqsSlWq+egXOUm0NCSvLtnzHY6SlJOujfw/IBvXIl5q8sSdlP7qReI+VoaDRxQXUeiLOMq14aoX/uIIX9mS7rfIsd2+LTyWOJB5jM7sdDYw5FHL+ZQCwYoME3/UprU5XBFVSa5WSJhWDwHk21SzHINZVPE/lvLu+GZgX4nXw94Pada8HJD8LN4RGZYuGQDjLyP89TB9C8WooTV9L11XYDrQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=mL+wS0JMxmWjb8oDX1q+GUX5YeM5tB+twsw7HeFaRME=;
- b=dC6lKvxKgZbLaY+WeB4V7zgX8lcb5bbxJftoKWa9/SHLbh4SD5453C++qxtx68GJCXR1hIgIVETFi/Nxrw/2kDATPTDflB3islchUGuaW67+aXnR4yugooHMWsZgE5I6RmmQ1OyllF5SzsKN4C2ulKLJypbD89MZ+yslDvMCI6SjUJ1aNSRLaTCOEOuKgoOBwJszBtRWa8sQEt5v8L+r0QaF9UFQc7gxMDT/qrP2Bu1C6r4anV9lZOj6m7R4MUBTzlZ8ZJNqS/hGmOMIkFOzdjs3gRp7KpENWJgPx8Vxg0phDf+Tsw+KH+8qqloAi4wBZ5XhOy0zJvHDuZcOAuMEMg==
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
 Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from BYAPR12MB3176.namprd12.prod.outlook.com (2603:10b6:a03:134::26)
- by CY8PR12MB7435.namprd12.prod.outlook.com (2603:10b6:930:51::6) with
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from PH7PR11MB5984.namprd11.prod.outlook.com (2603:10b6:510:1e3::15)
+ by LV8PR11MB8461.namprd11.prod.outlook.com (2603:10b6:408:1e6::14) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6609.33; Tue, 25 Jul
- 2023 08:26:38 +0000
-Received: from BYAPR12MB3176.namprd12.prod.outlook.com
- ([fe80::c833:9a5c:258e:3351]) by BYAPR12MB3176.namprd12.prod.outlook.com
- ([fe80::c833:9a5c:258e:3351%4]) with mapi id 15.20.6609.032; Tue, 25 Jul 2023
- 08:26:37 +0000
-References: <20230721012932.190742-1-ying.huang@intel.com>
- <20230721012932.190742-2-ying.huang@intel.com>
- <87r0owzqdc.fsf@nvdebian.thelocal>
- <87r0owy95t.fsf@yhuang6-desk2.ccr.corp.intel.com>
-User-agent: mu4e 1.8.13; emacs 28.2
-From: Alistair Popple <apopple@nvidia.com>
-To: "Huang, Ying" <ying.huang@intel.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org,
- linux-kernel@vger.kernel.org, linux-cxl@vger.kernel.org,
- nvdimm@lists.linux.dev, linux-acpi@vger.kernel.org, "Aneesh Kumar K  . V"
- <aneesh.kumar@linux.ibm.com>, Wei Xu <weixugc@google.com>, Dan  Williams
- <dan.j.williams@intel.com>, Dave Hansen <dave.hansen@intel.com>, Davidlohr
- Bueso <dave@stgolabs.net>, Johannes Weiner <hannes@cmpxchg.org>, Jonathan
- Cameron <Jonathan.Cameron@huawei.com>, Michal Hocko <mhocko@kernel.org>,
- Yang Shi <shy828301@gmail.com>, Rafael J Wysocki
- <rafael.j.wysocki@intel.com>, Dave Jiang <dave.jiang@intel.com>
-Subject: Re: [PATCH RESEND 1/4] memory tiering: add abstract distance
- calculation algorithms management
-Date: Tue, 25 Jul 2023 18:26:15 +1000
-In-reply-to: <87r0owy95t.fsf@yhuang6-desk2.ccr.corp.intel.com>
-Message-ID: <87sf9cxupz.fsf@nvdebian.thelocal>
-Content-Type: text/plain
-X-ClientProxiedBy: SYCP282CA0005.AUSP282.PROD.OUTLOOK.COM
- (2603:10c6:10:80::17) To BYAPR12MB3176.namprd12.prod.outlook.com
- (2603:10b6:a03:134::26)
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6609.32; Tue, 25 Jul
+ 2023 15:14:29 +0000
+Received: from PH7PR11MB5984.namprd11.prod.outlook.com
+ ([fe80::be6a:199e:4fc1:aa80]) by PH7PR11MB5984.namprd11.prod.outlook.com
+ ([fe80::be6a:199e:4fc1:aa80%6]) with mapi id 15.20.6609.031; Tue, 25 Jul 2023
+ 15:14:29 +0000
+Message-ID: <73ac6fc5-50ce-bde8-d77b-c28499b04436@intel.com>
+Date: Tue, 25 Jul 2023 08:14:26 -0700
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Betterbird/102.13.0
+Subject: Re: [ndctl PATCH] ndctl/security: fix Theory of Operation typos
+To: Davidlohr Bueso <dave@stgolabs.net>, <vishal.l.verma@intel.com>
+CC: <nvdimm@lists.linux.dev>
+References: <20230725015457.31084-1-dave@stgolabs.net>
+Content-Language: en-US
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <20230725015457.31084-1-dave@stgolabs.net>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: BYAPR07CA0039.namprd07.prod.outlook.com
+ (2603:10b6:a03:60::16) To PH7PR11MB5984.namprd11.prod.outlook.com
+ (2603:10b6:510:1e3::15)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -61,139 +87,96 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BYAPR12MB3176:EE_|CY8PR12MB7435:EE_
-X-MS-Office365-Filtering-Correlation-Id: 41a31c78-53cd-42c9-59ef-08db8ce8dd2a
+X-MS-TrafficTypeDiagnostic: PH7PR11MB5984:EE_|LV8PR11MB8461:EE_
+X-MS-Office365-Filtering-Correlation-Id: a549dd61-289c-4173-4f6e-08db8d21d749
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info:
-	b5O4+BBDCotbjAkHk44zHmtiCdMEa6sbhuyZVavapNnmgvtyH0gsy1nX/UObk+qcIxKDw5B6mXC5AC750TKUE+gSoP7e0QAWkMS907j8Ebr1yoIEEf9HEqz+8t1HMgWcwVpyZNbXsLrNYbzkPNhWS2W+G8kMaSWTiM2iqsr7CuBrQKkwapQcY54n7qGINMlvSde+DRKezzX6e47YvhBd3MCnUXGwcOwTLnUXRIHTPcM5bBURI1ZXnyCsiNHTvAdsh4zxSQT6lpylPHH7whjn9eeUlKyw+Hq9UUgpXZffztCN0dcNrmMQmQeCCmXvzzIRJQtKyNjls9uEyMnRKVCKZ21RDA7OHUq3QpGaH71QubIWoECZNZGX7GuUHlKKzlJyz3ZuYngtHS2C13L7xzMGImTtweD1OYNyRZ0kqC07ghMRaS4g6wOclGOx2KXPjoQ/m9uPndTY6sw7oq6xyoDkoYlzZgTIjfrtr0zGN9QFFL7GOgtVdaCpPU0geU1LIJJcOa4So60JKJRpgUFiB56QTWKQv3sYq3Y6G/PLo7a2m+WTg2Bo+FmOjJ5YXc28C0qm
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BYAPR12MB3176.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230028)(4636009)(366004)(396003)(346002)(39860400002)(136003)(376002)(451199021)(186003)(6506007)(26005)(83380400001)(6666004)(86362001)(54906003)(478600001)(6486002)(316002)(41300700001)(4326008)(66946007)(66556008)(66476007)(6916009)(38100700002)(2906002)(8936002)(8676002)(5660300002)(7416002)(9686003)(6512007);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam-Message-Info: C3xZWsLrz4mPihWT6ktDMe52+ifYN3wNHbl0eWuP0nUHFN2xWb9BWN6VRN+m0Sl4pwkvOoyoG7JhD2gdjdVhKDIjdGtDacstjQr3gz6phCB/XrIQS4hUPf+5H0sXKzQUpsv/b17UzjlaVJWMYSmx87xia5/LaU+S9DQ2ufcZ2hKztuButXbgRx1LS6peUwxUCvmQvbNobS8n08eCuIdbKbCyNYvJjONLdrTKbzO7at9ycbK5WOF3jbSFcpJPxr6xLSnsMcrUmWqGQFOBslXfArszrzjtd/TCV91sydI+sV0OD/QYaa9QUeHuvSsM9DNcfMgDjkP15n3Q/rpPhR6TiMaUcLvXkxA9L4OrNH0zYjWVUAB63OMaNZCMkJLIPOEWSQbruTLQaUF3gPlHUEgVvwLgssD4Maj0OwcywwEsaDeulFRAKdX45o4gmkZi021kX6zmy8J3UHQgs8Rs/Up+xcvdkl07J15XQiQhPMOvKedGqWUM8LFG8Nu5K6GUKemQ/dMmHq5ijnA4+2g1nXPneQBAuGekI+FFF6MMC9lg+2ixDlf6lY37r90Rnxhd0nVaBXhkEeUUy9X5Yal7pVcou50DVMhnmAMrvu3xbUd9kPOPDsWAFGPLC7PsqKg891jYUCBBmYoWjJv0BW4/bJPZ4w==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH7PR11MB5984.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230028)(39860400002)(396003)(366004)(346002)(136003)(376002)(451199021)(6666004)(4326008)(2906002)(66946007)(66476007)(66556008)(478600001)(6512007)(83380400001)(86362001)(6486002)(31696002)(36756003)(186003)(82960400001)(2616005)(26005)(6506007)(53546011)(38100700002)(6636002)(41300700001)(8676002)(8936002)(31686004)(5660300002)(15650500001)(44832011)(316002)(45980500001)(43740500002);DIR:OUT;SFP:1102;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?kPJ2hOsOyPe+uZJceUn+YTwOI0Y2w6JcHachYeYOmYNTZfWMfzvSdDXAv6DH?=
- =?us-ascii?Q?MmovqCenjFzZ3WVdGTDZ0skauZ+5WaIWfX0J3/cpfWTqPHPXBbQ4l+FxGE2K?=
- =?us-ascii?Q?aGfurb5LM5GVDvWsOlXBG1SyC5L8NJr3SOpL1K+7Ph9uMHZK7Fqum/X96u/7?=
- =?us-ascii?Q?j/A7jXnj96LhdjbHSjm9CSzDeAEBk0ibmKgFvsHZvsSHs5Oo9khzuMKfN212?=
- =?us-ascii?Q?GzNNOITsipfHTRqMSfYn04nvClCYD9Nm9jb4NgISx2NpLZmaKrzzZgQH5yWY?=
- =?us-ascii?Q?B2oBNv7l+RCbYhvwEf7L/r3t68zbWL223PXpB3pA0uABm4lf5xYgpsyeDyIf?=
- =?us-ascii?Q?BKfglCpCCccPclzsKCqUF2KcyczxnuizPEPyVmMH8vnn6VZMu5edG/7Ftg8D?=
- =?us-ascii?Q?joN6bUaE0nWjCmbwh2AKLpkGVSrmyb3Yb7B2l8paMH4AXHit+my5WHOHm/J6?=
- =?us-ascii?Q?KJch1w95hJKKpJlJc+GEb6D5o1M/Az7QzmX5MrHBP4obohEw7V2Fckm2UapJ?=
- =?us-ascii?Q?W6/+/Tak4KMC6u0zR1PLDDOP95Klv8cfMyJDA2lbSGyjFWLna64qAzW1xe6J?=
- =?us-ascii?Q?l610NpJd21E6sLKGBIZYRBM7Cxa0+pgs1VbWE478WXb4neWh8teXdTvF2Q7J?=
- =?us-ascii?Q?5pVEk13tMBL0SfbfQb5bZa7CAdSW1LX6AQ05JPlyLVxczVmMb4Bpo9ehaYB1?=
- =?us-ascii?Q?rNQyr8/EHJ2O2gTo8p0GB0ae6TaH0PRs9uAV+RI/B+uCDYXeggYuWHRjjU0b?=
- =?us-ascii?Q?MGkkNPELTbEDq9EKEY5FhBrV/HfJPN4K4fFYkhDDFf8i1gsXOInxiT65hFsR?=
- =?us-ascii?Q?yBumKY3fHGtWQ61j+p8CPWvL2L/BsqGAzZi5AApTgEupvuveANOtaUBYyIM8?=
- =?us-ascii?Q?b9Y2ri6ZQXW9GR7v5ccfVp4gldEXrIaVLAaDJnVU0QamUd7Dm6/eFZpsjRkj?=
- =?us-ascii?Q?tSG1KIzE5vwDIy5/NXucciKToNE1b8Kvlz9ulvEdYjiWx6Ef46vYI0CmKY38?=
- =?us-ascii?Q?pSTWuqkbfIycgNL/MVp7DZUYDPIZjGlH3lLPxmIevk8N+zMS/VQidmOadpBH?=
- =?us-ascii?Q?b5hIHeHXkKRLCABIxXEO3WRdGl6WsCuuZofFcLvsCShr+QowNkkdYrbJ5aoU?=
- =?us-ascii?Q?rb8dqAWn4V5E7OT0jpE5SW2D/Mn9AkFPMjJyjApEOSlhx0TPjdnwnSeXHaKL?=
- =?us-ascii?Q?imBW+VkgyZQB+rhi40OxgDP9ch1RFb4FPIUEZSNmx2KWGf5D5Bxap9Gn92qg?=
- =?us-ascii?Q?xV+vPN22ME1wyHH0qTGd8bXIKxyjthSYYa13iEkRHtoU7FlwgOmB4kzaV+uR?=
- =?us-ascii?Q?gc/OXMp04kbrS6PdkPdv23gapQeHVAxAetArQC3/HNGH4wSsUAlN2jjIOK6t?=
- =?us-ascii?Q?FqSwJE2i5hAIBYw4jsNdCNmU1xBdYHugjdhyN+RqyoJbxE3za3jgdfvbmfHa?=
- =?us-ascii?Q?i0vVjxI9r9S3gVqFdXTSB9L/yKop10ebp5esLHkv2PmqVL/c00h59otKx0B/?=
- =?us-ascii?Q?IncqfUtTzFWr1cazMFoawSLHSnpxqYIm6zH8K13sMK9OEFgvkVrSrI7zfAFL?=
- =?us-ascii?Q?Xh/aGwfSCb+FtPCzbrDdyyEWkWW3T+KD4mBmcY3Q?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 41a31c78-53cd-42c9-59ef-08db8ce8dd2a
-X-MS-Exchange-CrossTenant-AuthSource: BYAPR12MB3176.namprd12.prod.outlook.com
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?eCtYYTNiY1dvMWlVT1VEWEpXZGdKbHlFM3FFcXZpcEJzRC9mUGRXS3M2Q2lC?=
+ =?utf-8?B?SDFyUzI2QmtJL0kwL0t5aS9xYTVsVGxxZTNncmdUUm5DQTFTTlR1TkRmYkFn?=
+ =?utf-8?B?NzBkcFVSWUQ2SXgxY3NRNG5ZeUZ4eW80WkM1ZThKS3VOaEgzQzl4YkkrWmpo?=
+ =?utf-8?B?VzZEalIyeWpTeEx4aFp4cHBQdGtMTVcyUGVuM2hjY1NUUVIxTjFxYitlV3Ra?=
+ =?utf-8?B?Z0xqOVBzYU9TYnZIQmwwbGVra3pqTWFEeTFLbUx6NEhuOFFRSEF0V3pTRThw?=
+ =?utf-8?B?Ukw5VXEvajVzNDZRcmZnQ2tHSk9WZGRkZWRrZGFDTVhOMldORzlrQ2U3VkJB?=
+ =?utf-8?B?bGt5THROTGR5SjlhNEtDZHRzOTF6MHUxU2RlTENETFdKZmZVTU9FUXRyclNt?=
+ =?utf-8?B?MFhmVGxJdnRpb1dPbFhBbkZtTDVmQnB5bHlRUkRNYkdjcTIyL2wrZ09ML3pm?=
+ =?utf-8?B?aWd4WFM3T1JDWnhTMFJ5SlVkejJ6Zno1S1N3UStrQmVqdi82OVFUK3dwWnlE?=
+ =?utf-8?B?V1E4TUh0bUNxRnAxSzQreCthWkhLYU5YZDl2SEJ4WklSaHlEZ1B3ZVVPNzZH?=
+ =?utf-8?B?R2w5cHdvcHY5UE5xZXplMno3clNtVWdGT21sN3F6RFkwRStRM3RhOXhCa01q?=
+ =?utf-8?B?aHp1ckczUUtFV1Qxc0QvY2p6alN2bmtSVHJBb3dSVFIzb3o4ZWVVbmZMdzIw?=
+ =?utf-8?B?dEx6MnQ1SjJtK0hsWGx4d2xTd3dkNERSYzVGUE9NcTdhL0lVamJaRElUVTV3?=
+ =?utf-8?B?dmZNU3VyRkdJZEdUZ0tiWWZEaUVES3JvbXJwaHlCQjFaeWhBNDU3cXMrdmtl?=
+ =?utf-8?B?WmppdnhyT0cxaU04RGJLMGFXQk02bTNxVi96azFrVmplRGk4aklNbGFJMHJs?=
+ =?utf-8?B?SUZuUlprNkx6MFpiTnVOVnVML3dWQzJ2OWNvbjVFZkExcTQvTExKa0RrL3lm?=
+ =?utf-8?B?alB6allsS3ZjTXZ5V1Z0TkRTeGNOTzZUdnc0UUFRY3RCWE5YQTJJRGVhSExJ?=
+ =?utf-8?B?SFNTQXc3eFY5eldtYitxQ20xMWRETHUvTStSQTkxQW5aVWErQnd2NVJQWDRs?=
+ =?utf-8?B?UEhpTmg1RVR0bVhDZ3Z6OGFLV2NoR3JnaGFnVU16ZkxiYUkzdVpWQS9XWVp2?=
+ =?utf-8?B?VDFGZVF1SVFtTEtCUGU0WGtJdVNhc0VIa3kxQ2hCekxYeVBZbFkxVmFQT3k1?=
+ =?utf-8?B?dUttTkxrK05XaHZHOTNYNXk0OW5IRjVpc3hoaldlam9lYXdPeWtlOFRzdllv?=
+ =?utf-8?B?eVlBSTdOYTZsUWlPSVhIS2owTlpGUXVkSzRZbnhJNTJPWkhpRlA5S1BMaU1x?=
+ =?utf-8?B?SEpVSUFaeWZXUC8zTDZMOWtsb1pVbXNOaWVBRHVJRCtyTzY2SGhud2hTSWFV?=
+ =?utf-8?B?N0RaNys3RStMb2g5Qmt2M1NxNlgzQTUvckQ5STRHM2wvbkd6SzlsUlZzTWl6?=
+ =?utf-8?B?TnVjRnpuZHRNNU1NMWVXS2ZxWmlBRWdkYmRFVHgyOXN3b0hGN2x3NnFjMWRq?=
+ =?utf-8?B?ZWtLcWV4c2lzSmZ3OHlKejhNL1ZUSnFRZE9YcHRwY2xubk81YmhFQm00aTNI?=
+ =?utf-8?B?T1BOMEFWN0M4bjRLck9JcTBkZW9sZk1JU1BUbmRMQmR0ZHVxN3hHcVBlYUJy?=
+ =?utf-8?B?MnIybWtJNFhmRld2Yjl0UFVXdFczamJIemc1OUZ5azdkSzc5d3BiRytQL1g4?=
+ =?utf-8?B?aDVaZGswQVZDNDE4UkZiRVoxaGMvanBhbndwQ3JsK3Z3S243U202WG8zYXR0?=
+ =?utf-8?B?MVVheFppalAyZ0VIRDgra3VWTldmOE1jOVVVcnF1eGZkblZSa04vSENIOVM5?=
+ =?utf-8?B?S01XTTRLbmhjK051dHRia2tDenZGak9TTklxT1JEMStCTVFBQXRIdjNkV0dm?=
+ =?utf-8?B?N3cwWVR4b2J6T1lqVVVTVThQTm1iUUltcHIxVUw5V1VsZjF5WTcvc0h1KzJ1?=
+ =?utf-8?B?c2NwV2RSbzZKN0U4UGRSbi9mR2R0YnVNbkh1dDQxaktWQ1pVNG5wcWVGa0hx?=
+ =?utf-8?B?T1dxLzk1VXBFbGswa1ZzVlRGdjFERjNtT09yVHA4WkRXTUpaZXFxUXRYL2xZ?=
+ =?utf-8?B?TGJJY1FmK2hBaVRQR1krZmxCajRidDhwR016VW5kWW5FTHNoS0g2U3NQa0tO?=
+ =?utf-8?Q?s5sVe3VcnItxA6nS7yngXb+7b?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: a549dd61-289c-4173-4f6e-08db8d21d749
+X-MS-Exchange-CrossTenant-AuthSource: PH7PR11MB5984.namprd11.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 Jul 2023 08:26:37.5777
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 Jul 2023 15:14:29.1356
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 4sxLAUGaLq1H/tsTefkrc0dbR9O5xm0rT8tQjUDpWkky6A8+bSlm9lmsK8VHRpp/qrMfCRRjML9G98+jm2aZBg==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY8PR12MB7435
+X-MS-Exchange-CrossTenant-UserPrincipalName: lLGHRjKgDtMiFv3VoX5BeGe3rV+fFm4jvVPJJXP4TCquiVSwwNIToSULw8Rg92FMiiEf/NFpWa+rzGqjoje5iA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: LV8PR11MB8461
+X-OriginatorOrg: intel.com
 
 
-"Huang, Ying" <ying.huang@intel.com> writes:
 
-> Hi, Alistair,
->
-> Thanks a lot for comments!
->
-> Alistair Popple <apopple@nvidia.com> writes:
->
->> Huang Ying <ying.huang@intel.com> writes:
->>
->>> The abstract distance may be calculated by various drivers, such as
->>> ACPI HMAT, CXL CDAT, etc.  While it may be used by various code which
->>> hot-add memory node, such as dax/kmem etc.  To decouple the algorithm
->>> users and the providers, the abstract distance calculation algorithms
->>> management mechanism is implemented in this patch.  It provides
->>> interface for the providers to register the implementation, and
->>> interface for the users.
->>
->> I wonder if we need this level of decoupling though? It seems to me like
->> it would be simpler and better for drivers to calculate the abstract
->> distance directly themselves by calling the desired algorithm (eg. ACPI
->> HMAT) and pass this when creating the nodes rather than having a
->> notifier chain.
->
-> Per my understanding, ACPI HMAT and memory device drivers (such as
-> dax/kmem) may belong to different subsystems (ACPI vs. dax).  It's not
-> good to call functions across subsystems directly.  So, I think it's
-> better to use a general subsystem: memory-tier.c to decouple them.  If
-> it turns out that a notifier chain is unnecessary, we can use some
-> function pointers instead.
->
->> At the moment it seems we've only identified two possible algorithms
->> (ACPI HMAT and CXL CDAT) and I don't think it would make sense for one
->> of those to fallback to the other based on priority, so why not just
->> have drivers call the correct algorithm directly?
->
-> For example, we have a system with PMEM (persistent memory, Optane
-> DCPMM, or AEP, or something else) in DIMM slots and CXL.mem connected
-> via CXL link to a remote memory pool.  We will need ACPI HMAT for PMEM
-> and CXL CDAT for CXL.mem.  One way is to make dax/kmem identify the
-> types of the device and call corresponding algorithms.
+On 7/24/23 18:54, Davidlohr Bueso wrote:
+> Noticed while reading the file.
+> 
+> Signed-off-by: Davidlohr Bueso <dave@stgolabs.net>
 
-Yes, that is what I was thinking.
+Thanks! Great catches.
 
-> The other way (suggested by this series) is to make dax/kmem call a
-> notifier chain, then CXL CDAT or ACPI HMAT can identify the type of
-> device and calculate the distance if the type is correct for them.  I
-> don't think that it's good to make dax/kem to know every possible
-> types of memory devices.
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
 
-Do we expect there to be lots of different types of memory devices
-sharing a common dax/kmem driver though? Must admit I'm coming from a
-GPU background where we'd expect each type of device to have it's own
-driver anyway so wasn't expecting different types of memory devices to
-be handled by the same driver.
-
->>> Multiple algorithm implementations can cooperate via calculating
->>> abstract distance for different memory nodes.  The preference of
->>> algorithm implementations can be specified via
->>> priority (notifier_block.priority).
->>
->> How/what decides the priority though? That seems like something better
->> decided by a device driver than the algorithm driver IMHO.
->
-> Do we need the memory device driver specific priority?  Or we just share
-> a common priority?  For example, the priority of CXL CDAT is always
-> higher than that of ACPI HMAT?  Or architecture specific?
-
-Ok, thanks. Having read the above I think the priority is
-unimportant. Algorithms can either decide to return a distance and
-NOTIFY_STOP_MASK if they can calculate a distance or NOTIFY_DONE if they
-can't for a specific device.
-
-> And, I don't think that we are forced to use the general notifier
-> chain interface in all memory device drivers.  If the memory device
-> driver has better understanding of the memory device, it can use other
-> way to determine abstract distance.  For example, a CXL memory device
-> driver can identify abstract distance by itself.  While other memory
-> device drivers can use the general notifier chain interface at the
-> same time.
-
-Whilst I think personally I would find that flexibility useful I am
-concerned it means every driver will just end up divining it's own
-distance rather than ensuring data in HMAT/CDAT/etc. is correct. That
-would kind of defeat the purpose of it all then.
+> ---
+>   Documentation/ndctl/intel-nvdimm-security.txt | 4 ++--
+>   1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/Documentation/ndctl/intel-nvdimm-security.txt b/Documentation/ndctl/intel-nvdimm-security.txt
+> index 88b305b81978..4ae7ed517279 100644
+> --- a/Documentation/ndctl/intel-nvdimm-security.txt
+> +++ b/Documentation/ndctl/intel-nvdimm-security.txt
+> @@ -4,7 +4,7 @@ THEORY OF OPERATION
+>   -------------------
+>   The Intel Device Specific Methods (DSM) specification v1.7 and v1.8 [1]
+>   introduced the following security management operations:
+> -enable passhprase, update passphrase, unlock DIMM, disable security,
+> +enable passphrase, update passphrase, unlock DIMM, disable security,
+>   freeze security, secure (crypto) erase, overwrite, master passphrase
+>   enable, master passphrase update, and master passphrase secure erase.
+>   
+> @@ -115,7 +115,7 @@ This is invoked using `--overwrite` option for ndctl 'sanitize-dimm'.
+>   The overwrite operation wipes the entire NVDIMM. The operation can take a
+>   significant amount of time. NOTE: When the command returns successfully,
+>   it just means overwrite has been successfully started, and not that the
+> -overwrite is complete. Subsequently, 'ndctl wait-overwrite'can be used
+> +overwrite is complete. Subsequently, 'ndctl wait-overwrite' can be used
+>   to wait for the NVDIMMs that are performing overwrite. Upon successful
+>   completion of an overwrite, the WBINVD instruction is issued by the kernel.
+>   If both --crypto-erase and --overwrite options are supplied, then
