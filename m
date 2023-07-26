@@ -1,110 +1,125 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E2E721D5D
-	for <nvdimm@lists.linux.dev>; Tue, 25 Jul 2023 15:54:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1690300462;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=LoAQxhzmL5AVllS8wiqRHiXap/Dk/xuzfK4mG1WLfl0=;
-	b=CsrEGT2iWGXo0uNZqHwKWZrrRLtT31v7kwf6yQRv6Y26WlpoTZWhv6KKzHRy2Wv9N1naGS
-	kp0eczGEpvZ/mDkJ2YIDwmF9+ZnHMWlM1oxRqRn4FXUdRNR71Ncz7kHGet4tjgMDcxcVT7
-	oi8Swd1FdJiJdk3dtUn4nI5O36N4hNs=
-Received: from mail-lf1-f71.google.com (mail-lf1-f71.google.com
- [209.85.167.71]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-633-aNgfkTThOau6ZEFmA2RfJQ-1; Tue, 25 Jul 2023 11:54:21 -0400
-X-MC-Unique: aNgfkTThOau6ZEFmA2RfJQ-1
-Received: by mail-lf1-f71.google.com with SMTP id 2adb3069b0e04-4fb774de2d4so4990780e87.1
-        for <nvdimm@lists.linux.dev>; Tue, 25 Jul 2023 08:54:21 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1690300460; x=1690905260;
-        h=content-transfer-encoding:in-reply-to:organization:from:references
-         :cc:to:content-language:subject:user-agent:mime-version:date
-         :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=LoAQxhzmL5AVllS8wiqRHiXap/Dk/xuzfK4mG1WLfl0=;
-        b=UE3MxLjddlBi3KTkU2XHbvzxExQehGaHNFjBchEMtBdC2Ceyry6JJ3K3pfcaqF3DVf
-         pUa/euyePBtlFsI4ToK1BiIbkSNerEKilO/BFQUZYb5kpJC/yxqlnE7QEugcnraTBGQb
-         BOyt00520w6ZQBt3gAdU0j2hbTceQOeNhxf21JsNxTw6L0/yGyPqjoaU3+QK0lsrxvj0
-         QfzNe5vc6DVPCkS6gJPj94SIOgfjAJfCHYN1GHk3Bc/xBzQCECKUmhnHpgtOx+tN3UWg
-         COchBcRQkTNLAvXREWu7iB4QiwsaOlz+sE+eis+c8cEuYNpzTGB2ZVfxiuAvFFzk/QaX
-         JYUg==
-X-Gm-Message-State: ABy/qLZgRfEUQ6G8Q0qpAoU/AZ/qtsFDo27qvcoku/CMPjBTJ9GeSHDb
-	YIGMoFh4jCyVHZKctXy7vuq4x5kF2HxkIrp8puumjgGZcJ68BBdrZSjP14GWSDfBUU8Cy5U6sPy
-	zJ9ohn8soUc6+nuut
-X-Received: by 2002:a05:6512:39ca:b0:4fb:8b78:4a93 with SMTP id k10-20020a05651239ca00b004fb8b784a93mr8787204lfu.7.1690300459907;
-        Tue, 25 Jul 2023 08:54:19 -0700 (PDT)
-X-Google-Smtp-Source: APBJJlEmywcP+QkHkkim2d5HtgePDiVNCjDAFUns2tMfnkaP9vtk0/KS0KMhtX1iT9iXaInLa2ug6Q==
-X-Received: by 2002:a05:6512:39ca:b0:4fb:8b78:4a93 with SMTP id k10-20020a05651239ca00b004fb8b784a93mr8787187lfu.7.1690300459532;
-        Tue, 25 Jul 2023 08:54:19 -0700 (PDT)
-Received: from ?IPV6:2003:cb:c73f:e900:3b0d:87a6:2953:20d1? (p200300cbc73fe9003b0d87a6295320d1.dip0.t-ipconnect.de. [2003:cb:c73f:e900:3b0d:87a6:2953:20d1])
-        by smtp.gmail.com with ESMTPSA id x17-20020adfffd1000000b003141f3843e6sm16751602wrs.90.2023.07.25.08.54.18
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 25 Jul 2023 08:54:19 -0700 (PDT)
-Message-ID: <1c3f737e-f5c6-b974-3b36-c4a3ada14422@redhat.com>
-Date: Tue, 25 Jul 2023 17:54:17 +0200
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5C161101
+	for <nvdimm@lists.linux.dev>; Wed, 26 Jul 2023 03:05:51 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1690340752; x=1721876752;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:content-transfer-encoding:in-reply-to;
+  bh=Ac3M1GbzlRT5++1b4pL8NIEyZ2PXTx/3eagbNYXhSno=;
+  b=R4beFMB9uOT3Lxa06dQMdYqeEIhAulAmctRTPjIODa9xmE790Nh4NPzG
+   L4hpQ2olVrwB8O52bPd0UaVXCDD3K0dKDzrHdBawhEBLlOFqSRVrwjBze
+   MAl7kcOXQ8Kdk9nNH1H1wjoLUdrTvWUtawEwDTgZ1OJ4aoVddODF8czjb
+   82wnOo/1t71PjZP9bizw88KMGO3X31HhW5gWehDA0RDCoLyyHxTqc2FMe
+   whSlVWqzh7N6/C+M0ncKUOPTBu9RPGz/lf2IX/kYP/KB5J36UJgq7JxbE
+   NiFuzWhgfucV7joIFyqen6KJxYE48b0PAC4KlQeksMmC6UyRGUATfk3tJ
+   A==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10782"; a="431702948"
+X-IronPort-AV: E=Sophos;i="6.01,231,1684825200"; 
+   d="scan'208";a="431702948"
+Received: from orsmga004.jf.intel.com ([10.7.209.38])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Jul 2023 20:05:50 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10782"; a="850270711"
+X-IronPort-AV: E=Sophos;i="6.01,231,1684825200"; 
+   d="scan'208";a="850270711"
+Received: from aschofie-mobl2.amr.corp.intel.com (HELO aschofie-mobl2) ([10.251.14.85])
+  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Jul 2023 20:05:50 -0700
+Date: Tue, 25 Jul 2023 20:05:49 -0700
+From: Alison Schofield <alison.schofield@intel.com>
+To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Cc: dan.j.williams@intel.com, vishal.l.verma@intel.com,
+	nvdimm@lists.linux.dev, linux-acpi@vger.kernel.org, lenb@kernel.org
+Subject: Re: [PATCH] nfit: remove redundant list_for_each_entry
+Message-ID: <ZMCNja5S3tnNBm79@aschofie-mobl2>
+References: <20230719080526.2436951-1-ruansy.fnst@fujitsu.com>
+ <ZL7/mctQSQ7rtK3X@aschofie-mobl2>
+ <32cb262a-8ae6-60ba-2032-f02973f44a1e@fujitsu.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.13.0
-Subject: Re: [PATCH v2 0/3] mm: use memmap_on_memory semantics for dax/kmem
-To: Vishal Verma <vishal.l.verma@intel.com>,
- Andrew Morton <akpm@linux-foundation.org>, Oscar Salvador
- <osalvador@suse.de>, Dan Williams <dan.j.williams@intel.com>,
- Dave Jiang <dave.jiang@intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, nvdimm@lists.linux.dev,
- linux-cxl@vger.kernel.org, Huang Ying <ying.huang@intel.com>,
- Dave Hansen <dave.hansen@linux.intel.com>,
- "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
- Jonathan Cameron <Jonathan.Cameron@Huawei.com>,
- Jeff Moyer <jmoyer@redhat.com>
-References: <20230720-vv-kmem_memmap-v2-0-88bdaab34993@intel.com>
-From: David Hildenbrand <david@redhat.com>
-Organization: Red Hat
-In-Reply-To: <20230720-vv-kmem_memmap-v2-0-88bdaab34993@intel.com>
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: redhat.com
-Content-Language: en-US
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <32cb262a-8ae6-60ba-2032-f02973f44a1e@fujitsu.com>
 
-On 20.07.23 09:14, Vishal Verma wrote:
-> The dax/kmem driver can potentially hot-add large amounts of memory
-> originating from CXL memory expanders, or NVDIMMs, or other 'device
-> memories'. There is a chance there isn't enough regular system memory
-> available to fit the memmap for this new memory. It's therefore
-> desirable, if all other conditions are met, for the kmem managed memory
-> to place its memmap on the newly added memory itself.
+On Tue, Jul 25, 2023 at 01:33:18PM +0800, Shiyang Ruan wrote:
 > 
-> The main hurdle for accomplishing this for kmem is that memmap_on_memory
-> can only be done if the memory being added is equal to the size of one
-> memblock. To overcome this,allow the hotplug code to split an add_memory()
-> request into memblock-sized chunks, and try_remove_memory() to also
-> expect and handle such a scenario.
 > 
-> Patch 1 exports mhp_supports_memmap_on_memory() so it can be used by the
-> kmem driver.
+> 在 2023/7/25 6:47, Alison Schofield 写道:
+> > On Wed, Jul 19, 2023 at 04:05:26PM +0800, Shiyang Ruan wrote:
+> > > The first for_each only do acpi_nfit_init_ars() for NFIT_SPA_VOLATILE
+> > > and NFIT_SPA_PM, which can be moved to next one.
+> > 
+> > Can the result of nfit_spa_type(nfit_spa->spa) change as a result of
+> > the first switch statement? That would be a reason why they are separate.
 > 
-> Patch 2 teaches the memory_hotplug code to allow for splitting
-> add_memory() and remove_memory() requests over memblock sized chunks.
+> nfit_spa_type() just gets the type of *spa by querying a type-uuid table.
+> Also, according to the code shown below, we can find that it doesn't change
+> anything.
 > 
-> Patch 3 adds a sysfs control for the kmem driver that would
-> allow an opt-out of using memmap_on_memory for the memory being added.
+> int nfit_spa_type(struct acpi_nfit_system_address *spa)
+> {
+> 	guid_t guid;
+> 	int i;
 > 
+> 	import_guid(&guid, spa->range_guid);
+> 	for (i = 0; i < NFIT_UUID_MAX; i++)
+> 		if (guid_equal(to_nfit_uuid(i), &guid))
+> 			return i;
+> 	return -1;
+> }
+>
 
-It might be reasonable to rebase this on Aneesh's work. For example, 
-patch #1 might not be required anymore.
+Hi Ruan,
 
--- 
-Cheers,
+I see that. I was questioning if the type change as a *result* of the
+first switch statement, which does that acpi_nfi_init_ars().
 
-David / dhildenb
+I don't think it does. I'm only asking if you proved the correctness
+of the change because I'm guessing this change is tested by inspection
+only. Maybe not.
 
+Thanks,
+Alison
+
+> --
+> Thanks,
+> Ruan.
+> 
+> > 
+> > Alison
+> > 
+> > > 
+> > > Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+> > > ---
+> > >   drivers/acpi/nfit/core.c | 8 --------
+> > >   1 file changed, 8 deletions(-)
+> > > 
+> > > diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> > > index 07204d482968..4090a0a0505c 100644
+> > > --- a/drivers/acpi/nfit/core.c
+> > > +++ b/drivers/acpi/nfit/core.c
+> > > @@ -2971,14 +2971,6 @@ static int acpi_nfit_register_regions(struct acpi_nfit_desc *acpi_desc)
+> > >   		case NFIT_SPA_VOLATILE:
+> > >   		case NFIT_SPA_PM:
+> > >   			acpi_nfit_init_ars(acpi_desc, nfit_spa);
+> > > -			break;
+> > > -		}
+> > > -	}
+> > > -
+> > > -	list_for_each_entry(nfit_spa, &acpi_desc->spas, list) {
+> > > -		switch (nfit_spa_type(nfit_spa->spa)) {
+> > > -		case NFIT_SPA_VOLATILE:
+> > > -		case NFIT_SPA_PM:
+> > >   			/* register regions and kick off initial ARS run */
+> > >   			rc = ars_register(acpi_desc, nfit_spa);
+> > >   			if (rc)
+> > > -- 
+> > > 2.41.0
+> > > 
