@@ -1,125 +1,168 @@
-Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B5C161101
-	for <nvdimm@lists.linux.dev>; Wed, 26 Jul 2023 03:05:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CFE28493
+	for <nvdimm@lists.linux.dev>; Wed, 26 Jul 2023 07:35:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1690340752; x=1721876752;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:content-transfer-encoding:in-reply-to;
-  bh=Ac3M1GbzlRT5++1b4pL8NIEyZ2PXTx/3eagbNYXhSno=;
-  b=R4beFMB9uOT3Lxa06dQMdYqeEIhAulAmctRTPjIODa9xmE790Nh4NPzG
-   L4hpQ2olVrwB8O52bPd0UaVXCDD3K0dKDzrHdBawhEBLlOFqSRVrwjBze
-   MAl7kcOXQ8Kdk9nNH1H1wjoLUdrTvWUtawEwDTgZ1OJ4aoVddODF8czjb
-   82wnOo/1t71PjZP9bizw88KMGO3X31HhW5gWehDA0RDCoLyyHxTqc2FMe
-   whSlVWqzh7N6/C+M0ncKUOPTBu9RPGz/lf2IX/kYP/KB5J36UJgq7JxbE
-   NiFuzWhgfucV7joIFyqen6KJxYE48b0PAC4KlQeksMmC6UyRGUATfk3tJ
+  t=1690356919; x=1721892919;
+  h=from:to:cc:subject:references:date:in-reply-to:
+   message-id:mime-version;
+  bh=6qVZBUs21Wpj2aQjHSwyHHybwSsIvWbW48TAPSEojyI=;
+  b=KlSgxrJ/f8UOV1xQiPYpvG+O2RwQXJb8oG2YB8pcK2bPh9Pz+ShU5Jmo
+   UGeDs4wX8BWIAoUSs2nsrwebbK2YYO0c4GLclXhNiW7ht7Jj2PG8UiHLn
+   823Zv+X6eWSVV6yFBtsl+3x8P31AHwj6LuQxsI4N8ebsz53j4krj+2jv2
+   FK441frLxBRIm8qnOQZvs3+sG5lkp2cDePiqNHLT0gZbbUeG1zpAoYlbQ
+   tniU84JtoGG/mChhS9LhiDOf5FIHU4hbbQyRTgdg3QFHlvyJYP6K0msCA
+   r0qBmlK+vAPpmZr97HDN9dgnuyWlTXGtwyM6Tpgjd+xSonwIQfZyJo8gF
    A==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10782"; a="431702948"
+X-IronPort-AV: E=McAfee;i="6600,9927,10782"; a="398875138"
 X-IronPort-AV: E=Sophos;i="6.01,231,1684825200"; 
-   d="scan'208";a="431702948"
-Received: from orsmga004.jf.intel.com ([10.7.209.38])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Jul 2023 20:05:50 -0700
+   d="scan'208";a="398875138"
+Received: from orsmga002.jf.intel.com ([10.7.209.21])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Jul 2023 00:35:18 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10782"; a="850270711"
+X-IronPort-AV: E=McAfee;i="6600,9927,10782"; a="726408026"
 X-IronPort-AV: E=Sophos;i="6.01,231,1684825200"; 
-   d="scan'208";a="850270711"
-Received: from aschofie-mobl2.amr.corp.intel.com (HELO aschofie-mobl2) ([10.251.14.85])
-  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Jul 2023 20:05:50 -0700
-Date: Tue, 25 Jul 2023 20:05:49 -0700
-From: Alison Schofield <alison.schofield@intel.com>
-To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Cc: dan.j.williams@intel.com, vishal.l.verma@intel.com,
-	nvdimm@lists.linux.dev, linux-acpi@vger.kernel.org, lenb@kernel.org
-Subject: Re: [PATCH] nfit: remove redundant list_for_each_entry
-Message-ID: <ZMCNja5S3tnNBm79@aschofie-mobl2>
-References: <20230719080526.2436951-1-ruansy.fnst@fujitsu.com>
- <ZL7/mctQSQ7rtK3X@aschofie-mobl2>
- <32cb262a-8ae6-60ba-2032-f02973f44a1e@fujitsu.com>
+   d="scan'208";a="726408026"
+Received: from yhuang6-desk2.sh.intel.com (HELO yhuang6-desk2.ccr.corp.intel.com) ([10.238.208.55])
+  by orsmga002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Jul 2023 00:35:13 -0700
+From: "Huang, Ying" <ying.huang@intel.com>
+To: Alistair Popple <apopple@nvidia.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>,  <linux-mm@kvack.org>,
+  <linux-kernel@vger.kernel.org>,  <linux-cxl@vger.kernel.org>,
+  <nvdimm@lists.linux.dev>,  <linux-acpi@vger.kernel.org>,  "Aneesh Kumar K
+ . V" <aneesh.kumar@linux.ibm.com>,  Wei Xu <weixugc@google.com>,  Dan
+ Williams <dan.j.williams@intel.com>,  Dave Hansen <dave.hansen@intel.com>,
+  "Davidlohr Bueso" <dave@stgolabs.net>,  Johannes Weiner
+ <hannes@cmpxchg.org>,  "Jonathan Cameron" <Jonathan.Cameron@huawei.com>,
+  Michal Hocko <mhocko@kernel.org>,  Yang Shi <shy828301@gmail.com>,
+  Rafael J Wysocki <rafael.j.wysocki@intel.com>,  Dave Jiang
+ <dave.jiang@intel.com>
+Subject: Re: [PATCH RESEND 1/4] memory tiering: add abstract distance
+ calculation algorithms management
+References: <20230721012932.190742-1-ying.huang@intel.com>
+	<20230721012932.190742-2-ying.huang@intel.com>
+	<87r0owzqdc.fsf@nvdebian.thelocal>
+	<87r0owy95t.fsf@yhuang6-desk2.ccr.corp.intel.com>
+	<87sf9cxupz.fsf@nvdebian.thelocal>
+Date: Wed, 26 Jul 2023 15:33:26 +0800
+In-Reply-To: <87sf9cxupz.fsf@nvdebian.thelocal> (Alistair Popple's message of
+	"Tue, 25 Jul 2023 18:26:15 +1000")
+Message-ID: <878rb3xh2x.fsf@yhuang6-desk2.ccr.corp.intel.com>
+User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/28.2 (gnu/linux)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <32cb262a-8ae6-60ba-2032-f02973f44a1e@fujitsu.com>
+Content-Type: text/plain; charset=ascii
 
-On Tue, Jul 25, 2023 at 01:33:18PM +0800, Shiyang Ruan wrote:
-> 
-> 
-> 在 2023/7/25 6:47, Alison Schofield 写道:
-> > On Wed, Jul 19, 2023 at 04:05:26PM +0800, Shiyang Ruan wrote:
-> > > The first for_each only do acpi_nfit_init_ars() for NFIT_SPA_VOLATILE
-> > > and NFIT_SPA_PM, which can be moved to next one.
-> > 
-> > Can the result of nfit_spa_type(nfit_spa->spa) change as a result of
-> > the first switch statement? That would be a reason why they are separate.
-> 
-> nfit_spa_type() just gets the type of *spa by querying a type-uuid table.
-> Also, according to the code shown below, we can find that it doesn't change
-> anything.
-> 
-> int nfit_spa_type(struct acpi_nfit_system_address *spa)
-> {
-> 	guid_t guid;
-> 	int i;
-> 
-> 	import_guid(&guid, spa->range_guid);
-> 	for (i = 0; i < NFIT_UUID_MAX; i++)
-> 		if (guid_equal(to_nfit_uuid(i), &guid))
-> 			return i;
-> 	return -1;
-> }
+Alistair Popple <apopple@nvidia.com> writes:
+
+> "Huang, Ying" <ying.huang@intel.com> writes:
 >
+>> Hi, Alistair,
+>>
+>> Thanks a lot for comments!
+>>
+>> Alistair Popple <apopple@nvidia.com> writes:
+>>
+>>> Huang Ying <ying.huang@intel.com> writes:
+>>>
+>>>> The abstract distance may be calculated by various drivers, such as
+>>>> ACPI HMAT, CXL CDAT, etc.  While it may be used by various code which
+>>>> hot-add memory node, such as dax/kmem etc.  To decouple the algorithm
+>>>> users and the providers, the abstract distance calculation algorithms
+>>>> management mechanism is implemented in this patch.  It provides
+>>>> interface for the providers to register the implementation, and
+>>>> interface for the users.
+>>>
+>>> I wonder if we need this level of decoupling though? It seems to me like
+>>> it would be simpler and better for drivers to calculate the abstract
+>>> distance directly themselves by calling the desired algorithm (eg. ACPI
+>>> HMAT) and pass this when creating the nodes rather than having a
+>>> notifier chain.
+>>
+>> Per my understanding, ACPI HMAT and memory device drivers (such as
+>> dax/kmem) may belong to different subsystems (ACPI vs. dax).  It's not
+>> good to call functions across subsystems directly.  So, I think it's
+>> better to use a general subsystem: memory-tier.c to decouple them.  If
+>> it turns out that a notifier chain is unnecessary, we can use some
+>> function pointers instead.
+>>
+>>> At the moment it seems we've only identified two possible algorithms
+>>> (ACPI HMAT and CXL CDAT) and I don't think it would make sense for one
+>>> of those to fallback to the other based on priority, so why not just
+>>> have drivers call the correct algorithm directly?
+>>
+>> For example, we have a system with PMEM (persistent memory, Optane
+>> DCPMM, or AEP, or something else) in DIMM slots and CXL.mem connected
+>> via CXL link to a remote memory pool.  We will need ACPI HMAT for PMEM
+>> and CXL CDAT for CXL.mem.  One way is to make dax/kmem identify the
+>> types of the device and call corresponding algorithms.
+>
+> Yes, that is what I was thinking.
+>
+>> The other way (suggested by this series) is to make dax/kmem call a
+>> notifier chain, then CXL CDAT or ACPI HMAT can identify the type of
+>> device and calculate the distance if the type is correct for them.  I
+>> don't think that it's good to make dax/kem to know every possible
+>> types of memory devices.
+>
+> Do we expect there to be lots of different types of memory devices
+> sharing a common dax/kmem driver though? Must admit I'm coming from a
+> GPU background where we'd expect each type of device to have it's own
+> driver anyway so wasn't expecting different types of memory devices to
+> be handled by the same driver.
 
-Hi Ruan,
+Now, dax/kmem.c is used for
 
-I see that. I was questioning if the type change as a *result* of the
-first switch statement, which does that acpi_nfi_init_ars().
+- PMEM (Optane DCPMM, or AEP)
+- CXL.mem
+- HBM (attached to CPU)
 
-I don't think it does. I'm only asking if you proved the correctness
-of the change because I'm guessing this change is tested by inspection
-only. Maybe not.
+I understand that for a CXL GPU driver it's OK to call some CXL CDAT
+helper to identify the abstract distance of memory attached to GPU.
+Because there's no cross-subsystem function calls.  But it looks not
+very clean to call from dax/kmem.c to CXL CDAT because it's a
+cross-subsystem function call.
 
-Thanks,
-Alison
+>>>> Multiple algorithm implementations can cooperate via calculating
+>>>> abstract distance for different memory nodes.  The preference of
+>>>> algorithm implementations can be specified via
+>>>> priority (notifier_block.priority).
+>>>
+>>> How/what decides the priority though? That seems like something better
+>>> decided by a device driver than the algorithm driver IMHO.
+>>
+>> Do we need the memory device driver specific priority?  Or we just share
+>> a common priority?  For example, the priority of CXL CDAT is always
+>> higher than that of ACPI HMAT?  Or architecture specific?
+>
+> Ok, thanks. Having read the above I think the priority is
+> unimportant. Algorithms can either decide to return a distance and
+> NOTIFY_STOP_MASK if they can calculate a distance or NOTIFY_DONE if they
+> can't for a specific device.
 
-> --
-> Thanks,
-> Ruan.
-> 
-> > 
-> > Alison
-> > 
-> > > 
-> > > Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-> > > ---
-> > >   drivers/acpi/nfit/core.c | 8 --------
-> > >   1 file changed, 8 deletions(-)
-> > > 
-> > > diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-> > > index 07204d482968..4090a0a0505c 100644
-> > > --- a/drivers/acpi/nfit/core.c
-> > > +++ b/drivers/acpi/nfit/core.c
-> > > @@ -2971,14 +2971,6 @@ static int acpi_nfit_register_regions(struct acpi_nfit_desc *acpi_desc)
-> > >   		case NFIT_SPA_VOLATILE:
-> > >   		case NFIT_SPA_PM:
-> > >   			acpi_nfit_init_ars(acpi_desc, nfit_spa);
-> > > -			break;
-> > > -		}
-> > > -	}
-> > > -
-> > > -	list_for_each_entry(nfit_spa, &acpi_desc->spas, list) {
-> > > -		switch (nfit_spa_type(nfit_spa->spa)) {
-> > > -		case NFIT_SPA_VOLATILE:
-> > > -		case NFIT_SPA_PM:
-> > >   			/* register regions and kick off initial ARS run */
-> > >   			rc = ars_register(acpi_desc, nfit_spa);
-> > >   			if (rc)
-> > > -- 
-> > > 2.41.0
-> > > 
+Yes.  In most cases, there are no overlaps among algorithms.
+
+>> And, I don't think that we are forced to use the general notifier
+>> chain interface in all memory device drivers.  If the memory device
+>> driver has better understanding of the memory device, it can use other
+>> way to determine abstract distance.  For example, a CXL memory device
+>> driver can identify abstract distance by itself.  While other memory
+>> device drivers can use the general notifier chain interface at the
+>> same time.
+>
+> Whilst I think personally I would find that flexibility useful I am
+> concerned it means every driver will just end up divining it's own
+> distance rather than ensuring data in HMAT/CDAT/etc. is correct. That
+> would kind of defeat the purpose of it all then.
+
+But we have no way to enforce that too.
+
+--
+Best Regards,
+Huang, Ying
