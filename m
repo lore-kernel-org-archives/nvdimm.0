@@ -1,370 +1,255 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mailout3.samsung.com (mailout3.samsung.com [203.254.224.33])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02F653D60
-	for <nvdimm@lists.linux.dev>; Sat, 29 Jul 2023 15:15:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5FA21C433C8;
-	Sat, 29 Jul 2023 15:15:19 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1690643719;
-	bh=EJjGP39s1Dwzg23geoZ0KCMb3gEsATzMP87XLUhAsEs=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=h4sV5lBoSmueFRBnowHWRNjaeloU+e7OunKFs/aCSxBP0pu8R/YmQ91TvZXBeh4hB
-	 aqPFdAtbDp5faMq4IVgh/peR9Tj6F6FutoVco1uGQQinGxNy/i3GjexkePDDkucolL
-	 FpnfV4gCx01M5QVtHWRY2IVqiX0wInVfoyMJE9h5Y7BiEUUL2fzDtX4rA1ZBdOYDBa
-	 kL4vMH2jn6zQMVA8LlFbIPcQQzXQ34/xgVa1SDw3LhOiDYr9sx7GWlLm2ZLU+8Fm1D
-	 bID8lsBIaKDjI4XBxm8o97LyEYkYDK1Tk4UPUV6aeOF/XtunEYf5TPkXR2/nG3iyH4
-	 Z91GCNoqmaYhQ==
-Date: Sat, 29 Jul 2023 08:15:18 -0700
-From: "Darrick J. Wong" <djwong@kernel.org>
-To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Cc: linux-mm@kvack.org, linux-xfs@vger.kernel.org, nvdimm@lists.linux.dev,
-	linux-fsdevel@vger.kernel.org, dan.j.williams@intel.com,
-	willy@infradead.org, jack@suse.cz, akpm@linux-foundation.org,
-	mcgrof@kernel.org
-Subject: Re: [PATCH v12 2/2] mm, pmem, xfs: Introduce MF_MEM_REMOVE for unbind
-Message-ID: <20230729151518.GJ11352@frogsfrogsfrogs>
-References: <20230629081651.253626-1-ruansy.fnst@fujitsu.com>
- <20230629081651.253626-3-ruansy.fnst@fujitsu.com>
- <2840406d-0b7d-9897-87f6-ef3627e9ed5d@fujitsu.com>
- <20230714141834.GV108251@frogsfrogsfrogs>
- <191fbccb-173b-64d3-df6b-ec98973bddc3@fujitsu.com>
- <70c9baf5-767e-b9ac-c27e-c51b44dc2472@fujitsu.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F95762D
+	for <nvdimm@lists.linux.dev>; Mon, 31 Jul 2023 03:20:44 +0000 (UTC)
+Received: from epcas2p1.samsung.com (unknown [182.195.41.53])
+	by mailout3.samsung.com (KnoxPortal) with ESMTP id 20230731031414epoutp0399417789884d2c2887d32ee0945d0d97~21VEWfKjl2493824938epoutp03U
+	for <nvdimm@lists.linux.dev>; Mon, 31 Jul 2023 03:14:14 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 mailout3.samsung.com 20230731031414epoutp0399417789884d2c2887d32ee0945d0d97~21VEWfKjl2493824938epoutp03U
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
+	s=mail20170921; t=1690773254;
+	bh=EvoVRW/Nwv0Mk71/ODo2TILsmOB0YaLo+kBS7XvAhD4=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=CLoPwekrvBGMZ8DNQVzB8pFt9sGo3cmj519i1k4TVo2mc5h97lLNigJXEMP8ET/g5
+	 H1Q1p7TUgBma0Ed6+UPAdIrPDJQa6ZcVySoEY459PSPBPYWpS5ZnUl3h7AJbJm65GS
+	 QZ6leJ8vkyDWUMFWwfdcE1Rj2Yj6+qW49Dt0hxrs=
+Received: from epsnrtp3.localdomain (unknown [182.195.42.164]) by
+	epcas2p2.samsung.com (KnoxPortal) with ESMTP id
+	20230731031413epcas2p23ec3171d16e8a0973bfe8a5b5dcd9946~21VDy0kkq0777407774epcas2p2X;
+	Mon, 31 Jul 2023 03:14:13 +0000 (GMT)
+Received: from epsmges2p4.samsung.com (unknown [182.195.36.68]) by
+	epsnrtp3.localdomain (Postfix) with ESMTP id 4RDjyF1gQlz4x9Q2; Mon, 31 Jul
+	2023 03:14:13 +0000 (GMT)
+Received: from epcas2p4.samsung.com ( [182.195.41.56]) by
+	epsmges2p4.samsung.com (Symantec Messaging Gateway) with SMTP id
+	E7.C0.32393.50727C46; Mon, 31 Jul 2023 12:14:13 +0900 (KST)
+Received: from epsmtrp2.samsung.com (unknown [182.195.40.14]) by
+	epcas2p4.samsung.com (KnoxPortal) with ESMTPA id
+	20230731031412epcas2p4fb2631d72b455f205252e00b15119ef2~21VC3CVgB1185711857epcas2p4q;
+	Mon, 31 Jul 2023 03:14:12 +0000 (GMT)
+Received: from epsmgmc1p1new.samsung.com (unknown [182.195.42.40]) by
+	epsmtrp2.samsung.com (KnoxPortal) with ESMTP id
+	20230731031412epsmtrp2553e33729e4c62270639b0a19ed88794~21VC2EjZ02510525105epsmtrp2J;
+	Mon, 31 Jul 2023 03:14:12 +0000 (GMT)
+X-AuditID: b6c32a48-adffa70000007e89-20-64c727056922
+Received: from epsmtip1.samsung.com ( [182.195.34.30]) by
+	epsmgmc1p1new.samsung.com (Symantec Messaging Gateway) with SMTP id
+	59.A6.14748.40727C46; Mon, 31 Jul 2023 12:14:12 +0900 (KST)
+Received: from jehoon-Precision-7920-Tower (unknown [10.229.83.133]) by
+	epsmtip1.samsung.com (KnoxPortal) with ESMTPA id
+	20230731031412epsmtip11523e846057b23b76409a21db47c51eb~21VClbqOF3257032570epsmtip1v;
+	Mon, 31 Jul 2023 03:14:12 +0000 (GMT)
+Date: Mon, 31 Jul 2023 12:17:14 +0900
+From: Jehoon Park <jehoon.park@samsung.com>
+To: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Cc: "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, "Jiang, Dave"
+	<dave.jiang@intel.com>, "Schofield, Alison" <alison.schofield@intel.com>,
+	"jonathan.cameron@huawei.com" <jonathan.cameron@huawei.com>, "im, junhyeok"
+	<junhyeok.im@samsung.com>, "Williams, Dan J" <dan.j.williams@intel.com>,
+	"Weiny, Ira" <ira.weiny@intel.com>, "nvdimm@lists.linux.dev"
+	<nvdimm@lists.linux.dev>, "dave@stgolabs.net" <dave@stgolabs.net>,
+	"ks0204.kim@samsung.com" <ks0204.kim@samsung.com>
+Subject: Re: [ndctl PATCH RESEND 2/2] libcxl: Fix accessors for temperature
+ field to support negative value
+Message-ID: <20230731031714.GA17128@jehoon-Precision-7920-Tower>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+In-Reply-To: <ad6439d56a07c6fac2dc58a4b37fd852f79cfec8.camel@intel.com>
+User-Agent: Mutt/1.9.4 (2018-02-28)
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFtrNJsWRmVeSWpSXmKPExsWy7bCmhS6r+vEUg10tbBZ3H19gs5g+9QKj
+	xYmbjWwWq2+uYbTY//Q5i8WqhdfYLBYfncFscXQPh8X5WadYLFb++MNqcWvCMSYHbo+WI29Z
+	PRbvecnk8WLzTEaPvi2rGD2mzq73+LxJLoAtKtsmIzUxJbVIITUvOT8lMy/dVsk7ON453tTM
+	wFDX0NLCXEkhLzE31VbJxSdA1y0zB+g6JYWyxJxSoFBAYnGxkr6dTVF+aUmqQkZ+cYmtUmpB
+	Sk6BeYFecWJucWleul5eaomVoYGBkSlQYUJ2xqq/D9kKZhlUfPlzkqWBcbNmFyMHh4SAicSV
+	vVZdjFwcQgI7GCV+N35nhnA+MUqsWHCTEcL5xigx++8XoAwnWMfmQ5vYIRJ7GSW2/HwGVfWT
+	UWLOwwYmkCoWAVWJ+ydawTrYBLQl7m/fwAZiiwgYSGyftRasgVngObPE4u9/GEESwgK5Evv6
+	lrOC2LwCDhJv5s1kgrAFJU7OfMICYnMKuEv03D0LZosKKEsc2HacCWSQhMAWDomTM+5C3eci
+	8fH+TXYIW1ji1fEtULaUxOd3e9kg7HyJnydvsULYBRKfvnxggbCNJd7dfA4WZxbIkDjyuo8V
+	EkrKEkdusUCE+SQ6Dv9lhwjzSnS0CUF0qkp0Hf/ACGFLSxy+chTqGg+JmVtmQcP0H6PEt9/n
+	mScwys9C8tosJNsgbD2JG1OnsEHY8hLNW2czzwJaxww0d/k/DghTU2L9Lv0FjGyrGMVSC4pz
+	01OLjQpM4DGfnJ+7iRGcirU8djDOfvtB7xAjEwfjIUYJDmYlEd5TAYdShHhTEiurUovy44tK
+	c1KLDzGaAiNtIrOUaHI+MBvklcQbmlgamJiZGZobmRqYK4nz3mudmyIkkJ5YkpqdmlqQWgTT
+	x8TBKdXA1NNW8Ln4t269b5bTtxMpcQ++H6rMPTB/z2G74DSlDTskbAKut8yYl/zn4lxWY/XN
+	ZbH3jxfdl/HacsA9MZTZL8qnJWQrn0logVDMW4b1DjtCU7845rWdFSsy7/m9fdL6aL0pKlEX
+	F1rtqq7ikVucfsnrh1LQpn5ti/3a7bLbO+ZKy2kJMYZIzF59ouf1hpW258vvsQa5px08Gc70
+	Qtn3vKNjCMP/uQtOnhetfLJykuZSxX2v2/TctvYXu3sFfRNiSkjyqwi897Rnyr4/i/33bBXV
+	lVwmwTe97fvmCUX3Dqo6v3urnfuwwLt1e2nGgyXbs4V9Z4ZwhaUUhSXpZskfrI1YvndV2B6B
+	RaWMx9iUWIozEg21mIuKEwH0pvMGTgQAAA==
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFupjkeLIzCtJLcpLzFFi42LZdlhJTpdF/XiKwbTjyhZ3H19gs5g+9QKj
+	xYmbjWwWq2+uYbTY//Q5i8WqhdfYLBYfncFscXQPh8X5WadYLFb++MNqcWvCMSYHbo+WI29Z
+	PRbvecnk8WLzTEaPvi2rGD2mzq73+LxJLoAtissmJTUnsyy1SN8ugSvjydX3zAXbdSu+NPQx
+	NjC+Ueti5OSQEDCR2HxoE3sXIxeHkMBuRon5p7cyQSSkJe41X2GHsIUl7rccYYUo+s4oMbvr
+	NjNIgkVAVeL+iVYwm01AW+L+9g1sILaIgIHE9llrGUEamAXeMkt8uHKcBSQhLJArsa9vOSuI
+	zSvgIPFm3kwmiKn/GCWubFjDBpEQlDg58wlYA7OAjsTOrXeA4hxAtrTE8n8cEGF5ieats8EW
+	cwq4S/TcPQtWLiqgLHFg23GmCYxCs5BMmoVk0iyESbOQTFrAyLKKUTK1oDg3PTfZsMAwL7Vc
+	rzgxt7g0L10vOT93EyM4yrQ0djDem/9P7xAjEwfjIUYJDmYlEd5TAYdShHhTEiurUovy44tK
+	c1KLDzFKc7AoifMazpidIiSQnliSmp2aWpBaBJNl4uCUamBqYetU0HxnsMzLnSVq8eHtG+en
+	iCeHNzkpTFqVcE+Oa9aK3S/OM6czCbxNfZKS+OriafPKxuW7V/Ysvye8YJPV9jwbz41WOvfL
+	OJlv7a/iT7AN5S1Jn73uy8XNOV+0i0xWCPz7WC7d847l8K4PDxrjz5z+xD2xu9Jevdre3vpN
+	xbufAjO3Gh051Tdx49c5tndn5b45rb/k/sRUn695k3J/ta7Y9Pvf4wqJNV677h6I1ziyfk/t
+	6xk+hxYJshdIdtbvuPfOLkBjZzCT/azdx9wKWjgsvNdUnv03s+SY9dLjkSy11jd2eYTJaU81
+	zt/EYLXn0JzS1+oczGnbDvnlHbin88+nqzY/dPU5n9NnDSIZlFiKMxINtZiLihMBsOAZAiED
+	AAA=
+X-CMS-MailID: 20230731031412epcas2p4fb2631d72b455f205252e00b15119ef2
+X-Msg-Generator: CA
+Content-Type: multipart/mixed;
+	boundary="----0fR5D8yIpNNl77tk4nXhNCfTmNnUnmvpDlxfu2XVSHf_RJiV=_1e11a_"
+X-Sendblock-Type: AUTO_CONFIDENTIAL
+CMS-TYPE: 102P
+DLP-Filter: Pass
+X-CFilter-Loop: Reflected
+X-CMS-RootMailID: 20230717062633epcas2p44517748291e35d023f19cf00b4f85788
+References: <20230717062908.8292-1-jehoon.park@samsung.com>
+	<CGME20230717062633epcas2p44517748291e35d023f19cf00b4f85788@epcas2p4.samsung.com>
+	<20230717062908.8292-3-jehoon.park@samsung.com>
+	<ad6439d56a07c6fac2dc58a4b37fd852f79cfec8.camel@intel.com>
+
+------0fR5D8yIpNNl77tk4nXhNCfTmNnUnmvpDlxfu2XVSHf_RJiV=_1e11a_
+Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <70c9baf5-767e-b9ac-c27e-c51b44dc2472@fujitsu.com>
+Content-Disposition: inline
 
-On Sat, Jul 29, 2023 at 06:01:00PM +0800, Shiyang Ruan wrote:
-> 
-> 
-> åœ¨ 2023/7/20 9:50, Shiyang Ruan å†™é“:
+On Mon, Jul 24, 2023 at 09:08:21PM +0000, Verma, Vishal L wrote:
+> On Mon, 2023-07-17 at 15:29 +0900, Jehoon Park wrote:
+> > Add a new macro function to retrieve a signed value such as a temperature.
+> > Replace indistinguishable error numbers with debug message.
 > > 
+> > Signed-off-by: Jehoon Park <jehoon.park@samsung.com>
+> > ---
+> >  cxl/lib/libcxl.c | 36 ++++++++++++++++++++++++++----------
+> >  1 file changed, 26 insertions(+), 10 deletions(-)
 > > 
-> > åœ¨ 2023/7/14 22:18, Darrick J. Wong å†™é“:
-> > > On Fri, Jul 14, 2023 at 05:07:58PM +0800, Shiyang Ruan wrote:
-> > > > Hi Darrick,
-> > > > 
-> > > > Thanks for applying the 1st patch.
-> > > > 
-> > > > Now, since this patch is based on the new freeze_super()/thaw_super()
-> > > > api[1], I'd like to ask what's the plan for this api?Â  It seems to have
-> > > > missed the v6.5-rc1.
-> > > > 
-> > > > [1] https://lore.kernel.org/linux-xfs/168688010689.860947.1788875898367401950.stgit@frogsfrogsfrogs/
-> > > 
-> > > 6.6.Â  I intend to push the XFS UBSAN fixes to the list today for review.
-> > > Early next week I'll resend the 6.5 rebase of the kernelfreeze series
-> > > and push it to vfs-for-next.Â  Some time after that will come large folio
-> > > writes.
-> > 
-> > Got it.Â  Thanks for your information!
+> > diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
+> > index 769cd8a..fca7faa 100644
+> > --- a/cxl/lib/libcxl.c
+> > +++ b/cxl/lib/libcxl.c
+> > @@ -3452,11 +3452,21 @@ cxl_cmd_alert_config_get_life_used_prog_warn_threshold(struct cxl_cmd *cmd)
+> >                          life_used_prog_warn_threshold);
+> >  }
+> >  
+> > +#define cmd_get_field_s16(cmd, n, N, field)                            \
+> > +do {                                                                   \
+> > +       struct cxl_cmd_##n *c =                                         \
+> > +               (struct cxl_cmd_##n *)cmd->send_cmd->out.payload;       \
+> > +       int rc = cxl_cmd_validate_status(cmd, CXL_MEM_COMMAND_ID_##N);  \
+> > +       if (rc)                                                         \
+> > +               return 0xffff;                                          \
+> > +       return (int16_t)le16_to_cpu(c->field);                                  \
+> > +} while(0)
+> > +
+> >  CXL_EXPORT int
+> >  cxl_cmd_alert_config_get_dev_over_temperature_crit_alert_threshold(
+> >         struct cxl_cmd *cmd)
+> >  {
+> > -       cmd_get_field_u16(cmd, get_alert_config, GET_ALERT_CONFIG,
+> > +       cmd_get_field_s16(cmd, get_alert_config, GET_ALERT_CONFIG,
+> >                           dev_over_temperature_crit_alert_threshold);
+> >  }
+> >  
+> > @@ -3464,7 +3474,7 @@ CXL_EXPORT int
+> >  cxl_cmd_alert_config_get_dev_under_temperature_crit_alert_threshold(
+> >         struct cxl_cmd *cmd)
+> >  {
+> > -       cmd_get_field_u16(cmd, get_alert_config, GET_ALERT_CONFIG,
+> > +       cmd_get_field_s16(cmd, get_alert_config, GET_ALERT_CONFIG,
+> >                           dev_under_temperature_crit_alert_threshold);
+> >  }
+> >  
+> > @@ -3472,7 +3482,7 @@ CXL_EXPORT int
+> >  cxl_cmd_alert_config_get_dev_over_temperature_prog_warn_threshold(
+> >         struct cxl_cmd *cmd)
+> >  {
+> > -       cmd_get_field_u16(cmd, get_alert_config, GET_ALERT_CONFIG,
+> > +       cmd_get_field_s16(cmd, get_alert_config, GET_ALERT_CONFIG,
+> >                           dev_over_temperature_prog_warn_threshold);
+> >  }
+> >  
+> > @@ -3480,7 +3490,7 @@ CXL_EXPORT int
+> >  cxl_cmd_alert_config_get_dev_under_temperature_prog_warn_threshold(
+> >         struct cxl_cmd *cmd)
+> >  {
+> > -       cmd_get_field_u16(cmd, get_alert_config, GET_ALERT_CONFIG,
+> > +       cmd_get_field_s16(cmd, get_alert_config, GET_ALERT_CONFIG,
+> >                           dev_under_temperature_prog_warn_threshold);
+> >  }
+> >  
+> > @@ -3695,28 +3705,34 @@ static int health_info_get_life_used_raw(struct cxl_cmd *cmd)
+> >  CXL_EXPORT int cxl_cmd_health_info_get_life_used(struct cxl_cmd *cmd)
+> >  {
+> >         int rc = health_info_get_life_used_raw(cmd);
+> > +       struct cxl_ctx *ctx = cxl_memdev_get_ctx(cmd->memdev);
+> >  
+> >         if (rc < 0)
+> > -               return rc;
+> > +               dbg(ctx, "%s: Invalid command status\n",
+> > +                   cxl_memdev_get_devname(cmd->memdev));
+> >         if (rc == CXL_CMD_HEALTH_INFO_LIFE_USED_NOT_IMPL)
+> > -               return -EOPNOTSUPP;
+> > +               dbg(ctx, "%s: Life Used not implemented\n",
+> > +                   cxl_memdev_get_devname(cmd->memdev));
+> >         return rc;
+> >  }
+> >  
+> >  static int health_info_get_temperature_raw(struct cxl_cmd *cmd)
+> >  {
+> > -       cmd_get_field_u16(cmd, get_health_info, GET_HEALTH_INFO,
+> > +       cmd_get_field_s16(cmd, get_health_info, GET_HEALTH_INFO,
+> >                                  temperature);
+> >  }
+> >  
+> >  CXL_EXPORT int cxl_cmd_health_info_get_temperature(struct cxl_cmd *cmd)
+> >  {
+> >         int rc = health_info_get_temperature_raw(cmd);
+> > +       struct cxl_ctx *ctx = cxl_memdev_get_ctx(cmd->memdev);
+> >  
+> > -       if (rc < 0)
+> > -               return rc;
+> > +       if (rc == 0xffff)
+> > +               dbg(ctx, "%s: Invalid command status\n",
+> > +                   cxl_memdev_get_devname(cmd->memdev));
+> >         if (rc == CXL_CMD_HEALTH_INFO_TEMPERATURE_NOT_IMPL)
+> > -               return -EOPNOTSUPP;
+> > +               dbg(ctx, "%s: Device Temperature not implemented\n",
+> > +                   cxl_memdev_get_devname(cmd->memdev));
 > 
-> A small request:  If you have time to give some comments, I would appreciate
-> it because I hope we can make the most out of this period(before freeze api
-> be merged in 6.6).
+> Hi Jehoon,
+> 
+> libcxl tends to just return errno codes for simple accessors liek this,
+> and leave it up to the caller to print additional information about why
+> the call might have failed. Even though these are dbg() messages, I'd
+> prefer leaving them out of this patch, and if there is a call site
+> where this fails and there isn't an adequate error message printed as
+> to why, then add these prints there.
+> 
+> Rest of the conversion to s16 looks good.
+> 
 
-Done.
+Hi, Vishal.
 
---D
+Thank you for comment. I agree with the behavior of libcxl accessors as you
+explained. FYI, the reason I replaced errno codes with dbg messages is that
+those accessors are retreiving signed values. I thought returning errno codes
+is not distinguishable from retrieved values when they are negative.
+However, it looks like an overkill because a memory device works below-zero
+temperature would not make sense in real world.
 
+I'll send revised patch soon after reverting to errno codes and fixing
+related codes in cxl/json.c.
 
+Jehoon
+
+> >         return rc;
+> >  }
+> >  
 > 
-> --
-> Thanks,
-> Ruan.
-> 
-> > 
-> > 
-> > -- 
-> > Ruan.
-> > 
-> > > 
-> > > --D
-> > > 
-> > > > 
-> > > > -- 
-> > > > Thanks,
-> > > > Ruan.
-> > > > 
-> > > > 
-> > > > åœ¨ 2023/6/29 16:16, Shiyang Ruan å†™é“:
-> > > > > This patch is inspired by Dan's "mm, dax, pmem: Introduce
-> > > > > dev_pagemap_failure()"[1].Â  With the help of dax_holder and
-> > > > > ->notify_failure() mechanism, the pmem driver is able to ask filesystem
-> > > > > on it to unmap all files in use, and notify processes who are using
-> > > > > those files.
-> > > > > 
-> > > > > Call trace:
-> > > > > trigger unbind
-> > > > > Â Â  -> unbind_store()
-> > > > > Â Â Â  -> ... (skip)
-> > > > > Â Â Â Â  -> devres_release_all()
-> > > > > Â Â Â Â Â  -> kill_dax()
-> > > > > Â Â Â Â Â Â  -> dax_holder_notify_failure(dax_dev, 0, U64_MAX,
-> > > > > MF_MEM_PRE_REMOVE)
-> > > > > Â Â Â Â Â Â Â  -> xfs_dax_notify_failure()
-> > > > > Â Â Â Â Â Â Â  `-> freeze_super()Â Â Â Â Â Â Â Â Â Â Â Â  // freeze (kernel call)
-> > > > > Â Â Â Â Â Â Â  `-> do xfs rmap
-> > > > > Â Â Â Â Â Â Â  ` -> mf_dax_kill_procs()
-> > > > > Â Â Â Â Â Â Â  `Â  -> collect_procs_fsdax()Â Â Â  // all associated processes
-> > > > > Â Â Â Â Â Â Â  `Â  -> unmap_and_kill()
-> > > > > Â Â Â Â Â Â Â  ` -> invalidate_inode_pages2_range() // drop file's cache
-> > > > > Â Â Â Â Â Â Â  `-> thaw_super()Â Â Â Â Â Â Â Â Â Â Â Â Â Â  // thaw (both kernel
-> > > > > & user call)
-> > > > > 
-> > > > > Introduce MF_MEM_PRE_REMOVE to let filesystem know this is a remove
-> > > > > event.Â  Use the exclusive freeze/thaw[2] to lock the
-> > > > > filesystem to prevent
-> > > > > new dax mapping from being created.Â  Do not shutdown
-> > > > > filesystem directly
-> > > > > if configuration is not supported, or if failure range
-> > > > > includes metadata
-> > > > > area.Â  Make sure all files and processes(not only the current progress)
-> > > > > are handled correctly.Â  Also drop the cache of associated files before
-> > > > > pmem is removed.
-> > > > > 
-> > > > > [1]: https://lore.kernel.org/linux-mm/161604050314.1463742.14151665140035795571.stgit@dwillia2-desk3.amr.corp.intel.com/
-> > > > > [2]: https://lore.kernel.org/linux-xfs/168688010689.860947.1788875898367401950.stgit@frogsfrogsfrogs/
-> > > > > 
-> > > > > Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-> > > > > ---
-> > > > > Â Â  drivers/dax/super.cÂ Â Â Â Â Â Â Â  |Â  3 +-
-> > > > > Â Â  fs/xfs/xfs_notify_failure.c | 86
-> > > > > ++++++++++++++++++++++++++++++++++---
-> > > > > Â Â  include/linux/mm.hÂ Â Â Â Â Â Â Â Â  |Â  1 +
-> > > > > Â Â  mm/memory-failure.cÂ Â Â Â Â Â Â Â  | 17 ++++++--
-> > > > > Â Â  4 files changed, 96 insertions(+), 11 deletions(-)
-> > > > > 
-> > > > > diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-> > > > > index c4c4728a36e4..2e1a35e82fce 100644
-> > > > > --- a/drivers/dax/super.c
-> > > > > +++ b/drivers/dax/super.c
-> > > > > @@ -323,7 +323,8 @@ void kill_dax(struct dax_device *dax_dev)
-> > > > > Â Â Â Â Â Â Â Â Â Â  return;
-> > > > > Â Â Â Â Â Â  if (dax_dev->holder_data != NULL)
-> > > > > -Â Â Â Â Â Â Â  dax_holder_notify_failure(dax_dev, 0, U64_MAX, 0);
-> > > > > +Â Â Â Â Â Â Â  dax_holder_notify_failure(dax_dev, 0, U64_MAX,
-> > > > > +Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â  MF_MEM_PRE_REMOVE);
-> > > > > Â Â Â Â Â Â  clear_bit(DAXDEV_ALIVE, &dax_dev->flags);
-> > > > > Â Â Â Â Â Â  synchronize_srcu(&dax_srcu);
-> > > > > diff --git a/fs/xfs/xfs_notify_failure.c b/fs/xfs/xfs_notify_failure.c
-> > > > > index 4a9bbd3fe120..f6ec56b76db6 100644
-> > > > > --- a/fs/xfs/xfs_notify_failure.c
-> > > > > +++ b/fs/xfs/xfs_notify_failure.c
-> > > > > @@ -22,6 +22,7 @@
-> > > > > Â Â  #include <linux/mm.h>
-> > > > > Â Â  #include <linux/dax.h>
-> > > > > +#include <linux/fs.h>
-> > > > > Â Â  struct xfs_failure_info {
-> > > > > Â Â Â Â Â Â  xfs_agblock_tÂ Â Â Â Â Â Â  startblock;
-> > > > > @@ -73,10 +74,16 @@ xfs_dax_failure_fn(
-> > > > > Â Â Â Â Â Â  struct xfs_mountÂ Â Â Â Â Â Â  *mp = cur->bc_mp;
-> > > > > Â Â Â Â Â Â  struct xfs_inodeÂ Â Â Â Â Â Â  *ip;
-> > > > > Â Â Â Â Â Â  struct xfs_failure_infoÂ Â Â Â Â Â Â  *notify = data;
-> > > > > +Â Â Â  struct address_spaceÂ Â Â Â Â Â Â  *mapping;
-> > > > > +Â Â Â  pgoff_tÂ Â Â Â Â Â Â Â Â Â Â Â Â Â Â  pgoff;
-> > > > > +Â Â Â  unsigned longÂ Â Â Â Â Â Â Â Â Â Â  pgcnt;
-> > > > > Â Â Â Â Â Â  intÂ Â Â Â Â Â Â Â Â Â Â Â Â Â Â  error = 0;
-> > > > > Â Â Â Â Â Â  if (XFS_RMAP_NON_INODE_OWNER(rec->rm_owner) ||
-> > > > > Â Â Â Â Â Â Â Â Â Â  (rec->rm_flags & (XFS_RMAP_ATTR_FORK |
-> > > > > XFS_RMAP_BMBT_BLOCK))) {
-> > > > > +Â Â Â Â Â Â Â  /* Continue the query because this isn't a failure. */
-> > > > > +Â Â Â Â Â Â Â  if (notify->mf_flags & MF_MEM_PRE_REMOVE)
-> > > > > +Â Â Â Â Â Â Â Â Â Â Â  return 0;
-> > > > > Â Â Â Â Â Â Â Â Â Â  notify->want_shutdown = true;
-> > > > > Â Â Â Â Â Â Â Â Â Â  return 0;
-> > > > > Â Â Â Â Â Â  }
-> > > > > @@ -92,14 +99,55 @@ xfs_dax_failure_fn(
-> > > > > Â Â Â Â Â Â Â Â Â Â  return 0;
-> > > > > Â Â Â Â Â Â  }
-> > > > > -Â Â Â  error = mf_dax_kill_procs(VFS_I(ip)->i_mapping,
-> > > > > -Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â  xfs_failure_pgoff(mp, rec, notify),
-> > > > > -Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â  xfs_failure_pgcnt(mp, rec, notify),
-> > > > > -Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â  notify->mf_flags);
-> > > > > +Â Â Â  mapping = VFS_I(ip)->i_mapping;
-> > > > > +Â Â Â  pgoff = xfs_failure_pgoff(mp, rec, notify);
-> > > > > +Â Â Â  pgcnt = xfs_failure_pgcnt(mp, rec, notify);
-> > > > > +
-> > > > > +Â Â Â  /* Continue the rmap query if the inode isn't a dax file. */
-> > > > > +Â Â Â  if (dax_mapping(mapping))
-> > > > > +Â Â Â Â Â Â Â  error = mf_dax_kill_procs(mapping, pgoff, pgcnt,
-> > > > > +Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â  notify->mf_flags);
-> > > > > +
-> > > > > +Â Â Â  /* Invalidate the cache in dax pages. */
-> > > > > +Â Â Â  if (notify->mf_flags & MF_MEM_PRE_REMOVE)
-> > > > > +Â Â Â Â Â Â Â  invalidate_inode_pages2_range(mapping, pgoff,
-> > > > > +Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â  pgoff + pgcnt - 1);
-> > > > > +
-> > > > > Â Â Â Â Â Â  xfs_irele(ip);
-> > > > > Â Â Â Â Â Â  return error;
-> > > > > Â Â  }
-> > > > > +static void
-> > > > > +xfs_dax_notify_failure_freeze(
-> > > > > +Â Â Â  struct xfs_mountÂ Â Â  *mp)
-> > > > > +{
-> > > > > +Â Â Â  struct super_blockÂ Â Â Â  *sb = mp->m_super;
-> > > > > +
-> > > > > +Â Â Â  /* Wait until no one is holding the FREEZE_HOLDER_KERNEL. */
-> > > > > +Â Â Â  while (freeze_super(sb, FREEZE_HOLDER_KERNEL) != 0) {
-> > > > > +Â Â Â Â Â Â Â  // Shall we just wait, or print warning then return -EBUSY?
-> > > > > +Â Â Â Â Â Â Â  delay(HZ / 10);
-> > > > > +Â Â Â  }
-> > > > > +}
-> > > > > +
-> > > > > +static void
-> > > > > +xfs_dax_notify_failure_thaw(
-> > > > > +Â Â Â  struct xfs_mountÂ Â Â  *mp)
-> > > > > +{
-> > > > > +Â Â Â  struct super_blockÂ Â Â  *sb = mp->m_super;
-> > > > > +Â Â Â  intÂ Â Â Â Â Â Â Â Â Â Â  error;
-> > > > > +
-> > > > > +Â Â Â  error = thaw_super(sb, FREEZE_HOLDER_KERNEL);
-> > > > > +Â Â Â  if (error)
-> > > > > +Â Â Â Â Â Â Â  xfs_emerg(mp, "still frozen after notify failure, err=%d",
-> > > > > +Â Â Â Â Â Â Â Â Â Â Â Â Â  error);
-> > > > > +Â Â Â  /*
-> > > > > +Â Â Â Â  * Also thaw userspace call anyway because the device
-> > > > > is about to be
-> > > > > +Â Â Â Â  * removed immediately.
-> > > > > +Â Â Â Â  */
-> > > > > +Â Â Â  thaw_super(sb, FREEZE_HOLDER_USERSPACE);
-> > > > > +}
-> > > > > +
-> > > > > Â Â  static int
-> > > > > Â Â  xfs_dax_notify_ddev_failure(
-> > > > > Â Â Â Â Â Â  struct xfs_mountÂ Â Â  *mp,
-> > > > > @@ -120,7 +168,7 @@ xfs_dax_notify_ddev_failure(
-> > > > > Â Â Â Â Â Â  error = xfs_trans_alloc_empty(mp, &tp);
-> > > > > Â Â Â Â Â Â  if (error)
-> > > > > -Â Â Â Â Â Â Â  return error;
-> > > > > +Â Â Â Â Â Â Â  goto out;
-> > > > > Â Â Â Â Â Â  for (; agno <= end_agno; agno++) {
-> > > > > Â Â Â Â Â Â Â Â Â Â  struct xfs_rmap_irecÂ Â Â  ri_low = { };
-> > > > > @@ -165,11 +213,23 @@ xfs_dax_notify_ddev_failure(
-> > > > > Â Â Â Â Â Â  }
-> > > > > Â Â Â Â Â Â  xfs_trans_cancel(tp);
-> > > > > +
-> > > > > +Â Â Â  /*
-> > > > > +Â Â Â Â  * Determine how to shutdown the filesystem according to the
-> > > > > +Â Â Â Â  * error code and flags.
-> > > > > +Â Â Â Â  */
-> > > > > Â Â Â Â Â Â  if (error || notify.want_shutdown) {
-> > > > > Â Â Â Â Â Â Â Â Â Â  xfs_force_shutdown(mp, SHUTDOWN_CORRUPT_ONDISK);
-> > > > > Â Â Â Â Â Â Â Â Â Â  if (!error)
-> > > > > Â Â Â Â Â Â Â Â Â Â Â Â Â Â  error = -EFSCORRUPTED;
-> > > > > -Â Â Â  }
-> > > > > +Â Â Â  } else if (mf_flags & MF_MEM_PRE_REMOVE)
-> > > > > +Â Â Â Â Â Â Â  xfs_force_shutdown(mp, SHUTDOWN_FORCE_UMOUNT);
-> > > > > +
-> > > > > +out:
-> > > > > +Â Â Â  /* Thaw the fs if it is freezed before. */
-> > > > > +Â Â Â  if (mf_flags & MF_MEM_PRE_REMOVE)
-> > > > > +Â Â Â Â Â Â Â  xfs_dax_notify_failure_thaw(mp);
-> > > > > +
-> > > > > Â Â Â Â Â Â  return error;
-> > > > > Â Â  }
-> > > > > @@ -197,6 +257,8 @@ xfs_dax_notify_failure(
-> > > > > Â Â Â Â Â Â  if (mp->m_logdev_targp &&
-> > > > > mp->m_logdev_targp->bt_daxdev == dax_dev &&
-> > > > > Â Â Â Â Â Â Â Â Â Â  mp->m_logdev_targp != mp->m_ddev_targp) {
-> > > > > +Â Â Â Â Â Â Â  if (mf_flags & MF_MEM_PRE_REMOVE)
-> > > > > +Â Â Â Â Â Â Â Â Â Â Â  return 0;
-> > > > > Â Â Â Â Â Â Â Â Â Â  xfs_err(mp, "ondisk log corrupt, shutting down fs!");
-> > > > > Â Â Â Â Â Â Â Â Â Â  xfs_force_shutdown(mp, SHUTDOWN_CORRUPT_ONDISK);
-> > > > > Â Â Â Â Â Â Â Â Â Â  return -EFSCORRUPTED;
-> > > > > @@ -210,6 +272,12 @@ xfs_dax_notify_failure(
-> > > > > Â Â Â Â Â Â  ddev_start = mp->m_ddev_targp->bt_dax_part_off;
-> > > > > Â Â Â Â Â Â  ddev_end = ddev_start +
-> > > > > bdev_nr_bytes(mp->m_ddev_targp->bt_bdev) - 1;
-> > > > > +Â Â Â  /* Notify failure on the whole device. */
-> > > > > +Â Â Â  if (offset == 0 && len == U64_MAX) {
-> > > > > +Â Â Â Â Â Â Â  offset = ddev_start;
-> > > > > +Â Â Â Â Â Â Â  len = bdev_nr_bytes(mp->m_ddev_targp->bt_bdev);
-> > > > > +Â Â Â  }
-> > > > > +
-> > > > > Â Â Â Â Â Â  /* Ignore the range out of filesystem area */
-> > > > > Â Â Â Â Â Â  if (offset + len - 1 < ddev_start)
-> > > > > Â Â Â Â Â Â Â Â Â Â  return -ENXIO;
-> > > > > @@ -226,6 +294,12 @@ xfs_dax_notify_failure(
-> > > > > Â Â Â Â Â Â  if (offset + len - 1 > ddev_end)
-> > > > > Â Â Â Â Â Â Â Â Â Â  len = ddev_end - offset + 1;
-> > > > > +Â Â Â  if (mf_flags & MF_MEM_PRE_REMOVE) {
-> > > > > +Â Â Â Â Â Â Â  xfs_info(mp, "device is about to be removed!");
-> > > > > +Â Â Â Â Â Â Â  /* Freeze fs to prevent new mappings from being created. */
-> > > > > +Â Â Â Â Â Â Â  xfs_dax_notify_failure_freeze(mp);
-> > > > > +Â Â Â  }
-> > > > > +
-> > > > > Â Â Â Â Â Â  return xfs_dax_notify_ddev_failure(mp, BTOBB(offset),
-> > > > > BTOBB(len),
-> > > > > Â Â Â Â Â Â Â Â Â Â Â Â Â Â  mf_flags);
-> > > > > Â Â  }
-> > > > > diff --git a/include/linux/mm.h b/include/linux/mm.h
-> > > > > index 27ce77080c79..a80c255b88d2 100644
-> > > > > --- a/include/linux/mm.h
-> > > > > +++ b/include/linux/mm.h
-> > > > > @@ -3576,6 +3576,7 @@ enum mf_flags {
-> > > > > Â Â Â Â Â Â  MF_UNPOISON = 1 << 4,
-> > > > > Â Â Â Â Â Â  MF_SW_SIMULATED = 1 << 5,
-> > > > > Â Â Â Â Â Â  MF_NO_RETRY = 1 << 6,
-> > > > > +Â Â Â  MF_MEM_PRE_REMOVE = 1 << 7,
-> > > > > Â Â  };
-> > > > > Â Â  int mf_dax_kill_procs(struct address_space *mapping, pgoff_t index,
-> > > > > Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â  unsigned long count, int mf_flags);
-> > > > > diff --git a/mm/memory-failure.c b/mm/memory-failure.c
-> > > > > index 5b663eca1f29..483b75f2fcfb 100644
-> > > > > --- a/mm/memory-failure.c
-> > > > > +++ b/mm/memory-failure.c
-> > > > > @@ -688,7 +688,7 @@ static void add_to_kill_fsdax(struct
-> > > > > task_struct *tsk, struct page *p,
-> > > > > Â Â Â  */
-> > > > > Â Â  static void collect_procs_fsdax(struct page *page,
-> > > > > Â Â Â Â Â Â Â Â Â Â  struct address_space *mapping, pgoff_t pgoff,
-> > > > > -Â Â Â Â Â Â Â  struct list_head *to_kill)
-> > > > > +Â Â Â Â Â Â Â  struct list_head *to_kill, bool pre_remove)
-> > > > > Â Â  {
-> > > > > Â Â Â Â Â Â  struct vm_area_struct *vma;
-> > > > > Â Â Â Â Â Â  struct task_struct *tsk;
-> > > > > @@ -696,8 +696,15 @@ static void collect_procs_fsdax(struct page *page,
-> > > > > Â Â Â Â Â Â  i_mmap_lock_read(mapping);
-> > > > > Â Â Â Â Â Â  read_lock(&tasklist_lock);
-> > > > > Â Â Â Â Â Â  for_each_process(tsk) {
-> > > > > -Â Â Â Â Â Â Â  struct task_struct *t = task_early_kill(tsk, true);
-> > > > > +Â Â Â Â Â Â Â  struct task_struct *t = tsk;
-> > > > > +Â Â Â Â Â Â Â  /*
-> > > > > +Â Â Â Â Â Â Â Â  * Search for all tasks while MF_MEM_PRE_REMOVE, because the
-> > > > > +Â Â Â Â Â Â Â Â  * current may not be the one accessing the fsdax page.
-> > > > > +Â Â Â Â Â Â Â Â  * Otherwise, search for the current task.
-> > > > > +Â Â Â Â Â Â Â Â  */
-> > > > > +Â Â Â Â Â Â Â  if (!pre_remove)
-> > > > > +Â Â Â Â Â Â Â Â Â Â Â  t = task_early_kill(tsk, true);
-> > > > > Â Â Â Â Â Â Â Â Â Â  if (!t)
-> > > > > Â Â Â Â Â Â Â Â Â Â Â Â Â Â  continue;
-> > > > > Â Â Â Â Â Â Â Â Â Â  vma_interval_tree_foreach(vma, &mapping->i_mmap,
-> > > > > pgoff, pgoff) {
-> > > > > @@ -1793,6 +1800,7 @@ int mf_dax_kill_procs(struct
-> > > > > address_space *mapping, pgoff_t index,
-> > > > > Â Â Â Â Â Â  dax_entry_t cookie;
-> > > > > Â Â Â Â Â Â  struct page *page;
-> > > > > Â Â Â Â Â Â  size_t end = index + count;
-> > > > > +Â Â Â  bool pre_remove = mf_flags & MF_MEM_PRE_REMOVE;
-> > > > > Â Â Â Â Â Â  mf_flags |= MF_ACTION_REQUIRED | MF_MUST_KILL;
-> > > > > @@ -1804,9 +1812,10 @@ int mf_dax_kill_procs(struct
-> > > > > address_space *mapping, pgoff_t index,
-> > > > > Â Â Â Â Â Â Â Â Â Â  if (!page)
-> > > > > Â Â Â Â Â Â Â Â Â Â Â Â Â Â  goto unlock;
-> > > > > -Â Â Â Â Â Â Â  SetPageHWPoison(page);
-> > > > > +Â Â Â Â Â Â Â  if (!pre_remove)
-> > > > > +Â Â Â Â Â Â Â Â Â Â Â  SetPageHWPoison(page);
-> > > > > -Â Â Â Â Â Â Â  collect_procs_fsdax(page, mapping, index, &to_kill);
-> > > > > +Â Â Â Â Â Â Â  collect_procs_fsdax(page, mapping, index, &to_kill,
-> > > > > pre_remove);
-> > > > > Â Â Â Â Â Â Â Â Â Â  unmap_and_kill(&to_kill, page_to_pfn(page), mapping,
-> > > > > Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â Â  index, mf_flags);
-> > > > > Â Â  unlock:
+
+------0fR5D8yIpNNl77tk4nXhNCfTmNnUnmvpDlxfu2XVSHf_RJiV=_1e11a_
+Content-Type: text/plain; charset="utf-8"
+
+
+------0fR5D8yIpNNl77tk4nXhNCfTmNnUnmvpDlxfu2XVSHf_RJiV=_1e11a_--
