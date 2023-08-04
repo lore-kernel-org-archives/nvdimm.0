@@ -1,175 +1,193 @@
-Received: from mgamail.intel.com (mgamail.intel.com [134.134.136.65])
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73DA7263BD
-	for <nvdimm@lists.linux.dev>; Thu,  3 Aug 2023 22:29:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1691101755; x=1722637755;
-  h=from:to:cc:subject:date:message-id:content-id:
-   content-transfer-encoding:mime-version;
-  bh=w8KHfVrT9uaAv93Lx5zYufS6C3bjc2Ulivf89ZVJEio=;
-  b=nhe8zamI+zG/Gem7AtEpuDETmSIQ36tnaedyxS2ey9IJH2QJk5xDZ80Y
-   MlvZZdRKjvHzP01dJAt3+eLKTFMqEpCe0diHpiLZGSKIA4YkZQg2XtgVJ
-   UdLU0OhmO1H/QgcT94t+W3XTw9cz3uEmLcWQusieCKVUETIg/6hjw0Cnr
-   rbFyEU3S9oGBFuz1e0fsNU2PxUhNYNSB/YIi9atazE99572K2KY77fR+q
-   mwAryUtDBQcLVj452sPFxEvE6gNqwfpMO/0FqcmKfEk1GUCkzZzkCIpFX
-   0JiPWVGEt45AuSjV4rBN1u+ADVBXNZMzrow1jJfJ9qyHG3ZQg7NUppjsF
-   Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10791"; a="373648342"
-X-IronPort-AV: E=Sophos;i="6.01,253,1684825200"; 
-   d="scan'208";a="373648342"
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Aug 2023 15:29:14 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.01,202,1684825200"; 
-   d="scan'208";a="873115161"
-Received: from orsmsx603.amr.corp.intel.com ([10.22.229.16])
-  by fmsmga001.fm.intel.com with ESMTP; 03 Aug 2023 15:29:16 -0700
-Received: from orsmsx610.amr.corp.intel.com (10.22.229.23) by
- ORSMSX603.amr.corp.intel.com (10.22.229.16) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.27; Thu, 3 Aug 2023 15:29:14 -0700
-Received: from ORSEDG602.ED.cps.intel.com (10.7.248.7) by
- orsmsx610.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.27 via Frontend Transport; Thu, 3 Aug 2023 15:29:14 -0700
-Received: from NAM12-BN8-obe.outbound.protection.outlook.com (104.47.55.173)
- by edgegateway.intel.com (134.134.137.103) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.27; Thu, 3 Aug 2023 15:28:59 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=PuBlvD5C9gC7cC+SCcr26NI+7wvQK9bc4o2/Pb/szkskNn2MFqtDTJoNjKyFxjyQBGfDOR0TOWMXRvKId3zd3uvqlrI0v8hC28oPDTBq+OJykoF5OlCFyiUvIbBLi1fITzQagP5mkSDGCG/hR+z0rQUAkm/lOMsABftStANbKr98lcxdvCq8xGHNPjLq7Ix8iaW4vvCKdhGJ4dEer3XJU6VngOz0AoA9ljqDZyAaI0yujEymFhfYNJOC6oniqQedpe1LBrz94DBbyBPwVZaDOzQ0NaAHCikilsawJFK69QI4Az7b63En1VsKvLdg6E/pxRSg33gGCMajll//PThkkw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=w8KHfVrT9uaAv93Lx5zYufS6C3bjc2Ulivf89ZVJEio=;
- b=g1pe/g7L2nylYcsLIaRmHCg9IekY9IERJa1IpgCtNG8sfDGBTg8WsLWPxurfXI2cIqJA5ixGOK1d9R5DIM7kDskYPI0ojCtSX8MLQM5zgVDfHfOg4Ow/qli5F1QdyuXPP2J6zE5bRMlulgoj4udyi5MNAiZ0HyFaD8Xuj70FafAzKlp2dwDSpmsWGz+OQ/U9RI1zunetF8obVaVZQ4Vd5K3Tu3HnCozUS0fqL5VMvZV85NQJMrdwIY9UWoZos7ZKdLcFQRR+QyCqnZ7CF2XxQpw351vM7gqAk6I5KDvZX2cYGWv/ac+1RbHAW5R+daTAMrfWM+IpPp4YvwAy4CT7oQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Received: from MW4PR11MB7125.namprd11.prod.outlook.com (2603:10b6:303:219::12)
- by MN2PR11MB4726.namprd11.prod.outlook.com (2603:10b6:208:269::7) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6652.20; Thu, 3 Aug
- 2023 22:28:56 +0000
-Received: from MW4PR11MB7125.namprd11.prod.outlook.com
- ([fe80::cb1f:f744:409c:69b3]) by MW4PR11MB7125.namprd11.prod.outlook.com
- ([fe80::cb1f:f744:409c:69b3%4]) with mapi id 15.20.6631.046; Thu, 3 Aug 2023
- 22:28:56 +0000
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-To: "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
-	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>
-CC: "Williams, Dan J" <dan.j.williams@intel.com>
-Subject: [ANNOUNCE] ndctl v78
-Thread-Topic: [ANNOUNCE] ndctl v78
-Thread-Index: AQHZxlnjSgX1unggu0mdVvBgr9GyiQ==
-Date: Thu, 3 Aug 2023 22:28:56 +0000
-Message-ID: <8a83f1832c95e327a4695b607729102216a3e2f0.camel@intel.com>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-user-agent: Evolution 3.48.4 (3.48.4-1.fc38) 
-authentication-results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-x-ms-publictraffictype: Email
-x-ms-traffictypediagnostic: MW4PR11MB7125:EE_|MN2PR11MB4726:EE_
-x-ms-office365-filtering-correlation-id: e0f6df5a-da75-4a61-e07e-08db9471064b
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: bvv2Tqom8mI5t1xdpi5uYOE9x7LjxCYp32mkgoVat6AFyBCMQo4Gmg1LoTTm095uD0+LGAzpx4gBAe6XXcDd72qpSm6ywD2KjFn0xj5nLi+LRUD7n38QeBxPS9CbfiIQollzzQnua1p8m9WOP0y60RGBnn7yNRQDvfEUddXgQUAjDUoGW8JIYzPzeB2zt8WztXmaoTmv/57vhgYPkp+utR741WRkqLW1WwuUi4J1Hl8oHiEtXmZhy2v7WHue2c5wW180qmQgKP34yfp630mjbBoCTPDKos20vU0m975lloA/WdQnQ+1W2ky4djraLDa7HYGeUkIuVPOWxL/JyXicrbSsEZ71woqB87r1pCiIuYhFHTMO4kjj7w181UCb/X4cb10wrmehKazPDbJ/cfZrjhy/yfVX5E4SD5ykDSksYt33XUVVgF5IogkOoOGSCxcKnCVIoApb3GUKmsKOFHn7cTwczXgIR4lypTiyb9LIt2H4hrKm4bbQalIx9knix4otse9Sns/ypcXjeWS/aWBBgOT2dOK3Z7in00rO4QnmpF7+j9wOrN6pYnsZpvfTtLbz+q9OUpR5yRVCCdAmo/IAYAzLbK99U+E7iAw38SxtKaE=
-x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MW4PR11MB7125.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230028)(376002)(396003)(366004)(136003)(39860400002)(346002)(186006)(451199021)(38070700005)(86362001)(36756003)(478600001)(110136005)(38100700002)(122000001)(82960400001)(8676002)(107886003)(2616005)(83380400001)(26005)(6506007)(6512007)(41300700001)(8936002)(6486002)(966005)(71200400001)(2906002)(66556008)(316002)(76116006)(66476007)(66446008)(4326008)(5660300002)(66946007)(64756008);DIR:OUT;SFP:1102;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0: =?utf-8?B?MWRuZUY3NldFUVNSMGxBcC8xaEUweTV1THRSa1NHYmtoa3lvZ2NuTVhiclRu?=
- =?utf-8?B?Z1RjVVRwMlRycXZ1d1hTQ3h6Y0I3YmdtUzNDOVF2Vldtd3NCd1Z2dDErdXYw?=
- =?utf-8?B?cGEwdWJXL1docWVmY1dnZHN2dS9GOXNZc3hiMG10anNUemM2Y084UlpCb2R1?=
- =?utf-8?B?aWoxSXl1OUhZbW5zYnhxVGdyNU1oVFVVRkRiQmVNYjFid0o4c0NURmVzYWJ2?=
- =?utf-8?B?cmNESnphMG0zbDU3M1pmMWlxcGl0ak50OERCeU1NNFA0ckNZSWlHQzZaZDJi?=
- =?utf-8?B?NitTWnNCdUwyUnduaVN2THBsSk8yWGg5bi9KZzNpZWpqRXpuN3prWERoSHd0?=
- =?utf-8?B?U09OakRhQ3gvVFBIV3NIa2htU2xvUnBQajZwMERld1F3SVVMb0RtN0F6S0ZU?=
- =?utf-8?B?Ny82MWJ5TG9hUHVlZE9aYURVZ25sa0kwSUl3TnRJWUlzK05sV3A2U0dJeDVZ?=
- =?utf-8?B?Z0ZQeHc3UFhnODVPT1RYemJ2eFdvRjM5Wi9xQVdKdWpxdFhuTThOSjFYWVpR?=
- =?utf-8?B?aTI4ZDdRZm5EekRlZk1zeGF6d2RhNXd4d0pJVEd0dll0NzlQMDhmU1J2QTRv?=
- =?utf-8?B?dGc3Rk9qOXY5Vm1QL2hwYWlJZnBtV1VjdXFiaWVKZkhDNHZ1emxZWnBqSi9q?=
- =?utf-8?B?NFFhSXArVXNic3NRVFZxYTQ3OERxVk4yZVpTdGw2MFhTQUl3bTJmWUtUZ0hi?=
- =?utf-8?B?TUcvSndUVXRyR2tvY0dZOTlJVldXbGtqbXd2NlNWU3BwMkZmdEoyUnFycEY5?=
- =?utf-8?B?cjRZTHg1dTdiWmU0WUtVaFVWS2k1N0NzdFdZWUdZM1lQR21IZUVRNjhCTDVm?=
- =?utf-8?B?RDBxOG5yQkczMGNNUHNFb2NyVDFvNG5ON1hKcWNDREVNRE9FSGppNXlRcXZG?=
- =?utf-8?B?K1YvbkYwNG53VzhiVk5QdnJQNko1czBpdlJtbi9KZnpZMDg0RThLWWorRXM5?=
- =?utf-8?B?Y0JNczU4dk1aNFd4enl6V2RxenliaDY5OUJ2MDlndldFZzNpMXVaKzhoWEx4?=
- =?utf-8?B?Sm1leUhaR2Y0SEJyTHlDVjJvRFU4dzNXQVk4M01QL1A5enFSd2Z6eGZxb2tM?=
- =?utf-8?B?QVhuVHVITndPWWJQTjB5cGdob3hObDV4bFg1V3k5cmtkMWlQdnR2Z3Nrbmpp?=
- =?utf-8?B?VUNoOVBDZG5xKysvbTA2dUJWTCtWQ2RySk56bWNxMm1xVkZBemdhQTNmS0hu?=
- =?utf-8?B?YWptZ2QwY2JqQzVGVHhteit3RGw4SjdqNGJyWmFkQnluR2RDQ2lBZGIrRVR0?=
- =?utf-8?B?TDNkamprUUVETkhqRW1xYzlWcmtCRUJhaWc3UnlmcjJsa1ViNWZMdFYvcHZP?=
- =?utf-8?B?VEk1NU9PY0djTXg1Qmw4TGVhZ05wNXpQUCt6WEVrenYwTGNNQ2RXOVBFSEFI?=
- =?utf-8?B?cTlhNWVRN3l2WGpBMUFwdFpnaEYwNFJmUWs2RTlObGxWSmE2cGYxOXgxRkJK?=
- =?utf-8?B?NDlmakRrYWUwRXgrL3Bkb1hWczVoWG9kTlBpOG5wVEdReGZvRG9YRWZHZ0dp?=
- =?utf-8?B?NDIzQ2RZcW1Iay9WZEkrZUxyYmdXOFUxWXFiR05FZTNkRjB3bHJhbGdSRHR6?=
- =?utf-8?B?MW1DbTV0NmpmYTA0dWExNFdIaGxBS0hzTTRGM1lPOGUzUkpSdlF3Vjdmc01K?=
- =?utf-8?B?S3orRXpmbUVqYm9uR205KzI1S1VkbG05amE0SFl3MnhnRWFSWkJ6azBNK2F3?=
- =?utf-8?B?TkFCWWdQYUZZazFzcGRIbEdOYXJPdEVWZzNZemFyWTBZWGhkay9zMXhvNEJU?=
- =?utf-8?B?MzQwdjJKSlJyUFdhQnFqVTJSNFBTTXZaRHplQjlQb2lDM0tJNndhbFVrSnpP?=
- =?utf-8?B?R3pQVnJodi9BbzZ3U0NLb0lEV2EycWdSRGp0V1BVc2RRbHRhNmdGVTU0RHYr?=
- =?utf-8?B?V3FQNnVDZ0F1ZmMyNHZFcThPeDFGeWJDTER0c0lSMk1COTJJZXpHSlhjVWVX?=
- =?utf-8?B?UVBoK09kYkM0TVVPT3FVMGl1VkY5S1VzOHhJMWwvZXo5UXEvZFMxMzY4SHd1?=
- =?utf-8?B?YjErYnQ3R0c4ckZPKzFrMU83eU1iRDRyZmRtOGljYlVaUTFjQ25sYmRwYnY1?=
- =?utf-8?B?cXk5MTVRaW0vVFpxZU1UOEJmdk9aZTRMVjRxMEpJSUJvM212WEVDR2dxaDdu?=
- =?utf-8?B?WE40U1FSbHVZSVFicXlyemJQb3IwUG1tVHI0YmlQQmM5K0wrK0tBcUdjNUdu?=
- =?utf-8?B?NVE9PQ==?=
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <4AFF47D8327D9441BAC7D35AD9C8F02A@namprd11.prod.outlook.com>
-Content-Transfer-Encoding: base64
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 646C363DB
+	for <nvdimm@lists.linux.dev>; Fri,  4 Aug 2023 08:49:58 +0000 (UTC)
+Received: from pps.filterd (m0353724.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 3748iE6J009975;
+	Fri, 4 Aug 2023 08:49:50 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
+ : date : message-id : mime-version : content-transfer-encoding; s=pp1;
+ bh=HlGafgXUJC2jwpv5orX/Brl5hTY21bN7YrNFc+p866g=;
+ b=j3FHABhm0GzuS9MaPj7ZHh+WdFL026vQJuZWmNB1Z8eQWQcdxw3jYV2zFeCY7RLBVJ7g
+ YDXwE+/XNoAQIKdt1uppYSAlDjT06iRQal+VD9KcyJNdPe8LNgUqN2C/19HgP/Q16xSh
+ 1A9ShWABqv3KurixdVeHuhumPze4Jdd5y9km/LH2v4EbogyC2p+NmQXF6G8hEbOs/vhJ
+ 59ATSpFWMC0ZLKoVu6+3rbv6kn3aqfOsafjFEAB291NQdLyCRcELgWskcxiy0ExSZyQM
+ /f8BlDeMbqzyow/UsVqSNrZPZLZntEE1Q8DHlNp3Jfv8TrOMqA19/6aPMnCsjiHRfVMh Pw== 
+Received: from ppma22.wdc07v.mail.ibm.com (5c.69.3da9.ip4.static.sl-reverse.com [169.61.105.92])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3s8x3003te-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 04 Aug 2023 08:49:50 +0000
+Received: from pps.filterd (ppma22.wdc07v.mail.ibm.com [127.0.0.1])
+	by ppma22.wdc07v.mail.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 37474IfG027806;
+	Fri, 4 Aug 2023 08:49:49 GMT
+Received: from smtprelay02.wdc07v.mail.ibm.com ([172.16.1.69])
+	by ppma22.wdc07v.mail.ibm.com (PPS) with ESMTPS id 3s8kp2v4cx-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 04 Aug 2023 08:49:49 +0000
+Received: from smtpav01.dal12v.mail.ibm.com (smtpav01.dal12v.mail.ibm.com [10.241.53.100])
+	by smtprelay02.wdc07v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 3748nn3C66388284
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Fri, 4 Aug 2023 08:49:49 GMT
+Received: from smtpav01.dal12v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 0DEB858058;
+	Fri,  4 Aug 2023 08:49:49 +0000 (GMT)
+Received: from smtpav01.dal12v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 5CA5558057;
+	Fri,  4 Aug 2023 08:49:47 +0000 (GMT)
+Received: from skywalker.ibmuc.com (unknown [9.43.22.158])
+	by smtpav01.dal12v.mail.ibm.com (Postfix) with ESMTP;
+	Fri,  4 Aug 2023 08:49:47 +0000 (GMT)
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+To: nvdimm@lists.linux.dev, dan.j.williams@intel.com, vishal.l.verma@intel.com
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: [PATCH 1/2] nvdimm/pfn_dev: Prevent the creation of zero-sized namespaces
+Date: Fri,  4 Aug 2023 14:19:33 +0530
+Message-ID: <20230804084934.171056-1-aneesh.kumar@linux.ibm.com>
+X-Mailer: git-send-email 2.41.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: MW4PR11MB7125.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: e0f6df5a-da75-4a61-e07e-08db9471064b
-X-MS-Exchange-CrossTenant-originalarrivaltime: 03 Aug 2023 22:28:56.0387
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: 2VG9cCyJsmBlU1psDK8ttahQ1S9P75fIl6aMAObkguFCcSbm6U7pwpdgvNohbFEri+HVysx1fhJxUuDFSjTxufYxqW9RvkZNrDXx+A2nLyk=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN2PR11MB4726
-X-OriginatorOrg: intel.com
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-ORIG-GUID: qf7w948EoTvZCv9-A5wMLHW-TZUnHRCh
+X-Proofpoint-GUID: qf7w948EoTvZCv9-A5wMLHW-TZUnHRCh
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.267,Aquarius:18.0.957,Hydra:6.0.591,FMLib:17.11.176.26
+ definitions=2023-08-04_06,2023-08-03_01,2023-05-22_02
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxlogscore=999 mlxscore=0
+ suspectscore=0 clxscore=1015 impostorscore=0 priorityscore=1501
+ phishscore=0 spamscore=0 malwarescore=0 bulkscore=0 lowpriorityscore=0
+ adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2306200000 definitions=main-2308040075
 
-QSBuZXcgbmRjdGwgcmVsZWFzZSBpcyBhdmFpbGFibGVbMV0uDQoNClRoaXMgcmVsZWFzZSBpbmNv
-cnBvcmF0ZXMgZnVuY3Rpb25hbGl0eSB1cCB0byB0aGUgNi41IGtlcm5lbC4NCg0KSGlnaGxpZ2h0
-cyBpbmNsdWRlIGZpeGVzIHRvIGN4bC1tb25pdG9yIGFuZCBuZGN0bC1tb25pdG9yLCBhIG5ldw0K
-Y3hsLXVwZGF0ZS1maXJtd2FyZSBjb21tYW5kLCB2YXJpb3VzIGRvY3VtZW50YXRpb24gZml4ZXMs
-IGFuZCBhIG5ldyB1bml0DQp0ZXN0IGZvciBjeGwgZXZlbnRzLg0KDQpBIHNob3J0bG9nIGlzIGFw
-cGVuZGVkIGJlbG93Lg0KDQpbMV06IGh0dHBzOi8vZ2l0aHViLmNvbS9wbWVtL25kY3RsL3JlbGVh
-c2VzL3RhZy92NzgNCg0KLS0tDQoNCkRhdmlkbG9ociBCdWVzbyAoMSk6DQogICAgICBuZGN0bC9z
-ZWN1cml0eTogZml4IFRoZW9yeSBvZiBPcGVyYXRpb24gdHlwb3MNCg0KRG1pdHJ5IFYuIExldmlu
-ICgxKToNCiAgICAgIGRheGN0bDogZml4IHdhcm5pbmcgcmVwb3J0ZWQgYnkgdWRldmFkbSB2ZXJp
-ZnkNCg0KSXJhIFdlaW55ICgxKToNCiAgICAgIG5kY3RsL2N4bC90ZXN0OiBBZGQgQ1hMIGV2ZW50
-IHRlc3QNCg0KTGkgWmhpamlhbiAoOSk6DQogICAgICBycG1idWlsZC5zaDogQWJvcnQgc2NyaXB0
-IHdoZW4gYW4gZXJyb3Igb2NjdXJzDQogICAgICBtZXNvbi5idWlsZDogYWRkIGxpYnRyYWNlZnMg
-dmVyc2lvbiA+PTEuMi4wIGRlcGVuZGVuY3kNCiAgICAgIGN4bC9tb25pdG9yOiBFbmFibGUgZGVm
-YXVsdF9sb2cgYW5kIHJlZmFjdG9yIHNhbml0eSBjaGVja3MNCiAgICAgIGN4bC9tb25pdG9yOiBy
-ZXBsYWNlIG1vbml0b3IubG9nX2ZpbGUgd2l0aCBtb25pdG9yLmN0eC5sb2dfZmlsZQ0KICAgICAg
-bmRjdGw6IHVzZSBzdHJjbXAgZm9yIHJlc2VydmVkIHdvcmQgaW4gbW9uaXRvciBjb21tYW5kcw0K
-ICAgICAgRG9jdW1lbnRhdGlvbi9jeGwvY3hsLW1vbml0b3IudHh0OiBSZW1vdmUgbWVudGlvbiBv
-ZiBzeXNsb2cgb3V0cHV0DQogICAgICBDT05UUklCVVRJTkcubWQ6IEFkZCBub3RlIGFib3V0IHRo
-ZSBDWEwgbWFpbGluZyBsaXN0DQogICAgICBSRUFETUUubWQ6IGRvY3VtZW50IHNldHVwIHN0ZXBz
-IGZvciBDWEwgdW5pdCB0ZXN0cw0KICAgICAgY3hsL3JlZ2lvbjogRml4IG1lbWRldnMgbGVhayBp
-biBwYXJzZV9jcmVhdGVfb3B0aW9ucygpDQoNCk1pbndvbyBJbSAoMyk6DQogICAgICBjeGwvbGlz
-dDogRml4IHR5cG8gaW4gY3hsLWxpc3QgZG9jdW1lbnRhdGlvbg0KICAgICAgY3hsOiByZWdpb246
-IHJlbW92ZSByZWR1bmRhbnQgZnVuYyBuYW1lIGZyb20gZXJyb3INCiAgICAgIGN4bDogZml4IGNo
-YW5nZWQgZnVuY3Rpb24gbmFtZSBpbiBhIGNvbW1lbnQNCg0KVmlzaGFsIFZlcm1hICg2KToNCiAg
-ICAgIGN4bC9tZW1kZXYuYzogYWxsb3cgZmlsdGVyaW5nIG1lbWRldnMgYnkgYnVzDQogICAgICBj
-eGwvbGlzdDogcHJpbnQgZmlybXdhcmUgaW5mbyBpbiBtZW1kZXYgbGlzdGluZ3MNCiAgICAgIGN4
-bC9md19sb2FkZXI6IGFkZCBBUElzIHRvIGdldCBjdXJyZW50IHN0YXRlIG9mIHRoZSBGVyBsb2Fk
-ZXIgbWVjaGFuaXNtDQogICAgICBjeGw6IGFkZCBhbiB1cGRhdGUtZmlybXdhcmUgY29tbWFuZA0K
-ICAgICAgdGVzdC9jeGwtdXBkYXRlLWZpcm13YXJlOiBhZGQgYSB1bml0IHRlc3QgZm9yIGZpcm13
-YXJlIHVwZGF0ZQ0KICAgICAgY3hsL21lbWRldjogaW5pdGlhbGl6ZSAncmMnIGluIGFjdGlvbl91
-cGRhdGVfZncoKQ0KDQpZaSBaaGFuZyAoMik6DQogICAgICB0eXBvIGZpeDogb3Zld3JpdGUgLT4g
-b3ZlcndyaXRlDQogICAgICBSRUFETUUubWQ6IGFkZCB0aHJlZSBhZGRpdGlvbmFsIGNvbmZpZyB0
-byBjb25maWcgaXRlbSBsaXN0DQoNCg==
+On architectures that have different page size values used for kernel
+direct mapping and userspace mappings, the user can end up creating zero-sized
+namespaces as shown below
+
+:/sys/bus/nd/devices/region1# cat align
+0x1000000
+/sys/bus/nd/devices/region1# echo 0x200000 > align
+/sys/bus/nd/devices/region1/dax1.0# cat supported_alignments
+65536 16777216
+ $ ndctl create-namespace -r region1 -m devdax -s 18M --align 64K
+{
+  "dev":"namespace1.0",
+  "mode":"devdax",
+  "map":"dev",
+  "size":0,
+  "uuid":"3094329a-0c66-4905-847e-357223e56ab0",
+  "daxregion":{
+    "id":1,
+    "size":0,
+    "align":65536
+  },
+  "align":65536
+}
+similarily for fsdax
+
+ $ ndctl create-namespace -r region1 -m fsdax  -s 18M --align 64K
+{
+  "dev":"namespace1.0",
+  "mode":"fsdax",
+  "map":"dev",
+  "size":0,
+  "uuid":"45538a6f-dec7-405d-b1da-2a4075e06232",
+  "sector_size":512,
+  "align":65536,
+  "blockdev":"pmem1"
+}
+
+In commit 9ffc1d19fc4a ("mm/memremap_pages: Introduce memremap_compat_align()")
+memremap_compat_align was added to make sure the kernel always creates
+namespaces with 16MB alignment. But the user can still override the
+region alignment and no input validation is done in the region alignment
+values to retain the flexibility user had before. However, the kernel
+ensures that only part of the namespace that can be mapped via kernel
+direct mapping page size is enabled. This is achieved by tracking the
+unmapped part of the namespace in pfn_sb->end_trunc. The kernel also
+ensures that the start address of the namespace is also aligned to the
+kernel direct mapping page size.
+
+Depending on the user request, the kernel implements userspace mapping
+alignment by updating pfn device alignment attribute and this value is
+used to adjust the start address for userspace mappings. This is tracked
+in pfn_sb->dataoff. Hence the available size for userspace mapping is:
+
+usermapping_size = size of the namespace - pfn_sb->end_trun - pfn_sb->dataoff
+
+If the kernel finds the user mapping size zero then don't allow the
+creation of namespace.
+
+After fix:
+$ ndctl create-namespace -f  -r region1 -m devdax  -s 18M --align 64K
+libndctl: ndctl_dax_enable: dax1.1: failed to enable
+  Error: namespace1.2: failed to enable
+
+failed to create namespace: No such device or address
+
+And existing zero sized namespace will be marked disabled.
+root@ltczz75-lp2:/home/kvaneesh# ndctl  list -N -r region1 -i
+[
+  {
+    "dev":"namespace1.0",
+    "mode":"raw",
+    "size":18874368,
+    "uuid":"94a90fb0-8e78-4fb6-a759-ffc62f9fa181",
+    "sector_size":512,
+    "state":"disabled"
+  },
+
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+---
+ drivers/nvdimm/pfn_devs.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
+index af7d9301520c..36b904a129b9 100644
+--- a/drivers/nvdimm/pfn_devs.c
++++ b/drivers/nvdimm/pfn_devs.c
+@@ -453,7 +453,7 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
+ 	struct resource *res;
+ 	enum nd_pfn_mode mode;
+ 	struct nd_namespace_io *nsio;
+-	unsigned long align, start_pad;
++	unsigned long align, start_pad, end_trunc;
+ 	struct nd_pfn_sb *pfn_sb = nd_pfn->pfn_sb;
+ 	struct nd_namespace_common *ndns = nd_pfn->ndns;
+ 	const uuid_t *parent_uuid = nd_dev_to_uuid(&ndns->dev);
+@@ -503,6 +503,7 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
+ 	align = le32_to_cpu(pfn_sb->align);
+ 	offset = le64_to_cpu(pfn_sb->dataoff);
+ 	start_pad = le32_to_cpu(pfn_sb->start_pad);
++	end_trunc = le32_to_cpu(pfn_sb->end_trunc);
+ 	if (align == 0)
+ 		align = 1UL << ilog2(offset);
+ 	mode = le32_to_cpu(pfn_sb->mode);
+@@ -610,6 +611,10 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
+ 		return -EOPNOTSUPP;
+ 	}
+ 
++	if (offset >= (res->end - res->start + 1 - start_pad - end_trunc)) {
++		dev_err(&nd_pfn->dev, "bad offset with small namespace\n");
++		return -EOPNOTSUPP;
++	}
+ 	return 0;
+ }
+ EXPORT_SYMBOL(nd_pfn_validate);
+@@ -810,7 +815,8 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
+ 	else
+ 		return -ENXIO;
+ 
+-	if (offset >= size) {
++	if (offset >= (size - end_trunc)) {
++		/* This implies we result in zero size devices */
+ 		dev_err(&nd_pfn->dev, "%s unable to satisfy requested alignment\n",
+ 				dev_name(&ndns->dev));
+ 		return -ENXIO;
+-- 
+2.41.0
+
