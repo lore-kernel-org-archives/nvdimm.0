@@ -1,85 +1,139 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oo1-f50.google.com (mail-oo1-f50.google.com [209.85.161.50])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88D46BE7C
-	for <nvdimm@lists.linux.dev>; Fri,  4 Aug 2023 17:43:02 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1691170981;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=6sTBG1iJQbq6glME5UEqFb+bjYOVVGv3UBdEW6qJbyg=;
-	b=VNHiTpSKFGiJa6vprYSEtGSZ2H5uiZsLB7UY0RfaeQogn1Z1+UiG1shmgsQGIrDgbWhogz
-	oY4wEn5xhWJi4uV0Ek2brAqKyIglQ5WT0EV0tHCJc6f6ZTrw/33sny7Y3VAhLQhemYGukU
-	8+xsEwQxzeYzthnEwCoRBCESGd4/aNM=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-516-RFzVWL1KM36Hlb2n0K74kQ-1; Fri, 04 Aug 2023 13:43:00 -0400
-X-MC-Unique: RFzVWL1KM36Hlb2n0K74kQ-1
-Received: from smtp.corp.redhat.com (int-mx10.intmail.prod.int.rdu2.redhat.com [10.11.54.10])
-	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mimecast-mx02.redhat.com (Postfix) with ESMTPS id B570B88D542;
-	Fri,  4 Aug 2023 17:42:59 +0000 (UTC)
-Received: from segfault.boston.devel.redhat.com (segfault.boston.devel.redhat.com [10.19.60.26])
-	by smtp.corp.redhat.com (Postfix) with ESMTPS id 933DE4021CE;
-	Fri,  4 Aug 2023 17:42:59 +0000 (UTC)
-From: Jeff Moyer <jmoyer@redhat.com>
-To: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Cc: nvdimm@lists.linux.dev,  dan.j.williams@intel.com,  vishal.l.verma@intel.com
-Subject: Re: [PATCH 2/2] nvdimm/pfn_dev: Avoid unnecessary endian conversion
-References: <20230804084934.171056-1-aneesh.kumar@linux.ibm.com>
-	<20230804084934.171056-2-aneesh.kumar@linux.ibm.com>
-X-PGP-KeyID: 1F78E1B4
-X-PGP-CertKey: F6FE 280D 8293 F72C 65FD  5A58 1FF8 A7CA 1F78 E1B4
-Date: Fri, 04 Aug 2023 13:48:48 -0400
-In-Reply-To: <20230804084934.171056-2-aneesh.kumar@linux.ibm.com> (Aneesh
-	Kumar K. V.'s message of "Fri, 4 Aug 2023 14:19:34 +0530")
-Message-ID: <x497cqau29r.fsf@segfault.boston.devel.redhat.com>
-User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C567CA55
+	for <nvdimm@lists.linux.dev>; Fri,  4 Aug 2023 18:39:56 +0000 (UTC)
+Received: by mail-oo1-f50.google.com with SMTP id 006d021491bc7-55b85b94bb0so1444575eaf.0
+        for <nvdimm@lists.linux.dev>; Fri, 04 Aug 2023 11:39:56 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1691174395; x=1691779195;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=pdb4S4jUFam2YhjI6Vvc54gNq3pasG3XtD6ctU3NAjQ=;
+        b=I9VG2TN71UFCBaFTm9LK2L3jfysGIhtbcHeQeGMXQhKiCwA8vNMUZ9SDkSksNhDXJ+
+         LX4B7GQ+s0aK3kq9PWy7gyjkh0rZtHOQu30z6vmNzh+siHQIRY+IhDpgEDe2sEkBku7a
+         Js8NncabV7a5emcw4d9BZQ0igQSWdDxlB/Yny4EaC8R7ShhRZz/+e9RT33uExgguhpUp
+         GpjE8INpjgUlKGzyXTsN1HVMMI2DKNJtW1GT3ccO8G2eYim1o1FxDa1R0eKPYMOW3SNr
+         91tU8sDp1PtkKwmylBJ9ULtCt7T8vkXn02tSL1xLiGbSWW9dtMlG6pOuw9vcTOIrzMrX
+         2qmw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1691174395; x=1691779195;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=pdb4S4jUFam2YhjI6Vvc54gNq3pasG3XtD6ctU3NAjQ=;
+        b=ZxIt4PL2pLGIFk8DJNUcmwqVoAoMTb2l0W1ISsL/y+B0Z2rV8Zi4aVLt/C0D1LeK+l
+         aMf8vzD3yhgAKIyOMZFGK2iaVnH2/+KLOmQ61DWSkNpHOIVJexmKyoraZiXuI+rYFa6E
+         u9kguQp/uV1Ezl70957Xd97QZbHWWFeage/N3AJGf8DHjZ3RoyiOPdqhKjrvDplp9zds
+         Dj9YQIRBQvi3Y8GAQ5HQKYsMj+86JK78IJuPIDwUPz7CC6UtQAANapuGUbwK/S3pXg1C
+         DCZSi1Ou9O0Ew55KcEO0BRV2eFT9Chs7hYBecNhTiJJ4mJ5ZQFMlgWGIRk2xqAm//Iho
+         lWSw==
+X-Gm-Message-State: AOJu0Yy0nkCxAAKpwxBTo3HxMcf9/fRYeDny3ig47BwDiTBmAJjOicyZ
+	JcWvCrYpdpUZv5VHQiEd8nrjatA9lqoixSCA+B8=
+X-Google-Smtp-Source: AGHT+IFs0h5DxXct9osM1RKApWLE5ecrqHLo2TdX1nYTIkTpD4DVEulpSxL0E8JXXS0yK6ZEJUwW+q0wDKazTDwfQuQ=
+X-Received: by 2002:a05:6358:99a8:b0:139:5a46:ea7d with SMTP id
+ j40-20020a05635899a800b001395a46ea7dmr1260451rwb.7.1691174395225; Fri, 04 Aug
+ 2023 11:39:55 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 3.1 on 10.11.54.10
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: redhat.com
-Content-Type: text/plain
+References: <CAM9Jb+g5rrvmw8xCcwe3REK4x=RymrcqQ8cZavwWoWu7BH+8wA@mail.gmail.com>
+ <20230713135413.2946622-1-houtao@huaweicloud.com>
+In-Reply-To: <20230713135413.2946622-1-houtao@huaweicloud.com>
+From: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Date: Fri, 4 Aug 2023 20:39:43 +0200
+Message-ID: <CAM9Jb+jjg_By+A2F+HVBsHCMsVz1AEVWbBPtLTRTfOmtFao5hA@mail.gmail.com>
+Subject: Re: [PATCH v4] virtio_pmem: add the missing REQ_OP_WRITE for flush bio
+To: Hou Tao <houtao@huaweicloud.com>
+Cc: Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, 
+	Jens Axboe <axboe@kernel.dk>, Christoph Hellwig <hch@infradead.org>, Chaitanya Kulkarni <kch@nvidia.com>, 
+	linux-block@vger.kernel.org, nvdimm@lists.linux.dev, 
+	virtualization@lists.linux-foundation.org, houtao1@huawei.com, 
+	"Michael S . Tsirkin" <mst@redhat.com>, pankaj.gupta@amd.com
+Content-Type: text/plain; charset="UTF-8"
 
-"Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com> writes:
+Gentle ping!
 
-> use the local variable that already have the converted values.
+Dan, Vishal for suggestion/review on this patch and request for merging.
++Cc Michael for awareness, as virtio-pmem device is currently broken.
+
+Thanks,
+Pankaj
+
+> From: Hou Tao <houtao1@huawei.com>
 >
-> No functional change in this patch.
-> Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+> When doing mkfs.xfs on a pmem device, the following warning was
+> reported:
+>
+>  ------------[ cut here ]------------
+>  WARNING: CPU: 2 PID: 384 at block/blk-core.c:751 submit_bio_noacct
+>  Modules linked in:
+>  CPU: 2 PID: 384 Comm: mkfs.xfs Not tainted 6.4.0-rc7+ #154
+>  Hardware name: QEMU Standard PC (i440FX + PIIX, 1996)
+>  RIP: 0010:submit_bio_noacct+0x340/0x520
+>  ......
+>  Call Trace:
+>   <TASK>
+>   ? submit_bio_noacct+0xd5/0x520
+>   submit_bio+0x37/0x60
+>   async_pmem_flush+0x79/0xa0
+>   nvdimm_flush+0x17/0x40
+>   pmem_submit_bio+0x370/0x390
+>   __submit_bio+0xbc/0x190
+>   submit_bio_noacct_nocheck+0x14d/0x370
+>   submit_bio_noacct+0x1ef/0x520
+>   submit_bio+0x55/0x60
+>   submit_bio_wait+0x5a/0xc0
+>   blkdev_issue_flush+0x44/0x60
+>
+> The root cause is that submit_bio_noacct() needs bio_op() is either
+> WRITE or ZONE_APPEND for flush bio and async_pmem_flush() doesn't assign
+> REQ_OP_WRITE when allocating flush bio, so submit_bio_noacct just fail
+> the flush bio.
+>
+> Simply fix it by adding the missing REQ_OP_WRITE for flush bio. And we
+> could fix the flush order issue and do flush optimization later.
+>
+> Cc: stable@vger.kernel.org # 6.3+
+> Fixes: b4a6bb3a67aa ("block: add a sanity check for non-write flush/fua bios")
+> Reviewed-by: Christoph Hellwig <hch@lst.de>
+> Reviewed-by: Chaitanya Kulkarni <kch@nvidia.com>
+> Reviewed-by: Pankaj Gupta <pankaj.gupta@amd.com>
+> Tested-by: Pankaj Gupta <pankaj.gupta@amd.com>
+> Signed-off-by: Hou Tao <houtao1@huawei.com>
 > ---
->  drivers/nvdimm/pfn_devs.c | 6 ++----
->  1 file changed, 2 insertions(+), 4 deletions(-)
+> v4:
+>  * add stable Cc
+>  * collect Rvb and Tested-by tags
 >
-> diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
-> index 36b904a129b9..8b7342517895 100644
-> --- a/drivers/nvdimm/pfn_devs.c
-> +++ b/drivers/nvdimm/pfn_devs.c
-> @@ -599,14 +599,12 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
->  		return -EOPNOTSUPP;
->  	}
->  
-> -	if (!IS_ALIGNED(res->start + le32_to_cpu(pfn_sb->start_pad),
-> -				memremap_compat_align())) {
-> +	if (!IS_ALIGNED(res->start + start_pad, memremap_compat_align())) {
->  		dev_err(&nd_pfn->dev, "resource start misaligned\n");
->  		return -EOPNOTSUPP;
->  	}
->  
-> -	if (!IS_ALIGNED(res->end + 1 - le32_to_cpu(pfn_sb->end_trunc),
-> -				memremap_compat_align())) {
-> +	if (!IS_ALIGNED(res->end + 1 - end_trunc, memremap_compat_align())) {
->  		dev_err(&nd_pfn->dev, "resource end misaligned\n");
->  		return -EOPNOTSUPP;
->  	}
-
-Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
-
+> v3: https://lore.kernel.org/linux-block/20230625022633.2753877-1-houtao@huaweicloud.com
+>  * adjust the overly long lines in both commit message and code
+>
+> v2: https://lore.kernel.org/linux-block/20230621134340.878461-1-houtao@huaweicloud.com
+>  * do a minimal fix first (Suggested by Christoph)
+>
+> v1: https://lore.kernel.org/linux-block/ZJLpYMC8FgtZ0k2k@infradead.org/T/#t
+>
+>  drivers/nvdimm/nd_virtio.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/nvdimm/nd_virtio.c b/drivers/nvdimm/nd_virtio.c
+> index c6a648fd8744..1f8c667c6f1e 100644
+> --- a/drivers/nvdimm/nd_virtio.c
+> +++ b/drivers/nvdimm/nd_virtio.c
+> @@ -105,7 +105,8 @@ int async_pmem_flush(struct nd_region *nd_region, struct bio *bio)
+>          * parent bio. Otherwise directly call nd_region flush.
+>          */
+>         if (bio && bio->bi_iter.bi_sector != -1) {
+> -               struct bio *child = bio_alloc(bio->bi_bdev, 0, REQ_PREFLUSH,
+> +               struct bio *child = bio_alloc(bio->bi_bdev, 0,
+> +                                             REQ_OP_WRITE | REQ_PREFLUSH,
+>                                               GFP_ATOMIC);
+>
+>                 if (!child)
+> --
+> 2.29.2
+>
