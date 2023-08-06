@@ -1,239 +1,178 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 967F0A920
-	for <nvdimm@lists.linux.dev>; Sat,  5 Aug 2023 10:58:05 +0000 (UTC)
-Received: from pps.filterd (m0360083.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 375Aop6S023542;
-	Sat, 5 Aug 2023 10:57:58 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : date :
- mime-version : subject : to : cc : references : from : in-reply-to :
- content-type : content-transfer-encoding; s=pp1;
- bh=WEKj0J25C7s64pNt0TPYGUvhYDI8HHD3UegrQrjxbks=;
- b=qbzE4ZWg19trFNq+RJoxnIEYZxXgC4AwQaUn1mtmkr7h1QeJ51RSP6jEyXUwgrvinj30
- GNeNzMSX1SPp+FuS9MSomXivNEc3x8H35cPwn043DpTMY/Ve9bNwggd+qy9B2EzSpfis
- iGdJtJtxtYzswD+aMB7pFS1bxITVbkVbQBxxCKIk/MJFkXaZAABHfnvmv7rkqJ9X9xsm
- Tkcm7gTDwA23OdHDZtyrC7Z7QAv1Jur77unZawlRlkhpy073V5eYvtD7OTBHO4nBRsMc
- kvCD/dG7NQb4If4IuI6SCmuKE+OSRFhzew0sPqWuRVt8lt5KzM7STo2gIThBBOhCPHd9 bg== 
-Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3s9mqug9m6-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Sat, 05 Aug 2023 10:57:58 +0000
-Received: from m0360083.ppops.net (m0360083.ppops.net [127.0.0.1])
-	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 375AvvES011088;
-	Sat, 5 Aug 2023 10:57:57 GMT
-Received: from ppma22.wdc07v.mail.ibm.com (5c.69.3da9.ip4.static.sl-reverse.com [169.61.105.92])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3s9mqug9kx-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Sat, 05 Aug 2023 10:57:57 +0000
-Received: from pps.filterd (ppma22.wdc07v.mail.ibm.com [127.0.0.1])
-	by ppma22.wdc07v.mail.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 3759dbru027809;
-	Sat, 5 Aug 2023 10:57:56 GMT
-Received: from smtprelay04.fra02v.mail.ibm.com ([9.218.2.228])
-	by ppma22.wdc07v.mail.ibm.com (PPS) with ESMTPS id 3s8kp35k6d-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Sat, 05 Aug 2023 10:57:56 +0000
-Received: from smtpav01.fra02v.mail.ibm.com (smtpav01.fra02v.mail.ibm.com [10.20.54.100])
-	by smtprelay04.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 375Avs8a37618016
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Sat, 5 Aug 2023 10:57:54 GMT
-Received: from smtpav01.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 573CB20043;
-	Sat,  5 Aug 2023 10:57:54 +0000 (GMT)
-Received: from smtpav01.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 71C8B20040;
-	Sat,  5 Aug 2023 10:57:53 +0000 (GMT)
-Received: from [9.43.27.99] (unknown [9.43.27.99])
-	by smtpav01.fra02v.mail.ibm.com (Postfix) with ESMTP;
-	Sat,  5 Aug 2023 10:57:53 +0000 (GMT)
-Message-ID: <51a193f7-f7cb-fc65-1761-1551ecc67159@linux.ibm.com>
-Date: Sat, 5 Aug 2023 16:27:52 +0530
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFE6C28EF
+	for <nvdimm@lists.linux.dev>; Sun,  6 Aug 2023 15:17:48 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1691335067;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=jmKB9tnmoSW66PnBBOCrXWK1ePidGDAnxGSMu5crApw=;
+	b=dCwIKOi6roPJxSqUcHVHuUTE77CRU9R1fQI4zHN/SGnyaBOvdYFuenlZMOER3+UChPjH19
+	HbhlaHxTM57sii206bphuyHZfA1zHJRUrCdwAy6PvjzT1fpUU9HC/iCXoZWqgY0ux/7KIF
+	WI/xsg8qHc4a3zWDR8wcAn6pQuXHLpQ=
+Received: from mail-ej1-f69.google.com (mail-ej1-f69.google.com
+ [209.85.218.69]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-241-wh9xSlCHMOGhWIYVS99XAA-1; Sun, 06 Aug 2023 11:17:46 -0400
+X-MC-Unique: wh9xSlCHMOGhWIYVS99XAA-1
+Received: by mail-ej1-f69.google.com with SMTP id a640c23a62f3a-94a34d3e5ebso241920066b.3
+        for <nvdimm@lists.linux.dev>; Sun, 06 Aug 2023 08:17:45 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1691335065; x=1691939865;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=jmKB9tnmoSW66PnBBOCrXWK1ePidGDAnxGSMu5crApw=;
+        b=hKXH0Lv6e8vGeyGujz8p7pS9QF/C6IgENPEOXVJFgD6cRr+l1ECraDuATaNZBQU+jZ
+         1Fogl2+YFQ3qteGDDUN1sMVWfAQIIyRIPFWznItVUJEWH82nAnNdaI+nSFYaTclyMqFb
+         Ae4wcjhn1VnK6KtgtwgtKDfgXNwYnHm1HozQPmdm6EnnuNRZNqQXnUy+XJ+WkD8a979k
+         Dl9dEAu+GPS5GehX5YYCu0marQzsnlVjHkD7bRbnnCOK8cg3q5jzXWwlW81O1h6Jl6OR
+         kILw4dIdtu6uRY7uWC5H78U7Ipp2F0xB6fK2QAj93tcWHAZkIJBMQmR7YdstLdIErOiI
+         QOwQ==
+X-Gm-Message-State: AOJu0YwNh0y+i6kxLSStzPaA6tDLApRkkCDuKzF1XVHmgG0eB0RWRn7y
+	ePqNX4HV16gbfMsA3zAghylxd1My8a/MdF9x7RzsRltJvBY2JX+lYl9qovJ5VMCLYW9zWUt4dFQ
+	Z6Mcv+pV6vqqQwMGj
+X-Received: by 2002:a17:907:2bca:b0:97d:2bcc:47d5 with SMTP id gv10-20020a1709072bca00b0097d2bcc47d5mr6414187ejc.49.1691335064956;
+        Sun, 06 Aug 2023 08:17:44 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IGtapW82Hb1Zd8BBSQHwutyuDtCwq2yQg3/1rQjZzPMqZ9Z/8LbFdyhFBBVmpsYlocZxyvMvg==
+X-Received: by 2002:a17:907:2bca:b0:97d:2bcc:47d5 with SMTP id gv10-20020a1709072bca00b0097d2bcc47d5mr6414173ejc.49.1691335064609;
+        Sun, 06 Aug 2023 08:17:44 -0700 (PDT)
+Received: from redhat.com ([91.242.248.114])
+        by smtp.gmail.com with ESMTPSA id bj10-20020a170906b04a00b0099bd6026f45sm4018477ejb.198.2023.08.06.08.10.24
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 06 Aug 2023 08:17:43 -0700 (PDT)
+Date: Sun, 6 Aug 2023 11:10:22 -0400
+From: "Michael S. Tsirkin" <mst@redhat.com>
+To: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Cc: "Jiang, Dave" <dave.jiang@intel.com>,
+	"pankaj.gupta.linux@gmail.com" <pankaj.gupta.linux@gmail.com>,
+	"houtao@huaweicloud.com" <houtao@huaweicloud.com>,
+	"houtao1@huawei.com" <houtao1@huawei.com>,
+	"virtualization@lists.linux-foundation.org" <virtualization@lists.linux-foundation.org>,
+	"hch@infradead.org" <hch@infradead.org>,
+	"Williams, Dan J" <dan.j.williams@intel.com>,
+	"axboe@kernel.dk" <axboe@kernel.dk>,
+	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
+	"linux-block@vger.kernel.org" <linux-block@vger.kernel.org>,
+	"pankaj.gupta@amd.com" <pankaj.gupta@amd.com>,
+	"kch@nvidia.com" <kch@nvidia.com>
+Subject: Re: [PATCH v4] virtio_pmem: add the missing REQ_OP_WRITE for flush
+ bio
+Message-ID: <20230806110854-mutt-send-email-mst@kernel.org>
+References: <CAM9Jb+g5rrvmw8xCcwe3REK4x=RymrcqQ8cZavwWoWu7BH+8wA@mail.gmail.com>
+ <20230713135413.2946622-1-houtao@huaweicloud.com>
+ <CAM9Jb+jjg_By+A2F+HVBsHCMsVz1AEVWbBPtLTRTfOmtFao5hA@mail.gmail.com>
+ <47f9753353d07e3beb60b6254632d740682376f9.camel@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.13.0
-Subject: Re: [PATCH 1/2] nvdimm/pfn_dev: Prevent the creation of zero-sized
- namespaces
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: nvdimm@lists.linux.dev, dan.j.williams@intel.com, vishal.l.verma@intel.com
-References: <20230804084934.171056-1-aneesh.kumar@linux.ibm.com>
- <x49bkfmu2a4.fsf@segfault.boston.devel.redhat.com>
-Content-Language: en-US
-From: Aneesh Kumar K V <aneesh.kumar@linux.ibm.com>
-In-Reply-To: <x49bkfmu2a4.fsf@segfault.boston.devel.redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: 1lpy-grkQkynUrjAghzysVE6znNhMFiW
-X-Proofpoint-ORIG-GUID: Uc6xLgeS1TI6dA0iaFsvAZZsZGZS5fZ2
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.267,Aquarius:18.0.957,Hydra:6.0.591,FMLib:17.11.176.26
- definitions=2023-08-05_09,2023-08-03_01,2023-05-22_02
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 clxscore=1015
- priorityscore=1501 suspectscore=0 malwarescore=0 mlxscore=0
- lowpriorityscore=0 impostorscore=0 bulkscore=0 spamscore=0 mlxlogscore=999
- phishscore=0 adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2306200000 definitions=main-2308050099
+In-Reply-To: <47f9753353d07e3beb60b6254632d740682376f9.camel@intel.com>
+X-Mimecast-Spam-Score: 0
+X-Mimecast-Originator: redhat.com
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 
-On 8/4/23 11:18 PM, Jeff Moyer wrote:
-> Hi, Aneesh,
+On Fri, Aug 04, 2023 at 09:03:20PM +0000, Verma, Vishal L wrote:
+> On Fri, 2023-08-04 at 20:39 +0200, Pankaj Gupta wrote:
+> > Gentle ping!
+> > 
+> > Dan, Vishal for suggestion/review on this patch and request for merging.
+> > +Cc Michael for awareness, as virtio-pmem device is currently broken.
 > 
-> "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com> writes:
+> Looks good to me,
 > 
->> On architectures that have different page size values used for kernel
->> direct mapping and userspace mappings, the user can end up creating zero-sized
->> namespaces as shown below
->>
->> :/sys/bus/nd/devices/region1# cat align
->> 0x1000000
->> /sys/bus/nd/devices/region1# echo 0x200000 > align
->> /sys/bus/nd/devices/region1/dax1.0# cat supported_alignments
->> 65536 16777216
->>  $ ndctl create-namespace -r region1 -m devdax -s 18M --align 64K
->> {
->>   "dev":"namespace1.0",
->>   "mode":"devdax",
->>   "map":"dev",
->>   "size":0,
->>   "uuid":"3094329a-0c66-4905-847e-357223e56ab0",
->>   "daxregion":{
->>     "id":1,
->>     "size":0,
->>     "align":65536
->>   },
->>   "align":65536
->> }
->> similarily for fsdax
->>
->>  $ ndctl create-namespace -r region1 -m fsdax  -s 18M --align 64K
->> {
->>   "dev":"namespace1.0",
->>   "mode":"fsdax",
->>   "map":"dev",
->>   "size":0,
->>   "uuid":"45538a6f-dec7-405d-b1da-2a4075e06232",
->>   "sector_size":512,
->>   "align":65536,
->>   "blockdev":"pmem1"
->> }
+> Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
 > 
-> Just curious, but have you seen this in practice?  It seems like an odd
-> thing to do.
-> 
-
-This was identified while writing new test cases for region alignment update.
+> Dave, will you queue this for 6.6.
 
 
->> In commit 9ffc1d19fc4a ("mm/memremap_pages: Introduce memremap_compat_align()")
->> memremap_compat_align was added to make sure the kernel always creates
->> namespaces with 16MB alignment. But the user can still override the
->> region alignment and no input validation is done in the region alignment
->> values to retain the flexibility user had before. However, the kernel
->> ensures that only part of the namespace that can be mapped via kernel
->> direct mapping page size is enabled. This is achieved by tracking the
->> unmapped part of the namespace in pfn_sb->end_trunc. The kernel also
->> ensures that the start address of the namespace is also aligned to the
->> kernel direct mapping page size.
->>
->> Depending on the user request, the kernel implements userspace mapping
->> alignment by updating pfn device alignment attribute and this value is
->> used to adjust the start address for userspace mappings. This is tracked
->> in pfn_sb->dataoff. Hence the available size for userspace mapping is:
->>
->> usermapping_size = size of the namespace - pfn_sb->end_trun - pfn_sb->dataoff
->>
->> If the kernel finds the user mapping size zero then don't allow the
->> creation of namespace.
->>
->> After fix:
->> $ ndctl create-namespace -f  -r region1 -m devdax  -s 18M --align 64K
->> libndctl: ndctl_dax_enable: dax1.1: failed to enable
->>   Error: namespace1.2: failed to enable
->>
->> failed to create namespace: No such device or address
->>
->> And existing zero sized namespace will be marked disabled.
->> root@ltczz75-lp2:/home/kvaneesh# ndctl  list -N -r region1 -i
->> [
->>   {
->>     "dev":"namespace1.0",
->>     "mode":"raw",
->>     "size":18874368,
->>     "uuid":"94a90fb0-8e78-4fb6-a759-ffc62f9fa181",
->>     "sector_size":512,
->>     "state":"disabled"
->>   },
-> 
-> Thank you for providing examples of the command output before and after
-> the change.  I appreciate that.
-> 
->>
->> Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
->> ---
->>  drivers/nvdimm/pfn_devs.c | 10 ++++++++--
->>  1 file changed, 8 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
->> index af7d9301520c..36b904a129b9 100644
->> --- a/drivers/nvdimm/pfn_devs.c
->> +++ b/drivers/nvdimm/pfn_devs.c
->> @@ -453,7 +453,7 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
->>  	struct resource *res;
->>  	enum nd_pfn_mode mode;
->>  	struct nd_namespace_io *nsio;
->> -	unsigned long align, start_pad;
->> +	unsigned long align, start_pad, end_trunc;
->>  	struct nd_pfn_sb *pfn_sb = nd_pfn->pfn_sb;
->>  	struct nd_namespace_common *ndns = nd_pfn->ndns;
->>  	const uuid_t *parent_uuid = nd_dev_to_uuid(&ndns->dev);
->> @@ -503,6 +503,7 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
->>  	align = le32_to_cpu(pfn_sb->align);
->>  	offset = le64_to_cpu(pfn_sb->dataoff);
->>  	start_pad = le32_to_cpu(pfn_sb->start_pad);
->> +	end_trunc = le32_to_cpu(pfn_sb->end_trunc);
->>  	if (align == 0)
->>  		align = 1UL << ilog2(offset);
->>  	mode = le32_to_cpu(pfn_sb->mode);
->> @@ -610,6 +611,10 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
->>  		return -EOPNOTSUPP;
->>  	}
->>  
->> +	if (offset >= (res->end - res->start + 1 - start_pad - end_trunc)) {
->                        ^^^^^^^^^^^^^^^^^^^^^^^^^ That's what
-> resource_size(res) does.  It might be better to create a local variable
-> 'size' to hold that, as there are now two instances of that in the
-> function.
+Generally if you expect me to merge a patch I should be CC'd.
 
 
-Will update. 
+> > 
+> > Thanks,
+> > Pankaj
+> > 
+> > > From: Hou Tao <houtao1@huawei.com>
+> > > 
+> > > When doing mkfs.xfs on a pmem device, the following warning was
+> > > reported:
+> > > 
+> > >  ------------[ cut here ]------------
+> > >  WARNING: CPU: 2 PID: 384 at block/blk-core.c:751 submit_bio_noacct
+> > >  Modules linked in:
+> > >  CPU: 2 PID: 384 Comm: mkfs.xfs Not tainted 6.4.0-rc7+ #154
+> > >  Hardware name: QEMU Standard PC (i440FX + PIIX, 1996)
+> > >  RIP: 0010:submit_bio_noacct+0x340/0x520
+> > >  ......
+> > >  Call Trace:
+> > >   <TASK>
+> > >   ? submit_bio_noacct+0xd5/0x520
+> > >   submit_bio+0x37/0x60
+> > >   async_pmem_flush+0x79/0xa0
+> > >   nvdimm_flush+0x17/0x40
+> > >   pmem_submit_bio+0x370/0x390
+> > >   __submit_bio+0xbc/0x190
+> > >   submit_bio_noacct_nocheck+0x14d/0x370
+> > >   submit_bio_noacct+0x1ef/0x520
+> > >   submit_bio+0x55/0x60
+> > >   submit_bio_wait+0x5a/0xc0
+> > >   blkdev_issue_flush+0x44/0x60
+> > > 
+> > > The root cause is that submit_bio_noacct() needs bio_op() is either
+> > > WRITE or ZONE_APPEND for flush bio and async_pmem_flush() doesn't assign
+> > > REQ_OP_WRITE when allocating flush bio, so submit_bio_noacct just fail
+> > > the flush bio.
+> > > 
+> > > Simply fix it by adding the missing REQ_OP_WRITE for flush bio. And we
+> > > could fix the flush order issue and do flush optimization later.
+> > > 
+> > > Cc: stable@vger.kernel.org # 6.3+
+> > > Fixes: b4a6bb3a67aa ("block: add a sanity check for non-write flush/fua bios")
+> > > Reviewed-by: Christoph Hellwig <hch@lst.de>
+> > > Reviewed-by: Chaitanya Kulkarni <kch@nvidia.com>
+> > > Reviewed-by: Pankaj Gupta <pankaj.gupta@amd.com>
+> > > Tested-by: Pankaj Gupta <pankaj.gupta@amd.com>
+> > > Signed-off-by: Hou Tao <houtao1@huawei.com>
+> > > ---
+> > > v4:
+> > >  * add stable Cc
+> > >  * collect Rvb and Tested-by tags
+> > > 
+> > > v3: https://lore.kernel.org/linux-block/20230625022633.2753877-1-houtao@huaweicloud.com
+> > >  * adjust the overly long lines in both commit message and code
+> > > 
+> > > v2: https://lore.kernel.org/linux-block/20230621134340.878461-1-houtao@huaweicloud.com
+> > >  * do a minimal fix first (Suggested by Christoph)
+> > > 
+> > > v1: https://lore.kernel.org/linux-block/ZJLpYMC8FgtZ0k2k@infradead.org/T/#t
+> > > 
+> > >  drivers/nvdimm/nd_virtio.c | 3 ++-
+> > >  1 file changed, 2 insertions(+), 1 deletion(-)
+> > > 
+> > > diff --git a/drivers/nvdimm/nd_virtio.c b/drivers/nvdimm/nd_virtio.c
+> > > index c6a648fd8744..1f8c667c6f1e 100644
+> > > --- a/drivers/nvdimm/nd_virtio.c
+> > > +++ b/drivers/nvdimm/nd_virtio.c
+> > > @@ -105,7 +105,8 @@ int async_pmem_flush(struct nd_region *nd_region, struct bio *bio)
+> > >          * parent bio. Otherwise directly call nd_region flush.
+> > >          */
+> > >         if (bio && bio->bi_iter.bi_sector != -1) {
+> > > -               struct bio *child = bio_alloc(bio->bi_bdev, 0, REQ_PREFLUSH,
+> > > +               struct bio *child = bio_alloc(bio->bi_bdev, 0,
+> > > +                                             REQ_OP_WRITE | REQ_PREFLUSH,
+> > >                                               GFP_ATOMIC);
+> > > 
+> > >                 if (!child)
+> > > --
+> > > 2.29.2
+> > > 
+> 
 
-> 
->> +		dev_err(&nd_pfn->dev, "bad offset with small namespace\n");
->> +		return -EOPNOTSUPP;
->> +	}
->>  	return 0;
->>  }
->>  EXPORT_SYMBOL(nd_pfn_validate);
->> @@ -810,7 +815,8 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
->>  	else
->>  		return -ENXIO;
->>  
->> -	if (offset >= size) {
->> +	if (offset >= (size - end_trunc)) {
->> +		/* This implies we result in zero size devices */
->>  		dev_err(&nd_pfn->dev, "%s unable to satisfy requested alignment\n",
->>  				dev_name(&ndns->dev));
->>  		return -ENXIO;
-> 
-> Functionally, this looks good to me.
-> 
-> Cheers,
-> Jeff
-> 
-
-Thanks for reviewing the patch.
--aneesh
