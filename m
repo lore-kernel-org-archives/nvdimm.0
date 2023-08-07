@@ -1,224 +1,79 @@
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yw1-f173.google.com (mail-yw1-f173.google.com [209.85.128.173])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2AD9F11CB4
-	for <nvdimm@lists.linux.dev>; Mon,  7 Aug 2023 16:55:50 +0000 (UTC)
-Received: from lhrpeml500005.china.huawei.com (unknown [172.18.147.226])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4RKMlH5c02z6HJf6;
-	Tue,  8 Aug 2023 00:50:51 +0800 (CST)
-Received: from localhost (10.202.227.76) by lhrpeml500005.china.huawei.com
- (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.27; Mon, 7 Aug
- 2023 17:55:47 +0100
-Date: Mon, 7 Aug 2023 17:55:46 +0100
-From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-To: Huang Ying <ying.huang@intel.com>
-CC: Andrew Morton <akpm@linux-foundation.org>, <linux-mm@kvack.org>,
-	<linux-kernel@vger.kernel.org>, <linux-cxl@vger.kernel.org>,
-	<nvdimm@lists.linux.dev>, <linux-acpi@vger.kernel.org>, "Aneesh Kumar K . V"
-	<aneesh.kumar@linux.ibm.com>, Wei Xu <weixugc@google.com>, Alistair Popple
-	<apopple@nvidia.com>, Dan Williams <dan.j.williams@intel.com>, Dave Hansen
-	<dave.hansen@intel.com>, Davidlohr Bueso <dave@stgolabs.net>, "Johannes
- Weiner" <hannes@cmpxchg.org>, Michal Hocko <mhocko@kernel.org>, Yang Shi
-	<shy828301@gmail.com>, Rafael J Wysocki <rafael.j.wysocki@intel.com>
-Subject: Re: [PATCH RESEND 2/4] acpi, hmat: refactor
- hmat_register_target_initiators()
-Message-ID: <20230807175546.00001566@Huawei.com>
-In-Reply-To: <20230721012932.190742-3-ying.huang@intel.com>
-References: <20230721012932.190742-1-ying.huang@intel.com>
-	<20230721012932.190742-3-ying.huang@intel.com>
-Organization: Huawei Technologies Research and Development (UK) Ltd.
-X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85ED63C2B
+	for <nvdimm@lists.linux.dev>; Mon,  7 Aug 2023 17:55:13 +0000 (UTC)
+Received: by mail-yw1-f173.google.com with SMTP id 00721157ae682-583a8596e2aso44709967b3.1
+        for <nvdimm@lists.linux.dev>; Mon, 07 Aug 2023 10:55:13 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1691430912; x=1692035712;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=RlCzFKNj2PLZtrDRconO+Ncogzp7Fz5t1sVouGvRFAY=;
+        b=hQ1WnTzUldedGB8lRCPKEoaeLuFvbD/k9u0mNXh3ly3gMJu7N8NVV21hA6n0junL6q
+         oxiSmBRroH02OdBGgner9gFn990pIHTanAtRdWN80/lHbo8T9EfdCzwx4J1eqJCQ+O7a
+         LH5yE5ftlwI7BywP/sXLvUeSBeQk/7PH3IoQ2q+ObmzBTd7JCl09N4qyvSfvIH/nBPVG
+         +N4fVsEcaJ0YXx9I0CC3nal7/6T01FWzAZRFPV9og04b5OcHuZaZXJ7c6BtdRFmpJaUB
+         PGfK0H/QKN9mD1KXLtfW9HNcodhKKra3lS75KalFMtOAXlMk7iB2HPRCdSvT6b9QZe1I
+         Sicg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1691430912; x=1692035712;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=RlCzFKNj2PLZtrDRconO+Ncogzp7Fz5t1sVouGvRFAY=;
+        b=Lla64/eXM6U3IephYHVXLHbEu11x1nkt6aAK1YHN+mwzN4Ogf+RPXI8aX4wTpLbu2Y
+         CYfWoog/5LNYKT8l9gG2D0jG0m2UugIGcL4ApQbsHl1hYcAGnPOpXECAA/QSn981Y/aJ
+         79bEYgQf7WITF7k//HPwi/yUBT7QnewxqL+jlBFjhkRhpuEVdd/QayF9GeHixYH/VB5O
+         7+xEI7VLs904EKn45EZUPKNNu3FOY16KBkkggJOxrAaFuQXaaY+9tII5x65VWArQ7LIj
+         07300D0uws1z2p2xQUT6ST8bkNnK2KZAEySuBwtOiGRqvMZ+CnM5TdckqnVMeIFNmuuV
+         cCTQ==
+X-Gm-Message-State: AOJu0Yyg+nHo/EG2wRmZ3/Dzet8L08Aqu6EJbLCRblZX3ZKkWsmBwd77
+	x10iNAD74ycPSURF8QiJsfueqKVNCHcOCFagQBE=
+X-Google-Smtp-Source: AGHT+IF5Ce1yonD0nOwgvcdw9qjEnYMDbsCE0lJy3vYjGlNkX/3UOoq1uZ81RGlcEoSrEM0dk8SYv08ML3WTpFRyDrg=
+X-Received: by 2002:a81:a045:0:b0:56d:2c60:2f84 with SMTP id
+ x66-20020a81a045000000b0056d2c602f84mr8419886ywg.46.1691430912283; Mon, 07
+ Aug 2023 10:55:12 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.202.227.76]
-X-ClientProxiedBy: lhrpeml100002.china.huawei.com (7.191.160.241) To
- lhrpeml500005.china.huawei.com (7.191.163.240)
-X-CFilter-Loop: Reflected
+References: <CAM9Jb+g5rrvmw8xCcwe3REK4x=RymrcqQ8cZavwWoWu7BH+8wA@mail.gmail.com>
+ <20230713135413.2946622-1-houtao@huaweicloud.com> <CAM9Jb+jjg_By+A2F+HVBsHCMsVz1AEVWbBPtLTRTfOmtFao5hA@mail.gmail.com>
+ <47f9753353d07e3beb60b6254632d740682376f9.camel@intel.com> <bcd1a935-b6ce-3941-5315-197f6876379e@intel.com>
+In-Reply-To: <bcd1a935-b6ce-3941-5315-197f6876379e@intel.com>
+From: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Date: Mon, 7 Aug 2023 19:55:00 +0200
+Message-ID: <CAM9Jb+jmjDOsJz=D7GEtah4xFamVHUFsruh4eW7VtO6A8yCZTw@mail.gmail.com>
+Subject: Re: [PATCH v4] virtio_pmem: add the missing REQ_OP_WRITE for flush bio
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: "Verma, Vishal L" <vishal.l.verma@intel.com>, 
+	"houtao@huaweicloud.com" <houtao@huaweicloud.com>, "houtao1@huawei.com" <houtao1@huawei.com>, 
+	"virtualization@lists.linux-foundation.org" <virtualization@lists.linux-foundation.org>, 
+	"hch@infradead.org" <hch@infradead.org>, "Williams, Dan J" <dan.j.williams@intel.com>, 
+	"axboe@kernel.dk" <axboe@kernel.dk>, "mst@redhat.com" <mst@redhat.com>, 
+	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, 
+	"linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "pankaj.gupta@amd.com" <pankaj.gupta@amd.com>, 
+	"kch@nvidia.com" <kch@nvidia.com>
+Content-Type: text/plain; charset="UTF-8"
 
-On Fri, 21 Jul 2023 09:29:30 +0800
-Huang Ying <ying.huang@intel.com> wrote:
+> >> Gentle ping!
+> >>
+> >> Dan, Vishal for suggestion/review on this patch and request for merging.
+> >> +Cc Michael for awareness, as virtio-pmem device is currently broken.
+> >
+> > Looks good to me,
+> >
+> > Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
+> >
+> > Dave, will you queue this for 6.6.
+>
+> Looks like it's already queued:
+> https://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git/commit/?h=libnvdimm-for-next&id=c1dbd8a849183b9c12d257ad3043ecec50db50b3
 
-> Previously, in hmat_register_target_initiators(), the performance
-> attributes are calculated and the corresponding sysfs links and files
-> are created too.  Which is called during memory onlining.
-> 
-> But now, to calculate the abstract distance of a memory target before
-> memory onlining, we need to calculate the performance attributes for
-> a memory target without creating sysfs links and files.
-> 
-> To do that, hmat_register_target_initiators() is refactored to make it
-> possible to calculate performance attributes separately.
-> 
-> Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-> Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-> Cc: Wei Xu <weixugc@google.com>
-> Cc: Alistair Popple <apopple@nvidia.com>
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Cc: Dave Hansen <dave.hansen@intel.com>
-> Cc: Davidlohr Bueso <dave@stgolabs.net>
-> Cc: Johannes Weiner <hannes@cmpxchg.org>
-> Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-> Cc: Michal Hocko <mhocko@kernel.org>
-> Cc: Yang Shi <shy828301@gmail.com>
-> Cc: Rafael J Wysocki <rafael.j.wysocki@intel.com>
+Thank you, Dave!
 
-Unfortunately I don't think I still have the tables I used to test the
-generic initiator and won't get time to generate them all again in
-next few weeks.  So just a superficial review for now.
-I 'think' the cleanup looks good but the original code was rather fiddly
-so I'm not 100% sure nothing is missed.
-
-One comment inline on the fact the list is now sorted twice.
-
-
-> ---
->  drivers/acpi/numa/hmat.c | 81 +++++++++++++++-------------------------
->  1 file changed, 30 insertions(+), 51 deletions(-)
-> 
-> diff --git a/drivers/acpi/numa/hmat.c b/drivers/acpi/numa/hmat.c
-> index bba268ecd802..2dee0098f1a9 100644
-> --- a/drivers/acpi/numa/hmat.c
-> +++ b/drivers/acpi/numa/hmat.c
-> @@ -582,28 +582,25 @@ static int initiators_to_nodemask(unsigned long *p_nodes)
->  	return 0;
->  }
->  
-> -static void hmat_register_target_initiators(struct memory_target *target)
-> +static void hmat_update_target_attrs(struct memory_target *target,
-> +				     unsigned long *p_nodes, int access)
->  {
-> -	static DECLARE_BITMAP(p_nodes, MAX_NUMNODES);
->  	struct memory_initiator *initiator;
-> -	unsigned int mem_nid, cpu_nid;
-> +	unsigned int cpu_nid;
->  	struct memory_locality *loc = NULL;
->  	u32 best = 0;
-> -	bool access0done = false;
->  	int i;
->  
-> -	mem_nid = pxm_to_node(target->memory_pxm);
-> +	bitmap_zero(p_nodes, MAX_NUMNODES);
->  	/*
-> -	 * If the Address Range Structure provides a local processor pxm, link
-> +	 * If the Address Range Structure provides a local processor pxm, set
->  	 * only that one. Otherwise, find the best performance attributes and
-> -	 * register all initiators that match.
-> +	 * collect all initiators that match.
->  	 */
->  	if (target->processor_pxm != PXM_INVAL) {
->  		cpu_nid = pxm_to_node(target->processor_pxm);
-> -		register_memory_node_under_compute_node(mem_nid, cpu_nid, 0);
-> -		access0done = true;
-> -		if (node_state(cpu_nid, N_CPU)) {
-> -			register_memory_node_under_compute_node(mem_nid, cpu_nid, 1);
-> +		if (access == 0 || node_state(cpu_nid, N_CPU)) {
-> +			set_bit(target->processor_pxm, p_nodes);
->  			return;
->  		}
->  	}
-> @@ -617,47 +614,10 @@ static void hmat_register_target_initiators(struct memory_target *target)
->  	 * We'll also use the sorting to prime the candidate nodes with known
->  	 * initiators.
->  	 */
-> -	bitmap_zero(p_nodes, MAX_NUMNODES);
->  	list_sort(NULL, &initiators, initiator_cmp);
->  	if (initiators_to_nodemask(p_nodes) < 0)
->  		return;
-
-One result of this refactor is that a few things run twice, that previously only ran once
-like this list_sort()
-Not necessarily a problem though as probably fairly cheap.
-
->  
-> -	if (!access0done) {
-> -		for (i = WRITE_LATENCY; i <= READ_BANDWIDTH; i++) {
-> -			loc = localities_types[i];
-> -			if (!loc)
-> -				continue;
-> -
-> -			best = 0;
-> -			list_for_each_entry(initiator, &initiators, node) {
-> -				u32 value;
-> -
-> -				if (!test_bit(initiator->processor_pxm, p_nodes))
-> -					continue;
-> -
-> -				value = hmat_initiator_perf(target, initiator,
-> -							    loc->hmat_loc);
-> -				if (hmat_update_best(loc->hmat_loc->data_type, value, &best))
-> -					bitmap_clear(p_nodes, 0, initiator->processor_pxm);
-> -				if (value != best)
-> -					clear_bit(initiator->processor_pxm, p_nodes);
-> -			}
-> -			if (best)
-> -				hmat_update_target_access(target, loc->hmat_loc->data_type,
-> -							  best, 0);
-> -		}
-> -
-> -		for_each_set_bit(i, p_nodes, MAX_NUMNODES) {
-> -			cpu_nid = pxm_to_node(i);
-> -			register_memory_node_under_compute_node(mem_nid, cpu_nid, 0);
-> -		}
-> -	}
-> -
-> -	/* Access 1 ignores Generic Initiators */
-> -	bitmap_zero(p_nodes, MAX_NUMNODES);
-> -	if (initiators_to_nodemask(p_nodes) < 0)
-> -		return;
-> -
->  	for (i = WRITE_LATENCY; i <= READ_BANDWIDTH; i++) {
->  		loc = localities_types[i];
->  		if (!loc)
-> @@ -667,7 +627,7 @@ static void hmat_register_target_initiators(struct memory_target *target)
->  		list_for_each_entry(initiator, &initiators, node) {
->  			u32 value;
->  
-> -			if (!initiator->has_cpu) {
-> +			if (access == 1 && !initiator->has_cpu) {
->  				clear_bit(initiator->processor_pxm, p_nodes);
->  				continue;
->  			}
-> @@ -681,14 +641,33 @@ static void hmat_register_target_initiators(struct memory_target *target)
->  				clear_bit(initiator->processor_pxm, p_nodes);
->  		}
->  		if (best)
-> -			hmat_update_target_access(target, loc->hmat_loc->data_type, best, 1);
-> +			hmat_update_target_access(target, loc->hmat_loc->data_type, best, access);
->  	}
-> +}
-> +
-> +static void __hmat_register_target_initiators(struct memory_target *target,
-> +					      unsigned long *p_nodes,
-> +					      int access)
-> +{
-> +	unsigned int mem_nid, cpu_nid;
-> +	int i;
-> +
-> +	mem_nid = pxm_to_node(target->memory_pxm);
-> +	hmat_update_target_attrs(target, p_nodes, access);
->  	for_each_set_bit(i, p_nodes, MAX_NUMNODES) {
->  		cpu_nid = pxm_to_node(i);
-> -		register_memory_node_under_compute_node(mem_nid, cpu_nid, 1);
-> +		register_memory_node_under_compute_node(mem_nid, cpu_nid, access);
->  	}
->  }
->  
-> +static void hmat_register_target_initiators(struct memory_target *target)
-> +{
-> +	static DECLARE_BITMAP(p_nodes, MAX_NUMNODES);
-> +
-> +	__hmat_register_target_initiators(target, p_nodes, 0);
-> +	__hmat_register_target_initiators(target, p_nodes, 1);
-> +}
-> +
->  static void hmat_register_target_cache(struct memory_target *target)
->  {
->  	unsigned mem_nid = pxm_to_node(target->memory_pxm);
-
+Best regards,
+Pankaj
