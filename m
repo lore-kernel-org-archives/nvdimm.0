@@ -1,80 +1,80 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.115])
+Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 164CB18F
-	for <nvdimm@lists.linux.dev>; Tue,  8 Aug 2023 00:31:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27F40639
+	for <nvdimm@lists.linux.dev>; Tue,  8 Aug 2023 05:45:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1691454687; x=1722990687;
+  t=1691473547; x=1723009547;
   h=date:from:to:cc:subject:message-id:references:
    in-reply-to:mime-version;
-  bh=M+jkFTNbMjSdENFKHr3VG9UhmbYDtgsHNjm9NhIACIY=;
-  b=Oc1R31VZhzR0d/FuA1U3rfi3J8Rp8XB4K1E5OJz6yd1MgMto2kQWfsKp
-   s6S4d/+haJ0dCqx+O8Lf0aLusSs54VF+ZMLWtK3vWR8r8xTZvBjlkShiU
-   oir45O532XJQvT8Q/x3mi7EIgTID/5ZAsRSTxwAdjHa1rcJa6kA5eimW1
-   KSVljz041Y579wtEfq9LlW6TFez6b1KZPZ7jSGci2+CN7k/W/djo5Iipm
-   ehHY5LpmL3NBmd2YTaPQUFQ9Bv0rL4yrecdSLKCCMHMQmQgmaua4Dm5OE
-   GwRLHQnt9i2Ayibb35sw5wr2mRCuc5XD+zYNSOj/EzSmke1+4DtYeAtr2
-   A==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10795"; a="370677838"
+  bh=rss/Y5zAosHaov/n/J05WzcGSH4tYJvFHlYgT7pvt2U=;
+  b=jq7pyfnNd73IfzcSKYSw0rTxhAYE1M5EUYBpgJ9Ab55ZjQEuyji2KKgv
+   /Uos+hiy4rft9gqA+f6WyBiFBQ/ndMcN7U2FsxaqzbPGHS/5sY/+DHFJv
+   5JsaNKBAaudt8swGI6aoi8CDKEitKPvNpkLDNIPVKDxFpvDqdgQm+V6ly
+   FvOO99kGoewYfb36upM4/Masf4S0z6URLZzXy/Qx/iyqncqpr/JpML1Q1
+   QmE/rbtd5SYPK4WyfAzs6OrrLP5EBRnfPrAPg0bchdp1/Ea9pgxyp+WXy
+   CDCkeqabac1zfGFa6Dii4iXPMp507PXd1byNtoEVr5Hr9E10OFRd9uNT4
+   w==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10795"; a="369623935"
 X-IronPort-AV: E=Sophos;i="6.01,263,1684825200"; 
-   d="scan'208";a="370677838"
-Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Aug 2023 17:31:25 -0700
+   d="scan'208";a="369623935"
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Aug 2023 22:45:41 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10795"; a="731175815"
+X-IronPort-AV: E=McAfee;i="6600,9927,10795"; a="905090430"
 X-IronPort-AV: E=Sophos;i="6.01,263,1684825200"; 
-   d="scan'208";a="731175815"
-Received: from orsmsx602.amr.corp.intel.com ([10.22.229.15])
-  by orsmga002.jf.intel.com with ESMTP; 07 Aug 2023 17:31:25 -0700
-Received: from orsmsx610.amr.corp.intel.com (10.22.229.23) by
- ORSMSX602.amr.corp.intel.com (10.22.229.15) with Microsoft SMTP Server
+   d="scan'208";a="905090430"
+Received: from orsmsx603.amr.corp.intel.com ([10.22.229.16])
+  by orsmga005.jf.intel.com with ESMTP; 07 Aug 2023 22:45:40 -0700
+Received: from orsmsx603.amr.corp.intel.com (10.22.229.16) by
+ ORSMSX603.amr.corp.intel.com (10.22.229.16) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.27; Mon, 7 Aug 2023 17:31:25 -0700
+ 15.1.2507.27; Mon, 7 Aug 2023 22:45:40 -0700
 Received: from ORSEDG602.ED.cps.intel.com (10.7.248.7) by
- orsmsx610.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
+ orsmsx603.amr.corp.intel.com (10.22.229.16) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.27 via Frontend Transport; Mon, 7 Aug 2023 17:31:25 -0700
-Received: from NAM11-CO1-obe.outbound.protection.outlook.com (104.47.56.170)
+ 15.1.2507.27 via Frontend Transport; Mon, 7 Aug 2023 22:45:40 -0700
+Received: from NAM11-CO1-obe.outbound.protection.outlook.com (104.47.56.168)
  by edgegateway.intel.com (134.134.137.103) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.27; Mon, 7 Aug 2023 17:31:25 -0700
+ 15.1.2507.27; Mon, 7 Aug 2023 22:45:40 -0700
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=OcshPPopH5R1Vq5xldjbPis3jfEXO953VRjxvtEcGybUuNTDZQdC+JqNER6I9nBmsWLA+kP47qcfL9g9bv9o0Z0KT60Se4OAFPOmUdgs706J3qYGSXMWrhdm/Qomvm9jq9LsOgXK/QCyUDrc7XKcDTWDEacF+H8pC/VNNmkuTNNiHeytmewMzdQ0ZXbqchObLJfaDKNILHhjutj198eGGFroCswZEE2666ZKdSbTdVDXFFu33SaerC3a6N8KAbLA9PZAftWG0LRyBhvA7gxasVUzNCngqZbtLGK8p7mGRwuDj/ym3MNL0PPY6icWL2Xh+9cdjNxqcJ0NF7AeN5W2qg==
+ b=hCGKs54I8I76JtaprARFK/G6I/8czNuJeMfoyMlb63w3Vv8ptGfmmtbenWLOouGPjw3c4hiVqsbgeh3cr7gRlkU+e3iICSmGGpxXItrwQtbmzZU6empOS6HoVymYh4R4whMZlC3A9MCgwMKT3F++CWG01t4gC2v/JnWKMKBaZiuPXjeQC6iKKT0LWYo//tOH7yDWgo577WqpchBcr1kSzEV6IHjOzxF/JVceP9C3l1whtVT7iUWLn/z16UTEPCGXANY9xhJzjAGjhQS8edS2fjHiI1p6PTqIdUcqeOUc0vZ+o7ycFtJZsNFgAPcpxk0k6Yyg9qnPWNM0zKZVwv5UVQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=9O8O4GzUf/4l4ySilCR91omGpuPMsptDayOhlYrTs2M=;
- b=a0GomSTC/pfkMm8ISGk4JuC1FrPQkdR7Nr3Of0d63n/T/TN6Ym18xnecTcVjhgHih22m1tGGeWnh4kIxNDV4Twe2IjDZVqcgvPhfxL4ayAXu3I/Zc3jM6xJ7NdOXUlf5OD3eismhz8Bt1bhpT1DDHhDECpO5A2RN2+g48fWhucwIlFRNZl1ON9z21kuobvsSa2mc8R7pPFIZ0uS+ghF5kjWo0M9H9Sr46WyL2PvjsFpGnomlg9zfrB5wsMY9b/pcyDLDvBmXvHaDGDCiwbWMXqRZ97GPs/TPcwZqHX99ukj2qF9h3nly4/zzr4QGNXTFvS5QkI9qfzNtmgAUFifc4w==
+ bh=rss/Y5zAosHaov/n/J05WzcGSH4tYJvFHlYgT7pvt2U=;
+ b=c0pWdtrZD2wpUBIkLA5z/XPMsLUYMlWsFdf8knBRgK78g5HzwwH/7SBQivNzJ2HTxB2sklFeUs+fCmnggDolDyJNkSKSScEVeE2SikjgZ/svUO8eL+E1aN9CIvjqsEg06wRrsb/kANNW/RDrfOaAwUVcv5U/1bRgDYu8YUgD7d0RpsIFWIjgmj+nRbdwVT0Fp6WmWV53w+SwdfebQMyiGSgCd311ZHgEQ6kqBfiHkmH0beMJGEARz5NRZOAnw5qk/R8xcwVnkBo9jKrfeKDTHF6H686NtnuC5cL7EGI+H7LI6xtuZ8m77zpqZErGP8ouPgVtzKqTh4FlSxZjg7bjHw==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
  dkim=pass header.d=intel.com; arc=none
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=intel.com;
 Received: from PH8PR11MB8107.namprd11.prod.outlook.com (2603:10b6:510:256::6)
- by CO1PR11MB5185.namprd11.prod.outlook.com (2603:10b6:303:6e::11) with
+ by SA1PR11MB6661.namprd11.prod.outlook.com (2603:10b6:806:255::20) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6652.27; Tue, 8 Aug
- 2023 00:31:22 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6652.26; Tue, 8 Aug
+ 2023 05:45:34 +0000
 Received: from PH8PR11MB8107.namprd11.prod.outlook.com
  ([fe80::4556:2d4e:a29c:3712]) by PH8PR11MB8107.namprd11.prod.outlook.com
  ([fe80::4556:2d4e:a29c:3712%4]) with mapi id 15.20.6652.026; Tue, 8 Aug 2023
- 00:31:21 +0000
-Date: Mon, 7 Aug 2023 17:31:18 -0700
+ 05:45:33 +0000
+Date: Mon, 7 Aug 2023 22:45:31 -0700
 From: Dan Williams <dan.j.williams@intel.com>
-To: Shiyang Ruan <ruansy.fnst@fujitsu.com>, <linux-fsdevel@vger.kernel.org>,
-	<nvdimm@lists.linux.dev>, <linux-xfs@vger.kernel.org>, <linux-mm@kvack.org>
-CC: <dan.j.williams@intel.com>, <willy@infradead.org>, <jack@suse.cz>,
-	<akpm@linux-foundation.org>, <djwong@kernel.org>, <mcgrof@kernel.org>
-Subject: RE: [PATCH v12 2/2] mm, pmem, xfs: Introduce MF_MEM_REMOVE for unbind
-Message-ID: <64d18cd6c6e09_5ea6e294fb@dwillia2-xfh.jf.intel.com.notmuch>
-References: <20230629081651.253626-1-ruansy.fnst@fujitsu.com>
- <20230629081651.253626-3-ruansy.fnst@fujitsu.com>
+To: Terry Bowman <terry.bowman@amd.com>, <nvdimm@lists.linux.dev>,
+	<dan.j.williams@intel.com>, <dave.jiang@intel.com>,
+	<vishal.l.verma@intel.com>, <mav@ixsystems.com>
+CC: <terry.bowman@amd.com>, <linux-cxl@vger.kernel.org>
+Subject: RE: [ndctl RFC 0/1] cxl: Script to manage regions during CXL device
+ hotplug remove-reinsert
+Message-ID: <64d1d67b33c14_5ea6e2941c@dwillia2-xfh.jf.intel.com.notmuch>
+References: <20230807213635.3633907-1-terry.bowman@amd.com>
 Content-Type: text/plain; charset="us-ascii"
 Content-Disposition: inline
-In-Reply-To: <20230629081651.253626-3-ruansy.fnst@fujitsu.com>
-X-ClientProxiedBy: MW4PR03CA0168.namprd03.prod.outlook.com
- (2603:10b6:303:8d::23) To PH8PR11MB8107.namprd11.prod.outlook.com
+In-Reply-To: <20230807213635.3633907-1-terry.bowman@amd.com>
+X-ClientProxiedBy: MW4PR04CA0382.namprd04.prod.outlook.com
+ (2603:10b6:303:81::27) To PH8PR11MB8107.namprd11.prod.outlook.com
  (2603:10b6:510:256::6)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -83,146 +83,76 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: PH8PR11MB8107:EE_|CO1PR11MB5185:EE_
-X-MS-Office365-Filtering-Correlation-Id: 3866b84b-f26f-4a77-9b63-08db97a6ca01
+X-MS-TrafficTypeDiagnostic: PH8PR11MB8107:EE_|SA1PR11MB6661:EE_
+X-MS-Office365-Filtering-Correlation-Id: 287678b7-13eb-4d75-910e-08db97d2aed7
+X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: tAxOiKh7+3IInWKRx+oehQxn/8AILlFv3ZpH+tAQPaaXH7wjpWuUi1qlPITRICOgWQSPbnv2YTVW7GbAoGQoZT2QCLj22gH3czj/A9GtiyHcCxrUeQWzdIc0/4XOGV6QtUTxNfP9cTGh2NvLm/QBHJorxz/GEMpFM1zYysjrGYTOuLw+H7lI3w1bgbC9OC0AVncyUQHRBajfYkJometBM98JLprECsJLUxWVpLxzEBOJwuXmJmWk4CTFztkyLWVfETMdjPFlNvS5xWi3px66ZVj1+msA32b8Zj/Evwf7Y06fQMLafYPvlEHA3VfgDATclKmTepCfUSuZDDOzGiPu7Jptd2Gs0BzntxHxkexEAsgJiVNXYIKuGiSiXbLUckcZX+rV+i2lFeM7eKqeCf1BJ9aaCDsBX2pwzf2IuGmnYe/FFo8Z9dDqpxoJfGLa/MnIN269W+Df12GwZniFo3bumr6AklzS6KqtAdMF318fOZvX10dHfy4PeeMCVDvF35DA5v6+hJB5/xvC1ZKTNEC1ZaGgwujmF94cI1WqcJUME0wbLsBj1v2/eOWhiknIjrNk3NzqllvyOPdnQkyXPIId/xlBxA8gzwCe4bfSf5dD++CSw9dP73uk8VUMINdEjFngeRa3ESPIdandpQWgHByDyTb/DLRzYaWYr0GrR6VDF6VAl69KOE7uxjSG5y85NYBsgybnfX1r+Fq7SeVxBbOX1A==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH8PR11MB8107.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230028)(376002)(346002)(366004)(136003)(39860400002)(396003)(1800799003)(186006)(90011799007)(90021799007)(451199021)(26005)(6506007)(9686003)(6512007)(6486002)(966005)(6666004)(82960400001)(478600001)(38100700002)(66476007)(66556008)(66946007)(4326008)(316002)(41300700001)(5660300002)(8676002)(8936002)(7416002)(2906002)(83380400001)(86362001)(18704003);DIR:OUT;SFP:1102;
+X-Microsoft-Antispam-Message-Info: VSwjUrQ7JdcKawt3bSc/L5EA5niDWBKjsIX8Ouw1bnCDgcMBPF7IeLyjOmrIB7on8U6RbRHUdt/ogwhaDtymfTlGdjCkEjyA5G34UaWcD5ymJBheFf1BcvgHtlIRT43DSUKyguxOPb8Y/K/FzXEKzxB0/3RPkdSEDj+GhltKNMloQxArXYTuhRYmNfQrm/Prd5hXCGR2d6LS9FcgsccJt5wg8aPZErOg4sbmxPPvVD18CFIULT1mTTZ5xeeoxZSqh2cAoXmGHjYVUyahFdlLbPbvh0K6trJ2Z3bcPALJ2lmXurEKz4bN0SefeXCIKOpSIlz2CpPvqITfdHuLcr7g5GtoHIZSvU4yZSPBW62orwQ7ZAwkwjdmefIkAjuPIRDOLT27ML8D3YnG3Zq6llSaqJmFZlJtIS/ISoXNau40ncsFOTvR/TnxJgNv4x3VIO3X3MrLvUpknemkQ5JmxeOBHLva88AQgFSgJPXw0x1LMpznraKME/faRHM5u7iLqwuaaJfs+Y4+b3V50sDkD7SBpqjKvPQWabGq7XFpPV2sMeG/iu/Lb8nJwZP6xFcw1H7JGkPXbopwejyX7X//lNAopuCkfpZ0iL8LaOqfifonZChB8jfYCH/5gtO9ald0AAeZZwRbyk0fpqF428Luq4JfFg==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH8PR11MB8107.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230028)(376002)(346002)(136003)(396003)(39860400002)(366004)(90011799007)(451199021)(90021799007)(1800799003)(186006)(9686003)(6486002)(478600001)(86362001)(6512007)(82960400001)(26005)(6506007)(41300700001)(8936002)(5660300002)(316002)(8676002)(2906002)(4326008)(4744005)(66476007)(66556008)(66946007)(38100700002)(83380400001);DIR:OUT;SFP:1102;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?uBKkqCQveuuBdKj45Qbr7WqHIRG4/bB4hLGwGI3g+aOLs7L1kUhm4oBmoYPv?=
- =?us-ascii?Q?OdLxGBu0j5bzMS+ZvHPJKH49ySPe7vEpnG47lks/ObLcmcORlsSNMPxa3Nnf?=
- =?us-ascii?Q?u0vDKTvi5vcJwjElJE8UkUa/ezPAo2XYQDR8MIXq7E3FTDx+BPrBcpGNYhQl?=
- =?us-ascii?Q?UO6AnQKTVIaUhEDpOu+iZUqW8CiejKzLfZ+6Aa/BtkYHM/GY4L8lwBij5m2N?=
- =?us-ascii?Q?lj9QBy6Hast/ywazpiWkUZW6+f4p7yHw9AYsr0VifDRmIHCTZf4LDyZZngBv?=
- =?us-ascii?Q?2LIJuei3Rr6u2LQ0Mxu/IKVI07ME/rg3alQUiTEE/J/klBNKOhWm19zHuYkK?=
- =?us-ascii?Q?IK7tNoN0WrWI9HegOAgLQcD03+ff0wA+p4+oALopBjLaijcAjCRJgn6RNVjj?=
- =?us-ascii?Q?YgSy8PmJM/IjRbN+LXCBP8zwfTCNMQK5Tgxe1NJZX87vzAn1GI7qcVHUMrSZ?=
- =?us-ascii?Q?izzYil0KbnPCflaKoRHuG0c9nvf6mmHgG1Y1/KNoR6ewjeX7U48tVasEICA2?=
- =?us-ascii?Q?UgA4l1eO9/NtC/H9FgpZQw/xh0jawcGUCFqHSmfmCK+AfgRRx/7TmruNXhor?=
- =?us-ascii?Q?d9T7fPgvtJw/BqIErIx1VpuAerKZ/AzRIV54GJobhB/xRs+04iZshlEXekqx?=
- =?us-ascii?Q?+GukuC2lwqEEP5XXnvfo4w/kTFz0IVv+Hr6WXxordegSNx7HEZ0y7/X4/9z5?=
- =?us-ascii?Q?V16v8Nyzqqoop1vB79+jze3bS9JU9G3aEk1suskbQIXGZrKghteaOKM0A9C7?=
- =?us-ascii?Q?4PPs9/XmcFvECwWEKc/L/Y/vNPbHwYeuXk/wpQIEleLm6cE1LZCiw6eE1o9X?=
- =?us-ascii?Q?jXqeTvIU/jYT6941jOTnmc9pCeSDiVvvWlcHzIjjCu8oe1BQssRIcHD+2f5V?=
- =?us-ascii?Q?kg/o/MaDhOUB6qUwNkt/N8bdqp68zOHJgPg88eKQDdcPurJ21GEd9s58rp0E?=
- =?us-ascii?Q?HUPL8NXdcjpp0taTIQkAh5Ksm+P5uz+VTh+gEsd+4LVVTxkyGiku94fMK5+1?=
- =?us-ascii?Q?YNk78ICtOtvyjDIlyq/epmzw74vDMN2LIck4mnKiZ4cFtifL2GeiuoCnoL9Z?=
- =?us-ascii?Q?zfieieqvlBGg6qqZoMeXwmmEmlkjapxc3xv2GEnemNM1n6MzLNuKzb7TWbqz?=
- =?us-ascii?Q?Jy1MK/GWNNC1XOlOM1bUgwaQrU2GZcoFSG9sU/vXKmcRYguaFBFKuU6mkMp6?=
- =?us-ascii?Q?a3oLJeLMbIgvZq5gXcOFeLzQLf7doUg29Fsv8z1b+hUDx3ANmu0+bqHg6o8e?=
- =?us-ascii?Q?mPQv/jk3ve9r+/WlDElsPJh5nZ3axOalA3kiQjpJaMrhevGtaN8LvMAEtrLX?=
- =?us-ascii?Q?V+R9EEI6C2spGBo0QKtANeNWroSavI8G6tQaKKdNbgexcQ9gLFF9Vj6MauoH?=
- =?us-ascii?Q?olK+DgCosDynD4lhlvCbWl1O5O2iOjRJ7hFX04R7IvqpyLi9se6rg8gliqYI?=
- =?us-ascii?Q?SjXzvaKMN41Ib+4WZa7OYB5C7yn5pux09CEVKGR4o4eiHs6z9vaV2WSaNowM?=
- =?us-ascii?Q?GYm7quQtBAUlLFnyIZvQR9NFwKt7scaSnrBRuCNzIRtT3AFH/aeTE4thrhlI?=
- =?us-ascii?Q?Ik3u0NY4gVIqnMN3FQYUBLNk7LL8lkO3d2P1CaAldmomWkNcsRhrdT9PoeLg?=
- =?us-ascii?Q?NA=3D=3D?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: 3866b84b-f26f-4a77-9b63-08db97a6ca01
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?HW3u9Wkc/tRYo6A9iBJhn1g/XBAwr3BlOenMKQJ/WUKMwJKpE+IpI1O7bz3a?=
+ =?us-ascii?Q?mIRBZlxPPecZ6sjXeAzeHQSmTDnaCHsUeaB9lTXPBrt2vizC5Fc7hqHRKVJ0?=
+ =?us-ascii?Q?8Rq58dHrg8+prRG/QRw/kkJh9UsnFNEskvOsVUBs9Fx1LAVWEsC5o79s06no?=
+ =?us-ascii?Q?94lxXSB8g1d34cHI+sqZNtrRbHV6v4UNHRYiKXtS37Wr/B8pyLZ/WHunrat0?=
+ =?us-ascii?Q?tfDDAXFX1zulNfEr0a0FTXW9zEQBvTQAq+d+NjrvxAbJOBXxeHnnrp8M3nHB?=
+ =?us-ascii?Q?J7r78nSQTzWbQ/ty+jiCbzUQDKXPsOpudMC6kSjSWM4miBZnJ6CLyslQMIlT?=
+ =?us-ascii?Q?YMGA6CKYtNADYXP7V28o879qlGQCs9mu+VnfWZC+A+VHUm64020EEiZgopFc?=
+ =?us-ascii?Q?XxoKkZko5wIyZzzW/mTq/PZkSpdlEjvSdTZloF/DGMKDVgN2qEUfCCReMCzL?=
+ =?us-ascii?Q?MhIRex0g/o5Lo1r0/CJ4MeNMnEokbK2FC0bV9m/JKKcglJ/j5LqjmbOviw1X?=
+ =?us-ascii?Q?Toi2enqCuJOh2JtSvwlE4I9q7032Q0mQaBv+QnUzUZP98brNWctz3HyWCrcu?=
+ =?us-ascii?Q?NZzKGTnBhkUolhY5JAAthhMbfi2SE59Lbwx385mNbbShrxCvrelXEnD1xmtG?=
+ =?us-ascii?Q?YeXZcaw0M9ZZa6tbrcHeMTDTen4wYM+XCho3QXts0cnaL2vvyt7ghZab+9Pi?=
+ =?us-ascii?Q?nkFoKxPJ5fUY8jYgss6VyemV+rbAso4sG4MO07QFWBXptBs0bBLWMYWLT2ci?=
+ =?us-ascii?Q?QjW+/1yCXwDt3Kw/CnVbWxSxWnJZaoSFJxORbjhLD/ABeH/yq3tHgYMIe6NE?=
+ =?us-ascii?Q?YXlxpwdEH5fdYedPjSrg9xxC8jEsbeyc9jyLpm4N7lt/5c5ttlh01l+Aj6Ua?=
+ =?us-ascii?Q?WECJjawj8hIdjIGLTsgO1qi/D5xtGm5pWTuNJM1gjE/G6TH7YcouPbd1F7vg?=
+ =?us-ascii?Q?a7ljneUniNJG0VrX5OSgDrK1nk/Q/19KQEHhYmKEkq5VCXKgfELWXQlsNKWy?=
+ =?us-ascii?Q?G4Du/QENZJVZ1KXol0Xq5jazTNi8dFZQvcGhFA6Ec18v+59ofA07Z/qreSBt?=
+ =?us-ascii?Q?eLPo6Ldz8UgwNX4fPx54GsMfMzCpivSltHOVC7CzUDNKe364AC4iXUmlnoZO?=
+ =?us-ascii?Q?TZ3tuDZlMUic2833qqSbOfECA0F18q8fBMrN2Cm7gQAEm2UEDiL/b+cc1ha7?=
+ =?us-ascii?Q?kKM+qJZrJ83DsCl2dvUYZwaq4N1Nb6PCl/Eww0Q8CVHjGMBzu0huG2PrCkuM?=
+ =?us-ascii?Q?F8JujecvycXRNtt9mbLJpR9keYgP/g/NYRbKI9+fNAkhjgXlbMgnuFWY2y1W?=
+ =?us-ascii?Q?tQjix6rE71RdxUshrgA2ijuQdodr1bKrfeVqA7xQRDCHW2/z5ZVNn4VJDj2S?=
+ =?us-ascii?Q?IErUQnCRvl8ntsdlhooE0rMVwygkWCgkv8uLv9EBztWPnAD9+0VW+1BbntuN?=
+ =?us-ascii?Q?rlMLfgymeREVYjE+yGGjQs67kQSFhhdJ1eyXyy5L68khSlBm+6c76Td82Dro?=
+ =?us-ascii?Q?r+ebV+qtpl9S/ObF4wd5uupFWj69GhQ61r1OSPm9fuEb8VF9iTSyjmkV/iEA?=
+ =?us-ascii?Q?WP4FNbJQV//vIrs30QMDbSxhkNU3hFRZDOUyE45iCdb9CaLCvDKp67ZdJjWR?=
+ =?us-ascii?Q?iw=3D=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: 287678b7-13eb-4d75-910e-08db97d2aed7
 X-MS-Exchange-CrossTenant-AuthSource: PH8PR11MB8107.namprd11.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Aug 2023 00:31:21.3939
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Aug 2023 05:45:33.6531
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: sJ+C10gSEVJqhWJoXPYuSnLGXw+xFOEotRc+ah0/+Z+5cTj6ecoRXgmA3PdimEkBVOYkIa/E4SLA69DbTnHlaeuelmNGtOjtOAAg2tV1P6E=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CO1PR11MB5185
+X-MS-Exchange-CrossTenant-UserPrincipalName: sb8QijjbTxvLP7Zi6oWshiLTTj2Xc5vCp2fPCPMEWM3lIRVdBYEST2NlAqgVTcR8LJbhGk+8NgMDSf89ENTzZ3BHjL5hmSYyOIWeK1mR5zg=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA1PR11MB6661
 X-OriginatorOrg: intel.com
 
-Shiyang Ruan wrote:
-> This patch is inspired by Dan's "mm, dax, pmem: Introduce
-> dev_pagemap_failure()"[1].  With the help of dax_holder and
-> ->notify_failure() mechanism, the pmem driver is able to ask filesystem
-> on it to unmap all files in use, and notify processes who are using
-> those files.
-> 
-> Call trace:
-> trigger unbind
->  -> unbind_store()
->   -> ... (skip)
->    -> devres_release_all()
->     -> kill_dax()
->      -> dax_holder_notify_failure(dax_dev, 0, U64_MAX, MF_MEM_PRE_REMOVE)
->       -> xfs_dax_notify_failure()
->       `-> freeze_super()             // freeze (kernel call)
->       `-> do xfs rmap
->       ` -> mf_dax_kill_procs()
->       `  -> collect_procs_fsdax()    // all associated processes
->       `  -> unmap_and_kill()
->       ` -> invalidate_inode_pages2_range() // drop file's cache
->       `-> thaw_super()               // thaw (both kernel & user call)
-> 
-> Introduce MF_MEM_PRE_REMOVE to let filesystem know this is a remove
-> event.  Use the exclusive freeze/thaw[2] to lock the filesystem to prevent
-> new dax mapping from being created.  Do not shutdown filesystem directly
-> if configuration is not supported, or if failure range includes metadata
-> area.  Make sure all files and processes(not only the current progress)
-> are handled correctly.  Also drop the cache of associated files before
-> pmem is removed.
+Terry Bowman wrote:
+> This patch is a script providing region deletion-creation management
+> required during hotplug remove-insert. It allows a user to hotplug
+> remove and reinsert a CXL device without requiring the user to make
+> additional tool calls to destroy-create the region. The tool will save
+> the region configuration before removal and recreate the region later
+> after hotplug reinsert. The script makes the necessary calls to the cxl
+> cli and daxctl tools to manage the regions.
 
-I would say more about why this is important for DAX users. Yes, the
-devm_memremap_pages() vs get_user_pages() infrastructure can be improved
-if it has a mechanism to revoke all pages that it has handed out for a
-given device, but that's not an end user visible effect.
+Nice!
 
-The end user impact needs to be clear. Is this for existing deployed
-pmem where a user accidentally removes a device and wants failures and
-process killing instead of hangs?
+> This may be useful to add to the ndctl tools as a standalone tool or
+> incoprorate into the existing CXL cli or daxctl tools. I'm interested in
+> feedback.
 
-The reason Linux has got along without this for so long is because pmem
-is difficult to remove (and with the sunset of Optane, difficult to
-acquire). One motivation to pursue this is CXL where hotplug is better
-defined and use cases like dynamic capacity devices where making forward
-progress to kill processes is better than hanging.
+I think something like this could be carried in a new cxl/contrib/
+directory.
 
-It would help to have an example of what happens without this patch.
+I also note that the cxl-cli command harness is stolen from git which
+has the ability to have sub-commands defined by scripts, like
+'git-send-email', rather than C library calls.
 
-> 
-> [1]: https://lore.kernel.org/linux-mm/161604050314.1463742.14151665140035795571.stgit@dwillia2-desk3.amr.corp.intel.com/
-> [2]: https://lore.kernel.org/linux-xfs/168688010689.860947.1788875898367401950.stgit@frogsfrogsfrogs/
-> 
-> Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-> ---
->  drivers/dax/super.c         |  3 +-
->  fs/xfs/xfs_notify_failure.c | 86 ++++++++++++++++++++++++++++++++++---
->  include/linux/mm.h          |  1 +
->  mm/memory-failure.c         | 17 ++++++--
->  4 files changed, 96 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-> index c4c4728a36e4..2e1a35e82fce 100644
-> --- a/drivers/dax/super.c
-> +++ b/drivers/dax/super.c
-> @@ -323,7 +323,8 @@ void kill_dax(struct dax_device *dax_dev)
->  		return;
->  
->  	if (dax_dev->holder_data != NULL)
-> -		dax_holder_notify_failure(dax_dev, 0, U64_MAX, 0);
-> +		dax_holder_notify_failure(dax_dev, 0, U64_MAX,
-> +				MF_MEM_PRE_REMOVE);
-
-The motivation in the original proposal was to convey the death of
-large extents to memory_failure(). However, that proposal predated your
-mf_dax_kill_procs() approach. With mf_dax_kill_procs() the need for a
-new bulk memory_failure() API is gone.
-
-This is where the end user impact needs to be clear. It seems that
-without this patch the filesystem may assume failure while the device is
-already present, but that seems ok. The goal is forward progress after a
-mistake not necessarily minimizing damage after a mistake. The fact that
-the current code is not as gentle could be considered a feature because
-graceful shutdown should always unmount before unplug, and if one
-unplugs before unmount it is already understood that they get to keep
-the pieces.
-
-Because the driver ->remove() callback can not enforce that the device
-is still present it seems unnecessary to optimize for the case where the
-filesystem is the device is being removed from an actively mounted
-filesystem, but the device is still present.
-
-The dax_holder_notify_failure(dax_dev, 0, U64_MAX) is sufficient to say
-"userspace failed to umount before hardware eject, stop trying to access
-this range", rather than "try to finish up in this range, but it might
-already be too late".
+So if there is a desire for scripting language support that could be an
+option.
