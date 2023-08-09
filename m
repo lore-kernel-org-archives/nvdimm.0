@@ -1,245 +1,216 @@
-Received: from mailout2.samsung.com (mailout2.samsung.com [203.254.224.25])
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E327820EF
-	for <nvdimm@lists.linux.dev>; Tue,  8 Aug 2023 07:38:42 +0000 (UTC)
-Received: from epcas2p2.samsung.com (unknown [182.195.41.54])
-	by mailout2.samsung.com (KnoxPortal) with ESMTP id 20230808073840epoutp02a7022028397285edf157bcbca42e233d~5WGPLW86Z2121421214epoutp02y
-	for <nvdimm@lists.linux.dev>; Tue,  8 Aug 2023 07:38:40 +0000 (GMT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 mailout2.samsung.com 20230808073840epoutp02a7022028397285edf157bcbca42e233d~5WGPLW86Z2121421214epoutp02y
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=samsung.com;
-	s=mail20170921; t=1691480320;
-	bh=u8qOwOVO31Y0JFhN58/ZSPjlrog54j8BJNCBnThIl34=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=TgeZuHLfnMZ+bV67hNhIEcVIFPKsdyPwlqCKZmf6DFQiQFx+hd75UK76QS1EJcU/a
-	 LI5Z1GxM01r2uhNjb9QKiUKyW9u1WhtQCQT0Tsrnu6HB/rz5ZwWw2vR+lCd5jvgOCv
-	 v88Wq8ZvSS14cEZrz9R6u9Ic8/EAC6NsI0naRoNc=
-Received: from epsnrtp1.localdomain (unknown [182.195.42.162]) by
-	epcas2p2.samsung.com (KnoxPortal) with ESMTP id
-	20230808073839epcas2p23e35f03a53edcca765c0d0451a35a7d4~5WGOhe7oF2205322053epcas2p2n;
-	Tue,  8 Aug 2023 07:38:39 +0000 (GMT)
-Received: from epsmgec2p1.samsung.com (unknown [182.195.36.88]) by
-	epsnrtp1.localdomain (Postfix) with ESMTP id 4RKlRg2qnPz4x9Q3; Tue,  8 Aug
-	2023 07:38:39 +0000 (GMT)
-Received: from epcas2p1.samsung.com ( [182.195.41.53]) by
-	epsmgec2p1.samsung.com (Symantec Messaging Gateway) with SMTP id
-	F4.E7.49986.FF0F1D46; Tue,  8 Aug 2023 16:38:39 +0900 (KST)
-Received: from epsmtrp2.samsung.com (unknown [182.195.40.14]) by
-	epcas2p1.samsung.com (KnoxPortal) with ESMTPA id
-	20230808073838epcas2p1556845e1483f17cc8eaa1b1c1e3c1e2d~5WGNcV7fe3040530405epcas2p1G;
-	Tue,  8 Aug 2023 07:38:38 +0000 (GMT)
-Received: from epsmgms1p2new.samsung.com (unknown [182.195.42.42]) by
-	epsmtrp2.samsung.com (KnoxPortal) with ESMTP id
-	20230808073838epsmtrp2e9f77325b935e2fcdec11c9f24acd1d1~5WGNbicnZ3007130071epsmtrp2h;
-	Tue,  8 Aug 2023 07:38:38 +0000 (GMT)
-X-AuditID: b6c32a43-5f9ff7000000c342-b6-64d1f0ff0545
-Received: from epsmtip2.samsung.com ( [182.195.34.31]) by
-	epsmgms1p2new.samsung.com (Symantec Messaging Gateway) with SMTP id
-	9F.EB.30535.EF0F1D46; Tue,  8 Aug 2023 16:38:38 +0900 (KST)
-Received: from jehoon-Precision-7920-Tower (unknown [10.229.83.133]) by
-	epsmtip2.samsung.com (KnoxPortal) with ESMTPA id
-	20230808073838epsmtip299ba9d528c80717d9b000dc3f9e91f69~5WGNL7x1Q1666716667epsmtip2J;
-	Tue,  8 Aug 2023 07:38:38 +0000 (GMT)
-Date: Tue, 8 Aug 2023 16:41:41 +0900
-From: Jehoon Park <jehoon.park@samsung.com>
-To: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev, Alison Schofield
-	<alison.schofield@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, Ira
-	Weiny <ira.weiny@intel.com>, Dan Williams <dan.j.williams@intel.com>, Dave
-	Jiang <dave.jiang@intel.com>, Davidlohr Bueso <dave@stgolabs.net>, Kyungsan
-	Kim <ks0204.kim@samsung.com>, Junhyeok Im <junhyeok.im@samsung.com>, Jehoon
-	Park <jehoon.park@samsung.com>
-Subject: Re: [ndctl PATCH v2 2/3] libcxl: Fix accessors for temperature
- field to support negative value
-Message-ID: <20230808074141.GB4397@jehoon-Precision-7920-Tower>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A4F220EC
+	for <nvdimm@lists.linux.dev>; Wed,  9 Aug 2023 05:35:35 +0000 (UTC)
+Received: from pps.filterd (m0353726.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 3795Sthp002122;
+	Wed, 9 Aug 2023 05:35:28 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
+ : date : message-id : mime-version : content-transfer-encoding; s=pp1;
+ bh=LLZ+e5w6TJ/+2tBeGqQqRgGDC3vCpOdZrPOOq+NY3pg=;
+ b=M8pb19OSVztn4wg0joWsLq0F1ZSMXFGmI3Xe6ghBYUmJngeJ3Jh5TejTnVJyQeiCjWfa
+ HzjX20w5314dEEeJ74tntHewM+IUTuhUD+GBl8NFUneQyUwgKh1ECblVOgSNKq4jn94J
+ zr7A/5wJ9jNqAmGangQnk/2vctcBYHo7ME1Gc9dVYUFapipTCix3Az7TG8tQfqNUO0SV
+ asElsqMxvwKukc3WYduJ+v+Excvv/AAHuWP+j8EpxhwP0kbFqhX1tfAiag87uOGsD1Fk
+ KsRlt5lCsLtyqSjnIfatQCd/ABX/w4cQ73XFeeZ/xHu/rOGAJVWZC2+Bu3ThMNBe/lpa wA== 
+Received: from pps.reinject (localhost [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3sc4pk0aww-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Wed, 09 Aug 2023 05:35:28 +0000
+Received: from m0353726.ppops.net (m0353726.ppops.net [127.0.0.1])
+	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 3795U3VD005733;
+	Wed, 9 Aug 2023 05:35:27 GMT
+Received: from ppma13.dal12v.mail.ibm.com (dd.9e.1632.ip4.static.sl-reverse.com [50.22.158.221])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3sc4pk0av6-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Wed, 09 Aug 2023 05:35:27 +0000
+Received: from pps.filterd (ppma13.dal12v.mail.ibm.com [127.0.0.1])
+	by ppma13.dal12v.mail.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 3793UbvI015374;
+	Wed, 9 Aug 2023 05:35:25 GMT
+Received: from smtprelay02.dal12v.mail.ibm.com ([172.16.1.4])
+	by ppma13.dal12v.mail.ibm.com (PPS) with ESMTPS id 3sb3f2xxr6-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Wed, 09 Aug 2023 05:35:25 +0000
+Received: from smtpav02.wdc07v.mail.ibm.com (smtpav02.wdc07v.mail.ibm.com [10.39.53.229])
+	by smtprelay02.dal12v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 3795ZObM17498808
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Wed, 9 Aug 2023 05:35:25 GMT
+Received: from smtpav02.wdc07v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id B4E0C5805B;
+	Wed,  9 Aug 2023 05:35:24 +0000 (GMT)
+Received: from smtpav02.wdc07v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id B05DD5805D;
+	Wed,  9 Aug 2023 05:35:22 +0000 (GMT)
+Received: from skywalker.in.ibm.com (unknown [9.109.212.144])
+	by smtpav02.wdc07v.mail.ibm.com (Postfix) with ESMTP;
+	Wed,  9 Aug 2023 05:35:22 +0000 (GMT)
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+To: nvdimm@lists.linux.dev, dan.j.williams@intel.com, vishal.l.verma@intel.com
+Cc: Jeff Moyer <jmoyer@redhat.com>,
+        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: [PATCH v2 1/2] nvdimm/pfn_dev: Prevent the creation of zero-sized namespaces
+Date: Wed,  9 Aug 2023 11:05:11 +0530
+Message-ID: <20230809053512.350660-1-aneesh.kumar@linux.ibm.com>
+X-Mailer: git-send-email 2.41.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <20230807141435.00004eb0@Huawei.com>
-User-Agent: Mutt/1.9.4 (2018-02-28)
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFtrEJsWRmVeSWpSXmKPExsWy7bCmqe7/DxdTDI5PF7S4+/gCm8X0qRcY
-	LU7cbGSzWH1zDaPF/qfPWSwOvG5gt1i18BqbxeKjM5gtju7hsDg/6xSLxcoff1gtbk04xuTA
-	49Fy5C2rx+I9L5k8XmyeyejRt2UVo8fU2fUenzfJBbBFZdtkpCampBYppOYl56dk5qXbKnkH
-	xzvHm5oZGOoaWlqYKynkJeam2iq5+AToumXmAJ2opFCWmFMKFApILC5W0rezKcovLUlVyMgv
-	LrFVSi1IySkwL9ArTswtLs1L18tLLbEyNDAwMgUqTMjOeNH7gbHghWrF4WWfWRoYZ8p1MXJy
-	SAiYSLz7cYWti5GLQ0hgB6PEya+HWUESQgKfGCUubPOFSHxjlNh95hE7TEfX5C3sEIm9jBK3
-	7u1hh+j4ySjxoSEFxGYRUJHY++YYWJxNQFvi/vYNbCC2iICRxJVlB8GamQXmMUu8WHgJbJ2w
-	QKbEnJZZYEW8AvYSU+//Y4SwBSVOznzCAmJzChhKfG9rBqsXFVCWOLDtOBPERWs5JH5vYYSw
-	XSQ29c5ghbCFJV4d3wJ1tZTE53d72SDsfImfJ29B1RRIfPrygQXCNpZ4d/M5WJxZIEPixt8j
-	QPUcQHFliSO3WCDCfBIdh/+yQ4R5JTrahCA6VSW6jn+AukBa4vCVo8wQtofEgtu/mSBh9YJR
-	4mLTPqYJjPKzkHw2C8k2CFtHYsHuT0A2B5AtLbH8HweEqSmxfpf+AkbWVYxiqQXFuempyUYF
-	hvC4Ts7P3cQITrxazjsYr8z/p3eIkYmD8RCjBAezkgjvvCfnU4R4UxIrq1KL8uOLSnNSiw8x
-	mgLjaSKzlGhyPjD155XEG5pYGpiYmRmaG5kamCuJ895rnZsiJJCeWJKanZpakFoE08fEwSnV
-	wJTwzv38A5OM2UJyJex7FI/WLYt5E/NdctnbPxGaHAdYkzfetjF4LG5tb7vW+vjP4LlvDUP4
-	mZs71vBL5rSe3tfVJ7H+oyXDjJ3/dzHWRiT7PBA1vZkfWy1xzeSkxJ7sl58CHERl7tScuuUt
-	cs6RT0QzdGnLns1LyydWvD2zeYrmt7ZioZmMiofeTwn7EH5QpLdr8UPt9zozRWZq/Ly3qbLP
-	sciyQNtl3t33ZSIBtkEem7Q7V5rxdSVxMX3Vm/wzKq5k876JFebGlpf99Bh0415F/7v3VmVe
-	kYyslc4i88RvsZU6Uqotqjnu6r84pHb3L4lN0OFfvpTRry3mXOy8cqfZBRIzJ4vfcDHljtqp
-	xFKckWioxVxUnAgA3dw0yUUEAAA=
-X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFvrFLMWRmVeSWpSXmKPExsWy7bCSvO6/DxdTDLbO0La4+/gCm8X0qRcY
-	LU7cbGSzWH1zDaPF/qfPWSwOvG5gt1i18BqbxeKjM5gtju7hsDg/6xSLxcoff1gtbk04xuTA
-	49Fy5C2rx+I9L5k8XmyeyejRt2UVo8fU2fUenzfJBbBFcdmkpOZklqUW6dslcGX07L7AVrBC
-	ueLtna9MDYyfpLsYOTkkBEwkuiZvYe9i5OIQEtjNKPFuyX8miIS0xL3mK+wQtrDE/ZYjrCC2
-	kMB3RomWJ5ogNouAisTeN8fAatgEtCXub9/ABmKLCBhJXFl2EGwos8AyZolNzTOZQRLCApkS
-	p+a8BxvEK2AvMfX+P0aIzS8YJSbsuc8GkRCUODnzCQuIzSygJXHj30ugiziAbGmJ5f84QMKc
-	AoYS39uaweaICihLHNh2nGkCo+AsJN2zkHTPQuhewMi8ilEytaA4Nz232LDAKC+1XK84Mbe4
-	NC9dLzk/dxMjOHq0tHYw7ln1Qe8QIxMH4yFGCQ5mJRHeeU/OpwjxpiRWVqUW5ccXleakFh9i
-	lOZgURLn/fa6N0VIID2xJDU7NbUgtQgmy8TBKdXAdCZ2iWhrgFjvKdM5ev9e3X5g1qZ4ewZz
-	WOHDcospy3VLpt2ZfeWantXJf6XsS9O3dn09Y7HQUUOWp0XWY5tC5K1n9e3KE6TMOPVP3+s8
-	1XagMTsjo9Byj36rgknfoXl72hsNWFY/e/HRbvOlbc+W1uyZuu935cz0jBO8vBcat07zXnVt
-	yQSFqQdYawz8X+zLe5u7+nqzn/hUzjOzP1/ep/RtitPlo3xZDcse34/ZsLvFxbVjSfeGJ8t3
-	Gm3Vccl98r7th1Oa4frNrGv23drX29Zevu6T+NwTvUtkjZtXPRbKn5XtVzFlrZWajUOhhtn1
-	KNUJ35q+HVlvspcp0D94Yto2Rz+l4yl1d+byN1gFMimxFGckGmoxFxUnAgDDlutbDQMAAA==
-X-CMS-MailID: 20230808073838epcas2p1556845e1483f17cc8eaa1b1c1e3c1e2d
-X-Msg-Generator: CA
-Content-Type: multipart/mixed;
-	boundary="----0fR5D8yIpNNl77tk4nXhNCfTmNnUnmvpDlxfu2XVSHf_RJiV=_79807_"
-X-Sendblock-Type: AUTO_CONFIDENTIAL
-CMS-TYPE: 102P
-DLP-Filter: Pass
-X-CFilter-Loop: Reflected
-X-CMS-RootMailID: 20230807063538epcas2p4965d5d117b8ef87ac4217bec53beff95
-References: <20230807063549.5942-1-jehoon.park@samsung.com>
-	<CGME20230807063538epcas2p4965d5d117b8ef87ac4217bec53beff95@epcas2p4.samsung.com>
-	<20230807063549.5942-3-jehoon.park@samsung.com>
-	<20230807141435.00004eb0@Huawei.com>
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: EfPJxvJv9pvE8KPf5aTcCJsEzvEbtaWL
+X-Proofpoint-ORIG-GUID: vKcCi94YW1LYqDLilX8MZDAeHkO-x20k
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.267,Aquarius:18.0.957,Hydra:6.0.591,FMLib:17.11.176.26
+ definitions=2023-08-09_03,2023-08-08_01,2023-05-22_02
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxlogscore=999 mlxscore=0
+ malwarescore=0 adultscore=0 clxscore=1015 phishscore=0 priorityscore=1501
+ impostorscore=0 spamscore=0 suspectscore=0 bulkscore=0 lowpriorityscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2306200000
+ definitions=main-2308090049
 
-------0fR5D8yIpNNl77tk4nXhNCfTmNnUnmvpDlxfu2XVSHf_RJiV=_79807_
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
+On architectures that have different page size values used for kernel
+direct mapping and userspace mappings, the user can end up creating zero-sized
+namespaces as shown below
 
-On Mon, Aug 07, 2023 at 02:14:35PM +0100, Jonathan Cameron wrote:
-> On Mon,  7 Aug 2023 15:35:48 +0900
-> Jehoon Park <jehoon.park@samsung.com> wrote:
-> 
-> > Add a new macro function to retrieve a signed value such as a temperature.
-> > Modify accessors for signed value to return INT_MAX when error occurs and
-> > set errno to corresponding errno codes.
-> 
-> None of the callers have been modified to deal with INTMAX until next patch.
-> So I think you need to combine the two to avoid temporary breakage.
-> 
-> Also you seem to be also changing the health status.  That seems
-> to be unrelated to the negative temperature support so shouldn't
-> really be in same patch.
->
+:/sys/bus/nd/devices/region1# cat align
+0x1000000
+/sys/bus/nd/devices/region1# echo 0x200000 > align
+/sys/bus/nd/devices/region1/dax1.0# cat supported_alignments
+65536 16777216
+ $ ndctl create-namespace -r region1 -m devdax -s 18M --align 64K
+{
+  "dev":"namespace1.0",
+  "mode":"devdax",
+  "map":"dev",
+  "size":0,
+  "uuid":"3094329a-0c66-4905-847e-357223e56ab0",
+  "daxregion":{
+    "id":1,
+    "size":0,
+    "align":65536
+  },
+  "align":65536
+}
+similarily for fsdax
 
-Thank you for comments,
+ $ ndctl create-namespace -r region1 -m fsdax  -s 18M --align 64K
+{
+  "dev":"namespace1.0",
+  "mode":"fsdax",
+  "map":"dev",
+  "size":0,
+  "uuid":"45538a6f-dec7-405d-b1da-2a4075e06232",
+  "sector_size":512,
+  "align":65536,
+  "blockdev":"pmem1"
+}
 
-I will re-organize these patches in the next revision.
+In commit 9ffc1d19fc4a ("mm/memremap_pages: Introduce memremap_compat_align()")
+memremap_compat_align was added to make sure the kernel always creates
+namespaces with 16MB alignment. But the user can still override the
+region alignment and no input validation is done in the region alignment
+values to retain the flexibility user had before. However, the kernel
+ensures that only part of the namespace that can be mapped via kernel
+direct mapping page size is enabled. This is achieved by tracking the
+unmapped part of the namespace in pfn_sb->end_trunc. The kernel also
+ensures that the start address of the namespace is also aligned to the
+kernel direct mapping page size.
 
-> > 
-> > Signed-off-by: Jehoon Park <jehoon.park@samsung.com>
-> > ---
-> >  cxl/lib/libcxl.c | 32 +++++++++++++++++++++-----------
-> >  1 file changed, 21 insertions(+), 11 deletions(-)
-> > 
-> > diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
-> > index af4ca44..fc64de1 100644
-> > --- a/cxl/lib/libcxl.c
-> > +++ b/cxl/lib/libcxl.c
-> > @@ -3661,11 +3661,23 @@ cxl_cmd_alert_config_get_life_used_prog_warn_threshold(struct cxl_cmd *cmd)
-> >  			 life_used_prog_warn_threshold);
-> >  }
-> >  
-> > +#define cmd_get_field_s16(cmd, n, N, field)				\
-> > +do {									\
-> > +	struct cxl_cmd_##n *c =						\
-> > +		(struct cxl_cmd_##n *)cmd->send_cmd->out.payload;	\
-> > +	int rc = cxl_cmd_validate_status(cmd, CXL_MEM_COMMAND_ID_##N);	\
-> > +	if (rc)	{							\
-> > +		errno = -rc;						\
-> > +		return INT_MAX;						\
-> > +	}								\
-> > +	return (int16_t)le16_to_cpu(c->field);				\
-> > +} while(0)
-> > +
-> >  CXL_EXPORT int
-> >  cxl_cmd_alert_config_get_dev_over_temperature_crit_alert_threshold(
-> >  	struct cxl_cmd *cmd)
-> >  {
-> > -	cmd_get_field_u16(cmd, get_alert_config, GET_ALERT_CONFIG,
-> > +	cmd_get_field_s16(cmd, get_alert_config, GET_ALERT_CONFIG,
-> >  			  dev_over_temperature_crit_alert_threshold);
-> >  }
-> >  
-> > @@ -3673,7 +3685,7 @@ CXL_EXPORT int
-> >  cxl_cmd_alert_config_get_dev_under_temperature_crit_alert_threshold(
-> >  	struct cxl_cmd *cmd)
-> >  {
-> > -	cmd_get_field_u16(cmd, get_alert_config, GET_ALERT_CONFIG,
-> > +	cmd_get_field_s16(cmd, get_alert_config, GET_ALERT_CONFIG,
-> >  			  dev_under_temperature_crit_alert_threshold);
-> >  }
-> >  
-> > @@ -3681,7 +3693,7 @@ CXL_EXPORT int
-> >  cxl_cmd_alert_config_get_dev_over_temperature_prog_warn_threshold(
-> >  	struct cxl_cmd *cmd)
-> >  {
-> > -	cmd_get_field_u16(cmd, get_alert_config, GET_ALERT_CONFIG,
-> > +	cmd_get_field_s16(cmd, get_alert_config, GET_ALERT_CONFIG,
-> >  			  dev_over_temperature_prog_warn_threshold);
-> >  }
-> >  
-> > @@ -3689,7 +3701,7 @@ CXL_EXPORT int
-> >  cxl_cmd_alert_config_get_dev_under_temperature_prog_warn_threshold(
-> >  	struct cxl_cmd *cmd)
-> >  {
-> > -	cmd_get_field_u16(cmd, get_alert_config, GET_ALERT_CONFIG,
-> > +	cmd_get_field_s16(cmd, get_alert_config, GET_ALERT_CONFIG,
-> >  			  dev_under_temperature_prog_warn_threshold);
-> >  }
-> >  
-> > @@ -3905,8 +3917,6 @@ CXL_EXPORT int cxl_cmd_health_info_get_life_used(struct cxl_cmd *cmd)
-> >  {
-> >  	int rc = health_info_get_life_used_raw(cmd);
-> >  
-> > -	if (rc < 0)
-> > -		return rc;
-> 
-> Why has this one changed?  It's a u8 so not as far as I can see affected by
-> your new signed accessor.
-> 
-> 
+Depending on the user request, the kernel implements userspace mapping
+alignment by updating pfn device alignment attribute and this value is
+used to adjust the start address for userspace mappings. This is tracked
+in pfn_sb->dataoff. Hence the available size for userspace mapping is:
 
-I removed it because it was unnecessary code. (No action after error checking)
-However, as you stated, this code cleaning is irrelevant to this patch.
-I will revert this in the next patch.
+usermapping_size = size of the namespace - pfn_sb->end_trun - pfn_sb->dataoff
 
-> >  	if (rc == CXL_CMD_HEALTH_INFO_LIFE_USED_NOT_IMPL)
-> >  		return -EOPNOTSUPP;
-> >  	return rc;
-> > @@ -3914,7 +3924,7 @@ CXL_EXPORT int cxl_cmd_health_info_get_life_used(struct cxl_cmd *cmd)
-> >  
-> >  static int health_info_get_temperature_raw(struct cxl_cmd *cmd)
-> >  {
-> > -	cmd_get_field_u16(cmd, get_health_info, GET_HEALTH_INFO,
-> > +	cmd_get_field_s16(cmd, get_health_info, GET_HEALTH_INFO,
-> >  				 temperature);
-> >  }
-> >  
-> > @@ -3922,10 +3932,10 @@ CXL_EXPORT int cxl_cmd_health_info_get_temperature(struct cxl_cmd *cmd)
-> >  {
-> >  	int rc = health_info_get_temperature_raw(cmd);
-> >  
-> > -	if (rc < 0)
-> > -		return rc;
-> > -	if (rc == CXL_CMD_HEALTH_INFO_TEMPERATURE_NOT_IMPL)
-> > -		return -EOPNOTSUPP;
-> > +	if (rc == CXL_CMD_HEALTH_INFO_TEMPERATURE_NOT_IMPL) {
-> > +		errno = EOPNOTSUPP;
-> > +		return INT_MAX;
-> > +	}
-> >  	return rc;
-> >  }
-> >  
-> 
+If the kernel finds the user mapping size zero then don't allow the
+creation of namespace.
 
-------0fR5D8yIpNNl77tk4nXhNCfTmNnUnmvpDlxfu2XVSHf_RJiV=_79807_
-Content-Type: text/plain; charset="utf-8"
+After fix:
+$ ndctl create-namespace -f  -r region1 -m devdax  -s 18M --align 64K
+libndctl: ndctl_dax_enable: dax1.1: failed to enable
+  Error: namespace1.2: failed to enable
 
+failed to create namespace: No such device or address
 
-------0fR5D8yIpNNl77tk4nXhNCfTmNnUnmvpDlxfu2XVSHf_RJiV=_79807_--
+And existing zero sized namespace will be marked disabled.
+root@ltczz75-lp2:/home/kvaneesh# ndctl  list -N -r region1 -i
+[
+  {
+    "dev":"namespace1.0",
+    "mode":"raw",
+    "size":18874368,
+    "uuid":"94a90fb0-8e78-4fb6-a759-ffc62f9fa181",
+    "sector_size":512,
+    "state":"disabled"
+  },
+
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+---
+Changes from v1:
+* Use resource_size() helper instead of opencoding it
+
+ drivers/nvdimm/pfn_devs.c | 14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
+index af7d9301520c..0777b1626f6c 100644
+--- a/drivers/nvdimm/pfn_devs.c
++++ b/drivers/nvdimm/pfn_devs.c
+@@ -452,8 +452,9 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
+ 	u64 checksum, offset;
+ 	struct resource *res;
+ 	enum nd_pfn_mode mode;
++	resource_size_t res_size;
+ 	struct nd_namespace_io *nsio;
+-	unsigned long align, start_pad;
++	unsigned long align, start_pad, end_trunc;
+ 	struct nd_pfn_sb *pfn_sb = nd_pfn->pfn_sb;
+ 	struct nd_namespace_common *ndns = nd_pfn->ndns;
+ 	const uuid_t *parent_uuid = nd_dev_to_uuid(&ndns->dev);
+@@ -503,6 +504,7 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
+ 	align = le32_to_cpu(pfn_sb->align);
+ 	offset = le64_to_cpu(pfn_sb->dataoff);
+ 	start_pad = le32_to_cpu(pfn_sb->start_pad);
++	end_trunc = le32_to_cpu(pfn_sb->end_trunc);
+ 	if (align == 0)
+ 		align = 1UL << ilog2(offset);
+ 	mode = le32_to_cpu(pfn_sb->mode);
+@@ -584,7 +586,8 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
+ 	 */
+ 	nsio = to_nd_namespace_io(&ndns->dev);
+ 	res = &nsio->res;
+-	if (offset >= resource_size(res)) {
++	res_size = resource_size(res);
++	if (offset >= res_size) {
+ 		dev_err(&nd_pfn->dev, "pfn array size exceeds capacity of %s\n",
+ 				dev_name(&ndns->dev));
+ 		return -EOPNOTSUPP;
+@@ -610,6 +613,10 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
+ 		return -EOPNOTSUPP;
+ 	}
+ 
++	if (offset >= (res_size - start_pad - end_trunc)) {
++		dev_err(&nd_pfn->dev, "bad offset with small namespace\n");
++		return -EOPNOTSUPP;
++	}
+ 	return 0;
+ }
+ EXPORT_SYMBOL(nd_pfn_validate);
+@@ -810,7 +817,8 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
+ 	else
+ 		return -ENXIO;
+ 
+-	if (offset >= size) {
++	if (offset >= (size - end_trunc)) {
++		/* This results in zero size devices */
+ 		dev_err(&nd_pfn->dev, "%s unable to satisfy requested alignment\n",
+ 				dev_name(&ndns->dev));
+ 		return -ENXIO;
+-- 
+2.41.0
+
