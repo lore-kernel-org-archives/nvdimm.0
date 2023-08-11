@@ -1,154 +1,295 @@
-Received: from NAM12-MW2-obe.outbound.protection.outlook.com (mail-mw2nam12on2065.outbound.protection.outlook.com [40.107.244.65])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.220.29])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E68091E1C4
-	for <nvdimm@lists.linux.dev>; Fri, 11 Aug 2023 07:50:06 +0000 (UTC)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=NLzgh6TPIjDLQDP+rxeKNr1sk9YXmNy6RVYnZ3TN9KQey8bm1M5hO8Z23ouWlxUKlZPcJCamYRmdrtEofeZMAumUgFAujp25B+fWXwLyxHG5oQY+1H27UdmT8SVFtkZ62gRrr/It2P+FCqqlFIZ/Ij9UMCcOThP/MpjpkmC+Gn9ik2woL3kb4wtVNk8aEfiaR3XYu5HynsATE8azOEPGJOP+mzowMZv5zGC+14pyLL4TSXsWGep0OCjCGn2XT4lNvIr+OW0uM9q3oA9hky4BPGHFcpabOJKW2AuEHvkX9gPjW7GNq3ESdDhQapMCtr7Os9bQl3A/negzOD1LnK9ycA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=Hw5b61BK7kMsPz81vl1JsC74qAmCufX0vAw1h8yQLdE=;
- b=IL7jaLH8EzyBJ6YAtqix13v3BBZ8+0dGbKXbaP9rda0cPWZ+jsjWnrIXYIlRaYiAiFUC+9Q8IhUPYTM+N2qlBHEIS7Xgg4E2F4EUJyXqsmj2Y5I/jepynE3I90p95S0rA2MA+q1thWrO4mdBWDTON2e5QLHqmVNDGFbld/ntacdLxO0TAohydcmcv3dIgmsex6N1I/Rz9v7KZoiDr0lt9y+Ehk9lofUxrVrcc9Yxrky5GMeIA6JdSl+yOjfs+1OCkI+oVR3cJ7ao5PqY3kFhYwnbwvk3c0KLJ2hG7VWQSVb6q7OtTtqi5h4hpHOKeSdsDl4/xUiIEFkq8HxCfVBIwg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
- header.d=amd.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=Hw5b61BK7kMsPz81vl1JsC74qAmCufX0vAw1h8yQLdE=;
- b=hXYCf2M41+wkEXGq5h32IioK5k/x1JLW5vI2Xa+c8Kl8poju6Nu6E9xAUeVlN3xe3pl7UjNx5aSTnEM8N8kzbkgxcTVZpuAlM3vSPWKRuTyckjx15NhD52cH3ng0JWjiuLQwzZTwhgTvZdUIlQNeLafRj/eBdq9VLjGHHJkX8Cw=
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=amd.com;
-Received: from IA1PR12MB6434.namprd12.prod.outlook.com (2603:10b6:208:3ae::10)
- by SN7PR12MB7348.namprd12.prod.outlook.com (2603:10b6:806:29b::11) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6652.30; Fri, 11 Aug
- 2023 07:50:04 +0000
-Received: from IA1PR12MB6434.namprd12.prod.outlook.com
- ([fe80::17b8:2ba3:147e:b8cd]) by IA1PR12MB6434.namprd12.prod.outlook.com
- ([fe80::17b8:2ba3:147e:b8cd%6]) with mapi id 15.20.6652.029; Fri, 11 Aug 2023
- 07:50:04 +0000
-Message-ID: <1d5a74b2-bab4-4876-5fa1-2c06e83b55bc@amd.com>
-Date: Fri, 11 Aug 2023 13:19:48 +0530
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
- Thunderbird/102.14.0
-Subject: Re: [PATCH RESEND 0/4] memory tiering: calculate abstract distance
- based on ACPI HMAT
-Content-Language: en-US
-To: "Huang, Ying" <ying.huang@intel.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
- Alistair Popple <apopple@nvidia.com>, linux-mm@kvack.org,
- linux-kernel@vger.kernel.org, linux-cxl@vger.kernel.org,
- nvdimm@lists.linux.dev, linux-acpi@vger.kernel.org,
- "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>,
- Wei Xu <weixugc@google.com>, Dan Williams <dan.j.williams@intel.com>,
- Dave Hansen <dave.hansen@intel.com>, Davidlohr Bueso <dave@stgolabs.net>,
- Johannes Weiner <hannes@cmpxchg.org>,
- Jonathan Cameron <Jonathan.Cameron@huawei.com>,
- Michal Hocko <mhocko@kernel.org>, Yang Shi <shy828301@gmail.com>,
- Rafael J Wysocki <rafael.j.wysocki@intel.com>
-References: <20230721012932.190742-1-ying.huang@intel.com>
- <875y6dj3ok.fsf@nvdebian.thelocal>
- <20230724105818.6f7b10fc8c318ea5aae9e188@linux-foundation.org>
- <6c8ed42d-ea71-c11e-2689-c4fc23845ccf@amd.com>
- <87il9mccxi.fsf@yhuang6-desk2.ccr.corp.intel.com>
-From: Bharata B Rao <bharata@amd.com>
-In-Reply-To: <87il9mccxi.fsf@yhuang6-desk2.ccr.corp.intel.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: PN3PR01CA0035.INDPRD01.PROD.OUTLOOK.COM
- (2603:1096:c01:97::14) To IA1PR12MB6434.namprd12.prod.outlook.com
- (2603:10b6:208:3ae::10)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE9EE1173F
+	for <nvdimm@lists.linux.dev>; Fri, 11 Aug 2023 16:57:37 +0000 (UTC)
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+	(No client certificate requested)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id 581971F8AB;
+	Fri, 11 Aug 2023 16:57:30 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1691773050; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=WRMLThMjRnza6cY+sDsGfPzEUxyI8oSxa4duiWVd80k=;
+	b=FbghrOIzbDN1yL/stHy7oCD0VkDUWJbv4AEqVn9m6pzODdQvGSXgFRDQv0jlC/SeXEH3Wt
+	YSC4S/7Fq9lSWL/YEc/oQHACvD8u5aRLBHpLzC8Y2qsa7nryieSffXoQucaKW0JTqVzdKx
+	dvX43/lEaj3uxepwMJ5e+/4uW2duKYg=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1691773050;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=WRMLThMjRnza6cY+sDsGfPzEUxyI8oSxa4duiWVd80k=;
+	b=sdPW/gvd4gu6Bh/BZ4mogeA1QXfLjy21xWdAWfW8TEH5gDNIc08oWYL7Rj+cnyMahkgIT1
+	8zrA4vKXTD/z+cAA==
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+	(No client certificate requested)
+	by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 568E4138E2;
+	Fri, 11 Aug 2023 16:57:28 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([192.168.254.65])
+	by imap2.suse-dmz.suse.de with ESMTPSA
+	id A8ZrCnho1mSwVAAAMHmgww
+	(envelope-from <colyli@suse.de>); Fri, 11 Aug 2023 16:57:28 +0000
+Content-Type: text/plain;
+	charset=utf-8
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: IA1PR12MB6434:EE_|SN7PR12MB7348:EE_
-X-MS-Office365-Filtering-Correlation-Id: 847eeb60-4025-411b-c462-08db9a3f92bc
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info:
-	cn/kuyTIObXecBSHn6XdvpI5ROxFfPAC0h1jz7de+0zmnOiLXSNlLgdWcA0MN7A4Rqyi9eUFXpZymratvMjxxB3iJnlTy7oUhv+KCl6UkPl3FWpuVbol0JxZQcF9MUIzaKt3lxbEGbCxurKFoKZRVdkkXeTK1+u/oFuVvVcVCQxzuaR3rSo8CiIf5D6ur9Ki9nbZHf3VhA4Dx9kLGANmYoLA9VaArUht5atZmYy2bh68y2VzaCo7wJhD8wouIpSzPFMbhD59Zzy1btpNLmAfhNgTwm7Pt5hLI2uzHKo9PvMYIkZYdYXdw8WnI1F3qPNF8A5detWE6Rf59vxpynKJbH3xz8rDj+D/dCSR93e1QMCQroQ1zXB+Ccm3mMK8yDbHxSRC8SPyzeiuR09mv6wT5v5+FiS3o775g/3dl9ULN0lJchDofMQK78II9giOy4DZM9hl9DOasUMs3vhJ4p/HxHFGeI7o+28OvlOBXrhEb8FBGW4ECADw/RGIR3776zLAkCNL3E+MXsm7PgEe89gNn5FVa3FTIJrjaessHEjLnmys3Go03zJ4YqCdgNKLZOXXkUDoaleGmt0DTQV/jmOY/0SIplPDSywXZI41dMBmXgbtTwvUQ9h9zJ76ERv5hHS1xEBDwY+wOr6q80/tygs9bw==
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:IA1PR12MB6434.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230028)(346002)(396003)(376002)(366004)(39860400002)(136003)(1800799006)(186006)(451199021)(8676002)(4326008)(54906003)(66476007)(66556008)(38100700002)(2906002)(6916009)(478600001)(66946007)(5660300002)(41300700001)(7416002)(8936002)(31686004)(4744005)(316002)(31696002)(86362001)(6666004)(6486002)(6512007)(36756003)(2616005)(53546011)(26005)(6506007)(43740500002)(45980500001);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?UGpxNkFrcnhDUHNabFFFVVNVZy9iSWJFbzhpRVZ3Q1RtQUV3Q25jRVYxZkRN?=
- =?utf-8?B?V3lUaWFIcG5veVVuRlRYMDN6d0JJQzNyVUNkL0Y4SlM2NjBKeW9JZmF5VStD?=
- =?utf-8?B?R1J1dnNwa0trU25EcTdoTThNRjFoOEJtVUVGMWdPb3hjcEpBc2JXUUpSSk1J?=
- =?utf-8?B?RytBWWhPWmtTVG9GQURqUUc1c1FYWE1pYlJZdFpQcGx5QmtyRnVmQkoyQWZx?=
- =?utf-8?B?U0pENEdmbzNmaU4zMTduTS9qWEhyc1ZzSlZuajFVQmdZQmFGL3pacHgyQ005?=
- =?utf-8?B?VFl4WHdMS08vbzRYZnA1NlM5Wjd6MzluRHU1S0tzRkkvcE5BT2UyR1RPWWh5?=
- =?utf-8?B?bms0S1NUQkdleit6NzkrcTFBNFdoMkNablNHVEVDRjVFYndaYmxvYzZzWlph?=
- =?utf-8?B?d1dtMGJLc1RjMlIwNkdrQXp0cHhrS0JCWUM0NlRBcWZFUmc1bm1MMnQwWFVn?=
- =?utf-8?B?Z2RXc2xROUlNV0pFQmpSbU80K2dINEdJOFFKMHd2R3BHZlFDTVFFMEthNVlK?=
- =?utf-8?B?ZUJiUnlRL0xscDEyQSs1c3QwKzdmRzNkWmxoc3lTbWpCNXpmYzl5Lzlxd1Fi?=
- =?utf-8?B?NlpkWTUzVWd0d0ZpWUxPdHlpZjF6bnNVTlRBc29TbHdlWXFuSDZtZUg3TWQw?=
- =?utf-8?B?V1BlVFh4UUVVeU5ZU3VZZ2tnMXYvdFA0TjliWlovV3QxU2YzeXhUUGtUNnM5?=
- =?utf-8?B?dGdtYXB3WkV1cVg5cVlKU2E0eXZWeHV0WGZiL1ZSVFh5anhwTGZXK2JYZUMw?=
- =?utf-8?B?VkVSZ1FtOVlGaTE2ekZpb1dQNXJlK0hJMnFVdlNqNEhSNlVqK0tKRFJ1dzBN?=
- =?utf-8?B?aTNLTXhxa0VTaXNNZ3NlN0dseVNGckVCYjltTS83ckNnWkF5NFhySU1wU0F5?=
- =?utf-8?B?R1ZSdENjWXdFNy8wdC9zYUN4OTIrenRnd1pXaFR4TnRZZy90eWcvcmtjREF6?=
- =?utf-8?B?QUFBMXF0SWZqMGJ6d3JaMERpTnZhUStLWUtDYzFwaTBoYi9EeUFNYmcxdUVH?=
- =?utf-8?B?N09xRVZQVEJiMnZSazBqbjhseHZPdVFUZzkxUDdmUE5DdzIxbUs2Q3FDWndY?=
- =?utf-8?B?TjdJRXVpNlRoSVVvdW9MU0xTbUI5VVlLVjg0QlJleXJqeEtqcFVmc3RYbTd6?=
- =?utf-8?B?SDN1RjZEd1N6QzkvYXVJekJZamxmYkRQaUVpbURJQ1dCT0pTRVdUcGVXOSt5?=
- =?utf-8?B?UlJqK3JQcVhMVEw3Qzg2Z0xPWTc4MlFkUDRQTy9FWlNBK0ZIR21zSGpubity?=
- =?utf-8?B?TVdaUGp6N2VDdEg2Q3JiY0lDQWJTd2pkaytsSnNzZ3A4NFRIOHV0eExGZXdB?=
- =?utf-8?B?VnRJeTBFSGFIZzUvaVFvSUQ3UnBMNi9SalhFcXVTZGFCUWM0TStIMVlXU2Zj?=
- =?utf-8?B?L1J5WEtKSEVnLzJFOGR6OG1FQktpMHU1QWYzMkxOcEtkVjVXZTdHNjVOQ1pU?=
- =?utf-8?B?b3lQZ3FIeGZqL2ZhejlSUUlnY3FJaGVYaTJqZUtsL2NnNjE2QVB3RlRJekE2?=
- =?utf-8?B?Yk12WThNZkcwYnU0YnBHQkx5UmoyN2NFVGZJWkowYklZN1p2VEpLNkIxOFBB?=
- =?utf-8?B?V1k1ZlJWM2dCSnM5WVgydGxkdjZNTEM4OEZSUU4vR09Ta0JlODdHTGVEaEtK?=
- =?utf-8?B?ZDVYeFdPSVpWREhNZ2Z1QkRFNUV3aThVNkxjd3JPdXFFZTZQVEVIUnJacXZC?=
- =?utf-8?B?a0dCcEt5NEFJSXlmczZFNDgwVWNFWXBVNUlUVjFjWmtDaFV3Nk02VnpxT3V4?=
- =?utf-8?B?cFY3MDQySXp5cXByeHVZS0xiY2VMNWlWOWZHaDFjR1EwTFVaNGpjTUNmTUtS?=
- =?utf-8?B?djRmN2VSZXNOSE00NDhoNStXbldjeG8zWGlnbXhMejRhL29FenhqRUlPV0h3?=
- =?utf-8?B?NU1tNXo0Rk4yTmlMSjM2SXZLVUJCejArRFQyTWhsSFNqMXBrakxqa2pqbjQ3?=
- =?utf-8?B?V2FYSzVYNk5TL2ZraVFTRWlJQ3BPc0FpQyswbTFteFY0YTBDVUorQnlJWXR0?=
- =?utf-8?B?S3ZDMXdPQlpjWXNFUVM2WkNyZ2xHNTVyNXp5YTQySXRIZjhPb1ZRS3FiQlJu?=
- =?utf-8?B?WWxGUVV1dlZHVXBDWE5JS3lWL0VUUUdkSDhrYjZqcURwMytpeUFxeUJaaVhZ?=
- =?utf-8?Q?jGaYeI5dNTbDqS9tQOCW9lFDM?=
-X-OriginatorOrg: amd.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 847eeb60-4025-411b-c462-08db9a3f92bc
-X-MS-Exchange-CrossTenant-AuthSource: IA1PR12MB6434.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 11 Aug 2023 07:50:04.2973
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: M709VkpIQwGwXNN+NvLPG5GIUQcBK9NrKtheV4n+VLJwXiLBXBrQMjZZnoZQfbs61vc6kTi+HaQBgpqIvi+09Q==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN7PR12MB7348
+Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3731.600.7\))
+Subject: Re: [PATCH v6 2/7] badblocks: add helper routines for badblock ranges
+ handling
+From: Coly Li <colyli@suse.de>
+In-Reply-To: <CALTww2-Y6b+Ruqsux9e2gXSngzGioTwENAFsygj5Rbgipgy0wg@mail.gmail.com>
+Date: Sat, 12 Aug 2023 00:57:15 +0800
+Cc: linux-block@vger.kernel.org,
+ nvdimm@lists.linux.dev,
+ linux-raid <linux-raid@vger.kernel.org>,
+ Dan Williams <dan.j.williams@intel.com>,
+ Geliang Tang <geliang.tang@suse.com>,
+ Hannes Reinecke <hare@suse.de>,
+ Jens Axboe <axboe@kernel.dk>,
+ NeilBrown <neilb@suse.de>,
+ Vishal L Verma <vishal.l.verma@intel.com>
+Content-Transfer-Encoding: quoted-printable
+Message-Id: <C64D4553-13AC-4337-B7DA-8C68B85E0C91@suse.de>
+References: <20220721121152.4180-1-colyli@suse.de>
+ <20220721121152.4180-3-colyli@suse.de>
+ <CALTww2-Y6b+Ruqsux9e2gXSngzGioTwENAFsygj5Rbgipgy0wg@mail.gmail.com>
+To: Xiao Ni <xni@redhat.com>
+X-Mailer: Apple Mail (2.3731.600.7)
 
 
-On 11-Aug-23 11:56 AM, Huang, Ying wrote:
-> Hi, Rao,
-> 
-> Bharata B Rao <bharata@amd.com> writes:
-> 
->> On 24-Jul-23 11:28 PM, Andrew Morton wrote:
->>> On Fri, 21 Jul 2023 14:15:31 +1000 Alistair Popple <apopple@nvidia.com> wrote:
->>>
->>>> Thanks for this Huang, I had been hoping to take a look at it this week
->>>> but have run out of time. I'm keen to do some testing with it as well.
->>>
->>> Thanks.  I'll queue this in mm-unstable for some testing.  Detailed
->>> review and testing would be appreciated.
->>
->> I gave this series a try on a 2P system with 2 CXL cards. I don't trust the
->> bandwidth and latency numbers reported by HMAT here, but FWIW, this patchset
->> puts the CXL nodes on a lower tier than DRAM nodes.
-> 
-> Thank you very much!
-> 
-> Can I add your "Tested-by" for the series?
 
-Yes if the above test qualifies for it, please go ahead.
+> 2022=E5=B9=B49=E6=9C=8821=E6=97=A5 20:13=EF=BC=8CXiao Ni =
+<xni@redhat.com> =E5=86=99=E9=81=93=EF=BC=9A
 
-Regards,
-Bharata.
+[snipped]
+
+>>=20
+>> +/*
+>> + * Find the range starts at-or-before bad->start. If 'hint' is =
+provided
+>> + * (hint >=3D 0) then search in the bad table from hint firstly. It =
+is
+>> + * very probably the wanted bad range can be found from the hint =
+index,
+>> + * then the unnecessary while-loop iteration can be avoided.
+>> + */
+>> +static int prev_badblocks(struct badblocks *bb, struct =
+badblocks_context *bad,
+>> +                         int hint)
+>> +{
+>> +       sector_t s =3D bad->start;
+>> +       int ret =3D -1;
+>> +       int lo, hi;
+>> +       u64 *p;
+>> +
+>> +       if (!bb->count)
+>> +               goto out;
+>> +
+>> +       if (hint >=3D 0) {
+>> +               ret =3D prev_by_hint(bb, s, hint);
+>> +               if (ret >=3D 0)
+>> +                       goto out;
+>> +       }
+>> +
+>> +       lo =3D 0;
+>> +       hi =3D bb->count;
+>> +       p =3D bb->page;
+>=20
+> Is it better to check something like this:
+>=20
+> if (BB_OFFSET(p[lo]) > s)
+>   return ret;
+
+
+Yeah, it is worthy to add such check to avoid the following bisect =
+search, if lucky.
+Will do it in next version.
+
+>=20
+>> +
+>> +       while (hi - lo > 1) {
+>> +               int mid =3D (lo + hi)/2;
+>> +               sector_t a =3D BB_OFFSET(p[mid]);
+>> +
+>> +               if (a =3D=3D s) {
+>> +                       ret =3D mid;
+>> +                       goto out;
+>> +               }
+>> +
+>> +               if (a < s)
+>> +                       lo =3D mid;
+>> +               else
+>> +                       hi =3D mid;
+>> +       }
+>> +
+>> +       if (BB_OFFSET(p[lo]) <=3D s)
+>> +               ret =3D lo;
+>> +out:
+>> +       return ret;
+>> +}
+>> +
+
+[snipped]
+
+>>=20
+>> +/*
+>> + * Combine the bad ranges indexed by 'prev' and 'prev - 1' (from bad
+>> + * table) into one larger bad range, and the new range is indexed by
+>> + * 'prev - 1'.
+>> + */
+>> +static void front_combine(struct badblocks *bb, int prev)
+>> +{
+>> +       u64 *p =3D bb->page;
+>> +
+>> +       p[prev - 1] =3D BB_MAKE(BB_OFFSET(p[prev - 1]),
+>> +                             BB_LEN(p[prev - 1]) + BB_LEN(p[prev]),
+>> +                             BB_ACK(p[prev]));
+>> +       if ((prev + 1) < bb->count)
+>> +               memmove(p + prev, p + prev + 1, (bb->count - prev - =
+1) * 8);
+>            else
+>                    p[prev] =3D 0;
+
+The caller of front_combine() will decrease bb->count by 1, so clearing =
+p[prev] here can be avoided. I will add code comments of front_combine =
+to explain this.
+Thanks.
+
+[snipped]
+
+>> +/*
+>> + * Return 'true' if the range indicated by 'bad' can overwrite the =
+bad
+>> + * range (from bad table) indexed by 'prev'.
+>> + *
+>> + * The range indicated by 'bad' can overwrite the bad range indexed =
+by
+>> + * 'prev' when,
+>> + * 1) The whole range indicated by 'bad' can cover partial or whole =
+bad
+>> + *    range (from bad table) indexed by 'prev'.
+>> + * 2) The ack value of 'bad' is larger or equal to the ack value of =
+bad
+>> + *    range 'prev'.
+>=20
+> In fact, it can overwrite only the ack value of 'bad' is larger than
+> the ack value of the bad range 'prev'.
+> If the ack values are equal, it should do a merge operation.
+
+Yes you are right, if extra is 0, it is indeed a merge operation. And if =
+extra is 1, or 2, it means bad blocks range split, I name such situation =
+as overwrite.
+
+[snipped]
+
+
+>> +/*
+>> + * Do the overwrite from the range indicated by 'bad' to the bad =
+range
+>> + * (from bad table) indexed by 'prev'.
+>> + * The previously called can_front_overwrite() will provide how many
+>> + * extra bad range(s) might be split and added into the bad table. =
+All
+>> + * the splitting cases in the bad table will be handled here.
+>> + */
+>> +static int front_overwrite(struct badblocks *bb, int prev,
+>> +                          struct badblocks_context *bad, int extra)
+>> +{
+>> +       u64 *p =3D bb->page;
+>> +       sector_t orig_end =3D BB_END(p[prev]);
+>> +       int orig_ack =3D BB_ACK(p[prev]);
+>> +
+>> +       switch (extra) {
+>> +       case 0:
+>> +               p[prev] =3D BB_MAKE(BB_OFFSET(p[prev]), =
+BB_LEN(p[prev]),
+>> +                                 bad->ack);
+>> +               break;
+>> +       case 1:
+>> +               if (BB_OFFSET(p[prev]) =3D=3D bad->start) {
+>> +                       p[prev] =3D BB_MAKE(BB_OFFSET(p[prev]),
+>> +                                         bad->len, bad->ack);
+>> +                       memmove(p + prev + 2, p + prev + 1,
+>> +                               (bb->count - prev - 1) * 8);
+>> +                       p[prev + 1] =3D BB_MAKE(bad->start + =
+bad->len,
+>> +                                             orig_end - =
+BB_END(p[prev]),
+>> +                                             orig_ack);
+>> +               } else {
+>> +                       p[prev] =3D BB_MAKE(BB_OFFSET(p[prev]),
+>> +                                         bad->start - =
+BB_OFFSET(p[prev]),
+>> +                                         BB_ACK(p[prev]));
+>=20
+> s/BB_ACK(p[prev])/orig_ack/g
+
+Yeah, this one is better. I will use it in next version.
+
+
+>> +                       /*
+>> +                        * prev +2 -> prev + 1 + 1, which is for,
+>> +                        * 1) prev + 1: the slot index of the =
+previous one
+>> +                        * 2) + 1: one more slot for extra being 1.
+>> +                        */
+>> +                       memmove(p + prev + 2, p + prev + 1,
+>> +                               (bb->count - prev - 1) * 8);
+>> +                       p[prev + 1] =3D BB_MAKE(bad->start, bad->len, =
+bad->ack);
+>> +               }
+>> +               break;
+>> +       case 2:
+>> +               p[prev] =3D BB_MAKE(BB_OFFSET(p[prev]),
+>> +                                 bad->start - BB_OFFSET(p[prev]),
+>> +                                 BB_ACK(p[prev]));
+>=20
+> s/BB_ACK(p[prev])/orig_ack/g
+
+It will be used in next version.
+
+>=20
+>> +               /*
+>> +                * prev + 3 -> prev + 1 + 2, which is for,
+>> +                * 1) prev + 1: the slot index of the previous one
+>> +                * 2) + 2: two more slots for extra being 2.
+>> +                */
+>> +               memmove(p + prev + 3, p + prev + 1,
+>> +                       (bb->count - prev - 1) * 8);
+>> +               p[prev + 1] =3D BB_MAKE(bad->start, bad->len, =
+bad->ack);
+>> +               p[prev + 2] =3D BB_MAKE(BB_END(p[prev + 1]),
+>> +                                     orig_end - BB_END(p[prev + 1]),
+>> +                                     BB_ACK(p[prev]));
+>=20
+> s/BB_ACK(p[prev])/orig_ack/g
+
+
+It will be used in next version.
+
+
+>> +               break;
+>> +       default:
+>> +               break;
+>> +       }
+>> +
+>> +       return bad->len;
+>> +}
+>> +
+>> +/*
+
+Thank you for the review!
+
+Coly Li
+
