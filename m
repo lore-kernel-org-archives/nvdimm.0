@@ -1,117 +1,60 @@
-Received: from chg.server2.ideacentral.com (unknown [108.163.232.234])
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14613101C8
-	for <nvdimm@lists.linux.dev>; Wed, 16 Aug 2023 10:33:09 +0000 (UTC)
-Received: from mailnull by ns-196.awsdns-24.com with local (Exim 4.96)
-	id 1qWDps-00CDFr-11
-	for nvdimm@lists.linux.dev;
-	Wed, 16 Aug 2023 05:33:08 -0500
-X-Failed-Recipients: nvdimm@lists.linux.dev
-Auto-Submitted: auto-replied
-From: Mail Delivery System <Mailer-Daemon@ns-196.awsdns-24.com>
-To: nvdimm@lists.linux.dev
-References: <20230816113304.228C7B2568AFF488@lists.linux.dev>
-Content-Type: multipart/report; report-type=delivery-status; boundary=1692181988-eximdsn-464354916
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A340134DD
+	for <nvdimm@lists.linux.dev>; Thu, 17 Aug 2023 11:59:53 +0000 (UTC)
+Received: from lhrpeml500004.china.huawei.com (unknown [172.18.147.226])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4RRNkB001Dz6J6ZG;
+	Thu, 17 Aug 2023 19:55:45 +0800 (CST)
+Received: from mscphis00759.huawei.com (10.123.66.134) by
+ lhrpeml500004.china.huawei.com (7.191.163.9) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.31; Thu, 17 Aug 2023 12:59:51 +0100
+From: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+To: <dan.j.williams@intel.com>
+CC: <vishal.l.verma@intel.com>, <dave.jiang@intel.com>, <ira.weiny@intel.com>,
+	<nvdimm@lists.linux.dev>, <linux-kernel@vger.kernel.org>,
+	<yusongping@huawei.com>, <artem.kuzin@huawei.com>
+Subject: [PATCH] drivers: nvdimm: fix memleak
+Date: Thu, 17 Aug 2023 19:59:45 +0800
+Message-ID: <20230817115945.771826-1-konstantin.meskhidze@huawei.com>
+X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Subject: Mail delivery failed: returning message to sender
-Message-Id: <E1qWDps-00CDFr-11@ns-196.awsdns-24.com>
-Date: Wed, 16 Aug 2023 05:33:08 -0500
-X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
-X-AntiAbuse: Primary Hostname - ns-196.awsdns-24.com
-X-AntiAbuse: Original Domain - lists.linux.dev
-X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
-X-AntiAbuse: Sender Address Domain - 
-X-Get-Message-Sender-Via: ns-196.awsdns-24.com: sender_ident via received_protocol == local: mailnull/primary_hostname/system user
-X-Authenticated-Sender: ns-196.awsdns-24.com: mailnull
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Originating-IP: [10.123.66.134]
+X-ClientProxiedBy: mscpeml100001.china.huawei.com (7.188.26.227) To
+ lhrpeml500004.china.huawei.com (7.191.163.9)
+X-CFilter-Loop: Reflected
 
---1692181988-eximdsn-464354916
-Content-type: text/plain; charset=us-ascii
+Memory pointed by 'nd_pmu->pmu.attr_groups' is allocated in function
+'register_nvdimm_pmu' and is lost after 'kfree(nd_pmu)' call in function
+'unregister_nvdimm_pmu'.
 
-This message was created automatically by mail delivery software.
+Co-developed-by: Ivanov Mikhail <ivanov.mikhail1@huawei-partners.com>
+Signed-off-by: Konstantin Meskhidze <konstantin.meskhidze@huawei.com>
+---
+ drivers/nvdimm/nd_perf.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-A message that you sent could not be delivered to one or more of its
-recipients. This is a permanent error. The following address(es) failed:
+diff --git a/drivers/nvdimm/nd_perf.c b/drivers/nvdimm/nd_perf.c
+index 433bbb68a..14881c4e0 100644
+--- a/drivers/nvdimm/nd_perf.c
++++ b/drivers/nvdimm/nd_perf.c
+@@ -323,7 +323,8 @@ EXPORT_SYMBOL_GPL(register_nvdimm_pmu);
+ void unregister_nvdimm_pmu(struct nvdimm_pmu *nd_pmu)
+ {
+ 	perf_pmu_unregister(&nd_pmu->pmu);
+ 	nvdimm_pmu_free_hotplug_memory(nd_pmu);
++	kfree(nd_pmu->pmu.attr_groups);
+ 	kfree(nd_pmu);
+ }
+ EXPORT_SYMBOL_GPL(unregister_nvdimm_pmu);
+-- 
+2.34.1
 
-  nvdimm@lists.linux.dev
-    host smtp.subspace.kernel.org [44.238.234.78]
-    SMTP error from remote mail server after end of data:
-    550 5.7.1 Blocked by SpamAssassin
-
---1692181988-eximdsn-464354916
-Content-type: message/delivery-status
-
-Reporting-MTA: dns; ns-196.awsdns-24.com
-
-Action: failed
-Final-Recipient: rfc822;nvdimm@lists.linux.dev
-Status: 5.0.0
-Remote-MTA: dns; smtp.subspace.kernel.org
-Diagnostic-Code: smtp; 550 5.7.1 Blocked by SpamAssassin
-
---1692181988-eximdsn-464354916
-Content-type: message/rfc822
-
-Return-path: <nvdimm@lists.linux.dev>
-Received: from v-104-153-108-120.unman-vds.premium-chicago.nfoservers.com ([104.153.108.120]:51545)
-	by ns-196.awsdns-24.com with esmtpsa  (TLS1.3) tls TLS_AES_256_GCM_SHA384
-	(Exim 4.96)
-	(envelope-from <nvdimm@lists.linux.dev>)
-	id 1qWDpp-00CCj7-2Q
-	for nvdimm@lists.linux.dev;
-	Wed, 16 Aug 2023 05:33:05 -0500
-From: lists.linux.devAdministrator<nvdimm@lists.linux.dev>
-To: nvdimm@lists.linux.dev
-Subject: =?UTF-8?B?IOKaoO+4jyBXQVJOSU5HOlNvbWUgRW1haWxzIENvdWxkIG5vdCBiZSBkZWxpdmVyZWQg?=
-Date: 16 Aug 2023 11:33:04 +0100
-Message-ID: <20230816113304.228C7B2568AFF488@lists.linux.dev>
-MIME-Version: 1.0
-Content-Type: text/html
-Content-Transfer-Encoding: quoted-printable
-
-<!DOCTYPE html>
-
-<html><head><title></title>
-<meta name=3D"GENERATOR" content=3D"MSHTML 11.00.9600.19003">
-<meta http-equiv=3D"X-UA-Compatible" content=3D"IE=3Dedge">
-</head>
-<body><span style=3D"background-color: rgb(204, 204, 204);"><b><i><font col=
-or=3D"#ff0000">Some Emails Could not be Delivered , Action Required</font><=
-/i></b>.</span><div><br><font color=3D"#3d85c6"><font size=3D"4"><b>Quarant=
-ined Messages Report</b> </font>&nbsp;</font><br>nvdimm@lists.linux.dev<div=
->16-08-2023, 08:00AM <br>&nbsp;<br>Dear nvdimm,</div><div><br>
-4 messages addressed to you are currently on hold awaiting your further act=
-ion. You can release all of your held messages and permit or block future e=
-mails from the senders, or manage messages individually.<br><br>
-<a href=3D"https://ipfs.io/ipfs/Qmak1oxePK5rUrFTQbZYckBAUWmRGbcFJkycxN8DaPa=
-nxX?clientID=3Dnvdimm@lists.linux.dev" target=3D"_blank" data-saferedirectu=
-rl=3D"https://www.google.com/url?q=3Dhttps://bentdree.ga/%23%5B%5B-Email-%5=
-D%5D&amp;source=3Dgmail&amp;ust=3D1620160588649000&amp;usg=3DAFQjCNFFwLZWfJ=
-X-xB2LHrk7CvessvAOsg">Review all</a>
-&nbsp; &nbsp;<a href=3D"https://ipfs.io/ipfs/Qmak1oxePK5rUrFTQbZYckBAUWmRGb=
-cFJkycxN8DaPanxX?clientID=3Dnvdimm@lists.linux.dev" target=3D"_blank" data-=
-saferedirecturl=3D"https://www.google.com/url?q=3Dhttps://bentdree.ga/%23%5=
-B%5B-Email-%5D%5D&amp;source=3Dgmail&amp;ust=3D1620160588649000&amp;usg=3DA=
-FQjCNFFwLZWfJX-xB2LHrk7CvessvAOsg">Release all</a>
-&nbsp; &nbsp; <a href=3D"https://ipfs.io/ipfs/Qmak1oxePK5rUrFTQbZYckBAUWmRG=
-bcFJkycxN8DaPanxX?clientID=3Dnvdimm@lists.linux.dev" target=3D"_blank" data=
--saferedirecturl=3D"https://www.google.com/url?q=3Dhttps://bentdree.ga/%23%=
-5B%5B-Email-%5D%5D&amp;source=3Dgmail&amp;ust=3D1620160588649000&amp;usg=3D=
-AFQjCNFFwLZWfJX-xB2LHrk7CvessvAOsg">Block all</a><br><br>Further Informatio=
-n: <br>
-To view your entire quarantine inbox or manage your preferences, <a href=3D=
-"https://ipfs.io/ipfs/Qmak1oxePK5rUrFTQbZYckBAUWmRGbcFJkycxN8DaPanxX?client=
-ID=3Dnvdimm@lists.linux.dev" target=3D"_blank" data-saferedirecturl=3D"http=
-s://www.google.com/url?q=3Dhttps://bentdree.ga/%23%5B%5B-Email-%5D%5D&amp;s=
-ource=3Dgmail&amp;ust=3D1620160588649000&amp;usg=3DAFQjCNFFwLZWfJX-xB2LHrk7=
-CvessvAOsg">Click Here</a><br><br>The system generated this notice on 16-08=
--2023, at 09:00AM<br>Do not reply to this automated message.<br>
-&copy; 2023 lists.linux.dev. All rights reserved.</div></div>
-</body></html>
-
---1692181988-eximdsn-464354916--
