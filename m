@@ -1,46 +1,38 @@
-Received: from NAM12-BN8-obe.outbound.protection.outlook.com (mail-bn8nam12on2065.outbound.protection.outlook.com [40.107.237.65])
+Received: from NAM10-MW2-obe.outbound.protection.outlook.com (mail-mw2nam10on2082.outbound.protection.outlook.com [40.107.94.82])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 203045254
-	for <nvdimm@lists.linux.dev>; Mon, 21 Aug 2023 11:33:10 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50C934A3B
+	for <nvdimm@lists.linux.dev>; Mon, 21 Aug 2023 11:54:34 +0000 (UTC)
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=hYDnRHC6WOfS0S2q/oO779uaTGlmsXgXVOz78tmCr0oTpW3hGysYfHkGQcNq/wKWMzzpaNmh9djuWw3NAF6MqPh6YiF2qwnicR1rtcLuIoxwk9LCt6eoor3aEJXqmU70liMZptCvLphaxWBWTTb58C+Jay4aebM/yZcT6LC0O4lYivH9F6plXKwRzeKXVQm0TutDlnDSbsWU/2f92yG4z92iZjb641LTPKXkoRZJbTiMrd3eHKmkaNaYmUUcRjc5iIzbY8bz3UmXwZmcXZHA4uSyLEEFYf5s921YEC/2HZqBqNpzfFO69JUlqZIn6RvL3hI9PKOxMgGlBAeR9/GAYQ==
+ b=nipsf7uzGkGdHMP3Lj0XB5h6N4/fM0mnhekONj3mlp9CxB/W8iJSkqq1hMrVupUttKhJSdDu1iYTLN8EyOEcNXIx14Aml9nHzJAzwuj81MgVrekDm8NLPER3GxK6Q6uK5if+pGiVwpf8AaQQuu17is2aHxZKDRfLNlgh7ToZ+HOu3fcQFG9Np+Qd1/bqs8SXj5B9DiV06iMKbb0iEp2Sk0sTRQqDz3tA//RP25mcmLtAu+YpycZfjTQ0OLEgQEn3BS4beHSGH3kni9oegajDv2Di1MF+I4qS06m+wl2bACEaMt3wqHiliLgPkQb58/8QIDB5Uh3VwSkFa1fgyR2PZQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=OfJXu1LYhFCTeTDCA2gLIqvQ2b3aZ3/DUdbn7RKKv2w=;
- b=crQnBYz+eW4chyQXergYepsSsMOph+uZSnzgN/0NKnEMHQagtV7vatnDlzA3W9OBH5CzAUpdP9WsD3lfk9p0HMvQhCq6UrytorWEKwjjy80DCgKjK5xXKSBRrCLXLVFgZMAGudCbtU8f4IN3f1IZD8t962ZygpdcWuz/WbYjNjtx9pdiHjYb/biE5jZwYs9+71wllKqsG1FG7mRVK3pQWdlb3wsoaMUiSwq4hCjO9VGIXqZ+JauyG2J7cUwQSJ4aIUm9jnUE4htCKpzdNIuCVc0xouhab3vtnx46aunYkv4JcdX6oZbGODBIJu/m8hQ0tUD0pJmoFTzsn9LF7vXcdQ==
+ bh=+7bCijop8ua7fyMKfxf8tPhpv50m9K4/UBtWb7TTlJA=;
+ b=jHJDByh3InyOnZAOJx9avOx7NUUnsmidhcC0CJOLUImurHQEpO3alPN6ye8+kMuIUFNuEkNMJz26BLeFuwked5vUyFPXWMWm3HcMCIxCnbzd5KW7MiCMl6X0FUur7rDF/cx5B6oO3Q5+W9SO8w/Ar+r8nD5FL78Xgoe90W7AL40AdLTsjVcK3fD27/mipwVXFVF+fNBJDNTwb6k0/g6X+EmPI6+2FVZGdWXWbAm/bxVPkA1I29WIUBwC1tFGUwNzK1pdg3hTAK7AW7rwDahI1iNYkZu9C69hTW5rfAGRlVJ6uUvNVtpMB5HJpxQGOE2KyG/yGxPcjmG0G1JkBfHE8A==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
  dkim=pass header.d=nvidia.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=OfJXu1LYhFCTeTDCA2gLIqvQ2b3aZ3/DUdbn7RKKv2w=;
- b=OF2vtrpDYHDqE2w3AD54Y/V045K4nQFSKvWqhBFpQGr286GN8pku+3O0cx95WoGVuA/tB9hkaN9LNlCY60ofIEgsc2TEqPyzNtOaMe5GGX6VMLfImtGD/0gRFYoVow51kkkNvTrMnw2TiG4m5FbsHzbnOpY32bmcVya4Ci12FXjw4NnjvDyWNlNMK6GIwAMpHGaqV5yhwhZnRFwxndNccLlP5xki/T4/cqHq/DiMiWvcYP34aF9K/LaI6u/S6ncJvFLAUkwycx1fqt7iK3RL+Yk0uggTj50hWNAvWgh7v74Xm3JHJOcatJZbST2hNo3hO7psfnzh9NYT7WgfSmha3g==
+ bh=+7bCijop8ua7fyMKfxf8tPhpv50m9K4/UBtWb7TTlJA=;
+ b=bbIx99JzieIMNle4ZCFBKFLZGzRU9mSRSCZ/daCRV1B3zYiKoR5hhW7vS7J/XmYe6yhmE4e6MLPjYwSPigYO5n5MQSMgFc+FUKAoye4jaCOhjlMNSnv/hmGuE/uITtXZnIGWH7KU6j/e0Q8vmAwFyexJxqXZbZfZtBtxC4IbC3CCEX/wjJDTlekwXr+nytsICIJNy/r8d0BZk0A9W3+crT+yuUxvUifjGu1y8X/guyv9nWLLe+KdLYD3EGKLFROVis1R1sUnDHouxNEBGqq4Ij/WlgF8BTLfEGrV+I/vJUA//HAQcNr3e1N3jbcz4f86TXmpuMrdV6UZNAHVfvP3/w==
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=nvidia.com;
 Received: from BYAPR12MB3176.namprd12.prod.outlook.com (2603:10b6:a03:134::26)
- by DM6PR12MB4433.namprd12.prod.outlook.com (2603:10b6:5:2a1::20) with
+ by SJ0PR12MB5439.namprd12.prod.outlook.com (2603:10b6:a03:3ae::18) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6699.24; Mon, 21 Aug
- 2023 11:33:06 +0000
+ 2023 11:54:33 +0000
 Received: from BYAPR12MB3176.namprd12.prod.outlook.com
  ([fe80::3bf6:11f3:64d7:2475]) by BYAPR12MB3176.namprd12.prod.outlook.com
  ([fe80::3bf6:11f3:64d7:2475%7]) with mapi id 15.20.6699.022; Mon, 21 Aug 2023
- 11:33:06 +0000
+ 11:54:33 +0000
 References: <20230721012932.190742-1-ying.huang@intel.com>
- <20230721012932.190742-2-ying.huang@intel.com>
- <87r0owzqdc.fsf@nvdebian.thelocal>
- <87r0owy95t.fsf@yhuang6-desk2.ccr.corp.intel.com>
- <87sf9cxupz.fsf@nvdebian.thelocal>
- <878rb3xh2x.fsf@yhuang6-desk2.ccr.corp.intel.com>
- <87351axbk6.fsf@nvdebian.thelocal>
- <87edkuvw6m.fsf@yhuang6-desk2.ccr.corp.intel.com>
- <87y1j2vvqw.fsf@nvdebian.thelocal>
- <87a5vhx664.fsf@yhuang6-desk2.ccr.corp.intel.com>
- <87lef0x23q.fsf@nvdebian.thelocal>
- <87r0oack40.fsf@yhuang6-desk2.ccr.corp.intel.com>
+ <20230721012932.190742-4-ying.huang@intel.com>
+ <87ila8zo80.fsf@nvdebian.thelocal>
+ <87h6psxzak.fsf@yhuang6-desk2.ccr.corp.intel.com>
 User-agent: mu4e 1.8.13; emacs 28.2
 From: Alistair Popple <apopple@nvidia.com>
 To: "Huang, Ying" <ying.huang@intel.com>
@@ -52,15 +44,15 @@ Cc: Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org,
  Bueso <dave@stgolabs.net>, Johannes Weiner <hannes@cmpxchg.org>, Jonathan
  Cameron <Jonathan.Cameron@huawei.com>, Michal Hocko <mhocko@kernel.org>,
  Yang Shi <shy828301@gmail.com>, Rafael J Wysocki
- <rafael.j.wysocki@intel.com>, Dave Jiang <dave.jiang@intel.com>
-Subject: Re: [PATCH RESEND 1/4] memory tiering: add abstract distance
- calculation algorithms management
-Date: Mon, 21 Aug 2023 21:26:24 +1000
-In-reply-to: <87r0oack40.fsf@yhuang6-desk2.ccr.corp.intel.com>
-Message-ID: <87cyzgwrys.fsf@nvdebian.thelocal>
+ <rafael.j.wysocki@intel.com>
+Subject: Re: [PATCH RESEND 3/4] acpi, hmat: calculate abstract distance with
+ HMAT
+Date: Mon, 21 Aug 2023 21:53:13 +1000
+In-reply-to: <87h6psxzak.fsf@yhuang6-desk2.ccr.corp.intel.com>
+Message-ID: <878ra4wqz0.fsf@nvdebian.thelocal>
 Content-Type: text/plain
-X-ClientProxiedBy: SY5PR01CA0089.ausprd01.prod.outlook.com
- (2603:10c6:10:1f5::8) To BYAPR12MB3176.namprd12.prod.outlook.com
+X-ClientProxiedBy: SY5P282CA0090.AUSP282.PROD.OUTLOOK.COM
+ (2603:10c6:10:201::17) To BYAPR12MB3176.namprd12.prod.outlook.com
  (2603:10b6:a03:134::26)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -69,145 +61,116 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BYAPR12MB3176:EE_|DM6PR12MB4433:EE_
-X-MS-Office365-Filtering-Correlation-Id: 3bfb2ee7-46ed-4a1c-76ea-08dba23a62fc
+X-MS-TrafficTypeDiagnostic: BYAPR12MB3176:EE_|SJ0PR12MB5439:EE_
+X-MS-Office365-Filtering-Correlation-Id: 473b8acb-ea9b-41f0-176d-08dba23d625b
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
 X-Microsoft-Antispam-Message-Info:
-	7Y3QW3GMcANihZGzC7n6CqPOghHWyRyFMgfU6+G+rKC4KKJmwvc+/FaxHxVdPn99hZBZcGQhDQvNo9GlT/Z2GSu8UWfm1ItxFFvUPM3m4szSrYbSV/nTb6Hj1+igcSO51QH81lGXFIRK5ck4OO7vxAwLZtZkBWbQfo82ffH9yEPSUn6bWsFMJ3l8JFO42DWFiGRHA9gDa/3mnaQyHWShKyMcnACXO5CjTpgup6/MTtXUwPgJkHR3WXjAI9iP0rIhyCYDn1YN+nCgiDMxE+T1zilixWiJv3NWKOOK1U6W9PyuuVniX3rszYbvf260hIylXwUhM6ays9wulRAJLs2uNctob0r3rO5n+1npeQRYlY1e3OPRFo3XddrFRCXEf4B4I8UzpwbgB/wqprEP6wNZlxD8LtzSntFYj2Bnlbjkyd96yp+HOjyc04KxCa9DwF4GxAN5mtUKs6LTl9itO6Dx/7wDhEVqnFMLXQDzg2qt94MrN1jVFVq9lQFcT1H+MHQp38x3ySw12bttzYfW7ExVY6lcP3iUcX0lro8iMzG2yAqLdVr8+L8MMpPoWfXPXHqo
+	m6aymPqBS1eWbbuheOlpRkdLubidxmZMTKV3TTXR4mU4AGViXHP6U0/j8Rs7b0/zhcxXwaNcZEJubLoEO0ahoa1/258zblbQrzJCKGPJP/5FCyBUbSZLJCYXUTj7k/3DPznMbLM6g0RaecQL/UQuLHSAV6Hc6NeKB9y3UKr6WiCXZNQAJzqyxpDz74U3VK5mDsf9He4HPy/O9IDVV5Q9bewM/PjLWW6SMpyoqzBuMKc+fOZrHnqyeuZf7RZ+M4sucvMc/ePtcAXQWgAaK4uxLot8ta61a2dTFCRzRO8JfmhkYgB306G5jml3E/jGNG4/Y8gnp2q0WCrWMKAkjgG+lBZnlgnDB8hw3IQINhmRlTaJz1sLmgBN9ITXtfn7sL4HUy/pHzxHXMrYp5frhWL1uN2VbAR9P+QctImY9H7rZ7nDdr9yeesYEfvmUosa/yx9AcU+Mm1VCQWwHY1udqCgdRu9vNrOBS2IysR2+5ccqT6vrt/b7K+zksAnWun1SUcGuoieh+DNpbHUEy+qxgOEg45Gdw3jq9sAIi1Ei5fhraw1EePgNdTdWHmgxWVPZjYE
 X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BYAPR12MB3176.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(376002)(366004)(346002)(136003)(39860400002)(396003)(451199024)(186009)(1800799009)(2906002)(7416002)(38100700002)(6506007)(6486002)(83380400001)(5660300002)(26005)(86362001)(8676002)(8936002)(4326008)(316002)(9686003)(66946007)(6512007)(54906003)(6916009)(66556008)(66476007)(478600001)(6666004)(41300700001);DIR:OUT;SFP:1101;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BYAPR12MB3176.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(346002)(366004)(39860400002)(136003)(396003)(376002)(451199024)(1800799009)(186009)(2906002)(83380400001)(7416002)(38100700002)(6506007)(6486002)(5660300002)(26005)(86362001)(8676002)(8936002)(4326008)(316002)(6512007)(9686003)(66476007)(6916009)(54906003)(66946007)(66556008)(478600001)(6666004)(41300700001);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?CD5NvBMqEUreUa17lhONdCJubY/OQrwFmEBcvL2AhpE4V8oMwfZFRN2qzWMT?=
- =?us-ascii?Q?Of2Z8UdYbhqGas1r7ny6uX6wxNEkoooT2B5zeMK0dSwzd4Rq4Sxetv5ue/SF?=
- =?us-ascii?Q?qRiqGw4ryJGuIKBzpwV2EzpgpyS0rKqakg3kF2BhVrA7V63ALq3JPKr+8+V2?=
- =?us-ascii?Q?Y2DGpyqcR4Eeh4gmdAeWU1wjLojodu6m4gdtPYKpTD5C+8MbuMd29uYxmtd3?=
- =?us-ascii?Q?ESX8NfCwr+/UfwbNwusseNAjJA8FjjjxKBiWQ/dt0vIrquqrPSNf3jRr0Zk2?=
- =?us-ascii?Q?DSnp8UkBtvJaNoyFCFBtAkILsMGloZaXdM0PBdpn8/YtA53nrl+nWk7rHvP4?=
- =?us-ascii?Q?I4oO8w19oaX5AW/AzjLVVxEmF/hzh1nw7Y6rwOMnO52EiyvIzb8/bAb0E7uP?=
- =?us-ascii?Q?QRIvUlDcA28LA3jlVT4vBYuuXhsU567FxKpe18F+z/RMv99bIKbtqhe7FZhI?=
- =?us-ascii?Q?jzxSP/zl+9GiGordNq+eQ1c7hE38avtUhhkDs/euS4rg0sX6Pq3MeZtah8+w?=
- =?us-ascii?Q?38FN0zuQVeFR2wroMK+52euvZYzVq5oNI33DxQkIicwGJxlG+hY3Uu2FSX1X?=
- =?us-ascii?Q?QUda3ey493SAH6pjWMmEbBlOcza5cEBoxqcIihtzYQzld2U7WImRhsVOz1UP?=
- =?us-ascii?Q?z4TLlYdyACdxjfEossBRyiuWbfOmG4EzjAlrbT4V13AWNULUVGnNJTQIf1RZ?=
- =?us-ascii?Q?l8+9vComNQAeMSv9HYAfSGs866i7MRcha6CmtmvQgdyTRX8EmJDlILQcD+m/?=
- =?us-ascii?Q?KzH7sI+RazCOd57ZlFsim6kFQYF7MlyYD9/LrYsJXtkdMTK8fg0sqAFn8/y6?=
- =?us-ascii?Q?bCTSaVf2QF+r0bkZVW/z50gcDrdaYBEzKe0GeR0EXuZZ8qNQiBF44oad9YDD?=
- =?us-ascii?Q?sTEGzmN8y4wbXN+2Tn8+glD0SVD6VKxVqj/ulDoF3+uhOt+S+x6SQuc4/KNW?=
- =?us-ascii?Q?1L4N7He6QdQh6maH2qx3UuaQtO76Fj12eVEDFUs32OJbqY/zaChXLBzhl3BG?=
- =?us-ascii?Q?SAUtU6tNFkSxNMjJCtX/9j0SzKaViDgBvDi19a+GfX8/8bsGGtWcPYkXydBr?=
- =?us-ascii?Q?j8TpqwaggU2zJ3dvNZOv1lnc6j0n66JZlQ4/5f1P8MFuejxMS157L5FwmaW8?=
- =?us-ascii?Q?keHy/7aBVuFLl14FuImHf1rjDhS0UGEDlgCm2fZNdqfLIiRJaybfoB02DVuP?=
- =?us-ascii?Q?pZVRRt6YgmZVHyZkYVLWmw3Yoz5pI4XwcjqCFVgjSHck/ptm6YW9j0sx3wPs?=
- =?us-ascii?Q?wN1tOZYqZ/IRtPfFgs/aqBkAqALLaVR8pv9s/z9CnbyBjW4Yn2qlYsPwU/3s?=
- =?us-ascii?Q?a9WdRfwqEcOnidwcenDvYHMF7SzeMBtIDkAiIV/We7IEPnEpDjApfpERUxxL?=
- =?us-ascii?Q?pzo8IcCk9eH45i3KssAsjE55xEQhUg0p0Z4xje2RH22rkeFQRK4sWkzr1SgI?=
- =?us-ascii?Q?QTIap4fvF2aEV8t/9ZrHkS4RclsMPuGSdiFmVJlHLrY67hAElZ5gtJIflwNW?=
- =?us-ascii?Q?4hN3wft0bJczWrBRDcMv3Uem/6IMQZsteb7uaUPWdxanoXPSRC/bFOrPyhkD?=
- =?us-ascii?Q?c33+TPNMJ5ulrOICfKlJ/Pu47/9mor8tUtpJ0akx?=
+	=?us-ascii?Q?9GFIovdmzfUV3Etv8AohJmp8AHZJW6EQ3yjU1qHnu+uJRxhNgAVf/a3Zwx+p?=
+ =?us-ascii?Q?sDxxn8IFpXFgIx4vyG5P9HIU87gK0YyaMIDs+IEKMhtT8HzvOE/XHtW/b5Z/?=
+ =?us-ascii?Q?SJ2CLF+ftdpFXWsd7/4I4n4O2imy2YaGr5xSw7IU5MqD2xUFsbFVOS3FVwUS?=
+ =?us-ascii?Q?fpkt0Cdg54AYr+Zm11RzTaG1DIX+eV6cXgF6VeLHu8kmX5NSg5DemfFfCLWX?=
+ =?us-ascii?Q?Ta+NYoNzdeYn1clh8kuvbNUwlTvKN1Sh3TkFtrQ9ir19L1Kfyj+QhOaVZkEl?=
+ =?us-ascii?Q?eIdfILk21JVVV5BybwLSUHd1nuaogboObuEpYNMZ/VBN4L1luUGMoASqSzPf?=
+ =?us-ascii?Q?5twARvMbdYPlfSiasx6QEhVydpySj6YSHUFuJS+Mm6v9FEIeMjUfV9glx4j7?=
+ =?us-ascii?Q?IQD99QrzJrO3MPMAPy+eW8R/vXJ2lzFMY9Lp+ubh937bkYmJTnYhfNCBdkIz?=
+ =?us-ascii?Q?/PBz1mkN/H+m4A74bcp8rtIicIQjAhAdtoYHIB/XyCz6JqsMH2CR4fAKds3Q?=
+ =?us-ascii?Q?F7zTVvTSCJet27Du7xJ0AAjy4nrQZN1lsSjqarCWBqe1j+wH/i+vuDInb92u?=
+ =?us-ascii?Q?HWEyuF8EI1ue25nbo2cbOdqVPDopn2aFFYdLc6Lsu1M+PllNAJ/KOXpPUtrK?=
+ =?us-ascii?Q?QZ4bT2q/M8tGNqbT64HeFll0Q33x5/ORnL56cA073OcAsce4FxLPXULdW4gI?=
+ =?us-ascii?Q?pq3MlMGylottX1BGcA25nMYMVqptTIJqP7XU4NGPFGsIak4MZuvIf/s0hqRq?=
+ =?us-ascii?Q?bikc+S5suurC/ho5Lvu+io7bBOVkPgeLKEqF9Ra18T3Yct6nzCGeHDEFNkfM?=
+ =?us-ascii?Q?X3Wd7SN/1/UAscESXdB4GqjL5NlGVKtPL85LIB4GxdstCJyn4To6QMxa6IdI?=
+ =?us-ascii?Q?lma5IgjV08vtRCCikq9Y0LURD+96ke4Rt3PuWAmP6k7Px2XMqLfVHopVpqb+?=
+ =?us-ascii?Q?63F2xFjOyIisXHMkhf/zMaqDhiK4FS+WPs6M8KbsSCVLihBrjq9Et3GpsYdC?=
+ =?us-ascii?Q?TmKafpYBVA17i71FHLNqdgEIuv3LvAYVm95HABJhRszybSA8THhSalzZSuWp?=
+ =?us-ascii?Q?7zC8RjPm5roGZ3iKDij9vTD2RaaIKaqWqX0XalC5uJJdzYJsU+g+sS7sP2xp?=
+ =?us-ascii?Q?OFK4l+AHOEwzsd7CcmOHu9lVJzrzdWYdExXYcTPFkV/+wwLuJr1vZhZ7ibx1?=
+ =?us-ascii?Q?Td0H6hNh6/ty5+TNgRqlzHfpQmPmUWB3lmXTQg8oJgBHiUJM4hng+svXMHzq?=
+ =?us-ascii?Q?FefNh1gP2sk5XlKKh2PHMKd6/ejQc8BXzmBD1y3ku0FEksW28Cv/JV3J4RJ1?=
+ =?us-ascii?Q?YBK0smvrA4l4GIy2R1CVFMTPYrwI7YhbIJQlLlrQRGoNA9qeQhsclMtnc+Z4?=
+ =?us-ascii?Q?vAuaTwtZTFOTtcMFtuiubBFuwjrQB+z5igT4dbf9XVRne3TS1sWHMz4oZAIf?=
+ =?us-ascii?Q?uo93Q/A8tUls8AN1Ie5XNpA4m6JjGwNeLuvO7UI+4htnUrdrrA3E2vzM51n8?=
+ =?us-ascii?Q?vW7yXbztYFZUQvHG5J+TmC1C9J3C7n0oiHK2CzVY1PF7qSWGQwLsaHEWCyF9?=
+ =?us-ascii?Q?BeT9oMDuL6NxYon+rvsasc4UUp2yyigDH/xdQ97X?=
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 3bfb2ee7-46ed-4a1c-76ea-08dba23a62fc
+X-MS-Exchange-CrossTenant-Network-Message-Id: 473b8acb-ea9b-41f0-176d-08dba23d625b
 X-MS-Exchange-CrossTenant-AuthSource: BYAPR12MB3176.namprd12.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 Aug 2023 11:33:05.6718
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 Aug 2023 11:54:33.1179
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: Pojw71rq2sBxaQVn1+9cWA3rseKKZLr4/qzCwRtNY/Vk+wpJe+WJxTmENhJHUWKMloctmrqAsQ0fBW4VH0WRqw==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR12MB4433
+X-MS-Exchange-CrossTenant-UserPrincipalName: WYPZAGVLyOPTV5YUqQNeXhq0rRH+CAYnQc/bTEGNe52JePnWrXQRm9/7r/zr8RO4cWMYTkeWl6dqPJqAuFU9bg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ0PR12MB5439
 
 
 "Huang, Ying" <ying.huang@intel.com> writes:
 
-> Hi, Alistair,
->
-> Sorry for late response.  Just come back from vacation.
-
-Ditto for this response :-)
-
-I see Andrew has taken this into mm-unstable though, so my bad for not
-getting around to following all this up sooner.
-
 > Alistair Popple <apopple@nvidia.com> writes:
 >
->> "Huang, Ying" <ying.huang@intel.com> writes:
+>> Huang Ying <ying.huang@intel.com> writes:
 >>
->>> Alistair Popple <apopple@nvidia.com> writes:
+>>> A memory tiering abstract distance calculation algorithm based on ACPI
+>>> HMAT is implemented.  The basic idea is as follows.
 >>>
->>>> "Huang, Ying" <ying.huang@intel.com> writes:
->>>>
->>>>> Alistair Popple <apopple@nvidia.com> writes:
->>>>>
->>>>>>>>> While other memory device drivers can use the general notifier chain
->>>>>>>>> interface at the same time.
->>>>>>
->>>>>> How would that work in practice though? The abstract distance as far as
->>>>>> I can tell doesn't have any meaning other than establishing preferences
->>>>>> for memory demotion order. Therefore all calculations are relative to
->>>>>> the rest of the calculations on the system. So if a driver does it's own
->>>>>> thing how does it choose a sensible distance? IHMO the value here is in
->>>>>> coordinating all that through a standard interface, whether that is HMAT
->>>>>> or something else.
->>>>>
->>>>> Only if different algorithms follow the same basic principle.  For
->>>>> example, the abstract distance of default DRAM nodes are fixed
->>>>> (MEMTIER_ADISTANCE_DRAM).  The abstract distance of the memory device is
->>>>> in linear direct proportion to the memory latency and inversely
->>>>> proportional to the memory bandwidth.  Use the memory latency and
->>>>> bandwidth of default DRAM nodes as base.
->>>>>
->>>>> HMAT and CDAT report the raw memory latency and bandwidth.  If there are
->>>>> some other methods to report the raw memory latency and bandwidth, we
->>>>> can use them too.
->>>>
->>>> Argh! So we could address my concerns by having drivers feed
->>>> latency/bandwidth numbers into a standard calculation algorithm right?
->>>> Ie. Rather than having drivers calculate abstract distance themselves we
->>>> have the notifier chains return the raw performance data from which the
->>>> abstract distance is derived.
->>>
->>> Now, memory device drivers only need a general interface to get the
->>> abstract distance from the NUMA node ID.  In the future, if they need
->>> more interfaces, we can add them.  For example, the interface you
->>> suggested above.
+>>> The performance attributes of system default DRAM nodes are recorded
+>>> as the base line.  Whose abstract distance is MEMTIER_ADISTANCE_DRAM.
+>>> Then, the ratio of the abstract distance of a memory node (target) to
+>>> MEMTIER_ADISTANCE_DRAM is scaled based on the ratio of the performance
+>>> attributes of the node to that of the default DRAM nodes.
 >>
->> Huh? Memory device drivers (ie. dax/kmem.c) don't care about abstract
->> distance, it's a meaningless number. The only reason they care about it
->> is so they can pass it to alloc_memory_type():
->>
->> struct memory_dev_type *alloc_memory_type(int adistance)
->>
->> Instead alloc_memory_type() should be taking bandwidth/latency numbers
->> and the calculation of abstract distance should be done there. That
->> resovles the issues about how drivers are supposed to devine adistance
->> and also means that when CDAT is added we don't have to duplicate the
->> calculation code.
+>> The problem I encountered here with the calculations is that HBM memory
+>> ended up in a lower-tiered node which isn't what I wanted (at least when
+>> that HBM is attached to a GPU say).
 >
-> In the current design, the abstract distance is the key concept of
-> memory types and memory tiers.  And it is used as interface to allocate
-> memory types.  This provides more flexibility than some other interfaces
-> (e.g. read/write bandwidth/latency).  For example, in current
-> dax/kmem.c, if HMAT isn't available in the system, the default abstract
-> distance: MEMTIER_DEFAULT_DAX_ADISTANCE is used.  This is still useful
-> to support some systems now.  On a system without HMAT/CDAT, it's
-> possible to calculate abstract distance from ACPI SLIT, although this is
-> quite limited.  I'm not sure whether all systems will provide read/write
-> bandwith/latency data for all memory devices.
->
-> HMAT and CDAT or some other mechanisms may provide the read/write
-> bandwidth/latency data to be used to calculate abstract distance.  For
-> them, we can provide a shared implementation in mm/memory-tiers.c to map
-> from read/write bandwith/latency to the abstract distance.  Can this
-> solve your concerns about the consistency among algorithms?  If so, we
-> can do that when we add the second algorithm that needs that.
+> I have tested the series on a server machine with HBM (pure HBM, not
+> attached to a GPU).  Where, HBM is placed in a higher tier than DRAM.
 
-I guess it would address my concerns if we did that now. I don't see why
-we need to wait for a second implementation for that though - the whole
-series seems to be built around adding a framework for supporting
-multiple algorithms even though only one exists. So I think we should
-support that fully, or simplfy the whole thing and just assume the only
-thing that exists is HMAT and get rid of the general interface until a
-second algorithm comes along.
+Good to know.
+
+>> I suspect this is because the calculations are based on the CPU
+>> point-of-view (access1) which still sees lower bandwidth to remote HBM
+>> than local DRAM, even though the remote GPU has higher bandwidth access
+>> to that memory. Perhaps we need to be considering access0 as well?
+>> Ie. HBM directly attached to a generic initiator should be in a higher
+>> tier regardless of CPU access characteristics?
+>
+> What's your requirements for memory tiers on the machine?  I guess you
+> want to put GPU attache HBM in a higher tier and put DRAM in a lower
+> tier.  So, cold HBM pages can be demoted to DRAM when there are memory
+> pressure on HBM?  This sounds reasonable from GPU point of view.
+
+Yes, that is what I would like to implement.
+
+> The above requirements may be satisfied via calculating abstract
+> distance based on access0 (or combined with access1).  But I suspect
+> this will be a general solution.  I guess that any memory devices that
+> are used mainly by the memory initiators other than CPUs want to put
+> themselves in a higher memory tier than DRAM, regardless of its
+> access0.
+
+Right. I'm still figuring out how ACPI HMAT fits together but that
+sounds reasonable.
+
+> One solution is to put GPU HBM in the highest memory tier (with smallest
+> abstract distance) always in GPU device driver regardless its HMAT
+> performance attributes.  Is it possible?
+
+It's certainly possible and easy enough to do, although I think it would
+be good to provide upper and lower bounds for HMAT derived adistances to
+make that easier. It does make me wonder what the point of HMAT is if we
+have to ignore it in some scenarios though. But perhaps I need to dig
+deeper into the GPU values to figure out how it can be applied correctly
+there.
+
+>> That said I'm not entirely convinced the HMAT tables I'm testing against
+>> are accurate/complete.
+
