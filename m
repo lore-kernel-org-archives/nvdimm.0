@@ -1,446 +1,219 @@
-Received: from esa6.hc1455-7.c3s2.iphmx.com (esa6.hc1455-7.c3s2.iphmx.com [68.232.139.139])
+Received: from mx0a-00069f02.pphosted.com (mx0a-00069f02.pphosted.com [205.220.165.32])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DFD1D524
-	for <nvdimm@lists.linux.dev>; Thu, 24 Aug 2023 09:42:06 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6600,9927,10811"; a="130609812"
-X-IronPort-AV: E=Sophos;i="6.01,195,1684767600"; 
-   d="scan'208";a="130609812"
-Received: from unknown (HELO yto-r1.gw.nic.fujitsu.com) ([218.44.52.217])
-  by esa6.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Aug 2023 18:41:57 +0900
-Received: from yto-m4.gw.nic.fujitsu.com (yto-nat-yto-m4.gw.nic.fujitsu.com [192.168.83.67])
-	by yto-r1.gw.nic.fujitsu.com (Postfix) with ESMTP id 427C0DB3B5
-	for <nvdimm@lists.linux.dev>; Thu, 24 Aug 2023 18:41:53 +0900 (JST)
-Received: from kws-ab3.gw.nic.fujitsu.com (kws-ab3.gw.nic.fujitsu.com [192.51.206.21])
-	by yto-m4.gw.nic.fujitsu.com (Postfix) with ESMTP id 78176D3F2A
-	for <nvdimm@lists.linux.dev>; Thu, 24 Aug 2023 18:41:52 +0900 (JST)
-Received: from edo.cn.fujitsu.com (edo.cn.fujitsu.com [10.167.33.5])
-	by kws-ab3.gw.nic.fujitsu.com (Postfix) with ESMTP id BC79D20090422
-	for <nvdimm@lists.linux.dev>; Thu, 24 Aug 2023 18:41:51 +0900 (JST)
-Received: from [192.168.50.5] (unknown [10.167.234.230])
-	by edo.cn.fujitsu.com (Postfix) with ESMTP id C63971A0073;
-	Thu, 24 Aug 2023 17:41:50 +0800 (CST)
-Message-ID: <999e83ca-df65-4a43-9d32-ff13a252c2d7@fujitsu.com>
-Date: Thu, 24 Aug 2023 17:41:50 +0800
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D94ADCA76
+	for <nvdimm@lists.linux.dev>; Thu, 24 Aug 2023 18:24:51 +0000 (UTC)
+Received: from pps.filterd (m0333521.ppops.net [127.0.0.1])
+	by mx0b-00069f02.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 37OIMf3w027064;
+	Thu, 24 Aug 2023 18:24:28 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=message-id : date :
+ subject : to : cc : references : from : in-reply-to : content-type :
+ content-transfer-encoding : mime-version; s=corp-2023-03-30;
+ bh=49vsL0jTrKa+vr/zJHTYRnBO/KSDZ6czmr2AyeKgmt0=;
+ b=x3WcCvlF7qZeANhRiF1ENvCm3aiAaFr//xaDUJiTE556MYDdK8uW2NcM22bPH6WDEEK5
+ x0N7u4APFnlWz9PcJZlwxvwwnHlKmd02JC4E9934fVL0tuxlrGt3E9Ono8Pe37peLJ8O
+ vxiVd5genFxrA7UmHPqj2UjbovIiMQFygVV82JX+/RWOvSI/Rs4K83y9oLIJKi6gjs17
+ uI5cj67OYzjf3af6NdJ9S+d3In3Xij5b4HY4ts7+84JdwYy23Nx2f7nBED48d5fmQlUz
+ SIEMreHCM+fhHc1Ad0CL5QczYDiMna2U43JQlVe8FHLRor/NaBbT3T80PYnG3IqDm4Sw Kw== 
+Received: from phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (phxpaimrmta01.appoci.oracle.com [138.1.114.2])
+	by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 3sn20dcrfx-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Thu, 24 Aug 2023 18:24:28 +0000
+Received: from pps.filterd (phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com [127.0.0.1])
+	by phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (8.17.1.19/8.17.1.19) with ESMTP id 37OI1oFH005909;
+	Thu, 24 Aug 2023 18:24:27 GMT
+Received: from nam04-mw2-obe.outbound.protection.outlook.com (mail-mw2nam04lp2169.outbound.protection.outlook.com [104.47.73.169])
+	by phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (PPS) with ESMTPS id 3sn1ytjjyc-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Thu, 24 Aug 2023 18:24:27 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=P7sdoM7Bwxpdxk+TUMEPCz6Ozab0LzJfoIH/4ucv+FWNydRna4L6FVszq1hnczAt6bWP+DEPNnu15tsC04FZEWaub4sxg1KM47ckis2e9SkhvoI2XwcLGojfHst6DaUAqhx9Ntt4Z52lINOpqaQNTNeAsf4NtQgcCXg1gKZiXq1myEPm3hplJV2G8qzf2OXPGTo179X3mpZ5vqZzMDhfIv9XqrXgHeNWA9yYDya495NIWXHXnNPPrbk9QvCZZnVmjZ9SErnIyWUXoyjejm4SJDUcqiEDArhwSvH0dCc8zJLn2EuZcRSLZ4OnEGxwLOgmkhCdRUaxA9mB02my4je4Ow==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=49vsL0jTrKa+vr/zJHTYRnBO/KSDZ6czmr2AyeKgmt0=;
+ b=Fca3ReS8nk8oOkxE3HVuYAUSUq8NwfNkXntN10Gj6wX4Y2EBuQWbooTCwFz3zOWBEBuk1jZ1wjICCZgvZ0evHFKndjI1hRNxleVaJHIcHJtS9GeJYW7EESq2ng8LQLRfu3nr06FzOzjW+F0RpBqJLHxupUQ+1F/yjFWZV0HQZcmhpGZf/hDay/Qv8XM49K+G1lM106BKpo1NP+2qX8FbH4AJocj6SAoKDjZVOwF5ZTI+BjV6sSTAZrJU/gugA8vmLXxHxwGGpoNGWQkU9DDXiUfQfb+95kv+7jbkveGqTQUFUYKitHPCmkhhPE1jbSBGQo5YdYN6McEEBlnIZq/a2w==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
+ dkim=pass header.d=oracle.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=49vsL0jTrKa+vr/zJHTYRnBO/KSDZ6czmr2AyeKgmt0=;
+ b=BK97qHBBKQOOg+bmsw70Hqep9A8Z4n7PE4w6Yqe6FmRWfvoAUXj4MhwfSRjoXli02/M1Kc9sMjeQb/vcprRUHBvjLFLdm6KFCEh/wMt5m/Px7SmRKrWD5RIqUqJ9/CFS/HVaC73Ss9CVGJaUhkTMhYRDzGaYnqtg44KiEssgXKY=
+Received: from SJ0PR10MB4429.namprd10.prod.outlook.com (2603:10b6:a03:2d1::14)
+ by SA1PR10MB6661.namprd10.prod.outlook.com (2603:10b6:806:2b8::22) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6699.27; Thu, 24 Aug
+ 2023 18:24:25 +0000
+Received: from SJ0PR10MB4429.namprd10.prod.outlook.com
+ ([fe80::df9b:4211:cbe:cfc9]) by SJ0PR10MB4429.namprd10.prod.outlook.com
+ ([fe80::df9b:4211:cbe:cfc9%6]) with mapi id 15.20.6699.020; Thu, 24 Aug 2023
+ 18:24:25 +0000
+Message-ID: <df52b1f7-7645-b9cd-4cea-d3e08897c297@oracle.com>
+Date: Thu, 24 Aug 2023 11:24:20 -0700
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
+ Thunderbird/102.13.0
+Subject: Re: [PATCH] mm: Convert DAX lock/unlock page to lock/unlock folio
+To: "Matthew Wilcox (Oracle)" <willy@infradead.org>,
+        Andrew Morton <akpm@linux-foundation.org>
+Cc: nvdimm@lists.linux.dev, Dan Williams <dan.j.williams@intel.com>,
+        Naoya Horiguchi <naoya.horiguchi@nec.com>, linux-mm@kvack.org
+References: <20230822231314.349200-1-willy@infradead.org>
+Content-Language: en-US
+From: Jane Chu <jane.chu@oracle.com>
+In-Reply-To: <20230822231314.349200-1-willy@infradead.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: SA1P222CA0178.NAMP222.PROD.OUTLOOK.COM
+ (2603:10b6:806:3c4::26) To SJ0PR10MB4429.namprd10.prod.outlook.com
+ (2603:10b6:a03:2d1::14)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v13] mm, pmem, xfs: Introduce MF_MEM_PRE_REMOVE for unbind
-To: "Darrick J. Wong" <djwong@kernel.org>
-Cc: linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
- linux-xfs@vger.kernel.org, linux-mm@kvack.org, dan.j.williams@intel.com,
- willy@infradead.org, jack@suse.cz, akpm@linux-foundation.org,
- mcgrof@kernel.org
-References: <20230629081651.253626-3-ruansy.fnst@fujitsu.com>
- <20230823081706.2970430-1-ruansy.fnst@fujitsu.com>
- <20230823233601.GH11263@frogsfrogsfrogs>
-From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-In-Reply-To: <20230823233601.GH11263@frogsfrogsfrogs>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-TM-AS-Product-Ver: IMSS-9.1.0.1417-9.0.0.1002-27832.006
-X-TM-AS-User-Approved-Sender: Yes
-X-TMASE-Version: IMSS-9.1.0.1417-9.0.1002-27832.006
-X-TMASE-Result: 10--25.814300-10.000000
-X-TMASE-MatchedRID: WXBh9Xkni9aPvrMjLFD6eHchRkqzj/bEC/ExpXrHizxBqLOmHiM3wyDU
-	0t/WFgAcM21CreAEMZhHW7omdzHbHeVaI0j/eUAPxDiakrJ+Spl4fCfFRQ30yN20KhkCTcTU0Eq
-	FjE9+26goQVAihVrNS4NRyZUAEJtaRtJQAvHxVGkvun/+8u/hs4OeZuUUsCzCuzdiHYg4JjN0O3
-	P7NRJ5H5ytBOG1WZxWyksi4Z4sCs2eTALXPNvL0hmCYUYerLHro8tN19oTXleaDNlRJumzuRFup
-	4CINH3JYGFrrc6fVM/jpCo1bCzvK2sth/lQGvIl0wmR34xRQc8aJDwYgQY/f1gLks93sG9t4xO7
-	9tPLHE+Asfk6HtbFfxFBD6+ejtliL/tBTZzO5Q3R7uN8GOEHx9DEMPvvoocvHTMj5a5/7iYUXKi
-	zhC4rw6zTHbhNDPvt6rDhzwOXTehS0bd+i8J5ed+pUF0HsjxRyeUl7aCTy8iC1l3nLH+RlRWZS6
-	woN/9Fd5/rOwjY0Ilf9c8yqC+c5mXZNELg4fvBlTsGW3DmpUulY4F8r0vXP0DM9hRIPPFMIa7NU
-	ssol07Azu336p/mXrDWbmALScPNPdNB9SkC/WxYUconbBJWJPEpHaRtv5/XZUgeE6Z9kRN79xCS
-	a3QbsQRxo9aqLgqrYDm9oSi8Og9keVpWP2Sy+a5bb5QEYSkdrzl8sNiWClKbKItl61J/ybLn+0V
-	m71Lc3t//bkkogL6/v0UhTKC9nMRB0bsfrpPI6T/LTDsmJmg=
-X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: SJ0PR10MB4429:EE_|SA1PR10MB6661:EE_
+X-MS-Office365-Filtering-Correlation-Id: 14bed797-3291-464a-a7f9-08dba4cf5870
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: 
+	nPhzVP/xa8gUzXt+ze1oJW3jG/kgwav7v4iY5PHcEEcEsme92OYnsXgP88KEDLwUPMUk/XuZXwJoo8MViMH4z+hmdWpuo9DmvQ0rqaHneIaGr1RijzZiL9Gd3g93s7WwqUXrKks/r8fPl/3HJ3BwK4OpwRsYJ/wUEVqfllOyTcTZqjuCpOnf6FhDr1CJIFFj4OZ/n4TFmZYecpNG/Rtm8gTIqhi9zTf8rHgV2Jgf/0loRbYx0rcYM9L0Gs9qsJMTD2CC5pakomJP7DSV37udIkdwRkijQMJzWm/0dp9gWukderST0vZxrkmPxb8STfkqz2FD2Q0zxoX5KTjkP02GBhLPT78yXFS25tI0oFmSpF8kv3CutnNBa14zfdh8uxsx4pMOG8i0Oxq5YeHdMPVfwYPCT3MGU2iV4C1IKYfZ2CDbA0BKcRtBKxUzMaUKV2ByMoqVjc9Qu5ISGMbE/4WHc+Xl8Xc5pz3dVliRow4MsJCVAedva398wpM6tMaZSauDQSlBkMMQBC0nvocOyjCcrfFnRYhsH7wCyPhLa42fNp/Tj4KqOK9F+ekrMB7BW2tTOILt8aFhxfC3tO1t6hWII/N+lljL6zkOR/IxtSgeRO0dCuYYjbfkVQXXSeig2z9y/jGPiKsPsYPRgg4INyVy3A==
+X-Forefront-Antispam-Report: 
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SJ0PR10MB4429.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(346002)(376002)(396003)(136003)(39860400002)(366004)(186009)(451199024)(1800799009)(6512007)(26005)(83380400001)(53546011)(2616005)(41300700001)(66946007)(66476007)(66556008)(54906003)(2906002)(316002)(5660300002)(44832011)(4326008)(8936002)(110136005)(8676002)(478600001)(6486002)(6666004)(6506007)(31696002)(86362001)(38100700002)(36756003)(31686004)(45980500001)(43740500002);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: 
+	=?utf-8?B?Q3MwR3FmKy9JQ0tJM0o5eElCN0tZd0NCcU1KaFJsQ2FQQjJlYndDUGQyaXd3?=
+ =?utf-8?B?eU5ub1Z4cFR3OVBNd2JSbzVUSHhBRnRzSTJtZlFZSXRNVkZ6YnJMdFBCWHBW?=
+ =?utf-8?B?RXJFcGl2bWttd1JlZExLbHM5Qk0xdEU5a0N5bk5tS29nTUsyWlJLQzd1U1E0?=
+ =?utf-8?B?NHFYOGRJcHZQaGlMdVkra0lvM1AxNktFb3diR01WbTIxUFdGUWMvZzZIUjdE?=
+ =?utf-8?B?Z2VUK2sxTTgwRWFwdkFsS1ZObDJXdnN6alpKMVRVaENZaGRkeE1DSm00azdp?=
+ =?utf-8?B?cUpzcU1iV3dsZmRYbkk0ekZCaEhCTVJidE5obEc1Y21FelJvdG82RC9nMlJl?=
+ =?utf-8?B?VDZobkFoNTN5U0xPQjdWcTNGa1VwbDJLNzRlZTVrNWtHeHkwU2VMYUhuMDB0?=
+ =?utf-8?B?OHNvZ09jYnorNk16NVZmcjFCeSs5ekNvbC92SXBvRzRYWXRCUVRhWE9RM0xx?=
+ =?utf-8?B?b3RUcEVGNjU3eVQxQlFoYXhEMG9tK25SM00yYjBpV1pCS0VnSnJMM3hWZ3ZO?=
+ =?utf-8?B?M1VOOTFEUFhvS1d1ZXNGbGlSUlVIaXN5YThpWjVhWUt6Z2tLYmx0VUZHNTBl?=
+ =?utf-8?B?cjRVZHo1ZWM4dWZOVHFIN29LTFp1M1FicHptT1M4UGJTR2xTbEh4SEJTMWZ5?=
+ =?utf-8?B?MlNJRGNHeU1IbXdlM3F4cDhmSlUyaGN1Z2pGdTBIUU8zOURmZnBpcE8zZTlT?=
+ =?utf-8?B?R1NEbTFKbTJwOEZ3TjJWUVZNbUZOdEF0M1FrdjdJSnNqOFdvY0lVMmI4RmhW?=
+ =?utf-8?B?Z2E1UXpNU0hxWmNYcFBwdlBDaHNCM0tac2pvd25RODdsNE4zamRhTFpjOFdF?=
+ =?utf-8?B?UFZmMm5ZbTBnVUlhU0lTWUY5VGltUUlHZjhYL0tPb2ZZTC9VUnlqdFlMV2Fa?=
+ =?utf-8?B?TmNZNlVuVC9aNkRhRjhIOEw1b0R6ZEZDR1JaQXp4SmRmd28xOHhaNHFqcTBt?=
+ =?utf-8?B?SU1XOHlZTE90bGQ2Y2FRclJFR3ZKQlZ4U2FST3N3QTdrZk04S3hSZ04zcWZp?=
+ =?utf-8?B?ajlRdlFYMmtZK0NBN3kxZDNMMFZyeEd3bzNuS2QweXA4b09lTVhRczRUemZC?=
+ =?utf-8?B?Ri9wekwwRWhRYkFzSkRQSFB4MnN2b21hU0tFWCt3bk9zOExGbUNYcjdmZWNl?=
+ =?utf-8?B?T0V5bGthS09rVTBSKzYxZWp1WitKTmtsRU9WWFNuTUIwVFZ2cVlpVTR5NUp5?=
+ =?utf-8?B?UitxVG9RMG1NZTYvS0VwM3hKcGR2VTBwS1lleHErMzE4M21SSmNYbklvUWtx?=
+ =?utf-8?B?NFkrcjJ3cU4zVkZYKy92YW9RRTgwSjV3b3p5V2lwWmdzbEo1bW1QeEkzbTNZ?=
+ =?utf-8?B?cFJmUkFwRVRVSzl4bXZlR1JQSEFUZi83cFRFem16dTJGUWZrTDRNWDArRHBC?=
+ =?utf-8?B?cTF1U3pMZmZJOVB0MlI0TFlyaktrU2ZObVIxZXFsZmR1QUNlQnI5eW1BM0Nk?=
+ =?utf-8?B?SDRpb2ZiNVNOWXM3bm9vV3p1OFcrU1V1NHQ4REN6cVMyTHcraFk2WHRUNFk3?=
+ =?utf-8?B?OEk3bUNHUm0wSmR4MFF2V0FvVnlqZ2RiUXFldEllU0srS3pleG8rN2pXcDM1?=
+ =?utf-8?B?TXBNRE1mWC9kYnYwSGMvUEZXdXNqRk5ETEpidVlZQTBrV1VpMjhyZ0ZvUDc1?=
+ =?utf-8?B?WFhjNjZkbjJBekRvZ2xPTDNMQU1lZFhWY1JreVhkV0t0VXRoYUhlR1RzVitU?=
+ =?utf-8?B?b1RIeWJCczN6bVI0MUpHTW9Lc29PQTBUaks2bTVnWDlDT0NxTzEraG9iRkZI?=
+ =?utf-8?B?TVNoeFNHd2IxeWt1TERxa2U0RW1BMURuTlVIRGhKcncwbERDbkROOTIwbG1P?=
+ =?utf-8?B?amtiZElPUTdBMDRUcmU1dm9CbGlFVnM5d1F0Nm1LeWFrZmFJTmdzcE05R3dv?=
+ =?utf-8?B?WTRrRS9GQVZFdEc5U21xVFdKY2VaTGFpTkt0aVpENy9TRTFUY3MrRHdzQzhD?=
+ =?utf-8?B?MW9NNjBiMktQVFpCZk8xY0hXaVU1UkVGNHJvRnlIY21GSEN0bmlFOHZ6aTR4?=
+ =?utf-8?B?U1J3QklMM2F0Rm9sQlhiR3F0ekQ0WHMxWjBWVEt2ZkswRll5elB1UnFuamZq?=
+ =?utf-8?B?UkZRQ1FpbGZBczlPTFBjQW9JeXY0d1hydmJTbVFiTEhxTTN5Uzg4ZjhpcFpa?=
+ =?utf-8?Q?fiBQZtbcSogkk47F2xT+gyHeR?=
+X-MS-Exchange-AntiSpam-ExternalHop-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-ExternalHop-MessageData-0: 
+	5gpoMRXd0UY3hzSudPMiXi3xmnvnfoaaLDxSEvwUotwz+UyAQIGaX+/NBO/rN5PE/BgkuSD5tBCjK1mpGgGn/qaaVeaL3OxpXwmruZlPkD0A6EpDeuUA6RzC50xyg9cL6VwOCbaS8wzRNJZaHF+knfPScQUQT75VcNLC2TNiOStKL/X1Ivq5DvcqTkrIJCla0YfFuSY3x+Mc3MkDfsLAXtAXl7JYd5IDf2YcSRpsSeWnOWch834U4Ds+PViJ+OKzV9WqNe4M6n5rrkgslIddkQ4w2Ys8DQj6aYhhmmyRhBRF2GGGWvEHUXfwOAMsfggGsS9EkJCywdBDrhx+TfCwwLWxjHKYJIxtUosDCAXCuKTrl15beRo9t9UvOTjXSk7x7ZAozOyGx0N84Oq4M8vbOwlvhP6heMpXZTXYVcZxoSISasp4zF8ZLvoRadF1XhsSC14JM/VFvbYfsEOzYLm+WhN/GUC73V1I5Q5AyVp24kA+Bw5ADQdF9DF8R53XjFLH2v3S8Q4wk0rvMus/sspzusYs96Vg/W4yIDFsrE5bzJuNnB33/kh2NcCDgooNquO8++sasS0whpHIT80DTgoO8uwdFM1RIHrtYInH7qfT4SkZN0p5uHO8Zg1Z8epbXuSARBDxc1kza28YE3PVZcOZiXSgRW3JUEnwkgxTTAFuIvho3RKnLA6Qu/1Dq+9BuD3kcibgug6hB3FtTMZLoRb962xBoQM038yCGYgq5m2uxcAev8s350w2yb46iaDvvTXLPaDMaDUCBSKFR9BMufThDxvF8hkLiwSrzfRpCY8E2xTz6/6A15G+c0XUSOxATvJgbCUswGI3BnTLk3Hp7e3Woxb9jMAFs/CJ+FLKFqLzDfSSCWQFspjdQbeGAKXLiDUpjulzpVVr9TGeWReYr+LBZ20SHjNlxQs7gPNs0cjTCrg=
+X-OriginatorOrg: oracle.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 14bed797-3291-464a-a7f9-08dba4cf5870
+X-MS-Exchange-CrossTenant-AuthSource: SJ0PR10MB4429.namprd10.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 24 Aug 2023 18:24:25.3878
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: ULPfnN5ClSrUO+zkXaCOMN8qQMIoqOyNpcMfiFdnR9/6s/+bBK1W9WqTl83wt+YQXQGfpGiK8BmpFmgKtIOTVg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA1PR10MB6661
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.267,Aquarius:18.0.957,Hydra:6.0.601,FMLib:17.11.176.26
+ definitions=2023-08-24_15,2023-08-24_01,2023-05-22_02
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 spamscore=0 bulkscore=0 mlxscore=0
+ adultscore=0 phishscore=0 mlxlogscore=999 malwarescore=0 suspectscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2308100000
+ definitions=main-2308240158
+X-Proofpoint-GUID: aJwKt1TvWmHPLbyJ4y7os1cYYNqjq0cf
+X-Proofpoint-ORIG-GUID: aJwKt1TvWmHPLbyJ4y7os1cYYNqjq0cf
 
 
+On 8/22/2023 4:13 PM, Matthew Wilcox (Oracle) wrote:
+[..]
+>   
+> diff --git a/mm/memory-failure.c b/mm/memory-failure.c
+> index a6c3af985554..b81d6eb4e6ff 100644
+> --- a/mm/memory-failure.c
+> +++ b/mm/memory-failure.c
+> @@ -1717,16 +1717,11 @@ static int mf_generic_kill_procs(unsigned long long pfn, int flags,
+>   		struct dev_pagemap *pgmap)
+>   {
+>   	struct page *page = pfn_to_page(pfn);
 
-在 2023/8/24 7:36, Darrick J. Wong 写道:
-> On Wed, Aug 23, 2023 at 04:17:06PM +0800, Shiyang Ruan wrote:
->> ====
->> Changes since v12:
->>   1. correct flag name in subject (MF_MEM_REMOVE => MF_MEM_PRE_REMOVE)
->>   2. complete the behavior when fs has already frozen by kernel call
->>        NOTICE: Instead of "call notify_failure() again w/o PRE_REMOVE",
->>                I tried this proposal[0].
->>   3. call xfs_dax_notify_failure_freeze() and _thaw() in same function
->>   4. rebase on: xfs/xfs-linux.git vfs-for-next
->> ====
->>
->> Now, if we suddenly remove a PMEM device(by calling unbind) which
->> contains FSDAX while programs are still accessing data in this device,
->> e.g.:
->> ```
->>   $FSSTRESS_PROG -d $SCRATCH_MNT -n 99999 -p 4 &
->>   # $FSX_PROG -N 1000000 -o 8192 -l 500000 $SCRATCH_MNT/t001 &
->>   echo "pfn1.1" > /sys/bus/nd/drivers/nd_pmem/unbind
->> ```
->> it could come into an unacceptable state:
->>    1. device has gone but mount point still exists, and umount will fail
->>         with "target is busy"
->>    2. programs will hang and cannot be killed
->>    3. may crash with NULL pointer dereference
->>
->> To fix this, we introduce a MF_MEM_PRE_REMOVE flag to let it know that we
->> are going to remove the whole device, and make sure all related processes
->> could be notified so that they could end up gracefully.
->>
->> This patch is inspired by Dan's "mm, dax, pmem: Introduce
->> dev_pagemap_failure()"[1].  With the help of dax_holder and
->> ->notify_failure() mechanism, the pmem driver is able to ask filesystem
->> on it to unmap all files in use, and notify processes who are using
->> those files.
->>
->> Call trace:
->> trigger unbind
->>   -> unbind_store()
->>    -> ... (skip)
->>     -> devres_release_all()
->>      -> kill_dax()
->>       -> dax_holder_notify_failure(dax_dev, 0, U64_MAX, MF_MEM_PRE_REMOVE)
->>        -> xfs_dax_notify_failure()
->>        `-> freeze_super()             // freeze (kernel call)
->>        `-> do xfs rmap
->>        ` -> mf_dax_kill_procs()
->>        `  -> collect_procs_fsdax()    // all associated processes
->>        `  -> unmap_and_kill()
->>        ` -> invalidate_inode_pages2_range() // drop file's cache
->>        `-> thaw_super()               // thaw (both kernel & user call)
->>
->> Introduce MF_MEM_PRE_REMOVE to let filesystem know this is a remove
->> event.  Use the exclusive freeze/thaw[2] to lock the filesystem to prevent
->> new dax mapping from being created.  Do not shutdown filesystem directly
->> if configuration is not supported, or if failure range includes metadata
->> area.  Make sure all files and processes(not only the current progress)
->> are handled correctly.  Also drop the cache of associated files before
->> pmem is removed.
->>
->> [0]: https://lore.kernel.org/linux-xfs/25cf6700-4db0-a346-632c-ec9fc291793a@fujitsu.com/
->> [1]: https://lore.kernel.org/linux-mm/161604050314.1463742.14151665140035795571.stgit@dwillia2-desk3.amr.corp.intel.com/
->> [2]: https://lore.kernel.org/linux-xfs/169116275623.3187159.16862410128731457358.stg-ugh@frogsfrogsfrogs/
->>
->> Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
->> ---
->>   drivers/dax/super.c         |  3 +-
->>   fs/xfs/xfs_notify_failure.c | 99 ++++++++++++++++++++++++++++++++++---
->>   include/linux/mm.h          |  1 +
->>   mm/memory-failure.c         | 17 +++++--
->>   4 files changed, 109 insertions(+), 11 deletions(-)
->>
->> diff --git a/drivers/dax/super.c b/drivers/dax/super.c
->> index c4c4728a36e4..2e1a35e82fce 100644
->> --- a/drivers/dax/super.c
->> +++ b/drivers/dax/super.c
->> @@ -323,7 +323,8 @@ void kill_dax(struct dax_device *dax_dev)
->>   		return;
->>   
->>   	if (dax_dev->holder_data != NULL)
->> -		dax_holder_notify_failure(dax_dev, 0, U64_MAX, 0);
->> +		dax_holder_notify_failure(dax_dev, 0, U64_MAX,
->> +				MF_MEM_PRE_REMOVE);
->>   
->>   	clear_bit(DAXDEV_ALIVE, &dax_dev->flags);
->>   	synchronize_srcu(&dax_srcu);
->> diff --git a/fs/xfs/xfs_notify_failure.c b/fs/xfs/xfs_notify_failure.c
->> index 4a9bbd3fe120..6496c32a9172 100644
->> --- a/fs/xfs/xfs_notify_failure.c
->> +++ b/fs/xfs/xfs_notify_failure.c
->> @@ -22,6 +22,7 @@
->>   
->>   #include <linux/mm.h>
->>   #include <linux/dax.h>
->> +#include <linux/fs.h>
->>   
->>   struct xfs_failure_info {
->>   	xfs_agblock_t		startblock;
->> @@ -73,10 +74,16 @@ xfs_dax_failure_fn(
->>   	struct xfs_mount		*mp = cur->bc_mp;
->>   	struct xfs_inode		*ip;
->>   	struct xfs_failure_info		*notify = data;
->> +	struct address_space		*mapping;
->> +	pgoff_t				pgoff;
->> +	unsigned long			pgcnt;
->>   	int				error = 0;
->>   
->>   	if (XFS_RMAP_NON_INODE_OWNER(rec->rm_owner) ||
->>   	    (rec->rm_flags & (XFS_RMAP_ATTR_FORK | XFS_RMAP_BMBT_BLOCK))) {
->> +		/* Continue the query because this isn't a failure. */
->> +		if (notify->mf_flags & MF_MEM_PRE_REMOVE)
->> +			return 0;
->>   		notify->want_shutdown = true;
->>   		return 0;
->>   	}
->> @@ -92,14 +99,60 @@ xfs_dax_failure_fn(
->>   		return 0;
->>   	}
->>   
->> -	error = mf_dax_kill_procs(VFS_I(ip)->i_mapping,
->> -				  xfs_failure_pgoff(mp, rec, notify),
->> -				  xfs_failure_pgcnt(mp, rec, notify),
->> -				  notify->mf_flags);
->> +	mapping = VFS_I(ip)->i_mapping;
->> +	pgoff = xfs_failure_pgoff(mp, rec, notify);
->> +	pgcnt = xfs_failure_pgcnt(mp, rec, notify);
->> +
->> +	/* Continue the rmap query if the inode isn't a dax file. */
->> +	if (dax_mapping(mapping))
->> +		error = mf_dax_kill_procs(mapping, pgoff, pgcnt,
->> +					  notify->mf_flags);
->> +
->> +	/* Invalidate the cache in dax pages. */
->> +	if (notify->mf_flags & MF_MEM_PRE_REMOVE)
->> +		invalidate_inode_pages2_range(mapping, pgoff,
->> +					      pgoff + pgcnt - 1);
->> +
->>   	xfs_irele(ip);
->>   	return error;
->>   }
->>   
->> +static int
->> +xfs_dax_notify_failure_freeze(
->> +	struct xfs_mount	*mp)
->> +{
->> +	struct super_block	*sb = mp->m_super;
->> +	int			error;
->> +
->> +	error = freeze_super(sb, FREEZE_HOLDER_KERNEL);
->> +	if (error)
->> +		xfs_emerg(mp, "already frozen by kernel, err=%d", error);
->> +
->> +	return error;
->> +}
->> +
->> +static void
->> +xfs_dax_notify_failure_thaw(
->> +	struct xfs_mount	*mp,
->> +	bool			kernel_frozen)
->> +{
->> +	struct super_block	*sb = mp->m_super;
->> +	int			error;
->> +
->> +	if (!kernel_frozen) {
->> +		error = thaw_super(sb, FREEZE_HOLDER_KERNEL);
->> +		if (error)
->> +			xfs_emerg(mp, "still frozen after notify failure, err=%d",
->> +				error);
->> +	}
->> +
->> +	/*
->> +	 * Also thaw userspace call anyway because the device is about to be
->> +	 * removed immediately.
-> 
-> Does a userspace freeze inhibit or otherwise break device removal?
+Looks like the above line, that is, the 'page' pointer is no longer needed.
 
-It doesn't.  Device can be removed.  But after that, the mount point 
-still exists, and `umount /mnt/scratch` fails with "target is busy." 
-`xfs_freeze -u /mnt/scratch` cannot work too.
-
-So, I think thaw_super() anyway here is needed.
+> +	struct folio *folio = page_folio(page);
+>   	LIST_HEAD(to_kill);
+>   	dax_entry_t cookie;
+>   	int rc = 0;
+>   
+> -	/*
+> -	 * Pages instantiated by device-dax (not filesystem-dax)
+> -	 * may be compound pages.
+> -	 */
+> -	page = compound_head(page);
+> -
+>   	/*
+>   	 * Prevent the inode from being freed while we are interrogating
+>   	 * the address_space, typically this would be handled by
+> @@ -1734,11 +1729,11 @@ static int mf_generic_kill_procs(unsigned long long pfn, int flags,
+>   	 * also prevents changes to the mapping of this pfn until
+>   	 * poison signaling is complete.
+>   	 */
+> -	cookie = dax_lock_page(page);
+> +	cookie = dax_lock_folio(folio);
+>   	if (!cookie)
+>   		return -EBUSY;
+>   
+> -	if (hwpoison_filter(page)) {
+> +	if (hwpoison_filter(&folio->page)) {
+>   		rc = -EOPNOTSUPP;
+>   		goto unlock;
+>   	}
+> @@ -1760,7 +1755,7 @@ static int mf_generic_kill_procs(unsigned long long pfn, int flags,
+>   	 * Use this flag as an indication that the dax page has been
+>   	 * remapped UC to prevent speculative consumption of poison.
+>   	 */
+> -	SetPageHWPoison(page);
+> +	SetPageHWPoison(&folio->page);
+>   
+>   	/*
+>   	 * Unlike System-RAM there is no possibility to swap in a
+> @@ -1769,11 +1764,11 @@ static int mf_generic_kill_procs(unsigned long long pfn, int flags,
+>   	 * SIGBUS (i.e. MF_MUST_KILL)
+>   	 */
+>   	flags |= MF_ACTION_REQUIRED | MF_MUST_KILL;
+> -	collect_procs(page, &to_kill, true);
+> +	collect_procs(&folio->page, &to_kill, true);
+>   
+> -	unmap_and_kill(&to_kill, pfn, page->mapping, page->index, flags);
+> +	unmap_and_kill(&to_kill, pfn, folio->mapping, folio->index, flags);
+>   unlock:
+> -	dax_unlock_page(page, cookie);
+> +	dax_unlock_folio(folio, cookie);
+>   	return rc;
+>   }
+>  
 
 
-> 
->> +	 */
->> +	thaw_super(sb, FREEZE_HOLDER_USERSPACE);
->> +}
->> +
->>   static int
->>   xfs_dax_notify_ddev_failure(
->>   	struct xfs_mount	*mp,
->> @@ -112,15 +165,29 @@ xfs_dax_notify_ddev_failure(
->>   	struct xfs_btree_cur	*cur = NULL;
->>   	struct xfs_buf		*agf_bp = NULL;
->>   	int			error = 0;
->> +	bool			kernel_frozen = false;
->>   	xfs_fsblock_t		fsbno = XFS_DADDR_TO_FSB(mp, daddr);
->>   	xfs_agnumber_t		agno = XFS_FSB_TO_AGNO(mp, fsbno);
->>   	xfs_fsblock_t		end_fsbno = XFS_DADDR_TO_FSB(mp,
->>   							     daddr + bblen - 1);
->>   	xfs_agnumber_t		end_agno = XFS_FSB_TO_AGNO(mp, end_fsbno);
->>   
->> +	if (mf_flags & MF_MEM_PRE_REMOVE) {
->> +		xfs_info(mp, "Device is about to be removed!");
->> +		/* Freeze fs to prevent new mappings from being created. */
->> +		error = xfs_dax_notify_failure_freeze(mp);
->> +		if (error) {
->> +			/* Keep going on if filesystem is frozen by kernel. */
->> +			if (error == -EBUSY)
->> +				kernel_frozen = true;
-> 
-> EBUSY means that xfs_dax_notify_failure_freeze did /not/ succeed in
-> kernel-freezing the fs.  Someone else did, and they're expecting that
-> thaw_super will undo that.
-> 
-> 	switch (error) {
-> 	case -EBUSY:
-> 		/* someone else froze the fs, keep going */
-> 		break;
-> 	case 0:
-> 		/* we froze the fs */
-> 		kernel_frozen = true;
-> 		break;
-> 	default:
-> 		/* something else broke, should we continue anyway? */
-> 		return error;
-> 	}
-> 
-> TBH I wonder why all that isn't just:
-> 
-> 	kernel_frozen = xfs_dax_notify_failure_freeze(mp) == 0;
-> 
-> Since we'd want to keep going even if (say) the pmem was already
-> starting to fail and the freeze actually failed due to EIO, right?
-
-Yes.  So we can say it is a *try* to _freeze() here.  No matter what its 
-result is, we continue.
-
-Then I think the `kernel_frozen` becomes useless as well.  Because we 
-should try to call both _thaw(KERNEL_CALL) and _thaw(USER_CALL) to make 
-sure umount can work after device is gone.
-
-Then, I think it's better to change them:
-   `static int xfs_dax_notify_failure_freeze()`,
-   `static void xfs_dax_notify_failure_thaw()`
-to
-   `static void xfs_dax_notify_failure_try_freeze()`,
-   `static void xfs_dax_notify_failure_try_thaw()`.
-
-
---
-Thanks,
-Ruan.
-
-> 
-> --D
-> 
->> +			else
->> +				return error;
->> +		}
->> +	}
->> +
->>   	error = xfs_trans_alloc_empty(mp, &tp);
->>   	if (error)
->> -		return error;
->> +		goto out;
->>   
->>   	for (; agno <= end_agno; agno++) {
->>   		struct xfs_rmap_irec	ri_low = { };
->> @@ -165,11 +232,23 @@ xfs_dax_notify_ddev_failure(
->>   	}
->>   
->>   	xfs_trans_cancel(tp);
->> +
->> +	/*
->> +	 * Determine how to shutdown the filesystem according to the
->> +	 * error code and flags.
->> +	 */
->>   	if (error || notify.want_shutdown) {
->>   		xfs_force_shutdown(mp, SHUTDOWN_CORRUPT_ONDISK);
->>   		if (!error)
->>   			error = -EFSCORRUPTED;
->> -	}
->> +	} else if (mf_flags & MF_MEM_PRE_REMOVE)
->> +		xfs_force_shutdown(mp, SHUTDOWN_FORCE_UMOUNT);
->> +
->> +out:
->> +	/* Thaw the fs if it is frozen before. */
->> +	if (mf_flags & MF_MEM_PRE_REMOVE)
->> +		xfs_dax_notify_failure_thaw(mp, kernel_frozen);
->> +
->>   	return error;
->>   }
->>   
->> @@ -197,6 +276,8 @@ xfs_dax_notify_failure(
->>   
->>   	if (mp->m_logdev_targp && mp->m_logdev_targp->bt_daxdev == dax_dev &&
->>   	    mp->m_logdev_targp != mp->m_ddev_targp) {
->> +		if (mf_flags & MF_MEM_PRE_REMOVE)
->> +			return 0;
->>   		xfs_err(mp, "ondisk log corrupt, shutting down fs!");
->>   		xfs_force_shutdown(mp, SHUTDOWN_CORRUPT_ONDISK);
->>   		return -EFSCORRUPTED;
->> @@ -210,6 +291,12 @@ xfs_dax_notify_failure(
->>   	ddev_start = mp->m_ddev_targp->bt_dax_part_off;
->>   	ddev_end = ddev_start + bdev_nr_bytes(mp->m_ddev_targp->bt_bdev) - 1;
->>   
->> +	/* Notify failure on the whole device. */
->> +	if (offset == 0 && len == U64_MAX) {
->> +		offset = ddev_start;
->> +		len = bdev_nr_bytes(mp->m_ddev_targp->bt_bdev);
->> +	}
->> +
->>   	/* Ignore the range out of filesystem area */
->>   	if (offset + len - 1 < ddev_start)
->>   		return -ENXIO;
->> diff --git a/include/linux/mm.h b/include/linux/mm.h
->> index 799836e84840..944a1165a321 100644
->> --- a/include/linux/mm.h
->> +++ b/include/linux/mm.h
->> @@ -3577,6 +3577,7 @@ enum mf_flags {
->>   	MF_UNPOISON = 1 << 4,
->>   	MF_SW_SIMULATED = 1 << 5,
->>   	MF_NO_RETRY = 1 << 6,
->> +	MF_MEM_PRE_REMOVE = 1 << 7,
->>   };
->>   int mf_dax_kill_procs(struct address_space *mapping, pgoff_t index,
->>   		      unsigned long count, int mf_flags);
->> diff --git a/mm/memory-failure.c b/mm/memory-failure.c
->> index dc5ff7dd4e50..92f18c9e0aaf 100644
->> --- a/mm/memory-failure.c
->> +++ b/mm/memory-failure.c
->> @@ -688,7 +688,7 @@ static void add_to_kill_fsdax(struct task_struct *tsk, struct page *p,
->>    */
->>   static void collect_procs_fsdax(struct page *page,
->>   		struct address_space *mapping, pgoff_t pgoff,
->> -		struct list_head *to_kill)
->> +		struct list_head *to_kill, bool pre_remove)
->>   {
->>   	struct vm_area_struct *vma;
->>   	struct task_struct *tsk;
->> @@ -696,8 +696,15 @@ static void collect_procs_fsdax(struct page *page,
->>   	i_mmap_lock_read(mapping);
->>   	read_lock(&tasklist_lock);
->>   	for_each_process(tsk) {
->> -		struct task_struct *t = task_early_kill(tsk, true);
->> +		struct task_struct *t = tsk;
->>   
->> +		/*
->> +		 * Search for all tasks while MF_MEM_PRE_REMOVE is set, because
->> +		 * the current may not be the one accessing the fsdax page.
->> +		 * Otherwise, search for the current task.
->> +		 */
->> +		if (!pre_remove)
->> +			t = task_early_kill(tsk, true);
->>   		if (!t)
->>   			continue;
->>   		vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff, pgoff) {
->> @@ -1793,6 +1800,7 @@ int mf_dax_kill_procs(struct address_space *mapping, pgoff_t index,
->>   	dax_entry_t cookie;
->>   	struct page *page;
->>   	size_t end = index + count;
->> +	bool pre_remove = mf_flags & MF_MEM_PRE_REMOVE;
->>   
->>   	mf_flags |= MF_ACTION_REQUIRED | MF_MUST_KILL;
->>   
->> @@ -1804,9 +1812,10 @@ int mf_dax_kill_procs(struct address_space *mapping, pgoff_t index,
->>   		if (!page)
->>   			goto unlock;
->>   
->> -		SetPageHWPoison(page);
->> +		if (!pre_remove)
->> +			SetPageHWPoison(page);
->>   
->> -		collect_procs_fsdax(page, mapping, index, &to_kill);
->> +		collect_procs_fsdax(page, mapping, index, &to_kill, pre_remove);
->>   		unmap_and_kill(&to_kill, page_to_pfn(page), mapping,
->>   				index, mf_flags);
->>   unlock:
->> -- 
->> 2.41.0
->>
+thanks,
+-jane
