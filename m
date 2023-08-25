@@ -1,476 +1,295 @@
-Received: from esa8.hc1455-7.c3s2.iphmx.com (esa8.hc1455-7.c3s2.iphmx.com [139.138.61.253])
+Received: from NAM11-CO1-obe.outbound.protection.outlook.com (mail-co1nam11on2084.outbound.protection.outlook.com [40.107.220.84])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1C837E0
-	for <nvdimm@lists.linux.dev>; Fri, 25 Aug 2023 03:53:52 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6600,9927,10812"; a="117476014"
-X-IronPort-AV: E=Sophos;i="6.02,195,1688396400"; 
-   d="scan'208";a="117476014"
-Received: from unknown (HELO oym-r3.gw.nic.fujitsu.com) ([210.162.30.91])
-  by esa8.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Aug 2023 12:52:40 +0900
-Received: from oym-m1.gw.nic.fujitsu.com (oym-nat-oym-m1.gw.nic.fujitsu.com [192.168.87.58])
-	by oym-r3.gw.nic.fujitsu.com (Postfix) with ESMTP id 5DC4ECA1F0
-	for <nvdimm@lists.linux.dev>; Fri, 25 Aug 2023 12:52:38 +0900 (JST)
-Received: from kws-ab3.gw.nic.fujitsu.com (kws-ab3.gw.nic.fujitsu.com [192.51.206.21])
-	by oym-m1.gw.nic.fujitsu.com (Postfix) with ESMTP id 7CF25D8C05
-	for <nvdimm@lists.linux.dev>; Fri, 25 Aug 2023 12:52:37 +0900 (JST)
-Received: from edo.cn.fujitsu.com (edo.cn.fujitsu.com [10.167.33.5])
-	by kws-ab3.gw.nic.fujitsu.com (Postfix) with ESMTP id ED0B120093087
-	for <nvdimm@lists.linux.dev>; Fri, 25 Aug 2023 12:52:36 +0900 (JST)
-Received: from [192.168.50.5] (unknown [10.167.234.230])
-	by edo.cn.fujitsu.com (Postfix) with ESMTP id C7E3C1A0085;
-	Fri, 25 Aug 2023 11:52:35 +0800 (CST)
-Message-ID: <8112ba47-9105-47b4-b070-72b44a7de4af@fujitsu.com>
-Date: Fri, 25 Aug 2023 11:52:35 +0800
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 76F85288EE
+	for <nvdimm@lists.linux.dev>; Fri, 25 Aug 2023 05:59:38 +0000 (UTC)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=boZaM68C3SD32jQZdQ42G1ULLfg+KoILJdljIcaROZDqWcAZN8wDLxP4BywXyUeucYSq6oD4CSrDHZ5426GBnjf8q24CplRZxTFnC8vG5IVHCat7Kz+ORTq19S3mS30e9WejPUb+9VEQA71lI9oC9mKZ8EJzP+Oo+1OtI4anPLxk5OU/Yfo0NWNmDx1LPgcUDcAGzg8K2q9Xzyd4KoIU0Hk8uFASOIeCM3hs7YRk+Hn8VmpJHT/VMo4uuBNV3ooAHKbw6OcukUKTDDVB/pCDozXfgTPbOH1WxGifgy8nry811JuuSyJjaEyAqnaM4WgHFcw9XEeX955ZVyXBml9S6A==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=RNwJzQhlut9HUnTNyocIvHfnX84GIES6jg9s4mYbvh0=;
+ b=L/vFfMfIdeAueu4ZE/nB4LT9rwHxFupEacxk3m9BvJ0tHBZAJEZpAxrHExF4/2IgAQa1BawERkueaU4h5Cg2ci47tJvGfrTuqaU8RpHIsSHmZQc5o+NmuJp63dv1q+Ihv8LC2M1XyHv/XwSpJhTPybJomjcCBcpCYt0wVwpgcl6BwPR5RDOSCvm3kf/z4Fbr7rAHeL1Q3d5Z/IRVkcMQFCUjATIY0N2KIHbaCFQ5UHytAqP+rCZKr1+kjc01wYL2ov1fWeeN0lbhN5O7RUvX+s5C0X+zutlThG2CpFUSiKUQUF9ziShoZpYkLcgTNzP3sDl3R7jzktrqVmkRyDzt6Q==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=RNwJzQhlut9HUnTNyocIvHfnX84GIES6jg9s4mYbvh0=;
+ b=Tn0vst7ipDZVefQVeaMOnZptIlRwiMbwNGEtMnZDwbgpFkikq7OpBSbTw6CBTMe3RbLo+h4u2ZLNgeRzZiO7wnlUCphjEW+3zf100wm8nSdfGvAMSGhlqOnx9dsWCUNeuXU6MATVZajzBZHuuo2TEvYgKjAhq5oWOGC22thbqOMQhr4QFLGo6IAmcG2Q182EQ+VIhAuKf/huW4Uc3pUgMAuG5vdEzDjNFIgiBuJg6jDtmp1lJB5P61g6nC60VOA0XHWU5WxU9fHobkrTnVY/VsfQVKK4GdG0haxja0haVETn6RfEqy8kl3O+7kce0vPq7nDcHdadazMpfL4dpoZ+ag==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from BYAPR12MB3176.namprd12.prod.outlook.com (2603:10b6:a03:134::26)
+ by CY5PR12MB6202.namprd12.prod.outlook.com (2603:10b6:930:25::8) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6699.29; Fri, 25 Aug
+ 2023 05:59:36 +0000
+Received: from BYAPR12MB3176.namprd12.prod.outlook.com
+ ([fe80::3bf6:11f3:64d7:2475]) by BYAPR12MB3176.namprd12.prod.outlook.com
+ ([fe80::3bf6:11f3:64d7:2475%7]) with mapi id 15.20.6699.022; Fri, 25 Aug 2023
+ 05:59:36 +0000
+References: <20230721012932.190742-1-ying.huang@intel.com>
+ <20230721012932.190742-2-ying.huang@intel.com>
+ <87r0owzqdc.fsf@nvdebian.thelocal>
+ <87r0owy95t.fsf@yhuang6-desk2.ccr.corp.intel.com>
+ <87sf9cxupz.fsf@nvdebian.thelocal>
+ <878rb3xh2x.fsf@yhuang6-desk2.ccr.corp.intel.com>
+ <87351axbk6.fsf@nvdebian.thelocal>
+ <87edkuvw6m.fsf@yhuang6-desk2.ccr.corp.intel.com>
+ <87y1j2vvqw.fsf@nvdebian.thelocal>
+ <87a5vhx664.fsf@yhuang6-desk2.ccr.corp.intel.com>
+ <87lef0x23q.fsf@nvdebian.thelocal>
+ <87r0oack40.fsf@yhuang6-desk2.ccr.corp.intel.com>
+ <87cyzgwrys.fsf@nvdebian.thelocal>
+ <87il98c8ms.fsf@yhuang6-desk2.ccr.corp.intel.com>
+ <87edjwlzn7.fsf@nvdebian.thelocal>
+ <875y57dhar.fsf@yhuang6-desk2.ccr.corp.intel.com>
+ <87wmxnlfer.fsf@nvdebian.thelocal>
+ <878ra2b8uk.fsf@yhuang6-desk2.ccr.corp.intel.com>
+User-agent: mu4e 1.8.13; emacs 28.2
+From: Alistair Popple <apopple@nvidia.com>
+To: "Huang, Ying" <ying.huang@intel.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org,
+ linux-kernel@vger.kernel.org, linux-cxl@vger.kernel.org,
+ nvdimm@lists.linux.dev, linux-acpi@vger.kernel.org, "Aneesh Kumar K  . V"
+ <aneesh.kumar@linux.ibm.com>, Wei Xu <weixugc@google.com>, Dan  Williams
+ <dan.j.williams@intel.com>, Dave Hansen <dave.hansen@intel.com>, Davidlohr
+ Bueso <dave@stgolabs.net>, Johannes Weiner <hannes@cmpxchg.org>, Jonathan
+ Cameron <Jonathan.Cameron@huawei.com>, Michal Hocko <mhocko@kernel.org>,
+ Yang Shi <shy828301@gmail.com>, Rafael J Wysocki
+ <rafael.j.wysocki@intel.com>, Dave Jiang <dave.jiang@intel.com>
+Subject: Re: [PATCH RESEND 1/4] memory tiering: add abstract distance
+ calculation algorithms management
+Date: Fri, 25 Aug 2023 15:41:26 +1000
+In-reply-to: <878ra2b8uk.fsf@yhuang6-desk2.ccr.corp.intel.com>
+Message-ID: <871qfr8xx9.fsf@nvdebian.thelocal>
+Content-Type: text/plain
+X-ClientProxiedBy: SJ0PR03CA0233.namprd03.prod.outlook.com
+ (2603:10b6:a03:39f::28) To BYAPR12MB3176.namprd12.prod.outlook.com
+ (2603:10b6:a03:134::26)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v13] mm, pmem, xfs: Introduce MF_MEM_PRE_REMOVE for unbind
-To: "Darrick J. Wong" <djwong@kernel.org>
-Cc: linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
- linux-xfs@vger.kernel.org, linux-mm@kvack.org, dan.j.williams@intel.com,
- willy@infradead.org, jack@suse.cz, akpm@linux-foundation.org,
- mcgrof@kernel.org
-References: <20230629081651.253626-3-ruansy.fnst@fujitsu.com>
- <20230823081706.2970430-1-ruansy.fnst@fujitsu.com>
- <20230823233601.GH11263@frogsfrogsfrogs>
- <999e83ca-df65-4a43-9d32-ff13a252c2d7@fujitsu.com>
- <20230824235709.GA17895@frogsfrogsfrogs>
-From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-In-Reply-To: <20230824235709.GA17895@frogsfrogsfrogs>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-TM-AS-Product-Ver: IMSS-9.1.0.1417-9.0.0.1002-27834.004
-X-TM-AS-User-Approved-Sender: Yes
-X-TMASE-Version: IMSS-9.1.0.1417-9.0.1002-27834.004
-X-TMASE-Result: 10--24.783800-10.000000
-X-TMASE-MatchedRID: lKWCa+ZU0k+PvrMjLFD6eHchRkqzj/bEC/ExpXrHizxBqLOmHiM3wyDU
-	0t/WFgAcM21CreAEMZhHW7omdzHbHeVaI0j/eUAPxDiakrJ+Spl4fCfFRQ30yN20KhkCTcTU0Eq
-	FjE9+26goQVAihVrNS4NRyZUAEJtaRtJQAvHxVGkvun/+8u/hs4OeZuUUsCzCuzdiHYg4JjN0O3
-	P7NRJ5H5ytBOG1WZxWyksi4Z4sCs2eTALXPNvL0hmCYUYerLHro8tN19oTXleaDNlRJumzuRFup
-	4CINH3JYGFrrc6fVM/jpCo1bCzvK2sth/lQGvIl0wmR34xRQc8aJDwYgQY/f1gLks93sG9t4xO7
-	9tPLHE+Asfk6HtbFfxFBD6+ejtliL/tBTZzO5Q3R7uN8GOEHx9DEMPvvoocvHTMj5a5/7iYUXKi
-	zhC4rw6zTHbhNDPvt6rDhzwOXTehS0bd+i8J5ef3vrjdfNHuXlDt5PQMgj02ZtziFUn+D+fMGxD
-	8a07zCKCAg4yEzx06ONCL21OhnbqML3v3DWTsMgnMtC97jHVSZmLDnd2pI3w75W7QujTUfyVAnG
-	Shpqgf7bbB/MBzIM5iOTbURSOu6vyBUrJVp7YEzOazjYfBb8Se0Z6pse6+bbsHtQ0J95tTh06w0
-	q6p9rBiZsVhauLEnp43H9nP9RJfsMtjYUbD8mwmyVrMCuJ9S3hng3KTHeTaqA3rusLu26miXcD8
-	fWgFv2fhTe/jcT34nxqjwnvG8csa3bF0uxjdkWTWEh5N2a9Eg/EeJYJqimAZZ8N3RvTMxo8WMkQ
-	Wv6iVKWdTfwsJjy2LHjeGkjh9X2KDPNsqphTL6C0ePs7A07QKmARN5PTKc
-X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: BYAPR12MB3176:EE_|CY5PR12MB6202:EE_
+X-MS-Office365-Filtering-Correlation-Id: c64781cf-0d23-484e-b6bb-08dba53075ab
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info:
+	O+jTIZcsOgK0vAZXBGI5kPUNRxTeDEd36DN8vrpKSxaWHxZTiyPWamYJr0vC2yXNLtjhpm045NNKV97udoZUsia+2lN2qRMJsu7mNzqc9F9flJmwO0DplePvYDn4CRSFDKOtgTN5jzXOjn3hM6pkEScaDeGweoKobipWBNoUpcjOnjfxPKnIKyIedZrRUn1oQKqIf360KoO6cc8Az+ObW+SiNhTGcfMX3OrNIne0OGxv0+q2olfHYc7rAqtOLgNy1chuUeH5vaee3njYNpRcyA4jbxDYh09rdJYyKIQLli9DYHokIwuvNCN5SqNFI1pHA8mM9hPglKt8zok9MoATyieEkPz61c4XS62aPMuQL4rhlCl18OmTZaAofK/rEnuQLWlVlbEJak0dVvOWiCDhLAz8if53D7M5sSfDFxMv+bKhLg0hgmrKbA+CwZfP7M6fbTevC89ptTQTC6awzAMZ03k206hnA7S1cVUtC9L9Oku5Vjl3eRmR5AKMSCxZeJZakt1fI9fo8Jxw3aX/xsxi9LOk62tM3cMeK36YaSQkvJRhZJNJErcRsaeVnIrEGv/p
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BYAPR12MB3176.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(366004)(39860400002)(376002)(396003)(136003)(346002)(451199024)(1800799009)(186009)(38100700002)(8676002)(4326008)(8936002)(54906003)(41300700001)(6486002)(6506007)(6666004)(316002)(6916009)(66476007)(66556008)(66946007)(86362001)(6512007)(9686003)(26005)(478600001)(7416002)(83380400001)(2906002)(5660300002);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?sVQczOmd9yQ4olMOLpMWsagQvUUiZKrHghtrIdzd769rnn0C3779R4tJqYz9?=
+ =?us-ascii?Q?OCxi2KPS9pzTtz6AgZD1W02bdFexeosH0eswSRRj1+1SRQaT72zTWi3FtukS?=
+ =?us-ascii?Q?x3geylzv3AQx5bLhK21TZ6MtwYRu/4Z1EozDL+dcmsqRFCgeO1boOA/xto/e?=
+ =?us-ascii?Q?FOF/HYBAE3XY75cMIOR2tZgdA5qNMtdGgFUM1tM8z3mS3DQNgFvlIsoVEM23?=
+ =?us-ascii?Q?vPwSVyP/RyJ9r2lhU4qga+ddRanzTnZmO6N07eDQdVF7yX8ZvaoNlNLgvfDD?=
+ =?us-ascii?Q?vZfpVDZaY0gCQES/PhtyQO6CWUfQ7mbk4oss73dg3nmZJoJpKrZFLqhxuIK9?=
+ =?us-ascii?Q?jsOGZOHI/9JUPdnB/tvQM2pj957fGFflHV08FgfgsOErHK5V30XQIXAAWTKc?=
+ =?us-ascii?Q?PI9T+iCVGV/ddBALw5AFxHCndUozq7bkuiLJFNvlby0uIG2e9T+lwRmW6MLC?=
+ =?us-ascii?Q?NmBFiuzxI+d/WfFySRCau9P1K5Y2cbBVYKJ4EXXn5/YlDRLpYAYjuy3Lh+Xq?=
+ =?us-ascii?Q?VzOCeLy+L3Egm6GW43qhgIHvD+Xv+EYrush3TiQf/iqeYDEsxFDwjM7vUPhL?=
+ =?us-ascii?Q?8kr8/kexRwiDzTQ1/UloqSe9GaICftT01C1v8kuFVZvaYBXJ2lLeFc6z1VIO?=
+ =?us-ascii?Q?u8ez3F9t9LMjCWXduQrW+u4yv2nWjsjd+Pejn509iBjC+VSpvo8i1C5fIilG?=
+ =?us-ascii?Q?lX19TsERCxXxBDfewksWoZDhVch7nmLCqyfvfC4IU856ZiwDFDQEK3/80ITD?=
+ =?us-ascii?Q?64czmUYQNvGxIM/QTA3g19qjn+yK/65pD4GTVDGZXcrNV3MfYBytIphP0enK?=
+ =?us-ascii?Q?tDdjex/UEY8fMFb32dKe3YbCc6cawKqx02J/qaRpw/GEgL8zQqdDNiTTOAeO?=
+ =?us-ascii?Q?Q95DAA91iqIsl145U3N1ov/RlbqU2Q0b35I6b5ckgG/iuIchHq5ls1mc4+gY?=
+ =?us-ascii?Q?tOwrhWkTiKa5G9yY93DgGD6R3MqcplwBpCy5NwWrE8Y+1oplxedctVif1Y5M?=
+ =?us-ascii?Q?dqWMEmcLokF7e8rke9QWCZv/iBRrHILs5pggF9TIGnFS3jTukyNPa2u9G8ct?=
+ =?us-ascii?Q?P0iUm/C/2Hfe26KW7QY7aY/7gzafbhSD674lkSxADFwKRrF3h6a451aBfvHl?=
+ =?us-ascii?Q?MRzffZMN/a8T3Pt1i6oiXC7gNIiPIhbtxITailcas07E5cue96All3O3pDaZ?=
+ =?us-ascii?Q?rz3N7JtdIcBUASyL7qxJMg8rCc/4b9UZM5v+92Mn91kMzei+i3mVig9yOL+6?=
+ =?us-ascii?Q?Oewt68xjiTdx43DtTpE8GrgAAQXq/+wZjtTi+k+g9/VxctpFd6RLBf2w96Go?=
+ =?us-ascii?Q?y+eApK1kZxEANY8zyqBdOJvYgkMzi0+psJ4D7VOpDkRyScchkVu0F164PElg?=
+ =?us-ascii?Q?R+754bjE0vtEGJ15ED0e3NEbtol3JZF5yBxNRTyfDADozBphh7gAaUlTvPzd?=
+ =?us-ascii?Q?rMb5Faz3Nt9r5AyViSKkEFt2N6tOiacUjoyDXYwQsx4fXxcpGW+f2VXjbazf?=
+ =?us-ascii?Q?HGo3XkvOCYAY0NOziZ9SM2ayuMVcVy+/7YmnvddNCJYpLZaAmJ+NcV81myqn?=
+ =?us-ascii?Q?5bQaLo8mQO0+8iFsimzVClkN4QO1tHNuqRVl5y08?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: c64781cf-0d23-484e-b6bb-08dba53075ab
+X-MS-Exchange-CrossTenant-AuthSource: BYAPR12MB3176.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 Aug 2023 05:59:35.9623
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: 65f2mxhXnx7sRyNPTVqsLax8tJqrQDfEmdzHBqd1t1mVVMTqO7vE16eVlOAKVf/s5OzM5YD7Gqz/IJN4lRkZDQ==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY5PR12MB6202
 
 
+"Huang, Ying" <ying.huang@intel.com> writes:
 
-在 2023/8/25 7:57, Darrick J. Wong 写道:
-> On Thu, Aug 24, 2023 at 05:41:50PM +0800, Shiyang Ruan wrote:
+> Alistair Popple <apopple@nvidia.com> writes:
+>
+>> "Huang, Ying" <ying.huang@intel.com> writes:
 >>
->>
->> 在 2023/8/24 7:36, Darrick J. Wong 写道:
->>> On Wed, Aug 23, 2023 at 04:17:06PM +0800, Shiyang Ruan wrote:
->>>> ====
->>>> Changes since v12:
->>>>    1. correct flag name in subject (MF_MEM_REMOVE => MF_MEM_PRE_REMOVE)
->>>>    2. complete the behavior when fs has already frozen by kernel call
->>>>         NOTICE: Instead of "call notify_failure() again w/o PRE_REMOVE",
->>>>                 I tried this proposal[0].
->>>>    3. call xfs_dax_notify_failure_freeze() and _thaw() in same function
->>>>    4. rebase on: xfs/xfs-linux.git vfs-for-next
->>>> ====
->>>>
->>>> Now, if we suddenly remove a PMEM device(by calling unbind) which
->>>> contains FSDAX while programs are still accessing data in this device,
->>>> e.g.:
->>>> ```
->>>>    $FSSTRESS_PROG -d $SCRATCH_MNT -n 99999 -p 4 &
->>>>    # $FSX_PROG -N 1000000 -o 8192 -l 500000 $SCRATCH_MNT/t001 &
->>>>    echo "pfn1.1" > /sys/bus/nd/drivers/nd_pmem/unbind
->>>> ```
->>>> it could come into an unacceptable state:
->>>>     1. device has gone but mount point still exists, and umount will fail
->>>>          with "target is busy"
->>>>     2. programs will hang and cannot be killed
->>>>     3. may crash with NULL pointer dereference
->>>>
->>>> To fix this, we introduce a MF_MEM_PRE_REMOVE flag to let it know that we
->>>> are going to remove the whole device, and make sure all related processes
->>>> could be notified so that they could end up gracefully.
->>>>
->>>> This patch is inspired by Dan's "mm, dax, pmem: Introduce
->>>> dev_pagemap_failure()"[1].  With the help of dax_holder and
->>>> ->notify_failure() mechanism, the pmem driver is able to ask filesystem
->>>> on it to unmap all files in use, and notify processes who are using
->>>> those files.
->>>>
->>>> Call trace:
->>>> trigger unbind
->>>>    -> unbind_store()
->>>>     -> ... (skip)
->>>>      -> devres_release_all()
->>>>       -> kill_dax()
->>>>        -> dax_holder_notify_failure(dax_dev, 0, U64_MAX, MF_MEM_PRE_REMOVE)
->>>>         -> xfs_dax_notify_failure()
->>>>         `-> freeze_super()             // freeze (kernel call)
->>>>         `-> do xfs rmap
->>>>         ` -> mf_dax_kill_procs()
->>>>         `  -> collect_procs_fsdax()    // all associated processes
->>>>         `  -> unmap_and_kill()
->>>>         ` -> invalidate_inode_pages2_range() // drop file's cache
->>>>         `-> thaw_super()               // thaw (both kernel & user call)
->>>>
->>>> Introduce MF_MEM_PRE_REMOVE to let filesystem know this is a remove
->>>> event.  Use the exclusive freeze/thaw[2] to lock the filesystem to prevent
->>>> new dax mapping from being created.  Do not shutdown filesystem directly
->>>> if configuration is not supported, or if failure range includes metadata
->>>> area.  Make sure all files and processes(not only the current progress)
->>>> are handled correctly.  Also drop the cache of associated files before
->>>> pmem is removed.
->>>>
->>>> [0]: https://lore.kernel.org/linux-xfs/25cf6700-4db0-a346-632c-ec9fc291793a@fujitsu.com/
->>>> [1]: https://lore.kernel.org/linux-mm/161604050314.1463742.14151665140035795571.stgit@dwillia2-desk3.amr.corp.intel.com/
->>>> [2]: https://lore.kernel.org/linux-xfs/169116275623.3187159.16862410128731457358.stg-ugh@frogsfrogsfrogs/
->>>>
->>>> Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
->>>> ---
->>>>    drivers/dax/super.c         |  3 +-
->>>>    fs/xfs/xfs_notify_failure.c | 99 ++++++++++++++++++++++++++++++++++---
->>>>    include/linux/mm.h          |  1 +
->>>>    mm/memory-failure.c         | 17 +++++--
->>>>    4 files changed, 109 insertions(+), 11 deletions(-)
->>>>
->>>> diff --git a/drivers/dax/super.c b/drivers/dax/super.c
->>>> index c4c4728a36e4..2e1a35e82fce 100644
->>>> --- a/drivers/dax/super.c
->>>> +++ b/drivers/dax/super.c
->>>> @@ -323,7 +323,8 @@ void kill_dax(struct dax_device *dax_dev)
->>>>    		return;
->>>>    	if (dax_dev->holder_data != NULL)
->>>> -		dax_holder_notify_failure(dax_dev, 0, U64_MAX, 0);
->>>> +		dax_holder_notify_failure(dax_dev, 0, U64_MAX,
->>>> +				MF_MEM_PRE_REMOVE);
->>>>    	clear_bit(DAXDEV_ALIVE, &dax_dev->flags);
->>>>    	synchronize_srcu(&dax_srcu);
->>>> diff --git a/fs/xfs/xfs_notify_failure.c b/fs/xfs/xfs_notify_failure.c
->>>> index 4a9bbd3fe120..6496c32a9172 100644
->>>> --- a/fs/xfs/xfs_notify_failure.c
->>>> +++ b/fs/xfs/xfs_notify_failure.c
->>>> @@ -22,6 +22,7 @@
->>>>    #include <linux/mm.h>
->>>>    #include <linux/dax.h>
->>>> +#include <linux/fs.h>
->>>>    struct xfs_failure_info {
->>>>    	xfs_agblock_t		startblock;
->>>> @@ -73,10 +74,16 @@ xfs_dax_failure_fn(
->>>>    	struct xfs_mount		*mp = cur->bc_mp;
->>>>    	struct xfs_inode		*ip;
->>>>    	struct xfs_failure_info		*notify = data;
->>>> +	struct address_space		*mapping;
->>>> +	pgoff_t				pgoff;
->>>> +	unsigned long			pgcnt;
->>>>    	int				error = 0;
->>>>    	if (XFS_RMAP_NON_INODE_OWNER(rec->rm_owner) ||
->>>>    	    (rec->rm_flags & (XFS_RMAP_ATTR_FORK | XFS_RMAP_BMBT_BLOCK))) {
->>>> +		/* Continue the query because this isn't a failure. */
->>>> +		if (notify->mf_flags & MF_MEM_PRE_REMOVE)
->>>> +			return 0;
->>>>    		notify->want_shutdown = true;
->>>>    		return 0;
->>>>    	}
->>>> @@ -92,14 +99,60 @@ xfs_dax_failure_fn(
->>>>    		return 0;
->>>>    	}
->>>> -	error = mf_dax_kill_procs(VFS_I(ip)->i_mapping,
->>>> -				  xfs_failure_pgoff(mp, rec, notify),
->>>> -				  xfs_failure_pgcnt(mp, rec, notify),
->>>> -				  notify->mf_flags);
->>>> +	mapping = VFS_I(ip)->i_mapping;
->>>> +	pgoff = xfs_failure_pgoff(mp, rec, notify);
->>>> +	pgcnt = xfs_failure_pgcnt(mp, rec, notify);
->>>> +
->>>> +	/* Continue the rmap query if the inode isn't a dax file. */
->>>> +	if (dax_mapping(mapping))
->>>> +		error = mf_dax_kill_procs(mapping, pgoff, pgcnt,
->>>> +					  notify->mf_flags);
->>>> +
->>>> +	/* Invalidate the cache in dax pages. */
->>>> +	if (notify->mf_flags & MF_MEM_PRE_REMOVE)
->>>> +		invalidate_inode_pages2_range(mapping, pgoff,
->>>> +					      pgoff + pgcnt - 1);
->>>> +
->>>>    	xfs_irele(ip);
->>>>    	return error;
->>>>    }
->>>> +static int
->>>> +xfs_dax_notify_failure_freeze(
->>>> +	struct xfs_mount	*mp)
->>>> +{
->>>> +	struct super_block	*sb = mp->m_super;
->>>> +	int			error;
->>>> +
->>>> +	error = freeze_super(sb, FREEZE_HOLDER_KERNEL);
->>>> +	if (error)
->>>> +		xfs_emerg(mp, "already frozen by kernel, err=%d", error);
->>>> +
->>>> +	return error;
->>>> +}
->>>> +
->>>> +static void
->>>> +xfs_dax_notify_failure_thaw(
->>>> +	struct xfs_mount	*mp,
->>>> +	bool			kernel_frozen)
->>>> +{
->>>> +	struct super_block	*sb = mp->m_super;
->>>> +	int			error;
->>>> +
->>>> +	if (!kernel_frozen) {
->>>> +		error = thaw_super(sb, FREEZE_HOLDER_KERNEL);
->>>> +		if (error)
->>>> +			xfs_emerg(mp, "still frozen after notify failure, err=%d",
->>>> +				error);
->>>> +	}
->>>> +
->>>> +	/*
->>>> +	 * Also thaw userspace call anyway because the device is about to be
->>>> +	 * removed immediately.
+>>> Alistair Popple <apopple@nvidia.com> writes:
 >>>
->>> Does a userspace freeze inhibit or otherwise break device removal?
->>
->> It doesn't.  Device can be removed.  But after that, the mount point still
->> exists, and `umount /mnt/scratch` fails with "target is busy." `xfs_freeze
->> -u /mnt/scratch` cannot work too.
-> 
-> Yes, that's true, but that's long been the case for removing block
-> devices.  Should block device removal (since we now have hooks for
-> that!) also be breaking freezes?
-
-I think so.  But it may need more time to accomplish.  Shall we leave it 
-for later optimization?
-
-> 
->> So, I think thaw_super() anyway here is needed.
->>
->>
->>>
->>>> +	 */
->>>> +	thaw_super(sb, FREEZE_HOLDER_USERSPACE);
->>>> +}
->>>> +
->>>>    static int
->>>>    xfs_dax_notify_ddev_failure(
->>>>    	struct xfs_mount	*mp,
->>>> @@ -112,15 +165,29 @@ xfs_dax_notify_ddev_failure(
->>>>    	struct xfs_btree_cur	*cur = NULL;
->>>>    	struct xfs_buf		*agf_bp = NULL;
->>>>    	int			error = 0;
->>>> +	bool			kernel_frozen = false;
->>>>    	xfs_fsblock_t		fsbno = XFS_DADDR_TO_FSB(mp, daddr);
->>>>    	xfs_agnumber_t		agno = XFS_FSB_TO_AGNO(mp, fsbno);
->>>>    	xfs_fsblock_t		end_fsbno = XFS_DADDR_TO_FSB(mp,
->>>>    							     daddr + bblen - 1);
->>>>    	xfs_agnumber_t		end_agno = XFS_FSB_TO_AGNO(mp, end_fsbno);
->>>> +	if (mf_flags & MF_MEM_PRE_REMOVE) {
->>>> +		xfs_info(mp, "Device is about to be removed!");
->>>> +		/* Freeze fs to prevent new mappings from being created. */
->>>> +		error = xfs_dax_notify_failure_freeze(mp);
->>>> +		if (error) {
->>>> +			/* Keep going on if filesystem is frozen by kernel. */
->>>> +			if (error == -EBUSY)
->>>> +				kernel_frozen = true;
->>>
->>> EBUSY means that xfs_dax_notify_failure_freeze did /not/ succeed in
->>> kernel-freezing the fs.  Someone else did, and they're expecting that
->>> thaw_super will undo that.
->>>
->>> 	switch (error) {
->>> 	case -EBUSY:
->>> 		/* someone else froze the fs, keep going */
->>> 		break;
->>> 	case 0:
->>> 		/* we froze the fs */
->>> 		kernel_frozen = true;
->>> 		break;
->>> 	default:
->>> 		/* something else broke, should we continue anyway? */
->>> 		return error;
->>> 	}
->>>
->>> TBH I wonder why all that isn't just:
->>>
->>> 	kernel_frozen = xfs_dax_notify_failure_freeze(mp) == 0;
->>>
->>> Since we'd want to keep going even if (say) the pmem was already
->>> starting to fail and the freeze actually failed due to EIO, right?
->>
->> Yes.  So we can say it is a *try* to _freeze() here.  No matter what its
->> result is, we continue.
->>
->> Then I think the `kernel_frozen` becomes useless as well.  Because we should
->> try to call both _thaw(KERNEL_CALL) and _thaw(USER_CALL) to make sure umount
->> can work after device is gone.
-> 
-> I disagree -- unlike the mess that is userspace freezing, kernel code
-> that obtained a kernel freeze will get very confused and potentially do
-> Seriously Bad Things if the kernel freeze is yanked out from under them.
-> Kernel code is not supposed to release things that they did not
-> themselves obtain.
-> 
-> That might not ultimately matter for the narrow case of the device going
-> away, but the two other usecases (online fsck and suspend) will
-> malfunction if you drop a kernel freeze that they obtained.
-
-Could online fsck and suspend keep working even after 
-`xfs_force_shutdown(mp, SHUTDOWN_FORCE_UMOUNT);` being called?
-
-> 
-> I don't mind if PREREMOVE can't get a freeze and keeps going with the
-> invalidations anyway.  We did our best, and when the pmem goes away we
-> can just kill -9 down the processes.
-
-Ok, I agree.
-
-Then, the last thing I want to be confirmed:
-On my host, if the freeze state wasn't _thaw() after device gone, the 
-processes will keep on waiting and cannot be killed by `kill -9` 
-manually.  Is there another way to make the processes killed?
-
-
---
-Thanks,
-Ruan.
-
-> 
-> --D
-> 
->> Then, I think it's better to change them:
->>    `static int xfs_dax_notify_failure_freeze()`,
->>    `static void xfs_dax_notify_failure_thaw()`
->> to
->>    `static void xfs_dax_notify_failure_try_freeze()`,
->>    `static void xfs_dax_notify_failure_try_thaw()`.
->>
->>
->> --
->> Thanks,
->> Ruan.
->>
->>>
->>> --D
->>>
->>>> +			else
->>>> +				return error;
->>>> +		}
->>>> +	}
->>>> +
->>>>    	error = xfs_trans_alloc_empty(mp, &tp);
->>>>    	if (error)
->>>> -		return error;
->>>> +		goto out;
->>>>    	for (; agno <= end_agno; agno++) {
->>>>    		struct xfs_rmap_irec	ri_low = { };
->>>> @@ -165,11 +232,23 @@ xfs_dax_notify_ddev_failure(
->>>>    	}
->>>>    	xfs_trans_cancel(tp);
->>>> +
->>>> +	/*
->>>> +	 * Determine how to shutdown the filesystem according to the
->>>> +	 * error code and flags.
->>>> +	 */
->>>>    	if (error || notify.want_shutdown) {
->>>>    		xfs_force_shutdown(mp, SHUTDOWN_CORRUPT_ONDISK);
->>>>    		if (!error)
->>>>    			error = -EFSCORRUPTED;
->>>> -	}
->>>> +	} else if (mf_flags & MF_MEM_PRE_REMOVE)
->>>> +		xfs_force_shutdown(mp, SHUTDOWN_FORCE_UMOUNT);
->>>> +
->>>> +out:
->>>> +	/* Thaw the fs if it is frozen before. */
->>>> +	if (mf_flags & MF_MEM_PRE_REMOVE)
->>>> +		xfs_dax_notify_failure_thaw(mp, kernel_frozen);
->>>> +
->>>>    	return error;
->>>>    }
->>>> @@ -197,6 +276,8 @@ xfs_dax_notify_failure(
->>>>    	if (mp->m_logdev_targp && mp->m_logdev_targp->bt_daxdev == dax_dev &&
->>>>    	    mp->m_logdev_targp != mp->m_ddev_targp) {
->>>> +		if (mf_flags & MF_MEM_PRE_REMOVE)
->>>> +			return 0;
->>>>    		xfs_err(mp, "ondisk log corrupt, shutting down fs!");
->>>>    		xfs_force_shutdown(mp, SHUTDOWN_CORRUPT_ONDISK);
->>>>    		return -EFSCORRUPTED;
->>>> @@ -210,6 +291,12 @@ xfs_dax_notify_failure(
->>>>    	ddev_start = mp->m_ddev_targp->bt_dax_part_off;
->>>>    	ddev_end = ddev_start + bdev_nr_bytes(mp->m_ddev_targp->bt_bdev) - 1;
->>>> +	/* Notify failure on the whole device. */
->>>> +	if (offset == 0 && len == U64_MAX) {
->>>> +		offset = ddev_start;
->>>> +		len = bdev_nr_bytes(mp->m_ddev_targp->bt_bdev);
->>>> +	}
->>>> +
->>>>    	/* Ignore the range out of filesystem area */
->>>>    	if (offset + len - 1 < ddev_start)
->>>>    		return -ENXIO;
->>>> diff --git a/include/linux/mm.h b/include/linux/mm.h
->>>> index 799836e84840..944a1165a321 100644
->>>> --- a/include/linux/mm.h
->>>> +++ b/include/linux/mm.h
->>>> @@ -3577,6 +3577,7 @@ enum mf_flags {
->>>>    	MF_UNPOISON = 1 << 4,
->>>>    	MF_SW_SIMULATED = 1 << 5,
->>>>    	MF_NO_RETRY = 1 << 6,
->>>> +	MF_MEM_PRE_REMOVE = 1 << 7,
->>>>    };
->>>>    int mf_dax_kill_procs(struct address_space *mapping, pgoff_t index,
->>>>    		      unsigned long count, int mf_flags);
->>>> diff --git a/mm/memory-failure.c b/mm/memory-failure.c
->>>> index dc5ff7dd4e50..92f18c9e0aaf 100644
->>>> --- a/mm/memory-failure.c
->>>> +++ b/mm/memory-failure.c
->>>> @@ -688,7 +688,7 @@ static void add_to_kill_fsdax(struct task_struct *tsk, struct page *p,
->>>>     */
->>>>    static void collect_procs_fsdax(struct page *page,
->>>>    		struct address_space *mapping, pgoff_t pgoff,
->>>> -		struct list_head *to_kill)
->>>> +		struct list_head *to_kill, bool pre_remove)
->>>>    {
->>>>    	struct vm_area_struct *vma;
->>>>    	struct task_struct *tsk;
->>>> @@ -696,8 +696,15 @@ static void collect_procs_fsdax(struct page *page,
->>>>    	i_mmap_lock_read(mapping);
->>>>    	read_lock(&tasklist_lock);
->>>>    	for_each_process(tsk) {
->>>> -		struct task_struct *t = task_early_kill(tsk, true);
->>>> +		struct task_struct *t = tsk;
->>>> +		/*
->>>> +		 * Search for all tasks while MF_MEM_PRE_REMOVE is set, because
->>>> +		 * the current may not be the one accessing the fsdax page.
->>>> +		 * Otherwise, search for the current task.
->>>> +		 */
->>>> +		if (!pre_remove)
->>>> +			t = task_early_kill(tsk, true);
->>>>    		if (!t)
->>>>    			continue;
->>>>    		vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff, pgoff) {
->>>> @@ -1793,6 +1800,7 @@ int mf_dax_kill_procs(struct address_space *mapping, pgoff_t index,
->>>>    	dax_entry_t cookie;
->>>>    	struct page *page;
->>>>    	size_t end = index + count;
->>>> +	bool pre_remove = mf_flags & MF_MEM_PRE_REMOVE;
->>>>    	mf_flags |= MF_ACTION_REQUIRED | MF_MUST_KILL;
->>>> @@ -1804,9 +1812,10 @@ int mf_dax_kill_procs(struct address_space *mapping, pgoff_t index,
->>>>    		if (!page)
->>>>    			goto unlock;
->>>> -		SetPageHWPoison(page);
->>>> +		if (!pre_remove)
->>>> +			SetPageHWPoison(page);
->>>> -		collect_procs_fsdax(page, mapping, index, &to_kill);
->>>> +		collect_procs_fsdax(page, mapping, index, &to_kill, pre_remove);
->>>>    		unmap_and_kill(&to_kill, page_to_pfn(page), mapping,
->>>>    				index, mf_flags);
->>>>    unlock:
->>>> -- 
->>>> 2.41.0
+>>>> "Huang, Ying" <ying.huang@intel.com> writes:
 >>>>
+>>>>> Alistair Popple <apopple@nvidia.com> writes:
+>>>>>
+>>>>>> "Huang, Ying" <ying.huang@intel.com> writes:
+>>>>>>
+>>>>>>> Hi, Alistair,
+>>>>>>>
+>>>>>>> Sorry for late response.  Just come back from vacation.
+>>>>>>
+>>>>>> Ditto for this response :-)
+>>>>>>
+>>>>>> I see Andrew has taken this into mm-unstable though, so my bad for not
+>>>>>> getting around to following all this up sooner.
+>>>>>>
+>>>>>>> Alistair Popple <apopple@nvidia.com> writes:
+>>>>>>>
+>>>>>>>> "Huang, Ying" <ying.huang@intel.com> writes:
+>>>>>>>>
+>>>>>>>>> Alistair Popple <apopple@nvidia.com> writes:
+>>>>>>>>>
+>>>>>>>>>> "Huang, Ying" <ying.huang@intel.com> writes:
+>>>>>>>>>>
+>>>>>>>>>>> Alistair Popple <apopple@nvidia.com> writes:
+>>>>>>>>>>>
+>>>>>>>>>>>>>>> While other memory device drivers can use the general notifier chain
+>>>>>>>>>>>>>>> interface at the same time.
+>>>>>>>>>>>>
+>>>>>>>>>>>> How would that work in practice though? The abstract distance as far as
+>>>>>>>>>>>> I can tell doesn't have any meaning other than establishing preferences
+>>>>>>>>>>>> for memory demotion order. Therefore all calculations are relative to
+>>>>>>>>>>>> the rest of the calculations on the system. So if a driver does it's own
+>>>>>>>>>>>> thing how does it choose a sensible distance? IHMO the value here is in
+>>>>>>>>>>>> coordinating all that through a standard interface, whether that is HMAT
+>>>>>>>>>>>> or something else.
+>>>>>>>>>>>
+>>>>>>>>>>> Only if different algorithms follow the same basic principle.  For
+>>>>>>>>>>> example, the abstract distance of default DRAM nodes are fixed
+>>>>>>>>>>> (MEMTIER_ADISTANCE_DRAM).  The abstract distance of the memory device is
+>>>>>>>>>>> in linear direct proportion to the memory latency and inversely
+>>>>>>>>>>> proportional to the memory bandwidth.  Use the memory latency and
+>>>>>>>>>>> bandwidth of default DRAM nodes as base.
+>>>>>>>>>>>
+>>>>>>>>>>> HMAT and CDAT report the raw memory latency and bandwidth.  If there are
+>>>>>>>>>>> some other methods to report the raw memory latency and bandwidth, we
+>>>>>>>>>>> can use them too.
+>>>>>>>>>>
+>>>>>>>>>> Argh! So we could address my concerns by having drivers feed
+>>>>>>>>>> latency/bandwidth numbers into a standard calculation algorithm right?
+>>>>>>>>>> Ie. Rather than having drivers calculate abstract distance themselves we
+>>>>>>>>>> have the notifier chains return the raw performance data from which the
+>>>>>>>>>> abstract distance is derived.
+>>>>>>>>>
+>>>>>>>>> Now, memory device drivers only need a general interface to get the
+>>>>>>>>> abstract distance from the NUMA node ID.  In the future, if they need
+>>>>>>>>> more interfaces, we can add them.  For example, the interface you
+>>>>>>>>> suggested above.
+>>>>>>>>
+>>>>>>>> Huh? Memory device drivers (ie. dax/kmem.c) don't care about abstract
+>>>>>>>> distance, it's a meaningless number. The only reason they care about it
+>>>>>>>> is so they can pass it to alloc_memory_type():
+>>>>>>>>
+>>>>>>>> struct memory_dev_type *alloc_memory_type(int adistance)
+>>>>>>>>
+>>>>>>>> Instead alloc_memory_type() should be taking bandwidth/latency numbers
+>>>>>>>> and the calculation of abstract distance should be done there. That
+>>>>>>>> resovles the issues about how drivers are supposed to devine adistance
+>>>>>>>> and also means that when CDAT is added we don't have to duplicate the
+>>>>>>>> calculation code.
+>>>>>>>
+>>>>>>> In the current design, the abstract distance is the key concept of
+>>>>>>> memory types and memory tiers.  And it is used as interface to allocate
+>>>>>>> memory types.  This provides more flexibility than some other interfaces
+>>>>>>> (e.g. read/write bandwidth/latency).  For example, in current
+>>>>>>> dax/kmem.c, if HMAT isn't available in the system, the default abstract
+>>>>>>> distance: MEMTIER_DEFAULT_DAX_ADISTANCE is used.  This is still useful
+>>>>>>> to support some systems now.  On a system without HMAT/CDAT, it's
+>>>>>>> possible to calculate abstract distance from ACPI SLIT, although this is
+>>>>>>> quite limited.  I'm not sure whether all systems will provide read/write
+>>>>>>> bandwith/latency data for all memory devices.
+>>>>>>>
+>>>>>>> HMAT and CDAT or some other mechanisms may provide the read/write
+>>>>>>> bandwidth/latency data to be used to calculate abstract distance.  For
+>>>>>>> them, we can provide a shared implementation in mm/memory-tiers.c to map
+>>>>>>> from read/write bandwith/latency to the abstract distance.  Can this
+>>>>>>> solve your concerns about the consistency among algorithms?  If so, we
+>>>>>>> can do that when we add the second algorithm that needs that.
+>>>>>>
+>>>>>> I guess it would address my concerns if we did that now. I don't see why
+>>>>>> we need to wait for a second implementation for that though - the whole
+>>>>>> series seems to be built around adding a framework for supporting
+>>>>>> multiple algorithms even though only one exists. So I think we should
+>>>>>> support that fully, or simplfy the whole thing and just assume the only
+>>>>>> thing that exists is HMAT and get rid of the general interface until a
+>>>>>> second algorithm comes along.
+>>>>>
+>>>>> We will need a general interface even for one algorithm implementation.
+>>>>> Because it's not good to make a dax subsystem driver (dax/kmem) to
+>>>>> depend on a ACPI subsystem driver (acpi/hmat).  We need some general
+>>>>> interface at subsystem level (memory tier here) between them.
+>>>>
+>>>> I don't understand this argument. For a single algorithm it would be
+>>>> simpler to just define acpi_hmat_calculate_adistance() and a static
+>>>> inline version of it that returns -ENOENT when !CONFIG_ACPI than adding
+>>>> a layer of indirection through notifier blocks. That breaks any
+>>>> dependency on ACPI and there's plenty of precedent for this approach in
+>>>> the kernel already.
+>>>
+>>> ACPI is a subsystem, so it's OK for dax/kmem to depends on CONFIG_ACPI.
+>>> But HMAT is a driver of ACPI subsystem (controlled via
+>>> CONFIG_ACPI_HMAT).  It's not good for a driver of DAX subsystem
+>>> (dax/kmem) to depend on a *driver* of ACPI subsystem.
+>>>
+>>> Yes.  Technically, there's no hard wall to prevent this.  But I think
+>>> that a good design should make drivers depends on subsystems or drivers
+>>> of the same subsystem, NOT drivers of other subsystems.
+>>
+>> Thanks, I wasn't really thinking of HMAT as an ACPI driver. I understand
+>> where you're coming from but I really don't see the problem with using a
+>> static inline. It doesn't create dependencies (you could still use
+>> dax/kmem without ACPI) and results in smaller and easier to follow code.
+>>
+>> IMHO it's far more obvious that a call to acpi_hmat_calcaulte_adist()
+>> returns either a default if ACPI HMAT isn't configured or a calculated
+>> value than it is to figure out what notifiers may or may not be
+>> registered at runtime and what priority they may be called in from
+>> mt_calc_adistance().
+>>
+>> It appears you think that is a bad design, but I don't understand
+>> why. What does this approach give us that a simpler approach wouldn't?
+>
+> Think about all these again.  Finally I admit you are right.  The
+> general interface is better mainly if there are multiple implementations
+> of the interface.
+>
+> In this series, we provide just one implementation: HMAT.  And, the
+> second one: CDAT will be implemented soon.  And, CDAT will use the same
+> method to translate from read/write bandwidth/latency to adistance.  So,
+> I suggest to:
+>
+> - Keep the general interface (and notifier chain), for HMAT and soon
+>   available CDAT
+>
+> - Move the code to translate from read/write bandwidth/latency to
+>   adistance to memory-tiers.c.  Which is used by HMAT now and will be
+>   used by CDAT soon.  And it can be used by other drivers.
+>
+> What do you think about that?
+
+That sounds great. I had kinda assumed CDAT was around the corner, and
+was "the other driver" I was thinking of hence the suggestion to make it
+a bit more general (or alternatively ignore that and make it specific,
+but you've already done the work to make it general so happy to keep
+it).
+
+BTW for what it's worth I still think it might be best to have the
+notifiers return bandwidth/latency numbers. In practice though that
+would actually make my life harder so I'm happy to see where the above
+takes us.
