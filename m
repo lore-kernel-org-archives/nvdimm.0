@@ -1,72 +1,181 @@
-Received: from zeniv.linux.org.uk (zeniv.linux.org.uk [62.89.141.173])
+Received: from mgamail.intel.com (mgamail.intel.com [134.134.136.100])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F4C746AB
-	for <nvdimm@lists.linux.dev>; Mon, 28 Aug 2023 14:43:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=linux.org.uk; s=zeniv-20220401; h=Sender:In-Reply-To:Content-Type:
-	MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=fitMFjTe7UlzOJPHkx2hghZeQ5bjBzNc1l5zMQdyLCI=; b=gUZNSERn182ydlMmD/JGiKZEsk
-	OgLplGeOv9vuS9OA35h0aZ/IJvVVfJYA16NlznwAcJA1w9FpMTvQS7V139nKFCrrrZQVPptZW1Qnh
-	NlrtaWY/AJACSI4Kt7OkQtm136BUQbytcXlI1DESQcEcKTQOF5yaAh/drfTjfw19mNNEA5xwfSgHe
-	0BK4iM+Zmjh56/cqY3a2K7nBtryKUbD911r9z6wCXSRIUyA/UBBwxH86i7PeNcYMilqluP9xV6Zfc
-	W/F3EDXvuA+TnyWLXwrAAsHLhDWLLd7vBqiildb/I0VtP2zlFjxC3ArtVa0CxBf7pI91HwBNsB6yE
-	2vzIhf5A==;
-Received: from viro by zeniv.linux.org.uk with local (Exim 4.96 #2 (Red Hat Linux))
-	id 1qadRy-001a4j-36;
-	Mon, 28 Aug 2023 14:42:43 +0000
-Date: Mon, 28 Aug 2023 15:42:42 +0100
-From: Al Viro <viro@zeniv.linux.org.uk>
-To: Xueshi Hu <xueshi.hu@smartx.com>
-Cc: hch@infradead.org, dan.j.williams@intel.com, vishal.l.verma@intel.com,
-	dave.jiang@intel.com, jayalk@intworks.biz, daniel@ffwll.ch,
-	deller@gmx.de, bcrl@kvack.org, brauner@kernel.org, jack@suse.com,
-	tytso@mit.edu, adilger.kernel@dilger.ca, miklos@szeredi.hu,
-	mike.kravetz@oracle.com, muchun.song@linux.dev, djwong@kernel.org,
-	willy@infradead.org, akpm@linux-foundation.org, hughd@google.com,
-	nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-fbdev@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linux-aio@kvack.org,
-	linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org,
-	linux-mm@kvack.org, linux-xfs@vger.kernel.org
-Subject: Re: [PATCH v2] fs: clean up usage of noop_dirty_folio
-Message-ID: <20230828144242.GZ3390869@ZenIV>
-References: <20230828075449.262510-1-xueshi.hu@smartx.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD0CE6116
+	for <nvdimm@lists.linux.dev>; Mon, 28 Aug 2023 15:50:36 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1693237837; x=1724773837;
+  h=message-id:date:subject:to:cc:references:from:
+   in-reply-to:content-transfer-encoding:mime-version;
+  bh=LLpWn8iogsDM8+sGgpbRd4TUWuvW7ystlrRMZkmg16c=;
+  b=QntWOmMv8PjFx+fdFdpuABNP4b2eN7kJ/c8KOtSF59uK3B9K36WVmJ8w
+   NnRmivCqp8c+f/gO73CbJyHgkixM/7RKuhwqmYf+eYII261IFMg472UV5
+   PeWfdgEjlw3XebMwWPDM2RVKnMZ9iaWvwAR7g0ZPNsFI56C924jRio20w
+   N2Cpfp/ZfTLpOWZqFNx+0efOv5KBpVyD1GLupsYmmY+28iBolxi+zMyES
+   OUi7d9HEd+UXuuBheKgWXL6pVuGS2XLnKOabtrJBo9fgmAXrnTcyMDkNu
+   OVOzXXNULgeXXOjkRGIMNcf/pnA4r55AsfQjt4VCfNVoI42d8l2ddUINY
+   w==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10816"; a="441480930"
+X-IronPort-AV: E=Sophos;i="6.02,208,1688454000"; 
+   d="scan'208";a="441480930"
+Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Aug 2023 08:49:50 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10816"; a="808323967"
+X-IronPort-AV: E=Sophos;i="6.02,208,1688454000"; 
+   d="scan'208";a="808323967"
+Received: from fmsmsx603.amr.corp.intel.com ([10.18.126.83])
+  by fmsmga004.fm.intel.com with ESMTP; 28 Aug 2023 08:49:47 -0700
+Received: from fmsmsx612.amr.corp.intel.com (10.18.126.92) by
+ fmsmsx603.amr.corp.intel.com (10.18.126.83) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.27; Mon, 28 Aug 2023 08:49:47 -0700
+Received: from fmsmsx610.amr.corp.intel.com (10.18.126.90) by
+ fmsmsx612.amr.corp.intel.com (10.18.126.92) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.27; Mon, 28 Aug 2023 08:49:47 -0700
+Received: from fmsedg601.ED.cps.intel.com (10.1.192.135) by
+ fmsmsx610.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.27 via Frontend Transport; Mon, 28 Aug 2023 08:49:47 -0700
+Received: from NAM12-DM6-obe.outbound.protection.outlook.com (104.47.59.175)
+ by edgegateway.intel.com (192.55.55.70) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.27; Mon, 28 Aug 2023 08:49:47 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=b7dFPmiRDNwJR4wpwdu/lGumCh9PXZSUoT8ySdoWIELQ3RdllN1iqwizMlFovFUf9uBb7eV0t5QXTo8AzuprlLJZbWXHgVgyV+KOUZY/ZwUT/o6trukaYlCHSWj3XA59hLCPdzeoRJGaFdJY2oqlqcuFke7AzgBR30o5XEDzO/U7dfShQwWpYossJ1viEuPjCD+ogkIj2Te1Bi9K44iYGvckkJ6qZ3s6fT0mGJOUTuVNrhZlHfE9L4fRVKF4DuPeGE0rPquekTF7FMIGwn5mAX9uODcHPWzF2m+SPGv63c+9vrR1QKyhK8rILI4OG47qjFG/yTT2xWKRcIW/kLEnTw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=Ku47QR8J+6bN18v44ZSnsrZbX9+/2o+pbM38UIPmhik=;
+ b=GtUHumggaH1MPylZXevMgVHEHevdScJNKACKR+YY6sviK5zrnTwgGsj9RQEI0ezM6foi8lY06gN312nPqG84mgGaDZl4TEG6Z3E3DTU8KQl6eIMqypJVb8trKARs6KQYxM5fWqP2nAH9VeFhLmavtywrvul18Wvfn5kFFGgWwpe07kQlLcSYEL4haS062C8BttIl0vZjFK+H7Y5Qcf/IZgpwr8OUt77dRDCMjzyGq3ELm//B3+Xa4b/STHdrisy6ydqfg/HmvrrpTrZ1wqhOpHj+8oO/vzsNLbRhlbjJYkFJa/neK1rXNlXAKhx827wV91tDIXzBWJXd69jrOP2dBg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from PH7PR11MB5984.namprd11.prod.outlook.com (2603:10b6:510:1e3::15)
+ by PH8PR11MB7024.namprd11.prod.outlook.com (2603:10b6:510:220::19) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6699.34; Mon, 28 Aug
+ 2023 15:49:45 +0000
+Received: from PH7PR11MB5984.namprd11.prod.outlook.com
+ ([fe80::9563:9642:bbde:293f]) by PH7PR11MB5984.namprd11.prod.outlook.com
+ ([fe80::9563:9642:bbde:293f%7]) with mapi id 15.20.6699.034; Mon, 28 Aug 2023
+ 15:49:45 +0000
+Message-ID: <788c47b0-42f6-fc42-f293-00b14eee0673@intel.com>
+Date: Mon, 28 Aug 2023 08:49:41 -0700
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Betterbird/102.13.0
+Subject: Re: [PATCH] nvdimm: of_pmem: Add kfree for kstrdup
+To: Chen Ni <nichen@iscas.ac.cn>, <oohall@gmail.com>,
+	<dan.j.williams@intel.com>, <vishal.l.verma@intel.com>, <ira.weiny@intel.com>
+CC: <nvdimm@lists.linux.dev>, <linux-kernel@vger.kernel.org>
+References: <20230828062310.6802-1-nichen@iscas.ac.cn>
+Content-Language: en-US
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <20230828062310.6802-1-nichen@iscas.ac.cn>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: BYAPR05CA0102.namprd05.prod.outlook.com
+ (2603:10b6:a03:e0::43) To PH7PR11MB5984.namprd11.prod.outlook.com
+ (2603:10b6:510:1e3::15)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230828075449.262510-1-xueshi.hu@smartx.com>
-Sender: Al Viro <viro@ftp.linux.org.uk>
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: PH7PR11MB5984:EE_|PH8PR11MB7024:EE_
+X-MS-Office365-Filtering-Correlation-Id: 290cd5b1-5e02-4b5c-adab-08dba7de66c4
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: WBJvzuylb2vgmSRO7uuNaHxXuZwIj6q22g0Bd4D0ovOZQPFtlIOyAqwAT7seic3ZvKIFongTmajsNnEYjahr99iem5aTnLQLvBYduqNFiU283lVT63uqle1UiBEvRy4oGcpwbx5WY8YVnaiZo4AkGlc/XpfqoO8l9sgN72O/xNlRzJpIJkbX/QVQzYEEfIH61iImVLgG7TURmInn1n/FfMntqd2FJsQdPafs6VzOykA4MtjUaXVgRF0ElEC/FO/yJSISy+K4H4G0rZl55w0P+HjAH0zU2Yms5c6V2lI0jlpIZ9M1/DZwWi5YpjKOOY6rF8vXTaMdxVqoUP1n6z3hxaRIbNhH3lhCFUGrBR7dtp7lTsdNv5NVJ1r6MqaQsJZAQdwrPY7jDR35QLFm8DxuOc7HH0CcvqA9Qqo2Bb96PEAyU8pKygZ6kpSkm7SAV9Q5FAXVfrFgf0pyDeIWHDNSsvAuWDuTN9G+uh5zFeKlH6CsrpGXe6w0eSMy78HJkaBIxr13GE55Opv7ogbvyBAs6Wj4eZvl4/xn/IEIUBDxpG2/iqYuZoG8mbqqQmUbcGVs5I/0TrlLn/bKsEo+i0l1k+luG5nXO1549XJLO76pf0usMS4ZeUTKw8CTji/1efucnCR5bFmyeVpjN9HHGvw+2w==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH7PR11MB5984.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(396003)(39860400002)(136003)(346002)(376002)(366004)(186009)(451199024)(1800799009)(31686004)(6486002)(6506007)(6666004)(44832011)(66946007)(36756003)(31696002)(86362001)(38100700002)(82960400001)(83380400001)(26005)(4744005)(2906002)(53546011)(478600001)(6512007)(66476007)(5660300002)(8936002)(41300700001)(316002)(66556008)(2616005)(6636002)(4326008)(8676002)(45980500001)(43740500002);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?ZDY3dXdQSzV6R2dkRFJibmoxQXQxYkJ3WHAwN1V2bEFkTkx6SE54aldOWmth?=
+ =?utf-8?B?cG1KNldCNzhWSmVqbjhacTBlaWtCREJkaXpaZ1RwZmJzUnlOZXJDZENxNEhn?=
+ =?utf-8?B?RXNNUU45TE9IZkFXVEVVenRZSStlRVR5eCtTWEJURGMyOTdIV2c3aWtqNy9U?=
+ =?utf-8?B?ZlB6L1hOOTRTNkdPR3ZuN0xsUkZ2eU9VUkRhdWNra3RiSldrWVBaT0tmQ0Q1?=
+ =?utf-8?B?eng1UUpETnlHcFptK2h4RkNWU2NJK0VMQUNML2x0VHNJREowME1xTTBSdzJj?=
+ =?utf-8?B?U1hZckNrNmlaZFRVa3NPUmdkVkN6dzRaL3hNY1hnWmVBQkJKRHVjakZCdUZK?=
+ =?utf-8?B?NStHYUkvSTRLT2lSVGdQUk5RM3U1K3FKMG01Y0g3c2owWGtkR0VuSnhZVEty?=
+ =?utf-8?B?YmhDREZQWGRkbFM0OTFqbnVWMjJrZ3UvMnJ4MlIrcDhhMzI4YXo2WDNSa2No?=
+ =?utf-8?B?V0VqWTZQZ1d1bWJuZlB1RnJiK1RDbkhEZnpkYmpucGhVMmREbHR6c2crQkVm?=
+ =?utf-8?B?K3YzMUd4aHBySUg2cTQrQ0dtSkx2bjlwRHFvVXE0MU5hQjNyRzZ1bERadkJG?=
+ =?utf-8?B?azRVRHZzaEh5S3laeXpnN28xdzA5NjdHOW5La1d3RVV0ZXZXUHVwbEV6alVU?=
+ =?utf-8?B?MDQvY0NzWWNJTUk3dW0yQ2x0U2hLUGZJU3VjZFkwZWVrYlFHTnRxUkdYNkw5?=
+ =?utf-8?B?VTJEQzBsTm83V0F5dm02WDgxU0ZxdWd4UVZJMnNOeHNxMmo2blNGUEdlMFRF?=
+ =?utf-8?B?ZDdmVjFDQlB2dWRjR2k4WTlKNGswbFlOMDdHTzBtenMyN2t0eW1WUldlQnRm?=
+ =?utf-8?B?Y1EvWGhzYjVldVRoMktsSVEwQTJMdE55cStnM3gydTlVcklYWXp0WEZQWGU3?=
+ =?utf-8?B?eHZDTGl4TmNKRDdRak1XS0pkeVVrdTBHU1F5Q3AzenIyRm04SExWdVZVaHdl?=
+ =?utf-8?B?OG00Ymd1YWlyNjMzdkF0YnphbUFmaWF4RnNjVXNIWXVOQUVJOFhsOEZKQXNI?=
+ =?utf-8?B?RDlpVXBYQ0NDaHVYekliTFd3Ui83NHQ0bHZmZldOalVQQTVydUMxTlZ3NlF2?=
+ =?utf-8?B?M0dMK1J3bnhHWkhCT284M05qSk5KVDJMTDlYZnV3ekIvaXJhVU5CQ2w3OEZ6?=
+ =?utf-8?B?Tkp6YWNCc3dOc0lDNER6aDlkNVZGbkg1SmNibk5oSjV0cHNWQW45eDM4YXQz?=
+ =?utf-8?B?TzVGSFE0c1lzSzVBME1wb0s3Tzh1L1h1TitBQ3h0UE1yd2Vvd0FIa2FydThK?=
+ =?utf-8?B?emFremYrTkZDTHlvNzJFRXNOL0JwamJJMThwWkQ4RFhHQXcySktReUZVeFlz?=
+ =?utf-8?B?b09KRVh5MzRqTzY3THJnekdYN1RrVVd5MjVvZ2gzdDNLTzJ6RTZaQ0swLzJQ?=
+ =?utf-8?B?N3BuRE91NnNjK1B1bTFPSEk2ZW00K0hPc21ZR0FJeHVIZ2o3eTBNUlRLaU9Y?=
+ =?utf-8?B?NEY5ZW9KY3NBZzU0a2RpNUJIcG9ydFhOVWpDSE9ZTTYwckxCMUUxSXdUdzhW?=
+ =?utf-8?B?aUkxcWkxK2JlbmZURCtlUEY1MW1RWFVKQTVTYUUrdzJqMGhlNkNpUTc5WXhO?=
+ =?utf-8?B?RzNEMGdLQTk4TUR5c0hzZ21TRnJYZTFnRlpWVTNCZm1iQ2dpTnRsRXFBdy9K?=
+ =?utf-8?B?a2pJN05nN2ZwRVpSQ2ordjErUXMyNWR0VmFReUtHZTFmRWZxWi9BNXdwaGF0?=
+ =?utf-8?B?ZFNWa01XOFd5dkVLbzRWWFBQZU1RdTVEbUQwdDZCVUhlYWtYcU5JczVCUDZw?=
+ =?utf-8?B?YjVUV1Q2aVg4SVc1S2dRL1Q4VVE3SFYwQ28yOUpDRlErclgzZ2J4dEpEQWlW?=
+ =?utf-8?B?VVNVby9yZ0ZnNU9wMUNDYzZCK1pFbGxkYVZUZmYrWnhQZER1d0Fhd0ZGMnky?=
+ =?utf-8?B?WlFCdWxHOU1EUmRTQllxeEFZRU9mV29KZkl3MU9VdTNzdFhlb01JSFI0elFh?=
+ =?utf-8?B?bFFaT3FyWk5YOCtTL3p5VVFrRDVJLzJ5NHpiVmYwLzFRelpIOVdrcFREVmhS?=
+ =?utf-8?B?dkFkQlJUTXdsRms5WnhaeGc0a0Q2eHkrQVJKK3lBeSs2VTZKUzJ0eDVUdERu?=
+ =?utf-8?B?ZGNKcmovUXFiTWRvR1ovT3NaSFZCaU1VQmhvTEhlMmRvbjVlQ2dPSmN0MnBi?=
+ =?utf-8?Q?RY9pWveVtQ4mhiCozUrHGxvR2?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: 290cd5b1-5e02-4b5c-adab-08dba7de66c4
+X-MS-Exchange-CrossTenant-AuthSource: PH7PR11MB5984.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 28 Aug 2023 15:49:45.4037
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: H3E0gkakH1NW2UkvWshCtqBQpYC5mlyOGrCm0E/SavytLke1LzbTmdXrOF69i9IBK0yfABjBud4cICK+qxRnqg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH8PR11MB7024
+X-OriginatorOrg: intel.com
 
-On Mon, Aug 28, 2023 at 03:54:49PM +0800, Xueshi Hu wrote:
-> In folio_mark_dirty(), it can automatically fallback to
-> noop_dirty_folio() if a_ops->dirty_folio is not registered.
+
+
+On 8/27/23 23:23, Chen Ni wrote:
+> Add kfree() for kstrdup() in order to avoid memory leak.
 > 
-> As anon_aops, dev_dax_aops and fb_deferred_io_aops becames empty, remove
-> them too.
+> Signed-off-by: Chen Ni <nichen@iscas.ac.cn>
 
-I'd put the last sentence as 'In dev_dax_aops and fb_deferred_io_aops replacing
-.dirty_folio with NULL makes them identical to default (empty_aops) and since
-we never compare ->a_ops pointer with either of those, we can remove them
-completely'.
+Can you please add a fixes tag? Thanks!
 
-There could've been places like
-#define is_fb_deferred(mapping) (mapping)->a_ops == fb_deferred_io_aops
-and those would've been broken by that.  The fact that there's nothing
-of that sort in the tree ought to be mentioned in commit message.
-
-Note that we *do* have places where method table comparisons are used
-in predicates like that, so it's not a pure theory; sure, missing that
-would've probably ended up with broken build, but that can easily be
-dependent upon the config (and that, alas, is also not a pure theory -
-BTDT).  In this case the change is correct, fortunately...
-
-Other than that part of commit message -
-
-Acked-by: Al Viro <viro@zeniv.linux.org.uk>
+> ---
+>   drivers/nvdimm/of_pmem.c | 6 ++++++
+>   1 file changed, 6 insertions(+)
+> 
+> diff --git a/drivers/nvdimm/of_pmem.c b/drivers/nvdimm/of_pmem.c
+> index 10dbdcdfb9ce..fe6edb7e6631 100644
+> --- a/drivers/nvdimm/of_pmem.c
+> +++ b/drivers/nvdimm/of_pmem.c
+> @@ -31,11 +31,17 @@ static int of_pmem_region_probe(struct platform_device *pdev)
+>   		return -ENOMEM;
+>   
+>   	priv->bus_desc.provider_name = kstrdup(pdev->name, GFP_KERNEL);
+> +	if (!priv->bus_desc.provider_name) {
+> +		kfree(priv);
+> +		return -ENOMEM;
+> +	}
+> +
+>   	priv->bus_desc.module = THIS_MODULE;
+>   	priv->bus_desc.of_node = np;
+>   
+>   	priv->bus = bus = nvdimm_bus_register(&pdev->dev, &priv->bus_desc);
+>   	if (!bus) {
+> +		kfree(priv->bus_desc.provider_name);
+>   		kfree(priv);
+>   		return -ENODEV;
+>   	}
