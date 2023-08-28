@@ -1,79 +1,57 @@
-Received: from cstnet.cn (smtp84.cstnet.cn [159.226.251.84])
-	(using TLSv1.2 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7BB3BA4D
-	for <nvdimm@lists.linux.dev>; Mon, 28 Aug 2023 06:24:18 +0000 (UTC)
-Received: from localhost (unknown [124.16.138.129])
-	by APP-05 (Coremail) with SMTP id zQCowAA3PGCIPexk7dWPBg--.32603S2;
-	Mon, 28 Aug 2023 14:24:08 +0800 (CST)
-From: Chen Ni <nichen@iscas.ac.cn>
-To: oohall@gmail.com,
-	dan.j.williams@intel.com,
-	vishal.l.verma@intel.com,
-	dave.jiang@intel.com,
-	ira.weiny@intel.com
-Cc: nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org,
-	Chen Ni <nichen@iscas.ac.cn>
-Subject: [PATCH] nvdimm: of_pmem: Add kfree for kstrdup
-Date: Mon, 28 Aug 2023 06:23:10 +0000
-Message-Id: <20230828062310.6802-1-nichen@iscas.ac.cn>
-X-Mailer: git-send-email 2.25.1
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6569FA4A
+	for <nvdimm@lists.linux.dev>; Mon, 28 Aug 2023 06:37:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
+	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=5xtken3ztdTUny1OMfzFaKlaMxo854CajVDA38Kiekk=; b=NcopADFc2/ECJJnc4sPTJV2HCs
+	oucoi3FqWUgmmWL2TBAkAp6f5/UWWSPbYwMK2t1FmNf9DCFana51kICNmLtKkXJ761PmFHB0kIciE
+	tDPU+fPlvqzYN8rAM/mSYi0biQaE2nJXWR4/LhXs6sXOwn+rDi85UgDnSeFEYvprxuyB0OJDS3X7o
+	v2xpNI5oF0c/7+f4qUhZDe9jzBoCkqp/fWoSoiT+ozzUuABOWCY4mt+L1Go7qVWjjcWLM8JX/eIsZ
+	5tjE66X7sfMtVGm7PjjSjRMkHZipPHTZVAj/5fkfJ06RMhfPBT227rR2yLfmee/6rVsL/f24aLc1t
+	55V7kRVw==;
+Received: from hch by bombadil.infradead.org with local (Exim 4.96 #2 (Red Hat Linux))
+	id 1qaVri-008xc2-1x;
+	Mon, 28 Aug 2023 06:36:46 +0000
+Date: Sun, 27 Aug 2023 23:36:46 -0700
+From: Christoph Hellwig <hch@infradead.org>
+To: Matthew Wilcox <willy@infradead.org>
+Cc: Jan Kara <jack@suse.cz>, Xueshi Hu <xueshi.hu@smartx.com>,
+	dan.j.williams@intel.com, vishal.l.verma@intel.com,
+	dave.jiang@intel.com, jayalk@intworks.biz, daniel@ffwll.ch,
+	deller@gmx.de, bcrl@kvack.org, viro@zeniv.linux.org.uk,
+	brauner@kernel.org, jack@suse.com, tytso@mit.edu,
+	adilger.kernel@dilger.ca, miklos@szeredi.hu,
+	mike.kravetz@oracle.com, muchun.song@linux.dev, djwong@kernel.org,
+	akpm@linux-foundation.org, hughd@google.com, nvdimm@lists.linux.dev,
+	linux-cxl@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-aio@kvack.org, linux-fsdevel@vger.kernel.org,
+	linux-ext4@vger.kernel.org, linux-mm@kvack.org,
+	linux-xfs@vger.kernel.org
+Subject: Re: [PATCH] fs: clean up usage of noop_dirty_folio
+Message-ID: <ZOxAfrz9etoVUfLQ@infradead.org>
+References: <20230819124225.1703147-1-xueshi.hu@smartx.com>
+ <20230821111643.5vxtktznjqk42cak@quack3>
+ <ZONWka8NpDVGzI8h@casper.infradead.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:zQCowAA3PGCIPexk7dWPBg--.32603S2
-X-Coremail-Antispam: 1UD129KBjvdXoWrurykJFWUWFW8Jw4xury3Jwb_yoWfXrcEkF
-	1UXFWSqr48Ca9Ik39Fywna9r9Ika18ZF4rZr1ag3W5JFZrJF43JrWUZrn5G393Zrs7GF9I
-	kr1jkFn8Cry7GjkaLaAFLSUrUUUUjb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
-	9fnUUIcSsGvfJTRUUUbc8FF20E14v26r4j6ryUM7CY07I20VC2zVCF04k26cxKx2IYs7xG
-	6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rwA2F7IY1VAKz4vEj48ve4kI8w
-	A2z4x0Y4vE2Ix0cI8IcVAFwI0_Xr0_Ar1l84ACjcxK6xIIjxv20xvEc7CjxVAFwI0_Gr0_
-	Cr1l84ACjcxK6I8E87Iv67AKxVW8Jr0_Cr1UM28EF7xvwVC2z280aVCY1x0267AKxVW0oV
-	Cq3wAS0I0E0xvYzxvE52x082IY62kv0487Mc02F40EFcxC0VAKzVAqx4xG6I80ewAv7VC0
-	I7IYx2IY67AKxVWUGVWUXwAv7VC2z280aVAFwI0_Jr0_Gr1lOx8S6xCaFVCjc4AY6r1j6r
-	4UM4x0Y48IcxkI7VAKI48JM4x0x7Aq67IIx4CEVc8vx2IErcIFxwCY02Avz4vE14v_GF1l
-	42xK82IYc2Ij64vIr41l4I8I3I0E4IkC6x0Yz7v_Jr0_Gr1lx2IqxVAqx4xG67AKxVWUJV
-	WUGwC20s026x8GjcxK67AKxVWUGVWUWwC2zVAF1VAY17CE14v26r1q6r43MIIYrxkI7VAK
-	I48JMIIF0xvE2Ix0cI8IcVAFwI0_Jr0_JF4lIxAIcVC0I7IYx2IY6xkF7I0E14v26r1j6r
-	4UMIIF0xvE42xK8VAvwI8IcIk0rVWUJVWUCwCI42IY6I8E87Iv67AKxVWUJVW8JwCI42IY
-	6I8E87Iv6xkF7I0E14v26r4j6r4UJbIYCTnIWIevJa73UjIFyTuYvjfUYeHqDUUUU
-X-Originating-IP: [124.16.138.129]
-X-CM-SenderInfo: xqlfxv3q6l2u1dvotugofq/
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ZONWka8NpDVGzI8h@casper.infradead.org>
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 
-Add kfree() for kstrdup() in order to avoid memory leak.
+On Mon, Aug 21, 2023 at 01:20:33PM +0100, Matthew Wilcox wrote:
+> I was hoping Christoph would weigh in ;-)  I don't have a strong
 
-Signed-off-by: Chen Ni <nichen@iscas.ac.cn>
----
- drivers/nvdimm/of_pmem.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+I've enjoyed 2 weeks of almost uninterrupted vacation.
 
-diff --git a/drivers/nvdimm/of_pmem.c b/drivers/nvdimm/of_pmem.c
-index 10dbdcdfb9ce..fe6edb7e6631 100644
---- a/drivers/nvdimm/of_pmem.c
-+++ b/drivers/nvdimm/of_pmem.c
-@@ -31,11 +31,17 @@ static int of_pmem_region_probe(struct platform_device *pdev)
- 		return -ENOMEM;
- 
- 	priv->bus_desc.provider_name = kstrdup(pdev->name, GFP_KERNEL);
-+	if (!priv->bus_desc.provider_name) {
-+		kfree(priv);
-+		return -ENOMEM;
-+	}
-+
- 	priv->bus_desc.module = THIS_MODULE;
- 	priv->bus_desc.of_node = np;
- 
- 	priv->bus = bus = nvdimm_bus_register(&pdev->dev, &priv->bus_desc);
- 	if (!bus) {
-+		kfree(priv->bus_desc.provider_name);
- 		kfree(priv);
- 		return -ENODEV;
- 	}
--- 
-2.25.1
+I agree with this patch and also your incremental improvements.
 
