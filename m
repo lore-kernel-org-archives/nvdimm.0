@@ -1,362 +1,208 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.151])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9147B23DF
-	for <nvdimm@lists.linux.dev>; Wed, 30 Aug 2023 15:34:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1606DC433C8;
-	Wed, 30 Aug 2023 15:34:01 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1693409641;
-	bh=CHMyxO/91Od73rdOLGw7J9vkSi2LaUR4zdW7l9KOsrY=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=gNNJ0tNhz/vZFL8Bu3pMiEwyEHgGlBJqjmdGA5cy00Wa3OApu1Wz5Yf/EDIoVYApE
-	 lUxgENp9DsiecNWuZFR1+xQbfYO00ELF6cidlLM3SDOMkvAuW6YUU8g5h0mFNEqasx
-	 6wvOxe+BlGS4LwWWMILYjN9jS1rM0/znVDGyFkrWgt2sqaBO/J0ekjfds/ttzlyzQi
-	 xLHEvGejC2YjXQDUFYkVxLtw/w8qgQp4/a47C53WrK6syYUTwWh2mJ9JBlEcKWcFmD
-	 TCcUvRXebSc5+3Qa+R5oWs7Lu+svkzK7WF4b+jD4M5Rgqi9yTwdG/De6jaohuyJJ0k
-	 BijGbCSoEv/Rg==
-Date: Wed, 30 Aug 2023 08:34:00 -0700
-From: "Darrick J. Wong" <djwong@kernel.org>
-To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Cc: linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
-	linux-xfs@vger.kernel.org, linux-mm@kvack.org,
-	dan.j.williams@intel.com, willy@infradead.org, jack@suse.cz,
-	akpm@linux-foundation.org, mcgrof@kernel.org
-Subject: Re: [PATCH v14] mm, pmem, xfs: Introduce MF_MEM_PRE_REMOVE for unbind
-Message-ID: <20230830153400.GB28160@frogsfrogsfrogs>
-References: <20230629081651.253626-3-ruansy.fnst@fujitsu.com>
- <20230828065744.1446462-1-ruansy.fnst@fujitsu.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62FCD23D4
+	for <nvdimm@lists.linux.dev>; Wed, 30 Aug 2023 17:08:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1693415287; x=1724951287;
+  h=message-id:date:from:cc:subject:to:
+   content-transfer-encoding:mime-version;
+  bh=6mmcdHgN9+ErsiPmHVMnsn3G05goALkM+dzmI7dZCww=;
+  b=YX7guDQNl4/k3CGRTNm1CLL8083cQonig1CR+0TBro7Jd1AB1JuoOR3z
+   qPKjeQof7VOSK/vs0+HvtZ1ONSRGEST1DNKk0UIphHFMBIPePTtUuzjLP
+   6yK1/bMMQ+OKiWSAVIkHOw582dSSzM8YldI1tUi9JGd47XbZg57nNeocS
+   3GVJP9B/2cKugtR2bFVc0EJKFkBvJrRfoM0hYjjvNuvtDzR9mrXFLaFNe
+   O2RoQ77qFsQHNByw+GPSshawd5/+zdZU9OCf4VdxiiNVR8gOSAgafBtPO
+   5DTeuZInJN1t2sboh1HcIHwuDLSBWurPA2GE5sr6mc4dzb/4hLpLttqL4
+   A==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10818"; a="356017290"
+X-IronPort-AV: E=Sophos;i="6.02,214,1688454000"; 
+   d="scan'208";a="356017290"
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Aug 2023 10:08:05 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10818"; a="1069903536"
+X-IronPort-AV: E=Sophos;i="6.02,214,1688454000"; 
+   d="scan'208";a="1069903536"
+Received: from fmsmsx603.amr.corp.intel.com ([10.18.126.83])
+  by fmsmga005.fm.intel.com with ESMTP; 30 Aug 2023 10:08:05 -0700
+Received: from fmsmsx610.amr.corp.intel.com (10.18.126.90) by
+ fmsmsx603.amr.corp.intel.com (10.18.126.83) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.27; Wed, 30 Aug 2023 10:08:04 -0700
+Received: from fmsmsx610.amr.corp.intel.com (10.18.126.90) by
+ fmsmsx610.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.27; Wed, 30 Aug 2023 10:08:04 -0700
+Received: from fmsedg601.ED.cps.intel.com (10.1.192.135) by
+ fmsmsx610.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.27 via Frontend Transport; Wed, 30 Aug 2023 10:08:04 -0700
+Received: from NAM10-DM6-obe.outbound.protection.outlook.com (104.47.58.100)
+ by edgegateway.intel.com (192.55.55.70) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.27; Wed, 30 Aug 2023 10:08:04 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=BV7DRu4eAaPbU+cMsOMDoa1X0VIcUH0aBhOk3zY/52MwqcaNLfD8736LqF/jKtvTOX9fLcDgBZI9+G9qgs3vJzeKBPjOTneS5/NOcYnrzGNj7MZ6Tyzq0+NPYzqX+sr53OBW1t57LjSgaXlOX6pEtbLKisg3eNTqzqm9Z3FZkCuoj79v6ygiC+DXli+sdjf18dKkJXE/s8rqXM3C+GSM6pbCLsq1RlMOjV1fuh0CaLc59dIz4e0fRMea87QCh6kU4XaRdcG7MOmV64zpc9Qycbh9L/s0u1ihPHcdlkoLAwgEPrlao+tqVReFmhLJW9wkj9lfkuHk5DOqiLdPR+BJDA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=7SVowNJ79wTLx9fNJCz51f4fUvLom/ADlllM6hDY1s4=;
+ b=WKyep0kq+jNDMGT/6UZqoNfv26enuh/y0Bap4qXCszpBhIF2MizvuhZp+/xKue5R5haFB5C9Zk/SEUd19HZ2/wCpqKGzqQ7VnCIHrHncAEhS5s17pn5FH4Cbiz4v/pP+VpVJB093XT2lbUA1x+45gVhSEtJ+6oHfC5y49LZ5DsMDPPxmsSBqHotTY8NkEB0anw2XnnVNmmRJdz73cJkQLNlPBeXed7AxSUmysJCLaCymIyWYEi665KwMUTvKpb+N7JMmlIZHX9pLTUSmzZMec8EPbeN00renLC/5QDkNIXO8ukdzZzySggEsX7jcUwWTT6zCUpGMAhxqPx0M5kvhTA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from PH7PR11MB5984.namprd11.prod.outlook.com (2603:10b6:510:1e3::15)
+ by SA3PR11MB8117.namprd11.prod.outlook.com (2603:10b6:806:2f0::21) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6699.27; Wed, 30 Aug
+ 2023 17:08:00 +0000
+Received: from PH7PR11MB5984.namprd11.prod.outlook.com
+ ([fe80::9563:9642:bbde:293f]) by PH7PR11MB5984.namprd11.prod.outlook.com
+ ([fe80::9563:9642:bbde:293f%7]) with mapi id 15.20.6699.034; Wed, 30 Aug 2023
+ 17:08:00 +0000
+Message-ID: <12c76f8e-aae8-2cab-4ab0-571a8c806423@intel.com>
+Date: Wed, 30 Aug 2023 10:07:56 -0700
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Betterbird/102.13.0
+Content-Language: en-US
+From: Dave Jiang <dave.jiang@intel.com>
+CC: <dan.j.williams@intel.com>, <vishal.l.verma@intel.com>, Ira Weiny
+	<ira.weiny@intel.com>, <nvdimm@lists.linux.dev>, linux-kernel
+	<linux-kernel@vger.kernel.org>
+Subject: [GIT PULL] NVDIMM and DAX for 6.6
+To: <torvalds@linux-foundation.org>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: BYAPR08CA0017.namprd08.prod.outlook.com
+ (2603:10b6:a03:100::30) To PH7PR11MB5984.namprd11.prod.outlook.com
+ (2603:10b6:510:1e3::15)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230828065744.1446462-1-ruansy.fnst@fujitsu.com>
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: PH7PR11MB5984:EE_|SA3PR11MB8117:EE_
+X-MS-Office365-Filtering-Correlation-Id: 432722c2-49a0-41bf-1063-08dba97baa08
+X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: ct8kegPgE6vc8OTxTlRQ6N4pQTle1RQpQDZh0hNYj9p0FzI02ufb+Fix4V5870kPmPAnwi1ZGFhasAiKqtUzMLiSydZcsxioTfxfD8Ba291AGcZTjWNBg9+O6LtbohlxEJ6ZSnH1hEMA+7ABPsHhqNG1TXtQwVAvxrkN+yrIk99kyzxivYR3uJZmxH/inuchdczGCY9wSRsGLCRi0GMd2ByxEozdbbSmtQ7F43ThcNU5HRPLPhjLZtDv8fLHZKd7zwPPaBHnDNv1hqzh1Jz2Z51Jn1zHNe1IFtDLP8CRC6QcElBZy9pnjrCdkUYbTbld+aQjP4brs1RnJY3ANeykGnFrCDYhrDl7E2dpgnw5FtJhZg5/vQ56QqWUGbjaJMkbdH846NfvgGm1qA2IWZYsMT9yDuM2jQnkyvUGy/bdxpFTco2e09SHymzP+Sqf4IUxwXaJct95cUbU4v7J+LhzUkGCLBk+e/hQ0aC1sN9murmrQCkTpfvQoswWEeLnOF8ZmV1wZ+UDRElph3IOBZYfOIHA5avLmFsTKC7pqt+iAULQ0owDC7Umf0fR7MnCERpY5VwbMtZz+vXb9928DUSytiFsKsasCwFddgw6TfsOL6ASVE8R2EahPUHlx/1g64tBzGvOnjn806AXz7Ag8lpVBw==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH7PR11MB5984.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(136003)(39860400002)(376002)(366004)(396003)(346002)(451199024)(1800799009)(186009)(6486002)(38100700002)(82960400001)(8676002)(4326008)(8936002)(31696002)(54906003)(6506007)(6916009)(41300700001)(66946007)(66476007)(36756003)(66556008)(86362001)(316002)(6512007)(26005)(478600001)(44832011)(83380400001)(2906002)(31686004)(6666004)(2616005)(5660300002)(43740500002)(45980500001);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?MDdIZS9ZSTVBUGxhWEY1cDI0ZU5QdzFBTzRONzdzeE9jOXR4UUJ1TnN5bXhL?=
+ =?utf-8?B?Y0NEajFzZ21yNnRJUFZTbUx6YzFMYkc2WG9EL0hwTEpLTWw0ZVVtS09jRHJz?=
+ =?utf-8?B?T21JODFMQUx4c0U3Z096NmpsSERDTG5HNWJjSUJ4eUJBVVZuek1GQlQvcGhn?=
+ =?utf-8?B?TDdLdFp4eVlFVUFuSFREQ1Fza0h2ZWRFUDZMaDltYVFnZXB3aVVLQ0ptWWYv?=
+ =?utf-8?B?SllackVDSXl2V2ZWWTlrRlQ2Wk95NTZNZXFKRUJoSldMY25VMXNHMVQyZVcy?=
+ =?utf-8?B?Sjg5VUVjTUFvNFNSOVpqODZwazlWUGlnNTl5MU02ZU5aaTZlbzVaNjVZeS9t?=
+ =?utf-8?B?VFlFUkZicWpZaDRteDlka1pkUXlSTHIvdUNqODhvNk9ReERScUdMV0ladjNi?=
+ =?utf-8?B?MUpuWldYRUtuaFVmNmVEbyttRkxyZXB2MldlL1Z2UlZ4VWtMWDZTdjVhamww?=
+ =?utf-8?B?c1lGM0pJbDFZbncrSVFEblZjdVhleXJNTTRHT0JzYlIvZDZIM3pEczAwZ2dM?=
+ =?utf-8?B?dENZQ2pOWDNDenEycHg3RDlrS2FlYlJUSXMwOHh1emhKNGxFZzVnSEw2Y0U0?=
+ =?utf-8?B?bzBYbFZyWDRWQ1hXajZIMTJMSHh1WWFRK3NhcU43QTJyeW8rYWwvUUJFYjB1?=
+ =?utf-8?B?eU1IQ2lVc1ZVOFo1cWR5c3pNdDVZTEd6ajhjN1dhZ0hOWmkveVZLVlVYUTFw?=
+ =?utf-8?B?UXpuU3o5SWlaUzBISVdlUHJtL1RvcXVqSDFQb1BoeUxhWTZiSElBOUl6bnlI?=
+ =?utf-8?B?a0d3bW0xcEV2b1ArQ1VkaGJieG5yOVBhTi85UVRUeTM0c3ByN2V5Vm8wcWF1?=
+ =?utf-8?B?Sk51UkZodTNwcnRJbmNjZ0JBYkFzeVE1QjJSZVREZkF2ZDVWbTdsbkVuSDJR?=
+ =?utf-8?B?dy8wb09PSXN2c0JNcDJDR2xxQUpwWFVMMFFhUUluUW91MzNLbnJ6VzBGbFgy?=
+ =?utf-8?B?NmtFaG1XVzdNSElBVDFyaFcwMnN5N25jV3lncmtzYlFrVXFGSmwwUytuWlVP?=
+ =?utf-8?B?RkpXRnEyalF3dWR5bWpwcHNiUVpQUFJVSjBzNlIveFI1ZXNsMTlndFJwWVBu?=
+ =?utf-8?B?dXZRN1FpK1RqRVJRb0Q2OTdZcGpPVkFHbkExNk5pN09aSzV3bjNDY29tdUJk?=
+ =?utf-8?B?WFZWSVRvRjl2azV2Slh1ZDBkZlFjN0d3YjloL1gvc081Wm9KNjhXTnlTTFIr?=
+ =?utf-8?B?bTFMZHRpRDE0dzhqZk92RzdXS0Qrb0hFdWtGZHAvS0w5RXJialNLUlhVdWNT?=
+ =?utf-8?B?QTVDYldvYW5Mc1FMNUhHL0VqQXdwQ2pUU3pOdXlUbUpYSGxRS3phODFyWFpU?=
+ =?utf-8?B?WEdyS0M2NWppblJvaWVZZ0pDQnI5Y1hqQXg3S1l6bUlZUlc1R1EwK2d6eHBN?=
+ =?utf-8?B?TW4waUx4T1RKckp2bmVoS2NwZXVBdUM5SnhzOElGYWs0bmlQallNdHIwQlln?=
+ =?utf-8?B?eVRaYUl2M0E0aUtxLytDSXR3V3lSc3FSb3kzK1J2SldFWGpTNmsvL2ZvNzhv?=
+ =?utf-8?B?QTRMT3JjK0pYZis1YVVLaDZJRWJQSi9KSjhHRlY5ZktoMzIxUDJIS3VyT1dQ?=
+ =?utf-8?B?T01KQjZUMlJkay9FYUx3TUo0KzlWRm1vTEtDUWxyTGNsSlhhNWRaMzlaWGFI?=
+ =?utf-8?B?MHhwQUhiSlJhc3VGcURkdnpmQnRQMjRzNnFsVzZ2a2FHUnVTa1dYMU13dHBX?=
+ =?utf-8?B?SUExOXpNNy9NUlVYWjJSYVdrUk52MnVMY3FkQ1ZPbUJxRHloelhhT1loRjJt?=
+ =?utf-8?B?RFpSNlUxRXBpSENlS2M4TnBNSlNxNENkdEVMeDc1elcvaFdPQS83aEp0Y2Fm?=
+ =?utf-8?B?cDlkK0pyMDNRSmpieElXdWFyM2drazBudFVvK0dXR1ZhZ2liRUQxeDk4SmlV?=
+ =?utf-8?B?QWVkRFVXdUY1dFdicG5iQlQvK3BBNlBZemdIWnhRak1VeUJYUDBkRkRkWDV6?=
+ =?utf-8?B?NUhDdnRVT1A4MnN5M0FmTWo4b3M5eXcvdUpVQS9KUVhrcFpmeW04NXRrcDNu?=
+ =?utf-8?B?ZVNHUFliMHEvaHh6cjlWVldaS2U3WmprRTFLNVpQbXBTdW15OXdKaXo3eUNi?=
+ =?utf-8?B?VFJwUi9XYlcxMEErRXYveEN3bnFLWElETkE2aURueDFUSUU4SEFqbkZPcUR6?=
+ =?utf-8?Q?88u7Mxa/tFRNRLxwWz2RGFw+9?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: 432722c2-49a0-41bf-1063-08dba97baa08
+X-MS-Exchange-CrossTenant-AuthSource: PH7PR11MB5984.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 Aug 2023 17:08:00.4730
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: aRShJ0tbIsDRgjg2bEcxpqUz6g9HCxVTPyLR41MwsWav8Z3DiMxUaF92m5oMIaBFgipFjhT/pCJEI/6V8CAJ7A==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA3PR11MB8117
+X-OriginatorOrg: intel.com
 
-On Mon, Aug 28, 2023 at 02:57:44PM +0800, Shiyang Ruan wrote:
-> ====
-> Changes since v13:
->  1. don't return error if _freeze(FREEZE_HOLDER_KERNEL) got other error
-> ====
-> 
-> Now, if we suddenly remove a PMEM device(by calling unbind) which
-> contains FSDAX while programs are still accessing data in this device,
-> e.g.:
-> ```
->  $FSSTRESS_PROG -d $SCRATCH_MNT -n 99999 -p 4 &
->  # $FSX_PROG -N 1000000 -o 8192 -l 500000 $SCRATCH_MNT/t001 &
->  echo "pfn1.1" > /sys/bus/nd/drivers/nd_pmem/unbind
-> ```
-> it could come into an unacceptable state:
->   1. device has gone but mount point still exists, and umount will fail
->        with "target is busy"
->   2. programs will hang and cannot be killed
->   3. may crash with NULL pointer dereference
-> 
-> To fix this, we introduce a MF_MEM_PRE_REMOVE flag to let it know that we
-> are going to remove the whole device, and make sure all related processes
-> could be notified so that they could end up gracefully.
-> 
-> This patch is inspired by Dan's "mm, dax, pmem: Introduce
-> dev_pagemap_failure()"[1].  With the help of dax_holder and
-> ->notify_failure() mechanism, the pmem driver is able to ask filesystem
-> on it to unmap all files in use, and notify processes who are using
-> those files.
-> 
-> Call trace:
-> trigger unbind
->  -> unbind_store()
->   -> ... (skip)
->    -> devres_release_all()
->     -> kill_dax()
->      -> dax_holder_notify_failure(dax_dev, 0, U64_MAX, MF_MEM_PRE_REMOVE)
->       -> xfs_dax_notify_failure()
->       `-> freeze_super()             // freeze (kernel call)
->       `-> do xfs rmap
->       ` -> mf_dax_kill_procs()
->       `  -> collect_procs_fsdax()    // all associated processes
->       `  -> unmap_and_kill()
->       ` -> invalidate_inode_pages2_range() // drop file's cache
->       `-> thaw_super()               // thaw (both kernel & user call)
-> 
-> Introduce MF_MEM_PRE_REMOVE to let filesystem know this is a remove
-> event.  Use the exclusive freeze/thaw[2] to lock the filesystem to prevent
-> new dax mapping from being created.  Do not shutdown filesystem directly
-> if configuration is not supported, or if failure range includes metadata
-> area.  Make sure all files and processes(not only the current progress)
-> are handled correctly.  Also drop the cache of associated files before
-> pmem is removed.
-> 
-> [1]: https://lore.kernel.org/linux-mm/161604050314.1463742.14151665140035795571.stgit@dwillia2-desk3.amr.corp.intel.com/
-> [2]: https://lore.kernel.org/linux-xfs/169116275623.3187159.16862410128731457358.stg-ugh@frogsfrogsfrogs/
-> 
-> Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Hi Linus, please pull from
+   git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git 
+tags/libnvdimm-for-6.6
 
-Looks good, now who wants to take this patch?
+... to receive the libnvdimm and DAX updates for v6.6
 
-Reviewed-by: Darrick J. Wong <djwong@kernel.org>
+This is mostly small cleanups, fixes, and with a change to prevent 
+zero-sized namespace exposed to user for nvdimm.
 
---D
+It has appeared in linux-next with no reported issues.
 
-> ---
->  drivers/dax/super.c         |  3 +-
->  fs/xfs/xfs_notify_failure.c | 99 ++++++++++++++++++++++++++++++++++---
->  include/linux/mm.h          |  1 +
->  mm/memory-failure.c         | 17 +++++--
->  4 files changed, 109 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-> index 0da9232ea175..f4b635526345 100644
-> --- a/drivers/dax/super.c
-> +++ b/drivers/dax/super.c
-> @@ -326,7 +326,8 @@ void kill_dax(struct dax_device *dax_dev)
->  		return;
->  
->  	if (dax_dev->holder_data != NULL)
-> -		dax_holder_notify_failure(dax_dev, 0, U64_MAX, 0);
-> +		dax_holder_notify_failure(dax_dev, 0, U64_MAX,
-> +				MF_MEM_PRE_REMOVE);
->  
->  	clear_bit(DAXDEV_ALIVE, &dax_dev->flags);
->  	synchronize_srcu(&dax_srcu);
-> diff --git a/fs/xfs/xfs_notify_failure.c b/fs/xfs/xfs_notify_failure.c
-> index 4a9bbd3fe120..79586abc75bf 100644
-> --- a/fs/xfs/xfs_notify_failure.c
-> +++ b/fs/xfs/xfs_notify_failure.c
-> @@ -22,6 +22,7 @@
->  
->  #include <linux/mm.h>
->  #include <linux/dax.h>
-> +#include <linux/fs.h>
->  
->  struct xfs_failure_info {
->  	xfs_agblock_t		startblock;
-> @@ -73,10 +74,16 @@ xfs_dax_failure_fn(
->  	struct xfs_mount		*mp = cur->bc_mp;
->  	struct xfs_inode		*ip;
->  	struct xfs_failure_info		*notify = data;
-> +	struct address_space		*mapping;
-> +	pgoff_t				pgoff;
-> +	unsigned long			pgcnt;
->  	int				error = 0;
->  
->  	if (XFS_RMAP_NON_INODE_OWNER(rec->rm_owner) ||
->  	    (rec->rm_flags & (XFS_RMAP_ATTR_FORK | XFS_RMAP_BMBT_BLOCK))) {
-> +		/* Continue the query because this isn't a failure. */
-> +		if (notify->mf_flags & MF_MEM_PRE_REMOVE)
-> +			return 0;
->  		notify->want_shutdown = true;
->  		return 0;
->  	}
-> @@ -92,14 +99,60 @@ xfs_dax_failure_fn(
->  		return 0;
->  	}
->  
-> -	error = mf_dax_kill_procs(VFS_I(ip)->i_mapping,
-> -				  xfs_failure_pgoff(mp, rec, notify),
-> -				  xfs_failure_pgcnt(mp, rec, notify),
-> -				  notify->mf_flags);
-> +	mapping = VFS_I(ip)->i_mapping;
-> +	pgoff = xfs_failure_pgoff(mp, rec, notify);
-> +	pgcnt = xfs_failure_pgcnt(mp, rec, notify);
-> +
-> +	/* Continue the rmap query if the inode isn't a dax file. */
-> +	if (dax_mapping(mapping))
-> +		error = mf_dax_kill_procs(mapping, pgoff, pgcnt,
-> +					  notify->mf_flags);
-> +
-> +	/* Invalidate the cache in dax pages. */
-> +	if (notify->mf_flags & MF_MEM_PRE_REMOVE)
-> +		invalidate_inode_pages2_range(mapping, pgoff,
-> +					      pgoff + pgcnt - 1);
-> +
->  	xfs_irele(ip);
->  	return error;
->  }
->  
-> +static int
-> +xfs_dax_notify_failure_freeze(
-> +	struct xfs_mount	*mp)
-> +{
-> +	struct super_block	*sb = mp->m_super;
-> +	int			error;
-> +
-> +	error = freeze_super(sb, FREEZE_HOLDER_KERNEL);
-> +	if (error)
-> +		xfs_emerg(mp, "already frozen by kernel, err=%d", error);
-> +
-> +	return error;
-> +}
-> +
-> +static void
-> +xfs_dax_notify_failure_thaw(
-> +	struct xfs_mount	*mp,
-> +	bool			kernel_frozen)
-> +{
-> +	struct super_block	*sb = mp->m_super;
-> +	int			error;
-> +
-> +	if (kernel_frozen) {
-> +		error = thaw_super(sb, FREEZE_HOLDER_KERNEL);
-> +		if (error)
-> +			xfs_emerg(mp, "still frozen after notify failure, err=%d",
-> +				error);
-> +	}
-> +
-> +	/*
-> +	 * Also thaw userspace call anyway because the device is about to be
-> +	 * removed immediately.
-> +	 */
-> +	thaw_super(sb, FREEZE_HOLDER_USERSPACE);
-> +}
-> +
->  static int
->  xfs_dax_notify_ddev_failure(
->  	struct xfs_mount	*mp,
-> @@ -112,15 +165,29 @@ xfs_dax_notify_ddev_failure(
->  	struct xfs_btree_cur	*cur = NULL;
->  	struct xfs_buf		*agf_bp = NULL;
->  	int			error = 0;
-> +	bool			kernel_frozen = false;
->  	xfs_fsblock_t		fsbno = XFS_DADDR_TO_FSB(mp, daddr);
->  	xfs_agnumber_t		agno = XFS_FSB_TO_AGNO(mp, fsbno);
->  	xfs_fsblock_t		end_fsbno = XFS_DADDR_TO_FSB(mp,
->  							     daddr + bblen - 1);
->  	xfs_agnumber_t		end_agno = XFS_FSB_TO_AGNO(mp, end_fsbno);
->  
-> +	if (mf_flags & MF_MEM_PRE_REMOVE) {
-> +		xfs_info(mp, "Device is about to be removed!");
-> +		/*
-> +		 * Freeze fs to prevent new mappings from being created.
-> +		 * - Keep going on if others already hold the kernel forzen.
-> +		 * - Keep going on if other errors too because this device is
-> +		 *   starting to fail.
-> +		 * - If kernel frozen state is hold successfully here, thaw it
-> +		 *   here as well at the end.
-> +		 */
-> +		kernel_frozen = xfs_dax_notify_failure_freeze(mp) == 0;
-> +	}
-> +
->  	error = xfs_trans_alloc_empty(mp, &tp);
->  	if (error)
-> -		return error;
-> +		goto out;
->  
->  	for (; agno <= end_agno; agno++) {
->  		struct xfs_rmap_irec	ri_low = { };
-> @@ -165,11 +232,23 @@ xfs_dax_notify_ddev_failure(
->  	}
->  
->  	xfs_trans_cancel(tp);
-> +
-> +	/*
-> +	 * Determine how to shutdown the filesystem according to the
-> +	 * error code and flags.
-> +	 */
->  	if (error || notify.want_shutdown) {
->  		xfs_force_shutdown(mp, SHUTDOWN_CORRUPT_ONDISK);
->  		if (!error)
->  			error = -EFSCORRUPTED;
-> -	}
-> +	} else if (mf_flags & MF_MEM_PRE_REMOVE)
-> +		xfs_force_shutdown(mp, SHUTDOWN_FORCE_UMOUNT);
-> +
-> +out:
-> +	/* Thaw the fs if it is frozen before. */
-> +	if (mf_flags & MF_MEM_PRE_REMOVE)
-> +		xfs_dax_notify_failure_thaw(mp, kernel_frozen);
-> +
->  	return error;
->  }
->  
-> @@ -197,6 +276,8 @@ xfs_dax_notify_failure(
->  
->  	if (mp->m_logdev_targp && mp->m_logdev_targp->bt_daxdev == dax_dev &&
->  	    mp->m_logdev_targp != mp->m_ddev_targp) {
-> +		if (mf_flags & MF_MEM_PRE_REMOVE)
-> +			return 0;
->  		xfs_err(mp, "ondisk log corrupt, shutting down fs!");
->  		xfs_force_shutdown(mp, SHUTDOWN_CORRUPT_ONDISK);
->  		return -EFSCORRUPTED;
-> @@ -210,6 +291,12 @@ xfs_dax_notify_failure(
->  	ddev_start = mp->m_ddev_targp->bt_dax_part_off;
->  	ddev_end = ddev_start + bdev_nr_bytes(mp->m_ddev_targp->bt_bdev) - 1;
->  
-> +	/* Notify failure on the whole device. */
-> +	if (offset == 0 && len == U64_MAX) {
-> +		offset = ddev_start;
-> +		len = bdev_nr_bytes(mp->m_ddev_targp->bt_bdev);
-> +	}
-> +
->  	/* Ignore the range out of filesystem area */
->  	if (offset + len - 1 < ddev_start)
->  		return -ENXIO;
-> diff --git a/include/linux/mm.h b/include/linux/mm.h
-> index 2dd73e4f3d8e..a10c75bebd6d 100644
-> --- a/include/linux/mm.h
-> +++ b/include/linux/mm.h
-> @@ -3665,6 +3665,7 @@ enum mf_flags {
->  	MF_UNPOISON = 1 << 4,
->  	MF_SW_SIMULATED = 1 << 5,
->  	MF_NO_RETRY = 1 << 6,
-> +	MF_MEM_PRE_REMOVE = 1 << 7,
->  };
->  int mf_dax_kill_procs(struct address_space *mapping, pgoff_t index,
->  		      unsigned long count, int mf_flags);
-> diff --git a/mm/memory-failure.c b/mm/memory-failure.c
-> index e245191e6b04..e71616ccc643 100644
-> --- a/mm/memory-failure.c
-> +++ b/mm/memory-failure.c
-> @@ -683,7 +683,7 @@ static void add_to_kill_fsdax(struct task_struct *tsk, struct page *p,
->   */
->  static void collect_procs_fsdax(struct page *page,
->  		struct address_space *mapping, pgoff_t pgoff,
-> -		struct list_head *to_kill)
-> +		struct list_head *to_kill, bool pre_remove)
->  {
->  	struct vm_area_struct *vma;
->  	struct task_struct *tsk;
-> @@ -691,8 +691,15 @@ static void collect_procs_fsdax(struct page *page,
->  	i_mmap_lock_read(mapping);
->  	read_lock(&tasklist_lock);
->  	for_each_process(tsk) {
-> -		struct task_struct *t = task_early_kill(tsk, true);
-> +		struct task_struct *t = tsk;
->  
-> +		/*
-> +		 * Search for all tasks while MF_MEM_PRE_REMOVE is set, because
-> +		 * the current may not be the one accessing the fsdax page.
-> +		 * Otherwise, search for the current task.
-> +		 */
-> +		if (!pre_remove)
-> +			t = task_early_kill(tsk, true);
->  		if (!t)
->  			continue;
->  		vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff, pgoff) {
-> @@ -1788,6 +1795,7 @@ int mf_dax_kill_procs(struct address_space *mapping, pgoff_t index,
->  	dax_entry_t cookie;
->  	struct page *page;
->  	size_t end = index + count;
-> +	bool pre_remove = mf_flags & MF_MEM_PRE_REMOVE;
->  
->  	mf_flags |= MF_ACTION_REQUIRED | MF_MUST_KILL;
->  
-> @@ -1799,9 +1807,10 @@ int mf_dax_kill_procs(struct address_space *mapping, pgoff_t index,
->  		if (!page)
->  			goto unlock;
->  
-> -		SetPageHWPoison(page);
-> +		if (!pre_remove)
-> +			SetPageHWPoison(page);
->  
-> -		collect_procs_fsdax(page, mapping, index, &to_kill);
-> +		collect_procs_fsdax(page, mapping, index, &to_kill, pre_remove);
->  		unmap_and_kill(&to_kill, page_to_pfn(page), mapping,
->  				index, mf_flags);
->  unlock:
-> -- 
-> 2.41.0
-> 
+The following changes since commit fdf0eaf11452d72945af31804e2a1048ee1b574c:
+
+   Linux 6.5-rc2 (2023-07-16 15:10:37 -0700)
+
+are available in the Git repository at:
+
+   git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git 
+tags/libnvdimm-for-6.6
+
+for you to fetch changes up to 08ca6906a4b7e48f8e93b7c1f49a742a415be6d5:
+
+   nvdimm: Fix dereference after free in register_nvdimm_pmu() 
+(2023-08-17 09:34:03 -0700)
+
+----------------------------------------------------------------
+nvdimm changes for v6.6 merge window
+
+- kstrtobool() conversion for nvdimm
+- Add REQ_OP_WRITE for virtio_pmem
+- Header files update for of_pmem
+- Restrict zero-sized namespace from being exposed to user
+- Avoid unnecessary endian conversion
+- Fix mem leak in nvdimm pmu
+- Fix dereference after free in nvdimm pmu
+
+----------------------------------------------------------------
+Aneesh Kumar K.V (2):
+       nvdimm/pfn_dev: Prevent the creation of zero-sized namespaces
+       nvdimm/pfn_dev: Avoid unnecessary endian conversion
+
+Christophe JAILLET (1):
+       nvdimm: Use kstrtobool() instead of strtobool()
+
+Hou Tao (1):
+       virtio_pmem: add the missing REQ_OP_WRITE for flush bio
+
+Konstantin Meskhidze (2):
+       nvdimm: Fix memleak of pmu attr_groups in unregister_nvdimm_pmu()
+       nvdimm: Fix dereference after free in register_nvdimm_pmu()
+
+Rob Herring (1):
+       nvdimm: Explicitly include correct DT includes
+
+  drivers/nvdimm/namespace_devs.c |  3 ++-
+  drivers/nvdimm/nd_perf.c        |  3 ++-
+  drivers/nvdimm/nd_virtio.c      |  3 ++-
+  drivers/nvdimm/of_pmem.c        |  4 ++--
+  drivers/nvdimm/pfn_devs.c       | 20 +++++++++++++-------
+  drivers/nvdimm/pmem.c           |  3 ++-
+  drivers/nvdimm/region_devs.c    |  5 +++--
+  7 files changed, 26 insertions(+), 15 deletions(-)
