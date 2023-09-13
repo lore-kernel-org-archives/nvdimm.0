@@ -1,91 +1,106 @@
-Received: from us-smtp-delivery-44.mimecast.com (us-smtp-delivery-44.mimecast.com [205.139.111.44])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yb1-f201.google.com (mail-yb1-f201.google.com [209.85.219.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A2711E502
-	for <nvdimm@lists.linux.dev>; Tue, 12 Sep 2023 08:31:34 +0000 (UTC)
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-621-cWlgkLV_OwuGzDlYigOlnA-1; Tue, 12 Sep 2023 04:25:11 -0400
-X-MC-Unique: cWlgkLV_OwuGzDlYigOlnA-1
-Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.rdu2.redhat.com [10.11.54.2])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 05089101FAB0;
-	Tue, 12 Sep 2023 08:25:11 +0000 (UTC)
-Received: from fedora.brq.redhat.com (unknown [10.43.17.54])
-	by smtp.corp.redhat.com (Postfix) with ESMTP id F02ED40C6EA8;
-	Tue, 12 Sep 2023 08:25:09 +0000 (UTC)
-From: =?UTF-8?q?Tom=C3=A1=C5=A1=20Glozar?= <tglozar@gmail.com>
-To: nvdimm@lists.linux.dev
-Cc: dan.j.williams@intel.com,
-	vishal.l.verma@intel.com,
-	dave.jiang@intel.com,
-	ira.weiny@intel.com,
-	linux-kernel@vger.kernel.org,
-	Tomas Glozar <tglozar@redhat.com>
-Subject: [PATCH] nd_btt: Make BTT lanes preemptible
-Date: Tue, 12 Sep 2023 10:24:40 +0200
-Message-ID: <20230912082440.325189-1-tglozar@gmail.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDEFD384
+	for <nvdimm@lists.linux.dev>; Wed, 13 Sep 2023 01:10:25 +0000 (UTC)
+Received: by mail-yb1-f201.google.com with SMTP id 3f1490d57ef6-d7ec535fe42so5439256276.1
+        for <nvdimm@lists.linux.dev>; Tue, 12 Sep 2023 18:10:25 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1694567425; x=1695172225; darn=lists.linux.dev;
+        h=cc:to:from:subject:message-id:mime-version:date:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=iTSTWXZd+Qc8kQEsl400yBzqT1y2zESnQaxG1xsvJaA=;
+        b=F1+n1Cfl957tyZWD5mTTAopAizd0mi3nDp45rz0LCg5PUAsJi1s4dSuVYgUMBpZGUv
+         dgQ6TU5TetcENggGY7jdVZ38bdhs/hf0AvUiRlYyDoGGlVjkZ8v9Dl/C2tWvqIuYUZab
+         eJsMclEWtsM30odVqN7SI545EkiiZSW0JCDQIm0cbgRlfLP1svD+BDSjE2FHPxTcwUA0
+         m3EqB8xDD5E/QAQJxEaPOUn9Ve6eyJA2A2nR17QEq6GzmbFRTC+oX62brvdp1Yba/XSU
+         P+FiIEXFW1n/ElRkhohHztsljOmUGCKZzIYED0KxGelHTehsjpldbbuj+yN7uL7cuEYF
+         sSwg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1694567425; x=1695172225;
+        h=cc:to:from:subject:message-id:mime-version:date:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=iTSTWXZd+Qc8kQEsl400yBzqT1y2zESnQaxG1xsvJaA=;
+        b=ZWhBYwwUyYJfgpzI9WJKnaHcRB7cSURjr/tRWRhSsNhwJIr1qufQfV6C51ql3A+6uV
+         rIc5K+dMGX8BGd9TKFMn/qXwgkDo3cYyg9mZCwOm0uuWPywM1VxlTMl0ltagYkdxBgKI
+         5l1UV4IENLq2kM2Zj5MQApY9alpnDrCNyHhZ5wfqQVklA0DgHY09+YhoRYz3+CWqsrkp
+         N+yTx89VB6ryzJzGkX4ayI+cSqrmCGqf4y6G4MIPyqb+0t4mwDgc2ioSCCSOnnCZglIA
+         EM01NQBMWXHn69+m4BOG5f0r2WlmbT0837AUlORhCod0dYQ5uDQOfR4cluL900z/pXZj
+         ZXqw==
+X-Gm-Message-State: AOJu0YzTQPMZGH/2grx78LIcgbr+C/dKTcIAO+1AQpTEPgq2kmQ0tkYP
+	+QaVJT5Lu11njBhNmygy2NS4Vo2GCGqQ3JddDw==
+X-Google-Smtp-Source: AGHT+IHukZFxy/YRGdSU7QLzuMJsFp1hyiIUjVxzrzp0P2y3eo8C8hd88kGz9ROOjKOkKNpxqDSw1PChJL8Vq8X8Dg==
+X-Received: from jstitt-linux1.c.googlers.com ([fda3:e722:ac3:cc00:2b:ff92:c0a8:23b5])
+ (user=justinstitt job=sendgmr) by 2002:a25:341:0:b0:d08:ea77:52d4 with SMTP
+ id 62-20020a250341000000b00d08ea7752d4mr21572ybd.12.1694567424762; Tue, 12
+ Sep 2023 18:10:24 -0700 (PDT)
+Date: Wed, 13 Sep 2023 01:10:24 +0000
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.1 on 10.11.54.2
+Mime-Version: 1.0
+X-B4-Tracking: v=1; b=H4sIAP8LAWUC/x3MQQ5AMBBA0avIrE2iLQuuIhbaDmZTMoMQcXeN5
+ Vv8/4CSMCl0xQNCJyuvKcOUBYRlTDMhx2ywlXVVaxzqLilsN0bhk0Qxjhf6QzHgZCw50ziqaw+ 534Qmvv53P7zvByxhMlhrAAAA
+X-Developer-Key: i=justinstitt@google.com; a=ed25519; pk=tC3hNkJQTpNX/gLKxTNQKDmiQl6QjBNCGKJINqAdJsE=
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1694567423; l=1658;
+ i=justinstitt@google.com; s=20230717; h=from:subject:message-id;
+ bh=XVfRHzQuTBImCvXBurgaSYSr/Vjhen73sLf0hYhbk6Y=; b=Nx9E2Hb33C+dWpKRT232WwVU71QYhrtm0y8h6goM40QFhf4jRRWy8F4BVjnwubJR1AIB0krEx
+ FTrQFMQi11GBea3GQmmqXOBkt1UaYJlHxwHtukgb+LQAlVQEJL2lTSt
+X-Mailer: b4 0.12.3
+Message-ID: <20230913-strncpy-drivers-dax-bus-c-v1-1-bee91f20825b@google.com>
+Subject: [PATCH] dax: refactor deprecated strncpy
+From: Justin Stitt <justinstitt@google.com>
+To: Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, 
+	Dave Jiang <dave.jiang@intel.com>
+Cc: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-hardening@vger.kernel.org, 
+	Justin Stitt <justinstitt@google.com>
+Content-Type: text/plain; charset="utf-8"
 
-From: Tomas Glozar <tglozar@redhat.com>
+`strncpy` is deprecated for use on NUL-terminated destination strings [1].
 
-nd_region_acquire_lane uses get_cpu, which disables preemption. This is
-an issue on PREEMPT_RT kernels, since btt_write_pg and also
-nd_region_acquire_lane itself take a spin lock, resulting in BUG:
-sleeping function called from invalid context.
+We should prefer more robust and less ambiguous string interfaces.
 
-Fix the issue by replacing get_cpu with smp_process_id and
-migrate_disable when needed. This makes BTT operations preemptible, thus
-permitting the use of spin_lock.
+`dax_id->dev_name` is expected to be NUL-terminated and has been zero-allocated.
 
-Fixes: 5212e11fde4d ("nd_btt: atomic sector updates")
-Signed-off-by: Tomas Glozar <tglozar@redhat.com>
+A suitable replacement is `strscpy` [2] due to the fact that it
+guarantees NUL-termination on the destination buffer. Moreover, due to
+`dax_id` being zero-allocated the padding behavior of `strncpy` is not
+needed and a simple 1:1 replacement of strncpy -> strscpy should
+suffice.
+
+Link: https://www.kernel.org/doc/html/latest/process/deprecated.html#strncpy-on-nul-terminated-strings [1]
+Link: https://manpages.debian.org/testing/linux-manual-4.8/strscpy.9.en.html [2]
+Link: https://github.com/KSPP/linux/issues/90
+Cc: linux-hardening@vger.kernel.org
+Signed-off-by: Justin Stitt <justinstitt@google.com>
 ---
- drivers/nvdimm/region_devs.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+Note: build-tested only.
+---
+ drivers/dax/bus.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index 0a81f87f6f6c..e2f1fb99707f 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -939,7 +939,8 @@ unsigned int nd_region_acquire_lane(struct nd_region *nd_region)
- {
- 	unsigned int cpu, lane;
- 
--	cpu = get_cpu();
-+	migrate_disable();
-+	cpu = smp_processor_id();
- 	if (nd_region->num_lanes < nr_cpu_ids) {
- 		struct nd_percpu_lane *ndl_lock, *ndl_count;
- 
-@@ -958,16 +959,15 @@ EXPORT_SYMBOL(nd_region_acquire_lane);
- void nd_region_release_lane(struct nd_region *nd_region, unsigned int lane)
- {
- 	if (nd_region->num_lanes < nr_cpu_ids) {
--		unsigned int cpu = get_cpu();
-+		unsigned int cpu = smp_processor_id();
- 		struct nd_percpu_lane *ndl_lock, *ndl_count;
- 
- 		ndl_count = per_cpu_ptr(nd_region->lane, cpu);
- 		ndl_lock = per_cpu_ptr(nd_region->lane, lane);
- 		if (--ndl_count->count == 0)
- 			spin_unlock(&ndl_lock->lock);
--		put_cpu();
- 	}
--	put_cpu();
-+	migrate_enable();
- }
- EXPORT_SYMBOL(nd_region_release_lane);
- 
--- 
-2.39.3
+diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+index 0ee96e6fc426..1659b787b65f 100644
+--- a/drivers/dax/bus.c
++++ b/drivers/dax/bus.c
+@@ -103,7 +103,7 @@ static ssize_t do_id_store(struct device_driver *drv, const char *buf,
+ 		if (action == ID_ADD) {
+ 			dax_id = kzalloc(sizeof(*dax_id), GFP_KERNEL);
+ 			if (dax_id) {
+-				strncpy(dax_id->dev_name, buf, DAX_NAME_LEN);
++				strscpy(dax_id->dev_name, buf, DAX_NAME_LEN);
+ 				list_add(&dax_id->list, &dax_drv->ids);
+ 			} else
+ 				rc = -ENOMEM;
+
+---
+base-commit: 2dde18cd1d8fac735875f2e4987f11817cc0bc2c
+change-id: 20230913-strncpy-drivers-dax-bus-c-f12e3153e44b
+
+Best regards,
+--
+Justin Stitt <justinstitt@google.com>
 
