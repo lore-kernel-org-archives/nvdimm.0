@@ -1,42 +1,36 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.120])
+Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.88])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5CE7563A8
-	for <nvdimm@lists.linux.dev>; Mon, 25 Sep 2023 19:20:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13B1C250FF
+	for <nvdimm@lists.linux.dev>; Mon, 25 Sep 2023 22:16:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1695669659; x=1727205659;
-  h=subject:from:to:cc:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=OpTLJSCzmnb0yiCSrGuA6JifdeQHVr2HSi/CGtXmI+0=;
-  b=AB9asTMVL0hZkcQc3l+m7UPeEsmFuoxXu4/ksOrKH+NOj8acwKMne1sz
-   ew0ZjlcxzegBXpkmSfbqK+VoUXgaK4BJNZejtOwi421zvxNqdUGaJ/w1/
-   jeeWtXxgBHPj6vS0K+okfMg/OazYjs44OPI3j6vkarn8lNl7GFcjJLPeW
-   yeGBONw2t2b+Z7dNphM5K3w6v2UEEVidKb8AHh1mA3EGHUAoGD0ghUmFw
-   DhfOCvSGMbpz0bi9gwHRg7aFT6tBFB5BomUtON8It6BCW0VWaIEOyrd2r
-   r3M/K9zqeheGre37B0FXzN4a9Tz/lbFUJzo3cIG5KdBcM3iABIcfr54ve
-   g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10843"; a="380223104"
-X-IronPort-AV: E=Sophos;i="6.03,175,1694761200"; 
-   d="scan'208";a="380223104"
-Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Sep 2023 12:20:40 -0700
+  t=1695680198; x=1727216198;
+  h=from:date:subject:mime-version:content-transfer-encoding:
+   message-id:to:cc;
+  bh=OaB6hJF19s8EbOqBpmYN3HuqmyKNHrKoXf6QHQzEAfY=;
+  b=cfdX3G8OnyEA+BVkL3DPKBpj7Q5slwSXKJMVULfbB9WW5+0MQghduWhY
+   YIwKbkB4lrjWfTuZ/i+38LE1gQwvA92eRleKC6llp+VofA65GLQAH/xH4
+   Qj7lGqXRyWzjXO4Qp1oLemvoxu7LgbrjvaCPmFlyLrfpbQzAi/cuHyyq7
+   ba1ntIM8cAYGEmN/E1pwV+DcUzWhYOSPJQNkhY35JMNsSUU9F76so5Mau
+   5WDe4VbKxogpHc2vv78KqJ99l1lFIhsypOZiAFkqNE7tBdylyk/Vi8Bcm
+   IyUCWUF2P/gLwu36OBxWcNUlofFn7pzOa2EYOKKQ5GIE811Zsz79dKa7l
+   w==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10843"; a="412335635"
+X-IronPort-AV: E=Sophos;i="6.03,176,1694761200"; 
+   d="scan'208";a="412335635"
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Sep 2023 15:16:17 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10843"; a="995504800"
-X-IronPort-AV: E=Sophos;i="6.03,175,1694761200"; 
-   d="scan'208";a="995504800"
-Received: from djiang5-mobl3.amr.corp.intel.com (HELO [192.168.1.177]) ([10.209.161.86])
-  by fmsmga006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Sep 2023 12:20:40 -0700
-Subject: [PATCH 2/2] cxl: Add check for regions before disabling memdev
-From: Dave Jiang <dave.jiang@intel.com>
-To: vishal.l.verma@intel.com
-Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev, lizhijian@fujitsu.com,
- yangx.jy@fujitsu.com, caoqq@fujitsu.com
-Date: Mon, 25 Sep 2023 12:20:40 -0700
-Message-ID: <169566964012.3704458.3768477727985056846.stgit@djiang5-mobl3>
-In-Reply-To: <169566963425.3704458.5249885814603187091.stgit@djiang5-mobl3>
-References: <169566963425.3704458.5249885814603187091.stgit@djiang5-mobl3>
-User-Agent: StGit/1.5
+X-IronPort-AV: E=McAfee;i="6600,9927,10843"; a="742088741"
+X-IronPort-AV: E=Sophos;i="6.03,176,1694761200"; 
+   d="scan'208";a="742088741"
+Received: from iweiny-desk3.amr.corp.intel.com (HELO localhost) ([10.212.66.94])
+  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Sep 2023 15:16:16 -0700
+From: Ira Weiny <ira.weiny@intel.com>
+Date: Mon, 25 Sep 2023 15:16:09 -0700
+Subject: [PATCH ndctl RESEND] test/cxl-event: Skip cxl event testing if
+ cxl-test is not available
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -45,63 +39,64 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <20230925-skip-cxl-events-v1-1-bdad7cceb80b@intel.com>
+X-B4-Tracking: v=1; b=H4sIAKgGEmUC/3WNsQ6CMBRFf4W82WdoFQxODrI66GgY2vqQF6GQl
+ jQYwr9b2B3vuTk5M3hyTB7OyQyOAnvubRxil4BplH0T8itukKk8pIXM0H94QDO1SIHs6PFUizz
+ NpC7MkSBaWnlC7ZQ1zep1iu2KB0c1T1voCffyUd6uUEXesB979936QWzv31QQKFAqnYssl3Vhx
+ IXtSO3e9B1Uy7L8AO6LTzXNAAAA
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev, 
+ Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>
+X-Mailer: b4 0.13-dev-0f7f0
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1695680176; l=970;
+ i=ira.weiny@intel.com; s=20221222; h=from:subject:message-id;
+ bh=OaB6hJF19s8EbOqBpmYN3HuqmyKNHrKoXf6QHQzEAfY=;
+ b=APA6/NsmFmqiiRw5ZWfgLuwM/JS/PPa7wvzZd2jJi/MkfvwKpe6zmh50oPNMO8OAoMeMJ3gmh
+ B2cAFPdxm2tDiFvduQIEYexywEp6MCVxaBf6tr1mt7OEnWuU1RDn6JN
+X-Developer-Key: i=ira.weiny@intel.com; a=ed25519;
+ pk=brwqReAJklzu/xZ9FpSsMPSQ/qkSalbg6scP3w809Ec=
 
-Add a check for memdev disable to see if there are active regions present
-before disabling the device. This is necessary now regions are present to
-fulfill the TODO that was left there. The best way to determine if a
-region is active is to see if there are decoders enabled for the mem
-device. This is also best effort as the state is only a snapshot the
-kernel provides and is not atomic WRT the memdev disable operation. The
-expectation is the admin issuing the command has full control of the mem
-device and there are no other agents also attempt to control the device.
+CXL event testing is only appropriate when the cxl-test modules are
+available.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+Return error 77 (skip) if cxl-test modules are not available.
+
+Reported-by: Dave Jiang <dave.jiang@intel.com>
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 ---
- cxl/memdev.c |   29 +++++++++++++++++++++++++++--
- 1 file changed, 27 insertions(+), 2 deletions(-)
+Changes for resend:
+- iweiny: properly cc the mailing lists
+---
+ test/cxl-events.sh | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/cxl/memdev.c b/cxl/memdev.c
-index f6a2d3f1fdca..644369321649 100644
---- a/cxl/memdev.c
-+++ b/cxl/memdev.c
-@@ -373,11 +373,36 @@ static int action_free_dpa(struct cxl_memdev *memdev,
+diff --git a/test/cxl-events.sh b/test/cxl-events.sh
+index 33b68daa6ade..fe702bf98ad4 100644
+--- a/test/cxl-events.sh
++++ b/test/cxl-events.sh
+@@ -10,6 +10,8 @@ num_fatal_expected=2
+ num_failure_expected=16
+ num_info_expected=3
  
- static int action_disable(struct cxl_memdev *memdev, struct action_context *actx)
- {
-+	struct cxl_decoder *decoder;
-+	struct cxl_endpoint *ep;
-+	bool committed = false;
-+	struct cxl_port *port;
++rc=77
 +
- 	if (!cxl_memdev_is_enabled(memdev))
- 		return 0;
+ set -ex
  
--	if (!param.force) {
--		/* TODO: actually detect rather than assume active */
-+	ep = cxl_memdev_get_endpoint(memdev);
-+	if (!ep)
-+		return -ENODEV;
-+
-+	port = cxl_endpoint_get_port(ep);
-+	if (!port)
-+		return -ENODEV;
-+
-+	/*
-+	 * Look for a committed decoder, which indicates that the region the
-+	 * memdev belongs to is active. This is best effort as the decoder
-+	 * state is pulled from sysfs and not atomic. The caller should be in
-+	 * control of the device to prevent state changes for the decoder.
-+	 */
-+	cxl_decoder_foreach(port, decoder) {
-+		if (cxl_decoder_is_committed(decoder)) {
-+			committed = true;
-+			break;
-+		}
-+	}
-+
-+	if (committed && !param.force) {
- 		log_err(&ml, "%s is part of an active region\n",
- 			cxl_memdev_get_devname(memdev));
- 		return -EBUSY;
+ trap 'err $LINENO' ERR
+@@ -18,6 +20,7 @@ check_prereq "jq"
+ 
+ modprobe -r cxl_test
+ modprobe cxl_test
++rc=1
+ 
+ dev_path="/sys/bus/platform/devices"
+ 
 
+---
+base-commit: a871e6153b11fe63780b37cdcb1eb347b296095c
+change-id: 20230925-skip-cxl-events-7f16052b9c4e
+
+Best regards,
+-- 
+Ira Weiny <ira.weiny@intel.com>
 
