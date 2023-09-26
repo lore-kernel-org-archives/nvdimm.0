@@ -1,82 +1,54 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.43])
+Received: from EUR04-HE1-obe.outbound.protection.outlook.com (mail-he1eur04on2075.outbound.protection.outlook.com [40.107.7.75])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48E271116
-	for <nvdimm@lists.linux.dev>; Mon, 25 Sep 2023 22:37:35 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1695681456; x=1727217456;
-  h=message-id:date:subject:to:cc:references:from:
-   in-reply-to:content-transfer-encoding:mime-version;
-  bh=x73eUXT1xpPhOrJ8+vQ9eirV91BC2ig19LMO9xFbFyg=;
-  b=UlDxQGsm6zeSv0hcN52D8HmLV2/ESzdOWdmjRQp5pLzVdGrgFlGrSkQU
-   WBJ6k35CSyVVBBRs+OkzUvVVt9kTRzga3GvmFQ+Fd+rv1vcZVqghFQQq6
-   E8wSlFQZwJk02EU3bVcRdulVhWs4JomW/B2VGLKe9/IjQHauWVgyxiy+f
-   zxtREBv+iL3UxLFzdrbCzC9mjtPwU0IoQCNzVXQW8bDu3jFqYP3zpiiBd
-   zRu3m8/1otccLLzYF5+X42QIriezmXDqb+oaKhtecK9XtkRN1fvUncjAL
-   TH6qh0XzDfAy9hprjJUBytxV3ERYHedLbVX/Eg5DzuxHQqGotGkRYktmt
-   Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10843"; a="467711071"
-X-IronPort-AV: E=Sophos;i="6.03,176,1694761200"; 
-   d="scan'208";a="467711071"
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Sep 2023 15:37:34 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10843"; a="891945322"
-X-IronPort-AV: E=Sophos;i="6.03,176,1694761200"; 
-   d="scan'208";a="891945322"
-Received: from fmsmsx601.amr.corp.intel.com ([10.18.126.81])
-  by fmsmga001.fm.intel.com with ESMTP/TLS/AES256-GCM-SHA384; 25 Sep 2023 15:36:31 -0700
-Received: from fmsmsx610.amr.corp.intel.com (10.18.126.90) by
- fmsmsx601.amr.corp.intel.com (10.18.126.81) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.32; Mon, 25 Sep 2023 15:37:33 -0700
-Received: from fmsedg601.ED.cps.intel.com (10.1.192.135) by
- fmsmsx610.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.32 via Frontend Transport; Mon, 25 Sep 2023 15:37:33 -0700
-Received: from NAM11-BN8-obe.outbound.protection.outlook.com (104.47.58.169)
- by edgegateway.intel.com (192.55.55.70) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.32; Mon, 25 Sep 2023 15:37:33 -0700
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA648637
+	for <nvdimm@lists.linux.dev>; Tue, 26 Sep 2023 01:46:31 +0000 (UTC)
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=H5y/Un0Dc+MVTh/8J2BU8qEqsLIz4yup2T+0UYVmgchvsKfxPe29Q0NVgdcq5VpJ0GOIflgMv80C/cp9FIw7RVu2KDSY3nb06R529UW8p/gk1/zkoy4PMvdjrTpyFBt+LZgkCI2Qk8Hkq1NaveiK+s60e85LX/hrsw0AEmWOoR6HatjMrmQQmaVqHYoj1wd8BDEj4cuMuqpwb7N7cgG/6IouXgar1eIkMVEBYq651edjie3d48OEv1HtYyBFB7ef4GXu9lJyMwiA9YA58opyeJtNyYm2VG/CSwf3P8CYK4P3ZXZH3xCc9SKqGwjcVc02856WhhTa4hd3WYLbZOSuuQ==
+ b=P5PSpHL5E6m/rNtre8zIwBL0VPYJ07aXEWu4L/tXkssCEWIgT0AeMKWt8IdoVPW2gwUZY3BS4sHHSKEOtyWfJOI0mG5GOYPuzcpeDmn57u2cuJzv1JeYPu1UHUVDCnDqfgeGrvq1FApM+6y7KzCrBWyEKSE+zH8fq3mow8GxQlqhrnHQOd4dnBd41XuVdiWrz5G7i4J3dLDtr4fCtaOS2AL6OmEV1pmAfo7ZzNsreI6WKIuX0IX2BQsyRYKncvobyjbj/QropH3RmvXfxELg+Hmoqje+wZONIe2vEKkRXO7/vFDPh5zLnI4ruau3EobH+Y3qZKuzTq6X2MCbZ4MDsQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=WP75zjC62stsvMBcSqHYvLgYMgYjLn+fpa91KSPuyXU=;
- b=mR+KORxEUuvsaGKxRHIRTXx23QXqYXXzTxaULO7og8igtGx49sYYM0+DqMD14aagOCZdlzacLgZT5iIgzq/pMwNvkmezuwJjTShdY1IVjkxEPykyBEsNmG+39W3d2lIlOHlDNZ8tbkU8MLhiUTOVM19oAZpERqnqX6RJSswQdCX2pJ2jdPV6IdU7mSC1yYM7PpOTlMUDSbKpzHPRVxu6wuJup9UGo0yqDYYHLAUSWIb1mb4PQm+U1zweQ+nvSrjBcU44YMW9o8byDpqM4uSbznHLTUFnSD+4vHE1chKW2MgE+MeoAdT6Ck49KxnQpPNA8mZ8pY5HUylDGXc1qk9K5A==
+ bh=6PK5bDpsYaXXxSeFUo3q1zbpGJ+97n1EefIPD070yMk=;
+ b=NcW/RT6ECGG45p6M7OuZa+vjGMe/abFR5gGCRbHEsjjfw0giTy70KdhbR9D62tbPnf3YqwVayB74q9RxkJhsPkyWw0m412++/ew7RCvLVctQC/QWMg6Iky4WKRDlm4w1xXDjy3IxH946bc0ybeKQGdUKo+dY+5Vber213Mh4JMaYXZV5qy0oVlk1V3iwlxOFiVJR6hECcWNUT5y6qoji+QkZbUw89H6GbcKtbkDSR6LGGJIl8NHQlEFSv5Cg2ju1p7OW8TMgWB35m31OtyVLRY3TYZh7f9XLFlq36z1hyMuq26R1gO+OOVjScEZjO051gvwZFlXPvEEQcZoWIN0zGA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
+ smtp.mailfrom=suse.com; dmarc=pass action=none header.from=suse.com;
+ dkim=pass header.d=suse.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=6PK5bDpsYaXXxSeFUo3q1zbpGJ+97n1EefIPD070yMk=;
+ b=c+l0eEIr7cm89PoUAw4/jKotKO7hdTxDvbEdipmqBSFPolP1FzzAbY5lRqnFLsosLucd2xKmMDS10bUqyaQCTAWoy0xJcvUvn/8m90qR3nP2pvcacGsNHRZNLZoQg3lON2qUlx/T1yXJhPUVuL/rWTeeK6OjfT9WJRqIKdqeQ3vT/no2c2tEB8YGYIT3guaphLtil/LTW3NfBZZcdQvMiXFJX9h7vbJgpvKfW1RV5gIlbIjHuoxLxTsbTZPqTk4zFDQXF22zk8NeWH/R7MZ0YHNe8ZwNfefM8DaU//FWM/CZWA1HJ2OvWwBHFpJTs1WhjIFPc+bE884biSbMMJaN+Q==
 Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from PH7PR11MB5984.namprd11.prod.outlook.com (2603:10b6:510:1e3::15)
- by PH8PR11MB6706.namprd11.prod.outlook.com (2603:10b6:510:1c5::15) with
+ header.d=none;dmarc=none action=none header.from=suse.com;
+Received: from HE1PR0402MB3497.eurprd04.prod.outlook.com (2603:10a6:7:83::14)
+ by AM7PR04MB7176.eurprd04.prod.outlook.com (2603:10a6:20b:11c::19) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6792.27; Mon, 25 Sep
- 2023 22:37:31 +0000
-Received: from PH7PR11MB5984.namprd11.prod.outlook.com
- ([fe80::e9ca:a5a7:ada1:6ee8]) by PH7PR11MB5984.namprd11.prod.outlook.com
- ([fe80::e9ca:a5a7:ada1:6ee8%5]) with mapi id 15.20.6813.017; Mon, 25 Sep 2023
- 22:37:30 +0000
-Message-ID: <a2f7c266-6bfe-d7c3-f0b0-f926ded6925a@intel.com>
-Date: Mon, 25 Sep 2023 15:37:27 -0700
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Betterbird/102.13.0
-Subject: Re: [PATCH ndctl RESEND] test/cxl-event: Skip cxl event testing if
- cxl-test is not available
-To: Ira Weiny <ira.weiny@intel.com>, Vishal Verma <vishal.l.verma@intel.com>
-CC: <linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>
-References: <20230925-skip-cxl-events-v1-1-bdad7cceb80b@intel.com>
-Content-Language: en-US
-From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <20230925-skip-cxl-events-v1-1-bdad7cceb80b@intel.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: SJ0PR13CA0203.namprd13.prod.outlook.com
- (2603:10b6:a03:2c3::28) To PH7PR11MB5984.namprd11.prod.outlook.com
- (2603:10b6:510:1e3::15)
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6792.27; Tue, 26 Sep
+ 2023 01:46:28 +0000
+Received: from HE1PR0402MB3497.eurprd04.prod.outlook.com
+ ([fe80::2867:7a72:20ac:5f71]) by HE1PR0402MB3497.eurprd04.prod.outlook.com
+ ([fe80::2867:7a72:20ac:5f71%3]) with mapi id 15.20.6813.027; Tue, 26 Sep 2023
+ 01:46:27 +0000
+Date: Tue, 26 Sep 2023 09:47:19 +0800
+From: Geliang Tang <geliang.tang@suse.com>
+To: Coly Li <colyli@suse.de>
+Cc: Dan Williams <dan.j.williams@intel.com>, Hannes Reinecke <hare@suse.de>,
+	Jens Axboe <axboe@kernel.dk>, NeilBrown <neilb@suse.de>,
+	Richard Fan <richard.fan@suse.com>,
+	Vishal L Verma <vishal.l.verma@intel.com>,
+	Wols Lists <antlists@youngman.org.uk>, Xiao Ni <xni@redhat.com>,
+	linux-raid@vger.kernel.org, nvdimm@lists.linux.dev,
+	linux-block@vger.kernel.org
+Subject: Re: [PATCH v7 0/6] badblocks improvement for multiple bad block
+ ranges
+Message-ID: <20230926014719.GA5275@localhost>
+References: <20230811170513.2300-1-colyli@suse.de>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230811170513.2300-1-colyli@suse.de>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-ClientProxiedBy: SI1PR02CA0017.apcprd02.prod.outlook.com
+ (2603:1096:4:1f4::10) To HE1PR0402MB3497.eurprd04.prod.outlook.com
+ (2603:10a6:7:83::14)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -84,105 +56,120 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: PH7PR11MB5984:EE_|PH8PR11MB6706:EE_
-X-MS-Office365-Filtering-Correlation-Id: 5ea13bb9-6f29-4ce2-be65-08dbbe1800c3
+X-MS-TrafficTypeDiagnostic: HE1PR0402MB3497:EE_|AM7PR04MB7176:EE_
+X-MS-Office365-Filtering-Correlation-Id: 3da4e727-eec9-45b9-378a-08dbbe326634
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: qfzDw5JmzMpHteAd3RaWbeYP0tCrp6WN6XCqHd7tYvhDhM0gT8CpqpF6F14mIl12o26+PiuXZu9CQRQw9A4yRwyyK5k4+mFLyKbx9QcC3bxpMRczyfe6fc0ukEglyB7EPlOgCSrlOXtUNWoqjhLOYSbYS/0tx7/hXKIniEbwUxelHOXbJZnnAjdirUddwUXvSS9L5gpeg92sgmn2v5ethAF/K4JY8nDeGh3maVKjSQUbJOd6+2BC/5UWxKOA2w4wbvGiiiGUQUZhtRiez6b1cPFYasy0VjxsIM2uuOA8GgPRdojzolkUvLezmckq1eUcyDTTagXS0MuW7uqr+rbP6/sZbDxbL4M1RAiJakZ3w3bQInnpnHS6zkWvIVwJR2XqmWZ+uKyJqo+d6QBJYeg7uKoCpuBGrOit27OJCcphWyYauxkIFebX0+y09guKkgJVkyEyf3J1NwdcXc+yoNVwojAv+iHsFrupR6WM3tjMd5kINyK7/C76QtPWne6p8hCk3Q/TFjg/5rEZbmrEuA6y+qg8ojLOtoCaBVhUeLtVyRBrV3mMGkpImB1SRsM025PlTs2I8px3iXzRc1S1AZ15b/5vcbDUr1UInngbe9tVb+E8UhkHOY5x+kOAmksV6etCPFSUdZ35mcq8wdrA6WWmHw==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH7PR11MB5984.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(396003)(346002)(366004)(136003)(39860400002)(376002)(230922051799003)(451199024)(186009)(1800799009)(5660300002)(66556008)(110136005)(66946007)(31696002)(44832011)(316002)(66476007)(6666004)(86362001)(6636002)(31686004)(38100700002)(82960400001)(2906002)(36756003)(41300700001)(6486002)(53546011)(478600001)(6512007)(4326008)(6506007)(83380400001)(8936002)(8676002)(2616005)(26005)(43740500002)(45980500001);DIR:OUT;SFP:1102;
+X-Microsoft-Antispam-Message-Info:
+	CbSCAz4Qb4h7NMwBUKXx82qV9o+wfDHjCXK2Y64HCZW1kxsjkftEBtmPmNaZh/wSxJGrSCYwWeolXiq7XgMwP570Qd3auShDwcuLGOqYuTlp2Zc+jDasooEkze0GNV21+2rilNqCj/YD7uioBkGkeD8uGe8E21tZnNqYz/fnpppCFP+8Ep8iYq++/FrFo0ZewpgVEgFRhUHRG0hqLGpDWiAP80e+uR7sxo2qYdJL236jE1f/g1JhgijxO0Bnlx33sWt1/2AMw/Ph2gpAope3/ieu/SJe2N8v2X/Xzo4T0bDeqiCp3m5rYLk0HIE54fbz8hveOCLdgBTbi2ojQJZtcXRWbW6Zy06cB2auA2RtdlGxA+dYhiRtcAvd3HjU3duXP/CEqc024EcrA7RcUrH7hYoqxDxgVxu8II4vh4o+6V2EDh6gj1LqqFlUYD0vaLCCuvw9BNpN5p0Jsdbe2A/NUR3TbofMC7yCoLUmsKR4dxMi8XQ9isdWdyCZ5+fH0WMWbpm0UPzaFr9fZUIk+d923x0i6B/GJC9tfZnsGM1fYdO3syHl7cIjJSosTVm58Q73
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:HE1PR0402MB3497.eurprd04.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(7916004)(39860400002)(396003)(136003)(346002)(366004)(376002)(230922051799003)(186009)(451199024)(1800799009)(1076003)(83380400001)(5660300002)(8936002)(4326008)(44832011)(8676002)(6486002)(6506007)(9686003)(6512007)(26005)(478600001)(38100700002)(54906003)(6666004)(41300700001)(316002)(66556008)(66946007)(86362001)(66476007)(6916009)(7416002)(2906002)(33716001)(33656002);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?YW82dTRyRDFCYkQyMFhMQXpLZE9MdFE3VVpZTEJMVTh6ZC9rV291QWV3T0Fn?=
- =?utf-8?B?NkQvNVJsWjZMMWlsKzlQTUMyWHBsbng2VWlxODIyZTNVdnRhSUF5Mis3bmNQ?=
- =?utf-8?B?YmZQVUg1MXRKdFMvZDFIVTQvUEc0TnY3Z2liRlVzMVlpblRUM1FNREF4UXor?=
- =?utf-8?B?cG4xQjFIaitJUUE0UzJhaUdOcTBZMDcxSDVkSnZtWmZLRTFFdVZXVmZ6a3pT?=
- =?utf-8?B?dEZnRmkwRXpKY2VHNUxpWFVBdFhPU3hKVDFHMGZaZG9GRTQ3RlY1aHRTU3Z0?=
- =?utf-8?B?b0NtcFBCaUxvT3FFb0RBTmVFRnk1SHgrWnE2d1ZIQ3R4NVZGMEkvRkc3djlJ?=
- =?utf-8?B?VXlJMzVXcXNGZ2ViZWtZelZXbVhERXREamRYellRdG5FWDg4R0czT3lqWmlu?=
- =?utf-8?B?R0NKTkVXQUJZYnFDM3paVDVzeHZsZ3hWVDhYQ3RLZU52UHc4aUJETGhHT2dG?=
- =?utf-8?B?YXVIWnNpMnh2OEJ1NWY2WWVqdFZUVUM5Wm5tL3pJazU0VVJ3ckM0T2VzTGEz?=
- =?utf-8?B?TlBLUGRiNmNCMmpvRE1tL2xnaVUzZHY5b21DWFIwZG4yVHZuNUoxZFB1NVpP?=
- =?utf-8?B?T3lRWHp6UTdwWFc4QktYbmFESjdvMytJN05XSjh2M0lSc3dzeFc2R3IxNDdG?=
- =?utf-8?B?Q0dkUGI4MFlqbEd0cmJSaktqQ3JZTjZGdCtGNCtZbCtJTjFyQklXNFVCL2dx?=
- =?utf-8?B?SEM0ZlNqMTdiN2hSTUpGN0tQUnVWL3pRMGxsaERRL0hwN3ArQ3RKVHh0eEJp?=
- =?utf-8?B?cWtPbkZRVEFNQkhyUDhCSXliNzllM3huVnJTd3JCWVpVY0VZb2RxMzNUQUhw?=
- =?utf-8?B?YmRpVnpqUGZaaHo0Rmh0NGF1c0xIZ3ZRSFlYMy9GVG43b1dwakJVZnNlUlI1?=
- =?utf-8?B?TXFVaktjQWp4MWJCZC9QR0dBazltcVdPNUR1RU91bDRPMlZsM1M4VlQ2ZGZL?=
- =?utf-8?B?dXVGc08vSDJ1MGExZkpIZXdYWTZnTkFsTlA1M2NUWjZQenFETVcxY0Zia1dK?=
- =?utf-8?B?ZUJlV0dTNGZqR3czazJWY2Y4VWtTQTNqR25PWTd5OGVFaEpzRDg2UFc1VmlS?=
- =?utf-8?B?MkFxZGU0V1pYRmdXYWIvb0ZpOGdVWndoYlk3NlNPRWNpZWVrR2xrYmJjaVQx?=
- =?utf-8?B?eTNYaEpMaG9iN01jR1RqeEV2Q2NwRTdKUkQ4U0RHaXRjOHVUOTBsR2JNK2Jn?=
- =?utf-8?B?MlZWVDNHUlgrdmVTNVZRYnd1UFlUVllhT0xuVS9rTC9RUnFFdW1OeFc1Qlg1?=
- =?utf-8?B?d2xWVVF4ZHRPak51d0pEWTRCZE15ZU1IaUpnRHVhQlFxU3B1ZDRoNFlxVmtY?=
- =?utf-8?B?QkJPdEpYYmorRGkva281SnlPOFkrTDZzbEI2Uk9UVVJKcUdEeWFsU3RoRXk0?=
- =?utf-8?B?NVlkSGlTSDM3d29CK1VOclVtbkJkclRiVlNrY2Fodllad1BGRUpCQk9XWEdU?=
- =?utf-8?B?ZkZ5M1BHdlJ5YjJWUS9ORUpVOHdRc1RDT3dTSnJha05tR0pMQ0ZVSWd5SnY0?=
- =?utf-8?B?ZFVNU0hqeVBQekFwdHlkMzFjRnhOalVOcjVkR2hXQ2dmRVJPVGJXMHdPUEsz?=
- =?utf-8?B?b1ozS1ZpYmdCZERLQ1hBTnV6anVDYlJSc2xDZ1lPY0xTRCtJUUJ1cDZvcHZQ?=
- =?utf-8?B?N2pYa3VxbVdRb3J5eHdJME5NSDRTNEdFUVhNcHE5bHNtNG5HNGJwK1NJOFFU?=
- =?utf-8?B?cU1GV2dmbDJ2SzdsMml0ZDlSRktOUnNWMzh6aUY2bm9sd0Qyb2Q5c21nRVRL?=
- =?utf-8?B?OVpTZUF6V2hHb1lSN1MvaEJwbXJjdCs3Vnc0TU1JSGlKUzdMdDBtc0FhSFhL?=
- =?utf-8?B?UnoyMHhuUWI3VmFCZ3BNYzdwdlRuNWxJRnc3UHNSOC9CSDI2S1RDbTBYSmhW?=
- =?utf-8?B?dGZ3YVFuN2ZUOWpmWVZwd2tHa0lmTllkZUg5U3JnMzI4NUIvb0l2eDNPV21q?=
- =?utf-8?B?ZUgrT2tBVFJrVUNZWVJtVktPTVl6MDRHTmJnRlNSbVdhV2d6Qk1uSmdRdis5?=
- =?utf-8?B?K2hWRitIY2p4UUN2WWRlMmRsRHdBME9ENStZMzFoTDg5K3lBamZEdDVhVnRv?=
- =?utf-8?B?YUlGYTlGK1dMUFhQQ2YzSGRHOXZUNFppY21RMUZMUExqTEdpTmk2MWVPenYr?=
- =?utf-8?Q?6tnq9h5/CefyeylprhUgq/vaO?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: 5ea13bb9-6f29-4ce2-be65-08dbbe1800c3
-X-MS-Exchange-CrossTenant-AuthSource: PH7PR11MB5984.namprd11.prod.outlook.com
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?us-ascii?Q?imu9rnouCpyeKopKGhXVg8/KdUeUnu7xJGXUN82Alz/1pQJmVkxdI8ssrJcR?=
+ =?us-ascii?Q?5es5wtzBdqj7FntuaRKRvsD7WyNzyXDSGFYMJZrOEooSSi8Ys16f/24sUlsB?=
+ =?us-ascii?Q?Udhk7Wcnn/hVax1cG+xDHDUwkcQh7CFBOYNxnTiwLMTPnYkVuN7izQdsXwVA?=
+ =?us-ascii?Q?PBreqTzSJ29DifKFujcX0EK3brevHYNOqh3R10ILeUE7+E6Zg2OzKR7kCJ2w?=
+ =?us-ascii?Q?oYoiMPBIEmbRab88wNSHtRlhg3LP3+e/1OrpJQI94yVCLJfyZRgOR4csZut0?=
+ =?us-ascii?Q?YEJUnFT37IRZrPsjkowzDKwdtCYJX4KUG6vXfmF7OEmQz7xSQd+2uMjRsm5G?=
+ =?us-ascii?Q?LCHieYOlreWpaHqMA8XxeX/KLN3ZKxbcB6keABoNpuIkNgT3gnz2R0M6VyKl?=
+ =?us-ascii?Q?7wyypxRg8KC2Yay/Va6N3MR2gbs6wJZd4TreBW1vVyKmyB60tqM4mAdR9DO6?=
+ =?us-ascii?Q?dseb/AVpZ563CwJ75RbyEGWZ+6m/GqgClQmo8N8eptL94mckx/pctbczh3VW?=
+ =?us-ascii?Q?3BNR094cPl6NMvz1Gh99AZvvQXjOpXwLelCfUcxaqaaatIA49OKFaJ/HNrS3?=
+ =?us-ascii?Q?DbTPraeukJ8rWGTUHt1NDpGutmZ3vp/D7cHtNvtXCOKodb5NE+ll3YWD6zgC?=
+ =?us-ascii?Q?MVIXprKYddShbHrJv7SpwlEVlnMUhlDo6eCmF1wEkD++cGYF1UceovyyyuZN?=
+ =?us-ascii?Q?HE6Kl90ckxSIddeHPBctE0gCpqYaz4tRIDTuymuKonVmzAm+F31eShYnLhoB?=
+ =?us-ascii?Q?QqiPTyMwEP/mIf/NeAYYZ8L+w3/qrDsilP3dhpqPZHAVm/4VasFKXfPu01C7?=
+ =?us-ascii?Q?yyZMnw63v451Gy9uS+A52we3D5LX+DqoLbLYGzAtLy/9zn+zx7nNKLLtWzS7?=
+ =?us-ascii?Q?BppNiOKvTh42gdWllYE516cFR71KJC/lqo9tfAUSip2sZ7bTrsFvrCtj1v/t?=
+ =?us-ascii?Q?9OU6SEdFGppIwl/uXy+ZCPGBkTwpRziGSF/nwtPAqd4QxOiIqvSFANnOSLaI?=
+ =?us-ascii?Q?4os+k/6eKRs5ft2t3oPMAupVQJe8n2uqbCmZXHrdah0yzznD58pd5ck2Ybd8?=
+ =?us-ascii?Q?q7wUmGuGUdN5HXIXruI+81nVl/7N2NpdsbkWJodjV/gf6DSu1jtv1zzTzyKm?=
+ =?us-ascii?Q?TE0bNmqS5iqV+yBw43zBgV34ZoAgXIZI0EFUEY0aQ1i9v84umOM44DJT/Sgz?=
+ =?us-ascii?Q?S+9AnvHLga2YbiZ2mP3CAo2DbEl4fNkNcaBxxfFrL/lK+T0SivuoB7NbPJuX?=
+ =?us-ascii?Q?GnRokdf+psA48QwC+qgqgFrLMe4GYSqPpPk0RrG33KZVwbP1jzHPyW7f6FQ6?=
+ =?us-ascii?Q?ZSpmI+qzrZv/SEV1qambqWkSInXh4aBBzhUr9FQ1HevmEONETugulWbFUxyj?=
+ =?us-ascii?Q?tz/CRVFpRaWm77CuzT0P6YP11eNpcEAa/gjL66jMqo0KiqgqpOztXVsjg52T?=
+ =?us-ascii?Q?zsJjpZpdFKcre5Sv9SbsbH7bxU9xpRfMVYHSG9G0yARnb0X8z30TaHmpnrXc?=
+ =?us-ascii?Q?5PbK7dAAvGH2wukNLpiFCEMpHOPte1GYiKYYvRI8CNEVpykaZ2hc2Qw20QGm?=
+ =?us-ascii?Q?UYwAcF7qQGB9pU5HS9lWwoCPc/EyTjnURQVRtXvF?=
+X-OriginatorOrg: suse.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 3da4e727-eec9-45b9-378a-08dbbe326634
+X-MS-Exchange-CrossTenant-AuthSource: HE1PR0402MB3497.eurprd04.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 Sep 2023 22:37:30.7016
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 26 Sep 2023 01:46:27.7467
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-Id: f7a17af6-1c5c-4a36-aa8b-f5be247aa4ba
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 2WuiE0cSdKFw51zBU7KHxZQsM4RAaWLF1pIrTsL8y5yARoM3pjWVEos6s4simKQbcq/dsI5IrZCQRnNX/yCJVA==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH8PR11MB6706
-X-OriginatorOrg: intel.com
+X-MS-Exchange-CrossTenant-UserPrincipalName: j966831MrER+KghqBKoCD+XLYFpowffL7ix9q8tMcuvXxgd9NudfE5mFp++hEVe9q/83iY4sfNYV/G51dzwy1g==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM7PR04MB7176
 
-
-
-On 9/25/23 15:16, Ira Weiny wrote:
-> CXL event testing is only appropriate when the cxl-test modules are
-> available.
+On Sat, Aug 12, 2023 at 01:05:06AM +0800, Coly Li wrote:
+> This is the v7 version of the badblocks improvement series, which makes
+> badblocks APIs to handle multiple ranges in bad block table.
 > 
-> Return error 77 (skip) if cxl-test modules are not available.
+> The change comparing to previous v6 version is the modifications
+> enlightened by the code review comments from Xiao Ni,
+> - Typo fixes in code comments and commit logs.
+> - Tiny but useful optimzation in prev_badblocks(), front_overwrite(),
+>   _badblocks_clear().
 > 
-> Reported-by: Dave Jiang <dave.jiang@intel.com>
-> Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+> There is NO in-memory or on-disk format change in the whole series, all
+> existing API and data structures are consistent. This series just only
+> improve the code algorithm to handle more corner cases, the interfaces
+> are same and consistency to all existing callers (md raid and nvdimm
+> drivers).
+> 
+> The original motivation of the change is from the requirement from our
+> customer, that current badblocks routines don't handle multiple ranges.
+> For example if the bad block setting range covers multiple ranges from
+> bad block table, only the first two bad block ranges merged and rested
+> ranges are intact. The expected behavior should be all the covered
+> ranges to be handled.
+> 
+> All the patches are tested by modified user space code and the code
+> logic works as expected. The modified user space testing code is
+> provided in the last patch, which is not listed in the cover letter. The
+> testing code is an example how the improved code is tested.
+> 
+> The whole change is divided into 6 patches to make the code review more
+> clear and easier. If people prefer, I'd like to post a single large
+> patch finally after the code review accomplished.
+> 
+> Please review the code and response. Thank you all in advance.
+> 
+> Coly Li
+> 
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Cc: Geliang Tang <geliang.tang@suse.com>
+> Cc: Hannes Reinecke <hare@suse.de>
+> Cc: Jens Axboe <axboe@kernel.dk>
+> Cc: NeilBrown <neilb@suse.de>
+> Cc: Richard Fan <richard.fan@suse.com>
+> Cc: Vishal L Verma <vishal.l.verma@intel.com>
+> Cc: Wols Lists <antlists@youngman.org.uk>
+> Cc: Xiao Ni <xni@redhat.com>
 
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+This series LGTM, thanks Coly.
+
+Acked-by: Geliang Tang <geliang.tang@suse.com>
+
 > ---
-> Changes for resend:
-> - iweiny: properly cc the mailing lists
-> ---
->  test/cxl-events.sh | 3 +++
->  1 file changed, 3 insertions(+)
 > 
-> diff --git a/test/cxl-events.sh b/test/cxl-events.sh
-> index 33b68daa6ade..fe702bf98ad4 100644
-> --- a/test/cxl-events.sh
-> +++ b/test/cxl-events.sh
-> @@ -10,6 +10,8 @@ num_fatal_expected=2
->  num_failure_expected=16
->  num_info_expected=3
->  
-> +rc=77
-> +
->  set -ex
->  
->  trap 'err $LINENO' ERR
-> @@ -18,6 +20,7 @@ check_prereq "jq"
->  
->  modprobe -r cxl_test
->  modprobe cxl_test
-> +rc=1
->  
->  dev_path="/sys/bus/platform/devices"
->  
+> Coly Li (6):
+>   badblocks: add more helper structure and routines in badblocks.h
+>   badblocks: add helper routines for badblock ranges handling
+>   badblocks: improve badblocks_set() for multiple ranges handling
+>   badblocks: improve badblocks_clear() for multiple ranges handling
+>   badblocks: improve badblocks_check() for multiple ranges handling
+>   badblocks: switch to the improved badblock handling code
 > 
-> ---
-> base-commit: a871e6153b11fe63780b37cdcb1eb347b296095c
-> change-id: 20230925-skip-cxl-events-7f16052b9c4e
+>  block/badblocks.c         | 1618 ++++++++++++++++++++++++++++++-------
+>  include/linux/badblocks.h |   30 +
+>  2 files changed, 1354 insertions(+), 294 deletions(-)
 > 
-> Best regards,
+> -- 
+> 2.35.3
+> 
