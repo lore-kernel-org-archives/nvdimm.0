@@ -1,98 +1,87 @@
-Received: from mail-wm1-f41.google.com (mail-wm1-f41.google.com [209.85.128.41])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D5374C7D
-	for <nvdimm@lists.linux.dev>; Tue, 26 Sep 2023 06:44:58 +0000 (UTC)
-Received: by mail-wm1-f41.google.com with SMTP id 5b1f17b1804b1-4047ef37f55so23234375e9.1
-        for <nvdimm@lists.linux.dev>; Mon, 25 Sep 2023 23:44:58 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=kernel-dk.20230601.gappssmtp.com; s=20230601; t=1695710696; x=1696315496; darn=lists.linux.dev;
-        h=content-transfer-encoding:mime-version:date:message-id:subject
-         :references:in-reply-to:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=Vy+8WASYGTBS1mWxTg8Np7QtelHMw3rWndRVIOTdjBE=;
-        b=1PJy7rhtbsLPH9llwjpFc9T2mT3H2DjcNd7+1Ej4+cm8bZM64xu7ta9JXA37RFeyIC
-         kArKzSB50wOiVeoSEcSM8BDoQBNxQJr7R2E3/o17DHyQgQVPvGu5xj7otO9778n01z51
-         mwdN6GdsaCJPymXj3Ikim5wOo/UxGWGJqVYuoqU57qmZ2zG8QBLSctxH1/lhQ9gf29xt
-         FyRo++1HbtDaoKMeHjgHrnQrgkW3S/6dzdXXHXkgjl2fTBrxCI08F5PxTYrUv+JBgarm
-         9SFEW7cz95pbThOZxpCk8UANwXJTsne/EK+/AcUmsXFxZVG3fnqfEOSIw/jeiXH3AuQl
-         kkIQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1695710696; x=1696315496;
-        h=content-transfer-encoding:mime-version:date:message-id:subject
-         :references:in-reply-to:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=Vy+8WASYGTBS1mWxTg8Np7QtelHMw3rWndRVIOTdjBE=;
-        b=IyaTcgJik7uEgfZNZu97f+o6O2bi9WgIE1msd6qvt6mqzdFtUwN1FJx7HogJJ+/MhD
-         vsWmO0dfM6EdgK1z4E3TXrWf6Axub4rhDwlbKZdcEACpGtpBCBYzCbHw/s+HrJpUMt5Q
-         VjiR7qKAo3xSccHIoYxnLqbQEKeVtMGe14DBRVi/gz8jJcz/xMCMw29kNqFJ2uNCJdnI
-         0p37UQa936O44unJhXwON1ZYmKhvR8gJgMOyuY55veaaOAslDmBVDWtVL15ulB41Mhzp
-         Y4ZJJfcytL4zmdDzyqYlfzZ/rOMKXVqPlLBCnMk0Tj+WcsUneUfBmqT/N7zassSwbNRZ
-         KK2g==
-X-Gm-Message-State: AOJu0YyP7ovn03vO/EQkQeiuWlWbodmIZl6UZ481S8JZFi9Jhhfgzt+h
-	lCMb6fYscvr9qikGa8mjURD4JsAT1ByNebyDa3Aum6xf
-X-Google-Smtp-Source: AGHT+IH9l76dfcSqxOnW7BCusuZLco1ls+8gcRWVia87WNg/ADhYwhN0gbWksHNTHTDBt6adAkwcMA==
-X-Received: by 2002:a05:600c:4f50:b0:405:39bb:38a8 with SMTP id m16-20020a05600c4f5000b0040539bb38a8mr7418100wmq.2.1695710695345;
-        Mon, 25 Sep 2023 23:44:55 -0700 (PDT)
-Received: from [127.0.0.1] ([45.147.210.162])
-        by smtp.gmail.com with ESMTPSA id 8-20020a05600c230800b004042dbb8925sm1127571wmo.38.2023.09.25.23.44.54
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 25 Sep 2023 23:44:54 -0700 (PDT)
-From: Jens Axboe <axboe@kernel.dk>
-To: linux-raid@vger.kernel.org, nvdimm@lists.linux.dev, 
- linux-block@vger.kernel.org, Coly Li <colyli@suse.de>
-Cc: Dan Williams <dan.j.williams@intel.com>, 
- Geliang Tang <geliang.tang@suse.com>, Hannes Reinecke <hare@suse.de>, 
- NeilBrown <neilb@suse.de>, Richard Fan <richard.fan@suse.com>, 
- Vishal L Verma <vishal.l.verma@intel.com>, 
- Wols Lists <antlists@youngman.org.uk>, Xiao Ni <xni@redhat.com>
-In-Reply-To: <20230811170513.2300-1-colyli@suse.de>
-References: <20230811170513.2300-1-colyli@suse.de>
-Subject: Re: [PATCH v7 0/6] badblocks improvement for multiple bad block
- ranges
-Message-Id: <169571069404.578063.8660956212739660767.b4-ty@kernel.dk>
-Date: Tue, 26 Sep 2023 00:44:54 -0600
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD04410EF
+	for <nvdimm@lists.linux.dev>; Tue, 26 Sep 2023 14:55:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4DAEBC433C8;
+	Tue, 26 Sep 2023 14:55:20 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1695740120;
+	bh=UozyzOFL2CEx0/AaEb5BEQk+32KJY+xM/ijzd25lD/Q=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=Zn1okHoGGUbw692yBZ101Yt16bd16wshDJWV3q7cSx7Cvph2TU7qvmYC8PExeNpdK
+	 0JygJRCRZKi543PCr7eaZKr9t+L0EgNdbZnIebDVM4Hzut1k3cnmU5OLKTgGEpzegn
+	 ofeT6UF96F1h/iuHjqBiWN8Zl3TSWnU7tY2nAQ2uVCQf9rHeIMjk4KD6s1yBmSsT/C
+	 qFJYOObv94ReWah0m+E9GrFYBuQ50grwdUimoblFeCbflk8gDsn85YLr+ctS9u8gNl
+	 B0wIJ6frF9iIc5EHUFwJNFzLGHVBvgLHtk5cO8y9DhKH1VvYeVKG1MNANPZZB9YTuE
+	 5XkPTzcoUJKqw==
+Date: Tue, 26 Sep 2023 07:55:19 -0700
+From: "Darrick J. Wong" <djwong@kernel.org>
+To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Cc: linux-xfs@vger.kernel.org, nvdimm@lists.linux.dev,
+	chandan.babu@oracle.com, dan.j.williams@intel.com
+Subject: Re: [PATCH] xfs: drop experimental warning for FSDAX
+Message-ID: <20230926145519.GE11439@frogsfrogsfrogs>
+References: <20230915063854.1784918-1-ruansy.fnst@fujitsu.com>
+ <86167409-aa7f-4db4-8335-3f290d507f14@fujitsu.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-Mailer: b4 0.13-dev-034f2
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <86167409-aa7f-4db4-8335-3f290d507f14@fujitsu.com>
 
-
-On Sat, 12 Aug 2023 01:05:06 +0800, Coly Li wrote:
-> This is the v7 version of the badblocks improvement series, which makes
-> badblocks APIs to handle multiple ranges in bad block table.
+On Thu, Sep 21, 2023 at 04:33:04PM +0800, Shiyang Ruan wrote:
+> Hi,
 > 
-> The change comparing to previous v6 version is the modifications
-> enlightened by the code review comments from Xiao Ni,
-> - Typo fixes in code comments and commit logs.
-> - Tiny but useful optimzation in prev_badblocks(), front_overwrite(),
->   _badblocks_clear().
+> Any comments?
+
+I notice that xfs/55[0-2] still fail on my fakepmem machine:
+
+--- /tmp/fstests/tests/xfs/550.out	2023-09-23 09:40:47.839521305 -0700
++++ /var/tmp/fstests/xfs/550.out.bad	2023-09-24 20:00:23.400000000 -0700
+@@ -3,7 +3,6 @@ Format and mount
+ Create the original files
+ Inject memory failure (1 page)
+ Inject poison...
+-Process is killed by signal: 7
+ Inject memory failure (2 pages)
+ Inject poison...
+-Process is killed by signal: 7
++Memory failure didn't kill the process
+
+(yes, rmap is enabled)
+
+Not sure what that's about?
+
+--D
+
 > 
-> [...]
-
-Applied, thanks!
-
-[1/6] badblocks: add more helper structure and routines in badblocks.h
-      commit: e850d9a52f4cd31521c80a7ea9718b69129af4d5
-[2/6] badblocks: add helper routines for badblock ranges handling
-      commit: c3c6a86e9efc5da5964260c322fe07feca6df782
-[3/6] badblocks: improve badblocks_set() for multiple ranges handling
-      commit: 1726c774678331b4af5e78db87e10ff5da448456
-[4/6] badblocks: improve badblocks_clear() for multiple ranges handling
-      commit: db448eb6862979aad2468ecf957a20ef98b82f29
-[5/6] badblocks: improve badblocks_check() for multiple ranges handling
-      commit: 3ea3354cb9f03e34ee3fab98f127ab8da4131eee
-[6/6] badblocks: switch to the improved badblock handling code
-      commit: aa511ff8218b3fb328181fbaac48aa5e9c5c6d93
-
-Best regards,
--- 
-Jens Axboe
-
-
-
+> 
+> --
+> Thanks,
+> Ruan.
+> 
+> 
+> 在 2023/9/15 14:38, Shiyang Ruan 写道:
+> > FSDAX and reflink can work together now, let's drop this warning.
+> > 
+> > Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+> > ---
+> >   fs/xfs/xfs_super.c | 1 -
+> >   1 file changed, 1 deletion(-)
+> > 
+> > diff --git a/fs/xfs/xfs_super.c b/fs/xfs/xfs_super.c
+> > index 1f77014c6e1a..faee773fa026 100644
+> > --- a/fs/xfs/xfs_super.c
+> > +++ b/fs/xfs/xfs_super.c
+> > @@ -371,7 +371,6 @@ xfs_setup_dax_always(
+> >   		return -EINVAL;
+> >   	}
+> > -	xfs_warn(mp, "DAX enabled. Warning: EXPERIMENTAL, use at your own risk");
+> >   	return 0;
+> >   disable_dax:
