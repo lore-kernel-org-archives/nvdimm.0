@@ -1,234 +1,92 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.136])
+Received: from mgamail.intel.com (mgamail.intel.com [134.134.136.65])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A58535888
-	for <nvdimm@lists.linux.dev>; Tue, 26 Sep 2023 18:52:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1533F620
+	for <nvdimm@lists.linux.dev>; Wed, 27 Sep 2023 00:24:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1695754345; x=1727290345;
-  h=message-id:date:subject:to:cc:references:from:
-   in-reply-to:content-transfer-encoding:mime-version;
-  bh=NyzXyy5pixQrih4rZ7ZPdJr5ZoWBctlC7Bq7bMG04UE=;
-  b=ltVIKcZjuNAil9+WEXBSjaet9XZ6tQpSB5nBvZEt6Xbo5XLlsZk8bnHB
-   EKBYrd3o4eOX1vdY+YkYfgXBpTSI/yOtvYMtqH5EtcyWWAjzsCMNt8tbX
-   BFUWtT+CeSF6qqPNBFheagbzcNfKoQ+ItTR8x2i/ClZOn+jU06qtXRRTr
-   dk7w1C4sbXqccogvU5miOPAz1Szh4QWdlJVZ/ffXtkJrBKoF5roiiETUa
-   va5kjC7r4K71SB1ZBuYPSIhqnxELru39kok+EKkQTfvYZHmEpHW4X/B2a
-   KDUMTL3/o/fTwBT/sAOCoeU38vo7yzThwIK89a+VORl7lvkaPfLan6Fzg
+  t=1695774270; x=1727310270;
+  h=from:date:subject:mime-version:content-transfer-encoding:
+   message-id:to:cc;
+  bh=6Q+yyCEe0DKcBWb6PF0uUikdZ9NOToB+Dd79jqNqRUM=;
+  b=akCKKg8yLmAQYlqQ4r3UxTyeE9x0NvpNCfVuPX0aN/5qrOp4gWqDTyD6
+   Ptr/nYaY4ztKCF5MgebQqkTm8HKdMKrOYGyQ43RvegK/PtsdLqQhRsD7z
+   zmHE+ceWa09u4jOz84HuRhFMmliT8U9FzSWV4kzUbZxYV4GpKhk9Nc9R+
+   r3sOxA/R5+s6aVIXhPxK63xs19DxF34Iy3Qx2PokW3KKcy9OCRetD2d/E
+   S2MkjsEcJVxGV5g1BO9ks1P9Bm5xohi3cn57SDRyVCDIwW6dRHfD3lRJI
+   DF04gX8B57DJjRcwhi7pDBV47eyZeB/hNtLioY1/FkVHhk1hECfx4njMW
    w==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10845"; a="361023739"
-X-IronPort-AV: E=Sophos;i="6.03,178,1694761200"; 
-   d="scan'208";a="361023739"
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Sep 2023 11:52:24 -0700
+X-IronPort-AV: E=McAfee;i="6600,9927,10845"; a="385551287"
+X-IronPort-AV: E=Sophos;i="6.03,179,1694761200"; 
+   d="scan'208";a="385551287"
+Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Sep 2023 17:24:27 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10845"; a="892314128"
-X-IronPort-AV: E=Sophos;i="6.03,178,1694761200"; 
-   d="scan'208";a="892314128"
-Received: from orsmsx601.amr.corp.intel.com ([10.22.229.14])
-  by fmsmga001.fm.intel.com with ESMTP/TLS/AES256-GCM-SHA384; 26 Sep 2023 11:51:18 -0700
-Received: from orsmsx611.amr.corp.intel.com (10.22.229.24) by
- ORSMSX601.amr.corp.intel.com (10.22.229.14) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.32; Tue, 26 Sep 2023 11:52:23 -0700
-Received: from orsmsx610.amr.corp.intel.com (10.22.229.23) by
- ORSMSX611.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.32; Tue, 26 Sep 2023 11:52:23 -0700
-Received: from ORSEDG602.ED.cps.intel.com (10.7.248.7) by
- orsmsx610.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.32 via Frontend Transport; Tue, 26 Sep 2023 11:52:23 -0700
-Received: from NAM04-BN8-obe.outbound.protection.outlook.com (104.47.74.43) by
- edgegateway.intel.com (134.134.137.103) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.32; Tue, 26 Sep 2023 11:52:22 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=Q4qaPO0o+mycWWot2Nx9VtNy5b4cKQyfEc2Ya89VvbffgllZw4uP4bLaZZpYiFSibw64oOfQuzdTiwdTkD9amkPH60eOhK7mGpVTT58XVNWbmXY6zzNDTQw3KOBkhl34AbZw5keiHN3rDuJV7cHpLDNSYrkESxeZ+6pveMRO8OOQ7gtjM1G7rOW29cgELstnV0+Ao9EQeGv3LEg4JmVsAUFlrU4nDAmGc2xVoB6ntLgUa0T/lukqirVgV1Oi2mVhLpUa/3iWaI/HdZVhLdGv+zeyU66q+Vo3wSMlwCPrc7jTjXC3ww5myPuxviGasSsrn3Y2KcGpV1D2TzOLsByydQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=NLOcyEsQvAT5Yza8N0HpwbXRXRzGn3fQDsGtCQoLxNQ=;
- b=cns4TIyW7DKregiiPl6qMkggqN1gyQGs3S5sXamj3DU+WwHnQlOX2Nj+dIcUMXVZoCTZxSA2HNfYTK+PlZ92NpX1+dpSFH/KaQZTi+PvxuHY/boKF7CN9+U0nfvZ6um7MWPqR8DJRmfDMgXvBK7MWz5wf4NBON0sgDcasOxAR0ZGT2MNIyoH5Txl8xzXwK8D7L5qDQxuu2tiScDn4NYhz7jSmJ4FuP5hV58mDCdD0LtYFjwJz5DkwCIkJph8LNZOtNHVPf0NFJ0fs+wHZDx1Ng2XLS4siNd/WIDhVOruaQDu4vY0A8fRcGfDEwBc50Pzp+5PZcrcbjKAVAVfqK93nw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from PH7PR11MB5984.namprd11.prod.outlook.com (2603:10b6:510:1e3::15)
- by CO1PR11MB5202.namprd11.prod.outlook.com (2603:10b6:303:97::12) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6813.28; Tue, 26 Sep
- 2023 18:52:21 +0000
-Received: from PH7PR11MB5984.namprd11.prod.outlook.com
- ([fe80::e9ca:a5a7:ada1:6ee8]) by PH7PR11MB5984.namprd11.prod.outlook.com
- ([fe80::e9ca:a5a7:ada1:6ee8%5]) with mapi id 15.20.6813.017; Tue, 26 Sep 2023
- 18:52:20 +0000
-Message-ID: <caf9a9e6-dea5-9dd7-846d-30d445b8ed2b@intel.com>
-Date: Tue, 26 Sep 2023 11:52:17 -0700
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Betterbird/102.13.0
-Subject: Re: [PATCH v1 1/2] ACPI: NFIT: Fix memory leak, and local use of
- devm_*()
-To: Michal Wilczynski <michal.wilczynski@intel.com>,
-	<linux-acpi@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<nvdimm@lists.linux.dev>
-CC: <rafael.j.wysocki@intel.com>, <andriy.shevchenko@intel.com>,
-	<lenb@kernel.org>, <dan.j.williams@intel.com>, <vishal.l.verma@intel.com>,
-	<ira.weiny@intel.com>, Andy Shevchenko <andy.shevchenko@gmail.com>
-References: <20230926184520.2239723-1-michal.wilczynski@intel.com>
- <20230926184520.2239723-2-michal.wilczynski@intel.com>
-Content-Language: en-US
-From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <20230926184520.2239723-2-michal.wilczynski@intel.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: BYAPR05CA0073.namprd05.prod.outlook.com
- (2603:10b6:a03:e0::14) To PH7PR11MB5984.namprd11.prod.outlook.com
- (2603:10b6:510:1e3::15)
+X-IronPort-AV: E=McAfee;i="6600,9927,10845"; a="819218190"
+X-IronPort-AV: E=Sophos;i="6.03,179,1694761200"; 
+   d="scan'208";a="819218190"
+Received: from iweiny-mobl.amr.corp.intel.com (HELO localhost) ([10.212.44.218])
+  by fmsmga004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Sep 2023 17:24:27 -0700
+From: Ira Weiny <ira.weiny@intel.com>
+Date: Tue, 26 Sep 2023 17:24:25 -0700
+Subject: [PATCH ndctl] ndctl/cxl/region: Report max size for region
+ creation
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: PH7PR11MB5984:EE_|CO1PR11MB5202:EE_
-X-MS-Office365-Filtering-Correlation-Id: e182da62-b0f1-4573-64d3-08dbbec1b6af
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: eFSoiS6amaoeTQ7PrQ4+POGO5NdEDyuCQGcoNPijjbTZ5zwxgBJFZsdYjanE3InPKZHJ7l+7Y8PAnr9qEO0PBUEUYYKxhzTv1hmNsNtxOjwDFuj8QgV0CSIoXcvlKoz/CP0FQLoOyBrE9hJiToiBxJQ5npMQLE4YPXZgIH0ss15Ro1Ll+JvdE1Z3K+YEVJVL9g0sfBM/Gz9kI8QzsHlnDNO1xKd7/umkI6Q0YZ1ZuQer4m+blm8Rg5gwzAhjlljojp3T+St4CZw0bzZvgmvmrOX7eqXUoBgtz4rzomhTNE/65FEQlKnpZgTwWCKGpnK4qKVl9dpGX7CTE6eP0X32WdoQGg9dm12yYC8uv+g2i/XE0xaSS1tq33w59U3T+12sva5eE2dPK6daDYtgqy9v6fm8XoDbKpyuveTSMW2psnwHVb1ZVJ0ZYg/KQawRKO2Ii2pQ9cqY/cHOa02nbWS1g/pmy9YrGcusCr+ZOqXXTPZMX39DYDcmMoJyUp+gO++MTtStn1YdEAWHMsCckUaG2b1w52V2YFu84OKzCwIJm7or9hsI1wenvuhb9KZTKIpCYJJDlvHaU91jJstdcE56irBvoE7LTfkw/1w8pG8MUCp0hxkCbHveRmdoQaZ8GrxyajugYaxtegJ1YcM9fq/pig==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH7PR11MB5984.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(366004)(376002)(346002)(39860400002)(396003)(136003)(230922051799003)(1800799009)(186009)(451199024)(2906002)(86362001)(6486002)(36756003)(26005)(6666004)(83380400001)(38100700002)(82960400001)(2616005)(6512007)(6506007)(31696002)(53546011)(8936002)(41300700001)(8676002)(4326008)(316002)(44832011)(5660300002)(66946007)(31686004)(478600001)(66556008)(66476007)(43740500002)(45980500001);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?UDJZQnRJdXg5S2V3bm1FYUtVMGdOWXF0ZU51elN2RE45OXVXdTVSaHlYcDJU?=
- =?utf-8?B?WlR5U29wZGRNTDBnU2I5Yk04SlJFQnZnekZUREFjRUk0V1FmZEZHY3hhaXdQ?=
- =?utf-8?B?MUs2cDR6Ty9MenZMUVFHZ0h4QmRoc3lPSmkrOUpxOGhpYTdOcE9Wa01JVHZU?=
- =?utf-8?B?K01VSDFVcTluMDBpMElnbE1nU2JUcFdwcENKK0FBSEhXaHZWOEs1OUhncXlO?=
- =?utf-8?B?USs1aUJtY3ZxQXFvSkcrN096L2FhNHNiMEU5M1V2S09pOXMxbFk4ZC9TNk04?=
- =?utf-8?B?SFdKdXQrSVpSWStXaVRrSjRvdUVGdXB2YUVGcUJWTTgyeEpLTkdIa1lpaEd3?=
- =?utf-8?B?YTFseXhrbnlhb2dYaFh0dmRYU2RMdnlET25XbXFxOEZBREpULzBsbWdON1NP?=
- =?utf-8?B?UTZtTzFZd2c0YXdaRTExRVB0TjQ5NkdjUStOK2J6NEJWbnpzcThXMG5zVkN2?=
- =?utf-8?B?YTJWS04zZHFDb2JRYXNmNFR3cGtPeUpZQVpOemRYTEJkeWtQT0N1S2xxd2J3?=
- =?utf-8?B?anZzbW8rbzlCK0RLbjJvOGlORlB5MnphNnhpR2J2TCswRFZjVDdYTGoxaVlr?=
- =?utf-8?B?WmxnSmJsZXlxVmRPR243MklXNFBjVFdvQzk3RVp3MTB3REkrQzhXQW9NbSta?=
- =?utf-8?B?ZnpuZzBPTGsvVjNRYWZKUE93RjAzU0lRZjRLWW5PdlBkTGdmOVZHd25Ga0tJ?=
- =?utf-8?B?c053c2pGcjZrRklPOGxEYjcwUTdhbm11bFpRbkFRc2NXUFd4eStWcmlKclpZ?=
- =?utf-8?B?RlJBZUVva2FlaGZ6cFJqVFpld0RUajhnS0VSbGNhSVBNTkxtcWxFQmkreTdr?=
- =?utf-8?B?eDNNdmtDcjZYa0Rmb2daZHNDcjNUZzFSN3FpSTdqaW1ZSE1yRGxTeVhmSkJt?=
- =?utf-8?B?cEdkdWVmaXZwL3A2YXI0WkFSRDdMcnlSbDZYZVltVXo0cEp4YkF3bUUvbFd1?=
- =?utf-8?B?NEh4Slh2a0lqemdILzhVYi9WVk1xRTRDZGpRMUZITTJOSUdwK20vbk9jWk9h?=
- =?utf-8?B?UzZYYUFPUXhNSmFBTGU3ZERqYnpSajY4VFV4a3lUdjBVaVVKZFB4UTNiNTdL?=
- =?utf-8?B?WXlleHozdmJPazdyMWt6N21rdndkd3pSZm50OXJ0aUdwWGRMYXJsMTRKZVFo?=
- =?utf-8?B?dmZyOExLMklrbXNMM2EzcHZ2OVV0OGl1ZC8zUGV3ancyZkk1SFA0aCtLOTNH?=
- =?utf-8?B?ZFJSbDZpZnJ1TzhrR280M2JtejNMTFhWa0VFWTl3ODVucU9keWdBOXl4Qk1z?=
- =?utf-8?B?VG1sUFV5WlZtb1dqRGJaL0Q3RTVudWc4TlRnOGJBc1JDaUxYWjZZbGUyYysv?=
- =?utf-8?B?VmZuMzdEelJQMXBxNENzTmU5dEdxSzVMNDlrVWFoRDNEZ09RcXgrbkF0ZG40?=
- =?utf-8?B?UDVRdDhVUEhHck0yQmZvdXB3UVF6b2RsQThMU3dlQmJKUUQrd3Y1OTU4QkVC?=
- =?utf-8?B?N2Q3bHJON2gxYUgyem1iWTcyUmdTYktCTkxaNExweHlFNnFWVFhiZEdadTZq?=
- =?utf-8?B?cXk4NGZjbGg2aFBWaXRRNUlhTlBRdzN0UlJoUHJPRHYrY1JmckVrS3ZZMVBq?=
- =?utf-8?B?MjgwMW02dVRsNndFTkxwd1hYdHhPODMvWVZTQlRxQXo3cTRPWW1sbDNoTXBj?=
- =?utf-8?B?eFVGbHBVOTJUVnJMWVFOdU5QdXVWcDNJNldZRTI1QWZkekoybHcwcWdUQ0NG?=
- =?utf-8?B?bkdNRzUvQU9rUkRUN0tZYWViNWxlbmVYRWNzRFJUOVg0VUhHVyszc1FZRzlS?=
- =?utf-8?B?Nng3cW0ycXBjczdDYTdoUjBvZ2pscG1ENUtpQ2owZnNWd1pDRDlyaW5IaXp0?=
- =?utf-8?B?cjgxK1ROR3A4YzI0UndjUUpHYW14M3c5Q0pmL1pmeDVwVnpORW1nSVpjTW0w?=
- =?utf-8?B?bUJWNTJTQzRENVpGbzlEOHJRTWhpRi9yeENWbk1zQ3NSV2tXWTE2SnlxWmlI?=
- =?utf-8?B?TEthMzN0L2JJazJKUTdLTlc1MHpnR0FzYnNETGtWNGJlRjIwR0hEMFh6Tk94?=
- =?utf-8?B?a01VelpYREcwTEVIQ2xoUFpSQktGZTlrM0ZONGR5Q2lkdEg5YU5TQXdsNlhC?=
- =?utf-8?B?Mm1TSURqMm1vM0VmUFBmT056UEFjRE9DdjlsaHBhb0tPOVZPeVZSZlJxVmZG?=
- =?utf-8?B?UVBReWZZeUZpOG9pS2QzbFhJdVZzY1dVdmxEWWRoREt5QXJ2ckJ3dGR1RXBq?=
- =?utf-8?B?M0E9PQ==?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: e182da62-b0f1-4573-64d3-08dbbec1b6af
-X-MS-Exchange-CrossTenant-AuthSource: PH7PR11MB5984.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 26 Sep 2023 18:52:20.7807
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: jNPkji7et47PvF4VLh+3POJohvyzdKi0FY6VIB3bAIQl2J15+vwn7sM70r2cJn3o5WYSKTJfAY5Tpwaz9w6k2g==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CO1PR11MB5202
-X-OriginatorOrg: intel.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20230926-max-size-create-region-v1-1-d3555e91087c@intel.com>
+X-B4-Tracking: v=1; b=H4sIADh2E2UC/x3NQQqDQAyF4atI1g3oDLa0VyldZGJGs3BakiJS8
+ e4dXf4PPt4GLqbi8Gg2MFnU9V1qdJcGeKIyCupQG0IbYnsPV5xpRdefIJvQV9BkrAS73N9yjon
+ 7yFBxIhdMRoWng8+k5Zg/JlnX8+/52vc/LNjIMX8AAAA=
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev, 
+ Ira Weiny <ira.weiny@intel.com>
+X-Mailer: b4 0.13-dev-c6835
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1695774266; l=1072;
+ i=ira.weiny@intel.com; s=20221211; h=from:subject:message-id;
+ bh=6Q+yyCEe0DKcBWb6PF0uUikdZ9NOToB+Dd79jqNqRUM=;
+ b=JfGB5H1JVqbYY4ca7m4+v+g8t0G7wq36mNtMGhkxnr9F1jkETw0Cb3/Bl2UQq+p/TS08Bw0ru
+ d4v3GnEeSy4CjG5NeNNBW2faZoyVSiUdFWn7oPe9Sb5MJQDCbejNEd1
+X-Developer-Key: i=ira.weiny@intel.com; a=ed25519;
+ pk=noldbkG+Wp1qXRrrkfY1QJpDf7QsOEthbOT7vm0PqsE=
 
+When creating a region if the size exceeds the max an error is printed.
+However, the max available space is not reported which makes it harder
+to determine what is wrong.
 
+Add the max size available to the output error.
 
-On 9/26/23 11:45, Michal Wilczynski wrote:
-> devm_*() family of functions purpose is managing memory attached to a
-> device. So in general it should only be used for allocations that should
-> last for the whole lifecycle of the device. This is not the case for
-> acpi_nfit_init_interleave_set(). There are two allocations that are only
-> used locally in this function. What's more - if the function exits on
-> error path memory is never freed. It's still attached to dev and would
-> be freed on device detach, so this leak could be called a 'local leak'.
-> 
-> Fix this by switching from devm_kcalloc() to kcalloc(), and adding
-> proper rollback.
-> 
-> Fixes: eaf961536e16 ("libnvdimm, nfit: add interleave-set state-tracking infrastructure")
-> Reported-by: Andy Shevchenko <andy.shevchenko@gmail.com>
-> Signed-off-by: Michal Wilczynski <michal.wilczynski@intel.com>
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+---
+ cxl/region.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-> ---
->  drivers/acpi/nfit/core.c | 23 +++++++++++++++--------
->  1 file changed, 15 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-> index f0e6738ae3c9..78f0f855c4de 100644
-> --- a/drivers/acpi/nfit/core.c
-> +++ b/drivers/acpi/nfit/core.c
-> @@ -2262,6 +2262,7 @@ static int acpi_nfit_init_interleave_set(struct acpi_nfit_desc *acpi_desc,
->  	u16 nr = ndr_desc->num_mappings;
->  	struct nfit_set_info2 *info2;
->  	struct nfit_set_info *info;
-> +	int err = 0;
->  	int i;
->  
->  	nd_set = devm_kzalloc(dev, sizeof(*nd_set), GFP_KERNEL);
-> @@ -2269,13 +2270,15 @@ static int acpi_nfit_init_interleave_set(struct acpi_nfit_desc *acpi_desc,
->  		return -ENOMEM;
->  	import_guid(&nd_set->type_guid, spa->range_guid);
->  
-> -	info = devm_kcalloc(dev, nr, sizeof(*info), GFP_KERNEL);
-> +	info = kcalloc(nr, sizeof(*info), GFP_KERNEL);
->  	if (!info)
->  		return -ENOMEM;
->  
-> -	info2 = devm_kcalloc(dev, nr, sizeof(*info2), GFP_KERNEL);
-> -	if (!info2)
-> -		return -ENOMEM;
-> +	info2 = kcalloc(nr, sizeof(*info2), GFP_KERNEL);
-> +	if (!info2) {
-> +		err = -ENOMEM;
-> +		goto free_info;
-> +	}
->  
->  	for (i = 0; i < nr; i++) {
->  		struct nd_mapping_desc *mapping = &ndr_desc->mapping[i];
-> @@ -2289,7 +2292,8 @@ static int acpi_nfit_init_interleave_set(struct acpi_nfit_desc *acpi_desc,
->  
->  		if (!memdev || !nfit_mem->dcr) {
->  			dev_err(dev, "%s: failed to find DCR\n", __func__);
-> -			return -ENODEV;
-> +			err = -ENODEV;
-> +			goto free_info2;
->  		}
->  
->  		map->region_offset = memdev->region_offset;
-> @@ -2337,10 +2341,13 @@ static int acpi_nfit_init_interleave_set(struct acpi_nfit_desc *acpi_desc,
->  	}
->  
->  	ndr_desc->nd_set = nd_set;
-> -	devm_kfree(dev, info);
-> -	devm_kfree(dev, info2);
->  
-> -	return 0;
-> +free_info2:
-> +	kfree(info2);
-> +free_info:
-> +	kfree(info);
-> +
-> +	return err;
->  }
->  
->  static int ars_get_cap(struct acpi_nfit_desc *acpi_desc,
+diff --git a/cxl/region.c b/cxl/region.c
+index bcd703956207..cb6a547990fb 100644
+--- a/cxl/region.c
++++ b/cxl/region.c
+@@ -623,8 +623,8 @@ static int create_region(struct cxl_ctx *ctx, int *count,
+ 	}
+ 	if (!default_size && size > max_extent) {
+ 		log_err(&rl,
+-			"%s: region size %#lx exceeds max available space\n",
+-			cxl_decoder_get_devname(p->root_decoder), size);
++			"%s: region size %#lx exceeds max available space (%#lx)\n",
++			cxl_decoder_get_devname(p->root_decoder), size, max_extent);
+ 		return -ENOSPC;
+ 	}
+ 
+
+---
+base-commit: a871e6153b11fe63780b37cdcb1eb347b296095c
+change-id: 20230926-max-size-create-region-1f57ff3bc53c
+
+Best regards,
+-- 
+Ira Weiny <ira.weiny@intel.com>
+
