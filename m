@@ -1,151 +1,391 @@
-Received: from esa5.hc1455-7.c3s2.iphmx.com (esa5.hc1455-7.c3s2.iphmx.com [68.232.139.130])
+Received: from esa8.hc1455-7.c3s2.iphmx.com (esa8.hc1455-7.c3s2.iphmx.com [139.138.61.253])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A261D6D18
-	for <nvdimm@lists.linux.dev>; Thu, 28 Sep 2023 08:45:18 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6600,9927,10846"; a="133449162"
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 384FE1C27
+	for <nvdimm@lists.linux.dev>; Thu, 28 Sep 2023 10:33:41 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6600,9927,10846"; a="121965949"
 X-IronPort-AV: E=Sophos;i="6.03,183,1694703600"; 
-   d="scan'208";a="133449162"
-Received: from unknown (HELO oym-r1.gw.nic.fujitsu.com) ([210.162.30.89])
-  by esa5.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Sep 2023 17:44:06 +0900
-Received: from oym-m3.gw.nic.fujitsu.com (oym-nat-oym-m3.gw.nic.fujitsu.com [192.168.87.60])
-	by oym-r1.gw.nic.fujitsu.com (Postfix) with ESMTP id 8B498D29E6
-	for <nvdimm@lists.linux.dev>; Thu, 28 Sep 2023 17:44:03 +0900 (JST)
-Received: from kws-ab3.gw.nic.fujitsu.com (kws-ab3.gw.nic.fujitsu.com [192.51.206.21])
-	by oym-m3.gw.nic.fujitsu.com (Postfix) with ESMTP id B51ADD94AB
-	for <nvdimm@lists.linux.dev>; Thu, 28 Sep 2023 17:44:02 +0900 (JST)
-Received: from edo.cn.fujitsu.com (edo.cn.fujitsu.com [10.167.33.5])
-	by kws-ab3.gw.nic.fujitsu.com (Postfix) with ESMTP id 5640620074716
-	for <nvdimm@lists.linux.dev>; Thu, 28 Sep 2023 17:44:02 +0900 (JST)
-Received: from [192.168.50.5] (unknown [10.167.234.230])
-	by edo.cn.fujitsu.com (Postfix) with ESMTP id 7751C1A0006;
-	Thu, 28 Sep 2023 16:44:01 +0800 (CST)
-Message-ID: <9c3cbc0c-7135-4006-ad4a-2abce0a556b0@fujitsu.com>
-Date: Thu, 28 Sep 2023 16:44:00 +0800
+   d="scan'208";a="121965949"
+Received: from unknown (HELO yto-r4.gw.nic.fujitsu.com) ([218.44.52.220])
+  by esa8.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Sep 2023 19:32:29 +0900
+Received: from yto-m4.gw.nic.fujitsu.com (yto-nat-yto-m4.gw.nic.fujitsu.com [192.168.83.67])
+	by yto-r4.gw.nic.fujitsu.com (Postfix) with ESMTP id B5452D3EA3
+	for <nvdimm@lists.linux.dev>; Thu, 28 Sep 2023 19:32:27 +0900 (JST)
+Received: from kws-ab4.gw.nic.fujitsu.com (kws-ab4.gw.nic.fujitsu.com [192.51.206.22])
+	by yto-m4.gw.nic.fujitsu.com (Postfix) with ESMTP id E63C0D3F38
+	for <nvdimm@lists.linux.dev>; Thu, 28 Sep 2023 19:32:26 +0900 (JST)
+Received: from irides.g08.fujitsu.local (unknown [10.167.234.230])
+	by kws-ab4.gw.nic.fujitsu.com (Postfix) with ESMTP id F340F6B83C;
+	Thu, 28 Sep 2023 19:32:25 +0900 (JST)
+From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+To: linux-fsdevel@vger.kernel.org,
+	nvdimm@lists.linux.dev,
+	linux-xfs@vger.kernel.org,
+	linux-mm@kvack.org
+Cc: dan.j.williams@intel.com,
+	willy@infradead.org,
+	jack@suse.cz,
+	akpm@linux-foundation.org,
+	djwong@kernel.org,
+	mcgrof@kernel.org,
+	chandanbabu@kernel.org
+Subject: [PATCH v15] mm, pmem, xfs: Introduce MF_MEM_PRE_REMOVE for unbind
+Date: Thu, 28 Sep 2023 18:32:27 +0800
+Message-ID: <20230928103227.250550-1-ruansy.fnst@fujitsu.com>
+X-Mailer: git-send-email 2.42.0
+In-Reply-To: <20230828065744.1446462-1-ruansy.fnst@fujitsu.com>
+References: <20230828065744.1446462-1-ruansy.fnst@fujitsu.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] xfs: drop experimental warning for FSDAX
-To: Andrew Morton <akpm@linux-foundation.org>,
- Chandan Babu R <chandanbabu@kernel.org>
-Cc: "Darrick J. Wong" <djwong@kernel.org>, Dave Chinner
- <david@fromorbit.com>, linux-xfs@vger.kernel.org, nvdimm@lists.linux.dev,
- dan.j.williams@intel.com
-References: <20230915063854.1784918-1-ruansy.fnst@fujitsu.com>
- <86167409-aa7f-4db4-8335-3f290d507f14@fujitsu.com>
- <20230926145519.GE11439@frogsfrogsfrogs>
- <ZROC8hEabAGS7orb@dread.disaster.area>
- <20230927014632.GE11456@frogsfrogsfrogs>
- <87fs306zs1.fsf@debian-BULLSEYE-live-builder-AMD64>
- <5c064cbd-13a3-4d55-9881-0a079476d865@fujitsu.com>
- <bc29af15-ae63-407d-8ca0-186c976acce7@fujitsu.com>
- <87y1gs83yq.fsf@debian-BULLSEYE-live-builder-AMD64>
- <20230927083034.90bd6336229dd00af601e0ef@linux-foundation.org>
-From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-In-Reply-To: <20230927083034.90bd6336229dd00af601e0ef@linux-foundation.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 X-TM-AS-GCONF: 00
-X-TM-AS-Product-Ver: IMSS-9.1.0.1417-9.0.0.1002-27902.006
+X-TM-AS-Product-Ver: IMSS-9.1.0.1417-9.0.0.1002-27902.007
 X-TM-AS-User-Approved-Sender: Yes
-X-TMASE-Version: IMSS-9.1.0.1417-9.0.1002-27902.006
-X-TMASE-Result: 10--16.440600-10.000000
-X-TMASE-MatchedRID: AyN7oo9wR5uPvrMjLFD6eHchRkqzj/bEC/ExpXrHizxgPgeggVwCFqE/
-	TgV/LFqtPXugpBSOS/tBjv8UmknoE9wVQZbwM2zKPKN38CLPK0HjLrHqvAiSy5oM2VEm6bO52d8
-	mtRIRsUPQUPfACUPin/IkQ2eSUhawyNkakgF4d97GL//8mlodA6HUCV2g3senYV73FYxzvXKNRC
-	PAFosOlAP6HuDcBX9qXLe3NxV6yxRVr+pififhloL5ja7E+OhydmWMDQajOiJXGTbsQqHbkpkQ0
-	od6QhJD0Ondu5vpzD5RS7xjEb+dxEX9O+Mf2vo5Ur3GVI65GhYXivwflisSrM1Du0gmimMoeaWW
-	afw3eaehrwhaqCksE1+24nCsUSFN+dkjd91LgAC51H80nDYkdw1im+j3Fb6YjoczmuoPCq1xcAm
-	TPncMW/s4OuNnUXoJB5c5fmjbPBA8YOxBr9MuoMHNCgc07BBx
+X-TMASE-Version: IMSS-9.1.0.1417-9.0.1002-27902.007
+X-TMASE-Result: 10--22.737700-10.000000
+X-TMASE-MatchedRID: VU71FGpAPyn0kswJHlL1KikMR2LAnMRpMVx/3ZYby7+eEPi9wVyFrvQ9
+	seYAnNMGFXLD8NIP1b200CUVHJtoU4tUtJ9UYBX7fiKzBf4Yf9gYH39vFLryE1hs8uimgHNCjcR
+	qQigdY13DKKXtpTQT/spLIuGeLArNnpdzfoA7wecB6/aPodnUlgmWvXEqQTm5R2z2RqVFhBoRbq
+	eAiDR9yWBha63On1TPJ3TEshnsAz7bKAyc+TgM3CoiRKlBVkYI8bHRUazq99RxGu6rjxUqUF88K
+	FWF27c+zSEy3HVaiC5eb2xJS17QL9HpEovtNFNuEXjPIvKd74AzNsXWBvGVBs9anVQrvNX3OxE7
+	7kNtuQnlkd2q4DAqgeppp2JwmBaVBKvwQYblWIb0hv/rD7WVZH607foZgOWy4Jg2aOOdYIKcQWV
+	MGtd3l37cTriphWHJ1HinZFrgJn7bIYhvv070KFhRyidsElYk8SkdpG2/n9dlSB4Tpn2RE3v3EJ
+	JrdBuxBHGj1qouCqtgOb2hKLw6D2R5WlY/ZLL5rltvlARhKR1XBOoTSveiDwZZ8N3RvTMxo8WMk
+	QWv6iXBcIE78YqRWo6HM5rqDwqtlExlQIQeRG0=
 X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
 
+====
+Changes since v14:
+ 1. added/fixed code comments per Dan's comments
+====
 
+Now, if we suddenly remove a PMEM device(by calling unbind) which
+contains FSDAX while programs are still accessing data in this device,
+e.g.:
+```
+ $FSSTRESS_PROG -d $SCRATCH_MNT -n 99999 -p 4 &
+ # $FSX_PROG -N 1000000 -o 8192 -l 500000 $SCRATCH_MNT/t001 &
+ echo "pfn1.1" > /sys/bus/nd/drivers/nd_pmem/unbind
+```
+it could come into an unacceptable state:
+  1. device has gone but mount point still exists, and umount will fail
+       with "target is busy"
+  2. programs will hang and cannot be killed
+  3. may crash with NULL pointer dereference
 
-在 2023/9/27 23:30, Andrew Morton 写道:
-> On Wed, 27 Sep 2023 13:01:25 +0530 Chandan Babu R <chandanbabu@kernel.org> wrote:
-> 
->>
->>
->> 在 2023/9/27 13:17, Shiyang Ruan 写道:
->>>
->>> 在 2023/9/27 11:38, Chandan Babu R 写道:
->>>> On Tue, Sep 26, 2023 at 06:46:32 PM -0700, Darrick J. Wong wrote:
->>>>> On Wed, Sep 27, 2023 at 11:18:42AM +1000, Dave Chinner wrote:
->>>>>> On Tue, Sep 26, 2023 at 07:55:19AM -0700, Darrick J. Wong wrote:
->>>>>>> On Thu, Sep 21, 2023 at 04:33:04PM +0800, Shiyang Ruan wrote:
->>>>>>>> Hi,
->>>>>>>>
->>>>>>>> Any comments?
->>>>>>>
->>>>>>> I notice that xfs/55[0-2] still fail on my fakepmem machine:
->>>>>>>
->>>>>>> --- /tmp/fstests/tests/xfs/550.out    2023-09-23
->>>>>>> 09:40:47.839521305 -0700
->>>>>>> +++ /var/tmp/fstests/xfs/550.out.bad    2023-09-24
->>>>>>> 20:00:23.400000000 -0700
->>>>>>> @@ -3,7 +3,6 @@ Format and mount
->>>>>>>    Create the original files
->>>>>>>    Inject memory failure (1 page)
->>>>>>>    Inject poison...
->>>>>>> -Process is killed by signal: 7
->>>>>>>    Inject memory failure (2 pages)
->>>>>>>    Inject poison...
->>>>>>> -Process is killed by signal: 7
->>>>>>> +Memory failure didn't kill the process
->>>>>>>
->>>>>>> (yes, rmap is enabled)
->>>>>>
->>>>>> Yes, I see the same failures, too. I've just been ignoring them
->>>>>> because I thought that all the memory failure code was still not
->>>>>> complete....
->>>>>
->>>>> Oh, I bet we were supposed to have merged this
->>>>>
->>>>> https://lore.kernel.org/linux-xfs/20230828065744.1446462-1-ruansy.fnst@fujitsu.com/
->>
->> FYI, this one is in Andrew's mm-unstable tree:
->>
->> https://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm.git/commit/?h=mm-unstable&id=ff048e3e2d167927634a45f4f424338411a1c4e6
-> 
-> I'll move this into mm-hotfixes so it gets merged into mainline during
-> this -rc cycle.
+To fix this, we introduce a MF_MEM_PRE_REMOVE flag to let it know that we
+are going to remove the whole device, and make sure all related processes
+could be notified so that they could end up gracefully.
 
-Thanks.  I'll send a new version per Dan's comment.
+This patch is inspired by Dan's "mm, dax, pmem: Introduce
+dev_pagemap_failure()"[1].  With the help of dax_holder and
+->notify_failure() mechanism, the pmem driver is able to ask filesystem
+on it to unmap all files in use, and notify processes who are using
+those files.
 
-> 
-> Should it be backported into earlier kernels, via a cc:stable?  If so,
-> are we able to identify a Fixes: target?
+Call trace:
+trigger unbind
+ -> unbind_store()
+  -> ... (skip)
+   -> devres_release_all()
+    -> kill_dax()
+     -> dax_holder_notify_failure(dax_dev, 0, U64_MAX, MF_MEM_PRE_REMOVE)
+      -> xfs_dax_notify_failure()
+      `-> freeze_super()             // freeze (kernel call)
+      `-> do xfs rmap
+      ` -> mf_dax_kill_procs()
+      `  -> collect_procs_fsdax()    // all associated processes
+      `  -> unmap_and_kill()
+      ` -> invalidate_inode_pages2_range() // drop file's cache
+      `-> thaw_super()               // thaw (both kernel & user call)
 
-I think this patch is a feature implementation, so it doesn't need to be 
-packported.
+Introduce MF_MEM_PRE_REMOVE to let filesystem know this is a remove
+event.  Use the exclusive freeze/thaw[2] to lock the filesystem to prevent
+new dax mapping from being created.  Do not shutdown filesystem directly
+if configuration is not supported, or if failure range includes metadata
+area.  Make sure all files and processes(not only the current progress)
+are handled correctly.  Also drop the cache of associated files before
+pmem is removed.
 
-But please pick the following patch[1] as well, which fixes failures of 
-xfs55[0-2] cases.
+[1]: https://lore.kernel.org/linux-mm/161604050314.1463742.14151665140035795571.stgit@dwillia2-desk3.amr.corp.intel.com/
+[2]: https://lore.kernel.org/linux-xfs/169116275623.3187159.16862410128731457358.stg-ugh@frogsfrogsfrogs/
 
-[1] 
-https://lore.kernel.org/linux-xfs/20230913102942.601271-1-ruansy.fnst@fujitsu.com
+Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Reviewed-by: Darrick J. Wong <djwong@kernel.org>
+Acked-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/dax/super.c         |   3 +-
+ fs/xfs/xfs_notify_failure.c | 108 ++++++++++++++++++++++++++++++++++--
+ include/linux/mm.h          |   1 +
+ mm/memory-failure.c         |  21 +++++--
+ 4 files changed, 122 insertions(+), 11 deletions(-)
 
+diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+index 0da9232ea175..f4b635526345 100644
+--- a/drivers/dax/super.c
++++ b/drivers/dax/super.c
+@@ -326,7 +326,8 @@ void kill_dax(struct dax_device *dax_dev)
+ 		return;
+ 
+ 	if (dax_dev->holder_data != NULL)
+-		dax_holder_notify_failure(dax_dev, 0, U64_MAX, 0);
++		dax_holder_notify_failure(dax_dev, 0, U64_MAX,
++				MF_MEM_PRE_REMOVE);
+ 
+ 	clear_bit(DAXDEV_ALIVE, &dax_dev->flags);
+ 	synchronize_srcu(&dax_srcu);
+diff --git a/fs/xfs/xfs_notify_failure.c b/fs/xfs/xfs_notify_failure.c
+index 4a9bbd3fe120..30e9f4e09f76 100644
+--- a/fs/xfs/xfs_notify_failure.c
++++ b/fs/xfs/xfs_notify_failure.c
+@@ -22,6 +22,7 @@
+ 
+ #include <linux/mm.h>
+ #include <linux/dax.h>
++#include <linux/fs.h>
+ 
+ struct xfs_failure_info {
+ 	xfs_agblock_t		startblock;
+@@ -73,10 +74,16 @@ xfs_dax_failure_fn(
+ 	struct xfs_mount		*mp = cur->bc_mp;
+ 	struct xfs_inode		*ip;
+ 	struct xfs_failure_info		*notify = data;
++	struct address_space		*mapping;
++	pgoff_t				pgoff;
++	unsigned long			pgcnt;
+ 	int				error = 0;
+ 
+ 	if (XFS_RMAP_NON_INODE_OWNER(rec->rm_owner) ||
+ 	    (rec->rm_flags & (XFS_RMAP_ATTR_FORK | XFS_RMAP_BMBT_BLOCK))) {
++		/* Continue the query because this isn't a failure. */
++		if (notify->mf_flags & MF_MEM_PRE_REMOVE)
++			return 0;
+ 		notify->want_shutdown = true;
+ 		return 0;
+ 	}
+@@ -92,14 +99,60 @@ xfs_dax_failure_fn(
+ 		return 0;
+ 	}
+ 
+-	error = mf_dax_kill_procs(VFS_I(ip)->i_mapping,
+-				  xfs_failure_pgoff(mp, rec, notify),
+-				  xfs_failure_pgcnt(mp, rec, notify),
+-				  notify->mf_flags);
++	mapping = VFS_I(ip)->i_mapping;
++	pgoff = xfs_failure_pgoff(mp, rec, notify);
++	pgcnt = xfs_failure_pgcnt(mp, rec, notify);
++
++	/* Continue the rmap query if the inode isn't a dax file. */
++	if (dax_mapping(mapping))
++		error = mf_dax_kill_procs(mapping, pgoff, pgcnt,
++					  notify->mf_flags);
++
++	/* Invalidate the cache in dax pages. */
++	if (notify->mf_flags & MF_MEM_PRE_REMOVE)
++		invalidate_inode_pages2_range(mapping, pgoff,
++					      pgoff + pgcnt - 1);
++
+ 	xfs_irele(ip);
+ 	return error;
+ }
+ 
++static int
++xfs_dax_notify_failure_freeze(
++	struct xfs_mount	*mp)
++{
++	struct super_block	*sb = mp->m_super;
++	int			error;
++
++	error = freeze_super(sb, FREEZE_HOLDER_KERNEL);
++	if (error)
++		xfs_emerg(mp, "already frozen by kernel, err=%d", error);
++
++	return error;
++}
++
++static void
++xfs_dax_notify_failure_thaw(
++	struct xfs_mount	*mp,
++	bool			kernel_frozen)
++{
++	struct super_block	*sb = mp->m_super;
++	int			error;
++
++	if (kernel_frozen) {
++		error = thaw_super(sb, FREEZE_HOLDER_KERNEL);
++		if (error)
++			xfs_emerg(mp, "still frozen after notify failure, err=%d",
++				error);
++	}
++
++	/*
++	 * Also thaw userspace call anyway because the device is about to be
++	 * removed immediately.
++	 */
++	thaw_super(sb, FREEZE_HOLDER_USERSPACE);
++}
++
+ static int
+ xfs_dax_notify_ddev_failure(
+ 	struct xfs_mount	*mp,
+@@ -112,15 +165,29 @@ xfs_dax_notify_ddev_failure(
+ 	struct xfs_btree_cur	*cur = NULL;
+ 	struct xfs_buf		*agf_bp = NULL;
+ 	int			error = 0;
++	bool			kernel_frozen = false;
+ 	xfs_fsblock_t		fsbno = XFS_DADDR_TO_FSB(mp, daddr);
+ 	xfs_agnumber_t		agno = XFS_FSB_TO_AGNO(mp, fsbno);
+ 	xfs_fsblock_t		end_fsbno = XFS_DADDR_TO_FSB(mp,
+ 							     daddr + bblen - 1);
+ 	xfs_agnumber_t		end_agno = XFS_FSB_TO_AGNO(mp, end_fsbno);
+ 
++	if (mf_flags & MF_MEM_PRE_REMOVE) {
++		xfs_info(mp, "Device is about to be removed!");
++		/*
++		 * Freeze fs to prevent new mappings from being created.
++		 * - Keep going on if others already hold the kernel forzen.
++		 * - Keep going on if other errors too because this device is
++		 *   starting to fail.
++		 * - If kernel frozen state is hold successfully here, thaw it
++		 *   here as well at the end.
++		 */
++		kernel_frozen = xfs_dax_notify_failure_freeze(mp) == 0;
++	}
++
+ 	error = xfs_trans_alloc_empty(mp, &tp);
+ 	if (error)
+-		return error;
++		goto out;
+ 
+ 	for (; agno <= end_agno; agno++) {
+ 		struct xfs_rmap_irec	ri_low = { };
+@@ -165,11 +232,26 @@ xfs_dax_notify_ddev_failure(
+ 	}
+ 
+ 	xfs_trans_cancel(tp);
+-	if (error || notify.want_shutdown) {
++
++	/*
++	 * Shutdown fs from a force umount in pre-remove case which won't fail,
++	 * so errors can be ignored.  Otherwise, shutdown the filesystem with
++	 * CORRUPT flag if error occured or notify.want_shutdown was set during
++	 * RMAP querying.
++	 */
++	if (mf_flags & MF_MEM_PRE_REMOVE)
++		xfs_force_shutdown(mp, SHUTDOWN_FORCE_UMOUNT);
++	else if (error || notify.want_shutdown) {
+ 		xfs_force_shutdown(mp, SHUTDOWN_CORRUPT_ONDISK);
+ 		if (!error)
+ 			error = -EFSCORRUPTED;
+ 	}
++
++out:
++	/* Thaw the fs if it has been frozen before. */
++	if (mf_flags & MF_MEM_PRE_REMOVE)
++		xfs_dax_notify_failure_thaw(mp, kernel_frozen);
++
+ 	return error;
+ }
+ 
+@@ -197,6 +279,14 @@ xfs_dax_notify_failure(
+ 
+ 	if (mp->m_logdev_targp && mp->m_logdev_targp->bt_daxdev == dax_dev &&
+ 	    mp->m_logdev_targp != mp->m_ddev_targp) {
++		/*
++		 * In the pre-remove case the failure notification is attempting
++		 * to trigger a force unmount.  The expectation is that the
++		 * device is still present, but its removal is in progress and
++		 * can not be cancelled, proceed with accessing the log device.
++		 */
++		if (mf_flags & MF_MEM_PRE_REMOVE)
++			return 0;
+ 		xfs_err(mp, "ondisk log corrupt, shutting down fs!");
+ 		xfs_force_shutdown(mp, SHUTDOWN_CORRUPT_ONDISK);
+ 		return -EFSCORRUPTED;
+@@ -210,6 +300,12 @@ xfs_dax_notify_failure(
+ 	ddev_start = mp->m_ddev_targp->bt_dax_part_off;
+ 	ddev_end = ddev_start + bdev_nr_bytes(mp->m_ddev_targp->bt_bdev) - 1;
+ 
++	/* Notify failure on the whole device. */
++	if (offset == 0 && len == U64_MAX) {
++		offset = ddev_start;
++		len = bdev_nr_bytes(mp->m_ddev_targp->bt_bdev);
++	}
++
+ 	/* Ignore the range out of filesystem area */
+ 	if (offset + len - 1 < ddev_start)
+ 		return -ENXIO;
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 2dd73e4f3d8e..a10c75bebd6d 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -3665,6 +3665,7 @@ enum mf_flags {
+ 	MF_UNPOISON = 1 << 4,
+ 	MF_SW_SIMULATED = 1 << 5,
+ 	MF_NO_RETRY = 1 << 6,
++	MF_MEM_PRE_REMOVE = 1 << 7,
+ };
+ int mf_dax_kill_procs(struct address_space *mapping, pgoff_t index,
+ 		      unsigned long count, int mf_flags);
+diff --git a/mm/memory-failure.c b/mm/memory-failure.c
+index e245191e6b04..955edea9837f 100644
+--- a/mm/memory-failure.c
++++ b/mm/memory-failure.c
+@@ -683,7 +683,7 @@ static void add_to_kill_fsdax(struct task_struct *tsk, struct page *p,
+  */
+ static void collect_procs_fsdax(struct page *page,
+ 		struct address_space *mapping, pgoff_t pgoff,
+-		struct list_head *to_kill)
++		struct list_head *to_kill, bool pre_remove)
+ {
+ 	struct vm_area_struct *vma;
+ 	struct task_struct *tsk;
+@@ -691,8 +691,15 @@ static void collect_procs_fsdax(struct page *page,
+ 	i_mmap_lock_read(mapping);
+ 	read_lock(&tasklist_lock);
+ 	for_each_process(tsk) {
+-		struct task_struct *t = task_early_kill(tsk, true);
++		struct task_struct *t = tsk;
+ 
++		/*
++		 * Search for all tasks while MF_MEM_PRE_REMOVE is set, because
++		 * the current may not be the one accessing the fsdax page.
++		 * Otherwise, search for the current task.
++		 */
++		if (!pre_remove)
++			t = task_early_kill(tsk, true);
+ 		if (!t)
+ 			continue;
+ 		vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff, pgoff) {
+@@ -1788,6 +1795,7 @@ int mf_dax_kill_procs(struct address_space *mapping, pgoff_t index,
+ 	dax_entry_t cookie;
+ 	struct page *page;
+ 	size_t end = index + count;
++	bool pre_remove = mf_flags & MF_MEM_PRE_REMOVE;
+ 
+ 	mf_flags |= MF_ACTION_REQUIRED | MF_MUST_KILL;
+ 
+@@ -1799,9 +1807,14 @@ int mf_dax_kill_procs(struct address_space *mapping, pgoff_t index,
+ 		if (!page)
+ 			goto unlock;
+ 
+-		SetPageHWPoison(page);
++		if (!pre_remove)
++			SetPageHWPoison(page);
+ 
+-		collect_procs_fsdax(page, mapping, index, &to_kill);
++		/*
++		 * The pre_remove case is revoking access, the memory is still
++		 * good and could theoretically be put back into service.
++		 */
++		collect_procs_fsdax(page, mapping, index, &to_kill, pre_remove);
+ 		unmap_and_kill(&to_kill, page_to_pfn(page), mapping,
+ 				index, mf_flags);
+ unlock:
+-- 
+2.42.0
 
---
-Thanks,
-Ruan.
-
-> 
->>
->>>>>
->>>>> to complete the pmem media failure handling code.  Should we (by which I
->>>>> mostly mean Shiyang) ask Chandan to merge these two patches for 6.7?
->>>>>
->>>>
->>>> I can add this patch into XFS tree for 6.7. But I will need Acks
->>>> from Andrew
->>>> Morton and Dan Williams.
->>
->> To clarify further, I will need Acked-By for the patch at
->> https://lore.kernel.org/linux-xfs/20230828065744.1446462-1-ruansy.fnst@fujitsu.com/
-> 
-> That would be nice.
