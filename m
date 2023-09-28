@@ -1,82 +1,140 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [134.134.136.126])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37BF15123C
-	for <nvdimm@lists.linux.dev>; Thu, 28 Sep 2023 17:13:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 939ECC433CA;
-	Thu, 28 Sep 2023 17:13:39 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1695921219;
-	bh=xc71nH9PeN+Mpkyd0K3f9ai/3747MbMlx6iYRlknsiQ=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=qZuPYWyW2J+aLKOVzgHAZR2rrYx+C88RDth8g9RK7ubv66N7uN7K1HR+Z5bM/Y+Ps
-	 pJVCu33eV+9DnHF5pvXuvJ93WvJHSzK4tIVGw2nmoS/C4CkeM7mjaXCgp4GEsHjqUK
-	 ucOmI9MKMm6G+1nGC069rH7PmqE8G9WOZw5cXcMDUWopKTo7K1odcgokdAfb+GSFEd
-	 vmnmN4kv5Bo6AFzZpZk1Sv6YNpOJ10fUeyGpZGkHOvt5vBZergH1OxvDuAmaDeRdwj
-	 RIvn3DlC+uvXDmGTdiABoLDq/96uTO0tMuI+/ZeNr3jRh5wCHDlFrhsDuxsC+Q4FH0
-	 29RStZMXpsW+g==
-Date: Thu, 28 Sep 2023 10:13:39 -0700
-From: "Darrick J. Wong" <djwong@kernel.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Shiyang Ruan <ruansy.fnst@fujitsu.com>,
-	Chandan Babu R <chandanbabu@kernel.org>,
-	Dave Chinner <david@fromorbit.com>, linux-xfs@vger.kernel.org,
-	nvdimm@lists.linux.dev, dan.j.williams@intel.com
-Subject: Re: [PATCH] xfs: drop experimental warning for FSDAX
-Message-ID: <20230928171339.GJ11439@frogsfrogsfrogs>
-References: <20230926145519.GE11439@frogsfrogsfrogs>
- <ZROC8hEabAGS7orb@dread.disaster.area>
- <20230927014632.GE11456@frogsfrogsfrogs>
- <87fs306zs1.fsf@debian-BULLSEYE-live-builder-AMD64>
- <5c064cbd-13a3-4d55-9881-0a079476d865@fujitsu.com>
- <bc29af15-ae63-407d-8ca0-186c976acce7@fujitsu.com>
- <87y1gs83yq.fsf@debian-BULLSEYE-live-builder-AMD64>
- <20230927083034.90bd6336229dd00af601e0ef@linux-foundation.org>
- <9c3cbc0c-7135-4006-ad4a-2abce0a556b0@fujitsu.com>
- <20230928092052.9775e59262c102dc382513ef@linux-foundation.org>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C28FA1640A
+	for <nvdimm@lists.linux.dev>; Thu, 28 Sep 2023 20:30:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1695933050; x=1727469050;
+  h=from:subject:date:message-id:mime-version:
+   content-transfer-encoding:to:cc;
+  bh=cAy0mCyyU34BrYjzihAk6QBEdSFRsmrEsY5ivGjaggs=;
+  b=VkB1UUU7MHQf0fpbnFHmwOntxskrezGyHPkCwQVZQeaqxg1gKXs+FUd1
+   wC/i+FJllWDxzntNuOPLnuIow1+NZW6T8YlZR9SwBA0mC5msru23/DgkN
+   RiyKIQwnCoZ8LSY/wxwOsANyKLkaaVoNIo9GmOLxd+UqPEMei2Q9Lf8o0
+   HKzwGhIEGObZy2pHN0yPODrR5B+ls7fURAz8DELX9uGeKRxX+4/8cfe8O
+   0KOj2pYB6RaaMmxAK5n+jo5Xe3XwjAhcceB28riQQUf5rGmROJGSTNt+P
+   pYuAtvDkvsCZHg+MTystMvTLG72l4U+5vUIkbr2hH/+zzOmN02c5zTbmG
+   g==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10847"; a="367229665"
+X-IronPort-AV: E=Sophos;i="6.03,185,1694761200"; 
+   d="scan'208";a="367229665"
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Sep 2023 13:30:31 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10847"; a="815374351"
+X-IronPort-AV: E=Sophos;i="6.03,185,1694761200"; 
+   d="scan'208";a="815374351"
+Received: from bdsebast-mobl1.amr.corp.intel.com (HELO [192.168.1.200]) ([10.212.125.211])
+  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Sep 2023 13:30:30 -0700
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v4 0/2] mm: use memmap_on_memory semantics for dax/kmem
+Date: Thu, 28 Sep 2023 14:30:09 -0600
+Message-Id: <20230928-vv-kmem_memmap-v4-0-6ff73fec519a@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230928092052.9775e59262c102dc382513ef@linux-foundation.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAFHiFWUC/3XNQQ7CIBAF0KsY1mIoIIIr72GMmdKpJbbUgBKN6
+ d0d3Wg0Lmbxf/L+3FnGFDCz9ezOEpaQwxgp6PmM+Q7iAXloKDMppBKmUrwUfhxw2NMNcOJLbZW
+ 3jdBy5RihGjLyOkH0HbF46XsqTwnbcH192e4odyGfx3R7PS3Vs/27XyoueGsadN5AK73ZhHjGf
+ uHHgT2ninzzlRQ/XBK3tm4AaqWdU99cvbkV1Q9XxLUw6ADapbHuk0/T9ACKqImFPwEAAA==
+To: Andrew Morton <akpm@linux-foundation.org>, 
+ David Hildenbrand <david@redhat.com>, Oscar Salvador <osalvador@suse.de>, 
+ Dan Williams <dan.j.williams@intel.com>, Dave Jiang <dave.jiang@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, 
+ nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org, 
+ Huang Ying <ying.huang@intel.com>, 
+ Dave Hansen <dave.hansen@linux.intel.com>, 
+ "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, 
+ Michal Hocko <mhocko@suse.com>, 
+ Jonathan Cameron <Jonathan.Cameron@Huawei.com>, 
+ Jeff Moyer <jmoyer@redhat.com>, Vishal Verma <vishal.l.verma@intel.com>, 
+ Jonathan Cameron <Jonathan.Cameron@huawei.com>
+X-Mailer: b4 0.12.3
+X-Developer-Signature: v=1; a=openpgp-sha256; l=3152;
+ i=vishal.l.verma@intel.com; h=from:subject:message-id;
+ bh=cAy0mCyyU34BrYjzihAk6QBEdSFRsmrEsY5ivGjaggs=;
+ b=owGbwMvMwCXGf25diOft7jLG02pJDKmij4Itwm6bPF8XxpAX828Kx6+++ga1a8WXpk/iy1n0q
+ 9o+Vd+po5SFQYyLQVZMkeXvno+Mx+S25/MEJjjCzGFlAhnCwMUpABOpamFk2HH85zqnqsfuZSuE
+ s9LX79q9c3Vz0pKJW9756Ng/MWt568LI8C+Uf5KPdvLpIs+jV226St8k1mfPY7Ker2L8XCI48fN
+ xDgA=
+X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp;
+ fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
 
-On Thu, Sep 28, 2023 at 09:20:52AM -0700, Andrew Morton wrote:
-> On Thu, 28 Sep 2023 16:44:00 +0800 Shiyang Ruan <ruansy.fnst@fujitsu.com> wrote:
-> 
-> > But please pick the following patch[1] as well, which fixes failures of 
-> > xfs55[0-2] cases.
-> > 
-> > [1] 
-> > https://lore.kernel.org/linux-xfs/20230913102942.601271-1-ruansy.fnst@fujitsu.com
-> 
-> I guess I can take that xfs patch, as it fixes a DAX patch.  I hope the xfs team
-> are watching.
-> 
-> But
-> 
-> a) I'm not subscribed to linux-xfs and
-> 
-> b) the changelog fails to describe the userspace-visible effects of
->    the bug, so I (and others) are unable to determine which kernel
->    versions should be patched.
-> 
-> Please update that changelog and resend?
+The dax/kmem driver can potentially hot-add large amounts of memory
+originating from CXL memory expanders, or NVDIMMs, or other 'device
+memories'. There is a chance there isn't enough regular system memory
+available to fit the memmap for this new memory. It's therefore
+desirable, if all other conditions are met, for the kmem managed memory
+to place its memmap on the newly added memory itself.
 
-That's a purely xfs patch anyways.  The correct maintainer is Chandan,
-not Andrew.
+The main hurdle for accomplishing this for kmem is that memmap_on_memory
+can only be done if the memory being added is equal to the size of one
+memblock. To overcome this, allow the hotplug code to split an add_memory()
+request into memblock-sized chunks, and try_remove_memory() to also
+expect and handle such a scenario.
 
-/me notes that post-reorg, patch authors need to ask the release manager
-(Chandan) directly to merge their patches after they've gone through
-review.  Pull requests of signed tags are encouraged strongly.
+Patch 1 teaches the memory_hotplug code to allow for splitting
+add_memory() and remove_memory() requests over memblock sized chunks.
 
-Shiyang, could you please send Chandan pull requests with /all/ the
-relevant pmem patches incorporated?  I think that's one PR for the
-"xfs: correct calculation for agend and blockcount" for 6.6; and a
-second PR with all the non-bugfix stuff (PRE_REMOVE and whatnot) for
-6.7.
+Patch 2 adds a sysfs control for the kmem driver that would
+allow an opt-out of using memmap_on_memory for the memory being added.
 
---D
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+Changes in v4:
+- Rebase to Aneesh's PPC64 memmap_on_memory series v8 [2].
+- Tweak a goto / error path in add_memory_create_devices() (Jonathan)
+- Retain the old behavior for dax devices, only default to
+  memmap_on_memory for CXL (Jonathan)
+- Link to v3: https://lore.kernel.org/r/20230801-vv-kmem_memmap-v3-0-406e9aaf5689@intel.com
+
+[2]: https://lore.kernel.org/linux-mm/20230808091501.287660-1-aneesh.kumar@linux.ibm.com
+
+Changes in v3:
+- Rebase on Aneesh's patches [1]
+- Drop Patch 1 - it is not needed since [1] allows for dynamic setting
+  of the memmap_on_memory param (David)
+- Link to v2: https://lore.kernel.org/r/20230720-vv-kmem_memmap-v2-0-88bdaab34993@intel.com
+
+[1]: https://lore.kernel.org/r/20230801044116.10674-1-aneesh.kumar@linux.ibm.com
+
+Changes in v2:
+- Drop the patch to create an override path for the memmap_on_memory
+  module param (David)
+- Move the chunking into memory_hotplug.c so that any caller of
+  add_memory() can request this behavior. (David)
+- Handle remove_memory() too. (David, Ying)
+- Add a sysfs control in the kmem driver for memmap_on_memory semantics
+  (David, Jonathan)
+- Add a #else case to define mhp_supports_memmap_on_memory() if
+  CONFIG_MEMORY_HOTPLUG is unset. (0day report)
+- Link to v1: https://lore.kernel.org/r/20230613-vv-kmem_memmap-v1-0-f6de9c6af2c6@intel.com
+
+---
+Vishal Verma (2):
+      mm/memory_hotplug: split memmap_on_memory requests across memblocks
+      dax/kmem: allow kmem to add memory with memmap_on_memory
+
+ drivers/dax/bus.h         |   1 +
+ drivers/dax/dax-private.h |   1 +
+ drivers/dax/bus.c         |  38 +++++++++++
+ drivers/dax/cxl.c         |   1 +
+ drivers/dax/hmem/hmem.c   |   1 +
+ drivers/dax/kmem.c        |   8 ++-
+ drivers/dax/pmem.c        |   1 +
+ mm/memory_hotplug.c       | 165 ++++++++++++++++++++++++++++------------------
+ 8 files changed, 150 insertions(+), 66 deletions(-)
+---
+base-commit: 25b5b1a0646c3d39e1d885e27c10be1c9e202bf2
+change-id: 20230613-vv-kmem_memmap-5483c8d04279
+
+Best regards,
+-- 
+Vishal Verma <vishal.l.verma@intel.com>
+
