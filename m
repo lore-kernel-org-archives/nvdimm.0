@@ -1,270 +1,114 @@
-Received: from mgamail.intel.com (mgamail.intel.com [134.134.136.126])
+Received: from esa2.hc1455-7.c3s2.iphmx.com (esa2.hc1455-7.c3s2.iphmx.com [207.54.90.48])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D2B08839
-	for <nvdimm@lists.linux.dev>; Thu, 28 Sep 2023 20:30:52 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1695933053; x=1727469053;
-  h=from:date:subject:mime-version:content-transfer-encoding:
-   message-id:references:in-reply-to:to:cc;
-  bh=vr4yVCTT0Ug5tj83kbU0iH+2ATewvlAUFs0OqOZ9pYo=;
-  b=K5XxNN/QnUXTT/ycHysnj6XnkQYs3opHdsVVeV36A0Yi3R+nRsNptQx5
-   nk/vt+bHBWdoS98QZ7clATlc7pFIWHS7qkshTX4adhINa4X1K/3LPqBHu
-   R9Y4eaB2uLODzijTPIdzumXCILWvKuTGHGjMkFMRvqfKUbKlAwtKSG3L7
-   BT++JyGo8S8HuHFh+KYfkQtwM6cRlehsd7hLfzyxdyu9OTqcCxrJn1fgq
-   dhHHbBQ6+GN9zPe1zXyM/Kw+e/yBTeHzbAd7wHm4aI8EexMCVC/Vn1H6Y
-   SCBkoIrGAsVx38M288c/vyJtkZGH2/5W1yaFm3kqLlsZ5DdR47h6KGAkw
-   g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10847"; a="367229686"
-X-IronPort-AV: E=Sophos;i="6.03,185,1694761200"; 
-   d="scan'208";a="367229686"
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Sep 2023 13:30:32 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10847"; a="815374363"
-X-IronPort-AV: E=Sophos;i="6.03,185,1694761200"; 
-   d="scan'208";a="815374363"
-Received: from bdsebast-mobl1.amr.corp.intel.com (HELO [192.168.1.200]) ([10.212.125.211])
-  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Sep 2023 13:30:31 -0700
-From: Vishal Verma <vishal.l.verma@intel.com>
-Date: Thu, 28 Sep 2023 14:30:11 -0600
-Subject: [PATCH v4 2/2] dax/kmem: allow kmem to add memory with
- memmap_on_memory
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 923A51864
+	for <nvdimm@lists.linux.dev>; Fri, 29 Sep 2023 11:57:51 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6600,9927,10847"; a="134127142"
+X-IronPort-AV: E=Sophos;i="6.03,187,1694703600"; 
+   d="scan'208";a="134127142"
+Received: from unknown (HELO oym-r1.gw.nic.fujitsu.com) ([210.162.30.89])
+  by esa2.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Sep 2023 20:56:39 +0900
+Received: from oym-m3.gw.nic.fujitsu.com (oym-nat-oym-m3.gw.nic.fujitsu.com [192.168.87.60])
+	by oym-r1.gw.nic.fujitsu.com (Postfix) with ESMTP id 5B637D29E5
+	for <nvdimm@lists.linux.dev>; Fri, 29 Sep 2023 20:56:37 +0900 (JST)
+Received: from kws-ab4.gw.nic.fujitsu.com (kws-ab4.gw.nic.fujitsu.com [192.51.206.22])
+	by oym-m3.gw.nic.fujitsu.com (Postfix) with ESMTP id 897E3D94B2
+	for <nvdimm@lists.linux.dev>; Fri, 29 Sep 2023 20:56:36 +0900 (JST)
+Received: from edo.cn.fujitsu.com (edo.cn.fujitsu.com [10.167.33.5])
+	by kws-ab4.gw.nic.fujitsu.com (Postfix) with ESMTP id 1BF48401A7
+	for <nvdimm@lists.linux.dev>; Fri, 29 Sep 2023 20:56:36 +0900 (JST)
+Received: from [10.193.128.127] (unknown [10.193.128.127])
+	by edo.cn.fujitsu.com (Postfix) with ESMTP id 30CC21A0070;
+	Fri, 29 Sep 2023 19:56:35 +0800 (CST)
+Message-ID: <99279735-2d17-405f-bade-9501a296d817@fujitsu.com>
+Date: Fri, 29 Sep 2023 19:56:34 +0800
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20230928-vv-kmem_memmap-v4-2-6ff73fec519a@intel.com>
-References: <20230928-vv-kmem_memmap-v4-0-6ff73fec519a@intel.com>
-In-Reply-To: <20230928-vv-kmem_memmap-v4-0-6ff73fec519a@intel.com>
-To: Andrew Morton <akpm@linux-foundation.org>, 
- David Hildenbrand <david@redhat.com>, Oscar Salvador <osalvador@suse.de>, 
- Dan Williams <dan.j.williams@intel.com>, Dave Jiang <dave.jiang@intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, 
- nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org, 
- Huang Ying <ying.huang@intel.com>, 
- Dave Hansen <dave.hansen@linux.intel.com>, 
- "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, 
- Michal Hocko <mhocko@suse.com>, 
- Jonathan Cameron <Jonathan.Cameron@Huawei.com>, 
- Jeff Moyer <jmoyer@redhat.com>, Vishal Verma <vishal.l.verma@intel.com>, 
- Jonathan Cameron <Jonathan.Cameron@huawei.com>
-X-Mailer: b4 0.12.3
-X-Developer-Signature: v=1; a=openpgp-sha256; l=6393;
- i=vishal.l.verma@intel.com; h=from:subject:message-id;
- bh=vr4yVCTT0Ug5tj83kbU0iH+2ATewvlAUFs0OqOZ9pYo=;
- b=owGbwMvMwCXGf25diOft7jLG02pJDKmij9I6HhqsZr2d+tb0l8SvmKX50aodnsfPvec6urJv+
- 7aenSWTO0pYGMS4GGTFFFn+7vnIeExuez5PYIIjzBxWJpAhDFycAjCRKZsYGSadL24tmKJzmHfK
- mUZeY2eVgORi5TOr7ALrJVKrFh126GT4XjHFKuuhU9kVLYFDb+RvWu6x4l4mxfegO8Cg7ra/MhM
- jAA==
-X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp;
- fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] xfs: drop experimental warning for FSDAX
+To: "Darrick J. Wong" <djwong@kernel.org>,
+ Andrew Morton <akpm@linux-foundation.org>
+Cc: Chandan Babu R <chandanbabu@kernel.org>,
+ Dave Chinner <david@fromorbit.com>, linux-xfs@vger.kernel.org,
+ nvdimm@lists.linux.dev, dan.j.williams@intel.com
+References: <20230926145519.GE11439@frogsfrogsfrogs>
+ <ZROC8hEabAGS7orb@dread.disaster.area>
+ <20230927014632.GE11456@frogsfrogsfrogs>
+ <87fs306zs1.fsf@debian-BULLSEYE-live-builder-AMD64>
+ <5c064cbd-13a3-4d55-9881-0a079476d865@fujitsu.com>
+ <bc29af15-ae63-407d-8ca0-186c976acce7@fujitsu.com>
+ <87y1gs83yq.fsf@debian-BULLSEYE-live-builder-AMD64>
+ <20230927083034.90bd6336229dd00af601e0ef@linux-foundation.org>
+ <9c3cbc0c-7135-4006-ad4a-2abce0a556b0@fujitsu.com>
+ <20230928092052.9775e59262c102dc382513ef@linux-foundation.org>
+ <20230928171339.GJ11439@frogsfrogsfrogs>
+From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+In-Reply-To: <20230928171339.GJ11439@frogsfrogsfrogs>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-TM-AS-Product-Ver: IMSS-9.1.0.1417-9.0.0.1002-27904.007
+X-TM-AS-User-Approved-Sender: Yes
+X-TMASE-Version: IMSS-9.1.0.1417-9.0.1002-27904.007
+X-TMASE-Result: 10--17.421700-10.000000
+X-TMASE-MatchedRID: x/EPlNU2vY2PvrMjLFD6eHchRkqzj/bEC/ExpXrHizy5kqGQ38oKZiyB
+	2QdJzFQxeiSRL6ccGm3mcwRo1T9FBN/K1ikJIsLOqug9vIA2WOASyA2F3XSGIlAoBBK61Bhcvgm
+	lXW4uT/zxkhLcCNMvjtYrdGPWjovvJuJYwkshsMH97643XzR7lynQV+sTq2oQJQLqWrKg0L0uJa
+	PbC+kbrOEqPm4A28Dgf2U0hnakSY8V97lIy2qxCEEOfoWOrvuOdmWMDQajOiKBAXl9LkPp6eGm/
+	D7ygt+qkPI1/ZdqoS0VGyRifsbM+5piU2kgoGALdo0n+JPFcJp9LQinZ4QefGWCfbzydb0gzhYg
+	VA8TZw63ApS8cfJcZd0H8LFZNFG7bkV4e2xSge4WrCb08VKGnT+Fto5OAEga8z92JPerioPbPEZ
+	EldmKFcWFcyN1Agmm
+X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
 
-Large amounts of memory managed by the kmem driver may come in via CXL,
-and it is often desirable to have the memmap for this memory on the new
-memory itself.
 
-Enroll kmem-managed memory for memmap_on_memory semantics if the dax
-region originates via CXL. For non-CXL dax regions, retain the existing
-default behavior of hot adding without memmap_on_memory semantics.
 
-Add a sysfs override under the dax device to control this behavior and
-override either default.
+在 2023/9/29 1:13, Darrick J. Wong 写道:
+> On Thu, Sep 28, 2023 at 09:20:52AM -0700, Andrew Morton wrote:
+>> On Thu, 28 Sep 2023 16:44:00 +0800 Shiyang Ruan <ruansy.fnst@fujitsu.com> wrote:
+>>
+>>> But please pick the following patch[1] as well, which fixes failures of
+>>> xfs55[0-2] cases.
+>>>
+>>> [1]
+>>> https://lore.kernel.org/linux-xfs/20230913102942.601271-1-ruansy.fnst@fujitsu.com
+>>
+>> I guess I can take that xfs patch, as it fixes a DAX patch.  I hope the xfs team
+>> are watching.
+>>
+>> But
+>>
+>> a) I'm not subscribed to linux-xfs and
+>>
+>> b) the changelog fails to describe the userspace-visible effects of
+>>     the bug, so I (and others) are unable to determine which kernel
+>>     versions should be patched.
+>>
+>> Please update that changelog and resend?
+> 
+> That's a purely xfs patch anyways.  The correct maintainer is Chandan,
+> not Andrew.
+> 
+> /me notes that post-reorg, patch authors need to ask the release manager
+> (Chandan) directly to merge their patches after they've gone through
+> review.  Pull requests of signed tags are encouraged strongly.
+> 
+> Shiyang, could you please send Chandan pull requests with /all/ the
+> relevant pmem patches incorporated?  I think that's one PR for the
+> "xfs: correct calculation for agend and blockcount" for 6.6; and a
+> second PR with all the non-bugfix stuff (PRE_REMOVE and whatnot) for
+> 6.7.
 
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Huang Ying <ying.huang@intel.com>
-Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- drivers/dax/bus.h         |  1 +
- drivers/dax/dax-private.h |  1 +
- drivers/dax/bus.c         | 38 ++++++++++++++++++++++++++++++++++++++
- drivers/dax/cxl.c         |  1 +
- drivers/dax/hmem/hmem.c   |  1 +
- drivers/dax/kmem.c        |  8 +++++++-
- drivers/dax/pmem.c        |  1 +
- 7 files changed, 50 insertions(+), 1 deletion(-)
+OK.  Though I don't know how to send the PR by email, I have sent a list 
+of the patches and added description for each one.
 
-diff --git a/drivers/dax/bus.h b/drivers/dax/bus.h
-index 1ccd23360124..cbbf64443098 100644
---- a/drivers/dax/bus.h
-+++ b/drivers/dax/bus.h
-@@ -23,6 +23,7 @@ struct dev_dax_data {
- 	struct dev_pagemap *pgmap;
- 	resource_size_t size;
- 	int id;
-+	bool memmap_on_memory;
- };
- 
- struct dev_dax *devm_create_dev_dax(struct dev_dax_data *data);
-diff --git a/drivers/dax/dax-private.h b/drivers/dax/dax-private.h
-index 27cf2daaaa79..446617b73aea 100644
---- a/drivers/dax/dax-private.h
-+++ b/drivers/dax/dax-private.h
-@@ -70,6 +70,7 @@ struct dev_dax {
- 	struct ida ida;
- 	struct device dev;
- 	struct dev_pagemap *pgmap;
-+	bool memmap_on_memory;
- 	int nr_range;
- 	struct dev_dax_range {
- 		unsigned long pgoff;
-diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-index 0ee96e6fc426..81351eb69884 100644
---- a/drivers/dax/bus.c
-+++ b/drivers/dax/bus.c
-@@ -367,6 +367,7 @@ static ssize_t create_store(struct device *dev, struct device_attribute *attr,
- 			.dax_region = dax_region,
- 			.size = 0,
- 			.id = -1,
-+			.memmap_on_memory = false,
- 		};
- 		struct dev_dax *dev_dax = devm_create_dev_dax(&data);
- 
-@@ -1269,6 +1270,40 @@ static ssize_t numa_node_show(struct device *dev,
- }
- static DEVICE_ATTR_RO(numa_node);
- 
-+static ssize_t memmap_on_memory_show(struct device *dev,
-+				     struct device_attribute *attr, char *buf)
-+{
-+	struct dev_dax *dev_dax = to_dev_dax(dev);
-+
-+	return sprintf(buf, "%d\n", dev_dax->memmap_on_memory);
-+}
-+
-+static ssize_t memmap_on_memory_store(struct device *dev,
-+				      struct device_attribute *attr,
-+				      const char *buf, size_t len)
-+{
-+	struct dev_dax *dev_dax = to_dev_dax(dev);
-+	struct dax_region *dax_region = dev_dax->region;
-+	ssize_t rc;
-+	bool val;
-+
-+	rc = kstrtobool(buf, &val);
-+	if (rc)
-+		return rc;
-+
-+	device_lock(dax_region->dev);
-+	if (!dax_region->dev->driver) {
-+		device_unlock(dax_region->dev);
-+		return -ENXIO;
-+	}
-+
-+	dev_dax->memmap_on_memory = val;
-+
-+	device_unlock(dax_region->dev);
-+	return rc == 0 ? len : rc;
-+}
-+static DEVICE_ATTR_RW(memmap_on_memory);
-+
- static umode_t dev_dax_visible(struct kobject *kobj, struct attribute *a, int n)
- {
- 	struct device *dev = container_of(kobj, struct device, kobj);
-@@ -1295,6 +1330,7 @@ static struct attribute *dev_dax_attributes[] = {
- 	&dev_attr_align.attr,
- 	&dev_attr_resource.attr,
- 	&dev_attr_numa_node.attr,
-+	&dev_attr_memmap_on_memory.attr,
- 	NULL,
- };
- 
-@@ -1400,6 +1436,8 @@ struct dev_dax *devm_create_dev_dax(struct dev_dax_data *data)
- 	dev_dax->align = dax_region->align;
- 	ida_init(&dev_dax->ida);
- 
-+	dev_dax->memmap_on_memory = data->memmap_on_memory;
-+
- 	inode = dax_inode(dax_dev);
- 	dev->devt = inode->i_rdev;
- 	dev->bus = &dax_bus_type;
-diff --git a/drivers/dax/cxl.c b/drivers/dax/cxl.c
-index 8bc9d04034d6..c696837ab23c 100644
---- a/drivers/dax/cxl.c
-+++ b/drivers/dax/cxl.c
-@@ -26,6 +26,7 @@ static int cxl_dax_region_probe(struct device *dev)
- 		.dax_region = dax_region,
- 		.id = -1,
- 		.size = range_len(&cxlr_dax->hpa_range),
-+		.memmap_on_memory = true,
- 	};
- 
- 	return PTR_ERR_OR_ZERO(devm_create_dev_dax(&data));
-diff --git a/drivers/dax/hmem/hmem.c b/drivers/dax/hmem/hmem.c
-index 5d2ddef0f8f5..b9da69f92697 100644
---- a/drivers/dax/hmem/hmem.c
-+++ b/drivers/dax/hmem/hmem.c
-@@ -36,6 +36,7 @@ static int dax_hmem_probe(struct platform_device *pdev)
- 		.dax_region = dax_region,
- 		.id = -1,
- 		.size = region_idle ? 0 : range_len(&mri->range),
-+		.memmap_on_memory = false,
- 	};
- 
- 	return PTR_ERR_OR_ZERO(devm_create_dev_dax(&data));
-diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
-index c57acb73e3db..0aa6c45a4e5a 100644
---- a/drivers/dax/kmem.c
-+++ b/drivers/dax/kmem.c
-@@ -12,6 +12,7 @@
- #include <linux/mm.h>
- #include <linux/mman.h>
- #include <linux/memory-tiers.h>
-+#include <linux/memory_hotplug.h>
- #include "dax-private.h"
- #include "bus.h"
- 
-@@ -56,6 +57,7 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
- 	unsigned long total_len = 0;
- 	struct dax_kmem_data *data;
- 	int i, rc, mapped = 0;
-+	mhp_t mhp_flags;
- 	int numa_node;
- 
- 	/*
-@@ -136,12 +138,16 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
- 		 */
- 		res->flags = IORESOURCE_SYSTEM_RAM;
- 
-+		mhp_flags = MHP_NID_IS_MGID;
-+		if (dev_dax->memmap_on_memory)
-+			mhp_flags |= MHP_MEMMAP_ON_MEMORY;
-+
- 		/*
- 		 * Ensure that future kexec'd kernels will not treat
- 		 * this as RAM automatically.
- 		 */
- 		rc = add_memory_driver_managed(data->mgid, range.start,
--				range_len(&range), kmem_name, MHP_NID_IS_MGID);
-+				range_len(&range), kmem_name, mhp_flags);
- 
- 		if (rc) {
- 			dev_warn(dev, "mapping%d: %#llx-%#llx memory add failed\n",
-diff --git a/drivers/dax/pmem.c b/drivers/dax/pmem.c
-index ae0cb113a5d3..f3c6c67b8412 100644
---- a/drivers/dax/pmem.c
-+++ b/drivers/dax/pmem.c
-@@ -63,6 +63,7 @@ static struct dev_dax *__dax_pmem_probe(struct device *dev)
- 		.id = id,
- 		.pgmap = &pgmap,
- 		.size = range_len(&range),
-+		.memmap_on_memory = false,
- 	};
- 
- 	return devm_create_dev_dax(&data);
 
--- 
-2.41.0
+--
+Thanks,
+Ruan.
 
+> 
+> --D
