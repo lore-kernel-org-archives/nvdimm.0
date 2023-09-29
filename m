@@ -1,20 +1,38 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from sandeen.net (sandeen.net [63.231.237.45])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id DA908513CE
+	for <nvdimm@lists.linux.dev>; Fri, 29 Sep 2023 14:40:37 +0000 (UTC)
+Received: from [10.0.0.71] (liberator.sandeen.net [10.0.0.71])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 27CF34123C
-	for <nvdimm@lists.linux.dev>; Fri, 29 Sep 2023 14:22:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1357DC433C7;
-	Fri, 29 Sep 2023 14:22:11 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1695997331;
-	bh=ALDhPabcaxYCJi2SBSN5TBBz4A8vX5TsDjVKMZrqKHI=;
-	h=References:From:To:Cc:Subject:Date:In-reply-to:From;
-	b=sYi/614TzvOztdvAvktP7VMP18Z9yVg9t2v1ar+a+L/ojDo/EmMa8/afbzOW1GnQ1
-	 6rHJD3L+3OR+t1tMGHxkeitFucJo3/dlqOdnFh1L4ybd+72LSazIzd8Lmh6LRqeRSW
-	 y6SQf+O4L2fOtbSW14tyR1BL7FYikmqKbkms4aHLUJZRw3w/IF60OqU8OpracUioJt
-	 Wf31/E3m3cPQ2d/CytWs2y9yilukGSvHgp1jK1XCiauMb5kaD8KGOcs8KoF3Bf5pVc
-	 7valCMjebEKhgWvK1znV+gZDYYWj0WM9rk24lOGn4OWHw+4CTybZBGnK8yqxcPSh9L
-	 KwLbuDCib8ibA==
+	by sandeen.net (Postfix) with ESMTPSA id 7C70F4872F3;
+	Fri, 29 Sep 2023 09:35:18 -0500 (CDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 sandeen.net 7C70F4872F3
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=sandeen.net;
+	s=default; t=1695998118;
+	bh=g+ZA5v/kXk6nIq5L12ZmS8LPLX/T1PyBeGkzKBXRkqc=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=MOELGM6bCkJP2a0dttGByCcgDjDtc+JOYgmZ3V+gOb+9Zz3qel5BeSzozR3uYM4Gd
+	 /Zd8p2ZdkQevflkyvJY0OxKLKiDW9vZkRoAw1lkhuEGMuSD37oDmUyACISCuQ0mq/D
+	 8WUwYs8L+eOfJB0dbMT469C0vBsyUkhH08dig0KXvvKYrtuqDVe2yPgqvTQUZw6Y+z
+	 gaQ5Rm/qwOFdTSkHP3kK8XNhFqjmjvDXofw0508Z3/sAWWnbWxOfJMualkrr5Jkwea
+	 5WX15RK7n8s4MdOn0YLbI0kVoqAnEuidFBCMyKMalZ7O3YzPa+3Cde4c5f9e7qzric
+	 UkyY/ndhxE8qg==
+Message-ID: <4c985608-39f6-1a6e-ec95-42d7c3581d8d@sandeen.net>
+Date: Fri, 29 Sep 2023 09:35:17 -0500
+Precedence: bulk
+X-Mailing-List: nvdimm@lists.linux.dev
+List-Id: <nvdimm.lists.linux.dev>
+List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
+List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
+MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0)
+ Gecko/20100101 Thunderbird/102.15.1
+Subject: Re: [PATCH] xfs: drop experimental warning for FSDAX
+To: Chandan Babu R <chandanbabu@kernel.org>,
+ Andrew Morton <akpm@linux-foundation.org>
+Cc: Shiyang Ruan <ruansy.fnst@fujitsu.com>,
+ "Darrick J. Wong" <djwong@kernel.org>, Dave Chinner <david@fromorbit.com>,
+ linux-xfs@vger.kernel.org, nvdimm@lists.linux.dev, dan.j.williams@intel.com
 References: <20230915063854.1784918-1-ruansy.fnst@fujitsu.com>
  <86167409-aa7f-4db4-8335-3f290d507f14@fujitsu.com>
  <20230926145519.GE11439@frogsfrogsfrogs>
@@ -27,57 +45,56 @@ References: <20230915063854.1784918-1-ruansy.fnst@fujitsu.com>
  <20230927083034.90bd6336229dd00af601e0ef@linux-foundation.org>
  <9c3cbc0c-7135-4006-ad4a-2abce0a556b0@fujitsu.com>
  <20230928092052.9775e59262c102dc382513ef@linux-foundation.org>
-User-agent: mu4e 1.8.10; emacs 27.1
-From: Chandan Babu R <chandanbabu@kernel.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Shiyang Ruan <ruansy.fnst@fujitsu.com>, "Darrick J. Wong"
- <djwong@kernel.org>, Dave Chinner <david@fromorbit.com>,
- linux-xfs@vger.kernel.org, nvdimm@lists.linux.dev,
- dan.j.williams@intel.com
-Subject: Re: [PATCH] xfs: drop experimental warning for FSDAX
-Date: Fri, 29 Sep 2023 19:47:07 +0530
-In-reply-to: <20230928092052.9775e59262c102dc382513ef@linux-foundation.org>
-Message-ID: <87msx5f4a8.fsf@debian-BULLSEYE-live-builder-AMD64>
-Precedence: bulk
-X-Mailing-List: nvdimm@lists.linux.dev
-List-Id: <nvdimm.lists.linux.dev>
-List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
-List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-MIME-Version: 1.0
-Content-Type: text/plain
+ <87msx5f4a8.fsf@debian-BULLSEYE-live-builder-AMD64>
+Content-Language: en-US
+From: Eric Sandeen <sandeen@sandeen.net>
+In-Reply-To: <87msx5f4a8.fsf@debian-BULLSEYE-live-builder-AMD64>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-On Thu, Sep 28, 2023 at 09:20:52 AM -0700, Andrew Morton wrote:
-> On Thu, 28 Sep 2023 16:44:00 +0800 Shiyang Ruan <ruansy.fnst@fujitsu.com> wrote:
->
->> But please pick the following patch[1] as well, which fixes failures of 
->> xfs55[0-2] cases.
->> 
->> [1] 
->> https://lore.kernel.org/linux-xfs/20230913102942.601271-1-ruansy.fnst@fujitsu.com
->
-> I guess I can take that xfs patch, as it fixes a DAX patch.  I hope the xfs team
-> are watching.
->
-> But
->
-> a) I'm not subscribed to linux-xfs and
->
-> b) the changelog fails to describe the userspace-visible effects of
->    the bug, so I (and others) are unable to determine which kernel
->    versions should be patched.
->
-> Please update that changelog and resend?
+On 9/29/23 9:17 AM, Chandan Babu R wrote:
+> On Thu, Sep 28, 2023 at 09:20:52 AM -0700, Andrew Morton wrote:
+>> On Thu, 28 Sep 2023 16:44:00 +0800 Shiyang Ruan <ruansy.fnst@fujitsu.com> wrote:
+>>
+>>> But please pick the following patch[1] as well, which fixes failures of 
+>>> xfs55[0-2] cases.
+>>>
+>>> [1] 
+>>> https://lore.kernel.org/linux-xfs/20230913102942.601271-1-ruansy.fnst@fujitsu.com
+>>
+>> I guess I can take that xfs patch, as it fixes a DAX patch.  I hope the xfs team
+>> are watching.
+>>
+>> But
+>>
+>> a) I'm not subscribed to linux-xfs and
+>>
+>> b) the changelog fails to describe the userspace-visible effects of
+>>    the bug, so I (and others) are unable to determine which kernel
+>>    versions should be patched.
+>>
+>> Please update that changelog and resend?
+> 
+> I will apply "xfs: correct calculation for agend and blockcount" patch to
+> xfs-linux Git tree and include it for the next v6.6 pull request to Linus.
+> 
+> At the outset, It looks like I can pick "mm, pmem, xfs: Introduce
+> MF_MEM_PRE_REMOVE for unbind"
+> (i.e. https://lore.kernel.org/linux-xfs/20230928103227.250550-1-ruansy.fnst@fujitsu.com/T/#u)
+> patch for v6.7 as well. But that will require your Ack. Please let me know
+> your opinion.
+> 
+> Also, I will pick "xfs: drop experimental warning for FSDAX" patch for v6.7.
 
-I will apply "xfs: correct calculation for agend and blockcount" patch to
-xfs-linux Git tree and include it for the next v6.6 pull request to Linus.
+While I hate to drag it out even longer, it seems slightly optimistic to
+drop experimental at the same time as the "last" fix, in case it's not
+really the last fix.
 
-At the outset, It looks like I can pick "mm, pmem, xfs: Introduce
-MF_MEM_PRE_REMOVE for unbind"
-(i.e. https://lore.kernel.org/linux-xfs/20230928103227.250550-1-ruansy.fnst@fujitsu.com/T/#u)
-patch for v6.7 as well. But that will require your Ack. Please let me know
-your opinion.
+But I don't have super strong feelings about it, and I would be happy to
+finally see experimental go away. So if those who are more tuned into
+the details are comfortable with that 6.7 plan, I'll defer to them on
+the question.
 
-Also, I will pick "xfs: drop experimental warning for FSDAX" patch for v6.7.
+Thanks,
+-Eric
 
--- 
-Chandan
