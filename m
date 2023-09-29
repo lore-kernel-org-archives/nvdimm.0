@@ -1,95 +1,85 @@
-Received: from mgamail.intel.com (mgamail.intel.com [134.134.136.20])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.7])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B7EE66DF9
-	for <nvdimm@lists.linux.dev>; Fri, 29 Sep 2023 20:19:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B54820F9
+	for <nvdimm@lists.linux.dev>; Fri, 29 Sep 2023 20:20:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1696018769; x=1727554769;
+  t=1696018842; x=1727554842;
   h=date:from:to:cc:subject:message-id:references:
-   content-transfer-encoding:in-reply-to:mime-version;
-  bh=xUukmYPyxyfHTHllrHrppvXgRluzAs7D3ed3c1LacdY=;
-  b=n4t0d7OMzo+a74upTwOmfa1HzKCzbDJh08V0/ShbE+r5oxhFXneS9JB5
-   sqYdNsX4aYRqPXRp6hUIms/e1D3GlowEqShANpah78oWY5eQT7Nlsvl6W
-   JZLAAcA9yXRpSiB6VRkTKWHRQw5K6gZWX/PIxmDLoqT7Hks8KUKdMTojP
-   CKMOhbvPLD2C8GQqaNJ61/D5jVbZ1RKKPyE4ZUdbyozKAtf0jrHhUylp9
-   xJXoznM3k3WTQt7GoACs8UPsX4/9fpbvSvl9Ae599r2ZZxwLaMA1ve0LW
-   aaKmlUPg9of4kJbY5Anh2kIXwvtCe8pFXyWleBKTCW/8hyoq9eGmhFmPX
-   A==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10848"; a="372711811"
+   in-reply-to:mime-version;
+  bh=xhoGppBdOF6pavMTyYUI01OxAD7hXvdF2wnR6eoNxPs=;
+  b=OWnBDcktgFfIeJDVRBsSsrseLtaSs+2j/cqXoMij8V6XmizwggmUqylO
+   xqT35KnDKVYeh7MxM/ylUpG4/yoWVNfv70nsG3lsedEyFwsWz5oAMz6vB
+   +PogbIlt+Xapkyfd4u1w098+hvzktnbnhleKuUoWVfMfOqVh1mQXjxFVN
+   hhZmXcKcYOM1pH4vlHsQmtdLpQAIZWG3g04Lh8zxjgkQnJW+wDRr1iYwM
+   z/Ea3f5z5aClINsCHkoQ3pDpU1v0EHIZFdlOs4Tt6Hc0FWcG1ZA2G5DBN
+   o+MfjeqWmoq+zv/8hECzxB59KhS5OJnUdvEu8W3rEcYPWupFkGvq1Ny3p
+   g==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10848"; a="3927890"
 X-IronPort-AV: E=Sophos;i="6.03,188,1694761200"; 
-   d="scan'208";a="372711811"
-Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Sep 2023 11:28:10 -0700
+   d="scan'208";a="3927890"
+Received: from fmsmga002.fm.intel.com ([10.253.24.26])
+  by fmvoesa101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Sep 2023 11:31:07 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10848"; a="1081013454"
+X-IronPort-AV: E=McAfee;i="6600,9927,10848"; a="865780153"
 X-IronPort-AV: E=Sophos;i="6.03,188,1694761200"; 
-   d="scan'208";a="1081013454"
+   d="scan'208";a="865780153"
 Received: from orsmsx601.amr.corp.intel.com ([10.22.229.14])
-  by fmsmga005.fm.intel.com with ESMTP/TLS/AES256-GCM-SHA384; 29 Sep 2023 11:28:10 -0700
-Received: from orsmsx610.amr.corp.intel.com (10.22.229.23) by
+  by fmsmga002.fm.intel.com with ESMTP/TLS/AES256-GCM-SHA384; 29 Sep 2023 11:31:06 -0700
+Received: from orsmsx611.amr.corp.intel.com (10.22.229.24) by
  ORSMSX601.amr.corp.intel.com (10.22.229.14) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.32; Fri, 29 Sep 2023 11:28:10 -0700
+ 15.1.2507.32; Fri, 29 Sep 2023 11:31:06 -0700
 Received: from orsmsx610.amr.corp.intel.com (10.22.229.23) by
- ORSMSX610.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
+ ORSMSX611.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.32; Fri, 29 Sep 2023 11:28:09 -0700
+ 15.1.2507.32; Fri, 29 Sep 2023 11:31:06 -0700
 Received: from ORSEDG602.ED.cps.intel.com (10.7.248.7) by
  orsmsx610.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.32 via Frontend Transport; Fri, 29 Sep 2023 11:28:09 -0700
-Received: from NAM10-BN7-obe.outbound.protection.outlook.com (104.47.70.107)
+ 15.1.2507.32 via Frontend Transport; Fri, 29 Sep 2023 11:31:06 -0700
+Received: from NAM10-DM6-obe.outbound.protection.outlook.com (104.47.58.106)
  by edgegateway.intel.com (134.134.137.103) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.32; Fri, 29 Sep 2023 11:28:09 -0700
+ 15.1.2507.32; Fri, 29 Sep 2023 11:31:05 -0700
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=PL/HjI1Y+ojkjv7AruRUaLor892sSNUDVOrRWpkYAdN21hkbk2SHiOsK5wkYDzFEf4tUQAC65NK46JEyn0ve9NFpnecHM3pbJnurgXCPtin5pZvpygp5x581ZaWyAr0o9tC3UJ/z8i2A28jRQoA7sOiZbnpiaFnNMMVrpelRuyjE6F/i03frs4NCu+DQ9/7W3x0CTdhQKheuFdbLgztwm2cFRk+McPqg8wv4VGM77HDc6KMSBg27o8ohLqBrTsOxNvTsevXFGbKdVTAaA9/9OIb/73cgO0qBEHvpsA5qwkM/1el9SpuVJWHCa263abfC8o0tTXLWDfCeba9MkUmZzQ==
+ b=SGkSAXzbCKGD7lIsL0WKVQLVwLBokFWVDte6wWDYERN0RfYeL1D/+9NTcO6GN2MYwFNVcEbhS7HPMFTBuxV4aQbWSIswyb/HrkHs0DNgj1EvcdDblpRn4hreSUEXFaQqxsNe4DWb9nAwDxAhFQxjlRN8CSOSZRzn2tLUkw75siEw8iK95hz/v847cw3y4uUWw7mVqY1a3JkxKFMs+K7La0OsIPTCR1ekXCX86yoPS++ydll/kfyey6kysXs5rlaGKqPzLvu5VcpqCgxEbNX169FETjvUmrepPMAJyKVBO8YuFIVRLKg0zUVu2jtmhvyE22qB8DZYzaJ7l0upYeAeZg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=ViExdXOnJdhHs89/m8LQu+1NVEBggmikRAwvrRW7B90=;
- b=AQnB1lkGPSSusBwCuMnRvR2T9/CpjBvjrEX17ac/8fT+9p7ZU1rA289RQYJIFlVP43HPjAzOqN6UPXQ6SzGnLn6Bn08CdkaxBlKDNP+Jf9P3pgnl/13IV9eUgBKt+SBG47kV+VwAH5OkMhAmOnf7rtEvbHeNUyyleWwruto1wPgc9cIsAIlD05j6JpM+lQXkqGZ/CbkLnuMfZH3NzyhQ+n6zVNOPO8QIk/EtAUj6LmphFLib8ATNF7f6gYb8gwniTa/gaYfFFn3MOJ1MmKqA3WSJZBMkXHVk1hpAyywPf5dwSDKlu9KO0my3ONJZMCJydG69wkwg8qOCyso7ROasvQ==
+ bh=M62S3QvgKXxMg+GiDPMxARiLjoIN8N7Nyx5ON/x0UCk=;
+ b=MiPdU06dETWah2upBSHEatP/4kHW9wypW1z7ryuFvcJLHIH6cQrUD5bB41Ylqou/rHa/+cpmBMqD3ZDdgW19abFrcRMFc82fFFmsR57GsSGqE8cU6ywR7epW7A9ffLHP4lxpxSNNSBZ2ptRY2MZzAmyZUOm6zKMpLg4CVTYmW8fBfxuVA9PjuCJ5LRV6EHBOXzYInK1lUE/YIQy5OxaJISTWPFsKrU3WLKGAjDpmf7vfrPO1XIM55Bj9EP4IoZzCeH4oxE9+TAvgJVJO6hSLCig5CB3KWwb8hYkY3SfEHTPifAHeNi+3ARTjKdcSSzNgA5mT/VF2eHB7tDfrabQQzA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
  dkim=pass header.d=intel.com; arc=none
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=intel.com;
 Received: from PH8PR11MB8107.namprd11.prod.outlook.com (2603:10b6:510:256::6)
- by PH8PR11MB6928.namprd11.prod.outlook.com (2603:10b6:510:224::12) with
+ by CH3PR11MB7763.namprd11.prod.outlook.com (2603:10b6:610:145::13) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6792.28; Fri, 29 Sep
- 2023 18:28:06 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6838.26; Fri, 29 Sep
+ 2023 18:31:03 +0000
 Received: from PH8PR11MB8107.namprd11.prod.outlook.com
  ([fe80::acb0:6bd3:58a:c992]) by PH8PR11MB8107.namprd11.prod.outlook.com
  ([fe80::acb0:6bd3:58a:c992%5]) with mapi id 15.20.6838.024; Fri, 29 Sep 2023
- 18:28:06 +0000
-Date: Fri, 29 Sep 2023 11:28:02 -0700
+ 18:31:03 +0000
+Date: Fri, 29 Sep 2023 11:31:00 -0700
 From: Dan Williams <dan.j.williams@intel.com>
-To: Eric Sandeen <sandeen@sandeen.net>, Chandan Babu R
-	<chandanbabu@kernel.org>, Andrew Morton <akpm@linux-foundation.org>
-CC: Shiyang Ruan <ruansy.fnst@fujitsu.com>, "Darrick J. Wong"
-	<djwong@kernel.org>, Dave Chinner <david@fromorbit.com>,
-	<linux-xfs@vger.kernel.org>, <nvdimm@lists.linux.dev>,
-	<dan.j.williams@intel.com>
-Subject: Re: [PATCH] xfs: drop experimental warning for FSDAX
-Message-ID: <65171732329c4_c558e2946a@dwillia2-xfh.jf.intel.com.notmuch>
-References: <20230927014632.GE11456@frogsfrogsfrogs>
- <87fs306zs1.fsf@debian-BULLSEYE-live-builder-AMD64>
- <5c064cbd-13a3-4d55-9881-0a079476d865@fujitsu.com>
- <bc29af15-ae63-407d-8ca0-186c976acce7@fujitsu.com>
- <87y1gs83yq.fsf@debian-BULLSEYE-live-builder-AMD64>
- <20230927083034.90bd6336229dd00af601e0ef@linux-foundation.org>
- <9c3cbc0c-7135-4006-ad4a-2abce0a556b0@fujitsu.com>
- <20230928092052.9775e59262c102dc382513ef@linux-foundation.org>
- <87msx5f4a8.fsf@debian-BULLSEYE-live-builder-AMD64>
- <4c985608-39f6-1a6e-ec95-42d7c3581d8d@sandeen.net>
-Content-Type: text/plain; charset="utf-8"
+To: Shiyang Ruan <ruansy.fnst@fujitsu.com>, <linux-fsdevel@vger.kernel.org>,
+	<nvdimm@lists.linux.dev>, <linux-xfs@vger.kernel.org>, <linux-mm@kvack.org>
+CC: <dan.j.williams@intel.com>, <willy@infradead.org>, <jack@suse.cz>,
+	<akpm@linux-foundation.org>, <djwong@kernel.org>, <mcgrof@kernel.org>,
+	<chandanbabu@kernel.org>
+Subject: RE: [PATCH v15] mm, pmem, xfs: Introduce MF_MEM_PRE_REMOVE for unbind
+Message-ID: <651717e48168b_c558e29423@dwillia2-xfh.jf.intel.com.notmuch>
+References: <20230828065744.1446462-1-ruansy.fnst@fujitsu.com>
+ <20230928103227.250550-1-ruansy.fnst@fujitsu.com>
+Content-Type: text/plain; charset="us-ascii"
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <4c985608-39f6-1a6e-ec95-42d7c3581d8d@sandeen.net>
-X-ClientProxiedBy: MW3PR05CA0006.namprd05.prod.outlook.com
- (2603:10b6:303:2b::11) To PH8PR11MB8107.namprd11.prod.outlook.com
+In-Reply-To: <20230928103227.250550-1-ruansy.fnst@fujitsu.com>
+X-ClientProxiedBy: MW4PR04CA0139.namprd04.prod.outlook.com
+ (2603:10b6:303:84::24) To PH8PR11MB8107.namprd11.prod.outlook.com
  (2603:10b6:510:256::6)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -98,116 +88,115 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: PH8PR11MB8107:EE_|PH8PR11MB6928:EE_
-X-MS-Office365-Filtering-Correlation-Id: 54890e2b-1a4e-4fa8-832c-08dbc119d26c
+X-MS-TrafficTypeDiagnostic: PH8PR11MB8107:EE_|CH3PR11MB7763:EE_
+X-MS-Office365-Filtering-Correlation-Id: 5eb5d1ad-a7ae-4383-881d-08dbc11a3cac
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: +/5Dejv5VyVoTDM1nqg7WyaZyE0tCoEZ/F7647gN3WQoNE1NWJzpMMvvat0XQ3P3GSo76N0H0HgQGx+TtIAxHY2hnrKkQjrV9SjTZxRygd94hab2fpRpCuegSXzPRpj2+HZUxV2VYsjDHshIxyadY4DSiTRERf9TQNIjIbSvb2ozfjAKdx/7hdUEYrwUw/ZSKSR8BnAp7AzRyKGSI7BboqsfFbn0bRwZhqsc1BNAdqPRw/8wP+FTYrzOWNOFflqrDfGUFdF083J5hXW8qvVaRT3ldFTJATJEf5j+90+Vzr+OnuYty/l8oLXPUDXzTng68eu5UO0Zoy5sUAcVY1o+UP1zy0bQL+EY6r26FQyYvF1r8vYWtNe6TQYUOjTmT5ZxnuK6bL+MtKPUMCR2f+CyshsO5pYkbaS9SamsmsoZnzL/4hJMA276rJBo4kFAVKCsragh3TwV498jseJgqjj0ZAi1Txwv/Kurn1zunFbF5HZ/cvNRV8dO3SQ0D9h04JbuTqwB/0+0PlbGseJm/MH9cR1Dl3ZhMnPVOwNGiy+1wd6FDgAiLI1f5Es4V6pXR1ms8IOxNWFnuIX77Cbv2HbKSQ==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH8PR11MB8107.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(346002)(136003)(396003)(39860400002)(366004)(376002)(230922051799003)(451199024)(64100799003)(186009)(1800799009)(41300700001)(66476007)(66556008)(316002)(110136005)(66946007)(54906003)(5660300002)(107886003)(82960400001)(86362001)(38100700002)(83380400001)(8936002)(4326008)(2906002)(8676002)(478600001)(26005)(6512007)(966005)(6486002)(6666004)(6506007)(9686003)(53546011);DIR:OUT;SFP:1102;
+X-Microsoft-Antispam-Message-Info: WzPL7ScoUDzYoZpKuR3DvjZ4u971T2ziFUx02XQj5qKWSpqfKKZGif7vNSsg8V0ADtFSRor1oYywgsok1Hy7H7tkr69NZsWeb1TCjXiBLbZgR8OYbDVR6pn8AgPynPe/kFU1VEoCjpTXxtaGsvPgxIq9rbZ/MZ9shVTQGQibHHh4TVeIyaUWuLRyzwiplYQGAAtTQwGk4w0zyYTNoJNKPjUBcHuN2sqkIQ3ZcLlMEEMjG7X5khMindjeMSHFKWwWgXiwp7Jg8HLp7aJQda80VN3jTBHSFxxg+uE4m/xc2tCkde+e9B4hzqgae0EUyFVjV8qkWw3D0wf4OMIYXQBfIAm1BhvphYmCXEjhd7EW27+/bY9ITfR51pF4uOxD6P1t9fJGmv/3F1u58GgGlMlS0AVpH2y/rN0vYa7pTwnAQIx/zcSwr9RSX+ZkAcZC9IHi7cV88R3IapqLc/LuuHVC8IFhlkw3yeci03/dOlf8jYKmkhFLZ0hs/36dt4TgLqca20pcQFt34wsgOfaWYgZLD8mkoBtgKzAd4kDg5jv79p5eqvYp17+WB/hQT9iuslsNxGbpmlycZLZQnD8nZu8xkRAl3iG7IlXYZKLikTUQDoBe93uqhyDeIX83UhpSgfvqnbdSK8BjUqjYqRdrlQPaDQ==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH8PR11MB8107.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(396003)(39860400002)(366004)(136003)(346002)(376002)(230922051799003)(186009)(1800799009)(451199024)(64100799003)(6506007)(6486002)(6512007)(9686003)(82960400001)(38100700002)(86362001)(4326008)(26005)(2906002)(7416002)(83380400001)(966005)(478600001)(8936002)(316002)(66556008)(8676002)(41300700001)(66476007)(5660300002)(66946007)(18704003);DIR:OUT;SFP:1102;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?SEZKT2V1MC8xSGJmOXZ2ZlZFOVI3WGcvNm5PejU0QVlqV2d0dzBEYWFOR2xN?=
- =?utf-8?B?RXp0aWtLUzd2OFBjYkNTZjNoYkV2UzVKQ3FYV3lCZXZFcUhFeUN0VjNkRkFy?=
- =?utf-8?B?RHNXTU01RWRJdEo2R2dybkRlNXI4MjJubFBlM254MURNZkh4NEErV2xrclFL?=
- =?utf-8?B?L0NWQlpxZW1OeWpncWpRRldZZ3V0SmpuVUNrQS9GUHk4bFY2bWdFS1pzYit5?=
- =?utf-8?B?WGdNN2c5eUgrNzNlOUxINnBnK3hycDI4UE5NbmxZUnI1MVVRQjArTllVYVdv?=
- =?utf-8?B?TE1UZFpONkhPWkluOXIrMHNRcHpDYXpleHRCUVp4cWtNR3Y5Z2lhNXlSL3hj?=
- =?utf-8?B?SHJuaEdGTTZka0ZkUkcvcFRrWlQzdGhUSzQwMW1aUHpPMWFMa0dHV3V1LzhT?=
- =?utf-8?B?VDlvM2hqYkEwUFk3L3AwTlBGWEhFOEtzdVJrSXF6ajVMK29UbHduN2tvNXNT?=
- =?utf-8?B?bUxKQ1daMWRuUDFWQStCTDhMVmw3cmtvTmFHUm5Ob2dTZDM4WUk3bkpZa25x?=
- =?utf-8?B?L1RyOVU3cHFtcWZ4SGpTWmRydTNyZ2xGcE44Ry8vSU1iTFVrT2JmTUNsdGRZ?=
- =?utf-8?B?R3ZrQVNTQTN0QlB3TU90ZGYxRmh6NEVqc1BnWWdTaTRWbzBjNklKYmw0UEZm?=
- =?utf-8?B?c2FWQ3V5SWZUazQzRkRpWmhUUkVOQmdHeHU2bFFRZjRTWC9ZTTJqaFhqSUZl?=
- =?utf-8?B?OFhsN0Z2ejVoNFNnNWNOVmpSd3NkTWVsdnhtbWx5K0VHN1ZiZ3ZFcWZ4Z1Vw?=
- =?utf-8?B?WjZBc0ZqNXhqWVMzbFEwR3VLRGRyNTBKNjFVRmRtOUhHb3lZSUpIbjVKY1FS?=
- =?utf-8?B?TFFLRyszczNJQnpQU1NEMXB2Smw3OXlXbU5pOUVhU1YybU1tS2VxUitlMkJr?=
- =?utf-8?B?ZEwzdWd6ZEQyUFdSMUlveVB6SlNqbm5zVGR1TTdlOThWeTFSVHZqeUQ4YlZm?=
- =?utf-8?B?VEwwdVg0YndaZjhQZWtEUnJjN1hiUmgwT2RDYUhSUzd1V29USXcyWFdxa3hh?=
- =?utf-8?B?Q05TdStWUnIybHBMU3VmRmZ3aUFwQzhGQmEvUEdmUkFCTzRCWkZDamRZUEU1?=
- =?utf-8?B?Y05oUm5HcUpxVGRSWS9NNDNwa01YaWZSL1k5ZHljQXA0SlRzamlRaW12Qkpn?=
- =?utf-8?B?QWJxZ0ZNVzRJWktBa0VKbkJwUXJObFF1MGtNMFFJbEk0a2NTcFhhN2lYbkQ5?=
- =?utf-8?B?aEFHMlM3VFVsaURJazlHYWdjTjlKbUNxNzF6d0lBRnZubWVaZzVGSWd2OXl6?=
- =?utf-8?B?WURpMTNPNm41ekZML093TVVwcG81OEowekgxcFd5L3VycEo3elhXajJsWjdM?=
- =?utf-8?B?T1BBOFJ1dG94YTdJcmJrc0pHTFh5aUdHTTJjd0RzRm1CWXVVUEwyVFhoSW1y?=
- =?utf-8?B?SWExYnZoRUZQa2JDU3Fia3JjeWhLajNLV0ZqenRpUDdTRlRQWXVQRWYrNHg0?=
- =?utf-8?B?YnBkOTVvRUJ6Z2lUVC9nQ3JMWXlySWs4Y0M2RHJKUGpza29FTCtPMVN6YzFT?=
- =?utf-8?B?S0F5MnJsRm5DVHNoRktybThZOS9ZbENsckY5RHQ5OTl4aHBseWZiUEFrRnZL?=
- =?utf-8?B?TDd5eVEydTYvYmJsN3p4Z3EzSkRmbmcwMWVEKytqb0dSQUhOUVpraHVTWmgy?=
- =?utf-8?B?ZFJ3azhJSWtONmcwcHJzazlmcXd3ZnZqZFdXY0lBVFR1V1dFakgzRmZacjd0?=
- =?utf-8?B?dGdnbzBXVG9tL3kyaUtWM25RbmxocmhhRng3L1NuaEpFN1pDbmFQbTVRZUsw?=
- =?utf-8?B?d3hWb2tRNlVnbkFteFRyKyt0VnYrMUZiQk96aWQwaXZSQlRSV0NvZHlQdGFX?=
- =?utf-8?B?LzRKR0UyUU5YbjVNTXBYanJoRVgxV1AvQjRBbmt0djlwMGUrMDlNcHZyd25x?=
- =?utf-8?B?SUxvOXFjSkwwZXlDWitoL2g4YzRSR0dZRGNncDBVNnlaRDJ4SG81d0gySDEx?=
- =?utf-8?B?QlQ3QzArSmtrbXFlUCt1L2g1Z3FJTGNZenNXZUk4OXpzK1hITHdyRlV2THdt?=
- =?utf-8?B?MWdNbTZtcVdLZDJYT3ZDL0NaOGJZVXNmNVFueVFhSXVXQUM5SDUwUHRuK0hz?=
- =?utf-8?B?SEE2L3ZSNzVlQm1xaVVmaGZsNGZaWlNJY2laWE5lYnNRQzhScytKd3RDSndz?=
- =?utf-8?B?cmV1WmphMmZZa1ZYL1NYL0V4Umw3ZTg1cmlFS3F3dFhUaU5XVTFQSUxsSHA2?=
- =?utf-8?B?ZlE9PQ==?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: 54890e2b-1a4e-4fa8-832c-08dbc119d26c
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?hzLMiePjrAOSrj/CuAqJgLi5L/oKzFBk6imxvFkxL5yIbd71f4VLzkYiyc7o?=
+ =?us-ascii?Q?1XsDqKXcVF6h1N9HqehzBSaccBK84gzRUTpeiSSYaChQPn0prqsUYIIlqThM?=
+ =?us-ascii?Q?9eHsRCifxw3L5/HPEJCP/Ehdk4MpFC3QCJq7hLIV/9atRAvC0onv/6H/cVYp?=
+ =?us-ascii?Q?B13pDakAFLMX/ptJ2k344V5uzsowyFvUsHfyxqh6hkaqviEgF+QyWJIKVbV9?=
+ =?us-ascii?Q?AIVLNYG/b3otyTxaQTByZCHv89qa9N+c4mtfLvVYvVK7RYceUuZXQL4mxobu?=
+ =?us-ascii?Q?8HxYeUgceJHwFLpAlKset8YFylJG4Xug6xO+Wndpw2YGFdIypVcBfzS0OrjL?=
+ =?us-ascii?Q?XRhi4MFhpB484WyRsmRk6ZP16SQwaULFqbYkmSYDvYRRPhMouC6kO5wbmWHC?=
+ =?us-ascii?Q?JYU6TYaf+pboBtqAPrTcXOrRzI+F1L+1NC1VH+hXtLhvDfri5wcAySH32iT8?=
+ =?us-ascii?Q?56/42m+nQXSiSACXZs/EwPSPh34FKvsjQhc9xxNZCddI/8nnzhmrSPHRW/3I?=
+ =?us-ascii?Q?iPYuI/1hvY6N4v4N3/WqKXmg7c+Ud2hjcrC99Na/t/a8JvFDVyVNrt3X9JVM?=
+ =?us-ascii?Q?OL87EiehMaAFjzfVFmcM3F20VAXa/Da7oc64rCKRJiyH/jxhybcOOq3rPTaX?=
+ =?us-ascii?Q?Zb+7abncKIwGzTW3+V7NyjMTPDPEOaWZpyKGKGgEeGAZVtZsQby34ECAFt8u?=
+ =?us-ascii?Q?GG5SosYdv3WMj1y2Irj3Hqui1gKAtkpSd+cHDru7LBeTyeqsryITiWrr8jPt?=
+ =?us-ascii?Q?RCfLZvAzE+BKxlEP8DsDyQykU5xg+rVQFIXnf0SsrVnaAv2jY967EA71wh1n?=
+ =?us-ascii?Q?wKsz0Ea1jVt3PlN10dKmU/H7atEl1PlTth27hzEsPjFiIkcwE+ZaGxsH3JmO?=
+ =?us-ascii?Q?zA2yH84gzjNNofou6Ng8PJgnujtpwS3ckSjKNW0cSRSEgWqna6bi/d+vpD9l?=
+ =?us-ascii?Q?3zWLYWu3wL3MRRVGEcd+5FOIXKUfxaBtITwO4gIaRC9ohGdDtw3J2XB4UVUP?=
+ =?us-ascii?Q?Y4suab75os5ubi4tph64OYjiBkQ347vCVE1V9CUtxBA52EhRobAOqZEePahk?=
+ =?us-ascii?Q?FkA4FxE5jjsutiyhgWmQwZfyIO3NpPNOtkxEclGBIYlkU3KSWnZBRIy5OsHr?=
+ =?us-ascii?Q?TkvhJsUHUynO14Y8llPGBgpkb11WhNqui+CR+Wzn/DoaBDl+CT+fWwnf6Gq7?=
+ =?us-ascii?Q?weWSab21MwrI6fXMcb1lRisNRS/LuLLJ5zFr90pBB/Pu5usnLwIPZW5Z0+22?=
+ =?us-ascii?Q?yUdVh4GMMS0sJYzU8dZmm0Xj3ozLU2Mn1m1lUuwW80obh3uuBeeGsvqrdLCR?=
+ =?us-ascii?Q?uungLIQ32PGzQ1ApPZJyiKyYR583GZ/ICNvnAq6/p5JRBtFpIzT+FV1cjDYh?=
+ =?us-ascii?Q?3aKm4WC7qSgWV9WBA5Xk2r2TcQRRcO2n9k/olXbaJsCJpcAh5zjg0A7bV0NZ?=
+ =?us-ascii?Q?CyCwAgfjGd+zcqUlXIPtMv9iKXgs6m/x6bLz2ZhpqPaSOi6QNkobY8TNbN5V?=
+ =?us-ascii?Q?4m641C4dXqtWlWUYSLhiBvEdOQLUQE0/6e1qxXX0mXFiDglI4rLImoWe1EyI?=
+ =?us-ascii?Q?hMes7ch5I4ftAGhaPMFpNCW78de1ii38ZRgAe0pHCs6gToLnRF21MG2fK8wG?=
+ =?us-ascii?Q?Dw=3D=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: 5eb5d1ad-a7ae-4383-881d-08dbc11a3cac
 X-MS-Exchange-CrossTenant-AuthSource: PH8PR11MB8107.namprd11.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 29 Sep 2023 18:28:05.9093
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 29 Sep 2023 18:31:03.5652
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: gpGqsaKQuv6+pjasY/K+zj/Fm4TFVwbfRCI8GsKoZYj5YfDeb5moKQAhgKkceO+MC3BPUYMf7koYgFxjJ9SEb535VSupAc4HqVj6JrXAXSg=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH8PR11MB6928
+X-MS-Exchange-CrossTenant-UserPrincipalName: M58XmqjnOQfanpIzxrUOvWf87RiMB7336nUDzwraUIbW+O+4Z8aIQN5mntQqdDZSDwdHLxMZd1JirmvxvZc52b0NtNa19NJFSof0LixoClE=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH3PR11MB7763
 X-OriginatorOrg: intel.com
 
-Eric Sandeen wrote:
-> On 9/29/23 9:17 AM, Chandan Babu R wrote:
-> > On Thu, Sep 28, 2023 at 09:20:52 AM -0700, Andrew Morton wrote:
-> >> On Thu, 28 Sep 2023 16:44:00 +0800 Shiyang Ruan <ruansy.fnst@fujitsu.com> wrote:
-> >>
-> >>> But please pick the following patch[1] as well, which fixes failures of 
-> >>> xfs55[0-2] cases.
-> >>>
-> >>> [1] 
-> >>> https://lore.kernel.org/linux-xfs/20230913102942.601271-1-ruansy.fnst@fujitsu.com
-> >>
-> >> I guess I can take that xfs patch, as it fixes a DAX patch.  I hope the xfs team
-> >> are watching.
-> >>
-> >> But
-> >>
-> >> a) I'm not subscribed to linux-xfs and
-> >>
-> >> b) the changelog fails to describe the userspace-visible effects of
-> >>    the bug, so I (and others) are unable to determine which kernel
-> >>    versions should be patched.
-> >>
-> >> Please update that changelog and resend?
-> > 
-> > I will apply "xfs: correct calculation for agend and blockcount" patch to
-> > xfs-linux Git tree and include it for the next v6.6 pull request to Linus.
-> > 
-> > At the outset, It looks like I can pick "mm, pmem, xfs: Introduce
-> > MF_MEM_PRE_REMOVE for unbind"
-> > (i.e. https://lore.kernel.org/linux-xfs/20230928103227.250550-1-ruansy.fnst@fujitsu.com/T/#u)
-> > patch for v6.7 as well. But that will require your Ack. Please let me know
-> > your opinion.
-> > 
-> > Also, I will pick "xfs: drop experimental warning for FSDAX" patch for v6.7.
+Shiyang Ruan wrote:
+> ====
+> Changes since v14:
+>  1. added/fixed code comments per Dan's comments
+> ====
 > 
-> While I hate to drag it out even longer, it seems slightly optimistic to
-> drop experimental at the same time as the "last" fix, in case it's not
-> really the last fix.
+> Now, if we suddenly remove a PMEM device(by calling unbind) which
+> contains FSDAX while programs are still accessing data in this device,
+> e.g.:
+> ```
+>  $FSSTRESS_PROG -d $SCRATCH_MNT -n 99999 -p 4 &
+>  # $FSX_PROG -N 1000000 -o 8192 -l 500000 $SCRATCH_MNT/t001 &
+>  echo "pfn1.1" > /sys/bus/nd/drivers/nd_pmem/unbind
+> ```
+> it could come into an unacceptable state:
+>   1. device has gone but mount point still exists, and umount will fail
+>        with "target is busy"
+>   2. programs will hang and cannot be killed
+>   3. may crash with NULL pointer dereference
 > 
-> But I don't have super strong feelings about it, and I would be happy to
-> finally see experimental go away. So if those who are more tuned into
-> the details are comfortable with that 6.7 plan, I'll defer to them on
-> the question.
+> To fix this, we introduce a MF_MEM_PRE_REMOVE flag to let it know that we
+> are going to remove the whole device, and make sure all related processes
+> could be notified so that they could end up gracefully.
+> 
+> This patch is inspired by Dan's "mm, dax, pmem: Introduce
+> dev_pagemap_failure()"[1].  With the help of dax_holder and
+> ->notify_failure() mechanism, the pmem driver is able to ask filesystem
+> on it to unmap all files in use, and notify processes who are using
+> those files.
+> 
+> Call trace:
+> trigger unbind
+>  -> unbind_store()
+>   -> ... (skip)
+>    -> devres_release_all()
+>     -> kill_dax()
+>      -> dax_holder_notify_failure(dax_dev, 0, U64_MAX, MF_MEM_PRE_REMOVE)
+>       -> xfs_dax_notify_failure()
+>       `-> freeze_super()             // freeze (kernel call)
+>       `-> do xfs rmap
+>       ` -> mf_dax_kill_procs()
+>       `  -> collect_procs_fsdax()    // all associated processes
+>       `  -> unmap_and_kill()
+>       ` -> invalidate_inode_pages2_range() // drop file's cache
+>       `-> thaw_super()               // thaw (both kernel & user call)
+> 
+> Introduce MF_MEM_PRE_REMOVE to let filesystem know this is a remove
+> event.  Use the exclusive freeze/thaw[2] to lock the filesystem to prevent
+> new dax mapping from being created.  Do not shutdown filesystem directly
+> if configuration is not supported, or if failure range includes metadata
+> area.  Make sure all files and processes(not only the current progress)
+> are handled correctly.  Also drop the cache of associated files before
+> pmem is removed.
+> 
+> [1]: https://lore.kernel.org/linux-mm/161604050314.1463742.14151665140035795571.stgit@dwillia2-desk3.amr.corp.intel.com/
+> [2]: https://lore.kernel.org/linux-xfs/169116275623.3187159.16862410128731457358.stg-ugh@frogsfrogsfrogs/
+> 
+> Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+> Reviewed-by: Darrick J. Wong <djwong@kernel.org>
+> Acked-by: Dan Williams <dan.j.williams@intel.com>
 
-The main blockage of "experimental" was the inability to specify
-dax+reflink, and the concern that resolving that conflict would end up
-breaking MAP_SYNC semantics or some other regression.
+This version address my feedback you can upgrade that Acked-by: to
 
-The dax_notify_failure() work has resolved that conflict without
-regressing semantics.
-
-Ultimately this is an XFS filesystem maintainer decision, but my
-perspective is that v6.7-rc1 starts the clock on experimental going away
-and if the bug reports stay quiet that state can persist into
-v6.7-final.  If new reports crop up, revert the experimental removal and
-try again for v6.8.
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
