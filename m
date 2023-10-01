@@ -1,41 +1,40 @@
 Received: from mgamail.intel.com (mgamail.intel.com [134.134.136.126])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE6D520EB
-	for <nvdimm@lists.linux.dev>; Sun,  1 Oct 2023 22:31:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 94DF43D6E
+	for <nvdimm@lists.linux.dev>; Sun,  1 Oct 2023 22:31:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1696199500; x=1727735500;
+  t=1696199502; x=1727735502;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=qw6ErE+N/Zs5mIaQY8NIOuKAGUcYqneo1GoEkWUjLLw=;
-  b=mg91a4mll6xhrKkCgTehH8ZFCuW4UIoq4AmRZpzK9y3MBhIWsBh/0Pvc
-   BQrPr/9xnfzBU2Td+z4+Kcyz81b4MhlqhC1Fd5po6Vs/YzkG2Q70eAU8U
-   REJuXXS3iQSeSXpHXY+AZBimvW8Y5woC/iAEmtSd7W6EAz+EJI+JHdnv7
-   eEBBE6EMXwH+4o8188BBCrkgjRhaQOER/TVl7oqWGQnCkIZzaTDDxYXs6
-   Jh2+OoQgFTw1hftRNME7SlVreLrAkUFgUV3N0h9wa80TtLnRhSciou89x
-   qY2GyWtV94ibcnh/Ivyre+zsKzEiDJTsNnVltf9NB2XJ5GkBv5nvmPzNs
-   w==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10850"; a="367618317"
+  bh=qCuYnXUKB6u9g+0ltmmaStCmBZs+B1gL2MkePG6yECg=;
+  b=gJn8Mf8RQbBbqYh4OtGw6ZCqfLFPa3SAQuUxvDCiG5PR5Lufqe8EhC8/
+   iBtEc7GABpVruWK+Okua8/jm9nGP7r0Llfe0hRMA388QheVJbwEDGs5is
+   E4h9uELcIv83MgPqCNxh4VFIzHnxOQCw4hp5WmBRtRFInBtS2nIXPCxMi
+   ovycQWXZNsbOVslvOE+KyaDLm6ysnCgu4tCX/VgR+3L4iJ5d6KLYDol1j
+   OOioYs8a7bZPY5JAR658nNNn+bHlMolAPArSajGmyos3Mazp6GECCB86+
+   NhD7AHIh+z2kGRTCJ10SElic28eA5LaURBf0p14Hl6R1X3yShcbYNAXci
+   Q==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10850"; a="367618323"
 X-IronPort-AV: E=Sophos;i="6.03,193,1694761200"; 
-   d="scan'208";a="367618317"
+   d="scan'208";a="367618323"
 Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Oct 2023 15:31:39 -0700
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Oct 2023 15:31:40 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10850"; a="779781956"
+X-IronPort-AV: E=McAfee;i="6600,9927,10850"; a="779781971"
 X-IronPort-AV: E=Sophos;i="6.03,193,1694761200"; 
-   d="scan'208";a="779781956"
+   d="scan'208";a="779781971"
 Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.251.20.198])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Oct 2023 15:31:39 -0700
+  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Oct 2023 15:31:40 -0700
 From: alison.schofield@intel.com
 To: Vishal Verma <vishal.l.verma@intel.com>
 Cc: Alison Schofield <alison.schofield@intel.com>,
 	nvdimm@lists.linux.dev,
-	linux-cxl@vger.kernel.org,
-	Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Subject: [ndctl PATCH v2 2/5] cxl: add an optional pid check to event parsing
-Date: Sun,  1 Oct 2023 15:31:32 -0700
-Message-Id: <f539e392ff6987147c17ff0c95af8ebf84256da5.1696196382.git.alison.schofield@intel.com>
+	linux-cxl@vger.kernel.org
+Subject: [ndctl PATCH v2 4/5] cxl/list: add --poison option to cxl list
+Date: Sun,  1 Oct 2023 15:31:34 -0700
+Message-Id: <e341f21fb51826335360a0d54538f4b6814537dc.1696196382.git.alison.schofield@intel.com>
 X-Mailer: git-send-email 2.40.1
 In-Reply-To: <cover.1696196382.git.alison.schofield@intel.com>
 References: <cover.1696196382.git.alison.schofield@intel.com>
@@ -49,51 +48,129 @@ Content-Transfer-Encoding: 8bit
 
 From: Alison Schofield <alison.schofield@intel.com>
 
-When parsing CXL events, callers may only be interested in events
-that originate from the current process. Introduce an optional
-argument to the event trace context: event_pid. When event_pid is
-present, only include events with a matching pid in the returned
-JSON list. It is not a failure to see other, non matching results.
-Simply skip those.
+The --poison option to 'cxl list' retrieves poison lists from
+memory devices supporting the capability and displays the
+returned poison records in the cxl list json. This option can
+apply to memdevs or regions.
 
-The initial use case for this is device poison listings where
-only the poison error records requested by this process are wanted.
+Example usage in the Documentation/cxl/cxl-list.txt update.
 
 Signed-off-by: Alison Schofield <alison.schofield@intel.com>
-Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 ---
- cxl/event_trace.c | 5 +++++
- cxl/event_trace.h | 1 +
- 2 files changed, 6 insertions(+)
+ Documentation/cxl/cxl-list.txt | 64 ++++++++++++++++++++++++++++++++++
+ cxl/filter.h                   |  3 ++
+ cxl/list.c                     |  2 ++
+ 3 files changed, 69 insertions(+)
 
-diff --git a/cxl/event_trace.c b/cxl/event_trace.c
-index db8cc85f0b6f..269060898118 100644
---- a/cxl/event_trace.c
-+++ b/cxl/event_trace.c
-@@ -208,6 +208,11 @@ static int cxl_event_parse(struct tep_event *event, struct tep_record *record,
- 			return 0;
- 	}
+diff --git a/Documentation/cxl/cxl-list.txt b/Documentation/cxl/cxl-list.txt
+index 838de4086678..2a4a8fe2efaa 100644
+--- a/Documentation/cxl/cxl-list.txt
++++ b/Documentation/cxl/cxl-list.txt
+@@ -415,6 +415,70 @@ OPTIONS
+ --region::
+ 	Specify CXL region device name(s), or device id(s), to filter the listing.
  
-+	if (event_ctx->event_pid) {
-+		if (event_ctx->event_pid != tep_data_pid(event->tep, record))
-+			return 0;
-+	}
++-L::
++--poison::
++	Include poison information. The poison list is retrieved from the
++	device(s) and poison records are added to the listing. Apply this
++	option to memdevs and regions where devices support the poison
++	list capability.
 +
- 	if (event_ctx->parse_event)
- 		return event_ctx->parse_event(event, record,
- 					      &event_ctx->jlist_head);
-diff --git a/cxl/event_trace.h b/cxl/event_trace.h
-index ec6267202c8b..7f7773b2201f 100644
---- a/cxl/event_trace.h
-+++ b/cxl/event_trace.h
-@@ -15,6 +15,7 @@ struct event_ctx {
- 	const char *system;
- 	struct list_head jlist_head;
- 	const char *event_name; /* optional */
-+	int event_pid; /* optional */
- 	int (*parse_event)(struct tep_event *event, struct tep_record *record,
- 			   struct list_head *jlist_head); /* optional */
++----
++# cxl list -m mem11 --poison
++[
++  {
++    "memdev":"mem11",
++    "pmem_size":268435456,
++    "ram_size":0,
++    "serial":0,
++    "host":"0000:37:00.0",
++    "poison":{
++      "nr_poison_records":1,
++      "poison_records":[
++        {
++          "dpa":0,
++          "dpa_length":64,
++          "source":"Internal",
++          "flags":"",
++          "overflow_time":0
++        }
++      ]
++    }
++  }
++]
++# cxl list -r region5 --poison
++[
++  {
++    "region":"region5",
++    "resource":1035623989248,
++    "size":2147483648,
++    "interleave_ways":2,
++    "interleave_granularity":4096,
++    "decode_state":"commit",
++    "poison":{
++      "nr_poison_records":2,
++      "poison_records":[
++        {
++          "memdev":"mem2",
++          "dpa":0,
++          "dpa_length":64,
++          "source":"Internal",
++          "flags":"",
++          "overflow_time":0
++        },
++        {
++          "memdev":"mem5",
++          "dpa":0,
++          "length":512,
++          "source":"Vendor",
++          "flags":"",
++          "overflow_time":0
++        }
++      ]
++    }
++  }
++]
++----
++
+ -v::
+ --verbose::
+ 	Increase verbosity of the output. This can be specified
+diff --git a/cxl/filter.h b/cxl/filter.h
+index 3f65990f835a..f38470e39543 100644
+--- a/cxl/filter.h
++++ b/cxl/filter.h
+@@ -30,6 +30,7 @@ struct cxl_filter_params {
+ 	bool fw;
+ 	bool alert_config;
+ 	bool dax;
++	bool poison;
+ 	int verbose;
+ 	struct log_ctx ctx;
  };
+@@ -88,6 +89,8 @@ static inline unsigned long cxl_filter_to_flags(struct cxl_filter_params *param)
+ 		flags |= UTIL_JSON_ALERT_CONFIG;
+ 	if (param->dax)
+ 		flags |= UTIL_JSON_DAX | UTIL_JSON_DAX_DEVS;
++	if (param->poison)
++		flags |= UTIL_JSON_POISON_LIST;
+ 	return flags;
+ }
+ 
+diff --git a/cxl/list.c b/cxl/list.c
+index 93ba51ef895c..13fef8569340 100644
+--- a/cxl/list.c
++++ b/cxl/list.c
+@@ -57,6 +57,8 @@ static const struct option options[] = {
+ 		    "include memory device firmware information"),
+ 	OPT_BOOLEAN('A', "alert-config", &param.alert_config,
+ 		    "include alert configuration information"),
++	OPT_BOOLEAN('L', "poison", &param.poison,
++		    "include poison information "),
+ 	OPT_INCR('v', "verbose", &param.verbose, "increase output detail"),
+ #ifdef ENABLE_DEBUG
+ 	OPT_BOOLEAN(0, "debug", &debug, "debug list walk"),
 -- 
 2.37.3
 
