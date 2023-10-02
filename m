@@ -1,27 +1,27 @@
-Received: from esa6.hc1455-7.c3s2.iphmx.com (esa6.hc1455-7.c3s2.iphmx.com [68.232.139.139])
+Received: from esa11.hc1455-7.c3s2.iphmx.com (esa11.hc1455-7.c3s2.iphmx.com [207.54.90.137])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68627156FD;
-	Mon,  2 Oct 2023 11:59:07 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6600,9927,10850"; a="135911697"
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1CEAC1548A
+	for <nvdimm@lists.linux.dev>; Mon,  2 Oct 2023 12:17:13 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6600,9927,10850"; a="113857339"
 X-IronPort-AV: E=Sophos;i="6.03,194,1694703600"; 
-   d="scan'208";a="135911697"
-Received: from unknown (HELO yto-r2.gw.nic.fujitsu.com) ([218.44.52.218])
-  by esa6.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Oct 2023 20:57:56 +0900
-Received: from yto-m3.gw.nic.fujitsu.com (yto-nat-yto-m3.gw.nic.fujitsu.com [192.168.83.66])
-	by yto-r2.gw.nic.fujitsu.com (Postfix) with ESMTP id 933DCC68E2;
-	Mon,  2 Oct 2023 20:57:53 +0900 (JST)
-Received: from kws-ab4.gw.nic.fujitsu.com (kws-ab4.gw.nic.fujitsu.com [192.51.206.22])
-	by yto-m3.gw.nic.fujitsu.com (Postfix) with ESMTP id CB4F1D9680;
-	Mon,  2 Oct 2023 20:57:52 +0900 (JST)
+   d="scan'208";a="113857339"
+Received: from unknown (HELO oym-r4.gw.nic.fujitsu.com) ([210.162.30.92])
+  by esa11.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Oct 2023 21:16:02 +0900
+Received: from oym-m4.gw.nic.fujitsu.com (oym-nat-oym-m4.gw.nic.fujitsu.com [192.168.87.61])
+	by oym-r4.gw.nic.fujitsu.com (Postfix) with ESMTP id 7C305DDC68
+	for <nvdimm@lists.linux.dev>; Mon,  2 Oct 2023 21:15:59 +0900 (JST)
+Received: from kws-ab3.gw.nic.fujitsu.com (kws-ab3.gw.nic.fujitsu.com [192.51.206.21])
+	by oym-m4.gw.nic.fujitsu.com (Postfix) with ESMTP id AFCEED6308
+	for <nvdimm@lists.linux.dev>; Mon,  2 Oct 2023 21:15:58 +0900 (JST)
 Received: from edo.cn.fujitsu.com (edo.cn.fujitsu.com [10.167.33.5])
-	by kws-ab4.gw.nic.fujitsu.com (Postfix) with ESMTP id 6366940186;
-	Mon,  2 Oct 2023 20:57:52 +0900 (JST)
+	by kws-ab3.gw.nic.fujitsu.com (Postfix) with ESMTP id 4E57E2007471D
+	for <nvdimm@lists.linux.dev>; Mon,  2 Oct 2023 21:15:58 +0900 (JST)
 Received: from [10.193.128.127] (unknown [10.193.128.127])
-	by edo.cn.fujitsu.com (Postfix) with ESMTP id 0499B1A0006;
-	Mon,  2 Oct 2023 19:57:50 +0800 (CST)
-Message-ID: <83d057e5-ef5f-4b27-95c8-d7bf4902fa55@fujitsu.com>
-Date: Mon, 2 Oct 2023 19:57:50 +0800
+	by edo.cn.fujitsu.com (Postfix) with ESMTP id 9CDC31A0006;
+	Mon,  2 Oct 2023 20:15:57 +0800 (CST)
+Message-ID: <ec2de0b9-c07d-468a-bd15-49e83cba1ad9@fujitsu.com>
+Date: Mon, 2 Oct 2023 20:15:57 +0800
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -29,118 +29,124 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v15] mm, pmem, xfs: Introduce MF_MEM_PRE_REMOVE for unbind
-To: kernel test robot <lkp@intel.com>
-Cc: llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
- dan.j.williams@intel.com, willy@infradead.org, jack@suse.cz,
- akpm@linux-foundation.org, djwong@kernel.org, mcgrof@kernel.org,
- chandanbabu@kernel.org, linux-fsdevel@vger.kernel.org,
- nvdimm@lists.linux.dev, linux-xfs@vger.kernel.org, linux-mm@kvack.org
-References: <20230928103227.250550-1-ruansy.fnst@fujitsu.com>
- <202310010955.feI4HCwZ-lkp@intel.com>
+Subject: Re: [PATCH] xfs: drop experimental warning for FSDAX
+To: Dan Williams <dan.j.williams@intel.com>,
+ Chandan Babu R <chandanbabu@kernel.org>
+Cc: "Darrick J. Wong" <djwong@kernel.org>,
+ Andrew Morton <akpm@linux-foundation.org>, Dave Chinner
+ <david@fromorbit.com>, linux-xfs@vger.kernel.org, nvdimm@lists.linux.dev
+References: <20230927014632.GE11456@frogsfrogsfrogs>
+ <87fs306zs1.fsf@debian-BULLSEYE-live-builder-AMD64>
+ <5c064cbd-13a3-4d55-9881-0a079476d865@fujitsu.com>
+ <bc29af15-ae63-407d-8ca0-186c976acce7@fujitsu.com>
+ <87y1gs83yq.fsf@debian-BULLSEYE-live-builder-AMD64>
+ <20230927083034.90bd6336229dd00af601e0ef@linux-foundation.org>
+ <9c3cbc0c-7135-4006-ad4a-2abce0a556b0@fujitsu.com>
+ <20230928092052.9775e59262c102dc382513ef@linux-foundation.org>
+ <20230928171339.GJ11439@frogsfrogsfrogs>
+ <99279735-2d17-405f-bade-9501a296d817@fujitsu.com>
+ <651718a6a6e2c_c558e2943e@dwillia2-xfh.jf.intel.com.notmuch>
 From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-In-Reply-To: <202310010955.feI4HCwZ-lkp@intel.com>
+In-Reply-To: <651718a6a6e2c_c558e2943e@dwillia2-xfh.jf.intel.com.notmuch>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 X-TM-AS-GCONF: 00
 X-TM-AS-Product-Ver: IMSS-9.1.0.1417-9.0.0.1002-27910.006
 X-TM-AS-User-Approved-Sender: Yes
 X-TMASE-Version: IMSS-9.1.0.1417-9.0.1002-27910.006
-X-TMASE-Result: 10--24.331000-10.000000
-X-TMASE-MatchedRID: RsPxVIkBekyPvrMjLFD6eKzGfgakLdjaSIfLQ6k7huHHr4PSWTXSLMWl
-	hj9iHeVpndDwnQ2pwPpOg1kzy/iWtmrs+r6+nS7O46cXaPycFZuR1LeQ+VpnJZskuXz9Gadkbyq
-	cWT4FZRfg7nVyl/GdEkusQE+B0D7cVGsQtO2yiZ48+i/lP6Xo8coioCrSMgeKTmg3Ze6YIL1/o7
-	4UQlCmAM8oZdJyMU3z59JoNf8FRHif9F+VqQj2HI61Z+HJnvsOmSLeIgEDej+u9yzHHu0ZiRVx7
-	xedu5l6XICzc9HFHLudqC2fLtk9xL9ZdlL8eona0CzDI0K7cAwCwwGD+AF1Ue52OdZcC6tPvECL
-	uM+h4RB+3BndfXUhXQ==
+X-TMASE-Result: 10--21.262000-10.000000
+X-TMASE-MatchedRID: gJMUAIY29lmPvrMjLFD6eCkMR2LAnMRp2q80vLACqaeqvcIF1TcLYPQk
+	JPC+p/jdAYsmNBEx4IrUw09eu4b0WF0ieHN50/kHrMZ+BqQt2Np0bXWCb2qGLplPg3vfYMxrAMJ
+	cHOzzDuO+8e7hYIm6IkOR8gDRpJrLHlH0AvHWpb0LuM9syeC5MEWGJun24Wb1y8ftIFhtAGTDfK
+	dkuIjTgo98knPshr36LufzK+NHpVJNCWJ8tjWueb0M+sraRHyc3AJrtcannrbW2YYHslT0IyNMv
+	5a0AeBD0pAKXvyiClld/cyqXfP9LhELe2nKwTwA9k5nZzZVBSBOGffsUU/kDWDqvWq9NNyFzv0+
+	UmYCZcOd0PCdDanA+oqCCvv09QBUe4rShPdcdTZOG5AmSMA4vpfau+Sc1iUTbkvAJoOQ99k/xU1
+	AZY+Qo5Bze/7xX8D++Dq5+AB/HWILv9prS13Llsaw71DJbaIElDt5PQMgj035V4X/65Dwb7rmvh
+	de36c4lxPsRwiY5LwoBEe6aSUEd3AA9eFj9SfYngIgpj8eDcBZDL1gLmoa/OYq7Exe0AIo+x/oW
+	SsuvysLbigRnpKlKT4yqD4LKu3A
 X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
 
 
 
-在 2023/10/1 9:43, kernel test robot 写道:
-> Hi Shiyang,
+在 2023/9/30 2:34, Dan Williams 写道:
+> Shiyang Ruan wrote:
+>>
+>>
+>> 在 2023/9/29 1:13, Darrick J. Wong 写道:
+>>> On Thu, Sep 28, 2023 at 09:20:52AM -0700, Andrew Morton wrote:
+>>>> On Thu, 28 Sep 2023 16:44:00 +0800 Shiyang Ruan <ruansy.fnst@fujitsu.com> wrote:
+>>>>
+>>>>> But please pick the following patch[1] as well, which fixes failures of
+>>>>> xfs55[0-2] cases.
+>>>>>
+>>>>> [1]
+>>>>> https://lore.kernel.org/linux-xfs/20230913102942.601271-1-ruansy.fnst@fujitsu.com
+>>>>
+>>>> I guess I can take that xfs patch, as it fixes a DAX patch.  I hope the xfs team
+>>>> are watching.
+>>>>
+>>>> But
+>>>>
+>>>> a) I'm not subscribed to linux-xfs and
+>>>>
+>>>> b) the changelog fails to describe the userspace-visible effects of
+>>>>      the bug, so I (and others) are unable to determine which kernel
+>>>>      versions should be patched.
+>>>>
+>>>> Please update that changelog and resend?
+>>>
+>>> That's a purely xfs patch anyways.  The correct maintainer is Chandan,
+>>> not Andrew.
+>>>
+>>> /me notes that post-reorg, patch authors need to ask the release manager
+>>> (Chandan) directly to merge their patches after they've gone through
+>>> review.  Pull requests of signed tags are encouraged strongly.
+>>>
+>>> Shiyang, could you please send Chandan pull requests with /all/ the
+>>> relevant pmem patches incorporated?  I think that's one PR for the
+>>> "xfs: correct calculation for agend and blockcount" for 6.6; and a
+>>> second PR with all the non-bugfix stuff (PRE_REMOVE and whatnot) for
+>>> 6.7.
+>>
+>> OK.  Though I don't know how to send the PR by email, I have sent a list
+>> of the patches and added description for each one.
 > 
-> kernel test robot noticed the following build errors:
+> If you want I can create a signed pull request from a git.kernel.org
+> tree.
 > 
-> 
-> 
-> url:    https://github.com/intel-lab-lkp/linux/commits/UPDATE-20230928-183310/Shiyang-Ruan/xfs-fix-the-calculation-for-end-and-length/20230629-161913
-> base:   the 2th patch of https://lore.kernel.org/r/20230629081651.253626-3-ruansy.fnst%40fujitsu.com
-> patch link:    https://lore.kernel.org/r/20230928103227.250550-1-ruansy.fnst%40fujitsu.com
-> patch subject: [PATCH v15] mm, pmem, xfs: Introduce MF_MEM_PRE_REMOVE for unbind
-> config: x86_64-rhel-8.3-rust (https://download.01.org/0day-ci/archive/20231001/202310010955.feI4HCwZ-lkp@intel.com/config)
-> compiler: clang version 15.0.7 (https://github.com/llvm/llvm-project.git 8dfdcc7b7bf66834a761bd8de445840ef68e4d1a)
-> reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20231001/202310010955.feI4HCwZ-lkp@intel.com/reproduce)
-> 
-> If you fix the issue in a separate patch/commit (i.e. not just a new version of
-> the same patch/commit), kindly add following tags
-> | Reported-by: kernel test robot <lkp@intel.com>
-> | Closes: https://lore.kernel.org/oe-kbuild-all/202310010955.feI4HCwZ-lkp@intel.com/
-> 
-> All errors (new ones prefixed by >>):
-> 
->>> fs/xfs/xfs_notify_failure.c:127:27: error: use of undeclared identifier 'FREEZE_HOLDER_KERNEL'
->             error = freeze_super(sb, FREEZE_HOLDER_KERNEL);
->                                      ^
->     fs/xfs/xfs_notify_failure.c:143:26: error: use of undeclared identifier 'FREEZE_HOLDER_KERNEL'
->                     error = thaw_super(sb, FREEZE_HOLDER_KERNEL);
->                                            ^
->>> fs/xfs/xfs_notify_failure.c:153:17: error: use of undeclared identifier 'FREEZE_HOLDER_USERSPACE'
->             thaw_super(sb, FREEZE_HOLDER_USERSPACE);
->                            ^
->     3 errors generated.
-> 
+> Where is that list of patches? I see v15 of preremove.
 
-The two enums has been introduced since 880b9577855e ("fs: distinguish 
-between user initiated freeze and kernel initiated freeze"), v6.6-rc1. 
-I also compiled my patches based on v6.6-rc1 with your config file, it 
-passed with no error.
+Sorry, I sent the list below to Chandan, didn't cc the maillist because 
+it's just a rough list rather than a PR:
 
-So, which kernel version were you testing?
+
+1. subject: [v3]  xfs: correct calculation for agend and blockcount
+    url: 
+https://lore.kernel.org/linux-xfs/20230913102942.601271-1-ruansy.fnst@fujitsu.com/
+    note:    This one is a fix patch for commit: 5cf32f63b0f4 ("xfs: fix 
+the calculation for "end" and "length"").
+             It can solve the fail of xfs/55[0-2]: the programs 
+accessing the DAX file may not be notified as expected, because the 
+length always 1 block less than actual.  Then this patch fixes this.
+
+
+2. subject: [v15] mm, pmem, xfs: Introduce MF_MEM_PRE_REMOVE for unbind
+    url: 
+https://lore.kernel.org/linux-xfs/20230928103227.250550-1-ruansy.fnst@fujitsu.com/T/#u
+    note:    This is a feature patch.  It handles the pre-remove event 
+of DAX device, by notifying kernel/user space before actually removing.
+             It has been picked by Andrew in his mm-hotfixes-unstable. I 
+am not sure whether you or he will merge this one.
+
+
+3. subject: [v1]  xfs: drop experimental warning for FSDAX
+    url: 
+https://lore.kernel.org/linux-xfs/20230915063854.1784918-1-ruansy.fnst@fujitsu.com/
+    note:    With the patches mentioned above, I did a lot of tests, 
+including xfstests and blackbox tests, the FSDAX function looks good 
+now.  So I think the experimental warning could be dropped.
 
 
 --
 Thanks,
 Ruan.
-
-> 
-> vim +/FREEZE_HOLDER_KERNEL +127 fs/xfs/xfs_notify_failure.c
-> 
->     119	
->     120	static int
->     121	xfs_dax_notify_failure_freeze(
->     122		struct xfs_mount	*mp)
->     123	{
->     124		struct super_block	*sb = mp->m_super;
->     125		int			error;
->     126	
->   > 127		error = freeze_super(sb, FREEZE_HOLDER_KERNEL);
->     128		if (error)
->     129			xfs_emerg(mp, "already frozen by kernel, err=%d", error);
->     130	
->     131		return error;
->     132	}
->     133	
->     134	static void
->     135	xfs_dax_notify_failure_thaw(
->     136		struct xfs_mount	*mp,
->     137		bool			kernel_frozen)
->     138	{
->     139		struct super_block	*sb = mp->m_super;
->     140		int			error;
->     141	
->     142		if (kernel_frozen) {
->     143			error = thaw_super(sb, FREEZE_HOLDER_KERNEL);
->     144			if (error)
->     145				xfs_emerg(mp, "still frozen after notify failure, err=%d",
->     146					error);
->     147		}
->     148	
->     149		/*
->     150		 * Also thaw userspace call anyway because the device is about to be
->     151		 * removed immediately.
->     152		 */
->   > 153		thaw_super(sb, FREEZE_HOLDER_USERSPACE);
->     154	}
->     155	
-> 
