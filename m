@@ -1,68 +1,146 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.115])
+Received: from esa6.hc1455-7.c3s2.iphmx.com (esa6.hc1455-7.c3s2.iphmx.com [68.232.139.139])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0EA699CA43
-	for <nvdimm@lists.linux.dev>; Mon,  2 Oct 2023 09:38:25 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1696239506; x=1727775506;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=EKeqTQ7lBi8p0ds3MCDEOA0gTab2eJ95FzFsr/E1n6o=;
-  b=GIhR3itioi27aWSbkpJijnN15OtmrJuZ9bQkNCbaof1JH2PtQ28IAjuK
-   CaEqHyGdGY4S/jglx5TlwYKVohPFD28p7/77xbGX+uoQqSoaF6jwhZWMR
-   4klQTTOiNqqIjTOneeRqP2bxqYTBaI97Wlen4ZElDtTwhNAR7k0mk6Qso
-   RJZ7HUbVR3H0Mq5PCm782CPljljS6zQXR5f6Y2Srk0haNcvpMVBJyDw5D
-   0IwkG5aRTuR9pPtl2mjqcp6H3xlB0LQiXn8yTBu8luwy/KcZctnQ1MR/0
-   D9Hsd65r48vLCOJTHnZyOMHkBfWrHLBnAv/tanXXJo7VgRYq9KA4w6OJg
-   Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10850"; a="382516183"
-X-IronPort-AV: E=Sophos;i="6.03,194,1694761200"; 
-   d="scan'208";a="382516183"
-Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Oct 2023 02:38:25 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10850"; a="1081591596"
-X-IronPort-AV: E=Sophos;i="6.03,194,1694761200"; 
-   d="scan'208";a="1081591596"
-Received: from smile.fi.intel.com ([10.237.72.54])
-  by fmsmga005.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Oct 2023 02:38:22 -0700
-Received: from andy by smile.fi.intel.com with local (Exim 4.97-RC0)
-	(envelope-from <andriy.shevchenko@linux.intel.com>)
-	id 1qnFNc-000000027aE-1EzC;
-	Mon, 02 Oct 2023 12:38:20 +0300
-Date: Mon, 2 Oct 2023 12:38:20 +0300
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Michal Wilczynski <michal.wilczynski@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-	nvdimm@lists.linux.dev, rafael.j.wysocki@intel.com, lenb@kernel.org,
-	dan.j.williams@intel.com, vishal.l.verma@intel.com,
-	ira.weiny@intel.com, Dave Jiang <dave.jiang@intel.com>
-Subject: Re: [PATCH v1 2/2] ACPI: NFIT: Use modern scope based rollback
-Message-ID: <ZRqPjLfITntN3cKr@smile.fi.intel.com>
-References: <20230926184520.2239723-1-michal.wilczynski@intel.com>
- <20230926184520.2239723-3-michal.wilczynski@intel.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68627156FD;
+	Mon,  2 Oct 2023 11:59:07 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6600,9927,10850"; a="135911697"
+X-IronPort-AV: E=Sophos;i="6.03,194,1694703600"; 
+   d="scan'208";a="135911697"
+Received: from unknown (HELO yto-r2.gw.nic.fujitsu.com) ([218.44.52.218])
+  by esa6.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Oct 2023 20:57:56 +0900
+Received: from yto-m3.gw.nic.fujitsu.com (yto-nat-yto-m3.gw.nic.fujitsu.com [192.168.83.66])
+	by yto-r2.gw.nic.fujitsu.com (Postfix) with ESMTP id 933DCC68E2;
+	Mon,  2 Oct 2023 20:57:53 +0900 (JST)
+Received: from kws-ab4.gw.nic.fujitsu.com (kws-ab4.gw.nic.fujitsu.com [192.51.206.22])
+	by yto-m3.gw.nic.fujitsu.com (Postfix) with ESMTP id CB4F1D9680;
+	Mon,  2 Oct 2023 20:57:52 +0900 (JST)
+Received: from edo.cn.fujitsu.com (edo.cn.fujitsu.com [10.167.33.5])
+	by kws-ab4.gw.nic.fujitsu.com (Postfix) with ESMTP id 6366940186;
+	Mon,  2 Oct 2023 20:57:52 +0900 (JST)
+Received: from [10.193.128.127] (unknown [10.193.128.127])
+	by edo.cn.fujitsu.com (Postfix) with ESMTP id 0499B1A0006;
+	Mon,  2 Oct 2023 19:57:50 +0800 (CST)
+Message-ID: <83d057e5-ef5f-4b27-95c8-d7bf4902fa55@fujitsu.com>
+Date: Mon, 2 Oct 2023 19:57:50 +0800
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230926184520.2239723-3-michal.wilczynski@intel.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v15] mm, pmem, xfs: Introduce MF_MEM_PRE_REMOVE for unbind
+To: kernel test robot <lkp@intel.com>
+Cc: llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
+ dan.j.williams@intel.com, willy@infradead.org, jack@suse.cz,
+ akpm@linux-foundation.org, djwong@kernel.org, mcgrof@kernel.org,
+ chandanbabu@kernel.org, linux-fsdevel@vger.kernel.org,
+ nvdimm@lists.linux.dev, linux-xfs@vger.kernel.org, linux-mm@kvack.org
+References: <20230928103227.250550-1-ruansy.fnst@fujitsu.com>
+ <202310010955.feI4HCwZ-lkp@intel.com>
+From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+In-Reply-To: <202310010955.feI4HCwZ-lkp@intel.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-TM-AS-Product-Ver: IMSS-9.1.0.1417-9.0.0.1002-27910.006
+X-TM-AS-User-Approved-Sender: Yes
+X-TMASE-Version: IMSS-9.1.0.1417-9.0.1002-27910.006
+X-TMASE-Result: 10--24.331000-10.000000
+X-TMASE-MatchedRID: RsPxVIkBekyPvrMjLFD6eKzGfgakLdjaSIfLQ6k7huHHr4PSWTXSLMWl
+	hj9iHeVpndDwnQ2pwPpOg1kzy/iWtmrs+r6+nS7O46cXaPycFZuR1LeQ+VpnJZskuXz9Gadkbyq
+	cWT4FZRfg7nVyl/GdEkusQE+B0D7cVGsQtO2yiZ48+i/lP6Xo8coioCrSMgeKTmg3Ze6YIL1/o7
+	4UQlCmAM8oZdJyMU3z59JoNf8FRHif9F+VqQj2HI61Z+HJnvsOmSLeIgEDej+u9yzHHu0ZiRVx7
+	xedu5l6XICzc9HFHLudqC2fLtk9xL9ZdlL8eona0CzDI0K7cAwCwwGD+AF1Ue52OdZcC6tPvECL
+	uM+h4RB+3BndfXUhXQ==
+X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
 
-On Tue, Sep 26, 2023 at 09:45:20PM +0300, Michal Wilczynski wrote:
-> Change rollback in acpi_nfit_init_interleave_set() to use modern scope
-> based attribute __free(). This is similar to C++ RAII and is a preferred
-> way for handling local memory allocations.
-
-LGTM,
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-
--- 
-With Best Regards,
-Andy Shevchenko
 
 
+在 2023/10/1 9:43, kernel test robot 写道:
+> Hi Shiyang,
+> 
+> kernel test robot noticed the following build errors:
+> 
+> 
+> 
+> url:    https://github.com/intel-lab-lkp/linux/commits/UPDATE-20230928-183310/Shiyang-Ruan/xfs-fix-the-calculation-for-end-and-length/20230629-161913
+> base:   the 2th patch of https://lore.kernel.org/r/20230629081651.253626-3-ruansy.fnst%40fujitsu.com
+> patch link:    https://lore.kernel.org/r/20230928103227.250550-1-ruansy.fnst%40fujitsu.com
+> patch subject: [PATCH v15] mm, pmem, xfs: Introduce MF_MEM_PRE_REMOVE for unbind
+> config: x86_64-rhel-8.3-rust (https://download.01.org/0day-ci/archive/20231001/202310010955.feI4HCwZ-lkp@intel.com/config)
+> compiler: clang version 15.0.7 (https://github.com/llvm/llvm-project.git 8dfdcc7b7bf66834a761bd8de445840ef68e4d1a)
+> reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20231001/202310010955.feI4HCwZ-lkp@intel.com/reproduce)
+> 
+> If you fix the issue in a separate patch/commit (i.e. not just a new version of
+> the same patch/commit), kindly add following tags
+> | Reported-by: kernel test robot <lkp@intel.com>
+> | Closes: https://lore.kernel.org/oe-kbuild-all/202310010955.feI4HCwZ-lkp@intel.com/
+> 
+> All errors (new ones prefixed by >>):
+> 
+>>> fs/xfs/xfs_notify_failure.c:127:27: error: use of undeclared identifier 'FREEZE_HOLDER_KERNEL'
+>             error = freeze_super(sb, FREEZE_HOLDER_KERNEL);
+>                                      ^
+>     fs/xfs/xfs_notify_failure.c:143:26: error: use of undeclared identifier 'FREEZE_HOLDER_KERNEL'
+>                     error = thaw_super(sb, FREEZE_HOLDER_KERNEL);
+>                                            ^
+>>> fs/xfs/xfs_notify_failure.c:153:17: error: use of undeclared identifier 'FREEZE_HOLDER_USERSPACE'
+>             thaw_super(sb, FREEZE_HOLDER_USERSPACE);
+>                            ^
+>     3 errors generated.
+> 
+
+The two enums has been introduced since 880b9577855e ("fs: distinguish 
+between user initiated freeze and kernel initiated freeze"), v6.6-rc1. 
+I also compiled my patches based on v6.6-rc1 with your config file, it 
+passed with no error.
+
+So, which kernel version were you testing?
+
+
+--
+Thanks,
+Ruan.
+
+> 
+> vim +/FREEZE_HOLDER_KERNEL +127 fs/xfs/xfs_notify_failure.c
+> 
+>     119	
+>     120	static int
+>     121	xfs_dax_notify_failure_freeze(
+>     122		struct xfs_mount	*mp)
+>     123	{
+>     124		struct super_block	*sb = mp->m_super;
+>     125		int			error;
+>     126	
+>   > 127		error = freeze_super(sb, FREEZE_HOLDER_KERNEL);
+>     128		if (error)
+>     129			xfs_emerg(mp, "already frozen by kernel, err=%d", error);
+>     130	
+>     131		return error;
+>     132	}
+>     133	
+>     134	static void
+>     135	xfs_dax_notify_failure_thaw(
+>     136		struct xfs_mount	*mp,
+>     137		bool			kernel_frozen)
+>     138	{
+>     139		struct super_block	*sb = mp->m_super;
+>     140		int			error;
+>     141	
+>     142		if (kernel_frozen) {
+>     143			error = thaw_super(sb, FREEZE_HOLDER_KERNEL);
+>     144			if (error)
+>     145				xfs_emerg(mp, "still frozen after notify failure, err=%d",
+>     146					error);
+>     147		}
+>     148	
+>     149		/*
+>     150		 * Also thaw userspace call anyway because the device is about to be
+>     151		 * removed immediately.
+>     152		 */
+>   > 153		thaw_super(sb, FREEZE_HOLDER_USERSPACE);
+>     154	}
+>     155	
+> 
