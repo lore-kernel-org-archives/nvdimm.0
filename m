@@ -1,124 +1,113 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 974A21879
-	for <nvdimm@lists.linux.dev>; Wed,  4 Oct 2023 05:12:55 +0000 (UTC)
-Received: from pps.filterd (m0353726.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 39456UMb029838;
-	Wed, 4 Oct 2023 05:12:27 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : date :
- subject : to : cc : references : from : in-reply-to : content-type :
- content-transfer-encoding : mime-version; s=pp1;
- bh=9oXZNhn6w+pg5hULt5s1+fcnfjNHQQlRIHLopRjYlqo=;
- b=K1MLwyCVZM7DFSZulbMUZVQDUPV5Tnusq586Zhsl9Z8D25gRdP2lb1R5JTz2ZuCfz4+Z
- z2DZxzfKlqGwAOX5vSBkwJaHAJm4gSV4tL6buZU77YH4LZeqkzu38OHWd0RH3y9K/33E
- Pc465HLhDKNpJnrbPiM8cDBqhNHuAaMDy5H7ADh/tTvnSsh05OMTytLIootRTh8JwPou
- nTsDiso2sywz0IFbuicdcRTREQ44z5VDxijt1oZ4a8ema7LvgXZUzFq0BzF7zOh/2AS1
- O7CXrSeiFkP8QJJeDLJNqcdzJHQ0AyALQZSKby0h0H/fb9Fa/ewhOT9avvNZuUJrt1sx aw== 
-Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3th0y290c0-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Wed, 04 Oct 2023 05:12:26 +0000
-Received: from m0353726.ppops.net (m0353726.ppops.net [127.0.0.1])
-	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 39456X66030400;
-	Wed, 4 Oct 2023 05:12:26 GMT
-Received: from ppma11.dal12v.mail.ibm.com (db.9e.1632.ip4.static.sl-reverse.com [50.22.158.219])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3th0y290bs-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Wed, 04 Oct 2023 05:12:26 +0000
-Received: from pps.filterd (ppma11.dal12v.mail.ibm.com [127.0.0.1])
-	by ppma11.dal12v.mail.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 3944Qi3j010941;
-	Wed, 4 Oct 2023 05:12:25 GMT
-Received: from smtprelay05.fra02v.mail.ibm.com ([9.218.2.225])
-	by ppma11.dal12v.mail.ibm.com (PPS) with ESMTPS id 3tf0q1qyf0-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Wed, 04 Oct 2023 05:12:25 +0000
-Received: from smtpav07.fra02v.mail.ibm.com (smtpav07.fra02v.mail.ibm.com [10.20.54.106])
-	by smtprelay05.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 3945CN8W23397092
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 4 Oct 2023 05:12:23 GMT
-Received: from smtpav07.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 7F06A20043;
-	Wed,  4 Oct 2023 05:12:23 +0000 (GMT)
-Received: from smtpav07.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 2738220040;
-	Wed,  4 Oct 2023 05:12:21 +0000 (GMT)
-Received: from [9.109.212.144] (unknown [9.109.212.144])
-	by smtpav07.fra02v.mail.ibm.com (Postfix) with ESMTP;
-	Wed,  4 Oct 2023 05:12:20 +0000 (GMT)
-Message-ID: <6e636e70-cbe5-45a7-8918-abdf196d5437@linux.ibm.com>
-Date: Wed, 4 Oct 2023 10:42:20 +0530
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v4 2/2] dax/kmem: allow kmem to add memory with
- memmap_on_memory
-Content-Language: en-US
-To: "Verma, Vishal L" <vishal.l.verma@intel.com>,
-        "Williams, Dan J" <dan.j.williams@intel.com>,
-        "Jiang, Dave" <dave.jiang@intel.com>,
-        "osalvador@suse.de"
- <osalvador@suse.de>,
-        "david@redhat.com" <david@redhat.com>,
-        "akpm@linux-foundation.org" <akpm@linux-foundation.org>
-Cc: "Hocko, Michal" <mhocko@suse.com>, "Huang, Ying" <ying.huang@intel.com>,
-        "Jonathan.Cameron@Huawei.com" <Jonathan.Cameron@Huawei.com>,
-        "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "jmoyer@redhat.com" <jmoyer@redhat.com>,
-        "dave.hansen@linux.intel.com" <dave.hansen@linux.intel.com>,
-        "linux-mm@kvack.org" <linux-mm@kvack.org>,
-        "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>
-References: <20230928-vv-kmem_memmap-v4-0-6ff73fec519a@intel.com>
- <20230928-vv-kmem_memmap-v4-2-6ff73fec519a@intel.com>
- <73bdc58d-edc1-4344-b42a-4b83ca885329@linux.ibm.com>
- <e1600e8d3986b1ed371847d4863628b8d7ad2091.camel@intel.com>
-From: Aneesh Kumar K V <aneesh.kumar@linux.ibm.com>
-In-Reply-To: <e1600e8d3986b1ed371847d4863628b8d7ad2091.camel@intel.com>
-Content-Type: text/plain; charset=UTF-8
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: lwr6gmcUVDz9kvKRX2_JLfm8fM4InJpt
-X-Proofpoint-ORIG-GUID: q9xukhjGvTEJd5H1i7EYqmnB_Vay5YoE
-Content-Transfer-Encoding: 7bit
-X-Proofpoint-UnRewURL: 0 URL was un-rewritten
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B4551C2AB
+	for <nvdimm@lists.linux.dev>; Wed,  4 Oct 2023 17:50:41 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24510C433CB;
+	Wed,  4 Oct 2023 17:50:41 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1696441841;
+	bh=pLQpBXeVK2ircCWRtxyQOyLjvhj8dNRHvI2AEQ54oHg=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=dVMb0EXY1lY1rvyXbHorrs7h6+u8kuaBToRh64qqPXDX5sffx3v83NACHlWF3tmxz
+	 Kh5QI+qthzoo9DQRBp+rk1CjAnltK25MeBohIX/zVn21pAXAxy5K4Dic5G7NMsX57i
+	 mLbCpcwxUQhI+nELQ6fkVrovFWTq3wyURq146NBh9DIwKdnmGpd87LlJcDSL5T7FQO
+	 Y8QWVN793qlTH4UBSg6WczKe3PpZt+PCV1OGzLiGNPPrlixHWg95FGDZNa5cwMeuA/
+	 TNldZrhmkiO75Kvx+0pqArpg6WzzyF3KhqKoj8nawEBxCrM71JkuqB3iRNDomm7AcF
+	 5eiwlYYl0AlxQ==
+Date: Wed, 4 Oct 2023 10:50:40 -0700
+From: "Darrick J. Wong" <djwong@kernel.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Eric Sandeen <sandeen@sandeen.net>,
+	Chandan Babu R <chandanbabu@kernel.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Shiyang Ruan <ruansy.fnst@fujitsu.com>,
+	Dave Chinner <david@fromorbit.com>, linux-xfs@vger.kernel.org,
+	nvdimm@lists.linux.dev
+Subject: Re: [PATCH] xfs: drop experimental warning for FSDAX
+Message-ID: <20231004175040.GJ21298@frogsfrogsfrogs>
+References: <87fs306zs1.fsf@debian-BULLSEYE-live-builder-AMD64>
+ <5c064cbd-13a3-4d55-9881-0a079476d865@fujitsu.com>
+ <bc29af15-ae63-407d-8ca0-186c976acce7@fujitsu.com>
+ <87y1gs83yq.fsf@debian-BULLSEYE-live-builder-AMD64>
+ <20230927083034.90bd6336229dd00af601e0ef@linux-foundation.org>
+ <9c3cbc0c-7135-4006-ad4a-2abce0a556b0@fujitsu.com>
+ <20230928092052.9775e59262c102dc382513ef@linux-foundation.org>
+ <87msx5f4a8.fsf@debian-BULLSEYE-live-builder-AMD64>
+ <4c985608-39f6-1a6e-ec95-42d7c3581d8d@sandeen.net>
+ <65171732329c4_c558e2946a@dwillia2-xfh.jf.intel.com.notmuch>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.267,Aquarius:18.0.980,Hydra:6.0.619,FMLib:17.11.176.26
- definitions=2023-10-04_01,2023-10-02_01,2023-05-22_02
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
- mlxlogscore=664 malwarescore=0 impostorscore=0 adultscore=0 bulkscore=0
- suspectscore=0 clxscore=1015 mlxscore=0 phishscore=0 spamscore=0
- lowpriorityscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2309180000 definitions=main-2310040035
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <65171732329c4_c558e2946a@dwillia2-xfh.jf.intel.com.notmuch>
 
-On 10/4/23 5:18 AM, Verma, Vishal L wrote:
-> On Tue, 2023-10-03 at 09:34 +0530, Aneesh Kumar K V wrote:
->> On 9/29/23 2:00 AM, Vishal Verma wrote:
->>> Large amounts of memory managed by the kmem driver may come in via CXL,
->>> and it is often desirable to have the memmap for this memory on the new
->>> memory itself.
->>>
->>> Enroll kmem-managed memory for memmap_on_memory semantics if the dax
->>> region originates via CXL. For non-CXL dax regions, retain the existing
->>> default behavior of hot adding without memmap_on_memory semantics.
->>>
->>
->> Are we not looking at doing altmap space for CXL DAX regions? Last discussion around
->> this was suggesting we look at doing this via altmap reservation so that
->> we get contigous space for device memory enabling us to map them
->> via 1G direct mapping entries? 
->>
-> Hey Aneesh - was this on a previous posting or something - do you have
-> a link so I can refresh myself on what the discussion was?
+On Fri, Sep 29, 2023 at 11:28:02AM -0700, Dan Williams wrote:
+> Eric Sandeen wrote:
+> > On 9/29/23 9:17 AM, Chandan Babu R wrote:
+> > > On Thu, Sep 28, 2023 at 09:20:52 AM -0700, Andrew Morton wrote:
+> > >> On Thu, 28 Sep 2023 16:44:00 +0800 Shiyang Ruan <ruansy.fnst@fujitsu.com> wrote:
+> > >>
+> > >>> But please pick the following patch[1] as well, which fixes failures of 
+> > >>> xfs55[0-2] cases.
+> > >>>
+> > >>> [1] 
+> > >>> https://lore.kernel.org/linux-xfs/20230913102942.601271-1-ruansy.fnst@fujitsu.com
+> > >>
+> > >> I guess I can take that xfs patch, as it fixes a DAX patch.  I hope the xfs team
+> > >> are watching.
+> > >>
+> > >> But
+> > >>
+> > >> a) I'm not subscribed to linux-xfs and
+> > >>
+> > >> b) the changelog fails to describe the userspace-visible effects of
+> > >>    the bug, so I (and others) are unable to determine which kernel
+> > >>    versions should be patched.
+> > >>
+> > >> Please update that changelog and resend?
+> > > 
+> > > I will apply "xfs: correct calculation for agend and blockcount" patch to
+> > > xfs-linux Git tree and include it for the next v6.6 pull request to Linus.
+> > > 
+> > > At the outset, It looks like I can pick "mm, pmem, xfs: Introduce
+> > > MF_MEM_PRE_REMOVE for unbind"
+> > > (i.e. https://lore.kernel.org/linux-xfs/20230928103227.250550-1-ruansy.fnst@fujitsu.com/T/#u)
+> > > patch for v6.7 as well. But that will require your Ack. Please let me know
+> > > your opinion.
+> > > 
+> > > Also, I will pick "xfs: drop experimental warning for FSDAX" patch for v6.7.
+> > 
+> > While I hate to drag it out even longer, it seems slightly optimistic to
+> > drop experimental at the same time as the "last" fix, in case it's not
+> > really the last fix.
+> > 
+> > But I don't have super strong feelings about it, and I would be happy to
+> > finally see experimental go away. So if those who are more tuned into
+> > the details are comfortable with that 6.7 plan, I'll defer to them on
+> > the question.
 > 
-> If it is enabling something in CXL similar to the --map=mem mode for
-> pmem + device dax, that could be incremental to this.
+> The main blockage of "experimental" was the inability to specify
+> dax+reflink, and the concern that resolving that conflict would end up
+> breaking MAP_SYNC semantics or some other regression.
+> 
+> The dax_notify_failure() work has resolved that conflict without
+> regressing semantics.
+> 
+> Ultimately this is an XFS filesystem maintainer decision, but my
+> perspective is that v6.7-rc1 starts the clock on experimental going away
+> and if the bug reports stay quiet that state can persist into
+> v6.7-final.  If new reports crop up, revert the experimental removal and
+> try again for v6.8.
 
-Yes. Agree that we can do that incremental to this. 
+I'm ok with this.  Let's merge the PRE_REMOVE patch (and the arithematic
+fix) for 6.7-rc1.  If nobody screams during 6.7, send a patch to Linus
+removing EXPERIMENTAL after (say) 6.7-rc8.  DAX will no longer be
+experimental for the 2024 LTS.
 
-https://lore.kernel.org/linux-mm/b6753402-2de9-25b2-36e9-eacd49752b19@redhat.com
-
--aneesh
+--D
