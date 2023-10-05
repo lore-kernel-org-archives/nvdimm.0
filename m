@@ -1,452 +1,157 @@
-Received: from mail-oo1-f54.google.com (mail-oo1-f54.google.com [209.85.161.54])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.151])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A72CE3D3B2
-	for <nvdimm@lists.linux.dev>; Thu,  5 Oct 2023 18:29:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; dkim=none
-Received: by mail-oo1-f54.google.com with SMTP id 006d021491bc7-57de3096e25so241290eaf.1
-        for <nvdimm@lists.linux.dev>; Thu, 05 Oct 2023 11:29:46 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1696530585; x=1697135385;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=dUg2x0bfogmi1KVY6oOc8Z6Ukf4AyfOPGMUaA8WiwPY=;
-        b=JNNaDEd+XKHhh/YFcYngug3eTrItg9KbTJxCSQ9E/IEaq8flb80OIAPVnGy5A5SYSf
-         TLwvmAY/fx34MYl6FP31ueFs2lAEtd+CHm3u8GVQDvj71PxqLwWfUWn/mpP0+BcT6lf/
-         KAVM2LB4baj76gvsyXi0LefNwhkCdIXmUmivSiY76Gt1Xwzbar6c9MVDAPxwt0d66FJL
-         hOgyvLVUBI4HC8anHjPl7rbcoCOfVHZ0UgymGG1DdEO3xNciJxdyQP2AJaJn8IxsHNJQ
-         go3J93M17jl4xdBEv7KTp3Kf22QoopnYOcLG3JWmi0Boys1hFry79QXHkw2PSHIxuxnZ
-         xX4g==
-X-Gm-Message-State: AOJu0YxBZu1OUM4sfS/CM2pMursEBJbKCt6dyJFl2sfFDPoWOcLPx5c2
-	vmBP6B8OnDGc2kO0K0ioNnj3TfWwj9J29n24Jgs=
-X-Google-Smtp-Source: AGHT+IHeFYDaITT1DUV335M3Rd4/s0chDb02tVxC+IxXF9FUX6cmX0hWPijwF1VuHNTNS1mu8lhLtBXy7UzE03wG3GI=
-X-Received: by 2002:a4a:ee90:0:b0:57b:94b7:c6ba with SMTP id
- dk16-20020a4aee90000000b0057b94b7c6bamr5791156oob.0.1696530585485; Thu, 05
- Oct 2023 11:29:45 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 900BB3FB25
+	for <nvdimm@lists.linux.dev>; Thu,  5 Oct 2023 18:32:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="LPghufRX"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1696530720; x=1728066720;
+  h=from:subject:date:message-id:mime-version:
+   content-transfer-encoding:to:cc;
+  bh=/oSquPe50FjL5XM1xo2u1juCDXoKE0v8k5E8iBZtEIw=;
+  b=LPghufRXgmW+FpkS+XZa3l4lxugkUkTdnijw03C1lR6U0JTV+wXIa6no
+   EFEWvIOVNcWpLWR/mTLybgIR74zYc2cQtGpP89yvZS4w6nAviMjh1bAhR
+   iaPAhOwj2ec/uYNEnlrm8HLy4cZbSCoZ6fv0mvWLaUc/fY/K2/ud3EVMF
+   q9wB7O8sVtb+bgXl5v5lF5UvoUWdaAlceq/aoYOqshHPBP5gLoFVJWurD
+   w3SJBPE94tsM1rUknPPPMuKpsag5YD4/6hiJBhJnvjFDlQXgfJIvIlJec
+   MlahbTJts7hswlqBZNqYE13F8QwDLC9MNouhu9c/eQDLnTIky6CvTHOYd
+   Q==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10854"; a="363860722"
+X-IronPort-AV: E=Sophos;i="6.03,203,1694761200"; 
+   d="scan'208";a="363860722"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Oct 2023 11:31:53 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10854"; a="781342809"
+X-IronPort-AV: E=Sophos;i="6.03,203,1694761200"; 
+   d="scan'208";a="781342809"
+Received: from amykuo-mobl.amr.corp.intel.com (HELO [192.168.1.200]) ([10.212.12.247])
+  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Oct 2023 11:31:52 -0700
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v5 0/2] mm: use memmap_on_memory semantics for dax/kmem
+Date: Thu, 05 Oct 2023 12:31:38 -0600
+Message-Id: <20231005-vv-kmem_memmap-v5-0-a54d1981f0a3@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20230925144842.586829-1-michal.wilczynski@intel.com>
- <86a68f57-0e5e-4a92-8cfe-93249ba78a72@intel.com> <CAJZ5v0jSa7FpJKsDRAhVMGy=pTi-aD5JPU4K3Rb-G3igrd6WRQ@mail.gmail.com>
- <12310703.O9o76ZdvQC@kreacher> <f1901763-d63d-4372-8f6f-5322eb8dd76d@intel.com>
-In-Reply-To: <f1901763-d63d-4372-8f6f-5322eb8dd76d@intel.com>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Thu, 5 Oct 2023 20:29:34 +0200
-Message-ID: <CAJZ5v0h4_mpxKK4S-Q9hyvP352c9FdGjgg4u-i57iM3eBPGeSA@mail.gmail.com>
-Subject: Re: [PATCH v1 1/9] ACPI: bus: Make notify wrappers more generic
-To: "Wilczynski, Michal" <michal.wilczynski@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Rafael J. Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, 
-	rafael.j.wysocki@intel.com, andriy.shevchenko@intel.com, lenb@kernel.org, 
-	dan.j.williams@intel.com, vishal.l.verma@intel.com, ira.weiny@intel.com, 
-	rui.zhang@intel.com, Andy Shevchenko <andy.shevchenko@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAAoBH2UC/3XNQW7DIBAF0KtErEuFAWPIqveoomqMhxrVxhEkq
+ FXku3eSjatYXczif+n9ubGCOWJhx8ONZayxxCVRaF8OzI+QPpHHgTKTQiphGsVr5V8zzh90M5x
+ 5q63ydhBado4R6qEg7zMkPxJL12mi8pwxxO/Hl/cT5TGWy5J/Hk9rc2//3a8NFzyYAZ03EKQ3b
+ zFdcHr1y8zuU1VuvJNixyVxa/sBoFfaOfXM1cataHZcEdfCoAMIrbHumeuNO2l3XBM3IXQqoG8
+ bB3/5uq6/ecPnLX4BAAA=
+To: Andrew Morton <akpm@linux-foundation.org>, 
+ David Hildenbrand <david@redhat.com>, Oscar Salvador <osalvador@suse.de>, 
+ Dan Williams <dan.j.williams@intel.com>, Dave Jiang <dave.jiang@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, 
+ nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org, 
+ Huang Ying <ying.huang@intel.com>, 
+ Dave Hansen <dave.hansen@linux.intel.com>, 
+ "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, 
+ Michal Hocko <mhocko@suse.com>, 
+ Jonathan Cameron <Jonathan.Cameron@Huawei.com>, 
+ Jeff Moyer <jmoyer@redhat.com>, Vishal Verma <vishal.l.verma@intel.com>, 
+ Jonathan Cameron <Jonathan.Cameron@huawei.com>
+X-Mailer: b4 0.12.3
+X-Developer-Signature: v=1; a=openpgp-sha256; l=3836;
+ i=vishal.l.verma@intel.com; h=from:subject:message-id;
+ bh=/oSquPe50FjL5XM1xo2u1juCDXoKE0v8k5E8iBZtEIw=;
+ b=owGbwMvMwCXGf25diOft7jLG02pJDKnyjMLySb8bv+wJd3nTr7TeqNDswTLnqZtspXept0Se3
+ sM9+1lwRykLgxgXg6yYIsvfPR8Zj8ltz+cJTHCEmcPKBDKEgYtTACZi8p3hf3LZ3uDd+/aeZPnw
+ 4uZs5ow39yy/rQhZpegvfPizImvNhVMMf/j7d/7VfaqYvV1hoXrIRcachTsOW1w/+1DVZFvQnW3
+ HzDgA
+X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp;
+ fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
 
-On Thu, Oct 5, 2023 at 8:27=E2=80=AFPM Wilczynski, Michal
-<michal.wilczynski@intel.com> wrote:
->
->
->
-> On 10/5/2023 7:03 PM, Rafael J. Wysocki wrote:
-> > On Thursday, October 5, 2023 5:30:59 PM CEST Rafael J. Wysocki wrote:
-> >> On Thu, Oct 5, 2023 at 2:05=E2=80=AFPM Wilczynski, Michal
-> >> <michal.wilczynski@intel.com> wrote:
-> >>> On 10/5/2023 12:57 PM, Rafael J. Wysocki wrote:
-> >>>> On Thu, Oct 5, 2023 at 10:10=E2=80=AFAM Wilczynski, Michal
-> >>>> <michal.wilczynski@intel.com> wrote:
-> >> [cut]
-> >>
-> >>>>>> That said, why exactly is it better to use acpi_handle instead of =
-a
-> >>>>>> struct acpi_device pointer?
-> >>>>> I wanted to make the wrapper as close as possible to the wrapped fu=
-nction.
-> >>>>> This way it would be easier to remove it in the future i.e if we ev=
-er deem
-> >>>>> extra synchronization not worth it etc. What the ACPICA function ne=
-ed to
-> >>>>> install a wrapper is a handle not a pointer to a device.
-> >>>>> So there is no need for a middle man.
-> >>>> Taking a struct acpi_device pointer as the first argument is part of
-> >>>> duplication reduction, however, because in the most common case it
-> >>>> saves the users of it the need to dereference the struct acpi_device
-> >>>> they get from ACPI_COMPANION() in order to obtain the handle.
-> >>> User don't even have to use acpi device anywhere, as he can choose
-> >>> to use ACPI_HANDLE() instead on 'struct device*' and never interact
-> >>> with acpi device directly.
-> >> Have you actually looked at this macro?  It is a wrapper around
-> >> ACPI_COMPANION().
-> >>
-> >> So they may think that they don't use struct acpi_device pointers, but
-> >> in fact they do.
-> >>
-> >>>> Arguably, acpi_handle is an ACPICA concept and it is better to reduc=
-e
-> >>>> its usage outside ACPICA.
-> >>> Use of acpi_handle is deeply entrenched in the kernel. There is even
-> >>> a macro ACPI_HANDLE() that returns acpi_handle. I would say it's
-> >>> way too late to limit it to ACPICA internal code.
-> >> So there is a difference between "limiting to ACPICA" and "reducing".
-> >> It cannot be limited to ACPICA, because the code outside ACPICA needs
-> >> to evaluate ACPI objects sometimes and ACPI handles are needed for
-> >> that.
-> >>
-> >> And this observation doesn't invalidate the point.
-> >>
-> >>>>>> Realistically, in a platform driver you'll need the latter to obta=
-in
-> >>>>>> the former anyway.
-> >>>>> I don't want to introduce arbitrary limitations where they are not =
-necessary.
-> >>>> I'm not sure what you mean.  This patch is changing existing functio=
-ns.
-> >>> That's true, but those functions aren't yet deeply entrenched in the
-> >>> kernel yet, so in my view how they should look like should still be
-> >>> a subject for discussion, as for now they're only used locally in
-> >>> drivers/acpi, and my next patchset, that would remove .notify in
-> >>> platform directory would spread them more, and would
-> >>> make them harder to change. For now we can change how they
-> >>> work pretty painlessly.
-> >> I see no particular reason to do that, though.
-> >>
-> >> What specifically is a problem with passing struct acpi_device
-> >> pointers to the wrappers?  I don't see any TBH.
-> >>
-> >>>>> It is often the case that driver allocates it's own private struct =
-using kmalloc
-> >>>>> family of functions, and that structure already contains everything=
- that is
-> >>>>> needed to remove the handler, so why force ? There are already exam=
-ples
-> >>>>> in the drivers that do that i.e in acpi_video the function
-> >>>>> acpi_video_dev_add_notify_handler() uses raw ACPICA handler to inst=
-all
-> >>>>> a notify handler and it passes private structure there.
-> >>>>> So there is value in leaving the choice of an actual type to the us=
-er of the
-> >>>>> API.
-> >>>> No, if the user has a pointer to struct acpi_device already, there i=
-s
-> >>>> no difference between passing this and passing the acpi_handle from =
-it
-> >>>> except for the extra dereference in the latter case.
-> >>> Dereference would happen anyway in the wrapper, and it doesn't cause
-> >>> any harm anyway for readability in my opinion. And of course you don'=
-t
-> >>> have to use acpi device at all, you can use ACPI_HANDLE() macro.
-> >> So one can use ACPI_COMPANION() just as well and it is slightly less o=
-verhead.
-> >>
-> >>>> If the user doesn't have a struct acpi_device pointer, let them use
-> >>>> the raw ACPICA handler directly and worry about the synchronization
-> >>>> themselves.
-> >>> As mentioned acpi_device pointer is not really required to use the wr=
-apper.
-> >>> Instead we can use ACPI_HANDLE() macro directly. Look at the usage of
-> >>> the wrapper in the AC driver [1].
-> >> You don't really have to repeat the same argument  several times and I
-> >> know how ACPI_HANDLE() works.  Also I don't like some of the things
-> >> done by this patch.
-> >>
-> >> Whoever uses ACPI_HANDLE(), they also use ACPI_COMPANION() which is
-> >> hidden in the former.
-> >>
-> >> If they don't need to store either the acpi_handle or the struct
-> >> acpi_device pointer, there is no reason at all to use the former
-> >> instead of the latter.
-> >>
-> >> If they get an acpi_handle from somewhere else than ACPI_HANDLE(),
-> >> then yes, they would need to get the ACPI devices from there (which is
-> >> possible still), but they may be better off by using the raw ACPICA
-> >> interface for events in that case.
-> >>
-> >>> -static void acpi_ac_remove(struct acpi_device *device)
-> >>> +static void acpi_ac_remove(struct platform_device *pdev)
-> >>>  {
-> >>> -       struct acpi_ac *ac =3D acpi_driver_data(device);
-> >>> +      struct acpi_ac *ac =3D platform_get_drvdata(pdev);
-> >>>
-> >>> -       acpi_dev_remove_notify_handler(device->handle, ACPI_ALL_NOTIF=
-Y,
-> >>> +       acpi_dev_remove_notify_handler(ACPI_HANDLE(ac->dev),
-> >>> +                                                                    =
- ACPI_ALL_NOTIFY,
-> >>>                                                                      =
-  acpi_ac_notify);
-> >>>
-> >>>
-> >>>
-> >>> [1] - https://lore.kernel.org/all/20230925144842.586829-1-michal.wilc=
-zynski@intel.com/T/#mff1e8ce1e548b3252d896b56d3be0b1028b7402e
-> >>>
-> >>>> The wrappers are there to cover the most common case, not to cover a=
-ll cases.
-> >>> In general all drivers that I'm modifying would benefit from not usin=
-g direct ACPICA
-> >>> installers/removers by saving that extra synchronization code that wo=
-uld need to be
-> >>> provided otherwise, and not having to deal with acpi_status codes.
-> >> Yes, that's the common case.
-> >>
-> >>>>> To summarize:
-> >>>>> I would say the wrappers are mostly unnecessary, but they actually =
-save
-> >>>>> some duplicate code in the drivers, so I decided to leave them, as =
-I don't
-> >>>>> want to introduce duplicate code if I can avoid that.
-> >>>> What duplicate code do you mean, exactly?
-> >>> I would need to declare extra acpi_status variable and use ACPI_FAILU=
-RE macro
-> >>> in each usage of the direct ACPICA installer. Also I would need to ca=
-ll
-> >>> acpi_os_wait_events_complete() after calling each direct remove.
-> >> I thought you meant some code duplication related to passing struct
-> >> acpi_device pointers to the wrappers, but we agree that the wrappers
-> >> are generally useful.
-> >>
-> >>>> IMV you haven't really explained why this particular patch is
-> >>>> necessary or even useful.
-> >>> Maybe using an example would better illustrate my point.
-> >>> Consider using NFIT driver modification later in this series as an ex=
-ample:
-> >>>
-> >>> 1) With old wrapper it would look:
-> >>>
-> >>>  static void acpi_nfit_notify(acpi_handle handle, u32 event, void *da=
-ta)
-> >>> {
-> >>>     struct acpi_device *adev =3D data;
-> >>>     /* Now we need to figure how to get a 'struct device*' from an ac=
-pi_device.
-> >>>          Mind this we can't just do &adev->dev, as we're not using th=
-at device anymore.
-> >>>          We need to get a struct device that's embedded in the platfo=
-rm_device that the
-> >>>          driver was instantiated with.
-> >>>          Not sure how it would look like, but it would require are le=
-ast one extra line here.
-> >>>      */
-> >>>     device_lock(dev);
-> >>>     __acpi_nfit_notify(dev, handle, event);
-> >>>     device_unlock(dev);
-> >>> }
-> >>>
-> >>> 2) With new wrapper:
-> >>>
-> >>> static void acpi_nfit_notify(acpi_handle handle, u32 event, void *dat=
-a)
-> >>> {
-> >>>     struct device *dev =3D data;
-> >>>
-> >>>     device_lock(dev);
-> >>>     __acpi_nfit_notify(dev, handle, event);
-> >>>     device_unlock(dev);
-> >>> }
-> >>>
-> >>>
-> >>> So essentially arbitrarily forcing user to use wrapper that takes acp=
-i device
-> >>> as an argument may unnecessarily increase drivers complexity, and if =
-we
-> >>> can help with then we should. That's why this commit exists.
-> >> Well, I know what's going on now.
-> >>
-> >> You really want to add a context argument to
-> >> acpi_dev_install_notify_handler(), which is quite reasonable, but then
-> >> you don't have to change the first argument of it.
-> >>
-> >> I'll send you my version of this patch later today and we'll see.
-> > See below.
-> >
-> > It just adds a context argument to acpi_dev_install_notify_handler() wi=
-thout
-> > making the other changes made by the original patch that are rather poi=
-ntless
-> > IMO.
->
-> Thank you !
-> I think it's fine will include this in next revision.
+The dax/kmem driver can potentially hot-add large amounts of memory
+originating from CXL memory expanders, or NVDIMMs, or other 'device
+memories'. There is a chance there isn't enough regular system memory
+available to fit the memmap for this new memory. It's therefore
+desirable, if all other conditions are met, for the kmem managed memory
+to place its memmap on the newly added memory itself.
 
-Sounds good, thanks!
+The main hurdle for accomplishing this for kmem is that memmap_on_memory
+can only be done if the memory being added is equal to the size of one
+memblock. To overcome this, allow the hotplug code to split an add_memory()
+request into memblock-sized chunks, and try_remove_memory() to also
+expect and handle such a scenario.
 
-> >
-> > ---
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > Subject: [PATCH v1 1/9] ACPI: bus: Add context argument to acpi_dev_ins=
-tall_notify_handler()
-> >
-> > Add void *context arrgument to the list of arguments of
-> > acpi_dev_install_notify_handler() and modify it to pass that argument
-> > as context to acpi_install_notify_handler() instead of its first
-> > argument which is problematic in general (for example, if platform
-> > drivers used it, they would rather get struct platform_device pointers
-> > or pointers to their private data from the context arguments of their
-> > notify handlers).
-> >
-> > Make all of the current callers of acpi_dev_install_notify_handler()
-> > take this change into account so as to avoid altering the general
-> > functionality.
-> >
-> > Co-developed-by: Michal Wilczynski <michal.wilczynski@intel.com>
-> > Signed-off-by: Michal Wilczynski <michal.wilczynski@intel.com>
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > ---
-> >  drivers/acpi/ac.c         |    2 +-
-> >  drivers/acpi/acpi_video.c |    2 +-
-> >  drivers/acpi/battery.c    |    2 +-
-> >  drivers/acpi/bus.c        |    4 ++--
-> >  drivers/acpi/hed.c        |    2 +-
-> >  drivers/acpi/nfit/core.c  |    2 +-
-> >  drivers/acpi/thermal.c    |    2 +-
-> >  include/acpi/acpi_bus.h   |    2 +-
-> >  8 files changed, 9 insertions(+), 9 deletions(-)
-> >
-> > Index: linux-pm/drivers/acpi/ac.c
-> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> > --- linux-pm.orig/drivers/acpi/ac.c
-> > +++ linux-pm/drivers/acpi/ac.c
-> > @@ -257,7 +257,7 @@ static int acpi_ac_add(struct acpi_devic
-> >       register_acpi_notifier(&ac->battery_nb);
-> >
-> >       result =3D acpi_dev_install_notify_handler(device, ACPI_ALL_NOTIF=
-Y,
-> > -                                              acpi_ac_notify);
-> > +                                              acpi_ac_notify, device);
-> >       if (result)
-> >               goto err_unregister;
-> >
-> > Index: linux-pm/drivers/acpi/acpi_video.c
-> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> > --- linux-pm.orig/drivers/acpi/acpi_video.c
-> > +++ linux-pm/drivers/acpi/acpi_video.c
-> > @@ -2062,7 +2062,7 @@ static int acpi_video_bus_add(struct acp
-> >               goto err_del;
-> >
-> >       error =3D acpi_dev_install_notify_handler(device, ACPI_DEVICE_NOT=
-IFY,
-> > -                                             acpi_video_bus_notify);
-> > +                                             acpi_video_bus_notify, de=
-vice);
-> >       if (error)
-> >               goto err_remove;
-> >
-> > Index: linux-pm/drivers/acpi/battery.c
-> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> > --- linux-pm.orig/drivers/acpi/battery.c
-> > +++ linux-pm/drivers/acpi/battery.c
-> > @@ -1214,7 +1214,7 @@ static int acpi_battery_add(struct acpi_
-> >       device_init_wakeup(&device->dev, 1);
-> >
-> >       result =3D acpi_dev_install_notify_handler(device, ACPI_ALL_NOTIF=
-Y,
-> > -                                              acpi_battery_notify);
-> > +                                              acpi_battery_notify, dev=
-ice);
-> >       if (result)
-> >               goto fail_pm;
-> >
-> > Index: linux-pm/drivers/acpi/bus.c
-> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> > --- linux-pm.orig/drivers/acpi/bus.c
-> > +++ linux-pm/drivers/acpi/bus.c
-> > @@ -556,12 +556,12 @@ static void acpi_device_remove_notify_ha
-> >
-> >  int acpi_dev_install_notify_handler(struct acpi_device *adev,
-> >                                   u32 handler_type,
-> > -                                 acpi_notify_handler handler)
-> > +                                 acpi_notify_handler handler, void *co=
-ntext)
-> >  {
-> >       acpi_status status;
-> >
-> >       status =3D acpi_install_notify_handler(adev->handle, handler_type=
-,
-> > -                                          handler, adev);
-> > +                                          handler, context);
-> >       if (ACPI_FAILURE(status))
-> >               return -ENODEV;
-> >
-> > Index: linux-pm/drivers/acpi/hed.c
-> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> > --- linux-pm.orig/drivers/acpi/hed.c
-> > +++ linux-pm/drivers/acpi/hed.c
-> > @@ -57,7 +57,7 @@ static int acpi_hed_add(struct acpi_devi
-> >       hed_handle =3D device->handle;
-> >
-> >       err =3D acpi_dev_install_notify_handler(device, ACPI_DEVICE_NOTIF=
-Y,
-> > -                                           acpi_hed_notify);
-> > +                                           acpi_hed_notify, device);
-> >       if (err)
-> >               hed_handle =3D NULL;
-> >
-> > Index: linux-pm/drivers/acpi/nfit/core.c
-> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> > --- linux-pm.orig/drivers/acpi/nfit/core.c
-> > +++ linux-pm/drivers/acpi/nfit/core.c
-> > @@ -3391,7 +3391,7 @@ static int acpi_nfit_add(struct acpi_dev
-> >               return rc;
-> >
-> >       rc =3D acpi_dev_install_notify_handler(adev, ACPI_DEVICE_NOTIFY,
-> > -                                          acpi_nfit_notify);
-> > +                                          acpi_nfit_notify, adev);
-> >       if (rc)
-> >               return rc;
-> >
-> > Index: linux-pm/drivers/acpi/thermal.c
-> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> > --- linux-pm.orig/drivers/acpi/thermal.c
-> > +++ linux-pm/drivers/acpi/thermal.c
-> > @@ -936,7 +936,7 @@ static int acpi_thermal_add(struct acpi_
-> >               acpi_device_bid(device), deci_kelvin_to_celsius(tz->temp_=
-dk));
-> >
-> >       result =3D acpi_dev_install_notify_handler(device, ACPI_DEVICE_NO=
-TIFY,
-> > -                                              acpi_thermal_notify);
-> > +                                              acpi_thermal_notify, dev=
-ice);
-> >       if (result)
-> >               goto flush_wq;
-> >
-> > Index: linux-pm/include/acpi/acpi_bus.h
-> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> > --- linux-pm.orig/include/acpi/acpi_bus.h
-> > +++ linux-pm/include/acpi/acpi_bus.h
-> > @@ -601,7 +601,7 @@ int acpi_bus_attach_private_data(acpi_ha
-> >  void acpi_bus_detach_private_data(acpi_handle);
-> >  int acpi_dev_install_notify_handler(struct acpi_device *adev,
-> >                                   u32 handler_type,
-> > -                                 acpi_notify_handler handler);
-> > +                                 acpi_notify_handler handler, void *co=
-ntext);
-> >  void acpi_dev_remove_notify_handler(struct acpi_device *adev,
-> >                                   u32 handler_type,
-> >                                   acpi_notify_handler handler);
-> >
-> >
-> >
->
+Patch 1 teaches the memory_hotplug code to allow for splitting
+add_memory() and remove_memory() requests over memblock sized chunks.
+
+Patch 2 adds a sysfs control for the kmem driver that would
+allow an opt-out of using memmap_on_memory for the memory being added.
+
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+Changes in v5:
+- Separate out per-memblock operations from per memory block operations
+  in try_remove_memory(), and rename the inner function appropriately.
+  This does expand the scope of the memory hotplug lock to include
+  remove_memory_block_devices(), but the alternative was to drop the
+  lock in the inner function separately for each iteration, and then
+  re-acquire it in try_remove_memory() creating a small window where
+  the lock isn't held. (David Hildenbrand)
+- Remove unnecessary rc check from the memmap_on_memory_store sysfs
+  helper in patch 2 (Dan Carpenter)
+- Link to v4: https://lore.kernel.org/r/20230928-vv-kmem_memmap-v4-0-6ff73fec519a@intel.com
+
+Changes in v4:
+- Rebase to Aneesh's PPC64 memmap_on_memory series v8 [2].
+- Tweak a goto / error path in add_memory_create_devices() (Jonathan)
+- Retain the old behavior for dax devices, only default to
+  memmap_on_memory for CXL (Jonathan)
+- Link to v3: https://lore.kernel.org/r/20230801-vv-kmem_memmap-v3-0-406e9aaf5689@intel.com
+
+[2]: https://lore.kernel.org/linux-mm/20230808091501.287660-1-aneesh.kumar@linux.ibm.com
+
+Changes in v3:
+- Rebase on Aneesh's patches [1]
+- Drop Patch 1 - it is not needed since [1] allows for dynamic setting
+  of the memmap_on_memory param (David)
+- Link to v2: https://lore.kernel.org/r/20230720-vv-kmem_memmap-v2-0-88bdaab34993@intel.com
+
+[1]: https://lore.kernel.org/r/20230801044116.10674-1-aneesh.kumar@linux.ibm.com
+
+Changes in v2:
+- Drop the patch to create an override path for the memmap_on_memory
+  module param (David)
+- Move the chunking into memory_hotplug.c so that any caller of
+  add_memory() can request this behavior. (David)
+- Handle remove_memory() too. (David, Ying)
+- Add a sysfs control in the kmem driver for memmap_on_memory semantics
+  (David, Jonathan)
+- Add a #else case to define mhp_supports_memmap_on_memory() if
+  CONFIG_MEMORY_HOTPLUG is unset. (0day report)
+- Link to v1: https://lore.kernel.org/r/20230613-vv-kmem_memmap-v1-0-f6de9c6af2c6@intel.com
+
+---
+Vishal Verma (2):
+      mm/memory_hotplug: split memmap_on_memory requests across memblocks
+      dax/kmem: allow kmem to add memory with memmap_on_memory
+
+ drivers/dax/bus.h         |   1 +
+ drivers/dax/dax-private.h |   1 +
+ drivers/dax/bus.c         |  38 +++++++++++
+ drivers/dax/cxl.c         |   1 +
+ drivers/dax/hmem/hmem.c   |   1 +
+ drivers/dax/kmem.c        |   8 ++-
+ drivers/dax/pmem.c        |   1 +
+ mm/memory_hotplug.c       | 162 ++++++++++++++++++++++++++++------------------
+ 8 files changed, 149 insertions(+), 64 deletions(-)
+---
+base-commit: 25b5b1a0646c3d39e1d885e27c10be1c9e202bf2
+change-id: 20230613-vv-kmem_memmap-5483c8d04279
+
+Best regards,
+-- 
+Vishal Verma <vishal.l.verma@intel.com>
+
