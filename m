@@ -1,171 +1,430 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.136])
+Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A09BD30F93
-	for <nvdimm@lists.linux.dev>; Thu,  5 Oct 2023 16:16:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="KhrTRn5e"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1696522611; x=1728058611;
-  h=message-id:date:subject:to:cc:references:from:
-   in-reply-to:content-transfer-encoding:mime-version;
-  bh=1rQ1rvVTBtfgyUy564AhiI8AGUzerHnWrhQZj0sPZvM=;
-  b=KhrTRn5e1UR6EXIH2hPpM4XqTdZYcL+SKoo3Is/dxLccLUCoZUV1ec3I
-   OgzHY1SQqljIiZvBNkEMY0IkTmVQ7tKymMfBiGUMQzIy5zKRxk00O3CXl
-   FFrSil8PGSDDqoTpFJnBx61nNzfQ4g2C0dqeLlXY6X2k7UAD2vthW+NeC
-   O6vxcwr2tItpmFz/TYZn/N/eIKn7uQO8fiFKEK8x1tppP81USywK9wWrP
-   FR0KIyZOm/5a6rlqg9QFlWYin3n7qcTx0spYlzfk+DmyG7JLywD1wP2Aa
-   0dj6d4yOT5rtcXkWmaTD8RpcOP2gmZ7dkHTWv/XX0Ipxlv13oQctD4mUP
-   A==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10854"; a="362905511"
-X-IronPort-AV: E=Sophos;i="6.03,203,1694761200"; 
-   d="scan'208";a="362905511"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Oct 2023 09:16:50 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10854"; a="781299179"
-X-IronPort-AV: E=Sophos;i="6.03,203,1694761200"; 
-   d="scan'208";a="781299179"
-Received: from fmsmsx601.amr.corp.intel.com ([10.18.126.81])
-  by orsmga008.jf.intel.com with ESMTP/TLS/AES256-GCM-SHA384; 05 Oct 2023 09:16:50 -0700
-Received: from fmsmsx601.amr.corp.intel.com (10.18.126.81) by
- fmsmsx601.amr.corp.intel.com (10.18.126.81) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.32; Thu, 5 Oct 2023 09:16:49 -0700
-Received: from FMSEDG603.ED.cps.intel.com (10.1.192.133) by
- fmsmsx601.amr.corp.intel.com (10.18.126.81) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.32 via Frontend Transport; Thu, 5 Oct 2023 09:16:49 -0700
-Received: from NAM02-SN1-obe.outbound.protection.outlook.com (104.47.57.42) by
- edgegateway.intel.com (192.55.55.68) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.32; Thu, 5 Oct 2023 09:16:49 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=X/DgfrgxCGqMNDpA5I/ucz3EvTf/95WMunzbawx1ynr3xHVRO3WkCQU2oOtbZooRSAd+dxZnn9xBevoc8jPQQTkoU9zc1b9eWQX6A56sQmytlaa8I4n5C7Bgx+kJ0VzVsjPMAe9zZICMPXgjuxAM3YsQBEFpU39hZWenhQxGMDJ1uEB88Hpr+vom2B/rJ528FghIDHtZ5yBTcVBZVZ7hsunXqHpsAHANfrUsNrVfMei+/tgULM75oBUph8LXSfpjlwZOEhkF1nLHfAZP4J0TNPyXePiSo3XdaadDksUu6Tuxcm7Yv3bK/i8CfOVdyZTp+iDTM6R8uEjpSw3nUAJXCQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=kd0Ki2NncLYXSXh7w4kM5iMpL4CBWVHN2MWbN1eYoic=;
- b=H05jZ7lrzZoRKXdAkjBdDkWis5fgaQWVd1H9OZTKyjeTPh35HvmvL5fHWPkdz7imfLCPcWAhQD8NcyLyEWXuqGngyqZrLZdHIW9fXH1lMXqrV2RnklLjeGit6br2PxU7srBXtf08fUuEzmOffJlbYLFlL6JlVhmsq3aS9wq9Fffq/GVxKPi+5Z0tguh9jCChrgYAQQ45R2RDu0s+hTe80iDxChWVxfpaZB8yDo2ckDsah9XBOBm/Yiait4xaz/Ts5kTAjXBtJ4wpRS5bf+y+fM3gxGzSbJdPrK09RQGlpQMwMjFEyTh/OLQGwMqxfwHpJBHeqvwoc9Z1K8elv3sQiQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from PH7PR11MB5984.namprd11.prod.outlook.com (2603:10b6:510:1e3::15)
- by DS0PR11MB7359.namprd11.prod.outlook.com (2603:10b6:8:134::20) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6838.34; Thu, 5 Oct
- 2023 16:16:42 +0000
-Received: from PH7PR11MB5984.namprd11.prod.outlook.com
- ([fe80::e9ca:a5a7:ada1:6ee8]) by PH7PR11MB5984.namprd11.prod.outlook.com
- ([fe80::e9ca:a5a7:ada1:6ee8%5]) with mapi id 15.20.6838.029; Thu, 5 Oct 2023
- 16:16:42 +0000
-Message-ID: <02d249b2-fde4-464c-a5ee-bfbd2a4e5c7a@intel.com>
-Date: Thu, 5 Oct 2023 09:16:38 -0700
-User-Agent: Betterbird (Linux)
-Subject: Re: [PATCH] dax: remove unnecessary check
-To: Dan Carpenter <dan.carpenter@linaro.org>, Dan Williams
-	<dan.j.williams@intel.com>
-CC: Vishal Verma <vishal.l.verma@intel.com>, <nvdimm@lists.linux.dev>,
-	<linux-cxl@vger.kernel.org>, <kernel-janitors@vger.kernel.org>
-References: <554b10f3-dbd5-46a2-8d98-9b3ecaf9465a@moroto.mountain>
-Content-Language: en-US
-From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <554b10f3-dbd5-46a2-8d98-9b3ecaf9465a@moroto.mountain>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: MW4PR03CA0334.namprd03.prod.outlook.com
- (2603:10b6:303:dc::9) To PH7PR11MB5984.namprd11.prod.outlook.com
- (2603:10b6:510:1e3::15)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08E1D374EC
+	for <nvdimm@lists.linux.dev>; Thu,  5 Oct 2023 17:10:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=rjwysocki.net
+Authentication-Results: smtp.subspace.kernel.org; dkim=none
+Received: from localhost (127.0.0.1) (HELO v370.home.net.pl)
+ by /usr/run/smtp (/usr/run/postfix/private/idea_relay_lmtp) via UNIX with SMTP (IdeaSmtpServer 5.2.0)
+ id ed5fc6d05de824cd; Thu, 5 Oct 2023 19:03:52 +0200
+Received: from kreacher.localnet (unknown [195.136.19.94])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by v370.home.net.pl (Postfix) with ESMTPSA id E7D13665C7F;
+	Thu,  5 Oct 2023 19:03:51 +0200 (CEST)
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: "Wilczynski, Michal" <michal.wilczynski@intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, rafael.j.wysocki@intel.com, andriy.shevchenko@intel.com, lenb@kernel.org, dan.j.williams@intel.com, vishal.l.verma@intel.com, ira.weiny@intel.com, rui.zhang@intel.com, Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH v1 1/9] ACPI: bus: Make notify wrappers more generic
+Date: Thu, 05 Oct 2023 19:03:51 +0200
+Message-ID: <12310703.O9o76ZdvQC@kreacher>
+In-Reply-To: <CAJZ5v0jSa7FpJKsDRAhVMGy=pTi-aD5JPU4K3Rb-G3igrd6WRQ@mail.gmail.com>
+References: <20230925144842.586829-1-michal.wilczynski@intel.com> <86a68f57-0e5e-4a92-8cfe-93249ba78a72@intel.com> <CAJZ5v0jSa7FpJKsDRAhVMGy=pTi-aD5JPU4K3Rb-G3igrd6WRQ@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: PH7PR11MB5984:EE_|DS0PR11MB7359:EE_
-X-MS-Office365-Filtering-Correlation-Id: b7e8f772-b8ae-49d7-4bd5-08dbc5be764a
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: h2fG+wE38IDUPJr4QlAxu0/zbt7/rlGFTEbXVQr0shVg2WzOYpUkcU2p/uE0PPqajUvUrzgovKYFeoA7jpOd1qOJYC/5FxaEvRnBxr86SUab4yTPMF20fuydmQZeezZvEbajuaWRMx7XgFSRXkcMNUR6dHmGeOFhLAW8pnmAFycrAhC7oismSRm3Tk2DPPZ9TqK4b0K9LmPB6DNbwotrgsTEFiPHjBE4nnKRj+C4kSiNN2StTzwZ2NeMtCAr7U+rAjfSHNMuze3BLDTN2iQvaP7pb+GQTQvKaNM1gbqXeMd328G1jh7WLaHDBftNk1nwI1KMU7tyxlrG4sHU/ZQ6Y/nBKyrjOqN34NHmQ4GAUgIf0gG27q4GKMbYHI4+wKRF+POitm64V44gUVltyZJwLm6FfDK9msmOdiHNYXbGrJS+iMlfGVtOBFCrgbEsS+s5v+/MOs3qtnKzDPHwNaoSg/TTRhhMUa8+0kZB4OAL6vPp9bJMCHFPDOzT1iC5vT4M8aY9xjuTVSeG/qpVl3TV+41SI6xgbB/0zEdkVTlfWmP5bHJMDtI26DUaqKBGovSP++ceT62mcfZbjk05fsb1LgThdl6C9G7YAa0ByYOwC0JOivJzeoR9eRIXCq5IP1Uq
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH7PR11MB5984.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(346002)(136003)(39860400002)(366004)(396003)(376002)(230922051799003)(1800799009)(451199024)(186009)(64100799003)(31686004)(36756003)(82960400001)(6512007)(6666004)(31696002)(53546011)(86362001)(478600001)(6506007)(66556008)(2616005)(66476007)(6636002)(6486002)(66946007)(41300700001)(38100700002)(26005)(316002)(8936002)(4326008)(8676002)(5660300002)(83380400001)(110136005)(44832011)(4744005)(2906002)(45980500001);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?SlhkajRGMUpmRTZ6RkMrZlpNbld5b3RQSWNTcTcycGJxak0wREg1SmxuOE5i?=
- =?utf-8?B?bnE5bEVQcG5wZzlpSVk1VTliUGNkeHlMTXVkb2d6SEx0em41NUJKVGFUYnFz?=
- =?utf-8?B?S281Q0lPUnB2RjdLOEpYdnhYajFoUWl1aFZuMmZKQzBuUGhFbU9MMHo0NytQ?=
- =?utf-8?B?UWlNcmZNVzZOUjlJRTVDUGpCR3JaWGlIbEloeXBtaTZYOWkra1U0TWZrVEE2?=
- =?utf-8?B?NjIrcEo4WDErM05lcnhCb3Q1SkwwZEk0UThiNVc4VVZPZElVVldRTFpESDlo?=
- =?utf-8?B?RVgrSzJLQjIzcXZHSzRhVWRJZktvMmxwUnlDS1BtKzBad0JCNThvb3J2cGZE?=
- =?utf-8?B?MENFMnUzdk0zNG5lcUpkMStnUGltalA2N0Vvdk9ycDNTRWZKMlcrNlBUUnN6?=
- =?utf-8?B?TjZ3RWpmTi9PL3lFY1FSb0pPbEFmR1JlQUE1RlNNZ0VCM2RmSnBwWXVGWFRQ?=
- =?utf-8?B?b0wrUFoxK1hyZXY3bkZBRFl1eWY3L096ZFNRbEtsc01MYmV3THp4YlJiYjBE?=
- =?utf-8?B?bnI0aFI4dXRid2VLc2ZPMWliZzBvMzVYSjdoSDM3OG1DL2RUYVkycnlPcllI?=
- =?utf-8?B?RlJlYlJOU1FmYjNWenVNK2ErUFBIc1pqcUN5RzRDbmpOQkExZyt6Z2Y1Kzd4?=
- =?utf-8?B?VHFnNDdGMnN5dlJKSnRDVCtpeXRjRGVBMWd4Q01Mcnp1UGFLcTM0RkhLMXFN?=
- =?utf-8?B?clJkT2VRTEJXbGd0WGdEZE1yb3pkMXJWd2hBS1c1UlVQQ2JlczNwL3ZoQ21k?=
- =?utf-8?B?ei9zbDY2UUxrREFySWN2L0dNcjFMQTVvbGF1WjhNbU54RjF1SkdsclJCTlBm?=
- =?utf-8?B?eVhIUXhxcDN3VnU2V3c4Vnh3Rk9HcVordUtxSEt1VmZHSFFCV21TTHJlOE8y?=
- =?utf-8?B?VnlQQWtwRy9TL3hDRE93ZVVFbStUNUIvYVg3WkdWb1hDajRadGw0NFVjTGh5?=
- =?utf-8?B?blRrS2Q5N2dFbEVwendMc2R1VXpHYkxJZUJCaDNnTTNGanZ5a0VzRkxvYnl6?=
- =?utf-8?B?V2JrcUJ5VjhrQkFUOW1tVXRuRUttV29sVStvdVAwNkMzUnY5VWNqMjBUUnlo?=
- =?utf-8?B?T2dDUFFqZjM3NGZtYlhkQ2trbTNBbGJFUnk4SnVyeGNEcGZOa3k4bzlVMEo5?=
- =?utf-8?B?QzJBTHVnV2dDVXpIRTJhRUR5bDlpM0ZCMmd6aStKREREcndialBjYWZhQ3N4?=
- =?utf-8?B?TDRZMG1YQWZIVkhVL0lnVnpLbHBET2Z6cmw2TnhCaStHUHROdlZjODVScUxm?=
- =?utf-8?B?OXRPSEdBM1BreXVCNXJ4dDBLL1FtTmdhVjd5YnZCSmVnZzBJT2hzb1JPZWho?=
- =?utf-8?B?TFNjcnNuY0FCM21aK1NXTkMxN3NQZmtzeTkybXRJNlF3SjZFeVBJalN1Y3Zi?=
- =?utf-8?B?bldLaHBNK2p2clZZdXZGU3BWZUx5ZUdmOU5EbFdydG9SWnBwM3Bla0NWUGFF?=
- =?utf-8?B?OVQzL3VzaWliZHZhM1RVQ25iRzBya2lyQms2L040NE5maVFzU2NkMDdVL0tl?=
- =?utf-8?B?S0V1RDZXcFJ6QnBqcXcxaXNtVTZWRG1jK3dGS3JqUXZCbmw3dW13djFYQTEy?=
- =?utf-8?B?c3MzQkYxQW5uUEcwWEMxbGxNenUxaDlpYVFFYk5Pc1l3UEF5NnI5V3Z2ZG02?=
- =?utf-8?B?YzFDQkloVmlnQ3dwVjl1R2Q2alRYUzRCZ0VsVWsrZzM0cFFOUUdDZXRWUWUr?=
- =?utf-8?B?ZHp1bzZPcXFOMmpkV2pRcWVDY2NqY2pQNVN3UnpwRnE5YXM2V3ZOaHVHQVdP?=
- =?utf-8?B?VWk2VWV6ckd4TXZoUk9qTTh5Z1hiOEJpaUVoOElCUGJiNVBJb25QWmEybWtH?=
- =?utf-8?B?YVFweE1yTnZMUG1uWmVzbU9XbkwyazIydVZxbDJsUHRqNlBNZWtWYUJSU0tj?=
- =?utf-8?B?cTlMWUthSEtmQ0N2T281VjE0SHpRd0hHdzVNTGhsWFgwOG9CNVcrV2NJQWZL?=
- =?utf-8?B?U2ZKTS8yV0o0VmhXb0RKYnNBM3RRZVhKYUpNMWExTGZrSlF3UDBZUnNNRHBK?=
- =?utf-8?B?N09UWlBkSytJd0NqNmQvOXdwQXdDU1JvZDdpMkt3Ly9lSnFMckxNTXNJVTZU?=
- =?utf-8?B?Qm8wdGhJZFhadklXcDg2alkvdjk0cUsrclZ4SVhGZGRmbE1kWUVybkUxRnU2?=
- =?utf-8?Q?S0vyq8+u0pC5q+IazSyeklKr+?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: b7e8f772-b8ae-49d7-4bd5-08dbc5be764a
-X-MS-Exchange-CrossTenant-AuthSource: PH7PR11MB5984.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 05 Oct 2023 16:16:42.4086
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 36lp6AqGJiC+JTgqVQv09nTOw6SfmnkG8q9OVn8BKnqfUr6/Kcr9R8KphuFwbvxg2OYiwDyNAO3TBrkEQ1iknw==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS0PR11MB7359
-X-OriginatorOrg: intel.com
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="UTF-8"
+X-CLIENT-IP: 195.136.19.94
+X-CLIENT-HOSTNAME: 195.136.19.94
+X-VADE-SPAMSTATE: clean
+X-VADE-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvkedrgeeggddutdegucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecujffqoffgrffnpdggtffipffknecuuegrihhlohhuthemucduhedtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefhvfevufffkfgjfhgggfgtsehtqhertddttdejnecuhfhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqnecuggftrfgrthhtvghrnhepkeeileehffelfefggfdtjedvkeettdejfeevueegfedvhffgudeuteeigfeileetnecuffhomhgrihhnpehkvghrnhgvlhdrohhrghenucfkphepudelhedrudefiedrudelrdelgeenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepihhnvghtpeduleehrddufeeirdduledrleegpdhhvghlohepkhhrvggrtghhvghrrdhlohgtrghlnhgvthdpmhgrihhlfhhrohhmpedftfgrfhgrvghlucflrdcuhgihshhotghkihdfuceorhhjfiesrhhjfiihshhotghkihdrnhgvtheqpdhnsggprhgtphhtthhopedugedprhgtphhtthhopehmihgthhgrlhdrfihilhgtiiihnhhskhhisehinhhtvghlrdgtohhmpdhrtghpthhtoheprhgrfhgrvghlsehkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdgrtghpihesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehlihhnuhigqdhkvghrnhgvlhesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehnvhguihhmmheslhhishhtshdrlhhinhhugidruggvvhdprhgtphhtthhopehrrghfrggvlhdrjhdrfiihshhotghkihesihhnthgvlhdrtghomh
+X-DCC--Metrics: v370.home.net.pl 1024; Body=14 Fuz1=14 Fuz2=14
+
+On Thursday, October 5, 2023 5:30:59 PM CEST Rafael J. Wysocki wrote:
+> On Thu, Oct 5, 2023 at 2:05=E2=80=AFPM Wilczynski, Michal
+> <michal.wilczynski@intel.com> wrote:
+> > On 10/5/2023 12:57 PM, Rafael J. Wysocki wrote:
+> > > On Thu, Oct 5, 2023 at 10:10=E2=80=AFAM Wilczynski, Michal
+> > > <michal.wilczynski@intel.com> wrote:
+>=20
+> [cut]
+>=20
+> > >>>
+> > >>> That said, why exactly is it better to use acpi_handle instead of a
+> > >>> struct acpi_device pointer?
+> > >> I wanted to make the wrapper as close as possible to the wrapped fun=
+ction.
+> > >> This way it would be easier to remove it in the future i.e if we eve=
+r deem
+> > >> extra synchronization not worth it etc. What the ACPICA function nee=
+d to
+> > >> install a wrapper is a handle not a pointer to a device.
+> > >> So there is no need for a middle man.
+> > > Taking a struct acpi_device pointer as the first argument is part of
+> > > duplication reduction, however, because in the most common case it
+> > > saves the users of it the need to dereference the struct acpi_device
+> > > they get from ACPI_COMPANION() in order to obtain the handle.
+> >
+> > User don't even have to use acpi device anywhere, as he can choose
+> > to use ACPI_HANDLE() instead on 'struct device*' and never interact
+> > with acpi device directly.
+>=20
+> Have you actually looked at this macro?  It is a wrapper around
+> ACPI_COMPANION().
+>=20
+> So they may think that they don't use struct acpi_device pointers, but
+> in fact they do.
+>=20
+> > >
+> > > Arguably, acpi_handle is an ACPICA concept and it is better to reduce
+> > > its usage outside ACPICA.
+> >
+> > Use of acpi_handle is deeply entrenched in the kernel. There is even
+> > a macro ACPI_HANDLE() that returns acpi_handle. I would say it's
+> > way too late to limit it to ACPICA internal code.
+>=20
+> So there is a difference between "limiting to ACPICA" and "reducing".
+> It cannot be limited to ACPICA, because the code outside ACPICA needs
+> to evaluate ACPI objects sometimes and ACPI handles are needed for
+> that.
+>=20
+> And this observation doesn't invalidate the point.
+>=20
+> > >
+> > >>> Realistically, in a platform driver you'll need the latter to obtain
+> > >>> the former anyway.
+> > >> I don't want to introduce arbitrary limitations where they are not n=
+ecessary.
+> > > I'm not sure what you mean.  This patch is changing existing function=
+s.
+> >
+> > That's true, but those functions aren't yet deeply entrenched in the
+> > kernel yet, so in my view how they should look like should still be
+> > a subject for discussion, as for now they're only used locally in
+> > drivers/acpi, and my next patchset, that would remove .notify in
+> > platform directory would spread them more, and would
+> > make them harder to change. For now we can change how they
+> > work pretty painlessly.
+>=20
+> I see no particular reason to do that, though.
+>=20
+> What specifically is a problem with passing struct acpi_device
+> pointers to the wrappers?  I don't see any TBH.
+>=20
+> > >
+> > >> It is often the case that driver allocates it's own private struct u=
+sing kmalloc
+> > >> family of functions, and that structure already contains everything =
+that is
+> > >> needed to remove the handler, so why force ? There are already examp=
+les
+> > >> in the drivers that do that i.e in acpi_video the function
+> > >> acpi_video_dev_add_notify_handler() uses raw ACPICA handler to insta=
+ll
+> > >> a notify handler and it passes private structure there.
+> > >> So there is value in leaving the choice of an actual type to the use=
+r of the
+> > >> API.
+> > > No, if the user has a pointer to struct acpi_device already, there is
+> > > no difference between passing this and passing the acpi_handle from it
+> > > except for the extra dereference in the latter case.
+> >
+> > Dereference would happen anyway in the wrapper, and it doesn't cause
+> > any harm anyway for readability in my opinion. And of course you don't
+> > have to use acpi device at all, you can use ACPI_HANDLE() macro.
+>=20
+> So one can use ACPI_COMPANION() just as well and it is slightly less over=
+head.
+>=20
+> > >
+> > > If the user doesn't have a struct acpi_device pointer, let them use
+> > > the raw ACPICA handler directly and worry about the synchronization
+> > > themselves.
+> >
+> > As mentioned acpi_device pointer is not really required to use the wrap=
+per.
+> > Instead we can use ACPI_HANDLE() macro directly. Look at the usage of
+> > the wrapper in the AC driver [1].
+>=20
+> You don't really have to repeat the same argument  several times and I
+> know how ACPI_HANDLE() works.  Also I don't like some of the things
+> done by this patch.
+>=20
+> Whoever uses ACPI_HANDLE(), they also use ACPI_COMPANION() which is
+> hidden in the former.
+>=20
+> If they don't need to store either the acpi_handle or the struct
+> acpi_device pointer, there is no reason at all to use the former
+> instead of the latter.
+>=20
+> If they get an acpi_handle from somewhere else than ACPI_HANDLE(),
+> then yes, they would need to get the ACPI devices from there (which is
+> possible still), but they may be better off by using the raw ACPICA
+> interface for events in that case.
+>=20
+> > -static void acpi_ac_remove(struct acpi_device *device)
+> > +static void acpi_ac_remove(struct platform_device *pdev)
+> >  {
+> > -       struct acpi_ac *ac =3D acpi_driver_data(device);
+> > +      struct acpi_ac *ac =3D platform_get_drvdata(pdev);
+> >
+> > -       acpi_dev_remove_notify_handler(device->handle, ACPI_ALL_NOTIFY,
+> > +       acpi_dev_remove_notify_handler(ACPI_HANDLE(ac->dev),
+> > +                                                                     A=
+CPI_ALL_NOTIFY,
+> >                                                                        =
+acpi_ac_notify);
+> >
+> >
+> >
+> > [1] - https://lore.kernel.org/all/20230925144842.586829-1-michal.wilczy=
+nski@intel.com/T/#mff1e8ce1e548b3252d896b56d3be0b1028b7402e
+> >
+> > >
+> > > The wrappers are there to cover the most common case, not to cover al=
+l cases.
+> >
+> > In general all drivers that I'm modifying would benefit from not using =
+direct ACPICA
+> > installers/removers by saving that extra synchronization code that woul=
+d need to be
+> > provided otherwise, and not having to deal with acpi_status codes.
+>=20
+> Yes, that's the common case.
+>=20
+> >
+> > >
+> > >> To summarize:
+> > >> I would say the wrappers are mostly unnecessary, but they actually s=
+ave
+> > >> some duplicate code in the drivers, so I decided to leave them, as I=
+ don't
+> > >> want to introduce duplicate code if I can avoid that.
+> > > What duplicate code do you mean, exactly?
+> >
+> > I would need to declare extra acpi_status variable and use ACPI_FAILURE=
+ macro
+> > in each usage of the direct ACPICA installer. Also I would need to call
+> > acpi_os_wait_events_complete() after calling each direct remove.
+>=20
+> I thought you meant some code duplication related to passing struct
+> acpi_device pointers to the wrappers, but we agree that the wrappers
+> are generally useful.
+>=20
+> > >
+> > > IMV you haven't really explained why this particular patch is
+> > > necessary or even useful.
+> >
+> > Maybe using an example would better illustrate my point.
+> > Consider using NFIT driver modification later in this series as an exam=
+ple:
+> >
+> > 1) With old wrapper it would look:
+> >
+> >  static void acpi_nfit_notify(acpi_handle handle, u32 event, void *data)
+> > {
+> >     struct acpi_device *adev =3D data;
+> >     /* Now we need to figure how to get a 'struct device*' from an acpi=
+_device.
+> >          Mind this we can't just do &adev->dev, as we're not using that=
+ device anymore.
+> >          We need to get a struct device that's embedded in the platform=
+_device that the
+> >          driver was instantiated with.
+> >          Not sure how it would look like, but it would require are leas=
+t one extra line here.
+> >      */
+> >     device_lock(dev);
+> >     __acpi_nfit_notify(dev, handle, event);
+> >     device_unlock(dev);
+> > }
+> >
+> > 2) With new wrapper:
+> >
+> > static void acpi_nfit_notify(acpi_handle handle, u32 event, void *data)
+> > {
+> >     struct device *dev =3D data;
+> >
+> >     device_lock(dev);
+> >     __acpi_nfit_notify(dev, handle, event);
+> >     device_unlock(dev);
+> > }
+> >
+> >
+> > So essentially arbitrarily forcing user to use wrapper that takes acpi =
+device
+> > as an argument may unnecessarily increase drivers complexity, and if we
+> > can help with then we should. That's why this commit exists.
+>=20
+> Well, I know what's going on now.
+>=20
+> You really want to add a context argument to
+> acpi_dev_install_notify_handler(), which is quite reasonable, but then
+> you don't have to change the first argument of it.
+>=20
+> I'll send you my version of this patch later today and we'll see.
+
+See below.
+
+It just adds a context argument to acpi_dev_install_notify_handler() without
+making the other changes made by the original patch that are rather pointle=
+ss
+IMO.
+
+=2D--
+=46rom: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Subject: [PATCH v1 1/9] ACPI: bus: Add context argument to acpi_dev_install=
+_notify_handler()
+
+Add void *context arrgument to the list of arguments of
+acpi_dev_install_notify_handler() and modify it to pass that argument
+as context to acpi_install_notify_handler() instead of its first
+argument which is problematic in general (for example, if platform
+drivers used it, they would rather get struct platform_device pointers
+or pointers to their private data from the context arguments of their
+notify handlers).
+
+Make all of the current callers of acpi_dev_install_notify_handler()
+take this change into account so as to avoid altering the general
+functionality.
+
+Co-developed-by: Michal Wilczynski <michal.wilczynski@intel.com>
+Signed-off-by: Michal Wilczynski <michal.wilczynski@intel.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+=2D--
+ drivers/acpi/ac.c         |    2 +-
+ drivers/acpi/acpi_video.c |    2 +-
+ drivers/acpi/battery.c    |    2 +-
+ drivers/acpi/bus.c        |    4 ++--
+ drivers/acpi/hed.c        |    2 +-
+ drivers/acpi/nfit/core.c  |    2 +-
+ drivers/acpi/thermal.c    |    2 +-
+ include/acpi/acpi_bus.h   |    2 +-
+ 8 files changed, 9 insertions(+), 9 deletions(-)
+
+Index: linux-pm/drivers/acpi/ac.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+=2D-- linux-pm.orig/drivers/acpi/ac.c
++++ linux-pm/drivers/acpi/ac.c
+@@ -257,7 +257,7 @@ static int acpi_ac_add(struct acpi_devic
+ 	register_acpi_notifier(&ac->battery_nb);
+=20
+ 	result =3D acpi_dev_install_notify_handler(device, ACPI_ALL_NOTIFY,
+=2D						 acpi_ac_notify);
++						 acpi_ac_notify, device);
+ 	if (result)
+ 		goto err_unregister;
+=20
+Index: linux-pm/drivers/acpi/acpi_video.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+=2D-- linux-pm.orig/drivers/acpi/acpi_video.c
++++ linux-pm/drivers/acpi/acpi_video.c
+@@ -2062,7 +2062,7 @@ static int acpi_video_bus_add(struct acp
+ 		goto err_del;
+=20
+ 	error =3D acpi_dev_install_notify_handler(device, ACPI_DEVICE_NOTIFY,
+=2D						acpi_video_bus_notify);
++						acpi_video_bus_notify, device);
+ 	if (error)
+ 		goto err_remove;
+=20
+Index: linux-pm/drivers/acpi/battery.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+=2D-- linux-pm.orig/drivers/acpi/battery.c
++++ linux-pm/drivers/acpi/battery.c
+@@ -1214,7 +1214,7 @@ static int acpi_battery_add(struct acpi_
+ 	device_init_wakeup(&device->dev, 1);
+=20
+ 	result =3D acpi_dev_install_notify_handler(device, ACPI_ALL_NOTIFY,
+=2D						 acpi_battery_notify);
++						 acpi_battery_notify, device);
+ 	if (result)
+ 		goto fail_pm;
+=20
+Index: linux-pm/drivers/acpi/bus.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+=2D-- linux-pm.orig/drivers/acpi/bus.c
++++ linux-pm/drivers/acpi/bus.c
+@@ -556,12 +556,12 @@ static void acpi_device_remove_notify_ha
+=20
+ int acpi_dev_install_notify_handler(struct acpi_device *adev,
+ 				    u32 handler_type,
+=2D				    acpi_notify_handler handler)
++				    acpi_notify_handler handler, void *context)
+ {
+ 	acpi_status status;
+=20
+ 	status =3D acpi_install_notify_handler(adev->handle, handler_type,
+=2D					     handler, adev);
++					     handler, context);
+ 	if (ACPI_FAILURE(status))
+ 		return -ENODEV;
+=20
+Index: linux-pm/drivers/acpi/hed.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+=2D-- linux-pm.orig/drivers/acpi/hed.c
++++ linux-pm/drivers/acpi/hed.c
+@@ -57,7 +57,7 @@ static int acpi_hed_add(struct acpi_devi
+ 	hed_handle =3D device->handle;
+=20
+ 	err =3D acpi_dev_install_notify_handler(device, ACPI_DEVICE_NOTIFY,
+=2D					      acpi_hed_notify);
++					      acpi_hed_notify, device);
+ 	if (err)
+ 		hed_handle =3D NULL;
+=20
+Index: linux-pm/drivers/acpi/nfit/core.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+=2D-- linux-pm.orig/drivers/acpi/nfit/core.c
++++ linux-pm/drivers/acpi/nfit/core.c
+@@ -3391,7 +3391,7 @@ static int acpi_nfit_add(struct acpi_dev
+ 		return rc;
+=20
+ 	rc =3D acpi_dev_install_notify_handler(adev, ACPI_DEVICE_NOTIFY,
+=2D					     acpi_nfit_notify);
++					     acpi_nfit_notify, adev);
+ 	if (rc)
+ 		return rc;
+=20
+Index: linux-pm/drivers/acpi/thermal.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+=2D-- linux-pm.orig/drivers/acpi/thermal.c
++++ linux-pm/drivers/acpi/thermal.c
+@@ -936,7 +936,7 @@ static int acpi_thermal_add(struct acpi_
+ 		acpi_device_bid(device), deci_kelvin_to_celsius(tz->temp_dk));
+=20
+ 	result =3D acpi_dev_install_notify_handler(device, ACPI_DEVICE_NOTIFY,
+=2D						 acpi_thermal_notify);
++						 acpi_thermal_notify, device);
+ 	if (result)
+ 		goto flush_wq;
+=20
+Index: linux-pm/include/acpi/acpi_bus.h
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+=2D-- linux-pm.orig/include/acpi/acpi_bus.h
++++ linux-pm/include/acpi/acpi_bus.h
+@@ -601,7 +601,7 @@ int acpi_bus_attach_private_data(acpi_ha
+ void acpi_bus_detach_private_data(acpi_handle);
+ int acpi_dev_install_notify_handler(struct acpi_device *adev,
+ 				    u32 handler_type,
+=2D				    acpi_notify_handler handler);
++				    acpi_notify_handler handler, void *context);
+ void acpi_dev_remove_notify_handler(struct acpi_device *adev,
+ 				    u32 handler_type,
+ 				    acpi_notify_handler handler);
 
 
 
-On 10/5/23 06:58, Dan Carpenter wrote:
-> We know that "rc" is zero so there is no need to check.
-> 
-> Signed-off-by: Dan Carpenter <dan.carpenter@linaro.org>
-
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-> ---
->  drivers/dax/bus.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-> index 1d818401103b..ea7298d8da99 100644
-> --- a/drivers/dax/bus.c
-> +++ b/drivers/dax/bus.c
-> @@ -1300,7 +1300,7 @@ static ssize_t memmap_on_memory_store(struct device *dev,
->  	dev_dax->memmap_on_memory = val;
->  
->  	device_unlock(dax_region->dev);
-> -	return rc == 0 ? len : rc;
-> +	return len;
->  }
->  static DEVICE_ATTR_RW(memmap_on_memory);
->  
