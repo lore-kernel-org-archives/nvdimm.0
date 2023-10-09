@@ -1,98 +1,110 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oo1-f50.google.com (mail-oo1-f50.google.com [209.85.161.50])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1126BA53;
-	Mon,  9 Oct 2023 17:32:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="n7htfkkY"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E99C5C433C7;
-	Mon,  9 Oct 2023 17:31:58 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1696872720;
-	bh=XDeMdfLHaRv+b+MlRUUeKv/nia38YeOU/WDZx5uPdgo=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=n7htfkkYUR12EIz1FfiE1jX2eFvUEHVFPryxLjmFbPuCO63JBXFgzZFBrFSr8POoM
-	 nOqBt8Ex9K985cGV6+qhK/D41SCIeSdiXbcUvI9IgH95SuKRTpkX2tFZxU1fggV/Co
-	 h4FDmqr5W2gDoU8y1iBRT+VGpOLpUw9MzF+NINbA=
-Date: Mon, 9 Oct 2023 19:31:56 +0200
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: Max Kellermann <max.kellermann@ionos.com>
-Cc: Jens Axboe <axboe@kernel.dk>, "Rafael J. Wysocki" <rafael@kernel.org>,
-	Borislav Petkov <bp@alien8.de>, Tony Luck <tony.luck@intel.com>,
-	James Morse <james.morse@arm.com>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Robert Richter <rric@kernel.org>, Jean Delvare <jdelvare@suse.com>,
-	Guenter Roeck <linux@roeck-us.net>, Jason Gunthorpe <jgg@ziepe.ca>,
-	Leon Romanovsky <leon@kernel.org>,
-	Bart Van Assche <bvanassche@acm.org>,
-	Joerg Roedel <joro@8bytes.org>, Will Deacon <will@kernel.org>,
-	Robin Murphy <robin.murphy@arm.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
-	Keith Busch <kbusch@kernel.org>, Christoph Hellwig <hch@lst.de>,
-	Sagi Grimberg <sagi@grimberg.me>,
-	Alessandro Zummo <a.zummo@towertech.it>,
-	Alexandre Belloni <alexandre.belloni@bootlin.com>,
-	Jiri Slaby <jirislaby@kernel.org>,
-	Suzuki K Poulose <suzuki.poulose@arm.com>,
-	Mike Leach <mike.leach@linaro.org>,
-	James Clark <james.clark@arm.com>, Leo Yan <leo.yan@linaro.org>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Peter Zijlstra <peterz@infradead.org>, Pavel Machek <pavel@ucw.cz>,
-	Lee Jones <lee@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
-	Bjorn Helgaas <bhelgaas@google.com>, Ingo Molnar <mingo@redhat.com>,
-	Arnaldo Carvalho de Melo <acme@kernel.org>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Alexander Shishkin <alexander.shishkin@linux.intel.com>,
-	Jiri Olsa <jolsa@kernel.org>, Namhyung Kim <namhyung@kernel.org>,
-	Ian Rogers <irogers@google.com>,
-	Adrian Hunter <adrian.hunter@intel.com>,
-	Sebastian Reichel <sre@kernel.org>,
-	Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
-	Wim Van Sebroeck <wim@linux-watchdog.org>,
-	"James E.J. Bottomley" <jejb@linux.ibm.com>,
-	"Martin K. Petersen" <martin.petersen@oracle.com>,
-	linux-block@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-edac@vger.kernel.org, linux-hwmon@vger.kernel.org,
-	linux-rdma@vger.kernel.org, iommu@lists.linux.dev,
-	nvdimm@lists.linux.dev, linux-nvme@lists.infradead.org,
-	linux-rtc@vger.kernel.org, linux-serial@vger.kernel.org,
-	coresight@lists.linaro.org, linux-arm-kernel@lists.infradead.org,
-	linux-leds@vger.kernel.org, linux-pci@vger.kernel.org,
-	linux-perf-users@vger.kernel.org, linux-pm@vger.kernel.org,
-	linux-usb@vger.kernel.org, linux-watchdog@vger.kernel.org,
-	linux-scsi@vger.kernel.org
-Subject: Re: [PATCH 6/7] fs/sysfs/group: make attribute_group pointers const
-Message-ID: <2023100944-fancied-garter-f09b@gregkh>
-References: <20231009165741.746184-1-max.kellermann@ionos.com>
- <20231009165741.746184-6-max.kellermann@ionos.com>
- <2023100921-that-jasmine-2240@gregkh>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66C32134BE
+	for <nvdimm@lists.linux.dev>; Mon,  9 Oct 2023 17:51:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; dkim=none
+Received: by mail-oo1-f50.google.com with SMTP id 006d021491bc7-57c0775d4fcso601811eaf.0
+        for <nvdimm@lists.linux.dev>; Mon, 09 Oct 2023 10:51:37 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1696873896; x=1697478696;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=xQBtcxUEBTteAt95r1bhShJsO6XhiQD8q2TBwfTAy8Y=;
+        b=h0muI/Ap26w65T9aV1XL1eweoxieLwLx743KO9kCB813WB2sTbS0KjAHW0jkpitZuJ
+         BKFPP/pg1udpxA2XfXjBahDEKkW5M23klV7PjZbwkKNG/ggAARhlqY5KEaaq76XhmNOU
+         ylRrrrr1b4iHe0hPTPN1IygF4P1Xkoc03jM44izwRuU/A4wJHwZgc2oGvHAhaQsxx+0K
+         bh+oiuu53RGrNHaHE0qCeD8yU4rkMau7gdQoRIOHT+jTR6b6LNTNiUbSGeu8mpwkhoN+
+         Ydo9kKG/BmBPOmtAKUsFn40ZO884r3sggWwoZ6pWkguNe5IKPEs+NFGoVT4sjjhBHz2B
+         ggKA==
+X-Gm-Message-State: AOJu0YzTDYIB2tSv18fEEGZdLoeav3UWG1fIzkS6xZJlR6uHWWGI+jVN
+	XjUTWmuI4im5FDh+eTsemqd9CSxuVMP3SlJJsvo=
+X-Google-Smtp-Source: AGHT+IGUmF/LVHHrOgPdHxSjp/xIgIZDRO1132XTPnCUXW1CQVgDWzrxUZ1VxL2ND11CHY8bBqQ/04JupLN2zIbwRQs=
+X-Received: by 2002:a4a:de08:0:b0:56e:94ed:c098 with SMTP id
+ y8-20020a4ade08000000b0056e94edc098mr14198631oot.0.1696873896270; Mon, 09 Oct
+ 2023 10:51:36 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2023100921-that-jasmine-2240@gregkh>
+References: <20231006173055.2938160-1-michal.wilczynski@intel.com>
+ <20231006173055.2938160-4-michal.wilczynski@intel.com> <CAJZ5v0jKJ6iw6Q=uYTf0at+ESkdCF0oWaXRmj7P5VLw+QppKPw@mail.gmail.com>
+ <ZSEPGmCyhgSlMGRK@smile.fi.intel.com> <CAJZ5v0gF0O_d1rjOtiNj5ryXv-PURv0NgiRWyQECZZFcaBEsPQ@mail.gmail.com>
+ <CAJZ5v0iDhOFDX=k7xsC_=2jjerWmrP+Na-9PFM=YGA0V-hH2xw@mail.gmail.com>
+ <f8ff3c4b-376a-4de0-8674-5789bcbe7aa9@intel.com> <CAJZ5v0i4in=oyhXKOQ1MeoRP5fAhHdEFgZZp98N0pF8hB6BtbQ@mail.gmail.com>
+ <be180b68-d31f-4e7f-aeaa-071be74e2696@intel.com>
+In-Reply-To: <be180b68-d31f-4e7f-aeaa-071be74e2696@intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Mon, 9 Oct 2023 19:51:25 +0200
+Message-ID: <CAJZ5v0g=MkRwFQ88SQfRcvwnii5VnXujC7ZUaDsncodNkzdNdQ@mail.gmail.com>
+Subject: Re: [PATCH v2 3/6] ACPI: AC: Replace acpi_driver with platform_driver
+To: "Wilczynski, Michal" <michal.wilczynski@intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Andy Shevchenko <andriy.shevchenko@intel.com>, 
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	nvdimm@lists.linux.dev, rafael.j.wysocki@intel.com, lenb@kernel.org, 
+	dan.j.williams@intel.com, vishal.l.verma@intel.com, ira.weiny@intel.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Mon, Oct 09, 2023 at 07:25:57PM +0200, Greg Kroah-Hartman wrote:
-> On Mon, Oct 09, 2023 at 06:57:39PM +0200, Max Kellermann wrote:
-> > This allows passing arrays of const pointers.  The goal is to make
-> > lots of global variables "const" to allow them to live in the
-> > ".rodata" section.
-> 
-> I'm all for doing this type of work, but this is going to be rough.  You
-> sent patch 6/7 that hit almost all subsystems at once :(
+On Mon, Oct 9, 2023 at 3:04=E2=80=AFPM Wilczynski, Michal
+<michal.wilczynski@intel.com> wrote:
+>
+>
+>
+> On 10/9/2023 2:27 PM, Rafael J. Wysocki wrote:
+> > On Mon, Oct 9, 2023 at 10:40=E2=80=AFAM Wilczynski, Michal
+> > <michal.wilczynski@intel.com> wrote:
+> >>
 
-The way to do this right is one-subsystem-at-a-time, right?  Why not
-start there, doing it cleanly, and then at the end, change the driver
-core and then just the subsystem pointers?  That should be much simpler,
-easier to review and verify, and many more changes (and probably take a
-kernel release or two to get through.)
+[cut]
 
-thanks,
+> >> Yeah we could add platform device without removing acpi device, and
+> >> yes that would introduce data duplication, like Andy noticed.
+> > But he hasn't answered my question regarding what data duplication he
+> > meant, exactly.
+> >
+> > So what data duplication do you mean?
+>
+> So what I meant was that many drivers would find it useful to have
+> a struct device embedded in their 'private structure', and in that case
+> there would be a duplication of platform_device and acpi_device as
+> both pointers would be needed.
 
-greg k-h
+It all depends on how often each of them is going to be used in the
+given driver.
+
+This particular driver only needs a struct acpi_device pointer if I'm
+not mistaken.
+
+> Mind this if you only have struct device
+> it's easy to get acpi device, but it's not the case the other way around.
+>
+> So for this driver it's just a matter of sticking to convention,
+
+There is no convention in this respect and there is always a tradeoff
+between using more memory and using more CPU time in computing in
+general, but none of them should be wasted just for the sake of
+following a convention.
+
+> for the others like it would be duplication.
+
+So I'm only talking about the driver modified by the patch at hand.
+
+> In my version of this patch we managed to avoid this duplication, thanks
+> to the contextual argument introduced before, but look at this patch:
+> https://github.com/mwilczy/linux-pm/commit/cc8ef52707341e67a12067d6ead991=
+d56ea017ca
+>
+> Author of this patch had to introduce platform_device and acpi_device to =
+the struct ac, so
+> there was some duplication. That is the case for many drivers to come, so=
+ I decided it's better
+> to change this and have a pattern with keeping only 'struct device'.
+
+Well, if the only thing you need from a struct device is its
+ACPI_COMPANION(), it is better to store a pointer to the latter.
