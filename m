@@ -1,229 +1,315 @@
-Received: from esa12.hc1455-7.c3s2.iphmx.com (esa12.hc1455-7.c3s2.iphmx.com [139.138.37.100])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C3B8347D4
-	for <nvdimm@lists.linux.dev>; Mon,  9 Oct 2023 14:14:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=fujitsu.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fujitsu.com
-Authentication-Results: smtp.subspace.kernel.org; dkim=none
-X-IronPort-AV: E=McAfee;i="6600,9927,10858"; a="114803753"
-X-IronPort-AV: E=Sophos;i="6.03,210,1694703600"; 
-   d="scan'208";a="114803753"
-Received: from unknown (HELO yto-r4.gw.nic.fujitsu.com) ([218.44.52.220])
-  by esa12.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Oct 2023 23:14:17 +0900
-Received: from yto-m1.gw.nic.fujitsu.com (yto-nat-yto-m1.gw.nic.fujitsu.com [192.168.83.64])
-	by yto-r4.gw.nic.fujitsu.com (Postfix) with ESMTP id 76292CD6DE
-	for <nvdimm@lists.linux.dev>; Mon,  9 Oct 2023 23:14:15 +0900 (JST)
-Received: from kws-ab4.gw.nic.fujitsu.com (kws-ab4.gw.nic.fujitsu.com [192.51.206.22])
-	by yto-m1.gw.nic.fujitsu.com (Postfix) with ESMTP id B5049CFAB6
-	for <nvdimm@lists.linux.dev>; Mon,  9 Oct 2023 23:14:14 +0900 (JST)
-Received: from edo.cn.fujitsu.com (edo.cn.fujitsu.com [10.167.33.5])
-	by kws-ab4.gw.nic.fujitsu.com (Postfix) with ESMTP id 4B35240B4F
-	for <nvdimm@lists.linux.dev>; Mon,  9 Oct 2023 23:14:14 +0900 (JST)
-Received: from [10.193.128.127] (unknown [10.193.128.127])
-	by edo.cn.fujitsu.com (Postfix) with ESMTP id 687B11A006F;
-	Mon,  9 Oct 2023 22:14:13 +0800 (CST)
-Message-ID: <28613f6e-2ed2-4c9a-81e3-3dcfdbba867c@fujitsu.com>
-Date: Mon, 9 Oct 2023 22:14:12 +0800
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B43D1347D2
+	for <nvdimm@lists.linux.dev>; Mon,  9 Oct 2023 15:04:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Df3LLIf6"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1696863851;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=FIJV5lO3rRaNMrdiwXXrWFJSKEt+B99N6civGkJgdJ8=;
+	b=Df3LLIf6mNC1yFW097zVdrUde4vDPud7SRpTRzT5rHEwP3nH/6TIAh2JI4L36QjD0XmshN
+	pYjptmt2WOYsz8FkQXkg/+Mytu381xbz0VlPhXLxnYgrcMHj+JLNWaI71Q9IrJswExvXJw
+	XXqKb4l0kXoEbhqqhfmnkrKJxrCMcro=
+Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com
+ [209.85.128.72]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-18-dUo2v92xO-a-bNwaVuMQlA-1; Mon, 09 Oct 2023 11:04:10 -0400
+X-MC-Unique: dUo2v92xO-a-bNwaVuMQlA-1
+Received: by mail-wm1-f72.google.com with SMTP id 5b1f17b1804b1-405629826ccso35434765e9.0
+        for <nvdimm@lists.linux.dev>; Mon, 09 Oct 2023 08:04:10 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1696863849; x=1697468649;
+        h=content-transfer-encoding:in-reply-to:organization:from:references
+         :cc:to:content-language:subject:user-agent:mime-version:date
+         :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=FIJV5lO3rRaNMrdiwXXrWFJSKEt+B99N6civGkJgdJ8=;
+        b=nfDk65ywE/kD/vHGnKIegL/AfaWJxSS05rqjgf0WC4rTJOlHJdBqrT6qJy04xVlBUF
+         a6ZU/zwXzp7JREj77CQ3kW7CrINR+okL1nq7KqpL+yvUowRFU74C6FKbfKIDD/hFsg/j
+         NO6looWmllzyuFxlhjfCxxnlYjMJovfFGBH2sOLaeDZYMey2BdJY2d2upHgKmiBF/nGG
+         n2bd5JaFGWdE9zn4w8iEu2JKywqgKsoZ7RC4q3vzgSx+vDwcjylZIBN9A+gTnbjWHVi4
+         GZR4yfXI02kO90cmEhd/vv06dUOcYVxx3ze3cXufdgXkW8YQphbkYn/G5Y/pyO5GXZFU
+         wYIg==
+X-Gm-Message-State: AOJu0Yw0OuKFKaawzJlaBVZCetTMkDs6ft+y9Es3mTXw70Fqp2vWOBHx
+	L/qffQl40SKDzpIZx5v+cc5G9cipjGVHnhAkrgWYqDRjiHYJ+QmNJ6cMLhpwAYG0lGE3560/NMg
+	9vD7/NiYmYOMLnU+d
+X-Received: by 2002:a05:600c:294a:b0:3f5:fff8:d4f3 with SMTP id n10-20020a05600c294a00b003f5fff8d4f3mr14342648wmd.7.1696863849013;
+        Mon, 09 Oct 2023 08:04:09 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IEd9RipDWly03hWGjd4laSZlSBJMZLRx2QoWpiR6apw7eWoyMbijKUMNiw8aOtn3O0GrZjGoQ==
+X-Received: by 2002:a05:600c:294a:b0:3f5:fff8:d4f3 with SMTP id n10-20020a05600c294a00b003f5fff8d4f3mr14342561wmd.7.1696863847471;
+        Mon, 09 Oct 2023 08:04:07 -0700 (PDT)
+Received: from ?IPV6:2003:cb:c733:6400:ae10:4bb7:9712:8548? (p200300cbc7336400ae104bb797128548.dip0.t-ipconnect.de. [2003:cb:c733:6400:ae10:4bb7:9712:8548])
+        by smtp.gmail.com with ESMTPSA id i14-20020a05600c354e00b004068de50c64sm11449371wmq.46.2023.10.09.08.04.05
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 09 Oct 2023 08:04:06 -0700 (PDT)
+Message-ID: <831b9b12-08fe-f5dc-f21d-83284b0aee8a@redhat.com>
+Date: Mon, 9 Oct 2023 17:04:05 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] xfs: drop experimental warning for FSDAX
-To: "Darrick J. Wong" <djwong@kernel.org>
-Cc: Chandan Babu R <chandanbabu@kernel.org>,
- Dave Chinner <david@fromorbit.com>, Dan Williams <dan.j.williams@intel.com>,
- Andrew Morton <akpm@linux-foundation.org>, linux-xfs@vger.kernel.org,
- nvdimm@lists.linux.dev
-References: <20230927083034.90bd6336229dd00af601e0ef@linux-foundation.org>
- <9c3cbc0c-7135-4006-ad4a-2abce0a556b0@fujitsu.com>
- <20230928092052.9775e59262c102dc382513ef@linux-foundation.org>
- <20230928171339.GJ11439@frogsfrogsfrogs>
- <99279735-2d17-405f-bade-9501a296d817@fujitsu.com>
- <651718a6a6e2c_c558e2943e@dwillia2-xfh.jf.intel.com.notmuch>
- <ec2de0b9-c07d-468a-bd15-49e83cba1ad9@fujitsu.com>
- <87y1gltcvg.fsf@debian-BULLSEYE-live-builder-AMD64>
- <20231005000809.GN21298@frogsfrogsfrogs>
- <ce9ef1dc-d62b-466d-882f-d7bf4350582d@fujitsu.com>
- <20231005160530.GO21298@frogsfrogsfrogs>
-From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-In-Reply-To: <20231005160530.GO21298@frogsfrogsfrogs>
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.15.1
+Subject: Re: [PATCH v5 1/2] mm/memory_hotplug: split memmap_on_memory requests
+ across memblocks
+To: "Huang, Ying" <ying.huang@intel.com>,
+ Vishal Verma <vishal.l.verma@intel.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+ Oscar Salvador <osalvador@suse.de>, Dan Williams <dan.j.williams@intel.com>,
+ Dave Jiang <dave.jiang@intel.com>, linux-kernel@vger.kernel.org,
+ linux-mm@kvack.org, nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
+ Dave Hansen <dave.hansen@linux.intel.com>,
+ "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
+ Michal Hocko <mhocko@suse.com>,
+ Jonathan Cameron <Jonathan.Cameron@Huawei.com>,
+ Jeff Moyer <jmoyer@redhat.com>
+References: <20231005-vv-kmem_memmap-v5-0-a54d1981f0a3@intel.com>
+ <20231005-vv-kmem_memmap-v5-1-a54d1981f0a3@intel.com>
+ <87jzrylslk.fsf@yhuang6-desk2.ccr.corp.intel.com>
+From: David Hildenbrand <david@redhat.com>
+Organization: Red Hat
+In-Reply-To: <87jzrylslk.fsf@yhuang6-desk2.ccr.corp.intel.com>
+X-Mimecast-Spam-Score: 0
+X-Mimecast-Originator: redhat.com
+Content-Language: en-US
 Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-TM-AS-Product-Ver: IMSS-9.1.0.1417-9.0.0.1002-27924.006
-X-TM-AS-User-Approved-Sender: Yes
-X-TMASE-Version: IMSS-9.1.0.1417-9.0.1002-27924.006
-X-TMASE-Result: 10--20.194600-10.000000
-X-TMASE-MatchedRID: OnXFgg5KIq2PvrMjLFD6eHchRkqzj/bEC/ExpXrHizxBqLOmHiM3w0mb
-	/vjP+wrh2cyrLyFNhjuc49Bvf+9vIl0ieHN50/kHrMZ+BqQt2NpN8rmPQRlvK1cZNuxCoduS2Z5
-	d2c6tpnZa0onndjAYYqcgvYcxG5Wh+BMgIVTipNsSEYfcJF0pRdG3Y6ijqBt3+B3C2Zz0Z1PhDo
-	h7wbP2f4psmNGAE/ypCRGaYCZT14bIRZRfI7CCoWzBijri5+RV8FHp8LCpZ7T5V4X/65Dwb7rmv
-	hde36c4lxPsRwiY5LxXuQ2wIHEaxLgSigd+50baQQ5+hY6u+45UENBIMyKD0XdjuSlUpauf8Ybk
-	9kzPEWih9xN1JciTvfMW54P2B2td1s1AHJ9E8eBdhZyafgPiq1yyC78hAU/OVz8J52OVy+RkG4E
-	tozBz384b571oAikeD4bdesxcMzc2sw58eWE/moh/ebSxR/HnICcCYi/y4c1QKAQSutQYXKMWPo
-	W8GZ6ysyA6wHYa3r6ws8u7I5eHt8hjol69azi+PMcAlOC0qrCBs03RHrzjM02tQtIC9BxRduZRu
-	RKwoPYheBVUjnjCL6kaGaJDwIN8/ssiKhSj/JlOKksNozKUfd7kIcn/7F/gc1FU910PIkuUg5UD
-	6AlF0ieub+CUi/LYnagtny7ZPcS/WXZS/HqJ2sC4UUZr4lSFAsMBg/gBdVHudjnWXAurTyAHAop
-	Ed76vLbuc+vq+h7p3MIrRs3M5CQx/cP20O8DrCJAo+QkBlr4piKVQz03z1A==
-X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
+Content-Transfer-Encoding: 7bit
 
-
-
-在 2023/10/6 0:05, Darrick J. Wong 写道:
-> On Thu, Oct 05, 2023 at 04:53:12PM +0800, Shiyang Ruan wrote:
+On 07.10.23 10:55, Huang, Ying wrote:
+> Vishal Verma <vishal.l.verma@intel.com> writes:
+> 
+>> The MHP_MEMMAP_ON_MEMORY flag for hotplugged memory is restricted to
+>> 'memblock_size' chunks of memory being added. Adding a larger span of
+>> memory precludes memmap_on_memory semantics.
 >>
+>> For users of hotplug such as kmem, large amounts of memory might get
+>> added from the CXL subsystem. In some cases, this amount may exceed the
+>> available 'main memory' to store the memmap for the memory being added.
+>> In this case, it is useful to have a way to place the memmap on the
+>> memory being added, even if it means splitting the addition into
+>> memblock-sized chunks.
 >>
->> 在 2023/10/5 8:08, Darrick J. Wong 写道:
->>>>>
->>>>> Sorry, I sent the list below to Chandan, didn't cc the maillist
->>>>> because it's just a rough list rather than a PR:
->>>>>
->>>>>
->>>>> 1. subject: [v3]  xfs: correct calculation for agend and blockcount
->>>>>      url:
->>>>>      https://lore.kernel.org/linux-xfs/20230913102942.601271-1-ruansy.fnst@fujitsu.com/
->>>>>      note:    This one is a fix patch for commit: 5cf32f63b0f4 ("xfs:
->>>>>      fix the calculation for "end" and "length"").
->>>>>               It can solve the fail of xfs/55[0-2]: the programs
->>>>>               accessing the DAX file may not be notified as expected,
->>>>>              because the length always 1 block less than actual.  Then
->>>>>             this patch fixes this.
->>>>>
->>>>>
->>>>> 2. subject: [v15] mm, pmem, xfs: Introduce MF_MEM_PRE_REMOVE for unbind
->>>>>      url:
->>>>>      https://lore.kernel.org/linux-xfs/20230928103227.250550-1-ruansy.fnst@fujitsu.com/T/#u
->>>>>      note:    This is a feature patch.  It handles the pre-remove event
->>>>>      of DAX device, by notifying kernel/user space before actually
->>>>>     removing.
->>>>>               It has been picked by Andrew in his
->>>>>               mm-hotfixes-unstable. I am not sure whether you or he will
->>>>>              merge this one.
->>>>>
->>>>>
->>>>> 3. subject: [v1]  xfs: drop experimental warning for FSDAX
->>>>>      url:
->>>>>      https://lore.kernel.org/linux-xfs/20230915063854.1784918-1-ruansy.fnst@fujitsu.com/
->>>>>      note:    With the patches mentioned above, I did a lot of tests,
->>>>>      including xfstests and blackbox tests, the FSDAX function looks
->>>>>     good now.  So I think the experimental warning could be dropped.
->>>>
->>>> Darrick/Dave, Could you please review the above patch and let us know if you
->>>> have any objections?
->>>
->>> The first two patches are ok.  The third one ... well I was about to say
->>> ok but then this happened with generic/269 on a 6.6-rc4 kernel and those
->>> two patches applied:
+>> Change add_memory_resource() to loop over memblock-sized chunks of
+>> memory if caller requested memmap_on_memory, and if other conditions for
+>> it are met. Teach try_remove_memory() to also expect that a memory
+>> range being removed might have been split up into memblock sized chunks,
+>> and to loop through those as needed.
 >>
->> Hi Darrick,
+>> Cc: Andrew Morton <akpm@linux-foundation.org>
+>> Cc: David Hildenbrand <david@redhat.com>
+>> Cc: Michal Hocko <mhocko@suse.com>
+>> Cc: Oscar Salvador <osalvador@suse.de>
+>> Cc: Dan Williams <dan.j.williams@intel.com>
+>> Cc: Dave Jiang <dave.jiang@intel.com>
+>> Cc: Dave Hansen <dave.hansen@linux.intel.com>
+>> Cc: Huang Ying <ying.huang@intel.com>
+>> Suggested-by: David Hildenbrand <david@redhat.com>
+>> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+>> ---
+>>   mm/memory_hotplug.c | 162 ++++++++++++++++++++++++++++++++--------------------
+>>   1 file changed, 99 insertions(+), 63 deletions(-)
 >>
->> Thanks for testing.  I just tested this case (generic/269) on v6.6-rc4 with
->> my 3 patches again, but it didn't fail.  Such WARNING message didn't show in
->> dmesg too.
->>
->> My local.config is shown as below:
->> [nodax_reflink]
->> export FSTYP=xfs
->> export TEST_DEV=/dev/pmem0
->> export TEST_DIR=/mnt/test
->> export SCRATCH_DEV=/dev/pmem1
->> export SCRATCH_MNT=/mnt/scratch
->> export MKFS_OPTIONS="-m reflink=1,rmapbt=1"
->>
->> [dax_reflink]
->> export FSTYP=xfs
->> export TEST_DEV=/dev/pmem0
->> export TEST_DIR=/mnt/test
->> export SCRATCH_DEV=/dev/pmem1
->> export SCRATCH_MNT=/mnt/scratch
->> export MKFS_OPTIONS="-m reflink=1,rmapbt=1"
->> export MOUNT_OPTIONS="-o dax"
->> export TEST_FS_MOUNT_OPTS="-o dax"
->>
->> And tools version are:
->>   - xfstests (v2023.09.03)
+>> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+>> index f8d3e7427e32..77ec6f15f943 100644
+>> --- a/mm/memory_hotplug.c
+>> +++ b/mm/memory_hotplug.c
+>> @@ -1380,6 +1380,44 @@ static bool mhp_supports_memmap_on_memory(unsigned long size)
+>>   	return arch_supports_memmap_on_memory(vmemmap_size);
+>>   }
+>>   
+>> +static int add_memory_create_devices(int nid, struct memory_group *group,
+>> +				     u64 start, u64 size, mhp_t mhp_flags)
+>> +{
+>> +	struct mhp_params params = { .pgprot = pgprot_mhp(PAGE_KERNEL) };
+>> +	struct vmem_altmap mhp_altmap = {
+>> +		.base_pfn =  PHYS_PFN(start),
+>> +		.end_pfn  =  PHYS_PFN(start + size - 1),
+>> +	};
+>> +	int ret;
+>> +
+>> +	if ((mhp_flags & MHP_MEMMAP_ON_MEMORY)) {
+>> +		mhp_altmap.free = memory_block_memmap_on_memory_pages();
+>> +		params.altmap = kmalloc(sizeof(struct vmem_altmap), GFP_KERNEL);
+>> +		if (!params.altmap)
+>> +			return -ENOMEM;
+>> +
+>> +		memcpy(params.altmap, &mhp_altmap, sizeof(mhp_altmap));
+>> +	}
+>> +
+>> +	/* call arch's memory hotadd */
+>> +	ret = arch_add_memory(nid, start, size, &params);
+>> +	if (ret < 0)
+>> +		goto error;
+>> +
+>> +	/* create memory block devices after memory was added */
+>> +	ret = create_memory_block_devices(start, size, params.altmap, group);
+>> +	if (ret)
+>> +		goto err_bdev;
+>> +
+>> +	return 0;
+>> +
+>> +err_bdev:
+>> +	arch_remove_memory(start, size, NULL);
+>> +error:
+>> +	kfree(params.altmap);
+>> +	return ret;
+>> +}
+>> +
+>>   /*
+>>    * NOTE: The caller must call lock_device_hotplug() to serialize hotplug
+>>    * and online/offline operations (triggered e.g. by sysfs).
+>> @@ -1388,14 +1426,10 @@ static bool mhp_supports_memmap_on_memory(unsigned long size)
+>>    */
+>>   int __ref add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
+>>   {
+>> -	struct mhp_params params = { .pgprot = pgprot_mhp(PAGE_KERNEL) };
+>> +	unsigned long memblock_size = memory_block_size_bytes();
+>>   	enum memblock_flags memblock_flags = MEMBLOCK_NONE;
+>> -	struct vmem_altmap mhp_altmap = {
+>> -		.base_pfn =  PHYS_PFN(res->start),
+>> -		.end_pfn  =  PHYS_PFN(res->end),
+>> -	};
+>>   	struct memory_group *group = NULL;
+>> -	u64 start, size;
+>> +	u64 start, size, cur_start;
+>>   	bool new_node = false;
+>>   	int ret;
+>>   
+>> @@ -1436,28 +1470,21 @@ int __ref add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
+>>   	/*
+>>   	 * Self hosted memmap array
+>>   	 */
+>> -	if (mhp_flags & MHP_MEMMAP_ON_MEMORY) {
+>> -		if (mhp_supports_memmap_on_memory(size)) {
+>> -			mhp_altmap.free = memory_block_memmap_on_memory_pages();
+>> -			params.altmap = kmalloc(sizeof(struct vmem_altmap), GFP_KERNEL);
+>> -			if (!params.altmap)
+>> +	if ((mhp_flags & MHP_MEMMAP_ON_MEMORY) &&
+>> +	    mhp_supports_memmap_on_memory(memblock_size)) {
+>> +		for (cur_start = start; cur_start < start + size;
+>> +		     cur_start += memblock_size) {
+>> +			ret = add_memory_create_devices(nid, group, cur_start,
+>> +							memblock_size,
+>> +							mhp_flags);
+>> +			if (ret)
+>>   				goto error;
+>> -
+>> -			memcpy(params.altmap, &mhp_altmap, sizeof(mhp_altmap));
+>>   		}
+>> -		/* fallback to not using altmap  */
+>> -	}
+>> -
+>> -	/* call arch's memory hotadd */
+>> -	ret = arch_add_memory(nid, start, size, &params);
+>> -	if (ret < 0)
+>> -		goto error_free;
+>> -
+>> -	/* create memory block devices after memory was added */
+>> -	ret = create_memory_block_devices(start, size, params.altmap, group);
+>> -	if (ret) {
+>> -		arch_remove_memory(start, size, NULL);
+>> -		goto error_free;
+>> +	} else {
+>> +		ret = add_memory_create_devices(nid, group, start, size,
+>> +						mhp_flags);
+>> +		if (ret)
+>> +			goto error;
+>>   	}
+>>   
+>>   	if (new_node) {
+>> @@ -1494,8 +1521,6 @@ int __ref add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
+>>   		walk_memory_blocks(start, size, NULL, online_memory_block);
+>>   
+>>   	return ret;
+>> -error_free:
+>> -	kfree(params.altmap);
+>>   error:
+>>   	if (IS_ENABLED(CONFIG_ARCH_KEEP_MEMBLOCK))
+>>   		memblock_remove(start, size);
+>> @@ -2146,12 +2171,41 @@ void try_offline_node(int nid)
+>>   }
+>>   EXPORT_SYMBOL(try_offline_node);
+>>   
+>> -static int __ref try_remove_memory(u64 start, u64 size)
+>> +static void __ref remove_memory_block_and_altmap(int nid, u64 start, u64 size)
+>>   {
+>> +	int rc = 0;
+>>   	struct memory_block *mem;
+>> -	int rc = 0, nid = NUMA_NO_NODE;
+>>   	struct vmem_altmap *altmap = NULL;
+>>   
+>> +	rc = walk_memory_blocks(start, size, &mem, test_has_altmap_cb);
+>> +	if (rc) {
+>> +		altmap = mem->altmap;
+>> +		/*
+>> +		 * Mark altmap NULL so that we can add a debug
+>> +		 * check on memblock free.
+>> +		 */
+>> +		mem->altmap = NULL;
+>> +	}
+>> +
+>> +	/*
+>> +	 * Memory block device removal under the device_hotplug_lock is
+>> +	 * a barrier against racing online attempts.
+>> +	 */
+>> +	remove_memory_block_devices(start, size);
+>> +
+>> +	arch_remove_memory(start, size, altmap);
+>> +
+>> +	/* Verify that all vmemmap pages have actually been freed. */
+>> +	if (altmap) {
+>> +		WARN(altmap->alloc, "Altmap not fully unmapped");
+>> +		kfree(altmap);
+>> +	}
+>> +}
+>> +
+>> +static int __ref try_remove_memory(u64 start, u64 size)
+>> +{
+>> +	int rc, nid = NUMA_NO_NODE;
+>> +
+>>   	BUG_ON(check_hotplug_memory_range(start, size));
+>>   
+>>   	/*
+>> @@ -2167,47 +2221,28 @@ static int __ref try_remove_memory(u64 start, u64 size)
+>>   	if (rc)
+>>   		return rc;
+>>   
+>> +	mem_hotplug_begin();
+>> +
+>>   	/*
+>> -	 * We only support removing memory added with MHP_MEMMAP_ON_MEMORY in
+>> -	 * the same granularity it was added - a single memory block.
+>> +	 * For memmap_on_memory, the altmaps could have been added on
+>> +	 * a per-memblock basis. Loop through the entire range if so,
+>> +	 * and remove each memblock and its altmap.
+>>   	 */
+>>   	if (mhp_memmap_on_memory()) {
 > 
-> Same here.
-> 
->>   - xfsprogs (v6.4.0)
-> 
-> I have a newer branch, though it only contains resyncs with newer kernel
-> versions and bugfixes.
-> 
->> Could you show me more info (such as kernel config, local.config) ?  So that
->> I can find out what exactly is going wrong.
-> 
-> The full xml output from fstests is here:
-> 
-> https://djwong.org/fstests/output/.fa9f295c6a2dd4426aa26b4d74e8e0299ad2307507547d5444c157f0e883df92/.2e718425eda716ad848ae05dfab82a670af351f314e26b3cb658a929331bf2eb/result.xml
-> 
-> I think the key difference between your setup and mine is that
-> MKFS_OPTIONS includes '-d daxinherit=1' and MOUNT_OPTIONS do not include
-> -o dax.  That shouldn't make any difference, though.
-> 
-> Also: In the weeks leading up to me adding the PREREMOVE patches a
-> couple of days ago, no test (generic/269 or otherwise) hit that ASSERT.
-> I'm wondering if that means that the preremove code isn't shooting down
-> a page mapping or something?
-> 
-> Grepping through the result.xml reveals:
-> 
-> $ grep -E '(generic.269|xfs.55[012])' /tmp/result.xml
-> 563:    <testcase classname="xfstests.global" name="xfs/550" time="2">
-> 910:    <testcase classname="xfstests.global" name="xfs/552" time="2">
-> 1685:   <testcase classname="xfstests.global" name="generic/269" time="23">
-> 1686:           <failure message="_check_dmesg: something found in dmesg (see /var/tmp/fstests/generic/269.dmesg)" type="TestFail"/>
-> 1689:[ 6046.844058] run fstests generic/269 at 2023-10-04 15:26:57
-> 2977:   <testcase classname="xfstests.global" name="xfs/551" time="2">
-> 
-> So it's possible that 550 or 552 messed this up for us. :/
-> 
-> See attached kconfig.
+> IIUC, even if mhp_memmap_on_memory() returns true, it's still possible
+> that the memmap is put in DRAM after [2/2].  So that,
+> arch_remove_memory() are called for each memory block unnecessarily.  Can
+> we detect this (via altmap?) and call remove_memory_block_and_altmap()
+> for the whole range?
 
-Thanks for the info.  I tried to make my environment same as yours, but 
-still couldn't reproduce the fail.  I also let xfs/550 & xfs/552 ran 
-before generic/269.
+Good point. We should handle memblock-per-memblock onny if we have to 
+handle the altmap. Otherwise, just call a separate function that doesn't 
+care about -- e.g., called remove_memory_blocks_no_altmap().
 
-[root@f38 xfst]# ./check -s nodax_reflink -r xfs/550 xfs/552 generic/269
-SECTION       -- nodax_reflink
-FSTYP         -- xfs (debug)
-PLATFORM      -- Linux/x86_64 f38 6.6.0-rc4 #365 SMP PREEMPT_DYNAMIC Sun 
-Oct  8 15:19:36 CST 2023
-MKFS_OPTIONS  -- -f -m reflink=1,rmapbt=1 -d daxinherit=1 /dev/pmem1
-MOUNT_OPTIONS -- -o usrquota,grpquota,prjquota, /dev/pmem1 /mnt/scratch
+We could simply walk all memory blocks and make sure either all have an 
+altmap or none has an altmap. If there is a mix, we should bail out with 
+WARN_ON_ONCE().
 
-xfs/550 2s ...  2s
-xfs/552 2s ...  1s
-generic/269 22s ...  23s
-Ran: xfs/550 xfs/552 generic/269
-Passed all 3 tests
+-- 
+Cheers,
 
-SECTION       -- nodax_reflink
-=========================
-Ran: xfs/550 xfs/552 generic/269
-Passed all 3 tests
+David / dhildenb
 
-
-And xfs/269 is testing fsstress & dd on a scratch device at the same 
-time.  It won't reach the PREREMOVE code or xfs' notify failure code.
-
-I'd like to know what your git tree looks like, is it *v6.6-rc4 + my 
-patches only* ?  Does it contain other patches?
-
-
---
-Thanks,
-Ruan.
-
-> 
-> --D
-> 
->>
->>
->> --
->> Thanks,
->> Ruan.
