@@ -1,56 +1,56 @@
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B43D1347D2
-	for <nvdimm@lists.linux.dev>; Mon,  9 Oct 2023 15:04:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD8CD358AA
+	for <nvdimm@lists.linux.dev>; Mon,  9 Oct 2023 15:15:44 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Df3LLIf6"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="eLXfk4Ei"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1696863851;
+	s=mimecast20190719; t=1696864543;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=FIJV5lO3rRaNMrdiwXXrWFJSKEt+B99N6civGkJgdJ8=;
-	b=Df3LLIf6mNC1yFW097zVdrUde4vDPud7SRpTRzT5rHEwP3nH/6TIAh2JI4L36QjD0XmshN
-	pYjptmt2WOYsz8FkQXkg/+Mytu381xbz0VlPhXLxnYgrcMHj+JLNWaI71Q9IrJswExvXJw
-	XXqKb4l0kXoEbhqqhfmnkrKJxrCMcro=
-Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com
- [209.85.128.72]) by relay.mimecast.com with ESMTP with STARTTLS
+	bh=lxbkxsdepLAwI//Nw1rXTrNsOKPrZ+J+qWsPA89lw+E=;
+	b=eLXfk4EiO6rPrDkPGAZJWgUcDa1WjtTK9zyH0+VPq3Ct4rqc8AhkXOGyCCPkGVzlVP5RwT
+	LA+KP5C/FxsGE9OthZGgziH+CtXN1/fxz2v6QTxfWTa54i6dhIFPtT3S5HREfB8NlX2WGO
+	v5RgU+dUnx9ZnfnlcJgXZL85TWVCVyY=
+Received: from mail-wr1-f72.google.com (mail-wr1-f72.google.com
+ [209.85.221.72]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-18-dUo2v92xO-a-bNwaVuMQlA-1; Mon, 09 Oct 2023 11:04:10 -0400
-X-MC-Unique: dUo2v92xO-a-bNwaVuMQlA-1
-Received: by mail-wm1-f72.google.com with SMTP id 5b1f17b1804b1-405629826ccso35434765e9.0
-        for <nvdimm@lists.linux.dev>; Mon, 09 Oct 2023 08:04:10 -0700 (PDT)
+ us-mta-206-0KQwpVJ3M5mhD0uzDId0og-1; Mon, 09 Oct 2023 11:15:42 -0400
+X-MC-Unique: 0KQwpVJ3M5mhD0uzDId0og-1
+Received: by mail-wr1-f72.google.com with SMTP id ffacd0b85a97d-325a78c806eso2921718f8f.1
+        for <nvdimm@lists.linux.dev>; Mon, 09 Oct 2023 08:15:42 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1696863849; x=1697468649;
-        h=content-transfer-encoding:in-reply-to:organization:from:references
-         :cc:to:content-language:subject:user-agent:mime-version:date
+        d=1e100.net; s=20230601; t=1696864541; x=1697469341;
+        h=content-transfer-encoding:in-reply-to:subject:organization:from
+         :references:cc:to:content-language:user-agent:mime-version:date
          :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=FIJV5lO3rRaNMrdiwXXrWFJSKEt+B99N6civGkJgdJ8=;
-        b=nfDk65ywE/kD/vHGnKIegL/AfaWJxSS05rqjgf0WC4rTJOlHJdBqrT6qJy04xVlBUF
-         a6ZU/zwXzp7JREj77CQ3kW7CrINR+okL1nq7KqpL+yvUowRFU74C6FKbfKIDD/hFsg/j
-         NO6looWmllzyuFxlhjfCxxnlYjMJovfFGBH2sOLaeDZYMey2BdJY2d2upHgKmiBF/nGG
-         n2bd5JaFGWdE9zn4w8iEu2JKywqgKsoZ7RC4q3vzgSx+vDwcjylZIBN9A+gTnbjWHVi4
-         GZR4yfXI02kO90cmEhd/vv06dUOcYVxx3ze3cXufdgXkW8YQphbkYn/G5Y/pyO5GXZFU
-         wYIg==
-X-Gm-Message-State: AOJu0Yw0OuKFKaawzJlaBVZCetTMkDs6ft+y9Es3mTXw70Fqp2vWOBHx
-	L/qffQl40SKDzpIZx5v+cc5G9cipjGVHnhAkrgWYqDRjiHYJ+QmNJ6cMLhpwAYG0lGE3560/NMg
-	9vD7/NiYmYOMLnU+d
-X-Received: by 2002:a05:600c:294a:b0:3f5:fff8:d4f3 with SMTP id n10-20020a05600c294a00b003f5fff8d4f3mr14342648wmd.7.1696863849013;
-        Mon, 09 Oct 2023 08:04:09 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IEd9RipDWly03hWGjd4laSZlSBJMZLRx2QoWpiR6apw7eWoyMbijKUMNiw8aOtn3O0GrZjGoQ==
-X-Received: by 2002:a05:600c:294a:b0:3f5:fff8:d4f3 with SMTP id n10-20020a05600c294a00b003f5fff8d4f3mr14342561wmd.7.1696863847471;
-        Mon, 09 Oct 2023 08:04:07 -0700 (PDT)
+        bh=lxbkxsdepLAwI//Nw1rXTrNsOKPrZ+J+qWsPA89lw+E=;
+        b=KBQeU4ZgUtqa4iuMe9BUlYag1b5hQtUHAbFFT0rVVxumtuWhbWNXvG+CEKW1UZpbjj
+         g/lgc43cw/fnhBIQrQGMZB77fBDtwighVz6WlrNT00oQJnYtw4RfeDOR7ahgVfoPGpbz
+         oA76C5ZhWI4J44c4lEm9wRB22BcdKzZSzYZZWf1kj86Bd0PaIbqLy4v0k5XSe0hnXw9b
+         RmfSqdEWwUSWPdv9OMu/SmgIh+WTbYaxZf/vFe2wMpIlbgPnxvtLA0WT40poPOBI9NAA
+         ZBuFpC39p4CTnyqynB0bb3kyYvKh6UOpnJ4fbyJ0WDqqV4Qi0Ra1zlbjO8YyqCJ3PVuC
+         abxw==
+X-Gm-Message-State: AOJu0YxiOSSOKdOEJqZjePVy5rsIdjhGC3dc+hOzZRgrCiACIp2WNqll
+	heFzAX2Tvn3LS41+BKuUk/m9V3vYKC3c5INq2NlwarELFVkIukhU8fY58cvX1WzPKiNBjrkxYjM
+	VBFbARmlCFdDG/qYb
+X-Received: by 2002:a5d:4942:0:b0:323:1a0c:a5e0 with SMTP id r2-20020a5d4942000000b003231a0ca5e0mr13395360wrs.13.1696864541287;
+        Mon, 09 Oct 2023 08:15:41 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IF7b2lwzlp+uSM9hiBU+z/Mq/3Q8Bio+XwSc3ICD2i4PuZSt2i99eOmikwZ+NaXx3+BddMdfQ==
+X-Received: by 2002:a5d:4942:0:b0:323:1a0c:a5e0 with SMTP id r2-20020a5d4942000000b003231a0ca5e0mr13395322wrs.13.1696864540855;
+        Mon, 09 Oct 2023 08:15:40 -0700 (PDT)
 Received: from ?IPV6:2003:cb:c733:6400:ae10:4bb7:9712:8548? (p200300cbc7336400ae104bb797128548.dip0.t-ipconnect.de. [2003:cb:c733:6400:ae10:4bb7:9712:8548])
-        by smtp.gmail.com with ESMTPSA id i14-20020a05600c354e00b004068de50c64sm11449371wmq.46.2023.10.09.08.04.05
+        by smtp.gmail.com with ESMTPSA id j13-20020adfe50d000000b003196b1bb528sm9921911wrm.64.2023.10.09.08.15.39
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 09 Oct 2023 08:04:06 -0700 (PDT)
-Message-ID: <831b9b12-08fe-f5dc-f21d-83284b0aee8a@redhat.com>
-Date: Mon, 9 Oct 2023 17:04:05 +0200
+        Mon, 09 Oct 2023 08:15:40 -0700 (PDT)
+Message-ID: <0bc29e93-7efe-4bce-ee3f-1fdf76104843@redhat.com>
+Date: Mon, 9 Oct 2023 17:15:39 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -59,254 +59,119 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
  Thunderbird/102.15.1
-Subject: Re: [PATCH v5 1/2] mm/memory_hotplug: split memmap_on_memory requests
- across memblocks
-To: "Huang, Ying" <ying.huang@intel.com>,
- Vishal Verma <vishal.l.verma@intel.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
- Oscar Salvador <osalvador@suse.de>, Dan Williams <dan.j.williams@intel.com>,
- Dave Jiang <dave.jiang@intel.com>, linux-kernel@vger.kernel.org,
- linux-mm@kvack.org, nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
- Dave Hansen <dave.hansen@linux.intel.com>,
- "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
- Michal Hocko <mhocko@suse.com>,
- Jonathan Cameron <Jonathan.Cameron@Huawei.com>,
- Jeff Moyer <jmoyer@redhat.com>
+To: "Verma, Vishal L" <vishal.l.verma@intel.com>,
+ "Williams, Dan J" <dan.j.williams@intel.com>,
+ "Jiang, Dave" <dave.jiang@intel.com>, "osalvador@suse.de"
+ <osalvador@suse.de>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>
+Cc: "dave.hansen@linux.intel.com" <dave.hansen@linux.intel.com>,
+ "Huang, Ying" <ying.huang@intel.com>, "linux-mm@kvack.org"
+ <linux-mm@kvack.org>, "aneesh.kumar@linux.ibm.com"
+ <aneesh.kumar@linux.ibm.com>,
+ "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+ "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
+ "Hocko, Michal" <mhocko@suse.com>,
+ "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
+ "jmoyer@redhat.com" <jmoyer@redhat.com>,
+ "Jonathan.Cameron@Huawei.com" <Jonathan.Cameron@Huawei.com>
 References: <20231005-vv-kmem_memmap-v5-0-a54d1981f0a3@intel.com>
  <20231005-vv-kmem_memmap-v5-1-a54d1981f0a3@intel.com>
- <87jzrylslk.fsf@yhuang6-desk2.ccr.corp.intel.com>
+ <4ad40b9b-086b-e31f-34bd-c96550bb73e9@redhat.com>
+ <45cfd268da63eeddb741e9c9c3026b0e15eade4b.camel@intel.com>
 From: David Hildenbrand <david@redhat.com>
 Organization: Red Hat
-In-Reply-To: <87jzrylslk.fsf@yhuang6-desk2.ccr.corp.intel.com>
+Subject: Re: [PATCH v5 1/2] mm/memory_hotplug: split memmap_on_memory requests
+ across memblocks
+In-Reply-To: <45cfd268da63eeddb741e9c9c3026b0e15eade4b.camel@intel.com>
 X-Mimecast-Spam-Score: 0
 X-Mimecast-Originator: redhat.com
 Content-Language: en-US
 Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-On 07.10.23 10:55, Huang, Ying wrote:
-> Vishal Verma <vishal.l.verma@intel.com> writes:
+On 07.10.23 00:01, Verma, Vishal L wrote:
+> On Fri, 2023-10-06 at 14:52 +0200, David Hildenbrand wrote:
+>> On 05.10.23 20:31, Vishal Verma wrote:
+>>>
+> <..>
+>>> @@ -2167,47 +2221,28 @@ static int __ref try_remove_memory(u64 start, u64 size)
+>>>          if (rc)
+>>>                  return rc;
+>>>    
+>>> +       mem_hotplug_begin();
+>>> +
+>>>          /*
+>>> -        * We only support removing memory added with MHP_MEMMAP_ON_MEMORY in
+>>> -        * the same granularity it was added - a single memory block.
+>>> +        * For memmap_on_memory, the altmaps could have been added on
+>>> +        * a per-memblock basis. Loop through the entire range if so,
+>>> +        * and remove each memblock and its altmap.
+>>>           */
+>>>          if (mhp_memmap_on_memory()) {
+>>> -               rc = walk_memory_blocks(start, size, &mem, test_has_altmap_cb);
+>>> -               if (rc) {
+>>> -                       if (size != memory_block_size_bytes()) {
+>>> -                               pr_warn("Refuse to remove %#llx - %#llx,"
+>>> -                                       "wrong granularity\n",
+>>> -                                       start, start + size);
+>>> -                               return -EINVAL;
+>>> -                       }
+>>> -                       altmap = mem->altmap;
+>>> -                       /*
+>>> -                        * Mark altmap NULL so that we can add a debug
+>>> -                        * check on memblock free.
+>>> -                        */
+>>> -                       mem->altmap = NULL;
+>>> -               }
+>>> +               unsigned long memblock_size = memory_block_size_bytes();
+>>> +               u64 cur_start;
+>>> +
+>>> +               for (cur_start = start; cur_start < start + size;
+>>> +                    cur_start += memblock_size)
+>>> +                       remove_memory_block_and_altmap(nid, cur_start,
+>>> +                                                      memblock_size);
+>>> +       } else {
+>>> +               remove_memory_block_and_altmap(nid, start, size);
+>>
+>> Better call remove_memory_block_devices() and arch_remove_memory(start,
+>> size, altmap) here explicitly instead of using
+>> remove_memory_block_and_altmap() that really can only handle a single
+>> memory block with any inputs.
+>>
+> I'm not sure I follow. Even in the non memmap_on_memory case, we'd have
+> to walk_memory_blocks() to get to the memory_block->altmap, right?
+
+See my other reply to, at least with mhp_memmap_on_memory()==false, we 
+don't have to worry about the altmap.
+
 > 
->> The MHP_MEMMAP_ON_MEMORY flag for hotplugged memory is restricted to
->> 'memblock_size' chunks of memory being added. Adding a larger span of
->> memory precludes memmap_on_memory semantics.
->>
->> For users of hotplug such as kmem, large amounts of memory might get
->> added from the CXL subsystem. In some cases, this amount may exceed the
->> available 'main memory' to store the memmap for the memory being added.
->> In this case, it is useful to have a way to place the memmap on the
->> memory being added, even if it means splitting the addition into
->> memblock-sized chunks.
->>
->> Change add_memory_resource() to loop over memblock-sized chunks of
->> memory if caller requested memmap_on_memory, and if other conditions for
->> it are met. Teach try_remove_memory() to also expect that a memory
->> range being removed might have been split up into memblock sized chunks,
->> and to loop through those as needed.
->>
->> Cc: Andrew Morton <akpm@linux-foundation.org>
->> Cc: David Hildenbrand <david@redhat.com>
->> Cc: Michal Hocko <mhocko@suse.com>
->> Cc: Oscar Salvador <osalvador@suse.de>
->> Cc: Dan Williams <dan.j.williams@intel.com>
->> Cc: Dave Jiang <dave.jiang@intel.com>
->> Cc: Dave Hansen <dave.hansen@linux.intel.com>
->> Cc: Huang Ying <ying.huang@intel.com>
->> Suggested-by: David Hildenbrand <david@redhat.com>
->> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
->> ---
->>   mm/memory_hotplug.c | 162 ++++++++++++++++++++++++++++++++--------------------
->>   1 file changed, 99 insertions(+), 63 deletions(-)
->>
->> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
->> index f8d3e7427e32..77ec6f15f943 100644
->> --- a/mm/memory_hotplug.c
->> +++ b/mm/memory_hotplug.c
->> @@ -1380,6 +1380,44 @@ static bool mhp_supports_memmap_on_memory(unsigned long size)
->>   	return arch_supports_memmap_on_memory(vmemmap_size);
->>   }
->>   
->> +static int add_memory_create_devices(int nid, struct memory_group *group,
->> +				     u64 start, u64 size, mhp_t mhp_flags)
->> +{
->> +	struct mhp_params params = { .pgprot = pgprot_mhp(PAGE_KERNEL) };
->> +	struct vmem_altmap mhp_altmap = {
->> +		.base_pfn =  PHYS_PFN(start),
->> +		.end_pfn  =  PHYS_PFN(start + size - 1),
->> +	};
->> +	int ret;
->> +
->> +	if ((mhp_flags & MHP_MEMMAP_ON_MEMORY)) {
->> +		mhp_altmap.free = memory_block_memmap_on_memory_pages();
->> +		params.altmap = kmalloc(sizeof(struct vmem_altmap), GFP_KERNEL);
->> +		if (!params.altmap)
->> +			return -ENOMEM;
->> +
->> +		memcpy(params.altmap, &mhp_altmap, sizeof(mhp_altmap));
->> +	}
->> +
->> +	/* call arch's memory hotadd */
->> +	ret = arch_add_memory(nid, start, size, &params);
->> +	if (ret < 0)
->> +		goto error;
->> +
->> +	/* create memory block devices after memory was added */
->> +	ret = create_memory_block_devices(start, size, params.altmap, group);
->> +	if (ret)
->> +		goto err_bdev;
->> +
->> +	return 0;
->> +
->> +err_bdev:
->> +	arch_remove_memory(start, size, NULL);
->> +error:
->> +	kfree(params.altmap);
->> +	return ret;
->> +}
->> +
->>   /*
->>    * NOTE: The caller must call lock_device_hotplug() to serialize hotplug
->>    * and online/offline operations (triggered e.g. by sysfs).
->> @@ -1388,14 +1426,10 @@ static bool mhp_supports_memmap_on_memory(unsigned long size)
->>    */
->>   int __ref add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
->>   {
->> -	struct mhp_params params = { .pgprot = pgprot_mhp(PAGE_KERNEL) };
->> +	unsigned long memblock_size = memory_block_size_bytes();
->>   	enum memblock_flags memblock_flags = MEMBLOCK_NONE;
->> -	struct vmem_altmap mhp_altmap = {
->> -		.base_pfn =  PHYS_PFN(res->start),
->> -		.end_pfn  =  PHYS_PFN(res->end),
->> -	};
->>   	struct memory_group *group = NULL;
->> -	u64 start, size;
->> +	u64 start, size, cur_start;
->>   	bool new_node = false;
->>   	int ret;
->>   
->> @@ -1436,28 +1470,21 @@ int __ref add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
->>   	/*
->>   	 * Self hosted memmap array
->>   	 */
->> -	if (mhp_flags & MHP_MEMMAP_ON_MEMORY) {
->> -		if (mhp_supports_memmap_on_memory(size)) {
->> -			mhp_altmap.free = memory_block_memmap_on_memory_pages();
->> -			params.altmap = kmalloc(sizeof(struct vmem_altmap), GFP_KERNEL);
->> -			if (!params.altmap)
->> +	if ((mhp_flags & MHP_MEMMAP_ON_MEMORY) &&
->> +	    mhp_supports_memmap_on_memory(memblock_size)) {
->> +		for (cur_start = start; cur_start < start + size;
->> +		     cur_start += memblock_size) {
->> +			ret = add_memory_create_devices(nid, group, cur_start,
->> +							memblock_size,
->> +							mhp_flags);
->> +			if (ret)
->>   				goto error;
->> -
->> -			memcpy(params.altmap, &mhp_altmap, sizeof(mhp_altmap));
->>   		}
->> -		/* fallback to not using altmap  */
->> -	}
->> -
->> -	/* call arch's memory hotadd */
->> -	ret = arch_add_memory(nid, start, size, &params);
->> -	if (ret < 0)
->> -		goto error_free;
->> -
->> -	/* create memory block devices after memory was added */
->> -	ret = create_memory_block_devices(start, size, params.altmap, group);
->> -	if (ret) {
->> -		arch_remove_memory(start, size, NULL);
->> -		goto error_free;
->> +	} else {
->> +		ret = add_memory_create_devices(nid, group, start, size,
->> +						mhp_flags);
->> +		if (ret)
->> +			goto error;
->>   	}
->>   
->>   	if (new_node) {
->> @@ -1494,8 +1521,6 @@ int __ref add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
->>   		walk_memory_blocks(start, size, NULL, online_memory_block);
->>   
->>   	return ret;
->> -error_free:
->> -	kfree(params.altmap);
->>   error:
->>   	if (IS_ENABLED(CONFIG_ARCH_KEEP_MEMBLOCK))
->>   		memblock_remove(start, size);
->> @@ -2146,12 +2171,41 @@ void try_offline_node(int nid)
->>   }
->>   EXPORT_SYMBOL(try_offline_node);
->>   
->> -static int __ref try_remove_memory(u64 start, u64 size)
->> +static void __ref remove_memory_block_and_altmap(int nid, u64 start, u64 size)
->>   {
->> +	int rc = 0;
->>   	struct memory_block *mem;
->> -	int rc = 0, nid = NUMA_NO_NODE;
->>   	struct vmem_altmap *altmap = NULL;
->>   
->> +	rc = walk_memory_blocks(start, size, &mem, test_has_altmap_cb);
->> +	if (rc) {
->> +		altmap = mem->altmap;
->> +		/*
->> +		 * Mark altmap NULL so that we can add a debug
->> +		 * check on memblock free.
->> +		 */
->> +		mem->altmap = NULL;
->> +	}
->> +
->> +	/*
->> +	 * Memory block device removal under the device_hotplug_lock is
->> +	 * a barrier against racing online attempts.
->> +	 */
->> +	remove_memory_block_devices(start, size);
->> +
->> +	arch_remove_memory(start, size, altmap);
->> +
->> +	/* Verify that all vmemmap pages have actually been freed. */
->> +	if (altmap) {
->> +		WARN(altmap->alloc, "Altmap not fully unmapped");
->> +		kfree(altmap);
->> +	}
->> +}
->> +
->> +static int __ref try_remove_memory(u64 start, u64 size)
->> +{
->> +	int rc, nid = NUMA_NO_NODE;
->> +
->>   	BUG_ON(check_hotplug_memory_range(start, size));
->>   
->>   	/*
->> @@ -2167,47 +2221,28 @@ static int __ref try_remove_memory(u64 start, u64 size)
->>   	if (rc)
->>   		return rc;
->>   
->> +	mem_hotplug_begin();
->> +
->>   	/*
->> -	 * We only support removing memory added with MHP_MEMMAP_ON_MEMORY in
->> -	 * the same granularity it was added - a single memory block.
->> +	 * For memmap_on_memory, the altmaps could have been added on
->> +	 * a per-memblock basis. Loop through the entire range if so,
->> +	 * and remove each memblock and its altmap.
->>   	 */
->>   	if (mhp_memmap_on_memory()) {
-> 
-> IIUC, even if mhp_memmap_on_memory() returns true, it's still possible
-> that the memmap is put in DRAM after [2/2].  So that,
-> arch_remove_memory() are called for each memory block unnecessarily.  Can
-> we detect this (via altmap?) and call remove_memory_block_and_altmap()
-> for the whole range?
+> Or is there a more direct way? If we have to walk_memory_blocks, what's
+> the advantage of calling those directly instead of calling the helper
+> created above?
 
-Good point. We should handle memblock-per-memblock onny if we have to 
-handle the altmap. Otherwise, just call a separate function that doesn't 
-care about -- e.g., called remove_memory_blocks_no_altmap().
+I think we have two cases to handle
 
-We could simply walk all memory blocks and make sure either all have an 
-altmap or none has an altmap. If there is a mix, we should bail out with 
-WARN_ON_ONCE().
+1) All have an altmap. Remove them block-by-block. Probably we should 
+call a function remove_memory_blocks(altmap=true) [or alternatively 
+remove_memory_blocks_and_altmaps()] and just handle iterating internally.
+
+2) All don't have an altmap. We can remove them in one go. Probably we 
+should call that remove_memory_blocks(altmap=false) [or alternatively 
+remove_memory_blocks_no_altmaps()].
+
+I guess it's best to do a walk upfront to make sure either all have an 
+altmap or none has one. Then we can branch off to the right function 
+knowing whether we have to process altmaps or not.
+
+The existing
+
+if (mhp_memmap_on_memory()) {
+	...
+}
+
+Can be extended for that case.
+
+Please let me know if I failed to express what I mean, then I can 
+briefly prototype it on top of your changes.
 
 -- 
 Cheers,
