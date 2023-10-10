@@ -1,265 +1,123 @@
-Received: from esa2.hc1455-7.c3s2.iphmx.com (esa2.hc1455-7.c3s2.iphmx.com [207.54.90.48])
+Received: from bumble.maple.relay.mailchannels.net (bumble.maple.relay.mailchannels.net [23.83.214.25])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA9B4390
-	for <nvdimm@lists.linux.dev>; Tue, 10 Oct 2023 03:54:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=fujitsu.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fujitsu.com
-Authentication-Results: smtp.subspace.kernel.org; dkim=none
-X-IronPort-AV: E=McAfee;i="6600,9927,10858"; a="135431425"
-X-IronPort-AV: E=Sophos;i="6.03,211,1694703600"; 
-   d="scan'208";a="135431425"
-Received: from unknown (HELO yto-r2.gw.nic.fujitsu.com) ([218.44.52.218])
-  by esa2.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Oct 2023 12:53:07 +0900
-Received: from yto-m2.gw.nic.fujitsu.com (yto-nat-yto-m2.gw.nic.fujitsu.com [192.168.83.65])
-	by yto-r2.gw.nic.fujitsu.com (Postfix) with ESMTP id C1F5AC68E2
-	for <nvdimm@lists.linux.dev>; Tue, 10 Oct 2023 12:53:04 +0900 (JST)
-Received: from kws-ab4.gw.nic.fujitsu.com (kws-ab4.gw.nic.fujitsu.com [192.51.206.22])
-	by yto-m2.gw.nic.fujitsu.com (Postfix) with ESMTP id F3D99D5E88
-	for <nvdimm@lists.linux.dev>; Tue, 10 Oct 2023 12:53:03 +0900 (JST)
-Received: from edo.cn.fujitsu.com (edo.cn.fujitsu.com [10.167.33.5])
-	by kws-ab4.gw.nic.fujitsu.com (Postfix) with ESMTP id 7CDCC40E89
-	for <nvdimm@lists.linux.dev>; Tue, 10 Oct 2023 12:53:03 +0900 (JST)
-Received: from [192.168.50.5] (unknown [10.167.226.34])
-	by edo.cn.fujitsu.com (Postfix) with ESMTP id A54571A0071;
-	Tue, 10 Oct 2023 11:53:02 +0800 (CST)
-Message-ID: <019bc83b-7f94-476b-95cb-280f1045057d@fujitsu.com>
-Date: Tue, 10 Oct 2023 11:53:02 +0800
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0CDFE7F0
+	for <nvdimm@lists.linux.dev>; Tue, 10 Oct 2023 05:09:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=stgolabs.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=stgolabs.net
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=stgolabs.net header.i=@stgolabs.net header.b="ORbCy4L2"
+X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
+Received: from relay.mailchannels.net (localhost [127.0.0.1])
+	by relay.mailchannels.net (Postfix) with ESMTP id 718DB7A0839;
+	Tue, 10 Oct 2023 03:14:06 +0000 (UTC)
+Received: from pdx1-sub0-mail-a235.dreamhost.com (unknown [127.0.0.6])
+	(Authenticated sender: dreamhost)
+	by relay.mailchannels.net (Postfix) with ESMTPA id DBFFA7A05A2;
+	Tue, 10 Oct 2023 03:14:05 +0000 (UTC)
+ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1696907646; a=rsa-sha256;
+	cv=none;
+	b=A/Z8sEwti3/SPs5vocSXRM6xxAMXwMVljA9faKekI0DmYvo12hrHBIj89i3xvtjhhM6r0g
+	rP0rWXg3Bo51MYZgfgzAM7eiO5Qy+Ga6Rsq3E+GdyXJdFgmQ4eXbW9A/ybD4FxcggI/3Xh
+	ZV936LEWsr8WrpTe6dNhh0i9VAr172R+u26yxh0YPR0yIpB258Af3R80UqzX2htn7+CUX2
+	B0O3ZkcEvZUCn5g9n3n2EBMVSO9RVuNlSB2h8R4QitKh7tU46GZoaYLIT7IAomiUK9uvBI
+	6S/djxN8DtzFSZXmaa/yVR1thPg/+b8ZInDgijAi3tfdfJOlwpfl362WljEQ1w==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=mailchannels.net;
+	s=arc-2022; t=1696907646;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references:dkim-signature;
+	bh=H+SZN67++GyUSiUcgaw3Eqe/dc3FXjQ0GRoUofM930w=;
+	b=4/RRscuosMMpJUug0T26V+UN6BqjxcFM9OHL43ug3/MyMGv7n0VypzrF96+9fz+V1wgMeg
+	EZ9QOjP75a89g1Ock9PBR0J4SiT7nxRQNF28b25BIlJ4u1wJEmPEDMGqHf8bkzTb4G5ygP
+	MK0K5/z8X/PuDXgx/IcqC0ZOqqpU0DaDOJx+yA+yGVCrHYgGU9Anan9L0lLFlEHF2hXjwg
+	IDPkEwdYoK3MH8jCtsgp4fcHBZEcT/voRAStOAGyBNBVpksiRNXX1r2x8iplyMq7S6Gm7Q
+	GEjXPXtJtM9APGCDxuPVmyyOjBTkAfFN67vOi+BDq2+xh0Oixe6CHRzHRnIF5A==
+ARC-Authentication-Results: i=1;
+	rspamd-7c449d4847-7psdc;
+	auth=pass smtp.auth=dreamhost smtp.mailfrom=dave@stgolabs.net
+X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
+X-MC-Relay: Neutral
+X-MailChannels-SenderId: dreamhost|x-authsender|dave@stgolabs.net
+X-MailChannels-Auth-Id: dreamhost
+X-Oafish-Industry: 2a4356147b765099_1696907646257_2743175540
+X-MC-Loop-Signature: 1696907646256:3500760118
+X-MC-Ingress-Time: 1696907646256
+Received: from pdx1-sub0-mail-a235.dreamhost.com (pop.dreamhost.com
+ [64.90.62.162])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
+	by 100.102.135.46 (trex/6.9.1);
+	Tue, 10 Oct 2023 03:14:06 +0000
+Received: from offworld (ip72-199-50-187.sd.sd.cox.net [72.199.50.187])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange ECDHE (P-256) server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	(Authenticated sender: dave@stgolabs.net)
+	by pdx1-sub0-mail-a235.dreamhost.com (Postfix) with ESMTPSA id 4S4LbK0pHFz2D;
+	Mon,  9 Oct 2023 20:14:05 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=stgolabs.net;
+	s=dreamhost; t=1696907645;
+	bh=H+SZN67++GyUSiUcgaw3Eqe/dc3FXjQ0GRoUofM930w=;
+	h=Date:From:To:Cc:Subject:Content-Type;
+	b=ORbCy4L2D6Y4pS15KZgycoVT17KzfEBeF0zfvDA8C17Y2p1vOnYB5e3CT9Ffd2FcC
+	 TCTE+jZi+8FImt5sBmRDEI9vW45OLLVziddpun6L4iZUosw6KIZHUeMu9MB9EtQzAE
+	 FltbOppnNSWlMspN3ItH5/X0wMREPQOCu54tzfGWTmSDoiJYX2iZhNG1QaSFdhS2yw
+	 MiKEomyHafFHwxSOiNv80FAhwsfVs18qH8d9VfGCiYZ6fO2RNHQLYhQgARaVP3rASJ
+	 hecgjB9SGUG9bu8W21gW01AqSYkommsD07EMCUBKZWp6r4+y4UVFe0fskRUMHExdmJ
+	 w93CryJnt/6uQ==
+Date: Mon, 9 Oct 2023 20:14:02 -0700
+From: Davidlohr Bueso <dave@stgolabs.net>
+To: Jehoon Park <jehoon.park@samsung.com>
+Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev, 
+	Alison Schofield <alison.schofield@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, 
+	Ira Weiny <ira.weiny@intel.com>, Dan Williams <dan.j.williams@intel.com>, 
+	Dave Jiang <dave.jiang@intel.com>, Jonathan Cameron <jonathan.cameron@huawei.com>, 
+	Kyungsan Kim <ks0204.kim@samsung.com>, Junhyeok Im <junhyeok.im@samsung.com>
+Subject: Re: [ndctl PATCH v3 0/2] add support for Set Alert Configuration
+ mailbox command
+Message-ID: <3qqfaoruluq7jd2cnz4mhpq632wov5x7cfizuarlfyjedkwi5v@aimuecxmqgvy>
+References: <CGME20230918045208epcas2p36f0c80940e86e5165a3036414a32d7f6@epcas2p3.samsung.com>
+ <20230918045514.6709-1-jehoon.park@samsung.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] xfs: drop experimental warning for FSDAX
-To: "Darrick J. Wong" <djwong@kernel.org>
-Cc: Chandan Babu R <chandanbabu@kernel.org>,
- Dave Chinner <david@fromorbit.com>, Dan Williams <dan.j.williams@intel.com>,
- Andrew Morton <akpm@linux-foundation.org>, linux-xfs@vger.kernel.org,
- nvdimm@lists.linux.dev
-References: <20230928092052.9775e59262c102dc382513ef@linux-foundation.org>
- <20230928171339.GJ11439@frogsfrogsfrogs>
- <99279735-2d17-405f-bade-9501a296d817@fujitsu.com>
- <651718a6a6e2c_c558e2943e@dwillia2-xfh.jf.intel.com.notmuch>
- <ec2de0b9-c07d-468a-bd15-49e83cba1ad9@fujitsu.com>
- <87y1gltcvg.fsf@debian-BULLSEYE-live-builder-AMD64>
- <20231005000809.GN21298@frogsfrogsfrogs>
- <ce9ef1dc-d62b-466d-882f-d7bf4350582d@fujitsu.com>
- <20231005160530.GO21298@frogsfrogsfrogs>
- <28613f6e-2ed2-4c9a-81e3-3dcfdbba867c@fujitsu.com>
- <20231009164721.GC21298@frogsfrogsfrogs>
-From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-In-Reply-To: <20231009164721.GC21298@frogsfrogsfrogs>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-TM-AS-Product-Ver: IMSS-9.1.0.1417-9.0.0.1002-27926.004
-X-TM-AS-User-Approved-Sender: Yes
-X-TMASE-Version: IMSS-9.1.0.1417-9.0.1002-27926.004
-X-TMASE-Result: 10--18.992100-10.000000
-X-TMASE-MatchedRID: VfQSHXvEBuuPvrMjLFD6eHchRkqzj/bEC/ExpXrHizxBqLOmHiM3w0mb
-	/vjP+wrh2cyrLyFNhjuc49Bvf+9vIl0ieHN50/kHrMZ+BqQt2NpN8rmPQRlvK1cZNuxCoduS2Z5
-	d2c6tpnZa0onndjAYYqcgvYcxG5Wh+BMgIVTipNsSEYfcJF0pRdG3Y6ijqBt3+B3C2Zz0Z1PhDo
-	h7wbP2f4psmNGAE/ypCRGaYCZT14bIRZRfI7CCoWzBijri5+RV8FHp8LCpZ7T5V4X/65Dwb7rmv
-	hde36c4lxPsRwiY5LxXuQ2wIHEaxLgSigd+50baQQ5+hY6u+45UENBIMyKD0XdjuSlUpauf8Ybk
-	9kzPEWih9xN1JciTvfMW54P2B2td1s1AHJ9E8eBdhZyafgPiq1yyC78hAU/OVz8J52OVy+RkG4E
-	tozBz384b571oAikeD4bdesxcMzc2sw58eWE/moh/ebSxR/HnltF+xW+zhUgfaBJLrllK9TVkax
-	wyOBfMGfvvA62+ODrnhf6+3edYDulLQUIbIAyZCKFDk1kJexKlH6by0GLpklAoBBK61BhcoxY+h
-	bwZnrKzIDrAdhrevrCzy7sjl4e3yGOiXr1rOL4XCihJ642djgC0f97LzNGnNv1MHbxRuSKvlldd
-	h4J26Pl47fpoE7RR4KlJZ4nJpnvtSAqARMjuvJU7Bltw5qVLCUphWp23XJ0CGfvnVpx+2xfDVTv
-	7ELb9oa8IWqgpLBNftuJwrFEhTfnZI3fdS4AAudR/NJw2JHcNYpvo9xW+mI6HM5rqDwqtS7jZG2
-	6xJC//jLjb55+gWi7+IuipnJSWmJO6ww6E0K0mGci1lR4w0Q==
-X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Disposition: inline
+In-Reply-To: <20230918045514.6709-1-jehoon.park@samsung.com>
+User-Agent: NeoMutt/20230517
 
+On Mon, 18 Sep 2023, Jehoon Park wrote:
 
+>CXL 3.0 Spec 8.2.9.8.3.3 defines Set Alert Configuration mailbox command,
+>which configures device's warning alerts.
+>This patchset adds support for the command.
+>
+>The implementation is based on the 'ndctl-inject-smart'. Variable and function
+>names are aligned with the implementation of 'Get Alert Configuration'.
+>
+>Changes in v3
+>- Reorganize cover letter and commit message (Davidlohr)
+>- Update details of the example in man page
+>- Move 'verbose' option to the end in man page (Davidlohr)
+>- Link to v2: https://lore.kernel.org/r/20230807063335.5891-1-jehoon.park@samsung.com
+>
+>Changes in v2
+>- Rebase on the latest pending branch
+>- Remove full usage text in the commit message (Vishal)
+>- Correct texts in document and log_info() (Vishal)
+>- Change strncmp() to strcmp() for parsing params (Vishal)
+>- Link to v1: https://lore.kernel.org/r/20230711071019.7151-1-jehoon.park@samsung.com
+>
+>*** BLURB HERE ***
+>
+>Jehoon Park (2):
+>  libcxl: add support for Set Alert Configuration mailbox command
+>  cxl: add 'set-alert-config' command to cxl tool
 
-在 2023/10/10 0:47, Darrick J. Wong 写道:
-> On Mon, Oct 09, 2023 at 10:14:12PM +0800, Shiyang Ruan wrote:
->>
->>
->> 在 2023/10/6 0:05, Darrick J. Wong 写道:
->>> On Thu, Oct 05, 2023 at 04:53:12PM +0800, Shiyang Ruan wrote:
->>>>
->>>>
->>>> 在 2023/10/5 8:08, Darrick J. Wong 写道:
->>>>>>>
->>>>>>> Sorry, I sent the list below to Chandan, didn't cc the maillist
->>>>>>> because it's just a rough list rather than a PR:
->>>>>>>
->>>>>>>
->>>>>>> 1. subject: [v3]  xfs: correct calculation for agend and blockcount
->>>>>>>       url:
->>>>>>>       https://lore.kernel.org/linux-xfs/20230913102942.601271-1-ruansy.fnst@fujitsu.com/
->>>>>>>       note:    This one is a fix patch for commit: 5cf32f63b0f4 ("xfs:
->>>>>>>       fix the calculation for "end" and "length"").
->>>>>>>                It can solve the fail of xfs/55[0-2]: the programs
->>>>>>>                accessing the DAX file may not be notified as expected,
->>>>>>>               because the length always 1 block less than actual.  Then
->>>>>>>              this patch fixes this.
->>>>>>>
->>>>>>>
->>>>>>> 2. subject: [v15] mm, pmem, xfs: Introduce MF_MEM_PRE_REMOVE for unbind
->>>>>>>       url:
->>>>>>>       https://lore.kernel.org/linux-xfs/20230928103227.250550-1-ruansy.fnst@fujitsu.com/T/#u
->>>>>>>       note:    This is a feature patch.  It handles the pre-remove event
->>>>>>>       of DAX device, by notifying kernel/user space before actually
->>>>>>>      removing.
->>>>>>>                It has been picked by Andrew in his
->>>>>>>                mm-hotfixes-unstable. I am not sure whether you or he will
->>>>>>>               merge this one.
->>>>>>>
->>>>>>>
->>>>>>> 3. subject: [v1]  xfs: drop experimental warning for FSDAX
->>>>>>>       url:
->>>>>>>       https://lore.kernel.org/linux-xfs/20230915063854.1784918-1-ruansy.fnst@fujitsu.com/
->>>>>>>       note:    With the patches mentioned above, I did a lot of tests,
->>>>>>>       including xfstests and blackbox tests, the FSDAX function looks
->>>>>>>      good now.  So I think the experimental warning could be dropped.
->>>>>>
->>>>>> Darrick/Dave, Could you please review the above patch and let us know if you
->>>>>> have any objections?
->>>>>
->>>>> The first two patches are ok.  The third one ... well I was about to say
->>>>> ok but then this happened with generic/269 on a 6.6-rc4 kernel and those
->>>>> two patches applied:
->>>>
->>>> Hi Darrick,
->>>>
->>>> Thanks for testing.  I just tested this case (generic/269) on v6.6-rc4 with
->>>> my 3 patches again, but it didn't fail.  Such WARNING message didn't show in
->>>> dmesg too.
->>>>
->>>> My local.config is shown as below:
->>>> [nodax_reflink]
->>>> export FSTYP=xfs
->>>> export TEST_DEV=/dev/pmem0
->>>> export TEST_DIR=/mnt/test
->>>> export SCRATCH_DEV=/dev/pmem1
->>>> export SCRATCH_MNT=/mnt/scratch
->>>> export MKFS_OPTIONS="-m reflink=1,rmapbt=1"
->>>>
->>>> [dax_reflink]
->>>> export FSTYP=xfs
->>>> export TEST_DEV=/dev/pmem0
->>>> export TEST_DIR=/mnt/test
->>>> export SCRATCH_DEV=/dev/pmem1
->>>> export SCRATCH_MNT=/mnt/scratch
->>>> export MKFS_OPTIONS="-m reflink=1,rmapbt=1"
->>>> export MOUNT_OPTIONS="-o dax"
->>>> export TEST_FS_MOUNT_OPTS="-o dax"
->>>>
->>>> And tools version are:
->>>>    - xfstests (v2023.09.03)
->>>
->>> Same here.
->>>
->>>>    - xfsprogs (v6.4.0)
->>>
->>> I have a newer branch, though it only contains resyncs with newer kernel
->>> versions and bugfixes.
->>>
->>>> Could you show me more info (such as kernel config, local.config) ?  So that
->>>> I can find out what exactly is going wrong.
->>>
->>> The full xml output from fstests is here:
->>>
->>> https://djwong.org/fstests/output/.fa9f295c6a2dd4426aa26b4d74e8e0299ad2307507547d5444c157f0e883df92/.2e718425eda716ad848ae05dfab82a670af351f314e26b3cb658a929331bf2eb/result.xml
->>>
->>> I think the key difference between your setup and mine is that
->>> MKFS_OPTIONS includes '-d daxinherit=1' and MOUNT_OPTIONS do not include
->>> -o dax.  That shouldn't make any difference, though.
+Looks good, for the series feel free to add:
 
-A little strange thing I found:
-According to the result.xml, the MKFS_OPTIONS didn't include -m rmapbt=1:
-     <property name="MKFS_OPTIONS" value=" -d daxinherit=1,"/>
-mkfs.xfs will turn on reflink by default, but won't turn on rmapbt. 
-Then xfs/55[0-2] should be "not run" because they have 
-_require_xfs_scratch_rmapbt.
-
-
-Also, this alert message didn't show in my tests:
-[ 6047.876110] XFS (pmem1): xlog_verify_grant_tail: space > 
-BBTOB(tail_blocks)
-But I don't think it is related.
-
->>>
->>> Also: In the weeks leading up to me adding the PREREMOVE patches a
->>> couple of days ago, no test (generic/269 or otherwise) hit that ASSERT.
-
-Has it failed again since this time?  If so, please sent me the 
-result.xml because it is needed for analyze.  Thank you~
-
->>> I'm wondering if that means that the preremove code isn't shooting down
->>> a page mapping or something?
->>>
->>> Grepping through the result.xml reveals:
->>>
->>> $ grep -E '(generic.269|xfs.55[012])' /tmp/result.xml
->>> 563:    <testcase classname="xfstests.global" name="xfs/550" time="2">
->>> 910:    <testcase classname="xfstests.global" name="xfs/552" time="2">
->>> 1685:   <testcase classname="xfstests.global" name="generic/269" time="23">
->>> 1686:           <failure message="_check_dmesg: something found in dmesg (see /var/tmp/fstests/generic/269.dmesg)" type="TestFail"/>
->>> 1689:[ 6046.844058] run fstests generic/269 at 2023-10-04 15:26:57
->>> 2977:   <testcase classname="xfstests.global" name="xfs/551" time="2">
->>>
->>> So it's possible that 550 or 552 messed this up for us. :/
->>>
->>> See attached kconfig.
->>
->> Thanks for the info.  I tried to make my environment same as yours, but
->> still couldn't reproduce the fail.  I also let xfs/550 & xfs/552 ran before
->> generic/269.
->>
->> [root@f38 xfst]# ./check -s nodax_reflink -r xfs/550 xfs/552 generic/269
->> SECTION       -- nodax_reflink
->> FSTYP         -- xfs (debug)
->> PLATFORM      -- Linux/x86_64 f38 6.6.0-rc4 #365 SMP PREEMPT_DYNAMIC Sun Oct
->> 8 15:19:36 CST 2023
->> MKFS_OPTIONS  -- -f -m reflink=1,rmapbt=1 -d daxinherit=1 /dev/pmem1
->> MOUNT_OPTIONS -- -o usrquota,grpquota,prjquota, /dev/pmem1 /mnt/scratch
->>
->> xfs/550 2s ...  2s
->> xfs/552 2s ...  1s
->> generic/269 22s ...  23s
->> Ran: xfs/550 xfs/552 generic/269
->> Passed all 3 tests
->>
->> SECTION       -- nodax_reflink
->> =========================
->> Ran: xfs/550 xfs/552 generic/269
->> Passed all 3 tests
->>
->>
->> And xfs/269 is testing fsstress & dd on a scratch device at the same time.
->> It won't reach the PREREMOVE code or xfs' notify failure code.
->>
->> I'd like to know what your git tree looks like, is it *v6.6-rc4 + my patches
->> only* ?  Does it contain other patches?
-> 
-> No other patches, aside from turning on selected W=123e warnings.
-
-I don't know what does this mean: "selected W=123e warnings".  How could 
-I turn on this config?
-
-
---
-Thanks,
-Ruan.
-
-> 
-> --D
-> 
->>
->> --
->> Thanks,
->> Ruan.
->>
->>>
->>> --D
->>>
->>>>
->>>>
->>>> --
->>>> Thanks,
->>>> Ruan.
+Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
