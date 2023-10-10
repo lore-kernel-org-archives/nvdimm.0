@@ -1,76 +1,42 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6A5B4C129;
-	Tue, 10 Oct 2023 06:57:59 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9FE7387
+	for <nvdimm@lists.linux.dev>; Tue, 10 Oct 2023 17:51:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="zzQU1pwc"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C42CCC433C8;
-	Tue, 10 Oct 2023 06:57:57 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1696921079;
-	bh=EYuUNIt6jJRwYBy0E3p0Vk5Y1cHFfh6ehg6kHTfAyUU=;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZlYl3imq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82758C433C7;
+	Tue, 10 Oct 2023 17:51:20 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1696960280;
+	bh=uE/KA3/xwyb4Z/BNdd2QZJTz3oALBz6gA7/EzGFkeLY=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=zzQU1pwcQ/CneY+FW5FxMonJkZiI86OeSlFhEhdRj/hvvySkkTG2K8Sk51p8M1RuX
-	 NA8xXufVqn3K4h0T1GP7rVOn7ryC3K4n6YeVOhjVhWQYEIJa6ayQXO2ZChu8j2BCF+
-	 i7dawBqEH7KL0R9NbBls/UV6Yg3YejnrOELbQ5Mk=
-Date: Tue, 10 Oct 2023 08:57:55 +0200
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: Joe Perches <joe@perches.com>
-Cc: Max Kellermann <max.kellermann@ionos.com>,
-	Guenter Roeck <linux@roeck-us.net>, Jens Axboe <axboe@kernel.dk>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Borislav Petkov <bp@alien8.de>, Tony Luck <tony.luck@intel.com>,
-	James Morse <james.morse@arm.com>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Robert Richter <rric@kernel.org>, Jean Delvare <jdelvare@suse.com>,
-	Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>,
-	Bart Van Assche <bvanassche@acm.org>,
-	Joerg Roedel <joro@8bytes.org>, Will Deacon <will@kernel.org>,
-	Robin Murphy <robin.murphy@arm.com>,
+	b=ZlYl3imq6eHQDrYC5PMugfQ4TMG+jmibRRwNsJpm6XcNIxxcBBPCktbCkfYeI65nN
+	 qLdiMIAtmfzfk1VTsJMIkep0WOtwQywy7N/bdTJ3Bxdvk9teyl3ymzSK4R6NDv+BXA
+	 nxbUzVVqepVMibCXFzK3XWuifmRR7J5Yi79JEcOFjXtPBa++LDHbigBYpKlkAW6J2s
+	 m8KNUEsS4QDH8eCSAu3nU1GlWqBXizAV85ZOQ/FvaUPjgEbiVyslwiklmU8YUorofa
+	 H42Ps4swpIS3vN2xtcYT9GyiAAFQ1RsNZSahYrASI3j4L6trLXlgxfEQeHgjydlYNn
+	 bs91cTASHnDnw==
+Date: Tue, 10 Oct 2023 10:51:19 -0700
+From: "Darrick J. Wong" <djwong@kernel.org>
+To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Cc: Chandan Babu R <chandanbabu@kernel.org>,
+	Dave Chinner <david@fromorbit.com>,
 	Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
-	Keith Busch <kbusch@kernel.org>, Christoph Hellwig <hch@lst.de>,
-	Sagi Grimberg <sagi@grimberg.me>,
-	Alessandro Zummo <a.zummo@towertech.it>,
-	Alexandre Belloni <alexandre.belloni@bootlin.com>,
-	Jiri Slaby <jirislaby@kernel.org>,
-	Suzuki K Poulose <suzuki.poulose@arm.com>,
-	Mike Leach <mike.leach@linaro.org>,
-	James Clark <james.clark@arm.com>, Leo Yan <leo.yan@linaro.org>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Peter Zijlstra <peterz@infradead.org>, Pavel Machek <pavel@ucw.cz>,
-	Lee Jones <lee@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
-	Bjorn Helgaas <bhelgaas@google.com>, Ingo Molnar <mingo@redhat.com>,
-	Arnaldo Carvalho de Melo <acme@kernel.org>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Alexander Shishkin <alexander.shishkin@linux.intel.com>,
-	Jiri Olsa <jolsa@kernel.org>, Namhyung Kim <namhyung@kernel.org>,
-	Ian Rogers <irogers@google.com>,
-	Adrian Hunter <adrian.hunter@intel.com>,
-	Sebastian Reichel <sre@kernel.org>,
-	Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
-	Wim Van Sebroeck <wim@linux-watchdog.org>,
-	"James E.J. Bottomley" <jejb@linux.ibm.com>,
-	"Martin K. Petersen" <martin.petersen@oracle.com>,
-	linux-block@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-edac@vger.kernel.org, linux-hwmon@vger.kernel.org,
-	linux-rdma@vger.kernel.org, iommu@lists.linux.dev,
-	nvdimm@lists.linux.dev, linux-nvme@lists.infradead.org,
-	linux-rtc@vger.kernel.org, linux-serial@vger.kernel.org,
-	coresight@lists.linaro.org, linux-arm-kernel@lists.infradead.org,
-	linux-leds@vger.kernel.org, linux-pci@vger.kernel.org,
-	linux-perf-users@vger.kernel.org, linux-pm@vger.kernel.org,
-	linux-usb@vger.kernel.org, linux-watchdog@vger.kernel.org,
-	linux-scsi@vger.kernel.org
-Subject: Re: [PATCH 6/7] fs/sysfs/group: make attribute_group pointers const
-Message-ID: <2023101041-giggle-refried-5b8c@gregkh>
-References: <20231009165741.746184-1-max.kellermann@ionos.com>
- <20231009165741.746184-6-max.kellermann@ionos.com>
- <264fa39d-aed6-4a54-a085-107997078f8d@roeck-us.net>
- <CAKPOu+8k2x1CucWSzoouts0AfMJk+srJXWWf3iWVOeY+fWkOpQ@mail.gmail.com>
- <f511170fe61d7e7214a3a062661cf4103980dad6.camel@perches.com>
+	Andrew Morton <akpm@linux-foundation.org>,
+	linux-xfs@vger.kernel.org, nvdimm@lists.linux.dev
+Subject: Re: [PATCH] xfs: drop experimental warning for FSDAX
+Message-ID: <20231010175119.GG21298@frogsfrogsfrogs>
+References: <99279735-2d17-405f-bade-9501a296d817@fujitsu.com>
+ <651718a6a6e2c_c558e2943e@dwillia2-xfh.jf.intel.com.notmuch>
+ <ec2de0b9-c07d-468a-bd15-49e83cba1ad9@fujitsu.com>
+ <87y1gltcvg.fsf@debian-BULLSEYE-live-builder-AMD64>
+ <20231005000809.GN21298@frogsfrogsfrogs>
+ <ce9ef1dc-d62b-466d-882f-d7bf4350582d@fujitsu.com>
+ <20231005160530.GO21298@frogsfrogsfrogs>
+ <28613f6e-2ed2-4c9a-81e3-3dcfdbba867c@fujitsu.com>
+ <20231009164721.GC21298@frogsfrogsfrogs>
+ <019bc83b-7f94-476b-95cb-280f1045057d@fujitsu.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -80,33 +46,219 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <f511170fe61d7e7214a3a062661cf4103980dad6.camel@perches.com>
+In-Reply-To: <019bc83b-7f94-476b-95cb-280f1045057d@fujitsu.com>
 
-On Mon, Oct 09, 2023 at 11:48:10PM -0700, Joe Perches wrote:
-> On Mon, 2023-10-09 at 22:05 +0200, Max Kellermann wrote:
-> > On Mon, Oct 9, 2023 at 7:24 PM Guenter Roeck <linux@roeck-us.net> wrote:
-> > > Also, I don't know why checkpatch is happy with all the
-> > > 
-> > >         const struct attribute_group *const*groups;
-> > > 
-> > > instead of
-> > > 
-> > >         const struct attribute_group *const *groups;
-> > 
-> > I found out that checkpatch has no check for this at all; it does
-> > complain about such lines, but only for local variables. But that
-> > warning is actually a bug, because this is a check for unary
-> > operators: it thinks the asterisk is a dereference operator, not a
-> > pointer declaration, and complains that the unary operator must be
-> > preceded by a space. Thus warnings on local variable are only correct
-> > by coincidence, not by design.
-> > 
-> > Inside structs or parameters (where my coding style violations can be
-> > found), it's a different context and thus checkpatch doesn't apply the
-> > rules for unary operators.
+On Tue, Oct 10, 2023 at 11:53:02AM +0800, Shiyang Ruan wrote:
 > 
-> My opinion is that const use in the kernel should almost
-> always have whitespace before and after it except when
-> preceded by a open parenthesis or a newline.
+> 
+> 在 2023/10/10 0:47, Darrick J. Wong 写道:
+> > On Mon, Oct 09, 2023 at 10:14:12PM +0800, Shiyang Ruan wrote:
+> > > 
+> > > 
+> > > 在 2023/10/6 0:05, Darrick J. Wong 写道:
+> > > > On Thu, Oct 05, 2023 at 04:53:12PM +0800, Shiyang Ruan wrote:
+> > > > > 
+> > > > > 
+> > > > > 在 2023/10/5 8:08, Darrick J. Wong 写道:
+> > > > > > > > 
+> > > > > > > > Sorry, I sent the list below to Chandan, didn't cc the maillist
+> > > > > > > > because it's just a rough list rather than a PR:
+> > > > > > > > 
+> > > > > > > > 
+> > > > > > > > 1. subject: [v3]  xfs: correct calculation for agend and blockcount
+> > > > > > > >       url:
+> > > > > > > >       https://lore.kernel.org/linux-xfs/20230913102942.601271-1-ruansy.fnst@fujitsu.com/
+> > > > > > > >       note:    This one is a fix patch for commit: 5cf32f63b0f4 ("xfs:
+> > > > > > > >       fix the calculation for "end" and "length"").
+> > > > > > > >                It can solve the fail of xfs/55[0-2]: the programs
+> > > > > > > >                accessing the DAX file may not be notified as expected,
+> > > > > > > >               because the length always 1 block less than actual.  Then
+> > > > > > > >              this patch fixes this.
+> > > > > > > > 
+> > > > > > > > 
+> > > > > > > > 2. subject: [v15] mm, pmem, xfs: Introduce MF_MEM_PRE_REMOVE for unbind
+> > > > > > > >       url:
+> > > > > > > >       https://lore.kernel.org/linux-xfs/20230928103227.250550-1-ruansy.fnst@fujitsu.com/T/#u
+> > > > > > > >       note:    This is a feature patch.  It handles the pre-remove event
+> > > > > > > >       of DAX device, by notifying kernel/user space before actually
+> > > > > > > >      removing.
+> > > > > > > >                It has been picked by Andrew in his
+> > > > > > > >                mm-hotfixes-unstable. I am not sure whether you or he will
+> > > > > > > >               merge this one.
+> > > > > > > > 
+> > > > > > > > 
+> > > > > > > > 3. subject: [v1]  xfs: drop experimental warning for FSDAX
+> > > > > > > >       url:
+> > > > > > > >       https://lore.kernel.org/linux-xfs/20230915063854.1784918-1-ruansy.fnst@fujitsu.com/
+> > > > > > > >       note:    With the patches mentioned above, I did a lot of tests,
+> > > > > > > >       including xfstests and blackbox tests, the FSDAX function looks
+> > > > > > > >      good now.  So I think the experimental warning could be dropped.
+> > > > > > > 
+> > > > > > > Darrick/Dave, Could you please review the above patch and let us know if you
+> > > > > > > have any objections?
+> > > > > > 
+> > > > > > The first two patches are ok.  The third one ... well I was about to say
+> > > > > > ok but then this happened with generic/269 on a 6.6-rc4 kernel and those
+> > > > > > two patches applied:
+> > > > > 
+> > > > > Hi Darrick,
+> > > > > 
+> > > > > Thanks for testing.  I just tested this case (generic/269) on v6.6-rc4 with
+> > > > > my 3 patches again, but it didn't fail.  Such WARNING message didn't show in
+> > > > > dmesg too.
+> > > > > 
+> > > > > My local.config is shown as below:
+> > > > > [nodax_reflink]
+> > > > > export FSTYP=xfs
+> > > > > export TEST_DEV=/dev/pmem0
+> > > > > export TEST_DIR=/mnt/test
+> > > > > export SCRATCH_DEV=/dev/pmem1
+> > > > > export SCRATCH_MNT=/mnt/scratch
+> > > > > export MKFS_OPTIONS="-m reflink=1,rmapbt=1"
+> > > > > 
+> > > > > [dax_reflink]
+> > > > > export FSTYP=xfs
+> > > > > export TEST_DEV=/dev/pmem0
+> > > > > export TEST_DIR=/mnt/test
+> > > > > export SCRATCH_DEV=/dev/pmem1
+> > > > > export SCRATCH_MNT=/mnt/scratch
+> > > > > export MKFS_OPTIONS="-m reflink=1,rmapbt=1"
+> > > > > export MOUNT_OPTIONS="-o dax"
+> > > > > export TEST_FS_MOUNT_OPTS="-o dax"
+> > > > > 
+> > > > > And tools version are:
+> > > > >    - xfstests (v2023.09.03)
+> > > > 
+> > > > Same here.
+> > > > 
+> > > > >    - xfsprogs (v6.4.0)
+> > > > 
+> > > > I have a newer branch, though it only contains resyncs with newer kernel
+> > > > versions and bugfixes.
+> > > > 
+> > > > > Could you show me more info (such as kernel config, local.config) ?  So that
+> > > > > I can find out what exactly is going wrong.
+> > > > 
+> > > > The full xml output from fstests is here:
+> > > > 
+> > > > https://djwong.org/fstests/output/.fa9f295c6a2dd4426aa26b4d74e8e0299ad2307507547d5444c157f0e883df92/.2e718425eda716ad848ae05dfab82a670af351f314e26b3cb658a929331bf2eb/result.xml
+> > > > 
+> > > > I think the key difference between your setup and mine is that
+> > > > MKFS_OPTIONS includes '-d daxinherit=1' and MOUNT_OPTIONS do not include
+> > > > -o dax.  That shouldn't make any difference, though.
+> 
+> A little strange thing I found:
+> According to the result.xml, the MKFS_OPTIONS didn't include -m rmapbt=1:
+>     <property name="MKFS_OPTIONS" value=" -d daxinherit=1,"/>
+> mkfs.xfs will turn on reflink by default, but won't turn on rmapbt. Then
+> xfs/55[0-2] should be "not run" because they have
+> _require_xfs_scratch_rmapbt.
 
-I totally agree.
+Oh.  Yeah.  mkfs is from the xfsprogs for-next branch, with 6.6 kernel
+libxfs stuff backported, as well as the defaults changed to turn on
+rmapbt by default.  Sorry about that omission.
+
+> Also, this alert message didn't show in my tests:
+> [ 6047.876110] XFS (pmem1): xlog_verify_grant_tail: space >
+> BBTOB(tail_blocks)
+> But I don't think it is related.
+
+Probably not.  FWIW the simulated pmem is a ~9.8GB tmpfs file that's
+passed through to qemu via the libvirt xml stuff that sets up pmem.
+If your pmem is larger (or real pmem!) then you likely get a bigger log
+and hence lower chance of that message.
+
+> > > > 
+> > > > Also: In the weeks leading up to me adding the PREREMOVE patches a
+> > > > couple of days ago, no test (generic/269 or otherwise) hit that ASSERT.
+> 
+> Has it failed again since this time?  If so, please sent me the result.xml
+> because it is needed for analyze.  Thank you~
+
+Nope.  Last night's run was clean.
+
+> > > > I'm wondering if that means that the preremove code isn't shooting down
+> > > > a page mapping or something?
+> > > > 
+> > > > Grepping through the result.xml reveals:
+> > > > 
+> > > > $ grep -E '(generic.269|xfs.55[012])' /tmp/result.xml
+> > > > 563:    <testcase classname="xfstests.global" name="xfs/550" time="2">
+> > > > 910:    <testcase classname="xfstests.global" name="xfs/552" time="2">
+> > > > 1685:   <testcase classname="xfstests.global" name="generic/269" time="23">
+> > > > 1686:           <failure message="_check_dmesg: something found in dmesg (see /var/tmp/fstests/generic/269.dmesg)" type="TestFail"/>
+> > > > 1689:[ 6046.844058] run fstests generic/269 at 2023-10-04 15:26:57
+> > > > 2977:   <testcase classname="xfstests.global" name="xfs/551" time="2">
+> > > > 
+> > > > So it's possible that 550 or 552 messed this up for us. :/
+> > > > 
+> > > > See attached kconfig.
+> > > 
+> > > Thanks for the info.  I tried to make my environment same as yours, but
+> > > still couldn't reproduce the fail.  I also let xfs/550 & xfs/552 ran before
+> > > generic/269.
+> > > 
+> > > [root@f38 xfst]# ./check -s nodax_reflink -r xfs/550 xfs/552 generic/269
+> > > SECTION       -- nodax_reflink
+> > > FSTYP         -- xfs (debug)
+> > > PLATFORM      -- Linux/x86_64 f38 6.6.0-rc4 #365 SMP PREEMPT_DYNAMIC Sun Oct
+> > > 8 15:19:36 CST 2023
+> > > MKFS_OPTIONS  -- -f -m reflink=1,rmapbt=1 -d daxinherit=1 /dev/pmem1
+> > > MOUNT_OPTIONS -- -o usrquota,grpquota,prjquota, /dev/pmem1 /mnt/scratch
+> > > 
+> > > xfs/550 2s ...  2s
+> > > xfs/552 2s ...  1s
+> > > generic/269 22s ...  23s
+> > > Ran: xfs/550 xfs/552 generic/269
+> > > Passed all 3 tests
+> > > 
+> > > SECTION       -- nodax_reflink
+> > > =========================
+> > > Ran: xfs/550 xfs/552 generic/269
+> > > Passed all 3 tests
+> > > 
+> > > 
+> > > And xfs/269 is testing fsstress & dd on a scratch device at the same time.
+> > > It won't reach the PREREMOVE code or xfs' notify failure code.
+
+Hmm.  I'm theorizing that generic/269 was merely tripping over some
+pmem page that has corrupted state.
+
+> > > I'd like to know what your git tree looks like, is it *v6.6-rc4 + my patches
+> > > only* ?  Does it contain other patches?
+> > 
+> > No other patches, aside from turning on selected W=123e warnings.
+> 
+> I don't know what does this mean: "selected W=123e warnings".  How could I
+> turn on this config?
+
+$ make vmlinux W=123e
+
+You probably don't want the 'e' part since that'll fail the build on
+any warning.  The actual warnings turned on by levels 1-3 vary depending
+on the compiler (gcc 12.3.0 here).
+
+--D
+
+> 
+> 
+> --
+> Thanks,
+> Ruan.
+> 
+> > 
+> > --D
+> > 
+> > > 
+> > > --
+> > > Thanks,
+> > > Ruan.
+> > > 
+> > > > 
+> > > > --D
+> > > > 
+> > > > > 
+> > > > > 
+> > > > > --
+> > > > > Thanks,
+> > > > > Ruan.
