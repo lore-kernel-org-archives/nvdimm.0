@@ -1,155 +1,197 @@
-Received: from mail-oo1-f53.google.com (mail-oo1-f53.google.com [209.85.161.53])
+Received: from mail-oo1-f44.google.com (mail-oo1-f44.google.com [209.85.161.44])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C0B742C0F
-	for <nvdimm@lists.linux.dev>; Tue, 17 Oct 2023 13:47:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E06D747B
+	for <nvdimm@lists.linux.dev>; Tue, 17 Oct 2023 14:06:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; dkim=none
-Received: by mail-oo1-f53.google.com with SMTP id 006d021491bc7-57b68555467so239154eaf.0
-        for <nvdimm@lists.linux.dev>; Tue, 17 Oct 2023 06:47:23 -0700 (PDT)
+Received: by mail-oo1-f44.google.com with SMTP id 006d021491bc7-57be74614c0so242748eaf.1
+        for <nvdimm@lists.linux.dev>; Tue, 17 Oct 2023 07:06:54 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1697550443; x=1698155243;
+        d=1e100.net; s=20230601; t=1697551614; x=1698156414;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=TEEvUysii4uahaQ0m8FHMZlpWtYsFuaPhm1RtmqNb/I=;
-        b=eYep7wGY3Ps5yZVUQ/cmr0lnQ/cXdNscIXeh+DPfnlbTpa55jNJJYSF2IveReIFBMV
-         V1yKzSSmUQqm1qbqEEFmxO9b3xi6RGp6ECblnFPysVMzPRo2jAgGqWRzEYmAvZ0Ow3Lo
-         AgfXcaJmf8ZavoqNnvnCWA5lcOFDyLGUh6BddEHfl+gOJDmFwDz4aVf+BHPlZXMirVJP
-         HdA9HXf/CO/pq6+gkl6CLAC9/r+9MToM7Uz9KAvFbOfDKvotajDT+x3tMCi9I5kVo/uB
-         bSoBrUvMMi0WE9MEeuesyfHQNQ5BacaUKkFAgNuPKIbUQqR3KRaPEMJoP6ippOJFMd5Y
-         GUHg==
-X-Gm-Message-State: AOJu0YzDHkgs+FYjErzZ2vy0jQyEVnCf1ZHmRUeLKDPg3HOGD5no3GNm
-	aQiHL5SMsMo7VZlC+nC4A/Opodf0GxqFDXm2tE0=
-X-Google-Smtp-Source: AGHT+IHvC9t7RwmoWiCH+fc45p2WvfI4yDWp6+zzWG0l3byPuExgnl0gPyDSD5VjVF615t/FRF8ap94jk1WhzAYvt00=
+        bh=e/q+wuZASo6Z0fTJ2g1A4X/m+vDSravRUT5sPcdQHlI=;
+        b=haih9/LTxYyzaVieP07zEb2e1b+4Js3G920Wq0h6LAtsAfNIgKYDheNhZRuTn1+bmt
+         b3K87ISVuAaHJZyIVtVF6lfVs0Wsd50Hxgd88zo6GmwX08bPpxWUGgBglSST5fY7Qd9V
+         vLLIZgX48h/jqsi7iCsh+NE5di2hgqBbQ1fmHB1RYuHKX0PoAdKIgvVUVxl+BFGE/km4
+         KFoO3n1GjOJA/Ml0cm+J//XwbevV3yTozOMO+6g3EAdRX3PGizMN/6lp7IkWlj5TzaF+
+         3wEopZ1i/SDyn+AqzS+TN8DJiu7xJq4W+/+HfQaQuT/KfOcpRxHul0PYxH1gJjOEOTG6
+         TQeA==
+X-Gm-Message-State: AOJu0YyplG3PaIIjVltYo36iKNolnLwy4BWSSMTrNg+5wPEoi7OlhyW7
+	X2jyOc77ptq/kv8l+4J3E3HTl1txyb1m8N6ETBQ=
+X-Google-Smtp-Source: AGHT+IFd96eE/x88+yG5zSGJ+AiwCCf74V15p7hd79kQ8n5jO9c89RDSq0OCq/k/XaacLWnWy5bit6ABH63kQ0g4IT4=
 X-Received: by 2002:a4a:d898:0:b0:581:84e9:a7ad with SMTP id
- b24-20020a4ad898000000b0058184e9a7admr2203536oov.1.1697550443146; Tue, 17 Oct
- 2023 06:47:23 -0700 (PDT)
+ b24-20020a4ad898000000b0058184e9a7admr2267424oov.1.1697551614004; Tue, 17 Oct
+ 2023 07:06:54 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20231011083334.3987477-1-michal.wilczynski@intel.com> <20231011083334.3987477-5-michal.wilczynski@intel.com>
-In-Reply-To: <20231011083334.3987477-5-michal.wilczynski@intel.com>
+References: <20231006173055.2938160-1-michal.wilczynski@intel.com> <20231006173055.2938160-6-michal.wilczynski@intel.com>
+In-Reply-To: <20231006173055.2938160-6-michal.wilczynski@intel.com>
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Tue, 17 Oct 2023 15:47:12 +0200
-Message-ID: <CAJZ5v0gD-wjDVO_YRZRjn99y-UOTg5i4=2iVNzLgOfYF4bqJvA@mail.gmail.com>
-Subject: Re: [PATCH v3 4/6] ACPI: AC: Rename ACPI device from device to adev
+Date: Tue, 17 Oct 2023 16:06:43 +0200
+Message-ID: <CAJZ5v0h=gcEcnnWiRdLVgZgEYFg3-U=odGFPS_6odFW2+4_=YQ@mail.gmail.com>
+Subject: Re: [PATCH v2 5/6] ACPI: NFIT: Replace acpi_driver with platform_driver
 To: Michal Wilczynski <michal.wilczynski@intel.com>
-Cc: linux-acpi@vger.kernel.org, rafael@kernel.org, dan.j.williams@intel.com, 
-	vishal.l.verma@intel.com, lenb@kernel.org, dave.jiang@intel.com, 
-	ira.weiny@intel.com, rui.zhang@intel.com, linux-kernel@vger.kernel.org, 
-	nvdimm@lists.linux.dev
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	nvdimm@lists.linux.dev, rafael.j.wysocki@intel.com, 
+	andriy.shevchenko@intel.com, lenb@kernel.org, dan.j.williams@intel.com, 
+	vishal.l.verma@intel.com, ira.weiny@intel.com
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Oct 11, 2023 at 10:34=E2=80=AFAM Michal Wilczynski
+On Fri, Oct 6, 2023 at 8:33=E2=80=AFPM Michal Wilczynski
 <michal.wilczynski@intel.com> wrote:
 >
-> Since transformation from ACPI driver to platform driver there are two
-> devices on which the driver operates - ACPI device and platform device.
-> For the sake of reader this calls for the distinction in their naming,
-> to avoid confusion. Rename device to adev, as corresponding
-> platform device is called pdev.
+> NFIT driver uses struct acpi_driver incorrectly to register itself.
+> This is wrong as the instances of the ACPI devices are not meant
+> to be literal devices, they're supposed to describe ACPI entry of a
+> particular device.
 >
+> Use platform_driver instead of acpi_driver. In relevant places call
+> platform devices instances pdev to make a distinction with ACPI
+> devices instances.
+>
+> NFIT driver uses devm_*() family of functions extensively. This change
+> has no impact on correct functioning of the whole devm_*() family of
+> functions, since the lifecycle of the device stays the same. It is still
+> being created during the enumeration, and destroyed on platform device
+> removal.
+>
+> Suggested-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > Signed-off-by: Michal Wilczynski <michal.wilczynski@intel.com>
 > ---
->  drivers/acpi/ac.c | 24 ++++++++++++------------
->  1 file changed, 12 insertions(+), 12 deletions(-)
+>  drivers/acpi/nfit/core.c | 34 ++++++++++++++++++----------------
+>  1 file changed, 18 insertions(+), 16 deletions(-)
 >
-> diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
-> index 1dd4919be7ac..2618a7ccc11c 100644
-> --- a/drivers/acpi/ac.c
-> +++ b/drivers/acpi/ac.c
-> @@ -121,11 +121,11 @@ static void acpi_ac_notify(acpi_handle handle, u32 =
-event, void *data)
->  {
->         struct device *dev =3D data;
->         struct acpi_ac *ac =3D dev_get_drvdata(dev);
-> -       struct acpi_device *device =3D ACPI_COMPANION(dev);
-> +       struct acpi_device *adev =3D ACPI_COMPANION(dev);
+> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> index 942b84d94078..fb0bc16fa186 100644
+> --- a/drivers/acpi/nfit/core.c
+> +++ b/drivers/acpi/nfit/core.c
+> @@ -15,6 +15,7 @@
+>  #include <linux/sort.h>
+>  #include <linux/io.h>
+>  #include <linux/nd.h>
+> +#include <linux/platform_device.h>
+>  #include <asm/cacheflush.h>
+>  #include <acpi/nfit.h>
+>  #include "intel.h"
+> @@ -98,7 +99,7 @@ static struct acpi_device *to_acpi_dev(struct acpi_nfit=
+_desc *acpi_desc)
+>                         || strcmp(nd_desc->provider_name, "ACPI.NFIT") !=
+=3D 0)
+>                 return NULL;
 >
->         switch (event) {
->         default:
-> -               acpi_handle_debug(device->handle, "Unsupported event [0x%=
-x]\n",
-> +               acpi_handle_debug(adev->handle, "Unsupported event [0x%x]=
-\n",
->                                   event);
->                 fallthrough;
->         case ACPI_AC_NOTIFY_STATUS:
-> @@ -142,11 +142,11 @@ static void acpi_ac_notify(acpi_handle handle, u32 =
-event, void *data)
->                         msleep(ac_sleep_before_get_state_ms);
->
->                 acpi_ac_get_state(ac);
-> -               acpi_bus_generate_netlink_event(device->pnp.device_class,
-> +               acpi_bus_generate_netlink_event(adev->pnp.device_class,
->                                                 dev_name(dev),
->                                                 event,
->                                                 ac->state);
-> -               acpi_notifier_call_chain(device, event, ac->state);
-> +               acpi_notifier_call_chain(adev, event, ac->state);
->                 kobject_uevent(&ac->charger->dev.kobj, KOBJ_CHANGE);
->         }
+> -       return to_acpi_device(acpi_desc->dev);
+> +       return ACPI_COMPANION(acpi_desc->dev);
 >  }
-> @@ -205,7 +205,7 @@ static const struct dmi_system_id ac_dmi_table[]  __i=
-nitconst =3D {
 >
->  static int acpi_ac_probe(struct platform_device *pdev)
+>  static int xlat_bus_status(void *buf, unsigned int cmd, u32 status)
+> @@ -3284,11 +3285,11 @@ static void acpi_nfit_put_table(void *table)
+>
+>  static void acpi_nfit_notify(acpi_handle handle, u32 event, void *data)
 >  {
-> -       struct acpi_device *device =3D ACPI_COMPANION(&pdev->dev);
-> +       struct acpi_device *adev =3D ACPI_COMPANION(&pdev->dev);
->         struct power_supply_config psy_cfg =3D {};
->         struct acpi_ac *ac;
->         int result;
-> @@ -214,9 +214,9 @@ static int acpi_ac_probe(struct platform_device *pdev=
-)
->         if (!ac)
+> -       struct acpi_device *adev =3D data;
+> +       struct device *dev =3D data;
+>
+> -       device_lock(&adev->dev);
+> -       __acpi_nfit_notify(&adev->dev, handle, event);
+> -       device_unlock(&adev->dev);
+> +       device_lock(dev);
+> +       __acpi_nfit_notify(dev, handle, event);
+> +       device_unlock(dev);
+
+Careful here.
+
+The ACPI device locking is changed to platform device locking without
+a word of explanation in the changelog.
+
+Do you actually know what the role of the locking around
+__acpi_nfit_notify() is and whether or not it can be replaced with
+platform device locking safely?
+
+>  }
+>
+>  static void acpi_nfit_remove_notify_handler(void *data)
+> @@ -3329,11 +3330,12 @@ void acpi_nfit_shutdown(void *data)
+>  }
+>  EXPORT_SYMBOL_GPL(acpi_nfit_shutdown);
+>
+> -static int acpi_nfit_add(struct acpi_device *adev)
+> +static int acpi_nfit_probe(struct platform_device *pdev)
+>  {
+>         struct acpi_buffer buf =3D { ACPI_ALLOCATE_BUFFER, NULL };
+>         struct acpi_nfit_desc *acpi_desc;
+> -       struct device *dev =3D &adev->dev;
+> +       struct device *dev =3D &pdev->dev;
+> +       struct acpi_device *adev =3D ACPI_COMPANION(dev);
+>         struct acpi_table_header *tbl;
+>         acpi_status status =3D AE_OK;
+>         acpi_size sz;
+> @@ -3360,7 +3362,7 @@ static int acpi_nfit_add(struct acpi_device *adev)
+>         acpi_desc =3D devm_kzalloc(dev, sizeof(*acpi_desc), GFP_KERNEL);
+>         if (!acpi_desc)
+>                 return -ENOMEM;
+> -       acpi_nfit_desc_init(acpi_desc, &adev->dev);
+> +       acpi_nfit_desc_init(acpi_desc, dev);
+
+You seem to think that replacing adev->dev with pdev->dev everywhere
+in this driver will work,
+
+Have you verified that in any way?  If so, then how?
+
+>
+>         /* Save the acpi header for exporting the revision via sysfs */
+>         acpi_desc->acpi_header =3D *tbl;
+> @@ -3391,7 +3393,7 @@ static int acpi_nfit_add(struct acpi_device *adev)
+>                 return rc;
+>
+>         rc =3D acpi_dev_install_notify_handler(adev, ACPI_DEVICE_NOTIFY,
+> -                                            acpi_nfit_notify, adev);
+> +                                            acpi_nfit_notify, dev);
+>         if (rc)
+>                 return rc;
+>
+> @@ -3475,11 +3477,11 @@ static const struct acpi_device_id acpi_nfit_ids[=
+] =3D {
+>  };
+>  MODULE_DEVICE_TABLE(acpi, acpi_nfit_ids);
+>
+> -static struct acpi_driver acpi_nfit_driver =3D {
+> -       .name =3D KBUILD_MODNAME,
+> -       .ids =3D acpi_nfit_ids,
+> -       .ops =3D {
+> -               .add =3D acpi_nfit_add,
+> +static struct platform_driver acpi_nfit_driver =3D {
+> +       .probe =3D acpi_nfit_probe,
+> +       .driver =3D {
+> +               .name =3D KBUILD_MODNAME,
+> +               .acpi_match_table =3D acpi_nfit_ids,
+>         },
+>  };
+>
+> @@ -3517,7 +3519,7 @@ static __init int nfit_init(void)
 >                 return -ENOMEM;
 >
-> -       ac->device =3D device;
-> -       strcpy(acpi_device_name(device), ACPI_AC_DEVICE_NAME);
-> -       strcpy(acpi_device_class(device), ACPI_AC_CLASS);
-> +       ac->device =3D adev;
-> +       strcpy(acpi_device_name(adev), ACPI_AC_DEVICE_NAME);
-> +       strcpy(acpi_device_class(adev), ACPI_AC_CLASS);
->
->         platform_set_drvdata(pdev, ac);
->
-> @@ -226,7 +226,7 @@ static int acpi_ac_probe(struct platform_device *pdev=
-)
->
->         psy_cfg.drv_data =3D ac;
->
-> -       ac->charger_desc.name =3D acpi_device_bid(device);
-> +       ac->charger_desc.name =3D acpi_device_bid(adev);
->         ac->charger_desc.type =3D POWER_SUPPLY_TYPE_MAINS;
->         ac->charger_desc.properties =3D ac_props;
->         ac->charger_desc.num_properties =3D ARRAY_SIZE(ac_props);
-> @@ -238,13 +238,13 @@ static int acpi_ac_probe(struct platform_device *pd=
-ev)
->                 goto err_release_ac;
->         }
->
-> -       pr_info("%s [%s] (%s-line)\n", acpi_device_name(device),
-> -               acpi_device_bid(device), str_on_off(ac->state));
-> +       pr_info("%s [%s] (%s-line)\n", acpi_device_name(adev),
-> +               acpi_device_bid(adev), str_on_off(ac->state));
->
->         ac->battery_nb.notifier_call =3D acpi_ac_battery_notify;
->         register_acpi_notifier(&ac->battery_nb);
->
-> -       result =3D acpi_dev_install_notify_handler(device, ACPI_ALL_NOTIF=
-Y,
-> +       result =3D acpi_dev_install_notify_handler(adev, ACPI_ALL_NOTIFY,
->                                                  acpi_ac_notify, &pdev->d=
-ev);
->         if (result)
->                 goto err_unregister;
+>         nfit_mce_register();
+> -       ret =3D acpi_bus_register_driver(&acpi_nfit_driver);
+> +       ret =3D platform_driver_register(&acpi_nfit_driver);
+>         if (ret) {
+>                 nfit_mce_unregister();
+>                 destroy_workqueue(nfit_wq);
+> @@ -3530,7 +3532,7 @@ static __init int nfit_init(void)
+>  static __exit void nfit_exit(void)
+>  {
+>         nfit_mce_unregister();
+> -       acpi_bus_unregister_driver(&acpi_nfit_driver);
+> +       platform_driver_unregister(&acpi_nfit_driver);
+>         destroy_workqueue(nfit_wq);
+>         WARN_ON(!list_empty(&acpi_descs));
+>  }
 > --
-
-Rebased on top of current linux-next and applied as 6.7 material, thanks!
