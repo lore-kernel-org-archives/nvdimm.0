@@ -1,197 +1,172 @@
-Received: from mail-oo1-f44.google.com (mail-oo1-f44.google.com [209.85.161.44])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0E06D747B
-	for <nvdimm@lists.linux.dev>; Tue, 17 Oct 2023 14:06:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; dkim=none
-Received: by mail-oo1-f44.google.com with SMTP id 006d021491bc7-57be74614c0so242748eaf.1
-        for <nvdimm@lists.linux.dev>; Tue, 17 Oct 2023 07:06:54 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E78842C00
+	for <nvdimm@lists.linux.dev>; Tue, 17 Oct 2023 14:39:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="dn1oftD7"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1697553551;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
+	bh=bSH+w3rTE+Pz2hrnXmquLWhpkJX2eVVDKFyhnXENtfM=;
+	b=dn1oftD7F2Fi1gAhndm/Pj/D6wcLrCLUOQ0H77S6Tzbtgb5UE+duqDiXw97B36kp5A3lTS
+	OHrWa23oySvxxEJ+p31ilOPIQNcu29ZGk/9WexAzprUBZ30E140e5n3tAIqdC9DYvqCKUs
+	rUuFNJwxKNiJHeWe1Qa2AwvDjTPOJvs=
+Received: from mail-lj1-f200.google.com (mail-lj1-f200.google.com
+ [209.85.208.200]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-203--cS1VnO_NbuJBxUcVMJ-1g-1; Tue, 17 Oct 2023 10:39:09 -0400
+X-MC-Unique: -cS1VnO_NbuJBxUcVMJ-1g-1
+Received: by mail-lj1-f200.google.com with SMTP id 38308e7fff4ca-2c51d0f97e3so23911611fa.0
+        for <nvdimm@lists.linux.dev>; Tue, 17 Oct 2023 07:39:09 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1697551614; x=1698156414;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=e/q+wuZASo6Z0fTJ2g1A4X/m+vDSravRUT5sPcdQHlI=;
-        b=haih9/LTxYyzaVieP07zEb2e1b+4Js3G920Wq0h6LAtsAfNIgKYDheNhZRuTn1+bmt
-         b3K87ISVuAaHJZyIVtVF6lfVs0Wsd50Hxgd88zo6GmwX08bPpxWUGgBglSST5fY7Qd9V
-         vLLIZgX48h/jqsi7iCsh+NE5di2hgqBbQ1fmHB1RYuHKX0PoAdKIgvVUVxl+BFGE/km4
-         KFoO3n1GjOJA/Ml0cm+J//XwbevV3yTozOMO+6g3EAdRX3PGizMN/6lp7IkWlj5TzaF+
-         3wEopZ1i/SDyn+AqzS+TN8DJiu7xJq4W+/+HfQaQuT/KfOcpRxHul0PYxH1gJjOEOTG6
-         TQeA==
-X-Gm-Message-State: AOJu0YyplG3PaIIjVltYo36iKNolnLwy4BWSSMTrNg+5wPEoi7OlhyW7
-	X2jyOc77ptq/kv8l+4J3E3HTl1txyb1m8N6ETBQ=
-X-Google-Smtp-Source: AGHT+IFd96eE/x88+yG5zSGJ+AiwCCf74V15p7hd79kQ8n5jO9c89RDSq0OCq/k/XaacLWnWy5bit6ABH63kQ0g4IT4=
-X-Received: by 2002:a4a:d898:0:b0:581:84e9:a7ad with SMTP id
- b24-20020a4ad898000000b0058184e9a7admr2267424oov.1.1697551614004; Tue, 17 Oct
- 2023 07:06:54 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1697553548; x=1698158348;
+        h=content-transfer-encoding:in-reply-to:organization:autocrypt:from
+         :references:cc:to:content-language:subject:user-agent:mime-version
+         :date:message-id:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=bSH+w3rTE+Pz2hrnXmquLWhpkJX2eVVDKFyhnXENtfM=;
+        b=bIEFNDD7Wk6/hzPrZpu6q9zMKIWUVTWF078OoCXVFAjERJaXLgFZrYLduxx2iIvpHn
+         r//gA1Ots/LJGFB07HT05XwqvMaKCv5nsCfstxjF8IqhJZeZm4RkuiBCGGB9yGoI5/vv
+         z7HOMJZeyindkDAKAeWENS4cRAMv/1Cf5aYjbVrrfrcT3UZmidff3JY2bMT+urQ1QAps
+         2kERFO/L1JP8nPwL05zFTlZi6+jOmt+qWEXa4NFr9iF5PfLaG9mmTffTQRjT85mOcm2D
+         MdSCalR/B6VuL9CBm9JN3LcpGQKFGy8lsj3U3RF1OWHyLJDLPyN3MgriAsk8+ZsF2E5p
+         +UoQ==
+X-Gm-Message-State: AOJu0Ywn1hbdo/9IDlL+0ZrFZEJrbBf+EkPseuQ4LT7T/z01r3z6H8Ha
+	Kx5fD9z46Uk+l0a2Cu/3eAq3YYSEOTWG1+WUZ3dq9RnspfRNqU6EHbCDqr59nRoPQFLDvgEImSm
+	UY06LvKs0jMsQvmT1
+X-Received: by 2002:a2e:5411:0:b0:2c5:d3c:8f4d with SMTP id i17-20020a2e5411000000b002c50d3c8f4dmr1717282ljb.13.1697553548160;
+        Tue, 17 Oct 2023 07:39:08 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IEeceyQoPLiG2ln4ABhwORc+ArpMpSl7lmpoS7xFx4O4tt+9zctlS/qeDjtsG4WynsxDTQVVw==
+X-Received: by 2002:a2e:5411:0:b0:2c5:d3c:8f4d with SMTP id i17-20020a2e5411000000b002c50d3c8f4dmr1717260ljb.13.1697553547724;
+        Tue, 17 Oct 2023 07:39:07 -0700 (PDT)
+Received: from ?IPV6:2003:cb:c743:5100:93b1:f654:ad11:cd81? (p200300cbc743510093b1f654ad11cd81.dip0.t-ipconnect.de. [2003:cb:c743:5100:93b1:f654:ad11:cd81])
+        by smtp.gmail.com with ESMTPSA id l4-20020a05600c4f0400b00405959469afsm2125712wmq.3.2023.10.17.07.39.06
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 17 Oct 2023 07:39:07 -0700 (PDT)
+Message-ID: <3f46eefa-6415-4d7a-af91-eef898d4f77a@redhat.com>
+Date: Tue, 17 Oct 2023 16:39:05 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20231006173055.2938160-1-michal.wilczynski@intel.com> <20231006173055.2938160-6-michal.wilczynski@intel.com>
-In-Reply-To: <20231006173055.2938160-6-michal.wilczynski@intel.com>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Tue, 17 Oct 2023 16:06:43 +0200
-Message-ID: <CAJZ5v0h=gcEcnnWiRdLVgZgEYFg3-U=odGFPS_6odFW2+4_=YQ@mail.gmail.com>
-Subject: Re: [PATCH v2 5/6] ACPI: NFIT: Replace acpi_driver with platform_driver
-To: Michal Wilczynski <michal.wilczynski@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	nvdimm@lists.linux.dev, rafael.j.wysocki@intel.com, 
-	andriy.shevchenko@intel.com, lenb@kernel.org, dan.j.williams@intel.com, 
-	vishal.l.verma@intel.com, ira.weiny@intel.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v6 1/3] mm/memory_hotplug: replace an open-coded kmemdup()
+ in add_memory_resource()
+To: Vishal Verma <vishal.l.verma@intel.com>,
+ Andrew Morton <akpm@linux-foundation.org>, Oscar Salvador
+ <osalvador@suse.de>, Dan Williams <dan.j.williams@intel.com>,
+ Dave Jiang <dave.jiang@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, nvdimm@lists.linux.dev,
+ linux-cxl@vger.kernel.org, Huang Ying <ying.huang@intel.com>,
+ Dave Hansen <dave.hansen@linux.intel.com>,
+ "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
+ Michal Hocko <mhocko@suse.com>,
+ Jonathan Cameron <Jonathan.Cameron@Huawei.com>,
+ Jeff Moyer <jmoyer@redhat.com>
+References: <20231016-vv-kmem_memmap-v6-0-078f0d3c0371@intel.com>
+ <20231016-vv-kmem_memmap-v6-1-078f0d3c0371@intel.com>
+From: David Hildenbrand <david@redhat.com>
+Autocrypt: addr=david@redhat.com; keydata=
+ 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
+ WNyWQQ==
+Organization: Red Hat
+In-Reply-To: <20231016-vv-kmem_memmap-v6-1-078f0d3c0371@intel.com>
+X-Mimecast-Spam-Score: 0
+X-Mimecast-Originator: redhat.com
+Content-Language: en-US
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Fri, Oct 6, 2023 at 8:33=E2=80=AFPM Michal Wilczynski
-<michal.wilczynski@intel.com> wrote:
->
-> NFIT driver uses struct acpi_driver incorrectly to register itself.
-> This is wrong as the instances of the ACPI devices are not meant
-> to be literal devices, they're supposed to describe ACPI entry of a
-> particular device.
->
-> Use platform_driver instead of acpi_driver. In relevant places call
-> platform devices instances pdev to make a distinction with ACPI
-> devices instances.
->
-> NFIT driver uses devm_*() family of functions extensively. This change
-> has no impact on correct functioning of the whole devm_*() family of
-> functions, since the lifecycle of the device stays the same. It is still
-> being created during the enumeration, and destroyed on platform device
-> removal.
->
-> Suggested-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Signed-off-by: Michal Wilczynski <michal.wilczynski@intel.com>
+On 17.10.23 07:44, Vishal Verma wrote:
+> A review of the memmap_on_memory modifications to add_memory_resource()
+> revealed an instance of an open-coded kmemdup(). Replace it with
+> kmemdup().
+> 
+> Cc: Andrew Morton <akpm@linux-foundation.org>
+> Cc: David Hildenbrand <david@redhat.com>
+> Cc: Michal Hocko <mhocko@suse.com>
+> Cc: Oscar Salvador <osalvador@suse.de>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Reported-by: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 > ---
->  drivers/acpi/nfit/core.c | 34 ++++++++++++++++++----------------
->  1 file changed, 18 insertions(+), 16 deletions(-)
->
-> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-> index 942b84d94078..fb0bc16fa186 100644
-> --- a/drivers/acpi/nfit/core.c
-> +++ b/drivers/acpi/nfit/core.c
-> @@ -15,6 +15,7 @@
->  #include <linux/sort.h>
->  #include <linux/io.h>
->  #include <linux/nd.h>
-> +#include <linux/platform_device.h>
->  #include <asm/cacheflush.h>
->  #include <acpi/nfit.h>
->  #include "intel.h"
-> @@ -98,7 +99,7 @@ static struct acpi_device *to_acpi_dev(struct acpi_nfit=
-_desc *acpi_desc)
->                         || strcmp(nd_desc->provider_name, "ACPI.NFIT") !=
-=3D 0)
->                 return NULL;
->
-> -       return to_acpi_device(acpi_desc->dev);
-> +       return ACPI_COMPANION(acpi_desc->dev);
->  }
->
->  static int xlat_bus_status(void *buf, unsigned int cmd, u32 status)
-> @@ -3284,11 +3285,11 @@ static void acpi_nfit_put_table(void *table)
->
->  static void acpi_nfit_notify(acpi_handle handle, u32 event, void *data)
->  {
-> -       struct acpi_device *adev =3D data;
-> +       struct device *dev =3D data;
->
-> -       device_lock(&adev->dev);
-> -       __acpi_nfit_notify(&adev->dev, handle, event);
-> -       device_unlock(&adev->dev);
-> +       device_lock(dev);
-> +       __acpi_nfit_notify(dev, handle, event);
-> +       device_unlock(dev);
+>   mm/memory_hotplug.c | 6 +++---
+>   1 file changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+> index f8d3e7427e32..6be7de9efa55 100644
+> --- a/mm/memory_hotplug.c
+> +++ b/mm/memory_hotplug.c
+> @@ -1439,11 +1439,11 @@ int __ref add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
+>   	if (mhp_flags & MHP_MEMMAP_ON_MEMORY) {
+>   		if (mhp_supports_memmap_on_memory(size)) {
+>   			mhp_altmap.free = memory_block_memmap_on_memory_pages();
+> -			params.altmap = kmalloc(sizeof(struct vmem_altmap), GFP_KERNEL);
+> +			params.altmap = kmemdup(&mhp_altmap,
+> +						sizeof(struct vmem_altmap),
+> +						GFP_KERNEL);
+>   			if (!params.altmap)
+>   				goto error;
+> -
+> -			memcpy(params.altmap, &mhp_altmap, sizeof(mhp_altmap));
+>   		}
+>   		/* fallback to not using altmap  */
+>   	}
+> 
 
-Careful here.
+Reviewed-by: David Hildenbrand <david@redhat.com>
 
-The ACPI device locking is changed to platform device locking without
-a word of explanation in the changelog.
+-- 
+Cheers,
 
-Do you actually know what the role of the locking around
-__acpi_nfit_notify() is and whether or not it can be replaced with
-platform device locking safely?
+David / dhildenb
 
->  }
->
->  static void acpi_nfit_remove_notify_handler(void *data)
-> @@ -3329,11 +3330,12 @@ void acpi_nfit_shutdown(void *data)
->  }
->  EXPORT_SYMBOL_GPL(acpi_nfit_shutdown);
->
-> -static int acpi_nfit_add(struct acpi_device *adev)
-> +static int acpi_nfit_probe(struct platform_device *pdev)
->  {
->         struct acpi_buffer buf =3D { ACPI_ALLOCATE_BUFFER, NULL };
->         struct acpi_nfit_desc *acpi_desc;
-> -       struct device *dev =3D &adev->dev;
-> +       struct device *dev =3D &pdev->dev;
-> +       struct acpi_device *adev =3D ACPI_COMPANION(dev);
->         struct acpi_table_header *tbl;
->         acpi_status status =3D AE_OK;
->         acpi_size sz;
-> @@ -3360,7 +3362,7 @@ static int acpi_nfit_add(struct acpi_device *adev)
->         acpi_desc =3D devm_kzalloc(dev, sizeof(*acpi_desc), GFP_KERNEL);
->         if (!acpi_desc)
->                 return -ENOMEM;
-> -       acpi_nfit_desc_init(acpi_desc, &adev->dev);
-> +       acpi_nfit_desc_init(acpi_desc, dev);
-
-You seem to think that replacing adev->dev with pdev->dev everywhere
-in this driver will work,
-
-Have you verified that in any way?  If so, then how?
-
->
->         /* Save the acpi header for exporting the revision via sysfs */
->         acpi_desc->acpi_header =3D *tbl;
-> @@ -3391,7 +3393,7 @@ static int acpi_nfit_add(struct acpi_device *adev)
->                 return rc;
->
->         rc =3D acpi_dev_install_notify_handler(adev, ACPI_DEVICE_NOTIFY,
-> -                                            acpi_nfit_notify, adev);
-> +                                            acpi_nfit_notify, dev);
->         if (rc)
->                 return rc;
->
-> @@ -3475,11 +3477,11 @@ static const struct acpi_device_id acpi_nfit_ids[=
-] =3D {
->  };
->  MODULE_DEVICE_TABLE(acpi, acpi_nfit_ids);
->
-> -static struct acpi_driver acpi_nfit_driver =3D {
-> -       .name =3D KBUILD_MODNAME,
-> -       .ids =3D acpi_nfit_ids,
-> -       .ops =3D {
-> -               .add =3D acpi_nfit_add,
-> +static struct platform_driver acpi_nfit_driver =3D {
-> +       .probe =3D acpi_nfit_probe,
-> +       .driver =3D {
-> +               .name =3D KBUILD_MODNAME,
-> +               .acpi_match_table =3D acpi_nfit_ids,
->         },
->  };
->
-> @@ -3517,7 +3519,7 @@ static __init int nfit_init(void)
->                 return -ENOMEM;
->
->         nfit_mce_register();
-> -       ret =3D acpi_bus_register_driver(&acpi_nfit_driver);
-> +       ret =3D platform_driver_register(&acpi_nfit_driver);
->         if (ret) {
->                 nfit_mce_unregister();
->                 destroy_workqueue(nfit_wq);
-> @@ -3530,7 +3532,7 @@ static __init int nfit_init(void)
->  static __exit void nfit_exit(void)
->  {
->         nfit_mce_unregister();
-> -       acpi_bus_unregister_driver(&acpi_nfit_driver);
-> +       platform_driver_unregister(&acpi_nfit_driver);
->         destroy_workqueue(nfit_wq);
->         WARN_ON(!list_empty(&acpi_descs));
->  }
-> --
