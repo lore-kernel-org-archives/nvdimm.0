@@ -1,165 +1,77 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.151])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oo1-f45.google.com (mail-oo1-f45.google.com [209.85.161.45])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 449ED28F1
-	for <nvdimm@lists.linux.dev>; Wed, 18 Oct 2023 04:28:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="J1gbC8e6"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1697603301; x=1729139301;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=imUUbQh1eVfEbDG6J2Vt7i4mhD2ZH3x+nJWvmvG8Xmw=;
-  b=J1gbC8e6ff0R/SfdZTkUJx8dNIGrU1O2KgIquOaM5z4h4WHUnx0ahYhp
-   P1i5vjVJyRc7uwbm5v/kVWmZSGCqJxhfb4ydfcXbWU8Xkf6YR6qFaxwWE
-   lA1xDDrASPkeBGsVNV9m/wmD6tw8v0x4G0IOE6tb+s+Bboo93t2DuG1Ra
-   4k503fdVu0tGvzk62F8qXm77z6TDTfonrVodTBITV0lAE3s/cebPCzlK3
-   AHob6VNki40WhHQg4BMPfj9L6Ah1lDKEnLpxB9Ed1zR5D1pqpzTKLkUBv
-   nVcaoR9hd3h48ygoFbah7A3OZJtMNxt6YI/qLioiXdaU4PlldE1vnHAG0
-   g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10866"; a="366192317"
-X-IronPort-AV: E=Sophos;i="6.03,234,1694761200"; 
-   d="scan'208";a="366192317"
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Oct 2023 21:28:20 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10866"; a="822272764"
-X-IronPort-AV: E=Sophos;i="6.03,234,1694761200"; 
-   d="scan'208";a="822272764"
-Received: from fmsmsx601.amr.corp.intel.com ([10.18.126.81])
-  by fmsmga008.fm.intel.com with ESMTP/TLS/AES256-GCM-SHA384; 17 Oct 2023 21:28:20 -0700
-Received: from fmsmsx612.amr.corp.intel.com (10.18.126.92) by
- fmsmsx601.amr.corp.intel.com (10.18.126.81) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.32; Tue, 17 Oct 2023 21:28:19 -0700
-Received: from fmsmsx602.amr.corp.intel.com (10.18.126.82) by
- fmsmsx612.amr.corp.intel.com (10.18.126.92) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.32; Tue, 17 Oct 2023 21:28:19 -0700
-Received: from fmsedg602.ED.cps.intel.com (10.1.192.136) by
- fmsmsx602.amr.corp.intel.com (10.18.126.82) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.32 via Frontend Transport; Tue, 17 Oct 2023 21:28:19 -0700
-Received: from NAM04-BN8-obe.outbound.protection.outlook.com (104.47.74.40) by
- edgegateway.intel.com (192.55.55.71) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.32; Tue, 17 Oct 2023 21:28:19 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=CiqxBM0aBoorPtuYZiRKgHsu45wHZ4kH1etv0wdeExXD5Xyk9jVW88eR92shkVOCFxuecC8Bp/byHt548/OVdFD4Kk+18C0krifTNrO1PAyTxFq98FyPSD4i6rOPiYPaxXTaZTy7tDvtH1+pHRHUSL4yzeAz87KV7DcDAyfeNuVPm2p8guk+f1wmHM+NPxEoHBq91HoxwTaMRbgWsWp+xxVB6Xzu7Ttof/pKwoWOst+Nsp7YDuB9dzDUUGOdsm26OlwOHpQ4BQJhpQX3mf0CkRIQ5IStPzRvTfS482CPsQwTxHlV1qSckrFKhKYV8OL2Cedb9cMw/NCr5zYuuURWqg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=AjvsheyUHcVH14QxSBuR6VmX9E7IicjSdwQ/f1TBU+w=;
- b=mHD0TBB8PEIT0JEwExfODDAHj31YmWdD9Tf0R9V9ayVLtYoTVAQPHHvcpf7yJOkKHs7HHEdrbBh9HOR8lDnS0kA+Z3wI5pdW2EoxfC4y8WhyFvlmS+vEb25AafzoG1uUp2K0fv5X4oCzmGPyTRepYwkU6mY3S0QxGU0YYS1T0DiXc7ScD1agB5iHbOp6dYrptlfJX782p7Fzo4H3k34p2fTKBERqDHji4fuHIe8eXR6reTP8HJ8REyZTy6koZcYK7f8ZIgPEvkrUBiZWk1AdXFAyqwJcap7r/IlcIpzfwFRhuXla6aA7oOkeVEasQiw45N5QsJFpzEQ4yVTLMPssJA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from PH8PR11MB8107.namprd11.prod.outlook.com (2603:10b6:510:256::6)
- by MN2PR11MB4679.namprd11.prod.outlook.com (2603:10b6:208:26b::13) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6907.21; Wed, 18 Oct
- 2023 04:28:17 +0000
-Received: from PH8PR11MB8107.namprd11.prod.outlook.com
- ([fe80::7978:1ba5:6ed0:717d]) by PH8PR11MB8107.namprd11.prod.outlook.com
- ([fe80::7978:1ba5:6ed0:717d%4]) with mapi id 15.20.6886.034; Wed, 18 Oct 2023
- 04:28:16 +0000
-Date: Tue, 17 Oct 2023 21:28:13 -0700
-From: Dan Williams <dan.j.williams@intel.com>
-To: Michal Wilczynski <michal.wilczynski@intel.com>, <nvdimm@lists.linux.dev>,
-	<linux-acpi@vger.kernel.org>, <dan.j.williams@intel.com>
-CC: <rafael@kernel.org>, <vishal.l.verma@intel.com>, <lenb@kernel.org>,
-	<dave.jiang@intel.com>, <ira.weiny@intel.com>,
-	<linux-kernel@vger.kernel.org>, Michal Wilczynski
-	<michal.wilczynski@intel.com>, Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v3] ACPI: NFIT: Use cleanup.h helpers instead of devm_*()
-Message-ID: <652f5eddba760_5c0d29449@dwillia2-mobl3.amr.corp.intel.com.notmuch>
-References: <20231017082905.1673316-1-michal.wilczynski@intel.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20231017082905.1673316-1-michal.wilczynski@intel.com>
-X-ClientProxiedBy: MW4PR02CA0019.namprd02.prod.outlook.com
- (2603:10b6:303:16d::23) To PH8PR11MB8107.namprd11.prod.outlook.com
- (2603:10b6:510:256::6)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E673168DA
+	for <nvdimm@lists.linux.dev>; Wed, 18 Oct 2023 10:39:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; dkim=none
+Received: by mail-oo1-f45.google.com with SMTP id 006d021491bc7-57de3096e25so1371003eaf.1
+        for <nvdimm@lists.linux.dev>; Wed, 18 Oct 2023 03:39:57 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1697625597; x=1698230397;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=wtmjII0ee1f21HN24SIPEYP9xZN9qMse1/pApzruflA=;
+        b=FmJ7SvhbhyYBXiEHzmsIW2H8V1WTt9WLh4BSoyqTCrIRZ+xCyjbPne1OHTTvckEU0X
+         yaqCWiHGixVzYtvfwginJkeIv3Y56MgdvkIg5FnGgV+Fopl7h8xu2B5GHpNek7lMzXGJ
+         uWkFMU4f2fWxrWaU+12Ax0ygzatuCpHn6YYAKcY0Skh576WYTDwqpSpWN3sws5qLXlgA
+         To987frOkggoa097csBOTN4BIN9WXcVmpeYgnwf9fFyn7JbPz1WV12G2slwlWTMSx6yq
+         fE8XdKqbAOfeym+hJcPQvJyhYW/zDC4rVZJjpURwFxuwVFOaQ5Db1HW1tkm10wDj2NQy
+         HsuA==
+X-Gm-Message-State: AOJu0Yyxsk5zsY9Qrynx70OAuTr0H19RMiX5dYB2jrdxBEQrSA7aZeNu
+	a9EI1BoTjnFIS+e4nedo7SjuPPi4SItCIE6RhMY=
+X-Google-Smtp-Source: AGHT+IFqHTgrARdc0q1r9FIddruvQnjJjU8onYjV7cSScx6lMxZRYIE772ygaGjJZnfdXpHVmL5HSXSsnZZYxUACNuE=
+X-Received: by 2002:a4a:4f15:0:b0:581:e7b8:dd77 with SMTP id
+ c21-20020a4a4f15000000b00581e7b8dd77mr3387616oob.1.1697625597298; Wed, 18 Oct
+ 2023 03:39:57 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: PH8PR11MB8107:EE_|MN2PR11MB4679:EE_
-X-MS-Office365-Filtering-Correlation-Id: dd9e7395-d6ac-4eb2-b32d-08dbcf92a62a
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: KtCn7OL4gkhn0ZO/p45blFLHXveVfTl3qCMUTkIPJsfe5Veny/zyjdYhcg61G/e+0TIX9lxZA40yFRWHdeTIlGUMbGehApbj0CjLEzh3EggXkkVxRWkxp2eaWq6GazFBHmYScqjg+DCxmlVO4w+AJg+EfEEo+FSzcWwvSzorXOsVLz5kp4nuHGk4vGUoT3HxCL9zP0HDE+D9UXF8W3D7jmSQXlg2E+lvyZ+mVcmPUa+i8FuEvjKqitaTiyka8+v5rYo6En0kpTizOf+kaUi17xi/+uiqLu5KpzJtPCReGDtKgjE0/iArwZDx4Y8+5KQtj9fXKP2hB31P1g2nP8ptno8pckhsdkizUGa+bk5cUWmcTnGcCvR/E5oXgLAlNUX6jqsP5y+BoJ4ea6jT5puMQGL2FfEgjjV30aQuo0z/dNMITbX98CgbUOd6s3AJq3VwXcQMoVCBxBPvkzhYekRA/ld4HdyIVhETfjwpxCwS7CPYeXSlEXVAFzloQ1z0iiO8EOLIHAsdLp7DIR8i7bqtkpPoXMfAMZQc08k9Jch+xsZ4R5iZ5OhWDFgAA18TT4V2
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH8PR11MB8107.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(396003)(39860400002)(376002)(136003)(366004)(346002)(230922051799003)(1800799009)(451199024)(186009)(64100799003)(6512007)(6506007)(2906002)(4744005)(5660300002)(4326008)(8676002)(8936002)(6666004)(41300700001)(66476007)(66946007)(54906003)(66556008)(316002)(6486002)(478600001)(9686003)(26005)(38100700002)(82960400001)(86362001);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?/X935VZsIRSnz9GtsB1pHKm528WAxyBGGThTVZ94W4a4eXfn2oQaJA1hOaDQ?=
- =?us-ascii?Q?OUIpNIdNNd42tthSr0ZgZzlXEr0RSjHPcnmhrixb2erxaIZps/Gq6dqW65Il?=
- =?us-ascii?Q?JLyuAmL2nSInr8GSA9tpby3FFUUuuBWFYysjyA68hYliF0YPYElarCv3Q4zo?=
- =?us-ascii?Q?IgdyHyBBcTZd0hlcd9ZYXmfH9KSQwiOhd/2uf1pnHGtYO+At8AJB76qWEtVV?=
- =?us-ascii?Q?o7+NNwcWHGhwhlBJaf1aXjAn+B29i/3zlOp0dAGQSE4ovpB0Zm4Tv8HHw7HV?=
- =?us-ascii?Q?omQzR7aKG7tmETfDzw/l1uspj7GvuFv3Q+tpd64/VCrp0zZrZss+cgIv1UAU?=
- =?us-ascii?Q?TxFrn9C35jjDJKHT4fH9840nie55I1/xZKTF3oEc28Y7wbnUQIck7aGAEYyu?=
- =?us-ascii?Q?/tnrWrODEI6GCurSaQZjPpUyMA1M+HOBd/7GczYQ0WeVmdXBNesoKbWgb6+t?=
- =?us-ascii?Q?GbpBfSrhMEUkzQ6IT435pDs7y6n7CnDqdhxSMq76nsN7653n534WJULaHOh7?=
- =?us-ascii?Q?zeKmxmOzhGEWIzXAIlQXswmi/pbyHaUmlATwrW9KSKF+ekmuWV3gLenLy7OW?=
- =?us-ascii?Q?OoxsGcWO+P6qTXGtaCKpEktMRZv+5+QiEqPUSJ8IoH8YRhDt+JTFZgrZKuba?=
- =?us-ascii?Q?5zlEzIP6QMHKY/UwjhRDP5JO9FAs1vIbhzcDWdrm7kG5LASr7EcJNgS+qsoZ?=
- =?us-ascii?Q?3yrDPltMig6+W7qW56lqkVSI+cRaK/RcrOQdoQcNy440S/23bqaVkiRU30V2?=
- =?us-ascii?Q?lZnFDlw0ndw0V/z/K9/Ejl/fmm3f2/mP2E8vW94ISVAju6q0BzQYtbZQOMN7?=
- =?us-ascii?Q?Mn6jBt15Gj3ZsK5j9CzwpHfsZV/9sc9xMWu/5yg2F4y1irfovjsZJFH+soLp?=
- =?us-ascii?Q?G8INtkaDYc3viXX5MHFtOshflvj53q4wc02m9KNChqmLDGsgWbcjANe94zir?=
- =?us-ascii?Q?1vCl6CDD4wgH7e3i3YcqCtWVW52laK+1yG5ERyp0YvtWtDeFeSVBEfzVRtlC?=
- =?us-ascii?Q?RNa5K2yA0EOaA+jYYq1VVVWuV8WRBKdI7pVQuyVEYe7PIspVFTBr9YGNfmBu?=
- =?us-ascii?Q?k3W/q7+5Y+yjuPGQvqbZNjm3Wc/PK/pKCjM+BSI/oJvW0e+cd6lYApDibeDS?=
- =?us-ascii?Q?xR/gI/BiEUJng+K0ZJQsKCk1TIQU/+UJRDrUKg7a7GMCrsAKn9MkiQ4xMeEC?=
- =?us-ascii?Q?eRfpKlkxDlpEGX3Tv6cXkZ5BSr0VM737e6yGcKXHOrrTFHxDdgxSP+2N6UMV?=
- =?us-ascii?Q?Cj08BLUFTkR2bneNcLe6ZqisR6a//cJy0e2OqS4DlXC/FkMO2UuPtnHvgnXY?=
- =?us-ascii?Q?uDLwfr2m8RDtt3nG1+xaRGbRvVisrhbXUnoRVxM2/UphRz1NPQ+5IpEgyoSs?=
- =?us-ascii?Q?Qli81y8hQueFpqvRsXMoukUVZjVNOkQs+PdvDs7rCh8FyAZMseFoX1wzoSfo?=
- =?us-ascii?Q?EeXAlm9BuDhzznezq7WV73UySCaoFBj/VD9XfApG7+ozBlmTJ4DebBuYwCFa?=
- =?us-ascii?Q?l7D7mbnd3AZecuJpQ6s7EmqRLNE7BII5zY2CqNyCnEVwNMkxBH+E778neDeJ?=
- =?us-ascii?Q?AGPbWPHA6BSkC7WEKElkNKx8Apu82yK979sMWdJDFgQpxbAhS4g+rpTX6nJq?=
- =?us-ascii?Q?GA=3D=3D?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: dd9e7395-d6ac-4eb2-b32d-08dbcf92a62a
-X-MS-Exchange-CrossTenant-AuthSource: PH8PR11MB8107.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 18 Oct 2023 04:28:16.4249
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 4PwPIFAk2AKCyGKJfhYVL7n+QMj8VFzag+nNz7zWmvraJcUMyN6g4Ch9wIOP5nA9e53ypXqudsNL7mXUYt4MZSIfi7UqI7Nry7PJF+rzosQ=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN2PR11MB4679
-X-OriginatorOrg: intel.com
+References: <20231017082905.1673316-1-michal.wilczynski@intel.com> <652f5eddba760_5c0d29449@dwillia2-mobl3.amr.corp.intel.com.notmuch>
+In-Reply-To: <652f5eddba760_5c0d29449@dwillia2-mobl3.amr.corp.intel.com.notmuch>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Wed, 18 Oct 2023 12:39:46 +0200
+Message-ID: <CAJZ5v0g5buHjd+EqMsHtuN2vcJHSTCd-cCchvo-44iPi1cKk5A@mail.gmail.com>
+Subject: Re: [PATCH v3] ACPI: NFIT: Use cleanup.h helpers instead of devm_*()
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Michal Wilczynski <michal.wilczynski@intel.com>, nvdimm@lists.linux.dev, 
+	linux-acpi@vger.kernel.org, rafael@kernel.org, vishal.l.verma@intel.com, 
+	lenb@kernel.org, dave.jiang@intel.com, ira.weiny@intel.com, 
+	linux-kernel@vger.kernel.org, Andy Shevchenko <andy.shevchenko@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Michal Wilczynski wrote:
-> The new cleanup.h facilities that arrived in v6.5-rc1 can replace the
-> the usage of devm semantics in acpi_nfit_init_interleave_set(). That
-> routine appears to only be using devm to avoid goto statements. The
-> new __free() annotation at variable declaration time can achieve the same
-> effect more efficiently.
-> 
-> There is no end user visible side effects of this patch, I was
-> motivated to send this cleanup to practice using the new helpers.
-> 
-> Suggested-by: Dave Jiang <dave.jiang@intel.com>
-> Suggested-by: Andy Shevchenko <andy.shevchenko@gmail.com>
-> Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-> Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
-> Signed-off-by: Michal Wilczynski <michal.wilczynski@intel.com>
-> ---
-> 
-> Dan, would you like me to give you credit for the changelog changes
-> with Co-developed-by tag ?
+On Wed, Oct 18, 2023 at 6:28=E2=80=AFAM Dan Williams <dan.j.williams@intel.=
+com> wrote:
+>
+> Michal Wilczynski wrote:
+> > The new cleanup.h facilities that arrived in v6.5-rc1 can replace the
+> > the usage of devm semantics in acpi_nfit_init_interleave_set(). That
+> > routine appears to only be using devm to avoid goto statements. The
+> > new __free() annotation at variable declaration time can achieve the sa=
+me
+> > effect more efficiently.
+> >
+> > There is no end user visible side effects of this patch, I was
+> > motivated to send this cleanup to practice using the new helpers.
+> >
+> > Suggested-by: Dave Jiang <dave.jiang@intel.com>
+> > Suggested-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+> > Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+> > Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+> > Signed-off-by: Michal Wilczynski <michal.wilczynski@intel.com>
+> > ---
+> >
+> > Dan, would you like me to give you credit for the changelog changes
+> > with Co-developed-by tag ?
+>
+> Nope, this looks good to me, thanks for fixing it up.
+>
+> Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 
-Nope, this looks good to me, thanks for fixing it up.
-
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Are you going to apply it too, or should I take it?
