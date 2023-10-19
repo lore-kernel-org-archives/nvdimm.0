@@ -1,72 +1,118 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.115])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oo1-f49.google.com (mail-oo1-f49.google.com [209.85.161.49])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 59F1330F82
-	for <nvdimm@lists.linux.dev>; Thu, 19 Oct 2023 15:36:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Pe/8HNvs"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1697729801; x=1729265801;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=Vuyr/wjcaq45z5sHIWsOKl3qqIBusIoS8TyidC9xcRM=;
-  b=Pe/8HNvsBfm3o0Gju/AoTl7D8Lbgz19q3OtUHRdZZ7RuqcyO6K4rzTvA
-   TN+/aC1YtY0nilgvf+6iAwY9gE+BTsLydFB2fZ2DDjNGx5yHFhxy/KbQM
-   qU12dNAtGETXEbcW+F9dR3HO736wcnmblGQFZfcT+XgvwX5H2fklCuwo9
-   OFIuXhXVrZYWZok5vFeN+HkikYZIzNB1+nx4lUdukrIIYFb6vJDY0vrXb
-   e7Piq8NOHkYkQG1KbAdDl0oizDhqbl0eT9cavFoF5U6aMPmcAOtp+XJrw
-   yCpkfPUaqsGZKWEytlr5Tt7c3K3b4cwIGMIvdHNYgmjnWbfLTBQJu4TzA
-   A==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10868"; a="386109293"
-X-IronPort-AV: E=Sophos;i="6.03,237,1694761200"; 
-   d="scan'208";a="386109293"
-Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Oct 2023 08:36:40 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10868"; a="1004277332"
-X-IronPort-AV: E=Sophos;i="6.03,237,1694761200"; 
-   d="scan'208";a="1004277332"
-Received: from smile.fi.intel.com ([10.237.72.54])
-  by fmsmga006.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Oct 2023 08:36:38 -0700
-Received: from andy by smile.fi.intel.com with local (Exim 4.97-RC2)
-	(envelope-from <andriy.shevchenko@linux.intel.com>)
-	id 1qtV4d-00000006ur5-1sLB;
-	Thu, 19 Oct 2023 18:36:35 +0300
-Date: Thu, 19 Oct 2023 18:36:35 +0300
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Michal Wilczynski <michal.wilczynski@intel.com>, nvdimm@lists.linux.dev,
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH v1 1/1] ACPI: NFIT: Switch to use
- acpi_evaluate_dsm_typed()
-Message-ID: <ZTFNA3M7OaiIoIw+@smile.fi.intel.com>
-References: <20231002135458.2603293-1-andriy.shevchenko@linux.intel.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFC4130FB0
+	for <nvdimm@lists.linux.dev>; Thu, 19 Oct 2023 15:43:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; dkim=none
+Received: by mail-oo1-f49.google.com with SMTP id 006d021491bc7-57b83ff7654so613729eaf.1
+        for <nvdimm@lists.linux.dev>; Thu, 19 Oct 2023 08:43:25 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1697730205; x=1698335005;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=I2ChnxZG/VgBeabcVh8eKWDyi6/8hg/NtlFoAWl5NY8=;
+        b=AUtb3PolKnAS7PeXDf0eoHswziMswkWHjJa3V70bJBA3gnV0uorlojKrZ0NqhsReXq
+         UDzcOQnYsEwhPlSKI+6nKPZQe76bxGnGYp6aO7dMHjyPVJcrOr2HwqlIS8JCIEM5VaEA
+         tpVuPCalp5Fc3aoW7mgzJWmFIzlf8rYEmDdEALLWaPFQ/Zr8YowH8F2N+coCp/Js7CyB
+         52fQnvmbks5vkfMw5YvCuQ60lAHfHCHCl6+rREmBUX/3+4+f212sVUq/Kr88DHMlPSk0
+         NwThUa+kwok3Cviav2W+BYEfwv6lCbs6lbHBSrll1xIgzNs0O9bCDNBcZDIDfaZiyPEl
+         mgmQ==
+X-Gm-Message-State: AOJu0YzYBr7U5akhtOyPMJYr/3xfYQ7bmU/OKjXuu1gLUh6XU+96zpL2
+	6LMQ4NZqIFE3cxWgA7yIA8SNVGfrdBPI4xBeffEN0jXY
+X-Google-Smtp-Source: AGHT+IHscgUh+M184TsU2IarjQrdiDFUytd6te67vy59qauFVXU+O/axi9NPtceVXonSojnetCCJ9DT6jfrnLlzbh5w=
+X-Received: by 2002:a4a:5297:0:b0:584:537:ffbd with SMTP id
+ d145-20020a4a5297000000b005840537ffbdmr1261662oob.0.1697730204766; Thu, 19
+ Oct 2023 08:43:24 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20231002135458.2603293-1-andriy.shevchenko@linux.intel.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+References: <1697720481-150095-1-git-send-email-chenxiang66@hisilicon.com>
+In-Reply-To: <1697720481-150095-1-git-send-email-chenxiang66@hisilicon.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Thu, 19 Oct 2023 17:43:13 +0200
+Message-ID: <CAJZ5v0j0A4637V5OEtjP-HMGhH80T=1kPjO_QXbgbBSZHvJY=w@mail.gmail.com>
+Subject: Re: [PATCH] Install Notify() handler before getting NFIT table
+To: chenxiang <chenxiang66@hisilicon.com>, Dan Williams <dan.j.williams@intel.com>
+Cc: michal.wilczynski@intel.com, rafael@kernel.org, linuxarm@huawei.com, 
+	linux-acpi@vger.kernel.org, nvdimm@lists.linux.dev
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Mon, Oct 02, 2023 at 04:54:58PM +0300, Andy Shevchenko wrote:
-> The acpi_evaluate_dsm_typed() provides a way to check the type of the
-> object evaluated by _DSM call. Use it instead of open coded variant.
+On Thu, Oct 19, 2023 at 2:57=E2=80=AFPM chenxiang <chenxiang66@hisilicon.co=
+m> wrote:
+>
+> From: Xiang Chen <chenxiang66@hisilicon.com>
+>
+> If there is no NFIT at startup, it will return 0 immediately in function
+> acpi_nfit_add() and will not install Notify() handler. If hotplugging
+> a nvdimm device later, it will not be identified as there is no Notify()
+> handler.
 
-Dan, do you have any comments?
+Yes, this is a change in behavior that shouldn't have been made.
 
--- 
-With Best Regards,
-Andy Shevchenko
+> So move handler installing before getting NFI table in function
+> acpi_nfit_add() to avoid above issue.
 
+And the fix is correct if I'm not mistaken.
 
+I can still queue it up for 6.6 if that's fine with everyone.  Dan?
+
+> Fixes: dcca12ab62a2 ("ACPI: NFIT: Install Notify() handler directly")
+> Signed-off-by: Xiang Chen <chenxiang66@hisilicon.com>
+> ---
+>  drivers/acpi/nfit/core.c | 22 +++++++++++-----------
+>  1 file changed, 11 insertions(+), 11 deletions(-)
+>
+> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> index 3826f49..9923855 100644
+> --- a/drivers/acpi/nfit/core.c
+> +++ b/drivers/acpi/nfit/core.c
+> @@ -3339,6 +3339,16 @@ static int acpi_nfit_add(struct acpi_device *adev)
+>         acpi_size sz;
+>         int rc =3D 0;
+>
+> +       rc =3D acpi_dev_install_notify_handler(adev, ACPI_DEVICE_NOTIFY,
+> +                                            acpi_nfit_notify, adev);
+> +       if (rc)
+> +               return rc;
+> +
+> +       rc =3D devm_add_action_or_reset(dev, acpi_nfit_remove_notify_hand=
+ler,
+> +                                       adev);
+> +       if (rc)
+> +               return rc;
+> +
+>         status =3D acpi_get_table(ACPI_SIG_NFIT, 0, &tbl);
+>         if (ACPI_FAILURE(status)) {
+>                 /* The NVDIMM root device allows OS to trigger enumeratio=
+n of
+> @@ -3386,17 +3396,7 @@ static int acpi_nfit_add(struct acpi_device *adev)
+>         if (rc)
+>                 return rc;
+>
+> -       rc =3D devm_add_action_or_reset(dev, acpi_nfit_shutdown, acpi_des=
+c);
+> -       if (rc)
+> -               return rc;
+> -
+> -       rc =3D acpi_dev_install_notify_handler(adev, ACPI_DEVICE_NOTIFY,
+> -                                            acpi_nfit_notify, adev);
+> -       if (rc)
+> -               return rc;
+> -
+> -       return devm_add_action_or_reset(dev, acpi_nfit_remove_notify_hand=
+ler,
+> -                                       adev);
+> +       return devm_add_action_or_reset(dev, acpi_nfit_shutdown, acpi_des=
+c);
+>  }
+>
+>  static void acpi_nfit_update_notify(struct device *dev, acpi_handle hand=
+le)
+> --
