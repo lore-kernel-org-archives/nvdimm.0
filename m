@@ -1,152 +1,75 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oo1-f42.google.com (mail-oo1-f42.google.com [209.85.161.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1C06F50E;
-	Mon, 23 Oct 2023 12:22:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fUTH+SSp"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE325C433C8;
-	Mon, 23 Oct 2023 12:22:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1698063737;
-	bh=yWAB5IfWcKrAlITT4bJyO6/NuZWlOzBmHsnfhba5iJk=;
-	h=References:From:To:Cc:Subject:Date:In-reply-to:From;
-	b=fUTH+SSp6jspikGzmehSSTvtU+ailRWHiTav2WWd5d/KCGJvzLg5O3ZLuHPTEjOH/
-	 1DERIBOo1JAhCgasljWl67Hd2R62YfCkTRPDNxAt4JkBKGqa2SWealTnKBF/x2+0BT
-	 DHzztgSJhoWo5DhBILafGR8mfcL2nFbkPoWKT3SMNbMWxq6B16vFF7jOQGsk9STebI
-	 pY3wyZh+CpJP5IUZuk5csmNWEKu6SSLmHkwiyWcYHkB4/C2rlQxJhWQbQ+JmLd0VBo
-	 mkoOKgiujS64fBy31V7xkM1XK1GsPFdAYQA4JMn0ABpMVYx3/7/rfFsXEJDzfnq63+
-	 0ANLXF7nrA+VQ==
-References: <20230828065744.1446462-1-ruansy.fnst@fujitsu.com>
- <20230928103227.250550-1-ruansy.fnst@fujitsu.com>
- <875y31wr2d.fsf@debian-BULLSEYE-live-builder-AMD64>
- <20231020154009.GS3195650@frogsfrogsfrogs>
- <87msw9zvpk.fsf@debian-BULLSEYE-live-builder-AMD64>
- <834497bc-0876-43bb-bd67-154ad7f26af3@fujitsu.com>
-User-agent: mu4e 1.8.10; emacs 27.1
-From: Chandan Babu R <chandanbabu@kernel.org>
-To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Cc: akpm@linux-foundation.org, "Darrick J. Wong" <djwong@kernel.org>,
- linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
- linux-xfs@vger.kernel.org, linux-mm@kvack.org, dan.j.williams@intel.com,
- willy@infradead.org, jack@suse.cz, mcgrof@kernel.org
-Subject: Re: [PATCH v15] mm, pmem, xfs: Introduce MF_MEM_PRE_REMOVE for unbind
-Date: Mon, 23 Oct 2023 17:51:49 +0530
-In-reply-to: <834497bc-0876-43bb-bd67-154ad7f26af3@fujitsu.com>
-Message-ID: <87edhlzfyi.fsf@debian-BULLSEYE-live-builder-AMD64>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75A1C2D62F
+	for <nvdimm@lists.linux.dev>; Wed, 25 Oct 2023 17:51:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; dkim=none
+Received: by mail-oo1-f42.google.com with SMTP id 006d021491bc7-584081ad442so8389eaf.0
+        for <nvdimm@lists.linux.dev>; Wed, 25 Oct 2023 10:51:16 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1698256275; x=1698861075;
+        h=cc:to:subject:message-id:date:from:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=L0sZrs9MuS+86zDU/MsJ/ZulEyleyOije+QkqQwj6sY=;
+        b=ghn6I1EUbzzEhbYupj8Dsh8BZA8+dCt3LXawGoKxz8MOo0U7+EN/0VFxBFulj7h3a+
+         uUPx4H0FOpNYK99F9rokTB17BCJLFLNlNZ4NTO4P0pARXZOfdxPdbpt2vegEoO+neSaw
+         J5WaN4ZB/fsewuYRVDkzlBBsGZ3J4IIJHkfl8NCjxFMYMwNgEbUWBs7CtvbAM9CndEsT
+         II8V357alJQzzpfHd6C0ARPDpzCj9wuRtn7OYGlLFee39RmkAQ3uQ+XBQi6oz91/wiME
+         pJpuFqIgS/fcEW0b4OANVfQgqxDELGe+be2wyCnkZLS82HFu4FP64Xzk+zKnA1BfXzrd
+         oRow==
+X-Gm-Message-State: AOJu0YyhHDTj/ZXRfNVjtvZ2LZjDsZYcoudTrJ06Nk8hVDYbLmvGB5t7
+	/URuiftD2Rr3Mwaf5q7MUJ/JR8paL8nCc+Ahv00aUI7PwSE=
+X-Google-Smtp-Source: AGHT+IFCA0SEdK9m8vSIvw85EgwaejMKhBk+2eajXLIBFquGyYGfOy8NuRsSUt4oLKxAESlfJ86CeK7wYlYQ0T/EOxM=
+X-Received: by 2002:a4a:bd18:0:b0:581:e7b8:dd77 with SMTP id
+ n24-20020a4abd18000000b00581e7b8dd77mr17606973oop.1.1698256275473; Wed, 25
+ Oct 2023 10:51:15 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Wed, 25 Oct 2023 19:51:04 +0200
+Message-ID: <CAJZ5v0hQGLq6JdJqVnhF_-DqXTjHubrt7khJi_ZoDU0diNTPMQ@mail.gmail.com>
+Subject: [GIT PULL] ACPI fix for v6.6-rc8
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, 
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, nvdimm@lists.linux.dev
+Content-Type: text/plain; charset="UTF-8"
 
-On Mon, Oct 23, 2023 at 03:26:52 PM +0800, Shiyang Ruan wrote:
-> =E5=9C=A8 2023/10/23 14:40, Chandan Babu R =E5=86=99=E9=81=93:
->> On Fri, Oct 20, 2023 at 08:40:09 AM -0700, Darrick J. Wong wrote:
->>> On Fri, Oct 20, 2023 at 03:26:32PM +0530, Chandan Babu R wrote:
->>>> On Thu, Sep 28, 2023 at 06:32:27 PM +0800, Shiyang Ruan wrote:
->>>>> =3D=3D=3D=3D
->>>>> Changes since v14:
->>>>>   1. added/fixed code comments per Dan's comments
->>>>> =3D=3D=3D=3D
->>>>>
->>>>> Now, if we suddenly remove a PMEM device(by calling unbind) which
->>>>> contains FSDAX while programs are still accessing data in this device,
->>>>> e.g.:
->>>>> ```
->>>>>   $FSSTRESS_PROG -d $SCRATCH_MNT -n 99999 -p 4 &
->>>>>   # $FSX_PROG -N 1000000 -o 8192 -l 500000 $SCRATCH_MNT/t001 &
->>>>>   echo "pfn1.1" > /sys/bus/nd/drivers/nd_pmem/unbind
->>>>> ```
->>>>> it could come into an unacceptable state:
->>>>>    1. device has gone but mount point still exists, and umount will f=
-ail
->>>>>         with "target is busy"
->>>>>    2. programs will hang and cannot be killed
->>>>>    3. may crash with NULL pointer dereference
->>>>>
->>>>> To fix this, we introduce a MF_MEM_PRE_REMOVE flag to let it know tha=
-t we
->>>>> are going to remove the whole device, and make sure all related proce=
-sses
->>>>> could be notified so that they could end up gracefully.
->>>>>
->>>>> This patch is inspired by Dan's "mm, dax, pmem: Introduce
->>>>> dev_pagemap_failure()"[1].  With the help of dax_holder and
->>>>> ->notify_failure() mechanism, the pmem driver is able to ask filesyst=
-em
->>>>> on it to unmap all files in use, and notify processes who are using
->>>>> those files.
->>>>>
->>>>> Call trace:
->>>>> trigger unbind
->>>>>   -> unbind_store()
->>>>>    -> ... (skip)
->>>>>     -> devres_release_all()
->>>>>      -> kill_dax()
->>>>>       -> dax_holder_notify_failure(dax_dev, 0, U64_MAX, MF_MEM_PRE_RE=
-MOVE)
->>>>>        -> xfs_dax_notify_failure()
->>>>>        `-> freeze_super()             // freeze (kernel call)
->>>>>        `-> do xfs rmap
->>>>>        ` -> mf_dax_kill_procs()
->>>>>        `  -> collect_procs_fsdax()    // all associated processes
->>>>>        `  -> unmap_and_kill()
->>>>>        ` -> invalidate_inode_pages2_range() // drop file's cache
->>>>>        `-> thaw_super()               // thaw (both kernel & user cal=
-l)
->>>>>
->>>>> Introduce MF_MEM_PRE_REMOVE to let filesystem know this is a remove
->>>>> event.  Use the exclusive freeze/thaw[2] to lock the filesystem to pr=
-event
->>>>> new dax mapping from being created.  Do not shutdown filesystem direc=
-tly
->>>>> if configuration is not supported, or if failure range includes metad=
-ata
->>>>> area.  Make sure all files and processes(not only the current progres=
-s)
->>>>> are handled correctly.  Also drop the cache of associated files before
->>>>> pmem is removed.
->>>>>
->>>>> [1]: https://lore.kernel.org/linux-mm/161604050314.1463742.1415166514=
-0035795571.stgit@dwillia2-desk3.amr.corp.intel.com/
->>>>> [2]: https://lore.kernel.org/linux-xfs/169116275623.3187159.168624101=
-28731457358.stg-ugh@frogsfrogsfrogs/
->>>>>
->>>>> Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
->>>>> Reviewed-by: Darrick J. Wong <djwong@kernel.org>
->>>>> Acked-by: Dan Williams <dan.j.williams@intel.com>
->>>>
->>>> Hi Andrew,
->>>>
->>>> Shiyang had indicated that this patch has been added to
->>>> akpm/mm-hotfixes-unstable branch. However, I don't see the patch liste=
-d in
->>>> that branch.
->>>>
->>>> I am about to start collecting XFS patches for v6.7 cycle. Please let =
-me know
->>>> if you have any objections with me taking this patch via the XFS tree.
->>>
->>> V15 was dropped from his tree on 28 Sept., you might as well pull it
->>> into your own tree for 6.7.  It's been testing fine on my trees for the
->>> past 3 weeks.
->>>
->>> https://lore.kernel.org/mm-commits/20230928172815.EE6AFC433C8@smtp.kern=
-el.org/
->> Shiyang, this patch does not apply cleanly on v6.6-rc7. Can you
->> please rebase
->> the patch on v6.6-rc7 and send it to the mailing list?
->
-> Sure.  I have rebased it and sent a v15.1.  Please check it:
->
-> https://lore.kernel.org/linux-xfs/20231023072046.1626474-1-ruansy.fnst@fu=
-jitsu.com/
+Hi Linus,
 
-Thank you. I have applied the patch to my local Git tree.
+Please pull from the tag
 
---=20
-Chandan
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ acpi-6.6-rc8
+
+with top-most commit 9b311b7313d6c104dd4a2d43ab54536dce07f960
+
+ ACPI: NFIT: Install Notify() handler before getting NFIT table
+
+on top of commit f20f29cbcb438ca37962d22735f74a143cbeb28c
+
+ Merge tag 'acpi-6.6-rc7' of
+git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
+
+to receive an ACPI fix for 6.6.
+
+This unbreaks the ACPI NFIT driver after a recent change that
+inadvertently altered its behavior (Xiang Chen).
+
+Thanks!
+
+
+---------------
+
+Xiang Chen (1):
+      ACPI: NFIT: Install Notify() handler before getting NFIT table
+
+---------------
+
+ drivers/acpi/nfit/core.c | 22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
