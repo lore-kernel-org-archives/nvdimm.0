@@ -1,55 +1,185 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.43])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C54F018B08;
-	Wed, 25 Oct 2023 18:00:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7250D125DC
+	for <nvdimm@lists.linux.dev>; Wed, 25 Oct 2023 22:44:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Rg/t6UCm"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 4B155C433C8;
-	Wed, 25 Oct 2023 18:00:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1698256843;
-	bh=2nERPDJJo/iFzCwUHAQJssuuyAKf3mzyWrOcRv5x2lw=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-	b=Rg/t6UCm0wsCBaSVfeYB+JFeSNlShBCKDDmAOi/8bg9IxLf5MJ7LfQxcWhCS2ZX/H
-	 KqpCd22j8ZuddxXzDV++tjr0Nr7/sU+O+KkGAZeLLl7fgshtq0hy7mK6uOuPXrkCYn
-	 cNUhlCwQZmWUGCifoxU0p4WMskjE72RPHR+PiGiCEo85zpp7kvMWA0y/INBck1UgdF
-	 jbx1TGVcV32GIC6rgUTyKWQZWjTTNuZrCigAK9G/TP3fJBWECm3fG4bXS01SqaGO0P
-	 F3YKotVG9qwGl4MsZp3oyEloc+w5gWls2DEfPODmRyrbHqGOn5A8PeNQMp/pfKEHyy
-	 94/nmjtNSMaew==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 37389E4CC0F;
-	Wed, 25 Oct 2023 18:00:43 +0000 (UTC)
-Subject: Re: [GIT PULL] ACPI fix for v6.6-rc8
-From: pr-tracker-bot@kernel.org
-In-Reply-To: <CAJZ5v0hQGLq6JdJqVnhF_-DqXTjHubrt7khJi_ZoDU0diNTPMQ@mail.gmail.com>
-References: <CAJZ5v0hQGLq6JdJqVnhF_-DqXTjHubrt7khJi_ZoDU0diNTPMQ@mail.gmail.com>
-X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
-X-PR-Tracked-Message-Id: <CAJZ5v0hQGLq6JdJqVnhF_-DqXTjHubrt7khJi_ZoDU0diNTPMQ@mail.gmail.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-6.6-rc8
-X-PR-Tracked-Commit-Id: 9b311b7313d6c104dd4a2d43ab54536dce07f960
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 611da07b89fdd53f140d7b33013f255bf0ed8f34
-Message-Id: <169825684321.26933.16361374132237868253.pr-tracker-bot@kernel.org>
-Date: Wed, 25 Oct 2023 18:00:43 +0000
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, nvdimm@lists.linux.dev
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="ZfQz3OhJ"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1698273896; x=1729809896;
+  h=from:subject:date:message-id:mime-version:
+   content-transfer-encoding:to:cc;
+  bh=gz3VKimBJsZyyZ3LjSgqRdUvkSLq5Ho3PrPRQJbwLaE=;
+  b=ZfQz3OhJt7G01IRgXcTIs4/JxOoVsYzUrRAYxkiwEygOi8+IU7jg9dMe
+   9GU5SNEdbKftcPmEOPcmhFDbtfv9+BjnCNNKUqza03sggwgztm6uoLW9l
+   WY9DnyLBtQVMUzBa+w6wgIVqoxAVpn5qZD/cXoXaS95tmx3k11UWxxI+1
+   0XNTS3ev02RKMeX2XUjByqRySpOvL5Rwp2fIHK4I+P39pDbuR46bt8dAa
+   K4iDF+nlHepyPhEfAXPigRv0eZI4N+GYlMYr+85OuSdR6H3XU4B0GSBBA
+   t6EewMSq7Yw6kIuG9kpgQILyLOIV5cEnDNL04fH0Mf8U6OpAgqCi6LxhK
+   A==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10874"; a="473650431"
+X-IronPort-AV: E=Sophos;i="6.03,252,1694761200"; 
+   d="scan'208";a="473650431"
+Received: from orsmga003.jf.intel.com ([10.7.209.27])
+  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Oct 2023 15:44:50 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10874"; a="708846714"
+X-IronPort-AV: E=Sophos;i="6.03,252,1694761200"; 
+   d="scan'208";a="708846714"
+Received: from nmckubrx-mobl.amr.corp.intel.com (HELO [192.168.1.200]) ([10.212.68.190])
+  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Oct 2023 15:44:48 -0700
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v7 0/3] mm: use memmap_on_memory semantics for dax/kmem
+Date: Wed, 25 Oct 2023 16:44:32 -0600
+Message-Id: <20231025-vv-kmem_memmap-v7-0-4a76d7652df5@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAFCaOWUC/3XOy07DMBAF0F+pvMZo/La74j8QQhM/iEWTVEmxQ
+ FX+HbcLUsViMYs70rkzV7LEOceFHA9XMseSlzyNNZinA/E9jh+R5lAz4cAFaCZoKfRziMN7nQH
+ PVEkrvA0guXGkog6XSLsZR99XNn6dTnV5nmPK3/crr28193m5TPPP/Whht+2//YVRoEmH6LzGx
+ L1+yeMlnp79NJBbVeEbNxwaziu3tguInZDOiT0XG7fAGi4ql6CjQ0xKW7fncuOO24bLynVKRqT
+ oFXO45+qPMwDVcFU5KhmYsywBNs/rB850w3XlYGyCIDwIwx75uq6/2p5LvPwBAAA=
+To: Andrew Morton <akpm@linux-foundation.org>, 
+ David Hildenbrand <david@redhat.com>, Oscar Salvador <osalvador@suse.de>, 
+ Dan Williams <dan.j.williams@intel.com>, Dave Jiang <dave.jiang@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, 
+ nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org, 
+ Huang Ying <ying.huang@intel.com>, 
+ Dave Hansen <dave.hansen@linux.intel.com>, 
+ "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, 
+ Michal Hocko <mhocko@suse.com>, 
+ Jonathan Cameron <Jonathan.Cameron@Huawei.com>, 
+ Jeff Moyer <jmoyer@redhat.com>, Vishal Verma <vishal.l.verma@intel.com>, 
+ Jonathan Cameron <Jonathan.Cameron@huawei.com>
+X-Mailer: b4 0.12.4
+X-Developer-Signature: v=1; a=openpgp-sha256; l=5215;
+ i=vishal.l.verma@intel.com; h=from:subject:message-id;
+ bh=gz3VKimBJsZyyZ3LjSgqRdUvkSLq5Ho3PrPRQJbwLaE=;
+ b=owGbwMvMwCXGf25diOft7jLG02pJDKmWs6JrZ+qF9p6322j1bOmdkx/C10WeM2NjWCn+YpvUq
+ 5Mng2MMO0pZGMS4GGTFFFn+7vnIeExuez5PYIIjzBxWJpAhDFycAjCRGdwMf3h8BM5+ttaqfBCy
+ W+dW3QG25oofO94ISn6pib/C9FZ28nOGP3z/lThPeWQKVbxrlP52IaF/VV3IFWd3oVimw/kblmd
+ MZgIA
+X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp;
+ fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
 
-The pull request you sent on Wed, 25 Oct 2023 19:51:04 +0200:
+The dax/kmem driver can potentially hot-add large amounts of memory
+originating from CXL memory expanders, or NVDIMMs, or other 'device
+memories'. There is a chance there isn't enough regular system memory
+available to fit the memmap for this new memory. It's therefore
+desirable, if all other conditions are met, for the kmem managed memory
+to place its memmap on the newly added memory itself.
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-6.6-rc8
+The main hurdle for accomplishing this for kmem is that memmap_on_memory
+can only be done if the memory being added is equal to the size of one
+memblock. To overcome this, allow the hotplug code to split an add_memory()
+request into memblock-sized chunks, and try_remove_memory() to also
+expect and handle such a scenario.
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/611da07b89fdd53f140d7b33013f255bf0ed8f34
+Patch 1 replaces an open-coded kmemdup()
 
-Thank you!
+Patch 2 teaches the memory_hotplug code to allow for splitting
+add_memory() and remove_memory() requests over memblock sized chunks.
 
+Patch 3 allows the dax region drivers to request memmap_on_memory
+semantics. CXL dax regions default this to 'on', all others default to
+off to keep existing behavior unchanged.
+
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+Changes in v7:
+- Make the add_memory_resource() flow symmetrical w.r.t. try_remove_memory()
+  in terms of how the altmap path is taken (David Hildenbrand)
+- Move a comment, clean up usage of 'memblock' vs. 'memory_block'
+  (David Hildenbrand)
+- Don't use the altmap path for the mhp_supports_memmap_on_memory(memblock_size) == false
+  case (Huang Ying)
+- Link to v6: https://lore.kernel.org/r/20231016-vv-kmem_memmap-v6-0-078f0d3c0371@intel.com
+
+Changes in v6:
+- Add a prep patch to replace an open coded kmemdup in
+  add_memory_resource() (Dan Williams)
+- Fix ordering of firmware_map_remove w.r.t taking the hotplug lock
+  (David Hildenbrand)
+- Remove unused 'nid' variable, and a stray whitespace (David Hildenbrand)
+- Clean up and simplify the altmap vs non-altmap paths for
+  try_remove_memory (David Hildenbrand)
+- Add a note to the changelog in patch 1 linking to the PUD mappings
+  proposal (David Hildenbrand)
+- Remove the new sysfs ABI from the kmem/dax drivers until ABI
+  documentation for /sys/bus/dax can be established (will split this out
+  into a separate patchset) (Dan Williams)
+- Link to v5: https://lore.kernel.org/r/20231005-vv-kmem_memmap-v5-0-a54d1981f0a3@intel.com
+
+Changes in v5:
+- Separate out per-memblock operations from per memory block operations
+  in try_remove_memory(), and rename the inner function appropriately.
+  This does expand the scope of the memory hotplug lock to include
+  remove_memory_block_devices(), but the alternative was to drop the
+  lock in the inner function separately for each iteration, and then
+  re-acquire it in try_remove_memory() creating a small window where
+  the lock isn't held. (David Hildenbrand)
+- Remove unnecessary rc check from the memmap_on_memory_store sysfs
+  helper in patch 2 (Dan Carpenter)
+- Link to v4: https://lore.kernel.org/r/20230928-vv-kmem_memmap-v4-0-6ff73fec519a@intel.com
+
+Changes in v4:
+- Rebase to Aneesh's PPC64 memmap_on_memory series v8 [2].
+- Tweak a goto / error path in add_memory_create_devices() (Jonathan)
+- Retain the old behavior for dax devices, only default to
+  memmap_on_memory for CXL (Jonathan)
+- Link to v3: https://lore.kernel.org/r/20230801-vv-kmem_memmap-v3-0-406e9aaf5689@intel.com
+
+[2]: https://lore.kernel.org/linux-mm/20230808091501.287660-1-aneesh.kumar@linux.ibm.com
+
+Changes in v3:
+- Rebase on Aneesh's patches [1]
+- Drop Patch 1 - it is not needed since [1] allows for dynamic setting
+  of the memmap_on_memory param (David)
+- Link to v2: https://lore.kernel.org/r/20230720-vv-kmem_memmap-v2-0-88bdaab34993@intel.com
+
+[1]: https://lore.kernel.org/r/20230801044116.10674-1-aneesh.kumar@linux.ibm.com
+
+Changes in v2:
+- Drop the patch to create an override path for the memmap_on_memory
+  module param (David)
+- Move the chunking into memory_hotplug.c so that any caller of
+  add_memory() can request this behavior. (David)
+- Handle remove_memory() too. (David, Ying)
+- Add a sysfs control in the kmem driver for memmap_on_memory semantics
+  (David, Jonathan)
+- Add a #else case to define mhp_supports_memmap_on_memory() if
+  CONFIG_MEMORY_HOTPLUG is unset. (0day report)
+- Link to v1: https://lore.kernel.org/r/20230613-vv-kmem_memmap-v1-0-f6de9c6af2c6@intel.com
+
+---
+Vishal Verma (3):
+      mm/memory_hotplug: replace an open-coded kmemdup() in add_memory_resource()
+      mm/memory_hotplug: split memmap_on_memory requests across memblocks
+      dax/kmem: allow kmem to add memory with memmap_on_memory
+
+ drivers/dax/bus.h         |   1 +
+ drivers/dax/dax-private.h |   1 +
+ drivers/dax/bus.c         |   3 +
+ drivers/dax/cxl.c         |   1 +
+ drivers/dax/hmem/hmem.c   |   1 +
+ drivers/dax/kmem.c        |   8 +-
+ drivers/dax/pmem.c        |   1 +
+ mm/memory_hotplug.c       | 207 ++++++++++++++++++++++++++++++++--------------
+ 8 files changed, 158 insertions(+), 65 deletions(-)
+---
+base-commit: 25b5b1a0646c3d39e1d885e27c10be1c9e202bf2
+change-id: 20230613-vv-kmem_memmap-5483c8d04279
+
+Best regards,
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+Vishal Verma <vishal.l.verma@intel.com>
+
