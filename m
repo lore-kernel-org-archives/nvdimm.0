@@ -1,214 +1,98 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.115])
+Received: from esa12.hc1455-7.c3s2.iphmx.com (esa12.hc1455-7.c3s2.iphmx.com [139.138.37.100])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87F17364
-	for <nvdimm@lists.linux.dev>; Mon, 30 Oct 2023 02:59:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="UXxupA7o"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1698634789; x=1730170789;
-  h=from:to:cc:subject:in-reply-to:references:date:
-   message-id:mime-version;
-  bh=C2HcoC4EHeUL7hfMNJTjDHQJVbGTY6+k0Z4WjLTThtw=;
-  b=UXxupA7o3Aw38EeL+5HO3RdPGdpLID1r7U7jeGTCT7LXyj4rOkWX13mn
-   fUeNtD4ATZ7X/huk3/YMB1VkWSOtpJMgzXAruOh1w6BlV0UwN1b9YgQ6x
-   DeN2QBYqSG4Ooxq938c3pRQDPY2LDM0PqD3pQUHeU2is52cTfHF6SQdVu
-   YA7dJDn2MK0FRT4ARpbXs56Y9tUoHlOXfzqzmOuWV9jxN57TT33R3IFfb
-   wv+1hE2sDLfkZDJolS/RPyKKbBQ74RNSwvdCZP/KEgzeDDD88WFz5bLKL
-   XDZUPDnM2JVVxS6Iur005zeFM52QtfbkgbEbqwKNf79gIDYT/suo80LUX
-   g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10878"; a="387817401"
-X-IronPort-AV: E=Sophos;i="6.03,262,1694761200"; 
-   d="scan'208";a="387817401"
-Received: from fmviesa002.fm.intel.com ([10.60.135.142])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Oct 2023 19:59:48 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.03,262,1694761200"; 
-   d="scan'208";a="1386390"
-Received: from yhuang6-desk2.sh.intel.com (HELO yhuang6-desk2.ccr.corp.intel.com) ([10.238.208.55])
-  by fmviesa002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Oct 2023 19:59:31 -0700
-From: "Huang, Ying" <ying.huang@intel.com>
-To: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>,  David Hildenbrand
- <david@redhat.com>,  Oscar Salvador <osalvador@suse.de>,  Dan Williams
- <dan.j.williams@intel.com>,  Dave Jiang <dave.jiang@intel.com>,
-  <linux-kernel@vger.kernel.org>,  <linux-mm@kvack.org>,
-  <nvdimm@lists.linux.dev>,  <linux-cxl@vger.kernel.org>,  Dave Hansen
- <dave.hansen@linux.intel.com>,  "Aneesh Kumar K.V"
- <aneesh.kumar@linux.ibm.com>,  Michal Hocko <mhocko@suse.com>,  Jonathan
- Cameron <Jonathan.Cameron@Huawei.com>,  Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: [PATCH v7 3/3] dax/kmem: allow kmem to add memory with
- memmap_on_memory
-In-Reply-To: <20231025-vv-kmem_memmap-v7-3-4a76d7652df5@intel.com> (Vishal
-	Verma's message of "Wed, 25 Oct 2023 16:44:35 -0600")
-References: <20231025-vv-kmem_memmap-v7-0-4a76d7652df5@intel.com>
-	<20231025-vv-kmem_memmap-v7-3-4a76d7652df5@intel.com>
-Date: Mon, 30 Oct 2023 10:57:42 +0800
-Message-ID: <871qdcddg9.fsf@yhuang6-desk2.ccr.corp.intel.com>
-User-Agent: Gnus/5.13 (Gnus v5.13)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7F9B19B
+	for <nvdimm@lists.linux.dev>; Mon, 30 Oct 2023 04:34:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=fujitsu.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fujitsu.com
+Authentication-Results: smtp.subspace.kernel.org; dkim=none
+X-IronPort-AV: E=McAfee;i="6600,9927,10878"; a="117321718"
+X-IronPort-AV: E=Sophos;i="6.03,262,1694703600"; 
+   d="scan'208";a="117321718"
+Received: from unknown (HELO oym-r3.gw.nic.fujitsu.com) ([210.162.30.91])
+  by esa12.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Oct 2023 13:33:46 +0900
+Received: from oym-m2.gw.nic.fujitsu.com (oym-nat-oym-m2.gw.nic.fujitsu.com [192.168.87.59])
+	by oym-r3.gw.nic.fujitsu.com (Postfix) with ESMTP id 393C9D64A0
+	for <nvdimm@lists.linux.dev>; Mon, 30 Oct 2023 13:33:44 +0900 (JST)
+Received: from kws-ab3.gw.nic.fujitsu.com (kws-ab3.gw.nic.fujitsu.com [192.51.206.21])
+	by oym-m2.gw.nic.fujitsu.com (Postfix) with ESMTP id 6B068BF3E4
+	for <nvdimm@lists.linux.dev>; Mon, 30 Oct 2023 13:33:43 +0900 (JST)
+Received: from edo.cn.fujitsu.com (edo.cn.fujitsu.com [10.167.33.5])
+	by kws-ab3.gw.nic.fujitsu.com (Postfix) with ESMTP id 0AB202007473B
+	for <nvdimm@lists.linux.dev>; Mon, 30 Oct 2023 13:33:43 +0900 (JST)
+Received: from [10.167.215.54] (unknown [10.167.215.54])
+	by edo.cn.fujitsu.com (Postfix) with ESMTP id 66D2F1A0071;
+	Mon, 30 Oct 2023 12:33:42 +0800 (CST)
+Message-ID: <c460ae5c-1685-9e41-5531-8b8016645f70@fujitsu.com>
+Date: Mon, 30 Oct 2023 12:33:40 +0800
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ascii
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.11.0
+Subject: Re: [NDCTL PATCH v2] cxl/region: Add -f option for disable-region
+To: Dave Jiang <dave.jiang@intel.com>, vishal.l.verma@intel.com
+Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
+ "lizhijian@fujitsu.com" <lizhijian@fujitsu.com>, caoqq@fujitsu.com
+References: <169525064907.3085225.2583864429793298106.stgit@djiang5-mobl3>
+ <59e51baa-cd6f-7045-178f-c327a693f803@fujitsu.com>
+ <7a01a5aa-678d-42ff-a877-8aaa8feb3fbd@intel.com>
+From: Xiao Yang <yangx.jy@fujitsu.com>
+In-Reply-To: <7a01a5aa-678d-42ff-a877-8aaa8feb3fbd@intel.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-TM-AS-Product-Ver: IMSS-9.1.0.1417-9.0.0.1002-27966.004
+X-TM-AS-User-Approved-Sender: Yes
+X-TMASE-Version: IMSS-9.1.0.1417-9.0.1002-27966.004
+X-TMASE-Result: 10--11.281800-10.000000
+X-TMASE-MatchedRID: GnNqJBi8oAePvrMjLFD6eJTQgFTHgkhZ9mojSc/N3QeqvcIF1TcLYJCl
+	VuR6WzhZKaK0jzrN6aA3pwoeDAoHmTjBjEWktJsNSHCU59h5KrHnrllatbeJEFc/CedjlcvkRtU
+	L4XifTnux3dLgEL2IPssSTjDnjl5dSSOWVJeuO1CDGx/OQ1GV8t8dWDYdvqmpDrBAjvbPhh50HS
+	e131POnjsAVzN+Ov/s4gK2WjROBAcj+ghXVyPWxlLy7/vMxlOk8RlKhbtY40nR/8G8FzL1WQ==
+X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
 
-Vishal Verma <vishal.l.verma@intel.com> writes:
+On 2023/10/14 6:38, Dave Jiang wrote:
+> 
+> On 10/9/23 03:52, Xiao Yang wrote:
+>> On 2023/9/21 6:57, Dave Jiang wrote:
+>>> +        if (daxctl_memory_online_no_movable(mem)) {
+>>> +            log_err(&rl, "%s: memory unmovable for %s\n",
+>>> +                    devname,
+>>> +                    daxctl_dev_get_devname(dev));
+>>> +            return -EPERM;
+>>> +        }
+>> Hi Dave,
+>>
+>> It seems wrong to check if memory is unmovable by the return number of daxctl_memory_online_no_movable(mem) here. IIRC, the return number of daxctl_memory_online_no_movable(mem)/daxctl_memory_op(MEM_GET_ZONE) indicates how many memory blocks have the same memory zone. So I think you should check mem->zone and MEM_ZONE_NORMAL as daxctl_memory_is_movable() did.
+> Do you mean:
+> rc = daxctl_memory_online_no_movable(mem);
+> if (rc < 0)
+> 	return rc;
+> if (rc > 0) {
+> 	log_err(&rl, "%s memory unmovable for %s\n' ...);
+> 	return -EPERM;
+> }
+> 
+Hi Dave,
 
-> Large amounts of memory managed by the kmem driver may come in via CXL,
-> and it is often desirable to have the memmap for this memory on the new
-> memory itself.
->
-> Enroll kmem-managed memory for memmap_on_memory semantics if the dax
-> region originates via CXL. For non-CXL dax regions, retain the existing
-> default behavior of hot adding without memmap_on_memory semantics.
->
-> Cc: Andrew Morton <akpm@linux-foundation.org>
-> Cc: David Hildenbrand <david@redhat.com>
-> Cc: Michal Hocko <mhocko@suse.com>
-> Cc: Oscar Salvador <osalvador@suse.de>
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Cc: Dave Jiang <dave.jiang@intel.com>
-> Cc: Dave Hansen <dave.hansen@linux.intel.com>
-> Cc: Huang Ying <ying.huang@intel.com>
-> Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-> Reviewed-by: David Hildenbrand <david@redhat.com>
-> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Sorry for the late reply.
 
-LGTM, Thanks!
+Is it necessary to try to online the memory region to the 
+MEM_ZONE_NORMAL by daxctl_memory_online_no_movable(mem)? If you just 
+want to check if the onlined memory region is in the MEM_ZONE_NORMAL, 
+the following code seems better:
+     mem->zone = 0;
+     rc = daxctl_memory_op(mem, MEM_GET_ZONE);
+     if (rc < 0)
+         return rc;
+     if (mem->zone == MEM_ZONE_NORMAL) {
+         log_err(&rl, "%s memory unmovable for %s\n' ...);
+	return -EPERM;
+     }
 
-Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
-
-> ---
->  drivers/dax/bus.h         | 1 +
->  drivers/dax/dax-private.h | 1 +
->  drivers/dax/bus.c         | 3 +++
->  drivers/dax/cxl.c         | 1 +
->  drivers/dax/hmem/hmem.c   | 1 +
->  drivers/dax/kmem.c        | 8 +++++++-
->  drivers/dax/pmem.c        | 1 +
->  7 files changed, 15 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/dax/bus.h b/drivers/dax/bus.h
-> index 1ccd23360124..cbbf64443098 100644
-> --- a/drivers/dax/bus.h
-> +++ b/drivers/dax/bus.h
-> @@ -23,6 +23,7 @@ struct dev_dax_data {
->  	struct dev_pagemap *pgmap;
->  	resource_size_t size;
->  	int id;
-> +	bool memmap_on_memory;
->  };
->  
->  struct dev_dax *devm_create_dev_dax(struct dev_dax_data *data);
-> diff --git a/drivers/dax/dax-private.h b/drivers/dax/dax-private.h
-> index 27cf2daaaa79..446617b73aea 100644
-> --- a/drivers/dax/dax-private.h
-> +++ b/drivers/dax/dax-private.h
-> @@ -70,6 +70,7 @@ struct dev_dax {
->  	struct ida ida;
->  	struct device dev;
->  	struct dev_pagemap *pgmap;
-> +	bool memmap_on_memory;
->  	int nr_range;
->  	struct dev_dax_range {
->  		unsigned long pgoff;
-> diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-> index 0ee96e6fc426..ad9f821b8c78 100644
-> --- a/drivers/dax/bus.c
-> +++ b/drivers/dax/bus.c
-> @@ -367,6 +367,7 @@ static ssize_t create_store(struct device *dev, struct device_attribute *attr,
->  			.dax_region = dax_region,
->  			.size = 0,
->  			.id = -1,
-> +			.memmap_on_memory = false,
->  		};
->  		struct dev_dax *dev_dax = devm_create_dev_dax(&data);
->  
-> @@ -1400,6 +1401,8 @@ struct dev_dax *devm_create_dev_dax(struct dev_dax_data *data)
->  	dev_dax->align = dax_region->align;
->  	ida_init(&dev_dax->ida);
->  
-> +	dev_dax->memmap_on_memory = data->memmap_on_memory;
-> +
->  	inode = dax_inode(dax_dev);
->  	dev->devt = inode->i_rdev;
->  	dev->bus = &dax_bus_type;
-> diff --git a/drivers/dax/cxl.c b/drivers/dax/cxl.c
-> index 8bc9d04034d6..c696837ab23c 100644
-> --- a/drivers/dax/cxl.c
-> +++ b/drivers/dax/cxl.c
-> @@ -26,6 +26,7 @@ static int cxl_dax_region_probe(struct device *dev)
->  		.dax_region = dax_region,
->  		.id = -1,
->  		.size = range_len(&cxlr_dax->hpa_range),
-> +		.memmap_on_memory = true,
->  	};
->  
->  	return PTR_ERR_OR_ZERO(devm_create_dev_dax(&data));
-> diff --git a/drivers/dax/hmem/hmem.c b/drivers/dax/hmem/hmem.c
-> index 5d2ddef0f8f5..b9da69f92697 100644
-> --- a/drivers/dax/hmem/hmem.c
-> +++ b/drivers/dax/hmem/hmem.c
-> @@ -36,6 +36,7 @@ static int dax_hmem_probe(struct platform_device *pdev)
->  		.dax_region = dax_region,
->  		.id = -1,
->  		.size = region_idle ? 0 : range_len(&mri->range),
-> +		.memmap_on_memory = false,
->  	};
->  
->  	return PTR_ERR_OR_ZERO(devm_create_dev_dax(&data));
-> diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
-> index c57acb73e3db..0aa6c45a4e5a 100644
-> --- a/drivers/dax/kmem.c
-> +++ b/drivers/dax/kmem.c
-> @@ -12,6 +12,7 @@
->  #include <linux/mm.h>
->  #include <linux/mman.h>
->  #include <linux/memory-tiers.h>
-> +#include <linux/memory_hotplug.h>
->  #include "dax-private.h"
->  #include "bus.h"
->  
-> @@ -56,6 +57,7 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
->  	unsigned long total_len = 0;
->  	struct dax_kmem_data *data;
->  	int i, rc, mapped = 0;
-> +	mhp_t mhp_flags;
->  	int numa_node;
->  
->  	/*
-> @@ -136,12 +138,16 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
->  		 */
->  		res->flags = IORESOURCE_SYSTEM_RAM;
->  
-> +		mhp_flags = MHP_NID_IS_MGID;
-> +		if (dev_dax->memmap_on_memory)
-> +			mhp_flags |= MHP_MEMMAP_ON_MEMORY;
-> +
->  		/*
->  		 * Ensure that future kexec'd kernels will not treat
->  		 * this as RAM automatically.
->  		 */
->  		rc = add_memory_driver_managed(data->mgid, range.start,
-> -				range_len(&range), kmem_name, MHP_NID_IS_MGID);
-> +				range_len(&range), kmem_name, mhp_flags);
->  
->  		if (rc) {
->  			dev_warn(dev, "mapping%d: %#llx-%#llx memory add failed\n",
-> diff --git a/drivers/dax/pmem.c b/drivers/dax/pmem.c
-> index ae0cb113a5d3..f3c6c67b8412 100644
-> --- a/drivers/dax/pmem.c
-> +++ b/drivers/dax/pmem.c
-> @@ -63,6 +63,7 @@ static struct dev_dax *__dax_pmem_probe(struct device *dev)
->  		.id = id,
->  		.pgmap = &pgmap,
->  		.size = range_len(&range),
-> +		.memmap_on_memory = false,
->  	};
->  
->  	return devm_create_dev_dax(&data);
+Best Regards,
+Xiao Yang
