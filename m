@@ -1,315 +1,203 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 224BB79C2
-	for <nvdimm@lists.linux.dev>; Thu,  2 Nov 2023 08:54:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A706121115
+	for <nvdimm@lists.linux.dev>; Thu,  2 Nov 2023 18:28:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="fpKcaCHR"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1698915256;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=hhuacmLeEt55NlKgJNjvhJFIwCxPsLqMGQxNmIQI81g=;
-	b=fpKcaCHRS23x9k968/hdwc/t+Mu4BjtaUaR7PCHtUxiHVrdaGXNK0PS5q6ntCbkT1mOKM2
-	Btr0yfLXC1IDHHvhBcroyLfgqSLGoTmDWKbBeVtzlyW3mW3b8Wc4a88u8hU41ou6jZx0Ku
-	D4HL3iAviM2wrqLlzANgkqg32DzBDfM=
-Received: from mail-wm1-f69.google.com (mail-wm1-f69.google.com
- [209.85.128.69]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-135-md6qOM_6PpyG-knBMWLIwQ-1; Thu, 02 Nov 2023 04:54:15 -0400
-X-MC-Unique: md6qOM_6PpyG-knBMWLIwQ-1
-Received: by mail-wm1-f69.google.com with SMTP id 5b1f17b1804b1-4091c9bdb8eso10597795e9.1
-        for <nvdimm@lists.linux.dev>; Thu, 02 Nov 2023 01:54:15 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1698915254; x=1699520054;
-        h=content-transfer-encoding:in-reply-to:organization:autocrypt:from
-         :references:cc:to:content-language:subject:user-agent:mime-version
-         :date:message-id:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=hhuacmLeEt55NlKgJNjvhJFIwCxPsLqMGQxNmIQI81g=;
-        b=dGVo8Dcfwdkb9A95ld+5QcLwwsZfZHHh7Ku04l95/Dp3W1hY6/ves9qkHtH8Ut6Ry9
-         EptqKVXoFVFKuh2V561zHdyhzIZZEsOe6j4MHFHeNGD4cPVt4VIXUiUhOs7xQ/cZIETY
-         GgKDSg5AOcOPBr1ACj6+nptuEsZHrBnOXjL0HEh4Z72nD+fZeaOuYYGLqldasbFcwg0C
-         3tmLqVfxV+Xj3E8nIeglJnX1Vu+3klh1AS+p6MGBngYESaGIeVICoqAH760unYMtoroD
-         trtEe80CVlnW4HNZh2/Sfe1ymgALTu3hqBrP2kdgXqRTgO9scgMkhuoQm4WyRG94PFc2
-         cB9g==
-X-Gm-Message-State: AOJu0YyRwmsht77GYtkHnb/I9svGxuQzBAPBRTIWhqkeRP5LRrrmBGY8
-	6xESXFeEiD6uxs+8FXDOVQDoidm3A2g54pjcQNfCHMc8ljwD0c6XKzcTYvxTnVFKxAoVHf/Ft9g
-	wy1YOxQ59BI8l507R
-X-Received: by 2002:a05:600c:4f49:b0:405:3924:3cad with SMTP id m9-20020a05600c4f4900b0040539243cadmr9416391wmq.15.1698915254053;
-        Thu, 02 Nov 2023 01:54:14 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IFCmPB7wk4WYX3beE3RQwL26kpX7tKnW0S1AoiLWUYjQvzaem2LWlpr04EvBL0VKBRb3Dyxog==
-X-Received: by 2002:a05:600c:4f49:b0:405:3924:3cad with SMTP id m9-20020a05600c4f4900b0040539243cadmr9416375wmq.15.1698915253591;
-        Thu, 02 Nov 2023 01:54:13 -0700 (PDT)
-Received: from ?IPV6:2003:cb:c716:3000:f155:cef2:ff4d:c7? (p200300cbc7163000f155cef2ff4d00c7.dip0.t-ipconnect.de. [2003:cb:c716:3000:f155:cef2:ff4d:c7])
-        by smtp.gmail.com with ESMTPSA id l26-20020a05600c1d1a00b003fef5e76f2csm4257226wms.0.2023.11.02.01.54.12
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 02 Nov 2023 01:54:13 -0700 (PDT)
-Message-ID: <f71e7e27-83ef-476b-baa6-bb82ea73db10@redhat.com>
-Date: Thu, 2 Nov 2023 09:54:11 +0100
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="WWh/wJnA"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1698949680; x=1730485680;
+  h=from:subject:date:message-id:mime-version:
+   content-transfer-encoding:to:cc;
+  bh=4qUOmcq7thBdlj5wGqR9iQ3jAeBk8UU8mGmQFkFS1rc=;
+  b=WWh/wJnAHBW64upifbZWDO/M8ydNKfO72jddd/zEVKubgRX+gBHqp/Up
+   +vMk5s/+UaAxawuEzOFwSFcbxPn0vDHahp0L9pQO/uZp3xmBLv4NeKvyJ
+   DNcYM3UtMCGPn6Xj/8c58kAlr5su0f8SKg3ez1HeHKyg2c/IqNVp+xQd9
+   w9ohi/O9rvEGmsvdIepG9eUt3TgsLGy06nS33glGsAKDrTELEh0MCRiml
+   xVVXrt0awApgWgi1iwNQNx32c4ftTZekxKtvd2HEaM8n5gbK042LQbE32
+   eo1Th7MHbNMBWLeto6Y5eWq98YW0MT2OD4R5zPQ/uUV5kF6GY4c5bU1kK
+   w==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10882"; a="7421158"
+X-IronPort-AV: E=Sophos;i="6.03,272,1694761200"; 
+   d="scan'208";a="7421158"
+Received: from orsmga002.jf.intel.com ([10.7.209.21])
+  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Nov 2023 11:28:00 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10882"; a="761359758"
+X-IronPort-AV: E=Sophos;i="6.03,272,1694761200"; 
+   d="scan'208";a="761359758"
+Received: from fmahinh-mobl.amr.corp.intel.com (HELO [192.168.1.200]) ([10.212.91.244])
+  by orsmga002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Nov 2023 11:27:58 -0700
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v9 0/3] mm: use memmap_on_memory semantics for dax/kmem
+Date: Thu, 02 Nov 2023 12:27:12 -0600
+Message-Id: <20231102-vv-kmem_memmap-v9-0-973d6b3a8f1a@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v8 2/3] mm/memory_hotplug: split memmap_on_memory requests
- across memblocks
-To: Vishal Verma <vishal.l.verma@intel.com>,
- Andrew Morton <akpm@linux-foundation.org>, Oscar Salvador
- <osalvador@suse.de>, Dan Williams <dan.j.williams@intel.com>,
- Dave Jiang <dave.jiang@intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, nvdimm@lists.linux.dev,
- linux-cxl@vger.kernel.org, Huang Ying <ying.huang@intel.com>,
- Dave Hansen <dave.hansen@linux.intel.com>,
- "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
- Michal Hocko <mhocko@suse.com>,
- Jonathan Cameron <Jonathan.Cameron@Huawei.com>,
- Jeff Moyer <jmoyer@redhat.com>
-References: <20231101-vv-kmem_memmap-v8-0-5e4a83331388@intel.com>
- <20231101-vv-kmem_memmap-v8-2-5e4a83331388@intel.com>
-From: David Hildenbrand <david@redhat.com>
-Autocrypt: addr=david@redhat.com; keydata=
- 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
- WNyWQQ==
-Organization: Red Hat
-In-Reply-To: <20231101-vv-kmem_memmap-v8-2-5e4a83331388@intel.com>
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: redhat.com
-Content-Language: en-US
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAADqQ2UC/3XQy07DMBAF0F+pvMbI9vgxZsV/IIQmflCLJqmSE
+ oGq/jtuF6SKYeHFHenMtX1mc5pKmtnT7symtJS5jEMN/mHHwp6G98RLrJkpoUBYCXxZ+Eef+rd
+ 6ejpyoxECRqGV86yijubEu4mGsK9s+Dwc6vA4pVy+bi0vrzXvy3wap+9b6SKv03/3L5ILnm1MP
+ ljKKtjnMpzS4TGMPbuuWtTKnRINV5UjdpGoA+09bDmsHIVsOFSuhU2eKBuLfsv1yr3ChuvKbc4
+ OcgpGetpy88ulEKbhpnIyOkqPMgtqLm/vuLQNt5ULh1lECAKc3HJ3x1Xb7q5vJ2ejs0bFbLYcV
+ y7/+Dqs3CRNCAASEO/55XL5AT91It96AgAA
+To: Andrew Morton <akpm@linux-foundation.org>, 
+ David Hildenbrand <david@redhat.com>, Oscar Salvador <osalvador@suse.de>, 
+ Dan Williams <dan.j.williams@intel.com>, Dave Jiang <dave.jiang@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, 
+ nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org, 
+ Huang Ying <ying.huang@intel.com>, 
+ Dave Hansen <dave.hansen@linux.intel.com>, 
+ "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, 
+ Michal Hocko <mhocko@suse.com>, 
+ Jonathan Cameron <Jonathan.Cameron@Huawei.com>, 
+ Jeff Moyer <jmoyer@redhat.com>, Vishal Verma <vishal.l.verma@intel.com>, 
+ Jonathan Cameron <Jonathan.Cameron@huawei.com>
+X-Mailer: b4 0.13-dev-26615
+X-Developer-Signature: v=1; a=openpgp-sha256; l=6045;
+ i=vishal.l.verma@intel.com; h=from:subject:message-id;
+ bh=4qUOmcq7thBdlj5wGqR9iQ3jAeBk8UU8mGmQFkFS1rc=;
+ b=owGbwMvMwCXGf25diOft7jLG02pJDKnOr7Ruu+5unaW+c9n1k2yHeddveWFjXSUV32mxKEb0G
+ EObn7tXRykLgxgXg6yYIsvfPR8Zj8ltz+cJTHCEmcPKBDKEgYtTACZSK8fIcDFw7cWiD6+8b/VM
+ Fbz/632OUdFMVqX0i09EZ+1mmZn7ZgIjw7l87feuPO6+x/j6TWcznwqcwublGHg5cPbXn8q9pXG
+ 8bAA=
+X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp;
+ fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
 
-On 01.11.23 23:51, Vishal Verma wrote:
-> The MHP_MEMMAP_ON_MEMORY flag for hotplugged memory is restricted to
-> 'memblock_size' chunks of memory being added. Adding a larger span of
-> memory precludes memmap_on_memory semantics.
-> 
-> For users of hotplug such as kmem, large amounts of memory might get
-> added from the CXL subsystem. In some cases, this amount may exceed the
-> available 'main memory' to store the memmap for the memory being added.
-> In this case, it is useful to have a way to place the memmap on the
-> memory being added, even if it means splitting the addition into
-> memblock-sized chunks.
-> 
-> Change add_memory_resource() to loop over memblock-sized chunks of
-> memory if caller requested memmap_on_memory, and if other conditions for
-> it are met. Teach try_remove_memory() to also expect that a memory
-> range being removed might have been split up into memblock sized chunks,
-> and to loop through those as needed.
-> 
-> This does preclude being able to use PUD mappings in the direct map; a
-> proposal to how this could be optimized in the future is laid out
-> here[1].
-> 
-> [1]: https://lore.kernel.org/linux-mm/b6753402-2de9-25b2-36e9-eacd49752b19@redhat.com/
-> 
-> Cc: Andrew Morton <akpm@linux-foundation.org>
-> Cc: David Hildenbrand <david@redhat.com>
-> Cc: Michal Hocko <mhocko@suse.com>
-> Cc: Oscar Salvador <osalvador@suse.de>
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Cc: Dave Jiang <dave.jiang@intel.com>
-> Cc: Dave Hansen <dave.hansen@linux.intel.com>
-> Cc: Huang Ying <ying.huang@intel.com>
-> Suggested-by: David Hildenbrand <david@redhat.com>
-> Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
-> ---
->   mm/memory_hotplug.c | 213 ++++++++++++++++++++++++++++++++++------------------
->   1 file changed, 138 insertions(+), 75 deletions(-)
-> 
-> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-> index 6be7de9efa55..d242e49d7f7b 100644
-> --- a/mm/memory_hotplug.c
-> +++ b/mm/memory_hotplug.c
-> @@ -1380,6 +1380,84 @@ static bool mhp_supports_memmap_on_memory(unsigned long size)
->   	return arch_supports_memmap_on_memory(vmemmap_size);
->   }
->   
-> +static void __ref remove_memory_blocks_and_altmaps(u64 start, u64 size)
-> +{
-> +	unsigned long memblock_size = memory_block_size_bytes();
-> +	u64 cur_start;
-> +
-> +	/*
-> +	 * For memmap_on_memory, the altmaps were added on a per-memblock
-> +	 * basis; we have to process each individual memory block.
-> +	 */
-> +	for (cur_start = start; cur_start < start + size;
-> +	     cur_start += memblock_size) {
-> +		struct vmem_altmap *altmap = NULL;
-> +		struct memory_block *mem;
-> +
-> +		mem = find_memory_block(pfn_to_section_nr(PFN_DOWN(cur_start)));
-> +		WARN_ON_ONCE(!mem);
-> +		if (!mem)
-> +			continue;
+The dax/kmem driver can potentially hot-add large amounts of memory
+originating from CXL memory expanders, or NVDIMMs, or other 'device
+memories'. There is a chance there isn't enough regular system memory
+available to fit the memmap for this new memory. It's therefore
+desirable, if all other conditions are met, for the kmem managed memory
+to place its memmap on the newly added memory itself.
 
-Nit:
+The main hurdle for accomplishing this for kmem is that memmap_on_memory
+can only be done if the memory being added is equal to the size of one
+memblock. To overcome this, allow the hotplug code to split an add_memory()
+request into memblock-sized chunks, and try_remove_memory() to also
+expect and handle such a scenario.
 
-if (WARN_ON_ONCE(!mem))
-	continue;
+Patch 1 replaces an open-coded kmemdup()
 
-> +	for (cur_start = start; cur_start < start + size;
-> +	     cur_start += memblock_size) {
-> +		struct mhp_params params = { .pgprot =
-> +						     pgprot_mhp(PAGE_KERNEL) };
-> +		struct vmem_altmap mhp_altmap = {
-> +			.base_pfn = PHYS_PFN(cur_start),
-> +			.end_pfn = PHYS_PFN(cur_start + memblock_size - 1),
-> +		};
-> +
-> +		mhp_altmap.free = memory_block_memmap_on_memory_pages();
-> +		params.altmap = kmemdup(&mhp_altmap, sizeof(struct vmem_altmap),
-> +					GFP_KERNEL);
-> +		if (!params.altmap)
-> +			return -ENOMEM;
+Patch 2 teaches the memory_hotplug code to allow for splitting
+add_memory() and remove_memory() requests over memblock sized chunks.
 
-As already spotted, we have to cleanup.
+Patch 3 allows the dax region drivers to request memmap_on_memory
+semantics. CXL dax regions default this to 'on', all others default to
+off to keep existing behavior unchanged.
 
-> +
-> +		/* call arch's memory hotadd */
-> +		ret = arch_add_memory(nid, cur_start, memblock_size, &params);
-> +		if (ret < 0) {
-> +			kfree(params.altmap);
-> +			goto out;
-> +		}
-> +
-> +		/* create memory block devices after memory was added */
-> +		ret = create_memory_block_devices(cur_start, memblock_size,
-> +						  params.altmap, group);
-> +		if (ret) {
-> +			arch_remove_memory(cur_start, memblock_size, NULL);
-> +			kfree(params.altmap);
-> +			goto out;
-> +		}
-> +	}
-> +
-> +	return 0;
-> +out:
-> +	if (ret && (cur_start != start))
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+Changes in v9:
+- Fix error unwinding for the ENOMEM case in
+  remove_memory_blocks_and_altmaps() (Ying, David)
+- Misc readability and style cleanups (David)
+- Link to v8: https://lore.kernel.org/r/20231101-vv-kmem_memmap-v8-0-5e4a83331388@intel.com
 
-Nit: I think you can drop the inner parentheses.
+Changes in v8:
+- Fix unwinding in create_altmaps_and_memory_blocks() to remove
+  partially added blocks and altmaps. (David, Ying)
+- Simplify remove_memory_blocks_and_altmaps() since an altmap is
+  assured. (David)
+- Since we remove per memory-block altmaps, the walk through  memory
+  blocks for a larger range isn't needed. Instead we can lookup the
+  memory block directly from the pfn, allowing the test_has_altmap_cb()
+  callback to be dropped and removed. (David)
+- Link to v7: https://lore.kernel.org/r/20231025-vv-kmem_memmap-v7-0-4a76d7652df5@intel.com
 
-> @@ -2146,11 +2208,31 @@ void try_offline_node(int nid)
->   }
->   EXPORT_SYMBOL(try_offline_node);
->   
-> +static int memory_blocks_have_altmaps(u64 start, u64 size)
-> +{
-> +	u64 num_memblocks = size / memory_block_size_bytes();
-> +	u64 num_altmaps = 0;
-> +
-> +	if (!mhp_memmap_on_memory())
-> +		return 0;
-> +
-> +	walk_memory_blocks(start, size, &num_altmaps,
-> +			   count_memory_range_altmaps_cb);
-> +
-> +	if (num_altmaps == 0)
-> +		return 0;
-> +
-> +	if (num_memblocks != num_altmaps) {
-> +		WARN_ONCE(1, "Not all memblocks in range have altmaps");
+Changes in v7:
+- Make the add_memory_resource() flow symmetrical w.r.t. try_remove_memory()
+  in terms of how the altmap path is taken (David Hildenbrand)
+- Move a comment, clean up usage of 'memblock' vs. 'memory_block'
+  (David Hildenbrand)
+- Don't use the altmap path for the mhp_supports_memmap_on_memory(memblock_size) == false
+  case (Huang Ying)
+- Link to v6: https://lore.kernel.org/r/20231016-vv-kmem_memmap-v6-0-078f0d3c0371@intel.com
 
-Nit:
+Changes in v6:
+- Add a prep patch to replace an open coded kmemdup in
+  add_memory_resource() (Dan Williams)
+- Fix ordering of firmware_map_remove w.r.t taking the hotplug lock
+  (David Hildenbrand)
+- Remove unused 'nid' variable, and a stray whitespace (David Hildenbrand)
+- Clean up and simplify the altmap vs non-altmap paths for
+  try_remove_memory (David Hildenbrand)
+- Add a note to the changelog in patch 1 linking to the PUD mappings
+  proposal (David Hildenbrand)
+- Remove the new sysfs ABI from the kmem/dax drivers until ABI
+  documentation for /sys/bus/dax can be established (will split this out
+  into a separate patchset) (Dan Williams)
+- Link to v5: https://lore.kernel.org/r/20231005-vv-kmem_memmap-v5-0-a54d1981f0a3@intel.com
 
-if (WARN_ON_ONCE(num_memblocks != num_altmaps))
-	return -EINVAL;
+Changes in v5:
+- Separate out per-memblock operations from per memory block operations
+  in try_remove_memory(), and rename the inner function appropriately.
+  This does expand the scope of the memory hotplug lock to include
+  remove_memory_block_devices(), but the alternative was to drop the
+  lock in the inner function separately for each iteration, and then
+  re-acquire it in try_remove_memory() creating a small window where
+  the lock isn't held. (David Hildenbrand)
+- Remove unnecessary rc check from the memmap_on_memory_store sysfs
+  helper in patch 2 (Dan Carpenter)
+- Link to v4: https://lore.kernel.org/r/20230928-vv-kmem_memmap-v4-0-6ff73fec519a@intel.com
 
-Should be sufficient.
+Changes in v4:
+- Rebase to Aneesh's PPC64 memmap_on_memory series v8 [2].
+- Tweak a goto / error path in add_memory_create_devices() (Jonathan)
+- Retain the old behavior for dax devices, only default to
+  memmap_on_memory for CXL (Jonathan)
+- Link to v3: https://lore.kernel.org/r/20230801-vv-kmem_memmap-v3-0-406e9aaf5689@intel.com
 
-[...]
+[2]: https://lore.kernel.org/linux-mm/20230808091501.287660-1-aneesh.kumar@linux.ibm.com
 
->   	/* remove memmap entry */
->   	firmware_map_remove(start, start + size, "System RAM");
->   
-> -	/*
-> -	 * Memory block device removal under the device_hotplug_lock is
-> -	 * a barrier against racing online attempts.
-> -	 */
-> -	remove_memory_block_devices(start, size);
-> -
->   	mem_hotplug_begin();
->   
-> -	arch_remove_memory(start, size, altmap);
-> -
-> -	/* Verify that all vmemmap pages have actually been freed. */
-> -	if (altmap) {
-> -		WARN(altmap->alloc, "Altmap not fully unmapped");
-> -		kfree(altmap);
-> +	rc = memory_blocks_have_altmaps(start, size);
-> +	if (rc < 0) {
-> +		goto err;
+Changes in v3:
+- Rebase on Aneesh's patches [1]
+- Drop Patch 1 - it is not needed since [1] allows for dynamic setting
+  of the memmap_on_memory param (David)
+- Link to v2: https://lore.kernel.org/r/20230720-vv-kmem_memmap-v2-0-88bdaab34993@intel.com
 
-Nit: Maybe better to just
+[1]: https://lore.kernel.org/r/20230801044116.10674-1-aneesh.kumar@linux.ibm.com
 
-if (rc < 0) {
-	mem_hotplug_done();
-	return rc
-} else ...
+Changes in v2:
+- Drop the patch to create an override path for the memmap_on_memory
+  module param (David)
+- Move the chunking into memory_hotplug.c so that any caller of
+  add_memory() can request this behavior. (David)
+- Handle remove_memory() too. (David, Ying)
+- Add a sysfs control in the kmem driver for memmap_on_memory semantics
+  (David, Jonathan)
+- Add a #else case to define mhp_supports_memmap_on_memory() if
+  CONFIG_MEMORY_HOTPLUG is unset. (0day report)
+- Link to v1: https://lore.kernel.org/r/20230613-vv-kmem_memmap-v1-0-f6de9c6af2c6@intel.com
 
-And avoid the error label below. Makes the code easier to read.
+---
+Vishal Verma (3):
+      mm/memory_hotplug: replace an open-coded kmemdup() in add_memory_resource()
+      mm/memory_hotplug: split memmap_on_memory requests across memblocks
+      dax/kmem: allow kmem to add memory with memmap_on_memory
 
-> +	} else if (rc == 0) {
+ drivers/dax/bus.h         |   1 +
+ drivers/dax/dax-private.h |   1 +
+ drivers/dax/bus.c         |   3 +
+ drivers/dax/cxl.c         |   1 +
+ drivers/dax/hmem/hmem.c   |   1 +
+ drivers/dax/kmem.c        |   8 +-
+ drivers/dax/pmem.c        |   1 +
+ mm/memory_hotplug.c       | 208 ++++++++++++++++++++++++++++++----------------
+ 8 files changed, 150 insertions(+), 74 deletions(-)
+---
+base-commit: 25b5b1a0646c3d39e1d885e27c10be1c9e202bf2
+change-id: 20230613-vv-kmem_memmap-5483c8d04279
 
-Nit: else if (!rc)
-
-
-
-With the cleanup fixed,
-
-Acked-by: David Hildenbrand <david@redhat.com>
-
+Best regards,
 -- 
-Cheers,
-
-David / dhildenb
+Vishal Verma <vishal.l.verma@intel.com>
 
