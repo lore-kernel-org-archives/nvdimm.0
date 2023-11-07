@@ -1,224 +1,78 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.43])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64615CA4E
-	for <nvdimm@lists.linux.dev>; Tue,  7 Nov 2023 07:23:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D745347AD
+	for <nvdimm@lists.linux.dev>; Tue,  7 Nov 2023 17:28:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="aGrym4D8"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1699341801; x=1730877801;
-  h=from:date:subject:mime-version:content-transfer-encoding:
-   message-id:references:in-reply-to:to:cc;
-  bh=njSbNfDDek+ai8e3OAg76pJEkWdQHMGuuBuvUJ8XCp0=;
-  b=aGrym4D8vOUV5O0U1iaCHBpdKqIYF8z+pWBLB+q8G3Nc7AvJWa/9tQ9f
-   nwxhHRO0P/5uEu4LlkvfBOCiiUZuUxe6wpdZzMNiBnbNR6dZ0qvPEXCEf
-   BOtr9LkdPvSUX78t7F0+zOGyWSyE2KURjTZVJoeeS89Q2eKgUfIgX9YTK
-   VraBDjNHbjX4Uc68XpD6KPCbpXv4V+6jJggAE7TLo7+NeDlcNc6lRAYyj
-   dvX8WSbY+uKrqVpAJF0MzW3oNnNzqc61nkissOj2uZqqz6lh5XBxsoO3q
-   jYgITMkKlyFfAevbNcbDGJDd9JVG2roh7RdS4CH+j0gBswYv9UhH3+QBt
-   A==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10886"; a="475689677"
-X-IronPort-AV: E=Sophos;i="6.03,282,1694761200"; 
-   d="scan'208";a="475689677"
-Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Nov 2023 23:23:20 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10886"; a="712477260"
-X-IronPort-AV: E=Sophos;i="6.03,282,1694761200"; 
-   d="scan'208";a="712477260"
-Received: from pengmich-mobl1.amr.corp.intel.com (HELO [192.168.1.200]) ([10.212.96.119])
-  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Nov 2023 23:23:19 -0800
-From: Vishal Verma <vishal.l.verma@intel.com>
-Date: Tue, 07 Nov 2023 00:22:43 -0700
-Subject: [PATCH v10 3/3] dax/kmem: allow kmem to add memory with
- memmap_on_memory
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="RFIUWXsX"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1699378103;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:mime-version:mime-version:content-type:content-type;
+	bh=WhtIXInxNBQN/hFhaImZ0/3B/0C/wSvNg6di6wgUqOs=;
+	b=RFIUWXsXrpNdtYBYKQ39DFlVkMXWH9fPpstu5zV11lBrAMMdrVjDDqXnz8d8IlwkY/mr+u
+	pq41mOr1+scTLVfk3qBhnp1araKjEijaze8j/1WPStovDgxVm4EgW5yZM8w+o8+Pxsxtgg
+	Nx+UmaPmgKhzEjkyoDoCZBM/hPwD9Aw=
+Received: from mimecast-mx02.redhat.com (mx-ext.redhat.com [66.187.233.73])
+ by relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
+ cipher=TLS_AES_256_GCM_SHA384) id us-mta-196-Q7mnPsUmMJGrgS5e6XLyzQ-1; Tue,
+ 07 Nov 2023 12:28:21 -0500
+X-MC-Unique: Q7mnPsUmMJGrgS5e6XLyzQ-1
+Received: from smtp.corp.redhat.com (int-mx10.intmail.prod.int.rdu2.redhat.com [10.11.54.10])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 2A2E31C07826
+	for <nvdimm@lists.linux.dev>; Tue,  7 Nov 2023 17:28:21 +0000 (UTC)
+Received: from segfault.usersys.redhat.com (unknown [10.22.8.211])
+	by smtp.corp.redhat.com (Postfix) with ESMTPS id 09D3E492BFD
+	for <nvdimm@lists.linux.dev>; Tue,  7 Nov 2023 17:28:21 +0000 (UTC)
+From: Jeff Moyer <jmoyer@redhat.com>
+To: nvdimm@lists.linux.dev
+Subject: [patch] ndctl: test/daxctl-devices.sh: increase the namespace size
+X-PGP-KeyID: 1F78E1B4
+X-PGP-CertKey: F6FE 280D 8293 F72C 65FD  5A58 1FF8 A7CA 1F78 E1B4
+Date: Tue, 07 Nov 2023 12:28:20 -0500
+Message-ID: <x49fs1hwk0b.fsf@segfault.usersys.redhat.com>
+User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/27.2 (gnu/linux)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20231107-vv-kmem_memmap-v10-3-1253ec050ed0@intel.com>
-References: <20231107-vv-kmem_memmap-v10-0-1253ec050ed0@intel.com>
-In-Reply-To: <20231107-vv-kmem_memmap-v10-0-1253ec050ed0@intel.com>
-To: Andrew Morton <akpm@linux-foundation.org>, 
- David Hildenbrand <david@redhat.com>, Oscar Salvador <osalvador@suse.de>, 
- Dan Williams <dan.j.williams@intel.com>, Dave Jiang <dave.jiang@intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, 
- nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org, 
- Huang Ying <ying.huang@intel.com>, 
- Dave Hansen <dave.hansen@linux.intel.com>, 
- "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, 
- Michal Hocko <mhocko@suse.com>, 
- Jonathan Cameron <Jonathan.Cameron@Huawei.com>, 
- Jeff Moyer <jmoyer@redhat.com>, Vishal Verma <vishal.l.verma@intel.com>, 
- Jonathan Cameron <Jonathan.Cameron@huawei.com>
-X-Mailer: b4 0.13-dev-26615
-X-Developer-Signature: v=1; a=openpgp-sha256; l=5065;
- i=vishal.l.verma@intel.com; h=from:subject:message-id;
- bh=njSbNfDDek+ai8e3OAg76pJEkWdQHMGuuBuvUJ8XCp0=;
- b=owGbwMvMwCXGf25diOft7jLG02pJDKmeTx85xLTUnbT42XOS8zafQFGt4G4X23MMh13LZubMb
- srrfiDWUcrCIMbFICumyPJ3z0fGY3Lb83kCExxh5rAygQxh4OIUgIlM02VkWHFsxgYDo7xlNp0x
- /OKS7QdPvLjBuJb9HLdJdVtAc7b9GkaG3YK780/v+PBM25bBd4tB0309llXPCu9IBr1JsE6RzJ7
- BBwA=
-X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp;
- fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
+X-Scanned-By: MIMEDefang 3.4.1 on 10.11.54.10
+X-Mimecast-Spam-Score: 0
+X-Mimecast-Originator: redhat.com
+Content-Type: text/plain
 
-Large amounts of memory managed by the kmem driver may come in via CXL,
-and it is often desirable to have the memmap for this memory on the new
-memory itself.
+Memory hotplug requires the namespace to be aligned to a boundary that
+depends on several factors.  Upstream kernel commit fe124c95df9e
+("x86/mm: use max memory block size on bare metal") increased the
+typical size/alignment to 2GiB from 256MiB.  As a result, this test no
+longer passes on our bare metal test systems.
 
-Enroll kmem-managed memory for memmap_on_memory semantics if the dax
-region originates via CXL. For non-CXL dax regions, retain the existing
-default behavior of hot adding without memmap_on_memory semantics.
+This patch fixes the test failure by bumping the namespace size to
+4GiB, which leaves room for aligning the start and end to 2GiB.
 
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Huang Ying <ying.huang@intel.com>
-Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- drivers/dax/bus.h         | 1 +
- drivers/dax/dax-private.h | 1 +
- drivers/dax/bus.c         | 3 +++
- drivers/dax/cxl.c         | 1 +
- drivers/dax/hmem/hmem.c   | 1 +
- drivers/dax/kmem.c        | 8 +++++++-
- drivers/dax/pmem.c        | 1 +
- 7 files changed, 15 insertions(+), 1 deletion(-)
+Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
 
-diff --git a/drivers/dax/bus.h b/drivers/dax/bus.h
-index 1ccd23360124..cbbf64443098 100644
---- a/drivers/dax/bus.h
-+++ b/drivers/dax/bus.h
-@@ -23,6 +23,7 @@ struct dev_dax_data {
- 	struct dev_pagemap *pgmap;
- 	resource_size_t size;
- 	int id;
-+	bool memmap_on_memory;
- };
+diff --git a/test/daxctl-devices.sh b/test/daxctl-devices.sh
+index 56c9691..dfce74b 100755
+--- a/test/daxctl-devices.sh
++++ b/test/daxctl-devices.sh
+@@ -44,7 +44,10 @@ setup_dev()
+ 	test -n "$testdev"
  
- struct dev_dax *devm_create_dev_dax(struct dev_dax_data *data);
-diff --git a/drivers/dax/dax-private.h b/drivers/dax/dax-private.h
-index 27cf2daaaa79..446617b73aea 100644
---- a/drivers/dax/dax-private.h
-+++ b/drivers/dax/dax-private.h
-@@ -70,6 +70,7 @@ struct dev_dax {
- 	struct ida ida;
- 	struct device dev;
- 	struct dev_pagemap *pgmap;
-+	bool memmap_on_memory;
- 	int nr_range;
- 	struct dev_dax_range {
- 		unsigned long pgoff;
-diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-index 1659b787b65f..1ff1ab5fa105 100644
---- a/drivers/dax/bus.c
-+++ b/drivers/dax/bus.c
-@@ -367,6 +367,7 @@ static ssize_t create_store(struct device *dev, struct device_attribute *attr,
- 			.dax_region = dax_region,
- 			.size = 0,
- 			.id = -1,
-+			.memmap_on_memory = false,
- 		};
- 		struct dev_dax *dev_dax = devm_create_dev_dax(&data);
- 
-@@ -1400,6 +1401,8 @@ struct dev_dax *devm_create_dev_dax(struct dev_dax_data *data)
- 	dev_dax->align = dax_region->align;
- 	ida_init(&dev_dax->ida);
- 
-+	dev_dax->memmap_on_memory = data->memmap_on_memory;
-+
- 	inode = dax_inode(dax_dev);
- 	dev->devt = inode->i_rdev;
- 	dev->bus = &dax_bus_type;
-diff --git a/drivers/dax/cxl.c b/drivers/dax/cxl.c
-index 8bc9d04034d6..c696837ab23c 100644
---- a/drivers/dax/cxl.c
-+++ b/drivers/dax/cxl.c
-@@ -26,6 +26,7 @@ static int cxl_dax_region_probe(struct device *dev)
- 		.dax_region = dax_region,
- 		.id = -1,
- 		.size = range_len(&cxlr_dax->hpa_range),
-+		.memmap_on_memory = true,
- 	};
- 
- 	return PTR_ERR_OR_ZERO(devm_create_dev_dax(&data));
-diff --git a/drivers/dax/hmem/hmem.c b/drivers/dax/hmem/hmem.c
-index 5d2ddef0f8f5..b9da69f92697 100644
---- a/drivers/dax/hmem/hmem.c
-+++ b/drivers/dax/hmem/hmem.c
-@@ -36,6 +36,7 @@ static int dax_hmem_probe(struct platform_device *pdev)
- 		.dax_region = dax_region,
- 		.id = -1,
- 		.size = region_idle ? 0 : range_len(&mri->range),
-+		.memmap_on_memory = false,
- 	};
- 
- 	return PTR_ERR_OR_ZERO(devm_create_dev_dax(&data));
-diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
-index 369c698b7706..42ee360cf4e3 100644
---- a/drivers/dax/kmem.c
-+++ b/drivers/dax/kmem.c
-@@ -12,6 +12,7 @@
- #include <linux/mm.h>
- #include <linux/mman.h>
- #include <linux/memory-tiers.h>
-+#include <linux/memory_hotplug.h>
- #include "dax-private.h"
- #include "bus.h"
- 
-@@ -93,6 +94,7 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
- 	struct dax_kmem_data *data;
- 	struct memory_dev_type *mtype;
- 	int i, rc, mapped = 0;
-+	mhp_t mhp_flags;
- 	int numa_node;
- 	int adist = MEMTIER_DEFAULT_DAX_ADISTANCE;
- 
-@@ -179,12 +181,16 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
- 		 */
- 		res->flags = IORESOURCE_SYSTEM_RAM;
- 
-+		mhp_flags = MHP_NID_IS_MGID;
-+		if (dev_dax->memmap_on_memory)
-+			mhp_flags |= MHP_MEMMAP_ON_MEMORY;
-+
- 		/*
- 		 * Ensure that future kexec'd kernels will not treat
- 		 * this as RAM automatically.
- 		 */
- 		rc = add_memory_driver_managed(data->mgid, range.start,
--				range_len(&range), kmem_name, MHP_NID_IS_MGID);
-+				range_len(&range), kmem_name, mhp_flags);
- 
- 		if (rc) {
- 			dev_warn(dev, "mapping%d: %#llx-%#llx memory add failed\n",
-diff --git a/drivers/dax/pmem.c b/drivers/dax/pmem.c
-index ae0cb113a5d3..f3c6c67b8412 100644
---- a/drivers/dax/pmem.c
-+++ b/drivers/dax/pmem.c
-@@ -63,6 +63,7 @@ static struct dev_dax *__dax_pmem_probe(struct device *dev)
- 		.id = id,
- 		.pgmap = &pgmap,
- 		.size = range_len(&range),
-+		.memmap_on_memory = false,
- 	};
- 
- 	return devm_create_dev_dax(&data);
-
--- 
-2.41.0
+ 	"$NDCTL" destroy-namespace -f -b "$testbus" "$testdev"
+-	testdev=$("$NDCTL" create-namespace -b "$testbus" -m devdax -fe "$testdev" -s 256M | \
++	# x86_64 memory hotplug can require up to a 2GiB-aligned chunk
++	# of memory.  Create a 4GiB namespace, so that we will still have
++	# enough room left after aligning the start and end.
++	testdev=$("$NDCTL" create-namespace -b "$testbus" -m devdax -fe "$testdev" -s 4G | \
+ 		jq -er '.dev')
+ 	test -n "$testdev"
+ }
 
