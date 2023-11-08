@@ -1,90 +1,106 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f172.google.com (mail-pl1-f172.google.com [209.85.214.172])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7FBE34CF0
-	for <nvdimm@lists.linux.dev>; Tue,  7 Nov 2023 18:01:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45B61C8C4
+	for <nvdimm@lists.linux.dev>; Wed,  8 Nov 2023 04:46:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="gL0QbXXY"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1699380071;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=J5YtXZ3YhSXPZmz+siFyLK3Qf0wgO8UgOW0/QIy0s9I=;
-	b=gL0QbXXYkUCDegtcZMyc7R1wEkHnYMOu98xkMxllHangj9KdJlIIGhtGZHYcJFTwf5uWPK
-	AE+GH1wlT33MN13YrOHaAet6vLP6oFNWn6j8m89oNUUI6BY77gWSJd1ciLtWmpPHqBaTLg
-	Yv7r7DeoJba96V3mtcdF04a9oLOf6IQ=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-321-VblnjihPMFKAqb2oO_6uEQ-1; Tue, 07 Nov 2023 13:01:09 -0500
-X-MC-Unique: VblnjihPMFKAqb2oO_6uEQ-1
-Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.rdu2.redhat.com [10.11.54.6])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 60588185A789
-	for <nvdimm@lists.linux.dev>; Tue,  7 Nov 2023 18:01:09 +0000 (UTC)
-Received: from segfault.usersys.redhat.com (unknown [10.22.8.211])
-	by smtp.corp.redhat.com (Postfix) with ESMTPS id 3EE392166B26
-	for <nvdimm@lists.linux.dev>; Tue,  7 Nov 2023 18:01:09 +0000 (UTC)
-From: Jeff Moyer <jmoyer@redhat.com>
-To: nvdimm@lists.linux.dev
-Subject: Re: [patch] ndctl: test/daxctl-devices.sh: increase the namespace size
-References: <x49fs1hwk0b.fsf@segfault.usersys.redhat.com>
-X-PGP-KeyID: 1F78E1B4
-X-PGP-CertKey: F6FE 280D 8293 F72C 65FD  5A58 1FF8 A7CA 1F78 E1B4
-Date: Tue, 07 Nov 2023 13:01:08 -0500
-In-Reply-To: <x49fs1hwk0b.fsf@segfault.usersys.redhat.com> (Jeff Moyer's
-	message of "Tue, 07 Nov 2023 12:28:20 -0500")
-Message-ID: <x497cmtwihn.fsf@segfault.usersys.redhat.com>
-User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/27.2 (gnu/linux)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="I66+S1xP"
+Received: by mail-pl1-f172.google.com with SMTP id d9443c01a7336-1cc4d306fe9so13908975ad.0
+        for <nvdimm@lists.linux.dev>; Tue, 07 Nov 2023 20:46:04 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1699418764; x=1700023564; darn=lists.linux.dev;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=AccMyh+RlaZEsXK1ML+1emsIzpOUjcybMBaau+EZXEI=;
+        b=I66+S1xPO5Dtki+UwxnDL/JjLxnkV6Gr41qJhEDjRSMc5jSqqkPs2iIN14VwSbhGSk
+         9qRj2fyj4erSlAiqTUr/Qz6ezV4/ZLUQksYfOyq4O8f379LuHRxEqFH1U5xto1kIJGfZ
+         Mt8WuJeRsvLPz907fuspCSqh01T0oJyFaQ1z1KfVqOTvpZEQrBY+Q5xQawadgdf7y/5f
+         qLTsz6gMM3HVlHllE5BLAH0y99lfhC0rQvRny33VKJeCGnFWhhtAdHfgsebuoe4MDVJd
+         5jKK9adKiCGdiKlbV9yxjoLuXHO7mD6byGOfaNoWPMq84DetuQQjd7WpFg3RXH4BG56L
+         blug==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1699418764; x=1700023564;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=AccMyh+RlaZEsXK1ML+1emsIzpOUjcybMBaau+EZXEI=;
+        b=jVkxvkfUZCstPtoUXWEgWHmvMFdszsrhtXya66TrtcMxjmhVikrmPbnQ0DYEuIifJ0
+         ht0RbaX5lsUHHI92RFXHXoLWg2gG5uwPyVKIK7ownGlEq7bmo+IRVd3xsbktDOyPqPdQ
+         /GRLMz+wAw4YPdF8V3uYksc00zAEi7ItYUbkaUa7ob9Uyd7+2gsj0vbV9iqPNBiwJ0Ql
+         X5JPlmSQcR8n1qyp9eI3h/TR9gIzyNt30Pe7vLcoQ2Ep6bokwGOuxAAIm20vkuEPySuJ
+         Zcstnt2zqTq4DJSNI49JglebtiUAEL8DtIpCDzBmAtR2O2ojWfpYX8AZJYOBjmUPPim/
+         W3YA==
+X-Gm-Message-State: AOJu0Yx4aUVbAXQmBrX94TIH83gWPdSTaIDgPWLzqMdg5OggzSFzqKtu
+	mFFRJzkcGxqKUb39cCmI0JU=
+X-Google-Smtp-Source: AGHT+IHTBdEucosqnOg7K+garwd4Fwx8/Q/fzzgOpu7ehbtJq8I2JmalwcBjZ5QvjkrmGKJFEj/H8g==
+X-Received: by 2002:a17:902:d2c4:b0:1cc:277f:b4f6 with SMTP id n4-20020a170902d2c400b001cc277fb4f6mr1000152plc.6.1699418764403;
+        Tue, 07 Nov 2023 20:46:04 -0800 (PST)
+Received: from abhinav.. ([103.75.161.208])
+        by smtp.gmail.com with ESMTPSA id n15-20020a170903110f00b001cc32261bdcsm666079plh.248.2023.11.07.20.46.00
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 07 Nov 2023 20:46:04 -0800 (PST)
+From: Abhinav Singh <singhabhinav9051571833@gmail.com>
+To: viro@zeniv.linux.org.uk,
+	brauner@kernel.org,
+	dan.j.williams@intel.com,
+	willy@infradead.org,
+	jack@suse.cz
+Cc: linux-fsdevel@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	nvdimm@lists.linux.dev,
+	linux-kernel-mentees@lists.linuxfoundation.org,
+	Abhinav Singh <singhabhinav9051571833@gmail.com>
+Subject: [PATCH] fs : Fix warning using plain integer as NULL
+Date: Wed,  8 Nov 2023 10:15:50 +0530
+Message-Id: <20231108044550.1006555-1-singhabhinav9051571833@gmail.com>
+X-Mailer: git-send-email 2.39.2
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 3.4.1 on 10.11.54.6
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: redhat.com
-Content-Type: text/plain
+Content-Transfer-Encoding: 8bit
 
-I forgot to mention that this should address the following github issue:
+Sparse static analysis tools generate a warning with this message
+"Using plain integer as NULL pointer". In this case this warning is
+being shown because we are trying to initialize  pointer to NULL using
+integer value 0.
 
-https://github.com/pmem/ndctl/issues/243
+Signed-off-by: Abhinav Singh <singhabhinav9051571833@gmail.com>
+---
+ fs/dax.c       | 2 +-
+ fs/direct-io.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
--Jeff
-
-Jeff Moyer <jmoyer@redhat.com> writes:
-
-> Memory hotplug requires the namespace to be aligned to a boundary that
-> depends on several factors.  Upstream kernel commit fe124c95df9e
-> ("x86/mm: use max memory block size on bare metal") increased the
-> typical size/alignment to 2GiB from 256MiB.  As a result, this test no
-> longer passes on our bare metal test systems.
->
-> This patch fixes the test failure by bumping the namespace size to
-> 4GiB, which leaves room for aligning the start and end to 2GiB.
->
-> Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
->
-> diff --git a/test/daxctl-devices.sh b/test/daxctl-devices.sh
-> index 56c9691..dfce74b 100755
-> --- a/test/daxctl-devices.sh
-> +++ b/test/daxctl-devices.sh
-> @@ -44,7 +44,10 @@ setup_dev()
->  	test -n "$testdev"
->  
->  	"$NDCTL" destroy-namespace -f -b "$testbus" "$testdev"
-> -	testdev=$("$NDCTL" create-namespace -b "$testbus" -m devdax -fe "$testdev" -s 256M | \
-> +	# x86_64 memory hotplug can require up to a 2GiB-aligned chunk
-> +	# of memory.  Create a 4GiB namespace, so that we will still have
-> +	# enough room left after aligning the start and end.
-> +	testdev=$("$NDCTL" create-namespace -b "$testbus" -m devdax -fe "$testdev" -s 4G | \
->  		jq -er '.dev')
->  	test -n "$testdev"
->  }
+diff --git a/fs/dax.c b/fs/dax.c
+index 3380b43cb6bb..423fc1607dfa 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -1128,7 +1128,7 @@ static int dax_iomap_copy_around(loff_t pos, uint64_t length, size_t align_size,
+ 	/* zero the edges if srcmap is a HOLE or IOMAP_UNWRITTEN */
+ 	bool zero_edge = srcmap->flags & IOMAP_F_SHARED ||
+ 			 srcmap->type == IOMAP_UNWRITTEN;
+-	void *saddr = 0;
++	void *saddr = NULL;
+ 	int ret = 0;
+ 
+ 	if (!zero_edge) {
+diff --git a/fs/direct-io.c b/fs/direct-io.c
+index 20533266ade6..60456263a338 100644
+--- a/fs/direct-io.c
++++ b/fs/direct-io.c
+@@ -1114,7 +1114,7 @@ ssize_t __blockdev_direct_IO(struct kiocb *iocb, struct inode *inode,
+ 	loff_t offset = iocb->ki_pos;
+ 	const loff_t end = offset + count;
+ 	struct dio *dio;
+-	struct dio_submit sdio = { 0, };
++	struct dio_submit sdio = { NULL, };
+ 	struct buffer_head map_bh = { 0, };
+ 	struct blk_plug plug;
+ 	unsigned long align = offset | iov_iter_alignment(iter);
+-- 
+2.39.2
 
