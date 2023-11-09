@@ -1,220 +1,206 @@
-Received: from esa5.hc1455-7.c3s2.iphmx.com (esa5.hc1455-7.c3s2.iphmx.com [68.232.139.130])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yb1-f175.google.com (mail-yb1-f175.google.com [209.85.219.175])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09572107AD
-	for <nvdimm@lists.linux.dev>; Thu,  9 Nov 2023 12:46:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=fujitsu.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fujitsu.com
-Authentication-Results: smtp.subspace.kernel.org; dkim=none
-X-IronPort-AV: E=McAfee;i="6600,9927,10888"; a="138571083"
-X-IronPort-AV: E=Sophos;i="6.03,289,1694703600"; 
-   d="scan'208";a="138571083"
-Received: from unknown (HELO oym-r2.gw.nic.fujitsu.com) ([210.162.30.90])
-  by esa5.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Nov 2023 21:46:47 +0900
-Received: from oym-m2.gw.nic.fujitsu.com (oym-nat-oym-m2.gw.nic.fujitsu.com [192.168.87.59])
-	by oym-r2.gw.nic.fujitsu.com (Postfix) with ESMTP id 4C854DC146
-	for <nvdimm@lists.linux.dev>; Thu,  9 Nov 2023 21:46:44 +0900 (JST)
-Received: from kws-ab3.gw.nic.fujitsu.com (kws-ab3.gw.nic.fujitsu.com [192.51.206.21])
-	by oym-m2.gw.nic.fujitsu.com (Postfix) with ESMTP id 796BABF3C0
-	for <nvdimm@lists.linux.dev>; Thu,  9 Nov 2023 21:46:43 +0900 (JST)
-Received: from edo.cn.fujitsu.com (edo.cn.fujitsu.com [10.167.33.5])
-	by kws-ab3.gw.nic.fujitsu.com (Postfix) with ESMTP id 00A1A20050190
-	for <nvdimm@lists.linux.dev>; Thu,  9 Nov 2023 21:46:43 +0900 (JST)
-Received: from [10.167.220.145] (unknown [10.167.220.145])
-	by edo.cn.fujitsu.com (Postfix) with ESMTP id 87A711A0074;
-	Thu,  9 Nov 2023 20:46:41 +0800 (CST)
-Message-ID: <8d9780de-f44f-5f63-5a3b-0e9d1f2ae6cf@fujitsu.com>
-Date: Thu, 9 Nov 2023 20:46:40 +0800
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83DE636B14
+	for <nvdimm@lists.linux.dev>; Thu,  9 Nov 2023 19:32:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="X4EHNA66"
+Received: by mail-yb1-f175.google.com with SMTP id 3f1490d57ef6-da2b9211dc0so1295694276.3
+        for <nvdimm@lists.linux.dev>; Thu, 09 Nov 2023 11:32:42 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1699558361; x=1700163161; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=hQXgJnErkBTO7U9SamYe262ZEbX3WawKujvUuoSNKBA=;
+        b=X4EHNA66yW1V6lV1d51KAqN7o9ZJPve66Xpgy9zFLtUBzn8QNO8XqQcUNTaSQDR8Bt
+         rgMNEkkVtG+8yPCcjMDQbAA22WRy5MuGs2gxGjV+dPaucq98Q3wg1Xk9x7ApCVT+pJCw
+         OesSleE0x2H3AoMvpbOzJvLcSXl8gN1IvnSKQfRbo1IVNOmrWSPazbkcQ4y94NedsOk8
+         tUBVzvRfeXI1KBYMgs89yyElfv+wjNp3s4Oe065UuV99Q4S314YODc+RpmbqT2t7Zch4
+         7gfgA0edqOGyQ6suF9Shp0m65ya4/M+VgbM8S3aQ6pVgiJoTxjnvvIl3qLNyoYGp3HUi
+         lk9Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1699558361; x=1700163161;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=hQXgJnErkBTO7U9SamYe262ZEbX3WawKujvUuoSNKBA=;
+        b=i0r6xspP/JEqQZk1y/PqcKDQ2pKFIDIUNhbnzuoCMkghgUBlCSxbUAr/28CjdmLdaY
+         s5zWYw2ZwEK3N2omoji9u+zhCSIWFnqe3B82o8RIY+jQ4ISXtOLQXhRfOPasPrj/KzGj
+         /pfjSjcr6fOgYlzyc2DyuipJZtmTp+0dGusA9KCX0J0UtIMRNB139naFFgmga1kIMsXJ
+         wGXY8BCaNUVITXB46ItwWl5dIPfSxRVtgcT+YuIRBxOXtv9CzsZ8cnMM7QQ3xSOBkokM
+         gC5hcoRHybN3QRFs0OzonNJ3vu2KxrK77GrKPTZZfVO0O4unKXxHFuY6uZ8cJyRD0LvX
+         EtLQ==
+X-Gm-Message-State: AOJu0Yzf3JLvHoFAHtCW2lrcnbATpm6Qm3TyDRqsl2Sw1SY9rKjXrPhR
+	UtEGRUcyQYlZJxIydy9Urwg=
+X-Google-Smtp-Source: AGHT+IHvL/vRqXQfRXZmA2Lomae7MK9Jd2JjbJUrzCC4TaOLfowGZTpwp/Gfv/6NUBIDG3/ohRY1eg==
+X-Received: by 2002:a25:d391:0:b0:d9a:fd25:e3ef with SMTP id e139-20020a25d391000000b00d9afd25e3efmr5648549ybf.64.1699558361244;
+        Thu, 09 Nov 2023 11:32:41 -0800 (PST)
+Received: from debian ([50.205.20.42])
+        by smtp.gmail.com with ESMTPSA id 4-20020a251104000000b00d9cb47932a0sm7627329ybr.25.2023.11.09.11.32.39
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 09 Nov 2023 11:32:40 -0800 (PST)
+From: fan <nifan.cxl@gmail.com>
+X-Google-Original-From: fan <fan@debian>
+Date: Thu, 9 Nov 2023 11:32:25 -0800
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: vishal.l.verma@intel.com, linux-cxl@vger.kernel.org,
+	nvdimm@lists.linux.dev, dan.j.williams@intel.com,
+	yangx.jy@fujitsu.com
+Subject: Re: [NDCTL PATCH v3] cxl/region: Add -f option for disable-region
+Message-ID: <ZU0zyfKYTUkAyUrk@debian>
+References: <169878724592.82931.11180459815481606425.stgit@djiang5-mobl3>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.5.0
-Subject: Re: [NDCTL PATCH] cxl: Augment documentation on cxl operational
- behavior
-To: Dave Jiang <dave.jiang@intel.com>, vishal.l.verma@intel.com
-Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
-References: <169878439580.80025.16527732447076656149.stgit@djiang5-mobl3>
- <47d34bd4-de45-4743-9151-7e6a0cdd5c4a@intel.com>
-From: =?UTF-8?B?Q2FvLCBRdWFucXVhbi/mm7kg5YWo5YWo?= <caoqq@fujitsu.com>
-In-Reply-To: <47d34bd4-de45-4743-9151-7e6a0cdd5c4a@intel.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-TM-AS-Product-Ver: IMSS-9.1.0.1417-9.0.0.1002-27986.004
-X-TM-AS-User-Approved-Sender: Yes
-X-TMASE-Version: IMSS-9.1.0.1417-9.0.1002-27986.004
-X-TMASE-Result: 10--16.137200-10.000000
-X-TMASE-MatchedRID: Y0uQemhUR+GPvrMjLFD6eKpLARk+zpBZ2q80vLACqaeqvcIF1TcLYANw
-	091XoRE6OsRVjShOPfX8Hq39FoLYeSgQpO8og5VKq0reih3E9rH1+9bO3CCbk+jMOEZ5AL0SdTe
-	gpK7QnXFSHmZoogkDH+affHI8kAmiHY/bzRmIaZGqh5pv1eDPz8CY5/Mqi1Oidh2Rg67LFVLhDo
-	h7wbP2f7X80TaNz00Yl8acA/69mB5MGF0Ua9spp7cPsR57JkIz2FA7wK9mP9eQx0NjGmV8+N6ur
-	nXKpk/cLoD4tn9vWJIP+Fbf+/0nMrEdg3YlRRHLngIgpj8eDcBZDL1gLmoa/ALDAYP4AXVR7nY5
-	1lwLq08gBwKKRHe+r3wQlhqfsX2sc7pw8xyOPoajzhAGxA8H8TRpkD673kluprkrETGdcEU=
-X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <169878724592.82931.11180459815481606425.stgit@djiang5-mobl3>
 
+On Tue, Oct 31, 2023 at 02:20:45PM -0700, Dave Jiang wrote:
+> The current operation for disable-region does not check if the memory
+> covered by a region is online before attempting to disable the cxl region.
+> Have the tool attempt to offline the relevant memory before attempting to
+> disable the region(s). If offline fails, stop and return error.
+> 
+> Provide a -f option for the region to continue disable the region even if
+> the memory is not offlined. Add a warning to state that the physical
+> memory is being leaked and unrecoverable unless reboot due to disable without
+> offline.
+> 
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
 
+Reviewed-by: Fan Ni <fan.ni@samsung.com>
 
-在 2023/11/1 4:34, Dave Jiang 写道:
+> 
+> ---
+> v3:
+> - Remove movable check. (Dan)
+> - Attempt to offline if not offline. -f will disable region anyways even
+>   if memory not offline. (Dan)
+> v2:
+> - Update documentation and help output. (Vishal)
+> ---
+>  Documentation/cxl/cxl-disable-region.txt |   10 ++++++
+>  cxl/region.c                             |   54 +++++++++++++++++++++++++++++-
+>  2 files changed, 63 insertions(+), 1 deletion(-)
+> 
+> diff --git a/Documentation/cxl/cxl-disable-region.txt b/Documentation/cxl/cxl-disable-region.txt
+> index 4b0625e40bf6..9abf19e96094 100644
+> --- a/Documentation/cxl/cxl-disable-region.txt
+> +++ b/Documentation/cxl/cxl-disable-region.txt
+> @@ -14,6 +14,10 @@ SYNOPSIS
+>  
+>  include::region-description.txt[]
+>  
+> +If there are memory blocks that are still online, the operation will attempt to
+> +offline the relevant blocks. If the offlining fails, the operation fails when not
+> +using the -f (force) parameter.
+> +
+>  EXAMPLE
+>  -------
+>  ----
+> @@ -27,6 +31,12 @@ OPTIONS
+>  -------
+>  include::bus-option.txt[]
+>  
+> +-f::
+> +--force::
+> +	Attempt to disable-region even though memory cannot be offlined successfully.
+> +	Will emit warning that operation will permanently leak phiscal address space
+> +	and cannot be recovered until a reboot.
+> +
+>  include::decoder-option.txt[]
+>  
+>  include::debug-option.txt[]
+> diff --git a/cxl/region.c b/cxl/region.c
+> index bcd703956207..5cbbf2749e2d 100644
+> --- a/cxl/region.c
+> +++ b/cxl/region.c
+> @@ -14,6 +14,7 @@
+>  #include <util/parse-options.h>
+>  #include <ccan/minmax/minmax.h>
+>  #include <ccan/short_types/short_types.h>
+> +#include <daxctl/libdaxctl.h>
+>  
+>  #include "filter.h"
+>  #include "json.h"
+> @@ -95,6 +96,8 @@ static const struct option enable_options[] = {
+>  
+>  static const struct option disable_options[] = {
+>  	BASE_OPTIONS(),
+> +	OPT_BOOLEAN('f', "force", &param.force,
+> +		    "attempt to offline memory before disabling the region"),
+>  	OPT_END(),
+>  };
+>  
+> @@ -789,13 +792,62 @@ static int destroy_region(struct cxl_region *region)
+>  	return cxl_region_delete(region);
+>  }
+>  
+> +static int disable_region(struct cxl_region *region)
+> +{
+> +	const char *devname = cxl_region_get_devname(region);
+> +	struct daxctl_region *dax_region;
+> +	struct daxctl_memory *mem;
+> +	struct daxctl_dev *dev;
+> +	int failed = 0, rc;
+> +
+> +	dax_region = cxl_region_get_daxctl_region(region);
+> +	if (!dax_region)
+> +		goto out;
+> +
+> +	daxctl_dev_foreach(dax_region, dev) {
+> +		mem = daxctl_dev_get_memory(dev);
+> +		if (!mem)
+> +			return -ENXIO;
+> +
+> +		/*
+> +		 * If memory is still online and user wants to force it, attempt
+> +		 * to offline it.
+> +		 */
+> +		if (daxctl_memory_is_online(mem)) {
+> +			rc = daxctl_memory_offline(mem);
+> +			if (rc < 0) {
+> +				log_err(&rl, "%s: unable to offline %s: %s\n",
+> +					devname,
+> +					daxctl_dev_get_devname(dev),
+> +					strerror(abs(rc)));
+> +				if (!param.force)
+> +					return rc;
+> +
+> +				failed++;
+> +			}
+> +		}
+> +	}
+> +
+> +	if (failed) {
+> +		log_err(&rl, "%s: Forcing region disable without successful offline.\n",
+> +			devname);
+> +		log_err(&rl, "%s: Physical address space has now been permanently leaked.\n",
+> +			devname);
+> +		log_err(&rl, "%s: Leaked address cannot be recovered until a reboot.\n",
+> +			devname);
+> +	}
+> +
+> +out:
+> +	return cxl_region_disable(region);
+> +}
+> +
+>  static int do_region_xable(struct cxl_region *region, enum region_actions action)
+>  {
+>  	switch (action) {
+>  	case ACTION_ENABLE:
+>  		return cxl_region_enable(region);
+>  	case ACTION_DISABLE:
+> -		return cxl_region_disable(region);
+> +		return disable_region(region);
+>  	case ACTION_DESTROY:
+>  		return destroy_region(region);
+>  	default:
 > 
 > 
-> On 10/31/23 13:33, Dave Jiang wrote:
->> If a cxl operation is executed resulting in no-op, the tool will still
->> emit the number of targets the operation has succeeded on. For example, if
->> disable-region is issued and the region is already disabled, the tool will
->> still report 1 region disabled. Add verbiage to man pages to document the
->> behavior.
->>
->> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-> 
-> Cc Quanquan
-> 
->> ---
->>   Documentation/cxl/cxl-disable-bus.txt    |    2 ++
->>   Documentation/cxl/cxl-disable-memdev.txt |    1 +
->>   Documentation/cxl/cxl-disable-port.txt   |    2 ++
->>   Documentation/cxl/cxl-disable-region.txt |    2 ++
->>   Documentation/cxl/cxl-enable-memdev.txt  |    2 ++
->>   Documentation/cxl/cxl-enable-port.txt    |    2 ++
->>   Documentation/cxl/cxl-enable-region.txt  |    2 ++
->>   Documentation/cxl/meson.build            |    1 +
->>   Documentation/cxl/operations.txt         |   17 +++++++++++++++++
->>   9 files changed, 31 insertions(+)
->>   create mode 100644 Documentation/cxl/operations.txt
->>
->> diff --git a/Documentation/cxl/cxl-disable-bus.txt b/Documentation/cxl/cxl-disable-bus.txt
->> index 65f695cd06c8..992a25ec8506 100644
->> --- a/Documentation/cxl/cxl-disable-bus.txt
->> +++ b/Documentation/cxl/cxl-disable-bus.txt
->> @@ -15,6 +15,8 @@ SYNOPSIS
->>   For test and debug scenarios, disable a CXL bus and any associated
->>   memory devices from CXL.mem operations.
->>   
->> +include::operations.txt[]
->> +
->>   OPTIONS
->>   -------
->>   -f::
->> diff --git a/Documentation/cxl/cxl-disable-memdev.txt b/Documentation/cxl/cxl-disable-memdev.txt
->> index d39780250939..fc7eeee61c3e 100644
->> --- a/Documentation/cxl/cxl-disable-memdev.txt
->> +++ b/Documentation/cxl/cxl-disable-memdev.txt
->> @@ -12,6 +12,7 @@ SYNOPSIS
->>   [verse]
->>   'cxl disable-memdev' <mem0> [<mem1>..<memN>] [<options>]
->>   
->> +include::operations.txt[]
->>   
->>   OPTIONS
->>   -------
->> diff --git a/Documentation/cxl/cxl-disable-port.txt b/Documentation/cxl/cxl-disable-port.txt
->> index 7a22efc3b821..451aa01fefdd 100644
->> --- a/Documentation/cxl/cxl-disable-port.txt
->> +++ b/Documentation/cxl/cxl-disable-port.txt
->> @@ -15,6 +15,8 @@ SYNOPSIS
->>   For test and debug scenarios, disable a CXL port and any memory devices
->>   dependent on this port being active for CXL.mem operation.
->>   
->> +include::operations.txt[]
->> +
->>   OPTIONS
->>   -------
->>   -e::
->> diff --git a/Documentation/cxl/cxl-disable-region.txt b/Documentation/cxl/cxl-disable-region.txt
->> index 6a39aee6ea69..4b0625e40bf6 100644
->> --- a/Documentation/cxl/cxl-disable-region.txt
->> +++ b/Documentation/cxl/cxl-disable-region.txt
->> @@ -21,6 +21,8 @@ EXAMPLE
->>   disabled 2 regions
->>   ----
->>   
->> +include::operations.txt[]
->> +
->>   OPTIONS
->>   -------
->>   include::bus-option.txt[]
->> diff --git a/Documentation/cxl/cxl-enable-memdev.txt b/Documentation/cxl/cxl-enable-memdev.txt
->> index 5b5ed66eadc5..436f063e5517 100644
->> --- a/Documentation/cxl/cxl-enable-memdev.txt
->> +++ b/Documentation/cxl/cxl-enable-memdev.txt
->> @@ -18,6 +18,8 @@ it again. This involves detecting the state of the HDM (Host Managed
->>   Device Memory) Decoders and validating that CXL.mem is enabled for each
->>   port in the device's hierarchy.
->>   
->> +include::operations.txt[]
->> +
->>   OPTIONS
->>   -------
->>   <memory device(s)>::
->> diff --git a/Documentation/cxl/cxl-enable-port.txt b/Documentation/cxl/cxl-enable-port.txt
->> index 50b53d1f48d1..8b51023d2e16 100644
->> --- a/Documentation/cxl/cxl-enable-port.txt
->> +++ b/Documentation/cxl/cxl-enable-port.txt
->> @@ -18,6 +18,8 @@ again. This involves detecting the state of the HDM (Host Managed Device
->>   Memory) Decoders and validating that CXL.mem is enabled for each port in
->>   the device's hierarchy.
->>   
->> +include::operations.txt[]
->> +
->>   OPTIONS
->>   -------
->>   -e::
->> diff --git a/Documentation/cxl/cxl-enable-region.txt b/Documentation/cxl/cxl-enable-region.txt
->> index f6ef00fb945d..f3d3d9db1674 100644
->> --- a/Documentation/cxl/cxl-enable-region.txt
->> +++ b/Documentation/cxl/cxl-enable-region.txt
->> @@ -21,6 +21,8 @@ EXAMPLE
->>   enabled 2 regions
->>   ----
->>   
->> +include::operations.txt[]
->> +
->>   OPTIONS
->>   -------
->>   include::bus-option.txt[]
->> diff --git a/Documentation/cxl/meson.build b/Documentation/cxl/meson.build
->> index c5533572ef75..7c70956c3b53 100644
->> --- a/Documentation/cxl/meson.build
->> +++ b/Documentation/cxl/meson.build
->> @@ -25,6 +25,7 @@ filedeps = [
->>     'debug-option.txt',
->>     'region-description.txt',
->>     'decoder-option.txt',
->> +  'operations.txt',
->>   ]
->>   
->>   cxl_manpages = [
->> diff --git a/Documentation/cxl/operations.txt b/Documentation/cxl/operations.txt
->> new file mode 100644
->> index 000000000000..046e2bc19532
->> --- /dev/null
->> +++ b/Documentation/cxl/operations.txt
->> @@ -0,0 +1,17 @@
->> +// SPDX-License-Identifier: gpl-2.0
->> +
->> +Given any en/disabling operation, if the operation is a no-op due to the
->> +current state of a target, it is still considered successful when executed
->> +even if no actual operation is performed. The target applies to a bus,
->> +decoder, memdev, or region.
->> +
->> +For example:
->> +If a CXL region is already disabled and the cxl disable-region is called:
->> +
->> +----
->> +# cxl disable-region region0
->> +disabled 1 regions
->> +----
->> +
->> +The operation will still succeed with the number of regions operated on
->> +reported, even if the operation is a non-action.
->>
-
-Hi Dave,
-
-Thanks for adding this description. It's easier for our user to understand.
-
-Reviewed-by: Quanquan Cao <caoqq@fujitsu.com>
-
