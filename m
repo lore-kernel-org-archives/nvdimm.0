@@ -1,110 +1,119 @@
-Received: from mail-pf1-f178.google.com (mail-pf1-f178.google.com [209.85.210.178])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from esa5.hc1455-7.c3s2.iphmx.com (esa5.hc1455-7.c3s2.iphmx.com [68.232.139.130])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A24113ACC
-	for <nvdimm@lists.linux.dev>; Wed,  8 Nov 2023 10:50:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TiBJTblq"
-Received: by mail-pf1-f178.google.com with SMTP id d2e1a72fcca58-6bbfb8f7ac4so2049848b3a.0
-        for <nvdimm@lists.linux.dev>; Wed, 08 Nov 2023 02:50:59 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1699440659; x=1700045459; darn=lists.linux.dev;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=bt2bvDjEv0HiaQYd0c4TjFAx6Nfzvf1eIcmbOTXqPwE=;
-        b=TiBJTblqi8Qn5SmxLRgV04hIwGQBpprHFBB7hwYe0Cws54bK33un+uwaI8Pl7m6BP7
-         1SRFXOU8S4XkPXE5hK5QU7/7vvViGPn1DjdBPKX+81X0A1dGAADiFmpJINmmXRv7KANs
-         eA+Na4D53IpSSdLVG/ahpoK/8pINfK8LUDefY/4yBt9M1p13rp7VBPf6WGQAjGiwgeuu
-         GpwJ0cAdq/U6sf7t0LXYFb59eKccvu0rrbJxmFNdPNWxUKGVPCM8KUBXKCF3TGrNhjjN
-         miFM0b8mRId9xtAgfwGeeNoKCKE3qmc2ejooGPU2gG3WtzbloSt4F4pe/rJgQ5DJWYSJ
-         3gEA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1699440659; x=1700045459;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=bt2bvDjEv0HiaQYd0c4TjFAx6Nfzvf1eIcmbOTXqPwE=;
-        b=P/288kqm8vTq/yQDyoDs7yQiAhwNW0glpBKrJ3Iq2pS89NtMTngfmTcnNSayJFdUWK
-         xEZ3Sz86juQFoMiugrdAb4eld39OsGY+KiZQ3C9eQEFz6lJ6O2MZW9YY4TSWHtW7GqZ+
-         lDMTabC+DXaIVWcfACdgtiaYB/fZ7bVxZEj6ML5HAy0Kpat7ti1S9dlwwpdmiMjyauAi
-         C17d3KGsbx+syLJmgbqRZsKe4gACEwv/8Gs25YBTcsZ95CDr+oQ86QnPw6ZlHJ5nuMyt
-         LKIHiL5dNU9uVVhE4cibEI1lDesRmIxCTo5xDLArwvHguLmYLC1GdEUZ8MLbLEH0zdKZ
-         aQbQ==
-X-Gm-Message-State: AOJu0Yzk3pbz1QBhiabZkTRwe/orPjEBiw917mKzDVxQcQ9ieEPYJJZe
-	1WIZNUhd8XLtId9dckQr/mOK2Ma7zgNjhg==
-X-Google-Smtp-Source: AGHT+IELClSbAQz1V/0drxjg1UD4ziQ+8CYyLr/3Fhum171i0Mlj3ge6042agi3t4nhAvWOeigTzjQ==
-X-Received: by 2002:a05:6a20:4304:b0:16e:26fd:7c02 with SMTP id h4-20020a056a20430400b0016e26fd7c02mr1709920pzk.2.1699440659349;
-        Wed, 08 Nov 2023 02:50:59 -0800 (PST)
-Received: from [192.168.0.152] ([103.75.161.208])
-        by smtp.gmail.com with ESMTPSA id fn3-20020a056a002fc300b0068fe9c7b199sm8728468pfb.105.2023.11.08.02.50.55
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 08 Nov 2023 02:50:58 -0800 (PST)
-Message-ID: <35c77f16-d01f-4dfd-96a7-2f6210e40e94@gmail.com>
-Date: Wed, 8 Nov 2023 16:20:48 +0530
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2C3910A01
+	for <nvdimm@lists.linux.dev>; Thu,  9 Nov 2023 08:36:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=fujitsu.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fujitsu.com
+Authentication-Results: smtp.subspace.kernel.org; dkim=none
+X-IronPort-AV: E=McAfee;i="6600,9927,10888"; a="138554051"
+X-IronPort-AV: E=Sophos;i="6.03,288,1694703600"; 
+   d="scan'208";a="138554051"
+Received: from unknown (HELO oym-r2.gw.nic.fujitsu.com) ([210.162.30.90])
+  by esa5.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Nov 2023 17:35:38 +0900
+Received: from oym-m3.gw.nic.fujitsu.com (oym-nat-oym-m3.gw.nic.fujitsu.com [192.168.87.60])
+	by oym-r2.gw.nic.fujitsu.com (Postfix) with ESMTP id 5EB42DC147
+	for <nvdimm@lists.linux.dev>; Thu,  9 Nov 2023 17:35:35 +0900 (JST)
+Received: from kws-ab4.gw.nic.fujitsu.com (kws-ab4.gw.nic.fujitsu.com [192.51.206.22])
+	by oym-m3.gw.nic.fujitsu.com (Postfix) with ESMTP id 5F84213F70
+	for <nvdimm@lists.linux.dev>; Thu,  9 Nov 2023 17:35:34 +0900 (JST)
+Received: from edo.cn.fujitsu.com (edo.cn.fujitsu.com [10.167.33.5])
+	by kws-ab4.gw.nic.fujitsu.com (Postfix) with ESMTP id EA3CB6B808
+	for <nvdimm@lists.linux.dev>; Thu,  9 Nov 2023 17:35:33 +0900 (JST)
+Received: from [10.167.220.145] (unknown [10.167.220.145])
+	by edo.cn.fujitsu.com (Postfix) with ESMTP id 726CB1A0072;
+	Thu,  9 Nov 2023 16:35:33 +0800 (CST)
+Message-ID: <6dc5d1c3-3984-aa82-5e7a-436da62fba40@fujitsu.com>
+Date: Thu, 9 Nov 2023 16:35:33 +0800
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] fs : Fix warning using plain integer as NULL
-Content-Language: en-US
-To: viro@zeniv.linux.org.uk, brauner@kernel.org, dan.j.williams@intel.com,
- willy@infradead.org, jack@suse.cz
-Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
- nvdimm@lists.linux.dev, linux-kernel-mentees@lists.linuxfoundation.org
-References: <20231108101518.e4nriftavrhw45xk@quack3>
- <20231108104730.1007713-1-singhabhinav9051571833@gmail.com>
-From: Abhinav Singh <singhabhinav9051571833@gmail.com>
-In-Reply-To: <20231108104730.1007713-1-singhabhinav9051571833@gmail.com>
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.5.0
+Subject: Re: [ISSUE] `cxl disable-region region0` twice but got same output
+To: "Verma, Vishal L" <vishal.l.verma@intel.com>,
+ "Jiang, Dave" <dave.jiang@intel.com>
+Cc: "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
+ "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>
+References: <dc013f7b-2039-e2ed-01ad-705435d16862@fujitsu.com>
+ <9b0f2cc0330197456bd5c810561b390a7606a26b.camel@intel.com>
+From: =?UTF-8?B?Q2FvLCBRdWFucXVhbi/mm7kg5YWo5YWo?= <caoqq@fujitsu.com>
+In-Reply-To: <9b0f2cc0330197456bd5c810561b390a7606a26b.camel@intel.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-TM-AS-Product-Ver: IMSS-9.1.0.1417-9.0.0.1002-27986.003
+X-TM-AS-User-Approved-Sender: Yes
+X-TMASE-Version: IMSS-9.1.0.1417-9.0.1002-27986.003
+X-TMASE-Result: 10--19.812300-10.000000
+X-TMASE-MatchedRID: RsPxVIkBekyPvrMjLFD6eDzXNFWi6yZNr+LsAsPJG4vsBZ58WB1sx/3r
+	0bsfgu7vGm7YqNxEHLKSxAk2dEaKNbBAQLqGlKivPMcAlOC0qrDYUDvAr2Y/12e7XiVqt/oW1w6
+	ADg6BQG+vD9vPwbzd9LYO/gaH9TFyh2Em++ruuH92o0eWLPgBZ45UafLmrvaGauJSrIqqokQ6dE
+	UNf2ygXPLXmWYFNSTT+hLkHfU9bp+8pqJQgPnFfY4V8tCoXo/SWmOfr3aLpwgtferJ/d7AbwewL
+	2vPz9Rcbp4NcGxU+UgHcHqUK6tMz+VHGbcDbAq6gxsfzkNRlfK51H80nDYkdw1im+j3Fb6Yjocz
+	muoPCq2UTGVAhB5EbQ==
+X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
 
-On 11/8/23 16:17, Abhinav Singh wrote:
-> Sparse static analysis tools generate a warning with this message
-> "Using plain integer as NULL pointer". In this case this warning is
-> being shown because we are trying to initialize  pointer to NULL using
-> integer value 0.
-> 
-> Signed-off-by: Abhinav Singh <singhabhinav9051571833@gmail.com>
-> Reviewed-by: Jan Kara <jack@suse.cz>
-> ---
->   fs/dax.c       | 2 +-
->   fs/direct-io.c | 2 +-
->   2 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/fs/dax.c b/fs/dax.c
-> index 3380b43cb6bb..423fc1607dfa 100644
-> --- a/fs/dax.c
-> +++ b/fs/dax.c
-> @@ -1128,7 +1128,7 @@ static int dax_iomap_copy_around(loff_t pos, uint64_t length, size_t align_size,
->   	/* zero the edges if srcmap is a HOLE or IOMAP_UNWRITTEN */
->   	bool zero_edge = srcmap->flags & IOMAP_F_SHARED ||
->   			 srcmap->type == IOMAP_UNWRITTEN;
-> -	void *saddr = 0;
-> +	void *saddr = NULL;
->   	int ret = 0;
->   
->   	if (!zero_edge) {
-> diff --git a/fs/direct-io.c b/fs/direct-io.c
-> index 20533266ade6..60456263a338 100644
-> --- a/fs/direct-io.c
-> +++ b/fs/direct-io.c
-> @@ -1114,7 +1114,7 @@ ssize_t __blockdev_direct_IO(struct kiocb *iocb, struct inode *inode,
->   	loff_t offset = iocb->ki_pos;
->   	const loff_t end = offset + count;
->   	struct dio *dio;
-> -	struct dio_submit sdio = { 0, };
-> +	struct dio_submit sdio = { NULL, };
->   	struct buffer_head map_bh = { 0, };
->   	struct blk_plug plug;
->   	unsigned long align = offset | iov_iter_alignment(iter);
-Thanks a lot  maintainers for looking into this patch and accepting this 
-patch.
 
-BR
-Abhinav
+
+在 2023/11/1 1:22, Verma, Vishal L 写道:
+> On Mon, 2023-10-30 at 14:41 +0800, Cao, Quanquan/曹 全全 wrote:
+>>
+> [..]
+>> After investigation, it was found that when disabling the region and
+>> attempting to disable the same region again, the message "cxl region:
+>> cmd_disable_region: disabled 1 region" is still returned.
+>> I consider this to be unreasonable.
+>>
+>>
+>> Test Example:
+>>
+>> [root@fedora-37-client memory]# cxl list
+>> [
+>>     {
+>>       "memdevs":[
+>>         {
+>>           "memdev":"mem0",
+>>           "ram_size":1073741824,
+>>           "serial":0,
+>>           "host":"0000:0d:00.0"
+>>         }
+>>       ]
+>>     },
+>>     {
+>>       "regions":[
+>>         {
+>>           "region":"region0",
+>>           "resource":27111981056,
+>>           "size":1073741824,
+>>           "type":"ram",
+>>           "interleave_ways":1,
+>>           "interleave_granularity":256,
+>>           "decode_state":"commit"
+>>         }
+>>       ]
+>>     }
+>> ]
+>>
+>> [root@fedora-37-client ~]# cxl disable-region region0
+>> cxl region: cmd_disable_region: disabled 1 region
+>> [root@fedora-37-client ~]# cxl disable-region region0
+>> cxl region: cmd_disable_region: disabled 1 region
+>>
+>> expectation:cmd_disable_region: disabled 0 region
+> 
+> This is by design, I think it would be more confusing if the user asks
+> to disable-region, the response is "disabled 0 regions", and then finds
+> that the region is actually in the disabled state.
+> 
+> There is also precedent for this, as all disable-<foo> commands in
+> ndctl and cxl-cli behave the same way.
+> 
+> Perhaps a clarification in the man page makes sense noting this
+> behavior?
+> 
+About this,i would like to ask if the design adopts the "idempotency" 
+pattern
