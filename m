@@ -1,67 +1,121 @@
-Received: from mail-oi1-f176.google.com (mail-oi1-f176.google.com [209.85.167.176])
+Received: from mail-wr1-f45.google.com (mail-wr1-f45.google.com [209.85.221.45])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9AE96199AE
-	for <nvdimm@lists.linux.dev>; Mon, 20 Nov 2023 15:12:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; dkim=none
-Received: by mail-oi1-f176.google.com with SMTP id 5614622812f47-3b2e08526b9so935273b6e.0
-        for <nvdimm@lists.linux.dev>; Mon, 20 Nov 2023 07:12:06 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 732F61DA4B
+	for <nvdimm@lists.linux.dev>; Mon, 20 Nov 2023 15:49:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bytedance.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b="FBLwWpu0"
+Received: by mail-wr1-f45.google.com with SMTP id ffacd0b85a97d-32f7abbb8b4so3024178f8f.0
+        for <nvdimm@lists.linux.dev>; Mon, 20 Nov 2023 07:49:40 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=bytedance.com; s=google; t=1700495378; x=1701100178; darn=lists.linux.dev;
+        h=content-transfer-encoding:in-reply-to:references:cc:to:from
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=RAd0IIHuX/2oY04pHCXnq50Epg7Nd+f5sCggYZ6Tygg=;
+        b=FBLwWpu0ifRSCw2UJpfil9U67lEEKfarMsKCSsGx9NwT0+FjMGp6mlgzMTwFHzgAhD
+         j77y1FIOUZDxlbmP3sFnF8ha5rUqMVYNf6e85H7qMC2Gk9TJJ6i3hu3nk++nrtYbm4bY
+         z4ztDZ8EhJY66sp6stBp3V6X5MSJpHJdB7J1Hqxadk48/4c1LIZJfs6Zcmss9DnOWcnQ
+         C8CX6tV6kafjW7wU/F/Any6CBYVGOpboeGRMVeOxMMf9luusqbSODbQqDdMzxhEEFD7z
+         Bbna/7NHqOz+dKvEpZTRJ82YXneV6IdUzEjEFSd1gBZ6AebOkULFd8Ns/5r2BMZvM5ST
+         Y14A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1700493125; x=1701097925;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=S+m0kC6g1pw6dndsJtMqNEaQgc0zf06MzggkuivSPh0=;
-        b=WzfrrIHTU++YHFMDMllLmtfkasDODYay+36pR0yC0rHMbofJBMlgNgUbWSEa5jjpLl
-         5Llaw+LpshYRvgNe3arzI1HlPV/DENgqq4M1ytG16L7yM//vsxc7U/geoT+ZRPw3zyq4
-         YauMBvfEffZA010g6Swrb8uS89//pFmzjNpsw93RF6bpnD4crfKoKzVbtBiwSk2zt4pd
-         gXcyS7x7glNZfSQPaxGd+nGp5CmhCUcE37Om6Aon9NTEaLcodo3DwrOG8iO6gw633E/M
-         R3IWNBFtVzUpB7scj0sbUH7rEl1osDH0HAt8utRmhQGR92efontLQdQyqU1zEDFW5AF1
-         qI6g==
-X-Gm-Message-State: AOJu0YxvsqlwYaM2tiHRr7DMrKw/vjpHLBuz9zsmHgS2/dcq8QIJeAnx
-	Hpp6EgdHdvf6BxU9LlWSn4eXGylelfgqsQgwXnM=
-X-Google-Smtp-Source: AGHT+IHSUSPPFTcw8FMSSNGm1jay0/0THjIE7X5TrQf4EMgupzCk+cjrGR4G9U3eM/ZKrCfPpjKg98MAciT1ixshXxs=
-X-Received: by 2002:a4a:d44c:0:b0:584:1080:f0a5 with SMTP id
- p12-20020a4ad44c000000b005841080f0a5mr6925354oos.1.1700493125450; Mon, 20 Nov
- 2023 07:12:05 -0800 (PST)
+        d=1e100.net; s=20230601; t=1700495378; x=1701100178;
+        h=content-transfer-encoding:in-reply-to:references:cc:to:from
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=RAd0IIHuX/2oY04pHCXnq50Epg7Nd+f5sCggYZ6Tygg=;
+        b=CAGY59p2QbcSj9DLSiocFOQNjc9U6pR6AKopGmjM8IvlKpc8y26w0xw2Ba+T0BDkBh
+         oKy6q2/QV5rf6HiHdVIc7gYi24h1c0QQJFfQtEfCWlnKa5J1Olbzg3nITo1CVvHV5Srw
+         924S24mjIyVFMU4m7TkIjc68uJTa14Mac0xcqmFIguGtSiJqBMAgc4N3PZPFKQamc2yf
+         UkdnHS3NaPwMpqoVl40AWHAo5YyOzxPgL7zTyDKjqXLiailLMfJU+/RT1St0rjmXHErn
+         SDQS69KqxpoTvTRh6pZXYPAxiwF3RsNIXF8ERZbjPdt8kVIZLW3hzaGhyO/BJ+yQbkvt
+         CqwQ==
+X-Gm-Message-State: AOJu0Yx9j5odwWye9pxoFBfjd6PKNz4Lfcl1+ZduXScpBEu8Gxg60H/U
+	QM/x3SW/BoncIZVKyfgTmi799Q==
+X-Google-Smtp-Source: AGHT+IHlO3QPA9EVMaR+I4w/XoQOoZjMhwzYrFEC54gTJQMZUT+IHnpjrYufkdZU9KSfgUpw3DnpuA==
+X-Received: by 2002:a5d:44c4:0:b0:331:834b:61e5 with SMTP id z4-20020a5d44c4000000b00331834b61e5mr3087359wrr.42.1700495378505;
+        Mon, 20 Nov 2023 07:49:38 -0800 (PST)
+Received: from ?IPV6:2a02:6b6a:b5c7:0:237f:509f:1c65:1d08? ([2a02:6b6a:b5c7:0:237f:509f:1c65:1d08])
+        by smtp.gmail.com with ESMTPSA id s5-20020adfdb05000000b0032d8eecf901sm11756403wri.3.2023.11.20.07.49.37
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 20 Nov 2023 07:49:37 -0800 (PST)
+Message-ID: <a0d67f2d-f66b-8873-7c11-31d90aae8e8c@bytedance.com>
+Date: Mon, 20 Nov 2023 15:49:36 +0000
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20231002135458.2603293-1-andriy.shevchenko@linux.intel.com>
- <6531d1e01d0e1_7258329440@dwillia2-xfh.jf.intel.com.notmuch> <ZVt1J_14iJjnSln9@smile.fi.intel.com>
-In-Reply-To: <ZVt1J_14iJjnSln9@smile.fi.intel.com>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Mon, 20 Nov 2023 16:11:54 +0100
-Message-ID: <CAJZ5v0hk2ygfjU7WtgTBhwXhqDc8+xoBb+-gs6Ym9tOJtSoZ4A@mail.gmail.com>
-Subject: Re: [PATCH v1 1/1] ACPI: NFIT: Switch to use acpi_evaluate_dsm_typed()
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>, 
-	Michal Wilczynski <michal.wilczynski@intel.com>, nvdimm@lists.linux.dev, 
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
-	Ira Weiny <ira.weiny@intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.4.2
+Subject: Re: Conditions for FOLL_LONGTERM mapping in fsdax
+Content-Language: en-US
+From: Usama Arif <usama.arif@bytedance.com>
+To: dan.j.williams@intel.com, vishal.l.verma@intel.com, dave.jiang@intel.com,
+ nvdimm@lists.linux.dev
+Cc: linux-mm@kvack.org, linux-fsdevel@vger.kernel.org,
+ Fam Zheng <fam.zheng@bytedance.com>,
+ "liangma@liangbit.com" <liangma@liangbit.com>
+References: <172ab047-0dc7-1704-5f30-ec7cd3632e09@bytedance.com>
+ <454dbfa1-2120-1e40-2582-d661203decca@bytedance.com>
+In-Reply-To: <454dbfa1-2120-1e40-2582-d661203decca@bytedance.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-On Mon, Nov 20, 2023 at 4:03=E2=80=AFPM Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
->
-> On Thu, Oct 19, 2023 at 06:03:28PM -0700, Dan Williams wrote:
-> > Andy Shevchenko wrote:
-> > > The acpi_evaluate_dsm_typed() provides a way to check the type of the
-> > > object evaluated by _DSM call. Use it instead of open coded variant.
-> >
-> > Looks good to me.
-> >
-> > Reviewed-by: Dan Williams <dan.j.williams@intel.com>
->
-> Thank you!
->
-> Who is taking care of this? Rafael?
 
-I can apply it.
+
+On 06/11/2023 18:15, Usama Arif wrote:
+> Hi,
+> 
+> We wanted to run a VM with a vfio device assigned to it and with its 
+> memory-backend-file residing in a persistent memory using fsdax (mounted 
+> as ext4). It doesnt currently work with the kernel as 
+> vfio_pin_pages_remote ends up requesting pages with FOLL_LONGTERM which 
+> is currently not supported. From reading the mailing list, what I 
+> understood was that this is to do with not having DMA supported on fsdax 
+> due to issues that come up during truncate/hole-punching. But it was 
+> solved with [1] by deferring fallocate(), truncate() on a dax mode file 
+> while any page/block in the file is under active DMA.
+> 
+> If I remove the check which fails the gup opertion with the below diff, 
+> the VM boots and the vfio device works without any issues. If I try to 
+> truncate the mem file in fsdax, I can see that the truncate command gets 
+> deferred (waits in ext4_break_layouts) and the vfio device keeps working 
+> and sending packets without any issues. Just wanted to check what is 
+> missing to allow FOLL_LONGTERM gup operations with fsdax? Is it just 
+> enough to remove the check? Thanks!
+> 
+> 
+> diff --git a/mm/gup.c b/mm/gup.c
+> index eb8d7baf9e4d..f77bb428cf9b 100644
+> --- a/mm/gup.c
+> +++ b/mm/gup.c
+> @@ -1055,9 +1055,6 @@ static int check_vma_flags(struct vm_area_struct 
+> *vma, unsigned long gup_flags)
+>          if (gup_flags & FOLL_ANON && !vma_is_anonymous(vma))
+>                  return -EFAULT;
+> 
+> -       if ((gup_flags & FOLL_LONGTERM) && vma_is_fsdax(vma))
+> -               return -EOPNOTSUPP;
+> -
+>          if (vma_is_secretmem(vma))
+>                  return -EFAULT;
+> 
+> 
+> [1] 
+> https://lore.kernel.org/all/152669371377.34337.10697370528066177062.stgit@dwillia2-desk3.amr.corp.intel.com/
+> 
+
+Hi,
+
+Just wanted to check if there were any comments on this?
+
+Thanks
+
+
+> Regards,
+> Usama
