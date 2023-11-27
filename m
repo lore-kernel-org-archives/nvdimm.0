@@ -1,111 +1,165 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from esa5.hc1455-7.c3s2.iphmx.com (esa5.hc1455-7.c3s2.iphmx.com [68.232.139.130])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA95714015
-	for <nvdimm@lists.linux.dev>; Mon, 27 Nov 2023 09:28:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="SML1x09c"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1701077332;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=0nMIl91Eak6ZBGG/8fFVr6BWdYW3lElq6+wktXAqvfE=;
-	b=SML1x09ciWZNv55GgcLZA8zEjngUyK2mcotijJ0xb1Ys5Vxm/VAApS2yPkSRaUsxbuD03v
-	dFG+031AJg83Qx0hyhYC/hKS5Yzvm4s50tvL1RYv7aTsnVXeQXSg1TgxzUulhSVdwfU46I
-	XfbHmkY8cCisEcR7H0xJ+7FYzE2hh6U=
-Received: from mail-pj1-f70.google.com (mail-pj1-f70.google.com
- [209.85.216.70]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-625-LFwmC-i6P_eCaa-lUqT2cg-1; Mon, 27 Nov 2023 04:28:50 -0500
-X-MC-Unique: LFwmC-i6P_eCaa-lUqT2cg-1
-Received: by mail-pj1-f70.google.com with SMTP id 98e67ed59e1d1-285b3dd68c0so2186246a91.3
-        for <nvdimm@lists.linux.dev>; Mon, 27 Nov 2023 01:28:50 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1701077329; x=1701682129;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=0nMIl91Eak6ZBGG/8fFVr6BWdYW3lElq6+wktXAqvfE=;
-        b=uU92tJGluxpQBMl3wcSFVwAbdi+EYlFgGr6+u1tFX2D21z5yNdXDKtj+gvxHnKlEJY
-         eGZebt7wo7HA1CdPjP/zJ0PVgD05s1vHFkhTwmehLl+BPSXfjCVH3EGt8LGXGmt+fpNe
-         2a1i7LAIBymMPPOUu6HopoFbKlPIGZCMOg4C36qkWMAyJzK7vRH2uGd+AzVnNQzJ+vcs
-         P2yA3j3u94WL5cD2DDJAHOcOitF7xfmw093VTwWtZbhKkV/a3ted4j5CPTb/K8ceXqyu
-         Hz+fV+zAx+c+pqZjlqLxFvRX7H+Vj0vnoLP8MrkKw/ERFFg8CXr4mGfQ8h4reLEkRC9G
-         yLZA==
-X-Gm-Message-State: AOJu0Yz4vrAW2IWATyQm0bZU0Rq/oE/aJ83MpXLv5v/de8+os3MJJDEe
-	n4ZEeR7W4ZSJsAa3hJ//RKhvFJYv2t87/5HtbGaipahkpRk4yp+gRjYhzW05vNx3sNtAuuiH/Ja
-	TPdcLuCCaVRgRXhHUzGcuNNCTkJTbMitP
-X-Received: by 2002:a17:90b:3b91:b0:285:a204:fc47 with SMTP id pc17-20020a17090b3b9100b00285a204fc47mr8090133pjb.17.1701077329464;
-        Mon, 27 Nov 2023 01:28:49 -0800 (PST)
-X-Google-Smtp-Source: AGHT+IFlR0wcxBSvfFH7EuCUE7u9yM2CMc+WTwwba0kU+VSu3nWOn9orrt7wKRyWKumdp5aFjLpmynyFdbSKuH3Ehb4=
-X-Received: by 2002:a17:90b:3b91:b0:285:a204:fc47 with SMTP id
- pc17-20020a17090b3b9100b00285a204fc47mr8090124pjb.17.1701077329229; Mon, 27
- Nov 2023 01:28:49 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2CECA156E3
+	for <nvdimm@lists.linux.dev>; Mon, 27 Nov 2023 09:36:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=fujitsu.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fujitsu.com
+Authentication-Results: smtp.subspace.kernel.org; dkim=none
+X-IronPort-AV: E=McAfee;i="6600,9927,10906"; a="140528652"
+X-IronPort-AV: E=Sophos;i="6.04,230,1695654000"; 
+   d="scan'208";a="140528652"
+Received: from unknown (HELO oym-r2.gw.nic.fujitsu.com) ([210.162.30.90])
+  by esa5.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Nov 2023 18:34:58 +0900
+Received: from oym-m4.gw.nic.fujitsu.com (oym-nat-oym-m4.gw.nic.fujitsu.com [192.168.87.61])
+	by oym-r2.gw.nic.fujitsu.com (Postfix) with ESMTP id 7065EDC879
+	for <nvdimm@lists.linux.dev>; Mon, 27 Nov 2023 18:34:55 +0900 (JST)
+Received: from kws-ab3.gw.nic.fujitsu.com (kws-ab3.gw.nic.fujitsu.com [192.51.206.21])
+	by oym-m4.gw.nic.fujitsu.com (Postfix) with ESMTP id 69AF1D5E39
+	for <nvdimm@lists.linux.dev>; Mon, 27 Nov 2023 18:34:54 +0900 (JST)
+Received: from edo.cn.fujitsu.com (edo.cn.fujitsu.com [10.167.33.5])
+	by kws-ab3.gw.nic.fujitsu.com (Postfix) with ESMTP id F040A20074730
+	for <nvdimm@lists.linux.dev>; Mon, 27 Nov 2023 18:34:53 +0900 (JST)
+Received: from [10.167.220.145] (unknown [10.167.220.145])
+	by edo.cn.fujitsu.com (Postfix) with ESMTP id 627A91A0071;
+	Mon, 27 Nov 2023 17:34:53 +0800 (CST)
+Message-ID: <4910174f-4cda-a664-62ee-a6b37f96efac@fujitsu.com>
+Date: Mon, 27 Nov 2023 17:34:53 +0800
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <x49fs1hwk0b.fsf@segfault.usersys.redhat.com>
-In-Reply-To: <x49fs1hwk0b.fsf@segfault.usersys.redhat.com>
-From: Yi Zhang <yi.zhang@redhat.com>
-Date: Mon, 27 Nov 2023 17:28:37 +0800
-Message-ID: <CAHj4cs_fgf-tjx9z_W9t2hnN3sufuCphbTKjgqJ9EpoMEkQzYw@mail.gmail.com>
-Subject: Re: [patch] ndctl: test/daxctl-devices.sh: increase the namespace size
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: nvdimm@lists.linux.dev
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: redhat.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Wed, Nov 8, 2023 at 1:34=E2=80=AFAM Jeff Moyer <jmoyer@redhat.com> wrote=
-:
->
-> Memory hotplug requires the namespace to be aligned to a boundary that
-> depends on several factors.  Upstream kernel commit fe124c95df9e
-> ("x86/mm: use max memory block size on bare metal") increased the
-> typical size/alignment to 2GiB from 256MiB.  As a result, this test no
-> longer passes on our bare metal test systems.
->
-> This patch fixes the test failure by bumping the namespace size to
-> 4GiB, which leaves room for aligning the start and end to 2GiB.
->
-> Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
-
-Thanks Jeff
-
-Tested-by: Yi Zhang <yi.zhang@redhat.com>
-
->
-> diff --git a/test/daxctl-devices.sh b/test/daxctl-devices.sh
-> index 56c9691..dfce74b 100755
-> --- a/test/daxctl-devices.sh
-> +++ b/test/daxctl-devices.sh
-> @@ -44,7 +44,10 @@ setup_dev()
->         test -n "$testdev"
->
->         "$NDCTL" destroy-namespace -f -b "$testbus" "$testdev"
-> -       testdev=3D$("$NDCTL" create-namespace -b "$testbus" -m devdax -fe=
- "$testdev" -s 256M | \
-> +       # x86_64 memory hotplug can require up to a 2GiB-aligned chunk
-> +       # of memory.  Create a 4GiB namespace, so that we will still have
-> +       # enough room left after aligning the start and end.
-> +       testdev=3D$("$NDCTL" create-namespace -b "$testbus" -m devdax -fe=
- "$testdev" -s 4G | \
->                 jq -er '.dev')
->         test -n "$testdev"
->  }
->
->
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.5.0
+Subject: Re: [NDCTL PATCH v3] cxl/region: Add -f option for disable-region
+To: Dave Jiang <dave.jiang@intel.com>, vishal.l.verma@intel.com
+Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
+ dan.j.williams@intel.com, yangx.jy@fujitsu.com
+References: <169878724592.82931.11180459815481606425.stgit@djiang5-mobl3>
+From: =?UTF-8?B?Q2FvLCBRdWFucXVhbi/mm7kg5YWo5YWo?= <caoqq@fujitsu.com>
+In-Reply-To: <169878724592.82931.11180459815481606425.stgit@djiang5-mobl3>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-TM-AS-GCONF: 00
+X-TM-AS-Product-Ver: IMSS-9.1.0.1417-9.0.0.1002-28022.006
+X-TM-AS-User-Approved-Sender: Yes
+X-TMASE-Version: IMSS-9.1.0.1417-9.0.1002-28022.006
+X-TMASE-Result: 10--7.844900-10.000000
+X-TMASE-MatchedRID: Y0uQemhUR+GPvrMjLFD6eJTQgFTHgkhZ7/Ktm1YD8UJRXC4cX65cJItU
+	W2TdSbkol/NSQGlzTvYGE8TlUNTQBfXhWE12qWg+zr16YOzjZ136xaEr/b4wE99RjZujPiSkM/N
+	vkyt9Qust+E/D3/oNlPYxukP2XD9gAjdZzv0qrOYF7cpFXK76TUsY9G/RZ3FCNWuN5LFStoU6LC
+	39ZB+Qn4EV1Mt3/Y7E1KgPgvd6AVqTXkhSOdXFg95x7RpGJf1aBGvINcfHqhcVdewhX2WAAThbu
+	aUQKXpspFedpgCFxaUYPKESeEkoF1xxDx5qbkR9OX/V8P8ail1ZDL1gLmoa/ALDAYP4AXVR7nY5
+	1lwLq08nRE+fI6etkjzwkOTign5xsnc8TN4GKF7Bu7Frs7ZjFvJGRqNa9xDnSsMfxGFXfDeMVhw
+	qBydOrL5/6HiOECuRUAXI5UUCilzFUQg4HLF2+GUkI6wHhrBc5VXrbHg2/4JYe3/imoqI2tQTAL
+	RUDgR9z/3NrTLUMeU=
+X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
 
 
---=20
-Best Regards,
-  Yi Zhang
+
+> +static int disable_region(struct cxl_region *region)
+> +{
+> +	const char *devname = cxl_region_get_devname(region);
+> +	struct daxctl_region *dax_region;
+> +	struct daxctl_memory *mem;
+> +	struct daxctl_dev *dev;
+> +	int failed = 0, rc;
+> +
+> +	dax_region = cxl_region_get_daxctl_region(region);
+> +	if (!dax_region)
+> +		goto out;
+> +
+> +	daxctl_dev_foreach(dax_region, dev) {
+> +		mem = daxctl_dev_get_memory(dev);
+> +		if (!mem)
+> +			return -ENXIO;
+> +
+> +		/*
+> +		 * If memory is still online and user wants to force it, attempt
+> +		 * to offline it.
+> +		 */
+> +		if (daxctl_memory_is_online(mem)) {
+> +			rc = daxctl_memory_offline(mem);
+> +			if (rc < 0) {
+> +				log_err(&rl, "%s: unable to offline %s: %s\n",
+> +					devname,
+> +					daxctl_dev_get_devname(dev),
+> +					strerror(abs(rc)));
+> +				if (!param.force)
+> +					return rc;
+> +
+> +				failed++;
+> +			}
+> +		}
+> +	}
+> +
+> +	if (failed) {
+> +		log_err(&rl, "%s: Forcing region disable without successful offline.\n",
+> +			devname);
+> +		log_err(&rl, "%s: Physical address space has now been permanently leaked.\n",
+> +			devname);
+> +		log_err(&rl, "%s: Leaked address cannot be recovered until a reboot.\n",
+> +			devname);
+> +	}
+> +
+
+>   static int do_region_xable(struct cxl_region *region, enum region_actions action)
+>   {
+>   	switch (action) {
+>   	case ACTION_ENABLE:
+>   		return cxl_region_enable(region);
+>   	case ACTION_DISABLE:
+> -		return cxl_region_disable(region);
+> +		return disable_region(region);
+>   	case ACTION_DESTROY:
+>   		return destroy_region(region);
+>   	default:
+
+Hi Dave
+
+In this patch, a new function 'disable_region(region)' has been added. 
+When using the 'cxl destroy-region region0 -f' command, there's a check 
+first, followed by the 'destroy-region' operation. In terms of 
+user-friendliness, which function is more user-friendly: 
+'cxl_region_disable(region)' or 'disable_region(region)'?
+
+Attach destroy_region section code
+static int destroy_region(struct cxl_region *region)
+{
+     const char *devname = cxl_region_get_devname(region);
+     unsigned int ways, i;
+     int rc;
+
+     /* First, unbind/disable the region if needed */
+     if (cxl_region_is_enabled(region)) {
+         if (param.force) {
+             rc = cxl_region_disable(region);
+             if (rc) {
+                 log_err(&rl, "%s: error disabling region: %s\n",
+                     devname, strerror(-rc));
+                 return rc;
+             }
+         } else {
+             log_err(&rl, "%s active. Disable it or use --force\n",
+                 devname);
+             return -EBUSY;
+         }
+     }
+
+I have considered two options for your reference:
+
+1.Assuming the user hasn't executed the 'cxl disable-region region0' 
+command and directly runs 'cxl destroy-region region0 -f', using the 
+'disable_region(region)' function to first take the region offline and 
+then disable it might be more user-friendly.
+2.If the user executes the 'cxl disable-region region0' command but 
+fails to take it offline successfully, then runs 'cxl destroy-region 
+region0 -f', using the 'cxl_region_disable(region)' function to directly 
+'disable region' and then 'destroy region' would also be reasonable.
+
+
+
+
 
