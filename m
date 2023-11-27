@@ -1,73 +1,76 @@
-Received: from esa2.hc1455-7.c3s2.iphmx.com (esa2.hc1455-7.c3s2.iphmx.com [207.54.90.48])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83AC7947E
-	for <nvdimm@lists.linux.dev>; Thu, 23 Nov 2023 02:32:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=fujitsu.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fujitsu.com
-Authentication-Results: smtp.subspace.kernel.org; dkim=none
-X-IronPort-AV: E=McAfee;i="6600,9927,10902"; a="140613236"
-X-IronPort-AV: E=Sophos;i="6.04,220,1695654000"; 
-   d="scan'208";a="140613236"
-Received: from unknown (HELO oym-r2.gw.nic.fujitsu.com) ([210.162.30.90])
-  by esa2.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Nov 2023 11:31:20 +0900
-Received: from oym-m1.gw.nic.fujitsu.com (oym-nat-oym-m1.gw.nic.fujitsu.com [192.168.87.58])
-	by oym-r2.gw.nic.fujitsu.com (Postfix) with ESMTP id 19147DC873
-	for <nvdimm@lists.linux.dev>; Thu, 23 Nov 2023 11:31:18 +0900 (JST)
-Received: from kws-ab4.gw.nic.fujitsu.com (kws-ab4.gw.nic.fujitsu.com [192.51.206.22])
-	by oym-m1.gw.nic.fujitsu.com (Postfix) with ESMTP id 4786C15919
-	for <nvdimm@lists.linux.dev>; Thu, 23 Nov 2023 11:31:17 +0900 (JST)
-Received: from edo.cn.fujitsu.com (edo.cn.fujitsu.com [10.167.33.5])
-	by kws-ab4.gw.nic.fujitsu.com (Postfix) with ESMTP id DE5563478A
-	for <nvdimm@lists.linux.dev>; Thu, 23 Nov 2023 11:31:16 +0900 (JST)
-Received: from FNSTPC.g08.fujitsu.local (unknown [10.167.226.45])
-	by edo.cn.fujitsu.com (Postfix) with ESMTP id 818C81A0073;
-	Thu, 23 Nov 2023 10:31:16 +0800 (CST)
-From: Li Zhijian <lizhijian@fujitsu.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFA102565
+	for <nvdimm@lists.linux.dev>; Mon, 27 Nov 2023 04:00:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="OPsK5tHt"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1701057644;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=6KL4meGH1VBpK0txM6+IBEe0gpSpOaKW2gq1YmYsFHs=;
+	b=OPsK5tHturbRKzCRwR7on+x2HYuElyqWVcEsY1x/9a7I6D3TzyMznNRj+PNYZuTz3mA2wu
+	EUvOs0y27X58cr7mA2qxYrxJqt5rvLhdPPCAfOoHeNS8dtIHUAxjWYte1MffJ7v1l8Ls+W
+	hoohqmSzf2nbDUpyig7+I1w6yH6R+Bo=
+Received: from mimecast-mx02.redhat.com (mx-ext.redhat.com [66.187.233.73])
+ by relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
+ cipher=TLS_AES_256_GCM_SHA384) id us-mta-259-AUUpy3XDPgygAi3pxt0DCA-1; Sun,
+ 26 Nov 2023 23:00:38 -0500
+X-MC-Unique: AUUpy3XDPgygAi3pxt0DCA-1
+Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.rdu2.redhat.com [10.11.54.3])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 27DB41C0170C;
+	Mon, 27 Nov 2023 04:00:38 +0000 (UTC)
+Received: from fedora34.. (unknown [10.66.146.20])
+	by smtp.corp.redhat.com (Postfix) with ESMTP id 9A4711121307;
+	Mon, 27 Nov 2023 04:00:35 +0000 (UTC)
+From: Yi Zhang <yi.zhang@redhat.com>
 To: nvdimm@lists.linux.dev
-Cc: linux-cxl@vger.kernel.org,
-	Li Zhijian <lizhijian@fujitsu.com>
-Subject: [ndctl PATCH 3/3] test/cxl-region-sysfs.sh: Fix cxl-region-sysfs.sh: line 107: [: missing `]'
-Date: Thu, 23 Nov 2023 10:30:58 +0800
-Message-ID: <20231123023058.2963551-3-lizhijian@fujitsu.com>
-X-Mailer: git-send-email 2.41.0
-In-Reply-To: <20231123023058.2963551-1-lizhijian@fujitsu.com>
-References: <20231123023058.2963551-1-lizhijian@fujitsu.com>
+Cc: gregkh@linuxfoundation.org,
+	dan.j.williams@intel.com,
+	vishal.l.verma@intel.com,
+	dave.jiang@intel.com,
+	ira.weiny@intel.com
+Subject: [PATCH] ndtest: fix typo class_regster -> class_register
+Date: Mon, 27 Nov 2023 12:00:26 +0800
+Message-Id: <20231127040026.362729-1-yi.zhang@redhat.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
+X-Scanned-By: MIMEDefang 3.4.1 on 10.11.54.3
+X-Mimecast-Spam-Score: 0
+X-Mimecast-Originator: redhat.com
 Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-TM-AS-Product-Ver: IMSS-9.1.0.1417-9.0.0.1002-28014.004
-X-TM-AS-User-Approved-Sender: Yes
-X-TMASE-Version: IMSS-9.1.0.1417-9.0.1002-28014.004
-X-TMASE-Result: 10--6.831200-10.000000
-X-TMASE-MatchedRID: I1wtkSt6/wI5rof3b4z0VE7nLUqYrlslFIuBIWrdOePfUZT83lbkEKem
-	Jq66qqv9/MknKdGiL9PaDF6lH4tpMDcpdZ3fQiLdFEUknJ/kEl5jFT88f69nG/oLR4+zsDTtjoc
-	zmuoPCq1JvtyeL2z47tQ4zW8zUpL09NWfq1XGzZF9miTv83Zrt+CntM51Lyyy
-X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
+Content-Type: text/plain; charset="US-ASCII"; x-default=true
 
-Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
+Fixes: dd6cad2dcb58 ("testing: nvdimm: make struct class structures constant")
+Signed-off-by: Yi Zhang <yi.zhang@redhat.com>
 ---
- test/cxl-region-sysfs.sh | 2 +-
+ tools/testing/nvdimm/test/ndtest.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/test/cxl-region-sysfs.sh b/test/cxl-region-sysfs.sh
-index 89f21a3..3878351 100644
---- a/test/cxl-region-sysfs.sh
-+++ b/test/cxl-region-sysfs.sh
-@@ -104,7 +104,7 @@ do
- 	iw=$(cat /sys/bus/cxl/devices/$i/interleave_ways)
- 	ig=$(cat /sys/bus/cxl/devices/$i/interleave_granularity)
- 	[ $iw -ne $nr_targets ] && err "$LINENO: decoder: $i iw: $iw targets: $nr_targets"
--	[ $ig -ne $r_ig] && err "$LINENO: decoder: $i ig: $ig root ig: $r_ig"
-+	[ $ig -ne $r_ig ] && err "$LINENO: decoder: $i ig: $ig root ig: $r_ig"
+diff --git a/tools/testing/nvdimm/test/ndtest.c b/tools/testing/nvdimm/test/ndtest.c
+index fd26189d53be..b8419f460368 100644
+--- a/tools/testing/nvdimm/test/ndtest.c
++++ b/tools/testing/nvdimm/test/ndtest.c
+@@ -924,7 +924,7 @@ static __init int ndtest_init(void)
  
- 	sz=$(cat /sys/bus/cxl/devices/$i/size)
- 	res=$(cat /sys/bus/cxl/devices/$i/start)
+ 	nfit_test_setup(ndtest_resource_lookup, NULL);
+ 
+-	rc = class_regster(&ndtest_dimm_class);
++	rc = class_register(&ndtest_dimm_class);
+ 	if (rc)
+ 		goto err_register;
+ 
 -- 
-2.41.0
+2.34.3
 
