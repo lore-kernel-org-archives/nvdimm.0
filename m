@@ -1,165 +1,83 @@
-Received: from esa5.hc1455-7.c3s2.iphmx.com (esa5.hc1455-7.c3s2.iphmx.com [68.232.139.130])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lf1-f41.google.com (mail-lf1-f41.google.com [209.85.167.41])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2CECA156E3
-	for <nvdimm@lists.linux.dev>; Mon, 27 Nov 2023 09:36:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=fujitsu.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fujitsu.com
-Authentication-Results: smtp.subspace.kernel.org; dkim=none
-X-IronPort-AV: E=McAfee;i="6600,9927,10906"; a="140528652"
-X-IronPort-AV: E=Sophos;i="6.04,230,1695654000"; 
-   d="scan'208";a="140528652"
-Received: from unknown (HELO oym-r2.gw.nic.fujitsu.com) ([210.162.30.90])
-  by esa5.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Nov 2023 18:34:58 +0900
-Received: from oym-m4.gw.nic.fujitsu.com (oym-nat-oym-m4.gw.nic.fujitsu.com [192.168.87.61])
-	by oym-r2.gw.nic.fujitsu.com (Postfix) with ESMTP id 7065EDC879
-	for <nvdimm@lists.linux.dev>; Mon, 27 Nov 2023 18:34:55 +0900 (JST)
-Received: from kws-ab3.gw.nic.fujitsu.com (kws-ab3.gw.nic.fujitsu.com [192.51.206.21])
-	by oym-m4.gw.nic.fujitsu.com (Postfix) with ESMTP id 69AF1D5E39
-	for <nvdimm@lists.linux.dev>; Mon, 27 Nov 2023 18:34:54 +0900 (JST)
-Received: from edo.cn.fujitsu.com (edo.cn.fujitsu.com [10.167.33.5])
-	by kws-ab3.gw.nic.fujitsu.com (Postfix) with ESMTP id F040A20074730
-	for <nvdimm@lists.linux.dev>; Mon, 27 Nov 2023 18:34:53 +0900 (JST)
-Received: from [10.167.220.145] (unknown [10.167.220.145])
-	by edo.cn.fujitsu.com (Postfix) with ESMTP id 627A91A0071;
-	Mon, 27 Nov 2023 17:34:53 +0800 (CST)
-Message-ID: <4910174f-4cda-a664-62ee-a6b37f96efac@fujitsu.com>
-Date: Mon, 27 Nov 2023 17:34:53 +0800
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F41FF1A27A
+	for <nvdimm@lists.linux.dev>; Mon, 27 Nov 2023 11:52:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bytedance.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b="O8kHKP+c"
+Received: by mail-lf1-f41.google.com with SMTP id 2adb3069b0e04-50a6ff9881fso6246533e87.1
+        for <nvdimm@lists.linux.dev>; Mon, 27 Nov 2023 03:52:18 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=bytedance.com; s=google; t=1701085937; x=1701690737; darn=lists.linux.dev;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=UDO7ncvXAATevhwT++kqK1bgvPT8hD/xVk4r8C8v3oU=;
+        b=O8kHKP+c5te8179UggzD/dlN8J+y5FV+opLGowcv4bTcsJ+ivE4kiFzEz/zJemGt8x
+         YXOz5ZDZ+n0nS5tt/cTePF89QdGaK94+AJWN2dPuSvb9yuszRyls+U8jH5Dlb4z6cvTu
+         1TyI5nMesO9oUjQTyf2SrUvzBmkSs8IO/0Cud+Vi6S2YKoOXMzZfC5ubs//XCRYQvEMX
+         /zAy7h3F1l8RooycVLuW9tAYRZfPPVrV3RDATL9verhFY3OEI7bf63DoEMsbK96ppQnu
+         iXizacccDTeTwpyl1vtjnWZKWaXhzJnUHVRU8A8fhR2mxNogkWnXlogtFtgq9qcxBzhY
+         GIbQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1701085937; x=1701690737;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=UDO7ncvXAATevhwT++kqK1bgvPT8hD/xVk4r8C8v3oU=;
+        b=C7MNzcClIqra79hX3Sy3+n6zFf9wr8rakQQacps91cENWgBazN3/uTlKhD2mvRtKdB
+         +RWBsVo6ce71frTPwPraERbyGMxMVdXRgKeGuznNdukia6l3+Q0k8O47EMnC3/NIpca5
+         +lpkovM7NkWm6PVTAE1XYD4N8C2ntk/gJxUM5P2yPkFl7bQxX01dWT74Afhr+E76Pu5d
+         swt70RJBqTrQ7TdFx0LSNic/ULQzA86MTKJdfaEzzanAoQO6ZA8juE+SGrd5BzZEJA0s
+         /A/3Ey2ALOm2fpTg0V/idTgYR06oKQRaScinw0ofzRNd6xs7EfBuKWhA7RBqDZGReMyz
+         yXqA==
+X-Gm-Message-State: AOJu0YxByZYFycGXYZtQ7VXPtw0XMxMscBU5yqU9lbu0hnmfzg2z5o9l
+	c2dQVobMhhyREjw2RM5rsVQu1g==
+X-Google-Smtp-Source: AGHT+IH4TrdNMPzblGZNP+ycO68tEu2jCSB6jgINc1mAPjd3KiDZt90uG7xK9DQ2U8O9Q0zTqoOViQ==
+X-Received: by 2002:a05:6512:2244:b0:50b:a68e:9541 with SMTP id i4-20020a056512224400b0050ba68e9541mr8023149lfu.23.1701085936674;
+        Mon, 27 Nov 2023 03:52:16 -0800 (PST)
+Received: from ?IPV6:2a02:6b6a:b5c7:0:e8f2:79b9:236a:4d41? ([2a02:6b6a:b5c7:0:e8f2:79b9:236a:4d41])
+        by smtp.gmail.com with ESMTPSA id r7-20020a05600c35c700b0040b30be6244sm13673021wmq.24.2023.11.27.03.52.15
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 27 Nov 2023 03:52:16 -0800 (PST)
+Message-ID: <9867cf7b-29a1-4fc7-61b0-7212268f9d50@bytedance.com>
+Date: Mon, 27 Nov 2023 11:52:15 +0000
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.5.0
-Subject: Re: [NDCTL PATCH v3] cxl/region: Add -f option for disable-region
-To: Dave Jiang <dave.jiang@intel.com>, vishal.l.verma@intel.com
-Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
- dan.j.williams@intel.com, yangx.jy@fujitsu.com
-References: <169878724592.82931.11180459815481606425.stgit@djiang5-mobl3>
-From: =?UTF-8?B?Q2FvLCBRdWFucXVhbi/mm7kg5YWo5YWo?= <caoqq@fujitsu.com>
-In-Reply-To: <169878724592.82931.11180459815481606425.stgit@djiang5-mobl3>
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.4.2
+Subject: Re: [External] Re: Conditions for FOLL_LONGTERM mapping in fsdax
+Content-Language: en-US
+To: Christoph Hellwig <hch@infradead.org>
+Cc: dan.j.williams@intel.com, vishal.l.verma@intel.com, dave.jiang@intel.com,
+ nvdimm@lists.linux.dev, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org,
+ Fam Zheng <fam.zheng@bytedance.com>,
+ "liangma@liangbit.com" <liangma@liangbit.com>
+References: <172ab047-0dc7-1704-5f30-ec7cd3632e09@bytedance.com>
+ <454dbfa1-2120-1e40-2582-d661203decca@bytedance.com>
+ <a0d67f2d-f66b-8873-7c11-31d90aae8e8c@bytedance.com>
+ <ZVw2CYKcZgjmHPXk@infradead.org>
+From: Usama Arif <usama.arif@bytedance.com>
+In-Reply-To: <ZVw2CYKcZgjmHPXk@infradead.org>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-X-TM-AS-GCONF: 00
-X-TM-AS-Product-Ver: IMSS-9.1.0.1417-9.0.0.1002-28022.006
-X-TM-AS-User-Approved-Sender: Yes
-X-TMASE-Version: IMSS-9.1.0.1417-9.0.1002-28022.006
-X-TMASE-Result: 10--7.844900-10.000000
-X-TMASE-MatchedRID: Y0uQemhUR+GPvrMjLFD6eJTQgFTHgkhZ7/Ktm1YD8UJRXC4cX65cJItU
-	W2TdSbkol/NSQGlzTvYGE8TlUNTQBfXhWE12qWg+zr16YOzjZ136xaEr/b4wE99RjZujPiSkM/N
-	vkyt9Qust+E/D3/oNlPYxukP2XD9gAjdZzv0qrOYF7cpFXK76TUsY9G/RZ3FCNWuN5LFStoU6LC
-	39ZB+Qn4EV1Mt3/Y7E1KgPgvd6AVqTXkhSOdXFg95x7RpGJf1aBGvINcfHqhcVdewhX2WAAThbu
-	aUQKXpspFedpgCFxaUYPKESeEkoF1xxDx5qbkR9OX/V8P8ail1ZDL1gLmoa/ALDAYP4AXVR7nY5
-	1lwLq08nRE+fI6etkjzwkOTign5xsnc8TN4GKF7Bu7Frs7ZjFvJGRqNa9xDnSsMfxGFXfDeMVhw
-	qBydOrL5/6HiOECuRUAXI5UUCilzFUQg4HLF2+GUkI6wHhrBc5VXrbHg2/4JYe3/imoqI2tQTAL
-	RUDgR9z/3NrTLUMeU=
-X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
 
 
 
-> +static int disable_region(struct cxl_region *region)
-> +{
-> +	const char *devname = cxl_region_get_devname(region);
-> +	struct daxctl_region *dax_region;
-> +	struct daxctl_memory *mem;
-> +	struct daxctl_dev *dev;
-> +	int failed = 0, rc;
-> +
-> +	dax_region = cxl_region_get_daxctl_region(region);
-> +	if (!dax_region)
-> +		goto out;
-> +
-> +	daxctl_dev_foreach(dax_region, dev) {
-> +		mem = daxctl_dev_get_memory(dev);
-> +		if (!mem)
-> +			return -ENXIO;
-> +
-> +		/*
-> +		 * If memory is still online and user wants to force it, attempt
-> +		 * to offline it.
-> +		 */
-> +		if (daxctl_memory_is_online(mem)) {
-> +			rc = daxctl_memory_offline(mem);
-> +			if (rc < 0) {
-> +				log_err(&rl, "%s: unable to offline %s: %s\n",
-> +					devname,
-> +					daxctl_dev_get_devname(dev),
-> +					strerror(abs(rc)));
-> +				if (!param.force)
-> +					return rc;
-> +
-> +				failed++;
-> +			}
-> +		}
-> +	}
-> +
-> +	if (failed) {
-> +		log_err(&rl, "%s: Forcing region disable without successful offline.\n",
-> +			devname);
-> +		log_err(&rl, "%s: Physical address space has now been permanently leaked.\n",
-> +			devname);
-> +		log_err(&rl, "%s: Leaked address cannot be recovered until a reboot.\n",
-> +			devname);
-> +	}
-> +
+On 21/11/2023 04:46, Christoph Hellwig wrote:
+> We don't have any way to recall the LONGTERM mappings, so we can't
+> support them on DAX for now.
+> 
 
->   static int do_region_xable(struct cxl_region *region, enum region_actions action)
->   {
->   	switch (action) {
->   	case ACTION_ENABLE:
->   		return cxl_region_enable(region);
->   	case ACTION_DISABLE:
-> -		return cxl_region_disable(region);
-> +		return disable_region(region);
->   	case ACTION_DESTROY:
->   		return destroy_region(region);
->   	default:
+By recall do you mean put the LONGTERM pages back? If I removed the 
+check in check_vma and allowed the mappings to happen in fsdax, I can 
+see that the mappings unmap/unpin in vfio_iommu_type1_unmap_dma later on 
+which eventually ends up calling put_pfn.
 
-Hi Dave
-
-In this patch, a new function 'disable_region(region)' has been added. 
-When using the 'cxl destroy-region region0 -f' command, there's a check 
-first, followed by the 'destroy-region' operation. In terms of 
-user-friendliness, which function is more user-friendly: 
-'cxl_region_disable(region)' or 'disable_region(region)'?
-
-Attach destroy_region section code
-static int destroy_region(struct cxl_region *region)
-{
-     const char *devname = cxl_region_get_devname(region);
-     unsigned int ways, i;
-     int rc;
-
-     /* First, unbind/disable the region if needed */
-     if (cxl_region_is_enabled(region)) {
-         if (param.force) {
-             rc = cxl_region_disable(region);
-             if (rc) {
-                 log_err(&rl, "%s: error disabling region: %s\n",
-                     devname, strerror(-rc));
-                 return rc;
-             }
-         } else {
-             log_err(&rl, "%s active. Disable it or use --force\n",
-                 devname);
-             return -EBUSY;
-         }
-     }
-
-I have considered two options for your reference:
-
-1.Assuming the user hasn't executed the 'cxl disable-region region0' 
-command and directly runs 'cxl destroy-region region0 -f', using the 
-'disable_region(region)' function to first take the region offline and 
-then disable it might be more user-friendly.
-2.If the user executes the 'cxl disable-region region0' command but 
-fails to take it offline successfully, then runs 'cxl destroy-region 
-region0 -f', using the 'cxl_region_disable(region)' function to directly 
-'disable region' and then 'destroy region' would also be reasonable.
-
-
-
-
-
+Thanks
