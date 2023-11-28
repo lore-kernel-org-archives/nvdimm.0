@@ -1,92 +1,114 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.93])
+Received: from esa7.hc1455-7.c3s2.iphmx.com (esa7.hc1455-7.c3s2.iphmx.com [139.138.61.252])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E7AA101F9
-	for <nvdimm@lists.linux.dev>; Tue, 28 Nov 2023 04:11:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="TdCDvzH8"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1701144711; x=1732680711;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=s23M8GQJ0QGy6Tw/q4SmIxShJcKb+Z5G+O+sswjlU30=;
-  b=TdCDvzH8Wi4N5+JceZYtaoI2Xn0UMC9BGm5P3CWZcxpIRWcvuoXyugE1
-   eRCeyDcP02OTIBeZIr3kg8Q+RS7kuPBlAYvn8ZdWTBDFuNRbyZ1sJBu34
-   NzWTyuxdvnzF+ZEjzSCCC+hoNmsBybWPbKyWemI9dIsZYxn/5IFwF3pRN
-   GGgzBU11HW4Pef7c2iqIA5oApwF9+kZoNyIQKB56c4GK9ePThI1SEXnXt
-   vsU4T39Epg5uR/6NsMJP2Dk9JQ2/VgOxF5Lwxo5uO4myjznRsC84GB4wV
-   eT+IEe4Z1fSnvBMJdEB/nNvHpkHuKLo3o9zTZ7aAZ6GAm6X3yLpEAJbRm
-   A==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10907"; a="390001070"
-X-IronPort-AV: E=Sophos;i="6.04,232,1695711600"; 
-   d="scan'208";a="390001070"
-Received: from orsmga004.jf.intel.com ([10.7.209.38])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Nov 2023 20:11:46 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10907"; a="891948442"
-X-IronPort-AV: E=Sophos;i="6.04,232,1695711600"; 
-   d="scan'208";a="891948442"
-Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.212.170.56])
-  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Nov 2023 20:11:46 -0800
-From: alison.schofield@intel.com
-To: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Alison Schofield <alison.schofield@intel.com>,
-	nvdimm@lists.linux.dev,
-	linux-cxl@vger.kernel.org
-Subject: [ndctl PATCH 3/3] cxl/test: use an explicit --since time in journalctl
-Date: Mon, 27 Nov 2023 20:11:42 -0800
-Message-Id: <1802cf15f22fe5c284167a9186eba8f2cd3c31c6.1701143039.git.alison.schofield@intel.com>
-X-Mailer: git-send-email 2.40.1
-In-Reply-To: <cover.1701143039.git.alison.schofield@intel.com>
-References: <cover.1701143039.git.alison.schofield@intel.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22C7A4A31
+	for <nvdimm@lists.linux.dev>; Tue, 28 Nov 2023 06:36:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=fujitsu.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fujitsu.com
+Authentication-Results: smtp.subspace.kernel.org; dkim=none
+X-IronPort-AV: E=McAfee;i="6600,9927,10907"; a="119999043"
+X-IronPort-AV: E=Sophos;i="6.04,233,1695654000"; 
+   d="scan'208";a="119999043"
+Received: from unknown (HELO oym-r1.gw.nic.fujitsu.com) ([210.162.30.89])
+  by esa7.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Nov 2023 15:35:21 +0900
+Received: from oym-m2.gw.nic.fujitsu.com (oym-nat-oym-m2.gw.nic.fujitsu.com [192.168.87.59])
+	by oym-r1.gw.nic.fujitsu.com (Postfix) with ESMTP id 40211E8BE9
+	for <nvdimm@lists.linux.dev>; Tue, 28 Nov 2023 15:35:19 +0900 (JST)
+Received: from kws-ab3.gw.nic.fujitsu.com (kws-ab3.gw.nic.fujitsu.com [192.51.206.21])
+	by oym-m2.gw.nic.fujitsu.com (Postfix) with ESMTP id 65BB1BF49D
+	for <nvdimm@lists.linux.dev>; Tue, 28 Nov 2023 15:35:18 +0900 (JST)
+Received: from edo.cn.fujitsu.com (edo.cn.fujitsu.com [10.167.33.5])
+	by kws-ab3.gw.nic.fujitsu.com (Postfix) with ESMTP id DCE2F20074726
+	for <nvdimm@lists.linux.dev>; Tue, 28 Nov 2023 15:35:17 +0900 (JST)
+Received: from [10.167.220.145] (unknown [10.167.220.145])
+	by edo.cn.fujitsu.com (Postfix) with ESMTP id 5AC131A0070;
+	Tue, 28 Nov 2023 14:35:17 +0800 (CST)
+Message-ID: <7eaf1057-2caf-8ec9-8b79-22ad4976ef76@fujitsu.com>
+Date: Tue, 28 Nov 2023 14:35:16 +0800
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.5.0
+Subject: Re: [NDCTL PATCH 2/2] cxl: Add check for regions before disabling
+ memdev
+To: Dave Jiang <dave.jiang@intel.com>, vishal.l.verma@intel.com
+Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
+References: <169645730392.624805.16511039948183288287.stgit@djiang5-mobl3>
+ <169645731012.624805.15404457479294344934.stgit@djiang5-mobl3>
+From: =?UTF-8?B?Q2FvLCBRdWFucXVhbi/mm7kg5YWo5YWo?= <caoqq@fujitsu.com>
+In-Reply-To: <169645731012.624805.15404457479294344934.stgit@djiang5-mobl3>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-TM-AS-GCONF: 00
+X-TM-AS-Product-Ver: IMSS-9.1.0.1417-9.0.0.1002-28024.005
+X-TM-AS-User-Approved-Sender: Yes
+X-TMASE-Version: IMSS-9.1.0.1417-9.0.1002-28024.005
+X-TMASE-Result: 10--6.776000-10.000000
+X-TMASE-MatchedRID: 9xvWjox81uOPvrMjLFD6eJTQgFTHgkhZXQP3X+FD21ATefx8PLB4oE1N
+	J2MN+nPka+o/S6GsElBTtuW5X/TasERV7C9ojOZ1EVuC0eNRYvKlR2Q+0FuebvmrkkH6JvZBPrT
+	BAt3E1ioXjQchKpIrqqnmDHpokNZJO4kcA8kjsz/v7rnu8XKYw8E5XPQnBzGXq8KsbROd9VR3Ib
+	SSOjBC458i2lZ/9LH/yZB8zMzex4oI72eZSqlThNjoQZHeT+6K3hng3KTHeTZ00vMXkV+kqIY2R
+	oj+9G1t4vM1YF6AJbZFi+KwZZttL1QAAzJkx/SoudR/NJw2JHcNYpvo9xW+mI6HM5rqDwqtGdvD
+	LEXul9A6HqTgIcCmlRftYM2uSlFOKiervPkw0QZpFy/hy7LLEx+PkXEi09h7k0Kz9G8k31l7DPy
+	xRFcy9Y9T4jYMgd/igokLZRKLKVGdC4HNoe3rP7Iyum16+pyZ1elfyC1yu6+FK45C57CBPA==
+X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
 
-From: Alison Schofield <alison.schofield@intel.com>
 
-Using the bash variable 'SECONDS' plus 1 for searching the
-dmesg log sometimes led to one test picking up error messages
-from the previous test when run as a suite. SECONDS alone may
-miss some logs, but SECONDS + 1 is just as often too great.
+> Add a check for memdev disable to see if there are active regions present
+> before disabling the device. This is necessary now regions are present to
+> fulfill the TODO that was left there. The best way to determine if a
+> region is active is to see if there are decoders enabled for the mem
+> device. This is also best effort as the state is only a snapshot the
+> kernel provides and is not atomic WRT the memdev disable operation. The
+> expectation is the admin issuing the command has full control of the mem
+> device and there are no other agents also attempt to control the device.
+> 
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+>   cxl/memdev.c |   14 ++++++++++++--
+>   1 file changed, 12 insertions(+), 2 deletions(-)
+> 
+> diff --git a/cxl/memdev.c b/cxl/memdev.c
+> index f6a2d3f1fdca..314bac082719 100644
+> --- a/cxl/memdev.c
+> +++ b/cxl/memdev.c
+> @@ -373,11 +373,21 @@ static int action_free_dpa(struct cxl_memdev *memdev,
+>   
+>   static int action_disable(struct cxl_memdev *memdev, struct action_context *actx)
+>   {
+> +	struct cxl_endpoint *ep;
+> +	struct cxl_port *port;
+> +
+>   	if (!cxl_memdev_is_enabled(memdev))
+>   		return 0;
+>   
+> -	if (!param.force) {
+> -		/* TODO: actually detect rather than assume active */
+> +	ep = cxl_memdev_get_endpoint(memdev);
+> +	if (!ep)
+> +		return -ENODEV;
+> +
+> +	port = cxl_endpoint_get_port(ep);
+> +	if (!port)
+> +		return -ENODEV;
+> +
+> +	if (cxl_port_decoders_committed(port) && !param.force) {
+>   		log_err(&ml, "%s is part of an active region\n",
+>   			cxl_memdev_get_devname(memdev));
+>   		return -EBUSY;
+> 
+> 
+Hi Dave,
 
-Since unit tests in the CXL suite are using common helpers to
-start and stop work, initialize and use a "starttime" variable
-with millisecond granularity for journalctl.
-
-Signed-off-by: Alison Schofield <alison.schofield@intel.com>
----
- test/common | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/test/common b/test/common
-index c20b7e48c2b6..93a280c7c150 100644
---- a/test/common
-+++ b/test/common
-@@ -156,7 +156,7 @@ check_dmesg()
- cxl_check_dmesg()
- {
- 	sleep 1
--	log=$(journalctl -r -k --since "-$((SECONDS+1))s")
-+	log=$(journalctl -r -k --since "$starttime")
- 	# validate no WARN or lockdep report during the run
- 	grep -q "Call Trace" <<< "$log" && err "$1"
- 	# validate no failures of the interleave calc dev_dbg() check
-@@ -175,6 +175,7 @@ cxl_common_start()
- 	check_prereq "dd"
- 	check_prereq "sha256sum"
- 	modprobe -r cxl_test
-+	starttime=$(date +"%T.%3N")
- 	modprobe cxl_test "$1"
- 	rc=1
- }
--- 
-2.37.3
+Based on my understanding of the logic in the "disable_region" and 
+"destroy_region" code, in the code logic of 'disable-region -f,' after 
+the check, it proceeds with the offline operation. In the code logic of 
+'destroy-region -f,' after the check, it performs a disable operation on 
+the region. For the 'disable-memdev -f' operation, after completing the 
+check, is it also necessary to perform corresponding operations on the 
+region(such as disabling region/destroying region) before disabling memdev?
 
