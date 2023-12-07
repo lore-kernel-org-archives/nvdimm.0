@@ -1,191 +1,112 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.136])
+Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 786A617729
-	for <nvdimm@lists.linux.dev>; Thu,  7 Dec 2023 20:46:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EE9050263
+	for <nvdimm@lists.linux.dev>; Thu,  7 Dec 2023 21:05:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="N8abPV11"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1701982001; x=1733518001;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=V7nIAQ6zekgPb1NUoIXvuBPd7zdO5mhFKbkzWD2cr7I=;
-  b=N8abPV11VxRBFryQawrB0uZWcH+IycaHQLO3IVJGiLVDp+TzaZa64OrP
-   CTN6MJ3GFVLsUIbapn27v0ytbeu2zYukT8OL72fvHyHy0Yd8ZA3wNoMUo
-   l4F6UnxfQHVSlmTb6tN3W8HR/cw5IK5qumXNe3+S4t04ECcwn9OgHxFoc
-   KdgR2RCvkBMiVZ5VRupNZ4F3Xp7nAFpoFVNgdx9WcAzzfpBWCjhUVJafD
-   2sOnskYwpmJPzfPDGYmYyCpEr3kZHgkrdGSNbFAHyeSCx3ySrkoAWh97Y
-   EwgJtsWN8/bHAuiQq2uyL8EeijLEFVbCf3DvxVztb46iCiA3Hsa5aCn+q
-   A==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10917"; a="373804691"
-X-IronPort-AV: E=Sophos;i="6.04,258,1695711600"; 
-   d="scan'208";a="373804691"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Dec 2023 12:46:40 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10917"; a="800863704"
-X-IronPort-AV: E=Sophos;i="6.04,258,1695711600"; 
-   d="scan'208";a="800863704"
-Received: from orsmsx603.amr.corp.intel.com ([10.22.229.16])
-  by orsmga008.jf.intel.com with ESMTP/TLS/AES256-GCM-SHA384; 07 Dec 2023 12:46:40 -0800
-Received: from orsmsx601.amr.corp.intel.com (10.22.229.14) by
- ORSMSX603.amr.corp.intel.com (10.22.229.16) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.35; Thu, 7 Dec 2023 12:46:40 -0800
-Received: from ORSEDG601.ED.cps.intel.com (10.7.248.6) by
- orsmsx601.amr.corp.intel.com (10.22.229.14) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.35 via Frontend Transport; Thu, 7 Dec 2023 12:46:40 -0800
-Received: from NAM12-BN8-obe.outbound.protection.outlook.com (104.47.55.169)
- by edgegateway.intel.com (134.134.137.102) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.35; Thu, 7 Dec 2023 12:46:39 -0800
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=L0faDp21d8umdfn9EhgX5pTP26d9o+u0/nIdouEEhCP1iP3YcUUNcx8Js/5MmH0tKRg/DCTe1l0BeJ6aScMhOMCVt24xWjcKOf4+YaIq9zLvLvMM11bUYL1kZtIQzqsD2gKlJY02MjMnHYXRm4dzXpq3g5jGMnyt61C8U+2AZ/s+XaxQOYID0OA3lYVdL1TzE9cTU8U9Zrvc4q1xaV0R/d/INIXweZriWyeA0ydE/V1eMKZY/n69+EnYNf412Kl9bjkNWST8KIOkHHQiWn2/qjTTTElngFnSCc4e3aKQunssjGPCdh+7b3MrhN7RIJGgAkvDXehpwI3f6VE8EdzU3A==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=OnUfVHARiA7ACY4wJftlN8gcAC+FzCYmePkfpG2sSWc=;
- b=I2joGfBM+h4nYQJOST2S1fEOYvs/wd6ZXPn4m8nVYDhucUorLSBaJS/pL69Q8gaVOx2F/PLAphUYSH+7MVRCZsYVgFpPkgFzDMbF50yNJ1qK5ZS8ozVDmophcL1Usg9c60NKxjzkKbw1IVLEyTCojWA7Dc4inJtnon+F+DKZFjbVdj7s3mSmuKfRVqsZYKj4XsxCJ7yR9P5NfbTKtlqF8UGVtERJqYLSvcQe9T+4t0OFt9REDZv1WZzM9sIH9ysjdTxrB9aeqgH+e7rYWwQkpbl5bUhslQovol7h1TflXs0k6t4iEeMMtfBym/qFcnHusZeje6/q+vQGLz5obnZj1Q==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from SA1PR11MB6733.namprd11.prod.outlook.com (2603:10b6:806:25c::17)
- by CH3PR11MB7843.namprd11.prod.outlook.com (2603:10b6:610:124::14) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7068.25; Thu, 7 Dec
- 2023 20:46:37 +0000
-Received: from SA1PR11MB6733.namprd11.prod.outlook.com
- ([fe80::da91:dbe5:857c:fa9c]) by SA1PR11MB6733.namprd11.prod.outlook.com
- ([fe80::da91:dbe5:857c:fa9c%4]) with mapi id 15.20.7046.034; Thu, 7 Dec 2023
- 20:46:37 +0000
-Date: Thu, 7 Dec 2023 12:46:34 -0800
-From: Ira Weiny <ira.weiny@intel.com>
-To: Dave Jiang <dave.jiang@intel.com>, Dinghao Liu <dinghao.liu@zju.edu.cn>
-CC: Vishal Verma <vishal.l.verma@intel.com>, Dan Williams
-	<dan.j.williams@intel.com>, Ira Weiny <ira.weiny@intel.com>,
-	<nvdimm@lists.linux.dev>, <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] nvdimm-btt: fix a potential memleak in btt_freelist_init
-Message-ID: <65722f2a94d68_1c7b6229452@iweiny-mobl.notmuch>
-References: <20231207034332.24107-1-dinghao.liu@zju.edu.cn>
- <23a91617-4562-4399-a8c6-df2f3f28c7a9@intel.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <23a91617-4562-4399-a8c6-df2f3f28c7a9@intel.com>
-X-ClientProxiedBy: MW4PR03CA0053.namprd03.prod.outlook.com
- (2603:10b6:303:8e::28) To SA1PR11MB6733.namprd11.prod.outlook.com
- (2603:10b6:806:25c::17)
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="4q8mQkhl"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
+	MIME-Version:References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Sender
+	:Reply-To:Content-Type:Content-ID:Content-Description;
+	bh=6mtDC5GyUcoPI4rKNkhKWA7ZG2rDUkEgJdjJjzhZ94c=; b=4q8mQkhll5nY6RobrfcUqzBcV5
+	VXEEGiTi59nu5dDNL8//BSo9M8yFRxHcLVGtrZ5mi0URHztQo9Fo5j2gBKxQ1W9qxLJiHhw5vqMrI
+	qgpqsAzIQSKPetUluyCwJWp/w266x6ialZVj1c0TO6/DD3d3C4dp6UzrxOmv2C/3Dda+fYsOXgBQD
+	+BsS53MBUF6KMc62PN1Ra0LEMB7lgdWiqUmanbDXeeuguoS471rZLO+spMtBLskoeMv4FQbHZNsTs
+	voZepPukBBx4Maeu0nQr5/aowabC55JmFH2Y84+l53vvgdRYG+QlSs/M5jI9RS/nCOSXYLZF1/u9V
+	lQODa0aQ==;
+Received: from [50.53.46.231] (helo=bombadil.infradead.org)
+	by bombadil.infradead.org with esmtpsa (Exim 4.96 #2 (Red Hat Linux))
+	id 1rBLZ6-00Duw1-0Q;
+	Thu, 07 Dec 2023 21:05:48 +0000
+From: Randy Dunlap <rdunlap@infradead.org>
+To: linux-kernel@vger.kernel.org
+Cc: Randy Dunlap <rdunlap@infradead.org>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Ira Weiny <ira.weiny@intel.com>,
+	nvdimm@lists.linux.dev
+Subject: [PATCH 2/3] nvdimm/dimm_devs: fix kernel-doc for function params
+Date: Thu,  7 Dec 2023 13:05:44 -0800
+Message-ID: <20231207210545.24056-2-rdunlap@infradead.org>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20231207210545.24056-1-rdunlap@infradead.org>
+References: <20231207210545.24056-1-rdunlap@infradead.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SA1PR11MB6733:EE_|CH3PR11MB7843:EE_
-X-MS-Office365-Filtering-Correlation-Id: b044083f-d1cb-498d-8082-08dbf7659b67
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: 57N3y7HWQ8V6npKf1HZAgKfFNDKRUhxhARKB8m5YW23F5nZ1okUZ5xm2W0yafTfyKDA8G7e2RD2OWWHb2VUQYPUu8s4pZlQ/3B0GoTU9ibCybNFWWsZa2UjzvoZj5s5LyXl2H+BDLntoRZdVFkeREOpUVyNGVh91nmnNhkY4jnTLkVdI13MoUwv8cESMycrCrVj++B3UmRBlgQB9SyvnVtNUaicYi7/RGEFiRbcGp6gqWUiTNJ6tDEu8quwvmZuE//qw2ykIsbvQmG0qbTlKJqP67iD9X1fTdX45vEJAXRH5vBkIpYthSz10FJWstRtYlBkB1TRDNE02sPkI8jmum0gPavi0GAWgMpjewn9sQuhlwf1GNHQyCfh995BTZ8soS4uuZVt2RAF3eBgZ4zs//ANxVN676k2fvVURwm2DlcbNw020bIuvZZQoBLgp3XGaFZomCezseuGHPJMmvFlTQIsd3d+imr5V+XN7w7bDNn06x9vUA7CLi/YJthxWjvurqc9l7rINE5G2WJG8ZUrWxoazmCbpO34A3yspDUJbThQ=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA1PR11MB6733.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(376002)(39860400002)(366004)(136003)(396003)(346002)(230922051799003)(64100799003)(186009)(1800799012)(451199024)(38100700002)(6666004)(478600001)(966005)(6486002)(66946007)(82960400001)(83380400001)(6506007)(53546011)(6512007)(9686003)(2906002)(8676002)(4326008)(8936002)(86362001)(5660300002)(44832011)(41300700001)(66556008)(66476007)(54906003)(110136005)(316002)(26005);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?E/ohY5pOSTE3uwFCjrrQ1bww5KD1P3WRY+dG+UNhQdqo56mapxfq5AcRghdY?=
- =?us-ascii?Q?tsm3d9yKkjmFFq0fAn03LKc0Xn6o+QeyHu8PqhPVt11+FgVBBSaAVeT3FKs6?=
- =?us-ascii?Q?4DaEEsuR5jL8ogdAe0R5op35+f4Arbjf7I6RkRp46clOdKCM6yVSqJewV//U?=
- =?us-ascii?Q?U3goN4ZQWQdd3gYZLex+SyI8KusnIK47IqH9iioDXmTopaAMv18IAG0gSxAP?=
- =?us-ascii?Q?Hj6rLInB+iE8GnsbKBOIcqeoHrOdVkm14lZHR2PFt9X4/86Y0K8PjSx/zfIL?=
- =?us-ascii?Q?fAXgFIYlCvSbalNk9nPdwtm4Net1LTjbbP1mJWtct+bsgbVkv6pktPT4eX7t?=
- =?us-ascii?Q?3jhPQh8k7zbaVVj96Cn8zBz7y1TJdYqBdKH3RVnPOvpjIJWhOhlkPa0s2RUT?=
- =?us-ascii?Q?M242zBnYOAx3lk19zrjn8a2LIBWgOn0sfuZdtVjmBGb/yxwzwkjsF9GVZBfG?=
- =?us-ascii?Q?GsLTn0TcaX1keuc+WC80/WLcORJHtch0uHXheetnBi3ZlxZMB/EN9YUwlgrr?=
- =?us-ascii?Q?eA3G54Q86z1c2m7fV83e/q8nI4Byo6K3nt9Q/DGTy+3fVRyoG5ux+5+vzHJG?=
- =?us-ascii?Q?UmEHadvHQ76w99gpJSludUgqiHNrzY0LsMFPi4cY3O2l+DjQ5fn+3X8b+jvW?=
- =?us-ascii?Q?hT1ZZnAecUOs7lrKZ73Hupp+nNCgQcSOkBN5TlqJVsh7lNZ4BVYAvNvzx9nb?=
- =?us-ascii?Q?V+iu6Iy8ghRwsp9XlYhG5LQ0TBHfXZqv07aXxWbGQqW/cT/oNyMcCOyuHKQz?=
- =?us-ascii?Q?sjZBsdZo1owa32Qxe8bK+1Bdgv9yBepOjcYZaCk5/dF5LeT+RuuLRtutYnE1?=
- =?us-ascii?Q?duegRTibBcy1sO8gJGbsXtD6WnA+D9jh7u3l0RH+CVe7jLusMvs9MqW+kcj0?=
- =?us-ascii?Q?PaFRk+IsY9DViuYeD/W6E4DXJ1iYWFuVYx0I92p0BqrLQtNv+7B31FFYrHOO?=
- =?us-ascii?Q?tfNLx03RhvVeC2S5pbBR8gN5KOeKksXnut0EKrPDzsy7N3ehqUjfZn7A+Mo3?=
- =?us-ascii?Q?acxEr6OOIYDWvqgpr08H+3pJh3l0NLLF2KtLkC4UBEyQ/vSve9rCsrjpRnRu?=
- =?us-ascii?Q?TRaBOumPz2v1S6DZdUGplqxlQX6ohOMAjMH2bdc/8N3xPzdq4YuRcM9RMWSa?=
- =?us-ascii?Q?l0mhDZVub/iJ+bm5Fh0MbQHHz7OFa8j5N8QUmxp6v2trq6bq5x1NySy5BQpU?=
- =?us-ascii?Q?vWaZxg4KuX58Zzd+NSLn7OeN2NwCMIigfxC8KnY0wM7ODVCmddhiOAgFrGm1?=
- =?us-ascii?Q?PlLDTftRQQk9noaJ66FwryalmQEoIx9CQihb1dHV3GV3S+ztwfl02LkybgUz?=
- =?us-ascii?Q?NMNI0Yw4PfKdczVPriLZwD8hXPzKBp9sZx2yZkaa4C62RzPJKEAYIKaUsrIN?=
- =?us-ascii?Q?vA/XnpBgqDECtiJsGL5v0tvFM5kfB0N06HW57Plm3aNW6joLIy4fuHIK1H43?=
- =?us-ascii?Q?A9/V1EuUYtAFc5UvpnUamLPfz0X6qBVm85jWFBnd86bNofT//Lb0kPvFOcSI?=
- =?us-ascii?Q?BZgZIAwt8kzQAGvDj3BqhSfhArCtQ2MItyIG82XO9eVqfPm8Uv59cKj+zp0D?=
- =?us-ascii?Q?B2M+wSRQFKQegOfZ2sbZNqd8nGlN90eLs9bSEtEz?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: b044083f-d1cb-498d-8082-08dbf7659b67
-X-MS-Exchange-CrossTenant-AuthSource: SA1PR11MB6733.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Dec 2023 20:46:37.5979
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: +qD4L9US1wOlAIcU10VWoRR9BrL8eRluxb/s7koI+8uQRCcTSpzB1T56gtkO/6b/rfdNxY0lpWg3Y+hX18PgGA==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CH3PR11MB7843
-X-OriginatorOrg: intel.com
+Content-Transfer-Encoding: 8bit
 
-Dave Jiang wrote:
-> 
+Adjust kernel-doc notation to prevent warnings when using -Wall.
 
-[snip]
+dimm_devs.c:59: warning: Function parameter or member 'ndd' not described in 'nvdimm_init_nsarea'
+dimm_devs.c:59: warning: Excess function parameter 'nvdimm' description in 'nvdimm_init_nsarea'
+dimm_devs.c:59: warning: No description found for return value of 'nvdimm_init_nsarea'
+dimm_devs.c:728: warning: No description found for return value of 'nd_pmem_max_contiguous_dpa'
+dimm_devs.c:773: warning: No description found for return value of 'nd_pmem_available_dpa'
+dimm_devs.c:844: warning: Function parameter or member 'ndd' not described in 'nvdimm_allocated_dpa'
+dimm_devs.c:844: warning: Excess function parameter 'nvdimm' description in 'nvdimm_allocated_dpa'
+dimm_devs.c:844: warning: No description found for return value of 'nvdimm_allocated_dpa'
 
-First off thanks for the patch.  This code seems to have a few things to
-clean up.
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: nvdimm@lists.linux.dev
+---
+ drivers/nvdimm/dimm_devs.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-> 
-> On 12/6/23 20:43, Dinghao Liu wrote:
-> > When an error happens in btt_freelist_init(), its caller
-> > discover_arenas() will directly free arena, which makes
-> > arena->freelist allocated in btt_freelist_init() a leaked
-> > memory. Fix this by freeing arena->freelist in all error
-> > handling paths of btt_freelist_init().
-> > 
-> > Fixes: 5212e11fde4d ("nd_btt: atomic sector updates")
-> > Signed-off-by: Dinghao Liu <dinghao.liu@zju.edu.cn>
-> 
-> How about use the new scope based resource management and we can avoid the goto mess altogether?
-> https://lwn.net/Articles/934679/
-> 
-
-The freelist is returned as part of arena.  I've not traced both paths of
-btt_freelist_init() completely but devm_kcalloc() looks like a better
-solution here because this memory needs to live past the function scope.
-
-That said, this patch does not completely fix freelist from leaking in the
-following error path.
-
-	discover_arenas()
-		btt_freelist_init() -> ok (memory allocated)
-		btt_rtt_init() -> fail
-			goto out;
-			(leak because arena is not yet on btt->arena_list)
-		OR
-		btt_maplocks_init() -> fail
-			goto out;
-			(leak because arena is not yet on btt->arena_list)
-
-This error could be fixed by adding to arena_list earlier but devm_*()
-also takes care of this without having to worry about that logic.
-
-On normal operation all of this memory can be free'ed with the
-corresponding devm_kfree() and/or devm_add_action_*() calls if arenas come
-and go.  I'm not sure off the top of my head.
-
-In addition, looking at this code.  discover_arenas() could make use of
-the scoped based management for struct btt_sb *super!
-
-Dinghao would you be willing to submit a series of 2 or 3 patches to fix
-the above issues?
-
-Thanks!
-Ira
+diff -- a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+--- a/drivers/nvdimm/dimm_devs.c
++++ b/drivers/nvdimm/dimm_devs.c
+@@ -53,7 +53,10 @@ static int validate_dimm(struct nvdimm_d
+ 
+ /**
+  * nvdimm_init_nsarea - determine the geometry of a dimm's namespace area
+- * @nvdimm: dimm to initialize
++ * @ndd: dimm to initialize
++ *
++ * Returns: %0 if the area is already valid, -errno on error, otherwise an
++ * ND_CMD_* status code.
+  */
+ int nvdimm_init_nsarea(struct nvdimm_drvdata *ndd)
+ {
+@@ -722,6 +725,9 @@ static unsigned long dpa_align(struct nd
+  *			   contiguous unallocated dpa range.
+  * @nd_region: constrain available space check to this reference region
+  * @nd_mapping: container of dpa-resource-root + labels
++ *
++ * Returns: %0 if there is an alignment error, otherwise the max
++ *		unallocated dpa range
+  */
+ resource_size_t nd_pmem_max_contiguous_dpa(struct nd_region *nd_region,
+ 					   struct nd_mapping *nd_mapping)
+@@ -767,6 +773,8 @@ resource_size_t nd_pmem_max_contiguous_d
+  *
+  * Validate that a PMEM label, if present, aligns with the start of an
+  * interleave set.
++ *
++ * Returns: %0 if there is an alignment error, otherwise the unallocated dpa
+  */
+ resource_size_t nd_pmem_available_dpa(struct nd_region *nd_region,
+ 				      struct nd_mapping *nd_mapping)
+@@ -836,8 +844,10 @@ struct resource *nvdimm_allocate_dpa(str
+ 
+ /**
+  * nvdimm_allocated_dpa - sum up the dpa currently allocated to this label_id
+- * @nvdimm: container of dpa-resource-root + labels
++ * @ndd: container of dpa-resource-root + labels
+  * @label_id: dpa resource name of the form pmem-<human readable uuid>
++ *
++ * Returns: sum of the dpa allocated to the label_id
+  */
+ resource_size_t nvdimm_allocated_dpa(struct nvdimm_drvdata *ndd,
+ 		struct nd_label_id *label_id)
