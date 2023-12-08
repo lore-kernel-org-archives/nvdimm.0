@@ -1,235 +1,199 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85E6E1A723
-	for <nvdimm@lists.linux.dev>; Fri,  8 Dec 2023 11:37:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB3BE47A5E
+	for <nvdimm@lists.linux.dev>; Fri,  8 Dec 2023 21:24:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="iZ0M4+Ii"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1702035420;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=7iZNobHl/GPobGa2I6qixx18BC281Bjl3vJdU1mmkuQ=;
-	b=iZ0M4+IiOJa1ttnIumevmOVCFBApT+5vKoFJoIfO8s5Y7LGq37/B1x/tFVgSR9/BCdmQ+o
-	tNbQsbepjeovI/4Lucxa2X60/eOFFZx/hWsURXIG4NTjDf/xaYnw6lS/rUxJPFb9WzD6BC
-	yW9DSG9rFaeKQXVujwqWz3WejnQF4UI=
-Received: from mail-wr1-f72.google.com (mail-wr1-f72.google.com
- [209.85.221.72]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-114-Y8sCma1jNVmqhbXPo_We3Q-1; Fri, 08 Dec 2023 06:36:56 -0500
-X-MC-Unique: Y8sCma1jNVmqhbXPo_We3Q-1
-Received: by mail-wr1-f72.google.com with SMTP id ffacd0b85a97d-333405020afso1818687f8f.3
-        for <nvdimm@lists.linux.dev>; Fri, 08 Dec 2023 03:36:56 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1702035416; x=1702640216;
-        h=content-transfer-encoding:in-reply-to:organization:autocrypt:from
-         :references:cc:to:content-language:subject:user-agent:mime-version
-         :date:message-id:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=7iZNobHl/GPobGa2I6qixx18BC281Bjl3vJdU1mmkuQ=;
-        b=cgWiwrw3lwQOvzfbonpwbrqpTi2WTG7K35KsHkKMlec4l16sbiyViRO5RvHnzxxxbA
-         1ITnPTWzKzPD1kNit1jokMncpSktkcAhpUfjK2hQJyuZMfqSldQSGcFPTrAhkLOT1b9F
-         1uKx8MVVjx7QMj+CZKaMwP+QkKyoQcoWZn84cgCM3mBzW4aUILuVgQtEFyhJNHJSeAa8
-         cMhs2G8uIy4qDinuptONUFh0tO7j70lOuFZ+9/CXOvnZ9lvZ+NMfff1zmvPNLvbf66ZA
-         B579pccHt2fisUF4m01oiZi0Omei+HciGfN+hNpgFauudqqMJ27UUG3tpPnsYuafKyPC
-         eZ3Q==
-X-Gm-Message-State: AOJu0Yw0YNAXUuBJBrzO6wKur7s59i7bBTdUcuLz9Kb11ZT5JU08U/Rl
-	9kMY5j3fym/Vh6jNm1hL7J3gP75kxAtORGN9aXXINDsqEw+gjM5lz5t81nTHMstJmfvYS32Ukpm
-	P6l2i6Qmuepfn6BnY
-X-Received: by 2002:a05:600c:54f1:b0:40b:5e59:ccd4 with SMTP id jb17-20020a05600c54f100b0040b5e59ccd4mr2455928wmb.181.1702035415747;
-        Fri, 08 Dec 2023 03:36:55 -0800 (PST)
-X-Google-Smtp-Source: AGHT+IE5LCs+9ecahCq1vp9Sw1TdZj3EbHX2btIMBL9/oJRDL+AiIApsb4Y2A2vh6l7BLPckKuqoQw==
-X-Received: by 2002:a05:600c:54f1:b0:40b:5e59:ccd4 with SMTP id jb17-20020a05600c54f100b0040b5e59ccd4mr2455915wmb.181.1702035415310;
-        Fri, 08 Dec 2023 03:36:55 -0800 (PST)
-Received: from ?IPV6:2003:cb:c724:2100:3826:4f41:d72c:dc1b? (p200300cbc724210038264f41d72cdc1b.dip0.t-ipconnect.de. [2003:cb:c724:2100:3826:4f41:d72c:dc1b])
-        by smtp.gmail.com with ESMTPSA id m29-20020a05600c3b1d00b0040b3515cdf8sm2605930wms.7.2023.12.08.03.36.54
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 08 Dec 2023 03:36:54 -0800 (PST)
-Message-ID: <e9323c58-6a99-436f-b8c5-ffc68b940de3@redhat.com>
-Date: Fri, 8 Dec 2023 12:36:53 +0100
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="gxCc0ALF"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1702070672; x=1733606672;
+  h=from:to:cc:subject:date:message-id:references:
+   in-reply-to:content-id:content-transfer-encoding:
+   mime-version;
+  bh=ZaR1/E7FVR9OreuyJ9EIZu12kv65dF6ZEe4xWkbjrs0=;
+  b=gxCc0ALFoJKBkuypbcL2FO4y00pkxgdfBUO1lRdLeubLnb+H6vtivqyH
+   MfmY6rirdzUnVgPBSCPSyjUOkhEuoc0l7QS1QsBUNeWBtGvEjzZ+ZEqpg
+   //7vpMzaBFoh1qmn6b1ayrq6BQpWb3ZSIL8oTMj0xeVvW3y5oOjrDtQ7M
+   Idv/3gnJptY6TxYbapzOLKioq5mTfI1bK9ss9IZDGnjIDjIn4PWPrZUzW
+   MJ755I891K05ebw+DF/9y19I+8tVObj+ADlftHblfbsKAa6KRu45JCPkf
+   HM6imBSJZE/+lZ8pYTcTjlawg3S3TD4Tc1NoL4K4si1F92bv3EHhAwVNp
+   A==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10918"; a="7822534"
+X-IronPort-AV: E=Sophos;i="6.04,261,1695711600"; 
+   d="scan'208";a="7822534"
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by orvoesa102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Dec 2023 13:24:31 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10918"; a="838261011"
+X-IronPort-AV: E=Sophos;i="6.04,261,1695711600"; 
+   d="scan'208";a="838261011"
+Received: from orsmsx602.amr.corp.intel.com ([10.22.229.15])
+  by fmsmga008.fm.intel.com with ESMTP/TLS/AES256-GCM-SHA384; 08 Dec 2023 13:24:31 -0800
+Received: from orsmsx611.amr.corp.intel.com (10.22.229.24) by
+ ORSMSX602.amr.corp.intel.com (10.22.229.15) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.35; Fri, 8 Dec 2023 13:24:30 -0800
+Received: from orsmsx610.amr.corp.intel.com (10.22.229.23) by
+ ORSMSX611.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.35; Fri, 8 Dec 2023 13:24:30 -0800
+Received: from ORSEDG601.ED.cps.intel.com (10.7.248.6) by
+ orsmsx610.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.35 via Frontend Transport; Fri, 8 Dec 2023 13:24:30 -0800
+Received: from NAM10-DM6-obe.outbound.protection.outlook.com (104.47.58.101)
+ by edgegateway.intel.com (134.134.137.102) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.35; Fri, 8 Dec 2023 13:24:26 -0800
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=HVLAkCQYRFyTu2e8pYzDqCZLSQ4mMsZSpjdDu6bgZleSE6nCQegMMGVMZHm6QiCqiQ5e7HMUQvmQTrG+LGKDr7bUfZHyZu99mD1KFmtzMtDWazhmrBiBg8SMh6nQaFhnIfA4oILf9NG2847Jx8n9Ta1VVclBg2jNpg21V0QjesxrS+jL26yW0oyVRsPpaIotVUMfUdzdBFS4+3U+JZ9JjO2yAImK1ebQJp2/kS4uYcBX0ZuZ6nlaELsrzToTopk9onjEx6YgnVv+AQVs9hd+dFm4M3/JZy2Kis8H1LFKPhY6Nlg62K4fjD32FyfqXmla/KSlS93G1s4XZd2XIV7i3g==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=ZaR1/E7FVR9OreuyJ9EIZu12kv65dF6ZEe4xWkbjrs0=;
+ b=LDpag376xYN80aLiSuiDU2Hz/qIYjh778NGLKukRydrId+eyK9qyeKfv54Xjg7+BC4w2uKiVd8K/8UYveWIFcfOFrz9ZCJEZchkDXcxYf447oPVscjSNEgzvs4m7uHd64hQ73NzJpEDnBrHlQl37kifghmWM4lTE4x5FoRXmXFPv6FTDfFaie5OlkrU8oeUtjNo2tDQs1cc9WcDuWbEXoHRHwHWlJNadqHP7kedjs/NQwYQ4oLzZxLG8EWUUDD2fn8w84o1gMQ2izGWj62JQA5WKXcPVAm/3X4NTeO5XAyZXSSzy98RGuzYD1CeZ5uoLvZpt3LlHnScCv5nGHML+8A==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Received: from MW4PR11MB7125.namprd11.prod.outlook.com (2603:10b6:303:219::12)
+ by SA1PR11MB6894.namprd11.prod.outlook.com (2603:10b6:806:2b1::14) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7068.27; Fri, 8 Dec
+ 2023 21:24:24 +0000
+Received: from MW4PR11MB7125.namprd11.prod.outlook.com
+ ([fe80::703a:a01d:8718:5694]) by MW4PR11MB7125.namprd11.prod.outlook.com
+ ([fe80::703a:a01d:8718:5694%7]) with mapi id 15.20.7025.022; Fri, 8 Dec 2023
+ 21:24:24 +0000
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+To: "lizhijian@fujitsu.com" <lizhijian@fujitsu.com>, "Jiang, Dave"
+	<dave.jiang@intel.com>
+CC: "david@redhat.com" <david@redhat.com>, "dave.hansen@linux.intel.com"
+	<dave.hansen@linux.intel.com>, "Huang, Ying" <ying.huang@intel.com>,
+	"Jonathan.Cameron@huawei.com" <Jonathan.Cameron@huawei.com>,
+	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Williams, Dan
+ J" <dan.j.williams@intel.com>, "nvdimm@lists.linux.dev"
+	<nvdimm@lists.linux.dev>
+Subject: Re: [PATCH v2 2/2] dax: add a sysfs knob to control memmap_on_memory
+ behavior
+Thread-Topic: [PATCH v2 2/2] dax: add a sysfs knob to control memmap_on_memory
+ behavior
+Thread-Index: AQHaKMbu7P34L+weQECt+BHOvhNpUbCdfY8AgAC3MoCAAOlFgIAAyj+A
+Date: Fri, 8 Dec 2023 21:24:24 +0000
+Message-ID: <ee14082752fd634d7b619b7dd438170fdc0bbe1a.camel@intel.com>
+References: <20231206-vv-dax_abi-v2-0-f4f4f2336d08@intel.com>
+	 <20231206-vv-dax_abi-v2-2-f4f4f2336d08@intel.com>
+	 <4b1a415e-6a56-455a-a843-277cc08d05a9@fujitsu.com>
+	 <96a55ffddd8f6a00ff00e6a67e50d30129ae2456.camel@intel.com>
+	 <ad95e550-cdb3-448f-beb1-fc4899053639@fujitsu.com>
+In-Reply-To: <ad95e550-cdb3-448f-beb1-fc4899053639@fujitsu.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+user-agent: Evolution 3.48.4 (3.48.4-1.fc38) 
+authentication-results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+x-ms-publictraffictype: Email
+x-ms-traffictypediagnostic: MW4PR11MB7125:EE_|SA1PR11MB6894:EE_
+x-ms-office365-filtering-correlation-id: e5399596-f0cb-4c21-1267-08dbf8340d26
+x-ld-processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: KzC+NxsxRVrUUgdzdSlMyl1kts4+3qSMmIdLbuxZFbeS2Gk6pdtITW9kdcYNU+Rum48+PnuY1hq/Kbm+CXL5WCwWjqlT9EKAj209PzzVrGtHcx2AhhctDaZJRVHE11VXg6eCnB2+kSVzDlMPcicGzxPREVzFTrsn2/ZDaUVWHD8RSl7qsQK7n207wyMKcec7XFNhBybPD3KzxKdPr+71U0C7bwKGtZs2UxvDYVX2THPpv1BbwMHgGkL5BL4mlAx0gSBqxWq5MtnrIYi1cy6kjChT/46I1WcGOJxZA0E1xzlIjzeYxhzSuCwWsraaeZomjHflvhukBNa7OR7BI/ODzERIQWDwvjsNaBgae1tZhZKRYdXcEu12z2cZbN4u7b32pLVr/ZvSgB561tlW9EDZjIlDDsvd2uHHTyBBZLJZbQoxHCElixADQHxPXnuirt59fKDMlgr7aw3oQWGsr42QtMAdzRglk22LQYEH3DZUEfw4AGFFgFLt6xz/GGhbLBOkrtbv2+yXCRsvUmlzMf6HOmtILJLX2/e9ZhmqRTMnLtMuBCatO/inVTyOcznf4D4EOj73g7lhUixvEEMuFOt7qWa93haLLmnguLBMnLDO88vH9Zj2TEZGSYoM/GTGSw5N
+x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MW4PR11MB7125.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(366004)(376002)(136003)(346002)(39860400002)(396003)(230922051799003)(451199024)(1800799012)(64100799003)(186009)(66476007)(66946007)(66556008)(316002)(110136005)(6636002)(66446008)(64756008)(54906003)(76116006)(122000001)(38100700002)(36756003)(2906002)(86362001)(41300700001)(4326008)(5660300002)(38070700009)(82960400001)(8676002)(8936002)(26005)(6506007)(53546011)(71200400001)(2616005)(478600001)(6512007)(6486002);DIR:OUT;SFP:1102;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0: =?utf-8?B?QnI0WERkKzVBd3JDN1hSRTVUQjgrMUU3dmlvTUh1RjBIbHkwZElQUXhvWk9U?=
+ =?utf-8?B?OUxYdyt5dVVMTlZWZnV4bHNzZGF3bGF3MitBbHk0T09CbW9XQy9YeENPM2dR?=
+ =?utf-8?B?Nnp4VE9xUnZaYllmcllGZFI1MGtJbzN1ZzZuVU5pNFhCMXgxTnZQNVlIZnZh?=
+ =?utf-8?B?U2w3d2k3amtxb1dJSFBvOEswRldUMGJDa2w0OTBrZDZHa0lwQ1JrYUpkM2pP?=
+ =?utf-8?B?RC9kb3l5bVVScFBsR3ZzKzRsNmJWZUF5bmFmZWN0eDVKUnZ4L0RseGxlV1BP?=
+ =?utf-8?B?dkprcjFOWFAxS3ZzYjRBeXF4VE9Ya0xLSkxXTXlDQkVYMGtGRkpiZi9mMERj?=
+ =?utf-8?B?Rm1YcHBpb2ZxV3hyS3A2TUF3aU9FQmFmUk9mMkZ1NWZDOGVGQm4xdGJkaU9p?=
+ =?utf-8?B?djF3L0l3ZjRiRnFyM09UU1QxOEQwcEY5djFoTlRDcy9MNDFmSmlRWHdJcU01?=
+ =?utf-8?B?eGlJSld1Sk5zS1RBa2xvZ3c2RkFZVlJSNm9rUXE4QkVwSnA2OGpsTkg3UkZI?=
+ =?utf-8?B?dFIwSjVLRHFwVVNEZ2s0bGloazE5UFZ5L0YvTG1JaS9VQmxOVG45cStyMDdl?=
+ =?utf-8?B?UUFDeHhmZUNlMktHVy9KbkxVWXlDYWZPbDdaMXNKWnZPNXBsdTBsUkxKSFhz?=
+ =?utf-8?B?aXRQSGhXTC9VTmV3cWVqQmRVcFpUZklpTjJKRUwwVEt0NzA4N08yTXlMNW5C?=
+ =?utf-8?B?L05tK2ZPT2hrd0U2NGR6ZkVGSSt4Y2hLRmV0Sys0ZFM1T1NUVDhmMXhoTGN0?=
+ =?utf-8?B?bmtXamRic3dscTBtakQ0YTB3c0EvNU11YTM5dzRhVWFOUmFwV2N0TG5tenF4?=
+ =?utf-8?B?QmN5RXRWSjVNcWhDTmJ1R1g0ZTFmdUhZOENpVzNHeHdXSlZuZldxcVRaSFZ4?=
+ =?utf-8?B?Z2pPcjNEeW05ZUVtazV1RXNjMDlkUVJuM2lBYkZ1WFhVVDN0Q3V1MzFaZzJw?=
+ =?utf-8?B?eFd2YVNDSVJyblRENFRNUk0yd0RCdkJrcUNnVUZKMVpZSjh1UDNadHJOd0dC?=
+ =?utf-8?B?U0tQbVloVUJmNjF0T1Z2SE1jNC9DVllZMFBmQ2d6bHE1OU1GVytGbkZwK1lV?=
+ =?utf-8?B?OVZqZTlZWEhlRElNeitWYU0wY25pQU5qYWNrOVJKZm9Sd01pUHZwYzBWVVVl?=
+ =?utf-8?B?dGJLdnlXcFZzYXBGa2c0TWRuQk9EWVJjdnRDU0dCRUNhSjBDcVE1M0FaMnA4?=
+ =?utf-8?B?azEvU2NkaW51YjUydTdtc2s4cHVCKzMzejNQMnB5M3I5ZWZKa3VIeE9JRDE1?=
+ =?utf-8?B?eGV2R3J5YlM5UWVlcFF5MXl0Nm9DQmh1WmVmOFlwRlJtOFZVa0N6L0pzemlI?=
+ =?utf-8?B?NExvQ1lXWHQxTFdSQWFCc0lPaTA5U1dDWG5vWWFlRU96N0N1dlg3a09lclY3?=
+ =?utf-8?B?cDE2cFVPaHFmWmRmVU9VUW5DdFpWYms3Qm95NGNBcFhiTW5rbFRvaDlKZHl3?=
+ =?utf-8?B?NTFIR3craEI0dEJ4QXlwTllaRTFKN2tFQjU1VkgrSzF3a290QmZ5UVBQY1NH?=
+ =?utf-8?B?YXBtSmc3L3dqUjFnTC90UkVEbTNjZDVMN2I1a1NOd1ZUZVpVZVJERnlsS0cv?=
+ =?utf-8?B?OWZzQWJ4S1pGeHVvQ2VDK3F3cjY3enFMSUV6aHUxVE10N05kaWQxTzJmdUh1?=
+ =?utf-8?B?TVpvaTBRYUQxKzRzdTh6TWgwMTI2LzJCMDM1S0NCVmdTcmRmMlZVaXlvVTZH?=
+ =?utf-8?B?Q3BqSFpjS3ppTlpRRHFtblBaZW4rTjBTOVE5RU9pZitoTmNWenZjSjNjUkNP?=
+ =?utf-8?B?TE1WdzdZSDlOUEpkdzhQRFhhZXBiTjVybnBjeFYxRHJDN0pORlFsWFNKLzA1?=
+ =?utf-8?B?VS9oeWkwcVQvUXZYanlZbzQ5V1JJY085cUc1aDJtZXMvbVZoV3djTGI4SWxk?=
+ =?utf-8?B?b0wrS1crcFFYd0FQSHZmWk1DM1VmZ3g3N05DaTdCS2JNbEtnUytXU0Mzazdw?=
+ =?utf-8?B?RWNSNnY5Q0l3STBIR09xY3ExYkNCem5tOTRkYVB4Y29Da3VrKzZSb0duUlha?=
+ =?utf-8?B?MmMxb0dPQnlSL2hmNGxoVFhtRkRRVUhjT1VHZmYzUUZZb283SjdWYVNlZEw3?=
+ =?utf-8?B?TDlEanZIcnZVZFcxZ05zUVdLTFFjS0gxYjI4YUliN2JwSVo5bFZ4M29XNjBM?=
+ =?utf-8?B?R0o0YThjakcrc1dSRVlmclpMNDJjQ0FCWlUyTmZDNG1hdUg4a1paYTZJWmlu?=
+ =?utf-8?B?R1E9PQ==?=
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <2D02A276C22607469603AC98F92C83BC@namprd11.prod.outlook.com>
+Content-Transfer-Encoding: base64
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 2/2] dax: add a sysfs knob to control memmap_on_memory
- behavior
-To: Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>, linux-kernel@vger.kernel.org,
- nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
- Dave Hansen <dave.hansen@linux.intel.com>, Huang Ying
- <ying.huang@intel.com>, Jonathan Cameron <Jonathan.Cameron@huawei.com>
-References: <20231206-vv-dax_abi-v2-0-f4f4f2336d08@intel.com>
- <20231206-vv-dax_abi-v2-2-f4f4f2336d08@intel.com>
-From: David Hildenbrand <david@redhat.com>
-Autocrypt: addr=david@redhat.com; keydata=
- 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
- WNyWQQ==
-Organization: Red Hat
-In-Reply-To: <20231206-vv-dax_abi-v2-2-f4f4f2336d08@intel.com>
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: redhat.com
-Content-Language: en-US
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: MW4PR11MB7125.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: e5399596-f0cb-4c21-1267-08dbf8340d26
+X-MS-Exchange-CrossTenant-originalarrivaltime: 08 Dec 2023 21:24:24.5362
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: PIXD+l7inA37zFDqKK0unaKhr+veFC2x8+8L4VoLyZmqg+x0qz6m3tDXkv6D/JLXhkcqL9PGdTKNs0xQ9iP9MSCEmo0rEtHawoAeHQdG1BQ=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA1PR11MB6894
+X-OriginatorOrg: intel.com
 
-On 07.12.23 05:36, Vishal Verma wrote:
-> Add a sysfs knob for dax devices to control the memmap_on_memory setting
-> if the dax device were to be hotplugged as system memory.
-> 
-> The default memmap_on_memory setting for dax devices originating via
-> pmem or hmem is set to 'false' - i.e. no memmap_on_memory semantics, to
-> preserve legacy behavior. For dax devices via CXL, the default is on.
-> The sysfs control allows the administrator to override the above
-> defaults if needed.
-> 
-> Cc: David Hildenbrand <david@redhat.com>
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Cc: Dave Jiang <dave.jiang@intel.com>
-> Cc: Dave Hansen <dave.hansen@linux.intel.com>
-> Cc: Huang Ying <ying.huang@intel.com>
-> Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-> Reviewed-by: David Hildenbrand <david@redhat.com>
-> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
-> ---
->   drivers/dax/bus.c                       | 40 +++++++++++++++++++++++++++++++++
->   Documentation/ABI/testing/sysfs-bus-dax | 13 +++++++++++
->   2 files changed, 53 insertions(+)
-> 
-> diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-> index 1ff1ab5fa105..11abb57cc031 100644
-> --- a/drivers/dax/bus.c
-> +++ b/drivers/dax/bus.c
-> @@ -1270,6 +1270,45 @@ static ssize_t numa_node_show(struct device *dev,
->   }
->   static DEVICE_ATTR_RO(numa_node);
->   
-> +static ssize_t memmap_on_memory_show(struct device *dev,
-> +				     struct device_attribute *attr, char *buf)
-> +{
-> +	struct dev_dax *dev_dax = to_dev_dax(dev);
-> +
-> +	return sprintf(buf, "%d\n", dev_dax->memmap_on_memory);
-> +}
-> +
-> +static ssize_t memmap_on_memory_store(struct device *dev,
-> +				      struct device_attribute *attr,
-> +				      const char *buf, size_t len)
-> +{
-> +	struct dev_dax *dev_dax = to_dev_dax(dev);
-> +	struct dax_region *dax_region = dev_dax->region;
-> +	ssize_t rc;
-> +	bool val;
-> +
-> +	rc = kstrtobool(buf, &val);
-> +	if (rc)
-> +		return rc;
-> +
-> +	if (dev_dax->memmap_on_memory == val)
-> +		return len;
-> +
-> +	device_lock(dax_region->dev);
-> +	if (!dax_region->dev->driver) {
-> +		device_unlock(dax_region->dev);
-> +		return -ENXIO;
-> +	}
-> +
-> +	device_lock(dev);
-> +	dev_dax->memmap_on_memory = val;
-> +	device_unlock(dev);
-> +
-> +	device_unlock(dax_region->dev);
-> +	return rc == 0 ? len : rc;
-> +}
-> +static DEVICE_ATTR_RW(memmap_on_memory);
-> +
->   static umode_t dev_dax_visible(struct kobject *kobj, struct attribute *a, int n)
->   {
->   	struct device *dev = container_of(kobj, struct device, kobj);
-> @@ -1296,6 +1335,7 @@ static struct attribute *dev_dax_attributes[] = {
->   	&dev_attr_align.attr,
->   	&dev_attr_resource.attr,
->   	&dev_attr_numa_node.attr,
-> +	&dev_attr_memmap_on_memory.attr,
->   	NULL,
->   };
->   
-> diff --git a/Documentation/ABI/testing/sysfs-bus-dax b/Documentation/ABI/testing/sysfs-bus-dax
-> index a61a7b186017..bb063a004e41 100644
-> --- a/Documentation/ABI/testing/sysfs-bus-dax
-> +++ b/Documentation/ABI/testing/sysfs-bus-dax
-> @@ -149,3 +149,16 @@ KernelVersion:	v5.1
->   Contact:	nvdimm@lists.linux.dev
->   Description:
->   		(RO) The id attribute indicates the region id of a dax region.
-> +
-> +What:		/sys/bus/dax/devices/daxX.Y/memmap_on_memory
-> +Date:		October, 2023
-> +KernelVersion:	v6.8
-> +Contact:	nvdimm@lists.linux.dev
-> +Description:
-> +		(RW) Control the memmap_on_memory setting if the dax device
-> +		were to be hotplugged as system memory. This determines whether
-> +		the 'altmap' for the hotplugged memory will be placed on the
-> +		device being hotplugged (memmap_on+memory=1) or if it will be
-> +		placed on regular memory (memmap_on_memory=0). This attribute
-> +		must be set before the device is handed over to the 'kmem'
-> +		driver (i.e.  hotplugged into system-ram).
-> 
-
-Should we note the dependency on other factors as given in 
-mhp_supports_memmap_on_memory(), especially, the system-wide setting and 
-some weird kernel configurations?
-
--- 
-Cheers,
-
-David / dhildenb
-
+T24gRnJpLCAyMDIzLTEyLTA4IGF0IDA5OjIwICswMDAwLCBaaGlqaWFuIExpIChGdWppdHN1KSB3
+cm90ZToNCj4gDQo+IA0KPiBPbiAwOC8xMi8yMDIzIDAzOjI1LCBWZXJtYSwgVmlzaGFsIEwgd3Jv
+dGU6DQo+ID4gT24gVGh1LCAyMDIzLTEyLTA3IGF0IDA4OjI5ICswMDAwLCBaaGlqaWFuIExpIChG
+dWppdHN1KSB3cm90ZToNCj4gPiA+IEhpIFZpc2hhbCwNCj4gPiA+IA0KPiA+ID4gDQo+ID4gPiBP
+biAwNy8xMi8yMDIzIDEyOjM2LCBWaXNoYWwgVmVybWEgd3JvdGU6DQo+ID4gPiA+ICsNCj4gPiA+
+ID4gK1doYXQ6wqDCoMKgwqDCoMKgwqDCoMKgwqAvc3lzL2J1cy9kYXgvZGV2aWNlcy9kYXhYLlkv
+bWVtbWFwX29uX21lbW9yeQ0KPiA+ID4gPiArRGF0ZTrCoMKgwqDCoMKgwqDCoMKgwqDCoE9jdG9i
+ZXIsIDIwMjMNCj4gPiA+ID4gK0tlcm5lbFZlcnNpb246wqB2Ni44DQo+ID4gPiA+ICtDb250YWN0
+OsKgwqDCoMKgwqDCoMKgbnZkaW1tQGxpc3RzLmxpbnV4LmRldg0KPiA+ID4gPiArRGVzY3JpcHRp
+b246DQo+ID4gPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAoUlcpIENvbnRyb2wg
+dGhlIG1lbW1hcF9vbl9tZW1vcnkgc2V0dGluZyBpZiB0aGUgZGF4IGRldmljZQ0KPiA+ID4gPiAr
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgd2VyZSB0byBiZSBob3RwbHVnZ2VkIGFzIHN5
+c3RlbSBtZW1vcnkuIFRoaXMgZGV0ZXJtaW5lcyB3aGV0aGVyDQo+ID4gPiA+ICvCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqB0aGUgJ2FsdG1hcCcgZm9yIHRoZSBob3RwbHVnZ2VkIG1lbW9y
+eSB3aWxsIGJlIHBsYWNlZCBvbiB0aGUNCj4gPiA+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoGRldmljZSBiZWluZyBob3RwbHVnZ2VkIChtZW1tYXBfb24rbWVtb3J5PTEpIG9yIGlm
+IGl0IHdpbGwgYmUNCj4gPiA+IA0KPiA+ID4gcy9tZW1tYXBfb24rbWVtb3J5PTEvbWVtbWFwX29u
+X21lbW9yeT0xDQo+ID4gDQo+ID4gVGhhbmtzLCB3aWxsIGZpeC4NCj4gPiA+IA0KPiA+ID4gDQo+
+ID4gPiBJIGhhdmUgYSBxdWVzdGlvbiBoZXJlDQo+ID4gPiANCj4gPiA+IFdoYXQgcmVsYXRpb25z
+aGlwIGFib3V0IG1lbW1hcF9vbl9tZW1vcnkgYW5kICduZGN0bC1jcmVhdGUtbmFtZXNwYWNlDQo+
+ID4gPiAtTScgb3B0aW9uIHdoaWNoDQo+ID4gPiBzcGVjaWZpZXMgd2hlcmUgaXMgdGhlIHZtZW1t
+YXAgYmFja2VkIG1lbW9yeS4NCj4gPiA+IEknbSBjb25mdXNlZCB0aGF0IG1lbW1hcF9vbl9tZW1v
+cnk9MSBhbmQgJy1NIGRldicgYXJlIHRoZSBzYW1lIGZvcg0KPiA+ID4gbnZkaW1tIGRldmRheCBt
+b2RlID8NCj4gPiA+IA0KPiA+IFRoZSBtYWluIGRpZmZlcmVuY2UgaXMgdGhhdCBtZW1vcnkgdGhh
+dCBjb21lcyBmcm9tIG5vbi1udmRpbW0gc291cmNlcywNCj4gPiBzdWNoIGFzIGhtZW0sIG9yIGN4
+bCwgZG9lc24ndCBoYXZlIGEgY2hhbmNlIHRvIHNldCB1cCB0aGUgYWx0bWFwcyBhcw0KPiA+IHBt
+ZW0gY2FuIHdpdGggJy1NIGRldicuIEZvciB0aGVzZSwgbWVtbWFwX29uX21lbW9yeSBkb2VzIHRo
+aXMgYXMgcGFydA0KPiA+IG9mIHRoZSBtZW1vcnkgaG90cGx1Zy4NCj4gDQo+IFRoYW5rcyBmb3Ig
+eW91ciBleHBsYW5hdGlvbi4NCj4gKEkgd3JvbmdseSB0aG91Z2h0IG52ZGltbS5rbWVtIHdhcyBh
+bHNvIGNvbnRyb2xsZWQgYnkgJy1NIGRldicgYmVmb3JlKQ0KPiANCj4gZmVlbCBmcmVlIGFkZDoN
+Cj4gVGVzdGVkLWJ5OiBMaSBaaGlqaWFuIDxsaXpoaWppYW5AZnVqaXRzdS5jb20+DQoNClRoYW5r
+IHlvdSBaaGlqaWFuIQ0KDQo=
