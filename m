@@ -1,27 +1,27 @@
 Received: from zju.edu.cn (spam.zju.edu.cn [61.164.42.155])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5E5A2522F
-	for <nvdimm@lists.linux.dev>; Sun, 10 Dec 2023 08:58:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id B31A46FAD
+	for <nvdimm@lists.linux.dev>; Sun, 10 Dec 2023 10:28:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=zju.edu.cn
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zju.edu.cn
 Received: from localhost.localdomain (unknown [10.192.120.142])
-	by mail-app3 (Coremail) with SMTP id cC_KCgB3f4+qfXVl+7eqAA--.2815S4;
-	Sun, 10 Dec 2023 16:58:25 +0800 (CST)
+	by mail-app2 (Coremail) with SMTP id by_KCgCnHNSkknVlObhtAA--.13346S4;
+	Sun, 10 Dec 2023 18:27:53 +0800 (CST)
 From: Dinghao Liu <dinghao.liu@zju.edu.cn>
 To: dinghao.liu@zju.edu.cn
-Cc: Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
+Cc: Vishal Verma <vishal.l.verma@intel.com>,
+	Dan Williams <dan.j.williams@intel.com>,
 	Dave Jiang <dave.jiang@intel.com>,
 	Ira Weiny <ira.weiny@intel.com>,
 	nvdimm@lists.linux.dev,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH] [v2] nvdimm-btt: fix several memleaks
-Date: Sun, 10 Dec 2023 16:58:17 +0800
-Message-Id: <20231210085817.30161-1-dinghao.liu@zju.edu.cn>
+Subject: [PATCH] nvdimm-btt: simplify code with the scope based resource management
+Date: Sun, 10 Dec 2023 18:27:47 +0800
+Message-Id: <20231210102747.13545-1-dinghao.liu@zju.edu.cn>
 X-Mailer: git-send-email 2.17.1
-X-CM-TRANSID:cC_KCgB3f4+qfXVl+7eqAA--.2815S4
-X-Coremail-Antispam: 1UD129KBjvJXoWxGF1kuF4rJrWUGF4UAw17Awb_yoWrtFy8pF
-	4fJF98tFs8JFs7ur1DJ3yDu34aka1rKFyUKFy5Cw1Fyr15Aw4jqF4rCF15Z3s0krWrZ3W3
-	CFWktw1UKr4UAw7anT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+X-CM-TRANSID:by_KCgCnHNSkknVlObhtAA--.13346S4
+X-Coremail-Antispam: 1UD129KBjvJXoW7uF45ZFWkKw4fCF1DJry8uFg_yoW8Gw4xpF
+	s8A34DArZ8JF1xCF1DCa17u343Ga1fA34UKFyjk39avFW3tw1jqrWktFyS9rykurWIvry3
+	KrWjywn0kF45AF7anT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
 	9KBjDU0xBIdaVrnRJUUUka1xkIjI8I6I8E6xAIw20EY4v20xvaj40_Wr0E3s1l1IIY67AE
 	w4v_Jr0_Jr4l8cAvFVAK0II2c7xJM28CjxkF64kEwVA0rcxSw2x7M28EF7xvwVC0I7IYx2
 	IY67AKxVWDJVCq3wA2z4x0Y4vE2Ix0cI8IcVCY1x0267AKxVW8Jr0_Cr1UM28EF7xvwVC2
@@ -34,163 +34,71 @@ X-Coremail-Antispam: 1UD129KBjvJXoWxGF1kuF4rJrWUGF4UAw17Awb_yoWrtFy8pF
 	r41lIxAIcVC0I7IYx2IY67AKxVWUJVWUCwCI42IY6xIIjxv20xvEc7CjxVAFwI0_Jr0_Gr
 	1lIxAIcVCF04k26cxKx2IYs7xG6r1j6r1xMIIF0xvEx4A2jsIE14v26r1j6r4UMIIF0xvE
 	x4A2jsIEc7CjxVAFwI0_Gr0_Gr1UYxBIdaVFxhVjvjDU0xZFpf9x0JUdHUDUUUUU=
-X-CM-SenderInfo: qrrzjiaqtzq6lmxovvfxof0/1tbiAgcFBmV0OhUYjgAAsu
+X-CM-SenderInfo: qrrzjiaqtzq6lmxovvfxof0/1tbiAgsFBmV0OhUYjwABsi
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 
-Resources allocated by kcalloc() in btt_freelist_init(),
-btt_rtt_init(), and btt_maplocks_init() are not correctly
-released in their callers when an error happens. For
-example, when an error happens in btt_freelist_init(), its
-caller discover_arenas() will directly free arena, which makes
-arena->freelist a leaked memory. Fix these memleaks by using
-devm_kcalloc() to make the memory auto-freed on driver detach.
+Use the scope based resource management (defined in
+linux/cleanup.h) to automate resource lifetime
+control on struct btt_sb *super in discover_arenas().
 
-Fixes: 5212e11fde4d ("nd_btt: atomic sector updates")
 Signed-off-by: Dinghao Liu <dinghao.liu@zju.edu.cn>
 ---
-
-Changelog:
-
-v2: -Use devm_kcalloc() to fix the memleaks.
-    -Fix the potential leaked memory in btt_rtt_init()
-     and btt_maplocks_init().
----
- drivers/nvdimm/btt.c | 35 ++++++++++++++++-------------------
- 1 file changed, 16 insertions(+), 19 deletions(-)
+ drivers/nvdimm/btt.c | 12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-index d5593b0dc700..c55231f42617 100644
+index d5593b0dc700..ff42778b51de 100644
 --- a/drivers/nvdimm/btt.c
 +++ b/drivers/nvdimm/btt.c
-@@ -531,13 +531,13 @@ static int arena_clear_freelist_error(struct arena_info *arena, u32 lane)
+@@ -16,6 +16,7 @@
+ #include <linux/fs.h>
+ #include <linux/nd.h>
+ #include <linux/backing-dev.h>
++#include <linux/cleanup.h>
+ #include "btt.h"
+ #include "nd.h"
+ 
+@@ -847,7 +848,7 @@ static int discover_arenas(struct btt *btt)
+ {
+ 	int ret = 0;
+ 	struct arena_info *arena;
+-	struct btt_sb *super;
++	struct btt_sb *super __free(kfree) = NULL;
+ 	size_t remaining = btt->rawsize;
+ 	u64 cur_nlba = 0;
+ 	size_t cur_off = 0;
+@@ -860,10 +861,8 @@ static int discover_arenas(struct btt *btt)
+ 	while (remaining) {
+ 		/* Alloc memory for arena */
+ 		arena = alloc_arena(btt, 0, 0, 0);
+-		if (!arena) {
+-			ret = -ENOMEM;
+-			goto out_super;
+-		}
++		if (!arena)
++			return -ENOMEM;
+ 
+ 		arena->infooff = cur_off;
+ 		ret = btt_info_read(arena, super);
+@@ -919,14 +918,11 @@ static int discover_arenas(struct btt *btt)
+ 	btt->nlba = cur_nlba;
+ 	btt->init_state = INIT_READY;
+ 
+-	kfree(super);
+ 	return ret;
+ 
+  out:
+ 	kfree(arena);
+ 	free_arenas(btt);
+- out_super:
+-	kfree(super);
  	return ret;
  }
  
--static int btt_freelist_init(struct arena_info *arena)
-+static int btt_freelist_init(struct device *dev, struct arena_info *arena)
- {
- 	int new, ret;
- 	struct log_entry log_new;
- 	u32 i, map_entry, log_oldmap, log_newmap;
- 
--	arena->freelist = kcalloc(arena->nfree, sizeof(struct free_entry),
-+	arena->freelist = devm_kcalloc(dev, arena->nfree, sizeof(struct free_entry),
- 					GFP_KERNEL);
- 	if (!arena->freelist)
- 		return -ENOMEM;
-@@ -718,20 +718,20 @@ static int log_set_indices(struct arena_info *arena)
- 	return 0;
- }
- 
--static int btt_rtt_init(struct arena_info *arena)
-+static int btt_rtt_init(struct device *dev, struct arena_info *arena)
- {
--	arena->rtt = kcalloc(arena->nfree, sizeof(u32), GFP_KERNEL);
-+	arena->rtt = devm_kcalloc(dev, arena->nfree, sizeof(u32), GFP_KERNEL);
- 	if (arena->rtt == NULL)
- 		return -ENOMEM;
- 
- 	return 0;
- }
- 
--static int btt_maplocks_init(struct arena_info *arena)
-+static int btt_maplocks_init(struct device *dev, struct arena_info *arena)
- {
- 	u32 i;
- 
--	arena->map_locks = kcalloc(arena->nfree, sizeof(struct aligned_lock),
-+	arena->map_locks = devm_kcalloc(dev, arena->nfree, sizeof(struct aligned_lock),
- 				GFP_KERNEL);
- 	if (!arena->map_locks)
- 		return -ENOMEM;
-@@ -805,9 +805,6 @@ static void free_arenas(struct btt *btt)
- 
- 	list_for_each_entry_safe(arena, next, &btt->arena_list, list) {
- 		list_del(&arena->list);
--		kfree(arena->rtt);
--		kfree(arena->map_locks);
--		kfree(arena->freelist);
- 		debugfs_remove_recursive(arena->debugfs_dir);
- 		kfree(arena);
- 	}
-@@ -843,7 +840,7 @@ static void parse_arena_meta(struct arena_info *arena, struct btt_sb *super,
- 	arena->flags = le32_to_cpu(super->flags);
- }
- 
--static int discover_arenas(struct btt *btt)
-+static int discover_arenas(struct device *dev, struct btt *btt)
- {
- 	int ret = 0;
- 	struct arena_info *arena;
-@@ -893,15 +890,15 @@ static int discover_arenas(struct btt *btt)
- 			goto out;
- 		}
- 
--		ret = btt_freelist_init(arena);
-+		ret = btt_freelist_init(dev, arena);
- 		if (ret)
- 			goto out;
- 
--		ret = btt_rtt_init(arena);
-+		ret = btt_rtt_init(dev, arena);
- 		if (ret)
- 			goto out;
- 
--		ret = btt_maplocks_init(arena);
-+		ret = btt_maplocks_init(dev, arena);
- 		if (ret)
- 			goto out;
- 
-@@ -1022,7 +1019,7 @@ static int btt_arena_write_layout(struct arena_info *arena)
-  * This function completes the initialization for the BTT namespace
-  * such that it is ready to accept IOs
-  */
--static int btt_meta_init(struct btt *btt)
-+static int btt_meta_init(struct device *dev, struct btt *btt)
- {
- 	int ret = 0;
- 	struct arena_info *arena;
-@@ -1033,15 +1030,15 @@ static int btt_meta_init(struct btt *btt)
- 		if (ret)
- 			goto unlock;
- 
--		ret = btt_freelist_init(arena);
-+		ret = btt_freelist_init(dev, arena);
- 		if (ret)
- 			goto unlock;
- 
--		ret = btt_rtt_init(arena);
-+		ret = btt_rtt_init(dev, arena);
- 		if (ret)
- 			goto unlock;
- 
--		ret = btt_maplocks_init(arena);
-+		ret = btt_maplocks_init(dev, arena);
- 		if (ret)
- 			goto unlock;
- 	}
-@@ -1584,7 +1581,7 @@ static struct btt *btt_init(struct nd_btt *nd_btt, unsigned long long rawsize,
- 	nsio = to_nd_namespace_io(&nd_btt->ndns->dev);
- 	btt->phys_bb = &nsio->bb;
- 
--	ret = discover_arenas(btt);
-+	ret = discover_arenas(dev, btt);
- 	if (ret) {
- 		dev_err(dev, "init: error in arena_discover: %d\n", ret);
- 		return NULL;
-@@ -1606,7 +1603,7 @@ static struct btt *btt_init(struct nd_btt *nd_btt, unsigned long long rawsize,
- 			return NULL;
- 		}
- 
--		ret = btt_meta_init(btt);
-+		ret = btt_meta_init(dev, btt);
- 		if (ret) {
- 			dev_err(dev, "init: error in meta_init: %d\n", ret);
- 			return NULL;
 -- 
 2.17.1
 
