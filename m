@@ -1,104 +1,214 @@
-Received: from zju.edu.cn (spam.zju.edu.cn [61.164.42.155])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id B31A46FAD
-	for <nvdimm@lists.linux.dev>; Sun, 10 Dec 2023 10:28:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=zju.edu.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zju.edu.cn
-Received: from localhost.localdomain (unknown [10.192.120.142])
-	by mail-app2 (Coremail) with SMTP id by_KCgCnHNSkknVlObhtAA--.13346S4;
-	Sun, 10 Dec 2023 18:27:53 +0800 (CST)
-From: Dinghao Liu <dinghao.liu@zju.edu.cn>
-To: dinghao.liu@zju.edu.cn
-Cc: Vishal Verma <vishal.l.verma@intel.com>,
+Received: from smtp.smtpout.orange.fr (smtp-26.smtpout.orange.fr [80.12.242.26])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5AAAB7472
+	for <nvdimm@lists.linux.dev>; Sun, 10 Dec 2023 17:20:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=wanadoo.fr
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=wanadoo.fr
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=wanadoo.fr header.i=@wanadoo.fr header.b="Ym/78Ppf"
+Received: from pop-os.home ([92.140.202.140])
+	by smtp.orange.fr with ESMTPA
+	id CNMfrZCRcvumxCNMgrCEpi; Sun, 10 Dec 2023 18:13:16 +0100
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=wanadoo.fr;
+	s=t20230301; t=1702228396;
+	bh=rcjCWYjJHAMlpZ0Yk1Euqbw2V9DTH6RMOjoIxBb+Yi8=;
+	h=From:To:Cc:Subject:Date;
+	b=Ym/78PpfeJGeur44+gRGBXxG75EXyjCRCalSoudtmzKt2SWfHwM46nXPBjSRpL9q3
+	 5pM+69VDDlCUVxdQouaYxN6MYzZyCBHUAGUSx9PXL6QAQnPLJFFlvao3J6fdGDL6un
+	 O19DKLiL8cMyalwsKr2A6aZjw8SX8oX2U9SD6vHlf9ptAZnQaUKaFexSyYUzmFdvy5
+	 y4Ed0DpGtftzHZCdLea3o+hfr9FLd27GWpTpd0y/n9zF0+MF48N33+oWHfxskexQTo
+	 tD+2YIf1nccFQmhAaNdZR4+3dHQiGtj6VDM63g3oFsgBY0kaFdauq8m+yEvtsOOat1
+	 QYjSPNk/gEMSw==
+X-ME-Helo: pop-os.home
+X-ME-Auth: Y2hyaXN0b3BoZS5qYWlsbGV0QHdhbmFkb28uZnI=
+X-ME-Date: Sun, 10 Dec 2023 18:13:16 +0100
+X-ME-IP: 92.140.202.140
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+To: Vishal Verma <vishal.l.verma@intel.com>,
 	Dan Williams <dan.j.williams@intel.com>,
 	Dave Jiang <dave.jiang@intel.com>,
-	Ira Weiny <ira.weiny@intel.com>,
-	nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] nvdimm-btt: simplify code with the scope based resource management
-Date: Sun, 10 Dec 2023 18:27:47 +0800
-Message-Id: <20231210102747.13545-1-dinghao.liu@zju.edu.cn>
-X-Mailer: git-send-email 2.17.1
-X-CM-TRANSID:by_KCgCnHNSkknVlObhtAA--.13346S4
-X-Coremail-Antispam: 1UD129KBjvJXoW7uF45ZFWkKw4fCF1DJry8uFg_yoW8Gw4xpF
-	s8A34DArZ8JF1xCF1DCa17u343Ga1fA34UKFyjk39avFW3tw1jqrWktFyS9rykurWIvry3
-	KrWjywn0kF45AF7anT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDU0xBIdaVrnRJUUUka1xkIjI8I6I8E6xAIw20EY4v20xvaj40_Wr0E3s1l1IIY67AE
-	w4v_Jr0_Jr4l8cAvFVAK0II2c7xJM28CjxkF64kEwVA0rcxSw2x7M28EF7xvwVC0I7IYx2
-	IY67AKxVWDJVCq3wA2z4x0Y4vE2Ix0cI8IcVCY1x0267AKxVW8Jr0_Cr1UM28EF7xvwVC2
-	z280aVAFwI0_GcCE3s1l84ACjcxK6I8E87Iv6xkF7I0E14v26rxl6s0DM2AIxVAIcxkEcV
-	Aq07x20xvEncxIr21l5I8CrVACY4xI64kE6c02F40Ex7xfMcIj6xIIjxv20xvE14v26r1j
-	6r18McIj6I8E87Iv67AKxVWUJVW8JwAm72CE4IkC6x0Yz7v_Jr0_Gr1lF7xvr2IYc2Ij64
-	vIr41lF7I21c0EjII2zVCS5cI20VAGYxC7MxAIw28IcxkI7VAKI48JMxAIw28IcVCjz48v
-	1sIEY20_GFWkJr1UJwCFx2IqxVCFs4IE7xkEbVWUJVW8JwC20s026c02F40E14v26r1j6r
-	18MI8I3I0E7480Y4vE14v26r106r1rMI8E67AF67kF1VAFwI0_JF0_Jw1lIxkGc2Ij64vI
-	r41lIxAIcVC0I7IYx2IY67AKxVWUJVWUCwCI42IY6xIIjxv20xvEc7CjxVAFwI0_Jr0_Gr
-	1lIxAIcVCF04k26cxKx2IYs7xG6r1j6r1xMIIF0xvEx4A2jsIE14v26r1j6r4UMIIF0xvE
-	x4A2jsIEc7CjxVAFwI0_Gr0_Gr1UYxBIdaVFxhVjvjDU0xZFpf9x0JUdHUDUUUUU=
-X-CM-SenderInfo: qrrzjiaqtzq6lmxovvfxof0/1tbiAgsFBmV0OhUYjwABsi
+	Ira Weiny <ira.weiny@intel.com>
+Cc: linux-kernel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org,
+	Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
+	nvdimm@lists.linux.dev
+Subject: [PATCH] nvdimm: Remove usage of the deprecated ida_simple_xx() API
+Date: Sun, 10 Dec 2023 18:13:09 +0100
+Message-Id: <50719568e4108f65f3b989ba05c1563e17afba3f.1702228319.git.christophe.jaillet@wanadoo.fr>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-Use the scope based resource management (defined in
-linux/cleanup.h) to automate resource lifetime
-control on struct btt_sb *super in discover_arenas().
+ida_alloc() and ida_free() should be preferred to the deprecated
+ida_simple_get() and ida_simple_remove().
 
-Signed-off-by: Dinghao Liu <dinghao.liu@zju.edu.cn>
+This is less verbose.
+
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
 ---
- drivers/nvdimm/btt.c | 12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+ drivers/nvdimm/btt_devs.c       | 6 +++---
+ drivers/nvdimm/bus.c            | 4 ++--
+ drivers/nvdimm/dax_devs.c       | 4 ++--
+ drivers/nvdimm/dimm_devs.c      | 4 ++--
+ drivers/nvdimm/namespace_devs.c | 7 +++----
+ drivers/nvdimm/pfn_devs.c       | 4 ++--
+ 6 files changed, 14 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-index d5593b0dc700..ff42778b51de 100644
---- a/drivers/nvdimm/btt.c
-+++ b/drivers/nvdimm/btt.c
-@@ -16,6 +16,7 @@
- #include <linux/fs.h>
- #include <linux/nd.h>
- #include <linux/backing-dev.h>
-+#include <linux/cleanup.h>
- #include "btt.h"
- #include "nd.h"
+diff --git a/drivers/nvdimm/btt_devs.c b/drivers/nvdimm/btt_devs.c
+index fabbb31f2c35..497fd434a6a1 100644
+--- a/drivers/nvdimm/btt_devs.c
++++ b/drivers/nvdimm/btt_devs.c
+@@ -19,7 +19,7 @@ static void nd_btt_release(struct device *dev)
  
-@@ -847,7 +848,7 @@ static int discover_arenas(struct btt *btt)
- {
- 	int ret = 0;
- 	struct arena_info *arena;
--	struct btt_sb *super;
-+	struct btt_sb *super __free(kfree) = NULL;
- 	size_t remaining = btt->rawsize;
- 	u64 cur_nlba = 0;
- 	size_t cur_off = 0;
-@@ -860,10 +861,8 @@ static int discover_arenas(struct btt *btt)
- 	while (remaining) {
- 		/* Alloc memory for arena */
- 		arena = alloc_arena(btt, 0, 0, 0);
--		if (!arena) {
--			ret = -ENOMEM;
--			goto out_super;
--		}
-+		if (!arena)
-+			return -ENOMEM;
+ 	dev_dbg(dev, "trace\n");
+ 	nd_detach_ndns(&nd_btt->dev, &nd_btt->ndns);
+-	ida_simple_remove(&nd_region->btt_ida, nd_btt->id);
++	ida_free(&nd_region->btt_ida, nd_btt->id);
+ 	kfree(nd_btt->uuid);
+ 	kfree(nd_btt);
+ }
+@@ -191,7 +191,7 @@ static struct device *__nd_btt_create(struct nd_region *nd_region,
+ 	if (!nd_btt)
+ 		return NULL;
  
- 		arena->infooff = cur_off;
- 		ret = btt_info_read(arena, super);
-@@ -919,14 +918,11 @@ static int discover_arenas(struct btt *btt)
- 	btt->nlba = cur_nlba;
- 	btt->init_state = INIT_READY;
+-	nd_btt->id = ida_simple_get(&nd_region->btt_ida, 0, 0, GFP_KERNEL);
++	nd_btt->id = ida_alloc(&nd_region->btt_ida, GFP_KERNEL);
+ 	if (nd_btt->id < 0)
+ 		goto out_nd_btt;
  
--	kfree(super);
- 	return ret;
+@@ -217,7 +217,7 @@ static struct device *__nd_btt_create(struct nd_region *nd_region,
+ 	return dev;
  
-  out:
- 	kfree(arena);
- 	free_arenas(btt);
-- out_super:
--	kfree(super);
- 	return ret;
+ out_put_id:
+-	ida_simple_remove(&nd_region->btt_ida, nd_btt->id);
++	ida_free(&nd_region->btt_ida, nd_btt->id);
+ 
+ out_nd_btt:
+ 	kfree(nd_btt);
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index 5852fe290523..ef3d0f83318b 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -285,7 +285,7 @@ static void nvdimm_bus_release(struct device *dev)
+ 	struct nvdimm_bus *nvdimm_bus;
+ 
+ 	nvdimm_bus = container_of(dev, struct nvdimm_bus, dev);
+-	ida_simple_remove(&nd_ida, nvdimm_bus->id);
++	ida_free(&nd_ida, nvdimm_bus->id);
+ 	kfree(nvdimm_bus);
  }
  
+@@ -342,7 +342,7 @@ struct nvdimm_bus *nvdimm_bus_register(struct device *parent,
+ 	INIT_LIST_HEAD(&nvdimm_bus->list);
+ 	INIT_LIST_HEAD(&nvdimm_bus->mapping_list);
+ 	init_waitqueue_head(&nvdimm_bus->wait);
+-	nvdimm_bus->id = ida_simple_get(&nd_ida, 0, 0, GFP_KERNEL);
++	nvdimm_bus->id = ida_alloc(&nd_ida, GFP_KERNEL);
+ 	if (nvdimm_bus->id < 0) {
+ 		kfree(nvdimm_bus);
+ 		return NULL;
+diff --git a/drivers/nvdimm/dax_devs.c b/drivers/nvdimm/dax_devs.c
+index 3bd61f245788..6b4922de3047 100644
+--- a/drivers/nvdimm/dax_devs.c
++++ b/drivers/nvdimm/dax_devs.c
+@@ -18,7 +18,7 @@ static void nd_dax_release(struct device *dev)
+ 
+ 	dev_dbg(dev, "trace\n");
+ 	nd_detach_ndns(dev, &nd_pfn->ndns);
+-	ida_simple_remove(&nd_region->dax_ida, nd_pfn->id);
++	ida_free(&nd_region->dax_ida, nd_pfn->id);
+ 	kfree(nd_pfn->uuid);
+ 	kfree(nd_dax);
+ }
+@@ -55,7 +55,7 @@ static struct nd_dax *nd_dax_alloc(struct nd_region *nd_region)
+ 		return NULL;
+ 
+ 	nd_pfn = &nd_dax->nd_pfn;
+-	nd_pfn->id = ida_simple_get(&nd_region->dax_ida, 0, 0, GFP_KERNEL);
++	nd_pfn->id = ida_alloc(&nd_region->dax_ida, GFP_KERNEL);
+ 	if (nd_pfn->id < 0) {
+ 		kfree(nd_dax);
+ 		return NULL;
+diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+index 1273873582be..3ceddae0509f 100644
+--- a/drivers/nvdimm/dimm_devs.c
++++ b/drivers/nvdimm/dimm_devs.c
+@@ -194,7 +194,7 @@ static void nvdimm_release(struct device *dev)
+ {
+ 	struct nvdimm *nvdimm = to_nvdimm(dev);
+ 
+-	ida_simple_remove(&dimm_ida, nvdimm->id);
++	ida_free(&dimm_ida, nvdimm->id);
+ 	kfree(nvdimm);
+ }
+ 
+@@ -592,7 +592,7 @@ struct nvdimm *__nvdimm_create(struct nvdimm_bus *nvdimm_bus,
+ 	if (!nvdimm)
+ 		return NULL;
+ 
+-	nvdimm->id = ida_simple_get(&dimm_ida, 0, 0, GFP_KERNEL);
++	nvdimm->id = ida_alloc(&dimm_ida, GFP_KERNEL);
+ 	if (nvdimm->id < 0) {
+ 		kfree(nvdimm);
+ 		return NULL;
+diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
+index 07177eadc56e..fa1202e848d9 100644
+--- a/drivers/nvdimm/namespace_devs.c
++++ b/drivers/nvdimm/namespace_devs.c
+@@ -27,7 +27,7 @@ static void namespace_pmem_release(struct device *dev)
+ 	struct nd_region *nd_region = to_nd_region(dev->parent);
+ 
+ 	if (nspm->id >= 0)
+-		ida_simple_remove(&nd_region->ns_ida, nspm->id);
++		ida_free(&nd_region->ns_ida, nspm->id);
+ 	kfree(nspm->alt_name);
+ 	kfree(nspm->uuid);
+ 	kfree(nspm);
+@@ -1810,7 +1810,7 @@ static struct device *nd_namespace_pmem_create(struct nd_region *nd_region)
+ 	res->name = dev_name(&nd_region->dev);
+ 	res->flags = IORESOURCE_MEM;
+ 
+-	nspm->id = ida_simple_get(&nd_region->ns_ida, 0, 0, GFP_KERNEL);
++	nspm->id = ida_alloc(&nd_region->ns_ida, GFP_KERNEL);
+ 	if (nspm->id < 0) {
+ 		kfree(nspm);
+ 		return NULL;
+@@ -2188,8 +2188,7 @@ int nd_region_register_namespaces(struct nd_region *nd_region, int *err)
+ 			struct nd_namespace_pmem *nspm;
+ 
+ 			nspm = to_nd_namespace_pmem(dev);
+-			id = ida_simple_get(&nd_region->ns_ida, 0, 0,
+-					    GFP_KERNEL);
++			id = ida_alloc(&nd_region->ns_ida, GFP_KERNEL);
+ 			nspm->id = id;
+ 		} else
+ 			id = i;
+diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
+index 0d08e21a1cea..586348125b61 100644
+--- a/drivers/nvdimm/pfn_devs.c
++++ b/drivers/nvdimm/pfn_devs.c
+@@ -22,7 +22,7 @@ static void nd_pfn_release(struct device *dev)
+ 
+ 	dev_dbg(dev, "trace\n");
+ 	nd_detach_ndns(&nd_pfn->dev, &nd_pfn->ndns);
+-	ida_simple_remove(&nd_region->pfn_ida, nd_pfn->id);
++	ida_free(&nd_region->pfn_ida, nd_pfn->id);
+ 	kfree(nd_pfn->uuid);
+ 	kfree(nd_pfn);
+ }
+@@ -326,7 +326,7 @@ static struct nd_pfn *nd_pfn_alloc(struct nd_region *nd_region)
+ 	if (!nd_pfn)
+ 		return NULL;
+ 
+-	nd_pfn->id = ida_simple_get(&nd_region->pfn_ida, 0, 0, GFP_KERNEL);
++	nd_pfn->id = ida_alloc(&nd_region->pfn_ida, GFP_KERNEL);
+ 	if (nd_pfn->id < 0) {
+ 		kfree(nd_pfn);
+ 		return NULL;
 -- 
-2.17.1
+2.34.1
 
