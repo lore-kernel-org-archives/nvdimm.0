@@ -1,93 +1,196 @@
 Received: from zju.edu.cn (spam.zju.edu.cn [61.164.42.155])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 99D1214A92
-	for <nvdimm@lists.linux.dev>; Sat,  9 Dec 2023 16:27:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5E5A2522F
+	for <nvdimm@lists.linux.dev>; Sun, 10 Dec 2023 08:58:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=zju.edu.cn
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zju.edu.cn
-Received: from dinghao.liu$zju.edu.cn ( [10.181.205.210] ) by
- ajax-webmail-mail-app2 (Coremail) ; Sun, 10 Dec 2023 00:27:43 +0800
- (GMT+08:00)
-Date: Sun, 10 Dec 2023 00:27:43 +0800 (GMT+08:00)
-X-CM-HeaderCharset: UTF-8
-From: dinghao.liu@zju.edu.cn
-To: "Ira Weiny" <ira.weiny@intel.com>
-Cc: "Dave Jiang" <dave.jiang@intel.com>, 
-	"Vishal Verma" <vishal.l.verma@intel.com>, 
-	"Dan Williams" <dan.j.williams@intel.com>, nvdimm@lists.linux.dev, 
+Received: from localhost.localdomain (unknown [10.192.120.142])
+	by mail-app3 (Coremail) with SMTP id cC_KCgB3f4+qfXVl+7eqAA--.2815S4;
+	Sun, 10 Dec 2023 16:58:25 +0800 (CST)
+From: Dinghao Liu <dinghao.liu@zju.edu.cn>
+To: dinghao.liu@zju.edu.cn
+Cc: Dan Williams <dan.j.williams@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Ira Weiny <ira.weiny@intel.com>,
+	nvdimm@lists.linux.dev,
 	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] nvdimm-btt: fix a potential memleak in
- btt_freelist_init
-X-Priority: 3
-X-Mailer: Coremail Webmail Server Version 2023.2-cmXT5 build
- 20230825(e13b6a3b) Copyright (c) 2002-2023 www.mailtech.cn
- mispb-4df6dc2c-e274-4d1c-b502-72c5c3dfa9ce-zj.edu.cn
-In-Reply-To: <6573a0451c4b7_1e7d27294ea@iweiny-mobl.notmuch>
-References: <20231207034332.24107-1-dinghao.liu@zju.edu.cn>
- <23a91617-4562-4399-a8c6-df2f3f28c7a9@intel.com>
- <65722f2a94d68_1c7b6229452@iweiny-mobl.notmuch>
- <7205fcd5.258f3.18c48233162.Coremail.dinghao.liu@zju.edu.cn>
- <6573a0451c4b7_1e7d27294ea@iweiny-mobl.notmuch>
-Content-Transfer-Encoding: base64
-Content-Type: text/plain; charset=UTF-8
+Subject: [PATCH] [v2] nvdimm-btt: fix several memleaks
+Date: Sun, 10 Dec 2023 16:58:17 +0800
+Message-Id: <20231210085817.30161-1-dinghao.liu@zju.edu.cn>
+X-Mailer: git-send-email 2.17.1
+X-CM-TRANSID:cC_KCgB3f4+qfXVl+7eqAA--.2815S4
+X-Coremail-Antispam: 1UD129KBjvJXoWxGF1kuF4rJrWUGF4UAw17Awb_yoWrtFy8pF
+	4fJF98tFs8JFs7ur1DJ3yDu34aka1rKFyUKFy5Cw1Fyr15Aw4jqF4rCF15Z3s0krWrZ3W3
+	CFWktw1UKr4UAw7anT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUUka1xkIjI8I6I8E6xAIw20EY4v20xvaj40_Wr0E3s1l1IIY67AE
+	w4v_Jr0_Jr4l8cAvFVAK0II2c7xJM28CjxkF64kEwVA0rcxSw2x7M28EF7xvwVC0I7IYx2
+	IY67AKxVWDJVCq3wA2z4x0Y4vE2Ix0cI8IcVCY1x0267AKxVW8Jr0_Cr1UM28EF7xvwVC2
+	z280aVAFwI0_GcCE3s1l84ACjcxK6I8E87Iv6xkF7I0E14v26rxl6s0DM2AIxVAIcxkEcV
+	Aq07x20xvEncxIr21l5I8CrVACY4xI64kE6c02F40Ex7xfMcIj6xIIjxv20xvE14v26r1j
+	6r18McIj6I8E87Iv67AKxVWUJVW8JwAm72CE4IkC6x0Yz7v_Jr0_Gr1lF7xvr2IYc2Ij64
+	vIr41lF7I21c0EjII2zVCS5cI20VAGYxC7MxAIw28IcxkI7VAKI48JMxAIw28IcVCjz48v
+	1sIEY20_GFWkJr1UJwCFx2IqxVCFs4IE7xkEbVWUJVW8JwC20s026c02F40E14v26r1j6r
+	18MI8I3I0E7480Y4vE14v26r106r1rMI8E67AF67kF1VAFwI0_JF0_Jw1lIxkGc2Ij64vI
+	r41lIxAIcVC0I7IYx2IY67AKxVWUJVWUCwCI42IY6xIIjxv20xvEc7CjxVAFwI0_Jr0_Gr
+	1lIxAIcVCF04k26cxKx2IYs7xG6r1j6r1xMIIF0xvEx4A2jsIE14v26r1j6r4UMIIF0xvE
+	x4A2jsIEc7CjxVAFwI0_Gr0_Gr1UYxBIdaVFxhVjvjDU0xZFpf9x0JUdHUDUUUUU=
+X-CM-SenderInfo: qrrzjiaqtzq6lmxovvfxof0/1tbiAgcFBmV0OhUYjgAAsu
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-MIME-Version: 1.0
-Message-ID: <7360ec74.281bc.18c4f67fac7.Coremail.dinghao.liu@zju.edu.cn>
-X-Coremail-Locale: zh_CN
-X-CM-TRANSID:by_KCgDnDip_lXRlYMRpAA--.21927W
-X-CM-SenderInfo: qrrzjiaqtzq6lmxovvfxof0/1tbiAgcEBmV0OhUI9wAAsG
-X-Coremail-Antispam: 1Ur529EdanIXcx71UUUUU7IcSsGvfJ3iIAIbVAYjsxI4VWxJw
-	CS07vEb4IE77IF4wCS07vE1I0E4x80FVAKz4kxMIAIbVAFxVCaYxvI4VCIwcAKzIAtYxBI
-	daVFxhVjvjDU=
 
-PiBkaW5naGFvLmxpdUAgd3JvdGU6Cj4gPiA+IERhdmUgSmlhbmcgd3JvdGU6Cj4gCj4gW3NuaXBd
-Cj4gCj4gPiA+IFRoYXQgc2FpZCwgdGhpcyBwYXRjaCBkb2VzIG5vdCBjb21wbGV0ZWx5IGZpeCBm
-cmVlbGlzdCBmcm9tIGxlYWtpbmcgaW4gdGhlCj4gPiA+IGZvbGxvd2luZyBlcnJvciBwYXRoLgo+
-ID4gPiAKPiA+ID4gCWRpc2NvdmVyX2FyZW5hcygpCj4gPiA+IAkJYnR0X2ZyZWVsaXN0X2luaXQo
-KSAtPiBvayAobWVtb3J5IGFsbG9jYXRlZCkKPiA+ID4gCQlidHRfcnR0X2luaXQoKSAtPiBmYWls
-Cj4gPiA+IAkJCWdvdG8gb3V0Owo+ID4gPiAJCQkobGVhayBiZWNhdXNlIGFyZW5hIGlzIG5vdCB5
-ZXQgb24gYnR0LT5hcmVuYV9saXN0KQo+ID4gPiAJCU9SCj4gPiA+IAkJYnR0X21hcGxvY2tzX2lu
-aXQoKSAtPiBmYWlsCj4gPiA+IAkJCWdvdG8gb3V0Owo+ID4gPiAJCQkobGVhayBiZWNhdXNlIGFy
-ZW5hIGlzIG5vdCB5ZXQgb24gYnR0LT5hcmVuYV9saXN0KQo+ID4gPiAKPiA+IAo+ID4gVGhhbmtz
-IGZvciBwb2ludGluZyBvdXQgdGhpcyBpc3N1ZSEgSSByZWNoZWNrZWQgZGlzY292ZXJfYXJlbmFz
-KCkgYW5kIGZvdW5kCj4gPiB0aGF0IGJ0dF9ydHRfaW5pdCgpIG1heSBhbHNvIHRyaWdnZXIgYSBt
-ZW1sZWFrIGZvciB0aGUgc2FtZSByZWFzb24gYXMKPiA+IGJ0dF9mcmVlbGlzdF9pbml0KCkuIEFs
-c28sIEkgY2hlY2tlZCBhbm90aGVyIGNhbGwgdHJhY2U6Cj4gPiAKPiA+ICAgICBidHRfaW5pdCgp
-IC0+IGJ0dF9tZXRhX2luaXQoKSAtPiBidHRfbWFwbG9ja3NfaW5pdCgpCj4gPiAKPiA+IEkgdGhp
-bmsgdGhlcmUgaXMgYSBtZW1sZWFrIGlmIGJ0dF9tYXBsb2Nrc19pbml0KCkgc3VjY2VlZHMgYnV0
-IGFuIGVycm9yCj4gPiBoYXBwZW5zIGluIGJ0dF9pbml0KCkgYWZ0ZXIgYnR0X21ldGFfaW5pdCgp
-IChlLmcuLCB3aGVuIGJ0dF9ibGtfaW5pdCgpCj4gPiByZXR1cm5zIGFuIGVycm9yKS4gVGhlcmVm
-b3JlLCB3ZSBtYXkgbmVlZCB0byBmaXggdGhyZWUgZnVuY3Rpb25zLgo+IAo+IFllYSBJIHRoaW5r
-IHdlIG5lZWQgdG8gdHJhY2UgdGhpcyBjb2RlIGJldHRlci4gIFRoaXMgaXMgd2h5IGRldm1fIGlz
-IG5pY2UgZm9yCj4gbWVtb3J5IGFsbG9jYXRlZCBmb3IgdGhlIGxpZmUgb2YgdGhlIGRldmljZS4K
-PiAKPiA+IAo+ID4gPiBUaGlzIGVycm9yIGNvdWxkIGJlIGZpeGVkIGJ5IGFkZGluZyB0byBhcmVu
-YV9saXN0IGVhcmxpZXIgYnV0IGRldm1fKigpCj4gPiA+IGFsc28gdGFrZXMgY2FyZSBvZiB0aGlz
-IHdpdGhvdXQgaGF2aW5nIHRvIHdvcnJ5IGFib3V0IHRoYXQgbG9naWMuCj4gPiA+IAo+ID4gPiBP
-biBub3JtYWwgb3BlcmF0aW9uIGFsbCBvZiB0aGlzIG1lbW9yeSBjYW4gYmUgZnJlZSdlZCB3aXRo
-IHRoZQo+ID4gPiBjb3JyZXNwb25kaW5nIGRldm1fa2ZyZWUoKSBhbmQvb3IgZGV2bV9hZGRfYWN0
-aW9uXyooKSBjYWxscyBpZiBhcmVuYXMgY29tZQo+ID4gPiBhbmQgZ28uICBJJ20gbm90IHN1cmUg
-b2ZmIHRoZSB0b3Agb2YgbXkgaGVhZC4KPiA+ID4gCj4gPiA+IEluIGFkZGl0aW9uLCBsb29raW5n
-IGF0IHRoaXMgY29kZS4gIGRpc2NvdmVyX2FyZW5hcygpIGNvdWxkIG1ha2UgdXNlIG9mCj4gPiA+
-IHRoZSBzY29wZWQgYmFzZWQgbWFuYWdlbWVudCBmb3Igc3RydWN0IGJ0dF9zYiAqc3VwZXIhCj4g
-PiA+IAo+ID4gPiBEaW5naGFvIHdvdWxkIHlvdSBiZSB3aWxsaW5nIHRvIHN1Ym1pdCBhIHNlcmll
-cyBvZiAyIG9yIDMgcGF0Y2hlcyB0byBmaXgKPiA+ID4gdGhlIGFib3ZlIGlzc3Vlcz8KPiA+ID4g
-Cj4gPiAKPiA+IFN1cmUuIEN1cnJlbnRseSBJIHBsYW4gdG8gc2VuZCAyIHBhdGNoZXMgYXMgZm9s
-bG93czoKPiA+IDEuIFVzaW5nIGRldm1fa2NhbGxvYygpIHRvIHJlcGxhY2Uga2NhbGxvYygpIGlu
-IGJ0dF9mcmVlbGlzdF9pbml0KCksIAo+ID4gICAgYnR0X3J0dF9pbml0KCksIGFuZCBidHRfbWFw
-bG9ja3NfaW5pdCgpLCBhbmQgcmVtb3ZpbmcgdGhlIGNvcnJlc3BvbmRpbmcKPiA+ICAgIGtmcmVl
-IGluIGZyZWVfYXJlbmFzKCkuIEkgY2hlY2tlZCBzb21lIHVzZXMgb2YgZGV2bV9rY2FsbG9jKCkg
-YW5kIGl0Cj4gPiAgICBzZWVtcyB0aGF0IHdlIG5lZWQgbm90IHRvIGNhbGwgZGV2bV9rZnJlZSgp
-LiBUaGUgbWVtb3J5IGlzIGF1dG9tYXRpY2FsbHkKPiA+ICAgIGZyZWVkIG9uIGRyaXZlciBkZXRh
-Y2gsIHJpZ2h0Pwo+IAo+IE9uIGRldmljZSBwdXQgeWVzLiAgU28gaWYgdGhlc2UgYWxsb2NhdGlv
-bnMgYXJlIHNjb3BlZCB0byB0aGUgbGlmZSBvZiB0aGUKPiBkZXZpY2UgdGhlcmUgd291bGQgYmUg
-bm8gcmVhc29uIHRvIGNhbGwgZGV2bV9rZnJlZSgpIG9uIHRoZW0gYXQgYWxsLiAgSSB3YXMgbm90
-Cj4gc3VyZSBpZiB0aGV5IGdvdCByZWFsbG9jYXRlZCBhdCBzb21lIHBvaW50IG9yIG5vdC4KPiAK
-PiA+IDIuIFVzaW5nIHRoZSBzY29wZWQgYmFzZWQgbWFuYWdlbWVudCBmb3Igc3RydWN0IGJ0dF9z
-YiAqc3VwZXIgKG5vdCBhIGJ1ZywKPiA+ICAgIGJ1dCBpdCBjb3VsZCBpbXByb3ZlIHRoZSBjb2Rl
-KS4KPiAKPiBHb29kIQo+IAo+ID4gCj4gPiBJJ20gbm90IHF1aXRlIHN1cmUgd2hldGhlciBteSB1
-bmRlcnN0YW5kaW5nIG9yIGJ1ZyBmaXhpbmcgcGxhbiBpcyBjb3JyZWN0Lgo+ID4gSWYgdGhlcmUg
-YXJlIGFueSBpc3N1ZXMsIHBsZWFzZSBjb3JyZWN0IG1lLCB0aGFua3MhCj4gCj4gVGhlIGFib3Zl
-IHNvdW5kcyByaWdodC4KPiBJcmEKClRoYW5rcyBmb3IgdGhlIHJldmlldyEgSSB3aWxsIHNlbmQg
-dGhlIHBhdGNoZXMgc29vbi4KClJlZ2FyZHMsCkRpbmdoYW8K
+Resources allocated by kcalloc() in btt_freelist_init(),
+btt_rtt_init(), and btt_maplocks_init() are not correctly
+released in their callers when an error happens. For
+example, when an error happens in btt_freelist_init(), its
+caller discover_arenas() will directly free arena, which makes
+arena->freelist a leaked memory. Fix these memleaks by using
+devm_kcalloc() to make the memory auto-freed on driver detach.
+
+Fixes: 5212e11fde4d ("nd_btt: atomic sector updates")
+Signed-off-by: Dinghao Liu <dinghao.liu@zju.edu.cn>
+---
+
+Changelog:
+
+v2: -Use devm_kcalloc() to fix the memleaks.
+    -Fix the potential leaked memory in btt_rtt_init()
+     and btt_maplocks_init().
+---
+ drivers/nvdimm/btt.c | 35 ++++++++++++++++-------------------
+ 1 file changed, 16 insertions(+), 19 deletions(-)
+
+diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+index d5593b0dc700..c55231f42617 100644
+--- a/drivers/nvdimm/btt.c
++++ b/drivers/nvdimm/btt.c
+@@ -531,13 +531,13 @@ static int arena_clear_freelist_error(struct arena_info *arena, u32 lane)
+ 	return ret;
+ }
+ 
+-static int btt_freelist_init(struct arena_info *arena)
++static int btt_freelist_init(struct device *dev, struct arena_info *arena)
+ {
+ 	int new, ret;
+ 	struct log_entry log_new;
+ 	u32 i, map_entry, log_oldmap, log_newmap;
+ 
+-	arena->freelist = kcalloc(arena->nfree, sizeof(struct free_entry),
++	arena->freelist = devm_kcalloc(dev, arena->nfree, sizeof(struct free_entry),
+ 					GFP_KERNEL);
+ 	if (!arena->freelist)
+ 		return -ENOMEM;
+@@ -718,20 +718,20 @@ static int log_set_indices(struct arena_info *arena)
+ 	return 0;
+ }
+ 
+-static int btt_rtt_init(struct arena_info *arena)
++static int btt_rtt_init(struct device *dev, struct arena_info *arena)
+ {
+-	arena->rtt = kcalloc(arena->nfree, sizeof(u32), GFP_KERNEL);
++	arena->rtt = devm_kcalloc(dev, arena->nfree, sizeof(u32), GFP_KERNEL);
+ 	if (arena->rtt == NULL)
+ 		return -ENOMEM;
+ 
+ 	return 0;
+ }
+ 
+-static int btt_maplocks_init(struct arena_info *arena)
++static int btt_maplocks_init(struct device *dev, struct arena_info *arena)
+ {
+ 	u32 i;
+ 
+-	arena->map_locks = kcalloc(arena->nfree, sizeof(struct aligned_lock),
++	arena->map_locks = devm_kcalloc(dev, arena->nfree, sizeof(struct aligned_lock),
+ 				GFP_KERNEL);
+ 	if (!arena->map_locks)
+ 		return -ENOMEM;
+@@ -805,9 +805,6 @@ static void free_arenas(struct btt *btt)
+ 
+ 	list_for_each_entry_safe(arena, next, &btt->arena_list, list) {
+ 		list_del(&arena->list);
+-		kfree(arena->rtt);
+-		kfree(arena->map_locks);
+-		kfree(arena->freelist);
+ 		debugfs_remove_recursive(arena->debugfs_dir);
+ 		kfree(arena);
+ 	}
+@@ -843,7 +840,7 @@ static void parse_arena_meta(struct arena_info *arena, struct btt_sb *super,
+ 	arena->flags = le32_to_cpu(super->flags);
+ }
+ 
+-static int discover_arenas(struct btt *btt)
++static int discover_arenas(struct device *dev, struct btt *btt)
+ {
+ 	int ret = 0;
+ 	struct arena_info *arena;
+@@ -893,15 +890,15 @@ static int discover_arenas(struct btt *btt)
+ 			goto out;
+ 		}
+ 
+-		ret = btt_freelist_init(arena);
++		ret = btt_freelist_init(dev, arena);
+ 		if (ret)
+ 			goto out;
+ 
+-		ret = btt_rtt_init(arena);
++		ret = btt_rtt_init(dev, arena);
+ 		if (ret)
+ 			goto out;
+ 
+-		ret = btt_maplocks_init(arena);
++		ret = btt_maplocks_init(dev, arena);
+ 		if (ret)
+ 			goto out;
+ 
+@@ -1022,7 +1019,7 @@ static int btt_arena_write_layout(struct arena_info *arena)
+  * This function completes the initialization for the BTT namespace
+  * such that it is ready to accept IOs
+  */
+-static int btt_meta_init(struct btt *btt)
++static int btt_meta_init(struct device *dev, struct btt *btt)
+ {
+ 	int ret = 0;
+ 	struct arena_info *arena;
+@@ -1033,15 +1030,15 @@ static int btt_meta_init(struct btt *btt)
+ 		if (ret)
+ 			goto unlock;
+ 
+-		ret = btt_freelist_init(arena);
++		ret = btt_freelist_init(dev, arena);
+ 		if (ret)
+ 			goto unlock;
+ 
+-		ret = btt_rtt_init(arena);
++		ret = btt_rtt_init(dev, arena);
+ 		if (ret)
+ 			goto unlock;
+ 
+-		ret = btt_maplocks_init(arena);
++		ret = btt_maplocks_init(dev, arena);
+ 		if (ret)
+ 			goto unlock;
+ 	}
+@@ -1584,7 +1581,7 @@ static struct btt *btt_init(struct nd_btt *nd_btt, unsigned long long rawsize,
+ 	nsio = to_nd_namespace_io(&nd_btt->ndns->dev);
+ 	btt->phys_bb = &nsio->bb;
+ 
+-	ret = discover_arenas(btt);
++	ret = discover_arenas(dev, btt);
+ 	if (ret) {
+ 		dev_err(dev, "init: error in arena_discover: %d\n", ret);
+ 		return NULL;
+@@ -1606,7 +1603,7 @@ static struct btt *btt_init(struct nd_btt *nd_btt, unsigned long long rawsize,
+ 			return NULL;
+ 		}
+ 
+-		ret = btt_meta_init(btt);
++		ret = btt_meta_init(dev, btt);
+ 		if (ret) {
+ 			dev_err(dev, "init: error in meta_init: %d\n", ret);
+ 			return NULL;
+-- 
+2.17.1
+
