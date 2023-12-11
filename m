@@ -1,214 +1,258 @@
-Received: from smtp.smtpout.orange.fr (smtp-26.smtpout.orange.fr [80.12.242.26])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5AAAB7472
-	for <nvdimm@lists.linux.dev>; Sun, 10 Dec 2023 17:20:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=wanadoo.fr
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=wanadoo.fr
+Received: from mgamail.intel.com (mgamail.intel.com [134.134.136.126])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 009B35101A
+	for <nvdimm@lists.linux.dev>; Mon, 11 Dec 2023 18:27:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=wanadoo.fr header.i=@wanadoo.fr header.b="Ym/78Ppf"
-Received: from pop-os.home ([92.140.202.140])
-	by smtp.orange.fr with ESMTPA
-	id CNMfrZCRcvumxCNMgrCEpi; Sun, 10 Dec 2023 18:13:16 +0100
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=wanadoo.fr;
-	s=t20230301; t=1702228396;
-	bh=rcjCWYjJHAMlpZ0Yk1Euqbw2V9DTH6RMOjoIxBb+Yi8=;
-	h=From:To:Cc:Subject:Date;
-	b=Ym/78PpfeJGeur44+gRGBXxG75EXyjCRCalSoudtmzKt2SWfHwM46nXPBjSRpL9q3
-	 5pM+69VDDlCUVxdQouaYxN6MYzZyCBHUAGUSx9PXL6QAQnPLJFFlvao3J6fdGDL6un
-	 O19DKLiL8cMyalwsKr2A6aZjw8SX8oX2U9SD6vHlf9ptAZnQaUKaFexSyYUzmFdvy5
-	 y4Ed0DpGtftzHZCdLea3o+hfr9FLd27GWpTpd0y/n9zF0+MF48N33+oWHfxskexQTo
-	 tD+2YIf1nccFQmhAaNdZR4+3dHQiGtj6VDM63g3oFsgBY0kaFdauq8m+yEvtsOOat1
-	 QYjSPNk/gEMSw==
-X-ME-Helo: pop-os.home
-X-ME-Auth: Y2hyaXN0b3BoZS5qYWlsbGV0QHdhbmFkb28uZnI=
-X-ME-Date: Sun, 10 Dec 2023 18:13:16 +0100
-X-ME-IP: 92.140.202.140
-From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-To: Vishal Verma <vishal.l.verma@intel.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Ira Weiny <ira.weiny@intel.com>
-Cc: linux-kernel@vger.kernel.org,
-	kernel-janitors@vger.kernel.org,
-	Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
-	nvdimm@lists.linux.dev
-Subject: [PATCH] nvdimm: Remove usage of the deprecated ida_simple_xx() API
-Date: Sun, 10 Dec 2023 18:13:09 +0100
-Message-Id: <50719568e4108f65f3b989ba05c1563e17afba3f.1702228319.git.christophe.jaillet@wanadoo.fr>
-X-Mailer: git-send-email 2.34.1
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="H5kFn8uZ"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1702319228; x=1733855228;
+  h=message-id:date:subject:to:cc:references:from:
+   in-reply-to:content-transfer-encoding:mime-version;
+  bh=3+PWrFCo/pFgluwAde/452hPsWGO1fAfvCqEUuaVm3A=;
+  b=H5kFn8uZH4AVbOIz/riOHriFa+667Z6aaBB/S0HQzmlBvWibsODQcssa
+   FB664lNpv7KNIi2H5SUh4ONKQlKvymJaHb1RoHqwLPeKrPd6/Nddo6xvB
+   meeV2sBLIZkQJRDxpyaXhe//vNsMDuSDiA/t0/fYll0JLcS4MgAeiTtAA
+   XQH4nSIJ/gZx1RlUKXDN0iAuCONx8ALN+DX+pbDRx6DatQpk+LIHe1YFt
+   AFn4eeJLzsJ47v9s7UgTynsUovQlKW3XDQrhGeaxxOOJOcuOJ7QEIvm9d
+   I9Pp/ug/6Lxzvn3kYsLiK8s9BdSy0+vqaj4cHP6M7+WemQykZTPRNAUBN
+   w==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10921"; a="379686090"
+X-IronPort-AV: E=Sophos;i="6.04,268,1695711600"; 
+   d="scan'208";a="379686090"
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Dec 2023 10:27:08 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10921"; a="839123033"
+X-IronPort-AV: E=Sophos;i="6.04,268,1695711600"; 
+   d="scan'208";a="839123033"
+Received: from fmsmsx601.amr.corp.intel.com ([10.18.126.81])
+  by fmsmga008.fm.intel.com with ESMTP/TLS/AES256-GCM-SHA384; 11 Dec 2023 10:27:08 -0800
+Received: from fmsmsx612.amr.corp.intel.com (10.18.126.92) by
+ fmsmsx601.amr.corp.intel.com (10.18.126.81) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.35; Mon, 11 Dec 2023 10:27:07 -0800
+Received: from fmsmsx601.amr.corp.intel.com (10.18.126.81) by
+ fmsmsx612.amr.corp.intel.com (10.18.126.92) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.35; Mon, 11 Dec 2023 10:27:07 -0800
+Received: from FMSEDG603.ED.cps.intel.com (10.1.192.133) by
+ fmsmsx601.amr.corp.intel.com (10.18.126.81) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.35 via Frontend Transport; Mon, 11 Dec 2023 10:27:07 -0800
+Received: from NAM04-MW2-obe.outbound.protection.outlook.com (104.47.73.168)
+ by edgegateway.intel.com (192.55.55.68) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.35; Mon, 11 Dec 2023 10:27:06 -0800
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=akUE5n+e0N8TKqiz+Aq5Hnfkcv5i/r0Btknt2xiPAWvBoWa55V8wks4U1I2Y+ZdDaZurCSe+Tau80m+f/CujNPsaBl10xXg7J0MLwaiti6VcOaY0ex4bXtfkILUWuD9okHc9FYGuNRxLS1yPnK8pWHmiLLlJ11zi6RrICaVJUN5Nr4dafhWpmJm5JD1Io3qPShmA11MDh4M76u4lYFIogMt7oxDBcFuPifLRjnlIOim6waOMiOCQCJcZdX1f/J4cUFCdZb3zgERCfMAoxsxfqtIs/rZzjmMhockl+Jv/w3suQT/E39TvgBzARCS6NiOSTXgY3/PVdxUs9UDTQZMQQw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=z1vtXYh+1uWdS0DvbDt5XPOGohYO3+oP2efUtMnxFBU=;
+ b=O/U/bdafJqVv5jU0pwW1b66RrxZKqzdNE3zMAd7N2PHbH9jHKut6ZMDN3THhmLHBqqRhj0xvNqt0Hv6EJVlkZBzENxeO6KehzWT2ETga0P4tGGwHq4a22VrbtCri0sBLlEYlUj8KEqjRKKbwpQOeRAFzUocDxwdT8iRIXswrxBYaeqqtvwPIEw2Jebqx5m7FrONV9KA+iou9j8JmQcCZTd0zy0cOgJvssY9BlAmOG2gJ/xoXMXSzZCPp7/3wbPmeb9Uh1OIw5v8jSIX8/7md3FiSUbT0ojMlXsWCJnsTogKLf8cqoX+CWu0hvGH0fDAzaN9bDDKVIB3jMQdwwNMuag==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from PH7PR11MB5984.namprd11.prod.outlook.com (2603:10b6:510:1e3::15)
+ by DM4PR11MB5247.namprd11.prod.outlook.com (2603:10b6:5:38a::20) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7068.32; Mon, 11 Dec
+ 2023 18:27:03 +0000
+Received: from PH7PR11MB5984.namprd11.prod.outlook.com
+ ([fe80::6f7b:337d:383c:7ad1]) by PH7PR11MB5984.namprd11.prod.outlook.com
+ ([fe80::6f7b:337d:383c:7ad1%4]) with mapi id 15.20.7068.031; Mon, 11 Dec 2023
+ 18:27:01 +0000
+Message-ID: <8716bf72-e4ca-4f83-8a30-327baf459dbb@intel.com>
+Date: Mon, 11 Dec 2023 11:26:56 -0700
+User-Agent: Betterbird (Linux)
+Subject: Re: [PATCH] nvdimm-btt: simplify code with the scope based resource
+ management
+To: Dinghao Liu <dinghao.liu@zju.edu.cn>
+CC: Vishal Verma <vishal.l.verma@intel.com>, Dan Williams
+	<dan.j.williams@intel.com>, Ira Weiny <ira.weiny@intel.com>,
+	<nvdimm@lists.linux.dev>, <linux-kernel@vger.kernel.org>
+References: <20231210102747.13545-1-dinghao.liu@zju.edu.cn>
+Content-Language: en-US
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <20231210102747.13545-1-dinghao.liu@zju.edu.cn>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: BY5PR17CA0005.namprd17.prod.outlook.com
+ (2603:10b6:a03:1b8::18) To PH7PR11MB5984.namprd11.prod.outlook.com
+ (2603:10b6:510:1e3::15)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: PH7PR11MB5984:EE_|DM4PR11MB5247:EE_
+X-MS-Office365-Filtering-Correlation-Id: 5c6754ab-5ea1-4003-4f97-08dbfa76c4b9
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: VBarkC63qrYy2ot6fBeDHHVLJtd8cmTkrR+QAY2jABiCB2CzfsHOShXw4Mw4NbDHOUm7hIFWFXiULohYqiWfEmSPyXTzPObtMGWHetSFzPW0+9IJ+Nn8nVYJYAQelZpUBX8ysamkQE2wJwubvWBdacUCp0A0eVLRGri32ZjSPouTFjLsHloHFSc2Ro/d/3bsPMoLHOzs/BdGdyiNXmBk60wi73A8ZHELMG5rFMtJcCZHOysZHtCeWBtIJHXKRHqV2FIlH085NYYWS2/S/CkT+pW5ZyjRCKOFkbgyASjqMUPmxEC0uKlFfHJL5/+O9yOHbn3jdoUGTYQ6wXSZEJot5pJ5AlRt0F6bzxYodL9XpEdj2Tut9LNUpDv+EbToU/DpHLHv5Mud9zWglJhInHiHmpT6YCHy98/bZdg5UB6h1AproDjcjM1eHd0QeTcn8yWVaChuyxlRpN+Zlj0ez4tZu288zN1R8vmXLSN3GlINqP3CIlvMHaaY1KKIF/b2RWO0RK4n/vy4s5S8gp5gsNI9JDhC1lEbcPkKnnp0XwqB4+VO+0RO7Rd3iSHMSREIcMMrQ8kUnMl4BUZG0aHBi2KoNrBImZfNqnp7ov5+2soEVyTXSv/zRsqafzlebLh1NHys
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH7PR11MB5984.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(366004)(396003)(376002)(346002)(39860400002)(136003)(230922051799003)(451199024)(1800799012)(186009)(64100799003)(83380400001)(2906002)(41300700001)(478600001)(31686004)(82960400001)(6916009)(66556008)(66476007)(54906003)(6486002)(66946007)(316002)(38100700002)(6666004)(86362001)(31696002)(8676002)(8936002)(4326008)(53546011)(6506007)(6512007)(44832011)(36756003)(5660300002)(26005)(2616005)(45980500001);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?ZGxLWHB5ZldwSlMrcGI5Vm15TU9EV2pESDZocDlHSklqT2YvWndkRFZxN0pk?=
+ =?utf-8?B?UU50YzQ2c1hLbTgyUEl1enNmR3d4MXkzTkRlYm9kTWYvNTRmUVAwaEQ2YW5R?=
+ =?utf-8?B?N3R4emtXSGlFVk94U0VaQ3VoeGJ0T092OEFaeXdnYlRmZFg5czlIS3VUYWxk?=
+ =?utf-8?B?dldrNFZrV0ZhOEdlV1A3ejRSL2dURXpXVUM5L0VzSDlTNTFPRHJiQkNNZk9s?=
+ =?utf-8?B?MUJTYjNOU0xhL2t0VnhYc0Fmb0dOV2V6M0FzWVlrMmcwRE9ESXd6bDV6RHFR?=
+ =?utf-8?B?aHdpOWdSNDlIbGt0MDJOb2NUSUR1UXlVY2RzZmp0MTZDTW1EVkd5cFNuaWZh?=
+ =?utf-8?B?ZG9YZkY3KzdOd3ZEOTR3Zmw4UG5LaS9zTlFFU3R1L0I4cDkrakpnL3hhZ1RK?=
+ =?utf-8?B?bnpCdm5HSVkzY0l6MXpoa05qOUlWY29zVmRnWStjWDZqYWk2eEIrU2E4aDFO?=
+ =?utf-8?B?Ry9RVGQwdUcrejU4Sk5HMStLMkdWSHBLMEZ4TGd3SSt6emRMUlc2ZkMzOGkz?=
+ =?utf-8?B?VzMrM1NNdm9VdFE3VkMwV0FmbTh5NW1VQ25rTzJrd0Q2L2VGeUY3dDRSaU1B?=
+ =?utf-8?B?L0Q0S093M0g4RTFSVzI0WnpkdlR4TGd6WW1OZVhlSEZ1cWVxUGRJSnM3RC9H?=
+ =?utf-8?B?djNUbE5CdHR3QllDcTNGYlBSWWZITmZSUEFqenMxK3k2N0N1akdmSE9LWGhp?=
+ =?utf-8?B?TzhGbTFhQkNNblNvdVQveSs4WVZEbWFoaE0vcHp0V1NUOHBNUmpsS0t5VWxN?=
+ =?utf-8?B?T1BRQkFJQ0xOdUZVeHcwQzdrL2JwWW5VQnVvUUtuNGV5dE9yeXhUQ2FvS3Vi?=
+ =?utf-8?B?bjY4blRMQ1BMTGdpNHlnZWNqTmFiRE5FUjcvQ0drVG9ya2d3TlllbDlUQk84?=
+ =?utf-8?B?K0F3VjFHL001THdBYkZLb0d3SS94dEZWRHdhb3JsTDBsNnFxSytjcEFUQWJ5?=
+ =?utf-8?B?ODZVSlNqQ3d1ekd5OGlKblc3aUx4L01rbFpzeTIwZGJsSXRSNVc1eDBJeDA2?=
+ =?utf-8?B?SXFBQ2tVSG52dklpTU8yak8xUGVzd29tOXJRM3R4ZTkrRG5ibjJvSFpFOWQ4?=
+ =?utf-8?B?eVVYZU9ocTRMSkY2eE5aZ0RXVGtpZWgxVzhTVWRuYXZnbDdXa1ZnWGY1Sitr?=
+ =?utf-8?B?SThEdWdMbnV0a0xXSnloTXN3bm5TZi9zU0VMSDBGei9KZzlNd0dBQVZ5Q21L?=
+ =?utf-8?B?a21Mc3AyTGNtQ3JMaDBTb0xKeEpoVVVPanJrN0xLcVRqSkRaMldrUHJtWlJV?=
+ =?utf-8?B?MUxRc05RMk54dDF1SlV1a1F3U3dNRWhmOVZoSlF1R2VDYWZoM2NtNkFiMVZ1?=
+ =?utf-8?B?NjNaUjUrdWtaelNWYzBraW9rdFR4SzArOWwrSXV0NVB3TlFyVHJ4aytDRFlh?=
+ =?utf-8?B?VjAvRVh1c1k4Yi9HUzgzTDRLbGFOMy9OTUJKck00UVplMWJ3OEpFeHN1OWp0?=
+ =?utf-8?B?OGphN0p4R1d4TkNua0pMZ2FKWDBNYXJnejZoZDRxb0UrWEIwWmVnUjQ3Tmlx?=
+ =?utf-8?B?ZDkxWnhiMnhHbjF0TEtHbjh0cGlxMElJcFRjdG5FOXlFdHNYVjlPcHN1cTdN?=
+ =?utf-8?B?ZlJNZ1c4QnlmL1VDUjg4MTJBYWVaQTBpdlpRamVnRU4xbWhHeVNaaDVzSkJJ?=
+ =?utf-8?B?Z1Noa1BqZVdwQm9pUG1QM0Y4TmRCZTlQS2VDUkVZMkFNL1lybCtuL2U0a2RB?=
+ =?utf-8?B?Vno4RE1CVjFYdmxjalpoZEp0TlIzeVYzVHpGWjE0VkpnYlpwU3FYWDRxajRt?=
+ =?utf-8?B?eENyQjl3WmJ3T1k4Nk4wV09ESWNxd1B4NWhqTFpBTXNNVHZGQXhYQTlDcWRa?=
+ =?utf-8?B?N3h3REVNc1dBdC9LL09wSUJRa0ZnN09VcDcwaTdTcFBrVk9EV1FTbE84eTdy?=
+ =?utf-8?B?QzNFSTZJQ2g3ZmwwajR5eEhNTXZNSC8vbXRmNDNYTGRGYmJrd2pVbURQdDZT?=
+ =?utf-8?B?NVl6SEFzTG9MNDRkSnpZYktaTThwNmRvT0tGN0lYU09Wc1V6VkhFRmlNWkIw?=
+ =?utf-8?B?MFVRc1dRckRTTU5wUlBtMitWblIwVVlhZzNxVVVZYXk3bk1zRGU0WmVQdjk5?=
+ =?utf-8?B?OXdkbGVpSk5lNzVhVmRodHdkaENFU0kzR0ZsRDVXMG5yemNwYmlDS2pTNmM0?=
+ =?utf-8?Q?P9bauyIbpIkch4YhdBc+Lbuen?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: 5c6754ab-5ea1-4003-4f97-08dbfa76c4b9
+X-MS-Exchange-CrossTenant-AuthSource: PH7PR11MB5984.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 11 Dec 2023 18:27:01.8540
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: HQ2+kl+2mK5KWRs0UZqLIHTb8tXmuwstCZXK7U1sXw4YmG8EdbxjiaN613tySNFW+pYjTl7mn8bC7JUDURDubg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM4PR11MB5247
+X-OriginatorOrg: intel.com
 
-ida_alloc() and ida_free() should be preferred to the deprecated
-ida_simple_get() and ida_simple_remove().
 
-This is less verbose.
 
-Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
----
- drivers/nvdimm/btt_devs.c       | 6 +++---
- drivers/nvdimm/bus.c            | 4 ++--
- drivers/nvdimm/dax_devs.c       | 4 ++--
- drivers/nvdimm/dimm_devs.c      | 4 ++--
- drivers/nvdimm/namespace_devs.c | 7 +++----
- drivers/nvdimm/pfn_devs.c       | 4 ++--
- 6 files changed, 14 insertions(+), 15 deletions(-)
+On 12/10/23 03:27, Dinghao Liu wrote:
+> Use the scope based resource management (defined in
+> linux/cleanup.h) to automate resource lifetime
+> control on struct btt_sb *super in discover_arenas().
+> 
+> Signed-off-by: Dinghao Liu <dinghao.liu@zju.edu.cn>
+> ---
+>  drivers/nvdimm/btt.c | 12 ++++--------
+>  1 file changed, 4 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+> index d5593b0dc700..ff42778b51de 100644
+> --- a/drivers/nvdimm/btt.c
+> +++ b/drivers/nvdimm/btt.c
+> @@ -16,6 +16,7 @@
+>  #include <linux/fs.h>
+>  #include <linux/nd.h>
+>  #include <linux/backing-dev.h>
+> +#include <linux/cleanup.h>
+>  #include "btt.h"
+>  #include "nd.h"
+>  
+> @@ -847,7 +848,7 @@ static int discover_arenas(struct btt *btt)
+>  {
+>  	int ret = 0;
+>  	struct arena_info *arena;
+> -	struct btt_sb *super;
+> +	struct btt_sb *super __free(kfree) = NULL;
+>  	size_t remaining = btt->rawsize;
+>  	u64 cur_nlba = 0;
+>  	size_t cur_off = 0;
+> @@ -860,10 +861,8 @@ static int discover_arenas(struct btt *btt)
+>  	while (remaining) {
+>  		/* Alloc memory for arena */
+>  		arena = alloc_arena(btt, 0, 0, 0);
+> -		if (!arena) {
+> -			ret = -ENOMEM;
+> -			goto out_super;
+> -		}
+> +		if (!arena)
+> +			return -ENOMEM;
+>  
+>  		arena->infooff = cur_off;
+>  		ret = btt_info_read(arena, super);
+> @@ -919,14 +918,11 @@ static int discover_arenas(struct btt *btt)
+>  	btt->nlba = cur_nlba;
+>  	btt->init_state = INIT_READY;
+>  
+> -	kfree(super);
+>  	return ret;
+>  
+>   out:
+>  	kfree(arena);
+>  	free_arenas(btt);
+> - out_super:
+> -	kfree(super);
+>  	return ret;
+>  }
+>  
 
-diff --git a/drivers/nvdimm/btt_devs.c b/drivers/nvdimm/btt_devs.c
-index fabbb31f2c35..497fd434a6a1 100644
---- a/drivers/nvdimm/btt_devs.c
-+++ b/drivers/nvdimm/btt_devs.c
-@@ -19,7 +19,7 @@ static void nd_btt_release(struct device *dev)
+I would do the allocation like something below for the first chunk. Otherwise the rest LGTM. 
+
+diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+index d5593b0dc700..143921e7f26c 100644
+--- a/drivers/nvdimm/btt.c
++++ b/drivers/nvdimm/btt.c
+@@ -16,6 +16,7 @@
+ #include <linux/fs.h>
+ #include <linux/nd.h>
+ #include <linux/backing-dev.h>
++#include <linux/cleanup.h>
+ #include "btt.h"
+ #include "nd.h"
  
- 	dev_dbg(dev, "trace\n");
- 	nd_detach_ndns(&nd_btt->dev, &nd_btt->ndns);
--	ida_simple_remove(&nd_region->btt_ida, nd_btt->id);
-+	ida_free(&nd_region->btt_ida, nd_btt->id);
- 	kfree(nd_btt->uuid);
- 	kfree(nd_btt);
- }
-@@ -191,7 +191,7 @@ static struct device *__nd_btt_create(struct nd_region *nd_region,
- 	if (!nd_btt)
- 		return NULL;
+@@ -845,25 +846,23 @@ static void parse_arena_meta(struct arena_info *arena, struct btt_sb *super,
  
--	nd_btt->id = ida_simple_get(&nd_region->btt_ida, 0, 0, GFP_KERNEL);
-+	nd_btt->id = ida_alloc(&nd_region->btt_ida, GFP_KERNEL);
- 	if (nd_btt->id < 0)
- 		goto out_nd_btt;
- 
-@@ -217,7 +217,7 @@ static struct device *__nd_btt_create(struct nd_region *nd_region,
- 	return dev;
- 
- out_put_id:
--	ida_simple_remove(&nd_region->btt_ida, nd_btt->id);
-+	ida_free(&nd_region->btt_ida, nd_btt->id);
- 
- out_nd_btt:
- 	kfree(nd_btt);
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 5852fe290523..ef3d0f83318b 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -285,7 +285,7 @@ static void nvdimm_bus_release(struct device *dev)
- 	struct nvdimm_bus *nvdimm_bus;
- 
- 	nvdimm_bus = container_of(dev, struct nvdimm_bus, dev);
--	ida_simple_remove(&nd_ida, nvdimm_bus->id);
-+	ida_free(&nd_ida, nvdimm_bus->id);
- 	kfree(nvdimm_bus);
- }
- 
-@@ -342,7 +342,7 @@ struct nvdimm_bus *nvdimm_bus_register(struct device *parent,
- 	INIT_LIST_HEAD(&nvdimm_bus->list);
- 	INIT_LIST_HEAD(&nvdimm_bus->mapping_list);
- 	init_waitqueue_head(&nvdimm_bus->wait);
--	nvdimm_bus->id = ida_simple_get(&nd_ida, 0, 0, GFP_KERNEL);
-+	nvdimm_bus->id = ida_alloc(&nd_ida, GFP_KERNEL);
- 	if (nvdimm_bus->id < 0) {
- 		kfree(nvdimm_bus);
- 		return NULL;
-diff --git a/drivers/nvdimm/dax_devs.c b/drivers/nvdimm/dax_devs.c
-index 3bd61f245788..6b4922de3047 100644
---- a/drivers/nvdimm/dax_devs.c
-+++ b/drivers/nvdimm/dax_devs.c
-@@ -18,7 +18,7 @@ static void nd_dax_release(struct device *dev)
- 
- 	dev_dbg(dev, "trace\n");
- 	nd_detach_ndns(dev, &nd_pfn->ndns);
--	ida_simple_remove(&nd_region->dax_ida, nd_pfn->id);
-+	ida_free(&nd_region->dax_ida, nd_pfn->id);
- 	kfree(nd_pfn->uuid);
- 	kfree(nd_dax);
- }
-@@ -55,7 +55,7 @@ static struct nd_dax *nd_dax_alloc(struct nd_region *nd_region)
- 		return NULL;
- 
- 	nd_pfn = &nd_dax->nd_pfn;
--	nd_pfn->id = ida_simple_get(&nd_region->dax_ida, 0, 0, GFP_KERNEL);
-+	nd_pfn->id = ida_alloc(&nd_region->dax_ida, GFP_KERNEL);
- 	if (nd_pfn->id < 0) {
- 		kfree(nd_dax);
- 		return NULL;
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index 1273873582be..3ceddae0509f 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -194,7 +194,7 @@ static void nvdimm_release(struct device *dev)
+ static int discover_arenas(struct btt *btt)
  {
- 	struct nvdimm *nvdimm = to_nvdimm(dev);
++       struct btt_sb *super __free(kfree) =
++               kzalloc(sizeof(*super), GFP_KERNEL);
+        int ret = 0;
+        struct arena_info *arena;
+-       struct btt_sb *super;
+        size_t remaining = btt->rawsize;
+        u64 cur_nlba = 0;
+        size_t cur_off = 0;
+        int num_arenas = 0;
  
--	ida_simple_remove(&dimm_ida, nvdimm->id);
-+	ida_free(&dimm_ida, nvdimm->id);
- 	kfree(nvdimm);
- }
+-       super = kzalloc(sizeof(*super), GFP_KERNEL);
+        if (!super)
+                return -ENOMEM;
  
-@@ -592,7 +592,7 @@ struct nvdimm *__nvdimm_create(struct nvdimm_bus *nvdimm_bus,
- 	if (!nvdimm)
- 		return NULL;
+        while (remaining) {
+                /* Alloc memory for arena */
+                arena = alloc_arena(btt, 0, 0, 0);
+-               if (!arena) {
+-                       ret = -ENOMEM;
+-                       goto out_super;
+-               }
++               if (!arena)
++                       return -ENOMEM;
  
--	nvdimm->id = ida_simple_get(&dimm_ida, 0, 0, GFP_KERNEL);
-+	nvdimm->id = ida_alloc(&dimm_ida, GFP_KERNEL);
- 	if (nvdimm->id < 0) {
- 		kfree(nvdimm);
- 		return NULL;
-diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-index 07177eadc56e..fa1202e848d9 100644
---- a/drivers/nvdimm/namespace_devs.c
-+++ b/drivers/nvdimm/namespace_devs.c
-@@ -27,7 +27,7 @@ static void namespace_pmem_release(struct device *dev)
- 	struct nd_region *nd_region = to_nd_region(dev->parent);
- 
- 	if (nspm->id >= 0)
--		ida_simple_remove(&nd_region->ns_ida, nspm->id);
-+		ida_free(&nd_region->ns_ida, nspm->id);
- 	kfree(nspm->alt_name);
- 	kfree(nspm->uuid);
- 	kfree(nspm);
-@@ -1810,7 +1810,7 @@ static struct device *nd_namespace_pmem_create(struct nd_region *nd_region)
- 	res->name = dev_name(&nd_region->dev);
- 	res->flags = IORESOURCE_MEM;
- 
--	nspm->id = ida_simple_get(&nd_region->ns_ida, 0, 0, GFP_KERNEL);
-+	nspm->id = ida_alloc(&nd_region->ns_ida, GFP_KERNEL);
- 	if (nspm->id < 0) {
- 		kfree(nspm);
- 		return NULL;
-@@ -2188,8 +2188,7 @@ int nd_region_register_namespaces(struct nd_region *nd_region, int *err)
- 			struct nd_namespace_pmem *nspm;
- 
- 			nspm = to_nd_namespace_pmem(dev);
--			id = ida_simple_get(&nd_region->ns_ida, 0, 0,
--					    GFP_KERNEL);
-+			id = ida_alloc(&nd_region->ns_ida, GFP_KERNEL);
- 			nspm->id = id;
- 		} else
- 			id = i;
-diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
-index 0d08e21a1cea..586348125b61 100644
---- a/drivers/nvdimm/pfn_devs.c
-+++ b/drivers/nvdimm/pfn_devs.c
-@@ -22,7 +22,7 @@ static void nd_pfn_release(struct device *dev)
- 
- 	dev_dbg(dev, "trace\n");
- 	nd_detach_ndns(&nd_pfn->dev, &nd_pfn->ndns);
--	ida_simple_remove(&nd_region->pfn_ida, nd_pfn->id);
-+	ida_free(&nd_region->pfn_ida, nd_pfn->id);
- 	kfree(nd_pfn->uuid);
- 	kfree(nd_pfn);
- }
-@@ -326,7 +326,7 @@ static struct nd_pfn *nd_pfn_alloc(struct nd_region *nd_region)
- 	if (!nd_pfn)
- 		return NULL;
- 
--	nd_pfn->id = ida_simple_get(&nd_region->pfn_ida, 0, 0, GFP_KERNEL);
-+	nd_pfn->id = ida_alloc(&nd_region->pfn_ida, GFP_KERNEL);
- 	if (nd_pfn->id < 0) {
- 		kfree(nd_pfn);
- 		return NULL;
--- 
-2.34.1
+                arena->infooff = cur_off;
+                ret = btt_info_read(arena, super);
 
