@@ -1,67 +1,119 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEC182A1D2
-	for <nvdimm@lists.linux.dev>; Tue, 12 Dec 2023 13:06:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E6CF80047
+	for <nvdimm@lists.linux.dev>; Tue, 12 Dec 2023 19:08:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="boRv2crS"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
-	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=67rvxc8KF4Am0jhrdB27CpUPgtiBS4+Z+YV3L6uI8NY=; b=boRv2crSvsM4V861vsFYqPudVo
-	oG6u3FHR4FHHElcP1zSEgNE+5kwcrLl8Uz1eXzDuU+QSB05HYIyBVVwkOtXpg6sFkZYx9mqFKQjJM
-	CXisjMmelC2DPUsL58SML8bx6tCM58JvtFZQEwgmQOs8rP7cRr4IW8hQuQzWegRit+rlMtWPUetU0
-	KpVjNA38PW2wXGCw2uTGgg9BxSr2A9zNj44dE7KI91wfU5RQzskEfu8I4zBHr9uonz3WBXwvKc/s5
-	KmNCYBg+ld1Sb/eG3XxK7KRizFgVP0sSFjlESHL+pIF2sj7jbF+BxiL0+eJ/kF74k423hjI106Lm6
-	x5CzPzPg==;
-Received: from hch by bombadil.infradead.org with local (Exim 4.96 #2 (Red Hat Linux))
-	id 1rD2Sy-00Bko8-0I;
-	Tue, 12 Dec 2023 13:06:28 +0000
-Date: Tue, 12 Dec 2023 05:06:28 -0800
-From: Christoph Hellwig <hch@infradead.org>
-To: Gao Xiang <hsiangkao@linux.alibaba.com>
-Cc: Christoph Hellwig <hch@infradead.org>, Eric Curtin <ecurtin@redhat.com>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	linux-unionfs@vger.kernel.org, linux-erofs@lists.ozlabs.org,
-	Daan De Meyer <daan.j.demeyer@gmail.com>,
-	Stephen Smoogen <ssmoogen@redhat.com>,
-	Yariv Rachmani <yrachman@redhat.com>,
-	Daniel Walsh <dwalsh@redhat.com>,
-	Douglas Landgraf <dlandgra@redhat.com>,
-	Alexander Larsson <alexl@redhat.com>,
-	Colin Walters <walters@redhat.com>,
-	Brian Masney <bmasney@redhat.com>,
-	Eric Chanudet <echanude@redhat.com>,
-	Pavol Brilla <pbrilla@redhat.com>,
-	Lokesh Mandvekar <lmandvek@redhat.com>,
-	Petr =?utf-8?Q?=C5=A0abata?= <psabata@redhat.com>,
-	Lennart Poettering <lennart@poettering.net>,
-	Luca Boccassi <bluca@debian.org>, Neal Gompa <neal@gompa.dev>,
-	nvdimm@lists.linux.dev
-Subject: Re: [RFC KERNEL] initoverlayfs - a scalable initial filesystem
-Message-ID: <ZXha1IxzRfhsRNOu@infradead.org>
-References: <CAOgh=Fwb+JCTQ-iqzjq8st9qbvauxc4gqqafjWG2Xc08MeBabQ@mail.gmail.com>
- <941aff31-6aa4-4c37-bb94-547c46250304@linux.alibaba.com>
- <ZXgNQ85PdUKrQU1j@infradead.org>
- <58d175f8-a06e-4b00-95fe-1bd5a79106df@linux.alibaba.com>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="HbIsefz4"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1702408128; x=1733944128;
+  h=from:subject:date:message-id:mime-version:
+   content-transfer-encoding:to:cc;
+  bh=dpfvyMcZmnaBfEa9kAQ2vdi2Cex9sJ/adqK/EfeY78w=;
+  b=HbIsefz47uawHoqhCyRlXukge1juFRTdDuyiTYgGzToyQQi/uuu7Vw9f
+   pKT4ij4eiODLjVClBDDVrRBXE8UBOkp0rnszqjkOXu45v3TDqjqMB4YIl
+   SZW1k1yYk49LQQiJujaq+VHAAveCCUZIcdMj4i56iVvQ7H8d3Lka1r1lI
+   5bgaoDC2Cod19kWdVimWTK5QdveScqXypwJ14ivdAE6mfqUZlkXIHAB/r
+   UZMTeWBqnNtzB2dElKnCcSxDda1pvIzDoDyZ+NnnSN/no0QQTGJ868NdO
+   Yoqc31hbhWT7lvy2TvIchjV/F73KeffM2/w3QZyfIbjIQ92p3c04AdTUa
+   A==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10922"; a="13550589"
+X-IronPort-AV: E=Sophos;i="6.04,271,1695711600"; 
+   d="scan'208";a="13550589"
+Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Dec 2023 11:08:47 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10922"; a="844017855"
+X-IronPort-AV: E=Sophos;i="6.04,271,1695711600"; 
+   d="scan'208";a="844017855"
+Received: from cmperez2-mobl2.amr.corp.intel.com (HELO [192.168.1.200]) ([10.212.66.25])
+  by fmsmga004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Dec 2023 11:08:45 -0800
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v4 0/3] Add DAX ABI for memmap_on_memory
+Date: Tue, 12 Dec 2023 12:08:29 -0700
+Message-Id: <20231212-vv-dax_abi-v4-0-1351758f0c92@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <58d175f8-a06e-4b00-95fe-1bd5a79106df@linux.alibaba.com>
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAK2veGUC/3XM0QqCMBTG8VeRXbfYOVtTu+o9ImJuZzkoDZVhi
+ O/etBsL4lx9B37/ifXUBerZMZtYRzH0oW3SULuM2do0N+LBpc1QoASBBx4jd2a8mipwyA1CaZU
+ WuWYJPDvyYVxj50vadeiHtnut7QjL95NBobeZCFxwlSuqioJQgD2FZqD73rYPtmQi/qeYqFfpU
+ ErtRPFL5YYCfFGZqLFeWwuVo9Jv6TzPb0gBiYIaAQAA
+To: Dan Williams <dan.j.williams@intel.com>, 
+ Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>
+Cc: linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, 
+ linux-cxl@vger.kernel.org, David Hildenbrand <david@redhat.com>, 
+ Dave Hansen <dave.hansen@linux.intel.com>, 
+ Huang Ying <ying.huang@intel.com>, Joao Martins <joao.m.martins@oracle.com>, 
+ Li Zhijian <lizhijian@fujitsu.com>, 
+ Jonathan Cameron <Jonathan.Cameron@huawei.com>
+X-Mailer: b4 0.13-dev-433a8
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2200;
+ i=vishal.l.verma@intel.com; h=from:subject:message-id;
+ bh=dpfvyMcZmnaBfEa9kAQ2vdi2Cex9sJ/adqK/EfeY78w=;
+ b=owGbwMvMwCXGf25diOft7jLG02pJDKkV63dGlR9OO/jFJiTw7osF+afjTgeW2stbzNb6vT9ff
+ 6L5w5+yHaUsDGJcDLJiiix/93xkPCa3PZ8nMMERZg4rE8gQBi5OAZjIpzRGhp/PbmlwrH9xZ1UC
+ X1/kxua/D2xYJq5UPpmxpb6ngC2ep5uRYYbRRP+trzbfCZ797YRAwDaHlPfv13EvPaG9hfXkwrU
+ 6rhwA
+X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp;
+ fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
 
-On Tue, Dec 12, 2023 at 03:50:25PM +0800, Gao Xiang wrote:
-> I have no idea how it's faster than the current initramfs or initrd.
-> So if it's really useful, maybe some numbers can be posted first
-> with the current `memmap` hack and see it's worth going further with
-> some new infrastructure like initdax.
+The DAX drivers were missing sysfs ABI documentation entirely.  Add this
+missing documentation for the sysfs ABI for DAX regions and Dax devices
+in patch 1. Define guard(device) semantics for Scope Based Resource
+Management for device_lock, and convert device_{lock,unlock} flows in
+drivers/dax/bus.c to use this in patch 2. Add a new ABI for toggling
+memmap_on_memory semantics in patch 3.
 
-Agreed.
+The missing ABI was spotted in [1], this series is a split of the new
+ABI additions behind the initial documentation creation.
+
+[1]: https://lore.kernel.org/linux-cxl/651f27b728fef_ae7e7294b3@dwillia2-xfh.jf.intel.com.notmuch/
+
+Changes in v4:
+- Hold the device lock when checking if the dax_dev is bound to kmem
+  (Ying, Dan)
+- Remove dax region checks (and locks) as they were unnecessary.
+- Introduce guard(device) for device lock/unlock (Dan)
+- Convert the rest of drivers/dax/bus.c to guard(device)
+- Link to v3: https://lore.kernel.org/r/20231211-vv-dax_abi-v3-0-acf6cc1bde9f@intel.com
+
+Changes in v3:
+- Fix typo in ABI docs (Zhijian Li)
+- Add kernel config and module parameter dependencies to the ABI docs
+  entry (David Hildenbrand)
+- Ensure kmem isn't active when setting the sysfs attribute (Ying
+  Huang)
+- Simplify returning from memmap_on_memory_store()
+- Link to v2: https://lore.kernel.org/r/20231206-vv-dax_abi-v2-0-f4f4f2336d08@intel.com
+
+Changes in v2:
+- Fix CC lists, patch 1/2 didn't get sent correctly in v1
+- Link to v1: https://lore.kernel.org/r/20231206-vv-dax_abi-v1-0-474eb88e201c@intel.com
+
+---
+Vishal Verma (3):
+      Documentatiion/ABI: Add ABI documentation for sys-bus-dax
+      dax/bus: Introduce guard(device) for device_{lock,unlock} flows
+      dax: add a sysfs knob to control memmap_on_memory behavior
+
+ include/linux/device.h                  |   2 +
+ drivers/dax/bus.c                       | 141 ++++++++++++++-------------
+ Documentation/ABI/testing/sysfs-bus-dax | 168 ++++++++++++++++++++++++++++++++
+ 3 files changed, 244 insertions(+), 67 deletions(-)
+---
+base-commit: c4e1ccfad42352918810802095a8ace8d1c744c9
+change-id: 20231025-vv-dax_abi-17a219c46076
+
+Best regards,
+-- 
+Vishal Verma <vishal.l.verma@intel.com>
+
