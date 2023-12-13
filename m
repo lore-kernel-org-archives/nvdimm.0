@@ -1,100 +1,101 @@
-Received: from mgamail.intel.com (mgamail.intel.com [134.134.136.31])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FBFB10E2
-	for <nvdimm@lists.linux.dev>; Wed, 13 Dec 2023 02:13:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="cFTa/ycp"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1702433625; x=1733969625;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=1PMAyvKAy7zoBw3d0krkf1EWrCx1NHuXddCqDc8iX9o=;
-  b=cFTa/ycpSJrkdyXHuevWz+L2ANfMw255RPUDrNclV7BPZjYY350ThjJp
-   odSZTlYsebTnKwce5O9U7yTr6nwxwxJim1+72PtewPAMnDnGQ1ojibzkB
-   KkdiOvRVub/N0lipqcyGWKTF/Os5VIVFVROtmWPRHNmZ71aQ/gCukWCMF
-   mT1kqnlJ/N5L6dZpaiYuZNhoY0mtKcKc2BorbjU18VBwCqe1cay8sNbFS
-   3e+nU7HvguRfQdbp955GGvedKRRomOw8bK/MJCQ0adOALePYPrQJO51KE
-   2gjjjITVnIl18LZ8GwrdJhBManFG7fAiDmJFwf0VXtuu/DkmXU7wA8hKw
-   g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10922"; a="459220433"
-X-IronPort-AV: E=Sophos;i="6.04,271,1695711600"; 
-   d="scan'208";a="459220433"
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Dec 2023 18:13:44 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10922"; a="917496528"
-X-IronPort-AV: E=Sophos;i="6.04,271,1695711600"; 
-   d="scan'208";a="917496528"
-Received: from aschofie-mobl2.amr.corp.intel.com (HELO aschofie-mobl2) ([10.209.111.12])
-  by fmsmga001-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Dec 2023 18:13:43 -0800
-Date: Tue, 12 Dec 2023 18:13:42 -0800
-From: Alison Schofield <alison.schofield@intel.com>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>, nvdimm@lists.linux.dev,
-	linux-cxl@vger.kernel.org
-Subject: Re: [ndctl PATCH v5 3/5] cxl/list: collect and parse the poison list
- records
-Message-ID: <ZXkTVgFroObfs4kW@aschofie-mobl2>
-References: <cover.1700615159.git.alison.schofield@intel.com>
- <bf65d11d6388bcdce2e6dc35064edf4094c0c5a8.1700615159.git.alison.schofield@intel.com>
- <65714c6b472ee_269bd29417@dwillia2-mobl3.amr.corp.intel.com.notmuch>
+Received: from zju.edu.cn (spam.zju.edu.cn [61.164.42.155])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 2313B1C2F
+	for <nvdimm@lists.linux.dev>; Wed, 13 Dec 2023 03:12:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=zju.edu.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zju.edu.cn
+Received: from dinghao.liu$zju.edu.cn ( [10.190.71.15] ) by
+ ajax-webmail-mail-app4 (Coremail) ; Wed, 13 Dec 2023 11:12:15 +0800
+ (GMT+08:00)
+Date: Wed, 13 Dec 2023 11:12:15 +0800 (GMT+08:00)
+X-CM-HeaderCharset: UTF-8
+From: dinghao.liu@zju.edu.cn
+To: "Dave Jiang" <dave.jiang@intel.com>
+Cc: "Vishal Verma" <vishal.l.verma@intel.com>, 
+	"Dan Williams" <dan.j.williams@intel.com>, 
+	"Ira Weiny" <ira.weiny@intel.com>, nvdimm@lists.linux.dev, 
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] nvdimm-btt: simplify code with the scope based resource
+ management
+X-Priority: 3
+X-Mailer: Coremail Webmail Server Version 2023.2-cmXT5 build
+ 20230825(e13b6a3b) Copyright (c) 2002-2023 www.mailtech.cn
+ mispb-4df6dc2c-e274-4d1c-b502-72c5c3dfa9ce-zj.edu.cn
+In-Reply-To: <8716bf72-e4ca-4f83-8a30-327baf459dbb@intel.com>
+References: <20231210102747.13545-1-dinghao.liu@zju.edu.cn>
+ <8716bf72-e4ca-4f83-8a30-327baf459dbb@intel.com>
+Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <65714c6b472ee_269bd29417@dwillia2-mobl3.amr.corp.intel.com.notmuch>
+Message-ID: <369f7d97.32dac.18c6129229a.Coremail.dinghao.liu@zju.edu.cn>
+X-Coremail-Locale: zh_CN
+X-CM-TRANSID:cS_KCgBXXzcPIXllrASFAA--.12142W
+X-CM-SenderInfo: qrrzjiaqtzq6lmxovvfxof0/1tbiAgIIBmV4LpY5mAAAsK
+X-Coremail-Antispam: 1Ur529EdanIXcx71UUUUU7IcSsGvfJ3iIAIbVAYjsxI4VWxJw
+	CS07vEb4IE77IF4wCS07vE1I0E4x80FVAKz4kxMIAIbVAFxVCaYxvI4VCIwcAKzIAtYxBI
+	daVFxhVjvjDU=
 
-On Wed, Dec 06, 2023 at 08:39:07PM -0800, Dan Williams wrote:
-> alison.schofield@ wrote:
-> > From: Alison Schofield <alison.schofield@intel.com>
-> > 
-
-snip
-
-> > +	struct json_object *jerrors, *jpoison, *jobj = NULL;
-> > +	struct jlist_node *jnode, *next;
-> > +	struct event_ctx ectx = {
-> > +		.event_name = "cxl_poison",
-> > +		.event_pid = getpid(),
-> > +		.system = "cxl",
-> > +	};
-> > +	int rc, count = 0;
-> > +
-> > +	list_head_init(&ectx.jlist_head);
-> > +	rc = cxl_parse_events(inst, &ectx);
-> 
-> This pattern really feels like it wants a cxl_for_each_event() -style
-> helper rather than require the end caller to open code list usage.
-> Basically cxl_parse_events() is a helper that should stay local to
-> cxl/monitor.c. This new cxl_for_each_event() would become used
-> internally by cxl_parse_events() and let
-> util_cxl_poison_events_to_json() do its own per-event iteration.
-> 
-
-snip & concat'ing your next comment:
-
-> So we're building a json_object internal to cxl_parse_events() only to
-> turn around and extract details out of that object that tell us this
-> event was not of interest, or to create yet another json object?
-> 
-> I think this implementation has a chance to be significantly less
-> complicated if the event list can be iterated directly without this
-> temporary json_object parsing.
-
-DaveJ actually already implemented a method to include a 'private'
-parsing function in the event_ctx structure. I didn't use it, but
-but rather used the generic cxl_event_to_json helper, and then
-parsed that all over again to refine for poison list output.
-
-I think reorganizing w a private event_ctx->parse_event will
-streamline as you suggest.
-
-Alison
+PiAKPiBPbiAxMi8xMC8yMyAwMzoyNywgRGluZ2hhbyBMaXUgd3JvdGU6Cj4gPiBVc2UgdGhlIHNj
+b3BlIGJhc2VkIHJlc291cmNlIG1hbmFnZW1lbnQgKGRlZmluZWQgaW4KPiA+IGxpbnV4L2NsZWFu
+dXAuaCkgdG8gYXV0b21hdGUgcmVzb3VyY2UgbGlmZXRpbWUKPiA+IGNvbnRyb2wgb24gc3RydWN0
+IGJ0dF9zYiAqc3VwZXIgaW4gZGlzY292ZXJfYXJlbmFzKCkuCj4gPiAKPiA+IFNpZ25lZC1vZmYt
+Ynk6IERpbmdoYW8gTGl1IDxkaW5naGFvLmxpdUB6anUuZWR1LmNuPgo+ID4gLS0tCj4gPiAgZHJp
+dmVycy9udmRpbW0vYnR0LmMgfCAxMiArKysrLS0tLS0tLS0KPiA+ICAxIGZpbGUgY2hhbmdlZCwg
+NCBpbnNlcnRpb25zKCspLCA4IGRlbGV0aW9ucygtKQo+ID4gCj4gPiBkaWZmIC0tZ2l0IGEvZHJp
+dmVycy9udmRpbW0vYnR0LmMgYi9kcml2ZXJzL252ZGltbS9idHQuYwo+ID4gaW5kZXggZDU1OTNi
+MGRjNzAwLi5mZjQyNzc4YjUxZGUgMTAwNjQ0Cj4gPiAtLS0gYS9kcml2ZXJzL252ZGltbS9idHQu
+Ywo+ID4gKysrIGIvZHJpdmVycy9udmRpbW0vYnR0LmMKPiA+IEBAIC0xNiw2ICsxNiw3IEBACj4g
+PiAgI2luY2x1ZGUgPGxpbnV4L2ZzLmg+Cj4gPiAgI2luY2x1ZGUgPGxpbnV4L25kLmg+Cj4gPiAg
+I2luY2x1ZGUgPGxpbnV4L2JhY2tpbmctZGV2Lmg+Cj4gPiArI2luY2x1ZGUgPGxpbnV4L2NsZWFu
+dXAuaD4KPiA+ICAjaW5jbHVkZSAiYnR0LmgiCj4gPiAgI2luY2x1ZGUgIm5kLmgiCj4gPiAgCj4g
+PiBAQCAtODQ3LDcgKzg0OCw3IEBAIHN0YXRpYyBpbnQgZGlzY292ZXJfYXJlbmFzKHN0cnVjdCBi
+dHQgKmJ0dCkKPiA+ICB7Cj4gPiAgCWludCByZXQgPSAwOwo+ID4gIAlzdHJ1Y3QgYXJlbmFfaW5m
+byAqYXJlbmE7Cj4gPiAtCXN0cnVjdCBidHRfc2IgKnN1cGVyOwo+ID4gKwlzdHJ1Y3QgYnR0X3Ni
+ICpzdXBlciBfX2ZyZWUoa2ZyZWUpID0gTlVMTDsKPiA+ICAJc2l6ZV90IHJlbWFpbmluZyA9IGJ0
+dC0+cmF3c2l6ZTsKPiA+ICAJdTY0IGN1cl9ubGJhID0gMDsKPiA+ICAJc2l6ZV90IGN1cl9vZmYg
+PSAwOwo+ID4gQEAgLTg2MCwxMCArODYxLDggQEAgc3RhdGljIGludCBkaXNjb3Zlcl9hcmVuYXMo
+c3RydWN0IGJ0dCAqYnR0KQo+ID4gIAl3aGlsZSAocmVtYWluaW5nKSB7Cj4gPiAgCQkvKiBBbGxv
+YyBtZW1vcnkgZm9yIGFyZW5hICovCj4gPiAgCQlhcmVuYSA9IGFsbG9jX2FyZW5hKGJ0dCwgMCwg
+MCwgMCk7Cj4gPiAtCQlpZiAoIWFyZW5hKSB7Cj4gPiAtCQkJcmV0ID0gLUVOT01FTTsKPiA+IC0J
+CQlnb3RvIG91dF9zdXBlcjsKPiA+IC0JCX0KPiA+ICsJCWlmICghYXJlbmEpCj4gPiArCQkJcmV0
+dXJuIC1FTk9NRU07Cj4gPiAgCj4gPiAgCQlhcmVuYS0+aW5mb29mZiA9IGN1cl9vZmY7Cj4gPiAg
+CQlyZXQgPSBidHRfaW5mb19yZWFkKGFyZW5hLCBzdXBlcik7Cj4gPiBAQCAtOTE5LDE0ICs5MTgs
+MTEgQEAgc3RhdGljIGludCBkaXNjb3Zlcl9hcmVuYXMoc3RydWN0IGJ0dCAqYnR0KQo+ID4gIAli
+dHQtPm5sYmEgPSBjdXJfbmxiYTsKPiA+ICAJYnR0LT5pbml0X3N0YXRlID0gSU5JVF9SRUFEWTsK
+PiA+ICAKPiA+IC0Ja2ZyZWUoc3VwZXIpOwo+ID4gIAlyZXR1cm4gcmV0Owo+ID4gIAo+ID4gICBv
+dXQ6Cj4gPiAgCWtmcmVlKGFyZW5hKTsKPiA+ICAJZnJlZV9hcmVuYXMoYnR0KTsKPiA+IC0gb3V0
+X3N1cGVyOgo+ID4gLQlrZnJlZShzdXBlcik7Cj4gPiAgCXJldHVybiByZXQ7Cj4gPiAgfQo+ID4g
+IAo+IAo+IEkgd291bGQgZG8gdGhlIGFsbG9jYXRpb24gbGlrZSBzb21ldGhpbmcgYmVsb3cgZm9y
+IHRoZSBmaXJzdCBjaHVuay4gT3RoZXJ3aXNlIHRoZSByZXN0IExHVE0uIAo+IAo+IGRpZmYgLS1n
+aXQgYS9kcml2ZXJzL252ZGltbS9idHQuYyBiL2RyaXZlcnMvbnZkaW1tL2J0dC5jCj4gaW5kZXgg
+ZDU1OTNiMGRjNzAwLi4xNDM5MjFlN2YyNmMgMTAwNjQ0Cj4gLS0tIGEvZHJpdmVycy9udmRpbW0v
+YnR0LmMKPiArKysgYi9kcml2ZXJzL252ZGltbS9idHQuYwo+IEBAIC0xNiw2ICsxNiw3IEBACj4g
+ICNpbmNsdWRlIDxsaW51eC9mcy5oPgo+ICAjaW5jbHVkZSA8bGludXgvbmQuaD4KPiAgI2luY2x1
+ZGUgPGxpbnV4L2JhY2tpbmctZGV2Lmg+Cj4gKyNpbmNsdWRlIDxsaW51eC9jbGVhbnVwLmg+Cj4g
+ICNpbmNsdWRlICJidHQuaCIKPiAgI2luY2x1ZGUgIm5kLmgiCj4gIAo+IEBAIC04NDUsMjUgKzg0
+NiwyMyBAQCBzdGF0aWMgdm9pZCBwYXJzZV9hcmVuYV9tZXRhKHN0cnVjdCBhcmVuYV9pbmZvICph
+cmVuYSwgc3RydWN0IGJ0dF9zYiAqc3VwZXIsCj4gIAo+ICBzdGF0aWMgaW50IGRpc2NvdmVyX2Fy
+ZW5hcyhzdHJ1Y3QgYnR0ICpidHQpCj4gIHsKPiArICAgICAgIHN0cnVjdCBidHRfc2IgKnN1cGVy
+IF9fZnJlZShrZnJlZSkgPQo+ICsgICAgICAgICAgICAgICBremFsbG9jKHNpemVvZigqc3VwZXIp
+LCBHRlBfS0VSTkVMKTsKPiAgICAgICAgIGludCByZXQgPSAwOwo+ICAgICAgICAgc3RydWN0IGFy
+ZW5hX2luZm8gKmFyZW5hOwo+IC0gICAgICAgc3RydWN0IGJ0dF9zYiAqc3VwZXI7Cj4gICAgICAg
+ICBzaXplX3QgcmVtYWluaW5nID0gYnR0LT5yYXdzaXplOwo+ICAgICAgICAgdTY0IGN1cl9ubGJh
+ID0gMDsKPiAgICAgICAgIHNpemVfdCBjdXJfb2ZmID0gMDsKPiAgICAgICAgIGludCBudW1fYXJl
+bmFzID0gMDsKPiAgCj4gLSAgICAgICBzdXBlciA9IGt6YWxsb2Moc2l6ZW9mKCpzdXBlciksIEdG
+UF9LRVJORUwpOwo+ICAgICAgICAgaWYgKCFzdXBlcikKPiAgICAgICAgICAgICAgICAgcmV0dXJu
+IC1FTk9NRU07Cj4gIAo+ICAgICAgICAgd2hpbGUgKHJlbWFpbmluZykgewo+ICAgICAgICAgICAg
+ICAgICAvKiBBbGxvYyBtZW1vcnkgZm9yIGFyZW5hICovCgpJdCdzIGEgbGl0dGxlIHN0cmFuZ2Ug
+dGhhdCB3ZSBkbyBub3QgY2hlY2sgc3VwZXIgaW1tZWRpYXRlbHkgYWZ0ZXIgYWxsb2NhdGlvbi4K
+SG93IGFib3V0IHRoaXM6Cgogc3RhdGljIGludCBkaXNjb3Zlcl9hcmVuYXMoc3RydWN0IGJ0dCAq
+YnR0KQogewogICAgICAgIGludCByZXQgPSAwOwogICAgICAgIHN0cnVjdCBhcmVuYV9pbmZvICph
+cmVuYTsKLSAgICAgICBzdHJ1Y3QgYnR0X3NiICpzdXBlcjsKICAgICAgICBzaXplX3QgcmVtYWlu
+aW5nID0gYnR0LT5yYXdzaXplOwogICAgICAgIHU2NCBjdXJfbmxiYSA9IDA7CiAgICAgICAgc2l6
+ZV90IGN1cl9vZmYgPSAwOwogICAgICAgIGludCBudW1fYXJlbmFzID0gMDsKIAotICAgICAgIHN1
+cGVyID0ga3phbGxvYyhzaXplb2YoKnN1cGVyKSwgR0ZQX0tFUk5FTCk7CisgICAgICAgc3RydWN0
+IGJ0dF9zYiAqc3VwZXIgX19mcmVlKGtmcmVlKSA9IAorICAgICAgICAgICAgICAga3phbGxvYyhz
+aXplb2YoKnN1cGVyKSwgR0ZQX0tFUk5FTCk7CiAgICAgICAgaWYgKCFzdXBlcikKICAgICAgICAg
+ICAgICAgIHJldHVybiAtRU5PTUVNOwogCiAgICAgICAgd2hpbGUgKHJlbWFpbmluZykgewog
