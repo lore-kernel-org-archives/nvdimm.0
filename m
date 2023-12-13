@@ -1,98 +1,97 @@
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1EC1530CF1
-	for <nvdimm@lists.linux.dev>; Wed, 13 Dec 2023 17:07:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.186.31])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Sr1g64b1Pz67pnj;
-	Thu, 14 Dec 2023 00:49:54 +0800 (CST)
-Received: from lhrpeml500005.china.huawei.com (unknown [7.191.163.240])
-	by mail.maildlp.com (Postfix) with ESMTPS id AE4A1140595;
-	Thu, 14 Dec 2023 00:50:54 +0800 (CST)
-Received: from localhost (10.202.227.76) by lhrpeml500005.china.huawei.com
- (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.35; Wed, 13 Dec
- 2023 16:50:54 +0000
-Date: Wed, 13 Dec 2023 16:50:52 +0000
-From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-To: Vishal Verma <vishal.l.verma@intel.com>
-CC: Dan Williams <dan.j.williams@intel.com>, Dave Jiang
-	<dave.jiang@intel.com>, <linux-kernel@vger.kernel.org>,
-	<nvdimm@lists.linux.dev>, <linux-cxl@vger.kernel.org>, David Hildenbrand
-	<david@redhat.com>, Dave Hansen <dave.hansen@linux.intel.com>, Huang Ying
-	<ying.huang@intel.com>
-Subject: Re: [PATCH v4 1/3] Documentatiion/ABI: Add ABI documentation for
- sys-bus-dax
-Message-ID: <20231213165052.00007d74@Huawei.com>
-In-Reply-To: <20231212-vv-dax_abi-v4-1-1351758f0c92@intel.com>
-References: <20231212-vv-dax_abi-v4-0-1351758f0c92@intel.com>
-	<20231212-vv-dax_abi-v4-1-1351758f0c92@intel.com>
-Organization: Huawei Technologies Research and Development (UK) Ltd.
-X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9495E7FBD3
+	for <nvdimm@lists.linux.dev>; Wed, 13 Dec 2023 23:02:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="lOy3KoCK"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1702508558; x=1734044558;
+  h=subject:from:to:cc:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=E7M26yPTY6+vjqYd5Bj0fpUoHUYe+VEtT6WJdnLb2Gg=;
+  b=lOy3KoCKjhVM+MVu0iG53QC6H/9NKTk6LLAXeSFrrOV8G6E7GOSj+DqV
+   NOR9gKJivlqvKA7iq2NKS86OcF3OAzwVpRWp+84VuhCuwReKJ6JJmd/hQ
+   w2+FWBFvozgIj84OHS1+ePZiCVjITKfOx8eVyLJ7A97GLjBdfhU5mA7M6
+   Z73qd6JH6fTJAi1G5mocs18aCAsRwQw5/YD7T4oJFMhRTuXsEoectE2AX
+   pCze3jS0V+y79HqxGyjl+MnFnzyDbBs5sQs1uw++8vJztCPcGSA+NknEu
+   AfBIHbEGNizI+P5D8iYR+SLQBtLOEXZlZKXnnYTEer7V+oUFjLGi5X4BN
+   g==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10923"; a="2210627"
+X-IronPort-AV: E=Sophos;i="6.04,274,1695711600"; 
+   d="scan'208";a="2210627"
+Received: from fmviesa001.fm.intel.com ([10.60.135.141])
+  by fmvoesa104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Dec 2023 15:02:37 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.04,274,1695711600"; 
+   d="scan'208";a="17692849"
+Received: from wardsamx-mobl.amr.corp.intel.com (HELO dwillia2-xfh.jf.intel.com) ([10.209.81.197])
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Dec 2023 15:02:36 -0800
+Subject: [PATCH] driver core: Add a guard() definition for the device_lock()
+From: Dan Williams <dan.j.williams@intel.com>
+To: gregkh@linuxfoundation.org
+Cc: Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>,
+ Peter Zijlstra <peterz@infradead.org>,
+ Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org,
+ linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
+Date: Wed, 13 Dec 2023 15:02:35 -0800
+Message-ID: <170250854466.1522182.17555361077409628655.stgit@dwillia2-xfh.jf.intel.com>
+User-Agent: StGit/0.18-3-g996c
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: lhrpeml100004.china.huawei.com (7.191.162.219) To
- lhrpeml500005.china.huawei.com (7.191.163.240)
 
-On Tue, 12 Dec 2023 12:08:30 -0700
-Vishal Verma <vishal.l.verma@intel.com> wrote:
+At present there are ~200 usages of device_lock() in the kernel. Some of
+those usages lead to "goto unlock;" patterns which have proven to be
+error prone. Define a "device" guard() definition to allow for those to
+be cleaned up and prevent new ones from appearing.
 
-> Add the missing sysfs ABI documentation for the device DAX subsystem.
-> Various ABI attributes under this have been present since v5.1, and more
-> have been added over time. In preparation for adding a new attribute,
-> add this file with the historical details.
-> 
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Link: http://lore.kernel.org/r/657897453dda8_269bd29492@dwillia2-mobl3.amr.corp.intel.com.notmuch
+Link: http://lore.kernel.org/r/6577b0c2a02df_a04c5294bb@dwillia2-xfh.jf.intel.com.notmuch
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+Hi Greg,
 
-Hi Vishal,  One editorial suggestions.
+I wonder if you might include this change in v6.7-rc to ease some patch
+sets alternately going through my tree and Andrew's tree. Those
+discussions are linked above. Alternately I can can just take it through
+my tree with your ack and the other use case can circle back to it in
+the v6.9 cycle.
 
-I don't know the interface well enough to do a good review of the content
-so leaving that for Dan or others.
+I considered also defining a __free() helper similar to __free(mutex),
+but I think "__free(device)" would be a surprising name for something
+that drops a lock. Also, I like the syntax of guard(device) over
+something like guard(device_lock) since a 'struct device *' is the
+argument, not a lock type, but I'm open to your or Peter's thoughts on
+the naming.
 
-> +What:		/sys/bus/dax/devices/daxX.Y/mapping[0..N]/start
-> +Date:		October, 2020
-> +KernelVersion:	v5.10
-> +Contact:	nvdimm@lists.linux.dev
-> +Description:
-> +		(RO) A dax device may have multiple constituent discontiguous
-> +		address ranges. These are represented by the different
-> +		'mappingX' subdirectories. The 'start' attribute indicates the
-> +		start physical address for the given range.
+ include/linux/device.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-A common option for these files is to have a single entry with two What:
-lines.  Here that would avoid duplication of majority of this text across
-the start, end  and page_offset entries.  Alternatively you could do an
-entry for the mapping[0..N] directory with the shared text then separate
-entries for the 3 files under there.
-
-
-> +
-> +What:		/sys/bus/dax/devices/daxX.Y/mapping[0..N]/end
-> +Date:		October, 2020
-> +KernelVersion:	v5.10
-> +Contact:	nvdimm@lists.linux.dev
-> +Description:
-> +		(RO) A dax device may have multiple constituent discontiguous
-> +		address ranges. These are represented by the different
-> +		'mappingX' subdirectories. The 'end' attribute indicates the
-> +		end physical address for the given range.
-> +
-> +What:		/sys/bus/dax/devices/daxX.Y/mapping[0..N]/page_offset
-> +Date:		October, 2020
-> +KernelVersion:	v5.10
-> +Contact:	nvdimm@lists.linux.dev
-> +Description:
-> +		(RO) A dax device may have multiple constituent discontiguous
-> +		address ranges. These are represented by the different
-> +		'mappingX' subdirectories. The 'page_offset' attribute indicates the
-> +		offset of the current range in the dax device.
+diff --git a/include/linux/device.h b/include/linux/device.h
+index d7a72a8749ea..6c83294395ac 100644
+--- a/include/linux/device.h
++++ b/include/linux/device.h
+@@ -1007,6 +1007,8 @@ static inline void device_unlock(struct device *dev)
+ 	mutex_unlock(&dev->mutex);
+ }
+ 
++DEFINE_GUARD(device, struct device *, device_lock(_T), device_unlock(_T))
++
+ static inline void device_lock_assert(struct device *dev)
+ {
+ 	lockdep_assert_held(&dev->mutex);
 
