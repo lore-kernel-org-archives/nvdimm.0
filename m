@@ -1,72 +1,114 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 801B5D302;
-	Thu, 14 Dec 2023 08:31:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="Kk+AZ+DV"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3B431C433C8;
-	Thu, 14 Dec 2023 08:31:10 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1702542670;
-	bh=XhtXMTLrB7TaL4OGwCq1/5AnWLeypq+BMzyNEqR5H9A=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=Kk+AZ+DVVomEJXbQK/IGA23dG4WisCKhVO6q/x+A8aiuX4YFdzwJtFgPHS/E2cJIK
-	 /QDsWd4xgu5UuGhEXCmjVkOjVqZUiygkwA10BRlV00oZLJKvAP4CSEsygOj30LXQxU
-	 ZPUuEX4HqOK/bucObq8W7oUoD5kusVE/ub0N7oKk=
-Date: Thu, 14 Dec 2023 09:31:07 +0100
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: Vishal Verma <vishal.l.verma@intel.com>
+Received: from zju.edu.cn (spam.zju.edu.cn [61.164.42.155])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 01EFB241E8
+	for <nvdimm@lists.linux.dev>; Thu, 14 Dec 2023 08:40:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=zju.edu.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zju.edu.cn
+Received: from localhost.localdomain (unknown [10.190.71.46])
+	by mail-app3 (Coremail) with SMTP id cC_KCgCHj_JMv3plIqvdAA--.15533S4;
+	Thu, 14 Dec 2023 16:39:57 +0800 (CST)
+From: Dinghao Liu <dinghao.liu@zju.edu.cn>
+To: dinghao.liu@zju.edu.cn
 Cc: Dan Williams <dan.j.williams@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
 	Dave Jiang <dave.jiang@intel.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Oscar Salvador <osalvador@suse.de>, linux-kernel@vger.kernel.org,
-	nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
-	David Hildenbrand <david@redhat.com>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	Huang Ying <ying.huang@intel.com>, linux-mm@kvack.org,
-	Li Zhijian <lizhijian@fujitsu.com>,
-	Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Subject: Re: [PATCH v5 4/4] dax: add a sysfs knob to control memmap_on_memory
- behavior
-Message-ID: <2023121453-tiling-banshee-5acd@gregkh>
-References: <20231214-vv-dax_abi-v5-0-3f7b006960b4@intel.com>
- <20231214-vv-dax_abi-v5-4-3f7b006960b4@intel.com>
+	Ira Weiny <ira.weiny@intel.com>,
+	nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] [v2] nvdimm-btt: simplify code with the scope based resource management
+Date: Thu, 14 Dec 2023 16:39:19 +0800
+Message-Id: <20231214083919.22218-1-dinghao.liu@zju.edu.cn>
+X-Mailer: git-send-email 2.17.1
+X-CM-TRANSID:cC_KCgCHj_JMv3plIqvdAA--.15533S4
+X-Coremail-Antispam: 1UD129KBjvJXoW7uF45Gr1xZw4DArWfGw13CFg_yoW8Wr1xpF
+	s5A34kArWDJF1xuFyDAw4xZry3Ga1fAa4UKryj9393ZrWaqw1jqrZYyFyS9rykuFWxZryj
+	g3yUtwnIkFW5Ar7anT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUUkI1xkIjI8I6I8E6xAIw20EY4v20xvaj40_Wr0E3s1l1IIY67AE
+	w4v_Jr0_Jr4l8cAvFVAK0II2c7xJM28CjxkF64kEwVA0rcxSw2x7M28EF7xvwVC0I7IYx2
+	IY67AKxVWDJVCq3wA2z4x0Y4vE2Ix0cI8IcVCY1x0267AKxVWxJr0_GcWl84ACjcxK6I8E
+	87Iv67AKxVW0oVCq3wA2z4x0Y4vEx4A2jsIEc7CjxVAFwI0_GcCE3s1le2I262IYc4CY6c
+	8Ij28IcVAaY2xG8wAqx4xG64xvF2IEw4CE5I8CrVC2j2WlYx0E2Ix0cI8IcVAFwI0_Jr0_
+	Jr4lYx0Ex4A2jsIE14v26r1j6r4UMcvjeVCFs4IE7xkEbVWUJVW8JwACjcxG0xvY0x0EwI
+	xGrwACjI8F5VA0II8E6IAqYI8I648v4I1l42xK82IYc2Ij64vIr41l42xK82IY6x8ErcxF
+	aVAv8VW8uw4UJr1UMxC20s026xCaFVCjc4AY6r1j6r4UMI8I3I0E5I8CrVAFwI0_Jr0_Jr
+	4lx2IqxVCjr7xvwVAFwI0_JrI_JrWlx4CE17CEb7AF67AKxVWUAVWUtwCIc40Y0x0EwIxG
+	rwCI42IY6xIIjxv20xvE14v26r1j6r1xMIIF0xvE2Ix0cI8IcVCY1x0267AKxVWUJVW8Jw
+	CI42IY6xAIw20EY4v20xvaj40_Jr0_JF4lIxAIcVC2z280aVAFwI0_Jr0_Gr1lIxAIcVC2
+	z280aVCY1x0267AKxVW8JVW8JrUvcSsGvfC2KfnxnUUI43ZEXa7VUbXdbUUUUUU==
+X-CM-SenderInfo: qrrzjiaqtzq6lmxovvfxof0/1tbiAgIIBmV4LpY5mAAKsA
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20231214-vv-dax_abi-v5-4-3f7b006960b4@intel.com>
 
-On Thu, Dec 14, 2023 at 12:37:57AM -0700, Vishal Verma wrote:
-> +static ssize_t memmap_on_memory_show(struct device *dev,
-> +				     struct device_attribute *attr, char *buf)
-> +{
-> +	struct dev_dax *dev_dax = to_dev_dax(dev);
-> +
-> +	return sprintf(buf, "%d\n", dev_dax->memmap_on_memory);
+Use the scope based resource management (defined in
+linux/cleanup.h) to automate resource lifetime
+control on struct btt_sb *super in discover_arenas().
 
-checkpatch should have noticed that this should be sysfs_emit(), right?
-If not, please make the change anyway.
+Signed-off-by: Dinghao Liu <dinghao.liu@zju.edu.cn>
+---
 
-> diff --git a/Documentation/ABI/testing/sysfs-bus-dax b/Documentation/ABI/testing/sysfs-bus-dax
-> index 6359f7bc9bf4..40d9965733b2 100644
-> --- a/Documentation/ABI/testing/sysfs-bus-dax
-> +++ b/Documentation/ABI/testing/sysfs-bus-dax
-> @@ -134,3 +134,20 @@ KernelVersion:	v5.1
->  Contact:	nvdimm@lists.linux.dev
->  Description:
->  		(RO) The id attribute indicates the region id of a dax region.
-> +
-> +What:		/sys/bus/dax/devices/daxX.Y/memmap_on_memory
-> +Date:		October, 2023
+Changelog:
 
-It's not October anymore :)
+v2: Set the __free attribute before kzalloc.
+---
+ drivers/nvdimm/btt.c | 13 ++++---------
+ 1 file changed, 4 insertions(+), 9 deletions(-)
 
-thanks,
+diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+index d5593b0dc700..32a9e2f543c5 100644
+--- a/drivers/nvdimm/btt.c
++++ b/drivers/nvdimm/btt.c
+@@ -16,6 +16,7 @@
+ #include <linux/fs.h>
+ #include <linux/nd.h>
+ #include <linux/backing-dev.h>
++#include <linux/cleanup.h>
+ #include "btt.h"
+ #include "nd.h"
+ 
+@@ -847,23 +848,20 @@ static int discover_arenas(struct btt *btt)
+ {
+ 	int ret = 0;
+ 	struct arena_info *arena;
+-	struct btt_sb *super;
+ 	size_t remaining = btt->rawsize;
+ 	u64 cur_nlba = 0;
+ 	size_t cur_off = 0;
+ 	int num_arenas = 0;
+ 
+-	super = kzalloc(sizeof(*super), GFP_KERNEL);
++	struct btt_sb *super __free(kfree) = kzalloc(sizeof(*super), GFP_KERNEL);
+ 	if (!super)
+ 		return -ENOMEM;
+ 
+ 	while (remaining) {
+ 		/* Alloc memory for arena */
+ 		arena = alloc_arena(btt, 0, 0, 0);
+-		if (!arena) {
+-			ret = -ENOMEM;
+-			goto out_super;
+-		}
++		if (!arena)
++			return -ENOMEM;
+ 
+ 		arena->infooff = cur_off;
+ 		ret = btt_info_read(arena, super);
+@@ -919,14 +917,11 @@ static int discover_arenas(struct btt *btt)
+ 	btt->nlba = cur_nlba;
+ 	btt->init_state = INIT_READY;
+ 
+-	kfree(super);
+ 	return ret;
+ 
+  out:
+ 	kfree(arena);
+ 	free_arenas(btt);
+- out_super:
+-	kfree(super);
+ 	return ret;
+ }
+ 
+-- 
+2.17.1
 
-greg k-h
