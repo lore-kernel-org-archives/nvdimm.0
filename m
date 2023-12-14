@@ -1,40 +1,40 @@
 Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.43])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E7D812E6B
-	for <nvdimm@lists.linux.dev>; Thu, 14 Dec 2023 07:38:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2F7112E79
+	for <nvdimm@lists.linux.dev>; Thu, 14 Dec 2023 07:38:16 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="C7uwzNTV"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="iq9W8+Xj"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1702539495; x=1734075495;
+  t=1702539496; x=1734075496;
   h=from:date:subject:mime-version:content-transfer-encoding:
    message-id:references:in-reply-to:to:cc;
-  bh=g9l8RslOMp5ad/gXCRHw+j360xuk1nb3+acdwFrlL50=;
-  b=C7uwzNTVTywtool/TQErXDmXkluI00xVPpGzgIaJbTUWA1QBEUflALII
-   Vr35Cmu5Bj1V/xUr3wz6HFXDqPjxhqQiRyD7Yq3f8RfBy4oPJhOxpCtyf
-   pfB7pyMtSGBSdaOrLv6tpzn5vZQvHEkjHAX9GcwQQLYmuMrYlkFHbweoQ
-   G3m6HVQznd9PJ89rt8v00U1MTEbAofH3vGE2Czjf5/RTJeWH/x0QQY5oV
-   xswWm0m8sOPlm6q5BD5RQPqKF/zxKGN1FSx3VX3LgZBH2v0NFu0x6uV+w
-   LRrlDMz9lIL+RvfGTYWNHn2eOWDXBHHMAgl2Qz5a676h6bHEoHU7Vi8yB
+  bh=VTyAcMOb3p9TMnLFpPQVGZqQ3IoF/IW/eEzVelz5aSE=;
+  b=iq9W8+XjfK3U9yEpKOmYA04ZlXauH2jSJ8x8iXGU1QCDoDyjWZ+c5b4Z
+   8cWTlYSvp9jv/Que7H/1hXKQAqcvVcvQTtcttM9rMlExDjL0L+hKGAUDb
+   9VvtVqtXamyxY+NEUsPMvF+/R2a96B09MhhmDxWNT3Mri1JA0mvOtWd3c
+   FNxu4AnrWz1eYKRUBRvwPFidi405uzQyMiRRflptRDk3+X0VFoxw5wcvP
+   vxJrFPgo513Ww8bHD5/tuIOtjg3aM4G2YU1f1dc/iqYknhE7FO+d0TRbm
+   BAbsPPEkY/i/BcBO9kEH0iIPF9iUC3Tg2iJFb4rPNWM9NyvtN8hZ6elWo
    Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10923"; a="481275517"
+X-IronPort-AV: E=McAfee;i="6600,9927,10923"; a="481275526"
 X-IronPort-AV: E=Sophos;i="6.04,274,1695711600"; 
-   d="scan'208";a="481275517"
+   d="scan'208";a="481275526"
 Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Dec 2023 23:38:13 -0800
+  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Dec 2023 23:38:14 -0800
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10923"; a="723972064"
+X-IronPort-AV: E=McAfee;i="6600,9927,10923"; a="723972068"
 X-IronPort-AV: E=Sophos;i="6.04,274,1695711600"; 
-   d="scan'208";a="723972064"
+   d="scan'208";a="723972068"
 Received: from llblake-mobl1.amr.corp.intel.com (HELO [192.168.1.200]) ([10.213.191.124])
-  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Dec 2023 23:38:12 -0800
+  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Dec 2023 23:38:13 -0800
 From: Vishal Verma <vishal.l.verma@intel.com>
-Date: Thu, 14 Dec 2023 00:37:55 -0700
-Subject: [PATCH v5 2/4] dax/bus: Use guard(device) in sysfs attribute
- helpers
+Date: Thu, 14 Dec 2023 00:37:56 -0700
+Subject: [PATCH v5 3/4] mm/memory_hotplug: export
+ mhp_supports_memmap_on_memory()
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -43,7 +43,7 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20231214-vv-dax_abi-v5-2-3f7b006960b4@intel.com>
+Message-Id: <20231214-vv-dax_abi-v5-3-3f7b006960b4@intel.com>
 References: <20231214-vv-dax_abi-v5-0-3f7b006960b4@intel.com>
 In-Reply-To: <20231214-vv-dax_abi-v5-0-3f7b006960b4@intel.com>
 To: Dan Williams <dan.j.williams@intel.com>, 
@@ -55,281 +55,125 @@ Cc: linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
  Dave Hansen <dave.hansen@linux.intel.com>, 
  Huang Ying <ying.huang@intel.com>, 
  Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-mm@kvack.org, 
- Joao Martins <joao.m.martins@oracle.com>
+ Michal Hocko <mhocko@suse.com>
 X-Mailer: b4 0.13-dev-433a8
-X-Developer-Signature: v=1; a=openpgp-sha256; l=7001;
+X-Developer-Signature: v=1; a=openpgp-sha256; l=4625;
  i=vishal.l.verma@intel.com; h=from:subject:message-id;
- bh=g9l8RslOMp5ad/gXCRHw+j360xuk1nb3+acdwFrlL50=;
- b=owGbwMvMwCXGf25diOft7jLG02pJDKlVGx4ZxJv18x/TfPRo6pLQrU05Fp3PElasO7C0qM1kr
- 5tHY3xlRykLgxgXg6yYIsvfPR8Zj8ltz+cJTHCEmcPKBDKEgYtTACZySoGRoZ9jz78FO0WOfBHN
- z7hkJdKzWZrxycoHdT8NjQSDuFZGHmZk+Kn/VmUD14viH/ymS1fZFjwx1PJr9J8nFCC9Yf3cLpa
- H7AA=
+ bh=VTyAcMOb3p9TMnLFpPQVGZqQ3IoF/IW/eEzVelz5aSE=;
+ b=owGbwMvMwCXGf25diOft7jLG02pJDKlVGx4pb98Uu1/qmbru9H/PH6bM1J0/7UV3iMK//UUCo
+ ZtfqC/k7ihlYRDjYpAVU2T5u+cj4zG57fk8gQmOMHNYmUCGMHBxCsBEUiMYGVbuX/Wr9FcXs9aM
+ oDlX6jRyr1fI/1s065G+YX6fQ+ehP6sYGV4/iDWrnHaq9Xa2THW3oGnTxgemL7ds3qmhVXMi5Nu
+ BHB4A
 X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp;
  fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
 
-Use the guard(device) macro to lock a 'struct device', and unlock it
-automatically when going out of scope using Scope Based Resource
-Management semantics. A lot of the sysfs attribute writes in
-drivers/dax/bus.c benefit from a cleanup using these, so change these
-where applicable.
+In preparation for adding sysfs ABI to toggle memmap_on_memory semantics
+for drivers adding memory, export the mhp_supports_memmap_on_memory()
+helper. This allows drivers to check if memmap_on_memory support is
+available before trying to request it, and display an appropriate
+message if it isn't available. As part of this, remove the size argument
+to this - with recent updates to allow memmap_on_memory for larger
+ranges, and the internal splitting of altmaps into respective memory
+blocks, the size argument is meaningless.
 
-Cc: Joao Martins <joao.m.martins@oracle.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Huang Ying <ying.huang@intel.com>
+Suggested-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- drivers/dax/bus.c | 143 ++++++++++++++++++++++--------------------------------
- 1 file changed, 59 insertions(+), 84 deletions(-)
+ include/linux/memory_hotplug.h |  6 ++++++
+ mm/memory_hotplug.c            | 17 ++++++-----------
+ 2 files changed, 12 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-index 1ff1ab5fa105..6226de131d17 100644
---- a/drivers/dax/bus.c
-+++ b/drivers/dax/bus.c
-@@ -294,13 +294,10 @@ static ssize_t available_size_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
- {
- 	struct dax_region *dax_region = dev_get_drvdata(dev);
--	unsigned long long size;
+diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
+index 7d2076583494..ebc9d528f00c 100644
+--- a/include/linux/memory_hotplug.h
++++ b/include/linux/memory_hotplug.h
+@@ -121,6 +121,7 @@ struct mhp_params {
  
--	device_lock(dev);
--	size = dax_region_avail_size(dax_region);
--	device_unlock(dev);
-+	guard(device)(dev);
+ bool mhp_range_allowed(u64 start, u64 size, bool need_mapping);
+ struct range mhp_get_pluggable_range(bool need_mapping);
++bool mhp_supports_memmap_on_memory(void);
  
--	return sprintf(buf, "%llu\n", size);
-+	return sprintf(buf, "%llu\n", dax_region_avail_size(dax_region));
- }
- static DEVICE_ATTR_RO(available_size);
- 
-@@ -309,17 +306,14 @@ static ssize_t seed_show(struct device *dev,
- {
- 	struct dax_region *dax_region = dev_get_drvdata(dev);
- 	struct device *seed;
--	ssize_t rc;
- 
- 	if (is_static(dax_region))
- 		return -EINVAL;
- 
--	device_lock(dev);
-+	guard(device)(dev);
- 	seed = dax_region->seed;
--	rc = sprintf(buf, "%s\n", seed ? dev_name(seed) : "");
--	device_unlock(dev);
- 
--	return rc;
-+	return sprintf(buf, "%s\n", seed ? dev_name(seed) : "");
- }
- static DEVICE_ATTR_RO(seed);
- 
-@@ -328,24 +322,28 @@ static ssize_t create_show(struct device *dev,
- {
- 	struct dax_region *dax_region = dev_get_drvdata(dev);
- 	struct device *youngest;
--	ssize_t rc;
- 
- 	if (is_static(dax_region))
- 		return -EINVAL;
- 
--	device_lock(dev);
-+	guard(device)(dev);
- 	youngest = dax_region->youngest;
--	rc = sprintf(buf, "%s\n", youngest ? dev_name(youngest) : "");
--	device_unlock(dev);
- 
--	return rc;
-+	return sprintf(buf, "%s\n", youngest ? dev_name(youngest) : "");
+ /*
+  * Zone resizing functions
+@@ -262,6 +263,11 @@ static inline bool movable_node_is_enabled(void)
+ 	return false;
  }
  
- static ssize_t create_store(struct device *dev, struct device_attribute *attr,
- 		const char *buf, size_t len)
- {
- 	struct dax_region *dax_region = dev_get_drvdata(dev);
-+	struct dev_dax_data data = {
-+		.dax_region = dax_region,
-+		.size = 0,
-+		.id = -1,
-+		.memmap_on_memory = false,
-+	};
- 	unsigned long long avail;
-+	struct dev_dax *dev_dax;
- 	ssize_t rc;
- 	int val;
- 
-@@ -358,38 +356,25 @@ static ssize_t create_store(struct device *dev, struct device_attribute *attr,
- 	if (val != 1)
- 		return -EINVAL;
- 
--	device_lock(dev);
-+	guard(device)(dev);
- 	avail = dax_region_avail_size(dax_region);
- 	if (avail == 0)
--		rc = -ENOSPC;
--	else {
--		struct dev_dax_data data = {
--			.dax_region = dax_region,
--			.size = 0,
--			.id = -1,
--			.memmap_on_memory = false,
--		};
--		struct dev_dax *dev_dax = devm_create_dev_dax(&data);
-+		return -ENOSPC;
- 
--		if (IS_ERR(dev_dax))
--			rc = PTR_ERR(dev_dax);
--		else {
--			/*
--			 * In support of crafting multiple new devices
--			 * simultaneously multiple seeds can be created,
--			 * but only the first one that has not been
--			 * successfully bound is tracked as the region
--			 * seed.
--			 */
--			if (!dax_region->seed)
--				dax_region->seed = &dev_dax->dev;
--			dax_region->youngest = &dev_dax->dev;
--			rc = len;
--		}
--	}
--	device_unlock(dev);
-+	dev_dax = devm_create_dev_dax(&data);
-+	if (IS_ERR(dev_dax))
-+		return PTR_ERR(dev_dax);
- 
--	return rc;
-+	/*
-+	 * In support of crafting multiple new devices simultaneously multiple
-+	 * seeds can be created, but only the first one that has not been
-+	 * successfully bound is tracked as the region seed.
-+	 */
-+	if (!dax_region->seed)
-+		dax_region->seed = &dev_dax->dev;
-+	dax_region->youngest = &dev_dax->dev;
++static bool mhp_supports_memmap_on_memory(void)
++{
++	return false;
++}
 +
-+	return len;
+ static inline void pgdat_kswapd_lock(pg_data_t *pgdat) {}
+ static inline void pgdat_kswapd_unlock(pg_data_t *pgdat) {}
+ static inline void pgdat_kswapd_lock_init(pg_data_t *pgdat) {}
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index 926e1cfb10e9..751664c519f7 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -1325,7 +1325,7 @@ static inline bool arch_supports_memmap_on_memory(unsigned long vmemmap_size)
  }
- static DEVICE_ATTR_RW(create);
+ #endif
  
-@@ -481,12 +466,9 @@ static int __free_dev_dax_id(struct dev_dax *dev_dax)
- static int free_dev_dax_id(struct dev_dax *dev_dax)
+-static bool mhp_supports_memmap_on_memory(unsigned long size)
++bool mhp_supports_memmap_on_memory(void)
  {
- 	struct device *dev = &dev_dax->dev;
--	int rc;
+ 	unsigned long vmemmap_size = memory_block_memmap_size();
+ 	unsigned long memmap_pages = memory_block_memmap_on_memory_pages();
+@@ -1334,17 +1334,11 @@ static bool mhp_supports_memmap_on_memory(unsigned long size)
+ 	 * Besides having arch support and the feature enabled at runtime, we
+ 	 * need a few more assumptions to hold true:
+ 	 *
+-	 * a) We span a single memory block: memory onlining/offlinin;g happens
+-	 *    in memory block granularity. We don't want the vmemmap of online
+-	 *    memory blocks to reside on offline memory blocks. In the future,
+-	 *    we might want to support variable-sized memory blocks to make the
+-	 *    feature more versatile.
+-	 *
+-	 * b) The vmemmap pages span complete PMDs: We don't want vmemmap code
++	 * a) The vmemmap pages span complete PMDs: We don't want vmemmap code
+ 	 *    to populate memory from the altmap for unrelated parts (i.e.,
+ 	 *    other memory blocks)
+ 	 *
+-	 * c) The vmemmap pages (and thereby the pages that will be exposed to
++	 * b) The vmemmap pages (and thereby the pages that will be exposed to
+ 	 *    the buddy) have to cover full pageblocks: memory onlining/offlining
+ 	 *    code requires applicable ranges to be page-aligned, for example, to
+ 	 *    set the migratetypes properly.
+@@ -1356,7 +1350,7 @@ static bool mhp_supports_memmap_on_memory(unsigned long size)
+ 	 *       altmap as an alternative source of memory, and we do not exactly
+ 	 *       populate a single PMD.
+ 	 */
+-	if (!mhp_memmap_on_memory() || size != memory_block_size_bytes())
++	if (!mhp_memmap_on_memory())
+ 		return false;
  
--	device_lock(dev);
--	rc = __free_dev_dax_id(dev_dax);
--	device_unlock(dev);
--	return rc;
-+	guard(device)(dev);
-+	return __free_dev_dax_id(dev_dax);
+ 	/*
+@@ -1379,6 +1373,7 @@ static bool mhp_supports_memmap_on_memory(unsigned long size)
+ 
+ 	return arch_supports_memmap_on_memory(vmemmap_size);
  }
++EXPORT_SYMBOL_GPL(mhp_supports_memmap_on_memory);
  
- static int alloc_dev_dax_id(struct dev_dax *dev_dax)
-@@ -908,9 +890,8 @@ static ssize_t size_show(struct device *dev,
- 	struct dev_dax *dev_dax = to_dev_dax(dev);
- 	unsigned long long size;
- 
--	device_lock(dev);
-+	guard(device)(dev);
- 	size = dev_dax_size(dev_dax);
--	device_unlock(dev);
- 
- 	return sprintf(buf, "%llu\n", size);
- }
-@@ -1080,17 +1061,16 @@ static ssize_t size_store(struct device *dev, struct device_attribute *attr,
- 		return -EINVAL;
- 	}
- 
--	device_lock(dax_region->dev);
--	if (!dax_region->dev->driver) {
--		device_unlock(dax_region->dev);
-+	guard(device)(dax_region->dev);
-+	if (!dax_region->dev->driver)
- 		return -ENXIO;
--	}
--	device_lock(dev);
-+
-+	guard(device)(dev);
- 	rc = dev_dax_resize(dax_region, dev_dax, val);
--	device_unlock(dev);
--	device_unlock(dax_region->dev);
-+	if (rc)
-+		return rc;
- 
--	return rc == 0 ? len : rc;
-+	return len;
- }
- static DEVICE_ATTR_RW(size);
- 
-@@ -1137,21 +1117,20 @@ static ssize_t mapping_store(struct device *dev, struct device_attribute *attr,
- 	if (rc)
- 		return rc;
- 
--	rc = -ENXIO;
--	device_lock(dax_region->dev);
--	if (!dax_region->dev->driver) {
--		device_unlock(dax_region->dev);
--		return rc;
--	}
--	device_lock(dev);
-+	guard(device)(dax_region->dev);
-+	if (!dax_region->dev->driver)
-+		return -ENXIO;
- 
-+	guard(device)(dev);
- 	to_alloc = range_len(&r);
--	if (alloc_is_aligned(dev_dax, to_alloc))
--		rc = alloc_dev_dax_range(dev_dax, r.start, to_alloc);
--	device_unlock(dev);
--	device_unlock(dax_region->dev);
-+	if (!alloc_is_aligned(dev_dax, to_alloc))
-+		return -ENXIO;
- 
--	return rc == 0 ? len : rc;
-+	rc = alloc_dev_dax_range(dev_dax, r.start, to_alloc);
-+	if (rc)
-+		return rc;
-+
-+	return len;
- }
- static DEVICE_ATTR_WO(mapping);
- 
-@@ -1196,27 +1175,23 @@ static ssize_t align_store(struct device *dev, struct device_attribute *attr,
- 	if (!dax_align_valid(val))
- 		return -EINVAL;
- 
--	device_lock(dax_region->dev);
--	if (!dax_region->dev->driver) {
--		device_unlock(dax_region->dev);
-+	guard(device)(dax_region->dev);
-+	if (!dax_region->dev->driver)
- 		return -ENXIO;
--	}
- 
--	device_lock(dev);
--	if (dev->driver) {
--		rc = -EBUSY;
--		goto out_unlock;
--	}
-+	guard(device)(dev);
-+	if (dev->driver)
-+		return -EBUSY;
- 
- 	align_save = dev_dax->align;
- 	dev_dax->align = val;
- 	rc = dev_dax_validate_align(dev_dax);
--	if (rc)
-+	if (rc) {
- 		dev_dax->align = align_save;
--out_unlock:
--	device_unlock(dev);
--	device_unlock(dax_region->dev);
--	return rc == 0 ? len : rc;
-+		return rc;
-+	}
-+
-+	return len;
- }
- static DEVICE_ATTR_RW(align);
- 
+ static void __ref remove_memory_blocks_and_altmaps(u64 start, u64 size)
+ {
+@@ -1512,7 +1507,7 @@ int __ref add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
+ 	 * Self hosted memmap array
+ 	 */
+ 	if ((mhp_flags & MHP_MEMMAP_ON_MEMORY) &&
+-	    mhp_supports_memmap_on_memory(memory_block_size_bytes())) {
++	    mhp_supports_memmap_on_memory()) {
+ 		ret = create_altmaps_and_memory_blocks(nid, group, start, size);
+ 		if (ret)
+ 			goto error;
 
 -- 
 2.41.0
