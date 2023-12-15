@@ -1,174 +1,172 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.10])
+Received: from mgamail.intel.com (mgamail.intel.com [134.134.136.100])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FDC31C13
-	for <nvdimm@lists.linux.dev>; Fri, 15 Dec 2023 04:55:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D96FA5692
+	for <nvdimm@lists.linux.dev>; Fri, 15 Dec 2023 05:25:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="c6MZYqys"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="CIVEIeHH"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1702616144; x=1734152144;
-  h=from:to:cc:subject:in-reply-to:references:date:
-   message-id:mime-version;
-  bh=NNfMgy2cTrS1wiw43TcFoePLy/Ki0BUTJzsVdIqabMc=;
-  b=c6MZYqys+eDvrMUmmt7mH/Nk71ggIEBbYkBqI/qu9QQiw5QPKiLRr/UH
-   CiM7TTZPFNq6GcH9v6bN5H2Uir/szAQ9spN2FWn1EBSgjbcyyOhAHdMZp
-   oMadF98l1G9vNSVqL569/6z8Lyc/LLcRjCb9FiYZYTC5mvpFPV8X+AIus
-   KRl+M059a/Huq4r661bWfRcgl5tlPHcfzXy4Nc93A/YtAnYki0mUnK5l1
-   z237d2dkwRgl3A5WeHT0KPBg0L6mMPr+O3tRqqGHr5vDKOSV91wS+z6lN
-   u03B7uHizgCKolQRWt5PYlKCYWUwDTM6+MaPL0ylNXXwgvYXugxQWZ7Xq
-   w==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10924"; a="8587932"
+  t=1702617937; x=1734153937;
+  h=from:subject:date:message-id:mime-version:
+   content-transfer-encoding:to:cc;
+  bh=gpIMG98kSfTR7IkA5YlRDrASpRxzVoLtmbllKBAG/Uo=;
+  b=CIVEIeHHUjlmGEACu7ueGXwlbOVAvx1pIDe5lI+Uxs6UGTUPQ6TAPcHV
+   C3GO1imcmlhDHGAhzodvmK7LLI50MHYC3Gzb184Z7/Qbwf0dxTEx/cIx+
+   tY1j0qLDK7zdqPhmsumq9Xg8RxTDMoEpwM4fyCjTaRoBqQQ1aht7cZd6M
+   hrDGyZk4AMguFBX9tWkdcq/v9pPHtfmHSVfTHO9lah8Aq+jAuylK7V2WC
+   t/vAmsTOSCiTLZPRtAvCYFgIG2E9D1R6ytIrbTOHc6ZAzgwtILaqO3KcW
+   kRmEf0VtQBZPVlTo0HzjQdTPY15Nfcdw85y5YmtK/EMp2qcc1gOq8Yk4l
+   A==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10924"; a="461695011"
 X-IronPort-AV: E=Sophos;i="6.04,277,1695711600"; 
-   d="scan'208";a="8587932"
-Received: from orviesa001.jf.intel.com ([10.64.159.141])
-  by orvoesa102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Dec 2023 20:55:44 -0800
+   d="scan'208";a="461695011"
+Received: from orsmga001.jf.intel.com ([10.7.209.18])
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Dec 2023 21:25:37 -0800
 X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10924"; a="808847923"
 X-IronPort-AV: E=Sophos;i="6.04,277,1695711600"; 
-   d="scan'208";a="22699992"
-Received: from yhuang6-desk2.sh.intel.com (HELO yhuang6-desk2.ccr.corp.intel.com) ([10.238.208.55])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Dec 2023 20:55:40 -0800
-From: "Huang, Ying" <ying.huang@intel.com>
-To: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>,  Dave Jiang
- <dave.jiang@intel.com>,  Andrew Morton <akpm@linux-foundation.org>,  Oscar
- Salvador <osalvador@suse.de>,  <linux-kernel@vger.kernel.org>,
-  <nvdimm@lists.linux.dev>,  <linux-cxl@vger.kernel.org>,  David
- Hildenbrand <david@redhat.com>,  "Dave Hansen"
- <dave.hansen@linux.intel.com>,  Greg Kroah-Hartman
- <gregkh@linuxfoundation.org>,  <linux-mm@kvack.org>,  "Li Zhijian"
- <lizhijian@fujitsu.com>,  Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Subject: Re: [PATCH v5 4/4] dax: add a sysfs knob to control
- memmap_on_memory behavior
-In-Reply-To: <20231214-vv-dax_abi-v5-4-3f7b006960b4@intel.com> (Vishal Verma's
-	message of "Thu, 14 Dec 2023 00:37:57 -0700")
-References: <20231214-vv-dax_abi-v5-0-3f7b006960b4@intel.com>
-	<20231214-vv-dax_abi-v5-4-3f7b006960b4@intel.com>
-Date: Fri, 15 Dec 2023 12:53:40 +0800
-Message-ID: <87h6kkqd63.fsf@yhuang6-desk2.ccr.corp.intel.com>
-User-Agent: Gnus/5.13 (Gnus v5.13)
+   d="scan'208";a="808847923"
+Received: from mmtakalk-mobl.amr.corp.intel.com (HELO [192.168.1.200]) ([10.212.109.101])
+  by orsmga001-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Dec 2023 21:25:36 -0800
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v6 0/4] Add DAX ABI for memmap_on_memory
+Date: Thu, 14 Dec 2023 22:25:25 -0700
+Message-Id: <20231214-vv-dax_abi-v6-0-ad900d698438@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAEXje2UC/3XMTWrDMBCG4asErasyM/qzs+o9SgmSLDWC1i52E
+ AnBd+8k3ciGMqtv4HnvYklzSYs4Hu5iTrUsZRp52JeDiGc/fiZZBt6CgBQCGVmrHPz15EOR6Dx
+ hH7UFZwWDnznlcn3G3j94n8tymebbs13x8f3LENg2U1GC1E6n0HWJAONbGS/p6zVO3+KRqfQ/J
+ aZZ85FSdoBuT1VDETdUMfUx2xgxDKnPe6pbShuqmaIy6EyXIfa0p6alekMNU5VdALC9haBbuq7
+ rL8jHlC+QAQAA
+To: Dan Williams <dan.j.williams@intel.com>, 
+ Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+ Andrew Morton <akpm@linux-foundation.org>, 
+ Oscar Salvador <osalvador@suse.de>
+Cc: linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, 
+ linux-cxl@vger.kernel.org, David Hildenbrand <david@redhat.com>, 
+ Dave Hansen <dave.hansen@linux.intel.com>, 
+ Huang Ying <ying.huang@intel.com>, 
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-mm@kvack.org, 
+ Joao Martins <joao.m.martins@oracle.com>, Michal Hocko <mhocko@suse.com>, 
+ Li Zhijian <lizhijian@fujitsu.com>, 
+ Jonathan Cameron <Jonathan.Cameron@huawei.com>
+X-Mailer: b4 0.13-dev-433a8
+X-Developer-Signature: v=1; a=openpgp-sha256; l=4201;
+ i=vishal.l.verma@intel.com; h=from:subject:message-id;
+ bh=gpIMG98kSfTR7IkA5YlRDrASpRxzVoLtmbllKBAG/Uo=;
+ b=owGbwMvMwCXGf25diOft7jLG02pJDKnVj72DBQy7+sMEDkbc+rzgzleWNY1mWxuk89a8jnoaV
+ PSzoedXRykLgxgXg6yYIsvfPR8Zj8ltz+cJTHCEmcPKBDKEgYtTACZSwcXIcGXl8Xs8j+yjThxc
+ Jbroe5bpd089t8czdrTOkznRxMi4Sonhv2sN97OFe/XlLrqbdk0091qxU+vMhicVbluO37/4K2u
+ DKR8A
+X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp;
+ fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
 
-Vishal Verma <vishal.l.verma@intel.com> writes:
+The DAX drivers were missing sysfs ABI documentation entirely.  Add this
+missing documentation for the sysfs ABI for DAX regions and Dax devices
+in patch 1. Switch to guard(device) semantics for Scope Based Resource
+Management for device_{lock,unlock} flows in drivers/dax/bus.c in patch
+2. Export mhp_supports_memmap_on_memory() in patch 3. Add a new ABI for
+toggling memmap_on_memory semantics in patch 4.
 
-> Add a sysfs knob for dax devices to control the memmap_on_memory setting
-> if the dax device were to be hotplugged as system memory.
->
-> The default memmap_on_memory setting for dax devices originating via
-> pmem or hmem is set to 'false' - i.e. no memmap_on_memory semantics, to
-> preserve legacy behavior. For dax devices via CXL, the default is on.
-> The sysfs control allows the administrator to override the above
-> defaults if needed.
->
-> Cc: David Hildenbrand <david@redhat.com>
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Cc: Dave Jiang <dave.jiang@intel.com>
-> Cc: Dave Hansen <dave.hansen@linux.intel.com>
-> Cc: Huang Ying <ying.huang@intel.com>
-> Tested-by: Li Zhijian <lizhijian@fujitsu.com>
-> Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-> Reviewed-by: David Hildenbrand <david@redhat.com>
-> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
-> ---
->  drivers/dax/bus.c                       | 38 +++++++++++++++++++++++++++++++++
->  Documentation/ABI/testing/sysfs-bus-dax | 17 +++++++++++++++
->  2 files changed, 55 insertions(+)
->
-> diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-> index 6226de131d17..f4d3beec507c 100644
-> --- a/drivers/dax/bus.c
-> +++ b/drivers/dax/bus.c
-> @@ -1245,6 +1245,43 @@ static ssize_t numa_node_show(struct device *dev,
->  }
->  static DEVICE_ATTR_RO(numa_node);
->  
-> +static ssize_t memmap_on_memory_show(struct device *dev,
-> +				     struct device_attribute *attr, char *buf)
-> +{
-> +	struct dev_dax *dev_dax = to_dev_dax(dev);
-> +
-> +	return sprintf(buf, "%d\n", dev_dax->memmap_on_memory);
-> +}
-> +
-> +static ssize_t memmap_on_memory_store(struct device *dev,
-> +				      struct device_attribute *attr,
-> +				      const char *buf, size_t len)
-> +{
-> +	struct dev_dax *dev_dax = to_dev_dax(dev);
-> +	struct dax_device_driver *dax_drv;
-> +	ssize_t rc;
-> +	bool val;
-> +
-> +	rc = kstrtobool(buf, &val);
-> +	if (rc)
-> +		return rc;
-> +
-> +	if (val == true && !mhp_supports_memmap_on_memory()) {
-> +		dev_dbg(dev, "memmap_on_memory is not available\n");
-> +		return -EOPNOTSUPP;
-> +	}
-> +
-> +	guard(device)(dev);
-> +	dax_drv = to_dax_drv(dev->driver);
+The missing ABI was spotted in [1], this series is a split of the new
+ABI additions behind the initial documentation creation.
 
-Although "struct driver" is the first member of "struct
-dax_device_driver", I feel the code is fragile to depends on that.  Can
-we check dev->driver directly instead?
+[1]: https://lore.kernel.org/linux-cxl/651f27b728fef_ae7e7294b3@dwillia2-xfh.jf.intel.com.notmuch/
 
---
-Best Regards,
-Huang, Ying
+---
+This series depends on [2] which adds the definition for guard(device).
+[2]: https://lore.kernel.org/r/170250854466.1522182.17555361077409628655.stgit@dwillia2-xfh.jf.intel.com
 
-> +	if (dax_drv && dev_dax->memmap_on_memory != val &&
-> +	    dax_drv->type == DAXDRV_KMEM_TYPE)
-> +		return -EBUSY;
-> +	dev_dax->memmap_on_memory = val;
-> +
-> +	return len;
-> +}
-> +static DEVICE_ATTR_RW(memmap_on_memory);
-> +
->  static umode_t dev_dax_visible(struct kobject *kobj, struct attribute *a, int n)
->  {
->  	struct device *dev = container_of(kobj, struct device, kobj);
-> @@ -1271,6 +1308,7 @@ static struct attribute *dev_dax_attributes[] = {
->  	&dev_attr_align.attr,
->  	&dev_attr_resource.attr,
->  	&dev_attr_numa_node.attr,
-> +	&dev_attr_memmap_on_memory.attr,
->  	NULL,
->  };
->  
-> diff --git a/Documentation/ABI/testing/sysfs-bus-dax b/Documentation/ABI/testing/sysfs-bus-dax
-> index 6359f7bc9bf4..40d9965733b2 100644
-> --- a/Documentation/ABI/testing/sysfs-bus-dax
-> +++ b/Documentation/ABI/testing/sysfs-bus-dax
-> @@ -134,3 +134,20 @@ KernelVersion:	v5.1
->  Contact:	nvdimm@lists.linux.dev
->  Description:
->  		(RO) The id attribute indicates the region id of a dax region.
-> +
-> +What:		/sys/bus/dax/devices/daxX.Y/memmap_on_memory
-> +Date:		October, 2023
-> +KernelVersion:	v6.8
-> +Contact:	nvdimm@lists.linux.dev
-> +Description:
-> +		(RW) Control the memmap_on_memory setting if the dax device
-> +		were to be hotplugged as system memory. This determines whether
-> +		the 'altmap' for the hotplugged memory will be placed on the
-> +		device being hotplugged (memmap_on_memory=1) or if it will be
-> +		placed on regular memory (memmap_on_memory=0). This attribute
-> +		must be set before the device is handed over to the 'kmem'
-> +		driver (i.e.  hotplugged into system-ram). Additionally, this
-> +		depends on CONFIG_MHP_MEMMAP_ON_MEMORY, and a globally enabled
-> +		memmap_on_memory parameter for memory_hotplug. This is
-> +		typically set on the kernel command line -
-> +		memory_hotplug.memmap_on_memory set to 'true' or 'force'."
+---
+
+Other Logistics -
+
+Andrew, would you prefer patch 3 to go through mm? Or through the dax
+tree with an mm ack? The remaining patches are all contained to dax, but
+do depend on the memmap_on_memory set that is currently in mm-stable.
+
+---
+Changes in v6:
+- Use sysfs_emit() in memmap_on_memory_show() (Greg)
+- Change the ABI documentation date for memmap_on_memory to January 2024
+  as that's likely when the 6.8 merge window will fall (Greg)
+- Fix dev->driver check (Ying)
+- Link to v5: https://lore.kernel.org/r/20231214-vv-dax_abi-v5-0-3f7b006960b4@intel.com
+
+Changes in v5:
+- Export and check mhp_supports_memmap_on_memory() in the DAX sysfs ABI
+  (David)
+- Obtain dax_drv under the device lock (Ying)
+- Check dax_drv for NULL before dereferencing it (Ying)
+- Clean up some repetition in sysfs-bus-dax documentation entries
+  (Jonathan)
+- A few additional cleanups enabled by guard(device) (Jonathan)
+- Drop the DEFINE_GUARD() part of patch 2, add dependency on Dan's patch
+  above so it can be backported / applied separately (Jonathan, Dan)
+- Link to v4: https://lore.kernel.org/r/20231212-vv-dax_abi-v4-0-1351758f0c92@intel.com
+
+Changes in v4:
+- Hold the device lock when checking if the dax_dev is bound to kmem
+  (Ying, Dan)
+- Remove dax region checks (and locks) as they were unnecessary.
+- Introduce guard(device) for device lock/unlock (Dan)
+- Convert the rest of drivers/dax/bus.c to guard(device)
+- Link to v3: https://lore.kernel.org/r/20231211-vv-dax_abi-v3-0-acf6cc1bde9f@intel.com
+
+Changes in v3:
+- Fix typo in ABI docs (Zhijian Li)
+- Add kernel config and module parameter dependencies to the ABI docs
+  entry (David Hildenbrand)
+- Ensure kmem isn't active when setting the sysfs attribute (Ying
+  Huang)
+- Simplify returning from memmap_on_memory_store()
+- Link to v2: https://lore.kernel.org/r/20231206-vv-dax_abi-v2-0-f4f4f2336d08@intel.com
+
+Changes in v2:
+- Fix CC lists, patch 1/2 didn't get sent correctly in v1
+- Link to v1: https://lore.kernel.org/r/20231206-vv-dax_abi-v1-0-474eb88e201c@intel.com
+
+Cc: <linux-kernel@vger.kernel.org>
+Cc: <nvdimm@lists.linux.dev>
+Cc: <linux-cxl@vger.kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: <linux-mm@kvack.org>
+To: Dan Williams <dan.j.williams@intel.com>
+To: Vishal Verma <vishal.l.verma@intel.com>
+To: Dave Jiang <dave.jiang@intel.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+To: Oscar Salvador <osalvador@suse.de>
+
+---
+Vishal Verma (4):
+      Documentatiion/ABI: Add ABI documentation for sys-bus-dax
+      dax/bus: Use guard(device) in sysfs attribute helpers
+      mm/memory_hotplug: export mhp_supports_memmap_on_memory()
+      dax: add a sysfs knob to control memmap_on_memory behavior
+
+ include/linux/memory_hotplug.h          |   6 ++
+ drivers/dax/bus.c                       | 179 +++++++++++++++++---------------
+ mm/memory_hotplug.c                     |  17 ++-
+ Documentation/ABI/testing/sysfs-bus-dax | 153 +++++++++++++++++++++++++++
+ 4 files changed, 260 insertions(+), 95 deletions(-)
+---
+base-commit: a6e0c2ca980d75d5ac6b2902c5c0028eaf094db3
+change-id: 20231025-vv-dax_abi-17a219c46076
+
+Best regards,
+-- 
+Vishal Verma <vishal.l.verma@intel.com>
+
