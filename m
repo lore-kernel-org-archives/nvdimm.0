@@ -1,246 +1,174 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.151])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1B9A36A
-	for <nvdimm@lists.linux.dev>; Fri, 15 Dec 2023 00:24:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FDC31C13
+	for <nvdimm@lists.linux.dev>; Fri, 15 Dec 2023 04:55:43 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="G7WA9ClQ"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="c6MZYqys"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1702599869; x=1734135869;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=WgJPVLf8y0VyrpXx8s+Hv3ruoug6OOoZPNRHgS4KA38=;
-  b=G7WA9ClQsUtSEJ7kYkLIotAdiGl0ZfRbDm4HyUW+/2KmglLesSHX8aZN
-   NnnxlX9cDNymsgXrR5EWzEZ1quCYx32phjqKDGHOQs5ckTskb6qcz8C1j
-   jyF5R4LQZ93DQgltkkgvFbT2mOraM0stfjf7L6EeZIYBK/yT+j9gNH2by
-   tPihstEtMumCk6S4BpZ5YKw4z7ytsuma4qw2OzJFx1EDT44MnXyy7GQYD
-   ZQlXm2/hZOxPXz4ik125BBsC05FhpaYh8PkF1JHFdJPKqDIOYua4Fx0dS
-   9vlN2JOrUd1iiptIWtgG5QwJFc7jVWU52u9LQfYvXoqXt57g/P+YjjUDZ
-   g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10924"; a="375357863"
+  t=1702616144; x=1734152144;
+  h=from:to:cc:subject:in-reply-to:references:date:
+   message-id:mime-version;
+  bh=NNfMgy2cTrS1wiw43TcFoePLy/Ki0BUTJzsVdIqabMc=;
+  b=c6MZYqys+eDvrMUmmt7mH/Nk71ggIEBbYkBqI/qu9QQiw5QPKiLRr/UH
+   CiM7TTZPFNq6GcH9v6bN5H2Uir/szAQ9spN2FWn1EBSgjbcyyOhAHdMZp
+   oMadF98l1G9vNSVqL569/6z8Lyc/LLcRjCb9FiYZYTC5mvpFPV8X+AIus
+   KRl+M059a/Huq4r661bWfRcgl5tlPHcfzXy4Nc93A/YtAnYki0mUnK5l1
+   z237d2dkwRgl3A5WeHT0KPBg0L6mMPr+O3tRqqGHr5vDKOSV91wS+z6lN
+   u03B7uHizgCKolQRWt5PYlKCYWUwDTM6+MaPL0ylNXXwgvYXugxQWZ7Xq
+   w==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10924"; a="8587932"
 X-IronPort-AV: E=Sophos;i="6.04,277,1695711600"; 
-   d="scan'208";a="375357863"
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Dec 2023 16:24:28 -0800
+   d="scan'208";a="8587932"
+Received: from orviesa001.jf.intel.com ([10.64.159.141])
+  by orvoesa102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Dec 2023 20:55:44 -0800
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10924"; a="918245939"
 X-IronPort-AV: E=Sophos;i="6.04,277,1695711600"; 
-   d="scan'208";a="918245939"
-Received: from fmsmsx601.amr.corp.intel.com ([10.18.126.81])
-  by fmsmga001.fm.intel.com with ESMTP/TLS/AES256-GCM-SHA384; 14 Dec 2023 16:24:28 -0800
-Received: from fmsmsx610.amr.corp.intel.com (10.18.126.90) by
- fmsmsx601.amr.corp.intel.com (10.18.126.81) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.35; Thu, 14 Dec 2023 16:24:28 -0800
-Received: from fmsmsx610.amr.corp.intel.com (10.18.126.90) by
- fmsmsx610.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.35; Thu, 14 Dec 2023 16:24:27 -0800
-Received: from fmsedg601.ED.cps.intel.com (10.1.192.135) by
- fmsmsx610.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.35 via Frontend Transport; Thu, 14 Dec 2023 16:24:27 -0800
-Received: from NAM12-BN8-obe.outbound.protection.outlook.com (104.47.55.169)
- by edgegateway.intel.com (192.55.55.70) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.35; Thu, 14 Dec 2023 16:24:27 -0800
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=WCknrjrxwykiyAyFmEpaYGoh5tnudKFFKjSAOBPUVRkyjQ5y19Y5whC8j1tPrdHkZqSZ7lReJfAR8XLnBIzAyIOJkBbN2wswopgemLHaPCSO226cgnWftIiJev+SKuEhwehnS7DjApqCSEHJ8K1c6GuxO2EPHxZgtnk5WNopgfYcxncfsO+q+3sKxjZ4Jsbjw4XyNfJK51qVLoLEYpLSApkRaciq7bPKsv9N4M1BKwlkHhL3k7KKO9oy2lgxOUE35ZKhtZyyGHmJPOohuUE+gQnSeCBEBtcq5r1b4KZYbGZTMmeAimCZ+gn+1nire/uuc6nd+oi9qp9ZmtsIHvfC0A==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=/9RyoZzRyOCaY3oPv4ygyF1nLeMQ4bWkDMMr+akE4uo=;
- b=ofEuapKnRIGqiD/uNh6aVXOArM2Qg0PVe+qFOOivS88rSr8hwzMfYgKHaqQgYnhNvgNeEVIz19H6BaP8ne/e2ibgjypxbTbz3JRIcx+54fEgt4fTe0UE5nDjbrHw9kW7S6RoVAsn2lVrlT2jI265hy5HEN04pLoeCUu4OIia1kqeYvV10M9gIQqh2RHdiRg/Dt5+8wJ7McyRYphwxMbtYEOS5V7HazMOUNQutrvctIo6s15TrxGKd/9UUmLy4my/6IG79TynzgCdjApVfwYRlXSXha96cMyQRSP6v5UdP2tFlR6aWwRAuqZfve1ZnHWcv006rPo+L34FLdGbBLNEOQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from SA1PR11MB6733.namprd11.prod.outlook.com (2603:10b6:806:25c::17)
- by DS0PR11MB8049.namprd11.prod.outlook.com (2603:10b6:8:116::6) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7091.29; Fri, 15 Dec
- 2023 00:24:20 +0000
-Received: from SA1PR11MB6733.namprd11.prod.outlook.com
- ([fe80::da91:dbe5:857c:fa9c]) by SA1PR11MB6733.namprd11.prod.outlook.com
- ([fe80::da91:dbe5:857c:fa9c%4]) with mapi id 15.20.7091.028; Fri, 15 Dec 2023
- 00:24:20 +0000
-Date: Thu, 14 Dec 2023 16:24:16 -0800
-From: Ira Weiny <ira.weiny@intel.com>
-To: Dinghao Liu <dinghao.liu@zju.edu.cn>
-CC: Dan Williams <dan.j.williams@intel.com>, Vishal Verma
-	<vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, Ira Weiny
-	<ira.weiny@intel.com>, <nvdimm@lists.linux.dev>,
-	<linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] [v2] nvdimm-btt: fix several memleaks
-Message-ID: <657b9cb088175_27db80294d2@iweiny-mobl.notmuch>
-References: <20231210085817.30161-1-dinghao.liu@zju.edu.cn>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20231210085817.30161-1-dinghao.liu@zju.edu.cn>
-X-ClientProxiedBy: BYAPR05CA0005.namprd05.prod.outlook.com
- (2603:10b6:a03:c0::18) To SA1PR11MB6733.namprd11.prod.outlook.com
- (2603:10b6:806:25c::17)
+   d="scan'208";a="22699992"
+Received: from yhuang6-desk2.sh.intel.com (HELO yhuang6-desk2.ccr.corp.intel.com) ([10.238.208.55])
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Dec 2023 20:55:40 -0800
+From: "Huang, Ying" <ying.huang@intel.com>
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>,  Dave Jiang
+ <dave.jiang@intel.com>,  Andrew Morton <akpm@linux-foundation.org>,  Oscar
+ Salvador <osalvador@suse.de>,  <linux-kernel@vger.kernel.org>,
+  <nvdimm@lists.linux.dev>,  <linux-cxl@vger.kernel.org>,  David
+ Hildenbrand <david@redhat.com>,  "Dave Hansen"
+ <dave.hansen@linux.intel.com>,  Greg Kroah-Hartman
+ <gregkh@linuxfoundation.org>,  <linux-mm@kvack.org>,  "Li Zhijian"
+ <lizhijian@fujitsu.com>,  Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Subject: Re: [PATCH v5 4/4] dax: add a sysfs knob to control
+ memmap_on_memory behavior
+In-Reply-To: <20231214-vv-dax_abi-v5-4-3f7b006960b4@intel.com> (Vishal Verma's
+	message of "Thu, 14 Dec 2023 00:37:57 -0700")
+References: <20231214-vv-dax_abi-v5-0-3f7b006960b4@intel.com>
+	<20231214-vv-dax_abi-v5-4-3f7b006960b4@intel.com>
+Date: Fri, 15 Dec 2023 12:53:40 +0800
+Message-ID: <87h6kkqd63.fsf@yhuang6-desk2.ccr.corp.intel.com>
+User-Agent: Gnus/5.13 (Gnus v5.13)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SA1PR11MB6733:EE_|DS0PR11MB8049:EE_
-X-MS-Office365-Filtering-Correlation-Id: cd410ae8-676d-4ff4-0c08-08dbfd042e4a
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: fy2pHH05tWvp+uqTvoKPbUruJ1o3hW9hiW93YQKNWihFvY2pENkRGzQdyWw1eFt8Ctp52rsnrkXV/pEQAUpAUVPWQ4qnSk4+J+Q6TS/lByPON4GF8csXOsKVW0n/PRGsl7u7cqXIDyA9FhgfTVInSjJVdMDG35bthzUjhPo5wTFWAPw97u2AAPg5pOr9OnBHyfPLp17e+DtS7V6YpDEoYI856k2IEAg5NEGma6ncgkWSGcSLing3OPjC/wHTtS6aqW5decSrciJAwaxFq8YzFI2fxysht/M1grSaVMJ2cf4KJISZMxPPGjPrkaoBPoQwZ14ls7vCR4LhxyxuG4hiW8Fm8Fp0/Hq/HHjGXZC6Kfcv+zP7ieskRoKDDTlMY4ZG/poeOj8kIhfIxDLlPeQEiUmNwscxezKvi00aKkIrxGplGSDequx0eQaPQzwM1nTLmtTxzXH9wKMyey9p1WC3vENNhKFg1xEfv/ke6+jFdXfn9cezlH5MJKDK9aGn5xmVDAdKIMKrJWub7sI0p7gCJ0quYBGUp1HgUbbZobLpKi+77qGKkSq2EmgDT2o4JN19
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA1PR11MB6733.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(366004)(396003)(136003)(376002)(39860400002)(346002)(230922051799003)(64100799003)(451199024)(186009)(1800799012)(82960400001)(2906002)(38100700002)(86362001)(41300700001)(316002)(6916009)(54906003)(66476007)(66946007)(83380400001)(66556008)(9686003)(6666004)(6486002)(478600001)(6512007)(26005)(44832011)(5660300002)(8936002)(8676002)(4326008)(6506007);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?5Lt2N3Kq8x1mpSImOeWEqNkF4SUZYnfMlNe7x60qo04Eu4Ek4PgD7H5hHwb8?=
- =?us-ascii?Q?YIFICl3lrxNYXc+MI4ASxQZe78AT8S0sNG6XWzoYKLk/79QPF2xaMsO7IjLx?=
- =?us-ascii?Q?SDDty9PmgYYwcy32etHJ7hfcxdjtT+DtAzAhzzbCfAwjqQov9caiIBmA/nCi?=
- =?us-ascii?Q?4SgjT/J9gDC7GxkbhIbNuK9WuNAUiSE7ShqlM1x0BPvtiY172/QpcGUyJW65?=
- =?us-ascii?Q?nOJVbz6z5RJ4WIn8cNsRNCeLuPoz/dhlqjmW8wj5oZF+RlJDWVOp75sRi5HD?=
- =?us-ascii?Q?NecshvPs5i4OvfTFsGvq3n+1g/qFXGMGeHMQcyWGib1NUbIuhhmGNbQD9ohW?=
- =?us-ascii?Q?49MY40suyBU4VEi59U4FcSk+8WptN5J1z1pGfIZZj6DUO1HjRiloI2l1im6y?=
- =?us-ascii?Q?NU26OmUVgh3aqjvvZcMhdyDv9D9C7Iev0/pHkvC2lYoO/iDN94A0IRsUYL87?=
- =?us-ascii?Q?lgByHc4EkgAC2SHbr8z4uxsevBI1npTtwodD1d8e+tAiTA71p9Zqq/mIfUQF?=
- =?us-ascii?Q?LUPLd4YgF+brZTmsr60UfXfiKEuPm3tp2mksfNWTe3jpL63yEZUJ2OK9B0qH?=
- =?us-ascii?Q?j78wYPLT6bBIVapc2fvFBnr0Lq9OOgdwGS7N1wOFsQBDbuTyo9ky4E00kIoo?=
- =?us-ascii?Q?ERjHcavhBWjaMWeF14hfhVFLu9VogOgUJCB2x61s8+RwPC6+xv4n0ebB7YG/?=
- =?us-ascii?Q?/YoSMxU08/lo+X17bcJsBtwj3snSz4H+sTHbnM64WexZP/PlqSthKnukp3uy?=
- =?us-ascii?Q?Q0iV5PxGRVKsInLCCGbDgL32z/euv+CMUthHhlItL/EwWc8fMiZHkPht6Edd?=
- =?us-ascii?Q?Q1iFDMIdJyd979eNtgbiJ/lWXpsw3GQC7pRxRSeqsFAqYVC35T6/iHIK3USY?=
- =?us-ascii?Q?22eCPNdFh4UkQPCtnme2ATVcpPC00Oaue4TJaVgxV7ZCCwUEcfSJv8ynTAoO?=
- =?us-ascii?Q?7CBXfQK6Meijkrmf3LLzuuiD4T4cqHvIOJZ5/nr76wUB3izpWIQe7Sfr7386?=
- =?us-ascii?Q?koYw7afIhMkTaT1W3rUwZuGiKw3v/oKCD/giphuAm97alhOYjpe62qqll5dh?=
- =?us-ascii?Q?MSRitDQNUqXSDlp8YWvCyH1MglIVjTiyO/tCb+CP4Y0W5ITYwURH3aBmljPk?=
- =?us-ascii?Q?2HbXJNarCLgoPRYpRuLvdEW75UFTNNIgd0hJzcPjWV+Cizbz0NEGYbJP/qhU?=
- =?us-ascii?Q?8pTTCjzjh05NulM/tYNTdQcUQVMbvmJdZiw7ymi8YS2AaWw1alptvFKjJi0N?=
- =?us-ascii?Q?GuYHCKc6cY5VQxZYrQm9Gi2h6thuWwmvi0TkXqxNUsfe1OJc7wpJywjJnCf9?=
- =?us-ascii?Q?EBtK9A/VWblSKYDGQdAQO6UwJjgnRbMCeu6RDpDwgBVkJNa8tlw0DTQ4xfq8?=
- =?us-ascii?Q?joP3i52UoMoAtV+GExHonQ8nGjjZAhureTMPQCkmeWmUZ7MdkxbtYii/scxV?=
- =?us-ascii?Q?REx7THLt9enTpp4kjl9czX1HPx7iamyiikjtbw6a3y692/x80V5Ng+0mPjHv?=
- =?us-ascii?Q?Vncrr+agxcK2gTGM5HMJYTo2wVzGA+dJDOLk8B+ZzOvxRz5z7PMoFXR6I+ji?=
- =?us-ascii?Q?89AuCprL4m1L2p30lUwrlJ6ZA6pQSYDQzSPbdK3Q?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: cd410ae8-676d-4ff4-0c08-08dbfd042e4a
-X-MS-Exchange-CrossTenant-AuthSource: SA1PR11MB6733.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 15 Dec 2023 00:24:20.3499
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: bQmEsbJFcgRX/wm1IFmaGpikQW3dyqkXCs1NvKYyg6WxnOE4jyK873gDkjRI7WF1c9Q6P7Fyn5bY8glRAeXlYA==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS0PR11MB8049
-X-OriginatorOrg: intel.com
+Content-Type: text/plain; charset=ascii
 
-Dinghao Liu wrote:
-> Resources allocated by kcalloc() in btt_freelist_init(),
-> btt_rtt_init(), and btt_maplocks_init() are not correctly
-> released in their callers when an error happens. For
-> example, when an error happens in btt_freelist_init(), its
-> caller discover_arenas() will directly free arena, which makes
-> arena->freelist a leaked memory. Fix these memleaks by using
-> devm_kcalloc() to make the memory auto-freed on driver detach.
+Vishal Verma <vishal.l.verma@intel.com> writes:
 
-Thanks for this work!
-
-> 
-> Fixes: 5212e11fde4d ("nd_btt: atomic sector updates")
-> Signed-off-by: Dinghao Liu <dinghao.liu@zju.edu.cn>
+> Add a sysfs knob for dax devices to control the memmap_on_memory setting
+> if the dax device were to be hotplugged as system memory.
+>
+> The default memmap_on_memory setting for dax devices originating via
+> pmem or hmem is set to 'false' - i.e. no memmap_on_memory semantics, to
+> preserve legacy behavior. For dax devices via CXL, the default is on.
+> The sysfs control allows the administrator to override the above
+> defaults if needed.
+>
+> Cc: David Hildenbrand <david@redhat.com>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Cc: Dave Jiang <dave.jiang@intel.com>
+> Cc: Dave Hansen <dave.hansen@linux.intel.com>
+> Cc: Huang Ying <ying.huang@intel.com>
+> Tested-by: Li Zhijian <lizhijian@fujitsu.com>
+> Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+> Reviewed-by: David Hildenbrand <david@redhat.com>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 > ---
-> 
-> Changelog:
-> 
-> v2: -Use devm_kcalloc() to fix the memleaks.
->     -Fix the potential leaked memory in btt_rtt_init()
->      and btt_maplocks_init().
-> ---
->  drivers/nvdimm/btt.c | 35 ++++++++++++++++-------------------
->  1 file changed, 16 insertions(+), 19 deletions(-)
-> 
-> diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-> index d5593b0dc700..c55231f42617 100644
-> --- a/drivers/nvdimm/btt.c
-> +++ b/drivers/nvdimm/btt.c
-> @@ -531,13 +531,13 @@ static int arena_clear_freelist_error(struct arena_info *arena, u32 lane)
->  	return ret;
+>  drivers/dax/bus.c                       | 38 +++++++++++++++++++++++++++++++++
+>  Documentation/ABI/testing/sysfs-bus-dax | 17 +++++++++++++++
+>  2 files changed, 55 insertions(+)
+>
+> diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+> index 6226de131d17..f4d3beec507c 100644
+> --- a/drivers/dax/bus.c
+> +++ b/drivers/dax/bus.c
+> @@ -1245,6 +1245,43 @@ static ssize_t numa_node_show(struct device *dev,
 >  }
+>  static DEVICE_ATTR_RO(numa_node);
 >  
-> -static int btt_freelist_init(struct arena_info *arena)
-> +static int btt_freelist_init(struct device *dev, struct arena_info *arena)
+> +static ssize_t memmap_on_memory_show(struct device *dev,
+> +				     struct device_attribute *attr, char *buf)
+> +{
+> +	struct dev_dax *dev_dax = to_dev_dax(dev);
+> +
+> +	return sprintf(buf, "%d\n", dev_dax->memmap_on_memory);
+> +}
+> +
+> +static ssize_t memmap_on_memory_store(struct device *dev,
+> +				      struct device_attribute *attr,
+> +				      const char *buf, size_t len)
+> +{
+> +	struct dev_dax *dev_dax = to_dev_dax(dev);
+> +	struct dax_device_driver *dax_drv;
+> +	ssize_t rc;
+> +	bool val;
+> +
+> +	rc = kstrtobool(buf, &val);
+> +	if (rc)
+> +		return rc;
+> +
+> +	if (val == true && !mhp_supports_memmap_on_memory()) {
+> +		dev_dbg(dev, "memmap_on_memory is not available\n");
+> +		return -EOPNOTSUPP;
+> +	}
+> +
+> +	guard(device)(dev);
+> +	dax_drv = to_dax_drv(dev->driver);
 
-Both struct arena_info and struct btt contain references to struct nd_btt
-which is the device you are passing down this call stack.
+Although "struct driver" is the first member of "struct
+dax_device_driver", I feel the code is fragile to depends on that.  Can
+we check dev->driver directly instead?
 
-Just use the device in the arena/btt rather than passing a device
-structure.  That makes the code easier to read and ensures that the device
-associated with this arena or btt is used.
+--
+Best Regards,
+Huang, Ying
 
+> +	if (dax_drv && dev_dax->memmap_on_memory != val &&
+> +	    dax_drv->type == DAXDRV_KMEM_TYPE)
+> +		return -EBUSY;
+> +	dev_dax->memmap_on_memory = val;
+> +
+> +	return len;
+> +}
+> +static DEVICE_ATTR_RW(memmap_on_memory);
+> +
+>  static umode_t dev_dax_visible(struct kobject *kobj, struct attribute *a, int n)
 >  {
->  	int new, ret;
->  	struct log_entry log_new;
->  	u32 i, map_entry, log_oldmap, log_newmap;
+>  	struct device *dev = container_of(kobj, struct device, kobj);
+> @@ -1271,6 +1308,7 @@ static struct attribute *dev_dax_attributes[] = {
+>  	&dev_attr_align.attr,
+>  	&dev_attr_resource.attr,
+>  	&dev_attr_numa_node.attr,
+> +	&dev_attr_memmap_on_memory.attr,
+>  	NULL,
+>  };
 >  
-> -	arena->freelist = kcalloc(arena->nfree, sizeof(struct free_entry),
-> +	arena->freelist = devm_kcalloc(dev, arena->nfree, sizeof(struct free_entry),
-
-	... devm_kcalloc(&arena->nd_btt.dev, ...)
-
->  					GFP_KERNEL);
->  	if (!arena->freelist)
->  		return -ENOMEM;
-> @@ -718,20 +718,20 @@ static int log_set_indices(struct arena_info *arena)
->  	return 0;
->  }
->  
-> -static int btt_rtt_init(struct arena_info *arena)
-> +static int btt_rtt_init(struct device *dev, struct arena_info *arena)
->  {
-> -	arena->rtt = kcalloc(arena->nfree, sizeof(u32), GFP_KERNEL);
-> +	arena->rtt = devm_kcalloc(dev, arena->nfree, sizeof(u32), GFP_KERNEL);
->  	if (arena->rtt == NULL)
->  		return -ENOMEM;
->  
->  	return 0;
->  }
->  
-> -static int btt_maplocks_init(struct arena_info *arena)
-> +static int btt_maplocks_init(struct device *dev, struct arena_info *arena)
->  {
->  	u32 i;
->  
-> -	arena->map_locks = kcalloc(arena->nfree, sizeof(struct aligned_lock),
-> +	arena->map_locks = devm_kcalloc(dev, arena->nfree, sizeof(struct aligned_lock),
->  				GFP_KERNEL);
->  	if (!arena->map_locks)
->  		return -ENOMEM;
-> @@ -805,9 +805,6 @@ static void free_arenas(struct btt *btt)
->  
->  	list_for_each_entry_safe(arena, next, &btt->arena_list, list) {
->  		list_del(&arena->list);
-> -		kfree(arena->rtt);
-> -		kfree(arena->map_locks);
-> -		kfree(arena->freelist);
-
-This does not quite work.
-
-free_arenas() is used in the error paths of create_arenas() and
-discover_arenas().  In those cases devm_kfree() is probably a better way
-to clean up this.
-
-However...
-
->  		debugfs_remove_recursive(arena->debugfs_dir);
->  		kfree(arena);
-
-Why can't arena be allocated with devm_*?
-
-We need to change this up a bit more to handle the error path vs regular
-device shutdown free (automatic devm frees).
-
-Ira
+> diff --git a/Documentation/ABI/testing/sysfs-bus-dax b/Documentation/ABI/testing/sysfs-bus-dax
+> index 6359f7bc9bf4..40d9965733b2 100644
+> --- a/Documentation/ABI/testing/sysfs-bus-dax
+> +++ b/Documentation/ABI/testing/sysfs-bus-dax
+> @@ -134,3 +134,20 @@ KernelVersion:	v5.1
+>  Contact:	nvdimm@lists.linux.dev
+>  Description:
+>  		(RO) The id attribute indicates the region id of a dax region.
+> +
+> +What:		/sys/bus/dax/devices/daxX.Y/memmap_on_memory
+> +Date:		October, 2023
+> +KernelVersion:	v6.8
+> +Contact:	nvdimm@lists.linux.dev
+> +Description:
+> +		(RW) Control the memmap_on_memory setting if the dax device
+> +		were to be hotplugged as system memory. This determines whether
+> +		the 'altmap' for the hotplugged memory will be placed on the
+> +		device being hotplugged (memmap_on_memory=1) or if it will be
+> +		placed on regular memory (memmap_on_memory=0). This attribute
+> +		must be set before the device is handed over to the 'kmem'
+> +		driver (i.e.  hotplugged into system-ram). Additionally, this
+> +		depends on CONFIG_MHP_MEMMAP_ON_MEMORY, and a globally enabled
+> +		memmap_on_memory parameter for memory_hotplug. This is
+> +		typically set on the kernel command line -
+> +		memory_hotplug.memmap_on_memory set to 'true' or 'force'."
