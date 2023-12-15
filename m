@@ -1,181 +1,124 @@
-Received: from mgamail.intel.com (mgamail.intel.com [134.134.136.100])
+Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C75DA79DB
-	for <nvdimm@lists.linux.dev>; Fri, 15 Dec 2023 05:25:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B339D275;
+	Fri, 15 Dec 2023 05:56:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="SbKZ8Mi6"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1702617941; x=1734153941;
-  h=from:date:subject:mime-version:content-transfer-encoding:
-   message-id:references:in-reply-to:to:cc;
-  bh=sNbGEdgrAJp/XDJyFdtJon3rtI5vNIQSMJsEoh64H1k=;
-  b=SbKZ8Mi6Shp3ZQl9acNXOUJVC4NsqMoCOMNRTaP5jnbHpNziF2qJ0Fdp
-   SGJZkyECJnuA6djQqfyfSYX6QN8634KpxALMDSXFrM11wcRYIUcKoM99r
-   ILMsxVCaU/DIRAtp1zFl6XR3JYMnZ6aWNgIPUwxE2rd6IsDJjPnnGZwd7
-   Mi6dIAfEGDfdarQJreTHk+Fsyhf8MUAzLEy7kAKE/3m8xeJrDvawW0nQM
-   hUtmcrsCcdYr0nT5Yc/CcQgBvZqgsp4y6+Xqtg+uoWgpgZArz0y/fDxiI
-   580W7pIF+A1Jbj20n92o6NcLqD1F7XBwjrinnE2/PsXI3QKlwdhc/FUBI
-   Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10924"; a="461695033"
-X-IronPort-AV: E=Sophos;i="6.04,277,1695711600"; 
-   d="scan'208";a="461695033"
-Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Dec 2023 21:25:39 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10924"; a="808847946"
-X-IronPort-AV: E=Sophos;i="6.04,277,1695711600"; 
-   d="scan'208";a="808847946"
-Received: from mmtakalk-mobl.amr.corp.intel.com (HELO [192.168.1.200]) ([10.212.109.101])
-  by orsmga001-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Dec 2023 21:25:39 -0800
-From: Vishal Verma <vishal.l.verma@intel.com>
-Date: Thu, 14 Dec 2023 22:25:28 -0700
-Subject: [PATCH v6 3/4] mm/memory_hotplug: export
- mhp_supports_memmap_on_memory()
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="isdXMoLa"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=jobEC3jqWIpyDkINLFhovVaNZT5MWZEp2hewynNzNgs=; b=isdXMoLa/gQ7m5FXi3d/9OdoAg
+	XaeBzpytEaWOOM1Rv6L6Sb2AU08uyb+vJzSd5WO8o4IZ76wJduYkmLgYA4YVfdSgaBEYPwZOhSu1k
+	T18ZDxt4M5P2pDr/JqvW3DrRznqD3gcz8g92Hzl+tVjbHSHZ9CY+KSEPJ73NRQEPxHpProYcq5bHq
+	0Tw4uB3Po+aKjUzhKgdCJURXmEkHYxxCfjAQJY9LYGAVYomrNiqzkIa1+7rtZmOcFNABFW2fS41xV
+	GW2gV9vcxcoALFfII/YSkz/8Ghg4HUx9TdVvfsH5XQzCGM7NW2zzLWOY0bXu87XrmYDcCEGWORWAZ
+	CMjym3+Q==;
+Received: from willy by casper.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
+	id 1rE1BU-00E4oM-QE; Fri, 15 Dec 2023 05:56:28 +0000
+Date: Fri, 15 Dec 2023 05:56:28 +0000
+From: Matthew Wilcox <willy@infradead.org>
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Oscar Salvador <osalvador@suse.de>, linux-kernel@vger.kernel.org,
+	nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
+	David Hildenbrand <david@redhat.com>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	Huang Ying <ying.huang@intel.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-mm@kvack.org,
+	Joao Martins <joao.m.martins@oracle.com>
+Subject: Re: [PATCH v6 2/4] dax/bus: Use guard(device) in sysfs attribute
+ helpers
+Message-ID: <ZXvqjIqvcGkumNXf@casper.infradead.org>
+References: <20231214-vv-dax_abi-v6-0-ad900d698438@intel.com>
+ <20231214-vv-dax_abi-v6-2-ad900d698438@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20231214-vv-dax_abi-v6-3-ad900d698438@intel.com>
-References: <20231214-vv-dax_abi-v6-0-ad900d698438@intel.com>
-In-Reply-To: <20231214-vv-dax_abi-v6-0-ad900d698438@intel.com>
-To: Dan Williams <dan.j.williams@intel.com>, 
- Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
- Andrew Morton <akpm@linux-foundation.org>, 
- Oscar Salvador <osalvador@suse.de>
-Cc: linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, 
- linux-cxl@vger.kernel.org, David Hildenbrand <david@redhat.com>, 
- Dave Hansen <dave.hansen@linux.intel.com>, 
- Huang Ying <ying.huang@intel.com>, 
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-mm@kvack.org, 
- Michal Hocko <mhocko@suse.com>
-X-Mailer: b4 0.13-dev-433a8
-X-Developer-Signature: v=1; a=openpgp-sha256; l=4673;
- i=vishal.l.verma@intel.com; h=from:subject:message-id;
- bh=sNbGEdgrAJp/XDJyFdtJon3rtI5vNIQSMJsEoh64H1k=;
- b=owGbwMvMwCXGf25diOft7jLG02pJDKnVj/270n4d1C7Pn6OllvEj6eOC3R8OBFpMDgs02furb
- V3h077XHaUsDGJcDLJiiix/93xkPCa3PZ8nMMERZg4rE8gQBi5OAZjIaUVGhqvHbgn7n1PPSKt8
- aNv1aHOVz+W7sd8qQ4V6SpzvsupvfMzwV6rjV/PTnz9mp3x8tmXRRvvOFYsvNPeVZ3jKPWjX1Zr
- qzQgA
-X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp;
- fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20231214-vv-dax_abi-v6-2-ad900d698438@intel.com>
 
-In preparation for adding sysfs ABI to toggle memmap_on_memory semantics
-for drivers adding memory, export the mhp_supports_memmap_on_memory()
-helper. This allows drivers to check if memmap_on_memory support is
-available before trying to request it, and display an appropriate
-message if it isn't available. As part of this, remove the size argument
-to this - with recent updates to allow memmap_on_memory for larger
-ranges, and the internal splitting of altmaps into respective memory
-blocks, the size argument is meaningless.
+On Thu, Dec 14, 2023 at 10:25:27PM -0700, Vishal Verma wrote:
+> @@ -294,13 +294,10 @@ static ssize_t available_size_show(struct device *dev,
+>  		struct device_attribute *attr, char *buf)
+>  {
+>  	struct dax_region *dax_region = dev_get_drvdata(dev);
+> -	unsigned long long size;
+>  
+> -	device_lock(dev);
+> -	size = dax_region_avail_size(dax_region);
+> -	device_unlock(dev);
+> +	guard(device)(dev);
+>  
+> -	return sprintf(buf, "%llu\n", size);
+> +	return sprintf(buf, "%llu\n", dax_region_avail_size(dax_region));
+>  }
 
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Huang Ying <ying.huang@intel.com>
-Suggested-by: David Hildenbrand <david@redhat.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- include/linux/memory_hotplug.h |  6 ++++++
- mm/memory_hotplug.c            | 17 ++++++-----------
- 2 files changed, 12 insertions(+), 11 deletions(-)
+Is this an appropriate use of guard()?  sprintf is not the fastest of
+functions, so we will end up holding the device_lock for longer than
+we used to.
 
-diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
-index 7d2076583494..ebc9d528f00c 100644
---- a/include/linux/memory_hotplug.h
-+++ b/include/linux/memory_hotplug.h
-@@ -121,6 +121,7 @@ struct mhp_params {
- 
- bool mhp_range_allowed(u64 start, u64 size, bool need_mapping);
- struct range mhp_get_pluggable_range(bool need_mapping);
-+bool mhp_supports_memmap_on_memory(void);
- 
- /*
-  * Zone resizing functions
-@@ -262,6 +263,11 @@ static inline bool movable_node_is_enabled(void)
- 	return false;
- }
- 
-+static bool mhp_supports_memmap_on_memory(void)
-+{
-+	return false;
-+}
-+
- static inline void pgdat_kswapd_lock(pg_data_t *pgdat) {}
- static inline void pgdat_kswapd_unlock(pg_data_t *pgdat) {}
- static inline void pgdat_kswapd_lock_init(pg_data_t *pgdat) {}
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index 926e1cfb10e9..751664c519f7 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -1325,7 +1325,7 @@ static inline bool arch_supports_memmap_on_memory(unsigned long vmemmap_size)
- }
- #endif
- 
--static bool mhp_supports_memmap_on_memory(unsigned long size)
-+bool mhp_supports_memmap_on_memory(void)
- {
- 	unsigned long vmemmap_size = memory_block_memmap_size();
- 	unsigned long memmap_pages = memory_block_memmap_on_memory_pages();
-@@ -1334,17 +1334,11 @@ static bool mhp_supports_memmap_on_memory(unsigned long size)
- 	 * Besides having arch support and the feature enabled at runtime, we
- 	 * need a few more assumptions to hold true:
- 	 *
--	 * a) We span a single memory block: memory onlining/offlinin;g happens
--	 *    in memory block granularity. We don't want the vmemmap of online
--	 *    memory blocks to reside on offline memory blocks. In the future,
--	 *    we might want to support variable-sized memory blocks to make the
--	 *    feature more versatile.
--	 *
--	 * b) The vmemmap pages span complete PMDs: We don't want vmemmap code
-+	 * a) The vmemmap pages span complete PMDs: We don't want vmemmap code
- 	 *    to populate memory from the altmap for unrelated parts (i.e.,
- 	 *    other memory blocks)
- 	 *
--	 * c) The vmemmap pages (and thereby the pages that will be exposed to
-+	 * b) The vmemmap pages (and thereby the pages that will be exposed to
- 	 *    the buddy) have to cover full pageblocks: memory onlining/offlining
- 	 *    code requires applicable ranges to be page-aligned, for example, to
- 	 *    set the migratetypes properly.
-@@ -1356,7 +1350,7 @@ static bool mhp_supports_memmap_on_memory(unsigned long size)
- 	 *       altmap as an alternative source of memory, and we do not exactly
- 	 *       populate a single PMD.
- 	 */
--	if (!mhp_memmap_on_memory() || size != memory_block_size_bytes())
-+	if (!mhp_memmap_on_memory())
- 		return false;
- 
- 	/*
-@@ -1379,6 +1373,7 @@ static bool mhp_supports_memmap_on_memory(unsigned long size)
- 
- 	return arch_supports_memmap_on_memory(vmemmap_size);
- }
-+EXPORT_SYMBOL_GPL(mhp_supports_memmap_on_memory);
- 
- static void __ref remove_memory_blocks_and_altmaps(u64 start, u64 size)
- {
-@@ -1512,7 +1507,7 @@ int __ref add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
- 	 * Self hosted memmap array
- 	 */
- 	if ((mhp_flags & MHP_MEMMAP_ON_MEMORY) &&
--	    mhp_supports_memmap_on_memory(memory_block_size_bytes())) {
-+	    mhp_supports_memmap_on_memory()) {
- 		ret = create_altmaps_and_memory_blocks(nid, group, start, size);
- 		if (ret)
- 			goto error;
+> @@ -908,9 +890,8 @@ static ssize_t size_show(struct device *dev,
+>  	struct dev_dax *dev_dax = to_dev_dax(dev);
+>  	unsigned long long size;
+>  
+> -	device_lock(dev);
+> +	guard(device)(dev);
+>  	size = dev_dax_size(dev_dax);
+> -	device_unlock(dev);
+>  
+>  	return sprintf(buf, "%llu\n", size);
+>  }
 
--- 
-2.41.0
+If it is appropriate, then you can do without the 'size' variable here.
+
+> @@ -1137,21 +1117,20 @@ static ssize_t mapping_store(struct device *dev, struct device_attribute *attr,
+>  	if (rc)
+>  		return rc;
+>  
+> -	rc = -ENXIO;
+> -	device_lock(dax_region->dev);
+> -	if (!dax_region->dev->driver) {
+> -		device_unlock(dax_region->dev);
+> -		return rc;
+> -	}
+> -	device_lock(dev);
+> +	guard(device)(dax_region->dev);
+> +	if (!dax_region->dev->driver)
+> +		return -ENXIO;
+>  
+> +	guard(device)(dev);
+>  	to_alloc = range_len(&r);
+> -	if (alloc_is_aligned(dev_dax, to_alloc))
+> -		rc = alloc_dev_dax_range(dev_dax, r.start, to_alloc);
+> -	device_unlock(dev);
+> -	device_unlock(dax_region->dev);
+> +	if (!alloc_is_aligned(dev_dax, to_alloc))
+> +		return -ENXIO;
+>  
+> -	return rc == 0 ? len : rc;
+> +	rc = alloc_dev_dax_range(dev_dax, r.start, to_alloc);
+> +	if (rc)
+> +		return rc;
+> +
+> +	return len;
+>  }
+
+Have I mentioned how much I hate the "rc" naming convention?  It tells
+you nothing useful about the contents of the variable.  If you called it
+'err', I'd know it was an error, and then the end of this function would
+make sense.
+
+	if (err)
+		return err;
+	return len;
 
