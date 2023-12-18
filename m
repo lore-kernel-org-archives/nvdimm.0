@@ -1,113 +1,99 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6C0530108;
-	Fri, 15 Dec 2023 17:53:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="n1HNiIs7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7E78C433C7;
-	Fri, 15 Dec 2023 17:53:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1702662794;
-	bh=bCeZYjdKbAsjH+3ZnxxwoKFd5W+uxUmvZZXD9LOmVAI=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=n1HNiIs70ftZwmIX3BAKT7HlQFwEbubiqSnRfQqpa9/Sfl3TuxPsso5m19okbZO5v
-	 nw9dM7Vsy5Kt7w2PbsH6hj2ArcNdwxExg5KAlYr2dArzus0yDJByYdefDdLnKtFEDf
-	 kPAtGPf4l5SHoWFNvuAQILAgH9gaflnt5pWNgKU8=
-Date: Fri, 15 Dec 2023 18:53:11 +0100
-From: "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
-To: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Cc: "Williams, Dan J" <dan.j.williams@intel.com>,
-	"david@redhat.com" <david@redhat.com>,
-	"joao.m.martins@oracle.com" <joao.m.martins@oracle.com>,
-	"Jiang, Dave" <dave.jiang@intel.com>,
-	"akpm@linux-foundation.org" <akpm@linux-foundation.org>,
-	"osalvador@suse.de" <osalvador@suse.de>,
-	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"dave.hansen@linux.intel.com" <dave.hansen@linux.intel.com>,
-	"Huang, Ying" <ying.huang@intel.com>,
-	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
-	"linux-mm@kvack.org" <linux-mm@kvack.org>
-Subject: Re: [PATCH v6 2/4] dax/bus: Use guard(device) in sysfs attribute
- helpers
-Message-ID: <2023121517-flammable-ragweed-d42e@gregkh>
-References: <20231214-vv-dax_abi-v6-0-ad900d698438@intel.com>
- <20231214-vv-dax_abi-v6-2-ad900d698438@intel.com>
- <2023121515-litigate-finished-76dd@gregkh>
- <657c89c16d5f5_269bd294bd@dwillia2-mobl3.amr.corp.intel.com.notmuch>
- <89ea0a46cd1cf22393c6b05a50cd3e719ab6a4ba.camel@intel.com>
+Received: from zju.edu.cn (spam.zju.edu.cn [61.164.42.155])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 05200134A3
+	for <nvdimm@lists.linux.dev>; Mon, 18 Dec 2023 09:21:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=zju.edu.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zju.edu.cn
+Received: from dinghao.liu$zju.edu.cn ( [10.190.67.94] ) by
+ ajax-webmail-mail-app3 (Coremail) ; Mon, 18 Dec 2023 17:21:51 +0800
+ (GMT+08:00)
+Date: Mon, 18 Dec 2023 17:21:51 +0800 (GMT+08:00)
+X-CM-HeaderCharset: UTF-8
+From: dinghao.liu@zju.edu.cn
+To: "Ira Weiny" <ira.weiny@intel.com>
+Cc: "Dan Williams" <dan.j.williams@intel.com>, 
+	"Vishal Verma" <vishal.l.verma@intel.com>, 
+	"Dave Jiang" <dave.jiang@intel.com>, nvdimm@lists.linux.dev, 
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] [v2] nvdimm-btt: fix several memleaks
+X-Priority: 3
+X-Mailer: Coremail Webmail Server Version 2023.2-cmXT5 build
+ 20230825(e13b6a3b) Copyright (c) 2002-2023 www.mailtech.cn
+ mispb-4df6dc2c-e274-4d1c-b502-72c5c3dfa9ce-zj.edu.cn
+In-Reply-To: <657c82966e358_2947c22941a@iweiny-mobl.notmuch>
+References: <20231210085817.30161-1-dinghao.liu@zju.edu.cn>
+ <657b9cb088175_27db80294d2@iweiny-mobl.notmuch>
+ <657c82966e358_2947c22941a@iweiny-mobl.notmuch>
+Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <89ea0a46cd1cf22393c6b05a50cd3e719ab6a4ba.camel@intel.com>
+Message-ID: <13ffb3fd.41cd7.18c7c3b52bf.Coremail.dinghao.liu@zju.edu.cn>
+X-Coremail-Locale: zh_CN
+X-CM-TRANSID:cC_KCgAHD3MvD4BldlAQAQ--.35919W
+X-CM-SenderInfo: qrrzjiaqtzq6lmxovvfxof0/1tbiAgoNBmV+xhdFpgAAsq
+X-Coremail-Antispam: 1Ur529EdanIXcx71UUUUU7IcSsGvfJ3iIAIbVAYjsxI4VWxJw
+	CS07vEb4IE77IF4wCS07vE1I0E4x80FVAKz4kxMIAIbVAFxVCaYxvI4VCIwcAKzIAtYxBI
+	daVFxhVjvjDU=
 
-On Fri, Dec 15, 2023 at 05:32:50PM +0000, Verma, Vishal L wrote:
-> On Fri, 2023-12-15 at 09:15 -0800, Dan Williams wrote:
-> > Greg Kroah-Hartman wrote:
-> > > On Thu, Dec 14, 2023 at 10:25:27PM -0700, Vishal Verma wrote:
-> > > > Use the guard(device) macro to lock a 'struct device', and unlock it
-> > > > automatically when going out of scope using Scope Based Resource
-> > > > Management semantics. A lot of the sysfs attribute writes in
-> > > > drivers/dax/bus.c benefit from a cleanup using these, so change these
-> > > > where applicable.
-> > > 
-> > > Wait, why are you needing to call device_lock() at all here?  Why is dax
-> > > special in needing this when no other subsystem requires it?
-> > > 
-> > > > 
-> > > > Cc: Joao Martins <joao.m.martins@oracle.com>
-> > > > Cc: Dan Williams <dan.j.williams@intel.com>
-> > > > Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
-> > > > ---
-> > > >  drivers/dax/bus.c | 143 ++++++++++++++++++++++--------------------------------
-> > > >  1 file changed, 59 insertions(+), 84 deletions(-)
-> > > > 
-> > > > diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-> > > > index 1ff1ab5fa105..6226de131d17 100644
-> > > > --- a/drivers/dax/bus.c
-> > > > +++ b/drivers/dax/bus.c
-> > > > @@ -294,13 +294,10 @@ static ssize_t available_size_show(struct device *dev,
-> > > >                 struct device_attribute *attr, char *buf)
-> > > >  {
-> > > >         struct dax_region *dax_region = dev_get_drvdata(dev);
-> > > > -       unsigned long long size;
-> > > >  
-> > > > -       device_lock(dev);
-> > > > -       size = dax_region_avail_size(dax_region);
-> > > > -       device_unlock(dev);
-> > > > +       guard(device)(dev);
-> > > 
-> > > You have a valid device here, why are you locking it?  How can it go
-> > > away?  And if it can, shouldn't you have a local lock for it, and not
-> > > abuse the driver core lock?
-> > 
-> > Yes, this is a driver-core lock abuse written by someone who should have
-> > known better. And yes, a local lock to protect the dax_region resource
-> > tree should replace this. A new rwsem to synchronize all list walks
-> > seems appropriate.
-> 
-> I see why _a_ lock is needed both here and in size_show() - the size
-> calculations do a walk over discontiguous ranges, and we don't want the
-> device to get reconfigured in the middle of that. A different local
-> lock seems reasonable - however can that go as a separate cleanup that
-> stands on its own?
-
-Sure, but do not add a conversion to use guard(device) here, as that
-will be pointless as you will just use a real lock instead.
-
-> For this series, I'll add a cleanup to replace the sprintfs with
-> sysfs_emit().
-
-Why not have that be the first patch in the series?  Then add your local
-lock and convert everything to use it instead of the device lock?
-
-thanks,
-
-greg k-h
+PiBJcmEgV2Vpbnkgd3JvdGU6Cj4gPiBEaW5naGFvIExpdSB3cm90ZToKPiAKPiBbc25pcF0KPiAK
+PiAtc3RhdGljIGludCBidHRfZnJlZWxpc3RfaW5pdChzdHJ1Y3QgYXJlbmFfaW5mbyAqYXJlbmEp
+Cj4gK3N0YXRpYyBpbnQgYnR0X2ZyZWVsaXN0X2luaXQoc3RydWN0IGRldmljZSAqZGV2LCBzdHJ1
+Y3QgYXJlbmFfaW5mbyAqYXJlbmEpCj4gCj4gQm90aCBzdHJ1Y3QgYXJlbmFfaW5mbyBhbmQgc3Ry
+dWN0IGJ0dCBjb250YWluIHJlZmVyZW5jZXMgdG8gc3RydWN0IG5kX2J0dAo+IHdoaWNoIGlzIHRo
+ZSBkZXZpY2UgeW91IGFyZSBwYXNzaW5nIGRvd24gdGhpcyBjYWxsIHN0YWNrLgo+IAo+IEp1c3Qg
+dXNlIHRoZSBkZXZpY2UgaW4gdGhlIGFyZW5hL2J0dCByYXRoZXIgdGhhbiBwYXNzaW5nIGEgZGV2
+aWNlCj4gc3RydWN0dXJlLiAgVGhhdCBtYWtlcyB0aGUgY29kZSBlYXNpZXIgdG8gcmVhZCBhbmQg
+ZW5zdXJlcyB0aGF0IHRoZSBkZXZpY2UKPiBhc3NvY2lhdGVkIHdpdGggdGhpcyBhcmVuYSBvciBi
+dHQgaXMgdXNlZC4KClRoYW5rcyBmb3IgdGhpcyBzdWdnZXN0aW9uISBJIHdpbGwgZml4IHRoaXMg
+aW4gdGhlIHYzIHBhdGNoLgoKPiBbc25pcF0KPiA+ID4gIAo+ID4gPiAtc3RhdGljIGludCBidHRf
+bWFwbG9ja3NfaW5pdChzdHJ1Y3QgYXJlbmFfaW5mbyAqYXJlbmEpCj4gPiA+ICtzdGF0aWMgaW50
+IGJ0dF9tYXBsb2Nrc19pbml0KHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IGFyZW5hX2luZm8g
+KmFyZW5hKQo+ID4gPiAgewo+ID4gPiAgCXUzMiBpOwo+ID4gPiAgCj4gPiA+IC0JYXJlbmEtPm1h
+cF9sb2NrcyA9IGtjYWxsb2MoYXJlbmEtPm5mcmVlLCBzaXplb2Yoc3RydWN0IGFsaWduZWRfbG9j
+ayksCj4gPiA+ICsJYXJlbmEtPm1hcF9sb2NrcyA9IGRldm1fa2NhbGxvYyhkZXYsIGFyZW5hLT5u
+ZnJlZSwgc2l6ZW9mKHN0cnVjdCBhbGlnbmVkX2xvY2spLAo+ID4gPiAgCQkJCUdGUF9LRVJORUwp
+Owo+ID4gPiAgCWlmICghYXJlbmEtPm1hcF9sb2NrcykKPiA+ID4gIAkJcmV0dXJuIC1FTk9NRU07
+Cj4gPiA+IEBAIC04MDUsOSArODA1LDYgQEAgc3RhdGljIHZvaWQgZnJlZV9hcmVuYXMoc3RydWN0
+IGJ0dCAqYnR0KQo+ID4gPiAgCj4gPiA+ICAJbGlzdF9mb3JfZWFjaF9lbnRyeV9zYWZlKGFyZW5h
+LCBuZXh0LCAmYnR0LT5hcmVuYV9saXN0LCBsaXN0KSB7Cj4gPiA+ICAJCWxpc3RfZGVsKCZhcmVu
+YS0+bGlzdCk7Cj4gPiA+IC0JCWtmcmVlKGFyZW5hLT5ydHQpOwo+ID4gPiAtCQlrZnJlZShhcmVu
+YS0+bWFwX2xvY2tzKTsKPiA+ID4gLQkJa2ZyZWUoYXJlbmEtPmZyZWVsaXN0KTsKPiA+IAo+ID4g
+VGhpcyBkb2VzIG5vdCBxdWl0ZSB3b3JrLgo+ID4gCj4gPiBmcmVlX2FyZW5hcygpIGlzIHVzZWQg
+aW4gdGhlIGVycm9yIHBhdGhzIG9mIGNyZWF0ZV9hcmVuYXMoKSBhbmQKPiA+IGRpc2NvdmVyX2Fy
+ZW5hcygpLiAgSW4gdGhvc2UgY2FzZXMgZGV2bV9rZnJlZSgpIGlzIHByb2JhYmx5IGEgYmV0dGVy
+IHdheQo+ID4gdG8gY2xlYW4gdXAgdGhpcy4KCkhlcmUgSSdtIGEgbGl0dGxlIGNvbmZ1c2VkIGFi
+b3V0IHdoZW4gZGV2bV9rZnJlZSgpIHNob3VsZCBiZSB1c2VkLgpDb2RlIGluIGJ0dF9pbml0KCkg
+aW1wbGllcyB0aGF0IHJlc291cmNlcyBhbGxvY2F0ZWQgYnkgZGV2bV8qIGNvdWxkIGJlCmF1dG8g
+ZnJlZWQgaW4gYm90aCBlcnJvciBhbmQgc3VjY2VzcyBwYXRocyBvZiBwcm9iZS9hdHRhY2ggKGUu
+Zy4sIGJ0dCAKYWxsb2NhdGVkIGJ5IGRldm1fa3phbGxvYyBpcyBuZXZlciBmcmVlZCBieSBkZXZt
+X2tmcmVlKS4KVXNpbmcgZGV2bV9rZnJlZSgpIGluIGZyZWVfYXJlbmFzKCkgaXMgb2sgZm9yIG1l
+LCBidXQgSSB3YW50IHRvIGtub3cKd2hldGhlciBub3QgdXNpbmcgZGV2bV9rZnJlZSgpIGNvbnN0
+aXR1dGVzIGEgYnVnLgoKPiA+IAo+ID4gSG93ZXZlci4uLgo+ID4gCj4gPiA+ICAJCWRlYnVnZnNf
+cmVtb3ZlX3JlY3Vyc2l2ZShhcmVuYS0+ZGVidWdmc19kaXIpOwo+ID4gPiAgCQlrZnJlZShhcmVu
+YSk7Cj4gPiAKPiA+IFdoeSBjYW4ndCBhcmVuYSBiZSBhbGxvY2F0ZWQgd2l0aCBkZXZtXyo/Cj4g
+PiAKPiA+IFdlIG5lZWQgdG8gY2hhbmdlIHRoaXMgdXAgYSBiaXQgbW9yZSB0byBoYW5kbGUgdGhl
+IGVycm9yIHBhdGggdnMgcmVndWxhcgo+ID4gZGV2aWNlIHNodXRkb3duIGZyZWUgKGF1dG9tYXRp
+YyBkZXZtIGZyZWVzKS4KPiAKCkF0IGZpcnN0LCBJIHRoaW5rIHRoZSB1c2Ugb2YgYXJlbmEgaXMg
+Y29ycmVjdC4gVGhlcmVmb3JlLCBhbGxvY2F0aW5nIGFyZW5hCndpdGggZGV2bV8qIHNob3VsZCBi
+ZSBhIGNvZGUgc3R5bGUgb3B0aW1pemF0aW9uLiBIb3dldmVyLCBJIHJlY2hlY2tlZCBkaXNjb3Zl
+cl9hcmVuYXMgYW5kIGZvdW5kIGFyZW5hIG1pZ2h0IGFsc28gYmUgbGVha2VkIChlLmcuLCBpZiBh
+bGxvY19hcmVuYSgpIGZhaWxzIGluIHRoZSBzZWNvbmQgbG9vcCwgdGhlIHByZXZpb3VzbHkgYWxs
+b2NhdGVkIHJlc291cmNlcyBpbiB0aGUgbG9vcCBpcyBsZWFrZWQpLiBUaGUgY29ycmVjdCBjb2Rl
+IGNvdWxkIGJlIGZvdW5kIGluIGNyZWF0ZV9hcmVuYXMoKSwgd2hlcmUgZnJlZV9hcmVuYXMgaXMg
+Y2FsbGVkIG9uIGZhaWx1cmUgb2YgYWxsb2NfYXJlbmEoKS4KClRvIGZpeCB0aGlzIGlzc3VlLCBJ
+IHRoaW5rIGl0J3MgYmV0dGVyIHRvIGNoYW5nZSB0aGUgJ2dvdG8gb3V0X3N1cGVyJyB0YWcKdG8g
+J2dvdG8gb3V0Jy4gV2UgY291bGQgYWxzbyB1c2UgZGV2bV8qIGZvciBhcmVuYSB0byBzaW1wbGlm
+eSB0aGUgZXJyb3IgcGF0aAppbiBkaXNjb3Zlcl9hcmVuYXMoKS4gCgo+IFdlIG1pZ2h0IHdhbnQg
+dG8gbG9vayBhdCB1c2luZyBub19mcmVlX3B0cigpIGluIHRoaXMgY29kZS4gIFNlZSB0aGlzCj4g
+cGF0Y2hbMV0gZm9yIGFuIGV4YW1wbGUgb2YgaG93IHRvIGluaGliaXQgdGhlIGNsZWFudXAgYW5k
+IHBhc3MgdGhlIHBvaW50ZXIKPiBvbiB3aGVuIHRoZSBmdW5jdGlvbiBzdWNjZWVkcy4KPiAKPiBb
+MV0gaHR0cHM6Ly9sb3JlLmtlcm5lbC5vcmcvYWxsLzE3MDI2MTc5MTkxNC4xNzE0NjU0LjY0NDc2
+ODAyODUzNTc1NDU2Mzguc3RnaXRAZHdpbGxpYTIteGZoLmpmLmludGVsLmNvbS8KPiAKPiBJcmEK
+ClRoYW5rcyBmb3IgdGhpcyBleGFtcGxlLiBCdXQgaXQgc2VlbXMgdGhhdCBub19mcmVlX3B0cigp
+IGlzIHVzZWQgdG8gaGFuZGxlCnRoZSBzY29wZSBiYXNlZCByZXNvdXJjZSBtYW5hZ2VtZW50LiBD
+aGFuZ2VzIGluIHRoaXMgcGF0Y2ggZG9lcyBub3QgaW50cm9kdWNlCnRoaXMgZmVhdHVyZS4gRG8g
+SSB1bmRlcnN0YW5kIHRoaXMgY29ycmVjdGx5PwoKUmVnYXJkcywKRGluZ2hhbwo=
