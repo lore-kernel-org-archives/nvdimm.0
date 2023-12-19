@@ -1,99 +1,146 @@
-Received: from zju.edu.cn (spam.zju.edu.cn [61.164.42.155])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 05200134A3
-	for <nvdimm@lists.linux.dev>; Mon, 18 Dec 2023 09:21:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=zju.edu.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zju.edu.cn
-Received: from dinghao.liu$zju.edu.cn ( [10.190.67.94] ) by
- ajax-webmail-mail-app3 (Coremail) ; Mon, 18 Dec 2023 17:21:51 +0800
- (GMT+08:00)
-Date: Mon, 18 Dec 2023 17:21:51 +0800 (GMT+08:00)
-X-CM-HeaderCharset: UTF-8
-From: dinghao.liu@zju.edu.cn
-To: "Ira Weiny" <ira.weiny@intel.com>
-Cc: "Dan Williams" <dan.j.williams@intel.com>, 
-	"Vishal Verma" <vishal.l.verma@intel.com>, 
-	"Dave Jiang" <dave.jiang@intel.com>, nvdimm@lists.linux.dev, 
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [v2] nvdimm-btt: fix several memleaks
-X-Priority: 3
-X-Mailer: Coremail Webmail Server Version 2023.2-cmXT5 build
- 20230825(e13b6a3b) Copyright (c) 2002-2023 www.mailtech.cn
- mispb-4df6dc2c-e274-4d1c-b502-72c5c3dfa9ce-zj.edu.cn
-In-Reply-To: <657c82966e358_2947c22941a@iweiny-mobl.notmuch>
-References: <20231210085817.30161-1-dinghao.liu@zju.edu.cn>
- <657b9cb088175_27db80294d2@iweiny-mobl.notmuch>
- <657c82966e358_2947c22941a@iweiny-mobl.notmuch>
-Content-Transfer-Encoding: base64
-Content-Type: text/plain; charset=UTF-8
+Received: from mail-yb1-f201.google.com (mail-yb1-f201.google.com [209.85.219.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6E65C130
+	for <nvdimm@lists.linux.dev>; Tue, 19 Dec 2023 07:19:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--changyuanl.bounces.google.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="zbJ+OK17"
+Received: by mail-yb1-f201.google.com with SMTP id 3f1490d57ef6-dbd5ba9cbc7so73629276.3
+        for <nvdimm@lists.linux.dev>; Mon, 18 Dec 2023 23:19:49 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1702970389; x=1703575189; darn=lists.linux.dev;
+        h=cc:to:from:subject:message-id:mime-version:date:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=gZWYP/oOlOggqgKUebMmGuOo7PQ5M/AycpxW1yV0m6w=;
+        b=zbJ+OK17/OD43EpXOj6lZHBGFNYeM0L6MBY4Inb1gRqzJoeDjxJU4LRluGjx8Di5iX
+         wYPA7V7nGgmCcnQAMs12jUn6tVsQG3i9rpnBBVOuvCHYAU7EAecP33aoKznAQCHMequs
+         Z6ssBCGCwlWB5YEUgz3gZIbNNOrfR2e4JVb/rXlejBqeYI+6mG8ArARNW7H71Ht4uZdx
+         aPXSbkuV7bxsDMdg9OzYW3cZ+Pk2Xzz2JG074fsZdhG+BGAFWcVDOkTPs80d7gTRm8uB
+         z6XMj6buWLMBVEDoemTbcSrkTArq1N1kJEqqgPZ2rW3wDkFu3mp5HY76TsbRw6rgq8hG
+         Mzsg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1702970389; x=1703575189;
+        h=cc:to:from:subject:message-id:mime-version:date:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=gZWYP/oOlOggqgKUebMmGuOo7PQ5M/AycpxW1yV0m6w=;
+        b=RDO74GMB2J1+9OeSUEFsyIJ88uDSOHSw6ITORsdzbVKC/P/EVya1iehatnl+Wj1IWf
+         gSax4cQjRf4Z/V0UxfL/rjAW5OlsboxAi8YFT2rgHtw4tqCq1l8j6pLaLGNcwMEfrUN5
+         f+NHbqrsK8faZicxh3MangKzIEFfvqPCuYhJ4v2/kYw5Xqe/MZyksFy3IYluTNnXRAxj
+         t50zpDtM/25S7KpSj2BS/Fu/CK0oNGgBqDxDczr2+w/hw/ASLar0VarOu9K78i6bZ1vr
+         r57zev4D51REkMMMZNv3l9b3O+KvONdxjkIkXdrhbpAr5HVnklnjLhHy41IiWQ9qheag
+         KbRA==
+X-Gm-Message-State: AOJu0Yz04/Xbc0PJ+cKcpNX2lOL9OiVzJe/BczwhPde4phuJjBLBM/g5
+	nkbTu9Uc/BsLBGuvaMfUAww6x7YPGDPtQveS
+X-Google-Smtp-Source: AGHT+IE+rN4NVhqEMOpU1c0Y1JbYbMaraxu/g+XW3gohe7Z0gme65cSYEjDzpnlNRx8dnz8oXjI74er4NvKN5KMi
+X-Received: from changyuanl-desktop.svl.corp.google.com ([2620:15c:2a3:200:b586:7ce5:ab58:992c])
+ (user=changyuanl job=sendgmr) by 2002:a25:b904:0:b0:db4:5e66:4a05 with SMTP
+ id x4-20020a25b904000000b00db45e664a05mr324670ybj.2.1702970388799; Mon, 18
+ Dec 2023 23:19:48 -0800 (PST)
+Date: Mon, 18 Dec 2023 23:18:49 -0800
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-MIME-Version: 1.0
-Message-ID: <13ffb3fd.41cd7.18c7c3b52bf.Coremail.dinghao.liu@zju.edu.cn>
-X-Coremail-Locale: zh_CN
-X-CM-TRANSID:cC_KCgAHD3MvD4BldlAQAQ--.35919W
-X-CM-SenderInfo: qrrzjiaqtzq6lmxovvfxof0/1tbiAgoNBmV+xhdFpgAAsq
-X-Coremail-Antispam: 1Ur529EdanIXcx71UUUUU7IcSsGvfJ3iIAIbVAYjsxI4VWxJw
-	CS07vEb4IE77IF4wCS07vE1I0E4x80FVAKz4kxMIAIbVAFxVCaYxvI4VCIwcAKzIAtYxBI
-	daVFxhVjvjDU=
+Mime-Version: 1.0
+X-Mailer: git-send-email 2.43.0.472.g3155946c3a-goog
+Message-ID: <20231219071849.3912896-1-changyuanl@google.com>
+Subject: [PATCH] virtio_pmem: support feature SHMEM_REGION
+From: Changyuan Lyu <changyuanl@google.com>
+To: Pankaj Gupta <pankaj.gupta.linux@gmail.com>, "Michael S . Tsirkin" <mst@redhat.com>, 
+	Jason Wang <jasowang@redhat.com>
+Cc: Xuan Zhuo <xuanzhuo@linux.alibaba.com>, Dan Williams <dan.j.williams@intel.com>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	virtualization@lists.linux.dev, nvdimm@lists.linux.dev, 
+	linux-kernel@vger.kernel.org, Changyuan Lyu <changyuanl@google.com>
+Content-Type: text/plain; charset="UTF-8"
 
-PiBJcmEgV2Vpbnkgd3JvdGU6Cj4gPiBEaW5naGFvIExpdSB3cm90ZToKPiAKPiBbc25pcF0KPiAK
-PiAtc3RhdGljIGludCBidHRfZnJlZWxpc3RfaW5pdChzdHJ1Y3QgYXJlbmFfaW5mbyAqYXJlbmEp
-Cj4gK3N0YXRpYyBpbnQgYnR0X2ZyZWVsaXN0X2luaXQoc3RydWN0IGRldmljZSAqZGV2LCBzdHJ1
-Y3QgYXJlbmFfaW5mbyAqYXJlbmEpCj4gCj4gQm90aCBzdHJ1Y3QgYXJlbmFfaW5mbyBhbmQgc3Ry
-dWN0IGJ0dCBjb250YWluIHJlZmVyZW5jZXMgdG8gc3RydWN0IG5kX2J0dAo+IHdoaWNoIGlzIHRo
-ZSBkZXZpY2UgeW91IGFyZSBwYXNzaW5nIGRvd24gdGhpcyBjYWxsIHN0YWNrLgo+IAo+IEp1c3Qg
-dXNlIHRoZSBkZXZpY2UgaW4gdGhlIGFyZW5hL2J0dCByYXRoZXIgdGhhbiBwYXNzaW5nIGEgZGV2
-aWNlCj4gc3RydWN0dXJlLiAgVGhhdCBtYWtlcyB0aGUgY29kZSBlYXNpZXIgdG8gcmVhZCBhbmQg
-ZW5zdXJlcyB0aGF0IHRoZSBkZXZpY2UKPiBhc3NvY2lhdGVkIHdpdGggdGhpcyBhcmVuYSBvciBi
-dHQgaXMgdXNlZC4KClRoYW5rcyBmb3IgdGhpcyBzdWdnZXN0aW9uISBJIHdpbGwgZml4IHRoaXMg
-aW4gdGhlIHYzIHBhdGNoLgoKPiBbc25pcF0KPiA+ID4gIAo+ID4gPiAtc3RhdGljIGludCBidHRf
-bWFwbG9ja3NfaW5pdChzdHJ1Y3QgYXJlbmFfaW5mbyAqYXJlbmEpCj4gPiA+ICtzdGF0aWMgaW50
-IGJ0dF9tYXBsb2Nrc19pbml0KHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IGFyZW5hX2luZm8g
-KmFyZW5hKQo+ID4gPiAgewo+ID4gPiAgCXUzMiBpOwo+ID4gPiAgCj4gPiA+IC0JYXJlbmEtPm1h
-cF9sb2NrcyA9IGtjYWxsb2MoYXJlbmEtPm5mcmVlLCBzaXplb2Yoc3RydWN0IGFsaWduZWRfbG9j
-ayksCj4gPiA+ICsJYXJlbmEtPm1hcF9sb2NrcyA9IGRldm1fa2NhbGxvYyhkZXYsIGFyZW5hLT5u
-ZnJlZSwgc2l6ZW9mKHN0cnVjdCBhbGlnbmVkX2xvY2spLAo+ID4gPiAgCQkJCUdGUF9LRVJORUwp
-Owo+ID4gPiAgCWlmICghYXJlbmEtPm1hcF9sb2NrcykKPiA+ID4gIAkJcmV0dXJuIC1FTk9NRU07
-Cj4gPiA+IEBAIC04MDUsOSArODA1LDYgQEAgc3RhdGljIHZvaWQgZnJlZV9hcmVuYXMoc3RydWN0
-IGJ0dCAqYnR0KQo+ID4gPiAgCj4gPiA+ICAJbGlzdF9mb3JfZWFjaF9lbnRyeV9zYWZlKGFyZW5h
-LCBuZXh0LCAmYnR0LT5hcmVuYV9saXN0LCBsaXN0KSB7Cj4gPiA+ICAJCWxpc3RfZGVsKCZhcmVu
-YS0+bGlzdCk7Cj4gPiA+IC0JCWtmcmVlKGFyZW5hLT5ydHQpOwo+ID4gPiAtCQlrZnJlZShhcmVu
-YS0+bWFwX2xvY2tzKTsKPiA+ID4gLQkJa2ZyZWUoYXJlbmEtPmZyZWVsaXN0KTsKPiA+IAo+ID4g
-VGhpcyBkb2VzIG5vdCBxdWl0ZSB3b3JrLgo+ID4gCj4gPiBmcmVlX2FyZW5hcygpIGlzIHVzZWQg
-aW4gdGhlIGVycm9yIHBhdGhzIG9mIGNyZWF0ZV9hcmVuYXMoKSBhbmQKPiA+IGRpc2NvdmVyX2Fy
-ZW5hcygpLiAgSW4gdGhvc2UgY2FzZXMgZGV2bV9rZnJlZSgpIGlzIHByb2JhYmx5IGEgYmV0dGVy
-IHdheQo+ID4gdG8gY2xlYW4gdXAgdGhpcy4KCkhlcmUgSSdtIGEgbGl0dGxlIGNvbmZ1c2VkIGFi
-b3V0IHdoZW4gZGV2bV9rZnJlZSgpIHNob3VsZCBiZSB1c2VkLgpDb2RlIGluIGJ0dF9pbml0KCkg
-aW1wbGllcyB0aGF0IHJlc291cmNlcyBhbGxvY2F0ZWQgYnkgZGV2bV8qIGNvdWxkIGJlCmF1dG8g
-ZnJlZWQgaW4gYm90aCBlcnJvciBhbmQgc3VjY2VzcyBwYXRocyBvZiBwcm9iZS9hdHRhY2ggKGUu
-Zy4sIGJ0dCAKYWxsb2NhdGVkIGJ5IGRldm1fa3phbGxvYyBpcyBuZXZlciBmcmVlZCBieSBkZXZt
-X2tmcmVlKS4KVXNpbmcgZGV2bV9rZnJlZSgpIGluIGZyZWVfYXJlbmFzKCkgaXMgb2sgZm9yIG1l
-LCBidXQgSSB3YW50IHRvIGtub3cKd2hldGhlciBub3QgdXNpbmcgZGV2bV9rZnJlZSgpIGNvbnN0
-aXR1dGVzIGEgYnVnLgoKPiA+IAo+ID4gSG93ZXZlci4uLgo+ID4gCj4gPiA+ICAJCWRlYnVnZnNf
-cmVtb3ZlX3JlY3Vyc2l2ZShhcmVuYS0+ZGVidWdmc19kaXIpOwo+ID4gPiAgCQlrZnJlZShhcmVu
-YSk7Cj4gPiAKPiA+IFdoeSBjYW4ndCBhcmVuYSBiZSBhbGxvY2F0ZWQgd2l0aCBkZXZtXyo/Cj4g
-PiAKPiA+IFdlIG5lZWQgdG8gY2hhbmdlIHRoaXMgdXAgYSBiaXQgbW9yZSB0byBoYW5kbGUgdGhl
-IGVycm9yIHBhdGggdnMgcmVndWxhcgo+ID4gZGV2aWNlIHNodXRkb3duIGZyZWUgKGF1dG9tYXRp
-YyBkZXZtIGZyZWVzKS4KPiAKCkF0IGZpcnN0LCBJIHRoaW5rIHRoZSB1c2Ugb2YgYXJlbmEgaXMg
-Y29ycmVjdC4gVGhlcmVmb3JlLCBhbGxvY2F0aW5nIGFyZW5hCndpdGggZGV2bV8qIHNob3VsZCBi
-ZSBhIGNvZGUgc3R5bGUgb3B0aW1pemF0aW9uLiBIb3dldmVyLCBJIHJlY2hlY2tlZCBkaXNjb3Zl
-cl9hcmVuYXMgYW5kIGZvdW5kIGFyZW5hIG1pZ2h0IGFsc28gYmUgbGVha2VkIChlLmcuLCBpZiBh
-bGxvY19hcmVuYSgpIGZhaWxzIGluIHRoZSBzZWNvbmQgbG9vcCwgdGhlIHByZXZpb3VzbHkgYWxs
-b2NhdGVkIHJlc291cmNlcyBpbiB0aGUgbG9vcCBpcyBsZWFrZWQpLiBUaGUgY29ycmVjdCBjb2Rl
-IGNvdWxkIGJlIGZvdW5kIGluIGNyZWF0ZV9hcmVuYXMoKSwgd2hlcmUgZnJlZV9hcmVuYXMgaXMg
-Y2FsbGVkIG9uIGZhaWx1cmUgb2YgYWxsb2NfYXJlbmEoKS4KClRvIGZpeCB0aGlzIGlzc3VlLCBJ
-IHRoaW5rIGl0J3MgYmV0dGVyIHRvIGNoYW5nZSB0aGUgJ2dvdG8gb3V0X3N1cGVyJyB0YWcKdG8g
-J2dvdG8gb3V0Jy4gV2UgY291bGQgYWxzbyB1c2UgZGV2bV8qIGZvciBhcmVuYSB0byBzaW1wbGlm
-eSB0aGUgZXJyb3IgcGF0aAppbiBkaXNjb3Zlcl9hcmVuYXMoKS4gCgo+IFdlIG1pZ2h0IHdhbnQg
-dG8gbG9vayBhdCB1c2luZyBub19mcmVlX3B0cigpIGluIHRoaXMgY29kZS4gIFNlZSB0aGlzCj4g
-cGF0Y2hbMV0gZm9yIGFuIGV4YW1wbGUgb2YgaG93IHRvIGluaGliaXQgdGhlIGNsZWFudXAgYW5k
-IHBhc3MgdGhlIHBvaW50ZXIKPiBvbiB3aGVuIHRoZSBmdW5jdGlvbiBzdWNjZWVkcy4KPiAKPiBb
-MV0gaHR0cHM6Ly9sb3JlLmtlcm5lbC5vcmcvYWxsLzE3MDI2MTc5MTkxNC4xNzE0NjU0LjY0NDc2
-ODAyODUzNTc1NDU2Mzguc3RnaXRAZHdpbGxpYTIteGZoLmpmLmludGVsLmNvbS8KPiAKPiBJcmEK
-ClRoYW5rcyBmb3IgdGhpcyBleGFtcGxlLiBCdXQgaXQgc2VlbXMgdGhhdCBub19mcmVlX3B0cigp
-IGlzIHVzZWQgdG8gaGFuZGxlCnRoZSBzY29wZSBiYXNlZCByZXNvdXJjZSBtYW5hZ2VtZW50LiBD
-aGFuZ2VzIGluIHRoaXMgcGF0Y2ggZG9lcyBub3QgaW50cm9kdWNlCnRoaXMgZmVhdHVyZS4gRG8g
-SSB1bmRlcnN0YW5kIHRoaXMgY29ycmVjdGx5PwoKUmVnYXJkcywKRGluZ2hhbwo=
+As per virtio spec 1.2 section 5.19.5.2, if the feature
+VIRTIO_PMEM_F_SHMEM_REGION has been negotiated, the driver MUST query
+shared memory ID 0 for the physical address ranges.
+
+Signed-off-by: Changyuan Lyu <changyuanl@google.com>
+---
+ drivers/nvdimm/virtio_pmem.c     | 29 +++++++++++++++++++++++++----
+ include/uapi/linux/virtio_pmem.h |  8 ++++++++
+ 2 files changed, 33 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/nvdimm/virtio_pmem.c b/drivers/nvdimm/virtio_pmem.c
+index a92eb172f0e7..5b28d543728b 100644
+--- a/drivers/nvdimm/virtio_pmem.c
++++ b/drivers/nvdimm/virtio_pmem.c
+@@ -35,6 +35,8 @@ static int virtio_pmem_probe(struct virtio_device *vdev)
+ 	struct nd_region *nd_region;
+ 	struct virtio_pmem *vpmem;
+ 	struct resource res;
++	struct virtio_shm_region shm_reg;
++	bool have_shm;
+ 	int err = 0;
+ 
+ 	if (!vdev->config->get) {
+@@ -57,10 +59,23 @@ static int virtio_pmem_probe(struct virtio_device *vdev)
+ 		goto out_err;
+ 	}
+ 
+-	virtio_cread_le(vpmem->vdev, struct virtio_pmem_config,
+-			start, &vpmem->start);
+-	virtio_cread_le(vpmem->vdev, struct virtio_pmem_config,
+-			size, &vpmem->size);
++	if (virtio_has_feature(vdev, VIRTIO_PMEM_F_SHMEM_REGION)) {
++		have_shm = virtio_get_shm_region(vdev, &shm_reg,
++				(u8)VIRTIO_PMEM_SHMCAP_ID);
++		if (!have_shm) {
++			dev_err(&vdev->dev, "failed to get shared memory region %d\n",
++					VIRTIO_PMEM_SHMCAP_ID);
++			return -EINVAL;
++		}
++		vpmem->start = shm_reg.addr;
++		vpmem->size = shm_reg.len;
++	} else {
++		virtio_cread_le(vpmem->vdev, struct virtio_pmem_config,
++				start, &vpmem->start);
++		virtio_cread_le(vpmem->vdev, struct virtio_pmem_config,
++				size, &vpmem->size);
++	}
++
+ 
+ 	res.start = vpmem->start;
+ 	res.end   = vpmem->start + vpmem->size - 1;
+@@ -122,7 +137,13 @@ static void virtio_pmem_remove(struct virtio_device *vdev)
+ 	virtio_reset_device(vdev);
+ }
+ 
++static unsigned int features[] = {
++	VIRTIO_PMEM_F_SHMEM_REGION,
++};
++
+ static struct virtio_driver virtio_pmem_driver = {
++	.feature_table		= features,
++	.feature_table_size	= ARRAY_SIZE(features),
+ 	.driver.name		= KBUILD_MODNAME,
+ 	.driver.owner		= THIS_MODULE,
+ 	.id_table		= id_table,
+diff --git a/include/uapi/linux/virtio_pmem.h b/include/uapi/linux/virtio_pmem.h
+index d676b3620383..025174f6eacf 100644
+--- a/include/uapi/linux/virtio_pmem.h
++++ b/include/uapi/linux/virtio_pmem.h
+@@ -14,6 +14,14 @@
+ #include <linux/virtio_ids.h>
+ #include <linux/virtio_config.h>
+ 
++/* Feature bits */
++#define VIRTIO_PMEM_F_SHMEM_REGION 0	/* guest physical address range will be
++					 * indicated as shared memory region 0
++					 */
++
++/* shmid of the shared memory region corresponding to the pmem */
++#define VIRTIO_PMEM_SHMCAP_ID 0
++
+ struct virtio_pmem_config {
+ 	__le64 start;
+ 	__le64 size;
+-- 
+2.43.0.472.g3155946c3a-goog
+
