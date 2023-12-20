@@ -1,197 +1,93 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 31EA718E0B
-	for <nvdimm@lists.linux.dev>; Wed, 20 Dec 2023 07:44:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="OMLhGQDC"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1703058293;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=ZERZ9fezBuG8sZHm3H+h3yZuPI8dAYPQNjqzuU3nTQw=;
-	b=OMLhGQDCa1Q8HHMj45WY9urJs7dRgq80IoA29d1VPhGjjlFIQUdsvnk7TQTHC2ViqonOQm
-	9UVIMYtsyw4a/OsKS6zHEVTT7ZcYFQMcMSi5mNOYpyVHKFoXUGxrgFwHbEFy+ybOg0ncEm
-	/MwifNZtqW2qke7NKf3YIzQX8N1/fw0=
-Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com
- [209.85.128.72]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-470-tt1R7gCNN-O0Z3Z3ziAD_A-1; Wed, 20 Dec 2023 02:44:51 -0500
-X-MC-Unique: tt1R7gCNN-O0Z3Z3ziAD_A-1
-Received: by mail-wm1-f72.google.com with SMTP id 5b1f17b1804b1-40d35a7579bso2436255e9.3
-        for <nvdimm@lists.linux.dev>; Tue, 19 Dec 2023 23:44:51 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1703058290; x=1703663090;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=ZERZ9fezBuG8sZHm3H+h3yZuPI8dAYPQNjqzuU3nTQw=;
-        b=P1xmhhDvlLVdo5WLir8oGrPqZnwR4ZvsDHMV1fYf95zuMXNS5NbyvT31HdXP4Oczgz
-         oMbjDnUCBUXVPAN9ZQTl51IDWxJ3iDBngDvc4D6ro78IaDHSBjDnuSYo/6cNVlWe1M0c
-         MwflCI8h498LAQPFYH01k1DlOroHCkbwSSHzUvO1OtXmqk+uMZR9h94kgNRJtaLZ1rj7
-         PW/HLN3S+P1XohnDbKk5cAgBBR93Nf4voMR8JILSlMB3XK0rtO0mbwDv0Q8HZSqqOz/+
-         taZtLofvFHp22Fg/TP8p+HIqL4rwhHUvC4vG6JLrBgWuYvtKsKa2JijTKndoGlWOUQeM
-         wgBA==
-X-Gm-Message-State: AOJu0YxV8AIANL7EIXiOFtOufiGrn88aUkti1uJk7TbcPR1H5MFw6/Uh
-	pL88gocfMHJyv8fjCo4mHyHyp+7iPx1aejwKMC2E42PQXnyOUulBUoTZtEMo70EQP0jYh+l991t
-	0uOp+qetjwbI3d3yTJf8HEbAa
-X-Received: by 2002:a05:600c:4da5:b0:40c:22c7:598d with SMTP id v37-20020a05600c4da500b0040c22c7598dmr9986934wmp.179.1703058289798;
-        Tue, 19 Dec 2023 23:44:49 -0800 (PST)
-X-Google-Smtp-Source: AGHT+IE9tONKCILe3+cD+jg2qxbWgafKidT3BoLZOCmcOeN1Q83KMevJyvSqyePqGFhoSWeIk8oOwg==
-X-Received: by 2002:a05:600c:4da5:b0:40c:22c7:598d with SMTP id v37-20020a05600c4da500b0040c22c7598dmr9986928wmp.179.1703058289465;
-        Tue, 19 Dec 2023 23:44:49 -0800 (PST)
-Received: from redhat.com ([2.52.148.230])
-        by smtp.gmail.com with ESMTPSA id n7-20020a05600c4f8700b0040d1774b4e4sm6207820wmq.42.2023.12.19.23.44.47
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 19 Dec 2023 23:44:48 -0800 (PST)
-Date: Wed, 20 Dec 2023 02:44:45 -0500
-From: "Michael S. Tsirkin" <mst@redhat.com>
-To: Changyuan Lyu <changyuanl@google.com>
-Cc: dan.j.williams@intel.com, dave.jiang@intel.com, jasowang@redhat.com,
-	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
-	pankaj.gupta.linux@gmail.com, virtualization@lists.linux.dev,
-	vishal.l.verma@intel.com, xuanzhuo@linux.alibaba.com
-Subject: Re: [PATCH v3] virtio_pmem: support feature SHMEM_REGION
-Message-ID: <20231220023653-mutt-send-email-mst@kernel.org>
-References: <20231220020100-mutt-send-email-mst@kernel.org>
- <20231220073227.252605-1-changyuanl@google.com>
+Received: from zju.edu.cn (mail.zju.edu.cn [61.164.42.155])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id F30AD18E08
+	for <nvdimm@lists.linux.dev>; Wed, 20 Dec 2023 08:14:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=zju.edu.cn
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=zju.edu.cn
+Received: from dinghao.liu$zju.edu.cn ( [10.190.71.26] ) by
+ ajax-webmail-mail-app3 (Coremail) ; Wed, 20 Dec 2023 15:52:43 +0800
+ (GMT+08:00)
+Date: Wed, 20 Dec 2023 15:52:43 +0800 (GMT+08:00)
+X-CM-HeaderCharset: UTF-8
+From: dinghao.liu@zju.edu.cn
+To: "Ira Weiny" <ira.weiny@intel.com>
+Cc: "Dan Williams" <dan.j.williams@intel.com>, 
+	"Vishal Verma" <vishal.l.verma@intel.com>, 
+	"Dave Jiang" <dave.jiang@intel.com>, nvdimm@lists.linux.dev, 
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] [v2] nvdimm-btt: fix several memleaks
+X-Priority: 3
+X-Mailer: Coremail Webmail Server Version 2023.2-cmXT5 build
+ 20230825(e13b6a3b) Copyright (c) 2002-2023 www.mailtech.cn
+ mispb-4df6dc2c-e274-4d1c-b502-72c5c3dfa9ce-zj.edu.cn
+In-Reply-To: <65822a6542ca1_277bd294f3@iweiny-mobl.notmuch>
+References: <20231210085817.30161-1-dinghao.liu@zju.edu.cn>
+ <657b9cb088175_27db80294d2@iweiny-mobl.notmuch>
+ <657c82966e358_2947c22941a@iweiny-mobl.notmuch>
+ <13ffb3fd.41cd7.18c7c3b52bf.Coremail.dinghao.liu@zju.edu.cn>
+ <65822a6542ca1_277bd294f3@iweiny-mobl.notmuch>
+Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <20231220073227.252605-1-changyuanl@google.com>
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: redhat.com
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Message-ID: <62f848c1.48243.18c86366e76.Coremail.dinghao.liu@zju.edu.cn>
+X-Coremail-Locale: zh_CN
+X-CM-TRANSID:cC_KCgBnb3NMnYJl5scwAQ--.36390W
+X-CM-SenderInfo: qrrzjiaqtzq6lmxovvfxof0/1tbiAg0PBmWBaRd7cgABsU
+X-Coremail-Antispam: 1Ur529EdanIXcx71UUUUU7IcSsGvfJ3iIAIbVAYjsxI4VWxJw
+	CS07vEb4IE77IF4wCS07vE1I0E4x80FVAKz4kxMIAIbVAFxVCaYxvI4VCIwcAKzIAtYxBI
+	daVFxhVjvjDU=
 
-On Tue, Dec 19, 2023 at 11:32:27PM -0800, Changyuan Lyu wrote:
-> On Tue, Dec 19, 2023 at 11:01 PM Michael S. Tsirkin <mst@redhat.com> wrote:
-> > 
-> > This is not a great description. Please describe what the patch does.
-> 
-> Thanks for the feedback! Please see the v3 patch below.
-> 
-> ---8<---
-> 
-> This patch adds the support for feature VIRTIO_PMEM_F_SHMEM_REGION
-> (virtio spec v1.2 section 5.19.5.2 [1]). Feature bit
-> VIRTIO_PMEM_F_SHMEM_REGION is added to the driver feature
-> table.
-> 
-> If the driver feature bit VIRTIO_PMEM_F_SHMEM_REGION is found,
-> during probe, virtio pmem ignores the `start` and `size` fields in
-> device config and looks for a shared memory region of id 0. The
-> physical address range of the pmem is then determined by the physical
-> address range of shared memory region 0.
-> 
-> [1] https://docs.oasis-open.org/virtio/virtio/v1.2/csd01/virtio-v1.2-csd01.html#x1-6480002
-> 
-> Signed-off-by: Changyuan Lyu <changyuanl@google.com>
-> 
-> ---
-> v3:
->   * updated the patch description.
-> V2:
->   * renamed VIRTIO_PMEM_SHMCAP_ID to VIRTIO_PMEM_SHMEM_REGION_ID
->   * fixed the error handling when region 0 does not exist
-> ---
->  drivers/nvdimm/virtio_pmem.c     | 30 ++++++++++++++++++++++++++----
->  include/uapi/linux/virtio_pmem.h |  8 ++++++++
->  2 files changed, 34 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/nvdimm/virtio_pmem.c b/drivers/nvdimm/virtio_pmem.c
-> index a92eb172f0e7..8e447c7558cb 100644
-> --- a/drivers/nvdimm/virtio_pmem.c
-> +++ b/drivers/nvdimm/virtio_pmem.c
-> @@ -35,6 +35,8 @@ static int virtio_pmem_probe(struct virtio_device *vdev)
->  	struct nd_region *nd_region;
->  	struct virtio_pmem *vpmem;
->  	struct resource res;
-> +	struct virtio_shm_region shm_reg;
-> +	bool have_shm;
->  	int err = 0;
->  
->  	if (!vdev->config->get) {
-> @@ -57,10 +59,24 @@ static int virtio_pmem_probe(struct virtio_device *vdev)
->  		goto out_err;
->  	}
->  
-> -	virtio_cread_le(vpmem->vdev, struct virtio_pmem_config,
-> -			start, &vpmem->start);
-> -	virtio_cread_le(vpmem->vdev, struct virtio_pmem_config,
-> -			size, &vpmem->size);
-> +	if (virtio_has_feature(vdev, VIRTIO_PMEM_F_SHMEM_REGION)) {
-> +		have_shm = virtio_get_shm_region(vdev, &shm_reg,
-> +				(u8)VIRTIO_PMEM_SHMEM_REGION_ID);
-> +		if (!have_shm) {
-> +			dev_err(&vdev->dev, "failed to get shared memory region %d\n",
-> +					VIRTIO_PMEM_SHMEM_REGION_ID);
-> +			err = -ENXIO;
-> +			goto out_vq;
-
-Maybe additionally, add a validate callback and clear
-VIRTIO_PMEM_F_SHMEM_REGION if VIRTIO_PMEM_SHMEM_REGION_ID is not there.
-
-
-
-
-> +		}
-> +		vpmem->start = shm_reg.addr;
-> +		vpmem->size = shm_reg.len;
-> +	} else {
-> +		virtio_cread_le(vpmem->vdev, struct virtio_pmem_config,
-> +				start, &vpmem->start);
-> +		virtio_cread_le(vpmem->vdev, struct virtio_pmem_config,
-> +				size, &vpmem->size);
-> +	}
-> +
->  
->  	res.start = vpmem->start;
->  	res.end   = vpmem->start + vpmem->size - 1;
-> @@ -122,7 +138,13 @@ static void virtio_pmem_remove(struct virtio_device *vdev)
->  	virtio_reset_device(vdev);
->  }
->  
-> +static unsigned int features[] = {
-> +	VIRTIO_PMEM_F_SHMEM_REGION,
-> +};
-> +
->  static struct virtio_driver virtio_pmem_driver = {
-> +	.feature_table		= features,
-> +	.feature_table_size	= ARRAY_SIZE(features),
->  	.driver.name		= KBUILD_MODNAME,
->  	.driver.owner		= THIS_MODULE,
->  	.id_table		= id_table,
-> diff --git a/include/uapi/linux/virtio_pmem.h b/include/uapi/linux/virtio_pmem.h
-> index d676b3620383..c5e49b6e58b1 100644
-> --- a/include/uapi/linux/virtio_pmem.h
-> +++ b/include/uapi/linux/virtio_pmem.h
-> @@ -14,6 +14,14 @@
->  #include <linux/virtio_ids.h>
->  #include <linux/virtio_config.h>
->  
-> +/* Feature bits */
-> +#define VIRTIO_PMEM_F_SHMEM_REGION 0	/* guest physical address range will be
-> +					 * indicated as shared memory region 0
-> +					 */
-
-
-Either make this comment shorter to fit in one line, or put the
-multi-line comment before the define.
-
-> +
-> +/* shmid of the shared memory region corresponding to the pmem */
-> +#define VIRTIO_PMEM_SHMEM_REGION_ID 0
-> +
->  struct virtio_pmem_config {
->  	__le64 start;
->  	__le64 size;
-> -- 
-> 2.43.0.472.g3155946c3a-goog
+PiBkaW5naGFvLmxpdUAgd3JvdGU6Cj4gPiA+IElyYSBXZWlueSB3cm90ZToKPiA+ID4gPiBEaW5n
+aGFvIExpdSB3cm90ZToKCltzbmlwXQoKPiA+ID4gPiAKPiA+ID4gPiBUaGlzIGRvZXMgbm90IHF1
+aXRlIHdvcmsuCj4gPiA+ID4gCj4gPiA+ID4gZnJlZV9hcmVuYXMoKSBpcyB1c2VkIGluIHRoZSBl
+cnJvciBwYXRocyBvZiBjcmVhdGVfYXJlbmFzKCkgYW5kCj4gPiA+ID4gZGlzY292ZXJfYXJlbmFz
+KCkuICBJbiB0aG9zZSBjYXNlcyBkZXZtX2tmcmVlKCkgaXMgcHJvYmFibHkgYSBiZXR0ZXIgd2F5
+Cj4gPiA+ID4gdG8gY2xlYW4gdXAgdGhpcy4KPiA+IAo+ID4gSGVyZSBJJ20gYSBsaXR0bGUgY29u
+ZnVzZWQgYWJvdXQgd2hlbiBkZXZtX2tmcmVlKCkgc2hvdWxkIGJlIHVzZWQuCj4gCj4gT3ZlciBh
+bGwgaXQgc2hvdWxkIGJlIHVzZWQgd2hlbmV2ZXIgbWVtb3J5IGlzIGFsbG9jYXRlZCBmb3IgdGhl
+IGxpZmV0aW1lCj4gb2YgdGhlIGRldmljZS4KPiAKPiA+IENvZGUgaW4gYnR0X2luaXQoKSBpbXBs
+aWVzIHRoYXQgcmVzb3VyY2VzIGFsbG9jYXRlZCBieSBkZXZtXyogY291bGQgYmUKPiA+IGF1dG8g
+ZnJlZWQgaW4gYm90aCBlcnJvciBhbmQgc3VjY2VzcyBwYXRocyBvZiBwcm9iZS9hdHRhY2ggKGUu
+Zy4sIGJ0dCAKPiA+IGFsbG9jYXRlZCBieSBkZXZtX2t6YWxsb2MgaXMgbmV2ZXIgZnJlZWQgYnkg
+ZGV2bV9rZnJlZSkuCj4gPiBVc2luZyBkZXZtX2tmcmVlKCkgaW4gZnJlZV9hcmVuYXMoKSBpcyBv
+ayBmb3IgbWUsIGJ1dCBJIHdhbnQgdG8ga25vdwo+ID4gd2hldGhlciBub3QgdXNpbmcgZGV2bV9r
+ZnJlZSgpIGNvbnN0aXR1dGVzIGEgYnVnLgo+IAo+IFVuZm9ydHVuYXRlbHkgSSdtIG5vdCBmYW1p
+bGlhciBlbm91Z2ggd2l0aCB0aGlzIGNvZGUgdG8ga25vdyBmb3Igc3VyZS4KPiAKPiBBZnRlciBt
+eSBxdWljayBjaGVja3MgYmVmb3JlIEkgdGhvdWdodCBpdCB3YXMuICBCdXQgZWFjaCB0aW1lIEkg
+bG9vayBhdCBpdAo+IEkgZ2V0IGNvbmZ1c2VkLiAgVGhpcyBpcyB3aHkgSSB3YXMgdGhpbmtpbmcg
+bWF5YmUgbm90IHVzaW5nIGRldm1fKigpIGFuZAo+IHVzaW5nIG5vX2ZyZWVfcHRyKCkgbWF5IGJl
+IGEgYmV0dGVyIHNvbHV0aW9uIHRvIG1ha2Ugc3VyZSB0aGluZ3MgZG9uJ3QKPiBsZWFrIHdpdGhv
+dXQgY2hhbmdpbmcgdGhlIHN1Y2Nlc3MgcGF0aCAod2hpY2ggaXMgbGlrZWx5IHdvcmtpbmcgZmlu
+ZQo+IGJlY2F1c2Ugbm8gYnVncyBoYXZlIGJlZW4gZm91bmQuKQoKV2UgaGF2ZSB0aGUgc2FtZSBj
+b25mdXNpb24gaGVyZS4uLiBJIGZpbmQgYSBkaXNjdXNzaW9uIGFib3V0IHRoaXMgcHJvYmxlbSwK
+d2hpY2ggaW1wbGllcyB0aGF0IG5vdCB1c2luZyBkZXZtX2tmcmVlKCkgbWF5IGRlbGF5IHRoZSBy
+ZWxlYXNlLCBidXQgdGhlIG1lbW9yeSB3aWxsIGJlIGZyZWVkIGxhdGVyIGFuZCBubyBtZW1vcnkg
+aXMgbGVha2VkOgoKaHR0cHM6Ly93d3cubWFpbC1hcmNoaXZlLmNvbS9saW51eC1rZXJuZWxAdmdl
+ci5rZXJuZWwub3JnL21zZzIwMDk1NjEuaHRtbAoKPiA+IAo+ID4gPiBXZSBtaWdodCB3YW50IHRv
+IGxvb2sgYXQgdXNpbmcgbm9fZnJlZV9wdHIoKSBpbiB0aGlzIGNvZGUuICBTZWUgdGhpcwo+ID4g
+PiBwYXRjaFsxXSBmb3IgYW4gZXhhbXBsZSBvZiBob3cgdG8gaW5oaWJpdCB0aGUgY2xlYW51cCBh
+bmQgcGFzcyB0aGUKPiA+ID4gcG9pbnRlciBvbiB3aGVuIHRoZSBmdW5jdGlvbiBzdWNjZWVkcy4K
+PiA+ID4gCj4gPiA+IFsxXQo+ID4gPiBodHRwczovL2xvcmUua2VybmVsLm9yZy9hbGwvMTcwMjYx
+NzkxOTE0LjE3MTQ2NTQuNjQ0NzY4MDI4NTM1NzU0NTYzOC5zdGdpdEBkd2lsbGlhMi14ZmguamYu
+aW50ZWwuY29tLwo+ID4gPiAKPiA+ID4gSXJhCj4gPiAKPiA+IFRoYW5rcyBmb3IgdGhpcyBleGFt
+cGxlLiBCdXQgaXQgc2VlbXMgdGhhdCBub19mcmVlX3B0cigpIGlzIHVzZWQgdG8KPiA+IGhhbmRs
+ZSB0aGUgc2NvcGUgYmFzZWQgcmVzb3VyY2UgbWFuYWdlbWVudC4gQ2hhbmdlcyBpbiB0aGlzIHBh
+dGNoIGRvZXMKPiA+IG5vdCBpbnRyb2R1Y2UgdGhpcyBmZWF0dXJlLiBEbyBJIHVuZGVyc3RhbmQg
+dGhpcyBjb3JyZWN0bHk/Cj4gCj4gWW91IGRvIHVuZGVyc3RhbmQgYnV0IEkgd2FzIHRoaW5raW5n
+IHRoYXQgcGVyaGFwcyB1c2luZyBub19mcmVlX3B0cigpCj4gcmF0aGVyIHRoYW4gZGV2bV8qKCkg
+bWlnaHQgYmUgYW4gZWFzaWVyIHdheSB0byBmaXggdGhpcyBidWcgd2l0aG91dCB0cnlpbmcKPiB0
+byBkZWNvZGUgdGhlIGxpZmV0aW1lIG9mIGV2ZXJ5dGhpbmcuCj4gCgpNeSBjb25jZXJuIGlzIHRo
+YXQgbm9fZnJlZV9wdHIoKSBtYXkgbm90IGJlIGFibGUgdG8gY29tcGxldGVseSBmaXggYWxsCm1l
+bWxlYWtzIGJlY2F1c2Ugc29tZSBvZiB0aGVtIGFyZSB0cmlnZ2VyZWQgaW4gKHBhcnQgb2YpIHN1
+Y2Nlc3MgcGF0aHMgKGUuZy4sCndoZW4gYnR0X2ZyZWVsaXN0X2luaXQgc3VjY2VlZHMgYnV0IGJ0
+dF9ydHRfaW5pdCBmYWlscywgZGlzY292ZXJfYXJlbmFzIHN0aWxsIG5lZWRzIHRvIGNsZWFuIHVw
+IHRoZSBtZW1vcnkgYWxsb2NhdGVkIGluIGJ0dF9mcmVlbGlzdF9pbml0KS4KCkkgY2hlY2tlZCB0
+aGUgZGVzaWduIG9mIG5vX2ZyZWVfcHRyKCksIGFuZCBpdCBzZWVtcyB0aGF0IGl0IHdpbGwgZ2Vu
+ZXJhdGUKYSBuZXcgcG9pbnRlciBvbiBzdWNjZXNzIGFuZCB0aGUgbWVtb3J5IHN0aWxsIGxlYWtz
+IGluIHRoZSBhYm92ZSBjYXNlLiAKVGhlcmVmb3JlLCBJIHRoaW5rIHVzaW5nIGRldm1fKigpIGlz
+IHN0aWxsIHRoZSBiZXN0IHNvbHV0aW9uIGZvciB0aGlzIGJ1Zy4gCgpSZWdhcmRzLApEaW5naGFv
 
