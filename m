@@ -1,267 +1,174 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87BBA8483
-	for <nvdimm@lists.linux.dev>; Wed, 20 Dec 2023 02:15:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B14014A93
+	for <nvdimm@lists.linux.dev>; Wed, 20 Dec 2023 03:57:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="BPlwekTl"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1703038531; x=1734574531;
-  h=subject:from:to:cc:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=7kuQy2XaY9QSIQOfa23s1J3GFQKI9Dp4z6qxJXAn4Fc=;
-  b=BPlwekTl7CkaR0wow9cL/7lUFiFPAa+fLtQ1hHAgGJK1W4/SjDPiVZdS
-   qZK93bXkEbhpKxgI4Wg9PMJMhJWbEyAuv89K8E8K5z/aqnDUbGtVNazog
-   NgJJ9MAqfUm4r7+BEy9Zs8C5GQrburAtPvTp8flQQ+OfOoneK2nOF92Eu
-   tREzuCkyO9TBCB9u3nxisJdTaPQHLldELh2OsQDJYztwZRQo6OKORPQL5
-   idFwe+QKTHujprjU9xptYWU6OSo/1C2y5llN6sonptP08DHgJxFey03nM
-   9sNCPeweSlEhlyDhwc2pyiqb29DdUDzAA9k8DQKZUZTyro7GsN6nwlpHe
-   w==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10929"; a="9212135"
-X-IronPort-AV: E=Sophos;i="6.04,290,1695711600"; 
-   d="scan'208";a="9212135"
-Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Dec 2023 18:15:14 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10929"; a="1023328612"
-X-IronPort-AV: E=Sophos;i="6.04,290,1695711600"; 
-   d="scan'208";a="1023328612"
-Received: from amerwada-mobl.amr.corp.intel.com (HELO dwillia2-xfh.jf.intel.com) ([10.212.175.123])
-  by fmsmga006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Dec 2023 18:15:14 -0800
-Subject: [PATCH] acpi/nfit: Use sysfs_emit() for all attributes
-From: Dan Williams <dan.j.williams@intel.com>
-To: nvdimm@lists.linux.dev
-Cc: Ben Dooks <ben.dooks@codethink.co.uk>,
- Alison Schofield <alison.schofield@intel.com>,
- Dave Jiang <dave.jiang@intel.com>, linux-acpi@vger.kernel.org
-Date: Tue, 19 Dec 2023 18:15:13 -0800
-Message-ID: <170303851337.2238503.5103082574938957743.stgit@dwillia2-xfh.jf.intel.com>
-User-Agent: StGit/0.18-3-g996c
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="EXa7R4Xr"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1703044677;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=KGB9OQg5bjkn7TP5D/aYpmIW7Xo9iRJPncX1JD79MEo=;
+	b=EXa7R4XrTG7MhW1KrswKDbwPJhKY7nvALtRFn7C4olJWqcW5JENRQbwdMogKor5boBHqlZ
+	LOcJ76VNXl+ScFkYDs2D2JOkHsk3N8EvXTuC5QMoEZQeLnCEBLXJlCbJ9ZxzCPB3RxxZ40
+	IbTwRT7tzaPHBXwcADD7Diui2TW4akg=
+Received: from mail-oo1-f69.google.com (mail-oo1-f69.google.com
+ [209.85.161.69]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-602-9kBfAFCuNbCTDGKfnqUn_w-1; Tue, 19 Dec 2023 22:57:55 -0500
+X-MC-Unique: 9kBfAFCuNbCTDGKfnqUn_w-1
+Received: by mail-oo1-f69.google.com with SMTP id 006d021491bc7-587a58f3346so5162448eaf.1
+        for <nvdimm@lists.linux.dev>; Tue, 19 Dec 2023 19:57:55 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1703044674; x=1703649474;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=KGB9OQg5bjkn7TP5D/aYpmIW7Xo9iRJPncX1JD79MEo=;
+        b=BgMbgqtxSMOGMjga5lKtlZkPzml5RrmXse2RTBn4AdUQJ2BBR6tAQt97eWtP7qXeij
+         O7jWIJWsQuV5ygosIo3g4RtTJFTGkirXziXdAC5jUzg4fdDCjbu29oZzJtGFVYIiClcM
+         AIp+zaZPLDN30KStNb6fIQ9Wtl8bToviHA5DyNQZN+lFlTcRpygCXSzdpssVVEPNOTzT
+         bYVCRoRhAEaSp9ZyiHZRjEOkjUV10a9Hu0qjqeDWfblNjip5+gNL4tqKaVGCfR5OE/yI
+         TevNE8mnfagtKSMLkjNsRe4IdN9iD7uunM1fMGtQM/wUGPe5bfPrcu5QEVBc71D6wXDp
+         87Cg==
+X-Gm-Message-State: AOJu0YzZJIHMmN84uD93tj9nl16oSsGZbRyPFvTJIOX5JKCBZmgrxqSG
+	sy/oOJDgsrzAKeuE8lWspXt0Tc4dxmcHtqz5VfZ5Sy7YysgGitNnOGb7F5slyyGmlKD6bWTXlz/
+	Xajd/Og9/SEEoTTPigcAcqlsBNx/IO6bO
+X-Received: by 2002:a05:6808:2225:b0:3b9:de1e:17c2 with SMTP id bd37-20020a056808222500b003b9de1e17c2mr24722063oib.43.1703044674627;
+        Tue, 19 Dec 2023 19:57:54 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IHBHszk26c2E8rxJ5eYpscabmiTkCBilA5/rsGNc2AubHn4l/QKcgkKQYrD/3vio7FZZEGnHDCtWORhj8swx3E=
+X-Received: by 2002:a05:6808:2225:b0:3b9:de1e:17c2 with SMTP id
+ bd37-20020a056808222500b003b9de1e17c2mr24722049oib.43.1703044674328; Tue, 19
+ Dec 2023 19:57:54 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+References: <20231219071849.3912896-1-changyuanl@google.com>
+In-Reply-To: <20231219071849.3912896-1-changyuanl@google.com>
+From: Jason Wang <jasowang@redhat.com>
+Date: Wed, 20 Dec 2023 11:57:42 +0800
+Message-ID: <CACGkMEuEY5xJyf6H6RgqSuD0PeY9kynYywxzM2+3W6MPaav0Zw@mail.gmail.com>
+Subject: Re: [PATCH] virtio_pmem: support feature SHMEM_REGION
+To: Changyuan Lyu <changyuanl@google.com>
+Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>, "Michael S . Tsirkin" <mst@redhat.com>, 
+	Xuan Zhuo <xuanzhuo@linux.alibaba.com>, Dan Williams <dan.j.williams@intel.com>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	virtualization@lists.linux.dev, nvdimm@lists.linux.dev, 
+	linux-kernel@vger.kernel.org
+X-Mimecast-Spam-Score: 0
+X-Mimecast-Originator: redhat.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-sysfs_emit() properly handles the PAGE_SIZE limitation of populating
-sysfs attribute buffers. Clean up the deprecated usage of sprintf() in
-all of nfit's sysfs show() handlers.
+On Tue, Dec 19, 2023 at 3:19=E2=80=AFPM Changyuan Lyu <changyuanl@google.co=
+m> wrote:
+>
+> As per virtio spec 1.2 section 5.19.5.2, if the feature
+> VIRTIO_PMEM_F_SHMEM_REGION has been negotiated, the driver MUST query
+> shared memory ID 0 for the physical address ranges.
+>
+> Signed-off-by: Changyuan Lyu <changyuanl@google.com>
+> ---
+>  drivers/nvdimm/virtio_pmem.c     | 29 +++++++++++++++++++++++++----
+>  include/uapi/linux/virtio_pmem.h |  8 ++++++++
+>  2 files changed, 33 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/nvdimm/virtio_pmem.c b/drivers/nvdimm/virtio_pmem.c
+> index a92eb172f0e7..5b28d543728b 100644
+> --- a/drivers/nvdimm/virtio_pmem.c
+> +++ b/drivers/nvdimm/virtio_pmem.c
+> @@ -35,6 +35,8 @@ static int virtio_pmem_probe(struct virtio_device *vdev=
+)
+>         struct nd_region *nd_region;
+>         struct virtio_pmem *vpmem;
+>         struct resource res;
+> +       struct virtio_shm_region shm_reg;
+> +       bool have_shm;
+>         int err =3D 0;
+>
+>         if (!vdev->config->get) {
+> @@ -57,10 +59,23 @@ static int virtio_pmem_probe(struct virtio_device *vd=
+ev)
+>                 goto out_err;
+>         }
+>
+> -       virtio_cread_le(vpmem->vdev, struct virtio_pmem_config,
+> -                       start, &vpmem->start);
+> -       virtio_cread_le(vpmem->vdev, struct virtio_pmem_config,
+> -                       size, &vpmem->size);
+> +       if (virtio_has_feature(vdev, VIRTIO_PMEM_F_SHMEM_REGION)) {
+> +               have_shm =3D virtio_get_shm_region(vdev, &shm_reg,
+> +                               (u8)VIRTIO_PMEM_SHMCAP_ID);
+> +               if (!have_shm) {
+> +                       dev_err(&vdev->dev, "failed to get shared memory =
+region %d\n",
+> +                                       VIRTIO_PMEM_SHMCAP_ID);
+> +                       return -EINVAL;
+> +               }
+> +               vpmem->start =3D shm_reg.addr;
+> +               vpmem->size =3D shm_reg.len;
+> +       } else {
+> +               virtio_cread_le(vpmem->vdev, struct virtio_pmem_config,
+> +                               start, &vpmem->start);
+> +               virtio_cread_le(vpmem->vdev, struct virtio_pmem_config,
+> +                               size, &vpmem->size);
+> +       }
+> +
+>
+>         res.start =3D vpmem->start;
+>         res.end   =3D vpmem->start + vpmem->size - 1;
+> @@ -122,7 +137,13 @@ static void virtio_pmem_remove(struct virtio_device =
+*vdev)
+>         virtio_reset_device(vdev);
+>  }
+>
+> +static unsigned int features[] =3D {
+> +       VIRTIO_PMEM_F_SHMEM_REGION,
+> +};
+> +
+>  static struct virtio_driver virtio_pmem_driver =3D {
+> +       .feature_table          =3D features,
+> +       .feature_table_size     =3D ARRAY_SIZE(features),
+>         .driver.name            =3D KBUILD_MODNAME,
+>         .driver.owner           =3D THIS_MODULE,
+>         .id_table               =3D id_table,
+> diff --git a/include/uapi/linux/virtio_pmem.h b/include/uapi/linux/virtio=
+_pmem.h
+> index d676b3620383..025174f6eacf 100644
+> --- a/include/uapi/linux/virtio_pmem.h
+> +++ b/include/uapi/linux/virtio_pmem.h
+> @@ -14,6 +14,14 @@
+>  #include <linux/virtio_ids.h>
+>  #include <linux/virtio_config.h>
+>
+> +/* Feature bits */
+> +#define VIRTIO_PMEM_F_SHMEM_REGION 0   /* guest physical address range w=
+ill be
+> +                                        * indicated as shared memory reg=
+ion 0
+> +                                        */
+> +
+> +/* shmid of the shared memory region corresponding to the pmem */
+> +#define VIRTIO_PMEM_SHMCAP_ID 0
 
-Reported-by: Ben Dooks <ben.dooks@codethink.co.uk>
-Closes: http://lore.kernel.org/0d1bf461-d9e8-88bc-b7e2-b03b56594213@codethink.co.uk
-Cc: Alison Schofield <alison.schofield@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/acpi/nfit/core.c |   44 ++++++++++++++++++++++----------------------
- 1 file changed, 22 insertions(+), 22 deletions(-)
+NIT: not a native speaker, but any reason for "CAP" here? Would it be
+better to use SHMMEM_REGION_ID?
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 992385537757..9f44156c6181 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -1186,7 +1186,7 @@ static ssize_t bus_dsm_mask_show(struct device *dev,
- 	struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
- 	struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
- 
--	return sprintf(buf, "%#lx\n", acpi_desc->bus_dsm_mask);
-+	return sysfs_emit(buf, "%#lx\n", acpi_desc->bus_dsm_mask);
- }
- static struct device_attribute dev_attr_bus_dsm_mask =
- 		__ATTR(dsm_mask, 0444, bus_dsm_mask_show, NULL);
-@@ -1198,7 +1198,7 @@ static ssize_t revision_show(struct device *dev,
- 	struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
- 	struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
- 
--	return sprintf(buf, "%d\n", acpi_desc->acpi_header.revision);
-+	return sysfs_emit(buf, "%d\n", acpi_desc->acpi_header.revision);
- }
- static DEVICE_ATTR_RO(revision);
- 
-@@ -1209,7 +1209,7 @@ static ssize_t hw_error_scrub_show(struct device *dev,
- 	struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
- 	struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
- 
--	return sprintf(buf, "%d\n", acpi_desc->scrub_mode);
-+	return sysfs_emit(buf, "%d\n", acpi_desc->scrub_mode);
- }
- 
- /*
-@@ -1278,7 +1278,7 @@ static ssize_t scrub_show(struct device *dev,
- 	mutex_lock(&acpi_desc->init_mutex);
- 	busy = test_bit(ARS_BUSY, &acpi_desc->scrub_flags)
- 		&& !test_bit(ARS_CANCEL, &acpi_desc->scrub_flags);
--	rc = sprintf(buf, "%d%s", acpi_desc->scrub_count, busy ? "+\n" : "\n");
-+	rc = sysfs_emit(buf, "%d%s", acpi_desc->scrub_count, busy ? "+\n" : "\n");
- 	/* Allow an admin to poll the busy state at a higher rate */
- 	if (busy && capable(CAP_SYS_RAWIO) && !test_and_set_bit(ARS_POLL,
- 				&acpi_desc->scrub_flags)) {
-@@ -1382,7 +1382,7 @@ static ssize_t handle_show(struct device *dev,
- {
- 	struct acpi_nfit_memory_map *memdev = to_nfit_memdev(dev);
- 
--	return sprintf(buf, "%#x\n", memdev->device_handle);
-+	return sysfs_emit(buf, "%#x\n", memdev->device_handle);
- }
- static DEVICE_ATTR_RO(handle);
- 
-@@ -1391,7 +1391,7 @@ static ssize_t phys_id_show(struct device *dev,
- {
- 	struct acpi_nfit_memory_map *memdev = to_nfit_memdev(dev);
- 
--	return sprintf(buf, "%#x\n", memdev->physical_id);
-+	return sysfs_emit(buf, "%#x\n", memdev->physical_id);
- }
- static DEVICE_ATTR_RO(phys_id);
- 
-@@ -1400,7 +1400,7 @@ static ssize_t vendor_show(struct device *dev,
- {
- 	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
- 
--	return sprintf(buf, "0x%04x\n", be16_to_cpu(dcr->vendor_id));
-+	return sysfs_emit(buf, "0x%04x\n", be16_to_cpu(dcr->vendor_id));
- }
- static DEVICE_ATTR_RO(vendor);
- 
-@@ -1409,7 +1409,7 @@ static ssize_t rev_id_show(struct device *dev,
- {
- 	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
- 
--	return sprintf(buf, "0x%04x\n", be16_to_cpu(dcr->revision_id));
-+	return sysfs_emit(buf, "0x%04x\n", be16_to_cpu(dcr->revision_id));
- }
- static DEVICE_ATTR_RO(rev_id);
- 
-@@ -1418,7 +1418,7 @@ static ssize_t device_show(struct device *dev,
- {
- 	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
- 
--	return sprintf(buf, "0x%04x\n", be16_to_cpu(dcr->device_id));
-+	return sysfs_emit(buf, "0x%04x\n", be16_to_cpu(dcr->device_id));
- }
- static DEVICE_ATTR_RO(device);
- 
-@@ -1427,7 +1427,7 @@ static ssize_t subsystem_vendor_show(struct device *dev,
- {
- 	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
- 
--	return sprintf(buf, "0x%04x\n", be16_to_cpu(dcr->subsystem_vendor_id));
-+	return sysfs_emit(buf, "0x%04x\n", be16_to_cpu(dcr->subsystem_vendor_id));
- }
- static DEVICE_ATTR_RO(subsystem_vendor);
- 
-@@ -1436,7 +1436,7 @@ static ssize_t subsystem_rev_id_show(struct device *dev,
- {
- 	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
- 
--	return sprintf(buf, "0x%04x\n",
-+	return sysfs_emit(buf, "0x%04x\n",
- 			be16_to_cpu(dcr->subsystem_revision_id));
- }
- static DEVICE_ATTR_RO(subsystem_rev_id);
-@@ -1446,7 +1446,7 @@ static ssize_t subsystem_device_show(struct device *dev,
- {
- 	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
- 
--	return sprintf(buf, "0x%04x\n", be16_to_cpu(dcr->subsystem_device_id));
-+	return sysfs_emit(buf, "0x%04x\n", be16_to_cpu(dcr->subsystem_device_id));
- }
- static DEVICE_ATTR_RO(subsystem_device);
- 
-@@ -1465,7 +1465,7 @@ static ssize_t format_show(struct device *dev,
- {
- 	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
- 
--	return sprintf(buf, "0x%04x\n", le16_to_cpu(dcr->code));
-+	return sysfs_emit(buf, "0x%04x\n", le16_to_cpu(dcr->code));
- }
- static DEVICE_ATTR_RO(format);
- 
-@@ -1498,7 +1498,7 @@ static ssize_t format1_show(struct device *dev,
- 				continue;
- 			if (nfit_dcr->dcr->code == dcr->code)
- 				continue;
--			rc = sprintf(buf, "0x%04x\n",
-+			rc = sysfs_emit(buf, "0x%04x\n",
- 					le16_to_cpu(nfit_dcr->dcr->code));
- 			break;
- 		}
-@@ -1515,7 +1515,7 @@ static ssize_t formats_show(struct device *dev,
- {
- 	struct nvdimm *nvdimm = to_nvdimm(dev);
- 
--	return sprintf(buf, "%d\n", num_nvdimm_formats(nvdimm));
-+	return sysfs_emit(buf, "%d\n", num_nvdimm_formats(nvdimm));
- }
- static DEVICE_ATTR_RO(formats);
- 
-@@ -1524,7 +1524,7 @@ static ssize_t serial_show(struct device *dev,
- {
- 	struct acpi_nfit_control_region *dcr = to_nfit_dcr(dev);
- 
--	return sprintf(buf, "0x%08x\n", be32_to_cpu(dcr->serial_number));
-+	return sysfs_emit(buf, "0x%08x\n", be32_to_cpu(dcr->serial_number));
- }
- static DEVICE_ATTR_RO(serial);
- 
-@@ -1536,7 +1536,7 @@ static ssize_t family_show(struct device *dev,
- 
- 	if (nfit_mem->family < 0)
- 		return -ENXIO;
--	return sprintf(buf, "%d\n", nfit_mem->family);
-+	return sysfs_emit(buf, "%d\n", nfit_mem->family);
- }
- static DEVICE_ATTR_RO(family);
- 
-@@ -1548,7 +1548,7 @@ static ssize_t dsm_mask_show(struct device *dev,
- 
- 	if (nfit_mem->family < 0)
- 		return -ENXIO;
--	return sprintf(buf, "%#lx\n", nfit_mem->dsm_mask);
-+	return sysfs_emit(buf, "%#lx\n", nfit_mem->dsm_mask);
- }
- static DEVICE_ATTR_RO(dsm_mask);
- 
-@@ -1562,7 +1562,7 @@ static ssize_t flags_show(struct device *dev,
- 	if (test_bit(NFIT_MEM_DIRTY, &nfit_mem->flags))
- 		flags |= ACPI_NFIT_MEM_FLUSH_FAILED;
- 
--	return sprintf(buf, "%s%s%s%s%s%s%s\n",
-+	return sysfs_emit(buf, "%s%s%s%s%s%s%s\n",
- 		flags & ACPI_NFIT_MEM_SAVE_FAILED ? "save_fail " : "",
- 		flags & ACPI_NFIT_MEM_RESTORE_FAILED ? "restore_fail " : "",
- 		flags & ACPI_NFIT_MEM_FLUSH_FAILED ? "flush_fail " : "",
-@@ -1579,7 +1579,7 @@ static ssize_t id_show(struct device *dev,
- 	struct nvdimm *nvdimm = to_nvdimm(dev);
- 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
- 
--	return sprintf(buf, "%s\n", nfit_mem->id);
-+	return sysfs_emit(buf, "%s\n", nfit_mem->id);
- }
- static DEVICE_ATTR_RO(id);
- 
-@@ -1589,7 +1589,7 @@ static ssize_t dirty_shutdown_show(struct device *dev,
- 	struct nvdimm *nvdimm = to_nvdimm(dev);
- 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
- 
--	return sprintf(buf, "%d\n", nfit_mem->dirty_shutdown);
-+	return sysfs_emit(buf, "%d\n", nfit_mem->dirty_shutdown);
- }
- static DEVICE_ATTR_RO(dirty_shutdown);
- 
-@@ -2172,7 +2172,7 @@ static ssize_t range_index_show(struct device *dev,
- 	struct nd_region *nd_region = to_nd_region(dev);
- 	struct nfit_spa *nfit_spa = nd_region_provider_data(nd_region);
- 
--	return sprintf(buf, "%d\n", nfit_spa->spa->range_index);
-+	return sysfs_emit(buf, "%d\n", nfit_spa->spa->range_index);
- }
- static DEVICE_ATTR_RO(range_index);
- 
+Thanks
+
+> +
+>  struct virtio_pmem_config {
+>         __le64 start;
+>         __le64 size;
+> --
+> 2.43.0.472.g3155946c3a-goog
+>
 
