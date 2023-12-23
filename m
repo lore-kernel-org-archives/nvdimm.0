@@ -1,82 +1,149 @@
-Received: from dggsgout12.his.huawei.com (dggsgout12.his.huawei.com [45.249.212.56])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 805CD6ABF
-	for <nvdimm@lists.linux.dev>; Sat, 23 Dec 2023 06:46:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=huaweicloud.com
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=huaweicloud.com
-Received: from mail.maildlp.com (unknown [172.19.163.235])
-	by dggsgout12.his.huawei.com (SkyGuard) with ESMTP id 4SxvpL3Hhkz4f3kFZ
-	for <nvdimm@lists.linux.dev>; Sat, 23 Dec 2023 14:46:34 +0800 (CST)
-Received: from mail02.huawei.com (unknown [10.116.40.75])
-	by mail.maildlp.com (Postfix) with ESMTP id 520B01A0275
-	for <nvdimm@lists.linux.dev>; Sat, 23 Dec 2023 14:46:37 +0800 (CST)
-Received: from [10.174.179.247] (unknown [10.174.179.247])
-	by APP2 (Coremail) with SMTP id Syh0CgD3m0pJgoZlHQMXEg--.29897S3;
-	Sat, 23 Dec 2023 14:46:35 +0800 (CST)
-Message-ID: <914de4d4-0191-d812-778e-fc56b5898dc9@huaweicloud.com>
-Date: Sat, 23 Dec 2023 14:46:33 +0800
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6EC9F63C1
+	for <nvdimm@lists.linux.dev>; Sat, 23 Dec 2023 06:52:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="dH9CZyN0";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="ZTCk+Bi9";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="dH9CZyN0";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="ZTCk+Bi9"
+Received: from imap2.dmz-prg2.suse.org (imap2.dmz-prg2.suse.org [10.150.64.98])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id 6DC751F385;
+	Sat, 23 Dec 2023 06:52:24 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1703314344; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=IcADzLsu4UG9h7eTRNClgqYQhedNX7PtYm9QClv1mDI=;
+	b=dH9CZyN06WYxbgOoDak8TeuI26yWDtVD9KuyNVFU6Hesc/P+I6zw2XKWMQ2BtnD4PtEm/p
+	8U/QQkAku7ZTz8XAczMwIzxxJAG0+5kZBFQHoSuV2Utqwjl023r5VfeZzPpMyZoRp2Dmph
+	Hsb2aKaHNDWZBC0avB+B352s3uPylVE=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1703314344;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=IcADzLsu4UG9h7eTRNClgqYQhedNX7PtYm9QClv1mDI=;
+	b=ZTCk+Bi9OLhZbthwCWcA53e/dPVfYLQ9Eh3UOzRVTJPVtcql9uBb4IufM0zqBR333//uKY
+	LocEerPpiZuCd5Cg==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1703314344; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=IcADzLsu4UG9h7eTRNClgqYQhedNX7PtYm9QClv1mDI=;
+	b=dH9CZyN06WYxbgOoDak8TeuI26yWDtVD9KuyNVFU6Hesc/P+I6zw2XKWMQ2BtnD4PtEm/p
+	8U/QQkAku7ZTz8XAczMwIzxxJAG0+5kZBFQHoSuV2Utqwjl023r5VfeZzPpMyZoRp2Dmph
+	Hsb2aKaHNDWZBC0avB+B352s3uPylVE=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1703314344;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=IcADzLsu4UG9h7eTRNClgqYQhedNX7PtYm9QClv1mDI=;
+	b=ZTCk+Bi9OLhZbthwCWcA53e/dPVfYLQ9Eh3UOzRVTJPVtcql9uBb4IufM0zqBR333//uKY
+	LocEerPpiZuCd5Cg==
+Received: from imap2.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap2.dmz-prg2.suse.org (Postfix) with ESMTPS id A47AE139C4;
+	Sat, 23 Dec 2023 06:52:20 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([10.150.64.162])
+	by imap2.dmz-prg2.suse.org with ESMTPSA
+	id YuolFaSDhmXjOwAAn2gu4w
+	(envelope-from <colyli@suse.de>); Sat, 23 Dec 2023 06:52:20 +0000
+Content-Type: text/plain;
+	charset=utf-8
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.10.0
-Subject: Re: [PATCH v7 0/6] badblocks improvement for multiple bad block
- ranges
-To: Ira Weiny <ira.weiny@intel.com>, Coly Li <colyli@suse.de>,
- linux-raid@vger.kernel.org, nvdimm@lists.linux.dev,
- linux-block@vger.kernel.org
+Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3774.300.61.1.2\))
+Subject: Re: Bug in commit aa511ff8218b ("badblocks: switch to the improved
+ badblock handling
+From: Coly Li <colyli@suse.de>
+In-Reply-To: <6585d5fda5183_9f731294b9@iweiny-mobl.notmuch>
+Date: Sat, 23 Dec 2023 14:52:07 +0800
 Cc: Dan Williams <dan.j.williams@intel.com>,
- Geliang Tang <geliang.tang@suse.com>, Hannes Reinecke <hare@suse.de>,
- Jens Axboe <axboe@kernel.dk>, NeilBrown <neilb@suse.de>,
- Richard Fan <richard.fan@suse.com>, Vishal L Verma
- <vishal.l.verma@intel.com>, Wols Lists <antlists@youngman.org.uk>,
- Xiao Ni <xni@redhat.com>
-References: <20230811170513.2300-1-colyli@suse.de>
- <6585dd1299942_ab808294c4@iweiny-mobl.notmuch>
-From: Li Nan <linan666@huaweicloud.com>
-In-Reply-To: <6585dd1299942_ab808294c4@iweiny-mobl.notmuch>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID:Syh0CgD3m0pJgoZlHQMXEg--.29897S3
-X-Coremail-Antispam: 1UD129KBjDUn29KB7ZKAUJUUUUU529EdanIXcx71UUUUU7v73
-	VFW2AGmfu7bjvjm3AaLaJ3UjIYCTnIWjp_UUUYQ7kC6x804xWl14x267AKxVW8JVW5JwAF
-	c2x0x2IEx4CE42xK8VAvwI8IcIk0rVWrJVCq3wAFIxvE14AKwVWUJVWUGwA2ocxC64kIII
-	0Yj41l84x0c7CEw4AK67xGY2AK021l84ACjcxK6xIIjxv20xvE14v26F1j6w1UM28EF7xv
-	wVC0I7IYx2IY6xkF7I0E14v26r4UJVWxJr1l84ACjcxK6I8E87Iv67AKxVW0oVCq3wA2z4
-	x0Y4vEx4A2jsIEc7CjxVAFwI0_GcCE3s1lnxkEFVAIw20F6cxK64vIFxWle2I262IYc4CY
-	6c8Ij28IcVAaY2xG8wAqx4xG64xvF2IEw4CE5I8CrVC2j2WlYx0E2Ix0cI8IcVAFwI0_Jr
-	0_Jr4lYx0Ex4A2jsIE14v26r1j6r4UMcvjeVCFs4IE7xkEbVWUJVW8JwACjcxG0xvEwIxG
-	rwACI402YVCY1x02628vn2kIc2xKxwCYjI0SjxkI62AI1cAE67vIY487MxAIw28IcxkI7V
-	AKI48JMxC20s026xCaFVCjc4AY6r1j6r4UMI8I3I0E5I8CrVAFwI0_Jr0_Jr4lx2IqxVCj
-	r7xvwVAFwI0_JrI_JrWlx4CE17CEb7AF67AKxVWUtVW8ZwCIc40Y0x0EwIxGrwCI42IY6x
-	IIjxv20xvE14v26r1I6r4UMIIF0xvE2Ix0cI8IcVCY1x0267AKxVWxJVW8Jr1lIxAIcVCF
-	04k26cxKx2IYs7xG6rWUJVWrZr1UMIIF0xvEx4A2jsIE14v26r1j6r4UMIIF0xvEx4A2js
-	IEc7CjxVAFwI0_Gr1j6F4UJbIYCTnIWIevJa73UjIFyTuYvjxUFfHjUUUUU
-X-CM-SenderInfo: polqt0awwwqx5xdzvxpfor3voofrz/
-
-Hi, Ira
-
-在 2023/12/23 3:01, Ira Weiny 写道:
-
-> 
-> Just in case I missed anyone on this original thread I've found issues
-> with this series which I emailed Coly about here:
-> 
-> https://lore.kernel.org/all/6585d5fda5183_9f731294b9@iweiny-mobl.notmuch/
-> 
-> Ira
-> 
+ Jens Axboe <axboe@kernel.dk>,
+ Xiao Ni <xni@redhat.com>,
+ Geliang Tang <geliang.tang@suse.com>,
+ Hannes Reinecke <hare@suse.de>,
+ NeilBrown <neilb@suse.de>,
+ Vishal L Verma <vishal.l.verma@intel.com>,
+ linux-block@vger.kernel.org,
+ nvdimm@lists.linux.dev,
+ linux-kernel@vger.kernel.org
+Content-Transfer-Encoding: quoted-printable
+Message-Id: <270BD884-EF31-491C-9339-5D9ADF3BC694@suse.de>
+References: <6585d5fda5183_9f731294b9@iweiny-mobl.notmuch>
+To: Ira Weiny <ira.weiny@intel.com>
+X-Mailer: Apple Mail (2.3774.300.61.1.2)
+X-Spam-Level: 
+X-Spam-Level: 
+X-Spamd-Result: default: False [0.37 / 50.00];
+	 ARC_NA(0.00)[];
+	 RCVD_VIA_SMTP_AUTH(0.00)[];
+	 BAYES_HAM(-0.03)[55.02%];
+	 FROM_HAS_DN(0.00)[];
+	 TO_DN_SOME(0.00)[];
+	 MV_CASE(0.50)[];
+	 TO_MATCH_ENVRCPT_ALL(0.00)[];
+	 MIME_GOOD(-0.10)[text/plain];
+	 RCVD_COUNT_THREE(0.00)[3];
+	 DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	 RCPT_COUNT_SEVEN(0.00)[11];
+	 DBL_BLOCKED_OPENRESOLVER(0.00)[intel.com:email];
+	 FUZZY_BLOCKED(0.00)[rspamd.com];
+	 FROM_EQ_ENVFROM(0.00)[];
+	 MIME_TRACE(0.00)[0:+];
+	 RCVD_TLS_ALL(0.00)[];
+	 MID_RHS_MATCH_FROM(0.00)[]
+Authentication-Results: smtp-out2.suse.de;
+	none
+X-Spam-Score: 0.37
+X-Spam-Flag: NO
 
 
-I have also noticed this issue recently and try to fix it in:
 
-https://lore.kernel.org/linux-block/20231223063728.3229446-4-linan666@huaweicloud.com/T/#u
+> 2023=E5=B9=B412=E6=9C=8823=E6=97=A5 02:31=EF=BC=8CIra Weiny =
+<ira.weiny@intel.com> =E5=86=99=E9=81=93=EF=BC=9A
+>=20
+> Coly,
+>=20
+> Yesterday I noticed that a few of our nvdimm tests were failing.  I =
+bisected
+> the problem to the following commit.
+>=20
+> aa511ff8218b ("badblocks: switch to the improved badblock handling =
+code")=20
+>=20
+> Reverting this patch fixed our tests.
+>=20
+> I've also dug into the code a bit and I believe the algorithm for
+> badblocks_check() is broken (not yet sure about the other calls).  At =
+the
+> very least I see the bb->p pointer being indexed with '-1'.  :-(
+>=20
+> I did notice that this work was due to a bug report in badblock_set().
+> Therefore, I'm not sure of that severity of that fix is vs a revert.  =
+But
+> at this point I'm not seeing an easy fix so I'm in favor of a revert.
 
--- 
-Thanks,
-Nan
+Hi Ira,
+
+Thanks for the information reported. Let me look into the situation now.
+
+Coly Li
 
