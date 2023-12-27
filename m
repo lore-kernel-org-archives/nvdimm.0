@@ -1,175 +1,240 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFECE10E8
-	for <nvdimm@lists.linux.dev>; Sun, 24 Dec 2023 02:11:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5C1920F4
+	for <nvdimm@lists.linux.dev>; Wed, 27 Dec 2023 02:51:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="oNxIhwB0";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="0OJilSPP";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="HIVCbM5s";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="JUXrEnna"
-Received: from imap2.dmz-prg2.suse.org (imap2.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:98])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id 9B37F1F74B;
-	Sun, 24 Dec 2023 02:11:25 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1703383886; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="dmHIiMJ/"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1703645503;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=Vtd/L5UCOnZiAydpj5PblS3egJ85sJyph8sMxPz5LX0=;
-	b=oNxIhwB0F5IBTyog7s7djctqya2X1aHdJhSW5yTfia91r4kHSZ7cYfLgnFiloy0NIraHEx
-	pK4VCu1+OJudUjoDe27KKCZBy0dDyaQH5UuWh++1ASkF+QxN21y540PG4HlGzatyUrYfbi
-	+HxmwKZGdDdjaSPsXOfbZZajk6TpskU=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1703383886;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=Vtd/L5UCOnZiAydpj5PblS3egJ85sJyph8sMxPz5LX0=;
-	b=0OJilSPPuuE6nSFW5wAGVnPa9QVa31AWatDBrad2SLRfFJ8pdRDtkA9HF9asko1NkMFAGP
-	u9CbGWfTxvANs/Cw==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1703383885; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=Vtd/L5UCOnZiAydpj5PblS3egJ85sJyph8sMxPz5LX0=;
-	b=HIVCbM5s9V/vwH+nEAJiFNYn1K1i6VLeXFwU203pD4HcjCCLNIb74EcMFEIIM9O0smvVU6
-	1qgeS3+ZY/mJKmPrutu0Ax4+1uM8jE+f9LgNhXdDQzGld9PHE/hMOyGAE0cYac2RlBl91l
-	1esr7faLFCaobDBFEZtb0yHaIndKMB4=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1703383885;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=Vtd/L5UCOnZiAydpj5PblS3egJ85sJyph8sMxPz5LX0=;
-	b=JUXrEnnaV6EveXdm7C+OhsHrlvlopnyEhBA3QmUdf1b3xkRYDdF8I6rkF8wEBXEK8tTbiD
-	QFUl3r/aZe79erDg==
-Received: from imap2.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap2.dmz-prg2.suse.org (Postfix) with ESMTPS id 87C2913902;
-	Sun, 24 Dec 2023 02:11:21 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([10.150.64.162])
-	by imap2.dmz-prg2.suse.org with ESMTPSA
-	id ZTKxDEmTh2XQBAAAn2gu4w
-	(envelope-from <colyli@suse.de>); Sun, 24 Dec 2023 02:11:21 +0000
-Content-Type: text/plain;
-	charset=utf-8
+	bh=SmZLPQJsVtVQHC/JLIPTyVYQXOj/3YM37JIK9qxubc0=;
+	b=dmHIiMJ/SS+2zTIcwCyeXurtI45gK0/LVF5P0BSMAGQfz8fPiL6fequwQ7kw/6c0+kZ1Uk
+	upb2pd3XscALMxsvPaQqJ+alDGSXf2uFndCj+rz5McReNRys/BvB36V44Vn05/FB2SITGM
+	LuxKD4uePRPdmIK2bAcL1KJNpPhllVM=
+Received: from mail-ot1-f70.google.com (mail-ot1-f70.google.com
+ [209.85.210.70]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-642-kScb362QNLyjk_q9PCXkbA-1; Tue, 26 Dec 2023 21:51:42 -0500
+X-MC-Unique: kScb362QNLyjk_q9PCXkbA-1
+Received: by mail-ot1-f70.google.com with SMTP id 46e09a7af769-6dbfebd2767so892277a34.2
+        for <nvdimm@lists.linux.dev>; Tue, 26 Dec 2023 18:51:42 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1703645501; x=1704250301;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=SmZLPQJsVtVQHC/JLIPTyVYQXOj/3YM37JIK9qxubc0=;
+        b=MBQvt90lTR5qd0WM35E1dNbCcL7TVuNmqyqzwtprzBCtlwXbR8mJbt4Sz53+q+0Lvm
+         onPWbrH32mXqHvUHPnqpCSnkPy4pILvXHlhhkiDBFGUobcxwc8qnLKkbKPuInDVtU2YK
+         SFmvaR88qVfBhCvoHV6NDyo2+QfQmY7TSkTgw+dOFcxb+TmQW2AeinfK7MxoTk8oODnz
+         2OPnw5NfyUhAx5Ynd6UsQd9NL+lQye4IsesuUseUU2hKAtirRJvSPuIEbyrL0Gxw9JVM
+         XaHcQvqBcMogs2//98JXzaN8bFCSdRk1I1vyAJq5swpY50QRE+KXblM8ecMMc5wiqRtW
+         gaGQ==
+X-Gm-Message-State: AOJu0YxC7I1hJ9o/jrnmJWhnVz/UR9jQ6233CYoiYitOn6JCeJVw4Zwh
+	O9JQ019vdcAPemnG98qN1uk7WKZ/Z1cr5ywnPX/MixqIAC1D4SadWYf3gArn+8/0k+lOhIX9Aja
+	3ws93Gc92OKajJgzNwubtW2o72+TJeUMV1Vbna+M9
+X-Received: by 2002:a05:6808:200c:b0:3ba:30dc:56cf with SMTP id q12-20020a056808200c00b003ba30dc56cfmr9655177oiw.76.1703645501554;
+        Tue, 26 Dec 2023 18:51:41 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IEeFdi768mrXfzCB8lo5YDxnHvJui2SAOMX1WmHMi8zTEG0EvNWBLg7ICwAAWhGxQMdGlhXs9/SYx6CwbQ5OLM=
+X-Received: by 2002:a05:6808:200c:b0:3ba:30dc:56cf with SMTP id
+ q12-20020a056808200c00b003ba30dc56cfmr9655170oiw.76.1703645501355; Tue, 26
+ Dec 2023 18:51:41 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3774.300.61.1.2\))
-Subject: Re: [PATCH] badblocks: avoid checking invalid range in
- badblocks_check()
-From: Coly Li <colyli@suse.de>
-In-Reply-To: <0eef6feb-4775-4249-af74-9fccb093b6bc@kernel.dk>
-Date: Sun, 24 Dec 2023 10:11:03 +0800
-Cc: nvdimm@lists.linux.dev,
- Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
- Linux Block Devices <linux-block@vger.kernel.org>,
- Dan Williams <dan.j.williams@intel.com>,
- Geliang Tang <geliang.tang@suse.com>,
- Hannes Reinecke <hare@suse.de>,
- NeilBrown <neilb@suse.de>,
- Vishal L Verma <vishal.l.verma@intel.com>,
- Xiao Ni <xni@redhat.com>
+MIME-Version: 1.0
+References: <20231220023653-mutt-send-email-mst@kernel.org> <20231220204906.566922-1-changyuanl@google.com>
+In-Reply-To: <20231220204906.566922-1-changyuanl@google.com>
+From: Jason Wang <jasowang@redhat.com>
+Date: Wed, 27 Dec 2023 10:51:30 +0800
+Message-ID: <CACGkMEuZUbkWGcrmuSFdpFmk7gbZvV3Rr6mqdhfYF1W13_Yw6Q@mail.gmail.com>
+Subject: Re: [PATCH v4] virtio_pmem: support feature SHMEM_REGION
+To: Changyuan Lyu <changyuanl@google.com>
+Cc: mst@redhat.com, dan.j.williams@intel.com, dave.jiang@intel.com, 
+	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, 
+	pankaj.gupta.linux@gmail.com, virtualization@lists.linux.dev, 
+	vishal.l.verma@intel.com, xuanzhuo@linux.alibaba.com
+X-Mimecast-Spam-Score: 0
+X-Mimecast-Originator: redhat.com
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
-Message-Id: <98F03B8B-5A3E-463F-AB27-0AE00DC27CB9@suse.de>
-References: <20231224002820.20234-1-colyli@suse.de>
- <A110805F-3448-4A87-AE70-F94A394EA826@suse.de>
- <0eef6feb-4775-4249-af74-9fccb093b6bc@kernel.dk>
-To: Jens Axboe <axboe@kernel.dk>,
- Ira Weiny <ira.weiny@intel.com>
-X-Mailer: Apple Mail (2.3774.300.61.1.2)
-X-Spam-Level: *****
-X-Spam-Level: 
-Authentication-Results: smtp-out2.suse.de;
-	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=HIVCbM5s;
-	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=JUXrEnna
-X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
-X-Spamd-Result: default: False [-1.87 / 50.00];
-	 ARC_NA(0.00)[];
-	 RCVD_VIA_SMTP_AUTH(0.00)[];
-	 R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	 BAYES_HAM(-0.91)[86.19%];
-	 FROM_HAS_DN(0.00)[];
-	 TO_DN_SOME(0.00)[];
-	 MV_CASE(0.50)[];
-	 TO_MATCH_ENVRCPT_ALL(0.00)[];
-	 MIME_GOOD(-0.10)[text/plain];
-	 NEURAL_HAM_LONG(-1.00)[-1.000];
-	 RCVD_COUNT_THREE(0.00)[3];
-	 DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	 DKIM_TRACE(0.00)[suse.de:+];
-	 MX_GOOD(-0.01)[];
-	 RCPT_COUNT_SEVEN(0.00)[11];
-	 DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:dkim,suse.de:email,suse.com:email,intel.com:email];
-	 FUZZY_BLOCKED(0.00)[rspamd.com];
-	 FROM_EQ_ENVFROM(0.00)[];
-	 MIME_TRACE(0.00)[0:+];
-	 NEURAL_HAM_SHORT(-0.14)[-0.707];
-	 RCVD_TLS_ALL(0.00)[];
-	 MID_RHS_MATCH_FROM(0.00)[]
-X-Spam-Score: -1.87
-X-Rspamd-Queue-Id: 9B37F1F74B
-X-Spam-Flag: NO
 
+On Thu, Dec 21, 2023 at 4:49=E2=80=AFAM Changyuan Lyu <changyuanl@google.co=
+m> wrote:
+>
+> Thanks Michael for the feedback!
+>
+> On Tue, Dec 19, 2023 at 11:44 PM Michael S. Tsirkin <mst@redhat.com> wrot=
+e:
+> >
+> > > On Tue, Dec 19, 2023 at 11:32:27PM -0800, Changyuan Lyu wrote:
+> > >
+> > > +           if (!have_shm) {
+> > > +                   dev_err(&vdev->dev, "failed to get shared memory =
+region %d\n",
+> > > +                                   VIRTIO_PMEM_SHMEM_REGION_ID);
+> > > +                   err =3D -ENXIO;
+> > > +                   goto out_vq;
+> > > +           }
+> >
+> > Maybe additionally, add a validate callback and clear
+> > VIRTIO_PMEM_F_SHMEM_REGION if VIRTIO_PMEM_SHMEM_REGION_ID is not there.
+>
+> Done.
+>
+> > > +/* Feature bits */
+> > > +#define VIRTIO_PMEM_F_SHMEM_REGION 0       /* guest physical address=
+ range will be
+> > > +                                    * indicated as shared memory reg=
+ion 0
+> > > +                                    */
+> >
+> > Either make this comment shorter to fit in one line, or put the
+> > multi-line comment before the define.
+>
+> Done.
+>
+> ---8<---
+>
+> This patch adds the support for feature VIRTIO_PMEM_F_SHMEM_REGION
+> (virtio spec v1.2 section 5.19.5.2 [1]).
+>
+> During feature negotiation, if VIRTIO_PMEM_F_SHMEM_REGION is offered
+> by the device, the driver looks for a shared memory region of id 0.
+> If it is found, this feature is understood. Otherwise, this feature
+> bit is cleared.
+>
+> During probe, if VIRTIO_PMEM_F_SHMEM_REGION has been negotiated,
+> virtio pmem ignores the `start` and `size` fields in device config
+> and uses the physical address range of shared memory region 0.
+>
+> [1] https://docs.oasis-open.org/virtio/virtio/v1.2/csd01/virtio-v1.2-csd0=
+1.html#x1-6480002
+>
+> Signed-off-by: Changyuan Lyu <changyuanl@google.com>
 
+Acked-by: Jason Wang <jasowang@redhat.com>
 
-> 2023=E5=B9=B412=E6=9C=8824=E6=97=A5 09:38=EF=BC=8CJens Axboe =
-<axboe@kernel.dk> =E5=86=99=E9=81=93=EF=BC=9A
->=20
-> On 12/23/23 5:32 PM, Coly Li wrote:
->>> 2023?12?24? 08:28?Coly Li <colyli@suse.de> ???
->>>=20
->>> If prev_badblocks() returns '-1', it means no valid badblocks record
->>> before the checking range. It doesn't make sense to check whether
->>> the input checking range is overlapped with the non-existed invalid
->>> front range.
->>>=20
->>> This patch checkes whether 'prev >=3D 0' is true before calling
->>> overlap_front(), to void such invalid operations.
->>>=20
->>> Fixes: 3ea3354cb9f0 ("badblocks: improve badblocks_check() for =
-multiple ranges handling")
->>> Reported-and-tested-by: Ira Weiny <ira.weiny@intel.com>
->>> Signed-off-by: Coly Li <colyli@suse.de>
->>> Link: =
-https://lore.kernel.org/nvdimm/3035e75a-9be0-4bc3-8d4a-6e52c207f277@leemhu=
-is.info/
->>> Cc: Dan Williams <dan.j.williams@intel.com>
->>> Cc: Geliang Tang <geliang.tang@suse.com>
->>> Cc: Hannes Reinecke <hare@suse.de>
->>> Cc: Jens Axboe <axboe@kernel.dk>
->>> Cc: NeilBrown <neilb@suse.de>
->>> Cc: Vishal L Verma <vishal.l.verma@intel.com>
->>> Cc: Xiao Ni <xni@redhat.com>
->>> ---
->>> block/badblocks.c | 6 ++++--
->>> 1 file changed, 4 insertions(+), 2 deletions(-)
->>=20
->> Hi Jens,
->>=20
->> Is it possible to take this fix into 6.7 still? Thanks in advance.
->=20
-> Yep, we're still a few weeks out, so not a problem.
+Thanks
 
-Jes and Ira,
-
-Thank you all for fast response during holidays.
-
-Happy holidays and merry Christmas!
-
-Coly Li
+> ---
+> v4:
+>   * added virtio_pmem_validate callback.
+> v3:
+>   * updated the patch description.
+> V2:
+>   * renamed VIRTIO_PMEM_SHMCAP_ID to VIRTIO_PMEM_SHMEM_REGION_ID
+>   * fixed the error handling when region 0 does not exist
+> ---
+>  drivers/nvdimm/virtio_pmem.c     | 36 ++++++++++++++++++++++++++++----
+>  include/uapi/linux/virtio_pmem.h |  7 +++++++
+>  2 files changed, 39 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/nvdimm/virtio_pmem.c b/drivers/nvdimm/virtio_pmem.c
+> index a92eb172f0e7..4ceced5cefcf 100644
+> --- a/drivers/nvdimm/virtio_pmem.c
+> +++ b/drivers/nvdimm/virtio_pmem.c
+> @@ -29,12 +29,27 @@ static int init_vq(struct virtio_pmem *vpmem)
+>         return 0;
+>  };
+>
+> +static int virtio_pmem_validate(struct virtio_device *vdev)
+> +{
+> +       struct virtio_shm_region shm_reg;
+> +
+> +       if (virtio_has_feature(vdev, VIRTIO_PMEM_F_SHMEM_REGION) &&
+> +               !virtio_get_shm_region(vdev, &shm_reg, (u8)VIRTIO_PMEM_SH=
+MEM_REGION_ID)
+> +       ) {
+> +               dev_notice(&vdev->dev, "failed to get shared memory regio=
+n %d\n",
+> +                               VIRTIO_PMEM_SHMEM_REGION_ID);
+> +               __virtio_clear_bit(vdev, VIRTIO_PMEM_F_SHMEM_REGION);
+> +       }
+> +       return 0;
+> +}
+> +
+>  static int virtio_pmem_probe(struct virtio_device *vdev)
+>  {
+>         struct nd_region_desc ndr_desc =3D {};
+>         struct nd_region *nd_region;
+>         struct virtio_pmem *vpmem;
+>         struct resource res;
+> +       struct virtio_shm_region shm_reg;
+>         int err =3D 0;
+>
+>         if (!vdev->config->get) {
+> @@ -57,10 +72,16 @@ static int virtio_pmem_probe(struct virtio_device *vd=
+ev)
+>                 goto out_err;
+>         }
+>
+> -       virtio_cread_le(vpmem->vdev, struct virtio_pmem_config,
+> -                       start, &vpmem->start);
+> -       virtio_cread_le(vpmem->vdev, struct virtio_pmem_config,
+> -                       size, &vpmem->size);
+> +       if (virtio_has_feature(vdev, VIRTIO_PMEM_F_SHMEM_REGION)) {
+> +               virtio_get_shm_region(vdev, &shm_reg, (u8)VIRTIO_PMEM_SHM=
+EM_REGION_ID);
+> +               vpmem->start =3D shm_reg.addr;
+> +               vpmem->size =3D shm_reg.len;
+> +       } else {
+> +               virtio_cread_le(vpmem->vdev, struct virtio_pmem_config,
+> +                               start, &vpmem->start);
+> +               virtio_cread_le(vpmem->vdev, struct virtio_pmem_config,
+> +                               size, &vpmem->size);
+> +       }
+>
+>         res.start =3D vpmem->start;
+>         res.end   =3D vpmem->start + vpmem->size - 1;
+> @@ -122,10 +143,17 @@ static void virtio_pmem_remove(struct virtio_device=
+ *vdev)
+>         virtio_reset_device(vdev);
+>  }
+>
+> +static unsigned int features[] =3D {
+> +       VIRTIO_PMEM_F_SHMEM_REGION,
+> +};
+> +
+>  static struct virtio_driver virtio_pmem_driver =3D {
+> +       .feature_table          =3D features,
+> +       .feature_table_size     =3D ARRAY_SIZE(features),
+>         .driver.name            =3D KBUILD_MODNAME,
+>         .driver.owner           =3D THIS_MODULE,
+>         .id_table               =3D id_table,
+> +       .validate               =3D virtio_pmem_validate,
+>         .probe                  =3D virtio_pmem_probe,
+>         .remove                 =3D virtio_pmem_remove,
+>  };
+> diff --git a/include/uapi/linux/virtio_pmem.h b/include/uapi/linux/virtio=
+_pmem.h
+> index d676b3620383..ede4f3564977 100644
+> --- a/include/uapi/linux/virtio_pmem.h
+> +++ b/include/uapi/linux/virtio_pmem.h
+> @@ -14,6 +14,13 @@
+>  #include <linux/virtio_ids.h>
+>  #include <linux/virtio_config.h>
+>
+> +/* Feature bits */
+> +/* guest physical address range will be indicated as shared memory regio=
+n 0 */
+> +#define VIRTIO_PMEM_F_SHMEM_REGION 0
+> +
+> +/* shmid of the shared memory region corresponding to the pmem */
+> +#define VIRTIO_PMEM_SHMEM_REGION_ID 0
+> +
+>  struct virtio_pmem_config {
+>         __le64 start;
+>         __le64 size;
+> --
+> 2.43.0.472.g3155946c3a-goog
+>
 
