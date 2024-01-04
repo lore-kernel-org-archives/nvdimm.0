@@ -1,240 +1,222 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from esa11.hc1455-7.c3s2.iphmx.com (esa11.hc1455-7.c3s2.iphmx.com [207.54.90.137])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C5C1920F4
-	for <nvdimm@lists.linux.dev>; Wed, 27 Dec 2023 02:51:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="dmHIiMJ/"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1703645503;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=SmZLPQJsVtVQHC/JLIPTyVYQXOj/3YM37JIK9qxubc0=;
-	b=dmHIiMJ/SS+2zTIcwCyeXurtI45gK0/LVF5P0BSMAGQfz8fPiL6fequwQ7kw/6c0+kZ1Uk
-	upb2pd3XscALMxsvPaQqJ+alDGSXf2uFndCj+rz5McReNRys/BvB36V44Vn05/FB2SITGM
-	LuxKD4uePRPdmIK2bAcL1KJNpPhllVM=
-Received: from mail-ot1-f70.google.com (mail-ot1-f70.google.com
- [209.85.210.70]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-642-kScb362QNLyjk_q9PCXkbA-1; Tue, 26 Dec 2023 21:51:42 -0500
-X-MC-Unique: kScb362QNLyjk_q9PCXkbA-1
-Received: by mail-ot1-f70.google.com with SMTP id 46e09a7af769-6dbfebd2767so892277a34.2
-        for <nvdimm@lists.linux.dev>; Tue, 26 Dec 2023 18:51:42 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1703645501; x=1704250301;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=SmZLPQJsVtVQHC/JLIPTyVYQXOj/3YM37JIK9qxubc0=;
-        b=MBQvt90lTR5qd0WM35E1dNbCcL7TVuNmqyqzwtprzBCtlwXbR8mJbt4Sz53+q+0Lvm
-         onPWbrH32mXqHvUHPnqpCSnkPy4pILvXHlhhkiDBFGUobcxwc8qnLKkbKPuInDVtU2YK
-         SFmvaR88qVfBhCvoHV6NDyo2+QfQmY7TSkTgw+dOFcxb+TmQW2AeinfK7MxoTk8oODnz
-         2OPnw5NfyUhAx5Ynd6UsQd9NL+lQye4IsesuUseUU2hKAtirRJvSPuIEbyrL0Gxw9JVM
-         XaHcQvqBcMogs2//98JXzaN8bFCSdRk1I1vyAJq5swpY50QRE+KXblM8ecMMc5wiqRtW
-         gaGQ==
-X-Gm-Message-State: AOJu0YxC7I1hJ9o/jrnmJWhnVz/UR9jQ6233CYoiYitOn6JCeJVw4Zwh
-	O9JQ019vdcAPemnG98qN1uk7WKZ/Z1cr5ywnPX/MixqIAC1D4SadWYf3gArn+8/0k+lOhIX9Aja
-	3ws93Gc92OKajJgzNwubtW2o72+TJeUMV1Vbna+M9
-X-Received: by 2002:a05:6808:200c:b0:3ba:30dc:56cf with SMTP id q12-20020a056808200c00b003ba30dc56cfmr9655177oiw.76.1703645501554;
-        Tue, 26 Dec 2023 18:51:41 -0800 (PST)
-X-Google-Smtp-Source: AGHT+IEeFdi768mrXfzCB8lo5YDxnHvJui2SAOMX1WmHMi8zTEG0EvNWBLg7ICwAAWhGxQMdGlhXs9/SYx6CwbQ5OLM=
-X-Received: by 2002:a05:6808:200c:b0:3ba:30dc:56cf with SMTP id
- q12-20020a056808200c00b003ba30dc56cfmr9655170oiw.76.1703645501355; Tue, 26
- Dec 2023 18:51:41 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4051B20DC7
+	for <nvdimm@lists.linux.dev>; Thu,  4 Jan 2024 10:51:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=fujitsu.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fujitsu.com
+X-IronPort-AV: E=McAfee;i="6600,9927,10942"; a="124593455"
+X-IronPort-AV: E=Sophos;i="6.04,330,1695654000"; 
+   d="scan'208";a="124593455"
+Received: from unknown (HELO oym-r1.gw.nic.fujitsu.com) ([210.162.30.89])
+  by esa11.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Jan 2024 19:50:01 +0900
+Received: from oym-m2.gw.nic.fujitsu.com (oym-nat-oym-m2.gw.nic.fujitsu.com [192.168.87.59])
+	by oym-r1.gw.nic.fujitsu.com (Postfix) with ESMTP id 570E5D2A02
+	for <nvdimm@lists.linux.dev>; Thu,  4 Jan 2024 19:49:59 +0900 (JST)
+Received: from kws-ab3.gw.nic.fujitsu.com (kws-ab3.gw.nic.fujitsu.com [192.51.206.21])
+	by oym-m2.gw.nic.fujitsu.com (Postfix) with ESMTP id 7DD8CBF3CB
+	for <nvdimm@lists.linux.dev>; Thu,  4 Jan 2024 19:49:58 +0900 (JST)
+Received: from edo.cn.fujitsu.com (edo.cn.fujitsu.com [10.167.33.5])
+	by kws-ab3.gw.nic.fujitsu.com (Postfix) with ESMTP id 0433B202CB5AD
+	for <nvdimm@lists.linux.dev>; Thu,  4 Jan 2024 19:49:58 +0900 (JST)
+Received: from irides.. (unknown [10.167.234.230])
+	by edo.cn.fujitsu.com (Postfix) with ESMTP id 2EB701A0071;
+	Thu,  4 Jan 2024 18:49:57 +0800 (CST)
+From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+To: linux-fsdevel@vger.kernel.org,
+	nvdimm@lists.linux.dev
+Cc: dan.j.williams@intel.com,
+	willy@infradead.org,
+	jack@suse.cz
+Subject: [PATCH] fsdax: cleanup tracepoints
+Date: Thu,  4 Jan 2024 18:49:25 +0800
+Message-Id: <20240104104925.3496797-1-ruansy.fnst@fujitsu.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20231220023653-mutt-send-email-mst@kernel.org> <20231220204906.566922-1-changyuanl@google.com>
-In-Reply-To: <20231220204906.566922-1-changyuanl@google.com>
-From: Jason Wang <jasowang@redhat.com>
-Date: Wed, 27 Dec 2023 10:51:30 +0800
-Message-ID: <CACGkMEuZUbkWGcrmuSFdpFmk7gbZvV3Rr6mqdhfYF1W13_Yw6Q@mail.gmail.com>
-Subject: Re: [PATCH v4] virtio_pmem: support feature SHMEM_REGION
-To: Changyuan Lyu <changyuanl@google.com>
-Cc: mst@redhat.com, dan.j.williams@intel.com, dave.jiang@intel.com, 
-	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, 
-	pankaj.gupta.linux@gmail.com, virtualization@lists.linux.dev, 
-	vishal.l.verma@intel.com, xuanzhuo@linux.alibaba.com
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: redhat.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-TM-AS-Product-Ver: IMSS-9.1.0.1417-9.0.0.1002-28098.006
+X-TM-AS-User-Approved-Sender: Yes
+X-TMASE-Version: IMSS-9.1.0.1417-9.0.1002-28098.006
+X-TMASE-Result: 10-0.652800-10.000000
+X-TMASE-MatchedRID: Dcq+tTLukTq9okcRaxJ3YLnHu4BcYSmtwTlc9CcHMZerwqxtE531VNnf
+	JrUSEbFDw2hNqOkj1XDNgNCy/TBDFgnbQnr9fWNSGYJhRh6ssetYL/tox9XQkZ+9KccEt4MqZom
+	pBzUjZLBzzWLzuR3HAoAy6p60ZV62fJ5/bZ6npdjGVuWouVipco55DTF7ZkLA8bCMMxUUqtDJ7C
+	TvhQc24yYMggXRAcWXx0zGKiUHRKaz9VMvQYEoFMZVvuSPCNGrtq6qUnL4ZaKM29MZ1ZzavRFlt
+	GxCTkwFQHVA+r1vGdZmQDEDCMiuswfP8fSSIvISoYC0cwOOST0=
+X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
 
-On Thu, Dec 21, 2023 at 4:49=E2=80=AFAM Changyuan Lyu <changyuanl@google.co=
-m> wrote:
->
-> Thanks Michael for the feedback!
->
-> On Tue, Dec 19, 2023 at 11:44 PM Michael S. Tsirkin <mst@redhat.com> wrot=
-e:
-> >
-> > > On Tue, Dec 19, 2023 at 11:32:27PM -0800, Changyuan Lyu wrote:
-> > >
-> > > +           if (!have_shm) {
-> > > +                   dev_err(&vdev->dev, "failed to get shared memory =
-region %d\n",
-> > > +                                   VIRTIO_PMEM_SHMEM_REGION_ID);
-> > > +                   err =3D -ENXIO;
-> > > +                   goto out_vq;
-> > > +           }
-> >
-> > Maybe additionally, add a validate callback and clear
-> > VIRTIO_PMEM_F_SHMEM_REGION if VIRTIO_PMEM_SHMEM_REGION_ID is not there.
->
-> Done.
->
-> > > +/* Feature bits */
-> > > +#define VIRTIO_PMEM_F_SHMEM_REGION 0       /* guest physical address=
- range will be
-> > > +                                    * indicated as shared memory reg=
-ion 0
-> > > +                                    */
-> >
-> > Either make this comment shorter to fit in one line, or put the
-> > multi-line comment before the define.
->
-> Done.
->
-> ---8<---
->
-> This patch adds the support for feature VIRTIO_PMEM_F_SHMEM_REGION
-> (virtio spec v1.2 section 5.19.5.2 [1]).
->
-> During feature negotiation, if VIRTIO_PMEM_F_SHMEM_REGION is offered
-> by the device, the driver looks for a shared memory region of id 0.
-> If it is found, this feature is understood. Otherwise, this feature
-> bit is cleared.
->
-> During probe, if VIRTIO_PMEM_F_SHMEM_REGION has been negotiated,
-> virtio pmem ignores the `start` and `size` fields in device config
-> and uses the physical address range of shared memory region 0.
->
-> [1] https://docs.oasis-open.org/virtio/virtio/v1.2/csd01/virtio-v1.2-csd0=
-1.html#x1-6480002
->
-> Signed-off-by: Changyuan Lyu <changyuanl@google.com>
+Restore the tracepoint that was accidentally deleted before, and rename
+to dax_insert_entry().  Also, since we are using XArray, rename
+'radix_entry' to 'xa_entry'.
 
-Acked-by: Jason Wang <jasowang@redhat.com>
+Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+---
+ fs/dax.c                      |  2 ++
+ include/trace/events/fs_dax.h | 47 +++++++++++++++++------------------
+ 2 files changed, 25 insertions(+), 24 deletions(-)
 
-Thanks
-
-> ---
-> v4:
->   * added virtio_pmem_validate callback.
-> v3:
->   * updated the patch description.
-> V2:
->   * renamed VIRTIO_PMEM_SHMCAP_ID to VIRTIO_PMEM_SHMEM_REGION_ID
->   * fixed the error handling when region 0 does not exist
-> ---
->  drivers/nvdimm/virtio_pmem.c     | 36 ++++++++++++++++++++++++++++----
->  include/uapi/linux/virtio_pmem.h |  7 +++++++
->  2 files changed, 39 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/nvdimm/virtio_pmem.c b/drivers/nvdimm/virtio_pmem.c
-> index a92eb172f0e7..4ceced5cefcf 100644
-> --- a/drivers/nvdimm/virtio_pmem.c
-> +++ b/drivers/nvdimm/virtio_pmem.c
-> @@ -29,12 +29,27 @@ static int init_vq(struct virtio_pmem *vpmem)
->         return 0;
->  };
->
-> +static int virtio_pmem_validate(struct virtio_device *vdev)
-> +{
-> +       struct virtio_shm_region shm_reg;
-> +
-> +       if (virtio_has_feature(vdev, VIRTIO_PMEM_F_SHMEM_REGION) &&
-> +               !virtio_get_shm_region(vdev, &shm_reg, (u8)VIRTIO_PMEM_SH=
-MEM_REGION_ID)
-> +       ) {
-> +               dev_notice(&vdev->dev, "failed to get shared memory regio=
-n %d\n",
-> +                               VIRTIO_PMEM_SHMEM_REGION_ID);
-> +               __virtio_clear_bit(vdev, VIRTIO_PMEM_F_SHMEM_REGION);
-> +       }
-> +       return 0;
-> +}
-> +
->  static int virtio_pmem_probe(struct virtio_device *vdev)
->  {
->         struct nd_region_desc ndr_desc =3D {};
->         struct nd_region *nd_region;
->         struct virtio_pmem *vpmem;
->         struct resource res;
-> +       struct virtio_shm_region shm_reg;
->         int err =3D 0;
->
->         if (!vdev->config->get) {
-> @@ -57,10 +72,16 @@ static int virtio_pmem_probe(struct virtio_device *vd=
-ev)
->                 goto out_err;
->         }
->
-> -       virtio_cread_le(vpmem->vdev, struct virtio_pmem_config,
-> -                       start, &vpmem->start);
-> -       virtio_cread_le(vpmem->vdev, struct virtio_pmem_config,
-> -                       size, &vpmem->size);
-> +       if (virtio_has_feature(vdev, VIRTIO_PMEM_F_SHMEM_REGION)) {
-> +               virtio_get_shm_region(vdev, &shm_reg, (u8)VIRTIO_PMEM_SHM=
-EM_REGION_ID);
-> +               vpmem->start =3D shm_reg.addr;
-> +               vpmem->size =3D shm_reg.len;
-> +       } else {
-> +               virtio_cread_le(vpmem->vdev, struct virtio_pmem_config,
-> +                               start, &vpmem->start);
-> +               virtio_cread_le(vpmem->vdev, struct virtio_pmem_config,
-> +                               size, &vpmem->size);
-> +       }
->
->         res.start =3D vpmem->start;
->         res.end   =3D vpmem->start + vpmem->size - 1;
-> @@ -122,10 +143,17 @@ static void virtio_pmem_remove(struct virtio_device=
- *vdev)
->         virtio_reset_device(vdev);
->  }
->
-> +static unsigned int features[] =3D {
-> +       VIRTIO_PMEM_F_SHMEM_REGION,
-> +};
-> +
->  static struct virtio_driver virtio_pmem_driver =3D {
-> +       .feature_table          =3D features,
-> +       .feature_table_size     =3D ARRAY_SIZE(features),
->         .driver.name            =3D KBUILD_MODNAME,
->         .driver.owner           =3D THIS_MODULE,
->         .id_table               =3D id_table,
-> +       .validate               =3D virtio_pmem_validate,
->         .probe                  =3D virtio_pmem_probe,
->         .remove                 =3D virtio_pmem_remove,
->  };
-> diff --git a/include/uapi/linux/virtio_pmem.h b/include/uapi/linux/virtio=
-_pmem.h
-> index d676b3620383..ede4f3564977 100644
-> --- a/include/uapi/linux/virtio_pmem.h
-> +++ b/include/uapi/linux/virtio_pmem.h
-> @@ -14,6 +14,13 @@
->  #include <linux/virtio_ids.h>
->  #include <linux/virtio_config.h>
->
-> +/* Feature bits */
-> +/* guest physical address range will be indicated as shared memory regio=
-n 0 */
-> +#define VIRTIO_PMEM_F_SHMEM_REGION 0
-> +
-> +/* shmid of the shared memory region corresponding to the pmem */
-> +#define VIRTIO_PMEM_SHMEM_REGION_ID 0
-> +
->  struct virtio_pmem_config {
->         __le64 start;
->         __le64 size;
-> --
-> 2.43.0.472.g3155946c3a-goog
->
+diff --git a/fs/dax.c b/fs/dax.c
+index 3380b43cb6bb..7e7aabec91d8 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -1684,6 +1684,8 @@ static vm_fault_t dax_fault_iter(struct vm_fault *vmf,
+ 	if (dax_fault_is_synchronous(iter, vmf->vma))
+ 		return dax_fault_synchronous_pfnp(pfnp, pfn);
+ 
++	trace_dax_insert_entry(iter->inode, vmf, *entry);
++
+ 	/* insert PMD pfn */
+ 	if (pmd)
+ 		return vmf_insert_pfn_pmd(vmf, pfn, write);
+diff --git a/include/trace/events/fs_dax.h b/include/trace/events/fs_dax.h
+index 97b09fcf7e52..2ec2dcc8f66a 100644
+--- a/include/trace/events/fs_dax.h
++++ b/include/trace/events/fs_dax.h
+@@ -62,15 +62,14 @@ DEFINE_PMD_FAULT_EVENT(dax_pmd_fault_done);
+ 
+ DECLARE_EVENT_CLASS(dax_pmd_load_hole_class,
+ 	TP_PROTO(struct inode *inode, struct vm_fault *vmf,
+-		struct page *zero_page,
+-		void *radix_entry),
+-	TP_ARGS(inode, vmf, zero_page, radix_entry),
++		struct page *zero_page, void *xa_entry),
++	TP_ARGS(inode, vmf, zero_page, xa_entry),
+ 	TP_STRUCT__entry(
+ 		__field(unsigned long, ino)
+ 		__field(unsigned long, vm_flags)
+ 		__field(unsigned long, address)
+ 		__field(struct page *, zero_page)
+-		__field(void *, radix_entry)
++		__field(void *, xa_entry)
+ 		__field(dev_t, dev)
+ 	),
+ 	TP_fast_assign(
+@@ -79,40 +78,40 @@ DECLARE_EVENT_CLASS(dax_pmd_load_hole_class,
+ 		__entry->vm_flags = vmf->vma->vm_flags;
+ 		__entry->address = vmf->address;
+ 		__entry->zero_page = zero_page;
+-		__entry->radix_entry = radix_entry;
++		__entry->xa_entry = xa_entry;
+ 	),
+ 	TP_printk("dev %d:%d ino %#lx %s address %#lx zero_page %p "
+-			"radix_entry %#lx",
++			"xa_entry %#lx",
+ 		MAJOR(__entry->dev),
+ 		MINOR(__entry->dev),
+ 		__entry->ino,
+ 		__entry->vm_flags & VM_SHARED ? "shared" : "private",
+ 		__entry->address,
+ 		__entry->zero_page,
+-		(unsigned long)__entry->radix_entry
++		(unsigned long)__entry->xa_entry
+ 	)
+ )
+ 
+ #define DEFINE_PMD_LOAD_HOLE_EVENT(name) \
+ DEFINE_EVENT(dax_pmd_load_hole_class, name, \
+ 	TP_PROTO(struct inode *inode, struct vm_fault *vmf, \
+-		struct page *zero_page, void *radix_entry), \
+-	TP_ARGS(inode, vmf, zero_page, radix_entry))
++		struct page *zero_page, void *xa_entry), \
++	TP_ARGS(inode, vmf, zero_page, xa_entry))
+ 
+ DEFINE_PMD_LOAD_HOLE_EVENT(dax_pmd_load_hole);
+ DEFINE_PMD_LOAD_HOLE_EVENT(dax_pmd_load_hole_fallback);
+ 
+ DECLARE_EVENT_CLASS(dax_pmd_insert_mapping_class,
+ 	TP_PROTO(struct inode *inode, struct vm_fault *vmf,
+-		long length, pfn_t pfn, void *radix_entry),
+-	TP_ARGS(inode, vmf, length, pfn, radix_entry),
++		long length, pfn_t pfn, void *xa_entry),
++	TP_ARGS(inode, vmf, length, pfn, xa_entry),
+ 	TP_STRUCT__entry(
+ 		__field(unsigned long, ino)
+ 		__field(unsigned long, vm_flags)
+ 		__field(unsigned long, address)
+ 		__field(long, length)
+ 		__field(u64, pfn_val)
+-		__field(void *, radix_entry)
++		__field(void *, xa_entry)
+ 		__field(dev_t, dev)
+ 		__field(int, write)
+ 	),
+@@ -124,10 +123,10 @@ DECLARE_EVENT_CLASS(dax_pmd_insert_mapping_class,
+ 		__entry->write = vmf->flags & FAULT_FLAG_WRITE;
+ 		__entry->length = length;
+ 		__entry->pfn_val = pfn.val;
+-		__entry->radix_entry = radix_entry;
++		__entry->xa_entry = xa_entry;
+ 	),
+ 	TP_printk("dev %d:%d ino %#lx %s %s address %#lx length %#lx "
+-			"pfn %#llx %s radix_entry %#lx",
++			"pfn %#llx %s xa_entry %#lx",
+ 		MAJOR(__entry->dev),
+ 		MINOR(__entry->dev),
+ 		__entry->ino,
+@@ -138,15 +137,15 @@ DECLARE_EVENT_CLASS(dax_pmd_insert_mapping_class,
+ 		__entry->pfn_val & ~PFN_FLAGS_MASK,
+ 		__print_flags_u64(__entry->pfn_val & PFN_FLAGS_MASK, "|",
+ 			PFN_FLAGS_TRACE),
+-		(unsigned long)__entry->radix_entry
++		(unsigned long)__entry->xa_entry
+ 	)
+ )
+ 
+ #define DEFINE_PMD_INSERT_MAPPING_EVENT(name) \
+ DEFINE_EVENT(dax_pmd_insert_mapping_class, name, \
+ 	TP_PROTO(struct inode *inode, struct vm_fault *vmf, \
+-		long length, pfn_t pfn, void *radix_entry), \
+-	TP_ARGS(inode, vmf, length, pfn, radix_entry))
++		long length, pfn_t pfn, void *xa_entry), \
++	TP_ARGS(inode, vmf, length, pfn, xa_entry))
+ 
+ DEFINE_PMD_INSERT_MAPPING_EVENT(dax_pmd_insert_mapping);
+ 
+@@ -194,14 +193,14 @@ DEFINE_PTE_FAULT_EVENT(dax_load_hole);
+ DEFINE_PTE_FAULT_EVENT(dax_insert_pfn_mkwrite_no_entry);
+ DEFINE_PTE_FAULT_EVENT(dax_insert_pfn_mkwrite);
+ 
+-TRACE_EVENT(dax_insert_mapping,
+-	TP_PROTO(struct inode *inode, struct vm_fault *vmf, void *radix_entry),
+-	TP_ARGS(inode, vmf, radix_entry),
++TRACE_EVENT(dax_insert_entry,
++	TP_PROTO(struct inode *inode, struct vm_fault *vmf, void *xa_entry),
++	TP_ARGS(inode, vmf, xa_entry),
+ 	TP_STRUCT__entry(
+ 		__field(unsigned long, ino)
+ 		__field(unsigned long, vm_flags)
+ 		__field(unsigned long, address)
+-		__field(void *, radix_entry)
++		__field(void *, xa_entry)
+ 		__field(dev_t, dev)
+ 		__field(int, write)
+ 	),
+@@ -211,16 +210,16 @@ TRACE_EVENT(dax_insert_mapping,
+ 		__entry->vm_flags = vmf->vma->vm_flags;
+ 		__entry->address = vmf->address;
+ 		__entry->write = vmf->flags & FAULT_FLAG_WRITE;
+-		__entry->radix_entry = radix_entry;
++		__entry->xa_entry = xa_entry;
+ 	),
+-	TP_printk("dev %d:%d ino %#lx %s %s address %#lx radix_entry %#lx",
++	TP_printk("dev %d:%d ino %#lx %s %s address %#lx xa_entry %#lx",
+ 		MAJOR(__entry->dev),
+ 		MINOR(__entry->dev),
+ 		__entry->ino,
+ 		__entry->vm_flags & VM_SHARED ? "shared" : "private",
+ 		__entry->write ? "write" : "read",
+ 		__entry->address,
+-		(unsigned long)__entry->radix_entry
++		(unsigned long)__entry->xa_entry
+ 	)
+ )
+ 
+-- 
+2.34.1
 
