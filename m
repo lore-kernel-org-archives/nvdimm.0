@@ -1,107 +1,77 @@
-Received: from esa2.hc1455-7.c3s2.iphmx.com (esa2.hc1455-7.c3s2.iphmx.com [207.54.90.48])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C207310FE
-	for <nvdimm@lists.linux.dev>; Fri, 12 Jan 2024 01:57:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=fujitsu.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fujitsu.com
-X-IronPort-AV: E=McAfee;i="6600,9927,10950"; a="145889606"
-X-IronPort-AV: E=Sophos;i="6.04,188,1695654000"; 
-   d="scan'208";a="145889606"
-Received: from unknown (HELO oym-r4.gw.nic.fujitsu.com) ([210.162.30.92])
-  by esa2.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jan 2024 10:56:46 +0900
-Received: from oym-m4.gw.nic.fujitsu.com (oym-nat-oym-m4.gw.nic.fujitsu.com [192.168.87.61])
-	by oym-r4.gw.nic.fujitsu.com (Postfix) with ESMTP id D85B1D9D8F
-	for <nvdimm@lists.linux.dev>; Fri, 12 Jan 2024 10:56:43 +0900 (JST)
-Received: from kws-ab4.gw.nic.fujitsu.com (kws-ab4.gw.nic.fujitsu.com [192.51.206.22])
-	by oym-m4.gw.nic.fujitsu.com (Postfix) with ESMTP id 1010AD603C
-	for <nvdimm@lists.linux.dev>; Fri, 12 Jan 2024 10:56:43 +0900 (JST)
-Received: from edo.cn.fujitsu.com (edo.cn.fujitsu.com [10.167.33.5])
-	by kws-ab4.gw.nic.fujitsu.com (Postfix) with ESMTP id 9B67922D001
-	for <nvdimm@lists.linux.dev>; Fri, 12 Jan 2024 10:56:42 +0900 (JST)
-Received: from [192.168.50.5] (unknown [10.167.226.114])
-	by edo.cn.fujitsu.com (Postfix) with ESMTP id B80201A0070;
-	Fri, 12 Jan 2024 09:56:40 +0800 (CST)
-Message-ID: <23cf9c72-c81b-4c8d-950c-a745172c97cf@fujitsu.com>
-Date: Fri, 12 Jan 2024 09:56:40 +0800
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B24210FE;
+	Fri, 12 Jan 2024 02:21:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="o9kjrJNV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46E13C433C7;
+	Fri, 12 Jan 2024 02:21:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1705026071;
+	bh=vzFsyrcpEKyKi/ZCFmMLv89tZPcFv5KRoRhuUunRASo=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=o9kjrJNVjySVcq//l8zcsYCy/We/gWt06pCCqQ1F05AgF3+pJ9szXMi/SPheIJkXR
+	 mikdThOdtqsduSSb6SAufKn3FTaVyYYq+aNy8yE3RURhXwKg9FZ1r9Aymm1M0skPbk
+	 n/5LC628c5bbRBeTGW9bdouALGnSVwguBqhv028a0JrDQPdlgdwFLbKpg9JuzLNzp6
+	 ldR2YzvvyEPJ2NYQGE3mzRy5cSxl8QJoOhxKSBVb4MA9+cX/D32iNQV14q7vuFbPaR
+	 ZtK6eRvNR0T8pmxZjVOxFt1vHEZFP91TekqBnRwt6UI/35xKcSzUgD0b88Xv1bqmHb
+	 n2qRqxUa/AZQw==
+Date: Thu, 11 Jan 2024 18:21:10 -0800
+From: "Darrick J. Wong" <djwong@kernel.org>
+To: Bill O'Donnell <bodonnel@redhat.com>
+Cc: Shiyang Ruan <ruansy.fnst@fujitsu.com>, linux-xfs@vger.kernel.org,
+	nvdimm@lists.linux.dev, chandan.babu@oracle.com,
+	dan.j.williams@intel.com
+Subject: Re: [PATCH] xfs: drop experimental warning for FSDAX
+Message-ID: <20240112022110.GP722975@frogsfrogsfrogs>
+References: <20230915063854.1784918-1-ruansy.fnst@fujitsu.com>
+ <ZaAeaRJnfERwwaP7@redhat.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v12 0/2] mm, pmem, xfs: Introduce MF_MEM_REMOVE for unbind
-To: Bill O'Donnell <bodonnel@redhat.com>
-Cc: linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
- linux-xfs@vger.kernel.org, linux-mm@kvack.org, dan.j.williams@intel.com,
- willy@infradead.org, jack@suse.cz, akpm@linux-foundation.org,
- djwong@kernel.org, mcgrof@kernel.org
-References: <20230629081651.253626-1-ruansy.fnst@fujitsu.com>
- <ZaBqqwKuLj5gINed@redhat.com>
-From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-In-Reply-To: <ZaBqqwKuLj5gINed@redhat.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-TM-AS-Product-Ver: IMSS-9.1.0.1417-9.0.0.1002-28114.004
-X-TM-AS-User-Approved-Sender: Yes
-X-TMASE-Version: IMSS-9.1.0.1417-9.0.1002-28114.004
-X-TMASE-Result: 10--20.504300-10.000000
-X-TMASE-MatchedRID: qeYWT+AUEkGPvrMjLFD6eI2qS/2TwQUc2q80vLACqaeqvcIF1TcLYLBk
-	jjdoOP1bpT/tp3lSZtfds6WtD+l5Ngx38j2cF8Y5xDiakrJ+SpkxXH/dlhvLv6fDpVD78xj9HxK
-	csbaQWi9Z7eVi3CkHD9aml2+cEqVbyEWUXyOwgqG9POB463xQEmpiq4KsutXCaOWLD7G8i109dx
-	qDxQNRxYQy2IsHC2z9qOroA3r2rtSvgkLMDorez7nHu4BcYSmtTnSpwnlY4yGbKItl61J/ySKve
-	Q4wmYdMJgb3dwKNrjq/v0UhTKC9nMRB0bsfrpPI6T/LTDsmJmg=
-X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ZaAeaRJnfERwwaP7@redhat.com>
 
-
-
-在 2024/1/12 6:24, Bill O'Donnell 写道:
-> On Thu, Jun 29, 2023 at 04:16:49PM +0800, Shiyang Ruan wrote:
->> This patchset is to add gracefully unbind support for pmem.
->> Patch1 corrects the calculation of length and end of a given range.
->> Patch2 introduces a new flag call MF_MEM_REMOVE, to let dax holder know
->> it is a remove event.  With the help of notify_failure mechanism, we are
->> able to shutdown the filesystem on the pmem gracefully.
+On Thu, Jan 11, 2024 at 10:59:21AM -0600, Bill O'Donnell wrote:
+> On Fri, Sep 15, 2023 at 02:38:54PM +0800, Shiyang Ruan wrote:
+> > FSDAX and reflink can work together now, let's drop this warning.
+> > 
+> > Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
 > 
-> What is the status of this patch?
+> Are there any updates on this?
+ 
+Remind us to slip this in for 6.8-rc7 if nobody complains about the new
+dax functionality. :)
 
-Hi Bill,
-
-This patch has just been merged.  You can find it here:
-
-https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=fa422b353d212373fb2b2857a5ea5a6fa4876f9c
-
-
---
-Thanks,
-Ruan.
+--D
 
 > Thanks-
 > Bill
 > 
 > 
->>
->> Changes since v11:
->>   Patch1:
->>    1. correct the count calculation in xfs_failure_pgcnt().
->>        (was a wrong fix in v11)
->>   Patch2:
->>    1. use new exclusive freeze_super/thaw_super API, to make sure the unbind
->>        progress won't be disturbed by any other freezer.
->>
->> Shiyang Ruan (2):
->>    xfs: fix the calculation for "end" and "length"
->>    mm, pmem, xfs: Introduce MF_MEM_REMOVE for unbind
->>
->>   drivers/dax/super.c         |  3 +-
->>   fs/xfs/xfs_notify_failure.c | 95 +++++++++++++++++++++++++++++++++----
->>   include/linux/mm.h          |  1 +
->>   mm/memory-failure.c         | 17 +++++--
->>   4 files changed, 101 insertions(+), 15 deletions(-)
->>
->> -- 
->> 2.40.1
->>
+> > ---
+> >  fs/xfs/xfs_super.c | 1 -
+> >  1 file changed, 1 deletion(-)
+> > 
+> > diff --git a/fs/xfs/xfs_super.c b/fs/xfs/xfs_super.c
+> > index 1f77014c6e1a..faee773fa026 100644
+> > --- a/fs/xfs/xfs_super.c
+> > +++ b/fs/xfs/xfs_super.c
+> > @@ -371,7 +371,6 @@ xfs_setup_dax_always(
+> >  		return -EINVAL;
+> >  	}
+> >  
+> > -	xfs_warn(mp, "DAX enabled. Warning: EXPERIMENTAL, use at your own risk");
+> >  	return 0;
+> >  
+> >  disable_dax:
+> > -- 
+> > 2.42.0
+> > 
+> 
 > 
