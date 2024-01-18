@@ -1,55 +1,55 @@
 Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0603A50
-	for <nvdimm@lists.linux.dev>; Thu, 18 Jan 2024 00:28:20 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 278D7A5E
+	for <nvdimm@lists.linux.dev>; Thu, 18 Jan 2024 00:28:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.9
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705537703; cv=none; b=PQAC9RnL1Gmi6oC0vsh6nbDQqpRKp9aUIfFkdxiHiys6XvbF033YcPk7dUF5o7j0HbVY8FuPQbFahWzPe2V9ndC8dUgkPK2hnNTjmkvhfN4JvRS7/4zqbelBbdtJTrXRAtH/NJO4kbRGD1Z1rJK9Fb4xt+yHbYsk49VW4PiblHw=
+	t=1705537704; cv=none; b=ExF1m2HWbdzpm4fetC0vpDM7bk0K9RaJq3B5h/SXBSuqUV3gboIvJaTAduk6VraVLlCvv8jKX8yqX3KvCSlFWqg9fYW6UHEyhXGzxDZRzvaM2NHjlRLGTDRbSF6FP+Y8Q7TF1RNbTjcvGHuwfv1LH2AcjtnVFsh71yE7hl+jdDk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705537703; c=relaxed/simple;
-	bh=oek0qkt+aBT7WRJCd9+jfLco9THKG0GNqm4+L7t/V4Q=;
+	s=arc-20240116; t=1705537704; c=relaxed/simple;
+	bh=zMYBSPVOSUpv6oOK/BknFI1D0COrJaTJ0DmAHe/5ezY=;
 	h=DKIM-Signature:X-IronPort-AV:X-IronPort-AV:Received:X-ExtLoop1:
 	 X-IronPort-AV:X-IronPort-AV:Received:From:To:Cc:Subject:Date:
 	 Message-Id:X-Mailer:In-Reply-To:References:MIME-Version:
-	 Content-Transfer-Encoding; b=e462pjwMSTZaM3bsLdaX3w/U0BGafURsnGcQNzX6vcpkVIML/qMqQTEVwGbkuqTxvbLgOwqT8QalN0nNgiMHpbhoox8Cpg3OyBo0rE0o+huVbZrxjZHl//7mXQbU0akqxidDqNYJMc/EGVNjGzHax8g3LuDjxbHfzQegSyyuWWg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=LrX1D59Z; arc=none smtp.client-ip=198.175.65.9
+	 Content-Transfer-Encoding; b=W2bf+/HgqIQveVXEOSdyAT6cAHr2K9ivfzjaudZWUMVKsjj1/xFS+7mKgoKo3GrlOfT4S0A8Z6Mxbq6k4QMKMATega0QdYIPQjpHO0hjQVPdHd3UKYYPnFVczwkIx4scmJkiCKpzoEiifwbENVLITPwoKsARooRpWMnAK5NhhGI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=em5fS6AP; arc=none smtp.client-ip=198.175.65.9
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="LrX1D59Z"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="em5fS6AP"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1705537700; x=1737073700;
+  t=1705537702; x=1737073702;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=oek0qkt+aBT7WRJCd9+jfLco9THKG0GNqm4+L7t/V4Q=;
-  b=LrX1D59Zv6oik14IXAb5Bl+4PGjcP1jQ/hHbJV0iGvbgsF7weZxDR9ZT
-   Jw2AmuXLniph+og/Jhz2GDZ6txd7i6MGYCeebFINVgG6oaL4lpvNqJGEh
-   mDf3tbEnCU6HFAOPm3+Rk3oi7+IYJaJoVcdN2GFMjdyzudZ5LkWnHcdH1
-   kVIlac5W8nJXUtNzrvOViTH4dkmr0p4a6ehOIEis+eKvtXxaF3tnMybjI
-   HLAwg2nDX0AHV3a9th/oU6iGGga9Ej//oIIezT4KQIu9GNsjjrU+ONSOL
-   Sq7zF3WTAaEkhL2slRDTnE8fTb614f+rgpKyvZZp3TxAVDrDlG4fySMPM
+  bh=zMYBSPVOSUpv6oOK/BknFI1D0COrJaTJ0DmAHe/5ezY=;
+  b=em5fS6API0oWzfLmcflqY4p2HwnIUUPca2yJtfhy8Nv63DxCRM2/PnjU
+   KMxgHQJZKZUOOG+U1oHpiYEooHZkqzBGdaNTwpGWx276Aoz4ZZcYWIA1n
+   vbT/W7CY9/wVai2p3BDy/pi7fAFIaUN07puMEcENysIJvRmtmbu1wSNvA
+   bVmGfwonUofc9POnLkCjd/isv8BM3I+HT00HLveUU1ldRJgu9HZg7UpkY
+   LkVRWsZYwCnPIMFCFKNpzZwR1U4QK3tKuqBgoUGRXtM6OsUOeyQ9wYFju
+   2loAN7bidwy7qvxKErRfKt9mvt+9P/s+COmpoIXQqVTcrNfRWYKn+7TJb
    A==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10956"; a="18904568"
+X-IronPort-AV: E=McAfee;i="6600,9927,10956"; a="18904582"
 X-IronPort-AV: E=Sophos;i="6.05,201,1701158400"; 
-   d="scan'208";a="18904568"
+   d="scan'208";a="18904582"
 Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Jan 2024 16:28:20 -0800
+  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Jan 2024 16:28:22 -0800
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10956"; a="777577253"
+X-IronPort-AV: E=McAfee;i="6600,9927,10956"; a="777577266"
 X-IronPort-AV: E=Sophos;i="6.05,201,1701158400"; 
-   d="scan'208";a="777577253"
+   d="scan'208";a="777577266"
 Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.209.110.93])
-  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Jan 2024 16:28:19 -0800
+  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Jan 2024 16:28:21 -0800
 From: alison.schofield@intel.com
 To: Vishal Verma <vishal.l.verma@intel.com>
 Cc: Alison Schofield <alison.schofield@intel.com>,
 	nvdimm@lists.linux.dev,
 	linux-cxl@vger.kernel.org
-Subject: [PATCH v6 6/7] cxl/list: add --media-errors option to cxl list
-Date: Wed, 17 Jan 2024 16:28:05 -0800
-Message-Id: <acff17b0f76ecf9a0fefdc1d6c02afcc9ef8a530.1705534719.git.alison.schofield@intel.com>
+Subject: [PATCH v6 7/7] cxl/test: add cxl-poison.sh unit test
+Date: Wed, 17 Jan 2024 16:28:06 -0800
+Message-Id: <2bfc65ec1bbe0168928f08541ec26d6d5dded345.1705534719.git.alison.schofield@intel.com>
 X-Mailer: git-send-email 2.40.1
 In-Reply-To: <cover.1705534719.git.alison.schofield@intel.com>
 References: <cover.1705534719.git.alison.schofield@intel.com>
@@ -63,136 +63,176 @@ Content-Transfer-Encoding: 8bit
 
 From: Alison Schofield <alison.schofield@intel.com>
 
-The --media-errors option to 'cxl list' retrieves poison lists from
-memory devices supporting the capability and displays the returned
-media_error records in the cxl list json. This option can apply to
-memdevs or regions.
-
-Example usage in the Documentation/cxl/cxl-list.txt update.
+Exercise cxl list, libcxl, and driver pieces of the get poison list
+pathway. Inject and clear poison using debugfs and use cxl-cli to
+read the poison list by memdev and by region.
 
 Signed-off-by: Alison Schofield <alison.schofield@intel.com>
 ---
- Documentation/cxl/cxl-list.txt | 71 ++++++++++++++++++++++++++++++++++
- cxl/filter.h                   |  3 ++
- cxl/list.c                     |  2 +
- 3 files changed, 76 insertions(+)
+ test/cxl-poison.sh | 133 +++++++++++++++++++++++++++++++++++++++++++++
+ test/meson.build   |   2 +
+ 2 files changed, 135 insertions(+)
+ create mode 100644 test/cxl-poison.sh
 
-diff --git a/Documentation/cxl/cxl-list.txt b/Documentation/cxl/cxl-list.txt
-index 838de4086678..6105c896938c 100644
---- a/Documentation/cxl/cxl-list.txt
-+++ b/Documentation/cxl/cxl-list.txt
-@@ -415,6 +415,77 @@ OPTIONS
- --region::
- 	Specify CXL region device name(s), or device id(s), to filter the listing.
+diff --git a/test/cxl-poison.sh b/test/cxl-poison.sh
+new file mode 100644
+index 000000000000..91c5c0bed1c2
+--- /dev/null
++++ b/test/cxl-poison.sh
+@@ -0,0 +1,133 @@
++#!/bin/bash
++# SPDX-License-Identifier: GPL-2.0
++# Copyright (C) 2023 Intel Corporation. All rights reserved.
++
++. "$(dirname "$0")"/common
++
++rc=77
++
++set -ex
++
++trap 'err $LINENO' ERR
++
++check_prereq "jq"
++
++modprobe -r cxl_test
++modprobe cxl_test
++
++rc=1
++
++# THEORY OF OPERATION: Exercise cxl-cli and cxl driver ability to
++# inject, clear, and get the poison list. Do it by memdev and by region.
++
++find_memdev()
++{
++	readarray -t capable_mems < <("$CXL" list -b "$CXL_TEST_BUS" -M |
++		jq -r ".[] | select(.pmem_size != null) |
++		select(.ram_size != null) | .memdev")
++
++	if [ ${#capable_mems[@]} == 0 ]; then
++		echo "no memdevs found for test"
++		err "$LINENO"
++	fi
++
++	memdev=${capable_mems[0]}
++}
++
++create_x2_region()
++{
++        # Find an x2 decoder
++        decoder="$($CXL list -b "$CXL_TEST_BUS" -D -d root | jq -r ".[] |
++		select(.pmem_capable == true) |
++		select(.nr_targets == 2) |
++		.decoder")"
++
++        # Find a memdev for each host-bridge interleave position
++        port_dev0="$($CXL list -T -d "$decoder" | jq -r ".[] |
++		.targets | .[] | select(.position == 0) | .target")"
++        port_dev1="$($CXL list -T -d "$decoder" | jq -r ".[] |
++		.targets | .[] | select(.position == 1) | .target")"
++        mem0="$($CXL list -M -p "$port_dev0" | jq -r ".[0].memdev")"
++        mem1="$($CXL list -M -p "$port_dev1" | jq -r ".[0].memdev")"
++
++	region="$($CXL create-region -d "$decoder" -m "$mem0" "$mem1" |
++		 jq -r ".region")"
++	if [[ ! $region ]]; then
++		echo "create-region failed for $decoder"
++		err "$LINENO"
++	fi
++	echo "$region"
++}
++
++# When cxl-cli support for inject and clear arrives, replace
++# the writes to /sys/kernel/debug with the new cxl commands.
++
++inject_poison_sysfs()
++{
++	memdev="$1"
++	addr="$2"
++
++	echo "$addr" > /sys/kernel/debug/cxl/"$memdev"/inject_poison
++}
++
++clear_poison_sysfs()
++{
++	memdev="$1"
++	addr="$2"
++
++	echo "$addr" > /sys/kernel/debug/cxl/"$memdev"/clear_poison
++}
++
++validate_poison_found()
++{
++	list_by="$1"
++	nr_expect="$2"
++
++	poison_list="$($CXL list -r "$list_by" --media-errors |
++		jq -r '.[].media_errors')"
++	nr_found=$(jq "length" <<< "$poison_list")
++	if [ "$nr_found" -ne "$nr_expect" ]; then
++		echo "$nr_expect poison records expected, $nr_found found"
++		err "$LINENO"
++	fi
++}
++
++test_poison_by_memdev()
++{
++	find_memdev
++	inject_poison_sysfs "$memdev" "0x40000000"
++	inject_poison_sysfs "$memdev" "0x40001000"
++	inject_poison_sysfs "$memdev" "0x600"
++	inject_poison_sysfs "$memdev" "0x0"
++	validate_poison_found "-m $memdev" 4
++
++	clear_poison_sysfs "$memdev" "0x40000000"
++	clear_poison_sysfs "$memdev" "0x40001000"
++	clear_poison_sysfs "$memdev" "0x600"
++	clear_poison_sysfs "$memdev" "0x0"
++	validate_poison_found "-m $memdev" 0
++}
++
++test_poison_by_region()
++{
++	create_x2_region
++	inject_poison_sysfs "$mem0" "0x40000000"
++	inject_poison_sysfs "$mem1" "0x40000000"
++	validate_poison_found "-r $region" 2
++
++	clear_poison_sysfs "$mem0" "0x40000000"
++	clear_poison_sysfs "$mem1" "0x40000000"
++	validate_poison_found "-r $region" 0
++}
++
++# Turn tracing on. Note that 'cxl list --poison' does toggle the tracing.
++# Turning it on here allows the test user to also view inject and clear
++# trace events.
++echo 1 > /sys/kernel/tracing/events/cxl/cxl_poison/enable
++
++test_poison_by_memdev
++test_poison_by_region
++
++check_dmesg "$LINENO"
++
++modprobe -r cxl-test
+diff --git a/test/meson.build b/test/meson.build
+index 224adaf41fcc..2706fa5d633c 100644
+--- a/test/meson.build
++++ b/test/meson.build
+@@ -157,6 +157,7 @@ cxl_create_region = find_program('cxl-create-region.sh')
+ cxl_xor_region = find_program('cxl-xor-region.sh')
+ cxl_update_firmware = find_program('cxl-update-firmware.sh')
+ cxl_events = find_program('cxl-events.sh')
++cxl_poison = find_program('cxl-poison.sh')
  
-+-L::
-+--media-errors::
-+	Include media-error information. The poison list is retrieved from the
-+	device(s) and media_error records are added to the listing. Apply this
-+	option to memdevs and regions where devices support the poison list
-+	capability.
-+
-+----
-+# cxl list -m mem1 --media-errors
-+[
-+  {
-+    "memdev":"mem1",
-+    "pmem_size":1073741824,
-+    "ram_size":1073741824,
-+    "serial":1,
-+    "numa_node":1,
-+    "host":"cxl_mem.1",
-+    "media_errors":[
-+      {
-+        "dpa":0,
-+        "dpa_length":64,
-+        "source":"Injected"
-+      },
-+      {
-+        "region":"region5",
-+        "dpa":1073741824,
-+        "dpa_length":64,
-+        "hpa":1035355557888,
-+        "source":"Injected"
-+      },
-+      {
-+        "region":"region5",
-+        "dpa":1073745920,
-+        "dpa_length":64,
-+        "hpa":1035355566080,
-+        "source":"Injected"
-+      }
-+    ]
-+  }
-+]
-+
-+# cxl list -r region5 --media-errors
-+[
-+  {
-+    "region":"region5",
-+    "resource":1035355553792,
-+    "size":2147483648,
-+    "type":"pmem",
-+    "interleave_ways":2,
-+    "interleave_granularity":4096,
-+    "decode_state":"commit",
-+    "media_errors":[
-+      {
-+        "memdev":"mem1",
-+        "dpa":1073741824,
-+        "dpa_length":64,
-+        "hpa":1035355557888,
-+        "source":"Injected"
-+      },
-+      {
-+        "memdev":"mem1",
-+        "dpa":1073745920,
-+        "dpa_length":64,
-+        "hpa":1035355566080,
-+        "source":"Injected"
-+      }
-+    ]
-+  }
-+]
-+----
-+
- -v::
- --verbose::
- 	Increase verbosity of the output. This can be specified
-diff --git a/cxl/filter.h b/cxl/filter.h
-index 3f65990f835a..956a46e0c7a9 100644
---- a/cxl/filter.h
-+++ b/cxl/filter.h
-@@ -30,6 +30,7 @@ struct cxl_filter_params {
- 	bool fw;
- 	bool alert_config;
- 	bool dax;
-+	bool media_errors;
- 	int verbose;
- 	struct log_ctx ctx;
- };
-@@ -88,6 +89,8 @@ static inline unsigned long cxl_filter_to_flags(struct cxl_filter_params *param)
- 		flags |= UTIL_JSON_ALERT_CONFIG;
- 	if (param->dax)
- 		flags |= UTIL_JSON_DAX | UTIL_JSON_DAX_DEVS;
-+	if (param->media_errors)
-+		flags |= UTIL_JSON_MEDIA_ERRORS;
- 	return flags;
- }
+ tests = [
+   [ 'libndctl',               libndctl,		  'ndctl' ],
+@@ -186,6 +187,7 @@ tests = [
+   [ 'cxl-create-region.sh',   cxl_create_region,  'cxl'   ],
+   [ 'cxl-xor-region.sh',      cxl_xor_region,     'cxl'   ],
+   [ 'cxl-events.sh',          cxl_events,         'cxl'   ],
++  [ 'cxl-poison.sh',          cxl_poison,         'cxl'   ],
+ ]
  
-diff --git a/cxl/list.c b/cxl/list.c
-index 93ba51ef895c..bcdee0afd405 100644
---- a/cxl/list.c
-+++ b/cxl/list.c
-@@ -57,6 +57,8 @@ static const struct option options[] = {
- 		    "include memory device firmware information"),
- 	OPT_BOOLEAN('A', "alert-config", &param.alert_config,
- 		    "include alert configuration information"),
-+	OPT_BOOLEAN('L', "media-errors", &param.media_errors,
-+		    "include media-error information "),
- 	OPT_INCR('v', "verbose", &param.verbose, "increase output detail"),
- #ifdef ENABLE_DEBUG
- 	OPT_BOOLEAN(0, "debug", &debug, "debug list walk"),
+ if get_option('destructive').enabled()
 -- 
 2.37.3
 
