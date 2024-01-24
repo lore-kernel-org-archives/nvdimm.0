@@ -1,221 +1,185 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
+Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.115])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B698D1350EF
-	for <nvdimm@lists.linux.dev>; Wed, 24 Jan 2024 20:54:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.9
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706129698; cv=none; b=tKLIddI1UZFxXXZAZA0HA5N7JsSMc21maSLj2TRbCWa61mzvGQXKMPzKM7qhDxLSrEbYVN7aiOgtdEeE8v5RhX+/lHBSnU8Gw53iKUUGI07srtlEwKgcunourEG85Ca2PEwmm4yn5TN27fKxq29F2Usr35uBTeIq4f8VL3h9p1c=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706129698; c=relaxed/simple;
-	bh=TQh0gLZcVHOscEUZ7WQ90vJ/X1HrzAGoDghtc/r2lMQ=;
-	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=L/xUaJEDsdsPtDZcgi6HE87w91BBeCYkxyqR/YbDkk9B0xHnky0hS25Sik0Q+ka2xEWv6NOdCoknDSAy6T6XIpnBV1ar/S86Utnk/zoYATCEvWitD55878d0hQyir1KcsnnqDGs/GFSSBvVQbj161br6uTkIHt1Vaqtw1WLOI6o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=ESn0VwY0; arc=none smtp.client-ip=198.175.65.9
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6578113340C
+	for <nvdimm@lists.linux.dev>; Wed, 24 Jan 2024 21:10:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.55.52.115
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1706130656; cv=fail; b=ZN8dFuC+YCnSsB/l9Jk7BmJ32zisAFrquzqa4bEuum23m2+MMuALJYH0qlxmi2U42EMezcqHkBVIH7yEWN4Dc0qvgld3NoaRO5hm9YfI4sLbXY292kcJIU45WfxBH1Wl7dB9XbyOS9hhHiB2+CfA787qlOLwIpU+/fdxWKZSwX8=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1706130656; c=relaxed/simple;
+	bh=RmCphI4qXN+MxkkC6mLtgwxpqxF7bZgGqDDS+8RpS3U=;
+	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
+	 Content-Type:MIME-Version; b=DkPzo3MYfoE4agxtCuM6XmAON1hOs6hTXRyHf4PsX5Aw+zxQGSw7HwN9eMMfkB1y+yRh4nPb9PTS5w0Ph0N910WEVa9Qsk/1BA6vw3drA+8YCB3ry5G6y9IUGhmycr8nC8LW4eK1QLsh/WO86g0AgxNMAxSax5taqyftFD7M+YU=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=eeMt1coA; arc=fail smtp.client-ip=192.55.52.115
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="ESn0VwY0"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="eeMt1coA"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1706129696; x=1737665696;
-  h=subject:from:to:cc:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=TQh0gLZcVHOscEUZ7WQ90vJ/X1HrzAGoDghtc/r2lMQ=;
-  b=ESn0VwY0MprQoehpkinAhHJY++l8MSD3iYK1xj8ACVNHVroNClaI4Ev9
-   ZuqmlZRw+3/fTHn7V0kSo4x/xkgXawjUgKe8dEG95tV3YPQ87RBbz0UtI
-   dCi3VQGc3TkZJUkPOk7lp588FAdZrMyA7bJwSEP1hu5m91oiaRjxEByvR
-   hVq4RkkwTjCKxrrJDVDCs9XHzeWA00aV/VvLAM9i5SspH2U2OIlKvZNdg
-   9S3dohypQasqdDMRkF0DWOrgIYEfOl8JjaD3dNcnwWH9IWTpuwXqsf3lB
-   ZjXQFlRWqTTsUTm1i/KBocEaP2thZERB8wQn/d8JY/JIVszU7X214wQL5
-   A==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10962"; a="20524182"
+  t=1706130654; x=1737666654;
+  h=from:to:cc:subject:date:message-id:references:
+   in-reply-to:content-id:content-transfer-encoding:
+   mime-version;
+  bh=RmCphI4qXN+MxkkC6mLtgwxpqxF7bZgGqDDS+8RpS3U=;
+  b=eeMt1coAA5ew8+cu2X0UknZc1+ItdF13xnAez/5q/nQYJ0S3N/16UiYi
+   3FcDCDw4tV6LR5+zOt522rZxPc39FN4LsgErl3POv+Y0N6/FpZz0WBwTE
+   Tjnyz7CwVoG0goFkNMTYReD08c745R33XavvISHjQAgjXKmlixAAaTSgt
+   vhwCpRPwZCObf+gz0GCPlKuHOrokXXvWO84teKdm3NIFcwPVXnYgmH+Vf
+   10XaljMfNBt58Eh4XGogj5c5DSe3L+Gk7KwUTuKWh68KJKMIJiE10bi8G
+   xeXXJwcg+CRfp+OSPlBv46CufLMEoli30bVdKXyS3Dx8NVY7Kv677Asw6
+   Q==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10962"; a="401625627"
 X-IronPort-AV: E=Sophos;i="6.05,216,1701158400"; 
-   d="scan'208";a="20524182"
-Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Jan 2024 12:54:56 -0800
+   d="scan'208";a="401625627"
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Jan 2024 13:10:53 -0800
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10962"; a="786538980"
+X-IronPort-AV: E=McAfee;i="6600,9927,10962"; a="929800645"
 X-IronPort-AV: E=Sophos;i="6.05,216,1701158400"; 
-   d="scan'208";a="786538980"
-Received: from djiang5-mobl3.amr.corp.intel.com (HELO [192.168.1.177]) ([10.209.164.29])
-  by orsmga002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Jan 2024 12:54:54 -0800
-Subject: [NDCTL PATCH v3 3/3] ndctl: cxl: add QoS class check for CXL region
- creation
-From: Dave Jiang <dave.jiang@intel.com>
-To: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
-Cc: vishal.l.verma@intel.com
-Date: Wed, 24 Jan 2024 13:54:54 -0700
-Message-ID: <170612969410.2745924.538640158518770317.stgit@djiang5-mobl3>
-In-Reply-To: <170612961495.2745924.4942817284170536877.stgit@djiang5-mobl3>
-References: <170612961495.2745924.4942817284170536877.stgit@djiang5-mobl3>
-User-Agent: StGit/1.5
+   d="scan'208";a="929800645"
+Received: from orsmsx602.amr.corp.intel.com ([10.22.229.15])
+  by fmsmga001.fm.intel.com with ESMTP/TLS/AES256-GCM-SHA384; 24 Jan 2024 13:10:52 -0800
+Received: from orsmsx610.amr.corp.intel.com (10.22.229.23) by
+ ORSMSX602.amr.corp.intel.com (10.22.229.15) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.35; Wed, 24 Jan 2024 13:10:51 -0800
+Received: from ORSEDG601.ED.cps.intel.com (10.7.248.6) by
+ orsmsx610.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.35 via Frontend Transport; Wed, 24 Jan 2024 13:10:51 -0800
+Received: from NAM10-BN7-obe.outbound.protection.outlook.com (104.47.70.100)
+ by edgegateway.intel.com (134.134.137.102) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.35; Wed, 24 Jan 2024 13:10:51 -0800
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=Z06P59GORCx5H9Fm5gkor5KCJhcLqVJgIjIfHUN1H2JSpRocmnUJBCbGMXPuJkcDH4BNZ56xy0rFkLl5PloIM6bHEK5aSO5JylBcEymyCYkIxBzTmbB7H1isMTised5aRTtR1CtIcTenGKiYqrGUcGRAKS0ra9BExDeL1W2XOUvnL3Ue8SS2KFtivplSJHjrJ8deV23S70e9UYbfMyEkBu3Xs45yc2bgsZf6bI/07J6ksV1i6WRefG9ucT/axAOcULrpVj7523y7kvWjV1dL2lL6rA9FxPB3rpKnNr1mfX+kSPpwKAIUBEKyVNtqiz2fjo2TLKaFh+aXPNXiwzQHKw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=RmCphI4qXN+MxkkC6mLtgwxpqxF7bZgGqDDS+8RpS3U=;
+ b=bem0OWssq2noh9FT1ZWCYt+cZF5Q9puGBXRGtry2FkG7NA+XqpjgvZ1NYeXeCQMaRu3HQED4xITlJ6jzlE5AjeyjpxM8GH9b2JZqaqIHtfgrt6rultN8XLXA0nydkwcmRLXSxjyw3lB3yXkOCQm99DODVkMUFjtU63mEkK8QP4xJyw+LclUXcSbAwYemz5NuTlRQYoLuHoktMo5Uox0GNefrD0ebxcWrNKe8QfqvedDtF0hyRbZU7mSv9+Kx2hZqHWhrPHFh6scA9Oh4LEz31lZB3jRN9yYiFh9JaCqHT6robI7+5ZQHv6rJiRU/26NuDi19D+84aX2r7CB4nHgCxg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Received: from MW4PR11MB7125.namprd11.prod.outlook.com (2603:10b6:303:219::12)
+ by CO6PR11MB5618.namprd11.prod.outlook.com (2603:10b6:303:13f::24) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7228.22; Wed, 24 Jan
+ 2024 21:10:49 +0000
+Received: from MW4PR11MB7125.namprd11.prod.outlook.com
+ ([fe80::e28a:f124:d986:c1d0]) by MW4PR11MB7125.namprd11.prod.outlook.com
+ ([fe80::e28a:f124:d986:c1d0%4]) with mapi id 15.20.7202.027; Wed, 24 Jan 2024
+ 21:10:49 +0000
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+To: "zohar@linux.ibm.com" <zohar@linux.ibm.com>, "paul@paul-moore.com"
+	<paul@paul-moore.com>, "jarkko@kernel.org" <jarkko@kernel.org>,
+	"dhowells@redhat.com" <dhowells@redhat.com>, "yaelt@google.com"
+	<yaelt@google.com>, "serge@hallyn.com" <serge@hallyn.com>,
+	"nichen@iscas.ac.cn" <nichen@iscas.ac.cn>, "sumit.garg@linaro.org"
+	<sumit.garg@linaro.org>, "jmorris@namei.org" <jmorris@namei.org>
+CC: "Jiang, Dave" <dave.jiang@intel.com>, "linux-integrity@vger.kernel.org"
+	<linux-integrity@vger.kernel.org>, "linux-cxl@vger.kernel.org"
+	<linux-cxl@vger.kernel.org>, "linux-kernel@vger.kernel.org"
+	<linux-kernel@vger.kernel.org>, "Williams, Dan J" <dan.j.williams@intel.com>,
+	"keyrings@vger.kernel.org" <keyrings@vger.kernel.org>,
+	"linux-security-module@vger.kernel.org"
+	<linux-security-module@vger.kernel.org>, "nvdimm@lists.linux.dev"
+	<nvdimm@lists.linux.dev>
+Subject: Re: [PATCH] KEYS: encrypted: Add check for strsep
+Thread-Topic: [PATCH] KEYS: encrypted: Add check for strsep
+Thread-Index: AQHaTojqvjVIX7LD8kG9OsZOaef/FbDpRyyAgAAPCQCAAA9dgIAACHCAgAAIhYA=
+Date: Wed, 24 Jan 2024 21:10:49 +0000
+Message-ID: <50c2fa781e3266ee8151afdef5a8659d63ca952e.camel@intel.com>
+References: <20231108073627.1063464-1-nichen@iscas.ac.cn>
+	 <4d3465b48b9c5a87deb385b15bf5125fc1704019.camel@intel.com>
+	 <e3275c0cfe21d75e0d71ea3fc24a31252efc9ad6.camel@linux.ibm.com>
+	 <e3b1a5e532ed86e674385abc4812c5a774f851d4.camel@intel.com>
+	 <49c48e3e96bf0f5ebef14e7328cc8a6ca6380e08.camel@linux.ibm.com>
+In-Reply-To: <49c48e3e96bf0f5ebef14e7328cc8a6ca6380e08.camel@linux.ibm.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+user-agent: Evolution 3.50.3 (3.50.3-1.fc39) 
+authentication-results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+x-ms-publictraffictype: Email
+x-ms-traffictypediagnostic: MW4PR11MB7125:EE_|CO6PR11MB5618:EE_
+x-ms-office365-filtering-correlation-id: 918d114f-c3c5-48a9-4099-08dc1d20f07b
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: Ex2+PjQJ8+HjmKumq9fYn1PP3obMG2fO1w1cK7XSJNWKAvRKhukDYT7aRyEQyGpP8bDMx1UiLxmdCxITFCWEAcDqpXoO5SJMoh+da2wwVUzzz40epmKoeO9r8gcm3TtcRfPJ0nHDaeiaD+wBydAs04VHcc+hGaoX4IP5eY+4Ys0LpCZgAat/z5e/23ABXNEKr8rC8bP53ucxduls6BsJxKWFvz6Z4t+IZVolaiTkGnW08L3aqvO8gHXkdrXBgsuqSiS+B6Fw48GjTcAy92s8iQWXs2DGbeWM3JYZC4o9J12x/hwVi7seV1dWNi4L+NpqLieHTGzypet9Dvy9VuyuQ6qDpzCNjWYfUV34eANOV2HznFTcXIpx30QXD/HTfUHJsiYwcJAM5Po5ld11upk5iVZwMnFoZGrAkpi6KGRskKqowqkjtvHlsGchngHZmHQSFJqTOyvGl5Fq0DWZYBDb8vUcU7EO49DT5a9w8XVPD08kTJAWlcoMH5IdQ28hdm1upOQspbEg7gQELYFydpxnLVRsFyWvHBfNNajqX7Mz829Ns4+2dGFJx4as4gzM21aLz2xMBzXIZGcf4tVlF+kYnYzqq+xpTcOzZxUTJM1aO3c=
+x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MW4PR11MB7125.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(136003)(366004)(346002)(376002)(39860400002)(396003)(230922051799003)(186009)(64100799003)(1800799012)(451199024)(110136005)(5660300002)(7416002)(4744005)(2906002)(54906003)(66556008)(66476007)(64756008)(66446008)(4326008)(316002)(66946007)(41300700001)(76116006)(8676002)(8936002)(38070700009)(478600001)(82960400001)(38100700002)(36756003)(86362001)(71200400001)(122000001)(2616005)(83380400001)(6506007)(6486002)(6512007);DIR:OUT;SFP:1102;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0: =?utf-8?B?cEE0d0V5RUdCMzFabjFVVkI0MmVtRWs1bGFQUkxCUkp6SnY0SmhCMUc1YzNl?=
+ =?utf-8?B?MER5QjJsMzk3ZWk1Z21yUXZheUJsVlN6SVM2K0hGZ3NrTFNWVFBuZm9NV01M?=
+ =?utf-8?B?aFhCb250K1hvM0FRRWJFSkdGb1NnSlFEdnlldkdzM0U2UUg4L3I3RFZRbE9V?=
+ =?utf-8?B?Mndjb0IwQUVlZk9DdnQrb0t2NktVOW01WUNpenVPYXNPeFZjTnRybXJ6UDRM?=
+ =?utf-8?B?cmZ5d2VkdUdPNlpETGJBUnFrem1pcTcwK3N3L1lreXlmL1doUXlXOVNYMUJy?=
+ =?utf-8?B?R2E3Wm1uc3E2RlhPRE8wc052R095Ulh1WHFYS0c4SVZpeG95ay9rQUNsUTJG?=
+ =?utf-8?B?b2NLU2g0TWcwa1V0UHB0aXE5V3ZtSGFXTzRYTHBlcjhXR09QNmEybXhyWXlU?=
+ =?utf-8?B?Z3RnYjJKTFF3YU9SRHRBUVNyZXRWSERrckc2Z3l0M2NGMjBlQjF4WVVPdEZa?=
+ =?utf-8?B?NjlYWm5hWVl2L3Zidm1SZENjNE9BTnF3ZWVLVGszb21hVjkwbzNLd2ZneVFa?=
+ =?utf-8?B?d3NZOHBWVWVpREx4cjlGZzFZcG1oTzRxdEdMTzVYRk12UWpkRTAzRHhnS0pr?=
+ =?utf-8?B?d2M4eVp6bUxXZDdmNEJLckFOZ0VRanJzbUd1YTlpbkJlNDJYbjhXWkdtd0lJ?=
+ =?utf-8?B?eSs0RnhxMitaZ3VwdlVpOXZNcytRcVNneHc4WDR2Rm1QSE0yYXkrZVhCLzlq?=
+ =?utf-8?B?cys5SGNZcWg4NGRPamlraWdaNUJSU0tFSE5aYkdRQWZHMUxGSFJTYkdUZmhh?=
+ =?utf-8?B?ViswcFM5UVNZYjRSSGJIVTJJUzM0TElteWZqTEs1NGNPNG9uTklvTUROTWtU?=
+ =?utf-8?B?c1BIT3F5cXdoMEdTN2N2SXdoN0RtQk4wV29GL3dCMlRQRFY2ejdDc3RwU0VK?=
+ =?utf-8?B?Tmc5Q215TkthMVF5MnhyU0thcngvTXM5NjJGMG5RUFFBbnlyd1ZpYmpwYmJp?=
+ =?utf-8?B?ZDlhSWdVSXdxVVdzRWVaMjVpZGtwOEpEcUN1QWczV0pGUjZkQ0J2Zm1BcHU1?=
+ =?utf-8?B?WDR4bkk1b3BRbDY0MHk3MXZLemFWV3JVbmhrWHR3bXBsZmdSbUZTVEE5MExs?=
+ =?utf-8?B?Sm43TEs4SndrYnpnYytNZXVtdjQxSUlIV0QrTGI3bFpPMmJ3THRuZEQ3cDZE?=
+ =?utf-8?B?Ujdta1ZvcGNGWVBTaVBMOEFCTU94Q3dna3pIMmU0L0FXYXVRRkh4cmJ6NGts?=
+ =?utf-8?B?a0RTT1ZucFNTZnJYdDlZUVBsNk45WXkwcEJSS0pXcmxVS2hKdnl1NElzazJi?=
+ =?utf-8?B?RTU1MkplY0FaR2xudmVkQXBGMGZ6YkZJeVphbFZZUTNZYWp2RVRKU1Q2a1ZZ?=
+ =?utf-8?B?Q3d3NUx5RU1LckR2NnpCNkVtclFDYnlVcGNTTUFZaDFhNEtPckROTldURWlr?=
+ =?utf-8?B?YThaU1lTOUszU3FsNllhbit2TGhLUE5MMDJwZ0Q3ZlkwUUNsZmRvUjVzdXV3?=
+ =?utf-8?B?SFZENEdxYWp6NGlHMFR1QVIxdy9xQUt2elRyT1lqVlpTam1UeGpETk5DOXNK?=
+ =?utf-8?B?RS96V3hKZ2VqZXhJZml1LytLTzh0anAvYlRPTFQ3R1ZSQ29sazhydk9STTJj?=
+ =?utf-8?B?VVZVaVUrSUh4L0k5WisrZ1YvQnNqdTBUakYrR1ZoV1dYS1kxZWRJM3ZvRmNR?=
+ =?utf-8?B?UlAxVGFoQ2IrZGNWdVN3V1VvRkRCUUwvWkcvRXo5MXRmT0c3WDNObmFrNmYy?=
+ =?utf-8?B?ZkU0YXcxNll0UGFnOGxzbEpIMGlkUzMySVhzaERwNjhhcUNRVWtQcUp4N3Zh?=
+ =?utf-8?B?MHVjUWpCODhzWHFLYWZYazFORHF0OVhpS3JtUkt5YS9LQXJNSC8xcWZKbkdN?=
+ =?utf-8?B?L0o3L3lvYTFlRzVoSms5VERtenYyRFZWVkp5ekFXaEdWZnlzc2ZXQ1d2Wlll?=
+ =?utf-8?B?SUhJNDBTc1hYS2FmVTNUYjQxcFRMakFIZnJybHVJeWdLTFZtdkR1QnFwcHMr?=
+ =?utf-8?B?UEVFcWtzZ1N1ckR4cStDZGh2YTRQWGVaaWl6Ly8zRHA0Tk85Wlpabi9sKy9y?=
+ =?utf-8?B?Q2JiVkpWODAxTHBnZFE0alVYRVhSdnhsL1lwYVBmY1A0b1VjWnByMUhlSjRh?=
+ =?utf-8?B?T0Vhd3NpblE2VU1EMVFkeVhGWURIR2l1N3FRZXI3eDdWTGxtcFBPMm1RUWxx?=
+ =?utf-8?B?dDl3UnZHSmw1MWJaWWtNN1NnZXRGeUNNVkt1YmxXYTU0ck95anA3TlN2aHlr?=
+ =?utf-8?Q?hIEmyccVs0suMptUdPMv10c=3D?=
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <B6D5239E089CDD4EA8D78E10C7D3B4DB@namprd11.prod.outlook.com>
+Content-Transfer-Encoding: base64
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: MW4PR11MB7125.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 918d114f-c3c5-48a9-4099-08dc1d20f07b
+X-MS-Exchange-CrossTenant-originalarrivaltime: 24 Jan 2024 21:10:49.0272
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: 9CLs8zAATRF/8V7reZSLpOPMtYNxib1RXxvwuTuOqXXNlIJQKPiYap2dsvzeX8R8p8OCMkS+qq4zk8yPm6MS28cv98ndKMiYWWHzjCU/17k=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CO6PR11MB5618
+X-OriginatorOrg: intel.com
 
-The CFMWS provides a QTG ID. The kernel driver creates a root decoder that
-represents the CFMWS. A qos_class attribute is exported via sysfs for the root
-decoder.
-
-One or more QoS class tokens are retrieved via QTG ID _DSM from the ACPI0017
-device for a CXL memory device. The input for the _DSM is the read and write
-latency and bandwidth for the path between the device and the CPU. The
-numbers are constructed by the kernel driver for the _DSM input. When a
-device is probed, QoS class tokens  are retrieved. This is useful for a
-hot-plugged CXL memory device that does not have regions created.
-
-Add a check for config check during region creation. Emit a warning if the
-QoS class token from the root decoder is different than the mem device QoS
-class token. User parameter options are provided to fail instead of just
-warning.
-
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
-v3:
-- Rebase to pending branch
----
- Documentation/cxl/cxl-create-region.txt |    9 ++++
- cxl/region.c                            |   67 +++++++++++++++++++++++++++++++
- 2 files changed, 75 insertions(+), 1 deletion(-)
-
-diff --git a/Documentation/cxl/cxl-create-region.txt b/Documentation/cxl/cxl-create-region.txt
-index f11a412bddfe..9ab2e0fee152 100644
---- a/Documentation/cxl/cxl-create-region.txt
-+++ b/Documentation/cxl/cxl-create-region.txt
-@@ -105,6 +105,15 @@ include::bus-option.txt[]
- 	supplied, the first cross-host bridge (if available), decoder that
- 	supports the largest interleave will be chosen.
- 
-+-e::
-+--strict::
-+	Enforce strict execution where any potential error will force failure.
-+	For example, if QTG ID mismatches will cause failure.
-+
-+-q::
-+--no-enforce-qtg::
-+	Parameter to bypass QTG ID mismatch failure. Will only emit warning.
-+
- include::human-option.txt[]
- 
- include::debug-option.txt[]
-diff --git a/cxl/region.c b/cxl/region.c
-index 3a762db4800e..00dd63e160df 100644
---- a/cxl/region.c
-+++ b/cxl/region.c
-@@ -32,6 +32,8 @@ static struct region_params {
- 	bool force;
- 	bool human;
- 	bool debug;
-+	bool strict;
-+	bool no_qtg;
- } param = {
- 	.ways = INT_MAX,
- 	.granularity = INT_MAX,
-@@ -49,6 +51,8 @@ struct parsed_params {
- 	const char **argv;
- 	struct cxl_decoder *root_decoder;
- 	enum cxl_decoder_mode mode;
-+	bool strict;
-+	bool no_qtg;
- };
- 
- enum region_actions {
-@@ -81,7 +85,9 @@ OPT_STRING('U', "uuid", &param.uuid, \
- 	   "region uuid", "uuid for the new region (default: autogenerate)"), \
- OPT_BOOLEAN('m', "memdevs", &param.memdevs, \
- 	    "non-option arguments are memdevs"), \
--OPT_BOOLEAN('u', "human", &param.human, "use human friendly number formats")
-+OPT_BOOLEAN('u', "human", &param.human, "use human friendly number formats"), \
-+OPT_BOOLEAN('e', "strict", &param.strict, "strict execution enforcement"), \
-+OPT_BOOLEAN('q', "no-enforce-qtg", &param.no_qtg, "no enforce of QTG ID")
- 
- static const struct option create_options[] = {
- 	BASE_OPTIONS(),
-@@ -360,6 +366,9 @@ static int parse_create_options(struct cxl_ctx *ctx, int count,
- 		}
- 	}
- 
-+	p->strict = param.strict;
-+	p->no_qtg = param.no_qtg;
-+
- 	return 0;
- 
- err:
-@@ -467,6 +476,60 @@ static void set_type_from_decoder(struct cxl_ctx *ctx, struct parsed_params *p)
- 		p->mode = CXL_DECODER_MODE_PMEM;
- }
- 
-+static bool region_qos_match_decoder(struct qos_class *qos_class, int decoder_qc)
-+{
-+	int i;
-+
-+	for (i = 0; i < qos_class->nr; i++) {
-+		if (qos_class->qos[i] == decoder_qc)
-+			return true;
-+	}
-+
-+	return false;
-+}
-+
-+static int create_region_validate_qtg_id(struct cxl_ctx *ctx,
-+					 struct parsed_params *p)
-+{
-+	struct qos_class *qos_class;
-+	int root_qos_class, i;
-+
-+	root_qos_class = cxl_root_decoder_get_qos_class(p->root_decoder);
-+	if (root_qos_class == CXL_QOS_CLASS_NONE)
-+		return 0;
-+
-+	for (i = 0; i < p->ways; i++) {
-+		struct json_object *jobj =
-+			json_object_array_get_idx(p->memdevs, i);
-+		struct cxl_memdev *memdev = json_object_get_userdata(jobj);
-+
-+		if (p->mode == CXL_DECODER_MODE_RAM)
-+			qos_class = cxl_memdev_get_ram_qos_class(memdev);
-+		else
-+			qos_class = cxl_memdev_get_pmem_qos_class(memdev);
-+
-+		/* No qos_class entries. Possibly no kernel support */
-+		if (qos_class->nr == 0)
-+			break;
-+
-+		if (!region_qos_match_decoder(qos_class, root_qos_class)) {
-+			if (p->strict && !p->no_qtg) {
-+				log_err(&rl, "%s QoS Class mismatches %s\n",
-+					cxl_decoder_get_devname(p->root_decoder),
-+					cxl_memdev_get_devname(memdev));
-+
-+				return -ENXIO;
-+			}
-+
-+			log_notice(&rl, "%s QoS Class mismatches %s\n",
-+				   cxl_decoder_get_devname(p->root_decoder),
-+				   cxl_memdev_get_devname(memdev));
-+		}
-+	}
-+
-+	return 0;
-+}
-+
- static int create_region_validate_config(struct cxl_ctx *ctx,
- 					 struct parsed_params *p)
- {
-@@ -507,6 +570,8 @@ found:
- 		return rc;
- 
- 	collect_minsize(ctx, p);
-+	create_region_validate_qtg_id(ctx, p);
-+
- 	return 0;
- }
- 
-
-
+T24gV2VkLCAyMDI0LTAxLTI0IGF0IDE1OjQwIC0wNTAwLCBNaW1pIFpvaGFyIHdyb3RlOg0KPiBP
+biBXZWQsIDIwMjQtMDEtMjQgYXQgMjA6MTAgKzAwMDAsIFZlcm1hLCBWaXNoYWwgTCB3cm90ZToN
+Cj4gPiA+IA0KPiA+IEFoLCB0aGFua3MgZm9yIGNvbmZpcm1pbmchIFdvdWxkIHlvdSBsaWtlIG1l
+IHRvIHNlbmQgYSByZXZlcnQgcGF0Y2ggb3INCj4gPiB3aWxsIHlvdSBkbyBpdD8NCj4gDQo+IFJl
+dmVydCAiS0VZUzogZW5jcnlwdGVkOiBBZGQgY2hlY2sgZm9yIHN0cnNlcCINCj4gwqDCoMKgIA0K
+PiBUaGlzIHJldmVydHMgY29tbWl0IGI0YWYwOTZiNWRmNWRkMTMxYWI3OTZjNzljZWRjNzA2OWQ4
+ZjQ4ODIuDQo+IMKgwqDCoCANCj4gTmV3IGVuY3J5cHRlZCBrZXlzIGFyZSBjcmVhdGVkIGVpdGhl
+ciBmcm9tIGtlcm5lbC1nZW5lcmF0ZWQgcmFuZG9tDQo+IG51bWJlcnMgb3IgdXNlci1wcm92aWRl
+ZCBkZWNyeXB0ZWQgZGF0YS7CoCBSZXZlcnQgdGhlIGNoYW5nZSByZXF1aXJpbmcNCj4gdXNlci1w
+cm92aWRlZCBkZWNyeXB0ZWQgZGF0YS4NCj4gDQo+IA0KPiBDYW4gSSBhZGQgeW91ciBSZXBvcnRl
+ZC1ieT8NCg0KWWVzIHRoYXQgd29ya3MsIFRoYW5rIHlvdS4NCg0KDQo=
