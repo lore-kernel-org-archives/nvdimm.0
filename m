@@ -1,170 +1,182 @@
-Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4739F13172C
-	for <nvdimm@lists.linux.dev>; Wed, 24 Jan 2024 19:15:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.158.5
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA5657C091
+	for <nvdimm@lists.linux.dev>; Wed, 24 Jan 2024 20:04:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.15
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706123731; cv=none; b=k0OK6KOk/N/5r44uFqGGKRPQLfl9rdyWCnsapm7mKwjNl1g/TCL0gj27lKCkaukAZDDgqBvYnGbvyyuVvyCZUXVoSVpiySSiyixBKv3UToCBXl0BbcWJWGYaxZJ+3zFyEF70wOQCeVuLklGSfp38I8lmms4P+0th6BGmmRTg/5o=
+	t=1706126663; cv=none; b=LNogQcflXjXf+//NrYHE55byf6iCnZTvHvPmeNOATujS//suHZa6OSkW8syQA7iITTk6wynja0UUGhbgbEBUCSHBEtLYhnT5U7A+s8hJpqgMq+aqFS/p8Z7FuhQrAlhCE0mwTQeg6ht4Otw+UwCzWlf02zd6wq2/X2tyFd86R4Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706123731; c=relaxed/simple;
-	bh=B08zH/Zj1+9947BVC11cIyrY/ngZ/ruph/VVkiK0hNI=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:Mime-Version; b=ohTZm3/GNtFuDepIce2l0Ilbb9gKvlx4x7Z1qWvLE1ROUjuuBqtSQJb6iZGKxlIiJKdBrT5gTMsMEk7lA34Y81cdCRIEHeu6fzeXFUr5cKGV0VciYIKEg0fhuapo2dxgtXD2lxf69FvzmcCMzrpMwjvrrsB06rZRorZtp8ESbeQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=ckLsljpW; arc=none smtp.client-ip=148.163.158.5
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
+	s=arc-20240116; t=1706126663; c=relaxed/simple;
+	bh=KBoevL7pFQqn9JaE6qf9oRs9atS556fSspZ1qrOgK+8=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=hStmKrtKSnRW5xg+l3Nj9/fFIVxHpkxQdxqyQdvP/1vaHNtzpRt5HSa6f71aKa7xHGzFIWu9BJ5ZPW3YpPan2m0f282p6zMd49dFX0XGI6FMc+fVSlgmd6oiwcK0oo/7dFKh00uclgPFdDqk6eCr4WhIEplzwQANcAthKLXk0sQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=KQz7OhdZ; arc=none smtp.client-ip=198.175.65.15
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="ckLsljpW"
-Received: from pps.filterd (m0353724.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 40OHt8rJ004557;
-	Wed, 24 Jan 2024 19:15:10 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : subject :
- from : to : cc : date : in-reply-to : references : content-type :
- mime-version : content-transfer-encoding; s=pp1;
- bh=zo2++ACo49EP1hg4v+i0b/fmcpX8GWHs1XosBj/tyas=;
- b=ckLsljpWuNHFuXXKUmzCVOs42rA2JXjE9UEuso+I56Z7iQp7uw+BPC2rAhfLDT5Pglku
- STFZ0a2KINBNfSeHfH8RaZgWXpROKoMumQIDNi1+aFWj3OlXfIAD2ZGPH+BZQe/nX/uV
- iH95Z1qqnfbZ8YG5UBFTD7CreftRe6tV8YMTeS0jIlzvFDjV8c1qU1h5YhIRPst8H57N
- 1AmrYEvepV+tzp98Hrpec0CIH8qcCqzPRGGRhyYFIVtV++ZayXoMtUGA/k8H6H6A8Qbq
- nxTbDWnYldjYzy6EJ1MFX91dqbnnsCUr0l+1IYwiZzPYIwX0M2Di7+yMDBdy2w15lfuo 6Q== 
-Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3vu555evp0-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Wed, 24 Jan 2024 19:15:10 +0000
-Received: from m0353724.ppops.net (m0353724.ppops.net [127.0.0.1])
-	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 40OJENUt026901;
-	Wed, 24 Jan 2024 19:15:09 GMT
-Received: from ppma13.dal12v.mail.ibm.com (dd.9e.1632.ip4.static.sl-reverse.com [50.22.158.221])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3vu555evn9-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Wed, 24 Jan 2024 19:15:09 +0000
-Received: from pps.filterd (ppma13.dal12v.mail.ibm.com [127.0.0.1])
-	by ppma13.dal12v.mail.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 40OHVRs7025277;
-	Wed, 24 Jan 2024 19:15:08 GMT
-Received: from smtprelay05.dal12v.mail.ibm.com ([172.16.1.7])
-	by ppma13.dal12v.mail.ibm.com (PPS) with ESMTPS id 3vrtqkfg1s-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Wed, 24 Jan 2024 19:15:08 +0000
-Received: from smtpav02.wdc07v.mail.ibm.com (smtpav02.wdc07v.mail.ibm.com [10.39.53.229])
-	by smtprelay05.dal12v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 40OJF8ZX11272900
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 24 Jan 2024 19:15:08 GMT
-Received: from smtpav02.wdc07v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id EECEE5805B;
-	Wed, 24 Jan 2024 19:15:07 +0000 (GMT)
-Received: from smtpav02.wdc07v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 78C6D5805E;
-	Wed, 24 Jan 2024 19:15:06 +0000 (GMT)
-Received: from li-f45666cc-3089-11b2-a85c-c57d1a57929f.watson.ibm.com (unknown [9.31.99.90])
-	by smtpav02.wdc07v.mail.ibm.com (Postfix) with ESMTP;
-	Wed, 24 Jan 2024 19:15:06 +0000 (GMT)
-Message-ID: <e3275c0cfe21d75e0d71ea3fc24a31252efc9ad6.camel@linux.ibm.com>
-Subject: Re: [PATCH] KEYS: encrypted: Add check for strsep
-From: Mimi Zohar <zohar@linux.ibm.com>
-To: "Verma, Vishal L" <vishal.l.verma@intel.com>,
-        "paul@paul-moore.com"
-	 <paul@paul-moore.com>,
-        "jarkko@kernel.org" <jarkko@kernel.org>,
-        "dhowells@redhat.com"
-	 <dhowells@redhat.com>,
-        "yaelt@google.com" <yaelt@google.com>,
-        "serge@hallyn.com"
-	 <serge@hallyn.com>,
-        "nichen@iscas.ac.cn" <nichen@iscas.ac.cn>,
-        "sumit.garg@linaro.org"
-	 <sumit.garg@linaro.org>,
-        "jmorris@namei.org" <jmorris@namei.org>
-Cc: "Jiang, Dave" <dave.jiang@intel.com>,
-        "linux-integrity@vger.kernel.org"
- <linux-integrity@vger.kernel.org>,
-        "linux-cxl@vger.kernel.org"
- <linux-cxl@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org"
- <linux-kernel@vger.kernel.org>,
-        "Williams, Dan J"
- <dan.j.williams@intel.com>,
-        "keyrings@vger.kernel.org"
- <keyrings@vger.kernel.org>,
-        "linux-security-module@vger.kernel.org"
- <linux-security-module@vger.kernel.org>,
-        "nvdimm@lists.linux.dev"
- <nvdimm@lists.linux.dev>
-Date: Wed, 24 Jan 2024 14:15:06 -0500
-In-Reply-To: <4d3465b48b9c5a87deb385b15bf5125fc1704019.camel@intel.com>
-References: <20231108073627.1063464-1-nichen@iscas.ac.cn>
-	 <4d3465b48b9c5a87deb385b15bf5125fc1704019.camel@intel.com>
-Content-Type: text/plain; charset="UTF-8"
-X-Mailer: Evolution 3.28.5 (3.28.5-22.el8) 
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="KQz7OhdZ"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1706126662; x=1737662662;
+  h=from:subject:date:message-id:mime-version:
+   content-transfer-encoding:to:cc;
+  bh=KBoevL7pFQqn9JaE6qf9oRs9atS556fSspZ1qrOgK+8=;
+  b=KQz7OhdZBAy0CgUjMIZr91FaphHIqTp/K9u0pGamz36K8Es3fMWCSbiT
+   +qNAuqPsSTcdCVlcqxcwmYhp9VP2QsAMVxckydwLYEwDWzIzGWM0TFZK8
+   4fntpjOO6kC28/NrNOFCH8qA+kNgda4fzeD9+76vas5b5uULz0OhuTGmB
+   5BVpCjeMJHlooCsVoHUCLcQNGXeE/RWCTXUD2EijZO1MjEocudn8XQ/uI
+   /F9bKEC/pussrUc8SAF0rEZzYgvR6Bs4eLqXOy3956jXWcM277MhzW43F
+   jnVHeEn9nHQ9xuouVP4HOvvV3+6TU/ZJlX6kcpdG4KZUJvEsg7eXgsRW8
+   w==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10962"; a="1836083"
+X-IronPort-AV: E=Sophos;i="6.05,216,1701158400"; 
+   d="scan'208";a="1836083"
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by orvoesa107.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Jan 2024 12:04:21 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10962"; a="1117735099"
+X-IronPort-AV: E=Sophos;i="6.05,216,1701158400"; 
+   d="scan'208";a="1117735099"
+Received: from vverma7-mobl3.amr.corp.intel.com (HELO [10.0.0.223]) ([10.251.14.61])
+  by fmsmga005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Jan 2024 12:04:19 -0800
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v7 0/5] Add DAX ABI for memmap_on_memory
+Date: Wed, 24 Jan 2024 12:03:45 -0800
+Message-Id: <20240124-vv-dax_abi-v7-0-20d16cb8d23d@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-Mime-Version: 1.0
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: XbDQIoDPUYaXI1yarCM4UyG2x0hGLH0o
-X-Proofpoint-ORIG-GUID: Aau8_QBj0RNaQ5BaqOg41OD8vQI2QeHJ
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.272,Aquarius:18.0.1011,Hydra:6.0.619,FMLib:17.11.176.26
- definitions=2024-01-24_08,2024-01-24_01,2023-05-22_02
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxscore=0 spamscore=0
- adultscore=0 bulkscore=0 priorityscore=1501 suspectscore=0 malwarescore=0
- impostorscore=0 mlxlogscore=999 clxscore=1011 phishscore=0
- lowpriorityscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2311290000 definitions=main-2401240139
+X-B4-Tracking: v=1; b=H4sIACJtsWUC/3XPzUrEMBSG4VsZsjZyzsm/K+9DRPLrBLSVdggjQ
+ +/ddNy0hSGrL/C8JDc256nmmb2cbmzKrc51HPowTycWz374zLymvhkBCQRSvDWe/PXDh8rReEI
+ XpQajWQc/Uy71eo+9vfd9rvNlnH7v7Ybr7X+GQG8zDTlwaWQO1mYCjK91uOSv5zh+szXT6DGlT
+ ovsh4TQCeyRig1F3FHRqY9Fx4ghZVeOVG4p7ajsFIVCo2yB6OhI1ZbKHVWdimICgHYagjxS/Zj
+ q9cHJASTtrBS7vy7L8gcFHVbTywEAAA==
+To: Dan Williams <dan.j.williams@intel.com>, 
+ Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+ Andrew Morton <akpm@linux-foundation.org>, 
+ Oscar Salvador <osalvador@suse.de>
+Cc: linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, 
+ linux-cxl@vger.kernel.org, David Hildenbrand <david@redhat.com>, 
+ Dave Hansen <dave.hansen@linux.intel.com>, 
+ Huang Ying <ying.huang@intel.com>, 
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+ Matthew Wilcox <willy@infradead.org>, linux-mm@kvack.org, 
+ Michal Hocko <mhocko@suse.com>, Li Zhijian <lizhijian@fujitsu.com>, 
+ Jonathan Cameron <Jonathan.Cameron@huawei.com>
+X-Mailer: b4 0.13-dev-a684c
+X-Developer-Signature: v=1; a=openpgp-sha256; l=4046;
+ i=vishal.l.verma@intel.com; h=from:subject:message-id;
+ bh=KBoevL7pFQqn9JaE6qf9oRs9atS556fSspZ1qrOgK+8=;
+ b=owGbwMvMwCXGf25diOft7jLG02pJDKkbc21ebFWes/V/Bl/qjS/z3yko7fbKuMXazp1muWJR4
+ nHPSc84O0pZGMS4GGTFFFn+7vnIeExuez5PYIIjzBxWJpAhDFycAjARYW6G/0Xhkqwzgj1FclT0
+ j+Zvm/lhm1VFx6YJHl7P65eypS+X1GP4Z7s1USX54Ppf7juasqw/M1+RieQ4v5Oj3JrvzJutKb8
+ nMwIA
+X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp;
+ fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
 
-On Wed, 2024-01-24 at 18:21 +0000, Verma, Vishal L wrote:
-> On Wed, 2023-11-08 at 07:36 +0000, Chen Ni wrote:
-> > Add check for strsep() in order to transfer the error.
-> > 
-> > Fixes: cd3bc044af48 ("KEYS: encrypted: Instantiate key with user-
-> > provided decrypted data")
-> > Signed-off-by: Chen Ni <nichen@iscas.ac.cn>
-> > ---
-> >  security/keys/encrypted-keys/encrypted.c | 4 ++++
-> >  1 file changed, 4 insertions(+)
-> > 
-> > diff --git a/security/keys/encrypted-keys/encrypted.c
-> > b/security/keys/encrypted-keys/encrypted.c
-> > index 8af2136069d2..76f55dd13cb8 100644
-> > --- a/security/keys/encrypted-keys/encrypted.c
-> > +++ b/security/keys/encrypted-keys/encrypted.c
-> > @@ -237,6 +237,10 @@ static int datablob_parse(char *datablob, const
-> > char **format,
-> >  			break;
-> >  		}
-> >  		*decrypted_data = strsep(&datablob, " \t");
-> > +		if (!*decrypted_data) {
-> > +			pr_info("encrypted_key: decrypted_data is
-> > missing\n");
-> > +			break;
-> > +		}
-> 
-> Hello,
-> 
-> This patch seems to break keyring usage in CXL and NVDIMM, with the
-> "decrypted_data is missing" error path being hit. Reverting this commit
-> fixes the tests. I'm not sure if there are valid scenarios where this is
-> expected to be empty?
-> 
-> Here's an strace snippet of where the error occurs:
-> 
->    keyctl(KEYCTL_SEARCH, KEY_SPEC_USER_KEYRING, "user", "nvdimm-master", 0) = 76300785
->    openat(AT_FDCWD, "/sys/devices/platform/cxl_acpi.0/root0/nvdimm-bridge0/ndbus0/nmem0/state", O_RDONLY|O_CLOEXEC) = 3
->    read(3, "idle\n", 1024)                 = 5
->    close(3)                                = 0
->    keyctl(KEYCTL_SEARCH, KEY_SPEC_USER_KEYRING, "encrypted", "nvdimm:0", 0) = -1 ENOKEY (Required key not available)
->    uname({sysname="Linux", nodename="fedora", ...}) = 0
->    newfstatat(AT_FDCWD, "/etc/ndctl/keys/nvdimm_0_fedora.blob", 0x7fff23fbc210, 0) = -1 ENOENT (No such file or directory)
->    add_key("encrypted", "nvdimm:0", "new enc32 user:nvdimm-master 32", 31, KEY_SPEC_USER_KEYRING) = -1 EINVAL (Invalid argument)
+This series adds sysfs ABI to control memmap_on_memory behavior for DAX
+devices.
 
+Patch 1 replaces incorrect device_lock() usage with a local rwsem - this
+was identified during review.
 
-Indeed!  The user-provided decrypted data should be optional.   The change needs
-to be reverted.
+Patch 2 is also a preparatory patch that replaces sprintf() for sysfs
+operations with sysfs_emit()
 
-thanks,
+Patch 3 adds the missing documentation for the sysfs ABI for DAX regions
+and Dax devices.
 
-Mimi
+Patch 4 exports mhp_supports_memmap_on_memory().
+
+Patch 5 adds the new ABI for toggling memmap_on_memory semantics for dax
+devices.
+
+---
+Changes in v7:
+- Rebase to v6.8-rc1
+- Remove an unnecessary 'size' variable. (Matthew)
+- Replace device lock (ab)use in dax/bus.c with local rwsems (Greg)
+- Replace sprintf() usage with sysfs_emit() (Greg)
+- Link to v6: https://lore.kernel.org/r/20231214-vv-dax_abi-v6-0-ad900d698438@intel.com
+
+Changes in v6:
+- Use sysfs_emit() in memmap_on_memory_show() (Greg)
+- Change the ABI documentation date for memmap_on_memory to January 2024
+  as that's likely when the 6.8 merge window will fall (Greg)
+- Fix dev->driver check (Ying)
+- Link to v5: https://lore.kernel.org/r/20231214-vv-dax_abi-v5-0-3f7b006960b4@intel.com
+
+Changes in v5:
+- Export and check mhp_supports_memmap_on_memory() in the DAX sysfs ABI
+  (David)
+- Obtain dax_drv under the device lock (Ying)
+- Check dax_drv for NULL before dereferencing it (Ying)
+- Clean up some repetition in sysfs-bus-dax documentation entries
+  (Jonathan)
+- A few additional cleanups enabled by guard(device) (Jonathan)
+- Drop the DEFINE_GUARD() part of patch 2, add dependency on Dan's patch
+  above so it can be backported / applied separately (Jonathan, Dan)
+- Link to v4: https://lore.kernel.org/r/20231212-vv-dax_abi-v4-0-1351758f0c92@intel.com
+
+Changes in v4:
+- Hold the device lock when checking if the dax_dev is bound to kmem
+  (Ying, Dan)
+- Remove dax region checks (and locks) as they were unnecessary.
+- Introduce guard(device) for device lock/unlock (Dan)
+- Convert the rest of drivers/dax/bus.c to guard(device)
+- Link to v3: https://lore.kernel.org/r/20231211-vv-dax_abi-v3-0-acf6cc1bde9f@intel.com
+
+Changes in v3:
+- Fix typo in ABI docs (Zhijian Li)
+- Add kernel config and module parameter dependencies to the ABI docs
+  entry (David Hildenbrand)
+- Ensure kmem isn't active when setting the sysfs attribute (Ying
+  Huang)
+- Simplify returning from memmap_on_memory_store()
+- Link to v2: https://lore.kernel.org/r/20231206-vv-dax_abi-v2-0-f4f4f2336d08@intel.com
+
+Changes in v2:
+- Fix CC lists, patch 1/2 didn't get sent correctly in v1
+- Link to v1: https://lore.kernel.org/r/20231206-vv-dax_abi-v1-0-474eb88e201c@intel.com
+
+Cc: <linux-kernel@vger.kernel.org>
+Cc: <nvdimm@lists.linux.dev>
+Cc: <linux-cxl@vger.kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: <linux-mm@kvack.org>
+To: Dan Williams <dan.j.williams@intel.com>
+To: Vishal Verma <vishal.l.verma@intel.com>
+To: Dave Jiang <dave.jiang@intel.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+To: Oscar Salvador <osalvador@suse.de>
+
+---
+Vishal Verma (5):
+      dax/bus.c: replace driver-core lock usage by a local rwsem
+      dax/bus.c: replace several sprintf() with sysfs_emit()
+      Documentatiion/ABI: Add ABI documentation for sys-bus-dax
+      mm/memory_hotplug: export mhp_supports_memmap_on_memory()
+      dax: add a sysfs knob to control memmap_on_memory behavior
+
+ include/linux/memory_hotplug.h          |   6 +
+ drivers/dax/bus.c                       | 295 +++++++++++++++++++++++---------
+ mm/memory_hotplug.c                     |  17 +-
+ Documentation/ABI/testing/sysfs-bus-dax | 153 +++++++++++++++++
+ 4 files changed, 381 insertions(+), 90 deletions(-)
+---
+base-commit: 6613476e225e090cc9aad49be7fa504e290dd33d
+change-id: 20231025-vv-dax_abi-17a219c46076
+
+Best regards,
+-- 
+Vishal Verma <vishal.l.verma@intel.com>
 
