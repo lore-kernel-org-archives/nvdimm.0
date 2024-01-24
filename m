@@ -1,189 +1,101 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0746C133434
-	for <nvdimm@lists.linux.dev>; Wed, 24 Jan 2024 20:40:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E2A11350F7
+	for <nvdimm@lists.linux.dev>; Wed, 24 Jan 2024 20:54:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.9
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706128840; cv=none; b=H2qfQvRSn1TxtU6bTNc0x7OYz7AJXnidcrL4TeQ/pLDB8SUmYLxCqkW3hmL5TPIy21PvRkVYHjpk76JHHdXTG9FzfWTcUcnh/uVmwvOcWGx7D78YTV8szP/xv8F3pkuC/Xb+pWKdYXY9fQ8hdlxZDmDwgbYKQMizn3frCeP8r+s=
+	t=1706129679; cv=none; b=bJOfPYrYiAqYhHaknuxEd+7IWq9dOCll1QoREyI/xnmGQFvmUHDPvQ3Ti2CnjUFMjZEpMQnYemVL2mqsGJuSl6VzwiMFaQyWWv/5J36ggGtnIzKC3sIl4dib1wNJUMO26T4Eh3FAJnXxU4/k0TeUshuTPpoMy3XtcJ3s0VPYHI0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706128840; c=relaxed/simple;
-	bh=hzJ3DJETdoxLp+P5+lRmaPth2GPIg7sSosK0rWcLIBc=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:Mime-Version; b=sCyfOif1Ohmz1mpBSLWRiDGjogH2Xe9K7tS4q0wzsfnLZofraFDPM99kMjjKEntUXiKwt3+/N3sFS5LLDDahFa+5DCKbreupozspN0ovksCmR+05thpfKr1DSEtlyPs/ZJzItnTz2QRuQjtMfkes72XIq24bjTykng/p4ECynQY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=F9a4qluB; arc=none smtp.client-ip=148.163.156.1
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
+	s=arc-20240116; t=1706129679; c=relaxed/simple;
+	bh=ZfSEhen8IKbAQ9yIOeK2q5cY+gxAQjAxdehsLcyEEW4=;
+	h=Subject:From:To:Cc:Date:Message-ID:MIME-Version:Content-Type; b=XO4+Z4SybvE/OBSklU8RYiu8dA68PABGOsMrMHuxdUBB9Dcc9ORMY5yEY1dE54o27AaGDjdZvfZuljX2KS6DjVnh59usmVUTM3uDLzT+cYKmo2nsqsTmq1Y8zYndRMyxSD5RHfPjzpFrXtiCqhkW172ddSov7V/R306xv3wuVqI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=kV2Ozf04; arc=none smtp.client-ip=198.175.65.9
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="F9a4qluB"
-Received: from pps.filterd (m0353728.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 40OKEpge004717;
-	Wed, 24 Jan 2024 20:40:22 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : subject :
- from : to : cc : date : in-reply-to : references : content-type :
- mime-version : content-transfer-encoding; s=pp1;
- bh=6ioIDZv1sGQ7eAng1/+ztxX4+K6ABsfVJQdOjSPqPFo=;
- b=F9a4qluBDv2erKGNQNRZJw4hIXP1QtO//8d/Yd4gluJUQ0rDFJyx5WUAvMS6jWosfzzF
- yB68HafEw0Ts9JF9oJQq7bY/UViDjmSMc57K4nPThh5/TafTMaFOqJT54uR1uvHgKJTs
- xJhubGYuCgIKIq23s0Xw5Eb8xN0uUQ/9KEx6pqqjkluv3dihkevONG2OGrz3ogM9mAFu
- bZmLjwwyOf0shFnTd98uLFjJA3HtIjnVkb17LsueGFyrszO+dBQSSY0W/P+ikkA7lMA2
- jnGH+eGqOd3r2cR1via/p1Yv7ztNKeH0UaYkaQT1E4bPtjJKHeq9pPKOGpRrbms5N1bv vg== 
-Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3vu7uckhg3-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Wed, 24 Jan 2024 20:40:22 +0000
-Received: from m0353728.ppops.net (m0353728.ppops.net [127.0.0.1])
-	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 40OKUf7g023282;
-	Wed, 24 Jan 2024 20:40:21 GMT
-Received: from ppma12.dal12v.mail.ibm.com (dc.9e.1632.ip4.static.sl-reverse.com [50.22.158.220])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3vu7uckhfq-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Wed, 24 Jan 2024 20:40:21 +0000
-Received: from pps.filterd (ppma12.dal12v.mail.ibm.com [127.0.0.1])
-	by ppma12.dal12v.mail.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 40OIq5BR026879;
-	Wed, 24 Jan 2024 20:40:20 GMT
-Received: from smtprelay04.wdc07v.mail.ibm.com ([172.16.1.71])
-	by ppma12.dal12v.mail.ibm.com (PPS) with ESMTPS id 3vrrgtgk61-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Wed, 24 Jan 2024 20:40:20 +0000
-Received: from smtpav01.dal12v.mail.ibm.com (smtpav01.dal12v.mail.ibm.com [10.241.53.100])
-	by smtprelay04.wdc07v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 40OKeJvM36766408
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 24 Jan 2024 20:40:19 GMT
-Received: from smtpav01.dal12v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 6D61158057;
-	Wed, 24 Jan 2024 20:40:19 +0000 (GMT)
-Received: from smtpav01.dal12v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 08C0B58059;
-	Wed, 24 Jan 2024 20:40:18 +0000 (GMT)
-Received: from li-f45666cc-3089-11b2-a85c-c57d1a57929f.watson.ibm.com (unknown [9.31.99.90])
-	by smtpav01.dal12v.mail.ibm.com (Postfix) with ESMTP;
-	Wed, 24 Jan 2024 20:40:17 +0000 (GMT)
-Message-ID: <49c48e3e96bf0f5ebef14e7328cc8a6ca6380e08.camel@linux.ibm.com>
-Subject: Re: [PATCH] KEYS: encrypted: Add check for strsep
-From: Mimi Zohar <zohar@linux.ibm.com>
-To: "Verma, Vishal L" <vishal.l.verma@intel.com>,
-        "paul@paul-moore.com"
-	 <paul@paul-moore.com>,
-        "jarkko@kernel.org" <jarkko@kernel.org>,
-        "dhowells@redhat.com"
-	 <dhowells@redhat.com>,
-        "yaelt@google.com" <yaelt@google.com>,
-        "serge@hallyn.com"
-	 <serge@hallyn.com>,
-        "nichen@iscas.ac.cn" <nichen@iscas.ac.cn>,
-        "sumit.garg@linaro.org"
-	 <sumit.garg@linaro.org>,
-        "jmorris@namei.org" <jmorris@namei.org>
-Cc: "Jiang, Dave" <dave.jiang@intel.com>,
-        "linux-integrity@vger.kernel.org"
- <linux-integrity@vger.kernel.org>,
-        "linux-cxl@vger.kernel.org"
- <linux-cxl@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org"
- <linux-kernel@vger.kernel.org>,
-        "Williams, Dan J"
- <dan.j.williams@intel.com>,
-        "keyrings@vger.kernel.org"
- <keyrings@vger.kernel.org>,
-        "linux-security-module@vger.kernel.org"
- <linux-security-module@vger.kernel.org>,
-        "nvdimm@lists.linux.dev"
- <nvdimm@lists.linux.dev>
-Date: Wed, 24 Jan 2024 15:40:17 -0500
-In-Reply-To: <e3b1a5e532ed86e674385abc4812c5a774f851d4.camel@intel.com>
-References: <20231108073627.1063464-1-nichen@iscas.ac.cn>
-	 <4d3465b48b9c5a87deb385b15bf5125fc1704019.camel@intel.com>
-	 <e3275c0cfe21d75e0d71ea3fc24a31252efc9ad6.camel@linux.ibm.com>
-	 <e3b1a5e532ed86e674385abc4812c5a774f851d4.camel@intel.com>
-Content-Type: text/plain; charset="UTF-8"
-X-Mailer: Evolution 3.28.5 (3.28.5-22.el8) 
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="kV2Ozf04"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1706129677; x=1737665677;
+  h=subject:from:to:cc:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=ZfSEhen8IKbAQ9yIOeK2q5cY+gxAQjAxdehsLcyEEW4=;
+  b=kV2Ozf04D/0LmIX5LkXzdNItCpu/t9i/AWrn9wYosvvPJSEezUyoLKZL
+   r/VtUKCnYmE8d0ulNyRSunoug5BplBmT+hVfz/BGyATCxngO7kVKwr18W
+   bsWehz8OXj0krF4fVx8RmhvRCHykSG4oTFjIQf7pY87F0aTZV8/qix61J
+   RRo4ZAxD2plna2GNi4fi4GPd5N/Jw7GX+hO3EFAFi8xzmAiD0W8VZzMOS
+   8rz1+oN7dJOQwrh6CEEJ0xgfHgQ7M601cx7zatBdZdr4/RnTkdJXXOFIu
+   bw8RwlSKBjZq6ZLRdP4aSiZq578lOs5U7ZyLT1SPmAW7suL96RhYNz2Ru
+   g==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10962"; a="20524124"
+X-IronPort-AV: E=Sophos;i="6.05,216,1701158400"; 
+   d="scan'208";a="20524124"
+Received: from orsmga002.jf.intel.com ([10.7.209.21])
+  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Jan 2024 12:54:37 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10962"; a="786538916"
+X-IronPort-AV: E=Sophos;i="6.05,216,1701158400"; 
+   d="scan'208";a="786538916"
+Received: from djiang5-mobl3.amr.corp.intel.com (HELO [192.168.1.177]) ([10.209.164.29])
+  by orsmga002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Jan 2024 12:54:35 -0800
+Subject: [NDCTL PATCH v3 0/3] ndctl: Add support of qos_class for CXL CLI
+From: Dave Jiang <dave.jiang@intel.com>
+To: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
+Cc: vishal.l.verma@intel.com
+Date: Wed, 24 Jan 2024 13:54:35 -0700
+Message-ID: <170612961495.2745924.4942817284170536877.stgit@djiang5-mobl3>
+User-Agent: StGit/1.5
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-Mime-Version: 1.0
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: BIDnxhlJRef7AywAZbikE-sp1Jompx04
-X-Proofpoint-ORIG-GUID: zbbsiYWRF0oFrQlVwoiL0Xu2qIxYjd_6
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.272,Aquarius:18.0.1011,Hydra:6.0.619,FMLib:17.11.176.26
- definitions=2024-01-24_09,2024-01-24_01,2023-05-22_02
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxlogscore=999 mlxscore=0
- bulkscore=0 adultscore=0 malwarescore=0 impostorscore=0 lowpriorityscore=0
- clxscore=1015 priorityscore=1501 phishscore=0 spamscore=0 suspectscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2311290000
- definitions=main-2401240149
 
-On Wed, 2024-01-24 at 20:10 +0000, Verma, Vishal L wrote:
-> On Wed, 2024-01-24 at 14:15 -0500, Mimi Zohar wrote:
-> > On Wed, 2024-01-24 at 18:21 +0000, Verma, Vishal L wrote:
-> > > On Wed, 2023-11-08 at 07:36 +0000, Chen Ni wrote:
-> > > > Add check for strsep() in order to transfer the error.
-> > > > 
-> > > > Fixes: cd3bc044af48 ("KEYS: encrypted: Instantiate key with user-
-> > > > provided decrypted data")
-> > > > Signed-off-by: Chen Ni <nichen@iscas.ac.cn>
-> > > > ---
-> > > >  security/keys/encrypted-keys/encrypted.c | 4 ++++
-> > > >  1 file changed, 4 insertions(+)
-> > > > 
-> > > > diff --git a/security/keys/encrypted-keys/encrypted.c
-> > > > b/security/keys/encrypted-keys/encrypted.c
-> > > > index 8af2136069d2..76f55dd13cb8 100644
-> > > > --- a/security/keys/encrypted-keys/encrypted.c
-> > > > +++ b/security/keys/encrypted-keys/encrypted.c
-> > > > @@ -237,6 +237,10 @@ static int datablob_parse(char *datablob, const
-> > > > char **format,
-> > > >  			break;
-> > > >  		}
-> > > >  		*decrypted_data = strsep(&datablob, " \t");
-> > > > +		if (!*decrypted_data) {
-> > > > +			pr_info("encrypted_key: decrypted_data is
-> > > > missing\n");
-> > > > +			break;
-> > > > +		}
-> > > 
-> > > Hello,
-> > > 
-> > > This patch seems to break keyring usage in CXL and NVDIMM, with the
-> > > "decrypted_data is missing" error path being hit. Reverting this commit
-> > > fixes the tests. I'm not sure if there are valid scenarios where this is
-> > > expected to be empty?
-> > > 
-> > > Here's an strace snippet of where the error occurs:
-> > > 
-> > >    keyctl(KEYCTL_SEARCH, KEY_SPEC_USER_KEYRING, "user", "nvdimm-master", 0) = 76300785
-> > >    openat(AT_FDCWD, "/sys/devices/platform/cxl_acpi.0/root0/nvdimm-bridge0/ndbus0/nmem0/state", O_RDONLY|O_CLOEXEC) = 3
-> > >    read(3, "idle\n", 1024)                 = 5
-> > >    close(3)                                = 0
-> > >    keyctl(KEYCTL_SEARCH, KEY_SPEC_USER_KEYRING, "encrypted", "nvdimm:0", 0) = -1 ENOKEY (Required key not available)
-> > >    uname({sysname="Linux", nodename="fedora", ...}) = 0
-> > >    newfstatat(AT_FDCWD, "/etc/ndctl/keys/nvdimm_0_fedora.blob", 0x7fff23fbc210, 0) = -1 ENOENT (No such file or directory)
-> > >    add_key("encrypted", "nvdimm:0", "new enc32 user:nvdimm-master 32", 31, KEY_SPEC_USER_KEYRING) = -1 EINVAL (Invalid argument)
-> > 
-> > 
-> > Indeed!  The user-provided decrypted data should be optional.   The change needs
-> > to be reverted.
-> > 
-> Ah, thanks for confirming! Would you like me to send a revert patch or
-> will you do it?
+Hi Vishal,
+With the QoS class series merged to the v6.8 kernel, can you please review and
+apply this series to ndctl if acceptable?
 
-Revert "KEYS: encrypted: Add check for strsep"
-    
-This reverts commit b4af096b5df5dd131ab796c79cedc7069d8f4882.
-    
-New encrypted keys are created either from kernel-generated random
-numbers or user-provided decrypted data.  Revert the change requiring
-user-provided decrypted data.
+v3:
+- Rebase against latest ndctl/pending branch.
+
+The series adds support for the kernel enabling of QoS class in the v6.8
+kernel. The kernel exports a qos_class token for the root decoders (CFMWS) and as
+well as for the CXL memory devices. The qos_class exported for a device is
+calculated by the driver during device probe. Currently a qos_class is exported
+for the volatile partition (ram) and another for the persistent partition (pmem).
+In the future qos_class will be exported for DCD regions. Display of qos_class is
+through the CXL CLI list command with -vvv for extra verbose.
+
+A qos_class check as also been added for region creation. A warning is emitted
+when the qos_class of a memory range of a CXL memory device being included in
+the CXL region assembly does not match the qos_class of the root decoder. Options
+are available to suppress the warning or to fail the region creation. This
+enabling provides a guidance on flagging memory ranges being used is not
+optimal for performance for the CXL region to be formed.
+
+---
+
+Dave Jiang (3):
+      ndctl: cxl: Add QoS class retrieval for the root decoder
+      ndctl: cxl: Add QoS class support for the memory device
+      ndctl: cxl: add QoS class check for CXL region creation
 
 
-Can I add your Reported-by?
+ Documentation/cxl/cxl-create-region.txt |  9 ++++
+ cxl/filter.h                            |  4 ++
+ cxl/json.c                              | 46 ++++++++++++++++-
+ cxl/lib/libcxl.c                        | 62 +++++++++++++++++++++++
+ cxl/lib/libcxl.sym                      |  3 ++
+ cxl/lib/private.h                       |  3 ++
+ cxl/libcxl.h                            | 10 ++++
+ cxl/list.c                              |  1 +
+ cxl/region.c                            | 67 ++++++++++++++++++++++++-
+ util/json.h                             |  1 +
+ 10 files changed, 204 insertions(+), 2 deletions(-)
 
-Mimi
-
-
-
+--
 
