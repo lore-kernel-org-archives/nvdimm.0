@@ -1,52 +1,52 @@
 Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE9A01353F7
-	for <nvdimm@lists.linux.dev>; Wed, 24 Jan 2024 20:54:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 370B91350DA
+	for <nvdimm@lists.linux.dev>; Wed, 24 Jan 2024 20:54:49 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.9
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706129684; cv=none; b=P0wT/YPcmsza4aI3vM6kIOQ6M9pJmnQDJR5kRGKXTPeHtZ74tiV+KUofenT3jIt4YtlqhmScmDN9sBUXRbwtiXgA72bkGCpmZYk+4+zuFBQnSCdmSVIkHxHo0RGVui1UTQp7jWxSqyPsZI6H/P/RKLmT7yk466pS95dC2QqkdHE=
+	t=1706129691; cv=none; b=RJNgJRCsUqY29C/JIVUglaZXMaN6Ys/K7IpyfCIxZvx5s/B5eqnqzxVOZGNEis+SlVslrvlRX5XgWQC0RpqQfSAQro7asMKJvlR7du49+vBnMs7DYeApYw0RQo12tczaPDD+GAdzPzRCssnghBV0Wu5bH/KmyzJSdDpt4s8FcEQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706129684; c=relaxed/simple;
-	bh=RRgYTbTGJgj7ds2qiWMgw3dA5temJ98eeP73+jUyyA8=;
+	s=arc-20240116; t=1706129691; c=relaxed/simple;
+	bh=SHRs6MPmhLAgF8cpr9X+b3D3wu0tGINLkiReh3hFoNk=;
 	h=Subject:From:To:Cc:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=RFpsL60GAtjUtKB/ir2E5YAaWu24OknflfkxKaa5TqIwXnUL0yuTR0PQsKWcbTEYYChEEVClfrPLiK5YwRuz79L814STCeakyeZFNGqe1McyzJIrTmp8D/qaDkyVbJQ6zEszeu3v+syWwa6hEIYD3+JghAhth0TAHNoh3gleQOY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=c6Gmg402; arc=none smtp.client-ip=198.175.65.9
+	 MIME-Version:Content-Type; b=XG+SWUaV0iizBsi1fjVMLlg+iMKAi3uG/GArE/YExqLANtmwUF1kAix2kn8+de8P6viNkwlopJpERSPit+OMtBHWUW5WgJAQvSvdvLhUNR3wV6tl4GfmcmeSq+SAKsy/IvDMTVXQHHGL1+lqX1BvYT2P7w+vAXxmS87CywWFyp8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=UlMFyaTh; arc=none smtp.client-ip=198.175.65.9
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="c6Gmg402"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="UlMFyaTh"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1706129683; x=1737665683;
+  t=1706129689; x=1737665689;
   h=subject:from:to:cc:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=RRgYTbTGJgj7ds2qiWMgw3dA5temJ98eeP73+jUyyA8=;
-  b=c6Gmg402J+DaV8+PINoANXK3K0jQIYwjGMpXSMHoxmv7X1vVuZm2dvTK
-   DW9q9mTQ4bYZvnh4/G9t/d3BAfoBfuns7Es8OLMUlRY2qP7sjzcWjoXh7
-   uLrH1+WjaLYLVQtjbLErcIgzxCxO9of90cb0ZgewXI3OtAyWDjfhVmSLx
-   SsLiM0e7ScV/Ys1R2IvKHU2C/TLlAQtoH06lESNfppIvjeb8ysDvtLcXc
-   ENBHUIcvUp2N7hTVYvHRuR+OsrP6l1aaRcRHoO/uiTQHAT/aSwYFjeBc3
-   G5l8edFpD/qQHnz9SIO46r5/8RipVfes17X+T22JkMscWFmasvYTM/jC4
-   g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10962"; a="20524132"
+  bh=SHRs6MPmhLAgF8cpr9X+b3D3wu0tGINLkiReh3hFoNk=;
+  b=UlMFyaThfbfH8k2Ah8MHSU9Ic2Mz9ha9H3cs/bCp3u2GOPmAIm+dtEUh
+   v2jBxir83dIXm8vdm4EyEMGpklvcRezHZaSnAm0SdcxraMM7jJWM9pOz1
+   Xyn4cV3cMQIO9eAUu8a2Ery8uSW7TIWxldgde+eQQClBT7etmNei/UPAF
+   fmJuhvf+sqFj3reBbs0OAM7nrVNwr7OFg0QU3M4V5SyAkwn8/KKE7620m
+   aXdgaSA+4cawiD28vxgNbfBip5ra+hjc4mUue00qGiJ3HLj/mols9VFUM
+   ZoCM3I0U/VY8hUiudcG4JIqBiAZc+CTXMTyIuF7oMdziNMBE++k+whkp4
+   w==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10962"; a="20524161"
 X-IronPort-AV: E=Sophos;i="6.05,216,1701158400"; 
-   d="scan'208";a="20524132"
+   d="scan'208";a="20524161"
 Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Jan 2024 12:54:43 -0800
+  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Jan 2024 12:54:49 -0800
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10962"; a="786538937"
+X-IronPort-AV: E=McAfee;i="6600,9927,10962"; a="786538948"
 X-IronPort-AV: E=Sophos;i="6.05,216,1701158400"; 
-   d="scan'208";a="786538937"
+   d="scan'208";a="786538948"
 Received: from djiang5-mobl3.amr.corp.intel.com (HELO [192.168.1.177]) ([10.209.164.29])
-  by orsmga002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Jan 2024 12:54:42 -0800
-Subject: [NDCTL PATCH v3 1/3] ndctl: cxl: Add QoS class retrieval for the root
- decoder
+  by orsmga002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Jan 2024 12:54:48 -0800
+Subject: [NDCTL PATCH v3 2/3] ndctl: cxl: Add QoS class support for the memory
+ device
 From: Dave Jiang <dave.jiang@intel.com>
 To: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
 Cc: vishal.l.verma@intel.com
-Date: Wed, 24 Jan 2024 13:54:41 -0700
-Message-ID: <170612968166.2745924.10491030984129768174.stgit@djiang5-mobl3>
+Date: Wed, 24 Jan 2024 13:54:47 -0700
+Message-ID: <170612968788.2745924.12035270102793649199.stgit@djiang5-mobl3>
 In-Reply-To: <170612961495.2745924.4942817284170536877.stgit@djiang5-mobl3>
 References: <170612961495.2745924.4942817284170536877.stgit@djiang5-mobl3>
 User-Agent: StGit/1.5
@@ -59,167 +59,228 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 
-Add libcxl API to retrieve the QoS class for the root decoder. Also add
-support to display the QoS class for the root decoder through the 'cxl
-list' command. The qos_class is displayed behind -vvv verbose level.
+Add libcxl API to retrieve the QoS class tokens for the memory
+devices. Two API calls are added. One for 'ram' or 'volatile'
+mode and another for 'pmem' or 'persistent' mode. Support also added
+for displaying the QoS class tokens through the 'cxl list' command.
+There can be 1 or more QoS class tokens for the memory device if
+they are valid. The qos_class tokens are displayed behind -vvv
+verbose level.
 
 Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-
 ---
 v3:
-- Rebase to latest pending branch
+- Rebase to pending branch
+- Skip from failing if no qos_class sysfs attrib found
 ---
- cxl/filter.h       |    4 ++++
- cxl/json.c         |   10 ++++++++++
- cxl/lib/libcxl.c   |   14 ++++++++++++++
- cxl/lib/libcxl.sym |    1 +
- cxl/lib/private.h  |    1 +
- cxl/libcxl.h       |    3 +++
- cxl/list.c         |    1 +
- util/json.h        |    1 +
- 8 files changed, 35 insertions(+)
+ cxl/json.c         |   36 +++++++++++++++++++++++++++++++++++-
+ cxl/lib/libcxl.c   |   48 ++++++++++++++++++++++++++++++++++++++++++++++++
+ cxl/lib/libcxl.sym |    2 ++
+ cxl/lib/private.h  |    2 ++
+ cxl/libcxl.h       |    7 +++++++
+ 5 files changed, 94 insertions(+), 1 deletion(-)
 
-diff --git a/cxl/filter.h b/cxl/filter.h
-index 1241f72ccf62..3c5f9e8a0452 100644
---- a/cxl/filter.h
-+++ b/cxl/filter.h
-@@ -31,6 +31,7 @@ struct cxl_filter_params {
- 	bool alert_config;
- 	bool dax;
- 	bool poison;
-+	bool qos;
- 	int verbose;
- 	struct log_ctx ctx;
- };
-@@ -91,6 +92,9 @@ static inline unsigned long cxl_filter_to_flags(struct cxl_filter_params *param)
- 		flags |= UTIL_JSON_DAX | UTIL_JSON_DAX_DEVS;
- 	if (param->poison)
- 		flags |= UTIL_JSON_MEDIA_ERRORS;
-+	if (param->qos)
-+		flags |= UTIL_JSON_QOS_CLASS;
-+
- 	return flags;
- }
- 
 diff --git a/cxl/json.c b/cxl/json.c
-index 6fb17582a1cb..48a43ddf14b0 100644
+index 48a43ddf14b0..dcbac8c14f03 100644
 --- a/cxl/json.c
 +++ b/cxl/json.c
-@@ -1062,6 +1062,16 @@ struct json_object *util_cxl_decoder_to_json(struct cxl_decoder *decoder,
- 					       jobj);
- 	}
+@@ -770,12 +770,32 @@ err_free:
+ 	return jpoison;
+ }
  
-+	if ((flags & UTIL_JSON_QOS_CLASS) && cxl_port_is_root(port)) {
-+		int qos_class = cxl_root_decoder_get_qos_class(decoder);
++static struct json_object *get_qos_json_object(struct json_object *jdev,
++					       struct qos_class *qos_class)
++{
++	struct json_object *jqos_array = json_object_new_array();
++	struct json_object *jobj;
++	int i;
 +
-+		if (qos_class != CXL_QOS_CLASS_NONE) {
-+			jobj = json_object_new_int(qos_class);
-+			if (jobj)
-+				json_object_object_add(jdecoder, "qos_class", jobj);
-+		}
++	if (!jqos_array)
++		return NULL;
++
++	for (i = 0; i < qos_class->nr; i++) {
++		jobj = json_object_new_int(qos_class->qos[i]);
++		if (jobj)
++			json_object_array_add(jqos_array, jobj);
 +	}
 +
- 	json_object_set_userdata(jdecoder, decoder, NULL);
- 	return jdecoder;
- }
-diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
-index 1537a33d370e..9a1ac7001803 100644
---- a/cxl/lib/libcxl.c
-+++ b/cxl/lib/libcxl.c
-@@ -2229,6 +2229,12 @@ static void *add_cxl_decoder(void *parent, int id, const char *cxldecoder_base)
- 	else
- 		decoder->interleave_ways = strtoul(buf, NULL, 0);
- 
-+	sprintf(path, "%s/qos_class", cxldecoder_base);
-+	if (sysfs_read_attr(ctx, path, buf) < 0)
-+		decoder->qos_class = CXL_QOS_CLASS_NONE;
-+	else
-+		decoder->qos_class = atoi(buf);
-+
- 	switch (port->type) {
- 	case CXL_PORT_ENDPOINT:
- 		sprintf(path, "%s/dpa_resource", cxldecoder_base);
-@@ -2423,6 +2429,14 @@ CXL_EXPORT unsigned long long cxl_decoder_get_size(struct cxl_decoder *decoder)
- 	return decoder->size;
- }
- 
-+CXL_EXPORT int cxl_root_decoder_get_qos_class(struct cxl_decoder *decoder)
-+{
-+	if (!cxl_port_is_root(decoder->port))
-+		return -EINVAL;
-+
-+	return decoder->qos_class;
++	return jqos_array;
 +}
 +
- CXL_EXPORT unsigned long long
- cxl_decoder_get_dpa_resource(struct cxl_decoder *decoder)
+ struct json_object *util_cxl_memdev_to_json(struct cxl_memdev *memdev,
+ 		unsigned long flags)
  {
+ 	const char *devname = cxl_memdev_get_devname(memdev);
+-	struct json_object *jdev, *jobj;
++	struct json_object *jdev, *jobj, *jqos;
+ 	unsigned long long serial, size;
++	struct qos_class *qos_class;
+ 	int numa_node;
+ 
+ 	jdev = json_object_new_object();
+@@ -791,6 +811,13 @@ struct json_object *util_cxl_memdev_to_json(struct cxl_memdev *memdev,
+ 		jobj = util_json_object_size(size, flags);
+ 		if (jobj)
+ 			json_object_object_add(jdev, "pmem_size", jobj);
++
++		if (flags & UTIL_JSON_QOS_CLASS) {
++			qos_class = cxl_memdev_get_pmem_qos_class(memdev);
++			jqos = get_qos_json_object(jdev, qos_class);
++			if (jqos)
++				json_object_object_add(jdev, "pmem_qos_class", jqos);
++		}
+ 	}
+ 
+ 	size = cxl_memdev_get_ram_size(memdev);
+@@ -798,6 +825,13 @@ struct json_object *util_cxl_memdev_to_json(struct cxl_memdev *memdev,
+ 		jobj = util_json_object_size(size, flags);
+ 		if (jobj)
+ 			json_object_object_add(jdev, "ram_size", jobj);
++
++		if (flags & UTIL_JSON_QOS_CLASS) {
++			qos_class = cxl_memdev_get_ram_qos_class(memdev);
++			jqos = get_qos_json_object(jdev, qos_class);
++			if (jqos)
++				json_object_object_add(jdev, "ram_qos_class", jqos);
++		}
+ 	}
+ 
+ 	if (flags & UTIL_JSON_HEALTH) {
+diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
+index 9a1ac7001803..c69a18c4d237 100644
+--- a/cxl/lib/libcxl.c
++++ b/cxl/lib/libcxl.c
+@@ -88,6 +88,10 @@ static void free_memdev(struct cxl_memdev *memdev, struct list_head *head)
+ 	free(memdev->dev_buf);
+ 	free(memdev->dev_path);
+ 	free(memdev->host_path);
++	if (memdev->ram_qos_class.nr)
++		free(memdev->ram_qos_class.qos);
++	if (memdev->pmem_qos_class.nr)
++		free(memdev->pmem_qos_class.qos);
+ 	free(memdev);
+ }
+ 
+@@ -1224,6 +1228,27 @@ static int add_cxl_memdev_fwl(struct cxl_memdev *memdev,
+ 	return -ENOMEM;
+ }
+ 
++static int *get_qos_class(struct cxl_ctx *ctx, char *buf, int *entries)
++{
++	int *varray = NULL;
++	int i = 0;
++	char *p;
++
++	p = strtok(buf, ",");
++	while (p != NULL) {
++		int val = atoi(p);
++
++		varray = reallocarray(varray, i + 1, sizeof(int));
++		varray[i] = val;
++		p = strtok(NULL, ",");
++		i++;
++	}
++
++	*entries = i;
++
++	return varray;
++}
++
+ static void *add_cxl_memdev(void *parent, int id, const char *cxlmem_base)
+ {
+ 	const char *devname = devpath_to_devname(cxlmem_base);
+@@ -1233,6 +1258,7 @@ static void *add_cxl_memdev(void *parent, int id, const char *cxlmem_base)
+ 	char buf[SYSFS_ATTR_SIZE];
+ 	struct stat st;
+ 	char *host;
++	int qnr;
+ 
+ 	if (!path)
+ 		return NULL;
+@@ -1260,6 +1286,18 @@ static void *add_cxl_memdev(void *parent, int id, const char *cxlmem_base)
+ 		goto err_read;
+ 	memdev->ram_size = strtoull(buf, NULL, 0);
+ 
++	sprintf(path, "%s/pmem/qos_class", cxlmem_base);
++	if (sysfs_read_attr(ctx, path, buf) == 0) {
++		memdev->pmem_qos_class.qos = get_qos_class(ctx, buf, &qnr);
++		memdev->pmem_qos_class.nr = qnr;
++	}
++
++	sprintf(path, "%s/ram/qos_class", cxlmem_base);
++	if (sysfs_read_attr(ctx, path, buf) == 0) {
++		memdev->ram_qos_class.qos = get_qos_class(ctx, buf, &qnr);
++		memdev->ram_qos_class.nr = qnr;
++	}
++
+ 	sprintf(path, "%s/payload_max", cxlmem_base);
+ 	if (sysfs_read_attr(ctx, path, buf) < 0)
+ 		goto err_read;
+@@ -1483,6 +1521,16 @@ CXL_EXPORT unsigned long long cxl_memdev_get_ram_size(struct cxl_memdev *memdev)
+ 	return memdev->ram_size;
+ }
+ 
++CXL_EXPORT struct qos_class *cxl_memdev_get_pmem_qos_class(struct cxl_memdev *memdev)
++{
++	return &memdev->pmem_qos_class;
++}
++
++CXL_EXPORT struct qos_class *cxl_memdev_get_ram_qos_class(struct cxl_memdev *memdev)
++{
++	return &memdev->ram_qos_class;
++}
++
+ CXL_EXPORT const char *cxl_memdev_get_firmware_verison(struct cxl_memdev *memdev)
+ {
+ 	return memdev->firmware_version;
 diff --git a/cxl/lib/libcxl.sym b/cxl/lib/libcxl.sym
-index 2149f84d764e..384fea2c25e3 100644
+index 384fea2c25e3..465c78dc6c70 100644
 --- a/cxl/lib/libcxl.sym
 +++ b/cxl/lib/libcxl.sym
-@@ -282,4 +282,5 @@ global:
- LIBCXL_8 {
+@@ -283,4 +283,6 @@ LIBCXL_8 {
  global:
  	cxl_memdev_wait_sanitize;
-+	cxl_root_decoder_get_qos_class;
+ 	cxl_root_decoder_get_qos_class;
++	cxl_memdev_get_pmem_qos_class;
++	cxl_memdev_get_ram_qos_class;
  } LIBCXL_7;
 diff --git a/cxl/lib/private.h b/cxl/lib/private.h
-index b26a8629e047..4847ff448f71 100644
+index 4847ff448f71..1fe3654bc7ff 100644
 --- a/cxl/lib/private.h
 +++ b/cxl/lib/private.h
-@@ -144,6 +144,7 @@ struct cxl_decoder {
- 	struct list_head targets;
- 	struct list_head regions;
- 	struct list_head stale_regions;
-+	int qos_class;
- };
- 
- enum cxl_decode_state {
+@@ -47,6 +47,8 @@ struct cxl_memdev {
+ 	struct list_node list;
+ 	unsigned long long pmem_size;
+ 	unsigned long long ram_size;
++	struct qos_class ram_qos_class;
++	struct qos_class pmem_qos_class;
+ 	int payload_max;
+ 	size_t lsa_size;
+ 	struct kmod_module *module;
 diff --git a/cxl/libcxl.h b/cxl/libcxl.h
-index 352b3a866f63..e5c08da77f77 100644
+index e5c08da77f77..84d1683f234c 100644
 --- a/cxl/libcxl.h
 +++ b/cxl/libcxl.h
-@@ -173,6 +173,8 @@ struct cxl_dport *cxl_port_get_dport_by_memdev(struct cxl_port *port,
- 	for (dport = cxl_dport_get_first(port); dport != NULL;                 \
- 	     dport = cxl_dport_get_next(dport))
+@@ -58,6 +58,11 @@ static inline enum cxl_fwl_status cxl_fwl_status_from_ident(char *status)
+ 	return CXL_FWL_STATUS_UNKNOWN;
+ }
  
-+#define CXL_QOS_CLASS_NONE		-1
++struct qos_class {
++	int nr;
++	int *qos;
++};
 +
- struct cxl_decoder;
- struct cxl_decoder *cxl_decoder_get_first(struct cxl_port *port);
- struct cxl_decoder *cxl_decoder_get_next(struct cxl_decoder *decoder);
-@@ -184,6 +186,7 @@ unsigned long long cxl_decoder_get_dpa_resource(struct cxl_decoder *decoder);
- unsigned long long cxl_decoder_get_dpa_size(struct cxl_decoder *decoder);
- unsigned long long
- cxl_decoder_get_max_available_extent(struct cxl_decoder *decoder);
-+int cxl_root_decoder_get_qos_class(struct cxl_decoder *decoder);
- 
- enum cxl_decoder_mode {
- 	CXL_DECODER_MODE_NONE,
-diff --git a/cxl/list.c b/cxl/list.c
-index 13fef8569340..f6446f98c2bd 100644
---- a/cxl/list.c
-+++ b/cxl/list.c
-@@ -123,6 +123,7 @@ int cmd_list(int argc, const char **argv, struct cxl_ctx *ctx)
- 		param.fw = true;
- 		param.alert_config = true;
- 		param.dax = true;
-+		param.qos = true;
- 		/* fallthrough */
- 	case 2:
- 		param.idle = true;
-diff --git a/util/json.h b/util/json.h
-index ea370df4d1b7..b07055005084 100644
---- a/util/json.h
-+++ b/util/json.h
-@@ -21,6 +21,7 @@ enum util_json_flags {
- 	UTIL_JSON_TARGETS	= (1 << 11),
- 	UTIL_JSON_PARTITION	= (1 << 12),
- 	UTIL_JSON_ALERT_CONFIG	= (1 << 13),
-+	UTIL_JSON_QOS_CLASS	= (1 << 14),
- };
- 
- void util_display_json_array(FILE *f_out, struct json_object *jarray,
+ struct cxl_memdev;
+ struct cxl_memdev *cxl_memdev_get_first(struct cxl_ctx *ctx);
+ struct cxl_memdev *cxl_memdev_get_next(struct cxl_memdev *memdev);
+@@ -72,6 +77,8 @@ int cxl_memdev_get_minor(struct cxl_memdev *memdev);
+ struct cxl_ctx *cxl_memdev_get_ctx(struct cxl_memdev *memdev);
+ unsigned long long cxl_memdev_get_pmem_size(struct cxl_memdev *memdev);
+ unsigned long long cxl_memdev_get_ram_size(struct cxl_memdev *memdev);
++struct qos_class *cxl_memdev_get_pmem_qos_class(struct cxl_memdev *memdev);
++struct qos_class *cxl_memdev_get_ram_qos_class(struct cxl_memdev *memdev);
+ const char *cxl_memdev_get_firmware_verison(struct cxl_memdev *memdev);
+ bool cxl_memdev_fw_update_in_progress(struct cxl_memdev *memdev);
+ size_t cxl_memdev_fw_update_get_remaining(struct cxl_memdev *memdev);
 
 
