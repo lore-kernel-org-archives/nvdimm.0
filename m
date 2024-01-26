@@ -1,45 +1,45 @@
 Received: from mgamail.intel.com (mgamail.intel.com [134.134.136.31])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F9F5249EC
-	for <nvdimm@lists.linux.dev>; Fri, 26 Jan 2024 21:14:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D706924A02
+	for <nvdimm@lists.linux.dev>; Fri, 26 Jan 2024 21:40:29 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=134.134.136.31
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706303688; cv=none; b=ZtjKaTA7oNNRBJ64qIOdDDo3BA+A6bVr5u5/2Th34ojx8lsXT6WiYJkdxhmVq+rGyLWOQTMbBtl1/Y1MaMns93FHv0o45OMMN/AbciUUPMfG1D3qkrm9wgQrhBv+wEalEkWEcbupNFA48hztEjRZNol5b9Rp7Rc2NFeGGNwKctE=
+	t=1706305232; cv=none; b=J3s59rMpclbZFWOs7T+vBqM2JLjmXGPzLUdA1KZJ4wGz/3DlrFFDKL/39IMvajSAOaXODGImX89YndrUPPnRUYBx5KA4JDb4wTgak7ikIHnpRmuZnUO3pgpnOCOVbYy4GqEa6LG8oBqeYdYLddSgOi9gbqG4P9Sro95vfoh/K4w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706303688; c=relaxed/simple;
-	bh=bqOAFirl4XtgWEUGnrqW5ioCbAdx3ANcQrwde5HfmII=;
+	s=arc-20240116; t=1706305232; c=relaxed/simple;
+	bh=y/MmXestLaco8MxcRu6FR5hsFEIdc9OmJHnVSWeZe2s=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=P4ojomxeUns9IsR5AYY9yF+x8ngZ2OcdlPnfWBs8ZHeW8olgUNxwN4rcJ4DPsXD9BUaR+VE1ez/HRwFwhoyIIx4VV+U8ikNqJlznYKbl77jHqApcWTd+mvxjXP/ZwJohbJenPHiCHfqLgxX69MZ+atlDpjmaOuHiT5AQBQ4UHM4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=mJW1y4oi; arc=none smtp.client-ip=134.134.136.31
+	 Content-Type:Content-Disposition:In-Reply-To; b=SEiPdPnaM5iwUhtZN2IAda7gtG4oWuLh1HD4EJ5pucJX2Rtp0lVNnVMTbY2in79e3SHqBD2zk7t32oAo1qVEP4jHYAmmFrK5DcspEkDswVmLAyaM4V6swhm75bfIP0uVB0Rj/geVUbQ79qBcWb06j2TiM68wtePr2lGAIod8vOg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=PP3you0o; arc=none smtp.client-ip=134.134.136.31
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="mJW1y4oi"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="PP3you0o"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1706303686; x=1737839686;
+  t=1706305229; x=1737841229;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=bqOAFirl4XtgWEUGnrqW5ioCbAdx3ANcQrwde5HfmII=;
-  b=mJW1y4oi60k/+UXuHUMI+wznBIT0lERBROG5PRIGsb34Nys3zYNe/85o
-   +CCj8gELssgacHamtlO+FXIZZUGuTYDk7fFiYZeJxq75AAYchzQt7/F/j
-   7LpL8DzcPLd68WXSliOypS6m5gXzW5p7FPYr9avsrpguxnppcS3mBw5hF
-   xZ0SYK0rR4hhmgcMG6lNVRHxoeXQI2o1WBZn+7m6n2Y35hBigaZKRqlZ7
-   N37LvZ2RHjS3oFRRrd092OzS2PUZC/N93eQZAEjIANBJt6eZbwl1IhxS+
-   w59y3Tu58eY4YZ0uOz1bmlMbVVVO8eOMrIcMODsc54RHHAROHJsj8KLPc
+  bh=y/MmXestLaco8MxcRu6FR5hsFEIdc9OmJHnVSWeZe2s=;
+  b=PP3you0oz60xnc1W+WpMdRF2NR6nHbi82rXAgAzqwNcOSgBeeRNS8Aed
+   o/RRMmJaByZ7mYlLnubB8GYRH0hpNrN5YgiJl9qqE3/ZGnvEKJatKUJyr
+   xgvhwZinpP1b6baQDa2mm1bryonvPFFcbSaM+OEGAzKlyIrawnuQKLyEo
+   BDVOX/rWlNo7JQdXXNPX6P1HpswLDXivbftmSLNwGYkeMqfPyC2QgfzOb
+   CkaN1KWVkfJ9mys/35vcjHUcpJQHFnPqK0G7xWj1RhQhgMI4Py3Px4h0w
+   8F3fADxA4XSfkR0+jRhQNKbvG1HjQWqfS3oVGqII+jXk9OULHWKEHqRlT
    Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10964"; a="466853103"
+X-IronPort-AV: E=McAfee;i="6600,9927,10964"; a="466857921"
 X-IronPort-AV: E=Sophos;i="6.05,216,1701158400"; 
-   d="scan'208";a="466853103"
-Received: from fmviesa002.fm.intel.com ([10.60.135.142])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Jan 2024 13:14:45 -0800
+   d="scan'208";a="466857921"
+Received: from fmviesa003.fm.intel.com ([10.60.135.143])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Jan 2024 13:40:28 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.05,216,1701158400"; 
-   d="scan'208";a="21486061"
+   d="scan'208";a="2787184"
 Received: from aschofie-mobl2.amr.corp.intel.com (HELO aschofie-mobl2) ([10.209.37.71])
-  by fmviesa002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Jan 2024 13:14:43 -0800
-Date: Fri, 26 Jan 2024 13:14:42 -0800
+  by fmviesa003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Jan 2024 13:40:27 -0800
+Date: Fri, 26 Jan 2024 13:40:25 -0800
 From: Alison Schofield <alison.schofield@intel.com>
 To: Vishal Verma <vishal.l.verma@intel.com>
 Cc: Dan Williams <dan.j.williams@intel.com>,
@@ -51,12 +51,14 @@ Cc: Dan Williams <dan.j.williams@intel.com>,
 	Dave Hansen <dave.hansen@linux.intel.com>,
 	Huang Ying <ying.huang@intel.com>,
 	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Matthew Wilcox <willy@infradead.org>, linux-mm@kvack.org
-Subject: Re: [PATCH v7 2/5] dax/bus.c: replace several sprintf() with
- sysfs_emit()
-Message-ID: <ZbQgwt/Wc3uWvXXK@aschofie-mobl2>
+	Matthew Wilcox <willy@infradead.org>, linux-mm@kvack.org,
+	Li Zhijian <lizhijian@fujitsu.com>,
+	Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Subject: Re: [PATCH v7 5/5] dax: add a sysfs knob to control memmap_on_memory
+ behavior
+Message-ID: <ZbQmyanSjr+4Whp+@aschofie-mobl2>
 References: <20240124-vv-dax_abi-v7-0-20d16cb8d23d@intel.com>
- <20240124-vv-dax_abi-v7-2-20d16cb8d23d@intel.com>
+ <20240124-vv-dax_abi-v7-5-20d16cb8d23d@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -65,165 +67,122 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20240124-vv-dax_abi-v7-2-20d16cb8d23d@intel.com>
+In-Reply-To: <20240124-vv-dax_abi-v7-5-20d16cb8d23d@intel.com>
 
-On Wed, Jan 24, 2024 at 12:03:47PM -0800, Vishal Verma wrote:
-> There were several places where drivers/dax/bus.c uses 'sprintf' to
-> print sysfs data. Since a sysfs_emit() helper is available specifically
-> for this purpose, replace all the sprintf() usage for sysfs with
-> sysfs_emit() in this file.
->
+On Wed, Jan 24, 2024 at 12:03:50PM -0800, Vishal Verma wrote:
+> Add a sysfs knob for dax devices to control the memmap_on_memory setting
+> if the dax device were to be hotplugged as system memory.
+> 
+> The default memmap_on_memory setting for dax devices originating via
+> pmem or hmem is set to 'false' - i.e. no memmap_on_memory semantics, to
+> preserve legacy behavior. For dax devices via CXL, the default is on.
+> The sysfs control allows the administrator to override the above
+> defaults if needed.
 
 Reviewed-by: Alison Schofield <alison.schofield@intel.com>
 
-
+> 
+> Cc: David Hildenbrand <david@redhat.com>
 > Cc: Dan Williams <dan.j.williams@intel.com>
-> Reported-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> Cc: Dave Jiang <dave.jiang@intel.com>
+> Cc: Dave Hansen <dave.hansen@linux.intel.com>
+> Cc: Huang Ying <ying.huang@intel.com>
+> Tested-by: Li Zhijian <lizhijian@fujitsu.com>
+> Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+> Reviewed-by: David Hildenbrand <david@redhat.com>
+> Reviewed-by: Huang, Ying <ying.huang@intel.com>
 > Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 > ---
->  drivers/dax/bus.c | 32 ++++++++++++++++----------------
->  1 file changed, 16 insertions(+), 16 deletions(-)
+>  drivers/dax/bus.c                       | 43 +++++++++++++++++++++++++++++++++
+>  Documentation/ABI/testing/sysfs-bus-dax | 17 +++++++++++++
+>  2 files changed, 60 insertions(+)
 > 
 > diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-> index cb148f74ceda..0fd948a4443e 100644
+> index 0fd948a4443e..27c86d0ca711 100644
 > --- a/drivers/dax/bus.c
 > +++ b/drivers/dax/bus.c
-> @@ -269,7 +269,7 @@ static ssize_t id_show(struct device *dev,
->  {
->  	struct dax_region *dax_region = dev_get_drvdata(dev);
->  
-> -	return sprintf(buf, "%d\n", dax_region->id);
-> +	return sysfs_emit(buf, "%d\n", dax_region->id);
->  }
->  static DEVICE_ATTR_RO(id);
->  
-> @@ -278,8 +278,8 @@ static ssize_t region_size_show(struct device *dev,
->  {
->  	struct dax_region *dax_region = dev_get_drvdata(dev);
->  
-> -	return sprintf(buf, "%llu\n", (unsigned long long)
-> -			resource_size(&dax_region->res));
-> +	return sysfs_emit(buf, "%llu\n",
-> +			  (unsigned long long)resource_size(&dax_region->res));
->  }
->  static struct device_attribute dev_attr_region_size = __ATTR(size, 0444,
->  		region_size_show, NULL);
-> @@ -289,7 +289,7 @@ static ssize_t region_align_show(struct device *dev,
->  {
->  	struct dax_region *dax_region = dev_get_drvdata(dev);
->  
-> -	return sprintf(buf, "%u\n", dax_region->align);
-> +	return sysfs_emit(buf, "%u\n", dax_region->align);
->  }
->  static struct device_attribute dev_attr_region_align =
->  		__ATTR(align, 0400, region_align_show, NULL);
-> @@ -322,7 +322,7 @@ static ssize_t available_size_show(struct device *dev,
->  	size = dax_region_avail_size(dax_region);
->  	up_read(&dax_region_rwsem);
->  
-> -	return sprintf(buf, "%llu\n", size);
-> +	return sysfs_emit(buf, "%llu\n", size);
->  }
->  static DEVICE_ATTR_RO(available_size);
->  
-> @@ -340,7 +340,7 @@ static ssize_t seed_show(struct device *dev,
->  	if (rc)
->  		return rc;
->  	seed = dax_region->seed;
-> -	rc = sprintf(buf, "%s\n", seed ? dev_name(seed) : "");
-> +	rc = sysfs_emit(buf, "%s\n", seed ? dev_name(seed) : "");
->  	up_read(&dax_region_rwsem);
->  
->  	return rc;
-> @@ -361,7 +361,7 @@ static ssize_t create_show(struct device *dev,
->  	if (rc)
->  		return rc;
->  	youngest = dax_region->youngest;
-> -	rc = sprintf(buf, "%s\n", youngest ? dev_name(youngest) : "");
-> +	rc = sysfs_emit(buf, "%s\n", youngest ? dev_name(youngest) : "");
->  	up_read(&dax_region_rwsem);
->  
->  	return rc;
-> @@ -763,7 +763,7 @@ static ssize_t start_show(struct device *dev,
->  	dax_range = get_dax_range(dev);
->  	if (!dax_range)
->  		return -ENXIO;
-> -	rc = sprintf(buf, "%#llx\n", dax_range->range.start);
-> +	rc = sysfs_emit(buf, "%#llx\n", dax_range->range.start);
->  	put_dax_range();
->  
->  	return rc;
-> @@ -779,7 +779,7 @@ static ssize_t end_show(struct device *dev,
->  	dax_range = get_dax_range(dev);
->  	if (!dax_range)
->  		return -ENXIO;
-> -	rc = sprintf(buf, "%#llx\n", dax_range->range.end);
-> +	rc = sysfs_emit(buf, "%#llx\n", dax_range->range.end);
->  	put_dax_range();
->  
->  	return rc;
-> @@ -795,7 +795,7 @@ static ssize_t pgoff_show(struct device *dev,
->  	dax_range = get_dax_range(dev);
->  	if (!dax_range)
->  		return -ENXIO;
-> -	rc = sprintf(buf, "%#lx\n", dax_range->pgoff);
-> +	rc = sysfs_emit(buf, "%#lx\n", dax_range->pgoff);
->  	put_dax_range();
->  
->  	return rc;
-> @@ -969,7 +969,7 @@ static ssize_t size_show(struct device *dev,
->  	size = dev_dax_size(dev_dax);
->  	up_write(&dax_dev_rwsem);
->  
-> -	return sprintf(buf, "%llu\n", size);
-> +	return sysfs_emit(buf, "%llu\n", size);
->  }
->  
->  static bool alloc_is_aligned(struct dev_dax *dev_dax, resource_size_t size)
-> @@ -1233,7 +1233,7 @@ static ssize_t align_show(struct device *dev,
->  {
->  	struct dev_dax *dev_dax = to_dev_dax(dev);
->  
-> -	return sprintf(buf, "%d\n", dev_dax->align);
-> +	return sysfs_emit(buf, "%d\n", dev_dax->align);
->  }
->  
->  static ssize_t dev_dax_validate_align(struct dev_dax *dev_dax)
-> @@ -1311,7 +1311,7 @@ static ssize_t target_node_show(struct device *dev,
->  {
->  	struct dev_dax *dev_dax = to_dev_dax(dev);
->  
-> -	return sprintf(buf, "%d\n", dev_dax_target_node(dev_dax));
-> +	return sysfs_emit(buf, "%d\n", dev_dax_target_node(dev_dax));
->  }
->  static DEVICE_ATTR_RO(target_node);
->  
-> @@ -1327,7 +1327,7 @@ static ssize_t resource_show(struct device *dev,
->  	else
->  		start = dev_dax->ranges[0].range.start;
->  
-> -	return sprintf(buf, "%#llx\n", start);
-> +	return sysfs_emit(buf, "%#llx\n", start);
->  }
->  static DEVICE_ATTR(resource, 0400, resource_show, NULL);
->  
-> @@ -1338,14 +1338,14 @@ static ssize_t modalias_show(struct device *dev, struct device_attribute *attr,
->  	 * We only ever expect to handle device-dax instances, i.e. the
->  	 * @type argument to MODULE_ALIAS_DAX_DEVICE() is always zero
->  	 */
-> -	return sprintf(buf, DAX_DEVICE_MODALIAS_FMT "\n", 0);
-> +	return sysfs_emit(buf, DAX_DEVICE_MODALIAS_FMT "\n", 0);
->  }
->  static DEVICE_ATTR_RO(modalias);
->  
->  static ssize_t numa_node_show(struct device *dev,
->  		struct device_attribute *attr, char *buf)
->  {
-> -	return sprintf(buf, "%d\n", dev_to_node(dev));
-> +	return sysfs_emit(buf, "%d\n", dev_to_node(dev));
+> @@ -1349,6 +1349,48 @@ static ssize_t numa_node_show(struct device *dev,
 >  }
 >  static DEVICE_ATTR_RO(numa_node);
 >  
+> +static ssize_t memmap_on_memory_show(struct device *dev,
+> +				     struct device_attribute *attr, char *buf)
+> +{
+> +	struct dev_dax *dev_dax = to_dev_dax(dev);
+> +
+> +	return sysfs_emit(buf, "%d\n", dev_dax->memmap_on_memory);
+> +}
+> +
+> +static ssize_t memmap_on_memory_store(struct device *dev,
+> +				      struct device_attribute *attr,
+> +				      const char *buf, size_t len)
+> +{
+> +	struct dev_dax *dev_dax = to_dev_dax(dev);
+> +	bool val;
+> +	int rc;
+> +
+> +	rc = kstrtobool(buf, &val);
+> +	if (rc)
+> +		return rc;
+> +
+> +	if (val == true && !mhp_supports_memmap_on_memory()) {
+> +		dev_dbg(dev, "memmap_on_memory is not available\n");
+> +		return -EOPNOTSUPP;
+> +	}
+> +
+> +	rc = down_write_killable(&dax_dev_rwsem);
+> +	if (rc)
+> +		return rc;
+> +
+> +	if (dev_dax->memmap_on_memory != val && dev->driver &&
+> +	    to_dax_drv(dev->driver)->type == DAXDRV_KMEM_TYPE) {
+> +		up_write(&dax_dev_rwsem);
+> +		return -EBUSY;
+> +	}
+> +
+> +	dev_dax->memmap_on_memory = val;
+> +	up_write(&dax_dev_rwsem);
+> +
+> +	return len;
+> +}
+> +static DEVICE_ATTR_RW(memmap_on_memory);
+> +
+>  static umode_t dev_dax_visible(struct kobject *kobj, struct attribute *a, int n)
+>  {
+>  	struct device *dev = container_of(kobj, struct device, kobj);
+> @@ -1375,6 +1417,7 @@ static struct attribute *dev_dax_attributes[] = {
+>  	&dev_attr_align.attr,
+>  	&dev_attr_resource.attr,
+>  	&dev_attr_numa_node.attr,
+> +	&dev_attr_memmap_on_memory.attr,
+>  	NULL,
+>  };
+>  
+> diff --git a/Documentation/ABI/testing/sysfs-bus-dax b/Documentation/ABI/testing/sysfs-bus-dax
+> index 6359f7bc9bf4..b34266bfae49 100644
+> --- a/Documentation/ABI/testing/sysfs-bus-dax
+> +++ b/Documentation/ABI/testing/sysfs-bus-dax
+> @@ -134,3 +134,20 @@ KernelVersion:	v5.1
+>  Contact:	nvdimm@lists.linux.dev
+>  Description:
+>  		(RO) The id attribute indicates the region id of a dax region.
+> +
+> +What:		/sys/bus/dax/devices/daxX.Y/memmap_on_memory
+> +Date:		January, 2024
+> +KernelVersion:	v6.8
+> +Contact:	nvdimm@lists.linux.dev
+> +Description:
+> +		(RW) Control the memmap_on_memory setting if the dax device
+> +		were to be hotplugged as system memory. This determines whether
+> +		the 'altmap' for the hotplugged memory will be placed on the
+> +		device being hotplugged (memmap_on_memory=1) or if it will be
+> +		placed on regular memory (memmap_on_memory=0). This attribute
+> +		must be set before the device is handed over to the 'kmem'
+> +		driver (i.e.  hotplugged into system-ram). Additionally, this
+> +		depends on CONFIG_MHP_MEMMAP_ON_MEMORY, and a globally enabled
+> +		memmap_on_memory parameter for memory_hotplug. This is
+> +		typically set on the kernel command line -
+> +		memory_hotplug.memmap_on_memory set to 'true' or 'force'."
 > 
 > -- 
 > 2.43.0
