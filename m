@@ -1,120 +1,601 @@
-Received: from wout4-smtp.messagingengine.com (wout4-smtp.messagingengine.com [64.147.123.20])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.11])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E11423743
-	for <nvdimm@lists.linux.dev>; Fri, 26 Jan 2024 20:14:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=64.147.123.20
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BB8E22EE8
+	for <nvdimm@lists.linux.dev>; Fri, 26 Jan 2024 21:12:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.11
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706300080; cv=none; b=Ze1clGZUfLQkjZ9vOrz0PDMlcPqK4NAsOVTr7fdIhOY82dFHLbg4C3TW/faOeixFR1jcAG0jJgrVidtW1165rABhLBXQXdia2qHhQi6iz7oU+FvqT/3Xjv5FJ1Xhf5zruzlOg/AAgcmmmneHpPYU5cgwyI7FD//pa8b8MTSHG3w=
+	t=1706303573; cv=none; b=O68hzifcG8gLWuuucVo5ZadHm03bKiJd3ABqRi55a2KzesCGKmDoLh5SFlchEnE8xDWacjG5JnM135btp7baPGEjZAbazMdFxdB/mp/bbwpT3idH4OJL1+blOdsTo6Qb7aljqHZgX6XtkTgF29o9vYcVvwPE3vDL/ZMcD1RNzME=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706300080; c=relaxed/simple;
-	bh=OZ+ewMuXtA4D3cA/M9PX3XdetpRqcRYxX9K0zlX/pAs=;
-	h=MIME-Version:Message-Id:In-Reply-To:References:Date:From:To:
-	 Subject:Content-Type; b=bjpvytn7X4zu2MIn8fXtE4HsREIC/m1TgG4OQblcZ7JieDAJotRwI+qOW86HefOqeWENxn/e6G1MlZk3LCnpyxJB382fxzcacpB2BUL1W0VZpyaTjyfumc2zN9ZNV76SQ5tTC/4Cq1b3aG9jOebDC4WP8pUAqquEeFjqAJG4UUQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de; spf=pass smtp.mailfrom=arndb.de; dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b=YIJ99kLY; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=vu2MCvLv; arc=none smtp.client-ip=64.147.123.20
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arndb.de
+	s=arc-20240116; t=1706303573; c=relaxed/simple;
+	bh=gYXycgNWRxeUp1sr7TriViT/K0cUe56I79wGz9gcseQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=KY2EfNc2vTLAZ8m8ss+YMQR2CbC+HmuDhb09ZrKobq/iABbZ/fFspH2DYG3/ZposvZ+RjnQOEWQZiEzcQ9zkrwBB53iBCmkFebGrxmpIHUH7ZhcU1X9HVg9/OxA55p2NBEKJnZsTWwrQHXFvqygkHN61qlrPbo74dZRkCIZ56Qg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Y/sUUk/K; arc=none smtp.client-ip=198.175.65.11
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b="YIJ99kLY";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="vu2MCvLv"
-Received: from compute5.internal (compute5.nyi.internal [10.202.2.45])
-	by mailout.west.internal (Postfix) with ESMTP id 7150F3200A35;
-	Fri, 26 Jan 2024 15:14:36 -0500 (EST)
-Received: from imap51 ([10.202.2.101])
-  by compute5.internal (MEProxy); Fri, 26 Jan 2024 15:14:37 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
-	:content-type:content-type:date:date:from:from:in-reply-to
-	:in-reply-to:message-id:mime-version:references:reply-to:subject
-	:subject:to:to; s=fm2; t=1706300075; x=1706386475; bh=PTTnJNpgNL
-	bDx/r8kMhAAD2XWV9ioSxofi77o56JusE=; b=YIJ99kLYDyqroGJIzUbpHzPHVX
-	QsvSynFvH4MInjiyWyZHTn0Qd0cAeJ2P6DIiCx1h3g0xzP/5T7J9BSuXzuKCM+Ia
-	v2OcmD2n36J/kgiOa95fuBHNJUUpF0BxdK/ZOpHl/vcNIFO224cgA6JLCZUw+0pV
-	QoDd9wlfBiAY51lcpejIQpVJWb5IfEBxJ43C+IeK7pVMZHJv4RMnfg1LaY/fbOME
-	MsxQAwoAuxr7uhhaWcbWg+7LGZQj4gUJZRQWo3BY/B76pfk03v8D1AfxkKRqj/zG
-	dTFqvAjYl89iqOuXc2+VHrIiNalGMpfh5q73x3GnicCz7QRcIqHk2njeFFXw==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:content-type:content-type:date:date
-	:feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
-	:message-id:mime-version:references:reply-to:subject:subject:to
-	:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=
-	fm3; t=1706300075; x=1706386475; bh=PTTnJNpgNLbDx/r8kMhAAD2XWV9i
-	oSxofi77o56JusE=; b=vu2MCvLvQA8eiso83CL7hL5P4fRPHqqI2Ykvr+Ussytp
-	2ydwGhRFwTs7/4Pj3EDqlwKqsHcPCNkL+CWMJtB/mVp1nVKQJBST/puHQPgAlbfP
-	NNXHT8XC8Nc+Ej0fHR5NvCEDhiDlBh57a7G//Gc6q9hpDvkFyOPcVkYOl75WtSr7
-	MP4X4vcySrf/ASU0iaZC0/wUFtaj/eD+jx3FSFr4U9cdfqkdKKnWMMuvoz/M2dSl
-	IAwVPKzqvRXkBcvwVFRcP3Dxsn2fwkZkefnYxwsupJPm1VfYPaHLxA1K8wUVb2vJ
-	H1FSCWH5og9QLRgQIUArNRbM5Vxrxvq4AUqSg754Vg==
-X-ME-Sender: <xms:qxK0ZR55l5SvosYqT67ebLxU1n5YbOHtWRHRasdOu03z-Lw822UGoA>
-    <xme:qxK0Ze6h7U5N2LrJdm4vOzCcwheJyTXrvta3jMpHxD0T8ne4rHC4EubKxTCRHF3Mq
-    BZCz1UxPNn26rHbYvQ>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvkedrvdeljedgudeffecutefuodetggdotefrod
-    ftvfcurfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfgh
-    necuuegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmd
-    enucfjughrpefofgggkfgjfhffhffvufgtsehttdertderredtnecuhfhrohhmpedftehr
-    nhguuceuvghrghhmrghnnhdfuceorghrnhgusegrrhhnuggsrdguvgeqnecuggftrfgrth
-    htvghrnhepffegffdutddvhefffeeltefhjeejgedvleffjeeigeeuteelvdettddulefg
-    udfgnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomheprg
-    hrnhgusegrrhhnuggsrdguvg
-X-ME-Proxy: <xmx:qxK0ZYcecr1D80HNjkZJ7FnKRcWIkR3t7-9r77lJWZk2ZBWOuY7aFw>
-    <xmx:qxK0ZaK1W6z9GCC8FdIw_PC5SNS_mZaHKK49fz6j-br0rsFMnH-ZMw>
-    <xmx:qxK0ZVKm1_ElaurtIU4NyxlTIe0C3Ia3rrm4FtZ4fhV0uOm66cEVLQ>
-    <xmx:qxK0ZSBxnMQy-blz1558pEOaOeZvOacpVBhAOJSxpbcAaMwJhpUnCg>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.nyi.internal (Postfix, from userid 501)
-	id 4C631B6008D; Fri, 26 Jan 2024 15:14:35 -0500 (EST)
-X-Mailer: MessagingEngine.com Webmail Interface
-User-Agent: Cyrus-JMAP/3.11.0-alpha0-119-ga8b98d1bd8-fm-20240108.001-ga8b98d1b
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Y/sUUk/K"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1706303562; x=1737839562;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=gYXycgNWRxeUp1sr7TriViT/K0cUe56I79wGz9gcseQ=;
+  b=Y/sUUk/KJsjYaTSsa8mx0Ct5eQsmfL1j8xbNO3t3EiqW4NqFsnXrPNyn
+   RSzHxiHwhIoRXw5aMt8QF+qvUjWfJ6lZU9cm5Hz/AgrSHYmdnTA1W1B94
+   RDiFyCcVjE/U5gA62aoNrS8K+xp3LDbHgUoM77ufX11nskdS+0mr98D2G
+   9A6/1rCywbz+FsWpmBuKZlfxuviJgKaPlaZFSa4F38VebWtDGiJcW98v7
+   0zzyHWaB50T+bnShn3Jzsumr8XIzMLfZmebooD5YcfGSspghAVSSbCEhh
+   dTMfyz+J25p1CUURYhRpY6XIp7J1DB4h71f3qOpk2VMCehzsnwVgeLh7W
+   g==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10964"; a="9234216"
+X-IronPort-AV: E=Sophos;i="6.05,216,1701158400"; 
+   d="scan'208";a="9234216"
+Received: from orviesa005.jf.intel.com ([10.64.159.145])
+  by orvoesa103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Jan 2024 13:12:41 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.05,216,1701158400"; 
+   d="scan'208";a="2698510"
+Received: from aschofie-mobl2.amr.corp.intel.com (HELO aschofie-mobl2) ([10.209.37.71])
+  by orviesa005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Jan 2024 13:12:40 -0800
+Date: Fri, 26 Jan 2024 13:12:38 -0800
+From: Alison Schofield <alison.schofield@intel.com>
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Oscar Salvador <osalvador@suse.de>, linux-kernel@vger.kernel.org,
+	nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
+	David Hildenbrand <david@redhat.com>,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	Huang Ying <ying.huang@intel.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Matthew Wilcox <willy@infradead.org>, linux-mm@kvack.org
+Subject: Re: [PATCH v7 1/5] dax/bus.c: replace driver-core lock usage by a
+ local rwsem
+Message-ID: <ZbQgRrQOmOPE8FHy@aschofie-mobl2>
+References: <20240124-vv-dax_abi-v7-0-20d16cb8d23d@intel.com>
+ <20240124-vv-dax_abi-v7-1-20d16cb8d23d@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Message-Id: <c54d0ede-4f41-4fcf-8fe7-d3f9e1bb63a4@app.fastmail.com>
-In-Reply-To: <e523b29c-0fd0-4b7c-bf8c-d3424ee2c031@efficios.com>
-References: <e523b29c-0fd0-4b7c-bf8c-d3424ee2c031@efficios.com>
-Date: Fri, 26 Jan 2024 21:14:15 +0100
-From: "Arnd Bergmann" <arnd@arndb.de>
-To: "Mathieu Desnoyers" <mathieu.desnoyers@efficios.com>,
- "Dan Williams" <dan.j.williams@intel.com>,
- "Vishal Verma" <vishal.l.verma@intel.com>,
- "Dave Jiang" <dave.jiang@intel.com>, "Matthew Wilcox" <willy@infradead.org>,
- "Andrew Morton" <akpm@linux-foundation.org>,
- "Linus Torvalds" <torvalds@linux-foundation.org>,
- linux-mm <linux-mm@kvack.org>, Linux-Arch <linux-arch@vger.kernel.org>,
- nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
- linux-kernel <linux-kernel@vger.kernel.org>,
- "Russell King" <linux@armlinux.org.uk>
-Subject: Re: [REGRESSION] v5.13: FS_DAX unavailable on 32-bit ARM
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240124-vv-dax_abi-v7-1-20d16cb8d23d@intel.com>
 
-On Fri, Jan 26, 2024, at 20:33, Mathieu Desnoyers wrote:
->
-> A) I have prepared a patch series introducing cache_is_aliasing() with 
-> new Kconfig
->     options:
->
->    * ARCH_HAS_CACHE_ALIASING
->    * ARCH_HAS_CACHE_ALIASING_DYNAMIC
->
-> and implemented it for all architectures. The "DYNAMIC" implementation
-> implements cache_is_aliasing() as a runtime check, which is what is needed
-> on architectures like 32-bit ARM.
->
-> With this we can basically narrow down the list of architectures which are
-> unsupported by DAX to those which are really affected, without actually solving
-> the issue for architectures with virtually aliased dcaches.
+On Wed, Jan 24, 2024 at 12:03:46PM -0800, Vishal Verma wrote:
+> The dax driver incorrectly used driver-core device locks to protect
+> internal dax region and dax device configuration structures. Replace the
+> device lock usage with a local rwsem, one each for dax region
+> configuration and dax device configuration. As a result of this
+> conversion, no device_lock() usage remains in dax/bus.c.
+> 
 
-The dynamic option should only be required when building for
-ARMv6, which is really rare. On an ARMv7-only configuration,
-we know that the dcache is non-aliasing, so the compile-time
-check should be sufficient.
+Reviewed-by: Alison Schofield <alison.schofield@intel.com>
 
-Even on ARMv6, this could be done as a compile-time choice
-by platform, since we mostly know what the chips can do:
-bcm2835, imx3, wm8750 and s3c64xx are non-aliasing because
-they are limited to 16KB L1 caches, while omap2 and as2500
-are aliasing with 32KB caches. With realview/integrator it
-depends on the exact CPU that was installed.
-
-     Arnd
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Reported-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+> ---
+>  drivers/dax/bus.c | 220 ++++++++++++++++++++++++++++++++++++++----------------
+>  1 file changed, 157 insertions(+), 63 deletions(-)
+> 
+> diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+> index 1ff1ab5fa105..cb148f74ceda 100644
+> --- a/drivers/dax/bus.c
+> +++ b/drivers/dax/bus.c
+> @@ -12,6 +12,18 @@
+>  
+>  static DEFINE_MUTEX(dax_bus_lock);
+>  
+> +/*
+> + * All changes to the dax region configuration occur with this lock held
+> + * for write.
+> + */
+> +DECLARE_RWSEM(dax_region_rwsem);
+> +
+> +/*
+> + * All changes to the dax device configuration occur with this lock held
+> + * for write.
+> + */
+> +DECLARE_RWSEM(dax_dev_rwsem);
+> +
+>  #define DAX_NAME_LEN 30
+>  struct dax_id {
+>  	struct list_head list;
+> @@ -180,7 +192,7 @@ static u64 dev_dax_size(struct dev_dax *dev_dax)
+>  	u64 size = 0;
+>  	int i;
+>  
+> -	device_lock_assert(&dev_dax->dev);
+> +	WARN_ON_ONCE(!rwsem_is_locked(&dax_dev_rwsem));
+>  
+>  	for (i = 0; i < dev_dax->nr_range; i++)
+>  		size += range_len(&dev_dax->ranges[i].range);
+> @@ -194,8 +206,15 @@ static int dax_bus_probe(struct device *dev)
+>  	struct dev_dax *dev_dax = to_dev_dax(dev);
+>  	struct dax_region *dax_region = dev_dax->region;
+>  	int rc;
+> +	u64 size;
+>  
+> -	if (dev_dax_size(dev_dax) == 0 || dev_dax->id < 0)
+> +	rc = down_read_interruptible(&dax_dev_rwsem);
+> +	if (rc)
+> +		return rc;
+> +	size = dev_dax_size(dev_dax);
+> +	up_read(&dax_dev_rwsem);
+> +
+> +	if (size == 0 || dev_dax->id < 0)
+>  		return -ENXIO;
+>  
+>  	rc = dax_drv->probe(dev_dax);
+> @@ -283,7 +302,7 @@ static unsigned long long dax_region_avail_size(struct dax_region *dax_region)
+>  	resource_size_t size = resource_size(&dax_region->res);
+>  	struct resource *res;
+>  
+> -	device_lock_assert(dax_region->dev);
+> +	WARN_ON_ONCE(!rwsem_is_locked(&dax_region_rwsem));
+>  
+>  	for_each_dax_region_resource(dax_region, res)
+>  		size -= resource_size(res);
+> @@ -295,10 +314,13 @@ static ssize_t available_size_show(struct device *dev,
+>  {
+>  	struct dax_region *dax_region = dev_get_drvdata(dev);
+>  	unsigned long long size;
+> +	int rc;
+>  
+> -	device_lock(dev);
+> +	rc = down_read_interruptible(&dax_region_rwsem);
+> +	if (rc)
+> +		return rc;
+>  	size = dax_region_avail_size(dax_region);
+> -	device_unlock(dev);
+> +	up_read(&dax_region_rwsem);
+>  
+>  	return sprintf(buf, "%llu\n", size);
+>  }
+> @@ -314,10 +336,12 @@ static ssize_t seed_show(struct device *dev,
+>  	if (is_static(dax_region))
+>  		return -EINVAL;
+>  
+> -	device_lock(dev);
+> +	rc = down_read_interruptible(&dax_region_rwsem);
+> +	if (rc)
+> +		return rc;
+>  	seed = dax_region->seed;
+>  	rc = sprintf(buf, "%s\n", seed ? dev_name(seed) : "");
+> -	device_unlock(dev);
+> +	up_read(&dax_region_rwsem);
+>  
+>  	return rc;
+>  }
+> @@ -333,14 +357,18 @@ static ssize_t create_show(struct device *dev,
+>  	if (is_static(dax_region))
+>  		return -EINVAL;
+>  
+> -	device_lock(dev);
+> +	rc = down_read_interruptible(&dax_region_rwsem);
+> +	if (rc)
+> +		return rc;
+>  	youngest = dax_region->youngest;
+>  	rc = sprintf(buf, "%s\n", youngest ? dev_name(youngest) : "");
+> -	device_unlock(dev);
+> +	up_read(&dax_region_rwsem);
+>  
+>  	return rc;
+>  }
+>  
+> +static struct dev_dax *__devm_create_dev_dax(struct dev_dax_data *data);
+> +
+>  static ssize_t create_store(struct device *dev, struct device_attribute *attr,
+>  		const char *buf, size_t len)
+>  {
+> @@ -358,7 +386,9 @@ static ssize_t create_store(struct device *dev, struct device_attribute *attr,
+>  	if (val != 1)
+>  		return -EINVAL;
+>  
+> -	device_lock(dev);
+> +	rc = down_write_killable(&dax_region_rwsem);
+> +	if (rc)
+> +		return rc;
+>  	avail = dax_region_avail_size(dax_region);
+>  	if (avail == 0)
+>  		rc = -ENOSPC;
+> @@ -369,7 +399,7 @@ static ssize_t create_store(struct device *dev, struct device_attribute *attr,
+>  			.id = -1,
+>  			.memmap_on_memory = false,
+>  		};
+> -		struct dev_dax *dev_dax = devm_create_dev_dax(&data);
+> +		struct dev_dax *dev_dax = __devm_create_dev_dax(&data);
+>  
+>  		if (IS_ERR(dev_dax))
+>  			rc = PTR_ERR(dev_dax);
+> @@ -387,7 +417,7 @@ static ssize_t create_store(struct device *dev, struct device_attribute *attr,
+>  			rc = len;
+>  		}
+>  	}
+> -	device_unlock(dev);
+> +	up_write(&dax_region_rwsem);
+>  
+>  	return rc;
+>  }
+> @@ -417,7 +447,7 @@ static void trim_dev_dax_range(struct dev_dax *dev_dax)
+>  	struct range *range = &dev_dax->ranges[i].range;
+>  	struct dax_region *dax_region = dev_dax->region;
+>  
+> -	device_lock_assert(dax_region->dev);
+> +	WARN_ON_ONCE(!rwsem_is_locked(&dax_region_rwsem));
+>  	dev_dbg(&dev_dax->dev, "delete range[%d]: %#llx:%#llx\n", i,
+>  		(unsigned long long)range->start,
+>  		(unsigned long long)range->end);
+> @@ -435,7 +465,7 @@ static void free_dev_dax_ranges(struct dev_dax *dev_dax)
+>  		trim_dev_dax_range(dev_dax);
+>  }
+>  
+> -static void unregister_dev_dax(void *dev)
+> +static void __unregister_dev_dax(void *dev)
+>  {
+>  	struct dev_dax *dev_dax = to_dev_dax(dev);
+>  
+> @@ -447,6 +477,17 @@ static void unregister_dev_dax(void *dev)
+>  	put_device(dev);
+>  }
+>  
+> +static void unregister_dev_dax(void *dev)
+> +{
+> +	if (rwsem_is_locked(&dax_region_rwsem))
+> +		return __unregister_dev_dax(dev);
+> +
+> +	if (WARN_ON_ONCE(down_write_killable(&dax_region_rwsem) != 0))
+> +		return;
+> +	__unregister_dev_dax(dev);
+> +	up_write(&dax_region_rwsem);
+> +}
+> +
+>  static void dax_region_free(struct kref *kref)
+>  {
+>  	struct dax_region *dax_region;
+> @@ -463,11 +504,10 @@ static void dax_region_put(struct dax_region *dax_region)
+>  /* a return value >= 0 indicates this invocation invalidated the id */
+>  static int __free_dev_dax_id(struct dev_dax *dev_dax)
+>  {
+> -	struct device *dev = &dev_dax->dev;
+>  	struct dax_region *dax_region;
+>  	int rc = dev_dax->id;
+>  
+> -	device_lock_assert(dev);
+> +	WARN_ON_ONCE(!rwsem_is_locked(&dax_dev_rwsem));
+>  
+>  	if (!dev_dax->dyn_id || dev_dax->id < 0)
+>  		return -1;
+> @@ -480,12 +520,13 @@ static int __free_dev_dax_id(struct dev_dax *dev_dax)
+>  
+>  static int free_dev_dax_id(struct dev_dax *dev_dax)
+>  {
+> -	struct device *dev = &dev_dax->dev;
+>  	int rc;
+>  
+> -	device_lock(dev);
+> +	rc = down_write_killable(&dax_dev_rwsem);
+> +	if (rc)
+> +		return rc;
+>  	rc = __free_dev_dax_id(dev_dax);
+> -	device_unlock(dev);
+> +	up_write(&dax_dev_rwsem);
+>  	return rc;
+>  }
+>  
+> @@ -519,8 +560,14 @@ static ssize_t delete_store(struct device *dev, struct device_attribute *attr,
+>  	if (!victim)
+>  		return -ENXIO;
+>  
+> -	device_lock(dev);
+> -	device_lock(victim);
+> +	rc = down_write_killable(&dax_region_rwsem);
+> +	if (rc)
+> +		return rc;
+> +	rc = down_write_killable(&dax_dev_rwsem);
+> +	if (rc) {
+> +		up_write(&dax_region_rwsem);
+> +		return rc;
+> +	}
+>  	dev_dax = to_dev_dax(victim);
+>  	if (victim->driver || dev_dax_size(dev_dax))
+>  		rc = -EBUSY;
+> @@ -541,12 +588,12 @@ static ssize_t delete_store(struct device *dev, struct device_attribute *attr,
+>  		} else
+>  			rc = -EBUSY;
+>  	}
+> -	device_unlock(victim);
+> +	up_write(&dax_dev_rwsem);
+>  
+>  	/* won the race to invalidate the device, clean it up */
+>  	if (do_del)
+>  		devm_release_action(dev, unregister_dev_dax, victim);
+> -	device_unlock(dev);
+> +	up_write(&dax_region_rwsem);
+>  	put_device(victim);
+>  
+>  	return rc;
+> @@ -658,16 +705,15 @@ static void dax_mapping_release(struct device *dev)
+>  	put_device(parent);
+>  }
+>  
+> -static void unregister_dax_mapping(void *data)
+> +static void __unregister_dax_mapping(void *data)
+>  {
+>  	struct device *dev = data;
+>  	struct dax_mapping *mapping = to_dax_mapping(dev);
+>  	struct dev_dax *dev_dax = to_dev_dax(dev->parent);
+> -	struct dax_region *dax_region = dev_dax->region;
+>  
+>  	dev_dbg(dev, "%s\n", __func__);
+>  
+> -	device_lock_assert(dax_region->dev);
+> +	WARN_ON_ONCE(!rwsem_is_locked(&dax_region_rwsem));
+>  
+>  	dev_dax->ranges[mapping->range_id].mapping = NULL;
+>  	mapping->range_id = -1;
+> @@ -675,28 +721,37 @@ static void unregister_dax_mapping(void *data)
+>  	device_unregister(dev);
+>  }
+>  
+> +static void unregister_dax_mapping(void *data)
+> +{
+> +	if (rwsem_is_locked(&dax_region_rwsem))
+> +		return __unregister_dax_mapping(data);
+> +
+> +	if (WARN_ON_ONCE(down_write_killable(&dax_region_rwsem) != 0))
+> +		return;
+> +	__unregister_dax_mapping(data);
+> +	up_write(&dax_region_rwsem);
+> +}
+> +
+>  static struct dev_dax_range *get_dax_range(struct device *dev)
+>  {
+>  	struct dax_mapping *mapping = to_dax_mapping(dev);
+>  	struct dev_dax *dev_dax = to_dev_dax(dev->parent);
+> -	struct dax_region *dax_region = dev_dax->region;
+> +	int rc;
+>  
+> -	device_lock(dax_region->dev);
+> +	rc = down_write_killable(&dax_region_rwsem);
+> +	if (rc)
+> +		return NULL;
+>  	if (mapping->range_id < 0) {
+> -		device_unlock(dax_region->dev);
+> +		up_write(&dax_region_rwsem);
+>  		return NULL;
+>  	}
+>  
+>  	return &dev_dax->ranges[mapping->range_id];
+>  }
+>  
+> -static void put_dax_range(struct dev_dax_range *dax_range)
+> +static void put_dax_range(void)
+>  {
+> -	struct dax_mapping *mapping = dax_range->mapping;
+> -	struct dev_dax *dev_dax = to_dev_dax(mapping->dev.parent);
+> -	struct dax_region *dax_region = dev_dax->region;
+> -
+> -	device_unlock(dax_region->dev);
+> +	up_write(&dax_region_rwsem);
+>  }
+>  
+>  static ssize_t start_show(struct device *dev,
+> @@ -709,7 +764,7 @@ static ssize_t start_show(struct device *dev,
+>  	if (!dax_range)
+>  		return -ENXIO;
+>  	rc = sprintf(buf, "%#llx\n", dax_range->range.start);
+> -	put_dax_range(dax_range);
+> +	put_dax_range();
+>  
+>  	return rc;
+>  }
+> @@ -725,7 +780,7 @@ static ssize_t end_show(struct device *dev,
+>  	if (!dax_range)
+>  		return -ENXIO;
+>  	rc = sprintf(buf, "%#llx\n", dax_range->range.end);
+> -	put_dax_range(dax_range);
+> +	put_dax_range();
+>  
+>  	return rc;
+>  }
+> @@ -741,7 +796,7 @@ static ssize_t pgoff_show(struct device *dev,
+>  	if (!dax_range)
+>  		return -ENXIO;
+>  	rc = sprintf(buf, "%#lx\n", dax_range->pgoff);
+> -	put_dax_range(dax_range);
+> +	put_dax_range();
+>  
+>  	return rc;
+>  }
+> @@ -775,7 +830,7 @@ static int devm_register_dax_mapping(struct dev_dax *dev_dax, int range_id)
+>  	struct device *dev;
+>  	int rc;
+>  
+> -	device_lock_assert(dax_region->dev);
+> +	WARN_ON_ONCE(!rwsem_is_locked(&dax_region_rwsem));
+>  
+>  	if (dev_WARN_ONCE(&dev_dax->dev, !dax_region->dev->driver,
+>  				"region disabled\n"))
+> @@ -821,7 +876,7 @@ static int alloc_dev_dax_range(struct dev_dax *dev_dax, u64 start,
+>  	struct resource *alloc;
+>  	int i, rc;
+>  
+> -	device_lock_assert(dax_region->dev);
+> +	WARN_ON_ONCE(!rwsem_is_locked(&dax_region_rwsem));
+>  
+>  	/* handle the seed alloc special case */
+>  	if (!size) {
+> @@ -875,13 +930,12 @@ static int adjust_dev_dax_range(struct dev_dax *dev_dax, struct resource *res, r
+>  {
+>  	int last_range = dev_dax->nr_range - 1;
+>  	struct dev_dax_range *dax_range = &dev_dax->ranges[last_range];
+> -	struct dax_region *dax_region = dev_dax->region;
+>  	bool is_shrink = resource_size(res) > size;
+>  	struct range *range = &dax_range->range;
+>  	struct device *dev = &dev_dax->dev;
+>  	int rc;
+>  
+> -	device_lock_assert(dax_region->dev);
+> +	WARN_ON_ONCE(!rwsem_is_locked(&dax_region_rwsem));
+>  
+>  	if (dev_WARN_ONCE(dev, !size, "deletion is handled by dev_dax_shrink\n"))
+>  		return -EINVAL;
+> @@ -907,10 +961,13 @@ static ssize_t size_show(struct device *dev,
+>  {
+>  	struct dev_dax *dev_dax = to_dev_dax(dev);
+>  	unsigned long long size;
+> +	int rc;
+>  
+> -	device_lock(dev);
+> +	rc = down_write_killable(&dax_dev_rwsem);
+> +	if (rc)
+> +		return rc;
+>  	size = dev_dax_size(dev_dax);
+> -	device_unlock(dev);
+> +	up_write(&dax_dev_rwsem);
+>  
+>  	return sprintf(buf, "%llu\n", size);
+>  }
+> @@ -1080,17 +1137,27 @@ static ssize_t size_store(struct device *dev, struct device_attribute *attr,
+>  		return -EINVAL;
+>  	}
+>  
+> -	device_lock(dax_region->dev);
+> +	rc = down_write_killable(&dax_region_rwsem);
+> +	if (rc)
+> +		return rc;
+>  	if (!dax_region->dev->driver) {
+> -		device_unlock(dax_region->dev);
+> -		return -ENXIO;
+> +		rc = -ENXIO;
+> +		goto err_region;
+>  	}
+> -	device_lock(dev);
+> -	rc = dev_dax_resize(dax_region, dev_dax, val);
+> -	device_unlock(dev);
+> -	device_unlock(dax_region->dev);
+> +	rc = down_write_killable(&dax_dev_rwsem);
+> +	if (rc)
+> +		goto err_dev;
+>  
+> -	return rc == 0 ? len : rc;
+> +	rc = dev_dax_resize(dax_region, dev_dax, val);
+> +
+> +err_dev:
+> +	up_write(&dax_dev_rwsem);
+> +err_region:
+> +	up_write(&dax_region_rwsem);
+> +
+> +	if (rc == 0)
+> +		return len;
+> +	return rc;
+>  }
+>  static DEVICE_ATTR_RW(size);
+>  
+> @@ -1138,18 +1205,24 @@ static ssize_t mapping_store(struct device *dev, struct device_attribute *attr,
+>  		return rc;
+>  
+>  	rc = -ENXIO;
+> -	device_lock(dax_region->dev);
+> +	rc = down_write_killable(&dax_region_rwsem);
+> +	if (rc)
+> +		return rc;
+>  	if (!dax_region->dev->driver) {
+> -		device_unlock(dax_region->dev);
+> +		up_write(&dax_region_rwsem);
+> +		return rc;
+> +	}
+> +	rc = down_write_killable(&dax_dev_rwsem);
+> +	if (rc) {
+> +		up_write(&dax_region_rwsem);
+>  		return rc;
+>  	}
+> -	device_lock(dev);
+>  
+>  	to_alloc = range_len(&r);
+>  	if (alloc_is_aligned(dev_dax, to_alloc))
+>  		rc = alloc_dev_dax_range(dev_dax, r.start, to_alloc);
+> -	device_unlock(dev);
+> -	device_unlock(dax_region->dev);
+> +	up_write(&dax_dev_rwsem);
+> +	up_write(&dax_region_rwsem);
+>  
+>  	return rc == 0 ? len : rc;
+>  }
+> @@ -1196,13 +1269,19 @@ static ssize_t align_store(struct device *dev, struct device_attribute *attr,
+>  	if (!dax_align_valid(val))
+>  		return -EINVAL;
+>  
+> -	device_lock(dax_region->dev);
+> +	rc = down_write_killable(&dax_region_rwsem);
+> +	if (rc)
+> +		return rc;
+>  	if (!dax_region->dev->driver) {
+> -		device_unlock(dax_region->dev);
+> +		up_write(&dax_region_rwsem);
+>  		return -ENXIO;
+>  	}
+>  
+> -	device_lock(dev);
+> +	rc = down_write_killable(&dax_dev_rwsem);
+> +	if (rc) {
+> +		up_write(&dax_region_rwsem);
+> +		return rc;
+> +	}
+>  	if (dev->driver) {
+>  		rc = -EBUSY;
+>  		goto out_unlock;
+> @@ -1214,8 +1293,8 @@ static ssize_t align_store(struct device *dev, struct device_attribute *attr,
+>  	if (rc)
+>  		dev_dax->align = align_save;
+>  out_unlock:
+> -	device_unlock(dev);
+> -	device_unlock(dax_region->dev);
+> +	up_write(&dax_dev_rwsem);
+> +	up_write(&dax_region_rwsem);
+>  	return rc == 0 ? len : rc;
+>  }
+>  static DEVICE_ATTR_RW(align);
+> @@ -1325,7 +1404,7 @@ static const struct device_type dev_dax_type = {
+>  	.groups = dax_attribute_groups,
+>  };
+>  
+> -struct dev_dax *devm_create_dev_dax(struct dev_dax_data *data)
+> +static struct dev_dax *__devm_create_dev_dax(struct dev_dax_data *data)
+>  {
+>  	struct dax_region *dax_region = data->dax_region;
+>  	struct device *parent = dax_region->dev;
+> @@ -1440,6 +1519,21 @@ struct dev_dax *devm_create_dev_dax(struct dev_dax_data *data)
+>  
+>  	return ERR_PTR(rc);
+>  }
+> +
+> +struct dev_dax *devm_create_dev_dax(struct dev_dax_data *data)
+> +{
+> +	struct dev_dax *dev_dax;
+> +	int rc;
+> +
+> +	rc = down_write_killable(&dax_region_rwsem);
+> +	if (rc)
+> +		return ERR_PTR(rc);
+> +
+> +	dev_dax = __devm_create_dev_dax(data);
+> +	up_write(&dax_region_rwsem);
+> +
+> +	return dev_dax;
+> +}
+>  EXPORT_SYMBOL_GPL(devm_create_dev_dax);
+>  
+>  int __dax_driver_register(struct dax_device_driver *dax_drv,
+> 
+> -- 
+> 2.43.0
+> 
+> 
