@@ -1,104 +1,120 @@
-Received: from smtpout.efficios.com (smtpout.efficios.com [167.114.26.122])
+Received: from wout4-smtp.messagingengine.com (wout4-smtp.messagingengine.com [64.147.123.20])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC9B2225CD
-	for <nvdimm@lists.linux.dev>; Fri, 26 Jan 2024 19:34:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=167.114.26.122
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E11423743
+	for <nvdimm@lists.linux.dev>; Fri, 26 Jan 2024 20:14:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=64.147.123.20
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706297643; cv=none; b=JngSd0klYSeBmaOxuB3lLpJ8a+S8wDuuksF23krnds09Z+cEOTwD9Ztb7Iomj3iId2AdFnbpcoVt6cr4sB/COnDi+oJYcB7yaK2ilzMPzmbSzSSnLa5CiFv12xq9vr6daFuYlEcIVBDYdFyggDnG+4GaHeO4p89vIXDmESWq/Uc=
+	t=1706300080; cv=none; b=Ze1clGZUfLQkjZ9vOrz0PDMlcPqK4NAsOVTr7fdIhOY82dFHLbg4C3TW/faOeixFR1jcAG0jJgrVidtW1165rABhLBXQXdia2qHhQi6iz7oU+FvqT/3Xjv5FJ1Xhf5zruzlOg/AAgcmmmneHpPYU5cgwyI7FD//pa8b8MTSHG3w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706297643; c=relaxed/simple;
-	bh=X2tv7YC7rvxoUUooCnssnmB276xID1n7i+KGcjgXyaY=;
-	h=Message-ID:Date:MIME-Version:From:To:Subject:Content-Type; b=gCl4el3NiA+Pecvm/NWYSFxFxHuBbPcvn5MPZ30MpzEGYh3RPzZxup4vvJ4ywUPj2GkjFZE+H3vD8wJJbwfZS5uNhduzFdz0ESnLpKN0k76XNTtsF4gE3eUUsGqb2eQNy4Q44UXShqCB4Qw7FvQNNcVJOp6hzBxqlweJ/Sn6eYI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com; spf=pass smtp.mailfrom=efficios.com; dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b=CYryvNhP; arc=none smtp.client-ip=167.114.26.122
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=efficios.com
+	s=arc-20240116; t=1706300080; c=relaxed/simple;
+	bh=OZ+ewMuXtA4D3cA/M9PX3XdetpRqcRYxX9K0zlX/pAs=;
+	h=MIME-Version:Message-Id:In-Reply-To:References:Date:From:To:
+	 Subject:Content-Type; b=bjpvytn7X4zu2MIn8fXtE4HsREIC/m1TgG4OQblcZ7JieDAJotRwI+qOW86HefOqeWENxn/e6G1MlZk3LCnpyxJB382fxzcacpB2BUL1W0VZpyaTjyfumc2zN9ZNV76SQ5tTC/4Cq1b3aG9jOebDC4WP8pUAqquEeFjqAJG4UUQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de; spf=pass smtp.mailfrom=arndb.de; dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b=YIJ99kLY; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=vu2MCvLv; arc=none smtp.client-ip=64.147.123.20
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arndb.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b="CYryvNhP"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=efficios.com;
-	s=smtpout1; t=1706297639;
-	bh=X2tv7YC7rvxoUUooCnssnmB276xID1n7i+KGcjgXyaY=;
-	h=Date:From:To:Subject:From;
-	b=CYryvNhPZbC7x2vM29ob6YlU9y7XqdYN1eE+S0JMTNZyFT6FwPl1FFNqD+a7/3OUg
-	 363JrNqGqicCxn1V0gzmJktc5SGfN5Q8hC5GwNmbXcb319GcfZRSAdMDf2LQIX6oC+
-	 lSxIcSLX3c/Ymagubv0PVRA6dDJJAjaAz/H1FkwBC/ixYQx0tXlnzCzCx5cOvEkold
-	 HkWWXgW0zcyim0acOvi0AoVPw1CIgk4mbGbJYNaEAr8+JhoLp0wx9vgkrPYTNu79IF
-	 KbWX5iKoCx6k/HjFrH1cjNfKeof6FDhCfoj/1KDcMcAr8o0JhZK5J+EMm/O1D8m9xo
-	 XOnbGShcIXNUQ==
-Received: from [172.16.0.134] (192-222-143-198.qc.cable.ebox.net [192.222.143.198])
-	by smtpout.efficios.com (Postfix) with ESMTPSA id 4TM7D72M8NzVDZ;
-	Fri, 26 Jan 2024 14:33:59 -0500 (EST)
-Message-ID: <e523b29c-0fd0-4b7c-bf8c-d3424ee2c031@efficios.com>
-Date: Fri, 26 Jan 2024 14:33:57 -0500
+	dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b="YIJ99kLY";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="vu2MCvLv"
+Received: from compute5.internal (compute5.nyi.internal [10.202.2.45])
+	by mailout.west.internal (Postfix) with ESMTP id 7150F3200A35;
+	Fri, 26 Jan 2024 15:14:36 -0500 (EST)
+Received: from imap51 ([10.202.2.101])
+  by compute5.internal (MEProxy); Fri, 26 Jan 2024 15:14:37 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
+	:content-type:content-type:date:date:from:from:in-reply-to
+	:in-reply-to:message-id:mime-version:references:reply-to:subject
+	:subject:to:to; s=fm2; t=1706300075; x=1706386475; bh=PTTnJNpgNL
+	bDx/r8kMhAAD2XWV9ioSxofi77o56JusE=; b=YIJ99kLYDyqroGJIzUbpHzPHVX
+	QsvSynFvH4MInjiyWyZHTn0Qd0cAeJ2P6DIiCx1h3g0xzP/5T7J9BSuXzuKCM+Ia
+	v2OcmD2n36J/kgiOa95fuBHNJUUpF0BxdK/ZOpHl/vcNIFO224cgA6JLCZUw+0pV
+	QoDd9wlfBiAY51lcpejIQpVJWb5IfEBxJ43C+IeK7pVMZHJv4RMnfg1LaY/fbOME
+	MsxQAwoAuxr7uhhaWcbWg+7LGZQj4gUJZRQWo3BY/B76pfk03v8D1AfxkKRqj/zG
+	dTFqvAjYl89iqOuXc2+VHrIiNalGMpfh5q73x3GnicCz7QRcIqHk2njeFFXw==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:content-type:content-type:date:date
+	:feedback-id:feedback-id:from:from:in-reply-to:in-reply-to
+	:message-id:mime-version:references:reply-to:subject:subject:to
+	:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=
+	fm3; t=1706300075; x=1706386475; bh=PTTnJNpgNLbDx/r8kMhAAD2XWV9i
+	oSxofi77o56JusE=; b=vu2MCvLvQA8eiso83CL7hL5P4fRPHqqI2Ykvr+Ussytp
+	2ydwGhRFwTs7/4Pj3EDqlwKqsHcPCNkL+CWMJtB/mVp1nVKQJBST/puHQPgAlbfP
+	NNXHT8XC8Nc+Ej0fHR5NvCEDhiDlBh57a7G//Gc6q9hpDvkFyOPcVkYOl75WtSr7
+	MP4X4vcySrf/ASU0iaZC0/wUFtaj/eD+jx3FSFr4U9cdfqkdKKnWMMuvoz/M2dSl
+	IAwVPKzqvRXkBcvwVFRcP3Dxsn2fwkZkefnYxwsupJPm1VfYPaHLxA1K8wUVb2vJ
+	H1FSCWH5og9QLRgQIUArNRbM5Vxrxvq4AUqSg754Vg==
+X-ME-Sender: <xms:qxK0ZR55l5SvosYqT67ebLxU1n5YbOHtWRHRasdOu03z-Lw822UGoA>
+    <xme:qxK0Ze6h7U5N2LrJdm4vOzCcwheJyTXrvta3jMpHxD0T8ne4rHC4EubKxTCRHF3Mq
+    BZCz1UxPNn26rHbYvQ>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvkedrvdeljedgudeffecutefuodetggdotefrod
+    ftvfcurfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfgh
+    necuuegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmd
+    enucfjughrpefofgggkfgjfhffhffvufgtsehttdertderredtnecuhfhrohhmpedftehr
+    nhguuceuvghrghhmrghnnhdfuceorghrnhgusegrrhhnuggsrdguvgeqnecuggftrfgrth
+    htvghrnhepffegffdutddvhefffeeltefhjeejgedvleffjeeigeeuteelvdettddulefg
+    udfgnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomheprg
+    hrnhgusegrrhhnuggsrdguvg
+X-ME-Proxy: <xmx:qxK0ZYcecr1D80HNjkZJ7FnKRcWIkR3t7-9r77lJWZk2ZBWOuY7aFw>
+    <xmx:qxK0ZaK1W6z9GCC8FdIw_PC5SNS_mZaHKK49fz6j-br0rsFMnH-ZMw>
+    <xmx:qxK0ZVKm1_ElaurtIU4NyxlTIe0C3Ia3rrm4FtZ4fhV0uOm66cEVLQ>
+    <xmx:qxK0ZSBxnMQy-blz1558pEOaOeZvOacpVBhAOJSxpbcAaMwJhpUnCg>
+Feedback-ID: i56a14606:Fastmail
+Received: by mailuser.nyi.internal (Postfix, from userid 501)
+	id 4C631B6008D; Fri, 26 Jan 2024 15:14:35 -0500 (EST)
+X-Mailer: MessagingEngine.com Webmail Interface
+User-Agent: Cyrus-JMAP/3.11.0-alpha0-119-ga8b98d1bd8-fm-20240108.001-ga8b98d1b
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Content-Language: en-US
-From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-To: Dan Williams <dan.j.williams@intel.com>,
- Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>,
- Matthew Wilcox <willy@infradead.org>,
- Andrew Morton <akpm@linux-foundation.org>,
- Linus Torvalds <torvalds@linux-foundation.org>, linux-mm
- <linux-mm@kvack.org>, linux-arch@vger.kernel.org, nvdimm@lists.linux.dev,
- linux-cxl@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>,
- Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>
-Subject: [REGRESSION] v5.13: FS_DAX unavailable on 32-bit ARM
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Message-Id: <c54d0ede-4f41-4fcf-8fe7-d3f9e1bb63a4@app.fastmail.com>
+In-Reply-To: <e523b29c-0fd0-4b7c-bf8c-d3424ee2c031@efficios.com>
+References: <e523b29c-0fd0-4b7c-bf8c-d3424ee2c031@efficios.com>
+Date: Fri, 26 Jan 2024 21:14:15 +0100
+From: "Arnd Bergmann" <arnd@arndb.de>
+To: "Mathieu Desnoyers" <mathieu.desnoyers@efficios.com>,
+ "Dan Williams" <dan.j.williams@intel.com>,
+ "Vishal Verma" <vishal.l.verma@intel.com>,
+ "Dave Jiang" <dave.jiang@intel.com>, "Matthew Wilcox" <willy@infradead.org>,
+ "Andrew Morton" <akpm@linux-foundation.org>,
+ "Linus Torvalds" <torvalds@linux-foundation.org>,
+ linux-mm <linux-mm@kvack.org>, Linux-Arch <linux-arch@vger.kernel.org>,
+ nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
+ linux-kernel <linux-kernel@vger.kernel.org>,
+ "Russell King" <linux@armlinux.org.uk>
+Subject: Re: [REGRESSION] v5.13: FS_DAX unavailable on 32-bit ARM
+Content-Type: text/plain
 
-Hi,
+On Fri, Jan 26, 2024, at 20:33, Mathieu Desnoyers wrote:
+>
+> A) I have prepared a patch series introducing cache_is_aliasing() with 
+> new Kconfig
+>     options:
+>
+>    * ARCH_HAS_CACHE_ALIASING
+>    * ARCH_HAS_CACHE_ALIASING_DYNAMIC
+>
+> and implemented it for all architectures. The "DYNAMIC" implementation
+> implements cache_is_aliasing() as a runtime check, which is what is needed
+> on architectures like 32-bit ARM.
+>
+> With this we can basically narrow down the list of architectures which are
+> unsupported by DAX to those which are really affected, without actually solving
+> the issue for architectures with virtually aliased dcaches.
 
-This commit introduced in v5.13 prevents building FS_DAX on 32-bit ARM,
-even on ARMv7 which does not have virtually aliased dcaches:
+The dynamic option should only be required when building for
+ARMv6, which is really rare. On an ARMv7-only configuration,
+we know that the dcache is non-aliasing, so the compile-time
+check should be sufficient.
 
-commit d92576f1167c ("dax: does not work correctly with virtual aliasing caches")
+Even on ARMv6, this could be done as a compile-time choice
+by platform, since we mostly know what the chips can do:
+bcm2835, imx3, wm8750 and s3c64xx are non-aliasing because
+they are limited to 16KB L1 caches, while omap2 and as2500
+are aliasing with 32KB caches. With realview/integrator it
+depends on the exact CPU that was installed.
 
-It used to work fine before: I have customers using dax over pmem on ARMv7, but
-this regression will likely prevent them from upgrading their kernel.
-
-The root of the issue here is the fact that DAX was never designed to handle
-virtually aliased dcache (VIVT and VIPT with aliased dcache). It touches the
-pages through their linear mapping, which is not consistent with the userspace
-mappings on virtually aliased dcaches.
-
-I can see a few ways forward to address this:
-
-A) I have prepared a patch series introducing cache_is_aliasing() with new Kconfig
-    options:
-
-   * ARCH_HAS_CACHE_ALIASING
-   * ARCH_HAS_CACHE_ALIASING_DYNAMIC
-
-and implemented it for all architectures. The "DYNAMIC" implementation
-implements cache_is_aliasing() as a runtime check, which is what is needed
-on architectures like 32-bit ARM.
-
-With this we can basically narrow down the list of architectures which are
-unsupported by DAX to those which are really affected, without actually solving
-the issue for architectures with virtually aliased dcaches.
-
-B) Another approach would be to dig into what exactly DAX is doing with the linear
-    mapping, and try to fix this. I see two options there:
-
-B.1) Either we extend vmap to allow vmap'd pages to be aligned on specific multiples,
-      and use a coloring trick based on SHMLBA like userspace mappings do for all DAX
-      internal pages accesses, or
-
-B.2) We introduce flush_dcache_folio() at relevant spots (perhaps dax_flush() ?) to
-      synchronize the linear mapping wrt userspace mappings. (would this work ?)
-
-Any thoughts on how to best move forward with this issue are welcome.
-
-Thanks,
-
-Mathieu
-
--- 
-Mathieu Desnoyers
-EfficiOS Inc.
-https://www.efficios.com
+     Arnd
