@@ -1,186 +1,94 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6BC76AD6;
-	Fri, 26 Jan 2024 02:16:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6CCF320323
+	for <nvdimm@lists.linux.dev>; Fri, 26 Jan 2024 17:42:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706235402; cv=none; b=X4rIjYVji+hAvWiTpfLryEk1tiGqyTSPYu5lbkAGI3ASi1D/TDtiYYh+cDr/PmCOXYJ/WZnXWUGql/kmdTsaUL2o0cZvkxSr5teWwSCUJaB4Q6C9Pvr5c/+sQ3+zyshsbWFvyc9Kpd8r4KvnIV35LB9iwGUN9B2RoKXb2iA35mI=
+	t=1706290948; cv=none; b=jjsesjhk8CVyLAty11yIUpyw2EAfkQKFmuC+ugEZsEQ67RJxx0+3v7nk/KbnZ1vLcnnnrGWZRViHFZyZQWLHTHUETPNpiX7lUIOKerhRj6FwAmi+DMz79e2GzX+I0X7mkoCSdy6EXmLQpzQEc4/PcC42ipv1XBEOergzTmVypXA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706235402; c=relaxed/simple;
-	bh=KX1g7BnrjO9YTYHP+jTCG8fwDO7do9KS0BWOGiHsFyM=;
-	h=Date:To:From:Subject:Message-Id; b=tScDBkzEwgojAgBwMyGCT1AEvExU6Ti7019lC9FM7Uqry/Ro+fieu8P+4RUBMxWHDJYMR8ooF5fwbaGci4VPRL/tYVQXbX7mF2bcHnut9oKFuVGUMoi5oFXU9kdZmx+8kQLrGFrdoAbEmnsHLdLtg0tBxi2v33z41/TWm/Nm4Eg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ChaeGbYa; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ChaeGbYa"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31E92C433C7;
-	Fri, 26 Jan 2024 02:16:41 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706235402;
-	bh=KX1g7BnrjO9YTYHP+jTCG8fwDO7do9KS0BWOGiHsFyM=;
-	h=Date:To:From:Subject:From;
-	b=ChaeGbYaw/Cf0FZvztKg8iF3coLH3EXPAop4zQQhOdkxVmonKWWW/SBtz1L50+QJG
-	 tfEcqI3hk8/IQ+JMIvRWC4k95PSsbTDgXZRhKHZAKp02/5wKNzqilhun5ybkt8bcut
-	 axljmpbgCUFHXpf/A/+Ae/VT1GA1G1su/F7/Gloc=
-Date: Thu, 25 Jan 2024 18:16:39 -0800
-To: mm-commits@vger.kernel.org,ying.huang@intel.com,willy@infradead.org,osalvador@suse.de,nvdimm@lists.linux.dev,mhocko@suse.com,lizhijian@fujitsu.com,Jonathan.Cameron@huawei.com,gregkh@linuxfoundation.org,david@redhat.com,dave.jiang@intel.com,dave.hansen@linux.intel.com,dan.j.williams@intel.com,vishal.l.verma@intel.com,akpm@linux-foundation.org
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + dax-add-a-sysfs-knob-to-control-memmap_on_memory-behavior.patch added to mm-unstable branch
-Message-Id: <20240126021642.31E92C433C7@smtp.kernel.org>
+	s=arc-20240116; t=1706290948; c=relaxed/simple;
+	bh=8fTm/4bikTj6WePExouWXSPkmpSnSS6RPuI1d6OHnvg=;
+	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=lb27t+rG/O8/ty8AumwGgfQfegxXh/idivBAMsEp4KdMqbEurWULfxeGwWzK5G0Sz/wu4J0krqPH24sq7CVKrihOB0DnAKDWaMVNX/54Q9cvidtpEn/C8QhQU7q5MwBHeibQVqMEwqMoBaFtbIF89BYn9BNvInb/M+wqVculzNo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.18.186.216])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4TM4gw2BmMz6K8wq;
+	Sat, 27 Jan 2024 01:39:24 +0800 (CST)
+Received: from lhrpeml500005.china.huawei.com (unknown [7.191.163.240])
+	by mail.maildlp.com (Postfix) with ESMTPS id 26E52140B67;
+	Sat, 27 Jan 2024 01:42:24 +0800 (CST)
+Received: from localhost (10.202.227.76) by lhrpeml500005.china.huawei.com
+ (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.35; Fri, 26 Jan
+ 2024 17:42:23 +0000
+Date: Fri, 26 Jan 2024 17:42:23 +0000
+From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+To: Quanquan Cao <caoqq@fujitsu.com>
+CC: <dave.jiang@intel.com>, <vishal.l.verma@intel.com>,
+	<linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>
+Subject: Re: [PATCH] =?UTF-8?Q?cxl/region=EF=BC=9AFix?= overflow issue in
+ alloc_hpa()
+Message-ID: <20240126174223.00005736@Huawei.com>
+In-Reply-To: <20240124091527.8469-1-caoqq@fujitsu.com>
+References: <20240124091527.8469-1-caoqq@fujitsu.com>
+Organization: Huawei Technologies Research and Development (UK) Ltd.
+X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: lhrpeml500003.china.huawei.com (7.191.162.67) To
+ lhrpeml500005.china.huawei.com (7.191.163.240)
 
+On Wed, 24 Jan 2024 17:15:26 +0800
+Quanquan Cao <caoqq@fujitsu.com> wrote:
 
-The patch titled
-     Subject: dax: add a sysfs knob to control memmap_on_memory behavior
-has been added to the -mm mm-unstable branch.  Its filename is
-     dax-add-a-sysfs-knob-to-control-memmap_on_memory-behavior.patch
+> Creating a region with 16 memory devices caused a problem. The div_u64_rem
+> function, used for dividing an unsigned 64-bit number by a 32-bit one,
+> faced an issue when SZ_256M * p->interleave_ways. The result surpassed
+> the maximum limit of the 32-bit divisor (4G), leading to an overflow
+> and a remainder of 0.
+> note: At this point, p->interleave_ways is 16, meaning 16 * 256M = 4G
+> 
+> To fix this issue, I replaced the div_u64_rem function with div64_u64_rem
+> and adjusted the type of the remainder.
+> 
+> Signed-off-by: Quanquan Cao <caoqq@fujitsu.com>
+Good find, though now I'm curious on whether you have a real system doing
+16 way interleave :)
 
-This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/dax-add-a-sysfs-knob-to-control-memmap_on_memory-behavior.patch
-
-This patch will later appear in the mm-unstable branch at
-    git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next via the mm-everything
-branch at git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
-and is updated there every 2-3 working days
-
-------------------------------------------------------
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: dax: add a sysfs knob to control memmap_on_memory behavior
-Date: Wed, 24 Jan 2024 12:03:50 -0800
-
-Add a sysfs knob for dax devices to control the memmap_on_memory setting
-if the dax device were to be hotplugged as system memory.
-
-The default memmap_on_memory setting for dax devices originating via pmem
-or hmem is set to 'false' - i.e.  no memmap_on_memory semantics, to
-preserve legacy behavior.  For dax devices via CXL, the default is on. 
-The sysfs control allows the administrator to override the above defaults
-if needed.
-
-Link: https://lkml.kernel.org/r/20240124-vv-dax_abi-v7-5-20d16cb8d23d@intel.com
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
-Tested-by: Li Zhijian <lizhijian@fujitsu.com>
 Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Huang, Ying <ying.huang@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: <nvdimm@lists.linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- Documentation/ABI/testing/sysfs-bus-dax |   17 ++++++++
- drivers/dax/bus.c                       |   43 ++++++++++++++++++++++
- 2 files changed, 60 insertions(+)
-
---- a/Documentation/ABI/testing/sysfs-bus-dax~dax-add-a-sysfs-knob-to-control-memmap_on_memory-behavior
-+++ a/Documentation/ABI/testing/sysfs-bus-dax
-@@ -134,3 +134,20 @@ KernelVersion:	v5.1
- Contact:	nvdimm@lists.linux.dev
- Description:
- 		(RO) The id attribute indicates the region id of a dax region.
-+
-+What:		/sys/bus/dax/devices/daxX.Y/memmap_on_memory
-+Date:		January, 2024
-+KernelVersion:	v6.8
-+Contact:	nvdimm@lists.linux.dev
-+Description:
-+		(RW) Control the memmap_on_memory setting if the dax device
-+		were to be hotplugged as system memory. This determines whether
-+		the 'altmap' for the hotplugged memory will be placed on the
-+		device being hotplugged (memmap_on_memory=1) or if it will be
-+		placed on regular memory (memmap_on_memory=0). This attribute
-+		must be set before the device is handed over to the 'kmem'
-+		driver (i.e.  hotplugged into system-ram). Additionally, this
-+		depends on CONFIG_MHP_MEMMAP_ON_MEMORY, and a globally enabled
-+		memmap_on_memory parameter for memory_hotplug. This is
-+		typically set on the kernel command line -
-+		memory_hotplug.memmap_on_memory set to 'true' or 'force'."
---- a/drivers/dax/bus.c~dax-add-a-sysfs-knob-to-control-memmap_on_memory-behavior
-+++ a/drivers/dax/bus.c
-@@ -1349,6 +1349,48 @@ static ssize_t numa_node_show(struct dev
- }
- static DEVICE_ATTR_RO(numa_node);
- 
-+static ssize_t memmap_on_memory_show(struct device *dev,
-+				     struct device_attribute *attr, char *buf)
-+{
-+	struct dev_dax *dev_dax = to_dev_dax(dev);
-+
-+	return sysfs_emit(buf, "%d\n", dev_dax->memmap_on_memory);
-+}
-+
-+static ssize_t memmap_on_memory_store(struct device *dev,
-+				      struct device_attribute *attr,
-+				      const char *buf, size_t len)
-+{
-+	struct dev_dax *dev_dax = to_dev_dax(dev);
-+	bool val;
-+	int rc;
-+
-+	rc = kstrtobool(buf, &val);
-+	if (rc)
-+		return rc;
-+
-+	if (val == true && !mhp_supports_memmap_on_memory()) {
-+		dev_dbg(dev, "memmap_on_memory is not available\n");
-+		return -EOPNOTSUPP;
-+	}
-+
-+	rc = down_write_killable(&dax_dev_rwsem);
-+	if (rc)
-+		return rc;
-+
-+	if (dev_dax->memmap_on_memory != val && dev->driver &&
-+	    to_dax_drv(dev->driver)->type == DAXDRV_KMEM_TYPE) {
-+		up_write(&dax_dev_rwsem);
-+		return -EBUSY;
-+	}
-+
-+	dev_dax->memmap_on_memory = val;
-+	up_write(&dax_dev_rwsem);
-+
-+	return len;
-+}
-+static DEVICE_ATTR_RW(memmap_on_memory);
-+
- static umode_t dev_dax_visible(struct kobject *kobj, struct attribute *a, int n)
- {
- 	struct device *dev = container_of(kobj, struct device, kobj);
-@@ -1375,6 +1417,7 @@ static struct attribute *dev_dax_attribu
- 	&dev_attr_align.attr,
- 	&dev_attr_resource.attr,
- 	&dev_attr_numa_node.attr,
-+	&dev_attr_memmap_on_memory.attr,
- 	NULL,
- };
- 
-_
-
-Patches currently in -mm which might be from vishal.l.verma@intel.com are
-
-dax-busc-replace-driver-core-lock-usage-by-a-local-rwsem.patch
-dax-busc-replace-several-sprintf-with-sysfs_emit.patch
-documentatiion-abi-add-abi-documentation-for-sys-bus-dax.patch
-mm-memory_hotplug-export-mhp_supports_memmap_on_memory.patch
-dax-add-a-sysfs-knob-to-control-memmap_on_memory-behavior.patch
+> ---
+>  drivers/cxl/core/region.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
+> index 0f05692bfec3..ce0e2d82bb2b 100644
+> --- a/drivers/cxl/core/region.c
+> +++ b/drivers/cxl/core/region.c
+> @@ -525,7 +525,7 @@ static int alloc_hpa(struct cxl_region *cxlr, resource_size_t size)
+>  	struct cxl_root_decoder *cxlrd = to_cxl_root_decoder(cxlr->dev.parent);
+>  	struct cxl_region_params *p = &cxlr->params;
+>  	struct resource *res;
+> -	u32 remainder = 0;
+> +	u64 remainder = 0;
+>  
+>  	lockdep_assert_held_write(&cxl_region_rwsem);
+>  
+> @@ -545,7 +545,7 @@ static int alloc_hpa(struct cxl_region *cxlr, resource_size_t size)
+>  	    (cxlr->mode == CXL_DECODER_PMEM && uuid_is_null(&p->uuid)))
+>  		return -ENXIO;
+>  
+> -	div_u64_rem(size, SZ_256M * p->interleave_ways, &remainder);
+> +	div64_u64_rem(size, (u64)SZ_256M * p->interleave_ways, &remainder);
+>  	if (remainder)
+>  		return -EINVAL;
+>  
 
