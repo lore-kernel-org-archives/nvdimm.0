@@ -1,32 +1,32 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9DF76AD6;
-	Fri, 26 Jan 2024 02:16:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C6BC76AD6;
+	Fri, 26 Jan 2024 02:16:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706235399; cv=none; b=Vk/pGIh1MHnruy0NH1MwIiBnlPqyHITMgOU6Bn4geu74cEy1vEHSNJ2l6UCu6tTm1cLo3iihawj74nlr5SKufP1DHKeQ/oSG4LRI+oHCabvYSsf8KBO4jPUXDurXGX0nq3QVFv+ydk1ndwAifeQMc2kPVo9SDE6/m/rNoWCgDic=
+	t=1706235402; cv=none; b=X4rIjYVji+hAvWiTpfLryEk1tiGqyTSPYu5lbkAGI3ASi1D/TDtiYYh+cDr/PmCOXYJ/WZnXWUGql/kmdTsaUL2o0cZvkxSr5teWwSCUJaB4Q6C9Pvr5c/+sQ3+zyshsbWFvyc9Kpd8r4KvnIV35LB9iwGUN9B2RoKXb2iA35mI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706235399; c=relaxed/simple;
-	bh=K5wFfDSZrBbSuAvosBrqRdnRcT6fRzy+VbIRKBYgx6E=;
-	h=Date:To:From:Subject:Message-Id; b=CVq2K3vYheNX+8uM1zkunUyHLfJH8E5utU8qCOVNBRz+qZTLiSuKT9Bn5rtbzVkiF0zofu0IJygmAfn2Gh9qHchC+VCgg+Vvld/sw712JzgnG59GfoV1+X4XnGnff+enVVy/sg6+ED2VROZX7d9JCC4k+4vI5x3/lLy27afr4lY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=usOLgPYB; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1706235402; c=relaxed/simple;
+	bh=KX1g7BnrjO9YTYHP+jTCG8fwDO7do9KS0BWOGiHsFyM=;
+	h=Date:To:From:Subject:Message-Id; b=tScDBkzEwgojAgBwMyGCT1AEvExU6Ti7019lC9FM7Uqry/Ro+fieu8P+4RUBMxWHDJYMR8ooF5fwbaGci4VPRL/tYVQXbX7mF2bcHnut9oKFuVGUMoi5oFXU9kdZmx+8kQLrGFrdoAbEmnsHLdLtg0tBxi2v33z41/TWm/Nm4Eg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=ChaeGbYa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="usOLgPYB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 93952C433C7;
-	Fri, 26 Jan 2024 02:16:38 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ChaeGbYa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31E92C433C7;
+	Fri, 26 Jan 2024 02:16:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1706235399;
-	bh=K5wFfDSZrBbSuAvosBrqRdnRcT6fRzy+VbIRKBYgx6E=;
+	s=korg; t=1706235402;
+	bh=KX1g7BnrjO9YTYHP+jTCG8fwDO7do9KS0BWOGiHsFyM=;
 	h=Date:To:From:Subject:From;
-	b=usOLgPYByiMgkcvFS82AHwU/IL+UUn0MKodUT2rIcyqqaVi51l9JJO10I5ENrQfxJ
-	 6+QLasaaOzfnG7KRRnrWyOL4XTE+8Dc5v6o7pEoWDsNqle38NW9pOxqHofFj+gh3+v
-	 QKHjDwKBvqyuhlUklXscZ6Nn2+O/XGsitmUj26QQ=
-Date: Thu, 25 Jan 2024 18:16:35 -0800
+	b=ChaeGbYaw/Cf0FZvztKg8iF3coLH3EXPAop4zQQhOdkxVmonKWWW/SBtz1L50+QJG
+	 tfEcqI3hk8/IQ+JMIvRWC4k95PSsbTDgXZRhKHZAKp02/5wKNzqilhun5ybkt8bcut
+	 axljmpbgCUFHXpf/A/+Ae/VT1GA1G1su/F7/Gloc=
+Date: Thu, 25 Jan 2024 18:16:39 -0800
 To: mm-commits@vger.kernel.org,ying.huang@intel.com,willy@infradead.org,osalvador@suse.de,nvdimm@lists.linux.dev,mhocko@suse.com,lizhijian@fujitsu.com,Jonathan.Cameron@huawei.com,gregkh@linuxfoundation.org,david@redhat.com,dave.jiang@intel.com,dave.hansen@linux.intel.com,dan.j.williams@intel.com,vishal.l.verma@intel.com,akpm@linux-foundation.org
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: + documentatiion-abi-add-abi-documentation-for-sys-bus-dax.patch added to mm-unstable branch
-Message-Id: <20240126021638.93952C433C7@smtp.kernel.org>
+Subject: + dax-add-a-sysfs-knob-to-control-memmap_on_memory-behavior.patch added to mm-unstable branch
+Message-Id: <20240126021642.31E92C433C7@smtp.kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -35,12 +35,12 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 
 
 The patch titled
-     Subject: Documentatiion/ABI: add ABI documentation for sys-bus-dax
+     Subject: dax: add a sysfs knob to control memmap_on_memory behavior
 has been added to the -mm mm-unstable branch.  Its filename is
-     documentatiion-abi-add-abi-documentation-for-sys-bus-dax.patch
+     dax-add-a-sysfs-knob-to-control-memmap_on_memory-behavior.patch
 
 This patch will shortly appear at
-     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/documentatiion-abi-add-abi-documentation-for-sys-bus-dax.patch
+     https://git.kernel.org/pub/scm/linux/kernel/git/akpm/25-new.git/tree/patches/dax-add-a-sysfs-knob-to-control-memmap_on_memory-behavior.patch
 
 This patch will later appear in the mm-unstable branch at
     git://git.kernel.org/pub/scm/linux/kernel/git/akpm/mm
@@ -59,24 +59,28 @@ and is updated there every 2-3 working days
 
 ------------------------------------------------------
 From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: Documentatiion/ABI: add ABI documentation for sys-bus-dax
-Date: Wed, 24 Jan 2024 12:03:48 -0800
+Subject: dax: add a sysfs knob to control memmap_on_memory behavior
+Date: Wed, 24 Jan 2024 12:03:50 -0800
 
-Add the missing sysfs ABI documentation for the device DAX subsystem.
-Various ABI attributes under this have been present since v5.1, and more
-have been added over time. In preparation for adding a new attribute,
-add this file with the historical details.
+Add a sysfs knob for dax devices to control the memmap_on_memory setting
+if the dax device were to be hotplugged as system memory.
 
-Link: https://lkml.kernel.org/r/20240124-vv-dax_abi-v7-3-20d16cb8d23d@intel.com
+The default memmap_on_memory setting for dax devices originating via pmem
+or hmem is set to 'false' - i.e.  no memmap_on_memory semantics, to
+preserve legacy behavior.  For dax devices via CXL, the default is on. 
+The sysfs control allows the administrator to override the above defaults
+if needed.
+
+Link: https://lkml.kernel.org/r/20240124-vv-dax_abi-v7-5-20d16cb8d23d@intel.com
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+Tested-by: Li Zhijian <lizhijian@fujitsu.com>
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Huang, Ying <ying.huang@intel.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Li Zhijian <lizhijian@fujitsu.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: <nvdimm@lists.linux.dev>
@@ -84,148 +88,92 @@ Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-bus-dax |  136 ++++++++++++++++++++++
- 1 file changed, 136 insertions(+)
+ Documentation/ABI/testing/sysfs-bus-dax |   17 ++++++++
+ drivers/dax/bus.c                       |   43 ++++++++++++++++++++++
+ 2 files changed, 60 insertions(+)
 
---- /dev/null
+--- a/Documentation/ABI/testing/sysfs-bus-dax~dax-add-a-sysfs-knob-to-control-memmap_on_memory-behavior
 +++ a/Documentation/ABI/testing/sysfs-bus-dax
-@@ -0,0 +1,136 @@
-+What:		/sys/bus/dax/devices/daxX.Y/align
-+Date:		October, 2020
-+KernelVersion:	v5.10
-+Contact:	nvdimm@lists.linux.dev
-+Description:
-+		(RW) Provides a way to specify an alignment for a dax device.
-+		Values allowed are constrained by the physical address ranges
-+		that back the dax device, and also by arch requirements.
+@@ -134,3 +134,20 @@ KernelVersion:	v5.1
+ Contact:	nvdimm@lists.linux.dev
+ Description:
+ 		(RO) The id attribute indicates the region id of a dax region.
 +
-+What:		/sys/bus/dax/devices/daxX.Y/mapping
-+Date:		October, 2020
-+KernelVersion:	v5.10
++What:		/sys/bus/dax/devices/daxX.Y/memmap_on_memory
++Date:		January, 2024
++KernelVersion:	v6.8
 +Contact:	nvdimm@lists.linux.dev
 +Description:
-+		(WO) Provides a way to allocate a mapping range under a dax
-+		device. Specified in the format <start>-<end>.
++		(RW) Control the memmap_on_memory setting if the dax device
++		were to be hotplugged as system memory. This determines whether
++		the 'altmap' for the hotplugged memory will be placed on the
++		device being hotplugged (memmap_on_memory=1) or if it will be
++		placed on regular memory (memmap_on_memory=0). This attribute
++		must be set before the device is handed over to the 'kmem'
++		driver (i.e.  hotplugged into system-ram). Additionally, this
++		depends on CONFIG_MHP_MEMMAP_ON_MEMORY, and a globally enabled
++		memmap_on_memory parameter for memory_hotplug. This is
++		typically set on the kernel command line -
++		memory_hotplug.memmap_on_memory set to 'true' or 'force'."
+--- a/drivers/dax/bus.c~dax-add-a-sysfs-knob-to-control-memmap_on_memory-behavior
++++ a/drivers/dax/bus.c
+@@ -1349,6 +1349,48 @@ static ssize_t numa_node_show(struct dev
+ }
+ static DEVICE_ATTR_RO(numa_node);
+ 
++static ssize_t memmap_on_memory_show(struct device *dev,
++				     struct device_attribute *attr, char *buf)
++{
++	struct dev_dax *dev_dax = to_dev_dax(dev);
 +
-+What:		/sys/bus/dax/devices/daxX.Y/mapping[0..N]/start
-+What:		/sys/bus/dax/devices/daxX.Y/mapping[0..N]/end
-+What:		/sys/bus/dax/devices/daxX.Y/mapping[0..N]/page_offset
-+Date:		October, 2020
-+KernelVersion:	v5.10
-+Contact:	nvdimm@lists.linux.dev
-+Description:
-+		(RO) A dax device may have multiple constituent discontiguous
-+		address ranges. These are represented by the different
-+		'mappingX' subdirectories. The 'start' attribute indicates the
-+		start physical address for the given range. The 'end' attribute
-+		indicates the end physical address for the given range. The
-+		'page_offset' attribute indicates the offset of the current
-+		range in the dax device.
++	return sysfs_emit(buf, "%d\n", dev_dax->memmap_on_memory);
++}
 +
-+What:		/sys/bus/dax/devices/daxX.Y/resource
-+Date:		June, 2019
-+KernelVersion:	v5.3
-+Contact:	nvdimm@lists.linux.dev
-+Description:
-+		(RO) The resource attribute indicates the starting physical
-+		address of a dax device. In case of a device with multiple
-+		constituent ranges, it indicates the starting address of the
-+		first range.
++static ssize_t memmap_on_memory_store(struct device *dev,
++				      struct device_attribute *attr,
++				      const char *buf, size_t len)
++{
++	struct dev_dax *dev_dax = to_dev_dax(dev);
++	bool val;
++	int rc;
 +
-+What:		/sys/bus/dax/devices/daxX.Y/size
-+Date:		October, 2020
-+KernelVersion:	v5.10
-+Contact:	nvdimm@lists.linux.dev
-+Description:
-+		(RW) The size attribute indicates the total size of a dax
-+		device. For creating subdivided dax devices, or for resizing
-+		an existing device, the new size can be written to this as
-+		part of the reconfiguration process.
++	rc = kstrtobool(buf, &val);
++	if (rc)
++		return rc;
 +
-+What:		/sys/bus/dax/devices/daxX.Y/numa_node
-+Date:		November, 2019
-+KernelVersion:	v5.5
-+Contact:	nvdimm@lists.linux.dev
-+Description:
-+		(RO) If NUMA is enabled and the platform has affinitized the
-+		backing device for this dax device, emit the CPU node
-+		affinity for this device.
++	if (val == true && !mhp_supports_memmap_on_memory()) {
++		dev_dbg(dev, "memmap_on_memory is not available\n");
++		return -EOPNOTSUPP;
++	}
 +
-+What:		/sys/bus/dax/devices/daxX.Y/target_node
-+Date:		February, 2019
-+KernelVersion:	v5.1
-+Contact:	nvdimm@lists.linux.dev
-+Description:
-+		(RO) The target-node attribute is the Linux numa-node that a
-+		device-dax instance may create when it is online. Prior to
-+		being online the device's 'numa_node' property reflects the
-+		closest online cpu node which is the typical expectation of a
-+		device 'numa_node'. Once it is online it becomes its own
-+		distinct numa node.
++	rc = down_write_killable(&dax_dev_rwsem);
++	if (rc)
++		return rc;
 +
-+What:		$(readlink -f /sys/bus/dax/devices/daxX.Y)/../dax_region/available_size
-+Date:		October, 2020
-+KernelVersion:	v5.10
-+Contact:	nvdimm@lists.linux.dev
-+Description:
-+		(RO) The available_size attribute tracks available dax region
-+		capacity. This only applies to volatile hmem devices, not pmem
-+		devices, since pmem devices are defined by nvdimm namespace
-+		boundaries.
++	if (dev_dax->memmap_on_memory != val && dev->driver &&
++	    to_dax_drv(dev->driver)->type == DAXDRV_KMEM_TYPE) {
++		up_write(&dax_dev_rwsem);
++		return -EBUSY;
++	}
 +
-+What:		$(readlink -f /sys/bus/dax/devices/daxX.Y)/../dax_region/size
-+Date:		July, 2017
-+KernelVersion:	v5.1
-+Contact:	nvdimm@lists.linux.dev
-+Description:
-+		(RO) The size attribute indicates the size of a given dax region
-+		in bytes.
++	dev_dax->memmap_on_memory = val;
++	up_write(&dax_dev_rwsem);
 +
-+What:		$(readlink -f /sys/bus/dax/devices/daxX.Y)/../dax_region/align
-+Date:		October, 2020
-+KernelVersion:	v5.10
-+Contact:	nvdimm@lists.linux.dev
-+Description:
-+		(RO) The align attribute indicates alignment of the dax region.
-+		Changes on align may not always be valid, when say certain
-+		mappings were created with 2M and then we switch to 1G. This
-+		validates all ranges against the new value being attempted, post
-+		resizing.
++	return len;
++}
++static DEVICE_ATTR_RW(memmap_on_memory);
 +
-+What:		$(readlink -f /sys/bus/dax/devices/daxX.Y)/../dax_region/seed
-+Date:		October, 2020
-+KernelVersion:	v5.10
-+Contact:	nvdimm@lists.linux.dev
-+Description:
-+		(RO) The seed device is a concept for dynamic dax regions to be
-+		able to split the region amongst multiple sub-instances.  The
-+		seed device, similar to libnvdimm seed devices, is a device
-+		that starts with zero capacity allocated and unbound to a
-+		driver.
-+
-+What:		$(readlink -f /sys/bus/dax/devices/daxX.Y)/../dax_region/create
-+Date:		October, 2020
-+KernelVersion:	v5.10
-+Contact:	nvdimm@lists.linux.dev
-+Description:
-+		(RW) The create interface to the dax region provides a way to
-+		create a new unconfigured dax device under the given region, which
-+		can then be configured (with a size etc.) and then probed.
-+
-+What:		$(readlink -f /sys/bus/dax/devices/daxX.Y)/../dax_region/delete
-+Date:		October, 2020
-+KernelVersion:	v5.10
-+Contact:	nvdimm@lists.linux.dev
-+Description:
-+		(WO) The delete interface for a dax region provides for deletion
-+		of any 0-sized and idle dax devices.
-+
-+What:		$(readlink -f /sys/bus/dax/devices/daxX.Y)/../dax_region/id
-+Date:		July, 2017
-+KernelVersion:	v5.1
-+Contact:	nvdimm@lists.linux.dev
-+Description:
-+		(RO) The id attribute indicates the region id of a dax region.
+ static umode_t dev_dax_visible(struct kobject *kobj, struct attribute *a, int n)
+ {
+ 	struct device *dev = container_of(kobj, struct device, kobj);
+@@ -1375,6 +1417,7 @@ static struct attribute *dev_dax_attribu
+ 	&dev_attr_align.attr,
+ 	&dev_attr_resource.attr,
+ 	&dev_attr_numa_node.attr,
++	&dev_attr_memmap_on_memory.attr,
+ 	NULL,
+ };
+ 
 _
 
 Patches currently in -mm which might be from vishal.l.verma@intel.com are
