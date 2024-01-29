@@ -1,133 +1,144 @@
-Received: from esa3.hc1455-7.c3s2.iphmx.com (esa3.hc1455-7.c3s2.iphmx.com [207.54.90.49])
+Received: from smtpout.efficios.com (smtpout.efficios.com [167.114.26.122])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F9DAFBEB
-	for <nvdimm@lists.linux.dev>; Mon, 29 Jan 2024 02:22:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=207.54.90.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 740EC157E66
+	for <nvdimm@lists.linux.dev>; Mon, 29 Jan 2024 21:06:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=167.114.26.122
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706494945; cv=none; b=Z7okudQtPaBNLvByA+McKoL+ukNsH6Zs1+WTuyzqqaLy3RiyaG288Y6aOCs6uRqNj5QXKSPH/N5Gzm0hhFi50eMUsBhpLB96WZirMc1mX/RdA3I4WpE+TzBoINkAK4FRJo2ogB4XonujpxLt30Fe/gMOi/gbUdL99tbQwpiWxRM=
+	t=1706562413; cv=none; b=YuWVSRLaJJlmxGsGg4oRr/Hbmt4Tlstq+9IoaV8H3rW3GQl0MEaJq+Bd/t8/6lcu6YdJnpVw+B/lwi+yO25g48Mujca6hj1AIpxIH7a5Mmmxy2Lth9V4/SkVmXDI6cOzcFrLrvKHEuCl2i1++TJ2SPIrRTY5BqJdXFHR1xJzkPw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706494945; c=relaxed/simple;
-	bh=CKlhhtba3CD0STspJc7Cx2a94utzUV/y2NqjDJ1/Wzo=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=koqnOcrR7UwzlF16gME8WMCOX9HFCiz9vh4nMj6bS/3admVQqrvaSgMIOjB2QbVAFCEz6zrkD8sWWLPQL9/fvCwXLq2zPKmNmeu7b72/bI2H5THXjp+7yV/HkwJcWy63RZFuyCXtK1aTvqZd5YmsxcZaR9CP4oO3Smg3o+76PsY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=fujitsu.com; spf=pass smtp.mailfrom=fujitsu.com; dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b=HXCctTcn; arc=none smtp.client-ip=207.54.90.49
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=fujitsu.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fujitsu.com
+	s=arc-20240116; t=1706562413; c=relaxed/simple;
+	bh=K4VVElaY97sQQYGeAc34aX8mm/VX8BZpgLKGb7Mk6Jw=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=t35HuzsBAE9iN7PWAI8DNNF4T/UKCzin+ds2ZFRSOYdoRPBABwauinFIIo66KGpSlq3kxM/20bXMJj/5d30AUi1AXp1haTB8pH4D/u0aeUtsFXJHLh5TZXCxVfWDIIfmzyqBqkdDbe7KlxhiydJsjKDqSzYhWdpawdLsreAN0l4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com; spf=pass smtp.mailfrom=efficios.com; dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b=Lkdopncz; arc=none smtp.client-ip=167.114.26.122
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=efficios.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b="HXCctTcn"
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
-  d=fujitsu.com; i=@fujitsu.com; q=dns/txt; s=fj2;
-  t=1706494943; x=1738030943;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=CKlhhtba3CD0STspJc7Cx2a94utzUV/y2NqjDJ1/Wzo=;
-  b=HXCctTcnCVYlINKhT37osZ9qlKztbTUVC8awaW5M1saqxEhRF2eQ8W4X
-   ongMcigX9d8/bqJf2b7RlROPAL3iNPDwUtmwPFxz538pWdOMebJkqzSIy
-   EpM0Gl+8XIjGZEvF+8CyuW0jYPnpjmMjDxw/sFujrPeHOQeyh5+oCNM11
-   ETGhzGjFDgFGb55BIGtrnrQTVeCYxg8yuFw6jFkPRElT86GvvSVV25DU/
-   r07gbpHG8UGmrYv/kvKTny5fulQn6+ze/efujeJoZu24izErONtvj+Nuu
-   2PR9eXi7w7SCg/Cp9hu0bCgps4RUimIXQDyaAF//BtzH3+LGvjFwvhfxq
-   A==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10967"; a="147567434"
-X-IronPort-AV: E=Sophos;i="6.05,226,1701097200"; 
-   d="scan'208";a="147567434"
-Received: from unknown (HELO oym-r3.gw.nic.fujitsu.com) ([210.162.30.91])
-  by esa3.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Jan 2024 11:22:14 +0900
-Received: from oym-m4.gw.nic.fujitsu.com (oym-nat-oym-m4.gw.nic.fujitsu.com [192.168.87.61])
-	by oym-r3.gw.nic.fujitsu.com (Postfix) with ESMTP id 8258030732
-	for <nvdimm@lists.linux.dev>; Mon, 29 Jan 2024 11:22:11 +0900 (JST)
-Received: from kws-ab3.gw.nic.fujitsu.com (kws-ab3.gw.nic.fujitsu.com [192.51.206.21])
-	by oym-m4.gw.nic.fujitsu.com (Postfix) with ESMTP id B511423F989
-	for <nvdimm@lists.linux.dev>; Mon, 29 Jan 2024 11:22:10 +0900 (JST)
-Received: from edo.cn.fujitsu.com (edo.cn.fujitsu.com [10.167.33.5])
-	by kws-ab3.gw.nic.fujitsu.com (Postfix) with ESMTP id 483FC2007B725
-	for <nvdimm@lists.linux.dev>; Mon, 29 Jan 2024 11:22:10 +0900 (JST)
-Received: from [10.167.220.145] (unknown [10.167.220.145])
-	by edo.cn.fujitsu.com (Postfix) with ESMTP id 45B121A006A;
-	Mon, 29 Jan 2024 10:22:09 +0800 (CST)
-Message-ID: <64d4a375-ddca-18bf-8532-f730632534b7@fujitsu.com>
-Date: Mon, 29 Jan 2024 10:22:08 +0800
+	dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b="Lkdopncz"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=efficios.com;
+	s=smtpout1; t=1706562409;
+	bh=K4VVElaY97sQQYGeAc34aX8mm/VX8BZpgLKGb7Mk6Jw=;
+	h=From:To:Cc:Subject:Date:From;
+	b=Lkdopncz71c/Xl8mEy9+xgP1NtQ66UgWekcmwJxHLJvM0Aca1KjAyRvIf2eBppTfA
+	 eZ8z0XfJkpuZOySPd7Yggh59oZyscBGePayQYNc5YKDttLWgiQipIpHSmwj57Wyr38
+	 GTmJaOFafjQb5Z/imJKsaVn1B6/DwDPda8fOPrSPS7BM+U9u4Z0ZNa8kZjwU3phykv
+	 5wvXn8+EQ4/w+kmzBGYd4HJy2x9lNF09xj6ciQy+Vd/bqBRlV72eADDunRpghi4Oa7
+	 IFwDnQqDUgVhH5dED782CRDoSNZ/oc5o3bimfkdPxtSGoY0InQnXcc597lRHv5Bh20
+	 yoNbHpGbs/bTw==
+Received: from thinkos.internal.efficios.com (192-222-143-198.qc.cable.ebox.net [192.222.143.198])
+	by smtpout.efficios.com (Postfix) with ESMTPSA id 4TP17s0mCGzVQZ;
+	Mon, 29 Jan 2024 16:06:49 -0500 (EST)
+From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+To: Dan Williams <dan.j.williams@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>
+Cc: linux-kernel@vger.kernel.org,
+	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	linux-mm@kvack.org,
+	linux-arch@vger.kernel.org,
+	Matthew Wilcox <willy@infradead.org>,
+	linux-cxl@vger.kernel.org,
+	nvdimm@lists.linux.dev
+Subject: [RFC PATCH 0/7] Introduce cache_is_aliasing() to fix DAX regression
+Date: Mon, 29 Jan 2024 16:06:24 -0500
+Message-Id: <20240129210631.193493-1-mathieu.desnoyers@efficios.com>
+X-Mailer: git-send-email 2.39.2
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.5.0
-Subject: =?UTF-8?Q?Re=3a_=5bPATCH=5d_cxl/region=ef=bc=9aFix_overflow_issue_i?=
- =?UTF-8?Q?n_alloc=5fhpa=28=29?=
-To: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-Cc: dave.jiang@intel.com, vishal.l.verma@intel.com,
- linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
-References: <20240124091527.8469-1-caoqq@fujitsu.com>
- <20240126174223.00005736@Huawei.com>
-From: =?UTF-8?B?Q2FvLCBRdWFucXVhbi/mm7kg5YWo5YWo?= <caoqq@fujitsu.com>
-In-Reply-To: <20240126174223.00005736@Huawei.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-TM-AS-Product-Ver: IMSS-9.1.0.1417-9.0.0.1002-28148.004
-X-TM-AS-User-Approved-Sender: Yes
-X-TMASE-Version: IMSS-9.1.0.1417-9.0.1002-28148.004
-X-TMASE-Result: 10--8.148700-10.000000
-X-TMASE-MatchedRID: mZljRXDwq+6PvrMjLFD6eKpLARk+zpBZ2q80vLACqaeqvcIF1TcLYGfo
-	kmkn+GKT5TwyRv/sPZaBTisMRWo71i9Yu0mNbmByAD5jSg1rFtDKrKWVfpQki14a0aNSuN1VXcM
-	Ef3Bp/ti5iEI90L56oZJTeWTYf8Y24OhwfKpL0fBO5y1KmK5bJRSLgSFq3TnjoxCLfriDzzgTgt
-	4grpaSCgck6AzfHUrUGQhUUzPq97nlFpsfMgM6DJ4CIKY/Hg3AWQy9YC5qGvwCwwGD+AF1Ue52O
-	dZcC6tPJ0RPnyOnrZJ3pVBy2wMQd62spm70ENSYSSKyOaBXUW9K5ws+QNVNuYQE/NtwblrbJYkf
-	AuWGOfvPSFc5scb3CUp6IHVxSn0AJM53v5HcfHNlJCOsB4awXOVV62x4Nv+CWHt/4pqKiNrUEwC
-	0VA4Efc/9za0y1DHl
-X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
 
+This commit introduced in v5.13 prevents building FS_DAX on 32-bit ARM,
+even on ARMv7 which does not have virtually aliased dcaches:
 
+commit d92576f1167c ("dax: does not work correctly with virtual aliasing caches")
 
-在 2024/1/27 1:42, Jonathan Cameron 写道:
-> On Wed, 24 Jan 2024 17:15:26 +0800
-> Quanquan Cao <caoqq@fujitsu.com> wrote:
-> 
->> Creating a region with 16 memory devices caused a problem. The div_u64_rem
->> function, used for dividing an unsigned 64-bit number by a 32-bit one,
->> faced an issue when SZ_256M * p->interleave_ways. The result surpassed
->> the maximum limit of the 32-bit divisor (4G), leading to an overflow
->> and a remainder of 0.
->> note: At this point, p->interleave_ways is 16, meaning 16 * 256M = 4G
->>
->> To fix this issue, I replaced the div_u64_rem function with div64_u64_rem
->> and adjusted the type of the remainder.
->>
->> Signed-off-by: Quanquan Cao <caoqq@fujitsu.com>
-> Good find, though now I'm curious on whether you have a real system doing
-> 16 way interleave :)
+It used to work fine before: I have customers using dax over pmem on
+ARMv7, but this regression will likely prevent them from upgrading their
+kernel.
 
-Yes, currently the specification is 8, and 16 will be the maximum value.
+The root of the issue here is the fact that DAX was never designed to
+handle virtually aliased dcache (VIVT and VIPT with aliased dcache). It
+touches the pages through their linear mapping, which is not consistent
+with the userspace mappings on virtually aliased dcaches. 
 
-> Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
->> ---
->>   drivers/cxl/core/region.c | 4 ++--
->>   1 file changed, 2 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
->> index 0f05692bfec3..ce0e2d82bb2b 100644
->> --- a/drivers/cxl/core/region.c
->> +++ b/drivers/cxl/core/region.c
->> @@ -525,7 +525,7 @@ static int alloc_hpa(struct cxl_region *cxlr, resource_size_t size)
->>   	struct cxl_root_decoder *cxlrd = to_cxl_root_decoder(cxlr->dev.parent);
->>   	struct cxl_region_params *p = &cxlr->params;
->>   	struct resource *res;
->> -	u32 remainder = 0;
->> +	u64 remainder = 0;
->>   
->>   	lockdep_assert_held_write(&cxl_region_rwsem);
->>   
->> @@ -545,7 +545,7 @@ static int alloc_hpa(struct cxl_region *cxlr, resource_size_t size)
->>   	    (cxlr->mode == CXL_DECODER_PMEM && uuid_is_null(&p->uuid)))
->>   		return -ENXIO;
->>   
->> -	div_u64_rem(size, SZ_256M * p->interleave_ways, &remainder);
->> +	div64_u64_rem(size, (u64)SZ_256M * p->interleave_ways, &remainder);
->>   	if (remainder)
->>   		return -EINVAL;
->>   
-> 
+This patch series introduces cache_is_aliasing() with new Kconfig
+options:
+
+  * ARCH_HAS_CACHE_ALIASING
+  * ARCH_HAS_CACHE_ALIASING_DYNAMIC
+
+and implements it for all architectures. The "DYNAMIC" implementation
+implements cache_is_aliasing() as a runtime check, which is what is
+needed on architectures like 32-bit ARMV6 and ARMV6K.
+
+With this we can basically narrow down the list of architectures which
+are unsupported by DAX to those which are really affected.
+
+Feedback is welcome,
+
+Thanks,
+
+Mathieu
+
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-mm@kvack.org
+Cc: linux-arch@vger.kernel.org
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: linux-cxl@vger.kernel.org
+Cc: nvdimm@lists.linux.dev
+
+Mathieu Desnoyers (7):
+  Introduce cache_is_aliasing() across all architectures
+  dax: Fix incorrect list of cache aliasing architectures
+  erofs: Use dax_is_supported()
+  ext2: Use dax_is_supported()
+  ext4: Use dax_is_supported()
+  fuse: Introduce fuse_dax_is_supported()
+  xfs: Use dax_is_supported()
+
+ arch/arc/Kconfig                    |  1 +
+ arch/arm/include/asm/cachetype.h    |  3 ++
+ arch/arm/mm/Kconfig                 |  2 ++
+ arch/csky/Kconfig                   |  1 +
+ arch/m68k/Kconfig                   |  1 +
+ arch/mips/Kconfig                   |  1 +
+ arch/mips/include/asm/cachetype.h   |  9 +++++
+ arch/nios2/Kconfig                  |  1 +
+ arch/nios2/include/asm/cachetype.h  | 10 ++++++
+ arch/parisc/Kconfig                 |  1 +
+ arch/sh/Kconfig                     |  1 +
+ arch/sparc/Kconfig                  |  1 +
+ arch/sparc/include/asm/cachetype.h  | 14 ++++++++
+ arch/xtensa/Kconfig                 |  1 +
+ arch/xtensa/include/asm/cachetype.h | 10 ++++++
+ fs/Kconfig                          |  2 +-
+ fs/erofs/super.c                    | 10 +++---
+ fs/ext2/super.c                     | 14 ++++----
+ fs/ext4/super.c                     | 52 ++++++++++++++---------------
+ fs/fuse/file.c                      |  2 +-
+ fs/fuse/fuse_i.h                    | 36 +++++++++++++++++++-
+ fs/fuse/inode.c                     | 47 +++++++++++++-------------
+ fs/fuse/virtio_fs.c                 |  4 +--
+ fs/xfs/xfs_super.c                  | 20 +++++++----
+ include/linux/cacheinfo.h           |  8 +++++
+ include/linux/dax.h                 |  9 +++++
+ mm/Kconfig                          | 10 ++++++
+ 27 files changed, 198 insertions(+), 73 deletions(-)
+ create mode 100644 arch/mips/include/asm/cachetype.h
+ create mode 100644 arch/nios2/include/asm/cachetype.h
+ create mode 100644 arch/sparc/include/asm/cachetype.h
+ create mode 100644 arch/xtensa/include/asm/cachetype.h
+
+-- 
+2.39.2
+
