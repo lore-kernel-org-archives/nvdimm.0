@@ -1,40 +1,42 @@
 Received: from smtpout.efficios.com (smtpout.efficios.com [167.114.26.122])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 742B3157E87
-	for <nvdimm@lists.linux.dev>; Mon, 29 Jan 2024 21:06:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B0D1159568
+	for <nvdimm@lists.linux.dev>; Mon, 29 Jan 2024 21:06:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=167.114.26.122
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706562415; cv=none; b=X29VNt6iFASJZYTk7TILyJ5wXEieHTQyFwvOTa4tJ2K2+2kW5bJaszEZc0RCHwfBW04nNpJE7fVk0lHB8pDNpDfeDg348F52I2VrF2cTI4m0LHdlDjnj2vPB5IcSHhw5NCS1DoOFU6Qvt5fjfEZ2p1OFJVwc3KW2G/t9hBLv+Jg=
+	t=1706562417; cv=none; b=qEw7l5JJKq59W9K2IWRyhqGPAebFLINFXOuMF3LrYuilCZ631BT2+L64z//VZ49N/BhxmW4T+R+OtBEQjgTjKKnFWDh5ljiLnBJVqriJMODNyt6IQakyNuDcEGNDYbnjJteCm3X0qdpaZv6HVHk29s41EM6jYZFikEfitUonu6A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706562415; c=relaxed/simple;
-	bh=DRZ2yg+8WAlTHni5bhZssW4ALgjBmA8zDamvFNbz2wc=;
+	s=arc-20240116; t=1706562417; c=relaxed/simple;
+	bh=qE6d84dw/RHBezptIMoCUSoZjf7hEPQsPy+jBZ/P/F4=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=GUBzgMBa9RXmRgaGEYQnJa765+8+xU+zU2BE4kUgL0SP3P2mEI0cJA561FyilzNYLnlPK2Z/hDZJNfDwElxGMgd5+b0jwoCQhvnyZJKP9/URsJebBaVdeqnXfTYS98Qi0umBXf4QwjJPzRoBj+s0xiHXk/dA8JnutmQQNxjTVno=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com; spf=pass smtp.mailfrom=efficios.com; dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b=IBO1D6SV; arc=none smtp.client-ip=167.114.26.122
+	 MIME-Version; b=q6inSVHtPgALOS/IT19DqtbiCr8SnVaIUkBd89y/ASkj53pQQx2rIG34M0sQp2f5HKrXSGpZb+vcOdA/Ube7VDitOKocViGQhBM2n2FOJiACIg1StfBm6AubS9k6gywJ82FQZ98B49SJqREfkSdoP4tMliE1XaTv28F6vpl63u8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com; spf=pass smtp.mailfrom=efficios.com; dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b=Or9KKQbE; arc=none smtp.client-ip=167.114.26.122
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=efficios.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b="IBO1D6SV"
+	dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b="Or9KKQbE"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=efficios.com;
-	s=smtpout1; t=1706562409;
-	bh=DRZ2yg+8WAlTHni5bhZssW4ALgjBmA8zDamvFNbz2wc=;
+	s=smtpout1; t=1706562411;
+	bh=qE6d84dw/RHBezptIMoCUSoZjf7hEPQsPy+jBZ/P/F4=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=IBO1D6SVr6kuOxDwo+YKtrvcGFP5ZQytUZIn9EMCouTRbD33DxR9fRucjWYWLtOcA
-	 q1NOIdMWb4jdTarPKYG/Zomn22fefTasueYm03yyeEsgTLeqMl8a0kcWVF5CGDsVIy
-	 w4GdLEoNCMHYe3S1DCGYpTFwtfTxFyZEpoqI1oQ8K3frsxpOMRCVqcuvMlmg/I9+Lk
-	 aGfw/mJ9DsZ/eGckf3GDMcJjSjuBCwWtVdohFSdwlZ1JcfggC8Pl0WiYA2JrUyJf3k
-	 vIsJxMxTzHqXCFtkZQZzfb6WjI1Oi4By1B+ZclaNc8bVhlIkMZvn53NltXfdGwu96q
-	 68dFRT0YKIr4A==
+	b=Or9KKQbE01DFHpcvYQEjceuM4WZSaWEOvWctam+nWYmhRaiKWaY7y4HtQ+LAL/ra6
+	 WnhCkdYwWZj1fXClvt1jc4U9MGLixIqC+hCRIm0pnM+eeQFIiNsW9gPQLzahPKQZip
+	 vRvFUs1OQNbZHK4eqX9cfuOZsbhSkZk4y/WO9vHGSkKQ21R8iTopGgKUiPYn3cVKKy
+	 NY2XTs9e84eCiZRaD6C5ObMVDsbSWAz48qTfj2g5hx+kNTA/IE6wmKHn6763C2ptlI
+	 DRA6nvmFJIFA0Neet56IfoOGTJ7CVKcNye2U8woci47wLQIqX7JopQB0ezWkW1cJQy
+	 Ap1Rsna8wszfQ==
 Received: from thinkos.internal.efficios.com (192-222-143-198.qc.cable.ebox.net [192.222.143.198])
-	by smtpout.efficios.com (Postfix) with ESMTPSA id 4TP17s53WCzVXV;
-	Mon, 29 Jan 2024 16:06:49 -0500 (EST)
+	by smtpout.efficios.com (Postfix) with ESMTPSA id 4TP17v02t7zVfq;
+	Mon, 29 Jan 2024 16:06:50 -0500 (EST)
 From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 To: Dan Williams <dan.j.williams@intel.com>,
 	Vishal Verma <vishal.l.verma@intel.com>,
 	Dave Jiang <dave.jiang@intel.com>
 Cc: linux-kernel@vger.kernel.org,
 	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
+	Miklos Szeredi <miklos@szeredi.hu>,
+	linux-fsdevel@vger.kernel.org,
 	Andrew Morton <akpm@linux-foundation.org>,
 	Linus Torvalds <torvalds@linux-foundation.org>,
 	linux-mm@kvack.org,
@@ -42,9 +44,9 @@ Cc: linux-kernel@vger.kernel.org,
 	Matthew Wilcox <willy@infradead.org>,
 	nvdimm@lists.linux.dev,
 	linux-cxl@vger.kernel.org
-Subject: [RFC PATCH 2/7] dax: Fix incorrect list of cache aliasing architectures
-Date: Mon, 29 Jan 2024 16:06:26 -0500
-Message-Id: <20240129210631.193493-3-mathieu.desnoyers@efficios.com>
+Subject: [RFC PATCH 6/7] fuse: Introduce fuse_dax_is_supported()
+Date: Mon, 29 Jan 2024 16:06:30 -0500
+Message-Id: <20240129210631.193493-7-mathieu.desnoyers@efficios.com>
 X-Mailer: git-send-email 2.39.2
 In-Reply-To: <20240129210631.193493-1-mathieu.desnoyers@efficios.com>
 References: <20240129210631.193493-1-mathieu.desnoyers@efficios.com>
@@ -56,34 +58,18 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-fs/Kconfig:FS_DAX prevents DAX from building on architectures with
-virtually aliased dcache with:
+Use dax_is_supported() in addition to IS_ENABLED(CONFIG_FUSE_DAX) to
+validate whether CONFIG_FUSE_DAX is enabled and the architecture does
+not have virtually aliased caches.
 
-  depends on !(ARM || MIPS || SPARC)
-
-This check is too broad (e.g. recent ARMv7 don't have virtually aliased
-dcaches), and also misses many other architectures with virtually
-aliased dcache.
-
-This is a regression introduced in the v5.13 Linux kernel where the
-dax mount option is removed for 32-bit ARMv7 boards which have no dcache
-aliasing, and therefore should work fine with FS_DAX.
-
-Use this instead in Kconfig to prevent FS_DAX from being built on
-architectures with virtually aliased dcache:
-
-  depends on !ARCH_HAS_CACHE_ALIASING
-
-For architectures which detect dcache aliasing at runtime, introduce
-a new dax_is_supported() static inline which uses "cache_is_aliasing()"
-to figure out whether the environment has aliasing dcaches.
-
-This new dax_is_supported() helper will be used in each filesystem
-supporting the dax mount option to validate whether dax is indeed
-supported.
+This is relevant for architectures which require a dynamic check
+to validate whether they have virtually aliased data caches
+(ARCH_HAS_CACHE_ALIASING_DYNAMIC=y).
 
 Fixes: d92576f1167c ("dax: does not work correctly with virtual aliasing caches")
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-fsdevel@vger.kernel.org
 Cc: Andrew Morton <akpm@linux-foundation.org>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: linux-mm@kvack.org
@@ -95,57 +81,221 @@ Cc: Matthew Wilcox <willy@infradead.org>
 Cc: nvdimm@lists.linux.dev
 Cc: linux-cxl@vger.kernel.org
 ---
- fs/Kconfig          | 2 +-
- include/linux/dax.h | 9 +++++++++
- 2 files changed, 10 insertions(+), 1 deletion(-)
+ fs/fuse/file.c      |  2 +-
+ fs/fuse/fuse_i.h    | 36 +++++++++++++++++++++++++++++++++-
+ fs/fuse/inode.c     | 47 +++++++++++++++++++++++----------------------
+ fs/fuse/virtio_fs.c |  4 ++--
+ 4 files changed, 62 insertions(+), 27 deletions(-)
 
-diff --git a/fs/Kconfig b/fs/Kconfig
-index 42837617a55b..6746fe403761 100644
---- a/fs/Kconfig
-+++ b/fs/Kconfig
-@@ -56,7 +56,7 @@ endif # BLOCK
- config FS_DAX
- 	bool "File system based Direct Access (DAX) support"
- 	depends on MMU
--	depends on !(ARM || MIPS || SPARC)
-+	depends on !ARCH_HAS_CACHE_ALIASING
- 	depends on ZONE_DEVICE || FS_DAX_LIMITED
- 	select FS_IOMAP
- 	select DAX
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index b463502b16e1..8c595b04deeb 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -5,6 +5,7 @@
- #include <linux/fs.h>
- #include <linux/mm.h>
- #include <linux/radix-tree.h>
-+#include <linux/cacheinfo.h>
+diff --git a/fs/fuse/file.c b/fs/fuse/file.c
+index a660f1f21540..133ac8524064 100644
+--- a/fs/fuse/file.c
++++ b/fs/fuse/file.c
+@@ -3247,6 +3247,6 @@ void fuse_init_file_inode(struct inode *inode, unsigned int flags)
+ 	init_waitqueue_head(&fi->page_waitq);
+ 	fi->writepages = RB_ROOT;
  
- typedef unsigned long dax_entry_t;
- 
-@@ -78,6 +79,10 @@ static inline bool daxdev_mapping_supported(struct vm_area_struct *vma,
- 		return false;
- 	return dax_synchronous(dax_dev);
+-	if (IS_ENABLED(CONFIG_FUSE_DAX))
++	if (fuse_dax_is_supported())
+ 		fuse_dax_inode_init(inode, flags);
  }
-+static inline bool dax_is_supported(void)
+diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
+index 1df83eebda92..1cbe37106669 100644
+--- a/fs/fuse/fuse_i.h
++++ b/fs/fuse/fuse_i.h
+@@ -31,6 +31,7 @@
+ #include <linux/pid_namespace.h>
+ #include <linux/refcount.h>
+ #include <linux/user_namespace.h>
++#include <linux/dax.h>
+ 
+ /** Default max number of pages that can be used in a single read request */
+ #define FUSE_DEFAULT_MAX_PAGES_PER_REQ 32
+@@ -979,6 +980,38 @@ static inline void fuse_sync_bucket_dec(struct fuse_sync_bucket *bucket)
+ 	rcu_read_unlock();
+ }
+ 
++#ifdef CONFIG_FUSE_DAX
++static inline struct fuse_inode_dax *fuse_inode_get_dax(struct fuse_inode *inode)
 +{
-+	return !cache_is_aliasing();
++	return inode->dax;
 +}
- #else
- static inline void *dax_holder(struct dax_device *dax_dev)
- {
-@@ -122,6 +127,10 @@ static inline size_t dax_recovery_write(struct dax_device *dax_dev,
- {
++
++static inline enum fuse_dax_mode fuse_conn_get_dax_mode(struct fuse_conn *fc)
++{
++	return fc->dax_mode;
++}
++
++static inline struct fuse_conn_dax *fuse_conn_get_dax(struct fuse_conn *fc)
++{
++	return fc->dax;
++}
++#else
++static inline struct fuse_inode_dax *fuse_inode_get_dax(struct fuse_inode *inode)
++{
++	return NULL;
++}
++
++static inline enum fuse_dax_mode fuse_conn_get_dax_mode(struct fuse_conn *fc)
++{
++	return FUSE_DAX_INODE_DEFAULT;
++}
++
++static inline struct fuse_conn_dax *fuse_conn_get_dax(struct fuse_conn *fc)
++{
++	return NULL;
++}
++#endif
++
+ /** Device operations */
+ extern const struct file_operations fuse_dev_operations;
+ 
+@@ -1324,7 +1357,8 @@ void fuse_free_conn(struct fuse_conn *fc);
+ 
+ /* dax.c */
+ 
+-#define FUSE_IS_DAX(inode) (IS_ENABLED(CONFIG_FUSE_DAX) && IS_DAX(inode))
++#define fuse_dax_is_supported()	(IS_ENABLED(CONFIG_FUSE_DAX) && dax_is_supported())
++#define FUSE_IS_DAX(inode) (fuse_dax_is_supported() && IS_DAX(inode))
+ 
+ ssize_t fuse_dax_read_iter(struct kiocb *iocb, struct iov_iter *to);
+ ssize_t fuse_dax_write_iter(struct kiocb *iocb, struct iov_iter *from);
+diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
+index 2a6d44f91729..030e6ce5486d 100644
+--- a/fs/fuse/inode.c
++++ b/fs/fuse/inode.c
+@@ -108,7 +108,7 @@ static struct inode *fuse_alloc_inode(struct super_block *sb)
+ 	if (!fi->forget)
+ 		goto out_free;
+ 
+-	if (IS_ENABLED(CONFIG_FUSE_DAX) && !fuse_dax_inode_alloc(sb, fi))
++	if (fuse_dax_is_supported() && !fuse_dax_inode_alloc(sb, fi))
+ 		goto out_free_forget;
+ 
+ 	return &fi->inode;
+@@ -126,9 +126,8 @@ static void fuse_free_inode(struct inode *inode)
+ 
+ 	mutex_destroy(&fi->mutex);
+ 	kfree(fi->forget);
+-#ifdef CONFIG_FUSE_DAX
+-	kfree(fi->dax);
+-#endif
++	if (fuse_dax_is_supported())
++		kfree(fuse_inode_get_dax(fi));
+ 	kmem_cache_free(fuse_inode_cachep, fi);
+ }
+ 
+@@ -361,7 +360,7 @@ void fuse_change_attributes(struct inode *inode, struct fuse_attr *attr,
+ 			invalidate_inode_pages2(inode->i_mapping);
+ 	}
+ 
+-	if (IS_ENABLED(CONFIG_FUSE_DAX))
++	if (fuse_dax_is_supported())
+ 		fuse_dax_dontcache(inode, attr->flags);
+ }
+ 
+@@ -856,14 +855,16 @@ static int fuse_show_options(struct seq_file *m, struct dentry *root)
+ 		if (sb->s_bdev && sb->s_blocksize != FUSE_DEFAULT_BLKSIZE)
+ 			seq_printf(m, ",blksize=%lu", sb->s_blocksize);
+ 	}
+-#ifdef CONFIG_FUSE_DAX
+-	if (fc->dax_mode == FUSE_DAX_ALWAYS)
+-		seq_puts(m, ",dax=always");
+-	else if (fc->dax_mode == FUSE_DAX_NEVER)
+-		seq_puts(m, ",dax=never");
+-	else if (fc->dax_mode == FUSE_DAX_INODE_USER)
+-		seq_puts(m, ",dax=inode");
+-#endif
++	if (fuse_dax_is_supported()) {
++		enum fuse_dax_mode dax_mode = fuse_conn_get_dax_mode(fc);
++
++		if (dax_mode == FUSE_DAX_ALWAYS)
++			seq_puts(m, ",dax=always");
++		else if (dax_mode == FUSE_DAX_NEVER)
++			seq_puts(m, ",dax=never");
++		else if (dax_mode == FUSE_DAX_INODE_USER)
++			seq_puts(m, ",dax=inode");
++	}
+ 
  	return 0;
  }
-+static inline bool dax_is_supported(void)
-+{
-+	return false;
-+}
- #endif
+@@ -936,7 +937,7 @@ void fuse_conn_put(struct fuse_conn *fc)
+ 		struct fuse_iqueue *fiq = &fc->iq;
+ 		struct fuse_sync_bucket *bucket;
  
- void set_dax_nocache(struct dax_device *dax_dev);
+-		if (IS_ENABLED(CONFIG_FUSE_DAX))
++		if (fuse_dax_is_supported())
+ 			fuse_dax_conn_free(fc);
+ 		if (fiq->ops->release)
+ 			fiq->ops->release(fiq);
+@@ -1264,7 +1265,7 @@ static void process_init_reply(struct fuse_mount *fm, struct fuse_args *args,
+ 					min_t(unsigned int, fc->max_pages_limit,
+ 					max_t(unsigned int, arg->max_pages, 1));
+ 			}
+-			if (IS_ENABLED(CONFIG_FUSE_DAX)) {
++			if (fuse_dax_is_supported()) {
+ 				if (flags & FUSE_MAP_ALIGNMENT &&
+ 				    !fuse_dax_check_alignment(fc, arg->map_alignment)) {
+ 					ok = false;
+@@ -1331,12 +1332,12 @@ void fuse_send_init(struct fuse_mount *fm)
+ 		FUSE_HANDLE_KILLPRIV_V2 | FUSE_SETXATTR_EXT | FUSE_INIT_EXT |
+ 		FUSE_SECURITY_CTX | FUSE_CREATE_SUPP_GROUP |
+ 		FUSE_HAS_EXPIRE_ONLY | FUSE_DIRECT_IO_ALLOW_MMAP;
+-#ifdef CONFIG_FUSE_DAX
+-	if (fm->fc->dax)
+-		flags |= FUSE_MAP_ALIGNMENT;
+-	if (fuse_is_inode_dax_mode(fm->fc->dax_mode))
+-		flags |= FUSE_HAS_INODE_DAX;
+-#endif
++	if (fuse_dax_is_supported()) {
++		if (fuse_conn_get_dax(fm->fc))
++			flags |= FUSE_MAP_ALIGNMENT;
++		if (fuse_is_inode_dax_mode(fuse_conn_get_dax_mode(fm->fc)))
++			flags |= FUSE_HAS_INODE_DAX;
++	}
+ 	if (fm->fc->auto_submounts)
+ 		flags |= FUSE_SUBMOUNTS;
+ 
+@@ -1643,7 +1644,7 @@ int fuse_fill_super_common(struct super_block *sb, struct fuse_fs_context *ctx)
+ 
+ 	sb->s_subtype = ctx->subtype;
+ 	ctx->subtype = NULL;
+-	if (IS_ENABLED(CONFIG_FUSE_DAX)) {
++	if (fuse_dax_is_supported()) {
+ 		err = fuse_dax_conn_alloc(fc, ctx->dax_mode, ctx->dax_dev);
+ 		if (err)
+ 			goto err;
+@@ -1709,7 +1710,7 @@ int fuse_fill_super_common(struct super_block *sb, struct fuse_fs_context *ctx)
+ 	if (fud)
+ 		fuse_dev_free(fud);
+  err_free_dax:
+-	if (IS_ENABLED(CONFIG_FUSE_DAX))
++	if (fuse_dax_is_supported())
+ 		fuse_dax_conn_free(fc);
+  err:
+ 	return err;
+diff --git a/fs/fuse/virtio_fs.c b/fs/fuse/virtio_fs.c
+index 5f1be1da92ce..99f8f2a18ee4 100644
+--- a/fs/fuse/virtio_fs.c
++++ b/fs/fuse/virtio_fs.c
+@@ -801,7 +801,7 @@ static int virtio_fs_setup_dax(struct virtio_device *vdev, struct virtio_fs *fs)
+ 	struct dev_pagemap *pgmap;
+ 	bool have_cache;
+ 
+-	if (!IS_ENABLED(CONFIG_FUSE_DAX))
++	if (fuse_dax_is_supported())
+ 		return 0;
+ 
+ 	/* Get cache region */
+@@ -1366,7 +1366,7 @@ static void virtio_fs_conn_destroy(struct fuse_mount *fm)
+ 	/* Stop dax worker. Soon evict_inodes() will be called which
+ 	 * will free all memory ranges belonging to all inodes.
+ 	 */
+-	if (IS_ENABLED(CONFIG_FUSE_DAX))
++	if (fuse_dax_is_supported())
+ 		fuse_dax_cancel_work(fc);
+ 
+ 	/* Stop forget queue. Soon destroy will be sent */
 -- 
 2.39.2
 
