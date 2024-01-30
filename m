@@ -1,138 +1,161 @@
 Received: from smtpout.efficios.com (smtpout.efficios.com [167.114.26.122])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0361912BEB7
-	for <nvdimm@lists.linux.dev>; Tue, 30 Jan 2024 15:21:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E659186AEF
+	for <nvdimm@lists.linux.dev>; Tue, 30 Jan 2024 16:53:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=167.114.26.122
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706628069; cv=none; b=FLmW6sTB1/LwQ5XQYrpVM/H7b0x2jGQj3PfVO0IH3Ovu889lNzLTGHTtwVqgwOYdNM33a6jilbzbRi2w9vzoEz36m0Z/w0hZLc7YmOOk0fXAjJ2IPYj75pIqgIPnBAr/DrMbf8UpfW8IVnnGSC6OzlQacW/zeDKn/KU4mOWq+wI=
+	t=1706633591; cv=none; b=EKHxJ3fA+ILWUQd9x7CBnQDnY4R7bPScxhDL6I+NVJQXqH+h64t2OQKAiltORg/XPqs1jZvg299eazWGgfLzol133jwEcS4RDfWh6Je3KiLRxn3f4OkSWd0dZHmwIgq+NHlSIA+2pNMbtQPtg+xfISc++vmLVyXjqtr5KYoXvLQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706628069; c=relaxed/simple;
-	bh=jPyAa9WfdA8ROQgMJjeMeeC8xbDVD5scgsQuDyPrR/E=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Svt9Z2mks3ung3WjVB6f/6U7FxZ7H/Je/CP3uyZ7ZofjHUOO3Y7wK5Wk+7pzP/c+sJK3lsArCsT10jqYi5bOMbp8+UNLkvIXT/gWulJf8lgnfK5Biwd9+cUa36FfqxVzhcyoF6nCplnF4pX9NEQRzPMRxiPjOa89gJPT/lWuOvs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com; spf=pass smtp.mailfrom=efficios.com; dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b=hp+idUU/; arc=none smtp.client-ip=167.114.26.122
+	s=arc-20240116; t=1706633591; c=relaxed/simple;
+	bh=Y0wTQsFQxBGihii2XUTlKjm4PLqLm9Iv8iRpB5W6oiU=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=bjKCaPid54xCcpoxWexp/m3dIN+c+tYNVDF/Y60Zcs6EL9zMAo2S67p01d5LOEx63YiwXL2CuBlHNaHM6Qt2GLtmcANThAvHwpJBnDWn8uAXEhghoanIVhSBSlJtaQQI4agxIEo+zIxIwyCoEdTmABgWdRGfiuJZExPGGwmXt1A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com; spf=pass smtp.mailfrom=efficios.com; dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b=O3j0OrZH; arc=none smtp.client-ip=167.114.26.122
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=efficios.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b="hp+idUU/"
+	dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b="O3j0OrZH"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=efficios.com;
-	s=smtpout1; t=1706628067;
-	bh=jPyAa9WfdA8ROQgMJjeMeeC8xbDVD5scgsQuDyPrR/E=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-	b=hp+idUU/OYb8BUfLwfi8e2vK6zsG2zyiPmbiWXGtiQ6yT7Xli/fB5x+A4aoacjxBX
-	 AmOncQTD2Y1gQ4BUbfoikaPeKi1giCFmK9ayt/RSiDEfMcs2V5R9HFTcJ7EsqhrbD5
-	 V4YXlfUxRNxqJRnmW3dcclwuwvmnlYYBpXrpVqfyJGKcN+LlAQdYmXgRXfC6g3kldo
-	 yIJvyVfJ7XukuyD8Yf90+0fA9xWOjcRN2T3S8xZJsBgiAdL2ByWohNXlPa0baN1qlT
-	 KA4N4kTrimhzvyJZd4HLzpTFFvQyLGnAPKcuGg9rmdsL62J0gCVlLNn+E6+1REUU+m
-	 f1xyZbTxlMbfQ==
-Received: from [172.16.0.134] (192-222-143-198.qc.cable.ebox.net [192.222.143.198])
-	by smtpout.efficios.com (Postfix) with ESMTPSA id 4TPTQV5ylyzVj2;
-	Tue, 30 Jan 2024 10:21:06 -0500 (EST)
-Message-ID: <ec53d5ed-ac0f-4043-9df6-c37a03d1a73b@efficios.com>
-Date: Tue, 30 Jan 2024 10:21:04 -0500
+	s=smtpout1; t=1706633582;
+	bh=Y0wTQsFQxBGihii2XUTlKjm4PLqLm9Iv8iRpB5W6oiU=;
+	h=From:To:Cc:Subject:Date:From;
+	b=O3j0OrZHAaPVHqKNJDlGd9sdFDBgJv7ZTPNfF/geXnNU8X+vdyJrGNeG7jc2PmFcT
+	 vHVBTx2cw/X2mEB4vo+xPPWOPtfj3AJKyF1VL4ekbW/3UeTl1bhrPL7GJsbsUA4Xjf
+	 QN5n1PkrJytSFnG4MMAUxz0Hshp1lnfrHlGiViw5dhz+dbt5tSbQFQdUYOVz5zEo+z
+	 dkhR8Eo1aBMX3GoMv7Wy6G2ZBwdyZyWjGByfMC4pdfKcGaepdNqVweTXxNJdIP/9Jx
+	 3w/wriketsu8SXr0KY8sxsTXpUqpeoZdN4oQeD4+Ioed20ctoxadZGPgNX63/gVKyG
+	 2ldjjViqgwmkA==
+Received: from thinkos.internal.efficios.com (192-222-143-198.qc.cable.ebox.net [192.222.143.198])
+	by smtpout.efficios.com (Postfix) with ESMTPSA id 4TPWSZ2LkgzVCQ;
+	Tue, 30 Jan 2024 11:53:02 -0500 (EST)
+From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+To: Dan Williams <dan.j.williams@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>
+Cc: linux-kernel@vger.kernel.org,
+	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	linux-mm@kvack.org,
+	linux-arch@vger.kernel.org,
+	Matthew Wilcox <willy@infradead.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Russell King <linux@armlinux.org.uk>,
+	linux-cxl@vger.kernel.org,
+	nvdimm@lists.linux.dev,
+	linux-fsdevel@vger.kernel.org
+Subject: [RFC PATCH v2 0/8] Introduce dcache_is_aliasing() to fix DAX regression
+Date: Tue, 30 Jan 2024 11:52:47 -0500
+Message-Id: <20240130165255.212591-1-mathieu.desnoyers@efficios.com>
+X-Mailer: git-send-email 2.39.2
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH 4/7] ext2: Use dax_is_supported()
-Content-Language: en-US
-To: Jan Kara <jack@suse.cz>
-Cc: Dan Williams <dan.j.williams@intel.com>,
- Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>,
- linux-kernel@vger.kernel.org, Jan Kara <jack@suse.com>,
- linux-ext4@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>,
- Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org,
- linux-arch@vger.kernel.org, Matthew Wilcox <willy@infradead.org>,
- nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
-References: <20240129210631.193493-1-mathieu.desnoyers@efficios.com>
- <20240129210631.193493-5-mathieu.desnoyers@efficios.com>
- <20240130113337.frem6a3y5n2iibnh@quack3>
-From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-In-Reply-To: <20240130113337.frem6a3y5n2iibnh@quack3>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-On 2024-01-30 06:33, Jan Kara wrote:
-> On Mon 29-01-24 16:06:28, Mathieu Desnoyers wrote:
->> Use dax_is_supported() to validate whether the architecture has
->> virtually aliased caches at mount time.
->>
->> This is relevant for architectures which require a dynamic check
->> to validate whether they have virtually aliased data caches
->> (ARCH_HAS_CACHE_ALIASING_DYNAMIC=y).
->>
->> Fixes: d92576f1167c ("dax: does not work correctly with virtual aliasing caches")
->> Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
->> Cc: Jan Kara <jack@suse.com>
->> Cc: linux-ext4@vger.kernel.org
->> Cc: Andrew Morton <akpm@linux-foundation.org>
->> Cc: Linus Torvalds <torvalds@linux-foundation.org>
->> Cc: linux-mm@kvack.org
->> Cc: linux-arch@vger.kernel.org
->> Cc: Dan Williams <dan.j.williams@intel.com>
->> Cc: Vishal Verma <vishal.l.verma@intel.com>
->> Cc: Dave Jiang <dave.jiang@intel.com>
->> Cc: Matthew Wilcox <willy@infradead.org>
->> Cc: nvdimm@lists.linux.dev
->> Cc: linux-cxl@vger.kernel.org
-> 
-> Looks good to me (although I share Dave's opinion it would be nice to CC
-> the whole series to fsdevel - luckily we have lore these days so it is not
-> that tedious to find the whole series :)). Feel free to add:
-> 
-> Acked-by: Jan Kara <jack@suse.cz>
+This commit introduced in v5.13 prevents building FS_DAX on 32-bit ARM,
+even on ARMv7 which does not have virtually aliased dcaches:
 
-Hi Jan,
+commit d92576f1167c ("dax: does not work correctly with virtual aliasing caches")
 
-Thanks for looking at it! I will do significant changes for v2, so
-I will hold on before integrating your acked-by if it's OK with you.
+It used to work fine before: I have customers using DAX over pmem on
+ARMv7, but this regression will likely prevent them from upgrading their
+kernel.
 
-Thanks!
+The root of the issue here is the fact that DAX was never designed to
+handle virtually aliased dcache (VIVT and VIPT with aliased dcache). It
+touches the pages through their linear mapping, which is not consistent
+with the userspace mappings on virtually aliased dcaches.
+
+This patch series introduces dcache_is_aliasing() with the new Kconfig
+option ARCH_HAS_CACHE_ALIASING and implements it for all architectures.
+The implementation of dcache_is_aliasing() is either evaluated to a
+constant at compile-time or a runtime check, which is what is needed on
+ARM.
+
+With this we can basically narrow down the list of architectures which
+are unsupported by DAX to those which are really affected.
+
+Note that the order of the series was completely changed based on the
+feedback received on v1, cache_is_aliasing() is renamed to
+dcache_is_aliasing(), ARCH_HAS_CACHE_ALIASING_DYNAMIC is gone,
+dcache_is_aliasing() vs ARCH_HAS_CACHE_ALIASING relationship is
+simplified, and the dax_is_supported() check was moved to its rightful
+place in all filesystems.
+
+Feedback is welcome,
+
+Thanks,
 
 Mathieu
 
-> 
-> 								Honza
-> 
->> ---
->>   fs/ext2/super.c | 14 +++++++-------
->>   1 file changed, 7 insertions(+), 7 deletions(-)
->>
->> diff --git a/fs/ext2/super.c b/fs/ext2/super.c
->> index 01f9addc8b1f..0398e7a90eb6 100644
->> --- a/fs/ext2/super.c
->> +++ b/fs/ext2/super.c
->> @@ -585,13 +585,13 @@ static int parse_options(char *options, struct super_block *sb,
->>   			set_opt(opts->s_mount_opt, XIP);
->>   			fallthrough;
->>   		case Opt_dax:
->> -#ifdef CONFIG_FS_DAX
->> -			ext2_msg(sb, KERN_WARNING,
->> -		"DAX enabled. Warning: EXPERIMENTAL, use at your own risk");
->> -			set_opt(opts->s_mount_opt, DAX);
->> -#else
->> -			ext2_msg(sb, KERN_INFO, "dax option not supported");
->> -#endif
->> +			if (dax_is_supported()) {
->> +				ext2_msg(sb, KERN_WARNING,
->> +					 "DAX enabled. Warning: EXPERIMENTAL, use at your own risk");
->> +				set_opt(opts->s_mount_opt, DAX);
->> +			} else {
->> +				ext2_msg(sb, KERN_INFO, "dax option not supported");
->> +			}
->>   			break;
->>   
->>   #if defined(CONFIG_QUOTA)
->> -- 
->> 2.39.2
->>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-mm@kvack.org
+Cc: linux-arch@vger.kernel.org
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: linux-cxl@vger.kernel.org
+Cc: nvdimm@lists.linux.dev
+Cc: linux-fsdevel@vger.kernel.org
+
+Mathieu Desnoyers (8):
+  dax: Introduce dax_is_supported()
+  erofs: Use dax_is_supported()
+  ext2: Use dax_is_supported()
+  ext4: Use dax_is_supported()
+  fuse: Use dax_is_supported()
+  xfs: Use dax_is_supported()
+  Introduce dcache_is_aliasing() across all architectures
+  dax: Fix incorrect list of dcache aliasing architectures
+
+ arch/arc/Kconfig                    |  1 +
+ arch/arc/include/asm/cachetype.h    |  9 +++++++++
+ arch/arm/Kconfig                    |  1 +
+ arch/arm/include/asm/cachetype.h    |  2 ++
+ arch/csky/Kconfig                   |  1 +
+ arch/csky/include/asm/cachetype.h   |  9 +++++++++
+ arch/m68k/Kconfig                   |  1 +
+ arch/m68k/include/asm/cachetype.h   |  9 +++++++++
+ arch/mips/Kconfig                   |  1 +
+ arch/mips/include/asm/cachetype.h   |  9 +++++++++
+ arch/nios2/Kconfig                  |  1 +
+ arch/nios2/include/asm/cachetype.h  | 10 ++++++++++
+ arch/parisc/Kconfig                 |  1 +
+ arch/parisc/include/asm/cachetype.h |  9 +++++++++
+ arch/sh/Kconfig                     |  1 +
+ arch/sh/include/asm/cachetype.h     |  9 +++++++++
+ arch/sparc/Kconfig                  |  1 +
+ arch/sparc/include/asm/cachetype.h  | 14 ++++++++++++++
+ arch/xtensa/Kconfig                 |  1 +
+ arch/xtensa/include/asm/cachetype.h | 10 ++++++++++
+ fs/Kconfig                          |  1 -
+ fs/erofs/super.c                    |  5 ++++-
+ fs/ext2/super.c                     |  6 +++++-
+ fs/ext4/super.c                     |  5 ++++-
+ fs/fuse/dax.c                       |  7 +++++++
+ fs/xfs/xfs_iops.c                   |  2 +-
+ include/linux/cacheinfo.h           |  6 ++++++
+ include/linux/dax.h                 |  9 +++++++++
+ mm/Kconfig                          |  6 ++++++
+ 29 files changed, 142 insertions(+), 5 deletions(-)
+ create mode 100644 arch/arc/include/asm/cachetype.h
+ create mode 100644 arch/csky/include/asm/cachetype.h
+ create mode 100644 arch/m68k/include/asm/cachetype.h
+ create mode 100644 arch/mips/include/asm/cachetype.h
+ create mode 100644 arch/nios2/include/asm/cachetype.h
+ create mode 100644 arch/parisc/include/asm/cachetype.h
+ create mode 100644 arch/sh/include/asm/cachetype.h
+ create mode 100644 arch/sparc/include/asm/cachetype.h
+ create mode 100644 arch/xtensa/include/asm/cachetype.h
 
 -- 
-Mathieu Desnoyers
-EfficiOS Inc.
-https://www.efficios.com
+2.39.2
 
