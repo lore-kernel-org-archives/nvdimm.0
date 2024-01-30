@@ -1,75 +1,89 @@
-Received: from mail-pl1-f177.google.com (mail-pl1-f177.google.com [209.85.214.177])
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3D1334CD3
-	for <nvdimm@lists.linux.dev>; Tue, 30 Jan 2024 02:38:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.177
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30948679EC
+	for <nvdimm@lists.linux.dev>; Tue, 30 Jan 2024 11:33:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706582332; cv=none; b=dubJEohUp6aubrx+gF0pZtchAAajaeOxEeUdQvJXhd+wV8i/5vw8k/pqS47lgOPpbKMv0AIxnbeIoKm0x3riSvr/ghLj3orTooNTMBSuOVcZR6e+KOvOA8VYOQyagdAsDeeLE7U2L1rIx8H/pu+a5DvsX6EArIdqaKlPHBJ2Yaw=
+	t=1706614422; cv=none; b=YXI9GZIlphof2CqL29p28v/rH9P83uHwu4LHRuOtTN0v5HTq+kjh7Qu2UDs6P73WqWq7bsLCor2lZ9/L9i6e8bVBr2BsOshqu5Dr5Wr/9wEtGfjjMCvJjQdihOpDycTzpOn9sQbm0Ymydq75lUx9vq5Ozh7CFhGUvfL30u2LOG8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706582332; c=relaxed/simple;
-	bh=L89IzrilsDGveQdWAYWcXjFYMXSJQAdLrLejwXbXPuQ=;
+	s=arc-20240116; t=1706614422; c=relaxed/simple;
+	bh=KdleNc6ylNXLWRddKw+ypWGUY1aH6NyttfKk2hGcMgA=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ujUotML0JAbnO+l9kOK2OFgwjJ3jjsTgLD3DyMVNOGVcKj5I4A9JIVqPxR+BRM+5wOBKU6zLyQAulKTdewKkH0VpfLMW73Tl3vrLElMMH0X57pQkd5fZ6I6zBnWo9VGilXymUnObCWAllfjX54r7YoA9mcpPDZvjNAMaTMkcewA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fromorbit.com; spf=pass smtp.mailfrom=fromorbit.com; dkim=pass (2048-bit key) header.d=fromorbit-com.20230601.gappssmtp.com header.i=@fromorbit-com.20230601.gappssmtp.com header.b=sEGaAf4m; arc=none smtp.client-ip=209.85.214.177
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fromorbit.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fromorbit.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=cvq4HIVg73Ibgnj5+LNpT2evIscX22xnlQOak4ZkMCENBPHoRONolTMvRHR8xRx7vUcPU4PZcZb6Vq5Q/dduM443MYiw8KDOvK6T+vgtdTocgBjjtMlcqUx52M5QanJl5OZpXhktcijIkWogx+oNgIguLo5xJn61oucxPIV4638=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz; spf=pass smtp.mailfrom=suse.cz; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=WMHmAUIO; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=kCUu1BNm; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=bEt7+Fb4; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=ZN+0xaMa; arc=none smtp.client-ip=195.135.223.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fromorbit-com.20230601.gappssmtp.com header.i=@fromorbit-com.20230601.gappssmtp.com header.b="sEGaAf4m"
-Received: by mail-pl1-f177.google.com with SMTP id d9443c01a7336-1d8f3acc758so8060515ad.1
-        for <nvdimm@lists.linux.dev>; Mon, 29 Jan 2024 18:38:50 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=fromorbit-com.20230601.gappssmtp.com; s=20230601; t=1706582330; x=1707187130; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=hqxjY1ElxNAwoveLPHwWFoaAKo7t78H+KCuILCPEg64=;
-        b=sEGaAf4mKSdZR9RAUiJRjkkIW/ISAwEWvWwVDfW38z8JbkcDnPidHb3Kv+I6mpcSpH
-         JxMROlus0Np0i6jX1mTzcsJkTfEPPRNc4KgrmUpvCt/CgjTgPqlHoRFPcu+IHfxRVQMs
-         Zts/z+flrsJMKE6MtEHpZY0qhumTcABqStI44nB9PTVeKt9c73+2jdXstqwtz1LZHVge
-         3t34jmrd342gqIgP4cmllJLhEeV2RveUk/Fek03wfg6s5vqB5xNEUfTOoqRmvok2XqTA
-         iqYrC5m9MS3LOVEwuIDm50b/p6mweIaP1WoQW+3YIVqTJ6gxFkfFH4sWYwowqNXZCrBd
-         +Vtw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1706582330; x=1707187130;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=hqxjY1ElxNAwoveLPHwWFoaAKo7t78H+KCuILCPEg64=;
-        b=lveEzEdvbO18hgpEWJgCQli2Tj1q8ySqT72w/fEXR5XgBmAEmg2ljqFiXsfrrDzpwT
-         fys8+xLGrMe0OxlEVaOoonxSEQEYFakB3bTXp2FjjZDt3QMzR7T/rZVfRwj5Muv+DBLc
-         YAX8JUTBvxgR6lfVkSH9yM/0ODvpkwcA83SdmBpEfNxe6KdmRdyC3fxNQVKM3nOvZXA9
-         JVrLb8ph2pjy+xfAJBlTOTDZWi3mwVtklo1hrmLc28Q7uXDEWmSXNXq1mpDFcsnIB4m0
-         0ehyd1LkVKjOXk5pbdaE7R78IjWiFNWzwm1XpxN/DBhyXftBuOqSAKEbaC+955vALZHg
-         vJJw==
-X-Gm-Message-State: AOJu0YzlSxZfHIG2Gvre1aRmIPCXnAcO3DzLvzUAxmfMOGQUPYEdLZA1
-	nBiYE5WHWPLi+SYpY89AJU+Txovhqk+npHKP7YPqqdxNSJ1BcarbEbPs+cmpWpU=
-X-Google-Smtp-Source: AGHT+IG3Tf1LicjzS4Qa3v1HBWJ0okdxx8XgE9n1laWHdO3qtQvRbO5N3KnA5oTi64pctq5hmJtDrA==
-X-Received: by 2002:a17:902:d550:b0:1d7:1a90:65ba with SMTP id z16-20020a170902d55000b001d71a9065bamr500304plf.25.1706582329913;
-        Mon, 29 Jan 2024 18:38:49 -0800 (PST)
-Received: from dread.disaster.area (pa49-181-38-249.pa.nsw.optusnet.com.au. [49.181.38.249])
-        by smtp.gmail.com with ESMTPSA id ml8-20020a17090334c800b001d8fb16118csm1038823plb.267.2024.01.29.18.38.49
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 29 Jan 2024 18:38:49 -0800 (PST)
-Received: from dave by dread.disaster.area with local (Exim 4.96)
-	(envelope-from <david@fromorbit.com>)
-	id 1rUe1O-00H85k-2a;
-	Tue, 30 Jan 2024 13:38:46 +1100
-Date: Tue, 30 Jan 2024 13:38:46 +1100
-From: Dave Chinner <david@fromorbit.com>
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="WMHmAUIO";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="kCUu1BNm";
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="bEt7+Fb4";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="ZN+0xaMa"
+Received: from imap2.dmz-prg2.suse.org (imap2.dmz-prg2.suse.org [10.150.64.98])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id EBD8D222EC;
+	Tue, 30 Jan 2024 11:33:37 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1706614419; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=Ul8XI1L/cZzOQhlwvI1+prP8LmIw3V5FpvNQXXSV384=;
+	b=WMHmAUIOA7jXezAvq0ZkXKvyPhWYRVDv6j4CkOfdnTknst0pMIebKWOKs36pgauuGiThav
+	4acrlDq3WeGHd+huaR6pHDvE8bPYMFc4AMbLCDaIX6NM9KxohY3i5pTv+Q3DpNJ+Vb22GV
+	m/GlA8vVgU5ZyaeZQdJmXSfimOZIL/Q=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1706614419;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=Ul8XI1L/cZzOQhlwvI1+prP8LmIw3V5FpvNQXXSV384=;
+	b=kCUu1BNm+2hjT4FskcjKJfLnyjAR22BERPd4NoVtsxfbAmqVrtwBy6Idg9dOpKpctlVkxW
+	ioqf2Qe7qSRH/nDg==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1706614417; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=Ul8XI1L/cZzOQhlwvI1+prP8LmIw3V5FpvNQXXSV384=;
+	b=bEt7+Fb4F6iuZ2rG1MhIuzS/7eZbMXnhx+Wvwe5rxC0rdbM0s85/aC6UZufC7+BB9Tl23E
+	aE9zv/1rzWgiyVfy151g+RHuv/mJ7ZPlKj+m/4P7P8DBQ/J2iift8xkLBFHsUZ+MfNLbyg
+	gqm3Nwd/p27Y1Vhtqja3VmJEQdNIQHw=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1706614417;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=Ul8XI1L/cZzOQhlwvI1+prP8LmIw3V5FpvNQXXSV384=;
+	b=ZN+0xaMaQHPUiTqxVr6sHBw3gfPjXpy8jPFBkfD9rZmxSpx+iUGYygPweVaUCf56A9k1nz
+	gci3cDsnNWbLagDg==
+Received: from imap2.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap2.dmz-prg2.suse.org (Postfix) with ESMTPS id D997C13462;
+	Tue, 30 Jan 2024 11:33:37 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([10.150.64.162])
+	by imap2.dmz-prg2.suse.org with ESMTPSA
+	id MzMrNJHeuGWXDwAAn2gu4w
+	(envelope-from <jack@suse.cz>); Tue, 30 Jan 2024 11:33:37 +0000
+Received: by quack3.suse.cz (Postfix, from userid 1000)
+	id 7816AA0807; Tue, 30 Jan 2024 12:33:37 +0100 (CET)
+Date: Tue, 30 Jan 2024 12:33:37 +0100
+From: Jan Kara <jack@suse.cz>
 To: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Cc: Dan Williams <dan.j.williams@intel.com>,
 	Vishal Verma <vishal.l.verma@intel.com>,
 	Dave Jiang <dave.jiang@intel.com>, linux-kernel@vger.kernel.org,
-	Chandan Babu R <chandan.babu@oracle.com>,
-	"Darrick J . Wong" <djwong@kernel.org>, linux-xfs@vger.kernel.org,
+	Jan Kara <jack@suse.com>, linux-ext4@vger.kernel.org,
 	Andrew Morton <akpm@linux-foundation.org>,
 	Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org,
 	linux-arch@vger.kernel.org, Matthew Wilcox <willy@infradead.org>,
 	nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
-Subject: Re: [RFC PATCH 7/7] xfs: Use dax_is_supported()
-Message-ID: <ZbhhNnQ+fqd4Hda+@dread.disaster.area>
+Subject: Re: [RFC PATCH 4/7] ext2: Use dax_is_supported()
+Message-ID: <20240130113337.frem6a3y5n2iibnh@quack3>
 References: <20240129210631.193493-1-mathieu.desnoyers@efficios.com>
- <20240129210631.193493-8-mathieu.desnoyers@efficios.com>
+ <20240129210631.193493-5-mathieu.desnoyers@efficios.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -78,30 +92,42 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20240129210631.193493-8-mathieu.desnoyers@efficios.com>
+In-Reply-To: <20240129210631.193493-5-mathieu.desnoyers@efficios.com>
+Authentication-Results: smtp-out1.suse.de;
+	none
+X-Spamd-Result: default: False [-2.60 / 50.00];
+	 ARC_NA(0.00)[];
+	 RCVD_VIA_SMTP_AUTH(0.00)[];
+	 FROM_HAS_DN(0.00)[];
+	 TO_DN_SOME(0.00)[];
+	 TO_MATCH_ENVRCPT_ALL(0.00)[];
+	 MIME_GOOD(-0.10)[text/plain];
+	 RCVD_COUNT_THREE(0.00)[3];
+	 DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
+	 RCPT_COUNT_TWELVE(0.00)[14];
+	 DBL_BLOCKED_OPENRESOLVER(0.00)[kvack.org:email,intel.com:email,suse.cz:email,suse.com:email,linux-foundation.org:email,linux.dev:email,infradead.org:email,efficios.com:email];
+	 FUZZY_BLOCKED(0.00)[rspamd.com];
+	 FROM_EQ_ENVFROM(0.00)[];
+	 MIME_TRACE(0.00)[0:+];
+	 MID_RHS_NOT_FQDN(0.50)[];
+	 RCVD_TLS_ALL(0.00)[];
+	 BAYES_HAM(-3.00)[100.00%]
+X-Spam-Level: 
+X-Spam-Flag: NO
+X-Spam-Score: -2.60
 
-On Mon, Jan 29, 2024 at 04:06:31PM -0500, Mathieu Desnoyers wrote:
+On Mon 29-01-24 16:06:28, Mathieu Desnoyers wrote:
 > Use dax_is_supported() to validate whether the architecture has
 > virtually aliased caches at mount time.
 > 
 > This is relevant for architectures which require a dynamic check
 > to validate whether they have virtually aliased data caches
 > (ARCH_HAS_CACHE_ALIASING_DYNAMIC=y).
-
-Where's the rest of this patchset? I have no idea what
-dax_is_supported() actually does, how it interacts with
-CONFIG_FS_DAX, etc.
-
-If you are changing anything to do with FSDAX, the cc-ing the
--entire- patchset to linux-fsdevel is absolutely necessary so the
-entire patchset lands in our inboxes and not just a random patch
-from the middle of a bigger change.
-
+> 
 > Fixes: d92576f1167c ("dax: does not work correctly with virtual aliasing caches")
 > Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-> Cc: Chandan Babu R <chandan.babu@oracle.com>
-> Cc: Darrick J. Wong <djwong@kernel.org>
-> Cc: linux-xfs@vger.kernel.org
+> Cc: Jan Kara <jack@suse.com>
+> Cc: linux-ext4@vger.kernel.org
 > Cc: Andrew Morton <akpm@linux-foundation.org>
 > Cc: Linus Torvalds <torvalds@linux-foundation.org>
 > Cc: linux-mm@kvack.org
@@ -112,69 +138,47 @@ from the middle of a bigger change.
 > Cc: Matthew Wilcox <willy@infradead.org>
 > Cc: nvdimm@lists.linux.dev
 > Cc: linux-cxl@vger.kernel.org
+
+Looks good to me (although I share Dave's opinion it would be nice to CC
+the whole series to fsdevel - luckily we have lore these days so it is not
+that tedious to find the whole series :)). Feel free to add:
+
+Acked-by: Jan Kara <jack@suse.cz>
+
+								Honza
+
 > ---
->  fs/xfs/xfs_super.c | 20 ++++++++++++++------
->  1 file changed, 14 insertions(+), 6 deletions(-)
+>  fs/ext2/super.c | 14 +++++++-------
+>  1 file changed, 7 insertions(+), 7 deletions(-)
 > 
-> diff --git a/fs/xfs/xfs_super.c b/fs/xfs/xfs_super.c
-> index 764304595e8b..b27ecb11db66 100644
-> --- a/fs/xfs/xfs_super.c
-> +++ b/fs/xfs/xfs_super.c
-> @@ -1376,14 +1376,22 @@ xfs_fs_parse_param(
->  	case Opt_nodiscard:
->  		parsing_mp->m_features &= ~XFS_FEAT_DISCARD;
->  		return 0;
+> diff --git a/fs/ext2/super.c b/fs/ext2/super.c
+> index 01f9addc8b1f..0398e7a90eb6 100644
+> --- a/fs/ext2/super.c
+> +++ b/fs/ext2/super.c
+> @@ -585,13 +585,13 @@ static int parse_options(char *options, struct super_block *sb,
+>  			set_opt(opts->s_mount_opt, XIP);
+>  			fallthrough;
+>  		case Opt_dax:
 > -#ifdef CONFIG_FS_DAX
->  	case Opt_dax:
-> -		xfs_mount_set_dax_mode(parsing_mp, XFS_DAX_ALWAYS);
-> -		return 0;
-> +		if (dax_is_supported()) {
-> +			xfs_mount_set_dax_mode(parsing_mp, XFS_DAX_ALWAYS);
-> +			return 0;
-> +		} else {
-> +			xfs_warn(parsing_mp, "dax option not supported.");
-> +			return -EINVAL;
-> +		}
->  	case Opt_dax_enum:
-> -		xfs_mount_set_dax_mode(parsing_mp, result.uint_32);
-> -		return 0;
+> -			ext2_msg(sb, KERN_WARNING,
+> -		"DAX enabled. Warning: EXPERIMENTAL, use at your own risk");
+> -			set_opt(opts->s_mount_opt, DAX);
+> -#else
+> -			ext2_msg(sb, KERN_INFO, "dax option not supported");
 > -#endif
-> +		if (dax_is_supported()) {
-> +			xfs_mount_set_dax_mode(parsing_mp, result.uint_32);
-> +			return 0;
-> +		} else {
-> +			xfs_warn(parsing_mp, "dax option not supported.");
-> +			return -EINVAL;
-> +		}
-
-Assuming that I understand what dax_is_supported() is doing, this
-change isn't right.  We're just setting the DAX configuration flags
-from the mount options here, we don't validate them until 
-we've parsed all options and eliminated conflicts and rejected
-conflicting options. We validate whether the options are
-appropriate for the underlying hardware configuration later in the
-mount process.
-
-dax=always suitability is check in xfs_setup_dax_always() called
-later in the mount process when we have enough context and support
-to open storage devices and check them for DAX support. If the
-hardware does not support DAX then we simply we turn off DAX
-support, we do not reject the mount as this change does.
-
-dax=inode and dax=never are valid options on all configurations,
-even those with without FSDAX support or have hardware that is not
-capable of using DAX. dax=inode only affects how an inode is
-instantiated in cache - if the inode has a flag that says "use DAX"
-and dax is suppoortable by the hardware, then the turn on DAX for
-that inode. Otherwise we just use the normal non-dax IO paths.
-
-Again, we don't error out the filesystem if DAX is not supported,
-we just don't turn it on. This check is done in
-xfs_inode_should_enable_dax() and I think all you need to do is
-replace the IS_ENABLED(CONFIG_FS_DAX) with a dax_is_supported()
-call...
-
--Dave.
+> +			if (dax_is_supported()) {
+> +				ext2_msg(sb, KERN_WARNING,
+> +					 "DAX enabled. Warning: EXPERIMENTAL, use at your own risk");
+> +				set_opt(opts->s_mount_opt, DAX);
+> +			} else {
+> +				ext2_msg(sb, KERN_INFO, "dax option not supported");
+> +			}
+>  			break;
+>  
+>  #if defined(CONFIG_QUOTA)
+> -- 
+> 2.39.2
+> 
 -- 
-Dave Chinner
-david@fromorbit.com
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
