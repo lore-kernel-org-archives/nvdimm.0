@@ -1,40 +1,42 @@
 Received: from smtpout.efficios.com (smtpout.efficios.com [167.114.26.122])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB8441272AE
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB72A7E774
 	for <nvdimm@lists.linux.dev>; Tue, 30 Jan 2024 16:53:09 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=167.114.26.122
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706633591; cv=none; b=iRv4L8GOw5Al1iS1lp+1GdIfRYEsYTT6Xoj3H6aCpFr+WMitydX8E6qi9WdNUktYG8bfdGnxIhajRC5Y3OGKu1JkLRF4uvHmelwuJQ4AtO1zRTgQf/Dtb1YVTpN+n+9WCYZ+bm+aqVnrv2x7fbtQDaUS0kim7uRzmdV+3vMwrq4=
+	t=1706633591; cv=none; b=QVLPsabBSS1lCv5G6jyg+r8d90HoxsZNzMRhPA196CMa+uCwwymjLPsGhfp72rPhtGqPLbViWTTu1PXfpoa8LTYpN1lMX7SAvL2yWiRx/OckW6aOEdpyxi/88Fz3xYhhh6XVfydJjIlGf8I8DBYRQ/f0YlGrsScNHZ5G6wa7nzw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1706633591; c=relaxed/simple;
-	bh=kONcCPsuyI5WQYSGBCSYy4QvFvi3USH7Uw/j5x6yQS4=;
+	bh=uiS0GJbwiYIsdO+sIgYuUHJda29PtI1SD0eG+t25LF0=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=pGAFNgESmrH8YzT2H/Mjw1bymqWi0Xx2e1pAyfplLByHB4mG78FPvzKwFmCpRE8jkuuN2LxYGoKun2LSOllR10/e1ezZGVYSewnBPvJ2lOLQDWxyaRhOegxZZpvKOTg7jQbVu98sqECRbsForC+ALshtzIyrkt68cPIisZvJw0c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com; spf=pass smtp.mailfrom=efficios.com; dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b=vgbjUBoC; arc=none smtp.client-ip=167.114.26.122
+	 MIME-Version; b=pHxsoZnsHEOUuxJI9EGOPrpeJBNGIhqKgo/LPJS7Eqe6gt9UaihD32lJF8Qy8jP+H87eP8Fq59kYIH/zCASWWhgy6VAgRqEqFg09oXWdkW378+cpyIPuYO+yKBQqH4RyXGUtTEOUQfFJs02RX586HRbvmWddH4dF+ACyRxKrg2I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com; spf=pass smtp.mailfrom=efficios.com; dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b=Wcnaeton; arc=none smtp.client-ip=167.114.26.122
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=efficios.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b="vgbjUBoC"
+	dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b="Wcnaeton"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=efficios.com;
-	s=smtpout1; t=1706633582;
-	bh=kONcCPsuyI5WQYSGBCSYy4QvFvi3USH7Uw/j5x6yQS4=;
+	s=smtpout1; t=1706633583;
+	bh=uiS0GJbwiYIsdO+sIgYuUHJda29PtI1SD0eG+t25LF0=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=vgbjUBoCsBWslMcltBfdpWSeMuBJh9vagVsOzVBCsYPflmZF21l/oXX1Ba/PO3mLt
-	 IAo6tDBPixabdyL82vFyeZRM4K5gXSlF3AcHSkts4ATD0jK0r54h3KWd9BfSuB2vq3
-	 5ncl3QmDBgaRucDB6G9aoZY9wcKTZ8lNMpVD2BB6c/pWaO6TWZJpNAP6qpjr4lp/QH
-	 Xrf1q2e9OeLafet9cmHN9zLTm4hViwA6TMJFVknG1455my5qsCaRlgKhoJB5AHSqBX
-	 z7oR+SBvEguwEdLQu5X8pytv05SsqgN3NUYNRzNrZcjomR6+XC1ZyjdraSUi/geEb6
-	 in89aPEvh0XWw==
+	b=WcnaetonRB2ptA6rH20S85ZN2YuQ+85XKCChqN/hPetKt9hQMa6MYuz0WYUDKu0dk
+	 TRGXuMhSd/MORPXaikKViQvSex0XCt4qww89GEbtegcsxugJg/8FWVmU0KleFZRdCg
+	 URgK6HV/mhdB93faG1hohYtpg/CFikQ89UPVO2+6YBcInuB/TQTAvO+CrRwLUkoP7T
+	 z7OOTR2aZt+IPrulE57GALlHaC/QeSShs+vFVabk0vuwHLfQxrsFjCnepf8ePGwLlQ
+	 RlY0xR0urzM2jWXOR+egACe18PkdIYEzPUmiqu3yKbeMxFrG6CdDKqTLmZedfeFS5e
+	 mXznuQ/oV967A==
 Received: from thinkos.internal.efficios.com (192-222-143-198.qc.cable.ebox.net [192.222.143.198])
-	by smtpout.efficios.com (Postfix) with ESMTPSA id 4TPWSZ4m37zVCR;
-	Tue, 30 Jan 2024 11:53:02 -0500 (EST)
+	by smtpout.efficios.com (Postfix) with ESMTPSA id 4TPWSb2qKWzVlT;
+	Tue, 30 Jan 2024 11:53:03 -0500 (EST)
 From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 To: Dan Williams <dan.j.williams@intel.com>,
 	Vishal Verma <vishal.l.verma@intel.com>,
 	Dave Jiang <dave.jiang@intel.com>
 Cc: linux-kernel@vger.kernel.org,
 	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
+	Jan Kara <jack@suse.com>,
+	linux-ext4@vger.kernel.org,
 	Andrew Morton <akpm@linux-foundation.org>,
 	Linus Torvalds <torvalds@linux-foundation.org>,
 	linux-mm@kvack.org,
@@ -45,9 +47,9 @@ Cc: linux-kernel@vger.kernel.org,
 	nvdimm@lists.linux.dev,
 	linux-cxl@vger.kernel.org,
 	linux-fsdevel@vger.kernel.org
-Subject: [RFC PATCH v2 1/8] dax: Introduce dax_is_supported()
-Date: Tue, 30 Jan 2024 11:52:48 -0500
-Message-Id: <20240130165255.212591-2-mathieu.desnoyers@efficios.com>
+Subject: [RFC PATCH v2 3/8] ext2: Use dax_is_supported()
+Date: Tue, 30 Jan 2024 11:52:50 -0500
+Message-Id: <20240130165255.212591-4-mathieu.desnoyers@efficios.com>
 X-Mailer: git-send-email 2.39.2
 In-Reply-To: <20240130165255.212591-1-mathieu.desnoyers@efficios.com>
 References: <20240130165255.212591-1-mathieu.desnoyers@efficios.com>
@@ -59,22 +61,18 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Introduce a new dax_is_supported() static inline to check whether the
-architecture supports DAX.
+Use dax_is_supported() to validate whether the architecture has
+virtually aliased data caches at mount time. Print an error and disable
+DAX if dax=always is requested as a mount option on an architecture
+which does not support DAX.
 
-This replaces the following fs/Kconfig:FS_DAX dependency:
-
-  depends on !(ARM || MIPS || SPARC)
-
-This is done in preparation for its use by each filesystem supporting
-the dax mount option to validate whether dax is indeed supported.
-
-This is done in preparation for using dcache_is_aliasing() in a
-following change which will properly support architectures which detect
-dcache aliasing at runtime.
+This is relevant for architectures which require a dynamic check
+to validate whether they have virtually aliased data caches.
 
 Fixes: d92576f1167c ("dax: does not work correctly with virtual aliasing caches")
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Jan Kara <jack@suse.com>
+Cc: linux-ext4@vger.kernel.org
 Cc: Andrew Morton <akpm@linux-foundation.org>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: linux-mm@kvack.org
@@ -89,50 +87,26 @@ Cc: nvdimm@lists.linux.dev
 Cc: linux-cxl@vger.kernel.org
 Cc: linux-fsdevel@vger.kernel.org
 ---
- fs/Kconfig          |  1 -
- include/linux/dax.h | 10 ++++++++++
- 2 files changed, 10 insertions(+), 1 deletion(-)
+ fs/ext2/super.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/fs/Kconfig b/fs/Kconfig
-index 42837617a55b..e5efdb3b276b 100644
---- a/fs/Kconfig
-+++ b/fs/Kconfig
-@@ -56,7 +56,6 @@ endif # BLOCK
- config FS_DAX
- 	bool "File system based Direct Access (DAX) support"
- 	depends on MMU
--	depends on !(ARM || MIPS || SPARC)
- 	depends on ZONE_DEVICE || FS_DAX_LIMITED
- 	select FS_IOMAP
- 	select DAX
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index b463502b16e1..cfc8cd4a3eae 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -78,6 +78,12 @@ static inline bool daxdev_mapping_supported(struct vm_area_struct *vma,
- 		return false;
- 	return dax_synchronous(dax_dev);
- }
-+static inline bool dax_is_supported(void)
-+{
-+	return !IS_ENABLED(CONFIG_ARM) &&
-+	       !IS_ENABLED(CONFIG_MIPS) &&
-+	       !IS_ENABLED(CONFIG_SPARC);
-+}
- #else
- static inline void *dax_holder(struct dax_device *dax_dev)
- {
-@@ -122,6 +128,10 @@ static inline size_t dax_recovery_write(struct dax_device *dax_dev,
- {
- 	return 0;
- }
-+static inline bool dax_is_supported(void)
-+{
-+	return false;
-+}
- #endif
+diff --git a/fs/ext2/super.c b/fs/ext2/super.c
+index 01f9addc8b1f..30ff57d47ed4 100644
+--- a/fs/ext2/super.c
++++ b/fs/ext2/super.c
+@@ -955,7 +955,11 @@ static int ext2_fill_super(struct super_block *sb, void *data, int silent)
+ 	blocksize = BLOCK_SIZE << le32_to_cpu(sbi->s_es->s_log_block_size);
  
- void set_dax_nocache(struct dax_device *dax_dev);
+ 	if (test_opt(sb, DAX)) {
+-		if (!sbi->s_daxdev) {
++		if (!dax_is_supported()) {
++			ext2_msg(sb, KERN_ERR,
++				"DAX unsupported by architecture. Turning off DAX.");
++			clear_opt(sbi->s_mount_opt, DAX);
++		} else if (!sbi->s_daxdev) {
+ 			ext2_msg(sb, KERN_ERR,
+ 				"DAX unsupported by block device. Turning off DAX.");
+ 			clear_opt(sbi->s_mount_opt, DAX);
 -- 
 2.39.2
 
