@@ -1,180 +1,326 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0932D762F5
-	for <nvdimm@lists.linux.dev>; Tue, 30 Jan 2024 21:40:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 824697BAF0;
+	Tue, 30 Jan 2024 22:29:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706650810; cv=none; b=U+DlSnwiq8gzgRGEwljg9sDtDyWROj9Z8Ef+Y6YJPHej2bCGfrFyAao9NAMrN8IcFsZUAshzPOQenw0fEDMuZCBARq6vVKsBcAdcsFH0OQ6RzFg9zsUqPZjvRoe+RP3O8gUi5RTY/vSrc2f2HcEMxRXEtb25+1xGdkbv2WYijkQ=
+	t=1706653764; cv=none; b=fYYgjdS6UExFKaFjCv9tmn99km+w0KoDwWeOash+j7yb7OGmhxhFQurlbTdgsIwBmWIlW55kA/0+1XfnuyEvCGwTUF1D3A5vPsN1VDUD9yrS5c+deKGH0bvVN4TY7p/5SlNnzjT7DbxNmCKmCaSnPoZeBrVf8y+0Ffw+gSl/mCw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706650810; c=relaxed/simple;
-	bh=G17DxU9UC6n3OJzyReXQ58Lh4ZC68cV87WeaVPg/Dv4=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=lMKVKzdcFV/xMkRt/JlyHUfBUiM8dqEi7yZFsbOhsqPqcUtu16wp8cVGBWu2HO2UkPnjyLx+aE5rx0hGdy5wUfpl2VqlVVNsk2VSx0hkKHhjMNwTWVK4i3qqN6yAgr1Odd129b57fFWu/KgD7/LJHVNegfKPJAlsR9ExPlG5JSc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz; spf=pass smtp.mailfrom=suse.cz; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=VMmDyszM; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=+R+8+Cbs; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=VMmDyszM; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=+R+8+Cbs; arc=none smtp.client-ip=195.135.223.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="VMmDyszM";
-	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="+R+8+Cbs";
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="VMmDyszM";
-	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="+R+8+Cbs"
-Received: from imap2.dmz-prg2.suse.org (imap2.dmz-prg2.suse.org [10.150.64.98])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 318E221FB0;
-	Tue, 30 Jan 2024 21:40:07 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1706650807; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=3uk8ksGjp+S/t97XadUwt9XprzXFLFr3a0kQ6HsH4bQ=;
-	b=VMmDyszMhOgX153e8Q8P/4Y6Zu/EvHkdqibK3Wn695Pt4esQqem/mEPDAzKsaQV8wJGauw
-	BYmBM28clHZNiW3pDWwBU80fJ4imkfAaRltJXUwlnsNuT2IHr1n2V72gP68noR26ykm3Bx
-	5rZhB84BRj6vDXSqQisLDOHeL4yF+xs=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1706650807;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=3uk8ksGjp+S/t97XadUwt9XprzXFLFr3a0kQ6HsH4bQ=;
-	b=+R+8+Cbst92IRAezsU4YrXEpatYNOVUMJjIlxnw82J2D/fhIIM8m1bsjNlQsrkX7v9nE06
-	ECw0o38O4LKHYVBg==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1706650807; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=3uk8ksGjp+S/t97XadUwt9XprzXFLFr3a0kQ6HsH4bQ=;
-	b=VMmDyszMhOgX153e8Q8P/4Y6Zu/EvHkdqibK3Wn695Pt4esQqem/mEPDAzKsaQV8wJGauw
-	BYmBM28clHZNiW3pDWwBU80fJ4imkfAaRltJXUwlnsNuT2IHr1n2V72gP68noR26ykm3Bx
-	5rZhB84BRj6vDXSqQisLDOHeL4yF+xs=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1706650807;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=3uk8ksGjp+S/t97XadUwt9XprzXFLFr3a0kQ6HsH4bQ=;
-	b=+R+8+Cbst92IRAezsU4YrXEpatYNOVUMJjIlxnw82J2D/fhIIM8m1bsjNlQsrkX7v9nE06
-	ECw0o38O4LKHYVBg==
-Received: from imap2.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap2.dmz-prg2.suse.org (Postfix) with ESMTPS id 1BA5513462;
-	Tue, 30 Jan 2024 21:40:07 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([10.150.64.162])
-	by imap2.dmz-prg2.suse.org with ESMTPSA
-	id PT9uBrdsuWWuGgAAn2gu4w
-	(envelope-from <jack@suse.cz>); Tue, 30 Jan 2024 21:40:07 +0000
-Received: by quack3.suse.cz (Postfix, from userid 1000)
-	id A5D09A07F9; Tue, 30 Jan 2024 22:40:06 +0100 (CET)
-Date: Tue, 30 Jan 2024 22:40:06 +0100
-From: Jan Kara <jack@suse.cz>
-To: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>, linux-kernel@vger.kernel.org,
-	Jan Kara <jack@suse.com>, linux-ext4@vger.kernel.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org,
-	linux-arch@vger.kernel.org, Matthew Wilcox <willy@infradead.org>,
-	Arnd Bergmann <arnd@arndb.de>, Russell King <linux@armlinux.org.uk>,
-	nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org
-Subject: Re: [RFC PATCH v2 3/8] ext2: Use dax_is_supported()
-Message-ID: <20240130214006.qgqykoqm4c2pk4kh@quack3>
-References: <20240130165255.212591-1-mathieu.desnoyers@efficios.com>
- <20240130165255.212591-4-mathieu.desnoyers@efficios.com>
+	s=arc-20240116; t=1706653764; c=relaxed/simple;
+	bh=0h8Z1q44vEsGu69T/WNLG72+hSVlkpNksxLm7Fl8fcU=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=MVTF6rj0Qs+sXxBYCD9NFcxsHUuS8GstzsJf1BAOwK9HMps6JXdVaMjPy3xkRwopzWirL6KWA8wUIew6VeWS481RvHoeB0Y9pD9E2twWB6boO93lrw/0F6trmMpM5DF7GGjRTw4g7a1wDZoX5bcsnWmlD7AJCfeZ6Ym5a4TRCsM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5840C43394;
+	Tue, 30 Jan 2024 22:29:23 +0000 (UTC)
+From: Dave Jiang <dave.jiang@intel.com>
+To: linux-cxl@vger.kernel.org,
+	nvdimm@lists.linux.dev
+Cc: dan.j.williams@intel.com,
+	ira.weiny@intel.com,
+	vishal.l.verma@intel.com,
+	alison.schofield@intel.com,
+	Jonathan.Cameron@huawei.com,
+	dave@stgolabs.net
+Subject: [PATCH v2 1/3] cxl: Change 'struct cxl_memdev_state' *_perf_list to single 'struct cxl_dpa_perf'
+Date: Tue, 30 Jan 2024 15:29:03 -0700
+Message-ID: <20240130222905.946109-1-dave.jiang@intel.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240130165255.212591-4-mathieu.desnoyers@efficios.com>
-Authentication-Results: smtp-out1.suse.de;
-	none
-X-Spamd-Result: default: False [-2.60 / 50.00];
-	 ARC_NA(0.00)[];
-	 RCVD_VIA_SMTP_AUTH(0.00)[];
-	 FROM_HAS_DN(0.00)[];
-	 TO_DN_SOME(0.00)[];
-	 TO_MATCH_ENVRCPT_ALL(0.00)[];
-	 MIME_GOOD(-0.10)[text/plain];
-	 RCVD_COUNT_THREE(0.00)[3];
-	 DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
-	 RCPT_COUNT_TWELVE(0.00)[17];
-	 DBL_BLOCKED_OPENRESOLVER(0.00)[infradead.org:email,linux-foundation.org:email,linux.dev:email,intel.com:email,suse.com:email];
-	 FUZZY_BLOCKED(0.00)[rspamd.com];
-	 FROM_EQ_ENVFROM(0.00)[];
-	 MIME_TRACE(0.00)[0:+];
-	 MID_RHS_NOT_FQDN(0.50)[];
-	 RCVD_TLS_ALL(0.00)[];
-	 BAYES_HAM(-3.00)[100.00%]
-X-Spam-Level: 
-X-Spam-Flag: NO
-X-Spam-Score: -2.60
+Content-Transfer-Encoding: 8bit
 
-On Tue 30-01-24 11:52:50, Mathieu Desnoyers wrote:
-> Use dax_is_supported() to validate whether the architecture has
-> virtually aliased data caches at mount time. Print an error and disable
-> DAX if dax=always is requested as a mount option on an architecture
-> which does not support DAX.
-> 
-> This is relevant for architectures which require a dynamic check
-> to validate whether they have virtually aliased data caches.
-> 
-> Fixes: d92576f1167c ("dax: does not work correctly with virtual aliasing caches")
-> Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-> Cc: Jan Kara <jack@suse.com>
-> Cc: linux-ext4@vger.kernel.org
-> Cc: Andrew Morton <akpm@linux-foundation.org>
-> Cc: Linus Torvalds <torvalds@linux-foundation.org>
-> Cc: linux-mm@kvack.org
-> Cc: linux-arch@vger.kernel.org
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Cc: Vishal Verma <vishal.l.verma@intel.com>
-> Cc: Dave Jiang <dave.jiang@intel.com>
-> Cc: Matthew Wilcox <willy@infradead.org>
-> Cc: Arnd Bergmann <arnd@arndb.de>
-> Cc: Russell King <linux@armlinux.org.uk>
-> Cc: nvdimm@lists.linux.dev
-> Cc: linux-cxl@vger.kernel.org
-> Cc: linux-fsdevel@vger.kernel.org
+In order to address the issue with being able to expose qos_class sysfs
+attributes under 'ram' and 'pmem' sub-directories, the attributes must
+be defined as static attributes rather than under driver->dev_groups.
+To avoid implementing locking for accessing the 'struct cxl_dpa_perf`
+lists, convert the list to a single 'struct cxl_dpa_perf' entry in
+preparation to move the attributes to statically defined.
 
-OK, yeah, this is better than v1. Feel free to add:
+Link: https://lore.kernel.org/linux-cxl/65b200ba228f_2d43c29468@dwillia2-mobl3.amr.corp.intel.com.notmuch/
+Suggested-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+---
+ drivers/cxl/core/cdat.c | 90 +++++++++++++----------------------------
+ drivers/cxl/core/mbox.c |  4 +-
+ drivers/cxl/cxlmem.h    | 10 ++---
+ drivers/cxl/mem.c       | 25 ++++--------
+ 4 files changed, 42 insertions(+), 87 deletions(-)
 
-Acked-by: Jan Kara <jack@suse.cz>
-
-								Honza
-
-> ---
->  fs/ext2/super.c | 6 +++++-
->  1 file changed, 5 insertions(+), 1 deletion(-)
-> 
-> diff --git a/fs/ext2/super.c b/fs/ext2/super.c
-> index 01f9addc8b1f..30ff57d47ed4 100644
-> --- a/fs/ext2/super.c
-> +++ b/fs/ext2/super.c
-> @@ -955,7 +955,11 @@ static int ext2_fill_super(struct super_block *sb, void *data, int silent)
->  	blocksize = BLOCK_SIZE << le32_to_cpu(sbi->s_es->s_log_block_size);
->  
->  	if (test_opt(sb, DAX)) {
-> -		if (!sbi->s_daxdev) {
-> +		if (!dax_is_supported()) {
-> +			ext2_msg(sb, KERN_ERR,
-> +				"DAX unsupported by architecture. Turning off DAX.");
-> +			clear_opt(sbi->s_mount_opt, DAX);
-> +		} else if (!sbi->s_daxdev) {
->  			ext2_msg(sb, KERN_ERR,
->  				"DAX unsupported by block device. Turning off DAX.");
->  			clear_opt(sbi->s_mount_opt, DAX);
-> -- 
-> 2.39.2
-> 
+diff --git a/drivers/cxl/core/cdat.c b/drivers/cxl/core/cdat.c
+index 6fe11546889f..99e4c8170c13 100644
+--- a/drivers/cxl/core/cdat.c
++++ b/drivers/cxl/core/cdat.c
+@@ -210,19 +210,12 @@ static int cxl_port_perf_data_calculate(struct cxl_port *port,
+ 	return 0;
+ }
+ 
+-static void add_perf_entry(struct device *dev, struct dsmas_entry *dent,
+-			   struct list_head *list)
++static void update_perf_entry(struct device *dev, struct dsmas_entry *dent,
++			      struct cxl_dpa_perf *dpa_perf)
+ {
+-	struct cxl_dpa_perf *dpa_perf;
+-
+-	dpa_perf = kzalloc(sizeof(*dpa_perf), GFP_KERNEL);
+-	if (!dpa_perf)
+-		return;
+-
+ 	dpa_perf->dpa_range = dent->dpa_range;
+ 	dpa_perf->coord = dent->coord;
+ 	dpa_perf->qos_class = dent->qos_class;
+-	list_add_tail(&dpa_perf->list, list);
+ 	dev_dbg(dev,
+ 		"DSMAS: dpa: %#llx qos: %d read_bw: %d write_bw %d read_lat: %d write_lat: %d\n",
+ 		dent->dpa_range.start, dpa_perf->qos_class,
+@@ -230,20 +223,6 @@ static void add_perf_entry(struct device *dev, struct dsmas_entry *dent,
+ 		dent->coord.read_latency, dent->coord.write_latency);
+ }
+ 
+-static void free_perf_ents(void *data)
+-{
+-	struct cxl_memdev_state *mds = data;
+-	struct cxl_dpa_perf *dpa_perf, *n;
+-	LIST_HEAD(discard);
+-
+-	list_splice_tail_init(&mds->ram_perf_list, &discard);
+-	list_splice_tail_init(&mds->pmem_perf_list, &discard);
+-	list_for_each_entry_safe(dpa_perf, n, &discard, list) {
+-		list_del(&dpa_perf->list);
+-		kfree(dpa_perf);
+-	}
+-}
+-
+ static void cxl_memdev_set_qos_class(struct cxl_dev_state *cxlds,
+ 				     struct xarray *dsmas_xa)
+ {
+@@ -262,17 +241,16 @@ static void cxl_memdev_set_qos_class(struct cxl_dev_state *cxlds,
+ 
+ 	xa_for_each(dsmas_xa, index, dent) {
+ 		if (resource_size(&cxlds->ram_res) &&
+-		    range_contains(&ram_range, &dent->dpa_range))
+-			add_perf_entry(dev, dent, &mds->ram_perf_list);
+-		else if (resource_size(&cxlds->pmem_res) &&
+-			 range_contains(&pmem_range, &dent->dpa_range))
+-			add_perf_entry(dev, dent, &mds->pmem_perf_list);
+-		else
++		    range_contains(&ram_range, &dent->dpa_range)) {
++			update_perf_entry(dev, dent, &mds->ram_perf);
++		} else if (resource_size(&cxlds->pmem_res) &&
++			   range_contains(&pmem_range, &dent->dpa_range)) {
++			update_perf_entry(dev, dent, &mds->pmem_perf);
++		} else {
+ 			dev_dbg(dev, "no partition for dsmas dpa: %#llx\n",
+ 				dent->dpa_range.start);
++		}
+ 	}
+-
+-	devm_add_action_or_reset(&cxlds->cxlmd->dev, free_perf_ents, mds);
+ }
+ 
+ static int match_cxlrd_qos_class(struct device *dev, void *data)
+@@ -293,24 +271,25 @@ static int match_cxlrd_qos_class(struct device *dev, void *data)
+ 	return 0;
+ }
+ 
++static void reset_dpa_perf(struct cxl_dpa_perf *dpa_perf)
++{
++	memset(&dpa_perf, 0, sizeof(*dpa_perf));
++	dpa_perf->qos_class = CXL_QOS_CLASS_INVALID;
++}
++
+ static void cxl_qos_match(struct cxl_port *root_port,
+-			  struct list_head *work_list,
+-			  struct list_head *discard_list)
++			  struct cxl_dpa_perf *dpa_perf)
+ {
+-	struct cxl_dpa_perf *dpa_perf, *n;
++	int rc;
+ 
+-	list_for_each_entry_safe(dpa_perf, n, work_list, list) {
+-		int rc;
++	if (dpa_perf->qos_class == CXL_QOS_CLASS_INVALID)
++		return;
+ 
+-		if (dpa_perf->qos_class == CXL_QOS_CLASS_INVALID)
+-			return;
+-
+-		rc = device_for_each_child(&root_port->dev,
+-					   (void *)&dpa_perf->qos_class,
+-					   match_cxlrd_qos_class);
+-		if (!rc)
+-			list_move_tail(&dpa_perf->list, discard_list);
+-	}
++	rc = device_for_each_child(&root_port->dev,
++				   &dpa_perf->qos_class,
++				   match_cxlrd_qos_class);
++	if (!rc)
++		reset_dpa_perf(dpa_perf);
+ }
+ 
+ static int match_cxlrd_hb(struct device *dev, void *data)
+@@ -334,23 +313,10 @@ static int match_cxlrd_hb(struct device *dev, void *data)
+ 	return 0;
+ }
+ 
+-static void discard_dpa_perf(struct list_head *list)
+-{
+-	struct cxl_dpa_perf *dpa_perf, *n;
+-
+-	list_for_each_entry_safe(dpa_perf, n, list, list) {
+-		list_del(&dpa_perf->list);
+-		kfree(dpa_perf);
+-	}
+-}
+-DEFINE_FREE(dpa_perf, struct list_head *, if (!list_empty(_T)) discard_dpa_perf(_T))
+-
+ static int cxl_qos_class_verify(struct cxl_memdev *cxlmd)
+ {
+ 	struct cxl_dev_state *cxlds = cxlmd->cxlds;
+ 	struct cxl_memdev_state *mds = to_cxl_memdev_state(cxlds);
+-	LIST_HEAD(__discard);
+-	struct list_head *discard __free(dpa_perf) = &__discard;
+ 	struct cxl_port *root_port;
+ 	int rc;
+ 
+@@ -363,16 +329,16 @@ static int cxl_qos_class_verify(struct cxl_memdev *cxlmd)
+ 	root_port = &cxl_root->port;
+ 
+ 	/* Check that the QTG IDs are all sane between end device and root decoders */
+-	cxl_qos_match(root_port, &mds->ram_perf_list, discard);
+-	cxl_qos_match(root_port, &mds->pmem_perf_list, discard);
++	cxl_qos_match(root_port, &mds->ram_perf);
++	cxl_qos_match(root_port, &mds->pmem_perf);
+ 
+ 	/* Check to make sure that the device's host bridge is under a root decoder */
+ 	rc = device_for_each_child(&root_port->dev,
+ 				   (void *)cxlmd->endpoint->host_bridge,
+ 				   match_cxlrd_hb);
+ 	if (!rc) {
+-		list_splice_tail_init(&mds->ram_perf_list, discard);
+-		list_splice_tail_init(&mds->pmem_perf_list, discard);
++		reset_dpa_perf(&mds->ram_perf);
++		reset_dpa_perf(&mds->pmem_perf);
+ 	}
+ 
+ 	return rc;
+diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
+index 27166a411705..9adda4795eb7 100644
+--- a/drivers/cxl/core/mbox.c
++++ b/drivers/cxl/core/mbox.c
+@@ -1391,8 +1391,8 @@ struct cxl_memdev_state *cxl_memdev_state_create(struct device *dev)
+ 	mds->cxlds.reg_map.host = dev;
+ 	mds->cxlds.reg_map.resource = CXL_RESOURCE_NONE;
+ 	mds->cxlds.type = CXL_DEVTYPE_CLASSMEM;
+-	INIT_LIST_HEAD(&mds->ram_perf_list);
+-	INIT_LIST_HEAD(&mds->pmem_perf_list);
++	mds->ram_perf.qos_class = CXL_QOS_CLASS_INVALID;
++	mds->pmem_perf.qos_class = CXL_QOS_CLASS_INVALID;
+ 
+ 	return mds;
+ }
+diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
+index 5303d6942b88..20fb3b35e89e 100644
+--- a/drivers/cxl/cxlmem.h
++++ b/drivers/cxl/cxlmem.h
+@@ -395,13 +395,11 @@ enum cxl_devtype {
+ 
+ /**
+  * struct cxl_dpa_perf - DPA performance property entry
+- * @list - list entry
+  * @dpa_range - range for DPA address
+  * @coord - QoS performance data (i.e. latency, bandwidth)
+  * @qos_class - QoS Class cookies
+  */
+ struct cxl_dpa_perf {
+-	struct list_head list;
+ 	struct range dpa_range;
+ 	struct access_coordinate coord;
+ 	int qos_class;
+@@ -471,8 +469,8 @@ struct cxl_dev_state {
+  * @security: security driver state info
+  * @fw: firmware upload / activation state
+  * @mbox_send: @dev specific transport for transmitting mailbox commands
+- * @ram_perf_list: performance data entries matched to RAM
+- * @pmem_perf_list: performance data entries matched to PMEM
++ * @ram_perf: performance data entry matched to RAM partition
++ * @pmem_perf: performance data entry matched to PMEM partition
+  *
+  * See CXL 3.0 8.2.9.8.2 Capacity Configuration and Label Storage for
+  * details on capacity parameters.
+@@ -494,8 +492,8 @@ struct cxl_memdev_state {
+ 	u64 next_volatile_bytes;
+ 	u64 next_persistent_bytes;
+ 
+-	struct list_head ram_perf_list;
+-	struct list_head pmem_perf_list;
++	struct cxl_dpa_perf ram_perf;
++	struct cxl_dpa_perf pmem_perf;
+ 
+ 	struct cxl_event_state event;
+ 	struct cxl_poison_state poison;
+diff --git a/drivers/cxl/mem.c b/drivers/cxl/mem.c
+index c5c9d8e0d88d..a62099e47d71 100644
+--- a/drivers/cxl/mem.c
++++ b/drivers/cxl/mem.c
+@@ -221,16 +221,13 @@ static ssize_t ram_qos_class_show(struct device *dev,
+ 	struct cxl_memdev *cxlmd = to_cxl_memdev(dev);
+ 	struct cxl_dev_state *cxlds = cxlmd->cxlds;
+ 	struct cxl_memdev_state *mds = to_cxl_memdev_state(cxlds);
+-	struct cxl_dpa_perf *dpa_perf;
++	struct cxl_dpa_perf *dpa_perf = &mds->ram_perf;
+ 
+ 	if (!dev->driver)
+ 		return -ENOENT;
+ 
+-	if (list_empty(&mds->ram_perf_list))
+-		return -ENOENT;
+-
+-	dpa_perf = list_first_entry(&mds->ram_perf_list, struct cxl_dpa_perf,
+-				    list);
++	if (dpa_perf->qos_class == CXL_QOS_CLASS_INVALID)
++		return -ENODATA;
+ 
+ 	return sysfs_emit(buf, "%d\n", dpa_perf->qos_class);
+ }
+@@ -244,16 +241,10 @@ static ssize_t pmem_qos_class_show(struct device *dev,
+ 	struct cxl_memdev *cxlmd = to_cxl_memdev(dev);
+ 	struct cxl_dev_state *cxlds = cxlmd->cxlds;
+ 	struct cxl_memdev_state *mds = to_cxl_memdev_state(cxlds);
+-	struct cxl_dpa_perf *dpa_perf;
++	struct cxl_dpa_perf *dpa_perf = &mds->pmem_perf;
+ 
+-	if (!dev->driver)
+-		return -ENOENT;
+-
+-	if (list_empty(&mds->pmem_perf_list))
+-		return -ENOENT;
+-
+-	dpa_perf = list_first_entry(&mds->pmem_perf_list, struct cxl_dpa_perf,
+-				    list);
++	if (dpa_perf->qos_class == CXL_QOS_CLASS_INVALID)
++		return -ENODATA;
+ 
+ 	return sysfs_emit(buf, "%d\n", dpa_perf->qos_class);
+ }
+@@ -273,11 +264,11 @@ static umode_t cxl_mem_visible(struct kobject *kobj, struct attribute *a, int n)
+ 			return 0;
+ 
+ 	if (a == &dev_attr_pmem_qos_class.attr)
+-		if (list_empty(&mds->pmem_perf_list))
++		if (mds->pmem_perf.qos_class == CXL_QOS_CLASS_INVALID)
+ 			return 0;
+ 
+ 	if (a == &dev_attr_ram_qos_class.attr)
+-		if (list_empty(&mds->ram_perf_list))
++		if (mds->ram_perf.qos_class == CXL_QOS_CLASS_INVALID)
+ 			return 0;
+ 
+ 	return a->mode;
 -- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+2.43.0
+
