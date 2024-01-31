@@ -1,64 +1,95 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+Received: from smtpout.efficios.com (smtpout.efficios.com [167.114.26.122])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 382BE374D4;
-	Wed, 31 Jan 2024 17:17:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 38BB884A5A;
+	Wed, 31 Jan 2024 17:59:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=167.114.26.122
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706721436; cv=none; b=mbjcVjll6+ouA0Iop1vmjeQyW8sTz4x76JsiNNXn0eXMKy3tSsl9Phzgo3BEnQX2iQXxI8Y/R3uUnwnG9+AirL+a2EX0dxvNi1PACX05K7tN8yRn7VPxJMrSfnej+K0VhOfMnBmoOEYvB28YrXhOWc5Kqfc1BUTPe8q/8PWN9So=
+	t=1706723983; cv=none; b=LL9PlGWnlUKDv5+CIl85H3fq2vh98T57Jq85YrQXsS6vQgTDT8fWIrahSWjuLx2hsVl6ZcSVZfR3d8pF1nyUsjmF902o+xReFCnEyYocmOPsKtAJnl1myJPuYuSmQlKTMX9WZEbacjDiH72HHNqPx90JjVxnqywieMhHpjPisCg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706721436; c=relaxed/simple;
-	bh=U5JVlzMHnikLTbflOiwB0cOegF5Lvb4lezm32PuIfRg=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=UkXPKAxaAj/Qhvk4meP8/9HoK/cKqs91B5/A7eOkkX349ILhv7Y9ATOzW1AupARu03mjZ7IiE/J9XjwABlSpo/YMxZFuf6MaFYKKtsqem+s5VOS86J/eEGx0x9osh5yLHvdqInY9id7Uf/c80aK+F3wxh/P6Te7XgYant9Wkdgc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=Rsl8t/33; arc=none smtp.client-ip=198.137.202.133
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org
+	s=arc-20240116; t=1706723983; c=relaxed/simple;
+	bh=0GkUVq/ahRHhqG1Lv0Xl+fmCnh259a4a56wCyZhcZ88=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=hsM8P7VT7bNMW/hCGb1jZd6h4BMX0adKgmQcGBVUHp8eEIV60wTsgezVq87CSIaEsJtgGChFS/eqnXdGLorL6fHJYVTMO02T4LykwNuo13YP6wAlUA7PUkz/qP3JGNMu2yd4D/V+R3HPAjbfPxaIqDXeT1v+oYI+8qQFGND60ck=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com; spf=pass smtp.mailfrom=efficios.com; dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b=D05OZuhO; arc=none smtp.client-ip=167.114.26.122
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=efficios.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="Rsl8t/33"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
-	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=w1jT7gCr/nu7sGcbwL+LF2kX9U7qRsSCTeyoHJy/WoQ=; b=Rsl8t/339Yi08Mvz6SuF7kZN9I
-	CnN3y5DZzKI3qBcG10yO78L9AswhfcfGda6buppIVmKYQ9rLKArcacUl6PzWQKPv+4Dp3W3XbHTPE
-	uR3N0EolP0wZTTYSNI7cBEp+leg0S4wWEK+goRXqzwEqpGjAmDIJZjf/xSYhM/M6zgIEsneIh3U8u
-	+pt0ncx9X6NMNHS9RFoUOhBzFwp2TK9GLbQT2+GNezMOfKRSEjDKbr5ek0Dc6zikgjUsYdddqp8Sd
-	+MR3RJ7gAhCxPKgDb/DR6F/DjccFH/pDiX2BjiZS0ns77g3HyhidMuWY+DeEGolOioj7UEUcIcNvC
-	m4xIsg3A==;
-Received: from hch by bombadil.infradead.org with local (Exim 4.97.1 #2 (Red Hat Linux))
-	id 1rVED1-00000004nCR-20Ex;
-	Wed, 31 Jan 2024 17:17:11 +0000
-Date: Wed, 31 Jan 2024 09:17:11 -0800
-From: Christoph Hellwig <hch@infradead.org>
-To: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Dan Williams <dan.j.williams@intel.com>, Arnd Bergmann <arnd@arndb.de>,
-	Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org,
-	linux-arch@vger.kernel.org, Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Matthew Wilcox <willy@infradead.org>,
-	Russell King <linux@armlinux.org.uk>, linux-cxl@vger.kernel.org,
-	nvdimm@lists.linux.dev, linux-xfs@vger.kernel.org,
-	dm-devel@lists.linux.dev
-Subject: Re: [RFC PATCH v3 3/4] Introduce cpu_dcache_is_aliasing() across all
- architectures
-Message-ID: <ZbqAl3gerwe2o6jy@infradead.org>
-References: <20240131162533.247710-1-mathieu.desnoyers@efficios.com>
- <20240131162533.247710-4-mathieu.desnoyers@efficios.com>
+	dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b="D05OZuhO"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=efficios.com;
+	s=smtpout1; t=1706723974;
+	bh=0GkUVq/ahRHhqG1Lv0Xl+fmCnh259a4a56wCyZhcZ88=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=D05OZuhOW4czsWFTu8ytaJaVLY1/dzi+uxJdNLV6D2fqQbMbN8dPDZQ0JMksKwGDF
+	 53R8n9ef24qPhVTDg/AE92rO1SBtT4bi+uzg8BOn5OaNhk0IIbBWx+ebEB68vPcAX+
+	 TDHbw1PJagl/OvuTQwrdJ8rReiZ2MUbgsODPZDB5E/ohtUmE7G2ex6mDbI8IwwVZPf
+	 3qGI1v3H5fkgSDiy3Sy3YxYBQq7akzk4eS1LxcLk+feaokC/bRYUM9in34gmdn9G6j
+	 D6MioQ064jKketls/qz7dWPdjTf4lv7siDSvSgLAbLH7fySP9kNEtvKAl95RAjeZuk
+	 OGSx/oGCgLPJA==
+Received: from [172.16.0.134] (192-222-143-198.qc.cable.ebox.net [192.222.143.198])
+	by smtpout.efficios.com (Postfix) with ESMTPSA id 4TQ8tt0CrzzVYs;
+	Wed, 31 Jan 2024 12:59:34 -0500 (EST)
+Message-ID: <64e4a411-f35b-4e29-89d5-310420df4884@efficios.com>
+Date: Wed, 31 Jan 2024 12:59:31 -0500
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240131162533.247710-4-mathieu.desnoyers@efficios.com>
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC PATCH v3 3/4] Introduce cpu_dcache_is_aliasing() across all
+ architectures
+Content-Language: en-US
+To: Christoph Hellwig <hch@infradead.org>
+Cc: Dan Williams <dan.j.williams@intel.com>, Arnd Bergmann <arnd@arndb.de>,
+ Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org,
+ Andrew Morton <akpm@linux-foundation.org>,
+ Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org,
+ linux-arch@vger.kernel.org, Vishal Verma <vishal.l.verma@intel.com>,
+ Dave Jiang <dave.jiang@intel.com>, Matthew Wilcox <willy@infradead.org>,
+ Russell King <linux@armlinux.org.uk>, linux-cxl@vger.kernel.org,
+ nvdimm@lists.linux.dev, linux-xfs@vger.kernel.org, dm-devel@lists.linux.dev,
+ Linux-Fsdevel <linux-fsdevel@vger.kernel.org>
+References: <20240131162533.247710-1-mathieu.desnoyers@efficios.com>
+ <20240131162533.247710-4-mathieu.desnoyers@efficios.com>
+ <ZbqAl3gerwe2o6jy@infradead.org>
+From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+In-Reply-To: <ZbqAl3gerwe2o6jy@infradead.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-So this is the third iteration and you still keep only sending patch
-3 to the list.  How is anyone supposed to review it if you don't send
-them all the pieces?
+On 2024-01-31 12:17, Christoph Hellwig wrote:
+> So this is the third iteration and you still keep only sending patch
+> 3 to the list.  How is anyone supposed to review it if you don't send
+> them all the pieces?
+
+My bad. I was aiming for not spamming mailing lists on unrelated patches. I did
+not CC linux-xfs@vger.kernel.org on the other patches. But the missing
+context is just confusing. And I forgot to CC linux-fsdevel@vger.kernel.org
+on patch 3 as well.
+
+You can find the entire series on lore:
+
+https://lore.kernel.org/lkml/20240131162533.247710-1-mathieu.desnoyers@efficios.com/T/#t
+
+I'll make sure to copy all lists for all patches in the next
+round, namely:
+
+     Cc: linux-arch@vger.kernel.org
+     Cc: linux-cxl@vger.kernel.org
+     Cc: linux-fsdevel@vger.kernel.org
+     Cc: linux-mm@kvack.org
+     Cc: linux-xfs@vger.kernel.org
+     Cc: dm-devel@lists.linux.dev
+     Cc: nvdimm@lists.linux.dev
+
+Thanks,
+
+Mathieu
+
+-- 
+Mathieu Desnoyers
+EfficiOS Inc.
+https://www.efficios.com
 
