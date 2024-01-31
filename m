@@ -1,77 +1,55 @@
-Received: from mail-pl1-f173.google.com (mail-pl1-f173.google.com [209.85.214.173])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A48BAF510
-	for <nvdimm@lists.linux.dev>; Wed, 31 Jan 2024 02:54:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.173
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D424FC19
+	for <nvdimm@lists.linux.dev>; Wed, 31 Jan 2024 03:10:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.8
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706669695; cv=none; b=ecdYWId4Bpg5kEy7yiOWbe6ZB3NyldZUUTKFViKE/d7D7HnhdIv/aJFMBbrgcNi6ZIlxMSEVEnsxUwe3cFvDBqp2+m99JtxTGXxhnqrRqohgnJXDH1w0gF2j+Q5OOwIWOhGmWyi60M7HTV1btVyPYvM+xSUx1n+KMXHk5A+/vXo=
+	t=1706670612; cv=none; b=dhwe4cdVd5p3Y/hXHgz6vxQB6lENPziNHt9VoZJfR5kEuPGDks6jX+6LAUdDj5hCc9k2Cc8daUZh3fgSMwzXoYivb361ubXzqNPAPFJ1SeevCYw95LLW2kKk6jkI6ikgMjblkP3jzropVeUp+docZGOeaGn+fVDTvCOhX+QW730=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706669695; c=relaxed/simple;
-	bh=LJ3udZSHrDCtqPTHKXcSvvFa8cnl3Jy+15O/rE0H2q0=;
+	s=arc-20240116; t=1706670612; c=relaxed/simple;
+	bh=AGsjZKHPxUzHkeJcKlmNB2WAiLv7/SQgRpmAwacIlHY=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=c6ofGr7zh4KTgLdm1r7ipZdWYQVr9TQJdjJAFjiMDWPG39q3KnQZUfoAyoiuGylkTw7OgfqHVVLVFeCFaHy6bH/OTAIMBPKDaoOZdcbO2iMIAb0QhgoqZxuSM05+egusTOckMKIkzqRFJUNhsBM78MdYsejyqHRcPmkFJXl6Lgc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fromorbit.com; spf=pass smtp.mailfrom=fromorbit.com; dkim=pass (2048-bit key) header.d=fromorbit-com.20230601.gappssmtp.com header.i=@fromorbit-com.20230601.gappssmtp.com header.b=BCfbUnTd; arc=none smtp.client-ip=209.85.214.173
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fromorbit.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fromorbit.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=UGEmwUjJMo59kfx4dER1RuAyVm7CsKnOIBYCY2oxCP0F0CRCq+c9yw44VuufQmQ4CAEevrdgn4wGW/xKKN0IUDkLCpTDI8Zrri2doAdOzXRke0mRJm/vuXMjJHJmaWw3fRiCGsgMmz8BpE4w0GPqHRgIWXBuT48M/2Pk47PyJ9k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=WSdk2ftZ; arc=none smtp.client-ip=192.198.163.8
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fromorbit-com.20230601.gappssmtp.com header.i=@fromorbit-com.20230601.gappssmtp.com header.b="BCfbUnTd"
-Received: by mail-pl1-f173.google.com with SMTP id d9443c01a7336-1d72f71f222so26316255ad.1
-        for <nvdimm@lists.linux.dev>; Tue, 30 Jan 2024 18:54:53 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=fromorbit-com.20230601.gappssmtp.com; s=20230601; t=1706669693; x=1707274493; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=Hrfb/n6ZOTCIrooBWZCWqo5ZO6oBNst73LpENqxcGZ0=;
-        b=BCfbUnTdZCw57y9rAPoUoc+vJXBaCxyz0T7P1RIHefIYdaLcxDr3wAq/dsyTjT9M6J
-         p7/4Q7ck3IGRAafEVC/1lC4R76erVsBWjIz0cH4a9BE0fXl/MQFgF1dz1Im8BeMmZf7u
-         egTzzoPmb+HaIjshLHM2q/ICMaaHlTddKjWko77rkAwrlMLPvlQ366XXEkHx/zPMnpt7
-         l4IDsaaK/8L3Ie5BhxQWrcjV8UZvmrk0Gl18X3I2kCTvTrax6gb4ND3V05Nnh3GS3pDz
-         g33JELGtEEHAnLEhcQ/TrodWQ+NaGdV8x1QRBiLpvFgOuk4yJLLVuxYDdafikjh9SIYn
-         2IBQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1706669693; x=1707274493;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=Hrfb/n6ZOTCIrooBWZCWqo5ZO6oBNst73LpENqxcGZ0=;
-        b=xO6MhbtK/nO1SaG831XsGCit7rrT3Vcpf72bvcT5KHGBg4j3VGTQnlQhpjkoAbWBWl
-         wlQHowL5V1Wc4NPdUjE0DYpeKtP+pLjyhIh2Ac4Mm3jMh5rCSYKsjpLvBcsiynxyMp9H
-         TcVF0PgMTfKgvKsBbMhX2iHh74f5H8J3T1VikxhYhQYA+gyejru+TEIYafPLixEf0bSG
-         rP9rZePICWXPj9jVCcV0XiTUnFu1REXDRTsoZppkYRGPDIABb257Fy4NIBI0qkDtwWPd
-         m9p6ZRvPevX3mfgTjVqTRiKEYudtxVgHzxOXN56qh1BPKxM6XR7TXQZd5lQoxDId7fnL
-         iTuA==
-X-Gm-Message-State: AOJu0YzXu/QpkHU2yZlWtHTiPglTapIMu0sa7OsK9jsmWZ7tDQQ7A/6U
-	APdaLm8frfVUBdwvEMLhkBSGyw1DbAfNKlEi0PWDXrx/vEJ4r1JbNYuZfquC9s7c1g9UJg49dmh
-	W
-X-Google-Smtp-Source: AGHT+IFAsmT6LMZORDa5sxVPam1HZWjCzng8qaLjFgSc57xDu0HuvkqFVz27rOWDpFLvz8J8s9MLSw==
-X-Received: by 2002:a17:902:e748:b0:1d8:e5f3:3b88 with SMTP id p8-20020a170902e74800b001d8e5f33b88mr661552plf.64.1706669692809;
-        Tue, 30 Jan 2024 18:54:52 -0800 (PST)
-Received: from dread.disaster.area (pa49-181-38-249.pa.nsw.optusnet.com.au. [49.181.38.249])
-        by smtp.gmail.com with ESMTPSA id a21-20020a170902ee9500b001d8d0666312sm5067490pld.126.2024.01.30.18.54.52
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 30 Jan 2024 18:54:52 -0800 (PST)
-Received: from dave by dread.disaster.area with local (Exim 4.96)
-	(envelope-from <david@fromorbit.com>)
-	id 1rV0kT-00HZps-2X;
-	Wed, 31 Jan 2024 13:54:49 +1100
-Date: Wed, 31 Jan 2024 13:54:49 +1100
-From: Dave Chinner <david@fromorbit.com>
-To: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>, linux-kernel@vger.kernel.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org,
-	linux-arch@vger.kernel.org, Matthew Wilcox <willy@infradead.org>,
-	Arnd Bergmann <arnd@arndb.de>, Russell King <linux@armlinux.org.uk>,
-	nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org
-Subject: Re: [RFC PATCH v2 8/8] dax: Fix incorrect list of dcache aliasing
- architectures
-Message-ID: <Zbm2eS/AMlmhm8EW@dread.disaster.area>
-References: <20240130165255.212591-1-mathieu.desnoyers@efficios.com>
- <20240130165255.212591-9-mathieu.desnoyers@efficios.com>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="WSdk2ftZ"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1706670610; x=1738206610;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=AGsjZKHPxUzHkeJcKlmNB2WAiLv7/SQgRpmAwacIlHY=;
+  b=WSdk2ftZLJsYQhr3KAnHKhOoGnqTnSGjbIfop+979OfClvhvAQd7Bk7t
+   a5iTYp3Fxo/FHO5NDWeLqI0cMFhJKM7oKdQg9/6wlquuCyHQTKsVSd0L5
+   z9PXpnKVWri4V4jcpXrPdsKGI70LwPFFrkqTAu6cNhfsRvCIsKMD/2x/B
+   7RX/fq7x8XxVDhRyGV6HE/98dfj7T/qSb2LYM/cDuUDqq7kufCSTwgKOo
+   qt+M5pdmy8KRxCNwn+yrGLd9rEm0ocrsWch/DUCl3vH4c6nYc/NgAkdHk
+   ek2atfvPiRND4eaXTPpLxbnK3X2uNGa52dhepKF9OQXxSU06MLTA5PZmL
+   A==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10969"; a="17001295"
+X-IronPort-AV: E=Sophos;i="6.05,231,1701158400"; 
+   d="scan'208";a="17001295"
+Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Jan 2024 19:10:09 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10969"; a="858669878"
+X-IronPort-AV: E=Sophos;i="6.05,231,1701158400"; 
+   d="scan'208";a="858669878"
+Received: from aschofie-mobl2.amr.corp.intel.com (HELO aschofie-mobl2) ([10.209.40.203])
+  by fmsmga004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Jan 2024 19:10:08 -0800
+Date: Tue, 30 Jan 2024 19:10:07 -0800
+From: Alison Schofield <alison.schofield@intel.com>
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
+	vishal.l.verma@intel.com
+Subject: Re: [NDCTL PATCH v4 3/4] ndctl: cxl: add QoS class check for CXL
+ region creation
+Message-ID: <Zbm6Dwa93iO0O83Z@aschofie-mobl2>
+References: <20240130233526.1031801-1-dave.jiang@intel.com>
+ <20240130233526.1031801-4-dave.jiang@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -80,83 +58,162 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20240130165255.212591-9-mathieu.desnoyers@efficios.com>
+In-Reply-To: <20240130233526.1031801-4-dave.jiang@intel.com>
 
-On Tue, Jan 30, 2024 at 11:52:55AM -0500, Mathieu Desnoyers wrote:
-> commit d92576f1167c ("dax: does not work correctly with virtual aliasing caches")
-> prevents DAX from building on architectures with virtually aliased
-> dcache with:
+On Tue, Jan 30, 2024 at 04:32:43PM -0700, Dave Jiang wrote:
+> The CFMWS provides a QTG ID. The kernel driver creates a root decoder that
+> represents the CFMWS. A qos_class attribute is exported via sysfs for the root
+> decoder.
 > 
->   depends on !(ARM || MIPS || SPARC)
+> One or more QoS class tokens are retrieved via QTG ID _DSM from the ACPI0017
+> device for a CXL memory device. The input for the _DSM is the read and write
+> latency and bandwidth for the path between the device and the CPU. The
+> numbers are constructed by the kernel driver for the _DSM input. When a
+> device is probed, QoS class tokens  are retrieved. This is useful for a
+> hot-plugged CXL memory device that does not have regions created.
 > 
-> This check is too broad (e.g. recent ARMv7 don't have virtually aliased
-> dcaches), and also misses many other architectures with virtually
-> aliased dcache.
+> Add a QoS check during region creation. Emit a warning if the qos_class
+> token from the root decoder is different than the mem device qos_class
+> token. User parameter options are provided to fail instead of just
+> warning.
 > 
-> This is a regression introduced in the v5.13 Linux kernel where the
-> dax mount option is removed for 32-bit ARMv7 boards which have no dcache
-> aliasing, and therefore should work fine with FS_DAX.
-> 
-> This was turned into the following implementation of dax_is_supported()
-> by a preparatory change:
-> 
->         return !IS_ENABLED(CONFIG_ARM) &&
->                !IS_ENABLED(CONFIG_MIPS) &&
->                !IS_ENABLED(CONFIG_SPARC);
-> 
-> Use dcache_is_aliasing() instead to figure out whether the environment
-> has aliasing dcaches.
-> 
-> Fixes: d92576f1167c ("dax: does not work correctly with virtual aliasing caches")
-> Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-> Cc: Andrew Morton <akpm@linux-foundation.org>
-> Cc: Linus Torvalds <torvalds@linux-foundation.org>
-> Cc: linux-mm@kvack.org
-> Cc: linux-arch@vger.kernel.org
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Cc: Vishal Verma <vishal.l.verma@intel.com>
-> Cc: Dave Jiang <dave.jiang@intel.com>
-> Cc: Matthew Wilcox <willy@infradead.org>
-> Cc: Arnd Bergmann <arnd@arndb.de>
-> Cc: Russell King <linux@armlinux.org.uk>
-> Cc: nvdimm@lists.linux.dev
-> Cc: linux-cxl@vger.kernel.org
-> Cc: linux-fsdevel@vger.kernel.org
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+
+Reviewed-by: Alison Schofield <alison.schofield@intel.com>
+
+
 > ---
->  include/linux/dax.h | 5 ++---
->  1 file changed, 2 insertions(+), 3 deletions(-)
+> v4:
+> - Deal with single memdev qos_class due to kernel change
+> - Clarify commit log verbiage (Alison)
+> ---
+>  Documentation/cxl/cxl-create-region.txt |  9 ++++
+>  cxl/region.c                            | 56 ++++++++++++++++++++++++-
+>  2 files changed, 64 insertions(+), 1 deletion(-)
 > 
-> diff --git a/include/linux/dax.h b/include/linux/dax.h
-> index cfc8cd4a3eae..f59e604662e4 100644
-> --- a/include/linux/dax.h
-> +++ b/include/linux/dax.h
-> @@ -5,6 +5,7 @@
->  #include <linux/fs.h>
->  #include <linux/mm.h>
->  #include <linux/radix-tree.h>
-> +#include <linux/cacheinfo.h>
+> diff --git a/Documentation/cxl/cxl-create-region.txt b/Documentation/cxl/cxl-create-region.txt
+> index f11a412bddfe..d5e34cf38236 100644
+> --- a/Documentation/cxl/cxl-create-region.txt
+> +++ b/Documentation/cxl/cxl-create-region.txt
+> @@ -105,6 +105,15 @@ include::bus-option.txt[]
+>  	supplied, the first cross-host bridge (if available), decoder that
+>  	supports the largest interleave will be chosen.
 >  
->  typedef unsigned long dax_entry_t;
+> +-e::
+> +--strict::
+> +	Enforce strict execution where any potential error will force failure.
+> +	For example, if qos_class mismatches region creation will fail.
+> +
+> +-q::
+> +--no-enforce-qos::
+> +	Parameter to bypass qos_class mismatch failure. Will only emit warning.
+> +
+>  include::human-option.txt[]
 >  
-> @@ -80,9 +81,7 @@ static inline bool daxdev_mapping_supported(struct vm_area_struct *vma,
+>  include::debug-option.txt[]
+> diff --git a/cxl/region.c b/cxl/region.c
+> index 3a762db4800e..f9033fa0afbf 100644
+> --- a/cxl/region.c
+> +++ b/cxl/region.c
+> @@ -32,6 +32,8 @@ static struct region_params {
+>  	bool force;
+>  	bool human;
+>  	bool debug;
+> +	bool strict;
+> +	bool no_qos;
+>  } param = {
+>  	.ways = INT_MAX,
+>  	.granularity = INT_MAX,
+> @@ -49,6 +51,8 @@ struct parsed_params {
+>  	const char **argv;
+>  	struct cxl_decoder *root_decoder;
+>  	enum cxl_decoder_mode mode;
+> +	bool strict;
+> +	bool no_qos;
+>  };
+>  
+>  enum region_actions {
+> @@ -81,7 +85,9 @@ OPT_STRING('U', "uuid", &param.uuid, \
+>  	   "region uuid", "uuid for the new region (default: autogenerate)"), \
+>  OPT_BOOLEAN('m', "memdevs", &param.memdevs, \
+>  	    "non-option arguments are memdevs"), \
+> -OPT_BOOLEAN('u', "human", &param.human, "use human friendly number formats")
+> +OPT_BOOLEAN('u', "human", &param.human, "use human friendly number formats"), \
+> +OPT_BOOLEAN('e', "strict", &param.strict, "strict execution enforcement"), \
+> +OPT_BOOLEAN('q', "no-enforce-qos", &param.no_qos, "no enforce of qos_class")
+>  
+>  static const struct option create_options[] = {
+>  	BASE_OPTIONS(),
+> @@ -360,6 +366,9 @@ static int parse_create_options(struct cxl_ctx *ctx, int count,
+>  		}
+>  	}
+>  
+> +	p->strict = param.strict;
+> +	p->no_qos = param.no_qos;
+> +
+>  	return 0;
+>  
+>  err:
+> @@ -467,6 +476,49 @@ static void set_type_from_decoder(struct cxl_ctx *ctx, struct parsed_params *p)
+>  		p->mode = CXL_DECODER_MODE_PMEM;
 >  }
->  static inline bool dax_is_supported(void)
+>  
+> +static int create_region_validate_qos_class(struct cxl_ctx *ctx,
+> +					    struct parsed_params *p)
+> +{
+> +	int root_qos_class;
+> +	int qos_class;
+> +	int i;
+> +
+> +	root_qos_class = cxl_root_decoder_get_qos_class(p->root_decoder);
+> +	if (root_qos_class == CXL_QOS_CLASS_NONE)
+> +		return 0;
+> +
+> +	for (i = 0; i < p->ways; i++) {
+> +		struct json_object *jobj =
+> +			json_object_array_get_idx(p->memdevs, i);
+> +		struct cxl_memdev *memdev = json_object_get_userdata(jobj);
+> +
+> +		if (p->mode == CXL_DECODER_MODE_RAM)
+> +			qos_class = cxl_memdev_get_ram_qos_class(memdev);
+> +		else
+> +			qos_class = cxl_memdev_get_pmem_qos_class(memdev);
+> +
+> +		/* No qos_class entries. Possibly no kernel support */
+> +		if (qos_class == CXL_QOS_CLASS_NONE)
+> +			break;
+> +
+> +		if (qos_class != root_qos_class) {
+> +			if (p->strict && !p->no_qos) {
+> +				log_err(&rl, "%s QoS Class mismatches %s\n",
+> +					cxl_decoder_get_devname(p->root_decoder),
+> +					cxl_memdev_get_devname(memdev));
+> +
+> +				return -ENXIO;
+> +			}
+> +
+> +			log_notice(&rl, "%s QoS Class mismatches %s\n",
+> +				   cxl_decoder_get_devname(p->root_decoder),
+> +				   cxl_memdev_get_devname(memdev));
+> +		}
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+>  static int create_region_validate_config(struct cxl_ctx *ctx,
+>  					 struct parsed_params *p)
 >  {
-> -	return !IS_ENABLED(CONFIG_ARM) &&
-> -	       !IS_ENABLED(CONFIG_MIPS) &&
-> -	       !IS_ENABLED(CONFIG_SPARC);
-> +	return !dcache_is_aliasing();
-
-Yeah, if this is just a one liner should go into
-fs_dax_get_by_bdev(), similar to the blk_queue_dax() check at the
-start of the function.
-
-I also noticed that device mapper uses fs_dax_get_by_bdev() to
-determine if it can support DAX, but this patch set does not address
-that case. Hence it really seems to me like fs_dax_get_by_bdev() is
-the right place to put this check.
-
--Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+> @@ -507,6 +559,8 @@ found:
+>  		return rc;
+>  
+>  	collect_minsize(ctx, p);
+> +	create_region_validate_qos_class(ctx, p);
+> +
+>  	return 0;
+>  }
+>  
+> -- 
+> 2.43.0
+> 
+> 
