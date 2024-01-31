@@ -1,134 +1,64 @@
-Received: from smtpout.efficios.com (smtpout.efficios.com [167.114.26.122])
+Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 896EA12AAFD;
-	Wed, 31 Jan 2024 16:25:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=167.114.26.122
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 382BE374D4;
+	Wed, 31 Jan 2024 17:17:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706718352; cv=none; b=V0C4vzYYDvTcysYeIH+t4j+GElvPSilRboIKrlapuMkcOKdOFa2eWxBt1RgsIj1cnLKS1F9DgtWrmTCwhnvePz2mtnGsvkj8Z1JIlYGjC/unPKicKeseS63u9DDaKjjePkInN36UMsfhPt2b28TH12itQtzRcur5ug4XPCcBsik=
+	t=1706721436; cv=none; b=mbjcVjll6+ouA0Iop1vmjeQyW8sTz4x76JsiNNXn0eXMKy3tSsl9Phzgo3BEnQX2iQXxI8Y/R3uUnwnG9+AirL+a2EX0dxvNi1PACX05K7tN8yRn7VPxJMrSfnej+K0VhOfMnBmoOEYvB28YrXhOWc5Kqfc1BUTPe8q/8PWN9So=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706718352; c=relaxed/simple;
-	bh=eX0TXo9pcQzgnT4JpiJ1uz+KvY1x3UAQjUEMAJVLHgE=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=p7wK+DcVP7CkWGWEBI3hBtwHsbaYLW/8n/E8wsVehJ3B0czv+slQ+9N8/SUE5sVRiBD0Lsj6Mq0P+dmAwSPcDrNS/DlwxnNbDOAK5I6PiZmdS95P/lmnDDsa0CKqmvJrHSXrxseRDdzMGH8F/FOUUPQpuJOxgEhQ9T/r+DotJgs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com; spf=pass smtp.mailfrom=efficios.com; dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b=HA2Zt+xx; arc=none smtp.client-ip=167.114.26.122
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=efficios.com
+	s=arc-20240116; t=1706721436; c=relaxed/simple;
+	bh=U5JVlzMHnikLTbflOiwB0cOegF5Lvb4lezm32PuIfRg=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=UkXPKAxaAj/Qhvk4meP8/9HoK/cKqs91B5/A7eOkkX349ILhv7Y9ATOzW1AupARu03mjZ7IiE/J9XjwABlSpo/YMxZFuf6MaFYKKtsqem+s5VOS86J/eEGx0x9osh5yLHvdqInY9id7Uf/c80aK+F3wxh/P6Te7XgYant9Wkdgc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=Rsl8t/33; arc=none smtp.client-ip=198.137.202.133
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b="HA2Zt+xx"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=efficios.com;
-	s=smtpout1; t=1706718349;
-	bh=eX0TXo9pcQzgnT4JpiJ1uz+KvY1x3UAQjUEMAJVLHgE=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=HA2Zt+xxhsvOb4O2UchDtcajfJ8ji+gNYMyIjAGZ5EQWJYleafh08/eminp77aE82
-	 yajKp/NCmwT9QgTnvK/lTjgc7JIeNPSy8OUEcPFCHvxToJXJOl1x+D89IDEw3SnePY
-	 HGYVNr8qWrGj0nxbnfdG/h4ky03ZNKXxoNWxV0+YPw/t1zr8gq/bQQlqqJb50gIUWj
-	 lAj2UWcRkVhbWaTg+78o35p3+S3Ghr9Cg2Ii6UU64XHEvV7/avptbzfMDDiPYGDOD+
-	 vFw7mg9tqqdM9u0smvoSSRwh4/CSG1XgucTAvwWj3hKokxfqG7+Q+wSjDRNZ6qGj4w
-	 HNu4r51PyvvHw==
-Received: from thinkos.internal.efficios.com (192-222-143-198.qc.cable.ebox.net [192.222.143.198])
-	by smtpout.efficios.com (Postfix) with ESMTPSA id 4TQ6pj2GjXzVp1;
-	Wed, 31 Jan 2024 11:25:49 -0500 (EST)
-From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-To: Dan Williams <dan.j.williams@intel.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Dave Chinner <david@fromorbit.com>
-Cc: linux-kernel@vger.kernel.org,
-	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="Rsl8t/33"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
+	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=w1jT7gCr/nu7sGcbwL+LF2kX9U7qRsSCTeyoHJy/WoQ=; b=Rsl8t/339Yi08Mvz6SuF7kZN9I
+	CnN3y5DZzKI3qBcG10yO78L9AswhfcfGda6buppIVmKYQ9rLKArcacUl6PzWQKPv+4Dp3W3XbHTPE
+	uR3N0EolP0wZTTYSNI7cBEp+leg0S4wWEK+goRXqzwEqpGjAmDIJZjf/xSYhM/M6zgIEsneIh3U8u
+	+pt0ncx9X6NMNHS9RFoUOhBzFwp2TK9GLbQT2+GNezMOfKRSEjDKbr5ek0Dc6zikgjUsYdddqp8Sd
+	+MR3RJ7gAhCxPKgDb/DR6F/DjccFH/pDiX2BjiZS0ns77g3HyhidMuWY+DeEGolOioj7UEUcIcNvC
+	m4xIsg3A==;
+Received: from hch by bombadil.infradead.org with local (Exim 4.97.1 #2 (Red Hat Linux))
+	id 1rVED1-00000004nCR-20Ex;
+	Wed, 31 Jan 2024 17:17:11 +0000
+Date: Wed, 31 Jan 2024 09:17:11 -0800
+From: Christoph Hellwig <hch@infradead.org>
+To: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Dan Williams <dan.j.williams@intel.com>, Arnd Bergmann <arnd@arndb.de>,
+	Dave Chinner <david@fromorbit.com>, linux-kernel@vger.kernel.org,
 	Andrew Morton <akpm@linux-foundation.org>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	linux-mm@kvack.org,
-	linux-arch@vger.kernel.org,
-	Vishal Verma <vishal.l.verma@intel.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org,
+	linux-arch@vger.kernel.org, Vishal Verma <vishal.l.verma@intel.com>,
 	Dave Jiang <dave.jiang@intel.com>,
 	Matthew Wilcox <willy@infradead.org>,
-	Russell King <linux@armlinux.org.uk>,
-	nvdimm@lists.linux.dev,
-	linux-cxl@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org,
+	Russell King <linux@armlinux.org.uk>, linux-cxl@vger.kernel.org,
+	nvdimm@lists.linux.dev, linux-xfs@vger.kernel.org,
 	dm-devel@lists.linux.dev
-Subject: [RFC PATCH v3 4/4] dax: Fix incorrect list of data cache aliasing architectures
-Date: Wed, 31 Jan 2024 11:25:33 -0500
-Message-Id: <20240131162533.247710-5-mathieu.desnoyers@efficios.com>
-X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20240131162533.247710-1-mathieu.desnoyers@efficios.com>
+Subject: Re: [RFC PATCH v3 3/4] Introduce cpu_dcache_is_aliasing() across all
+ architectures
+Message-ID: <ZbqAl3gerwe2o6jy@infradead.org>
 References: <20240131162533.247710-1-mathieu.desnoyers@efficios.com>
+ <20240131162533.247710-4-mathieu.desnoyers@efficios.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240131162533.247710-4-mathieu.desnoyers@efficios.com>
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 
-commit d92576f1167c ("dax: does not work correctly with virtual aliasing caches")
-prevents DAX from building on architectures with virtually aliased
-dcache with:
-
-  depends on !(ARM || MIPS || SPARC)
-
-This check is too broad (e.g. recent ARMv7 don't have virtually aliased
-dcaches), and also misses many other architectures with virtually
-aliased data cache.
-
-This is a regression introduced in the v5.13 Linux kernel where the
-dax mount option is removed for 32-bit ARMv7 boards which have no data
-cache aliasing, and therefore should work fine with FS_DAX.
-
-This was turned into the following check in alloc_dax() by a preparatory
-change:
-
-        if (IS_ENABLED(CONFIG_ARM) ||
-            IS_ENABLED(CONFIG_MIPS) ||
-            IS_ENABLED(CONFIG_SPARC))
-                return NULL;
-
-Use cpu_dcache_is_aliasing() instead to figure out whether the environment
-has aliasing data caches.
-
-Fixes: d92576f1167c ("dax: does not work correctly with virtual aliasing caches")
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-mm@kvack.org
-Cc: linux-arch@vger.kernel.org
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: nvdimm@lists.linux.dev
-Cc: linux-cxl@vger.kernel.org
-Cc: linux-fsdevel@vger.kernel.org
-Cc: dm-devel@lists.linux.dev
----
- drivers/dax/super.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index e9f397b8a5a3..8c3a6e8e6334 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -13,6 +13,7 @@
- #include <linux/uio.h>
- #include <linux/dax.h>
- #include <linux/fs.h>
-+#include <linux/cacheinfo.h>
- #include "dax-private.h"
- 
- /**
-@@ -446,9 +447,7 @@ struct dax_device *alloc_dax(void *private, const struct dax_operations *ops)
- 	int minor;
- 
- 	/* Unavailable on architectures with virtually aliased data caches. */
--	if (IS_ENABLED(CONFIG_ARM) ||
--	    IS_ENABLED(CONFIG_MIPS) ||
--	    IS_ENABLED(CONFIG_SPARC))
-+	if (cpu_dcache_is_aliasing())
- 		return NULL;
- 
- 	if (WARN_ON_ONCE(ops && !ops->zero_page_range))
--- 
-2.39.2
+So this is the third iteration and you still keep only sending patch
+3 to the list.  How is anyone supposed to review it if you don't send
+them all the pieces?
 
