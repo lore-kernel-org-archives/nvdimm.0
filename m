@@ -1,156 +1,189 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A31A45BF8;
-	Thu,  1 Feb 2024 23:06:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA582C120
+	for <nvdimm@lists.linux.dev>; Fri,  2 Feb 2024 00:06:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.158.5
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706828819; cv=none; b=A/wvzEhoFtdFUskpcPD614j6wvR7mOpbmB9Xk6l8EZp7ceGWx0WzVXkl33d80LCsQFA0TyqkqNVWjq9/mqRSQkQYNKjqhPiDSM2PfGvtJIBlMn9OWFdDM2xlXmt6Ql73z8ZoG7Rdnp22EQd26ckZQAqAAgg7cc4XFq5osTbjv2Y=
+	t=1706832373; cv=none; b=HYUJ+BorJaH6sno3KRZeTL7hbVUonkinbqkGxBbBS8ls4eOgttwoZBW+HLjYh6YxMjbX1fytlespy+R+DZBq09ebm2L7Ch39QmtpHJEREAhq8aI8GNxCYU0+xP+ZfZvEXVvoPHjbS8slBzEXEfEbYQhAioR9TmxdyHsU3Z6NGII=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706828819; c=relaxed/simple;
-	bh=b8UfCr2t7S4sKTEIOAIDKV8lsreYiDRda3Nn/416UAU=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=bV+ZXEjCVD4KO4AL0C0aU/97xrm4PUxoRSqpCBfU7xRTkGCdpvq+xxehTDVKW2s/5lPeE1TVsPpcbXFWFdQTsKa/AC0yExf5ljhBns2IrvmYye1HCdbiimckPCOho2kAFqk0RXYDfQk5dfPpLHvDWDeHFaXlBb3Z5yzCQapVRiY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0999C433C7;
-	Thu,  1 Feb 2024 23:06:58 +0000 (UTC)
-From: Dave Jiang <dave.jiang@intel.com>
-To: linux-cxl@vger.kernel.org,
-	nvdimm@lists.linux.dev
-Cc: vishal.l.verma@intel.com
-Subject: [NDCTL PATCH v5 4/4] ndctl: add test for qos_class in CXL test suite
-Date: Thu,  1 Feb 2024 16:05:07 -0700
-Message-ID: <20240201230646.1328211-5-dave.jiang@intel.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20240201230646.1328211-1-dave.jiang@intel.com>
-References: <20240201230646.1328211-1-dave.jiang@intel.com>
+	s=arc-20240116; t=1706832373; c=relaxed/simple;
+	bh=N5ytPMI8CcBmVCIRgJRyHCtLc2INmcdE0bUH/E1B1pA=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:Mime-Version; b=mvZwCrDQvulYaNXYi/k4oSeoGBGEAX1M7Catt60ZRNmwrjILy9TBUQXPMrUr1QCKnXSDZmW4B3TrtI9sHYHKbuFDj5nvZ5b9RpSY4fV1wvzSQc8rjCVB9wpk94LAVCK8L0TJR9ysCdsz6kH98njhhGT0ePc0sGq4KtwFEE7Bvuo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=fWSSMaSK; arc=none smtp.client-ip=148.163.158.5
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="fWSSMaSK"
+Received: from pps.filterd (m0353725.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 411Nbr7x020563;
+	Fri, 2 Feb 2024 00:05:55 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : subject :
+ from : to : cc : date : in-reply-to : references : content-type :
+ mime-version : content-transfer-encoding; s=pp1;
+ bh=344H4x8Ad8z8mLylBhJTlrMcVRy2QejlkXWVgJvg15c=;
+ b=fWSSMaSKXCTh1Gs99inTLNtCPiCtwuibOItyo1C4K4zgA4enOyUXk1rVRITHSzV/kdsL
+ vrwMYNUOaUIZBba4PnyY/BGQM05MutP0HoYPHHenVsTbU2VSWc9IuNY3jBvdIcmmaR+7
+ EaphozfCgcDiwqdr3XT1HgyYJum8REE5KkHi37ChllKbq7w9eb739DIShztOQpDQbHmR
+ qQhQMB6lzrUl+waCRB/Af7Ov+VFhjr0n2b63fqwIvXzM86npCRwa6bIwQuHBM/CiZHP7
+ BJtNhd8+QhUy1ZUhur/rvCN/8Cs5hon0E4HTuK5tG2pmatkWWcFkEe7DRAFuIm/6Gth5 aQ== 
+Received: from pps.reinject (localhost [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3w0n518n4a-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 02 Feb 2024 00:05:55 +0000
+Received: from m0353725.ppops.net (m0353725.ppops.net [127.0.0.1])
+	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 411NcwFo023109;
+	Fri, 2 Feb 2024 00:05:54 GMT
+Received: from ppma11.dal12v.mail.ibm.com (db.9e.1632.ip4.static.sl-reverse.com [50.22.158.219])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3w0n518n3u-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 02 Feb 2024 00:05:54 +0000
+Received: from pps.filterd (ppma11.dal12v.mail.ibm.com [127.0.0.1])
+	by ppma11.dal12v.mail.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 411MgJYi007189;
+	Fri, 2 Feb 2024 00:05:53 GMT
+Received: from smtprelay01.wdc07v.mail.ibm.com ([172.16.1.68])
+	by ppma11.dal12v.mail.ibm.com (PPS) with ESMTPS id 3vwev2qbxx-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 02 Feb 2024 00:05:53 +0000
+Received: from smtpav02.wdc07v.mail.ibm.com (smtpav02.wdc07v.mail.ibm.com [10.39.53.229])
+	by smtprelay01.wdc07v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 41205qxA48562502
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Fri, 2 Feb 2024 00:05:52 GMT
+Received: from smtpav02.wdc07v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id B54105805E;
+	Fri,  2 Feb 2024 00:05:52 +0000 (GMT)
+Received: from smtpav02.wdc07v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 2119858059;
+	Fri,  2 Feb 2024 00:05:51 +0000 (GMT)
+Received: from li-5cd3c5cc-21f9-11b2-a85c-a4381f30c2f3.ibm.com (unknown [9.61.60.157])
+	by smtpav02.wdc07v.mail.ibm.com (Postfix) with ESMTP;
+	Fri,  2 Feb 2024 00:05:51 +0000 (GMT)
+Message-ID: <d0ccd2f19ed1adccc8f3dfe677c30bc44feb3d36.camel@linux.ibm.com>
+Subject: Re: [PATCH] KEYS: encrypted: Add check for strsep
+From: Mimi Zohar <zohar@linux.ibm.com>
+To: Jarkko Sakkinen <jarkko@kernel.org>,
+        Dan Williams
+ <dan.j.williams@intel.com>,
+        "Verma, Vishal L" <vishal.l.verma@intel.com>,
+        "paul@paul-moore.com" <paul@paul-moore.com>,
+        "dhowells@redhat.com"
+ <dhowells@redhat.com>,
+        "yaelt@google.com" <yaelt@google.com>,
+        "serge@hallyn.com" <serge@hallyn.com>,
+        "nichen@iscas.ac.cn"
+ <nichen@iscas.ac.cn>,
+        "sumit.garg@linaro.org" <sumit.garg@linaro.org>,
+        "jmorris@namei.org" <jmorris@namei.org>
+Cc: "Jiang, Dave" <dave.jiang@intel.com>,
+        "linux-integrity@vger.kernel.org"
+	 <linux-integrity@vger.kernel.org>,
+        "linux-cxl@vger.kernel.org"
+	 <linux-cxl@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org"
+	 <linux-kernel@vger.kernel.org>,
+        "keyrings@vger.kernel.org"
+	 <keyrings@vger.kernel.org>,
+        "linux-security-module@vger.kernel.org"
+	 <linux-security-module@vger.kernel.org>,
+        "nvdimm@lists.linux.dev"
+	 <nvdimm@lists.linux.dev>
+Date: Thu, 01 Feb 2024 19:05:50 -0500
+In-Reply-To: <CYU2JV57VXA9.3C5QTG4LX50TD@suppilovahvero>
+References: <20231108073627.1063464-1-nichen@iscas.ac.cn>
+	 <4d3465b48b9c5a87deb385b15bf5125fc1704019.camel@intel.com>
+	 <e3275c0cfe21d75e0d71ea3fc24a31252efc9ad6.camel@linux.ibm.com>
+	 <e3b1a5e532ed86e674385abc4812c5a774f851d4.camel@intel.com>
+	 <49c48e3e96bf0f5ebef14e7328cc8a6ca6380e08.camel@linux.ibm.com>
+	 <50c2fa781e3266ee8151afdef5a8659d63ca952e.camel@intel.com>
+	 <CYS7QMYS8XAJ.2QPI3MS5KXK8E@suppilovahvero>
+	 <CYS7WMFLXNE1.35OBTKTONKNX3@suppilovahvero>
+	 <65b93f2b3099b_5cc6f29453@dwillia2-mobl3.amr.corp.intel.com.notmuch>
+	 <CYU2JV57VXA9.3C5QTG4LX50TD@suppilovahvero>
+Content-Type: text/plain; charset="UTF-8"
+X-Mailer: Evolution 3.28.5 (3.28.5-22.el8) 
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: oLsn3Vd9Pcs0Fl12p7OhnGd4O-iUA5CF
+X-Proofpoint-ORIG-GUID: GJlw1TEeGH8bzKJubicc8sFAJerRWBn3
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.272,Aquarius:18.0.1011,Hydra:6.0.619,FMLib:17.11.176.26
+ definitions=2024-02-01_08,2024-01-31_01,2023-05-22_02
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 adultscore=0 clxscore=1015
+ mlxscore=0 lowpriorityscore=0 malwarescore=0 mlxlogscore=999
+ suspectscore=0 impostorscore=0 priorityscore=1501 spamscore=0 phishscore=0
+ bulkscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2311290000 definitions=main-2402010185
 
-Add tests in cxl-qos-class.sh to verify qos_class are set with the fake
-qos_class create by the kernel.  Root decoders should have qos_class
-attribute set. Memory devices should have ram_qos_class or pmem_qos_class
-set depending on which partitions are valid.
+On Thu, 2024-02-01 at 23:43 +0200, Jarkko Sakkinen wrote:
+> On Tue Jan 30, 2024 at 8:25 PM EET, Dan Williams wrote:
+> > Jarkko Sakkinen wrote:
+> > > On Tue Jan 30, 2024 at 7:22 PM EET, Jarkko Sakkinen wrote:
+> > > > On Wed Jan 24, 2024 at 11:10 PM EET, Verma, Vishal L wrote:
+> > > > > On Wed, 2024-01-24 at 15:40 -0500, Mimi Zohar wrote:
+> > > > > > On Wed, 2024-01-24 at 20:10 +0000, Verma, Vishal L wrote:
+> > > > > > > Ah, thanks for confirming! Would you like me to send a
+> > > > > > > revert patch or
+> > > > > > > will you do it?
+> > > > > > 
+> > > > > > Revert "KEYS: encrypted: Add check for strsep"
+> > > > > >     
+> > > > > > This reverts commit
+> > > > > > b4af096b5df5dd131ab796c79cedc7069d8f4882.
+> > > > > >     
+> > > > > > New encrypted keys are created either from kernel-generated 
+> > > > > > random
+> > > > > > numbers or user-provided decrypted data.  Revert the change
+> > > > > > requiring
+> > > > > > user-provided decrypted data.
+> > > > > > 
+> > > > > > 
+> > > > > > Can I add your Reported-by?
+> > > > > 
+> > > > > Yes that works, Thank you.
+> > > > 
+> > > > This went totally wrong IMHO.
+> > > > 
+> > > > Priority should be to locate and fix the bug not revert useful
+> > > > stuff
+> > > > when a bug is found that has limited scope.
+> > > 
+> > > By guidelines here the commit is also a bug fix and reverting
+> > > such commit means seeding a bug to the mainline. Also the klog
+> > > message alone is a bug fix here. So also by book it really has
+> > > to come back as it was already commit because we cannot
+> > > knowingly mount bugs to the mainline, right?
+> > 
+> > No, the commit broke userspace. The rule is do not cause
+> > regressions
+> > even if userspace is abusing the ABI in an undesirable way. Even
+> > the
+> > new pr_info() is a log spamming behavior change, a pr_debug() might
+> > be
+> > suitable, but otherwise a logic change here needs a clear
+> > description
+> > about what is broken about the old userspace behavior and why the
+> > kernel
+> > can not possibly safely handle it.
+> 
+> The rationale literally gives empirical proof that the log message
+> is useful by measure. It would be useless if log level is decreased
+> to debug, as then sysadmin's won't take notice. I don't really know
+> what is the definition of "spam" here but at least for me actually
+> useful log message are not in that category.
+> 
+> Issue was legit but git revert is objectively an incorrect way to
+> address the bug.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
-v5:
-- Split out from cxl-topology.sh (Vishal)
----
- test/common           |  4 +++
- test/cxl-qos-class.sh | 65 +++++++++++++++++++++++++++++++++++++++++++
- test/meson.build      |  2 ++
- 3 files changed, 71 insertions(+)
- create mode 100755 test/cxl-qos-class.sh
+No, I made a mistake in upstreaming the patch in the first place.  It
+broke the original "encrypted" keys usage.  Reverting it was the
+correct solution.
 
-diff --git a/test/common b/test/common
-index f1023ef20f7e..5694820c7adc 100644
---- a/test/common
-+++ b/test/common
-@@ -150,3 +150,7 @@ check_dmesg()
- 	grep -q "Call Trace" <<< $log && err $1
- 	true
- }
-+
-+
-+# CXL COMMON
-+TEST_QOS_CLASS=42
-diff --git a/test/cxl-qos-class.sh b/test/cxl-qos-class.sh
-new file mode 100755
-index 000000000000..365a7df9c1e4
---- /dev/null
-+++ b/test/cxl-qos-class.sh
-@@ -0,0 +1,65 @@
-+#!/bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright (C) 2024 Intel Corporation. All rights reserved.
-+
-+check_qos_decoders () {
-+	# check root decoders have expected fake qos_class
-+	# also make sure the number of root decoders equal to the number
-+	# with qos_class found
-+	json=$($CXL list -b cxl_test -D -d root)
-+	decoders=$(echo "$json" | jq length)
-+	count=0
-+	while read -r qos_class
-+	do
-+		((qos_class == TEST_QOS_CLASS)) || err "$LINENO"
-+		count=$((count+1))
-+	done <<< "$(echo "$json" | jq -r '.[] | .qos_class')"
-+
-+	((count == decoders)) || err "$LINENO";
-+}
-+
-+check_qos_memdevs () {
-+	# Check that memdevs that expose ram_qos_class or pmem_qos_class have
-+	# expected fake value programmed.
-+	json=$(cxl list -b cxl_test -M)
-+	readarray -t lines < <(jq ".[] | .ram_size, .pmem_size, .ram_qos_class, .pmem_qos_class" <<<"$json")
-+	for (( i = 0; i < ${#lines[@]}; i += 4 ))
-+	do
-+		ram_size=${lines[i]}
-+		pmem_size=${lines[i+1]}
-+		ram_qos_class=${lines[i+2]}
-+		pmem_qos_class=${lines[i+3]}
-+
-+		if [[ "$ram_size" != null ]]
-+		then
-+			((ram_qos_class == TEST_QOS_CLASS)) || err "$LINENO"
-+		fi
-+		if [[ "$pmem_size" != null ]]
-+		then
-+			((pmem_qos_class == TEST_QOS_CLASS)) || err "$LINENO"
-+		fi
-+	done
-+}
-+
-+
-+. $(dirname $0)/common
-+
-+rc=77
-+
-+set -ex
-+
-+trap 'err $LINENO' ERR
-+
-+check_prereq "jq"
-+
-+modprobe -r cxl_test
-+modprobe cxl_test
-+rc=1
-+
-+check_qos_decoders
-+
-+check_qos_memdevs
-+
-+check_dmesg "$LINEO"
-+
-+modprobe -r cxl_test
-diff --git a/test/meson.build b/test/meson.build
-index 5eb35749a95b..4892df11119f 100644
---- a/test/meson.build
-+++ b/test/meson.build
-@@ -160,6 +160,7 @@ cxl_events = find_program('cxl-events.sh')
- cxl_poison = find_program('cxl-poison.sh')
- cxl_sanitize = find_program('cxl-sanitize.sh')
- cxl_destroy_region = find_program('cxl-destroy-region.sh')
-+cxl_qos_class = find_program('cxl-qos-class.sh')
- 
- tests = [
-   [ 'libndctl',               libndctl,		  'ndctl' ],
-@@ -192,6 +193,7 @@ tests = [
-   [ 'cxl-poison.sh',          cxl_poison,         'cxl'   ],
-   [ 'cxl-sanitize.sh',        cxl_sanitize,       'cxl'   ],
-   [ 'cxl-destroy-region.sh',  cxl_destroy_region, 'cxl'   ],
-+  [ 'cxl-qos-class.sh',       cxl_qos_class,      'cxl'   ],
- ]
- 
- if get_option('destructive').enabled()
--- 
-2.43.0
+Mimi
 
