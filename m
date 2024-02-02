@@ -1,34 +1,34 @@
 Received: from smtpout.efficios.com (smtpout.efficios.com [167.114.26.122])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 552B412D751;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 594DB12D753;
 	Fri,  2 Feb 2024 21:00:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=167.114.26.122
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706907633; cv=none; b=fK9vZUWwsxmNQgty2GdWsd+iJALewc4+hxnl99T+oTBEAGApBdzf9lQuuFIB9biGSPqduAWw0GcfakcgZphZBtPiOCRM7hCxElgf/Dt7jFgX6BzhIeVGz/CFxa/k5rU5lCLNHQBema+Hm+9v0IH43APUUg0CKEjrrn31DrydfPA=
+	t=1706907633; cv=none; b=TVhbXirVUshs8pZOR36Mh5AuXbLFY+KUYfjn1+tXvl59m3k7zes786z58meiQb9art0VdWUlWezC1KcyXs7WZeSNzpshUrgbZiN4TG3QXKKQX/Qzj2SKjFnGTwMAjkw/RBKAZGfYYGgIZNQeZUAVF6NGglirymCw3mBcNkQubKM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1706907633; c=relaxed/simple;
-	bh=hDhYMA3F+4l5mMIlcEOrH62nfylV2E9jEwkIfVNtigI=;
+	bh=6kaHeiBxh7tXa+wyC1kCcD7MhkDErN5w3UH4NjBdGts=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=RtmNn1UMYL/Hk+BgzY9IX95UGFajxFcFu7tcxvvTIYu/yESS/lVlSsIdypfRDhF3w+95XPxwpSrg2Ah66RaM1CLYT09Rn105xr9MwvRfk88dbc0RrVgdVXv/242ttL2n9+5P4kbEIyYRNu6C5+rlDDBiSm+Qo7MFFfM8VhPkv9o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com; spf=pass smtp.mailfrom=efficios.com; dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b=MHwLCxMM; arc=none smtp.client-ip=167.114.26.122
+	 MIME-Version; b=F32/NBnH8ZuiHhaOxJGQVxgHkW1QrHVxYjdPf5ruyKkTgafATH5I/oFI32YzSNXNrVouSJxeGKUSPTCSojwAg+ValseHIAL/mtscsZ1S9GL4J0fP9DAxZFMW8ieOApnMyCNkUuG3IEDEzBk9jhocDb4fEuzEHIESLZniuP6cyzU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com; spf=pass smtp.mailfrom=efficios.com; dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b=fQOdZGB8; arc=none smtp.client-ip=167.114.26.122
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=efficios.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b="MHwLCxMM"
+	dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b="fQOdZGB8"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=efficios.com;
 	s=smtpout1; t=1706907629;
-	bh=hDhYMA3F+4l5mMIlcEOrH62nfylV2E9jEwkIfVNtigI=;
+	bh=6kaHeiBxh7tXa+wyC1kCcD7MhkDErN5w3UH4NjBdGts=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=MHwLCxMMJ8oX6+bHEOyVn0lkZWWp3rdA/3Ni7ikq4m3u/+zRvC1YBE6wqxLL7ME+n
-	 bgtUOSoSwrkc53a8AMpqI8r1roW5ed7yLgGbUksKRENhkgdc0fwks9v/6nR8TTMRY6
-	 +0nAINngg+wnnGf/N2eZwv+LGmczJE5nl1OEURUOSjYrBV3Ql9BFVUT9r7x6rBUKiR
-	 OS4hhk0KIM4MvPNbRVvDfCHuI/kNx4MaTpchFxgSzS7luhDBCjsF2qKuj4PU9PWXMv
-	 olV2aSH37fJ9i07BukbKYDwL9bHUbH1JJggkbDvLLLQ04RCIH7ZHMou+lQfNNPnT6u
-	 8aHu31qfGDDKg==
+	b=fQOdZGB8ZoM+ot4BpfHpDhS3UZ/Xl9kL6L2cCK/HSOO89KLHleVlUen3Hvy7uouoA
+	 jkSg4Ou1+kepWAwhWgSZKXNNm6LCEyBCdPkykABCJgThUTXtmOtFcZ6bxqN2ifCI+o
+	 96d3GrsSllptt4Mc0jotzKMhB/znC1tQydRK48oH5ngXTQVmKOtZrOhOG0WfGwKx6w
+	 kfMewMuk+6MGuzHxK4hWcgzNa+KJTaQFp4kakLGUOhyCRsSciU6S8CX33ScaDEGVFa
+	 qlecryD5H6JRb2MG0sirVt1fMHpExeBDP5sB+exAwyLtxDtvgAdLPLFw2aSkquU6rq
+	 T/tHs8uC3lE8Q==
 Received: from thinkos.internal.efficios.com (192-222-143-198.qc.cable.ebox.net [192.222.143.198])
-	by smtpout.efficios.com (Postfix) with ESMTPSA id 4TRSpj1nT8zXBx;
-	Fri,  2 Feb 2024 16:00:29 -0500 (EST)
+	by smtpout.efficios.com (Postfix) with ESMTPSA id 4TRSph5pS4zX4T;
+	Fri,  2 Feb 2024 16:00:28 -0500 (EST)
 From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 To: Dan Williams <dan.j.williams@intel.com>,
 	Arnd Bergmann <arnd@arndb.de>,
@@ -48,10 +48,13 @@ Cc: linux-kernel@vger.kernel.org,
 	linux-xfs@vger.kernel.org,
 	dm-devel@lists.linux.dev,
 	nvdimm@lists.linux.dev,
-	linux-s390@vger.kernel.org
-Subject: [RFC PATCH v4 06/12] dax: Check for data cache aliasing at runtime
-Date: Fri,  2 Feb 2024 16:00:13 -0500
-Message-Id: <20240202210019.88022-7-mathieu.desnoyers@efficios.com>
+	linux-s390@vger.kernel.org,
+	Alasdair Kergon <agk@redhat.com>,
+	Mike Snitzer <snitzer@kernel.org>,
+	Mikulas Patocka <mpatocka@redhat.com>
+Subject: [RFC PATCH v4 05/12] virtio: Treat alloc_dax() -EOPNOTSUPP failure as non-fatal
+Date: Fri,  2 Feb 2024 16:00:12 -0500
+Message-Id: <20240202210019.88022-6-mathieu.desnoyers@efficios.com>
 X-Mailer: git-send-email 2.39.2
 In-Reply-To: <20240202210019.88022-1-mathieu.desnoyers@efficios.com>
 References: <20240202210019.88022-1-mathieu.desnoyers@efficios.com>
@@ -63,24 +66,21 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Replace the following fs/Kconfig:FS_DAX dependency:
+In preparation for checking whether the architecture has data cache
+aliasing within alloc_dax(), modify the error handling of virtio
+virtio_fs_setup_dax() to treat alloc_dax() -EOPNOTSUPP failure as
+non-fatal.
 
-  depends on !(ARM || MIPS || SPARC)
+For the transition, consider that alloc_dax() returning NULL is the
+same as returning -EOPNOTSUPP.
 
-By a runtime check within alloc_dax(). This runtime check returns
-ERR_PTR(-EOPNOTSUPP) if the @ops parameter is non-NULL (which means
-the kernel is using an aliased mapping) on an architecture which
-has data cache aliasing.
-
-Change the return value from NULL to PTR_ERR(-EOPNOTSUPP) for
-CONFIG_DAX=n for consistency.
-
-This is done in preparation for using cpu_dcache_is_aliasing() in a
-following change which will properly support architectures which detect
-data cache aliasing at runtime.
-
+Co-developed-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 Fixes: d92576f1167c ("dax: does not work correctly with virtual aliasing caches")
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Alasdair Kergon <agk@redhat.com>
+Cc: Mike Snitzer <snitzer@kernel.org>
+Cc: Mikulas Patocka <mpatocka@redhat.com>
 Cc: Andrew Morton <akpm@linux-foundation.org>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Dan Williams <dan.j.williams@intel.com>
@@ -97,73 +97,58 @@ Cc: linux-xfs@vger.kernel.org
 Cc: dm-devel@lists.linux.dev
 Cc: nvdimm@lists.linux.dev
 ---
- drivers/dax/super.c | 15 +++++++++++++++
- fs/Kconfig          |  1 -
- include/linux/dax.h |  6 +-----
- 3 files changed, 16 insertions(+), 6 deletions(-)
+ fs/fuse/virtio_fs.c | 15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index 0da9232ea175..ce5bffa86bba 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -319,6 +319,11 @@ EXPORT_SYMBOL_GPL(dax_alive);
-  * that any fault handlers or operations that might have seen
-  * dax_alive(), have completed.  Any operations that start after
-  * synchronize_srcu() has run will abort upon seeing !dax_alive().
-+ *
-+ * Note, because alloc_dax() returns an ERR_PTR() on error, callers
-+ * typically store its result into a local variable in order to check
-+ * the result. Therefore, care must be taken to populate the struct
-+ * device dax_dev field make sure the dax_dev is not leaked.
-  */
- void kill_dax(struct dax_device *dax_dev)
- {
-@@ -445,6 +450,16 @@ struct dax_device *alloc_dax(void *private, const struct dax_operations *ops)
- 	dev_t devt;
- 	int minor;
+diff --git a/fs/fuse/virtio_fs.c b/fs/fuse/virtio_fs.c
+index 5f1be1da92ce..621b1bca2d55 100644
+--- a/fs/fuse/virtio_fs.c
++++ b/fs/fuse/virtio_fs.c
+@@ -16,6 +16,7 @@
+ #include <linux/fs_context.h>
+ #include <linux/fs_parser.h>
+ #include <linux/highmem.h>
++#include <linux/cleanup.h>
+ #include <linux/uio.h>
+ #include "fuse_i.h"
  
-+	/*
-+	 * Unavailable on architectures with virtually aliased data caches,
-+	 * except for device-dax (NULL operations pointer), which does
-+	 * not use aliased mappings from the kernel.
-+	 */
-+	if (ops && (IS_ENABLED(CONFIG_ARM) ||
-+	    IS_ENABLED(CONFIG_MIPS) ||
-+	    IS_ENABLED(CONFIG_SPARC)))
-+		return ERR_PTR(-EOPNOTSUPP);
-+
- 	if (WARN_ON_ONCE(ops && !ops->zero_page_range))
- 		return ERR_PTR(-EINVAL);
- 
-diff --git a/fs/Kconfig b/fs/Kconfig
-index 42837617a55b..e5efdb3b276b 100644
---- a/fs/Kconfig
-+++ b/fs/Kconfig
-@@ -56,7 +56,6 @@ endif # BLOCK
- config FS_DAX
- 	bool "File system based Direct Access (DAX) support"
- 	depends on MMU
--	depends on !(ARM || MIPS || SPARC)
- 	depends on ZONE_DEVICE || FS_DAX_LIMITED
- 	select FS_IOMAP
- 	select DAX
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index b463502b16e1..df2d52b8a245 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -86,11 +86,7 @@ static inline void *dax_holder(struct dax_device *dax_dev)
- static inline struct dax_device *alloc_dax(void *private,
- 		const struct dax_operations *ops)
- {
--	/*
--	 * Callers should check IS_ENABLED(CONFIG_DAX) to know if this
--	 * NULL is an error or expected.
--	 */
--	return NULL;
-+	return ERR_PTR(-EOPNOTSUPP);
+@@ -795,8 +796,11 @@ static void virtio_fs_cleanup_dax(void *data)
+ 	put_dax(dax_dev);
  }
- static inline void put_dax(struct dax_device *dax_dev)
+ 
++DEFINE_FREE(cleanup_dax, struct dax_dev *, if (!IS_ERR_OR_NULL(_T)) virtio_fs_cleanup_dax(_T))
++
+ static int virtio_fs_setup_dax(struct virtio_device *vdev, struct virtio_fs *fs)
  {
++	struct dax_device *dax_dev __free(cleanup_dax) = NULL;
+ 	struct virtio_shm_region cache_reg;
+ 	struct dev_pagemap *pgmap;
+ 	bool have_cache;
+@@ -804,6 +808,12 @@ static int virtio_fs_setup_dax(struct virtio_device *vdev, struct virtio_fs *fs)
+ 	if (!IS_ENABLED(CONFIG_FUSE_DAX))
+ 		return 0;
+ 
++	dax_dev = alloc_dax(fs, &virtio_fs_dax_ops);
++	if (IS_ERR_OR_NULL(dax_dev)) {
++		int rc = IS_ERR(dax_dev) ? PTR_ERR(dax_dev) : -EOPNOTSUPP;
++		return rc == -EOPNOTSUPP ? 0 : rc;
++	}
++
+ 	/* Get cache region */
+ 	have_cache = virtio_get_shm_region(vdev, &cache_reg,
+ 					   (u8)VIRTIO_FS_SHMCAP_ID_CACHE);
+@@ -849,10 +859,7 @@ static int virtio_fs_setup_dax(struct virtio_device *vdev, struct virtio_fs *fs)
+ 	dev_dbg(&vdev->dev, "%s: window kaddr 0x%px phys_addr 0x%llx len 0x%llx\n",
+ 		__func__, fs->window_kaddr, cache_reg.addr, cache_reg.len);
+ 
+-	fs->dax_dev = alloc_dax(fs, &virtio_fs_dax_ops);
+-	if (IS_ERR(fs->dax_dev))
+-		return PTR_ERR(fs->dax_dev);
+-
++	fs->dax_dev = no_free_ptr(dax_dev);
+ 	return devm_add_action_or_reset(&vdev->dev, virtio_fs_cleanup_dax,
+ 					fs->dax_dev);
+ }
 -- 
 2.39.2
 
