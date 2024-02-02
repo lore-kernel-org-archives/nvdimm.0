@@ -1,161 +1,94 @@
-Received: from smtpout.efficios.com (smtpout.efficios.com [167.114.26.122])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oo1-f54.google.com (mail-oo1-f54.google.com [209.85.161.54])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2DF451799A;
-	Fri,  2 Feb 2024 16:31:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=167.114.26.122
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 22FD32E3E1
+	for <nvdimm@lists.linux.dev>; Fri,  2 Feb 2024 16:33:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706891522; cv=none; b=HL3x92NiqJTAw5yhf6yXUxSJ6HnsWpxTnuKJsO0+u3X8Jv0TdeMyT6NMAqaZ+f5nnKmthR08A1hnnUbU24b/DdHTS9t4MB2Y6gnmQVMhMjQyJlUe8zBpOnDglLvKzh/URuaYQkMKJ5y91gDdxoRzFBYx7tEvM3fxS4jbJZ1mQ9I=
+	t=1706891632; cv=none; b=b+rmeEbiKo6BWtsJISCiwCqkyyUHgD1IZHkdCeC6mX99KPx5MaPfBRqNbhF1uwdoaEi+v2HK/QFzRd9jZ9cZ+JHozkqwu4zm9vJQH9iEf4+UopMxOSTELmb55ihLj4wQ/Ht6mWzUU13vxsyyJmJX9Q/4xnAGrZt7pBFlcOAv4ZE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706891522; c=relaxed/simple;
-	bh=yma4nylgOoLjTOHrYgozp3WCHDCZs0kwIUYe+i7FJY8=;
-	h=Message-ID:Date:MIME-Version:Subject:From:To:Cc:References:
-	 In-Reply-To:Content-Type; b=WVM+OUrTnVRZ72RMZvEiykRYqnzA9JByMVpNEx7js4fXzCflMd3IFXBEfA90IJGQ2KTjnoocLM8t9zILpqwBAUfx8TR9f0diog2m74I2FnhclWMyrSbG+OdDxMo4mjnMURqb4ckg8DvQqJfWMsd/taoo/O6Sj8VfWmvG//5/6AM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com; spf=pass smtp.mailfrom=efficios.com; dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b=jU5wubxj; arc=none smtp.client-ip=167.114.26.122
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=efficios.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b="jU5wubxj"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=efficios.com;
-	s=smtpout1; t=1706891519;
-	bh=yma4nylgOoLjTOHrYgozp3WCHDCZs0kwIUYe+i7FJY8=;
-	h=Date:Subject:From:To:Cc:References:In-Reply-To:From;
-	b=jU5wubxjeRgWqLh+oXgXkt9L6ToIU6aLtIv74J33D94Z1bAuwUkYMDh43wTpgdlwk
-	 ircon1WeA8O1VoQha723YG13bkUh50GNf7CmEu+/24b34xifpcw4D1fgeDOPHgVIIJ
-	 jElb/7siEE49WZijpvj972viuZFA8YKRa2ImjRcEa53ZNXFUb4t5y6qyaTIWAWbO4X
-	 uVKOqJy5aChedzSPk82AaYiwsp/3O6f8Uzr6Sw72XEkemnVbTSFWoCR24mWLF/NetX
-	 lXurcKAzwiKzhXJX6flQLy6YgSDzTBoEnGPBZNJVJqHrjIA0JXKpYY22SQ9Si5VeJT
-	 mK+yKNhrX75og==
-Received: from [172.16.0.134] (192-222-143-198.qc.cable.ebox.net [192.222.143.198])
-	by smtpout.efficios.com (Postfix) with ESMTPSA id 4TRLrt5bFczX6S;
-	Fri,  2 Feb 2024 11:31:58 -0500 (EST)
-Message-ID: <da4c7c2c-0400-40d7-8263-22d284ecca8c@efficios.com>
-Date: Fri, 2 Feb 2024 11:32:00 -0500
+	s=arc-20240116; t=1706891632; c=relaxed/simple;
+	bh=uhlj6Bq5Vf+ptYFkh6gLEAnY74QLGaRFcC6pbRV9cNM=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=VYRoljJ1KAB8J0GV/daoe2Vs1Ar5c9A2eP9/K7h8s+Ukzej8Qwws3mCmfT2b3aZkb2izIy3zoJW/aTZOY4dxCP6iGjcpY43juafW1MkusdB5WLpVo2wOYDSQe7kVamn5KBrgmIy3b3VnrbWMF3hpV1OGDcofsyDpbj8qXBoj9x0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org; spf=pass smtp.mailfrom=gmail.com; arc=none smtp.client-ip=209.85.161.54
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Received: by mail-oo1-f54.google.com with SMTP id 006d021491bc7-59a1e21b0ebso585820eaf.1
+        for <nvdimm@lists.linux.dev>; Fri, 02 Feb 2024 08:33:50 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1706891630; x=1707496430;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=uhlj6Bq5Vf+ptYFkh6gLEAnY74QLGaRFcC6pbRV9cNM=;
+        b=MEj9FtDhOZurE3bNntmPFoCffhHx7vewk9NCoCK/fMvZeuj/bMTyYU+yr33eWFuHzd
+         EImCJ3NSsInw0VRDYIwkk7yXM6rvCnqfi13MIUNR14w9ZxzLoFdsZpPEnhbIf2LVNnXW
+         UYtiHAN8Nj8GNT1qUXXiPrTBB8+SNfIeeownLirjOXicGxK/4BDStcqIKcJzrGhJnQiA
+         hAuihXnJdGMhccsvKqvueRKmX4skxWHGMmZWAOXG0RA5fxxMCMDps7t5KGRa52dveZqO
+         +hthYiEMxgzBgAvvkuJlnVTZqYPMgppxQ0MyCUU/b2ug74iROLClgotAyN5jqjG3Dibg
+         /chw==
+X-Gm-Message-State: AOJu0YzAsJI9yQ1amIZ/iTBuhlniJ4n0vn5rQ4egf5XMMdyMGCarYyGI
+	2a4z9VKkkAjWi5hQRCmJTT/JThp4cgvoftHeAr4P+PO/L4+nvlSxrtZONvpiEjH/MRkcqCHmE4h
+	dpBCu0QIU38/L+q55gL18nNKQ3nc=
+X-Google-Smtp-Source: AGHT+IH5lbhNXYdvBNW6Z6n3Fh6gB83VX+7ceza1pjweZQFNpcqOeZkwUhLG4lR26gvzCsUTJwL+cw/Xb8a8+aCYyEs=
+X-Received: by 2002:a4a:c810:0:b0:599:6d16:353c with SMTP id
+ s16-20020a4ac810000000b005996d16353cmr6463248ooq.1.1706891630031; Fri, 02 Feb
+ 2024 08:33:50 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH v3 2/4] dax: Check for data cache aliasing at runtime
-Content-Language: en-US
-From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-To: Dan Williams <dan.j.williams@intel.com>, Arnd Bergmann <arnd@arndb.de>,
- Dave Chinner <david@fromorbit.com>
-Cc: linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>,
- Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org,
- linux-arch@vger.kernel.org, Vishal Verma <vishal.l.verma@intel.com>,
- Dave Jiang <dave.jiang@intel.com>, Matthew Wilcox <willy@infradead.org>,
- Russell King <linux@armlinux.org.uk>, nvdimm@lists.linux.dev,
- linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org,
- dm-devel@lists.linux.dev
-References: <20240131162533.247710-1-mathieu.desnoyers@efficios.com>
- <20240131162533.247710-3-mathieu.desnoyers@efficios.com>
- <65bab567665f3_37ad2943c@dwillia2-xfh.jf.intel.com.notmuch>
- <0a38176b-c453-4be0-be83-f3e1bb897973@efficios.com>
- <65bac71a9659b_37ad29428@dwillia2-xfh.jf.intel.com.notmuch>
- <f1d14941-2d22-452a-99e6-42db806b6d7f@efficios.com>
-In-Reply-To: <f1d14941-2d22-452a-99e6-42db806b6d7f@efficios.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+References: <20231002135458.2603293-1-andriy.shevchenko@linux.intel.com>
+ <6531d1e01d0e1_7258329440@dwillia2-xfh.jf.intel.com.notmuch>
+ <ZVt1J_14iJjnSln9@smile.fi.intel.com> <CAJZ5v0hk2ygfjU7WtgTBhwXhqDc8+xoBb+-gs6Ym9tOJtSoZ4A@mail.gmail.com>
+ <ZVuVMNlfumQ4p6oM@smile.fi.intel.com> <Zb0O8o-REzAjLhzl@smile.fi.intel.com>
+In-Reply-To: <Zb0O8o-REzAjLhzl@smile.fi.intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Fri, 2 Feb 2024 17:33:38 +0100
+Message-ID: <CAJZ5v0hwNKm7bNS8uEhK-GVCibLaHvE75Rpc4oE9cpM6ByGmxw@mail.gmail.com>
+Subject: Re: [PATCH v1 1/1] ACPI: NFIT: Switch to use acpi_evaluate_dsm_typed()
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Dan Williams <dan.j.williams@intel.com>, 
+	Michal Wilczynski <michal.wilczynski@intel.com>, nvdimm@lists.linux.dev, 
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Ira Weiny <ira.weiny@intel.com>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On 2024-02-01 10:44, Mathieu Desnoyers wrote:
-> On 2024-01-31 17:18, Dan Williams wrote:
+On Fri, Feb 2, 2024 at 4:49=E2=80=AFPM Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
+>
+> On Mon, Nov 20, 2023 at 07:19:44PM +0200, Andy Shevchenko wrote:
+> > On Mon, Nov 20, 2023 at 04:11:54PM +0100, Rafael J. Wysocki wrote:
+> > > On Mon, Nov 20, 2023 at 4:03=E2=80=AFPM Andy Shevchenko
+> > > <andriy.shevchenko@linux.intel.com> wrote:
+> > > > On Thu, Oct 19, 2023 at 06:03:28PM -0700, Dan Williams wrote:
+> > > > > Andy Shevchenko wrote:
+> > > > > > The acpi_evaluate_dsm_typed() provides a way to check the type =
+of the
+> > > > > > object evaluated by _DSM call. Use it instead of open coded var=
+iant.
+> > > > >
+> > > > > Looks good to me.
+> > > > >
+> > > > > Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+> > > >
+> > > > Thank you!
+> > > >
+> > > > Who is taking care of this? Rafael?
+> > >
+> > > I can apply it.
+> >
+> > Would be nice, thank you!
+>
+> Any news on this?
 
-[...]
+Fell through the cracks, sorry about that.
 
+Applied now (as 6.9 material).
 
->> diff --git a/fs/fuse/virtio_fs.c b/fs/fuse/virtio_fs.c
->> index 5f1be1da92ce..11053a70f5ab 100644
->> --- a/fs/fuse/virtio_fs.c
->> +++ b/fs/fuse/virtio_fs.c
->> @@ -16,6 +16,7 @@
->>   #include <linux/fs_context.h>
->>   #include <linux/fs_parser.h>
->>   #include <linux/highmem.h>
->> +#include <linux/cleanup.h>
->>   #include <linux/uio.h>
->>   #include "fuse_i.h"
->> @@ -795,8 +796,11 @@ static void virtio_fs_cleanup_dax(void *data)
->>       put_dax(dax_dev);
->>   }
->> +DEFINE_FREE(cleanup_dax, struct dax_dev *, if (!IS_ERR_OR_NULL(_T)) 
->> virtio_fs_cleanup_dax(_T))
->> +
->>   static int virtio_fs_setup_dax(struct virtio_device *vdev, struct 
->> virtio_fs *fs)
-> 
-> So either I'm completely missing how ownership works in this function, or
-> we should be really concerned about the fact that it does no actual
-> cleanup of anything on any error.
-[...]
-> 
-> Here what I'm seeing so far:
-> 
-> - devm_release_mem_region() is never called after 
-> devm_request_mem_region(). Not
->    on error, neither on teardown,
-> - pgmap is never freed on error after devm_kzalloc.
-
-I was indeed missing something: the devm_ family of functions
-keeps ownership at the device level, so we would not need explicit
-teardown.
-
-> 
->>   {
->> +    struct dax_device *dax_dev __free(cleanup_dax) = NULL;
->>       struct virtio_shm_region cache_reg;
->>       struct dev_pagemap *pgmap;
->>       bool have_cache;
->> @@ -804,6 +808,15 @@ static int virtio_fs_setup_dax(struct 
->> virtio_device *vdev, struct virtio_fs *fs)
->>       if (!IS_ENABLED(CONFIG_FUSE_DAX))
->>           return 0;
->> +    dax_dev = alloc_dax(fs, &virtio_fs_dax_ops);
->> +    if (IS_ERR(dax_dev)) {
->> +        int rc = PTR_ERR(dax_dev);
->> +
->> +        if (rc == -EOPNOTSUPP)
->> +            return 0;
->> +        return rc;
->> +    }
-> 
-> What is gained by moving this allocation here ?
-
-I'm still concerned about moving the call to alloc_dax() before
-the setup of the memory region it will use. Are those completely
-independent ?
-
-> 
->> +
->>       /* Get cache region */
->>       have_cache = virtio_get_shm_region(vdev, &cache_reg,
->>                          (u8)VIRTIO_FS_SHMCAP_ID_CACHE);
->> @@ -849,10 +862,7 @@ static int virtio_fs_setup_dax(struct 
->> virtio_device *vdev, struct virtio_fs *fs)
->>       dev_dbg(&vdev->dev, "%s: window kaddr 0x%px phys_addr 0x%llx len 
->> 0x%llx\n",
->>           __func__, fs->window_kaddr, cache_reg.addr, cache_reg.len);
->> -    fs->dax_dev = alloc_dax(fs, &virtio_fs_dax_ops);
->> -    if (IS_ERR(fs->dax_dev))
->> -        return PTR_ERR(fs->dax_dev);
->> -
->> +    fs->dax_dev = no_free_ptr(dax_dev);
->>       return devm_add_action_or_reset(&vdev->dev, virtio_fs_cleanup_dax,
->>                       fs->dax_dev);
->>   }
-> 
-
-[...]
-
-Thanks,
-
-Mathieu
-
-
--- 
-Mathieu Desnoyers
-EfficiOS Inc.
-https://www.efficios.com
-
+Thanks!
