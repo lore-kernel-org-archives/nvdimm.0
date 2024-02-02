@@ -1,104 +1,192 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.12])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.13])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57DF91474A8
-	for <nvdimm@lists.linux.dev>; Fri,  2 Feb 2024 15:49:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.12
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FE621474B6
+	for <nvdimm@lists.linux.dev>; Fri,  2 Feb 2024 16:17:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.13
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706888954; cv=none; b=CrrA58BOGGC4PiG5hrnMxegjkR3fqJ92d4kQKeeMl82GjubVdW+gBc2Z+iP3OBo1qD0ch4i+Ne4VQvW0FrhkJZ14ADEJyaZhqpZNG+K6Q29STV/XhKUbylXA+ZTTyk5hHFlCkOplEf+ChqsuoS4A5h0WIMQNYPGX1pAKfJhCfSc=
+	t=1706890678; cv=none; b=ZOsbC5NOUkN//ljFJ3/RFFbhDmRBKNLrPX/Iozp2uBATWVt0xdlHq07B9KPyAwKb1bgATzxVb9ryY4zsSmqcNKLSu2mWRdQZem5sMZ+cjnUQK04FTL42CRUbUW/cKgKxeJHIXFVZV+ATByUf6jGDxHdUh8XbQMC+M3fzTnjGKTE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706888954; c=relaxed/simple;
-	bh=LGMeKnVMuKT0hJfwlj8v3NusBylUlfzamfAZ3dCBxtE=;
+	s=arc-20240116; t=1706890678; c=relaxed/simple;
+	bh=iB3Mxsh1cFMlMBaXkdfyTemkCkfav5rV8fciVYUwryY=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=fEuXHqy/anpgjcVgxIE4UwY5qu8LPsnCwSpSVL3uF8vy9jYguqzhRUVmASSyoU6uc3wpHRytkggSrDTIvz3aKyxDLZlPOZf4bmLxFIco953FnmYLvPfk2752ZFdMfLgThok0JC56dVG9An27y7oH7L2+HoA1o55Q1rC6PaIRkI4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=OxOHYcNB; arc=none smtp.client-ip=198.175.65.12
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=jQng73ITEl8lZRj8/D71C7QTMxm1NifnGL6qPeLE6I2fVv+9XIPBFGnHrOFScivRyenGPlbn4NzoWKw2gi5uQtCNe6o8594FO4ZmfBzId9xTyBsW2c2aGVACuXFglpCbl6V2gk/qy7niv1t5SsCgzUh7x1SIKebjge6jwO3Vngc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=JMS+ex5s; arc=none smtp.client-ip=198.175.65.13
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="OxOHYcNB"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="JMS+ex5s"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1706888952; x=1738424952;
+  t=1706890674; x=1738426674;
   h=date:from:to:cc:subject:message-id:references:
-   mime-version:content-transfer-encoding:in-reply-to;
-  bh=LGMeKnVMuKT0hJfwlj8v3NusBylUlfzamfAZ3dCBxtE=;
-  b=OxOHYcNBWZAJPbv/8cr1+4qoBKOVk2qBwodnzdQYtdb77gV/lYGPlQRw
-   HQPjz3gi1CCQN3PCauAsbnJZJ52mX/uBlOkddWiGS1M0wKfbO4Ba0xLj/
-   dArEp4z+tt+RCc2uSWaDzVEhzSVAgLQi6z8Hy31z8aJgAa5ZnIxQdg122
-   svVFJg+wh5Jhpa71/5u7gikNdo3E7cOZAX64QKseqU6wtuRBBMnPDHROS
-   m0lA5JsvoTXd/3Ql59dSUcOP6LcKPtDllAdey68rlfL2OHrkY23wE51nz
-   9E7xzOKwOINBlBgKXwAgjs0MchDtB3HqFvjxtoZ51fW89dMuB3sLrJl75
-   g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10971"; a="11544408"
+   mime-version:in-reply-to;
+  bh=iB3Mxsh1cFMlMBaXkdfyTemkCkfav5rV8fciVYUwryY=;
+  b=JMS+ex5sAYRjbLbIdk1O9+YSl0v2WCbWFgFEIqH1iIbw2QRK+vmoa31g
+   9S5MzFanU6ryTVQ7ptHx6/ls4Lq6VZ1hrkkhrigKb2cYn0oY6G7r8A4h+
+   khoxpM0sInGLHhftM8JPnKt08dS8jZ7Gyxh/pXqgYirnzczLnHmocTruX
+   Qs4tORSO9Xi5xlLqEuFS2m10g3DaRJVURG7o2Afd3W+Xdr//2kk5GDpUZ
+   u3oQjBMuBNI7kI8yYpQl3Wj1k1a4SPstCUw/L+sXY6zcXrgx1NL1+8oYs
+   4dM67z/5y9g7YJnQYX0zm4nluF1hwNMhP951unM6qAlp1WT1g+ZXSv29A
+   w==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10971"; a="11285370"
 X-IronPort-AV: E=Sophos;i="6.05,238,1701158400"; 
-   d="scan'208";a="11544408"
+   d="scan'208";a="11285370"
 Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by orvoesa104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Feb 2024 07:49:12 -0800
+  by orvoesa105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Feb 2024 08:17:53 -0800
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10971"; a="932497916"
+X-IronPort-AV: E=McAfee;i="6600,9927,10971"; a="932503964"
 X-IronPort-AV: E=Sophos;i="6.05,238,1701158400"; 
-   d="scan'208";a="932497916"
-Received: from smile.fi.intel.com ([10.237.72.54])
-  by fmsmga001.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Feb 2024 07:49:09 -0800
-Received: from andy by smile.fi.intel.com with local (Exim 4.97)
-	(envelope-from <andriy.shevchenko@linux.intel.com>)
-	id 1rVvms-00000001JDq-3RG1;
-	Fri, 02 Feb 2024 17:49:06 +0200
-Date: Fri, 2 Feb 2024 17:49:06 +0200
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Dan Williams <dan.j.williams@intel.com>,
-	Michal Wilczynski <michal.wilczynski@intel.com>,
-	nvdimm@lists.linux.dev, linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
-	Len Brown <lenb@kernel.org>
-Subject: Re: [PATCH v1 1/1] ACPI: NFIT: Switch to use
- acpi_evaluate_dsm_typed()
-Message-ID: <Zb0O8o-REzAjLhzl@smile.fi.intel.com>
-References: <20231002135458.2603293-1-andriy.shevchenko@linux.intel.com>
- <6531d1e01d0e1_7258329440@dwillia2-xfh.jf.intel.com.notmuch>
- <ZVt1J_14iJjnSln9@smile.fi.intel.com>
- <CAJZ5v0hk2ygfjU7WtgTBhwXhqDc8+xoBb+-gs6Ym9tOJtSoZ4A@mail.gmail.com>
- <ZVuVMNlfumQ4p6oM@smile.fi.intel.com>
+   d="scan'208";a="932503964"
+Received: from aschofie-mobl2.amr.corp.intel.com (HELO aschofie-mobl2) ([10.251.15.209])
+  by fmsmga001-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Feb 2024 08:17:52 -0800
+Date: Fri, 2 Feb 2024 08:17:50 -0800
+From: Alison Schofield <alison.schofield@intel.com>
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
+	vishal.l.verma@intel.com
+Subject: Re: [NDCTL PATCH v5 4/4] ndctl: add test for qos_class in CXL test
+ suite
+Message-ID: <Zb0VrjTUimEMFkT2@aschofie-mobl2>
+References: <20240201230646.1328211-1-dave.jiang@intel.com>
+ <20240201230646.1328211-5-dave.jiang@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <ZVuVMNlfumQ4p6oM@smile.fi.intel.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+In-Reply-To: <20240201230646.1328211-5-dave.jiang@intel.com>
 
-On Mon, Nov 20, 2023 at 07:19:44PM +0200, Andy Shevchenko wrote:
-> On Mon, Nov 20, 2023 at 04:11:54PM +0100, Rafael J. Wysocki wrote:
-> > On Mon, Nov 20, 2023 at 4:03 PM Andy Shevchenko
-> > <andriy.shevchenko@linux.intel.com> wrote:
-> > > On Thu, Oct 19, 2023 at 06:03:28PM -0700, Dan Williams wrote:
-> > > > Andy Shevchenko wrote:
-> > > > > The acpi_evaluate_dsm_typed() provides a way to check the type of the
-> > > > > object evaluated by _DSM call. Use it instead of open coded variant.
-> > > >
-> > > > Looks good to me.
-> > > >
-> > > > Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-> > >
-> > > Thank you!
-> > >
-> > > Who is taking care of this? Rafael?
-> > 
-> > I can apply it.
+On Thu, Feb 01, 2024 at 04:05:07PM -0700, Dave Jiang wrote:
+> Add tests in cxl-qos-class.sh to verify qos_class are set with the fake
+> qos_class create by the kernel.  Root decoders should have qos_class
+> attribute set. Memory devices should have ram_qos_class or pmem_qos_class
+> set depending on which partitions are valid.
 > 
-> Would be nice, thank you!
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+> v5:
+> - Split out from cxl-topology.sh (Vishal)
+> ---
+>  test/common           |  4 +++
+>  test/cxl-qos-class.sh | 65 +++++++++++++++++++++++++++++++++++++++++++
+>  test/meson.build      |  2 ++
+>  3 files changed, 71 insertions(+)
+>  create mode 100755 test/cxl-qos-class.sh
+> 
+> diff --git a/test/common b/test/common
+> index f1023ef20f7e..5694820c7adc 100644
+> --- a/test/common
+> +++ b/test/common
+> @@ -150,3 +150,7 @@ check_dmesg()
+>  	grep -q "Call Trace" <<< $log && err $1
+>  	true
+>  }
+> +
+> +
+> +# CXL COMMON
+> +TEST_QOS_CLASS=42
+> diff --git a/test/cxl-qos-class.sh b/test/cxl-qos-class.sh
+> new file mode 100755
+> index 000000000000..365a7df9c1e4
+> --- /dev/null
+> +++ b/test/cxl-qos-class.sh
+> @@ -0,0 +1,65 @@
+> +#!/bin/bash
+> +# SPDX-License-Identifier: GPL-2.0
+> +# Copyright (C) 2024 Intel Corporation. All rights reserved.
+> +
+> +check_qos_decoders () {
+> +	# check root decoders have expected fake qos_class
+> +	# also make sure the number of root decoders equal to the number
+> +	# with qos_class found
+> +	json=$($CXL list -b cxl_test -D -d root)
+> +	decoders=$(echo "$json" | jq length)
+> +	count=0
+> +	while read -r qos_class
+> +	do
+> +		((qos_class == TEST_QOS_CLASS)) || err "$LINENO"
+> +		count=$((count+1))
+> +	done <<< "$(echo "$json" | jq -r '.[] | .qos_class')"
+> +
+> +	((count == decoders)) || err "$LINENO";
+> +}
+> +
+> +check_qos_memdevs () {
+> +	# Check that memdevs that expose ram_qos_class or pmem_qos_class have
+> +	# expected fake value programmed.
+> +	json=$(cxl list -b cxl_test -M)
+> +	readarray -t lines < <(jq ".[] | .ram_size, .pmem_size, .ram_qos_class, .pmem_qos_class" <<<"$json")
+> +	for (( i = 0; i < ${#lines[@]}; i += 4 ))
+> +	do
+> +		ram_size=${lines[i]}
+> +		pmem_size=${lines[i+1]}
+> +		ram_qos_class=${lines[i+2]}
+> +		pmem_qos_class=${lines[i+3]}
+> +
+> +		if [[ "$ram_size" != null ]]
+> +		then
+> +			((ram_qos_class == TEST_QOS_CLASS)) || err "$LINENO"
+> +		fi
+> +		if [[ "$pmem_size" != null ]]
+> +		then
+> +			((pmem_qos_class == TEST_QOS_CLASS)) || err "$LINENO"
+> +		fi
+> +	done
+> +}
+> +
+> +
+> +. $(dirname $0)/common
+> +
+> +rc=77
+> +
+> +set -ex
+> +
+> +trap 'err $LINENO' ERR
+> +
+> +check_prereq "jq"
+> +
+> +modprobe -r cxl_test
+> +modprobe cxl_test
+> +rc=1
 
-Any news on this?
+This different style, boiler plate not first in file, caught my eye.
+Functionally no difference but stopped me for a second.
 
--- 
-With Best Regards,
-Andy Shevchenko
+Reviewed-by: Alison Schofield <alison.schofield@intel.com>
 
-
+> +
+> +check_qos_decoders
+> +
+> +check_qos_memdevs
+> +
+> +check_dmesg "$LINEO"
+> +
+> +modprobe -r cxl_test
+> diff --git a/test/meson.build b/test/meson.build
+> index 5eb35749a95b..4892df11119f 100644
+> --- a/test/meson.build
+> +++ b/test/meson.build
+> @@ -160,6 +160,7 @@ cxl_events = find_program('cxl-events.sh')
+>  cxl_poison = find_program('cxl-poison.sh')
+>  cxl_sanitize = find_program('cxl-sanitize.sh')
+>  cxl_destroy_region = find_program('cxl-destroy-region.sh')
+> +cxl_qos_class = find_program('cxl-qos-class.sh')
+>  
+>  tests = [
+>    [ 'libndctl',               libndctl,		  'ndctl' ],
+> @@ -192,6 +193,7 @@ tests = [
+>    [ 'cxl-poison.sh',          cxl_poison,         'cxl'   ],
+>    [ 'cxl-sanitize.sh',        cxl_sanitize,       'cxl'   ],
+>    [ 'cxl-destroy-region.sh',  cxl_destroy_region, 'cxl'   ],
+> +  [ 'cxl-qos-class.sh',       cxl_qos_class,      'cxl'   ],
+>  ]
+>  
+>  if get_option('destructive').enabled()
+> -- 
+> 2.43.0
+> 
+> 
