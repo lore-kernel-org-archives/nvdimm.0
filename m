@@ -1,34 +1,34 @@
 Received: from smtpout.efficios.com (smtpout.efficios.com [167.114.26.122])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24CAC12D77F;
-	Fri,  2 Feb 2024 21:00:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC8441308EF;
+	Fri,  2 Feb 2024 21:00:33 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=167.114.26.122
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706907635; cv=none; b=q7EbqE1b4k03KfNsQKofiTRsDtv4z+Ea0wvbxYytvaBTb7IiIH8KQ6vShaSEVLFlkjUgq/xmEm5Mt4kp9ZOL1gUuRTm8vKBNdn6kd7ah8nWwIohy8PfE0yzWYXCXU2ughqvSCgSgh7YZqEDcJDTUPocOMGFeZSCN8pI1cX3u/rk=
+	t=1706907636; cv=none; b=pEyfA+b3H/pTTlTJnzUiSr9yBb+elymYoCdHWJ9d9KmGJ6knblmRJBSOQ0jv8oAiuEIXZEapkfhetpB26E3aR/AKGTEEgabJIvYKu5g2CBOjGuryZcvi4PV+b+8RY/24OUMl74/E0eSpxpzGGVwtU57DBdsXC+GggHLedyEBsvg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706907635; c=relaxed/simple;
-	bh=Iy1T66BEIuPj6bTS95Nd9D5h8aE2OAfCM3Sw4sgOgjA=;
+	s=arc-20240116; t=1706907636; c=relaxed/simple;
+	bh=oenQ3E1qB1jTPZO/gOZI9CMarWIZCEOT7s/3o23TNGM=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=qNThyIjYh/AasJ8vZSWtpVp0CGe663YVEmeszuheWz/18vT7M1LGQyDkb2ceJf8IVf+imFtgHrP3Pa0JJdi4kHrdVXCI6sY5BEFOx/LqaAm9O7028jsP/IpdL0BhipbMHzm4RP/3Kty3tjPw0t2CCjD9hvBQdAJjhn12Tzl9dak=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com; spf=pass smtp.mailfrom=efficios.com; dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b=t638+rYb; arc=none smtp.client-ip=167.114.26.122
+	 MIME-Version; b=YRwZCsHuRi44sHwL/I7yG3LSLuCOimubpIjgbxrLzXcMSM4+ArO0uGlIKWL3Q4aG8oAJRtVgSP+4lhg2KDp4EhqeMfYxTwL7leEmoZxjg3MlUweYKsQZQaGIQlSzFm1qyCvun9zqcndk4VYloezZ4U2KlBEXyIEuy1yoKpiEga0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com; spf=pass smtp.mailfrom=efficios.com; dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b=EUrM2Ixo; arc=none smtp.client-ip=167.114.26.122
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=efficios.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b="t638+rYb"
+	dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b="EUrM2Ixo"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=efficios.com;
-	s=smtpout1; t=1706907630;
-	bh=Iy1T66BEIuPj6bTS95Nd9D5h8aE2OAfCM3Sw4sgOgjA=;
+	s=smtpout1; t=1706907631;
+	bh=oenQ3E1qB1jTPZO/gOZI9CMarWIZCEOT7s/3o23TNGM=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=t638+rYbOFyXGgFVCvFYOjUcEKa8934Yh63zuA8Ip6CU+8nNAmiILkFgP8nw6XNPm
-	 ex5CrBXXgswNdV/g8sBEiCvZYGg4PT9Lwyg/6bqVeoJd9Y6lUnnrRi5CJEebiyiNGc
-	 BE2bJEKg6gCvFyhHXyT6qlw2C/xtKJ4ydBnC7IKca5iBk50a9s7RMnjLexCDeQIzct
-	 afJMtBUYLz+HyBuALYfSgAhiSzzmkVG4JGiBZH0W9xaSZtl2ODjuUL+l+9YbPksYZ/
-	 L/+hs3IKD1BF2vqbCEzbqvXahtVAWhb4urtvIiA9DqevrCh76z9aa+kAAqoSPkK7Gj
-	 QCrn07lWmahCA==
+	b=EUrM2IxoVXxxnRIToHQMZOhPk9gxQubStmbtthZYDw31vk3Gq1zHoqE9Ipozu0q5V
+	 1hYJcL+h/XhwcyH8vbLeRzSvrpkAvpK+j6vGZ5gKg3jf+e6YcbhDmWRqfsRUydwl6N
+	 u3nI3iwadMJcDptIbtAz09OhK6R4EUWG/IkwBtKQK0NmTM9ACIBQkgSXMZNP0oQH/P
+	 3i3Z0mkQs5yN7of8m/Kvi9WJ8sjL58PdgznpGnfRt+ZtXTAMiSixlS3z7EcPPk8nhL
+	 Jgk3wmuH6ir19MMCyUpNqZz/UFitX1O12pMxzZaD4j4jy7oAuJ9XuL7M5LU9pBLcEf
+	 rJ90dLYux73mA==
 Received: from thinkos.internal.efficios.com (192-222-143-198.qc.cable.ebox.net [192.222.143.198])
-	by smtpout.efficios.com (Postfix) with ESMTPSA id 4TRSpk37PFzX4X;
-	Fri,  2 Feb 2024 16:00:30 -0500 (EST)
+	by smtpout.efficios.com (Postfix) with ESMTPSA id 4TRSpl28gvzX2M;
+	Fri,  2 Feb 2024 16:00:31 -0500 (EST)
 From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 To: Dan Williams <dan.j.williams@intel.com>,
 	Arnd Bergmann <arnd@arndb.de>,
@@ -52,9 +52,9 @@ Cc: linux-kernel@vger.kernel.org,
 	Alasdair Kergon <agk@redhat.com>,
 	Mike Snitzer <snitzer@kernel.org>,
 	Mikulas Patocka <mpatocka@redhat.com>
-Subject: [RFC PATCH v4 09/12] nvdimm/pmem: Cleanup alloc_dax() error handling
-Date: Fri,  2 Feb 2024 16:00:16 -0500
-Message-Id: <20240202210019.88022-10-mathieu.desnoyers@efficios.com>
+Subject: [RFC PATCH v4 11/12] dcssblk: Cleanup alloc_dax() error handling
+Date: Fri,  2 Feb 2024 16:00:18 -0500
+Message-Id: <20240202210019.88022-12-mathieu.desnoyers@efficios.com>
 X-Mailer: git-send-email 2.39.2
 In-Reply-To: <20240202210019.88022-1-mathieu.desnoyers@efficios.com>
 References: <20240202210019.88022-1-mathieu.desnoyers@efficios.com>
@@ -88,25 +88,26 @@ Cc: linux-mm@kvack.org
 Cc: linux-xfs@vger.kernel.org
 Cc: dm-devel@lists.linux.dev
 Cc: nvdimm@lists.linux.dev
+Cc: linux-s390@vger.kernel.org
 ---
- drivers/nvdimm/pmem.c | 4 ++--
+ drivers/s390/block/dcssblk.c | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index f1d9f5c6dbac..e9898457a7bd 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -558,8 +558,8 @@ static int pmem_attach_disk(struct device *dev,
- 	disk->bb = &pmem->bb;
+diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
+index a3010849bfed..f363c1d51d9a 100644
+--- a/drivers/s390/block/dcssblk.c
++++ b/drivers/s390/block/dcssblk.c
+@@ -679,8 +679,8 @@ dcssblk_add_store(struct device *dev, struct device_attribute *attr, const char
+ 		goto put_dev;
  
- 	dax_dev = alloc_dax(pmem, &pmem_dax_ops);
+ 	dax_dev = alloc_dax(dev_info, &dcssblk_dax_ops);
 -	if (IS_ERR_OR_NULL(dax_dev)) {
 -		rc = IS_ERR(dax_dev) ? PTR_ERR(dax_dev) : -EOPNOTSUPP;
 +	if (IS_ERR(dax_dev)) {
 +		rc = PTR_ERR(dax_dev);
- 		if (rc != -EOPNOTSUPP)
- 			goto out;
- 	} else {
+ 		goto put_dev;
+ 	}
+ 	set_dax_synchronous(dax_dev);
 -- 
 2.39.2
 
