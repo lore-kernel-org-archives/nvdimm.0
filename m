@@ -1,192 +1,161 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.13])
+Received: from smtpout.efficios.com (smtpout.efficios.com [167.114.26.122])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FE621474B6
-	for <nvdimm@lists.linux.dev>; Fri,  2 Feb 2024 16:17:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.13
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2DF451799A;
+	Fri,  2 Feb 2024 16:31:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=167.114.26.122
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706890678; cv=none; b=ZOsbC5NOUkN//ljFJ3/RFFbhDmRBKNLrPX/Iozp2uBATWVt0xdlHq07B9KPyAwKb1bgATzxVb9ryY4zsSmqcNKLSu2mWRdQZem5sMZ+cjnUQK04FTL42CRUbUW/cKgKxeJHIXFVZV+ATByUf6jGDxHdUh8XbQMC+M3fzTnjGKTE=
+	t=1706891522; cv=none; b=HL3x92NiqJTAw5yhf6yXUxSJ6HnsWpxTnuKJsO0+u3X8Jv0TdeMyT6NMAqaZ+f5nnKmthR08A1hnnUbU24b/DdHTS9t4MB2Y6gnmQVMhMjQyJlUe8zBpOnDglLvKzh/URuaYQkMKJ5y91gDdxoRzFBYx7tEvM3fxS4jbJZ1mQ9I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706890678; c=relaxed/simple;
-	bh=iB3Mxsh1cFMlMBaXkdfyTemkCkfav5rV8fciVYUwryY=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=jQng73ITEl8lZRj8/D71C7QTMxm1NifnGL6qPeLE6I2fVv+9XIPBFGnHrOFScivRyenGPlbn4NzoWKw2gi5uQtCNe6o8594FO4ZmfBzId9xTyBsW2c2aGVACuXFglpCbl6V2gk/qy7niv1t5SsCgzUh7x1SIKebjge6jwO3Vngc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=JMS+ex5s; arc=none smtp.client-ip=198.175.65.13
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1706891522; c=relaxed/simple;
+	bh=yma4nylgOoLjTOHrYgozp3WCHDCZs0kwIUYe+i7FJY8=;
+	h=Message-ID:Date:MIME-Version:Subject:From:To:Cc:References:
+	 In-Reply-To:Content-Type; b=WVM+OUrTnVRZ72RMZvEiykRYqnzA9JByMVpNEx7js4fXzCflMd3IFXBEfA90IJGQ2KTjnoocLM8t9zILpqwBAUfx8TR9f0diog2m74I2FnhclWMyrSbG+OdDxMo4mjnMURqb4ckg8DvQqJfWMsd/taoo/O6Sj8VfWmvG//5/6AM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com; spf=pass smtp.mailfrom=efficios.com; dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b=jU5wubxj; arc=none smtp.client-ip=167.114.26.122
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=efficios.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="JMS+ex5s"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1706890674; x=1738426674;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=iB3Mxsh1cFMlMBaXkdfyTemkCkfav5rV8fciVYUwryY=;
-  b=JMS+ex5sAYRjbLbIdk1O9+YSl0v2WCbWFgFEIqH1iIbw2QRK+vmoa31g
-   9S5MzFanU6ryTVQ7ptHx6/ls4Lq6VZ1hrkkhrigKb2cYn0oY6G7r8A4h+
-   khoxpM0sInGLHhftM8JPnKt08dS8jZ7Gyxh/pXqgYirnzczLnHmocTruX
-   Qs4tORSO9Xi5xlLqEuFS2m10g3DaRJVURG7o2Afd3W+Xdr//2kk5GDpUZ
-   u3oQjBMuBNI7kI8yYpQl3Wj1k1a4SPstCUw/L+sXY6zcXrgx1NL1+8oYs
-   4dM67z/5y9g7YJnQYX0zm4nluF1hwNMhP951unM6qAlp1WT1g+ZXSv29A
-   w==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10971"; a="11285370"
-X-IronPort-AV: E=Sophos;i="6.05,238,1701158400"; 
-   d="scan'208";a="11285370"
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by orvoesa105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Feb 2024 08:17:53 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10971"; a="932503964"
-X-IronPort-AV: E=Sophos;i="6.05,238,1701158400"; 
-   d="scan'208";a="932503964"
-Received: from aschofie-mobl2.amr.corp.intel.com (HELO aschofie-mobl2) ([10.251.15.209])
-  by fmsmga001-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Feb 2024 08:17:52 -0800
-Date: Fri, 2 Feb 2024 08:17:50 -0800
-From: Alison Schofield <alison.schofield@intel.com>
-To: Dave Jiang <dave.jiang@intel.com>
-Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
-	vishal.l.verma@intel.com
-Subject: Re: [NDCTL PATCH v5 4/4] ndctl: add test for qos_class in CXL test
- suite
-Message-ID: <Zb0VrjTUimEMFkT2@aschofie-mobl2>
-References: <20240201230646.1328211-1-dave.jiang@intel.com>
- <20240201230646.1328211-5-dave.jiang@intel.com>
+	dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b="jU5wubxj"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=efficios.com;
+	s=smtpout1; t=1706891519;
+	bh=yma4nylgOoLjTOHrYgozp3WCHDCZs0kwIUYe+i7FJY8=;
+	h=Date:Subject:From:To:Cc:References:In-Reply-To:From;
+	b=jU5wubxjeRgWqLh+oXgXkt9L6ToIU6aLtIv74J33D94Z1bAuwUkYMDh43wTpgdlwk
+	 ircon1WeA8O1VoQha723YG13bkUh50GNf7CmEu+/24b34xifpcw4D1fgeDOPHgVIIJ
+	 jElb/7siEE49WZijpvj972viuZFA8YKRa2ImjRcEa53ZNXFUb4t5y6qyaTIWAWbO4X
+	 uVKOqJy5aChedzSPk82AaYiwsp/3O6f8Uzr6Sw72XEkemnVbTSFWoCR24mWLF/NetX
+	 lXurcKAzwiKzhXJX6flQLy6YgSDzTBoEnGPBZNJVJqHrjIA0JXKpYY22SQ9Si5VeJT
+	 mK+yKNhrX75og==
+Received: from [172.16.0.134] (192-222-143-198.qc.cable.ebox.net [192.222.143.198])
+	by smtpout.efficios.com (Postfix) with ESMTPSA id 4TRLrt5bFczX6S;
+	Fri,  2 Feb 2024 11:31:58 -0500 (EST)
+Message-ID: <da4c7c2c-0400-40d7-8263-22d284ecca8c@efficios.com>
+Date: Fri, 2 Feb 2024 11:32:00 -0500
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240201230646.1328211-5-dave.jiang@intel.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC PATCH v3 2/4] dax: Check for data cache aliasing at runtime
+Content-Language: en-US
+From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+To: Dan Williams <dan.j.williams@intel.com>, Arnd Bergmann <arnd@arndb.de>,
+ Dave Chinner <david@fromorbit.com>
+Cc: linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>,
+ Linus Torvalds <torvalds@linux-foundation.org>, linux-mm@kvack.org,
+ linux-arch@vger.kernel.org, Vishal Verma <vishal.l.verma@intel.com>,
+ Dave Jiang <dave.jiang@intel.com>, Matthew Wilcox <willy@infradead.org>,
+ Russell King <linux@armlinux.org.uk>, nvdimm@lists.linux.dev,
+ linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+ dm-devel@lists.linux.dev
+References: <20240131162533.247710-1-mathieu.desnoyers@efficios.com>
+ <20240131162533.247710-3-mathieu.desnoyers@efficios.com>
+ <65bab567665f3_37ad2943c@dwillia2-xfh.jf.intel.com.notmuch>
+ <0a38176b-c453-4be0-be83-f3e1bb897973@efficios.com>
+ <65bac71a9659b_37ad29428@dwillia2-xfh.jf.intel.com.notmuch>
+ <f1d14941-2d22-452a-99e6-42db806b6d7f@efficios.com>
+In-Reply-To: <f1d14941-2d22-452a-99e6-42db806b6d7f@efficios.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-On Thu, Feb 01, 2024 at 04:05:07PM -0700, Dave Jiang wrote:
-> Add tests in cxl-qos-class.sh to verify qos_class are set with the fake
-> qos_class create by the kernel.  Root decoders should have qos_class
-> attribute set. Memory devices should have ram_qos_class or pmem_qos_class
-> set depending on which partitions are valid.
-> 
-> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-> ---
-> v5:
-> - Split out from cxl-topology.sh (Vishal)
-> ---
->  test/common           |  4 +++
->  test/cxl-qos-class.sh | 65 +++++++++++++++++++++++++++++++++++++++++++
->  test/meson.build      |  2 ++
->  3 files changed, 71 insertions(+)
->  create mode 100755 test/cxl-qos-class.sh
-> 
-> diff --git a/test/common b/test/common
-> index f1023ef20f7e..5694820c7adc 100644
-> --- a/test/common
-> +++ b/test/common
-> @@ -150,3 +150,7 @@ check_dmesg()
->  	grep -q "Call Trace" <<< $log && err $1
->  	true
->  }
-> +
-> +
-> +# CXL COMMON
-> +TEST_QOS_CLASS=42
-> diff --git a/test/cxl-qos-class.sh b/test/cxl-qos-class.sh
-> new file mode 100755
-> index 000000000000..365a7df9c1e4
-> --- /dev/null
-> +++ b/test/cxl-qos-class.sh
-> @@ -0,0 +1,65 @@
-> +#!/bin/bash
-> +# SPDX-License-Identifier: GPL-2.0
-> +# Copyright (C) 2024 Intel Corporation. All rights reserved.
-> +
-> +check_qos_decoders () {
-> +	# check root decoders have expected fake qos_class
-> +	# also make sure the number of root decoders equal to the number
-> +	# with qos_class found
-> +	json=$($CXL list -b cxl_test -D -d root)
-> +	decoders=$(echo "$json" | jq length)
-> +	count=0
-> +	while read -r qos_class
-> +	do
-> +		((qos_class == TEST_QOS_CLASS)) || err "$LINENO"
-> +		count=$((count+1))
-> +	done <<< "$(echo "$json" | jq -r '.[] | .qos_class')"
-> +
-> +	((count == decoders)) || err "$LINENO";
-> +}
-> +
-> +check_qos_memdevs () {
-> +	# Check that memdevs that expose ram_qos_class or pmem_qos_class have
-> +	# expected fake value programmed.
-> +	json=$(cxl list -b cxl_test -M)
-> +	readarray -t lines < <(jq ".[] | .ram_size, .pmem_size, .ram_qos_class, .pmem_qos_class" <<<"$json")
-> +	for (( i = 0; i < ${#lines[@]}; i += 4 ))
-> +	do
-> +		ram_size=${lines[i]}
-> +		pmem_size=${lines[i+1]}
-> +		ram_qos_class=${lines[i+2]}
-> +		pmem_qos_class=${lines[i+3]}
-> +
-> +		if [[ "$ram_size" != null ]]
-> +		then
-> +			((ram_qos_class == TEST_QOS_CLASS)) || err "$LINENO"
-> +		fi
-> +		if [[ "$pmem_size" != null ]]
-> +		then
-> +			((pmem_qos_class == TEST_QOS_CLASS)) || err "$LINENO"
-> +		fi
-> +	done
-> +}
-> +
-> +
-> +. $(dirname $0)/common
-> +
-> +rc=77
-> +
-> +set -ex
-> +
-> +trap 'err $LINENO' ERR
-> +
-> +check_prereq "jq"
-> +
-> +modprobe -r cxl_test
-> +modprobe cxl_test
-> +rc=1
+On 2024-02-01 10:44, Mathieu Desnoyers wrote:
+> On 2024-01-31 17:18, Dan Williams wrote:
 
-This different style, boiler plate not first in file, caught my eye.
-Functionally no difference but stopped me for a second.
+[...]
 
-Reviewed-by: Alison Schofield <alison.schofield@intel.com>
 
-> +
-> +check_qos_decoders
-> +
-> +check_qos_memdevs
-> +
-> +check_dmesg "$LINEO"
-> +
-> +modprobe -r cxl_test
-> diff --git a/test/meson.build b/test/meson.build
-> index 5eb35749a95b..4892df11119f 100644
-> --- a/test/meson.build
-> +++ b/test/meson.build
-> @@ -160,6 +160,7 @@ cxl_events = find_program('cxl-events.sh')
->  cxl_poison = find_program('cxl-poison.sh')
->  cxl_sanitize = find_program('cxl-sanitize.sh')
->  cxl_destroy_region = find_program('cxl-destroy-region.sh')
-> +cxl_qos_class = find_program('cxl-qos-class.sh')
->  
->  tests = [
->    [ 'libndctl',               libndctl,		  'ndctl' ],
-> @@ -192,6 +193,7 @@ tests = [
->    [ 'cxl-poison.sh',          cxl_poison,         'cxl'   ],
->    [ 'cxl-sanitize.sh',        cxl_sanitize,       'cxl'   ],
->    [ 'cxl-destroy-region.sh',  cxl_destroy_region, 'cxl'   ],
-> +  [ 'cxl-qos-class.sh',       cxl_qos_class,      'cxl'   ],
->  ]
->  
->  if get_option('destructive').enabled()
-> -- 
-> 2.43.0
+>> diff --git a/fs/fuse/virtio_fs.c b/fs/fuse/virtio_fs.c
+>> index 5f1be1da92ce..11053a70f5ab 100644
+>> --- a/fs/fuse/virtio_fs.c
+>> +++ b/fs/fuse/virtio_fs.c
+>> @@ -16,6 +16,7 @@
+>>   #include <linux/fs_context.h>
+>>   #include <linux/fs_parser.h>
+>>   #include <linux/highmem.h>
+>> +#include <linux/cleanup.h>
+>>   #include <linux/uio.h>
+>>   #include "fuse_i.h"
+>> @@ -795,8 +796,11 @@ static void virtio_fs_cleanup_dax(void *data)
+>>       put_dax(dax_dev);
+>>   }
+>> +DEFINE_FREE(cleanup_dax, struct dax_dev *, if (!IS_ERR_OR_NULL(_T)) 
+>> virtio_fs_cleanup_dax(_T))
+>> +
+>>   static int virtio_fs_setup_dax(struct virtio_device *vdev, struct 
+>> virtio_fs *fs)
 > 
+> So either I'm completely missing how ownership works in this function, or
+> we should be really concerned about the fact that it does no actual
+> cleanup of anything on any error.
+[...]
 > 
+> Here what I'm seeing so far:
+> 
+> - devm_release_mem_region() is never called after 
+> devm_request_mem_region(). Not
+>    on error, neither on teardown,
+> - pgmap is never freed on error after devm_kzalloc.
+
+I was indeed missing something: the devm_ family of functions
+keeps ownership at the device level, so we would not need explicit
+teardown.
+
+> 
+>>   {
+>> +    struct dax_device *dax_dev __free(cleanup_dax) = NULL;
+>>       struct virtio_shm_region cache_reg;
+>>       struct dev_pagemap *pgmap;
+>>       bool have_cache;
+>> @@ -804,6 +808,15 @@ static int virtio_fs_setup_dax(struct 
+>> virtio_device *vdev, struct virtio_fs *fs)
+>>       if (!IS_ENABLED(CONFIG_FUSE_DAX))
+>>           return 0;
+>> +    dax_dev = alloc_dax(fs, &virtio_fs_dax_ops);
+>> +    if (IS_ERR(dax_dev)) {
+>> +        int rc = PTR_ERR(dax_dev);
+>> +
+>> +        if (rc == -EOPNOTSUPP)
+>> +            return 0;
+>> +        return rc;
+>> +    }
+> 
+> What is gained by moving this allocation here ?
+
+I'm still concerned about moving the call to alloc_dax() before
+the setup of the memory region it will use. Are those completely
+independent ?
+
+> 
+>> +
+>>       /* Get cache region */
+>>       have_cache = virtio_get_shm_region(vdev, &cache_reg,
+>>                          (u8)VIRTIO_FS_SHMCAP_ID_CACHE);
+>> @@ -849,10 +862,7 @@ static int virtio_fs_setup_dax(struct 
+>> virtio_device *vdev, struct virtio_fs *fs)
+>>       dev_dbg(&vdev->dev, "%s: window kaddr 0x%px phys_addr 0x%llx len 
+>> 0x%llx\n",
+>>           __func__, fs->window_kaddr, cache_reg.addr, cache_reg.len);
+>> -    fs->dax_dev = alloc_dax(fs, &virtio_fs_dax_ops);
+>> -    if (IS_ERR(fs->dax_dev))
+>> -        return PTR_ERR(fs->dax_dev);
+>> -
+>> +    fs->dax_dev = no_free_ptr(dax_dev);
+>>       return devm_add_action_or_reset(&vdev->dev, virtio_fs_cleanup_dax,
+>>                       fs->dax_dev);
+>>   }
+> 
+
+[...]
+
+Thanks,
+
+Mathieu
+
+
+-- 
+Mathieu Desnoyers
+EfficiOS Inc.
+https://www.efficios.com
+
