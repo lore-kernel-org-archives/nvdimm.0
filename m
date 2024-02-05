@@ -1,38 +1,38 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C117A81AB3;
-	Mon,  5 Feb 2024 19:03:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7974815B977;
+	Mon,  5 Feb 2024 19:03:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707159805; cv=none; b=skZpw8nhLSauNemfh+L16x1VilqvfsiyEn1IxPHxL85k4AkLld20CrRmqcBOhroMrao/LQ3Mccxwmn0cjNNUlpO208VHf/yiDLdVTTqo0BFy751/C7bXEnXbXOVQdz5zVIV6egW6Ew+21t1KqAkRJx0a4eKp7mSp2BQ4x7DyJmE=
+	t=1707159839; cv=none; b=Tgty24CWC9GG6mc+/PKPpY7N+03dayrZzhGBGPIjgCiOG7VU2xJ0IGaBvBfKBAsJBzJJpZjgAMXCdVE2loIvFem3bGPhOQiojgxc6xsEMjP5E+q9hxHwqs1ApFgINvIfVa85NoT7EfD7KLo0FnUUX24TaOL5lIbwGh5zsmpCOOI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707159805; c=relaxed/simple;
-	bh=l8E48JqEiLUq+g7VXEPmj7k+iRCuEuoIVhBVcSOCs+E=;
+	s=arc-20240116; t=1707159839; c=relaxed/simple;
+	bh=ySecDCyg8vuEud4f7aCMlAWM0dO7bI/xCzLq61pslLo=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ZtLy5V3qYlT+rGr+OvIVYvVMms3JQ3BsTV9YtzWdZaBLjQZhgJt13RXAEj6c6Hp7TNwm4RADvzGij0Sgy9Zaa/rlIkA1MwQX4iYvsRe1faajRAGilrV9qLJEHUcMwmSEeXxpmk1EkeuIU9bH3eXcCF6x+PcT5vDiyWXB2OkSxzs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=cAdtPOm7; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=ao6MkRCU9aqK7uFSU4JlcB3Snz7zLX41SRssOpCuzvUzf7Ip9YnwD5476MBpzY9IXWTnJB1IXOAavO9XSMm/ZZ3KfjmC0qAYe1+G79SxzLVEcEAGmevuVsDwflrwAl4YKEPZEkvgKPICsUcy3vAcx4JLT1IJc4hxcjhgvm9n1WE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=XI+gIEYp; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="cAdtPOm7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4254EC43394;
-	Mon,  5 Feb 2024 19:03:25 +0000 (UTC)
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="XI+gIEYp"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0DF38C4166A;
+	Mon,  5 Feb 2024 19:03:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1707159805;
-	bh=l8E48JqEiLUq+g7VXEPmj7k+iRCuEuoIVhBVcSOCs+E=;
+	s=korg; t=1707159839;
+	bh=ySecDCyg8vuEud4f7aCMlAWM0dO7bI/xCzLq61pslLo=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=cAdtPOm7Z6gCfcPSGvj2SAwmyPEMR1HthJCYOpI4ubBie8cOSUh+f9zqyHV0DiXlZ
-	 C7FCF/zljJC6pv87qiPWKeELiL8Hfs6ESw2GD4IZ91NkdjKcltn3BaHfQ4UOtQ1RFt
-	 o/5EdVoaGaX0X4oxdeZShn91Bhjle8WzV068L/Qo=
-Date: Mon, 5 Feb 2024 04:48:16 -0800
+	b=XI+gIEYpvKrya/N09IPwULRrVAviQwhNmjl29UetKZtwFudBydH8GMkVLl98ML17s
+	 Q/p4QeqycDwFfYuJI1J4zvxLoWZxXcTD7ZBEMKTEfzaJzZWQ5dn56mrNmDgLaymgSm
+	 N0W5UGj5IqT1ddENMtX1BDf/4CvCyEsm0CwJ1d7c=
+Date: Mon, 5 Feb 2024 04:50:38 -0800
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 To: "Ricardo B. Marliere" <ricardo@marliere.net>
 Cc: Dan Williams <dan.j.williams@intel.com>,
 	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
-	nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] nvdimm: make nvdimm_bus_type const
-Message-ID: <2024020512-bondless-suction-9ad5@gregkh>
-References: <20240204-bus_cleanup-nvdimm-v1-1-77ae19fa3e3b@marliere.net>
+	Dave Jiang <dave.jiang@intel.com>, nvdimm@lists.linux.dev,
+	linux-cxl@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] device-dax: make dax_bus_type const
+Message-ID: <2024020534-stoic-swooned-0985@gregkh>
+References: <20240204-bus_cleanup-dax-v1-1-69a6e4a8553b@marliere.net>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -41,11 +41,11 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20240204-bus_cleanup-nvdimm-v1-1-77ae19fa3e3b@marliere.net>
+In-Reply-To: <20240204-bus_cleanup-dax-v1-1-69a6e4a8553b@marliere.net>
 
-On Sun, Feb 04, 2024 at 05:20:07PM -0300, Ricardo B. Marliere wrote:
+On Sun, Feb 04, 2024 at 01:07:11PM -0300, Ricardo B. Marliere wrote:
 > Now that the driver core can properly handle constant struct bus_type,
-> move the nvdimm_bus_type variable to be a constant structure as well,
+> move the dax_bus_type variable to be a constant structure as well,
 > placing it into read-only memory which can not be modified at runtime.
 > 
 > Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
