@@ -1,156 +1,83 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7A09811EC;
-	Wed,  7 Feb 2024 17:21:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C29FB126F0B
+	for <nvdimm@lists.linux.dev>; Wed,  7 Feb 2024 20:05:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.21
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707326469; cv=none; b=KPMoBvnxzbBGkJZT7tfz0a1kzbyL38QdpRJyIy+yM05lFL5S8sixmAZTb20thh2PpB5mlWMPnpqbJ98o99N4c4kLMoiOhICdeEqDKHlWP8VIZL0topa9PHwyleTzXggXF7nkUFCAbX2EtDPVuB6KsYFwoW8rBFVLpDxJwh7SCHU=
+	t=1707336322; cv=none; b=ZnW6+D0gN9O8Vxs9opkhlxyC9jrhfzrJEIuvgEB6eEsOfOSJm92SAQMm5v+34Lmz1i+0SYpAVZEIsViJQsMbi8DhIXWrt6a2AfIhPrZtSZLC+UmWFTOliabw72ZguOhQL8WcpGHojw1iWbrjl/qkFZwlfhg1kifA9U2e6KMI9L8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707326469; c=relaxed/simple;
-	bh=b8UfCr2t7S4sKTEIOAIDKV8lsreYiDRda3Nn/416UAU=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=i8lNqpclV7tB+00l17t+AQJHXp/ZDYDjyzt+zpOPE5tsou94eF4Z1n58VTjndcxWHuDE0bOCrw4Ir04YXCrte0ZMyb+YJfrF5nD7nBt2MHilJY0I1dbwkZH67saJWpAzQAz7t/SwM44vYaxqsdZr2/hp7MdD/lXD8qC5yvUZBqo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34DB6C433F1;
-	Wed,  7 Feb 2024 17:21:08 +0000 (UTC)
-From: Dave Jiang <dave.jiang@intel.com>
-To: linux-cxl@vger.kernel.org,
-	nvdimm@lists.linux.dev
-Cc: vishal.l.verma@intel.com
-Subject: [NDCTL PATCH v6 4/4] ndctl: add test for qos_class in CXL test suite
-Date: Wed,  7 Feb 2024 10:19:39 -0700
-Message-ID: <20240207172055.1882900-5-dave.jiang@intel.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20240207172055.1882900-1-dave.jiang@intel.com>
+	s=arc-20240116; t=1707336322; c=relaxed/simple;
+	bh=9nSlU41+XW5uGK1e/syr5OZBAjhwYZAC4yCUrfpImvo=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=I5l8L82++hqfTr2vAP+QZxDMXdQBTKwtLM9DZ5aCi2QM9i1f3XSZGsxiPYe7QMrpVkO1JVcPYON2YsVWZjuefgFazwdpIGa4ip6uEaDXOcw8Ybh/Ppa5MLa8sR+NW/IQqdBB2rCZsro4ZzmDs9ZpDc+kztH4q7FJRuBenhIJGss=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=W28GeADg; arc=none smtp.client-ip=198.175.65.21
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="W28GeADg"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1707336321; x=1738872321;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=9nSlU41+XW5uGK1e/syr5OZBAjhwYZAC4yCUrfpImvo=;
+  b=W28GeADgomeTOeguW2azUoNBIXezobipEyjMPax8702jOq0/IALgb/DD
+   AjPbjzMFz5dSUixZf3lzgvtkvQr2c2YgGj55veYkwK219jMwPQXjetSmX
+   +L/cFSYqvR3vZ4NLCuXaW3bgsFvMU3zKkt4eZsvtuAT60qAcRR11mDshZ
+   ms5gTWXWXoh6yM66WHRHXIoaQYhm/1x66EvSp4MesCdnsd3VMQ1u73P8Q
+   FEWC0JKBeD8SW8JzWC0xAnlphq3rQLX4/tbxGzEK0IyWKHih4Y61BMaso
+   UPdPXkgMwGQUPtILXyWBaRK8rE90wIKM+3cqXQUNDB+1TrUqkMXAr3tRJ
+   w==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10977"; a="983213"
+X-IronPort-AV: E=Sophos;i="6.05,251,1701158400"; 
+   d="scan'208";a="983213"
+Received: from fmviesa005.fm.intel.com ([10.60.135.145])
+  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Feb 2024 12:05:20 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.05,251,1701158400"; 
+   d="scan'208";a="6071713"
+Received: from aschofie-mobl2.amr.corp.intel.com (HELO aschofie-mobl2) ([10.209.105.224])
+  by fmviesa005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Feb 2024 12:05:19 -0800
+Date: Wed, 7 Feb 2024 12:05:17 -0800
+From: Alison Schofield <alison.schofield@intel.com>
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
+	vishal.l.verma@intel.com
+Subject: Re: [NDCTL PATCH v6 1/4] ndctl: cxl: Add QoS class retrieval for the
+ root decoder
+Message-ID: <ZcPiffSmUyGWC6kB@aschofie-mobl2>
 References: <20240207172055.1882900-1-dave.jiang@intel.com>
+ <20240207172055.1882900-2-dave.jiang@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240207172055.1882900-2-dave.jiang@intel.com>
 
-Add tests in cxl-qos-class.sh to verify qos_class are set with the fake
-qos_class create by the kernel.  Root decoders should have qos_class
-attribute set. Memory devices should have ram_qos_class or pmem_qos_class
-set depending on which partitions are valid.
+On Wed, Feb 07, 2024 at 10:19:36AM -0700, Dave Jiang wrote:
+> Add libcxl API to retrieve the QoS class for the root decoder. Also add
+> support to display the QoS class for the root decoder through the 'cxl
+> list' command. The qos_class is the QTG ID of the CFMWS window that
+> represents the root decoder.
+> 
+> Reviewed-by: Alison Schofield <alison.schofield@intel.com>
+> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+> ---
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
-v5:
-- Split out from cxl-topology.sh (Vishal)
----
- test/common           |  4 +++
- test/cxl-qos-class.sh | 65 +++++++++++++++++++++++++++++++++++++++++++
- test/meson.build      |  2 ++
- 3 files changed, 71 insertions(+)
- create mode 100755 test/cxl-qos-class.sh
+-snip-
 
-diff --git a/test/common b/test/common
-index f1023ef20f7e..5694820c7adc 100644
---- a/test/common
-+++ b/test/common
-@@ -150,3 +150,7 @@ check_dmesg()
- 	grep -q "Call Trace" <<< $log && err $1
- 	true
- }
-+
-+
-+# CXL COMMON
-+TEST_QOS_CLASS=42
-diff --git a/test/cxl-qos-class.sh b/test/cxl-qos-class.sh
-new file mode 100755
-index 000000000000..365a7df9c1e4
---- /dev/null
-+++ b/test/cxl-qos-class.sh
-@@ -0,0 +1,65 @@
-+#!/bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright (C) 2024 Intel Corporation. All rights reserved.
-+
-+check_qos_decoders () {
-+	# check root decoders have expected fake qos_class
-+	# also make sure the number of root decoders equal to the number
-+	# with qos_class found
-+	json=$($CXL list -b cxl_test -D -d root)
-+	decoders=$(echo "$json" | jq length)
-+	count=0
-+	while read -r qos_class
-+	do
-+		((qos_class == TEST_QOS_CLASS)) || err "$LINENO"
-+		count=$((count+1))
-+	done <<< "$(echo "$json" | jq -r '.[] | .qos_class')"
-+
-+	((count == decoders)) || err "$LINENO";
-+}
-+
-+check_qos_memdevs () {
-+	# Check that memdevs that expose ram_qos_class or pmem_qos_class have
-+	# expected fake value programmed.
-+	json=$(cxl list -b cxl_test -M)
-+	readarray -t lines < <(jq ".[] | .ram_size, .pmem_size, .ram_qos_class, .pmem_qos_class" <<<"$json")
-+	for (( i = 0; i < ${#lines[@]}; i += 4 ))
-+	do
-+		ram_size=${lines[i]}
-+		pmem_size=${lines[i+1]}
-+		ram_qos_class=${lines[i+2]}
-+		pmem_qos_class=${lines[i+3]}
-+
-+		if [[ "$ram_size" != null ]]
-+		then
-+			((ram_qos_class == TEST_QOS_CLASS)) || err "$LINENO"
-+		fi
-+		if [[ "$pmem_size" != null ]]
-+		then
-+			((pmem_qos_class == TEST_QOS_CLASS)) || err "$LINENO"
-+		fi
-+	done
-+}
-+
-+
-+. $(dirname $0)/common
-+
-+rc=77
-+
-+set -ex
-+
-+trap 'err $LINENO' ERR
-+
-+check_prereq "jq"
-+
-+modprobe -r cxl_test
-+modprobe cxl_test
-+rc=1
-+
-+check_qos_decoders
-+
-+check_qos_memdevs
-+
-+check_dmesg "$LINEO"
-+
-+modprobe -r cxl_test
-diff --git a/test/meson.build b/test/meson.build
-index 5eb35749a95b..4892df11119f 100644
---- a/test/meson.build
-+++ b/test/meson.build
-@@ -160,6 +160,7 @@ cxl_events = find_program('cxl-events.sh')
- cxl_poison = find_program('cxl-poison.sh')
- cxl_sanitize = find_program('cxl-sanitize.sh')
- cxl_destroy_region = find_program('cxl-destroy-region.sh')
-+cxl_qos_class = find_program('cxl-qos-class.sh')
- 
- tests = [
-   [ 'libndctl',               libndctl,		  'ndctl' ],
-@@ -192,6 +193,7 @@ tests = [
-   [ 'cxl-poison.sh',          cxl_poison,         'cxl'   ],
-   [ 'cxl-sanitize.sh',        cxl_sanitize,       'cxl'   ],
-   [ 'cxl-destroy-region.sh',  cxl_destroy_region, 'cxl'   ],
-+  [ 'cxl-qos-class.sh',       cxl_qos_class,      'cxl'   ],
- ]
- 
- if get_option('destructive').enabled()
--- 
-2.43.0
+> @@ -136,6 +136,7 @@ int cmd_list(int argc, const char **argv, struct cxl_ctx *ctx)
+>  		param.regions = true;
+>  		/*fallthrough*/
+>  	case 0:
+> +		param.qos = true;
+>  		break;
+>  	}
+
+Add qos to the -vvv explainer in Documentation/cxl/cxl-list.txt 
 
