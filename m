@@ -1,52 +1,53 @@
 Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 488361401B
-	for <nvdimm@lists.linux.dev>; Thu,  8 Feb 2024 01:02:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD64912E7C
+	for <nvdimm@lists.linux.dev>; Thu,  8 Feb 2024 01:02:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.8
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707354128; cv=none; b=SdLxU80/ccQiAlSojnYbreWNTPH6KltvOsShvZW1YnVSK7GOa7w5x/Kuu2XHtrn8kRLKGZwHFcKaVoYfe02x86eFMWCxN+wSzHbprSUG+NQaU1Z/uTUQ/EeTxfe5w2odNUTkW+AMpvFoYkdUJifx5DJbBGileC6qumkmoogLNmw=
+	t=1707354129; cv=none; b=WLw34OlapI0gTE0CA0SBmtFNjfri9KCX9iuVkmgiS0A1zj/ok1eYEooaHE4EwGsKOyV4PHMNHU0ZTC9HG2kU7xNv6HQ5Zbv/s7Lo93rVNE2uM4y0M/qY1B3S5CkHXH5vydqEb5hfPRoopfgkHlljkkR/v7uGEVqMBiff69w5ZAU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707354128; c=relaxed/simple;
-	bh=VdubHMm3GEeu4WHd1uFeduYB15mjoJTfOkC85fyY0Uk=;
+	s=arc-20240116; t=1707354129; c=relaxed/simple;
+	bh=03nNMcoFPn8wAKY2CXwt0qaGCgnWQ87C8p+I43b3mBA=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=C4j1PgDyGWSK+at1oDfA7/b6vdBmypE10lN5Sul+m5BtIq6ZedjDiJQFy1UnAMItkgrvVAlXvSHBAUNV79aPVc6AwuHtajukOiI9rlmCNJnWbyf/MZTjxGbk29jJLWi6nmEB5myZcMmJsT3ESgjiLZ8vnTPGw4fHzGrfW0vICVA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=RNFK1Ca6; arc=none smtp.client-ip=192.198.163.8
+	 MIME-Version; b=rMD30xPeF72Y4HARdMeuf4qfXMyozBPr9eLPWIo5bRMs8/CkaVTmuPNF7JOR89M5DyZoPvh1t+F9D7LXdRiMpyC0Ruh0shJemmtH/KItwXfay4HSS3QLhqOKaekB4Ma5WItXd8uI55/gqBs35gfYYhcuP99UIiGQMoW6xf9i4QI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=lMcZpYYc; arc=none smtp.client-ip=192.198.163.8
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="RNFK1Ca6"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="lMcZpYYc"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1707354126; x=1738890126;
+  t=1707354128; x=1738890128;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=VdubHMm3GEeu4WHd1uFeduYB15mjoJTfOkC85fyY0Uk=;
-  b=RNFK1Ca62aTQVuqQluKPWRTIrf7i/oz2l0ZfHYXvTDTYoiGUW+6BAlZj
-   78W0WUPsji0l/Q8mJNLEeB1ZggRe6/iEgJaTguk4M6vLr+YoJRhUYJYqq
-   R5a2WUvwyNEWISivskMmnyp72w8wZXZu/OWkXfyV9vf2rQPoV2V0B/x9b
-   u1Q+FYy3WdUoiBXx/cQJHAryBs7cuQ5D/tIydkKjh+jdLI0ahv8oDHfu3
-   sJXXJ5O77yllaFbmp8uHRQ0hKgZ8qVrtincMFLdbwPFFRfLu+ZpBqY3Hp
-   rJwGtjEd7hwgFxG+Z4qIL3bJbbAvwLiITx2WT+lUhvCkesScDAHeDiTUI
-   A==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10977"; a="18629918"
+  bh=03nNMcoFPn8wAKY2CXwt0qaGCgnWQ87C8p+I43b3mBA=;
+  b=lMcZpYYcada3gpEyhKS18+GvvgOuQbnsrdfnzHbc8bG+mXrfC6XWKO2X
+   urgda27Cl1/C3UEC+BlUsVRSiMoCqhzjk0XyAw8ToZLXlZO/a6MpN0JJS
+   TCWnqbJOP74E4IJ+NO6umUpRH+TdcSiKieXOseZyqtyG9g7rCynofwCsX
+   hA0uWVi3G+AUZEF7PIBcl9vPaLDqSPgphwkjLOKRgqr5jB0fKlCn913K1
+   aDvhA00xGP2Aha2x9umS7pr2yhiQxl9xCTermRccmuOdexstpJSf8duBw
+   ADeKYSCzYiF5VXRMhBl8m6X/l4Fa+vJpVhPKrG+/xmfmBA6ZPuSM6ym9r
+   Q==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10977"; a="18629910"
 X-IronPort-AV: E=Sophos;i="6.05,252,1701158400"; 
-   d="scan'208";a="18629918"
+   d="scan'208";a="18629910"
 Received: from orviesa010.jf.intel.com ([10.64.159.150])
-  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Feb 2024 17:01:51 -0800
+  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Feb 2024 17:01:50 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.05,252,1701158400"; 
-   d="scan'208";a="1529290"
+   d="scan'208";a="1529281"
 Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.209.105.224])
   by orviesa010-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Feb 2024 17:01:51 -0800
 From: alison.schofield@intel.com
 To: Vishal Verma <vishal.l.verma@intel.com>
 Cc: Alison Schofield <alison.schofield@intel.com>,
 	nvdimm@lists.linux.dev,
-	linux-cxl@vger.kernel.org
-Subject: [ndctl PATCH v7 5/7] cxl/list: collect and parse media_error records
-Date: Wed,  7 Feb 2024 17:01:44 -0800
-Message-Id: <566a2acff6a3f32a1d6af9d81fb0da8808e5b4ff.1707351560.git.alison.schofield@intel.com>
+	linux-cxl@vger.kernel.org,
+	Dave Jiang <dave.jiang@intel.com>
+Subject: [ndctl PATCH v7 4/7] cxl/event_trace: add helpers get_field_[string|data]()
+Date: Wed,  7 Feb 2024 17:01:43 -0800
+Message-Id: <56096cb08363c5743793211b77e52645efdcb1a9.1707351560.git.alison.schofield@intel.com>
 X-Mailer: git-send-email 2.40.1
 In-Reply-To: <cover.1707351560.git.alison.schofield@intel.com>
 References: <cover.1707351560.git.alison.schofield@intel.com>
@@ -60,323 +61,92 @@ Content-Transfer-Encoding: 8bit
 
 From: Alison Schofield <alison.schofield@intel.com>
 
-Media_error records are logged as events in the kernel tracing
-subsystem. To prepare the media_error records for cxl list, enable
-tracing, trigger the poison list read, and parse the generated
-cxl_poison events into a json representation.
+Add helpers to extract the value of an event record field given the
+field name. This is useful when the user knows the name and format
+of the field and simply needs to get it. Add signed and unsigned
+char* versions to support string and u64 data fields.
 
-Use the event_trace private parsing option to customize the json
-representation based on cxl-list calling options and event field
-settings.
+This is in preparation for adding a private parser of cxl_poison
+events.
 
 Signed-off-by: Alison Schofield <alison.schofield@intel.com>
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
 ---
- cxl/json.c | 261 +++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 261 insertions(+)
+ cxl/event_trace.c | 46 ++++++++++++++++++++++++++++++++++++++++++++++
+ cxl/event_trace.h |  5 ++++-
+ 2 files changed, 50 insertions(+), 1 deletion(-)
 
-diff --git a/cxl/json.c b/cxl/json.c
-index 7678d02020b6..bc104dd877a9 100644
---- a/cxl/json.c
-+++ b/cxl/json.c
-@@ -1,16 +1,20 @@
- // SPDX-License-Identifier: GPL-2.0
- // Copyright (C) 2015-2021 Intel Corporation. All rights reserved.
- #include <limits.h>
-+#include <errno.h>
- #include <util/json.h>
-+#include <util/bitmap.h>
- #include <uuid/uuid.h>
- #include <cxl/libcxl.h>
- #include <json-c/json.h>
- #include <json-c/printbuf.h>
- #include <ccan/short_types/short_types.h>
-+#include <tracefs/tracefs.h>
+diff --git a/cxl/event_trace.c b/cxl/event_trace.c
+index fbf7a77235ff..8d04d8d34194 100644
+--- a/cxl/event_trace.c
++++ b/cxl/event_trace.c
+@@ -15,6 +15,52 @@
+ #define _GNU_SOURCE
+ #include <string.h>
  
- #include "filter.h"
- #include "json.h"
- #include "../daxctl/json.h"
-+#include "event_trace.h"
- 
- #define CXL_FW_VERSION_STR_LEN	16
- #define CXL_FW_MAX_SLOTS	4
-@@ -571,6 +575,251 @@ err_jobj:
- 	return NULL;
- }
- 
-+/* CXL Spec 3.1 Table 8-140 Media Error Record */
-+#define CXL_POISON_SOURCE_UNKNOWN 0
-+#define CXL_POISON_SOURCE_EXTERNAL 1
-+#define CXL_POISON_SOURCE_INTERNAL 2
-+#define CXL_POISON_SOURCE_INJECTED 3
-+#define CXL_POISON_SOURCE_VENDOR 7
-+
-+/* CXL Spec 3.1 Table 8-139 Get Poison List Output Payload */
-+#define CXL_POISON_FLAG_MORE BIT(0)
-+#define CXL_POISON_FLAG_OVERFLOW BIT(1)
-+#define CXL_POISON_FLAG_SCANNING BIT(2)
-+
-+struct poison_ctx {
-+	struct json_object *jpoison;
-+	struct cxl_region *region;
-+	struct cxl_memdev *memdev;
-+	unsigned long flags;
-+};
-+
-+static const char *
-+find_decoder_name(struct poison_ctx *ctx, const char *name, u64 addr)
++static struct tep_format_field *__find_field(struct tep_event *event,
++					     const char *name)
 +{
-+	struct cxl_memdev *memdev = ctx->memdev;
-+	struct cxl_memdev_mapping *mapping;
-+	struct cxl_endpoint *endpoint;
-+	struct cxl_decoder *decoder;
-+	struct cxl_port *port;
-+	u64 start, end;
++	struct tep_format_field **fields;
 +
-+	if (memdev)
-+		goto find_decoder;
-+
-+	cxl_mapping_foreach(ctx->region, mapping) {
-+		decoder = cxl_mapping_get_decoder(mapping);
-+		if (!decoder)
-+			continue;
-+
-+		memdev = cxl_decoder_get_memdev(decoder);
-+		if (strcmp(name, cxl_memdev_get_devname(memdev)) == 0)
-+			break;
-+
-+		memdev = NULL;
-+	}
-+
-+find_decoder:
-+	if (!memdev)
++	fields = tep_event_fields(event);
++	if (!fields)
 +		return NULL;
 +
-+	endpoint = cxl_memdev_get_endpoint(memdev);
-+	port = cxl_endpoint_get_port(endpoint);
++	for (int i = 0; fields[i]; i++) {
++		struct tep_format_field *f = fields[i];
 +
-+	cxl_decoder_foreach(port, decoder) {
-+		start =  cxl_decoder_get_resource(decoder);
-+		end = start + cxl_decoder_get_size(decoder) - 1;
-+		if (start <= addr && addr <= end)
-+			return cxl_decoder_get_devname(decoder);
++		if (strcmp(f->name, name) != 0)
++			continue;
++
++		return f;
 +	}
-+
 +	return NULL;
 +}
 +
-+int poison_event_to_json(struct tep_event *event, struct tep_record *record,
-+			 void *ctx)
++unsigned char *cxl_get_field_data(struct tep_event *event,
++				  struct tep_record *record, const char *name)
 +{
-+	struct poison_ctx *p_ctx = (struct poison_ctx *)ctx;
-+	struct json_object *jobj, *jp, *jpoison = p_ctx->jpoison;
-+	unsigned long flags = p_ctx->flags;
-+	bool overflow = false;
-+	unsigned char *data;
-+	const char *name;
-+	int pflags;
-+	char *str;
++	struct tep_format_field *f;
++	int len;
 +
-+	jp = json_object_new_object();
-+	if (!jp)
-+		return -ENOMEM;
++	f = __find_field(event, name);
++	if (!f)
++		return NULL;
 +
-+	/* Skip records not in this region when listing by region */
-+	name = p_ctx->region ? cxl_region_get_devname(p_ctx->region) : NULL;
-+	if (name)
-+		str = cxl_get_field_string(event, record, "region");
-+
-+	if ((name) && (strcmp(name, str) != 0)) {
-+		json_object_put(jp);
-+		return 0;
-+	}
-+
-+	/* Include endpoint decoder name with hpa, when present */
-+	name = cxl_get_field_string(event, record, "memdev");
-+	data = cxl_get_field_data(event, record, "hpa");
-+	if (*(uint64_t *)data != ULLONG_MAX)
-+		name = find_decoder_name(p_ctx, name, *(uint64_t *)data);
-+	else
-+		name = NULL;
-+
-+	if (name) {
-+		jobj = json_object_new_string(name);
-+		if (jobj)
-+			json_object_object_add(jp, "decoder", jobj);
-+
-+		jobj = util_json_object_hex(*(uint64_t *)data, flags);
-+		if (jobj)
-+			json_object_object_add(jp, "hpa", jobj);
-+	}
-+
-+	data = cxl_get_field_data(event, record, "dpa");
-+	jobj = util_json_object_hex(*(uint64_t *)data, flags);
-+	if (jobj)
-+		json_object_object_add(jp, "dpa", jobj);
-+
-+	data = cxl_get_field_data(event, record, "dpa_length");
-+	jobj = util_json_object_size(*(uint32_t *)data, flags);
-+	if (jobj)
-+		json_object_object_add(jp, "length", jobj);
-+
-+	str = cxl_get_field_string(event, record, "source");
-+	switch (*(uint8_t *)str) {
-+	case CXL_POISON_SOURCE_UNKNOWN:
-+		jobj = json_object_new_string("Unknown");
-+		break;
-+	case CXL_POISON_SOURCE_EXTERNAL:
-+		jobj = json_object_new_string("External");
-+		break;
-+	case CXL_POISON_SOURCE_INTERNAL:
-+		jobj = json_object_new_string("Internal");
-+		break;
-+	case CXL_POISON_SOURCE_INJECTED:
-+		jobj = json_object_new_string("Injected");
-+		break;
-+	case CXL_POISON_SOURCE_VENDOR:
-+		jobj = json_object_new_string("Vendor");
-+		break;
-+	default:
-+		jobj = json_object_new_string("Reserved");
-+	}
-+	if (jobj)
-+		json_object_object_add(jp, "source", jobj);
-+
-+	str = cxl_get_field_string(event, record, "flags");
-+	pflags = *(uint8_t *)str;
-+	if (pflags) {
-+		char flag_str[32] = { '\0' };
-+
-+		if (pflags & CXL_POISON_FLAG_MORE)
-+			strcat(flag_str, "More,");
-+		if (pflags & CXL_POISON_FLAG_SCANNING)
-+			strcat(flag_str, "Scanning,");
-+		if (pflags & CXL_POISON_FLAG_OVERFLOW) {
-+			strcat(flag_str, "Overflow,");
-+			overflow = true;
-+		}
-+		jobj = json_object_new_string(flag_str);
-+		if (jobj)
-+			json_object_object_add(jp, "flags", jobj);
-+	}
-+	if (overflow) {
-+		data = cxl_get_field_data(event, record, "overflow_ts");
-+		jobj = util_json_object_hex(*(uint64_t *)data, flags);
-+		if (jobj)
-+			json_object_object_add(jp, "overflow_t", jobj);
-+	}
-+	json_object_array_add(jpoison, jp);
-+
-+	return 0;
++	return tep_get_field_raw(NULL, event, f->name, record, &len, 0);
 +}
 +
-+static struct json_object *
-+util_cxl_poison_events_to_json(struct tracefs_instance *inst,
-+			       struct poison_ctx *p_ctx)
++char *cxl_get_field_string(struct tep_event *event, struct tep_record *record,
++			   const char *name)
 +{
-+	struct event_ctx ectx = {
-+		.event_name = "cxl_poison",
-+		.event_pid = getpid(),
-+		.system = "cxl",
-+		.private_ctx = p_ctx,
-+		.parse_event = poison_event_to_json,
-+	};
-+	int rc = 0;
++	struct tep_format_field *f;
++	int len;
 +
-+	p_ctx->jpoison = json_object_new_array();
-+	if (!p_ctx->jpoison)
++	f = __find_field(event, name);
++	if (!f)
 +		return NULL;
 +
-+	rc = cxl_parse_events(inst, &ectx);
-+	if (rc < 0) {
-+		fprintf(stderr, "Failed to parse events: %d\n", rc);
-+		json_object_put(p_ctx->jpoison);
-+		return NULL;
-+	}
-+
-+	if (json_object_array_length(p_ctx->jpoison) == 0) {
-+		json_object_put(p_ctx->jpoison);
-+		return NULL;
-+	}
-+
-+	return p_ctx->jpoison;
++	return tep_get_field_raw(NULL, event, f->name, record, &len, 0);
 +}
 +
-+static struct json_object *
-+util_cxl_poison_list_to_json(struct cxl_region *region,
-+			     struct cxl_memdev *memdev,
-+			     unsigned long flags)
-+{
-+	struct json_object *jpoison = NULL;
-+	struct poison_ctx p_ctx;
-+	struct tracefs_instance *inst;
-+	int rc;
-+
-+	inst = tracefs_instance_create("cxl list");
-+	if (!inst) {
-+		fprintf(stderr, "tracefs_instance_create() failed\n");
-+		return NULL;
-+	}
-+
-+	rc = cxl_event_tracing_enable(inst, "cxl", "cxl_poison");
-+	if (rc < 0) {
-+		fprintf(stderr, "Failed to enable trace: %d\n", rc);
-+		goto err_free;
-+	}
-+
-+	if (region)
-+		rc = cxl_region_trigger_poison_list(region);
-+	else
-+		rc = cxl_memdev_trigger_poison_list(memdev);
-+	if (rc)
-+		goto err_free;
-+
-+	rc = cxl_event_tracing_disable(inst);
-+	if (rc < 0) {
-+		fprintf(stderr, "Failed to disable trace: %d\n", rc);
-+		goto err_free;
-+	}
-+
-+	p_ctx = (struct poison_ctx) {
-+		.region = region,
-+		.memdev = memdev,
-+		.flags = flags,
-+	};
-+	jpoison = util_cxl_poison_events_to_json(inst, &p_ctx);
-+
-+err_free:
-+	tracefs_instance_free(inst);
-+	return jpoison;
-+}
-+
- struct json_object *util_cxl_memdev_to_json(struct cxl_memdev *memdev,
- 		unsigned long flags)
+ static struct json_object *num_to_json(void *num, int elem_size, unsigned long flags)
  {
-@@ -649,6 +898,12 @@ struct json_object *util_cxl_memdev_to_json(struct cxl_memdev *memdev,
- 			json_object_object_add(jdev, "firmware", jobj);
- 	}
- 
-+	if (flags & UTIL_JSON_MEDIA_ERRORS) {
-+		jobj = util_cxl_poison_list_to_json(NULL, memdev, flags);
-+		if (jobj)
-+			json_object_object_add(jdev, "media_errors", jobj);
-+	}
-+
- 	json_object_set_userdata(jdev, memdev, NULL);
- 	return jdev;
- }
-@@ -987,6 +1242,12 @@ struct json_object *util_cxl_region_to_json(struct cxl_region *region,
- 			json_object_object_add(jregion, "state", jobj);
- 	}
- 
-+	if (flags & UTIL_JSON_MEDIA_ERRORS) {
-+		jobj = util_cxl_poison_list_to_json(region, NULL, flags);
-+		if (jobj)
-+			json_object_object_add(jregion, "media_errors", jobj);
-+	}
-+
- 	util_cxl_mappings_append_json(jregion, region, flags);
- 
- 	if (flags & UTIL_JSON_DAX) {
+ 	bool sign = flags & TEP_FIELD_IS_SIGNED;
+diff --git a/cxl/event_trace.h b/cxl/event_trace.h
+index ec61962abbc6..6252f583097a 100644
+--- a/cxl/event_trace.h
++++ b/cxl/event_trace.h
+@@ -25,5 +25,8 @@ int cxl_parse_events(struct tracefs_instance *inst, struct event_ctx *ectx);
+ int cxl_event_tracing_enable(struct tracefs_instance *inst, const char *system,
+ 		const char *event);
+ int cxl_event_tracing_disable(struct tracefs_instance *inst);
+-
++char *cxl_get_field_string(struct tep_event *event, struct tep_record *record,
++		const char *name);
++unsigned char *cxl_get_field_data(struct tep_event *event,
++		struct tep_record *record, const char *name);
+ #endif
 -- 
 2.37.3
 
