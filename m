@@ -1,33 +1,34 @@
 Received: from smtpout.efficios.com (smtpout.efficios.com [167.114.26.122])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5E0925634;
-	Thu,  8 Feb 2024 18:49:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF6BD28DD8;
+	Thu,  8 Feb 2024 18:49:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=167.114.26.122
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707418172; cv=none; b=OsjU8PKymBCraz/MV7AKv1XhIaFhI5cdXJ/gUjHmy37QVl9RO9ZQ5Grf0rFlsH4HYDwIbm3Eczl9tBX378NpBn4iRxb4Q74SdMnaWDtcpVf/VpLMAijPfcEtVtAzdBXXhzZlcPflDBbQUzJpHsr1uJ1Li3Apbr5gfWAqae5uP2o=
+	t=1707418173; cv=none; b=ZvE0PM4M2pmKz/Xmm3QcPIZeLutp+0Mqy/eiBbuLtNwl8+X70Vi+0/9VZsDFS1Gl3d3ebH5cEPK4Hi+iYIuVUrRUzFBnrvEMfm+JI5gzIJDSAfTcAkxYpBYNPF5wlJ/2Hfnsf6J6xtmsiwwHSKYklAoRNwHe76vKj9nrZwzCQD8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707418172; c=relaxed/simple;
-	bh=7Ochv10fF/HDECdDCBhY5k3B/jWscDOgrt50maoZBSM=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=QpRDmZe2xAymXCCWXRJ6zZtee5WTmt4yuwC9lHoRgLTDQgWJR5eeon+yU5LW7r7lPZphQNe/PQmSqzcE30BT0f1z+TnUWgOTV+vfEepRpDHn0vPzdXWjP1iB7f5QUClxXgMQ9HiTc9khSJndotiOdTJ58QK9BgLpAWFx04vh+7g=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com; spf=pass smtp.mailfrom=efficios.com; dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b=tbRZUBYK; arc=none smtp.client-ip=167.114.26.122
+	s=arc-20240116; t=1707418173; c=relaxed/simple;
+	bh=NIplNKYnPiSxsRcYozD6/Em7BpOZVdeSTtUJ6fu0NbI=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=VAxCvZ38JipAksLPYMWZ5tqRiu+CW4AEk559GcG+n1Bg6OtCowUkRbWwinEUAFqgZlZcp4ngMBzQyFnhv6vUo4I2/30WVowyba8R1H4PiWUh3heoxVYDaYr0CTGJsDvn2TkF5+wRsEDiAHzMR0cKoGbMsoQwmrauvhO6U5V7C2g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com; spf=pass smtp.mailfrom=efficios.com; dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b=rGs7b1kF; arc=none smtp.client-ip=167.114.26.122
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=efficios.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b="tbRZUBYK"
+	dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b="rGs7b1kF"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=efficios.com;
-	s=smtpout1; t=1707418162;
-	bh=7Ochv10fF/HDECdDCBhY5k3B/jWscDOgrt50maoZBSM=;
-	h=From:To:Cc:Subject:Date:From;
-	b=tbRZUBYKZeGuGZqoaY1DeK0hJwQjx5z1KlX4+5BjG6KbY0Wk63ANlCvJNLNHlZa3q
-	 AUni6+/Zg3BIFSkr3VSAod2+wG4om/7ONygxmnx3R8qV4KfQsZwdwxR/mM07U628WQ
-	 k19fXtoHrvLwxdcINcsb5baXKobPg9DensK1+8QFljOtCtki8OcEMSaA14ImZIluOL
-	 HBFIytcfOMxaLatB6NbpkXRQ8dIHcmIw4+3c36ghJ2FkKfkT1jBw0k4BKfFjUoRMQW
-	 0Hw8foVVlIlyyL8xJUMQOn7XN5Ij/6RqjdW4lVw7Nz7wr+wztv85CRKkRVtJejDGJn
-	 uUVzPSeTZ8zkg==
+	s=smtpout1; t=1707418164;
+	bh=NIplNKYnPiSxsRcYozD6/Em7BpOZVdeSTtUJ6fu0NbI=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=rGs7b1kFhgfAs3N/uvEWI1LxOdWWwOf5Idgjm+vAqNckZQpPBHfp3mnqwBxXijrHv
+	 5KiC01SlkwbHwbvsekSqj9SSiIfc95BaqD1nYMoY7nP0Mk3CxY2cdTsE6XvAKevwPP
+	 vnyZOaqMa+GfTPHHNezRYLo+7hkjmHDL8EOr/Q6EPiSPZ5iRUshHstOAdlIBni2RMp
+	 XgXFTCjlqGhkB6UpGo5vnJh10r7UGM3RRHCVc84K8RQBgvZ89az4CSg9N71n0g7y8o
+	 mYRgyniqWFk6i7vnViayymIyI1PE+SlxBZ1BUkhtw3NPOY38OlCnjyRF2bYF4Asfiy
+	 Y7nc3TPTaQzkA==
 Received: from thinkos.internal.efficios.com (192-222-143-198.qc.cable.ebox.net [192.222.143.198])
-	by smtpout.efficios.com (Postfix) with ESMTPSA id 4TW5cf2nN2zY9Y;
-	Thu,  8 Feb 2024 13:49:22 -0500 (EST)
+	by smtpout.efficios.com (Postfix) with ESMTPSA id 4TW5ch0pC3zY9Z;
+	Thu,  8 Feb 2024 13:49:24 -0500 (EST)
 From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 To: Dan Williams <dan.j.williams@intel.com>,
 	Arnd Bergmann <arnd@arndb.de>,
@@ -47,11 +48,16 @@ Cc: linux-kernel@vger.kernel.org,
 	linux-xfs@vger.kernel.org,
 	dm-devel@lists.linux.dev,
 	nvdimm@lists.linux.dev,
-	linux-s390@vger.kernel.org
-Subject: [PATCH v4 00/12] Introduce cpu_dcache_is_aliasing() to fix DAX regression
-Date: Thu,  8 Feb 2024 13:49:01 -0500
-Message-Id: <20240208184913.484340-1-mathieu.desnoyers@efficios.com>
+	linux-s390@vger.kernel.org,
+	Alasdair Kergon <agk@redhat.com>,
+	Mike Snitzer <snitzer@kernel.org>,
+	Mikulas Patocka <mpatocka@redhat.com>
+Subject: [PATCH v4 04/12] dcssblk: Handle alloc_dax() -EOPNOTSUPP failure
+Date: Thu,  8 Feb 2024 13:49:05 -0500
+Message-Id: <20240208184913.484340-5-mathieu.desnoyers@efficios.com>
 X-Mailer: git-send-email 2.39.2
+In-Reply-To: <20240208184913.484340-1-mathieu.desnoyers@efficios.com>
+References: <20240208184913.484340-1-mathieu.desnoyers@efficios.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -60,78 +66,29 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This commit introduced in v4.0 prevents building FS_DAX on 32-bit ARM,
-even on ARMv7 which does not have virtually aliased data caches:
+In preparation for checking whether the architecture has data cache
+aliasing within alloc_dax(), modify the error handling of dcssblk
+dcssblk_add_store() to handle alloc_dax() -EOPNOTSUPP failures.
 
-commit d92576f1167c ("dax: does not work correctly with virtual aliasing caches")
+Considering that s390 is not a data cache aliasing architecture,
+and considering that DCSSBLK selects DAX, a return value of -EOPNOTSUPP
+from alloc_dax() should make dcssblk_add_store() fail.
 
-It used to work fine before: I have customers using DAX over pmem on
-ARMv7, but this regression will likely prevent them from upgrading their
-kernel.
+For the transition, consider that alloc_dax() returning NULL is the
+same as returning -EOPNOTSUPP.
 
-The root of the issue here is the fact that DAX was never designed to
-handle virtually aliasing data caches (VIVT and VIPT with aliasing data
-cache). It touches the pages through their linear mapping, which is not
-consistent with the userspace mappings with virtually aliasing data
-caches.
-
-This patch series introduces cpu_dcache_is_aliasing() with the new
-Kconfig option ARCH_HAS_CPU_CACHE_ALIASING and implements it for all
-architectures. The implementation of cpu_dcache_is_aliasing() is either
-evaluated to a constant at compile-time or a runtime check, which is
-what is needed on ARM.
-
-With this we can basically narrow down the list of architectures which
-are unsupported by DAX to those which are really affected.
-
-Testing done so far:
-
-- Compile allyesconfig on x86-64,
-- Compile allyesconfig on x86-64, with FS_DAX=n.
-- Compile allyesconfig on x86-64, with DAX=n.
-- Boot test after modifying alloc_dax() to force returning -EOPNOTSUPP
-  even on x86-64, thus simulating the behavior expected on an
-  architecture with data cache aliasing.
-
-There are many more axes to test however. I would welcome Tested-by for:
-
-- affected architectures,
-- affected drivers,
-- affected filesytems.
-
-Thanks,
-
-Mathieu
-
-Changes since v3:
-- Fix a leak on dax_add_host() failure in nvdimm/pmem.
-- Split the series into a bissectable sequence of changes.
-- Ensure that device-dax use-cases still works on data cache
-  aliasing architectures.
-
-Changes since v2:
-- Move DAX supported runtime check to alloc_dax(),
-- Modify DM to handle alloc_dax() error as non-fatal,
-- Remove all filesystem modifications, since the check is now done by
-  alloc_dax(),
-- rename "dcache" and "cache" to "cpu dcache" and "cpu cache" to
-  eliminate confusion with VFS terminology.
-
-Changes since v1:
-- The order of the series was completely changed based on the
-  feedback received on v1,
-- cache_is_aliasing() is renamed to dcache_is_aliasing(),
-- ARCH_HAS_CACHE_ALIASING_DYNAMIC is gone,
-- dcache_is_aliasing() vs ARCH_HAS_CACHE_ALIASING relationship is
-  simplified,
-- the dax_is_supported() check was moved to its rightful place in all
-  filesystems.
-
+Fixes: d92576f1167c ("dax: does not work correctly with virtual aliasing caches")
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Alasdair Kergon <agk@redhat.com>
+Cc: Mike Snitzer <snitzer@kernel.org>
+Cc: Mikulas Patocka <mpatocka@redhat.com>
 Cc: Andrew Morton <akpm@linux-foundation.org>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Vishal Verma <vishal.l.verma@intel.com>
 Cc: Dave Jiang <dave.jiang@intel.com>
 Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Russell King <linux@armlinux.org.uk>
 Cc: linux-arch@vger.kernel.org
 Cc: linux-cxl@vger.kernel.org
@@ -141,60 +98,41 @@ Cc: linux-xfs@vger.kernel.org
 Cc: dm-devel@lists.linux.dev
 Cc: nvdimm@lists.linux.dev
 Cc: linux-s390@vger.kernel.org
+---
+ drivers/s390/block/dcssblk.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-Mathieu Desnoyers (12):
-  nvdimm/pmem: Fix leak on dax_add_host() failure
-  nvdimm/pmem: Treat alloc_dax() -EOPNOTSUPP failure as non-fatal
-  dm: Treat alloc_dax() -EOPNOTSUPP failure as non-fatal
-  dcssblk: Handle alloc_dax() -EOPNOTSUPP failure
-  virtio: Treat alloc_dax() -EOPNOTSUPP failure as non-fatal
-  dax: Check for data cache aliasing at runtime
-  Introduce cpu_dcache_is_aliasing() across all architectures
-  dax: Fix incorrect list of data cache aliasing architectures
-  nvdimm/pmem: Cleanup alloc_dax() error handling
-  dm: Cleanup alloc_dax() error handling
-  dcssblk: Cleanup alloc_dax() error handling
-  virtio: Cleanup alloc_dax() error handling
-
- arch/arc/Kconfig                    |  1 +
- arch/arc/include/asm/cachetype.h    |  9 +++++++++
- arch/arm/Kconfig                    |  1 +
- arch/arm/include/asm/cachetype.h    |  2 ++
- arch/csky/Kconfig                   |  1 +
- arch/csky/include/asm/cachetype.h   |  9 +++++++++
- arch/m68k/Kconfig                   |  1 +
- arch/m68k/include/asm/cachetype.h   |  9 +++++++++
- arch/mips/Kconfig                   |  1 +
- arch/mips/include/asm/cachetype.h   |  9 +++++++++
- arch/nios2/Kconfig                  |  1 +
- arch/nios2/include/asm/cachetype.h  | 10 ++++++++++
- arch/parisc/Kconfig                 |  1 +
- arch/parisc/include/asm/cachetype.h |  9 +++++++++
- arch/sh/Kconfig                     |  1 +
- arch/sh/include/asm/cachetype.h     |  9 +++++++++
- arch/sparc/Kconfig                  |  1 +
- arch/sparc/include/asm/cachetype.h  | 14 ++++++++++++++
- arch/xtensa/Kconfig                 |  1 +
- arch/xtensa/include/asm/cachetype.h | 10 ++++++++++
- drivers/dax/super.c                 | 14 ++++++++++++++
- drivers/md/dm.c                     | 17 +++++++++--------
- drivers/nvdimm/pmem.c               | 23 ++++++++++++-----------
- drivers/s390/block/dcssblk.c        | 11 ++++++-----
- fs/Kconfig                          |  1 -
- fs/fuse/virtio_fs.c                 | 15 +++++++++++----
- include/linux/cacheinfo.h           |  6 ++++++
- include/linux/dax.h                 |  6 +-----
- mm/Kconfig                          |  6 ++++++
- 29 files changed, 165 insertions(+), 34 deletions(-)
- create mode 100644 arch/arc/include/asm/cachetype.h
- create mode 100644 arch/csky/include/asm/cachetype.h
- create mode 100644 arch/m68k/include/asm/cachetype.h
- create mode 100644 arch/mips/include/asm/cachetype.h
- create mode 100644 arch/nios2/include/asm/cachetype.h
- create mode 100644 arch/parisc/include/asm/cachetype.h
- create mode 100644 arch/sh/include/asm/cachetype.h
- create mode 100644 arch/sparc/include/asm/cachetype.h
- create mode 100644 arch/xtensa/include/asm/cachetype.h
-
+diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
+index 4b7ecd4fd431..a3010849bfed 100644
+--- a/drivers/s390/block/dcssblk.c
++++ b/drivers/s390/block/dcssblk.c
+@@ -549,6 +549,7 @@ dcssblk_add_store(struct device *dev, struct device_attribute *attr, const char
+ 	int rc, i, j, num_of_segments;
+ 	struct dcssblk_dev_info *dev_info;
+ 	struct segment_info *seg_info, *temp;
++	struct dax_device *dax_dev;
+ 	char *local_buf;
+ 	unsigned long seg_byte_size;
+ 
+@@ -677,13 +678,13 @@ dcssblk_add_store(struct device *dev, struct device_attribute *attr, const char
+ 	if (rc)
+ 		goto put_dev;
+ 
+-	dev_info->dax_dev = alloc_dax(dev_info, &dcssblk_dax_ops);
+-	if (IS_ERR(dev_info->dax_dev)) {
+-		rc = PTR_ERR(dev_info->dax_dev);
+-		dev_info->dax_dev = NULL;
++	dax_dev = alloc_dax(dev_info, &dcssblk_dax_ops);
++	if (IS_ERR_OR_NULL(dax_dev)) {
++		rc = IS_ERR(dax_dev) ? PTR_ERR(dax_dev) : -EOPNOTSUPP;
+ 		goto put_dev;
+ 	}
+-	set_dax_synchronous(dev_info->dax_dev);
++	set_dax_synchronous(dax_dev);
++	dev_info->dax_dev = dax_dev;
+ 	rc = dax_add_host(dev_info->dax_dev, dev_info->gd);
+ 	if (rc)
+ 		goto out_dax;
 -- 
 2.39.2
+
