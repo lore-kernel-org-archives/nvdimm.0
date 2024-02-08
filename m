@@ -1,63 +1,26 @@
-Received: from smtpout.efficios.com (smtpout.efficios.com [167.114.26.122])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB4FE364B4;
-	Thu,  8 Feb 2024 18:49:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=167.114.26.122
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA58038395;
+	Thu,  8 Feb 2024 20:15:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707418180; cv=none; b=OK2Dfuc9x9dZ7Q1cut/3CB1aOoPXOwbIGGRB1C6N/CEYAyR7PfpojTc1KrGT0Mu2PHbeXKSx8zGFv4oahj2Mn0/TWnAEAmXFanZtO9UUuI+acFdTwzwknHMUZ1FZpGvOyOnqz67794Mej2LZq4yv9/3U9pclT2e1J4o6m3K8q5g=
+	t=1707423308; cv=none; b=bIKML0Y+pb+13AmrQ9EJQwRRxNwfL+zpcihBoXiXjlG4P71lok7yhrSaLQtMK7Fk1afPhphT9iHwqvB+UFIdQuACkTMKqLLM81aELTdBy6B+IhtAO7J/QY5MCYNYfKOMdJJeHhN++IosxjdsI6Y3u8mi7dNqHmzpmpKjKhE83OE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707418180; c=relaxed/simple;
-	bh=oenQ3E1qB1jTPZO/gOZI9CMarWIZCEOT7s/3o23TNGM=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=XWNtSP3NKXRdQZJ+AfTDd9soJ+iUO18XUX0nSUycAKVxw6tWBGRwdCv/4etY5b6Lw9NynOSvZGjleG5LBq+ROd8i7WjUJYaZAFC0ciuh4dySVd0mr/EKy90p2O4VkUSCQ0ZtL1KWbOWwOD5VmUW2WISCLYG5vn/vHSdgjok+wMM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com; spf=pass smtp.mailfrom=efficios.com; dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b=bRoE/7ia; arc=none smtp.client-ip=167.114.26.122
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=efficios.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b="bRoE/7ia"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=efficios.com;
-	s=smtpout1; t=1707418167;
-	bh=oenQ3E1qB1jTPZO/gOZI9CMarWIZCEOT7s/3o23TNGM=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=bRoE/7ia1+B9bPI5yF1PR2T1XA93zIRBnTcH0eC3l0F5DKqYSeR5Nk0tY93pHHcMe
-	 SB173/Unk3i9YjDHq2INIyynyUJBpjhZxr/0L5wI/UAMDPahLp/TVB7Y5vIH5N5AE5
-	 crMulQ2zXJos7wtuG6cN1nQG0cu1edkRYscl6pnAbz3KIhoZ8H50j2WoCr0/ks/Omt
-	 UUlXIcysLpTzkhjiT5Iptlazn5vqIFc3f+yfGuUzmScLfFjYAiJ1vOAPY4DDm2eyWC
-	 3cTHV3qAZzEPVR6WjB/op0ynHNQPoZFIweA7jAiVScoeq13l0Lfy00tVuzsdsZm7a2
-	 9S+WBZwfWHPmQ==
-Received: from thinkos.internal.efficios.com (192-222-143-198.qc.cable.ebox.net [192.222.143.198])
-	by smtpout.efficios.com (Postfix) with ESMTPSA id 4TW5cl1F3pzY5T;
-	Thu,  8 Feb 2024 13:49:27 -0500 (EST)
-From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-To: Dan Williams <dan.j.williams@intel.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Dave Chinner <david@fromorbit.com>
-Cc: linux-kernel@vger.kernel.org,
-	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Matthew Wilcox <willy@infradead.org>,
-	Russell King <linux@armlinux.org.uk>,
-	linux-arch@vger.kernel.org,
-	linux-cxl@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org,
-	linux-mm@kvack.org,
-	linux-xfs@vger.kernel.org,
-	dm-devel@lists.linux.dev,
-	nvdimm@lists.linux.dev,
-	linux-s390@vger.kernel.org,
-	Alasdair Kergon <agk@redhat.com>,
-	Mike Snitzer <snitzer@kernel.org>,
-	Mikulas Patocka <mpatocka@redhat.com>
-Subject: [PATCH v4 11/12] dcssblk: Cleanup alloc_dax() error handling
-Date: Thu,  8 Feb 2024 13:49:12 -0500
-Message-Id: <20240208184913.484340-12-mathieu.desnoyers@efficios.com>
-X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20240208184913.484340-1-mathieu.desnoyers@efficios.com>
-References: <20240208184913.484340-1-mathieu.desnoyers@efficios.com>
+	s=arc-20240116; t=1707423308; c=relaxed/simple;
+	bh=u2RvBbxRuHq+GyWS8lxyh3CWpP5wIrWL35cL5fIz/dY=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=drIXhEoQ2jjR3y2qWlQAATX1l6EwSAL9AgMsPtvro5sktfIdhfesPiWUJuACT1EyipTXbGOVTGh31hgzZxHHuvaWMfaengXThbVt3Fixn0cTAvFb+pSRSc/38sZbGoJmldhxIrto6sUYyDIo9obnOJonx1+eOwQJ+u8IwDdGKts=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11730C433F1;
+	Thu,  8 Feb 2024 20:15:07 +0000 (UTC)
+From: Dave Jiang <dave.jiang@intel.com>
+To: linux-cxl@vger.kernel.org,
+	nvdimm@lists.linux.dev
+Cc: vishal.l.verma@intel.com
+Subject: [NDCTL PATCH v7 4/4] ndctl: Add support of qos_class for CXL CLI
+Date: Thu,  8 Feb 2024 13:11:54 -0700
+Message-ID: <20240208201435.2081583-1-dave.jiang@intel.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -66,48 +29,39 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Now that alloc_dax() returns ERR_PTR(-EOPNOTSUPP) rather than NULL,
-the callers do not have to handle NULL return values anymore.
+Hi Vishal,
+With the QoS class series merged to the v6.8 kernel, can you please review and
+apply this series to ndctl if acceptable?
 
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Alasdair Kergon <agk@redhat.com>
-Cc: Mike Snitzer <snitzer@kernel.org>
-Cc: Mikulas Patocka <mpatocka@redhat.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: linux-arch@vger.kernel.org
-Cc: linux-cxl@vger.kernel.org
-Cc: linux-fsdevel@vger.kernel.org
-Cc: linux-mm@kvack.org
-Cc: linux-xfs@vger.kernel.org
-Cc: dm-devel@lists.linux.dev
-Cc: nvdimm@lists.linux.dev
-Cc: linux-s390@vger.kernel.org
----
- drivers/s390/block/dcssblk.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+v7:
+- Removed qos restriction flag entirely (Alison)
+- Added check for invalid qos_class when doing json output
+- Change -q to -Q (Vishal)
+- Add qos_class_mismatched to region output for cxl list (Vishal)
+- Add -Q test in cxl-qos-class.sh test (Vishal)
+- Change verify behavior to only do qos matching with -Q (Vishal/Dan)
+v6:
+- Check return value of create_region_validate_qos_class() (Wonjae)
+v5:
+- split out test from cxl-topology.sh (Vishal)
+v4:
+- Update against changes in kernel from multi to single qos_class entry
+- Add test in cxl-topology.sh (Dan)
+- See individual patch log for details
+v3:
+- Rebase against latest ndctl/pending branch.
 
-diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
-index a3010849bfed..f363c1d51d9a 100644
---- a/drivers/s390/block/dcssblk.c
-+++ b/drivers/s390/block/dcssblk.c
-@@ -679,8 +679,8 @@ dcssblk_add_store(struct device *dev, struct device_attribute *attr, const char
- 		goto put_dev;
- 
- 	dax_dev = alloc_dax(dev_info, &dcssblk_dax_ops);
--	if (IS_ERR_OR_NULL(dax_dev)) {
--		rc = IS_ERR(dax_dev) ? PTR_ERR(dax_dev) : -EOPNOTSUPP;
-+	if (IS_ERR(dax_dev)) {
-+		rc = PTR_ERR(dax_dev);
- 		goto put_dev;
- 	}
- 	set_dax_synchronous(dax_dev);
--- 
-2.39.2
+The series adds support for the kernel enabling of QoS class in the v6.8
+kernel. The kernel exports a qos_class token for the root decoders (CFMWS) and as
+well as for the CXL memory devices. The qos_class exported for a device is
+calculated by the driver during device probe. Currently a qos_class is exported
+for the volatile partition (ram) and another for the persistent partition (pmem).
+In the future qos_class will be exported for DCD regions. Display of qos_class is
+through the CXL CLI list command with -vvv for extra verbose.
 
+A qos_class check as also been added for region creation. A warning is emitted
+when the qos_class of a memory range of a CXL memory device being included in
+the CXL region assembly does not match the qos_class of the root decoder. Options
+are available to suppress the warning or to fail the region creation. This
+enabling provides a guidance on flagging memory ranges being used is not
+optimal for performance for the CXL region to be formed.
