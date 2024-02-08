@@ -1,34 +1,34 @@
 Received: from smtpout.efficios.com (smtpout.efficios.com [167.114.26.122])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DF4928DA4;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8FFA33CC4;
 	Thu,  8 Feb 2024 18:49:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=167.114.26.122
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707418176; cv=none; b=TOD0Q/fPzLFN5DToOLhF52wx8jMeewP0OvO8668b2eZICMSOZZBvyuNhp2TOMw7k3IlZKmLsg4J8dONNJpiw9kb2GQUxKmtCOUlH9tmobkDCgGmbGrxTsQvbKOZW8CuWwcrYzAkm6zNL4A7MUwe9a/1VwfumUd7zjQWR7XxMV0w=
+	t=1707418176; cv=none; b=WQD7DcTQp9r8dnsPxF+rUKn7JMLuQTghuO5RvvUxB8txw6WxtwsAxr0VcbY9aBm3OX/Y1LSKJft6ymetqZtgkAZFe5DgGSaAic3TgCeoCN0Rxj9F4FnnKYbulUSdv/ZmCc4MESf5Z5FHab2YMcLDXkmME/YlrHv+LP68AIN5iCA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1707418176; c=relaxed/simple;
-	bh=MgteUY0CjaNYCNu4ZJjdjfbOYQwaLS6hDEa6C2rXhOI=;
+	bh=hDhYMA3F+4l5mMIlcEOrH62nfylV2E9jEwkIfVNtigI=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=d14xIyeVEhtLhXlq0wmsqaZ3MXlSILRzIdBEOly6TA3raUGeuMz4JVk6Ul8Bpq1SqA2uFuP3lXNBVxtBuuZDNYxnm8Rtl0wphyU1u2J5kbgwKqX6iliLgJfRGurwJoswBfXPeb1Ohm7ytP2J3LIrOn/vXEXLGEFQraFvVsCecYo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com; spf=pass smtp.mailfrom=efficios.com; dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b=G+MCYgcI; arc=none smtp.client-ip=167.114.26.122
+	 MIME-Version; b=jek4OaG4v0XQ02P4HV6iMJeIQFui237CxIYbsfJd/Ve4uSvNMcZpUn+Mbr2mMeOEsanwOLqLPBaTRJdLOrM6ukvKgc9jdkjkk5VXzbm3tdT0AXGTv2BC3+nFSp8opIpq9BF5R+rZVMRf58/Xnx+sjIF5WMlVPbei2wZLD/3byx0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com; spf=pass smtp.mailfrom=efficios.com; dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b=rs1nJ6zN; arc=none smtp.client-ip=167.114.26.122
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=efficios.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b="G+MCYgcI"
+	dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b="rs1nJ6zN"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=efficios.com;
-	s=smtpout1; t=1707418166;
-	bh=MgteUY0CjaNYCNu4ZJjdjfbOYQwaLS6hDEa6C2rXhOI=;
+	s=smtpout1; t=1707418165;
+	bh=hDhYMA3F+4l5mMIlcEOrH62nfylV2E9jEwkIfVNtigI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=G+MCYgcI7iOhUtOG80uDYEEj9WDUFtjZj9v5kigEOVyg1Gl0p5tefCTOJimzq7BIl
-	 Bntq03Tcm/N+e6ObNbaOTegq2ADAQ6pQAwKRVSja1uTLw5yeNuWK/hvvwPRF7XXbX/
-	 M6nZvFFxMKHg5SQuBdBtw17hxlxVb8oD+kSkJNaegeMMMlHzHo5f/VuV5nAyz64Pyw
-	 A0gPrGc0Vnc/Vms7OHuOkBj+zaxkVYidiXOcY2aohU+UyZ2+NFyxkSnkI7UeA2jGpn
-	 EkUAuevUw1ZVowe9kZH+93MAkvXFLN/9+SJBI+P9oBDLUkZMEhunrIKZMVOfThz2S7
-	 T2GUX150wzk3A==
+	b=rs1nJ6zN3i3/ZnxcqWVfIObvfKgetmRzKD9Xtjm7nBjU1gQXyq40Hbl0vGdpuDu3o
+	 1ChqvqCpB68GsWf1rfPiXH2WI1izSe5AxZNgR4KA6MzUetBSQbo/tVCeXzBSfElY9X
+	 xc3j36GRCDUwpBwdU5OlD7I27mG/61ybZ+kJ7jSB1oIBSVNjk4niWIo1iYGy65l9dC
+	 Lvj2QNC53f0foG786M7CcQfXzWJiDcvHhZXtuINhQEsbaXYHm9nS5GhJjOkOW+XhzB
+	 TjMlasE8RpSnU8253RGAaFCEwDFmIZdtCUrzC2IzCiPp0guGxx7e15ixCGWwaFEOO9
+	 2aK4Mi+ky1GfA==
 Received: from thinkos.internal.efficios.com (192-222-143-198.qc.cable.ebox.net [192.222.143.198])
-	by smtpout.efficios.com (Postfix) with ESMTPSA id 4TW5cj6MmwzY5R;
-	Thu,  8 Feb 2024 13:49:25 -0500 (EST)
+	by smtpout.efficios.com (Postfix) with ESMTPSA id 4TW5cj03Z3zY5P;
+	Thu,  8 Feb 2024 13:49:24 -0500 (EST)
 From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 To: Dan Williams <dan.j.williams@intel.com>,
 	Arnd Bergmann <arnd@arndb.de>,
@@ -49,9 +49,9 @@ Cc: linux-kernel@vger.kernel.org,
 	dm-devel@lists.linux.dev,
 	nvdimm@lists.linux.dev,
 	linux-s390@vger.kernel.org
-Subject: [PATCH v4 08/12] dax: Fix incorrect list of data cache aliasing architectures
-Date: Thu,  8 Feb 2024 13:49:09 -0500
-Message-Id: <20240208184913.484340-9-mathieu.desnoyers@efficios.com>
+Subject: [PATCH v4 06/12] dax: Check for data cache aliasing at runtime
+Date: Thu,  8 Feb 2024 13:49:07 -0500
+Message-Id: <20240208184913.484340-7-mathieu.desnoyers@efficios.com>
 X-Mailer: git-send-email 2.39.2
 In-Reply-To: <20240208184913.484340-1-mathieu.desnoyers@efficios.com>
 References: <20240208184913.484340-1-mathieu.desnoyers@efficios.com>
@@ -63,30 +63,21 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-commit d92576f1167c ("dax: does not work correctly with virtual aliasing caches")
-prevents DAX from building on architectures with virtually aliased
-dcache with:
+Replace the following fs/Kconfig:FS_DAX dependency:
 
   depends on !(ARM || MIPS || SPARC)
 
-This check is too broad (e.g. recent ARMv7 don't have virtually aliased
-dcaches), and also misses many other architectures with virtually
-aliased data cache.
+By a runtime check within alloc_dax(). This runtime check returns
+ERR_PTR(-EOPNOTSUPP) if the @ops parameter is non-NULL (which means
+the kernel is using an aliased mapping) on an architecture which
+has data cache aliasing.
 
-This is a regression introduced in the v4.0 Linux kernel where the
-dax mount option is removed for 32-bit ARMv7 boards which have no data
-cache aliasing, and therefore should work fine with FS_DAX.
+Change the return value from NULL to PTR_ERR(-EOPNOTSUPP) for
+CONFIG_DAX=n for consistency.
 
-This was turned into the following check in alloc_dax() by a preparatory
-change:
-
-        if (ops && (IS_ENABLED(CONFIG_ARM) ||
-            IS_ENABLED(CONFIG_MIPS) ||
-            IS_ENABLED(CONFIG_SPARC)))
-                return NULL;
-
-Use cpu_dcache_is_aliasing() instead to figure out whether the environment
-has aliasing data caches.
+This is done in preparation for using cpu_dcache_is_aliasing() in a
+following change which will properly support architectures which detect
+data cache aliasing at runtime.
 
 Fixes: d92576f1167c ("dax: does not work correctly with virtual aliasing caches")
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
@@ -106,32 +97,73 @@ Cc: linux-xfs@vger.kernel.org
 Cc: dm-devel@lists.linux.dev
 Cc: nvdimm@lists.linux.dev
 ---
- drivers/dax/super.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/dax/super.c | 15 +++++++++++++++
+ fs/Kconfig          |  1 -
+ include/linux/dax.h |  6 +-----
+ 3 files changed, 16 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index ce5bffa86bba..a21a7c262382 100644
+index 0da9232ea175..ce5bffa86bba 100644
 --- a/drivers/dax/super.c
 +++ b/drivers/dax/super.c
-@@ -13,6 +13,7 @@
- #include <linux/uio.h>
- #include <linux/dax.h>
- #include <linux/fs.h>
-+#include <linux/cacheinfo.h>
- #include "dax-private.h"
+@@ -319,6 +319,11 @@ EXPORT_SYMBOL_GPL(dax_alive);
+  * that any fault handlers or operations that might have seen
+  * dax_alive(), have completed.  Any operations that start after
+  * synchronize_srcu() has run will abort upon seeing !dax_alive().
++ *
++ * Note, because alloc_dax() returns an ERR_PTR() on error, callers
++ * typically store its result into a local variable in order to check
++ * the result. Therefore, care must be taken to populate the struct
++ * device dax_dev field make sure the dax_dev is not leaked.
+  */
+ void kill_dax(struct dax_device *dax_dev)
+ {
+@@ -445,6 +450,16 @@ struct dax_device *alloc_dax(void *private, const struct dax_operations *ops)
+ 	dev_t devt;
+ 	int minor;
  
- /**
-@@ -455,9 +456,7 @@ struct dax_device *alloc_dax(void *private, const struct dax_operations *ops)
- 	 * except for device-dax (NULL operations pointer), which does
- 	 * not use aliased mappings from the kernel.
- 	 */
--	if (ops && (IS_ENABLED(CONFIG_ARM) ||
--	    IS_ENABLED(CONFIG_MIPS) ||
--	    IS_ENABLED(CONFIG_SPARC)))
-+	if (ops && cpu_dcache_is_aliasing())
- 		return ERR_PTR(-EOPNOTSUPP);
- 
++	/*
++	 * Unavailable on architectures with virtually aliased data caches,
++	 * except for device-dax (NULL operations pointer), which does
++	 * not use aliased mappings from the kernel.
++	 */
++	if (ops && (IS_ENABLED(CONFIG_ARM) ||
++	    IS_ENABLED(CONFIG_MIPS) ||
++	    IS_ENABLED(CONFIG_SPARC)))
++		return ERR_PTR(-EOPNOTSUPP);
++
  	if (WARN_ON_ONCE(ops && !ops->zero_page_range))
+ 		return ERR_PTR(-EINVAL);
+ 
+diff --git a/fs/Kconfig b/fs/Kconfig
+index 42837617a55b..e5efdb3b276b 100644
+--- a/fs/Kconfig
++++ b/fs/Kconfig
+@@ -56,7 +56,6 @@ endif # BLOCK
+ config FS_DAX
+ 	bool "File system based Direct Access (DAX) support"
+ 	depends on MMU
+-	depends on !(ARM || MIPS || SPARC)
+ 	depends on ZONE_DEVICE || FS_DAX_LIMITED
+ 	select FS_IOMAP
+ 	select DAX
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index b463502b16e1..df2d52b8a245 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -86,11 +86,7 @@ static inline void *dax_holder(struct dax_device *dax_dev)
+ static inline struct dax_device *alloc_dax(void *private,
+ 		const struct dax_operations *ops)
+ {
+-	/*
+-	 * Callers should check IS_ENABLED(CONFIG_DAX) to know if this
+-	 * NULL is an error or expected.
+-	 */
+-	return NULL;
++	return ERR_PTR(-EOPNOTSUPP);
+ }
+ static inline void put_dax(struct dax_device *dax_dev)
+ {
 -- 
 2.39.2
 
