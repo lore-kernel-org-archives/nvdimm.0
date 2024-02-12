@@ -1,46 +1,45 @@
 Received: from smtpout.efficios.com (smtpout.efficios.com [167.114.26.122])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B6933D570;
-	Mon, 12 Feb 2024 16:27:32 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C2681E89B;
+	Mon, 12 Feb 2024 16:31:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=167.114.26.122
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707755255; cv=none; b=JL9yEIENi5IRjh3uscPehQpgm5ahUgo4F0ZsULpIZlOBIEn0YvBq+9TJnb237wN9iFYGyJ9woQ54NmysdQAz2gkHIu1hfsXOY/v16EgJB7xMcr228GHmXZ3pAJ04H4B9eG3lW1iBx92kN1zaOZzCUdlza12kqcbpOxJILO25oZw=
+	t=1707755466; cv=none; b=ZmnFXibo/9C6ET7sfibz0iQi6q/irqsmP31nmBE4hcMtQR5vTo7eczGl1pJPmUZYgyuELL8QC5yjApnDVgq7AiHd8A0SuYNs2Fz+13A2br1xotMRm9ZwbDlyl88HKq3+hvi7p8vU+uQCyT3E6apWJTjMHsNeGfHvrYnmp68nE1A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707755255; c=relaxed/simple;
-	bh=k2sz/frCWDb4R4mtAgpiLkGT+g8hxxE7Hdk6DHyuU2A=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=Gvnidb1WN/3NfekWsa9/OW5KfSDhH1wQqQytot/hXWqBgRGE27qsoUJJa2CopRj0poZkc2yCKwZlDrCzVs+399LINJc9A0rgiGD9/QXiwVxCNYme/J0RHzILsJVzYtZdBnCrir4s0d3vpojA/pjhZibFDDjyDLfyHgpDJQ4ABbU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com; spf=pass smtp.mailfrom=efficios.com; dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b=ZZrr1DQ1; arc=none smtp.client-ip=167.114.26.122
+	s=arc-20240116; t=1707755466; c=relaxed/simple;
+	bh=q/9jEJfnqEQkc3MaRhsxgrh4+o9HVwSNE5hPfxrTXB8=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=Qk75W7L/IwH92HLTA7l4B8oF8sXHQ6JqgAH13nRgvaL1+PGKq8nXvdxWR+gI8e2yi8geswacm6uCrXLU5Cek6uvWs1ttnKSlBZJt86lEPGEeXuBLYvnpfs8LAXPUpGuPSzqsFF2gAd3JyjLZfQiRIglsvcaeLgdMNp7eGbW2/rw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com; spf=pass smtp.mailfrom=efficios.com; dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b=EkF+I8nC; arc=none smtp.client-ip=167.114.26.122
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=efficios.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b="ZZrr1DQ1"
+	dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b="EkF+I8nC"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=efficios.com;
-	s=smtpout1; t=1707755245;
-	bh=k2sz/frCWDb4R4mtAgpiLkGT+g8hxxE7Hdk6DHyuU2A=;
-	h=From:To:Cc:Subject:Date:From;
-	b=ZZrr1DQ1AtimJocfUuWW9YjFO9Ko886wHKEZj/b/t3qVbPBnd3jlc1BxgqEPzBNRz
-	 CGLO3sSlYjlGi8OaD+jQWSzCM2lpa0rPlh5j2lfN4pHDTet9YqNN8aPWzIc4BcaGNm
-	 VTIWQI+Rlf/jGcB8TKe6i+zqeaBwQ0RuMxVMC85yXi2qOhJGUQMrIgP4Rr0B/4nxWx
-	 cOQ0eQGELKalLtEIqY0Ee4UhXQulAQY7bcXrw+oWU4f8IslM/3NK5r9ZDDjYJOeu/b
-	 bTK0UrdwmtePTqwwtSKUKQs6QQ2cETWBMpZmShYyehQrckpNvzGInZwhmX9gzAyrCq
-	 lrTir9cna9tcg==
+	s=smtpout1; t=1707755463;
+	bh=q/9jEJfnqEQkc3MaRhsxgrh4+o9HVwSNE5hPfxrTXB8=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=EkF+I8nCzGXwgsjLIO9z5hrj4YLXkG1Gy+qBhoGBPBzwMSQ2ngaByzqZ8MwMu7uYR
+	 HVuW3uAHo7KnmvGrg8FW5d8BZO/OcZAetn3pHPCIKXU3OWKZQrd1Gq04mjZpxP50jP
+	 v2sxs0xOImWi8VD0bUUiy+VYH/NlIQft+vc+QCvBV0VT3G9XLCd+o0JpXhqhRW8rT6
+	 HOmpfq2rS2ZnfBh8TL+swhmVq8Py5ZEKkF6SvmeGs+vHNFDGloUyRXskUrpYkosMzK
+	 D8W0MOk5fYJK6ialW8Gs/5HZdIgZbPC1bGBNdK+vbFrB6x2RODeex/oO2dOq6vh+67
+	 oMJWvt2aRlatw==
 Received: from thinkos.internal.efficios.com (192-222-143-198.qc.cable.ebox.net [192.222.143.198])
-	by smtpout.efficios.com (Postfix) with ESMTPSA id 4TYVH11GRXzYWC;
-	Mon, 12 Feb 2024 11:27:25 -0500 (EST)
+	by smtpout.efficios.com (Postfix) with ESMTPSA id 4TYVMC3L1TzXvQ;
+	Mon, 12 Feb 2024 11:31:03 -0500 (EST)
 From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-To: 
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Alasdair Kergon <agk@redhat.com>,
-	Mike Snitzer <snitzer@kernel.org>,
-	Mikulas Patocka <mpatocka@redhat.com>,
+To: Dan Williams <dan.j.williams@intel.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Dave Chinner <david@fromorbit.com>
+Cc: linux-kernel@vger.kernel.org,
+	Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
 	Andrew Morton <akpm@linux-foundation.org>,
 	Linus Torvalds <torvalds@linux-foundation.org>,
 	Vishal Verma <vishal.l.verma@intel.com>,
 	Dave Jiang <dave.jiang@intel.com>,
 	Matthew Wilcox <willy@infradead.org>,
-	Arnd Bergmann <arnd@arndb.de>,
 	Russell King <linux@armlinux.org.uk>,
 	linux-arch@vger.kernel.org,
 	linux-cxl@vger.kernel.org,
@@ -48,11 +47,14 @@ Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
 	linux-mm@kvack.org,
 	linux-xfs@vger.kernel.org,
 	dm-devel@lists.linux.dev,
-	nvdimm@lists.linux.dev
-Subject: [PATCH] nvdimm/pmem: Fix leak on dax_add_host() failure
-Date: Mon, 12 Feb 2024 11:27:22 -0500
-Message-Id: <20240212162722.19080-1-mathieu.desnoyers@efficios.com>
+	nvdimm@lists.linux.dev,
+	linux-s390@vger.kernel.org
+Subject: [PATCH v5 1/8] dax: alloc_dax() return ERR_PTR(-EOPNOTSUPP) for CONFIG_DAX=n
+Date: Mon, 12 Feb 2024 11:30:54 -0500
+Message-Id: <20240212163101.19614-2-mathieu.desnoyers@efficios.com>
 X-Mailer: git-send-email 2.39.2
+In-Reply-To: <20240212163101.19614-1-mathieu.desnoyers@efficios.com>
+References: <20240212163101.19614-1-mathieu.desnoyers@efficios.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -61,19 +63,17 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Fix a leak on dax_add_host() error, where "goto out_cleanup_dax" is done
-before setting pmem->dax_dev, which therefore issues the two following
-calls on NULL pointers:
+Change the return value from NULL to PTR_ERR(-EOPNOTSUPP) for
+CONFIG_DAX=n to be consistent with the fact that CONFIG_DAX=y
+never returns NULL.
 
-out_cleanup_dax:
-        kill_dax(pmem->dax_dev);
-        put_dax(pmem->dax_dev);
+This is done in preparation for using cpu_dcache_is_aliasing() in a
+following change which will properly support architectures which detect
+data cache aliasing at runtime.
 
+Fixes: d92576f1167c ("dax: does not work correctly with virtual aliasing caches")
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Cc: Alasdair Kergon <agk@redhat.com>
-Cc: Mike Snitzer <snitzer@kernel.org>
-Cc: Mikulas Patocka <mpatocka@redhat.com>
 Cc: Andrew Morton <akpm@linux-foundation.org>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Dan Williams <dan.j.williams@intel.com>
@@ -90,27 +90,43 @@ Cc: linux-xfs@vger.kernel.org
 Cc: dm-devel@lists.linux.dev
 Cc: nvdimm@lists.linux.dev
 ---
- drivers/nvdimm/pmem.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/dax/super.c | 5 +++++
+ include/linux/dax.h | 6 +-----
+ 2 files changed, 6 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 4e8fdcb3f1c8..9fe358090720 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -566,12 +566,11 @@ static int pmem_attach_disk(struct device *dev,
- 	set_dax_nomc(dax_dev);
- 	if (is_nvdimm_sync(nd_region))
- 		set_dax_synchronous(dax_dev);
-+	pmem->dax_dev = dax_dev;
- 	rc = dax_add_host(dax_dev, disk);
- 	if (rc)
- 		goto out_cleanup_dax;
- 	dax_write_cache(dax_dev, nvdimm_has_cache(nd_region));
--	pmem->dax_dev = dax_dev;
--
- 	rc = device_add_disk(dev, disk, pmem_attribute_groups);
- 	if (rc)
- 		goto out_remove_host;
+diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+index 0da9232ea175..205b888d45bf 100644
+--- a/drivers/dax/super.c
++++ b/drivers/dax/super.c
+@@ -319,6 +319,11 @@ EXPORT_SYMBOL_GPL(dax_alive);
+  * that any fault handlers or operations that might have seen
+  * dax_alive(), have completed.  Any operations that start after
+  * synchronize_srcu() has run will abort upon seeing !dax_alive().
++ *
++ * Note, because alloc_dax() returns an ERR_PTR() on error, callers
++ * typically store its result into a local variable in order to check
++ * the result. Therefore, care must be taken to populate the struct
++ * device dax_dev field make sure the dax_dev is not leaked.
+  */
+ void kill_dax(struct dax_device *dax_dev)
+ {
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index b463502b16e1..df2d52b8a245 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -86,11 +86,7 @@ static inline void *dax_holder(struct dax_device *dax_dev)
+ static inline struct dax_device *alloc_dax(void *private,
+ 		const struct dax_operations *ops)
+ {
+-	/*
+-	 * Callers should check IS_ENABLED(CONFIG_DAX) to know if this
+-	 * NULL is an error or expected.
+-	 */
+-	return NULL;
++	return ERR_PTR(-EOPNOTSUPP);
+ }
+ static inline void put_dax(struct dax_device *dax_dev)
+ {
 -- 
 2.39.2
 
