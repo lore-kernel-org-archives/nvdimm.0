@@ -1,166 +1,140 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2E40149DFA;
-	Fri,  9 Feb 2024 21:39:21 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2068B2F55;
+	Mon, 12 Feb 2024 05:12:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707514761; cv=none; b=eZBWgs+FQBeq9R5724IvkWDaatbdh/OjNlbHevo1T9e94Ryo4aVtyqbg/xAM1Tcf2Qa7e2jBEnVPrsdUgLUpeWmiifD2O2OEPk0ivsNHPqRGlB3xGh5SU+UuxS8wkOnKymCxT7sGEJFGo/oxigAkRDOlejm8//cKd3bsVkktiBI=
+	t=1707714725; cv=none; b=LsouEeBWJhTZv+CAnC2SWXLa1mLTYsyK5pzR5kExViNZhmfQN3Fmnu1DFBigtZiZFoQwv/M7dzzl4tyfF6JdjVwRBsGNpFXXjgfUAxA2P6LA37jZuk9tY2LrVVc1oqdrBmxMrgLCLZr4RqM/mMHhwDKrU6VcLjua0u27+2M+3BM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707514761; c=relaxed/simple;
-	bh=3wiobEGADXfcwTi/LrKkeo5tF5A+iP49SAtIbsQWldQ=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=b8MjR4Y/RUTbO5Xlr2kHGs2ZnygB+fwkZYlapsEVVN1CNi3jh8ysTa36YTkKHqTlzHPasrUwTAH+dcRlz+nMbzcVW2KqAhw/mf6egzvLf4e9QvGRCFYgvN4heezwiPfc6K5Y1Ll54JcM5M/+Tmx+fcDIvgLL7bkgeE0j1Jdy5X8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08939C433C7;
-	Fri,  9 Feb 2024 21:39:20 +0000 (UTC)
-From: Dave Jiang <dave.jiang@intel.com>
-To: linux-cxl@vger.kernel.org,
-	nvdimm@lists.linux.dev
-Cc: vishal.l.verma@intel.com,
-	dan.j.williams@intel.com
-Subject: [NDCTL PATCH] ndctl: cxl: Remove dependency for attributes derived from IDENTIFY command
-Date: Fri,  9 Feb 2024 14:39:17 -0700
-Message-ID: <20240209213917.2288994-1-dave.jiang@intel.com>
-X-Mailer: git-send-email 2.43.0
+	s=arc-20240116; t=1707714725; c=relaxed/simple;
+	bh=Inesfow/+o5xS1pMzhZ/lezVf1fXzsERlilchZkTN6E=;
+	h=Mime-Version:Content-Type:Date:Message-Id:Cc:Subject:From:To:
+	 References:In-Reply-To; b=StrILRXzTLXh4fkTSyv3S35Cx+f9SBK+TSq5Hph4ZT8ijt1WD5A0dwp9M+DIxrAN+vCXnwj+V8p7pHZgxXX9IkPvILyDisHY2uCgss6yNiug5l+RMhgXAM+DZWQ7wXIxkisjO/6RboBpVrWC1YYC+6bivmbOuOX0Rv49GOZX/ko=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bPH8JGEm; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bPH8JGEm"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 232E2C433C7;
+	Mon, 12 Feb 2024 05:11:59 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1707714724;
+	bh=Inesfow/+o5xS1pMzhZ/lezVf1fXzsERlilchZkTN6E=;
+	h=Date:Cc:Subject:From:To:References:In-Reply-To:From;
+	b=bPH8JGEmOQUUJH8kCoM0AXr8VrwJ1nDOlPP3I3GF0e1ANYesf6SzSYI2AgIQLnkaF
+	 KNrv5iI560dWFuyoTiLoeVVlYma+fgFfYY6QHCYej3KUzFPP8UCQe34xeslf2V6DIK
+	 hWmYMfXjsassBvEaZN4Tv0129KMtyRvqanlHpy/tkS7xeNA2JJQIcMiXQ07wBb66W0
+	 g/BnedkJyc40AAog97Wokaqhw+jfw7ukGZmlS6Dqi/EJ2Q8QP01nMHhGEAQiFfMFzd
+	 XFhWDaXNf+ySOK1PEsAivM0Ce6eM84MgzGLNbPM5dROAb7VHNuU7MnJgotURudWXFO
+	 vGo6Jit3yWYKg==
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Mime-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=UTF-8
+Date: Mon, 12 Feb 2024 05:11:57 +0000
+Message-Id: <CZ2UCEZ1VT96.2QZE7X8CS8EJ2@seitikki>
+Cc: "Jiang, Dave" <dave.jiang@intel.com>, "linux-integrity@vger.kernel.org"
+ <linux-integrity@vger.kernel.org>, "linux-cxl@vger.kernel.org"
+ <linux-cxl@vger.kernel.org>, "linux-kernel@vger.kernel.org"
+ <linux-kernel@vger.kernel.org>, "keyrings@vger.kernel.org"
+ <keyrings@vger.kernel.org>, "linux-security-module@vger.kernel.org"
+ <linux-security-module@vger.kernel.org>, "nvdimm@lists.linux.dev"
+ <nvdimm@lists.linux.dev>
+Subject: Re: [PATCH] KEYS: encrypted: Add check for strsep
+From: "Jarkko Sakkinen" <jarkko@kernel.org>
+To: "Mimi Zohar" <zohar@linux.ibm.com>, "Dan Williams"
+ <dan.j.williams@intel.com>, "Verma, Vishal L" <vishal.l.verma@intel.com>,
+ "paul@paul-moore.com" <paul@paul-moore.com>, "dhowells@redhat.com"
+ <dhowells@redhat.com>, "yaelt@google.com" <yaelt@google.com>,
+ "serge@hallyn.com" <serge@hallyn.com>, "nichen@iscas.ac.cn"
+ <nichen@iscas.ac.cn>, "sumit.garg@linaro.org" <sumit.garg@linaro.org>,
+ "jmorris@namei.org" <jmorris@namei.org>
+X-Mailer: aerc 0.15.2
+References: <20231108073627.1063464-1-nichen@iscas.ac.cn>
+ <4d3465b48b9c5a87deb385b15bf5125fc1704019.camel@intel.com>
+ <e3275c0cfe21d75e0d71ea3fc24a31252efc9ad6.camel@linux.ibm.com>
+ <e3b1a5e532ed86e674385abc4812c5a774f851d4.camel@intel.com>
+ <49c48e3e96bf0f5ebef14e7328cc8a6ca6380e08.camel@linux.ibm.com>
+ <50c2fa781e3266ee8151afdef5a8659d63ca952e.camel@intel.com>
+ <CYS7QMYS8XAJ.2QPI3MS5KXK8E@suppilovahvero>
+ <CYS7WMFLXNE1.35OBTKTONKNX3@suppilovahvero>
+ <65b93f2b3099b_5cc6f29453@dwillia2-mobl3.amr.corp.intel.com.notmuch>
+ <CYU2JV57VXA9.3C5QTG4LX50TD@suppilovahvero>
+ <d0ccd2f19ed1adccc8f3dfe677c30bc44feb3d36.camel@linux.ibm.com>
+In-Reply-To: <d0ccd2f19ed1adccc8f3dfe677c30bc44feb3d36.camel@linux.ibm.com>
 
-A memdev may optionally not host a mailbox and therefore not able to execute
-the IDENTIFY command. Currently the kernel emits empty strings for some of
-the attributes instead of making them invisible in order to keep backward
-compatibility for CXL CLI. Remove dependency of CXL CLI on the existance of
-these attributes and only expose them if they exist. Without the dependency
-the kernel will be able to make the non-existant attributes invisible.
+On Fri Feb 2, 2024 at 12:05 AM UTC, Mimi Zohar wrote:
+> On Thu, 2024-02-01 at 23:43 +0200, Jarkko Sakkinen wrote:
+> > On Tue Jan 30, 2024 at 8:25 PM EET, Dan Williams wrote:
+> > > Jarkko Sakkinen wrote:
+> > > > On Tue Jan 30, 2024 at 7:22 PM EET, Jarkko Sakkinen wrote:
+> > > > > On Wed Jan 24, 2024 at 11:10 PM EET, Verma, Vishal L wrote:
+> > > > > > On Wed, 2024-01-24 at 15:40 -0500, Mimi Zohar wrote:
+> > > > > > > On Wed, 2024-01-24 at 20:10 +0000, Verma, Vishal L wrote:
+> > > > > > > > Ah, thanks for confirming! Would you like me to send a
+> > > > > > > > revert patch or
+> > > > > > > > will you do it?
+> > > > > > >=20
+> > > > > > > Revert "KEYS: encrypted: Add check for strsep"
+> > > > > > >    =20
+> > > > > > > This reverts commit
+> > > > > > > b4af096b5df5dd131ab796c79cedc7069d8f4882.
+> > > > > > >    =20
+> > > > > > > New encrypted keys are created either from kernel-generated=
+=20
+> > > > > > > random
+> > > > > > > numbers or user-provided decrypted data.  Revert the change
+> > > > > > > requiring
+> > > > > > > user-provided decrypted data.
+> > > > > > >=20
+> > > > > > >=20
+> > > > > > > Can I add your Reported-by?
+> > > > > >=20
+> > > > > > Yes that works, Thank you.
+> > > > >=20
+> > > > > This went totally wrong IMHO.
+> > > > >=20
+> > > > > Priority should be to locate and fix the bug not revert useful
+> > > > > stuff
+> > > > > when a bug is found that has limited scope.
+> > > >=20
+> > > > By guidelines here the commit is also a bug fix and reverting
+> > > > such commit means seeding a bug to the mainline. Also the klog
+> > > > message alone is a bug fix here. So also by book it really has
+> > > > to come back as it was already commit because we cannot
+> > > > knowingly mount bugs to the mainline, right?
+> > >=20
+> > > No, the commit broke userspace. The rule is do not cause
+> > > regressions
+> > > even if userspace is abusing the ABI in an undesirable way. Even
+> > > the
+> > > new pr_info() is a log spamming behavior change, a pr_debug() might
+> > > be
+> > > suitable, but otherwise a logic change here needs a clear
+> > > description
+> > > about what is broken about the old userspace behavior and why the
+> > > kernel
+> > > can not possibly safely handle it.
+> >=20
+> > The rationale literally gives empirical proof that the log message
+> > is useful by measure. It would be useless if log level is decreased
+> > to debug, as then sysadmin's won't take notice. I don't really know
+> > what is the definition of "spam" here but at least for me actually
+> > useful log message are not in that category.
+> >=20
+> > Issue was legit but git revert is objectively an incorrect way to
+> > address the bug.
+>
+> No, I made a mistake in upstreaming the patch in the first place.  It
+> broke the original "encrypted" keys usage.  Reverting it was the
+> correct solution.
+>
+> Mimi
 
-Link: https://lore.kernel.org/all/20230606121534.00003870@Huawei.com/
-Suggested-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- cxl/lib/libcxl.c | 48 ++++++++++++++++++++++++++----------------------
- cxl/memdev.c     | 15 ++++++++++-----
- 2 files changed, 36 insertions(+), 27 deletions(-)
+The way I see it the semantic change caused the bug because it was not
+backwards compatible. That does not make the log message less useful.
 
-diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
-index 1537a33d370e..f807ec4ed4e6 100644
---- a/cxl/lib/libcxl.c
-+++ b/cxl/lib/libcxl.c
-@@ -1251,28 +1251,30 @@ static void *add_cxl_memdev(void *parent, int id, const char *cxlmem_base)
- 	memdev->minor = minor(st.st_rdev);
- 
- 	sprintf(path, "%s/pmem/size", cxlmem_base);
--	if (sysfs_read_attr(ctx, path, buf) < 0)
--		goto err_read;
--	memdev->pmem_size = strtoull(buf, NULL, 0);
-+	if (sysfs_read_attr(ctx, path, buf) == 0)
-+		memdev->pmem_size = strtoull(buf, NULL, 0);
- 
- 	sprintf(path, "%s/ram/size", cxlmem_base);
--	if (sysfs_read_attr(ctx, path, buf) < 0)
--		goto err_read;
--	memdev->ram_size = strtoull(buf, NULL, 0);
-+	if (sysfs_read_attr(ctx, path, buf) == 0)
-+		memdev->ram_size = strtoull(buf, NULL, 0);
- 
- 	sprintf(path, "%s/payload_max", cxlmem_base);
--	if (sysfs_read_attr(ctx, path, buf) < 0)
--		goto err_read;
--	memdev->payload_max = strtoull(buf, NULL, 0);
--	if (memdev->payload_max < 0)
--		goto err_read;
-+	if (sysfs_read_attr(ctx, path, buf) == 0) {
-+		memdev->payload_max = strtoull(buf, NULL, 0);
-+		if (memdev->payload_max < 0)
-+			goto err_read;
-+	} else {
-+		memdev->payload_max = -1;
-+	}
- 
- 	sprintf(path, "%s/label_storage_size", cxlmem_base);
--	if (sysfs_read_attr(ctx, path, buf) < 0)
--		goto err_read;
--	memdev->lsa_size = strtoull(buf, NULL, 0);
--	if (memdev->lsa_size == ULLONG_MAX)
--		goto err_read;
-+	if (sysfs_read_attr(ctx, path, buf) == 0) {
-+		memdev->lsa_size = strtoull(buf, NULL, 0);
-+		if (memdev->lsa_size == ULLONG_MAX)
-+			goto err_read;
-+	} else {
-+		memdev->lsa_size = ULLONG_MAX;
-+	}
- 
- 	sprintf(path, "%s/serial", cxlmem_base);
- 	if (sysfs_read_attr(ctx, path, buf) < 0)
-@@ -1299,12 +1301,11 @@ static void *add_cxl_memdev(void *parent, int id, const char *cxlmem_base)
- 	host[0] = '\0';
- 
- 	sprintf(path, "%s/firmware_version", cxlmem_base);
--	if (sysfs_read_attr(ctx, path, buf) < 0)
--		goto err_read;
--
--	memdev->firmware_version = strdup(buf);
--	if (!memdev->firmware_version)
--		goto err_read;
-+	if (sysfs_read_attr(ctx, path, buf) == 0) {
-+		memdev->firmware_version = strdup(buf);
-+		if (!memdev->firmware_version)
-+			goto err_read;
-+	}
- 
- 	memdev->dev_buf = calloc(1, strlen(cxlmem_base) + 50);
- 	if (!memdev->dev_buf)
-@@ -4543,6 +4544,9 @@ static int lsa_op(struct cxl_memdev *memdev, int op, void *buf,
- 	if (length == 0)
- 		return 0;
- 
-+	if (memdev->payload_max < 0)
-+		return -EINVAL;
-+
- 	label_iter_max = memdev->payload_max - sizeof(struct cxl_cmd_set_lsa);
- 	while (remaining) {
- 		cur_len = min((size_t)label_iter_max, remaining);
-diff --git a/cxl/memdev.c b/cxl/memdev.c
-index 81f07991da06..feab7ea76e78 100644
---- a/cxl/memdev.c
-+++ b/cxl/memdev.c
-@@ -473,10 +473,13 @@ static int action_zero(struct cxl_memdev *memdev, struct action_context *actx)
- 	size_t size;
- 	int rc;
- 
--	if (param.len)
-+	if (param.len) {
- 		size = param.len;
--	else
-+	} else {
- 		size = cxl_memdev_get_label_size(memdev);
-+		if (size == ULLONG_MAX)
-+			return -EINVAL;
-+	}
- 
- 	if (cxl_memdev_nvdimm_bridge_active(memdev)) {
- 		log_err(&ml,
-@@ -547,11 +550,13 @@ static int action_read(struct cxl_memdev *memdev, struct action_context *actx)
- 	char *buf;
- 	int rc;
- 
--	if (param.len)
-+	if (param.len) {
- 		size = param.len;
--	else
-+	} else {
- 		size = cxl_memdev_get_label_size(memdev);
--
-+		if (size == ULLONG_MAX)
-+			return -EINVAL;
-+	}
- 	buf = calloc(1, size);
- 	if (!buf)
- 		return -ENOMEM;
--- 
-2.43.0
-
+BR, Jarkko
