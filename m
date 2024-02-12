@@ -1,140 +1,98 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr1-f41.google.com (mail-wr1-f41.google.com [209.85.221.41])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2068B2F55;
-	Mon, 12 Feb 2024 05:12:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A23D179B8
+	for <nvdimm@lists.linux.dev>; Mon, 12 Feb 2024 12:37:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707714725; cv=none; b=LsouEeBWJhTZv+CAnC2SWXLa1mLTYsyK5pzR5kExViNZhmfQN3Fmnu1DFBigtZiZFoQwv/M7dzzl4tyfF6JdjVwRBsGNpFXXjgfUAxA2P6LA37jZuk9tY2LrVVc1oqdrBmxMrgLCLZr4RqM/mMHhwDKrU6VcLjua0u27+2M+3BM=
+	t=1707741442; cv=none; b=cnTkaJXb4u20/WdC0LZnwrqYLMRuCJSO7RgI+f3f58k5xlTgD3dHx8DI2ZJ3KjZr0xBYrTdlFqNnMu/V2/GITuBot+g0gFeB8uc0jgPJ8gpOJEmbYhtcBkQ9YXg0e9kEXVCsFS12l+KBxkHhVNY90I3irQ1psp3cy/waAKYiMAA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707714725; c=relaxed/simple;
-	bh=Inesfow/+o5xS1pMzhZ/lezVf1fXzsERlilchZkTN6E=;
-	h=Mime-Version:Content-Type:Date:Message-Id:Cc:Subject:From:To:
-	 References:In-Reply-To; b=StrILRXzTLXh4fkTSyv3S35Cx+f9SBK+TSq5Hph4ZT8ijt1WD5A0dwp9M+DIxrAN+vCXnwj+V8p7pHZgxXX9IkPvILyDisHY2uCgss6yNiug5l+RMhgXAM+DZWQ7wXIxkisjO/6RboBpVrWC1YYC+6bivmbOuOX0Rv49GOZX/ko=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bPH8JGEm; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1707741442; c=relaxed/simple;
+	bh=rjGem0+Mdx3zMqtsPh+p6M0a+nK87Skeaewc5zcaBZM=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=nCJy6HpePBtCkv2UMKLoZQQSN67YGbl+r8sv2lCspyp3MUdbPf87JffhuUn68vtPVYoAvIv5ly8Yf3jbepni5t9BXJjjPdYREZAxULbduLy4bqIYUy6Cen0jz9eJMGrbWPjhdROvB5yfFAs752gVK7xMA3lyP8JEgE2oFJ8GGq4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=X+ao96Eu; arc=none smtp.client-ip=209.85.221.41
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bPH8JGEm"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 232E2C433C7;
-	Mon, 12 Feb 2024 05:11:59 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1707714724;
-	bh=Inesfow/+o5xS1pMzhZ/lezVf1fXzsERlilchZkTN6E=;
-	h=Date:Cc:Subject:From:To:References:In-Reply-To:From;
-	b=bPH8JGEmOQUUJH8kCoM0AXr8VrwJ1nDOlPP3I3GF0e1ANYesf6SzSYI2AgIQLnkaF
-	 KNrv5iI560dWFuyoTiLoeVVlYma+fgFfYY6QHCYej3KUzFPP8UCQe34xeslf2V6DIK
-	 hWmYMfXjsassBvEaZN4Tv0129KMtyRvqanlHpy/tkS7xeNA2JJQIcMiXQ07wBb66W0
-	 g/BnedkJyc40AAog97Wokaqhw+jfw7ukGZmlS6Dqi/EJ2Q8QP01nMHhGEAQiFfMFzd
-	 XFhWDaXNf+ySOK1PEsAivM0Ce6eM84MgzGLNbPM5dROAb7VHNuU7MnJgotURudWXFO
-	 vGo6Jit3yWYKg==
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="X+ao96Eu"
+Received: by mail-wr1-f41.google.com with SMTP id ffacd0b85a97d-33adec41b55so1672278f8f.0
+        for <nvdimm@lists.linux.dev>; Mon, 12 Feb 2024 04:37:20 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1707741439; x=1708346239; darn=lists.linux.dev;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=RXGczKj3ihT9B0gwlTHeZymBL18MEXnrHdGuOKOcQnQ=;
+        b=X+ao96Eu1lLf+jYGVsz6gOKzs2QNl0uFGMl+eYv4dG56FdKPWvtLscJbknQJ/HGGvX
+         i//ie1OoPpZZnbC+5NSAGUf06F06n4j3YItTcRTfYS7H1OH3dv0BArSKwfxFuapqOptR
+         wrFRvoLctNG89DG5PBsJr3IUWmBRGFpumMCYEzX+EoCwWkozRhphEOvE4BA5SlWBcVXD
+         +sBOgdbaRVX4kpA1+gzhCNqHk5AThJZC7RHZxFBDQoZroMTBpTykcBdZYDLdDSDwNYu9
+         z5YkFk2qBABUftPU0WSQB5+aDGqdW93U0P5rau+fP4J2Uo+qFlX+tWEx5RyRfcgSodIB
+         RG/Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1707741439; x=1708346239;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=RXGczKj3ihT9B0gwlTHeZymBL18MEXnrHdGuOKOcQnQ=;
+        b=ZnoZ4m4gm0a2C5yV6Z+Sd7pF7F8dyjebrJHXEwC7xehIwFpDcPbXMjuKk5EvuD6CG/
+         MB1wNoqTx6wIh+m0HUb8oP2LGI8GgpisnccUZuk6WPBnV4n5X6DCZlS2WPgOqkWq5Bwe
+         /jM+1ZLDTSXdfWl6Z2CdiBMHcZuV1UWzewbU1nSER2+YYXBpJieafM/olyPswizBVoOZ
+         8xRy+ZDHIaYW3e8Vw6iCurI+0PG3GFTef4bldtkoxcHSPkpTKfyAbqx8c4Cqh6MWPVgh
+         SAysiCKBAYiBuc0Yijk4xdcMrdxR3pwInsTK9RohzZDWULWKwp6A0AD4FFAmJhcG1Q39
+         xrOw==
+X-Forwarded-Encrypted: i=1; AJvYcCVPnHtbv1nC/Pv7WnH5e9/PRcdnp4Bnm2viRK/SAbNdODP9b1YgZBSrEjWlra8PdJo+IrWeILIbpF4xKWwKcpnEB79PD6be
+X-Gm-Message-State: AOJu0YzOaEbCUT+HLJNaJLDBo6ALSdXGZOuk5ctyUVeTGt0I9L0IPnUR
+	vO8Z8aL1B5z2XUQGsS3Xtax/5Hp8gqWlNOejMC91ZmM1wJv7D2OB
+X-Google-Smtp-Source: AGHT+IEGqmdLxlHK3dpRs7HNMDVrwhK4UZNuaco4vujaL7RT5dq50AdXd9EwxI4XPPERlmxlPqsJKA==
+X-Received: by 2002:adf:f106:0:b0:33b:8151:5bd1 with SMTP id r6-20020adff106000000b0033b81515bd1mr2032112wro.37.1707741439065;
+        Mon, 12 Feb 2024 04:37:19 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AJvYcCXbvijxeyhqm8MtrIjLqp8beCE2aBE0fWT+MbAgi3CsKyOKT1Os7RDAXazUMdapqNz3acTdUUBz6S/6WILDyrfEbk+ceHXo0rEUVzg7KwM7saDq1xSmz3itU6/OO1N0YXAilkc11oyh/P6PMETlXk28QxvyNyZve6ENbgTMQDFv2ofealxKnR0jM8C/
+Received: from morpheus.home.roving-it.com (8.c.1.0.0.0.0.0.0.0.0.0.0.0.0.0.1.8.6.2.1.1.b.f.0.b.8.0.1.0.0.2.ip6.arpa. [2001:8b0:fb11:2681::1c8])
+        by smtp.googlemail.com with ESMTPSA id ay15-20020a5d6f0f000000b0033b4ebc3c8fsm6897290wrb.2.2024.02.12.04.37.18
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 12 Feb 2024 04:37:18 -0800 (PST)
+From: Peter Robinson <pbrobinson@gmail.com>
+To: Dan Williams <dan.j.williams@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Ira Weiny <ira.weiny@intel.com>,
+	nvdimm@lists.linux.dev
+Cc: Peter Robinson <pbrobinson@gmail.com>
+Subject: [PATCH] libnvdimm: Fix ACPI_NFIT in BLK_DEV_PMEM help
+Date: Mon, 12 Feb 2024 12:37:10 +0000
+Message-ID: <20240212123716.795996-1-pbrobinson@gmail.com>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-Mime-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset=UTF-8
-Date: Mon, 12 Feb 2024 05:11:57 +0000
-Message-Id: <CZ2UCEZ1VT96.2QZE7X8CS8EJ2@seitikki>
-Cc: "Jiang, Dave" <dave.jiang@intel.com>, "linux-integrity@vger.kernel.org"
- <linux-integrity@vger.kernel.org>, "linux-cxl@vger.kernel.org"
- <linux-cxl@vger.kernel.org>, "linux-kernel@vger.kernel.org"
- <linux-kernel@vger.kernel.org>, "keyrings@vger.kernel.org"
- <keyrings@vger.kernel.org>, "linux-security-module@vger.kernel.org"
- <linux-security-module@vger.kernel.org>, "nvdimm@lists.linux.dev"
- <nvdimm@lists.linux.dev>
-Subject: Re: [PATCH] KEYS: encrypted: Add check for strsep
-From: "Jarkko Sakkinen" <jarkko@kernel.org>
-To: "Mimi Zohar" <zohar@linux.ibm.com>, "Dan Williams"
- <dan.j.williams@intel.com>, "Verma, Vishal L" <vishal.l.verma@intel.com>,
- "paul@paul-moore.com" <paul@paul-moore.com>, "dhowells@redhat.com"
- <dhowells@redhat.com>, "yaelt@google.com" <yaelt@google.com>,
- "serge@hallyn.com" <serge@hallyn.com>, "nichen@iscas.ac.cn"
- <nichen@iscas.ac.cn>, "sumit.garg@linaro.org" <sumit.garg@linaro.org>,
- "jmorris@namei.org" <jmorris@namei.org>
-X-Mailer: aerc 0.15.2
-References: <20231108073627.1063464-1-nichen@iscas.ac.cn>
- <4d3465b48b9c5a87deb385b15bf5125fc1704019.camel@intel.com>
- <e3275c0cfe21d75e0d71ea3fc24a31252efc9ad6.camel@linux.ibm.com>
- <e3b1a5e532ed86e674385abc4812c5a774f851d4.camel@intel.com>
- <49c48e3e96bf0f5ebef14e7328cc8a6ca6380e08.camel@linux.ibm.com>
- <50c2fa781e3266ee8151afdef5a8659d63ca952e.camel@intel.com>
- <CYS7QMYS8XAJ.2QPI3MS5KXK8E@suppilovahvero>
- <CYS7WMFLXNE1.35OBTKTONKNX3@suppilovahvero>
- <65b93f2b3099b_5cc6f29453@dwillia2-mobl3.amr.corp.intel.com.notmuch>
- <CYU2JV57VXA9.3C5QTG4LX50TD@suppilovahvero>
- <d0ccd2f19ed1adccc8f3dfe677c30bc44feb3d36.camel@linux.ibm.com>
-In-Reply-To: <d0ccd2f19ed1adccc8f3dfe677c30bc44feb3d36.camel@linux.ibm.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-On Fri Feb 2, 2024 at 12:05 AM UTC, Mimi Zohar wrote:
-> On Thu, 2024-02-01 at 23:43 +0200, Jarkko Sakkinen wrote:
-> > On Tue Jan 30, 2024 at 8:25 PM EET, Dan Williams wrote:
-> > > Jarkko Sakkinen wrote:
-> > > > On Tue Jan 30, 2024 at 7:22 PM EET, Jarkko Sakkinen wrote:
-> > > > > On Wed Jan 24, 2024 at 11:10 PM EET, Verma, Vishal L wrote:
-> > > > > > On Wed, 2024-01-24 at 15:40 -0500, Mimi Zohar wrote:
-> > > > > > > On Wed, 2024-01-24 at 20:10 +0000, Verma, Vishal L wrote:
-> > > > > > > > Ah, thanks for confirming! Would you like me to send a
-> > > > > > > > revert patch or
-> > > > > > > > will you do it?
-> > > > > > >=20
-> > > > > > > Revert "KEYS: encrypted: Add check for strsep"
-> > > > > > >    =20
-> > > > > > > This reverts commit
-> > > > > > > b4af096b5df5dd131ab796c79cedc7069d8f4882.
-> > > > > > >    =20
-> > > > > > > New encrypted keys are created either from kernel-generated=
-=20
-> > > > > > > random
-> > > > > > > numbers or user-provided decrypted data.  Revert the change
-> > > > > > > requiring
-> > > > > > > user-provided decrypted data.
-> > > > > > >=20
-> > > > > > >=20
-> > > > > > > Can I add your Reported-by?
-> > > > > >=20
-> > > > > > Yes that works, Thank you.
-> > > > >=20
-> > > > > This went totally wrong IMHO.
-> > > > >=20
-> > > > > Priority should be to locate and fix the bug not revert useful
-> > > > > stuff
-> > > > > when a bug is found that has limited scope.
-> > > >=20
-> > > > By guidelines here the commit is also a bug fix and reverting
-> > > > such commit means seeding a bug to the mainline. Also the klog
-> > > > message alone is a bug fix here. So also by book it really has
-> > > > to come back as it was already commit because we cannot
-> > > > knowingly mount bugs to the mainline, right?
-> > >=20
-> > > No, the commit broke userspace. The rule is do not cause
-> > > regressions
-> > > even if userspace is abusing the ABI in an undesirable way. Even
-> > > the
-> > > new pr_info() is a log spamming behavior change, a pr_debug() might
-> > > be
-> > > suitable, but otherwise a logic change here needs a clear
-> > > description
-> > > about what is broken about the old userspace behavior and why the
-> > > kernel
-> > > can not possibly safely handle it.
-> >=20
-> > The rationale literally gives empirical proof that the log message
-> > is useful by measure. It would be useless if log level is decreased
-> > to debug, as then sysadmin's won't take notice. I don't really know
-> > what is the definition of "spam" here but at least for me actually
-> > useful log message are not in that category.
-> >=20
-> > Issue was legit but git revert is objectively an incorrect way to
-> > address the bug.
->
-> No, I made a mistake in upstreaming the patch in the first place.  It
-> broke the original "encrypted" keys usage.  Reverting it was the
-> correct solution.
->
-> Mimi
+The ACPI_NFIT config option is described incorrectly as the
+inverse NFIT_ACPI, which doesn't exist, so update the help
+to the actual config option.
 
-The way I see it the semantic change caused the bug because it was not
-backwards compatible. That does not make the log message less useful.
+Fixes: 18da2c9ee41a0 ("libnvdimm, pmem: move pmem to drivers/nvdimm/")
+Signed-off-by: Peter Robinson <pbrobinson@gmail.com>
+---
+ drivers/nvdimm/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-BR, Jarkko
+diff --git a/drivers/nvdimm/Kconfig b/drivers/nvdimm/Kconfig
+index 77b06d54cc62e..fde3e17c836c8 100644
+--- a/drivers/nvdimm/Kconfig
++++ b/drivers/nvdimm/Kconfig
+@@ -24,7 +24,7 @@ config BLK_DEV_PMEM
+ 	select ND_PFN if NVDIMM_PFN
+ 	help
+ 	  Memory ranges for PMEM are described by either an NFIT
+-	  (NVDIMM Firmware Interface Table, see CONFIG_NFIT_ACPI), a
++	  (NVDIMM Firmware Interface Table, see CONFIG_ACPI_NFIT), a
+ 	  non-standard OEM-specific E820 memory type (type-12, see
+ 	  CONFIG_X86_PMEM_LEGACY), or it is manually specified by the
+ 	  'memmap=nn[KMG]!ss[KMG]' kernel command line (see
+-- 
+2.43.0
+
