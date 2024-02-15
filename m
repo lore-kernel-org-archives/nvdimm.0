@@ -1,55 +1,59 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+Received: from smtpout.efficios.com (smtpout.efficios.com [167.114.26.122])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0639813AC6;
-	Thu, 15 Feb 2024 07:11:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14F2F12FB27;
+	Thu, 15 Feb 2024 14:43:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=167.114.26.122
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707981088; cv=none; b=bmVHDbeJFDoN8yZTpPuOEnEE+4OOxgho+YQAU2gLFLS8iCY56K5mXjRKFp9svoB5OiI+REhhXjyfN8lFXQY9fMga7Nu6LuoA523hUfutnvnAmTuSnr7Hik3I/kVS6J/e00HoXppGLfAfY5UY4fYUH/oE+4Mz+SmvGIdrQveU6Js=
+	t=1708008226; cv=none; b=F9YS7W2MWRB6oJttrQp567zlyIU/7pMQWEgzMSZ0PnBKOXOC7KoWecjSKr23FLQ5fB4OlaQYs1hXXoKHAINq9EsqlRyh5Si65yYC+Ujcw8TUVveg9T2+mJKGc3bMeSYPOarMkkry9qsGRpv0alOdlQOZz5gLqy9E9YwPNIvvxXU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707981088; c=relaxed/simple;
-	bh=mUQ6qR1VcZlsa80hsbyzs7x83EgfVJ4CEIp0+7G3LpU=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=R54v/UBjXUPimX2+G83UpCumGNTF3wm4osd66oY0CJXs1TtAa++PBY5OXddPbEUFvNcfBTn+QnE739PlYDShgm/qD92NWwVZpozzB6wDU5pbdQ1HuRVa4CtDVg+hqA61wTM4ObKV+tHNWpfAuYUv0/n0Dd6aq17yh88eQXTGHJk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lst.de; spf=none smtp.mailfrom=bombadil.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=4wIQuCo0; arc=none smtp.client-ip=198.137.202.133
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lst.de
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org
+	s=arc-20240116; t=1708008226; c=relaxed/simple;
+	bh=ln3eEO71W6a/HB4BpqVFvAzjOL06V7sQyyqCuiIm4o8=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=e4+tHHMsOm3J5P1+tOWwC9s0mF0mWQwuWQJCSFflk5uADX/lFuotGV1hPSR2MC+VxpoXkdbkl6Hs/ggq5erFIaVak/bukIoITRbqanMHI1mAaEnyfJIYO3T+VOhno22nMdqhg6Bbq6qaqzxObk2fD8eOzg0r1AJ7VDtPgXAxgBM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com; spf=pass smtp.mailfrom=efficios.com; dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b=mFnMCnWW; arc=none smtp.client-ip=167.114.26.122
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=efficios.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="4wIQuCo0"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-	MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender
-	:Reply-To:Content-Type:Content-ID:Content-Description;
-	bh=pnXzo7LJP4uipI+1tMWvmV+hmJq5LEF/ccT/cYRw3UY=; b=4wIQuCo0hhJt0bS8FfIcEoZZzg
-	ppDkiLp2/RwrR7jhZsmfYuTLoywwRD7OpxAIDDHEmOBuNxTDzEi+84LSTFxLs+8q3nJgBaIE/fMB4
-	RhKGO2PThpNXLNSQhocr7Sv7J1GRW14WyLt7HIYH7wicxN7tlQnQgDPcVO4vFBdt3pAD7xRZGd/mo
-	Y5Q5HZ+CrksXeQdJn4DzYFUuuS8pcS88oZGhep/ECjpRENt6XkdCtt9LYAuLz/Gf8DDOw70dCUC+G
-	6ITMc2vpGjJ3DD3EBUBFpyYPLDrAZAiAf+a4XpP1e3NLdKLm3ib7rQxabPjeA7MFQ9gsoLAolOnlb
-	7irv8ecw==;
-Received: from 2a02-8389-2341-5b80-39d3-4735-9a3c-88d8.cable.dynamic.v6.surfer.at ([2a02:8389:2341:5b80:39d3:4735:9a3c:88d8] helo=localhost)
-	by bombadil.infradead.org with esmtpsa (Exim 4.97.1 #2 (Red Hat Linux))
-	id 1raVu1-0000000FCbr-0TlZ;
-	Thu, 15 Feb 2024 07:11:25 +0000
-From: Christoph Hellwig <hch@lst.de>
-To: Jens Axboe <axboe@kernel.dk>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
-	Minchan Kim <minchan@kernel.org>,
-	Sergey Senozhatsky <senozhatsky@chromium.org>,
-	Coly Li <colyli@suse.de>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dan Williams <dan.j.williams@intel.com>,
+	dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b="mFnMCnWW"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=efficios.com;
+	s=smtpout1; t=1708008217;
+	bh=ln3eEO71W6a/HB4BpqVFvAzjOL06V7sQyyqCuiIm4o8=;
+	h=From:To:Cc:Subject:Date:From;
+	b=mFnMCnWWSY/oz3cfgAglZzFkfce2dfZOYQ36NDRHuc70+Pbjjz2mWVQ6nWjD+rPZ1
+	 WnE4nMw6J5orU72fJQAg/GCstx2ZUapfZLe/PMqhyMNtmgHWX0clQFg34C+3CaNZyU
+	 1ly9rs6uD/lKyBlOHw6VZLJ05n39hjoOnRBll8RamfKOswbZWOhR28yN9vBd3pb8Vj
+	 hAoDrvplCH3rEk/qakzkdJgoqBMHOgnUMi8nxxYB9SB4+g81R+ABljrhLqNo17Tk/K
+	 wyk1n6kXqRHB/uXMNwYIuDE3W3Aj7ZZxG3nVplBs4j48GYzaE1PzLbw2SKxoFY1M/z
+	 YKY+fj3hAQcJQ==
+Received: from thinkos.internal.efficios.com (192-222-143-198.qc.cable.ebox.net [192.222.143.198])
+	by smtpout.efficios.com (Postfix) with ESMTPSA id 4TbHqs08r0zZD5;
+	Thu, 15 Feb 2024 09:43:37 -0500 (EST)
+From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+To: Dan Williams <dan.j.williams@intel.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Dave Chinner <david@fromorbit.com>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
 	Dave Jiang <dave.jiang@intel.com>,
-	Ira Weiny <ira.weiny@intel.com>,
-	linux-m68k@lists.linux-m68k.org,
-	linux-bcache@vger.kernel.org,
-	nvdimm@lists.linux.dev,
-	linux-block@vger.kernel.org
-Subject: [PATCH 9/9] dcssblk: pass queue_limits to blk_mq_alloc_disk
-Date: Thu, 15 Feb 2024 08:10:55 +0100
-Message-Id: <20240215071055.2201424-10-hch@lst.de>
+	Fan Ni <fan.ni@samsung.com>,
+	Alasdair Kergon <agk@redhat.com>,
+	Mike Snitzer <snitzer@kernel.org>,
+	Mikulas Patocka <mpatocka@redhat.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Matthew Wilcox <willy@infradead.org>,
+	Russell King <linux@armlinux.org.uk>,
+	linux-arch@vger.kernel.org,
+	linux-cxl@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org,
+	linux-mm@kvack.org,
+	linux-xfs@vger.kernel.org,
+	dm-devel@lists.linux.dev,
+	nvdimm@lists.linux.dev
+Subject: [PATCH v2] nvdimm/pmem: Fix leak on dax_add_host() failure
+Date: Thu, 15 Feb 2024 09:43:24 -0500
+Message-Id: <20240215144324.95436-1-mathieu.desnoyers@efficios.com>
 X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20240215071055.2201424-1-hch@lst.de>
-References: <20240215071055.2201424-1-hch@lst.de>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -57,47 +61,62 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 
-Pass the queue limits directly to blk_alloc_disk instead of setting them
-one at a time.
+Fix a leak on dax_add_host() error, where "goto out_cleanup_dax" is done
+before setting pmem->dax_dev, which therefore issues the two following
+calls on NULL pointers:
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+out_cleanup_dax:
+        kill_dax(pmem->dax_dev);
+        put_dax(pmem->dax_dev);
+
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+Reviewed-by: Fan Ni <fan.ni@samsung.com>
+Cc: Alasdair Kergon <agk@redhat.com>
+Cc: Mike Snitzer <snitzer@kernel.org>
+Cc: Mikulas Patocka <mpatocka@redhat.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: linux-arch@vger.kernel.org
+Cc: linux-cxl@vger.kernel.org
+Cc: linux-fsdevel@vger.kernel.org
+Cc: linux-mm@kvack.org
+Cc: linux-xfs@vger.kernel.org
+Cc: dm-devel@lists.linux.dev
+Cc: nvdimm@lists.linux.dev
 ---
- drivers/s390/block/dcssblk.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+Changes since v1:
+- Add Reviewed-by tags.
+---
+ drivers/nvdimm/pmem.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
-index 0903b432ea9740..9c8f529b827cb3 100644
---- a/drivers/s390/block/dcssblk.c
-+++ b/drivers/s390/block/dcssblk.c
-@@ -546,6 +546,9 @@ static const struct attribute_group *dcssblk_dev_attr_groups[] = {
- static ssize_t
- dcssblk_add_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
- {
-+	struct queue_limits lim = {
-+		.logical_block_size	= 4096,
-+	};
- 	int rc, i, j, num_of_segments;
- 	struct dcssblk_dev_info *dev_info;
- 	struct segment_info *seg_info, *temp;
-@@ -629,7 +632,7 @@ dcssblk_add_store(struct device *dev, struct device_attribute *attr, const char
- 	dev_info->dev.release = dcssblk_release_segment;
- 	dev_info->dev.groups = dcssblk_dev_attr_groups;
- 	INIT_LIST_HEAD(&dev_info->lh);
--	dev_info->gd = blk_alloc_disk(NULL, NUMA_NO_NODE);
-+	dev_info->gd = blk_alloc_disk(&lim, NUMA_NO_NODE);
- 	if (IS_ERR(dev_info->gd)) {
- 		rc = PTR_ERR(dev_info->gd);
- 		goto seg_list_del;
-@@ -639,7 +642,6 @@ dcssblk_add_store(struct device *dev, struct device_attribute *attr, const char
- 	dev_info->gd->fops = &dcssblk_devops;
- 	dev_info->gd->private_data = dev_info;
- 	dev_info->gd->flags |= GENHD_FL_NO_PART;
--	blk_queue_logical_block_size(dev_info->gd->queue, 4096);
- 	blk_queue_flag_set(QUEUE_FLAG_DAX, dev_info->gd->queue);
- 
- 	seg_byte_size = (dev_info->end - dev_info->start + 1);
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 4e8fdcb3f1c8..9fe358090720 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -566,12 +566,11 @@ static int pmem_attach_disk(struct device *dev,
+ 	set_dax_nomc(dax_dev);
+ 	if (is_nvdimm_sync(nd_region))
+ 		set_dax_synchronous(dax_dev);
++	pmem->dax_dev = dax_dev;
+ 	rc = dax_add_host(dax_dev, disk);
+ 	if (rc)
+ 		goto out_cleanup_dax;
+ 	dax_write_cache(dax_dev, nvdimm_has_cache(nd_region));
+-	pmem->dax_dev = dax_dev;
+-
+ 	rc = device_add_disk(dev, disk, pmem_attribute_groups);
+ 	if (rc)
+ 		goto out_remove_host;
 -- 
 2.39.2
 
