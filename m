@@ -1,34 +1,34 @@
 Received: from smtpout.efficios.com (smtpout.efficios.com [167.114.26.122])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F181132C15;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C479F132C19;
 	Thu, 15 Feb 2024 14:46:42 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=167.114.26.122
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708008404; cv=none; b=EvwBmDJ4PzRvQXKHxLqiqRbANRbojkc7uJeB0FVuwZAwy/i7qZ7AfmPqMZIIqM8OCQYfkuWTIf0Zbmtgm/BgJrNTPEPMkfYwdjXm26EmLaEfbIER/JvSTycALZnOeBmvu0esoXRNR+AAc2y/GMTItRJxIOJu6f0pUpjZkzSJqJY=
+	t=1708008404; cv=none; b=YNe6YbCYQORKwN+AK94HRG1NoMabsoQqGacL9JcCc2KQnY1/2aVmbRs4fVPOiUcvnWrzXdqprSnoUgewhyIWJPA2g70wqsbjJZ3pp7BNcDtZYsvcAilyAgYudOKAr8Zyu/xNbwq2pw0cjoHbohbkZW6xy7rlZCg34zpld3WNckI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1708008404; c=relaxed/simple;
-	bh=xPtmgWiHU56eIOTTAS+sj/oIA68ksqZ/i5VE/RwV8cI=;
+	bh=+A5CzyStXl3uuRu7VAvAaofgyGw3Ro+0xr6rIKIjCf8=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=AAl3N9AO2r/NAqnQqV0p1/KNDmc2OLES/ANHaMqbwdVGmMzI63pL8AAyaMDQIj+eX967qL3lsHZt5NamInorkTvyxch9LAq3+VjOZCYzUmzXYVb2JZ5IC8DahuMWO2nj5sttHLJJRTS8L8Fu611fXVFxXfExfHtXIRTsZnT8UXU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com; spf=pass smtp.mailfrom=efficios.com; dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b=vDjxseM3; arc=none smtp.client-ip=167.114.26.122
+	 MIME-Version; b=QRnjYG8S07IIbf/tGJ/FQ+kMSKj23aD6vHoTxOoYIxMvslkqCrSrUNDTMqhr5SvaEWeWqktuBLAZF03uUTgJCP1kfg3HZWKjf+Ws0uvpNFxEcfK3f/wKNKsoNBZn4zEEWGd9cjgHPJF2bXabH3bnkZ6azMbkqtGu/t0UakJUJOI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com; spf=pass smtp.mailfrom=efficios.com; dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b=YtP1iOrG; arc=none smtp.client-ip=167.114.26.122
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=efficios.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b="vDjxseM3"
+	dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b="YtP1iOrG"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=efficios.com;
 	s=smtpout1; t=1708008401;
-	bh=xPtmgWiHU56eIOTTAS+sj/oIA68ksqZ/i5VE/RwV8cI=;
+	bh=+A5CzyStXl3uuRu7VAvAaofgyGw3Ro+0xr6rIKIjCf8=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=vDjxseM3uGoNZMHp7D3FWbwVNMSAeAHOAkwaIfhUFXeFVtAl7YV0zsfJqedaxBmDF
-	 HghiT/IcBK1PufFC4feeduBoLz3Gp/8+aCkduAWpCMuH6F5jrejmF7Yp4EmaKhhPkl
-	 9pSgL1Hoe/1ufK5c+NUXcvwSCQpEvArM7OhGazL/cnqD32qDqsfp/xlaytSQHIAH6e
-	 0p6b0AtWXgLOH1Aj0000Jk7R+51JOUBfKQXKvzzNkvQ8aKQknVyur2HPUJUtJVdE4r
-	 Xxz4siQNkEmiX0+78ojo8dlyKb0loVQa96kddJLDm9aaErHKKPMSEeWOuWwPtv+x3v
-	 dfur/tcl6otfQ==
+	b=YtP1iOrGBZ2DFcfkMrFn0KrohYHueOZWWxnb1yMeBkD/1lvsW2xGteSYalPZKSM84
+	 dPZuexmp1ywRE4ZTQOjFAgKyIAvz+xWNg3zjhDySnvi/5JJ+HqV6yNHbJnIgA2V+Cz
+	 LrEIdoTvdqClLxE1CDwMu7BvH4kU+HynYTL8FGvWqQVF+ZUtTFmBtps3Fll4hy5iYb
+	 VWfnhivvj+Lue04BRQYIzFUyJj/QJixaTtTpM98rtcdyFCecmfELtoqdx9qmJ4d3Cn
+	 Wpo8Zfth0EElxlDfWMpTqDJD6h2d2p2Z/MvkLxve0QsVGqva4CwWkicSMaV5TpJXl8
+	 BS4uFSpfm9ZuQ==
 Received: from thinkos.internal.efficios.com (192-222-143-198.qc.cable.ebox.net [192.222.143.198])
-	by smtpout.efficios.com (Postfix) with ESMTPSA id 4TbHvN67LPzZS8;
-	Thu, 15 Feb 2024 09:46:40 -0500 (EST)
+	by smtpout.efficios.com (Postfix) with ESMTPSA id 4TbHvP59RfzZKm;
+	Thu, 15 Feb 2024 09:46:41 -0500 (EST)
 From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 To: Dan Williams <dan.j.williams@intel.com>,
 	Arnd Bergmann <arnd@arndb.de>,
@@ -48,14 +48,10 @@ Cc: linux-kernel@vger.kernel.org,
 	linux-xfs@vger.kernel.org,
 	dm-devel@lists.linux.dev,
 	nvdimm@lists.linux.dev,
-	linux-s390@vger.kernel.org,
-	Heiko Carstens <hca@linux.ibm.com>,
-	Alasdair Kergon <agk@redhat.com>,
-	Mike Snitzer <snitzer@kernel.org>,
-	Mikulas Patocka <mpatocka@redhat.com>
-Subject: [PATCH v6 5/9] dcssblk: Handle alloc_dax() -EOPNOTSUPP failure
-Date: Thu, 15 Feb 2024 09:46:29 -0500
-Message-Id: <20240215144633.96437-6-mathieu.desnoyers@efficios.com>
+	linux-s390@vger.kernel.org
+Subject: [PATCH v6 7/9] dax: Check for data cache aliasing at runtime
+Date: Thu, 15 Feb 2024 09:46:31 -0500
+Message-Id: <20240215144633.96437-8-mathieu.desnoyers@efficios.com>
 X-Mailer: git-send-email 2.39.2
 In-Reply-To: <20240215144633.96437-1-mathieu.desnoyers@efficios.com>
 References: <20240215144633.96437-1-mathieu.desnoyers@efficios.com>
@@ -67,21 +63,25 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-In preparation for checking whether the architecture has data cache
-aliasing within alloc_dax(), modify the error handling of dcssblk
-dcssblk_add_store() to handle alloc_dax() -EOPNOTSUPP failures.
+Replace the following fs/Kconfig:FS_DAX dependency:
 
-Considering that s390 is not a data cache aliasing architecture,
-and considering that DCSSBLK selects DAX, a return value of -EOPNOTSUPP
-from alloc_dax() should make dcssblk_add_store() fail.
+  depends on !(ARM || MIPS || SPARC)
+
+By a runtime check within alloc_dax(). This runtime check returns
+ERR_PTR(-EOPNOTSUPP) if the @ops parameter is non-NULL (which means
+the kernel is using an aliased mapping) on an architecture which
+has data cache aliasing.
+
+Change the return value from NULL to PTR_ERR(-EOPNOTSUPP) for
+CONFIG_DAX=n for consistency.
+
+This is done in preparation for using cpu_dcache_is_aliasing() in a
+following change which will properly support architectures which detect
+data cache aliasing at runtime.
 
 Fixes: d92576f1167c ("dax: does not work correctly with virtual aliasing caches")
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Acked-by: Heiko Carstens <hca@linux.ibm.com>
-Cc: Alasdair Kergon <agk@redhat.com>
-Cc: Mike Snitzer <snitzer@kernel.org>
-Cc: Mikulas Patocka <mpatocka@redhat.com>
 Cc: Andrew Morton <akpm@linux-foundation.org>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Dan Williams <dan.j.williams@intel.com>
@@ -97,42 +97,44 @@ Cc: linux-mm@kvack.org
 Cc: linux-xfs@vger.kernel.org
 Cc: dm-devel@lists.linux.dev
 Cc: nvdimm@lists.linux.dev
-Cc: linux-s390@vger.kernel.org
 ---
- drivers/s390/block/dcssblk.c | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ drivers/dax/super.c | 10 ++++++++++
+ fs/Kconfig          |  1 -
+ 2 files changed, 10 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
-index 4b7ecd4fd431..f363c1d51d9a 100644
---- a/drivers/s390/block/dcssblk.c
-+++ b/drivers/s390/block/dcssblk.c
-@@ -549,6 +549,7 @@ dcssblk_add_store(struct device *dev, struct device_attribute *attr, const char
- 	int rc, i, j, num_of_segments;
- 	struct dcssblk_dev_info *dev_info;
- 	struct segment_info *seg_info, *temp;
-+	struct dax_device *dax_dev;
- 	char *local_buf;
- 	unsigned long seg_byte_size;
+diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+index 205b888d45bf..ce5bffa86bba 100644
+--- a/drivers/dax/super.c
++++ b/drivers/dax/super.c
+@@ -450,6 +450,16 @@ struct dax_device *alloc_dax(void *private, const struct dax_operations *ops)
+ 	dev_t devt;
+ 	int minor;
  
-@@ -677,13 +678,13 @@ dcssblk_add_store(struct device *dev, struct device_attribute *attr, const char
- 	if (rc)
- 		goto put_dev;
++	/*
++	 * Unavailable on architectures with virtually aliased data caches,
++	 * except for device-dax (NULL operations pointer), which does
++	 * not use aliased mappings from the kernel.
++	 */
++	if (ops && (IS_ENABLED(CONFIG_ARM) ||
++	    IS_ENABLED(CONFIG_MIPS) ||
++	    IS_ENABLED(CONFIG_SPARC)))
++		return ERR_PTR(-EOPNOTSUPP);
++
+ 	if (WARN_ON_ONCE(ops && !ops->zero_page_range))
+ 		return ERR_PTR(-EINVAL);
  
--	dev_info->dax_dev = alloc_dax(dev_info, &dcssblk_dax_ops);
--	if (IS_ERR(dev_info->dax_dev)) {
--		rc = PTR_ERR(dev_info->dax_dev);
--		dev_info->dax_dev = NULL;
-+	dax_dev = alloc_dax(dev_info, &dcssblk_dax_ops);
-+	if (IS_ERR(dax_dev)) {
-+		rc = PTR_ERR(dax_dev);
- 		goto put_dev;
- 	}
--	set_dax_synchronous(dev_info->dax_dev);
-+	set_dax_synchronous(dax_dev);
-+	dev_info->dax_dev = dax_dev;
- 	rc = dax_add_host(dev_info->dax_dev, dev_info->gd);
- 	if (rc)
- 		goto out_dax;
+diff --git a/fs/Kconfig b/fs/Kconfig
+index 42837617a55b..e5efdb3b276b 100644
+--- a/fs/Kconfig
++++ b/fs/Kconfig
+@@ -56,7 +56,6 @@ endif # BLOCK
+ config FS_DAX
+ 	bool "File system based Direct Access (DAX) support"
+ 	depends on MMU
+-	depends on !(ARM || MIPS || SPARC)
+ 	depends on ZONE_DEVICE || FS_DAX_LIMITED
+ 	select FS_IOMAP
+ 	select DAX
 -- 
 2.39.2
 
