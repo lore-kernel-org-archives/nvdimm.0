@@ -1,83 +1,124 @@
-Received: from mail-pg1-f175.google.com (mail-pg1-f175.google.com [209.85.215.175])
+Received: from mail-io1-f54.google.com (mail-io1-f54.google.com [209.85.166.54])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF1D32C6AA
-	for <nvdimm@lists.linux.dev>; Mon, 19 Feb 2024 12:04:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.175
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1675D2E642
+	for <nvdimm@lists.linux.dev>; Mon, 19 Feb 2024 12:46:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708344288; cv=none; b=aF0NTguPwFAQFdbGLlk39ynEQUJz8MqmFsdrP0icCAqh42fejGRFN+r0FcJ6gXuksqGXKVwTncpUV2KfxX5+ShOoj3W8kmsINU+iaaW3ekgSqwnaDnqqpvmkMPeLijGNqHXc9s9lv7E2xtI7MzDCaxcPaQz5iW4bF5CDxgPIUR0=
+	t=1708346805; cv=none; b=sG0Hqt9nxKtDZmSH0P8sct8i+VshaLjlRxH3PNQiLbqJ0mhqsnf/EqGFTFXAU3Q6gdcmtp/ap4WbAcan9DD4pPCgEwiK5emOmkAe5msiHI55FNGqHYr2SGstOZElCUePCV1oq5BHPPSnFufbsJBvcKj2nwYQCzosC1HXTwzp//4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708344288; c=relaxed/simple;
-	bh=zDbj09vXhQ9a99MHLCKO+w+Rwn+2vxV620SpE5+aZl8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ivI8o/Nnd/PVp3MeitT8QU1oGMuccHStKHRPOD/UMWasWcwQa7wnoNNK9pFm/CXPQyRtL1VnCQyUxwHRiXd6ayeo6xN3VxkEdfS7xE+QBafZYfIx91qX138HqkRMJByDR9AzKFGegYTxwZ8ZwXeF40M0dqcdrQdRm7G0GZxcjpg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=jmLb9bxr; arc=none smtp.client-ip=209.85.215.175
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
+	s=arc-20240116; t=1708346805; c=relaxed/simple;
+	bh=v2tFgPh2DhrAkjf4HRKnQQBDaVpePm8Gb5zL34pd/k4=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=C8z0kQueI743SWtoyg1kCP3rYCZo6z2xzC4HLrDRTYvxBy4cwWsyMfkM1v2DaxBqmN7GH/G4AHWvQGAWVnSDoHuh65WsYEqN7DnFlWUAMa48vPjNzewnFI3O3gKz7b4CiDe70YwfB2Ao2atY9df2ExqKEautZqnfdgVx+RfnrNE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=marliere.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=marliere.net header.i=@marliere.net header.b=catl75rC; arc=none smtp.client-ip=209.85.166.54
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=marliere.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="jmLb9bxr"
-Received: by mail-pg1-f175.google.com with SMTP id 41be03b00d2f7-5d3912c9a83so3142161a12.3
-        for <nvdimm@lists.linux.dev>; Mon, 19 Feb 2024 04:04:46 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1708344286; x=1708949086; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=UD0Q+YuM0aYncw1zT/Ixj8YCSgfiS1s5vMLj9q2v0Ag=;
-        b=jmLb9bxrRNpL4upcKC/2wskOhhtI+tItNusSFzNh7zU62MixDxXjv+Rgupa4D69Fw3
-         cyU4QyIJSl5UhWiYXu0Z/qDoKbcC2tyvEyMtWCvmku3OYG7D3LIOx+t7E0pdlIEU3Wwg
-         fnu/mGJW4TpYBAJPOhQCPQHajtI5fIz9pDwyE=
+	dkim=pass (2048-bit key) header.d=marliere.net header.i=@marliere.net header.b="catl75rC"
+Received: by mail-io1-f54.google.com with SMTP id ca18e2360f4ac-7c48ef54d9bso72129939f.2
+        for <nvdimm@lists.linux.dev>; Mon, 19 Feb 2024 04:46:43 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1708344286; x=1708949086;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+        d=1e100.net; s=20230601; t=1708346803; x=1708951603;
+        h=cc:to:message-id:content-transfer-encoding:mime-version:subject
+         :date:dkim-signature:from:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=UD0Q+YuM0aYncw1zT/Ixj8YCSgfiS1s5vMLj9q2v0Ag=;
-        b=O18ygKGHh0jycVKEm1cc4YYk0AyIudFeeQWfh63+gGy13aFvx6FfvY2W1I4futdj+v
-         SnsgZKLXpQ7GwGsa6jr2TQJTGBRxXkCNRrsOSB9xNCkHVSKq+XpxY7pDPvwoe5hhkpsn
-         wQe4v+4qkocCy2/P6mohzqeF41Ny33jn73hC1RSVI7ztQzercCQ63HmSBSKpPQe0m3vb
-         paxa55+MnbVTAfWsJvtwlvOBPdudmwO1Lw8dTYeZieHYG7HoEflxgVt1XeyfGlJOSlSw
-         ntxNiBwkAoti7HcvkMl9mgOLVWWGHWn7ah43IuhmtPUFPbjqQKurU9TO3FwH6pFU9iVj
-         y9OQ==
-X-Forwarded-Encrypted: i=1; AJvYcCVFLLqnRWpfDfb6x6WtTpBbkTn98bFdiNp/ITfqJQBR9F5Qn88P4It0+MvHwKA+5WSf7wp19BCuTGvpei2ZW+qAqudzAkMj
-X-Gm-Message-State: AOJu0YzndGKSEp6nTezD5C7NCI26R/mu5S31ZHyNroYZchprs+HSfMCk
-	qtvowoNKkRwECea31yvQ4+e88Al19ynwzxOn/AEo8JxJiR2+7TqiNG2t3Sz2Yw==
-X-Google-Smtp-Source: AGHT+IGI3q8seWzsit4w49RmDdpR7qXA23sSQ+6AKRh25Sx/UF2Jg2gSUuWiILezaNCe3BsJyRg1Qg==
-X-Received: by 2002:a17:90b:607:b0:299:69c9:da3b with SMTP id gb7-20020a17090b060700b0029969c9da3bmr2641050pjb.38.1708344286161;
-        Mon, 19 Feb 2024 04:04:46 -0800 (PST)
-Received: from google.com ([2401:fa00:8f:203:8998:e92c:64ca:f09f])
-        by smtp.gmail.com with ESMTPSA id sl14-20020a17090b2e0e00b00296d9c4d5f0sm5125314pjb.10.2024.02.19.04.04.43
+        bh=uFMPdkgeHy68/bLzT3L6tHn2KP/MczRpQvVLvaFtrj4=;
+        b=xN/ZdRAqcqxunjgCORNhVP4Gtd6d2wUj3zaX0re+ZmOyOc6IqoOxQiT8slTHCgrv3t
+         w5vKwC+7cVjYNVxOkZfY7CN3hGWiFZ6OebfgiDPwTfk4psJIe3Xa3QOdJvgf/toCo5eH
+         bwzrwHwk/pWVTnsd95bARXhqEhMIModBxUxqEJg0oUH0E1+12vbH+sX0iAXgZGnECVQJ
+         8T2aRzLgzsMV0e1kI+85rDuzdCpHF9I4/vr2TtXPu5uMs87BEJPnB/uxC75bS24pqKnY
+         Oc8Mt9aabwB1kGzpzCuF4IxhCDVm+n1rTuM6qoh0HlHogjpK0/sRulP2GtxXv7YpzVFv
+         IqVA==
+X-Gm-Message-State: AOJu0YxG6Efrqyk5WBwpA3cgF4251GdoR9LwpXUT2gfTg/LvTuSmWVpC
+	kjA3gSmYfqM2HZCosH6x6qA4uuScGdxD51RGGj83Q0HsiHVraERU3mKSpWSTokFecg==
+X-Google-Smtp-Source: AGHT+IGCLb6KiMGde4xcC/pcOu5ZQ5eZTdo8F9PXSJUMlMi1DIS656NNPvo+M7N9oD6G3/0AN4wV/g==
+X-Received: by 2002:a92:d9d0:0:b0:365:1a08:2425 with SMTP id n16-20020a92d9d0000000b003651a082425mr6005967ilq.30.1708346803092;
+        Mon, 19 Feb 2024 04:46:43 -0800 (PST)
+Received: from mail.marliere.net ([24.199.118.162])
+        by smtp.gmail.com with ESMTPSA id p11-20020a63fe0b000000b005c6617b52e6sm4651467pgh.5.2024.02.19.04.46.42
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 19 Feb 2024 04:04:45 -0800 (PST)
-Date: Mon, 19 Feb 2024 21:04:40 +0900
-From: Sergey Senozhatsky <senozhatsky@chromium.org>
-To: Christoph Hellwig <hch@lst.de>
-Cc: Jens Axboe <axboe@kernel.dk>, Geert Uytterhoeven <geert@linux-m68k.org>,
-	Minchan Kim <minchan@kernel.org>,
-	Sergey Senozhatsky <senozhatsky@chromium.org>,
-	Coly Li <colyli@suse.de>, Vishal Verma <vishal.l.verma@intel.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
-	linux-m68k@lists.linux-m68k.org, linux-bcache@vger.kernel.org,
-	nvdimm@lists.linux.dev, linux-block@vger.kernel.org
-Subject: Re: [PATCH 5/9] zram: pass queue_limits to blk_mq_alloc_disk
-Message-ID: <20240219120440.GA11472@google.com>
-References: <20240215071055.2201424-1-hch@lst.de>
- <20240215071055.2201424-6-hch@lst.de>
+        Mon, 19 Feb 2024 04:46:42 -0800 (PST)
+From: "Ricardo B. Marliere" <ricardo@marliere.net>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=marliere.net;
+	s=2024; t=1708346801;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=uFMPdkgeHy68/bLzT3L6tHn2KP/MczRpQvVLvaFtrj4=;
+	b=catl75rCpA3toE3p0fHkprvVKneWaZCOU7brSeB3gor/XcnDh8ijmqR8qvfFqVEqhdnDad
+	/FG1GcrHSaUWt++fd2w78wmSgHqATrWE4oCpmd/ejSUIfBGXpqCCQeAF6IsWZVHDNqfRJP
+	m8Bm1z7AaEWddZ+HMBEoNXb+qXHgsunNYDIpTLcaaRi4qLLotE9n+jjHKxVX6IzgUEuNET
+	l/aDI2T0iVeRdzEAqnzV0awaFK0Qk2BvHji9IykrAF6vnPayHttZjj1xItzLDWDxCJIFv0
+	njvxqEeQ8Bd/3b0QwkcsseYd31a0xloL9ugMUt7SrWhkippENRj+JvDpDiWPaw==
+Authentication-Results: ORIGINATING;
+	auth=pass smtp.auth=ricardo@marliere.net smtp.mailfrom=ricardo@marliere.net
+Date: Mon, 19 Feb 2024 09:47:28 -0300
+Subject: [PATCH] dax: constify the struct device_type usage
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240215071055.2201424-6-hch@lst.de>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20240219-device_cleanup-dax-v1-1-6b319ee89dc2@marliere.net>
+X-B4-Tracking: v=1; b=H4sIAN9N02UC/x2MWwqAIBAArxL7naASva4SEeKutRAWSiGId0/6H
+ JiZDJECU4S5yRDo5ciXr6DaBuxh/E6CsTJoqTup1SSwSpY2e5Lxzy3QJIGjdihtPziHUMM7kOP
+ 0T5e1lA8JX5ViZAAAAA==
+To: Dan Williams <dan.j.williams@intel.com>, 
+ Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>
+Cc: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org, 
+ linux-kernel@vger.kernel.org, 
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+ "Ricardo B. Marliere" <ricardo@marliere.net>
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1091; i=ricardo@marliere.net;
+ h=from:subject:message-id; bh=v2tFgPh2DhrAkjf4HRKnQQBDaVpePm8Gb5zL34pd/k4=;
+ b=owEBbQKS/ZANAwAKAckLinxjhlimAcsmYgBl003g5CgCqz1cWBx3Zxb+sX1z9Z+uaNXXOTgy5
+ 1W4BWp+ppOJAjMEAAEKAB0WIQQDCo6eQk7jwGVXh+HJC4p8Y4ZYpgUCZdNN4AAKCRDJC4p8Y4ZY
+ pnSLEACmZxs7VJKZM72/T20LHsunB6H4bUV+m0RZ/lbzFoFhbDObaggtHyGNu1iza6xLAChmrC+
+ /QREKrtEBMJi7SJoMDD5dZhVKDgE9BGr5ZhO1DOsq8JoUR/wn20ye9Nm1T8swWDSPCINWyXPJGT
+ Pe4J68RIUOjHiFFoeguH7Bo5JSa8sOnIXw1pw4wJae4JkK3ncYETMdGf2cV6k6hT4Ua//NCcIpR
+ xOJwYinwmBZBkqFE1pvTmMqTA2AlCbpq+ytSJDHA/ZOGFoEMGf66SOnyCqmLPZLIv6o7nxilvm5
+ ZHFj7V+fi0HPQRO2GFCQs8EazGWkAF6HHNqAi8nf31Gt2Av21JTF/0rOcT//drrEySLH4by/bd6
+ KwoCC2eolwzbmTElVjucQNoDYKIp2mSt71YhbCf1e5v3rbo61AOCFstHxkVkf96S+AYQP4sHKpD
+ ZYpN9WHQYO81CNDAkYxl5OIvnnnKJpGk0htxkXm95dMrhRkqdPbnsBNIDTKmPEL0EGHcZlHKPjU
+ 8lAmibOXThQCo4qmm6nN7l91pGhcrQ2MU1PbJOW+KyVx0cu0mfaIQYM3ZI/DhYpPjYFxaybSY8Z
+ PtW3whftEHjCgtNyIjiO0hZh0/690D00zdBUShL6BHjN2+4Yopn0cCVJaohZFne36LRvjXX0Ncc
+ OQIS0zz2f2t1p+g==
+X-Developer-Key: i=ricardo@marliere.net; a=openpgp;
+ fpr=030A8E9E424EE3C0655787E1C90B8A7C638658A6
 
-On (24/02/15 08:10), Christoph Hellwig wrote:
-> 
-> Pass the queue limits directly to blk_alloc_disk instead of setting them
-> one at a time.
-> 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
+Since commit aed65af1cc2f ("drivers: make device_type const"), the driver
+core can properly handle constant struct device_type. Move the
+dax_mapping_type variable to be a constant structure as well, placing it
+into read-only memory which can not be modified at runtime.
 
-Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Ricardo B. Marliere <ricardo@marliere.net>
+---
+ drivers/dax/bus.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+index 1ff1ab5fa105..e265ba019785 100644
+--- a/drivers/dax/bus.c
++++ b/drivers/dax/bus.c
+@@ -763,7 +763,7 @@ static const struct attribute_group *dax_mapping_attribute_groups[] = {
+ 	NULL,
+ };
+ 
+-static struct device_type dax_mapping_type = {
++static const struct device_type dax_mapping_type = {
+ 	.release = dax_mapping_release,
+ 	.groups = dax_mapping_attribute_groups,
+ };
+
+---
+base-commit: b401b621758e46812da61fa58a67c3fd8d91de0d
+change-id: 20240219-device_cleanup-dax-d82fd0c67ffd
+
+Best regards,
+-- 
+Ricardo B. Marliere <ricardo@marliere.net>
+
