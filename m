@@ -1,57 +1,57 @@
-Received: from mail-ot1-f48.google.com (mail-ot1-f48.google.com [209.85.210.48])
+Received: from mail-ot1-f42.google.com (mail-ot1-f42.google.com [209.85.210.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 628051420B5
-	for <nvdimm@lists.linux.dev>; Fri, 23 Feb 2024 17:42:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 08A6014262E
+	for <nvdimm@lists.linux.dev>; Fri, 23 Feb 2024 17:42:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708710166; cv=none; b=JrRZLBuWM0xlIhRMxHS5J3Oy+Xod4VxGH2GGJJy7zBMmpX88oGmmtP3PojCYBNuRQLP+7QcqPPtkOwKitf37ujTAVV1ccZoGErQyr2kFr0PtUNJhGH1YTUOqhMC8BhWrD4plj/MntHJ82eMAb4b8AeZivAY/I5f58suJ5nAIVZs=
+	t=1708710168; cv=none; b=V/AQoerDkAHkJyTLrFT5xiyvaL8iOX5Q0vzdlxxzTia5MANu6vaI+eIffky31r+1ynBzihPcNE7kGXGL2S6C67Snki6CWMN/2L8KLysu1UesXkKB5AM8MxohazWLW0K5iinWONtmn6ntIcyKb4YmHiahBXaiC+59anTfbUVyYmI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708710166; c=relaxed/simple;
-	bh=S1dC3s+Bdbdiu4CM5vBZY74+9xIlFu6uaw2o1TRdOz4=;
+	s=arc-20240116; t=1708710168; c=relaxed/simple;
+	bh=srzo99OmjkDCUvG5svVH4unqtaTIPC9o374VcuR+GuM=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=TS6UxjzySeHdi6vIUDl5CvPHhOUDAIiTw9xvnf/ay2odGfSy/fFGMC24t29/GchOsAZnqPZCH3PN6VPK89/ktFxSwZZKKxup7fjWv6AlEeXhR0KovEOCFTEpHarwHrcVrK2YJ/aTRwkt3TqsQdvCPQcGjBc9mo8MnB6R6z2LfbM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=EaobnUEI; arc=none smtp.client-ip=209.85.210.48
+	 MIME-Version; b=JCGXhCZ0ITc6w/em2mPbXdfReXFxMscbEoELeSs5VrSQCApZMzjHBHiRyX1BOICV9Z8UNmoMtkPjqquALifJyv7FbyVbKwjYU+g49me5nathcrJ/2kLp7PUxGwPJgWAKPO2smXfSSIQVfQR81YC24LWTKy5+0H0kyWullltJmJQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=fOE4xswE; arc=none smtp.client-ip=209.85.210.42
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="EaobnUEI"
-Received: by mail-ot1-f48.google.com with SMTP id 46e09a7af769-6e4423b64acso496916a34.2
-        for <nvdimm@lists.linux.dev>; Fri, 23 Feb 2024 09:42:44 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="fOE4xswE"
+Received: by mail-ot1-f42.google.com with SMTP id 46e09a7af769-6e4899fa7f1so93872a34.0
+        for <nvdimm@lists.linux.dev>; Fri, 23 Feb 2024 09:42:46 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1708710163; x=1709314963; darn=lists.linux.dev;
+        d=gmail.com; s=20230601; t=1708710166; x=1709314966; darn=lists.linux.dev;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:sender:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=nLMqFBWl5LhzqIjuwu8LKub75LEQmCe/d881zRdnRFA=;
-        b=EaobnUEIIX8pjufoPSVeOFW97jUED0GdZ2PQgFM9SSvIzEa++jI7sfZEbhJiNrvoEC
-         htgs56eEuMXdd8jqJjMus/ZALACtzy1HJewtLcwZ78Nz3cgP06Turp6aw8TvAFfscZPD
-         AjkO0IqxgRHfEVGyODkCj4Zhnd6iZ3mPxsGMsvWfHyWAvZbFyJSD83ApMyOBhttld7Po
-         ZjOzgj/RV1Q2+Uhh4g1ppfvl/khw7+9ffE+4oHXE9f5xR+gEedfIv6pf7TSJoj1FOfqC
-         pdQv1PuNbCVFObI+g7j5tmWcyFzvAPtBtPXMQp6t+6hk4kxTb4ZUUO7l5bZ+k8IpSwvK
-         SDYQ==
+        bh=A873SqENQ+wCYjpP9mWHe+BP4BuwHGe8YCt4HStt9WQ=;
+        b=fOE4xswEDuXjPJLzUBIf4EExXW05fDTrdnBwX7aZA1iKo+tpo7sjoPrSxInrxf35En
+         h9uUrBrzPCal4J+IciTw2V7qLJLa2hyOQCMJur70u31xefdIaZxwxbwqURA7L/TRRf6Y
+         5at7wXvdmmxO44XVtktXwkRwiTbSqha8o0VESo3SNQhIzGjuggwZksRe7/hObzMVpdiJ
+         c+5f1OVUGHMD254YTsFMgeLhX23IWRMrHqYbG6uhOWSIVw5yIX0y8OoT97ARxsHYIsnU
+         FHAJeQHpqzShDebqpWDTaiolx9BoeXStj/TNaxJELKHxZ5x4C7+4qC3Xz9pZkPRRKjrE
+         GpAQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1708710163; x=1709314963;
+        d=1e100.net; s=20230601; t=1708710166; x=1709314966;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:sender:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=nLMqFBWl5LhzqIjuwu8LKub75LEQmCe/d881zRdnRFA=;
-        b=b1q6V58O6raYcOwXU2PDpqwGm7YqccYQ0P3WW75xTl2W/470TztI7D576+hjkrgylk
-         phn0U8Nb4i+XAr7k/FbRGuWoZi6i3637LzLkSIpUTLa3kjYmE+kXICxwy/eW1gZXUSjr
-         o+HBjYRC9jSnForsNRXtQjPK0jgbwsjoZM3CtRP/26tKlRAyjyhtl9YE7KMcAR/dm49x
-         k7Mfee1bl+Uy/3vpZ+9TTnEFqijs1BSK3FPkpeN8W0bXVDZNT87Epf6+nYX9uRvWwp/w
-         M4zuuBWdIfEJIDyRhvZTJD2urQWPOoDJzGDj9ksjVA1QyE9cQKwxPLwYmwvfnS3iIrBD
-         PLoA==
-X-Forwarded-Encrypted: i=1; AJvYcCX29BxXpekFT2aCAyVoqsC0t+CS1/zN5xwR1EZ0REKefmtgSahP+vjx9pVVWy1bM1QOh3KRBUxWY/jBp889oyUa3M9a4bJb
-X-Gm-Message-State: AOJu0YynWZEXQJ9lFRvpD87qaLb1DDL809NG7AvEe6asDFj4JYdCsfUZ
-	efdgLtjvBljlFmFaP32QqcRucptFw4sUCBwND1/POFbBn24DHIJQ
-X-Google-Smtp-Source: AGHT+IH367Vw2L7iZdROKuLaJXvWJMZ5u7D0rUCk0PqnXp7KzR8fKSXYm9C614LmvLpJXYiq76cSvQ==
-X-Received: by 2002:a05:6870:55cd:b0:21e:e81e:36ef with SMTP id qk13-20020a05687055cd00b0021ee81e36efmr552160oac.36.1708710163445;
-        Fri, 23 Feb 2024 09:42:43 -0800 (PST)
+        bh=A873SqENQ+wCYjpP9mWHe+BP4BuwHGe8YCt4HStt9WQ=;
+        b=jkSf33ChHNABcQsuEZVkkhO8PQhnHEcsj3FYBqwZ7auJGdIhquY9pLcfq6m52TXeOD
+         DNe1EN8SxMMEP0vkyLLyy4yHrIEhH+o7enYBDdZHP0RhyQcMDPfs+fDmovcr+GXdfSS6
+         QM3nP6hgmkBsncOVkc4fMDx8kgWC2FQv5KMOKB5Zws/OtQVfLDn9sTdnDy9vqPgm8cv5
+         cQXRoHTVarTwh3ZwmYMVJrHRWtubiibX+mjy3yYxuS8hXJWXb94Eax1E6pakqkBrlbkv
+         oZoEN0J4+PA6wSbYilWjq2jIqX7nO9XQ4DKcVN3THbs2qJP8bIKNLhdZTcDM/7QpnlFl
+         ZXUA==
+X-Forwarded-Encrypted: i=1; AJvYcCUOeGVWrwfaBCKmXcFI4xZ67VIPkWcylEPnEbxCPJ+EQCh6NFCrm5eiXW/oFJALbfcDzAEVJVpzhZM8+ORpWZb7SO1LeHAO
+X-Gm-Message-State: AOJu0YwrKjlUnD/mcDgr/jpf8V76ke8uIBeF52tMI77r0Yh7NeTRy1xF
+	xeNCAAWyn/9ZYyhijz/eNK+/pRp1Lnl8ORe/2bKJ+ulNIdJLUlGr
+X-Google-Smtp-Source: AGHT+IF2fmWGYszloE2KJFCTjjXL/IoXoZ6AQti5BlXVdEWVOweP5vY0ChXNH89MGd6oVU3o3oDieQ==
+X-Received: by 2002:a05:6870:514f:b0:21e:5647:c3e2 with SMTP id z15-20020a056870514f00b0021e5647c3e2mr604937oak.26.1708710166110;
+        Fri, 23 Feb 2024 09:42:46 -0800 (PST)
 Received: from localhost.localdomain (070-114-203-196.res.spectrum.com. [70.114.203.196])
-        by smtp.gmail.com with ESMTPSA id rb7-20020a056871618700b0021f6a2bd4b9sm1257803oab.3.2024.02.23.09.42.41
+        by smtp.gmail.com with ESMTPSA id rb7-20020a056871618700b0021f6a2bd4b9sm1257803oab.3.2024.02.23.09.42.44
         (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Fri, 23 Feb 2024 09:42:43 -0800 (PST)
+        Fri, 23 Feb 2024 09:42:45 -0800 (PST)
 Sender: John Groves <grovesaustin@gmail.com>
 From: John Groves <John@Groves.net>
 X-Google-Original-From: John Groves <john@groves.net>
@@ -76,9 +76,9 @@ Cc: John@Groves.net,
 	dave.hansen@linux.intel.com,
 	gregory.price@memverge.com,
 	John Groves <john@groves.net>
-Subject: [RFC PATCH 09/20] famfs: Add super_operations
-Date: Fri, 23 Feb 2024 11:41:53 -0600
-Message-Id: <537f836056c141ae093c42b9623d20de919083b1.1708709155.git.john@groves.net>
+Subject: [RFC PATCH 10/20] famfs: famfs_open_device() & dax_holder_operations
+Date: Fri, 23 Feb 2024 11:41:54 -0600
+Message-Id: <74359fdc83688fb1aac1cb2c336fbd725590a131.1708709155.git.john@groves.net>
 X-Mailer: git-send-email 2.39.3 (Apple Git-145)
 In-Reply-To: <cover.1708709155.git.john@groves.net>
 References: <cover.1708709155.git.john@groves.net>
@@ -90,92 +90,111 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Introduce the famfs superblock operations
+Famfs works on both /dev/pmem and /dev/dax devices. This commit introduces
+the function that opens a block (pmem) device and the struct
+dax_holder_operations that are needed for that ABI.
+
+In this commit, support for opening character /dev/dax is stubbed. A
+later commit introduces this capability.
 
 Signed-off-by: John Groves <john@groves.net>
 ---
- fs/famfs/famfs_inode.c | 72 ++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 72 insertions(+)
- create mode 100644 fs/famfs/famfs_inode.c
+ fs/famfs/famfs_inode.c | 83 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 83 insertions(+)
 
 diff --git a/fs/famfs/famfs_inode.c b/fs/famfs/famfs_inode.c
-new file mode 100644
-index 000000000000..3329aff000d1
---- /dev/null
+index 3329aff000d1..82c861998093 100644
+--- a/fs/famfs/famfs_inode.c
 +++ b/fs/famfs/famfs_inode.c
-@@ -0,0 +1,72 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * famfs - dax file system for shared fabric-attached memory
-+ *
-+ * Copyright 2023-2024 Micron Technology, inc
-+ *
-+ * This file system, originally based on ramfs the dax support from xfs,
-+ * is intended to allow multiple host systems to mount a common file system
-+ * view of dax files that map to shared memory.
+@@ -68,5 +68,88 @@ static const struct super_operations famfs_ops = {
+ 	.show_options	= famfs_show_options,
+ };
+ 
++/***************************************************************************************
++ * dax_holder_operations for block dax
 + */
 +
-+#include <linux/fs.h>
-+#include <linux/pagemap.h>
-+#include <linux/highmem.h>
-+#include <linux/time.h>
-+#include <linux/init.h>
-+#include <linux/string.h>
-+#include <linux/backing-dev.h>
-+#include <linux/sched.h>
-+#include <linux/parser.h>
-+#include <linux/magic.h>
-+#include <linux/slab.h>
-+#include <linux/uaccess.h>
-+#include <linux/fs_context.h>
-+#include <linux/fs_parser.h>
-+#include <linux/seq_file.h>
-+#include <linux/dax.h>
-+#include <linux/hugetlb.h>
-+#include <linux/uio.h>
-+#include <linux/iomap.h>
-+#include <linux/path.h>
-+#include <linux/namei.h>
-+#include <linux/pfn_t.h>
-+#include <linux/blkdev.h>
++static int
++famfs_blk_dax_notify_failure(
++	struct dax_device	*dax_devp,
++	u64			offset,
++	u64			len,
++	int			mf_flags)
++{
 +
-+#include "famfs_internal.h"
++	pr_err("%s: dax_devp %llx offset %llx len %lld mf_flags %x\n",
++	       __func__, (u64)dax_devp, (u64)offset, (u64)len, mf_flags);
++	return -EOPNOTSUPP;
++}
 +
-+#define FAMFS_DEFAULT_MODE	0755
++const struct dax_holder_operations famfs_blk_dax_holder_ops = {
++	.notify_failure		= famfs_blk_dax_notify_failure,
++};
 +
-+static const struct super_operations famfs_ops;
-+static const struct inode_operations famfs_file_inode_operations;
-+static const struct inode_operations famfs_dir_inode_operations;
-+
-+/**********************************************************************************
-+ * famfs super_operations
-+ *
-+ * TODO: implement a famfs_statfs() that shows size, free and available space, etc.
-+ */
++static int
++famfs_open_char_device(
++	struct super_block *sb,
++	struct fs_context  *fc)
++{
++	pr_err("%s: Root device is %s, but your kernel does not support famfs on /dev/dax\n",
++	       __func__, fc->source);
++	return -ENODEV;
++}
 +
 +/**
-+ * famfs_show_options() - Display the mount options in /proc/mounts.
++ * famfs_open_device()
++ *
++ * Open the memory device. If it looks like /dev/dax, call famfs_open_char_device().
++ * Otherwise try to open it as a block/pmem device.
 + */
-+static int famfs_show_options(
-+	struct seq_file *m,
-+	struct dentry   *root)
++static int
++famfs_open_device(
++	struct super_block *sb,
++	struct fs_context  *fc)
 +{
-+	struct famfs_fs_info *fsi = root->d_sb->s_fs_info;
++	struct famfs_fs_info *fsi = sb->s_fs_info;
++	struct dax_device    *dax_devp;
++	u64 start_off = 0;
++	struct bdev_handle   *handlep;
 +
-+	if (fsi->mount_opts.mode != FAMFS_DEFAULT_MODE)
-+		seq_printf(m, ",mode=%o", fsi->mount_opts.mode);
++	if (fsi->dax_devp) {
++		pr_err("%s: already mounted\n", __func__);
++		return -EALREADY;
++	}
 +
++	if (strstr(fc->source, "/dev/dax")) /* There is probably a better way to check this */
++		return famfs_open_char_device(sb, fc);
++
++	if (!strstr(fc->source, "/dev/pmem")) { /* There is probably a better way to check this */
++		pr_err("%s: primary backing dev (%s) is not pmem\n",
++		       __func__, fc->source);
++		return -EINVAL;
++	}
++
++	handlep = bdev_open_by_path(fc->source, FAMFS_BLKDEV_MODE, fsi, &fs_holder_ops);
++	if (IS_ERR(handlep->bdev)) {
++		pr_err("%s: failed blkdev_get_by_path(%s)\n", __func__, fc->source);
++		return PTR_ERR(handlep->bdev);
++	}
++
++	dax_devp = fs_dax_get_by_bdev(handlep->bdev, &start_off,
++				      fsi  /* holder */,
++				      &famfs_blk_dax_holder_ops);
++	if (IS_ERR(dax_devp)) {
++		pr_err("%s: unable to get daxdev from handlep->bdev\n", __func__);
++		bdev_release(handlep);
++		return -ENODEV;
++	}
++	fsi->bdev_handle = handlep;
++	fsi->dax_devp    = dax_devp;
++
++	pr_notice("%s: root device is block dax (%s)\n", __func__, fc->source);
 +	return 0;
 +}
 +
-+static const struct super_operations famfs_ops = {
-+	.statfs		= simple_statfs,
-+	.drop_inode	= generic_delete_inode,
-+	.show_options	= famfs_show_options,
-+};
 +
-+
-+MODULE_LICENSE("GPL");
+ 
+ MODULE_LICENSE("GPL");
 -- 
 2.43.0
 
