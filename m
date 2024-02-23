@@ -1,119 +1,199 @@
-Received: from mail-oi1-f169.google.com (mail-oi1-f169.google.com [209.85.167.169])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.10])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 512D61EB52
-	for <nvdimm@lists.linux.dev>; Fri, 23 Feb 2024 19:56:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.169
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708718207; cv=none; b=aklVokhgzUk494N5kWHCtobec+ARDD0Vjo9tNowNlNtJJcR4aZpxQvFMNh3yEraD1XChUavn9/iu6yzUJ2Cyry6joZcp5Ib+9ZPk+8hl9RMauJbUkIBmYCHc3TCn9UOSfUbGv1e2TfK07e0VVIRrjcyDT6xAGh1gcqo+5I8JgFw=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708718207; c=relaxed/simple;
-	bh=V5uXT1I1WxLZr1gVzh31tRJlTZrs2HDa7enKzhMqPFY=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=o2rULxQ2sPusbVDmWD1dFyU7f+T1AeNR5ZNrzUpE/Qax6Ob4QwB3zo5+UUkGqrMO2EUmUrhQlgrOOsJNfBMaF2ZNuovwyS+de+rhyL/AiJLPg9smc3GGBn4Eb2IedmDlX+cmNZUeo1hfCQsmxL7qWFwC/jxPFetqnKHUenLRNIo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ZGyBcRyu; arc=none smtp.client-ip=209.85.167.169
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4808284FA7
+	for <nvdimm@lists.linux.dev>; Fri, 23 Feb 2024 20:05:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.10
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1708718706; cv=fail; b=BKIkJ0LsdN7Gspu9Es+XOivl1/FrhTA5bSPg96Qlr36MCuQRMgsVYBN32k5at1WBJ5y77RrETysV4KqcKkBoti+co7eyCAX8Lq5tHwGdZBLSyc4BSKt+NGp4TUIteL9jz+OSk2jdgERUQKPByX/3jUrjwfc3EpFrR8vOzzb/Z7I=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1708718706; c=relaxed/simple;
+	bh=XoQ9t7Y468KAB7Wi1W2vlBFJSm0x7+/H1b7uakl4rG8=;
+	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=LkSPHUoRvAGmJqjNciSMbpPyxUDR1ZQFNcWUjhqPUfoPxicRmavGhX9Ks0WuqJDvOafwUaREFUhvL9ZF79CKNPYAyB57aKBfp6TSO/1rQayd6lDxGJTsQio+k/N+FPxq1OwvJm3VF4rY1kXHOCJsGiYIoYbXcOe05dfecB+ST+A=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=RL/NOuho; arc=fail smtp.client-ip=192.198.163.10
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ZGyBcRyu"
-Received: by mail-oi1-f169.google.com with SMTP id 5614622812f47-3c0d59a219dso866005b6e.0
-        for <nvdimm@lists.linux.dev>; Fri, 23 Feb 2024 11:56:45 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1708718204; x=1709323004; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:sender:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=Smi/Sp7XgkONWFBICEY7Pi/t1Ktm49FpndchyfXCKuA=;
-        b=ZGyBcRyuiWbQoR7OtgDA9wOVlRhqWc1HWarvxm1t3+w/QoY1u8eqf6zJMR6YZV5omh
-         msjb5YCfFoKCTylA1rHg/AGVFSc9qVnvqZhgnrgPuKgMeMCVpCIX7CiqVS3IDvrBwPvy
-         7ZwCol0bBD9shjGmGMO8g6WODGEC47vmfGrMxo60uFVCTobx/MPFZ8ZUGcYaUE/7clpo
-         Y11Busnbx3tg3PP7tHsk7mgoV2a1x77OMjKpNkU4i1XF2qRG7BtDstARX9etlqsnejSU
-         U7/EmXJap9hI6pU5075gOb86ur3pc3OzQ43cEJ70L25C4JU4+YfrvPqd3R/Zk2kF22un
-         njdA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1708718204; x=1709323004;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:sender:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=Smi/Sp7XgkONWFBICEY7Pi/t1Ktm49FpndchyfXCKuA=;
-        b=nSwB8Mrr0XfAyWIUx7ZhqV6GnIgwoR1w3ublwQjFpo7pSInsVQBuiLQJU0AGh9cEtB
-         JXN5AT3HTGwozmxL3w6FyQV6z1mzgkyhhl2i9eShIx14XSG5ZnJgqasgQsEVqciTLO6J
-         GMyq7X2Cy7nLyAaR1z+LgECRwWwB8OQVpLJHk1mGPYioin+8M/WUfv0OJtLE3PaLQFyd
-         pC3kfkmnmdR7s5MkJm4agpbVCncUSeWM4ESsGi6WvDitn7/OzTflPPh1I7z/Qjsue9hu
-         atZVwGEFCuycGw0dvrn28J8HixqcYCtNMsCKDMVkX3W+H67sRVHBcM8HieHtNZF3YDeI
-         L9Vg==
-X-Forwarded-Encrypted: i=1; AJvYcCUAiSAJuhAgDAjaYW3wVWXJCyLbn8Muld1uDtuDJwMfKCk0R4Bk6X+AGhsUYBvQIuj6vNo5NgFG25RL1y7V94+IdVR9zgZH
-X-Gm-Message-State: AOJu0YwK3E1TyYbT/XPabYglYc6UeyG9Nc7Nb9qASwFsWfTHqIxFazfw
-	982PAr408WyNctn+H2WYucJqeAmV83PuBdWaXUcxjEFF6bHExRdg
-X-Google-Smtp-Source: AGHT+IHv5O7Zzjo9iR5rZ4wp2Y09L1nqF5uadiqzZbbKIzO71izmp6TPS4UCh8sTcVQ34stK3LQaXA==
-X-Received: by 2002:a05:6870:b250:b0:21e:7a1d:b4ec with SMTP id b16-20020a056870b25000b0021e7a1db4ecmr939717oam.7.1708718204401;
-        Fri, 23 Feb 2024 11:56:44 -0800 (PST)
-Received: from Borg-9.local (070-114-203-196.res.spectrum.com. [70.114.203.196])
-        by smtp.gmail.com with ESMTPSA id gq19-20020a056870d91300b0021e8424e466sm3680600oab.25.2024.02.23.11.56.43
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 23 Feb 2024 11:56:44 -0800 (PST)
-Sender: John Groves <grovesaustin@gmail.com>
-Date: Fri, 23 Feb 2024 13:56:42 -0600
-From: John Groves <John@groves.net>
-To: Dave Hansen <dave.hansen@intel.com>
-Cc: John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>, 
-	Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, 
-	Dave Jiang <dave.jiang@intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, 
-	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, Matthew Wilcox <willy@infradead.org>, 
-	linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-doc@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, john@jagalactic.com, 
-	Dave Chinner <david@fromorbit.com>, Christoph Hellwig <hch@infradead.org>, 
-	dave.hansen@linux.intel.com, gregory.price@memverge.com
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="RL/NOuho"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1708718704; x=1740254704;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=XoQ9t7Y468KAB7Wi1W2vlBFJSm0x7+/H1b7uakl4rG8=;
+  b=RL/NOuhoQVEB9d1/ZMqPHMM5u/22kWp6HSg683ihSdZjfJ4E8kv5N5EH
+   VMdYTL5kfnrinLwjtFsKXpe01nMCnZ6YlSZdEgHz1NO9uXFGWGY0hRET+
+   UiDo2s1g18mYsbqGi1iLZIgCy3DJdDJ2VPIeWMFAdsAGElpAeega36vup
+   ADWhZJJnIXV1ZbTgdTk9+MggnYgEsDxq8OamlBOW0B3eN9TvIwtWHWs0K
+   v5kMa/YIZp7P78Ig1BWXM5wln9GsgivXNa+zGKlanUdidh7zWNxzqhIy1
+   jGVlweeW9CkXwbGgYg7Cp+z71WcJdxbBT2YcEh7oVznIEzi4A7Jt6x2DY
+   g==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10993"; a="14464981"
+X-IronPort-AV: E=Sophos;i="6.06,180,1705392000"; 
+   d="scan'208";a="14464981"
+Received: from orviesa004.jf.intel.com ([10.64.159.144])
+  by fmvoesa104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Feb 2024 12:05:04 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.06,180,1705392000"; 
+   d="scan'208";a="10707108"
+Received: from fmsmsx603.amr.corp.intel.com ([10.18.126.83])
+  by orviesa004.jf.intel.com with ESMTP/TLS/AES256-GCM-SHA384; 23 Feb 2024 12:05:02 -0800
+Received: from fmsmsx603.amr.corp.intel.com (10.18.126.83) by
+ fmsmsx603.amr.corp.intel.com (10.18.126.83) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.35; Fri, 23 Feb 2024 12:05:02 -0800
+Received: from fmsedg602.ED.cps.intel.com (10.1.192.136) by
+ fmsmsx603.amr.corp.intel.com (10.18.126.83) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.35 via Frontend Transport; Fri, 23 Feb 2024 12:05:02 -0800
+Received: from NAM11-DM6-obe.outbound.protection.outlook.com (104.47.57.169)
+ by edgegateway.intel.com (192.55.55.71) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.35; Fri, 23 Feb 2024 12:05:02 -0800
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=ha2ElRtT+6M5ly9054tFfsfKUFB85fT5l8yU3A0mO0ZHs6h2DKhmHQQecxL2Qg1oyIJ31iMi68uhe0iPhFjcfbAgTmL7bQA1Lazrx701y/pIP28tFRgp1rIG5oGtiN5iOgIX+EGxP1C5kO7ac023oAfUdVhZc7VQgZH3TmDbFHrREupy605TXxbx4P3l4g1PQRFIiKFaA1rDqgK6DBEneTtRArf+fq7ac6uGspREQzizBqeZ52BZD0N9QAzO2EhZqRImQQG0UmUsfCg8jhFGr2yzUK/hoPFj+VgnC6DgRFxncdvvKNBIuq7Jw7j67NAWdY9j23hb4YNk32JmAtHFCA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=DUSmRUIjpUGISQE+Xe+ZZdgKjxg3pehX3VxgGWN4dso=;
+ b=IDXt4/i7ZQng2FUBwrSQrqJY0OVit90jMgYf5N6hprglRQ/UOb7j1mCyiEygAt3Q0G/eLx4oye3FvhtwkpHlLuZxrcSIO7vQPQ6HSqlknl/M8coJHR4gdHtphHaN7qY5y1HzZJ4lBj9bQAEgQN/DMR47JnlK0fTaw3j/JmeEKzvUYv0xRo+3GZOrI0g4Ni1zo+GA235ELGhwuiG16VdyROF0Pl4QdLZ7un6BgCHht2AxzZ4CHhXVREk5xN4dHDLeWOAxVyxD2ZL74tVux3zO4VmXypTXRaJUg8vmy5TIHuxayovr88++hc/hCsTsZQb/2jrYdy6za4/qtw4QLH8m0g==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from PH8PR11MB8107.namprd11.prod.outlook.com (2603:10b6:510:256::6)
+ by BN0PR11MB5693.namprd11.prod.outlook.com (2603:10b6:408:164::13) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7339.10; Fri, 23 Feb
+ 2024 20:04:59 +0000
+Received: from PH8PR11MB8107.namprd11.prod.outlook.com
+ ([fe80::da43:97f6:814c:4dc]) by PH8PR11MB8107.namprd11.prod.outlook.com
+ ([fe80::da43:97f6:814c:4dc%7]) with mapi id 15.20.7316.018; Fri, 23 Feb 2024
+ 20:04:59 +0000
+Date: Fri, 23 Feb 2024 12:04:55 -0800
+From: Dan Williams <dan.j.williams@intel.com>
+To: John Groves <John@groves.net>, Dave Hansen <dave.hansen@intel.com>
+CC: John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>, "Dan
+ Williams" <dan.j.williams@intel.com>, Vishal Verma
+	<vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, Alexander Viro
+	<viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, Jan Kara
+	<jack@suse.cz>, "Matthew Wilcox" <willy@infradead.org>,
+	<linux-cxl@vger.kernel.org>, <linux-fsdevel@vger.kernel.org>,
+	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<nvdimm@lists.linux.dev>, <john@jagalactic.com>, Dave Chinner
+	<david@fromorbit.com>, Christoph Hellwig <hch@infradead.org>,
+	<dave.hansen@linux.intel.com>, <gregory.price@memverge.com>
 Subject: Re: [RFC PATCH 16/20] famfs: Add fault counters
-Message-ID: <l66vdkefx4ut73jis52wvn4j6hzj5omvrtpsoda6gbl27d4uwg@yolm6jx4yitn>
+Message-ID: <65d8fa6736a18_2509b29410@dwillia2-mobl3.amr.corp.intel.com.notmuch>
 References: <cover.1708709155.git.john@groves.net>
  <43245b463f00506016b8c39c0252faf62bd73e35.1708709155.git.john@groves.net>
  <05a12c0b-e3e3-4549-b02e-442e4b48a86d@intel.com>
+ <l66vdkefx4ut73jis52wvn4j6hzj5omvrtpsoda6gbl27d4uwg@yolm6jx4yitn>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <l66vdkefx4ut73jis52wvn4j6hzj5omvrtpsoda6gbl27d4uwg@yolm6jx4yitn>
+X-ClientProxiedBy: MW4PR04CA0190.namprd04.prod.outlook.com
+ (2603:10b6:303:86::15) To PH8PR11MB8107.namprd11.prod.outlook.com
+ (2603:10b6:510:256::6)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <05a12c0b-e3e3-4549-b02e-442e4b48a86d@intel.com>
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: PH8PR11MB8107:EE_|BN0PR11MB5693:EE_
+X-MS-Office365-Filtering-Correlation-Id: f9e1bf2d-8154-4e62-3804-08dc34aab67e
+X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: 7JWTEYgCqM5o9fBste/9UlNQgyAQSnlu3Z3ZjJvPjpttA4DN3ZyCC5IoWajH/mhWjxgpCi1nip0U2eRwsHf0BDTXocp0RAdZDwTaAQfrspzjZoaZY8+x5nDlaCfghDU3EMLH++SrN7wol9vJ8wM6a9YeSJUuN/p1jh+PF5EUQ9EoMrznSQYsnQ27sFXWAHA9SZg7OdHg2mIegsiAu3jKQ3i02eP7s1IawcYGVy1AloIO4RpFFgwYWNoYqRnxEPMygYv717z2T0vTuuSl5nKpWUKhSXCOGAmS61iur558/eeFRKlYBHPBTK2L7F/G3j4N4LpwHUL7MYbCfeJprqUaCQQDontoSKH/BUHm4jFjRdnM5eW3SKIMGeDjeGBHfEuSb6w84+ixbrV5sYIu7alJ4/LHDEDS9u/iexsAwDlFBV9ijFPfv/2l7JaEA8mBLpZdMelaWfsWTUx5YTGU2aKpT5Xe455HU/X/djhqHt7IHu/IQfgXrZjF0xDbZggGYpfHOs7ru5LSknLbJQXEFvuz+g==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH8PR11MB8107.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?jXrq9gLNUO8LPHFSjKmoUxQFVyyGAC5YFOb3tht7XS/JxNKpiYzpUfM4pRYw?=
+ =?us-ascii?Q?i2zMbk8sR+yv4deCZBHhUqhsbJl7MNHFapUw35PJWtHDUfbDoX3+m5cRQ7bo?=
+ =?us-ascii?Q?s7l3xu13gDFwDyvk9ZmnUrTea7uG+l59rtny2yv1eN2zNJX6e4TIzmvdMVtd?=
+ =?us-ascii?Q?cNm3PIcWBsw0Sk/1FAm/m19GAXkOSv3VjhBm57YgcRtKIC2GUfVi1mNcxBry?=
+ =?us-ascii?Q?wPhz4VOjTk8a1+8LX0Udw6R25ZZjfkWVS0ItGYLzB0cXhqIv3z+AHIoMGzGg?=
+ =?us-ascii?Q?Rr2HIcIAynE1TX/PL8H6kr6+rWlEWm5/gITacSusWSi5TYdlwkY4Sn8N4WK8?=
+ =?us-ascii?Q?IIVT95evdPF0bwtCVHSKmq3nRUP70IGhS02a5gnUDuxBG7I4rLdrC8F48hdp?=
+ =?us-ascii?Q?5tyem+hZERGbKxGrODC/JhmFAVRPOt620VAu+WnkeiRFb/1/e2tKGECYhh9A?=
+ =?us-ascii?Q?XGl75y1TCkn4V8OqKXqRkBmMNprx5dRxz+VLX2woG5RUl7mNDmfyducwk9xJ?=
+ =?us-ascii?Q?8+im1MhK6FDqCBwpHv5vrDcOsSddgaOKQ0BDTET8qe269Ns7y2F98QQDTUWj?=
+ =?us-ascii?Q?AYVcqdUitlJjd6Xa5dTVoCqFnU1VPiKiculyTKH9CVkMicvDWVQJL70oKPA+?=
+ =?us-ascii?Q?37a2hpkO/zVoZQItgKw+7iFcazmtGw2Y3ruDnXA05UZKX+ybi5bR2CH/GGq/?=
+ =?us-ascii?Q?tPpjAxlthOKTTzOuBj90tfjFD0roto8ITooM13I0UFEwwRT2cxIKM145CgR/?=
+ =?us-ascii?Q?amtSlgeS6rCqLtHegxCsd7j0UxAY3U92qJPacdcCAk5D+Q9vsUjgY6ms4PyQ?=
+ =?us-ascii?Q?gnvCLPdHC6tr/c+MHdlFRkLauhDS5HjjmILUbdt6XS5q9PZYDPsuWOECxHBx?=
+ =?us-ascii?Q?EGi6Xk2ELV0qCx2MQpu+9acihvOvlvZIDgc0+pvWmd7X+vpIaLWStEVj5PzD?=
+ =?us-ascii?Q?whnFmF2lAAbInxW9dy1Tg8rNZ592ooNNxBP/mSxu2xUwYX5la7jUGUIdu7wf?=
+ =?us-ascii?Q?QgOip4K2dm4fWQOWVk+kkyEjDlurWnFugEwR1PObm4ii6XdoLQ6/oQSydZUA?=
+ =?us-ascii?Q?jkTKOq+KY6Zyea5ylQfe/rXbW46vFyTbcVauaRLaTafxWMTNzxSxPXz7Q0gC?=
+ =?us-ascii?Q?0AvgMyAMP+Mt+N8bT2SwVbtF65WLhRHfYGFPKK8+d3SvsyCiXEg0/2gQ2qYj?=
+ =?us-ascii?Q?QYTdVAvh0jV6n7/ICQfS6Jx34GB4b0jIBGrK6sBAQfcN+nI7MNA/qTixPF2W?=
+ =?us-ascii?Q?deB4SEtNUHLc+Np2ZYXvZp1j4m9TnFuzd5A/1QDehqckpt69yJ86ukvDP1AO?=
+ =?us-ascii?Q?2qkvp/6pkKzafnnxhsOXBvwbnj6hPVDIDxwlGKBEp96lPs720Ihsrv72kg/M?=
+ =?us-ascii?Q?fhvr/uryw5NVyjYeHKXydbzfSWrb7j2WRLILWI0xNJ/A2rOGSEauCXpgFBjE?=
+ =?us-ascii?Q?qUiyOuVtswPQU0wV54uF8V3g6oF1BvmLSndGNMIluNv91/YBltIVTvZFBAgD?=
+ =?us-ascii?Q?ngKrVuhh3G/dzkYnZe0OJOUqkpLh/1wVRg4pyBLkEOONzUar3NSU5Mv6zpDn?=
+ =?us-ascii?Q?kPj4tpWQCjrc3Bl2Ftv1JXXErZoJW70aznzypYAw30ZlfFb9TXx1DK5dOwCZ?=
+ =?us-ascii?Q?gw=3D=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: f9e1bf2d-8154-4e62-3804-08dc34aab67e
+X-MS-Exchange-CrossTenant-AuthSource: PH8PR11MB8107.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 23 Feb 2024 20:04:59.2731
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: KvCypRCm3PWiSj1zRFQ7p1cJaszMHWkK3n4mlYFHjB2FwyZgEG0x4qa9yiEnQL2nmw2QbMEM5GdqsiUEHkTf4K2SLHtNHveFIkzgFAp0mYw=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BN0PR11MB5693
+X-OriginatorOrg: intel.com
 
-On 24/02/23 10:23AM, Dave Hansen wrote:
-> On 2/23/24 09:42, John Groves wrote:
-> > One of the key requirements for famfs is that it service vma faults
-> > efficiently. Our metadata helps - the search order is n for n extents,
-> > and n is usually 1. But we can still observe gnarly lock contention
-> > in mm if PTE faults are happening. This commit introduces fault counters
-> > that can be enabled and read via /sys/fs/famfs/...
+John Groves wrote:
+> On 24/02/23 10:23AM, Dave Hansen wrote:
+> > On 2/23/24 09:42, John Groves wrote:
+> > > One of the key requirements for famfs is that it service vma faults
+> > > efficiently. Our metadata helps - the search order is n for n extents,
+> > > and n is usually 1. But we can still observe gnarly lock contention
+> > > in mm if PTE faults are happening. This commit introduces fault counters
+> > > that can be enabled and read via /sys/fs/famfs/...
+> > > 
+> > > These counters have proved useful in troubleshooting situations where
+> > > PTE faults were happening instead of PMD. No performance impact when
+> > > disabled.
 > > 
-> > These counters have proved useful in troubleshooting situations where
-> > PTE faults were happening instead of PMD. No performance impact when
-> > disabled.
+> > This seems kinda wonky.  Why does _this_ specific filesystem need its
+> > own fault counters.  Seems like something we'd want to do much more
+> > generically, if it is needed at all.
+> > 
+> > Was the issue here just that vm_ops->fault() was getting called instead
+> > of ->huge_fault()?  Or something more subtle?
 > 
-> This seems kinda wonky.  Why does _this_ specific filesystem need its
-> own fault counters.  Seems like something we'd want to do much more
-> generically, if it is needed at all.
+> Thanks for your reply Dave!
 > 
-> Was the issue here just that vm_ops->fault() was getting called instead
-> of ->huge_fault()?  Or something more subtle?
+> First, I'm willing to pull the fault counters out if the brain trust doesn't
+> like them.
+> 
+> I put them in because we were running benchmarks of computational data
+> analytics and and noted that jobs took 3x as long on famfs as raw dax -
+> which indicated I was doing something wrong, because it should be equivalent
+> or very close.
+> 
+> The the solution was to call thp_get_unmapped_area() in
+> famfs_file_operations, and performance doesn't vary significantly from raw
+> dax now. Prior to that I wasn't making sure the mmap address was PMD aligned.
+> 
+> After that I wanted a way to be double-secret-certain that it was servicing
+> PMD faults as intended. Which it basically always is, so far. (The smoke
+> tests in user space check this.)
 
-Thanks for your reply Dave!
+We had similar unit test regression concerns with fsdax where some
+upstream change silently broke PMD faults. The solution there was trace
+points in the fault handlers and a basic test that knows apriori that it
+*should* be triggering a certain number of huge faults:
 
-First, I'm willing to pull the fault counters out if the brain trust doesn't
-like them.
-
-I put them in because we were running benchmarks of computational data
-analytics and and noted that jobs took 3x as long on famfs as raw dax -
-which indicated I was doing something wrong, because it should be equivalent
-or very close.
-
-The the solution was to call thp_get_unmapped_area() in
-famfs_file_operations, and performance doesn't vary significantly from raw
-dax now. Prior to that I wasn't making sure the mmap address was PMD aligned.
-
-After that I wanted a way to be double-secret-certain that it was servicing
-PMD faults as intended. Which it basically always is, so far. (The smoke
-tests in user space check this.)
-
-John
+https://github.com/pmem/ndctl/blob/main/test/dax.sh#L31
