@@ -1,57 +1,57 @@
-Received: from mail-ot1-f52.google.com (mail-ot1-f52.google.com [209.85.210.52])
+Received: from mail-oa1-f49.google.com (mail-oa1-f49.google.com [209.85.160.49])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF2C5146E74
-	for <nvdimm@lists.linux.dev>; Fri, 23 Feb 2024 17:43:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40191146E9B
+	for <nvdimm@lists.linux.dev>; Fri, 23 Feb 2024 17:43:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708710185; cv=none; b=UeKHjn23oWoCSlrCVSKPe7ggSzC/95Oos5wkzEzWuGpwKuH+MD1JzBTH6dQUJWBfuzWTdyX+xlpVZFsOT+RjDl6OxNERubWIidFr6yX+pyon5zRnfpdJS4ecHWY6gN7+jUGS6YmyEwJOKX6ug1LlCZKqoEJfCMEhuRnsCHSQ5wE=
+	t=1708710188; cv=none; b=uqlJlU0M2ugjgMrbQqZqYsk4fWco4zCN5/icVmKZP5Ul8fhL0gAzF9rxGValkNPpeFos/AHvMURXkGE7PafegvibH/ULyGh6t8UIk850HwaI55j0BlMsLswdHfDDgL528HVfT4G9PuMeGs2onjTbiwLfAZf6w8Mm+mb7c81UpUk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708710185; c=relaxed/simple;
-	bh=fyP1dnJB44f2zHUX/KhaAT1o3vyBlQVFBHhanjGgGrc=;
+	s=arc-20240116; t=1708710188; c=relaxed/simple;
+	bh=yRp5u9MQR7i0pHHhigFRLMC5jxEA/cmL4WRIc6/6wyQ=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=mzj1mCVE0a7Xc5j2H/TytiX7s0xZCwb0d5BXcCedny3eRlVV7XnWOtOH/zFn/nq1pm6oVK1bOWDDICUuWM+sup7hbR2S5tfswjfKXuCTAUj0izhqC29fGZO5E2pBCk6Ty4QVTfg+Vle4+Eg6HzU3Ajnbh2G9bwl2n2RJxxLXZys=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Jx9WdpGI; arc=none smtp.client-ip=209.85.210.52
+	 MIME-Version; b=Hvrwlirk9sQ8nMFNADXm5ZfrNc3pXGU4OqdQgMP+Spi3dgj+sXt4DiVck3MneobCWFUUqunfG29I4Elka2zVB3Z3jXlSJ2cw3ne7BDiOpOAeTE+6VvauW9QLRlpIvRwtguKGVdu5/6+CylgH7dS8bNGGrbiJplT8qeDKIpm3d1Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=GGBqogeH; arc=none smtp.client-ip=209.85.160.49
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Jx9WdpGI"
-Received: by mail-ot1-f52.google.com with SMTP id 46e09a7af769-6e480af11f2so364723a34.2
-        for <nvdimm@lists.linux.dev>; Fri, 23 Feb 2024 09:43:03 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="GGBqogeH"
+Received: by mail-oa1-f49.google.com with SMTP id 586e51a60fabf-204235d0913so761418fac.1
+        for <nvdimm@lists.linux.dev>; Fri, 23 Feb 2024 09:43:06 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1708710183; x=1709314983; darn=lists.linux.dev;
+        d=gmail.com; s=20230601; t=1708710186; x=1709314986; darn=lists.linux.dev;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:sender:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=QSU63xn35q5xIC/F3LPxUfwI8O4W4i8duNVDi3MdIz8=;
-        b=Jx9WdpGIdqbAd6dL8cr90HhOxfXyX6KinQ43LAQcVfyfe17pjUCVqAV6jwd1vtvCz9
-         0btM2y+Q5XadHWNM7FRh3p85WwoyjC1/chyYgDLIH34q/vKQCmA/wSAyIe4JluY8GtvT
-         wEgF2jsLA4gb2o5iaTHtECMl0xB+j4VRbea0KMnhZSmCXNZvjBU4BjkFCdErUwWzhPw8
-         OJ5sjahQlr+UnoFZenvoA2ydWwWXBIr53tlbzC4DLHQ2jhouRPrGcXg3Aah88MYIWR9a
-         JLsTlGW/U7OeJCQuQySgokJsopAr9/sua7MhPh4Q69ZwBUQCLhYZwEO4zz8l0HvL0k+G
-         5wpQ==
+        bh=OHor3u3W+wuqia7Ht/WsFpCY9Rk+dRiHPG2C9ZesKqY=;
+        b=GGBqogeHGBzJC2sQJy6v77HN81KX8bxyVGXNPs06q685+L5G60H4AdHGYN7y1rSxO0
+         5LBPHPkQaCoa01pQRO6/Fs/y34c/3YqDMMFvkI/u7LSHvduzqmat0PPb8JeES4BCSEiF
+         HBCjq5d10adfWeNrSWtnGNjw26UaI2Lf5MpZ4KuIjisguF8f+dkR9knEQ6Lqx3nbHYrv
+         wltUzu+jK/qzaPW6iY85hykPkD+6Hg0RDdCdkvifjW55EwjW6Pyjfk7s9rkMfn6Jj7Pu
+         AbG7n1GtZxFL/6PfyXxPRSPk50ITYUUreMy61Tri4/TIzmtai8WN3uXrhNmSffehV/4e
+         zF5Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1708710183; x=1709314983;
+        d=1e100.net; s=20230601; t=1708710186; x=1709314986;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:sender:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=QSU63xn35q5xIC/F3LPxUfwI8O4W4i8duNVDi3MdIz8=;
-        b=QgLS8d1Fx4+exmfmCyHra35kP0cunYhiAB+RdavILk+aZMXb+VFXlqIqY4r3bgAja8
-         M6mNmEGv8ApgXGGabOvdq5OrKSwELYAzEmkA4CxEDUoSLQ+mHxT6Sw66Qko3TG1+CQr5
-         nO6k5E/SHuDN5OwgC4DUz3YHRmqyyh0wEwV0eT8gBYdMqsaOz4ok1V56Hm7R1Xl2Uwyk
-         jttM007sq9iDdVEyATdkfrWgLdN3ovsV/7Z51e/l+NSpunBC+UlBLU2j2P0YpKhnVxPk
-         RPUAnszQFNqZEqhnylgT+y/5yfk+IVqUl16HD4uJMnWaF8HbcwgokFfetnEScG1H9rRS
-         5M3g==
-X-Forwarded-Encrypted: i=1; AJvYcCU/FnazX+xPP0xvX4mHFCSaJzYPJw0nAfVjgx2nNmrYFZ/e6C2AsIastsPB1uBhTTpzFLoz65HPHU42WyJBsVt6SLVJQt7c
-X-Gm-Message-State: AOJu0YwR+SDCqipLpEX2AnGEmeqSw5/rsShz6O8a5M4C18EWBlZHMTqF
-	nrUBnprQMQANCL8oFctwuHYySW8ZEqI57GHnCAjih/aaEtnfEX8Q
-X-Google-Smtp-Source: AGHT+IHYLhdAVNB79UcBgLmrX8iHEz3pdisd9nD17jHPXDhHA28rwXuN54PUoWNin6tsA8ziv8tebw==
-X-Received: by 2002:a05:6870:f6a1:b0:21e:9b99:53d8 with SMTP id el33-20020a056870f6a100b0021e9b9953d8mr563209oab.22.1708710183097;
-        Fri, 23 Feb 2024 09:43:03 -0800 (PST)
+        bh=OHor3u3W+wuqia7Ht/WsFpCY9Rk+dRiHPG2C9ZesKqY=;
+        b=MEtlrnm7ySHYCnp598aOrQA4CDA4Q2pYTpEGpTCCGlkZwxVZkh6fIaSII3s+nXVO7V
+         gsnc57C00+0LNBCHXhmDjdhySFXUGxMuReamH4dzlwCZhDwvbtJBWIN1Tbp34qJsU38S
+         NV7hjV8M3tYmmWdNdyuy3rJygpJwm+6kBNax9wJgQ9hUAoLov4LSmZ8UFDq3cQWaZbqt
+         +BCCJg8y0eKw5ckxAVlMfQaRPuElTV1Be8m1fLU8uTYdXBobaKjNa5ordiYi6i4U+v2Q
+         04uzrIbKjFL56vD6DCf8dnTTjXz1TzODKg+jgNSQvsF3WIGjbjJu3BdaXliUJyopauk2
+         3E+w==
+X-Forwarded-Encrypted: i=1; AJvYcCXk+AgWL0U4qIqdZzxIOsrSE944ywBdOJfaULGjOrOK1k8wfqnVg9V8iBkEmxvMghZhb7u6yLoj15W7XXEHoP7zYsVI4Qnz
+X-Gm-Message-State: AOJu0YyJHucHuwWRAq40nljqLNGinuGbS+ps8q2bIEHbTmTo9zJFjja7
+	wyUov+RU9/VswbEkXnBxRkoM+B5BL7QSKRH31lAdxZDfOBB4zlWoE8MO0+TVn08=
+X-Google-Smtp-Source: AGHT+IHNnKVpb62Lo5a6C8MsXucHX7a5scGCwnDEKNG9/0OIPbmHNqpRkF5qcIHHDdwtWWcx7RJCLQ==
+X-Received: by 2002:a05:6870:d109:b0:21e:e9bd:afa9 with SMTP id e9-20020a056870d10900b0021ee9bdafa9mr558439oac.21.1708710185753;
+        Fri, 23 Feb 2024 09:43:05 -0800 (PST)
 Received: from localhost.localdomain (070-114-203-196.res.spectrum.com. [70.114.203.196])
-        by smtp.gmail.com with ESMTPSA id rb7-20020a056871618700b0021f6a2bd4b9sm1257803oab.3.2024.02.23.09.43.01
+        by smtp.gmail.com with ESMTPSA id rb7-20020a056871618700b0021f6a2bd4b9sm1257803oab.3.2024.02.23.09.43.04
         (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Fri, 23 Feb 2024 09:43:02 -0800 (PST)
+        Fri, 23 Feb 2024 09:43:05 -0800 (PST)
 Sender: John Groves <grovesaustin@gmail.com>
 From: John Groves <John@Groves.net>
 X-Google-Original-From: John Groves <john@groves.net>
@@ -76,9 +76,9 @@ Cc: John@Groves.net,
 	dave.hansen@linux.intel.com,
 	gregory.price@memverge.com,
 	John Groves <john@groves.net>
-Subject: [RFC PATCH 16/20] famfs: Add fault counters
-Date: Fri, 23 Feb 2024 11:42:00 -0600
-Message-Id: <43245b463f00506016b8c39c0252faf62bd73e35.1708709155.git.john@groves.net>
+Subject: [RFC PATCH 17/20] famfs: Add module stuff
+Date: Fri, 23 Feb 2024 11:42:01 -0600
+Message-Id: <e633fb92d3c20ba446e60c2c161cf07074aef374.1708709155.git.john@groves.net>
 X-Mailer: git-send-email 2.39.3 (Apple Git-145)
 In-Reply-To: <cover.1708709155.git.john@groves.net>
 References: <cover.1708709155.git.john@groves.net>
@@ -90,219 +90,66 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-One of the key requirements for famfs is that it service vma faults
-efficiently. Our metadata helps - the search order is n for n extents,
-and n is usually 1. But we can still observe gnarly lock contention
-in mm if PTE faults are happening. This commit introduces fault counters
-that can be enabled and read via /sys/fs/famfs/...
-
-These counters have proved useful in troubleshooting situations where
-PTE faults were happening instead of PMD. No performance impact when
-disabled.
+This commit introduces the module init and exit machinery for famfs.
 
 Signed-off-by: John Groves <john@groves.net>
 ---
- fs/famfs/famfs_file.c     | 97 +++++++++++++++++++++++++++++++++++++++
- fs/famfs/famfs_internal.h | 73 +++++++++++++++++++++++++++++
- 2 files changed, 170 insertions(+)
+ fs/famfs/famfs_inode.c | 44 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 44 insertions(+)
 
-diff --git a/fs/famfs/famfs_file.c b/fs/famfs/famfs_file.c
-index fd42d5966982..a626f8a89790 100644
---- a/fs/famfs/famfs_file.c
-+++ b/fs/famfs/famfs_file.c
-@@ -19,6 +19,100 @@
- #include <uapi/linux/famfs_ioctl.h>
- #include "famfs_internal.h"
- 
-+/***************************************************************************************
-+ * filemap_fault counters
-+ *
-+ * The counters and the fault_count_enable file live at
-+ * /sys/fs/famfs/
-+ */
-+struct famfs_fault_counters ffc;
-+static int fault_count_enable;
-+
-+static ssize_t
-+fault_count_enable_show(struct kobject *kobj,
-+			struct kobj_attribute *attr,
-+			char *buf)
-+{
-+	return sprintf(buf, "%d\n", fault_count_enable);
-+}
-+
-+static ssize_t
-+fault_count_enable_store(struct kobject        *kobj,
-+			 struct kobj_attribute *attr,
-+			 const char            *buf,
-+			 size_t                 count)
-+{
-+	int value;
-+	int rc;
-+
-+	rc = sscanf(buf, "%d", &value);
-+	if (rc != 1)
-+		return 0;
-+
-+	if (value > 0) /* clear fault counters when enabling, but not when disabling */
-+		famfs_clear_fault_counters(&ffc);
-+
-+	fault_count_enable = value;
-+	return count;
-+}
-+
-+/* Individual fault counters are read-only */
-+static ssize_t
-+fault_count_pte_show(struct kobject *kobj,
-+		     struct kobj_attribute *attr,
-+		     char *buf)
-+{
-+	return sprintf(buf, "%llu", famfs_pte_fault_ct(&ffc));
-+}
-+
-+static ssize_t
-+fault_count_pmd_show(struct kobject *kobj,
-+		     struct kobj_attribute *attr,
-+		     char *buf)
-+{
-+	return sprintf(buf, "%llu", famfs_pmd_fault_ct(&ffc));
-+}
-+
-+static ssize_t
-+fault_count_pud_show(struct kobject *kobj,
-+		     struct kobj_attribute *attr,
-+		     char *buf)
-+{
-+	return sprintf(buf, "%llu", famfs_pud_fault_ct(&ffc));
-+}
-+
-+static struct kobj_attribute fault_count_enable_attribute = __ATTR(fault_count_enable,
-+								   0660,
-+								   fault_count_enable_show,
-+								   fault_count_enable_store);
-+static struct kobj_attribute fault_count_pte_attribute = __ATTR(pte_fault_ct,
-+								0440,
-+								fault_count_pte_show,
-+								NULL);
-+static struct kobj_attribute fault_count_pmd_attribute = __ATTR(pmd_fault_ct,
-+								0440,
-+								fault_count_pmd_show,
-+								NULL);
-+static struct kobj_attribute fault_count_pud_attribute = __ATTR(pud_fault_ct,
-+								0440,
-+								fault_count_pud_show,
-+								NULL);
-+
-+
-+static struct attribute *attrs[] = {
-+	&fault_count_enable_attribute.attr,
-+	&fault_count_pte_attribute.attr,
-+	&fault_count_pmd_attribute.attr,
-+	&fault_count_pud_attribute.attr,
-+	NULL,
-+};
-+
-+struct attribute_group famfs_attr_group = {
-+	.attrs = attrs,
-+};
-+
-+/* End fault counters */
-+
- /**
-  * famfs_map_meta_alloc() - Allocate famfs file metadata
-  * @mapp:       Pointer to an mcache_map_meta pointer
-@@ -525,6 +619,9 @@ __famfs_filemap_fault(
- 	if (IS_DAX(inode)) {
- 		pfn_t pfn;
- 
-+		if (fault_count_enable)
-+			famfs_inc_fault_counter_by_order(&ffc, pe_size);
-+
- 		ret = dax_iomap_fault(vmf, pe_size, &pfn, NULL, &famfs_iomap_ops);
- 		if (ret & VM_FAULT_NEEDDSYNC)
- 			ret = dax_finish_sync_fault(vmf, pe_size, pfn);
-diff --git a/fs/famfs/famfs_internal.h b/fs/famfs/famfs_internal.h
-index af3990d43305..987cb172a149 100644
---- a/fs/famfs/famfs_internal.h
-+++ b/fs/famfs/famfs_internal.h
-@@ -50,4 +50,77 @@ struct famfs_fs_info {
- 	char                    *rootdev;
+diff --git a/fs/famfs/famfs_inode.c b/fs/famfs/famfs_inode.c
+index ab46ec50b70d..0d659820e8ff 100644
+--- a/fs/famfs/famfs_inode.c
++++ b/fs/famfs/famfs_inode.c
+@@ -462,4 +462,48 @@ static struct file_system_type famfs_fs_type = {
+ 	.fs_flags	  = FS_USERNS_MOUNT,
  };
  
-+/*
-+ * filemap_fault counters
++/*****************************************************************************************
++ * Module stuff
 + */
-+extern struct attribute_group famfs_attr_group;
++static struct kobject *famfs_kobj;
 +
-+enum famfs_fault {
-+	FAMFS_PTE = 0,
-+	FAMFS_PMD,
-+	FAMFS_PUD,
-+	FAMFS_NUM_FAULT_TYPES,
-+};
-+
-+static inline int valid_fault_type(int type)
++static int __init init_famfs_fs(void)
 +{
-+	if (unlikely(type < 0 || type > FAMFS_PUD))
-+		return 0;
-+	return 1;
-+}
++	int rc;
 +
-+struct famfs_fault_counters {
-+	atomic64_t fault_ct[FAMFS_NUM_FAULT_TYPES];
-+};
-+
-+extern struct famfs_fault_counters ffc;
-+
-+static inline void famfs_clear_fault_counters(struct famfs_fault_counters *fc)
-+{
-+	int i;
-+
-+	for (i = 0; i < FAMFS_NUM_FAULT_TYPES; i++)
-+		atomic64_set(&fc->fault_ct[i], 0);
-+}
-+
-+static inline void famfs_inc_fault_counter(struct famfs_fault_counters *fc,
-+					   enum famfs_fault type)
-+{
-+	if (valid_fault_type(type))
-+		atomic64_inc(&fc->fault_ct[type]);
-+}
-+
-+static inline void famfs_inc_fault_counter_by_order(struct famfs_fault_counters *fc, int order)
-+{
-+	int pgf = -1;
-+
-+	switch (order) {
-+	case 0:
-+		pgf = FAMFS_PTE;
-+		break;
-+	case PMD_ORDER:
-+		pgf = FAMFS_PMD;
-+		break;
-+	case PUD_ORDER:
-+		pgf = FAMFS_PUD;
-+		break;
++#if defined(CONFIG_DEV_DAX_IOMAP)
++	pr_notice("%s: Your kernel supports famfs on /dev/dax\n", __func__);
++#else
++	pr_notice("%s: Your kernel does not support famfs on /dev/dax\n", __func__);
++#endif
++	famfs_kobj = kobject_create_and_add(MODULE_NAME, fs_kobj);
++	if (!famfs_kobj) {
++		pr_warn("Failed to create kobject\n");
++		return -ENOMEM;
 +	}
-+	famfs_inc_fault_counter(fc, pgf);
++
++	rc = sysfs_create_group(famfs_kobj, &famfs_attr_group);
++	if (rc) {
++		kobject_put(famfs_kobj);
++		pr_warn("%s: Failed to create sysfs group\n", __func__);
++		return rc;
++	}
++
++	return register_filesystem(&famfs_fs_type);
 +}
 +
-+static inline u64 famfs_pte_fault_ct(struct famfs_fault_counters *fc)
++static void
++__exit famfs_exit(void)
 +{
-+	return atomic64_read(&fc->fault_ct[FAMFS_PTE]);
++	sysfs_remove_group(famfs_kobj,  &famfs_attr_group);
++	kobject_put(famfs_kobj);
++	unregister_filesystem(&famfs_fs_type);
++	pr_info("%s: unregistered\n", __func__);
 +}
 +
-+static inline u64 famfs_pmd_fault_ct(struct famfs_fault_counters *fc)
-+{
-+	return atomic64_read(&fc->fault_ct[FAMFS_PMD]);
-+}
 +
-+static inline u64 famfs_pud_fault_ct(struct famfs_fault_counters *fc)
-+{
-+	return atomic64_read(&fc->fault_ct[FAMFS_PUD]);
-+}
++fs_initcall(init_famfs_fs);
++module_exit(famfs_exit);
 +
- #endif /* FAMFS_INTERNAL_H */
++MODULE_AUTHOR("John Groves, Micron Technology");
+ MODULE_LICENSE("GPL");
 -- 
 2.43.0
 
