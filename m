@@ -1,57 +1,57 @@
-Received: from mail-oa1-f44.google.com (mail-oa1-f44.google.com [209.85.160.44])
+Received: from mail-oi1-f179.google.com (mail-oi1-f179.google.com [209.85.167.179])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7F7E1493B0
-	for <nvdimm@lists.linux.dev>; Fri, 23 Feb 2024 17:43:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74A29128822
+	for <nvdimm@lists.linux.dev>; Fri, 23 Feb 2024 17:43:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.179
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708710195; cv=none; b=baE2eaB3ir41thEEjtCezs0Oan/XcJHVrcdeU+geIpRJ5hImXDB/VwCnawKtgZKXG0eX2og3iAqZXbvIR0FhpRwwtDTTW1gEBZa7FsEm29c7rbWDqthiAhZHuK2WFY4MX79Wrqy289eyWzB5gDizeR9FHYNQrfUDmMBsF9+Hld4=
+	t=1708710198; cv=none; b=X+50OCUwANQztSMYWA6Up1OvoM8fhfr/PJRCJEyA7FsIQtrkI/jvgddVBcMzhOysjfHTq/tRO90vjhqWimYgH7oXf906V6m+e/QaLBw4DZZxN6Zz+/ebu+GgjadDs3SAKzrpzq/zxD4fuqxBCtgTHL/XEF4gEClRIhDD8Mu4a/s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708710195; c=relaxed/simple;
-	bh=VoCzY5krde0vG9xzX7YuziwxGBvoU+0AQ32A7C7kBBM=;
+	s=arc-20240116; t=1708710198; c=relaxed/simple;
+	bh=5E8ws1s3l5Z0WPoeTvetPbeYIJIcr9hUCwqUfntZF8s=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=rc12CMDCscTPWgX+1xIacHHt/IRxMjAfBsgc0Hkn/JWbdHNrUsH9mJD3PnAT1AHgWE13pJvzY/Or562vY4kAjJR//Mu2Szgy0XdvkDNn90ZNyJfnohPppNEnDuK4pPbFl9TW0PCgZYpEzWKB61jtpPQQ1i8nemefmW9dmaOpJCE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=DCZ0M97W; arc=none smtp.client-ip=209.85.160.44
+	 MIME-Version; b=UMuwP6uLuzKzYBGr5IaJmxy79QQglqb2fpuNzOL5Y/BvB13DuttO3OLoqIVlrduH9l2vZeBPfW8WvjT10Vj/NHPx/bkq6BfXnqqYPU5krBmcKEo8aDQu7u9c54vjoXBqYOiwKKkKXcFXbcuCCedvbfXM96iIXBTaWvDAUON2qiY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=SNmXFW4C; arc=none smtp.client-ip=209.85.167.179
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="DCZ0M97W"
-Received: by mail-oa1-f44.google.com with SMTP id 586e51a60fabf-21e3c16880fso564440fac.2
-        for <nvdimm@lists.linux.dev>; Fri, 23 Feb 2024 09:43:13 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="SNmXFW4C"
+Received: by mail-oi1-f179.google.com with SMTP id 5614622812f47-3c15d1bd5b1so422668b6e.1
+        for <nvdimm@lists.linux.dev>; Fri, 23 Feb 2024 09:43:16 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1708710192; x=1709314992; darn=lists.linux.dev;
+        d=gmail.com; s=20230601; t=1708710195; x=1709314995; darn=lists.linux.dev;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:sender:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=+jGr2qgI9ixdABJ86GK3tMFCGdZwdm8K72HznrZ7mbI=;
-        b=DCZ0M97Wyk3yUjpGH4O9BmlPuXi69KPXE0p67P7BVwGZBlGu9f0mKGY8biSdf6LEt0
-         z/YD8UwyR2In1136zLugYf09hto3Hoc7XP027fuhYrh/ROtLFUjxAbKY2H3q7GPXuNzr
-         bAE7ekLWNdBZMwa3TweXpfSRdm+vIOM+8Lh/FwjviKY7Jp90mQm8hLGyUT927PCYM4xc
-         MmQDqswlKCVnRGJwFyG1ZGv7vLrkQQ72gmFXAu709GHmU/EsMioXoMr/GBCbmFYf5BJk
-         idltiexVbe45O6KL1VMA9C3GsAtxM92He3x+Lgs8R2aEAAr+DESfKFrVdpv5kQY3W8Qg
-         s3Bw==
+        bh=Zu2qZWqnSX2CvxPOf8wPdAKOwn+qgMDO2ue/T6c8dWQ=;
+        b=SNmXFW4CwTwPMgDVSEWJuiTyl42fiVo8/plh3MGKvxKY0M4vsYYMC6XbnvawLXpMTy
+         d69ufPv3NuLLvH+nUuwkkuuUVdPD7weWAhvSS7mmWw2RWIOAFGr2TWi/Iu6QY9H1DpI4
+         in8z4f5oP+PNlVI8ZmDEFRl5JeYXTU7m5OwxegWMB0NtXFtU1GYRl83YpAVu7KaoqGBo
+         mWnmH52A4bNC5NaniUWWyzGLHFj4T8O34ifi6CUeG+VckzVjGQ/PmHc8swjYgOD0Tir0
+         ODk65RcMatWIfTsp4Js1sbJT3Pv0WDGUE26/927j52exGGbJJO57UirAT3LK8h2HMGr5
+         rIZA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1708710192; x=1709314992;
+        d=1e100.net; s=20230601; t=1708710195; x=1709314995;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:sender:x-gm-message-state:from
          :to:cc:subject:date:message-id:reply-to;
-        bh=+jGr2qgI9ixdABJ86GK3tMFCGdZwdm8K72HznrZ7mbI=;
-        b=njQtwFQBwWK6uc62JC41p9FZGmm3xCs7rZ5/EWCNoKPEqe2FKx/d3g+BAZVINuXg6p
-         xpuWgszU1YRjzybs5ge4cInFH1k0ZqI4oJjDDFRnRgdw0n7WhcEUZNNoexjgncIQXb+N
-         PeVkES2HwuLtWcdirIhCmCXWS3tz+XxObr71M1scpGwGnvVRyHppvzQTgXnpjB1ZvJ84
-         uUdi2OOLGgYhzxOcI73f6FZdwUgYMO+nWZI+gqFIMO9Is8EZGZObbO3h85AwN5umaOum
-         BeHjozWUCBYrFd0pRWm9xG7ymjyK4j/H/05I1s8zVHbSWcuKqvHunm0Kj96ck+pRn0nO
-         J5eA==
-X-Forwarded-Encrypted: i=1; AJvYcCXwH5tHDL+wvDTAzmBqTfzEV9pDrPdxqfDQiS7RvMLeLJCw2dxt9/VOSUSYpDvMEvbDdVoyDJSBKALJQafqBeOoDURcW/r/
-X-Gm-Message-State: AOJu0YwN8ThCjxf6VJip5irb9aMFeAiCMJ9yNLgHWkgCNOAcHV+AN8kB
-	rVMPUZ8SQfMH7kbXby0w5m/UbnwXwaS6f6ZgohgK2MxYWXz3EXcg
-X-Google-Smtp-Source: AGHT+IHXbrGyG5qkT8Cy2XG92vn+Onolbp2qVyL5iQ2JVI9EfiggCFq+5eaMS2dVqFrORwDcrGzuZA==
-X-Received: by 2002:a05:6871:431a:b0:21e:6716:65c4 with SMTP id lu26-20020a056871431a00b0021e671665c4mr576037oab.26.1708710192669;
-        Fri, 23 Feb 2024 09:43:12 -0800 (PST)
+        bh=Zu2qZWqnSX2CvxPOf8wPdAKOwn+qgMDO2ue/T6c8dWQ=;
+        b=eZbLDKTOrYZSimu/dbHw7tjDCad9GZFclTpWaVgUu9n3uvksaBZbza8wlBl+EKZU4o
+         yz56XqDoeTkEOEYRAYIpNrNVLsqJB4JTqMlF3C3K7gI4eVwJRrxcCuOIOBvNQJByax6I
+         tFmUuFwZILnchm3+BM6mFWamq6bVwrJHhkVc3m3QW6nfFVXBAn/jSP/MY9DVMl9wFjcs
+         jiBA0EMIowojYox0VqB3S5l5WIYpk8TUGvr3jgyJNG1rGYAcCy8/dRD6Yk2eGH7trhp1
+         MBkpoWHvpLa9XlqDJNHZDepg4OR/Octf/l0bcRGlK/+ojDFg/gvJlT+DIhutLgZjuR7p
+         Kdww==
+X-Forwarded-Encrypted: i=1; AJvYcCX6AHU+C8GkluOJnZK/HXDPnTJQ1NUcDIKGL/Yg4Vb4pPC0U7jbbngpuqK7XCrfLZeotUpG4CRpZu3lxho4R60moQdZ7Bdb
+X-Gm-Message-State: AOJu0Yw2hLJfrDltVL6hPP1QYabhZmrcGIkLZ3ALos8Gy8zvVLGKaHZY
+	PQAQO5XzblsGNwZbSeN8e6xFBle0g3X/LpyC9bIuYp1E1e19SW3v
+X-Google-Smtp-Source: AGHT+IGYcgtz8Iy06lQQNWXgj+Ve6jWn51fNo3ZASvjNCtG6BLvd5/jrMrMZaBzsTgxAsVPTnEaAAA==
+X-Received: by 2002:a05:6870:93cb:b0:21e:4f99:d3c9 with SMTP id c11-20020a05687093cb00b0021e4f99d3c9mr406481oal.50.1708710195603;
+        Fri, 23 Feb 2024 09:43:15 -0800 (PST)
 Received: from localhost.localdomain (070-114-203-196.res.spectrum.com. [70.114.203.196])
-        by smtp.gmail.com with ESMTPSA id rb7-20020a056871618700b0021f6a2bd4b9sm1257803oab.3.2024.02.23.09.43.10
+        by smtp.gmail.com with ESMTPSA id rb7-20020a056871618700b0021f6a2bd4b9sm1257803oab.3.2024.02.23.09.43.13
         (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Fri, 23 Feb 2024 09:43:12 -0800 (PST)
+        Fri, 23 Feb 2024 09:43:15 -0800 (PST)
 Sender: John Groves <grovesaustin@gmail.com>
 From: John Groves <John@Groves.net>
 X-Google-Original-From: John Groves <john@groves.net>
@@ -76,9 +76,9 @@ Cc: John@Groves.net,
 	dave.hansen@linux.intel.com,
 	gregory.price@memverge.com,
 	John Groves <john@groves.net>
-Subject: [RFC PATCH 19/20] famfs: Update MAINTAINERS file
-Date: Fri, 23 Feb 2024 11:42:03 -0600
-Message-Id: <451185e79c5b848d94eddaa3e778b834f7a35657.1708709155.git.john@groves.net>
+Subject: [RFC PATCH 20/20] famfs: Add Kconfig and Makefile plumbing
+Date: Fri, 23 Feb 2024 11:42:04 -0600
+Message-Id: <1225d42bc8756c016bb73f8a43095a384b08524a.1708709155.git.john@groves.net>
 X-Mailer: git-send-email 2.39.3 (Apple Git-145)
 In-Reply-To: <cover.1708709155.git.john@groves.net>
 References: <cover.1708709155.git.john@groves.net>
@@ -90,35 +90,67 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This patch introduces famfs into the MAINTAINERS file
+Add famfs Kconfig and Makefile, and hook into fs/Kconfig and fs/Makefile
 
 Signed-off-by: John Groves <john@groves.net>
 ---
- MAINTAINERS | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ fs/Kconfig        |  2 ++
+ fs/Makefile       |  1 +
+ fs/famfs/Kconfig  | 10 ++++++++++
+ fs/famfs/Makefile |  5 +++++
+ 4 files changed, 18 insertions(+)
+ create mode 100644 fs/famfs/Kconfig
+ create mode 100644 fs/famfs/Makefile
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 73d898383e51..e4e8bf3602bb 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -8097,6 +8097,17 @@ F:	Documentation/networking/failover.rst
- F:	include/net/failover.h
- F:	net/core/failover.c
+diff --git a/fs/Kconfig b/fs/Kconfig
+index 89fdbefd1075..8a11625a54a2 100644
+--- a/fs/Kconfig
++++ b/fs/Kconfig
+@@ -141,6 +141,8 @@ source "fs/autofs/Kconfig"
+ source "fs/fuse/Kconfig"
+ source "fs/overlayfs/Kconfig"
  
-+FAMFS
-+M:	John Groves <jgroves@micron.com>
-+M:	John Groves <John@Groves.net>
-+M:	John Groves <john@jagalactic.com>
-+L:	linux-cxl@vger.kernel.org
-+L:	linux-fsdevel@vger.kernel.org
-+S:	Supported
-+F:	Documentation/filesystems/famfs.rst
-+F:	fs/famfs
-+F:	include/uapi/linux/famfs_ioctl.h
++source "fs/famfs/Kconfig"
 +
- FANOTIFY
- M:	Jan Kara <jack@suse.cz>
- R:	Amir Goldstein <amir73il@gmail.com>
+ menu "Caches"
+ 
+ source "fs/netfs/Kconfig"
+diff --git a/fs/Makefile b/fs/Makefile
+index c09016257f05..382c1ea4f4c3 100644
+--- a/fs/Makefile
++++ b/fs/Makefile
+@@ -130,3 +130,4 @@ obj-$(CONFIG_EFIVAR_FS)		+= efivarfs/
+ obj-$(CONFIG_EROFS_FS)		+= erofs/
+ obj-$(CONFIG_VBOXSF_FS)		+= vboxsf/
+ obj-$(CONFIG_ZONEFS_FS)		+= zonefs/
++obj-$(CONFIG_FAMFS)             += famfs/
+diff --git a/fs/famfs/Kconfig b/fs/famfs/Kconfig
+new file mode 100644
+index 000000000000..e450928d8912
+--- /dev/null
++++ b/fs/famfs/Kconfig
+@@ -0,0 +1,10 @@
++
++
++config FAMFS
++       tristate "famfs: shared memory file system"
++       depends on DEV_DAX && FS_DAX
++       help
++         Support for the famfs file system. Famfs is a dax file system that
++	 can support scale-out shared access to fabric-attached memory
++	 (e.g. CXL shared memory). Famfs is not a general purpose file system;
++	 it is an enabler for data sets in shared memory.
+diff --git a/fs/famfs/Makefile b/fs/famfs/Makefile
+new file mode 100644
+index 000000000000..8cac90c090a4
+--- /dev/null
++++ b/fs/famfs/Makefile
+@@ -0,0 +1,5 @@
++# SPDX-License-Identifier: GPL-2.0
++
++obj-$(CONFIG_FAMFS) += famfs.o
++
++famfs-y := famfs_inode.o famfs_file.o
 -- 
 2.43.0
 
