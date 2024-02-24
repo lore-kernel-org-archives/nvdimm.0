@@ -1,106 +1,156 @@
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A9F8182;
-	Sat, 24 Feb 2024 00:07:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E75B4691;
+	Sat, 24 Feb 2024 01:39:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708733228; cv=none; b=gIw1o0NZfQVKpazyYA7bkruQesUGtzBhXQZ3rf3JN95+ohgGWD9JDXV+ji86s4cMKfVc747WK9ITwJjcTLF7J2JCxfSel/iDJFsbZezDFDYjsR1XvxLz9VRnUG/gSBBP3NgoH/N2DnNOwtTsRXW8AL/aEqrCL10GBP0eXpMh9fI=
+	t=1708738772; cv=none; b=mZ9nvgih6BpHXS80mXZhHRmQwWbYBoFnDl9pEWHLgxet0IYHnS0q+KuabPDeG+sGjLc96rJQyk5WZ7Yf5Mo2AKhKkhOlzvIy+nFRtpe0jqUf0Reg0BocxFT4nA4vQ+oQroTpbAxYOLKqmjY4441CkeV3pRFaNPSMVpOr0rVyO7k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708733228; c=relaxed/simple;
-	bh=qiyDaquhNDRAD1bYDTLfWk1m9ilGG/A8+ouVFaiFqpU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=r+u7w/LOJTVtV+6cW7HdNaEFzZQXVsRVosLU759wO6n4nRcdJ/n4XARuuV6hFjfWESJnFGqmS45lqiLEWxy0C6/1tepYIfcCmAeiSkSda9pke9a3YDXHl4lvwOFBRW/OAp/LX8pDzBfnspsWfbKkt9BsivwMnTHcJxLty+KxKwk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=JMNC8ZBC; arc=none smtp.client-ip=198.137.202.133
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
+	s=arc-20240116; t=1708738772; c=relaxed/simple;
+	bh=grmqTGtQG9fq4CPhxxcq8kJy2UzulKY7x/6Pg9ONvnM=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=YveVGlPlyXpv+1SJjxLtlXHHhWAcpWSBqFvV6EMHRsDSHvA99bnpwDBL2UK4wg45GsHdDwNFJ3617xBP9E8lJaH/oaavZ8ueo+kbCTJQY58CNf8LdFxEXkcnMfIY343BRNb84znhjKwAyyx8FAz5QN27NjBniyKJxNqEV2xkR6A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=BGPoinDl; arc=none smtp.client-ip=198.137.202.133
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="JMNC8ZBC"
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="BGPoinDl"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=Sender:In-Reply-To:Content-Type:
-	MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=RLXEC5G8zhOhURItJOCbBXesZ2wGukLrzFwY7ETSkMI=; b=JMNC8ZBC5npFRya4vizIt421Eo
-	ohsVaPKre0JMqxNQ5HzWUFhhQsj5ugPe6sGbwLSr5gwRiQlVAPIRt7y6Ut1VGhCXzeKQPdEXgLhAi
-	2frsNgx9A7EtvYTXfxh140Wf6Hxeyb5qEZjTxbcI6O000chegytsaOh9Q/5Le0jFYnI7U2dcJVgyY
-	dZSbIqoaBjiODzFG8jyo/3TTl3dZWgSyBQV1ZLkLmSFIgqkcIJfkcx0AVprz5f0vULXIHYDorH26q
-	t4MULcYnZ3kcXgZgzig4+LBYkCLINsoOoNmDqY9fz+sPR17dal6kO/0yyuCd8WOMiaWqIpzDxz0Pc
-	j9LevlwA==;
-Received: from mcgrof by bombadil.infradead.org with local (Exim 4.97.1 #2 (Red Hat Linux))
-	id 1rdfZE-0000000Bdrq-0xdy;
-	Sat, 24 Feb 2024 00:07:00 +0000
-Date: Fri, 23 Feb 2024 16:07:00 -0800
-From: Luis Chamberlain <mcgrof@kernel.org>
-To: John Groves <John@groves.net>
-Cc: John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Alexander Viro <viro@zeniv.linux.org.uk>,
-	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
-	Matthew Wilcox <willy@infradead.org>, linux-cxl@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
-	john@jagalactic.com, Dave Chinner <david@fromorbit.com>,
-	Christoph Hellwig <hch@infradead.org>, dave.hansen@linux.intel.com,
-	gregory.price@memverge.com
-Subject: Re: [RFC PATCH 00/20] Introduce the famfs shared-memory file system
-Message-ID: <ZdkzJM6sze-p3EWP@bombadil.infradead.org>
-References: <cover.1708709155.git.john@groves.net>
+	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
+	Content-Type:In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:
+	Message-ID:Sender:Reply-To:Content-ID:Content-Description;
+	bh=1PQkgMOAg6e8eTu59zqEMoNNkn6K/4X8IH67/pQAy/U=; b=BGPoinDluaiJF6D2vgIjksRoEi
+	EGPOmrVD8c1/7zjT288XvYtD2u02gttPLPx5bqlaamxkRtQXVtwcAeGFb+Wb7W0ex0f0bvb/MMojE
+	T+EYgKVVDHZnxczc/XoDBX2Y/l2sIwygIOFW3sSccxT4j1azU4+OF1mFOd3vwoDCyBaleT1UgR7rk
+	Vl6Xe26wsYxkqEm4i5Ey1ex9eagaLhRaeF+ofuRX9vwgmGF/8M3h47gpG9fZ3cDAztLbJZgzq1TE/
+	1FbK4ga7kiurfiPB8XXA+xGjKiPiNS7Jnzou+Xl6yRTtZiAnQvVmFe+IZ4wa2G64oHTm8GlqzdkhL
+	CRgI0hVQ==;
+Received: from [50.53.50.0] (helo=[192.168.254.15])
+	by bombadil.infradead.org with esmtpsa (Exim 4.97.1 #2 (Red Hat Linux))
+	id 1rdh0d-0000000BoWv-1wgB;
+	Sat, 24 Feb 2024 01:39:23 +0000
+Message-ID: <8f62b688-6c14-4eab-b039-7d9a112893f8@infradead.org>
+Date: Fri, 23 Feb 2024 17:39:22 -0800
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <cover.1708709155.git.john@groves.net>
-Sender: Luis Chamberlain <mcgrof@infradead.org>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC PATCH 07/20] famfs: Add include/linux/famfs_ioctl.h
+Content-Language: en-US
+To: John Groves <John@Groves.net>, John Groves <jgroves@micron.com>,
+ Jonathan Corbet <corbet@lwn.net>, Dan Williams <dan.j.williams@intel.com>,
+ Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>,
+ Alexander Viro <viro@zeniv.linux.org.uk>,
+ Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+ Matthew Wilcox <willy@infradead.org>, linux-cxl@vger.kernel.org,
+ linux-fsdevel@vger.kernel.org, linux-doc@vger.kernel.org,
+ linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev
+Cc: john@jagalactic.com, Dave Chinner <david@fromorbit.com>,
+ Christoph Hellwig <hch@infradead.org>, dave.hansen@linux.intel.com,
+ gregory.price@memverge.com
+References: <cover.1708709155.git.john@groves.net>
+ <b40ca30e4bf689249a8c237909d9a7aaca9861e4.1708709155.git.john@groves.net>
+From: Randy Dunlap <rdunlap@infradead.org>
+In-Reply-To: <b40ca30e4bf689249a8c237909d9a7aaca9861e4.1708709155.git.john@groves.net>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Fri, Feb 23, 2024 at 11:41:44AM -0600, John Groves wrote:
-> This patch set introduces famfs[1] - a special-purpose fs-dax file system
-> for sharable disaggregated or fabric-attached memory (FAM). Famfs is not
-> CXL-specific in anyway way.
+Hi--
+
+On 2/23/24 09:41, John Groves wrote:
+> Add uapi include file for famfs. The famfs user space uses ioctl on
+> individual files to pass in mapping information and file size. This
+> would be hard to do via sysfs or other means, since it's
+> file-specific.
 > 
-> * Famfs creates a simple access method for storing and sharing data in
->   sharable memory. The memory is exposed and accessed as memory-mappable
->   dax files.
-> * Famfs supports multiple hosts mounting the same file system from the
->   same memory (something existing fs-dax file systems don't do).
-> * A famfs file system can be created on either a /dev/pmem device in fs-dax
->   mode, or a /dev/dax device in devdax mode (the latter depending on
->   patches 2-6 of this series).
+> Signed-off-by: John Groves <john@groves.net>
+> ---
+>  include/uapi/linux/famfs_ioctl.h | 56 ++++++++++++++++++++++++++++++++
+>  1 file changed, 56 insertions(+)
+>  create mode 100644 include/uapi/linux/famfs_ioctl.h
 > 
-> The famfs kernel file system is part the famfs framework; additional
-> components in user space[2] handle metadata and direct the famfs kernel
-> module to instantiate files that map to specific memory. The famfs user
-> space has documentation and a reasonably thorough test suite.
-> 
-> The famfs kernel module never accesses the shared memory directly (either
-> data or metadata). Because of this, shared memory managed by the famfs
-> framework does not create a RAS "blast radius" problem that should be able
-> to crash or de-stabilize the kernel. Poison or timeouts in famfs memory
-> can be expected to kill apps via SIGBUS and cause mounts to be disabled
-> due to memory failure notifications.
-> 
-> Famfs does not attempt to solve concurrency or coherency problems for apps,
-> although it does solve these problems in regard to its own data structures.
-> Apps may encounter hard concurrency problems, but there are use cases that
-> are imminently useful and uncomplicated from a concurrency perspective:
-> serial sharing is one (only one host at a time has access), and read-only
-> concurrent sharing is another (all hosts can read-cache without worry).
+> diff --git a/include/uapi/linux/famfs_ioctl.h b/include/uapi/linux/famfs_ioctl.h
+> new file mode 100644
+> index 000000000000..6b3e6452d02f
+> --- /dev/null
+> +++ b/include/uapi/linux/famfs_ioctl.h
+> @@ -0,0 +1,56 @@
+> +/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
+> +/*
+> + * famfs - dax file system for shared fabric-attached memory
+> + *
+> + * Copyright 2023-2024 Micron Technology, Inc.
+> + *
+> + * This file system, originally based on ramfs the dax support from xfs,
 
-Can you do me a favor, curious if you can run a test like this:
+      This is confusing to me. Is it just me? ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-fio -name=ten-1g-per-thread --nrfiles=10 -bs=2M -ioengine=io_uring                                                                                                                            
--direct=1                                                                                                                                                                                    
---group_reporting=1 --alloc-size=1048576 --filesize=1GiB                                                                                                                                      
---readwrite=write --fallocate=none --numjobs=$(nproc) --create_on_open=1                                                                                                                      
---directory=/mnt 
+> + * is intended to allow multiple host systems to mount a common file system
+> + * view of dax files that map to shared memory.
+> + */
+> +#ifndef FAMFS_IOCTL_H
+> +#define FAMFS_IOCTL_H
+> +
+> +#include <linux/ioctl.h>
+> +#include <linux/uuid.h>
+> +
+> +#define FAMFS_MAX_EXTENTS 2
+> +
+> +enum extent_type {
+> +	SIMPLE_DAX_EXTENT = 13,
+> +	INVALID_EXTENT_TYPE,
+> +};
+> +
+> +struct famfs_extent {
+> +	__u64              offset;
+> +	__u64              len;
+> +};
+> +
+> +enum famfs_file_type {
+> +	FAMFS_REG,
+> +	FAMFS_SUPERBLOCK,
+> +	FAMFS_LOG,
+> +};
+> +
+> +/**
 
-What do you get for throughput?
+"/**" is used to begin kernel-doc comments, but this comment block is missing
+a few entries to make it be kernel-doc compatible. Please either add them
+or just use "/*" to begin the comment.
 
-The absolute large the system an capacity the better.
+> + * struct famfs_ioc_map
+> + *
+> + * This is the metadata that indicates where the memory is for a famfs file
+> + */
+> +struct famfs_ioc_map {
+> +	enum extent_type          extent_type;
+> +	enum famfs_file_type      file_type;
+> +	__u64                     file_size;
+> +	__u64                     ext_list_count;
+> +	struct famfs_extent       ext_list[FAMFS_MAX_EXTENTS];
+> +};
+> +
+> +#define FAMFSIOC_MAGIC 'u'
 
-  Luis
+This 'u' value should be documented in
+Documentation/userspace-api/ioctl/ioctl-number.rst.
+
+and if possible, you might want to use values like 0x5x or 0x8x
+that don't conflict with the ioctl numbers that are already used
+in the 'u' space.
+
+> +
+> +/* famfs file ioctl opcodes */
+> +#define FAMFSIOC_MAP_CREATE    _IOW(FAMFSIOC_MAGIC, 1, struct famfs_ioc_map)
+> +#define FAMFSIOC_MAP_GET       _IOR(FAMFSIOC_MAGIC, 2, struct famfs_ioc_map)
+> +#define FAMFSIOC_MAP_GETEXT    _IOR(FAMFSIOC_MAGIC, 3, struct famfs_extent)
+> +#define FAMFSIOC_NOP           _IO(FAMFSIOC_MAGIC,  4)
+> +
+> +#endif /* FAMFS_IOCTL_H */
+
+-- 
+#Randy
