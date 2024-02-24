@@ -1,101 +1,78 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9D51D2E0;
-	Sat, 24 Feb 2024 03:27:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A28151FAA;
+	Sat, 24 Feb 2024 03:59:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=90.155.50.34
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708745253; cv=none; b=LhoT2K42OZwjbtI8w6etIi/QhdRHGSWxBqStI1hxjYjh75czsgvqHc0AsGxfa+J6ccqUU2hFxGe7jz+pSYRgoewWcrzpbpQdcgdrlmsPt55K+95XN9s7jVq0ho3Q1FfcFNgeXMa6oPvXvxuqNWp2wFsx5+USwIirEOO6UbykyPU=
+	t=1708747173; cv=none; b=Hk5j4FlCMNfoQsqjgU6zZXKr/pQDvBvkI4IZca5XGbfS+tkT7L+PloUcAk5n29SD9Q3sm6+r+YNY/ay4WqRG9ua3N2bjO94hZWpIAJrbCHQwrZYTWGMZbfBF4Lwkhs4fRm+8eW+IMoM7sLlQ/HOjBjze3o/moEgpzldSCVSt7G0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708745253; c=relaxed/simple;
-	bh=qhDNlIMq5CO7aNNTqnWBMffCMqCKzQlbjb1J1+ZjR6s=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=SmEHb1MmpH1KPQpHrZyky9LmVzAzLk4i7kmftceIuDS2d+h1GdKZGZB96dsDOhEGoSB3sigy6RpOGH3DfKYuCZDKtD+F/N4x0UG+GURmJPsJt3o9siqA5gHcgy40C9KqosawKUdLqkC6jz9ai4ydiOATGuOhl433wtNMYqnJpeY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=W9fJ6Bc+; arc=none smtp.client-ip=198.137.202.133
+	s=arc-20240116; t=1708747173; c=relaxed/simple;
+	bh=rbGyRrzI5Zzax0WXkXpgbEmPCzjOn1B4JAPKpQIVtfI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=ktedcFgk0VtbjuLegQIwVu2ib0IWWeKjZklkMxVqmkXy460Ome588mUaXuMKAbZrI+su5qQJnefWiBj6IqoecDCfd2GrkjqFOTEOJPqscfvwdmgwGR1d4Aqkq8wt56ifkxfDPsfje0uY+wFF9UjFEHxEr2p8OClZxu0lZ4+hcnI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=HAgUEvxj; arc=none smtp.client-ip=90.155.50.34
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="W9fJ6Bc+"
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="HAgUEvxj"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-	Content-Type:In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:
-	Message-ID:Sender:Reply-To:Content-ID:Content-Description;
-	bh=0VCkszg+LKLjIPkU+C6CKrRV3Fp8J43nYtNQiylBN10=; b=W9fJ6Bc+K8wkC50wnuBCuysytl
-	BtgBPCcY1O3Zj0LxNhyI1VpNJ1aPrnobfR/MYuEuS8SX8J2NFq81W7iICYNaGNEs00/WbO/rf3Rpl
-	rXu1GmA/7Gv2iMXWOaFGY+healOF8T0q2ZlWiH5L6FIJsYejY1YG42QfvtkQJ12Blv4ZzgnuBoq7L
-	Vhx6QIp93YVyxtoBXrwJ2IAZ40MU8IDO5S2zvkpfyGPDdZw81LNF9Y7Aog++JYbWJ+nhsuhifiM6M
-	hayGF+PsoqHCrNH1RA3CDbSj9XVaAnz4Q1Ro76/XJ0YinBM/q+PTpLNC9FSWWnYntvPFgLw4zdLIj
-	JHt0flNw==;
-Received: from [50.53.50.0] (helo=[192.168.254.15])
-	by bombadil.infradead.org with esmtpsa (Exim 4.97.1 #2 (Red Hat Linux))
-	id 1rdih9-0000000Bwos-10f0;
-	Sat, 24 Feb 2024 03:27:23 +0000
-Message-ID: <97cde8f6-21ed-45b9-9618-568933102f05@infradead.org>
-Date: Fri, 23 Feb 2024 19:27:22 -0800
+	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=9Q7xjM4y4fPUpaXOwztAM/evw0GuePSPAyYG73fUcOc=; b=HAgUEvxjqGsxmCjPf/mM0BhF3J
+	42ZExS+8AcRSrdBjctLVTmhRvuRjDCRO6+DyUW77Dhw7pytNsZ6B3jAFGVr57QkLGA3r9lkA0NcuE
+	YWieIiKjPNZTzM0D6in+3cQOClgJEO9LsAFUdvLa9oEPW9xKLza1VKqcIWx087rvP0HxIIOJZf5k6
+	+X4xBTVnUlUUSQAawSmdmrNXSUWlcDxLo6/a43B3UnWrQ55JtdWWtPGJUcImhHKpRRaM+9dzUwuFK
+	R6shKlaTicH7HYc+FZIAMjpwoMscmRTA0LU9nH+9xVZCjf70bzI7PsG5ee+JSVfdDXG+F6kEzuXjI
+	9HSDoSRw==;
+Received: from willy by casper.infradead.org with local (Exim 4.97.1 #2 (Red Hat Linux))
+	id 1rdjBv-00000009SrZ-1ayo;
+	Sat, 24 Feb 2024 03:59:11 +0000
+Date: Sat, 24 Feb 2024 03:59:11 +0000
+From: Matthew Wilcox <willy@infradead.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Hansen <dave.hansen@intel.com>, John Groves <John@groves.net>,
+	John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+	linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	nvdimm@lists.linux.dev, john@jagalactic.com,
+	Dave Chinner <david@fromorbit.com>,
+	Christoph Hellwig <hch@infradead.org>, dave.hansen@linux.intel.com,
+	gregory.price@memverge.com
+Subject: Re: [RFC PATCH 16/20] famfs: Add fault counters
+Message-ID: <Zdlpj3hW8mUfPv_L@casper.infradead.org>
+References: <cover.1708709155.git.john@groves.net>
+ <43245b463f00506016b8c39c0252faf62bd73e35.1708709155.git.john@groves.net>
+ <05a12c0b-e3e3-4549-b02e-442e4b48a86d@intel.com>
+ <l66vdkefx4ut73jis52wvn4j6hzj5omvrtpsoda6gbl27d4uwg@yolm6jx4yitn>
+ <65d8fa6736a18_2509b29410@dwillia2-mobl3.amr.corp.intel.com.notmuch>
+ <ytyzwnrpxrc4pakw763qytiz2uft66qynwbjqhuuxrs376xiik@iazam6xcqbhv>
+ <b26fc2d6-207c-4d93-b9a3-1fa81fd89f6c@intel.com>
+ <65d92f49ee454_1711029468@dwillia2-mobl3.amr.corp.intel.com.notmuch>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH 07/20] famfs: Add include/linux/famfs_ioctl.h
-Content-Language: en-US
-To: John Groves <John@groves.net>
-Cc: John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>,
- Dan Williams <dan.j.williams@intel.com>,
- Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>,
- Alexander Viro <viro@zeniv.linux.org.uk>,
- Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
- Matthew Wilcox <willy@infradead.org>, linux-cxl@vger.kernel.org,
- linux-fsdevel@vger.kernel.org, linux-doc@vger.kernel.org,
- linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, john@jagalactic.com,
- Dave Chinner <david@fromorbit.com>, Christoph Hellwig <hch@infradead.org>,
- dave.hansen@linux.intel.com, gregory.price@memverge.com
-References: <cover.1708709155.git.john@groves.net>
- <b40ca30e4bf689249a8c237909d9a7aaca9861e4.1708709155.git.john@groves.net>
- <8f62b688-6c14-4eab-b039-7d9a112893f8@infradead.org>
- <7onhdq4spd7mnkr5c443sbvnr7l4n34amtterg4soiey2qubyl@r2ppa6fsohnk>
-From: Randy Dunlap <rdunlap@infradead.org>
-In-Reply-To: <7onhdq4spd7mnkr5c443sbvnr7l4n34amtterg4soiey2qubyl@r2ppa6fsohnk>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <65d92f49ee454_1711029468@dwillia2-mobl3.amr.corp.intel.com.notmuch>
 
-Hi John,
+On Fri, Feb 23, 2024 at 03:50:33PM -0800, Dan Williams wrote:
+> Certainly something like that would have satisified this sanity test use
+> case. I will note that mm_account_fault() would need some help to figure
+> out the size of the page table entry that got installed. Maybe
+> extensions to vm_fault_reason to add VM_FAULT_P*D? That compliments
+> VM_FAULT_FALLBACK to indicate whether, for example, the fallback went
+> from PUD to PMD, or all the way back to PTE.
 
-On 2/23/24 18:23, John Groves wrote:
->>> +
->>> +#define FAMFSIOC_MAGIC 'u'
->> This 'u' value should be documented in
->> Documentation/userspace-api/ioctl/ioctl-number.rst.
->>
->> and if possible, you might want to use values like 0x5x or 0x8x
->> that don't conflict with the ioctl numbers that are already used
->> in the 'u' space.
-> Will do. I was trying to be too clever there, invoking "mu" for
-> micron. 
-
-I might have been unclear about this one.
-It's OK to use 'u' but the values 1-4 below conflict in the 'u' space:
-
-'u'   00-1F  linux/smb_fs.h                                          gone
-'u'   20-3F  linux/uvcvideo.h                                        USB video class host driver
-'u'   40-4f  linux/udmabuf.h
-
-so if you could use
-'u'   50-5f
-or
-'u'   80-8f
-
-then those conflicts wouldn't be there.
-HTH.
-
->>> +
->>> +/* famfs file ioctl opcodes */
->>> +#define FAMFSIOC_MAP_CREATE    _IOW(FAMFSIOC_MAGIC, 1, struct famfs_ioc_map)
->>> +#define FAMFSIOC_MAP_GET       _IOR(FAMFSIOC_MAGIC, 2, struct famfs_ioc_map)
->>> +#define FAMFSIOC_MAP_GETEXT    _IOR(FAMFSIOC_MAGIC, 3, struct famfs_extent)
->>> +#define FAMFSIOC_NOP           _IO(FAMFSIOC_MAGIC,  4)
-
--- 
-#Randy
+ugh, no, it's more complicated than that.  look at the recent changes to
+set_ptes().  we can now install PTEs of many different sizes, depending
+on the architecture.  someday i look forward to supporting all the page
+sizes on parisc (4k, 16k, 64k, 256k, ... 4G)
