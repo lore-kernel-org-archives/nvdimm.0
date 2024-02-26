@@ -1,150 +1,180 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E2CD12B82;
-	Sat, 24 Feb 2024 23:40:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 171FF5FEF0
+	for <nvdimm@lists.linux.dev>; Mon, 26 Feb 2024 12:05:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708818031; cv=none; b=M+O4T4ZKfNjOE+3sXLKg+L8jvCksWillT+SUmsmQ9HMHTLrjcCoPZbvgNeePOhr9MSyWkes+mj2q6fyxFpdF+oP+WvYcz/0Rgi5arxpCk/mqGO+OSbt2Lhfk9ecNIKiaCpWJnzdOVovpGhaali94CN/+iQFCoHMaff0ppQUQSeo=
+	t=1708949142; cv=none; b=mm3Fz4dv1UKgM0joL3N4yLFQSLCXYf2ynu6VJTpzubGPWj8Lq6yYzlpTBW3Vk88ftYb3kAFof7FLn5bWSKdqfU6SKPIqoNPqT8UI+xKCXSrGA0TXwf2PO3gTV0Lu2UoA9j5w2CYedkkxd91dEP137IN70iCJs0zeEPEqv15nDRg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708818031; c=relaxed/simple;
-	bh=OYw2ByYVVHvBoCVIfIWdB7pG17J1LlNmfxFwVKBACEQ=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=L+s62MbiainDs+6BxUyl1tIW0pinDMqdwLa1JrX1KpVPkN8VePoEhwmXi2//i7U+Z0Z3VGSzvivN/FX3MzUEsZYcFByqMKU90vcfWvFuQzeLZprI06T9Z2sqdaV5GK5VHRQaCyx3rWKX1h6FCKUQu5hSx08m4mnlUL9Dvj9FhwY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=FuL6Ae3f; arc=none smtp.client-ip=198.137.202.133
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="FuL6Ae3f"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-	Content-Type:In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:
-	Message-ID:Sender:Reply-To:Content-ID:Content-Description;
-	bh=TI5u+hB8IqJPV1NXXXiHCj1H8nEjuxpLgMV7QWNQhGk=; b=FuL6Ae3fH6sehiIobvIeA2t2bf
-	cncxTnJTyw0IHXpzN8sufwgSnKg2jUMaDxJ0hATMrjfW+0n6NwP/pO6T0gtaGujbERbYn+u+0i6X+
-	8MLtw8e5wY7Z3YYlPzos+/xQI4CECLE80kci01A0Uk1UR++i8zKHKujjDrmM5Ddt51en5El5gYEaL
-	3cr5WzXhu7hPDrGl5hLexOaE+fhvj4RGicHqYE5LyUWSncZn16pQQ8yUZy6KXiJ9yIdClDhx5VQHG
-	VQFVgO1VV4VSL+xI5ENAlFWjM5j6CqRZuTu7BpygZ4y7SqTb4TUH70Li9sgiZ0pMyaXFZSyN8LZ0/
-	t57Bv54Q==;
-Received: from [50.53.50.0] (helo=[192.168.254.15])
-	by bombadil.infradead.org with esmtpsa (Exim 4.97.1 #2 (Red Hat Linux))
-	id 1re1cs-0000000DrjE-1TMs;
-	Sat, 24 Feb 2024 23:40:14 +0000
-Message-ID: <121d0ce8-e542-4a1c-85e9-0d1863f36741@infradead.org>
-Date: Sat, 24 Feb 2024 15:40:11 -0800
+	s=arc-20240116; t=1708949142; c=relaxed/simple;
+	bh=X6Bosa0A2A1es99TJJ26f3cbulaCTZndrqN6NEOItkU=;
+	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=R+7e/6XYHSXoRgDbQfj2eLeZ4Asi37gGoEoVvAAyTy2OLM+glWLtUSTDOCRYRbtsHgm1D1f6ird3SB/0IRc8QRm5lM9CJ9BZD6ReZVjFd/D6Gn+oG4wlY47/iBfCUpUs3jIrlBWHQToCvPvtWzaZi9SQpbNmpTTcr7j6F/X+iZs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.18.186.31])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4TjzjC6Ckfz6JBM0;
+	Mon, 26 Feb 2024 20:01:03 +0800 (CST)
+Received: from lhrpeml500005.china.huawei.com (unknown [7.191.163.240])
+	by mail.maildlp.com (Postfix) with ESMTPS id 74AA21410C8;
+	Mon, 26 Feb 2024 20:05:37 +0800 (CST)
+Received: from localhost (10.202.227.76) by lhrpeml500005.china.huawei.com
+ (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.35; Mon, 26 Feb
+ 2024 12:05:36 +0000
+Date: Mon, 26 Feb 2024 12:05:35 +0000
+From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+To: John Groves <John@Groves.net>
+CC: John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>, "Dan
+ Williams" <dan.j.williams@intel.com>, Vishal Verma
+	<vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, "Alexander
+ Viro" <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, "Jan
+ Kara" <jack@suse.cz>, Matthew Wilcox <willy@infradead.org>,
+	<linux-cxl@vger.kernel.org>, <linux-fsdevel@vger.kernel.org>,
+	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<nvdimm@lists.linux.dev>, <john@jagalactic.com>, Dave Chinner
+	<david@fromorbit.com>, Christoph Hellwig <hch@infradead.org>,
+	<dave.hansen@linux.intel.com>, <gregory.price@memverge.com>
+Subject: Re: [RFC PATCH 02/20] dev_dax_iomap: Add fs_dax_get() func to
+ prepare dax for fs-dax usage
+Message-ID: <20240226120535.00007a36@Huawei.com>
+In-Reply-To: <69ed4a3064bd9b48fd0593941038dd111fcfb8f3.1708709155.git.john@groves.net>
+References: <cover.1708709155.git.john@groves.net>
+	<69ed4a3064bd9b48fd0593941038dd111fcfb8f3.1708709155.git.john@groves.net>
+Organization: Huawei Technologies Research and Development (UK) Ltd.
+X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH 07/20] famfs: Add include/linux/famfs_ioctl.h
-Content-Language: en-US
-To: John Groves <John@groves.net>
-Cc: John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>,
- Dan Williams <dan.j.williams@intel.com>,
- Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>,
- Alexander Viro <viro@zeniv.linux.org.uk>,
- Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
- Matthew Wilcox <willy@infradead.org>, linux-cxl@vger.kernel.org,
- linux-fsdevel@vger.kernel.org, linux-doc@vger.kernel.org,
- linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, john@jagalactic.com,
- Dave Chinner <david@fromorbit.com>, Christoph Hellwig <hch@infradead.org>,
- dave.hansen@linux.intel.com, gregory.price@memverge.com
-References: <cover.1708709155.git.john@groves.net>
- <b40ca30e4bf689249a8c237909d9a7aaca9861e4.1708709155.git.john@groves.net>
- <8f62b688-6c14-4eab-b039-7d9a112893f8@infradead.org>
- <7onhdq4spd7mnkr5c443sbvnr7l4n34amtterg4soiey2qubyl@r2ppa6fsohnk>
- <97cde8f6-21ed-45b9-9618-568933102f05@infradead.org>
- <7rkmolss5vkdljnh6uksfkepklwofe3bkdsf36qhokyltjoxlx@xqgef734pidg>
-From: Randy Dunlap <rdunlap@infradead.org>
-In-Reply-To: <7rkmolss5vkdljnh6uksfkepklwofe3bkdsf36qhokyltjoxlx@xqgef734pidg>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: lhrpeml500001.china.huawei.com (7.191.163.213) To
+ lhrpeml500005.china.huawei.com (7.191.163.240)
+
+On Fri, 23 Feb 2024 11:41:46 -0600
+John Groves <John@Groves.net> wrote:
+
+> This function should be called by fs-dax file systems after opening the
+> devdax device. This adds holder_operations.
+> 
+> This function serves the same role as fs_dax_get_by_bdev(), which dax
+> file systems call after opening the pmem block device.
+> 
+> Signed-off-by: John Groves <john@groves.net>
+
+A few trivial comments form a first read to get my head around this.
+
+Yeah, it is only an RFC, but who doesn't like tidy code? :)
 
 
+> ---
+>  drivers/dax/super.c | 38 ++++++++++++++++++++++++++++++++++++++
+>  include/linux/dax.h |  5 +++++
+>  2 files changed, 43 insertions(+)
+> 
+> diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+> index f4b635526345..fc96362de237 100644
+> --- a/drivers/dax/super.c
+> +++ b/drivers/dax/super.c
+> @@ -121,6 +121,44 @@ void fs_put_dax(struct dax_device *dax_dev, void *holder)
+>  EXPORT_SYMBOL_GPL(fs_put_dax);
+>  #endif /* CONFIG_BLOCK && CONFIG_FS_DAX */
+>  
+> +#if IS_ENABLED(CONFIG_DEV_DAX_IOMAP)
+> +
+> +/**
+> + * fs_dax_get()
 
-On 2/24/24 15:32, John Groves wrote:
-> On 24/02/23 07:27PM, Randy Dunlap wrote:
->> Hi John,
->>
->> On 2/23/24 18:23, John Groves wrote:
->>>>> +
->>>>> +#define FAMFSIOC_MAGIC 'u'
->>>> This 'u' value should be documented in
->>>> Documentation/userspace-api/ioctl/ioctl-number.rst.
->>>>
->>>> and if possible, you might want to use values like 0x5x or 0x8x
->>>> that don't conflict with the ioctl numbers that are already used
->>>> in the 'u' space.
->>> Will do. I was trying to be too clever there, invoking "mu" for
->>> micron. 
->>
->> I might have been unclear about this one.
->> It's OK to use 'u' but the values 1-4 below conflict in the 'u' space:
->>
->> 'u'   00-1F  linux/smb_fs.h                                          gone
->> 'u'   20-3F  linux/uvcvideo.h                                        USB video class host driver
->> 'u'   40-4f  linux/udmabuf.h
->>
->> so if you could use
->> 'u'   50-5f
->> or
->> 'u'   80-8f
->>
->> then those conflicts wouldn't be there.
->> HTH.
->>
->>>>> +
->>>>> +/* famfs file ioctl opcodes */
->>>>> +#define FAMFSIOC_MAP_CREATE    _IOW(FAMFSIOC_MAGIC, 1, struct famfs_ioc_map)
->>>>> +#define FAMFSIOC_MAP_GET       _IOR(FAMFSIOC_MAGIC, 2, struct famfs_ioc_map)
->>>>> +#define FAMFSIOC_MAP_GETEXT    _IOR(FAMFSIOC_MAGIC, 3, struct famfs_extent)
->>>>> +#define FAMFSIOC_NOP           _IO(FAMFSIOC_MAGIC,  4)
->>
->> -- 
->> #Randy
-> 
-> Thanks Randy; I think I'm the one that didn't read carefully enough.
-> 
-> Does this look right?
-> 
-> diff --git a/Documentation/userspace-api/ioctl/ioctl-number.rst b/Documentation/userspace-api/ioctl/ioctl-number.rst
-> index 457e16f06e04..44a44809657b 100644
-> --- a/Documentation/userspace-api/ioctl/ioctl-number.rst
-> +++ b/Documentation/userspace-api/ioctl/ioctl-number.rst
-> @@ -288,6 +288,7 @@ Code  Seq#    Include File                                           Comments
->  'u'   00-1F  linux/smb_fs.h                                          gone
->  'u'   20-3F  linux/uvcvideo.h                                        USB video class host driver
->  'u'   40-4f  linux/udmabuf.h                                         userspace dma-buf misc device
-> +'u'   50-5F  linux/famfs_ioctl.h                                     famfs shared memory file system
->  'v'   00-1F  linux/ext2_fs.h                                         conflict!
->  'v'   00-1F  linux/fs.h                                              conflict!
->  'v'   00-0F  linux/sonypi.h                                          conflict!
-> diff --git a/include/uapi/linux/famfs_ioctl.h b/include/uapi/linux/famfs_ioctl.h
-> index 6b3e6452d02f..57521898ed57 100644
-> --- a/include/uapi/linux/famfs_ioctl.h
-> +++ b/include/uapi/linux/famfs_ioctl.h
-> @@ -48,9 +48,9 @@ struct famfs_ioc_map {
->  #define FAMFSIOC_MAGIC 'u'
-> 
->  /* famfs file ioctl opcodes */
-> -#define FAMFSIOC_MAP_CREATE    _IOW(FAMFSIOC_MAGIC, 1, struct famfs_ioc_map)
-> -#define FAMFSIOC_MAP_GET       _IOR(FAMFSIOC_MAGIC, 2, struct famfs_ioc_map)
-> -#define FAMFSIOC_MAP_GETEXT    _IOR(FAMFSIOC_MAGIC, 3, struct famfs_extent)
-> -#define FAMFSIOC_NOP           _IO(FAMFSIOC_MAGIC,  4)
-> +#define FAMFSIOC_MAP_CREATE    _IOW(FAMFSIOC_MAGIC, 0x50, struct famfs_ioc_map)
-> +#define FAMFSIOC_MAP_GET       _IOR(FAMFSIOC_MAGIC, 0x51, struct famfs_ioc_map)
-> +#define FAMFSIOC_MAP_GETEXT    _IOR(FAMFSIOC_MAGIC, 0x52, struct famfs_extent)
-> +#define FAMFSIOC_NOP           _IO(FAMFSIOC_MAGIC,  0x53)
-> 
-> Thank you!
-> John
-> 
+Smells like kernel doc but fairly sure it needs a short description.
+Have you sanity checked for warnings when running scripts/kerneldoc on it?
 
-Yes, that looks good.
-Thanks.
+> + *
+> + * fs-dax file systems call this function to prepare to use a devdax device for fsdax.
+Trivial but lines too long. Keep under 80 chars unless there is a strong
+readability arguement for not doing so.
 
--- 
-#Randy
+
+> + * This is like fs_dax_get_by_bdev(), but the caller already has struct dev_dax (and there
+> + * is no bdev). The holder makes this exclusive.
+
+Not familiar with this area: what does exclusive mean here?
+
+> + *
+> + * @dax_dev: dev to be prepared for fs-dax usage
+> + * @holder: filesystem or mapped device inside the dax_device
+> + * @hops: operations for the inner holder
+> + *
+> + * Returns: 0 on success, -1 on failure
+
+Why not return < 0 and use somewhat useful return values?
+
+> + */
+> +int fs_dax_get(
+> +	struct dax_device *dax_dev,
+> +	void *holder,
+> +	const struct dax_holder_operations *hops)
+
+Match local style for indents - it's a bit inconsistent but probably...
+
+int fs_dax_get(struct dad_device *dev_dax, void *holder,
+	       const struct dax_holder_operations *hops)
+
+> +{
+> +	/* dax_dev->ops should have been populated by devm_create_dev_dax() */
+> +	if (WARN_ON(!dax_dev->ops))
+> +		return -1;
+> +
+> +	if (!dax_dev || !dax_alive(dax_dev) || !igrab(&dax_dev->inode))
+
+You dereferenced dax_dev on the line above so check is too late or
+unnecessary
+
+> +		return -1;
+> +
+> +	if (cmpxchg(&dax_dev->holder_data, NULL, holder)) {
+> +		pr_warn("%s: holder_data already set\n", __func__);
+
+Perhaps nicer to use a pr_fmt() deal with the func name if you need it.
+or make it pr_debug and let dynamic debug control formatting if anyone
+wants the function name.
+
+> +		return -1;
+> +	}
+> +	dax_dev->holder_ops = hops;
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(fs_dax_get);
+> +#endif /* DEV_DAX_IOMAP */
+> +
+>  enum dax_device_flags {
+>  	/* !alive + rcu grace period == no new operations / mappings */
+>  	DAXDEV_ALIVE,
+> diff --git a/include/linux/dax.h b/include/linux/dax.h
+> index b463502b16e1..e973289bfde3 100644
+> --- a/include/linux/dax.h
+> +++ b/include/linux/dax.h
+> @@ -57,7 +57,12 @@ struct dax_holder_operations {
+>  
+>  #if IS_ENABLED(CONFIG_DAX)
+>  struct dax_device *alloc_dax(void *private, const struct dax_operations *ops);
+> +
+> +#if IS_ENABLED(CONFIG_DEV_DAX_IOMAP)
+> +int fs_dax_get(struct dax_device *dax_dev, void *holder, const struct dax_holder_operations *hops);
+line wrap < 80 chars
+
+> +#endif
+>  void *dax_holder(struct dax_device *dax_dev);
+> +struct dax_device *inode_dax(struct inode *inode);
+
+Unrelated change?
+
+>  void put_dax(struct dax_device *dax_dev);
+>  void kill_dax(struct dax_device *dax_dev);
+>  void dax_write_cache(struct dax_device *dax_dev, bool wc);
+
