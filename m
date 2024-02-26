@@ -1,61 +1,61 @@
-Received: from mail-oo1-f49.google.com (mail-oo1-f49.google.com [209.85.161.49])
+Received: from mail-oo1-f51.google.com (mail-oo1-f51.google.com [209.85.161.51])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12B4212EBD3
-	for <nvdimm@lists.linux.dev>; Mon, 26 Feb 2024 18:04:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5D897F7EC
+	for <nvdimm@lists.linux.dev>; Mon, 26 Feb 2024 21:16:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708970651; cv=none; b=uxkn5/fJrqTf2bjVs8H0DFA0ZiYgee4C1acmGOblDFZE89ADAmld4MIrjKpMAAX3z6ZenYmTBLLi1SpnB7gcf0Fl+pyvZPuU2gHHHOtLN/kYB65+uPZasEfeq+uBoRc3BqLdTK0/+VLcAk4ttnO056em6mxUZ+Xii71dwDBhpLc=
+	t=1708982210; cv=none; b=LDbYsYiAHRxi6RsbI8+r22clocCo1ERjcba8YzEz3Ha+jIVVjoMSn+NTZzchrq4U8YJTet4XkZN4TiBVt622dNZelcCY2YlSvt+DFJZz5Ibr/MSDdXUgZ31SCZcpZGdpxl+0q+HYgcebPUTrnRMnpPEf/UvkfQvlT5Ky9S59iMc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708970651; c=relaxed/simple;
-	bh=tDPb8vlw/ZoRmRrLyIh3Zsy28YswYOKaPkn8/G0z84Y=;
+	s=arc-20240116; t=1708982210; c=relaxed/simple;
+	bh=B7t54qSi+zoh3echsorRhVmtP4AbNabSTWRzGhYGvFo=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=CYacR1eiQHnMYFm4Tosj+w/Wp+LfOKgqClUl7meCyPIp1StYynPEpQlffH7hoTXcFe3VTpFNFgPKzHgM/yVZOwkko+sXCId30MESBp/MP/Jr9XKOORqoFvBiJV9IELaicgxLLt3JHOQC+1OCTDCJ8JekQlwJgHnRHzDlj2g4UGk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=WOWBWrv0; arc=none smtp.client-ip=209.85.161.49
+	 Content-Type:Content-Disposition:In-Reply-To; b=bxulfs0axtWr3OPoEprf8TLrl+oliIh6cRPUfYj7EJ0ggaGSgG4H8cpEzBtYjszSozYTJl6EagAF69IvRYYBaglaNQQeWLn17cxO5WBhwSQglEtoqYZBE6TAX/yy9kkruBRSsFfnAfe1OaacWOGNFEPOzSmwH379pLpYWynGbb8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=M/Cabr/r; arc=none smtp.client-ip=209.85.161.51
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="WOWBWrv0"
-Received: by mail-oo1-f49.google.com with SMTP id 006d021491bc7-5a02e5c5d2dso1431635eaf.1
-        for <nvdimm@lists.linux.dev>; Mon, 26 Feb 2024 10:04:08 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="M/Cabr/r"
+Received: by mail-oo1-f51.google.com with SMTP id 006d021491bc7-5a02eb63ebcso1818904eaf.0
+        for <nvdimm@lists.linux.dev>; Mon, 26 Feb 2024 13:16:48 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1708970648; x=1709575448; darn=lists.linux.dev;
+        d=gmail.com; s=20230601; t=1708982208; x=1709587008; darn=lists.linux.dev;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:sender:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=b7s8IUy8czqrAQYpGOzabD/DmImOT4f/IOsvl+2f5BQ=;
-        b=WOWBWrv0957GaXHttIWeXlar+m3aUE8eqK2NHNP3qyXeN1AlZsQFgKv9QxkSNGUsUW
-         Wf/CgQeur1JUK9Rc+JLRWzgt/8HsBGzefb4NApAHPTXTwHZpw31M7WUluzONNpjaSjBy
-         qsKUliOzZUVaBdD8h6ZW++Jy8vopq6SSJad7YmFH4e0OqkfFeMvXmoGus+DjbU576XB3
-         fkUSynNKPWDAs17nq5hrHXAa4VpYbyA4L5es/lvrJyM1VlwGG4s1doX0he4IZCeWDcUe
-         ykvFpqYbwVixdOrHPtRXssC2MbzciEeVdlJW97sOCdrksKgGkqq1tC7aXeMXWNkIWtMM
-         PTlQ==
+        bh=Q69d1h5JpiCD7qWS7XjI5Cafa952a+GWKfJxcBwhJCk=;
+        b=M/Cabr/rlGze1EekEPHrm8pEsH8jQ0awAZDA1Yt37D86BoJsb4FaV0PptX9Qze4VcR
+         6mTwBXR5Uwj1GcizE8owag2OP8CGMDi1dLa/sE6kQxCFkONi663OYIZWFiUtCbmQ+tIR
+         n1fb1zJIlCJpCP5T3nbxkrZ3Sx1ucHvwpwMW952KZCq2Xv6ycoE6O3TzkRY5nFPX/W/t
+         8XzdVLwcg1F/xt2kYZO1t1+b/pijvH/FomvRPKUE/U3zaH2eNZORuYLlRVbtEh4xvhiC
+         izP1cErfzfZq+jRMdr6Mrhuc/6uYzLhbpltqmxznm6di+P3bcb7VUfWnEP8y+nycL9nV
+         RF7A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1708970648; x=1709575448;
+        d=1e100.net; s=20230601; t=1708982208; x=1709587008;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:sender:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=b7s8IUy8czqrAQYpGOzabD/DmImOT4f/IOsvl+2f5BQ=;
-        b=adQwGvTMQrqkXeYxXg+T28hkzQXARkNVZco9VypOLKbqnsngRkQKIrW1Kxk0ZN9IMR
-         m43N6ecCZxk7ZejEw9zmbnS/+SyvxuQpJ7H3LLEN+Ptk1IfFYQ0eTzC4OBvCqI8SVQ3M
-         Ihy/v+HUC+lfA6qmcrisVVGDQZFuk9DIFn9LwtBXJlo7bdnaecGUSB8lDh84S2XNtH2h
-         qyzwbQYDewFEl905RQ+TINwnopZvE2QV4/VMG636E1Wl6Rx4jMi6seNz5yK5YvKAddQZ
-         wAFJe/zxj3J7F3NXw3c6BBL0QNx5IxY8taF6RweKndddHd7+ycLoqq//2JAL+9mRqrr6
-         L9lw==
-X-Forwarded-Encrypted: i=1; AJvYcCVD4SrJELShrgjK1Z7eftIEwfqICSQN2lKUfCoEsxenUZbvwRN8Sht5V0LCN5M9nx8GPkQ24mu30RJ/KbDD8ydOYndDMGTV
-X-Gm-Message-State: AOJu0Yy1YLX+fK/njnr7M1VN5S6JSkjMPwsdpuslaGSd7Scj6iaZd1Bk
-	UZycuYpDmiljoFRi2CB9OL2FKvz8o/bPFRO9Z3MUUEGCWz4yf5+W
-X-Google-Smtp-Source: AGHT+IHO3JQJqrUqgBn9egOt4HQjL1Epy1k4IOgfQYCQYmmcGSlN0f4WlPT0wFFWU2jOVnrpPNk8kA==
-X-Received: by 2002:a4a:bd83:0:b0:5a0:6b03:a660 with SMTP id k3-20020a4abd83000000b005a06b03a660mr2448473oop.2.1708970648068;
-        Mon, 26 Feb 2024 10:04:08 -0800 (PST)
+        bh=Q69d1h5JpiCD7qWS7XjI5Cafa952a+GWKfJxcBwhJCk=;
+        b=ZlpCqs4s2dnIgXmdiZGV7K18cCS+Wp5IMc1H4Au/nw9qkAQFNdo6xQlfhbdg8WswwJ
+         k1B/bba7nFj+Deofeyta/oKLQ+ta3MboW9CqN182lGI9ld5yBRH5nPUY9hhrI1nKF8d+
+         UPT6sF7+umqSOvjSFSvjG3QnCoahTeEBTOndB6dRVxyKnIHQqzwOZ9l4LDLHwZBQPPso
+         qWgANhQHrtu5X9vkT9SbPdqw6xXPhBz0RvcQYJGsjRMuv+8pxUel30mtzVB7imHbru64
+         TGdrSrBO1Itd1IQmeHqeRjj0mqPLr/ei7GC2LsSe1aAiOCTuas0BVncu6ZzNkXEarUwN
+         vXwg==
+X-Forwarded-Encrypted: i=1; AJvYcCUbi0qaQX0r+WRM87jVCCfYWzABNQjaw5UOgDWKoUIOTjhQoV9gmlE4bxJVFY3FE6hmYba9TCNeJzZjqUuTKh264nP7gDas
+X-Gm-Message-State: AOJu0YzBaW5o3QOQelJ7W0DOUEBdwqKcSuMZWf2Dm3DWxcFI53B7uE4Q
+	zzhey8wfsZFu5zSau14ex+l7B5ihdJY5g42N0dMNxRoQrQmX8BVQ
+X-Google-Smtp-Source: AGHT+IHhhLJmYU/d2r1+Ut5/Toin/f9dQNa0cxvPaRI+/l1e1FNOPSpMxwaAX9XoEkiIQOr1qrg8HA==
+X-Received: by 2002:a4a:6f4d:0:b0:5a0:12e1:312a with SMTP id i13-20020a4a6f4d000000b005a012e1312amr8346281oof.6.1708982207968;
+        Mon, 26 Feb 2024 13:16:47 -0800 (PST)
 Received: from Borg-9.local (070-114-203-196.res.spectrum.com. [70.114.203.196])
-        by smtp.gmail.com with ESMTPSA id x14-20020a4a620e000000b005a0a1249615sm179887ooc.5.2024.02.26.10.04.06
+        by smtp.gmail.com with ESMTPSA id f3-20020a4a9203000000b0059d775eca88sm1402252ooh.29.2024.02.26.13.16.46
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 26 Feb 2024 10:04:07 -0800 (PST)
+        Mon, 26 Feb 2024 13:16:47 -0800 (PST)
 Sender: John Groves <grovesaustin@gmail.com>
-Date: Mon, 26 Feb 2024 12:04:05 -0600
+Date: Mon, 26 Feb 2024 15:16:45 -0600
 From: John Groves <John@groves.net>
-To: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+To: Luis Chamberlain <mcgrof@kernel.org>
 Cc: John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>, 
 	Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, 
 	Dave Jiang <dave.jiang@intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, 
@@ -64,13 +64,12 @@ Cc: John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>,
 	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, john@jagalactic.com, 
 	Dave Chinner <david@fromorbit.com>, Christoph Hellwig <hch@infradead.org>, 
 	dave.hansen@linux.intel.com, gregory.price@memverge.com
-Subject: Re: [RFC PATCH 07/20] famfs: Add include/linux/famfs_ioctl.h
-Message-ID: <4v6ug44nrtk2tqvio2teglsm4auhdvocgyyggtlwc3xkv7b6zw@ntw24jye7omz>
+Subject: Re: [RFC PATCH 00/20] Introduce the famfs shared-memory file system
+Message-ID: <w5cqtmdgqtjvbnrg5okdgmxe45vjg5evaxh6gg3gs6kwfqmn5p@wgakpqcumrbt>
 References: <cover.1708709155.git.john@groves.net>
- <b40ca30e4bf689249a8c237909d9a7aaca9861e4.1708709155.git.john@groves.net>
- <20240226123940.0000692c@Huawei.com>
- <z3fx5uiv6uu4sawvxrhfvx42qetchmq4ozxhq2huwg2rrcyk5c@odbiisdhop2m>
- <20240226165639.000025c6@Huawei.com>
+ <ZdkzJM6sze-p3EWP@bombadil.infradead.org>
+ <cc2pabb3szzpm5jxxeku276csqu5vwqgzitkwevfluagx7akiv@h45faer5zpru>
+ <Zdy0CGL6e0ri8LiC@bombadil.infradead.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -79,144 +78,112 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20240226165639.000025c6@Huawei.com>
+In-Reply-To: <Zdy0CGL6e0ri8LiC@bombadil.infradead.org>
 
-On 24/02/26 04:56PM, Jonathan Cameron wrote:
-> On Mon, 26 Feb 2024 10:44:43 -0600
-> John Groves <John@groves.net> wrote:
+On 24/02/26 07:53AM, Luis Chamberlain wrote:
+> On Mon, Feb 26, 2024 at 07:27:18AM -0600, John Groves wrote:
+> > Run status group 0 (all jobs):
+> >   WRITE: bw=29.6GiB/s (31.8GB/s), 29.6GiB/s-29.6GiB/s (31.8GB/s-31.8GB/s), io=44.7GiB (48.0GB), run=1511-1511msec
 > 
-> > On 24/02/26 12:39PM, Jonathan Cameron wrote:
-> > > On Fri, 23 Feb 2024 11:41:51 -0600
-> > > John Groves <John@Groves.net> wrote:
-> > >   
-> > > > Add uapi include file for famfs. The famfs user space uses ioctl on
-> > > > individual files to pass in mapping information and file size. This
-> > > > would be hard to do via sysfs or other means, since it's
-> > > > file-specific.
-> > > > 
-> > > > Signed-off-by: John Groves <john@groves.net>
-> > > > ---
-> > > >  include/uapi/linux/famfs_ioctl.h | 56 ++++++++++++++++++++++++++++++++
-> > > >  1 file changed, 56 insertions(+)
-> > > >  create mode 100644 include/uapi/linux/famfs_ioctl.h
-> > > > 
-> > > > diff --git a/include/uapi/linux/famfs_ioctl.h b/include/uapi/linux/famfs_ioctl.h
-> > > > new file mode 100644
-> > > > index 000000000000..6b3e6452d02f
-> > > > --- /dev/null
-> > > > +++ b/include/uapi/linux/famfs_ioctl.h
-> > > > @@ -0,0 +1,56 @@
-> > > > +/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
-> > > > +/*
-> > > > + * famfs - dax file system for shared fabric-attached memory
-> > > > + *
-> > > > + * Copyright 2023-2024 Micron Technology, Inc.
-> > > > + *
-> > > > + * This file system, originally based on ramfs the dax support from xfs,
-> > > > + * is intended to allow multiple host systems to mount a common file system
-> > > > + * view of dax files that map to shared memory.
-> > > > + */
-> > > > +#ifndef FAMFS_IOCTL_H
-> > > > +#define FAMFS_IOCTL_H
-> > > > +
-> > > > +#include <linux/ioctl.h>
-> > > > +#include <linux/uuid.h>
-> > > > +
-> > > > +#define FAMFS_MAX_EXTENTS 2  
-> > > Why 2?  
-> > 
-> > You catch everything! 
-> > 
-> > This limit is in place to avoid supporting somethign we're not testing. It
-> > will probably be raised later.
-> > 
-> > Currently user space doesn't support deleting files, which makes it easy
-> > to ignore whether any clients have a stale view of metadata. If there is
-> > no delete, there's actually no reason to have more than 1 extent.
-> Then have 1. + a Comment on why it is 1.
+> > This is run on an xfs file system on a SATA ssd.
+> 
+> To compare more closer apples to apples, wouldn't it make more sense
+> to try this with XFS on pmem (with fio -direct=1)?
+> 
+>   Luis
 
-Actually we test the 2 case. That seemed important to testing ioctl and
-famfs_meta_to_dax_offset(). It just doesn't yet happen in the wild. Will
-clarify with a comment.
+Makes sense. Here is the same command line I used with xfs before, but 
+now it's on /dev/pmem0 (the same 128G, but converted from devdax to pmem
+because xfs requires that.
 
-> > 
-> > > > +
-> > > > +enum extent_type {
-> > > > +	SIMPLE_DAX_EXTENT = 13,  
-> > > 
-> > > Comment on this would be good to have  
-> > 
-> > Done. Basically we anticipate there being other types of extents in the
-> > future.
-> 
-> I was more curious about the 13!
+fio -name=ten-256m-per-thread --nrfiles=10 -bs=2M --group_reporting=1 --alloc-size=1048576 --filesize=256MiB --readwrite=write --fallocate=none --numjobs=48 --create_on_open=0 --ioengine=io_uring --direct=1 --directory=/mnt/xfs
+ten-256m-per-thread: (g=0): rw=write, bs=(R) 2048KiB-2048KiB, (W) 2048KiB-2048KiB, (T) 2048KiB-2048KiB, ioengine=io_uring, iodepth=1
+...
+fio-3.33
+Starting 48 processes
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
+Jobs: 36 (f=360): [W(3),_(1),W(3),_(1),W(1),_(1),W(6),_(1),W(1),_(1),W(1),_(1),W(7),_(1),W(3),_(1),W(2),_(2),W(4),_(1),W(5),_(1)][77.8%][w=15.1GiB/s][w=7750 IOPS][eta 00m:02s]
+ten-256m-per-thread: (groupid=0, jobs=48): err= 0: pid=8798: Mon Feb 26 15:10:30 2024
+  write: IOPS=7582, BW=14.8GiB/s (15.9GB/s)(114GiB/7723msec); 0 zone resets
+    slat (usec): min=23, max=7352, avg=131.80, stdev=151.63
+    clat (usec): min=385, max=22638, avg=5789.74, stdev=3124.93
+     lat (usec): min=432, max=22724, avg=5921.54, stdev=3133.18
+    clat percentiles (usec):
+     |  1.00th=[  799],  5.00th=[ 1467], 10.00th=[ 2073], 20.00th=[ 3097],
+     | 30.00th=[ 3949], 40.00th=[ 4752], 50.00th=[ 5473], 60.00th=[ 6194],
+     | 70.00th=[ 7046], 80.00th=[ 8029], 90.00th=[ 9634], 95.00th=[11338],
+     | 99.00th=[16319], 99.50th=[17957], 99.90th=[20055], 99.95th=[20579],
+     | 99.99th=[21365]
+   bw (  MiB/s): min=10852, max=26980, per=100.00%, avg=15940.43, stdev=88.61, samples=665
+   iops        : min= 5419, max=13477, avg=7963.08, stdev=44.28, samples=665
+  lat (usec)   : 500=0.15%, 750=0.47%, 1000=1.34%
+  lat (msec)   : 2=7.40%, 4=21.46%, 10=60.57%, 20=8.50%, 50=0.11%
+  cpu          : usr=2.33%, sys=0.32%, ctx=58806, majf=0, minf=36301
+  IO depths    : 1=100.0%, 2=0.0%, 4=0.0%, 8=0.0%, 16=0.0%, 32=0.0%, >=64=0.0%
+     submit    : 0=0.0%, 4=100.0%, 8=0.0%, 16=0.0%, 32=0.0%, 64=0.0%, >=64=0.0%
+     complete  : 0=0.0%, 4=100.0%, 8=0.0%, 16=0.0%, 32=0.0%, 64=0.0%, >=64=0.0%
+     issued rwts: total=0,58560,0,0 short=0,0,0,0 dropped=0,0,0,0
+     latency   : target=0, window=0, percentile=100.00%, depth=1
 
-I think I was just being feisty that day. Will drop that...
+Run status group 0 (all jobs):
+  WRITE: bw=14.8GiB/s (15.9GB/s), 14.8GiB/s-14.8GiB/s (15.9GB/s-15.9GB/s), io=114GiB (123GB), run=7723-7723msec
 
-> 
-> > 
-> > >   
-> > > > +	INVALID_EXTENT_TYPE,
-> > > > +};
-> > > > +
-> > > > +struct famfs_extent {
-> > > > +	__u64              offset;
-> > > > +	__u64              len;
-> > > > +};
-> > > > +
-> > > > +enum famfs_file_type {
-> > > > +	FAMFS_REG,
-> > > > +	FAMFS_SUPERBLOCK,
-> > > > +	FAMFS_LOG,
-> > > > +};
-> > > > +
-> > > > +/**
-> > > > + * struct famfs_ioc_map
-> > > > + *
-> > > > + * This is the metadata that indicates where the memory is for a famfs file
-> > > > + */
-> > > > +struct famfs_ioc_map {
-> > > > +	enum extent_type          extent_type;
-> > > > +	enum famfs_file_type      file_type;  
-> > > 
-> > > These are going to be potentially varying in size depending on arch, compiler
-> > > settings etc.  Been a while, but I though best practice for uapi was always
-> > > fixed size elements even though we lose the typing.  
-> > 
-> > I might not be following you fully here. User space is running the same
-> > arch as kernel, so an enum can't be a different size, right? It could be
-> > a different size on different arches, but this is just between user/kernel.
-> 
-> I can't remember why, but this has bitten me in the past.
-> Ah, should have known Daniel would have written something on it ;)
-> https://www.kernel.org/doc/html/next/process/botching-up-ioctls.html
-> 
-> It's the fun of need for compat ioctls with 32bit userspace on 64bit kernels.
-> 
-> The alignment one is key as well. That bit me more than once due to
-> 32bit x86 aligning 64 bit integers at 32 bits.
-> 
-> We could just not support these cases but it's easy to get right so why
-> bother with complexity of ruling them out.
+Disk stats (read/write):
+  pmem0: ios=0/0, merge=0/0, ticks=0/0, in_queue=0, util=0.00%
 
-Makes sense. Will do.
 
-> 
-> > 
-> > I initially thought of XDR for on-media-format, which file systems need
-> > to do with on-media structs (superblocks, logs, inodes, etc. etc.). But
-> > this struct is not used in that way.
-> > 
-> > In fact, famfs' on-media/in-memory metadata (superblock, log, log entries)
-> > is only ever read read and written by user space - so it's the user space
-> > code that needs XDR on-media-format handling.
-> > 
-> > So to clarify - do you think those enums should be u32 or the like?
-> 
-> Yes. As it's userspace, uint32_t maybe or __u32. I 'think'
-> both are acceptable in uapi headers these days.
+I only have some educated guesses as to why famfs is faster. Since files 
+are preallocated, they're always contiguous. And famfs is vastly simpler
+because it isn't aimed at general purpose uses cases (and indeed can't
+handle them).
 
-Roger that.
-
-Thanks,
+Regards,
 John
+
