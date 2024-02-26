@@ -1,179 +1,256 @@
-Received: from mail-oo1-f43.google.com (mail-oo1-f43.google.com [209.85.161.43])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.16])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F0FF1E878
-	for <nvdimm@lists.linux.dev>; Mon, 26 Feb 2024 23:00:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.43
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC96B1350CF
+	for <nvdimm@lists.linux.dev>; Mon, 26 Feb 2024 23:09:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.16
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708988407; cv=none; b=aNod2xTUi1ZxxevbN6jhkuvAGl/6Dyb3kBlProNAnundYAn6QScXQY8w7oyvaBL5y5D1XeBTokXqVqe7PA0+MZd/rAuyaERGGGEj5driyfmMY/RE6SgH1IeX+Nzt/Hkqn/hn6Ec/31Vx3RkEGH2toTZty2ZjF5gq4g1NkR3EI/0=
+	t=1708988973; cv=none; b=R+6uP5rlz6fEtz10XgCcfP22oiTSAkGwrGkCaQ37c3GWd4Fom+ST/7B6LfjtNv1NpjCzCVRXwpX37vVtKXi8+bPUKfV2hKMDmt5he2RZcY5RV1gJjXwbHf3hq+oEmne6rtVvdKqnK1Tt6fB5hFyoefqkgZYGkrR7wgp/VA3CcWg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708988407; c=relaxed/simple;
-	bh=eDdDRpRLOs+TLu9DRUmMhRRpoJ/GPPb+1lbirKhJPXU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=QzDvo2hVkasWAEz3nwvaWu8FC6YSCY6WVAK0ydOxWgEZM5uWXS7EhhrlSWzKmmPcuT+tcxbXf7wf6gg1la2bbjWHQNfphzU1f3Dze5VGTiu8Ft54WW78lLtNP+2lwScpS5zG7z+O6GyUYMh2RrouwupMr+rEiekREsZWzDuBuwk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=D9jYVT/2; arc=none smtp.client-ip=209.85.161.43
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1708988973; c=relaxed/simple;
+	bh=kSpCpCK55HHFLjMPPvJHK8oKRqg8XtG9/mi1Zez8pD0=;
+	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
+	 In-Reply-To:Content-Type; b=EUwCiea3IigcStT/Th9SoInGEz1bsicXVh5KzksVks4F3/Qm1AHYPlFfbQfA4Px85DCrdXtPACdBeVzcOTO/8LZBCC/u8SicxcsDlNPPInhuvPy4DsbdZxFqBbB0SJBFnZ4vz6QBHldRB6FGu1zUgrRw1IBqSmZYb9m5U4B4mAA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=X+n0kM6l; arc=none smtp.client-ip=198.175.65.16
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="D9jYVT/2"
-Received: by mail-oo1-f43.google.com with SMTP id 006d021491bc7-59fd69bab3bso1540808eaf.2
-        for <nvdimm@lists.linux.dev>; Mon, 26 Feb 2024 15:00:04 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1708988403; x=1709593203; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:sender:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=Zww+OwBsoYB5pURroMSrOkz/ZQvrjX3VS1JUC45kLpM=;
-        b=D9jYVT/2Gx2MJ1lesKAhbLKr4zCMmXP6Y7RmPzJzdNFSztUF9smuC1Z5XbUd9eqGaE
-         hwcxCMiJsYeyj9gk+i8y6kmfAJU99zI3JdmTogkv5Y8pZsmCUc5JbC+5TJx2C4+sIhjC
-         +Bs4LdNgz16Cv7348nYLXBQSK0YsvcjHaBHvpnGGk3Vlm2M7XMZm0i+iuf1ERdUSsSmW
-         0jitQbrx6+h8Wc0OfKdIgMRjBDFfudMU80a5648gm6dJSS+Ck0LPe3tp8ntNPm4T2iCW
-         wjgY0fU6el83x8XHOJ54jbdDsHHEZ6N+bE2xwWoB6OAM9CV9ue8uEFUAnUdUSRzG7rUf
-         qW2w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1708988403; x=1709593203;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:sender:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=Zww+OwBsoYB5pURroMSrOkz/ZQvrjX3VS1JUC45kLpM=;
-        b=u3xe5oUJoJrBCRcFrEY1oqYxxMz/zc2j75h+NJJaozP02NUHSDvw4fmiKux1kQAwYC
-         XPAXVdkt7RGZS8736r37H7I+lHJWpFOfPUD/3OYtWxEk3RGEi7HwndiyAccFX1nloUk8
-         Vu2SRXVxR7igFc+1nb/OqhEmawgHpZ5uADfzFwEDcAAcqRoQWIsSmzgi5E3jyZjtLEMQ
-         ViO7gNSck8S42rWtVaYOMv7A91mM5GPs6wweZticA1xc3WtVBgg9HVDE99But2SqU/Eh
-         MHxLg/L58m9njdvwweV878yJa1kfiPLU/6/L3Vdn5ETSuzk/N1REv8NiULtswqlIOk9W
-         7IlQ==
-X-Forwarded-Encrypted: i=1; AJvYcCVbaJpXp26DXkIgLjdZm53LeWCaGvrgVvb3fyeQPZ6msoToCe8KE40tnMui0QE25Oc2DAUPInfQV6F+k/HBFhJ+tsesOWOe
-X-Gm-Message-State: AOJu0Yx2PTATYp24y+bcp7jAtyIyO2f3ypMo7Jx0xYTO6qwDLJbFswD3
-	ucxXCadT1EepyUY8no3+9W1vrLeDWQDJOXnjlKBO+YcLSuE6aito
-X-Google-Smtp-Source: AGHT+IG3rstfE0sxQj75CLdtkz7tDS/WIIMftEy2NPTiJzeS4j0Vku5utN7c2f5g6t9XbBlzt+Z8DA==
-X-Received: by 2002:a05:6820:2c07:b0:5a0:651d:4238 with SMTP id dw7-20020a0568202c0700b005a0651d4238mr5467910oob.2.1708988403399;
-        Mon, 26 Feb 2024 15:00:03 -0800 (PST)
-Received: from Borg-9.local (070-114-203-196.res.spectrum.com. [70.114.203.196])
-        by smtp.gmail.com with ESMTPSA id ej5-20020a0568200d0500b005a06c8ecf54sm1135729oob.25.2024.02.26.15.00.01
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 26 Feb 2024 15:00:03 -0800 (PST)
-Sender: John Groves <grovesaustin@gmail.com>
-Date: Mon, 26 Feb 2024 17:00:00 -0600
-From: John Groves <John@groves.net>
-To: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>, 
-	Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, 
-	Dave Jiang <dave.jiang@intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, 
-	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, Matthew Wilcox <willy@infradead.org>, 
-	linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-doc@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, john@jagalactic.com, 
-	Dave Chinner <david@fromorbit.com>, Christoph Hellwig <hch@infradead.org>, 
-	dave.hansen@linux.intel.com, gregory.price@memverge.com
-Subject: Re: [RFC PATCH 13/20] famfs: Add iomap_ops
-Message-ID: <y4gzithu2qurexucsa5kq542pws3qfxf5rtpza6a7qzsb3r2bv@b434hxvv7hv2>
-References: <cover.1708709155.git.john@groves.net>
- <2996a7e757c3762a9a28c789645acd289f5f7bc0.1708709155.git.john@groves.net>
- <20240226133038.00006e23@Huawei.com>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="X+n0kM6l"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1708988972; x=1740524972;
+  h=message-id:date:mime-version:subject:to:references:from:
+   in-reply-to:content-transfer-encoding;
+  bh=kSpCpCK55HHFLjMPPvJHK8oKRqg8XtG9/mi1Zez8pD0=;
+  b=X+n0kM6lPKWOyt/3pnqIOH4Dtb/YZMAM8GtfWgt/UCZrKYDZBb2lyRj3
+   jrVANFZOZhM8x464tXxeND20OCieDYwgvJmgXTdVbO7oQkx82hRKQQDzd
+   bPG7zt+svezSHxQGFId8Av67MjIx78AxEmA+41TWoxWTijm9mK17ZljSy
+   Liafn/ZSinQYGA7kJyWc9YB31rQF+2eaLS3qMZQsSUy1gRtyFD3UmuqRp
+   WtO89EmC4/twtsAr5a9uzFc39KRokEdglCzpaAPN3ChQ77i/irbk8s6CF
+   DySVIfPtipHjsAhoAEzN+cWE1exsYEem4cy5h3+1yK3dUDhZF1ICqVYlD
+   w==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10996"; a="3435724"
+X-IronPort-AV: E=Sophos;i="6.06,186,1705392000"; 
+   d="scan'208";a="3435724"
+Received: from fmviesa007.fm.intel.com ([10.60.135.147])
+  by orvoesa108.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Feb 2024 15:09:31 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.06,186,1705392000"; 
+   d="scan'208";a="6710125"
+Received: from djiang5-mobl3.amr.corp.intel.com (HELO [10.246.112.4]) ([10.246.112.4])
+  by fmviesa007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Feb 2024 15:09:30 -0800
+Message-ID: <50b74500-25e8-4c05-847b-598937471ac4@intel.com>
+Date: Mon, 26 Feb 2024 16:09:29 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240226133038.00006e23@Huawei.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [NDCTL PATCH v7 4/4] ndctl: add test for qos_class in CXL test
+ suite
+Content-Language: en-US
+To: "Verma, Vishal L" <vishal.l.verma@intel.com>,
+ "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
+ "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>
+References: <20240208201435.2081583-1-dave.jiang@intel.com>
+ <20240208201435.2081583-5-dave.jiang@intel.com>
+ <fab7eaa31a7211bc62f17afb5aea47c2cc8dfe87.camel@intel.com>
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <fab7eaa31a7211bc62f17afb5aea47c2cc8dfe87.camel@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-On 24/02/26 01:30PM, Jonathan Cameron wrote:
-> On Fri, 23 Feb 2024 11:41:57 -0600
-> John Groves <John@Groves.net> wrote:
-> 
-> > This commit introduces the famfs iomap_ops. When either
-> > dax_iomap_fault() or dax_iomap_rw() is called, we get a callback
-> > via our iomap_begin() handler. The question being asked is
-> > "please resolve (file, offset) to (daxdev, offset)". The function
-> > famfs_meta_to_dax_offset() does this.
-> > 
-> > The per-file metadata is just an extent list to the
-> > backing dax dev.  The order of this resolution is O(N) for N
-> > extents. Note with the current user space, files usually have
-> > only one extent.
-> > 
-> > Signed-off-by: John Groves <john@groves.net>
-> 
-> > ---
-> >  fs/famfs/famfs_file.c | 245 ++++++++++++++++++++++++++++++++++++++++++
-> >  1 file changed, 245 insertions(+)
-> >  create mode 100644 fs/famfs/famfs_file.c
-> > 
-> > diff --git a/fs/famfs/famfs_file.c b/fs/famfs/famfs_file.c
-> > new file mode 100644
-> > index 000000000000..fc667d5f7be8
-> > --- /dev/null
-> > +++ b/fs/famfs/famfs_file.c
-> > @@ -0,0 +1,245 @@
-> 
-> > +static int
-> > +famfs_meta_to_dax_offset(
-> > +	struct inode *inode,
-> > +	struct iomap *iomap,
-> > +	loff_t        offset,
-> > +	loff_t        len,
-> > +	unsigned int  flags)
-> > +{
-> > +	struct famfs_file_meta *meta = (struct famfs_file_meta *)inode->i_private;
-> 
-> i_private is void * so no need for explicit cast (C spec says this is always fine without)
 
-Yessir.
 
+On 2/23/24 3:07 PM, Verma, Vishal L wrote:
+> On Thu, 2024-02-08 at 13:11 -0700, Dave Jiang wrote:
+>> Add tests in cxl-qos-class.sh to verify qos_class are set with the fake
+>> qos_class create by the kernel.  Root decoders should have qos_class
+>> attribute set. Memory devices should have ram_qos_class or pmem_qos_class
+>> set depending on which partitions are valid.
+>>
+>> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+>> ---
+>> v7:
+>> - Add create_region -Q testing (Vishal)
+>> ---
+>>  test/common           |   4 ++
+>>  test/cxl-qos-class.sh | 102 ++++++++++++++++++++++++++++++++++++++++++
+>>  test/meson.build      |   2 +
+>>  3 files changed, 108 insertions(+)
+>>  create mode 100755 test/cxl-qos-class.sh
+>>
+>> diff --git a/test/common b/test/common
+>> index f1023ef20f7e..5694820c7adc 100644
+>> --- a/test/common
+>> +++ b/test/common
+>> @@ -150,3 +150,7 @@ check_dmesg()
+>>  	grep -q "Call Trace" <<< $log && err $1
+>>  	true`
+>>  }
+>> +
+>> +
+>> +# CXL COMMON
+>> +TEST_QOS_CLASS=42
+>> diff --git a/test/cxl-qos-class.sh b/test/cxl-qos-class.sh
+>> new file mode 100755
+>> index 000000000000..145df6134685
+>> --- /dev/null
+>> +++ b/test/cxl-qos-class.sh
+>> @@ -0,0 +1,102 @@
+>> +#!/bin/bash
+>> +# SPDX-License-Identifier: GPL-2.0
+>> +# Copyright (C) 2024 Intel Corporation. All rights reserved.
+>> +
+>> +. $(dirname $0)/common
+>> +
+>> +rc=77
+>> +
+>> +set -ex
+>> +
+>> +trap 'err $LINENO' ERR
+>> +
+>> +check_prereq "jq"
+>> +
+>> +modprobe -r cxl_test
+>> +modprobe cxl_test
+>> +rc=1
+>> +
+>> +check_qos_decoders () {
+>> +	# check root decoders have expected fake qos_class
+>> +	# also make sure the number of root decoders equal to the number
+>> +	# with qos_class found
+>> +	json=$($CXL list -b cxl_test -D -d root)
+>> +	decoders=$(echo "$json" | jq length)
+>> +	count=0
+>> +	while read -r qos_class
+>> +	do
 > 
-> 
-> > +
-> > +/**
-> > + * famfs_iomap_begin()
-> > + *
-> > + * This function is pretty simple because files are
-> > + * * never partially allocated
-> > + * * never have holes (never sparse)
-> > + * * never "allocate on write"
-> > + */
-> > +static int
-> > +famfs_iomap_begin(
-> > +	struct inode	       *inode,
-> > +	loff_t			offset,
-> > +	loff_t			length,
-> > +	unsigned int		flags,
-> > +	struct iomap	       *iomap,
-> > +	struct iomap	       *srcmap)
-> > +{
-> > +	struct famfs_file_meta *meta = inode->i_private;
-> > +	size_t size;
-> > +	int rc;
-> > +
-> > +	size = i_size_read(inode);
-> > +
-> > +	WARN_ON(size != meta->file_size);
-> > +
-> > +	rc = famfs_meta_to_dax_offset(inode, iomap, offset, length, flags);
-> > +
-> > +	return rc;
-> 	return famfs_meta_...
+> For consistency, the script based tests all have the while..do,
+> for..do, if..then bits on the same line. Would be nice not to break
+> that precedent.
 
-Done
+Will fix. BTW, cxl-topology.sh also deviates.
 
 > 
-> > +}
+>> +		((qos_class == TEST_QOS_CLASS)) || err "$LINENO"
+>> +		count=$((count+1))
+>> +	done <<< "$(echo "$json" | jq -r '.[] | .qos_class')"
+>> +
+>> +	((count == decoders)) || err "$LINENO";
+>> +}
+>> +
+>> +check_qos_memdevs () {
+>> +	# Check that memdevs that expose ram_qos_class or pmem_qos_class have
+>> +	# expected fake value programmed.
+>> +	json=$(cxl list -b cxl_test -M)
+>> +	readarray -t lines < <(jq ".[] | .ram_size, .pmem_size, .ram_qos_class, .pmem_qos_class" <<<"$json")
+>> +	for (( i = 0; i < ${#lines[@]}; i += 4 ))
+>> +	do
+>> +		ram_size=${lines[i]}
+>> +		pmem_size=${lines[i+1]}
+>> +		ram_qos_class=${lines[i+2]}
+>> +		pmem_qos_class=${lines[i+3]}
 > 
+> Hm instead of splitting into lines, and then looping through them, why
+> not just invoke jq for each?
 > 
-> > +static vm_fault_t
-> > +famfs_filemap_map_pages(
-> > +	struct vm_fault	       *vmf,
-> > +	pgoff_t			start_pgoff,
-> > +	pgoff_t			end_pgoff)
-> > +{
-> > +	vm_fault_t ret;
-> > +
-> > +	ret = filemap_map_pages(vmf, start_pgoff, end_pgoff);
-> > +	return ret;
-> 	return filename_map_pages()....
+> ram_size=$(jq ".[] | .ram_size" <<< $json)
+> pmem_size=$(jq ".[] | .pmem_size" <<< $json)
+> ...etc
+> 
 
-Done, thanks
+ok
 
-John
+>> +
+>> +		if [[ "$ram_size" != null ]]
+>> +		then
+>> +			((ram_qos_class == TEST_QOS_CLASS)) || err "$LINENO"
+>> +		fi
+> 
+> This might be a bit more readable as:
+> 
+> if [[ "$ram_size" != null ]] && ((ram_qos_class != TEST_QOS_CLASS)); then
+> 	err "$LINENO"
+> fi
 
+ok
+
+DJ
+
+> 
+>> +		if [[ "$pmem_size" != null ]]
+>> +		then
+>> +			((pmem_qos_class == TEST_QOS_CLASS)) || err "$LINENO"
+>> +		fi
+>> +	done
+>> +}
+>> +
+>> +# Based on cxl-create-region.sh create_single()
+>> +destroy_regions()
+>> +{
+>> +	if [[ "$*" ]]; then
+>> +		$CXL destroy-region -f -b cxl_test "$@"
+>> +	else
+>> +		$CXL destroy-region -f -b cxl_test all
+>> +	fi
+>> +}
+>> +
+>> +create_region_check_qos()
+>> +{
+>> +	# the 5th cxl_test decoder is expected to target a single-port
+>> +	# host-bridge. Older cxl_test implementations may not define it,
+>> +	# so skip the test in that case.
+>> +	decoder=$($CXL list -b cxl_test -D -d root |
+>> +		  jq -r ".[4] |
+>> +		  select(.pmem_capable == true) |
+>> +		  select(.nr_targets == 1) |
+>> +		  .decoder")
+>> +
+>> +        if [[ ! $decoder ]]; then
+>> +                echo "no single-port host-bridge decoder found, skipping"
+>> +                return
+>> +        fi
+>> +
+>> +	# Send create-region with -Q to enforce qos_class matching
+>> +	region=$($CXL create-region -Q -d "$decoder" | jq -r ".region")
+>> +	if [[ ! $region ]]; then
+>> +		echo "failed to create single-port host-bridge region"
+>> +		err "$LINENO"
+>> +	fi
+>> +
+>> +	destroy_regions "$region"
+>> +}
+>> +
+>> +check_qos_decoders
+>> +
+>> +check_qos_memdevs
+>> +
+>> +create_region_check_qos
+>> +
+>> +check_dmesg "$LINEO"
+>> +
+>> +modprobe -r cxl_test
+>> diff --git a/test/meson.build b/test/meson.build
+>> index 5eb35749a95b..4892df11119f 100644
+>> --- a/test/meson.build
+>> +++ b/test/meson.build
+>> @@ -160,6 +160,7 @@ cxl_events = find_program('cxl-events.sh')
+>>  cxl_poison = find_program('cxl-poison.sh')
+>>  cxl_sanitize = find_program('cxl-sanitize.sh')
+>>  cxl_destroy_region = find_program('cxl-destroy-region.sh')
+>> +cxl_qos_class = find_program('cxl-qos-class.sh')
+>>  
+>>  tests = [
+>>    [ 'libndctl',               libndctl,		  'ndctl' ],
+>> @@ -192,6 +193,7 @@ tests = [
+>>    [ 'cxl-poison.sh',          cxl_poison,         'cxl'   ],
+>>    [ 'cxl-sanitize.sh',        cxl_sanitize,       'cxl'   ],
+>>    [ 'cxl-destroy-region.sh',  cxl_destroy_region, 'cxl'   ],
+>> +  [ 'cxl-qos-class.sh',       cxl_qos_class,      'cxl'   ],
+>>  ]
+>>  
+>>  if get_option('destructive').enabled()
+> 
