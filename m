@@ -1,241 +1,267 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.11])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oa1-f51.google.com (mail-oa1-f51.google.com [209.85.160.51])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3DA6F1353FB
-	for <nvdimm@lists.linux.dev>; Mon, 26 Feb 2024 22:39:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.11
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5056A1EB22
+	for <nvdimm@lists.linux.dev>; Mon, 26 Feb 2024 22:43:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708987155; cv=none; b=ao7OVGVFt3Uqd6fkNcgMgzMTimXofZeNG2Vu3n3Hu+Fi+3zLWhdfoHpIZvJ6JMqFyrCGxVZMMmjD785b94iEuyfg9BE6xtLUIuK/yMHRZ2x6DNBdqCFJk+TeaG6sLDIUrxds25uumMUNCZGDeQIGhKUlBpinVQQ1xoDdrn2/R3k=
+	t=1708987410; cv=none; b=sj+ylydfrKZr0UN24R5Gx1tuDLyRks4xYPMMLKVFYp8+UzudM0nKNkmKEKCBIPD8WQO+P0SA3xb54L8Rh35C61z44aEhfZJZFcdA2GpyGzZ9JjRu61zWBnPcFRVCa1mDKdG6IQFW+mAcm1W4/kBbLfRv+bTncwJlnQ9cYuZJDzw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708987155; c=relaxed/simple;
-	bh=Qea889SXoKSSrCDwzRaGM8e19r2Hj1qy/kVfUGUiEWs=;
-	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=qNESQsIe97YSQoTNq0jBj+3fzAp5bWXLB0bAKGHpHvb6VbhCR/ZJCRr2LkJj8gOaer8oH4xaEfHkWtkmuHpGZQ+1e61R438v43O9hZ40MUJ2kV+GnwHpuMR3a7qhvN1u7Do/KpQT7GF3kyba3Xfa2mECmrezfZQkErAtAsSaty0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=c7XU4dUc; arc=none smtp.client-ip=192.198.163.11
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1708987410; c=relaxed/simple;
+	bh=lZO496usxRZc4uLXOrLSsGfI9A7Y3eJcpNSY/9wvdTE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=hIKb+paP5Z/RQLdElswcW3HHmfUn8knPe+YbjsvgGEbLVTQTxnkqvBtqdJokNbqEPktgENyEbiQyX5UKb8p2V83kQUXpZJiIf4kBcMLGaBTq9Fr2C32TLRvd6LQv/74Pw5N3sgGb+Utgago52NGNotseOgN3tzlABzd9dkz1Ctc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=AlXi1dT+; arc=none smtp.client-ip=209.85.160.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="c7XU4dUc"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1708987154; x=1740523154;
-  h=message-id:date:mime-version:subject:to:references:from:
-   in-reply-to:content-transfer-encoding;
-  bh=Qea889SXoKSSrCDwzRaGM8e19r2Hj1qy/kVfUGUiEWs=;
-  b=c7XU4dUcvly3FRYI49DAbwbotQ9n29HA+RfwJYRKGUQJPPUUHRZ5wfaF
-   NO+9/jKgQFacHDMc3qNmRnhCHkIaGp+r1lUn3qO/anxidrngrAUYIwVHo
-   EHiQnfeO/R/Y+rHIWvjePk02kopVXa/hJ32gBRq9NibXe6iAxa3Pcujay
-   SgHN1D4ri/Y2Mgc9rgkvZUCk2qu/e98/YARscGPvLS274bhGFXjES3OhY
-   zFkHOR5647Sy2r7V7jg3licPGCDsChf1ezFpa9eJipamdakH9MYZM0pqD
-   d+iX2UHbr6OnqEat5SWEWsyiX707mAJgkYxZQfA0jJf8wC6V0Q2R/MxG0
-   w==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10996"; a="13944541"
-X-IronPort-AV: E=Sophos;i="6.06,186,1705392000"; 
-   d="scan'208";a="13944541"
-Received: from orviesa008.jf.intel.com ([10.64.159.148])
-  by fmvoesa105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Feb 2024 14:39:13 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.06,186,1705392000"; 
-   d="scan'208";a="7360773"
-Received: from djiang5-mobl3.amr.corp.intel.com (HELO [10.246.112.4]) ([10.246.112.4])
-  by orviesa008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Feb 2024 14:39:13 -0800
-Message-ID: <199cfa4f-cf9b-45d5-8fb3-bf8e0db2d639@intel.com>
-Date: Mon, 26 Feb 2024 15:39:11 -0700
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="AlXi1dT+"
+Received: by mail-oa1-f51.google.com with SMTP id 586e51a60fabf-22034c323a3so331503fac.0
+        for <nvdimm@lists.linux.dev>; Mon, 26 Feb 2024 14:43:28 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1708987407; x=1709592207; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:sender:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=DUPmDk09/sTy9Hx2AnE6xr34od72PSugc7feC6111Fo=;
+        b=AlXi1dT+VGLN4E830u4oZsd86lhcG5twKDyFPHtb0GE62pawMTO2KIH9TFUd1D6fly
+         82mCv4eb5Y3hRECrt/7MQv+rhf2P4yTwvURh9eaYr4Cs5ZMmsXmGAkYxhp9XT8RbBtPR
+         Pd3348frtDTg7fkK51BbFj15oRzhTRa2VXkqBiuw9yVWscXNarYEVdXeONMtGrpAJmfa
+         mbh5Zzs9Wuz6m4f8bkBkL8Z4rqJ/lc6Sd1EQoVIAH6OYSMQiUIwVs8bpXAM75VHaiW4+
+         Dz295PoHtpTjzE9Nzr1oYYXVXhqGVb6C1hSc22y1Bd4J8nOxQLaJ2adPx/3rekiiAO8N
+         jQUQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1708987407; x=1709592207;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:sender:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=DUPmDk09/sTy9Hx2AnE6xr34od72PSugc7feC6111Fo=;
+        b=xR+lEIPGqDUf1pMQu4dU4O9XYO6fQlw91YI6imHyrvnyE5ompq91o3J4SdSKgIv5NV
+         eiyLQRBat9HfiM1idcpd0QomtVW75mHfDN1doPHygwDTn0OorUrysK1yn+Jos1bVVOA7
+         fijCeCw2rfbtFRtcLua0AOBfycIHaZ+qJNbxoFWzrlrNVtXcaf7OxGvlLYADJYKlwH5w
+         rS+KsAd76PP0HERmFrzuqZPhA3KZnXoCayTWqmTdEXRkzJp3fPq7UPZa8ffqLSONeBBG
+         OP4e37NcpHz5GUmDsqIHGMHdIsgwKWrK9v5yb3PIwPnnU+iThpxYLJUbndJdWJZSScSE
+         MTiA==
+X-Forwarded-Encrypted: i=1; AJvYcCVDY8jIC6+K4iNJzDK6ghI0Qei+r/+umEJizfIx52UJVjaivMZTNaHgzf4EwOXYdUBlQHMcajeyJj4esDx7yFViA8+8NraA
+X-Gm-Message-State: AOJu0YwXBWktvw7kXTEHg8jhdrfPGIGrB18RLlfA32TJJfYOBgtWcWXN
+	tyrAjYJfvMecfaEJdUNhxT9NHwSOygO90R4woCSf8mXfmDRJRYxI
+X-Google-Smtp-Source: AGHT+IEoZRM885tJ3SKMed/vEAVoJO38AS5Hl87/35VAcOvt6F3arFNSsmi3/j7xjKGIzHYaoLT4dg==
+X-Received: by 2002:a05:6870:b253:b0:21f:642:5240 with SMTP id b19-20020a056870b25300b0021f06425240mr9200382oam.31.1708987407360;
+        Mon, 26 Feb 2024 14:43:27 -0800 (PST)
+Received: from Borg-9.local (070-114-203-196.res.spectrum.com. [70.114.203.196])
+        by smtp.gmail.com with ESMTPSA id er1-20020a0568303c0100b006e34506c5e5sm1280715otb.57.2024.02.26.14.43.26
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 26 Feb 2024 14:43:27 -0800 (PST)
+Sender: John Groves <grovesaustin@gmail.com>
+Date: Mon, 26 Feb 2024 16:43:25 -0600
+From: John Groves <John@groves.net>
+To: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>, 
+	Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, 
+	Dave Jiang <dave.jiang@intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, 
+	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, Matthew Wilcox <willy@infradead.org>, 
+	linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-doc@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, john@jagalactic.com, 
+	Dave Chinner <david@fromorbit.com>, Christoph Hellwig <hch@infradead.org>, 
+	dave.hansen@linux.intel.com, gregory.price@memverge.com
+Subject: Re: [RFC PATCH 11/20] famfs: Add fs_context_operations
+Message-ID: <5aw6k6rcnpj7ukps7jcjlj2creqa4aalnesukgdi4nmjqccfg7@7l7rvtzwpjha>
+References: <cover.1708709155.git.john@groves.net>
+ <a645646f071e7baa30ef37ea46ea1330ac2eb63f.1708709155.git.john@groves.net>
+ <20240226132019.00007b8c@Huawei.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [NDCTL PATCH v7 4/4] ndctl: add test for qos_class in CXL test
- suite
-Content-Language: en-US
-To: "Verma, Vishal L" <vishal.l.verma@intel.com>,
- "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
- "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>
-References: <20240208201435.2081583-1-dave.jiang@intel.com>
- <20240208201435.2081583-5-dave.jiang@intel.com>
- <677035a6578df716ff9df5cb83047498919e90ae.camel@intel.com>
-From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <677035a6578df716ff9df5cb83047498919e90ae.camel@intel.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240226132019.00007b8c@Huawei.com>
 
-
-
-On 2/22/24 12:59 AM, Verma, Vishal L wrote:
-> On Thu, 2024-02-08 at 13:11 -0700, Dave Jiang wrote:
->> Add tests in cxl-qos-class.sh to verify qos_class are set with the fake
->> qos_class create by the kernel.  Root decoders should have qos_class
->> attribute set. Memory devices should have ram_qos_class or pmem_qos_class
->> set depending on which partitions are valid.
->>
->> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
->> ---
->> v7:
->> - Add create_region -Q testing (Vishal)
->> ---
->>  test/common           |   4 ++
->>  test/cxl-qos-class.sh | 102 ++++++++++++++++++++++++++++++++++++++++++
->>  test/meson.build      |   2 +
->>  3 files changed, 108 insertions(+)
->>  create mode 100755 test/cxl-qos-class.sh
->>
->> diff --git a/test/common b/test/common
->> index f1023ef20f7e..5694820c7adc 100644
->> --- a/test/common
->> +++ b/test/common
->> @@ -150,3 +150,7 @@ check_dmesg()
->>  	grep -q "Call Trace" <<< $log && err $1
->>  	true
->>  }
->> +
->> +
->> +# CXL COMMON
->> +TEST_QOS_CLASS=42
->> diff --git a/test/cxl-qos-class.sh b/test/cxl-qos-class.sh
->> new file mode 100755
->> index 000000000000..145df6134685
->> --- /dev/null
->> +++ b/test/cxl-qos-class.sh
->> @@ -0,0 +1,102 @@
->> +#!/bin/bash
->> +# SPDX-License-Identifier: GPL-2.0
->> +# Copyright (C) 2024 Intel Corporation. All rights reserved.
->> +
->> +. $(dirname $0)/common
->> +
->> +rc=77
->> +
->> +set -ex
->> +
->> +trap 'err $LINENO' ERR
->> +
->> +check_prereq "jq"
->> +
->> +modprobe -r cxl_test
->> +modprobe cxl_test
->> +rc=1
->> +
->> +check_qos_decoders () {
->> +	# check root decoders have expected fake qos_class
->> +	# also make sure the number of root decoders equal to the number
->> +	# with qos_class found
->> +	json=$($CXL list -b cxl_test -D -d root)
->> +	decoders=$(echo "$json" | jq length)
->> +	count=0
->> +	while read -r qos_class
->> +	do
->> +		((qos_class == TEST_QOS_CLASS)) || err "$LINENO"
->> +		count=$((count+1))
->> +	done <<< "$(echo "$json" | jq -r '.[] | .qos_class')"
->> +
->> +	((count == decoders)) || err "$LINENO";
->> +}
->> +
->> +check_qos_memdevs () {
->> +	# Check that memdevs that expose ram_qos_class or pmem_qos_class have
->> +	# expected fake value programmed.
->> +	json=$(cxl list -b cxl_test -M)
->> +	readarray -t lines < <(jq ".[] | .ram_size, .pmem_size, .ram_qos_class, .pmem_qos_class" <<<"$json")
->> +	for (( i = 0; i < ${#lines[@]}; i += 4 ))
->> +	do
->> +		ram_size=${lines[i]}
->> +		pmem_size=${lines[i+1]}
->> +		ram_qos_class=${lines[i+2]}
->> +		pmem_qos_class=${lines[i+3]}
->> +
->> +		if [[ "$ram_size" != null ]]
->> +		then
->> +			((ram_qos_class == TEST_QOS_CLASS)) || err "$LINENO"
->> +		fi
->> +		if [[ "$pmem_size" != null ]]
->> +		then
->> +			((pmem_qos_class == TEST_QOS_CLASS)) || err "$LINENO"
->> +		fi
->> +	done
->> +}
->> +
->> +# Based on cxl-create-region.sh create_single()
->> +destroy_regions()
->> +{
->> +	if [[ "$*" ]]; then
->> +		$CXL destroy-region -f -b cxl_test "$@"
->> +	else
->> +		$CXL destroy-region -f -b cxl_test all
->> +	fi
->> +}
->> +
->> +create_region_check_qos()
->> +{
->> +	# the 5th cxl_test decoder is expected to target a single-port
->> +	# host-bridge. Older cxl_test implementations may not define it,
->> +	# so skip the test in that case.
->> +	decoder=$($CXL list -b cxl_test -D -d root |
->> +		  jq -r ".[4] |
->> +		  select(.pmem_capable == true) |
->> +		  select(.nr_targets == 1) |
->> +		  .decoder")
+On 24/02/26 01:20PM, Jonathan Cameron wrote:
+> On Fri, 23 Feb 2024 11:41:55 -0600
+> John Groves <John@Groves.net> wrote:
 > 
-> Instead of assuming the 5th decoder, can we select based on some
-> property of the decoder or its parentage? This works, but it's a bit
-> sensitive to future cxl_test topology changes that will easily and
-> (more importantly) silently break this part of the test (since we skip
-> but still pass).
+> > This commit introduces the famfs fs_context_operations and
+> > famfs_get_inode() which is used by the context operations.
+> > 
+> > Signed-off-by: John Groves <john@groves.net>
+> Trivial comments inline.
+> 
+> > ---
+> >  fs/famfs/famfs_inode.c | 178 +++++++++++++++++++++++++++++++++++++++++
+> >  1 file changed, 178 insertions(+)
+> > 
+> > diff --git a/fs/famfs/famfs_inode.c b/fs/famfs/famfs_inode.c
+> > index 82c861998093..f98f82962d7b 100644
+> > --- a/fs/famfs/famfs_inode.c
+> > +++ b/fs/famfs/famfs_inode.c
+> > @@ -41,6 +41,50 @@ static const struct super_operations famfs_ops;
+> >  static const struct inode_operations famfs_file_inode_operations;
+> >  static const struct inode_operations famfs_dir_inode_operations;
+> >  
+> > +static struct inode *famfs_get_inode(
+> > +	struct super_block *sb,
+> > +	const struct inode *dir,
+> > +	umode_t             mode,
+> > +	dev_t               dev)
+> > +{
+> > +	struct inode *inode = new_inode(sb);
+> > +
+> > +	if (inode) {
+> reverse logic would be simpler and reduce indent.
+> 
+> 	if (!inode)
+> 		return NULL;
+> 
 
-I copied it straight from cxl-topology.sh. It can be any really. All cxl_test setup should have qos_class. I would imagine cxl-topology.sh would also break if there's some future change
+Good one - I can be derpy this way. Although I'd bet I just copied that
+from ramfs...
 
 > 
->> +
->> +        if [[ ! $decoder ]]; then
->> +                echo "no single-port host-bridge decoder found, skipping"
->> +                return
->> +        fi
-> 
-> I think there's some space/tab mixing going on here.
+> > +		struct timespec64       tv;
+> > +
+> > +		inode->i_ino = get_next_ino();
+> > +		inode_init_owner(&nop_mnt_idmap, inode, dir, mode);
+> > +		inode->i_mapping->a_ops = &ram_aops;
+> > +		mapping_set_gfp_mask(inode->i_mapping, GFP_HIGHUSER);
+> > +		mapping_set_unevictable(inode->i_mapping);
+> > +		tv = inode_set_ctime_current(inode);
+> > +		inode_set_mtime_to_ts(inode, tv);
+> > +		inode_set_atime_to_ts(inode, tv);
+> > +
+> > +		switch (mode & S_IFMT) {
+> > +		default:
+> > +			init_special_inode(inode, mode, dev);
+> > +			break;
+> > +		case S_IFREG:
+> > +			inode->i_op = &famfs_file_inode_operations;
+> > +			inode->i_fop = &famfs_file_operations;
+> > +			break;
+> > +		case S_IFDIR:
+> > +			inode->i_op = &famfs_dir_inode_operations;
+> > +			inode->i_fop = &simple_dir_operations;
+> > +
+> > +			/* Directory inodes start off with i_nlink == 2 (for "." entry) */
+> > +			inc_nlink(inode);
+> > +			break;
+> > +		case S_IFLNK:
+> > +			inode->i_op = &page_symlink_inode_operations;
+> > +			inode_nohighmem(inode);
+> > +			break;
+> > +		}
+> > +	}
+> > +	return inode;
+> > +}
+> > +
+> >  /**********************************************************************************
+> >   * famfs super_operations
+> >   *
+> > @@ -150,6 +194,140 @@ famfs_open_device(
+> >  	return 0;
+> >  }
+> >  
+> > +/*****************************************************************************************
+> > + * fs_context_operations
+> > + */
+> > +static int
+> > +famfs_fill_super(
+> > +	struct super_block *sb,
+> > +	struct fs_context  *fc)
+> > +{
+> > +	struct famfs_fs_info *fsi = sb->s_fs_info;
+> > +	struct inode *inode;
+> > +	int rc = 0;
+> Always initialized so no need to do it here.
 
-I'll fix.
+Fixed in more than one place.
 
 > 
->> +
->> +	# Send create-region with -Q to enforce qos_class matching
->> +	region=$($CXL create-region -Q -d "$decoder" | jq -r ".region")
->> +	if [[ ! $region ]]; then
->> +		echo "failed to create single-port host-bridge region"
->> +		err "$LINENO"
->> +	fi
->> +
->> +	destroy_regions "$region"
->> +}
->> +
->> +check_qos_decoders
->> +
->> +check_qos_memdevs
->> +
->> +create_region_check_qos
->> +
->> +check_dmesg "$LINEO"
->> +
->> +modprobe -r cxl_test
->> diff --git a/test/meson.build b/test/meson.build
->> index 5eb35749a95b..4892df11119f 100644
->> --- a/test/meson.build
->> +++ b/test/meson.build
->> @@ -160,6 +160,7 @@ cxl_events = find_program('cxl-events.sh')
->>  cxl_poison = find_program('cxl-poison.sh')
->>  cxl_sanitize = find_program('cxl-sanitize.sh')
->>  cxl_destroy_region = find_program('cxl-destroy-region.sh')
->> +cxl_qos_class = find_program('cxl-qos-class.sh')
->>  
->>  tests = [
->>    [ 'libndctl',               libndctl,		  'ndctl' ],
->> @@ -192,6 +193,7 @@ tests = [
->>    [ 'cxl-poison.sh',          cxl_poison,         'cxl'   ],
->>    [ 'cxl-sanitize.sh',        cxl_sanitize,       'cxl'   ],
->>    [ 'cxl-destroy-region.sh',  cxl_destroy_region, 'cxl'   ],
->> +  [ 'cxl-qos-class.sh',       cxl_qos_class,      'cxl'   ],
->>  ]
->>  
->>  if get_option('destructive').enabled()
+> > +
+> > +	sb->s_maxbytes		= MAX_LFS_FILESIZE;
+> > +	sb->s_blocksize		= PAGE_SIZE;
+> > +	sb->s_blocksize_bits	= PAGE_SHIFT;
+> > +	sb->s_magic		= FAMFS_MAGIC;
+> > +	sb->s_op		= &famfs_ops;
+> > +	sb->s_time_gran		= 1;
+> > +
+> > +	rc = famfs_open_device(sb, fc);
+> > +	if (rc)
+> > +		goto out;
+> 		return rc; //unless you need to do more in out in later patch..
+
+Done
+
 > 
+> > +
+> > +	inode = famfs_get_inode(sb, NULL, S_IFDIR | fsi->mount_opts.mode, 0);
+> > +	sb->s_root = d_make_root(inode);
+> > +	if (!sb->s_root)
+> > +		rc = -ENOMEM;
+> 		return -ENOMEM;
+
+Done
+
+> 
+> 	return 0;
+
+Done
+
+> 
+> > +
+> > +out:
+> > +	return rc;
+> > +}
+> > +
+> > +enum famfs_param {
+> > +	Opt_mode,
+> > +	Opt_dax,
+> Why capital O?
+
+Direct copy from ramfs
+
+> 
+> > +};
+> > +
+> 
+> ...
+> 
+> > +
+> > +static DEFINE_MUTEX(famfs_context_mutex);
+> > +static LIST_HEAD(famfs_context_list);
+> > +
+> > +static int famfs_get_tree(struct fs_context *fc)
+> > +{
+> > +	struct famfs_fs_info *fsi_entry;
+> > +	struct famfs_fs_info *fsi = fc->s_fs_info;
+> > +
+> > +	fsi->rootdev = kstrdup(fc->source, GFP_KERNEL);
+> > +	if (!fsi->rootdev)
+> > +		return -ENOMEM;
+> > +
+> > +	/* Fail if famfs is already mounted from the same device */
+> > +	mutex_lock(&famfs_context_mutex);
+> 
+> New toys might be good to use from start to avoid need for explicit
+> unlocks in error paths.
+> 
+> 	scoped_guard(mutex, &famfs_context_mutex) {
+> 		list_for_each_entry(fsi_entry, &famfs_context_list, fsi_list) {
+> 			if (strcmp(fsi_entry->rootdev, cs_source) == 0) {
+> 			//could invert with a continue to reduce indent
+> 			// or factor this out as a little helper.
+> 			// famfs_check_not_mounted()
+> 				pr_err();
+> 				return -EALREADY;
+> 			}
+> 		}	
+> 		list_add(&fsi->fs_list, &famfs_context_list);
+> 	}
+> 
+> 	return get_tree_nodev(...
+
+Hey, I like this one. Thanks!
+
+John
+
