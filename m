@@ -1,216 +1,248 @@
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi1-f177.google.com (mail-oi1-f177.google.com [209.85.167.177])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 331CC7E570
-	for <nvdimm@lists.linux.dev>; Mon, 26 Feb 2024 13:52:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 174D412AAF0
+	for <nvdimm@lists.linux.dev>; Mon, 26 Feb 2024 15:00:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.177
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708955554; cv=none; b=N/bCbS2aMGeLuOjd3VcamEL+RAKTnJgU7vxPGL9scJz0IDRwmpgL60pMDW3bW1K726Zj47KfA+dLJdLh0wxccfuNca0N0MIYL30U4GRgGT7z5nCm7LttUEl5NfJJW9li58WWie8nN7bSdmk7uPj8LFaFD1uByuhnF8Q4tFVfuYA=
+	t=1708959639; cv=none; b=s4Ak7OywHAQNAttck1byFeYSeUzOnIlVrcgypj/HBXn+jf9vdWjHTy1sUEOwHPsaNNorpwvFghvOKcUv9hV0JB6JC0VUVan7IRIf0REJ6KbSknwjgFePLruhuLj3g0Vl5m5XaZWwIfy/FLl2hRSk6C2So6B7mh5xu6xD9MUo0tw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708955554; c=relaxed/simple;
-	bh=Xsm/8R6Mlt6gOOz8zdM11uszjNbgmxwBzqPat5Py7Xw=;
-	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=gq0AAUvdGCn9Xf/2DrkoUL0F+zENEr1xIy76qQHJyBvkJk3L/ICYwwp1UJsgnIL9lcqbh4FdA25+XGf4x4CTkl0O6zY7B+qW2fifhl6KDRWORHzzOdwy6qMH958zhvGlS/cI4cn2wQhJRpaX2X3W8tDh6K6Hk6ruV5yHJkyiOQg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.186.231])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Tk24r0YY0z67PcT;
-	Mon, 26 Feb 2024 21:48:12 +0800 (CST)
-Received: from lhrpeml500005.china.huawei.com (unknown [7.191.163.240])
-	by mail.maildlp.com (Postfix) with ESMTPS id BB3CE140A70;
-	Mon, 26 Feb 2024 21:52:30 +0800 (CST)
-Received: from localhost (10.202.227.76) by lhrpeml500005.china.huawei.com
- (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.35; Mon, 26 Feb
- 2024 13:52:30 +0000
-Date: Mon, 26 Feb 2024 13:52:28 +0000
-From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-To: John Groves <John@Groves.net>
-CC: John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>, "Dan
- Williams" <dan.j.williams@intel.com>, Vishal Verma
-	<vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, "Alexander
- Viro" <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, "Jan
- Kara" <jack@suse.cz>, Matthew Wilcox <willy@infradead.org>,
-	<linux-cxl@vger.kernel.org>, <linux-fsdevel@vger.kernel.org>,
-	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<nvdimm@lists.linux.dev>, <john@jagalactic.com>, Dave Chinner
-	<david@fromorbit.com>, Christoph Hellwig <hch@infradead.org>,
-	<dave.hansen@linux.intel.com>, <gregory.price@memverge.com>
-Subject: Re: [RFC PATCH 18/20] famfs: Support character dax via the
- dev_dax_iomap patch
-Message-ID: <20240226135228.00007714@Huawei.com>
-In-Reply-To: <fa06095b6a05a26a0a016768b2e2b70663163eeb.1708709155.git.john@groves.net>
+	s=arc-20240116; t=1708959639; c=relaxed/simple;
+	bh=pDJ+S710TU3tYtsI7/uIBNbjN3ZFzSKvc9q9SE7JkjA=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=hAxypBRHLMZmeILJPa35ne2ROSGMCJFsFB7WrM2uM9rJHDopxRkvn2dQPu1QfX+ckRmBg0gYx5kDbsmkHMhR51mCBYV2CLGtiLenlXzK/2d0HrcZdENfQrPTAnh8qoraRZ+Z7v7xPtBrfiqerjG8XZq3F5h/TpnkWBiBM6zUJZM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ZNPqoxxZ; arc=none smtp.client-ip=209.85.167.177
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ZNPqoxxZ"
+Received: by mail-oi1-f177.google.com with SMTP id 5614622812f47-3c1a1e1e539so1112420b6e.1
+        for <nvdimm@lists.linux.dev>; Mon, 26 Feb 2024 07:00:36 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1708959636; x=1709564436; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:sender:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=H53FQFuV0tEvJqPL0XJbu4yTTLUCR5gSsoYwOTRibBQ=;
+        b=ZNPqoxxZtISk7DlUycP9iMOL9O2uXGrCoIOF4BtMQlf/nNnueuWQ7/tLuUi/vs7FEw
+         UvMNICeV5srSogm4R3nB8px2K0abJY5cYH5bXODBj2iVAhAkEbs5iDPoJjF/y05sgfVU
+         lTAjy396cLL2Xq6QOsG274opAlkVD/WJJ2x7y594+K5vDdXB4edKdehucHlh/g6ECWn2
+         yVk1TnaM0s44quIWffCroqLSwPDPQKX2suGlROR3d6BxWtp2Af1BiWhojCCaySpxU7Ph
+         M1D9bxZnkP4JeWk10/CF2DGb91aY4yCzJO0+KYHBvRqDfqB1dVtS8vrtLQQV47vfE3t9
+         KZEA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1708959636; x=1709564436;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:sender:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=H53FQFuV0tEvJqPL0XJbu4yTTLUCR5gSsoYwOTRibBQ=;
+        b=mJyGDQaz/17GcQOr8df+x/uEsISq64eljGiShnoJcnEe57W/XHFk98Ab/Oe8nx/5rD
+         kT+ncm54mjWZyt7TZdMeT8sBZEckhH9x43TxOhOW5UOdxfvASbl6z6teH992a9penaFs
+         XbUpQq9aQGp2kDotlBjevtpxmn+cfW5BOK/PlGtMa03CNXe2p1gFYfarfYlej662S5NN
+         UZFiYDazZkpHR7rWNsV7fj+arcVP037MO0RQ6vneCORJrWxy/L2Ec0KJuecPuWnd3uO3
+         E03gsToJxD9LXr3lkPOMgIsxOGHMcbkY0CiNh9dKTMALhZYiCZzyrN03hQSsG0YxYE9k
+         jEJQ==
+X-Forwarded-Encrypted: i=1; AJvYcCWkWnGyzr0cJqZvMTwbJOkBVC0QcaDwgjIrBGRm/nZrPe8whpTUhOWgUllCfRkz7E37WhJ3nxiug4I6o+1lVpAnazHc98Hd
+X-Gm-Message-State: AOJu0YyBF/EhTCPasam+by+i84LWBDYIGPNXRgoyQKT+a96/uHc3P84n
+	+HfeO6FI6vAcbHmZcLPMKx3ZnrEW8G/KVTUj8BwBg5kiujFvx6Aq
+X-Google-Smtp-Source: AGHT+IG3Fep9vB9m/AS0yL5tfec4E03KG7h5aS3ZZXhDql7c01JJ95Pj439VYSHJQzyLahhR1xXnIw==
+X-Received: by 2002:a05:6808:10ce:b0:3c1:3215:1881 with SMTP id s14-20020a05680810ce00b003c132151881mr9820277ois.7.1708959635473;
+        Mon, 26 Feb 2024 07:00:35 -0800 (PST)
+Received: from Borg-9.local (070-114-203-196.res.spectrum.com. [70.114.203.196])
+        by smtp.gmail.com with ESMTPSA id ca22-20020a056808331600b003c1a9ed75casm59821oib.18.2024.02.26.07.00.33
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 26 Feb 2024 07:00:34 -0800 (PST)
+Sender: John Groves <grovesaustin@gmail.com>
+Date: Mon, 26 Feb 2024 09:00:31 -0600
+From: John Groves <John@groves.net>
+To: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>, 
+	Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, 
+	Dave Jiang <dave.jiang@intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, 
+	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, Matthew Wilcox <willy@infradead.org>, 
+	linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-doc@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, john@jagalactic.com, 
+	Dave Chinner <david@fromorbit.com>, Christoph Hellwig <hch@infradead.org>, 
+	dave.hansen@linux.intel.com, gregory.price@memverge.com
+Subject: Re: [RFC PATCH 02/20] dev_dax_iomap: Add fs_dax_get() func to
+ prepare dax for fs-dax usage
+Message-ID: <7t6n6c4cycu2hqh4ajsl4egtu2womq54unj4ikqeu3rehmxwzw@64ydmjh5x2ga>
 References: <cover.1708709155.git.john@groves.net>
-	<fa06095b6a05a26a0a016768b2e2b70663163eeb.1708709155.git.john@groves.net>
-Organization: Huawei Technologies Research and Development (UK) Ltd.
-X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
+ <69ed4a3064bd9b48fd0593941038dd111fcfb8f3.1708709155.git.john@groves.net>
+ <20240226120535.00007a36@Huawei.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: lhrpeml100002.china.huawei.com (7.191.160.241) To
- lhrpeml500005.china.huawei.com (7.191.163.240)
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240226120535.00007a36@Huawei.com>
 
-On Fri, 23 Feb 2024 11:42:02 -0600
-John Groves <John@Groves.net> wrote:
+On 24/02/26 12:05PM, Jonathan Cameron wrote:
+> On Fri, 23 Feb 2024 11:41:46 -0600
+> John Groves <John@Groves.net> wrote:
+> 
+> > This function should be called by fs-dax file systems after opening the
+> > devdax device. This adds holder_operations.
+> > 
+> > This function serves the same role as fs_dax_get_by_bdev(), which dax
+> > file systems call after opening the pmem block device.
+> > 
+> > Signed-off-by: John Groves <john@groves.net>
+> 
+> A few trivial comments form a first read to get my head around this.
+> 
+> Yeah, it is only an RFC, but who doesn't like tidy code? :)
 
-> This commit introduces the ability to open a character /dev/dax device
-> instead of a block /dev/pmem device. This rests on the dev_dax_iomap
-> patches earlier in this series.
+Hope your eyes don't burn too much ;)
+> 
+> 
+> > ---
+> >  drivers/dax/super.c | 38 ++++++++++++++++++++++++++++++++++++++
+> >  include/linux/dax.h |  5 +++++
+> >  2 files changed, 43 insertions(+)
+> > 
+> > diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+> > index f4b635526345..fc96362de237 100644
+> > --- a/drivers/dax/super.c
+> > +++ b/drivers/dax/super.c
+> > @@ -121,6 +121,44 @@ void fs_put_dax(struct dax_device *dax_dev, void *holder)
+> >  EXPORT_SYMBOL_GPL(fs_put_dax);
+> >  #endif /* CONFIG_BLOCK && CONFIG_FS_DAX */
+> >  
+> > +#if IS_ENABLED(CONFIG_DEV_DAX_IOMAP)
+> > +
+> > +/**
+> > + * fs_dax_get()
+> 
+> Smells like kernel doc but fairly sure it needs a short description.
+> Have you sanity checked for warnings when running scripts/kerneldoc on it?
 
-Not sure the back reference is needed given it's in the series.
+Right, and there were other cases. Randy pointed one out, and I've already
+gone through and "fixed" them.
 
 > 
-> Signed-off-by: John Groves <john@groves.net>
-> ---
->  fs/famfs/famfs_inode.c | 97 +++++++++++++++++++++++++++++++++++++-----
->  1 file changed, 87 insertions(+), 10 deletions(-)
+> > + *
+> > + * fs-dax file systems call this function to prepare to use a devdax device for fsdax.
+> Trivial but lines too long. Keep under 80 chars unless there is a strong
+> readability arguement for not doing so.
+
+I was under the impression the "kids these days" have a 100 column standard.
+But I will go through and limit line to 80 except where it gets too awkward.
+
 > 
-> diff --git a/fs/famfs/famfs_inode.c b/fs/famfs/famfs_inode.c
-> index 0d659820e8ff..7d65ac497147 100644
-> --- a/fs/famfs/famfs_inode.c
-> +++ b/fs/famfs/famfs_inode.c
-> @@ -215,6 +215,93 @@ static const struct super_operations famfs_ops = {
->  	.show_options	= famfs_show_options,
->  };
->  
-> +/*****************************************************************************/
-> +
-> +#if defined(CONFIG_DEV_DAX_IOMAP)
-> +
-> +/*
-> + * famfs dax_operations  (for char dax)
-> + */
-> +static int
-> +famfs_dax_notify_failure(struct dax_device *dax_dev, u64 offset,
-> +			u64 len, int mf_flags)
-> +{
-> +	pr_err("%s: offset %lld len %llu flags %x\n", __func__,
-> +	       offset, len, mf_flags);
-> +	return -EOPNOTSUPP;
-> +}
-> +
-> +static const struct dax_holder_operations famfs_dax_holder_ops = {
-> +	.notify_failure		= famfs_dax_notify_failure,
-> +};
-> +
-> +/*****************************************************************************/
-> +
-> +/**
-> + * famfs_open_char_device()
-> + *
-> + * Open a /dev/dax device. This only works in kernels with the dev_dax_iomap patch
+> 
+> > + * This is like fs_dax_get_by_bdev(), but the caller already has struct dev_dax (and there
+> > + * is no bdev). The holder makes this exclusive.
+> 
+> Not familiar with this area: what does exclusive mean here?
 
-That comment you definitely don't need as this won't get merged without
-that patch being in place.
+The holder_ops are set via cmpxchg, in such a way that if there are already
+holder_ops, the call to fs_dax_get() will fail. (as it should)
 
+> 
+> > + *
+> > + * @dax_dev: dev to be prepared for fs-dax usage
+> > + * @holder: filesystem or mapped device inside the dax_device
+> > + * @hops: operations for the inner holder
+> > + *
+> > + * Returns: 0 on success, -1 on failure
+> 
+> Why not return < 0 and use somewhat useful return values?
 
-> + */
-> +static int
-> +famfs_open_char_device(
-> +	struct super_block *sb,
-> +	struct fs_context  *fc)
-> +{
-> +	struct famfs_fs_info *fsi = sb->s_fs_info;
-> +	struct dax_device    *dax_devp;
-> +	struct inode         *daxdev_inode;
-> +
-> +	int rc = 0;
-set in all paths where it's used.
+Good idea, will do.
 
-> +
-> +	pr_notice("%s: Opening character dax device %s\n", __func__, fc->source);
+> 
+> > + */
+> > +int fs_dax_get(
+> > +	struct dax_device *dax_dev,
+> > +	void *holder,
+> > +	const struct dax_holder_operations *hops)
+> 
+> Match local style for indents - it's a bit inconsistent but probably...
+> 
+> int fs_dax_get(struct dad_device *dev_dax, void *holder,
+> 	       const struct dax_holder_operations *hops)
 
-pr_debug
+Done
 
-> +
-> +	fsi->dax_filp = filp_open(fc->source, O_RDWR, 0);
-> +	if (IS_ERR(fsi->dax_filp)) {
-> +		pr_err("%s: failed to open dax device %s\n",
-> +		       __func__, fc->source);
-> +		fsi->dax_filp = NULL;
-Better to use a local variable
+> 
+> > +{
+> > +	/* dax_dev->ops should have been populated by devm_create_dev_dax() */
+> > +	if (WARN_ON(!dax_dev->ops))
+> > +		return -1;
+> > +
+> > +	if (!dax_dev || !dax_alive(dax_dev) || !igrab(&dax_dev->inode))
+> 
+> You dereferenced dax_dev on the line above so check is too late or
+> unnecessary
 
-	fp = filp_open(fc->source, O_RDWR, 0);
-	if (IS_ERR(fp)) {
-		pr_err.
-		return;
-	}
-	fsi->dax_filp = fp;
-or similar.
+Good catch, thank you!
 
-> +		return PTR_ERR(fsi->dax_filp);
-> +	}
-> +
-> +	daxdev_inode = file_inode(fsi->dax_filp);
-> +	dax_devp     = inode_dax(daxdev_inode);
-> +	if (IS_ERR(dax_devp)) {
-> +		pr_err("%s: unable to get daxdev from inode for %s\n",
-> +		       __func__, fc->source);
-> +		rc = -ENODEV;
-> +		goto char_err;
-> +	}
-> +
-> +	rc = fs_dax_get(dax_devp, fsi, &famfs_dax_holder_ops);
-> +	if (rc) {
-> +		pr_info("%s: err attaching famfs_dax_holder_ops\n", __func__);
-> +		goto char_err;
-> +	}
-> +
-> +	fsi->bdev_handle = NULL;
-> +	fsi->dax_devp = dax_devp;
-> +
-> +	return 0;
-> +
-> +char_err:
-> +	filp_close(fsi->dax_filp, NULL);
+> 
+> > +		return -1;
+> > +
+> > +	if (cmpxchg(&dax_dev->holder_data, NULL, holder)) {
+> > +		pr_warn("%s: holder_data already set\n", __func__);
+> 
+> Perhaps nicer to use a pr_fmt() deal with the func name if you need it.
+> or make it pr_debug and let dynamic debug control formatting if anyone
+> wants the function name.
 
-You carefully set fsi->dax_filp to null in other other error paths.
-Why there and not here?
+Sounds good.
 
-> +	return rc;
-> +}
-> +
-> +#else /* CONFIG_DEV_DAX_IOMAP */
-> +static int
-> +famfs_open_char_device(
-> +	struct super_block *sb,
-> +	struct fs_context  *fc)
-> +{
-> +	pr_err("%s: Root device is %s, but your kernel does not support famfs on /dev/dax\n",
-> +	       __func__, fc->source);
-> +	return -ENODEV;
-> +}
-> +
-> +
-> +#endif /* CONFIG_DEV_DAX_IOMAP */
-> +
->  /***************************************************************************************
->   * dax_holder_operations for block dax
->   */
-> @@ -236,16 +323,6 @@ const struct dax_holder_operations famfs_blk_dax_holder_ops = {
->  	.notify_failure		= famfs_blk_dax_notify_failure,
->  };
->  
+> 
+> > +		return -1;
+> > +	}
+> > +	dax_dev->holder_ops = hops;
+> > +
+> > +	return 0;
+> > +}
+> > +EXPORT_SYMBOL_GPL(fs_dax_get);
+> > +#endif /* DEV_DAX_IOMAP */
+> > +
+> >  enum dax_device_flags {
+> >  	/* !alive + rcu grace period == no new operations / mappings */
+> >  	DAXDEV_ALIVE,
+> > diff --git a/include/linux/dax.h b/include/linux/dax.h
+> > index b463502b16e1..e973289bfde3 100644
+> > --- a/include/linux/dax.h
+> > +++ b/include/linux/dax.h
+> > @@ -57,7 +57,12 @@ struct dax_holder_operations {
+> >  
+> >  #if IS_ENABLED(CONFIG_DAX)
+> >  struct dax_device *alloc_dax(void *private, const struct dax_operations *ops);
+> > +
+> > +#if IS_ENABLED(CONFIG_DEV_DAX_IOMAP)
+> > +int fs_dax_get(struct dax_device *dax_dev, void *holder, const struct dax_holder_operations *hops);
+> line wrap < 80 chars
 
-Put it in right place earlier! Makes this less noisy.
+Roger that
 
-> -static int
-> -famfs_open_char_device(
-> -	struct super_block *sb,
-> -	struct fs_context  *fc)
-> -{
-> -	pr_err("%s: Root device is %s, but your kernel does not support famfs on /dev/dax\n",
-> -	       __func__, fc->source);
-> -	return -ENODEV;
-> -}
-> -
->  /**
->   * famfs_open_device()
->   *
+> 
+> > +#endif
+> >  void *dax_holder(struct dax_device *dax_dev);
+> > +struct dax_device *inode_dax(struct inode *inode);
+> 
+> Unrelated change?
+
+Kinda, but I'm not sure there is a better home for this one. Patch 18,
+which is a famfs patch, calls inode_dax(). It was already exported but not
+prototyped in dax.h.
+
+Mixing it in with other dev_dax_iomap content seems better than mixing it
+with famfs content. Could make it a separate patch, but I was trying to
+some old docs that said keep patch sets <=15 - which I deemed impossible here.
+
+What say others?
+
+> 
+> >  void put_dax(struct dax_device *dax_dev);
+> >  void kill_dax(struct dax_device *dax_dev);
+> >  void dax_write_cache(struct dax_device *dax_dev, bool wc);
+> 
+
+Thanks Jonathan!
 
