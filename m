@@ -1,61 +1,61 @@
-Received: from mail-oo1-f51.google.com (mail-oo1-f51.google.com [209.85.161.51])
+Received: from mail-oo1-f45.google.com (mail-oo1-f45.google.com [209.85.161.45])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5D897F7EC
-	for <nvdimm@lists.linux.dev>; Mon, 26 Feb 2024 21:16:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F3F821DFCD
+	for <nvdimm@lists.linux.dev>; Mon, 26 Feb 2024 21:47:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.45
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708982210; cv=none; b=LDbYsYiAHRxi6RsbI8+r22clocCo1ERjcba8YzEz3Ha+jIVVjoMSn+NTZzchrq4U8YJTet4XkZN4TiBVt622dNZelcCY2YlSvt+DFJZz5Ibr/MSDdXUgZ31SCZcpZGdpxl+0q+HYgcebPUTrnRMnpPEf/UvkfQvlT5Ky9S59iMc=
+	t=1708984078; cv=none; b=H3ux0fvZmFd07YP9pEJBujuN/qbJQLohajLV5lK2mff4/LKJVWy+kYaJcj6d5jT/aFeQWYpVsOSyTsZkw3dfN9rH2N3bWIZBpf+VVQMKEAwx8QdXtlBRUWB9P2qKwAOivEsLtmzBWP4xs9nDXb6M+O6r6TqVOgQNVvtiYfh5cH8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708982210; c=relaxed/simple;
-	bh=B7t54qSi+zoh3echsorRhVmtP4AbNabSTWRzGhYGvFo=;
+	s=arc-20240116; t=1708984078; c=relaxed/simple;
+	bh=+mhRZDCckO6W8K7cXxypdompx2eyAZlDqNRYXBm0lRQ=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=bxulfs0axtWr3OPoEprf8TLrl+oliIh6cRPUfYj7EJ0ggaGSgG4H8cpEzBtYjszSozYTJl6EagAF69IvRYYBaglaNQQeWLn17cxO5WBhwSQglEtoqYZBE6TAX/yy9kkruBRSsFfnAfe1OaacWOGNFEPOzSmwH379pLpYWynGbb8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=M/Cabr/r; arc=none smtp.client-ip=209.85.161.51
+	 Content-Type:Content-Disposition:In-Reply-To; b=puh1QhiNazVWU0MXcYwwQJ+qaD2vI1Bktl5C/IPDEBSrgE1LqQxSmse4OMEbJgk4BQuQX4acwcf72lQwUIHIOorm+rMp2K/nHqjQtFe+spRahPjAlZ9mTXsyM5N3q6hyHeOyRI/7QPmo7JvRcq3cpm57uTy5YBF+rkLKWhExiD0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=mKOAA5Cn; arc=none smtp.client-ip=209.85.161.45
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="M/Cabr/r"
-Received: by mail-oo1-f51.google.com with SMTP id 006d021491bc7-5a02eb63ebcso1818904eaf.0
-        for <nvdimm@lists.linux.dev>; Mon, 26 Feb 2024 13:16:48 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mKOAA5Cn"
+Received: by mail-oo1-f45.google.com with SMTP id 006d021491bc7-59d489e8d68so1604293eaf.2
+        for <nvdimm@lists.linux.dev>; Mon, 26 Feb 2024 13:47:56 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1708982208; x=1709587008; darn=lists.linux.dev;
+        d=gmail.com; s=20230601; t=1708984076; x=1709588876; darn=lists.linux.dev;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:sender:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=Q69d1h5JpiCD7qWS7XjI5Cafa952a+GWKfJxcBwhJCk=;
-        b=M/Cabr/rlGze1EekEPHrm8pEsH8jQ0awAZDA1Yt37D86BoJsb4FaV0PptX9Qze4VcR
-         6mTwBXR5Uwj1GcizE8owag2OP8CGMDi1dLa/sE6kQxCFkONi663OYIZWFiUtCbmQ+tIR
-         n1fb1zJIlCJpCP5T3nbxkrZ3Sx1ucHvwpwMW952KZCq2Xv6ycoE6O3TzkRY5nFPX/W/t
-         8XzdVLwcg1F/xt2kYZO1t1+b/pijvH/FomvRPKUE/U3zaH2eNZORuYLlRVbtEh4xvhiC
-         izP1cErfzfZq+jRMdr6Mrhuc/6uYzLhbpltqmxznm6di+P3bcb7VUfWnEP8y+nycL9nV
-         RF7A==
+        bh=WwkLzcOkTdepCEL/rTOLTVwMFBrXTv/HE2I151NYxEg=;
+        b=mKOAA5Cn2TvrN/rC+llgyBs/ZFcLld6ZpGW9S/jm9JRanLx2K31GPmAnsPWTWNHnVO
+         hBwGzoB5qBfez96VpzywzjdR1cqX7/CjRbFMbrSjZacnQjrI4jVmnBtnH3JRRC+TEJjH
+         uPguBxLLM75ncWAKzD9tDoPYYkzeT4OxYCvqzybSHD+QPP9wybwPzQ1eVXmfDt1FGX7j
+         5S6aGtkS7yVkpRCDEArBEB+BWESDxyaHURvon+W/axANbMLgn6LXfGL2EXS7/1Zundmf
+         duVlxP9eUdhXAv8sGJQPvp5jaoI/p/5ljOeU7g84dYua8ISs2IeswLq3iheFdDrDupME
+         ZpXA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1708982208; x=1709587008;
+        d=1e100.net; s=20230601; t=1708984076; x=1709588876;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:sender:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=Q69d1h5JpiCD7qWS7XjI5Cafa952a+GWKfJxcBwhJCk=;
-        b=ZlpCqs4s2dnIgXmdiZGV7K18cCS+Wp5IMc1H4Au/nw9qkAQFNdo6xQlfhbdg8WswwJ
-         k1B/bba7nFj+Deofeyta/oKLQ+ta3MboW9CqN182lGI9ld5yBRH5nPUY9hhrI1nKF8d+
-         UPT6sF7+umqSOvjSFSvjG3QnCoahTeEBTOndB6dRVxyKnIHQqzwOZ9l4LDLHwZBQPPso
-         qWgANhQHrtu5X9vkT9SbPdqw6xXPhBz0RvcQYJGsjRMuv+8pxUel30mtzVB7imHbru64
-         TGdrSrBO1Itd1IQmeHqeRjj0mqPLr/ei7GC2LsSe1aAiOCTuas0BVncu6ZzNkXEarUwN
-         vXwg==
-X-Forwarded-Encrypted: i=1; AJvYcCUbi0qaQX0r+WRM87jVCCfYWzABNQjaw5UOgDWKoUIOTjhQoV9gmlE4bxJVFY3FE6hmYba9TCNeJzZjqUuTKh264nP7gDas
-X-Gm-Message-State: AOJu0YzBaW5o3QOQelJ7W0DOUEBdwqKcSuMZWf2Dm3DWxcFI53B7uE4Q
-	zzhey8wfsZFu5zSau14ex+l7B5ihdJY5g42N0dMNxRoQrQmX8BVQ
-X-Google-Smtp-Source: AGHT+IHhhLJmYU/d2r1+Ut5/Toin/f9dQNa0cxvPaRI+/l1e1FNOPSpMxwaAX9XoEkiIQOr1qrg8HA==
-X-Received: by 2002:a4a:6f4d:0:b0:5a0:12e1:312a with SMTP id i13-20020a4a6f4d000000b005a012e1312amr8346281oof.6.1708982207968;
-        Mon, 26 Feb 2024 13:16:47 -0800 (PST)
+        bh=WwkLzcOkTdepCEL/rTOLTVwMFBrXTv/HE2I151NYxEg=;
+        b=JASjOwBNNGDjag35LGsi8TyyNHDVNw7wHYJjyKx3tvL6kO5t4k758iaHqJC3lN9kcX
+         y+C7how+lJ8DZ99eS+AU2NHV9dC2eLtNGImo7fIE0MvevM5A4CK2eMHC7PQwmI5WXWFJ
+         5QV/V+k8ymWp1aoPJNZZPr7iLTLU9Q8iJiRJcLKQ1zeT0RoJlxWRXeF+ADUj7/iy4gvd
+         QWUPJAowYhbOHnSQrfWbxOd4Oxc1jNWpU41h004lusSs4VDPYErI/Y9X1y/O21iNOi2x
+         FMRW83cSl2hXPeFbmEGlT7rcXmWu2loMM1Z/MmnRTQ941BLHC9haZMc70E4XkcAMutqj
+         gjYw==
+X-Forwarded-Encrypted: i=1; AJvYcCXS9jXcn1p+SlVMqMwjTzvCyxKoFGEW5lEnOwsaOXM2ADeuk/YtmpwrHq4V/xcNZe6v78m1PDDokF9T/UrxSHlqnKD1VdRK
+X-Gm-Message-State: AOJu0YwkaJq/KJzycZRlX9Mrfc3Si0angkVkffgIuTXMzbHZmLyVS4YN
+	G9gwpRR29wtKmr1cQm4ngIwrtMBqJ1cdZV/OqSkjj5JCFw8Miquw
+X-Google-Smtp-Source: AGHT+IENzrYho4sVLLETE+2kSmQeGnYGjapvMx2yk+6P/1Df/2LXKbX/7P21pTgZxerQUQHeu5dWRA==
+X-Received: by 2002:a4a:ee8e:0:b0:5a0:5ac0:e81c with SMTP id dk14-20020a4aee8e000000b005a05ac0e81cmr6718130oob.6.1708984076000;
+        Mon, 26 Feb 2024 13:47:56 -0800 (PST)
 Received: from Borg-9.local (070-114-203-196.res.spectrum.com. [70.114.203.196])
-        by smtp.gmail.com with ESMTPSA id f3-20020a4a9203000000b0059d775eca88sm1402252ooh.29.2024.02.26.13.16.46
+        by smtp.gmail.com with ESMTPSA id h26-20020a4ad29a000000b005a0174b67c0sm1415632oos.3.2024.02.26.13.47.54
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 26 Feb 2024 13:16:47 -0800 (PST)
+        Mon, 26 Feb 2024 13:47:55 -0800 (PST)
 Sender: John Groves <grovesaustin@gmail.com>
-Date: Mon, 26 Feb 2024 15:16:45 -0600
+Date: Mon, 26 Feb 2024 15:47:53 -0600
 From: John Groves <John@groves.net>
-To: Luis Chamberlain <mcgrof@kernel.org>
+To: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Cc: John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>, 
 	Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, 
 	Dave Jiang <dave.jiang@intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, 
@@ -64,12 +64,11 @@ Cc: John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>,
 	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, john@jagalactic.com, 
 	Dave Chinner <david@fromorbit.com>, Christoph Hellwig <hch@infradead.org>, 
 	dave.hansen@linux.intel.com, gregory.price@memverge.com
-Subject: Re: [RFC PATCH 00/20] Introduce the famfs shared-memory file system
-Message-ID: <w5cqtmdgqtjvbnrg5okdgmxe45vjg5evaxh6gg3gs6kwfqmn5p@wgakpqcumrbt>
+Subject: Re: [RFC PATCH 09/20] famfs: Add super_operations
+Message-ID: <z3tnfxbbvhtbyantbm3yr3yv2qsih7darbm3p5pwwdsknuxlqa@rvexwleaixiy>
 References: <cover.1708709155.git.john@groves.net>
- <ZdkzJM6sze-p3EWP@bombadil.infradead.org>
- <cc2pabb3szzpm5jxxeku276csqu5vwqgzitkwevfluagx7akiv@h45faer5zpru>
- <Zdy0CGL6e0ri8LiC@bombadil.infradead.org>
+ <537f836056c141ae093c42b9623d20de919083b1.1708709155.git.john@groves.net>
+ <20240226125136.00002e64@Huawei.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -78,112 +77,147 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <Zdy0CGL6e0ri8LiC@bombadil.infradead.org>
+In-Reply-To: <20240226125136.00002e64@Huawei.com>
 
-On 24/02/26 07:53AM, Luis Chamberlain wrote:
-> On Mon, Feb 26, 2024 at 07:27:18AM -0600, John Groves wrote:
-> > Run status group 0 (all jobs):
-> >   WRITE: bw=29.6GiB/s (31.8GB/s), 29.6GiB/s-29.6GiB/s (31.8GB/s-31.8GB/s), io=44.7GiB (48.0GB), run=1511-1511msec
+On 24/02/26 12:51PM, Jonathan Cameron wrote:
+> On Fri, 23 Feb 2024 11:41:53 -0600
+> John Groves <John@Groves.net> wrote:
 > 
-> > This is run on an xfs file system on a SATA ssd.
+> > Introduce the famfs superblock operations
+> > 
+> > Signed-off-by: John Groves <john@groves.net>
+> > ---
+> >  fs/famfs/famfs_inode.c | 72 ++++++++++++++++++++++++++++++++++++++++++
+> >  1 file changed, 72 insertions(+)
+> >  create mode 100644 fs/famfs/famfs_inode.c
+> > 
+> > diff --git a/fs/famfs/famfs_inode.c b/fs/famfs/famfs_inode.c
+> > new file mode 100644
+> > index 000000000000..3329aff000d1
+> > --- /dev/null
+> > +++ b/fs/famfs/famfs_inode.c
+> > @@ -0,0 +1,72 @@
+> > +// SPDX-License-Identifier: GPL-2.0
+> > +/*
+> > + * famfs - dax file system for shared fabric-attached memory
+> > + *
+> > + * Copyright 2023-2024 Micron Technology, inc
+> > + *
+> > + * This file system, originally based on ramfs the dax support from xfs,
+> > + * is intended to allow multiple host systems to mount a common file system
+> > + * view of dax files that map to shared memory.
+> > + */
+> > +
+> > +#include <linux/fs.h>
+> > +#include <linux/pagemap.h>
+> > +#include <linux/highmem.h>
+> > +#include <linux/time.h>
+> > +#include <linux/init.h>
+> > +#include <linux/string.h>
+> > +#include <linux/backing-dev.h>
+> > +#include <linux/sched.h>
+> > +#include <linux/parser.h>
+> > +#include <linux/magic.h>
+> > +#include <linux/slab.h>
+> > +#include <linux/uaccess.h>
+> > +#include <linux/fs_context.h>
+> > +#include <linux/fs_parser.h>
+> > +#include <linux/seq_file.h>
+> > +#include <linux/dax.h>
+> > +#include <linux/hugetlb.h>
+> > +#include <linux/uio.h>
+> > +#include <linux/iomap.h>
+> > +#include <linux/path.h>
+> > +#include <linux/namei.h>
+> > +#include <linux/pfn_t.h>
+> > +#include <linux/blkdev.h>
 > 
-> To compare more closer apples to apples, wouldn't it make more sense
-> to try this with XFS on pmem (with fio -direct=1)?
+> That's a lot of header for such a small patch.. I'm going to guess
+> they aren't all used - bring them in as you need them - I hope
+> you never need some of these!
+
+I didn't phase in headers in this series. Based on these recommendations,
+the next version of this series is gonna have to be 100% constructed from
+scratch, but okay. My head hurts just thinking about it. I need a nap...
+
+I've been rebasing for 3 weeks to get this series out, and it occurs to
+me that maybe there are tools I'm not aware of that make it eaiser? I'm
+just typing "rebase -i..." 200 times a day. Is there a less soul-crushing way?
+
 > 
->   Luis
+> 
+> > +
+> > +#include "famfs_internal.h"
+> > +
+> > +#define FAMFS_DEFAULT_MODE	0755
+> > +
+> > +static const struct super_operations famfs_ops;
+> > +static const struct inode_operations famfs_file_inode_operations;
+> > +static const struct inode_operations famfs_dir_inode_operations;
+> 
+> Why are these all up here?
 
-Makes sense. Here is the same command line I used with xfs before, but 
-now it's on /dev/pmem0 (the same 128G, but converted from devdax to pmem
-because xfs requires that.
+These forward declarations are needed by a later patch in the series.
+They were in famfs_internal.h, but they are only used in this file, so
+I moved them here.
 
-fio -name=ten-256m-per-thread --nrfiles=10 -bs=2M --group_reporting=1 --alloc-size=1048576 --filesize=256MiB --readwrite=write --fallocate=none --numjobs=48 --create_on_open=0 --ioengine=io_uring --direct=1 --directory=/mnt/xfs
-ten-256m-per-thread: (g=0): rw=write, bs=(R) 2048KiB-2048KiB, (W) 2048KiB-2048KiB, (T) 2048KiB-2048KiB, ioengine=io_uring, iodepth=1
-...
-fio-3.33
-Starting 48 processes
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-Jobs: 36 (f=360): [W(3),_(1),W(3),_(1),W(1),_(1),W(6),_(1),W(1),_(1),W(1),_(1),W(7),_(1),W(3),_(1),W(2),_(2),W(4),_(1),W(5),_(1)][77.8%][w=15.1GiB/s][w=7750 IOPS][eta 00m:02s]
-ten-256m-per-thread: (groupid=0, jobs=48): err= 0: pid=8798: Mon Feb 26 15:10:30 2024
-  write: IOPS=7582, BW=14.8GiB/s (15.9GB/s)(114GiB/7723msec); 0 zone resets
-    slat (usec): min=23, max=7352, avg=131.80, stdev=151.63
-    clat (usec): min=385, max=22638, avg=5789.74, stdev=3124.93
-     lat (usec): min=432, max=22724, avg=5921.54, stdev=3133.18
-    clat percentiles (usec):
-     |  1.00th=[  799],  5.00th=[ 1467], 10.00th=[ 2073], 20.00th=[ 3097],
-     | 30.00th=[ 3949], 40.00th=[ 4752], 50.00th=[ 5473], 60.00th=[ 6194],
-     | 70.00th=[ 7046], 80.00th=[ 8029], 90.00th=[ 9634], 95.00th=[11338],
-     | 99.00th=[16319], 99.50th=[17957], 99.90th=[20055], 99.95th=[20579],
-     | 99.99th=[21365]
-   bw (  MiB/s): min=10852, max=26980, per=100.00%, avg=15940.43, stdev=88.61, samples=665
-   iops        : min= 5419, max=13477, avg=7963.08, stdev=44.28, samples=665
-  lat (usec)   : 500=0.15%, 750=0.47%, 1000=1.34%
-  lat (msec)   : 2=7.40%, 4=21.46%, 10=60.57%, 20=8.50%, 50=0.11%
-  cpu          : usr=2.33%, sys=0.32%, ctx=58806, majf=0, minf=36301
-  IO depths    : 1=100.0%, 2=0.0%, 4=0.0%, 8=0.0%, 16=0.0%, 32=0.0%, >=64=0.0%
-     submit    : 0=0.0%, 4=100.0%, 8=0.0%, 16=0.0%, 32=0.0%, 64=0.0%, >=64=0.0%
-     complete  : 0=0.0%, 4=100.0%, 8=0.0%, 16=0.0%, 32=0.0%, 64=0.0%, >=64=0.0%
-     issued rwts: total=0,58560,0,0 short=0,0,0,0 dropped=0,0,0,0
-     latency   : target=0, window=0, percentile=100.00%, depth=1
+For all answers such as this, I will hereafter reply "rebase fu", with
+further clarification only if necessary.
 
-Run status group 0 (all jobs):
-  WRITE: bw=14.8GiB/s (15.9GB/s), 14.8GiB/s-14.8GiB/s (15.9GB/s-15.9GB/s), io=114GiB (123GB), run=7723-7723msec
+> 
+> > +
+> > +/**********************************************************************************
+> > + * famfs super_operations
+> > + *
+> > + * TODO: implement a famfs_statfs() that shows size, free and available space, etc.
+> > + */
+> > +
+> > +/**
+> > + * famfs_show_options() - Display the mount options in /proc/mounts.
+> Run kernel doc script + fix all warnings.
 
-Disk stats (read/write):
-  pmem0: ios=0/0, merge=0/0, ticks=0/0, in_queue=0, util=0.00%
+Will do; I actually think I have already fixed those...
 
+> 
+> > + */
+> > +static int famfs_show_options(
+> > +	struct seq_file *m,
+> > +	struct dentry   *root)
+> Not that familiar with fs code, but this unusual kernel style. I'd go with 
+> something more common
+> 
+> static int famfs_show_options(struct seq_file *m, struct dentry *root)
 
-I only have some educated guesses as to why famfs is faster. Since files 
-are preallocated, they're always contiguous. And famfs is vastly simpler
-because it isn't aimed at general purpose uses cases (and indeed can't
-handle them).
+Done. To all functions...
 
-Regards,
+> 
+> > +{
+> > +	struct famfs_fs_info *fsi = root->d_sb->s_fs_info;
+> > +
+> > +	if (fsi->mount_opts.mode != FAMFS_DEFAULT_MODE)
+> > +		seq_printf(m, ",mode=%o", fsi->mount_opts.mode);
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static const struct super_operations famfs_ops = {
+> > +	.statfs		= simple_statfs,
+> > +	.drop_inode	= generic_delete_inode,
+> > +	.show_options	= famfs_show_options,
+> > +};
+> > +
+> > +
+> One blank line probably fine.
+
+Done
+
+> 
+> 
+> Add the rest of the stuff a module normally has, author etc in this
+> patch.
+
+Because "rebase fu" I'm not sure the order will remain the same. Will
+try not to make anybody tell me this again though...
+
 John
 
