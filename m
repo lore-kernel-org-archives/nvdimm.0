@@ -1,30 +1,30 @@
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85C747F7F7
-	for <nvdimm@lists.linux.dev>; Mon, 26 Feb 2024 12:39:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE52380021
+	for <nvdimm@lists.linux.dev>; Mon, 26 Feb 2024 12:48:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708951187; cv=none; b=V0fY8wPtQe340VTbcI7dy8EIFjN9cNfR5XTB23B4RONYYboOtRjAgAw4+6k1XNcoiZG3oDOUhgLsbl3lhrX6foY1cUJCrZUvYMPC0D19W18eS/U/QWYfu/3WH92rRESKRk6avy+to1Bs7BkM0WoAMGiTHrYgulNte/2myKilLFo=
+	t=1708951705; cv=none; b=rKlnc7Cq7vXo0w0I8c0AORID3z7U2k22D9qy39sKNWJafxZrMthzQ27jEesI20nZOMAmtkXRkJaLje52NIveOsAczj+tu4J6Qg0V0rly4P1eTbFAsBcFJk6AVqv8XbyxNqz/EDe2crnuCiWgaGeZTQ3x8sNuent+qGoWNUd9ivA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708951187; c=relaxed/simple;
-	bh=NGYp5BWIWj8SFQWbwPzlkAlkYMl5l0bOr2xtSsI6jtQ=;
+	s=arc-20240116; t=1708951705; c=relaxed/simple;
+	bh=A5fVjk1SgP+2ltBG8VhkDLaQNzbQ1PoBtwp3T6NOQ4I=;
 	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=RloSBJxHmOehAUonWuqYILKp6OOBKZAOYfy5dRRQX2gvWNQgpOYU25N4bil79dUndxLSIpOavnjkZowfBtyF9nIJ7E2raQOo9JdF1OtCCZjtV4WeqC8sHIbSQ8wMIMameQC0WVTlm7KOcEJ1cKjA9miFMUpvGWiAPm0sZlSfITM=
+	 MIME-Version:Content-Type; b=ZWVsjv4DwjtcoWc6Gz2Y9JJhaZuOVpXMlg0/L9COhdFlIpU7CJfA0U3mKnH23pNEnS7kNMS7eqgK2kwicGf0mEHBxpRgfi7/kyNByjqW5KsxxXwmY6avULeYhQr2tton8O8ABUryXJQu6SV+taoz9mr53MM08f6FxKIuctXgumI=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.186.216])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Tk0Sq6gLRz6K6jp;
-	Mon, 26 Feb 2024 20:35:23 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.18.186.231])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Tk0fn3tSbz6K6Gc;
+	Mon, 26 Feb 2024 20:44:01 +0800 (CST)
 Received: from lhrpeml500005.china.huawei.com (unknown [7.191.163.240])
-	by mail.maildlp.com (Postfix) with ESMTPS id 715421400DB;
-	Mon, 26 Feb 2024 20:39:42 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id 188F0140D30;
+	Mon, 26 Feb 2024 20:48:20 +0800 (CST)
 Received: from localhost (10.202.227.76) by lhrpeml500005.china.huawei.com
  (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.35; Mon, 26 Feb
- 2024 12:39:41 +0000
-Date: Mon, 26 Feb 2024 12:39:40 +0000
+ 2024 12:48:19 +0000
+Date: Mon, 26 Feb 2024 12:48:18 +0000
 From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
 To: John Groves <John@Groves.net>
 CC: John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>, "Dan
@@ -37,11 +37,11 @@ CC: John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>, "Dan
 	<nvdimm@lists.linux.dev>, <john@jagalactic.com>, Dave Chinner
 	<david@fromorbit.com>, Christoph Hellwig <hch@infradead.org>,
 	<dave.hansen@linux.intel.com>, <gregory.price@memverge.com>
-Subject: Re: [RFC PATCH 07/20] famfs: Add include/linux/famfs_ioctl.h
-Message-ID: <20240226123940.0000692c@Huawei.com>
-In-Reply-To: <b40ca30e4bf689249a8c237909d9a7aaca9861e4.1708709155.git.john@groves.net>
+Subject: Re: [RFC PATCH 08/20] famfs: Add famfs_internal.h
+Message-ID: <20240226124818.0000251d@Huawei.com>
+In-Reply-To: <13556dbbd8d0f51bc31e3bdec796283fe85c6baf.1708709155.git.john@groves.net>
 References: <cover.1708709155.git.john@groves.net>
-	<b40ca30e4bf689249a8c237909d9a7aaca9861e4.1708709155.git.john@groves.net>
+	<13556dbbd8d0f51bc31e3bdec796283fe85c6baf.1708709155.git.john@groves.net>
 Organization: Huawei Technologies Research and Development (UK) Ltd.
 X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
@@ -55,27 +55,42 @@ Content-Transfer-Encoding: 7bit
 X-ClientProxiedBy: lhrpeml500006.china.huawei.com (7.191.161.198) To
  lhrpeml500005.china.huawei.com (7.191.163.240)
 
-On Fri, 23 Feb 2024 11:41:51 -0600
+On Fri, 23 Feb 2024 11:41:52 -0600
 John Groves <John@Groves.net> wrote:
 
-> Add uapi include file for famfs. The famfs user space uses ioctl on
-> individual files to pass in mapping information and file size. This
-> would be hard to do via sysfs or other means, since it's
-> file-specific.
+> Add the famfs_internal.h include file. This contains internal data
+> structures such as the per-file metadata structure (famfs_file_meta)
+> and extent formats.
 > 
 > Signed-off-by: John Groves <john@groves.net>
+Hi John,
+
+Build this up as you add the definitions in later patches.
+
+Separate header patches just make people jump back and forth when trying
+to review.  Obviously more work to build this stuff up cleanly but
+it's worth doing to save review time.
+
+Generally I'd plumb up Kconfig and Makefile a the beginning as it means
+that the set is bisectable and we can check the logic of building each stage.
+That is harder to do but tends to bring benefits in forcing clear step
+wise approach on a patch set. Feel free to ignore this one though as it
+can slow things down.
+
+A few trivial comments inline.
+
 > ---
->  include/uapi/linux/famfs_ioctl.h | 56 ++++++++++++++++++++++++++++++++
->  1 file changed, 56 insertions(+)
->  create mode 100644 include/uapi/linux/famfs_ioctl.h
+>  fs/famfs/famfs_internal.h | 53 +++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 53 insertions(+)
+>  create mode 100644 fs/famfs/famfs_internal.h
 > 
-> diff --git a/include/uapi/linux/famfs_ioctl.h b/include/uapi/linux/famfs_ioctl.h
+> diff --git a/fs/famfs/famfs_internal.h b/fs/famfs/famfs_internal.h
 > new file mode 100644
-> index 000000000000..6b3e6452d02f
+> index 000000000000..af3990d43305
 > --- /dev/null
-> +++ b/include/uapi/linux/famfs_ioctl.h
-> @@ -0,0 +1,56 @@
-> +/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
+> +++ b/fs/famfs/famfs_internal.h
+> @@ -0,0 +1,53 @@
+> +/* SPDX-License-Identifier: GPL-2.0 */
 > +/*
 > + * famfs - dax file system for shared fabric-attached memory
 > + *
@@ -85,60 +100,67 @@ John Groves <John@Groves.net> wrote:
 > + * is intended to allow multiple host systems to mount a common file system
 > + * view of dax files that map to shared memory.
 > + */
-> +#ifndef FAMFS_IOCTL_H
-> +#define FAMFS_IOCTL_H
+> +#ifndef FAMFS_INTERNAL_H
+> +#define FAMFS_INTERNAL_H
 > +
-> +#include <linux/ioctl.h>
-> +#include <linux/uuid.h>
-> +
-> +#define FAMFS_MAX_EXTENTS 2
-Why 2?
-> +
-> +enum extent_type {
-> +	SIMPLE_DAX_EXTENT = 13,
+> +#include <linux/atomic.h>
 
-Comment on this would be good to have
+Why?
 
-> +	INVALID_EXTENT_TYPE,
-> +};
+> +#include <linux/famfs_ioctl.h>
 > +
-> +struct famfs_extent {
-> +	__u64              offset;
-> +	__u64              len;
-> +};
+> +#define FAMFS_MAGIC 0x87b282ff
 > +
-> +enum famfs_file_type {
-> +	FAMFS_REG,
-> +	FAMFS_SUPERBLOCK,
-> +	FAMFS_LOG,
-> +};
+> +#define FAMFS_BLKDEV_MODE (FMODE_READ|FMODE_WRITE)
+
+Spaces around | 
+
 > +
-> +/**
-> + * struct famfs_ioc_map
-> + *
-> + * This is the metadata that indicates where the memory is for a famfs file
+> +extern const struct file_operations      famfs_file_operations;
+
+I wouldn't force alignment. It rots too often as new stuff gets added
+and doesn't really help readability much.
+
+> +
+> +/*
+> + * Each famfs dax file has this hanging from its inode->i_private.
 > + */
-> +struct famfs_ioc_map {
-> +	enum extent_type          extent_type;
-> +	enum famfs_file_type      file_type;
+> +struct famfs_file_meta {
+> +	int                   error;
+> +	enum famfs_file_type  file_type;
+> +	size_t                file_size;
+> +	enum extent_type      tfs_extent_type;
+> +	size_t                tfs_extent_ct;
+> +	struct famfs_extent   tfs_extents[];  /* flexible array */
 
-These are going to be potentially varying in size depending on arch, compiler
-settings etc.  Been a while, but I though best practice for uapi was always
-fixed size elements even though we lose the typing.
+Comment kind of obvious ;) I'd drop it.  Though we have
+magic markings for __counted_by which would be good to use from the start.
 
 
-> +	__u64                     file_size;
-> +	__u64                     ext_list_count;
-> +	struct famfs_extent       ext_list[FAMFS_MAX_EXTENTS];
+
 > +};
 > +
-> +#define FAMFSIOC_MAGIC 'u'
+> +struct famfs_mount_opts {
+> +	umode_t mode;
+> +};
 > +
-> +/* famfs file ioctl opcodes */
-> +#define FAMFSIOC_MAP_CREATE    _IOW(FAMFSIOC_MAGIC, 1, struct famfs_ioc_map)
-> +#define FAMFSIOC_MAP_GET       _IOR(FAMFSIOC_MAGIC, 2, struct famfs_ioc_map)
-> +#define FAMFSIOC_MAP_GETEXT    _IOR(FAMFSIOC_MAGIC, 3, struct famfs_extent)
-> +#define FAMFSIOC_NOP           _IO(FAMFSIOC_MAGIC,  4)
+> +extern const struct iomap_ops             famfs_iomap_ops;
+> +extern const struct vm_operations_struct  famfs_file_vm_ops;
 > +
-> +#endif /* FAMFS_IOCTL_H */
+> +#define ROOTDEV_STRLEN 80
+
+Why?  You aren't creating an array of this size here so I can't
+immediately see what the define is for.
+
+> +
+> +struct famfs_fs_info {
+> +	struct famfs_mount_opts  mount_opts;
+> +	struct file             *dax_filp;
+> +	struct dax_device       *dax_devp;
+> +	struct bdev_handle      *bdev_handle;
+> +	struct list_head         fsi_list;
+> +	char                    *rootdev;
+> +};
+> +
+> +#endif /* FAMFS_INTERNAL_H */
 
