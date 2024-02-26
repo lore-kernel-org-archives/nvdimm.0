@@ -1,30 +1,30 @@
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 539137F7F7
-	for <nvdimm@lists.linux.dev>; Mon, 26 Feb 2024 12:56:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 439B2823A5
+	for <nvdimm@lists.linux.dev>; Mon, 26 Feb 2024 13:20:24 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708952210; cv=none; b=DWebNx4OlyOSF2RXbGJvuuaQS2iUlHDKMmlBE8KjKpJFV4zH3pMPlckBKc4GabpcaGYhRjc2v2WbtgxQMBrOV0Bk7qCV7uTPJvVNFdxn6H7SkbPvHWERt8vy/ZpljN9qOHBOqW+9Kyk5TWps+OwIz0Q0KBc3+v7WEwcqPYa2UZg=
+	t=1708953626; cv=none; b=fFdnRN6UQKfgXLV0Z3I8R9+mt9geqXdnfotWEuX+xYO4fwoqJE+YmwGoJoED6dirT2FmGZYL3pMYCIQ+iQ9oaULJ40GLlLVjp9p7W57MAI9Q6bCHYNbkweUHsXDC8aaVbXJSWCZ3jdpGMrPMVpo1Awv6cjxbMsVULDvI29UseRw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708952210; c=relaxed/simple;
-	bh=NC9zbuoZghbczDmZXWcpM9NU9mKbcnjtKFhuyF8fuZs=;
+	s=arc-20240116; t=1708953626; c=relaxed/simple;
+	bh=yfBCNOdJ64HYR4E9FB66qv/dbzZd5+q8idAXgMnC+hk=;
 	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=mka6QdXOXUGuHmWPooOa1vW1MJCmQMizVMRaVYFpsHzffBIyapmpbYBXtzxDA88jnv5YWa6Pv/7A/dM5oXP/yIl2igh5PFMshMlL4/2eLXt4oOyRLdeYHCNjm6uVXAFVRsqJSfLZm2YSfniurzgnRPMI6qS0hAt3chDQw/qxFz4=
+	 MIME-Version:Content-Type; b=CLkfc5EGixUdgasncLgHbTnA2LP4inU55h+AzOlQYlSpBLhY2f1Luzu78zEV3tv6C9LcG3e9TkLqkkW1EgqkOk2Dp2CbCRX2GeQ2aBmH4QiDP/XSwpBgJyOTdewbXERSPVDu40iUC/hPHQ1gX9UBjn1yMZr/1mP3QbqjGsqkeiA=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.186.31])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Tk0s85lMRz6K9JP;
-	Mon, 26 Feb 2024 20:53:00 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.18.186.231])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Tk1MR2tNfz6JBQS;
+	Mon, 26 Feb 2024 21:15:47 +0800 (CST)
 Received: from lhrpeml500005.china.huawei.com (unknown [7.191.163.240])
-	by mail.maildlp.com (Postfix) with ESMTPS id F41F9140FB6;
-	Mon, 26 Feb 2024 20:56:43 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id 26B1B140D30;
+	Mon, 26 Feb 2024 21:20:21 +0800 (CST)
 Received: from localhost (10.202.227.76) by lhrpeml500005.china.huawei.com
  (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.35; Mon, 26 Feb
- 2024 12:56:43 +0000
-Date: Mon, 26 Feb 2024 12:56:42 +0000
+ 2024 13:20:20 +0000
+Date: Mon, 26 Feb 2024 13:20:19 +0000
 From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
 To: John Groves <John@Groves.net>
 CC: John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>, "Dan
@@ -37,12 +37,11 @@ CC: John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>, "Dan
 	<nvdimm@lists.linux.dev>, <john@jagalactic.com>, Dave Chinner
 	<david@fromorbit.com>, Christoph Hellwig <hch@infradead.org>,
 	<dave.hansen@linux.intel.com>, <gregory.price@memverge.com>
-Subject: Re: [RFC PATCH 10/20] famfs: famfs_open_device() &
- dax_holder_operations
-Message-ID: <20240226125642.000076d2@Huawei.com>
-In-Reply-To: <74359fdc83688fb1aac1cb2c336fbd725590a131.1708709155.git.john@groves.net>
+Subject: Re: [RFC PATCH 11/20] famfs: Add fs_context_operations
+Message-ID: <20240226132019.00007b8c@Huawei.com>
+In-Reply-To: <a645646f071e7baa30ef37ea46ea1330ac2eb63f.1708709155.git.john@groves.net>
 References: <cover.1708709155.git.john@groves.net>
-	<74359fdc83688fb1aac1cb2c336fbd725590a131.1708709155.git.john@groves.net>
+	<a645646f071e7baa30ef37ea46ea1330ac2eb63f.1708709155.git.john@groves.net>
 Organization: Huawei Technologies Research and Development (UK) Ltd.
 X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
@@ -53,128 +52,186 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: lhrpeml100002.china.huawei.com (7.191.160.241) To
+X-ClientProxiedBy: lhrpeml500001.china.huawei.com (7.191.163.213) To
  lhrpeml500005.china.huawei.com (7.191.163.240)
 
-On Fri, 23 Feb 2024 11:41:54 -0600
+On Fri, 23 Feb 2024 11:41:55 -0600
 John Groves <John@Groves.net> wrote:
 
-> Famfs works on both /dev/pmem and /dev/dax devices. This commit introduces
-> the function that opens a block (pmem) device and the struct
-> dax_holder_operations that are needed for that ABI.
-> 
-> In this commit, support for opening character /dev/dax is stubbed. A
-> later commit introduces this capability.
+> This commit introduces the famfs fs_context_operations and
+> famfs_get_inode() which is used by the context operations.
 > 
 > Signed-off-by: John Groves <john@groves.net>
-
-Formatting comments mostly same as previous patches, so I'll stop repeating them.
+Trivial comments inline.
 
 > ---
->  fs/famfs/famfs_inode.c | 83 ++++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 83 insertions(+)
+>  fs/famfs/famfs_inode.c | 178 +++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 178 insertions(+)
 > 
 > diff --git a/fs/famfs/famfs_inode.c b/fs/famfs/famfs_inode.c
-> index 3329aff000d1..82c861998093 100644
+> index 82c861998093..f98f82962d7b 100644
 > --- a/fs/famfs/famfs_inode.c
 > +++ b/fs/famfs/famfs_inode.c
-> @@ -68,5 +68,88 @@ static const struct super_operations famfs_ops = {
->  	.show_options	= famfs_show_options,
->  };
+> @@ -41,6 +41,50 @@ static const struct super_operations famfs_ops;
+>  static const struct inode_operations famfs_file_inode_operations;
+>  static const struct inode_operations famfs_dir_inode_operations;
 >  
-> +/***************************************************************************************
-> + * dax_holder_operations for block dax
-> + */
-> +
-> +static int
-> +famfs_blk_dax_notify_failure(
-> +	struct dax_device	*dax_devp,
-> +	u64			offset,
-> +	u64			len,
-> +	int			mf_flags)
-> +{
-> +
-> +	pr_err("%s: dax_devp %llx offset %llx len %lld mf_flags %x\n",
-> +	       __func__, (u64)dax_devp, (u64)offset, (u64)len, mf_flags);
-> +	return -EOPNOTSUPP;
-> +}
-> +
-> +const struct dax_holder_operations famfs_blk_dax_holder_ops = {
-> +	.notify_failure		= famfs_blk_dax_notify_failure,
-> +};
-> +
-> +static int
-> +famfs_open_char_device(
+> +static struct inode *famfs_get_inode(
 > +	struct super_block *sb,
-> +	struct fs_context  *fc)
+> +	const struct inode *dir,
+> +	umode_t             mode,
+> +	dev_t               dev)
 > +{
-> +	pr_err("%s: Root device is %s, but your kernel does not support famfs on /dev/dax\n",
-> +	       __func__, fc->source);
-> +	return -ENODEV;
+> +	struct inode *inode = new_inode(sb);
+> +
+> +	if (inode) {
+reverse logic would be simpler and reduce indent.
+
+	if (!inode)
+		return NULL;
+
+
+> +		struct timespec64       tv;
+> +
+> +		inode->i_ino = get_next_ino();
+> +		inode_init_owner(&nop_mnt_idmap, inode, dir, mode);
+> +		inode->i_mapping->a_ops = &ram_aops;
+> +		mapping_set_gfp_mask(inode->i_mapping, GFP_HIGHUSER);
+> +		mapping_set_unevictable(inode->i_mapping);
+> +		tv = inode_set_ctime_current(inode);
+> +		inode_set_mtime_to_ts(inode, tv);
+> +		inode_set_atime_to_ts(inode, tv);
+> +
+> +		switch (mode & S_IFMT) {
+> +		default:
+> +			init_special_inode(inode, mode, dev);
+> +			break;
+> +		case S_IFREG:
+> +			inode->i_op = &famfs_file_inode_operations;
+> +			inode->i_fop = &famfs_file_operations;
+> +			break;
+> +		case S_IFDIR:
+> +			inode->i_op = &famfs_dir_inode_operations;
+> +			inode->i_fop = &simple_dir_operations;
+> +
+> +			/* Directory inodes start off with i_nlink == 2 (for "." entry) */
+> +			inc_nlink(inode);
+> +			break;
+> +		case S_IFLNK:
+> +			inode->i_op = &page_symlink_inode_operations;
+> +			inode_nohighmem(inode);
+> +			break;
+> +		}
+> +	}
+> +	return inode;
 > +}
 > +
-> +/**
-> + * famfs_open_device()
-> + *
-> + * Open the memory device. If it looks like /dev/dax, call famfs_open_char_device().
-> + * Otherwise try to open it as a block/pmem device.
+>  /**********************************************************************************
+>   * famfs super_operations
+>   *
+> @@ -150,6 +194,140 @@ famfs_open_device(
+>  	return 0;
+>  }
+>  
+> +/*****************************************************************************************
+> + * fs_context_operations
 > + */
 > +static int
-> +famfs_open_device(
+> +famfs_fill_super(
 > +	struct super_block *sb,
 > +	struct fs_context  *fc)
 > +{
 > +	struct famfs_fs_info *fsi = sb->s_fs_info;
-> +	struct dax_device    *dax_devp;
-> +	u64 start_off = 0;
-> +	struct bdev_handle   *handlep;
-Definitely don't force alignment in local parameter definitions.
-Always goes wrong and makes for unreadable mess in patches!
+> +	struct inode *inode;
+> +	int rc = 0;
+Always initialized so no need to do it here.
 
 > +
-> +	if (fsi->dax_devp) {
-> +		pr_err("%s: already mounted\n", __func__);
-Fine to fail but worth a error message? Not sure on convention on this but seems noisy
-and maybe in userspace control which isn't good.
-> +		return -EALREADY;
-> +	}
+> +	sb->s_maxbytes		= MAX_LFS_FILESIZE;
+> +	sb->s_blocksize		= PAGE_SIZE;
+> +	sb->s_blocksize_bits	= PAGE_SHIFT;
+> +	sb->s_magic		= FAMFS_MAGIC;
+> +	sb->s_op		= &famfs_ops;
+> +	sb->s_time_gran		= 1;
 > +
-> +	if (strstr(fc->source, "/dev/dax")) /* There is probably a better way to check this */
-> +		return famfs_open_char_device(sb, fc);
-> +
-> +	if (!strstr(fc->source, "/dev/pmem")) { /* There is probably a better way to check this */
-> +		pr_err("%s: primary backing dev (%s) is not pmem\n",
-> +		       __func__, fc->source);
-> +		return -EINVAL;
-> +	}
-> +
-> +	handlep = bdev_open_by_path(fc->source, FAMFS_BLKDEV_MODE, fsi, &fs_holder_ops);
-> +	if (IS_ERR(handlep->bdev)) {
-> +		pr_err("%s: failed blkdev_get_by_path(%s)\n", __func__, fc->source);
-> +		return PTR_ERR(handlep->bdev);
-> +	}
-> +
-> +	dax_devp = fs_dax_get_by_bdev(handlep->bdev, &start_off,
-> +				      fsi  /* holder */,
-> +				      &famfs_blk_dax_holder_ops);
-> +	if (IS_ERR(dax_devp)) {
-> +		pr_err("%s: unable to get daxdev from handlep->bdev\n", __func__);
-> +		bdev_release(handlep);
-> +		return -ENODEV;
-> +	}
-> +	fsi->bdev_handle = handlep;
-> +	fsi->dax_devp    = dax_devp;
-> +
-> +	pr_notice("%s: root device is block dax (%s)\n", __func__, fc->source);
+> +	rc = famfs_open_device(sb, fc);
+> +	if (rc)
+> +		goto out;
+		return rc; //unless you need to do more in out in later patch..
 
-pr_debug()  Kernel log is too noisy anyway! + I'd assume we can tell this succeeded
-in lots of other ways.
+> +
+> +	inode = famfs_get_inode(sb, NULL, S_IFDIR | fsi->mount_opts.mode, 0);
+> +	sb->s_root = d_make_root(inode);
+> +	if (!sb->s_root)
+> +		rc = -ENOMEM;
+		return -ENOMEM;
 
+	return 0;
 
-> +	return 0;
+> +
+> +out:
+> +	return rc;
 > +}
 > +
+> +enum famfs_param {
+> +	Opt_mode,
+> +	Opt_dax,
+Why capital O?
+
+> +};
 > +
+
+...
+
+> +
+> +static DEFINE_MUTEX(famfs_context_mutex);
+> +static LIST_HEAD(famfs_context_list);
+> +
+> +static int famfs_get_tree(struct fs_context *fc)
+> +{
+> +	struct famfs_fs_info *fsi_entry;
+> +	struct famfs_fs_info *fsi = fc->s_fs_info;
+> +
+> +	fsi->rootdev = kstrdup(fc->source, GFP_KERNEL);
+> +	if (!fsi->rootdev)
+> +		return -ENOMEM;
+> +
+> +	/* Fail if famfs is already mounted from the same device */
+> +	mutex_lock(&famfs_context_mutex);
+
+New toys might be good to use from start to avoid need for explicit
+unlocks in error paths.
+
+	scoped_guard(mutex, &famfs_context_mutex) {
+		list_for_each_entry(fsi_entry, &famfs_context_list, fsi_list) {
+			if (strcmp(fsi_entry->rootdev, cs_source) == 0) {
+			//could invert with a continue to reduce indent
+			// or factor this out as a little helper.
+			// famfs_check_not_mounted()
+				pr_err();
+				return -EALREADY;
+			}
+		}	
+		list_add(&fsi->fs_list, &famfs_context_list);
+	}
+
+	return get_tree_nodev(...
+
+> +	list_for_each_entry(fsi_entry, &famfs_context_list, fsi_list) {
+> +		if (strcmp(fsi_entry->rootdev, fc->source) == 0) {
+> +			mutex_unlock(&famfs_context_mutex);
+> +			pr_err("%s: already mounted from rootdev %s\n", __func__, fc->source);
+> +			return -EALREADY;
+> +		}
+> +	}
+> +
+> +	list_add(&fsi->fsi_list, &famfs_context_list);
+> +	mutex_unlock(&famfs_context_mutex);
+> +
+> +	return get_tree_nodev(fc, famfs_fill_super);
+> +
+> +}
+
 >  
 >  MODULE_LICENSE("GPL");
 
