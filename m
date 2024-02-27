@@ -1,155 +1,147 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oa1-f46.google.com (mail-oa1-f46.google.com [209.85.160.46])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7389C4F8B1
-	for <nvdimm@lists.linux.dev>; Tue, 27 Feb 2024 20:28:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.9
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2ECA314EFDB
+	for <nvdimm@lists.linux.dev>; Tue, 27 Feb 2024 22:15:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.46
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709065741; cv=none; b=m0FZA1T+E2b5OsPZipMd3YisMO/yzhCeNTChCibhsqjeEQZXp2FUaQMgwss8SxnXUIKp9tTOHAJWPKh11lddtFYQzsCR/vcU+OIluHmzRZI0c0v7DkndY+21rn9Y/ymAhRt5iIXNlqetrFlY8sBwOWThtRYFEcB0iGUCzt80qE4=
+	t=1709072126; cv=none; b=Fxs1wm9HCZY+26cEARAiyl5zkkixDEyiMQq8CZH1mqf33VIEZSpERtHgnc4bMMSfzcRPEkq3bY4GcCIJaaIeI/q7rIMzjyd/611W1LuAYP7XZ9XlPvwYK6uaWlGvNPWxbbs19MHNhpiKNlq2j80uDBl55tUxUjLIXKD7/Ko9+Q0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709065741; c=relaxed/simple;
-	bh=nAUGOYHwbgc37EK4Po1Uxn5ZeOZ74M8gDruDHnMJzMo=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=JS4umVCUnSAAZwfOROdn8EYJ8wSCU/r7ZxxuYgLFcqsDCJqb/wJJJE1/PD7bJ7IccA12KsZl21iSngeVfgDuMt/ZmQ2OH9nOez628BcklZP4blPuGdiKrRUGr2Fi142hrHMxgvCqPSh3+q8nxNxen9Mr/ChvYtXYvb39HZnVTSk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=HKT0yWsV; arc=none smtp.client-ip=198.175.65.9
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1709072126; c=relaxed/simple;
+	bh=H0bRBi5Hvxdu8BhZUiSwQ4zqP2aNAbrTGOFlAL9HJGk=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=CRJpILg9Q4wNWrAqybdiom4aIepTM505+F7ye0tU9YU7fLv2L3Iu6FrHy3kJneI7Bf9jH/sATwo3GtFSFHAjBlhmlj5Le/GBlggFDDeuvwAEHF4ro9DJ3Zs6UcHaFwgPSJ0JLr0KLYxSqZCL0WAkKgzyH5OiL7F0ug81vJVaTb4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=m1VKDCDe; arc=none smtp.client-ip=209.85.160.46
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="HKT0yWsV"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1709065739; x=1740601739;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=nAUGOYHwbgc37EK4Po1Uxn5ZeOZ74M8gDruDHnMJzMo=;
-  b=HKT0yWsVQEUE3StLDOCoF+NkW8Rq6gnbvF/RGwpRgKiD89e7FfFRF45w
-   tIHeeG0MP6F+YfG03c9aC3V4/QZu6r2NLauMby/EF0jzkkqb33x9tX+1a
-   s2jQ5ZmSbUaDW+T5I6ZIiuKfeCbSW7oY2403mLx85SsgH3noAWhcrqSAs
-   GTAhwlRB4VtmdL/NjVBmIDhXmx9EFKftrKwARFNEIduQRHQa4nl6MPiN7
-   JrL5OqmVQyywb0+5W7i0dlPLmhVra3fn3oU8Qv4kWHmb9IaF8sAfI6zr6
-   u7qiZ4iuZtjq823B1IZydDAo8fYvNAvdLpAzMs2N0UnhW03SxQaRxzAD5
-   w==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10996"; a="25900692"
-X-IronPort-AV: E=Sophos;i="6.06,188,1705392000"; 
-   d="scan'208";a="25900692"
-Received: from orviesa004.jf.intel.com ([10.64.159.144])
-  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Feb 2024 12:28:59 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.06,188,1705392000"; 
-   d="scan'208";a="11835463"
-Received: from pbackus-mobl1.amr.corp.intel.com (HELO [10.246.114.227]) ([10.246.114.227])
-  by orviesa004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Feb 2024 12:28:58 -0800
-Message-ID: <86f8f0a0-3619-4905-a6e8-9fd871ec0a39@intel.com>
-Date: Tue, 27 Feb 2024 13:28:56 -0700
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="m1VKDCDe"
+Received: by mail-oa1-f46.google.com with SMTP id 586e51a60fabf-2206232d806so290104fac.2
+        for <nvdimm@lists.linux.dev>; Tue, 27 Feb 2024 14:15:24 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1709072123; x=1709676923; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:sender:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=QeQuoKsMqjADISGm2Hn4uU+Ji8iXgLUMY646RY4awK4=;
+        b=m1VKDCDefKvd0TIx48r77z4M8GhTGKJhIe87bxV+dUyLSRsNjXfpzCxXVnbFqxPUMU
+         x6m4aYDGGuBDqH0EywhSCFpg2tD8vUajTrLGB5y/EhY1Qv0cywYLYE6MGaZrgWBq7O3B
+         2FHiIGuURuTMAXBeAB3KJq6yhzK5ixxHs04wUy2CiJq2EgSfZVLCuSxoDewT6P1mmBn+
+         ENfNjfjR41XAq4bgLJKoLkPIkcZ2uFXA7fzpNdcy0AKrmYQBopquaDCvkDvsqqwAA26j
+         T0/bJwP7NjymAkX28POyQ/t+hG3KtSUjV97JbdftheyNzrev2dPNRwooaFVmkaDcvqep
+         /BeA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1709072123; x=1709676923;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:sender:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=QeQuoKsMqjADISGm2Hn4uU+Ji8iXgLUMY646RY4awK4=;
+        b=Pd0S1rZCrs98+BDw3ow66yvuyTnyHP3qF4hAvJpJ+ZH70sqprIA3tTqBmjxE7/EmAG
+         LFx5pdQvrlz7QYlZuZZ87Pc2iQ10TWK+U4ZeqzFN0AnhY1JPEBpKCR34Ed3rmZ7dNLGB
+         KxgCHk/1mwNN1co3q8g4H8ECrIYnyKpdQ8gWoC6ZDMy1ehnAVGmH5XXJ9v8fAC05JkZ4
+         utIeZjND7x5AwnrW445DQAP/KHx+CxzQvpGJnyWujkBrvWXBuU8d9pQHDFkkk5Pqhav6
+         w3Zx51aOwRB7u0VYpzsDcDT9jIfXeSt4A9+8ZEIBSvTkUBJLeSLzEgybS5atcM0ic3xO
+         DUVA==
+X-Forwarded-Encrypted: i=1; AJvYcCX12vi9+3lrGddGSab1DmYSYV6vkn2d2C+LzC/6gwVybVFZ96u5XxSgm0aThpn5rVi5qRUcvyfm1xzSrhxCbrpkqmeeR3PR
+X-Gm-Message-State: AOJu0Yzxf4ccpdX+yKYQmkThl4xnsmPwL8wadoKn6SWk3b/fOPSdPK/N
+	XRFSZq24bso/xOwihXO0+EkTv3JliNgoUZ8BhEp6/yCXC+VIAFyd
+X-Google-Smtp-Source: AGHT+IG+nWjzy1vXAWmi7d4mreq3B1aqw1Sej/iFVDg9WGc8pdhcR0YbATO4JmgBoO6xtBE1Kqr+ZQ==
+X-Received: by 2002:a05:6870:c112:b0:21f:ccef:a4d0 with SMTP id f18-20020a056870c11200b0021fccefa4d0mr10576079oad.21.1709072123242;
+        Tue, 27 Feb 2024 14:15:23 -0800 (PST)
+Received: from Borg-9.local (070-114-203-196.res.spectrum.com. [70.114.203.196])
+        by smtp.gmail.com with ESMTPSA id gq27-20020a056870d91b00b0021fb8dc5cabsm2257249oab.47.2024.02.27.14.15.21
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 27 Feb 2024 14:15:22 -0800 (PST)
+Sender: John Groves <grovesaustin@gmail.com>
+Date: Tue, 27 Feb 2024 16:15:21 -0600
+From: John Groves <John@groves.net>
+To: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>, 
+	Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, 
+	Dave Jiang <dave.jiang@intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, 
+	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, Matthew Wilcox <willy@infradead.org>, 
+	linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-doc@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, john@jagalactic.com, 
+	Dave Chinner <david@fromorbit.com>, Christoph Hellwig <hch@infradead.org>, 
+	dave.hansen@linux.intel.com, gregory.price@memverge.com
+Subject: Re: [RFC PATCH 17/20] famfs: Add module stuff
+Message-ID: <ydr7ziya3e5evsdbofcqgestidkrjv7opsb6behlcs5oew4kbo@zhyhhzuh26ma>
+References: <cover.1708709155.git.john@groves.net>
+ <e633fb92d3c20ba446e60c2c161cf07074aef374.1708709155.git.john@groves.net>
+ <20240226134748.00003f57@Huawei.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: Question about forcing 'disable-memdev'
-Content-Language: en-US
-To: Jane Chu <jane.chu@oracle.com>, =?UTF-8?B?Q2FvLCBRdWFucXVhbi/mm7kg5YWo?=
- =?UTF-8?B?5YWo?= <caoqq@fujitsu.com>, linux-cxl@vger.kernel.org,
- nvdimm@lists.linux.dev
-Cc: vishal.l.verma@intel.com
-References: <3788c116-50aa-ae97-adca-af6559f5c59a@fujitsu.com>
- <dd61a8f2-ef80-46cc-8033-b3a4b987b3f4@intel.com>
- <ebe3f86f-d3f9-414d-9749-7d41ac7d3404@oracle.com>
-From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <ebe3f86f-d3f9-414d-9749-7d41ac7d3404@oracle.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240226134748.00003f57@Huawei.com>
 
-
-
-On 2/27/24 1:24 PM, Jane Chu wrote:
-> On 2/27/2024 8:40 AM, Dave Jiang wrote:
+On 24/02/26 01:47PM, Jonathan Cameron wrote:
+> On Fri, 23 Feb 2024 11:42:01 -0600
+> John Groves <John@Groves.net> wrote:
 > 
->>
->> On 2/26/24 10:32 PM, Cao, Quanquan/曹 全全 wrote:
->>> Hi, Dave
->>>
->>> On the basis of this patch, I conducted some tests and encountered unexpected errors. I would like to inquire whether the design here is reasonable? Below are the steps of my testing:
->>>
->>> Link: https://lore.kernel.org/linux-cxl/170138109724.2882696.123294980050048623.stgit@djiang5-mobl3/
->>>
->>>
->>> Problem description: after creating a region, directly forcing 'disable-memdev' and then consuming memory leads to a kernel panic.
->> If you are forcing memory disable when the memory cannot be offlined, then this behavior is expected. You are ripping the memory away from underneath kernel mm. The reason the check was added is to prevent the users from doing exactly that.
+> > This commit introduces the module init and exit machinery for famfs.
+> > 
+> > Signed-off-by: John Groves <john@groves.net>
+> I'd prefer to see this from the start with the functionality of the module
+> built up as you go + build logic in place.  Makes it easy to spot places
+> where the patches aren't appropriately self constrained. 
+> > ---
+> >  fs/famfs/famfs_inode.c | 44 ++++++++++++++++++++++++++++++++++++++++++
+> >  1 file changed, 44 insertions(+)
+> > 
+> > diff --git a/fs/famfs/famfs_inode.c b/fs/famfs/famfs_inode.c
+> > index ab46ec50b70d..0d659820e8ff 100644
+> > --- a/fs/famfs/famfs_inode.c
+> > +++ b/fs/famfs/famfs_inode.c
+> > @@ -462,4 +462,48 @@ static struct file_system_type famfs_fs_type = {
+> >  	.fs_flags	  = FS_USERNS_MOUNT,
+> >  };
+> >  
+> > +/*****************************************************************************************
+> > + * Module stuff
 > 
-> Since user is doing the illegal thing, shouldn't that lead to SIGBUS or SIGKILL ?
+> I'd drop these drivers structure comments. They add little beyond
+> a high possibility of being wrong after the code has evolved a bit.
 
-The behavior is unpredictable once the CXL memory is ripped away. If the memory only backed user memory then you may see SIGBUS. But if the memory backed kernel data then kernel OOPs is not out of question. 
+Probably will do with the module-ops-up refactor for v2
 
 > 
-> thanks,
+> > + */
+> > +static struct kobject *famfs_kobj;
+> > +
+> > +static int __init init_famfs_fs(void)
+> > +{
+> > +	int rc;
+> > +
+> > +#if defined(CONFIG_DEV_DAX_IOMAP)
+> > +	pr_notice("%s: Your kernel supports famfs on /dev/dax\n", __func__);
+> > +#else
+> > +	pr_notice("%s: Your kernel does not support famfs on /dev/dax\n", __func__);
+> > +#endif
+> > +	famfs_kobj = kobject_create_and_add(MODULE_NAME, fs_kobj);
+> > +	if (!famfs_kobj) {
+> > +		pr_warn("Failed to create kobject\n");
+> > +		return -ENOMEM;
+> > +	}
+> > +
+> > +	rc = sysfs_create_group(famfs_kobj, &famfs_attr_group);
+> > +	if (rc) {
+> > +		kobject_put(famfs_kobj);
+> > +		pr_warn("%s: Failed to create sysfs group\n", __func__);
+> > +		return rc;
+> > +	}
+> > +
+> > +	return register_filesystem(&famfs_fs_type);
 > 
-> -jane
-> 
->>
->>>
->>> Test environment:
->>> KERNEL    6.8.0-rc1
->>> QEMU    8.2.0-rc4
->>>
->>> Test steps：
->>>        step1: set memory auto_online to movable zones.
->>>             echo online_movable > /sys/devices/system/memory/auto_online_blocks
->>>        step2: create region
->>>             cxl create-region -t ram -d decoder0.0 -m mem0
->>>        step3: disable memdev
->>>             cxl disable-memdev mem0 -f
->>>        step4: consum CXL memory
->>>             ./consumemem   <------kernel panic
->>>
->>> numactl node status:
->>>        step1: numactl -H
->>>
->>>      available: 2 nodes (0-1)
->>>      node 0 cpus: 0 1
->>>      node 0 size: 968 MB
->>>      node 0 free: 664 MB
->>>      node 1 cpus: 2 3
->>>      node 1 size: 683 MB
->>>      node 1 free: 333 MB
->>>      node distances:
->>>      node   0   1
->>>        0:  10  20
->>>
->>>      step2: numactl -H
->>>
->>>      available: 3 nodes (0-2)
->>>      node 0 cpus: 0 1
->>>      node 0 size: 968 MB
->>>      node 0 free: 677 MB
->>>      node 1 cpus: 2 3
->>>      node 1 size: 683 MB
->>>      node 1 free: 333 MB
->>>      node 2 cpus:
->>>      node 2 size: 256 MB
->>>      node 2 free: 256 MB
->>>      node distances:
->>>      node   0   1   2
->>>        0:  10  20  20
->>>        1:  20  10  20
->>>        2:  20  20  10
->>>
->>>      step3: numactl -H
->>>
->>>      available: 3 nodes (0-2)
->>>      node 0 cpus: 0 1
->>>      node 0 size: 968 MB
->>>      node 0 free: 686 MB
->>>      node 1 cpus: 2 3
->>>      node 1 size: 683 MB
->>>      node 1 free: 336 MB
->>>      node 2 cpus:
->>>      node 2 size: 256 MB
->>>      node 2 free: 256 MB
->>>      node distances:
->>>      node   0   1   2
->>>        0:  10  20  20
->>>        1:  20  10  20
->>>        2:  20  20  10
+> If this fails, do we not leak the kobj and sysfs groups?
+
+Good catch, thanks! Fixed for now- but the kobj is also likely to go away. Will
+endeavor to get it right...
+
+Thanks,
+John
+
