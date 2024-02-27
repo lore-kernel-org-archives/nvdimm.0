@@ -1,141 +1,100 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.12])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f51.google.com (mail-ej1-f51.google.com [209.85.218.51])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9BC9C4EB42
-	for <nvdimm@lists.linux.dev>; Tue, 27 Feb 2024 16:40:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.12
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B837654F8D
+	for <nvdimm@lists.linux.dev>; Tue, 27 Feb 2024 17:48:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709052033; cv=none; b=BRSolQY9FUiCPUEDJgnQx+qqv9oCGMJ0BR6slcyDwyUn0DQYsO2u51Ept+14xV9nhtkIyT0Ms6vYuMcvo1+IZ83G41h+fkH/uopEcWbOvH/eu5Ofcb6TgVXY/imh6Q3NCsSlqeYZqMISTIaHJEt3rDNc62hwvf83dq3BTS8T73I=
+	t=1709056108; cv=none; b=G2tKeWakZoATtRLKMv+MdPYd3ul1/gtQHHj//WcqjouhtdYr4Ug28T53jqBY1y8Y6giQQf4av6rbHay0IvsmPmpFxOq4xZIrNWwAOvNq6EuCZtW7ZLHJr9B3GvK/GmQB7EWsaAsQGUusVTQgGBBuRPl/fwfzwauzeRYwGzuLbQE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709052033; c=relaxed/simple;
-	bh=oGY/1c58aPR/33s1f/2U3hoauwGPpqCDwBiJZqfZASY=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=fZDbvuFLqe2KJZYMuHjbpKNh4yYrFAcnMYd97ZaacrpnvrSJ95BPr8YNqguP6KvLY0U6zoZNGrhdZicG9DME9mHuHPxNCGXxHDCGkWo8z8ZbUTPV1uK1PXbxPAHDPhKDBs3BEzBqWBL48uEpY96Udz3Nxyl0mjgPyl33AyG+bBI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=M6ExB2at; arc=none smtp.client-ip=192.198.163.12
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1709056108; c=relaxed/simple;
+	bh=vl3+kSJl9raKx1cJiC5v+Xip2F0XB4SZhKZYPl7v7EY=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=GdlN4+hO0X+uGygr58HDuWUSZwoSfLuuWwdMGKUfWsT4Q94/BYQPHQA+6iVctKYDya5tOOTkphoJr+Za1DLOP68I8vZvRieuh4dSt189EyTZCGyQkBuX+SRRBZ9IO4WtgtZ2Qg/OYU8gjiQ/s/PGyEA04qMB6IubAynVDDJ520c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Mig53A7v; arc=none smtp.client-ip=209.85.218.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="M6ExB2at"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1709052031; x=1740588031;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=oGY/1c58aPR/33s1f/2U3hoauwGPpqCDwBiJZqfZASY=;
-  b=M6ExB2atkuKMOQvbTu7Vjl7sgKdQdiKznyMv1LhHY8Ne0vqtEh45n03l
-   jPL5G7v0GamrLiv8Aq2QHKSq5W1x9Fjwxx9HYWb/41igoxaAfF3QgI0aO
-   B9tzsAhKMAKqIAnhrDHoBphVJF6sjn/pqpgG0g+9nwLvipUDU91OpZCxx
-   cVWBhYSEavSBOvjUQ6CicAEE+CreuEfcC5DFHAVR74bKoSSu+LtrF4jQC
-   24totaYTOlgeYxfqOt9rfI9sZQIUvCuDud7IBAetMfWa42RsnRNAKgNFF
-   UQM84XWVPTV+jd29oN3EdBFMDY//i2l2V0hfq+XyIYTFBtq6f/GEOfVHs
-   Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10996"; a="7186488"
-X-IronPort-AV: E=Sophos;i="6.06,188,1705392000"; 
-   d="scan'208";a="7186488"
-Received: from orviesa010.jf.intel.com ([10.64.159.150])
-  by fmvoesa106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Feb 2024 08:40:31 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.06,188,1705392000"; 
-   d="scan'208";a="7058441"
-Received: from pbackus-mobl1.amr.corp.intel.com (HELO [10.246.114.227]) ([10.246.114.227])
-  by orviesa010-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Feb 2024 08:40:30 -0800
-Message-ID: <dd61a8f2-ef80-46cc-8033-b3a4b987b3f4@intel.com>
-Date: Tue, 27 Feb 2024 09:40:28 -0700
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Mig53A7v"
+Received: by mail-ej1-f51.google.com with SMTP id a640c23a62f3a-a431324e84cso335025366b.1
+        for <nvdimm@lists.linux.dev>; Tue, 27 Feb 2024 09:48:26 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1709056105; x=1709660905; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:sender:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=8aAOEt9j8cLf7pCbr5/djJex7kLy89KWqOPb/rg1GDY=;
+        b=Mig53A7vyBnFqPUQrfkRcOqEC2jcXWvvhhWl0wdTwXqYla83pvoJDSkDz0cvldoALi
+         B3MiISBq8VZ3VPpjl0EJJwTnd37qteLFOOWo1sRn+CvmSuoQtO0Ttmr+/d8g2Px1FGFC
+         nAc6y9t+nzf2mYSxmpZi1axTv74hgP9Txa61Gq2U7o4z8Wt6cDOJlzLUeiEkBrmOh5Jz
+         ZtKjEric7PjzznKjUWqmbvTDHYMdrqbV9FdzHLkRs/NaQNh54Xv+fwU1a57Nj4en03PI
+         LUtaTWqG6V5fZFuh5oUsrpEJ1PgZPTJoeXyuxziYqM287GThxQ4mWFZi1b6+EqS8d+R+
+         vp3Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1709056105; x=1709660905;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:sender:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=8aAOEt9j8cLf7pCbr5/djJex7kLy89KWqOPb/rg1GDY=;
+        b=uATUycSN0a2u1eMHvVN0Ae4CEhOoEhUtNzftzUdxpmCngZUn4bCdbA/RFzh/BWACsH
+         raLv7EHJQYvL0AI7OrFVoQ/RRPFShyO3idfD4uU/XwBzdWJp3h3zI46MyH0jWVsNT4Ih
+         ehuJVnVa8TkRJn4IotrJqcZeXdpnPTbxZ7QzP/w8nX14LflSobxDE/k1tLWpFDJpGvOC
+         x7tTGimDF8AIl5VzvhpPbyHtTQ669SL2A6Xj0RexFWcyY1xsIbdbob28kwXzakFFX7Pu
+         DqfWfcSuO7g79KZ3vrd46tX/ZKuKmU7GvaFBVVaCSE3xMJ09dK29YR+NzbFt1cjgs6hv
+         6pIA==
+X-Forwarded-Encrypted: i=1; AJvYcCV8dFcRjjlvLQUKwiKJx/VFDhARyYkvmux1VDsvaQFmrv8wXMa7ihNK7jrsVcb6zWGgjYwNvApn7pgYJcwOzDgsjcqEFWsV
+X-Gm-Message-State: AOJu0YxlT0j6EMax6W5utquP8aOHK1mWL/0ciubOAZ4dkPPdYcUETKvB
+	9qpQT4qWgBbBe0l8Hsw7SZ/YCgnKdC36ARy4zYb1OkG5RQrO2kRR
+X-Google-Smtp-Source: AGHT+IEBmzlxvbwk14gM8ufAKwoOQLEW0wK/mhLD0mJLV4TBe02CEP32Gbjx1cNp3xViLTW7sq0u0Q==
+X-Received: by 2002:a17:906:b847:b0:a42:e2ef:2414 with SMTP id ga7-20020a170906b84700b00a42e2ef2414mr7212089ejb.35.1709056104953;
+        Tue, 27 Feb 2024 09:48:24 -0800 (PST)
+Received: from Borg-9.local (070-114-203-196.res.spectrum.com. [70.114.203.196])
+        by smtp.gmail.com with ESMTPSA id un6-20020a170907cb8600b00a3f0dbdf106sm982577ejc.105.2024.02.27.09.48.19
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 27 Feb 2024 09:48:23 -0800 (PST)
+Sender: John Groves <grovesaustin@gmail.com>
+Date: Tue, 27 Feb 2024 11:48:17 -0600
+From: John Groves <John@groves.net>
+To: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>, 
+	Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, 
+	Dave Jiang <dave.jiang@intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, 
+	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, Matthew Wilcox <willy@infradead.org>, 
+	linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-doc@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, john@jagalactic.com, 
+	Dave Chinner <david@fromorbit.com>, Christoph Hellwig <hch@infradead.org>, 
+	dave.hansen@linux.intel.com, gregory.price@memverge.com
+Subject: Re: [RFC PATCH 09/20] famfs: Add super_operations
+Message-ID: <qfxrbeajea25ckhzx74ieqg7f3baw2pqilliru4djc2a2iii6e@faxw7bgt2vi2>
+References: <cover.1708709155.git.john@groves.net>
+ <537f836056c141ae093c42b9623d20de919083b1.1708709155.git.john@groves.net>
+ <20240226125136.00002e64@Huawei.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: Question about forcing 'disable-memdev'
-Content-Language: en-US
-To: =?UTF-8?B?Q2FvLCBRdWFucXVhbi/mm7kg5YWo5YWo?= <caoqq@fujitsu.com>,
- linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
-Cc: vishal.l.verma@intel.com
-References: <3788c116-50aa-ae97-adca-af6559f5c59a@fujitsu.com>
-From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <3788c116-50aa-ae97-adca-af6559f5c59a@fujitsu.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240226125136.00002e64@Huawei.com>
 
+On 24/02/26 12:51PM, Jonathan Cameron wrote:
+> On Fri, 23 Feb 2024 11:41:53 -0600
+> John Groves <John@Groves.net> wrote:
+> > + */
+> > +static int famfs_show_options(
+> > +	struct seq_file *m,
+> > +	struct dentry   *root)
+> Not that familiar with fs code, but this unusual kernel style. I'd go with 
+> something more common
+> 
+> static int famfs_show_options(struct seq_file *m, struct dentry *root)
 
+Actually, xfs does function declarations and prototypes this way, not sure if
+it's everywhere. But I like this format because changing one argument usually
+doesn't put un-changed args into the diff.
 
-On 2/26/24 10:32 PM, Cao, Quanquan/曹 全全 wrote:
-> Hi, Dave
-> 
-> On the basis of this patch, I conducted some tests and encountered unexpected errors. I would like to inquire whether the design here is reasonable? Below are the steps of my testing:
-> 
-> Link: https://lore.kernel.org/linux-cxl/170138109724.2882696.123294980050048623.stgit@djiang5-mobl3/
-> 
-> 
-> Problem description: after creating a region, directly forcing 'disable-memdev' and then consuming memory leads to a kernel panic.
+So I may keep this style after all.
 
-If you are forcing memory disable when the memory cannot be offlined, then this behavior is expected. You are ripping the memory away from underneath kernel mm. The reason the check was added is to prevent the users from doing exactly that.
-
-
-> 
-> 
-> Test environment:
-> KERNEL    6.8.0-rc1
-> QEMU    8.2.0-rc4
-> 
-> Test steps：
->       step1: set memory auto_online to movable zones.
->            echo online_movable > /sys/devices/system/memory/auto_online_blocks
->       step2: create region
->            cxl create-region -t ram -d decoder0.0 -m mem0
->       step3: disable memdev
->            cxl disable-memdev mem0 -f
->       step4: consum CXL memory
->            ./consumemem   <------kernel panic
-> 
-> numactl node status:
->       step1: numactl -H
-> 
->     available: 2 nodes (0-1)
->     node 0 cpus: 0 1
->     node 0 size: 968 MB
->     node 0 free: 664 MB
->     node 1 cpus: 2 3
->     node 1 size: 683 MB
->     node 1 free: 333 MB
->     node distances:
->     node   0   1
->       0:  10  20
-> 
->     step2: numactl -H
-> 
->     available: 3 nodes (0-2)
->     node 0 cpus: 0 1
->     node 0 size: 968 MB
->     node 0 free: 677 MB
->     node 1 cpus: 2 3
->     node 1 size: 683 MB
->     node 1 free: 333 MB
->     node 2 cpus:
->     node 2 size: 256 MB
->     node 2 free: 256 MB
->     node distances:
->     node   0   1   2
->       0:  10  20  20
->       1:  20  10  20
->       2:  20  20  10
-> 
->     step3: numactl -H
-> 
->     available: 3 nodes (0-2)
->     node 0 cpus: 0 1
->     node 0 size: 968 MB
->     node 0 free: 686 MB
->     node 1 cpus: 2 3
->     node 1 size: 683 MB
->     node 1 free: 336 MB
->     node 2 cpus:
->     node 2 size: 256 MB
->     node 2 free: 256 MB
->     node distances:
->     node   0   1   2
->       0:  10  20  20
->       1:  20  10  20
->       2:  20  20  10
+John
