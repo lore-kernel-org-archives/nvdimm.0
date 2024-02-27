@@ -1,219 +1,155 @@
-Received: from mail-oi1-f169.google.com (mail-oi1-f169.google.com [209.85.167.169])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from esa2.hc1455-7.c3s2.iphmx.com (esa2.hc1455-7.c3s2.iphmx.com [207.54.90.48])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 650032916
-	for <nvdimm@lists.linux.dev>; Tue, 27 Feb 2024 02:06:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.169
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3476C1DA21
+	for <nvdimm@lists.linux.dev>; Tue, 27 Feb 2024 05:33:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=207.54.90.48
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708999564; cv=none; b=R+tkMFXpJzTOfaHop/50dfe9WzAMS/+VZd6NwXRId4s6g+9NJ8CTewBpAoGQT4mRIJL7uYwWEBNGz8ahHvSt5EHCDtmwpE4D0Df2lUV5GkbcZM2sOxOO6viekKNbZEK3cwrs7fgLZnLHNHmDZEvgF2Bl9P3nP6zGYg1+hCcz7RM=
+	t=1709012019; cv=none; b=LVdX39YsxPSLY9gkfGFA6tz1bSxpgJuzxQ5oZbZZPdzHLIhnQLKvCph7++eYOD0HUE6PkIUzOd5aeymXbeOvu/qgBsQjU9uZGp0aCHsItilT4SCUsAyZU6XvZCSLZmlB7tL5IRTEBj91BT2eZvo0Iq/cwx9l80jS/c0/eGYvUkI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708999564; c=relaxed/simple;
-	bh=p/sc65/Y89SirN+8xPleSpJF18VTWd6zEoKYs9P9wXk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=U47XXXdJ8CQBmysujd3RAkgpRQcAB+B9rpcvdLWugBw/+8mZoBRxG6IgEEF4wNajT4A/0Lt6rJW7N/Bx4utFEyI0Uigx/OQheHri5DKYR/U3/rXU5RA9xVZHZnUA+XBCjUmzC0kdvhQgs9h8DXqMMRZOviIKz2Lg2+F+VuHZWlU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=VWGNg78G; arc=none smtp.client-ip=209.85.167.169
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1709012019; c=relaxed/simple;
+	bh=LmpaNhqfF0T0bD7e5/n/WMIN6zkdt6FvQ+Jo10gMSmo=;
+	h=Message-ID:Date:MIME-Version:From:Subject:To:Cc:Content-Type; b=UYrNgWGdsKpCR6aNmjxvsKXz6OPNSWmDS+ZzLIeb1fDoN5HvRvBRF5asp5bxVTF9IXqtzk4lu4syB+tQsffA7hEqx+L3n4NR+TpWCzHipzEHRfk54Ox5eKTnPC0AGwh03ar1B2MmErlMjWGls72iq8C5MWvFJIhUUWdw+0xS8ow=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fujitsu.com; spf=pass smtp.mailfrom=fujitsu.com; dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b=sm6dqkQi; arc=none smtp.client-ip=207.54.90.48
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fujitsu.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fujitsu.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="VWGNg78G"
-Received: by mail-oi1-f169.google.com with SMTP id 5614622812f47-3c19b7d9de7so913149b6e.2
-        for <nvdimm@lists.linux.dev>; Mon, 26 Feb 2024 18:06:02 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1708999561; x=1709604361; darn=lists.linux.dev;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date:sender
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=SV9pHyGiurUhVbqmy78OWf51SeUPEW4JNQf5fgdiwuI=;
-        b=VWGNg78G33GxXjEPXXoek6XIOMS59tEG2WWTaB9kTodxm2BIAwcm9V4CZUEvMmDXe7
-         39X+JB9OIdByRLnGSx13cPlAWFFNNm3fFULU8D6n2cTRJ/c8Tcta/At5QGx+kxKCy5QC
-         8secDTQERKc1TzkCoWyFRYruOTYFpntMFEYMDPwN4TzwUKjYhaxsHYkBpwzCXVMAf/Lv
-         HfHKF4jqTqi8O0YfwmL+aqy05F/t7dQi18+YP1PXJuGXQq7wix3Pbh8fGxnny8lbCnqV
-         tySxbI86t74vn/Dl0CdbRbwPNycrjOluFFQrkaNCjmy5VznHWXDcAJ9Zf3MlW0OBV7TA
-         WLuw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1708999561; x=1709604361;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date:sender
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=SV9pHyGiurUhVbqmy78OWf51SeUPEW4JNQf5fgdiwuI=;
-        b=eEbkFStw+rlC1gvsG4CvRBWV2oGe2O9w0mfafOsh8UeJz1pX407NqbCN7DJVB+vmJ7
-         p8yoI+AkfPD38p4Q2UN8tW2WsHD/S2NssRPJ+21Ldq4Hn5CFa82Z5nA8io+ib8bwE4x9
-         xqxVYTv55Z6wcuMIis3mC4++dr/uV+ipwT57JKSJJXcT+j7TgMV3Lkv8+prEci30dgEj
-         d5GPPHWgYnv9nCy2F9l63rs++998iGBUYGlJZTAbKiyWpNvCDQZ1pnWhoWBmxQGeikXW
-         QIfknbo+HWLQxWsdouoguxZ7MG/dm6sZ23bstX0ruMP3n14rq0D9IXUHtf/YLifHdbrl
-         v7MA==
-X-Forwarded-Encrypted: i=1; AJvYcCWsSqMr4top59pY1v4rctx/S9ruNMqarEF08/tUIMhdZ8ioKZCUKA3rf//WQysxK8+Nb2vTSKCDZcorXHYZ0Z9ZQWS+EZFj
-X-Gm-Message-State: AOJu0YzlJxdjlOIna0XtLt4OExHhFfHCJgaveZ2nnvLRN2SbVVzJovE/
-	tAk8d0/hH6NrDAeKGKDKhgkwXWY+LW10E2RBQxIheGF4VWYrfW2y
-X-Google-Smtp-Source: AGHT+IEto5Hv/5kS0NEzNyuamOC5figEue036XmH8VnitTet5uL5i9qxzmLAbquKR88Rimd4Iq2s8A==
-X-Received: by 2002:a05:6870:7315:b0:21e:877d:78d5 with SMTP id q21-20020a056870731500b0021e877d78d5mr10124312oal.50.1708999561459;
-        Mon, 26 Feb 2024 18:06:01 -0800 (PST)
-Received: from Borg-9.local (070-114-203-196.res.spectrum.com. [70.114.203.196])
-        by smtp.gmail.com with ESMTPSA id t22-20020a0568301e3600b006e12266433csm1343052otr.27.2024.02.26.18.05.59
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 26 Feb 2024 18:06:00 -0800 (PST)
-Sender: John Groves <grovesaustin@gmail.com>
-Date: Mon, 26 Feb 2024 20:05:58 -0600
-From: John Groves <John@groves.net>
-To: Luis Chamberlain <mcgrof@kernel.org>
-Cc: John Groves <jgroves@micron.com>, Jonathan Corbet <corbet@lwn.net>, 
-	Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, 
-	Dave Jiang <dave.jiang@intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, 
-	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, Matthew Wilcox <willy@infradead.org>, 
-	linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-doc@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, john@jagalactic.com, 
-	Dave Chinner <david@fromorbit.com>, Christoph Hellwig <hch@infradead.org>, 
-	dave.hansen@linux.intel.com, gregory.price@memverge.com
-Subject: Re: [RFC PATCH 00/20] Introduce the famfs shared-memory file system
-Message-ID: <mw4yhbmza4idassgbqeiti4ue7jq377ezxfrqrcbsbzsrmfiln@kn7qmqljvswl>
-References: <cover.1708709155.git.john@groves.net>
- <ZdkzJM6sze-p3EWP@bombadil.infradead.org>
- <cc2pabb3szzpm5jxxeku276csqu5vwqgzitkwevfluagx7akiv@h45faer5zpru>
- <Zdy0CGL6e0ri8LiC@bombadil.infradead.org>
- <w5cqtmdgqtjvbnrg5okdgmxe45vjg5evaxh6gg3gs6kwfqmn5p@wgakpqcumrbt>
- <CAB=NE6UvHSvTJJCq-YuBEZNo8F5Kg25aK+2im=V7DgEsTJ8wPg@mail.gmail.com>
+	dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b="sm6dqkQi"
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
+  d=fujitsu.com; i=@fujitsu.com; q=dns/txt; s=fj2;
+  t=1709012018; x=1740548018;
+  h=message-id:date:mime-version:from:subject:to:cc:
+   content-transfer-encoding;
+  bh=LmpaNhqfF0T0bD7e5/n/WMIN6zkdt6FvQ+Jo10gMSmo=;
+  b=sm6dqkQieFdAMj3aoUlzWxEQvOMJfLztxu8fiidlCldu3ixG0PrJPT1R
+   nSL8oe8eS8Ank5lKhLlctiMLDncsPYZOId+YH+ZSouEMHFLBqcdGwii94
+   3WARDQb6uD3bhiKz3sgVjsUWDv72INK8XGQNs6neu5Dp7FgMgp70oMTjC
+   LaW/FmsWrha19GGADCw67ZkTLTiZJoRbeCXdihEAhQbmHbxy50xarT0iZ
+   wFdmqFMpgmxHYrenAgLvk8/UbPggR7QZEf6cGgj8lbDW3q41li8MvIDPR
+   AhhwfSMfEe1oA1TWCVhck0Uf1WbMjA9SMXobyrNaj64xD1uIbu/pti58M
+   g==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10996"; a="150535036"
+X-IronPort-AV: E=Sophos;i="6.06,187,1705330800"; 
+   d="scan'208";a="150535036"
+Received: from unknown (HELO yto-r1.gw.nic.fujitsu.com) ([218.44.52.217])
+  by esa2.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Feb 2024 14:32:26 +0900
+Received: from yto-m4.gw.nic.fujitsu.com (yto-nat-yto-m4.gw.nic.fujitsu.com [192.168.83.67])
+	by yto-r1.gw.nic.fujitsu.com (Postfix) with ESMTP id 1ECD71A7804
+	for <nvdimm@lists.linux.dev>; Tue, 27 Feb 2024 14:32:23 +0900 (JST)
+Received: from kws-ab4.gw.nic.fujitsu.com (kws-ab4.gw.nic.fujitsu.com [192.51.206.22])
+	by yto-m4.gw.nic.fujitsu.com (Postfix) with ESMTP id 53ADED7B6E
+	for <nvdimm@lists.linux.dev>; Tue, 27 Feb 2024 14:32:22 +0900 (JST)
+Received: from edo.cn.fujitsu.com (edo.cn.fujitsu.com [10.167.33.5])
+	by kws-ab4.gw.nic.fujitsu.com (Postfix) with ESMTP id D22496BE7A
+	for <nvdimm@lists.linux.dev>; Tue, 27 Feb 2024 14:32:21 +0900 (JST)
+Received: from [10.167.220.145] (unknown [10.167.220.145])
+	by edo.cn.fujitsu.com (Postfix) with ESMTP id 48B761A006A;
+	Tue, 27 Feb 2024 13:32:21 +0800 (CST)
+Message-ID: <3788c116-50aa-ae97-adca-af6559f5c59a@fujitsu.com>
+Date: Tue, 27 Feb 2024 13:32:20 +0800
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.5.0
+From: =?UTF-8?B?Q2FvLCBRdWFucXVhbi/mm7kg5YWo5YWo?= <caoqq@fujitsu.com>
+Subject: Question about forcing 'disable-memdev'
+To: Dave Jiang <dave.jiang@intel.com>, linux-cxl@vger.kernel.org,
+ nvdimm@lists.linux.dev
+Cc: vishal.l.verma@intel.com
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAB=NE6UvHSvTJJCq-YuBEZNo8F5Kg25aK+2im=V7DgEsTJ8wPg@mail.gmail.com>
+X-TM-AS-GCONF: 00
+X-TM-AS-Product-Ver: IMSS-9.1.0.1417-9.0.0.1002-28216.005
+X-TM-AS-User-Approved-Sender: Yes
+X-TMASE-Version: IMSS-9.1.0.1417-9.0.1002-28216.005
+X-TMASE-Result: 10--2.856700-10.000000
+X-TMASE-MatchedRID: T3hsd5K8wICGYAKJjm5IPTo39wOA02LhTSz0JdEAJbTuR6RKcHGClhDJ
+	pQ8DtMBd6XmVAUde0xrK+QFXYp+GteVaI0j/eUAPQ0Xm0pWWLkoXjfR3d0weRjYt7BCMaN4sMqe
+	v799PSV3myE8VIo655CEIEnlWgL3p7Xu8W3B9FWktXoug6eNZmQO3/A5KGHP/VgkL9epqBvExyi
+	dJf6wfobum2UTXMRXanagtny7ZPcS/WXZS/HqJ2g9ejiC/BQPdDZX99HwFDsIqtq5d3cxkNe2VN
+	uufHW17JH7NJp1cF9VlDjBseu8wPdAq6ZdUxJE1hl9IqZ3Rc3bqxvqml38y30levMI+7RuCgAeH
+	YP3tYM3Nlw8MLhLs7+96/enegQdRIE2CnS8XsZEfNZSYb0kT7CWqVVINSOGKOFbuWMgEXbM=
+X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
 
-On 24/02/26 04:58PM, Luis Chamberlain wrote:
-> On Mon, Feb 26, 2024 at 1:16 PM John Groves <John@groves.net> wrote:
-> >
-> > On 24/02/26 07:53AM, Luis Chamberlain wrote:
-> > > On Mon, Feb 26, 2024 at 07:27:18AM -0600, John Groves wrote:
-> > > > Run status group 0 (all jobs):
-> > > >   WRITE: bw=29.6GiB/s (31.8GB/s), 29.6GiB/s-29.6GiB/s (31.8GB/s-31.8GB/s), io=44.7GiB (48.0GB), run=1511-1511msec
-> > >
-> > > > This is run on an xfs file system on a SATA ssd.
-> > >
-> > > To compare more closer apples to apples, wouldn't it make more sense
-> > > to try this with XFS on pmem (with fio -direct=1)?
-> > >
-> > >   Luis
-> >
-> > Makes sense. Here is the same command line I used with xfs before, but
-> > now it's on /dev/pmem0 (the same 128G, but converted from devdax to pmem
-> > because xfs requires that.
-> >
-> > fio -name=ten-256m-per-thread --nrfiles=10 -bs=2M --group_reporting=1 --alloc-size=1048576 --filesize=256MiB --readwrite=write --fallocate=none --numjobs=48 --create_on_open=0 --ioengine=io_uring --direct=1 --directory=/mnt/xfs
-> 
-> Could you try with mkfs.xfs -d agcount=1024
-> 
->  Luis
+Hi, Dave
 
-$ luis/fio-xfsdax.sh 
-+ sudo mkfs.xfs -d agcount=1024 -m reflink=0 -f /dev/pmem0
-meta-data=/dev/pmem0             isize=512    agcount=1024, agsize=32768 blks
-         =                       sectsz=4096  attr=2, projid32bit=1
-         =                       crc=1        finobt=1, sparse=1, rmapbt=0
-         =                       reflink=0    bigtime=1 inobtcount=1 nrext64=0
-data     =                       bsize=4096   blocks=33554432, imaxpct=25
-         =                       sunit=0      swidth=0 blks
-naming   =version 2              bsize=4096   ascii-ci=0, ftype=1
-log      =internal log           bsize=4096   blocks=16384, version=2
-         =                       sectsz=4096  sunit=1 blks, lazy-count=1
-realtime =none                   extsz=4096   blocks=0, rtextents=0
-+ sudo mount -o dax /dev/pmem0 /mnt/xfs
-+ sudo chown jmg:jmg /mnt/xfs
-+ ls -al /mnt/xfs
-total 0
-drwxr-xr-x  2 jmg  jmg   6 Feb 26 19:56 .
-drwxr-xr-x. 4 root root 30 Feb 26 14:58 ..
-++ nproc
-+ fio -name=ten-256m-per-thread --nrfiles=10 -bs=2M --group_reporting=1 --alloc-size=1048576 --filesize=256MiB --readwrite=write --fallocate=none --numjobs=48 --create_on_open=0 --ioengine=io_uring --direct=1 --directory=/mnt/xfs
-ten-256m-per-thread: (g=0): rw=write, bs=(R) 2048KiB-2048KiB, (W) 2048KiB-2048KiB, (T) 2048KiB-2048KiB, ioengine=io_uring, iodepth=1
-...
-fio-3.33
-Starting 48 processes
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-ten-256m-per-thread: Laying out IO files (10 files / total 2441MiB)
-Jobs: 17 (f=170): [_(2),W(1),_(8),W(2),_(7),W(3),_(2),W(2),_(3),W(2),_(2),W(1),_(2),W(1),_(1),W(3),_(4),W(2)][Jobs: 1 (f=10): [_(47),W(1)][100.0%][w=8022MiB/s][w=4011 IOPS][eta 00m:00s]                                                                                
-ten-256m-per-thread: (groupid=0, jobs=48): err= 0: pid=141563: Mon Feb 26 19:56:28 2024
-  write: IOPS=6578, BW=12.8GiB/s (13.8GB/s)(114GiB/8902msec); 0 zone resets
-    slat (usec): min=18, max=60593, avg=1230.85, stdev=1799.97
-    clat (usec): min=2, max=98969, avg=5133.25, stdev=5141.07
-     lat (usec): min=294, max=99725, avg=6364.09, stdev=5440.30
-    clat percentiles (usec):
-     |  1.00th=[   11],  5.00th=[   46], 10.00th=[  217], 20.00th=[ 2376],
-     | 30.00th=[ 2999], 40.00th=[ 3556], 50.00th=[ 3785], 60.00th=[ 3982],
-     | 70.00th=[ 4228], 80.00th=[ 7504], 90.00th=[13173], 95.00th=[14091],
-     | 99.00th=[21890], 99.50th=[27919], 99.90th=[45351], 99.95th=[57934],
-     | 99.99th=[82314]
-   bw (  MiB/s): min= 5085, max=27367, per=100.00%, avg=14361.95, stdev=165.61, samples=719
-   iops        : min= 2516, max=13670, avg=7160.17, stdev=82.88, samples=719
-  lat (usec)   : 4=0.05%, 10=0.72%, 20=2.23%, 50=2.48%, 100=3.02%
-  lat (usec)   : 250=1.54%, 500=2.37%, 750=1.34%, 1000=0.75%
-  lat (msec)   : 2=3.20%, 4=43.10%, 10=23.05%, 20=14.81%, 50=1.25%
-  lat (msec)   : 100=0.08%
-  cpu          : usr=10.18%, sys=0.79%, ctx=67227, majf=0, minf=38511
-  IO depths    : 1=100.0%, 2=0.0%, 4=0.0%, 8=0.0%, 16=0.0%, 32=0.0%, >=64=0.0%
-     submit    : 0=0.0%, 4=100.0%, 8=0.0%, 16=0.0%, 32=0.0%, 64=0.0%, >=64=0.0%
-     complete  : 0=0.0%, 4=100.0%, 8=0.0%, 16=0.0%, 32=0.0%, 64=0.0%, >=64=0.0%
-     issued rwts: total=0,58560,0,0 short=0,0,0,0 dropped=0,0,0,0
-     latency   : target=0, window=0, percentile=100.00%, depth=1
+On the basis of this patch, I conducted some tests and encountered 
+unexpected errors. I would like to inquire whether the design here is 
+reasonable? Below are the steps of my testing:
 
-Run status group 0 (all jobs):
-  WRITE: bw=12.8GiB/s (13.8GB/s), 12.8GiB/s-12.8GiB/s (13.8GB/s-13.8GB/s), io=114GiB (123GB), run=8902-8902msec
-
-Disk stats (read/write):
-  pmem0: ios=0/0, merge=0/0, ticks=0/0, in_queue=0, util=0.00%
+Link: 
+https://lore.kernel.org/linux-cxl/170138109724.2882696.123294980050048623.stgit@djiang5-mobl3/
 
 
-I ran it several times with similar results.
+Problem description: after creating a region, directly forcing 
+'disable-memdev' and then consuming memory leads to a kernel panic.
 
-Regards,
-John
 
+Test environment:
+KERNEL	6.8.0-rc1
+QEMU	8.2.0-rc4
+
+Test steps：
+       step1: set memory auto_online to movable zones.
+            echo online_movable > 
+/sys/devices/system/memory/auto_online_blocks
+       step2: create region
+            cxl create-region -t ram -d decoder0.0 -m mem0
+       step3: disable memdev
+            cxl disable-memdev mem0 -f
+       step4: consum CXL memory
+            ./consumemem   <------kernel panic
+
+numactl node status:
+       step1: numactl -H
+
+	available: 2 nodes (0-1)
+	node 0 cpus: 0 1
+	node 0 size: 968 MB
+	node 0 free: 664 MB
+	node 1 cpus: 2 3
+	node 1 size: 683 MB
+	node 1 free: 333 MB
+	node distances:
+	node   0   1
+	  0:  10  20
+
+     step2: numactl -H
+
+	available: 3 nodes (0-2)
+	node 0 cpus: 0 1
+	node 0 size: 968 MB
+	node 0 free: 677 MB
+	node 1 cpus: 2 3
+	node 1 size: 683 MB
+	node 1 free: 333 MB
+	node 2 cpus:
+	node 2 size: 256 MB
+	node 2 free: 256 MB
+	node distances:
+	node   0   1   2
+	  0:  10  20  20
+	  1:  20  10  20
+	  2:  20  20  10
+
+     step3: numactl -H
+
+	available: 3 nodes (0-2)
+	node 0 cpus: 0 1
+	node 0 size: 968 MB
+	node 0 free: 686 MB
+	node 1 cpus: 2 3
+	node 1 size: 683 MB
+	node 1 free: 336 MB
+	node 2 cpus:
+	node 2 size: 256 MB
+	node 2 free: 256 MB
+	node distances:
+	node   0   1   2
+	  0:  10  20  20
+	  1:  20  10  20
+	  2:  20  20  10
