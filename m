@@ -1,147 +1,268 @@
-Received: from mail-pf1-f182.google.com (mail-pf1-f182.google.com [209.85.210.182])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.10])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CCC236B17
-	for <nvdimm@lists.linux.dev>; Thu, 29 Feb 2024 02:15:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.182
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D2EB374C2
+	for <nvdimm@lists.linux.dev>; Thu, 29 Feb 2024 02:45:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.10
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709172929; cv=none; b=kJCiigsfKEPCmNH65UvruoZU+lIwyLXCbG/wN0EKFmwXkPiJHpreZltx/kWMccgpECT6kwAb+lWVLO17ZZa1H/ufISd8RfP8aets3Pn47ID6OdTZVk7CGtzMIXCqNawUjBGKI9WFe4FB9ckcdst6hRT9zneBsXvjbDTDc0jq+K8=
+	t=1709174715; cv=none; b=dYCn9Nej9drF7vquYZI6QwB2CG9L128ZzVJ4kkAEK9c48GkzRCoHR8t5Je/P5QVX0xRYP59zKrlW2TIo3mjFwNyoZmdtk4pAbD6xuZ1+lohfJ4AXE3hf26rOO5/LDrGAuyPByx/YjrVZ1eZ5f4/fl/i1v9GigmcljCdVInkGMNY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709172929; c=relaxed/simple;
-	bh=gbK/8SPPoX50lcAPF/cWQzwwqAl+Hw5BLMUVJqzZZxU=;
+	s=arc-20240116; t=1709174715; c=relaxed/simple;
+	bh=BkRvayXX09joq1PwMzdVPUYYCUFeSScVRw3Y76mzN/M=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=AQNlADhtHaeT4Gk0d2IpcEioCq9BLwaUzVVmzxTAhABlxICb0T64cZy3c99Gib7iSJ1UxvOxLUy5xg9qW7++ZQPVP23LZAwcR9L9UHssBOV7q8ErKMPmkBn9plIKPEsV2JGEyAJ/vfG26In9ARTI5mOLuZg42hisMsjuahSFf3I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fromorbit.com; spf=pass smtp.mailfrom=fromorbit.com; dkim=pass (2048-bit key) header.d=fromorbit-com.20230601.gappssmtp.com header.i=@fromorbit-com.20230601.gappssmtp.com header.b=JBWGYthC; arc=none smtp.client-ip=209.85.210.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fromorbit.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fromorbit.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=JeqNfq2FnCgo3UZ4L5I9YDg77vltSHTGHGEanv7q6EQm7O2pGqnW+lmPXFGawOapAC8rgc8+pWYqSn4q7X16SLIRrhOR9kSdOUPe6NlMtN9XWreehvOwzidhVN1lkHRyjo35cyZIb5M7BsxKV34SxuMBoXfLtPzdstlk2L90TNo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=meXdoC92; arc=none smtp.client-ip=192.198.163.10
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fromorbit-com.20230601.gappssmtp.com header.i=@fromorbit-com.20230601.gappssmtp.com header.b="JBWGYthC"
-Received: by mail-pf1-f182.google.com with SMTP id d2e1a72fcca58-6e571666804so237976b3a.2
-        for <nvdimm@lists.linux.dev>; Wed, 28 Feb 2024 18:15:27 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=fromorbit-com.20230601.gappssmtp.com; s=20230601; t=1709172927; x=1709777727; darn=lists.linux.dev;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=k82qC/YmHMBHWFt7RMlbhQ42CGo9M2erm3qHEzqFqxc=;
-        b=JBWGYthCrxPSFEP2VJhQgiDGuTJ2FbKxYDnMV7ZpsLnHsaHEEPxOk4csDRNkVf1iTD
-         hDN317y1ddlJSImoA67akCzV0fJTm50sCV/68awvFLTdTDStJJ5oXTd7DPAvs16eg1th
-         dcB+nTInjLGWTds0/QYXTbPg0Es/TdyzHHFCIGYNCHXL8xlA0E5DwL2gTXWYydlYreAa
-         +FoiKXyWWIg1AYnW6saflydD3FTtMgzNw8yAB2C7XOjXCKpHiOwMYxI6nMwqQHJHTgWO
-         IYi83yxnkhKQ7ZopSukbmEYscvRtOJFU4zMrqOL/VcQeSAzMBm0Dx5lD+7cjjxg0UEnD
-         bFTw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1709172927; x=1709777727;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=k82qC/YmHMBHWFt7RMlbhQ42CGo9M2erm3qHEzqFqxc=;
-        b=Jbxe5KaVzUbPBhzEi6cXzfsZWP4TFjnMyMqVJqHZytdz1fS/Kh0Q8jBsg2fH8M9Wla
-         mJjsdxGChSxI/g2/MUi7PPhLLQkawSKyY0FvU6CPKgU5YfAEc1HkDYPoKFFnVa7WYlS7
-         V+FmMTIgYamioJEw2Zchb4ko25zYMbwmrt8ixRXEOlsQOqKmxKdoxLSnJ5Fxi6vy4cFi
-         SW+wjc4KpG/cKsjkExb9WSYYtO0SmbYY7z3vUI4A0E0Fq0XkZkBfRpTa3bb6RnrCkfOU
-         +DB3ElWTN4qCScwP1leV8SFQM4ule8nXTkg/qygBhL70105SKxlHJKIEcfp+cTQYB1rM
-         R1bg==
-X-Forwarded-Encrypted: i=1; AJvYcCXR1QY4bF2FPZPtCSFS4mi9etaEbhHZLgdcBTP2lFROlF1HTc4/JwqD0aRsuhoDNZlD6ayTysxmwRT7df9hDL8IKb+ld2e4
-X-Gm-Message-State: AOJu0YyCv5yHOHqOTVRXrDU8R3qGb78tJWQsWaW6tbFiDCQAIGJtRTmd
-	o+2+Q4+vn8SQsKdFtbokJoobJHFV5eFcUq18W4doZukoZhS3jDbBPkJ1inJQM1g=
-X-Google-Smtp-Source: AGHT+IHlcUbGYgKkh9AJe9B6cyxTd0bn96C+Tels4WsobRn2K0DWuGc5NbJJ2I2uCc8hPOOH897Pnw==
-X-Received: by 2002:a05:6a21:1789:b0:1a1:2094:960b with SMTP id nx9-20020a056a21178900b001a12094960bmr1024668pzb.43.1709172927291;
-        Wed, 28 Feb 2024 18:15:27 -0800 (PST)
-Received: from dread.disaster.area (pa49-181-247-196.pa.nsw.optusnet.com.au. [49.181.247.196])
-        by smtp.gmail.com with ESMTPSA id w16-20020a1709026f1000b001dc90b62393sm141163plk.216.2024.02.28.18.15.26
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 28 Feb 2024 18:15:26 -0800 (PST)
-Received: from dave by dread.disaster.area with local (Exim 4.96)
-	(envelope-from <david@fromorbit.com>)
-	id 1rfVxE-00Cupu-1S;
-	Thu, 29 Feb 2024 13:15:24 +1100
-Date: Thu, 29 Feb 2024 13:15:24 +1100
-From: Dave Chinner <david@fromorbit.com>
-To: John Groves <John@groves.net>
-Cc: Luis Chamberlain <mcgrof@kernel.org>, John Groves <jgroves@micron.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Alexander Viro <viro@zeniv.linux.org.uk>,
-	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
-	Matthew Wilcox <willy@infradead.org>, linux-cxl@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
-	john@jagalactic.com, Christoph Hellwig <hch@infradead.org>,
-	dave.hansen@linux.intel.com, gregory.price@memverge.com
-Subject: Re: [RFC PATCH 00/20] Introduce the famfs shared-memory file system
-Message-ID: <Zd/ovHqO/16PsUsp@dread.disaster.area>
-References: <cover.1708709155.git.john@groves.net>
- <ZdkzJM6sze-p3EWP@bombadil.infradead.org>
- <cc2pabb3szzpm5jxxeku276csqu5vwqgzitkwevfluagx7akiv@h45faer5zpru>
- <Zdy0CGL6e0ri8LiC@bombadil.infradead.org>
- <w5cqtmdgqtjvbnrg5okdgmxe45vjg5evaxh6gg3gs6kwfqmn5p@wgakpqcumrbt>
- <CAB=NE6UvHSvTJJCq-YuBEZNo8F5Kg25aK+2im=V7DgEsTJ8wPg@mail.gmail.com>
- <mw4yhbmza4idassgbqeiti4ue7jq377ezxfrqrcbsbzsrmfiln@kn7qmqljvswl>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="meXdoC92"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1709174713; x=1740710713;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=BkRvayXX09joq1PwMzdVPUYYCUFeSScVRw3Y76mzN/M=;
+  b=meXdoC92oXuzpqbpYQg4PpqvmgSyvtenRNiIi4xqSOZBlwZZ/oEl5Ibi
+   A1B+FiUGVUeTYySMm0Tk2UjDYvhHaiscTsgRl3Hu+8SF0TjQC5bSMKWCE
+   BobDNpIlERClQ1kJoTwlJiKRLns9dJEAWPDODH65iNrunXqtbz/v8eLe+
+   VE431Efgej/D17WQBZQBlLuTn8PjWWXSfAKn05eLTFS/sav1JnPv4SUSI
+   yKXU2/wmJ5TbJI1jhbnWuGo35JYn+o9YX75aI6geStqGxfXhKVB4YLNxK
+   XQEYqx5VsBaN2cuMtWyJCP74l0rgIzUWKvlF7c3N4ddLD5Y8n3M7y2g1N
+   A==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10998"; a="15033878"
+X-IronPort-AV: E=Sophos;i="6.06,192,1705392000"; 
+   d="scan'208";a="15033878"
+Received: from fmviesa003.fm.intel.com ([10.60.135.143])
+  by fmvoesa104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Feb 2024 18:45:12 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.06,192,1705392000"; 
+   d="scan'208";a="12217304"
+Received: from aschofie-mobl2.amr.corp.intel.com (HELO aschofie-mobl2) ([10.209.18.161])
+  by fmviesa003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Feb 2024 18:45:12 -0800
+Date: Wed, 28 Feb 2024 18:45:09 -0800
+From: Alison Schofield <alison.schofield@intel.com>
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>, nvdimm@lists.linux.dev,
+	linux-cxl@vger.kernel.org
+Subject: Re: [ndctl PATCH v7 5/7] cxl/list: collect and parse media_error
+ records
+Message-ID: <Zd/vtfjCoLvjTT1q@aschofie-mobl2>
+References: <cover.1707351560.git.alison.schofield@intel.com>
+ <566a2acff6a3f32a1d6af9d81fb0da8808e5b4ff.1707351560.git.alison.schofield@intel.com>
+ <b3f23b92-99f6-404e-aed2-19a8f5ceb43f@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <mw4yhbmza4idassgbqeiti4ue7jq377ezxfrqrcbsbzsrmfiln@kn7qmqljvswl>
+In-Reply-To: <b3f23b92-99f6-404e-aed2-19a8f5ceb43f@intel.com>
 
-On Mon, Feb 26, 2024 at 08:05:58PM -0600, John Groves wrote:
-> On 24/02/26 04:58PM, Luis Chamberlain wrote:
-> > On Mon, Feb 26, 2024 at 1:16 PM John Groves <John@groves.net> wrote:
-> > >
-> > > On 24/02/26 07:53AM, Luis Chamberlain wrote:
-> > > > On Mon, Feb 26, 2024 at 07:27:18AM -0600, John Groves wrote:
-> > > > > Run status group 0 (all jobs):
-> > > > >   WRITE: bw=29.6GiB/s (31.8GB/s), 29.6GiB/s-29.6GiB/s (31.8GB/s-31.8GB/s), io=44.7GiB (48.0GB), run=1511-1511msec
-> > > >
-> > > > > This is run on an xfs file system on a SATA ssd.
-> > > >
-> > > > To compare more closer apples to apples, wouldn't it make more sense
-> > > > to try this with XFS on pmem (with fio -direct=1)?
-> > > >
-> > > >   Luis
-> > >
-> > > Makes sense. Here is the same command line I used with xfs before, but
-> > > now it's on /dev/pmem0 (the same 128G, but converted from devdax to pmem
-> > > because xfs requires that.
-> > >
-> > > fio -name=ten-256m-per-thread --nrfiles=10 -bs=2M --group_reporting=1 --alloc-size=1048576 --filesize=256MiB --readwrite=write --fallocate=none --numjobs=48 --create_on_open=0 --ioengine=io_uring --direct=1 --directory=/mnt/xfs
-> > 
-> > Could you try with mkfs.xfs -d agcount=1024
+On Thu, Feb 08, 2024 at 09:50:27AM -0700, Dave Jiang wrote:
+> 
 
-Won't change anything for the better, may make things worse.
+Hi Dave,
 
->    bw (  MiB/s): min= 5085, max=27367, per=100.00%, avg=14361.95, stdev=165.61, samples=719
->    iops        : min= 2516, max=13670, avg=7160.17, stdev=82.88, samples=719
->   lat (usec)   : 4=0.05%, 10=0.72%, 20=2.23%, 50=2.48%, 100=3.02%
->   lat (usec)   : 250=1.54%, 500=2.37%, 750=1.34%, 1000=0.75%
->   lat (msec)   : 2=3.20%, 4=43.10%, 10=23.05%, 20=14.81%, 50=1.25%
-
-Most of the IO latencies are up round the 4-20ms marks. That seems
-kinda high for a 2MB IO. With a memcpy speed of 10GB/s, the 2MB
-should only take a couple of hundred microseconds. For Famfs, the
-latencies appear to be around 1-4ms.
-
-So where's all that extra time coming from?
+Sorry I missed this in v8. Picking up for v9.  
+See a question below -
 
 
->   lat (msec)   : 100=0.08%
->   cpu          : usr=10.18%, sys=0.79%, ctx=67227, majf=0, minf=38511
+snip
+> 
+> > +static const char *
+> > +find_decoder_name(struct poison_ctx *ctx, const char *name, u64 addr)
+> > +{
+> > +	struct cxl_memdev *memdev = ctx->memdev;
+> > +	struct cxl_memdev_mapping *mapping;
+> > +	struct cxl_endpoint *endpoint;
+> > +	struct cxl_decoder *decoder;
+> > +	struct cxl_port *port;
+> > +	u64 start, end;
+> > +
+> > +	if (memdev)
+> > +		goto find_decoder;
+> > +
+> > +	cxl_mapping_foreach(ctx->region, mapping) {
+> > +		decoder = cxl_mapping_get_decoder(mapping);
+> > +		if (!decoder)
+> > +			continue;
+> > +
+> > +		memdev = cxl_decoder_get_memdev(decoder);
+> > +		if (strcmp(name, cxl_memdev_get_devname(memdev)) == 0)
+> > +			break;
+> > +
+> > +		memdev = NULL;
+> > +	}
+> > +
+> > +find_decoder:
+> 
+> Would it be cleaner to move this block into a helper function? Don't really care for goto blocks that are not error handling paths.
 
-And why is system time reporting at almost zero instead of almost
-all the remaining cpu time (i.e. up at 80-90%)?
+Done. Added a __find_memdev.
 
-Can you run call-graph kernel profiles for XFS and famfs whilst
-running this workload so we have some insight into what is behaving
-differently here?
+> 
+> > +	if (!memdev)
+> > +		return NULL;
+> > +
+> > +	endpoint = cxl_memdev_get_endpoint(memdev);
+> > +	port = cxl_endpoint_get_port(endpoint);
+> > +
+> > +	cxl_decoder_foreach(port, decoder) {
+> > +		start =  cxl_decoder_get_resource(decoder);
+> > +		end = start + cxl_decoder_get_size(decoder) - 1;
+> > +		if (start <= addr && addr <= end)
+> > +			return cxl_decoder_get_devname(decoder);
+> > +	}
+> > +
+> > +	return NULL;
 
--Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+And, with another look - cleaned up the above indented/hidden
+successful return ;)
+
+
+> > +}
+> > +
+> > +int poison_event_to_json(struct tep_event *event, struct tep_record *record,
+> > +			 void *ctx)
+> > +{
+> > +	struct poison_ctx *p_ctx = (struct poison_ctx *)ctx;
+> > +	struct json_object *jobj, *jp, *jpoison = p_ctx->jpoison;
+> > +	unsigned long flags = p_ctx->flags;
+> > +	bool overflow = false;
+> > +	unsigned char *data;
+> > +	const char *name;
+> > +	int pflags;
+> > +	char *str;
+> > +
+> > +	jp = json_object_new_object();
+> > +	if (!jp)
+> > +		return -ENOMEM;
+> > +
+> > +	/* Skip records not in this region when listing by region */
+> > +	name = p_ctx->region ? cxl_region_get_devname(p_ctx->region) : NULL;
+> > +	if (name)
+> > +		str = cxl_get_field_string(event, record, "region");
+> > +
+> > +	if ((name) && (strcmp(name, str) != 0)) {
+> > +		json_object_put(jp);
+> > +		return 0;
+> > +	}
+> > +
+> > +	/* Include endpoint decoder name with hpa, when present */
+> > +	name = cxl_get_field_string(event, record, "memdev");
+> > +	data = cxl_get_field_data(event, record, "hpa");
+> > +	if (*(uint64_t *)data != ULLONG_MAX)
+> > +		name = find_decoder_name(p_ctx, name, *(uint64_t *)data);
+> > +	else
+> > +		name = NULL;
+> > +
+> > +	if (name) {
+> > +		jobj = json_object_new_string(name);
+> > +		if (jobj)
+> > +			json_object_object_add(jp, "decoder", jobj);
+> > +
+> > +		jobj = util_json_object_hex(*(uint64_t *)data, flags);
+> > +		if (jobj)
+> > +			json_object_object_add(jp, "hpa", jobj);
+> > +	}
+> > +
+> > +	data = cxl_get_field_data(event, record, "dpa");
+> > +	jobj = util_json_object_hex(*(uint64_t *)data, flags);
+> > +	if (jobj)
+> > +		json_object_object_add(jp, "dpa", jobj);
+> > +
+> > +	data = cxl_get_field_data(event, record, "dpa_length");
+> > +	jobj = util_json_object_size(*(uint32_t *)data, flags);
+> > +	if (jobj)
+> > +		json_object_object_add(jp, "length", jobj);
+> > +
+> > +	str = cxl_get_field_string(event, record, "source");
+> > +	switch (*(uint8_t *)str) {
+> 
+> This causes reading confusion when it looks like the code is retrieving a string and then compare as an integer. Should this be done through cxl_get_field_data()?
+> 
+
+Did a couple of things here -
+reworked the helpers to give exactly what is needed here,
+ie int, u64 or string. That gets rid of all the casting.
+It also led to a bit more error checking on return value,
+so bonus goodness.
+
+
+> > +	case CXL_POISON_SOURCE_UNKNOWN:
+> > +		jobj = json_object_new_string("Unknown");
+> > +		break;
+> > +	case CXL_POISON_SOURCE_EXTERNAL:
+> > +		jobj = json_object_new_string("External");
+> > +		break;
+> > +	case CXL_POISON_SOURCE_INTERNAL:
+> > +		jobj = json_object_new_string("Internal");
+> > +		break;
+> > +	case CXL_POISON_SOURCE_INJECTED:
+> > +		jobj = json_object_new_string("Injected");
+> > +		break;
+> > +	case CXL_POISON_SOURCE_VENDOR:
+> > +		jobj = json_object_new_string("Vendor");
+> > +		break;
+> > +	default:
+> > +		jobj = json_object_new_string("Reserved");
+> > +	}
+> > +	if (jobj)
+> > +		json_object_object_add(jp, "source", jobj);
+> > +
+> > +	str = cxl_get_field_string(event, record, "flags");
+> > +	pflags = *(uint8_t *)str;
+> 
+> Same as above comment here
+
+Gone. All the values that can be held in "int" are fetched
+using a cxl_get_field_int().
+
+snip
+> > +static struct json_object *
+> > +util_cxl_poison_events_to_json(struct tracefs_instance *inst,
+> > +			       struct poison_ctx *p_ctx)
+> > +{
+> > +	struct event_ctx ectx = {
+> > +		.event_name = "cxl_poison",
+> > +		.event_pid = getpid(),
+> > +		.system = "cxl",
+> > +		.private_ctx = p_ctx,
+> > +		.parse_event = poison_event_to_json,
+> > +	};
+> > +	int rc = 0;
+> > +
+> > +	p_ctx->jpoison = json_object_new_array();
+> > +	if (!p_ctx->jpoison)
+> > +		return NULL;
+> > +
+> > +	rc = cxl_parse_events(inst, &ectx);
+> > +	if (rc < 0) {
+> > +		fprintf(stderr, "Failed to parse events: %d\n", rc);
+> > +		json_object_put(p_ctx->jpoison);
+> > +		return NULL;
+> 
+> Maybe a goto err here and the next error path may now be warranted?
+> > +	}
+> > +
+> > +	if (json_object_array_length(p_ctx->jpoison) == 0) {
+> > +		json_object_put(p_ctx->jpoison);
+> > +		return NULL;
+> > +	}
+> > +
+> > +	return p_ctx->jpoison;
+> > +}
+
+Not sure what you suggest here. I can combine the err cases like
+this:
+
+if ((rc < 0) || json_object_array_length(p_ctx->jpoison) == 0) {
+	fprintf(stderr, "Failed to parse events: %d\n", rc);
+	json_object_put(p_ctx->jpoison);
+	return NULL;
+}
+
+Or (and) something else?
+
