@@ -1,220 +1,147 @@
-Received: from mail-oi1-f174.google.com (mail-oi1-f174.google.com [209.85.167.174])
+Received: from mail-pf1-f182.google.com (mail-pf1-f182.google.com [209.85.210.182])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC81C125CA
-	for <nvdimm@lists.linux.dev>; Thu, 29 Feb 2024 00:20:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3CCC236B17
+	for <nvdimm@lists.linux.dev>; Thu, 29 Feb 2024 02:15:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709166026; cv=none; b=DpecGq7dxJb2FnQrNcdi2mVSkr5+U0VYEg9dxLrwWxB34LgVmUl5Qx24KES8SWYbwGbwWYxQHEjiG8Rpw7SnSoP603F28N89ml8NwVsSpIt0h7iOI7NTR8LQENvdWGPVlWKGVOaw5NR3qIMQmEQ2Q3VPz7xWzXQMpMVnY8m6FZs=
+	t=1709172929; cv=none; b=kJCiigsfKEPCmNH65UvruoZU+lIwyLXCbG/wN0EKFmwXkPiJHpreZltx/kWMccgpECT6kwAb+lWVLO17ZZa1H/ufISd8RfP8aets3Pn47ID6OdTZVk7CGtzMIXCqNawUjBGKI9WFe4FB9ckcdst6hRT9zneBsXvjbDTDc0jq+K8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709166026; c=relaxed/simple;
-	bh=BvdAVAaadK3QwHaal211fg0PskV4RkLz4NBeTDVh3Ig=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=Ueifhf84ysAGWD/vWtmmmQBb535iH3yhzvO9bO4wET5jogDNPYfdypbLVmCW/IvkKFGXl4++SiRx8xcCaJDthZeqSfNCE1BOKJAlmqC8u3Pz8q6HgTGSMoHECDawzyiHolccRq86pFlGQ59zueO3q23PJlK3+PtQxhQSpcUhGJc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=T5Kfozly; arc=none smtp.client-ip=209.85.167.174
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1709172929; c=relaxed/simple;
+	bh=gbK/8SPPoX50lcAPF/cWQzwwqAl+Hw5BLMUVJqzZZxU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=AQNlADhtHaeT4Gk0d2IpcEioCq9BLwaUzVVmzxTAhABlxICb0T64cZy3c99Gib7iSJ1UxvOxLUy5xg9qW7++ZQPVP23LZAwcR9L9UHssBOV7q8ErKMPmkBn9plIKPEsV2JGEyAJ/vfG26In9ARTI5mOLuZg42hisMsjuahSFf3I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fromorbit.com; spf=pass smtp.mailfrom=fromorbit.com; dkim=pass (2048-bit key) header.d=fromorbit-com.20230601.gappssmtp.com header.i=@fromorbit-com.20230601.gappssmtp.com header.b=JBWGYthC; arc=none smtp.client-ip=209.85.210.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fromorbit.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fromorbit.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="T5Kfozly"
-Received: by mail-oi1-f174.google.com with SMTP id 5614622812f47-3bbc649c275so192178b6e.0
-        for <nvdimm@lists.linux.dev>; Wed, 28 Feb 2024 16:20:24 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=fromorbit-com.20230601.gappssmtp.com header.i=@fromorbit-com.20230601.gappssmtp.com header.b="JBWGYthC"
+Received: by mail-pf1-f182.google.com with SMTP id d2e1a72fcca58-6e571666804so237976b3a.2
+        for <nvdimm@lists.linux.dev>; Wed, 28 Feb 2024 18:15:27 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1709166024; x=1709770824; darn=lists.linux.dev;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:sender:from:to:cc:subject:date:message-id:reply-to;
-        bh=w393zCdu0xHlp2PBB/YtzlCDvLqiNOOGgXpK5V2Qh88=;
-        b=T5KfozlyvBbmQuztisAOWmpLE7oeTctF3nGsaYycshVBFxwLkBtOtB3XpOa3p4UvAw
-         uggqZeFh3Ja5FukSlgfMkSVvMKd0VlNKjmWs2qjWHl4YRJg4ToctID2QTN4bglH2ZqIo
-         GB7GYXwxQa4JNnXXW7LCm4KxkMxo4K6lRGf3tw66SEKjMtEYw/T5b3VkgI2mwefeNO4M
-         pRilIkb2rTbFSqIuxkQZuHsfBZ/FI0/rixoMVV7vMt7+yCqi+tcD8i83UoNqHMz69yLw
-         /Jjjdt6zSdoDHkYEwl3bUB7fDLUgAy4ZA4w45wkwCGAm9iHOnJWz3e2NMk/l74mi4eWO
-         5haA==
+        d=fromorbit-com.20230601.gappssmtp.com; s=20230601; t=1709172927; x=1709777727; darn=lists.linux.dev;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date:from:to
+         :cc:subject:date:message-id:reply-to;
+        bh=k82qC/YmHMBHWFt7RMlbhQ42CGo9M2erm3qHEzqFqxc=;
+        b=JBWGYthCrxPSFEP2VJhQgiDGuTJ2FbKxYDnMV7ZpsLnHsaHEEPxOk4csDRNkVf1iTD
+         hDN317y1ddlJSImoA67akCzV0fJTm50sCV/68awvFLTdTDStJJ5oXTd7DPAvs16eg1th
+         dcB+nTInjLGWTds0/QYXTbPg0Es/TdyzHHFCIGYNCHXL8xlA0E5DwL2gTXWYydlYreAa
+         +FoiKXyWWIg1AYnW6saflydD3FTtMgzNw8yAB2C7XOjXCKpHiOwMYxI6nMwqQHJHTgWO
+         IYi83yxnkhKQ7ZopSukbmEYscvRtOJFU4zMrqOL/VcQeSAzMBm0Dx5lD+7cjjxg0UEnD
+         bFTw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1709166024; x=1709770824;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:sender:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=w393zCdu0xHlp2PBB/YtzlCDvLqiNOOGgXpK5V2Qh88=;
-        b=Q7UpJNHaK8cU9kbntgzHqtBocQrXF05Aq/OL+thKX5ZM/B6HTnsasoyUzkzYyBrkxf
-         rKRoG3MqSmgj3QL0PjASEndJhYI+G5v40BW3bmDFW5FAB7hq43u8OBX6gkhdCH2XsXlc
-         FDx7dtfJli03Qi7nJdfUze3EM5gl0qSQpRYT9AmWd0GB8SHaNukKqC18F7yr9sMTCmEU
-         Q0oonHRGBQq4gAEJiyJ2XfFFcbB3tFzP7eWDrWVbLq1mB/wUPl/dXFfoPAo6xYf9GMaK
-         2av7Q7bU1I1D4LP4ZmnDa4aMSikXmOfRsiGTmmul/nYM24DRH3HNZkHtbC1wTpEvOQNf
-         Us3A==
-X-Forwarded-Encrypted: i=1; AJvYcCXyJ7Wjz7/dZerHz6+hBafbtYO0CM/ftRDBmycvIL9bBcw2xhvQ3bgpvhFo+3Y3xGXXVbVkRlBehZ+UGSkHF/HBLk5j5FhN
-X-Gm-Message-State: AOJu0YxmJCRr+4Zauj6Q9N6fEbQPNlNky4SGr//FpuWVwuC8EyPTjqg9
-	oSsb3hC9QS8of9SkMfTCS5oYRZBMWwV/GuQH/HHtXz3RPt9rulk4
-X-Google-Smtp-Source: AGHT+IFvFMvwDpZbAKYi3GrDuwDqqFPdGia4/8Y/ma96atLSvwHu/ThBLUGHswkqbeFZWAUmvnClRQ==
-X-Received: by 2002:a05:6871:3404:b0:21f:a649:dc65 with SMTP id nh4-20020a056871340400b0021fa649dc65mr608151oac.6.1709166023805;
-        Wed, 28 Feb 2024 16:20:23 -0800 (PST)
-Received: from localhost.localdomain (070-114-203-196.res.spectrum.com. [70.114.203.196])
-        by smtp.gmail.com with ESMTPSA id re4-20020a056871628400b002205bc51bfbsm93194oab.14.2024.02.28.16.20.21
-        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Wed, 28 Feb 2024 16:20:23 -0800 (PST)
-Sender: John Groves <grovesaustin@gmail.com>
-From: John Groves <John@Groves.net>
-X-Google-Original-From: John Groves <john@groves.net>
-To: lsf-pc@lists.linux-foundation.org,
+        d=1e100.net; s=20230601; t=1709172927; x=1709777727;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=k82qC/YmHMBHWFt7RMlbhQ42CGo9M2erm3qHEzqFqxc=;
+        b=Jbxe5KaVzUbPBhzEi6cXzfsZWP4TFjnMyMqVJqHZytdz1fS/Kh0Q8jBsg2fH8M9Wla
+         mJjsdxGChSxI/g2/MUi7PPhLLQkawSKyY0FvU6CPKgU5YfAEc1HkDYPoKFFnVa7WYlS7
+         V+FmMTIgYamioJEw2Zchb4ko25zYMbwmrt8ixRXEOlsQOqKmxKdoxLSnJ5Fxi6vy4cFi
+         SW+wjc4KpG/cKsjkExb9WSYYtO0SmbYY7z3vUI4A0E0Fq0XkZkBfRpTa3bb6RnrCkfOU
+         +DB3ElWTN4qCScwP1leV8SFQM4ule8nXTkg/qygBhL70105SKxlHJKIEcfp+cTQYB1rM
+         R1bg==
+X-Forwarded-Encrypted: i=1; AJvYcCXR1QY4bF2FPZPtCSFS4mi9etaEbhHZLgdcBTP2lFROlF1HTc4/JwqD0aRsuhoDNZlD6ayTysxmwRT7df9hDL8IKb+ld2e4
+X-Gm-Message-State: AOJu0YyCv5yHOHqOTVRXrDU8R3qGb78tJWQsWaW6tbFiDCQAIGJtRTmd
+	o+2+Q4+vn8SQsKdFtbokJoobJHFV5eFcUq18W4doZukoZhS3jDbBPkJ1inJQM1g=
+X-Google-Smtp-Source: AGHT+IHlcUbGYgKkh9AJe9B6cyxTd0bn96C+Tels4WsobRn2K0DWuGc5NbJJ2I2uCc8hPOOH897Pnw==
+X-Received: by 2002:a05:6a21:1789:b0:1a1:2094:960b with SMTP id nx9-20020a056a21178900b001a12094960bmr1024668pzb.43.1709172927291;
+        Wed, 28 Feb 2024 18:15:27 -0800 (PST)
+Received: from dread.disaster.area (pa49-181-247-196.pa.nsw.optusnet.com.au. [49.181.247.196])
+        by smtp.gmail.com with ESMTPSA id w16-20020a1709026f1000b001dc90b62393sm141163plk.216.2024.02.28.18.15.26
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 28 Feb 2024 18:15:26 -0800 (PST)
+Received: from dave by dread.disaster.area with local (Exim 4.96)
+	(envelope-from <david@fromorbit.com>)
+	id 1rfVxE-00Cupu-1S;
+	Thu, 29 Feb 2024 13:15:24 +1100
+Date: Thu, 29 Feb 2024 13:15:24 +1100
+From: Dave Chinner <david@fromorbit.com>
+To: John Groves <John@groves.net>
+Cc: Luis Chamberlain <mcgrof@kernel.org>, John Groves <jgroves@micron.com>,
 	Jonathan Corbet <corbet@lwn.net>,
 	Dan Williams <dan.j.williams@intel.com>,
 	Vishal Verma <vishal.l.verma@intel.com>,
 	Dave Jiang <dave.jiang@intel.com>,
 	Alexander Viro <viro@zeniv.linux.org.uk>,
-	Christian Brauner <brauner@kernel.org>,
-	Jan Kara <jack@suse.cz>,
-	Matthew Wilcox <willy@infradead.org>,
-	linux-cxl@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org,
-	nvdimm@lists.linux.dev
-Cc: John Groves <John@Groves.net>,
-	John Groves <jgroves@micron.com>,
-	john@jagalactic.com,
-	Dave Chinner <david@fromorbit.com>,
-	Christoph Hellwig <hch@infradead.org>,
-	dave.hansen@linux.intel.com,
-	gregory.price@memverge.com,
-	Randy Dunlap <rdunlap@infradead.org>,
-	Jerome Glisse <jglisse@google.com>,
-	David Rientjes <rientjes@google.com>,
-	Johannes Weiner <hannes@cmpxchg.org>,
-	John Hubbard <jhubbard@nvidia.com>,
-	Zi Yan <ziy@nvidia.com>,
-	Bharata B Rao <bharata@amd.com>,
-	"Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>,
-	Alistair Popple <apopple@nvidia.com>,
-	Christoph Lameter <cl@gentwo.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Jon Grimm <jon.grimm@amd.com>,
-	Brian Morris <bsmorris@google.com>,
-	Wei Xu <weixugc@google.com>,
-	Theodore Ts'o <tytso@mit.edu>,
-	mykolal@meta.com,
-	Aravind Ramesh <arramesh@micron.com>,
-	Ajay Joshi <ajayjoshi@micron.com>,
-	Eishan Mirakhur <emirakhur@micron.com>,
-	Ravi Shankar <venkataravis@micron.com>,
-	Srinivasulu Thanneeru <sthanneeru@micron.com>
-Subject: [LSF/MM/BPF TOPIC] Famfs: shared memory file system for disaggregated memory [LSF/MM/BPF ATTEND]
-Date: Wed, 28 Feb 2024 18:20:20 -0600
-Message-Id: <20240229002020.85535-1-john@groves.net>
-X-Mailer: git-send-email 2.39.3 (Apple Git-145)
+	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+	Matthew Wilcox <willy@infradead.org>, linux-cxl@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
+	john@jagalactic.com, Christoph Hellwig <hch@infradead.org>,
+	dave.hansen@linux.intel.com, gregory.price@memverge.com
+Subject: Re: [RFC PATCH 00/20] Introduce the famfs shared-memory file system
+Message-ID: <Zd/ovHqO/16PsUsp@dread.disaster.area>
+References: <cover.1708709155.git.john@groves.net>
+ <ZdkzJM6sze-p3EWP@bombadil.infradead.org>
+ <cc2pabb3szzpm5jxxeku276csqu5vwqgzitkwevfluagx7akiv@h45faer5zpru>
+ <Zdy0CGL6e0ri8LiC@bombadil.infradead.org>
+ <w5cqtmdgqtjvbnrg5okdgmxe45vjg5evaxh6gg3gs6kwfqmn5p@wgakpqcumrbt>
+ <CAB=NE6UvHSvTJJCq-YuBEZNo8F5Kg25aK+2im=V7DgEsTJ8wPg@mail.gmail.com>
+ <mw4yhbmza4idassgbqeiti4ue7jq377ezxfrqrcbsbzsrmfiln@kn7qmqljvswl>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <mw4yhbmza4idassgbqeiti4ue7jq377ezxfrqrcbsbzsrmfiln@kn7qmqljvswl>
 
-John Groves, Micron
+On Mon, Feb 26, 2024 at 08:05:58PM -0600, John Groves wrote:
+> On 24/02/26 04:58PM, Luis Chamberlain wrote:
+> > On Mon, Feb 26, 2024 at 1:16 PM John Groves <John@groves.net> wrote:
+> > >
+> > > On 24/02/26 07:53AM, Luis Chamberlain wrote:
+> > > > On Mon, Feb 26, 2024 at 07:27:18AM -0600, John Groves wrote:
+> > > > > Run status group 0 (all jobs):
+> > > > >   WRITE: bw=29.6GiB/s (31.8GB/s), 29.6GiB/s-29.6GiB/s (31.8GB/s-31.8GB/s), io=44.7GiB (48.0GB), run=1511-1511msec
+> > > >
+> > > > > This is run on an xfs file system on a SATA ssd.
+> > > >
+> > > > To compare more closer apples to apples, wouldn't it make more sense
+> > > > to try this with XFS on pmem (with fio -direct=1)?
+> > > >
+> > > >   Luis
+> > >
+> > > Makes sense. Here is the same command line I used with xfs before, but
+> > > now it's on /dev/pmem0 (the same 128G, but converted from devdax to pmem
+> > > because xfs requires that.
+> > >
+> > > fio -name=ten-256m-per-thread --nrfiles=10 -bs=2M --group_reporting=1 --alloc-size=1048576 --filesize=256MiB --readwrite=write --fallocate=none --numjobs=48 --create_on_open=0 --ioengine=io_uring --direct=1 --directory=/mnt/xfs
+> > 
+> > Could you try with mkfs.xfs -d agcount=1024
 
-Micron recently released the first RFC for famfs [1]. Although famfs is not
-CXL-specific in any way, it aims to enable hosts to share data sets in shared
-memory (such as CXL) by providing a memory-mappable fs-dax file system
-interface to the memory.
+Won't change anything for the better, may make things worse.
 
-Sharable disaggregated memory already exists in the lab, and will be possible
-in the wild soon. Famfs aims to do the following:
+>    bw (  MiB/s): min= 5085, max=27367, per=100.00%, avg=14361.95, stdev=165.61, samples=719
+>    iops        : min= 2516, max=13670, avg=7160.17, stdev=82.88, samples=719
+>   lat (usec)   : 4=0.05%, 10=0.72%, 20=2.23%, 50=2.48%, 100=3.02%
+>   lat (usec)   : 250=1.54%, 500=2.37%, 750=1.34%, 1000=0.75%
+>   lat (msec)   : 2=3.20%, 4=43.10%, 10=23.05%, 20=14.81%, 50=1.25%
 
-* Provide an access method that provides isolation between files, and does not
-  tempt developers to mmap all the memory writable on every host.
-* Provide an an access method that can be used by unmodified apps.
+Most of the IO latencies are up round the 4-20ms marks. That seems
+kinda high for a 2MB IO. With a memcpy speed of 10GB/s, the 2MB
+should only take a couple of hundred microseconds. For Famfs, the
+latencies appear to be around 1-4ms.
 
-Without something like famfs, enabling the use of sharable memory will involve
-the temptation to do things that may destabilize systems, such as
-mapping large shared, writable global memory ranges and hooking allocators to
-use it (potentially sacrificing isolation), and forcing the same virtual
-address ranges in every host/process (compromising security).
-
-The most obvious candidate app categories are data analytics and data lakes.
-Both make heavy use of "zero-copy" data frames - column oriented data that
-is laid out for efficient use via (MAP_SHARED) mmap. Moreover, these use case
-categories are generally driven by python code that wrangles data into
-appropriate data frames - making it straightforward to put the data frames
-into famfs. Furthermore, these use cases usually involve the shared data being
-read-only during computation or query jobs - meaning they are often free of
-cache coherency concerns.
-
-Workloads such as these often deal with data sets that are too large to fit
-in a single server's memory, so the data gets sharded - requiring movement via
-a network. Sharded apps also sometimes have to do expensive reshuffling -
-moving data to nodes with available compute resources. Avoiding the sharding
-overheads by accessing such data sets in disaggregated shared memory looks
-promising to make make better use of memory and compute resources, and by
-effectively de-duplicating data sets in memory.
-
-About sharable memory
-
-* Shared memory is pmem-like, in that hosts will connect in order to access
-  pre-existing contents
-* Onlining sharable memory as system-ram is nonsense; system-ram gets zeroed...
-* CXL 3 provides for optionally-supported hardware-managed cache coherency
-* But "multiple-readers, no writers" use cases don't need hardware support
-  for coherency
-* CXL 3.1 dynamic capacity devices (DCDs) should be thought of as devices with
-  an allocator built in.
-* When sharable capacity is allocated, each host that has access will see a
-  /dev/dax device that can be found by the "tag" of the allocation. The tag is
-  just a uuid.
-* CXL 3.1 also allows the capacity associated with any allocated tag to be
-  provided to each host (or host group) as either writable or read-only.
-
-About famfs
-
-Famfs is an append-only log-structured file system that places many limits
-on what can be done. This allows famfs to tolerate clients with a stale copy
-of metadata. All memory allocation and log maintenance is performed from user
-space, but file extent lists are cached in the kernel for fast fault
-resolution. The current limitations are fairly extreme, but many can be relaxed
-by writing more code, managing Byzantine generals, etc. ;)
-
-A famfs-enabled kernel can be cloned at [3], and the user space repo can be
-cloned at [4]. Even with major functional limitations in its current form
-(e.g. famfs does not currently support deleting files), it is sufficient to
-use in data analytics workloads - in which you 1) create a famfs file system,
-2) dump data sets into it, 3) run clustered jobs that consume the shared data
-sets, and 4) dismount and deallocate the memory containing the file system.
-
-Famfs Open Issues
-
-* Volatile CXL memory is exposed as character dax devices; the famfs patch
-  set adds the iomap API, which is required for fs-dax but until now missing
-  from character dax.
-* (/dev/pmem devices are block, and support the iomap api for fs-dax file
-  systems)
-* /dev/pmem devices can be converted to /dev/dax mode, but native /dev/dax
-  devices cannot be converted to pmem mode.
-* /dev/dax devices lack the iomap api that fs-dax uses with pmem, so the famfs
-  patch set adds that.
-* VFS layer hooks for a file system on a character device may be needed.
-* Famfs has uncovered some previously latent bugs in the /dev/dax mmap
-  machinery that probably require attention.
-* Famfs currently works with either pmem or devdax devices, but our
-  inclination is to drop pmem support to, reduce the complexity of supporting
-  two different underlying device types - particularly since famfs is not
-  intended for actual pmem.
+So where's all that extra time coming from?
 
 
-Required :-
-Dan Williams
-Christian Brauner
-Jonathan Cameron
-Dave Hansen
+>   lat (msec)   : 100=0.08%
+>   cpu          : usr=10.18%, sys=0.79%, ctx=67227, majf=0, minf=38511
 
-[LSF/MM + BPF ATTEND]
+And why is system time reporting at almost zero instead of almost
+all the remaining cpu time (i.e. up at 80-90%)?
 
-I am the author of the famfs file system. Famfs was first introduced at LPC
-2023 [2]. I'm also Micron's voting member on the Software and Systems Working
-Group (SSWG) of the CXL Consortium, and a co-author of the CXL 3.1
-specification.
+Can you run call-graph kernel profiles for XFS and famfs whilst
+running this workload so we have some insight into what is behaving
+differently here?
 
-
-References
-
-[1] https://lore.kernel.org/linux-fsdevel/cover.1708709155.git.john@groves.net/#t
-[2] https://lpc.events/event/17/contributions/1455/
-[3] https://www.computeexpresslink.org/download-the-specification
-[4] https://github.com/cxl-micron-reskit/famfs-linux
-
-Best regards,
-John Groves
-Micron
+-Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
