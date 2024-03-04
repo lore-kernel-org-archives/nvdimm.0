@@ -1,187 +1,196 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C462A612E5;
-	Mon,  4 Mar 2024 17:36:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF3A76169E
+	for <nvdimm@lists.linux.dev>; Mon,  4 Mar 2024 18:26:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.15
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709573813; cv=none; b=LpRmQb0CyatZF+tp972FnF5rBLMUvO46/MW7MNiHE6rLraTvPoFpKBVljSiSEFD36N4ItyssackO1Az2pxZRqN2aYibOW0IcOvkMRt/fzmdhZoxlML1Qmq3fGxjTC8Dl29x1dKfgrlvC+5WzW67TvNLwzNjoaBALJl+oGuhmLQI=
+	t=1709576807; cv=none; b=CfVO1lJwFylOnhcSdWwleOlxdzkQVEZMxwM1WDA7GojTZn4UAIyoDO1n+vGni9k9CrEnrBchqBeCtrQRAe8WPDde/aJyPpoBwNSm9BjmN2QGMEjCvaqvp+szGCrZUtOWIPH/JK8krXKY1E8Cru142PKC1xZQrqG2i28PGiUTvo0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709573813; c=relaxed/simple;
-	bh=P32Wo1VdeIxAyw+sFnzGc9dlIaUP64tLNplkjUGoxkY=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=WnYfnBVGesg4Mz+oaD+fwO+VFy00wfOEjf71nQIqFaWnG6PwAfTnTJfTBSL5rRhpUvgpm0NEvGhsucodwAgBjz8Z9S9uJK4E+C7zZdIw0Sw7MwUkU3ECxbYUxWqf4JH+e9nqm/5MfW3GmZkGaGeaW4LTqMTxT5ZVspzxjrB4VuU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7A195C433C7;
-	Mon,  4 Mar 2024 17:36:52 +0000 (UTC)
-From: Dave Jiang <dave.jiang@intel.com>
-To: linux-cxl@vger.kernel.org,
-	nvdimm@lists.linux.dev
-Cc: vishal.l.verma@intel.com
-Subject: [NDCTL PATCH v9 4/4] ndctl: add test for qos_class in CXL test suite
-Date: Mon,  4 Mar 2024 10:35:35 -0700
-Message-ID: <20240304173618.1580662-5-dave.jiang@intel.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20240304173618.1580662-1-dave.jiang@intel.com>
-References: <20240304173618.1580662-1-dave.jiang@intel.com>
+	s=arc-20240116; t=1709576807; c=relaxed/simple;
+	bh=ZRGWEwfGo3XHCGL1E28+X/9CFNSVgUWBmMd0ddtjZKU=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=KNTENKnFau+r0Aflf8n6XImimDgV+UmqOR+1dX5aHHFZAADAIqVTdguIJO2ktVmhsZdae3vXja11gNIuRJIuHbATjxWA5F4lt66ifq5MG+2nA9jYu3kQa8m4ydiAGTJIISavkHuogXjCeaHX93TGpSvvJf3HsxL8uEuBaMvGT8E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=G+xoED3y; arc=none smtp.client-ip=192.198.163.15
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="G+xoED3y"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1709576806; x=1741112806;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=ZRGWEwfGo3XHCGL1E28+X/9CFNSVgUWBmMd0ddtjZKU=;
+  b=G+xoED3yQg0NuCG+339k4a4kRElKerby4nJNY4mf32+RL/y+2/fk6cAY
+   zHv22HQUS2WpWR/qlE3a6BRW+a8Xg19WDL0/5f8eCAaOtf/NNT9xhWVzS
+   W5lPMESE/qQvw3Vjh10VpUJZUEj0+l3LpkmEcOPmkGWgiYME+xIhMLRpI
+   QV68TV1fPl6zipVNiF4SBqhJW1nI0qZh5N0b1FtO1fBon6Vm2T/Y957hf
+   t9t5ii9x6fWjE5a7fK8gZxDSPvAZoA8jF0PLct7oixK3XteGftmOn2S3O
+   xsZzu1OvuJLlu2FkSojg5mLz8kahfdswBFSWClFUipbcyzn15F0szw1qB
+   Q==;
+X-IronPort-AV: E=McAfee;i="6600,9927,11003"; a="4254651"
+X-IronPort-AV: E=Sophos;i="6.06,204,1705392000"; 
+   d="scan'208";a="4254651"
+Received: from orviesa002.jf.intel.com ([10.64.159.142])
+  by fmvoesa109.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Mar 2024 10:26:45 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.06,204,1705392000"; 
+   d="scan'208";a="39947049"
+Received: from djiang5-mobl3.amr.corp.intel.com (HELO [10.247.118.63]) ([10.247.118.63])
+  by orviesa002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Mar 2024 10:26:42 -0800
+Message-ID: <5a01344f-2365-4ae1-a5aa-e13085c0605c@intel.com>
+Date: Mon, 4 Mar 2024 11:26:36 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [ndctl PATCH v9 4/7] cxl/event_trace: add helpers to retrieve tep
+ fields by type
+Content-Language: en-US
+To: alison.schofield@intel.com, Vishal Verma <vishal.l.verma@intel.com>
+Cc: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
+References: <cover.1709253898.git.alison.schofield@intel.com>
+ <6e07b4ceb01a56aa6791749709c2bf311bb91e1d.1709253898.git.alison.schofield@intel.com>
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <6e07b4ceb01a56aa6791749709c2bf311bb91e1d.1709253898.git.alison.schofield@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-Add tests in cxl-qos-class.sh to verify qos_class are set with the fake
-qos_class create by the kernel.  Root decoders should have qos_class
-attribute set. Memory devices should have ram_qos_class or pmem_qos_class
-set depending on which partitions are valid.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
----
- test/common           |  4 ++
- test/cxl-qos-class.sh | 99 +++++++++++++++++++++++++++++++++++++++++++
- test/meson.build      |  2 +
- 3 files changed, 105 insertions(+)
- create mode 100755 test/cxl-qos-class.sh
 
-diff --git a/test/common b/test/common
-index f1023ef20f7e..5694820c7adc 100644
---- a/test/common
-+++ b/test/common
-@@ -150,3 +150,7 @@ check_dmesg()
- 	grep -q "Call Trace" <<< $log && err $1
- 	true
- }
-+
-+
-+# CXL COMMON
-+TEST_QOS_CLASS=42
-diff --git a/test/cxl-qos-class.sh b/test/cxl-qos-class.sh
-new file mode 100755
-index 000000000000..fbc0e50b7fe4
---- /dev/null
-+++ b/test/cxl-qos-class.sh
-@@ -0,0 +1,99 @@
-+#!/bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright (C) 2024 Intel Corporation. All rights reserved.
-+
-+. $(dirname $0)/common
-+
-+rc=77
-+
-+set -ex
-+
-+trap 'err $LINENO' ERR
-+
-+check_prereq "jq"
-+
-+modprobe -r cxl_test
-+modprobe cxl_test
-+rc=1
-+
-+check_qos_decoders () {
-+	# check root decoders have expected fake qos_class
-+	# also make sure the number of root decoders equal to the number
-+	# with qos_class found
-+	json=$($CXL list -b cxl_test -D -d root)
-+	decoders=$(echo "$json" | jq length)
-+	count=0
-+	while read -r qos_class; do
-+		if [[ "$qos_class" != "$TEST_QOS_CLASS" ]]; then
-+			err "$LINENO"
-+		fi
-+		count=$((count+1))
-+	done <<< "$(echo "$json" | jq -r '.[] | .qos_class')"
-+
-+	if [[ "$count" != "$decoders" ]]; then
-+		err "$LINENO"
-+	fi
-+}
-+
-+check_qos_memdevs () {
-+	# Check that memdevs that expose ram_qos_class or pmem_qos_class have
-+	# expected fake value programmed.
-+	json=$(cxl list -b cxl_test -M)
-+	ram_size=$(jq ".[] | .ram_size" <<< $json)
-+	ram_qos_class=$(jq ".[] | .ram_qos_class" <<< $json)
-+	pmem_size=$(jq ".[] | .pmem_size" <<< $json)
-+	pmem_qos_class=$(jq ".[] | .pmem_qos_class" <<< $json)
-+
-+	if [[ "$ram_size" != null ]] && ((ram_qos_class != TEST_QOS_CLASS)); then
-+		err "$LINENO"
-+	fi
-+
-+	if [[ "$pmem_size" != null ]] && ((pmem_qos_class != TEST_QOS_CLASS)); then
-+		err "$LINENO"
-+	fi
-+}
-+
-+# Based on cxl-create-region.sh create_single()
-+destroy_regions()
-+{
-+	if [[ "$*" ]]; then
-+		$CXL destroy-region -f -b cxl_test "$@"
-+	else
-+		$CXL destroy-region -f -b cxl_test all
-+	fi
-+}
-+
-+create_region_check_qos()
-+{
-+	# Find an x1 decoder
-+	decoder=$($CXL list -b cxl_test -D -d root | jq -r "[ .[] |
-+		  select(.max_available_extent > 0) |
-+		  select(.pmem_capable == true) |
-+		  select(.nr_targets == 1) ] |
-+		  .[0].decoder")
-+
-+	# Find a memdev for this host-bridge
-+	port_dev0=$($CXL list -T -d $decoder | jq -r ".[] |
-+		    .targets | .[] | select(.position == 0) | .target")
-+	mem0=$($CXL list -M -p $port_dev0 | jq -r ".[0].memdev")
-+	memdevs="$mem0"
-+
-+	# Send create-region with -Q to enforce qos_class matching
-+	region=$($CXL create-region -Q -d $decoder -m $memdevs | jq -r ".region")
-+	if [[ ! $region ]]; then
-+		echo "failed to create region"
-+		err "$LINENO"
-+	fi
-+
-+	destroy_regions "$region"
-+}
-+
-+check_qos_decoders
-+
-+check_qos_memdevs
-+
-+create_region_check_qos
-+
-+check_dmesg "$LINEO"
-+
-+modprobe -r cxl_test
-diff --git a/test/meson.build b/test/meson.build
-index 5eb35749a95b..4892df11119f 100644
---- a/test/meson.build
-+++ b/test/meson.build
-@@ -160,6 +160,7 @@ cxl_events = find_program('cxl-events.sh')
- cxl_poison = find_program('cxl-poison.sh')
- cxl_sanitize = find_program('cxl-sanitize.sh')
- cxl_destroy_region = find_program('cxl-destroy-region.sh')
-+cxl_qos_class = find_program('cxl-qos-class.sh')
- 
- tests = [
-   [ 'libndctl',               libndctl,		  'ndctl' ],
-@@ -192,6 +193,7 @@ tests = [
-   [ 'cxl-poison.sh',          cxl_poison,         'cxl'   ],
-   [ 'cxl-sanitize.sh',        cxl_sanitize,       'cxl'   ],
-   [ 'cxl-destroy-region.sh',  cxl_destroy_region, 'cxl'   ],
-+  [ 'cxl-qos-class.sh',       cxl_qos_class,      'cxl'   ],
- ]
- 
- if get_option('destructive').enabled()
--- 
-2.43.0
+On 2/29/24 6:31 PM, alison.schofield@intel.com wrote:
+> From: Alison Schofield <alison.schofield@intel.com>
+> 
+> Add helpers to extract the value of an event record field given the
+> field name. This is useful when the user knows the name and format
+> of the field and simply needs to get it.
+> 
+> Since this is in preparation for adding a cxl_poison private parser
+> for 'cxl list --media-errors' support, add those specific required
+> types: u8, u32, u64, char*
+> 
+> Signed-off-by: Alison Schofield <alison.schofield@intel.com>
 
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+
+> ---
+>  cxl/event_trace.c | 75 +++++++++++++++++++++++++++++++++++++++++++++++
+>  cxl/event_trace.h | 10 ++++++-
+>  2 files changed, 84 insertions(+), 1 deletion(-)
+> 
+> diff --git a/cxl/event_trace.c b/cxl/event_trace.c
+> index bdad0c19dbd4..6cc9444f3204 100644
+> --- a/cxl/event_trace.c
+> +++ b/cxl/event_trace.c
+> @@ -15,6 +15,81 @@
+>  #define _GNU_SOURCE
+>  #include <string.h>
+>  
+> +static struct tep_format_field *__find_field(struct tep_event *event,
+> +					     const char *name)
+> +{
+> +	struct tep_format_field **fields;
+> +
+> +	fields = tep_event_fields(event);
+> +	if (!fields)
+> +		return NULL;
+> +
+> +	for (int i = 0; fields[i]; i++) {
+> +		struct tep_format_field *f = fields[i];
+> +
+> +		if (strcmp(f->name, name) != 0)
+> +			continue;
+> +
+> +		return f;
+> +	}
+> +	return NULL;
+> +}
+> +
+> +u64 cxl_get_field_u64(struct tep_event *event, struct tep_record *record,
+> +		      const char *name)
+> +{
+> +	struct tep_format_field *f;
+> +	unsigned char *val;
+> +	int len;
+> +
+> +	f = __find_field(event, name);
+> +	if (!f)
+> +		return ULLONG_MAX;
+> +
+> +	val = tep_get_field_raw(NULL, event, f->name, record, &len, 0);
+> +	if (!val)
+> +		return ULLONG_MAX;
+> +
+> +	return *(u64 *)val;
+> +}
+> +
+> +char *cxl_get_field_string(struct tep_event *event, struct tep_record *record,
+> +			   const char *name)
+> +{
+> +	struct tep_format_field *f;
+> +	int len;
+> +
+> +	f = __find_field(event, name);
+> +	if (!f)
+> +		return NULL;
+> +
+> +	return tep_get_field_raw(NULL, event, f->name, record, &len, 0);
+> +}
+> +
+> +u32 cxl_get_field_u32(struct tep_event *event, struct tep_record *record,
+> +		      const char *name)
+> +{
+> +	char *val;
+> +
+> +	val = cxl_get_field_string(event, record, name);
+> +	if (!val)
+> +		return UINT_MAX;
+> +
+> +	return *(u32 *)val;
+> +}
+> +
+> +u8 cxl_get_field_u8(struct tep_event *event, struct tep_record *record,
+> +		    const char *name)
+> +{
+> +	char *val;
+> +
+> +	val = cxl_get_field_string(event, record, name);
+> +	if (!val)
+> +		return UCHAR_MAX;
+> +
+> +	return *(u8 *)val;
+> +}
+> +
+>  static struct json_object *num_to_json(void *num, int elem_size, unsigned long flags)
+>  {
+>  	bool sign = flags & TEP_FIELD_IS_SIGNED;
+> diff --git a/cxl/event_trace.h b/cxl/event_trace.h
+> index ec61962abbc6..bbdea3b896e0 100644
+> --- a/cxl/event_trace.h
+> +++ b/cxl/event_trace.h
+> @@ -5,6 +5,7 @@
+>  
+>  #include <json-c/json.h>
+>  #include <ccan/list/list.h>
+> +#include <ccan/short_types/short_types.h>
+>  
+>  struct jlist_node {
+>  	struct json_object *jobj;
+> @@ -25,5 +26,12 @@ int cxl_parse_events(struct tracefs_instance *inst, struct event_ctx *ectx);
+>  int cxl_event_tracing_enable(struct tracefs_instance *inst, const char *system,
+>  		const char *event);
+>  int cxl_event_tracing_disable(struct tracefs_instance *inst);
+> -
+> +char *cxl_get_field_string(struct tep_event *event, struct tep_record *record,
+> +			   const char *name);
+> +u8 cxl_get_field_u8(struct tep_event *event, struct tep_record *record,
+> +		    const char *name);
+> +u32 cxl_get_field_u32(struct tep_event *event, struct tep_record *record,
+> +		      const char *name);
+> +u64 cxl_get_field_u64(struct tep_event *event, struct tep_record *record,
+> +		      const char *name);
+>  #endif
