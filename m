@@ -1,57 +1,55 @@
-Received: from mail-ot1-f46.google.com (mail-ot1-f46.google.com [209.85.210.46])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.14])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93479137905
-	for <nvdimm@lists.linux.dev>; Wed,  6 Mar 2024 17:25:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.46
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73EA3266D4
+	for <nvdimm@lists.linux.dev>; Wed,  6 Mar 2024 18:39:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.14
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709745947; cv=none; b=STBOwSVYAY7uw2ZlsIxcXEohYVMYluR6fafkOAMEui3vByNY5J0VhgksYW0BzXEenFytUW3tVVCHXWHFk4uv2almqpDOOt9ISgql3KosDeXMcf3gzcQxXVp6csm5/d/KmJPKTg9uefwoVBbmpDYfVT9i2HOaZzPkiO342UXfXqU=
+	t=1709750380; cv=none; b=pu4iHlJbeOptCcL+CUjcaHTDjli6rQ4U/ePxtwB3t1rUVZfuyJVeXDFnoEwUYelhgUJMFGT9jZ8wIPT65f7c2eNkJMmUz3TKJByjAR1q3clbpTcrrXamZ2z2zl8Lhe7r1JWs5woeQQeUZEQx+mHYQIlhZnFEgYiOj7+0fvvrJ3Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709745947; c=relaxed/simple;
-	bh=8p2opZvkqwz13/KE3xtrCvYEBGR5Menz1ZsHlu33loo=;
+	s=arc-20240116; t=1709750380; c=relaxed/simple;
+	bh=xb7JvkEju0Mcu4tPfFmUTTwajxgqXxRL8GT8RZczl1E=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=gkJsxhbO0nRHZZ1UEZF9FGtLhT6ye+VbIN2MO9Oc6ktziKM70ibYR/CTWRV1GDuE+TAimcIKYkq72DiF6ppkpt/eIcI0G9vCCB0QMAe7SAoowxV0GoEHSQmJFEzOPR3e2X/JuDXb4WHdXGZ3P6lOi9H/adsK3asI23i16bsYVZU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org; spf=pass smtp.mailfrom=redhat.com; arc=none smtp.client-ip=209.85.210.46
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
-Received: by mail-ot1-f46.google.com with SMTP id 46e09a7af769-6e506bf7e79so75530a34.3
-        for <nvdimm@lists.linux.dev>; Wed, 06 Mar 2024 09:25:44 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1709745943; x=1710350743;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=lICbiutwJIIAg+5ET7ThLgtawqmnV2P0QQDIe0xrltM=;
-        b=Ckd8Rmzs/kmFiL7kmxtiRA/vzXec3CwmTeF1j3R/aXBs1INH1JBSlU7qHqkapUoDDq
-         vee6cPLzZaWF4/4I19xuomiqA0gf9ylUemprOvjwIvNkXL7xNYwoU/spwfybmwTGpLog
-         fAsjI0qwTLBvXQAwFKeltLbTSMuZUu94grmnM0PlgAAlzoD7xCDMtD86ehxNXLMemhyN
-         svTBs33zGFhPLb3xq11nc9Xy9daT/qBWURe959ELEhqvqfomuqs1oEPZObVSM125vuQC
-         o8V7VTyL0mngI+62f0i2sz7ge2novxBl5gZLH1qWRzpP1v5RZUgm45C2zTqdYLzoT35G
-         RiXw==
-X-Forwarded-Encrypted: i=1; AJvYcCXUNFAUY85KhJR9JYbiIK4eBHsNThrD59YpgiMkMGQAcAjI3KZAx252MIGG1ZBIzF5G044fYt+ex/JEsvDTioxY6vm4wVok
-X-Gm-Message-State: AOJu0YyuqSPVwOsXtlBxNg1gQCzPk04v2EaQNu/od7cjJ0OCqIYfk65b
-	mx0J+r5zDgRN2ayfHPUXSBtnaCVAovv0DtsBfu+MCukYx+aluywu3ntPKspM/w==
-X-Google-Smtp-Source: AGHT+IEdsnL3H44CitlVgXc79s74rTtqtEN4ML5+/b1ZAmEVQMCdoGLTdYY8JEGFQDrqRWcv7J2kZw==
-X-Received: by 2002:a05:6870:ac12:b0:221:42a1:9457 with SMTP id kw18-20020a056870ac1200b0022142a19457mr5265846oab.9.1709745943643;
-        Wed, 06 Mar 2024 09:25:43 -0800 (PST)
-Received: from localhost (pool-68-160-141-91.bstnma.fios.verizon.net. [68.160.141.91])
-        by smtp.gmail.com with ESMTPSA id i8-20020a05620a0a0800b007883c9be0a9sm1108184qka.80.2024.03.06.09.25.42
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 06 Mar 2024 09:25:43 -0800 (PST)
-Date: Wed, 6 Mar 2024 12:25:42 -0500
-From: Mike Snitzer <snitzer@kernel.org>
-To: Christoph Hellwig <hch@lst.de>
-Cc: Jens Axboe <axboe@kernel.dk>, Mikulas Patocka <mpatocka@redhat.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
-	dm-devel@lists.linux.dev, nvdimm@lists.linux.dev,
-	linux-block@vger.kernel.org
-Subject: Re: [PATCH 3/3] dm-integrity: set max_integrity_segments in
- dm_integrity_io_hints
-Message-ID: <ZeinFsPEsajU__Iv@redhat.com>
-References: <20240306142739.237234-1-hch@lst.de>
- <20240306142739.237234-4-hch@lst.de>
+	 Content-Type:Content-Disposition:In-Reply-To; b=iiinNjzR3fqSsdQzXNEXokqbCAGhxX6kxNKOEtWvYrn70lMwGsMHToleiPiiUuiFSklwr9055tTGfcSQN+rWIkevFemCgU5IJ4JEonV/AGxuWAuUGSOITzi+6aySpHsOkrsf8Vk1wQeCNFElGcHwB4X+gHeZP/UQuanUcWKQ6wY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=FxzfvLTK; arc=none smtp.client-ip=192.198.163.14
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="FxzfvLTK"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1709750378; x=1741286378;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=xb7JvkEju0Mcu4tPfFmUTTwajxgqXxRL8GT8RZczl1E=;
+  b=FxzfvLTKFzwzDznr8bEharLfm+0D9fkJK6nzTUneF2WOK3GJ3YAa68Bv
+   d2y+OkQXSYm8Xe7W+AUdfaxS7ejsws89yRH72hvgtEFSwRJ8AHMS7FD9C
+   L5JN4s/HbtuuIwINvbVWHlnYTchR2VSM/h0W0RJXKnGvbpnYCqFFOpRq5
+   wKvzdeSfeWUCxz0ou70Md73p81TG9BHUCZ+4DnlF+mQ8iHa/9P2sm/mGp
+   6juh1L3twKcJ6V3HytVIWF9vr52nk8XkT4J09Q+RSd13iWkiYdoOFsGnN
+   Q92dOP8WYeQiO2Mi+jpv0+CAOY5OhAsW8nPlm/ePBqES2E8zcQSWoRwKk
+   g==;
+X-IronPort-AV: E=McAfee;i="6600,9927,11005"; a="4562463"
+X-IronPort-AV: E=Sophos;i="6.06,209,1705392000"; 
+   d="scan'208";a="4562463"
+Received: from fmviesa001.fm.intel.com ([10.60.135.141])
+  by fmvoesa108.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Mar 2024 10:39:38 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.06,209,1705392000"; 
+   d="scan'208";a="40823372"
+Received: from aschofie-mobl2.amr.corp.intel.com (HELO aschofie-mobl2) ([10.251.9.155])
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Mar 2024 10:39:37 -0800
+Date: Wed, 6 Mar 2024 10:39:35 -0800
+From: Alison Schofield <alison.schofield@intel.com>
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>, nvdimm@lists.linux.dev,
+	linux-cxl@vger.kernel.org
+Subject: Re: [ndctl PATCH v9 5/7] cxl/list: collect and parse media_error
+ records
+Message-ID: <Zei4Z9sukWIEqkAn@aschofie-mobl2>
+References: <cover.1709253898.git.alison.schofield@intel.com>
+ <9a6be3fd24b22661ec39ea614f75266b594026b3.1709253898.git.alison.schofield@intel.com>
+ <85f2763b-6665-4f76-9175-d7c5acaf2a3d@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -60,46 +58,113 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20240306142739.237234-4-hch@lst.de>
+In-Reply-To: <85f2763b-6665-4f76-9175-d7c5acaf2a3d@intel.com>
 
-On Wed, Mar 06 2024 at  9:27P -0500,
-Christoph Hellwig <hch@lst.de> wrote:
-
-> Set max_integrity_segments with the other queue limits instead
-> of updating it later.  This also uncovered that the driver is trying
-> to set the limit to UINT_MAX while max_integrity_segments is an
-> unsigned short, so fix it up to use USHRT_MAX instead.
+On Mon, Mar 04, 2024 at 01:03:55PM -0700, Dave Jiang wrote:
 > 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
-> ---
->  drivers/md/dm-integrity.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> diff --git a/drivers/md/dm-integrity.c b/drivers/md/dm-integrity.c
-> index c5f03aab455256..a2e5cfe84565ae 100644
-> --- a/drivers/md/dm-integrity.c
-> +++ b/drivers/md/dm-integrity.c
-> @@ -3419,6 +3419,7 @@ static void dm_integrity_io_hints(struct dm_target *ti, struct queue_limits *lim
->  		blk_limits_io_min(limits, ic->sectors_per_block << SECTOR_SHIFT);
->  		limits->dma_alignment = limits->logical_block_size - 1;
->  	}
-> +	limits->max_integrity_segments = USHRT_MAX;
->  }
->  
->  static void calculate_journal_section_size(struct dm_integrity_c *ic)
-> @@ -3586,7 +3587,6 @@ static void dm_integrity_set(struct dm_target *ti, struct dm_integrity_c *ic)
->  	bi.interval_exp = ic->sb->log2_sectors_per_block + SECTOR_SHIFT;
->  
->  	blk_integrity_register(disk, &bi);
-> -	blk_queue_max_integrity_segments(disk->queue, UINT_MAX);
->  }
->  
->  static void dm_integrity_free_page_list(struct page_list *pl)
-> -- 
-> 2.39.2
+> On 2/29/24 6:31 PM, alison.schofield@intel.com wrote:
+> > From: Alison Schofield <alison.schofield@intel.com>
+> > 
+> > Media_error records are logged as events in the kernel tracing
+> > subsystem. To prepare the media_error records for cxl list, enable
+> > tracing, trigger the poison list read, and parse the generated
+> > cxl_poison events into a json representation.
+> > 
+> > Use the event_trace private parsing option to customize the json
+> > representation based on cxl-list calling options and event field
+> > settings.
+> > 
+> > Signed-off-by: Alison Schofield <alison.schofield@intel.com>
+> > ---
+> >  cxl/json.c | 271 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+> >  1 file changed, 271 insertions(+)
+> > 
+
+snip
+
+> > +static int poison_event_to_json(struct tep_event *event,
+> > +				struct tep_record *record, void *ctx)
+> > +{
+> > +	struct poison_ctx *p_ctx = (struct poison_ctx *)ctx;
+> > +	struct json_object *jobj, *jp, *jpoison = p_ctx->jpoison;
+> > +	unsigned long flags = p_ctx->flags;
+> > +	char flag_str[32] = { '\0' };
+> > +	bool overflow = false;
+> > +	u8 source, pflags;
+> > +	const char *name;
+> > +	u64 addr, ts;
+> > +	u32 length;
+> > +	char *str;
+> > +
+> > +	jp = json_object_new_object();
+> > +	if (!jp)
+> > +		return -ENOMEM;
+> > +
+> > +	/* Skip records not in this region when listing by region */
+> > +	name = p_ctx->region ? cxl_region_get_devname(p_ctx->region) : NULL;
+> > +	if (name)
+> > +		str = cxl_get_field_string(event, record, "region");
+> > +
+> > +	if ((name) && (strcmp(name, str) != 0)) {
+> > +		json_object_put(jp);
+> > +		return 0;
+> > +	}
+> > +
+> > +	/* Include endpoint decoder name with hpa, when present */
+> > +	name = cxl_get_field_string(event, record, "memdev");
+> > +	addr = cxl_get_field_u64(event, record, "hpa");
+> > +	if (addr != ULLONG_MAX)
+> > +		name = find_decoder_name(p_ctx, name, addr);
+> > +	else
+> > +		name = NULL;
 > 
+> Why assign name a few lines above and then reassign here without using?
 
-I've picked this up for 6.9:
-https://git.kernel.org/pub/scm/linux/kernel/git/device-mapper/linux-dm.git/commit/?h=dm-6.9&id=f30e5ed1306be8a900b33317bc429dd3794d81a1
+name is used as a param to find_decoder_name(). I'll move that to
+only retrieve from the record if we're doing find_decod_name().
 
-Thanks.
+
+> Also I noticed the name gets reassigned for different purposes a few times. Can we have separate variables in order to make the code cleaner to read? I think maybe a region_name and a decoder_name.
+
+Yes, done in v10.
+
+> > 
+
+snip
+
+> > +
+> > +	source = cxl_get_field_u8(event, record, "source");
+> > +	switch (source) {
+> > +	case CXL_POISON_SOURCE_UNKNOWN:
+> > +		jobj = json_object_new_string("Unknown");
+> > +		break;
+> > +	case CXL_POISON_SOURCE_EXTERNAL:
+> > +		jobj = json_object_new_string("External");
+> > +		break;
+> > +	case CXL_POISON_SOURCE_INTERNAL:
+> > +		jobj = json_object_new_string("Internal");
+> > +		break;
+> > +	case CXL_POISON_SOURCE_INJECTED:
+> > +		jobj = json_object_new_string("Injected");
+> > +		break;
+> > +	case CXL_POISON_SOURCE_VENDOR:
+> > +		jobj = json_object_new_string("Vendor");
+> > +		break;
+> > +	default:
+> > +		jobj = json_object_new_string("Reserved");
+> > +	}
+> 
+> Seems like you can have a static string table here? Then you can do something like:
+> if (source < CXL_POISON_SOURCE_MAX)
+> 	jobj = json_object_new_string(cxl_poison_source[source]);
+> else
+> 	jobj = json_object_new_string("Reserved");
+> 
+> DJ
+
+Nice! Please take a look at in v10.
+
+Thanks for the review!
+
+snip
