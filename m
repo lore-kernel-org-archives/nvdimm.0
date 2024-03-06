@@ -1,79 +1,49 @@
-Received: from esa12.hc1455-7.c3s2.iphmx.com (esa12.hc1455-7.c3s2.iphmx.com [139.138.37.100])
+Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84BB260BBB
-	for <nvdimm@lists.linux.dev>; Wed,  6 Mar 2024 10:30:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=139.138.37.100
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CAB1F132492;
+	Wed,  6 Mar 2024 14:27:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709721032; cv=none; b=D/HFYWqnLbXrMnlPO3uU5L0ylyFm7j6oWnCHLDodkgPfrL7R5JUAp14jPLQFs3FOs0doQavwUcOzwTBzQCbNiJbuU3yCrN6ga6ykXCc0As7NK4O37Kx82DCHHCCkoeD7zKbSPA4BsinMfENHhzl1ip8pTFY6ATmQxbc5IgA0Pgc=
+	t=1709735264; cv=none; b=Of8Sq3mV4cwuORdWKXPIsRbhhvmKNrccDCrXMNTeuOd1u35HDFlw0AgWfDWb/+G/Ab/SRf9haW1re9cmgUCd9AFDWVAQeGH6LDno/2NJ3tKR4r6xSt74dWgrvqmRuAsYLn/k0ZJgplL6IgwnWAcc4ET9BFi+c0rPDOgbCYwQ7DE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709721032; c=relaxed/simple;
-	bh=Nq7SMqNBqa42A9Gw9it0V4iEBEk255GCXGK0EU8r0Nc=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=ILO4zbjo8+ylHnZpeZ6S47AJZv5b5jmXjzwAhGyFl7aTOJo84iRvU8NUdCr6PAoMtgUNXgKSRKF2cGPJHRPV7fUF8vWbP7Pyq5Q2U3XJj7uxa59M9JiinFCKk85vOtz5Rznwlwe3apPdYM01zD0RddafFV6/tcXJ9pV0xBC7IVE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fujitsu.com; spf=pass smtp.mailfrom=fujitsu.com; dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b=XCRrjxiS; arc=none smtp.client-ip=139.138.37.100
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fujitsu.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fujitsu.com
+	s=arc-20240116; t=1709735264; c=relaxed/simple;
+	bh=XL6QE58M1iFe/XIAe7ruihw5Zk7dX/36Cwcp5BY2dQg=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=euAdQfyv3WiPL1TM9kn5m5D9FKeOL7X5JTy/z5cq0cnJ+M7zYPygwuIKquxeg0I3a95vIRPQX/O7qKbItRvt7rl8tGctUYPrV99CjGbp+Cvl+UtYiM1aYYLQaEcHPRVu4C93xJt1jU+/dVG3teVNeZIBSDiV+zIQyQJyFvqaTn4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lst.de; spf=none smtp.mailfrom=bombadil.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=W1sBNu6L; arc=none smtp.client-ip=198.137.202.133
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lst.de
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b="XCRrjxiS"
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
-  d=fujitsu.com; i=@fujitsu.com; q=dns/txt; s=fj2;
-  t=1709721030; x=1741257030;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=Nq7SMqNBqa42A9Gw9it0V4iEBEk255GCXGK0EU8r0Nc=;
-  b=XCRrjxiSIeXxmUi3QHdV1aE4qlSYSjWA75CQ1Vi31I/GoCQ/ICrGVgDH
-   9uBUq5xVMehxqCw7wlF7kU837CdTnkm5tlcMfSFofk4Ji2oTY28LJk8Jl
-   493ptmBiczT/tF4ugAXzIuGdCj4Uh5JDFT/VKDtzGB1BdNH1iNWea1qk/
-   XGmu71VonYPL5T0vWWEiD7a69k4S8JMmejPyGz04bnNUh6m8rzWZgzWvW
-   OdEmcQ9ddOAdfbVgiwDlDxy5rD7dFZRze7Bkk2RGGWbez1Ft0YNIEE8jH
-   6JaPsWxIWf6KCxElEN4gxMrS0lVEVNZAUxIN4EGdkYbepPascXCJSe5cU
-   g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,11004"; a="130699037"
-X-IronPort-AV: E=Sophos;i="6.06,208,1705330800"; 
-   d="scan'208";a="130699037"
-Received: from unknown (HELO yto-r3.gw.nic.fujitsu.com) ([218.44.52.219])
-  by esa12.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Mar 2024 19:29:17 +0900
-Received: from yto-m2.gw.nic.fujitsu.com (yto-nat-yto-m2.gw.nic.fujitsu.com [192.168.83.65])
-	by yto-r3.gw.nic.fujitsu.com (Postfix) with ESMTP id DF814A31CE
-	for <nvdimm@lists.linux.dev>; Wed,  6 Mar 2024 19:29:12 +0900 (JST)
-Received: from kws-ab3.gw.nic.fujitsu.com (kws-ab3.gw.nic.fujitsu.com [192.51.206.21])
-	by yto-m2.gw.nic.fujitsu.com (Postfix) with ESMTP id 224D4D5E8C
-	for <nvdimm@lists.linux.dev>; Wed,  6 Mar 2024 19:29:12 +0900 (JST)
-Received: from edo.cn.fujitsu.com (edo.cn.fujitsu.com [10.167.33.5])
-	by kws-ab3.gw.nic.fujitsu.com (Postfix) with ESMTP id 421402030C7E9
-	for <nvdimm@lists.linux.dev>; Wed,  6 Mar 2024 19:29:11 +0900 (JST)
-Received: from localhost.localdomain (unknown [10.167.226.45])
-	by edo.cn.fujitsu.com (Postfix) with ESMTP id 4A1AE1A006A;
-	Wed,  6 Mar 2024 18:29:10 +0800 (CST)
-From: Li Zhijian <lizhijian@fujitsu.com>
-To: linux-kernel@vger.kernel.org
-Cc: y-goto@fujitsu.com,
-	Alison Schofield <alison.schofield@intel.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Baoquan He <bhe@redhat.com>,
-	Borislav Petkov <bp@alien8.de>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	hpa@zytor.com,
-	Ingo Molnar <mingo@redhat.com>,
-	Ira Weiny <ira.weiny@intel.com>,
-	Thomas Gleixner <tglx@linutronix.de>,
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="W1sBNu6L"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
+	MIME-Version:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:
+	Content-ID:Content-Description:In-Reply-To:References;
+	bh=sK1ki9ofpn+/NZBKJibcoYH2pOB6nC2QnO5+csns/+M=; b=W1sBNu6L6KRdBf7oxRfOzAriSR
+	EB79TAa4Z9V7jikeI+3UVSoU/st7Nvx8/vMaVLdh7q4uX3hxlbCtAGcwSXPoGyjqfnHkxfo1p4L5H
+	QBkYHc1s7pGWKmGsH5Tx8w0j+67eH+J94VXdaAWVSmm0I1wtZ+a0u612MUpt8uxiEknB6cNqLF2W0
+	Tp5268kurqE3lrf4C0CH6o9+lAHftMlnpHqRYdW/Nq1nI/ouGCbnJhHm+Fcn+FnO1R2ITVCzkiO30
+	MZFHKuWVrJqPi9e0oVC4OgUI0zGiRNfvJKeg+w6gvSYwSl52FDU47Vpd0qq2IakxRPzRDftK0rjdw
+	dxV1utoQ==;
+Received: from [66.60.99.14] (helo=localhost)
+	by bombadil.infradead.org with esmtpsa (Exim 4.97.1 #2 (Red Hat Linux))
+	id 1rhsFB-00000000ZYJ-1cBR;
+	Wed, 06 Mar 2024 14:27:41 +0000
+From: Christoph Hellwig <hch@lst.de>
+To: Jens Axboe <axboe@kernel.dk>,
+	Mike Snitzer <snitzer@kernel.org>,
+	Mikulas Patocka <mpatocka@redhat.com>,
 	Vishal Verma <vishal.l.verma@intel.com>,
-	linux-cxl@vger.kernel.org,
-	linux-mm@kvack.org,
+	Dan Williams <dan.j.williams@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Ira Weiny <ira.weiny@intel.com>
+Cc: dm-devel@lists.linux.dev,
 	nvdimm@lists.linux.dev,
-	x86@kernel.org,
-	kexec@lists.infradead.org,
-	Li Zhijian <lizhijian@fujitsu.com>
-Subject: [PATCH v3 6/7] x86/crash: make device backed vmemmap dumpable for kexec_file_load
-Date: Wed,  6 Mar 2024 18:28:45 +0800
-Message-Id: <20240306102846.1020868-7-lizhijian@fujitsu.com>
-X-Mailer: git-send-email 2.31.1
-In-Reply-To: <20240306102846.1020868-1-lizhijian@fujitsu.com>
-References: <20240306102846.1020868-1-lizhijian@fujitsu.com>
+	linux-block@vger.kernel.org
+Subject: remove calls to blk_queue_max_integrity_segments
+Date: Wed,  6 Mar 2024 07:27:36 -0700
+Message-Id: <20240306142739.237234-1-hch@lst.de>
+X-Mailer: git-send-email 2.39.2
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -81,59 +51,20 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-TM-AS-Product-Ver: IMSS-9.1.0.1417-9.0.0.1002-28234.006
-X-TM-AS-User-Approved-Sender: Yes
-X-TMASE-Version: IMSS-9.1.0.1417-9.0.1002-28234.006
-X-TMASE-Result: 10--8.255800-10.000000
-X-TMASE-MatchedRID: Eprm7pA/VZ5ZxhI5bGrNsjiEPRj9j9rvSdIdCi8Ba4AiqRodPpseIRwE
-	EIVsM/kp/lneBjailE5V00+whwxVQy/7QU2czuUNA9lly13c/gH4uJ1REX4MHbs3Yh2IOCYzJti
-	zbkLGoS92PULLZTziuytFAV6Sdl32oFf+7ciBzQpYKMMlFh4BncnlJe2gk8vIMzT8XBPSpdajxY
-	yRBa/qJXcsDK2xBHh7jaPj0W1qn0Q7AFczfjr/7LEnb/1qBW++QLtrZDNFv46p+VAyfOE7vP5i9
-	RGEpFvIT2g+olvABKw=
-X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 
-Add resources with specific flags to PT_LOADs of the elfcorehdr so that
-these resources can be dumpable. This change is for kexec_file_load(2)
-while kexec_load(2) setups the PT_LOADs according to its parameters
-by the callers which usually rely on resources' name from /proc/iomem
+Hi all,
 
-CC: Thomas Gleixner <tglx@linutronix.de>
-CC: Ingo Molnar <mingo@redhat.com>
-CC: Borislav Petkov <bp@alien8.de>
-CC: Dave Hansen <dave.hansen@linux.intel.com>
-CC: Baoquan He <bhe@redhat.com>
-CC: Andrew Morton <akpm@linux-foundation.org>
-CC: "H. Peter Anvin" <hpa@zytor.com>
-CC: x86@kernel.org
-Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
----
- arch/x86/kernel/crash.c | 5 +++++
- 1 file changed, 5 insertions(+)
+I forgot to convert two callers of blk_queue_max_integrity_segments to
+the atomic queue_limits API.  This series fixes that and also cleans up
+the nvdimm code a bit.
 
-diff --git a/arch/x86/kernel/crash.c b/arch/x86/kernel/crash.c
-index b6b044356f1b..b8426fedd2cd 100644
---- a/arch/x86/kernel/crash.c
-+++ b/arch/x86/kernel/crash.c
-@@ -146,6 +146,8 @@ static struct crash_mem *fill_up_crash_elf_data(void)
- 	if (!nr_ranges)
- 		return NULL;
- 
-+	walk_device_backed_vmemmap_res(0, -1, &nr_ranges,
-+				       get_nr_ram_ranges_callback);
- 	/*
- 	 * Exclusion of crash region and/or crashk_low_res may cause
- 	 * another range split. So add extra two slots here.
-@@ -212,6 +214,9 @@ static int prepare_elf_headers(void **addr, unsigned long *sz,
- 	if (ret)
- 		goto out;
- 
-+	walk_device_backed_vmemmap_res(0, -1, cmem,
-+				       prepare_elf64_ram_headers_callback);
-+
- 	/* Exclude unwanted mem ranges */
- 	ret = elf_header_exclude_ranges(cmem);
- 	if (ret)
--- 
-2.29.2
+The patches are against Jens' for-6.9/block tree and it would be good if
+we could still get them into the 6.9 merge window.
 
+Diffstat:
+ md/dm-integrity.c |    2 +-
+ nvdimm/btt.c      |   12 ++++++++----
+ nvdimm/core.c     |   30 ------------------------------
+ nvdimm/nd.h       |    1 -
+ 4 files changed, 9 insertions(+), 36 deletions(-)
