@@ -1,35 +1,35 @@
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 65BB6130AFE;
-	Wed,  6 Mar 2024 14:27:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 886CE134406;
+	Wed,  6 Mar 2024 14:27:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709735265; cv=none; b=mVbd+BKmyN+OIG+VGDO0ufFlEY4eZQ2pbmT/a1ASWW5CXdv4jEA/YMulopuxBsNcbL93C6yjBli0Xmt+qa+ncYFOUuH5MYnP/0joJuIHrqZlVyQDHXy/pPaxxgs+miHHSB3NYeQXHp6tOgDzoQN8Gs0b4u05DBcLseapaKT/PA0=
+	t=1709735268; cv=none; b=g69NM4WTYq6jX9Bf/uuofRcehbJHGcNCOXnptgMwiBZpcrf3D+e3slhEScsFDP3B0wX2jFkZHGe900Tc/e4qs0bdrsOVdTR8o5S6Vw9qq7Ip132/YDc/jpFMZtUkWQm3cm18jC1Wd3N/RvTzLLiFWzP0JSSu1OLQQXrAmC7Dnd8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709735265; c=relaxed/simple;
-	bh=UrWkOmZlhCVBmtB1cFvn97egQ0Ppz9yAVmuoxkGQllA=;
+	s=arc-20240116; t=1709735268; c=relaxed/simple;
+	bh=WKctsFuvD85D3fRuhGp6QYPq5a6g1pcdQ5RVJgdZ6ug=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=N3kGvxeDrMAa+RIdZlgbNF7dtoAVxIxVWSbEKFT/3+OMbEchaSEolrHEuDjBvmuS9UriNbFfI6mTOUERsGVEZd8UdXr3r7mmZblY76+hiH2Z8In8oBCnlCXU8ZfX7SdRmV36C1/k8Di1LIoWBhyqS3vHAnEVT0qGxpN5+e50zcU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lst.de; spf=none smtp.mailfrom=bombadil.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=eXK5r8cj; arc=none smtp.client-ip=198.137.202.133
+	 MIME-Version; b=EXLBe7ykZqDq2+TTDu5XuQNGxTUgZQH0LzmLgc0uwBS1yVyelrV0K3YCdP4YbMyY3jqfXuD7FzZ9UPLYS/HeUXIE7h+zm00w1UUGzKQMXgeIfU9sTofddpKKa4i4rMZo9N2KxxDyE55w6ItHhkqGJ68b+ZkXlSBACkTn+x3qSow=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lst.de; spf=none smtp.mailfrom=bombadil.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=ROarDdF4; arc=none smtp.client-ip=198.137.202.133
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lst.de
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="eXK5r8cj"
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="ROarDdF4"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
 	MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender
 	:Reply-To:Content-Type:Content-ID:Content-Description;
-	bh=ChKw5yBvs8xJM9AlLiVgQQrnwuxqlKlAdHIEJ3JxQ5k=; b=eXK5r8cjZUtx80XXgx19F3a8am
-	RlArqrEhuSQIrQlVY3zCSIbqjxR8TlXG8MBEvPZjHuvJHRW4rkKXqof+eO3ocmymW1WtxNKr32nef
-	ZehiwSEArOURIxi9k4yrzNG7DMvJq3ikAhwVRQuB1aB0U+LctI7Ijy1ANNbnx5loLjH83dbocCuOy
-	DIQtqTYQE/4kjBDtKoyaikxSCq6rkFakzpoVA33sBrivt4P0qDpSXTpV/nIhcnEb14wkZ3VQ8h+NY
-	DX5aJN/VhaN2Ix4AwxmyZfIXCb3AfBDVJGXHW3u7EPQA1+O3A0Q2f9ig2IJPoDlVEmb7JhMnBW/1E
-	001GdkKQ==;
+	bh=bBx9WnIjiiM48Ro1l0Aqdsfwar/iT/SNOe4p5i/wCH0=; b=ROarDdF4c2O7PInnKigIkM3beZ
+	tTRm+hfXSPLlJ2G/XF+DdFdlsn0YghfqVQHg6jkhl087lOsQap2P3dZcAc8paNbeG0EqMF6VSu9Qj
+	JBF1OnINlNj6/YrVNS4q5276YV1qf6Kp7odzC4e1SDgF6YJZSRmrMugl50AIpfI+VtmvQR1i11VaW
+	15P//coD5mHxno6oT8Y/NlvGqbmuJv+JgqJLP5wH694vK1Pi7h4XDboslB4sRh7F/V7eeYATdYVHT
+	1tbjw7NRldBRtb42NzOulTW27NceJBESnxf0n+cUsT1ly+bxyxguvZSI0d046mvPP/DHp2HzkAzTf
+	Tv9Wfvhw==;
 Received: from [66.60.99.14] (helo=localhost)
 	by bombadil.infradead.org with esmtpsa (Exim 4.97.1 #2 (Red Hat Linux))
-	id 1rhsFC-00000000ZZD-47rj;
-	Wed, 06 Mar 2024 14:27:43 +0000
+	id 1rhsFE-00000000ZZt-27Vq;
+	Wed, 06 Mar 2024 14:27:44 +0000
 From: Christoph Hellwig <hch@lst.de>
 To: Jens Axboe <axboe@kernel.dk>,
 	Mike Snitzer <snitzer@kernel.org>,
@@ -41,9 +41,9 @@ To: Jens Axboe <axboe@kernel.dk>,
 Cc: dm-devel@lists.linux.dev,
 	nvdimm@lists.linux.dev,
 	linux-block@vger.kernel.org
-Subject: [PATCH 2/3] nvdimm/btt: always set max_integrity_segments
-Date: Wed,  6 Mar 2024 07:27:38 -0700
-Message-Id: <20240306142739.237234-3-hch@lst.de>
+Subject: [PATCH 3/3] dm-integrity: set max_integrity_segments in dm_integrity_io_hints
+Date: Wed,  6 Mar 2024 07:27:39 -0700
+Message-Id: <20240306142739.237234-4-hch@lst.de>
 X-Mailer: git-send-email 2.39.2
 In-Reply-To: <20240306142739.237234-1-hch@lst.de>
 References: <20240306142739.237234-1-hch@lst.de>
@@ -56,35 +56,36 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 
-max_integrity_segments is just a hardware/driver limit and can be safely
-set even when integrity data is not supported.  Set it in the initial
-queue_limits passed to blk_alloc_disk to simplify the driver.
+Set max_integrity_segments with the other queue limits instead
+of updating it later.  This also uncovered that the driver is trying
+to set the limit to UINT_MAX while max_integrity_segments is an
+unsigned short, so fix it up to use USHRT_MAX instead.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- drivers/nvdimm/btt.c | 2 +-
+ drivers/md/dm-integrity.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-index 8e855b4e3e383a..1e5aedaf8c7bd9 100644
---- a/drivers/nvdimm/btt.c
-+++ b/drivers/nvdimm/btt.c
-@@ -1500,6 +1500,7 @@ static int btt_blk_init(struct btt *btt)
- 	struct queue_limits lim = {
- 		.logical_block_size	= btt->sector_size,
- 		.max_hw_sectors		= UINT_MAX,
-+		.max_integrity_segments	= 1,
- 	};
- 	int rc;
- 
-@@ -1521,7 +1522,6 @@ static int btt_blk_init(struct btt *btt)
- 			.tag_size	= btt_meta_size(btt),
- 		};
- 		blk_integrity_register(btt->btt_disk, &bi);
--		blk_queue_max_integrity_segments(btt->btt_disk->queue, 1);
+diff --git a/drivers/md/dm-integrity.c b/drivers/md/dm-integrity.c
+index c5f03aab455256..a2e5cfe84565ae 100644
+--- a/drivers/md/dm-integrity.c
++++ b/drivers/md/dm-integrity.c
+@@ -3419,6 +3419,7 @@ static void dm_integrity_io_hints(struct dm_target *ti, struct queue_limits *lim
+ 		blk_limits_io_min(limits, ic->sectors_per_block << SECTOR_SHIFT);
+ 		limits->dma_alignment = limits->logical_block_size - 1;
  	}
++	limits->max_integrity_segments = USHRT_MAX;
+ }
  
- 	set_capacity(btt->btt_disk, btt->nlba * btt->sector_size >> 9);
+ static void calculate_journal_section_size(struct dm_integrity_c *ic)
+@@ -3586,7 +3587,6 @@ static void dm_integrity_set(struct dm_target *ti, struct dm_integrity_c *ic)
+ 	bi.interval_exp = ic->sb->log2_sectors_per_block + SECTOR_SHIFT;
+ 
+ 	blk_integrity_register(disk, &bi);
+-	blk_queue_max_integrity_segments(disk->queue, UINT_MAX);
+ }
+ 
+ static void dm_integrity_free_page_list(struct page_list *pl)
 -- 
 2.39.2
 
