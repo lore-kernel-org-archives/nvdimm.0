@@ -1,51 +1,51 @@
 Received: from esa12.hc1455-7.c3s2.iphmx.com (esa12.hc1455-7.c3s2.iphmx.com [139.138.37.100])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9884960868
-	for <nvdimm@lists.linux.dev>; Wed,  6 Mar 2024 10:30:26 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13463605AD
+	for <nvdimm@lists.linux.dev>; Wed,  6 Mar 2024 10:30:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=139.138.37.100
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709721028; cv=none; b=tV/RrvQAbc9JjRt0L3QJVcEwNQ80+Dk5xpJRXvOXi9D0+ibooRaxztxfhmwMl6/9VpRq1FmarUWuA0eQ2F4699Mn/c3bWBTEfbeR2j++hFsa9SHXKyFBUqdhGaJfA05eOwbsr8QL7zL4PZ5PBW4aw/CrOXl0ibJl2B4U17Q5tuQ=
+	t=1709721031; cv=none; b=Qcwq0CQikeAoV+6GsrRwFoZylmP8W5vMCgK2WokdJ5GmaM0Dyjgj2WdVx4JD+ff6OmGWun1NFg4ThUbjFzXSb+/PTY7yBb0QbOB1zLnDuEa98eJ79MPwhTbIr4O0oQ4iBlY00yvynXYMvUXoBR931zAuu+lkWXU9pUnRNXsOvmY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709721028; c=relaxed/simple;
-	bh=8m938ej88oP8CU4LRmFGqeZ2eI8zznrXHFjHuzUAi80=;
+	s=arc-20240116; t=1709721031; c=relaxed/simple;
+	bh=ZZY/OmJnWGlv4sXJ9ctR7zLIBkL6jlFxWOynKDfrnCI=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=ix3fwvX+NDY+Z20Nr15lMp/pGNkEAGaK8X58DAgskLykvNTHVCuu0/9sRLG1ghCbnjNnFkCMS/gRWW+DzVbtbCUkACBVCX/YN2wBCRd6kpsmlw7cgMVgeGYBTkBtq0Mgfuk+N9teVJCjKgw/zt2KW4Q1jux1n4JmlkbNhxh9uAc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fujitsu.com; spf=pass smtp.mailfrom=fujitsu.com; dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b=PwKdS9ab; arc=none smtp.client-ip=139.138.37.100
+	 MIME-Version; b=mX+XOAGIodPI+9jpucExv5/rY4FxeIP2ls9+FqoJKL1RA5x8QfNuULgXF84lgbqwQl+yi626xD5D3T6o3L+2x+//GnoSrWCKwG/camLaUqqWjJ9mIImuq6i1NvigR6G0jaPVnbamwE8p91Ajn10iLd0+Rk1rVVj3jzbBCwGXEhs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fujitsu.com; spf=pass smtp.mailfrom=fujitsu.com; dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b=USDkrBey; arc=none smtp.client-ip=139.138.37.100
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fujitsu.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fujitsu.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b="PwKdS9ab"
+	dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b="USDkrBey"
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
   d=fujitsu.com; i=@fujitsu.com; q=dns/txt; s=fj2;
-  t=1709721026; x=1741257026;
+  t=1709721029; x=1741257029;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=8m938ej88oP8CU4LRmFGqeZ2eI8zznrXHFjHuzUAi80=;
-  b=PwKdS9abdjQvI8XscYmBP1eN+2/f0JlKJHSL5t4mWHi4gfr3st5r8op7
-   5/LYpMMRN0O6SBrJZqtfSfuj6TjSl1V4MNKGcBQj2VbTipKr6ENnAWk+Q
-   2gEMHeLK9OGMRcJFWg9HJGpgjEzNUJaxqFfvy2la5CHmEueRtEGXCa0W7
-   SPIDYO43ERXElIEuWIuPgbqhaX06d+Mo6C/L35ADv8+Ydl2VRN00LXE9D
-   1vwfjorxo74vnMQCf8214LU5iZVixY4TKOT7GDjH5kh4+zxh09MNYLLyu
-   qqEl99OQHiFJIZnXVfiETdKRJ545NTl3woFiWqFRMXqaqZ53GRoeqvHGQ
-   A==;
-X-IronPort-AV: E=McAfee;i="6600,9927,11004"; a="130699032"
+  bh=ZZY/OmJnWGlv4sXJ9ctR7zLIBkL6jlFxWOynKDfrnCI=;
+  b=USDkrBeyM/u5t5bpnLjTvq/B8dvTz8DIuNhGwCefFlHi3CzUoGHC3MMw
+   Rdzzqtj58pk1nwAVpZoDl9iR6+PurNz83xJV+c2i8QDAEH6l4r/gzNWmL
+   z7h4GA5AfNrF5GWokIfFgY+Q2xzpucMvIu7Y+N0nCk9dJHmwC7zo9aZCe
+   QnaU8VTBdBk1qMMB4Ypkq8gLEOGYa/w1+Ik4Ya/tiDAEoBW4j81a9neJs
+   4MRuLpso6b99sgWw3NC3OosSZm44LYH3rhBt5g002x3hMR7he+bcnVK3/
+   TFXX/SXUK+njrN+d/3M7cGgNLfeE8Jy3qPLYijxsm1bhZFiBSVNFz6kPH
+   g==;
+X-IronPort-AV: E=McAfee;i="6600,9927,11004"; a="130699034"
 X-IronPort-AV: E=Sophos;i="6.06,208,1705330800"; 
-   d="scan'208";a="130699032"
-Received: from unknown (HELO oym-r2.gw.nic.fujitsu.com) ([210.162.30.90])
-  by esa12.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Mar 2024 19:29:13 +0900
-Received: from oym-m4.gw.nic.fujitsu.com (oym-nat-oym-m4.gw.nic.fujitsu.com [192.168.87.61])
-	by oym-r2.gw.nic.fujitsu.com (Postfix) with ESMTP id 2F63BEB462
+   d="scan'208";a="130699034"
+Received: from unknown (HELO yto-r3.gw.nic.fujitsu.com) ([218.44.52.219])
+  by esa12.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Mar 2024 19:29:15 +0900
+Received: from yto-m1.gw.nic.fujitsu.com (yto-nat-yto-m1.gw.nic.fujitsu.com [192.168.83.64])
+	by yto-r3.gw.nic.fujitsu.com (Postfix) with ESMTP id DF4E25EA65
 	for <nvdimm@lists.linux.dev>; Wed,  6 Mar 2024 19:29:10 +0900 (JST)
 Received: from kws-ab4.gw.nic.fujitsu.com (kws-ab4.gw.nic.fujitsu.com [192.51.206.22])
-	by oym-m4.gw.nic.fujitsu.com (Postfix) with ESMTP id 56D53D5D17
-	for <nvdimm@lists.linux.dev>; Wed,  6 Mar 2024 19:29:09 +0900 (JST)
+	by yto-m1.gw.nic.fujitsu.com (Postfix) with ESMTP id 277E6D21CB
+	for <nvdimm@lists.linux.dev>; Wed,  6 Mar 2024 19:29:10 +0900 (JST)
 Received: from edo.cn.fujitsu.com (edo.cn.fujitsu.com [10.167.33.5])
-	by kws-ab4.gw.nic.fujitsu.com (Postfix) with ESMTP id C654121BD41
-	for <nvdimm@lists.linux.dev>; Wed,  6 Mar 2024 19:29:08 +0900 (JST)
+	by kws-ab4.gw.nic.fujitsu.com (Postfix) with ESMTP id 938BE6BED0
+	for <nvdimm@lists.linux.dev>; Wed,  6 Mar 2024 19:29:09 +0900 (JST)
 Received: from localhost.localdomain (unknown [10.167.226.45])
-	by edo.cn.fujitsu.com (Postfix) with ESMTP id D32BA1A006D;
-	Wed,  6 Mar 2024 18:29:07 +0800 (CST)
+	by edo.cn.fujitsu.com (Postfix) with ESMTP id A5E001A006A;
+	Wed,  6 Mar 2024 18:29:08 +0800 (CST)
 From: Li Zhijian <lizhijian@fujitsu.com>
 To: linux-kernel@vger.kernel.org
 Cc: y-goto@fujitsu.com,
@@ -68,9 +68,9 @@ Cc: y-goto@fujitsu.com,
 	x86@kernel.org,
 	kexec@lists.infradead.org,
 	Li Zhijian <lizhijian@fujitsu.com>
-Subject: [PATCH v3 3/7] nvdimm: pmem: assign a parent resource for vmemmap region for the fsdax
-Date: Wed,  6 Mar 2024 18:28:42 +0800
-Message-Id: <20240306102846.1020868-4-lizhijian@fujitsu.com>
+Subject: [PATCH v3 4/7] dax: pmem: assign a parent resource for vmemmap region for the devdax
+Date: Wed,  6 Mar 2024 18:28:43 +0800
+Message-Id: <20240306102846.1020868-5-lizhijian@fujitsu.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <20240306102846.1020868-1-lizhijian@fujitsu.com>
 References: <20240306102846.1020868-1-lizhijian@fujitsu.com>
@@ -85,60 +85,61 @@ X-TM-AS-GCONF: 00
 X-TM-AS-Product-Ver: IMSS-9.1.0.1417-9.0.0.1002-28234.006
 X-TM-AS-User-Approved-Sender: Yes
 X-TMASE-Version: IMSS-9.1.0.1417-9.0.1002-28234.006
-X-TMASE-Result: 10--1.564400-10.000000
-X-TMASE-MatchedRID: BlFNdihulaZXk4HjwySOxykMR2LAnMRpFInyGi5rPwK4GyTmeN+AbL8F
-	Hrw7frluf146W0iUu2tDc4lSgrowpWptPhjDCRug9k5nZzZVBSBULRRq00o2mZsoi2XrUn/Jn6K
-	dMrRsL14qtq5d3cxkNU8XOMKR+RhSziRYTTEaxycNH0kK2Y6lBnFLca4Td9YkovbRRC+8RtSqnf
-	dPSmIOZvdj0cn+WGO3HBgXAGNBpen5KWrl6H4maf8jyjqYHnMRFcUQf3Yp/ridO0/GUi4gFb0fO
-	PzpgdcEKeJ/HkAZ8Is=
+X-TMASE-Result: 10--5.083400-10.000000
+X-TMASE-MatchedRID: Q3OJUoK6MKVXk4HjwySOxykMR2LAnMRpFInyGi5rPwK4GyTmeN+AbD13
+	GoPFA1HFIvrftAIhWmLy9zcRSkKatS9AD6DbcToHEVuC0eNRYvKZIt4iAQN6P6oDeu6wu7bqj26
+	lKB/EzKHoHOpl9ZcDR4Ay6p60ZV62fJ5/bZ6npdg7AFczfjr/7Cf8pL7Z+mamZiZ008tHBX0M7U
+	m3uTFNcAFzvFI3lI92rZlDJo+ExYU=
 X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
 
-When the pmem is configured as fsdax, set the vmemmap region as a child
+When the pmem is configured as devdax, set the vmemmap region as a child
 of the namespace region so that it can be registered as a separate
 resource later.
 
 CC: Dan Williams <dan.j.williams@intel.com>
 CC: Vishal Verma <vishal.l.verma@intel.com>
 CC: Dave Jiang <dave.jiang@intel.com>
-CC: Ira Weiny <ira.weiny@intel.com>
 CC: Baoquan He <bhe@redhat.com>
 CC: nvdimm@lists.linux.dev
+CC: linux-cxl@vger.kernel.org
 Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
 ---
- drivers/nvdimm/pmem.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ drivers/dax/pmem.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 4e8fdcb3f1c8..b2640a3fb693 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -452,7 +452,7 @@ static int pmem_attach_disk(struct device *dev,
- 	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
+diff --git a/drivers/dax/pmem.c b/drivers/dax/pmem.c
+index f3c6c67b8412..6ffeb81e6c7c 100644
+--- a/drivers/dax/pmem.c
++++ b/drivers/dax/pmem.c
+@@ -21,6 +21,7 @@ static struct dev_dax *__dax_pmem_probe(struct device *dev)
+ 	struct nd_dax *nd_dax = to_nd_dax(dev);
+ 	struct nd_pfn *nd_pfn = &nd_dax->nd_pfn;
  	struct nd_region *nd_region = to_nd_region(dev->parent);
- 	int nid = dev_to_node(dev), fua;
--	struct resource *res = &nsio->res;
-+	struct resource *res = &nsio->res, *parent;
- 	struct range bb_range;
- 	struct nd_pfn *nd_pfn = NULL;
- 	struct dax_device *dax_dev;
-@@ -491,12 +491,15 @@ static int pmem_attach_disk(struct device *dev,
- 		fua = 0;
- 	}
++	struct resource *parent;
  
--	if (!devm_request_mem_region(dev, res->start, resource_size(res),
+ 	ndns = nvdimm_namespace_common_probe(dev);
+ 	if (IS_ERR(ndns))
+@@ -39,8 +40,9 @@ static struct dev_dax *__dax_pmem_probe(struct device *dev)
+ 	pfn_sb = nd_pfn->pfn_sb;
+ 	offset = le64_to_cpu(pfn_sb->dataoff);
+ 	nsio = to_nd_namespace_io(&ndns->dev);
+-	if (!devm_request_mem_region(dev, nsio->res.start, offset,
 -				dev_name(&ndns->dev))) {
-+	parent = devm_request_mem_region(dev, res->start, resource_size(res),
++	parent = devm_request_mem_region(dev, nsio->res.start, offset,
 +				dev_name(&ndns->dev));
-+	if (!res) {
- 		dev_warn(dev, "could not reserve region %pR\n", res);
- 		return -EBUSY;
++	if (!parent) {
+ 		dev_warn(dev, "could not reserve metadata\n");
+ 		return ERR_PTR(-EBUSY);
  	}
+@@ -66,6 +68,8 @@ static struct dev_dax *__dax_pmem_probe(struct device *dev)
+ 		.memmap_on_memory = false,
+ 	};
  
-+	pgmap_parent_resource(&pmem->pgmap, parent);
++	pgmap_parent_resource(&pgmap, parent);
 +
- 	disk = blk_alloc_disk(nid);
- 	if (!disk)
- 		return -ENOMEM;
+ 	return devm_create_dev_dax(&data);
+ }
+ 
 -- 
 2.29.2
 
