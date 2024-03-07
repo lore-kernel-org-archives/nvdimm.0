@@ -1,269 +1,207 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.19])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.16])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 63AE982D91;
-	Thu,  7 Mar 2024 11:09:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.19
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709809743; cv=none; b=PiXv92FRTaMtelkUIjYtHDNkCN5wcgr+C+tAsf5ebGB9HJNAe7nnLm1Somtt1y7VWFjZoKQBK9Zqf77hXJq0+5biht4r4Bpay/jLzHc62fek9sdutONvkXn5vYz1ivnJ1Ue+1rowqs3OgveJ3JEDwWyZU+dskSZSyVX80Cldaks=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709809743; c=relaxed/simple;
-	bh=ouDZ0ujGuKmlj1Z5zELF5CFA2af4msmT0TU1fhL9Md8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=TIcLnusIGJsUlv/kTBMKH0x4j+V82HqlTtUezDtBHrAgDjWJChif6/wRHkLNEk5LTzNLIN4hXl/yEuyVyw/YVqtau/Fn4V315FNEhJCRy+XYaN7PvfHHT1MNPqlny4sqWr8XCJddyAOl4rk6uicY53WYlxVcGVHkVI80/LVBpTY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=AHZ4oEmv; arc=none smtp.client-ip=192.198.163.19
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A50E613A248
+	for <nvdimm@lists.linux.dev>; Thu,  7 Mar 2024 20:55:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=198.175.65.16
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1709844942; cv=fail; b=WN4CFNBwCTyH2oUgETdKgHQQ1kAS9KpNJNZmBSPMLqoO9ZemADMkKHV8pdkjJgZL1PtRi+bBZ+JPGsjeDT/g9tjFLaMl1pd5hwfTes84/+UG9ZPl/XqJ0Yx2RIoVqaBocTNv9rVAFO7CYHyCUJqiL6mNjFtCfBihPgCYkGwxYLM=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1709844942; c=relaxed/simple;
+	bh=HN8IxZqVS0zbelStA1LZXCIT6ZfMJV2L763azDlSwzU=;
+	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=o+EZsIQ8IuCcpcy3Qkme7wunJk53Cnwz8BD0nWJmLsX2rKdTt8N8BdUagbAOYJwdaW06VWiHacsbcyd2+wUCyMO3mhBJgzTVjVHyE3qFV3a8Yqada/xnkQuIQUxtI6O6qIKwrHn8mZIyTCYZ0ZlZFvTO2q7Gc/jRotWI+NSW85Q=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=GzkX0f3H; arc=fail smtp.client-ip=198.175.65.16
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="AHZ4oEmv"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="GzkX0f3H"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1709809742; x=1741345742;
+  t=1709844940; x=1741380940;
   h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=ouDZ0ujGuKmlj1Z5zELF5CFA2af4msmT0TU1fhL9Md8=;
-  b=AHZ4oEmv7zm2M2jcvGE5X+qdtH21AWdeB/fSB99ilbiDIUsxh9Ch2U5M
-   s2dpW08mr6VHoHOzoTSG1Yj7zpO7ahTstQEsvahzsQHJzVU8uu9RUGfD5
-   XvhEDMHHMjE1TsWFhhlMu7Ex1ufcKlCVfRvJ7HQgNf9ruyIu/b/jbhTPK
-   lCQNOPZ+ypZFN6EBcZxSMefxZo8dPCfeEZvS/mdevc3v5Mfk/ybQkzQBo
-   bcB/8sEUHpmU+roCOKWUGVvoiSaF6aR7ew8W2umUKgmcJ0w5ZvVLb3qNu
-   heU0zbACBHcxTpw252NnXxCfOaPHjtYHwLwo5hb+jeaBq2lpN3e2X57xv
-   A==;
-X-IronPort-AV: E=McAfee;i="6600,9927,11005"; a="4329828"
-X-IronPort-AV: E=Sophos;i="6.06,211,1705392000"; 
-   d="scan'208";a="4329828"
-Received: from orviesa010.jf.intel.com ([10.64.159.150])
-  by fmvoesa113.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Mar 2024 03:09:01 -0800
+   content-transfer-encoding:in-reply-to:mime-version;
+  bh=HN8IxZqVS0zbelStA1LZXCIT6ZfMJV2L763azDlSwzU=;
+  b=GzkX0f3HXcL7h3ppMcoSPf6VDW8kUloSKw1ikslxwyteJvCHkrVB3zML
+   tQSVjQTs5cYHKheRk+mw+Seu4hNuJhgu6Q29y/LHGFwRu8OZhIJ60uhRO
+   7QWq06oucq7c/wCdauJSud+hMUQT3NSFhYbyOsI1w6wfvUvCrqK+SmY+9
+   sDXcPIO1SoaFs50BYCEQlv4PbQywzO3CnrR3VXUKdfFZtDnv8erKsW9Tb
+   ihu0pUwdQpIufQvPO5s6NNMmukPR/bfI6wX/9CV07Zf3F73cWk47/wU0f
+   Lq12qlpmUUtl2bi4WlP2P5jzSJlLKFtLSk8YvsMCDunT8UhKXlUbppJxs
+   Q==;
+X-IronPort-AV: E=McAfee;i="6600,9927,11006"; a="4665899"
+X-IronPort-AV: E=Sophos;i="6.07,107,1708416000"; 
+   d="scan'208";a="4665899"
+Received: from fmviesa007.fm.intel.com ([10.60.135.147])
+  by orvoesa108.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Mar 2024 12:55:40 -0800
 X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.06,211,1705392000"; 
-   d="scan'208";a="10057605"
-Received: from lkp-server01.sh.intel.com (HELO b21307750695) ([10.239.97.150])
-  by orviesa010.jf.intel.com with ESMTP; 07 Mar 2024 03:08:56 -0800
-Received: from kbuild by b21307750695 with local (Exim 4.96)
-	(envelope-from <lkp@intel.com>)
-	id 1riBcK-00056n-2K;
-	Thu, 07 Mar 2024 11:08:52 +0000
-Date: Thu, 7 Mar 2024 19:08:23 +0800
-From: kernel test robot <lkp@intel.com>
-To: Li Zhijian <lizhijian@fujitsu.com>, linux-kernel@vger.kernel.org
-Cc: oe-kbuild-all@lists.linux.dev, y-goto@fujitsu.com,
-	Alison Schofield <alison.schofield@intel.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Linux Memory Management List <linux-mm@kvack.org>,
-	Baoquan He <bhe@redhat.com>, Borislav Petkov <bp@alien8.de>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>, hpa@zytor.com,
-	Ingo Molnar <mingo@redhat.com>, Ira Weiny <ira.weiny@intel.com>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Vishal Verma <vishal.l.verma@intel.com>, linux-cxl@vger.kernel.org,
-	nvdimm@lists.linux.dev, x86@kernel.org, kexec@lists.infradead.org,
-	Li Zhijian <lizhijian@fujitsu.com>
-Subject: Re: [PATCH v3 3/7] nvdimm: pmem: assign a parent resource for
- vmemmap region for the fsdax
-Message-ID: <202403071804.b9EgMxWo-lkp@intel.com>
-References: <20240306102846.1020868-4-lizhijian@fujitsu.com>
+X-IronPort-AV: E=Sophos;i="6.07,107,1708416000"; 
+   d="scan'208";a="10127639"
+Received: from fmsmsx601.amr.corp.intel.com ([10.18.126.81])
+  by fmviesa007.fm.intel.com with ESMTP/TLS/AES256-GCM-SHA384; 07 Mar 2024 12:55:39 -0800
+Received: from fmsmsx612.amr.corp.intel.com (10.18.126.92) by
+ fmsmsx601.amr.corp.intel.com (10.18.126.81) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.35; Thu, 7 Mar 2024 12:55:39 -0800
+Received: from fmsmsx603.amr.corp.intel.com (10.18.126.83) by
+ fmsmsx612.amr.corp.intel.com (10.18.126.92) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.35; Thu, 7 Mar 2024 12:55:38 -0800
+Received: from fmsedg601.ED.cps.intel.com (10.1.192.135) by
+ fmsmsx603.amr.corp.intel.com (10.18.126.83) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.35 via Frontend Transport; Thu, 7 Mar 2024 12:55:38 -0800
+Received: from NAM04-DM6-obe.outbound.protection.outlook.com (104.47.73.41) by
+ edgegateway.intel.com (192.55.55.70) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.35; Thu, 7 Mar 2024 12:55:38 -0800
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=gG6hVQSdARGeOy1iGqY92ReyxzFFchnHUIws64p8cOnZC31E0tl0FY355Mg/C7DmX0TOOtUUDBUF7Zek3Q9irMmaK/oGA6t+L9UtrJyJKUgsB0qba14pMB3n1DKq1G7dliRpTtViU2/Rjql3jy34hqWTbcEE/t8svKh6nf+NKcFLy3QEZaaDf4bJpGtrRwp+PizpDx1oahgGbKLyD+FneCUVPAl43xoN56X+Gc3PaKL7f0DqisWiM6v6s7rlOfoBJy/nU15/R2EOw9tmCwkhFbME8yjoIpz7/OzJSh1IbplKYBIbwcGi4ZHpYJxtRgh3vNq2UBLAr+sw6nXUUL6osw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=wbPkIIgkXeo+u4c14f9mNF2ecBP3pcMoIafSZk0NDA8=;
+ b=noluI/VQD8cA/MGh4ri0Jy1LvoBKh/FT6N8MPWs/PEHzQFdXAvSjodlgJPbB9J7CEOLRca5RumXIRhV6SBDwh2B81SBVVZQ7RV/tkj3H1xnDp2W8WNp6zZmmcMO8HqtMEoUQ2w76FgWPqmJqyWtZoTUgMglFwYDvous7a2876zvIjGznlC9gfkX8t2oAHf6gYt6VIZhcH85PW7kZNYparSOl3VTulk4+YsExLWIIo3S6v9EdWuqejPGq5dr2S6nVU0xbyn0qhYsulTC+Jy0S7hipbF4qkN4u09JCea0yLF53pHDlMT4jSdK1zxpN/cp4O+TXvy4JSQt99kur7PboGw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from PH8PR11MB8107.namprd11.prod.outlook.com (2603:10b6:510:256::6)
+ by PH8PR11MB6998.namprd11.prod.outlook.com (2603:10b6:510:222::22) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7316.22; Thu, 7 Mar
+ 2024 20:55:36 +0000
+Received: from PH8PR11MB8107.namprd11.prod.outlook.com
+ ([fe80::82fd:75df:40d7:ed71]) by PH8PR11MB8107.namprd11.prod.outlook.com
+ ([fe80::82fd:75df:40d7:ed71%4]) with mapi id 15.20.7362.019; Thu, 7 Mar 2024
+ 20:55:35 +0000
+Date: Thu, 7 Mar 2024 12:55:33 -0800
+From: Dan Williams <dan.j.williams@intel.com>
+To: Jane Chu <jane.chu@oracle.com>, Dave Jiang <dave.jiang@intel.com>,
+	=?utf-8?B?Q2FvLCBRdWFucXVhbi/mm7kg5YWo5YWo?= <caoqq@fujitsu.com>,
+	<linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>
+CC: <vishal.l.verma@intel.com>
+Subject: Re: Question about forcing 'disable-memdev'
+Message-ID: <65ea29c566197_127132943@dwillia2-mobl3.amr.corp.intel.com.notmuch>
+References: <3788c116-50aa-ae97-adca-af6559f5c59a@fujitsu.com>
+ <dd61a8f2-ef80-46cc-8033-b3a4b987b3f4@intel.com>
+ <ebe3f86f-d3f9-414d-9749-7d41ac7d3404@oracle.com>
+ <86f8f0a0-3619-4905-a6e8-9fd871ec0a39@intel.com>
+ <353efab5-ee59-4bb7-abc1-b602db3306c6@oracle.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <353efab5-ee59-4bb7-abc1-b602db3306c6@oracle.com>
+X-ClientProxiedBy: MW2PR16CA0066.namprd16.prod.outlook.com
+ (2603:10b6:907:1::43) To PH8PR11MB8107.namprd11.prod.outlook.com
+ (2603:10b6:510:256::6)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240306102846.1020868-4-lizhijian@fujitsu.com>
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: PH8PR11MB8107:EE_|PH8PR11MB6998:EE_
+X-MS-Office365-Filtering-Correlation-Id: 93662a32-1c43-4311-370e-08dc3ee8efb0
+X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: W6bMb8OWYNf0QyIeE8Qlw+oUmMtLoJtEuGxWBocZ4GFD0o7ipJI6V84AyvscKcP2moHlYeuDKAnf70yvtXEq0w1aWEaNq5k/1ON6nRXKNtCK6FDRHd7z29wGQRKs1JAz408CFw4qGHbH4MxSZOwDnD+zYfXN9UTY3NDxTuDx6yEMKGp93lNqPkh1ziRLY21LoECplD5/w2ubqOmRlgRfbhvMC4LxFiFCaE9bYFNkLnVo2+WPM8YUFNCyyHoYXwcrCZb1x7kCJ40Sg/0JeNLyJGHMnmhvR4v/EaSq9dD+1gWG+0dBgjWk8a/aEkzayvRv3gUy64TUqBBUtVhCNl25u+SM13ZkipizqlkR7nUz9cxdpW1ehiu82W6EW2TxqAtJDsh3UmCmC3mgcfGFBw7Z+xMRj/vCNgeRy4cMw98qjTdYc+cWvx1flnPwKryL2x5EFvEmb/5OyQh8qsXt9Ve0hQXcrFMiKxCKi4SyxT61E49JEJC1tfYb1aCRc2lpVaCWbBSbk8dLJx4GYPuOIg20cm3Z9bfa4T71fwtci68WRevs0BrWU3pnnxMbn6xpDYUF4knhqgi7mf6pS4x8jyd8sPGTB8QsKlHKucPsJMyL0jA=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH8PR11MB8107.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(376005);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?RUFYZjZPY0EraGhOOG14ZmNjNC9sMFk5eWJvS3NYMndabUgvU29kQWcxWkJO?=
+ =?utf-8?B?ajVvaENlNVJIUDZtSHNzV0hhZmx4dWZGcjJEMmg2c0liQzR3Zm1FQ3VvRWV5?=
+ =?utf-8?B?YTRPKzdpWVprZFVYd1BQTVBSSVpvVGM2cUpHV1RjWU81bGNuT2g1RXErTUJt?=
+ =?utf-8?B?VEdpZGFiL0RaRTFvYUR3Z05NcXNLdXdYQnliNFFwOWdOQWhzV214aE9hVVhE?=
+ =?utf-8?B?WEVtVUd0UFQvQzBKZ3I4WnJGdmFIY1hLY0tDVzBXd1poMStCbDdwU3NVN1JQ?=
+ =?utf-8?B?R0lYVTVnTUQrUGRPN3pIeGFwU0duNEhIak5YMm52L0ZyV2h4SDN0WnkvS2JH?=
+ =?utf-8?B?T1k2cXpvRGh1UnVtUm5TQnBnMHB4Q2ZrcndZUndVY2RwK1FnbWtwWkxwdi92?=
+ =?utf-8?B?YXNockpGdUJyUUFneE5VS3ZMWGo3K01ZZXJLaXpVLzN3TThpdXRDRm9hMU1j?=
+ =?utf-8?B?UEtudzB5a0FwMnByOWFuNkYzNFAzVXZNdXYwTnE3eUQ2dVMwYmZxZEN3aGp0?=
+ =?utf-8?B?Vkk3dFdvZ2Ryc1g1dkgrb29ZbGFXQm9FSXRRSW5WbmJnVlJqYzYwWmovTk1t?=
+ =?utf-8?B?MXJvVDFOejlWQjlqcHplWVdkN2ZMc1poWjNPaFFxTVN6akZZNXhZL3AyMDZa?=
+ =?utf-8?B?UitIYjN1UldUTkk3SWNtejlEQXNidTF5SFJqT3N0K2Z2aDhzcDlhcUdJS2ht?=
+ =?utf-8?B?VFdPNDV1SXMzMk5RcjZIM05MczRmb2IyeC9wdXp0NXBjRkRDbG5yVjExQW03?=
+ =?utf-8?B?Y0JvQWdqbStOVG9uMTcyeit3bUE0TW5lTStzVjlETG96aEYyY3ozV0M0Y2xi?=
+ =?utf-8?B?eXBCYmFMY3E2TWVDTlNZUHprVDI5b1lpZHZVS1phNzF3SktFVmFFdWJ3UWtj?=
+ =?utf-8?B?QnU4MTkzRCtCMEVZUFFEeVdYek84RkJ2d1hvNytFTTJJNm85c0l4UWxBbmxP?=
+ =?utf-8?B?ZGpCSk1PNVJ0YUNZa25BVlliTEdxcTJCV0JyNVdVUFFjK0NWVkJ3SzFqd2ta?=
+ =?utf-8?B?YnVxNEtlWldLK3BmbXcveTNSSlpDaVFmd0ZrWEplcmpMWWpmSE9tRk01THRF?=
+ =?utf-8?B?NzFLOGJmcDQxV2VPWWtEanFUOE1QWnpXd3ExVmNzU2NOSUh4di81VWtQaDNO?=
+ =?utf-8?B?UTRUcGYvdUlxMGc5SXRQeTN1Q1QzdXJzcElZSXYzK3BJZjFjQmdoUkc1VkdK?=
+ =?utf-8?B?S2RZdmdhN0xLeWxDRkFhVHZIcTBpWmt3YkYvUTluZTE5bnRzZUdueEI1SkZM?=
+ =?utf-8?B?Z1h6YkUyYy9IU3ZHVEdMSU1QdDE4Z3FWZUhTTlVXTUc3OEFubTFZTHJyS1h4?=
+ =?utf-8?B?TjlUbGw2NU5wZUtUeXZOMzR5Uk1YSlhUVjNmRlZEbC9OSHRQR1ZVL2Rvd0xG?=
+ =?utf-8?B?MFJncXJTaVZiSThlWWF4NGRtTmNtY0dxM0NjdVVHVVZzY2xtN3NTYnp6ak5p?=
+ =?utf-8?B?ZVZBZ0FQR0tzNFRoVEJTODFoZFU5REk1emxrUUZvbHh3QWxQOVJNak02SWhJ?=
+ =?utf-8?B?dkZmWXl2Wk1TeEhvNCt3WGtOTTdmczVLUFZYVVBES0JKYlpOcXVRbmFkZUVY?=
+ =?utf-8?B?djJHOTBpNHhPS0ZNUFp2SGtLS1oveDdtbklHL0Q1VTFGem83MVpIUjl3M2pt?=
+ =?utf-8?B?Z1ZreGVlRFBwV29HRXBaalNGVWx6dzdpak5RNVowM1JHYjNnRzVPdVVkcVBI?=
+ =?utf-8?B?KzlWb0IxSUhwR2FQOVpjZXN1RlpXejNCUXZ1R2RvZHJ5SS9hN1JZYXNsKyti?=
+ =?utf-8?B?TndTWm1pUDFkOHRjSVdTM0xNUHVPRTdCZ0R0bUpsd252a2VPMGlkS3hldFE2?=
+ =?utf-8?B?OW16L1F2L1J3Ym5UeVhKS0V6ZlVkeHp5QTJxZlJYS3ptckFYOTkxWUs5VExY?=
+ =?utf-8?B?dG4ramxrZnJWemN2ZTIvQm9HRjE5dlVMQXdHbDZVSnZkK0tFMDArYVlsYm5i?=
+ =?utf-8?B?UnJYYUlmTmhabmN1THlCdmNHWkdkUWFVbWQzeUJhenlaRUhLWnhocWg3YUpk?=
+ =?utf-8?B?RU1YZWQrSzhUTzFKVkRnUXA1ZXBzSGZxS0YvZEtDcmhtNVorNDZJOEtveU5u?=
+ =?utf-8?B?Vko3bzNXKzIwOG83SU1SYkY1dFhDOFMyd3VOVFVWNzFOdnZWci85SE10eTBx?=
+ =?utf-8?B?L3RtbkFZbUZWbGFKbDl6Zm5TS3lBL0tLVW9sSWpjWXZRUlFsZzR1SnNDTjh5?=
+ =?utf-8?B?Tmc9PQ==?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: 93662a32-1c43-4311-370e-08dc3ee8efb0
+X-MS-Exchange-CrossTenant-AuthSource: PH8PR11MB8107.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Mar 2024 20:55:35.6758
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: MHBeYXLg6tRDXj93YZLPiDDUQsUZZxpP9nhsz+SwPdJRWi+oAxAMrbaa/omhC9FW3eE1O5xCGmhMAzloUcsyb4cbj4xNLrn5Sr9cmXOctQ4=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH8PR11MB6998
+X-OriginatorOrg: intel.com
 
-Hi Li,
+Jane Chu wrote:
+> On 2/27/2024 12:28 PM, Dave Jiang wrote:
+> 
+> >
+> > On 2/27/24 1:24 PM, Jane Chu wrote:
+> >> On 2/27/2024 8:40 AM, Dave Jiang wrote:
+> >>
+> >>> On 2/26/24 10:32 PM, Cao, Quanquan/曹 全全 wrote:
+> >>>> Hi, Dave
+> >>>>
+> >>>> On the basis of this patch, I conducted some tests and encountered unexpected errors. I would like to inquire whether the design here is reasonable? Below are the steps of my testing:
+> >>>>
+> >>>> Link: https://lore.kernel.org/linux-cxl/170138109724.2882696.123294980050048623.stgit@djiang5-mobl3/
+> >>>>
+> >>>>
+> >>>> Problem description: after creating a region, directly forcing 'disable-memdev' and then consuming memory leads to a kernel panic.
+> >>> If you are forcing memory disable when the memory cannot be
+> >>> offlined, then this behavior is expected. You are ripping the
+> >>> memory away from underneath kernel mm. The reason the check was
+> >>> added is to prevent the users from doing exactly that.
+> >> Since user is doing the illegal thing, shouldn't that lead to
+> >> SIGBUS or SIGKILL ?
+> > The behavior is unpredictable once the CXL memory is ripped away. If
+> > the memory only backed user memory then you may see SIGBUS. But if
+> > the memory backed kernel data then kernel OOPs is not out of
+> > question.
+> 
+> Make sense, thanks for the clarification.
 
-kernel test robot noticed the following build errors:
+I will just add consider the case of a technician physically removing a
+card without shutting down the kernel's usage of it. That event is
+indistinguishable from "cxl disable-memdev --force" at the driver level
+since the driver just gets the same ->remove() callback with no
+opportunity to return an error.
 
-[auto build test ERROR on nvdimm/libnvdimm-for-next]
-[also build test ERROR on tip/x86/core linus/master v6.8-rc7]
-[cannot apply to akpm-mm/mm-everything nvdimm/dax-misc next-20240306]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch#_base_tree_information]
+So this is a case of trusting the system administrator to know best, and
+is why --force is documented as:
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Li-Zhijian/mm-memremap-register-unregister-altmap-region-to-a-separate-resource/20240306-183118
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git libnvdimm-for-next
-patch link:    https://lore.kernel.org/r/20240306102846.1020868-4-lizhijian%40fujitsu.com
-patch subject: [PATCH v3 3/7] nvdimm: pmem: assign a parent resource for vmemmap region for the fsdax
-config: loongarch-allmodconfig (https://download.01.org/0day-ci/archive/20240307/202403071804.b9EgMxWo-lkp@intel.com/config)
-compiler: loongarch64-linux-gcc (GCC) 13.2.0
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20240307/202403071804.b9EgMxWo-lkp@intel.com/reproduce)
-
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202403071804.b9EgMxWo-lkp@intel.com/
-
-All errors (new ones prefixed by >>):
-
-   drivers/nvdimm/pmem.c: In function 'pmem_attach_disk':
->> drivers/nvdimm/pmem.c:501:9: error: implicit declaration of function 'pgmap_parent_resource' [-Werror=implicit-function-declaration]
-     501 |         pgmap_parent_resource(&pmem->pgmap, parent);
-         |         ^~~~~~~~~~~~~~~~~~~~~
-   cc1: some warnings being treated as errors
-
-
-vim +/pgmap_parent_resource +501 drivers/nvdimm/pmem.c
-
-   448	
-   449	static int pmem_attach_disk(struct device *dev,
-   450			struct nd_namespace_common *ndns)
-   451	{
-   452		struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
-   453		struct nd_region *nd_region = to_nd_region(dev->parent);
-   454		int nid = dev_to_node(dev), fua;
-   455		struct resource *res = &nsio->res, *parent;
-   456		struct range bb_range;
-   457		struct nd_pfn *nd_pfn = NULL;
-   458		struct dax_device *dax_dev;
-   459		struct nd_pfn_sb *pfn_sb;
-   460		struct pmem_device *pmem;
-   461		struct request_queue *q;
-   462		struct gendisk *disk;
-   463		void *addr;
-   464		int rc;
-   465	
-   466		pmem = devm_kzalloc(dev, sizeof(*pmem), GFP_KERNEL);
-   467		if (!pmem)
-   468			return -ENOMEM;
-   469	
-   470		rc = devm_namespace_enable(dev, ndns, nd_info_block_reserve());
-   471		if (rc)
-   472			return rc;
-   473	
-   474		/* while nsio_rw_bytes is active, parse a pfn info block if present */
-   475		if (is_nd_pfn(dev)) {
-   476			nd_pfn = to_nd_pfn(dev);
-   477			rc = nvdimm_setup_pfn(nd_pfn, &pmem->pgmap);
-   478			if (rc)
-   479				return rc;
-   480		}
-   481	
-   482		/* we're attaching a block device, disable raw namespace access */
-   483		devm_namespace_disable(dev, ndns);
-   484	
-   485		dev_set_drvdata(dev, pmem);
-   486		pmem->phys_addr = res->start;
-   487		pmem->size = resource_size(res);
-   488		fua = nvdimm_has_flush(nd_region);
-   489		if (!IS_ENABLED(CONFIG_ARCH_HAS_UACCESS_FLUSHCACHE) || fua < 0) {
-   490			dev_warn(dev, "unable to guarantee persistence of writes\n");
-   491			fua = 0;
-   492		}
-   493	
-   494		parent = devm_request_mem_region(dev, res->start, resource_size(res),
-   495					dev_name(&ndns->dev));
-   496		if (!res) {
-   497			dev_warn(dev, "could not reserve region %pR\n", res);
-   498			return -EBUSY;
-   499		}
-   500	
- > 501		pgmap_parent_resource(&pmem->pgmap, parent);
-   502	
-   503		disk = blk_alloc_disk(nid);
-   504		if (!disk)
-   505			return -ENOMEM;
-   506		q = disk->queue;
-   507	
-   508		pmem->disk = disk;
-   509		pmem->pgmap.owner = pmem;
-   510		pmem->pfn_flags = PFN_DEV;
-   511		if (is_nd_pfn(dev)) {
-   512			pmem->pgmap.type = MEMORY_DEVICE_FS_DAX;
-   513			pmem->pgmap.ops = &fsdax_pagemap_ops;
-   514			addr = devm_memremap_pages(dev, &pmem->pgmap);
-   515			pfn_sb = nd_pfn->pfn_sb;
-   516			pmem->data_offset = le64_to_cpu(pfn_sb->dataoff);
-   517			pmem->pfn_pad = resource_size(res) -
-   518				range_len(&pmem->pgmap.range);
-   519			pmem->pfn_flags |= PFN_MAP;
-   520			bb_range = pmem->pgmap.range;
-   521			bb_range.start += pmem->data_offset;
-   522		} else if (pmem_should_map_pages(dev)) {
-   523			pmem->pgmap.range.start = res->start;
-   524			pmem->pgmap.range.end = res->end;
-   525			pmem->pgmap.nr_range = 1;
-   526			pmem->pgmap.type = MEMORY_DEVICE_FS_DAX;
-   527			pmem->pgmap.ops = &fsdax_pagemap_ops;
-   528			addr = devm_memremap_pages(dev, &pmem->pgmap);
-   529			pmem->pfn_flags |= PFN_MAP;
-   530			bb_range = pmem->pgmap.range;
-   531		} else {
-   532			addr = devm_memremap(dev, pmem->phys_addr,
-   533					pmem->size, ARCH_MEMREMAP_PMEM);
-   534			bb_range.start =  res->start;
-   535			bb_range.end = res->end;
-   536		}
-   537	
-   538		if (IS_ERR(addr)) {
-   539			rc = PTR_ERR(addr);
-   540			goto out;
-   541		}
-   542		pmem->virt_addr = addr;
-   543	
-   544		blk_queue_write_cache(q, true, fua);
-   545		blk_queue_physical_block_size(q, PAGE_SIZE);
-   546		blk_queue_logical_block_size(q, pmem_sector_size(ndns));
-   547		blk_queue_max_hw_sectors(q, UINT_MAX);
-   548		blk_queue_flag_set(QUEUE_FLAG_NONROT, q);
-   549		blk_queue_flag_set(QUEUE_FLAG_SYNCHRONOUS, q);
-   550		if (pmem->pfn_flags & PFN_MAP)
-   551			blk_queue_flag_set(QUEUE_FLAG_DAX, q);
-   552	
-   553		disk->fops		= &pmem_fops;
-   554		disk->private_data	= pmem;
-   555		nvdimm_namespace_disk_name(ndns, disk->disk_name);
-   556		set_capacity(disk, (pmem->size - pmem->pfn_pad - pmem->data_offset)
-   557				/ 512);
-   558		if (devm_init_badblocks(dev, &pmem->bb))
-   559			return -ENOMEM;
-   560		nvdimm_badblocks_populate(nd_region, &pmem->bb, &bb_range);
-   561		disk->bb = &pmem->bb;
-   562	
-   563		dax_dev = alloc_dax(pmem, &pmem_dax_ops);
-   564		if (IS_ERR(dax_dev)) {
-   565			rc = PTR_ERR(dax_dev);
-   566			goto out;
-   567		}
-   568		set_dax_nocache(dax_dev);
-   569		set_dax_nomc(dax_dev);
-   570		if (is_nvdimm_sync(nd_region))
-   571			set_dax_synchronous(dax_dev);
-   572		rc = dax_add_host(dax_dev, disk);
-   573		if (rc)
-   574			goto out_cleanup_dax;
-   575		dax_write_cache(dax_dev, nvdimm_has_cache(nd_region));
-   576		pmem->dax_dev = dax_dev;
-   577	
-   578		rc = device_add_disk(dev, disk, pmem_attribute_groups);
-   579		if (rc)
-   580			goto out_remove_host;
-   581		if (devm_add_action_or_reset(dev, pmem_release_disk, pmem))
-   582			return -ENOMEM;
-   583	
-   584		nvdimm_check_and_set_ro(disk);
-   585	
-   586		pmem->bb_state = sysfs_get_dirent(disk_to_dev(disk)->kobj.sd,
-   587						  "badblocks");
-   588		if (!pmem->bb_state)
-   589			dev_warn(dev, "'badblocks' notification disabled\n");
-   590		return 0;
-   591	
-   592	out_remove_host:
-   593		dax_remove_host(pmem->disk);
-   594	out_cleanup_dax:
-   595		kill_dax(pmem->dax_dev);
-   596		put_dax(pmem->dax_dev);
-   597	out:
-   598		put_disk(pmem->disk);
-   599		return rc;
-   600	}
-   601	
-
--- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+       -f, --force
+	   DANGEROUS: Override the safety measure that blocks attempts
+	   to disable a device if the tool determines the memdev is in active
+	   usage. Recall that CXL memory ranges might have been established by
+	   platform firmware and disabling an active device is akin to force
+	   removing memory from a running system.
