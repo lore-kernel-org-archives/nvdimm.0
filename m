@@ -1,90 +1,102 @@
-Received: from mx0a-00069f02.pphosted.com (mx0a-00069f02.pphosted.com [205.220.165.32])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4028224CC
-	for <nvdimm@lists.linux.dev>; Fri,  8 Mar 2024 01:57:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=205.220.165.32
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 05A82286AC
+	for <nvdimm@lists.linux.dev>; Fri,  8 Mar 2024 02:53:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=198.175.65.19
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709863043; cv=fail; b=DryuFzJ1Yt9AhV+nHrGu7o39VyCS/Fgfo5ROlBoyDmGgoJLYVvvUyConlz91gewcIgFifXzhbIkm+VfTxrT6BApMY6PHzEBXB2rNvykEdx5vo9oZbE4kTnKTn0wlZUBTSjTMznu/zy91/r6g1P1S3kQJxoCfRqdhN6euHlhJmWk=
+	t=1709866411; cv=fail; b=HqJHNIATWveL+hyB1Le98Mawg5nV9w35IxsKrTnWu4Oz73col8qvTB2zZjXS+lxTmjjIGC39iMNIx8F774SP0O4xxXbybpVdPgwCFPL7o7YW+coYxBv3YLUHfp8bB/k52TRCmVeMzZHa6UtTR8I4lpJIUiPj4Iso+ziWXTOOxJM=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709863043; c=relaxed/simple;
-	bh=DHDg93OUTSv5T72y9SgDMs/odhUsnaBfN6KU9bFrbPk=;
-	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
-	 Content-Type:MIME-Version; b=NrLyLFvqoogD+kCNr/+XtCUdAdW6FDedeokG+82EufPgR0Zh5jpcBN6miCp7Is9/xZAQZTqC7vsLEUy0Sm0cGqQ/Ks+YKmIibfa3OZ+rIrk4NhUWrItOtSLuza/eng2rqaWIIiTMtmuaYA35vblIzh6uACVM5Fh2sfxFLCxk8cY=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=oracle.com; spf=pass smtp.mailfrom=oracle.com; dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b=PAYs2h0V; dkim=pass (1024-bit key) header.d=oracle.onmicrosoft.com header.i=@oracle.onmicrosoft.com header.b=S+f8B2hP; arc=fail smtp.client-ip=205.220.165.32
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=oracle.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oracle.com
+	s=arc-20240116; t=1709866411; c=relaxed/simple;
+	bh=A4+WAkba1l6LOBpCVYoG3ahnValJxWv3PJ93CbE9ooI=;
+	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=V4sblb1NRHcsXRdAQsii1bc+2CmUhvWNZHDJ7kTEoEcze0nxu8efS9+JjoNrpJeu15N4QRDIx0ecA/cA1BMRq/827EMW4MsSw3e9dkYn9oBV0tzd58DJKmIpf1yupAXuBgTkze279uYkHoWsQLODnSrGQiGvXSpeZDHTKYjJfhM=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=iz3CbdRU; arc=fail smtp.client-ip=198.175.65.19
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="PAYs2h0V";
-	dkim=pass (1024-bit key) header.d=oracle.onmicrosoft.com header.i=@oracle.onmicrosoft.com header.b="S+f8B2hP"
-Received: from pps.filterd (m0333521.ppops.net [127.0.0.1])
-	by mx0b-00069f02.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 4281iQHq017674;
-	Fri, 8 Mar 2024 01:57:16 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=message-id : date :
- subject : to : cc : references : from : in-reply-to : content-type :
- content-transfer-encoding : mime-version; s=corp-2023-11-20;
- bh=KBmHb2yQAARJ7sz3kjQRNobwEDR42qJvDc8T4h3zuLI=;
- b=PAYs2h0V4rCJpdpvwFUD5dPVaBEsa86yJKZHeeqr+JECLZchUAH5S2/yj8oYqq63KddW
- NuqmMDl04kAOvj04aC7ZrwLhbu0Pwe/OCGhjA/eScnHEpGfJJzONssSdQZ78sBJI6483
- jkKgiDpeOBI3efa0A1Pw4UN5iOjcAP2wUuejK9lGUom2agKMx1u32eH7XSEONAuPg02M
- Gu3t2ebCoOmb0sXmnXS1ZbGZu+ObFfIKJfUF29NPLkTngdT7LYhYzMJABVjSKPNKxCHE
- p8T6QJlmqk6ZB9wL3sGAn7lNK9qxT3dyhqqXhCywRSJ1FY0s74LKY0YroyuwmgmZPGsO 9w== 
-Received: from iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com (iadpaimrmta01.appoci.oracle.com [130.35.100.223])
-	by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 3wku1cmvp2-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 08 Mar 2024 01:57:15 +0000
-Received: from pps.filterd (iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com [127.0.0.1])
-	by iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com (8.17.1.19/8.17.1.19) with ESMTP id 4280eP5l005282;
-	Fri, 8 Mar 2024 01:57:14 GMT
-Received: from nam10-dm6-obe.outbound.protection.outlook.com (mail-dm6nam10lp2100.outbound.protection.outlook.com [104.47.58.100])
-	by iadpaimrmta01.imrmtpd1.prodappiadaev1.oraclevcn.com (PPS) with ESMTPS id 3wp7nuncxg-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 08 Mar 2024 01:57:14 +0000
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="iz3CbdRU"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1709866409; x=1741402409;
+  h=date:from:to:cc:subject:message-id:references:
+   content-transfer-encoding:in-reply-to:mime-version;
+  bh=A4+WAkba1l6LOBpCVYoG3ahnValJxWv3PJ93CbE9ooI=;
+  b=iz3CbdRU1oIazZvqCsh4srCPS1go18DN/MbkU6O8riojvY6epzG/UXiY
+   vrfPFV5r7MrvI74Fp2jkxQouMtb2OXc9IXcQ2MNDu8IXiOsMuL921XUAu
+   mib5xWlj/thsgCVHvqQNlWO4L6siqFeEBh399CfxdntEu7rl29fZYbKlx
+   KEiYxza092Dxi6PL6sxwhoJcvguasLgZYifF2cX9LCVKJ6Q1gtPRjlvSc
+   mvw1zDLLw4SIuSNKaFnAIPbK2sr+6z3LwrC/RRIHq0Hq8sQRFsJx1Kahw
+   23dlbE40xqfQSGV+6L0uquZJDrqLeip0YsudqbsdEB+E+H+ZUHSLztLYv
+   w==;
+X-IronPort-AV: E=McAfee;i="6600,9927,11006"; a="4432088"
+X-IronPort-AV: E=Sophos;i="6.07,108,1708416000"; 
+   d="scan'208";a="4432088"
+Received: from orviesa005.jf.intel.com ([10.64.159.145])
+  by orvoesa111.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Mar 2024 18:53:28 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.07,108,1708416000"; 
+   d="scan'208";a="15010517"
+Received: from fmsmsx602.amr.corp.intel.com ([10.18.126.82])
+  by orviesa005.jf.intel.com with ESMTP/TLS/AES256-GCM-SHA384; 07 Mar 2024 18:53:29 -0800
+Received: from fmsmsx612.amr.corp.intel.com (10.18.126.92) by
+ fmsmsx602.amr.corp.intel.com (10.18.126.82) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.35; Thu, 7 Mar 2024 18:53:27 -0800
+Received: from fmsmsx611.amr.corp.intel.com (10.18.126.91) by
+ fmsmsx612.amr.corp.intel.com (10.18.126.92) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.35; Thu, 7 Mar 2024 18:53:27 -0800
+Received: from fmsedg601.ED.cps.intel.com (10.1.192.135) by
+ fmsmsx611.amr.corp.intel.com (10.18.126.91) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.35 via Frontend Transport; Thu, 7 Mar 2024 18:53:27 -0800
+Received: from NAM12-BN8-obe.outbound.protection.outlook.com (104.47.55.169)
+ by edgegateway.intel.com (192.55.55.70) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.35; Thu, 7 Mar 2024 18:53:26 -0800
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=g5wcAcRlyFVBi9Nd1Ohp1AwCCPSVPTzOb/BUdkRjaAYkcSaI7jyck6GdZsbyHub+vXGrcnSUUzcC1clEdpED7RMqXJQryP8bvlUU9dp8GzG0oAzhX07BSNEdYHv9qpZWe0wTJ6x0faAQueHzmf359ZfFJLw4fkcywhFAqKm6+1FG867iPuCOBtzBkpnCwTtVhVmmxs5PSIWvdncWo2TXG/3yNllep//WRHemcT/bFlKiTmvqOJifF1VLLtY8ppXRAGQr4f2m4vmDcQD/Oa0YR4hM8+J69c0jplJbuJe9Gclp6S6TL5vfbtqJxWQOFcyik7zAjly30F/pgj7QLNjckQ==
+ b=G4vHKpZm7o4txS9HGpQCq8XT/+pl8jktlKCKBpJ8rK9Ty1K+OVTzrxzSsgvcpyntf7sAD8sDb13BBMz+RLUiToGTuhIyy4xaPgi6e//OruTIRxiyTw3HPhehRsAYUSZ/BRdyJCffujkD6IWv56QovDDYiD0fAo6JFsw48/PGG8VysP/aTuOTwjNWjBT2c4WjTxbWYpdgJ+iOQSLyGJ7QI+PJGkUzSU578KpbiHT9osVoyMyhQVskJAJh3JnuGA/3LyZVu7idrkzUGPgQINCKvKfMBsXrRCFmvdVzYN2qA9r4EwbZTG/nh97Vn7GvDN2zTYqfDnIrZS02SJbz5DPGFw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=KBmHb2yQAARJ7sz3kjQRNobwEDR42qJvDc8T4h3zuLI=;
- b=l5YI3DLhBtYrhFGkae17/l2Bavj9h9iQhoM+w0+gjMzrbQuRJS6qe5UJRTWIAApjNsgZ6xn7bdB24JU9igAQeU2OE2i5Ymia6kfUZqzLPvDHv0cIM1L1xd92tVV3d8gmzWXtwev9qPB6kHROTocrW9FF1v4AMYd5I/1gPr5fTJNs9Xk2zZ5DT1aLep8yGOASyaK7O3XwYUsY1+xVujLYG+gydUGdQ1a2Wd/md5vBw2CuYon8sqHa+YpMaon1+K9exp+gGXFRENQWnNCbVPkrm0ckyIzUqy8HSfstQRag1XUEyLILYOQLRR7yYB64rf36HoPRFsLVsqvq29l3LexKnA==
+ bh=cEnwiZ5jLnG9zg32aAPoTUpazBNeiNhrCbBahSaP0bw=;
+ b=AIkZjs8g2po6sesMB7K3qGz794MzjAVcz4JUAqzF0hBV83L8kO08PQczYe9zmL+bV5h6n5ihjXaeickvsQ6qHhkSPDt2ZClI6wXDR3ISNK8Wf9LzaUCo8tn1RSrawUCyDSlFU1eLDd2IppthJ1sccHcnm0MfXwZGV5pTq+KwV9tLKnytSRzTtb0cCZi/yPFCl2GzkYjJ/wOaFNrUdZ75NYuvwfrWhiVA2qgtczQsEuR9r4/OB67YT19cueEvDTjjf7GMrU5/lTzgxYGDY/V6W58lO2vLEulkRBpLkCQMH0NIKoHwT5SWQJerhPv5xT0wmCRK7TKC0XP6XvBBw5KLTw==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
- dkim=pass header.d=oracle.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=KBmHb2yQAARJ7sz3kjQRNobwEDR42qJvDc8T4h3zuLI=;
- b=S+f8B2hPmE8F+is7lZRkaqjaxkq7NdhTw9rGs6LAIgUWeq3PpqGS3D9rMFhtIEJyZOCS3pCjschgibnFB0lt39sZbzR/bGkPa25HyymG61ljp4wBWJEhVDjowIv6+IS6gAvBheR/5jesz2NmPvxe4g57PC9Pl4oWKtgTNyRTq6g=
-Received: from SJ0PR10MB4429.namprd10.prod.outlook.com (2603:10b6:a03:2d1::14)
- by BLAPR10MB5043.namprd10.prod.outlook.com (2603:10b6:208:332::18) with
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from PH8PR11MB8107.namprd11.prod.outlook.com (2603:10b6:510:256::6)
+ by PH0PR11MB7493.namprd11.prod.outlook.com (2603:10b6:510:284::15) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7362.27; Fri, 8 Mar
- 2024 01:57:11 +0000
-Received: from SJ0PR10MB4429.namprd10.prod.outlook.com
- ([fe80::210e:eea7:3142:6088]) by SJ0PR10MB4429.namprd10.prod.outlook.com
- ([fe80::210e:eea7:3142:6088%5]) with mapi id 15.20.7362.024; Fri, 8 Mar 2024
- 01:57:11 +0000
-Message-ID: <0660501f-ae9f-48a3-a1c0-f19be8ca5f02@oracle.com>
-Date: Thu, 7 Mar 2024 17:57:09 -0800
-User-Agent: Mozilla Thunderbird
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7362.26; Fri, 8 Mar
+ 2024 02:53:18 +0000
+Received: from PH8PR11MB8107.namprd11.prod.outlook.com
+ ([fe80::82fd:75df:40d7:ed71]) by PH8PR11MB8107.namprd11.prod.outlook.com
+ ([fe80::82fd:75df:40d7:ed71%4]) with mapi id 15.20.7362.019; Fri, 8 Mar 2024
+ 02:53:18 +0000
+Date: Thu, 7 Mar 2024 18:53:16 -0800
+From: Dan Williams <dan.j.williams@intel.com>
+To: Jane Chu <jane.chu@oracle.com>, Dan Williams <dan.j.williams@intel.com>,
+	<vishal.l.verma@intel.com>, <nvdimm@lists.linux.dev>
+CC: Linux-MM <linux-mm@kvack.org>, Joao Martins <joao.m.martins@oracle.com>,
+	Jane Chu <jane.chu@oracle.com>
 Subject: Re: Barlopass nvdimm as MemoryMode question
-Content-Language: en-US
-To: Dan Williams <dan.j.williams@intel.com>, vishal.l.verma@intel.com,
-        nvdimm@lists.linux.dev
-Cc: Linux-MM <linux-mm@kvack.org>, Joao Martins <joao.m.martins@oracle.com>,
-        Jane Chu <jane.chu@oracle.com>
+Message-ID: <65ea7d9c710c0_142a129493@dwillia2-mobl3.amr.corp.intel.com.notmuch>
 References: <a639e29f-fa99-4fec-a148-c235e5f90071@oracle.com>
  <65ea2c1a441d_12713294d9@dwillia2-mobl3.amr.corp.intel.com.notmuch>
  <a0f62478-94d5-4629-8a81-81d6876beaec@oracle.com>
  <65ea60971700e_1ecd29472@dwillia2-xfh.jf.intel.com.notmuch>
  <36816706-cdf5-4bd0-9be3-0521e2107f32@oracle.com>
-From: Jane Chu <jane.chu@oracle.com>
-In-Reply-To: <36816706-cdf5-4bd0-9be3-0521e2107f32@oracle.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+ <0660501f-ae9f-48a3-a1c0-f19be8ca5f02@oracle.com>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: SJ0PR13CA0009.namprd13.prod.outlook.com
- (2603:10b6:a03:2c0::14) To SJ0PR10MB4429.namprd10.prod.outlook.com
- (2603:10b6:a03:2d1::14)
+In-Reply-To: <0660501f-ae9f-48a3-a1c0-f19be8ca5f02@oracle.com>
+X-ClientProxiedBy: MW4P221CA0013.NAMP221.PROD.OUTLOOK.COM
+ (2603:10b6:303:8b::18) To PH8PR11MB8107.namprd11.prod.outlook.com
+ (2603:10b6:510:256::6)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -92,143 +104,120 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SJ0PR10MB4429:EE_|BLAPR10MB5043:EE_
-X-MS-Office365-Filtering-Correlation-Id: c3a019ed-6fa2-4a1c-7cbf-08dc3f1311e8
+X-MS-TrafficTypeDiagnostic: PH8PR11MB8107:EE_|PH0PR11MB7493:EE_
+X-MS-Office365-Filtering-Correlation-Id: e98746e2-a9d5-45a6-8eac-08dc3f1ae8b1
+X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: 
-	AVJAEMRUaU2NwC3+O0TM9+V7F/HW5ypzcpxF0JwFJCOMYnIOb9hHmVhaHu2TUIWaBU6da34NSlDQQtf/E+Q3hRh/pEJGbWAaX32SnVJkaD+HmIerSxk3m+ATvKbyyTWysmQ4Gbx25XfCDGvY6qadYWgU2+9crCXgU6i5Wml4yguQ0c7uOPvBvF6mma+H5Qq2Hw62ITsdbCPU5hMW9msyZFzwgu7BqUfRWlSfqdcGjA2h4VXHy2occdnRyOms+Qy9xMmBPLMza9Wbrd8XldaFy/rO+0DnBQLvtMiZZi4oKRRRwcYMuehnz+0KKLA8kXv4dDQKXmpLNyRWpPsohwWdui5cjqLLbtQs9I+4CGKaS+gcXmC6atte6HDWhMpVX+/9MY8GfWes5fwKtqKyuZqgM2FkC2GlqxClW+du/gI7DY37NIbFh2ekzb3k0UfOZ4hBnnSS5bSm29cPUsmamvCynHM6N/Z0lfJTXa5VjRZHRFPqz1k03iUe3gHgqeAGzSa43cNgoGUzWsNzsuPWjT9dDLgkGYdD4iqPk5Dg8q7rQvVsPb100U8889deTAJVCJJOiTMfPEw5hchysEM/E+Db3GsXxMcLlzfoUI3ywMWUgFE=
-X-Forefront-Antispam-Report: 
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SJ0PR10MB4429.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(1800799015)(376005);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam-Message-Info: 7jBEnBHKJiGuLXecitiCHhFw6Bu+vmx3qQDOCbXRp9inJHA1UaDmZIcPUcaEGIZhmuLz614zL2vnsxOjgeKW9JBq6SZXJ0z9IDIt1WAtSV7uK7e8YVXQj6HHPLhts+1WmdVa9lYlFTe5uir0BAEwEC04ok6UOm6z3WNHFQWF/HvuItkenaj/9dY6/MXgMDJ+r9CgkCKcQNM+y2LKigXs5F6DzVBigY80D5cF8UqJS+ErXwLY3S2rsLgx7umw8o+natCzIPbiqORhn0zQ6SYBEaY60PUDRiOxsb6vrRWpurbbrq/LC6o7ybDXJU5rIqOvv4sxS8OTk2pMLuccfEWbIUJSlJ15By3/owHbJvPCTw3xgtKuSAs/2FlnlZclLMRy2NTgDSaTp40nVOeeZ7ugKcEXTsXJhfvNqXA16vEyNaYESUlAKoMxRAwokYe5rjtLfrJDBZnFOaPh1Vr0PoGnThaEAyV75mVuFf4+3zsHTrtENsqckpVG+IqHx/5Aoy3niJRLZGiEFLvf9iCEnbQmC2yyx3fgM1/lnSoSMqYDFMLKakejXSWH366kkN0JfGKpvQzWEwa8WlOvVc1nJZ32VrKpgwQBALAzuPrMWc4cp7U=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH8PR11MB8107.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(1800799015)(376005);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: 
-	=?utf-8?B?Mm82VHNOeDI0bDQxcmJ3UXVHNGl2eVNNRlpyQlR2bTJHNERRS0p1dlpRU0ZV?=
- =?utf-8?B?OGU1WjhmaUVUdWlkZkdHaHRoeTNNRi85Rk5iUjgvNXhaMG00V3VTOHZiekEv?=
- =?utf-8?B?Y0lQbXVOUmQrR25YeHovVitBa2VsOC92WWJENFFTVlFseUdJQTNQSWU2WEFM?=
- =?utf-8?B?c21OdC9lTWZVdVBIREZnUmlkbDNzLzJjZmhYdGZqcDh0MDArazFIbFk1UXlO?=
- =?utf-8?B?bFFhREpGY0g1R0RKY3ZDeXcyQUFISGRNZENVTzZMUlRHcFhiZkxCUHEzelFn?=
- =?utf-8?B?dkdVVVAzVzJFemE0b0d2ZlYvZTltcVpyYkhyQUZvS05qREYzcjk2N1Z4WHR2?=
- =?utf-8?B?VUpaKzg5MTdralA4cGlwQk8wVVgxelhmYkJ3UzNvZWFqdXJ6QTBMZTB6c2kr?=
- =?utf-8?B?S1U2ODlKZzdsVzhsUUNtRTNNMXlpcmNXclIrdkV2MEt3d1ZXNnRBM2hDdnJY?=
- =?utf-8?B?M0syQ3p4azlvT2J0bHp2VkczMWZNMytUelk0ejRMNE9EUGo4cUNqSkM1b25m?=
- =?utf-8?B?Mmc1RkJOZEdMYnB1b1AvRVFQeHJyQ2N2Z0VsVjVXSW9QbUlPaVZnN3Z1RUdo?=
- =?utf-8?B?OEgrazFoR2MyN1E3SWJKMUNmc3BQVXZjNFk3TCtwOVNXaXNYWTdubEFIb0sz?=
- =?utf-8?B?c1o0eGt3cllldlU5VkpWWExCL3p5K1IzVS9kRW4vZGJ5K09OaEkvdGVkdDFh?=
- =?utf-8?B?d1BtS0FxZld3VlNRYjc0UGpvRUNOU0hDMEJKY1JWUVFxaG5Kbzd1NTMrVHV6?=
- =?utf-8?B?MGh4eE14U1dtVTlGVVlIU1lGRkY5ekhHRTFoR2VDaXZyK1lNMWQ2ZlpiKzdt?=
- =?utf-8?B?UzV6YWZIZ0pRdnFsbDBRQUpTSGlnL3RJdCtYVkVEcmVyS1dNazZmY0grVGNG?=
- =?utf-8?B?MmoxQVVqa2kzQWM5eXJXdWJwRXlTbzFSK0h2Z0ZldE85SE1yTytjUk95T0Vs?=
- =?utf-8?B?bTFBcm5FeUJpYzJnUVppamZJRThSeU1wMkFOVHE2LzhpN05RbjJiOHFjWnl5?=
- =?utf-8?B?NkFuTWZwZTk4RnB4S0kyWVFXeFRwWno2N0tkRklvQ2M4STFlWEduMHl5M0lw?=
- =?utf-8?B?aUtaNzkxWWY1V3lDK1pzcVNlem90UFk0Vlg2MHNsVkg1UUFzSDhweGNaZ1Fi?=
- =?utf-8?B?MG4rMkNTUGozZzl6ME01ZFBxcUdCb3Z2bG5ESThiMnpYREoxL2R2aWx5LzVG?=
- =?utf-8?B?ZFdsa0d0OHJVdDZHald6N1J1a1p5MDdjNVRjK0NVb1RJUFRRY2pYOVh6VU45?=
- =?utf-8?B?NzRCZkhHMkd4VktyUnV1akIvMnhIYTNYUk5Sc2dGYTlQSkFZZ2FNYm4rcXkx?=
- =?utf-8?B?VU9ZWUJ4cFZUMzRqV041VG5EYy95MWVFM05OU3VSd3FsR1lkeG1JQWpSd3NC?=
- =?utf-8?B?Si82L3ppcnZPbWhtcWs1bFJwZ1VEdlRNYVFSWVVTZnc0dkRlWGJ0c2hzZi9O?=
- =?utf-8?B?MHZScHdzbWZKaUw4WlQyUURSTzdCYlRiVllKekcwTGFrUGtYSWZwMXRoWU0r?=
- =?utf-8?B?Z2F3dTVJa20xcGVwS2dPR0srMklseFMzVU12d1crckhERjZRL0lONGd6eUhm?=
- =?utf-8?B?LzBuVloyKzVYL2J2TGxNc1AwZVJkVVlGU2txcWd6UGtOdHpIRExSRm5Xbk1X?=
- =?utf-8?B?WnpsbmZIOWtGUVNMTVkvK0kvaHZVZFF0aE5Yc2d0dDhQVjI2bEg0eFR5TGhW?=
- =?utf-8?B?WE16V0RLOWQxZHNOYmxOYVU1VTVTaU5sK1VCMXVEdTNja0hXWTZ3OWZGeDhT?=
- =?utf-8?B?UklhZHd1SGNiSm5sY0NxNHFPblpZYkhsNG1tcFIwTmFkL1dFajhrTkZjMUdV?=
- =?utf-8?B?YmM3dkphN0UvblhUeUhmUkhxdUszTXc1bFIwV2tYZGhWeEVxbDErRkpvbDNB?=
- =?utf-8?B?eGdmUzJpbk5pUnBGTTF5VjB0Y2dGTmtCR1NBUWgrNGR5bm9FaUxwNDRSdjlJ?=
- =?utf-8?B?WXMrM1YvejBCbGF1Rzk1VEpOMG12NDA2c1dxaitUai9Qdk1jMnJXRnNGTzlN?=
- =?utf-8?B?Z2RXWFRRdTc5QXhrZUphVW51YkU4bW5BOW1RRU93V0UvRUdoWmNpd3U2MHBW?=
- =?utf-8?B?dXp1dkx3NWRPQ1NsN2d3RnY3VzNaaUlFY2lHVTRYeTRhK0g4VGl4eE5MUTZi?=
- =?utf-8?Q?nC/zKZm1Zkrs733KD/Mk4Smos?=
-X-MS-Exchange-AntiSpam-ExternalHop-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-ExternalHop-MessageData-0: 
-	ezHTpZaWWckgFvgZtpMIVHRYsjsaYr0gofIobl+DdDyRfVxY+oymY4js7+/2OTZlVU0YHMr5dqRio46td7TQM9hVfifCNt4rr/1Vo20drKSWovGOrvin+lPdC61/vOCWRx5KUt06rAvtoA0aEy0kegwRKFaxlj+EYYJGrKSEG+jnwuffGMFr4XiBYETo6fqs2WUjDHKW12+ThfPsaa32Yb62fFryD0tQdQxxBEOQVt+PGSfCEKodmXdDLn5MEZZDjjywADj2+fQd/HtMyoKr73hYY7jPTm5w4roygaBYWTT6Xl7CxSqn0KtDqTz3E0fzeAin80iG3ucaPHDp923Mqtfd39G02z255eeLhKzl9B7U9GLy40VGdUBtIHDujI1tLEWWGa924j8QpCTk1+w5CKzlhMbT1yKh4nTCyN1eAexKs/10PVOV37Fo0T4S4k4KKqF4kcatuwgHFJR8+Uf3cijRS37TsP8rdFastvpbzQyQc22btHb0Gzdn77lzHvohxwIw3GXH9EKrHNEilf68OTM3t1bo/tdM+Cg3kIy/X9sqNAJ3za4L5qSsvfqhlNCEtmJOquYnx47nIrESI+YNO71e84ZJ32QiIdOzsYcoOFE=
-X-OriginatorOrg: oracle.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: c3a019ed-6fa2-4a1c-7cbf-08dc3f1311e8
-X-MS-Exchange-CrossTenant-AuthSource: SJ0PR10MB4429.namprd10.prod.outlook.com
+X-MS-Exchange-AntiSpam-MessageData-0: =?iso-8859-1?Q?KRD2l1uE5NOr8JJMKMpEs8TMY9bHk1upIcU5/GDEfCbfzitgBejK6qZYNH?=
+ =?iso-8859-1?Q?ADh2SnvOWFAkk9Q1ce0AsvEgi7A7ZtDe86yHWP1gnLgvk6IeSMoT8Uba6q?=
+ =?iso-8859-1?Q?eHVqBiy4hY385oPXzXHDiwRwoAkfVT5PpB9mGRcQc88fP/Kv/xaQBmvpyU?=
+ =?iso-8859-1?Q?OT/vKQsx+fG8Vq5uVFYiTWe48BH6cvtI2U9hBl/jWnsPY0+R2zcrYwWPEC?=
+ =?iso-8859-1?Q?LyNfZYRQm94vBXxJLrH9i1PnPN9iyM67pMqHVDNoDEVqkqwVZVUPX6gMsw?=
+ =?iso-8859-1?Q?8se94vGub+FxLjTwTPZzJMz2fmXzBc/7SMPtITnXTjF3eEkVjzIhOhjEOV?=
+ =?iso-8859-1?Q?d2ADyPcjekwa5H3fZoh/kn3/vghfhqC8pyKq/v0iQjeb4GeBACBczreZLQ?=
+ =?iso-8859-1?Q?E5ihrymS8W85z2sG8YJWDMhr2FPfplhCDI5OriJVSkkmgEyvF/9jmPIDtO?=
+ =?iso-8859-1?Q?7sysqpycUfBLYDkuxIcXc9nC5uLdo4ZYTiB/k3j9TEBrLX/8WB9bQV/J3q?=
+ =?iso-8859-1?Q?0S2jhRLbxjqIJtm6JrMarZIPYd6jCpRhfk/aO45XLjjvJaJCDyEJ/3ebGe?=
+ =?iso-8859-1?Q?sBD6xhBNHa8+YYWELRSoHAvGYmOfJIcJ1+H0LjdWIpyltTvPFxXXB7x5Jv?=
+ =?iso-8859-1?Q?9R4xZlLRWTnCVQYCinZOosH+AiCxKpDChXtFxHsi2+PAyImsVf11qFvSuU?=
+ =?iso-8859-1?Q?60D7+wL/ZpxuDQW3X5lw+AVTT4SyLEEFWBydZ6fRBu9AUJ9VKsSAUJb2ab?=
+ =?iso-8859-1?Q?X1pD7Ch2lQEcUwcm8ow+mRTWtms9Raq2zv6DO3qid9BDxxBPzeh+PyTfuG?=
+ =?iso-8859-1?Q?qpXjK3WolnmM6X7zIQMQeh0ZzsMtkZf+x0VgyLf9z49sXQHwoay6gk8ecA?=
+ =?iso-8859-1?Q?P2UVUC56yZq9bYVbV9Lm+F5/brgaRMzdyP9rafMyBD7EiArBq+CICgr2hz?=
+ =?iso-8859-1?Q?ddkWSOn9k5GKUgi0ZCSoEDlnJHsn9dRgRSddXfK2qgv6vzKpaZxCPAiIgz?=
+ =?iso-8859-1?Q?zpSLFBjh3EPHSpsVT6byNIcQjXNgqiptE+QuaZDzp5eqnoYG27tyaUEhby?=
+ =?iso-8859-1?Q?VZhMkZQvbOm1bK+ZHlJyqQDC7SbFDdoN1hgs99+voXdhbX6todhK6JI2i2?=
+ =?iso-8859-1?Q?BvLLXwBpoNOZr6gCUs0ragoP6Q8UJojm7paOqhprwwzdABJJDv+3Kn56Rw?=
+ =?iso-8859-1?Q?gHA8W66ZyZcNr2jMW6VPkPJIJsgzi6u6ESPcaZd2BwhCFD0RxOB+1d38WS?=
+ =?iso-8859-1?Q?rEvokx2PVYbJ0tVZUBsUD7vZx7/hNiUaCZ3bMtljtQkOwHqxKqoWUNBCYw?=
+ =?iso-8859-1?Q?ZhpJQ/ipLy186J1NIhNDj9NOGmuxd+OerKQzm5rvKbTzxR4BLdj9s60i5H?=
+ =?iso-8859-1?Q?2OyVgP1ymEIO8cjR8y3gjyX21VwoGZikszwIRDyHpB8vM0T92CXdiIEEct?=
+ =?iso-8859-1?Q?8C/1MFMzTVrMXktllyzJ/fd70lEWCcY+nu0xVw3N7awgrPmqQ+dD6vy/kU?=
+ =?iso-8859-1?Q?LYo6nefqQLRZSr+/MgKOLYS4XyZuHtnLsM9pRlpZNCf6Dwcdp6cWKekrHP?=
+ =?iso-8859-1?Q?rVIfJqc5njeb8K4gpbsBDtRqm9qLMeIOh6acT4LY0gJMOT89NwR/+xoBvR?=
+ =?iso-8859-1?Q?DsVOvzgljpDMWJzdEAnxUEebuLFxfWUttsUlnKRScaMt2Ap1+1mRitdg?=
+ =?iso-8859-1?Q?=3D=3D?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: e98746e2-a9d5-45a6-8eac-08dc3f1ae8b1
+X-MS-Exchange-CrossTenant-AuthSource: PH8PR11MB8107.namprd11.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Mar 2024 01:57:11.8404
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Mar 2024 02:53:18.7153
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: FX2SEftxXHXG3gWEI12CPCtl8jgZPBJu8bHiUf/R1lbl95dl8Cxc7zqgqoRSumggBwWCZJRfAP+ZHc9OLfv0YA==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BLAPR10MB5043
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.272,Aquarius:18.0.1011,Hydra:6.0.619,FMLib:17.11.176.26
- definitions=2024-03-08_01,2024-03-06_01,2023-05-22_02
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 mlxscore=0
- mlxlogscore=999 spamscore=0 adultscore=0 malwarescore=0 phishscore=0
- bulkscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2311290000 definitions=main-2403080014
-X-Proofpoint-ORIG-GUID: y9bP1I3hms8-VjJaCwOStXpc3SKOIiNa
-X-Proofpoint-GUID: y9bP1I3hms8-VjJaCwOStXpc3SKOIiNa
+X-MS-Exchange-CrossTenant-UserPrincipalName: FCIMHd0bAGnwb1u9BmkV3YXqEqPiFbFqeHPFCuiBam/Emk2hmhqsVfeGb6jpwlFf9Bl1VNCRMNXs2aC0fwAe3SV5GmsIrv65+WlfVCbES7Y=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH0PR11MB7493
+X-OriginatorOrg: intel.com
 
-On 3/7/2024 5:42 PM, Jane Chu wrote:
+Jane Chu wrote:
+> On 3/7/2024 5:42 PM, Jane Chu wrote:
+> 
+> > On 3/7/2024 4:49 PM, Dan Williams wrote:
+> >
+> >> Jane Chu wrote:
+> >>> Add Joao.
+> >>>
+> >>> On 3/7/2024 1:05 PM, Dan Williams wrote:
+> >>>
+> >>>> Jane Chu wrote:
+> >>>>> Hi, Dan and Vishal,
+> >>>>>
+> >>>>> What kind of NUMAness is visible to the kernel w.r.t. SysRAM region
+> >>>>> backed by Barlopass nvdimms configured in MemoryMode by impctl ?
+> >>>> As always, the NUMA description, is a property of the platform not the
+> >>>> media type / DIMM. The ACPI HMAT desrcibes the details of a
+> >>>> memory-side-caches. See "5.2.27.2 Memory Side Cache Overview" in ACPI
+> >>>> 6.4.
+> >>> Thanks!  So, compare to dax_kmem which assign a numa node to a newly
+> >>> converted pmem/SysRAM region,
+> >> ...to be clear, dax_kmem is not creating a new NUMA node, it is just
+> >> potentially onlining a proximity domain that was fully described by ACPI
+> >> SRAT but offline.
+> >>
+> >>> w.r.t. pmem in MemoryMode, is there any clue that kernel exposes(or
+> >>> could expose) to userland about the extra latency such that userland
+> >>> may treat these memory regions differently?
+> >> Userland should be able to interrogate the memory_side_cache/ property
+> >> in NUMA sysfs:
+> >>
+> >> https://docs.kernel.org/admin-guide/mm/numaperf.html?#numa-cache
+> >>
+> >> Otherwise I believe SRAT and SLIT for that node only reflect the
+> >> performance of the DDR fronting the PMEM. So if you have a DDR node and
+> >> DDR+PMEM cache node, they may look the same from the ACPI SLIT
+> >> perspective, but the ACPI HMAT contains the details of the backing
+> >> memory. The Linux NUMA performance sysfs interface gets populated by
+> >> ACPI HMAT.
+> >
+> > Thanks Dan.
+> >
+> > Please correct me if I'm mistaken:  if I configure some barlowpass 
+> > nvdimms to MemoryMode and reboot, as those regions of memory is 
+> > automatically two level with DDR as the front cache, so hmat_init() is 
+> > expected to create the memory_side_cache/indexN interface, and if I 
+> > see multiple indexN layers, that would be a sign that pmem in 
+> > MemoryMode is present, right?
+> >
+> > I've yet to grab hold of a system to confirm this, but apparently with 
+> > only DDR memory, memory_side_cache/ doesn't exist.
+> 
+> On each CPU socket node, we have
+> 
+> | |-memory_side_cache | | |-uevent | | |-power | | |-index1 | | | 
+> |-uevent | | | |-power | | | |-line_size | | | |-write_policy | | | 
+> |-size | | | |-indexing
+> 
+> where 'indexing' = 0, means direct-mapped cache?, so is that a clue that 
+> slower/far-memory is behind the cache?
 
-> On 3/7/2024 4:49 PM, Dan Williams wrote:
->
->> Jane Chu wrote:
->>> Add Joao.
->>>
->>> On 3/7/2024 1:05 PM, Dan Williams wrote:
->>>
->>>> Jane Chu wrote:
->>>>> Hi, Dan and Vishal,
->>>>>
->>>>> What kind of NUMAness is visible to the kernel w.r.t. SysRAM region
->>>>> backed by Barlopass nvdimms configured in MemoryMode by impctl ?
->>>> As always, the NUMA description, is a property of the platform not the
->>>> media type / DIMM. The ACPI HMAT desrcibes the details of a
->>>> memory-side-caches. See "5.2.27.2 Memory Side Cache Overview" in ACPI
->>>> 6.4.
->>> Thanks!Â  So, compare to dax_kmem which assign a numa node to a newly
->>> converted pmem/SysRAM region,
->> ...to be clear, dax_kmem is not creating a new NUMA node, it is just
->> potentially onlining a proximity domain that was fully described by ACPI
->> SRAT but offline.
->>
->>> w.r.t. pmem in MemoryMode, is there any clue that kernel exposes(or
->>> could expose) to userland about the extra latency such that userland
->>> may treat these memory regions differently?
->> Userland should be able to interrogate the memory_side_cache/ property
->> in NUMA sysfs:
->>
->> https://docs.kernel.org/admin-guide/mm/numaperf.html?#numa-cache
->>
->> Otherwise I believe SRAT and SLIT for that node only reflect the
->> performance of the DDR fronting the PMEM. So if you have a DDR node and
->> DDR+PMEM cache node, they may look the same from the ACPI SLIT
->> perspective, but the ACPI HMAT contains the details of the backing
->> memory. The Linux NUMA performance sysfs interface gets populated by
->> ACPI HMAT.
->
-> Thanks Dan.
->
-> Please correct me if I'm mistaken:Â  if I configure some barlowpass 
-> nvdimms to MemoryMode and reboot, as those regions of memory is 
-> automatically two level with DDR as the front cache, so hmat_init() is 
-> expected to create the memory_side_cache/indexN interface, and if I 
-> see multiple indexN layers, that would be a sign that pmem in 
-> MemoryMode is present, right?
->
-> I've yet to grab hold of a system to confirm this, but apparently with 
-> only DDR memory, memory_side_cache/ doesn't exist.
+Correct.
 
-On each CPU socket node, we have
-
-| |-memory_side_cache | | |-uevent | | |-power | | |-index1 | | | 
-|-uevent | | | |-power | | | |-line_size | | | |-write_policy | | | 
-|-size | | | |-indexing
-
-where 'indexing' = 0, means direct-mapped cache?, so is that a clue that 
-slower/far-memory is behind the cache?
-
-thanks!
-
--jane
-
->
-> thanks!
->
-> -jane
->
+Note that the ACPI HMAT may also populate data about the performance of
+the memory range on a cache miss (see ACPI 6.4 Table 5.129: System
+Locality Latency and Bandwidth Information Structure), but the Linux
+enabling does not export that information.
