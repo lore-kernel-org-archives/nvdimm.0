@@ -1,67 +1,58 @@
-Received: from mail-yw1-f171.google.com (mail-yw1-f171.google.com [209.85.128.171])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.13])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D67935822C
-	for <nvdimm@lists.linux.dev>; Mon, 18 Mar 2024 21:21:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.171
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85D57F9E5
+	for <nvdimm@lists.linux.dev>; Tue, 19 Mar 2024 16:43:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.13
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710796881; cv=none; b=E2w2cHrRatSiTK9n7AP0D1n1dW207YM3XVuwBQzKQbYZgAOcKdo+qYnTn39kUcbTMJOe+9f/u4E5ncTT+sm+afCcWDQto3qBEbuCYqXNPwgKUA5D4FM9Sh+B78+sZ2uhJFMU2bykbuXiM7YKozZvaGyxrWgqnrwznI2rEx8XB5w=
+	t=1710866625; cv=none; b=q7SleF4PcXj8kMi8v9GTWsVdKveg62/o6ZWR4TYO4S60ZqEagQMloyNnFtJfq8CjYzA37j+M2D/KPVqwxULI5PQc7wdi0vhYAGrGSwIToCpC2jhtmXdvug6EDVU41+MkfqduRiCeiLV08T18VLXINgl0/+ZuYvHVxufmgAweAqU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710796881; c=relaxed/simple;
-	bh=Ugn1KmPnu11aPFUzigk4sAoCGx66V/lB5EhTs0ES1OU=;
-	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Wm2JQMLv9PpbMerZYAoxZyRvnE/w8eKJUMw3Coc7Z2xTHJ8HOnHKgjaA5H9DvVvz0+rKTQlt76azfDPJ8fxIdJrkmEZSN/R4Y9Wv701gnDg1J7eFx7KPDOKKNpeCmw5lqqWzSgpjrBUdus/Mn4jEc7e0XbTGpZru7fdAvWNIhm0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=EXMNGiRd; arc=none smtp.client-ip=209.85.128.171
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1710866625; c=relaxed/simple;
+	bh=/hLt7roi2Gp9KHrhjatjGJjY8fbdiDimpOPsS6QdHck=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=UDf651Ccc1WR/h/ybTcWrKdijwUPTAmJpTNZ3CSsVi+K/pKsqj1muQxe3jExIolsC29hU1RR/5SAIu8Z24WEobvkA7yQvQu9rZ1KoO3poaAzsyoQXl5MXo635AN1BmVWnmYH/HNglW6L0x5xq0FyPb7+nOUyRp6Razm5RQnWCZI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=CrxisTtN; arc=none smtp.client-ip=198.175.65.13
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="EXMNGiRd"
-Received: by mail-yw1-f171.google.com with SMTP id 00721157ae682-609fd5fbe50so52240447b3.0
-        for <nvdimm@lists.linux.dev>; Mon, 18 Mar 2024 14:21:19 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1710796879; x=1711401679; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:date:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=DIxUkrf6TpjzqxMTzKqkU226vSY1+JGwyYdxIRGHbw0=;
-        b=EXMNGiRds2AbwS+UyqWfxEuQH61cVUwJympHXvBnfCqKxn2Y8AaMFNdRBFHxUqxMiA
-         UmzlKulvXZthV46XPoyW2aedU6TfVnkNoAjyrlMj96dAlckqLZLSiClfo1DNsb/b/TSx
-         ycL5BIXxu4vOuaUz0qJe48RFdMyDFh519v/vLJCMbIOGMss5zFJE03wuxm7std4eOOPs
-         TghgVY42eoS0WSnwyKg/cC75/m9UfKa0sjkZFHml+nOOTJzFZvQlY9v8mqzf+3m3CWrS
-         KG378DPcpOY+/i7nU7xO8/XVDlJy/2zVltdf+hMPK/tsEcib+6JUUtCjRUY4uZTgWuQt
-         DHFQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1710796879; x=1711401679;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:date:from:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=DIxUkrf6TpjzqxMTzKqkU226vSY1+JGwyYdxIRGHbw0=;
-        b=jllXAM3/YnOwV6tvF3nlBRrygGXAtKVmrfIma/rUjdrIWAU/5xXNVDLwS85K8JpXqB
-         nD2H9SBLVqwwI0zmY+PSvhwTDgxiFicvRL3BoElX5HXInZOt/MOpsse19QeErzOJoPXW
-         pkpE4lZZrwguBY8fh/RXVUAFp2BoNWR/2GoVOtDzAdwFsnpe3Rz5RIFNizHckkTZ7Brq
-         gvmw0p49Ao+lYbL2YwF7d8uFiDW69ZnhRkJJ6crLENf9b+ehdkbU5Ewfc55VRx8z9tuw
-         iKk67YdSm+adxhcPOBDaVqCGNIq3z7tvXTSXih8TWletNQuEpIoNZDl1g1vQSaFKg3TF
-         IyFA==
-X-Forwarded-Encrypted: i=1; AJvYcCWPICl0oF+ran9qAn7EK5nE1MZ7TURalcLq9k66HyuGk/7/cgw2e5IrJdoq9Vd5EYOVA/30UokGqJrsHta9Q8o9Dry7qk80
-X-Gm-Message-State: AOJu0YywN31ohi7l5nkQHH2VTQzef1JHNxL1qOTZWEDnqMQwLZp6/r2o
-	Xtb0OhRCuw6+6xIP47rVbue9TIzIhGK0RaeutwAIktrXsCbhLyVr3p/bUlls
-X-Google-Smtp-Source: AGHT+IFrxu848WJHdAxUJwoNokRb+qxTEIwz3ZJetnPDMrsVU0E9g36rjI+kJZUI9tb7SnQYTSkhrA==
-X-Received: by 2002:a81:8402:0:b0:60c:bda8:cd7c with SMTP id u2-20020a818402000000b0060cbda8cd7cmr12574063ywf.10.1710796878623;
-        Mon, 18 Mar 2024 14:21:18 -0700 (PDT)
-Received: from debian ([50.205.20.42])
-        by smtp.gmail.com with ESMTPSA id ce1-20020a05690c098100b00609fc2bd948sm2056568ywb.79.2024.03.18.14.21.17
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 18 Mar 2024 14:21:18 -0700 (PDT)
-From: fan <nifan.cxl@gmail.com>
-X-Google-Original-From: fan <fan@debian>
-Date: Mon, 18 Mar 2024 14:21:01 -0700
-To: alison.schofield@intel.com
-Cc: Vishal Verma <vishal.l.verma@intel.com>, nvdimm@lists.linux.dev,
-	linux-cxl@vger.kernel.org
-Subject: Re: [ndctl PATCH v11 4/7] cxl/event_trace: add helpers to retrieve
- tep fields by type
-Message-ID: <ZfiwPSAw6b1SUatU@debian>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="CrxisTtN"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1710866622; x=1742402622;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=/hLt7roi2Gp9KHrhjatjGJjY8fbdiDimpOPsS6QdHck=;
+  b=CrxisTtN0HYZ+vZNZ5MoiwqLdkeov3ZhbEwoEoqZTJJmeEqfRaU4qqU/
+   7rntJFju1SF9HEBuA6/rzuYvYBIyCExt8FIwMUfAIiDSIujSfJsn+JljN
+   /HLSxiADhnTrM8h7AmiFBakQGYBNxn5+1mXd8vGDyrKWX5u4z6dUZP/44
+   xwc1eLQ4PGqJbynQrsJjAPXxEWoUdaeSEiukZj0y5f/97iyqqEG7NEmWz
+   AgR9AAWgj4Tua5Kfam3YRBVJBP32Thq0+2Y8J8T0tXMzCSUgnV/mbNCkh
+   j+DqzLvTy57HCqJSHGQR7ZY40LS0wIEQogHUR7vAY9qu8kiuw6VhsDTOR
+   A==;
+X-IronPort-AV: E=McAfee;i="6600,9927,11018"; a="16893880"
+X-IronPort-AV: E=Sophos;i="6.07,137,1708416000"; 
+   d="scan'208";a="16893880"
+Received: from orviesa010.jf.intel.com ([10.64.159.150])
+  by orvoesa105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Mar 2024 09:43:42 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.07,137,1708416000"; 
+   d="scan'208";a="13784425"
+Received: from aschofie-mobl2.amr.corp.intel.com (HELO aschofie-mobl2) ([10.209.17.40])
+  by orviesa010-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Mar 2024 09:43:42 -0700
+Date: Tue, 19 Mar 2024 09:43:40 -0700
+From: Alison Schofield <alison.schofield@intel.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: fan <nifan.cxl@gmail.com>, Vishal Verma <vishal.l.verma@intel.com>,
+	nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
+	Dave Jiang <dave.jiang@intel.com>
+Subject: Re: [ndctl PATCH v11 1/7] libcxl: add interfaces for GET_POISON_LIST
+ mailbox commands
+Message-ID: <ZfnAvHt5Vclv949x@aschofie-mobl2>
 References: <cover.1710386468.git.alison.schofield@intel.com>
- <0dbf9557aaf5e8047440cb74f7df84ae404c11ba.1710386468.git.alison.schofield@intel.com>
+ <c43e12c5bafca30d3194ebb11d9817b9a05eaad0.1710386468.git.alison.schofield@intel.com>
+ <Zfh_EYPNeRJl8Qio@debian>
+ <Zfif+rGM+GbJmBvv@aschofie-mobl2>
+ <65f8abb2ee1ed_aa22294f5@dwillia2-mobl3.amr.corp.intel.com.notmuch>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -70,101 +61,84 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <0dbf9557aaf5e8047440cb74f7df84ae404c11ba.1710386468.git.alison.schofield@intel.com>
+In-Reply-To: <65f8abb2ee1ed_aa22294f5@dwillia2-mobl3.amr.corp.intel.com.notmuch>
 
-On Wed, Mar 13, 2024 at 09:05:20PM -0700, alison.schofield@intel.com wrote:
-> From: Alison Schofield <alison.schofield@intel.com>
+On Mon, Mar 18, 2024 at 02:01:38PM -0700, Dan Williams wrote:
+> Alison Schofield wrote:
+> > On Mon, Mar 18, 2024 at 10:51:13AM -0700, fan wrote:
+> > > On Wed, Mar 13, 2024 at 09:05:17PM -0700, alison.schofield@intel.com wrote:
+> > > > From: Alison Schofield <alison.schofield@intel.com>
+> > > > 
+> > > > CXL devices maintain a list of locations that are poisoned or result
+> > > > in poison if the addresses are accessed by the host.
+> > > > 
+> > > > Per the spec (CXL 3.1 8.2.9.9.4.1), the device returns the Poison
+> > > > List as a set of  Media Error Records that include the source of the
+> > > > error, the starting device physical address and length.
+> > > > 
+> > > > Trigger the retrieval of the poison list by writing to the memory
+> > > > device sysfs attribute: trigger_poison_list. The CXL driver only
+> > > > offers triggering per memdev, so the trigger by region interface
+> > > > offered here is a convenience API that triggers a poison list
+> > > > retrieval for each memdev contributing to a region.
+> > > > 
+> > > > int cxl_memdev_trigger_poison_list(struct cxl_memdev *memdev);
+> > > > int cxl_region_trigger_poison_list(struct cxl_region *region);
+> > > > 
+> > > > The resulting poison records are logged as kernel trace events
+> > > > named 'cxl_poison'.
+> > > > 
+> > > > Signed-off-by: Alison Schofield <alison.schofield@intel.com>
+> > > > Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+> > > > ---
+> > > >  cxl/lib/libcxl.c   | 47 ++++++++++++++++++++++++++++++++++++++++++++++
+> > > >  cxl/lib/libcxl.sym |  2 ++
+> > > >  cxl/libcxl.h       |  2 ++
+> > > >  3 files changed, 51 insertions(+)
+> > > > 
+> > > > diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
+> > > > index ff27cdf7c44a..73db8f15c704 100644
+> > > > --- a/cxl/lib/libcxl.c
+> > > > +++ b/cxl/lib/libcxl.c
+> > > > @@ -1761,6 +1761,53 @@ CXL_EXPORT int cxl_memdev_disable_invalidate(struct cxl_memdev *memdev)
+> > > >  	return 0;
+> > > >  }
+> > > >  
+> > > > +CXL_EXPORT int cxl_memdev_trigger_poison_list(struct cxl_memdev *memdev)
+> > > > +{
+> > > > +	struct cxl_ctx *ctx = cxl_memdev_get_ctx(memdev);
+> > > > +	char *path = memdev->dev_buf;
+> > > > +	int len = memdev->buf_len, rc;
+> > > > +
+> > > > +	if (snprintf(path, len, "%s/trigger_poison_list",
+> > > > +		     memdev->dev_path) >= len) {
+> > > > +		err(ctx, "%s: buffer too small\n",
+> > > > +		    cxl_memdev_get_devname(memdev));
+> > > > +		return -ENXIO;
+> > > > +	}
+> > > > +	rc = sysfs_write_attr(ctx, path, "1\n");
+> > > > +	if (rc < 0) {
+> > > > +		fprintf(stderr,
+> > > > +			"%s: Failed write sysfs attr trigger_poison_list\n",
+> > > > +			cxl_memdev_get_devname(memdev));
+> > > 
+> > > Should we use err() instead of fprintf here? 
+> > 
+> > Thanks Fan,
+> > 
+> > How about this?
+> > 
+> > - use fprintf if access() fails, ie device doesn't support poison list,
+> > - use err() for failure to actually read the poison list on a device with
+> >   support
 > 
-> Add helpers to extract the value of an event record field given the
-> field name. This is useful when the user knows the name and format
-> of the field and simply needs to get it. The helpers also return
-> the 'type'_MAX of the type when the field is
-> 
-> Since this is in preparation for adding a cxl_poison private parser
-> for 'cxl list --media-errors' support those specific required
-> types: u8, u32, u64.
-> 
-> Signed-off-by: Alison Schofield <alison.schofield@intel.com>
-> ---
+> Why? There is no raw usage of fprintf in any of the libraries (ndctl,
+> daxctl, cxl) to date. If someone builds the library without logging then
+> it should not chat on stderr at all, and if someone redirects logging to
+> syslog then it also should emit messages only there and not stderr.
 
-Reviewed-by: Fan Ni <fan.ni@samsung.com>
+Why indeed :(
 
->  cxl/event_trace.c | 37 +++++++++++++++++++++++++++++++++++++
->  cxl/event_trace.h |  8 +++++++-
->  2 files changed, 44 insertions(+), 1 deletion(-)
-> 
-> diff --git a/cxl/event_trace.c b/cxl/event_trace.c
-> index 640abdab67bf..324edb982888 100644
-> --- a/cxl/event_trace.c
-> +++ b/cxl/event_trace.c
-> @@ -15,6 +15,43 @@
->  #define _GNU_SOURCE
->  #include <string.h>
->  
-> +u64 cxl_get_field_u64(struct tep_event *event, struct tep_record *record,
-> +		      const char *name)
-> +{
-> +	unsigned long long val;
-> +
-> +	if (tep_get_field_val(NULL, event, name, record, &val, 0))
-> +		return ULLONG_MAX;
-> +
-> +	return val;
-> +}
-> +
-> +u32 cxl_get_field_u32(struct tep_event *event, struct tep_record *record,
-> +		      const char *name)
-> +{
-> +	char *val;
-> +	int len;
-> +
-> +	val = tep_get_field_raw(NULL, event, name, record, &len, 0);
-> +	if (!val)
-> +		return UINT_MAX;
-> +
-> +	return *(u32 *)val;
-> +}
-> +
-> +u8 cxl_get_field_u8(struct tep_event *event, struct tep_record *record,
-> +		    const char *name)
-> +{
-> +	char *val;
-> +	int len;
-> +
-> +	val = tep_get_field_raw(NULL, event, name, record, &len, 0);
-> +	if (!val)
-> +		return UCHAR_MAX;
-> +
-> +	return *(u8 *)val;
-> +}
-> +
->  static struct json_object *num_to_json(void *num, int elem_size, unsigned long flags)
->  {
->  	bool sign = flags & TEP_FIELD_IS_SIGNED;
-> diff --git a/cxl/event_trace.h b/cxl/event_trace.h
-> index b77cafb410c4..7b30c3922aef 100644
-> --- a/cxl/event_trace.h
-> +++ b/cxl/event_trace.h
-> @@ -5,6 +5,7 @@
->  
->  #include <json-c/json.h>
->  #include <ccan/list/list.h>
-> +#include <ccan/short_types/short_types.h>
->  
->  struct jlist_node {
->  	struct json_object *jobj;
-> @@ -32,5 +33,10 @@ int cxl_parse_events(struct tracefs_instance *inst, struct event_ctx *ectx);
->  int cxl_event_tracing_enable(struct tracefs_instance *inst, const char *system,
->  		const char *event);
->  int cxl_event_tracing_disable(struct tracefs_instance *inst);
-> -
-> +u8 cxl_get_field_u8(struct tep_event *event, struct tep_record *record,
-> +		    const char *name);
-> +u32 cxl_get_field_u32(struct tep_event *event, struct tep_record *record,
-> +		      const char *name);
-> +u64 cxl_get_field_u64(struct tep_event *event, struct tep_record *record,
-> +		      const char *name);
->  #endif
-> -- 
-> 2.37.3
-> 
+I'll remove the fprintf() and only use err() for both cases: device
+doesn't support feature, or failure to read list.
+
