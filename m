@@ -1,404 +1,329 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.19])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.11])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3682F2C6BB
-	for <nvdimm@lists.linux.dev>; Wed, 20 Mar 2024 07:15:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.19
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04C6485637
+	for <nvdimm@lists.linux.dev>; Wed, 20 Mar 2024 20:24:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.11
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710918925; cv=none; b=U75H9uwBfWyPUvHTcu/ft0aR8v/zkgSnZl38a4K1avLjEZtR1z34vYTiwNE0eZ/VPihMxBWcBEvV6EfAYeWHtgpmVRRX9b/nAlY6ddqIZ7LnqdmtX/IDWGhzbncORlohnvyavRGxT1LxB2UddaS2aq/PAaFprfIARymR9qndDFw=
+	t=1710966255; cv=none; b=ci7VjfuPBzMpWSoIxGrSZo4FLAqzwLFU5ydngPHgoVH8jT56L7fChVhoIxRjoWLZte+Rsub350Y7F7zUhSTcztSj912IqlGaiECJpQRNLgRASxkNwwgcfPh6dDi7Yt5JqvU+Ff+h9QQK7qWhi3+vo2iCAY8jDWve7PWEukrjEVo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710918925; c=relaxed/simple;
-	bh=dGANDLcgpPUgVShpcdJEWJFjwNSJyHiL6/yYzMvvXG8=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=DCFoU6yHJtFppQOKAhP7ZlDIm4kqjDKpJvyCY2DRJLkwuIRgis/IcH1Qu4SiSmpPSGT2WgTp7cG+tt37iLkgPQFY6E0fUlON8VrRgq6EJcUW1RnICXTJFIJKeWB73UFHVX15Jlp2EFHu4nrFZdac1Na1HqqYum1wK0PoTUUgEm0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=d+BNSo1Y; arc=none smtp.client-ip=192.198.163.19
+	s=arc-20240116; t=1710966255; c=relaxed/simple;
+	bh=zPdTU4ncY8coMmcItNRH/mLOV310q68LH95EaX7JoO4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=qZe8s9Yb38tg3R7Bp1d1XQKBxFfjjOv7RTNE11IZ7IpTNFlpXSMhbaSm6P2NW52z+/HujRKqkhRLqQfD65YkJvloEGLelOdRodgx7SRrEP/Y5b2Xtn01frebym3fFMKVF8PVjWV0wIUpVfmioBCKC5+HVlYj2s6MPhV5pcZ+uk4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=BrgyctEI; arc=none smtp.client-ip=198.175.65.11
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="d+BNSo1Y"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="BrgyctEI"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1710918922; x=1742454922;
-  h=from:to:cc:subject:in-reply-to:references:date:
-   message-id:mime-version;
-  bh=dGANDLcgpPUgVShpcdJEWJFjwNSJyHiL6/yYzMvvXG8=;
-  b=d+BNSo1Y1ztmgwVFE4PG6xRww3hzXUWgRMnGyHS8erXPzxr3Kh8hQHKC
-   LD/pjxzxRaiLqvGqmp98i2TwsS60Et+XgCnZAklXX1/dlPC2KCMtnL/B9
-   7UEvVg3hV2HaddXDcpT2ET0vpRnQJeEWFKwkFHpVKlISYZNOWw1jnN7wf
-   XFsoJmvY4/3xoc5I6XG2wArofb8b12+4ed9WMnDhnfBnKNiImHJLRqFdm
-   9chjjd54Lx55jX47mx0qgA1G5FHjRgDSbLsItDsehF4Ch+Pg0rXDr/iiB
-   m5+MCdYylF8ukxUKbZzmrk1vkZanoxtZ2ezIyoC1ln8iNHE/+6vszgtYk
-   A==;
-X-IronPort-AV: E=McAfee;i="6600,9927,11018"; a="5675064"
-X-IronPort-AV: E=Sophos;i="6.07,139,1708416000"; 
-   d="scan'208";a="5675064"
+  t=1710966253; x=1742502253;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=zPdTU4ncY8coMmcItNRH/mLOV310q68LH95EaX7JoO4=;
+  b=BrgyctEIIHC+sqpKsSOYA12f7CY+CTcFQqmERgtHmFGMrh2FR1kRjy03
+   uF1sVg0vcdoqCuIvUB1XW+4qqq4jstifSaPfzX6AeoBIiHi7TfLtnmYrT
+   EWsuirP3ddDK/5jozte3ZRJ1MmvwkNPt9GkCo6wRzzRt/YP6yy+SZl/3G
+   JQNHfG7mvgwM93agwPObwkMie1gt77Eq2ActsEWi1kSEg/5tYMGsw+iBH
+   lVgQbxJRGSyxXfZ5MAZyjGWerQMx4pkipaYlCJEXuqfjzERx9IFNrjUWJ
+   2wGnEkPkVwKICE3zqwT2wnBhLNL4rGRacwT2/1iAWlBcaElkOYN+oMhwd
+   g==;
+X-IronPort-AV: E=McAfee;i="6600,9927,11019"; a="16459824"
+X-IronPort-AV: E=Sophos;i="6.07,141,1708416000"; 
+   d="scan'208";a="16459824"
 Received: from fmviesa005.fm.intel.com ([10.60.135.145])
-  by fmvoesa113.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Mar 2024 00:15:16 -0700
+  by orvoesa103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Mar 2024 13:24:12 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.07,139,1708416000"; 
-   d="scan'208";a="18528664"
-Received: from yhuang6-desk2.sh.intel.com (HELO yhuang6-desk2.ccr.corp.intel.com) ([10.238.208.55])
-  by fmviesa005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Mar 2024 00:15:10 -0700
-From: "Huang, Ying" <ying.huang@intel.com>
-To: "Ho-Ren (Jack) Chuang" <horenchuang@bytedance.com>
-Cc: "Gregory Price" <gourry.memverge@gmail.com>,
-  aneesh.kumar@linux.ibm.com,  mhocko@suse.com,  tj@kernel.org,
-  john@jagalactic.com,  "Eishan Mirakhur" <emirakhur@micron.com>,
-  "Vinicius Tavares Petrucci" <vtavarespetr@micron.com>,  "Ravis OpenSrc"
- <Ravis.OpenSrc@micron.com>,  "Alistair Popple" <apopple@nvidia.com>,
-  "Srinivasulu Thanneeru" <sthanneeru@micron.com>,  Dan Williams
- <dan.j.williams@intel.com>,  Vishal Verma <vishal.l.verma@intel.com>,
-  Dave Jiang <dave.jiang@intel.com>,  Andrew Morton
- <akpm@linux-foundation.org>,  nvdimm@lists.linux.dev,
-  linux-cxl@vger.kernel.org,  linux-kernel@vger.kernel.org,
-  linux-mm@kvack.org,  "Ho-Ren (Jack) Chuang" <horenc@vt.edu>,  "Ho-Ren
- (Jack) Chuang" <horenchuang@gmail.com>,  qemu-devel@nongnu.org,  Hao Xiang
- <hao.xiang@bytedance.com>
-Subject: Re: [PATCH v3 1/2] memory tier: dax/kmem: create CPUless memory
- tiers after obtaining HMAT info
-In-Reply-To: <20240320061041.3246828-2-horenchuang@bytedance.com> (Ho-Ren
-	Chuang's message of "Wed, 20 Mar 2024 06:10:39 +0000")
-References: <20240320061041.3246828-1-horenchuang@bytedance.com>
-	<20240320061041.3246828-2-horenchuang@bytedance.com>
-Date: Wed, 20 Mar 2024 15:13:17 +0800
-Message-ID: <87edc5s7ea.fsf@yhuang6-desk2.ccr.corp.intel.com>
-User-Agent: Gnus/5.13 (Gnus v5.13)
+X-IronPort-AV: E=Sophos;i="6.07,141,1708416000"; 
+   d="scan'208";a="18745799"
+Received: from aschofie-mobl2.amr.corp.intel.com (HELO aschofie-mobl2) ([10.209.72.188])
+  by fmviesa005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Mar 2024 13:24:12 -0700
+Date: Wed, 20 Mar 2024 13:24:10 -0700
+From: Alison Schofield <alison.schofield@intel.com>
+To: Dave Jiang <dave.jiang@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>, nvdimm@lists.linux.dev,
+	linux-cxl@vger.kernel.org
+Subject: Re: [ndctl PATCH v11 5/7] cxl/list: collect and parse media_error
+ records
+Message-ID: <ZftF6uhcBTZe/Qa5@aschofie-mobl2>
+References: <cover.1710386468.git.alison.schofield@intel.com>
+ <20c83daf14ac45542e9b6ed4cddfaf659e0ce7b0.1710386468.git.alison.schofield@intel.com>
+ <ac942888-d774-4e0a-8734-7321a558fb07@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ascii
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ac942888-d774-4e0a-8734-7321a558fb07@intel.com>
 
-"Ho-Ren (Jack) Chuang" <horenchuang@bytedance.com> writes:
+On Fri, Mar 15, 2024 at 09:16:27AM -0700, Dave Jiang wrote:
+> 
+> 
+> On 3/13/24 9:05 PM, alison.schofield@intel.com wrote:
+> > From: Alison Schofield <alison.schofield@intel.com>
+> > 
+> > Media_error records are logged as events in the kernel tracing
+> > subsystem. To prepare the media_error records for cxl list, enable
+> > tracing, trigger the poison list read, and parse the generated
+> > cxl_poison events into a json representation.
+> > 
+> > Use the event_trace private parsing option to customize the json
+> > representation based on cxl-list calling options and event field
+> > settings.
+> > 
+> > Signed-off-by: Alison Schofield <alison.schofield@intel.com>
+> 
+> Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+> Minor nit below.
 
-> The current implementation treats emulated memory devices, such as
-> CXL1.1 type3 memory, as normal DRAM when they are emulated as normal memory
-> (E820_TYPE_RAM). However, these emulated devices have different
-> characteristics than traditional DRAM, making it important to
-> distinguish them. Thus, we modify the tiered memory initialization process
-> to introduce a delay specifically for CPUless NUMA nodes. This delay
-> ensures that the memory tier initialization for these nodes is deferred
-> until HMAT information is obtained during the boot process. Finally,
-> demotion tables are recalculated at the end.
->
-> More details:
+Nit removed. Thanks!
 
-You have done several stuff in one patch.  So you need "more details".
-You may separate them into multiple patches.  One for echo "*" below.
-But I have no strong opinion on that.
-
-> * late_initcall(memory_tier_late_init);
-> Some device drivers may have initialized memory tiers between
-> `memory_tier_init()` and `memory_tier_late_init()`, potentially bringing
-> online memory nodes and configuring memory tiers. They should be excluded
-> in the late init.
->
-> * Abstract common functions into `mt_find_alloc_memory_type()`
-> Since different memory devices require finding or allocating a memory type,
-> these common steps are abstracted into a single function,
-> `mt_find_alloc_memory_type()`, enhancing code scalability and conciseness.
->
-> * Handle cases where there is no HMAT when creating memory tiers
-> There is a scenario where a CPUless node does not provide HMAT information.
-> If no HMAT is specified, it falls back to using the default DRAM tier.
->
-> * Change adist calculation code to use another new lock, `mt_perf_lock`.
-> In the current implementation, iterating through CPUlist nodes requires
-> holding the `memory_tier_lock`. However, `mt_calc_adistance()` will end up
-> trying to acquire the same lock, leading to a potential deadlock.
-> Therefore, we propose introducing a standalone `mt_perf_lock` to protect
-> `default_dram_perf`. This approach not only avoids deadlock but also
-> prevents holding a large lock simultaneously.
->
-> * Upgrade `set_node_memory_tier` to support additional cases, including
->   default DRAM, late CPUless, and hot-plugged initializations.
-> To cover hot-plugged memory nodes, `mt_calc_adistance()` and
-> `mt_find_alloc_memory_type()` are moved into `set_node_memory_tier()` to
-> handle cases where memtype is not initialized and where HMAT information is
-> available.
->
-> * Introduce `default_memory_types` for those memory types that are not
->   initialized by device drivers.
-> Because late initialized memory and default DRAM memory need to be managed,
-> a default memory type is created for storing all memory types that are
-> not initialized by device drivers and as a fallback.
->
-> Signed-off-by: Ho-Ren (Jack) Chuang <horenchuang@bytedance.com>
-> Signed-off-by: Hao Xiang <hao.xiang@bytedance.com>
-> ---
->  drivers/dax/kmem.c           | 13 +----
->  include/linux/memory-tiers.h |  7 +++
->  mm/memory-tiers.c            | 94 +++++++++++++++++++++++++++++++++---
->  3 files changed, 95 insertions(+), 19 deletions(-)
->
-> diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
-> index 42ee360cf4e3..de1333aa7b3e 100644
-> --- a/drivers/dax/kmem.c
-> +++ b/drivers/dax/kmem.c
-> @@ -55,21 +55,10 @@ static LIST_HEAD(kmem_memory_types);
->  
->  static struct memory_dev_type *kmem_find_alloc_memory_type(int adist)
->  {
-> -	bool found = false;
->  	struct memory_dev_type *mtype;
->  
->  	mutex_lock(&kmem_memory_type_lock);
-> -	list_for_each_entry(mtype, &kmem_memory_types, list) {
-> -		if (mtype->adistance == adist) {
-> -			found = true;
-> -			break;
-> -		}
-> -	}
-> -	if (!found) {
-> -		mtype = alloc_memory_type(adist);
-> -		if (!IS_ERR(mtype))
-> -			list_add(&mtype->list, &kmem_memory_types);
-> -	}
-> +	mtype = mt_find_alloc_memory_type(adist, &kmem_memory_types);
->  	mutex_unlock(&kmem_memory_type_lock);
->  
->  	return mtype;
-
-It seems that there's some miscommunication about my previous comments
-about this.  What I suggested is to create one separate patch, which
-moves mt_find_alloc_memory_type() and mt_put_memory_types() into
-memory-tiers.c.  And make this patch the first one of the series.
-
-> diff --git a/include/linux/memory-tiers.h b/include/linux/memory-tiers.h
-> index 69e781900082..b2135334ac18 100644
-> --- a/include/linux/memory-tiers.h
-> +++ b/include/linux/memory-tiers.h
-> @@ -48,6 +48,8 @@ int mt_calc_adistance(int node, int *adist);
->  int mt_set_default_dram_perf(int nid, struct access_coordinate *perf,
->  			     const char *source);
->  int mt_perf_to_adistance(struct access_coordinate *perf, int *adist);
-> +struct memory_dev_type *mt_find_alloc_memory_type(int adist,
-> +							struct list_head *memory_types);
->  #ifdef CONFIG_MIGRATION
->  int next_demotion_node(int node);
->  void node_get_allowed_targets(pg_data_t *pgdat, nodemask_t *targets);
-> @@ -136,5 +138,10 @@ static inline int mt_perf_to_adistance(struct access_coordinate *perf, int *adis
->  {
->  	return -EIO;
->  }
-> +
-> +struct memory_dev_type *mt_find_alloc_memory_type(int adist, struct list_head *memory_types)
-> +{
-> +	return NULL;
-> +}
->  #endif	/* CONFIG_NUMA */
->  #endif  /* _LINUX_MEMORY_TIERS_H */
-> diff --git a/mm/memory-tiers.c b/mm/memory-tiers.c
-> index 0537664620e5..d9b96b21b65a 100644
-> --- a/mm/memory-tiers.c
-> +++ b/mm/memory-tiers.c
-> @@ -6,6 +6,7 @@
->  #include <linux/memory.h>
->  #include <linux/memory-tiers.h>
->  #include <linux/notifier.h>
-> +#include <linux/acpi.h>
-
-We don't need this anymore.
-
->  #include "internal.h"
->  
-> @@ -36,6 +37,11 @@ struct node_memory_type_map {
->  
->  static DEFINE_MUTEX(memory_tier_lock);
->  static LIST_HEAD(memory_tiers);
-> +/*
-> + * The list is used to store all memory types that are not created
-> + * by a device driver.
-> + */
-> +static LIST_HEAD(default_memory_types);
->  static struct node_memory_type_map node_memory_types[MAX_NUMNODES];
->  struct memory_dev_type *default_dram_type;
->  
-> @@ -505,7 +511,8 @@ static inline void __init_node_memory_type(int node, struct memory_dev_type *mem
->  static struct memory_tier *set_node_memory_tier(int node)
->  {
->  	struct memory_tier *memtier;
-> -	struct memory_dev_type *memtype;
-> +	struct memory_dev_type *memtype, *mtype = NULL;
-
-It seems unnecessary to introduce another variable, just use memtype?
-
-> +	int adist = MEMTIER_ADISTANCE_DRAM;
->  	pg_data_t *pgdat = NODE_DATA(node);
->  
->  
-> @@ -514,7 +521,18 @@ static struct memory_tier *set_node_memory_tier(int node)
->  	if (!node_state(node, N_MEMORY))
->  		return ERR_PTR(-EINVAL);
->  
-> -	__init_node_memory_type(node, default_dram_type);
-> +	mt_calc_adistance(node, &adist);
-> +	if (adist != MEMTIER_ADISTANCE_DRAM &&
-> +			node_memory_types[node].memtype == NULL) {
-> +		mtype = mt_find_alloc_memory_type(adist, &default_memory_types);
-> +		if (IS_ERR(mtype)) {
-> +			mtype = default_dram_type;
-> +			pr_info("Failed to allocate a memory type. Fall back.\n");
-> +		}
-> +	} else
-> +		mtype = default_dram_type;
-
-This can be simplified to
-
-	mt_calc_adistance(node, &adist);
-	if (node_memory_types[node].memtype == NULL) {
-		mtype = mt_find_alloc_memory_type(adist, &default_memory_types);
-		if (IS_ERR(mtype)) {
-			mtype = default_dram_type;
-			pr_info("Failed to allocate a memory type. Fall back.\n");
-		}
-	}
-
-> +	__init_node_memory_type(node, mtype);
->  
->  	memtype = node_memory_types[node].memtype;
->  	node_set(node, memtype->nodes);
-> @@ -623,6 +641,55 @@ void clear_node_memory_type(int node, struct memory_dev_type *memtype)
->  }
->  EXPORT_SYMBOL_GPL(clear_node_memory_type);
->  
-> +struct memory_dev_type *mt_find_alloc_memory_type(int adist, struct list_head *memory_types)
-> +{
-> +	bool found = false;
-> +	struct memory_dev_type *mtype;
-> +
-> +	list_for_each_entry(mtype, memory_types, list) {
-> +		if (mtype->adistance == adist) {
-> +			found = true;
-> +			break;
-> +		}
-> +	}
-> +	if (!found) {
-> +		mtype = alloc_memory_type(adist);
-> +		if (!IS_ERR(mtype))
-> +			list_add(&mtype->list, memory_types);
-> +	}
-> +
-> +	return mtype;
-> +}
-> +EXPORT_SYMBOL_GPL(mt_find_alloc_memory_type);
-> +
-> +/*
-> + * This is invoked via late_initcall() to create
-> + * CPUless memory tiers after HMAT info is ready or
-> + * when there is no HMAT.
-
-Better to avoid HMAT in general code.  How about something as below?
-
-This is invoked via late_initcall() to initialize memory tiers for
-CPU-less memory nodes after drivers initialization.  Which is
-expect to provide adistance algorithms.
-
-> + */
-> +static int __init memory_tier_late_init(void)
-> +{
-> +	int nid;
-> +
-> +	mutex_lock(&memory_tier_lock);
-> +	for_each_node_state(nid, N_MEMORY)
-> +		if (!node_state(nid, N_CPU) &&
-> +			node_memory_types[nid].memtype == NULL)
-> +			/*
-> +			 * Some device drivers may have initialized memory tiers
-> +			 * between `memory_tier_init()` and `memory_tier_late_init()`,
-> +			 * potentially bringing online memory nodes and
-> +			 * configuring memory tiers. Exclude them here.
-> +			 */
-> +			set_node_memory_tier(nid);
-> +
-> +	establish_demotion_targets();
-> +	mutex_unlock(&memory_tier_lock);
-> +
-> +	return 0;
-> +}
-> +late_initcall(memory_tier_late_init);
-> +
->  static void dump_hmem_attrs(struct access_coordinate *coord, const char *prefix)
->  {
->  	pr_info(
-> @@ -631,12 +698,16 @@ static void dump_hmem_attrs(struct access_coordinate *coord, const char *prefix)
->  		coord->read_bandwidth, coord->write_bandwidth);
->  }
->  
-> +/*
-> + * The lock is used to protect the default_dram_perf.
-> + */
-> +static DEFINE_MUTEX(mt_perf_lock);
-
-Miscommunication here too.  Should be moved to near the
-"default_dram_perf" definition.  And it protects not only
-default_dram_perf.
-
->  int mt_set_default_dram_perf(int nid, struct access_coordinate *perf,
->  			     const char *source)
->  {
->  	int rc = 0;
->  
-> -	mutex_lock(&memory_tier_lock);
-> +	mutex_lock(&mt_perf_lock);
->  	if (default_dram_perf_error) {
->  		rc = -EIO;
->  		goto out;
-> @@ -684,7 +755,7 @@ int mt_set_default_dram_perf(int nid, struct access_coordinate *perf,
->  	}
->  
->  out:
-> -	mutex_unlock(&memory_tier_lock);
-> +	mutex_unlock(&mt_perf_lock);
->  	return rc;
->  }
->  
-> @@ -700,7 +771,7 @@ int mt_perf_to_adistance(struct access_coordinate *perf, int *adist)
->  	    perf->read_bandwidth + perf->write_bandwidth == 0)
->  		return -EINVAL;
->  
-> -	mutex_lock(&memory_tier_lock);
-> +	mutex_lock(&mt_perf_lock);
->  	/*
->  	 * The abstract distance of a memory node is in direct proportion to
->  	 * its memory latency (read + write) and inversely proportional to its
-> @@ -713,7 +784,7 @@ int mt_perf_to_adistance(struct access_coordinate *perf, int *adist)
->  		(default_dram_perf.read_latency + default_dram_perf.write_latency) *
->  		(default_dram_perf.read_bandwidth + default_dram_perf.write_bandwidth) /
->  		(perf->read_bandwidth + perf->write_bandwidth);
-> -	mutex_unlock(&memory_tier_lock);
-> +	mutex_unlock(&mt_perf_lock);
->  
->  	return 0;
->  }
-> @@ -826,7 +897,8 @@ static int __init memory_tier_init(void)
->  	 * For now we can have 4 faster memory tiers with smaller adistance
->  	 * than default DRAM tier.
->  	 */
-> -	default_dram_type = alloc_memory_type(MEMTIER_ADISTANCE_DRAM);
-> +	default_dram_type = mt_find_alloc_memory_type(
-> +					MEMTIER_ADISTANCE_DRAM, &default_memory_types);
->  	if (IS_ERR(default_dram_type))
->  		panic("%s() failed to allocate default DRAM tier\n", __func__);
->  
-> @@ -836,6 +908,14 @@ static int __init memory_tier_init(void)
->  	 * types assigned.
->  	 */
->  	for_each_node_state(node, N_MEMORY) {
-> +		if (!node_state(node, N_CPU))
-> +			/*
-> +			 * Defer memory tier initialization on CPUless numa nodes.
-> +			 * These will be initialized after firmware and devices are
-> +			 * initialized.
-> +			 */
-> +			continue;
-> +
->  		memtier = set_node_memory_tier(node);
->  		if (IS_ERR(memtier))
->  			/*
-
---
-Best Regards,
-Huang, Ying
+> > ---
+> >  cxl/json.c | 194 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+> >  1 file changed, 194 insertions(+)
+> > 
+> > diff --git a/cxl/json.c b/cxl/json.c
+> > index fbe41c78e82a..974e98f13cec 100644
+> > --- a/cxl/json.c
+> > +++ b/cxl/json.c
+> > @@ -1,16 +1,20 @@
+> >  // SPDX-License-Identifier: GPL-2.0
+> >  // Copyright (C) 2015-2021 Intel Corporation. All rights reserved.
+> >  #include <limits.h>
+> > +#include <errno.h>
+> >  #include <util/json.h>
+> > +#include <util/bitmap.h>
+> >  #include <uuid/uuid.h>
+> >  #include <cxl/libcxl.h>
+> >  #include <json-c/json.h>
+> >  #include <json-c/printbuf.h>
+> >  #include <ccan/short_types/short_types.h>
+> > +#include <tracefs/tracefs.h>
+> >  
+> >  #include "filter.h"
+> >  #include "json.h"
+> >  #include "../daxctl/json.h"
+> > +#include "event_trace.h"
+> >  
+> >  #define CXL_FW_VERSION_STR_LEN	16
+> >  #define CXL_FW_MAX_SLOTS	4
+> > @@ -571,6 +575,184 @@ err_jobj:
+> >  	return NULL;
+> >  }
+> >  
+> > +/* CXL Spec 3.1 Table 8-140 Media Error Record */
+> > +#define CXL_POISON_SOURCE_MAX 7
+> > +static const char *poison_source[] = { "Unknown",  "External", "Internal",
+> > +				       "Injected", "Reserved", "Reserved",
+> > +				       "Reserved", "Vendor" };
+> > +
+> > +/* CXL Spec 3.1 Table 8-139 Get Poison List Output Payload */
+> > +#define CXL_POISON_FLAG_MORE BIT(0)
+> > +#define CXL_POISON_FLAG_OVERFLOW BIT(1)
+> > +#define CXL_POISON_FLAG_SCANNING BIT(2)
+> > +
+> > +static int poison_event_to_json(struct tep_event *event,
+> > +				struct tep_record *record,
+> > +				struct event_ctx *e_ctx)
+> > +{
+> > +	struct poison_ctx *p_ctx = e_ctx->poison_ctx;
+> > +	struct json_object *jp, *jobj, *jpoison = p_ctx->jpoison;
+> > +	struct cxl_memdev *memdev = p_ctx->memdev;
+> > +	struct cxl_region *region = p_ctx->region;
+> > +	unsigned long flags = p_ctx->flags;
+> > +	const char *region_name = NULL;
+> > +	char flag_str[32] = { '\0' };
+> > +	bool overflow = false;
+> > +	u8 source, pflags;
+> > +	u64 offset, ts;
+> > +	u32 length;
+> > +	char *str;
+> > +	int len;
+> > +
+> > +	jp = json_object_new_object();
+> > +	if (!jp)
+> > +		return -ENOMEM;
+> > +
+> > +	/* Skip records not in this region when listing by region */
+> > +	if (region)
+> > +		region_name = cxl_region_get_devname(region);
+> > +	if (region_name)
+> > +		str = tep_get_field_raw(NULL, event, "region", record, &len, 0);
+> > +	if ((region_name) && (strcmp(region_name, str) != 0)) {
+> > +		json_object_put(jp);
+> > +		return 0;
+> > +	}
+> > +	/* Include offset,length by region (hpa) or by memdev (dpa) */
+> > +	if (region) {
+> > +		offset = cxl_get_field_u64(event, record, "hpa");
+> > +		if (offset != ULLONG_MAX) {
+> > +			offset = offset - cxl_region_get_resource(region);
+> > +			jobj = util_json_object_hex(offset, flags);
+> > +			if (jobj)
+> > +				json_object_object_add(jp, "offset", jobj);
+> > +		}
+> > +	} else if (memdev) {
+> > +		offset = cxl_get_field_u64(event, record, "dpa");
+> > +		if (offset != ULLONG_MAX) {
+> > +			jobj = util_json_object_hex(offset, flags);
+> > +			if (jobj)
+> > +				json_object_object_add(jp, "offset", jobj);
+> > +		}
+> > +	}
+> > +	length = cxl_get_field_u32(event, record, "dpa_length");
+> > +	jobj = util_json_object_size(length, flags);
+> > +	if (jobj)
+> > +		json_object_object_add(jp, "length", jobj);
+> > +
+> > +	/* Always include the poison source */
+> > +	source = cxl_get_field_u8(event, record, "source");
+> > +	if (source <= CXL_POISON_SOURCE_MAX)
+> > +		jobj = json_object_new_string(poison_source[source]);
+> > +	else
+> > +		jobj = json_object_new_string("Reserved");
+> > +	if (jobj)
+> > +		json_object_object_add(jp, "source", jobj);
+> > +
+> > +	/* Include flags and overflow time if present */
+> > +	pflags = cxl_get_field_u8(event, record, "flags");
+> > +	if (pflags && pflags < UCHAR_MAX) {
+> > +		if (pflags & CXL_POISON_FLAG_MORE)
+> > +			strcat(flag_str, "More,");
+> > +		if (pflags & CXL_POISON_FLAG_SCANNING)
+> > +			strcat(flag_str, "Scanning,");
+> > +		if (pflags & CXL_POISON_FLAG_OVERFLOW) {
+> > +			strcat(flag_str, "Overflow,");
+> > +			overflow = true;
+> > +		}
+> > +		jobj = json_object_new_string(flag_str);
+> > +		if (jobj)
+> > +			json_object_object_add(jp, "flags", jobj);
+> > +	}
+> > +	if (overflow) {
+> > +		ts = cxl_get_field_u64(event, record, "overflow_ts");
+> > +		jobj = util_json_object_hex(ts, flags);
+> > +		if (jobj)
+> > +			json_object_object_add(jp, "overflow_t", jobj);
+> > +	}
+> > +	json_object_array_add(jpoison, jp);
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static struct json_object *
+> > +util_cxl_poison_events_to_json(struct tracefs_instance *inst,
+> > +			       struct poison_ctx *p_ctx)
+> > +{
+> > +	struct event_ctx ectx = {
+> > +		.event_name = "cxl_poison",
+> > +		.event_pid = getpid(),
+> > +		.system = "cxl",
+> > +		.poison_ctx = p_ctx,
+> > +		.parse_event = poison_event_to_json,
+> > +	};
+> > +	int rc = 0;
+> 
+> No need to init rc here. 
+> 
+> DJ
+> 
+> > +
+> > +	p_ctx->jpoison = json_object_new_array();
+> > +	if (!p_ctx->jpoison)
+> > +		return NULL;
+> > +
+> > +	rc = cxl_parse_events(inst, &ectx);
+> > +	if (rc < 0) {
+> > +		fprintf(stderr, "Failed to parse events: %d\n", rc);
+> > +		goto put_jobj;
+> > +	}
+> > +	if (json_object_array_length(p_ctx->jpoison) == 0)
+> > +		goto put_jobj;
+> > +
+> > +	return p_ctx->jpoison;
+> > +
+> > +put_jobj:
+> > +	json_object_put(p_ctx->jpoison);
+> > +	return NULL;
+> > +}
+> > +
+> > +static struct json_object *
+> > +util_cxl_poison_list_to_json(struct cxl_region *region,
+> > +			     struct cxl_memdev *memdev,
+> > +			     unsigned long flags)
+> > +{
+> > +	struct json_object *jpoison = NULL;
+> > +	struct poison_ctx p_ctx;
+> > +	struct tracefs_instance *inst;
+> > +	int rc;
+> > +
+> > +	inst = tracefs_instance_create("cxl list");
+> > +	if (!inst) {
+> > +		fprintf(stderr, "tracefs_instance_create() failed\n");
+> > +		return NULL;
+> > +	}
+> > +
+> > +	rc = cxl_event_tracing_enable(inst, "cxl", "cxl_poison");
+> > +	if (rc < 0) {
+> > +		fprintf(stderr, "Failed to enable trace: %d\n", rc);
+> > +		goto err_free;
+> > +	}
+> > +
+> > +	if (region)
+> > +		rc = cxl_region_trigger_poison_list(region);
+> > +	else
+> > +		rc = cxl_memdev_trigger_poison_list(memdev);
+> > +	if (rc)
+> > +		goto err_free;
+> > +
+> > +	rc = cxl_event_tracing_disable(inst);
+> > +	if (rc < 0) {
+> > +		fprintf(stderr, "Failed to disable trace: %d\n", rc);
+> > +		goto err_free;
+> > +	}
+> > +
+> > +	p_ctx = (struct poison_ctx) {
+> > +		.region = region,
+> > +		.memdev = memdev,
+> > +		.flags = flags,
+> > +	};
+> > +	jpoison = util_cxl_poison_events_to_json(inst, &p_ctx);
+> > +
+> > +err_free:
+> > +	tracefs_instance_free(inst);
+> > +	return jpoison;
+> > +}
+> > +
+> >  struct json_object *util_cxl_memdev_to_json(struct cxl_memdev *memdev,
+> >  		unsigned long flags)
+> >  {
+> > @@ -664,6 +846,12 @@ struct json_object *util_cxl_memdev_to_json(struct cxl_memdev *memdev,
+> >  			json_object_object_add(jdev, "firmware", jobj);
+> >  	}
+> >  
+> > +	if (flags & UTIL_JSON_MEDIA_ERRORS) {
+> > +		jobj = util_cxl_poison_list_to_json(NULL, memdev, flags);
+> > +		if (jobj)
+> > +			json_object_object_add(jdev, "media_errors", jobj);
+> > +	}
+> > +
+> >  	json_object_set_userdata(jdev, memdev, NULL);
+> >  	return jdev;
+> >  }
+> > @@ -1012,6 +1200,12 @@ struct json_object *util_cxl_region_to_json(struct cxl_region *region,
+> >  			json_object_object_add(jregion, "state", jobj);
+> >  	}
+> >  
+> > +	if (flags & UTIL_JSON_MEDIA_ERRORS) {
+> > +		jobj = util_cxl_poison_list_to_json(region, NULL, flags);
+> > +		if (jobj)
+> > +			json_object_object_add(jregion, "media_errors", jobj);
+> > +	}
+> > +
+> >  	util_cxl_mappings_append_json(jregion, region, flags);
+> >  
+> >  	if (flags & UTIL_JSON_DAX) {
