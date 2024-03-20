@@ -1,407 +1,494 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yb1-f177.google.com (mail-yb1-f177.google.com [209.85.219.177])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 157212E842
-	for <nvdimm@lists.linux.dev>; Wed, 20 Mar 2024 20:42:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.9
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB36585C7F
+	for <nvdimm@lists.linux.dev>; Wed, 20 Mar 2024 23:28:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.177
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710967337; cv=none; b=LugnF5umZk3f0OWtWc+rOyyC4lL+AIxecwrvNQjVDoqRAkkT3gcOeKe5w8r65k4iQzotRZl3l3gm958Or0YM/GE9o0T6XydGmxTrX+bNBqQV+KZQWIun1jAcOnES5S2IYt6HgnkDU842uADrFqJabUielhxdM2W0byY9bJrUGO4=
+	t=1710977295; cv=none; b=A4+stuWag/z8Nqa0R/vsTJV61qKeWjoL7A+DJGqi1ZQdE8ZyPYZMiA7aeVqlvHcfVKe4iNYLHyINzZzuoZjrj6s6/YhtqbOktdAe+215C+MNg+ceqY43nKyksQAgLXyOhCPsltjoRWwD8zBYzA+zscJTnFJh3N2D4Htj5gMnEXY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710967337; c=relaxed/simple;
-	bh=v+4WUabNYalf5GqvqVmymAuxC3nMRa6sUIZkJKh0g5w=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=gzQnl+bWzSIoxFlJ2CJocl1yeS37ezKl6GmXJ05Natvk+4PQkf/4lSZEKQRzKojpthGlmocyT2kzXRkEG13GhwMLSYD/b8gz35Y9cNylGMHOBhrcdyPuJLhMIWm9uVlz6P7iuGoBpw94OZ1dNrVBaSVY/f3wi87tZbsv1VTZu0I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=MpKUxaav; arc=none smtp.client-ip=198.175.65.9
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1710977295; c=relaxed/simple;
+	bh=o1ryTSbHjTUNVk4pPbnjBHP+u+zATsLW0SPWxgM66LM=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=CMXcLOtSgRwaWXLGWnzcPttZELop6qz9sJ2+iC09ITKXE6+R7lGAjcnOAGoPRMbO+vNAnMkZV1BqwumzLToKCRz4mN985UHxHnXwGfEa/wmP9Ni2bMCwrTdVU78fwK5AJoya1o9I67kEEbYJN4SkqKdQAXJcppJAGy8GGz92MSw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com; spf=pass smtp.mailfrom=bytedance.com; dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b=XCSWyVZW; arc=none smtp.client-ip=209.85.219.177
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bytedance.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="MpKUxaav"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1710967336; x=1742503336;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=v+4WUabNYalf5GqvqVmymAuxC3nMRa6sUIZkJKh0g5w=;
-  b=MpKUxaavKsCbDbrTbuB5IDz4Dc8/48Uqr2FvMIjZHZ6UBT59mHZsg1Fx
-   QLPJm3G9yYihTEMrDi/qxz8l7dG/yaYwiipPuRul6+UVtF7QUTXVtLH0H
-   qQDd+VH//u8u7Ksmu6TRuuvQxXdqlD5KCxn4dsqmfPWDCm4uSvPfg5gh7
-   RJFd9e9HZvEPwXKTe0nU+g1BYcCQJ7bjnqXrPs+ifCesXBDq0GneN6yk0
-   BU+8mFH+5li9pzKx2tanVKm962q7f7ti4honieLLVwPBlVKYCoeANGHrp
-   Z8N4/W3e0dMIBJrdDzRCeTuLUBZ0mX2IpzYCS2/208cHio8f8SY5guANC
-   Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,11019"; a="28397554"
-X-IronPort-AV: E=Sophos;i="6.07,141,1708416000"; 
-   d="scan'208";a="28397554"
-Received: from orviesa009.jf.intel.com ([10.64.159.149])
-  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Mar 2024 13:42:13 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.07,141,1708416000"; 
-   d="scan'208";a="14294453"
-Received: from aschofie-mobl2.amr.corp.intel.com (HELO aschofie-mobl2) ([10.209.72.188])
-  by orviesa009-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Mar 2024 13:42:10 -0700
-Date: Wed, 20 Mar 2024 13:42:08 -0700
-From: Alison Schofield <alison.schofield@intel.com>
-To: Vishal Verma <vishal.l.verma@intel.com>
-Cc: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
-Subject: Re: [ndctl PATCH v11 0/7] Support poison list retrieval
-Message-ID: <ZftKIJSSIm4cZUje@aschofie-mobl2>
-References: <cover.1710386468.git.alison.schofield@intel.com>
+	dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b="XCSWyVZW"
+Received: by mail-yb1-f177.google.com with SMTP id 3f1490d57ef6-dcbcea9c261so363594276.3
+        for <nvdimm@lists.linux.dev>; Wed, 20 Mar 2024 16:28:11 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=bytedance.com; s=google; t=1710977291; x=1711582091; darn=lists.linux.dev;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=zJzBq5JYuB2XAGJ0KALCMa2K2ac89AEZaVfd/fyT9P0=;
+        b=XCSWyVZWMX6avMYafUjFgd0jOWqGD++saC7KTVjidWkZWyr5BWrE5zfNqGAiEHDqaw
+         OC3oBynai6tYoqkYab2qAFfbYLGjMKjzdmDHjy5i8hhpu8T2kQqFv7iY+nXDkZw2P5JG
+         BPKIDuHb5ejltVC2sgu/zq+YPUOBcnQ2zNZsfOdGMS1nIuWrg+kanvEe/i//1B4Zsosm
+         DlYUlvfm6zXOCC4smVkhKdZPIJqG0BcQAy0ldRvxrAYTCPdpkXRqqTXuEHDQiMIXpcfV
+         +UsLSry9r+C4E7iKxoHS0MqWHD/3PMs/Wyy2GydWUmSAVA5s5vpfAH8xQwYzaYYtIMDr
+         dXiw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1710977291; x=1711582091;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=zJzBq5JYuB2XAGJ0KALCMa2K2ac89AEZaVfd/fyT9P0=;
+        b=RsxFA5w6UNeEv2HkpV0Ba+gbKDyQXRLGJ5S2Lq+11kVBjzJ0rE6dni3k3f0RP9bQBC
+         8RhzJjC1KQ+WjLCmlP8Xh8Tmlq3DtFhz+zJk9wGouTPW8yeYmm65Z3KwDm+j8a3J4mi8
+         rPflv9Pq5GLvo7jrcKTfvH/jCSEw/+IjdrWKK70j+3q+ee4NLALnRY/kBOTGbxHAhLbD
+         IbPPhBlltsrQd16QpVjVliIoBZ1CjWS6roTQvGCpvUTk6vBslSx3YLAN9xCHS2WC/OYi
+         O7F0vQpwUNA5s8sOtXSncFiOQk4olm0BKu/BDEdHwAIDm7OUCDr7dwy86gtzxicQapzR
+         KuCw==
+X-Forwarded-Encrypted: i=1; AJvYcCWw9deMAe44Kgc+8PoBir3pz6o7E/r38uSpt5eb9ifcO6GU6TohrzxqHVdRKEGCEYOcZFAOIaXO6ITO2C4AvUOtDk1lxG2B
+X-Gm-Message-State: AOJu0YwSkS26+h/CNIngwk1oZKV2GbGGnEvWDFQmEv3hLeokw+MCr3IL
+	o5qwIbYmosPqP8w3UP8WAZHoAi3d9sCu2rsRQC67UQxnXwF9kwQsblVnSE2990VmMj2ci6i5vHl
+	HZaTcq05Z+krX0XwsY6gecVNqjp5rH9/QV8Sc2g==
+X-Google-Smtp-Source: AGHT+IFGJliSrDOUQ4ErqYoYgEzAjB2StnHNHTXjgXve2MnBnRyAPXbxRVaPnc6fOZEVfVxO8SzIJ0MjV2hraKOtNuk=
+X-Received: by 2002:a25:fe03:0:b0:dd1:517b:571d with SMTP id
+ k3-20020a25fe03000000b00dd1517b571dmr314816ybe.16.1710977290644; Wed, 20 Mar
+ 2024 16:28:10 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <cover.1710386468.git.alison.schofield@intel.com>
+References: <20240320061041.3246828-1-horenchuang@bytedance.com>
+ <20240320061041.3246828-2-horenchuang@bytedance.com> <87edc5s7ea.fsf@yhuang6-desk2.ccr.corp.intel.com>
+In-Reply-To: <87edc5s7ea.fsf@yhuang6-desk2.ccr.corp.intel.com>
+From: "Ho-Ren (Jack) Chuang" <horenchuang@bytedance.com>
+Date: Wed, 20 Mar 2024 16:27:59 -0700
+Message-ID: <CAKPbEqrfdJwHCuc9yvSBXa2jR-KwXwaa-dFD6iMmXT_OiweYmg@mail.gmail.com>
+Subject: Re: [External] Re: [PATCH v3 1/2] memory tier: dax/kmem: create
+ CPUless memory tiers after obtaining HMAT info
+To: "Huang, Ying" <ying.huang@intel.com>
+Cc: Gregory Price <gourry.memverge@gmail.com>, aneesh.kumar@linux.ibm.com, mhocko@suse.com, 
+	tj@kernel.org, john@jagalactic.com, Eishan Mirakhur <emirakhur@micron.com>, 
+	Vinicius Tavares Petrucci <vtavarespetr@micron.com>, Ravis OpenSrc <Ravis.OpenSrc@micron.com>, 
+	Alistair Popple <apopple@nvidia.com>, Srinivasulu Thanneeru <sthanneeru@micron.com>, 
+	Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, 
+	Dave Jiang <dave.jiang@intel.com>, Andrew Morton <akpm@linux-foundation.org>, nvdimm@lists.linux.dev, 
+	linux-cxl@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, 
+	"Ho-Ren (Jack) Chuang" <horenc@vt.edu>, "Ho-Ren (Jack) Chuang" <horenchuang@gmail.com>, qemu-devel@nongnu.org, 
+	Hao Xiang <hao.xiang@bytedance.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Wed, Mar 13, 2024 at 09:05:16PM -0700, alison.schofield@intel.com wrote:
-> From: Alison Schofield <alison.schofield@intel.com>
+On Wed, Mar 20, 2024 at 12:15=E2=80=AFAM Huang, Ying <ying.huang@intel.com>=
+ wrote:
+>
+> "Ho-Ren (Jack) Chuang" <horenchuang@bytedance.com> writes:
+>
+> > The current implementation treats emulated memory devices, such as
+> > CXL1.1 type3 memory, as normal DRAM when they are emulated as normal me=
+mory
+> > (E820_TYPE_RAM). However, these emulated devices have different
+> > characteristics than traditional DRAM, making it important to
+> > distinguish them. Thus, we modify the tiered memory initialization proc=
+ess
+> > to introduce a delay specifically for CPUless NUMA nodes. This delay
+> > ensures that the memory tier initialization for these nodes is deferred
+> > until HMAT information is obtained during the boot process. Finally,
+> > demotion tables are recalculated at the end.
+> >
+> > More details:
+>
+> You have done several stuff in one patch.  So you need "more details".
+> You may separate them into multiple patches.  One for echo "*" below.
+> But I have no strong opinion on that.
+>
+> > * late_initcall(memory_tier_late_init);
+> > Some device drivers may have initialized memory tiers between
+> > `memory_tier_init()` and `memory_tier_late_init()`, potentially bringin=
+g
+> > online memory nodes and configuring memory tiers. They should be exclud=
+ed
+> > in the late init.
+> >
+> > * Abstract common functions into `mt_find_alloc_memory_type()`
+> > Since different memory devices require finding or allocating a memory t=
+ype,
+> > these common steps are abstracted into a single function,
+> > `mt_find_alloc_memory_type()`, enhancing code scalability and concisene=
+ss.
+> >
+> > * Handle cases where there is no HMAT when creating memory tiers
+> > There is a scenario where a CPUless node does not provide HMAT informat=
+ion.
+> > If no HMAT is specified, it falls back to using the default DRAM tier.
+> >
+> > * Change adist calculation code to use another new lock, `mt_perf_lock`=
+.
+> > In the current implementation, iterating through CPUlist nodes requires
+> > holding the `memory_tier_lock`. However, `mt_calc_adistance()` will end=
+ up
+> > trying to acquire the same lock, leading to a potential deadlock.
+> > Therefore, we propose introducing a standalone `mt_perf_lock` to protec=
+t
+> > `default_dram_perf`. This approach not only avoids deadlock but also
+> > prevents holding a large lock simultaneously.
+> >
+> > * Upgrade `set_node_memory_tier` to support additional cases, including
+> >   default DRAM, late CPUless, and hot-plugged initializations.
+> > To cover hot-plugged memory nodes, `mt_calc_adistance()` and
+> > `mt_find_alloc_memory_type()` are moved into `set_node_memory_tier()` t=
+o
+> > handle cases where memtype is not initialized and where HMAT informatio=
+n is
+> > available.
+> >
+> > * Introduce `default_memory_types` for those memory types that are not
+> >   initialized by device drivers.
+> > Because late initialized memory and default DRAM memory need to be mana=
+ged,
+> > a default memory type is created for storing all memory types that are
+> > not initialized by device drivers and as a fallback.
+> >
+> > Signed-off-by: Ho-Ren (Jack) Chuang <horenchuang@bytedance.com>
+> > Signed-off-by: Hao Xiang <hao.xiang@bytedance.com>
+> > ---
+> >  drivers/dax/kmem.c           | 13 +----
+> >  include/linux/memory-tiers.h |  7 +++
+> >  mm/memory-tiers.c            | 94 +++++++++++++++++++++++++++++++++---
+> >  3 files changed, 95 insertions(+), 19 deletions(-)
+> >
+> > diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
+> > index 42ee360cf4e3..de1333aa7b3e 100644
+> > --- a/drivers/dax/kmem.c
+> > +++ b/drivers/dax/kmem.c
+> > @@ -55,21 +55,10 @@ static LIST_HEAD(kmem_memory_types);
+> >
+> >  static struct memory_dev_type *kmem_find_alloc_memory_type(int adist)
+> >  {
+> > -     bool found =3D false;
+> >       struct memory_dev_type *mtype;
+> >
+> >       mutex_lock(&kmem_memory_type_lock);
+> > -     list_for_each_entry(mtype, &kmem_memory_types, list) {
+> > -             if (mtype->adistance =3D=3D adist) {
+> > -                     found =3D true;
+> > -                     break;
+> > -             }
+> > -     }
+> > -     if (!found) {
+> > -             mtype =3D alloc_memory_type(adist);
+> > -             if (!IS_ERR(mtype))
+> > -                     list_add(&mtype->list, &kmem_memory_types);
+> > -     }
+> > +     mtype =3D mt_find_alloc_memory_type(adist, &kmem_memory_types);
+> >       mutex_unlock(&kmem_memory_type_lock);
+> >
+> >       return mtype;
+>
+> It seems that there's some miscommunication about my previous comments
+> about this.  What I suggested is to create one separate patch, which
+> moves mt_find_alloc_memory_type() and mt_put_memory_types() into
+> memory-tiers.c.  And make this patch the first one of the series.
+>
 
-Asking folks to share this with future users of the poison list
-feature of ndctl. ie. cxl list --media-errors
-
-I'd like to get additional 'user' input on the json output provided by
-this --media-errors option to cxl-list. After a few iterations of what
-should be included in the cxl-list output, I'm not so sure that we've
-captured sufficient input from potential users. (Since they typically
-won't use this til it's released in ndctl.)
-
-To guide your thinking recall that users can retrieve a devices poison
-list now without any cxl-cli (ndctl) tool support. Users can trigger
-the collection via sysfs and see the results in the trace logs like:
-
-this:
-- echo 1 > /sys/kernel/tracing/events/cxl/cxl_poison/enable
-- echo 1 > /sys/bus/cxl/devices/memX/trigger_poison_list
-- Examine the cxl_poison events in the trace file at 
-
-or this:
-- cxl monitor --daemon --log=<poison-log-path>
-- echo 1 > /sys/bus/cxl/devices/memX/trigger_poison_list
-- Examine the cxl_poison events in the monitor log
-
-or this:
-- enable tp_printk
-- echo 1 > /sys/kernel/tracing/events/cxl/cxl_poison/enable
-- echo 1 > /sys/bus/cxl/devices/memX/trigger_poison_list
-- Examine the cxl_poison events in the dmesg log
-
-So, a few ways to get at this cxl_poison trace data:
-memdev=mem9
-host=cxl_mem.5 
-serial=5 
-trace_type=List 
-region=region5 
-region_uuid=99352a43-44cb-405d-85c9-fdbd971455d8
-hpa=0xf110001000
-dpa=0x40000000
-dpa_length=0x40
-source=Injected
-flags=
-overflow_time=0
-
-The tool should be providing a better experience that the sysfs/trace.
-The tools does look up memdevs contributing to a region and triggers
-the needed poison list reads, so that's a small convenience. It's
-usefulness needs to extend to the json listing.
-
-Here's history of json output pulled from the patch cover letters.
-It's long, but I didn't want to omit any detail.
-
-I've appended here the history of changes to the output.
-Only including samples where the json output actually changed.
-I'm including it to spur conversation not as a guideline.
-
-Subject: [ndctl PATCH v11 0/7] Support poison list retrieval
-
-           # cxl list -m mem9 --media-errors -u
-           {
-             "memdev":"mem9",
-             "pmem_size":"1024.00 MiB (1073.74 MB)",
-             "pmem_qos_class":42,
-             "ram_size":"1024.00 MiB (1073.74 MB)",
-             "ram_qos_class":42,
-             "serial":"0x5",
-             "numa_node":1,
-             "host":"cxl_mem.5",
-             "media_errors":[
-               {
-                 "offset":"0x40000000",
-                 "length":64,
-                 "source":"Injected"
-               }
-             ]
-           }
-
-
-           # cxl list -r region5 --media-errors -u
-           {
-             "region":"region5",
-             "resource":"0xf110000000",
-             "size":"2.00 GiB (2.15 GB)",
-             "type":"pmem",
-             "interleave_ways":2,
-             "interleave_granularity":4096,
-             "decode_state":"commit",
-             "media_errors":[
-               {
-                 "offset":"0x1000",
-                 "length":64,
-                 "source":"Injected"
-               },
-               {
-                 "offset":"0x2000",
-                 "length":64,
-                 "source":"Injected"
-               }
-             ]
-           }
-
-
-Subject: [ndctl PATCH v7 0/7] Support poison list retrieval
-
-# cxl list -m mem1 --media-errors
-[
-  {
-    "memdev":"mem1",
-    "pmem_size":1073741824,
-    "ram_size":1073741824,
-    "serial":1,
-    "numa_node":1,
-    "host":"cxl_mem.1",
-    "media_errors":[
-      {
-        "dpa":0,
-        "length":64,
-        "source":"Internal"
-      },
-      {
-        "decoder":"decoder10.0",
-        "hpa":1035355557888,
-        "dpa":1073741824,
-        "length":64,
-        "source":"External"
-      },
-      {
-        "decoder":"decoder10.0",
-        "hpa":1035355566080,
-        "dpa":1073745920,
-        "length":64,
-        "source":"Injected"
-      }
-    ]
-  }
-]
-
-# cxl list -r region5 --media-errors
-[
-  {
-    "region":"region5",
-    "resource":1035355553792,
-    "size":2147483648,
-    "type":"pmem",
-    "interleave_ways":2,
-    "interleave_granularity":4096,
-    "decode_state":"commit",
-    "media_errors":[
-      {
-        "decoder":"decoder10.0",
-        "hpa":1035355557888,
-        "dpa":1073741824,
-        "length":64,
-        "source":"External"
-      },
-      {
-        "decoder":"decoder8.1",
-        "hpa":1035355566080,
-        "dpa":1073745920,
-        "length":64,
-        "source":"Internal"
-      }
-    ]
-  }
-]
-
-Subject: [ndctl PATCH v6 0/7] Support poison list retrieval
-
-# cxl list -m mem1 --media-errors
-[
-  {
-    "memdev":"mem1",
-    "pmem_size":1073741824,
-    "ram_size":1073741824,
-    "serial":1,
-    "numa_node":1,
-    "host":"cxl_mem.1",
-    "media_errors":[
-      {
-        "dpa":0,
-        "dpa_length":64,
-        "source":"Injected"
-      },
-      {
-        "region":"region5",
-        "dpa":1073741824,
-        "dpa_length":64,
-        "hpa":1035355557888,
-        "source":"Injected"
-      },
-      {
-        "region":"region5",
-        "dpa":1073745920,
-        "dpa_length":64,
-        "hpa":1035355566080,
-        "source":"Injected"
-      }
-    ]
-  }
-]
-
-# cxl list -r region5 --media-errors
-[
-  {
-    "region":"region5",
-    "resource":1035355553792,
-    "size":2147483648,
-    "type":"pmem",
-    "interleave_ways":2,
-    "interleave_granularity":4096,
-    "decode_state":"commit",
-    "media_errors":[
-      {
-        "memdev":"mem1",
-        "dpa":1073741824,
-        "dpa_length":64,
-        "hpa":1035355557888,
-        "source":"Injected"
-      },
-      {
-        "memdev":"mem1",
-        "dpa":1073745920,
-        "dpa_length":64,
-        "hpa":1035355566080,
-        "source":"Injected"
-      }
-    ]
-  }
-]
-
-Subject: [ndctl PATCH v2 0/3] Support poison list retrieval
-
-Example: By memdev
-cxl list -m mem1 --poison -u
-{
-  "memdev":"mem1",
-  "pmem_size":"1024.00 MiB (1073.74 MB)",
-  "ram_size":"1024.00 MiB (1073.74 MB)",
-  "serial":"0x1",
-  "numa_node":1,
-  "host":"cxl_mem.1",
-  "poison":{
-    "nr_poison_records":4,
-    "poison_records":[
-      {
-        "dpa":"0x40000000",
-        "dpa_length":64,
-        "source":"Injected",
-        "flags":""
-      },
-      {
-        "dpa":"0x40001000",
-        "dpa_length":64,
-        "source":"Injected",
-        "flags":""
-      },
-      {
-        "dpa":"0",
-        "dpa_length":64,
-        "source":"Injected",
-        "flags":""
-      },
-      {
-        "dpa":"0x600",
-        "dpa_length":64,
-        "source":"Injected",
-        "flags":""
-      }
-    ]
-  }
-}
-
-Example: By region
-cxl list -r region5 --poison -u
-{
-  "region":"region5",
-  "resource":"0xf110000000",
-  "size":"2.00 GiB (2.15 GB)",
-  "type":"pmem",
-  "interleave_ways":2,
-  "interleave_granularity":4096,
-  "decode_state":"commit",
-  "poison":{
-    "nr_poison_records":2,
-    "poison_records":[
-      {
-        "memdev":"mem1",
-        "region":"region5",
-        "hpa":"0xf110001000",
-        "dpa":"0x40000000",
-        "dpa_length":64,
-        "source":"Injected",
-        "flags":""
-      },
-      {
-        "memdev":"mem0",
-        "region":"region5",
-        "hpa":"0xf110000000",
-        "dpa":"0x40000000",
-        "dpa_length":64,
-        "source":"Injected",
-        "flags":""
-      }
-    ]
-  }
-}
+I will make mt_find_alloc/mt_put_memory_type changes as
+a separate patch and the first of my patch series. Thanks.
 
 
-Example: By memdev and coincidentally in a region
-# cxl list -m mem0 --poison -u
-{
-  "memdev":"mem0",
-  "pmem_size":"1024.00 MiB (1073.74 MB)",
-  "ram_size":"1024.00 MiB (1073.74 MB)",
-  "serial":"0",
-  "numa_node":0,
-  "host":"cxl_mem.0",
-  "poison":{
-    "nr_poison_records":1,
-    "poison_records":[
-      {
-        "region":"region5",
-        "hpa":"0xf110000000",
-        "dpa":"0x40000000",
-        "dpa_length":64,
-        "source":"Injected",
-        "flags":""
-      }
-    ]
-  }
-}
+> > diff --git a/include/linux/memory-tiers.h b/include/linux/memory-tiers.=
+h
+> > index 69e781900082..b2135334ac18 100644
+> > --- a/include/linux/memory-tiers.h
+> > +++ b/include/linux/memory-tiers.h
+> > @@ -48,6 +48,8 @@ int mt_calc_adistance(int node, int *adist);
+> >  int mt_set_default_dram_perf(int nid, struct access_coordinate *perf,
+> >                            const char *source);
+> >  int mt_perf_to_adistance(struct access_coordinate *perf, int *adist);
+> > +struct memory_dev_type *mt_find_alloc_memory_type(int adist,
+> > +                                                     struct list_head =
+*memory_types);
+> >  #ifdef CONFIG_MIGRATION
+> >  int next_demotion_node(int node);
+> >  void node_get_allowed_targets(pg_data_t *pgdat, nodemask_t *targets);
+> > @@ -136,5 +138,10 @@ static inline int mt_perf_to_adistance(struct acce=
+ss_coordinate *perf, int *adis
+> >  {
+> >       return -EIO;
+> >  }
+> > +
+> > +struct memory_dev_type *mt_find_alloc_memory_type(int adist, struct li=
+st_head *memory_types)
+> > +{
+> > +     return NULL;
+> > +}
+> >  #endif       /* CONFIG_NUMA */
+> >  #endif  /* _LINUX_MEMORY_TIERS_H */
+> > diff --git a/mm/memory-tiers.c b/mm/memory-tiers.c
+> > index 0537664620e5..d9b96b21b65a 100644
+> > --- a/mm/memory-tiers.c
+> > +++ b/mm/memory-tiers.c
+> > @@ -6,6 +6,7 @@
+> >  #include <linux/memory.h>
+> >  #include <linux/memory-tiers.h>
+> >  #include <linux/notifier.h>
+> > +#include <linux/acpi.h>
+>
+> We don't need this anymore.
+>
+
+Thanks. I will remove it.
+
+> >  #include "internal.h"
+> >
+> > @@ -36,6 +37,11 @@ struct node_memory_type_map {
+> >
+> >  static DEFINE_MUTEX(memory_tier_lock);
+> >  static LIST_HEAD(memory_tiers);
+> > +/*
+> > + * The list is used to store all memory types that are not created
+> > + * by a device driver.
+> > + */
+> > +static LIST_HEAD(default_memory_types);
+> >  static struct node_memory_type_map node_memory_types[MAX_NUMNODES];
+> >  struct memory_dev_type *default_dram_type;
+> >
+> > @@ -505,7 +511,8 @@ static inline void __init_node_memory_type(int node=
+, struct memory_dev_type *mem
+> >  static struct memory_tier *set_node_memory_tier(int node)
+> >  {
+> >       struct memory_tier *memtier;
+> > -     struct memory_dev_type *memtype;
+> > +     struct memory_dev_type *memtype, *mtype =3D NULL;
+>
+> It seems unnecessary to introduce another variable, just use memtype?
+>
+
+Yes, I will consolidate them.
 
 
-Example: No poison found
-cxl list -m mem9 --poison -u
-{
-  "memdev":"mem9",
-  "pmem_size":"1024.00 MiB (1073.74 MB)",
-  "ram_size":"1024.00 MiB (1073.74 MB)",
-  "serial":"0x9",
-  "numa_node":1,
-  "host":"cxl_mem.9",
-  "poison":{
-    "nr_poison_records":0
-  }
-}
+> > +     int adist =3D MEMTIER_ADISTANCE_DRAM;
+> >       pg_data_t *pgdat =3D NODE_DATA(node);
+> >
+> >
+> > @@ -514,7 +521,18 @@ static struct memory_tier *set_node_memory_tier(in=
+t node)
+> >       if (!node_state(node, N_MEMORY))
+> >               return ERR_PTR(-EINVAL);
+> >
+> > -     __init_node_memory_type(node, default_dram_type);
+> > +     mt_calc_adistance(node, &adist);
+> > +     if (adist !=3D MEMTIER_ADISTANCE_DRAM &&
+> > +                     node_memory_types[node].memtype =3D=3D NULL) {
+> > +             mtype =3D mt_find_alloc_memory_type(adist, &default_memor=
+y_types);
+> > +             if (IS_ERR(mtype)) {
+> > +                     mtype =3D default_dram_type;
+> > +                     pr_info("Failed to allocate a memory type. Fall b=
+ack.\n");
+> > +             }
+> > +     } else
+> > +             mtype =3D default_dram_type;
+>
+> This can be simplified to
+>
+>         mt_calc_adistance(node, &adist);
+>         if (node_memory_types[node].memtype =3D=3D NULL) {
+>                 mtype =3D mt_find_alloc_memory_type(adist, &default_memor=
+y_types);
+>                 if (IS_ERR(mtype)) {
+>                         mtype =3D default_dram_type;
+>                         pr_info("Failed to allocate a memory type. Fall b=
+ack.\n");
+>                 }
+>         }
+>
 
+Sounds good! I will do.
+
+
+> > +     __init_node_memory_type(node, mtype);
+> >
+> >       memtype =3D node_memory_types[node].memtype;
+> >       node_set(node, memtype->nodes);
+> > @@ -623,6 +641,55 @@ void clear_node_memory_type(int node, struct memor=
+y_dev_type *memtype)
+> >  }
+> >  EXPORT_SYMBOL_GPL(clear_node_memory_type);
+> >
+> > +struct memory_dev_type *mt_find_alloc_memory_type(int adist, struct li=
+st_head *memory_types)
+> > +{
+> > +     bool found =3D false;
+> > +     struct memory_dev_type *mtype;
+> > +
+> > +     list_for_each_entry(mtype, memory_types, list) {
+> > +             if (mtype->adistance =3D=3D adist) {
+> > +                     found =3D true;
+> > +                     break;
+> > +             }
+> > +     }
+> > +     if (!found) {
+> > +             mtype =3D alloc_memory_type(adist);
+> > +             if (!IS_ERR(mtype))
+> > +                     list_add(&mtype->list, memory_types);
+> > +     }
+> > +
+> > +     return mtype;
+> > +}
+> > +EXPORT_SYMBOL_GPL(mt_find_alloc_memory_type);
+> > +
+> > +/*
+> > + * This is invoked via late_initcall() to create
+> > + * CPUless memory tiers after HMAT info is ready or
+> > + * when there is no HMAT.
+>
+> Better to avoid HMAT in general code.  How about something as below?
+>
+> This is invoked via late_initcall() to initialize memory tiers for
+> CPU-less memory nodes after drivers initialization.  Which is
+> expect to provide adistance algorithms.
+>
+
+Got it. Thanks.
+"
+This is invoked via `late_initcall()` to initialize memory tiers for
+CPU-less memory nodes after driver initialization, which is
+expected to provide `adistance` algorithms.
+"
+
+
+> > + */
+> > +static int __init memory_tier_late_init(void)
+> > +{
+> > +     int nid;
+> > +
+> > +     mutex_lock(&memory_tier_lock);
+> > +     for_each_node_state(nid, N_MEMORY)
+> > +             if (!node_state(nid, N_CPU) &&
+> > +                     node_memory_types[nid].memtype =3D=3D NULL)
+> > +                     /*
+> > +                      * Some device drivers may have initialized memor=
+y tiers
+> > +                      * between `memory_tier_init()` and `memory_tier_=
+late_init()`,
+> > +                      * potentially bringing online memory nodes and
+> > +                      * configuring memory tiers. Exclude them here.
+> > +                      */
+> > +                     set_node_memory_tier(nid);
+> > +
+> > +     establish_demotion_targets();
+> > +     mutex_unlock(&memory_tier_lock);
+> > +
+> > +     return 0;
+> > +}
+> > +late_initcall(memory_tier_late_init);
+> > +
+> >  static void dump_hmem_attrs(struct access_coordinate *coord, const cha=
+r *prefix)
+> >  {
+> >       pr_info(
+> > @@ -631,12 +698,16 @@ static void dump_hmem_attrs(struct access_coordin=
+ate *coord, const char *prefix)
+> >               coord->read_bandwidth, coord->write_bandwidth);
+> >  }
+> >
+> > +/*
+> > + * The lock is used to protect the default_dram_perf.
+> > + */
+> > +static DEFINE_MUTEX(mt_perf_lock);
+>
+> Miscommunication here too.  Should be moved to near the
+> "default_dram_perf" definition.  And it protects not only
+> default_dram_perf.
+>
+
+I will move it closer to default_dram_perf*.
+And change it to:
++/*
++ * The lock is used to protect default_dram_perf*.
++ */
+
+
+> >  int mt_set_default_dram_perf(int nid, struct access_coordinate *perf,
+> >                            const char *source)
+> >  {
+> >       int rc =3D 0;
+> >
+> > -     mutex_lock(&memory_tier_lock);
+> > +     mutex_lock(&mt_perf_lock);
+> >       if (default_dram_perf_error) {
+> >               rc =3D -EIO;
+> >               goto out;
+> > @@ -684,7 +755,7 @@ int mt_set_default_dram_perf(int nid, struct access=
+_coordinate *perf,
+> >       }
+> >
+> >  out:
+> > -     mutex_unlock(&memory_tier_lock);
+> > +     mutex_unlock(&mt_perf_lock);
+> >       return rc;
+> >  }
+> >
+> > @@ -700,7 +771,7 @@ int mt_perf_to_adistance(struct access_coordinate *=
+perf, int *adist)
+> >           perf->read_bandwidth + perf->write_bandwidth =3D=3D 0)
+> >               return -EINVAL;
+> >
+> > -     mutex_lock(&memory_tier_lock);
+> > +     mutex_lock(&mt_perf_lock);
+> >       /*
+> >        * The abstract distance of a memory node is in direct proportion=
+ to
+> >        * its memory latency (read + write) and inversely proportional t=
+o its
+> > @@ -713,7 +784,7 @@ int mt_perf_to_adistance(struct access_coordinate *=
+perf, int *adist)
+> >               (default_dram_perf.read_latency + default_dram_perf.write=
+_latency) *
+> >               (default_dram_perf.read_bandwidth + default_dram_perf.wri=
+te_bandwidth) /
+> >               (perf->read_bandwidth + perf->write_bandwidth);
+> > -     mutex_unlock(&memory_tier_lock);
+> > +     mutex_unlock(&mt_perf_lock);
+> >
+> >       return 0;
+> >  }
+> > @@ -826,7 +897,8 @@ static int __init memory_tier_init(void)
+> >        * For now we can have 4 faster memory tiers with smaller adistan=
+ce
+> >        * than default DRAM tier.
+> >        */
+> > -     default_dram_type =3D alloc_memory_type(MEMTIER_ADISTANCE_DRAM);
+> > +     default_dram_type =3D mt_find_alloc_memory_type(
+> > +                                     MEMTIER_ADISTANCE_DRAM, &default_=
+memory_types);
+> >       if (IS_ERR(default_dram_type))
+> >               panic("%s() failed to allocate default DRAM tier\n", __fu=
+nc__);
+> >
+> > @@ -836,6 +908,14 @@ static int __init memory_tier_init(void)
+> >        * types assigned.
+> >        */
+> >       for_each_node_state(node, N_MEMORY) {
+> > +             if (!node_state(node, N_CPU))
+> > +                     /*
+> > +                      * Defer memory tier initialization on CPUless nu=
+ma nodes.
+> > +                      * These will be initialized after firmware and d=
+evices are
+> > +                      * initialized.
+> > +                      */
+> > +                     continue;
+> > +
+> >               memtier =3D set_node_memory_tier(node);
+> >               if (IS_ERR(memtier))
+> >                       /*
+>
+> --
+> Best Regards,
+> Huang, Ying
+
+
+
+--=20
+Best regards,
+Ho-Ren (Jack) Chuang
+=E8=8E=8A=E8=B3=80=E4=BB=BB
