@@ -1,494 +1,259 @@
-Received: from mail-yb1-f177.google.com (mail-yb1-f177.google.com [209.85.219.177])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from esa1.fujitsucc.c3s2.iphmx.com (esa1.fujitsucc.c3s2.iphmx.com [68.232.152.245])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB36585C7F
-	for <nvdimm@lists.linux.dev>; Wed, 20 Mar 2024 23:28:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.177
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710977295; cv=none; b=A4+stuWag/z8Nqa0R/vsTJV61qKeWjoL7A+DJGqi1ZQdE8ZyPYZMiA7aeVqlvHcfVKe4iNYLHyINzZzuoZjrj6s6/YhtqbOktdAe+215C+MNg+ceqY43nKyksQAgLXyOhCPsltjoRWwD8zBYzA+zscJTnFJh3N2D4Htj5gMnEXY=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710977295; c=relaxed/simple;
-	bh=o1ryTSbHjTUNVk4pPbnjBHP+u+zATsLW0SPWxgM66LM=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=CMXcLOtSgRwaWXLGWnzcPttZELop6qz9sJ2+iC09ITKXE6+R7lGAjcnOAGoPRMbO+vNAnMkZV1BqwumzLToKCRz4mN985UHxHnXwGfEa/wmP9Ni2bMCwrTdVU78fwK5AJoya1o9I67kEEbYJN4SkqKdQAXJcppJAGy8GGz92MSw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com; spf=pass smtp.mailfrom=bytedance.com; dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b=XCSWyVZW; arc=none smtp.client-ip=209.85.219.177
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bytedance.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AEB1931A8F
+	for <nvdimm@lists.linux.dev>; Thu, 21 Mar 2024 05:41:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=68.232.152.245
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1710999694; cv=fail; b=osvQNRkrnKZQnyM+Z4f+IXBvkhj6lRyVI4unXspoUYH3kk2QAqwFXunTA3AfELoozniSvi6r/l4Eb/VlNipguS080g2BWFdZemhTYpCYybIqCHJfqvFla1v+XRwnjYgG+fn9XxHXWzpQ7JBj1NkBDrdxty4I7XO27EmKNH7caeA=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1710999694; c=relaxed/simple;
+	bh=3u1BfknM8Qvy6pashQI40WnONmgpvmbIj6nXhDWe87M=;
+	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
+	 Content-Type:MIME-Version; b=WsTiMf8sfm8bZ6h5f39NjEKQEQtNngxLEsMuo7OIZhtMj/cShlZGfuuOvP+lYSL62IhJrucLvoMQ+KidJ5W5cZ/CdUziv7Ua/Xh3oGqbnp3wHyOipobbsgcbwryPJV5cPCN1TN+b/C+qUkYjXT0ywnmQWtuRrAu2x/ywbk9W2qk=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fujitsu.com; spf=pass smtp.mailfrom=fujitsu.com; dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b=lPWt+Hf4; arc=fail smtp.client-ip=68.232.152.245
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fujitsu.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fujitsu.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b="XCSWyVZW"
-Received: by mail-yb1-f177.google.com with SMTP id 3f1490d57ef6-dcbcea9c261so363594276.3
-        for <nvdimm@lists.linux.dev>; Wed, 20 Mar 2024 16:28:11 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bytedance.com; s=google; t=1710977291; x=1711582091; darn=lists.linux.dev;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=zJzBq5JYuB2XAGJ0KALCMa2K2ac89AEZaVfd/fyT9P0=;
-        b=XCSWyVZWMX6avMYafUjFgd0jOWqGD++saC7KTVjidWkZWyr5BWrE5zfNqGAiEHDqaw
-         OC3oBynai6tYoqkYab2qAFfbYLGjMKjzdmDHjy5i8hhpu8T2kQqFv7iY+nXDkZw2P5JG
-         BPKIDuHb5ejltVC2sgu/zq+YPUOBcnQ2zNZsfOdGMS1nIuWrg+kanvEe/i//1B4Zsosm
-         DlYUlvfm6zXOCC4smVkhKdZPIJqG0BcQAy0ldRvxrAYTCPdpkXRqqTXuEHDQiMIXpcfV
-         +UsLSry9r+C4E7iKxoHS0MqWHD/3PMs/Wyy2GydWUmSAVA5s5vpfAH8xQwYzaYYtIMDr
-         dXiw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1710977291; x=1711582091;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=zJzBq5JYuB2XAGJ0KALCMa2K2ac89AEZaVfd/fyT9P0=;
-        b=RsxFA5w6UNeEv2HkpV0Ba+gbKDyQXRLGJ5S2Lq+11kVBjzJ0rE6dni3k3f0RP9bQBC
-         8RhzJjC1KQ+WjLCmlP8Xh8Tmlq3DtFhz+zJk9wGouTPW8yeYmm65Z3KwDm+j8a3J4mi8
-         rPflv9Pq5GLvo7jrcKTfvH/jCSEw/+IjdrWKK70j+3q+ee4NLALnRY/kBOTGbxHAhLbD
-         IbPPhBlltsrQd16QpVjVliIoBZ1CjWS6roTQvGCpvUTk6vBslSx3YLAN9xCHS2WC/OYi
-         O7F0vQpwUNA5s8sOtXSncFiOQk4olm0BKu/BDEdHwAIDm7OUCDr7dwy86gtzxicQapzR
-         KuCw==
-X-Forwarded-Encrypted: i=1; AJvYcCWw9deMAe44Kgc+8PoBir3pz6o7E/r38uSpt5eb9ifcO6GU6TohrzxqHVdRKEGCEYOcZFAOIaXO6ITO2C4AvUOtDk1lxG2B
-X-Gm-Message-State: AOJu0YwSkS26+h/CNIngwk1oZKV2GbGGnEvWDFQmEv3hLeokw+MCr3IL
-	o5qwIbYmosPqP8w3UP8WAZHoAi3d9sCu2rsRQC67UQxnXwF9kwQsblVnSE2990VmMj2ci6i5vHl
-	HZaTcq05Z+krX0XwsY6gecVNqjp5rH9/QV8Sc2g==
-X-Google-Smtp-Source: AGHT+IFGJliSrDOUQ4ErqYoYgEzAjB2StnHNHTXjgXve2MnBnRyAPXbxRVaPnc6fOZEVfVxO8SzIJ0MjV2hraKOtNuk=
-X-Received: by 2002:a25:fe03:0:b0:dd1:517b:571d with SMTP id
- k3-20020a25fe03000000b00dd1517b571dmr314816ybe.16.1710977290644; Wed, 20 Mar
- 2024 16:28:10 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b="lPWt+Hf4"
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
+  d=fujitsu.com; i=@fujitsu.com; q=dns/txt; s=fj1;
+  t=1710999692; x=1742535692;
+  h=from:to:cc:subject:date:message-id:references:
+   in-reply-to:content-id:content-transfer-encoding:
+   mime-version;
+  bh=3u1BfknM8Qvy6pashQI40WnONmgpvmbIj6nXhDWe87M=;
+  b=lPWt+Hf4oAEFenx7u7B8tumpgo+EiRmoNIM3jS95nCZPXWFUNGW8AE/k
+   IG+bqd/cQzgpz485dBjyrOBbIfN8swMIam8uSthwfYyjVxoKHWrfBPYgT
+   Ru9W7cxzF0vEz479W6fwlg2UrNqErrj8tbOwhJLn+JH67KHRdpO5G1u1d
+   Z72xbexNTIzsI1LwAGgg0wyAA4ugttMzVNVUH2BXuEBufX472gTm1rPks
+   O50Vp+M86h5oP/n6+aJ12N12r2oCE8pP3qO0TCy/3Rny4jAmXs2MaH3F6
+   Lh2YZgKMGXebV8WQSdpYJoO5q3ip3arVVTajH8OCOHkX2oBE6KuXpWn5z
+   g==;
+X-IronPort-AV: E=McAfee;i="6600,9927,11019"; a="25657208"
+X-IronPort-AV: E=Sophos;i="6.07,142,1708354800"; 
+   d="scan'208";a="25657208"
+Received: from mail-os0jpn01lp2105.outbound.protection.outlook.com (HELO JPN01-OS0-obe.outbound.protection.outlook.com) ([104.47.23.105])
+  by ob1.fujitsucc.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Mar 2024 14:40:16 +0900
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=eILyumJyEE7gNtNrajK4sLmPhyj+vXKAu6WraEo/CV9vlQHjpI2gHhC677eJuc4MtYXmdKWvpcWdB0U5WWpZ1nj7lWt8VguvL6wJJEi3WpkSUVwrxQI7zpsYt2/em7IxwfiQFpGH0TSgoMgvA6gZBrmL++UgGI9fiNmmKDdfzH4Q8rUoCttfjfulVWzkR8v+mDkQkkB7ZzVTEahEvsMu8E2Kwvchu15whx4im9YXbmMqarPXnVv5hogR7UzOmed9ns1Xh2x9amxlP1vvGXkO9Us1murxmgcyIsU0RJ+XzpQjtWVefqZMph3bLJ3h1sd/yJiGDlPfS6xs299y7Sb2ZA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=3u1BfknM8Qvy6pashQI40WnONmgpvmbIj6nXhDWe87M=;
+ b=YzEAru/qVVdCKhHQCBgdllsun0KvHJ12iHxdUBbfvgkIpoThS3gB/8vKWV6n37PjU0qI8LnZmAlzwW/tldjebJa+1IC9Uodt9W0lYk/Qh41wrYcbihuQevrN7N7q9A56VY/TJXipFfz1d8GxtAkUn6FyBs1MoS5BAullIPUayvf1QQMHQav7vBpETdxy7jqPTI71G7n372JV20ix10JqiWW4P76fa+fz7ZzxVcFb2Oghvhf+IYmAGxxe4p4XZJUW6AHyJ+JBLPL4pVSWbKVABViQxXsd8DYwMdZ4a7xmWWbOY95uRlD5eIsJdzyBJqElU5sSgNkXUKcnioZSRMKWAQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=fujitsu.com; dmarc=pass action=none header.from=fujitsu.com;
+ dkim=pass header.d=fujitsu.com; arc=none
+Received: from TYAPR01MB5818.jpnprd01.prod.outlook.com
+ (2603:1096:404:8059::10) by TYCPR01MB11884.jpnprd01.prod.outlook.com
+ (2603:1096:400:3e2::12) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7386.30; Thu, 21 Mar
+ 2024 05:40:11 +0000
+Received: from TYAPR01MB5818.jpnprd01.prod.outlook.com
+ ([fe80::c52a:473a:a14f:7f0e]) by TYAPR01MB5818.jpnprd01.prod.outlook.com
+ ([fe80::c52a:473a:a14f:7f0e%3]) with mapi id 15.20.7386.031; Thu, 21 Mar 2024
+ 05:40:11 +0000
+From: "Zhijian Li (Fujitsu)" <lizhijian@fujitsu.com>
+To: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+CC: "Yasunori Gotou (Fujitsu)" <y-goto@fujitsu.com>, Alison Schofield
+	<alison.schofield@intel.com>, Andrew Morton <akpm@linux-foundation.org>,
+	Baoquan He <bhe@redhat.com>, Borislav Petkov <bp@alien8.de>, Dan Williams
+	<dan.j.williams@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>, Dave
+ Jiang <dave.jiang@intel.com>, Greg Kroah-Hartman
+	<gregkh@linuxfoundation.org>, "hpa@zytor.com" <hpa@zytor.com>, Ingo Molnar
+	<mingo@redhat.com>, Ira Weiny <ira.weiny@intel.com>, Thomas Gleixner
+	<tglx@linutronix.de>, Vishal Verma <vishal.l.verma@intel.com>,
+	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, "linux-mm@kvack.org"
+	<linux-mm@kvack.org>, "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
+	"x86@kernel.org" <x86@kernel.org>, "kexec@lists.infradead.org"
+	<kexec@lists.infradead.org>
+Subject: Re: [RFC PATCH v3 0/7] device backed vmemmap crash dump support
+Thread-Topic: [RFC PATCH v3 0/7] device backed vmemmap crash dump support
+Thread-Index: AQHab7EiTzrhxogi+kGW9pFQmlxZOrFBxRcA
+Date: Thu, 21 Mar 2024 05:40:11 +0000
+Message-ID: <92644ab5-6467-484c-b8f3-05cba2164cc1@fujitsu.com>
+References: <20240306102846.1020868-1-lizhijian@fujitsu.com>
+In-Reply-To: <20240306102846.1020868-1-lizhijian@fujitsu.com>
+Accept-Language: en-US, zh-CN
+Content-Language: en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+user-agent: Mozilla Thunderbird
+authentication-results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=fujitsu.com;
+x-ms-publictraffictype: Email
+x-ms-traffictypediagnostic: TYAPR01MB5818:EE_|TYCPR01MB11884:EE_
+x-ms-office365-filtering-correlation-id: c70b4881-1e25-4e42-5d3c-08dc49696064
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info:
+ oUhp1ONVdLFStqofaelNu/U/3tM1FimoWCw7x4mSnwtr9+Sj2lUiWS2tbMlCE/ase+tenJ8aLW0rwlpVFkIH6Yuhfw6FjNYhfe6KCYZx4/6y8oEPp9ZIERyiT4Y5/lzqKIt6Kk0Rz6BbXoU8c/7xt5PkfaAcxQYL9R6736Z+MRCJe+JV1TVnXR0RYKrv/knYIHgis+ghjC7Igy37JVsWBf0uJS1gOa7n+7h+DVV/3bie9XQ8xe27NoDDHdEXxNcRmvHou6afOPAYy7Id+k4hvMrtSEy0nzOoO/34ezHju9VJnM0Ygtn8aRViTRZaLrmAxRHUYm0WO/hPSR5KyGND/y8kw+nn9tV/dqMqkW+SFuCGhxLOFMK74eiHWu+bZOb92DWKDPt8PSoYRSwM7EZReAtfY2YmFJf7gxbUna6i/92wzceFkeRr9tHgXYnunhavY30XiFiFbkx6/tGFc52QgRBA8J+C3BvoSAKzA9SdCoeyatFCy1hMchLdqstxs2LGwkSJ/nLuo0SEfr46naZSYsH93kqc1kJKArH/LJZLhWY/UknFm7Rk5GPib+bUNhLxUdenRNgfWfNYp1xwkW8Dh+cvI4E0f9F2ayfT3Ok1PN218IPMlkkvPtFwkazjt7Ifao9EW/uCmRBLnfaqyek7mzJrGqGZLrt7bnFElzLRfAuT9TRIYu053DzsomX4NFQY
+x-forefront-antispam-report:
+ CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:TYAPR01MB5818.jpnprd01.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(366007)(7416005)(1800799015)(376005)(1580799018)(38070700009);DIR:OUT;SFP:1101;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0:
+ =?utf-8?B?MnZyd200SkpuUUVhU0p5OGhJN3VOaFFhNTZOanVMNmdRam0zajlBdDFWeS9j?=
+ =?utf-8?B?eTNjU3ROSnZlbDVaU3kzRnJtWWo2MjZocW94aUk2UkNyZkhkNkE5a1cwOHBY?=
+ =?utf-8?B?dlhWL0tqcVEzaTJ4YUE4Q0hBVUdBN1BMQVBSLzkrSkp3Qi9ZNHNQR0ZlYS9x?=
+ =?utf-8?B?aCt5ZW0vR29EYWdTaEc0N1hkVVRzTlpmVkMyVXJPVkVuSWlKb0tvNVRNa3Qz?=
+ =?utf-8?B?UEpuMXFDVHhwd1AyK3lBWjhyUmpkdmFkSGVUa1IyWU11eXRLbWVuSXo2SmVI?=
+ =?utf-8?B?VWRBbU9acmEybnA3amY4OXVacDFiYzhuQjVUMlIzbitVZ0wrd1gzUkFNWFhZ?=
+ =?utf-8?B?U2RxRUEybmJqem93Y01mUGNGam9vRlBYUUhCZVZtNDN6NnNDSHY3RVZObFFN?=
+ =?utf-8?B?eGRSbkw0enNRSmpoWFRkYTdKRFQ4ZTFta1U0MXlLUXdvNVpNQmFKWDZVQ3hz?=
+ =?utf-8?B?ajh4ZWNBaHRGTlNKd241eUorV3Z0K0RJN0hYK01tajRaM0swSEdwcVlSRWN2?=
+ =?utf-8?B?WE9CRXlreDMvZ3RRb3FLbHpnTjJYMjdPcDdvc1FGeUFpU2poWmc1NDVXN0Fo?=
+ =?utf-8?B?NVJ4aVRQbVE5Q3RvcjNEYk1lQVVmR2VxWGJmclp3MVFab3htWWFjelRUWlpI?=
+ =?utf-8?B?Rk5Id0R1Wi9GM1Q4VmYxYUJnQ1Y0Zis3YTNSM21RdkF6WFVOMjI4V2pwSGdD?=
+ =?utf-8?B?NWc3TlRHZGttVXhLa0tuQjhzdTRPT3hzaTN3VS9OMHQ0NGFvd0IrKzR1V2c0?=
+ =?utf-8?B?ZFpNVnY5UCtwcGtZSjFDMkpicHJXM0c4UTNpa3JraUh6alBGMDVEVDg5ajha?=
+ =?utf-8?B?MzQ4M0s3QXZ0RTJtN1hLb01KMXRUSllQT0RGVUFmTWR1djAzVFVNRkNLSzVF?=
+ =?utf-8?B?Sk5wOWM4VWVMZy9CSm1hVlF1OUZVOUtEWVpzQWxnSFdQdkRsTWxLYjhQZ3lF?=
+ =?utf-8?B?NE0xTUg5Rnc3ZlB3R3czaS9ETGxqMG84Ny9KeVRaRnVWR25nK05lbWlrWXkz?=
+ =?utf-8?B?Q1liMER0Tms2TGUvMDZDZjFFc1ArbWI2aENEdzVHYW1HNmtjdGNYUjIvUjJU?=
+ =?utf-8?B?QnRvMHprWWVNZHNudUUvaVp0bzV0VzdSenQxUG5SbjA3TFA0OTBraFJaZzJI?=
+ =?utf-8?B?ZG1IQzZaZFFrNWVGRi9CbkxaWUJkbENFUVlUVWZxdGxHOS80Rk1hRzBTUFNC?=
+ =?utf-8?B?Q0xrWDlMMjVlRjRSaDdDY3V2Q2I1dnBIZ1l2WUxhdjVCejF3bis1QUk5S2ZM?=
+ =?utf-8?B?NFlVaEMxeVlNK244cGZ5ZHhFdlBKMTBRYTA5TW5TS25JZjJiMmllSWNCV0Zq?=
+ =?utf-8?B?N29rYVlIRzNHWVUzNUgxbzUxMVdLZHgxVHZaNXZ1cGRVakw0T0ZNc0dtQS9j?=
+ =?utf-8?B?T0k2aFBsdXdrWmJhZEZCMzRuZ0ZEaFZYN001azhDRllRcUUxWmdLS0Z1ZmFu?=
+ =?utf-8?B?OUlyZmxKUGtPcGkyK2lwVXhUeVhnaS9PV0FZRVZtRXc4M1FyWTJpYWxKU0kw?=
+ =?utf-8?B?d1cyNFU5YlVSWmZXYklza25ESzFqcUVLMXhXQ1hweW1ETWhpTVJ6dEp5YnUw?=
+ =?utf-8?B?V01oTklWVTB5dGx2ODFxOGdNUmZHeDBvd1Bxb1YzUGpwWSticStMQnN5QUh4?=
+ =?utf-8?B?WFpla3Z4aEFId2lKV3JkVUFhMGVVSVBseW1hdVBmdHN6ejlRd3JmamhWMGZV?=
+ =?utf-8?B?YjJnNlZxNk5ST1crS3BPYitvOUtibXZ5c0xIay9KTEtJcFk4cnBSN1Q0aDBl?=
+ =?utf-8?B?Rm0za2gvT1ZGU2tiRDFlYTgrUE1IdDJ1RUkzejE3cHg1cU4rRTN6cDNyelpB?=
+ =?utf-8?B?R2w3dmZUYkdWci9TckFkTTd0bW5ZaWYwb0ZBV1FRMUhkRFA3K2tkYW5sZHJD?=
+ =?utf-8?B?YkF2RkhhNExXUFhOVnJqaWE1dFNIM3Z3d0FFNERsdTB0a3daNENHemxnQTVP?=
+ =?utf-8?B?NzFQZEZCT1BzMXNJTzYzUjZqWEF2bUFyS1NOV21LOHhuMzRZam40U0ZQOHBi?=
+ =?utf-8?B?dVk3WTh5RjNndk42aWJ5Y21lVSs2SWY3Q2krY3pDc0xNZkkxcFhvejhndFNZ?=
+ =?utf-8?B?UEIyQzlaemp5UWhNakRqK2hwTXRYODJSUmZUNnlKOTBuVXhXbGU0TG82cFds?=
+ =?utf-8?B?S1NZQ1lhUVNaR2xJR1pjSlB2OGdINk9lZUdpUExxbDkwdklnNERuT1ZXQnl5?=
+ =?utf-8?B?aWc9PQ==?=
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <C567617B0B5BA44CA97072D5F77757F4@jpnprd01.prod.outlook.com>
+Content-Transfer-Encoding: base64
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20240320061041.3246828-1-horenchuang@bytedance.com>
- <20240320061041.3246828-2-horenchuang@bytedance.com> <87edc5s7ea.fsf@yhuang6-desk2.ccr.corp.intel.com>
-In-Reply-To: <87edc5s7ea.fsf@yhuang6-desk2.ccr.corp.intel.com>
-From: "Ho-Ren (Jack) Chuang" <horenchuang@bytedance.com>
-Date: Wed, 20 Mar 2024 16:27:59 -0700
-Message-ID: <CAKPbEqrfdJwHCuc9yvSBXa2jR-KwXwaa-dFD6iMmXT_OiweYmg@mail.gmail.com>
-Subject: Re: [External] Re: [PATCH v3 1/2] memory tier: dax/kmem: create
- CPUless memory tiers after obtaining HMAT info
-To: "Huang, Ying" <ying.huang@intel.com>
-Cc: Gregory Price <gourry.memverge@gmail.com>, aneesh.kumar@linux.ibm.com, mhocko@suse.com, 
-	tj@kernel.org, john@jagalactic.com, Eishan Mirakhur <emirakhur@micron.com>, 
-	Vinicius Tavares Petrucci <vtavarespetr@micron.com>, Ravis OpenSrc <Ravis.OpenSrc@micron.com>, 
-	Alistair Popple <apopple@nvidia.com>, Srinivasulu Thanneeru <sthanneeru@micron.com>, 
-	Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, 
-	Dave Jiang <dave.jiang@intel.com>, Andrew Morton <akpm@linux-foundation.org>, nvdimm@lists.linux.dev, 
-	linux-cxl@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, 
-	"Ho-Ren (Jack) Chuang" <horenc@vt.edu>, "Ho-Ren (Jack) Chuang" <horenchuang@gmail.com>, qemu-devel@nongnu.org, 
-	Hao Xiang <hao.xiang@bytedance.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+X-MS-Exchange-AntiSpam-ExternalHop-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-ExternalHop-MessageData-0:
+	Q/cLSRDjb4KXbr0OgQGFWhrBPswYlWpBPhqNdgLQrJUX8Q7m8mv/E15u6ly+5jxc3JZlkiStsYMKeLh3Zk7wpc2E3EZKlnd66g+drSu7WJVwnWY+vIndhj+spni3CaCrfWyduF2/1yHe7nvBtJbNZ8ls2CBsPPSax9Ex4FWb+YLEg0K5p16FYrKO5sh4EiTB7rKxx9bdC3NLoxf50DNJBm3NsBt1iAcU31fKQqp5GXk0dHUi70SYAw+RtiZzDExMD+o9ykneqnJzGPTV6zYRgwh8gJcJNvMhYCUXhAFnbi81CV0GVBDvoVzJn/BlWObzbso3NyiddFR7PSZ2ieLi39t4F303w5MLhfCzUHRXrrZU8bXBHonrE9GS/pNfu7/uppgwCGpcHOAGvG6tJLX+i1CNaMXveb95K4t5bT8JO3WfTGssm48eQ0RKSouAiwlZgE/a6C2Wrxrd12ZnUXILCfGU5yV2BBGbugfGzdc2+8aLGhVFOZsi6XrY3peWsy90l56UOlJYVt65HzUGoYq9VmhJ2OqZlhClas9WcMKPC/I0Qya5JmlCfL9acNcI1cJyprKnHv2L8g+tg34aBNMH2GwumTMl4xcnKa/KtAg6KgO+ICH18BfTszVAer1BxtsZ
+X-OriginatorOrg: fujitsu.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: TYAPR01MB5818.jpnprd01.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: c70b4881-1e25-4e42-5d3c-08dc49696064
+X-MS-Exchange-CrossTenant-originalarrivaltime: 21 Mar 2024 05:40:11.7097
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: a19f121d-81e1-4858-a9d8-736e267fd4c7
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: eHc6jU5EwIlK83gXXqVdzUcJa/Pvnr3ANDE36wyquCHcw12F/nBeFk/IOtfh599XqOE192bd0n0qSHB9KDa+KQ==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: TYCPR01MB11884
 
-On Wed, Mar 20, 2024 at 12:15=E2=80=AFAM Huang, Ying <ying.huang@intel.com>=
- wrote:
->
-> "Ho-Ren (Jack) Chuang" <horenchuang@bytedance.com> writes:
->
-> > The current implementation treats emulated memory devices, such as
-> > CXL1.1 type3 memory, as normal DRAM when they are emulated as normal me=
-mory
-> > (E820_TYPE_RAM). However, these emulated devices have different
-> > characteristics than traditional DRAM, making it important to
-> > distinguish them. Thus, we modify the tiered memory initialization proc=
-ess
-> > to introduce a delay specifically for CPUless NUMA nodes. This delay
-> > ensures that the memory tier initialization for these nodes is deferred
-> > until HMAT information is obtained during the boot process. Finally,
-> > demotion tables are recalculated at the end.
-> >
-> > More details:
->
-> You have done several stuff in one patch.  So you need "more details".
-> You may separate them into multiple patches.  One for echo "*" below.
-> But I have no strong opinion on that.
->
-> > * late_initcall(memory_tier_late_init);
-> > Some device drivers may have initialized memory tiers between
-> > `memory_tier_init()` and `memory_tier_late_init()`, potentially bringin=
-g
-> > online memory nodes and configuring memory tiers. They should be exclud=
-ed
-> > in the late init.
-> >
-> > * Abstract common functions into `mt_find_alloc_memory_type()`
-> > Since different memory devices require finding or allocating a memory t=
-ype,
-> > these common steps are abstracted into a single function,
-> > `mt_find_alloc_memory_type()`, enhancing code scalability and concisene=
-ss.
-> >
-> > * Handle cases where there is no HMAT when creating memory tiers
-> > There is a scenario where a CPUless node does not provide HMAT informat=
-ion.
-> > If no HMAT is specified, it falls back to using the default DRAM tier.
-> >
-> > * Change adist calculation code to use another new lock, `mt_perf_lock`=
-.
-> > In the current implementation, iterating through CPUlist nodes requires
-> > holding the `memory_tier_lock`. However, `mt_calc_adistance()` will end=
- up
-> > trying to acquire the same lock, leading to a potential deadlock.
-> > Therefore, we propose introducing a standalone `mt_perf_lock` to protec=
-t
-> > `default_dram_perf`. This approach not only avoids deadlock but also
-> > prevents holding a large lock simultaneously.
-> >
-> > * Upgrade `set_node_memory_tier` to support additional cases, including
-> >   default DRAM, late CPUless, and hot-plugged initializations.
-> > To cover hot-plugged memory nodes, `mt_calc_adistance()` and
-> > `mt_find_alloc_memory_type()` are moved into `set_node_memory_tier()` t=
-o
-> > handle cases where memtype is not initialized and where HMAT informatio=
-n is
-> > available.
-> >
-> > * Introduce `default_memory_types` for those memory types that are not
-> >   initialized by device drivers.
-> > Because late initialized memory and default DRAM memory need to be mana=
-ged,
-> > a default memory type is created for storing all memory types that are
-> > not initialized by device drivers and as a fallback.
-> >
-> > Signed-off-by: Ho-Ren (Jack) Chuang <horenchuang@bytedance.com>
-> > Signed-off-by: Hao Xiang <hao.xiang@bytedance.com>
-> > ---
-> >  drivers/dax/kmem.c           | 13 +----
-> >  include/linux/memory-tiers.h |  7 +++
-> >  mm/memory-tiers.c            | 94 +++++++++++++++++++++++++++++++++---
-> >  3 files changed, 95 insertions(+), 19 deletions(-)
-> >
-> > diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
-> > index 42ee360cf4e3..de1333aa7b3e 100644
-> > --- a/drivers/dax/kmem.c
-> > +++ b/drivers/dax/kmem.c
-> > @@ -55,21 +55,10 @@ static LIST_HEAD(kmem_memory_types);
-> >
-> >  static struct memory_dev_type *kmem_find_alloc_memory_type(int adist)
-> >  {
-> > -     bool found =3D false;
-> >       struct memory_dev_type *mtype;
-> >
-> >       mutex_lock(&kmem_memory_type_lock);
-> > -     list_for_each_entry(mtype, &kmem_memory_types, list) {
-> > -             if (mtype->adistance =3D=3D adist) {
-> > -                     found =3D true;
-> > -                     break;
-> > -             }
-> > -     }
-> > -     if (!found) {
-> > -             mtype =3D alloc_memory_type(adist);
-> > -             if (!IS_ERR(mtype))
-> > -                     list_add(&mtype->list, &kmem_memory_types);
-> > -     }
-> > +     mtype =3D mt_find_alloc_memory_type(adist, &kmem_memory_types);
-> >       mutex_unlock(&kmem_memory_type_lock);
-> >
-> >       return mtype;
->
-> It seems that there's some miscommunication about my previous comments
-> about this.  What I suggested is to create one separate patch, which
-> moves mt_find_alloc_memory_type() and mt_put_memory_types() into
-> memory-tiers.c.  And make this patch the first one of the series.
->
-
-I will make mt_find_alloc/mt_put_memory_type changes as
-a separate patch and the first of my patch series. Thanks.
-
-
-> > diff --git a/include/linux/memory-tiers.h b/include/linux/memory-tiers.=
-h
-> > index 69e781900082..b2135334ac18 100644
-> > --- a/include/linux/memory-tiers.h
-> > +++ b/include/linux/memory-tiers.h
-> > @@ -48,6 +48,8 @@ int mt_calc_adistance(int node, int *adist);
-> >  int mt_set_default_dram_perf(int nid, struct access_coordinate *perf,
-> >                            const char *source);
-> >  int mt_perf_to_adistance(struct access_coordinate *perf, int *adist);
-> > +struct memory_dev_type *mt_find_alloc_memory_type(int adist,
-> > +                                                     struct list_head =
-*memory_types);
-> >  #ifdef CONFIG_MIGRATION
-> >  int next_demotion_node(int node);
-> >  void node_get_allowed_targets(pg_data_t *pgdat, nodemask_t *targets);
-> > @@ -136,5 +138,10 @@ static inline int mt_perf_to_adistance(struct acce=
-ss_coordinate *perf, int *adis
-> >  {
-> >       return -EIO;
-> >  }
-> > +
-> > +struct memory_dev_type *mt_find_alloc_memory_type(int adist, struct li=
-st_head *memory_types)
-> > +{
-> > +     return NULL;
-> > +}
-> >  #endif       /* CONFIG_NUMA */
-> >  #endif  /* _LINUX_MEMORY_TIERS_H */
-> > diff --git a/mm/memory-tiers.c b/mm/memory-tiers.c
-> > index 0537664620e5..d9b96b21b65a 100644
-> > --- a/mm/memory-tiers.c
-> > +++ b/mm/memory-tiers.c
-> > @@ -6,6 +6,7 @@
-> >  #include <linux/memory.h>
-> >  #include <linux/memory-tiers.h>
-> >  #include <linux/notifier.h>
-> > +#include <linux/acpi.h>
->
-> We don't need this anymore.
->
-
-Thanks. I will remove it.
-
-> >  #include "internal.h"
-> >
-> > @@ -36,6 +37,11 @@ struct node_memory_type_map {
-> >
-> >  static DEFINE_MUTEX(memory_tier_lock);
-> >  static LIST_HEAD(memory_tiers);
-> > +/*
-> > + * The list is used to store all memory types that are not created
-> > + * by a device driver.
-> > + */
-> > +static LIST_HEAD(default_memory_types);
-> >  static struct node_memory_type_map node_memory_types[MAX_NUMNODES];
-> >  struct memory_dev_type *default_dram_type;
-> >
-> > @@ -505,7 +511,8 @@ static inline void __init_node_memory_type(int node=
-, struct memory_dev_type *mem
-> >  static struct memory_tier *set_node_memory_tier(int node)
-> >  {
-> >       struct memory_tier *memtier;
-> > -     struct memory_dev_type *memtype;
-> > +     struct memory_dev_type *memtype, *mtype =3D NULL;
->
-> It seems unnecessary to introduce another variable, just use memtype?
->
-
-Yes, I will consolidate them.
-
-
-> > +     int adist =3D MEMTIER_ADISTANCE_DRAM;
-> >       pg_data_t *pgdat =3D NODE_DATA(node);
-> >
-> >
-> > @@ -514,7 +521,18 @@ static struct memory_tier *set_node_memory_tier(in=
-t node)
-> >       if (!node_state(node, N_MEMORY))
-> >               return ERR_PTR(-EINVAL);
-> >
-> > -     __init_node_memory_type(node, default_dram_type);
-> > +     mt_calc_adistance(node, &adist);
-> > +     if (adist !=3D MEMTIER_ADISTANCE_DRAM &&
-> > +                     node_memory_types[node].memtype =3D=3D NULL) {
-> > +             mtype =3D mt_find_alloc_memory_type(adist, &default_memor=
-y_types);
-> > +             if (IS_ERR(mtype)) {
-> > +                     mtype =3D default_dram_type;
-> > +                     pr_info("Failed to allocate a memory type. Fall b=
-ack.\n");
-> > +             }
-> > +     } else
-> > +             mtype =3D default_dram_type;
->
-> This can be simplified to
->
->         mt_calc_adistance(node, &adist);
->         if (node_memory_types[node].memtype =3D=3D NULL) {
->                 mtype =3D mt_find_alloc_memory_type(adist, &default_memor=
-y_types);
->                 if (IS_ERR(mtype)) {
->                         mtype =3D default_dram_type;
->                         pr_info("Failed to allocate a memory type. Fall b=
-ack.\n");
->                 }
->         }
->
-
-Sounds good! I will do.
-
-
-> > +     __init_node_memory_type(node, mtype);
-> >
-> >       memtype =3D node_memory_types[node].memtype;
-> >       node_set(node, memtype->nodes);
-> > @@ -623,6 +641,55 @@ void clear_node_memory_type(int node, struct memor=
-y_dev_type *memtype)
-> >  }
-> >  EXPORT_SYMBOL_GPL(clear_node_memory_type);
-> >
-> > +struct memory_dev_type *mt_find_alloc_memory_type(int adist, struct li=
-st_head *memory_types)
-> > +{
-> > +     bool found =3D false;
-> > +     struct memory_dev_type *mtype;
-> > +
-> > +     list_for_each_entry(mtype, memory_types, list) {
-> > +             if (mtype->adistance =3D=3D adist) {
-> > +                     found =3D true;
-> > +                     break;
-> > +             }
-> > +     }
-> > +     if (!found) {
-> > +             mtype =3D alloc_memory_type(adist);
-> > +             if (!IS_ERR(mtype))
-> > +                     list_add(&mtype->list, memory_types);
-> > +     }
-> > +
-> > +     return mtype;
-> > +}
-> > +EXPORT_SYMBOL_GPL(mt_find_alloc_memory_type);
-> > +
-> > +/*
-> > + * This is invoked via late_initcall() to create
-> > + * CPUless memory tiers after HMAT info is ready or
-> > + * when there is no HMAT.
->
-> Better to avoid HMAT in general code.  How about something as below?
->
-> This is invoked via late_initcall() to initialize memory tiers for
-> CPU-less memory nodes after drivers initialization.  Which is
-> expect to provide adistance algorithms.
->
-
-Got it. Thanks.
-"
-This is invoked via `late_initcall()` to initialize memory tiers for
-CPU-less memory nodes after driver initialization, which is
-expected to provide `adistance` algorithms.
-"
-
-
-> > + */
-> > +static int __init memory_tier_late_init(void)
-> > +{
-> > +     int nid;
-> > +
-> > +     mutex_lock(&memory_tier_lock);
-> > +     for_each_node_state(nid, N_MEMORY)
-> > +             if (!node_state(nid, N_CPU) &&
-> > +                     node_memory_types[nid].memtype =3D=3D NULL)
-> > +                     /*
-> > +                      * Some device drivers may have initialized memor=
-y tiers
-> > +                      * between `memory_tier_init()` and `memory_tier_=
-late_init()`,
-> > +                      * potentially bringing online memory nodes and
-> > +                      * configuring memory tiers. Exclude them here.
-> > +                      */
-> > +                     set_node_memory_tier(nid);
-> > +
-> > +     establish_demotion_targets();
-> > +     mutex_unlock(&memory_tier_lock);
-> > +
-> > +     return 0;
-> > +}
-> > +late_initcall(memory_tier_late_init);
-> > +
-> >  static void dump_hmem_attrs(struct access_coordinate *coord, const cha=
-r *prefix)
-> >  {
-> >       pr_info(
-> > @@ -631,12 +698,16 @@ static void dump_hmem_attrs(struct access_coordin=
-ate *coord, const char *prefix)
-> >               coord->read_bandwidth, coord->write_bandwidth);
-> >  }
-> >
-> > +/*
-> > + * The lock is used to protect the default_dram_perf.
-> > + */
-> > +static DEFINE_MUTEX(mt_perf_lock);
->
-> Miscommunication here too.  Should be moved to near the
-> "default_dram_perf" definition.  And it protects not only
-> default_dram_perf.
->
-
-I will move it closer to default_dram_perf*.
-And change it to:
-+/*
-+ * The lock is used to protect default_dram_perf*.
-+ */
-
-
-> >  int mt_set_default_dram_perf(int nid, struct access_coordinate *perf,
-> >                            const char *source)
-> >  {
-> >       int rc =3D 0;
-> >
-> > -     mutex_lock(&memory_tier_lock);
-> > +     mutex_lock(&mt_perf_lock);
-> >       if (default_dram_perf_error) {
-> >               rc =3D -EIO;
-> >               goto out;
-> > @@ -684,7 +755,7 @@ int mt_set_default_dram_perf(int nid, struct access=
-_coordinate *perf,
-> >       }
-> >
-> >  out:
-> > -     mutex_unlock(&memory_tier_lock);
-> > +     mutex_unlock(&mt_perf_lock);
-> >       return rc;
-> >  }
-> >
-> > @@ -700,7 +771,7 @@ int mt_perf_to_adistance(struct access_coordinate *=
-perf, int *adist)
-> >           perf->read_bandwidth + perf->write_bandwidth =3D=3D 0)
-> >               return -EINVAL;
-> >
-> > -     mutex_lock(&memory_tier_lock);
-> > +     mutex_lock(&mt_perf_lock);
-> >       /*
-> >        * The abstract distance of a memory node is in direct proportion=
- to
-> >        * its memory latency (read + write) and inversely proportional t=
-o its
-> > @@ -713,7 +784,7 @@ int mt_perf_to_adistance(struct access_coordinate *=
-perf, int *adist)
-> >               (default_dram_perf.read_latency + default_dram_perf.write=
-_latency) *
-> >               (default_dram_perf.read_bandwidth + default_dram_perf.wri=
-te_bandwidth) /
-> >               (perf->read_bandwidth + perf->write_bandwidth);
-> > -     mutex_unlock(&memory_tier_lock);
-> > +     mutex_unlock(&mt_perf_lock);
-> >
-> >       return 0;
-> >  }
-> > @@ -826,7 +897,8 @@ static int __init memory_tier_init(void)
-> >        * For now we can have 4 faster memory tiers with smaller adistan=
-ce
-> >        * than default DRAM tier.
-> >        */
-> > -     default_dram_type =3D alloc_memory_type(MEMTIER_ADISTANCE_DRAM);
-> > +     default_dram_type =3D mt_find_alloc_memory_type(
-> > +                                     MEMTIER_ADISTANCE_DRAM, &default_=
-memory_types);
-> >       if (IS_ERR(default_dram_type))
-> >               panic("%s() failed to allocate default DRAM tier\n", __fu=
-nc__);
-> >
-> > @@ -836,6 +908,14 @@ static int __init memory_tier_init(void)
-> >        * types assigned.
-> >        */
-> >       for_each_node_state(node, N_MEMORY) {
-> > +             if (!node_state(node, N_CPU))
-> > +                     /*
-> > +                      * Defer memory tier initialization on CPUless nu=
-ma nodes.
-> > +                      * These will be initialized after firmware and d=
-evices are
-> > +                      * initialized.
-> > +                      */
-> > +                     continue;
-> > +
-> >               memtier =3D set_node_memory_tier(node);
-> >               if (IS_ERR(memtier))
-> >                       /*
->
-> --
-> Best Regards,
-> Huang, Ying
-
-
-
---=20
-Best regards,
-Ho-Ren (Jack) Chuang
-=E8=8E=8A=E8=B3=80=E4=BB=BB
+cGluZw0KDQoNCkFueSBjb21tZW50IGlzIHdlbGNvbWUuDQoNCg0KT24gMDYvMDMvMjAyNCAxODoy
+OCwgTGkgWmhpamlhbiB3cm90ZToNCj4gSGVsbG8gZm9sa3MsDQo+IA0KPiBDb21wYXJlZCB3aXRo
+IHRoZSBWMlsxXSBJIHBvc3RlZCBhIGxvbmcgdGltZSBhZ28sIHRoaXMgdGltZSBpdCBpcyBhDQo+
+IGNvbXBsZXRlbHkgbmV3IHByb3Bvc2FsIGRlc2lnbi4NCj4gDQo+ICMjIyBCYWNrZ3JvdW5kIGFu
+ZCBtb3RpdmF0ZSBvdmVydmlldyAjIyMNCj4gLS0tDQo+IENyYXNoIGR1bXAgaXMgYW4gaW1wb3J0
+YW50IGZlYXR1cmUgZm9yIHRyb3VibGVzaG9vdGluZyB0aGUga2VybmVsLiBJdCBpcyB0aGUNCj4g
+ZmluYWwgd2F5IHRvIGNoYXNlIHdoYXQgaGFwcGVuZWQgYXQgdGhlIGtlcm5lbCBwYW5pYywgc2xv
+d2Rvd24sIGFuZCBzbyBvbi4gSXQNCj4gaXMgb25lIG9mIHRoZSBtb3N0IGltcG9ydGFudCB0b29s
+cyBmb3IgY3VzdG9tZXIgc3VwcG9ydC4NCj4gDQo+IEN1cnJlbnRseSwgdGhlcmUgYXJlIDIgc3lz
+Y2FsbHMoa2V4ZWNfZmlsZV9sb2FkKDIpIGFuZCBrZXhlY19sb2FkKDIpKSB0bw0KPiBjb25maWd1
+cmUgdGhlIGR1bXBhYmxlIHJlZ2lvbnMuIEdlbmVyYWxseSwgKEEpaW9tZW0gcmVzb3VyY2VzIHJl
+Z2lzdGVyZWQgd2l0aA0KPiBmbGFncyAoSU9SRVNPVVJDRV9TWVNURU1fUkFNIHwgSU9SRVNPVUNF
+X0JVU1kpIGZvciBrZXhlY19maWxlX2xvYWQoMikgb3INCj4gKEIpaW9tZW0gcmVzb3VyY2VzIHJl
+Z2lzdGVyZWQgd2l0aCAiU3lzdGVtIFJBTSIgbmFtZSBwcmVmaXggZm9yIGtleGVjX2xvYWQoMikN
+Cj4gYXJlIGR1bXBhYmxlLg0KPiANCj4gVGhlIHBtZW0gdXNlIGNhc2VzIGluY2x1ZGluZyBmc2Rh
+eCBhbmQgZGV2ZGF4LCBjb3VsZCBtYXAgdGhlaXIgdm1lbW1hcCB0bw0KPiB0aGVpciBvd24gZGV2
+aWNlcy4gSW4gdGhpcyBjYXNlLCB0aGVzZSBwYXJ0IG9mIHZtZW1tYXAgd2lsbCBub3QgYmUgZHVt
+cGVkIHdoZW4NCj4gY3Jhc2ggaGFwcGVuZWQgc2luY2UgdGhlc2UgcmVnaW9ucyBhcmUgc2F0aXNm
+aWVkIHdpdGggbmVpdGhlciB0aGUgYWJvdmUgKEEpDQo+IG5vciAoQikuDQo+IA0KPiBJbiBmc2Rh
+eCwgdGhlIHZtZW1tYXAoc3RydWN0IHBhZ2UgYXJyYXkpIGJlY29tZXMgdmVyeSBpbXBvcnRhbnQs
+IGl0IGlzIG9uZSBvZg0KPiB0aGUga2V5IGRhdGEgdG8gZmluZCBzdGF0dXMgb2YgcmV2ZXJzZSBt
+YXAuIExhY2tpbmcgb2YgdGhlIGluZm9ybWF0aW9uIG1heQ0KPiBjYXVzZSBkaWZmaWN1bHR5IHRv
+IGFuYWx5emUgdHJvdWJsZSBhcm91bmQgcG1lbSAoZXNwZWNpYWxseSBGaWxlc3lzdGVtLURBWCku
+DQo+IFRoYXQgbWVhbnMgdHJvdWJsZXNob290ZXJzIGFyZSB1bmFibGUgdG8gY2hlY2sgbW9yZSBk
+ZXRhaWxzIGFib3V0IHBtZW0gZnJvbQ0KPiB0aGUgZHVtcGZpbGUuDQo+IA0KPiAjIyMgUHJvcG9z
+YWwgIyMjDQo+IC0tLQ0KPiBJbiB0aGlzIHByb3Bvc2FsLCByZWdpc3RlciB0aGUgZGV2aWNlIGJh
+Y2tlZCB2bWVtbWFwIGFzIGEgc2VwYXJhdGUgcmVzb3VyY2UuDQo+IFRoaXMgcmVzb3VyY2UgaGFz
+IGl0cyBvd24gbmV3IGZsYWcgYW5kIG5hbWUsIGFuZCB0aGVuIHRlYWNoZXMga2V4ZWNfZmlsZV9s
+b2FkKDIpDQo+IGFuZCBrZXhlY19sb2FkKDIpIHRvIG1hcmsgaXQgYXMgZHVtcGFibGUuDQo+IA0K
+PiBQcm9wb3NlZCBmbGFnOiBJT1JFU09VUkNFX0RFVklDRV9CQUNLRURfVk1FTU1BUA0KPiBQcm9w
+b3NlZCBuYW1lOiAiRGV2aWNlIEJhY2tlZCBWbWVtbWFwIg0KPiANCj4gTk9URTogY3Jhc2gtdXRp
+bHMgYWxzbyBuZWVkcyB0byBhZGFwdCB0byB0aGlzIG5ldyBuYW1lIGZvciBrZXhlY19sb2FkKCkN
+Cj4gDQo+IFdpdGggY3VycmVudCBwcm9wb3NhbCwgdGhlIC9wcm9jL2lvbWVtIHNob3VsZCBzaG93
+IGFzIGZvbGxvd2luZyBmb3IgZGV2aWNlDQo+IGJhY2tlZCB2bWVtbWFwDQo+ICMgY2F0IC9wcm9j
+L2lvbWVtDQo+IC4uLg0KPiBmZmZjMDAwMC1mZmZmZmZmZiA6IFJlc2VydmVkDQo+IDEwMDAwMDAw
+MC0xM2ZmZmZmZmYgOiBQZXJzaXN0ZW50IE1lbW9yeQ0KPiAgICAxMDAwMDAwMDAtMTBmZmZmZmZm
+IDogbmFtZXNwYWNlMC4wDQo+ICAgICAgMTAwMDAwMDAwLTEwMDVmZmZmZiA6IERldmljZSBCYWNr
+ZWQgVm1lbW1hcCAgIyBmc2RheA0KPiBhODAwMDAwMDAtYjdmZmZmZmZmIDogQ1hMIFdpbmRvdyAw
+DQo+ICAgIGE4MDAwMDAwMC1hZmZmZmZmZmYgOiBQZXJzaXN0ZW50IE1lbW9yeQ0KPiAgICAgIGE4
+MDAwMDAwMC1hZmZmZmZmZmYgOiByZWdpb24xDQo+ICAgICAgICBhODAwMDAwMDAtYTgxMWZmZmZm
+IDogbmFtZXNwYWNlMS4wDQo+ICAgICAgICAgIGE4MDAwMDAwMC1hODExZmZmZmYgOiBEZXZpY2Ug
+QmFja2VkIFZtZW1tYXAgIyBkZXZkYXgNCj4gICAgICAgIGE4MTIwMDAwMC1hYmZmZmZmZmYgOiBk
+YXgxLjANCj4gYjgwMDAwMDAwLWM3ZmZmZmZmZiA6IENYTCBXaW5kb3cgMQ0KPiBjODAwMDAwMDAt
+MTQ3ZmZmZmZmZiA6IFBDSSBCdXMgMDAwMDowMA0KPiAgICBjODAwMDAwMDAtYzgwMWZmZmZmIDog
+UENJIEJ1cyAwMDAwOjAxDQo+IC4uLg0KPiANCj4gIyMjIEtkdW1wIHNlcnZpY2UgcmVsb2FkaW5n
+ICMjIw0KPiAtLS0NCj4gT25jZSB0aGUga2R1bXAgc2VydmljZSBpcyBsb2FkZWQsIGlmIGNoYW5n
+ZXMgdG8gQ1BVcyBvciBtZW1vcnkgb2NjdXIsDQo+IGVpdGhlciBieSBob3QgdW4vcGx1ZyBvciBv
+ZmYvb25saW5pbmcsIHRoZSBjcmFzaCBlbGZjb3JlaGRyIHNob3VsZCBhbHNvDQo+IGJlIHVwZGF0
+ZWQuIFRoZXJlIGFyZSAyIGFwcHJvYWNoZXMgdG8gbWFrZSB0aGUgcmVsb2FkaW5nIG1vcmUgZWZm
+aWNpZW50Lg0KPiAxKSBVc2UgdWRldiBydWxlcyB0byB3YXRjaCBDUFUgYW5kIG1lbW9yeSBldmVu
+dHMsIHRoZW4gcmVsb2FkIGtkdW1wDQo+IDIpIEVuYWJsZSBrZXJuZWwgY3Jhc2ggaG90cGx1ZyB0
+byBhdXRvbWF0aWNhbGx5IHJlbG9hZCBlbGZjb3JlaGRyICg+PSA2LjUpDQo+IA0KPiBUaGlzIHJl
+bG9hZGluZyBhbHNvIG5lZWRlZCB3aGVuIGRldmljZSBiYWNrZWQgdm1lbW1hcCBsYXlvdXRzIGNo
+YW5nZSwgU2ltaWxhcg0KPiB0byB3aGF0IDEpIGRvZXMgbm93LCBvbmUgY291bGQgYWRkIHRoZSBm
+b2xsb3dpbmcgYXMgdGhlIGZpcnN0IGxpbmVzIHRvIHRoZQ0KPiBSSEVMIHVkZXYgcnVsZSBmaWxl
+IC91c3IvbGliL3VkZXYvcnVsZXMuZC85OC1rZXhlYy5ydWxlczoNCj4gDQo+ICMgbmFtZXNwYWNl
+IHVwZGF0ZWQ6IHdhdGNoIGRheFguWShkZXZkYXgpIGFuZCBwZm5YLlkoZnNkYXgpIG9mIG5kDQo+
+IFNVQlNZU1RFTT09Im5kIiwgS0VSTkVMPT0iW2RwXVthZl1beG5dWzAtOV0uKiIsIEFDVElPTj09
+ImJpbmQiLCBHT1RPPSJrZHVtcF9yZWxvYWQiDQo+IFNVQlNZU1RFTT09Im5kIiwgS0VSTkVMPT0i
+W2RwXVthZl1beG5dWzAtOV0uKiIsIEFDVElPTj09InVuYmluZCIsIEdPVE89ImtkdW1wX3JlbG9h
+ZCINCj4gIyBkZXZkYXggPC0+IHN5c3RlbS1yYW0gdXBkYXRlZDogd2F0Y2ggZGF4WC5ZIG9mIGRh
+eA0KPiBTVUJTWVNURU09PSJkYXgiLCBLRVJORUw9PSJkYXhbMC05XS4qIiwgQUNUSU9OPT0iYmlu
+ZCIsIEdPVE89ImtkdW1wX3JlbG9hZCINCj4gU1VCU1lTVEVNPT0iZGF4IiwgS0VSTkVMPT0iZGF4
+WzAtOV0uKiIsIEFDVElPTj09InVuYmluZCIsIEdPVE89ImtkdW1wX3JlbG9hZCINCj4gDQo+IFJl
+Z2FyZGluZyAyKSwgbXkgaWRlYSBpcyB0aGF0IGl0IHdvdWxkIG5lZWQgdG8gY2FsbCB0aGUgbWVt
+b3J5X25vdGlmeSgpIGluDQo+IGRldm1fbWVtcmVtYXBfcGFnZXNfcmVsZWFzZSgpIGFuZCBkZXZt
+X21lbXJlbWFwX3BhZ2VzKCkgdG8gdHJpZ2dlciB0aGUgY3Jhc2gNCj4gaG90cGx1Zy4gVGhpcyBw
+YXJ0IGlzIG5vdCB5ZXQgbWF0dXJlLCBidXQgaXQgZG9lcyBub3QgYWZmZWN0IHRoZSB3aG9sZSBm
+ZWF0dXJlDQo+IGJlY2F1c2Ugd2UgY2FuIHN0aWxsIHVzZSBtZXRob2QgMSkgYWx0ZXJuYXRpdmVs
+eS4NCj4gDQo+IFsxXSBodHRwczovL2xvcmUua2VybmVsLm9yZy9sa21sLzAyMDY2ZjBmLWRiYzAt
+MDM4OC00MjMzLThlMjRiNmY4NDM1YkBmdWppdHN1LmNvbS9ULw0KPiAtLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KPiBjaGFuZ2VzIGZyb20gVjJbMV0NCj4gLSBu
+ZXcgcHJvcG9zYWwgZGVzaWduDQo+IA0KPiBDQzogQWxpc29uIFNjaG9maWVsZCA8YWxpc29uLnNj
+aG9maWVsZEBpbnRlbC5jb20+DQo+IENDOiBBbmRyZXcgTW9ydG9uIDxha3BtQGxpbnV4LWZvdW5k
+YXRpb24ub3JnPg0KPiBDQzogQmFvcXVhbiBIZSA8YmhlQHJlZGhhdC5jb20+DQo+IENDOiBCb3Jp
+c2xhdiBQZXRrb3YgPGJwQGFsaWVuOC5kZT4NCj4gQ0M6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2ls
+bGlhbXNAaW50ZWwuY29tPg0KPiBDQzogRGF2ZSBIYW5zZW4gPGRhdmUuaGFuc2VuQGxpbnV4Lmlu
+dGVsLmNvbT4NCj4gQ0M6IERhdmUgSmlhbmcgPGRhdmUuamlhbmdAaW50ZWwuY29tPg0KPiBDQzog
+R3JlZyBLcm9haC1IYXJ0bWFuIDxncmVna2hAbGludXhmb3VuZGF0aW9uLm9yZz4NCj4gQ0M6ICJI
+LiBQZXRlciBBbnZpbiIgPGhwYUB6eXRvci5jb20+DQo+IENDOiBJbmdvIE1vbG5hciA8bWluZ29A
+cmVkaGF0LmNvbT4NCj4gQ0M6IElyYSBXZWlueSA8aXJhLndlaW55QGludGVsLmNvbT4NCj4gQ0M6
+IFRob21hcyBHbGVpeG5lciA8dGdseEBsaW51dHJvbml4LmRlPg0KPiBDQzogVmlzaGFsIFZlcm1h
+IDx2aXNoYWwubC52ZXJtYUBpbnRlbC5jb20+DQo+IENDOiBsaW51eC1jeGxAdmdlci5rZXJuZWwu
+b3JnDQo+IENDOiBsaW51eC1tbUBrdmFjay5vcmcNCj4gQ0M6IG52ZGltbUBsaXN0cy5saW51eC5k
+ZXYNCj4gQ0M6IHg4NkBrZXJuZWwub3JnDQo+IA0KPiBMaSBaaGlqaWFuICg3KToNCj4gICAgbW06
+IG1lbXJlbWFwOiByZWdpc3Rlci91bnJlZ2lzdGVyIGFsdG1hcCByZWdpb24gdG8gYSBzZXBhcmF0
+ZSByZXNvdXJjZQ0KPiAgICBtbTogbWVtcmVtYXA6IGFkZCBwZ21hcF9wYXJlbnRfcmVzb3VyY2Uo
+KSBoZWxwZXINCj4gICAgbnZkaW1tOiBwbWVtOiBhc3NpZ24gYSBwYXJlbnQgcmVzb3VyY2UgZm9y
+IHZtZW1tYXAgcmVnaW9uIGZvciB0aGUNCj4gICAgICBmc2RheA0KPiAgICBkYXg6IHBtZW06IGFz
+c2lnbiBhIHBhcmVudCByZXNvdXJjZSBmb3Igdm1lbW1hcCByZWdpb24gZm9yIHRoZSBkZXZkYXgN
+Cj4gICAgcmVzb3VyY2U6IEludHJvZHVjZSB3YWxrIGRldmljZV9iYWNrZWRfdm1lbW1hcCByZXMo
+KSBoZWxwZXINCj4gICAgeDg2L2NyYXNoOiBtYWtlIGRldmljZSBiYWNrZWQgdm1lbW1hcCBkdW1w
+YWJsZSBmb3Iga2V4ZWNfZmlsZV9sb2FkDQo+ICAgIG52ZGltbTogc2V0IGZvcmNlX3Jhdz0xIGlu
+IGtkdW1wIGtlcm5lbA0KPiANCj4gICBhcmNoL3g4Ni9rZXJuZWwvY3Jhc2guYyAgICAgICAgIHwg
+IDUgKysrKysNCj4gICBkcml2ZXJzL2RheC9wbWVtLmMgICAgICAgICAgICAgIHwgIDggKysrKysr
+LS0NCj4gICBkcml2ZXJzL252ZGltbS9uYW1lc3BhY2VfZGV2cy5jIHwgIDMgKysrDQo+ICAgZHJp
+dmVycy9udmRpbW0vcG1lbS5jICAgICAgICAgICB8ICA5ICsrKysrKy0tLQ0KPiAgIGluY2x1ZGUv
+bGludXgvaW9wb3J0LmggICAgICAgICAgfCAgNCArKysrDQo+ICAgaW5jbHVkZS9saW51eC9tZW1y
+ZW1hcC5oICAgICAgICB8ICA0ICsrKysNCj4gICBrZXJuZWwvcmVzb3VyY2UuYyAgICAgICAgICAg
+ICAgIHwgMTMgKysrKysrKysrKysrKw0KPiAgIG1tL21lbXJlbWFwLmMgICAgICAgICAgICAgICAg
+ICAgfCAzMCArKysrKysrKysrKysrKysrKysrKysrKysrKysrKy0NCj4gICA4IGZpbGVzIGNoYW5n
+ZWQsIDcwIGluc2VydGlvbnMoKyksIDYgZGVsZXRpb25zKC0pDQo+IA==
