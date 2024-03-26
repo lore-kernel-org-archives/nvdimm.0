@@ -1,358 +1,678 @@
-Received: from mail-yb1-f177.google.com (mail-yb1-f177.google.com [209.85.219.177])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.16])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E68D664B1
-	for <nvdimm@lists.linux.dev>; Fri, 22 Mar 2024 18:26:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.177
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0086D4DA0E
+	for <nvdimm@lists.linux.dev>; Tue, 26 Mar 2024 02:17:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.16
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711132011; cv=none; b=hQV8oGLVwBrmIeJrCYgAzPks1OnVey4A/xVHzX+kmGUU6VK2uRJXJynHmwIBZExeFmKUicmQtYPhuB3gE4eHyVOvBJIhlTewaJymS7qvoVxuR0fCDiH+71UUcbXuMJ+tSYYYn/L0Dhk+8pr2cWXCSgcDSaM6EloUimco6GU+Fsc=
+	t=1711419438; cv=none; b=jByKOx3RYmkbkT+SrvhZ/C3A0XzNqy1UR3lOBx2McykFcdC5BzbV1etY6z7vFTFq1DSUGoVE5IjSQa9W9W4KxQyBC8anDfiRDxs7Wp7RX6NASGEkbCC3XV8ksaPlKJQ+wjjG+8dP/gEutF+WOMfbOIpUdz/rBz9Uz4dh+iNIR70=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711132011; c=relaxed/simple;
-	bh=2UWRAO+qrTu/3BV0Nq41o8Nzm8B2jFhdWpIkD1h0YWs=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=b2Leif/vLylPB8nJq6G96uNQBfusF4nIoCQnvkudPFAGcV2cp+5yOrXNbJjzAV3WfNaL6P2jTmm4rSFZesbv5OcWagUIKyRNha+XyXJzxLtFsZh6Sq2os9ge7K7J4CGppBaka8153k+Tr2Aqe6zs1nXwlD44XEQGOTuUuNgoNTA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com; spf=pass smtp.mailfrom=bytedance.com; dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b=fsv3pEnl; arc=none smtp.client-ip=209.85.219.177
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bytedance.com
+	s=arc-20240116; t=1711419438; c=relaxed/simple;
+	bh=vkTcVT9jigW1nbd2RmwlNu3cwMbNkxnWB23GTD8rbXw=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=HL8k+F+9rHWXi1VPWhgCBypLShN0p3nuhtVvIjLpIM+k4IcP8tvQ4KkAHoaHEH9Bwg3z2QtVo7yls6q+dp7DKmTr6imqL3f42pyGc8yGrcXQszozqaAdZTz+bmXMcd2zSL579+5d43TXPnbjs8Gkei20FOAYzRD69B92bEtsyrI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=DjjioQXh; arc=none smtp.client-ip=198.175.65.16
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b="fsv3pEnl"
-Received: by mail-yb1-f177.google.com with SMTP id 3f1490d57ef6-dcc7cdb3a98so2497491276.2
-        for <nvdimm@lists.linux.dev>; Fri, 22 Mar 2024 11:26:44 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bytedance.com; s=google; t=1711132004; x=1711736804; darn=lists.linux.dev;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=6AUICcSJg/mLbMOQlQg8ZPtye+1Y8JCvK5pGCwWXtOo=;
-        b=fsv3pEnlvhimkhDuCNDifeUES3N4ggV1NgaCUWCKWvjCumW1py8u/pRpYrsje1i2R5
-         jue/YvhnPU27tQMEjPHOVdGXpfUsq8bHElA7DOjmDRebRF7O/b5iiybhUdtMkZDmK2Xp
-         tPnl9sIxMXS4o9me8wDH8+J9fEOUrok/5ZhxiVN6ulBfEPvjvyO5xj5o4OcocDbnkiKK
-         yQM3a2W7Z/3PX7u4zqSWn9l+JH9KHvJjG8a1AbRJl2e5MqLGsTwZ0GIPnbnanPjSMmhU
-         IclfsefVLdVBOm8yBxBTMAHDTHewrFHlcme7wdu9LVldk/K9WY7nus+A/YgghrMwXCE6
-         XQxg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1711132004; x=1711736804;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=6AUICcSJg/mLbMOQlQg8ZPtye+1Y8JCvK5pGCwWXtOo=;
-        b=ac8RE+W3l1qgjq07nvXVMKpq6K2GxhrDmgtA8z59ofSEBcUfA7d25DHUbP9vRPL2fj
-         98UL+w90ZNWxOn14GCpu4Vqi0UPANjIa+6QMC9Mtw1XcqsFrpuEDnf4R5P9+Hi3IkFOS
-         3aQZw9MdWa25TwyoESuzDJAfTUO8roWa2q21LzKgzQvTojRzzeaztmr5RNz4jsIErrub
-         tSUyUzB4gFbPeckWV41/pBmkYnFm/CsjESWsLm1aiF3MezvUMbhFFz4Q4o+jMsg3uWoN
-         fl91Nw7nch0XOeolZNXmyY+/D+eJSwSeEDlOtybI3O77pvz+N6ovgUyfLUtHoen1JP5t
-         gxfg==
-X-Forwarded-Encrypted: i=1; AJvYcCVz5fWi80WDXqQl5lA8FcXqqc0KPbGuiCY3FFSMouWkpU77hm3t79dpV6MuQ3X1RQzTK5N8yFsLYp24XTRpvjhIqyRrPSVt
-X-Gm-Message-State: AOJu0YxbBvxdiDbT8CwL26PzzF6gcUZBO1gozXF1wQC47iPXUIfFw/PP
-	MW8U5LN1KMmyWWZmkVFK+vnR12zkcC6JL/eJwatEVJtJQ7QPDoWoBVzvcvv2Llp9wlrzVcoDu76
-	+jl0Q3YqfCSeXBeeA1Qrkw6pq/XUHP7pZt0mTbQ==
-X-Google-Smtp-Source: AGHT+IFq+Vld2u9CEv92mxcPdGGVK+HlqojAbAarhNNW8pq520kH61lUaodFCsAExfRXZuH3hgY+ToVYiDIEhie12xw=
-X-Received: by 2002:a25:5303:0:b0:dda:a550:4e92 with SMTP id
- h3-20020a255303000000b00ddaa5504e92mr161782ybb.46.1711132004008; Fri, 22 Mar
- 2024 11:26:44 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="DjjioQXh"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1711419436; x=1742955436;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=vkTcVT9jigW1nbd2RmwlNu3cwMbNkxnWB23GTD8rbXw=;
+  b=DjjioQXhxPG8di+IwUiajyhf/lJc1FnHGFse0bpfFKy4PHB8NoLj/6Nf
+   FGG87TFHldSY4tE4bzxiiownLMDkYTzpUSuelUHX9G5rFcS9+JQPKudlZ
+   KmwnbUJKfS55OEplOFLUULnI4or5mVKoCwQope9tkyP+klgGn0o0yWlIp
+   egVKm1ts+thuRuVLGRy6AyrTcdNnPiJ4lXkfTBYd0bCWuaynPStIrVSu6
+   wJUmi5lU6DmxWYxzoq09sxuLMDpI8kMM/fTMpFMReY06iEdgvFswItiMA
+   ZMYuuMDFAZAmcydlYANAItAXnRUAjZVA2bO7W/QQ9YwRblZVvgqrHcUSi
+   A==;
+X-IronPort-AV: E=McAfee;i="6600,9927,11024"; a="6564230"
+X-IronPort-AV: E=Sophos;i="6.07,154,1708416000"; 
+   d="scan'208";a="6564230"
+Received: from orviesa004.jf.intel.com ([10.64.159.144])
+  by orvoesa108.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Mar 2024 19:17:14 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.07,154,1708416000"; 
+   d="scan'208";a="20489867"
+Received: from rpwilson-mobl.amr.corp.intel.com (HELO rpedgeco-desk4.intel.com) ([10.251.11.187])
+  by orviesa004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Mar 2024 19:17:14 -0700
+From: Rick Edgecombe <rick.p.edgecombe@intel.com>
+To: Liam.Howlett@oracle.com,
+	akpm@linux-foundation.org,
+	bp@alien8.de,
+	broonie@kernel.org,
+	christophe.leroy@csgroup.eu,
+	dave.hansen@linux.intel.com,
+	debug@rivosinc.com,
+	hpa@zytor.com,
+	keescook@chromium.org,
+	kirill.shutemov@linux.intel.com,
+	luto@kernel.org,
+	mingo@redhat.com,
+	peterz@infradead.org,
+	tglx@linutronix.de,
+	x86@kernel.org
+Cc: rick.p.edgecombe@intel.com,
+	linux-kernel@vger.kernel.org,
+	linux-mm@kvack.org,
+	linux-s390@vger.kernel.org,
+	sparclinux@vger.kernel.org,
+	linux-sgx@vger.kernel.org,
+	nvdimm@lists.linux.dev,
+	linux-cxl@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org,
+	io-uring@vger.kernel.org,
+	bpf@vger.kernel.org
+Subject: [PATCH v4 02/14] mm: Switch mm->get_unmapped_area() to a flag
+Date: Mon, 25 Mar 2024 19:16:44 -0700
+Message-Id: <20240326021656.202649-3-rick.p.edgecombe@intel.com>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20240326021656.202649-1-rick.p.edgecombe@intel.com>
+References: <20240326021656.202649-1-rick.p.edgecombe@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20240322070356.315922-1-horenchuang@bytedance.com>
- <20240322070356.315922-3-horenchuang@bytedance.com> <87cyrmr773.fsf@yhuang6-desk2.ccr.corp.intel.com>
-In-Reply-To: <87cyrmr773.fsf@yhuang6-desk2.ccr.corp.intel.com>
-From: "Ho-Ren (Jack) Chuang" <horenchuang@bytedance.com>
-Date: Fri, 22 Mar 2024 11:26:33 -0700
-Message-ID: <CAKPbEqptUKhDdH0ke7PuFShTBFm-Y=NWDtMOWCXBQBe-mac88w@mail.gmail.com>
-Subject: Re: [External] Re: [PATCH v4 2/2] memory tier: create CPUless memory
- tiers after obtaining HMAT info
-To: "Huang, Ying" <ying.huang@intel.com>
-Cc: Gregory Price <gourry.memverge@gmail.com>, aneesh.kumar@linux.ibm.com, mhocko@suse.com, 
-	tj@kernel.org, john@jagalactic.com, Eishan Mirakhur <emirakhur@micron.com>, 
-	Vinicius Tavares Petrucci <vtavarespetr@micron.com>, Ravis OpenSrc <Ravis.OpenSrc@micron.com>, 
-	Alistair Popple <apopple@nvidia.com>, Srinivasulu Thanneeru <sthanneeru@micron.com>, 
-	Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, 
-	Dave Jiang <dave.jiang@intel.com>, Andrew Morton <akpm@linux-foundation.org>, nvdimm@lists.linux.dev, 
-	linux-cxl@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, 
-	"Ho-Ren (Jack) Chuang" <horenc@vt.edu>, "Ho-Ren (Jack) Chuang" <horenchuang@gmail.com>, qemu-devel@nongnu.org, 
-	Hao Xiang <hao.xiang@bytedance.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Fri, Mar 22, 2024 at 1:41=E2=80=AFAM Huang, Ying <ying.huang@intel.com> =
-wrote:
->
-> "Ho-Ren (Jack) Chuang" <horenchuang@bytedance.com> writes:
->
-> > The current implementation treats emulated memory devices, such as
-> > CXL1.1 type3 memory, as normal DRAM when they are emulated as normal me=
-mory
-> > (E820_TYPE_RAM). However, these emulated devices have different
-> > characteristics than traditional DRAM, making it important to
-> > distinguish them. Thus, we modify the tiered memory initialization proc=
-ess
-> > to introduce a delay specifically for CPUless NUMA nodes. This delay
-> > ensures that the memory tier initialization for these nodes is deferred
-> > until HMAT information is obtained during the boot process. Finally,
-> > demotion tables are recalculated at the end.
-> >
-> > * late_initcall(memory_tier_late_init);
-> > Some device drivers may have initialized memory tiers between
-> > `memory_tier_init()` and `memory_tier_late_init()`, potentially bringin=
-g
-> > online memory nodes and configuring memory tiers. They should be exclud=
-ed
-> > in the late init.
-> >
-> > * Handle cases where there is no HMAT when creating memory tiers
-> > There is a scenario where a CPUless node does not provide HMAT informat=
-ion.
-> > If no HMAT is specified, it falls back to using the default DRAM tier.
-> >
-> > * Introduce another new lock `default_dram_perf_lock` for adist calcula=
-tion
-> > In the current implementation, iterating through CPUlist nodes requires
-> > holding the `memory_tier_lock`. However, `mt_calc_adistance()` will end=
- up
-> > trying to acquire the same lock, leading to a potential deadlock.
-> > Therefore, we propose introducing a standalone `default_dram_perf_lock`=
- to
-> > protect `default_dram_perf_*`. This approach not only avoids deadlock
-> > but also prevents holding a large lock simultaneously.
-> >
-> > * Upgrade `set_node_memory_tier` to support additional cases, including
-> >   default DRAM, late CPUless, and hot-plugged initializations.
-> > To cover hot-plugged memory nodes, `mt_calc_adistance()` and
-> > `mt_find_alloc_memory_type()` are moved into `set_node_memory_tier()` t=
-o
-> > handle cases where memtype is not initialized and where HMAT informatio=
-n is
-> > available.
-> >
-> > * Introduce `default_memory_types` for those memory types that are not
-> >   initialized by device drivers.
-> > Because late initialized memory and default DRAM memory need to be mana=
-ged,
-> > a default memory type is created for storing all memory types that are
-> > not initialized by device drivers and as a fallback.
-> >
-> > Signed-off-by: Ho-Ren (Jack) Chuang <horenchuang@bytedance.com>
-> > Signed-off-by: Hao Xiang <hao.xiang@bytedance.com>
-> > ---
-> >  mm/memory-tiers.c | 73 ++++++++++++++++++++++++++++++++++++++++-------
-> >  1 file changed, 63 insertions(+), 10 deletions(-)
-> >
-> > diff --git a/mm/memory-tiers.c b/mm/memory-tiers.c
-> > index 974af10cfdd8..9396330fa162 100644
-> > --- a/mm/memory-tiers.c
-> > +++ b/mm/memory-tiers.c
-> > @@ -36,6 +36,11 @@ struct node_memory_type_map {
-> >
-> >  static DEFINE_MUTEX(memory_tier_lock);
-> >  static LIST_HEAD(memory_tiers);
-> > +/*
-> > + * The list is used to store all memory types that are not created
-> > + * by a device driver.
-> > + */
-> > +static LIST_HEAD(default_memory_types);
-> >  static struct node_memory_type_map node_memory_types[MAX_NUMNODES];
-> >  struct memory_dev_type *default_dram_type;
-> >
-> > @@ -108,6 +113,7 @@ static struct demotion_nodes *node_demotion __read_=
-mostly;
-> >
-> >  static BLOCKING_NOTIFIER_HEAD(mt_adistance_algorithms);
-> >
-> > +static DEFINE_MUTEX(default_dram_perf_lock);
->
-> Better to add comments about what is protected by this lock.
->
+The mm_struct contains a function pointer *get_unmapped_area(), which
+is set to either arch_get_unmapped_area() or
+arch_get_unmapped_area_topdown() during the initialization of the mm.
 
-Thank you. I will add a comment like this:
-+ /* The lock is used to protect `default_dram_perf*` info and nid. */
-+static DEFINE_MUTEX(default_dram_perf_lock);
+Since the function pointer only ever points to two functions that are named
+the same across all arch's, a function pointer is not really required. In
+addition future changes will want to add versions of the functions that
+take additional arguments. So to save a pointers worth of bytes in
+mm_struct, and prevent adding additional function pointers to mm_struct in
+future changes, remove it and keep the information about which
+get_unmapped_area() to use in a flag.
 
-I also found an error path was not handled and
-found the lock could be put closer to what it protects.
-I will have them fixed in V5.
+Add the new flag to MMF_INIT_MASK so it doesn't get clobbered on fork by
+mmf_init_flags(). Most MM flags get clobbered on fork. In the pre-existing
+behavior mm->get_unmapped_area() would get copied to the new mm in
+dup_mm(), so not clobbering the flag preserves the existing behavior
+around inheriting the topdown-ness.
 
-> >  static bool default_dram_perf_error;
-> >  static struct access_coordinate default_dram_perf;
-> >  static int default_dram_perf_ref_nid =3D NUMA_NO_NODE;
-> > @@ -505,7 +511,8 @@ static inline void __init_node_memory_type(int node=
-, struct memory_dev_type *mem
-> >  static struct memory_tier *set_node_memory_tier(int node)
-> >  {
-> >       struct memory_tier *memtier;
-> > -     struct memory_dev_type *memtype;
-> > +     struct memory_dev_type *mtype;
->
-> mtype may be referenced without initialization now below.
->
+Introduce a helper, mm_get_unmapped_area(), to easily convert code that
+refers to the old function pointer to instead select and call either
+arch_get_unmapped_area() or arch_get_unmapped_area_topdown() based on the
+flag. Then drop the mm->get_unmapped_area() function pointer. Leave the
+get_unmapped_area() pointer in struct file_operations alone. The main
+purpose of this change is to reorganize in preparation for future changes,
+but it also converts the calls of mm->get_unmapped_area() from indirect
+branches into a direct ones.
 
-Good catch! Thank you.
+The stress-ng bigheap benchmark calls realloc a lot, which calls through
+get_unmapped_area() in the kernel. On x86, the change yielded a ~1%
+improvement there on a retpoline config.
 
-Please check below.
-I may found a potential NULL pointer dereference.
+In testing a few x86 configs, removing the pointer unfortunately didn't
+result in any actual size reductions in the compiled layout of mm_struct.
+But depending on compiler or arch alignment requirements, the change could
+shrink the size of mm_struct.
 
-> > +     int adist =3D MEMTIER_ADISTANCE_DRAM;
-> >       pg_data_t *pgdat =3D NODE_DATA(node);
-> >
-> >
-> > @@ -514,11 +521,20 @@ static struct memory_tier *set_node_memory_tier(i=
-nt node)
-> >       if (!node_state(node, N_MEMORY))
-> >               return ERR_PTR(-EINVAL);
-> >
-> > -     __init_node_memory_type(node, default_dram_type);
-> > +     mt_calc_adistance(node, &adist);
-> > +     if (node_memory_types[node].memtype =3D=3D NULL) {
-> > +             mtype =3D mt_find_alloc_memory_type(adist, &default_memor=
-y_types);
-> > +             if (IS_ERR(mtype)) {
-> > +                     mtype =3D default_dram_type;
-> > +                     pr_info("Failed to allocate a memory type. Fall b=
-ack.\n");
-> > +             }
-> > +     }
-> >
-> > -     memtype =3D node_memory_types[node].memtype;
-> > -     node_set(node, memtype->nodes);
-> > -     memtier =3D find_create_memory_tier(memtype);
-> > +     __init_node_memory_type(node, mtype);
-> > +
-> > +     mtype =3D node_memory_types[node].memtype;
-> > +     node_set(node, mtype->nodes);
+Signed-off-by: Rick Edgecombe <rick.p.edgecombe@intel.com>
+Acked-by: Dave Hansen <dave.hansen@linux.intel.com>
+Acked-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Reviewed-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: linux-s390@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
+Cc: linux-sgx@vger.kernel.org
+Cc: nvdimm@lists.linux.dev
+Cc: linux-cxl@vger.kernel.org
+Cc: linux-mm@kvack.org
+Cc: linux-fsdevel@vger.kernel.org
+Cc: io-uring@vger.kernel.org
+Cc: bpf@vger.kernel.org
+---
+v4:
+ - Split out pde_get_unmapped_area() refactor into separate patch
+   (Christophe Leroy)
 
-If the `mtype` could be NULL, would there be a potential
-NULL pointer dereference. Do you have a preferred idea
-to fix this if needed?
+v3:
+ - Fix comment that still referred to mm->get_unmapped_area()
+ - Resolve trivial rebase conflicts with "mm: thp_get_unmapped_area must
+   honour topdown preference"
+ - Spelling fix in log
 
-> > +     memtier =3D find_create_memory_tier(mtype);
-> >       if (!IS_ERR(memtier))
-> >               rcu_assign_pointer(pgdat->memtier, memtier);
-> >       return memtier;
-> > @@ -655,6 +671,34 @@ void mt_put_memory_types(struct list_head *memory_=
-types)
-> >  }
-> >  EXPORT_SYMBOL_GPL(mt_put_memory_types);
-> >
-> > +/*
-> > + * This is invoked via `late_initcall()` to initialize memory tiers fo=
-r
-> > + * CPU-less memory nodes after driver initialization, which is
-> > + * expected to provide `adistance` algorithms.
-> > + */
-> > +static int __init memory_tier_late_init(void)
-> > +{
-> > +     int nid;
-> > +
-> > +     mutex_lock(&memory_tier_lock);
-> > +     for_each_node_state(nid, N_MEMORY)
-> > +             if (!node_state(nid, N_CPU) &&
-> > +                     node_memory_types[nid].memtype =3D=3D NULL)
-> > +                     /*
-> > +                      * Some device drivers may have initialized memor=
-y tiers
-> > +                      * between `memory_tier_init()` and `memory_tier_=
-late_init()`,
-> > +                      * potentially bringing online memory nodes and
-> > +                      * configuring memory tiers. Exclude them here.
-> > +                      */
-> > +                     set_node_memory_tier(nid);
-> > +
-> > +     establish_demotion_targets();
-> > +     mutex_unlock(&memory_tier_lock);
-> > +
-> > +     return 0;
-> > +}
-> > +late_initcall(memory_tier_late_init);
-> > +
-> >  static void dump_hmem_attrs(struct access_coordinate *coord, const cha=
-r *prefix)
-> >  {
-> >       pr_info(
-> > @@ -668,7 +712,7 @@ int mt_set_default_dram_perf(int nid, struct access=
-_coordinate *perf,
-> >  {
-> >       int rc =3D 0;
-> >
-> > -     mutex_lock(&memory_tier_lock);
-> > +     mutex_lock(&default_dram_perf_lock);
-> >       if (default_dram_perf_error) {
-> >               rc =3D -EIO;
-> >               goto out;
-> > @@ -716,7 +760,7 @@ int mt_set_default_dram_perf(int nid, struct access=
-_coordinate *perf,
-> >       }
-> >
-> >  out:
-> > -     mutex_unlock(&memory_tier_lock);
-> > +     mutex_unlock(&default_dram_perf_lock);
-> >       return rc;
-> >  }
-> >
-> > @@ -732,7 +776,7 @@ int mt_perf_to_adistance(struct access_coordinate *=
-perf, int *adist)
-> >           perf->read_bandwidth + perf->write_bandwidth =3D=3D 0)
-> >               return -EINVAL;
-> >
-> > -     mutex_lock(&memory_tier_lock);
-> > +     mutex_lock(&default_dram_perf_lock);
-> >       /*
-> >        * The abstract distance of a memory node is in direct proportion=
- to
-> >        * its memory latency (read + write) and inversely proportional t=
-o its
-> > @@ -745,7 +789,7 @@ int mt_perf_to_adistance(struct access_coordinate *=
-perf, int *adist)
-> >               (default_dram_perf.read_latency + default_dram_perf.write=
-_latency) *
-> >               (default_dram_perf.read_bandwidth + default_dram_perf.wri=
-te_bandwidth) /
-> >               (perf->read_bandwidth + perf->write_bandwidth);
-> > -     mutex_unlock(&memory_tier_lock);
-> > +     mutex_unlock(&default_dram_perf_lock);
-> >
-> >       return 0;
-> >  }
-> > @@ -858,7 +902,8 @@ static int __init memory_tier_init(void)
-> >        * For now we can have 4 faster memory tiers with smaller adistan=
-ce
-> >        * than default DRAM tier.
-> >        */
-> > -     default_dram_type =3D alloc_memory_type(MEMTIER_ADISTANCE_DRAM);
-> > +     default_dram_type =3D mt_find_alloc_memory_type(MEMTIER_ADISTANCE=
-_DRAM,
-> > +                                                                     &=
-default_memory_types);
-> >       if (IS_ERR(default_dram_type))
-> >               panic("%s() failed to allocate default DRAM tier\n", __fu=
-nc__);
-> >
-> > @@ -868,6 +913,14 @@ static int __init memory_tier_init(void)
-> >        * types assigned.
-> >        */
-> >       for_each_node_state(node, N_MEMORY) {
-> > +             if (!node_state(node, N_CPU))
-> > +                     /*
-> > +                      * Defer memory tier initialization on CPUless nu=
-ma nodes.
-> > +                      * These will be initialized after firmware and d=
-evices are
-> > +                      * initialized.
-> > +                      */
-> > +                     continue;
-> > +
-> >               memtier =3D set_node_memory_tier(node);
-> >               if (IS_ERR(memtier))
-> >                       /*
->
-> --
-> Best Regards,
-> Huang, Ying
+v2:
+ - Fix comment on MMF_TOPDOWN (Kirill, rppt)
+ - Move MMF_TOPDOWN to actually unused bit
+ - Add MMF_TOPDOWN to MMF_INIT_MASK so it doesn't get clobbered on fork,
+   and result in the children using the search up path.
+ - New lower performance results after above bug fix
+ - Add Reviews and Acks
+---
+ arch/s390/mm/hugetlbpage.c       |  2 +-
+ arch/s390/mm/mmap.c              |  4 ++--
+ arch/sparc/kernel/sys_sparc_64.c | 15 ++++++---------
+ arch/sparc/mm/hugetlbpage.c      |  2 +-
+ arch/x86/kernel/cpu/sgx/driver.c |  2 +-
+ arch/x86/mm/hugetlbpage.c        |  2 +-
+ arch/x86/mm/mmap.c               |  4 ++--
+ drivers/char/mem.c               |  2 +-
+ drivers/dax/device.c             |  6 +++---
+ fs/hugetlbfs/inode.c             |  4 ++--
+ fs/proc/inode.c                  |  3 ++-
+ fs/ramfs/file-mmu.c              |  2 +-
+ include/linux/mm_types.h         |  6 +-----
+ include/linux/sched/coredump.h   |  5 ++++-
+ include/linux/sched/mm.h         |  5 +++++
+ io_uring/io_uring.c              |  2 +-
+ kernel/bpf/arena.c               |  2 +-
+ kernel/bpf/syscall.c             |  2 +-
+ mm/debug.c                       |  6 ------
+ mm/huge_memory.c                 |  9 ++++-----
+ mm/mmap.c                        | 21 ++++++++++++++++++---
+ mm/shmem.c                       | 11 +++++------
+ mm/util.c                        |  6 +++---
+ 23 files changed, 66 insertions(+), 57 deletions(-)
 
+diff --git a/arch/s390/mm/hugetlbpage.c b/arch/s390/mm/hugetlbpage.c
+index c2e8242bd15d..219d906fe830 100644
+--- a/arch/s390/mm/hugetlbpage.c
++++ b/arch/s390/mm/hugetlbpage.c
+@@ -328,7 +328,7 @@ unsigned long hugetlb_get_unmapped_area(struct file *file, unsigned long addr,
+ 			goto check_asce_limit;
+ 	}
+ 
+-	if (mm->get_unmapped_area == arch_get_unmapped_area)
++	if (!test_bit(MMF_TOPDOWN, &mm->flags))
+ 		addr = hugetlb_get_unmapped_area_bottomup(file, addr, len,
+ 				pgoff, flags);
+ 	else
+diff --git a/arch/s390/mm/mmap.c b/arch/s390/mm/mmap.c
+index b14fc0887654..6b2e4436ad4a 100644
+--- a/arch/s390/mm/mmap.c
++++ b/arch/s390/mm/mmap.c
+@@ -185,10 +185,10 @@ void arch_pick_mmap_layout(struct mm_struct *mm, struct rlimit *rlim_stack)
+ 	 */
+ 	if (mmap_is_legacy(rlim_stack)) {
+ 		mm->mmap_base = mmap_base_legacy(random_factor);
+-		mm->get_unmapped_area = arch_get_unmapped_area;
++		clear_bit(MMF_TOPDOWN, &mm->flags);
+ 	} else {
+ 		mm->mmap_base = mmap_base(random_factor, rlim_stack);
+-		mm->get_unmapped_area = arch_get_unmapped_area_topdown;
++		set_bit(MMF_TOPDOWN, &mm->flags);
+ 	}
+ }
+ 
+diff --git a/arch/sparc/kernel/sys_sparc_64.c b/arch/sparc/kernel/sys_sparc_64.c
+index 1e9a9e016237..1dbf7211666e 100644
+--- a/arch/sparc/kernel/sys_sparc_64.c
++++ b/arch/sparc/kernel/sys_sparc_64.c
+@@ -218,14 +218,10 @@ arch_get_unmapped_area_topdown(struct file *filp, const unsigned long addr0,
+ unsigned long get_fb_unmapped_area(struct file *filp, unsigned long orig_addr, unsigned long len, unsigned long pgoff, unsigned long flags)
+ {
+ 	unsigned long align_goal, addr = -ENOMEM;
+-	unsigned long (*get_area)(struct file *, unsigned long,
+-				  unsigned long, unsigned long, unsigned long);
+-
+-	get_area = current->mm->get_unmapped_area;
+ 
+ 	if (flags & MAP_FIXED) {
+ 		/* Ok, don't mess with it. */
+-		return get_area(NULL, orig_addr, len, pgoff, flags);
++		return mm_get_unmapped_area(current->mm, NULL, orig_addr, len, pgoff, flags);
+ 	}
+ 	flags &= ~MAP_SHARED;
+ 
+@@ -238,7 +234,8 @@ unsigned long get_fb_unmapped_area(struct file *filp, unsigned long orig_addr, u
+ 		align_goal = (64UL * 1024);
+ 
+ 	do {
+-		addr = get_area(NULL, orig_addr, len + (align_goal - PAGE_SIZE), pgoff, flags);
++		addr = mm_get_unmapped_area(current->mm, NULL, orig_addr,
++					    len + (align_goal - PAGE_SIZE), pgoff, flags);
+ 		if (!(addr & ~PAGE_MASK)) {
+ 			addr = (addr + (align_goal - 1UL)) & ~(align_goal - 1UL);
+ 			break;
+@@ -256,7 +253,7 @@ unsigned long get_fb_unmapped_area(struct file *filp, unsigned long orig_addr, u
+ 	 * be obtained.
+ 	 */
+ 	if (addr & ~PAGE_MASK)
+-		addr = get_area(NULL, orig_addr, len, pgoff, flags);
++		addr = mm_get_unmapped_area(current->mm, NULL, orig_addr, len, pgoff, flags);
+ 
+ 	return addr;
+ }
+@@ -292,7 +289,7 @@ void arch_pick_mmap_layout(struct mm_struct *mm, struct rlimit *rlim_stack)
+ 	    gap == RLIM_INFINITY ||
+ 	    sysctl_legacy_va_layout) {
+ 		mm->mmap_base = TASK_UNMAPPED_BASE + random_factor;
+-		mm->get_unmapped_area = arch_get_unmapped_area;
++		clear_bit(MMF_TOPDOWN, &mm->flags);
+ 	} else {
+ 		/* We know it's 32-bit */
+ 		unsigned long task_size = STACK_TOP32;
+@@ -303,7 +300,7 @@ void arch_pick_mmap_layout(struct mm_struct *mm, struct rlimit *rlim_stack)
+ 			gap = (task_size / 6 * 5);
+ 
+ 		mm->mmap_base = PAGE_ALIGN(task_size - gap - random_factor);
+-		mm->get_unmapped_area = arch_get_unmapped_area_topdown;
++		set_bit(MMF_TOPDOWN, &mm->flags);
+ 	}
+ }
+ 
+diff --git a/arch/sparc/mm/hugetlbpage.c b/arch/sparc/mm/hugetlbpage.c
+index b432500c13a5..38a1bef47efb 100644
+--- a/arch/sparc/mm/hugetlbpage.c
++++ b/arch/sparc/mm/hugetlbpage.c
+@@ -123,7 +123,7 @@ hugetlb_get_unmapped_area(struct file *file, unsigned long addr,
+ 		    (!vma || addr + len <= vm_start_gap(vma)))
+ 			return addr;
+ 	}
+-	if (mm->get_unmapped_area == arch_get_unmapped_area)
++	if (!test_bit(MMF_TOPDOWN, &mm->flags))
+ 		return hugetlb_get_unmapped_area_bottomup(file, addr, len,
+ 				pgoff, flags);
+ 	else
+diff --git a/arch/x86/kernel/cpu/sgx/driver.c b/arch/x86/kernel/cpu/sgx/driver.c
+index 262f5fb18d74..22b65a5f5ec6 100644
+--- a/arch/x86/kernel/cpu/sgx/driver.c
++++ b/arch/x86/kernel/cpu/sgx/driver.c
+@@ -113,7 +113,7 @@ static unsigned long sgx_get_unmapped_area(struct file *file,
+ 	if (flags & MAP_FIXED)
+ 		return addr;
+ 
+-	return current->mm->get_unmapped_area(file, addr, len, pgoff, flags);
++	return mm_get_unmapped_area(current->mm, file, addr, len, pgoff, flags);
+ }
+ 
+ #ifdef CONFIG_COMPAT
+diff --git a/arch/x86/mm/hugetlbpage.c b/arch/x86/mm/hugetlbpage.c
+index 5804bbae4f01..6d77c0039617 100644
+--- a/arch/x86/mm/hugetlbpage.c
++++ b/arch/x86/mm/hugetlbpage.c
+@@ -141,7 +141,7 @@ hugetlb_get_unmapped_area(struct file *file, unsigned long addr,
+ 	}
+ 
+ get_unmapped_area:
+-	if (mm->get_unmapped_area == arch_get_unmapped_area)
++	if (!test_bit(MMF_TOPDOWN, &mm->flags))
+ 		return hugetlb_get_unmapped_area_bottomup(file, addr, len,
+ 				pgoff, flags);
+ 	else
+diff --git a/arch/x86/mm/mmap.c b/arch/x86/mm/mmap.c
+index c90c20904a60..a2cabb1c81e1 100644
+--- a/arch/x86/mm/mmap.c
++++ b/arch/x86/mm/mmap.c
+@@ -129,9 +129,9 @@ static void arch_pick_mmap_base(unsigned long *base, unsigned long *legacy_base,
+ void arch_pick_mmap_layout(struct mm_struct *mm, struct rlimit *rlim_stack)
+ {
+ 	if (mmap_is_legacy())
+-		mm->get_unmapped_area = arch_get_unmapped_area;
++		clear_bit(MMF_TOPDOWN, &mm->flags);
+ 	else
+-		mm->get_unmapped_area = arch_get_unmapped_area_topdown;
++		set_bit(MMF_TOPDOWN, &mm->flags);
+ 
+ 	arch_pick_mmap_base(&mm->mmap_base, &mm->mmap_legacy_base,
+ 			arch_rnd(mmap64_rnd_bits), task_size_64bit(0),
+diff --git a/drivers/char/mem.c b/drivers/char/mem.c
+index 3c6670cf905f..9b80e622ae80 100644
+--- a/drivers/char/mem.c
++++ b/drivers/char/mem.c
+@@ -544,7 +544,7 @@ static unsigned long get_unmapped_area_zero(struct file *file,
+ 	}
+ 
+ 	/* Otherwise flags & MAP_PRIVATE: with no shmem object beneath it */
+-	return current->mm->get_unmapped_area(file, addr, len, pgoff, flags);
++	return mm_get_unmapped_area(current->mm, file, addr, len, pgoff, flags);
+ #else
+ 	return -ENOSYS;
+ #endif
+diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+index 93ebedc5ec8c..47c126d37b59 100644
+--- a/drivers/dax/device.c
++++ b/drivers/dax/device.c
+@@ -329,14 +329,14 @@ static unsigned long dax_get_unmapped_area(struct file *filp,
+ 	if ((off + len_align) < off)
+ 		goto out;
+ 
+-	addr_align = current->mm->get_unmapped_area(filp, addr, len_align,
+-			pgoff, flags);
++	addr_align = mm_get_unmapped_area(current->mm, filp, addr, len_align,
++					  pgoff, flags);
+ 	if (!IS_ERR_VALUE(addr_align)) {
+ 		addr_align += (off - addr_align) & (align - 1);
+ 		return addr_align;
+ 	}
+  out:
+-	return current->mm->get_unmapped_area(filp, addr, len, pgoff, flags);
++	return mm_get_unmapped_area(current->mm, filp, addr, len, pgoff, flags);
+ }
+ 
+ static const struct address_space_operations dev_dax_aops = {
+diff --git a/fs/hugetlbfs/inode.c b/fs/hugetlbfs/inode.c
+index 6502c7e776d1..3dee18bf47ed 100644
+--- a/fs/hugetlbfs/inode.c
++++ b/fs/hugetlbfs/inode.c
+@@ -249,11 +249,11 @@ generic_hugetlb_get_unmapped_area(struct file *file, unsigned long addr,
+ 	}
+ 
+ 	/*
+-	 * Use mm->get_unmapped_area value as a hint to use topdown routine.
++	 * Use MMF_TOPDOWN flag as a hint to use topdown routine.
+ 	 * If architectures have special needs, they should define their own
+ 	 * version of hugetlb_get_unmapped_area.
+ 	 */
+-	if (mm->get_unmapped_area == arch_get_unmapped_area_topdown)
++	if (test_bit(MMF_TOPDOWN, &mm->flags))
+ 		return hugetlb_get_unmapped_area_topdown(file, addr, len,
+ 				pgoff, flags);
+ 	return hugetlb_get_unmapped_area_bottomup(file, addr, len,
+diff --git a/fs/proc/inode.c b/fs/proc/inode.c
+index 75396a24fd8c..d19434e2a58e 100644
+--- a/fs/proc/inode.c
++++ b/fs/proc/inode.c
+@@ -455,8 +455,9 @@ pde_get_unmapped_area(struct proc_dir_entry *pde, struct file *file, unsigned lo
+ 		return pde->proc_ops->proc_get_unmapped_area(file, orig_addr, len, pgoff, flags);
+ 
+ #ifdef CONFIG_MMU
+-	return current->mm->get_unmapped_area(file, orig_addr, len, pgoff, flags);
++	return mm_get_unmapped_area(current->mm, file, orig_addr, len, pgoff, flags);
+ #endif
++
+ 	return orig_addr;
+ }
+ 
+diff --git a/fs/ramfs/file-mmu.c b/fs/ramfs/file-mmu.c
+index c7a1aa3c882b..b45c7edc3225 100644
+--- a/fs/ramfs/file-mmu.c
++++ b/fs/ramfs/file-mmu.c
+@@ -35,7 +35,7 @@ static unsigned long ramfs_mmu_get_unmapped_area(struct file *file,
+ 		unsigned long addr, unsigned long len, unsigned long pgoff,
+ 		unsigned long flags)
+ {
+-	return current->mm->get_unmapped_area(file, addr, len, pgoff, flags);
++	return mm_get_unmapped_area(current->mm, file, addr, len, pgoff, flags);
+ }
+ 
+ const struct file_operations ramfs_file_operations = {
+diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
+index 5240bd7bca33..9313e43123d4 100644
+--- a/include/linux/mm_types.h
++++ b/include/linux/mm_types.h
+@@ -777,11 +777,7 @@ struct mm_struct {
+ 		} ____cacheline_aligned_in_smp;
+ 
+ 		struct maple_tree mm_mt;
+-#ifdef CONFIG_MMU
+-		unsigned long (*get_unmapped_area) (struct file *filp,
+-				unsigned long addr, unsigned long len,
+-				unsigned long pgoff, unsigned long flags);
+-#endif
++
+ 		unsigned long mmap_base;	/* base of mmap area */
+ 		unsigned long mmap_legacy_base;	/* base of mmap area in bottom-up allocations */
+ #ifdef CONFIG_HAVE_ARCH_COMPAT_MMAP_BASES
+diff --git a/include/linux/sched/coredump.h b/include/linux/sched/coredump.h
+index 02f5090ffea2..e62ff805cfc9 100644
+--- a/include/linux/sched/coredump.h
++++ b/include/linux/sched/coredump.h
+@@ -92,9 +92,12 @@ static inline int get_dumpable(struct mm_struct *mm)
+ #define MMF_VM_MERGE_ANY	30
+ #define MMF_VM_MERGE_ANY_MASK	(1 << MMF_VM_MERGE_ANY)
+ 
++#define MMF_TOPDOWN		31	/* mm searches top down by default */
++#define MMF_TOPDOWN_MASK	(1 << MMF_TOPDOWN)
++
+ #define MMF_INIT_MASK		(MMF_DUMPABLE_MASK | MMF_DUMP_FILTER_MASK |\
+ 				 MMF_DISABLE_THP_MASK | MMF_HAS_MDWE_MASK |\
+-				 MMF_VM_MERGE_ANY_MASK)
++				 MMF_VM_MERGE_ANY_MASK | MMF_TOPDOWN_MASK)
+ 
+ static inline unsigned long mmf_init_flags(unsigned long flags)
+ {
+diff --git a/include/linux/sched/mm.h b/include/linux/sched/mm.h
+index b6543f9d78d6..ed1caa26c8be 100644
+--- a/include/linux/sched/mm.h
++++ b/include/linux/sched/mm.h
+@@ -8,6 +8,7 @@
+ #include <linux/mm_types.h>
+ #include <linux/gfp.h>
+ #include <linux/sync_core.h>
++#include <linux/sched/coredump.h>
+ 
+ /*
+  * Routines for handling mm_structs
+@@ -186,6 +187,10 @@ arch_get_unmapped_area_topdown(struct file *filp, unsigned long addr,
+ 			  unsigned long len, unsigned long pgoff,
+ 			  unsigned long flags);
+ 
++unsigned long mm_get_unmapped_area(struct mm_struct *mm, struct file *filp,
++				   unsigned long addr, unsigned long len,
++				   unsigned long pgoff, unsigned long flags);
++
+ unsigned long
+ generic_get_unmapped_area(struct file *filp, unsigned long addr,
+ 			  unsigned long len, unsigned long pgoff,
+diff --git a/io_uring/io_uring.c b/io_uring/io_uring.c
+index 5d4b448fdc50..405bab0a560c 100644
+--- a/io_uring/io_uring.c
++++ b/io_uring/io_uring.c
+@@ -3520,7 +3520,7 @@ static unsigned long io_uring_mmu_get_unmapped_area(struct file *filp,
+ #else
+ 	addr = 0UL;
+ #endif
+-	return current->mm->get_unmapped_area(filp, addr, len, pgoff, flags);
++	return mm_get_unmapped_area(current->mm, filp, addr, len, pgoff, flags);
+ }
+ 
+ #else /* !CONFIG_MMU */
+diff --git a/kernel/bpf/arena.c b/kernel/bpf/arena.c
+index 86571e760dd6..74d566dcd2cb 100644
+--- a/kernel/bpf/arena.c
++++ b/kernel/bpf/arena.c
+@@ -314,7 +314,7 @@ static unsigned long arena_get_unmapped_area(struct file *filp, unsigned long ad
+ 			return -EINVAL;
+ 	}
+ 
+-	ret = current->mm->get_unmapped_area(filp, addr, len * 2, 0, flags);
++	ret = mm_get_unmapped_area(current->mm, filp, addr, len * 2, 0, flags);
+ 	if (IS_ERR_VALUE(ret))
+ 		return ret;
+ 	if ((ret >> 32) == ((ret + len - 1) >> 32))
+diff --git a/kernel/bpf/syscall.c b/kernel/bpf/syscall.c
+index ae2ff73bde7e..dead5e1977d8 100644
+--- a/kernel/bpf/syscall.c
++++ b/kernel/bpf/syscall.c
+@@ -980,7 +980,7 @@ static unsigned long bpf_get_unmapped_area(struct file *filp, unsigned long addr
+ 	if (map->ops->map_get_unmapped_area)
+ 		return map->ops->map_get_unmapped_area(filp, addr, len, pgoff, flags);
+ #ifdef CONFIG_MMU
+-	return current->mm->get_unmapped_area(filp, addr, len, pgoff, flags);
++	return mm_get_unmapped_area(current->mm, filp, addr, len, pgoff, flags);
+ #else
+ 	return addr;
+ #endif
+diff --git a/mm/debug.c b/mm/debug.c
+index c1c1a6a484e4..37a17f77df9f 100644
+--- a/mm/debug.c
++++ b/mm/debug.c
+@@ -180,9 +180,6 @@ EXPORT_SYMBOL(dump_vma);
+ void dump_mm(const struct mm_struct *mm)
+ {
+ 	pr_emerg("mm %px task_size %lu\n"
+-#ifdef CONFIG_MMU
+-		"get_unmapped_area %px\n"
+-#endif
+ 		"mmap_base %lu mmap_legacy_base %lu\n"
+ 		"pgd %px mm_users %d mm_count %d pgtables_bytes %lu map_count %d\n"
+ 		"hiwater_rss %lx hiwater_vm %lx total_vm %lx locked_vm %lx\n"
+@@ -208,9 +205,6 @@ void dump_mm(const struct mm_struct *mm)
+ 		"def_flags: %#lx(%pGv)\n",
+ 
+ 		mm, mm->task_size,
+-#ifdef CONFIG_MMU
+-		mm->get_unmapped_area,
+-#endif
+ 		mm->mmap_base, mm->mmap_legacy_base,
+ 		mm->pgd, atomic_read(&mm->mm_users),
+ 		atomic_read(&mm->mm_count),
+diff --git a/mm/huge_memory.c b/mm/huge_memory.c
+index 9859aa4f7553..cede9ccb84dc 100644
+--- a/mm/huge_memory.c
++++ b/mm/huge_memory.c
+@@ -824,8 +824,8 @@ static unsigned long __thp_get_unmapped_area(struct file *filp,
+ 	if (len_pad < len || (off + len_pad) < off)
+ 		return 0;
+ 
+-	ret = current->mm->get_unmapped_area(filp, addr, len_pad,
+-					      off >> PAGE_SHIFT, flags);
++	ret = mm_get_unmapped_area(current->mm, filp, addr, len_pad,
++				   off >> PAGE_SHIFT, flags);
+ 
+ 	/*
+ 	 * The failure might be due to length padding. The caller will retry
+@@ -843,8 +843,7 @@ static unsigned long __thp_get_unmapped_area(struct file *filp,
+ 
+ 	off_sub = (off - ret) & (size - 1);
+ 
+-	if (current->mm->get_unmapped_area == arch_get_unmapped_area_topdown &&
+-	    !off_sub)
++	if (test_bit(MMF_TOPDOWN, &current->mm->flags) && !off_sub)
+ 		return ret + size;
+ 
+ 	ret += off_sub;
+@@ -861,7 +860,7 @@ unsigned long thp_get_unmapped_area(struct file *filp, unsigned long addr,
+ 	if (ret)
+ 		return ret;
+ 
+-	return current->mm->get_unmapped_area(filp, addr, len, pgoff, flags);
++	return mm_get_unmapped_area(current->mm, filp, addr, len, pgoff, flags);
+ }
+ EXPORT_SYMBOL_GPL(thp_get_unmapped_area);
+ 
+diff --git a/mm/mmap.c b/mm/mmap.c
+index 6dbda99a47da..224e9ce1e2fd 100644
+--- a/mm/mmap.c
++++ b/mm/mmap.c
+@@ -1813,7 +1813,8 @@ get_unmapped_area(struct file *file, unsigned long addr, unsigned long len,
+ 		unsigned long pgoff, unsigned long flags)
+ {
+ 	unsigned long (*get_area)(struct file *, unsigned long,
+-				  unsigned long, unsigned long, unsigned long);
++				  unsigned long, unsigned long, unsigned long)
++				  = NULL;
+ 
+ 	unsigned long error = arch_mmap_check(addr, len, flags);
+ 	if (error)
+@@ -1823,7 +1824,6 @@ get_unmapped_area(struct file *file, unsigned long addr, unsigned long len,
+ 	if (len > TASK_SIZE)
+ 		return -ENOMEM;
+ 
+-	get_area = current->mm->get_unmapped_area;
+ 	if (file) {
+ 		if (file->f_op->get_unmapped_area)
+ 			get_area = file->f_op->get_unmapped_area;
+@@ -1842,7 +1842,11 @@ get_unmapped_area(struct file *file, unsigned long addr, unsigned long len,
+ 	if (!file)
+ 		pgoff = 0;
+ 
+-	addr = get_area(file, addr, len, pgoff, flags);
++	if (get_area)
++		addr = get_area(file, addr, len, pgoff, flags);
++	else
++		addr = mm_get_unmapped_area(current->mm, file, addr, len,
++					    pgoff, flags);
+ 	if (IS_ERR_VALUE(addr))
+ 		return addr;
+ 
+@@ -1857,6 +1861,17 @@ get_unmapped_area(struct file *file, unsigned long addr, unsigned long len,
+ 
+ EXPORT_SYMBOL(get_unmapped_area);
+ 
++unsigned long
++mm_get_unmapped_area(struct mm_struct *mm, struct file *file,
++		     unsigned long addr, unsigned long len,
++		     unsigned long pgoff, unsigned long flags)
++{
++	if (test_bit(MMF_TOPDOWN, &mm->flags))
++		return arch_get_unmapped_area_topdown(file, addr, len, pgoff, flags);
++	return arch_get_unmapped_area(file, addr, len, pgoff, flags);
++}
++EXPORT_SYMBOL(mm_get_unmapped_area);
++
+ /**
+  * find_vma_intersection() - Look up the first VMA which intersects the interval
+  * @mm: The process address space.
+diff --git a/mm/shmem.c b/mm/shmem.c
+index 0aad0d9a621b..4078c3a1b2d0 100644
+--- a/mm/shmem.c
++++ b/mm/shmem.c
+@@ -2273,8 +2273,6 @@ unsigned long shmem_get_unmapped_area(struct file *file,
+ 				      unsigned long uaddr, unsigned long len,
+ 				      unsigned long pgoff, unsigned long flags)
+ {
+-	unsigned long (*get_area)(struct file *,
+-		unsigned long, unsigned long, unsigned long, unsigned long);
+ 	unsigned long addr;
+ 	unsigned long offset;
+ 	unsigned long inflated_len;
+@@ -2284,8 +2282,8 @@ unsigned long shmem_get_unmapped_area(struct file *file,
+ 	if (len > TASK_SIZE)
+ 		return -ENOMEM;
+ 
+-	get_area = current->mm->get_unmapped_area;
+-	addr = get_area(file, uaddr, len, pgoff, flags);
++	addr = mm_get_unmapped_area(current->mm, file, uaddr, len, pgoff,
++				    flags);
+ 
+ 	if (!IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE))
+ 		return addr;
+@@ -2342,7 +2340,8 @@ unsigned long shmem_get_unmapped_area(struct file *file,
+ 	if (inflated_len < len)
+ 		return addr;
+ 
+-	inflated_addr = get_area(NULL, uaddr, inflated_len, 0, flags);
++	inflated_addr = mm_get_unmapped_area(current->mm, NULL, uaddr,
++					     inflated_len, 0, flags);
+ 	if (IS_ERR_VALUE(inflated_addr))
+ 		return addr;
+ 	if (inflated_addr & ~PAGE_MASK)
+@@ -4807,7 +4806,7 @@ unsigned long shmem_get_unmapped_area(struct file *file,
+ 				      unsigned long addr, unsigned long len,
+ 				      unsigned long pgoff, unsigned long flags)
+ {
+-	return current->mm->get_unmapped_area(file, addr, len, pgoff, flags);
++	return mm_get_unmapped_area(current->mm, file, addr, len, pgoff, flags);
+ }
+ #endif
+ 
+diff --git a/mm/util.c b/mm/util.c
+index 669397235787..8619d353a1aa 100644
+--- a/mm/util.c
++++ b/mm/util.c
+@@ -469,17 +469,17 @@ void arch_pick_mmap_layout(struct mm_struct *mm, struct rlimit *rlim_stack)
+ 
+ 	if (mmap_is_legacy(rlim_stack)) {
+ 		mm->mmap_base = TASK_UNMAPPED_BASE + random_factor;
+-		mm->get_unmapped_area = arch_get_unmapped_area;
++		clear_bit(MMF_TOPDOWN, &mm->flags);
+ 	} else {
+ 		mm->mmap_base = mmap_base(random_factor, rlim_stack);
+-		mm->get_unmapped_area = arch_get_unmapped_area_topdown;
++		set_bit(MMF_TOPDOWN, &mm->flags);
+ 	}
+ }
+ #elif defined(CONFIG_MMU) && !defined(HAVE_ARCH_PICK_MMAP_LAYOUT)
+ void arch_pick_mmap_layout(struct mm_struct *mm, struct rlimit *rlim_stack)
+ {
+ 	mm->mmap_base = TASK_UNMAPPED_BASE;
+-	mm->get_unmapped_area = arch_get_unmapped_area;
++	clear_bit(MMF_TOPDOWN, &mm->flags);
+ }
+ #endif
+ 
+-- 
+2.34.1
 
-
---=20
-Best regards,
-Ho-Ren (Jack) Chuang
-=E8=8E=8A=E8=B3=80=E4=BB=BB
