@@ -1,55 +1,55 @@
 Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.17])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7DEF114C5B8
-	for <nvdimm@lists.linux.dev>; Wed, 27 Mar 2024 19:52:39 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54B49152DE5
+	for <nvdimm@lists.linux.dev>; Wed, 27 Mar 2024 19:52:40 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.17
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711569161; cv=none; b=V/clKkC+95tRl7WhWoGmNCxXErKO60D/P+FK/Oohv/yxA4uSl2ZA7DZdpv0EXraLIsR23ITFurhnHB8FugvWj+jYPTJdjo0diBvjmMBYHouH3tBcQnYzbrtQ3914+Fp9XzJe9pCAvNyuJflrH/3T7dl7W6uAo+JuN7ZjmGBs4Pk=
+	t=1711569162; cv=none; b=fNYK7kNwM24kuMW9V9uUiCjtDsaaxe9498sGftyrGzV9MI5CbbekkNwfAcrzPwC4JKIHHu+PwIOVFa/kFXDffm0JWyoC5dg0yWsPECaaGGke3jU02s9fMLBAiGFEtk5avPJFIN8idR3kXbAi9+WjqkozZEO2OjoGBxKdpN4CWtQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711569161; c=relaxed/simple;
-	bh=Ide0wL1/KddRf7gEM/VRzr7017V2vWCzzXgb9ZEpC+Q=;
+	s=arc-20240116; t=1711569162; c=relaxed/simple;
+	bh=YE203KzykANWnXmnYKkmOcjHVLEf4WznovEK9X8MIGY=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=HSXcjBMkgL4k8JebCI9GS/7CDbPZx5UXHXnAP1l+QNEIyRjv/LVbqoT8qOwOGN9V4ynsROb8vPs8XunWJd5qKrDByUqjP8Nw891ginJlLZHvyOzy2FziDzQzwJuFEmsXNBdMVLFiUzLA8R2cgzsHeW7W4ZmuowORKreeSrHGZ/o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Pl8OTHCl; arc=none smtp.client-ip=192.198.163.17
+	 MIME-Version; b=gEgqcorwCVzQIlbpeZBml3TN4VGyY3oGWohf2jo2mMBodlhlTbQrSUsUvk1yenG7iSQ+eQr6VKIzYu0k8h4OuxzhaUB1rCs+M6dSlI+L0amf9zM8OCAn26oIqPmpwHEQZLzNBbkRdZR1eZSVQML9jQJdRRlkpt1tZODGn1ojd5Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=RdCV9Hgi; arc=none smtp.client-ip=192.198.163.17
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Pl8OTHCl"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="RdCV9Hgi"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
   t=1711569160; x=1743105160;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=Ide0wL1/KddRf7gEM/VRzr7017V2vWCzzXgb9ZEpC+Q=;
-  b=Pl8OTHCli2fPV+G7GrF2TVzxHBO34w1RXDKhIh/WDqkjldYanpyj50Ei
-   wfaWeVaWPeBmsd0Hc8f+naNGVnuGRpG/eT5N3S6JpdkUaSSoKCC4lR1Tz
-   PnvTTbyQ17UUuqVawwVjx70DrZr/ihpD5jGTAl44n9R/1m4OmYGQMXVQx
-   23b8Z3aD6ik2oJ9WdVaPksU0d0t5qmLP3GmBuMJZ9vhtSsOtSskxn0fix
-   700KxwUnFww72QlBchX2sZSe18+JK1ErSq9QgsOVKoi+3WjhnP2i0p0Dv
-   3seQr+WzqCFO+fk8Ap4GqLrCD8YrUjqBEZKFzqLEQZtIzfK7elZXqOEB7
-   A==;
-X-CSE-ConnectionGUID: 2mFLBSvjRf+Wf+8XVPJ/VQ==
-X-CSE-MsgGUID: VorZo0DWSDGWj4MtzFNOVA==
-X-IronPort-AV: E=McAfee;i="6600,9927,11026"; a="6560218"
+  bh=YE203KzykANWnXmnYKkmOcjHVLEf4WznovEK9X8MIGY=;
+  b=RdCV9HgiDIZ05lSDtMjQ5OuRm94rDEBinSbZMrb9iu8ZUVANNsuQeNqu
+   jpVhonv6Bls/s4O8Yj5X3py3wadP2Nka5sBoMO3vpK7C7EVJhKnalGplJ
+   JGPbltdwYL8fAULTU6VuoslgLM7sqyQh3HFttdEwOA38RpMBRaWqPWkbi
+   a/UPkQ+eo41/Br1EdC77Mygz1kMoNqunLd6x3ga9yPiIOEnTYb6v1hsjs
+   qTJXVeXZBcrPQGsirOk1DoMeVPBBBpjxEu8ZAJ4c4cmUw4Y+04G26w6PT
+   kuq0Q3TiKjfaobXJegd0qEQ6QytIjLgRQIkbGPx9IGxCcXH7SMiQwyz2w
+   w==;
+X-CSE-ConnectionGUID: MlzWfmmhTVikc15stSK4Dw==
+X-CSE-MsgGUID: tCVzRudDRhus8heJNxGeZA==
+X-IronPort-AV: E=McAfee;i="6600,9927,11026"; a="6560223"
 X-IronPort-AV: E=Sophos;i="6.07,159,1708416000"; 
-   d="scan'208";a="6560218"
+   d="scan'208";a="6560223"
 Received: from fmviesa001.fm.intel.com ([10.60.135.141])
-  by fmvoesa111.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Mar 2024 12:52:39 -0700
+  by fmvoesa111.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Mar 2024 12:52:40 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.07,159,1708416000"; 
-   d="scan'208";a="47616336"
+   d="scan'208";a="47616355"
 Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.209.82.250])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Mar 2024 12:52:39 -0700
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Mar 2024 12:52:40 -0700
 From: alison.schofield@intel.com
 To: Vishal Verma <vishal.l.verma@intel.com>
 Cc: Alison Schofield <alison.schofield@intel.com>,
 	nvdimm@lists.linux.dev,
 	linux-cxl@vger.kernel.org,
 	Dave Jiang <dave.jiang@intel.com>
-Subject: [ndctl PATCH v12 5/8] libcxl: add interfaces for GET_POISON_LIST mailbox commands
-Date: Wed, 27 Mar 2024 12:52:26 -0700
-Message-Id: <356a5896046dd38642e54594134c1d3a388cfb28.1711519822.git.alison.schofield@intel.com>
+Subject: [ndctl PATCH v12 6/8] cxl/list: collect and parse media_error records
+Date: Wed, 27 Mar 2024 12:52:27 -0700
+Message-Id: <c692d920f136e76802e3627142934b4eea9bf97c.1711519822.git.alison.schofield@intel.com>
 X-Mailer: git-send-email 2.40.1
 In-Reply-To: <cover.1711519822.git.alison.schofield@intel.com>
 References: <cover.1711519822.git.alison.schofield@intel.com>
@@ -63,121 +63,283 @@ Content-Transfer-Encoding: 8bit
 
 From: Alison Schofield <alison.schofield@intel.com>
 
-CXL devices maintain a list of locations that are poisoned or result
-in poison if the addresses are accessed by the host.
+Media_error records are logged as events in the kernel tracing
+subsystem. To prepare the media_error records for cxl list, enable
+tracing, trigger the poison list read, and parse the generated
+cxl_poison events into a json representation.
 
-Per the spec (CXL 3.1 8.2.9.9.4.1), the device returns the Poison
-List as a set of  Media Error Records that include the source of the
-error, the starting device physical address and length.
-
-Trigger the retrieval of the poison list by writing to the memory
-device sysfs attribute: trigger_poison_list. The CXL driver only
-offers triggering per memdev, so the trigger by region interface
-offered here is a convenience API that triggers a poison list
-retrieval for each memdev contributing to a region.
-
-int cxl_memdev_trigger_poison_list(struct cxl_memdev *memdev);
-int cxl_region_trigger_poison_list(struct cxl_region *region);
-
-The resulting poison records are logged as kernel trace events
-named 'cxl_poison'.
+Use the event_trace private parsing option to customize the json
+representation based on cxl-list calling options and event field
+settings.
 
 Signed-off-by: Alison Schofield <alison.schofield@intel.com>
 Reviewed-by: Dave Jiang <dave.jiang@intel.com>
 ---
- cxl/lib/libcxl.c   | 53 ++++++++++++++++++++++++++++++++++++++++++++++
- cxl/lib/libcxl.sym |  2 ++
- cxl/libcxl.h       |  2 ++
- 3 files changed, 57 insertions(+)
+ cxl/json.c         | 195 +++++++++++++++++++++++++++++++++++++++++++++
+ util/event_trace.h |   8 ++
+ 2 files changed, 203 insertions(+)
 
-diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
-index ff27cdf7c44a..a8ce521fdcf9 100644
---- a/cxl/lib/libcxl.c
-+++ b/cxl/lib/libcxl.c
-@@ -1761,6 +1761,59 @@ CXL_EXPORT int cxl_memdev_disable_invalidate(struct cxl_memdev *memdev)
- 	return 0;
+diff --git a/cxl/json.c b/cxl/json.c
+index fbe41c78e82a..e3f54cc2568c 100644
+--- a/cxl/json.c
++++ b/cxl/json.c
+@@ -1,16 +1,20 @@
+ // SPDX-License-Identifier: GPL-2.0
+ // Copyright (C) 2015-2021 Intel Corporation. All rights reserved.
+ #include <limits.h>
++#include <errno.h>
+ #include <util/json.h>
++#include <util/bitmap.h>
+ #include <uuid/uuid.h>
+ #include <cxl/libcxl.h>
+ #include <json-c/json.h>
+ #include <json-c/printbuf.h>
+ #include <ccan/short_types/short_types.h>
++#include <tracefs/tracefs.h>
+ 
+ #include "filter.h"
+ #include "json.h"
+ #include "../daxctl/json.h"
++#include "../util/event_trace.h"
+ 
+ #define CXL_FW_VERSION_STR_LEN	16
+ #define CXL_FW_MAX_SLOTS	4
+@@ -571,6 +575,185 @@ err_jobj:
+ 	return NULL;
  }
  
-+CXL_EXPORT int cxl_memdev_trigger_poison_list(struct cxl_memdev *memdev)
++/* CXL Spec 3.1 Table 8-140 Media Error Record */
++#define CXL_POISON_SOURCE_MAX 7
++static const char * const poison_source[] = { "Unknown", "External", "Internal",
++					     "Injected", "Reserved", "Reserved",
++					     "Reserved", "Vendor" };
++
++/* CXL Spec 3.1 Table 8-139 Get Poison List Output Payload */
++#define CXL_POISON_FLAG_MORE BIT(0)
++#define CXL_POISON_FLAG_OVERFLOW BIT(1)
++#define CXL_POISON_FLAG_SCANNING BIT(2)
++
++static int poison_event_to_json(struct tep_event *event,
++				struct tep_record *record,
++				struct event_ctx *e_ctx)
 +{
-+	struct cxl_ctx *ctx = cxl_memdev_get_ctx(memdev);
-+	char *path = memdev->dev_buf;
-+	int len = memdev->buf_len, rc;
++	struct cxl_poison_ctx *p_ctx = e_ctx->poison_ctx;
++	struct json_object *jp, *jobj, *jpoison = p_ctx->jpoison;
++	struct cxl_memdev *memdev = p_ctx->memdev;
++	struct cxl_region *region = p_ctx->region;
++	unsigned long flags = e_ctx->json_flags;
++	const char *region_name = NULL;
++	char flag_str[32] = { '\0' };
++	bool overflow = false;
++	u8 source, pflags;
++	u64 offset, ts;
++	u32 length;
++	char *str;
++	int len;
 +
-+	if (snprintf(path, len, "%s/trigger_poison_list",
-+		     memdev->dev_path) >= len) {
-+		err(ctx, "%s: buffer too small\n",
-+		    cxl_memdev_get_devname(memdev));
-+		return -ENXIO;
-+	}
++	jp = json_object_new_object();
++	if (!jp)
++		return -ENOMEM;
 +
-+	if (access(path, F_OK) != 0) {
-+		err(ctx, "%s: trigger_poison_list unsupported by device\n",
-+		    cxl_memdev_get_devname(memdev));
-+		return -ENXIO;
++	/* Skip records not in this region when listing by region */
++	if (region)
++		region_name = cxl_region_get_devname(region);
++	if (region_name)
++		str = tep_get_field_raw(NULL, event, "region", record, &len, 0);
++	if ((region_name) && (strcmp(region_name, str) != 0)) {
++		json_object_put(jp);
++		return 0;
 +	}
++	/* Include offset,length by region (hpa) or by memdev (dpa) */
++	if (region) {
++		offset = trace_get_field_u64(event, record, "hpa");
++		if (offset != ULLONG_MAX) {
++			offset = offset - cxl_region_get_resource(region);
++			jobj = util_json_object_hex(offset, flags);
++			if (jobj)
++				json_object_object_add(jp, "offset", jobj);
++		}
++	} else if (memdev) {
++		offset = trace_get_field_u64(event, record, "dpa");
++		if (offset != ULLONG_MAX) {
++			jobj = util_json_object_hex(offset, flags);
++			if (jobj)
++				json_object_object_add(jp, "offset", jobj);
++		}
++	}
++	length = trace_get_field_u32(event, record, "dpa_length");
++	jobj = util_json_object_size(length, flags);
++	if (jobj)
++		json_object_object_add(jp, "length", jobj);
 +
-+	rc = sysfs_write_attr(ctx, path, "1\n");
-+	if (rc < 0) {
-+		err(ctx, "%s: Failed trigger_poison_list\n",
-+		    cxl_memdev_get_devname(memdev));
-+		return rc;
++	/* Always include the poison source */
++	source = trace_get_field_u8(event, record, "source");
++	if (source <= CXL_POISON_SOURCE_MAX)
++		jobj = json_object_new_string(poison_source[source]);
++	else
++		jobj = json_object_new_string("Reserved");
++	if (jobj)
++		json_object_object_add(jp, "source", jobj);
++
++	/* Include flags and overflow time if present */
++	pflags = trace_get_field_u8(event, record, "flags");
++	if (pflags && pflags < UCHAR_MAX) {
++		if (pflags & CXL_POISON_FLAG_MORE)
++			strcat(flag_str, "More,");
++		if (pflags & CXL_POISON_FLAG_SCANNING)
++			strcat(flag_str, "Scanning,");
++		if (pflags & CXL_POISON_FLAG_OVERFLOW) {
++			strcat(flag_str, "Overflow,");
++			overflow = true;
++		}
++		jobj = json_object_new_string(flag_str);
++		if (jobj)
++			json_object_object_add(jp, "flags", jobj);
 +	}
++	if (overflow) {
++		ts = trace_get_field_u64(event, record, "overflow_ts");
++		jobj = util_json_object_hex(ts, flags);
++		if (jobj)
++			json_object_object_add(jp, "overflow_t", jobj);
++	}
++	json_object_array_add(jpoison, jp);
++
 +	return 0;
 +}
 +
-+CXL_EXPORT int cxl_region_trigger_poison_list(struct cxl_region *region)
++static struct json_object *
++util_cxl_poison_events_to_json(struct tracefs_instance *inst,
++			       struct cxl_poison_ctx *p_ctx,
++			       unsigned long flags)
 +{
-+	struct cxl_memdev_mapping *mapping;
++	struct event_ctx ectx = {
++		.event_name = "cxl_poison",
++		.event_pid = getpid(),
++		.system = "cxl",
++		.poison_ctx = p_ctx,
++		.json_flags = flags,
++		.parse_event = poison_event_to_json,
++	};
 +	int rc;
 +
-+	cxl_mapping_foreach(region, mapping) {
-+		struct cxl_decoder *decoder;
-+		struct cxl_memdev *memdev;
++	p_ctx->jpoison = json_object_new_array();
++	if (!p_ctx->jpoison)
++		return NULL;
 +
-+		decoder = cxl_mapping_get_decoder(mapping);
-+		if (!decoder)
-+			continue;
-+
-+		memdev = cxl_decoder_get_memdev(decoder);
-+		if (!memdev)
-+			continue;
-+
-+		rc = cxl_memdev_trigger_poison_list(memdev);
-+		if (rc)
-+			return rc;
++	rc = trace_event_parse(inst, &ectx);
++	if (rc < 0) {
++		fprintf(stderr, "Failed to parse events: %d\n", rc);
++		goto put_jobj;
 +	}
++	if (json_object_array_length(p_ctx->jpoison) == 0)
++		goto put_jobj;
 +
-+	return 0;
++	return p_ctx->jpoison;
++
++put_jobj:
++	json_object_put(p_ctx->jpoison);
++	return NULL;
 +}
 +
- CXL_EXPORT int cxl_memdev_enable(struct cxl_memdev *memdev)
++static struct json_object *
++util_cxl_poison_list_to_json(struct cxl_region *region,
++			     struct cxl_memdev *memdev,
++			     unsigned long flags)
++{
++	struct json_object *jpoison = NULL;
++	struct cxl_poison_ctx p_ctx;
++	struct tracefs_instance *inst;
++	int rc;
++
++	inst = tracefs_instance_create("cxl list");
++	if (!inst) {
++		fprintf(stderr, "tracefs_instance_create() failed\n");
++		return NULL;
++	}
++
++	rc = trace_event_enable(inst, "cxl", "cxl_poison");
++	if (rc < 0) {
++		fprintf(stderr, "Failed to enable trace: %d\n", rc);
++		goto err_free;
++	}
++
++	if (region)
++		rc = cxl_region_trigger_poison_list(region);
++	else
++		rc = cxl_memdev_trigger_poison_list(memdev);
++	if (rc)
++		goto err_free;
++
++	rc = trace_event_disable(inst);
++	if (rc < 0) {
++		fprintf(stderr, "Failed to disable trace: %d\n", rc);
++		goto err_free;
++	}
++
++	p_ctx = (struct cxl_poison_ctx){
++		.region = region,
++		.memdev = memdev,
++	};
++	jpoison = util_cxl_poison_events_to_json(inst, &p_ctx, flags);
++
++err_free:
++	tracefs_instance_free(inst);
++	return jpoison;
++}
++
+ struct json_object *util_cxl_memdev_to_json(struct cxl_memdev *memdev,
+ 		unsigned long flags)
  {
- 	struct cxl_ctx *ctx = cxl_memdev_get_ctx(memdev);
-diff --git a/cxl/lib/libcxl.sym b/cxl/lib/libcxl.sym
-index de2cd84b2960..3f709c60db3d 100644
---- a/cxl/lib/libcxl.sym
-+++ b/cxl/lib/libcxl.sym
-@@ -280,4 +280,6 @@ global:
- 	cxl_memdev_get_pmem_qos_class;
- 	cxl_memdev_get_ram_qos_class;
- 	cxl_region_qos_class_mismatch;
-+	cxl_memdev_trigger_poison_list;
-+	cxl_region_trigger_poison_list;
- } LIBCXL_6;
-diff --git a/cxl/libcxl.h b/cxl/libcxl.h
-index a6af3fb04693..29165043ca3f 100644
---- a/cxl/libcxl.h
-+++ b/cxl/libcxl.h
-@@ -467,6 +467,8 @@ enum cxl_setpartition_mode {
+@@ -664,6 +847,12 @@ struct json_object *util_cxl_memdev_to_json(struct cxl_memdev *memdev,
+ 			json_object_object_add(jdev, "firmware", jobj);
+ 	}
  
- int cxl_cmd_partition_set_mode(struct cxl_cmd *cmd,
- 		enum cxl_setpartition_mode mode);
-+int cxl_memdev_trigger_poison_list(struct cxl_memdev *memdev);
-+int cxl_region_trigger_poison_list(struct cxl_region *region);
++	if (flags & UTIL_JSON_MEDIA_ERRORS) {
++		jobj = util_cxl_poison_list_to_json(NULL, memdev, flags);
++		if (jobj)
++			json_object_object_add(jdev, "media_errors", jobj);
++	}
++
+ 	json_object_set_userdata(jdev, memdev, NULL);
+ 	return jdev;
+ }
+@@ -1012,6 +1201,12 @@ struct json_object *util_cxl_region_to_json(struct cxl_region *region,
+ 			json_object_object_add(jregion, "state", jobj);
+ 	}
  
- int cxl_cmd_alert_config_set_life_used_prog_warn_threshold(struct cxl_cmd *cmd,
- 							   int threshold);
++	if (flags & UTIL_JSON_MEDIA_ERRORS) {
++		jobj = util_cxl_poison_list_to_json(region, NULL, flags);
++		if (jobj)
++			json_object_object_add(jregion, "media_errors", jobj);
++	}
++
+ 	util_cxl_mappings_append_json(jregion, region, flags);
+ 
+ 	if (flags & UTIL_JSON_DAX) {
+diff --git a/util/event_trace.h b/util/event_trace.h
+index 4d498577a00f..a87407ff8296 100644
+--- a/util/event_trace.h
++++ b/util/event_trace.h
+@@ -12,11 +12,19 @@ struct jlist_node {
+ 	struct list_node list;
+ };
+ 
++struct cxl_poison_ctx {
++	struct json_object *jpoison;
++	struct cxl_region *region;
++	struct cxl_memdev *memdev;
++};
++
+ struct event_ctx {
+ 	const char *system;
+ 	struct list_head jlist_head;
+ 	const char *event_name; /* optional */
+ 	int event_pid; /* optional */
++	struct cxl_poison_ctx *poison_ctx; /* optional */
++	unsigned long json_flags;
+ 	int (*parse_event)(struct tep_event *event, struct tep_record *record,
+ 			   struct event_ctx *ctx);
+ };
 -- 
 2.37.3
 
