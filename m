@@ -1,152 +1,160 @@
-Received: from mail-pf1-f181.google.com (mail-pf1-f181.google.com [209.85.210.181])
+Received: from mail-qv1-f47.google.com (mail-qv1-f47.google.com [209.85.219.47])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A39E012FF61
-	for <nvdimm@lists.linux.dev>; Thu, 28 Mar 2024 15:39:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.181
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FCD937B
+	for <nvdimm@lists.linux.dev>; Fri, 29 Mar 2024 00:40:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.47
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711640362; cv=none; b=T7OYpZGsEUQfxg2DE/PcppSQBcGbsKKVfmoqFhvP0FkSWIRRlNGoItxgT48PPEVpuHjawImYuEDLH6xetztvfJQGx5nKQ0TK3Ec65kShrEWrbYFheVKGH/iouAANeZBC+AzaGWtPfwZ2fWOOG8e3yoq9JOpww9gGZdzX5eSCnJY=
+	t=1711672840; cv=none; b=RA3m1DynqLMqEfcjPJE9NoonMGhs/1UVSZNMJMM/IYmiE4EdYuthga1FJbudKPN7H3s1hFhYEW3UX6g2jNNQJmUueqXgJAxduhl+ftWcvy0hoEgW14fR83sCEQXBFeiS8gtjaovzMy8kZD2pYV5suZumhzxoR1TYJv3cwNLj3Ic=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711640362; c=relaxed/simple;
-	bh=G1iRW2zHIY2/EiULrJ1nqfVUKDfTimjQj7b8q3dHoFc=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=rIDmEyNGI82Y+27KVdKTKAGTsHDr76NqBxPJggvlYBfMTX+F+VzS3H4RNmNaAfJOy/Zt3wtFfrUa7ZjoT9r3J8APpP7Y9jruUXR5OS63VFnjM7yxJio1o9AMmB/aM/XHPRbWtUW/XoI+uSNCN/a+sI4LSHYqxJgVeumNrq3j+6k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org; spf=pass smtp.mailfrom=linaro.org; dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b=mMd0u48U; arc=none smtp.client-ip=209.85.210.181
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
+	s=arc-20240116; t=1711672840; c=relaxed/simple;
+	bh=HD6NA1VgjuxE+aTElOuBi+wXSVUi3DV91i08SVrmsWs=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=JvUuNhifzRtEBf1kJ8ww0Yj80immK3JjcZKZouryr/5egH1uKlInZxqUCI23CA5A/kreSMr+KAQRlNA4qqiw05lDJ07EzW9DGO2PAqJz/NXrZnV5RqOV7kKjqFlabOFNnuSIKy+vtkDSYotjODl58fROT+ilCzHuzLVrAUaJWaM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com; spf=pass smtp.mailfrom=bytedance.com; dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b=PTCKTQhH; arc=none smtp.client-ip=209.85.219.47
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bytedance.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="mMd0u48U"
-Received: by mail-pf1-f181.google.com with SMTP id d2e1a72fcca58-6ea80de0e97so827740b3a.2
-        for <nvdimm@lists.linux.dev>; Thu, 28 Mar 2024 08:39:18 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b="PTCKTQhH"
+Received: by mail-qv1-f47.google.com with SMTP id 6a1803df08f44-690bff9d4a6so9095206d6.1
+        for <nvdimm@lists.linux.dev>; Thu, 28 Mar 2024 17:40:38 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1711640358; x=1712245158; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=mPjQD/vT8EW8FIsS5EhEUvjw7Yq2DPw74odbleQjQC0=;
-        b=mMd0u48UQvF2VIv2uh7L1OQcL2FZtSreRdhgUtjv4P9FxDPk8tDx4uten3xzZH38CK
-         ClOsaEoqxM5/80ppGz++FSnrntKLw8BirlSgik/veMTXkC0Ose6YHPmP7S0zU7IPAYX4
-         HX/w3xJBg2lzRNnpc4t5NT2zasn/XpAxQ1K9kNwm535Zzislom+Uz4YYJREjQbxqeQlA
-         1409dR+S/kZ+hzZczS1yYWjsJXjdau+pBvLtuaCJdBxid9yt84ogyKBQhirYbx1Dio2Z
-         KVYEzXyB4C/+yCRYDcApfPf34ERZBcsoG8f5TLKBZPLmR++wLJAWSOBFKywqaaB9KI4k
-         mGPg==
+        d=bytedance.com; s=google; t=1711672837; x=1712277637; darn=lists.linux.dev;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=ATOisTRRjQB4sgxy7npSq+e14hDk0Gnp420OOaz5yog=;
+        b=PTCKTQhHGMkv3CIyXssImlNiDi3XzhRM5Dovca1MHHZF/m5qDzRSYRxTDCt7E/vpit
+         +Ozh0KhgrzP24KQazldMpUKGt8UWKfEMBmLoAI735qYBSw37lD5mCvB3LoK9fEOU35d+
+         DDKHWYkJdLnDuh8f17ZngYxFChXWnFy8NTvnNNXzEzpFrBuylKInK1VwxGzobsWZIC0M
+         uT8MoaTa5mvrp5yPIXHV+D2OWKq9wfGHTDLXx656EnVSg2ygKEfIkOlH7vBDcfezavxw
+         FTiKA7dn5ND/Xq1Q+SoAet1UbYc4mn6m67uOJ5HdbRN1Bt+nH5sfZ5EVHPnpOVe7EPYF
+         J1Rw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1711640358; x=1712245158;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=mPjQD/vT8EW8FIsS5EhEUvjw7Yq2DPw74odbleQjQC0=;
-        b=Xm7GiulfV6Xz7DilqdS8kceY3T8suWSQsM7gdVOwjM3IgjkkkoUjTsSW2mHVTh6Vq+
-         fr1d6v7RT/CdZ4nCtrtr82sTKzQmE2V1rA8T8yfS3+ENL3kh4DVvhmLv3CEA350aO5WH
-         Y5KSlbYlaRlwcrZyBV3ZIyuwxH7hyDq9zYLoTcdHeScpHHAlAGlJYnAwSjIkX5TI8tDg
-         903XzWL92xdItMfhfAU7AWcTXmZvShyVzZvamG+duYr/zO0Th4B+SxeCoQ+jIE6ZHZ67
-         nk9cClXzevh5utL9G4JrvqZiPad149SgNUCGITQQkwf3q8upXf/7+bVDeZJ6cSgrwPq6
-         2jKw==
-X-Forwarded-Encrypted: i=1; AJvYcCVLebEHw5IZgjXqop7ivpl6IQ4Y4VrWxWrlK/1rk9TLP8k9o/LM2KQs6yKO0P0yarLm0HVIyooScl1JesFnttvu71Jgy31s
-X-Gm-Message-State: AOJu0YzLrRVqpy0PrHrLKDkWnI1KQKeLqhDMnJH0p45vwCa82QtGgExu
-	U0WCNSou66dMGKGV/zSBi5JYWHLpDKtY2HXxF60FaBKeWRUiFMAPN9WaMn6MtUw=
-X-Google-Smtp-Source: AGHT+IGhUQYINGDQ7hWfiGCoXweY10vLCz/e/x+HjJ8dVvYs43ivIcKXZCgoqnZGIv+19J3DIwIpug==
-X-Received: by 2002:a05:6a00:a12:b0:6ea:92a7:fb82 with SMTP id p18-20020a056a000a1200b006ea92a7fb82mr3800870pfh.27.1711640357806;
-        Thu, 28 Mar 2024 08:39:17 -0700 (PDT)
-Received: from p14s ([2604:3d09:148c:c800:ff63:c57b:4625:b68c])
-        by smtp.gmail.com with ESMTPSA id e2-20020aa798c2000000b006ea923678a6sm1505830pfm.137.2024.03.28.08.39.12
+        d=1e100.net; s=20230601; t=1711672837; x=1712277637;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=ATOisTRRjQB4sgxy7npSq+e14hDk0Gnp420OOaz5yog=;
+        b=e6HiJaJ4trAbvWYrktqaXyZvPBY8XlMFy2L97Bqoqd7r46ILTblflb1HHS4MMckOZ3
+         OZ2fEjkPdqrWUdV7GaVfPRBr8mKcvRm8nb5tUHP9bLVqOXTtYhzxxfa9uqc7e4hgNxsc
+         d2bM2SUCCyaCWt+lq+umnGPFOu3Z8vHeCiFOPvIqw49aDAD4S93OVpSNtCL2eoeh1wnB
+         ocKadFztU4t3VJBIBQaLI8i723zC0Y3T0pWx6/sdZYL87h3p4cQIFLwqBQZ5Fa2Cf0h2
+         H1niyv5AiPpcHdgSpsfbqYI6JV9smHo4XH5b7MZdbgUOI0gdVwLJpvFiNaK2+Wacy3Vg
+         WXKA==
+X-Forwarded-Encrypted: i=1; AJvYcCVz+slNy5a48puI/lsoQRAPlJZlBoJgYen1D7a1gbAxwst3fX8cb4spnhC6+Psaxt9/w+NCdJe/C2v19u+BGtDe+xGgxHTO
+X-Gm-Message-State: AOJu0YzwfAc1stE1eSxXapulcmmxWSHe+ecNMiIFi6SPastsFIlaOCXc
+	gfwOMtu7xiQpRm9+guQOj9qN9CRSOy8k4e77oNWNgDKabHrts4SvjaTOa9iSvxE=
+X-Google-Smtp-Source: AGHT+IFGFZDh45AZa0PZbpCZ5KKj6jHei4/t/LDFVey2btcJI7NSFvNMp99+UdXTyXt83plS1QEmoA==
+X-Received: by 2002:a05:6214:bd4:b0:696:4084:d6f6 with SMTP id ff20-20020a0562140bd400b006964084d6f6mr965534qvb.8.1711672837688;
+        Thu, 28 Mar 2024 17:40:37 -0700 (PDT)
+Received: from n231-228-171.byted.org ([147.160.184.85])
+        by smtp.gmail.com with ESMTPSA id gc15-20020a056214230f00b00690fc99a836sm1113530qvb.105.2024.03.28.17.40.36
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 28 Mar 2024 08:39:17 -0700 (PDT)
-Date: Thu, 28 Mar 2024 09:39:10 -0600
-From: Mathieu Poirier <mathieu.poirier@linaro.org>
-To: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
-Cc: "Michael S. Tsirkin" <mst@redhat.com>, Jason Wang <jasowang@redhat.com>,
-	Xuan Zhuo <xuanzhuo@linux.alibaba.com>,
-	Richard Weinberger <richard@nod.at>,
-	Anton Ivanov <anton.ivanov@cambridgegreys.com>,
-	Johannes Berg <johannes@sipsolutions.net>,
-	Paolo Bonzini <pbonzini@redhat.com>,
-	Stefan Hajnoczi <stefanha@redhat.com>, Jens Axboe <axboe@kernel.dk>,
-	Marcel Holtmann <marcel@holtmann.org>,
-	Luiz Augusto von Dentz <luiz.dentz@gmail.com>,
-	Olivia Mackall <olivia@selenic.com>,
-	Herbert Xu <herbert@gondor.apana.org.au>,
-	Amit Shah <amit@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Gonglei <arei.gonglei@huawei.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Viresh Kumar <vireshk@kernel.org>,
-	Linus Walleij <linus.walleij@linaro.org>,
-	Bartosz Golaszewski <brgl@bgdev.pl>,
-	David Airlie <airlied@redhat.com>,
-	Gerd Hoffmann <kraxel@redhat.com>,
-	Gurchetan Singh <gurchetansingh@chromium.org>,
-	Chia-I Wu <olvaffe@gmail.com>,
-	Jean-Philippe Brucker <jean-philippe@linaro.org>,
-	Joerg Roedel <joro@8bytes.org>, Alexander Graf <graf@amazon.com>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Eric Van Hensbergen <ericvh@kernel.org>,
-	Latchesar Ionkov <lucho@ionkov.net>,
-	Dominique Martinet <asmadeus@codewreck.org>,
-	Christian Schoenebeck <linux_oss@crudebyte.com>,
-	Stefano Garzarella <sgarzare@redhat.com>,
-	Kalle Valo <kvalo@kernel.org>,
+        Thu, 28 Mar 2024 17:40:37 -0700 (PDT)
+From: "Ho-Ren (Jack) Chuang" <horenchuang@bytedance.com>
+To: "Huang, Ying" <ying.huang@intel.com>,
+	"Gregory Price" <gourry.memverge@gmail.com>,
+	aneesh.kumar@linux.ibm.com,
+	mhocko@suse.com,
+	tj@kernel.org,
+	john@jagalactic.com,
+	"Eishan Mirakhur" <emirakhur@micron.com>,
+	"Vinicius Tavares Petrucci" <vtavarespetr@micron.com>,
+	"Ravis OpenSrc" <Ravis.OpenSrc@micron.com>,
+	"Alistair Popple" <apopple@nvidia.com>,
+	"Srinivasulu Thanneeru" <sthanneeru@micron.com>,
 	Dan Williams <dan.j.williams@intel.com>,
 	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
-	Pankaj Gupta <pankaj.gupta.linux@gmail.com>,
-	Bjorn Andersson <andersson@kernel.org>,
-	"Martin K. Petersen" <martin.petersen@oracle.com>,
-	Vivek Goyal <vgoyal@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>,
-	Anton Yakovlev <anton.yakovlev@opensynergy.com>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>,
-	virtualization@lists.linux.dev, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-um@lists.infradead.org,
-	linux-block@vger.kernel.org, linux-bluetooth@vger.kernel.org,
-	linux-crypto@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-gpio@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	iommu@lists.linux.dev, netdev@vger.kernel.org, v9fs@lists.linux.dev,
-	kvm@vger.kernel.org, linux-wireless@vger.kernel.org,
-	nvdimm@lists.linux.dev, linux-remoteproc@vger.kernel.org,
-	linux-scsi@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-	alsa-devel@alsa-project.org, linux-sound@vger.kernel.org
-Subject: Re: [PATCH 19/22] rpmsg: virtio: drop owner assignment
-Message-ID: <ZgWPHntosUk+5qac@p14s>
-References: <20240327-module-owner-virtio-v1-0-0feffab77d99@linaro.org>
- <20240327-module-owner-virtio-v1-19-0feffab77d99@linaro.org>
+	Dave Jiang <dave.jiang@intel.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	nvdimm@lists.linux.dev,
+	linux-cxl@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-mm@kvack.org
+Cc: "Ho-Ren (Jack) Chuang" <horenc@vt.edu>,
+	"Ho-Ren (Jack) Chuang" <horenchuang@bytedance.com>,
+	"Ho-Ren (Jack) Chuang" <horenchuang@gmail.com>,
+	qemu-devel@nongnu.org
+Subject: [PATCH v7 0/2] Improved Memory Tier Creation for CPUless NUMA Nodes
+Date: Fri, 29 Mar 2024 00:40:33 +0000
+Message-Id: <20240329004035.191601-1-horenchuang@bytedance.com>
+X-Mailer: git-send-email 2.20.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240327-module-owner-virtio-v1-19-0feffab77d99@linaro.org>
+Content-Transfer-Encoding: 8bit
 
-On Wed, Mar 27, 2024 at 01:41:12PM +0100, Krzysztof Kozlowski wrote:
-> virtio core already sets the .owner, so driver does not need to.
-> 
-> Signed-off-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
-> 
-> ---
-> 
-> Depends on the first patch.
-> ---
->  drivers/rpmsg/virtio_rpmsg_bus.c | 1 -
->  1 file changed, 1 deletion(-)
-> 
-> diff --git a/drivers/rpmsg/virtio_rpmsg_bus.c b/drivers/rpmsg/virtio_rpmsg_bus.c
-> index 1062939c3264..e9e8c1f7829f 100644
-> --- a/drivers/rpmsg/virtio_rpmsg_bus.c
-> +++ b/drivers/rpmsg/virtio_rpmsg_bus.c
-> @@ -1053,7 +1053,6 @@ static struct virtio_driver virtio_ipc_driver = {
->  	.feature_table	= features,
->  	.feature_table_size = ARRAY_SIZE(features),
->  	.driver.name	= KBUILD_MODNAME,
-> -	.driver.owner	= THIS_MODULE,
->  	.id_table	= id_table,
->  	.probe		= rpmsg_probe,
->  	.remove		= rpmsg_remove,
+When a memory device, such as CXL1.1 type3 memory, is emulated as
+normal memory (E820_TYPE_RAM), the memory device is indistinguishable
+from normal DRAM in terms of memory tiering with the current implementation.
+The current memory tiering assigns all detected normal memory nodes
+to the same DRAM tier. This results in normal memory devices with
+different attributions being unable to be assigned to the correct memory tier,
+leading to the inability to migrate pages between different types of memory.
+https://lore.kernel.org/linux-mm/PH0PR08MB7955E9F08CCB64F23963B5C3A860A@PH0PR08MB7955.namprd08.prod.outlook.com/T/
 
-Reviewed-by: Mathieu Poirier <mathieu.poirier@linaro.org>
+This patchset automatically resolves the issues. It delays the initialization
+of memory tiers for CPUless NUMA nodes until they obtain HMAT information
+and after all devices are initialized at boot time, eliminating the need
+for user intervention. If no HMAT is specified, it falls back to
+using `default_dram_type`.
 
-> 
-> -- 
-> 2.34.1
-> 
+Example usecase:
+We have CXL memory on the host, and we create VMs with a new system memory
+device backed by host CXL memory. We inject CXL memory performance attributes
+through QEMU, and the guest now sees memory nodes with performance attributes
+in HMAT. With this change, we enable the guest kernel to construct
+the correct memory tiering for the memory nodes.
+
+-v7:
+ * Add Reviewed-by: Huang, Ying <ying.huang@intel.com>
+-v6:
+ Thanks to Ying's comments,
+ * Move `default_dram_perf_lock` to the function's beginning for clarity
+ * Fix double unlocking at v5
+ * https://lore.kernel.org/lkml/20240327072729.3381685-1-horenchuang@bytedance.com/T/#u
+-v5:
+ Thanks to Ying's comments,
+ * Add comments about what is protected by `default_dram_perf_lock`
+ * Fix an uninitialized pointer mtype
+ * Slightly shorten the time holding `default_dram_perf_lock`
+ * Fix a deadlock bug in `mt_perf_to_adistance`
+ * https://lore.kernel.org/lkml/20240327041646.3258110-1-horenchuang@bytedance.com/T/#u
+-v4:
+ Thanks to Ying's comments,
+ * Remove redundant code
+ * Reorganize patches accordingly
+ * https://lore.kernel.org/lkml/20240322070356.315922-1-horenchuang@bytedance.com/T/#u
+-v3:
+ Thanks to Ying's comments,
+ * Make the newly added code independent of HMAT
+ * Upgrade set_node_memory_tier to support more cases
+ * Put all non-driver-initialized memory types into default_memory_types
+   instead of using hmat_memory_types
+ * find_alloc_memory_type -> mt_find_alloc_memory_type
+ * https://lore.kernel.org/lkml/20240320061041.3246828-1-horenchuang@bytedance.com/T/#u
+-v2:
+ Thanks to Ying's comments,
+ * Rewrite cover letter & patch description
+ * Rename functions, don't use _hmat
+ * Abstract common functions into find_alloc_memory_type()
+ * Use the expected way to use set_node_memory_tier instead of modifying it
+ * https://lore.kernel.org/lkml/20240312061729.1997111-1-horenchuang@bytedance.com/T/#u
+-v1:
+ * https://lore.kernel.org/lkml/20240301082248.3456086-1-horenchuang@bytedance.com/T/#u
+
+Ho-Ren (Jack) Chuang (2):
+  memory tier: dax/kmem: introduce an abstract layer for finding,
+    allocating, and putting memory types
+  memory tier: create CPUless memory tiers after obtaining HMAT info
+
+ drivers/dax/kmem.c           |  20 +-----
+ include/linux/memory-tiers.h |  13 ++++
+ mm/memory-tiers.c            | 126 ++++++++++++++++++++++++++++++-----
+ 3 files changed, 125 insertions(+), 34 deletions(-)
+
+-- 
+Ho-Ren (Jack) Chuang
+
