@@ -1,63 +1,63 @@
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 101B66A340
-	for <nvdimm@lists.linux.dev>; Fri, 29 Mar 2024 11:42:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 117B7A92A
+	for <nvdimm@lists.linux.dev>; Fri, 29 Mar 2024 11:45:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711712543; cv=none; b=KntA26fzVVCeF4vEf275hT1YQ6f/0rXbwul6nykitLAJmP5bs5VaN8EGZfzjTvmnavODjcVuRyquJoxa/A+u5UvgXtVWebsvrSJRFa5sHqJJH4YamBDvT+7Oh/F64XZp6imQwD2VfM/Jr8imF11dmYyvxqtzOZ+nB4qwwqyMJrA=
+	t=1711712758; cv=none; b=YGWbTVJ0oDS+fUDvnyKwhi41pjrZrSuMTZeFw035SKfPC8Y3P066yiz2Dnr+aWb4CpJLVHfj1WGZ5iiInGzMfPv0gSPUTtKNMGc34wp1jLH2pH1BqZD1TDHKlJQjzNhYrSBppYVpF1L0m2+j3pOqML9nR85Zwfrn6mA752DaHIM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711712543; c=relaxed/simple;
-	bh=CnPyW/y5UQrILS7vE5ScOzPk56jpnW7Bki+iQBNgkGU=;
+	s=arc-20240116; t=1711712758; c=relaxed/simple;
+	bh=kNMj+YT8/hRCP1/RW7aCBo3XA153NEDluUwsJT0u81M=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 In-Reply-To:Content-Type:Content-Disposition; b=FuPtqrMt15EYS/4mYh/4N5PYGUzebL99vyQIbPNe9yZ7iZX/m6hSRNW1AAdECrix+YhQFusZ7hQliLwLZOpYfSxfAioOk9CwGjTO6W7hXYx0xmp7WG2d/kfNsYC/IpaV3ZythE7ZiNYdp3ExVt6AvVFi+GSjM2D7Ii9OUV45upg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=XLABrnXR; arc=none smtp.client-ip=170.10.129.124
+	 In-Reply-To:Content-Type:Content-Disposition; b=GzNKwKV7xpbvOsi0sEeRBGhO2dh9Ed7enVnqvcI02WK79JEhE8JsAoLNPufM4hwtuBETaDEyYT7cYr7SI8GnHmM5J87NDGgZyv1nSmd8ucolpjbe7NSmrC7ZCoWEYWVxEDcWiGX+J1KewLYa0/GJXIeHNCPRdTMOgjiIGJcgSOw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=ipqMQXrg; arc=none smtp.client-ip=170.10.129.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="XLABrnXR"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="ipqMQXrg"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1711712538;
+	s=mimecast20190719; t=1711712756;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references;
-	bh=+BsDTTyNU5pgUTxWeniUBybyV1pHa+zj3gLQFOaKcJw=;
-	b=XLABrnXRSolT0vceLyGVBE+H8tmnoJucjQkXgGm5dGhzmbe0PHjzXWegDjl/dH3F52wgXz
-	s8P7CvQ2OgvHo91ewidlrjPVmcPOzvQX8CAx6c5AXRIR1IZRRX9HJLW8VmgjV/yoNiVKKq
-	kc7vZTvsGb8cj5DOiQE3wPulhCNzZLw=
-Received: from mail-lj1-f197.google.com (mail-lj1-f197.google.com
- [209.85.208.197]) by relay.mimecast.com with ESMTP with STARTTLS
+	bh=+LLP6jd0zeIvxHanQorL3kqCJpFSSxGEDWd7CPARJUA=;
+	b=ipqMQXrgdMsGEYu0j2osRY1fuWMLdGgCZe4aPgvsS5bk6utG0ntwpfmtSAISqalJkEKcmO
+	ODoh3JoxMvdipSvz8JnT3J6zg3uIGGraKI4u5ItiEuaCYYgl53hsadV79Xl7MzJQZTatep
+	BKlyHXq5EkuCxt9NN/NwArCx6bkgRqQ=
+Received: from mail-ed1-f70.google.com (mail-ed1-f70.google.com
+ [209.85.208.70]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-477-BTrSDls_OlGxFv63RT9cEA-1; Fri, 29 Mar 2024 07:42:16 -0400
-X-MC-Unique: BTrSDls_OlGxFv63RT9cEA-1
-Received: by mail-lj1-f197.google.com with SMTP id 38308e7fff4ca-2d49ce3736aso18167321fa.1
-        for <nvdimm@lists.linux.dev>; Fri, 29 Mar 2024 04:42:16 -0700 (PDT)
+ us-mta-655-iC0uBjg4OdClX1aTT1Aamg-1; Fri, 29 Mar 2024 07:45:55 -0400
+X-MC-Unique: iC0uBjg4OdClX1aTT1Aamg-1
+Received: by mail-ed1-f70.google.com with SMTP id 4fb4d7f45d1cf-5684bbeb4b9so1118494a12.0
+        for <nvdimm@lists.linux.dev>; Fri, 29 Mar 2024 04:45:54 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1711712535; x=1712317335;
+        d=1e100.net; s=20230601; t=1711712754; x=1712317554;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=+BsDTTyNU5pgUTxWeniUBybyV1pHa+zj3gLQFOaKcJw=;
-        b=CtqOR5zETNbMZrTN93xG/eaSxiAcPhbax+Pyh9Y5oH6MTLQXDhRa5fZ9fstIvZpLj1
-         XJmEPiQcZxMliryMQULihHIyMblHLamXlivZ/KRo3axBoGDaB9FJSU2WWEMh7YCrHDVe
-         eUZN+IcBmgEcJbsQYYdI6gmnfqKi0i9StKjQn1lcnApl3V69+KIypOxSC4pgG0Z5e2R2
-         kO9ZW4fbs76UwI75OyAmgREF6CN6657lL5Eh2vrE358ekEw94DmmPbFOqsVvD5jdJ9aV
-         Zt0JxT6wbcpEcs2SJgEiOkIzpQnrGm8bBRLPpgzlHES5fx3iPfe2F2CxvXX9QZ/zWaGY
-         NGUw==
-X-Forwarded-Encrypted: i=1; AJvYcCWhDZlv2GsGmdZQwbUXK36xf5EnmarUPZGbDaINkXutV+d1rPNLAVs2F5pxXJByVztt7JyNxJRhsnsDf9mtUYmxT8KP4qqc
-X-Gm-Message-State: AOJu0YyLHoZT7DRIlMS6BoJOVLHuzkIeKptDyz6QdMKZEYUVXdi9UNVj
-	1+lvSIAQ3jElCwy+AYuFp4LJR38Y08snxUf0icZalxV9Cn8dB2CLSjr2e4rBDPrU8xLqQuNogOF
-	X5gIhnODnTw1Zj1VO6tCX8pBaBJqx6TAVo1Dc/W9eqaygmujo/NIfeQ==
-X-Received: by 2002:a2e:9659:0:b0:2d6:e148:2463 with SMTP id z25-20020a2e9659000000b002d6e1482463mr1428756ljh.24.1711712535187;
-        Fri, 29 Mar 2024 04:42:15 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IEACBjwkvqDUtHOsu+pH/smraarLJWyQq+BtaLZf+sEYEs2CGiOj/cy+sTyYbp3cXHSv/vHng==
-X-Received: by 2002:a2e:9659:0:b0:2d6:e148:2463 with SMTP id z25-20020a2e9659000000b002d6e1482463mr1428676ljh.24.1711712534737;
-        Fri, 29 Mar 2024 04:42:14 -0700 (PDT)
+        bh=+LLP6jd0zeIvxHanQorL3kqCJpFSSxGEDWd7CPARJUA=;
+        b=K/6lDha487NVyoMDaOh/3pBxFaXtAnToGmH4Z59CXxd4d5sjPDjYTiVP6RHBWph4HX
+         jJsU9Gsa5GwX1gkovyKKh12OtlGEHx11cd2feccPg1ibg6mbQH5cPB9I2mREtjqlK4wR
+         Wk+b0gatcZTtYu6+4ha/re1e+C9m1LE94QxyLaf//3Rp4rYDEioewoxOZ1E06LA0r1LH
+         CCiTjJzcs95evyKvwQeP/T4VJ9YTb/cuSBRcd77bEQ8jdy5ULt4uhjEj0b2Z2nxIr9oS
+         nafuDZy4OUpooSbnyRb6hh6TDeg9rlyxPphWOr2GlC6UYVCZJYqs/L5OSqdw6Spy/aQL
+         7eSQ==
+X-Forwarded-Encrypted: i=1; AJvYcCXyEpygwqCk+q2LyaUBCsW/E6PL9oD82XT//bbGOTwgIlP9jY4Q59lioX7Vv60ojEkv/N7BdwGNTIoWiQ0veiqMciz9aC96
+X-Gm-Message-State: AOJu0YzRUt2Z3nbyQusIUD/b77wBnJDMjU6N1Ty7+3w8IQytggA4fRA9
+	o1Z8YbxVi1v+h9/p2IbFbeP+1DcsJqVwVe3YLfqbcyTjsB1gfi3pXi3+U0SrOhuAoPiAiWPNn2c
+	u8Gj9Dg+Ujv7cFAJU0aDaVxYiqMUvdJxHXQZqa9I0EN5WwANUAtd1rQ==
+X-Received: by 2002:a50:9b1b:0:b0:566:4aa9:7143 with SMTP id o27-20020a509b1b000000b005664aa97143mr1413884edi.14.1711712753975;
+        Fri, 29 Mar 2024 04:45:53 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IHYo6QfJYFEsVSF15QDDFwx8DOxbmiwf/M/DPk0Gc7NLZc79Ft95vFE1vuYwIhBFYvCdq0kyQ==
+X-Received: by 2002:a50:9b1b:0:b0:566:4aa9:7143 with SMTP id o27-20020a509b1b000000b005664aa97143mr1413848edi.14.1711712753534;
+        Fri, 29 Mar 2024 04:45:53 -0700 (PDT)
 Received: from sgarzare-redhat (host-87-12-25-33.business.telecomitalia.it. [87.12.25.33])
-        by smtp.gmail.com with ESMTPSA id s7-20020a1709062ec700b00a46abaeeb1csm1837128eji.104.2024.03.29.04.42.12
+        by smtp.gmail.com with ESMTPSA id e12-20020a50d4cc000000b0056bf6287f32sm1991237edj.26.2024.03.29.04.45.49
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 29 Mar 2024 04:42:14 -0700 (PDT)
-Date: Fri, 29 Mar 2024 12:42:08 +0100
+        Fri, 29 Mar 2024 04:45:52 -0700 (PDT)
+Date: Fri, 29 Mar 2024 12:45:46 +0100
 From: Stefano Garzarella <sgarzare@redhat.com>
 To: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
 Cc: "Michael S. Tsirkin" <mst@redhat.com>, 
@@ -91,105 +91,51 @@ Cc: "Michael S. Tsirkin" <mst@redhat.com>,
 	v9fs@lists.linux.dev, kvm@vger.kernel.org, linux-wireless@vger.kernel.org, 
 	nvdimm@lists.linux.dev, linux-remoteproc@vger.kernel.org, linux-scsi@vger.kernel.org, 
 	linux-fsdevel@vger.kernel.org, alsa-devel@alsa-project.org, linux-sound@vger.kernel.org
-Subject: Re: [PATCH 01/22] virtio: store owner from modules with
- register_virtio_driver()
-Message-ID: <oaoiehcpkjs3wrhc22pwx676pompxml2z5dcq32a6fvsyntonw@hnohrbbp6wpm>
+Subject: Re: [PATCH 16/22] net: vmw_vsock: virtio: drop owner assignment
+Message-ID: <xhr3nq5n5acn6m7lg7ai2cfaqvlc2a2nihruj54f7um2bjdpaf@tivbri5udlrb>
 References: <20240327-module-owner-virtio-v1-0-0feffab77d99@linaro.org>
- <20240327-module-owner-virtio-v1-1-0feffab77d99@linaro.org>
+ <20240327-module-owner-virtio-v1-16-0feffab77d99@linaro.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <20240327-module-owner-virtio-v1-1-0feffab77d99@linaro.org>
+In-Reply-To: <20240327-module-owner-virtio-v1-16-0feffab77d99@linaro.org>
 X-Mimecast-Spam-Score: 0
 X-Mimecast-Originator: redhat.com
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Disposition: inline
 
-On Wed, Mar 27, 2024 at 01:40:54PM +0100, Krzysztof Kozlowski wrote:
->Modules registering driver with register_virtio_driver() might forget to
->set .owner field.  i2c-virtio.c for example has it missing.  The field
->is used by some of other kernel parts for reference counting
->(try_module_get()), so it is expected that drivers will set it.
->
->Solve the problem by moving this task away from the drivers to the core
->amba bus code, just like we did for platform_driver in
->commit 9447057eaff8 ("platform_device: use a macro instead of
->platform_driver_register").
+On Wed, Mar 27, 2024 at 01:41:09PM +0100, Krzysztof Kozlowski wrote:
+>virtio core already sets the .owner, so driver does not need to.
 >
 >Signed-off-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+>
 >---
-> Documentation/driver-api/virtio/writing_virtio_drivers.rst | 1 -
-> drivers/virtio/virtio.c                                    | 6 ++++--
-> include/linux/virtio.h                                     | 7 +++++--
-> 3 files changed, 9 insertions(+), 5 deletions(-)
 >
->diff --git a/Documentation/driver-api/virtio/writing_virtio_drivers.rst b/Documentation/driver-api/virtio/writing_virtio_drivers.rst
->index e14c58796d25..e5de6f5d061a 100644
->--- a/Documentation/driver-api/virtio/writing_virtio_drivers.rst
->+++ b/Documentation/driver-api/virtio/writing_virtio_drivers.rst
->@@ -97,7 +97,6 @@ like this::
->
-> 	static struct virtio_driver virtio_dummy_driver = {
-> 		.driver.name =  KBUILD_MODNAME,
->-		.driver.owner = THIS_MODULE,
-> 		.id_table =     id_table,
-> 		.probe =        virtio_dummy_probe,
-> 		.remove =       virtio_dummy_remove,
->diff --git a/drivers/virtio/virtio.c b/drivers/virtio/virtio.c
->index f173587893cb..9510c551dce8 100644
->--- a/drivers/virtio/virtio.c
->+++ b/drivers/virtio/virtio.c
->@@ -362,14 +362,16 @@ static const struct bus_type virtio_bus = {
-> 	.remove = virtio_dev_remove,
-> };
->
->-int register_virtio_driver(struct virtio_driver *driver)
->+int __register_virtio_driver(struct virtio_driver *driver, struct module *owner)
-> {
-> 	/* Catch this early. */
-> 	BUG_ON(driver->feature_table_size && !driver->feature_table);
-> 	driver->driver.bus = &virtio_bus;
->+	driver->driver.owner = owner;
->+
+>Depends on the first patch.
+>---
+> net/vmw_vsock/virtio_transport.c | 1 -
+> 1 file changed, 1 deletion(-)
 
-`.driver.name =  KBUILD_MODNAME` also seems very common, should we put
-that in the macro as well?
+Acked-by: Stefano Garzarella <sgarzare@redhat.com>
 
-> 	return driver_register(&driver->driver);
-> }
->-EXPORT_SYMBOL_GPL(register_virtio_driver);
->+EXPORT_SYMBOL_GPL(__register_virtio_driver);
+Nit: you can use "vsock/virtio: " as prefix for the commit title.
+
 >
-> void unregister_virtio_driver(struct virtio_driver *driver)
-> {
->diff --git a/include/linux/virtio.h b/include/linux/virtio.h
->index b0201747a263..26c4325aa373 100644
->--- a/include/linux/virtio.h
->+++ b/include/linux/virtio.h
->@@ -170,7 +170,7 @@ size_t virtio_max_dma_size(const struct virtio_device *vdev);
->
-> /**
->  * struct virtio_driver - operations for a virtio I/O driver
->- * @driver: underlying device driver (populate name and owner).
->+ * @driver: underlying device driver (populate name).
->  * @id_table: the ids serviced by this driver.
->  * @feature_table: an array of feature numbers supported by this driver.
->  * @feature_table_size: number of entries in the feature table array.
->@@ -208,7 +208,10 @@ static inline struct virtio_driver *drv_to_virtio(struct device_driver *drv)
-> 	return container_of(drv, struct virtio_driver, driver);
-> }
->
->-int register_virtio_driver(struct virtio_driver *drv);
->+/* use a macro to avoid include chaining to get THIS_MODULE */
->+#define register_virtio_driver(drv) \
->+	__register_virtio_driver(drv, THIS_MODULE)
->+int __register_virtio_driver(struct virtio_driver *drv, struct module *owner);
-> void unregister_virtio_driver(struct virtio_driver *drv);
->
-> /* module_virtio_driver() - Helper macro for drivers that don't do
+>diff --git a/net/vmw_vsock/virtio_transport.c b/net/vmw_vsock/virtio_transport.c
+>index 1748268e0694..13f42a62b034 100644
+>--- a/net/vmw_vsock/virtio_transport.c
+>+++ b/net/vmw_vsock/virtio_transport.c
+>@@ -858,7 +858,6 @@ static struct virtio_driver virtio_vsock_driver = {
+> 	.feature_table = features,
+> 	.feature_table_size = ARRAY_SIZE(features),
+> 	.driver.name = KBUILD_MODNAME,
+>-	.driver.owner = THIS_MODULE,
+> 	.id_table = id_table,
+> 	.probe = virtio_vsock_probe,
+> 	.remove = virtio_vsock_remove,
 >
 >-- 
 >2.34.1
