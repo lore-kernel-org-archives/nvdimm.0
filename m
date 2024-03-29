@@ -1,48 +1,48 @@
 Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.14])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 446137460
-	for <nvdimm@lists.linux.dev>; Fri, 29 Mar 2024 15:37:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E9841C0DEF
+	for <nvdimm@lists.linux.dev>; Fri, 29 Mar 2024 15:38:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.14
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711726649; cv=none; b=bsJ5ELQ5WatVSXsthLQHwe4SNnfFuoCdcoIDSBPF7dTgoqRvCuuioPr8Xc9IsqyxUwmB34zkVg4aTraFhg+pUJg9eIp3LwFu7JycaNHOsOrOptbH+E6P4OL28+31Dx1bcmjhaBTRG9ROg92Iftugil4wiEf+lPpCkfy2bylRvwg=
+	t=1711726741; cv=none; b=t83HZhfYiaLMkxzTZFeMQDiQ+p/XDxKB4tLbeGStO5BFbYyKQ/Aki1ZDOoA6+U+qQkTidBVdiFu/XaJ3kpyDvNooZ8lGYOcMQhUfN1ug03DgPtmZ0g5Ebrn+dYKOPourhouKmLKfwXG/cOXadQgu6XmsHUaSzgbx8+T+MPKqnn0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711726649; c=relaxed/simple;
-	bh=a8wvGRmI5RqtmEV/gwKk4sFhcknRdSCzNX49NpAH93g=;
+	s=arc-20240116; t=1711726741; c=relaxed/simple;
+	bh=Yoeu+yPvWcr7mJFMnMj9r7kyoeVhlg19SNCTjudoBQQ=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=WOgTNq/0hCmmARBRabhm/nsTvyzS2Em61JguPqeuG9Tg6bXMV9Z3HBI0wgSHhZbv1h8RpQ8ihCIOhBvJTa3FkJKV/mqvBaYM/pslNlQB3VRRhR4CYlWHr9N/nba1wgAy/A0uag6C9cAyxsmuwhTVOiu/9ESD/Sur5h3DwylhJzY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=F/ldvlqR; arc=none smtp.client-ip=198.175.65.14
+	 In-Reply-To:Content-Type; b=itmI0u9LCqGLZS69UzcCMj15DFPh/sRCyemUBJabIv1H6aHS/LvmFzOIK0OpfcWRK0NOS7NpjjX5LuiIhP8FgZCIFr9jWsue/7l5ED7N8a23FaKcRhxZBe/e6Ea9TsvwLJhTMtcirpSmFSVyXfTrQYtZtAeCKuzVVGiIVjKwB4Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=HL8bSpm6; arc=none smtp.client-ip=198.175.65.14
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="F/ldvlqR"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="HL8bSpm6"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1711726649; x=1743262649;
+  t=1711726740; x=1743262740;
   h=message-id:date:mime-version:subject:to:cc:references:
    from:in-reply-to:content-transfer-encoding;
-  bh=a8wvGRmI5RqtmEV/gwKk4sFhcknRdSCzNX49NpAH93g=;
-  b=F/ldvlqRa1WjroW1ODGEXo7DXQ8cJTKt04jMIIJ4f3FBNvq7g/laEd59
-   Id4uN0D6BtnXrDreS2VeJ51/HO/hIxncyKlKB16ZBebqcjUrthbNaXfDp
-   IsyeOds4uuwccpi4T6I4C0M11jg1b2oLIXmOO6/VSWZ+Q9kC1XcMxt1ly
-   0TB3Ts2XS126Xtc+sBdLLcLeTEga0Fvd32svBa1PH4EDmAYQpiSABmeXO
-   3fXMbOHPWCv3SFTxiKYcaMbRkZc7ZzGdPw8M6DfQazYmy6W6Bv10V0ZOs
-   itF2YaSB8rHdhqS1GHV2bbZaOrBofSo3rmUxnv1HMMrcImR+OanhEoY5V
-   Q==;
-X-CSE-ConnectionGUID: lxe0NIxiR5SxjBmcD4LoKQ==
-X-CSE-MsgGUID: 2TXwBqf0RTWRx8n2ocp23Q==
-X-IronPort-AV: E=McAfee;i="6600,9927,11028"; a="10727403"
+  bh=Yoeu+yPvWcr7mJFMnMj9r7kyoeVhlg19SNCTjudoBQQ=;
+  b=HL8bSpm62NkTk8dHNCRE78NPAcv2REOG7ngVf05wO5sVZoZuGuLWCpcn
+   gQULpRvVg276Db+MalRxCgm2GYmEJlunviZhQnhLgl8PeOkW7krYP685L
+   NpPf8G/wGnpeSfNrJpl9Ue8r56jKTJVHdHwEIwYVib84RWKaK6EQbIdsZ
+   rXHaj2TAB4sGAnPVo61lDDewyzDY8TB18Fux1KguNeo3xhycQQoZOVfsh
+   fyDoxa+CHYDxiWQZw9SuVcG4PZRY6Tene8ZJj2NW9CQoDqByrbNu6LANN
+   yXg3UnXw5lellHHfKQ0e4w0AvaW3zLXCEWago5IsywmLDcnzUBtsiRwP+
+   g==;
+X-CSE-ConnectionGUID: spRjSjIlTU6U/wIedG5abQ==
+X-CSE-MsgGUID: 5c5lK/6CTV2yy6YVtqTw3w==
+X-IronPort-AV: E=McAfee;i="6600,9927,11028"; a="10727581"
 X-IronPort-AV: E=Sophos;i="6.07,165,1708416000"; 
-   d="scan'208";a="10727403"
+   d="scan'208";a="10727581"
 Received: from orviesa005.jf.intel.com ([10.64.159.145])
-  by orvoesa106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Mar 2024 08:37:28 -0700
+  by orvoesa106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Mar 2024 08:38:59 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.07,165,1708416000"; 
-   d="scan'208";a="21713855"
+   d="scan'208";a="21714104"
 Received: from mjhill-mobl2.amr.corp.intel.com (HELO [10.212.98.214]) ([10.212.98.214])
-  by orviesa005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Mar 2024 08:37:27 -0700
-Message-ID: <cdee392e-dd4b-46ea-8821-7469ad75e294@intel.com>
-Date: Fri, 29 Mar 2024 08:37:26 -0700
+  by orviesa005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Mar 2024 08:38:59 -0700
+Message-ID: <e3f7bb27-6bcc-41d3-bf77-8458591d1fe6@intel.com>
+Date: Fri, 29 Mar 2024 08:38:58 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -50,69 +50,76 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] ndtest: Convert to platform remove callback returning
- void
+Subject: Re: [ndctl PATCH] cxl/test: Add test case for region info to
+ cxl-events.sh
 Content-Language: en-US
-To: =?UTF-8?Q?Uwe_Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>,
- Dan Williams <dan.j.williams@intel.com>,
- Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- Benjamin Tissoires <benjamin.tissoires@redhat.com>,
- Yi Zhang <yi.zhang@redhat.com>, nvdimm@lists.linux.dev, kernel@pengutronix.de
-References: <c04bfc941a9f5d249b049572c1ae122fe551ee5d.1709886922.git.u.kleine-koenig@pengutronix.de>
+To: alison.schofield@intel.com, Vishal Verma <vishal.l.verma@intel.com>
+Cc: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
+References: <20240328043727.2186722-1-alison.schofield@intel.com>
 From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <c04bfc941a9f5d249b049572c1ae122fe551ee5d.1709886922.git.u.kleine-koenig@pengutronix.de>
+In-Reply-To: <20240328043727.2186722-1-alison.schofield@intel.com>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 
 
 
-On 3/8/24 1:51 AM, Uwe Kleine-König wrote:
-> The .remove() callback for a platform driver returns an int which makes
-> many driver authors wrongly assume it's possible to do error handling by
-> returning an error code. However the value returned is ignored (apart
-> from emitting a warning) and this typically results in resource leaks.
+On 3/27/24 9:37 PM, alison.schofield@intel.com wrote:
+> From: Alison Schofield <alison.schofield@intel.com>
 > 
-> To improve here there is a quest to make the remove callback return
-> void. In the first step of this quest all drivers are converted to
-> .remove_new(), which already returns void. Eventually after all drivers
-> are converted, .remove_new() will be renamed to .remove().
+> Events cxl_general_media and cxl_dram both report DPAs that may
+> be mapped in a region. If the DPA is mapped, the trace event will
+> include the HPA translation, region name and region uuid in the
+> trace event.
 > 
-> Trivially convert this driver from always returning zero in the remove
-> callback to the void returning variant.
+> Add a test case that triggers these events with DPAs that map
+> into a region. Verify the region is included in the trace event.
 > 
-> Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+> Signed-off-by: Alison Schofield <alison.schofield@intel.com>
+
 Reviewed-by: Dave Jiang <dave.jiang@intel.com>
 > ---
->  tools/testing/nvdimm/test/ndtest.c | 5 ++---
->  1 file changed, 2 insertions(+), 3 deletions(-)
+>  test/cxl-events.sh | 24 ++++++++++++++++++++++++
+>  1 file changed, 24 insertions(+)
 > 
-> diff --git a/tools/testing/nvdimm/test/ndtest.c b/tools/testing/nvdimm/test/ndtest.c
-> index b8419f460368..2c6285aae852 100644
-> --- a/tools/testing/nvdimm/test/ndtest.c
-> +++ b/tools/testing/nvdimm/test/ndtest.c
-> @@ -830,12 +830,11 @@ static int ndtest_bus_register(struct ndtest_priv *p)
->  	return 0;
->  }
+> diff --git a/test/cxl-events.sh b/test/cxl-events.sh
+> index fe702bf98ad4..ff4f3fdff1d8 100644
+> --- a/test/cxl-events.sh
+> +++ b/test/cxl-events.sh
+> @@ -23,6 +23,26 @@ modprobe cxl_test
+>  rc=1
 >  
-> -static int ndtest_remove(struct platform_device *pdev)
-> +static void ndtest_remove(struct platform_device *pdev)
+>  dev_path="/sys/bus/platform/devices"
+> +trace_path="/sys/kernel/tracing"
+> +
+> +test_region_info()
+> +{
+> +	# Trigger a memdev in the cxl_test autodiscovered region
+> +	region=$($CXL list  -R | jq -r ".[] | .region")
+> +	memdev=$($CXL list -r "$region" --targets |
+> +		jq -r '.[].mappings' |
+> +		jq -r '.[0].memdev')
+> +	host=$($CXL list -m "$memdev" | jq -r '.[].host')
+> +
+> +	echo 1 > "$dev_path"/"$host"/event_trigger
+> +
+> +	if ! grep "cxl_general_media.*$region" "$trace_path"/trace; then
+> +		err "$LINENO"
+> +	fi
+> +	if ! grep "cxl_dram.*$region" "$trace_path"/trace; then
+> +		err "$LINENO"
+> +	fi
+> +}
+>  
+>  test_cxl_events()
 >  {
->  	struct ndtest_priv *p = to_ndtest_priv(&pdev->dev);
+> @@ -74,6 +94,10 @@ if [ "$num_info" -ne $num_info_expected ]; then
+>  	err "$LINENO"
+>  fi
 >  
->  	nvdimm_bus_unregister(p->bus);
-> -	return 0;
->  }
+> +echo 1 > /sys/kernel/tracing/tracing_on
+> +test_region_info
+> +echo 0 > /sys/kernel/tracing/tracing_on
+> +
+>  check_dmesg "$LINENO"
 >  
->  static int ndtest_probe(struct platform_device *pdev)
-> @@ -882,7 +881,7 @@ static const struct platform_device_id ndtest_id[] = {
->  
->  static struct platform_driver ndtest_driver = {
->  	.probe = ndtest_probe,
-> -	.remove = ndtest_remove,
-> +	.remove_new = ndtest_remove,
->  	.driver = {
->  		.name = KBUILD_MODNAME,
->  	},
-> 
-> base-commit: 8ffc8b1bbd505e27e2c8439d326b6059c906c9dd
+>  modprobe -r cxl_test
