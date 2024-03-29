@@ -1,55 +1,55 @@
-Received: from mail-qv1-f47.google.com (mail-qv1-f47.google.com [209.85.219.47])
+Received: from mail-oi1-f173.google.com (mail-oi1-f173.google.com [209.85.167.173])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FCD937B
-	for <nvdimm@lists.linux.dev>; Fri, 29 Mar 2024 00:40:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.47
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 082B0F9CC
+	for <nvdimm@lists.linux.dev>; Fri, 29 Mar 2024 00:48:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.173
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711672840; cv=none; b=RA3m1DynqLMqEfcjPJE9NoonMGhs/1UVSZNMJMM/IYmiE4EdYuthga1FJbudKPN7H3s1hFhYEW3UX6g2jNNQJmUueqXgJAxduhl+ftWcvy0hoEgW14fR83sCEQXBFeiS8gtjaovzMy8kZD2pYV5suZumhzxoR1TYJv3cwNLj3Ic=
+	t=1711673300; cv=none; b=M2HicEEAe1+FIKiTMMYAHrTzrghduvClH1JoeOn7m4pkeVwV6p9Hj/LKB/O31IjrihVBnTZouz9H+C+t/myCcCt515ZLgaX8fzbL9D+5liXKPG5bAsdkKeagUx7nTnimm5a4N3B5JSVVlMEiotvKE9VSpuAzGy0YDPwb+4gimdw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711672840; c=relaxed/simple;
-	bh=HD6NA1VgjuxE+aTElOuBi+wXSVUi3DV91i08SVrmsWs=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=JvUuNhifzRtEBf1kJ8ww0Yj80immK3JjcZKZouryr/5egH1uKlInZxqUCI23CA5A/kreSMr+KAQRlNA4qqiw05lDJ07EzW9DGO2PAqJz/NXrZnV5RqOV7kKjqFlabOFNnuSIKy+vtkDSYotjODl58fROT+ilCzHuzLVrAUaJWaM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com; spf=pass smtp.mailfrom=bytedance.com; dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b=PTCKTQhH; arc=none smtp.client-ip=209.85.219.47
+	s=arc-20240116; t=1711673300; c=relaxed/simple;
+	bh=BYAWbcqYa0A0cVmahF00vDwW4k9AUFK3Rpix9FCNLWc=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=HHXbgli55KjCjlH0XkTR915MaNQPesmQ7UUfZnpu97vW6sG4sjLjeVqF+swaH5EKUt/cJAy1sRS+aaACrcp4vQlWsgDEBydJv+36F68Sw36tk0ia9+89aQVU/VtbOKMwzTcTrslM/KoomdOcjucwzhXS4bRh0oKTYmZ/nOQEsPk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com; spf=pass smtp.mailfrom=bytedance.com; dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b=lERLj9X5; arc=none smtp.client-ip=209.85.167.173
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bytedance.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b="PTCKTQhH"
-Received: by mail-qv1-f47.google.com with SMTP id 6a1803df08f44-690bff9d4a6so9095206d6.1
-        for <nvdimm@lists.linux.dev>; Thu, 28 Mar 2024 17:40:38 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b="lERLj9X5"
+Received: by mail-oi1-f173.google.com with SMTP id 5614622812f47-3c3bc867eaaso1078169b6e.1
+        for <nvdimm@lists.linux.dev>; Thu, 28 Mar 2024 17:48:18 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bytedance.com; s=google; t=1711672837; x=1712277637; darn=lists.linux.dev;
+        d=bytedance.com; s=google; t=1711673298; x=1712278098; darn=lists.linux.dev;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=ATOisTRRjQB4sgxy7npSq+e14hDk0Gnp420OOaz5yog=;
-        b=PTCKTQhHGMkv3CIyXssImlNiDi3XzhRM5Dovca1MHHZF/m5qDzRSYRxTDCt7E/vpit
-         +Ozh0KhgrzP24KQazldMpUKGt8UWKfEMBmLoAI735qYBSw37lD5mCvB3LoK9fEOU35d+
-         DDKHWYkJdLnDuh8f17ZngYxFChXWnFy8NTvnNNXzEzpFrBuylKInK1VwxGzobsWZIC0M
-         uT8MoaTa5mvrp5yPIXHV+D2OWKq9wfGHTDLXx656EnVSg2ygKEfIkOlH7vBDcfezavxw
-         FTiKA7dn5ND/Xq1Q+SoAet1UbYc4mn6m67uOJ5HdbRN1Bt+nH5sfZ5EVHPnpOVe7EPYF
-         J1Rw==
+        bh=r556gW/Cfi0wJ9ucfJUvxgAelZ5AC4EcYQSPPpoFGLs=;
+        b=lERLj9X5AlOQkqs+KnqlRSBeiqXcb1yipNqeuOiGY0tulYbGAhlLA2yGI4EqIpPr6C
+         mBU2RXP0U+Rr7/MkL6gJwUt1hE1k1TZgoTDVsYa/8l12ZBUev3YFKHf8q99JhaiQ5mBo
+         KTwewuXroXYNEsjHhtURQj97eubEDMpzD9in8pD75rh0YoZR3hJ78udnoayBE4RJybjW
+         AcQ7ngS3KpN92fYNG0noPlsr7bB144A4SogBdypfndhqJm8oTex+Tf9PI04ioS5LfUEN
+         uyyXDHbW3KtNC634NgEmHm+9VShBl+o9jS4I/3ojIOozkJXyFSEExXXrsg9KmXz0x0lC
+         KiKg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1711672837; x=1712277637;
+        d=1e100.net; s=20230601; t=1711673298; x=1712278098;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=ATOisTRRjQB4sgxy7npSq+e14hDk0Gnp420OOaz5yog=;
-        b=e6HiJaJ4trAbvWYrktqaXyZvPBY8XlMFy2L97Bqoqd7r46ILTblflb1HHS4MMckOZ3
-         OZ2fEjkPdqrWUdV7GaVfPRBr8mKcvRm8nb5tUHP9bLVqOXTtYhzxxfa9uqc7e4hgNxsc
-         d2bM2SUCCyaCWt+lq+umnGPFOu3Z8vHeCiFOPvIqw49aDAD4S93OVpSNtCL2eoeh1wnB
-         ocKadFztU4t3VJBIBQaLI8i723zC0Y3T0pWx6/sdZYL87h3p4cQIFLwqBQZ5Fa2Cf0h2
-         H1niyv5AiPpcHdgSpsfbqYI6JV9smHo4XH5b7MZdbgUOI0gdVwLJpvFiNaK2+Wacy3Vg
-         WXKA==
-X-Forwarded-Encrypted: i=1; AJvYcCVz+slNy5a48puI/lsoQRAPlJZlBoJgYen1D7a1gbAxwst3fX8cb4spnhC6+Psaxt9/w+NCdJe/C2v19u+BGtDe+xGgxHTO
-X-Gm-Message-State: AOJu0YzwfAc1stE1eSxXapulcmmxWSHe+ecNMiIFi6SPastsFIlaOCXc
-	gfwOMtu7xiQpRm9+guQOj9qN9CRSOy8k4e77oNWNgDKabHrts4SvjaTOa9iSvxE=
-X-Google-Smtp-Source: AGHT+IFGFZDh45AZa0PZbpCZ5KKj6jHei4/t/LDFVey2btcJI7NSFvNMp99+UdXTyXt83plS1QEmoA==
-X-Received: by 2002:a05:6214:bd4:b0:696:4084:d6f6 with SMTP id ff20-20020a0562140bd400b006964084d6f6mr965534qvb.8.1711672837688;
-        Thu, 28 Mar 2024 17:40:37 -0700 (PDT)
-Received: from n231-228-171.byted.org ([147.160.184.85])
-        by smtp.gmail.com with ESMTPSA id gc15-20020a056214230f00b00690fc99a836sm1113530qvb.105.2024.03.28.17.40.36
+        bh=r556gW/Cfi0wJ9ucfJUvxgAelZ5AC4EcYQSPPpoFGLs=;
+        b=jUhPRlu7cevtt+znUUYnocF12uYytR0MCDSBuSqW9m73rlJ/KqH8NRTptRVZ5ovadq
+         e6cXVY9zRrvPIh6NjyqebF8hlnRL+TdsHhiDdVNmIctvDlyL5CmcQwUmsAvc1jeC+zCY
+         3EqgA0C4YPrfPuz2vgJ+2hqUdHFxNME/qM0bvjS84HWrIxuVGK+P1bw81gOcH2E21dnQ
+         OUiSFN62Zwa+k43+jGZp8goIEV+KIILKBAd8X4aTabCPd1mMyp99Vq3Bkwng1gvd/O39
+         89Fuvo2XupUKDb3kTxO+It5mutXpH9RfxTqBnVtAVgZ3LBUWw8JDXhvtjiVV3S/kpULf
+         3Q5A==
+X-Forwarded-Encrypted: i=1; AJvYcCUiKh+o+Q7BxFsV/qm8WtkXJkD/UEfk8GaquA+SllsAHO/13g3u+Vgpk5SQ91n346mZJ8hUR8KXbBqb8H1O8MEc6TWEFJaZ
+X-Gm-Message-State: AOJu0YzGMSAmaa9B7HNFl/j+AuhaiI0lT7vwJZrYGdXZSyWdgyFPiSwg
+	luDCQbGrUSQb4KPiU2BksA3txsg74RqyjlnFxyoOQkQJnQfVx3qhUAvX2mXXZfY=
+X-Google-Smtp-Source: AGHT+IEX7ShIC6O0vfmTE0ZHpiq/z8ldFe9ie+KXByR1IhyG1uQYPhwvYFTlSXbY2oXF2FX4Szjvow==
+X-Received: by 2002:a05:6808:3093:b0:3c3:ca2f:33ce with SMTP id bl19-20020a056808309300b003c3ca2f33cemr997529oib.52.1711673298139;
+        Thu, 28 Mar 2024 17:48:18 -0700 (PDT)
+Received: from n231-228-171.byted.org ([130.44.212.125])
+        by smtp.gmail.com with ESMTPSA id v26-20020ac8749a000000b00430afbb6b50sm1102414qtq.51.2024.03.28.17.48.17
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 28 Mar 2024 17:40:37 -0700 (PDT)
+        Thu, 28 Mar 2024 17:48:17 -0700 (PDT)
 From: "Ho-Ren (Jack) Chuang" <horenchuang@bytedance.com>
 To: "Huang, Ying" <ying.huang@intel.com>,
 	"Gregory Price" <gourry.memverge@gmail.com>,
@@ -74,9 +74,9 @@ Cc: "Ho-Ren (Jack) Chuang" <horenc@vt.edu>,
 	"Ho-Ren (Jack) Chuang" <horenchuang@bytedance.com>,
 	"Ho-Ren (Jack) Chuang" <horenchuang@gmail.com>,
 	qemu-devel@nongnu.org
-Subject: [PATCH v7 0/2] Improved Memory Tier Creation for CPUless NUMA Nodes
-Date: Fri, 29 Mar 2024 00:40:33 +0000
-Message-Id: <20240329004035.191601-1-horenchuang@bytedance.com>
+Subject: [PATCH v8 0/2] Improved Memory Tier Creation for CPUless NUMA Nodes
+Date: Fri, 29 Mar 2024 00:48:12 +0000
+Message-Id: <20240329004815.195476-1-horenchuang@bytedance.com>
 X-Mailer: git-send-email 2.20.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -108,6 +108,8 @@ through QEMU, and the guest now sees memory nodes with performance attributes
 in HMAT. With this change, we enable the guest kernel to construct
 the correct memory tiering for the memory nodes.
 
+-v8:
+ * Fix email format
 -v7:
  * Add Reviewed-by: Huang, Ying <ying.huang@intel.com>
 -v6:
@@ -144,6 +146,7 @@ the correct memory tiering for the memory nodes.
  * https://lore.kernel.org/lkml/20240312061729.1997111-1-horenchuang@bytedance.com/T/#u
 -v1:
  * https://lore.kernel.org/lkml/20240301082248.3456086-1-horenchuang@bytedance.com/T/#u
+
 
 Ho-Ren (Jack) Chuang (2):
   memory tier: dax/kmem: introduce an abstract layer for finding,
