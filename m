@@ -1,168 +1,232 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f41.google.com (mail-wm1-f41.google.com [209.85.128.41])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D65FC39FEB
-	for <nvdimm@lists.linux.dev>; Fri, 29 Mar 2024 18:45:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.18
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711737919; cv=fail; b=OUtGCGQD/3AaziXYyQdvOknditjGQezN6BK3sK4etoKrJQHYvLCobZQ+cCfo8ktZjvWceL7Agl+M5Z9gz7nD+Fczl1bW+kDe7SQllB03WxmDCYCkAe7EReimqheaHbaENmwwdpv5HoBugkv+O3c98m5Gdet1e8mlmQGjAHEhN5g=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711737919; c=relaxed/simple;
-	bh=mZDQbGVCajlnxx9eKJQqMIjCrEnJ0faWw94n5taZmpU=;
-	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=J9pwMkoAF8vlQNqgRw7er/RvtvPexzZZSWV5IfEAj7p4nEwTrGj+ECqTqa/HJIcDLvFPOx6W3p4oHhivSJcyiKbD23ABumFXyk+IKz5t1nYkXdCK7T6T/IXde44FFfuizr6rUTevxSzk2ZpfMwrXs/OhrJbrIIq5BfDFJT9O31U=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=G2TLVodM; arc=fail smtp.client-ip=192.198.163.18
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87B356E5EC
+	for <nvdimm@lists.linux.dev>; Sun, 31 Mar 2024 08:44:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.41
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1711874671; cv=none; b=bwgNNeB2hW/KOU0tuUzw7D98g9x758nkZLfNsmKa4BjL4S9Sy9exD/M1BRgirdrmC2adOZ4vx2+v6fv2lpylBEFN8RFZ79w4pH0nGqHVFaRb0fNKnYX+yynljiF/IkFGwDvBTWVZmsehtPpvsDF5/M9DxdBXNWmHp32/2nPF97I=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1711874671; c=relaxed/simple;
+	bh=RbNxoqlZdgy0nYNI8rhm+31pAchfQHzLu9REkEdnoxY=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=pk3ingViqv5oQ2Y8h4xqJwIqIWdwYuM0Cuj2TPKNg1NqgqK0rCbP/dZMiUnQUtGkuUukgDiykeh2yPZ/cqaQWu/07hkhNp/R8ELm46fWNz6t2vkSchkYbgIvQaIX1G0IZYa5jvcs+JPsyGf3Tvh7L0/2tjzoct0SNzSTykiaWKA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org; spf=pass smtp.mailfrom=linaro.org; dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b=sjw9YSnx; arc=none smtp.client-ip=209.85.128.41
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="G2TLVodM"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1711737917; x=1743273917;
-  h=date:from:to:cc:subject:message-id:references:
-   content-transfer-encoding:in-reply-to:mime-version;
-  bh=mZDQbGVCajlnxx9eKJQqMIjCrEnJ0faWw94n5taZmpU=;
-  b=G2TLVodMUAROY7JxNVx6FpK8V7DO5A05NeARN5Wp6BEYXLzlq085v06L
-   vh0fiY6Kbumh2Mm7a1VWvj9x8hlyXP7x5dRswxnXnxkL0hU5Toqn0qiQv
-   FkhndFCSQCqgMh4CaecK/Vdsa7O12rl4pLRHpI+ImGdrSUSyDQ66YS5+3
-   BbSkbVHknOta+Z40BAuOuLMVeMSWySflVE0j8+l5uCb4aMBDdhUvv6gBN
-   vBMUFJefe4T5Mrq8VkPrIPAroG0vjUZ486BkVIRP1QcJ1Yri3/vOhl3aV
-   T3sGzbsa5+RuD/N+FrsgBji/6g4ZEh5Zt8928tLxpypwoDtFmX66EUAoD
-   Q==;
-X-CSE-ConnectionGUID: CQXDNracSPyYg22EAiMnzQ==
-X-CSE-MsgGUID: luJ3d462QKeciqXMLBDH+Q==
-X-IronPort-AV: E=McAfee;i="6600,9927,11028"; a="6768966"
-X-IronPort-AV: E=Sophos;i="6.07,165,1708416000"; 
-   d="scan'208";a="6768966"
-Received: from orviesa007.jf.intel.com ([10.64.159.147])
-  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Mar 2024 11:45:16 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.07,165,1708416000"; 
-   d="scan'208";a="17455789"
-Received: from orsmsx602.amr.corp.intel.com ([10.22.229.15])
-  by orviesa007.jf.intel.com with ESMTP/TLS/AES256-GCM-SHA384; 29 Mar 2024 11:45:15 -0700
-Received: from orsmsx611.amr.corp.intel.com (10.22.229.24) by
- ORSMSX602.amr.corp.intel.com (10.22.229.15) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.35; Fri, 29 Mar 2024 11:45:14 -0700
-Received: from orsedg603.ED.cps.intel.com (10.7.248.4) by
- orsmsx611.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.35 via Frontend Transport; Fri, 29 Mar 2024 11:45:14 -0700
-Received: from NAM10-BN7-obe.outbound.protection.outlook.com (104.47.70.100)
- by edgegateway.intel.com (134.134.137.100) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.35; Fri, 29 Mar 2024 11:45:13 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=EdDz+sPJ8TJeMUYeSmB7Fc0+a+64A4MySIeGvKlPJiifna6EloWGIbVDJ5J0IFZC98o1bfk5//kE1Ahi6x3QI2l3es8TtqgBGkAlHxfa6InhrNVzZSbGD660z4Css9wgDW9FzM24XlSYdOALoX4SDEovoeKDlYReiH7jmlOsPx+vkcvXzD0rMbqcBD+NPrIVHbUkSqtM4gAOWTVviTJba79n1iazBWLmzVDanlY9jUYDp6IW3UW8mG1p5ubCLmDtShObi1BLPOby3rsWWg1DDEo/pfu51W0/yM7LccBt0aLB7wRyD5qggvYd/D3/4aUWhinLpUeaTUFGWfhEF2hEGQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=fDPhPAIUTnn1+7h/5O0RXlYypECIpvnf7TNMgrhH/N0=;
- b=jIvW31UThqVbgDdL5y12hgSH4+1YZkCBG8DHG1TiIVtu3jVO8G8g+9nCbCZ0gAtEFO7w3z8mjYTEXCEWc2DckH5lER/IhKGwXNnXUsIJsrkHDwv0BWDuTje3cfPw2oAQvTprHDQ1n/bwDv1lPbdcKJnXB1ZnUy99oFUGsX/K9oMond3/VIk8tXfZOVwAImer4rjxw/32mJfRuhog5JhRHZcAUpaVX/cIqQzLZJcHNtDrlcKfN7nArXnhVkfCyCUST9Q7sWLXLQALzhozqOfRcBzt8U25ffUfvWR+RE61jIcG05MMGWDriZg3pg2BZHL54nRvmYEat2WsYmqC61SwlA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Received: from PH8PR11MB8107.namprd11.prod.outlook.com (2603:10b6:510:256::6)
- by DS0PR11MB7383.namprd11.prod.outlook.com (2603:10b6:8:133::20) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7409.41; Fri, 29 Mar
- 2024 18:45:10 +0000
-Received: from PH8PR11MB8107.namprd11.prod.outlook.com
- ([fe80::82fd:75df:40d7:ed71]) by PH8PR11MB8107.namprd11.prod.outlook.com
- ([fe80::82fd:75df:40d7:ed71%4]) with mapi id 15.20.7409.031; Fri, 29 Mar 2024
- 18:45:08 +0000
-Date: Fri, 29 Mar 2024 11:45:05 -0700
-From: Dan Williams <dan.j.williams@intel.com>
-To: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>, "Dan
- Williams" <dan.j.williams@intel.com>, Vishal Verma
-	<vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, Ira Weiny
-	<ira.weiny@intel.com>
-CC: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Benjamin Tissoires
-	<benjamin.tissoires@redhat.com>, Yi Zhang <yi.zhang@redhat.com>,
-	<nvdimm@lists.linux.dev>, <kernel@pengutronix.de>
-Subject: Re: [PATCH] ndtest: Convert to platform remove callback returning
- void
-Message-ID: <66070c31d03b3_4a98a29465@dwillia2-mobl3.amr.corp.intel.com.notmuch>
-References: <c04bfc941a9f5d249b049572c1ae122fe551ee5d.1709886922.git.u.kleine-koenig@pengutronix.de>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <c04bfc941a9f5d249b049572c1ae122fe551ee5d.1709886922.git.u.kleine-koenig@pengutronix.de>
-X-ClientProxiedBy: MW4PR04CA0301.namprd04.prod.outlook.com
- (2603:10b6:303:82::6) To PH8PR11MB8107.namprd11.prod.outlook.com
- (2603:10b6:510:256::6)
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="sjw9YSnx"
+Received: by mail-wm1-f41.google.com with SMTP id 5b1f17b1804b1-41553b10600so7898085e9.0
+        for <nvdimm@lists.linux.dev>; Sun, 31 Mar 2024 01:44:29 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google; t=1711874668; x=1712479468; darn=lists.linux.dev;
+        h=cc:to:content-transfer-encoding:mime-version:message-id:date
+         :subject:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=2sqUaJ3F0oIXdnezjdx4l/HGQrEHUiJM730gZB0fIbE=;
+        b=sjw9YSnxsFcdCh4P7kUyja4Q7+D+lJ5zPk+QxVoZqtc+9j3u6Muft3Dya63q02pc5m
+         N8FuBFFPy1wXWNO44r8aACrgVlgcoNykbcK7vm9DbRqS7d7SHLHLdmUx/z8gdBgR5RfS
+         LD1TRhd1mhF3WzjFPl1YluiPNkv4k33kDj4hsJldX6y1zgSEYc1hGfJR6Sz86akixr11
+         RaAu8ezfoXy+tzd4tAAz7p60Yu+KSeKWd03WeFUOSaD/F15SxadHjetuqqp8jW967GpI
+         kyUIH6zBNTuMt3RNQ8jNdLSCNFQ9ESMlt7iOrTcV2ztKK8Pkozg0IwTigG5QmFDmTq84
+         q8Rg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1711874668; x=1712479468;
+        h=cc:to:content-transfer-encoding:mime-version:message-id:date
+         :subject:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=2sqUaJ3F0oIXdnezjdx4l/HGQrEHUiJM730gZB0fIbE=;
+        b=jaYjdXegDKWCZHDlLhrKvZt1uvCX3hXunx57ZfeZV7BM0NK5a3Ne+Ghg8fK/DcZ96R
+         MG1nPpQ1OdR2wdZ411UIy2R9J1acLLAYop4WmNSlJnMq+IXJGjOfHfOPU+/lh8HBmGDZ
+         hquGNjcPLWnnWR1S+UTg3xav7RTRJpHtlXn13Kt2eBEQ6A+eLocciXO75dA03XQK4HYg
+         abckBPFQiaaNYMvjbaguUM/PGOup2N4Pmdd4SLLbEffQ9Esgfwp/33mNKQlLk9U+CQFe
+         R3zJhbO57MljAEJrUFeP5ju74csfANKBslUbrVmi1HTbTA7R259AjmOlcic6mlZuS8S6
+         OP/A==
+X-Forwarded-Encrypted: i=1; AJvYcCXobtAF3OrkT+oLN/YLvrIAHqK3fudpm/sPAsLn91HTn9fWczCm5shOLZ6iBYjmFz4H3j+ryX66Xus12CcXWBeJ+pMPVn+w
+X-Gm-Message-State: AOJu0YwvZZBqAZQHtbl6fXIs9PkFf3lZA8smBlogvbuH1L7qzoEfN7gG
+	3xEVb7KpyYxQ/J1GWNqCibE+ozrveYC7bb/lX0yZLI/jODnNbIYrGtUTFjhcrqk=
+X-Google-Smtp-Source: AGHT+IGRtVdiB0tbOSLfOXovtwdG5H9mbUjwpU0tBzceuiXLquDRXJG/+3RcRx7InUOrbUq4kV2O/A==
+X-Received: by 2002:a05:600c:4fc3:b0:414:894b:df65 with SMTP id o3-20020a05600c4fc300b00414894bdf65mr4484011wmq.3.1711874667865;
+        Sun, 31 Mar 2024 01:44:27 -0700 (PDT)
+Received: from [127.0.1.1] ([178.197.223.16])
+        by smtp.gmail.com with ESMTPSA id k17-20020adff5d1000000b00341b7388dafsm8436003wrp.77.2024.03.31.01.44.23
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 31 Mar 2024 01:44:27 -0700 (PDT)
+From: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Subject: [PATCH v2 00/25] virtio: store owner from modules with
+ register_virtio_driver()
+Date: Sun, 31 Mar 2024 10:43:47 +0200
+Message-Id: <20240331-module-owner-virtio-v2-0-98f04bfaf46a@linaro.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: PH8PR11MB8107:EE_|DS0PR11MB7383:EE_
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: Rsa/fiZTvPa3l+TVyTe8jEoqvh+y5GGFh8IQFubZs5ShdQoJePbI4Qj5acYOKVqk+HtcNXlLz/VrJlew8apphE6KQWgqfwpldP3Bcm+33jAVCpWgaxC09wFuJPe8MFAqVohKKqjXGx+Fy4Rn9I68x+YmQBWikEAJ1+82cUA47hQhPE5YUcaoQg0sI3PAfgFjvDtFYWqaJOKYOMM082Pj+K72KDb9BmC54H81PGx64dfElkBQcMWvbqAAE//f53s3PL4QclriZ+g3sIThCn8mNbDYB0dvghwwWZ0P74b6nDB4T3ZdtsIW/uyv+Yno0r2pJnY33xVoAPkh1jLtfLug+0fNzdSDAbPrKK4lLB4A8V7o93CEaFDVDkKTqGPNbofR/HYWM+fAQbj0LJqg33KYPNyJm7UDxOhQUjESQgRXn+wKFvWzestSq1Bo557hv7WSj+PDgM/86oI5SBkDEuCbQCbqb4LqBfwWnpQSaewX056J8KtGDIUbt16gUpgUhJ5gCSjx7vnYK7U2p7dmbekc+uXkAj/YE8KGewOjIlfRe2Mm7bl+92xeHvLR+ZoftCjRTEdfbzmVkTfCdJeq67a5jP5qMCYzF+kM7k95KyEkd/qgFlcyD8VLGqmDExC2JnFjXaBd0ZZCeAzDyMaa+6Yhci4qiLsBH1D0Pm46pwWpLAY=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH8PR11MB8107.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(376005)(1800799015)(366007);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?iso-8859-1?Q?r1WTUV+B6ysFoBdsOR3H3Ak+QNWWF1ZdfVh4x1d2CHx9EmQA/bufaJfGRo?=
- =?iso-8859-1?Q?uNlT4xdQvZZINXh1ulN8PogcXJp+oTIC4Gmqog592+3ZtY8EG0XpnrOBRm?=
- =?iso-8859-1?Q?pMeZgo7M2bscQxJfvExVmB+nKsOstFj+TxJDQnDt6Q1IvWISYewT2gfznE?=
- =?iso-8859-1?Q?fWm6PGFtCzsg2xD86Rk1BLsjxlKzTaicYZWBN1gH2BlbtpqsV2W+uIII+S?=
- =?iso-8859-1?Q?8fIZFlyzBhvDTMEriGbLGX4fyercS7UFr05amuvSlOpztIU6g7cBgyn1Hc?=
- =?iso-8859-1?Q?mlOR2tqIEmthjhdIlC+6vgB8d0bHB8odczUsDa4QI2y6BSrfm933pP+qpK?=
- =?iso-8859-1?Q?VWRWOp2V+LipxzNEBffnfIu+mvDxIQ0UVSwo+VxvdAWEnbmdYzOQ/FA20m?=
- =?iso-8859-1?Q?ePa1jZrnxDvcRV9m7mxXyEaBaAwFYeBt7fvOf/WoigAOKc3zEuw9e3ymtN?=
- =?iso-8859-1?Q?Xq5THUoQV3dwXa5ciVV6ia99j0k6wM0C9t66LtrCxEgaAGQ+EysxYmNozE?=
- =?iso-8859-1?Q?hkzZM71BW7F/EUDHCpb6KKJ64yHUDAllvNaH7yN7DOXk1VwDFvfCPH/hM6?=
- =?iso-8859-1?Q?TIqLg7jwAyGAQt1kPHAw9LVYLgbErZOMgijlOXLv3176NPcbPYDW8UBSx3?=
- =?iso-8859-1?Q?Z9xiUqzdt3VXcOQ4qS0i7gutrMbeNa0Cbz0S28/FYIm7vGbABsDLakmOAX?=
- =?iso-8859-1?Q?qSEe8ULo9q9stxVaq2zRjQw1mBj1tNB2AwFBoN7+nOjBLAnGfXJ3DVz90K?=
- =?iso-8859-1?Q?/N0gMLyvlmc0sVvL8aCwsCJ/M5Uzl06+SJtByHd8P3o0A+QfxsHFcDd0CP?=
- =?iso-8859-1?Q?KRShRZZIH0QMBJL4RklwFIl3sKDFCjd4ae1dwXu91s3UO19ZmIi1nWULZQ?=
- =?iso-8859-1?Q?MiFZpxDY2uPe0S5cJ0pgAGQoLnJ15QAUcCiRpX8MtqnI1+gGl+jLbgo1TI?=
- =?iso-8859-1?Q?VTjRJPpEvccLjclv1DQJ19Nfvdad2mfSJ/o8mzIfwRd1qmPZW+v8Z+agNf?=
- =?iso-8859-1?Q?mzLB6aNUhRMWzteZSdQ1GIZcj47Vo9EcYrxHH9U2YN3n3sUG7bJ3zXDVdG?=
- =?iso-8859-1?Q?BRm0UFbo4YE5IB3rfiAgHo5UgVIcSaqw+LDv8G5G/3Fzyz7ia7x2lzv+vV?=
- =?iso-8859-1?Q?0ey4IPVkHVbLAofbf1PxytYwe/QpWAfxG03TAvHhROiHjZ4hhRjBmUIyRu?=
- =?iso-8859-1?Q?eGeowIKifdENGVVXNr1FmJB07HlRW/cMvY8sxld4boW5sm6nMfXSuLTI04?=
- =?iso-8859-1?Q?Ib+kdRX3HLhJlJ04+CoiADdGxK259HmIdhe0S0C/AJFwmTWSRyfsXS5CcT?=
- =?iso-8859-1?Q?TyQufo9nETc2m0wgpelWro2SKUt1uC0xdH+JHCJ7xDvhcgxztjJfXSns/8?=
- =?iso-8859-1?Q?2MbiyyVTQ+vcIhuYQzLl9SuEbDClod58JTSDuSMjJec+UiRwTZdmGPAXTj?=
- =?iso-8859-1?Q?qbLtHTmjBJWKgaIlqnP1QlYQNgeIGDdhmDzQZMoRsTeB9bh3A2LIDy9Jh9?=
- =?iso-8859-1?Q?LuO4qWk0SDgsd3vJe52f+/SEp6LWSwmdLUi63iBrcoozC3MJ2Q4Uj/tM1m?=
- =?iso-8859-1?Q?M8UKHcl8YkteMEVRbyX5A4aI9BEfKj08YWNyculbMqjyDUrsmz5EEsZv4q?=
- =?iso-8859-1?Q?XZAfZD0SGdHHS2sAiqYcc6mF/mZj+CtyG4+SjtJ5NrrdOhhaSi1TssUA?=
- =?iso-8859-1?Q?=3D=3D?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: 0c89de08-4072-463b-1964-08dc50205b4a
-X-MS-Exchange-CrossTenant-AuthSource: PH8PR11MB8107.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 29 Mar 2024 18:45:08.1654
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: G3IuUNPvYj8n1ajDCzR7z/SALMwJbeGTfYMyhhe+r/l7xd8GRhoYMei98geINgBBzps2Cp3h7fCkzhJSM9HqKHH8IPGGPccGZ3kA1ytKRi0=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS0PR11MB7383
-X-OriginatorOrg: intel.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAEMiCWYC/32NQQ6CMBBFr0Jm7ZhSkAZX3sOwqDCFSbA1U6waw
+ t2tHMDle8l/f4VIwhThXKwglDhy8Bn0oYB+sn4k5CEzaKVrVWmD9zA8Z8Lw8iSYWBYOeKob01S
+ 3qrdaQ14+hBy/9+q1yzxxXIJ89pNU/uz/XipRoXLknL0ZM7TtZWZvJRyDjNBt2/YFCNOSuLcAA
+ AA=
+To: "Michael S. Tsirkin" <mst@redhat.com>, Jason Wang <jasowang@redhat.com>, 
+ Xuan Zhuo <xuanzhuo@linux.alibaba.com>, Jonathan Corbet <corbet@lwn.net>, 
+ David Hildenbrand <david@redhat.com>, Gerd Hoffmann <kraxel@redhat.com>, 
+ Richard Weinberger <richard@nod.at>, 
+ Anton Ivanov <anton.ivanov@cambridgegreys.com>, 
+ Johannes Berg <johannes@sipsolutions.net>, 
+ Paolo Bonzini <pbonzini@redhat.com>, Stefan Hajnoczi <stefanha@redhat.com>, 
+ Jens Axboe <axboe@kernel.dk>, Marcel Holtmann <marcel@holtmann.org>, 
+ Luiz Augusto von Dentz <luiz.dentz@gmail.com>, 
+ Olivia Mackall <olivia@selenic.com>, 
+ Herbert Xu <herbert@gondor.apana.org.au>, Amit Shah <amit@kernel.org>, 
+ Arnd Bergmann <arnd@arndb.de>, 
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+ Gonglei <arei.gonglei@huawei.com>, "David S. Miller" <davem@davemloft.net>, 
+ Sudeep Holla <sudeep.holla@arm.com>, 
+ Cristian Marussi <cristian.marussi@arm.com>, 
+ Viresh Kumar <vireshk@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, 
+ Bartosz Golaszewski <brgl@bgdev.pl>, David Airlie <airlied@redhat.com>, 
+ Gurchetan Singh <gurchetansingh@chromium.org>, 
+ Chia-I Wu <olvaffe@gmail.com>, 
+ Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, 
+ Maxime Ripard <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>, 
+ Daniel Vetter <daniel@ffwll.ch>, 
+ Jean-Philippe Brucker <jean-philippe@linaro.org>, 
+ Joerg Roedel <joro@8bytes.org>, Will Deacon <will@kernel.org>, 
+ Robin Murphy <robin.murphy@arm.com>, Alexander Graf <graf@amazon.com>, 
+ Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>, 
+ Paolo Abeni <pabeni@redhat.com>, Eric Van Hensbergen <ericvh@kernel.org>, 
+ Latchesar Ionkov <lucho@ionkov.net>, 
+ Dominique Martinet <asmadeus@codewreck.org>, 
+ Christian Schoenebeck <linux_oss@crudebyte.com>, 
+ Stefano Garzarella <sgarzare@redhat.com>, Kalle Valo <kvalo@kernel.org>, 
+ Dan Williams <dan.j.williams@intel.com>, 
+ Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+ Ira Weiny <ira.weiny@intel.com>, 
+ Pankaj Gupta <pankaj.gupta.linux@gmail.com>, 
+ Bjorn Andersson <andersson@kernel.org>, 
+ Mathieu Poirier <mathieu.poirier@linaro.org>, 
+ "James E.J. Bottomley" <jejb@linux.ibm.com>, 
+ "Martin K. Petersen" <martin.petersen@oracle.com>, 
+ Vivek Goyal <vgoyal@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, 
+ Anton Yakovlev <anton.yakovlev@opensynergy.com>, 
+ Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>
+Cc: virtualization@lists.linux.dev, linux-doc@vger.kernel.org, 
+ linux-kernel@vger.kernel.org, linux-um@lists.infradead.org, 
+ linux-block@vger.kernel.org, linux-bluetooth@vger.kernel.org, 
+ linux-crypto@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+ linux-gpio@vger.kernel.org, dri-devel@lists.freedesktop.org, 
+ iommu@lists.linux.dev, netdev@vger.kernel.org, v9fs@lists.linux.dev, 
+ kvm@vger.kernel.org, linux-wireless@vger.kernel.org, nvdimm@lists.linux.dev, 
+ linux-remoteproc@vger.kernel.org, linux-scsi@vger.kernel.org, 
+ linux-fsdevel@vger.kernel.org, alsa-devel@alsa-project.org, 
+ linux-sound@vger.kernel.org, 
+ Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>, 
+ Bartosz Golaszewski <bartosz.golaszewski@linaro.org>, 
+ Viresh Kumar <viresh.kumar@linaro.org>
+X-Mailer: b4 0.13.0
+X-Developer-Signature: v=1; a=openpgp-sha256; l=3968;
+ i=krzysztof.kozlowski@linaro.org; h=from:subject:message-id;
+ bh=RbNxoqlZdgy0nYNI8rhm+31pAchfQHzLu9REkEdnoxY=;
+ b=owEBbQKS/ZANAwAKAcE3ZuaGi4PXAcsmYgBmCSJOfbLDaNdnK7LZ1sjz9p0nKU8yjNOYDTxRF
+ 4/5FYB++7yJAjMEAAEKAB0WIQTd0mIoPREbIztuuKjBN2bmhouD1wUCZgkiTgAKCRDBN2bmhouD
+ 16xfD/sGCutGIoRx2mgC/Hzc5lMgoTczIXo0qN8pbpswO/nFngNxF2adSq55q9CTUzlGZru9bWH
+ cNigDmSXMrSx7sM5ybz4qcmCMyehu+O7U8aOA8tW+erFZAOR0aUfLcQqpLPDYLI7hHQ63O8I7Xj
+ VtJUMKdpfYuqQseiDryzJ7zX7vXMTLSRsMPlVp19sEGgRGa3gqRZv83c766vMP83MLwQxLpK4Z0
+ fC4BciD8EYSau1CqSlwHVw0CKNFS+3fOE+eUbMU1/MDg7uNVJhh1g8G4k1IwOMn5an8AH7S3jst
+ Yv6WIreS8LWUyj8KK7ZYISf6/5LWFfQOhTtEUtxJUKYX8x4eYhd3Chzc4as2k6CKZJJLNUufHXk
+ 29XnqUetqiy8dO89GrEG833CGg8DZS69bEER9EIFBUp6npPkX2mRYhs6C2jOw/+HMrrhFRYuj0b
+ 90GkjTaKji3hfg/b20jvDdu8F30M0jhl238jJQ6wc/ehq9fr9tSOnT8crROsB1fo7GJ0QK5fUA4
+ WiGXRrSwF3LgXEqkYWW4FeVmFB4V8uRr3ouRwdLMwRe4mHe2iV5MXhs+XE7nzazEStXPgvNetGF
+ ctJR56fkmyU2W1CRwSQNwxkotC5tYJYs6mW3MbY0xjCNZ5ya5KBoG/F48Dd8KQpSIKmpQVamNr9
+ jmD2MP/z6d7uUdg==
+X-Developer-Key: i=krzysztof.kozlowski@linaro.org; a=openpgp;
+ fpr=9BD07E0E0C51F8D59677B7541B93437D3B41629B
 
-Uwe Kleine-König wrote:
-> The .remove() callback for a platform driver returns an int which makes
-> many driver authors wrongly assume it's possible to do error handling by
-> returning an error code. However the value returned is ignored (apart
-> from emitting a warning) and this typically results in resource leaks.
-> 
-> To improve here there is a quest to make the remove callback return
-> void. In the first step of this quest all drivers are converted to
-> .remove_new(), which already returns void. Eventually after all drivers
-> are converted, .remove_new() will be renamed to .remove().
-> 
-> Trivially convert this driver from always returning zero in the remove
-> callback to the void returning variant.
-> 
-> Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+Changes in v2:
+- Three new patches: virtio mem+input+balloon
+- Minor commit msg adjustments
+- Add tags
+- Link to v1: https://lore.kernel.org/r/20240327-module-owner-virtio-v1-0-0feffab77d99@linaro.org
 
-Looks good,
+Merging
+=======
+All further patches depend on the first virtio patch, therefore please ack
+and this should go via one tree: maybe virtio?
 
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Description
+===========
+Modules registering driver with register_virtio_driver() often forget to
+set .owner field.
+
+Solve the problem by moving this task away from the drivers to the core
+virtio code, just like we did for platform_driver in commit
+9447057eaff8 ("platform_device: use a macro instead of
+platform_driver_register").
+
+Best regards,
+Krzysztof
+
+---
+Krzysztof Kozlowski (25):
+      virtio: store owner from modules with register_virtio_driver()
+      virtio: balloon: drop owner assignment
+      virtio: input: drop owner assignment
+      virtio: mem: drop owner assignment
+      um: virt-pci: drop owner assignment
+      virtio_blk: drop owner assignment
+      bluetooth: virtio: drop owner assignment
+      hwrng: virtio: drop owner assignment
+      virtio_console: drop owner assignment
+      crypto: virtio - drop owner assignment
+      firmware: arm_scmi: virtio: drop owner assignment
+      gpio: virtio: drop owner assignment
+      drm/virtio: drop owner assignment
+      iommu: virtio: drop owner assignment
+      misc: nsm: drop owner assignment
+      net: caif: virtio: drop owner assignment
+      net: virtio: drop owner assignment
+      net: 9p: virtio: drop owner assignment
+      vsock/virtio: drop owner assignment
+      wifi: mac80211_hwsim: drop owner assignment
+      nvdimm: virtio_pmem: drop owner assignment
+      rpmsg: virtio: drop owner assignment
+      scsi: virtio: drop owner assignment
+      fuse: virtio: drop owner assignment
+      sound: virtio: drop owner assignment
+
+ Documentation/driver-api/virtio/writing_virtio_drivers.rst | 1 -
+ arch/um/drivers/virt-pci.c                                 | 1 -
+ drivers/block/virtio_blk.c                                 | 1 -
+ drivers/bluetooth/virtio_bt.c                              | 1 -
+ drivers/char/hw_random/virtio-rng.c                        | 1 -
+ drivers/char/virtio_console.c                              | 2 --
+ drivers/crypto/virtio/virtio_crypto_core.c                 | 1 -
+ drivers/firmware/arm_scmi/virtio.c                         | 1 -
+ drivers/gpio/gpio-virtio.c                                 | 1 -
+ drivers/gpu/drm/virtio/virtgpu_drv.c                       | 1 -
+ drivers/iommu/virtio-iommu.c                               | 1 -
+ drivers/misc/nsm.c                                         | 1 -
+ drivers/net/caif/caif_virtio.c                             | 1 -
+ drivers/net/virtio_net.c                                   | 1 -
+ drivers/net/wireless/virtual/mac80211_hwsim.c              | 1 -
+ drivers/nvdimm/virtio_pmem.c                               | 1 -
+ drivers/rpmsg/virtio_rpmsg_bus.c                           | 1 -
+ drivers/scsi/virtio_scsi.c                                 | 1 -
+ drivers/virtio/virtio.c                                    | 6 ++++--
+ drivers/virtio/virtio_balloon.c                            | 1 -
+ drivers/virtio/virtio_input.c                              | 1 -
+ drivers/virtio/virtio_mem.c                                | 1 -
+ fs/fuse/virtio_fs.c                                        | 1 -
+ include/linux/virtio.h                                     | 7 +++++--
+ net/9p/trans_virtio.c                                      | 1 -
+ net/vmw_vsock/virtio_transport.c                           | 1 -
+ sound/virtio/virtio_card.c                                 | 1 -
+ 27 files changed, 9 insertions(+), 30 deletions(-)
+---
+base-commit: 7fdcff3312e16ba8d1419f8a18f465c5cc235ecf
+change-id: 20240327-module-owner-virtio-546763b3ca22
+
+Best regards,
+-- 
+Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+
