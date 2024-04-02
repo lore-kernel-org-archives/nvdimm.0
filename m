@@ -1,45 +1,45 @@
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BF6E15E1EA
-	for <nvdimm@lists.linux.dev>; Tue,  2 Apr 2024 20:34:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A91C15E806
+	for <nvdimm@lists.linux.dev>; Tue,  2 Apr 2024 20:34:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712090046; cv=none; b=RC1BcRiT//FeJMhXbDCH+sj3E7gC+1lpbYZYes2Dc8zL/ECp63KQ+S+LGb7DKhV2TKxX0ajwSeFZ5AolTe4HlWMU75wcHmzTD4CkdNuCZyhnP5kYaXrcDOdJAzvHzfp4IdvGiyBPk2tWk0hCRez8DAfYn2enchTf8yM6R/PmOtY=
+	t=1712090055; cv=none; b=dHliM2nXhrxmlgGHXi7T73M2qGRZfdjuw5cENEj3mHO3ceRFJfY7yF8QT92qWytWDuwLqSPz+peEQEfMQphzHUjH6FjzG0Mq5H0ZlMXGEBicuuUfaGIT9kIZG7n5eTG0AbCYNKamFo4YuNYG/9VhWWSlo2CPOkMpJnMpF+zNvC0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712090046; c=relaxed/simple;
-	bh=OX/xiC+71lDUNqQ4TncW2+vDu1US6El9ChgpPujewDY=;
+	s=arc-20240116; t=1712090055; c=relaxed/simple;
+	bh=bmmXl9802fqjQBn/Jkyn+cPSqGGb+PgZV0INCHN8xQs=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=BTfx5g+G99/4pEd0qzkmF7HfQpArazNszHh76xva1n9/npauoAwdKYKhQdv5OyPsrX2ppjmWwe7Pdar7+nE7f2p0jSlHLeu275pc37D6/VDF5ZFj9O4nBbyWYtHaOJLyCv8h7NMI5u2bpQRFqLpm66nmEcavFY61QNRykym1pZI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=OJolVvKD; arc=none smtp.client-ip=170.10.133.124
+	 Content-Type:Content-Disposition:In-Reply-To; b=A9udqIHnOuf2tOoRJ9JP4olljZvxxUkAcT0L+dI6mftxXi2uAYjJyWAo/d+xPXAOKiRjE+j/sVLh7EIxMOzWzisSxonUFGoGbHSzvMWKkVP32IPJdMMU0bQHePmcZDsIBpdHoE99vztHxinTkmeAUUmVHKuRiMSjTPzFzU/Q+dA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=ABEi68is; arc=none smtp.client-ip=170.10.133.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="OJolVvKD"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="ABEi68is"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1712090044;
+	s=mimecast20190719; t=1712090053;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references;
-	bh=OvEQkpQpFepwfntSNPl3byIDfhmnVE0r1tpJKpODITA=;
-	b=OJolVvKDqSMsv6za93zw4gGnnhktWSbKoLVI5+QeSQ7CERHNyck/zVZLucu+uJ4We2HV2I
-	a0CtZPtKqIRLCURW1+c+99SOnwKYDy/VFgQvgQ0m2eW8vbrKuGGzlgLDoBxiQ/wlMt+qUo
-	2VOZMCDdylZSr6g314zVVQu9vDu/IFs=
-Received: from mimecast-mx02.redhat.com (mx-ext.redhat.com [66.187.233.73])
- by relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
- cipher=TLS_AES_256_GCM_SHA384) id us-mta-346-FO-mePWLNgWQQ7CUKOsM0w-1; Tue,
- 02 Apr 2024 16:34:00 -0400
-X-MC-Unique: FO-mePWLNgWQQ7CUKOsM0w-1
-Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.rdu2.redhat.com [10.11.54.4])
+	bh=k+RL3GcJX3cDss5q+sY+fk2hjsigjZNfwAD2FrDBS7E=;
+	b=ABEi68istgfKk6hVhOX41p1GtVsQdV72P3MPDfSzOrBgX/unO8Mx6dzD/ld5BlQX9O3y0o
+	WnhBm4eWrR9EpAatsWi0hR2F702ZTujzoL8BLU1OWB2hmHf5Ma7OgwXD03WTpGRCwphgLu
+	GpywN1cOZUsaFMBJeMatx696P4iqmkk=
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-296-uo-AESLwMNe1F3Y3OnjEcw-1; Tue, 02 Apr 2024 16:34:11 -0400
+X-MC-Unique: uo-AESLwMNe1F3Y3OnjEcw-1
+Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.rdu2.redhat.com [10.11.54.6])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 6872F1C29EA2;
-	Tue,  2 Apr 2024 20:33:58 +0000 (UTC)
+	by mimecast-mx02.redhat.com (Postfix) with ESMTPS id D6F238007A1;
+	Tue,  2 Apr 2024 20:34:08 +0000 (UTC)
 Received: from localhost (unknown [10.39.193.21])
-	by smtp.corp.redhat.com (Postfix) with ESMTP id 2D9162024517;
-	Tue,  2 Apr 2024 20:33:57 +0000 (UTC)
-Date: Tue, 2 Apr 2024 16:33:52 -0400
+	by smtp.corp.redhat.com (Postfix) with ESMTP id 9B5012166B31;
+	Tue,  2 Apr 2024 20:34:07 +0000 (UTC)
+Date: Tue, 2 Apr 2024 16:34:02 -0400
 From: Stefan Hajnoczi <stefanha@redhat.com>
 To: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
 Cc: "Michael S. Tsirkin" <mst@redhat.com>, Jason Wang <jasowang@redhat.com>,
@@ -104,10 +104,10 @@ Cc: "Michael S. Tsirkin" <mst@redhat.com>, Jason Wang <jasowang@redhat.com>,
 	nvdimm@lists.linux.dev, linux-remoteproc@vger.kernel.org,
 	linux-scsi@vger.kernel.org, linux-fsdevel@vger.kernel.org,
 	alsa-devel@alsa-project.org, linux-sound@vger.kernel.org
-Subject: Re: [PATCH v2 19/25] vsock/virtio: drop owner assignment
-Message-ID: <20240402203352.GE2507314@fedora>
+Subject: Re: [PATCH v2 23/25] scsi: virtio: drop owner assignment
+Message-ID: <20240402203402.GF2507314@fedora>
 References: <20240331-module-owner-virtio-v2-0-98f04bfaf46a@linaro.org>
- <20240331-module-owner-virtio-v2-19-98f04bfaf46a@linaro.org>
+ <20240331-module-owner-virtio-v2-23-98f04bfaf46a@linaro.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -115,45 +115,45 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="j9UBq3t7OV8LGaOj"
+	protocol="application/pgp-signature"; boundary="SdnH/2DvDGR9ROwI"
 Content-Disposition: inline
-In-Reply-To: <20240331-module-owner-virtio-v2-19-98f04bfaf46a@linaro.org>
-X-Scanned-By: MIMEDefang 3.4.1 on 10.11.54.4
+In-Reply-To: <20240331-module-owner-virtio-v2-23-98f04bfaf46a@linaro.org>
+X-Scanned-By: MIMEDefang 3.4.1 on 10.11.54.6
 
 
---j9UBq3t7OV8LGaOj
+--SdnH/2DvDGR9ROwI
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Sun, Mar 31, 2024 at 10:44:06AM +0200, Krzysztof Kozlowski wrote:
+On Sun, Mar 31, 2024 at 10:44:10AM +0200, Krzysztof Kozlowski wrote:
 > virtio core already sets the .owner, so driver does not need to.
 >=20
-> Acked-by: Stefano Garzarella <sgarzare@redhat.com>
 > Signed-off-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+>=20
 > ---
 >=20
 > Depends on the first patch.
 > ---
->  net/vmw_vsock/virtio_transport.c | 1 -
+>  drivers/scsi/virtio_scsi.c | 1 -
 >  1 file changed, 1 deletion(-)
 
 Reviewed-by: Stefan Hajnoczi <stefanha@redhat.com>
 
---j9UBq3t7OV8LGaOj
+--SdnH/2DvDGR9ROwI
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQEzBAEBCAAdFiEEhpWov9P5fNqsNXdanKSrs4Grc8gFAmYMa7AACgkQnKSrs4Gr
-c8g8hAf/Q/aJP3BDkVBlHnqhCUt12uHu9myV8OY7V9mafm3hc9xrowVkX6EuGzcU
-kCxhMH5ccP0ni+J0DGSwa7gYph8Okl7l2wFXLcRr9I92rUhpTZWCesa1OmkvLDgj
-TimEpARPnyEdZayGjMZzuxn6ATYSKpApBmRVF7rzpVpv1itAOOY+r+wFXBSBHrRF
-7uLi4Zx5FrAj8uYcBxFhzHCD9tH1DqVvNMnA6axVU6VagNtwzjPjwZakX852Cgb5
-HTHDSk5ECuFNl9ZF1SRX7tLvVmfFSkAQA/W0q0MS/knc1XxBwpOnrNrRPKvbegSU
-2FN7Oq2v2Y5E6uAdcVaIC3agl3LIug==
-=gHGP
+iQEzBAEBCAAdFiEEhpWov9P5fNqsNXdanKSrs4Grc8gFAmYMa7oACgkQnKSrs4Gr
+c8i1eAf+MLJRFV0ReS0TcAxQ+rR1jKUab1SBLeUTszPuKgXc/iozA1gMDlecO6Va
+kcBlhSRh2WIBmWmb/Zixp1fhkCo2yQjvOS2t4x6po9gH4YxAhUGTfsCGVK6TDTeI
+MxEodu79iPW81/dZ0Sz4XxNKTWN0UKwdDDxivNVfAjGKRX7Ug7ojT1bY04/UH+B7
+M6G/LYvcqIQPuU90RkeZYDxV8odWVMnyresdB4gVZMZ2J91//XRuJBl294JTil+P
+dQLKeFSnoXA002bIy+vlZUhxz8fANlOWqe5+TedLa/S/1FB+cDjQY6plBLIIEYSs
+0XHoSaVTwf2D+3pavZKFIL1sIWbMNw==
+=BxEA
 -----END PGP SIGNATURE-----
 
---j9UBq3t7OV8LGaOj--
+--SdnH/2DvDGR9ROwI--
 
