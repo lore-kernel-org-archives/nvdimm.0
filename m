@@ -1,159 +1,225 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B761015E1FD
-	for <nvdimm@lists.linux.dev>; Tue,  2 Apr 2024 20:34:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 844811514EC
+	for <nvdimm@lists.linux.dev>; Wed,  3 Apr 2024 16:52:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712090086; cv=none; b=D4EbrDjWGb5V1Ntf5mDuITHcAq7WSOXM72rT/C0JT9pqUNpWCbPDzj87noYf9cYeWIHRA1lL5cIhT75bALFgBWtdIuREvjTftzhIuEtxhINdWzKczhgRcM+W9ND+caKaUhHVUvIsn67fkwRsbnvqv8N5iZjRCCLXlJAI/a2HSmI=
+	t=1712163130; cv=none; b=Dc6FY9RLA8LpsBrWi+QjcpQ22zgb9/Da2NwlvhDO2kANb+NChI7N6WYSROtGhaDShtkwvgWiSoCc6iqhVEETY3TxLdNQssLCha3Xq8iDop+uTj14dCeNz3FojnovKlP2ODRmKupB9NDsRd9CRvZoLitoonB+87cyOlxLlF5C9Gc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712090086; c=relaxed/simple;
-	bh=PbCYgrPVbVOdhV1jC/4KII4virJ8WGK/ifPusT5Ym9k=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=f3Y8WXW/VT+TXf76n/y5SA01VVDi1vyHCqIet0gCTiwWT0p/eq/xDblvKQRUHMImBZBJcAtYg+89XJXdNMYu/iof5UdxJ3FMtvZUVTZTOpnpXhy6aufu2Vk88Ocgjzwl9Bcsa1GcC5vb+CWISIpLUxC35TbaAy7+uvPAJx7phAE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=GFmTVCau; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="GFmTVCau"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1712090083;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=OmliKS7IXk0y+y9ssPc7arVQxLqF15p8TNQCcmbmlpA=;
-	b=GFmTVCau6lWWVvGEaMdlAc5ShtK/UioXnp/lh8++6nrF9qaioP9ZAqfEfbmC//gZ0xbOp7
-	w1EXP3GtTxJMK6VS3qMwpw46uVNC+6eb4a5ngvQeL0wX8iq8GaV6Zd1wrmbnejFdvkXLCy
-	GedhKCpu4zRyMiVXEqcg2t6nLaFR2Fo=
-Received: from mimecast-mx02.redhat.com (mx-ext.redhat.com [66.187.233.73])
- by relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
- cipher=TLS_AES_256_GCM_SHA384) id us-mta-637-M7s17IMyP86NjAj3PJZL_Q-1; Tue,
- 02 Apr 2024 16:34:41 -0400
-X-MC-Unique: M7s17IMyP86NjAj3PJZL_Q-1
-Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.rdu2.redhat.com [10.11.54.2])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mimecast-mx02.redhat.com (Postfix) with ESMTPS id BEB671C29EA4;
-	Tue,  2 Apr 2024 20:34:38 +0000 (UTC)
-Received: from localhost (unknown [10.39.193.21])
-	by smtp.corp.redhat.com (Postfix) with ESMTP id 6A6D640C6DAE;
-	Tue,  2 Apr 2024 20:34:37 +0000 (UTC)
-Date: Tue, 2 Apr 2024 16:34:18 -0400
-From: Stefan Hajnoczi <stefanha@redhat.com>
-To: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
-Cc: "Michael S. Tsirkin" <mst@redhat.com>, Jason Wang <jasowang@redhat.com>,
-	Xuan Zhuo <xuanzhuo@linux.alibaba.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	David Hildenbrand <david@redhat.com>,
-	Gerd Hoffmann <kraxel@redhat.com>,
-	Richard Weinberger <richard@nod.at>,
-	Anton Ivanov <anton.ivanov@cambridgegreys.com>,
-	Johannes Berg <johannes@sipsolutions.net>,
-	Paolo Bonzini <pbonzini@redhat.com>, Jens Axboe <axboe@kernel.dk>,
-	Marcel Holtmann <marcel@holtmann.org>,
-	Luiz Augusto von Dentz <luiz.dentz@gmail.com>,
-	Olivia Mackall <olivia@selenic.com>,
-	Herbert Xu <herbert@gondor.apana.org.au>,
-	Amit Shah <amit@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Gonglei <arei.gonglei@huawei.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Sudeep Holla <sudeep.holla@arm.com>,
-	Cristian Marussi <cristian.marussi@arm.com>,
-	Viresh Kumar <vireshk@kernel.org>,
-	Linus Walleij <linus.walleij@linaro.org>,
-	Bartosz Golaszewski <brgl@bgdev.pl>,
-	David Airlie <airlied@redhat.com>,
-	Gurchetan Singh <gurchetansingh@chromium.org>,
-	Chia-I Wu <olvaffe@gmail.com>,
-	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-	Maxime Ripard <mripard@kernel.org>,
-	Thomas Zimmermann <tzimmermann@suse.de>,
-	Daniel Vetter <daniel@ffwll.ch>,
-	Jean-Philippe Brucker <jean-philippe@linaro.org>,
-	Joerg Roedel <joro@8bytes.org>, Will Deacon <will@kernel.org>,
-	Robin Murphy <robin.murphy@arm.com>,
-	Alexander Graf <graf@amazon.com>,
-	Eric Dumazet <edumazet@google.com>,
-	Jakub Kicinski <kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>,
-	Eric Van Hensbergen <ericvh@kernel.org>,
-	Latchesar Ionkov <lucho@ionkov.net>,
-	Dominique Martinet <asmadeus@codewreck.org>,
-	Christian Schoenebeck <linux_oss@crudebyte.com>,
-	Stefano Garzarella <sgarzare@redhat.com>,
-	Kalle Valo <kvalo@kernel.org>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
-	Pankaj Gupta <pankaj.gupta.linux@gmail.com>,
-	Bjorn Andersson <andersson@kernel.org>,
-	Mathieu Poirier <mathieu.poirier@linaro.org>,
-	"James E.J. Bottomley" <jejb@linux.ibm.com>,
-	"Martin K. Petersen" <martin.petersen@oracle.com>,
-	Vivek Goyal <vgoyal@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>,
-	Anton Yakovlev <anton.yakovlev@opensynergy.com>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>,
-	virtualization@lists.linux.dev, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-um@lists.infradead.org,
-	linux-block@vger.kernel.org, linux-bluetooth@vger.kernel.org,
-	linux-crypto@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-gpio@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	iommu@lists.linux.dev, netdev@vger.kernel.org, v9fs@lists.linux.dev,
-	kvm@vger.kernel.org, linux-wireless@vger.kernel.org,
-	nvdimm@lists.linux.dev, linux-remoteproc@vger.kernel.org,
-	linux-scsi@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-	alsa-devel@alsa-project.org, linux-sound@vger.kernel.org
-Subject: Re: [PATCH v2 24/25] fuse: virtio: drop owner assignment
-Message-ID: <20240402203418.GG2507314@fedora>
-References: <20240331-module-owner-virtio-v2-0-98f04bfaf46a@linaro.org>
- <20240331-module-owner-virtio-v2-24-98f04bfaf46a@linaro.org>
+	s=arc-20240116; t=1712163130; c=relaxed/simple;
+	bh=fuwOPTXrOfm1gZklUqEdI1kNxV/jM6pfbA8+sSz01gM=;
+	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=BSOk9oePs6CQvY4rI1qJq63WoeCmHMKvbAXU9IF1HrCqvPZKzOkVnelAtLoWoNG1AY6biBXQcRQZvjl8RI0anuoQg1xfE0ylex6BenXRlEIL6Y7tSr4e0XQI53b3tcpayxIrEZXTSEprouqsQ2wcgAMp1XZu7FAhT/z7cjgKxJE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.18.186.216])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4V8rNM5jKhz6D8Yx;
+	Thu,  4 Apr 2024 00:50:43 +0800 (CST)
+Received: from lhrpeml500005.china.huawei.com (unknown [7.191.163.240])
+	by mail.maildlp.com (Postfix) with ESMTPS id 8C7A0140B67;
+	Thu,  4 Apr 2024 00:52:03 +0800 (CST)
+Received: from localhost (10.202.227.76) by lhrpeml500005.china.huawei.com
+ (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.35; Wed, 3 Apr
+ 2024 17:52:02 +0100
+Date: Wed, 3 Apr 2024 17:52:01 +0100
+From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+To: "Ho-Ren (Jack) Chuang" <horenchuang@bytedance.com>
+CC: "Huang, Ying" <ying.huang@intel.com>, Gregory Price
+	<gourry.memverge@gmail.com>, <aneesh.kumar@linux.ibm.com>, <mhocko@suse.com>,
+	<tj@kernel.org>, <john@jagalactic.com>, Eishan Mirakhur
+	<emirakhur@micron.com>, Vinicius Tavares Petrucci <vtavarespetr@micron.com>,
+	Ravis OpenSrc <Ravis.OpenSrc@micron.com>, Alistair Popple
+	<apopple@nvidia.com>, Srinivasulu Thanneeru <sthanneeru@micron.com>, SeongJae
+ Park <sj@kernel.org>, Dan Williams <dan.j.williams@intel.com>, Vishal Verma
+	<vishal.l.verma@intel.com>, "Dave Jiang" <dave.jiang@intel.com>, Andrew
+ Morton <akpm@linux-foundation.org>, <nvdimm@lists.linux.dev>,
+	<linux-cxl@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-mm@kvack.org>, "Ho-Ren (Jack) Chuang" <horenc@vt.edu>, "Ho-Ren (Jack)
+ Chuang" <horenchuang@gmail.com>, <qemu-devel@nongnu.org>
+Subject: Re: [PATCH v10 1/2] memory tier: dax/kmem: introduce an abstract
+ layer for finding, allocating, and putting memory types
+Message-ID: <20240403175201.00000c2c@Huawei.com>
+In-Reply-To: <20240402001739.2521623-2-horenchuang@bytedance.com>
+References: <20240402001739.2521623-1-horenchuang@bytedance.com>
+	<20240402001739.2521623-2-horenchuang@bytedance.com>
+Organization: Huawei Technologies Research and Development (UK) Ltd.
+X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="y2TTKZujScqhsi/4"
-Content-Disposition: inline
-In-Reply-To: <20240331-module-owner-virtio-v2-24-98f04bfaf46a@linaro.org>
-X-Scanned-By: MIMEDefang 3.4.1 on 10.11.54.2
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: lhrpeml500004.china.huawei.com (7.191.163.9) To
+ lhrpeml500005.china.huawei.com (7.191.163.240)
+
+On Tue,  2 Apr 2024 00:17:37 +0000
+"Ho-Ren (Jack) Chuang" <horenchuang@bytedance.com> wrote:
+
+> Since different memory devices require finding, allocating, and putting
+> memory types, these common steps are abstracted in this patch,
+> enhancing the scalability and conciseness of the code.
+> 
+> Signed-off-by: Ho-Ren (Jack) Chuang <horenchuang@bytedance.com>
+> Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
+
+Hi,
+
+I know this is a late entry to the discussion but a few comments inline.
+(sorry I didn't look earlier!)
+
+All opportunities to improve code complexity and readability as a result
+of your factoring out.
+
+Jonathan
 
 
---y2TTKZujScqhsi/4
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Sun, Mar 31, 2024 at 10:44:11AM +0200, Krzysztof Kozlowski wrote:
-> virtio core already sets the .owner, so driver does not need to.
->=20
-> Signed-off-by: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
->=20
 > ---
->=20
-> Depends on the first patch.
-> ---
->  fs/fuse/virtio_fs.c | 1 -
->  1 file changed, 1 deletion(-)
+>  drivers/dax/kmem.c           | 20 ++------------------
+>  include/linux/memory-tiers.h | 13 +++++++++++++
+>  mm/memory-tiers.c            | 32 ++++++++++++++++++++++++++++++++
+>  3 files changed, 47 insertions(+), 18 deletions(-)
+> 
+> diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
+> index 42ee360cf4e3..01399e5b53b2 100644
+> --- a/drivers/dax/kmem.c
+> +++ b/drivers/dax/kmem.c
+> @@ -55,21 +55,10 @@ static LIST_HEAD(kmem_memory_types);
+>  
+>  static struct memory_dev_type *kmem_find_alloc_memory_type(int adist)
+>  {
+> -	bool found = false;
+>  	struct memory_dev_type *mtype;
+>  
+>  	mutex_lock(&kmem_memory_type_lock);
+could use
 
-Reviewed-by: Stefan Hajnoczi <stefanha@redhat.com>
+	guard(mutex)(&kmem_memory_type_lock);
+	return mt_find_alloc_memory_type(adist, &kmem_memory_types);
 
---y2TTKZujScqhsi/4
-Content-Type: application/pgp-signature; name="signature.asc"
+I'm fine if you ignore this comment though as may be other functions in
+here that could take advantage of the cleanup.h stuff in a future patch.
 
------BEGIN PGP SIGNATURE-----
+> -	list_for_each_entry(mtype, &kmem_memory_types, list) {
+> -		if (mtype->adistance == adist) {
+> -			found = true;
+> -			break;
+> -		}
+> -	}
+> -	if (!found) {
+> -		mtype = alloc_memory_type(adist);
+> -		if (!IS_ERR(mtype))
+> -			list_add(&mtype->list, &kmem_memory_types);
+> -	}
+> +	mtype = mt_find_alloc_memory_type(adist, &kmem_memory_types);
+>  	mutex_unlock(&kmem_memory_type_lock);
+>  
+>  	return mtype;
+ 
+> diff --git a/include/linux/memory-tiers.h b/include/linux/memory-tiers.h
+> index 69e781900082..a44c03c2ba3a 100644
+> --- a/include/linux/memory-tiers.h
+> +++ b/include/linux/memory-tiers.h
+> @@ -48,6 +48,9 @@ int mt_calc_adistance(int node, int *adist);
+>  int mt_set_default_dram_perf(int nid, struct access_coordinate *perf,
+>  			     const char *source);
+>  int mt_perf_to_adistance(struct access_coordinate *perf, int *adist);
+> +struct memory_dev_type *mt_find_alloc_memory_type(int adist,
+> +							struct list_head *memory_types);
 
-iQEzBAEBCAAdFiEEhpWov9P5fNqsNXdanKSrs4Grc8gFAmYMa8oACgkQnKSrs4Gr
-c8hVnAf/cA3xbyK70jAgkZV9EtimcENA8Vicjc5wwuE2Vt1WSOZUWtD+a8KtqIDS
-ICvCIk7XlMHoB7BYaP8qlXQ0kjkARmT7hwEQyqEDL/MzEgyKhChus/pV8g6Cvywl
-OdPkT57aujxEBU5+l5t8TnP2I8CziPoDf0uizIpf5r2pZstP0q/mRVNFevjTDeSu
-L+LjxHElpmAVApGciiGOH+cpPYuKAejObzy5z92m7jZgh/LfHtcK29bhoWwNTL1l
-e6ryz/B2YrpyrVdDjqUD1iJ2WR2qxEUAI3moU5ySGqG/w5Lg0+ji+9TlCE46xoQ/
-U1ALdKDyNFUB1iRXdA00oKhEe6MUOw==
-=AQF3
------END PGP SIGNATURE-----
+That indent looks unusual.  Align the start of struct with start of int.
 
---y2TTKZujScqhsi/4--
+> +void mt_put_memory_types(struct list_head *memory_types);
+>  #ifdef CONFIG_MIGRATION
+>  int next_demotion_node(int node);
+>  void node_get_allowed_targets(pg_data_t *pgdat, nodemask_t *targets);
+> @@ -136,5 +139,15 @@ static inline int mt_perf_to_adistance(struct access_coordinate *perf, int *adis
+>  {
+>  	return -EIO;
+>  }
+> +
+> +struct memory_dev_type *mt_find_alloc_memory_type(int adist, struct list_head *memory_types)
+> +{
+> +	return NULL;
+> +}
+> +
+> +void mt_put_memory_types(struct list_head *memory_types)
+> +{
+> +
+No blank line needed here. 
+> +}
+>  #endif	/* CONFIG_NUMA */
+>  #endif  /* _LINUX_MEMORY_TIERS_H */
+> diff --git a/mm/memory-tiers.c b/mm/memory-tiers.c
+> index 0537664620e5..974af10cfdd8 100644
+> --- a/mm/memory-tiers.c
+> +++ b/mm/memory-tiers.c
+> @@ -623,6 +623,38 @@ void clear_node_memory_type(int node, struct memory_dev_type *memtype)
+>  }
+>  EXPORT_SYMBOL_GPL(clear_node_memory_type);
+>  
+> +struct memory_dev_type *mt_find_alloc_memory_type(int adist, struct list_head *memory_types)
+
+Breaking this out as a separate function provides opportunity to improve it.
+Maybe a follow up patch makes sense given it would no longer be a straight
+forward code move.  However in my view it would be simple enough to be obvious
+even within this patch.
+
+> +{
+> +	bool found = false;
+> +	struct memory_dev_type *mtype;
+> +
+> +	list_for_each_entry(mtype, memory_types, list) {
+> +		if (mtype->adistance == adist) {
+> +			found = true;
+
+Why not return here?
+			return mtype;
+
+> +			break;
+> +		}
+> +	}
+> +	if (!found) {
+
+If returning above, no need for found variable - just do this unconditionally.
++ I suggest you flip logic for simpler to follow code flow.
+It's more code but I think a bit easier to read as error handling is
+out of the main simple flow.
+
+	mtype = alloc_memory_type(adist);
+	if (IS_ERR(mtype))
+		return mtype;
+
+	list_add(&mtype->list, memory_types);
+
+	return mtype;
+
+> +		mtype = alloc_memory_type(adist);
+> +		if (!IS_ERR(mtype))
+> +			list_add(&mtype->list, memory_types);
+> +	}
+> +
+> +	return mtype;
+> +}
+> +EXPORT_SYMBOL_GPL(mt_find_alloc_memory_type);
+> +
+> +void mt_put_memory_types(struct list_head *memory_types)
+> +{
+> +	struct memory_dev_type *mtype, *mtn;
+> +
+> +	list_for_each_entry_safe(mtype, mtn, memory_types, list) {
+> +		list_del(&mtype->list);
+> +		put_memory_type(mtype);
+> +	}
+> +}
+> +EXPORT_SYMBOL_GPL(mt_put_memory_types);
+> +
+>  static void dump_hmem_attrs(struct access_coordinate *coord, const char *prefix)
+>  {
+>  	pr_info(
 
