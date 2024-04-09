@@ -1,118 +1,214 @@
-Received: from smtp-fw-52003.amazon.com (smtp-fw-52003.amazon.com [52.119.213.152])
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3281586AF4;
-	Tue,  9 Apr 2024 11:45:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=52.119.213.152
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 23E8713D885
+	for <nvdimm@lists.linux.dev>; Tue,  9 Apr 2024 16:12:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712663152; cv=none; b=fh1NBwGqho9YbKjaQLz/bYK/+6uH75ubXRKqL2aUOtZ9M7S1xP0poKVGhry7fVxtSMUmhcd79Gma0Dz74egnPtpaeKNoSmoHNFHgPDkIJJtgmuE5pTtp9rOMVaepKcdwDiM0mhPW5bJdD8vaACmo5LG4wg9LyAXXeN1iEmsjXyQ=
+	t=1712679132; cv=none; b=mISzcHNrd++d0rR0Yvy2wOKkF929nBrdLMu9lkavG5wHxLzzARENSbgXnAOBGTHRyHg3JIMVV3xaE9iiPaADa66VKh3dGZ+xZXLZ9pLr+OI7evOut0o+mXjGsjEqpAltBQITpLpIF+lga72upG1QGWl3f/V+MunDjib0+fIKrHY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712663152; c=relaxed/simple;
-	bh=GFjr+qUI/xJlRfC49pDYbbQ+5mOHCUk/2gN5wZX0VPA=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=hh55wpvHymdkrSEv2OdJtyWBeuRe9tpC3+b8hqL/f7AiN09ygLnhCRKoilSvVBRff2X5nDwCzU1mfpJ0bhjOxzdYhR9PqcC1kovil7n+lmvGNCBA+jFuxlM56/cH7FYnWAEMo4ZtkK6ATcjELv/T6PEoFqGZkoCovvWX9qOFShU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com; spf=pass smtp.mailfrom=amazon.de; dkim=pass (1024-bit key) header.d=amazon.com header.i=@amazon.com header.b=Re2MZHX5; arc=none smtp.client-ip=52.119.213.152
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=amazon.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=amazon.de
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=amazon.com header.i=@amazon.com header.b="Re2MZHX5"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
-  t=1712663151; x=1744199151;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=GFjr+qUI/xJlRfC49pDYbbQ+5mOHCUk/2gN5wZX0VPA=;
-  b=Re2MZHX5GydCM8B6KilkbcXlSGPSLv0DHVNAFcmqvWsd0IZ1NH+wl46p
-   jp+rvzqYg9VvAX9wn3JpJghaHuXQWE2yPEhE8P08rq+2tVNxto7uD3tbV
-   QrLFtsNiMvuJGKG0kOuG7Rz2NIhkvDaaqqVhKqvF/2RhKVIbglEWBhS4x
-   g=;
-X-IronPort-AV: E=Sophos;i="6.07,189,1708387200"; 
-   d="scan'208";a="650727234"
-Received: from iad12-co-svc-p1-lb1-vlan3.amazon.com (HELO smtpout.prod.us-west-2.prod.farcaster.email.amazon.dev) ([10.43.8.6])
-  by smtp-border-fw-52003.iad7.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Apr 2024 11:45:43 +0000
-Received: from EX19MTAUWC002.ant.amazon.com [10.0.21.151:49900]
- by smtpin.naws.us-west-2.prod.farcaster.email.amazon.dev [10.0.27.169:2525] with esmtp (Farcaster)
- id 3f52ccb2-10c8-4639-a2de-4651f9e21034; Tue, 9 Apr 2024 11:45:42 +0000 (UTC)
-X-Farcaster-Flow-ID: 3f52ccb2-10c8-4639-a2de-4651f9e21034
-Received: from EX19D020UWC004.ant.amazon.com (10.13.138.149) by
- EX19MTAUWC002.ant.amazon.com (10.250.64.143) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1258.28; Tue, 9 Apr 2024 11:45:38 +0000
-Received: from [0.0.0.0] (10.253.83.51) by EX19D020UWC004.ant.amazon.com
- (10.13.138.149) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1258.28; Tue, 9 Apr
- 2024 11:45:22 +0000
-Message-ID: <7c82670e-6063-4b0f-9bbf-805a0d949d84@amazon.com>
-Date: Tue, 9 Apr 2024 13:45:18 +0200
+	s=arc-20240116; t=1712679132; c=relaxed/simple;
+	bh=lp0JEW66Srz5p9S+cKV1lNUbi7VeyksXm815vT1QYeQ=;
+	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=ReV3zxk2Dlt3r6fvGYRIQ5r0/f9HXDH3lg95VJphJdxH7GE8TQd0QXwgSYfCahrihiMN+5X2CsbjBO2l3SpYxpReaj3XhKBvRl+KtXnthfdi9hWPe9vXlQgxJ3cLr7jtXO9OauEiaubssn1ryORVf6CSyUWSmNI92hWE8LCd5AU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.18.186.216])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4VDWC83HBWz6J9yq;
+	Wed, 10 Apr 2024 00:10:28 +0800 (CST)
+Received: from lhrpeml500005.china.huawei.com (unknown [7.191.163.240])
+	by mail.maildlp.com (Postfix) with ESMTPS id D5F01140519;
+	Wed, 10 Apr 2024 00:12:05 +0800 (CST)
+Received: from localhost (10.202.227.76) by lhrpeml500005.china.huawei.com
+ (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.35; Tue, 9 Apr
+ 2024 17:12:05 +0100
+Date: Tue, 9 Apr 2024 17:12:04 +0100
+From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+To: "Ho-Ren (Jack) Chuang" <horenchuang@bytedance.com>
+CC: "Huang, Ying" <ying.huang@intel.com>, Gregory Price
+	<gourry.memverge@gmail.com>, <aneesh.kumar@linux.ibm.com>, <mhocko@suse.com>,
+	<tj@kernel.org>, <john@jagalactic.com>, Eishan Mirakhur
+	<emirakhur@micron.com>, Vinicius Tavares Petrucci <vtavarespetr@micron.com>,
+	Ravis OpenSrc <Ravis.OpenSrc@micron.com>, Alistair Popple
+	<apopple@nvidia.com>, Srinivasulu Thanneeru <sthanneeru@micron.com>, SeongJae
+ Park <sj@kernel.org>, Dan Williams <dan.j.williams@intel.com>, Vishal Verma
+	<vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, "Andrew
+ Morton" <akpm@linux-foundation.org>, <nvdimm@lists.linux.dev>,
+	<linux-cxl@vger.kernel.org>, <linux-kernel@vger.kernel.org>, "Linux Memory
+ Management List" <linux-mm@kvack.org>, "Ho-Ren (Jack) Chuang"
+	<horenc@vt.edu>, "Ho-Ren (Jack) Chuang" <horenchuang@gmail.com>,
+	<qemu-devel@nongnu.org>, Hao Xiang <hao.xiang@bytedance.com>
+Subject: Re: [PATCH v11 2/2] memory tier: create CPUless memory tiers after
+ obtaining HMAT info
+Message-ID: <20240409171204.00001710@Huawei.com>
+In-Reply-To: <CAKPbEqpGM_nR+LKbsoFTviBZaKUKYqJ3zbJp9EOCJAGvuPy6aQ@mail.gmail.com>
+References: <20240405000707.2670063-1-horenchuang@bytedance.com>
+	<20240405000707.2670063-3-horenchuang@bytedance.com>
+	<20240405150244.00004b49@Huawei.com>
+	<CAKPbEqpGM_nR+LKbsoFTviBZaKUKYqJ3zbJp9EOCJAGvuPy6aQ@mail.gmail.com>
+Organization: Huawei Technologies Research and Development (UK) Ltd.
+X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v2 15/25] misc: nsm: drop owner assignment
-Content-Language: en-US
-To: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>, "Michael S. Tsirkin"
-	<mst@redhat.com>, Jason Wang <jasowang@redhat.com>, Xuan Zhuo
-	<xuanzhuo@linux.alibaba.com>, Jonathan Corbet <corbet@lwn.net>, "David
- Hildenbrand" <david@redhat.com>, Gerd Hoffmann <kraxel@redhat.com>, "Richard
- Weinberger" <richard@nod.at>, Anton Ivanov <anton.ivanov@cambridgegreys.com>,
-	Johannes Berg <johannes@sipsolutions.net>, Paolo Bonzini
-	<pbonzini@redhat.com>, Stefan Hajnoczi <stefanha@redhat.com>, Jens Axboe
-	<axboe@kernel.dk>, Marcel Holtmann <marcel@holtmann.org>, "Luiz Augusto von
- Dentz" <luiz.dentz@gmail.com>, Olivia Mackall <olivia@selenic.com>, Herbert
- Xu <herbert@gondor.apana.org.au>, Amit Shah <amit@kernel.org>, Arnd Bergmann
-	<arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Gonglei
-	<arei.gonglei@huawei.com>, "David S. Miller" <davem@davemloft.net>, "Sudeep
- Holla" <sudeep.holla@arm.com>, Cristian Marussi <cristian.marussi@arm.com>,
-	Viresh Kumar <vireshk@kernel.org>, Linus Walleij <linus.walleij@linaro.org>,
-	Bartosz Golaszewski <brgl@bgdev.pl>, David Airlie <airlied@redhat.com>,
-	Gurchetan Singh <gurchetansingh@chromium.org>, Chia-I Wu <olvaffe@gmail.com>,
-	Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, Maxime Ripard
-	<mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>, Daniel Vetter
-	<daniel@ffwll.ch>, Jean-Philippe Brucker <jean-philippe@linaro.org>, "Joerg
- Roedel" <joro@8bytes.org>, Will Deacon <will@kernel.org>, Robin Murphy
-	<robin.murphy@arm.com>, Eric Dumazet <edumazet@google.com>, Jakub Kicinski
-	<kuba@kernel.org>, Paolo Abeni <pabeni@redhat.com>, Eric Van Hensbergen
-	<ericvh@kernel.org>, Latchesar Ionkov <lucho@ionkov.net>, Dominique Martinet
-	<asmadeus@codewreck.org>, Christian Schoenebeck <linux_oss@crudebyte.com>,
-	Stefano Garzarella <sgarzare@redhat.com>, Kalle Valo <kvalo@kernel.org>, "Dan
- Williams" <dan.j.williams@intel.com>, Vishal Verma
-	<vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, Ira Weiny
-	<ira.weiny@intel.com>, "Pankaj Gupta" <pankaj.gupta.linux@gmail.com>, Bjorn
- Andersson <andersson@kernel.org>, Mathieu Poirier
-	<mathieu.poirier@linaro.org>, "James E.J. Bottomley" <jejb@linux.ibm.com>,
-	"Martin K. Petersen" <martin.petersen@oracle.com>, Vivek Goyal
-	<vgoyal@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, "Anton Yakovlev"
-	<anton.yakovlev@opensynergy.com>, Jaroslav Kysela <perex@perex.cz>, Takashi
- Iwai <tiwai@suse.com>
-CC: <virtualization@lists.linux.dev>, <linux-doc@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, <linux-um@lists.infradead.org>,
-	<linux-block@vger.kernel.org>, <linux-bluetooth@vger.kernel.org>,
-	<linux-crypto@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>,
-	<linux-gpio@vger.kernel.org>, <dri-devel@lists.freedesktop.org>,
-	<iommu@lists.linux.dev>, <netdev@vger.kernel.org>, <v9fs@lists.linux.dev>,
-	<kvm@vger.kernel.org>, <linux-wireless@vger.kernel.org>,
-	<nvdimm@lists.linux.dev>, <linux-remoteproc@vger.kernel.org>,
-	<linux-scsi@vger.kernel.org>, <linux-fsdevel@vger.kernel.org>,
-	<alsa-devel@alsa-project.org>, <linux-sound@vger.kernel.org>
-References: <20240331-module-owner-virtio-v2-0-98f04bfaf46a@linaro.org>
- <20240331-module-owner-virtio-v2-15-98f04bfaf46a@linaro.org>
-From: Alexander Graf <graf@amazon.com>
-In-Reply-To: <20240331-module-owner-virtio-v2-15-98f04bfaf46a@linaro.org>
-X-ClientProxiedBy: EX19D035UWA002.ant.amazon.com (10.13.139.60) To
- EX19D020UWC004.ant.amazon.com (10.13.138.149)
-Content-Type: text/plain; charset="utf-8"; format="flowed"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+X-ClientProxiedBy: lhrpeml100003.china.huawei.com (7.191.160.210) To
+ lhrpeml500005.china.huawei.com (7.191.163.240)
 
-Ck9uIDMxLjAzLjI0IDEwOjQ0LCBLcnp5c3p0b2YgS296bG93c2tpIHdyb3RlOgo+IHZpcnRpbyBj
-b3JlIGFscmVhZHkgc2V0cyB0aGUgLm93bmVyLCBzbyBkcml2ZXIgZG9lcyBub3QgbmVlZCB0by4K
-Pgo+IFNpZ25lZC1vZmYtYnk6IEtyenlzenRvZiBLb3psb3dza2kgPGtyenlzenRvZi5rb3psb3dz
-a2lAbGluYXJvLm9yZz4KCgpSZXZpZXdlZC1ieTogQWxleGFuZGVyIEdyYWYgPGdyYWZAYW1hem9u
-LmNvbT4KCgpBbGV4CgoKCgpBbWF6b24gRGV2ZWxvcG1lbnQgQ2VudGVyIEdlcm1hbnkgR21iSApL
-cmF1c2Vuc3RyLiAzOAoxMDExNyBCZXJsaW4KR2VzY2hhZWZ0c2Z1ZWhydW5nOiBDaHJpc3RpYW4g
-U2NobGFlZ2VyLCBKb25hdGhhbiBXZWlzcwpFaW5nZXRyYWdlbiBhbSBBbXRzZ2VyaWNodCBDaGFy
-bG90dGVuYnVyZyB1bnRlciBIUkIgMTQ5MTczIEIKU2l0ejogQmVybGluClVzdC1JRDogREUgMjg5
-IDIzNyA4NzkKCgo=
+On Fri, 5 Apr 2024 15:43:47 -0700
+"Ho-Ren (Jack) Chuang" <horenchuang@bytedance.com> wrote:
+
+> On Fri, Apr 5, 2024 at 7:03=E2=80=AFAM Jonathan Cameron
+> <Jonathan.Cameron@huawei.com> wrote:
+> >
+> > On Fri,  5 Apr 2024 00:07:06 +0000
+> > "Ho-Ren (Jack) Chuang" <horenchuang@bytedance.com> wrote:
+> > =20
+> > > The current implementation treats emulated memory devices, such as
+> > > CXL1.1 type3 memory, as normal DRAM when they are emulated as normal =
+memory
+> > > (E820_TYPE_RAM). However, these emulated devices have different
+> > > characteristics than traditional DRAM, making it important to
+> > > distinguish them. Thus, we modify the tiered memory initialization pr=
+ocess
+> > > to introduce a delay specifically for CPUless NUMA nodes. This delay
+> > > ensures that the memory tier initialization for these nodes is deferr=
+ed
+> > > until HMAT information is obtained during the boot process. Finally,
+> > > demotion tables are recalculated at the end.
+> > >
+> > > * late_initcall(memory_tier_late_init);
+> > > Some device drivers may have initialized memory tiers between
+> > > `memory_tier_init()` and `memory_tier_late_init()`, potentially bring=
+ing
+> > > online memory nodes and configuring memory tiers. They should be excl=
+uded
+> > > in the late init.
+> > >
+> > > * Handle cases where there is no HMAT when creating memory tiers
+> > > There is a scenario where a CPUless node does not provide HMAT inform=
+ation.
+> > > If no HMAT is specified, it falls back to using the default DRAM tier.
+> > >
+> > > * Introduce another new lock `default_dram_perf_lock` for adist calcu=
+lation
+> > > In the current implementation, iterating through CPUlist nodes requir=
+es
+> > > holding the `memory_tier_lock`. However, `mt_calc_adistance()` will e=
+nd up
+> > > trying to acquire the same lock, leading to a potential deadlock.
+> > > Therefore, we propose introducing a standalone `default_dram_perf_loc=
+k` to
+> > > protect `default_dram_perf_*`. This approach not only avoids deadlock
+> > > but also prevents holding a large lock simultaneously.
+> > >
+> > > * Upgrade `set_node_memory_tier` to support additional cases, includi=
+ng
+> > >   default DRAM, late CPUless, and hot-plugged initializations.
+> > > To cover hot-plugged memory nodes, `mt_calc_adistance()` and
+> > > `mt_find_alloc_memory_type()` are moved into `set_node_memory_tier()`=
+ to
+> > > handle cases where memtype is not initialized and where HMAT informat=
+ion is
+> > > available.
+> > >
+> > > * Introduce `default_memory_types` for those memory types that are not
+> > >   initialized by device drivers.
+> > > Because late initialized memory and default DRAM memory need to be ma=
+naged,
+> > > a default memory type is created for storing all memory types that are
+> > > not initialized by device drivers and as a fallback.
+> > >
+> > > Signed-off-by: Ho-Ren (Jack) Chuang <horenchuang@bytedance.com>
+> > > Signed-off-by: Hao Xiang <hao.xiang@bytedance.com>
+> > > Reviewed-by: "Huang, Ying" <ying.huang@intel.com> =20
+> >
+> > Hi - one remaining question. Why can't we delay init for all nodes
+> > to either drivers or your fallback late_initcall code.
+> > It would be nice to reduce possible code paths. =20
+>=20
+> I try not to change too much of the existing code structure in
+> this patchset.
+>=20
+> To me, postponing/moving all memory tier registrations to
+> late_initcall() is another possible action item for the next patchset.
+>=20
+> After tier_mem(), hmat_init() is called, which requires registering
+> `default_dram_type` info. This is when `default_dram_type` is needed.
+> However, it is indeed possible to postpone the latter part,
+> set_node_memory_tier(), to `late_init(). So, memory_tier_init() can
+> indeed be split into two parts, and the latter part can be moved to
+> late_initcall() to be processed together.
+>=20
+> Doing this all memory-type drivers have to call late_initcall() to
+> register a memory tier. I=E2=80=99m not sure how many they are?
+>=20
+> What do you guys think?
+
+Gut feeling - if you are going to move it for some cases, move it for
+all of them.  Then we only have to test once ;)
+
+J
+>=20
+> >
+> > Jonathan
+> >
+> > =20
+> > > ---
+> > >  mm/memory-tiers.c | 94 +++++++++++++++++++++++++++++++++++----------=
+--
+> > >  1 file changed, 70 insertions(+), 24 deletions(-)
+> > >
+> > > diff --git a/mm/memory-tiers.c b/mm/memory-tiers.c
+> > > index 516b144fd45a..6632102bd5c9 100644
+> > > --- a/mm/memory-tiers.c
+> > > +++ b/mm/memory-tiers.c =20
+> >
+> >
+> > =20
+> > > @@ -855,7 +892,8 @@ static int __init memory_tier_init(void)
+> > >        * For now we can have 4 faster memory tiers with smaller adist=
+ance
+> > >        * than default DRAM tier.
+> > >        */
+> > > -     default_dram_type =3D alloc_memory_type(MEMTIER_ADISTANCE_DRAM);
+> > > +     default_dram_type =3D mt_find_alloc_memory_type(MEMTIER_ADISTAN=
+CE_DRAM,
+> > > +                                                   &default_memory_t=
+ypes);
+> > >       if (IS_ERR(default_dram_type))
+> > >               panic("%s() failed to allocate default DRAM tier\n", __=
+func__);
+> > >
+> > > @@ -865,6 +903,14 @@ static int __init memory_tier_init(void)
+> > >        * types assigned.
+> > >        */
+> > >       for_each_node_state(node, N_MEMORY) {
+> > > +             if (!node_state(node, N_CPU))
+> > > +                     /*
+> > > +                      * Defer memory tier initialization on
+> > > +                      * CPUless numa nodes. These will be initialized
+> > > +                      * after firmware and devices are initialized. =
+=20
+> >
+> > Could the comment also say why we can't defer them all?
+> >
+> > (In an odd coincidence we have a similar issue for some CPU hotplug
+> >  related bring up where review feedback was move all cases later).
+> > =20
+> > > +                      */
+> > > +                     continue;
+> > > +
+> > >               memtier =3D set_node_memory_tier(node);
+> > >               if (IS_ERR(memtier))
+> > >                       /* =20
+> > =20
+>=20
+>=20
 
