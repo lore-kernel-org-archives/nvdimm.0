@@ -1,109 +1,100 @@
-Received: from metis.whiteo.stw.pengutronix.de (metis.whiteo.stw.pengutronix.de [185.203.201.7])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.7])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF80015DBAF
-	for <nvdimm@lists.linux.dev>; Wed, 10 Apr 2024 13:47:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.203.201.7
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5E29916EBEF
+	for <nvdimm@lists.linux.dev>; Wed, 10 Apr 2024 15:33:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.7
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712756869; cv=none; b=DCJbbvBUeduuGxpSzWcwj4dNm9Z2QsIzshqAt5jcXW1OsIaLWjMkztDFUwvpNX0T2m6DPIxPO6CUf4gZyo8I53rYSl52EyrkL8DwbGpqOZTN8DIsZn1IAQdWNzVuP/vSDKQ8c/uQhXd96Q5RdGRueAwISNL1Gkprvgg38NKCw04=
+	t=1712763226; cv=none; b=QzZKjJViqFzYhzjBjDZHZXkz/XlqI3wuQr5EPEotcA5T3jtYNEI0bZFkmjB6VzYRHdKAOaJXnwsDllP9qbfwsd/cMHUi8vn00om9PgAPcirTPWwd3Qupjk0fOrB60xreLMY+5bscRhdtY/qnDovTQD/2QxI/mK9TqpD62NqqNUc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712756869; c=relaxed/simple;
-	bh=j2Y9ZtaZuCF7gr+nRNBTo6EH8eltCiyaAohfNaPDkEY=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=nN4NY4Q2C5q0/i/eSdOosBtr4hE4CoGTgdfl3Mn4l6pRYC/bWST68sa6e0e31S5AdTxgrTltnjWIyofaEXKZ2Gfh8xjum7BLfFeTMH5P8gcul7alxnVUoBVdYwjQsfOBRsIVao8jg4Hc/7Fvtd84+sxKIGEk1ywGDgIxdMmYDRE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=pengutronix.de; spf=pass smtp.mailfrom=pengutronix.de; arc=none smtp.client-ip=185.203.201.7
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=pengutronix.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=pengutronix.de
-Received: from drehscheibe.grey.stw.pengutronix.de ([2a0a:edc0:0:c01:1d::a2])
-	by metis.whiteo.stw.pengutronix.de with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
-	(Exim 4.92)
-	(envelope-from <ukl@pengutronix.de>)
-	id 1ruYIc-00036u-Qx; Wed, 10 Apr 2024 15:47:38 +0200
-Received: from [2a0a:edc0:0:900:1d::77] (helo=ptz.office.stw.pengutronix.de)
-	by drehscheibe.grey.stw.pengutronix.de with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <ukl@pengutronix.de>)
-	id 1ruYIc-00BVNf-E2; Wed, 10 Apr 2024 15:47:38 +0200
-Received: from ukl by ptz.office.stw.pengutronix.de with local (Exim 4.96)
-	(envelope-from <ukl@pengutronix.de>)
-	id 1ruYIc-00HaeB-17;
-	Wed, 10 Apr 2024 15:47:38 +0200
-From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
-To: Oliver O'Halloran <oohall@gmail.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Ira Weiny <ira.weiny@intel.com>
-Cc: nvdimm@lists.linux.dev,
-	kernel@pengutronix.de
-Subject: [PATCH 2/2] nvdimm/of_pmem: Convert to platform remove callback returning void
-Date: Wed, 10 Apr 2024 15:47:34 +0200
-Message-ID:  <8de0900f8c9f40648295fd9e2f445c85b2593d26.1712756722.git.u.kleine-koenig@pengutronix.de>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <cover.1712756722.git.u.kleine-koenig@pengutronix.de>
-References: <cover.1712756722.git.u.kleine-koenig@pengutronix.de>
+	s=arc-20240116; t=1712763226; c=relaxed/simple;
+	bh=Qoxd/EbwvZ/aUHfaZhEyr8BhscDhWHYgbMSxF6RY0lg=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=tnl/RSUvqmP3WR7iEhkdX9Q1U6qXrOho8fMPIE/Cbxlsn82WRx+jI6H0SucGJxKFMgvSpiITu0UJg7+tz4wLWL4N8ugl+pLgDe+KLZIlsb79QlZ5IeQ5p65TW6Ia+lafvTOH7ZQayIfaLYeNJ50/KJHxqvyKPRFLHJs0BvaQU6I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=QoEJOFzl; arc=none smtp.client-ip=192.198.163.7
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="QoEJOFzl"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1712763224; x=1744299224;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=Qoxd/EbwvZ/aUHfaZhEyr8BhscDhWHYgbMSxF6RY0lg=;
+  b=QoEJOFzlUKEZBlf370SZMaDAGM2gjcz8tdMpLZX0hwmQdhX17jxUj++i
+   Uj+1wvwq/HPDT13+JdGufhVJgnlnINNVJapfK4MahMdJUD6aljeXOZOGF
+   yR/CEET1ycpHZjIZm9YKH8oMSgCc1xCGcTxYceFL+P+opUbLJbXrEDZTY
+   cbY++cGXfGHPxurEpF3xOaHomsjCwlxUF5ooy9QDKCmNu0uU4uw+DBw5g
+   ZZLSg8dNxAsuG7z8VAv/fWSYvRhScHd8JvklyRruHCJWDHPpsyAlGe4i0
+   NzRqN+9YPaY4iWE/d9Ll5XJeiiXWtDgJGnzI45lhqJe3grD2Qnrl4AM8T
+   g==;
+X-CSE-ConnectionGUID: IiA7tkeZQmGVUXX/VAxDvg==
+X-CSE-MsgGUID: Yf6Lh1oATtWz8l94eIC2Ng==
+X-IronPort-AV: E=McAfee;i="6600,9927,11039"; a="33537385"
+X-IronPort-AV: E=Sophos;i="6.07,190,1708416000"; 
+   d="scan'208";a="33537385"
+Received: from fmviesa001.fm.intel.com ([10.60.135.141])
+  by fmvoesa101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Apr 2024 08:33:44 -0700
+X-CSE-ConnectionGUID: TFiIzLx1TRScROaZVCfQqA==
+X-CSE-MsgGUID: QN9LOi0ATsiCnZAol38psA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.07,190,1708416000"; 
+   d="scan'208";a="51799259"
+Received: from priyajos-mobl1.amr.corp.intel.com (HELO [10.212.69.89]) ([10.212.69.89])
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Apr 2024 08:33:43 -0700
+Message-ID: <07d60e08-9e2d-42ff-8cea-f31c6d69977a@intel.com>
+Date: Wed, 10 Apr 2024 08:33:42 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 0/2] nvdimm: Convert to platform remove callback returning
+ void
+To: =?UTF-8?Q?Uwe_Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>,
+ Dan Williams <dan.j.williams@intel.com>,
+ Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>,
+ Oliver O'Halloran <oohall@gmail.com>
+Cc: nvdimm@lists.linux.dev, kernel@pengutronix.de
+References: <cover.1712756722.git.u.kleine-koenig@pengutronix.de>
+Content-Language: en-US
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <cover.1712756722.git.u.kleine-koenig@pengutronix.de>
 Content-Type: text/plain; charset=UTF-8
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1800; i=u.kleine-koenig@pengutronix.de; h=from:subject:message-id; bh=j2Y9ZtaZuCF7gr+nRNBTo6EH8eltCiyaAohfNaPDkEY=; b=owEBbQGS/pANAwAKAY+A+1h9Ev5OAcsmYgBmFph3/Au8pJrEm1CZuxOgA2q9kvUacBftb/bSB bRLxcWIZFaJATMEAAEKAB0WIQQ/gaxpOnoeWYmt/tOPgPtYfRL+TgUCZhaYdwAKCRCPgPtYfRL+ TsqWB/0Yxw+A/8dlVCaeYAqZThmqNAarFCYLo8H7NCIeJ5IJd0Iw5EJ3J/Gc3uN7SAcWQ1yk2y6 afKbIeQDDZWmBsfJMEJtk9TZviD5/HltSvpENYvBclCX6AYJ6mlgbkeY7q4AT5bxAG1taJxrpX4 dYJ0sEQepZ3R82oKnlbssuHbp5PkYiDLFQunnYievu/8BCczzZGqIhlteyzNoSB6I/Y5VLIuZlo 6IbhbNDutmwReDOwH55P3Lyk13lUfaDWMjRtmikhXs3f+gyxwIZAHaTfSOZywhhoi7Jt8nE37D3 qWlhkp3ecCTiALIForKAkW0ZYi8fGdsBxG3e4qGKxXYxBUsW
-X-Developer-Key: i=u.kleine-koenig@pengutronix.de; a=openpgp; fpr=0D2511F322BFAB1C1580266BE2DCDD9132669BD6
 Content-Transfer-Encoding: 8bit
-X-SA-Exim-Connect-IP: 2a0a:edc0:0:c01:1d::a2
-X-SA-Exim-Mail-From: ukl@pengutronix.de
-X-SA-Exim-Scanned: No (on metis.whiteo.stw.pengutronix.de); SAEximRunCond expanded to false
-X-PTX-Original-Recipient: nvdimm@lists.linux.dev
 
-The .remove() callback for a platform driver returns an int which makes
-many driver authors wrongly assume it's possible to do error handling by
-returning an error code. However the value returned is ignored (apart
-from emitting a warning) and this typically results in resource leaks.
 
-To improve here there is a quest to make the remove callback return
-void. In the first step of this quest all drivers are converted to
-.remove_new(), which already returns void. Eventually after all drivers
-are converted, .remove_new() will be renamed to .remove().
 
-Trivially convert this driver from always returning zero in the remove
-callback to the void returning variant.
+On 4/10/24 6:47 AM, Uwe Kleine-König wrote:
+> Hello,
+> 
+> this series converts all platform drivers below drivers/nvdimm/ to not
+> use struct platform_device::remove() any more. See commit 5c5a7680e67b
+> ("platform: Provide a remove callback that returns no value") for an
+> extended explanation and the eventual goal.
+> 
+> All conversations are trivial, because the driver's .remove() callbacks
+> returned zero unconditionally.
+> 
+> There are no interdependencies between these patches, so they can be
+> applied independently if needed. This is merge window material.
+> 
+> Best regards
+> Uwe
+> 
+> Uwe Kleine-König (2):
+>   nvdimm/e820: Convert to platform remove callback returning void
+>   nvdimm/of_pmem: Convert to platform remove callback returning void
+> 
+>  drivers/nvdimm/e820.c    | 5 ++---
+>  drivers/nvdimm/of_pmem.c | 6 ++----
+>  2 files changed, 4 insertions(+), 7 deletions(-)
+> 
+> base-commit: 6ebf211bb11dfc004a2ff73a9de5386fa309c430
 
-Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
----
- drivers/nvdimm/of_pmem.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
 
-diff --git a/drivers/nvdimm/of_pmem.c b/drivers/nvdimm/of_pmem.c
-index d3fca0ab6290..10230a2f6619 100644
---- a/drivers/nvdimm/of_pmem.c
-+++ b/drivers/nvdimm/of_pmem.c
-@@ -84,14 +84,12 @@ static int of_pmem_region_probe(struct platform_device *pdev)
- 	return 0;
- }
- 
--static int of_pmem_region_remove(struct platform_device *pdev)
-+static void of_pmem_region_remove(struct platform_device *pdev)
- {
- 	struct of_pmem_private *priv = platform_get_drvdata(pdev);
- 
- 	nvdimm_bus_unregister(priv->bus);
- 	kfree(priv);
--
--	return 0;
- }
- 
- static const struct of_device_id of_pmem_region_match[] = {
-@@ -102,7 +100,7 @@ static const struct of_device_id of_pmem_region_match[] = {
- 
- static struct platform_driver of_pmem_region_driver = {
- 	.probe = of_pmem_region_probe,
--	.remove = of_pmem_region_remove,
-+	.remove_new = of_pmem_region_remove,
- 	.driver = {
- 		.name = "of_pmem",
- 		.of_match_table = of_pmem_region_match,
--- 
-2.43.0
-
+for the series
