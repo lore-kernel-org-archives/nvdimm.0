@@ -1,261 +1,189 @@
-Received: from mail-yb1-f173.google.com (mail-yb1-f173.google.com [209.85.219.173])
+Received: from mail-ed1-f49.google.com (mail-ed1-f49.google.com [209.85.208.49])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7580326AFF
-	for <nvdimm@lists.linux.dev>; Wed, 10 Apr 2024 05:56:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.173
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07EA713D28D
+	for <nvdimm@lists.linux.dev>; Wed, 10 Apr 2024 07:42:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712728568; cv=none; b=O5POPhWk6b0/Q4cgWy8TSxcTrZ0CEC1UwspT20BzvcG4K8cO1IPw/o6iSNtg/S9KDfiw73HzoITYQE7XzJN+KRQRvnt6Z0kQNuOw67LXGJLtZYbJn3psOV8Fpv99u0CYpGIyIOFZz83yNPsV8n8th9lJ+OHPdE2oNgNIfWGCHMM=
+	t=1712734928; cv=none; b=sdsoeSW7vOLRECw8igMi/pPdGtxHlYFXJzPrEsO0EQGNYbEVtVG28PZ6xA/zAufoFN64ffTSxV4HDbJxDCTsIlKkjNlGUUnIsFlqg2G5zQ71ML12uiXda2PsvGBLms1PfLKbjy/O0xfNskWhkznuOp44pfCOvOrI/0L3Byvgcxc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712728568; c=relaxed/simple;
-	bh=iRWSGvESmj50SK/3+gdejLYH0/TGzOFnE+pS8ZkDCcU=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=MpfM0eEN2JEdRRBpcNDs9748ysau9stc+74KWx9J6fPNUSYmKbHk8y0+zxXKEJaWDgxfuFyFsFp/5LpgmaPhICn/YlKaBQxcFcAgW9JUzy+9j812YGTOG1FcHYsIwyUZ1tDVdtHckATCWDgB6ij0iExWQoMZ3aN6lMRJf9Nw7n8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com; spf=pass smtp.mailfrom=bytedance.com; dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b=Z5t4W4wL; arc=none smtp.client-ip=209.85.219.173
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=bytedance.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=bytedance.com
+	s=arc-20240116; t=1712734928; c=relaxed/simple;
+	bh=6JimvKABjGAhaAunVcg5wLuwEFqMbqXRS1l6okPFEp4=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=c1lszYVZqTSJNRYCGgavw6L7nwSG6CE22UUo9W3+3EVVZeWTLk92SRPTgR6KjWMAoRHOPTHWG2Zc67JK2W2I2b6tGts/SLH+rF/vh3jaGHsSyP9ek1/7Kf9wK9gd7FiEXvMNvUpdnjIrE95US61/lUk9VfVkR7na+BusrWH4wt8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org; spf=pass smtp.mailfrom=linaro.org; dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b=tW9Bki4N; arc=none smtp.client-ip=209.85.208.49
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linaro.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linaro.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=bytedance.com header.i=@bytedance.com header.b="Z5t4W4wL"
-Received: by mail-yb1-f173.google.com with SMTP id 3f1490d57ef6-dd10ebcd702so6562977276.2
-        for <nvdimm@lists.linux.dev>; Tue, 09 Apr 2024 22:56:06 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=linaro.org header.i=@linaro.org header.b="tW9Bki4N"
+Received: by mail-ed1-f49.google.com with SMTP id 4fb4d7f45d1cf-56c5d05128dso7163502a12.0
+        for <nvdimm@lists.linux.dev>; Wed, 10 Apr 2024 00:42:04 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bytedance.com; s=google; t=1712728565; x=1713333365; darn=lists.linux.dev;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=IqGY/vGIyR9LCZTBxU/bq4zwRiV3ymHiMH0aV8SV/K8=;
-        b=Z5t4W4wLRj3mvpojcmB3JwGpTZCEfTHJKFdMRl/cGpMfa/CIVvmiNO+kFCeFUMWVCw
-         wFIBkuL4UacmWGh9aexGIJqWYpfTu+tUJ5mSyaDQ2Cihf90Pwoua8/boa90Q5p4kAUq1
-         nvC0bW0oj7dgFM+FXa0ViT4Xre4a1YDH0IyF37UaUFjCH6nhTwItxXa19Mw2IFU4d/nB
-         bPzKeOQ0ab3MgyTMKt4RIPzHqUuCQ7WO8N8oUDvsoN0flti9txSWRaJlCG0YtYrNN/rP
-         LDkgSPzhP0dkxpHrqH0bRWd9EKLCUa3zfbPe6jyTckpumuJvTbaSesZx+Ouq+ZSm2R/h
-         mU5A==
+        d=linaro.org; s=google; t=1712734923; x=1713339723; darn=lists.linux.dev;
+        h=content-transfer-encoding:in-reply-to:autocrypt:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:from:to:cc:subject:date:message-id:reply-to;
+        bh=k3mXYs19jtAC2YbwmDdropY4/qIjzCwyc3vsFS2GcGA=;
+        b=tW9Bki4NA4TgIqpLV3Nf2wyFmL+VJ9D37r1bjWs+2bY/66PB127Tj496tWnUK2ntut
+         6yd1H9ZBZPoae/tcsp6t+j58KCWBj24S7Z8bBLC+S2kUDoxJeLKBYJFYo1roIzywheKD
+         O1g+uRmzupf5g9hXLYcGEqlwmchs++U1UiTWvoYVH0ud887n4vQIbf42gHt0jVEX4W5N
+         DhHX/JWmD75A2lWzXzauV5k5gxKKX7v+1MLtU7ljasHYL4iacAs1Y104Uka1GJUCwtPn
+         Lm3CpHJkZvDgoZJVSOyDgJsiHxw/r2bpyzM1G2BfBw4DC9EEvsTt1agFFbyy9oEdE4nA
+         RRNA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1712728565; x=1713333365;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=IqGY/vGIyR9LCZTBxU/bq4zwRiV3ymHiMH0aV8SV/K8=;
-        b=EWU52Xq7jUaEgNIzVJ7ogGNzVEjzG4NJGisp3mC3KVfItt0FhMtUOXKsFJbMn30Eo2
-         79xyofAJzy7mZr+iP0tDySvMo33w5T6I0IvcK5yg5OTH3TK2Y6t0sEpqGhBDNbiNkJCG
-         3BZs0t0cm0PRUkAWEfGwyKPjNHI7GUo1zOkD2NXK2oAfOjzSqC2qtgjKFnhIUiApkR3W
-         CUoanU8Plv5c6rwAPJnslxD1ZToRHO2pzRXVJROwKWljRCOug1k1im0UVQBeVrRy/wTI
-         3zrMq1jANWk5BMY45ViCdF1g/CdZsnK0tg6ovtTpVcBG/6mqSzaaYSokP06EfAT22mHC
-         hA9Q==
-X-Forwarded-Encrypted: i=1; AJvYcCWMxr61zmd1NyXVu19iseC55jcICJPNE7Ry5hXwJFCvV25OBvepUu0ybanJBaCsN9oospbhFhA7eYEVBNelavEqBsyOzD5L
-X-Gm-Message-State: AOJu0YwalfUjKogrm5hRl9ykjUWmeeEPsfm5Bw/cIdCBOpwBth7Hq/iH
-	RmQYaz2AXIqe3FJ4hQSCUkNsSti8tbT1HHDNaTDILp1tkgfcC2EXoeZ34C0G5uNfQipYJTlhSky
-	lthEYFwJcfXB8zgGqLt8OBTP1DpfKceeSEN8hJQ==
-X-Google-Smtp-Source: AGHT+IHeeE9q1+cJcZFRlCtvV1BbpZVxnUEWrSDgdRRs3q/CuKFEvKs0kmjhM3Z408INF7Cm0W+a8a8XNmlyII/QV0E=
-X-Received: by 2002:a25:be92:0:b0:dcd:5635:5c11 with SMTP id
- i18-20020a25be92000000b00dcd56355c11mr1731856ybk.45.1712728565448; Tue, 09
- Apr 2024 22:56:05 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1712734923; x=1713339723;
+        h=content-transfer-encoding:in-reply-to:autocrypt:from
+         :content-language:references:cc:to:subject:user-agent:mime-version
+         :date:message-id:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=k3mXYs19jtAC2YbwmDdropY4/qIjzCwyc3vsFS2GcGA=;
+        b=i5Tki4VkC6wXe788PKj6G7YNAXElESgRg2zpVOVazqCl6QZbj0Tq5I10GKvftjIgv5
+         yA1bF7nLDDFfJHT4i0GBq1Npvr7jmpYyv+JEuxDJj4b8ATq12aPx+gAe/Tn0bA4h8/oN
+         tE4q6CQdEhzP3r4rNnZKGO2I3B1oNGdPrE6LzbEeEkVq6IK4kuDIYce0DK7bQwwWjsNO
+         S8TzeUzsgVx92wFpKaF4c/w71IZRtB5DdJ02tfdcol3W9sk7HKfSpB8kJpP45F29bbPI
+         DMt/6yu873pGdxTCKSDqRpXvXHi61i2MZioKq60KAM/qDT4gvaYJO5hEJ4/L2WJZ+rob
+         Ad3g==
+X-Forwarded-Encrypted: i=1; AJvYcCV43i1sd3ZoerOvD8bom5zvYHCAjQN96Gm14juVkjfUuMc8XLkbvIUAmB98qNYsxEVKjl/AlgOikpKc69s8ALV51Z6MJUUA
+X-Gm-Message-State: AOJu0YymNZRuk4IPX75eyJl1/q9+xwtV4Y8BE1owW9fgNkyo2TGRIjud
+	y+OD0tU7dXyJD37CisZblUUIezLVNmph10o7NcAbXHjbhO7+RbvnC1gtYvGb2NU=
+X-Google-Smtp-Source: AGHT+IHbsaGMHaULq45hB1RQzGJ2jQouzCDk/Qs5dl99Xk4dB9Un2GtOpuqSHCNaJjxWq+FiwtopyQ==
+X-Received: by 2002:a17:907:9914:b0:a51:a688:3e9c with SMTP id ka20-20020a170907991400b00a51a6883e9cmr887114ejc.35.1712734923162;
+        Wed, 10 Apr 2024 00:42:03 -0700 (PDT)
+Received: from [192.168.1.20] ([178.197.223.16])
+        by smtp.gmail.com with ESMTPSA id y6-20020a17090668c600b00a46d049ff63sm6575359ejr.21.2024.04.10.00.41.58
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 10 Apr 2024 00:42:02 -0700 (PDT)
+Message-ID: <285be63c-8939-495c-8411-ce2a68e25b2b@linaro.org>
+Date: Wed, 10 Apr 2024 09:41:57 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20240405000707.2670063-1-horenchuang@bytedance.com>
- <20240405000707.2670063-3-horenchuang@bytedance.com> <20240405150244.00004b49@Huawei.com>
- <CAKPbEqpGM_nR+LKbsoFTviBZaKUKYqJ3zbJp9EOCJAGvuPy6aQ@mail.gmail.com> <87ttka54pr.fsf@yhuang6-desk2.ccr.corp.intel.com>
-In-Reply-To: <87ttka54pr.fsf@yhuang6-desk2.ccr.corp.intel.com>
-From: "Ho-Ren (Jack) Chuang" <horenchuang@bytedance.com>
-Date: Tue, 9 Apr 2024 22:55:54 -0700
-Message-ID: <CAKPbEqqH0nhVUAcJUxDc_bPewY85+TqhtO94MyypV35GBo33+A@mail.gmail.com>
-Subject: Re: [External] Re: [PATCH v11 2/2] memory tier: create CPUless memory
- tiers after obtaining HMAT info
-To: "Huang, Ying" <ying.huang@intel.com>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>, Gregory Price <gourry.memverge@gmail.com>, 
-	aneesh.kumar@linux.ibm.com, mhocko@suse.com, tj@kernel.org, 
-	john@jagalactic.com, Eishan Mirakhur <emirakhur@micron.com>, 
-	Vinicius Tavares Petrucci <vtavarespetr@micron.com>, Ravis OpenSrc <Ravis.OpenSrc@micron.com>, 
-	Alistair Popple <apopple@nvidia.com>, Srinivasulu Thanneeru <sthanneeru@micron.com>, 
-	SeongJae Park <sj@kernel.org>, Dan Williams <dan.j.williams@intel.com>, 
-	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
-	Andrew Morton <akpm@linux-foundation.org>, nvdimm@lists.linux.dev, 
-	linux-cxl@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	Linux Memory Management List <linux-mm@kvack.org>, "Ho-Ren (Jack) Chuang" <horenc@vt.edu>, 
-	"Ho-Ren (Jack) Chuang" <horenchuang@gmail.com>, qemu-devel@nongnu.org, 
-	Hao Xiang <hao.xiang@bytedance.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2 00/25] virtio: store owner from modules with
+ register_virtio_driver()
+To: "Michael S. Tsirkin" <mst@redhat.com>, Jason Wang <jasowang@redhat.com>,
+ Xuan Zhuo <xuanzhuo@linux.alibaba.com>, Jonathan Corbet <corbet@lwn.net>,
+ David Hildenbrand <david@redhat.com>, Gerd Hoffmann <kraxel@redhat.com>,
+ Richard Weinberger <richard@nod.at>,
+ Anton Ivanov <anton.ivanov@cambridgegreys.com>,
+ Johannes Berg <johannes@sipsolutions.net>,
+ Paolo Bonzini <pbonzini@redhat.com>, Stefan Hajnoczi <stefanha@redhat.com>,
+ Jens Axboe <axboe@kernel.dk>, Marcel Holtmann <marcel@holtmann.org>,
+ Luiz Augusto von Dentz <luiz.dentz@gmail.com>,
+ Olivia Mackall <olivia@selenic.com>, Herbert Xu
+ <herbert@gondor.apana.org.au>, Amit Shah <amit@kernel.org>,
+ Arnd Bergmann <arnd@arndb.de>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ Gonglei <arei.gonglei@huawei.com>, "David S. Miller" <davem@davemloft.net>,
+ Sudeep Holla <sudeep.holla@arm.com>,
+ Cristian Marussi <cristian.marussi@arm.com>,
+ Viresh Kumar <vireshk@kernel.org>, Linus Walleij <linus.walleij@linaro.org>,
+ Bartosz Golaszewski <brgl@bgdev.pl>, David Airlie <airlied@redhat.com>,
+ Gurchetan Singh <gurchetansingh@chromium.org>, Chia-I Wu
+ <olvaffe@gmail.com>, Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+ Maxime Ripard <mripard@kernel.org>, Thomas Zimmermann <tzimmermann@suse.de>,
+ Daniel Vetter <daniel@ffwll.ch>,
+ Jean-Philippe Brucker <jean-philippe@linaro.org>,
+ Joerg Roedel <joro@8bytes.org>, Will Deacon <will@kernel.org>,
+ Robin Murphy <robin.murphy@arm.com>, Alexander Graf <graf@amazon.com>,
+ Eric Dumazet <edumazet@google.com>, Jakub Kicinski <kuba@kernel.org>,
+ Paolo Abeni <pabeni@redhat.com>, Eric Van Hensbergen <ericvh@kernel.org>,
+ Latchesar Ionkov <lucho@ionkov.net>,
+ Dominique Martinet <asmadeus@codewreck.org>,
+ Christian Schoenebeck <linux_oss@crudebyte.com>,
+ Stefano Garzarella <sgarzare@redhat.com>, Kalle Valo <kvalo@kernel.org>,
+ Dan Williams <dan.j.williams@intel.com>,
+ Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>,
+ Ira Weiny <ira.weiny@intel.com>, Pankaj Gupta
+ <pankaj.gupta.linux@gmail.com>, Bjorn Andersson <andersson@kernel.org>,
+ Mathieu Poirier <mathieu.poirier@linaro.org>,
+ "James E.J. Bottomley" <jejb@linux.ibm.com>,
+ "Martin K. Petersen" <martin.petersen@oracle.com>,
+ Vivek Goyal <vgoyal@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>,
+ Anton Yakovlev <anton.yakovlev@opensynergy.com>,
+ Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>
+Cc: virtualization@lists.linux.dev, linux-doc@vger.kernel.org,
+ linux-kernel@vger.kernel.org, linux-um@lists.infradead.org,
+ linux-block@vger.kernel.org, linux-bluetooth@vger.kernel.org,
+ linux-crypto@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+ linux-gpio@vger.kernel.org, dri-devel@lists.freedesktop.org,
+ iommu@lists.linux.dev, netdev@vger.kernel.org, v9fs@lists.linux.dev,
+ kvm@vger.kernel.org, linux-wireless@vger.kernel.org, nvdimm@lists.linux.dev,
+ linux-remoteproc@vger.kernel.org, linux-scsi@vger.kernel.org,
+ linux-fsdevel@vger.kernel.org, alsa-devel@alsa-project.org,
+ linux-sound@vger.kernel.org,
+ Bartosz Golaszewski <bartosz.golaszewski@linaro.org>,
+ Viresh Kumar <viresh.kumar@linaro.org>
+References: <20240331-module-owner-virtio-v2-0-98f04bfaf46a@linaro.org>
+Content-Language: en-US
+From: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
+Autocrypt: addr=krzysztof.kozlowski@linaro.org; keydata=
+ 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
+ D2GYIS41Kv4Isx2dEFh+/Q==
+In-Reply-To: <20240331-module-owner-virtio-v2-0-98f04bfaf46a@linaro.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Tue, Apr 9, 2024 at 7:33=E2=80=AFPM Huang, Ying <ying.huang@intel.com> w=
-rote:
->
-> "Ho-Ren (Jack) Chuang" <horenchuang@bytedance.com> writes:
->
-> > On Fri, Apr 5, 2024 at 7:03=E2=80=AFAM Jonathan Cameron
-> > <Jonathan.Cameron@huawei.com> wrote:
-> >>
-> >> On Fri,  5 Apr 2024 00:07:06 +0000
-> >> "Ho-Ren (Jack) Chuang" <horenchuang@bytedance.com> wrote:
-> >>
-> >> > The current implementation treats emulated memory devices, such as
-> >> > CXL1.1 type3 memory, as normal DRAM when they are emulated as normal=
- memory
-> >> > (E820_TYPE_RAM). However, these emulated devices have different
-> >> > characteristics than traditional DRAM, making it important to
-> >> > distinguish them. Thus, we modify the tiered memory initialization p=
-rocess
-> >> > to introduce a delay specifically for CPUless NUMA nodes. This delay
-> >> > ensures that the memory tier initialization for these nodes is defer=
-red
-> >> > until HMAT information is obtained during the boot process. Finally,
-> >> > demotion tables are recalculated at the end.
-> >> >
-> >> > * late_initcall(memory_tier_late_init);
-> >> > Some device drivers may have initialized memory tiers between
-> >> > `memory_tier_init()` and `memory_tier_late_init()`, potentially brin=
-ging
-> >> > online memory nodes and configuring memory tiers. They should be exc=
-luded
-> >> > in the late init.
-> >> >
-> >> > * Handle cases where there is no HMAT when creating memory tiers
-> >> > There is a scenario where a CPUless node does not provide HMAT infor=
-mation.
-> >> > If no HMAT is specified, it falls back to using the default DRAM tie=
-r.
-> >> >
-> >> > * Introduce another new lock `default_dram_perf_lock` for adist calc=
-ulation
-> >> > In the current implementation, iterating through CPUlist nodes requi=
-res
-> >> > holding the `memory_tier_lock`. However, `mt_calc_adistance()` will =
-end up
-> >> > trying to acquire the same lock, leading to a potential deadlock.
-> >> > Therefore, we propose introducing a standalone `default_dram_perf_lo=
-ck` to
-> >> > protect `default_dram_perf_*`. This approach not only avoids deadloc=
-k
-> >> > but also prevents holding a large lock simultaneously.
-> >> >
-> >> > * Upgrade `set_node_memory_tier` to support additional cases, includ=
-ing
-> >> >   default DRAM, late CPUless, and hot-plugged initializations.
-> >> > To cover hot-plugged memory nodes, `mt_calc_adistance()` and
-> >> > `mt_find_alloc_memory_type()` are moved into `set_node_memory_tier()=
-` to
-> >> > handle cases where memtype is not initialized and where HMAT informa=
-tion is
-> >> > available.
-> >> >
-> >> > * Introduce `default_memory_types` for those memory types that are n=
-ot
-> >> >   initialized by device drivers.
-> >> > Because late initialized memory and default DRAM memory need to be m=
-anaged,
-> >> > a default memory type is created for storing all memory types that a=
-re
-> >> > not initialized by device drivers and as a fallback.
-> >> >
-> >> > Signed-off-by: Ho-Ren (Jack) Chuang <horenchuang@bytedance.com>
-> >> > Signed-off-by: Hao Xiang <hao.xiang@bytedance.com>
-> >> > Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
-> >>
-> >> Hi - one remaining question. Why can't we delay init for all nodes
-> >> to either drivers or your fallback late_initcall code.
-> >> It would be nice to reduce possible code paths.
-> >
-> > I try not to change too much of the existing code structure in
-> > this patchset.
-> >
-> > To me, postponing/moving all memory tier registrations to
-> > late_initcall() is another possible action item for the next patchset.
-> >
-> > After tier_mem(), hmat_init() is called, which requires registering
-> > `default_dram_type` info. This is when `default_dram_type` is needed.
-> > However, it is indeed possible to postpone the latter part,
-> > set_node_memory_tier(), to `late_init(). So, memory_tier_init() can
-> > indeed be split into two parts, and the latter part can be moved to
-> > late_initcall() to be processed together.
->
-> I don't think that it's good to move all memory_tier initialization in
-> drivers to late_initcall().  It's natural to keep them in
-> device_initcall() level.
->
-> If so, we can allocate default_dram_type in memory_tier_init(), and call
-> set_node_memory_tier() only in memory_tier_lateinit().  We can call
-> memory_tier_lateinit() in device_initcall() level too.
->
+On 31/03/2024 10:43, Krzysztof Kozlowski wrote:
+> Changes in v2:
+> - Three new patches: virtio mem+input+balloon
+> - Minor commit msg adjustments
+> - Add tags
+> - Link to v1: https://lore.kernel.org/r/20240327-module-owner-virtio-v1-0-0feffab77d99@linaro.org
+> 
+> Merging
+> =======
+> All further patches depend on the first virtio patch, therefore please ack
+> and this should go via one tree: maybe virtio?
 
-It makes sense to me to leave only `default_dram_type ` and
-hotplug_init() in memory_tier_init(), postponing all
-set_node_memory_tier()s to memory_tier_late_init()
+Michael, Jason, Xuan,
 
-Would it be possible there is no device_initcall() calling
-memory_tier_late_init()? If yes, I think putting memory_tier_late_init()
-in late_init() is still necessary.
+Will you be able to take the entire patchset through virtio?
 
-> --
-> Best Regards,
-> Huang, Ying
->
-> > Doing this all memory-type drivers have to call late_initcall() to
-> > register a memory tier. I=E2=80=99m not sure how many they are?
-> >
-> > What do you guys think?
-> >
-> >>
-> >> Jonathan
-> >>
-> >>
-> >> > ---
-> >> >  mm/memory-tiers.c | 94 +++++++++++++++++++++++++++++++++++---------=
----
-> >> >  1 file changed, 70 insertions(+), 24 deletions(-)
-> >> >
-> >> > diff --git a/mm/memory-tiers.c b/mm/memory-tiers.c
-> >> > index 516b144fd45a..6632102bd5c9 100644
-> >> > --- a/mm/memory-tiers.c
-> >> > +++ b/mm/memory-tiers.c
-> >>
-> >>
-> >>
-> >> > @@ -855,7 +892,8 @@ static int __init memory_tier_init(void)
-> >> >        * For now we can have 4 faster memory tiers with smaller adis=
-tance
-> >> >        * than default DRAM tier.
-> >> >        */
-> >> > -     default_dram_type =3D alloc_memory_type(MEMTIER_ADISTANCE_DRAM=
-);
-> >> > +     default_dram_type =3D mt_find_alloc_memory_type(MEMTIER_ADISTA=
-NCE_DRAM,
-> >> > +                                                   &default_memory_=
-types);
-> >> >       if (IS_ERR(default_dram_type))
-> >> >               panic("%s() failed to allocate default DRAM tier\n", _=
-_func__);
-> >> >
-> >> > @@ -865,6 +903,14 @@ static int __init memory_tier_init(void)
-> >> >        * types assigned.
-> >> >        */
-> >> >       for_each_node_state(node, N_MEMORY) {
-> >> > +             if (!node_state(node, N_CPU))
-> >> > +                     /*
-> >> > +                      * Defer memory tier initialization on
-> >> > +                      * CPUless numa nodes. These will be initializ=
-ed
-> >> > +                      * after firmware and devices are initialized.
-> >>
-> >> Could the comment also say why we can't defer them all?
-> >>
-> >> (In an odd coincidence we have a similar issue for some CPU hotplug
-> >>  related bring up where review feedback was move all cases later).
-> >>
-> >> > +                      */
-> >> > +                     continue;
-> >> > +
-> >> >               memtier =3D set_node_memory_tier(node);
-> >> >               if (IS_ERR(memtier))
-> >> >                       /*
-> >>
-
-
-
---=20
 Best regards,
-Ho-Ren (Jack) Chuang
-=E8=8E=8A=E8=B3=80=E4=BB=BB
+Krzysztof
+
