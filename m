@@ -1,105 +1,214 @@
-Received: from metis.whiteo.stw.pengutronix.de (metis.whiteo.stw.pengutronix.de [185.203.201.7])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17EFD5B5B6
-	for <nvdimm@lists.linux.dev>; Fri, 12 Apr 2024 12:37:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.203.201.7
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C8A01419B1
+	for <nvdimm@lists.linux.dev>; Fri, 12 Apr 2024 14:38:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712925444; cv=none; b=aGZbHgrnAoNFLXGcJRbBM4d65EpgP0U0Ivr+IjAV+X8YvMvdycoycM+GdINfpzPyyi0w3q/0PbHC+WlK+z5P+nq9iJWOkRLCtEYqfwEZRoq/CiwNVBopukO3rbJuS8YZqlFJD7pFJcQPRG3VzYOq26ewHAxG/YFtA12kp3+LDq4=
+	t=1712932682; cv=none; b=b++O/tU/e1/BJW5OIuhYf+P0nOFQQU7hlQpG6MX/RmeoZpm1dRtqej2z4VGTzQQYtnc6JmKo7TRHakicSgSXR4QXrNp6jzXrpT3buVJiFoVKX8DtI7aA37YbKL0RPeavSefJQAAG15kzbRU1qUYN00OAsJarqObLnhuyW9SJvKk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712925444; c=relaxed/simple;
-	bh=3pNK9YTqMqiViynBQNAstvuzyugc6Dm6cYfCp/2gkJ8=;
+	s=arc-20240116; t=1712932682; c=relaxed/simple;
+	bh=Z55ySXlFlCDNEjr8HGsGHbc9q5i23Wo3obfcEoNpdvw=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=XEKZtFwTT6kjvqIPH7Mg+Xjr92Jr2r+hesGGt3MWvrZabfWibgOoRY+qKxmEPxuhxnTONpyPvgIOPArdzXyVFyyOcWu+oKEq9zinge7hd043ejStgQny3GSgFV7rtrlJ8zXATUmF94khojsBtVcMZRByG4txMLLvCNQ0ebuCZbc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=pengutronix.de; spf=pass smtp.mailfrom=pengutronix.de; arc=none smtp.client-ip=185.203.201.7
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=pengutronix.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=pengutronix.de
-Received: from drehscheibe.grey.stw.pengutronix.de ([2a0a:edc0:0:c01:1d::a2])
-	by metis.whiteo.stw.pengutronix.de with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
-	(Exim 4.92)
-	(envelope-from <ukl@pengutronix.de>)
-	id 1rvG9W-0001xE-LG; Fri, 12 Apr 2024 14:37:10 +0200
-Received: from [2a0a:edc0:0:900:1d::77] (helo=ptz.office.stw.pengutronix.de)
-	by drehscheibe.grey.stw.pengutronix.de with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.94.2)
-	(envelope-from <ukl@pengutronix.de>)
-	id 1rvG9V-00BsYn-Gx; Fri, 12 Apr 2024 14:37:09 +0200
-Received: from ukl by ptz.office.stw.pengutronix.de with local (Exim 4.96)
-	(envelope-from <ukl@pengutronix.de>)
-	id 1rvG9V-000Am8-1P;
-	Fri, 12 Apr 2024 14:37:09 +0200
-Date: Fri, 12 Apr 2024 14:37:09 +0200
-From: Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
-To: Dan Williams <dan.j.williams@intel.com>, 
-	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
-	Ira Weiny <ira.weiny@intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>, Yi Zhang <yi.zhang@redhat.com>, kernel@pengutronix.de, 
-	nvdimm@lists.linux.dev
-Subject: Re: [PATCH] ndtest: Convert to platform remove callback returning
- void
-Message-ID: <xyisbsurpa2irnjtedqcrgn2wnhp5s3jge7tzavxzud7pvk3rm@4tcefxvvs7l5>
-References: <c04bfc941a9f5d249b049572c1ae122fe551ee5d.1709886922.git.u.kleine-koenig@pengutronix.de>
+	 Content-Type:Content-Disposition:In-Reply-To; b=rtJeCnfCXQt7Zq1rJskTQyOIR3L6ZLJSdD7lSbcig0kTJ2lLHofklBvqWatIjwcajvRdy00zoa1Kbd1UIcCgVFcOqI4R96NYzZlSCLRSonuHhmP4XZuRZ45ia8OHK8Pkq0we+HOdABZUKTsSqBJPenTshQxy/dX46aFCuXjj97A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz; spf=pass smtp.mailfrom=suse.cz; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=1N4TA4iS; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=91MBCG5d; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=1N4TA4iS; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=91MBCG5d; arc=none smtp.client-ip=195.135.223.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="1N4TA4iS";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="91MBCG5d";
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="1N4TA4iS";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="91MBCG5d"
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [10.150.64.97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id 7044C5FDFC;
+	Fri, 12 Apr 2024 14:37:58 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1712932678; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=sCsDTBKE5BK0xtqcaioV7AbOpY2+77/u8JnnEMWVVZE=;
+	b=1N4TA4iSTfxUqNz5D936xqF5zCSJDUQBPw+YYsE+KfyhAG1A6dw/HnUR1wLb9WFFP5+ICw
+	R2AomD66IAwSQ0BMGElFbfk95nCAX54OM9vkzuZiryQrdIJOCyBwb46nGoHY9m8+EcsH74
+	xlIh0Gucar30XspIjssbnGtftd6g8sg=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1712932678;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=sCsDTBKE5BK0xtqcaioV7AbOpY2+77/u8JnnEMWVVZE=;
+	b=91MBCG5d18RAvnFExJRBaS9JJp3FA1woZQ557EaPDYo+k1UrUYikDzgpf8/2VIf3HLGlds
+	oNyFG6cVlEl6KjBA==
+Authentication-Results: smtp-out2.suse.de;
+	none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1712932678; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=sCsDTBKE5BK0xtqcaioV7AbOpY2+77/u8JnnEMWVVZE=;
+	b=1N4TA4iSTfxUqNz5D936xqF5zCSJDUQBPw+YYsE+KfyhAG1A6dw/HnUR1wLb9WFFP5+ICw
+	R2AomD66IAwSQ0BMGElFbfk95nCAX54OM9vkzuZiryQrdIJOCyBwb46nGoHY9m8+EcsH74
+	xlIh0Gucar30XspIjssbnGtftd6g8sg=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1712932678;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=sCsDTBKE5BK0xtqcaioV7AbOpY2+77/u8JnnEMWVVZE=;
+	b=91MBCG5d18RAvnFExJRBaS9JJp3FA1woZQ557EaPDYo+k1UrUYikDzgpf8/2VIf3HLGlds
+	oNyFG6cVlEl6KjBA==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 5D1371368B;
+	Fri, 12 Apr 2024 14:37:58 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id Sl+yFkZHGWZJdQAAD6G6ig
+	(envelope-from <jack@suse.cz>); Fri, 12 Apr 2024 14:37:58 +0000
+Received: by quack3.suse.cz (Postfix, from userid 1000)
+	id 088D3A071E; Fri, 12 Apr 2024 16:37:50 +0200 (CEST)
+Date: Fri, 12 Apr 2024 16:37:49 +0200
+From: Jan Kara <jack@suse.cz>
+To: Alistair Popple <apopple@nvidia.com>
+Cc: linux-mm@kvack.org, david@fromorbit.com, dan.j.williams@intel.com,
+	jhubbard@nvidia.com, rcampbell@nvidia.com, willy@infradead.org,
+	jgg@nvidia.com, linux-fsdevel@vger.kernel.org, jack@suse.cz,
+	djwong@kernel.org, hch@lst.de, david@redhat.com,
+	ruansy.fnst@fujitsu.com, nvdimm@lists.linux.dev,
+	linux-xfs@vger.kernel.org, linux-ext4@vger.kernel.org,
+	jglisse@redhat.com
+Subject: Re: [RFC 05/10] fs/dax: Refactor wait for dax idle page
+Message-ID: <20240412143749.3tryph4khox3euef@quack3>
+References: <cover.fe275e9819458a4bbb9451b888cafb88af8867d4.1712796818.git-series.apopple@nvidia.com>
+ <db13f495fc0addcff12b6b065b7a6b25f09c4be7.1712796818.git-series.apopple@nvidia.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="cls2lzh2xu37w3g6"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <c04bfc941a9f5d249b049572c1ae122fe551ee5d.1709886922.git.u.kleine-koenig@pengutronix.de>
-X-SA-Exim-Connect-IP: 2a0a:edc0:0:c01:1d::a2
-X-SA-Exim-Mail-From: ukl@pengutronix.de
-X-SA-Exim-Scanned: No (on metis.whiteo.stw.pengutronix.de); SAEximRunCond expanded to false
-X-PTX-Original-Recipient: nvdimm@lists.linux.dev
+In-Reply-To: <db13f495fc0addcff12b6b065b7a6b25f09c4be7.1712796818.git-series.apopple@nvidia.com>
+X-Spam-Flag: NO
+X-Spam-Score: -3.80
+X-Spam-Level: 
+X-Spamd-Result: default: False [-3.80 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	MID_RHS_NOT_FQDN(0.50)[];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	ARC_NA(0.00)[];
+	MIME_TRACE(0.00)[0:+];
+	MISSING_XM_UA(0.00)[];
+	RCPT_COUNT_TWELVE(0.00)[18];
+	RCVD_COUNT_THREE(0.00)[3];
+	FROM_HAS_DN(0.00)[];
+	DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
+	FROM_EQ_ENVFROM(0.00)[];
+	TO_DN_SOME(0.00)[];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	FUZZY_BLOCKED(0.00)[rspamd.com];
+	RCVD_TLS_LAST(0.00)[];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns,suse.cz:email,nvidia.com:email,suse.com:email]
 
+On Thu 11-04-24 10:57:26, Alistair Popple wrote:
+> A FS DAX page is considered idle when its refcount drops to one. This
+> is currently open-coded in all file systems supporting FS DAX. Move
+> the idle detection to a common function to make future changes easier.
+> 
+> Signed-off-by: Alistair Popple <apopple@nvidia.com>
 
---cls2lzh2xu37w3g6
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Good cleanup. Feel free to add:
 
-On Fri, Mar 08, 2024 at 09:51:22AM +0100, Uwe Kleine-K=F6nig wrote:
-> The .remove() callback for a platform driver returns an int which makes
-> many driver authors wrongly assume it's possible to do error handling by
-> returning an error code. However the value returned is ignored (apart
-> from emitting a warning) and this typically results in resource leaks.
->=20
-> To improve here there is a quest to make the remove callback return
-> void. In the first step of this quest all drivers are converted to
-> .remove_new(), which already returns void. Eventually after all drivers
-> are converted, .remove_new() will be renamed to .remove().
->=20
-> Trivially convert this driver from always returning zero in the remove
-> callback to the void returning variant.
->=20
-> Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+Reviewed-by: Jan Kara <jack@suse.cz>
 
-This patch got two positive review feedback mails but isn't included in
-next. This makes me wonder who feels responsible for picking it up.
+								Honza
 
-Best regards
-Uwe
-
---=20
-Pengutronix e.K.                           | Uwe Kleine-K=F6nig            |
-Industrial Linux Solutions                 | https://www.pengutronix.de/ |
-
---cls2lzh2xu37w3g6
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCgAdFiEEP4GsaTp6HlmJrf7Tj4D7WH0S/k4FAmYZKvQACgkQj4D7WH0S
-/k58HAf+P8U0ngRtTJh9NOBcgWlR/NYZ/CW0r79wbZgJHRJ+pSgoTpAAUNt8bmsg
-St3fsT/NldgyPkz661tcHHC8680zCACHQd6U4OSqXZL8MlEhobGBNDIeVU7OsGLB
-O7m+9KfiIlJ1o/RdMAnCWW9hrq7YZNhkPf50g4xzFp24IwIfJjlYrr88Lwu5ljZX
-I+l5Wr03viRqqFmgommoTD2kZmx0a7RMPxmt8ghSTGg4cbivp/GqZkYPTNEDQAuZ
-sDfGQGkflLL5u8QL3KkJJcdllQn9MuL0ILfKWZy2iQ8l0npQZuZzeJxHurI4EQE/
-Ebb4Rr+Zgc0BmI9O3FmtkmKYhrayvA==
-=yv8X
------END PGP SIGNATURE-----
-
---cls2lzh2xu37w3g6--
+> ---
+>  fs/ext4/inode.c     |  5 +----
+>  fs/fuse/dax.c       |  4 +---
+>  fs/xfs/xfs_file.c   |  4 +---
+>  include/linux/dax.h | 11 +++++++++++
+>  4 files changed, 14 insertions(+), 10 deletions(-)
+> 
+> diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
+> index 4ce35f1..e9cef7d 100644
+> --- a/fs/ext4/inode.c
+> +++ b/fs/ext4/inode.c
+> @@ -3868,10 +3868,7 @@ int ext4_break_layouts(struct inode *inode)
+>  		if (!page)
+>  			return 0;
+>  
+> -		error = ___wait_var_event(&page->_refcount,
+> -				atomic_read(&page->_refcount) == 1,
+> -				TASK_INTERRUPTIBLE, 0, 0,
+> -				ext4_wait_dax_page(inode));
+> +		error = dax_wait_page_idle(page, ext4_wait_dax_page, inode);
+>  	} while (error == 0);
+>  
+>  	return error;
+> diff --git a/fs/fuse/dax.c b/fs/fuse/dax.c
+> index 23904a6..8a62483 100644
+> --- a/fs/fuse/dax.c
+> +++ b/fs/fuse/dax.c
+> @@ -676,9 +676,7 @@ static int __fuse_dax_break_layouts(struct inode *inode, bool *retry,
+>  		return 0;
+>  
+>  	*retry = true;
+> -	return ___wait_var_event(&page->_refcount,
+> -			atomic_read(&page->_refcount) == 1, TASK_INTERRUPTIBLE,
+> -			0, 0, fuse_wait_dax_page(inode));
+> +	return dax_wait_page_idle(page, fuse_wait_dax_page, inode);
+>  }
+>  
+>  /* dmap_end == 0 leads to unmapping of whole file */
+> diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+> index 2037002..099cd70 100644
+> --- a/fs/xfs/xfs_file.c
+> +++ b/fs/xfs/xfs_file.c
+> @@ -849,9 +849,7 @@ xfs_break_dax_layouts(
+>  		return 0;
+>  
+>  	*retry = true;
+> -	return ___wait_var_event(&page->_refcount,
+> -			atomic_read(&page->_refcount) == 1, TASK_INTERRUPTIBLE,
+> -			0, 0, xfs_wait_dax_page(inode));
+> +	return dax_wait_page_idle(page, xfs_wait_dax_page, inode);
+>  }
+>  
+>  int
+> diff --git a/include/linux/dax.h b/include/linux/dax.h
+> index 22cd990..bced4d4 100644
+> --- a/include/linux/dax.h
+> +++ b/include/linux/dax.h
+> @@ -212,6 +212,17 @@ int dax_zero_range(struct inode *inode, loff_t pos, loff_t len, bool *did_zero,
+>  int dax_truncate_page(struct inode *inode, loff_t pos, bool *did_zero,
+>  		const struct iomap_ops *ops);
+>  
+> +static inline int dax_wait_page_idle(struct page *page,
+> +				void (cb)(struct inode *),
+> +				struct inode *inode)
+> +{
+> +	int ret;
+> +
+> +	ret = ___wait_var_event(page, page_ref_count(page) == 1,
+> +				TASK_INTERRUPTIBLE, 0, 0, cb(inode));
+> +	return ret;
+> +}
+> +
+>  #if IS_ENABLED(CONFIG_DAX)
+>  int dax_read_lock(void);
+>  void dax_read_unlock(int id);
+> -- 
+> git-series 0.9.1
+> 
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
