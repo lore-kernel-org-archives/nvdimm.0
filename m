@@ -1,52 +1,52 @@
 Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.12])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5108714EC53
-	for <nvdimm@lists.linux.dev>; Fri, 12 Apr 2024 21:06:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A8F5C14F112
+	for <nvdimm@lists.linux.dev>; Fri, 12 Apr 2024 21:06:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.12
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712956003; cv=none; b=QwEnH4ZvmMXPTYkb304rF7quKOx3Lq3ho2/6gZGEyHexPcL4jzobE5W71gJ8nC7IXmOUrK0TFI5iPnLLxfC/fWn5cpKOeAmt1yc2R40w4OPwpUJk31KZR4VHGPjEgib3A9MuGX9XRDd7lp0CKsRWeaQV8Pcm3mPQTeLG7UhnoEA=
+	t=1712956011; cv=none; b=dK00VNqeGx9mzEC5vJ4nf4Xcu1pDu4pknimMR/hBpFeW9UIcFDkk1N2qzcWpYGHn61eaIegVvr1sL94iXY2bTCB9s0iI0b2I11H4injafEuvn0NKZN1Mldtzypk0z2Mj0V6yQzrXW/wAbjVNN9IAfmnXYgsIP2YRpnGKZngjv4o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712956003; c=relaxed/simple;
-	bh=4OoKlgOE9tKbs4ksjOdP6+J+Tu5xTpeSXjhKP83Imbc=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=ulfnid6Pl7EDQsy39ppn+Hi7iKNXdEhx6ggIiZBUo9Jm71wUP3zPoMq4C/CCD8YmI4N+E1YnkcOth2iXg8szyo4Rw3zwtPQ8LMC9ZCkT4YfoDeLYYF58FdXEF/R/STHxIsjnyFfXir9s/lE1NcSxPL4po3WatIKW0p6QK2eoesE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=XctKZmpI; arc=none smtp.client-ip=192.198.163.12
+	s=arc-20240116; t=1712956011; c=relaxed/simple;
+	bh=3wmzTz80iPfAdbP1tup4gKyym87sHH/5hJcijbZnB+M=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=Wljvn5IOJSIHjgkCXbPNUchfejXO+4uM1OJXtmg2+16q6GUtTo/XqBgjjlUgHgURVKcR/Mqjx7muppLe0cnlcYyIaMN+x4Av4nTwL51bX1TUyuw0Po9xozhKg+TnFj2K1lBtLcORTtU5L1FINVdD51F33RPzUcX3BMs8APPIK64=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=XlnKZ7u8; arc=none smtp.client-ip=192.198.163.12
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="XctKZmpI"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="XlnKZ7u8"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1712956002; x=1744492002;
-  h=from:date:subject:mime-version:content-transfer-encoding:
-   message-id:references:in-reply-to:to:cc;
-  bh=4OoKlgOE9tKbs4ksjOdP6+J+Tu5xTpeSXjhKP83Imbc=;
-  b=XctKZmpIfKI3qc5ymnsUo2eRFafd2LUZIei4OLgiVXa031OrOZPFUy77
-   lf0Z8Wyp0NpYHi0DUhuedBHlhsMoCWJuw9LOyyi8QiOUHo8ZC5eqC9b+A
-   toiJwHuUSLiAZAOyzFIlVxWHo6KH9xESGQ1Hb+BwGB3NV8sgrpJF3mj81
-   J/mxv3Bv/+pWG2Ip/8Zl06cRs/VmHiPyDOtczz9yRZbOyn932rv4EGJj9
-   XRGG9ZN/Yqanv6IzBUjWuBLjdCp4Co5YeSP2ip8OY6+8MQYH797ZkmlYA
-   MnnZ3c3p1uFYuECFsFbN/G/zeFZawTPgZtDL+HnSOBCFyNSJFnMWTH8jc
-   w==;
-X-CSE-ConnectionGUID: 6igAPRYpSpuGRC/sxCWfWw==
-X-CSE-MsgGUID: m2aupxKeTjWCpA4wNj0I5g==
-X-IronPort-AV: E=McAfee;i="6600,9927,11042"; a="12211948"
+  t=1712956009; x=1744492009;
+  h=from:subject:date:message-id:mime-version:
+   content-transfer-encoding:to:cc;
+  bh=3wmzTz80iPfAdbP1tup4gKyym87sHH/5hJcijbZnB+M=;
+  b=XlnKZ7u8tGy09SOAxU+IKbR34gUiRjuYD0o1jHqPGjH98e0gx7vU1+lD
+   m2Eyh/WWjtqPNML5an2NVqbN59Zt9eLtIrR+mZ6ylse2mWNwgkTdBM+xL
+   jQAQSep0rPwNItIDMOAsJCy7D3NCUfLj3urxOlIIRkUNR5ufCu32f9Yhq
+   JFYLtqANkA6DTHwNF/acKw73gpLRxyJQEEZ7omM5twBsaKscV0h7NlVmW
+   te5lrbipot3a/9WflwWfO7NQYkNHtJw/WRgouQm92uwcMWyw9+cH+j5Nj
+   ZC+aMZ6wtYENy+ydaRB0gQK4HpmspZ0fMk3D5hxhz+Mg1SmA+0nlbQQM+
+   A==;
+X-CSE-ConnectionGUID: oUcz6qsZR7mcNlAmfgspCg==
+X-CSE-MsgGUID: As5u1vCeSZ+RARMJnhShzg==
+X-IronPort-AV: E=McAfee;i="6600,9927,11042"; a="12211946"
 X-IronPort-AV: E=Sophos;i="6.07,197,1708416000"; 
-   d="scan'208";a="12211948"
+   d="scan'208";a="12211946"
 Received: from orviesa008.jf.intel.com ([10.64.159.148])
   by fmvoesa106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Apr 2024 14:06:14 -0700
-X-CSE-ConnectionGUID: o94hUSh4QzipNCfvniNrqg==
-X-CSE-MsgGUID: CASqLeUMSjKK+jZgOYGBdQ==
+X-CSE-ConnectionGUID: X65lhZ78QU2NM/TR7rylsg==
+X-CSE-MsgGUID: xd6R/6ttTCiHFSbx+kq0lA==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.07,197,1708416000"; 
-   d="scan'208";a="21909763"
+   d="scan'208";a="21909760"
 Received: from vverma7-desk1.amr.corp.intel.com (HELO [192.168.1.200]) ([10.213.183.147])
-  by orviesa008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Apr 2024 14:06:12 -0700
+  by orviesa008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Apr 2024 14:06:11 -0700
 From: Vishal Verma <vishal.l.verma@intel.com>
-Date: Fri, 12 Apr 2024 15:05:39 -0600
-Subject: [PATCH ndctl 1/2] daxctl/device.c: Handle special case of
- destroying daxX.0
+Subject: [PATCH ndctl 0/2] daxctl: Fix error handling and propagation in
+ daxctl/device.c
+Date: Fri, 12 Apr 2024 15:05:38 -0600
+Message-Id: <20240412-vv-daxctl-fixes-v1-0-6e808174e24f@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -55,63 +55,52 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20240412-vv-daxctl-fixes-v1-1-6e808174e24f@intel.com>
-References: <20240412-vv-daxctl-fixes-v1-0-6e808174e24f@intel.com>
-In-Reply-To: <20240412-vv-daxctl-fixes-v1-0-6e808174e24f@intel.com>
+X-B4-Tracking: v=1; b=H4sIACKiGWYC/x3LQQqAIBBA0avErBuwQQi7SrQwnWogLDQkEO+et
+ Hx8foHEUTjB1BWInCXJFRqGvgN32LAzim8GUqSVHghzRm9f95y4ycsJVz8aQ2yJjId23ZH/0KZ
+ 5qfUDCcRsd2EAAAA=
 To: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
 Cc: Dan Williams <dan.j.williams@intel.com>, 
  Alison Schofield <alison.schofield@intel.com>, 
  Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>, 
  Vishal Verma <vishal.l.verma@intel.com>
 X-Mailer: b4 0.14-dev-5ce50
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1450;
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1263;
  i=vishal.l.verma@intel.com; h=from:subject:message-id;
- bh=4OoKlgOE9tKbs4ksjOdP6+J+Tu5xTpeSXjhKP83Imbc=;
- b=owGbwMvMwCXGf25diOft7jLG02pJDGmSi5yuHmfh9NGL/PJCYvozg5c9xrpXLgZx3PRvamOtb
- gvNCRPtKGVhEONikBVTZPm75yPjMbnt+TyBCY4wc1iZQIYwcHEKwEQUYxn+2XnHGNwP5pI708D7
- ltHc6uL1Aytqm2XdMtoY5paun8JuxcjQ2Ru/b7eFMOthZvHU9TnTn4esqlotuVCu+szVG+ZdH+R
- 4AQ==
+ bh=3wmzTz80iPfAdbP1tup4gKyym87sHH/5hJcijbZnB+M=;
+ b=owGbwMvMwCXGf25diOft7jLG02pJDGmSi8zDLoSsZTvhv0jgoRD3+n99b/42zbT1dvc+2lho+
+ nO2lLFqRykLgxgXg6yYIsvfPR8Zj8ltz+cJTHCEmcPKBDKEgYtTACYiYcHwP6t7waSQVUXcqeXp
+ HOLv5BKaL0sG/f5R9nJD+w/lmIkLhBkZTnX8j3/v57at4FzH9R1rtvfFn01/a9Koe2vhDO/kE0u
+ /cQAA
 X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp;
  fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
 
-The kernel has special handling for destroying the 0th dax device under
-any given DAX region (daxX.0). It ensures the size is set to 0, but
-doesn't actually remove the device, instead it returns an EBUSY,
-indicating that this device cannot be removed.
+An intermittently failing daxctl-create.sh test revealed two things:
+1/ The kernel handles the 0th DAX device under a region specially, and
+refuses to delete it, returning an EBUSY. The daxctl-destroy-device
+failed to account for this, even if other aspects of the destroy
+operation succeeded (i.e. setting the size to zero). Patch 1 fixes this
+by expecting the EBUSY on the 0th device, and not failing for it.
 
-Add an expectation in daxctl's dev_destroy() helper to handle this case
-instead of returning the error - as far as the user is concerned, the
-size has been set to zero, and the destroy operation has been completed,
-even if the kernel indicated an EBUSY.
+2/ When looping over multiple DAX devices, do_xaction_device() just
+returned the status from the action on the last device. Since this order
+can be effectively random, so would be the status returned. Patch 2
+makes this behavior more consistent by saving any non-zero status from
+the device iterations, and returning that instead of the last action's
+status.
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Alison Schofield <alison.schofield@intel.com>
-Reported-by: Ira Weiny <ira.weiny@intel.com>
-Reported-by: Dave Jiang <dave.jiang@intel.com>
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- daxctl/device.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+Vishal Verma (2):
+      daxctl/device.c: Handle special case of destroying daxX.0
+      daxctl/device.c: Fix error propagation in do_xaction_device()
 
-diff --git a/daxctl/device.c b/daxctl/device.c
-index 83913430..83c61389 100644
---- a/daxctl/device.c
-+++ b/daxctl/device.c
-@@ -675,6 +675,13 @@ static int dev_destroy(struct daxctl_dev *dev)
- 		return rc;
- 
- 	rc = daxctl_region_destroy_dev(daxctl_dev_get_region(dev), dev);
-+	/*
-+	 * The kernel treats daxX.0 specially. It can't be deleted to ensure
-+	 * there is always a /sys/bus/dax/ present. If this happens, an
-+	 * EBUSY is returned. Expect it and don't treat it as an error.
-+	 */
-+	if (daxctl_dev_get_id(dev) == 0 && rc == -EBUSY)
-+		return 0;
- 	if (rc < 0)
- 		return rc;
- 
+ daxctl/device.c | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
+---
+base-commit: e0d0680bd3e554bd5f211e989480c5a13a023b2d
+change-id: 20240412-vv-daxctl-fixes-bd7992ea229d
 
+Best regards,
 -- 
-2.44.0
+Vishal Verma <vishal.l.verma@intel.com>
 
