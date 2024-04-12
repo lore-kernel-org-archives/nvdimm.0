@@ -1,145 +1,105 @@
-Received: from NAM11-BN8-obe.outbound.protection.outlook.com (mail-bn8nam11on2072.outbound.protection.outlook.com [40.107.236.72])
+Received: from metis.whiteo.stw.pengutronix.de (metis.whiteo.stw.pengutronix.de [185.203.201.7])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 363DE54FAC
-	for <nvdimm@lists.linux.dev>; Fri, 12 Apr 2024 11:54:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.236.72
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712922842; cv=fail; b=SNW/1eMJVH5ZgVXH5loJQpis0S0+EM67ylPPOpqSoOnvsi8YFEVBo5mfFX51KEgEyP0qp1AyTwiUwlXkpWLX/una9I6sSgBkVYsh+hF/h4axneOHiGJBx0jM9g2F5lgVQPQlK7yV3CzZMGZWwcL+tJMSxuZKfJMz1XE5X6XFpkM=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712922842; c=relaxed/simple;
-	bh=F8NXIN3MAAxaPfUWYlPBhhmvQ67k4+NabcisOtRfORg=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=T+51lJVL9Sf15a73WcxacApasBwrxNVk2mBeLrhNjr3T0NMz4PxrNl0AuNwhrREzs8bMrUhGdzz98JixpWJCe2Qk9b9ILRBziuxt+9b9OBBFGK9qlqbdColFIuHtmKeCSJZcWyomAQvCxaWmvTasjAuefRB9ZUgejf5STRrbYsU=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=bwsFpUzN; arc=fail smtp.client-ip=40.107.236.72
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="bwsFpUzN"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=dWGV5h35MaEgBfX19DLAvccDMR5FZkjQoWtF1xLkGTVwgttoIJf3VQ5IOy9p3rv2pO8zyNy5DzFOHFOqksFaOivCXBckU+d6HQBVKM/c17Bmh5btiwX4MRJ1bvRE1Ft3NdkVBApLNNUgpU8cGgEzH7M2Xph9ywpVfdPIwFZN9w71NLlWvgFXWF6oTWnrdw+wRnDnYp0mr/wxbYV5z3Tb4p50GaFM7xsp3/H0N66N+W+47mmNDSAseRK4KViOH80Ui0qkW3qGJ2Y6DZIBk+8u/JrFAh6XuuiIRFB7nvJqitVtvQTEtQyFivcNJrNPPNrHaN1Xb6CDSfHbd8uzc8mn0Q==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=F8NXIN3MAAxaPfUWYlPBhhmvQ67k4+NabcisOtRfORg=;
- b=lIHU6GRBgSdwSYutBtsql/nN7u6qVkYG/3yXp1Pibc0Td8bNGO1U4sZ9wIPIXIG3y960s7nL+ncJZxT56qmtagXE3jyrc6xsQkWQ0TQLrMNOALyP/Rsex2jAOlH7AuEuYD7+tGBfbFRIPEcoaXgn5MksYTidItCMhJyn617SXTpeSbPiiDOXc1I7AMP2QGynEYWspOG4BHYNNuznAK6lFJcRq7mkAjAwjFDvvMzLnGPTfkmWs88H2/JkswnMkhLpDtURS1xvfzmryENrIYGJAQ9z6mqoWwXti+dwKPkGawT7r+Cmvsdzn07NBXp6rHlhkakktlgmZMAZljrvI2l+EQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=F8NXIN3MAAxaPfUWYlPBhhmvQ67k4+NabcisOtRfORg=;
- b=bwsFpUzN6M+n8HavaeD/q1SfLD2M16OKkA8MB3LZTPezoU9cnJakghB30ysr+065KibyWIbc4dCU7QskYrVSAziXi/nMj8Tj0ANoKFPF2CfHNm2mwc4m3po1ua3YF7DPaT2D9S+ruDWjfKkVWaLnJm7Kla+5nrzH79B5pq1IQRI81NdJA//1l3/goHThmlRGbV+hRfungQJtJvJPrWBto+bgwLapiN/c0kMXgMCrRnObF4BTjFNfu/DBJwPsLqb9OmsHEOcF7xEkKqczJv7/+k+23OF+cxG/I3LOBTl2qwzJmEqNKaFkmTLKh9ZSl3X/hUGhhjm6i3OsELYvRhQdVg==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from BY5PR12MB3843.namprd12.prod.outlook.com (2603:10b6:a03:1a4::17)
- by PH7PR12MB9073.namprd12.prod.outlook.com (2603:10b6:510:2eb::22) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7409.46; Fri, 12 Apr
- 2024 11:53:56 +0000
-Received: from BY5PR12MB3843.namprd12.prod.outlook.com
- ([fe80::1395:49dc:c6cc:5295]) by BY5PR12MB3843.namprd12.prod.outlook.com
- ([fe80::1395:49dc:c6cc:5295%6]) with mapi id 15.20.7409.053; Fri, 12 Apr 2024
- 11:53:54 +0000
-Date: Fri, 12 Apr 2024 08:53:52 -0300
-From: Jason Gunthorpe <jgg@nvidia.com>
-To: Alistair Popple <apopple@nvidia.com>
-Cc: Dan Williams <dan.j.williams@intel.com>, linux-mm@kvack.org,
-	david@fromorbit.com, jhubbard@nvidia.com, rcampbell@nvidia.com,
-	willy@infradead.org, linux-fsdevel@vger.kernel.org, jack@suse.cz,
-	djwong@kernel.org, hch@lst.de, david@redhat.com,
-	ruansy.fnst@fujitsu.com, nvdimm@lists.linux.dev,
-	linux-xfs@vger.kernel.org, linux-ext4@vger.kernel.org,
-	jglisse@redhat.com
-Subject: Re: [RFC 00/10] fs/dax: Fix FS DAX page reference counts
-Message-ID: <20240412115352.GY5383@nvidia.com>
-References: <cover.fe275e9819458a4bbb9451b888cafb88af8867d4.1712796818.git-series.apopple@nvidia.com>
- <66181dd83f74e_15786294e8@dwillia2-mobl3.amr.corp.intel.com.notmuch>
- <87frvr5has.fsf@nvdebian.thelocal>
- <877ch35ahu.fsf@nvdebian.thelocal>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <877ch35ahu.fsf@nvdebian.thelocal>
-X-ClientProxiedBy: BL0PR1501CA0034.namprd15.prod.outlook.com
- (2603:10b6:207:17::47) To BY5PR12MB3843.namprd12.prod.outlook.com
- (2603:10b6:a03:1a4::17)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17EFD5B5B6
+	for <nvdimm@lists.linux.dev>; Fri, 12 Apr 2024 12:37:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.203.201.7
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1712925444; cv=none; b=aGZbHgrnAoNFLXGcJRbBM4d65EpgP0U0Ivr+IjAV+X8YvMvdycoycM+GdINfpzPyyi0w3q/0PbHC+WlK+z5P+nq9iJWOkRLCtEYqfwEZRoq/CiwNVBopukO3rbJuS8YZqlFJD7pFJcQPRG3VzYOq26ewHAxG/YFtA12kp3+LDq4=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1712925444; c=relaxed/simple;
+	bh=3pNK9YTqMqiViynBQNAstvuzyugc6Dm6cYfCp/2gkJ8=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=XEKZtFwTT6kjvqIPH7Mg+Xjr92Jr2r+hesGGt3MWvrZabfWibgOoRY+qKxmEPxuhxnTONpyPvgIOPArdzXyVFyyOcWu+oKEq9zinge7hd043ejStgQny3GSgFV7rtrlJ8zXATUmF94khojsBtVcMZRByG4txMLLvCNQ0ebuCZbc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=pengutronix.de; spf=pass smtp.mailfrom=pengutronix.de; arc=none smtp.client-ip=185.203.201.7
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=pengutronix.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=pengutronix.de
+Received: from drehscheibe.grey.stw.pengutronix.de ([2a0a:edc0:0:c01:1d::a2])
+	by metis.whiteo.stw.pengutronix.de with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
+	(Exim 4.92)
+	(envelope-from <ukl@pengutronix.de>)
+	id 1rvG9W-0001xE-LG; Fri, 12 Apr 2024 14:37:10 +0200
+Received: from [2a0a:edc0:0:900:1d::77] (helo=ptz.office.stw.pengutronix.de)
+	by drehscheibe.grey.stw.pengutronix.de with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.94.2)
+	(envelope-from <ukl@pengutronix.de>)
+	id 1rvG9V-00BsYn-Gx; Fri, 12 Apr 2024 14:37:09 +0200
+Received: from ukl by ptz.office.stw.pengutronix.de with local (Exim 4.96)
+	(envelope-from <ukl@pengutronix.de>)
+	id 1rvG9V-000Am8-1P;
+	Fri, 12 Apr 2024 14:37:09 +0200
+Date: Fri, 12 Apr 2024 14:37:09 +0200
+From: Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
+To: Dan Williams <dan.j.williams@intel.com>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Ira Weiny <ira.weiny@intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, 
+	Benjamin Tissoires <benjamin.tissoires@redhat.com>, Yi Zhang <yi.zhang@redhat.com>, kernel@pengutronix.de, 
+	nvdimm@lists.linux.dev
+Subject: Re: [PATCH] ndtest: Convert to platform remove callback returning
+ void
+Message-ID: <xyisbsurpa2irnjtedqcrgn2wnhp5s3jge7tzavxzud7pvk3rm@4tcefxvvs7l5>
+References: <c04bfc941a9f5d249b049572c1ae122fe551ee5d.1709886922.git.u.kleine-koenig@pengutronix.de>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: BY5PR12MB3843:EE_|PH7PR12MB9073:EE_
-X-MS-Office365-Filtering-Correlation-Id: e3f4a59b-ca2c-4d03-880a-08dc5ae73a3d
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info:
-	DMWgNlROWRiTdX6CrwpG/26fl0o0xfCK/tdphcc6JaIOf1gVxW6MOaen+7KlvOzpSShf2olKrmQTcpDfORtsdRD7J7RSKveyFHKa9TKdsnE5htGxf6mL0LdtBV0qqcUIHYHObqkq72VukvHyUypv6UYFvFTtLDXcZPhznmJL1ugThOifitU9DzDe1hrRXfgN2fc5jqzLXspMY3vAf7zcOgVJpRPs+YdXVH80GUtXmQN2w1m/WXJhEFDm4UfyqsqePx6PCLtCvvY0Q5mxyCoZICerkVrCW2LJ0mlYPbPzbY2U3bjTg5ziK/i08I0g0KCQKbdtHIk9izdIPhqAMLffCv+NbDS/RftKZYw08LAQddP+dj3KYCdI+ULLXgLsGkDqXfOaitTFllB97L3tBrsH0lA8l65lHDr1IvbG/GyypE3P57gOKTEEIuPyXz4b+w99GXTKm76P5Z+gR0v3KYwv79UlFg0rEPTOm1FZjMvGRtFI1GL9YJFzNpuLQayjAF7H0+8zQxU/cxeVmocDPFbU0iuibWEAEKBm3Yz7K/fKzpH9bM96ZP5RCtU4m0yN3UOiGgFHE0oQp+mHRwaBR4HotzOu9dZrbtTZMYBbcvek4dIHcVUPjNCQXa7v3uIYxM5UyFQIuzWk3zSA2TIvf3whcqVBaiI7TgEJbjzemU4TjSE=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BY5PR12MB3843.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(1800799015)(7416005)(376005)(366007);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?tZgwPiZ453RZMGiSewWKAWHuiMT7BAvdUwO4peHX7YOF2jNdjAPidcqm07jY?=
- =?us-ascii?Q?tFJXD3AlLAvRWGY/PLzrhUC+Ld3r9CWUYjpROKgtICD6JShQrD7qs4tH9M6l?=
- =?us-ascii?Q?aUeWxIvto0O5E0AKZx21g59UsSn4eQgMyGq0QHbpPXT4ClgUcL0fO0yNiryK?=
- =?us-ascii?Q?Y9mIO9nMZGahYCTP3dIGMswUVBzVhJ453xskhETk6ij/qmHVUpohz+E4ndV/?=
- =?us-ascii?Q?SfGfG6VbA2O0jGdsk2CcKCW4nVovUmMtzp+ZSL+pHjgrBzVkXqxngla6uw/P?=
- =?us-ascii?Q?qFJH8AZ7hKGfoJ1jhBWDp1mhl/pid8f0X0gzIKUoInj1pjE+s0cqk8ypTpfl?=
- =?us-ascii?Q?CDPXqyCIXwgpHriWhOGM59oJPEqQkWyzfxV0AsBEjP2qnm9b5XtML0bmCmvJ?=
- =?us-ascii?Q?WVeqEsNy1ht09q4K2mZ2fUzW4Zq6ptja/pwfvmbPqXVacRHmHVHaJHihTG72?=
- =?us-ascii?Q?xYsl72Zfcf5TnD/h6VLp+d6HQCM9fU0ZHjQ4k8J+8gXjJO1k68uhRaCYegj2?=
- =?us-ascii?Q?JLu6i5ISAdFN1pbuILLWkdEhKbDN7xb2f/uve6F/+VP+WvXDN3vEsdeYI3pA?=
- =?us-ascii?Q?TW2uHoc00PUCQ4jRzWGQatZdpOgTiIN8uhaSeHsalzAdCRN8X1MQM9D6jbqM?=
- =?us-ascii?Q?4WPMGCVlC4NscvBRvAL5BaRvjCqF6cTCTACYh4K6S1/4wB0WHFxLHwnmXPQl?=
- =?us-ascii?Q?/96Cim4QFRbQqlZrxOvl1ssQOUac5MCf6ikM8/7lgBNBX8/iLV1iH4XyLbir?=
- =?us-ascii?Q?f0YDWbxwXOWtcD5o/ULQaCiZF7njriV/WkOfuaPJp75ufSL+aNgGJyzAH6a2?=
- =?us-ascii?Q?Po/QW5vGZ5nJkh70j0AiRDL86nR8FynrQfI8d0nxQ73XUKztH/yJYkG0PZpN?=
- =?us-ascii?Q?fa24u2vVKYzsusGuhvcMt6a2Qrf+PZEOkYaYDtS5neJNowONkHUPaAy9Tez7?=
- =?us-ascii?Q?IsZt5upceMIPD2aCRb4GxEx9GxXXxJNPcved/r4n2cQg/5ci0+zkPoVFHn5a?=
- =?us-ascii?Q?m5Qk4cqenZhxKMgY3HFfRG2llvE3H1n+dySgXr+y+JNqiXEeHooWgDeXcymq?=
- =?us-ascii?Q?wywM9EhLqF//ApNAU/j4y5sgLWryr9zKuH0A54BXhNHDtpki+c6HGMU7lywK?=
- =?us-ascii?Q?k27cwV5hrFLuBJh5VVEFUsm+V6TpUj1KJRNKYmRMLBUbdyOI9lLwwS1Ag9xA?=
- =?us-ascii?Q?Obi+YhqlgOpOw63+KPjBOqLFVXv0VGTWyXr+qKZorzvFBpc3QqNRQdkcCdQe?=
- =?us-ascii?Q?z87cSYshKpTf3Lhxe3djk7EQwLTMbGSlphtNlMJp6ksH2IW68X/3gRen4vLf?=
- =?us-ascii?Q?NDlx3o7pF6eYezu6VxVicVjoybpoxfyzurkgVgRr7tbiI9vmECKFfotgpABH?=
- =?us-ascii?Q?1N+q4aY48NL4F3b4Yz+8xxMmg4TtlBN11KDS2CYEkelEpyYJAfjnRQkrzkxd?=
- =?us-ascii?Q?Msea/wzyuAMqAj8qmwGN2bzeUvRZtVm8KE0++Xyz9CGZ/2M49GMVtneOHRmo?=
- =?us-ascii?Q?YUikvfrZClSFSCySD2z6Sq8N8TWnV8CscUKGjUgxIl6aBLk1syiiWEI6LWgP?=
- =?us-ascii?Q?pJlyIqGkQ8/YassyLaE4nhr9RbOtxFa7OhPI6VFC?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: e3f4a59b-ca2c-4d03-880a-08dc5ae73a3d
-X-MS-Exchange-CrossTenant-AuthSource: BY5PR12MB3843.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 12 Apr 2024 11:53:54.2463
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: TDRonoeFkAPV6fzP7cJxVwEa8TuNHXmdJeC1ZuJmedRTJdc80fdJV7nP92Nrr/qH
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR12MB9073
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="cls2lzh2xu37w3g6"
+Content-Disposition: inline
+In-Reply-To: <c04bfc941a9f5d249b049572c1ae122fe551ee5d.1709886922.git.u.kleine-koenig@pengutronix.de>
+X-SA-Exim-Connect-IP: 2a0a:edc0:0:c01:1d::a2
+X-SA-Exim-Mail-From: ukl@pengutronix.de
+X-SA-Exim-Scanned: No (on metis.whiteo.stw.pengutronix.de); SAEximRunCond expanded to false
+X-PTX-Original-Recipient: nvdimm@lists.linux.dev
 
-On Fri, Apr 12, 2024 at 04:55:31PM +1000, Alistair Popple wrote:
 
-> Ok, I think I found the dragons you were talking about earlier for
-> device-dax. I completely broke that because as you've already pointed
-> out pmd_trans_huge() won't filter out DAX pages. That's fine for FS DAX
-> (because the pages are essentially normal pages now anyway), but we
-> don't have a PMD equivalent of vm_normal_page() which leads to all sorts
-> of issues for DEVDAX.
+--cls2lzh2xu37w3g6
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-What about vm_normal_page() depends on the radix level ?
+On Fri, Mar 08, 2024 at 09:51:22AM +0100, Uwe Kleine-K=F6nig wrote:
+> The .remove() callback for a platform driver returns an int which makes
+> many driver authors wrongly assume it's possible to do error handling by
+> returning an error code. However the value returned is ignored (apart
+> from emitting a warning) and this typically results in resource leaks.
+>=20
+> To improve here there is a quest to make the remove callback return
+> void. In the first step of this quest all drivers are converted to
+> .remove_new(), which already returns void. Eventually after all drivers
+> are converted, .remove_new() will be renamed to .remove().
+>=20
+> Trivially convert this driver from always returning zero in the remove
+> callback to the void returning variant.
+>=20
+> Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
 
-Doesn't DEVDAX memory have struct page too?
+This patch got two positive review feedback mails but isn't included in
+next. This makes me wonder who feels responsible for picking it up.
 
-> So I will probably have to add something like that unless we only need
-> to support large (pmd/pud) mappings of DEVDAX pages on systems with
-> CONFIG_ARCH_HAS_PTE_SPECIAL in which case I guess we could just filter
-> based on pte_special().
+Best regards
+Uwe
 
-pte_special should only be used by memory without a struct page, is
-that what DEVDAX is?
+--=20
+Pengutronix e.K.                           | Uwe Kleine-K=F6nig            |
+Industrial Linux Solutions                 | https://www.pengutronix.de/ |
 
-Jason
+--cls2lzh2xu37w3g6
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEP4GsaTp6HlmJrf7Tj4D7WH0S/k4FAmYZKvQACgkQj4D7WH0S
+/k58HAf+P8U0ngRtTJh9NOBcgWlR/NYZ/CW0r79wbZgJHRJ+pSgoTpAAUNt8bmsg
+St3fsT/NldgyPkz661tcHHC8680zCACHQd6U4OSqXZL8MlEhobGBNDIeVU7OsGLB
+O7m+9KfiIlJ1o/RdMAnCWW9hrq7YZNhkPf50g4xzFp24IwIfJjlYrr88Lwu5ljZX
+I+l5Wr03viRqqFmgommoTD2kZmx0a7RMPxmt8ghSTGg4cbivp/GqZkYPTNEDQAuZ
+sDfGQGkflLL5u8QL3KkJJcdllQn9MuL0ILfKWZy2iQ8l0npQZuZzeJxHurI4EQE/
+Ebb4Rr+Zgc0BmI9O3FmtkmKYhrayvA==
+=yv8X
+-----END PGP SIGNATURE-----
+
+--cls2lzh2xu37w3g6--
