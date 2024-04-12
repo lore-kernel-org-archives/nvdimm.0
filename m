@@ -1,67 +1,69 @@
-Received: from NAM12-BN8-obe.outbound.protection.outlook.com (mail-bn8nam12on2062.outbound.protection.outlook.com [40.107.237.62])
+Received: from NAM11-BN8-obe.outbound.protection.outlook.com (mail-bn8nam11on2072.outbound.protection.outlook.com [40.107.236.72])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4246F502BD
-	for <nvdimm@lists.linux.dev>; Fri, 12 Apr 2024 07:03:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.237.62
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 363DE54FAC
+	for <nvdimm@lists.linux.dev>; Fri, 12 Apr 2024 11:54:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.236.72
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712905388; cv=fail; b=M0MWgiyFadfFSVa29KmPyadJNmy7eJRnOvgeikUAjD+kYhOm3b0QZfMrsx/p/TciTapvlNzh8YdJmSpQHiccgoNuVBl4lg1anuIdp7NXZVQeGRu8qg/ziKdsA5NksaPue+COn0RgsWEC+hvchCN2OU2tFIFPg1TQHsMj2ZWrVWA=
+	t=1712922842; cv=fail; b=SNW/1eMJVH5ZgVXH5loJQpis0S0+EM67ylPPOpqSoOnvsi8YFEVBo5mfFX51KEgEyP0qp1AyTwiUwlXkpWLX/una9I6sSgBkVYsh+hF/h4axneOHiGJBx0jM9g2F5lgVQPQlK7yV3CzZMGZWwcL+tJMSxuZKfJMz1XE5X6XFpkM=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712905388; c=relaxed/simple;
-	bh=vrrOPxPnsD5MugYxTOl27CG5P5KN0cN+J0Omq6LaviY=;
-	h=References:From:To:Cc:Subject:Date:In-reply-to:Message-ID:
-	 Content-Type:MIME-Version; b=uKDImimyXu5ETlro2mxYbNsabIi4vu3YdrM/BjbSU8WcoKZdWDxtx353xYt18XjwskO+/YlFV3HR055sA7KbTc5KrcxgFxwsn6EH1RMqvx7fvaWqL6HdaSMyojuYb1TAfh8NKpdvBmT7UekT4wpAJbJ4ibneoh8MUkCJzcC2rr0=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=LLBXWU+8; arc=fail smtp.client-ip=40.107.237.62
+	s=arc-20240116; t=1712922842; c=relaxed/simple;
+	bh=F8NXIN3MAAxaPfUWYlPBhhmvQ67k4+NabcisOtRfORg=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=T+51lJVL9Sf15a73WcxacApasBwrxNVk2mBeLrhNjr3T0NMz4PxrNl0AuNwhrREzs8bMrUhGdzz98JixpWJCe2Qk9b9ILRBziuxt+9b9OBBFGK9qlqbdColFIuHtmKeCSJZcWyomAQvCxaWmvTasjAuefRB9ZUgejf5STRrbYsU=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=bwsFpUzN; arc=fail smtp.client-ip=40.107.236.72
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="LLBXWU+8"
+	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="bwsFpUzN"
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=HfLZXjF3oGm+jv5LxFifQEgsbXsoV8KERCG349O0BzC8XnI//sFFy3kZVmpDX09WX9pKEE2PSmFkplXcpUi6qt/aGZvHmx7pZJRAYAiVt8kd0uO9rsgNIT8sPzIhHnpF5FeAMI98N3zTjmvOoLRoduIdON+CuggX5JaISoV69kPrDWBVHG9oNQKnyVRaATTmFkR7WqrwLLqBh4BAEooDEobrR2TvgRrEIIW+C7/qgfvaoxnwK0QcJdCrLDyW1kMTTnH+cMWFoRBgNVH8CXn2VAdQkcVaXhzuKpdfgR4vl10pPKEPLl36ZgE/iRHmrjr+rq7lfEz02uJ/DUZucR9NfA==
+ b=dWGV5h35MaEgBfX19DLAvccDMR5FZkjQoWtF1xLkGTVwgttoIJf3VQ5IOy9p3rv2pO8zyNy5DzFOHFOqksFaOivCXBckU+d6HQBVKM/c17Bmh5btiwX4MRJ1bvRE1Ft3NdkVBApLNNUgpU8cGgEzH7M2Xph9ywpVfdPIwFZN9w71NLlWvgFXWF6oTWnrdw+wRnDnYp0mr/wxbYV5z3Tb4p50GaFM7xsp3/H0N66N+W+47mmNDSAseRK4KViOH80Ui0qkW3qGJ2Y6DZIBk+8u/JrFAh6XuuiIRFB7nvJqitVtvQTEtQyFivcNJrNPPNrHaN1Xb6CDSfHbd8uzc8mn0Q==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=HPdlyirbUElXOTD4vWRwifD/f73CKWirrEdF1g1xxF8=;
- b=ZtI51DbR3K7pt+ZlkVeB+g139igSeyp9s4585mDE0SI52zrqD3JEoCl4xIV2Q78v/S+TIEFyCPeGSsDjswT9pULFmsJmO40Ga/Smi1P7nd9fCy1S7vvHCKWuNuMzcInC+FaiEzKCbuSBdKiXTnfU/MdNX1o7hM1GtPhkK8Tlv1solAn53v66T9QwCJfZ34HLm3DCzhxA+sYsiauOlNXcnUfaZXB16HD0cBRzEmTqEDdCuwuqE3H0kdYc9ijOFya/z0dZGq6Q1ZmVX8aC9yXRgLH78HtG3RpPxAYBqSZsDCgB+vCIEwc0AhPnIWqGjwV5afQlFS/mMsuiTJMO5lzyZA==
+ bh=F8NXIN3MAAxaPfUWYlPBhhmvQ67k4+NabcisOtRfORg=;
+ b=lIHU6GRBgSdwSYutBtsql/nN7u6qVkYG/3yXp1Pibc0Td8bNGO1U4sZ9wIPIXIG3y960s7nL+ncJZxT56qmtagXE3jyrc6xsQkWQ0TQLrMNOALyP/Rsex2jAOlH7AuEuYD7+tGBfbFRIPEcoaXgn5MksYTidItCMhJyn617SXTpeSbPiiDOXc1I7AMP2QGynEYWspOG4BHYNNuznAK6lFJcRq7mkAjAwjFDvvMzLnGPTfkmWs88H2/JkswnMkhLpDtURS1xvfzmryENrIYGJAQ9z6mqoWwXti+dwKPkGawT7r+Cmvsdzn07NBXp6rHlhkakktlgmZMAZljrvI2l+EQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
  dkim=pass header.d=nvidia.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=HPdlyirbUElXOTD4vWRwifD/f73CKWirrEdF1g1xxF8=;
- b=LLBXWU+88KnL5Olhe+Qs1xan7N5s0NpnoIxIJsGH8JQ9PEPOhKSAfnNfHZ3l0xlK1KX0iDLv06LcgLJwL4sT0scXSxlvQJUWTIfqqak5CH4HWzfC/DO3AmhRh5TQOZAl5jXxG0It7dMrWb2l4BRIbH+6CuKd2FpVqBN0v8ogRnqLSMF3Q1KoYDsx5EYUOWjT1Mk36GXbmpF5RmR9yentlYsjuHUesEAzNfL3peYbPzr67Nj9l6gRx3EII1Tc/lemxdhLWeowGJGCO0u2qHgXK2/lIGIG3dNXhui5Qyw2GW7Exj2Dut5yU47M69QhkodorxR5lcagfgvS67eD5vxCFA==
+ bh=F8NXIN3MAAxaPfUWYlPBhhmvQ67k4+NabcisOtRfORg=;
+ b=bwsFpUzN6M+n8HavaeD/q1SfLD2M16OKkA8MB3LZTPezoU9cnJakghB30ysr+065KibyWIbc4dCU7QskYrVSAziXi/nMj8Tj0ANoKFPF2CfHNm2mwc4m3po1ua3YF7DPaT2D9S+ruDWjfKkVWaLnJm7Kla+5nrzH79B5pq1IQRI81NdJA//1l3/goHThmlRGbV+hRfungQJtJvJPrWBto+bgwLapiN/c0kMXgMCrRnObF4BTjFNfu/DBJwPsLqb9OmsHEOcF7xEkKqczJv7/+k+23OF+cxG/I3LOBTl2qwzJmEqNKaFkmTLKh9ZSl3X/hUGhhjm6i3OsELYvRhQdVg==
 Authentication-Results: dkim=none (message not signed)
  header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from DS0PR12MB7726.namprd12.prod.outlook.com (2603:10b6:8:130::6) by
- CY8PR12MB7194.namprd12.prod.outlook.com (2603:10b6:930:5a::19) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.7409.55; Fri, 12 Apr 2024 07:02:59 +0000
-Received: from DS0PR12MB7726.namprd12.prod.outlook.com
- ([fe80::80b6:af9b:3a9a:9309]) by DS0PR12MB7726.namprd12.prod.outlook.com
- ([fe80::80b6:af9b:3a9a:9309%7]) with mapi id 15.20.7409.055; Fri, 12 Apr 2024
- 07:02:59 +0000
+Received: from BY5PR12MB3843.namprd12.prod.outlook.com (2603:10b6:a03:1a4::17)
+ by PH7PR12MB9073.namprd12.prod.outlook.com (2603:10b6:510:2eb::22) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7409.46; Fri, 12 Apr
+ 2024 11:53:56 +0000
+Received: from BY5PR12MB3843.namprd12.prod.outlook.com
+ ([fe80::1395:49dc:c6cc:5295]) by BY5PR12MB3843.namprd12.prod.outlook.com
+ ([fe80::1395:49dc:c6cc:5295%6]) with mapi id 15.20.7409.053; Fri, 12 Apr 2024
+ 11:53:54 +0000
+Date: Fri, 12 Apr 2024 08:53:52 -0300
+From: Jason Gunthorpe <jgg@nvidia.com>
+To: Alistair Popple <apopple@nvidia.com>
+Cc: Dan Williams <dan.j.williams@intel.com>, linux-mm@kvack.org,
+	david@fromorbit.com, jhubbard@nvidia.com, rcampbell@nvidia.com,
+	willy@infradead.org, linux-fsdevel@vger.kernel.org, jack@suse.cz,
+	djwong@kernel.org, hch@lst.de, david@redhat.com,
+	ruansy.fnst@fujitsu.com, nvdimm@lists.linux.dev,
+	linux-xfs@vger.kernel.org, linux-ext4@vger.kernel.org,
+	jglisse@redhat.com
+Subject: Re: [RFC 00/10] fs/dax: Fix FS DAX page reference counts
+Message-ID: <20240412115352.GY5383@nvidia.com>
 References: <cover.fe275e9819458a4bbb9451b888cafb88af8867d4.1712796818.git-series.apopple@nvidia.com>
  <66181dd83f74e_15786294e8@dwillia2-mobl3.amr.corp.intel.com.notmuch>
  <87frvr5has.fsf@nvdebian.thelocal>
-User-agent: mu4e 1.10.8; emacs 29.1
-From: Alistair Popple <apopple@nvidia.com>
-To: Alistair Popple <apopple@nvidia.com>
-Cc: Dan Williams <dan.j.williams@intel.com>, linux-mm@kvack.org,
- david@fromorbit.com, jhubbard@nvidia.com, rcampbell@nvidia.com,
- willy@infradead.org, jgg@nvidia.com, linux-fsdevel@vger.kernel.org,
- jack@suse.cz, djwong@kernel.org, hch@lst.de, david@redhat.com,
- ruansy.fnst@fujitsu.com, nvdimm@lists.linux.dev,
- linux-xfs@vger.kernel.org, linux-ext4@vger.kernel.org, jglisse@redhat.com
-Subject: Re: [RFC 00/10] fs/dax: Fix FS DAX page reference counts
-Date: Fri, 12 Apr 2024 16:55:31 +1000
-In-reply-to: <87frvr5has.fsf@nvdebian.thelocal>
-Message-ID: <877ch35ahu.fsf@nvdebian.thelocal>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-X-ClientProxiedBy: SY6PR01CA0064.ausprd01.prod.outlook.com
- (2603:10c6:10:ea::15) To CY8PR12MB7705.namprd12.prod.outlook.com
- (2603:10b6:930:84::9)
+ <877ch35ahu.fsf@nvdebian.thelocal>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <877ch35ahu.fsf@nvdebian.thelocal>
+X-ClientProxiedBy: BL0PR1501CA0034.namprd15.prod.outlook.com
+ (2603:10b6:207:17::47) To BY5PR12MB3843.namprd12.prod.outlook.com
+ (2603:10b6:a03:1a4::17)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -69,210 +71,75 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DS0PR12MB7726:EE_|CY8PR12MB7194:EE_
-X-MS-Office365-Filtering-Correlation-Id: 1e460ca0-f880-427d-33b6-08dc5abe95a8
+X-MS-TrafficTypeDiagnostic: BY5PR12MB3843:EE_|PH7PR12MB9073:EE_
+X-MS-Office365-Filtering-Correlation-Id: e3f4a59b-ca2c-4d03-880a-08dc5ae73a3d
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
 X-Microsoft-Antispam-Message-Info:
-	ft9XzJ5ZJ2rRlUVlF475wSn43Fbu/PyNMlNgXBrCT0cbFFBhHKhSZHEJnAUJ3XHFl++wu/PUme/7xnz4TP6BMXzGL0ZA6K8YmXDgAeCl5G8CafO7FNV4PH9Tks9r/W1YXOpQbK5GDI5b5YTkkh4K7r9xQuLBKH8hMuA9+0oM5NQ0HQ6LzZM+8skyoyfbVX7+2PDAJfmtlRNV3BhHWUXV3s0vpnWwtc680/RC8E6ULQc0VWgrTA4bdIfpXk3vqD6VYE0O1iV1Q/dSkZ/FoWsOHb/XlBMJVndo/p2ezVmIMO7gA4lfoVLYGpDz5J45PFcWljVTVkxxS0zl615E58nD6SJMy2wDXSc/62GnMCaA7GKYWzcW05JT1YhOl2ezNX2T6EBIogvKNZlpK3NexzDaDZHIcOHHZlUlQW2ZNETFo4AdATM0MQ5cqJjVKxnWZ7FQkY3MG4pUvnI0U8ZZ8jiJNhBWe5CBAO9cx+fPqpFIoryjnU5voZ9L+B5EqNyqK2+aDcDuwLulgGcEpIN0da/vARBAAkqhlc39xcDwivhdgzPdKu4QsXjnnR/AeuQqsGl32fcrl6Q6LfoEvLcTCXuVYP9p+pkY2oVuOWiIbaB4b6k8sWmh3Og39/SI4OAWd3Ekht62298N82yEOCDQ9bLa1dmdilhcM5W3Jxpv/GMCo8M=
+	DMWgNlROWRiTdX6CrwpG/26fl0o0xfCK/tdphcc6JaIOf1gVxW6MOaen+7KlvOzpSShf2olKrmQTcpDfORtsdRD7J7RSKveyFHKa9TKdsnE5htGxf6mL0LdtBV0qqcUIHYHObqkq72VukvHyUypv6UYFvFTtLDXcZPhznmJL1ugThOifitU9DzDe1hrRXfgN2fc5jqzLXspMY3vAf7zcOgVJpRPs+YdXVH80GUtXmQN2w1m/WXJhEFDm4UfyqsqePx6PCLtCvvY0Q5mxyCoZICerkVrCW2LJ0mlYPbPzbY2U3bjTg5ziK/i08I0g0KCQKbdtHIk9izdIPhqAMLffCv+NbDS/RftKZYw08LAQddP+dj3KYCdI+ULLXgLsGkDqXfOaitTFllB97L3tBrsH0lA8l65lHDr1IvbG/GyypE3P57gOKTEEIuPyXz4b+w99GXTKm76P5Z+gR0v3KYwv79UlFg0rEPTOm1FZjMvGRtFI1GL9YJFzNpuLQayjAF7H0+8zQxU/cxeVmocDPFbU0iuibWEAEKBm3Yz7K/fKzpH9bM96ZP5RCtU4m0yN3UOiGgFHE0oQp+mHRwaBR4HotzOu9dZrbtTZMYBbcvek4dIHcVUPjNCQXa7v3uIYxM5UyFQIuzWk3zSA2TIvf3whcqVBaiI7TgEJbjzemU4TjSE=
 X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS0PR12MB7726.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(376005)(1800799015)(7416005)(366007);DIR:OUT;SFP:1101;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BY5PR12MB3843.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(1800799015)(7416005)(376005)(366007);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?bHdBR0xjeks2QmMyRXN2UFd5ZzkySHJHV2NURXFOV3E1Z3Y3bDBSVFBpVDlU?=
- =?utf-8?B?bmJKVG5RaTU1S3N0d1pBQUJXYlBQK0RsSGRTR2NNaGlEd0tBQTdqUURTNEJQ?=
- =?utf-8?B?TElpYzJHaEwyeUdaeWxOWTkvaDJ3akgwakx2VnJFWUFhanR3RWQySUdrVVIv?=
- =?utf-8?B?T3UrUFd6WlRjQ1pnUlRYNVNmYU5Tc0ZJMjMrWmlXbENXdjN0ZjQwcE5IVnox?=
- =?utf-8?B?b3E3L1YyTFZtem1RQTNIWTVFaHhmeURHQWtXM3FlUndDbnlHSHlpbDBKOFZE?=
- =?utf-8?B?UEVZRlNHQWUyYVJzTTJYbDM0MithdUJCeStaTFhqek1HeXpmRE5BVlc0Ull4?=
- =?utf-8?B?eVBoOFEyMGphM3pNaUorbHkxaFE1bU45UDZmNHBGSk9QbW5aZkRGUDlCTWc2?=
- =?utf-8?B?RDllZUZYTHFncEZwYjFob3JKc1I5T2pNcnA4VmFFLzBBTUV1UlFaeUFkTFdP?=
- =?utf-8?B?cTlZbExWTFZrVzB3UnMwT1NLZnk4RDA4cEdWdHRtYjNlNW5qQ0pBdnpuVmN1?=
- =?utf-8?B?d21scUdKbWxNT1JYMkc0aFA4M1BmQWNHK2pnL0tlY3pVb2ozbVBvR3NXNjl1?=
- =?utf-8?B?UWx1blppVG1sS3FmYmt5aWZTbjBJQ2VHc2pxRldKYmp1UzhJdktxNDZYbEFD?=
- =?utf-8?B?bkZ1SGtNM0xNTGZYVUpHekdUWjhTOUwya2J4WnJySnEvOGcwQkJBOFRjNTdO?=
- =?utf-8?B?eHkybERJOUxCdzhHN2U0TlluTEF2bXJaY3lSUTdBUG92U24rTm1DQlBEdFdw?=
- =?utf-8?B?Y285UDVQMHFaQWV2U3psWUhOYy9SWVlnVkgzb2VuSnZuNzcrYVp3LzRPWUhV?=
- =?utf-8?B?S0lJMFRJc0FjYVVUUzYzcUl4dXVkZUpmY1Voc3BHa1ljaEhXY2F4ajZEeURl?=
- =?utf-8?B?QmVZTGpndUFuaXl6SVBBSFVrWkhMWUlaN3BBTy9Da3NQaVR1bWp5VmxDNHJ0?=
- =?utf-8?B?d1FibHh3TDBaRzlOWjlHcUh6bHhNSW1sa256Si9laHU0dzg5VkVIK04rL3JB?=
- =?utf-8?B?Z3czTUwrTUQyeFZOdXdmV0puYXVuV3QzOGdqd1g5V3JVSlZUeklIZ1RwV2xW?=
- =?utf-8?B?d1BWU20wUytabmR4QkRqUHJObkVJemJYbFJWbzVBR09hREs5Sy9iUnE4NjU5?=
- =?utf-8?B?clZyd2JCSmR6REJvVkpOU3h1dW4yck9EbTRWYUVRUkFrbVFVekJ6dnIwcDJz?=
- =?utf-8?B?VW1rdmNJazhWQk9ab1BKV1o0alpKVTFXdTFyUERNUGlWL0VmVWNCR1RGcE1C?=
- =?utf-8?B?RXJOclVlM21OcUovSWhaN2pxREtGY0JyMGpPeWpXWkQrMjQ1VG1XSEV0MkRB?=
- =?utf-8?B?dGxCdnpmRzR3bFdXdlEyWFYzdzVGYUdSRFNaQ1lsKzk1ZkMyaHlPUmQwOS9l?=
- =?utf-8?B?Si9NSUFUbkI3dnNtdno5Sm5CYXh1TTA0c3ZRSHAyWjBiQWkyUjE2eXBmSlhW?=
- =?utf-8?B?ZlJuOExhTmc1QW1WWVlQSTBCWTlWTjBlWUtoU0h4b3NlcFIva3ZXb2pEVSty?=
- =?utf-8?B?R1NSWW41QkJVVnZQRnlHTDA4SDdEVklZNDFvM0podE1XVW5GZDhFdHRKREZ2?=
- =?utf-8?B?bXVVZ0JHOTZnY2huYXBMaVMwZEFldlV1aFY3RkpDMUE1bUZiVURZZU44MXlE?=
- =?utf-8?B?Y3dCSUFTN0JKdzdQT0VuTElNalFQeE81cWhpVHRXYnpObnhkRi8vcWdYMG9S?=
- =?utf-8?B?MklFTGxXK2ZqRzZidVBDZEtqSFlpY1cwd2s0b0NJVERVSzd4OWZFeTVzcmtX?=
- =?utf-8?B?K3F5NmdjbXAweGovSkhZU1NmZWh5aVdlWkE5eWQyM2djUUU4NWNySzVaVlQz?=
- =?utf-8?B?bjI2Y0FIQU05dVNtT2RDY3hIeWk1N0lKQjB6ci9RTUszd1dEK3p0Snp0cFEw?=
- =?utf-8?B?Y3ZIc2dnTmt3RWNtVmh0TmUyOHFhWHg4NG0zZVdjYXJ0T2kxQW9UQ2pabVpP?=
- =?utf-8?B?MmNzV0tsckR2SURIRUVIMnc3VzUwTFZIZW05RWVDcWhGbDcwYjlVMEMyZXVy?=
- =?utf-8?B?V0diUFAxcWwwMC9vQXBZbnY3RmlKMEI4bnBsc2EvVUFYRktwT0gzK2luZ0Fm?=
- =?utf-8?B?Ym1LT3NFZmlGTmRFNWZicEpjMmFHQUh0cm9mVXovdThoa1lJMWh6OW5EQW5C?=
- =?utf-8?Q?BRrxtVxclUfPAJPS6gV7LejF1?=
+	=?us-ascii?Q?tZgwPiZ453RZMGiSewWKAWHuiMT7BAvdUwO4peHX7YOF2jNdjAPidcqm07jY?=
+ =?us-ascii?Q?tFJXD3AlLAvRWGY/PLzrhUC+Ld3r9CWUYjpROKgtICD6JShQrD7qs4tH9M6l?=
+ =?us-ascii?Q?aUeWxIvto0O5E0AKZx21g59UsSn4eQgMyGq0QHbpPXT4ClgUcL0fO0yNiryK?=
+ =?us-ascii?Q?Y9mIO9nMZGahYCTP3dIGMswUVBzVhJ453xskhETk6ij/qmHVUpohz+E4ndV/?=
+ =?us-ascii?Q?SfGfG6VbA2O0jGdsk2CcKCW4nVovUmMtzp+ZSL+pHjgrBzVkXqxngla6uw/P?=
+ =?us-ascii?Q?qFJH8AZ7hKGfoJ1jhBWDp1mhl/pid8f0X0gzIKUoInj1pjE+s0cqk8ypTpfl?=
+ =?us-ascii?Q?CDPXqyCIXwgpHriWhOGM59oJPEqQkWyzfxV0AsBEjP2qnm9b5XtML0bmCmvJ?=
+ =?us-ascii?Q?WVeqEsNy1ht09q4K2mZ2fUzW4Zq6ptja/pwfvmbPqXVacRHmHVHaJHihTG72?=
+ =?us-ascii?Q?xYsl72Zfcf5TnD/h6VLp+d6HQCM9fU0ZHjQ4k8J+8gXjJO1k68uhRaCYegj2?=
+ =?us-ascii?Q?JLu6i5ISAdFN1pbuILLWkdEhKbDN7xb2f/uve6F/+VP+WvXDN3vEsdeYI3pA?=
+ =?us-ascii?Q?TW2uHoc00PUCQ4jRzWGQatZdpOgTiIN8uhaSeHsalzAdCRN8X1MQM9D6jbqM?=
+ =?us-ascii?Q?4WPMGCVlC4NscvBRvAL5BaRvjCqF6cTCTACYh4K6S1/4wB0WHFxLHwnmXPQl?=
+ =?us-ascii?Q?/96Cim4QFRbQqlZrxOvl1ssQOUac5MCf6ikM8/7lgBNBX8/iLV1iH4XyLbir?=
+ =?us-ascii?Q?f0YDWbxwXOWtcD5o/ULQaCiZF7njriV/WkOfuaPJp75ufSL+aNgGJyzAH6a2?=
+ =?us-ascii?Q?Po/QW5vGZ5nJkh70j0AiRDL86nR8FynrQfI8d0nxQ73XUKztH/yJYkG0PZpN?=
+ =?us-ascii?Q?fa24u2vVKYzsusGuhvcMt6a2Qrf+PZEOkYaYDtS5neJNowONkHUPaAy9Tez7?=
+ =?us-ascii?Q?IsZt5upceMIPD2aCRb4GxEx9GxXXxJNPcved/r4n2cQg/5ci0+zkPoVFHn5a?=
+ =?us-ascii?Q?m5Qk4cqenZhxKMgY3HFfRG2llvE3H1n+dySgXr+y+JNqiXEeHooWgDeXcymq?=
+ =?us-ascii?Q?wywM9EhLqF//ApNAU/j4y5sgLWryr9zKuH0A54BXhNHDtpki+c6HGMU7lywK?=
+ =?us-ascii?Q?k27cwV5hrFLuBJh5VVEFUsm+V6TpUj1KJRNKYmRMLBUbdyOI9lLwwS1Ag9xA?=
+ =?us-ascii?Q?Obi+YhqlgOpOw63+KPjBOqLFVXv0VGTWyXr+qKZorzvFBpc3QqNRQdkcCdQe?=
+ =?us-ascii?Q?z87cSYshKpTf3Lhxe3djk7EQwLTMbGSlphtNlMJp6ksH2IW68X/3gRen4vLf?=
+ =?us-ascii?Q?NDlx3o7pF6eYezu6VxVicVjoybpoxfyzurkgVgRr7tbiI9vmECKFfotgpABH?=
+ =?us-ascii?Q?1N+q4aY48NL4F3b4Yz+8xxMmg4TtlBN11KDS2CYEkelEpyYJAfjnRQkrzkxd?=
+ =?us-ascii?Q?Msea/wzyuAMqAj8qmwGN2bzeUvRZtVm8KE0++Xyz9CGZ/2M49GMVtneOHRmo?=
+ =?us-ascii?Q?YUikvfrZClSFSCySD2z6Sq8N8TWnV8CscUKGjUgxIl6aBLk1syiiWEI6LWgP?=
+ =?us-ascii?Q?pJlyIqGkQ8/YassyLaE4nhr9RbOtxFa7OhPI6VFC?=
 X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 1e460ca0-f880-427d-33b6-08dc5abe95a8
-X-MS-Exchange-CrossTenant-AuthSource: CY8PR12MB7705.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: e3f4a59b-ca2c-4d03-880a-08dc5ae73a3d
+X-MS-Exchange-CrossTenant-AuthSource: BY5PR12MB3843.namprd12.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 12 Apr 2024 07:02:58.9117
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 12 Apr 2024 11:53:54.2463
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: s2/65vmx2oXqtBMkUi01YCbuSolMN0aGFX8qpS0sqbneGtiFlvWS91NyZ8keY1BVveMkaVIQ2H+XHeTFMQ4mfQ==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY8PR12MB7194
+X-MS-Exchange-CrossTenant-UserPrincipalName: TDRonoeFkAPV6fzP7cJxVwEa8TuNHXmdJeC1ZuJmedRTJdc80fdJV7nP92Nrr/qH
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR12MB9073
 
+On Fri, Apr 12, 2024 at 04:55:31PM +1000, Alistair Popple wrote:
 
-Alistair Popple <apopple@nvidia.com> writes:
+> Ok, I think I found the dragons you were talking about earlier for
+> device-dax. I completely broke that because as you've already pointed
+> out pmd_trans_huge() won't filter out DAX pages. That's fine for FS DAX
+> (because the pages are essentially normal pages now anyway), but we
+> don't have a PMD equivalent of vm_normal_page() which leads to all sorts
+> of issues for DEVDAX.
 
-> Dan Williams <dan.j.williams@intel.com> writes:
->
->> Alistair Popple wrote:
->>> FS DAX pages have always maintained their own page reference counts
->>> without following the normal rules for page reference counting. In
->>> particular pages are considered free when the refcount hits one rather
->>> than zero and refcounts are not added when mapping the page.
->>
->>> Tracking this requires special PTE bits (PTE_DEVMAP) and a secondary
->>> mechanism for allowing GUP to hold references on the page (see
->>> get_dev_pagemap). However there doesn't seem to be any reason why FS
->>> DAX pages need their own reference counting scheme.
->>
->> This is fair. However, for anyone coming in fresh to this situation
->> maybe some more "how we get here" history helps. That longer story is
->> here:
->>
->> http://lore.kernel.org/all/166579181584.2236710.17813547487183983273.stg=
-it@dwillia2-xfh.jf.intel.com/
->
-> Good idea.
->
->>> This RFC is an initial attempt at removing the special reference
->>> counting and instead refcount FS DAX pages the same as normal pages.
->>>=20
->>> There are still a couple of rough edges - in particular I haven't
->>> completely removed the devmap PTE bit references from arch specific
->>> code and there is probably some more cleanup of dev_pagemap reference
->>> counting that could be done, particular in mm/gup.c. I also haven't
->>> yet compiled on anything other than x86_64.
->>>=20
->>> Before continuing further with this clean-up though I would appreciate
->>> some feedback on the viability of this approach and any issues I may
->>> have overlooked, as I am not intimately familiar with FS DAX code (or
->>> for that matter the FS layer in general).
->>>=20
->>> I have of course run some basic testing which didn't reveal any
->>> problems.
->>
->> FWIW I see the following with the ndctl/dax test-suite (double-checked
->> that vanilla v6.6 passes). I will take a look at the patches, but in the
->> meantime...
->
-> Hmmm...
->
->> # meson test -C build --suite ndctl:dax
->> ninja: no work to do.
->> ninja: Entering directory `/root/git/ndctl/build'
->> [1/70] Generating version.h with a custom command
->>  1/13 ndctl:dax / daxdev-errors.sh          OK              14.46s
->>  2/13 ndctl:dax / multi-dax.sh              OK               2.70s
->>  3/13 ndctl:dax / sub-section.sh            OK               7.21s
->>  4/13 ndctl:dax / dax-dev                   OK               0.08s
->> [5/13] =F0=9F=8C=96 ndctl:dax / dax-ext4.sh                            0=
-/600s
->
-> ...thanks for pasting that output. Turns out I didn't have destructive
-> testing enabled during the build so hadn't noticed these tests were not
-> running. It would be nice if these were reported as skipped when not
-> enabled rather than hidden.
->
-> With that fixed I'm seeing a couple of kernel warnings (and I think I
-> know why), so it might be worth holding off looking at this too closely
-> until I've fixed these.
+What about vm_normal_page() depends on the radix level ?
 
-Ok, I think I found the dragons you were talking about earlier for
-device-dax. I completely broke that because as you've already pointed
-out pmd_trans_huge() won't filter out DAX pages. That's fine for FS DAX
-(because the pages are essentially normal pages now anyway), but we
-don't have a PMD equivalent of vm_normal_page() which leads to all sorts
-of issues for DEVDAX.
+Doesn't DEVDAX memory have struct page too?
 
-So I will probably have to add something like that unless we only need
-to support large (pmd/pud) mappings of DEVDAX pages on systems with
-CONFIG_ARCH_HAS_PTE_SPECIAL in which case I guess we could just filter
-based on pte_special().
+> So I will probably have to add something like that unless we only need
+> to support large (pmd/pud) mappings of DEVDAX pages on systems with
+> CONFIG_ARCH_HAS_PTE_SPECIAL in which case I guess we could just filter
+> based on pte_special().
 
->> ...that last test crashed with:
->>
->>  EXT4-fs (pmem0): mounted filesystem 2adea02a-a791-4714-be40-125afd16634=
-b r/w with ordered
->> ota mode: none.
->>  page:ffffea0005f00000 refcount:0 mapcount:0 mapping:ffff8882a8a6be10 in=
-dex:0x5800 pfn:0x1
->>
->>  head:ffffea0005f00000 order:9 entire_mapcount:0 nr_pages_mapped:0 pinco=
-unt:0
->>  aops:ext4_dax_aops ino:c dentry name:"image"
->>  flags: 0x4ffff800004040(reserved|head|node=3D0|zone=3D4|lastcpupid=3D0x=
-1ffff)
->>  page_type: 0xffffffff()
->>  raw: 004ffff800004040 ffff888202681520 0000000000000000 ffff8882a8a6be1=
-0
->>  raw: 0000000000005800 0000000000000000 00000000ffffffff 000000000000000=
-0
->>  page dumped because: VM_BUG_ON_FOLIO(((unsigned int) folio_ref_count(fo=
-lio) + 127u <=3D 127
->>
->>  ------------[ cut here ]------------
->>  kernel BUG at include/linux/mm.h:1419!
->>  invalid opcode: 0000 [#1] PREEMPT SMP PTI
->>  CPU: 0 PID: 1415 Comm: dax-pmd Tainted: G           OE    N 6.6.0+ #209
->>  Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS edk2-20230524-=
-3.fc38 05/24/2023
->>  RIP: 0010:dax_insert_pfn_pmd+0x41c/0x430
->>  Code: 89 c1 41 b8 01 00 00 00 48 89 ea 4c 89 e6 4c 89 f7 e8 18 8a c7 ff=
- e9 e0 fc ff ff 48
->> c b3 48 89 c7 e8 a4 53 f7 ff <0f> 0b e8 0d ba a8 00 48 8b 15 86 8a 62 01=
- e9 89 fc ff ff 90
->>
->>  RSP: 0000:ffffc90001d57b68 EFLAGS: 00010246
->>  RAX: 000000000000005c RBX: ffffea0005f00000 RCX: 0000000000000000
->>  RDX: 0000000000000000 RSI: ffffffffb3749a15 RDI: 00000000ffffffff
->>  RBP: ffff8882982c07e0 R08: 00000000ffffdfff R09: 0000000000000001
->>  R10: 00000000ffffdfff R11: ffffffffb3a771c0 R12: 800000017c0008e7
->>  R13: 8000000000000025 R14: ffff888202a395f8 R15: ffffea0005f00000
->>  FS:  00007fdaa00e3d80(0000) GS:ffff888477000000(0000) knlGS:00000000000=
-00000
->>  CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
->>  CR2: 00007fda9f800000 CR3: 0000000296224000 CR4: 00000000000006f0
->>  DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
->>  DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
->>  Call Trace:
->>   <TASK>
->>   ? die+0x32/0x80
->>   ? do_trap+0xd6/0x100
->>   ? dax_insert_pfn_pmd+0x41c/0x430
->>   ? dax_insert_pfn_pmd+0x41c/0x430
->>   ? do_error_trap+0x81/0x110
->>   ? dax_insert_pfn_pmd+0x41c/0x430
->>   ? exc_invalid_op+0x4c/0x60
->>   ? dax_insert_pfn_pmd+0x41c/0x430
->>   ? asm_exc_invalid_op+0x16/0x20
->>   ? dax_insert_pfn_pmd+0x41c/0x430
->>   ? dax_insert_pfn_pmd+0x41c/0x430
->>   dax_fault_iter+0x5d0/0x700
->>   dax_iomap_pmd_fault+0x212/0x450
->>   ext4_dax_huge_fault+0x1dc/0x470
->>   __handle_mm_fault+0x808/0x13e0
->>   handle_mm_fault+0x178/0x3e0
->>   do_user_addr_fault+0x186/0x830
->>   exc_page_fault+0x6f/0x1d0
->>   asm_exc_page_fault+0x22/0x30
->>  RIP: 0033:0x7fdaa072d009
+pte_special should only be used by memory without a struct page, is
+that what DEVDAX is?
 
+Jason
