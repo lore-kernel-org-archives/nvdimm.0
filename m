@@ -1,155 +1,100 @@
-Received: from NAM10-BN7-obe.outbound.protection.outlook.com (mail-bn7nam10on2062.outbound.protection.outlook.com [40.107.92.62])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr1-f44.google.com (mail-wr1-f44.google.com [209.85.221.44])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48CBC47F5C
-	for <nvdimm@lists.linux.dev>; Mon, 15 Apr 2024 08:42:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.92.62
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713170536; cv=fail; b=EUEeEGFNrsJFroq9QcU53BIAu8kbuZLGD8NC4dMEW756fcM1WsNrzzibtx0yLxk5JJnVpQmzIbus5uSsS1dgL0eOVuHUI7S0M7WdngtzWZ1ALC6ggd/G3xuLmjoqw4wMPRMtPHYNI5R6rn3N3coKa0AbChC8U/qamuIJnL/EXN0=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713170536; c=relaxed/simple;
-	bh=/L8L0yB024+8lA+0V6fgP23DqNw/ea5kI1BlqwVTWfI=;
-	h=References:From:To:Cc:Subject:Date:In-reply-to:Message-ID:
-	 Content-Type:MIME-Version; b=J1wfoy2aX3oUC4T2+Kd8WVNA+7b5b28+kdGONhTeEhv0ZwoQmUX+R56aj6GulJPMFGMduJ7TOsugoM5sUakRv2jPtPZDm+FiKM0TmREVhrDzgZUWmnsZYchyuKa638dtoSuBBaqRPZ/t1XeFHUQzk1tb+gfd6jVqjqmd7JmSJjU=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=NG20jgpE; arc=fail smtp.client-ip=40.107.92.62
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B890347A7F
+	for <nvdimm@lists.linux.dev>; Mon, 15 Apr 2024 10:19:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.44
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1713176373; cv=none; b=FppUPfAnzzZWsng8u43PAa1W0Q6oQjvFweArhKkyMGD+50Gb5sBpON/WQP0/nbZt3zMWUzRSkwSKOnvvZLNqYBnQp2xh+csevUdzZvIdWwcLHeTcUkTBgDnxRModMtbQA+dDTBOUj5LrnDXwUG40rAUHnFmsIK6pMgUMI16/FFM=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1713176373; c=relaxed/simple;
+	bh=z0lUnRnJ20hdiXpMZRnobdIYEG92hyGdtmMXMY7UjPw=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version:Content-Type; b=EDrYc+fkkwB6pGCDkFYItfrSUFdG1evTSkfVtphFFlJpZutK0S4DaPODf5MWccViBqMQSzgA5Jfw0dhzpSZY6FN4twiAYYdh64HZZdIpTIB3U0nk/IUlTZDuXvrCnHXD94LD60tG0+hbumfoWUwaaH4CGbqwwOhLqXEPBkU7FSk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=h1vrMuST; arc=none smtp.client-ip=209.85.221.44
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="NG20jgpE"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=W4Ki3Ec4Bfuj7Su56DyFxzVTLQ8UQ9gkkN/XQnUtvwGyBFGAgFRazZPQEgLoS+tlKlQI4AHECWNZg77k6nGV9zdSPRDYRfVfp1wZPbZOvYmVWrWojKL2yhxKnEMUp7qN7jhH3s5pr+Pco9Qp04/6rXobM/J0s8hnTqFKkJkbSx8bRPMeCSJsK0FY8ZqfGcN+Wiqy+XJUc4pSdsHn6mkZq1+eIm36/afgTERSsAXWd5z6m/a00k+Ge3xTURaWe+GRvqIS8UrfIq2Xbqp5R3CbFripzY0LCPTEulRkf1I6rgOXaer9btnYAQMtV1Sn+SUMaE7+AOWrdGBDDogTtXuxaA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=AaMjCNUSAnRHUMePnt6t1aTqESRCYkjmKp2qH1yf244=;
- b=YK2azDvn8LCH7Zr36JL6FkZU9kd4f434TJGfAQGHeNjXxkpJRTRs9MRVtXCC/JqLfT1ZiKwOzrqhuuGfWRBSeKbmFCpt366odtAzLP4KKKAiI9OdnhccYY5APjLpFzt2QeSw390xqt4VrwGRiil6ka/HlAyE5Kh+AJeROeBFeBtyPbh6372yRBN6qedlegF1I8dXoyngHE57qnPRv7KV9mjGS2AAB9m8iqzl0VYNGMb/MV06ybtGA4ZlBd02I58tFtFVbx+ksvLY65qZ/MrLalsG/TPi0V302Ewv+TH6BqKzwx6LolbAnc8qgbBQxWbug6eY9A+1UVC840UCDp927w==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=AaMjCNUSAnRHUMePnt6t1aTqESRCYkjmKp2qH1yf244=;
- b=NG20jgpEG2xEPO9QleeRLtwzS5pfICYS1/XB1++unPkwLaU4gFjBtDN8soShTN05M9bS1F1MFsBHsF9Z6FUJerCDEwNSalEYbuazkyff9j3te6Xs0vPaX18Bj4qO5mQ0zZEEhJjmaxrqQ/alop9IRSXn/kzNvPMZKYHdVbiT5JDUMv/HyqCos772WAqAR/n675pWIO3F0DIPkoOpr9qAOSwGMtUGVmoxJU7u9L7FxXF3nWgJmiZRSZRZMAjOu28AMQAbF4U0tpitT972TV+SdGvs2cMLBfOwaoo/aFKU1XUhvBk6PeUlmSDol7Yy/qzqpX8JQxWPbaJYtATOKYrAqA==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from DS0PR12MB7726.namprd12.prod.outlook.com (2603:10b6:8:130::6) by
- DS7PR12MB8290.namprd12.prod.outlook.com (2603:10b6:8:d8::15) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.7452.49; Mon, 15 Apr 2024 08:42:12 +0000
-Received: from DS0PR12MB7726.namprd12.prod.outlook.com
- ([fe80::80b6:af9b:3a9a:9309]) by DS0PR12MB7726.namprd12.prod.outlook.com
- ([fe80::80b6:af9b:3a9a:9309%7]) with mapi id 15.20.7409.055; Mon, 15 Apr 2024
- 08:42:11 +0000
-References: <cover.fe275e9819458a4bbb9451b888cafb88af8867d4.1712796818.git-series.apopple@nvidia.com>
- <db13f495fc0addcff12b6b065b7a6b25f09c4be7.1712796818.git-series.apopple@nvidia.com>
- <748fb175-3c5b-4571-9278-1580747a746a@nvidia.com>
-User-agent: mu4e 1.10.8; emacs 29.1
-From: Alistair Popple <apopple@nvidia.com>
-To: John Hubbard <jhubbard@nvidia.com>
-Cc: linux-mm@kvack.org, david@fromorbit.com, dan.j.williams@intel.com,
- rcampbell@nvidia.com, willy@infradead.org, jgg@nvidia.com,
- linux-fsdevel@vger.kernel.org, jack@suse.cz, djwong@kernel.org,
- hch@lst.de, david@redhat.com, ruansy.fnst@fujitsu.com,
- nvdimm@lists.linux.dev, linux-xfs@vger.kernel.org,
- linux-ext4@vger.kernel.org, jglisse@redhat.com
-Subject: Re: [RFC 05/10] fs/dax: Refactor wait for dax idle page
-Date: Mon, 15 Apr 2024 18:41:51 +1000
-In-reply-to: <748fb175-3c5b-4571-9278-1580747a746a@nvidia.com>
-Message-ID: <874jc32f1e.fsf@nvdebian.thelocal>
-Content-Type: text/plain
-X-ClientProxiedBy: SYBPR01CA0183.ausprd01.prod.outlook.com
- (2603:10c6:10:52::27) To DS0PR12MB7726.namprd12.prod.outlook.com
- (2603:10b6:8:130::6)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="h1vrMuST"
+Received: by mail-wr1-f44.google.com with SMTP id ffacd0b85a97d-343c2f5b50fso2280972f8f.2
+        for <nvdimm@lists.linux.dev>; Mon, 15 Apr 2024 03:19:31 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1713176370; x=1713781170; darn=lists.linux.dev;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=KG194EJK11CX6gvo6DvtRQREQM8gMc9FVpOEjalH2pw=;
+        b=h1vrMuSTRvKFUwE6TB2fDhEY4q3U/2qRiRWISQuqU9QdOx/20YPQFvgFRzFwTCJ+x2
+         c9Nt5xQfONNrc0bsiF/QPXHmHp3Jc/WuccBZICSiXoLICYNhcMukcKXH5lJCgPkNPVA5
+         Vs9y3A3IKtz2NSmUWF3A20V4zbtkIoSyQFBWww+fFU5fOz8iSAQqY1FbWLR8nRI+FlDQ
+         t4YzL2rrDSUjvmo5PAAf6noCpxoiOWQyW4gQW9SKy8EgA9rx1bpJayLMGi+fY52p9j/K
+         ll8gYMZCVCmzD4DmQMbi85jCXT+TXIEsY6UIdAFB14SzosM4/KSV4qfV0I//A/7LrQU6
+         q5Dw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1713176370; x=1713781170;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=KG194EJK11CX6gvo6DvtRQREQM8gMc9FVpOEjalH2pw=;
+        b=v+6RGVqdlmI4R3t+P/5il88l811e05mlR9D4PoYyAxUXyIGmwREgKucTiCfohjkYp0
+         bylQioi1sRUM+Qdf0q1t/YvF7pj8TSjO9a9tbE2ncczZc5n8mJQde9jn2I5LrIY3u5WK
+         DH7tbIHslmEJT+U+InVi1kXh9plMt9dD2FUzHsA+uqrfuYRRbtDGtU2vKC0WnM6aQkxO
+         /Gz+/MJnfO/PsN6FQbHSp8pPXNsCcl5iUxX/By+t9mk75UVP7d8omTwyW+rSWegu+8Ec
+         Ppjma1VIWwuwqZ9ZU72/eiVVHU/loDW3aKgksrEXYGbD4yht0y35itgMEt0Vd6WikZA4
+         zQFg==
+X-Forwarded-Encrypted: i=1; AJvYcCVQK37LJMgQALM16aSbnDT/Wi4lLjbCY7vre/N41GGu2OhaA9L6L/YOXvbaWfUvjmSjkW3b8KmZEngedHXIHqMkyyzB8oMx
+X-Gm-Message-State: AOJu0Yz4Fb3qcBXWJU7PFiAkkMzf4RHHyAuaTtMzmZXLCy0/E6Vo+1CH
+	ucaSxOeubQM5BQGhGCVxSWMscil6oFYl92EIDJneJig43T28OOw7OJdqq+v3
+X-Google-Smtp-Source: AGHT+IHVtzOXafYbDUSuB8izRSCQlP6f8luo9hqQkPhmgEpooak5Fh6B4tfYcWAFBqOPTX+Ekapr/w==
+X-Received: by 2002:adf:e80b:0:b0:345:f96e:39b4 with SMTP id o11-20020adfe80b000000b00345f96e39b4mr5327672wrm.8.1713176369944;
+        Mon, 15 Apr 2024 03:19:29 -0700 (PDT)
+Received: from localhost (craw-09-b2-v4wan-169726-cust2117.vm24.cable.virginm.net. [92.238.24.70])
+        by smtp.gmail.com with ESMTPSA id k1-20020a5d6281000000b003445bb2362esm11629201wru.65.2024.04.15.03.19.29
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 15 Apr 2024 03:19:29 -0700 (PDT)
+From: Colin Ian King <colin.i.king@gmail.com>
+To: Dan Williams <dan.j.williams@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	nvdimm@lists.linux.dev,
+	linux-cxl@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH][next] dax: remove redundant assignment to variable rc
+Date: Mon, 15 Apr 2024 11:19:28 +0100
+Message-Id: <20240415101928.484143-1-colin.i.king@gmail.com>
+X-Mailer: git-send-email 2.39.2
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DS0PR12MB7726:EE_|DS7PR12MB8290:EE_
-X-MS-Office365-Filtering-Correlation-Id: 713834f8-db47-4c5d-1391-08dc5d27f17b
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info:
-	fA6kpRD+gJThCUREOdD+zlVpVCG1pW33TBGVwHHoey+HPG7H2ZQDyTpQxKk6pVgnRSwVxQtKw8CpCyQdye/i5Z2Lmwx7L12pmyS8JWVwMG+VZk160I6n66xVhEeZaoG4HRQ+ktuwLPIl3qWfrJvymjZ7pnL+v02S5iq8efgZadBknZ+k3kQYX7092S9SsF31foy4+exRoK3H8naxuuKP/5hH4x2Cq1Nj/P/xDBqQxJELazKzQ85H8uZ9DGCppT0kLK6hnFL3YTWRYwMZNhQKWYJY1hoI2LOcQ+jn4V8twT+DB6w6XoutC+5q5830H/DgCqxQ9fRPAQIklpHHmzyYhV7Hd70FVyb/1zKbu9WD1y8/Evk2AQIQBtHaoeyQaS5z83uaUBwsUNlMJjICgPgeQJZ3MNfrShDhlYCml2+/+0yRPIdpKTI465e7zTLNtiQvx9fojYuiqvNu+bUZXFzOFWukn4BWuh9bfLpMhMwqURjUza0BSClJ8JIt+Qa9xIxkHcCUPrk1g3IP1OR7xel0w/6lLNOHVAQgr1m2rUc8tlp3jFxb46alXzviPfhaLTtvphVYClePWhq3Ktk1uU25RvwbWlcuLHq3fWeADc3GfRP9Ly2h0rMqOheNK5zZ0ZqBp349Hbqqw4PDxKpZ398B4ubLWuBDphkKmfzACyp6cME=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS0PR12MB7726.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(376005)(1800799015)(7416005)(366007);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?HknGAqPWFN87TD8HJvvpuKbwuoXJ9T4zFhB3nDzJEsKGnI7R7IMDWj8fkG4V?=
- =?us-ascii?Q?ziuCjBSb9Mp1Ip2TFUButN2qppDCQsC6sZWd8/IzMqEPXU99MQFgTu8KK3+z?=
- =?us-ascii?Q?VknbdqHaEGvBm/VOeqnP72FXCTM0sG1gsYc5tG0h2tg45XGswteHman2lGAY?=
- =?us-ascii?Q?zCmHBA3JQJcEaernydaURX3uhaUKVFb4x8JQSPnfcBQphVTmwXpChA1/JsQb?=
- =?us-ascii?Q?dTa6+y06lNwE1Rf+UeWVejb1qyPMHJGK6Jrn7EAYud5oioFGLUHDqEpTsXe2?=
- =?us-ascii?Q?eS4cheaJZHjPvuZadov4Z00ftFioaIUn4K6cQJuiw6GHNmuaqTnSF28b7diR?=
- =?us-ascii?Q?zKgz8qQ/Xjw/Tv3gzWlNliuIo2vwCotLbaSIB1vNkQAEyZ/M+f2q10mJZs7p?=
- =?us-ascii?Q?nupfPnRHZrZGpItf0FAWLhVJ5L2mxf+aQmoiN4waGuKkAlHVzhnqDVgrWfMx?=
- =?us-ascii?Q?/+3LNoqXeyIl5/vC6UsyE2gupSsCT44Sk86q16RKtezy/jUvS/yIRpylU47H?=
- =?us-ascii?Q?q4fgaYQlW88da9OgDFnDDhg6oSPl1Lxj9fpcNg+4DDOXOASj/YMBe+3t61jM?=
- =?us-ascii?Q?RcGglEAtVqsaYtwg4D36BZTRIY7JRu8emObXr6U6YPSSxNliLq/EW+92kmqc?=
- =?us-ascii?Q?CFVVniOXpnDulq4YuTAwh99Rw8ArBtkSVSfKGVLhvrM7CzN/Goq4CjtcQcvd?=
- =?us-ascii?Q?VA1OffOehGJ9FrwfZSmsEiQpyhYPrH/I99q+r6Uxeb9uXLWRUgCZfoe2ASyy?=
- =?us-ascii?Q?Mf/rqYI42YyoAnSSYjfneFM94GN9uRIHGUDoGITOA7rSQ0eD2LcbeiO5sGSr?=
- =?us-ascii?Q?BeH7ISM0s8KQTiveRwidgrqUUTUz+MDbJQMxQle/AFh+LItTKg27lt9ArkpD?=
- =?us-ascii?Q?BIWhTm+Xpy6+b1eZ3KKDI+ysQWNagCjoSHgF+xOg1S+B2a7Nb5ZEAl3zfiIy?=
- =?us-ascii?Q?2myeScBIWfuWrq7wfZTY9wQXe3QKktJa+XxNDYNkUiTcsyjp+dhYuE9R1xlU?=
- =?us-ascii?Q?n660YHPWGViX1BsMroFeclrhHw1418tLX5sAkyOm6DEW1BA4eU1YDJeFWH5J?=
- =?us-ascii?Q?eZeYjFVM9q8Oq6UUWdPr4BTMWkcyEqtG47e47QULsDjVfv7HlG0vNi2MSlVR?=
- =?us-ascii?Q?5q1GY0DpzaZxx7ytTdpZvgI6xu6vcbV7MkOSzchzYBsM5lChRaoZXqHOhBeN?=
- =?us-ascii?Q?Q+sl+xiFoMXkWam5Tlz0yUJWnpXqk+C45IivO5j6De7f4ClygJUmJorcfsyY?=
- =?us-ascii?Q?KRZo+BaOeDGa2vwWkdyqCAGKIIuHXU1b5eUlvb4T5WhTeDBomF1ECSiIQmyz?=
- =?us-ascii?Q?BPpqxIbdDHzh9FTKeJuXNuHY/ufh0ojfbGWHgjY2/1O1xU+CrDyjbTB+/af2?=
- =?us-ascii?Q?LI5WOTw52bvdtFSEPgRUZ0IRxAAfCbPTTt6JstcM204FndNXWkAuPNHS17wt?=
- =?us-ascii?Q?6jromjAVZa1jbIaqWnpYjbpbrW4pYgoVvY3s5KhouggHOrZAuojOCIZ1aGs3?=
- =?us-ascii?Q?prLDgiAM9St/6YmVF+lFsBIQMwdIL9T5YjGO24FqUhLL/5jfNog8iRmLcjVj?=
- =?us-ascii?Q?ab0pf7sn74xiaMXspoG5Kgx1SxpgI+lh5CUPbfn3?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 713834f8-db47-4c5d-1391-08dc5d27f17b
-X-MS-Exchange-CrossTenant-AuthSource: DS0PR12MB7726.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 15 Apr 2024 08:42:11.7223
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: mzuc2l8rRaqZ1iw91F8W8nyzrwO7GOwJhzL3aT7WmEXgwtiIs3NH2TxSMKnvgfrTY+3h14Ma5Q8ekW+BJD+7ag==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS7PR12MB8290
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 
+The variable rc is being assigned an value and then is being re-assigned
+a new value in the next statement. The assignment is redundant and can
+be removed.
 
-John Hubbard <jhubbard@nvidia.com> writes:
+Cleans up clang scan build warning:
+drivers/dax/bus.c:1207:2: warning: Value stored to 'rc' is never
+read [deadcode.DeadStores]
 
-> On 4/10/24 5:57 PM, Alistair Popple wrote:
-> ...
->> diff --git a/include/linux/dax.h b/include/linux/dax.h
->> index 22cd990..bced4d4 100644
->> --- a/include/linux/dax.h
->> +++ b/include/linux/dax.h
->> @@ -212,6 +212,17 @@ int dax_zero_range(struct inode *inode, loff_t pos, loff_t len, bool *did_zero,
->>   int dax_truncate_page(struct inode *inode, loff_t pos, bool *did_zero,
->>   		const struct iomap_ops *ops);
->>   +static inline int dax_wait_page_idle(struct page *page,
->> +				void (cb)(struct inode *),
->> +				struct inode *inode)
->> +{
->> +	int ret;
->> +
->> +	ret = ___wait_var_event(page, page_ref_count(page) == 1,
->> +				TASK_INTERRUPTIBLE, 0, 0, cb(inode));
->> +	return ret;
->> +}
->
-> Or just:
-> {
-> 	return ___wait_var_event(page, page_ref_count(page) == 1,
-> 			TASK_INTERRUPTIBLE, 0, 0, cb(inode));
-> }
->
-> ...yes?
+Signed-off-by: Colin Ian King <colin.i.king@gmail.com>
+---
+ drivers/dax/bus.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-Yep. Thanks.
-
-> thanks,
+diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+index 797e1ebff299..f758afbf8f09 100644
+--- a/drivers/dax/bus.c
++++ b/drivers/dax/bus.c
+@@ -1204,7 +1204,6 @@ static ssize_t mapping_store(struct device *dev, struct device_attribute *attr,
+ 	if (rc)
+ 		return rc;
+ 
+-	rc = -ENXIO;
+ 	rc = down_write_killable(&dax_region_rwsem);
+ 	if (rc)
+ 		return rc;
+-- 
+2.39.2
 
