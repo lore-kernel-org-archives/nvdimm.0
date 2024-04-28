@@ -1,56 +1,66 @@
-Received: from NAM11-CO1-obe.outbound.protection.outlook.com (mail-co1nam11on2117.outbound.protection.outlook.com [40.107.220.117])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-f45.google.com (mail-ot1-f45.google.com [209.85.210.45])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 648C971B3D
-	for <nvdimm@lists.linux.dev>; Sun, 28 Apr 2024 16:44:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.220.117
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714322658; cv=fail; b=kgr1QzSzqjmv8hlEGpMciP3SK9Rxg90YI/CyZuyfIWvp4I+brROTdWIhmkecuYEsDdd0b27GJVDGiKq2WnMhc5pax2w03bJZjbw2TgQsZDCEQ4/y16ouaK7YbTNp50++MLaAC2aw6H1fLLkKwBAv6F/+lRJxHiodwZ35zF2nAEc=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714322658; c=relaxed/simple;
-	bh=VAmuUlIrBdi8G7K2UeBcfPEWZxfD4CVzsywEYubqRQU=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=aE0Iz363Rou/+rHM1xH8tti6OG46kl/FIyZVrxwc+txZqxyilojBBeABgqm2RJfO3OgfWM2mWnRw01IPO6xOee5htkoQmJJliVJJGGz90QDGfoFY6+0m5lfKLIplbJPd9o7vfsdyMOXtlUVCJtR2pfUIbxMCrrOE+oH7PncykXA=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=memverge.com; spf=pass smtp.mailfrom=memverge.com; dkim=pass (1024-bit key) header.d=memverge.com header.i=@memverge.com header.b=buw+nbXj; arc=fail smtp.client-ip=40.107.220.117
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=memverge.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=memverge.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC54D71B39
+	for <nvdimm@lists.linux.dev>; Sun, 28 Apr 2024 16:55:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.45
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1714323315; cv=none; b=AP/bvz40Z63pkYMLAvaGT/6slghS7+Qd2pCiz/X0230olDylJICXq73za4v8cz9e1a3CqQev7B7uLlu3B2lesqhn/cXLwhFLeWsWHO/g2yS68LgswwPaEWa+5/tZ9fQNflGA7IffpqFyqiRa1b+1D1kUTZAQ90hCGdA2iO5o3uQ=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1714323315; c=relaxed/simple;
+	bh=Ami0kmcZDld632bBgXtckLo0jbTRciV/yZarknXwkk0=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=cuyb3qKVFkpo/OuC1TJQjvpTUJBdkibt3MxxKLKU1YLMGtAejZN1SgvvFxEYRAliFeEHd8+EGb7jVP2uayucHoG5d2ewYiYqOu2arwpTMvFZm1bN+mqKn2kMgI28y5Y6kGlRbSjG28Cjyn3kPZwF9BjzT7SfvhhhiQ/MYtIO5iE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Wua+PkEB; arc=none smtp.client-ip=209.85.210.45
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=memverge.com header.i=@memverge.com header.b="buw+nbXj"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=RwDlcFBH7LWMuid1mfyCCuNgxudaP2jHIvaKt8TJork3sxJz/5GlLyhxRRD+OtO/X/AMGHiKCeamsKvDFYSRWT/Rz9gTkUviSRbIcaNpDqXvL0zNTeieubbYd5xOZt6kn86JM7aLJuGe1MuiZsusTeMWt+PyAksh64XAIlq5rNkR7B/HlAyp0SGHxmBAEbBO1L5Cg2t73A1dKH9qcgut2pKiQgAsZiO2bA7ezm4lf1OwSOtlekErQ2tm3wtLHMm5UP7xo4qP+n4TRRZ66gYmqoig1qzeyJRPrC67/V0/Z4YuGIoopXf9v4yhLyh56Q5/Z61mzpcA43z7Bb3Ka2CoZg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=qpk8Sa54oYq+3APMMD2K9xPQrHgMvHfXQTWa6LfBsEs=;
- b=UqM6fPjKT9Nzfbsdad0mKdjo5fG8YNuZBcvg2po/+xpiZ78EYGP2CJ4JNqY3zUoBr7HvIFaF5Xadklp1gzBm/KqdbtIaGWcGj7NdIyFGubX3WZBHZ5HqFgU/eo3QdN9RTWp5MsXC3dZpcxbbN1QucqgB+t0mWD93deUXQsu8DUBqEzdDzNcHYZ7eX6zCYjIWzTLJHKPUk7gyq+q1e0Yk6CcmVRaCcb97xhMxr1vNhWezkdVDk36MtEZA/RGckDkqeLhzraCazPcUOosX+2CsHs9htxkOvh4FIWuZuwbGodVaC4iyhWNm2y3+WQVMhAP0NiCInIOEsrDXvDQfqDv/iQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=memverge.com; dmarc=pass action=none header.from=memverge.com;
- dkim=pass header.d=memverge.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=memverge.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=qpk8Sa54oYq+3APMMD2K9xPQrHgMvHfXQTWa6LfBsEs=;
- b=buw+nbXjb4Y+Fmh9YW3CckooyId/3Mg7Wb9ZXsXYCZ4/DfyswJg5JjGqCzbgdwrPQX8lHwAhHikmffBnEwgr2MMI+QtbCHWMYzegF1zZuTkv4XP6r535w6rtlULUh7wVCClsgLlA0ez1d12iR+65zsaDxvnU0LCNOI6ldwJZ+B0=
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=memverge.com;
-Received: from SJ0PR17MB5512.namprd17.prod.outlook.com (2603:10b6:a03:394::19)
- by DS0PR17MB6031.namprd17.prod.outlook.com (2603:10b6:8:cd::20) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7519.32; Sun, 28 Apr
- 2024 16:44:11 +0000
-Received: from SJ0PR17MB5512.namprd17.prod.outlook.com
- ([fe80::5d53:b947:4cab:2cc8]) by SJ0PR17MB5512.namprd17.prod.outlook.com
- ([fe80::5d53:b947:4cab:2cc8%4]) with mapi id 15.20.7519.031; Sun, 28 Apr 2024
- 16:44:11 +0000
-Date: Sun, 28 Apr 2024 12:44:07 -0400
-From: Gregory Price <gregory.price@memverge.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Wua+PkEB"
+Received: by mail-ot1-f45.google.com with SMTP id 46e09a7af769-6ea2f95ec67so1601795a34.2
+        for <nvdimm@lists.linux.dev>; Sun, 28 Apr 2024 09:55:13 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1714323312; x=1714928112; darn=lists.linux.dev;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date:sender
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=G3WwFMuHhBVtoJUHbucJSgPjjuSb7tuNIxOTsjoNK0M=;
+        b=Wua+PkEBBcv/7lrpiKmgADjPeJGMtfGiXk9/4/iGKG5JQt1RFGljlYfgptfuApXORS
+         zH4h3iRY0gr2bLSCJV9QnFRU8i3MXoJialJXOqT1T9hGKPQkqlNiA+CteG8cd63oIB4W
+         dMg48xtrWF2gWoxaTYYvyJkcre3x7XjEsjM0waYxc00gJoLKq0ugKje8305aoIDS4lgD
+         Tvo/DVYM8FW5DHajIOTClZ+zlZPBfmfX64lWyj99Ofimn7rxX+ZrtQjEQv+nytkl7wTT
+         7lfOAKrXiuFc7/4Bp4/OeKI3qF18p2Il+wwqM+07PlFTZLQmnix7pKDl03EuwzdLxL3w
+         HwhQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1714323312; x=1714928112;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date:sender
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=G3WwFMuHhBVtoJUHbucJSgPjjuSb7tuNIxOTsjoNK0M=;
+        b=Tkj1+hbzYQKG2vidyhFND2XzWLm7cX4UheRh0RNiDWIXcd4B2+JpBBLPHZjNUpJxwJ
+         CbuwrQpnr2Yd2E5+wAtIx8dH4pJ0+3rS0qgCFyX+4bcta48GVxQ8AQb4n2AO3G0IXxBZ
+         4v1om+VlqDnjiF16VAMs8YtUEqvJ3hGoMohNpFkf+hYhfUbIaMXvTABM4nzgV1xwFvoc
+         zm+dg8fNr2zNi6TqP+ceqVYwt4J5eafOSRfXAbktLBOqctiPytj2m4EKM3gDQYau/g95
+         4rANvlJcLRt+XT+L5a6A/OrVWF4b8vdEhZFasgr9TVDb4MdB0O+qt661wQwLvHh0mwL8
+         vF0A==
+X-Forwarded-Encrypted: i=1; AJvYcCXViB6ujIOPnkH5tI9uTspVyMek8c1c+aAR/lnskAHZKMHhYD5gdcSpksLs/ZrtdzP9GGwUVsQ45OtkWbIV07dT0hSmfMYw
+X-Gm-Message-State: AOJu0Yw20tuHXVPOgZd0RGKzud83LDLBmpdywXrIxQeKm4110UUneKR+
+	XbOiYKL42VeUeY1jGs4hlkSAazD/hFwqVHRSq6q0UuW6yfkf5AOc
+X-Google-Smtp-Source: AGHT+IFjRTjq0wJmFpd2+tz4BEbUANUM9qvQC34J+c24N/aiSVikf090UIEPVBDxgTJS8q0l820i2w==
+X-Received: by 2002:a05:6870:d8cb:b0:23c:74ec:6d23 with SMTP id of11-20020a056870d8cb00b0023c74ec6d23mr1810226oac.18.1714323312541;
+        Sun, 28 Apr 2024 09:55:12 -0700 (PDT)
+Received: from Borg-9.local ([70.114.203.196])
+        by smtp.gmail.com with ESMTPSA id wq18-20020a056871aa1200b0023c8fbe8ad8sm122537oab.47.2024.04.28.09.55.11
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 28 Apr 2024 09:55:12 -0700 (PDT)
+Sender: John Groves <grovesaustin@gmail.com>
+Date: Sun, 28 Apr 2024 11:55:10 -0500
+From: John Groves <John@groves.net>
 To: Dongsheng Yang <dongsheng.yang@easystack.cn>
-Cc: Dan Williams <dan.j.williams@intel.com>, John Groves <John@groves.net>,
-	axboe@kernel.dk, linux-block@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-cxl@vger.kernel.org,
-	nvdimm@lists.linux.dev
+Cc: Gregory Price <gregory.price@memverge.com>, 
+	Dan Williams <dan.j.williams@intel.com>, axboe@kernel.dk, linux-block@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
 Subject: Re: [PATCH RFC 0/7] block: Introduce CBD (CXL Block Device)
-Message-ID: <Zi5819GyW7lGFqtM@memverge.com>
+Message-ID: <wold3g5ww63cwqo7rlwevqcpmlen3fl3lbtbq3qrmveoh2hale@e7carkmumnub>
 References: <20240422071606.52637-1-dongsheng.yang@easystack.cn>
  <66288ac38b770_a96f294c6@dwillia2-mobl3.amr.corp.intel.com.notmuch>
  <ef34808b-d25d-c953-3407-aa833ad58e61@easystack.cn>
@@ -60,109 +70,18 @@ References: <20240422071606.52637-1-dongsheng.yang@easystack.cn>
  <98ae27ff-b01a-761d-c1c6-39911a000268@easystack.cn>
  <ZivS86BrfPHopkru@memverge.com>
  <8f373165-dd2b-906f-96da-41be9f27c208@easystack.cn>
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <8f373165-dd2b-906f-96da-41be9f27c208@easystack.cn>
-X-ClientProxiedBy: BYAPR06CA0027.namprd06.prod.outlook.com
- (2603:10b6:a03:d4::40) To SJ0PR17MB5512.namprd17.prod.outlook.com
- (2603:10b6:a03:394::19)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SJ0PR17MB5512:EE_|DS0PR17MB6031:EE_
-X-MS-Office365-Filtering-Correlation-Id: 4d3d63a2-fcb5-42de-831a-08dc67a26e17
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230031|1800799015|376005|366007;
-X-Microsoft-Antispam-Message-Info:
-	=?utf-8?B?enpoTXc4NmsrZmJvclNlekxadXBzNWZpTE1laEY1M2RsZ2ZVMmlXZjRhcENT?=
- =?utf-8?B?eTZUQTVWRG44N0p5eFZaMkllTGtGNE1FTDVvNi9YYUFXN01LbVV1QzA1OU9Y?=
- =?utf-8?B?TnpBcW9Kb2ZHb2VZNEcyOUhxK096V3ZhcHlxaGozbS9WSmdhdWxucmM3dytY?=
- =?utf-8?B?cE1jZ3NtSzBsWXZUSi9DZjdHTHh1VE5VZmlXb2VqQk1iWGRTZUJ2aVVhVE5r?=
- =?utf-8?B?cEZrckNYQ3VhOGg2ZDc5U1ROQ2h0ZUl0YUJBR2ZjNGMrVHdGUHlrUzd3cWNu?=
- =?utf-8?B?Y0VvVmJKMkNGdkhmVEZReHRkbDE5bjNEVTJqemRKNHBaVkd4SVVlOFZVTVpy?=
- =?utf-8?B?UXY3dzNQTFVyOVB4VHlSenNwTlhUakRIZldFMUhlQ0s1akkvZkdhOGExek1L?=
- =?utf-8?B?TnFHaVdvbVZJZ1U0ajhGcWNsREJwRWJqcVVCTlA3VC9pbkV5cEtNckExMGtT?=
- =?utf-8?B?NVVQU2pXTzEwUmI2eGxVMFdNYUNnMmc1RFQxQU5PWjNkZXN5OWVBeUE5dm80?=
- =?utf-8?B?OUFRTitKazNzYVdXZEI1dU0yMFdXNzNjWnp1R2hxM1F0bjB6R014L0J2bHZN?=
- =?utf-8?B?ZC9rbjZ1cWIrbHl3KzlXemVKY29LZktNMWVoQzhVeVplN2wwdVQxWW5oVG10?=
- =?utf-8?B?TVFqNVo2R3NRTXdaSm0wZmRMOGlVVGdQdlJkRU1ETWpOazRTUmV0Nkc5b3Z0?=
- =?utf-8?B?S2tuU2VzczBtU3VMMmN5RmF5Z0hNVk95TmlhaW5iMm9ISEFBQ0tiWHM1VHdU?=
- =?utf-8?B?b3lEOTZHK0lWc0FNKzRIUlFBYkxYY2U3NVpDbW94R0JiREk2cG1UckVJRnRB?=
- =?utf-8?B?VDNxR1dNS3VQVWtLR0Q1VVZLZ25EUStBSWxuL3Q1WVNleFpDZDlJcTlmQ1lp?=
- =?utf-8?B?SFJMTjdremt0blV4T0o4U3d1cUxXMEZiMSs3eUFITytTakdLa25NRzJBclNU?=
- =?utf-8?B?c0EwUjFhUjFHKzJVUTlEb0xxMFBZWGRDMlcvenk3aTUxbUpOL2YrNmovM2t2?=
- =?utf-8?B?TFB5US83aTRCWDdYazEyT2ZmODFGZUhLdUF6N29vQldWZE9pcHk0T1k1NFN1?=
- =?utf-8?B?MmF5R3dVUDJ5a2xEOEhkZ0tCQmxUME16TzJGMlZsMHhpcXF0eU9zK21ZY2ZH?=
- =?utf-8?B?S1F0NStqaGtGbkRhM2xwem5IT0hMNHowZFFUa2ZzSXNicFlkaHZ2RHdxMkhY?=
- =?utf-8?B?bE4vR0hzRFg1RlRoUzhnMSt6Yk5jYkhMSkxra1BjTTY5ZStqYVJHTDBDZmhs?=
- =?utf-8?B?QVMya1VFTFhpVVIrZWdwWlBwbHkreFRCOXBEYmZld1BRblI4SzZOWlhBbzVK?=
- =?utf-8?B?ZHVaSmNhSnBJZTdDd1Y1U3hEWmRVYnVOYXdlNEkzdjlIZi9RNDMvWFp2ajBa?=
- =?utf-8?B?WkpUdkluYnVNRVhkclUwMy95T2tDVkRjR05kaksyTnA5WmhvVnkvaFNDZExI?=
- =?utf-8?B?ZzJaazlsVk1wV25rS0Q3S2xKSEtKeUUxc3dpK0F4dUpsUzIzQTd3OFVmSk5k?=
- =?utf-8?B?anA0Qi9jK0QvSW5KT2VqaWNrRDR5RjYyaWVnVU43YkFWbnVvT2hPdHU5OUIy?=
- =?utf-8?B?N2tvYUlzN3F6UUJCWjU3M0t4aDBKSGlGVW9YWExUeFByKzgvckZsNmM1c0JH?=
- =?utf-8?B?TWNpTW56NUdmWnFubVFrM1p2TGRVUEV2S3JEV3NDcEowbW9FTjlvZHl0a1M3?=
- =?utf-8?B?dnhnNUZoTTNDZEhXTVI5ekhwbVB4QjhHRWhVcTVuLzlJZHAwWkpkbVNnPT0=?=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SJ0PR17MB5512.namprd17.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(1800799015)(376005)(366007);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?utf-8?B?MFRwVDlMQ3VBWFdsbkNrZFNQM282aWhwdSszdjNOSmNXQ2ZxZnRoSGtKZytE?=
- =?utf-8?B?MHpIMkZNRHhvVWNqNEVudTZJcnNOVUFDQzFDMHF0VjFScU1sQUw3NmtIcy9m?=
- =?utf-8?B?dEdibTI5Wkk2UEFvejlVWC9QdkNPZ0dNSjg5N2hXdGVXK0c4NW81Z3BCeGNS?=
- =?utf-8?B?bk8rK3RrVWRVWjlsZHhrL3JIZUdFeGpWYlJSOWhXc3BuOGdxSFhGQmlTa1V2?=
- =?utf-8?B?UTN6eVFPbUVlNk5ERUtOZHpzWUcvMm1YckZxMytaOUhpK2NRTjA5WUtvL0l5?=
- =?utf-8?B?Tm5pa0hCVGtJbWIxOHpOU2JraEpJWDJWMWJUcGIzSlFjVDRzU1ZaWGd0a0p0?=
- =?utf-8?B?N2N0VHU4QlZUQ3BVWk1CU1ZOSktSM1ZSZ2UrS01hTm5MY3d0aWFndGNlZFFV?=
- =?utf-8?B?QS9VTThQVE1SdWNXRW5qN01JcmZzYWxvbkw4eHpCUzVVcDJaYysxYUxFVTNv?=
- =?utf-8?B?QVN2eVl6QXNQNkRGd3FlbDdXWW9uN04rZE9BOTFXVVhCaUZIT1BZWHNSR2NL?=
- =?utf-8?B?cnA0OFMvbEJEWjJFQnVpRmxFd0QwTlNxMzRqK1NxckJEazFxbk5iUHd2NEdQ?=
- =?utf-8?B?NUNrMUs4YUpSSjhpWUJrejlIYjhaZEtSL0JLdmh2WnBwNHBmYWcwVmkxR0dE?=
- =?utf-8?B?MnduNHdYNjdQY2o0aUJ6QVNvYnAzcHppV25zZk1ISTg5MWdzVmhrTHF6TkxZ?=
- =?utf-8?B?WktiOEMrckRUMUZGN0FsL0V2aVBTa3dQaENPcFRacmVlcER6NlNXRlVLdDFE?=
- =?utf-8?B?M3Z4ZXVNWk5mNFVwRkp6aXFLVjY0UGRiUjhSMFBydGhXWUVyRXA3ejFoNTJ4?=
- =?utf-8?B?ald5eEhDbnFNK1lwUm1rTzBpREppY2R4em1MUFl6QitLUjExRkV6cncvS202?=
- =?utf-8?B?L0tCSm9aZE9UVzAvWHpwWDJVRFpKdW50WndFZHV1YTYvQXhXYjE2ZllYZXo3?=
- =?utf-8?B?VDAxK1dIbU9CY0VkdkFWUStKSmx2Z2RlMmRlNTNEV2lBNUN0OHFuS2NZamRk?=
- =?utf-8?B?L3FJR1NBZHNFTFllZDQ2Rzk2WjZ1Y21wNUZQbGVIS2NDMnhCNitJOE9TcHBN?=
- =?utf-8?B?KzluaWxGdXRTZTY1SW43NWRpR1BYTWxQR2hpZk5zSEVVNUVza3loeHUxVHBF?=
- =?utf-8?B?TldWQXFyYkxqcjFLQVQ5OUNJSHRWTlFkbkRrOUVwN096dFFtdmNqbiszbzhB?=
- =?utf-8?B?TFdDNW5lZmFOVFhqSHNIRERsUEdTRk15MEp0SXVxOXBEdlFyZEo1NFc4ZWJ6?=
- =?utf-8?B?ZStjNGQ1d2pzR2Z6V3IvcS9HaFk4V3Y5YnlKdkFBenVJTTRCeEVGOStwaktR?=
- =?utf-8?B?Vm1zM1l1cGlFV2JMUmlrbUtKdWI1TUxFWXpjVXhrMHpvR1UxSXdZZXJ1QjZ2?=
- =?utf-8?B?ZFM1Nmdja0JoQWRwL1NmVVBvMktPSXpVRTh1UTZZeWZ1ZzlaQ2tDeXM0dThi?=
- =?utf-8?B?dmZCL2NzN3d4cC9laXFzSFk1NmpUanZmTHdqZ3owSlFwaHdHSkxaUXc4K1Ar?=
- =?utf-8?B?Q1dObW9HdWt2L2JkYi9KNm8yYUNXbktBWkIrMWNQZzB5dll6R0FtdVpIZ0VI?=
- =?utf-8?B?akh1WlN2R21Cdk1VU096OE5TYmc0bDlRZGM5eC9OMGhxeERKUTVwOFlwVTh2?=
- =?utf-8?B?REcrUjE3ZEVwclJTS3FuY3lqQlNBejhReDFqRldXYnVBdUpIakZTM0RuVXkw?=
- =?utf-8?B?UlZJdVY5VGppcUJOSTlxNnJPYXoxY1JBVVo2bHFoRnFVUWMxU1ZERlZaODVN?=
- =?utf-8?B?QzMzTFc1TVNJdTFOZFl6RlUydjFzeDBxRXAyS2wzMjhtWjhwbkNEZlRPQlV1?=
- =?utf-8?B?RE9XaDgxZ1JoMVlrallhdUkzMVJYWlJEUlRZeCtDSmNkZWNKT2VoYzdRdVgr?=
- =?utf-8?B?R0pacG5Dd0RFV2I1dmxKaVhsenhFTnY2c0xEUEJZWWNQam9vMjUrbllmdlB1?=
- =?utf-8?B?aFlmN0JCZjI0c0p6MnVZZG82Sk96aVA1aUFvTzQ0Nkc2NExZYWZNRHR1QU5y?=
- =?utf-8?B?RGQ3NHNzVkc0blVCaGNXbzZ2a2F1amFjM1hFY1ZwOFNvcGFCZTZGMlpPeXVC?=
- =?utf-8?B?RU03d2Z4NlRKYXdhbmZka1EyYk9rYmhEcStlT0JMeFhRL002U29YcGJ6U0c2?=
- =?utf-8?B?bG1IODJGcWoxdnpMWTM1dGpzdXdFaVBKakd5YzBvRnRXc0cyejJ6OXN0SktF?=
- =?utf-8?B?dlE9PQ==?=
-X-OriginatorOrg: memverge.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 4d3d63a2-fcb5-42de-831a-08dc67a26e17
-X-MS-Exchange-CrossTenant-AuthSource: SJ0PR17MB5512.namprd17.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 28 Apr 2024 16:44:11.0807
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 5c90cb59-37e7-4c81-9c07-00473d5fb682
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: Jp5yIqAJklO9tU1Suq5YHIyW436qpeLXq4pFABMfvYl9MEnvLwzI7BH8774t+qP66WtUfPuKDOLt1j1lQcu3SPs30XAoNsIwDgIbqHp3N6o=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS0PR17MB6031
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <8f373165-dd2b-906f-96da-41be9f27c208@easystack.cn>
 
-On Sun, Apr 28, 2024 at 01:47:29PM +0800, Dongsheng Yang wrote:
+On 24/04/28 01:47PM, Dongsheng Yang wrote:
 > 
 > 
 > 在 2024/4/27 星期六 上午 12:14, Gregory Price 写道:
@@ -211,10 +130,6 @@ On Sun, Apr 28, 2024 at 01:47:29PM +0800, Dongsheng Yang wrote:
 > > memcpy(some_other_cacheline, data, 64);
 > > mfence()
 > > 
-
-just a derp here, meant to add an explicit clflush(some_cacheline)
-between the copy and the mfence.  But the result is the same.
-
 > > Will not guarantee that some_cacheline reaches the backing media prior
 > > to some_other_cacheline, as there is no guarantee of write-ordering in
 > > CXL controllers (with the exception of writes to the same cacheline).
@@ -233,17 +148,6 @@ between the copy and the mfence.  But the result is the same.
 > but it seems to flush the entire nd_region, which might be too heavy.
 > Moreover, it only applies to non-volatile memory.
 > 
-
-The problem is that the coherence domain really ends at the root
-complex, and from the perspective of any one host the data is coherent.
-
-Flushing only guarantees it gets pushed out from that domain, but does
-not guarantee anything south of it.
-
-Flushing semantics that don't puncture through the root complex won't
-help
-
->
 > This should be a general problem for cxl shared memory. In theory, FAMFS
 > should also encounter this issue.
 > 
@@ -253,3 +157,62 @@ help
 > > 
 > > ~Gregory
 > > 
+
+Hi Dongsheng,
+
+Gregory is right about the uncertainty around "clflush" operations, but
+let me drill in a bit further.
+
+Say you copy a payload into a "bucket" in a queue and then update an
+index in a metadata structure; I'm thinking of the standard producer/
+consumer queuing model here, with one index mutated by the producer and
+the other mutated by the consumer. 
+
+(I have not reviewed your queueing code, but you *must* be using this
+model - things like linked-lists won't work in shared memory without 
+shared locks/atomics.)
+
+Normal logic says that you should clflush the payload before updating
+the index, then update and clflush the index.
+
+But we still observe in non-cache-coherent shared memory that the payload 
+may become valid *after* the clflush of the queue index.
+
+The famfs user space has a program called pcq.c, which implements a
+producer/consumer queue in a pair of famfs files. The only way to 
+currently guarantee a valid read of a payload is to use sequence numbers 
+and checksums on payloads.  We do observe mismatches with actual shared 
+memory, and the recovery is to clflush and re-read the payload from the 
+client side. (Aside: These file pairs theoretically might work for CBD 
+queues.)
+
+Anoter side note: it would be super-helpful if the CPU gave us an explicit 
+invalidate rather than just clflush, which will write-back before 
+invalidating *if* the cache line is marked as dirty, even when software
+knows this should not happen.
+
+Note that CXL 3.1 provides a way to guarantee that stuff that should not
+be written back can't be written back: read-only mappings. This one of
+the features I got into the spec; using this requires CXL 3.1 DCD, and 
+would require two DCD allocations (i.e. two tagged-capacity dax devices - 
+one writable by the server and one by the client).
+
+Just to make things slightly gnarlier, the MESI cache coherency protocol
+allows a CPU to speculatively convert a line from exclusive to modified,
+meaning it's not clear as of now whether "occasional" clean write-backs
+can be avoided. Meaning those read-only mappings may be more important
+than one might think. (Clean write-backs basically make it
+impossible for software to manage cache coherency.)
+
+Keep in mind that I don't think anybody has cxl 3 devices or CPUs yet, and 
+shared memory is not explicitly legal in cxl 2, so there are things a cpu 
+could do (or not do) in a cxl 2 environment that are not illegal because 
+they should not be observable in a no-shared-memory environment.
+
+CBD is interesting work, though for some of the reasons above I'm somewhat
+skeptical of shared memory as an IPC mechanism.
+
+Regards,
+John
+
+
