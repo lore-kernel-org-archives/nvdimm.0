@@ -1,55 +1,57 @@
-Received: from mail-ot1-f45.google.com (mail-ot1-f45.google.com [209.85.210.45])
+Received: from mail-ot1-f51.google.com (mail-ot1-f51.google.com [209.85.210.51])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 790957EF02
-	for <nvdimm@lists.linux.dev>; Mon, 29 Apr 2024 17:04:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.45
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3D6438627A
+	for <nvdimm@lists.linux.dev>; Mon, 29 Apr 2024 17:04:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714410286; cv=none; b=rbroAJ41GBZmuyPZqf5kufXh1/7DAImm4cgINCdCdbyQ1JRKhct4QgYftLSjbuMCR0f5l6ISQFMdgdoP/3XR2cwBzfbIH1+g/SeOVDq3DFizQUI4iepErBlYckCOaN+kY0DSPlOgY36lrN0nvUYQeUuExRKP5ONUytWbA/oChQA=
+	t=1714410290; cv=none; b=JwFxbUgziLSt3798dKj8TVP4e+NcAzgdQqGBhltT+KVGt+blzSTQf5bKHE1cnjkRPOy9syFCJmuNul8GEHUo/pk6YFRASh7jcR9EMbrAnaxqv/xsk4A8ZCKUYhRI7jQTBitvySlm4K7GG3io277/XpHyx43DZEymeeQzQ9EZ3iE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714410286; c=relaxed/simple;
-	bh=406UyyCNXuQMSCeHMNLWEMWlQ3MJe0W5p67vimEObXY=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=MsH/XTb5POPRWoTqyeLoCoFBFaeOz95Y9gpmdOg273So1Zgc37IAuWU4wqfgZiAQWh25O7WfY4HEM5igLq5jvdXJtXxIIY2W0zKkEl8QSM88mWbofuo8m+C8Skyco1iYq9ofRKRJIuYmCbIIyWo2EcpeDxbHn3k/b6VlqtjL8wU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=KoM8/mzN; arc=none smtp.client-ip=209.85.210.45
+	s=arc-20240116; t=1714410290; c=relaxed/simple;
+	bh=DnBFz4/Se6xVWS99x9m7QEYEtuOZb/pR9I7lm8YTTnM=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=R7g/Sa69Z+NHRc3+ypRdlMwdZY7MVPe/1lGVJizmqLSka+8PxtlxKLSaMnRjSdC38Ezv1k4xg9gBcXxNFxnGf4AQxGKdKKf3unnODUD9I6raZHdt4u+r2g/Jg57CiWrQfLUrrafgJIyERYLfBE5oqz8xD72Mo4NsmIJ7XGeBk4s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=GnssSQAP; arc=none smtp.client-ip=209.85.210.51
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KoM8/mzN"
-Received: by mail-ot1-f45.google.com with SMTP id 46e09a7af769-6ee3a7cb9f1so560865a34.1
-        for <nvdimm@lists.linux.dev>; Mon, 29 Apr 2024 10:04:44 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="GnssSQAP"
+Received: by mail-ot1-f51.google.com with SMTP id 46e09a7af769-6ee2d64423cso896718a34.2
+        for <nvdimm@lists.linux.dev>; Mon, 29 Apr 2024 10:04:49 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1714410283; x=1715015083; darn=lists.linux.dev;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:sender:from:to:cc:subject:date:message-id:reply-to;
-        bh=rgRul3U5v9acsobhaA3nd7aLEZVuwb++QdqBbnvaYQA=;
-        b=KoM8/mzNDA01P1TgllqtzsZmQjXo9s1IGGWkL8Axy/ixpCwL2xjhwfpFV0Cm/6D4JG
-         9jGqqJC1AOQR4kFt6Ix37SK+gveW5du+17iW9zgIWCT3wOjsySaJs/az9gm4mgXyUw6t
-         lDcggJGB4E23XmT+bTUc1viK2iTXhLvVQMeUzx0BW3V4QebO1BLWK790fePlvCmczTXM
-         TnGR05gbcN5x8AEKqpAhrCS0Yg8YdCPOeo2SaCZFWfWVDaUjp5GV+E1WWSLKm4GsmqNf
-         ky0KDkEAnx94qtY7WmGBUjzaXsxzTLbBecHFkue42coj+ZJDZ8q78oCpT1kdE7DwM690
-         HaHA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1714410283; x=1715015083;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:sender:x-gm-message-state:from:to:cc:subject:date
+        d=gmail.com; s=20230601; t=1714410288; x=1715015088; darn=lists.linux.dev;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:sender:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=rgRul3U5v9acsobhaA3nd7aLEZVuwb++QdqBbnvaYQA=;
-        b=t9l+oemPto176z3JpgxMvMARl/zoI91Oq/fslN6o57hsnxSDMbZoMC7w64+bFjX2YG
-         20HrvohEflQ5AHuygKWe5cTSjWm8I1yuzQkIFL8Fl21sh5R70vOTKC+DAdMHPGU6+4T2
-         J2hGUr4c7CiipcyYrUlwYCErHjHWw8YSslUPKWiLjS3raRvey7PSdNKrX8wFStHKvFQP
-         bAuFJFIHwHsQS5ujGw6msfSUD0Qy6JTMWD800Xr00CDCCube2L/Ye2Zz/wXBAXrWY/9m
-         OlurZTuDUm1VcW4HxTYgs3BTJ9DtA68YWI27Colz50OPrZDznBDd/0lAadncDOJgr396
-         JiJQ==
-X-Forwarded-Encrypted: i=1; AJvYcCVQjgQy9qq9ns21sVLCH1bvPGAdGXuVxSEd674RY+/msNu8Vp7//wRhukhjuPGyCR0VTnFczsMEFrLZGgwOOgFuHldHYWiR
-X-Gm-Message-State: AOJu0YwlECGEZveSiuMht+V2BqiaetQVEU9Arrqz5DH6JT91jz8KUepn
-	6GUsCpddqPd9+yRurtMR/4Vpjan8jyO2lPiEl6Ze26Ntc84vAHf3
-X-Google-Smtp-Source: AGHT+IFxPSSRzmHNvqw0KC8EJtbzVdvh4LgLWNJl5h5R7jiMGR0wrT/ik+s7kGuGqfjVdLGzzxHIjA==
-X-Received: by 2002:a9d:5f04:0:b0:6eb:70c6:5aa4 with SMTP id f4-20020a9d5f04000000b006eb70c65aa4mr13203764oti.14.1714410283334;
-        Mon, 29 Apr 2024 10:04:43 -0700 (PDT)
+        bh=jhow96kP5BU3qcQBMxGZEfW9W+QoKa4rPIJ24CtlxHk=;
+        b=GnssSQAPdRGbmDbWnDZsYYJ35u8r9r3/9vEsg+Xe0u9W1CRiN1m8xNkAjom6sRKkLT
+         tP/MKl8sETKylE8rrqAPIX/PUcklGjp2L7d+Q5WyLRAlxHDXDaCIaBeSS0M+B7FcLFdD
+         XKaUbBqhS2IJ6iNc1B6+7YzIvPRLOZ0r0rkjqYcuCfmhnV4fc9y37JC4laJ0CjsFDzYd
+         AoWTH+X+h8/LBPUhlmDipIIJ0pc1+ICdKGWzfyzn80vqjA6KARV9+NwQOdVoW+otu1j3
+         uEGqY60wS7ZL4ASEa1CTL4fGgDIbL94JFpipuq67zXPqv+S2XmYJjxKp7aLAOhzfau9p
+         YL+w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1714410288; x=1715015088;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:sender:x-gm-message-state:from
+         :to:cc:subject:date:message-id:reply-to;
+        bh=jhow96kP5BU3qcQBMxGZEfW9W+QoKa4rPIJ24CtlxHk=;
+        b=qiUS/IDJNyGPEHQxV58AbXK2p5MoRJmg/s7qpxYBYtwm/CIItFWmvTcU8hSGive4rJ
+         Re28Lab+2eV5slDk/NaK06xfVg1zIBPzA+HonSc84GqWdw3tsGXcRGIdHTjpCNrugsFr
+         HoF6ecKSoiav0LrrQoDLRf3t9TXyuo/bVELCEyyd2BeoohbBe7T3vLi/alodUmD9y+Cm
+         fQfuSIiGl4HcmePdtBaqdt9jJNR2lc38c2dh1W2fWDqNcK5Pw6U8gxzcA6TYC+NSjjr5
+         tqvvRYeODXVok4QN9KxWvDMYQDFweI0FKpL80YNl3N273SXV8NjM8BkwR+bnXitjLxi0
+         pJmA==
+X-Forwarded-Encrypted: i=1; AJvYcCX0kpWv0EqyJlcNFE5p6WLtnLDu3tG0DEBLtp+cWoAasTFZhdWBJA6FtHCtfG+Bk3FyQQmzbGywb7SSr2jbPTRKsZuosxmD
+X-Gm-Message-State: AOJu0Yyzl3CDcpT42JnhXliQR1W+VmkxARfni1e4VKuj+SpaHehmJL71
+	kBShqbulDTTBWeizAXcnNha7jlmZiuzTDM1l5YK6y56b0nm5WJUy
+X-Google-Smtp-Source: AGHT+IFT0esK+nrgP4Zf50tdR4YgA9tgrSYLGG5TA0ZvSJostVvZqlCI2BgehfoxtpiJFe8p6wC3NQ==
+X-Received: by 2002:a05:6830:19cc:b0:6eb:d847:ff8a with SMTP id p12-20020a05683019cc00b006ebd847ff8amr8346147otp.9.1714410288151;
+        Mon, 29 Apr 2024 10:04:48 -0700 (PDT)
 Received: from localhost.localdomain ([70.114.203.196])
-        by smtp.gmail.com with ESMTPSA id g1-20020a9d6201000000b006ea20712e66sm4074448otj.17.2024.04.29.10.04.40
+        by smtp.gmail.com with ESMTPSA id g1-20020a9d6201000000b006ea20712e66sm4074448otj.17.2024.04.29.10.04.45
         (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Mon, 29 Apr 2024 10:04:43 -0700 (PDT)
+        Mon, 29 Apr 2024 10:04:47 -0700 (PDT)
 Sender: John Groves <grovesaustin@gmail.com>
 From: John Groves <John@Groves.net>
 X-Google-Original-From: John Groves <john@groves.net>
@@ -93,10 +95,12 @@ Cc: John Groves <jgroves@micron.com>,
 	Stanislav Fomichev <sdf@google.com>,
 	Dongsheng Yang <dongsheng.yang@easystack.cn>,
 	John Groves <john@groves.net>
-Subject: [RFC PATCH v2 00/12] Introduce the famfs shared-memory file system
-Date: Mon, 29 Apr 2024 12:04:16 -0500
-Message-Id: <cover.1714409084.git.john@groves.net>
+Subject: [RFC PATCH v2 01/12] famfs: Introduce famfs documentation
+Date: Mon, 29 Apr 2024 12:04:17 -0500
+Message-Id: <0270b3e2d4c6511990978479771598ad62cf2ddd.1714409084.git.john@groves.net>
 X-Mailer: git-send-email 2.39.3 (Apple Git-146)
+In-Reply-To: <cover.1714409084.git.john@groves.net>
+References: <cover.1714409084.git.john@groves.net>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -105,185 +109,206 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This patch set introduces famfs[1] - a special-purpose fs-dax file system
-for sharable disaggregated or fabric-attached memory (FAM). Famfs is not
-CXL-specific in anyway way.
+* Introduce Documentation/filesystems/famfs.rst into the Documentation
+  tree and filesystems index
+* Add famfs famfs.rst to the filesystems doc index
+* Add famfs' ioctl opcodes to ioctl-number.rst
+* Update MAINTAINERS FILE
 
-* Famfs creates a simple access method for storing and sharing data in
-  sharable memory. The memory is exposed and accessed as memory-mappable
-  dax files.
-* Famfs supports multiple hosts mounting the same file system from the
-  same memory (something existing fs-dax file systems don't do).
-* A famfs file system can be created on a /dev/dax device in devdax mode,
-  which rests on dax functionality added in patches 2-7 of this series.
-
-The famfs kernel file system is part the famfs framework; additional
-components in user space[2] handle metadata and direct the famfs kernel
-module to instantiate files that map to specific memory. The famfs user
-space has documentation and a reasonably thorough test suite.
-
-The famfs kernel module never accesses the shared memory directly (either
-data or metadata). Because of this, shared memory managed by the famfs
-framework does not create a RAS "blast radius" problem that should be able
-to crash or de-stabilize the kernel. Poison or timeouts in famfs memory
-can be expected to kill apps via SIGBUS and cause mounts to be disabled
-due to memory failure notifications.
-
-Famfs does not attempt to solve concurrency or coherency problems for apps,
-although it does solve these problems in regard to its own data structures.
-Apps may encounter hard concurrency problems, but there are use cases that
-are imminently useful and uncomplicated from a concurrency perspective:
-serial sharing is one (only one host at a time has access), and read-only
-concurrent sharing is another (all hosts can read-cache without worry).
-
-Contents:
-
-* famfs kernel documentation [patch 1]. Note that evolving famfs user
-  documentation is at [2]
-* dev_dax_iomap patchset [patches 2-7] - This enables fs-dax to use the
-  iomap interface via a character /dev/dax device (e.g. /dev/dax0.0). For
-  historical reasons the iomap infrastructure was enabled only for
-  /dev/pmem devices (which are dax block devices). As famfs is the first
-  fs-dax file system that works on /dev/dax, this patch series fills in
-  the bare minimum infrastructure to enable iomap api usage with /dev/dax.
-* famfs patchset [patches 8-12] - this introduces the kernel component of
-  famfs.
-
-Note that there is a developing consensus that /dev/dax requires
-some fundamental re-factoring (e.g. [3]) that is related but outside the
-scope of this series.
-
-Some observations about using sharable memory
-
-* It does not make sense to online sharable memory as system-ram.
-  System-ram gets zeroed when it is onlined, so sharing is basically
-  nonsense.
-* It does not make sense to put struct page's in sharable memory, because
-  those can't be shared. However, separately providing non-sharable
-  capacity to be used for struct page's might be a sensible approach if the
-  size of struct page array for sharable memory is too large to put in
-  conventional system-ram (albeit with possible RAS implications).
-* Sharable memory is pmem-like, in that a host is likely to connect in
-  order to gain access to data that is already in the memory. Moreover
-  the power domain for shared memory is separate for that of the server.
-  Having observed that, famfs is not intended for persistent storage. It is
-  intended for sharing data sets in memory during a time frame where the
-  memory and the compute nodes are expected to remain operational - such
-  as during a clustered data analytics job.
-
-Could we do this with FUSE?
-
-The key performance requirement for famfs is efficient handling of VMA
-faults. This requires caching the complete dax extent lists for all active
-files so faults can be handled without upcalls, which FUSE does not do.
-It would probably be possible to put this capability FUSE, but we think
-that keeping famfs separate from FUSE is the simpler approach.
-
-We will be discussing this topic at LSFMM 2024 [5] in a topic called "Famfs:
-new userspace filesystem driver vs. improving FUSE/DAX" - but other famfs
-related discussion will also be welcome!
-
-This patch set is available as a branch at [6]
-
-References
-
-[1] https://lpc.events/event/17/contributions/1455/
-[2] https://github.com/cxl-micron-reskit/famfs
-[3] https://lore.kernel.org/all/166630293549.1017198.3833687373550679565.stgit@dwillia2-xfh.jf.intel.com/
-[4] https://www.computeexpresslink.org/download-the-specification
-[5] https://events.linuxfoundation.org/lsfmmbpf/program/schedule-at-a-glance/
-[6] https://github.com/cxl-micron-reskit/famfs-linux/tree/famfs-v2
-
-
-Changes since RFC v1:
-
-
-* This patch series is a from-scratch refactor of the original. The code
-  that maps a file to a dax device is almost identical, but a lot of
-  cleanup has been done.
-* The get_tree and backing device handling code has been ripped up and
-  re-done (in the get-tree case, based on suggestions from Christian
-  Brauner - thanks Christian; I hope I haven't done any new dumb stuff!)
-  (Note this code has been extensively tested; after all known error cases
-  famfs can be umounted and the module can be unloaded)
-* Famfs now 'shuts down' if the dax device reports any memory errors. I/O
-  and faults start reporting SIGBUS. Famfs detects memory errors via an
-  iomap_ops->notify failure call from the devdax layer. This has been tested
-  and appears to disable the famfs file system while leaving it able to
-  dismount cleanly.
-* Dropped fault counters
-* Dropped support for symlinks wtihin a famfs file system; we don't think
-  supporting symlinks makes sense with famfs, and it has some undesirable
-  side effects, so it's out.
-* Dropped support for mknod within a famfs file system (other than regular
-  files and directories)
-* Famfs magic number moved to magic.h
-* Famfs ioctl opcodes now documented in
-  Documentation/userspace-api/ioctl/ioctl-number.rst
-* Dodgy kerneldoc comments cleaned up or removed; hopefully none added...
-* Kconfig formatting cleaned up
-* Dropped /dev/pmem support. Prior patch series would mount on either
-  /dev/pmem or /dev/dax devices. This is unnecessary complexity since
-  /ddev/pmem devices can be converted to /dev/dax. Famfs is, however, the
-  first file system we know of that mounts from a character device.
-* Famfs no longer does a filp_open() of the dax device. It finds the
-  device by its dev_t and uses fs_dax_get() to effect exclusivity.
-* Added a read-only module param famfs_kabi_version for checkout
-  that user space was compiled for the same ABI version
-* The famfs kernel module (the code in fs/famfs plus the uapi file
-  famfs_ioctl.c dropped from 1030 lines of code in v1 to 760 in v2,
-  according to "cloc".
-* Fixed issues reported by the kernel test robot
-* Many minor improvements in response to v1 code reviews
-
-
-John Groves (12):
-  famfs: Introduce famfs documentation
-  dev_dax_iomap: Move dax_pgoff_to_phys() from device.c to bus.c
-  dev_dax_iomap: Add fs_dax_get() func to prepare dax for fs-dax usage
-  dev_dax_iomap: Save the kva from memremap
-  dev_dax_iomap: Add dax_operations for use by fs-dax on devdax
-  dev_dax_iomap: export dax_dev_get()
-  famfs prep: Add fs/super.c:kill_char_super()
-  famfs: module operations & fs_context
-  famfs: Introduce inode_operations and super_operations
-  famfs: Introduce file_operations read/write
-  famfs: Introduce mmap and VM fault handling
-  famfs: famfs_ioctl and core file-to-memory mapping logic & iomap_ops
-
- Documentation/filesystems/famfs.rst           | 135 ++++
+Signed-off-by: John Groves <john@groves.net>
+---
+ Documentation/filesystems/famfs.rst           | 135 ++++++++++++++++++
  Documentation/filesystems/index.rst           |   1 +
  .../userspace-api/ioctl/ioctl-number.rst      |   1 +
- MAINTAINERS                                   |  11 +
- drivers/dax/Kconfig                           |   6 +
- drivers/dax/bus.c                             | 144 ++++-
- drivers/dax/dax-private.h                     |   1 +
- drivers/dax/device.c                          |  38 +-
- drivers/dax/super.c                           |  33 +-
- fs/Kconfig                                    |   2 +
- fs/Makefile                                   |   1 +
- fs/famfs/Kconfig                              |  10 +
- fs/famfs/Makefile                             |   5 +
- fs/famfs/famfs_file.c                         | 605 ++++++++++++++++++
- fs/famfs/famfs_inode.c                        | 452 +++++++++++++
- fs/famfs/famfs_internal.h                     |  52 ++
- fs/namei.c                                    |   1 +
- fs/super.c                                    |   9 +
- include/linux/dax.h                           |   6 +
- include/linux/fs.h                            |   1 +
- include/uapi/linux/famfs_ioctl.h              |  61 ++
- include/uapi/linux/magic.h                    |   1 +
- 22 files changed, 1547 insertions(+), 29 deletions(-)
+ MAINTAINERS                                   |   9 ++
+ 4 files changed, 146 insertions(+)
  create mode 100644 Documentation/filesystems/famfs.rst
- create mode 100644 fs/famfs/Kconfig
- create mode 100644 fs/famfs/Makefile
- create mode 100644 fs/famfs/famfs_file.c
- create mode 100644 fs/famfs/famfs_inode.c
- create mode 100644 fs/famfs/famfs_internal.h
- create mode 100644 include/uapi/linux/famfs_ioctl.h
 
-
-base-commit: ed30a4a51bb196781c8058073ea720133a65596f
+diff --git a/Documentation/filesystems/famfs.rst b/Documentation/filesystems/famfs.rst
+new file mode 100644
+index 000000000000..792785598d6a
+--- /dev/null
++++ b/Documentation/filesystems/famfs.rst
+@@ -0,0 +1,135 @@
++.. SPDX-License-Identifier: GPL-2.0
++
++.. _famfs_index:
++
++==================================================================
++famfs: The kernel component of the famfs shared memory file system
++==================================================================
++
++- Copyright (C) 2024 Micron Technology, Inc.
++
++Introduction
++============
++Compute Express Link (CXL) provides a mechanism for disaggregated or
++fabric-attached memory (FAM). This creates opportunities for data sharing;
++clustered apps that would otherwise have to shard or replicate data can
++share one copy in disaggregated memory.
++
++Famfs, which is not CXL-specific in any way, provides a mechanism for
++multiple hosts to use data in shared memory, by giving it a file system
++interface. With famfs, any app that understands files (which is almost
++all apps) can access data sets in shared memory. Although famfs
++supports read and write, the real point is to support mmap, which
++provides direct (dax) access to the memory - either writable or read-only.
++
++Shared memory can pose complex coherency and synchronization issues, but
++there are also simple cases. Two simple and eminently useful patterns that
++occur frequently in data analytics and AI are:
++
++* Serial Sharing - Only one host or process at a time has access to a file
++* Read-only Sharing - Multiple hosts or processes share read-only access
++  to a file
++
++The famfs kernel file system is part of the famfs framework; User space
++components [1] handle metadata allocation and distribution, and direct the
++famfs kernel module to instantiate files that map to specific memory.
++
++The famfs framework manages coherency of its own metadata and structures,
++but does not attempt to manage coherency for applications.
++
++Famfs also provides data isolation between files. That is, even though
++the host has access to an entire memory "device" (as a dax device), apps
++cannot write to memory for which the file is read-only, and mapping one
++file provides isolation from the memory of all other files. This is pretty
++basic, but some experimental shared memory usage patterns provide no such
++isolation.
++
++Principles of Operation
++=======================
++
++Without its user space components, the famfs kernel module doesn't do
++anything useful. The user space components maintain superblocks and
++metadata logs, and use the famfs kernel component to provide a file system
++view of shared memory across multiple hosts.
++
++Each host has an independent instance of the famfs kernel module. After
++mount, files are not visible until the user space component instantiates
++them (normally by playing the famfs metadata log).
++
++Once instantiated, files on each host can point to the same shared memory,
++but in-memory metadata (inodes, etc.) is ephemeral on each host that has a
++famfs instance mounted. Like ramfs, the famfs in-kernel file system has no
++backing store for metadata modifications. If metadata mutations are ever
++persisted, that must be done by the user space components. However,
++mutations to file data are saved to the shared memory - subject to write
++permission and processor cache behavior.
++
++
++Famfs is Not a Conventional File System
++---------------------------------------
++
++Famfs files can be accessed by conventional means, but there are
++limitations. The kernel component of famfs is not involved in the
++allocation of backing memory for files at all; the famfs user space
++creates files and passes the allocation extent lists into the kernel via
++the per-file FAMFSIOC_MAP_CREATE ioctl. A file that lacks this metadata is
++treated as invalid by the famfs kernel module. As a practical matter files
++must be created via the famfs library or cli, but they can be consumed as
++if they were conventional files.
++
++Famfs differs in some important ways from conventional file systems:
++
++* Files must be pre-allocated by the famfs framework; Allocation is never
++  performed on (or after) write.
++* Any operation that changes a file's size is considered to put the file
++  in an invalid state, disabling access to the data. It may be possible to
++  revisit this in the future. (Typically the famfs user space can restore
++  files to a valid state by replaying the famfs metadata log.)
++
++Famfs exists to apply the existing file system abstractions to shared
++memory so applications and workflows can more easily adapt to an
++environment with disaggregated shared memory.
++
++Memory Error Handling
++=====================
++
++Possible memory errors include timeouts, poison and unexpected
++reconfiguration of an underlying dax device. In all of these cases, famfs
++receives a call via its iomap_ops->notify_failure() function. If any
++memory errors have been detected, Access to the affected famfs mount is
++disabled to avoid further errors or corruption. Testing indicates that
++a famfs instance that has encountered errors can be unmounted cleanly, but
++Repairing memory errors or corruption is outside the scope of famfs.
++
++Key Requirements
++================
++
++The primary requirements for famfs are:
++
++1. Must support a file system abstraction backed by sharable dax memory
++2. Files must efficiently handle VMA faults
++3. Must support metadata distribution in a sharable way
++4. Must handle clients with a stale copy of metadata
++
++The famfs kernel component takes care of 1-2 above by caching each file's
++mapping metadata in the kernel.
++
++Requirements 3 and 4 are handled by the user space components, and are
++largely orthogonal to the functionality of the famfs kernel module.
++
++Requirements 3 and 4 cannot be met by conventional fs-dax file systems
++(e.g. xfs and ext4) because they use write-back metadata; it is not valid
++to mount such a file system on two hosts from the same in-memory image.
++
++
++Famfs Usage
++===========
++
++Famfs usage is documented at [1].
++
++
++References
++==========
++
++- [1] Famfs user space repository and documentation
++      https://github.com/cxl-micron-reskit/famfs
+diff --git a/Documentation/filesystems/index.rst b/Documentation/filesystems/index.rst
+index 1f9b4c905a6a..0fe2c70a106f 100644
+--- a/Documentation/filesystems/index.rst
++++ b/Documentation/filesystems/index.rst
+@@ -87,6 +87,7 @@ Documentation for filesystem implementations.
+    ext3
+    ext4/index
+    f2fs
++   famfs
+    gfs2
+    gfs2-uevents
+    gfs2-glocks
+diff --git a/Documentation/userspace-api/ioctl/ioctl-number.rst b/Documentation/userspace-api/ioctl/ioctl-number.rst
+index c472423412bf..ac407802cf10 100644
+--- a/Documentation/userspace-api/ioctl/ioctl-number.rst
++++ b/Documentation/userspace-api/ioctl/ioctl-number.rst
+@@ -289,6 +289,7 @@ Code  Seq#    Include File                                           Comments
+ 'u'   00-1F  linux/smb_fs.h                                          gone
+ 'u'   20-3F  linux/uvcvideo.h                                        USB video class host driver
+ 'u'   40-4f  linux/udmabuf.h                                         userspace dma-buf misc device
++'u'   50-5F  linux/famfs_ioctl.h                                     famfs shared memory file system
+ 'v'   00-1F  linux/ext2_fs.h                                         conflict!
+ 'v'   00-1F  linux/fs.h                                              conflict!
+ 'v'   00-0F  linux/sonypi.h                                          conflict!
+diff --git a/MAINTAINERS b/MAINTAINERS
+index ebf03f5f0619..3f2d847dcf01 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -8180,6 +8180,15 @@ F:	Documentation/networking/failover.rst
+ F:	include/net/failover.h
+ F:	net/core/failover.c
+ 
++FAMFS
++M:	John Groves <jgroves@micron.com>
++M:	John Groves <John@Groves.net>
++M:	John Groves <john@jagalactic.com>
++L:	linux-cxl@vger.kernel.org
++L:	linux-fsdevel@vger.kernel.org
++S:	Supported
++F:	Documentation/filesystems/famfs.rst
++
+ FANOTIFY
+ M:	Jan Kara <jack@suse.cz>
+ R:	Amir Goldstein <amir73il@gmail.com>
 -- 
 2.43.0
 
