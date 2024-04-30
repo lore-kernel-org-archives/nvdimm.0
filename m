@@ -1,111 +1,164 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.10])
+Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 654C5181B9D
-	for <nvdimm@lists.linux.dev>; Tue, 30 Apr 2024 17:44:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.10
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1DD88F6E;
+	Tue, 30 Apr 2024 21:01:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=90.155.50.34
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714499086; cv=none; b=ajvF886sLy/sfdd8XhoghhJV9N8xY5Rku31K0iQP8kTkqoASoEGcMfYKrZoli/YxfxcZNNmkaOX5Ju9n1DcHMnXPz/ZgKJrnwGNz+WiE0rw1bQAEjt/LALO2YK1H+ZjEJGszUxbBXeQuMsW66KLL+tM3iHAqOzjQ/vj59BDV630=
+	t=1714510897; cv=none; b=SMH2u8jopQ29F4KYJX1i5wSGqbSLTGznLDXHedsLhrVGM2QTd07ApuO9HFLG17Ge5vAAkx9kF76/Ix/LFoEAeIBkkHMH2ek91SYY+yruyuQ0DHoslnuZsx2PZc+XQdQ6yADvR2SMrbzYoFIIrBwjuUHG2Or2732Oq9401W9u/Fc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714499086; c=relaxed/simple;
-	bh=IuUcxmSQ8rmcL+XwprIf4jy7ccGbldFrluNcXl4Pl6A=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=uKu9Y5auj5y3QEGmHn0LsG6dP1w8F0jTSaccl4/Ntpr7T0MRALUrIiYuQ3ZUlTFBBeZYez7qLHoGrgCAslbWupbYgBEblv4/wqkJptJx3dPZqD1k+ZhTakC+KY9f9ieomg4ovfjmzJRArnxXW2Xhc3QRytEtYsnx41GdjNef6mk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=mxqGRdLZ; arc=none smtp.client-ip=198.175.65.10
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1714510897; c=relaxed/simple;
+	bh=ivAeT8Lh4hTJJoOvGma6HWl1YOPnEPRgEYoTLHjirCI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=VYYWuSrZaJEaFtpSrgy2j69Zx/QX+stECqVK4wC9QZq1zQS7pJxsUpxTGWOPDd4v4g69rBnDG3HN1Uhcea8+KWtnNftux5pnFK0Pn840qNN5lchSIqoZXUsDuuWlHMUsYQS3TAn+tp2WACtLWTtis3RVF3Nl9GKSU6kyXuS2//I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=reW6wlvQ; arc=none smtp.client-ip=90.155.50.34
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="mxqGRdLZ"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1714499085; x=1746035085;
-  h=from:date:subject:mime-version:content-transfer-encoding:
-   message-id:references:in-reply-to:to:cc;
-  bh=IuUcxmSQ8rmcL+XwprIf4jy7ccGbldFrluNcXl4Pl6A=;
-  b=mxqGRdLZQOyonNVH+IjktykX9mADPgddBnmJOj0AMN9wq4DjskcKa/UO
-   3u/W1RF4x3dZgHO+VaULxL/0WobYyY8XlROcQRe39aMaAovubU/zD4hBW
-   g7mgenevkcWH94LgxjYYE5VzCr6XqXdugMRi7tpYX0vzv6iNI4rFMg91Y
-   cJRTCG1rObxIgB7LmW0ZQ+yyRr0602yszx+/bACbP2KmjE1DITqBpRp9n
-   7Fo3as4/TbUgKqhgaZoIbsaOjKEwjN0lHjbGlF86ricp+hIQ+SKW17pga
-   YreSNV7kBlz4Ccnix13KenY99LDXNePP1WJKKEGIb8RiqZyNm51uZijUI
-   w==;
-X-CSE-ConnectionGUID: k2L6T1OpSVuP8nXyeTSbag==
-X-CSE-MsgGUID: N2q1EfMdQU+L4dLA6OaWvQ==
-X-IronPort-AV: E=McAfee;i="6600,9927,11060"; a="27669843"
-X-IronPort-AV: E=Sophos;i="6.07,242,1708416000"; 
-   d="scan'208";a="27669843"
-Received: from fmviesa007.fm.intel.com ([10.60.135.147])
-  by orvoesa102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Apr 2024 10:44:42 -0700
-X-CSE-ConnectionGUID: e1jOA7NYSFqVX4GdYq4k9g==
-X-CSE-MsgGUID: HKBzb4dvRh+9ecG232yJLw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.07,242,1708416000"; 
-   d="scan'208";a="26534783"
-Received: from vverma7-desk1.amr.corp.intel.com (HELO [192.168.1.200]) ([10.212.82.45])
-  by fmviesa007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Apr 2024 10:44:42 -0700
-From: Vishal Verma <vishal.l.verma@intel.com>
-Date: Tue, 30 Apr 2024 11:44:26 -0600
-Subject: [PATCH v3 4/4] dax/bus.c: Use the right locking mode (read vs
- write) in size_show
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="reW6wlvQ"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=yPx7hXYNWdm8HsLrOMtYckL5fyGc+4ZNrlVxqpRmA3c=; b=reW6wlvQ6JU/8Zc/bx4AUuZHpd
+	cncMdTPtYZ+Xfbp8fRosXOGkj0Qe9qeZQGSZMwqe9m124aYjJFf2qha0bgADfZvZlMF+9h5am+R9X
+	SI2FeiyRXBUZlfCWEgmawzcsJYVKokkbTdUM7ahhc4/+LZGmjbnqT4JYEBUmefACODSkz7wuYJ/Xe
+	tlEuP7NYmxbW2dIBZyo8f2Lf32Sr2nxgMeaPADT8wdzIBKZB7ghJjdWhAIQYGhl9+lIgFM5zkVMlv
+	yphG0qermw6JDG1nP6dmYZE30taJSP1BodvfnF6p8zJAZxggdc+rPa25lJPDJj0bZAeQPBbTowxjo
+	JIZaF9kQ==;
+Received: from willy by casper.infradead.org with local (Exim 4.97.1 #2 (Red Hat Linux))
+	id 1s1ubD-0000000FZHT-1b7j;
+	Tue, 30 Apr 2024 21:01:15 +0000
+Date: Tue, 30 Apr 2024 22:01:15 +0100
+From: Matthew Wilcox <willy@infradead.org>
+To: John Groves <John@groves.net>
+Cc: Jonathan Corbet <corbet@lwn.net>,
+	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
+	linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+	nvdimm@lists.linux.dev, John Groves <jgroves@micron.com>,
+	john@jagalactic.com, Dave Chinner <david@fromorbit.com>,
+	Christoph Hellwig <hch@infradead.org>, dave.hansen@linux.intel.com,
+	gregory.price@memverge.com, Randy Dunlap <rdunlap@infradead.org>,
+	Jerome Glisse <jglisse@google.com>,
+	Aravind Ramesh <arramesh@micron.com>,
+	Ajay Joshi <ajayjoshi@micron.com>,
+	Eishan Mirakhur <emirakhur@micron.com>,
+	Ravi Shankar <venkataravis@micron.com>,
+	Srinivasulu Thanneeru <sthanneeru@micron.com>,
+	Luis Chamberlain <mcgrof@kernel.org>,
+	Amir Goldstein <amir73il@gmail.com>,
+	Chandan Babu R <chandanbabu@kernel.org>,
+	Bagas Sanjaya <bagasdotme@gmail.com>,
+	"Darrick J . Wong" <djwong@kernel.org>,
+	Kent Overstreet <kent.overstreet@linux.dev>,
+	Steve French <stfrench@microsoft.com>,
+	Nathan Lynch <nathanl@linux.ibm.com>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Thomas Zimmermann <tzimmermann@suse.de>,
+	Julien Panis <jpanis@baylibre.com>,
+	Stanislav Fomichev <sdf@google.com>,
+	Dongsheng Yang <dongsheng.yang@easystack.cn>
+Subject: Re: [RFC PATCH v2 00/12] Introduce the famfs shared-memory file
+ system
+Message-ID: <ZjFcG9Q1CegMPj_7@casper.infradead.org>
+References: <cover.1714409084.git.john@groves.net>
+ <Zi_n15gvA89rGZa_@casper.infradead.org>
+ <c3mhc33u4yqhd75xc2ew53iuumg3c2vi3nk3msupt35fj7qkrp@pve6htn64e7c>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20240430-vv-dax_abi_fixes-v3-4-e3dcd755774c@intel.com>
-References: <20240430-vv-dax_abi_fixes-v3-0-e3dcd755774c@intel.com>
-In-Reply-To: <20240430-vv-dax_abi_fixes-v3-0-e3dcd755774c@intel.com>
-To: Dan Williams <dan.j.williams@intel.com>, 
- Dave Jiang <dave.jiang@intel.com>, 
- Alison Schofield <alison.schofield@intel.com>, 
- Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-mm@kvack.org, nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org, 
- linux-kernel@vger.kernel.org, Vishal Verma <vishal.l.verma@intel.com>
-X-Mailer: b4 0.14-dev-5ce50
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1034;
- i=vishal.l.verma@intel.com; h=from:subject:message-id;
- bh=IuUcxmSQ8rmcL+XwprIf4jy7ccGbldFrluNcXl4Pl6A=;
- b=owGbwMvMwCXGf25diOft7jLG02pJDGmGehzPLNirDG5tiC/7LZaetnFTELtN95cHBgw7/ryc9
- GKpxIVfHaUsDGJcDLJiiix/93xkPCa3PZ8nMMERZg4rE8gQBi5OAZhI6GVGhmnLw5Inqtjdb654
- fGP3vZdb37fY1maErJRK39AY7XEkwZDhN/vmEtsfceebpW6dcHSsXrDYbv+EV9fymARvlE+rM5b
- 9zAUA
-X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp;
- fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <c3mhc33u4yqhd75xc2ew53iuumg3c2vi3nk3msupt35fj7qkrp@pve6htn64e7c>
 
-In size_show(), the dax_dev_rwsem only needs a read lock, but was
-acquiring a write lock. Change it to down_read_interruptible() so it
-doesn't unnecessarily hold a write lock.
+On Mon, Apr 29, 2024 at 09:11:52PM -0500, John Groves wrote:
+> On 24/04/29 07:32PM, Matthew Wilcox wrote:
+> > On Mon, Apr 29, 2024 at 12:04:16PM -0500, John Groves wrote:
+> > > This patch set introduces famfs[1] - a special-purpose fs-dax file system
+> > > for sharable disaggregated or fabric-attached memory (FAM). Famfs is not
+> > > CXL-specific in anyway way.
+> > > 
+> > > * Famfs creates a simple access method for storing and sharing data in
+> > >   sharable memory. The memory is exposed and accessed as memory-mappable
+> > >   dax files.
+> > > * Famfs supports multiple hosts mounting the same file system from the
+> > >   same memory (something existing fs-dax file systems don't do).
+> > 
+> > Yes, but we do already have two filesystems that support shared storage,
+> > and are rather more advanced than famfs -- GFS2 and OCFS2.  What are
+> > the pros and cons of improving either of those to support DAX rather
+> > than starting again with a new filesystem?
+> > 
+> 
+> Thanks for paying attention to this Willy.
 
-Fixes: c05ae9d85b47 ("dax/bus.c: replace driver-core lock usage by a local rwsem")
-Cc: Dan Williams <dan.j.williams@intel.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- drivers/dax/bus.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Well, don't mistake this for an endorsement!  I remain convinced that
+this is a science project, not a product.  I am hugely sceptical of
+disaggregated systems, mostly because I've seen so many fail.  And they
+rarely attempt to answer the "janitor tripped over the cable" problem,
+the "we need to upgrade the firmware on the switch" problem, or a bunch
+of other problems I've outlined in the past on this list.
 
-diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-index 0011a6e6a8f2..f24b67c64d5e 100644
---- a/drivers/dax/bus.c
-+++ b/drivers/dax/bus.c
-@@ -937,11 +937,11 @@ static ssize_t size_show(struct device *dev,
- 	unsigned long long size;
- 	int rc;
- 
--	rc = down_write_killable(&dax_dev_rwsem);
-+	rc = down_read_interruptible(&dax_dev_rwsem);
- 	if (rc)
- 		return rc;
- 	size = dev_dax_size(dev_dax);
--	up_write(&dax_dev_rwsem);
-+	up_read(&dax_dev_rwsem);
- 
- 	return sysfs_emit(buf, "%llu\n", size);
- }
+So I am not supportive of any changes you want to make to the core kernel
+to support this kind of adventure.  Play in your own sandbox all you
+like, but not one line of code change in the core.  Unless it's something
+generally beneficial, of course; you mentioned refactoring DAX and that
+might be a good thing for everybody.
 
--- 
-2.44.0
+> * Famfs is not, not, not a general purpose file system.
+> * One can think of famfs as a shared memory allocator where allocations can be
+>   accessed as files. For certain data analytics work flows (especially 
+>   involving Apache Arrow data frames) this is really powerful. Consumers of
+>   data frames commonly use mmap(MAP_SHARED), and can benefit from the memory
+>   de-duplication of shared memory and don't need any new abstractions.
 
+... and are OK with the extra latency?
+
+> * Famfs is not really a data storage tool. It's more of a shared-memroy 
+>   allocation tool that has the benefit of allocations being accesssible 
+>   (and memory-mappable) as files. So a lot of software can automatically use 
+>   it.
+> * Famfs is oriented to dumping sharable data into files and then allowing a
+>   scale-out cluster to share it (often read-only) to access a single copy in
+>   shared memory.
+
+Depending on the exact workload, I can see this being more efficient
+than replicating the data to each member of the cluster.  In other
+workloads, it'll be a loss, of course.
+
+> * I'm no expert on GFS2 or OCFS2, but I've been around memory, file systems 
+>   and storage since well before the turn of the century...
+> * If you had brought up the existing fs-dax file systems, I would have pointed
+>   that they use write-back metadata, which does not reconcile with shared
+>   access to media - but these file systems do handle that.
+> * The shared media file systems are still oriented to block devices that
+>   provide durable storage and page-oriented access. CXL DRAM is a character 
+
+I'd say "block oriented" rather than page oriented, but I agree.
+
+>   dax (devdax) device and does not provide durable storage.
+> * fs-dax-style memory mapping for volatile cxl memory requires the 
+>   dev_dax_iomap portion of this patch set - or something similar. 
+> * A scale-out shared media file system presumably requires some commitment to
+>   configure and manage some complexity in a distributed environment; whether
+>   that should be mandatory for enablement of shared memory is worthy of
+>   discussion.
+> * Adding memory to the storage tier for GFS2/OCFS2 would add non-persistent
+>   media to the storage tier; whether this makes sense would be a topic that
+>   GFS2/OCFS2 developers/architects should get involved in if they're 
+>   interested.
+> 
+> Although disaggregated shared memory is not commercially available yet, famfs 
+> is being actively tested by multiple companies for several use cases and 
+> patterns with real and simulated shared memory. Demonstrations will start to
+> surface in the coming weeks & months.
+
+I guess we'll see.  SGI died for a reason.
