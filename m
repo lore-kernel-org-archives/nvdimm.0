@@ -1,190 +1,174 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.7])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-f46.google.com (mail-ot1-f46.google.com [209.85.210.46])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EEAFF17F5
-	for <nvdimm@lists.linux.dev>; Tue, 30 Apr 2024 01:26:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.7
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714440410; cv=fail; b=QBGgg/kjbk/jzINgxMsXWdMzMYDA3PIOXX3o+kCwj9nO+qvkvmqzRdh7sVEnu7AVQCc8a9/ASzhIiDOz72Fhm9UQwjneZGhkx/UuV21I35zs2OmI3yvSrGfzDk/Rb+wxM0AWjNWwiDpxOUGSU3LqyEmnKE3a5VuJmmdl6k/8YMA=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714440410; c=relaxed/simple;
-	bh=iLCu7ViezsEsDN/s54TUA0P6f/gk+Fa3zUtU5lZcAaI=;
-	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=Oww0+gjOfBzCZjfZgvcSu4cvLH13GkYUOLyt6kuLccipyhuOeY+ZkjUGhSdqC5Um6VIGgrzs2NDqonWtLYd2qOeyY7igcAGMoYo7EBJeoMrOaMDTc5eYqIQiUVXxt0dBH00uXGrpzybSY+z3f9SYFQ426nkqv0VnGk86bmCxzMQ=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=aMxUKY6V; arc=fail smtp.client-ip=192.198.163.7
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FFE98BF0
+	for <nvdimm@lists.linux.dev>; Tue, 30 Apr 2024 02:11:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.46
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1714443119; cv=none; b=O38fcfmJ30tMsnnX13mqMrB7K6y/2OhOLS8Z/0Q3TcGyC6pthPBbH4a5+7TtRwvK1Q95x5jFLdcissPsXCbKSCYI2h9wXzXaqvK7SUJqmo4TLhFWxrUKSsBS3z/upxPdkICOcD9NTggzbgbtFsrD2wu3w4Oy7Ojp56n2vOTvvao=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1714443119; c=relaxed/simple;
+	bh=B4Q38GNWHiFrqJngPRPZyu+B4xXhaLo1u2hz1Gx73kg=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=TakkYZS/SQJjOttx3K6WP0lNjcUTGNGXvZgolsd+lwdavZtqAGASGau6WFNV5XCAQs+ErxMLeY5rXYx5EK8q89cWddZhD9zoWt36hUBtoQiYchwsfeKK4M36GA16oljdM12fgx8JzZdDm2efWken5GPvogAlMElROryzjcUwQz0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=cro6plvs; arc=none smtp.client-ip=209.85.210.46
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="aMxUKY6V"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1714440409; x=1745976409;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=iLCu7ViezsEsDN/s54TUA0P6f/gk+Fa3zUtU5lZcAaI=;
-  b=aMxUKY6VicUayM2wMH0+lv1MN3vJJvvYet3NS524HEryp3PVX3Izg1iq
-   20CPVH8U1BgG8ybYMS4tWX2WL3PIFYeYo09S/tL6ODTN5Fe98gqfD9QWb
-   O+JNhho5iH1lYPy3lbAPtXuGfm5SOriHO+7mBjrTvSDwe8/rg7XoZ9Umv
-   rHWxxSrjVEL0fLnfDBKp4Amum9Fs3ZrRX4L07yKWxapG6HA1oD/f7hAmc
-   aH6NrKIDNMtYwZ7k0Ap39ovG4cO7T2WU/nix7Z2NCUYt6lMceoZyrhV94
-   s/Bs5IOAJBIn42NIIRsJ+7qHhAF+2s+zd9bMOuxdOsqISZo0qGBR+15MU
-   w==;
-X-CSE-ConnectionGUID: eFmE1GP5QsyfOvQj9uXrog==
-X-CSE-MsgGUID: NQ9NqPs5TRiVBHKdJTJW6g==
-X-IronPort-AV: E=McAfee;i="6600,9927,11059"; a="35515103"
-X-IronPort-AV: E=Sophos;i="6.07,241,1708416000"; 
-   d="scan'208";a="35515103"
-Received: from fmviesa004.fm.intel.com ([10.60.135.144])
-  by fmvoesa101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Apr 2024 18:26:48 -0700
-X-CSE-ConnectionGUID: 6SDrUa+1Q3KtJaRsEj5zFw==
-X-CSE-MsgGUID: +ywpmPhHRuWH46a9+gfHwA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.07,241,1708416000"; 
-   d="scan'208";a="30926179"
-Received: from fmsmsx603.amr.corp.intel.com ([10.18.126.83])
-  by fmviesa004.fm.intel.com with ESMTP/TLS/AES256-GCM-SHA384; 29 Apr 2024 18:26:49 -0700
-Received: from fmsmsx603.amr.corp.intel.com (10.18.126.83) by
- fmsmsx603.amr.corp.intel.com (10.18.126.83) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.35; Mon, 29 Apr 2024 18:26:47 -0700
-Received: from fmsedg602.ED.cps.intel.com (10.1.192.136) by
- fmsmsx603.amr.corp.intel.com (10.18.126.83) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.35 via Frontend Transport; Mon, 29 Apr 2024 18:26:47 -0700
-Received: from NAM04-MW2-obe.outbound.protection.outlook.com (104.47.73.168)
- by edgegateway.intel.com (192.55.55.71) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.35; Mon, 29 Apr 2024 18:26:47 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=RoEVE2ooP7aTewFXeaOCIpuh9Q+bS9V1c85DDsAWHlW/0gkGLnhTtYwlwYLL4d2EO8jprzlOQ0NPzvExEW88xtTubgY54DAcnzwlu2voFyCwUAeLyO0OPvEatDEJXWWLTHynUGJHZtxXVS5dYcUI1neoZTah9mH686MVVC0Sl+ywPHtmeFKxJWME9JSGW7lCWp7tx2HCWi9P6GEr1V++kYuDIV/4yr+f8cpwLkt3eIc7fvQbD+zM3mVimSR2Hf06UFeu2Dp0d9gpvZFIBLeAxiiBr0pPX+XTpoedcg0QTlQ+3GkuZ2ePhc7JVm32JefKJm4f4RsdTjkoQQg3Xx9N1A==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=QfqnjsqAo8gvcRV7+qw4a+pqoM4kFz8rp8c1RkTfr9o=;
- b=E/UO0sfGfVCS85ZG/ck9fC6KkYyBSPdZbTy5tz2c0UHoJtP0ZrF9cCuhgiNi4ysiyGRVH9QvWuwZb5x1g25OIzyAr+uokITxtc16cSpVzBLHU9WI+W/D4fIr2dJfFFI2m6ny04BY2eWptIeEBcoqT+7nBcfuXbFzms2Fem3XAWpvHg02QSrVqxu3guv1+TbMbwAmBTXBindn+bPdLJawfY80LEHC1vinrXgKZlWsb8cJ4MFKiyJxfu+06NokJNT71k1OKRcC2KlYuiD75mhk3RjHVGhkPyp89XwUwKdq+MikVpxi9JhIs3jEl4Irirnkh0YTumfNFhDQu7T1FMd44g==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from PH8PR11MB8107.namprd11.prod.outlook.com (2603:10b6:510:256::6)
- by DM4PR11MB7351.namprd11.prod.outlook.com (2603:10b6:8:104::21) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7519.35; Tue, 30 Apr
- 2024 01:26:41 +0000
-Received: from PH8PR11MB8107.namprd11.prod.outlook.com
- ([fe80::6b05:74cf:a304:ecd8]) by PH8PR11MB8107.namprd11.prod.outlook.com
- ([fe80::6b05:74cf:a304:ecd8%5]) with mapi id 15.20.7519.031; Tue, 30 Apr 2024
- 01:26:41 +0000
-Date: Mon, 29 Apr 2024 18:26:38 -0700
-From: Dan Williams <dan.j.williams@intel.com>
-To: Vishal Verma <vishal.l.verma@intel.com>, Dan Williams
-	<dan.j.williams@intel.com>, Dave Jiang <dave.jiang@intel.com>, "Alison
- Schofield" <alison.schofield@intel.com>, Andrew Morton
-	<akpm@linux-foundation.org>
-CC: <linux-mm@kvack.org>, <nvdimm@lists.linux.dev>,
-	<linux-cxl@vger.kernel.org>, <linux-kernel@vger.kernel.org>, Vishal Verma
-	<vishal.l.verma@intel.com>
-Subject: Re: [PATCH v2 4/4] dax/bus.c: Use the right locking mode (read vs
- write) in size_show
-Message-ID: <663048ce71dab_14872949a@dwillia2-mobl3.amr.corp.intel.com.notmuch>
-References: <20240416-vv-dax_abi_fixes-v2-0-d5f0c8ec162e@intel.com>
- <20240416-vv-dax_abi_fixes-v2-4-d5f0c8ec162e@intel.com>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20240416-vv-dax_abi_fixes-v2-4-d5f0c8ec162e@intel.com>
-X-ClientProxiedBy: MW2PR2101CA0013.namprd21.prod.outlook.com
- (2603:10b6:302:1::26) To PH8PR11MB8107.namprd11.prod.outlook.com
- (2603:10b6:510:256::6)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="cro6plvs"
+Received: by mail-ot1-f46.google.com with SMTP id 46e09a7af769-6ee575da779so471394a34.2
+        for <nvdimm@lists.linux.dev>; Mon, 29 Apr 2024 19:11:56 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1714443116; x=1715047916; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:sender:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=cz6LbTk3HDU9Gjsgqvf5euuqX2lyVCWJAHMvzGly8pc=;
+        b=cro6plvsJwqUGxqeUeKfgMTOwFAN7R/IEEsppT7HfC47lZ7fMgNSxKPLU9BJMpv1V0
+         0gtr96ncJhzmgVO+QoFbD3KuKboInS3fk4EgvK3bZ8rUw512UEbDWvuxVZXMcx7jDHWJ
+         UFqnHqId7SLNmXGNnCTaBb7gHZTn9Gtxk3pXt6kldLzYQYNhwS4ndOcfaShEOz/yVPZH
+         xhpLkMnVveKr8M+MY9f1BRMbhaBYHtdHyEFZ1EG/0OFDq1ITmhJH76+iVnf3+na9hQ1M
+         oHRhT0yQRZjX3Rdn+HIZR83wYpdc/J55HA6P1Qz4cT5VX95b+FaLOpeBh0P+KL+YjFIC
+         SYlw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1714443116; x=1715047916;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:sender:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=cz6LbTk3HDU9Gjsgqvf5euuqX2lyVCWJAHMvzGly8pc=;
+        b=iY4OWs2PFRJcjNUXocMpXX97cZM9svaoTedpmHd82+7or36O2Em8NUPjHUGyPyYMK2
+         RGpgTEu3OIRMNezzldPoxit7SYsQfFbjPlHmyoAHo+XZBs+rN+93trSLGNTXLEwwv1+3
+         iu/SHKx0U4Wpv8bPWjekR4J77Sa12UfIyaGYKTIlOQot8/T8mkLYs906BJ9pvuqCelCo
+         XLyymLnYfo9ij73EfQlRGn/iCxYXvemo2vZ0to3aI/1DLZqgJhbY29C2V731/R2iDLYo
+         wd7mw09dTEsmUd2NXErw2veD6uLT1sYqPUjC0JOipT5RYa4FPjjaXxJq1DyEeg2Q9ygc
+         nfdQ==
+X-Forwarded-Encrypted: i=1; AJvYcCUJZQ3Zgqoe5J1kyN9XbYH2mYuObXLcmfwCjUIom5rgGnilYjuA8YfWaaq5xUOM/5Z3VWIg+p/3gpKB8h+YKJKm3qdIB6l/
+X-Gm-Message-State: AOJu0Ywtn0yh8omX3YfAOnRVTzIx92hk/u3CYuAjMVfJJ1C+73uo+UBZ
+	AKdnP3UEIM31TsQ7dsv6WK2I+7pkA1z3vF2rFbwGozR+NsNrolGY
+X-Google-Smtp-Source: AGHT+IEgmqNybUXF8FHCit0cPMUSqtYSD/rjIQS96Y1wPstK+uXrwH04fBsGnUNreqzbmHVXUZCGvQ==
+X-Received: by 2002:a05:6871:b2a:b0:23c:3afd:8770 with SMTP id fq42-20020a0568710b2a00b0023c3afd8770mr7668569oab.19.1714443115889;
+        Mon, 29 Apr 2024 19:11:55 -0700 (PDT)
+Received: from Borg-10.local ([70.114.203.196])
+        by smtp.gmail.com with ESMTPSA id mk9-20020a0568700d0900b0022f939a3e2dsm5214410oab.55.2024.04.29.19.11.53
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 29 Apr 2024 19:11:55 -0700 (PDT)
+Sender: John Groves <grovesaustin@gmail.com>
+Date: Mon, 29 Apr 2024 21:11:52 -0500
+From: John Groves <John@groves.net>
+To: Matthew Wilcox <willy@infradead.org>
+Cc: Jonathan Corbet <corbet@lwn.net>, 
+	Jonathan Cameron <Jonathan.Cameron@huawei.com>, Dan Williams <dan.j.williams@intel.com>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, 
+	linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev, 
+	John Groves <jgroves@micron.com>, john@jagalactic.com, Dave Chinner <david@fromorbit.com>, 
+	Christoph Hellwig <hch@infradead.org>, dave.hansen@linux.intel.com, gregory.price@memverge.com, 
+	Randy Dunlap <rdunlap@infradead.org>, Jerome Glisse <jglisse@google.com>, 
+	Aravind Ramesh <arramesh@micron.com>, Ajay Joshi <ajayjoshi@micron.com>, 
+	Eishan Mirakhur <emirakhur@micron.com>, Ravi Shankar <venkataravis@micron.com>, 
+	Srinivasulu Thanneeru <sthanneeru@micron.com>, Luis Chamberlain <mcgrof@kernel.org>, 
+	Amir Goldstein <amir73il@gmail.com>, Chandan Babu R <chandanbabu@kernel.org>, 
+	Bagas Sanjaya <bagasdotme@gmail.com>, "Darrick J . Wong" <djwong@kernel.org>, 
+	Kent Overstreet <kent.overstreet@linux.dev>, Steve French <stfrench@microsoft.com>, 
+	Nathan Lynch <nathanl@linux.ibm.com>, Michael Ellerman <mpe@ellerman.id.au>, 
+	Thomas Zimmermann <tzimmermann@suse.de>, Julien Panis <jpanis@baylibre.com>, 
+	Stanislav Fomichev <sdf@google.com>, Dongsheng Yang <dongsheng.yang@easystack.cn>
+Subject: Re: [RFC PATCH v2 00/12] Introduce the famfs shared-memory file
+ system
+Message-ID: <c3mhc33u4yqhd75xc2ew53iuumg3c2vi3nk3msupt35fj7qkrp@pve6htn64e7c>
+References: <cover.1714409084.git.john@groves.net>
+ <Zi_n15gvA89rGZa_@casper.infradead.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: PH8PR11MB8107:EE_|DM4PR11MB7351:EE_
-X-MS-Office365-Filtering-Correlation-Id: 5e3b3b4a-cdd0-4f2d-710c-08dc68b4968f
-X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230031|1800799015|366007|376005;
-X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?W7JFYwiGCnSQN/a1TAUgGodx/SJEzvpE+/7gnpFjaP+/6xDGtOD1Tdb76SlQ?=
- =?us-ascii?Q?NbBOuBVhbTQ7dKq3C9Yp2kBKZeezPuTCBUorhCG0ovIEMEAZwcQyf6w96m7W?=
- =?us-ascii?Q?IXgz4jrppmeIPDUwLgQyjmh6O/LzMBt+KYpoYG9/NdEt+qXqA1jkXfSYyRFV?=
- =?us-ascii?Q?h3KLoCAOO7SSZ6D3yZxrGD1Xhafn4Vm7HuAfRMNJACAM1U8j2/+iv8AL9hh9?=
- =?us-ascii?Q?QbFJ10WqvtYXA754Un00Q6SUKQZ0KNSg1ZxPmdI63EHP3zs1lb8VW1X9XYlg?=
- =?us-ascii?Q?HLdWpH9NeKX/0TAV79vQyRsL6VnUcPE56WopLQ6zm3UevR8ENPXwUdzYsJWq?=
- =?us-ascii?Q?qOS2C5TRRtCwP4jBoRN7VvzLb0rL0ITGNqJNaAqVmGmwPCi+Jot9FD0jE7ER?=
- =?us-ascii?Q?4hzL/QTxxeKrYLxMZBu2nCbRJyuL8Up7t1ClpWSXk2UbwoWyajjUFKYqhXl9?=
- =?us-ascii?Q?lKC0aZHv9UO8b0Sroihz2y0yk5MfHXAnrOlwEUFDVIxyZagRCcOLHFDiac/N?=
- =?us-ascii?Q?EbNTepYvh+JuqzuF2hz/XPqDvtk5TWTUWG2TTApVoz3GhFdCmmSD5m8EBCM7?=
- =?us-ascii?Q?6n4MjbrAhhjrnFbD4uxkoEd0liPy6rdEtvGTIwLQeXnraSffh6U9ctcjCtP4?=
- =?us-ascii?Q?R2GAlwqd8nBDQu1oPUkEEA8Lff1cgfJ17w3m3oOR0rP9l0YepGb0nU/AgbGm?=
- =?us-ascii?Q?2bdJ7ZuYqiF+9BavfLWxbxVkT7CtGk2X96I2gQ6w7Y9dk8Bou6V5u4UbDMaY?=
- =?us-ascii?Q?dAIPJmmb8TR9gGFo9BMSQ03SnjRjz5xW9AY3IiTejcpyqvgfFIsvMWt0/08H?=
- =?us-ascii?Q?flysTFgESPNEQpEczc0SfNHFnOu3JLJIXbKb2oCYvGqGOcx9v1dk6pslxLtp?=
- =?us-ascii?Q?B0wUsBPhyZwhF62J4/mNO1AH2xyYWwxiHcGHXdDNW+1NcmuibBMbTpQeXphW?=
- =?us-ascii?Q?qzkADw/h1T08/2mEr9mkemLrzpeQ5I6pbgsFq60/+fYC1QLbcLeLsbGhY2wb?=
- =?us-ascii?Q?V14W/zFK3qedURvBacnGHEnWjXtarfkCkVbX094X9YtTq+9kp4PtrHhwcuyS?=
- =?us-ascii?Q?lBjvwGfgYdHQ4Oh6ENZgPdhDdIJ4Y6oHOZoSA0jxaw+G4PwgSt/Pimj+awMS?=
- =?us-ascii?Q?wmUJCSIn9IZ3oTv0oDmfJG/nNHV4o26SWakH8xSy3/I0uIOCAJVXm+iXhG9A?=
- =?us-ascii?Q?cnL5T0awzvKrlKCm+FTufVxgc69DEO/7WejramKgYR5r0adJqjGtC8nBo6q3?=
- =?us-ascii?Q?7U/nuViQzSDhhLBi7cTAClzGQ3epZZjtosLEcG2fVQ=3D=3D?=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH8PR11MB8107.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(1800799015)(366007)(376005);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?Hr4mx18uLMqPzpTAZALcrKMfUL+k6eliNR/ob0wfVTV/xMHeLx39EXrJ+Vel?=
- =?us-ascii?Q?VKMXXqGwRy4Um3jAMs6hdVSXw4YVYBdWAoonZe5YpQTaefr1/uwS1h5fV1in?=
- =?us-ascii?Q?lNvU04n1JKArmgyduPbIYZ9X+jys8KhtaDT51VdmPXP2BwfQNE++zSa/mK35?=
- =?us-ascii?Q?+9W9HNhezsIK5s0N6pYi0GIMa2BBbH1HiFsQc9dzYj3LXnPlamrkZNv6PfV/?=
- =?us-ascii?Q?4HEPsZcZ6XqLIoAoErh4O2nb1DxZiwT51Qqs0g5X/HzDREuxYFLK9LAWweHL?=
- =?us-ascii?Q?zYYSZ6oSny/mtlm46vI7YVkvLjnOcD01psGzRvQ2Ab2eEyajatXmNK7hNvMp?=
- =?us-ascii?Q?Z94yKfMWw3inIhe5FcJTsa1ua4pGK1rjvIEX/S9abl4w/ZNZTPUwDZ7Qf7G1?=
- =?us-ascii?Q?Z29+I/uLSsr5V9pTvzBn/Zjq3Ml0efcfPhFpj8nYEV7/1dAPdxEoPKu4S2Rh?=
- =?us-ascii?Q?dPvJhiSPHMvuPMSRACe84cT0zf29atu3YzuSVKZxJIueYVpvepNKcI0PGb9E?=
- =?us-ascii?Q?JdFQ6kUyCSIV8oFCRjIY4pVFLbJDGvUoXnqUJsjH4NkT5L/V2qCX80/d6u5c?=
- =?us-ascii?Q?3iQZ61Cp+XoYO6NiCQK5r4pRKAkbRUYi+g8BLKKSw4VKeKaCRhdXl2VLBewX?=
- =?us-ascii?Q?nBaX7WfFpBSizb/K9wmVx5GEPSh1q/DcO+SH0ca3YNrzeBUmvpE71x3/N1NG?=
- =?us-ascii?Q?MNIep/Ebz3QJq4r8+cqA/L7l/09ZgnSj1XLmusJicdENf4PQEziRFzjyd1zm?=
- =?us-ascii?Q?4gbkvMJJygmImsmCysm49bfnTT6SqJYhk5upZ5VYOdnEpOLEfBxisA+c459P?=
- =?us-ascii?Q?w0DlvbyNvVgPnCM2qF8jM90miEOa4TsAUxo31bXc/xrw9vxv00Qjl9iTJuQa?=
- =?us-ascii?Q?eE0LMZEdc5D7M/KsBxDrZ5dkC1X4s+nP9c8dbJ+dx8Sh/B3qe8BVUSaEzPD3?=
- =?us-ascii?Q?8rCYBQJ8ClDWk/ahNYFwnVf5CRfu3hEiD/r6Cq64KyO0CZTGUY1dHbFMzOEw?=
- =?us-ascii?Q?1+T6mX9bhGgUaV0OApL1oRjwzTg38x2KPxDiXrrSu5FlLVl4uAk7ciCekpGK?=
- =?us-ascii?Q?UB6QEuT+7NBMeMdjp0mawvp+c0cxbm/Lcppqd26QuzsoJ6NA9C4YMNeUEPYQ?=
- =?us-ascii?Q?A/5qiig3+/eAzX+Jd/Lnpx1h3Q1mPJnrXHYZha+UfPU1iirctFyC/9ieWVER?=
- =?us-ascii?Q?5xSdSiE4qB7j1mhbMqgLsXs3Y/2taVIuwEBXjxg06e3LFce0RvD92e4RHJZK?=
- =?us-ascii?Q?SOVYJmc4Iw3xK+IOzvdeCnHshE0eqvKzSCtSuJZc+q6TYSPrBXFUyKiBySIB?=
- =?us-ascii?Q?GSgfjMI28UoDJ9NRv2ql+/Qao+P+SgeE+a3V3aB4J73+i70c6xPBkUtf70S/?=
- =?us-ascii?Q?KFgsl3w8Q1jnnOXN8YSlKy08X7uph6FqEK9BWz9r54gyNhSkrxKNmPX/pfkf?=
- =?us-ascii?Q?6ShxlQf+P96UwFJSt4/YfjXknHOVFxjqDiC6qRSEf/++YjkFLP04H4InOFEX?=
- =?us-ascii?Q?buTpgZZFQzudYZ/ZKs89RoLFf8PWLIsldZGra5Vp2ocJKvpHYPowHBuLVKsA?=
- =?us-ascii?Q?3EhcVqtXXAQ3mm20cQyLePYXqeSrfbLQd0RaYAt6lzk+loWbBRet3TVIUafC?=
- =?us-ascii?Q?CA=3D=3D?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: 5e3b3b4a-cdd0-4f2d-710c-08dc68b4968f
-X-MS-Exchange-CrossTenant-AuthSource: PH8PR11MB8107.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 Apr 2024 01:26:41.0125
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: jhiV4+ArRLzVYl12iWitOOtdC3da8WvcPyoXMK0OeNc3pqJ9BlPqNv3bN0Rm461Zsitp/zmlEGIbTJxnusrUd1mAGhDe7iJ96FmTsWNR0PA=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM4PR11MB7351
-X-OriginatorOrg: intel.com
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Zi_n15gvA89rGZa_@casper.infradead.org>
 
-Vishal Verma wrote:
-> In size_show(), the dax_dev_rwsem only needs a read lock, but was
-> acquiring a write lock. Change it to down_read_interruptible() so it
-> doesn't unnecessarily hold a write lock.
+On 24/04/29 07:32PM, Matthew Wilcox wrote:
+> On Mon, Apr 29, 2024 at 12:04:16PM -0500, John Groves wrote:
+> > This patch set introduces famfs[1] - a special-purpose fs-dax file system
+> > for sharable disaggregated or fabric-attached memory (FAM). Famfs is not
+> > CXL-specific in anyway way.
+> > 
+> > * Famfs creates a simple access method for storing and sharing data in
+> >   sharable memory. The memory is exposed and accessed as memory-mappable
+> >   dax files.
+> > * Famfs supports multiple hosts mounting the same file system from the
+> >   same memory (something existing fs-dax file systems don't do).
 > 
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Fixes: c05ae9d85b47 ("dax/bus.c: replace driver-core lock usage by a local rwsem")
-> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
-> ---
->  drivers/dax/bus.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+> Yes, but we do already have two filesystems that support shared storage,
+> and are rather more advanced than famfs -- GFS2 and OCFS2.  What are
+> the pros and cons of improving either of those to support DAX rather
+> than starting again with a new filesystem?
+> 
 
-Looks good,
+Thanks for paying attention to this Willy.
 
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+This is a fair question; I'll share some thoughts on the rationale, but it's
+probably something that should be an ongoing dialog. We already have a LSFMM
+session planned that will discuss whether the famfs functionality should be
+merged into fuse, but GFS2 and OCFS2 are also potential candidates.
+
+(I've already seen Kent's reply and will get to that next)
+
+I work for a memory company, and the motivation here is to make disaggregated
+shared memory practically usable. Any approach that moves in that direction 
+is goodness as far as we're concerned -- provided it doesn't insert years of 
+delay. 
+
+Some thoughts on famfs:
+
+* Famfs is not, not, not a general purpose file system.
+* One can think of famfs as a shared memory allocator where allocations can be
+  accessed as files. For certain data analytics work flows (especially 
+  involving Apache Arrow data frames) this is really powerful. Consumers of
+  data frames commonly use mmap(MAP_SHARED), and can benefit from the memory
+  de-duplication of shared memory and don't need any new abstractions.
+* Famfs is not really a data storage tool. It's more of a shared-memroy 
+  allocation tool that has the benefit of allocations being accesssible 
+  (and memory-mappable) as files. So a lot of software can automatically use 
+  it.
+* Famfs is oriented to dumping sharable data into files and then allowing a
+  scale-out cluster to share it (often read-only) to access a single copy in
+  shared memory.
+* Although this audience probably already understands this, please forgive me
+  for putting a fine point on it: memory mapping a famfs/fs-dax file does 
+  not use system-ram as a cache - it directly accesses the memory associated 
+  with a file. This would be true of all file systems with proper fs-dax 
+  support (of which there are not many, and currently only famfs that supports
+  shared access to media/memory).
+
+Some thoughts on shared-storage file systems:
+
+* I'm no expert on GFS2 or OCFS2, but I've been around memory, file systems 
+  and storage since well before the turn of the century...
+* If you had brought up the existing fs-dax file systems, I would have pointed
+  that they use write-back metadata, which does not reconcile with shared
+  access to media - but these file systems do handle that.
+* The shared media file systems are still oriented to block devices that
+  provide durable storage and page-oriented access. CXL DRAM is a character 
+  dax (devdax) device and does not provide durable storage.
+* fs-dax-style memory mapping for volatile cxl memory requires the 
+  dev_dax_iomap portion of this patch set - or something similar. 
+* A scale-out shared media file system presumably requires some commitment to
+  configure and manage some complexity in a distributed environment; whether
+  that should be mandatory for enablement of shared memory is worthy of
+  discussion.
+* Adding memory to the storage tier for GFS2/OCFS2 would add non-persistent
+  media to the storage tier; whether this makes sense would be a topic that
+  GFS2/OCFS2 developers/architects should get involved in if they're 
+  interested.
+
+Although disaggregated shared memory is not commercially available yet, famfs 
+is being actively tested by multiple companies for several use cases and 
+patterns with real and simulated shared memory. Demonstrations will start to
+surface in the coming weeks & months.
+
+Regards,
+John
+
+
