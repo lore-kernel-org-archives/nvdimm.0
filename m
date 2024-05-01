@@ -1,74 +1,86 @@
-Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-f42.google.com (mail-ot1-f42.google.com [209.85.210.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1DD88F6E;
-	Tue, 30 Apr 2024 21:01:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=90.155.50.34
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 14E3A101CA
+	for <nvdimm@lists.linux.dev>; Wed,  1 May 2024 02:09:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714510897; cv=none; b=SMH2u8jopQ29F4KYJX1i5wSGqbSLTGznLDXHedsLhrVGM2QTd07ApuO9HFLG17Ge5vAAkx9kF76/Ix/LFoEAeIBkkHMH2ek91SYY+yruyuQ0DHoslnuZsx2PZc+XQdQ6yADvR2SMrbzYoFIIrBwjuUHG2Or2732Oq9401W9u/Fc=
+	t=1714529365; cv=none; b=Ae+MEepMzuzvhGJmHflza9D70qYbhMzFyLXxAwtVWgk2bbCHUZejIQ3zxBO0TognCTyKhZ1DRp0wrUF54tARHclw2bmq4816/1uhnXjNnnmekVUYMooyeo7rmWelAod7k4O61JhKJuRO2BA2uQQX2Bzj6acaMEadtE2KgHmrSd8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714510897; c=relaxed/simple;
-	bh=ivAeT8Lh4hTJJoOvGma6HWl1YOPnEPRgEYoTLHjirCI=;
+	s=arc-20240116; t=1714529365; c=relaxed/simple;
+	bh=ySsZVAs1iEFo2LCjm6AMLn2MXUzr5ui6+DRDT1wzK5w=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=VYYWuSrZaJEaFtpSrgy2j69Zx/QX+stECqVK4wC9QZq1zQS7pJxsUpxTGWOPDd4v4g69rBnDG3HN1Uhcea8+KWtnNftux5pnFK0Pn840qNN5lchSIqoZXUsDuuWlHMUsYQS3TAn+tp2WACtLWTtis3RVF3Nl9GKSU6kyXuS2//I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=reW6wlvQ; arc=none smtp.client-ip=90.155.50.34
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
+	 Content-Type:Content-Disposition:In-Reply-To; b=j16QywS4Ylu6ALWdFOzFCLkT2/z6Bw+FDImk8J8j5eYvrtbncIgMXn3FTbQm62KiDHdosjVT1g5pc6LLIbxmgsQd5Njuh7olItYKctBmCKbBIxtqvNQHYbA5zWVzLkxFBVpr/9rqDwq/eGdD/c00q9wtl5O20WfeeS/ypwZyUn4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=eaYodL4s; arc=none smtp.client-ip=209.85.210.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="reW6wlvQ"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=yPx7hXYNWdm8HsLrOMtYckL5fyGc+4ZNrlVxqpRmA3c=; b=reW6wlvQ6JU/8Zc/bx4AUuZHpd
-	cncMdTPtYZ+Xfbp8fRosXOGkj0Qe9qeZQGSZMwqe9m124aYjJFf2qha0bgADfZvZlMF+9h5am+R9X
-	SI2FeiyRXBUZlfCWEgmawzcsJYVKokkbTdUM7ahhc4/+LZGmjbnqT4JYEBUmefACODSkz7wuYJ/Xe
-	tlEuP7NYmxbW2dIBZyo8f2Lf32Sr2nxgMeaPADT8wdzIBKZB7ghJjdWhAIQYGhl9+lIgFM5zkVMlv
-	yphG0qermw6JDG1nP6dmYZE30taJSP1BodvfnF6p8zJAZxggdc+rPa25lJPDJj0bZAeQPBbTowxjo
-	JIZaF9kQ==;
-Received: from willy by casper.infradead.org with local (Exim 4.97.1 #2 (Red Hat Linux))
-	id 1s1ubD-0000000FZHT-1b7j;
-	Tue, 30 Apr 2024 21:01:15 +0000
-Date: Tue, 30 Apr 2024 22:01:15 +0100
-From: Matthew Wilcox <willy@infradead.org>
-To: John Groves <John@groves.net>
-Cc: Jonathan Corbet <corbet@lwn.net>,
-	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Alexander Viro <viro@zeniv.linux.org.uk>,
-	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
-	linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-	nvdimm@lists.linux.dev, John Groves <jgroves@micron.com>,
-	john@jagalactic.com, Dave Chinner <david@fromorbit.com>,
-	Christoph Hellwig <hch@infradead.org>, dave.hansen@linux.intel.com,
-	gregory.price@memverge.com, Randy Dunlap <rdunlap@infradead.org>,
-	Jerome Glisse <jglisse@google.com>,
-	Aravind Ramesh <arramesh@micron.com>,
-	Ajay Joshi <ajayjoshi@micron.com>,
-	Eishan Mirakhur <emirakhur@micron.com>,
-	Ravi Shankar <venkataravis@micron.com>,
-	Srinivasulu Thanneeru <sthanneeru@micron.com>,
-	Luis Chamberlain <mcgrof@kernel.org>,
-	Amir Goldstein <amir73il@gmail.com>,
-	Chandan Babu R <chandanbabu@kernel.org>,
-	Bagas Sanjaya <bagasdotme@gmail.com>,
-	"Darrick J . Wong" <djwong@kernel.org>,
-	Kent Overstreet <kent.overstreet@linux.dev>,
-	Steve French <stfrench@microsoft.com>,
-	Nathan Lynch <nathanl@linux.ibm.com>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Thomas Zimmermann <tzimmermann@suse.de>,
-	Julien Panis <jpanis@baylibre.com>,
-	Stanislav Fomichev <sdf@google.com>,
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="eaYodL4s"
+Received: by mail-ot1-f42.google.com with SMTP id 46e09a7af769-6ee2be5b765so1541709a34.0
+        for <nvdimm@lists.linux.dev>; Tue, 30 Apr 2024 19:09:22 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1714529362; x=1715134162; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:sender:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=yezFULKDfkH4O3tF/9359IJey7y6CAqBHbGwFEbOyVA=;
+        b=eaYodL4sv311N02sUvapF+dPz8fPLjElibBg0Cq9hjgChspTwmTmqysMglv+UmGuTF
+         iZ8JR5GXDH0L4sZxcd+V5RON4CgFAPkqa3j5d+GEY2LJ5VO6dmHseIvYzSobKL+Jouzw
+         ZJUw9j/DIjKIhXdsqBj2Y+t1w1GBFoclDFYsEm9hyK9DloRHwNxJWAF3OYozsbRcPZaW
+         bx5dGVTNPxONODFMffVoGwy+PnnBaKyElABbTkNHXdht18+Mr/RBEte3by4lxJtt0EMt
+         aQFl82d1z3Jn+xgw9ThbsZcckeq356DlxlOHQxtvajKOdDCI3Pj4WGLfDgu4s6PRqssq
+         hWAw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1714529362; x=1715134162;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:sender:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=yezFULKDfkH4O3tF/9359IJey7y6CAqBHbGwFEbOyVA=;
+        b=hR5+LvQcs/x1Dtd+zqxd5cdCvjzwvIAtWztEQT0FCe42JCUTw2lCsTLNZH6QAnkm0P
+         MxvT+FqExF/+WDd2/K/Y2nt8fOhrcR2xAdzDQQrfyQ0TZMXDKCrukMxNffr4aI+ygfjh
+         eRV/BAKZA+fE9vHlrq8YVO8q71cM3jaNERTe7kby+FyA5ihAk3+H+mCJVmlC3WVzTBJG
+         sLbn5NK8EFX71Z4Dz0vr60mEzerOkRr0fTDAf1yMiVXUbm1vj0WuR10a7Kw1bbo4SDX1
+         wy1wYsahLaHZiYFR1UjYQB5wIhiT4sH4Qf03nQR+cutEodM3PWCfyxGD710k/LZ+lW8j
+         Yr6w==
+X-Forwarded-Encrypted: i=1; AJvYcCX7pFK80JFebM13h+FL9lt885EndgUEHDmrbuDKecK5kV4KgVlmC9kxMTj0giolTB0Q8exCj61hfZlWzOpXyWD4iuxOVQrv
+X-Gm-Message-State: AOJu0YzBthIlPf6wCxzWpsWdweuU3QUbiEyqgFJJv6b1k0smg5zDgCkN
+	t8u50ALPuAHwLGCvaxr4Mw8Tb5+PlXMM2hqEEtjq+d/XEOvKJ18c
+X-Google-Smtp-Source: AGHT+IFCXZV9GskZrc8P0wyeR7SistjwlusLdB0r7UTGFqSaOO/E5aKxcvUFB9ZcRRmGCZ6KMJV0HQ==
+X-Received: by 2002:a05:6830:e16:b0:6ee:62e5:8fe3 with SMTP id do22-20020a0568300e1600b006ee62e58fe3mr1414305otb.25.1714529361993;
+        Tue, 30 Apr 2024 19:09:21 -0700 (PDT)
+Received: from Borg-10.local (syn-070-114-203-196.res.spectrum.com. [70.114.203.196])
+        by smtp.gmail.com with ESMTPSA id bq10-20020a056830388a00b006ef888380a9sm338042otb.59.2024.04.30.19.09.18
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 30 Apr 2024 19:09:21 -0700 (PDT)
+Sender: John Groves <grovesaustin@gmail.com>
+Date: Tue, 30 Apr 2024 21:09:18 -0500
+From: John Groves <John@groves.net>
+To: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: Matthew Wilcox <willy@infradead.org>, Jonathan Corbet <corbet@lwn.net>, 
+	Jonathan Cameron <Jonathan.Cameron@huawei.com>, Dan Williams <dan.j.williams@intel.com>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, 
+	linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev, 
+	John Groves <jgroves@micron.com>, john@jagalactic.com, Dave Chinner <david@fromorbit.com>, 
+	Christoph Hellwig <hch@infradead.org>, dave.hansen@linux.intel.com, gregory.price@memverge.com, 
+	Randy Dunlap <rdunlap@infradead.org>, Jerome Glisse <jglisse@google.com>, 
+	Aravind Ramesh <arramesh@micron.com>, Ajay Joshi <ajayjoshi@micron.com>, 
+	Eishan Mirakhur <emirakhur@micron.com>, Ravi Shankar <venkataravis@micron.com>, 
+	Srinivasulu Thanneeru <sthanneeru@micron.com>, Luis Chamberlain <mcgrof@kernel.org>, 
+	Amir Goldstein <amir73il@gmail.com>, Chandan Babu R <chandanbabu@kernel.org>, 
+	Bagas Sanjaya <bagasdotme@gmail.com>, "Darrick J . Wong" <djwong@kernel.org>, 
+	Steve French <stfrench@microsoft.com>, Nathan Lynch <nathanl@linux.ibm.com>, 
+	Michael Ellerman <mpe@ellerman.id.au>, Thomas Zimmermann <tzimmermann@suse.de>, 
+	Julien Panis <jpanis@baylibre.com>, Stanislav Fomichev <sdf@google.com>, 
 	Dongsheng Yang <dongsheng.yang@easystack.cn>
 Subject: Re: [RFC PATCH v2 00/12] Introduce the famfs shared-memory file
  system
-Message-ID: <ZjFcG9Q1CegMPj_7@casper.infradead.org>
+Message-ID: <zwtglxnnbjbgtzcv7rhrbtqz6owmviv3yg25bcluenaayzzj4p@nng3gh5twcjo>
 References: <cover.1714409084.git.john@groves.net>
  <Zi_n15gvA89rGZa_@casper.infradead.org>
- <c3mhc33u4yqhd75xc2ew53iuumg3c2vi3nk3msupt35fj7qkrp@pve6htn64e7c>
+ <bnkdeobpatyunljvujzvwydtixkkj3gfeyvk4pzgndfxo7uc32@y6lk7nplt3uk>
+ <jklmoshdemmnv62nfvygkr5blz75jq6fhhaqaditws4hsj6glr@rkhdqze4d7un>
+ <h6tbyvdeq5hzkttsy4uyzq4v64xlkzeqfyo52ku3w4x3vvtpd7@4vxafcct62xh>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -77,88 +89,100 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <c3mhc33u4yqhd75xc2ew53iuumg3c2vi3nk3msupt35fj7qkrp@pve6htn64e7c>
+In-Reply-To: <h6tbyvdeq5hzkttsy4uyzq4v64xlkzeqfyo52ku3w4x3vvtpd7@4vxafcct62xh>
 
-On Mon, Apr 29, 2024 at 09:11:52PM -0500, John Groves wrote:
-> On 24/04/29 07:32PM, Matthew Wilcox wrote:
-> > On Mon, Apr 29, 2024 at 12:04:16PM -0500, John Groves wrote:
-> > > This patch set introduces famfs[1] - a special-purpose fs-dax file system
-> > > for sharable disaggregated or fabric-attached memory (FAM). Famfs is not
-> > > CXL-specific in anyway way.
+On 24/04/29 11:11PM, Kent Overstreet wrote:
+> On Mon, Apr 29, 2024 at 09:24:19PM -0500, John Groves wrote:
+> > On 24/04/29 07:08PM, Kent Overstreet wrote:
+> > > On Mon, Apr 29, 2024 at 07:32:55PM +0100, Matthew Wilcox wrote:
+> > > > On Mon, Apr 29, 2024 at 12:04:16PM -0500, John Groves wrote:
+> > > > > This patch set introduces famfs[1] - a special-purpose fs-dax file system
+> > > > > for sharable disaggregated or fabric-attached memory (FAM). Famfs is not
+> > > > > CXL-specific in anyway way.
+> > > > > 
+> > > > > * Famfs creates a simple access method for storing and sharing data in
+> > > > >   sharable memory. The memory is exposed and accessed as memory-mappable
+> > > > >   dax files.
+> > > > > * Famfs supports multiple hosts mounting the same file system from the
+> > > > >   same memory (something existing fs-dax file systems don't do).
+> > > > 
+> > > > Yes, but we do already have two filesystems that support shared storage,
+> > > > and are rather more advanced than famfs -- GFS2 and OCFS2.  What are
+> > > > the pros and cons of improving either of those to support DAX rather
+> > > > than starting again with a new filesystem?
 > > > 
-> > > * Famfs creates a simple access method for storing and sharing data in
-> > >   sharable memory. The memory is exposed and accessed as memory-mappable
-> > >   dax files.
-> > > * Famfs supports multiple hosts mounting the same file system from the
-> > >   same memory (something existing fs-dax file systems don't do).
+> > > I could see a shared memory filesystem as being a completely different
+> > > beast than a shared block storage filesystem - and I've never heard
+> > > anyone talking about gfs2 or ocfs2 as codebases we particularly liked.
 > > 
-> > Yes, but we do already have two filesystems that support shared storage,
-> > and are rather more advanced than famfs -- GFS2 and OCFS2.  What are
-> > the pros and cons of improving either of those to support DAX rather
-> > than starting again with a new filesystem?
+> > Thanks for your attention on famfs, Kent.
 > > 
+> > I think of it as a completely different beast. See my reply to Willy re:
+> > famfs being more of a memory allocator with the benefit of allocations 
+> > being accessible (and memory-mappable) as files.
 > 
-> Thanks for paying attention to this Willy.
-
-Well, don't mistake this for an endorsement!  I remain convinced that
-this is a science project, not a product.  I am hugely sceptical of
-disaggregated systems, mostly because I've seen so many fail.  And they
-rarely attempt to answer the "janitor tripped over the cable" problem,
-the "we need to upgrade the firmware on the switch" problem, or a bunch
-of other problems I've outlined in the past on this list.
-
-So I am not supportive of any changes you want to make to the core kernel
-to support this kind of adventure.  Play in your own sandbox all you
-like, but not one line of code change in the core.  Unless it's something
-generally beneficial, of course; you mentioned refactoring DAX and that
-might be a good thing for everybody.
-
-> * Famfs is not, not, not a general purpose file system.
-> * One can think of famfs as a shared memory allocator where allocations can be
->   accessed as files. For certain data analytics work flows (especially 
->   involving Apache Arrow data frames) this is really powerful. Consumers of
->   data frames commonly use mmap(MAP_SHARED), and can benefit from the memory
->   de-duplication of shared memory and don't need any new abstractions.
-
-... and are OK with the extra latency?
-
-> * Famfs is not really a data storage tool. It's more of a shared-memroy 
->   allocation tool that has the benefit of allocations being accesssible 
->   (and memory-mappable) as files. So a lot of software can automatically use 
->   it.
-> * Famfs is oriented to dumping sharable data into files and then allowing a
->   scale-out cluster to share it (often read-only) to access a single copy in
->   shared memory.
-
-Depending on the exact workload, I can see this being more efficient
-than replicating the data to each member of the cluster.  In other
-workloads, it'll be a loss, of course.
-
-> * I'm no expert on GFS2 or OCFS2, but I've been around memory, file systems 
->   and storage since well before the turn of the century...
-> * If you had brought up the existing fs-dax file systems, I would have pointed
->   that they use write-back metadata, which does not reconcile with shared
->   access to media - but these file systems do handle that.
-> * The shared media file systems are still oriented to block devices that
->   provide durable storage and page-oriented access. CXL DRAM is a character 
-
-I'd say "block oriented" rather than page oriented, but I agree.
-
->   dax (devdax) device and does not provide durable storage.
-> * fs-dax-style memory mapping for volatile cxl memory requires the 
->   dev_dax_iomap portion of this patch set - or something similar. 
-> * A scale-out shared media file system presumably requires some commitment to
->   configure and manage some complexity in a distributed environment; whether
->   that should be mandatory for enablement of shared memory is worthy of
->   discussion.
-> * Adding memory to the storage tier for GFS2/OCFS2 would add non-persistent
->   media to the storage tier; whether this makes sense would be a topic that
->   GFS2/OCFS2 developers/architects should get involved in if they're 
->   interested.
+> That's pretty much what I expected.
 > 
-> Although disaggregated shared memory is not commercially available yet, famfs 
-> is being actively tested by multiple companies for several use cases and 
-> patterns with real and simulated shared memory. Demonstrations will start to
-> surface in the coming weeks & months.
+> I would suggest talking to RDMA people; RDMA does similar things with
+> exposing address spaces across machine, and an "external" memory
+> allocator is a basic building block there as well - it'd be great if we
+> could get that turned into some clean library code.
+> 
+> GPU people as well, possibly.
 
-I guess we'll see.  SGI died for a reason.
+Thanks for your attention Kent.
+
+I'm on it. Part of the core idea behind famfs is that page-oriented data
+movement can be avoided with actual shared memory. Yes, the memory is likely to 
+be slower (either BW or latency or both) but it's cacheline access rather than 
+full-page (or larger) retrieval, which is a win for some access patterns (and
+not so for others).
+
+Part of the issue is communicating the fact that shared access to cachelines
+is possible.
+
+There are some interesting possibilities with GPUs retrieving famfs files
+(or portions thereof), but I have no insight as to the motivations of GPU 
+vendors.
+
+> 
+> > The famfs user space repo has some good documentation as to the on-
+> > media structure of famfs. Scroll down on [1] (the documentation from
+> > the famfs user space repo). There is quite a bit of info in the docs
+> > from that repo.
+> 
+> Ok, looking through that now.
+> 
+> So youv've got a metadata log; that looks more like a conventional
+> filesystem than a conventional purely in-memory thing.
+> 
+> But you say it's a shared filesystem, and it doesn't say anything about
+> that. Inter node locking?
+> 
+> Perhaps the ocfs2/gfs2 comparison is appropriate, after all.
+
+Famfs is intended to be mounted from more than one host from the same in-memory
+image. A metadata log is kinda the simpliest approach to make that work (let me
+know your thoughts if you disagree on that). When a client mounts, playing the 
+log from the shared memory brings that client mount into sync with the source 
+(the Master).
+
+No inter-node locking is currently needed because only the node that created
+the file system (the Master) can write the log. Famfs is not intended to be 
+a general-purpose FS...
+
+The famfs log is currently append-only, and I think of it as a "code-first"
+implementation of a shared memory FS that that gets the job done in something
+approaching the simplest possible approach.
+
+If the approach evolves to full allocate-on-write, then moving to a file system
+platform that handles that would make sense. If it remains (as I suspect will
+make sense) a way to share collections of data sets, or indexes, or other 
+data that is published and then consumed [all or mostly] read-only, this
+simple approach may be long-term sufficient.
+
+Regards,
+John
+
+
+
