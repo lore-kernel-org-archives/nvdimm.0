@@ -1,59 +1,59 @@
-Received: from mail-ot1-f51.google.com (mail-ot1-f51.google.com [209.85.210.51])
+Received: from mail-oa1-f47.google.com (mail-oa1-f47.google.com [209.85.160.47])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5CF1057C85
-	for <nvdimm@lists.linux.dev>; Thu,  2 May 2024 21:51:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AAA7357CA7
+	for <nvdimm@lists.linux.dev>; Thu,  2 May 2024 22:25:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.47
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714686692; cv=none; b=vGUz/TVbq9ynctqKBHO2YA0PBuqUaVxXGo3z2N6ibHoJBjJoVjkLaI2WEwAZoJZOzsSK36qzlMZPci46V+qVEarDaRd93pOhCJ+O/MezfrLFVJHGN8zS/kKONljKeX+UsrIfReCmqbr/almM2XkP9dl0yHahqZP4T0upEf+ZFoU=
+	t=1714688740; cv=none; b=GKrD1IwWMhQHHOmbpJWA9SLOGYswVvY9WGx8C5aXe0WDMFMF/MFEpbUqqLkMvT9n0gQeBnxwuwb2eDu4K/jvSXI/liFt6bmmiCoNyZk+bTeUg5tE4XyOdcBvYB9NwSxxLPOC664Z5HQFpZ406Gr4/l0v1rfILuZwZ4MG2xIQQp4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714686692; c=relaxed/simple;
-	bh=S79CR/D0QfH8x8Go5DBVB2FXN5RusN1WZY8uz7rbrbA=;
+	s=arc-20240116; t=1714688740; c=relaxed/simple;
+	bh=eDGVsHioAAo/vf/7wBtnBG4uUJlX8jpAESzfNt3wp0Y=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=S3UGciupB9MOACbNXfhkQ2BQaSBjuB/xKhS81Hp3C+Lvhd8uoZOEX6MQdrCCXenClxqPnTN0/5fGpfPU5koJt+2ewW4JZ02Yj5vcZokeBbRj9e7gozRtj6yqQwi75BYcR5mk5YLSeK4tyxMHQj6Bp54Ch7GwUDp8AcypnSZX9Og=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=mb1OLdSe; arc=none smtp.client-ip=209.85.210.51
+	 Content-Type:Content-Disposition:In-Reply-To; b=bTzVspEBP7WB1u7CyXoe3BsO5zMewyHONcYPpgrE57l8crYz52t3RaH34d65YyuuXGcKfR83sgerzP90hl0/rqFXkCwORo/fQGE3ATeoKE9bZ8mUa5NTfN2Z6oHInSz31qvsJOmKdkphU5sJnoh3nKR49vyMRgZrtPiL86PBXB8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=C5j/q91/; arc=none smtp.client-ip=209.85.160.47
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mb1OLdSe"
-Received: by mail-ot1-f51.google.com with SMTP id 46e09a7af769-6ed3587b93bso5038506a34.1
-        for <nvdimm@lists.linux.dev>; Thu, 02 May 2024 14:51:31 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="C5j/q91/"
+Received: by mail-oa1-f47.google.com with SMTP id 586e51a60fabf-23d4a841361so1284454fac.2
+        for <nvdimm@lists.linux.dev>; Thu, 02 May 2024 15:25:38 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1714686690; x=1715291490; darn=lists.linux.dev;
+        d=gmail.com; s=20230601; t=1714688738; x=1715293538; darn=lists.linux.dev;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:sender:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=/L7A7dIowev4LaiY/g2BbviZcRIkjSV7hdCjyGrk3HQ=;
-        b=mb1OLdSe8zYLXODD/wW062WA1asRv2FNWMrbbwYbfUKj4TN+a2yDVaGXf83G21F8Z/
-         HCnCSTXWD2gaBsMdEdigHJTeAEHz51bB0a8Ofwx2USF9zTXQpbzth7Yi6GwV3cVMAGEs
-         CyAubWotr4ztG1XGWI70IWjvTV0toXW8rWrGHmohcY9Hrape83Xg6x9Pad4qdEAUvxBW
-         FDzp9950jwtV8zFiF7NaTSSZyRzBo40xm2RkGmJU2P1qFNWW0lq5OIxMM3j9N1mHqRRm
-         qHTItOXaqQjrIKat1WCEauA722LjdJ9QXGSpVOj5lWrhviOgkdK85oVXr0+lZnErzUht
-         +tKw==
+        bh=cOKlIbmXyMNXTVDeqMbLyxE1OQ/hUFeaOYrKeFPij4M=;
+        b=C5j/q91/CCsoAP6prUyGuFUVIrhLB1kpfIJEV4QMScoTqrGwThQpQiFJ998cDKjfZA
+         bZnccnAygICxnjjsmaPS+tHqFog1JQy/YueYZ/CITtNtHEIOq2XnWYFmHM9EssjXFOCK
+         eh/UaH8UXirxvLoG+NwsN56mjpAb7zvQyn0lVF7AapAxPL4dH+aZmGYjnkZOugOUmVlM
+         XPNJsaAaLU/5+U5cI/iH7GL50TAYLibJ4A/k9psXu2rezuk0RZoDCokV7fdwsUpp+V+T
+         A6p8t44yjyJAU3fXZ2Ay0ilLYokNFCE+jZM/7oUz4lJ2WOrVVjjlSYMhtG+L52p+hvTA
+         CuyA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1714686690; x=1715291490;
+        d=1e100.net; s=20230601; t=1714688738; x=1715293538;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:sender:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=/L7A7dIowev4LaiY/g2BbviZcRIkjSV7hdCjyGrk3HQ=;
-        b=ezR9SjBNG1X988olVpOzRMg/hKsG8Fus3l0XyTVPSuUaWud3xFAgDLBYwBugvif4ar
-         DVWIdqb2tAutciMrKTB8zjZ5GkaGT3an61mbejYYpP6sHsqyHSm5vM+0GNlfCHumw+37
-         QXDebkHuaf4wLxnJJBMvGBJ37LIYEehUvmvQOkfEYklznVP/AFMcMDLARht7iVs5O8W6
-         HwOeEp9MaLIs3JZEqOX2NkbGDG5K4c8PQZcHLhVR5/qONeIaPtRWfJtDygvt/CzLFztE
-         LQ4WKbVI5fizZy7uumQlUEDqYeKGRru9gsiXMQCZ4fMMBG4Cu3AyBLAwc5EK62rJlNLX
-         FrMQ==
-X-Forwarded-Encrypted: i=1; AJvYcCU1vUX22dwWmQBy4nMJP5w5siCPoAO+5Na0k8N+mZyGtuCodyYC8tmo4pIeYG6OwFhaYz0zSJCMkZuFIlmBpvPsiSKPZzmN
-X-Gm-Message-State: AOJu0YyR4EDBaVZhVAyqoFB65i+8R+dWtb1hGtvWymt4t/SmzGUTMYMr
-	5ZXWnuaUXT9CHCUgpHWB6hEeZQXb3/zSHPlL1nOQR3jcc+Q3EVnF
-X-Google-Smtp-Source: AGHT+IFFgIbdiVUhYAit9UXZMJJnEDO4/rfUMvDDA2e98Nw+Grxi47KMDAzShlYWDx3bPLusPCrlAw==
-X-Received: by 2002:a05:6830:3493:b0:6ee:35a4:1583 with SMTP id c19-20020a056830349300b006ee35a41583mr1643807otu.30.1714686690447;
-        Thu, 02 May 2024 14:51:30 -0700 (PDT)
+        bh=cOKlIbmXyMNXTVDeqMbLyxE1OQ/hUFeaOYrKeFPij4M=;
+        b=lf/ZLv02EbIBrCh+cDpFl2aZPd88zVT6G9FGS85JJrCid191WuWgZ3CDLuLdgC4Hk3
+         7y6fmoqaT09wOs52oI3xNnKI9MSewKWZwuVnV+qQiDkgOQ0o0UJU4tTGLN5dNoYEcGq9
+         K9dbjzzOM0dMbCRMql2pF7RhszbnvAox5qRXdlCwD0k6Ykv/1n1x1f+10DMNizSRnQOV
+         qROlvkG7RvpsiQybgbC83N6+XGjckO/6yfqM3QFEc5tkmgUE+DKise5NRUsJEEafuEbT
+         ENTwlVE53DOzjDrC0S6Ra5BJ5y43ek96QqtzQzmt3Ni0v1nWAmdv/zhOmkuNZUcTfqZo
+         lqdA==
+X-Forwarded-Encrypted: i=1; AJvYcCXaQV2N9iGmTX5J5iW//f2sUT1EMQXEdVMng098+w4zLPca31ftGqFjsau8q7J65gJ2Rl8nc1auMmML6zIa6AzvoNWLidsM
+X-Gm-Message-State: AOJu0YyeclkOeG9REoWtfRamNXkj4Dvs/aNJTqgqse4zbCZeg1ygZ37c
+	ShXl51heZps5w6sDLcsDFELEX3Pc7NdzEEhe6uQKyE2yen7zS8Ax
+X-Google-Smtp-Source: AGHT+IEwgDWoCry6Pq2qZp46Ox6bz4a0XeU+HDndM+eo6gMtEhnY+zVwPSwOIHNmTdAftkObEmqa/Q==
+X-Received: by 2002:a05:6870:9346:b0:22e:c6b2:849e with SMTP id j6-20020a056870934600b0022ec6b2849emr1448527oak.9.1714688737537;
+        Thu, 02 May 2024 15:25:37 -0700 (PDT)
 Received: from Borg-10.local (syn-070-114-203-196.res.spectrum.com. [70.114.203.196])
-        by smtp.gmail.com with ESMTPSA id f11-20020a056830264b00b006ea19aa0e4fsm357999otu.29.2024.05.02.14.51.27
+        by smtp.gmail.com with ESMTPSA id el7-20020a056830718700b006eb92d716bdsm369993otb.15.2024.05.02.15.25.34
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 02 May 2024 14:51:29 -0700 (PDT)
+        Thu, 02 May 2024 15:25:36 -0700 (PDT)
 Sender: John Groves <grovesaustin@gmail.com>
-Date: Thu, 2 May 2024 16:51:27 -0500
+Date: Thu, 2 May 2024 17:25:33 -0500
 From: John Groves <John@groves.net>
 To: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Jonathan Corbet <corbet@lwn.net>, 
@@ -73,11 +73,11 @@ Cc: Jonathan Corbet <corbet@lwn.net>,
 	Nathan Lynch <nathanl@linux.ibm.com>, Michael Ellerman <mpe@ellerman.id.au>, 
 	Thomas Zimmermann <tzimmermann@suse.de>, Julien Panis <jpanis@baylibre.com>, 
 	Stanislav Fomichev <sdf@google.com>, Dongsheng Yang <dongsheng.yang@easystack.cn>
-Subject: Re: [RFC PATCH v2 10/12] famfs: Introduce file_operations read/write
-Message-ID: <v2lja6m6hzod4iuhvhzdtu35o6xy7pf4oloq6qeck2k6ohbpn6@fsxygfwvxo5b>
+Subject: Re: [RFC PATCH v2 07/12] famfs prep: Add fs/super.c:kill_char_super()
+Message-ID: <eiobix2ovov5gywodc4bqyhhv7mshe7bvbp2ekewrvpdlnz5gh@6ryuna2lfpt7>
 References: <cover.1714409084.git.john@groves.net>
- <4584f1e26802af540a60eadb70f42c6ac5fe4679.1714409084.git.john@groves.net>
- <20240502182919.GI2118490@ZenIV>
+ <a702d42c922737c4f8278617db69ce2b6d813c5f.1714409084.git.john@groves.net>
+ <20240502181716.GG2118490@ZenIV>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -86,17 +86,89 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20240502182919.GI2118490@ZenIV>
+In-Reply-To: <20240502181716.GG2118490@ZenIV>
 
-On 24/05/02 07:29PM, Al Viro wrote:
-> On Mon, Apr 29, 2024 at 12:04:26PM -0500, John Groves wrote:
-> > +const struct file_operations famfs_file_operations = {
-> > +	.owner             = THIS_MODULE,
+On 24/05/02 07:17PM, Al Viro wrote:
+> On Mon, Apr 29, 2024 at 12:04:23PM -0500, John Groves wrote:
+> > Famfs needs a slightly different kill_super variant than already existed.
+> > Putting it local to famfs would require exporting d_genocide(); this
+> > seemed a bit cleaner.
 > 
-> Not needed, unless you are planning something really weird
-> (using it for misc device, etc.)
+> What's wrong with kill_litter_super()?
 
-Got it - thanks!
+I struggled with that, I don't have my head fully around the superblock
+handling code.
 
+But when I replace kill_char_super() with kill_litter_super()...
+
+- first mount works
+- first umount works
+- second mount works
+- second umount does this (which I don't properly understand):
+
+May 02 17:21:58 f39-dev1 kernel: ------------[ cut here ]------------
+May 02 17:21:58 f39-dev1 kernel: ida_free called for id=1 which is not allocated.
+May 02 17:21:58 f39-dev1 kernel: WARNING: CPU: 1 PID: 1173 at lib/idr.c:525 ida_free+0xe3/0x140
+May 02 17:21:58 f39-dev1 kernel: Modules linked in: famfs rpcsec_gss_krb5 auth_rpcgss nfsv4 dns_resolver nfs lockd grace netfs qrtr rfkill snd_hda_codec_generic intel_rapl_msr sunrpc snd_hda_intel snd_intel_dspcfg intel_rapl_common snd_intel_sdw_acpi snd_hda_codec kmem snd_hda_core device_dax kvm_intel snd_hwdep iTCO_wdt kvm intel_pmc_bxt snd_seq iTCO_vendor_support dax_hmem snd_seq_device cxl_acpi cxl_core rapl snd_pcm snd_timer snd einj pcspkr soundcore i2c_i801 lpc_ich i2c_smbus vfat fat virtio_balloon joydev fuse loop zram xfs crct10dif_pclmul crc32_pclmul crc32c_intel polyval_clmulni polyval_generic ghash_clmulni_intel sha512_ssse3 sha256_ssse3 sha1_ssse3 virtio_net virtio_console net_failover virtio_gpu failover virtio_blk virtio_dma_buf serio_raw scsi_dh_rdac scsi_dh_emc scsi_dh_alua dm_multipath qemu_fw_cfg
+May 02 17:21:58 f39-dev1 kernel: CPU: 1 PID: 1173 Comm: umount Tainted: G        W          6.9.0-rc5+ #266
+May 02 17:21:58 f39-dev1 kernel: Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS edk2-20230301gitf80f052277c8-26.fc38 03/01/2023
+May 02 17:21:58 f39-dev1 kernel: RIP: 0010:ida_free+0xe3/0x140
+May 02 17:21:58 f39-dev1 kernel: Code: 8d 7d a0 e8 9f 2e 02 00 eb 62 41 83 fe 3e 76 3c 48 8b 7d a0 4c 89 ee e8 5b 73 04 00 89 de 48 c7 c7 60 51 be 82 e8 3d 03 0b ff <0f> 0b 48 8b 45 d8 65 48 2b 04 25 28 00 00 00 75 3f 48 83 c4 40 5b
+May 02 17:21:58 f39-dev1 kernel: RSP: 0018:ffffc90000c37c50 EFLAGS: 00010286
+May 02 17:21:58 f39-dev1 kernel: RAX: 0000000000000000 RBX: 0000000000000001 RCX: 0000000000000000
+May 02 17:21:58 f39-dev1 kernel: RDX: 0000000000000002 RSI: 0000000000000027 RDI: 00000000ffffffff
+May 02 17:21:58 f39-dev1 kernel: RBP: ffffc90000c37cb0 R08: 0000000000000000 R09: 0000000000000003
+May 02 17:21:58 f39-dev1 kernel: R10: ffffc90000c37aa0 R11: ffffffff82f3c3a8 R12: 00c7fffffffffffc
+May 02 17:21:58 f39-dev1 kernel: R13: 0000000000000202 R14: 0000000000000001 R15: 0000000000000000
+May 02 17:21:58 f39-dev1 kernel: FS:  00007f0ff81c0800(0000) GS:ffff88886fc80000(0000) knlGS:0000000000000000
+May 02 17:21:58 f39-dev1 kernel: CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+May 02 17:21:58 f39-dev1 kernel: CR2: 00007f6b841c95a8 CR3: 00000001254c8001 CR4: 0000000000170ef0
+May 02 17:21:58 f39-dev1 kernel: Call Trace:
+May 02 17:21:58 f39-dev1 kernel:  <TASK>
+May 02 17:21:58 f39-dev1 kernel:  ? show_regs+0x64/0x70
+May 02 17:21:58 f39-dev1 kernel:  ? __warn+0x88/0x130
+May 02 17:21:58 f39-dev1 kernel:  ? ida_free+0xe3/0x140
+May 02 17:21:58 f39-dev1 kernel:  ? report_bug+0x192/0x1c0
+May 02 17:21:58 f39-dev1 kernel:  ? handle_bug+0x44/0x90
+May 02 17:21:58 f39-dev1 kernel:  ? exc_invalid_op+0x18/0x70
+May 02 17:21:58 f39-dev1 kernel:  ? asm_exc_invalid_op+0x1b/0x20
+May 02 17:21:58 f39-dev1 kernel:  ? ida_free+0xe3/0x140
+May 02 17:21:58 f39-dev1 kernel:  kill_litter_super+0x4c/0x60
+May 02 17:21:58 f39-dev1 kernel:  famfs_kill_sb+0x57/0x60 [famfs]
+May 02 17:21:58 f39-dev1 kernel:  deactivate_locked_super+0x35/0xb0
+May 02 17:21:58 f39-dev1 kernel:  deactivate_super+0x40/0x50
+May 02 17:21:58 f39-dev1 kernel:  cleanup_mnt+0xc3/0x160
+May 02 17:21:58 f39-dev1 kernel:  __cleanup_mnt+0x12/0x20
+May 02 17:21:58 f39-dev1 kernel:  task_work_run+0x60/0x90
+May 02 17:21:58 f39-dev1 kernel:  syscall_exit_to_user_mode+0x21a/0x220
+May 02 17:21:58 f39-dev1 kernel:  do_syscall_64+0x8d/0x180
+May 02 17:21:58 f39-dev1 kernel:  ? do_faccessat+0x1b8/0x2e0
+May 02 17:21:58 f39-dev1 kernel:  ? syscall_exit_to_user_mode+0x7c/0x220
+May 02 17:21:58 f39-dev1 kernel:  ? do_syscall_64+0x8d/0x180
+May 02 17:21:58 f39-dev1 kernel:  ? syscall_exit_to_user_mode+0x7c/0x220
+May 02 17:21:58 f39-dev1 kernel:  ? do_syscall_64+0x8d/0x180
+May 02 17:21:58 f39-dev1 kernel:  ? do_syscall_64+0x8d/0x180
+May 02 17:21:58 f39-dev1 kernel:  ? do_user_addr_fault+0x315/0x6e0
+May 02 17:21:58 f39-dev1 kernel:  ? irqentry_exit_to_user_mode+0x71/0x220
+May 02 17:21:58 f39-dev1 kernel:  ? irqentry_exit+0x3b/0x50
+May 02 17:21:58 f39-dev1 kernel:  ? exc_page_fault+0x90/0x190
+May 02 17:21:58 f39-dev1 kernel:  entry_SYSCALL_64_after_hwframe+0x76/0x7e
+May 02 17:21:58 f39-dev1 kernel: RIP: 0033:0x7f0ff83df41b
+May 02 17:21:58 f39-dev1 kernel: Code: c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 f3 0f 1e fa 31 f6 e9 05 00 00 00 0f 1f 44 00 00 f3 0f 1e fa b8 a6 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 05 c3 0f 1f 40 00 48 8b 15 e1 19 0c 00 f7 d8
+May 02 17:21:58 f39-dev1 kernel: RSP: 002b:00007fffe039cfd8 EFLAGS: 00000246 ORIG_RAX: 00000000000000a6
+May 02 17:21:58 f39-dev1 kernel: RAX: 0000000000000000 RBX: 0000555ad6c2fb90 RCX: 00007f0ff83df41b
+May 02 17:21:58 f39-dev1 kernel: RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000555ad6c34ba0
+May 02 17:21:58 f39-dev1 kernel: RBP: 00007fffe039d0b0 R08: 0000000000000020 R09: 0000000000000001
+May 02 17:21:58 f39-dev1 kernel: R10: 0000000000000004 R11: 0000000000000246 R12: 0000555ad6c2fc90
+May 02 17:21:58 f39-dev1 kernel: R13: 0000000000000000 R14: 0000555ad6c34ba0 R15: 0000555ad6c2ffa0
+May 02 17:21:58 f39-dev1 kernel:  </TASK>
+May 02 17:21:58 f39-dev1 kernel: ---[ end trace 0000000000000000 ]---
+
+
+With kill_char_super(), it can mount and dismount for days with no
+issues that I have seen.
+
+Thanks,
 John
+
 
