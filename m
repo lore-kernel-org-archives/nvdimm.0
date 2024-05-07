@@ -1,254 +1,358 @@
-Received: from mx0b-00069f02.pphosted.com (mx0b-00069f02.pphosted.com [205.220.177.32])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BDEA13CFBB
-	for <nvdimm@lists.linux.dev>; Tue,  7 May 2024 16:06:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=205.220.177.32
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1715098002; cv=fail; b=BJwOYDG20YGILE4ayhKnvFJnKQUQ6P3p7dm6HgMCUEHNj2cxf7pxNqGAgo0c3ilA0HHOD1WGCGH/zVe/BN+iwIxlcBuSkd/XEJlLrUunhihrq+cfd9lSi2z9tWakOodtn+T2+hFU7XPvBBq0vkOIO+BfX2iTQiNPlBMvvIM15us=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1715098002; c=relaxed/simple;
-	bh=j0kprFYcCbaYHKV490KznbMuc5qvEt9Bt0iTqPf0Ce8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=cirHGfLepxay+u52A9tiPY94rDZNd/5RXRx1S5aHzr5PkTPkRi15/e++OyoC+/8rsoSvsIp9nWDk5bqUU4OqFgJGhazxf7tbBO7XcWbRcjqUQ/462RAVFKhd1mytyjaAv3fSpata1REbvq1IInoMOI9dEi1BDcuj1KCzcqShbjY=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=oracle.com; spf=pass smtp.mailfrom=oracle.com; dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b=Kmnx3mxZ; dkim=pass (1024-bit key) header.d=oracle.onmicrosoft.com header.i=@oracle.onmicrosoft.com header.b=oKuF2oAS; arc=fail smtp.client-ip=205.220.177.32
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=oracle.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=oracle.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04AAC78C76;
+	Tue,  7 May 2024 22:38:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1715121525; cv=none; b=jC/MsOTVt5c3ANjJ31X079GI2iG+7CEQuGjh5qR8no3eYZZe2Qdlyy8vRjOvNZvsvuK793YYkcKXomuWwRlOjpuxXBpjZqY+xp7A7RpE4g282AAceVH/nu1yeTuJFKkvjn1jgxwb3zafpS84JxF8jHsmv3P/qGrWe4+1M0sJEEQ=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1715121525; c=relaxed/simple;
+	bh=r7nYzwtLtpZilFBSUJuGG5VDQQ6NTdsBK6gY8BnVINo=;
+	h=Mime-Version:Content-Type:Date:Message-Id:Cc:Subject:From:To:
+	 References:In-Reply-To; b=mBKquzIABU+vBFMPH12seL93g0uhXTrJsyd+sYakb2vAY/xrQZARHU4mhkHp/6EhFGMkqdoVccutlg2JyrpYlNXSqarwZGvNU4Dvln4UVLLob4ghx9KDFP47wOQ0Tk6HiNGHHRDORLhFJh/gmyRXbvuZHvNgZEicQBhwyAKrJKY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bzecXbN5; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="Kmnx3mxZ";
-	dkim=pass (1024-bit key) header.d=oracle.onmicrosoft.com header.i=@oracle.onmicrosoft.com header.b="oKuF2oAS"
-Received: from pps.filterd (m0333520.ppops.net [127.0.0.1])
-	by mx0b-00069f02.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 447943Vm011039;
-	Tue, 7 May 2024 16:06:13 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
- : subject : message-id : references : content-type :
- content-transfer-encoding : in-reply-to : mime-version; s=corp-2023-11-20;
- bh=zZ3FlYdd0E7GlwA0iC3kXqtZvianq7Rm2lp7oAQY+Tw=;
- b=Kmnx3mxZNxcTgqGu51HxSEo1g9o+7DIceMl7q/vSR4grRptXlSm4/wAv9NvkT1FrEu/i
- tounSYaY6tQ7u88SZVS8Pq4IPadl2GmT3mCXt6vEaleU0lssahsGws1tN6zEalmnPEt7
- 1I9PVIcWWr7BnhkOvjKmig6mObA5vNtnXuF0rmPcEZ3RquAwOBWMkRyyJE2x4u1KmkD6
- O2qrKeIzuwrvvC6gXP/6s/hv418ZaHD5sFjn0XiURUBN0aSGbBkTd4p3bPc9Zzei8RrM
- OfBMjcS6ZbZ3wfo+wO7SNmR3kKb43dGsp206wAN+p/fK4F4vDYHkYzEp+bf6urIZODCa rw== 
-Received: from phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (phxpaimrmta01.appoci.oracle.com [138.1.114.2])
-	by mx0b-00069f02.pphosted.com (PPS) with ESMTPS id 3xwd2dwd0h-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 07 May 2024 16:06:12 +0000
-Received: from pps.filterd (phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com [127.0.0.1])
-	by phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (8.17.1.19/8.17.1.19) with ESMTP id 447F0XvN039595;
-	Tue, 7 May 2024 16:06:11 GMT
-Received: from nam12-dm6-obe.outbound.protection.outlook.com (mail-dm6nam12lp2169.outbound.protection.outlook.com [104.47.59.169])
-	by phxpaimrmta01.imrmtpd1.prodappphxaev1.oraclevcn.com (PPS) with ESMTPS id 3xwbf77rrx-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 07 May 2024 16:06:11 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=Nhufkm069VnGyjGJa0ZOnUk5JNTkEmlZ+8l+sXdCh14XPEh26XtrV1mslpf1wHE2D7vaq7gewumuhbXROz92VFNX+EZqUOBX9rer7kUmFxtEcszegdDKO611piNJuRrWF4VicVXNOb3K6kGsytA18gGy4W1TmLshAc9xf0kncF5kExA9GJ+POMvFlAJDB+0XoE0RNd/piuOr9amzRGKg8/0gquIss5ibXKX3k+kLc3dD+0CUNfgVICwU6KwaHXUFUFHMqKWgWk/wgk+GUeKsQSUntdUpN6wNYlEb52kC0mfMiMyQPkzX7qznLsHGRYWHworJGcb5ZhmyUgyyvbYa5A==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=zZ3FlYdd0E7GlwA0iC3kXqtZvianq7Rm2lp7oAQY+Tw=;
- b=JsyMHsyiz6YWZVD3XXnSGuDxJrtHzmbDRn5NIoAPQuUsVuXrDRaF4q/TSJvqrUWMhvDRBab2zXvEUvYJLtyOJQTtkZkKi5Kub4l1k4VhgpXewmqqMRM/ZrThg3s9NSmTfiEvjfcODpLjsaVTUNefaOevluGLkflerqpgrz04vPohWzRt42eDAKcHlASWZ9q4q+hi8ILVfZJSenY3kY6cT4PnbaZtpPDKFF6D2BygoqEUrH0dRwCpgvmvDu3NfS6HVL80a6Ue/nbJpWGdhNI/j7vhhh6NU+APTS2HYE7ln99FysZbU51AJTUPUp3qTJBFFTL5eTRzQl1Ns2XYrD6sjw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
- dkim=pass header.d=oracle.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=zZ3FlYdd0E7GlwA0iC3kXqtZvianq7Rm2lp7oAQY+Tw=;
- b=oKuF2oASw8n24nprh4tdu6uuAgSa15GYyNa6S0X9LRDJjx7YlXGjyrRgWKsFNICPRBsPr54M7HQIOz10mUl8u+orm3UtI26Su1LADGamxaKbMAKU1s3vBsypjCl+BPVHiat4q7IqcJQ/7qZJyLawpIH4Esx4SCHpY9IvgWfuP7M=
-Received: from DS0PR10MB7933.namprd10.prod.outlook.com (2603:10b6:8:1b8::15)
- by PH0PR10MB7007.namprd10.prod.outlook.com (2603:10b6:510:282::11) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7544.42; Tue, 7 May
- 2024 16:06:08 +0000
-Received: from DS0PR10MB7933.namprd10.prod.outlook.com
- ([fe80::2561:85b0:ae8f:9490]) by DS0PR10MB7933.namprd10.prod.outlook.com
- ([fe80::2561:85b0:ae8f:9490%7]) with mapi id 15.20.7544.041; Tue, 7 May 2024
- 16:06:08 +0000
-Date: Tue, 7 May 2024 12:06:05 -0400
-From: "Liam R. Howlett" <Liam.Howlett@oracle.com>
-To: "Edgecombe, Rick P" <rick.p.edgecombe@intel.com>
-Cc: "x86@kernel.org" <x86@kernel.org>,
-        "keescook@chromium.org" <keescook@chromium.org>,
-        "linux-sgx@vger.kernel.org" <linux-sgx@vger.kernel.org>,
-        "luto@kernel.org" <luto@kernel.org>,
-        "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
-        "dave.hansen@linux.intel.com" <dave.hansen@linux.intel.com>,
-        "debug@rivosinc.com" <debug@rivosinc.com>,
-        "io-uring@vger.kernel.org" <io-uring@vger.kernel.org>,
-        "akpm@linux-foundation.org" <akpm@linux-foundation.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "kirill.shutemov@linux.intel.com" <kirill.shutemov@linux.intel.com>,
-        "mingo@redhat.com" <mingo@redhat.com>,
-        "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>,
-        "christophe.leroy@csgroup.eu" <christophe.leroy@csgroup.eu>,
-        "linux-mm@kvack.org" <linux-mm@kvack.org>,
-        "tglx@linutronix.de" <tglx@linutronix.de>,
-        "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>,
-        "hpa@zytor.com" <hpa@zytor.com>,
-        "bpf@vger.kernel.org" <bpf@vger.kernel.org>,
-        "peterz@infradead.org" <peterz@infradead.org>,
-        "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
-        "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
-        "bp@alien8.de" <bp@alien8.de>,
-        "Williams, Dan J" <dan.j.williams@intel.com>,
-        "broonie@kernel.org" <broonie@kernel.org>
-Subject: Re: [PATCH] mm: Remove mm argument from mm_get_unmapped_area()
-Message-ID: <6luuf6tsdsrydtgzqpdggpsyyw7z4vcsv3q7gcvo5yufnrms5u@7we4w2mkhbcm>
-Mail-Followup-To: "Liam R. Howlett" <Liam.Howlett@oracle.com>, 
-	"Edgecombe, Rick P" <rick.p.edgecombe@intel.com>, "x86@kernel.org" <x86@kernel.org>, 
-	"keescook@chromium.org" <keescook@chromium.org>, "linux-sgx@vger.kernel.org" <linux-sgx@vger.kernel.org>, 
-	"luto@kernel.org" <luto@kernel.org>, "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, 
-	"dave.hansen@linux.intel.com" <dave.hansen@linux.intel.com>, "debug@rivosinc.com" <debug@rivosinc.com>, 
-	"io-uring@vger.kernel.org" <io-uring@vger.kernel.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, 
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, 
-	"kirill.shutemov@linux.intel.com" <kirill.shutemov@linux.intel.com>, "mingo@redhat.com" <mingo@redhat.com>, 
-	"linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, "christophe.leroy@csgroup.eu" <christophe.leroy@csgroup.eu>, 
-	"linux-mm@kvack.org" <linux-mm@kvack.org>, "tglx@linutronix.de" <tglx@linutronix.de>, 
-	"sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, "hpa@zytor.com" <hpa@zytor.com>, 
-	"bpf@vger.kernel.org" <bpf@vger.kernel.org>, "peterz@infradead.org" <peterz@infradead.org>, 
-	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, 
-	"bp@alien8.de" <bp@alien8.de>, "Williams, Dan J" <dan.j.williams@intel.com>, 
-	"broonie@kernel.org" <broonie@kernel.org>
-References: <20240506160747.1321726-1-rick.p.edgecombe@intel.com>
- <tj2cc7k2fyeh2qi6hqkftxe2vk46rtjxaue222jkw3zcnxad4d@uark4ccqtx3t>
- <8811ab073c9d1f0c1dfdb04ae193e091839b4682.camel@intel.com>
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-In-Reply-To: <8811ab073c9d1f0c1dfdb04ae193e091839b4682.camel@intel.com>
-User-Agent: NeoMutt/20231103
-X-ClientProxiedBy: YT4PR01CA0240.CANPRD01.PROD.OUTLOOK.COM
- (2603:10b6:b01:eb::14) To DS0PR10MB7933.namprd10.prod.outlook.com
- (2603:10b6:8:1b8::15)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bzecXbN5"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24DD7C2BBFC;
+	Tue,  7 May 2024 22:38:38 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1715121524;
+	bh=r7nYzwtLtpZilFBSUJuGG5VDQQ6NTdsBK6gY8BnVINo=;
+	h=Date:Cc:Subject:From:To:References:In-Reply-To:From;
+	b=bzecXbN5aDtNAEhSWxdtKdmkSbAAkhjrxUY71lK8wN+gKkGTUDaTwBJWBnjCfKyP1
+	 27QgoFtmy3lICA3OJ78VZPqLMwDG9TcBMIMpZ3KwYXNGqLcATLC5gcHlP+VhEcDXbR
+	 R/vmBS2hjbP8Fkg5oCZidVqNEOyLIfC/BW5PSWJFTm6FdPKOE8FlZAkAvh7GZHg/o6
+	 hlY8qLeJ4Scb24HcdBd8/5fJxvPtgZpFMX9u8mMOPqSXP2Kms/krw8tGWThed7w9yv
+	 59s2zhzWlIf7nr2ByWAIQ3DS1UCG+Tat3VgnaLW42WY6ywgYIWe23I1jQzWYd60wvs
+	 om1y7k4qausfw==
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DS0PR10MB7933:EE_|PH0PR10MB7007:EE_
-X-MS-Office365-Filtering-Correlation-Id: 36f30636-045a-497c-1e6c-08dc6eaf9b06
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230031|366007|376005|1800799015|7416005;
-X-Microsoft-Antispam-Message-Info: 
-	=?iso-8859-1?Q?poLDJHo1GBCA9FNNf6fwBELUms6eJWjrxslC7f3c24XHPVO2nuTodsmq5E?=
- =?iso-8859-1?Q?E0v1l4UfuNofV4CfbAjdXSMY9Uiym1lRl3Tl+4dAiKfrWyXQzC7l+B4Ct7?=
- =?iso-8859-1?Q?uM6GpM1/P6L7AYvtX4dRIupPAYxskDImTH11hDK5a0U4PbGDE6PdRsdxZH?=
- =?iso-8859-1?Q?N+XxaxMupg72/q7gSWJnBXF+eobtGNMWKjDD1wTdMMXkYkm+fZ7malwOCt?=
- =?iso-8859-1?Q?Qpgrbwy+mta9WbuUyLU5Eb6+LRNkhOCmignSR0vJdMBIaGK3nLhRWTkXU9?=
- =?iso-8859-1?Q?A5IvU5OpRtgOhoxMJEb+L+DeXwFlkNKzwM53dmlaZAT7AAHS5P9h4qDJro?=
- =?iso-8859-1?Q?GDPb9QKiSK+mDiUXgkv/1qfLKBwou5die+xx1jGG2gx5WrFqNT7N6aqErn?=
- =?iso-8859-1?Q?JXQHSt2AnI/mjLKFgD1nGfen0HhkRl+6I87PjxdY2bUh7Gh93JuclY5APS?=
- =?iso-8859-1?Q?hy/GL+hZLmXB1x6Jmz5nYHh0xrAXYaj6ZYAJX4D5i58wehbfewgg7SlXC6?=
- =?iso-8859-1?Q?W/NLgRoGxzd9WnevTyk5k7QUPdfKAOQHtfkKTvnELEjAuJpTdFbkaHq7tq?=
- =?iso-8859-1?Q?0yh/6hLRtBXhFu8P8XmZDAwUA9kI4horVPTDRIO2Grst7NOZH1Rp6qb5+j?=
- =?iso-8859-1?Q?vMGdQ45dItdT8Q5iZkdmVZO/WGDwdh32TUzLv5cGpsvPGSwEzSIwwQEbnH?=
- =?iso-8859-1?Q?F/7QTeb23GvN9wpCxMnWbc4WNxwSXtbwXHBqydWzxNJGTXRVY8k6pzaMaO?=
- =?iso-8859-1?Q?abHNogj8XneNX8alY3tvWRi6tA7GHg0YQO3am8qDFcTcQQZOAPCfNmVvdU?=
- =?iso-8859-1?Q?MD50uqCoTNqYD95KTCbOCXzZZiO5uXmvyfH6fDSuui4WIebzv299HsXPB2?=
- =?iso-8859-1?Q?/Z0GD5UIEdSzfWDpYxkbGcZ38RfV8zobQWyYa44T0ROIi0NE3mBykiLzoc?=
- =?iso-8859-1?Q?6bQMN/6J9eFqgMY1MEdLiQ9LoMKwKSO4Zi6kShyTEIzy8+p5F4OnwCk4md?=
- =?iso-8859-1?Q?R/S+Iogf2T23gVsZwxrTxo9AzmbuoHCqiP/KAA5UheGQjwbYcJtyBrVTJt?=
- =?iso-8859-1?Q?6WGftLUY/9iSKN4K7yyi8D61yPKLA3fdY65JFqcrOs2zq8OARW4EMrtn4N?=
- =?iso-8859-1?Q?AYsb6Rwj2EZtpCin6Evl9+qSTwplVYV+0r0l0n1sb0domAN9d8CvmpmCus?=
- =?iso-8859-1?Q?odqWAm+lfwezvRA/a9VVq9Ce0oSVSwxtwgb+XUxiw94nQZB/RjeEIg1Rjd?=
- =?iso-8859-1?Q?ZfzP6bberkJGBlJufQ2aveEWUb6bQ7JULtlKV2G/mggAS1ZguThq0kTOF4?=
- =?iso-8859-1?Q?7RZkhDkyGyQuhQ3dmNOHk0eJBg=3D=3D?=
-X-Forefront-Antispam-Report: 
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS0PR10MB7933.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(366007)(376005)(1800799015)(7416005);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: 
-	=?iso-8859-1?Q?PgWQoAPUa8SnVWvxJbrP3PNfc4c7BN3VE5ySJFsL4/Y8dYKnc+pwm5+Ff2?=
- =?iso-8859-1?Q?mvItF7JCwFtvdh9D7CTvufjn3xZZDq0Qi1LB4cGMLOp9Lwuhj8jBcfzjnV?=
- =?iso-8859-1?Q?qlCZ2kDW883cp3e9cTogqS5XD0TJBZtZUh32Euk++o1nOGCrkI13C46fMa?=
- =?iso-8859-1?Q?d9hXOuziKdOLZPTqs7R7RMO3p6gKU+Sliu8by7DQO5nbTlOWyiTuK3OYj4?=
- =?iso-8859-1?Q?1Sne6rB/pbOd+CoCxZmB8lArnUDN/cJ2f2Dq4/A5x9eTB0cvbd3U1WXC0J?=
- =?iso-8859-1?Q?xhfmJKWVZEhuutOvDxbA9b3O9TUodu+C2BLV9evh6K/LtkWrNxD8UVeXut?=
- =?iso-8859-1?Q?do/nCv1ANiIZStRY+x70ZE2aDsIvmw4hrHtTcgJ67DG6RR5VD7+A1U1+oU?=
- =?iso-8859-1?Q?v7IApYuDvUsh3nuuKeUOqMytQDwZSVOClP6Vk5Mm86/B9KDq37cGaz7Ara?=
- =?iso-8859-1?Q?oQwCfEAMIAskLDLkr/kpq34zQP1lv2GuLipEtq1Kj5JoNIVZAgcWWM4al9?=
- =?iso-8859-1?Q?8R6dTzCLax70cW79A/b2XWQ7gzCE6pGOacbk7ZdGOE8GcO9VWzkRDEfdqB?=
- =?iso-8859-1?Q?NWT2zRhjDcrmk3wM+682ZySe9m74qYa4L1aMHxkf/B/0Q1uX18TnVdrYSe?=
- =?iso-8859-1?Q?z2T4Xg9TgmPSO2I6SXIs2BOv4I8uXr21rIkZmQDrr7ALdQrpnrO2lH6aPV?=
- =?iso-8859-1?Q?KwB3HQviSHOLPvVkKmsBVqy3ZeJ7Gup8mc8moQKQw4nNPPnhn8qKWrJ5Zd?=
- =?iso-8859-1?Q?ALYbheJZTqcL25YYAZFEfhtHqhGUFZDNW7kyezE9jOj5JAlQt5Aj5NB7CI?=
- =?iso-8859-1?Q?ud2nO2GlZwsYKFY+PGK9DlGdi2POTWBZOPSlP8f7ikZLY/DW8qJGDIzSgr?=
- =?iso-8859-1?Q?x2hV8OphUW9QrfbugcYbLUaaQPsIN0yCzrbRE+BtxNJOIVvowbCCMPmLHj?=
- =?iso-8859-1?Q?IWMJr0A0jo2UTSyiUOB5aHPDfyKK2+B3DwiM/1RfUm7IYwxPje0KvSUtXs?=
- =?iso-8859-1?Q?wPRHvd/Rkdr5qUpNuNZ7+YhBNXXvm1wCJmvtG1bCNlC3YDQ12vWf8/nnh+?=
- =?iso-8859-1?Q?xxDATCMWTnmr88VqMhSpnTJk727RjxbnTZwmJqdrs9xR78ZWJkBORjAHd7?=
- =?iso-8859-1?Q?Deor6jyKPKheNhp6bWtWghm4TEBmNMBTWEASQksZrbt7hYZ6Bhxf9aPZFD?=
- =?iso-8859-1?Q?fHabtowYDPe4NucNKEIijVz9e3QM8i6m31jVcCZ83p+vb2FjDxvWxXh8s6?=
- =?iso-8859-1?Q?0+SOAVUldYGRGJAXBxIVEhI7QOmCm4Pof8KHFkfyT+jGr2fU1QUNRgCEKD?=
- =?iso-8859-1?Q?xJataU/fZNLS7IucSaz2M9SXzTyjHE2y2KmH5Hu4RZVkFXKxi7YyK8pFeV?=
- =?iso-8859-1?Q?F5lm/4q7ctpgmJm7yiWUwn82/WKDK6ghUPBCIxXouZ8Ss6gsbHr64lsaIG?=
- =?iso-8859-1?Q?x4hzgtP6bzslewfNdxDYkaZgSnSi8jtInw4xvdjl2Zq1fBFCq3dA7v2WOn?=
- =?iso-8859-1?Q?erdHzbu+qrfrjzCWZE31ALRTn1fslD5t8iB9QZwJeWfpwkmujkprIBIUlh?=
- =?iso-8859-1?Q?MUKh0/gvHPxHJCCqZ6CCqZHYROzXjqedznlsd0Low3mYEHkvdrtcQEozAF?=
- =?iso-8859-1?Q?YHPYB0lc4ysMsbU/uPjxrJunuUKOBYAlVfAH/V9ZPOF0nZTryHEOPYwg?=
- =?iso-8859-1?Q?=3D=3D?=
-X-MS-Exchange-AntiSpam-ExternalHop-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-ExternalHop-MessageData-0: 
-	ciAE2b1RrYt21IVjIgN6ARnOe73ZNv/Qr9RVN6JTeNXoXfZdhAeat8uwBxS3d9nrF5ndFVlXFfVCz8FolDS962+7c+cAJbVHYtgYZmgDcdABMi42p545KYfLK2L3b/AQUVjrfr3ZT8V7iVpiY7tqhBCD0iZYPn9gVDNwqp5bTnSC/I1z8yEss7OYrssZVgUdb9sk1mmMUbVoxbRbaujjMPmu6Ok9IWxvWoAuIGbJT8IxCkQsk/RaHqA7UlDIU5Zj4HpUMxdxlhH7zif5Gb9GjoJtICfjhM0ms4NnLGxiTRr//5IuRuSfs4hf5f9/sM3PPU9j9htjtL1huPg2mH0QYRQviVgVkyF/DIXXfOJFPfThWm3c3ULzB4NvJ26l/OdlkCPCKS3d7grIakbyYKW+urcx/k3b/2uuTgMhMBM4Hg6Q1gb1uleCe94d93oo9idOslECO2TKNIufXEXqeqtot0wKqgTlgQ4ELOe5wu15M+Eo2mf3mePyGbGRqsYgsTI6sKwpgAbysUz4IsbKadSP6cf7sNqPLDksImx7w1Tz/s6p5usCKM8aGzJUjdvDBodFNcoCOvd3QCm5r3l9CpGJsT7cagEipmYHsYs3nwEX6MM=
-X-OriginatorOrg: oracle.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 36f30636-045a-497c-1e6c-08dc6eaf9b06
-X-MS-Exchange-CrossTenant-AuthSource: DS0PR10MB7933.namprd10.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 May 2024 16:06:08.1111
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: CnXJ7x8cMMoc6GFVKLy/QvqqFxud+x1Af/471R0A3pNB0vjRa7wpLCa3XL5o7ML8/td/qIZ2qYnl69Y4J3PllQ==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH0PR10MB7007
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1039,Hydra:6.0.650,FMLib:17.11.176.26
- definitions=2024-05-07_09,2024-05-06_02,2023-05-22_02
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 phishscore=0 mlxlogscore=999
- bulkscore=0 suspectscore=0 spamscore=0 malwarescore=0 mlxscore=0
- adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2404010000 definitions=main-2405070111
-X-Proofpoint-GUID: n59kw3vf6GcarDRHJAmCfClyFBwRPs11
-X-Proofpoint-ORIG-GUID: n59kw3vf6GcarDRHJAmCfClyFBwRPs11
+Mime-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=UTF-8
+Date: Wed, 08 May 2024 01:38:37 +0300
+Message-Id: <D13RU3UPQVOW.3FM4GX4JHGLJJ@kernel.org>
+Cc: <Liam.Howlett@oracle.com>, <bp@alien8.de>, <bpf@vger.kernel.org>,
+ <broonie@kernel.org>, <christophe.leroy@csgroup.eu>,
+ <dan.j.williams@intel.com>, <dave.hansen@linux.intel.com>,
+ <debug@rivosinc.com>, <hpa@zytor.com>, <io-uring@vger.kernel.org>,
+ <keescook@chromium.org>, <kirill.shutemov@linux.intel.com>,
+ <linux-cxl@vger.kernel.org>, <linux-fsdevel@vger.kernel.org>,
+ <linux-kernel@vger.kernel.org>, <linux-mm@kvack.org>,
+ <linux-s390@vger.kernel.org>, <linux-sgx@vger.kernel.org>,
+ <luto@kernel.org>, <mingo@redhat.com>, <nvdimm@lists.linux.dev>,
+ <peterz@infradead.org>, <sparclinux@vger.kernel.org>, <tglx@linutronix.de>,
+ <x86@kernel.org>
+Subject: Re: [PATCH] mm: Remove mm argument from mm_get_unmapped_area()
+From: "Jarkko Sakkinen" <jarkko@kernel.org>
+To: "Rick Edgecombe" <rick.p.edgecombe@intel.com>,
+ <akpm@linux-foundation.org>
+X-Mailer: aerc 0.17.0
+References: <20240506160747.1321726-1-rick.p.edgecombe@intel.com>
+In-Reply-To: <20240506160747.1321726-1-rick.p.edgecombe@intel.com>
 
-* Edgecombe, Rick P <rick.p.edgecombe@intel.com> [240507 09:51]:
-> On Mon, 2024-05-06 at 12:32 -0400, Liam R. Howlett wrote:
-> >=20
-> > I like this patch.
->=20
-> Thanks for taking a look.
->=20
-> >=20
-> > I think the context of current->mm is implied. IOW, could we call it
-> > get_unmapped_area() instead?=A0 There are other functions today that us=
-e
-> > current->mm that don't start with current_<whatever>.=A0 I probably sho=
-uld
-> > have responded to Dan's suggestion with my comment.
->=20
-> Yes, get_unmapped_area() is already taken. What else to call it... It is =
-kind of
-> the process "default" get_unmapped_area(). But with Christoph's proposal =
-it
-> would basically be arch_get_unmapped_area().
+On Mon May 6, 2024 at 7:07 PM EEST, Rick Edgecombe wrote:
+> Recently the get_unmapped_area() pointer on mm_struct was removed in
+> favor of direct callable function that can determines which of two
+> handlers to call based on an mm flag. This function,
+> mm_get_unmapped_area(), checks the flag of the mm passed as an argument.
+>
+> Dan Williams pointed out (see link) that all callers pass curret->mm, so
+> the mm argument is unneeded. It could be conceivable for a caller to want
+> to pass a different mm in the future, but in this case a new helper could
+> easily be added.
+>
+> So remove the mm argument, and rename the function
+> current_get_unmapped_area().
+>
+> Fixes: 529ce23a764f ("mm: switch mm->get_unmapped_area() to a flag")
+> Suggested-by: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Rick Edgecombe <rick.p.edgecombe@intel.com>
+> Link: https://lore.kernel.org/lkml/6603bed6662a_4a98a2949e@dwillia2-mobl3=
+.amr.corp.intel.com.notmuch/
+> ---
+> Based on linux-next.
+> ---
+>  arch/sparc/kernel/sys_sparc_64.c |  9 +++++----
+>  arch/x86/kernel/cpu/sgx/driver.c |  2 +-
+>  drivers/char/mem.c               |  2 +-
+>  drivers/dax/device.c             |  6 +++---
+>  fs/proc/inode.c                  |  2 +-
+>  fs/ramfs/file-mmu.c              |  2 +-
+>  include/linux/sched/mm.h         |  6 +++---
+>  io_uring/memmap.c                |  2 +-
+>  kernel/bpf/arena.c               |  2 +-
+>  kernel/bpf/syscall.c             |  2 +-
+>  mm/mmap.c                        | 11 +++++------
+>  mm/shmem.c                       |  9 ++++-----
+>  12 files changed, 27 insertions(+), 28 deletions(-)
+>
+> diff --git a/arch/sparc/kernel/sys_sparc_64.c b/arch/sparc/kernel/sys_spa=
+rc_64.c
+> index d9c3b34ca744..cf0b4ace5bf9 100644
+> --- a/arch/sparc/kernel/sys_sparc_64.c
+> +++ b/arch/sparc/kernel/sys_sparc_64.c
+> @@ -220,7 +220,7 @@ unsigned long get_fb_unmapped_area(struct file *filp,=
+ unsigned long orig_addr, u
+> =20
+>  	if (flags & MAP_FIXED) {
+>  		/* Ok, don't mess with it. */
+> -		return mm_get_unmapped_area(current->mm, NULL, orig_addr, len, pgoff, =
+flags);
+> +		return current_get_unmapped_area(NULL, orig_addr, len, pgoff, flags);
+>  	}
+>  	flags &=3D ~MAP_SHARED;
+> =20
+> @@ -233,8 +233,9 @@ unsigned long get_fb_unmapped_area(struct file *filp,=
+ unsigned long orig_addr, u
+>  		align_goal =3D (64UL * 1024);
+> =20
+>  	do {
+> -		addr =3D mm_get_unmapped_area(current->mm, NULL, orig_addr,
+> -					    len + (align_goal - PAGE_SIZE), pgoff, flags);
+> +		addr =3D current_get_unmapped_area(NULL, orig_addr,
+> +						 len + (align_goal - PAGE_SIZE),
+> +						 pgoff, flags);
+>  		if (!(addr & ~PAGE_MASK)) {
+>  			addr =3D (addr + (align_goal - 1UL)) & ~(align_goal - 1UL);
+>  			break;
+> @@ -252,7 +253,7 @@ unsigned long get_fb_unmapped_area(struct file *filp,=
+ unsigned long orig_addr, u
+>  	 * be obtained.
+>  	 */
+>  	if (addr & ~PAGE_MASK)
+> -		addr =3D mm_get_unmapped_area(current->mm, NULL, orig_addr, len, pgoff=
+, flags);
+> +		addr =3D current_get_unmapped_area(NULL, orig_addr, len, pgoff, flags)=
+;
+> =20
+>  	return addr;
+>  }
+> diff --git a/arch/x86/kernel/cpu/sgx/driver.c b/arch/x86/kernel/cpu/sgx/d=
+river.c
+> index 22b65a5f5ec6..5f7bfd9035f7 100644
+> --- a/arch/x86/kernel/cpu/sgx/driver.c
+> +++ b/arch/x86/kernel/cpu/sgx/driver.c
+> @@ -113,7 +113,7 @@ static unsigned long sgx_get_unmapped_area(struct fil=
+e *file,
+>  	if (flags & MAP_FIXED)
+>  		return addr;
+> =20
+> -	return mm_get_unmapped_area(current->mm, file, addr, len, pgoff, flags)=
+;
+> +	return current_get_unmapped_area(file, addr, len, pgoff, flags);
+>  }
+> =20
+>  #ifdef CONFIG_COMPAT
+> diff --git a/drivers/char/mem.c b/drivers/char/mem.c
+> index 7c359cc406d5..a29c4bd506d5 100644
+> --- a/drivers/char/mem.c
+> +++ b/drivers/char/mem.c
+> @@ -546,7 +546,7 @@ static unsigned long get_unmapped_area_zero(struct fi=
+le *file,
+>  	}
+> =20
+>  	/* Otherwise flags & MAP_PRIVATE: with no shmem object beneath it */
+> -	return mm_get_unmapped_area(current->mm, file, addr, len, pgoff, flags)=
+;
+> +	return current_get_unmapped_area(file, addr, len, pgoff, flags);
+>  #else
+>  	return -ENOSYS;
+>  #endif
+> diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+> index eb61598247a9..c379902307b7 100644
+> --- a/drivers/dax/device.c
+> +++ b/drivers/dax/device.c
+> @@ -329,14 +329,14 @@ static unsigned long dax_get_unmapped_area(struct f=
+ile *filp,
+>  	if ((off + len_align) < off)
+>  		goto out;
+> =20
+> -	addr_align =3D mm_get_unmapped_area(current->mm, filp, addr, len_align,
+> -					  pgoff, flags);
+> +	addr_align =3D current_get_unmapped_area(filp, addr, len_align,
+> +					       pgoff, flags);
+>  	if (!IS_ERR_VALUE(addr_align)) {
+>  		addr_align +=3D (off - addr_align) & (align - 1);
+>  		return addr_align;
+>  	}
+>   out:
+> -	return mm_get_unmapped_area(current->mm, filp, addr, len, pgoff, flags)=
+;
+> +	return current_get_unmapped_area(filp, addr, len, pgoff, flags);
+>  }
+> =20
+>  static const struct address_space_operations dev_dax_aops =3D {
+> diff --git a/fs/proc/inode.c b/fs/proc/inode.c
+> index d19434e2a58e..24a6aeac3de5 100644
+> --- a/fs/proc/inode.c
+> +++ b/fs/proc/inode.c
+> @@ -455,7 +455,7 @@ pde_get_unmapped_area(struct proc_dir_entry *pde, str=
+uct file *file, unsigned lo
+>  		return pde->proc_ops->proc_get_unmapped_area(file, orig_addr, len, pgo=
+ff, flags);
+> =20
+>  #ifdef CONFIG_MMU
+> -	return mm_get_unmapped_area(current->mm, file, orig_addr, len, pgoff, f=
+lags);
+> +	return current_get_unmapped_area(file, orig_addr, len, pgoff, flags);
+>  #endif
+> =20
+>  	return orig_addr;
+> diff --git a/fs/ramfs/file-mmu.c b/fs/ramfs/file-mmu.c
+> index b45c7edc3225..85f57de31102 100644
+> --- a/fs/ramfs/file-mmu.c
+> +++ b/fs/ramfs/file-mmu.c
+> @@ -35,7 +35,7 @@ static unsigned long ramfs_mmu_get_unmapped_area(struct=
+ file *file,
+>  		unsigned long addr, unsigned long len, unsigned long pgoff,
+>  		unsigned long flags)
+>  {
+> -	return mm_get_unmapped_area(current->mm, file, addr, len, pgoff, flags)=
+;
+> +	return current_get_unmapped_area(file, addr, len, pgoff, flags);
+>  }
+> =20
+>  const struct file_operations ramfs_file_operations =3D {
+> diff --git a/include/linux/sched/mm.h b/include/linux/sched/mm.h
+> index 91546493c43d..c67c7de05c7a 100644
+> --- a/include/linux/sched/mm.h
+> +++ b/include/linux/sched/mm.h
+> @@ -187,9 +187,9 @@ arch_get_unmapped_area_topdown(struct file *filp, uns=
+igned long addr,
+>  			  unsigned long len, unsigned long pgoff,
+>  			  unsigned long flags);
+> =20
+> -unsigned long mm_get_unmapped_area(struct mm_struct *mm, struct file *fi=
+lp,
+> -				   unsigned long addr, unsigned long len,
+> -				   unsigned long pgoff, unsigned long flags);
+> +unsigned long current_get_unmapped_area(struct file *filp, unsigned long=
+ addr,
+> +					unsigned long len, unsigned long pgoff,
+> +					unsigned long flags);
+> =20
+>  unsigned long
+>  arch_get_unmapped_area_vmflags(struct file *filp, unsigned long addr,
+> diff --git a/io_uring/memmap.c b/io_uring/memmap.c
+> index 4785d6af5fee..1aaea32c797c 100644
+> --- a/io_uring/memmap.c
+> +++ b/io_uring/memmap.c
+> @@ -305,7 +305,7 @@ unsigned long io_uring_get_unmapped_area(struct file =
+*filp, unsigned long addr,
+>  #else
+>  	addr =3D 0UL;
+>  #endif
+> -	return mm_get_unmapped_area(current->mm, filp, addr, len, pgoff, flags)=
+;
+> +	return current_get_unmapped_area(filp, addr, len, pgoff, flags);
+>  }
+> =20
+>  #else /* !CONFIG_MMU */
+> diff --git a/kernel/bpf/arena.c b/kernel/bpf/arena.c
+> index 4a1be699bb82..054486f7c453 100644
+> --- a/kernel/bpf/arena.c
+> +++ b/kernel/bpf/arena.c
+> @@ -314,7 +314,7 @@ static unsigned long arena_get_unmapped_area(struct f=
+ile *filp, unsigned long ad
+>  			return -EINVAL;
+>  	}
+> =20
+> -	ret =3D mm_get_unmapped_area(current->mm, filp, addr, len * 2, 0, flags=
+);
+> +	ret =3D current_get_unmapped_area(filp, addr, len * 2, 0, flags);
+>  	if (IS_ERR_VALUE(ret))
+>  		return ret;
+>  	if ((ret >> 32) =3D=3D ((ret + len - 1) >> 32))
+> diff --git a/kernel/bpf/syscall.c b/kernel/bpf/syscall.c
+> index 2222c3ff88e7..d9ff2843f6ef 100644
+> --- a/kernel/bpf/syscall.c
+> +++ b/kernel/bpf/syscall.c
+> @@ -992,7 +992,7 @@ static unsigned long bpf_get_unmapped_area(struct fil=
+e *filp, unsigned long addr
+>  	if (map->ops->map_get_unmapped_area)
+>  		return map->ops->map_get_unmapped_area(filp, addr, len, pgoff, flags);
+>  #ifdef CONFIG_MMU
+> -	return mm_get_unmapped_area(current->mm, filp, addr, len, pgoff, flags)=
+;
+> +	return current_get_unmapped_area(filp, addr, len, pgoff, flags);
+>  #else
+>  	return addr;
+>  #endif
+> diff --git a/mm/mmap.c b/mm/mmap.c
+> index 83b4682ec85c..4e98a907c53d 100644
+> --- a/mm/mmap.c
+> +++ b/mm/mmap.c
+> @@ -1901,16 +1901,15 @@ __get_unmapped_area(struct file *file, unsigned l=
+ong addr, unsigned long len,
+>  	return error ? error : addr;
+>  }
+> =20
+> -unsigned long
+> -mm_get_unmapped_area(struct mm_struct *mm, struct file *file,
+> -		     unsigned long addr, unsigned long len,
+> -		     unsigned long pgoff, unsigned long flags)
+> +unsigned long current_get_unmapped_area(struct file *file, unsigned long=
+ addr,
+> +					unsigned long len, unsigned long pgoff,
+> +					unsigned long flags)
+>  {
+> -	if (test_bit(MMF_TOPDOWN, &mm->flags))
+> +	if (test_bit(MMF_TOPDOWN, &current->mm->flags))
+>  		return arch_get_unmapped_area_topdown(file, addr, len, pgoff, flags);
+>  	return arch_get_unmapped_area(file, addr, len, pgoff, flags);
+>  }
+> -EXPORT_SYMBOL(mm_get_unmapped_area);
+> +EXPORT_SYMBOL(current_get_unmapped_area);
+> =20
+>  /**
+>   * find_vma_intersection() - Look up the first VMA which intersects the =
+interval
+> diff --git a/mm/shmem.c b/mm/shmem.c
+> index f5d60436b604..c0acd7db93c8 100644
+> --- a/mm/shmem.c
+> +++ b/mm/shmem.c
+> @@ -2276,8 +2276,7 @@ unsigned long shmem_get_unmapped_area(struct file *=
+file,
+>  	if (len > TASK_SIZE)
+>  		return -ENOMEM;
+> =20
+> -	addr =3D mm_get_unmapped_area(current->mm, file, uaddr, len, pgoff,
+> -				    flags);
+> +	addr =3D current_get_unmapped_area(file, uaddr, len, pgoff, flags);
+> =20
+>  	if (!IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE))
+>  		return addr;
+> @@ -2334,8 +2333,8 @@ unsigned long shmem_get_unmapped_area(struct file *=
+file,
+>  	if (inflated_len < len)
+>  		return addr;
+> =20
+> -	inflated_addr =3D mm_get_unmapped_area(current->mm, NULL, uaddr,
+> -					     inflated_len, 0, flags);
+> +	inflated_addr =3D current_get_unmapped_area(NULL, uaddr,
+> +						  inflated_len, 0, flags);
+>  	if (IS_ERR_VALUE(inflated_addr))
+>  		return addr;
+>  	if (inflated_addr & ~PAGE_MASK)
+> @@ -4799,7 +4798,7 @@ unsigned long shmem_get_unmapped_area(struct file *=
+file,
+>  				      unsigned long addr, unsigned long len,
+>  				      unsigned long pgoff, unsigned long flags)
+>  {
+> -	return mm_get_unmapped_area(current->mm, file, addr, len, pgoff, flags)=
+;
+> +	return current_get_unmapped_area(file, addr, len, pgoff, flags);
+>  }
+>  #endif
+> =20
+>
+> base-commit: 9221b2819b8a4196eecf5476d66201be60fbcf29
 
-unmapped_area(), but that's also taken..
+Reviewed-by: Jarkko Sakkinen <jarkko@kernel.org>
 
-arch_get_unmapped_area() are all quite close.  If you look into it, many
-of the arch versions were taken from the sparc 32 version.  Subsequent
-changes were made and they are no longer exactly the same, but I believe
-functionally equivalent - rather tricky to test though.
-
-I wanted to unite these to simplify the mm code a while back, but have
-not gotten back to it.  One aspect that some archs have is "cache
-coloring" which does affect the VMAs.
-
-The other difference is VDSO, which I may be looking into soon.  Someone
-once called me a glutton for punishment and there may be some truth in
-that...
-
-Cheers,
-Liam
-
+BR, Jarkko
