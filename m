@@ -1,261 +1,190 @@
-Received: from mail-oa1-f47.google.com (mail-oa1-f47.google.com [209.85.160.47])
+Received: from mail-ej1-f44.google.com (mail-ej1-f44.google.com [209.85.218.44])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3869228FD
-	for <nvdimm@lists.linux.dev>; Wed, 22 May 2024 02:05:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.47
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8EA87FBBD
+	for <nvdimm@lists.linux.dev>; Wed, 22 May 2024 08:58:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.44
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716343524; cv=none; b=oktN2+t+GUJg6N2btFMLDDqvVfF/Senrt2bLaHhKQx2gqwdJQTf4o267+/rAlo4qRHLgTNgxAxnhGvC4xqVpsnYsgmGf2xCk79+qiOK2BoEuS6gA1Fxo/4HxpL9GS/dTlzqOLIjFFbb0rrteLhdfcpIjfj7MrZ7soKI/TmYxJRw=
+	t=1716368297; cv=none; b=rIE6fpz/FK2C4zlxPWj3puUISXiYQQTU/rQcJwbifczLIrKzEh4pKSeml5EtaTx2Pp6vtgeTXmbENCWv5YnfRcJQgGaO6lE6HnxhoXqx83W1wvsqCszY8K4gcCo8qxKwZ4lY/j6l8/KTH93bVD3Au8oc8KSpSBt0Oy/BpjnmVhQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716343524; c=relaxed/simple;
-	bh=Zfjved76r4tk/R4F2I6Vyn2ILO/DKgJTa6WddGB4SV8=;
-	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Kb5BBgt3SPtJlT/9c4ElovNweuFbK6UGLSmKa8M5N+k3nQO+EBxjIJeyqZ+Ir3tHBXAMwqZq+23a7+WtO6guD09pPSFzVmOj5EBDYSA4gIHhPuCu/MsNbyflGiiljZxAyWL5Mr7W6+1DKK3FJZmbSiRH4J5/b4q+R7Wrpw7Gg28=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=VdMRNZfd; arc=none smtp.client-ip=209.85.160.47
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1716368297; c=relaxed/simple;
+	bh=5drciXMGAdYELysmjzz3Rf4LK6AJOqcEGCFERe2XB+8=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=bNfw7broXyUvNJj+xWgTreANkMOJvz7Fsp2OfhIkdIZrbivmT5e1vJq87F3VIB1DXmIi+J8jSb9Ai+bkhF99zOy2NHv8Riiksmixwo00a994TuVawMofJyYQi2efYQ/BFrBh0VdZxeivrzNBH/IRmJVo+RG+1myH74w597ODGko=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=EVY30QOI; arc=none smtp.client-ip=209.85.218.44
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="VdMRNZfd"
-Received: by mail-oa1-f47.google.com with SMTP id 586e51a60fabf-24544cfbc69so2084894fac.3
-        for <nvdimm@lists.linux.dev>; Tue, 21 May 2024 19:05:21 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="EVY30QOI"
+Received: by mail-ej1-f44.google.com with SMTP id a640c23a62f3a-a59a0e4b773so938098966b.2
+        for <nvdimm@lists.linux.dev>; Wed, 22 May 2024 01:58:14 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1716343521; x=1716948321; darn=lists.linux.dev;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:date:from:sender
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=pqp9MO7zUvyQGTMo5hIooEPlrzDAs7DVP/rXiNcgUBE=;
-        b=VdMRNZfdmQUgpGilEB6xyA16dY2aLD/R0VsVpu367HS+Hdnnjxy5m66EbOFPYGTBWO
-         All8vwo1qh03Lqmd0+hRPZKcFQ5QJ2G/g5F5M/RYMJL3l9hs/IeRQoDBWlskn8sV+9sd
-         g2dI+OrCdK7Ofi7YxqdrWdKmUM+gGardSKrtUe76N4hnzRuKWVJ9fwZocZMgKE/4YjAz
-         YM3BinQKU6V9Fp1/lDC2ML8goaOFXY107ht8g+npmjtIavvGTB8Io+1mGEh4RhDN/ar/
-         rRW1OJPCrNl5UYhQaYg/ZRTBhanEvUyKNa1fyKGdl9SgZarfWTtJEWQhIg12aol08aDf
-         o/AQ==
+        d=szeredi.hu; s=google; t=1716368293; x=1716973093; darn=lists.linux.dev;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=LjTE4WfHhoeXUwUqEwrecuarcFt+4f9tVsycy9v4ZlE=;
+        b=EVY30QOIrmnUR/Pco8pN/K20uOzaX0yvju3VaJOvy8O+lmVwMFp8QhwxZ3F67EsKpF
+         WPflLsIYSIzMXQX9vin8nQRqkGta2E6Q+jOyuCKsUc2n86ARFAoinKkmi/3DPyd58439
+         EJTmymk+ukKm9l7IvgCo9nDwtDuRZGQLSBFZE=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1716343521; x=1716948321;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:date:from:sender
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=pqp9MO7zUvyQGTMo5hIooEPlrzDAs7DVP/rXiNcgUBE=;
-        b=kl0KqTEaKY+RWKTLU9NcI1wJ6tFbijzlXGGnaTe4b7zvz+cF/JB5OOquY1Xt2HjTGN
-         rHGRBr0V1TPPVPW29kpGqDqfH5ea16xvs0Cn/68/zlvOfEvtiuuvdvodx4/QuNlcGDgz
-         8gz7ZzFX1VC1oZST6CQBQRpUu8iHaXrkCZsP3LyvMEQPm4ut4E3TiwoHcBMSLuIqt5gf
-         a9+2Mx2P9NK/zL2K08s4Sj5S8hHZfShWYDEDrcLrGBkT4jbnVkFOZfkQRS66N36+2b2W
-         mms38xdD1wO53poFYQe8ujul4cA38duchBX9JsQYLWJbrkkbVnpQgfQfwa+6QU4luDpx
-         cbig==
-X-Forwarded-Encrypted: i=1; AJvYcCX7Kqde3BRNha9oI/xXGPNRhLb/s1KRwrxC1IGcgvKg6j3ECbOKam6o7ZULScn4C/N+sjpnu4zlw3Kzv27yqfNFkRzHCApe
-X-Gm-Message-State: AOJu0YwWS74w3oubsILuJFzMGarZM3CDx7AcZ3HbrkufpAIANLCk3lVG
-	WdSrGdKgTNFwvc8CV/KILELTd3SHGJrs6ks5mORFkIR9ISS4CSOL
-X-Google-Smtp-Source: AGHT+IFHzidK4p7s1OgHfceR76fVxz5S8KRUEVvFbRfhLJxxb+D0+PBsOD+3RlG053Na2+1RqZVrEg==
-X-Received: by 2002:a05:6870:f605:b0:24c:5cd6:6405 with SMTP id 586e51a60fabf-24c68df1961mr831458fac.43.1716343520999;
-        Tue, 21 May 2024 19:05:20 -0700 (PDT)
-Received: from Borg-10.local (syn-070-114-203-196.res.spectrum.com. [70.114.203.196])
-        by smtp.gmail.com with ESMTPSA id 586e51a60fabf-24c54d17d08sm598119fac.42.2024.05.21.19.05.18
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 21 May 2024 19:05:20 -0700 (PDT)
-Sender: John Groves <grovesaustin@gmail.com>
-From: John Groves <John@Groves.net>
-X-Google-Original-From: John Groves <john@groves.net>
-Date: Tue, 21 May 2024 21:05:18 -0500
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, John Groves <jgroves@micron.com>, 
-	Jonathan Corbet <corbet@lwn.net>, Dan Williams <dan.j.williams@intel.com>, 
-	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, 
-	Matthew Wilcox <willy@infradead.org>, linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, 
-	john@jagalactic.com, Dave Chinner <david@fromorbit.com>, 
-	Christoph Hellwig <hch@infradead.org>, dave.hansen@linux.intel.com, gregory.price@memverge.com, 
-	Vivek Goyal <vgoyal@redhat.com>
-Subject: Re: [RFC PATCH 00/20] Introduce the famfs shared-memory file system
-Message-ID: <kejfka5wyedm76eofoziluzl7pq3prys2utvespsiqzs3uxgom@66z2vs4pe22v>
-References: <cover.1708709155.git.john@groves.net>
- <CAOQ4uxiPc5ciD_zm3jp5sVQaP4ndb40mApw5hx2DL+8BZNd==A@mail.gmail.com>
- <CAJfpegv8XzFvty_x00UehUQxw9ai8BytvGNXE8SL03zfsTN6ag@mail.gmail.com>
- <CAOQ4uxg9WyQ_Ayh7Za_PJ2u_h-ncVUafm5NZqT_dt4oHBMkFQg@mail.gmail.com>
+        d=1e100.net; s=20230601; t=1716368293; x=1716973093;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=LjTE4WfHhoeXUwUqEwrecuarcFt+4f9tVsycy9v4ZlE=;
+        b=cCcgWn+Rkyxk4sZDwKcIqoKHXno4RGYT0krwjSCclvlxGnd/KRjBVK5MdDiguM6enm
+         1SdqtCjceEWrA7KRFYpJlj0dYnbzhjSQCDKixTPyuIq06p/YX/CuW987zdzCbrNcj7KD
+         exVIGs1iyL9Q6vvU/x72JbhPdN7B34YNPBdnL6Orrqj9fRzdBKuM1voT53mKcq0LyUSn
+         RLE7UR+lYwYMY3RKg4XbvmQrC5lHL16A6RSHFo76zadCp91wMEX96H08jnjvTFjm+oZK
+         q5ZieeaI5cLzWCEt0roikCwNpZU8pqy4BJSGp7RfNFEiOPhh1wByuGtt/PT4v8WPqqev
+         2lfg==
+X-Forwarded-Encrypted: i=1; AJvYcCX5LpNxeyrXk8JTRfLcA8X7lmCxhS3CFP3KHISFp+240ieGz4/lxJl8bMLnHroyMOmd25IjdZQrq6V5TlPHOge/5Ri4rEbZ
+X-Gm-Message-State: AOJu0YzzadxHVX+3w7M2S1QBg6BabLWQIeguFr6IqN1xauhkhth0sBsf
+	6dCVvDXNrIcB67lp1rJYyEJ/djIn8Tu6SNQjVEsYE1HcCjrHYMfrZn6x9xrhvJTtfS2zkodrB1l
+	s7Ts+a6lwfGxKSkbbOr+64r5DbmO7rjEKQvDq5g==
+X-Google-Smtp-Source: AGHT+IGgLmVa8nGFRuH2lLvEoDTQ6Rj2QgnH8O/MrBxes++zUajUrC9MH9ZOGLxZV91yfG+FjV6yMUJtua3Xpybi24I=
+X-Received: by 2002:a17:906:4086:b0:a5a:6367:7186 with SMTP id
+ a640c23a62f3a-a62281910e7mr77367066b.70.1716368293170; Wed, 22 May 2024
+ 01:58:13 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAOQ4uxg9WyQ_Ayh7Za_PJ2u_h-ncVUafm5NZqT_dt4oHBMkFQg@mail.gmail.com>
+References: <cover.1708709155.git.john@groves.net> <CAOQ4uxiPc5ciD_zm3jp5sVQaP4ndb40mApw5hx2DL+8BZNd==A@mail.gmail.com>
+ <CAJfpegv8XzFvty_x00UehUQxw9ai8BytvGNXE8SL03zfsTN6ag@mail.gmail.com>
+ <CAOQ4uxg9WyQ_Ayh7Za_PJ2u_h-ncVUafm5NZqT_dt4oHBMkFQg@mail.gmail.com> <kejfka5wyedm76eofoziluzl7pq3prys2utvespsiqzs3uxgom@66z2vs4pe22v>
+In-Reply-To: <kejfka5wyedm76eofoziluzl7pq3prys2utvespsiqzs3uxgom@66z2vs4pe22v>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Date: Wed, 22 May 2024 10:58:01 +0200
+Message-ID: <CAJfpegvQefgKOKMWC8qGTDAY=qRmxPvWkg2QKzNUiag1+q5L+Q@mail.gmail.com>
+Subject: Re: [RFC PATCH 00/20] Introduce the famfs shared-memory file system
+To: John Groves <John@groves.net>
+Cc: Amir Goldstein <amir73il@gmail.com>, John Groves <jgroves@micron.com>, 
+	Jonathan Corbet <corbet@lwn.net>, Dan Williams <dan.j.williams@intel.com>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, 
+	Matthew Wilcox <willy@infradead.org>, linux-cxl@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org, linux-doc@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, john@jagalactic.com, 
+	Dave Chinner <david@fromorbit.com>, Christoph Hellwig <hch@infradead.org>, dave.hansen@linux.intel.com, 
+	gregory.price@memverge.com, Vivek Goyal <vgoyal@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
 
-Initial reply to both Amir and Miklos. Sorry for the delay - I took a few
-days off after LSFMM and I'm just re-engaging now.
+On Wed, 22 May 2024 at 04:05, John Groves <John@groves.net> wrote:
+> I'm happy to help with that if you care - ping me if so; getting a VM running
+> in EFI mode is not necessary if you reserve the dax memory via memmap=, or
+> via libvirt xml.
 
-First an observation: these messages are on the famfs v1 patch set thread.
-The v2 patch set is at [1]. That is also the default branch now if you clone
-the famfs kernel from [2].
+Could you please give an example?
 
-Among the biggest changes at v2 is dropping /dev/pmem support and only 
-supporting /dev/dax (character) devices as backing devs for famfs.
-
-On 24/05/19 08:59AM, Amir Goldstein wrote:
-> On Fri, May 17, 2024 at 12:55 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
-> >
-> > On Thu, 29 Feb 2024 at 07:52, Amir Goldstein <amir73il@gmail.com> wrote:
-> >
-> > > I'm not virtiofs expert, but I don't think that you are wrong about this.
-> > > IIUC, virtiofsd could map arbitrary memory region to any fuse file mmaped
-> > > by virtiofs client.
-> > >
-> > > So what are the gaps between virtiofs and famfs that justify a new filesystem
-> > > driver and new userspace API?
-> >
-> > Let me try to fill in some gaps.  I've looked at the famfs driver
-> > (even tried to set it up in a VM, but got stuck with the EFI stuff).
-
-I'm happy to help with that if you care - ping me if so; getting a VM running 
-in EFI mode is not necessary if you reserve the dax memory via memmap=, or
-via libvirt xml.
-
-> >
-> > - famfs has an extent list per file that indicates how each page
-> > within the file should be mapped onto the dax device, IOW it has the
-> > following mapping:
-> >
-> >   [famfs file, offset] -> [offset, length]
-
-More generally, a famfs file extent is [daxdev, offset, len]; there may
-be multiple extents per file, and in the future this definitely needs to
-generalize to multiple daxdev's.
-
-Disclaimer: I'm still coming up to speed on fuse (slowly and ignorantly, 
-I think)...
-
-A single backing device (daxdev) will contain extents of many famfs
-files (plus metadata - currently a superblock and a log). I'm not sure
-it's realistic to have a backing daxdev "open" per famfs file. 
-
-In addition there is:
-
-- struct dax_holder_operations - to allow a notify_failure() upcall
-  from dax. This provides the critical capability to shut down famfs
-  if there are memory errors. This is filesystem- (or technically daxdev-
-  wide)
-
-- The pmem or devdax iomap_ops - to allow the fsdax file system (famfs,
-  and [soon] famfs_fuse) to call dax_iomap_rw() and dax_iomap_fault().
-  I strongly suspect that famfs_fuse can't be correct unless it uses
-  this path rather than just the idea of a single backing file.
-  This interface explicitly supports files that map to disjoint ranges
-  of one or more dax devices.
-
-- the dev_dax_iomap portion of the famfs patchsets adds iomap_ops to
-  character devdax.
-
-- Note that dax devices, unlike files, don't support read/write - only
-  mmap(). I suspect (though I'm still pretty ignorant) that this means
-  we can't just treat the dax device as an extent-based backing file.
+I use a raw qemu command line with a -kernel option and a root fs
+image (not a disk image with a bootloader).
 
 
-> >
-> > - fuse can currently map a fuse file onto a backing file:
-> >
-> >   [fuse file] -> [backing file]
-> >
-> > The interface for the latter is
-> >
-> >    backing_id = ioctl(dev_fuse_fd, FUSE_DEV_IOC_BACKING_OPEN, backing_map);
-> > ...
-> >    fuse_open_out.flags |= FOPEN_PASSTHROUGH;
-> >    fuse_open_out.backing_id = backing_id;
-> 
-> FYI, library and example code was recently merged to libfuse:
-> https://github.com/libfuse/libfuse/pull/919
-> 
-> >
-> > This looks suitable for doing the famfs file - > dax device mapping as
-> > well.  I wouldn't extend the ioctl with extent information, since
-> > famfs can just use FUSE_DEV_IOC_BACKING_OPEN once to register the dax
-> > device.  The flags field could be used to tell the kernel to treat
-> > this fd as a dax device instead of a a regular file.
+> More generally, a famfs file extent is [daxdev, offset, len]; there may
+> be multiple extents per file, and in the future this definitely needs to
+> generalize to multiple daxdev's.
+>
+> Disclaimer: I'm still coming up to speed on fuse (slowly and ignorantly,
+> I think)...
+>
+> A single backing device (daxdev) will contain extents of many famfs
+> files (plus metadata - currently a superblock and a log). I'm not sure
+> it's realistic to have a backing daxdev "open" per famfs file.
 
-A dax device to famfs is a lot more like a backing device for a "filesystem"
-than a backing file for another file. And, as previously mentioned, there
-is the iomap_ops interface and the holder_ops interface that deal with
-multiple file tenants on a dax device (plus error notification, 
-respectively)
+That's exactly what I was saying.
 
-Probably doable, but important distinctions...
+The passthrough interface was deliberately done in a way to separate
+the mapping into two steps:
 
-> >
-> > Letter, when the file is opened the extent list could be sent in the
-> > open reply together with the backing id.  The fuse_ext_header
-> > mechanism seems suitable for this.
-> >
-> > And I think that's it as far as API's are concerned.
-> >
-> > Note: this is already more generic than the current famfs prototype,
-> > since multiple dax devices could be used as backing for famfs files,
-> > with the constraint that a single file can only map data from a single
-> > dax device.
-> >
-> > As for implementing dax passthrough, I think that needs a separate
-> > source file, the one used by virtiofs (fs/fuse/dax.c) does not appear
-> > to have many commonalities with this one.  That could be renamed to
-> > virtiofs_dax.c as it's pretty much virtiofs specific, AFAICT.
-> >
-> > Comments?
-> 
-> Would probably also need to decouple CONFIG_FUSE_DAX
-> from CONFIG_FUSE_VIRTIO_DAX.
-> 
-> What about fc->dax_mode (i.e. dax= mount option)?
-> 
-> What about FUSE_IS_DAX()? does it apply to both dax implementations?
-> 
-> Sounds like a decent plan.
-> John, let us know if you need help understanding the details.
+ 1) registering the backing file (which could be a device)
 
-I'm certain I will need some help, but I'll try to do my part. 
+ 2) mapping from a fuse file to a registered backing file
 
-First question: can you suggest an example fuse file pass-through
-file system that I might use as a jumping-off point? Something that
-gets the basic pass-through capability from which to start hacking
-in famfs/dax capabilities?
+Step 1 can happen at any time, while step 2 currently happens at open,
+but for various other purposes like metadata passthrough it makes
+sense to allow the mapping to happen at lookup time and be cached for
+the lifetime of the inode.
 
-When I started on famfs, I used ramfs because it got me all the basic
-file system functionality minus a backing store. Then I built the dax
-functionality by referring to xfs. 
+> In addition there is:
+>
+> - struct dax_holder_operations - to allow a notify_failure() upcall
+>   from dax. This provides the critical capability to shut down famfs
+>   if there are memory errors. This is filesystem- (or technically daxdev-
+>   wide)
 
-> 
-> > Am I missing something significant?
-> 
-> Would we need to set IS_DAX() on inode init time or can we set it
-> later on first file open?
-> 
-> Currently, iomodes enforces that all opens are either
-> mapped to same backing file or none mapped to backing file:
-> 
-> fuse_inode_uncached_io_start()
-> {
-> ...
->         /* deny conflicting backing files on same fuse inode */
-> 
-> The iomodes rules will need to be amended to verify that:
-> - IS_DAX() inode open is always mapped to backing dax device
-> - All files of the same fuse inode are mapped to the same range
->   of backing file/dax device.
+This can be hooked into fuse_is_bad().
 
-I'm confused by the last item. I would think there would be a fuse
-inode per famfs file, and that multiple of those would map to separate
-extent lists of one or more backing dax devices.
+> - The pmem or devdax iomap_ops - to allow the fsdax file system (famfs,
+>   and [soon] famfs_fuse) to call dax_iomap_rw() and dax_iomap_fault().
+>   I strongly suspect that famfs_fuse can't be correct unless it uses
+>   this path rather than just the idea of a single backing file.
 
-Or maybe I misunderstand the meaning of "fuse inode". Feel free to
-assign reading...
+Agreed.
 
-> 
-> Thanks,
-> Amir.
+> - the dev_dax_iomap portion of the famfs patchsets adds iomap_ops to
+>   character devdax.
 
-Thanks Miklos and Amir,
-John
+You'll need to channel those patches through the respective
+maintainers, preferably before the fuse parts are merged.
 
-[1] https://lore.kernel.org/linux-fsdevel/cover.1714409084.git.john@groves.net/T/#m3b11e8d311eca80763c7d6f27d43efd1cdba628b
-[2] https://github.com/cxl-micron-reskit/famfs-linux
+> - Note that dax devices, unlike files, don't support read/write - only
+>   mmap(). I suspect (though I'm still pretty ignorant) that this means
+>   we can't just treat the dax device as an extent-based backing file.
 
+Doesn't matter, it'll use the iomap infrastructure instead of the
+passthrough infrastructure.
 
+But the interfaces for regular passthrough and fsdax could be shared.
+Conceptually they are very similar:  there's a backing store indexable
+with byte offsets.
+
+What's currently missing from the API is an extent list in
+fuse_open_out.   The format could be:
+
+  [ {backing_id, offset, length}, ... ]
+
+allowing each extent to map to a different backing device.
+
+> A dax device to famfs is a lot more like a backing device for a "filesystem"
+> than a backing file for another file. And, as previously mentioned, there
+> is the iomap_ops interface and the holder_ops interface that deal with
+> multiple file tenants on a dax device (plus error notification,
+> respectively)
+>
+> Probably doable, but important distinctions...
+
+Yeah, that's why I suggested to create a new source file for this
+within fs/fuse.  Alternatively we could try splitting up fuse into
+modules (core, virtiofs, cuse, fsdax) but I think that can be left as
+a cleanup step.
+
+> First question: can you suggest an example fuse file pass-through
+> file system that I might use as a jumping-off point? Something that
+> gets the basic pass-through capability from which to start hacking
+> in famfs/dax capabilities?
+
+An example is in Amir's libfuse repo at
+
+   https://github.com/libfuse/libfuse
+
+> I'm confused by the last item. I would think there would be a fuse
+> inode per famfs file, and that multiple of those would map to separate
+> extent lists of one or more backing dax devices.
+
+Yeah.
+
+> Or maybe I misunderstand the meaning of "fuse inode". Feel free to
+> assign reading...
+
+I think Amir meant that each open file could in theory have a
+different mapping.  This is allowed by the fuse interface, but is
+disallowed in practice.
+
+I'm in favor of caching the extent map so it only has to be given on
+the first open (or lookup).
+
+Thanks,
+Miklos
