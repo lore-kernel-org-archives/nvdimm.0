@@ -1,232 +1,261 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.7])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oa1-f47.google.com (mail-oa1-f47.google.com [209.85.160.47])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F316A1494A0
-	for <nvdimm@lists.linux.dev>; Tue, 21 May 2024 18:41:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.7
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716316898; cv=fail; b=druY8YIEfYj0lvBrsXgTTNhdp1gLG0uIeiNykHHQ1G/lMY/mk/yK6ujMR3Ih4ZiUrbCybO5ky5oqeTC7bEpjlF60msRlTM9aAB9A1/dXprofKqqY1K1i0sq649RTjm7DEHFIXKdoUblFGwQW43rbCM/DO1QZa1tF7f8MDx+sVww=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716316898; c=relaxed/simple;
-	bh=nlGIUCbucXvKhQer48HHYqBp2BGQH1iKIGkZsHWbNbo=;
-	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=jjVAfNfPh1iENSslfDXJqR3rh5omDT4DYV+096FTlr6/3zRzso8Z5gOXZ3AL8PxjHeX0Dl4ftMJbOCzw6Df4IAeijC7oRKGob+oTzyarKK1Q/mryPvP0G5oZQfJv+41LrsAC8exDQRI+QVpp/Q67JQCaLM9g7a3XSLsfkLmZm8c=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=N49a8HIA; arc=fail smtp.client-ip=192.198.163.7
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3869228FD
+	for <nvdimm@lists.linux.dev>; Wed, 22 May 2024 02:05:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.47
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1716343524; cv=none; b=oktN2+t+GUJg6N2btFMLDDqvVfF/Senrt2bLaHhKQx2gqwdJQTf4o267+/rAlo4qRHLgTNgxAxnhGvC4xqVpsnYsgmGf2xCk79+qiOK2BoEuS6gA1Fxo/4HxpL9GS/dTlzqOLIjFFbb0rrteLhdfcpIjfj7MrZ7soKI/TmYxJRw=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1716343524; c=relaxed/simple;
+	bh=Zfjved76r4tk/R4F2I6Vyn2ILO/DKgJTa6WddGB4SV8=;
+	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=Kb5BBgt3SPtJlT/9c4ElovNweuFbK6UGLSmKa8M5N+k3nQO+EBxjIJeyqZ+Ir3tHBXAMwqZq+23a7+WtO6guD09pPSFzVmOj5EBDYSA4gIHhPuCu/MsNbyflGiiljZxAyWL5Mr7W6+1DKK3FJZmbSiRH4J5/b4q+R7Wrpw7Gg28=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=VdMRNZfd; arc=none smtp.client-ip=209.85.160.47
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=Groves.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="N49a8HIA"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1716316897; x=1747852897;
-  h=date:from:to:cc:subject:message-id:references:
-   content-transfer-encoding:in-reply-to:mime-version;
-  bh=nlGIUCbucXvKhQer48HHYqBp2BGQH1iKIGkZsHWbNbo=;
-  b=N49a8HIAx2Cbe31g7ZQKeZDvN/rqoqiRHDVx4g/Adsg0Yiss+6HpxV6b
-   9oH+tIEoL2lrkFXikLJsV5VVOXz6rhlIyY2zKUJPyC5dEXmIKRX0t+Q+C
-   L4z//gE1geAHOVflICmhnx285cCD6XCi0Wz88vNUncDOK/VLY/FdDTsZV
-   VobIq+srDed+DdFQTFL+R7cCTc0o/08W3vA11zv9+ip5s7I76Ewhp3U7t
-   t/09XRd28Qy7JRpNN4wukbHjwrtPD6g1NMGNYDVyOIjTCZd6MyBLvh9Hg
-   PQLgaAW4lagnBro6oKTf87agcpr2hkM166F1T/+T3SOUMLmTim4pKwmht
-   Q==;
-X-CSE-ConnectionGUID: XOGo4voyRuSxPGciB1r8ZA==
-X-CSE-MsgGUID: bogkeQrdRzer9y1+tlHuCA==
-X-IronPort-AV: E=McAfee;i="6600,9927,11079"; a="37913691"
-X-IronPort-AV: E=Sophos;i="6.08,178,1712646000"; 
-   d="scan'208";a="37913691"
-Received: from fmviesa006.fm.intel.com ([10.60.135.146])
-  by fmvoesa101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 May 2024 11:41:36 -0700
-X-CSE-ConnectionGUID: FRv9g2X5QmSDHtdapumYyQ==
-X-CSE-MsgGUID: uBBkmSIsS+u5OaV/W8uURw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.08,178,1712646000"; 
-   d="scan'208";a="33039095"
-Received: from orsmsx602.amr.corp.intel.com ([10.22.229.15])
-  by fmviesa006.fm.intel.com with ESMTP/TLS/AES256-GCM-SHA384; 21 May 2024 11:41:34 -0700
-Received: from orsmsx612.amr.corp.intel.com (10.22.229.25) by
- ORSMSX602.amr.corp.intel.com (10.22.229.15) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.39; Tue, 21 May 2024 11:41:34 -0700
-Received: from orsmsx603.amr.corp.intel.com (10.22.229.16) by
- ORSMSX612.amr.corp.intel.com (10.22.229.25) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.39; Tue, 21 May 2024 11:41:34 -0700
-Received: from orsedg603.ED.cps.intel.com (10.7.248.4) by
- orsmsx603.amr.corp.intel.com (10.22.229.16) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.39 via Frontend Transport; Tue, 21 May 2024 11:41:34 -0700
-Received: from NAM11-BN8-obe.outbound.protection.outlook.com (104.47.58.168)
- by edgegateway.intel.com (134.134.137.100) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.39; Tue, 21 May 2024 11:41:34 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=IDRRFMtg6U7CIvLF4OGXlUb4fvvT9p8cIvVZKoXUGYwjLeIRLZlEG/GlUxInoL1jKeyYDk3K+9SjIUg0mSm4uHBd9Mf6EvEL9aQFcazyaD8jgxFBUtQ80Z28WRpqV+ABeeco40+XwroJwK2DDIkC4gdCUFC+f21lSpJ9WHIzb4CLxTyZ+wmrr0WmHhdrBq1nvQ5m+rdxdIHkQiQbP19/5Gj+NRyZNVHkxVURTnUZcRGMn2Y8QZbRrdUk7xrcE5ylZMIG4vEcDYSDc4/3dd9zDy0GqFJblpuxq7HPsQpYoxkg1XGuKbXNTupxDfynvp0FenppJTvlfMJ6EajHrZKtAw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=nlGIUCbucXvKhQer48HHYqBp2BGQH1iKIGkZsHWbNbo=;
- b=bOukH6YrlQNWY9h2hupmSlqHC+zpuVqRjoQuzmJPnsI+06al/nHw4Bgk6ZgfeUbl1hCHWHc+Q89Ht6f8UtU688IZbYqz6it4Pf1vWJ58Zd8rESy+erEtvbaEETKDvixZ3m+eVDGoHP8mKLFoU80BPRteJZ8PdbrJIUn9dy85rZwr/kMgrSPl5kNJ0KmREGt15DbrPHluf93mZ1E1t1/zXZ1AqmzM69FykflTX4bqgtpJl05uX2PbB1rWW/AfNGI7OE4a8q1wX+1lIfV1gye/oKR8ZY4YSLtTXvLcnSFZeCLfmOka9PJwGXUhXbA372jEglQT1D1kX4h94xy5PisgOw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from PH8PR11MB8107.namprd11.prod.outlook.com (2603:10b6:510:256::6)
- by SA2PR11MB4953.namprd11.prod.outlook.com (2603:10b6:806:117::15) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7587.36; Tue, 21 May
- 2024 18:41:32 +0000
-Received: from PH8PR11MB8107.namprd11.prod.outlook.com
- ([fe80::6b05:74cf:a304:ecd8]) by PH8PR11MB8107.namprd11.prod.outlook.com
- ([fe80::6b05:74cf:a304:ecd8%6]) with mapi id 15.20.7587.030; Tue, 21 May 2024
- 18:41:31 +0000
-Date: Tue, 21 May 2024 11:41:29 -0700
-From: Dan Williams <dan.j.williams@intel.com>
-To: Dongsheng Yang <dongsheng.yang@easystack.cn>, Jonathan Cameron
-	<Jonathan.Cameron@huawei.com>
-CC: John Groves <John@groves.net>, Dan Williams <dan.j.williams@intel.com>,
-	Gregory Price <gregory.price@memverge.com>, <axboe@kernel.dk>,
-	<linux-block@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>
-Subject: Re: [PATCH RFC 0/7] block: Introduce CBD (CXL Block Device)
-Message-ID: <664cead8eb0b6_add32947d@dwillia2-mobl3.amr.corp.intel.com.notmuch>
-References: <8f373165-dd2b-906f-96da-41be9f27c208@easystack.cn>
- <wold3g5ww63cwqo7rlwevqcpmlen3fl3lbtbq3qrmveoh2hale@e7carkmumnub>
- <20240503105245.00003676@Huawei.com>
- <5b7f3700-aeee-15af-59a7-8e271a89c850@easystack.cn>
- <20240508131125.00003d2b@Huawei.com>
- <ef0ee621-a2d2-e59a-f601-e072e8790f06@easystack.cn>
- <20240508164417.00006c69@Huawei.com>
- <3d547577-e8f2-8765-0f63-07d1700fcefc@easystack.cn>
- <20240509132134.00000ae9@Huawei.com>
- <a571be12-2fd3-e0ee-a914-0a6e2c46bdbc@easystack.cn>
-Content-Type: text/plain; charset="utf-8"
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <a571be12-2fd3-e0ee-a914-0a6e2c46bdbc@easystack.cn>
-X-ClientProxiedBy: MW4PR04CA0332.namprd04.prod.outlook.com
- (2603:10b6:303:8a::7) To PH8PR11MB8107.namprd11.prod.outlook.com
- (2603:10b6:510:256::6)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="VdMRNZfd"
+Received: by mail-oa1-f47.google.com with SMTP id 586e51a60fabf-24544cfbc69so2084894fac.3
+        for <nvdimm@lists.linux.dev>; Tue, 21 May 2024 19:05:21 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1716343521; x=1716948321; darn=lists.linux.dev;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:date:from:sender
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=pqp9MO7zUvyQGTMo5hIooEPlrzDAs7DVP/rXiNcgUBE=;
+        b=VdMRNZfdmQUgpGilEB6xyA16dY2aLD/R0VsVpu367HS+Hdnnjxy5m66EbOFPYGTBWO
+         All8vwo1qh03Lqmd0+hRPZKcFQ5QJ2G/g5F5M/RYMJL3l9hs/IeRQoDBWlskn8sV+9sd
+         g2dI+OrCdK7Ofi7YxqdrWdKmUM+gGardSKrtUe76N4hnzRuKWVJ9fwZocZMgKE/4YjAz
+         YM3BinQKU6V9Fp1/lDC2ML8goaOFXY107ht8g+npmjtIavvGTB8Io+1mGEh4RhDN/ar/
+         rRW1OJPCrNl5UYhQaYg/ZRTBhanEvUyKNa1fyKGdl9SgZarfWTtJEWQhIg12aol08aDf
+         o/AQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1716343521; x=1716948321;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:date:from:sender
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=pqp9MO7zUvyQGTMo5hIooEPlrzDAs7DVP/rXiNcgUBE=;
+        b=kl0KqTEaKY+RWKTLU9NcI1wJ6tFbijzlXGGnaTe4b7zvz+cF/JB5OOquY1Xt2HjTGN
+         rHGRBr0V1TPPVPW29kpGqDqfH5ea16xvs0Cn/68/zlvOfEvtiuuvdvodx4/QuNlcGDgz
+         8gz7ZzFX1VC1oZST6CQBQRpUu8iHaXrkCZsP3LyvMEQPm4ut4E3TiwoHcBMSLuIqt5gf
+         a9+2Mx2P9NK/zL2K08s4Sj5S8hHZfShWYDEDrcLrGBkT4jbnVkFOZfkQRS66N36+2b2W
+         mms38xdD1wO53poFYQe8ujul4cA38duchBX9JsQYLWJbrkkbVnpQgfQfwa+6QU4luDpx
+         cbig==
+X-Forwarded-Encrypted: i=1; AJvYcCX7Kqde3BRNha9oI/xXGPNRhLb/s1KRwrxC1IGcgvKg6j3ECbOKam6o7ZULScn4C/N+sjpnu4zlw3Kzv27yqfNFkRzHCApe
+X-Gm-Message-State: AOJu0YwWS74w3oubsILuJFzMGarZM3CDx7AcZ3HbrkufpAIANLCk3lVG
+	WdSrGdKgTNFwvc8CV/KILELTd3SHGJrs6ks5mORFkIR9ISS4CSOL
+X-Google-Smtp-Source: AGHT+IFHzidK4p7s1OgHfceR76fVxz5S8KRUEVvFbRfhLJxxb+D0+PBsOD+3RlG053Na2+1RqZVrEg==
+X-Received: by 2002:a05:6870:f605:b0:24c:5cd6:6405 with SMTP id 586e51a60fabf-24c68df1961mr831458fac.43.1716343520999;
+        Tue, 21 May 2024 19:05:20 -0700 (PDT)
+Received: from Borg-10.local (syn-070-114-203-196.res.spectrum.com. [70.114.203.196])
+        by smtp.gmail.com with ESMTPSA id 586e51a60fabf-24c54d17d08sm598119fac.42.2024.05.21.19.05.18
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 21 May 2024 19:05:20 -0700 (PDT)
+Sender: John Groves <grovesaustin@gmail.com>
+From: John Groves <John@Groves.net>
+X-Google-Original-From: John Groves <john@groves.net>
+Date: Tue, 21 May 2024 21:05:18 -0500
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, John Groves <jgroves@micron.com>, 
+	Jonathan Corbet <corbet@lwn.net>, Dan Williams <dan.j.williams@intel.com>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, 
+	Matthew Wilcox <willy@infradead.org>, linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, 
+	john@jagalactic.com, Dave Chinner <david@fromorbit.com>, 
+	Christoph Hellwig <hch@infradead.org>, dave.hansen@linux.intel.com, gregory.price@memverge.com, 
+	Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [RFC PATCH 00/20] Introduce the famfs shared-memory file system
+Message-ID: <kejfka5wyedm76eofoziluzl7pq3prys2utvespsiqzs3uxgom@66z2vs4pe22v>
+References: <cover.1708709155.git.john@groves.net>
+ <CAOQ4uxiPc5ciD_zm3jp5sVQaP4ndb40mApw5hx2DL+8BZNd==A@mail.gmail.com>
+ <CAJfpegv8XzFvty_x00UehUQxw9ai8BytvGNXE8SL03zfsTN6ag@mail.gmail.com>
+ <CAOQ4uxg9WyQ_Ayh7Za_PJ2u_h-ncVUafm5NZqT_dt4oHBMkFQg@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: PH8PR11MB8107:EE_|SA2PR11MB4953:EE_
-X-MS-Office365-Filtering-Correlation-Id: 88ee82a5-e36b-4257-8731-08dc79c5a21e
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230031|376005|1800799015|366007;
-X-Microsoft-Antispam-Message-Info: =?utf-8?B?UVlxb1B1eGpQWUtTU28rRVdjemZiQ1VvOHlMWFV3clRKa2dvbko2Y05rcWZw?=
- =?utf-8?B?RnZydTcwcVBYb2IraFE2QVN5WU1HU01mSnZjZHNyYjV2cGFKbTMwTFcvR0pG?=
- =?utf-8?B?cHYvNDA5QklRWlB1Q1BCSHdmRVZ4L2lhVmVBaGhnV0NkZEMvUFN2NTU3UHhk?=
- =?utf-8?B?TERmalpueHFobVB6L0UxeHJZYko4V3pBblppeWUrdGJ6OE9xMTNKM3ZQQ1JO?=
- =?utf-8?B?VEoweHBldmw5SHlhc1cxQm5kMU5DRlhCS2M3ZlYxUXZnSXUrd0wyRGNnS01M?=
- =?utf-8?B?bkN2S2NlbkprQmhnNm9ZRkt2Y1VPK25tbHFPd0wyU1hoVEk2NDBIT1NLR3pv?=
- =?utf-8?B?YVpmcEgvY1hXdURPa2ZWYzRLdnZTM0dxQWJSNVFERXVNTFdCREw3NDZYWDI4?=
- =?utf-8?B?QWVKMnY1TzFzTlFXUEFPOGVpZlVsNEJVcXk0U1hqTFQ3RjJ4MHdFY2pQL051?=
- =?utf-8?B?U1cwWlRRZWNuaFk1eTlPNE5rZnlaaXZxenZ1amZwbGhKMmc2TDR3M3hLeTgz?=
- =?utf-8?B?SzhCWUViSk9YTzc0cENDRmJ0WnJ0bzc5N09KcTgyQXNtYkM1VzY2SitRVWNi?=
- =?utf-8?B?UnNVcFRXOTRlZW1IY0Y4dVFNTngrRkhRejlmc0V2RTFBbERXYnRkdkxSZ254?=
- =?utf-8?B?d0F5dHptWm05a3JReEIvTDN0RmtpUTFGOXNsV3c2a0hGSzhGQldLZHFmVVVj?=
- =?utf-8?B?QnJNUzc1QXhZSXJFdG52TXFsMW1zb1crNnBidGxHam5hOUxGSWxsOG9RQjBX?=
- =?utf-8?B?NnlsSnJ6RmFaR1R0MDQ5emlkNW11c3lCZ3NOL3RXVUhsbE9jS2xGMjVSK2tl?=
- =?utf-8?B?TzUzYThxUlQydGgxMnhLN05kbEx2NHVLcG52YlN4V2RZeEZHZlZTdnhFS2xB?=
- =?utf-8?B?UlhFSzFnVEMxcGMrQVJaREJwclE5R3FxUVJRVWlTL0tqb3Zic1pGZXpCb29h?=
- =?utf-8?B?b0o3YUZVNFZ0OHg4Ly9HWnNVZmRPUmFmQUdnODJKMSsyNHhEN3RYdWZMUTd2?=
- =?utf-8?B?MjZlUkNJK2d0V2x6REQ5UmoxMWg2Z1BTZlVFM1h1SFA2YmtDYmhubUxneXJm?=
- =?utf-8?B?aEN2MGdsVGVXcUkybzdsUmtPQ1BJSVJMQ2w1WXQ4VmRYcnZOakI5WDVzVm5V?=
- =?utf-8?B?dWNkTVVhMm93UWtNN3A5a0FpQTg3T1FETngrSFdHUzlYMHMzajk2SnF1VFVT?=
- =?utf-8?B?d2lFbE93a09HdHBrdkRPSVRnTU05Q0NEcjBWaTVJT01rbW1yWjQzbDVqK294?=
- =?utf-8?B?eGhBaHRIM1ZCeFMrak13eUF0NGZXK2dwOVZrTUxWVUtnNnJZSEdlYnViVktV?=
- =?utf-8?B?V0lsWUttWXByNGpkTHlnbmJQR3cyV2NPRVlLa3FQaFRIMlNFcDN2eEdldjhV?=
- =?utf-8?B?MlZMVmdnZEdGTVY5ZVlFL0dpaVF1cWxpSmlWc0xyZTdjbHQxZWFxblZBd1Zm?=
- =?utf-8?B?SzdrSkJNcEFJSHdEZU8wd0JjT2l4aTRBeWlIR29TeGlqUjNTRVNWK0FxZGxi?=
- =?utf-8?B?MUN0eGlMcnVnTWJ6eTFLeDZNd2VVdklnelZqWE4vSUpnV0tFbnJmZm9uVUpM?=
- =?utf-8?B?MUVBVzJHZ2RJdDJpRTd6Y0QrOUZmOGEvekpWVzFQTHRKdXYwSHkzaHRKTDF4?=
- =?utf-8?B?RUo1UUtPOS9BRjRFN2QrSGh6QkFWVGppMGZNYlRTRmRSalJtbElBWGMwQ3pU?=
- =?utf-8?B?WXF1Qk51QkNMcndFMytLRnJLNy90Vmk3SzBMeVZ3TmRaWHpmeCswSHp3PT0=?=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH8PR11MB8107.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230031)(376005)(1800799015)(366007);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?VzZpZWs2N3ZIb3ZJZ3pPRUQwbEZIdDQ0eEFybGdUYmtYVkVHOGJIYjhITmhu?=
- =?utf-8?B?QmREMXhQUzN1Z2VmM08yUE1ZL3I0cUs0S2E2NTQ2clpPMDJlMi9iak1ENng0?=
- =?utf-8?B?NVlTZko3em5JV1JuVlRRK2UvZk96dk9KdjNNVW5hU2R2NllqdnZGN2VYVzk2?=
- =?utf-8?B?N05lM2toR0pmU3ltdDk2M1Z1LzhKenpFZ3Z3d3o0ZE9HTmpJbXVRT0tKK0tB?=
- =?utf-8?B?SWdPQVVYaldpanBnTjd1K1VjU3A0L0Q1SE9MMjRZdms1bTcxUDk1aFZLZXVF?=
- =?utf-8?B?UWNjdG01NW4xR2pUalZJUEN4cTgrUXVDMXZ1QzJaMkJ2YmpGRzZMdDh0aFly?=
- =?utf-8?B?NkNRN3lXajArams5djNzakRPeHlPcEZtbEExcDdpT3QraFd2WjM4dDJlSjQ0?=
- =?utf-8?B?eHR0WHNOeHo2aWdkMlhwRWdGZHBiMmtRWVRQaElKK3Q2RVFSVEI5aTFHK0FL?=
- =?utf-8?B?ZnBhdWtMR1AvVXFjdDZZMHVYMFlucm5pN0ZaMkZ4RkFSaVVnVit0UGREKzk0?=
- =?utf-8?B?OUwraUZMR2VaQTBmMDd4eXJxdTN1RlBGa0o2UmRRdnFrdzNqdFBnN0FVdUQ5?=
- =?utf-8?B?SlFNeVpLejVvSU8yZk1UNll3Z3ZRRVgrczVTR0Q5SjVYRTRqcEdlWUZMTGJR?=
- =?utf-8?B?clZzUFJ6bGtLZUgwWGwwekx2QVQxVDFFeWV1QUxZakxOOFJBbkhLdVdJRlZI?=
- =?utf-8?B?bE1NQ3BnQXhLWS83aWpjb051UjdNcCtDLzhuajRZYUg3ZlRadkwvUER0aEQ3?=
- =?utf-8?B?Q2JYUXJTcXBvTTlud2pUemlRL0lUcU1zdU9wZExEYndQWkFCQmVXblVhdGpE?=
- =?utf-8?B?NTBwaG9MelNMNE9NK3lRWHZWTmJ3TEUzQWppd3BQR3VpaHpaZ0ExR0NabjdZ?=
- =?utf-8?B?THpnTjN2ZUNaZkk4UzlvTHg0REx6M0lkUEZSdEtLV3NENFpML1lXd3lhSlA3?=
- =?utf-8?B?UzFaS21PczNCWDY4V3phc2RTZ1F0eFFieGk0MGIvRHVWN0pDVXdMa2k3Y0Vt?=
- =?utf-8?B?ZHNJR05mMDdHR1RQQjJUbEF1MUd4THJsNHdCWk9CbHAxV2RDc0tPUDJYRmdv?=
- =?utf-8?B?L3d5cUI5ZUtuT1Vtei9mZlNWcHBkQU5CSWhNMlVLRUJnZW1KRTlEN3hUTEs1?=
- =?utf-8?B?Q3VQL2FEem5kSnJqS1Q5WGNIcStHZmJramFOazRHLzh3NWJJUG9Vc1FRTWhH?=
- =?utf-8?B?OWJJMFJWVXRDTVI2V1RFWUxvWHV3VER1VnpSZW5hdHk5Ulh5Umw3UE1sRklu?=
- =?utf-8?B?ZFVZaWY2WUcxbjRCTnllZUt4Y3A5UGNSSWRuVzZ2Nk92UjUzaCtNQWtnTHVQ?=
- =?utf-8?B?L1NmWEFaa3BoOU1BcmZURkRqMFBxRDluQjU3eG9wZ1JSNHpac3ZOazZtTkUx?=
- =?utf-8?B?bndRS0twVVpQK2R2N0dEV0RtL3puYWxNTHBEOUV0OEx0V3p2RHU3NTl4OGlC?=
- =?utf-8?B?NjZQWG9NU1YzOHNsNVJwMXVYT2UyWmNIc0p1WVI1aElXem9oLzkzemZ1VHZB?=
- =?utf-8?B?RHlKdG93WkNXNWQyNVZWSkhQMlFXSHBuNW5zRVRtUHY5WXBBSFVMRXlhVmhq?=
- =?utf-8?B?Z1hGc2wyYSswSEFod0czNktmTWdqNkNOUjc3cUk1QWJlc2RrV0pna0VzY2VB?=
- =?utf-8?B?UnMzUjRRZndNZy9SN1ltRlo0RU5ITDkycjVhd0JUZFE2bnFVWTF0N1RkazBK?=
- =?utf-8?B?dllnM09kckVwQ1poeU5oaytZSTR3V2E4MGF1dkhXbWhsK3NCREJTWm5rSC9X?=
- =?utf-8?B?OHdvRkp4RXkyOGFKa3lwZWQvcHdkaVVaNzRtdmdURTdnVXkwQVJVdkgzRW9v?=
- =?utf-8?B?V1d4VGplM09wZks3bHQvOXl6Vm1hUWd3cTk5SmljREExbVBuZmNrd3U5OEFK?=
- =?utf-8?B?R3V3V2FCOXZrS0VnVTVMWm9PYXo1ZmlWVGQ4VXZkWHBRbVdIZHByL2tRS25F?=
- =?utf-8?B?ZGxjWXhoS1NTczk2UDdIOEhGcTIzS0RFSEc0QkliVjltQVZtcWFVWkRjaWdj?=
- =?utf-8?B?K05aVzhOY1FPTzFxTUFSZDhNdEx5V2hTdzdkUGR3SzA0OVQvbUdVNURBd2lC?=
- =?utf-8?B?MzN1U2YxZXVMNEFqTkwwY0VHWGtHTmtWY1JkRnpTMm1TVnBIRXRjZEtuTGwr?=
- =?utf-8?B?NkU4UUtBTmdWM05BaUdabjY0SXBrekRkNGJuaXhXQ1c0c0Zwc3JrS3FVQmhi?=
- =?utf-8?B?eUE9PQ==?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: 88ee82a5-e36b-4257-8731-08dc79c5a21e
-X-MS-Exchange-CrossTenant-AuthSource: PH8PR11MB8107.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 21 May 2024 18:41:31.7001
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: wYIw724p4ah8Ki+za/rvg0YpVgMXqFKFKrDmhMpK6nFnju9cGKeTEaWU/ZDnrNOsXYasmfIOMS6UCB2ELpHE+vQhSzhgJNcBc3Cp4aZ/bLM=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA2PR11MB4953
-X-OriginatorOrg: intel.com
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAOQ4uxg9WyQ_Ayh7Za_PJ2u_h-ncVUafm5NZqT_dt4oHBMkFQg@mail.gmail.com>
 
-Dongsheng Yang wrote:
-> 在 2024/5/9 星期四 下午 8:21, Jonathan Cameron 写道:
-[..]
-> >> If we check and find that the "No clean writeback" bit in both CSDS and
-> >> DVSEC is set, can we then assume that software cache-coherency is
-> >> feasible, as outlined below:
-> >>
-> >> (1) Both the writer and reader ensure cache flushes. Since there are no
-> >> clean writebacks, there will be no background data writes.
-> >>
-> >> (2) The writer writes data to shared memory and then executes a cache
-> >> flush. If we trust the "No clean writeback" bit, we can assume that the
-> >> data in shared memory is coherent.
-> >>
-> >> (3) Before reading the data, the reader performs cache invalidation.
-> >> Since there are no clean writebacks, this invalidation operation will
-> >> not destroy the data written by the writer. Therefore, the data read by
-> >> the reader should be the data written by the writer, and since the
-> >> writer's cache is clean, it will not write data to shared memory during
-> >> the reader's reading process. Additionally, data integrity can be ensured.
+Initial reply to both Amir and Miklos. Sorry for the delay - I took a few
+days off after LSFMM and I'm just re-engaging now.
 
-What guarantees this property? How does the reader know that its local
-cache invalidation is sufficient for reading data that has only reached
-global visibility on the remote peer? As far as I can see, there is
-nothing that guarantees that local global visibility translates to
-remote visibility. In fact, the GPF feature is counter-evidence of the
-fact that writes can be pending in buffers that are only flushed on a
-GPF event.
+First an observation: these messages are on the famfs v1 patch set thread.
+The v2 patch set is at [1]. That is also the default branch now if you clone
+the famfs kernel from [2].
 
-I remain skeptical that a software managed inter-host cache-coherency
-scheme can be made reliable with current CXL defined mechanisms.
+Among the biggest changes at v2 is dropping /dev/pmem support and only 
+supporting /dev/dax (character) devices as backing devs for famfs.
+
+On 24/05/19 08:59AM, Amir Goldstein wrote:
+> On Fri, May 17, 2024 at 12:55 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
+> >
+> > On Thu, 29 Feb 2024 at 07:52, Amir Goldstein <amir73il@gmail.com> wrote:
+> >
+> > > I'm not virtiofs expert, but I don't think that you are wrong about this.
+> > > IIUC, virtiofsd could map arbitrary memory region to any fuse file mmaped
+> > > by virtiofs client.
+> > >
+> > > So what are the gaps between virtiofs and famfs that justify a new filesystem
+> > > driver and new userspace API?
+> >
+> > Let me try to fill in some gaps.  I've looked at the famfs driver
+> > (even tried to set it up in a VM, but got stuck with the EFI stuff).
+
+I'm happy to help with that if you care - ping me if so; getting a VM running 
+in EFI mode is not necessary if you reserve the dax memory via memmap=, or
+via libvirt xml.
+
+> >
+> > - famfs has an extent list per file that indicates how each page
+> > within the file should be mapped onto the dax device, IOW it has the
+> > following mapping:
+> >
+> >   [famfs file, offset] -> [offset, length]
+
+More generally, a famfs file extent is [daxdev, offset, len]; there may
+be multiple extents per file, and in the future this definitely needs to
+generalize to multiple daxdev's.
+
+Disclaimer: I'm still coming up to speed on fuse (slowly and ignorantly, 
+I think)...
+
+A single backing device (daxdev) will contain extents of many famfs
+files (plus metadata - currently a superblock and a log). I'm not sure
+it's realistic to have a backing daxdev "open" per famfs file. 
+
+In addition there is:
+
+- struct dax_holder_operations - to allow a notify_failure() upcall
+  from dax. This provides the critical capability to shut down famfs
+  if there are memory errors. This is filesystem- (or technically daxdev-
+  wide)
+
+- The pmem or devdax iomap_ops - to allow the fsdax file system (famfs,
+  and [soon] famfs_fuse) to call dax_iomap_rw() and dax_iomap_fault().
+  I strongly suspect that famfs_fuse can't be correct unless it uses
+  this path rather than just the idea of a single backing file.
+  This interface explicitly supports files that map to disjoint ranges
+  of one or more dax devices.
+
+- the dev_dax_iomap portion of the famfs patchsets adds iomap_ops to
+  character devdax.
+
+- Note that dax devices, unlike files, don't support read/write - only
+  mmap(). I suspect (though I'm still pretty ignorant) that this means
+  we can't just treat the dax device as an extent-based backing file.
+
+
+> >
+> > - fuse can currently map a fuse file onto a backing file:
+> >
+> >   [fuse file] -> [backing file]
+> >
+> > The interface for the latter is
+> >
+> >    backing_id = ioctl(dev_fuse_fd, FUSE_DEV_IOC_BACKING_OPEN, backing_map);
+> > ...
+> >    fuse_open_out.flags |= FOPEN_PASSTHROUGH;
+> >    fuse_open_out.backing_id = backing_id;
+> 
+> FYI, library and example code was recently merged to libfuse:
+> https://github.com/libfuse/libfuse/pull/919
+> 
+> >
+> > This looks suitable for doing the famfs file - > dax device mapping as
+> > well.  I wouldn't extend the ioctl with extent information, since
+> > famfs can just use FUSE_DEV_IOC_BACKING_OPEN once to register the dax
+> > device.  The flags field could be used to tell the kernel to treat
+> > this fd as a dax device instead of a a regular file.
+
+A dax device to famfs is a lot more like a backing device for a "filesystem"
+than a backing file for another file. And, as previously mentioned, there
+is the iomap_ops interface and the holder_ops interface that deal with
+multiple file tenants on a dax device (plus error notification, 
+respectively)
+
+Probably doable, but important distinctions...
+
+> >
+> > Letter, when the file is opened the extent list could be sent in the
+> > open reply together with the backing id.  The fuse_ext_header
+> > mechanism seems suitable for this.
+> >
+> > And I think that's it as far as API's are concerned.
+> >
+> > Note: this is already more generic than the current famfs prototype,
+> > since multiple dax devices could be used as backing for famfs files,
+> > with the constraint that a single file can only map data from a single
+> > dax device.
+> >
+> > As for implementing dax passthrough, I think that needs a separate
+> > source file, the one used by virtiofs (fs/fuse/dax.c) does not appear
+> > to have many commonalities with this one.  That could be renamed to
+> > virtiofs_dax.c as it's pretty much virtiofs specific, AFAICT.
+> >
+> > Comments?
+> 
+> Would probably also need to decouple CONFIG_FUSE_DAX
+> from CONFIG_FUSE_VIRTIO_DAX.
+> 
+> What about fc->dax_mode (i.e. dax= mount option)?
+> 
+> What about FUSE_IS_DAX()? does it apply to both dax implementations?
+> 
+> Sounds like a decent plan.
+> John, let us know if you need help understanding the details.
+
+I'm certain I will need some help, but I'll try to do my part. 
+
+First question: can you suggest an example fuse file pass-through
+file system that I might use as a jumping-off point? Something that
+gets the basic pass-through capability from which to start hacking
+in famfs/dax capabilities?
+
+When I started on famfs, I used ramfs because it got me all the basic
+file system functionality minus a backing store. Then I built the dax
+functionality by referring to xfs. 
+
+> 
+> > Am I missing something significant?
+> 
+> Would we need to set IS_DAX() on inode init time or can we set it
+> later on first file open?
+> 
+> Currently, iomodes enforces that all opens are either
+> mapped to same backing file or none mapped to backing file:
+> 
+> fuse_inode_uncached_io_start()
+> {
+> ...
+>         /* deny conflicting backing files on same fuse inode */
+> 
+> The iomodes rules will need to be amended to verify that:
+> - IS_DAX() inode open is always mapped to backing dax device
+> - All files of the same fuse inode are mapped to the same range
+>   of backing file/dax device.
+
+I'm confused by the last item. I would think there would be a fuse
+inode per famfs file, and that multiple of those would map to separate
+extent lists of one or more backing dax devices.
+
+Or maybe I misunderstand the meaning of "fuse inode". Feel free to
+assign reading...
+
+> 
+> Thanks,
+> Amir.
+
+Thanks Miklos and Amir,
+John
+
+[1] https://lore.kernel.org/linux-fsdevel/cover.1714409084.git.john@groves.net/T/#m3b11e8d311eca80763c7d6f27d43efd1cdba628b
+[2] https://github.com/cxl-micron-reskit/famfs-linux
+
+
