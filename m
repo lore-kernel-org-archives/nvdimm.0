@@ -1,118 +1,120 @@
-Received: from mail-oo1-f48.google.com (mail-oo1-f48.google.com [209.85.161.48])
+Received: from mail-oo1-f51.google.com (mail-oo1-f51.google.com [209.85.161.51])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA3AA13F44F
-	for <nvdimm@lists.linux.dev>; Wed, 22 May 2024 13:41:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 633351852
+	for <nvdimm@lists.linux.dev>; Thu, 23 May 2024 02:49:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716385318; cv=none; b=uSARQbC/VBr55iGQU6nyg2f0dZaKMBKMI/NexQCHOPy5jiwQ4YDgcfEODXYMuKhzlbone0mp8lO5DLcpK1j3jJg4kEvDjU6wBgO7qdLUBdlb+hZqB+/ykTr9XhKRXvhFZkJI7NrlM/TTQYmkYDc0zJYfDuiaHFXB2fnvbqW84Vk=
+	t=1716432573; cv=none; b=RE++p2uxpxEVWSWryqSTYynavrddk0I+Kudl29Re+0vDmYpY4Ad9W9Vj1AcgGIqhZRCSu6yWychefTPvyzRRhHTR0X7Fg8mB+Dv5v7Mf19CO403svCYL0vcYy6ab60VMw+/7eAaQaU+Q5KUvRy4R604xPdiR5v+DwYf8mza5B30=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716385318; c=relaxed/simple;
-	bh=5OlI2c49kc/GH5J/agNRhgbAvOiepAletVFD/jbVaP4=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Rf7PGcqT5XejVkIpLLSg+2umLdznrYHCD3M7XSOhMs77GvooFPO+QfoXW3QwrI7AXUKP4nL9T3QOQ8MKuNhe3hXm5f7RO/54LUpERRXXBiocti9EWqU8sGxhOIymYScKqTw7QFj4+mbuf+sL/JKwMlZNJ7hKgJeuuOFcpbfhytE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=VlT3WQNP; arc=none smtp.client-ip=209.85.161.48
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+	s=arc-20240116; t=1716432573; c=relaxed/simple;
+	bh=SL3rqfkHSw5QxRujDLLLkJv7+VRn3353omQIkm9bpaQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=iheFiQ9bkE8wyA6HFsjkbg21kQlTFH7HT41WmZ7Et+jbrqdSNIBNPTM1QyERQ2eSUlBHne9L5qtXkgWl1JYbJzBz7wnjXCeFuiEG/suaZV7Byqx+SQN2HMDOt2mh4TnffgI8xEZFwvvT4UIPL1SrMHuON4IaZBwEfuy6RsX4oIM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ObTVPb2W; arc=none smtp.client-ip=209.85.161.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=groves.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="VlT3WQNP"
-Received: by mail-oo1-f48.google.com with SMTP id 006d021491bc7-5b27ce83663so2314148eaf.0
-        for <nvdimm@lists.linux.dev>; Wed, 22 May 2024 06:41:56 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ObTVPb2W"
+Received: by mail-oo1-f51.google.com with SMTP id 006d021491bc7-5b27369b0e3so3766498eaf.1
+        for <nvdimm@lists.linux.dev>; Wed, 22 May 2024 19:49:31 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1716385316; x=1716990116; darn=lists.linux.dev;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=meJM/p/T2OemzzcD44JPElMDWWjCdDm6EvOTQof3oOM=;
-        b=VlT3WQNPjcctPG8dnGf52UeITSSAT67WiDiNqjh3Dj+W0T2P8Bj3kSrUMkz78meYHo
-         Jgj9c73cvgdn+yVnmBEF940HQe06S4IA6GaQBbeMXMefNQhkrrNzGOF+xVCAeQb40qj4
-         zRfVE0/5YmJ08wRoJDLCvd55MqNrKAoBNZ+9oi2ffYxSU0iyI/dzKRoZOYmFYekec5hm
-         VQM9j2DmLAK2pWnIyaKy8cT4FiSMGOlMQgDZ/+RSTcQs0/IUa9h51p6vj3GD9wfeTVV+
-         ub/nJTN3lRROJbwrIB0njCYk+MoVl0pC9LhFv/IoL3EBLQm5yBIgZSq8uWRSWa2Hmcyb
-         o7Yw==
+        d=gmail.com; s=20230601; t=1716432570; x=1717037370; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:sender:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=nAW4PBEZpqdUqGs1sPsnAjNoBP69IHzEf0qSsxT3opw=;
+        b=ObTVPb2W4kvPsGFNMWzU+mC746qfqwIQK8G9YvUyRN7EffD50JK0V3afZLSnkslvbV
+         Za4GZyUvNpVg3KQeuB7/09KWmXT06uofj42uYrj8yvlIG0LDzp9hiR/eQVRbiMuV3CrU
+         0NWj75OjAm5CzQQsA12BhBy4YYTWF6TPqW9j3m9Cp/7bM+4ko70D3d0leY4ZoKiaLLW6
+         Txnmp+vG8luBAOauWaQGMSD19uxUECEIgam7Yp9ukaf94BFCRgPpvvbBINoQzyM0OuwP
+         VI9vkL/+SIbviqqAL0poNRYFG+012d2n2NGMIM5oUU3Io74PwMmTiOlX2IBb9NrdZec1
+         Ft/A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1716385316; x=1716990116;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+        d=1e100.net; s=20230601; t=1716432570; x=1717037370;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:sender:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=meJM/p/T2OemzzcD44JPElMDWWjCdDm6EvOTQof3oOM=;
-        b=d1uxTL1TQdcnAVlrDvxHEYkaKQEFPxA2sfbpLJqLZa5IenpCSf+dZ6hqZNSjPLbZRH
-         D7lpAK+7Yf4hxrD42dX5E4i2jOKjj+gitcHThSxbltF/g0Pbhmyj14sqm1tkzLZKQt33
-         WEOeBeHgBzNXKe3oo9Kwk8HXqJDkayynUT5UCYabniuShKN6lPIupd5ZrB6xVzQFepA2
-         taOV4k82YWTup44HcQ2b+ZMyG7um9u/sfXLS7a+OVO7r+3tCKemKNYb2w71JrUgovhGE
-         6Gr+OM7y/L7T5s80jwD2tOEJ0UPM+tga0foCKb3cC1fbWVOsSEwHSdpxGg+1QTKyYGNS
-         KZBQ==
-X-Forwarded-Encrypted: i=1; AJvYcCUz3w+jzq2y+iA5JfagbPohX516tjoNErdIo+hHIU8PgqO5a1AhOo3knl29pHNwVrmInt8vCaYGesNR/V6tLHzOesEPYjK9
-X-Gm-Message-State: AOJu0YzDJ/m7oLIhhZpRgsNj0r+6kTsV/jKKqjehGeYyp671CoiXSQTN
-	hDaDBNWTC9LHfMpaDnVoq8Ar4NzCnvhNwlnYYszNd30O8j00NeIBPA2jA1aXpzCVPUmTa4kvZtE
-	+FW83LJGGBZ8asyrhvgOxFT74Qtc=
-X-Google-Smtp-Source: AGHT+IEJMItiavZC96OOn694KUn/rrJ28jg1RiM7DNQeS56X90KqY7Ko5SU2xqiymo9ES/uF8rC4UK0QhSRV4d/M7TE=
-X-Received: by 2002:a05:6358:2826:b0:186:1abe:611e with SMTP id
- e5c5f4694b2df-19791ddd866mr159774755d.30.1716385315608; Wed, 22 May 2024
- 06:41:55 -0700 (PDT)
+        bh=nAW4PBEZpqdUqGs1sPsnAjNoBP69IHzEf0qSsxT3opw=;
+        b=nFo6pcZYdKwRg3ZD/CFcZcEYJvnR0XpB+d1cD1l0Yu5/SWdKsZeRhNQI9eVHSLCyzB
+         xJLdgYJyl0PuivqpwOGMKyWZUC3WOkBjMCWYNSAHTgVl0HZHorUqQjfiibAlCGPFdsVc
+         cEyBsqbFdEZbrNQSUJf33C2g97KsXf3f6uOzRcDfkhVEHgEuSYVdXoHXuWEDZ9EJ8eiW
+         DjfQt2Ee5J2RKxdE18hdhPVXWIyDmq6nMR+oGXYaQicAQhbreDjckq9aJ2efVCzRkd/z
+         T4H7zXAoRpbOIA/ggyYpCfAhC3U7yiDLKXslU9ZMwRRGiazSpzkNxBqFw+uxXY8AtpBS
+         V4NQ==
+X-Forwarded-Encrypted: i=1; AJvYcCVZzmVk65Wg2QzwV1FRAPESa/xoE5gveYo7MRvhc4CFYoAC6RdFOmb0+8Zdmjr9xAc2o+8DB9UlHcSrxYVNqhGfCJu4Mqoi
+X-Gm-Message-State: AOJu0YxDf/mueq0NCD313GH0/evmGjSyqqToshPmLwu8rNinKoT3cgMD
+	gzmibSbq35pbujv3eQZ98CDALKs3wlljAGY4Dym6k/xpH1K2WLM/
+X-Google-Smtp-Source: AGHT+IFZM4618nFwqVkK9hEvO7dFkY2TwgL+KO3fo91K9CM4WoqimHvtumIPolCf2ZrznSU8xU8dog==
+X-Received: by 2002:a05:6820:618:b0:5b2:ff69:97c3 with SMTP id 006d021491bc7-5b6a0c0eb82mr3862417eaf.2.1716432570365;
+        Wed, 22 May 2024 19:49:30 -0700 (PDT)
+Received: from Borg-10.local (syn-070-114-203-196.res.spectrum.com. [70.114.203.196])
+        by smtp.gmail.com with ESMTPSA id 006d021491bc7-5b5158a3bffsm2194203eaf.28.2024.05.22.19.49.28
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 22 May 2024 19:49:29 -0700 (PDT)
+Sender: John Groves <grovesaustin@gmail.com>
+Date: Wed, 22 May 2024 21:49:28 -0500
+From: John Groves <John@groves.net>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Amir Goldstein <amir73il@gmail.com>, John Groves <jgroves@micron.com>, 
+	Jonathan Corbet <corbet@lwn.net>, Dan Williams <dan.j.williams@intel.com>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, 
+	Matthew Wilcox <willy@infradead.org>, linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, 
+	john@jagalactic.com, Dave Chinner <david@fromorbit.com>, 
+	Christoph Hellwig <hch@infradead.org>, dave.hansen@linux.intel.com, gregory.price@memverge.com, 
+	Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [RFC PATCH 00/20] Introduce the famfs shared-memory file system
+Message-ID: <l2zbsuyxzwcozrozzk2ywem7beafmidzp545knnrnkxlqxd73u@itmqyy4ao43i>
+References: <cover.1708709155.git.john@groves.net>
+ <CAOQ4uxiPc5ciD_zm3jp5sVQaP4ndb40mApw5hx2DL+8BZNd==A@mail.gmail.com>
+ <CAJfpegv8XzFvty_x00UehUQxw9ai8BytvGNXE8SL03zfsTN6ag@mail.gmail.com>
+ <CAOQ4uxg9WyQ_Ayh7Za_PJ2u_h-ncVUafm5NZqT_dt4oHBMkFQg@mail.gmail.com>
+ <kejfka5wyedm76eofoziluzl7pq3prys2utvespsiqzs3uxgom@66z2vs4pe22v>
+ <CAJfpegvQefgKOKMWC8qGTDAY=qRmxPvWkg2QKzNUiag1+q5L+Q@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <cover.1708709155.git.john@groves.net> <CAOQ4uxiPc5ciD_zm3jp5sVQaP4ndb40mApw5hx2DL+8BZNd==A@mail.gmail.com>
- <CAJfpegv8XzFvty_x00UehUQxw9ai8BytvGNXE8SL03zfsTN6ag@mail.gmail.com>
- <CAOQ4uxg9WyQ_Ayh7Za_PJ2u_h-ncVUafm5NZqT_dt4oHBMkFQg@mail.gmail.com>
- <kejfka5wyedm76eofoziluzl7pq3prys2utvespsiqzs3uxgom@66z2vs4pe22v>
- <CAJfpegvQefgKOKMWC8qGTDAY=qRmxPvWkg2QKzNUiag1+q5L+Q@mail.gmail.com>
- <CAOQ4uxiY-qHSssaX82_LmFdjp5=mqgAhGgbkjAPSXcZ+yRecKw@mail.gmail.com> <CAJfpegvAuPtKzR1A4GdaZTB_EDqPu53wUf97D1QOUo9VKkTV9Q@mail.gmail.com>
-In-Reply-To: <CAJfpegvAuPtKzR1A4GdaZTB_EDqPu53wUf97D1QOUo9VKkTV9Q@mail.gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Wed, 22 May 2024 16:41:43 +0300
-Message-ID: <CAOQ4uxhNWLQQ+mUED18-4Vi7XJv2hGJJ3_j1Yx+wtLZjZaX5eA@mail.gmail.com>
-Subject: Re: [RFC PATCH 00/20] Introduce the famfs shared-memory file system
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: John Groves <John@groves.net>, John Groves <jgroves@micron.com>, 
-	Jonathan Corbet <corbet@lwn.net>, Dan Williams <dan.j.williams@intel.com>, 
-	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, 
-	Matthew Wilcox <willy@infradead.org>, linux-cxl@vger.kernel.org, 
-	linux-fsdevel@vger.kernel.org, linux-doc@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, john@jagalactic.com, 
-	Dave Chinner <david@fromorbit.com>, Christoph Hellwig <hch@infradead.org>, dave.hansen@linux.intel.com, 
-	gregory.price@memverge.com, Vivek Goyal <vgoyal@redhat.com>, 
-	Bernd Schubert <bernd.schubert@fastmail.fm>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAJfpegvQefgKOKMWC8qGTDAY=qRmxPvWkg2QKzNUiag1+q5L+Q@mail.gmail.com>
 
-On Wed, May 22, 2024 at 2:28=E2=80=AFPM Miklos Szeredi <miklos@szeredi.hu> =
-wrote:
->
-> On Wed, 22 May 2024 at 12:16, Amir Goldstein <amir73il@gmail.com> wrote:
->
-> > The first open would cache the extent list in fuse_inode and
-> > second open would verify that the extent list matches.
-> >
-> > Last file close could clean the cache extent list or not - that
-> > is an API decision.
->
-> Well, current API clears the mapping, and I would treat the fi->fb as
-> a just a special case of the extent list.  So by default I'd keep this
-> behavior, but perhaps it would make sense to optionally allow the
-> mapping to remain after the last close.  For now this is probably not
-> relevant...
+On 24/05/22 10:58AM, Miklos Szeredi wrote:
+> On Wed, 22 May 2024 at 04:05, John Groves <John@groves.net> wrote:
+> > I'm happy to help with that if you care - ping me if so; getting a VM running
+> > in EFI mode is not necessary if you reserve the dax memory via memmap=, or
+> > via libvirt xml.
+> 
+> Could you please give an example?
+> 
+> I use a raw qemu command line with a -kernel option and a root fs
+> image (not a disk image with a bootloader).
 
-Already in the works ;)
+That's not the way I'm running VMs, but... I presume you know how to add
+kernel command line arguments to VMs that you run this way?
 
-Not tested - probably not working POC:
-https://github.com/amir73il/linux/commits/fuse-backing-inode-wip
+- memmap=<size>!<hpa_offset> will reserve a pretend pmem device at <hpa_offset>
+- memmap=<size>$<hpa_offset> will reserve a pretend dax device at <hpa_offset>
 
-I am trying an API to opt into inode operation passthrough, which
-has a by-product of keeping fi->fb around after last close.
+Both of the above will work regardless of whether the VM is in EFI mode.
+The '$' is harder to escape through grub; and the pmem device can be converted
+to devdax via 'ndctl reconfigure-device --mode=devdax...'. A dax device would
+likely also need to be put in devdax mode (as the default seems to be 
+system-ram mode).  
 
-This is designed to be setup on lookup, but could also be setup on
-first open.
+Incomplete documentation (that you have probably already seen) is at [1]
 
-I have some ideas for how to return backing id with lookup
-(and readdirplus) response, but haven't tried them yet.
-But setup backing file from lookup response will surely
-stick around until inode evict.
+I can dig deeper if needed.
 
-Thanks,
-Amir.
+Otherwise the feedback in this thread makes sense to me and I'm planning to 
+start hacking on famfs patches Thursday. Watch this space ;)
+
+Regards,
+John
+
+[1] https://github.com/cxl-micron-reskit/famfs/blob/master/markdown/vm-configuration.md
+
