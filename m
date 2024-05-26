@@ -1,128 +1,104 @@
-Received: from mail-pl1-f180.google.com (mail-pl1-f180.google.com [209.85.214.180])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0b-0031df01.pphosted.com (mx0b-0031df01.pphosted.com [205.220.180.131])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06F7E2555B
-	for <nvdimm@lists.linux.dev>; Sat, 25 May 2024 22:54:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.180
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A7561773D;
+	Sun, 26 May 2024 15:52:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.180.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716677692; cv=none; b=uVseuOOAvxM2OKpIzNbgLVOySXUAfDdhSaGIWaicTaZluLWyE4SQVwfOo1uNUCGZ8zpGjpFx7iw//pS04MTC/54UU67ZSHfzmQxPLBeB3K5yqe9RaJN73OdYWjNh/X51NyRSmOchMb/O2LTakpewMIMDrFUovkXOyLTDnTWYSuM=
+	t=1716738771; cv=none; b=oI/Fg5uTONfktlRmx5ahAhcoMSixfUb4n1ZR7uWoIpKSTmZ8Mk/mdgq6syqG0ZJ9mSvfntwSjlP+0N3Fm7/+azJRzpuiuoP5j9UQd5KwsNevTj4PR87pnJWxLzpK6Sh6PRbKFEzsSu+2BB4ObspOQXiQVZ2N5hMxOrru6u3B66Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716677692; c=relaxed/simple;
-	bh=2So4wsJ4xPrDNuBQCitTz9SGIXIJfHFTKO8rs9jyN9g=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Cw+jAzAwe5EV9xXchvfNrKO2mjWp7Xhd6dBv8Tjf3/wOwAfy7Zsp72ZL2CMI6D4VXuh8pdw/If8qhIpbJyk7z4aQFzM8NoU8wrcUYnoCwKoPvOTp/x8aSw/RGlEM56yfcBlooPvaQ/5Y0ymBjfB+SBRzVyz4uTtl3bDpeBrBhis=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fromorbit.com; spf=pass smtp.mailfrom=fromorbit.com; dkim=pass (2048-bit key) header.d=fromorbit-com.20230601.gappssmtp.com header.i=@fromorbit-com.20230601.gappssmtp.com header.b=PKH5BXit; arc=none smtp.client-ip=209.85.214.180
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fromorbit.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fromorbit.com
+	s=arc-20240116; t=1716738771; c=relaxed/simple;
+	bh=UpVOttyA/UnQTEE5Cc1EgmophjwkU+XEArMRL6occfA=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-ID:To:CC; b=gua4Gn6Vb3GjNby7AvqdVHIpy0EDwvw4pXuUKaXp90fqGar6IpfkbPWeTu/UUHMmC9XFJpq8+UNxTFLHm+HPBMc4G/4prI8j2riwPSUSCxsMrHeXiClcEEtlnEeTpbURsUTp09YQoWL+GOSOnzE9NL1RbXq8E5D27VJX10pwzQg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=quicinc.com; spf=pass smtp.mailfrom=quicinc.com; dkim=pass (2048-bit key) header.d=quicinc.com header.i=@quicinc.com header.b=D/6+JF2c; arc=none smtp.client-ip=205.220.180.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=quicinc.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=quicinc.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fromorbit-com.20230601.gappssmtp.com header.i=@fromorbit-com.20230601.gappssmtp.com header.b="PKH5BXit"
-Received: by mail-pl1-f180.google.com with SMTP id d9443c01a7336-1f44b5b9de6so15082255ad.3
-        for <nvdimm@lists.linux.dev>; Sat, 25 May 2024 15:54:50 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=fromorbit-com.20230601.gappssmtp.com; s=20230601; t=1716677690; x=1717282490; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=weBCb6P6ludBpc7zn9AlObj/fNR5H8QjdFVNqQ+luR8=;
-        b=PKH5BXitVy3JuMjzCB/l+C6uW4QCdn0TcuQvJXbz4CNyGWPH1nrbh8OD+EgnEiinNE
-         TyrmMIXAbKiC3+lNLNPRtklxiEwbECiaECVQeWlrf5PIVsjEQqK86vdpSqu7VC/5EBqn
-         I8dxGBd/rZWs+dM1oGH12Tf250JYJHe9sA9tXqBbwEHWS6PN9B0wbDLdsGYxjjaSfksX
-         8NbRxrp2TElYzO9oEQCsi+Ekix0uCFT7VpLcihAsD1UVzg+sLiPHFzH92X/l4RGFkmp2
-         kuihgkmb86z/eld1G4tdxqixtKtiyaTCPgAk5X9qtMYPKF48A7BmTmoUzA/b2aYFwtAV
-         g5jA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1716677690; x=1717282490;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=weBCb6P6ludBpc7zn9AlObj/fNR5H8QjdFVNqQ+luR8=;
-        b=KYbYGvtZxIyuJuB8+SuQdCojMqfmWzuwOUSKC5XCtot7f0lm8Mhw1ckPnVJnepAALZ
-         MltVO35faybbi42TWk24CNllerZKHDMItvAJXYivOtY8A0808gHusn8XrrMRthY9NlPx
-         +BZOteevqvqU35+0gIxEzAuUkBbtaYgrNnqLksuHRmvPi7hfzWUn7dczjULgGFoMYs/t
-         aJogG/cnaZCkfUmXZHXbIVgtxODO+s1GUtIkIzcAHkpbZInKY3TLmvcX1A8Rn+ckw2fD
-         xKuSTlE9xR2FeU+xuRr1UsjJTj08EIvQQAA121UPFO9LsG51d19dM2pytmJHPeiKjTeH
-         rLHw==
-X-Forwarded-Encrypted: i=1; AJvYcCX8bew1VOG8k9q0rI2Y69Uz6ibRC9NyNT/eEtKnn3O3NQF6gE5ak+6OXdTpQLGZFuXz31+IF5D7oVU1RmV87ejKFed5cW+u
-X-Gm-Message-State: AOJu0Yz2lrCn8jebt2ldmVNSZ+VyKG++XZ2SReDQG+WE5OSCsm502SgB
-	AXTabMYY2YYSO5HUeHDVthE8hsgCFUJRsGFPnDcW6c0UYjBPqo4vtgR3Dyczkm52SljBphSiSJ1
-	I
-X-Google-Smtp-Source: AGHT+IG/lHGnCD9oi3Dn5lyNWSi2pcasUq9NKxmb3YkVSCkUNu19nH/tHbTv71gxdU7NicaDyWz0tQ==
-X-Received: by 2002:a17:903:2447:b0:1f2:f8b7:60d4 with SMTP id d9443c01a7336-1f4497daf6cmr66964375ad.52.1716677689821;
-        Sat, 25 May 2024 15:54:49 -0700 (PDT)
-Received: from dread.disaster.area (pa49-179-32-121.pa.nsw.optusnet.com.au. [49.179.32.121])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-1f44c967a62sm34768845ad.120.2024.05.25.15.54.49
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 25 May 2024 15:54:49 -0700 (PDT)
-Received: from dave by dread.disaster.area with local (Exim 4.96)
-	(envelope-from <david@fromorbit.com>)
-	id 1sB0Hm-00AU4L-21;
-	Sun, 26 May 2024 08:54:46 +1000
-Date: Sun, 26 May 2024 08:54:46 +1000
-From: Dave Chinner <david@fromorbit.com>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: John Groves <John@groves.net>, linux-cxl@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
-	nvdimm@lists.linux.dev
-Subject: Re: [RFC PATCH 00/20] Introduce the famfs shared-memory file system
-Message-ID: <ZlJsNir3mBUK0Ofb@dread.disaster.area>
-References: <cover.1708709155.git.john@groves.net>
- <CAOQ4uxiPc5ciD_zm3jp5sVQaP4ndb40mApw5hx2DL+8BZNd==A@mail.gmail.com>
- <CAJfpegv8XzFvty_x00UehUQxw9ai8BytvGNXE8SL03zfsTN6ag@mail.gmail.com>
- <CAOQ4uxg9WyQ_Ayh7Za_PJ2u_h-ncVUafm5NZqT_dt4oHBMkFQg@mail.gmail.com>
- <kejfka5wyedm76eofoziluzl7pq3prys2utvespsiqzs3uxgom@66z2vs4pe22v>
- <CAJfpegvQefgKOKMWC8qGTDAY=qRmxPvWkg2QKzNUiag1+q5L+Q@mail.gmail.com>
- <l2zbsuyxzwcozrozzk2ywem7beafmidzp545knnrnkxlqxd73u@itmqyy4ao43i>
- <CAJfpegsr-5MU-S4obTsu89=SazuG8zXmO6ymrjn5_BLofSRXdg@mail.gmail.com>
- <sq6fbx5jpzkjw43wyr7zmfnvcw45ah5f4vtz6wtanjai3t4cvk@awxlk72xzzkm>
- <CAJfpeguLoO9ZfmJyqSO-Bma+cTyLaz9rDLv-mtfeNa1qGBww+A@mail.gmail.com>
+	dkim=pass (2048-bit key) header.d=quicinc.com header.i=@quicinc.com header.b="D/6+JF2c"
+Received: from pps.filterd (m0279868.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 44QFhG6P026382;
+	Sun, 26 May 2024 15:52:39 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=quicinc.com; h=
+	cc:content-transfer-encoding:content-type:date:from:message-id
+	:mime-version:subject:to; s=qcppdkim1; bh=oS6Fr4nqr96rPUiETgcOjA
+	Wzr7B2lqg1ufTni7x5aIs=; b=D/6+JF2crLdd/oVHsI+WrPzjngdmFyQn6rzxzs
+	kcUs/WJ7ZZdbmiR6yljILG6EJd22g3Qkgrswfx+VTtZcSiEGd6uhz2ZJoRKM8Wpk
+	32r5aaBCakg2tuN4bhQjGLaPSs7ymnOW3Yq6F4BftImq1MOT9jBw5/IvVmxqdV7w
+	twPaauSjbF5o/0R/ZX5Z6ZPp+28TEjHls6CX4GyVqUlqSe53CVahnSFFAoeuTXDb
+	HbQ5BxxbdQe6ns5SsGsywgBtPpy7EPukoxfEEfI3gooy0eBcrTCyjttX85+uzl9U
+	WcYWGNMgHp8sr7lggblrwmyPajw8+lTXosd5pTJuhjln7xkg==
+Received: from nalasppmta04.qualcomm.com (Global_NAT1.qualcomm.com [129.46.96.20])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 3yba0q9vna-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Sun, 26 May 2024 15:52:39 +0000 (GMT)
+Received: from nalasex01a.na.qualcomm.com (nalasex01a.na.qualcomm.com [10.47.209.196])
+	by NALASPPMTA04.qualcomm.com (8.17.1.5/8.17.1.5) with ESMTPS id 44QFqbAK006008
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Sun, 26 May 2024 15:52:37 GMT
+Received: from [169.254.0.1] (10.49.16.6) by nalasex01a.na.qualcomm.com
+ (10.47.209.196) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.9; Sun, 26 May
+ 2024 08:52:37 -0700
+From: Jeff Johnson <quic_jjohnson@quicinc.com>
+Date: Sun, 26 May 2024 08:52:36 -0700
+Subject: [PATCH] testing: nvdimm: iomap: add MODULE_DESCRIPTION()
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAJfpeguLoO9ZfmJyqSO-Bma+cTyLaz9rDLv-mtfeNa1qGBww+A@mail.gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-ID: <20240526-md-testing-nvdimm-v1-1-f8b617bb28e1@quicinc.com>
+X-B4-Tracking: v=1; b=H4sIAMNaU2YC/x3MQQqDMBCF4avIrDuQBhtpr1K6SMyoA81UMlEs4
+ t2buvzgvX8Hpcyk8Gh2yLSy8kcqrpcG+snLSMixGqyxrblZhyliIS0sI8oaOSU0NtxbY13XeQf
+ 1N2caeDubz1d18EoYspd++pfeLMuGyWuhjPO3TuE4fhl5c86IAAAA
+To: Dan Williams <dan.j.williams@intel.com>,
+        Vishal Verma
+	<vishal.l.verma@intel.com>,
+        Dave Jiang <dave.jiang@intel.com>, Ira Weiny
+	<ira.weiny@intel.com>
+CC: <nvdimm@lists.linux.dev>, <kernel-janitors@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>,
+        Jeff Johnson <quic_jjohnson@quicinc.com>
+X-Mailer: b4 0.13.0
+X-ClientProxiedBy: nalasex01a.na.qualcomm.com (10.47.209.196) To
+ nalasex01a.na.qualcomm.com (10.47.209.196)
+X-QCInternal: smtphost
+X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=5800 signatures=585085
+X-Proofpoint-GUID: TMT595saEGXmjn2yA6wAmQlln5f7iZTU
+X-Proofpoint-ORIG-GUID: TMT595saEGXmjn2yA6wAmQlln5f7iZTU
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1039,Hydra:6.0.650,FMLib:17.12.28.16
+ definitions=2024-05-26_09,2024-05-24_01,2024-05-17_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
+ suspectscore=0 lowpriorityscore=0 impostorscore=0 clxscore=1011 mlxscore=0
+ mlxlogscore=999 malwarescore=0 spamscore=0 adultscore=0 bulkscore=0
+ phishscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.19.0-2405170001 definitions=main-2405260132
 
-On Fri, May 24, 2024 at 09:55:48AM +0200, Miklos Szeredi wrote:
-> On Fri, 24 May 2024 at 02:47, John Groves <John@groves.net> wrote:
-> 
-> > Apologies, but I'm short on time at the moment - going into a long holiday
-> > weekend in the US with family plans. I should be focused again by middle of
-> > next week.
-> 
-> NP.
-> 
-> Obviously I'll need to test it before anything is merged, other than
-> that this is not urgent at all...
-> 
-> > But can you check /proc/cmdline to see of the memmap arg got through without
-> > getting mangled? The '$' tends to get fubar'd. You might need \$, or I've seen
-> > the need for \\\$. If it's un-mangled, there should be a dax device.
-> 
-> /proc/cmdline shows the option correctly:
-> 
-> root@kvm:~# cat /proc/cmdline
-> root=/dev/vda console=hvc0 memmap=4G$4G
-> 
-> > If that doesn't work, it's worth trying '!' instead, which I think would give
-> > you a pmem device - if the arg gets through (but ! is less likely to get
-> > horked). That pmem device can be converted to devdax...
-> 
-> That doesn't work either.  No device created in /dev  (dax or pmem).
+Fix the 'make W=1' warning:
 
-I think you need to do some ndctl magic to get the memory to be
-namespaced correctly for the correct devices to appear.
+WARNING: modpost: missing MODULE_DESCRIPTION() in drivers/nvdimm/../../tools/testing/nvdimm/test/iomap.o
 
-https://docs.pmem.io/ndctl-user-guide/managing-namespaces
+Signed-off-by: Jeff Johnson <quic_jjohnson@quicinc.com>
+---
+ tools/testing/nvdimm/test/iomap.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-IIRC, need to set the type to pmem and the mode to fsdax, devdax or
-raw to get the relevant device nodes to be created for the range..
+diff --git a/tools/testing/nvdimm/test/iomap.c b/tools/testing/nvdimm/test/iomap.c
+index ea956082e6a4..e4313726fae3 100644
+--- a/tools/testing/nvdimm/test/iomap.c
++++ b/tools/testing/nvdimm/test/iomap.c
+@@ -407,4 +407,5 @@ union acpi_object * __wrap_acpi_evaluate_dsm(acpi_handle handle, const guid_t *g
+ }
+ EXPORT_SYMBOL(__wrap_acpi_evaluate_dsm);
+ 
++MODULE_DESCRIPTION("NVDIMM unit test");
+ MODULE_LICENSE("GPL v2");
 
-Cheers,
+---
+base-commit: 416ff45264d50a983c3c0b99f0da6ee59f9acd68
+change-id: 20240526-md-testing-nvdimm-02b9402677a6
 
-Dave.
-
--- 
-Dave Chinner
-david@fromorbit.com
