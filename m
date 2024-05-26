@@ -1,47 +1,47 @@
-Received: from mx0b-0031df01.pphosted.com (mx0b-0031df01.pphosted.com [205.220.180.131])
+Received: from mx0a-0031df01.pphosted.com (mx0a-0031df01.pphosted.com [205.220.168.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 46A2128DDE;
-	Sun, 26 May 2024 17:07:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.180.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2A501B95E;
+	Sun, 26 May 2024 17:15:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.168.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716743258; cv=none; b=kYT4upp5X9u4IpodQ8l/m0MBaZQwa4wIvudD3kzSjZjSvxzLS+6CjJ7HKOad6n95+Ew7igNg4Kl6Q816mJrpvhWA8+aaD3Ej1GOCaRzcpaeWc2Fv2ZSVn7vqC9gIBh0popzR7P+s8icDicucAGIN9ZpxieGUI+94ypo9Jt6ZEtw=
+	t=1716743761; cv=none; b=rPMr+ilyuJIH/f/3C8H4QdI40Sqoqbd5B3wKDph5+eoKtV54k25UIg/UvLVCE0RdRziG+eOXF8IBaPcNGmWD65i/tzLKmNdrrSPvRLOfhUD4qjcEyJEPVfZaGs/Jlras6rgHeoSawY2jImsdT9QA/S/aJYL5+jdHMhU9XIpq8AU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716743258; c=relaxed/simple;
-	bh=hxoW3Kn3MKnBimztu85BpWWg9u80itLmHJRcJL6h2l0=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-ID:To:CC; b=aO2kJpTJ6CowpMUTN1rkoXucB1nQagjs9mBGlOfQOvGzjgF+lmg5mZUY99YrzMfM9cUeCrFpJGawfFFm147kom+D+9xBJjtWkBLeFpDU8vWplIcf4nauqx3kQdwUtH5uuXRL/OukN1AUPJpwS04wuJUp41AqU6UU/TUrjYVj3lA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=quicinc.com; spf=pass smtp.mailfrom=quicinc.com; dkim=pass (2048-bit key) header.d=quicinc.com header.i=@quicinc.com header.b=HES0OK7M; arc=none smtp.client-ip=205.220.180.131
+	s=arc-20240116; t=1716743761; c=relaxed/simple;
+	bh=/4ROlZVtEZ2RXNVpfjWNo6guPp1ygtURhdmzW9MtTd8=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-ID:To:CC; b=B3j7QKX4nb0wlscN+FFPwbuONZzKPkbUPMmPHhLYas+ieHPd6Ght6M6ANv8eDCltguLwrybd1g8KtgSHBfKO8+e15Zh7qcKYP0ZGzBv9ZfJAsIM6QXgRpbk04hw+OEPKjdsFwr3iM4U9Pq6zjMh7/Ud+XFZhT9obpR9cdV1L1lI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=quicinc.com; spf=pass smtp.mailfrom=quicinc.com; dkim=pass (2048-bit key) header.d=quicinc.com header.i=@quicinc.com header.b=TislT03C; arc=none smtp.client-ip=205.220.168.131
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=quicinc.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=quicinc.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=quicinc.com header.i=@quicinc.com header.b="HES0OK7M"
-Received: from pps.filterd (m0279872.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 44QFjBD6022281;
-	Sun, 26 May 2024 17:07:32 GMT
+	dkim=pass (2048-bit key) header.d=quicinc.com header.i=@quicinc.com header.b="TislT03C"
+Received: from pps.filterd (m0279862.ppops.net [127.0.0.1])
+	by mx0a-0031df01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 44QFLp6a004265;
+	Sun, 26 May 2024 16:32:38 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=quicinc.com; h=
 	cc:content-transfer-encoding:content-type:date:from:message-id
-	:mime-version:subject:to; s=qcppdkim1; bh=V4fX5gJh5P/aHniROdlCAZ
-	7TnAdEiZ5wFqy4XPPe5lg=; b=HES0OK7MnY70VHiSDJ6EiayJwij6b9MUdYDY1w
-	tiPLVUGx3SmOOVrkH0vSkcXza2A3QeRl99VPrrO1GWDlxfPTEqYFQXofAdyFYHyR
-	YkVE7jX/sNMeJe0IhrBkDyrmvIa1GQSaE7XY1H8GovlEyf3O1re1NnYhAICGZxIc
-	eLfyslLS53r6G9vXssTD69RF3bnn5jhj62HjgOo+5GZtqyNJbK3wKiyzr8mC05ei
-	gAYs/+fP0yGlSlQZdoc/w0rnNj7Whei8YjcSvoeCx+pnjkwnH04wm2TjxHTLObot
-	roh52r3B1FdlwLEz5JCAs4NbJWyJeLpeQ8SLLGfMLWD7YXgg==
-Received: from nalasppmta02.qualcomm.com (Global_NAT1.qualcomm.com [129.46.96.20])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 3yb9yj1y26-1
+	:mime-version:subject:to; s=qcppdkim1; bh=c01MyCAuUIjK4BKKwaVniW
+	6vmGJmR2W/cCTSrCDG2Qc=; b=TislT03CbRszEneV2AMw/WzSnAybRDh2sGX3Gz
+	6fi2UPCwR//eGyFfRpO2FstbuhlWdgUWjOGYlNABRmPUN6JTx9OMcghHGUFbfZx3
+	lOy6pTR7KQ1VtJWswnCadCZMTlt/nrq0NYQV5PyOqZKFtwby+g6dnOhNFXXst2gv
+	hG0eJjWj1Kc35XEKBxfbfGXDiGRHfBdxraJV4kOM1PFw3xkfbkxkusELTxYnATFv
+	/5FLEL2Gwvy7yDm15QxgyQRg+ZsmNEKK8sXTEFYxu6mM5RIejJPVq12hLx8V/o/u
+	b9LVTQpWuON4R/KNuzv6ALduoyzZcjEWtSxW7+nj6SbKHYtw==
+Received: from nalasppmta03.qualcomm.com (Global_NAT1.qualcomm.com [129.46.96.20])
+	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 3yba2h1wtc-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Sun, 26 May 2024 17:07:31 +0000 (GMT)
+	Sun, 26 May 2024 16:32:37 +0000 (GMT)
 Received: from nalasex01a.na.qualcomm.com (nalasex01a.na.qualcomm.com [10.47.209.196])
-	by NALASPPMTA02.qualcomm.com (8.17.1.5/8.17.1.5) with ESMTPS id 44QH7UYq027234
+	by NALASPPMTA03.qualcomm.com (8.17.1.5/8.17.1.5) with ESMTPS id 44QGWZfq009333
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Sun, 26 May 2024 17:07:30 GMT
+	Sun, 26 May 2024 16:32:35 GMT
 Received: from [169.254.0.1] (10.49.16.6) by nalasex01a.na.qualcomm.com
  (10.47.209.196) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.9; Sun, 26 May
- 2024 10:07:29 -0700
+ 2024 09:32:35 -0700
 From: Jeff Johnson <quic_jjohnson@quicinc.com>
-Date: Sun, 26 May 2024 10:07:14 -0700
-Subject: [PATCH RESEND] nvdimm: add missing MODULE_DESCRIPTION() macros
+Date: Sun, 26 May 2024 09:32:34 -0700
+Subject: [PATCH] nvdimm: add missing MODULE_DESCRIPTION() macros
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -50,7 +50,10 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-ID: <20240526-md-drivers-nvdimm-v1-1-9e583677e80f@quicinc.com>
+Message-ID: <20240526-md-drivers-nvdimm-v1-1-172e682e76bd@quicinc.com>
+X-B4-Tracking: v=1; b=H4sIACFkU2YC/x2MQQrCQAxFr1KyNtCOraBXERczndQGnFgSHSqld
+ zfKXz34721gpEwGl2YDpcrGT3HoDg2Mc5Q7IWdnCG3o2yGcsGTMypXUUGrmUrALviH26XycwL1
+ FaeL137zenFM0wqRRxvlXerC8VyzRXqS4fPwK+/4FsiXaNYgAAAA=
 To: Vishal Verma <vishal.l.verma@intel.com>,
         Dan Williams
 	<dan.j.williams@intel.com>,
@@ -68,16 +71,16 @@ X-ClientProxiedBy: nalasex01a.na.qualcomm.com (10.47.209.196) To
  nalasex01a.na.qualcomm.com (10.47.209.196)
 X-QCInternal: smtphost
 X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=5800 signatures=585085
-X-Proofpoint-GUID: pwAobQ48h3riGq2VnMimZ0bXkfsvRBqd
-X-Proofpoint-ORIG-GUID: pwAobQ48h3riGq2VnMimZ0bXkfsvRBqd
+X-Proofpoint-GUID: 6Hm4CDEG56hvzj2sEc_C21fa5BEB-zC9
+X-Proofpoint-ORIG-GUID: 6Hm4CDEG56hvzj2sEc_C21fa5BEB-zC9
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.293,Aquarius:18.0.1039,Hydra:6.0.650,FMLib:17.12.28.16
  definitions=2024-05-26_09,2024-05-24_01,2024-05-17_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
- adultscore=0 mlxscore=0 phishscore=0 mlxlogscore=999 spamscore=0
- clxscore=1015 impostorscore=0 bulkscore=0 suspectscore=0 malwarescore=0
- lowpriorityscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.19.0-2405170001 definitions=main-2405260143
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 clxscore=1011 adultscore=0
+ malwarescore=0 priorityscore=1501 impostorscore=0 suspectscore=0
+ phishscore=0 bulkscore=0 mlxscore=0 lowpriorityscore=0 spamscore=0
+ mlxlogscore=999 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.19.0-2405170001 definitions=main-2405260138
 
 Fix the 'make W=1' warnings:
 WARNING: modpost: missing MODULE_DESCRIPTION() in drivers/nvdimm/libnvdimm.o
@@ -167,6 +170,4 @@ index 598fe2e89bda..57cb30f8a3b8 100644
 ---
 base-commit: 416ff45264d50a983c3c0b99f0da6ee59f9acd68
 change-id: 20240526-md-drivers-nvdimm-121215a4b93f
--- 
-Jeff Johnson <quic_jjohnson@quicinc.com>
 
