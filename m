@@ -1,185 +1,130 @@
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+Received: from esa5.hc1455-7.c3s2.iphmx.com (esa5.hc1455-7.c3s2.iphmx.com [68.232.139.130])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D880A17C232
-	for <nvdimm@lists.linux.dev>; Thu, 30 May 2024 13:38:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E58452D7B8
+	for <nvdimm@lists.linux.dev>; Fri, 31 May 2024 06:30:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=68.232.139.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717076300; cv=none; b=toUj4qYCt3TcP64Os3ekaBTJkEVPzMWv7pJ/Oc/Teu+BInjCupy0Y2z0Q68D2MUe8LypFAgjhk7iW5Z+iK2t5WhPU1cJldihe5M6UDR+2fHpxQHfx3tFvl/4K11KvslVWL+IFpXuNK9PAXnpJ/DmU5fszmBQWQ5SNz4yfsnsCWI=
+	t=1717137021; cv=none; b=lRcDbLjtiS/Zaa2qJml756FSt+dlLMXCUcCjU/z7wha4TXX7tFP7JoAcEA/pagIdT15y/AQKSlIqpiVIpTi98Vi20mvT4ZHPl7772EW5jf6LTcGIlcni7LNnWSDLvSs9BLTbTxUw59SMi73N6vNr6LP04e+YFy2liG3l27PbWYY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717076300; c=relaxed/simple;
-	bh=S55mCDwB/L5bdVzNJdlQckiADHtrRU057V4YeMUyCks=;
-	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=mBsm+uY0bq0rwFqLyE5eXJd2LThWuHFmYS2Z9k4PneqpDvtrTfCZETVFkLrPQdl7TJ2/AiqEsDW8Su5vEPpDh4LyMO8p7ykq2+1OvrUKSGKM9VoFc229/G/qGRAGluuCkGjbLND7/NP0nhvz+1i9jicjkKDXm2O8hOlxP+S77G4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.186.231])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4VqnKK2qwNz6J9yY;
-	Thu, 30 May 2024 21:34:13 +0800 (CST)
-Received: from lhrpeml500005.china.huawei.com (unknown [7.191.163.240])
-	by mail.maildlp.com (Postfix) with ESMTPS id 61233140B38;
-	Thu, 30 May 2024 21:38:15 +0800 (CST)
-Received: from localhost (10.202.227.76) by lhrpeml500005.china.huawei.com
- (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Thu, 30 May
- 2024 14:38:14 +0100
-Date: Thu, 30 May 2024 14:38:13 +0100
-From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-To: Dongsheng Yang <dongsheng.yang@easystack.cn>
-CC: Gregory Price <gregory.price@memverge.com>, Dan Williams
-	<dan.j.williams@intel.com>, John Groves <John@groves.net>, <axboe@kernel.dk>,
-	<linux-block@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>, <james.morse@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH RFC 0/7] block: Introduce CBD (CXL Block Device)
-Message-ID: <20240530143813.00006def@Huawei.com>
-In-Reply-To: <5db870de-ecb3-f127-f31c-b59443b4fbb4@easystack.cn>
-References: <20240503105245.00003676@Huawei.com>
-	<5b7f3700-aeee-15af-59a7-8e271a89c850@easystack.cn>
-	<20240508131125.00003d2b@Huawei.com>
-	<ef0ee621-a2d2-e59a-f601-e072e8790f06@easystack.cn>
-	<20240508164417.00006c69@Huawei.com>
-	<3d547577-e8f2-8765-0f63-07d1700fcefc@easystack.cn>
-	<20240509132134.00000ae9@Huawei.com>
-	<a571be12-2fd3-e0ee-a914-0a6e2c46bdbc@easystack.cn>
-	<664cead8eb0b6_add32947d@dwillia2-mobl3.amr.corp.intel.com.notmuch>
-	<8f161b2d-eacd-ad35-8959-0f44c8d132b3@easystack.cn>
-	<ZldIzp0ncsRX5BZE@memverge.com>
-	<5db870de-ecb3-f127-f31c-b59443b4fbb4@easystack.cn>
-Organization: Huawei Technologies Research and Development (UK) Ltd.
-X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
+	s=arc-20240116; t=1717137021; c=relaxed/simple;
+	bh=iLJEIxVeTZ+1G/KbkNITGWV5+C/+pptGIjjsrmHWuB0=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=iSlco3DyuZwqQZb8hliYNVN7fOeH1rB22a3YXCf4Lv+el4vw1pqbD2ks+HXq0SKtXPFTyXDAfOw7vDR+a8qLY5mUy6e52g8raaGH+EQTVx8RuSl60N2LaYYfEBxgkVywE7XfObRhByB7uY2CRVArzpzZfVg+c4JkrzLPb7ukqy8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fujitsu.com; spf=pass smtp.mailfrom=fujitsu.com; dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b=BHIpDbIG; arc=none smtp.client-ip=68.232.139.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fujitsu.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fujitsu.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b="BHIpDbIG"
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
+  d=fujitsu.com; i=@fujitsu.com; q=dns/txt; s=fj2;
+  t=1717137019; x=1748673019;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=iLJEIxVeTZ+1G/KbkNITGWV5+C/+pptGIjjsrmHWuB0=;
+  b=BHIpDbIG+VlEVi0MOxWjyiokOTPTkrkLxqx4tWlxHIZJsJrk1+PEgi4j
+   hXeePhMEmTXpeF4AbBx0ur/qJlQGzswNnSMi6Qnk6xA5KEzpijXxfVDre
+   1p71PksLM/py+AaSvn05GZW59KIX8Q5UUjbjhITCiVIkey9CWfXrS4ICr
+   Dd5tiJQPfL7n6UwYcermA5ZtGq6J0ijvC4hlk2tuBC4aKluVxVwrnc9EA
+   MjeTef04Uv9qHuKp+2IXmWkVZbNLGkP8DdQCnJLOcLz+thz02ny0k+hXT
+   9el/2RYOGT15kzr/Edgj6DeiZzgZVYRYQng1bOEN+ucb2qQMplwLGJQZ2
+   g==;
+X-IronPort-AV: E=McAfee;i="6600,9927,11088"; a="160185612"
+X-IronPort-AV: E=Sophos;i="6.08,203,1712588400"; 
+   d="scan'208";a="160185612"
+Received: from unknown (HELO yto-r1.gw.nic.fujitsu.com) ([218.44.52.217])
+  by esa5.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 May 2024 15:30:10 +0900
+Received: from yto-m1.gw.nic.fujitsu.com (yto-nat-yto-m1.gw.nic.fujitsu.com [192.168.83.64])
+	by yto-r1.gw.nic.fujitsu.com (Postfix) with ESMTP id 7EAD8DBCF3
+	for <nvdimm@lists.linux.dev>; Fri, 31 May 2024 15:30:08 +0900 (JST)
+Received: from kws-ab3.gw.nic.fujitsu.com (kws-ab3.gw.nic.fujitsu.com [192.51.206.21])
+	by yto-m1.gw.nic.fujitsu.com (Postfix) with ESMTP id AADE2CFA5C
+	for <nvdimm@lists.linux.dev>; Fri, 31 May 2024 15:30:07 +0900 (JST)
+Received: from edo.cn.fujitsu.com (edo.cn.fujitsu.com [10.167.33.5])
+	by kws-ab3.gw.nic.fujitsu.com (Postfix) with ESMTP id 3B3A220094AE0
+	for <nvdimm@lists.linux.dev>; Fri, 31 May 2024 15:30:07 +0900 (JST)
+Received: from localhost.localdomain (unknown [10.167.226.45])
+	by edo.cn.fujitsu.com (Postfix) with ESMTP id 67DFB1A000A;
+	Fri, 31 May 2024 14:30:06 +0800 (CST)
+From: Li Zhijian <lizhijian@fujitsu.com>
+To: nvdimm@lists.linux.dev,
+	linux-cxl@vger.kernel.org
+Cc: Li Zhijian <lizhijian@fujitsu.com>,
+	Fan Ni <fan.ni@samsung.com>
+Subject: [ndctl PATCH v2 1/2] daxctl: Fix create-device parameters parsing
+Date: Fri, 31 May 2024 14:29:58 +0800
+Message-Id: <20240531062959.881772-1-lizhijian@fujitsu.com>
+X-Mailer: git-send-email 2.31.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-X-ClientProxiedBy: lhrpeml500003.china.huawei.com (7.191.162.67) To
- lhrpeml500005.china.huawei.com (7.191.163.240)
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-TM-AS-Product-Ver: IMSS-9.1.0.1417-9.0.0.1002-28420.005
+X-TM-AS-User-Approved-Sender: Yes
+X-TMASE-Version: IMSS-9.1.0.1417-9.0.1002-28420.005
+X-TMASE-Result: 10--6.622300-10.000000
+X-TMASE-MatchedRID: 2FW4hmrwT1x6aArAc+gIexFbgtHjUWLyjlRp8uau9oYrGdGOV/v5a338
+	DhskX88zh6y6sVpgqH1BCdSPDWIImy/7QU2czuUNEhGH3CRdKUX5UnqVnIHSz3Kidlm+PMQk2c5
+	16rvzqru1cNZAaGmKfhsK4Gmn0aQ5NtwF1IC9LrV2o0eWLPgBZ3EJxqEF0kDO31GU/N5W5BDmn1
+	MY2amWUWsRPSp/FWsq7Gwv1cOg4ZMfE8yM4pjsDwtuKBGekqUpI/NGWt0UYPAWEy2WCnvw5FISD
+	qSv2ueapXz6cJSyyW3qGTW8xB7wNWEoVHihj+TK
+X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
 
-On Thu, 30 May 2024 14:59:38 +0800
-Dongsheng Yang <dongsheng.yang@easystack.cn> wrote:
+Previously, the extra parameters will be ignored quietly, which is a bit
+weird and confusing.
+$ daxctl create-device region0
+[
+  {
+    "chardev":"dax0.1",
+    "size":268435456,
+    "target_node":1,
+    "align":2097152,
+    "mode":"devdax"
+  }
+]
+created 1 device
 
-> =E5=9C=A8 2024/5/29 =E6=98=9F=E6=9C=9F=E4=B8=89 =E4=B8=8B=E5=8D=88 11:25,=
- Gregory Price =E5=86=99=E9=81=93:
-> > On Wed, May 22, 2024 at 02:17:38PM +0800, Dongsheng Yang wrote: =20
-> >>
-> >>
-> >> =E5=9C=A8 2024/5/22 =E6=98=9F=E6=9C=9F=E4=B8=89 =E4=B8=8A=E5=8D=88 2:4=
-1, Dan Williams =E5=86=99=E9=81=93: =20
-> >>> Dongsheng Yang wrote:
-> >>>
-> >>> What guarantees this property? How does the reader know that its local
-> >>> cache invalidation is sufficient for reading data that has only reach=
-ed
-> >>> global visibility on the remote peer? As far as I can see, there is
-> >>> nothing that guarantees that local global visibility translates to
-> >>> remote visibility. In fact, the GPF feature is counter-evidence of the
-> >>> fact that writes can be pending in buffers that are only flushed on a
-> >>> GPF event. =20
-> >>
-> >> Sounds correct. From what I learned from GPF, ADR, and eADR, there wou=
-ld
-> >> still be data in WPQ even though we perform a CPU cache line flush in =
-the
-> >> OS.
-> >>
-> >> This means we don't have a explicit method to make data puncture all c=
-aches
-> >> and land in the media after writing. also it seems there isn't a expli=
-cit
-> >> method to invalidate all caches along the entire path.
-> >> =20
-> >>>
-> >>> I remain skeptical that a software managed inter-host cache-coherency
-> >>> scheme can be made reliable with current CXL defined mechanisms. =20
-> >>
-> >>
-> >> I got your point now, acorrding current CXL Spec, it seems software ma=
-naged
-> >> cache-coherency for inter-host shared memory is not working. Will the =
-next
-> >> version of CXL spec consider it? =20
-> >>> =20
-> >=20
-> > Sorry for missing the conversation, have been out of office for a bit.
-> >=20
-> > It's not just a CXL spec issue, though that is part of it. I think the
-> > CXL spec would have to expose some form of puncturing flush, and this
-> > makes the assumption that such a flush doesn't cause some kind of
-> > race/deadlock issue.  Certainly this needs to be discussed.
-> >=20
-> > However, consider that the upstream processor actually has to generate
-> > this flush.  This means adding the flush to existing coherence protocol=
-s,
-> > or at the very least a new instruction to generate the flush explicitly.
-> > The latter seems more likely than the former.
-> >=20
-> > This flush would need to ensure the data is forced out of the local WPQ
-> > AND all WPQs south of the PCIE complex - because what you really want to
-> > know is that the data has actually made it back to a place where remote
-> > viewers are capable of percieving the change.
-> >=20
-> > So this means:
-> > 1) Spec revision with puncturing flush
-> > 2) Buy-in from CPU vendors to generate such a flush
-> > 3) A new instruction added to the architecture.
-> >=20
-> > Call me in a decade or so.
-> >=20
-> >=20
-> > But really, I think it likely we see hardware-coherence well before thi=
-s.
-> > For this reason, I have become skeptical of all but a few memory sharing
-> > use cases that depend on software-controlled cache-coherency. =20
->=20
-> Hi Gregory,
->=20
-> 	From my understanding, we actually has the same idea here. What I am=20
-> saying is that we need SPEC to consider this issue, meaning we need to=20
-> describe how the entire software-coherency mechanism operates, which=20
-> includes the necessary hardware support. Additionally, I agree that if=20
-> software-coherency also requires hardware support, it seems that=20
-> hardware-coherency is the better path.
-> >=20
-> > There are some (FAMFS, for example). The coherence state of these
-> > systems tend to be less volatile (e.g. mappings are read-only), or
-> > they have inherent design limitations (cacheline-sized message passing
-> > via write-ahead logging only). =20
->=20
-> Can you explain more about this? I understand that if the reader in the=20
-> writer-reader model is using a readonly mapping, the interaction will be=
-=20
-> much simpler. However, after the writer writes data, if we don't have a=20
-> mechanism to flush and invalidate puncturing all caches, how can the=20
-> readonly reader access the new data?
+where above user would want to specify '-r region0'.
 
-There is a mechanism for doing coarse grained flushing that is known to
-work on some architectures. Look at cpu_cache_invalidate_memregion().
-On intel/x86 it's wbinvd_on_all_cpu_cpus()
-on arm64 it's a PSCI firmware call CLEAN_INV_MEMREGION (there is a
-public alpha specification for PSCI 1.3 with that defined but we
-don't yet have kernel code.)
+Check extra parameters starting from index 0 to ensure no extra parameters
+are specified for create-device.
 
-These are very big hammers and so unsuited for anything fine grained.
-In the extreme end of possible implementations they briefly stop all
-CPUs and clean and invalidate all caches of all types.  So not suited
-to anything fine grained, but may be acceptable for a rare setup event,
-particularly if the main job of the writing host is to fill that memory
-for lots of other hosts to use.
+Cc: Fan Ni <fan.ni@samsung.com>
+Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
+---
+V2:
+Remove the external link[0] in case it get disappeared in the future.
+[0] https://github.com/moking/moking.github.io/wiki/cxl%E2%80%90test%E2%80%90tool:-A-tool-to-ease-CXL-test-with-QEMU-setup%E2%80%90%E2%80%90Using-DCD-test-as-an-example#convert-dcd-memory-to-system-ram
+---
+ daxctl/device.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-At least the ARM one takes a range so allows for a less painful
-implementation.  I'm assuming we'll see new architecture over time
-but this is a different (and potentially easier) problem space
-to what you need.
-
-Jonathan
-
-
-
-> > ~Gregory
-> >  =20
+diff --git a/daxctl/device.c b/daxctl/device.c
+index 839134301409..ffabd6cf5707 100644
+--- a/daxctl/device.c
++++ b/daxctl/device.c
+@@ -363,7 +363,8 @@ static const char *parse_device_options(int argc, const char **argv,
+ 		NULL
+ 	};
+ 	unsigned long long units = 1;
+-	int i, rc = 0;
++	int rc = 0;
++	int i = action == ACTION_CREATE ? 0 : 1;
+ 	char *device = NULL;
+ 
+ 	argc = parse_options(argc, argv, options, u, 0);
+@@ -402,7 +403,7 @@ static const char *parse_device_options(int argc, const char **argv,
+ 			action_string);
+ 		rc = -EINVAL;
+ 	}
+-	for (i = 1; i < argc; i++) {
++	for (; i < argc; i++) {
+ 		fprintf(stderr, "unknown extra parameter \"%s\"\n", argv[i]);
+ 		rc = -EINVAL;
+ 	}
+-- 
+2.29.2
 
