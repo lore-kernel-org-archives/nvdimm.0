@@ -1,119 +1,245 @@
-Received: from mail-m12821.netease.com (mail-m12821.netease.com [103.209.128.21])
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D8EC29A1
-	for <nvdimm@lists.linux.dev>; Mon,  3 Jun 2024 01:44:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.209.128.21
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75CD1129A78
+	for <nvdimm@lists.linux.dev>; Mon,  3 Jun 2024 12:48:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717379066; cv=none; b=NAINz+ZBBWN2RCMuYwvcebFal1vtThOwdJ507WKpQ2wtiyUDeoER6DAjVIXtXA0sUvf6VUUhtsT9mM3mvR7p2q/dEPjjfaB5g31dioTPZonJhv8s9mgx2w0uQluwcryTZbzHiDBWlDl2+MdvPQwdLXQNwTJFj8dWFKmNuSKymds=
+	t=1717418907; cv=none; b=sJQl7Qr9oRL87Z1PGWoBepCcHm5uuAkNI5/NnY84C0nl/hB5wZ5lLpPNpgFUtH6q2IT68ob8KMpurOftXFhl3OTUGTp8zIiIGRp3lWBfderjKfwRn4JgRcWThZsZ8Pch+aYHjT0uRM5lNo9t36cgDdYgnwOpEvZiHwTCSy/qLOQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717379066; c=relaxed/simple;
-	bh=GZVCi5VbbjTDmXB32ysDacElGhSOcP5bQWWnQ1WtVSU=;
-	h=Subject:To:Cc:References:From:Message-ID:Date:MIME-Version:
-	 In-Reply-To:Content-Type; b=PWeVNfvUzeXEYaDZY2aiUvctcp4AvL+mTovxd45B/2IqBjY51/u3Rh088oZRK1oO2+F25hGGRQxYlSSmMdWAHjHQiemt/ullh9B13p5J1BpB6+0jOLuuijme5+1DpTMa2d6zhSndPRsRvhTQ/RQCsGce3kqdjcm0rz8B6EvWYEc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=easystack.cn; spf=pass smtp.mailfrom=easystack.cn; arc=none smtp.client-ip=103.209.128.21
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=easystack.cn
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=easystack.cn
-Received: from [192.168.122.189] (unknown [218.94.118.90])
-	by smtp.qiye.163.com (Hmail) with ESMTPA id 5363886017F;
-	Mon,  3 Jun 2024 09:33:29 +0800 (CST)
+	s=arc-20240116; t=1717418907; c=relaxed/simple;
+	bh=LU3VNWiMTpsMlsnk6QbX+f+ptU01h6D7q3/HM/MmTn4=;
+	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=ZD4761pfl+6hyYEmPqhbfvODReMmR1nOPBAkUNM9TcX0E8kRZ0D7Fl9RQbqwWuCsJUYfK2a/imN066pRF02pvEJakZGE8/HpaxHoKOT8jLC/wCbhn3QeJjnV1yBTf61Dl4PE9hzAtqMdlY1+lUqCp69ytqNPFGOO4b/0HJOhagw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.18.186.31])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4VtD5F0LhTz6K9Y7;
+	Mon,  3 Jun 2024 20:47:13 +0800 (CST)
+Received: from lhrpeml500005.china.huawei.com (unknown [7.191.163.240])
+	by mail.maildlp.com (Postfix) with ESMTPS id 1B017140B2A;
+	Mon,  3 Jun 2024 20:48:21 +0800 (CST)
+Received: from localhost (10.202.227.76) by lhrpeml500005.china.huawei.com
+ (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Mon, 3 Jun
+ 2024 13:48:20 +0100
+Date: Mon, 3 Jun 2024 13:48:19 +0100
+From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+To: Dan Williams <dan.j.williams@intel.com>
+CC: Dongsheng Yang <dongsheng.yang@easystack.cn>, Gregory Price
+	<gregory.price@memverge.com>, John Groves <John@groves.net>,
+	<axboe@kernel.dk>, <linux-block@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>, <linux-cxl@vger.kernel.org>,
+	<nvdimm@lists.linux.dev>, <james.morse@arm.com>, Mark Rutland
+	<mark.rutland@arm.com>
 Subject: Re: [PATCH RFC 0/7] block: Introduce CBD (CXL Block Device)
-To: Gregory Price <gregory.price@memverge.com>
-Cc: Dan Williams <dan.j.williams@intel.com>,
- Jonathan Cameron <Jonathan.Cameron@huawei.com>, John Groves
- <John@groves.net>, axboe@kernel.dk, linux-block@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-cxl@vger.kernel.org,
- nvdimm@lists.linux.dev
-References: <20240508131125.00003d2b@Huawei.com>
- <ef0ee621-a2d2-e59a-f601-e072e8790f06@easystack.cn>
- <20240508164417.00006c69@Huawei.com>
- <3d547577-e8f2-8765-0f63-07d1700fcefc@easystack.cn>
- <20240509132134.00000ae9@Huawei.com>
- <a571be12-2fd3-e0ee-a914-0a6e2c46bdbc@easystack.cn>
- <664cead8eb0b6_add32947d@dwillia2-mobl3.amr.corp.intel.com.notmuch>
- <8f161b2d-eacd-ad35-8959-0f44c8d132b3@easystack.cn>
- <ZldIzp0ncsRX5BZE@memverge.com>
- <5db870de-ecb3-f127-f31c-b59443b4fbb4@easystack.cn>
- <Zlndc8NI0eK3MmuR@memverge.com>
-From: Dongsheng Yang <dongsheng.yang@easystack.cn>
-Message-ID: <a04a5bbc-a44b-57e4-0fa6-0ce84b18a395@easystack.cn>
-Date: Mon, 3 Jun 2024 09:33:29 +0800
-User-Agent: Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:78.0) Gecko/20100101
- Thunderbird/78.4.0
+Message-ID: <20240603134819.00001c5f@Huawei.com>
+In-Reply-To: <665a9402445ee_166872941d@dwillia2-mobl3.amr.corp.intel.com.notmuch>
+References: <ef0ee621-a2d2-e59a-f601-e072e8790f06@easystack.cn>
+	<20240508164417.00006c69@Huawei.com>
+	<3d547577-e8f2-8765-0f63-07d1700fcefc@easystack.cn>
+	<20240509132134.00000ae9@Huawei.com>
+	<a571be12-2fd3-e0ee-a914-0a6e2c46bdbc@easystack.cn>
+	<664cead8eb0b6_add32947d@dwillia2-mobl3.amr.corp.intel.com.notmuch>
+	<8f161b2d-eacd-ad35-8959-0f44c8d132b3@easystack.cn>
+	<ZldIzp0ncsRX5BZE@memverge.com>
+	<5db870de-ecb3-f127-f31c-b59443b4fbb4@easystack.cn>
+	<20240530143813.00006def@Huawei.com>
+	<665a9402445ee_166872941d@dwillia2-mobl3.amr.corp.intel.com.notmuch>
+Organization: Huawei Technologies Research and Development (UK) Ltd.
+X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <Zlndc8NI0eK3MmuR@memverge.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-HM-Spam-Status: e1kfGhgUHx5ZQUpXWQgPGg8OCBgUHx5ZQUlOS1dZFg8aDwILHllBWSg2Ly
-	tZV1koWUFJQjdXWS1ZQUlXWQ8JGhUIEh9ZQVkZT0geVh0dTxoYSEhOHx1NQlUZERMWGhIXJBQOD1
-	lXWRgSC1lBWUlKQ1VCT1VKSkNVQktZV1kWGg8SFR0UWUFZT0tIVUpNT0lMTlVKS0tVSkJLS1kG
-X-HM-Tid: 0a8fdbbae4da023ckunm5363886017f
-X-HM-MType: 1
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6Pi46ASo4IjcsCCwyChcyPww#
-	EA4KChlVSlVKTEpMSExDT0pLS01OVTMWGhIXVR8UFRwIEx4VHFUCGhUcOx4aCAIIDxoYEFUYFUVZ
-	V1kSC1lBWUlKQ1VCT1VKSkNVQktZV1kIAVlBT0JNSzcG
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+X-ClientProxiedBy: lhrpeml500004.china.huawei.com (7.191.163.9) To
+ lhrpeml500005.china.huawei.com (7.191.163.240)
 
+On Fri, 31 May 2024 20:22:42 -0700
+Dan Williams <dan.j.williams@intel.com> wrote:
 
+> Jonathan Cameron wrote:
+> > On Thu, 30 May 2024 14:59:38 +0800
+> > Dongsheng Yang <dongsheng.yang@easystack.cn> wrote:
+> >  =20
+> > > =E5=9C=A8 2024/5/29 =E6=98=9F=E6=9C=9F=E4=B8=89 =E4=B8=8B=E5=8D=88 11=
+:25, Gregory Price =E5=86=99=E9=81=93: =20
+> > > > On Wed, May 22, 2024 at 02:17:38PM +0800, Dongsheng Yang wrote:   =
+=20
+> > > >>
+> > > >>
+> > > >> =E5=9C=A8 2024/5/22 =E6=98=9F=E6=9C=9F=E4=B8=89 =E4=B8=8A=E5=8D=88=
+ 2:41, Dan Williams =E5=86=99=E9=81=93:   =20
+> > > >>> Dongsheng Yang wrote:
+> > > >>>
+> > > >>> What guarantees this property? How does the reader know that its =
+local
+> > > >>> cache invalidation is sufficient for reading data that has only r=
+eached
+> > > >>> global visibility on the remote peer? As far as I can see, there =
+is
+> > > >>> nothing that guarantees that local global visibility translates to
+> > > >>> remote visibility. In fact, the GPF feature is counter-evidence o=
+f the
+> > > >>> fact that writes can be pending in buffers that are only flushed =
+on a
+> > > >>> GPF event.   =20
+> > > >>
+> > > >> Sounds correct. From what I learned from GPF, ADR, and eADR, there=
+ would
+> > > >> still be data in WPQ even though we perform a CPU cache line flush=
+ in the
+> > > >> OS.
+> > > >>
+> > > >> This means we don't have a explicit method to make data puncture a=
+ll caches
+> > > >> and land in the media after writing. also it seems there isn't a e=
+xplicit
+> > > >> method to invalidate all caches along the entire path.
+> > > >>   =20
+> > > >>>
+> > > >>> I remain skeptical that a software managed inter-host cache-coher=
+ency
+> > > >>> scheme can be made reliable with current CXL defined mechanisms. =
+  =20
+> > > >>
+> > > >>
+> > > >> I got your point now, acorrding current CXL Spec, it seems softwar=
+e managed
+> > > >> cache-coherency for inter-host shared memory is not working. Will =
+the next
+> > > >> version of CXL spec consider it?   =20
+> > > >>>   =20
+> > > >=20
+> > > > Sorry for missing the conversation, have been out of office for a b=
+it.
+> > > >=20
+> > > > It's not just a CXL spec issue, though that is part of it. I think =
+the
+> > > > CXL spec would have to expose some form of puncturing flush, and th=
+is
+> > > > makes the assumption that such a flush doesn't cause some kind of
+> > > > race/deadlock issue.  Certainly this needs to be discussed.
+> > > >=20
+> > > > However, consider that the upstream processor actually has to gener=
+ate
+> > > > this flush.  This means adding the flush to existing coherence prot=
+ocols,
+> > > > or at the very least a new instruction to generate the flush explic=
+itly.
+> > > > The latter seems more likely than the former.
+> > > >=20
+> > > > This flush would need to ensure the data is forced out of the local=
+ WPQ
+> > > > AND all WPQs south of the PCIE complex - because what you really wa=
+nt to
+> > > > know is that the data has actually made it back to a place where re=
+mote
+> > > > viewers are capable of percieving the change.
+> > > >=20
+> > > > So this means:
+> > > > 1) Spec revision with puncturing flush
+> > > > 2) Buy-in from CPU vendors to generate such a flush
+> > > > 3) A new instruction added to the architecture.
+> > > >=20
+> > > > Call me in a decade or so.
+> > > >=20
+> > > >=20
+> > > > But really, I think it likely we see hardware-coherence well before=
+ this.
+> > > > For this reason, I have become skeptical of all but a few memory sh=
+aring
+> > > > use cases that depend on software-controlled cache-coherency.   =20
+> > >=20
+> > > Hi Gregory,
+> > >=20
+> > > 	From my understanding, we actually has the same idea here. What I am=
+=20
+> > > saying is that we need SPEC to consider this issue, meaning we need t=
+o=20
+> > > describe how the entire software-coherency mechanism operates, which=
+=20
+> > > includes the necessary hardware support. Additionally, I agree that i=
+f=20
+> > > software-coherency also requires hardware support, it seems that=20
+> > > hardware-coherency is the better path. =20
+> > > >=20
+> > > > There are some (FAMFS, for example). The coherence state of these
+> > > > systems tend to be less volatile (e.g. mappings are read-only), or
+> > > > they have inherent design limitations (cacheline-sized message pass=
+ing
+> > > > via write-ahead logging only).   =20
+> > >=20
+> > > Can you explain more about this? I understand that if the reader in t=
+he=20
+> > > writer-reader model is using a readonly mapping, the interaction will=
+ be=20
+> > > much simpler. However, after the writer writes data, if we don't have=
+ a=20
+> > > mechanism to flush and invalidate puncturing all caches, how can the=
+=20
+> > > readonly reader access the new data? =20
+> >=20
+> > There is a mechanism for doing coarse grained flushing that is known to
+> > work on some architectures. Look at cpu_cache_invalidate_memregion().
+> > On intel/x86 it's wbinvd_on_all_cpu_cpus() =20
+>=20
+> There is no guarantee on x86 that after cpu_cache_invalidate_memregion()
+> that a remote shared memory consumer can be assured to see the writes
+> from that event.
 
-在 2024/5/31 星期五 下午 10:23, Gregory Price 写道:
-> On Thu, May 30, 2024 at 02:59:38PM +0800, Dongsheng Yang wrote:
->>
->>
->> 在 2024/5/29 星期三 下午 11:25, Gregory Price 写道:
->>>
->>> There are some (FAMFS, for example). The coherence state of these
->>> systems tend to be less volatile (e.g. mappings are read-only), or
->>> they have inherent design limitations (cacheline-sized message passing
->>> via write-ahead logging only).
->>
->> Can you explain more about this? I understand that if the reader in the
->> writer-reader model is using a readonly mapping, the interaction will be
->> much simpler. However, after the writer writes data, if we don't have a
->> mechanism to flush and invalidate puncturing all caches, how can the
->> readonly reader access the new data?
-> 
-> This is exactly right, so the coherence/correctness of the data needs to
-> be enforced in some other way.
-> 
-> Generally speaking, the WPQs will *eventually* get flushed.  As such,
-> the memory will *eventually* become coherent.  So if you set up the
-> following pattern, you will end up with an "eventually coherent" system
+I was wondering about that after I wrote this...  I guess it guarantees
+we won't get a late landing write or is that not even true?
 
+So if we remove memory, then added fresh memory again quickly enough
+can we get a left over write showing up?  I guess that doesn't matter as
+the kernel will chase it with a memset(0) anyway and that will be ordered
+as to the same address.
 
-Yes, it is "eventually coherent" if "NO CLEAN WRITEBACK" bit in both 
-CSDS and DVSEC is set.
-> 
-> 1) Writer instantiates the memory to be used
-> 2) Writer calculates and records a checksum of that data into memory
-> 3) Writer invalidates everything
-> 4) Reader maps the memory
-> 5) Reader reads the checksum and calculates the checksum of the data
->     a) if the checksums match, the data is coherent
->     b) if they don't, we must wait longer for the queues to flush
+However we won't be able to elide that zeroing even if we know the device
+did it which is makes some operations the device might support rather
+pointless :(
 
-Yes, the checksum was mentioned by John, it is used in FAMFS/pcq_lib.c, 
-pcq use sequence and checksum in consumer to make sure data consistency.
+>=20
+> > on arm64 it's a PSCI firmware call CLEAN_INV_MEMREGION (there is a
+> > public alpha specification for PSCI 1.3 with that defined but we
+> > don't yet have kernel code.) =20
+>=20
+> That punches visibility through CXL shared memory devices?
 
-I think it's a good idea and was planning to introduce it into cbd, of 
-coures it should be optional for cbd, as cbd current only supports
-hardware-consistency usage. it can be an option to do data verification.
+It's a draft spec and Mark + James in +CC can hopefully confirm.
+It does say
+"Cleans and invalidates all caches, including system caches".
+which I'd read as meaning it should but good to confirm.
 
-Thanx
-> 
-> This is just one example of a system design which enforces coherence by
-> placing the limitation on the system that the data will never change
-> once it becomes coherent.
-> 
-> Whatever the case, regardless of the scheme you come up with, you will
-> end up with a system where the data must be inspected and validated
-> before it can be used.  This has the limiting factor of performance:
-> throughput will be limited by how fast you can validate the data.
-> 
-> ~Gregory
-> .
-> 
+>=20
+> > These are very big hammers and so unsuited for anything fine grained.
+> > In the extreme end of possible implementations they briefly stop all
+> > CPUs and clean and invalidate all caches of all types.  So not suited
+> > to anything fine grained, but may be acceptable for a rare setup event,
+> > particularly if the main job of the writing host is to fill that memory
+> > for lots of other hosts to use.
+> >=20
+> > At least the ARM one takes a range so allows for a less painful
+> > implementation.  I'm assuming we'll see new architecture over time
+> > but this is a different (and potentially easier) problem space
+> > to what you need. =20
+>=20
+> cpu_cache_invalidate_memregion() is only about making sure local CPU
+> sees new contents after an DPA:HPA remap event. I hope CPUs are able to
+> get away from that responsibility long term when / if future memory
+> expanders just issue back-invalidate automatically when the HDM decoder
+> configuration changes.
+
+I would love that to be the way things go, but I fear the overheads of
+doing that on the protocol means people will want the option of the painful
+approach.
+
+Jonathan
+=20
+
