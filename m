@@ -1,128 +1,280 @@
-Received: from esa12.hc1455-7.c3s2.iphmx.com (esa12.hc1455-7.c3s2.iphmx.com [139.138.37.100])
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 689B81EEE4
-	for <nvdimm@lists.linux.dev>; Tue,  4 Jun 2024 03:17:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=139.138.37.100
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B1482AEFE
+	for <nvdimm@lists.linux.dev>; Tue,  4 Jun 2024 14:26:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717471037; cv=none; b=u5rwoXKZOlOtEUviTZPwlprOPna1AhPopdna2yAJ1v/gAS2PSVjUqpcCAqMw0Tp1IW9HaBQcFVfqRQionjH0uHpR/Cg2Y23vf/acVVHJnhSyq9y2kKScC8jzFfiyGZFi7rqU6M8Co7PNNLhrHUk8vn15cQgHdePnnwZQNZefYYc=
+	t=1717511215; cv=none; b=HwL85Qd9j2xwR3whdAo4V1rx8XFZ5FrMJev7QUKZmpdsYR4JftBytXYGZT7TBBMd7aueEVBRqi23cvynkc5FCGve8KPmpenHxPdkniJnvlwkKtvmzoP2592MksE7iKVZVUZDJIuX+PIM/M6HhtXlosBdwke6WvDpl9WgKD0Osig=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717471037; c=relaxed/simple;
-	bh=NZ4QDniuJ1f4Hz8A5Uegz8QmG0EmzCpkdIYexgtWV0s=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=VgW/XobxqagUuI5Vfhg21N29p9carJwOomiB3MWrhx/x515fIi1gSfGnVRCx7f+4jvCruIsqeNJLTsoEtbTyXkU7aA3inz5jPDRaRqdtqk9rXpxYVXP3BEoOYeHyTx2T2Al9TTzPVKSOt0IKkEnWhNtd1dBP4nFAD8i8oOHbZOw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fujitsu.com; spf=pass smtp.mailfrom=fujitsu.com; dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b=Pd8cQSW/; arc=none smtp.client-ip=139.138.37.100
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fujitsu.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fujitsu.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b="Pd8cQSW/"
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
-  d=fujitsu.com; i=@fujitsu.com; q=dns/txt; s=fj2;
-  t=1717471034; x=1749007034;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=NZ4QDniuJ1f4Hz8A5Uegz8QmG0EmzCpkdIYexgtWV0s=;
-  b=Pd8cQSW/59rCbddf51c49LwLFdF2V7UYffmdK339qci6pPkmlGDg9t3+
-   ZfEraIdGhcBeFRsMsSaoCesoTCJ8o8mDi1C/la850iykVbpMGItz0jFuN
-   +DFem4eZixFwZUQU5V5S16bRagP4IvBeZR0ogZadxE7sJVU0wTv/nreNh
-   tnCOJVG9ZtUaqXcVtafZx6CSXz7gbl0CO1kDv9G9mh6x+2UKUwBJS+xCy
-   DJxo0uWWfG1wEL73HB7R0E2nIywSoYwOyWg5qx6dAlZcJcUYoTG91I9UL
-   SD6jF562mRgX2377iPXGuCfk3kRYBtvVWxe77Zsoa9kDZ2OsHBDdkrCh6
-   A==;
-X-IronPort-AV: E=McAfee;i="6600,9927,11092"; a="140755564"
-X-IronPort-AV: E=Sophos;i="6.08,213,1712588400"; 
-   d="scan'208";a="140755564"
-Received: from unknown (HELO yto-r2.gw.nic.fujitsu.com) ([218.44.52.218])
-  by esa12.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Jun 2024 12:17:06 +0900
-Received: from yto-m1.gw.nic.fujitsu.com (yto-nat-yto-m1.gw.nic.fujitsu.com [192.168.83.64])
-	by yto-r2.gw.nic.fujitsu.com (Postfix) with ESMTP id 8FAFBC68E1
-	for <nvdimm@lists.linux.dev>; Tue,  4 Jun 2024 12:17:04 +0900 (JST)
-Received: from kws-ab3.gw.nic.fujitsu.com (kws-ab3.gw.nic.fujitsu.com [192.51.206.21])
-	by yto-m1.gw.nic.fujitsu.com (Postfix) with ESMTP id C1F82CF7FE
-	for <nvdimm@lists.linux.dev>; Tue,  4 Jun 2024 12:17:03 +0900 (JST)
-Received: from edo.cn.fujitsu.com (edo.cn.fujitsu.com [10.167.33.5])
-	by kws-ab3.gw.nic.fujitsu.com (Postfix) with ESMTP id 3EE5D200501A5
-	for <nvdimm@lists.linux.dev>; Tue,  4 Jun 2024 12:17:03 +0900 (JST)
-Received: from localhost.localdomain (unknown [10.167.226.45])
-	by edo.cn.fujitsu.com (Postfix) with ESMTP id 6E6551A000A;
-	Tue,  4 Jun 2024 11:17:02 +0800 (CST)
-From: Li Zhijian <lizhijian@fujitsu.com>
-To: nvdimm@lists.linux.dev
-Cc: dan.j.williams@intel.com,
-	vishal.l.verma@intel.com,
-	dave.jiang@intel.com,
-	ira.weiny@intel.com,
-	linux-kernel@vger.kernel.org,
-	Li Zhijian <lizhijian@fujitsu.com>
-Subject: [PATCH] nvdimm: Fix devs leaks in scan_labels()
-Date: Tue,  4 Jun 2024 11:16:58 +0800
-Message-Id: <20240604031658.951493-1-lizhijian@fujitsu.com>
-X-Mailer: git-send-email 2.31.1
+	s=arc-20240116; t=1717511215; c=relaxed/simple;
+	bh=7+91b/Mzn/+lSMt/L+Per4bli8Defp55Ltg9xOXNCLI=;
+	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=VdDxc9LrG2d+2oGwbgPEjUtKegT3fZ1t1ft2tVReSkg6dB8QDlV5YXn2HqwwzP73zEHxG4b7Zpy/mSpy9Y6Ul0n4NDFXGVNnihxcm0Ia7gj1V7/DHVZWeCV4m0kJE/80Ujjfmf4/6c0TwdfRmxwgcGVyfZmMekfyJepexPZ8pZ8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.18.186.31])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Vtt8n1FWTz6JBWr;
+	Tue,  4 Jun 2024 22:22:33 +0800 (CST)
+Received: from lhrpeml500005.china.huawei.com (unknown [7.191.163.240])
+	by mail.maildlp.com (Postfix) with ESMTPS id 5968C140D37;
+	Tue,  4 Jun 2024 22:26:49 +0800 (CST)
+Received: from localhost (10.202.227.76) by lhrpeml500005.china.huawei.com
+ (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Tue, 4 Jun
+ 2024 15:26:48 +0100
+Date: Tue, 4 Jun 2024 15:26:48 +0100
+From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+To: James Morse <james.morse@arm.com>
+CC: Dan Williams <dan.j.williams@intel.com>, Dongsheng Yang
+	<dongsheng.yang@easystack.cn>, Gregory Price <gregory.price@memverge.com>,
+	John Groves <John@groves.net>, <axboe@kernel.dk>,
+	<linux-block@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>, Mark Rutland
+	<mark.rutland@arm.com>
+Subject: Re: [PATCH RFC 0/7] block: Introduce CBD (CXL Block Device)
+Message-ID: <20240604152648.000071f8@Huawei.com>
+In-Reply-To: <3c7c9b07-78b2-4b8d-968e-0c395c8f22b3@arm.com>
+References: <ef0ee621-a2d2-e59a-f601-e072e8790f06@easystack.cn>
+	<20240508164417.00006c69@Huawei.com>
+	<3d547577-e8f2-8765-0f63-07d1700fcefc@easystack.cn>
+	<20240509132134.00000ae9@Huawei.com>
+	<a571be12-2fd3-e0ee-a914-0a6e2c46bdbc@easystack.cn>
+	<664cead8eb0b6_add32947d@dwillia2-mobl3.amr.corp.intel.com.notmuch>
+	<8f161b2d-eacd-ad35-8959-0f44c8d132b3@easystack.cn>
+	<ZldIzp0ncsRX5BZE@memverge.com>
+	<5db870de-ecb3-f127-f31c-b59443b4fbb4@easystack.cn>
+	<20240530143813.00006def@Huawei.com>
+	<665a9402445ee_166872941d@dwillia2-mobl3.amr.corp.intel.com.notmuch>
+	<20240603134819.00001c5f@Huawei.com>
+	<3c7c9b07-78b2-4b8d-968e-0c395c8f22b3@arm.com>
+Organization: Huawei Technologies Research and Development (UK) Ltd.
+X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-TM-AS-Product-Ver: IMSS-9.1.0.1417-9.0.0.1002-28430.004
-X-TM-AS-User-Approved-Sender: Yes
-X-TMASE-Version: IMSS-9.1.0.1417-9.0.1002-28430.004
-X-TMASE-Result: 10--6.422900-10.000000
-X-TMASE-MatchedRID: e6WPXQD7Ri+2mivwNK4iQN9JA2lmQRNUNte7AWpKXSvVU2WiOk7jaHls
-	GJXt79WMsSE+lrQqOSP4Orn4AH8dYvvwmMFLImuh/sUSFaCjTLywFIDW25lVJqvWBS71/UX/+vE
-	SF6BhDIwi+t+0AiFaYrwD/c110z9x0ywZEqbRuQSsxn4GpC3Y2rcKVIr9tQwNdE7HIe9l0mxNga
-	nKV1mfzuLzNWBegCW2Nfpe10T3IsNt1O49r1VEa8RB0bsfrpPIfiAqrjYtFiT2BCQdQCcmc92/q
-	b0USjoD2j/RDZHeG9mCX+Fml2XYHH7cGd19dSFd
-X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+X-ClientProxiedBy: lhrpeml100002.china.huawei.com (7.191.160.241) To
+ lhrpeml500005.china.huawei.com (7.191.163.240)
 
-Don't allocate devs again when it's valid pointer which has pionted to
-the memory allocated above with size (count + 2 * sizeof(dev)).
+On Mon, 3 Jun 2024 18:28:51 +0100
+James Morse <james.morse@arm.com> wrote:
 
-A kmemleak reports:
-unreferenced object 0xffff88800dda1980 (size 16):
-  comm "kworker/u10:5", pid 69, jiffies 4294671781
-  hex dump (first 16 bytes):
-    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  backtrace (crc 0):
-    [<00000000c5dea560>] __kmalloc+0x32c/0x470
-    [<000000009ed43c83>] nd_region_register_namespaces+0x6fb/0x1120 [libnvdimm]
-    [<000000000e07a65c>] nd_region_probe+0xfe/0x210 [libnvdimm]
-    [<000000007b79ce5f>] nvdimm_bus_probe+0x7a/0x1e0 [libnvdimm]
-    [<00000000a5f3da2e>] really_probe+0xc6/0x390
-    [<00000000129e2a69>] __driver_probe_device+0x78/0x150
-    [<000000002dfed28b>] driver_probe_device+0x1e/0x90
-    [<00000000e7048de2>] __device_attach_driver+0x85/0x110
-    [<0000000032dca295>] bus_for_each_drv+0x85/0xe0
-    [<00000000391c5a7d>] __device_attach+0xbe/0x1e0
-    [<0000000026dabec0>] bus_probe_device+0x94/0xb0
-    [<00000000c590d936>] device_add+0x656/0x870
-    [<000000003d69bfaa>] nd_async_device_register+0xe/0x50 [libnvdimm]
-    [<000000003f4c52a4>] async_run_entry_fn+0x2e/0x110
-    [<00000000e201f4b0>] process_one_work+0x1ee/0x600
-    [<000000006d90d5a9>] worker_thread+0x183/0x350
+> Hi guys,
+>=20
+> On 03/06/2024 13:48, Jonathan Cameron wrote:
+> > On Fri, 31 May 2024 20:22:42 -0700
+> > Dan Williams <dan.j.williams@intel.com> wrote: =20
+> >> Jonathan Cameron wrote: =20
+> >>> On Thu, 30 May 2024 14:59:38 +0800
+> >>> Dongsheng Yang <dongsheng.yang@easystack.cn> wrote: =20
+> >>>> =E5=9C=A8 2024/5/29 =E6=98=9F=E6=9C=9F=E4=B8=89 =E4=B8=8B=E5=8D=88 1=
+1:25, Gregory Price =E5=86=99=E9=81=93:   =20
+> >>>>> It's not just a CXL spec issue, though that is part of it. I think =
+the
+> >>>>> CXL spec would have to expose some form of puncturing flush, and th=
+is
+> >>>>> makes the assumption that such a flush doesn't cause some kind of
+> >>>>> race/deadlock issue.  Certainly this needs to be discussed.
+> >>>>>
+> >>>>> However, consider that the upstream processor actually has to gener=
+ate
+> >>>>> this flush.  This means adding the flush to existing coherence prot=
+ocols,
+> >>>>> or at the very least a new instruction to generate the flush explic=
+itly.
+> >>>>> The latter seems more likely than the former.
+> >>>>>
+> >>>>> This flush would need to ensure the data is forced out of the local=
+ WPQ
+> >>>>> AND all WPQs south of the PCIE complex - because what you really wa=
+nt to
+> >>>>> know is that the data has actually made it back to a place where re=
+mote
+> >>>>> viewers are capable of percieving the change.
+> >>>>>
+> >>>>> So this means:
+> >>>>> 1) Spec revision with puncturing flush
+> >>>>> 2) Buy-in from CPU vendors to generate such a flush
+> >>>>> 3) A new instruction added to the architecture.
+> >>>>>
+> >>>>> Call me in a decade or so.
+> >>>>>
+> >>>>>
+> >>>>> But really, I think it likely we see hardware-coherence well before=
+ this.
+> >>>>> For this reason, I have become skeptical of all but a few memory sh=
+aring
+> >>>>> use cases that depend on software-controlled cache-coherency.     =
+=20
+> >>>>
+> >>>> Hi Gregory,
+> >>>>
+> >>>> 	From my understanding, we actually has the same idea here. What I a=
+m=20
+> >>>> saying is that we need SPEC to consider this issue, meaning we need =
+to=20
+> >>>> describe how the entire software-coherency mechanism operates, which=
+=20
+> >>>> includes the necessary hardware support. Additionally, I agree that =
+if=20
+> >>>> software-coherency also requires hardware support, it seems that=20
+> >>>> hardware-coherency is the better path.   =20
+> >>>>>
+> >>>>> There are some (FAMFS, for example). The coherence state of these
+> >>>>> systems tend to be less volatile (e.g. mappings are read-only), or
+> >>>>> they have inherent design limitations (cacheline-sized message pass=
+ing
+> >>>>> via write-ahead logging only).     =20
+> >>>>
+> >>>> Can you explain more about this? I understand that if the reader in =
+the=20
+> >>>> writer-reader model is using a readonly mapping, the interaction wil=
+l be=20
+> >>>> much simpler. However, after the writer writes data, if we don't hav=
+e a=20
+> >>>> mechanism to flush and invalidate puncturing all caches, how can the=
+=20
+> >>>> readonly reader access the new data?   =20
+> >>>
+> >>> There is a mechanism for doing coarse grained flushing that is known =
+to
+> >>> work on some architectures. Look at cpu_cache_invalidate_memregion().
+> >>> On intel/x86 it's wbinvd_on_all_cpu_cpus()   =20
+> >>
+> >> There is no guarantee on x86 that after cpu_cache_invalidate_memregion=
+()
+> >> that a remote shared memory consumer can be assured to see the writes
+> >> from that event. =20
+> >=20
+> > I was wondering about that after I wrote this...  I guess it guarantees
+> > we won't get a late landing write or is that not even true?
+> >=20
+> > So if we remove memory, then added fresh memory again quickly enough
+> > can we get a left over write showing up?  I guess that doesn't matter as
+> > the kernel will chase it with a memset(0) anyway and that will be order=
+ed
+> > as to the same address.
+> >=20
+> > However we won't be able to elide that zeroing even if we know the devi=
+ce
+> > did it which is makes some operations the device might support rather
+> > pointless :( =20
+>=20
+> >>> on arm64 it's a PSCI firmware call CLEAN_INV_MEMREGION (there is a
+> >>> public alpha specification for PSCI 1.3 with that defined but we
+> >>> don't yet have kernel code.)   =20
+>=20
+> I have an RFC for that - but I haven't had time to update and re-test it.
 
-Fixes: 1b40e09a1232 ("libnvdimm: blk labels and namespace instantiation")
-Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
----
- drivers/nvdimm/namespace_devs.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+If it's useful, I might either be able to find time to take that forwards
+(or get someone else to do it).
 
-diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-index d6d558f94d6b..56b016dbe307 100644
---- a/drivers/nvdimm/namespace_devs.c
-+++ b/drivers/nvdimm/namespace_devs.c
-@@ -1994,7 +1994,9 @@ static struct device **scan_labels(struct nd_region *nd_region)
- 		/* Publish a zero-sized namespace for userspace to configure. */
- 		nd_mapping_free_labels(nd_mapping);
- 
--		devs = kcalloc(2, sizeof(dev), GFP_KERNEL);
-+		/* devs probably has been allocated */
-+		if (!devs)
-+			devs = kcalloc(2, sizeof(dev), GFP_KERNEL);
- 		if (!devs)
- 			goto err;
- 
--- 
-2.29.2
+Let me know if that would be helpful; I'd love to add this to the list
+of things I can forget about because it just works for kernel
+(and hence is a problem for the firmware and uarch folk).
+
+>=20
+> If you need this, and have a platform where it can be implemented, please=
+ get in touch
+> with the people that look after the specs to move it along from alpha.
+>=20
+>=20
+> >> That punches visibility through CXL shared memory devices? =20
+>=20
+> > It's a draft spec and Mark + James in +CC can hopefully confirm.
+> > It does say
+> > "Cleans and invalidates all caches, including system caches".
+> > which I'd read as meaning it should but good to confirm. =20
+>=20
+> It's intended to remove any cached entries - including lines in what the =
+arm-arm calls
+> "invisible" system caches, which typically only platform firmware can tou=
+ch. The next
+> access should have to go all the way to the media. (I don't know enough a=
+bout CXL to say
+> what a remote shared memory consumer observes)
+
+If it's out of the host bridge buffers (and known to have succeeded in writ=
+e back) which I
+think the host should know, I believe what happens next is a device impleme=
+nter problem.
+Hopefully anyone designing a device that does memory sharing has built that=
+ part right.
+
+>=20
+> Without it, all we have are the by-VA operations which are painfully slow=
+ for large
+> regions, and insufficient for system caches.
+>=20
+> As with all those firmware interfaces - its for the platform implementer =
+to wire up
+> whatever is necessary to remove cached content for the specified range. J=
+ust because there
+> is an (alpha!) spec doesn't mean it can be supported efficiently by a par=
+ticular platform.
+>=20
+>=20
+> >>> These are very big hammers and so unsuited for anything fine grained.=
+ =20
+>=20
+> You forgot really ugly too!
+
+I was being polite :)
+
+>=20
+>=20
+> >>> In the extreme end of possible implementations they briefly stop all
+> >>> CPUs and clean and invalidate all caches of all types. So not suited
+> >>> to anything fine grained, but may be acceptable for a rare setup even=
+t,
+> >>> particularly if the main job of the writing host is to fill that memo=
+ry
+> >>> for lots of other hosts to use.
+> >>>
+> >>> At least the ARM one takes a range so allows for a less painful
+> >>> implementation.  =20
+>=20
+> That is to allow some ranges to fail. (e.g. you can do this to the CXL wi=
+ndows, but not
+> the regular DRAM).
+>=20
+> On the less painful implementation, arm's interconnect has a gadget that =
+does "Address
+> based flush" which could be used here. I'd hope platforms with that don't=
+ need to
+> interrupt all CPUs - but it depends on what else needs to be done.
+>=20
+>=20
+> >>> I'm assuming we'll see new architecture over time
+> >>> but this is a different (and potentially easier) problem space
+> >>> to what you need.   =20
+> >>
+> >> cpu_cache_invalidate_memregion() is only about making sure local CPU
+> >> sees new contents after an DPA:HPA remap event. I hope CPUs are able to
+> >> get away from that responsibility long term when / if future memory
+> >> expanders just issue back-invalidate automatically when the HDM decoder
+> >> configuration changes. =20
+> >=20
+> > I would love that to be the way things go, but I fear the overheads of
+> > doing that on the protocol means people will want the option of the pai=
+nful
+> > approach. =20
+>=20
+>=20
+>=20
+> Thanks,
+>=20
+> James
+
+Thanks for the info,
+
+Jonathan
+
+>=20
 
