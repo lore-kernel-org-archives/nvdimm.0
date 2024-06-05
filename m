@@ -1,175 +1,103 @@
-Received: from mx0b-0031df01.pphosted.com (mx0b-0031df01.pphosted.com [205.220.180.131])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ot1-f43.google.com (mail-ot1-f43.google.com [209.85.210.43])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D3C0188CAA;
-	Wed,  5 Jun 2024 17:49:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=205.220.180.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 114341553AB;
+	Wed,  5 Jun 2024 20:05:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.43
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717609772; cv=none; b=gaPllh5kZbJ70w9fMqVadp5T1X9zp8zozhTXNNxrcP8ftBaShH89lu1kq1rygydepBjqwbMt2VXNExoXn7rlYOeYzc3ZhmDGl/GmB7nCtQ3jgSbq68Wv8ewl4NYiS6KgjavUc+MUul0F/qFBmDtsjGwzfgp/SOroidTR177VRao=
+	t=1717617949; cv=none; b=TxA7G8OY2u+roxcV+FUVNV10gmy3kGtiJcGNRqVZmAtNUOy4Mylk2HnBhCN6m0EmjqFbUSQ5F2FaPCeY9KFIklsS2PTKdG2lnR2wOV+0jE841zTsupqlC5QePY/a42H4qua3rfhtw0tAWodH42OvJzYGOFG6nDsKnd47aOX19eI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717609772; c=relaxed/simple;
-	bh=6+pLjpWz258QiGPov/ARDn7yccoD9CoZe6XpvSTOwX8=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-ID:To:CC; b=QVQZQXqq7d5r4kikVNPdseEcUyYB2Iev89hY2iSaDJ7S6qaRGNZZvrEXu+JSP5972Bt5W/gEmygiz4Jlf1HhVB7OSKIWH5obKzhR1PBMBAK93I3VJYA6cxyFxixAEzxyIR8ZkuCeu6cbb7qWCUfvQagtWPx0s61JbR6r5HQ6B1s=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=quicinc.com; spf=pass smtp.mailfrom=quicinc.com; dkim=pass (2048-bit key) header.d=quicinc.com header.i=@quicinc.com header.b=cjgV9GMg; arc=none smtp.client-ip=205.220.180.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=quicinc.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=quicinc.com
+	s=arc-20240116; t=1717617949; c=relaxed/simple;
+	bh=WIESEa30dZ/hQw4soSdWvR9FvT6kULeFPhCVwwSmx90=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=NL4WKlciv/g1DtCSKCoIbd4p4fUySGrY0o11HHziMa4AoDDUVfjYVLV6JYxPKCL/liY6fTV4H+pTvPR2XgOVNVg/tk5iIZNLjaZ/oN/DCRagMfeELGGwFQRfXvcIhQ/5FkNIw7pGPgvFjjFQKgrWLHDN5Bnn32prgtnP7UD0YXY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=YEPruOEj; arc=none smtp.client-ip=209.85.210.43
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=quicinc.com header.i=@quicinc.com header.b="cjgV9GMg"
-Received: from pps.filterd (m0279868.ppops.net [127.0.0.1])
-	by mx0a-0031df01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 455B1MEV031665;
-	Wed, 5 Jun 2024 17:49:26 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=quicinc.com; h=
-	cc:content-transfer-encoding:content-type:date:from:message-id
-	:mime-version:subject:to; s=qcppdkim1; bh=AXhQBKojD6PKBV7uF/cgH/
-	f6O4FOFdKrLiFVfvtSdWk=; b=cjgV9GMgaquBHhkOl2Aq4x+AOkF8HhzmkujxwE
-	1hJ5sIX/4J5c5OKUS9DQHpjH8pytnRuYYZS+K2fH2lpvRcNgxd0m5tF38oQgiPwM
-	TmQJ/1IQEZ4D+4rJphZfOHuN/Pr34enTrlWdv5ZwoJ/Xb8hN9tX7hlJ5ejjFxCTi
-	Hl95dimhSo+/UsOUHKjM/XALWI9P3BZItDKqrqWxYNe1456W7zVSu6uJvOtgQ5HC
-	xGAnqPOcfX50iv9JpWHSjqwuZXxgdCuGffavJA01b4FH2jYxeXtqKapt59vmpZ2T
-	jR6d/571tBjWDRRqQjmZ6mx6k7eAF+g7JYVVUkCWyrYl1pNg==
-Received: from nalasppmta05.qualcomm.com (Global_NAT1.qualcomm.com [129.46.96.20])
-	by mx0a-0031df01.pphosted.com (PPS) with ESMTPS id 3yjk899jdx-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Wed, 05 Jun 2024 17:49:26 +0000 (GMT)
-Received: from nalasex01a.na.qualcomm.com (nalasex01a.na.qualcomm.com [10.47.209.196])
-	by NALASPPMTA05.qualcomm.com (8.17.1.5/8.17.1.5) with ESMTPS id 455HnO03001113
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Wed, 5 Jun 2024 17:49:24 GMT
-Received: from [169.254.0.1] (10.49.16.6) by nalasex01a.na.qualcomm.com
- (10.47.209.196) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.9; Wed, 5 Jun 2024
- 10:49:24 -0700
-From: Jeff Johnson <quic_jjohnson@quicinc.com>
-Date: Wed, 5 Jun 2024 10:49:24 -0700
-Subject: [PATCH] dax: add missing MODULE_DESCRIPTION() macros
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="YEPruOEj"
+Received: by mail-ot1-f43.google.com with SMTP id 46e09a7af769-6f944cae15cso497641a34.1;
+        Wed, 05 Jun 2024 13:05:47 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1717617947; x=1718222747; darn=lists.linux.dev;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=Q2sovYnnLqu3ePNoGdykaYCzoGX/KrvirZkk+6UfwMw=;
+        b=YEPruOEjOgWuaoEu3dpsmbYxPxyQpimaYJAG72HxmN0m7dqC/EyUJ51x3aqXz07rYM
+         jM63cwBr7R6b5lU9uMTKGt2iZ47r0gzrBy9kdkgRgBDeJv9BXJXFI4iQ1aZDuF1vMNzt
+         Dwf9bo1MPgXRAkWMNVLrFWmMIyVUpzbj8gZF63HcIjyzHWWyRo7reOtm0ygPXJtREkQr
+         pGk/zb5hd3FNQpinjNphXj6p7Z7JQcRP+qtkjcZf3wHwIX7Wzm4Ws9NHAHzCBhOPeJLV
+         gTL0WZvpdHppFcAlDAhUCq0bQYqiyXCfdUrBVOdvJ6lZehyOyVujoAiIaETTniMY/vAd
+         PJ4Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1717617947; x=1718222747;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=Q2sovYnnLqu3ePNoGdykaYCzoGX/KrvirZkk+6UfwMw=;
+        b=Dkl8VVOFzmXoqdo8rIEOY4v85wFKqbMp+sv5OeC1Sqy0Ukh8aFO+lpkocmZsjFBQ1/
+         Hhxpz0QLqioa9VwdC5zFO6sdaWE8dxdT3ax2Z5yuzg6Q/zewGTj4sw8qAwcCzqAnzNI5
+         BX02+F/Oex/N0u37OlaeCnEi2whRuNjeOjWWlAz+rY+Y4E8tgEF0cjW1MIXKl7GOYM0l
+         5Ph3W1tXR9Wom7Mpo9UXL575a5ZOB48O5ZjJHEQRAk01MUDhrJRKti7JinBFnu1Eg07P
+         w7yBlIrfk1MM6ASbDvUWWiTAYe/wodFX9PTLlTPLI2p4wmFClxZXd0QzTdEGBquscQER
+         yddQ==
+X-Forwarded-Encrypted: i=1; AJvYcCWYP/IWeKnTBh0Y8cjLyWoCUMY13Bvk+TUFYz0IHfhnXRwR2WEJSETZMEJ1QWwmE+MpX8F6mb20fsYVgLVG3YbMp9yRePTitxGnPHg1DKl/fd2o25UEE/c40rILnuVGIU8=
+X-Gm-Message-State: AOJu0YzmVSGiYPVDIV7VDDQX182bAmTQ67Jtc9JdxdbUb+ByIeY97qgp
+	TyD4o58vbRs44rkN3YhbkIc51qnrIpJJqmwhkY+XdDH/2mC9vWGlv4dD33NGjy6c7gxWcVdMGGv
+	gs0xkS6o9d8thRECO94g8as9tTH0=
+X-Google-Smtp-Source: AGHT+IGyVhO7rSQAoGDSB+vjloBrx705BG5D6fs1Cr4EcslfrxplrQUigFncTawwbH2U8MnF7SOq8ImGhCk8Gp1b7A4=
+X-Received: by 2002:a05:6871:738f:b0:24c:4f83:48da with SMTP id
+ 586e51a60fabf-254407aeaf0mr366594fac.16.1717617947176; Wed, 05 Jun 2024
+ 13:05:47 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-ID: <20240605-md-drivers-dax-v1-1-3d448f3368b4@quicinc.com>
-X-B4-Tracking: v=1; b=H4sIACOlYGYC/x3MQQ6CQAxA0auQrm0ygwLRqxgXhVZoAqNpkUxCu
- Lujy7f4fwcXU3G4VTuYbOr6SgXxVMEwURoFlYuhDvUltKHBhZFNNzFHpowcqYuRr3xuBEr0Nnl
- q/g/vj+KeXLA3SsP028yaPhkX8lUMjuMLfgbFuX8AAAA=
-To: Dan Williams <dan.j.williams@intel.com>,
-        Vishal Verma
-	<vishal.l.verma@intel.com>,
-        Dave Jiang <dave.jiang@intel.com>
-CC: <nvdimm@lists.linux.dev>, <linux-cxl@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>, <kernel-janitors@vger.kernel.org>,
-        "Jeff
- Johnson" <quic_jjohnson@quicinc.com>
-X-Mailer: b4 0.13.0
-X-ClientProxiedBy: nalasex01b.na.qualcomm.com (10.47.209.197) To
- nalasex01a.na.qualcomm.com (10.47.209.196)
-X-QCInternal: smtphost
-X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=5800 signatures=585085
-X-Proofpoint-GUID: fJoPla1dG5T-u7kKaXEMNt9N01JInV7j
-X-Proofpoint-ORIG-GUID: fJoPla1dG5T-u7kKaXEMNt9N01JInV7j
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1039,Hydra:6.0.680,FMLib:17.12.28.16
- definitions=2024-06-05_02,2024-06-05_02,2024-05-17_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 lowpriorityscore=0
- spamscore=0 impostorscore=0 phishscore=0 mlxscore=0 bulkscore=0
- adultscore=0 malwarescore=0 priorityscore=1501 clxscore=1015
- suspectscore=0 mlxlogscore=999 classifier=spam adjust=0 reason=mlx
- scancount=1 engine=8.19.0-2405170001 definitions=main-2406050134
+References: <20240605063031.3286655-1-hch@lst.de> <20240605063031.3286655-5-hch@lst.de>
+In-Reply-To: <20240605063031.3286655-5-hch@lst.de>
+From: Kanchan Joshi <joshiiitr@gmail.com>
+Date: Wed, 5 Jun 2024 20:05:20 +0530
+Message-ID: <CA+1E3rJn3uNfkoFtm_am9qwQmwWvhu3nPVMaM63AJ2GBdxZTmQ@mail.gmail.com>
+Subject: Re: [PATCH 04/12] block: remove the blk_integrity_profile structure
+To: Christoph Hellwig <hch@lst.de>
+Cc: Jens Axboe <axboe@kernel.dk>, "Martin K. Petersen" <martin.petersen@oracle.com>, 
+	Mike Snitzer <snitzer@kernel.org>, Mikulas Patocka <mpatocka@redhat.com>, Song Liu <song@kernel.org>, 
+	Yu Kuai <yukuai3@huawei.com>, Dan Williams <dan.j.williams@intel.com>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Ira Weiny <ira.weiny@intel.com>, Keith Busch <kbusch@kernel.org>, 
+	Sagi Grimberg <sagi@grimberg.me>, Chaitanya Kulkarni <kch@nvidia.com>, linux-block@vger.kernel.org, 
+	dm-devel@lists.linux.dev, linux-raid@vger.kernel.org, nvdimm@lists.linux.dev, 
+	linux-nvme@lists.infradead.org, linux-scsi@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-make allmodconfig && make W=1 C=1 reports:
-WARNING: modpost: missing MODULE_DESCRIPTION() in drivers/dax/hmem/dax_hmem.o
-WARNING: modpost: missing MODULE_DESCRIPTION() in drivers/dax/device_dax.o
-WARNING: modpost: missing MODULE_DESCRIPTION() in drivers/dax/kmem.o
-WARNING: modpost: missing MODULE_DESCRIPTION() in drivers/dax/dax_pmem.o
-WARNING: modpost: missing MODULE_DESCRIPTION() in drivers/dax/dax_cxl.o
+On Wed, Jun 5, 2024 at 12:01=E2=80=AFPM Christoph Hellwig <hch@lst.de> wrot=
+e:
+> @@ -446,13 +446,14 @@ bool bio_integrity_prep(struct bio *bio)
+>         if (bio_integrity(bio))
+>                 return true;
+>
+> +       if (!bi->csum_type)
+> +               return true;
 
-Add all missing invocations of the MODULE_DESCRIPTION() macro.
+Changes look mostly good, but trigger a behavior change for non-PI
+metadata format.
 
-Signed-off-by: Jeff Johnson <quic_jjohnson@quicinc.com>
----
- drivers/dax/cxl.c       | 1 +
- drivers/dax/device.c    | 1 +
- drivers/dax/hmem/hmem.c | 1 +
- drivers/dax/kmem.c      | 1 +
- drivers/dax/pmem.c      | 1 +
- drivers/dax/super.c     | 1 +
- 6 files changed, 6 insertions(+)
+Earlier nop profile was registered for that case. And the block-layer
+continued to attach an appropriately sized meta buffer to incoming IO, even
+though it did not generate/verify. Hence, IOs don't fail.
 
-diff --git a/drivers/dax/cxl.c b/drivers/dax/cxl.c
-index c696837ab23c..89abcfe902fc 100644
---- a/drivers/dax/cxl.c
-+++ b/drivers/dax/cxl.c
-@@ -43,6 +43,7 @@ static struct cxl_driver cxl_dax_region_driver = {
- 
- module_cxl_driver(cxl_dax_region_driver);
- MODULE_ALIAS_CXL(CXL_DEVICE_DAX_REGION);
-+MODULE_DESCRIPTION("CXL DAX: direct access to CXL RAM regions");
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Intel Corporation");
- MODULE_IMPORT_NS(CXL);
-diff --git a/drivers/dax/device.c b/drivers/dax/device.c
-index eb61598247a9..0ad27bce0d26 100644
---- a/drivers/dax/device.c
-+++ b/drivers/dax/device.c
-@@ -482,6 +482,7 @@ static void __exit dax_exit(void)
- }
- 
- MODULE_AUTHOR("Intel Corporation");
-+MODULE_DESCRIPTION("Device DAX: direct access mapping device");
- MODULE_LICENSE("GPL v2");
- module_init(dax_init);
- module_exit(dax_exit);
-diff --git a/drivers/dax/hmem/hmem.c b/drivers/dax/hmem/hmem.c
-index b9da69f92697..5e7c53f18491 100644
---- a/drivers/dax/hmem/hmem.c
-+++ b/drivers/dax/hmem/hmem.c
-@@ -168,5 +168,6 @@ MODULE_SOFTDEP("pre: cxl_acpi");
- 
- MODULE_ALIAS("platform:hmem*");
- MODULE_ALIAS("platform:hmem_platform*");
-+MODULE_DESCRIPTION("HMEM DAX: direct access to 'specific purpose' memory");
- MODULE_LICENSE("GPL v2");
- MODULE_AUTHOR("Intel Corporation");
-diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
-index 4fe9d040e375..e97d47f42ee2 100644
---- a/drivers/dax/kmem.c
-+++ b/drivers/dax/kmem.c
-@@ -299,6 +299,7 @@ static void __exit dax_kmem_exit(void)
- }
- 
- MODULE_AUTHOR("Intel Corporation");
-+MODULE_DESCRIPTION("KMEM DAX: map dax-devices as System-RAM");
- MODULE_LICENSE("GPL v2");
- module_init(dax_kmem_init);
- module_exit(dax_kmem_exit);
-diff --git a/drivers/dax/pmem.c b/drivers/dax/pmem.c
-index f3c6c67b8412..c8ebf4e281f2 100644
---- a/drivers/dax/pmem.c
-+++ b/drivers/dax/pmem.c
-@@ -94,6 +94,7 @@ static void __exit dax_pmem_exit(void)
- }
- module_exit(dax_pmem_exit);
- 
-+MODULE_DESCRIPTION("PMEM DAX: direct access to persistent memory");
- MODULE_LICENSE("GPL v2");
- MODULE_AUTHOR("Intel Corporation");
- MODULE_ALIAS_ND_DEVICE(ND_DEVICE_DAX_PMEM);
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index aca71d7fccc1..e16d1d40d773 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -606,6 +606,7 @@ static void __exit dax_core_exit(void)
- }
- 
- MODULE_AUTHOR("Intel Corporation");
-+MODULE_DESCRIPTION("DAX: direct access to differentiated memory");
- MODULE_LICENSE("GPL v2");
- subsys_initcall(dax_core_init);
- module_exit(dax_core_exit);
+Now also we show that the nop profile is set, but the above
+"csum_type" check ensures that
+meta buffer is not attached and REQ_INTEGRITY is not set in the bio.
+NVMe will start failing IOs with BLK_STS_NOTSUPP now [*].
 
----
-base-commit: a693b9c95abd4947c2d06e05733de5d470ab6586
-change-id: 20240605-md-drivers-dax-d1a711d9d35e
-
+[*]
+     if (!blk_integrity_rq(req)) {
+             if (WARN_ON_ONCE(!nvme_ns_has_pi(ns->head)))
+                     return BLK_STS_NOTSUPP;
+             control |=3D NVME_RW_PRINFO_PRACT;
+     }
