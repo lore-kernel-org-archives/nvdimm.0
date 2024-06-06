@@ -1,48 +1,50 @@
-Received: from 008.lax.mailroute.net (008.lax.mailroute.net [199.89.1.11])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E180B196431;
-	Thu,  6 Jun 2024 15:38:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=199.89.1.11
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBC781993A9
+	for <nvdimm@lists.linux.dev>; Thu,  6 Jun 2024 16:10:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717688338; cv=none; b=mRTb3EcWSqGLdh9EyoVixT+1DEpi32fXlHb+47giSifQg5RpvYJ2YdX3yqqxfDctT2dhxHE1OZwLUOd+P7cvuxkDcolaL4v38cWM9GF7tPsjgTKxEGNWTGQz+U0FCy90ezwXo7+3lpI1R0XsyEd9bUZ0/c3Ry8d1KM5/dj5j+GI=
+	t=1717690245; cv=none; b=Vxx4ZJby7wx14DP1saG576cROlXJICbLliPIScAXfnoERf1UIrq7Uvebck+W6BHdzvaNlMuQ1OAYINftuPygGfizfGIkbnN/HK8qgu3lPW/RwMVqywXVELpBy2hFafJs+L8YEm8tEvwGYz6v4RvdIR3f9+1Q0Ppa6MTc9ACdZ/U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717688338; c=relaxed/simple;
-	bh=0fqhwtTCMwg3nN0kbPbaQFo+LrZaFWCeNCebgPd87gw=;
+	s=arc-20240116; t=1717690245; c=relaxed/simple;
+	bh=qv1pFXlcSgwYbKrQz9zbw//dFkZVqhId2iv4MglEBDU=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=jqusvW1N6Mvk/RJOaA4eNn9yolyPLdkPwX8eMxBZz0doNGTIUb6IwBFmA0UbLrKN5gUl+X3WwAJkCWOVwNjMnO/5/9i4BrHqLYz5guv7WBO3HtJ1WBR5F+5/SP02FFfdT5dLQ7mIGQJWk1n2PL42jD7rUKkJZxSg84Eps3SQxEQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=acm.org; spf=pass smtp.mailfrom=acm.org; dkim=pass (2048-bit key) header.d=acm.org header.i=@acm.org header.b=4vcq+ZeJ; arc=none smtp.client-ip=199.89.1.11
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=acm.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=acm.org
+	 In-Reply-To:Content-Type; b=QpRwaB2nG3Pqw9eC3ja8AcMd5CpayHDjTT7RleSFqkbhhYQRhQdE/zQ/Zhgnh+5Si8S9h4d90bpBIg38fI8lndnxRS+Xq4YbagwMdpFyOGN1NUgHtRT+pML+wbiB+OSaXKMpAVx9lCtRryPiT1P8lI4UUDp40xxKUc2qOHTXHIc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=ndSWqezx; arc=none smtp.client-ip=198.175.65.18
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=acm.org header.i=@acm.org header.b="4vcq+ZeJ"
-Received: from localhost (localhost [127.0.0.1])
-	by 008.lax.mailroute.net (Postfix) with ESMTP id 4Vw7lt02qZz6Cnk9X;
-	Thu,  6 Jun 2024 15:38:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=acm.org; h=
-	content-transfer-encoding:content-type:content-type:in-reply-to
-	:from:from:content-language:references:subject:subject
-	:user-agent:mime-version:date:date:message-id:received:received;
-	 s=mr01; t=1717688322; x=1720280323; bh=maVyEw5qAJ9exIjeLqhPdHWd
-	OFMAGD+uPnPP3rBtN3k=; b=4vcq+ZeJ2Tz8h7FvTWtkYye5ybBsQeKzH7LiB/h4
-	RYBFunjMs54P5sT/WycS/guHMkgCJiCBlloYezqTZ7mr4FVcPxejYkxIFpmibeR4
-	gNcRz8zWHzoBC0D/RNYq4CY9i+rCWkWp9HSvPl+aI/mGFgL3HEgyEyWWFY0FP7RT
-	p4mDdyjMwbI/dAP+dOok6Euj9jCvqV3uWVKT/LC4nIMzdjWLziQV0jQRBqkROenn
-	QBV7UL2/XVsMrQPtjqxzYzZ1APOdCg5KIjvDbKk6qP23vrMGcWMj4GMZHuvMCcMv
-	TzcM9QPqn10RI6Vb3+k9KbjWoPv2Osa6VBpxuHAfjkFXBQ==
-X-Virus-Scanned: by MailRoute
-Received: from 008.lax.mailroute.net ([127.0.0.1])
- by localhost (008.lax [127.0.0.1]) (mroute_mailscanner, port 10029) with LMTP
- id w919G5Ov9keK; Thu,  6 Jun 2024 15:38:42 +0000 (UTC)
-Received: from [172.20.24.239] (unknown [204.98.150.10])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	(Authenticated sender: bvanassche@acm.org)
-	by 008.lax.mailroute.net (Postfix) with ESMTPSA id 4Vw7lg5CCkz6Cnk9W;
-	Thu,  6 Jun 2024 15:38:39 +0000 (UTC)
-Message-ID: <2cbf3443-de1c-4bfc-a249-afd1a4e13211@acm.org>
-Date: Thu, 6 Jun 2024 09:38:38 -0600
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="ndSWqezx"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1717690244; x=1749226244;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=qv1pFXlcSgwYbKrQz9zbw//dFkZVqhId2iv4MglEBDU=;
+  b=ndSWqezxjb/BIV+jOmZLHU9R8TSYXdOqbNeA70s+BIKhxw/jKmfP78G4
+   UN7tqe6opWbX3Bmw5SS4kf5m1YTOXkP+16HU/29pWbItbQBCM1pkA6EuX
+   9jXWKmzRIs42aNmjX6MLHtyHKWsoItY88kjvExwqE2bb2bweqZBpQIkcG
+   qHjUgWvJMVNPASnwmsOMHHW9hTVMsUB8CtSFTVNycP1EeB1fkBPD3O2hi
+   mly0oqsv5Un2+JSma1Y7SzVIN/j5C3l8py4Fpl1qcX14oyIko8fClbReM
+   NnRMlqWvy2lq92D/XikxfpLX9+cw1lSCtjQAWa6v1I2TEZtV0TBg063c3
+   A==;
+X-CSE-ConnectionGUID: Zy1Qd8wAR1OEZKok/MeULQ==
+X-CSE-MsgGUID: y/Axs8NjQXCsOvvT0C/jRw==
+X-IronPort-AV: E=McAfee;i="6600,9927,11095"; a="14525110"
+X-IronPort-AV: E=Sophos;i="6.08,219,1712646000"; 
+   d="scan'208";a="14525110"
+Received: from orviesa007.jf.intel.com ([10.64.159.147])
+  by orvoesa110.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Jun 2024 09:10:44 -0700
+X-CSE-ConnectionGUID: bvhW7S7sQSWtax5dU45RBQ==
+X-CSE-MsgGUID: Tqx9REmTSsaOvs1iEkDMhA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.08,219,1712646000"; 
+   d="scan'208";a="38695769"
+Received: from djiang5-mobl3.amr.corp.intel.com (HELO [10.125.109.168]) ([10.125.109.168])
+  by orviesa007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Jun 2024 09:10:44 -0700
+Message-ID: <5224f029-c156-4477-9823-54efd434af98@intel.com>
+Date: Thu, 6 Jun 2024 09:10:42 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -50,55 +52,48 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 04/12] block: remove the blk_integrity_profile structure
-To: Christoph Hellwig <hch@lst.de>
-Cc: Jens Axboe <axboe@kernel.dk>,
- "Martin K. Petersen" <martin.petersen@oracle.com>,
- Mike Snitzer <snitzer@kernel.org>, Mikulas Patocka <mpatocka@redhat.com>,
- Song Liu <song@kernel.org>, Yu Kuai <yukuai3@huawei.com>,
+Subject: Re: [PATCH] ACPI: NFIT: add missing MODULE_DESCRIPTION() macro
+To: Jeff Johnson <quic_jjohnson@quicinc.com>,
  Dan Williams <dan.j.williams@intel.com>,
- Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>,
- Ira Weiny <ira.weiny@intel.com>, Keith Busch <kbusch@kernel.org>,
- Sagi Grimberg <sagi@grimberg.me>, Chaitanya Kulkarni <kch@nvidia.com>,
- linux-block@vger.kernel.org, dm-devel@lists.linux.dev,
- linux-raid@vger.kernel.org, nvdimm@lists.linux.dev,
- linux-nvme@lists.infradead.org, linux-scsi@vger.kernel.org
-References: <20240605063031.3286655-1-hch@lst.de>
- <20240605063031.3286655-5-hch@lst.de>
- <fee6338e-4aae-456c-90a3-228a19fae58a@acm.org> <20240606045048.GC8395@lst.de>
+ Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>,
+ "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>
+Cc: nvdimm@lists.linux.dev, linux-acpi@vger.kernel.org,
+ linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+References: <20240603-md-drivers-acpi-nfit-v1-1-11a5614a8dbe@quicinc.com>
 Content-Language: en-US
-From: Bart Van Assche <bvanassche@acm.org>
-In-Reply-To: <20240606045048.GC8395@lst.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <20240603-md-drivers-acpi-nfit-v1-1-11a5614a8dbe@quicinc.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-On 6/5/24 22:50, Christoph Hellwig wrote:
-> On Wed, Jun 05, 2024 at 10:31:27AM -0600, Bart Van Assche wrote:
->>> +	case BLK_INTEGRITY_CSUM_CRC64:
->>> +		if (bi->flags & BLK_INTEGRITY_REF_TAG)
->>> +			return "EXT-DIF-TYPE1-CRC64";
->>> +		return "EXT-DIF-TYPE3-CRC64";
->>> +	default:
->>> +		return "nop";
->>> +	}
->>> +}
->>
->> Since bi->csum_type has an enumeration type, please leave out the "default:"
->> and move return "nop" outside the switch statement. This will make the
->> compiler issue a warning if a new enumeration label would be added without
->> updating the above switch statement. Otherwise this patch looks good to me.
+
+
+On 6/3/24 6:30 AM, Jeff Johnson wrote:
+> make allmodconfig && make W=1 C=1 reports:
+> WARNING: modpost: missing MODULE_DESCRIPTION() in drivers/acpi/nfit/nfit.o
 > 
-> For that to work you'd need to make csum_type the enum type and not an
-> unsigned char, which would bloat the block limits.  You'd also need to
-> keep the return "nop" where it is, but use the explicit case instead of
-> the default.
+> Add the missing invocation of the MODULE_DESCRIPTION() macro.
+> 
+> Signed-off-by: Jeff Johnson <quic_jjohnson@quicinc.com>
 
-Has it been considered to add __packed to the definition of enum
-blk_integerity_checksum such that its size changes from 4 to 1 bytes and to
-change "unsigned char csum_type" into  "enum blk_integerity csum_type"?
-
-Thanks,
-
-Bart.
-
-
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+>  drivers/acpi/nfit/core.c | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> index d4595d1985b1..e8520fb8af4f 100644
+> --- a/drivers/acpi/nfit/core.c
+> +++ b/drivers/acpi/nfit/core.c
+> @@ -3531,5 +3531,6 @@ static __exit void nfit_exit(void)
+>  
+>  module_init(nfit_init);
+>  module_exit(nfit_exit);
+> +MODULE_DESCRIPTION("ACPI NVDIMM Firmware Interface Table (NFIT) module");
+>  MODULE_LICENSE("GPL v2");
+>  MODULE_AUTHOR("Intel Corporation");
+> 
+> ---
+> base-commit: a693b9c95abd4947c2d06e05733de5d470ab6586
+> change-id: 20240603-md-drivers-acpi-nfit-e032bad0b189
+> 
