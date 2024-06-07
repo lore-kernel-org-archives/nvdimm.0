@@ -1,81 +1,80 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 390B28831;
-	Fri,  7 Jun 2024 06:15:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 453451BC2F;
+	Fri,  7 Jun 2024 06:16:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1717740940; cv=none; b=dvIrKsf4iyWtnvqHfZkVc53aMHADBy5+0l1Y35JFkIiePA+kWrHwfS7l9bnvGQLmZ0saKkgzcDS9hHpKISV6nQTlT/tXieaero09zp/6T6wxXCTM3vN7YzayzzEtG2t9kLTg/wlep+KnHaKqwaMEEW1CyuThKGGGWnqet0VLDiQ=
+	t=1717740985; cv=none; b=RU2aiGmc4gqaHL8hsE6HyrMlsKHsNs7WIoj0sJWQaU4rpbm6dY+l+fJN9JqaJwS5NbvpNwJv7vJGhqB65fQAgkIALZ5TmWI6b527VnU01APsW+NSKYeg8kMSHADXjYCcwQVPFvPhpxcsE76e4ibIeRjHiRpIpRYOQzF64EEfQak=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1717740940; c=relaxed/simple;
-	bh=vbYQhDEF3IbIfN3rHdxJBSC3TMchbhL5uJkgdc6q8WU=;
+	s=arc-20240116; t=1717740985; c=relaxed/simple;
+	bh=T5qiTukQ83BUdnwawGBRne2wENjElTubZESdGgTbzkM=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=HayOPVf7/S8cDpHKCGe9w9rQXqe/E1i6YXKl40R5tM0YzmyvizC/VTBVWDf12mQ97WjBxzOyWBehXZnN+SC/VlWeALQl4yrHDhlEqWbEnkv4R5YEesv1hiiZrDtEOixELgsjG0GZvhhVwPCFMXXc0Yt7tFeJZ/vEqVSgsbZnEvk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=RPP9tipx; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=kHdMmZUR; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=jxUArSxv; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=GLtbWZ9c; arc=none smtp.client-ip=195.135.223.130
+	 In-Reply-To:Content-Type; b=jM/jdxn+5+pzjmGiwSgy3+zsocHCYMaxjvwnn0Q8ux1o0pzP8mpr9RPPYsWY+dgmIEYL5Il4RnSKJFEhPcV4EJvDDMQUB91r1OdhtvC5W10a81SmwaKNAY2/Us0EvB3AZw0KxsCr3nMYrtRxskVILkQlXRChpaOtRsJB1csacE0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=AZqpuK0v; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=6JfsCqcn; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=AZqpuK0v; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=6JfsCqcn; arc=none smtp.client-ip=195.135.223.131
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="RPP9tipx";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="kHdMmZUR";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="jxUArSxv";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="GLtbWZ9c"
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="AZqpuK0v";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="6JfsCqcn";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="AZqpuK0v";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="6JfsCqcn"
+Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 236FC21B47;
-	Fri,  7 Jun 2024 06:15:36 +0000 (UTC)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id 609E91FB81;
+	Fri,  7 Jun 2024 06:16:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1717740937; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	t=1717740981; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=Wm8rbgtQGj5fjmx4DpdJ99Rxhb+FVTdyCOYiK/QjpTQ=;
-	b=RPP9tipxppuNQDe1361B7Dv2Aa7xWByIGLWixigi21EQTvvjBRcy/rrUQAyScfqtKcXtvY
-	+By8FRVx55ifjQLogUSGI2DtIPJW+9NGlzVtlkHD4oKq9yuwYpLzkXsla3qhaFsuEE08Tr
-	1UYBUACugq0qhOshCZwNFitidbDdWiw=
+	bh=SHoMRi67YFXr24VW/2m+SfX3nUx/QKU2B2W/8riq+oA=;
+	b=AZqpuK0v9UMSlQi27m2zCScuWFueLSvZNOVXwJSDZcPlYMD8W30ThSjBY41vssFoxGBmC6
+	o2was3LyD6otClnQR7kIpwgxXkqYBk1MsORQi2l7HFFrxSQyeLUaFRxEiMumZUBrKubiA/
+	Sb66iYy2Z48YHNocQqE1BTR0WmLwGlc=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1717740937;
+	s=susede2_ed25519; t=1717740981;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=Wm8rbgtQGj5fjmx4DpdJ99Rxhb+FVTdyCOYiK/QjpTQ=;
-	b=kHdMmZUR+pezLBawCRSRXgq7RHoftyLz85dArPbIZ4ZujOss6yBZ0HEYf+Y9mBPWSu4oDc
-	lY76/avVdEpl5zBg==
-Authentication-Results: smtp-out1.suse.de;
-	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=jxUArSxv;
-	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=GLtbWZ9c
+	bh=SHoMRi67YFXr24VW/2m+SfX3nUx/QKU2B2W/8riq+oA=;
+	b=6JfsCqcnPioAzrXx+TC5yMXhoLX1+II+tDBM7kukqEy30Qai95C2FdGXWaZUNQR9v0MXTM
+	ki3AVYEYni8iWrAA==
+Authentication-Results: smtp-out2.suse.de;
+	none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1717740936; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	t=1717740981; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=Wm8rbgtQGj5fjmx4DpdJ99Rxhb+FVTdyCOYiK/QjpTQ=;
-	b=jxUArSxvkZ3Kv8bqJ426vmTVzlZTCbG9eLigFNOaedqIishUxwmoff6i4K0a2VH5O1lXP3
-	2liDgbcP+62hrYxlap8k3JVnoDGspB/22bYpIJkknrs1vTOvpOOzyIEVz5M79YCCdOZpfm
-	lVCrSBNhR9JaWD7lDvuK8ve6brAZaEU=
+	bh=SHoMRi67YFXr24VW/2m+SfX3nUx/QKU2B2W/8riq+oA=;
+	b=AZqpuK0v9UMSlQi27m2zCScuWFueLSvZNOVXwJSDZcPlYMD8W30ThSjBY41vssFoxGBmC6
+	o2was3LyD6otClnQR7kIpwgxXkqYBk1MsORQi2l7HFFrxSQyeLUaFRxEiMumZUBrKubiA/
+	Sb66iYy2Z48YHNocQqE1BTR0WmLwGlc=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1717740936;
+	s=susede2_ed25519; t=1717740981;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=Wm8rbgtQGj5fjmx4DpdJ99Rxhb+FVTdyCOYiK/QjpTQ=;
-	b=GLtbWZ9cdhW/yrp9sWn/T//Wx9mjGjAyeJgmr5ETRFRf/yrFZ1GsaF5dDSMArDh9YmSx2d
-	RUV222qdeCdLcQDQ==
+	bh=SHoMRi67YFXr24VW/2m+SfX3nUx/QKU2B2W/8riq+oA=;
+	b=6JfsCqcnPioAzrXx+TC5yMXhoLX1+II+tDBM7kukqEy30Qai95C2FdGXWaZUNQR9v0MXTM
+	ki3AVYEYni8iWrAA==
 Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 3BCB1133F3;
-	Fri,  7 Jun 2024 06:15:35 +0000 (UTC)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 3A4ED133F3;
+	Fri,  7 Jun 2024 06:16:20 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
 	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id vJ2CDIelYmZEYAAAD6G6ig
-	(envelope-from <hare@suse.de>); Fri, 07 Jun 2024 06:15:35 +0000
-Message-ID: <9f649939-2fd0-4c97-947f-3de8cd631706@suse.de>
-Date: Fri, 7 Jun 2024 08:15:34 +0200
+	id 2EX3CLSlYmZEYAAAD6G6ig
+	(envelope-from <hare@suse.de>); Fri, 07 Jun 2024 06:16:20 +0000
+Message-ID: <40991d1b-d42d-401f-9281-5293b3e1b173@suse.de>
+Date: Fri, 7 Jun 2024 08:16:20 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -83,7 +82,8 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 04/11] block: remove the blk_integrity_profile structure
+Subject: Re: [PATCH 05/11] block: remove the blk_flush_integrity call in
+ blk_integrity_unregister
 Content-Language: en-US
 To: Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>,
  "Martin K. Petersen" <martin.petersen@oracle.com>
@@ -97,87 +97,63 @@ Cc: Mike Snitzer <snitzer@kernel.org>, Mikulas Patocka <mpatocka@redhat.com>,
  linux-raid@vger.kernel.org, nvdimm@lists.linux.dev,
  linux-nvme@lists.infradead.org, linux-scsi@vger.kernel.org
 References: <20240607055912.3586772-1-hch@lst.de>
- <20240607055912.3586772-5-hch@lst.de>
+ <20240607055912.3586772-6-hch@lst.de>
 From: Hannes Reinecke <hare@suse.de>
-In-Reply-To: <20240607055912.3586772-5-hch@lst.de>
+In-Reply-To: <20240607055912.3586772-6-hch@lst.de>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 X-Spam-Level: 
-X-Spamd-Result: default: False [-4.50 / 50.00];
+X-Spamd-Result: default: False [-4.29 / 50.00];
 	BAYES_HAM(-3.00)[100.00%];
 	NEURAL_HAM_LONG(-1.00)[-1.000];
-	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	NEURAL_HAM_SHORT(-0.20)[-0.989];
 	MIME_GOOD(-0.10)[text/plain];
 	XM_UA_NO_VERSION(0.01)[];
-	MX_GOOD(-0.01)[];
-	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	RCPT_COUNT_TWELVE(0.00)[20];
-	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
-	MIME_TRACE(0.00)[0:+];
-	ARC_NA(0.00)[];
-	RCVD_TLS_ALL(0.00)[];
 	FUZZY_BLOCKED(0.00)[rspamd.com];
-	TO_DN_SOME(0.00)[];
-	SPAMHAUS_XBL(0.00)[2a07:de40:b281:104:10:150:64:97:from];
-	FROM_EQ_ENVFROM(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	MID_RHS_MATCH_FROM(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[lst.de:email,imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns,suse.de:dkim,suse.de:email];
 	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	DKIM_TRACE(0.00)[suse.de:+]
-X-Rspamd-Action: no action
-X-Rspamd-Queue-Id: 236FC21B47
-X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
+	ARC_NA(0.00)[];
+	RCPT_COUNT_TWELVE(0.00)[20];
+	MIME_TRACE(0.00)[0:+];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	RCVD_TLS_ALL(0.00)[];
+	FROM_EQ_ENVFROM(0.00)[];
+	TO_DN_SOME(0.00)[];
+	RCVD_COUNT_TWO(0.00)[2];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	MID_RHS_MATCH_FROM(0.00)[];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,lst.de:email,suse.de:email]
+X-Spam-Score: -4.29
 X-Spam-Flag: NO
-X-Spam-Score: -4.50
 
 On 6/7/24 07:58, Christoph Hellwig wrote:
-> Block layer integrity configuration is a bit complex right now, as it
-> indirects through operation vectors for a simple two-dimensional
-> configuration:
+> Now that there are no indirect calls for PI processing there is no
+> way to dereference a NULL pointer here.  Additionally drivers now always
+> freeze the queue (or in case of stacking drivers use their internal
+> equivalent) around changing the integrity profile.
 > 
->   a) the checksum type of none, ip checksum, crc, crc64
->   b) the presence or absence of a reference tag
-> 
-> Remove the integrity profile, and instead add a separate csum_type flag
-> which replaces the existing ip-checksum field and a new flag that
-> indicates the presence of the reference tag.
-> 
-> This removes up to two layers of indirect calls, remove the need to
-> offload the no-op verification of non-PI metadata to a workqueue and
-> generally simplifies the code. The downside is that block/t10-pi.c now
-> has to be built into the kernel when CONFIG_BLK_DEV_INTEGRITY is
-> supported.  Given that both nvme and SCSI require t10-pi.ko, it is loaded
-> for all usual configurations that enabled CONFIG_BLK_DEV_INTEGRITY
-> already, though.
+> This is effectively a revert of commit 3df49967f6f1 ("block: flush the
+> integrity workqueue in blk_integrity_unregister").
 > 
 > Signed-off-by: Christoph Hellwig <hch@lst.de>
 > ---
->   block/Kconfig                       |   8 +-
->   block/Makefile                      |   3 +-
->   block/bio-integrity.c               |  30 ++--
->   block/blk-integrity.c               |  66 ++++----
->   block/blk-mq.c                      |  13 +-
->   block/blk.h                         |   8 +
->   block/t10-pi.c                      | 241 ++++++++++------------------
->   drivers/md/dm-crypt.c               |   2 +-
->   drivers/nvme/host/Kconfig           |   1 -
->   drivers/nvme/host/core.c            |  17 +-
->   drivers/nvme/target/Kconfig         |   1 -
->   drivers/nvme/target/io-cmd-bdev.c   |  16 +-
->   drivers/scsi/Kconfig                |   1 -
->   drivers/scsi/sd.c                   |   2 +-
->   drivers/scsi/sd_dif.c               |  19 +--
->   drivers/target/target_core_iblock.c |  49 +++---
->   include/linux/blk-integrity.h       |  35 ++--
->   include/linux/blkdev.h              |   9 +-
->   include/linux/t10-pi.h              |   8 -
->   19 files changed, 215 insertions(+), 314 deletions(-)
+>   block/blk-integrity.c | 2 --
+>   1 file changed, 2 deletions(-)
 > 
+> diff --git a/block/blk-integrity.c b/block/blk-integrity.c
+> index 17d37badfbb8bc..24f04575096d39 100644
+> --- a/block/blk-integrity.c
+> +++ b/block/blk-integrity.c
+> @@ -401,8 +401,6 @@ void blk_integrity_unregister(struct gendisk *disk)
+>   	if (!bi->tuple_size)
+>   		return;
+>   
+> -	/* ensure all bios are off the integrity workqueue */
+> -	blk_flush_integrity();
+>   	blk_queue_flag_clear(QUEUE_FLAG_STABLE_WRITES, disk->queue);
+>   	memset(bi, 0, sizeof(*bi));
+>   }
+
 Reviewed-by: Hannes Reinecke <hare@suse.de>
 
 Cheers,
