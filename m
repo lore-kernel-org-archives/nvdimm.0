@@ -1,34 +1,35 @@
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8C871E488;
-	Tue, 11 Jun 2024 05:19:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 771A7171060;
+	Tue, 11 Jun 2024 05:19:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718083189; cv=none; b=EIoK7UfaGzKLbDeD2AwyFmoVe3q2q6nFxBwB+VXj3JsI06ziL4u6t6Xdj9PFyk+g5wOArVoEF4y47qAKKpMCbxPHkCmus9Zj9XU1vZqQGUS0x64bnrsV4vyb3GEMB+T9M6QAhC1iC5ED7oq7+9ECVCHIxE/xETkCfa3cGOMIc6c=
+	t=1718083190; cv=none; b=r2KnmvISJCQza4K70OnftXUYcd82TEpjwojV5ike45fRp8bmznXLRB+7V6wv7E50NT7ts7MDOCq4YraGsKkG6plGn7OMrACHCSSIgu6XO2wQL9QS3/QC2xokIC9iXJZKVkXWPF4YemUIxlruABfc0cIjQAd00TCiWDMASBWQH7k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718083189; c=relaxed/simple;
-	bh=hch/0P55byq5GbA9713XqbKHtmWPgz2RFxBLYpB4kbo=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=HgNOG+OsbdsKoI80rVrawWwkHXtiCxMFIge11OjQjS0nMJqW7ILOnHLQ+dKFsfE5PhQYY9X7rfMSn2HXUXZZ1ONt9kYnXVV230HaCBnJcGtK9h8V9OnD9NHgyzKm9GhIQQOXCAYZM6zJXKRV9b+SCyzuhvcHtflJAJiOj8cyyGI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lst.de; spf=none smtp.mailfrom=bombadil.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=SP0peDuU; arc=none smtp.client-ip=198.137.202.133
+	s=arc-20240116; t=1718083190; c=relaxed/simple;
+	bh=mr+duLZqcamK3+esZDPGQn4ZiY3utg0BM2Ml43xyadg=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=icz6uDm02MYxJeio6X+CtEF8GgruJBlWoPqJsUmgCiDOqAhFvsv/mKoPOpJlVo7yfF5wE9ZNCQvj7j6xp48rnQnZvKWLhXLo8TuWHu89HARd66zY/ID9C1KSZJDbnZc7HnxAVX+43ySi3hDNWk95LpjgqV6KZedDAMS+GkgvKXg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lst.de; spf=none smtp.mailfrom=bombadil.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=T7BSPgV/; arc=none smtp.client-ip=198.137.202.133
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lst.de
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="SP0peDuU"
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="T7BSPgV/"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-	MIME-Version:Message-ID:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:
-	Content-ID:Content-Description:In-Reply-To:References;
-	bh=xQZ0tGVxbRfMe28F2c3vaqhpukPqzWUR2mw3UooUIr8=; b=SP0peDuUs+KEwheRnMyMlYgkS7
-	BJO3TbWxLcYZrtF9hG/zSYlaaEBbMSCF64VvtU307jsPdSrtdMGsHLbLIPlb+3JQ+eYPkj0WFLQ82
-	0RHyWfdxKEhDZW5T1ob5hHG0b14ikv/6qveZEUAQmVDgvdsZVt4TYWW6sqJaVmrwg5KcUOZQ84nPg
-	CjpVq303dQfXA8cJ1suDHbBA/aeCpy9t1nwAxlcRoZCDjrGUy5Vn9fE6+OpvbxggFWtigsP5ZcQpg
-	pUZerKUXlbVu4I0/QgfLjMkjQJmRXdy7KEomGmmJMn8IDs2fYlaMIz6Izl+aZ3CL2CjeVsmwbwNGT
-	O/+0DiLA==;
+	MIME-Version:References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Sender
+	:Reply-To:Content-Type:Content-ID:Content-Description;
+	bh=LgTI+Mo1pVMP7QW3HpPljhgNIGtSuvGjjqfKNfk6Ue4=; b=T7BSPgV/QyrrcIKlwpgJzxhidX
+	awUsR5pwkW2Y+/MUO52qBbxgexFKnN5lOA2j2FyQhx+MMPXFJnlBRAC7Q73t7WcP8+sz5LnII/s8t
+	WjAaWbWnPNl4wwIf+gxy+iK9/rbGDSyhdks8mhXL++xpcrKaIympBw3/ZuRB6sO340tcY+E4rtfwn
+	TwEEHtQ3MRsu599usMYpH5vHlE7O6axb/guHQvsshFZgotq4wxafrcixMXnVqL150iG8TowKDlHNj
+	v336ivp7VUra5eU9XwMH15s+LohPlgy69vq7IBuXhmdR6+Ce7ImdHMsb7gj8BK/MgQUeBNe8bpumT
+	UBRUvVrQ==;
 Received: from 2a02-8389-2341-5b80-cdb4-8e7d-405d-6b77.cable.dynamic.v6.surfer.at ([2a02:8389:2341:5b80:cdb4:8e7d:405d:6b77] helo=localhost)
 	by bombadil.infradead.org with esmtpsa (Exim 4.97.1 #2 (Red Hat Linux))
-	id 1sGtuu-00000007Qnj-2sBx;
-	Tue, 11 Jun 2024 05:19:33 +0000
+	id 1sGtuz-00000007Qo9-2Hoe;
+	Tue, 11 Jun 2024 05:19:37 +0000
 From: Christoph Hellwig <hch@lst.de>
 To: Jens Axboe <axboe@kernel.dk>
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
@@ -66,10 +67,12 @@ Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
 	linux-s390@vger.kernel.org,
 	linux-scsi@vger.kernel.org,
 	linux-block@vger.kernel.org
-Subject: move features flags into queue_limits
-Date: Tue, 11 Jun 2024 07:19:00 +0200
-Message-ID: <20240611051929.513387-1-hch@lst.de>
+Subject: [PATCH 02/26] sd: move zone limits setup out of sd_read_block_characteristics
+Date: Tue, 11 Jun 2024 07:19:02 +0200
+Message-ID: <20240611051929.513387-3-hch@lst.de>
 X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20240611051929.513387-1-hch@lst.de>
+References: <20240611051929.513387-1-hch@lst.de>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -79,88 +82,75 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 
-Hi all,
+Move a bit of code that sets up the zone flag and the write granularity
+into sd_zbc_read_zones to be with the rest of the zoned limits.
 
-this is the third and last major series to convert settings to
-queue_limits for this merge window.  After a bunch of prep patches to
-get various drivers in shape, it moves all the queue_flags that specify
-driver controlled features into the queue limits so that they can be
-set atomically and are separated from the blk-mq internal flags.
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ drivers/scsi/sd.c     | 21 +--------------------
+ drivers/scsi/sd_zbc.c | 13 ++++++++++++-
+ 2 files changed, 13 insertions(+), 21 deletions(-)
 
-Note that I've only Cc'ed the maintainers for drivers with non-mechanical
-changes as the Cc list is already huge.
+diff --git a/drivers/scsi/sd.c b/drivers/scsi/sd.c
+index 85b45345a27739..5bfed61c70db8f 100644
+--- a/drivers/scsi/sd.c
++++ b/drivers/scsi/sd.c
+@@ -3308,29 +3308,10 @@ static void sd_read_block_characteristics(struct scsi_disk *sdkp,
+ 		blk_queue_flag_clear(QUEUE_FLAG_ADD_RANDOM, q);
+ 	}
+ 
+-
+-#ifdef CONFIG_BLK_DEV_ZONED /* sd_probe rejects ZBD devices early otherwise */
+-	if (sdkp->device->type == TYPE_ZBC) {
+-		lim->zoned = true;
+-
+-		/*
+-		 * Per ZBC and ZAC specifications, writes in sequential write
+-		 * required zones of host-managed devices must be aligned to
+-		 * the device physical block size.
+-		 */
+-		lim->zone_write_granularity = sdkp->physical_block_size;
+-	} else {
+-		/*
+-		 * Host-aware devices are treated as conventional.
+-		 */
+-		lim->zoned = false;
+-	}
+-#endif /* CONFIG_BLK_DEV_ZONED */
+-
+ 	if (!sdkp->first_scan)
+ 		return;
+ 
+-	if (lim->zoned)
++	if (sdkp->device->type == TYPE_ZBC)
+ 		sd_printk(KERN_NOTICE, sdkp, "Host-managed zoned block device\n");
+ 	else if (sdkp->zoned == 1)
+ 		sd_printk(KERN_NOTICE, sdkp, "Host-aware SMR disk used as regular disk\n");
+diff --git a/drivers/scsi/sd_zbc.c b/drivers/scsi/sd_zbc.c
+index 422eaed8457227..e9501db0450be3 100644
+--- a/drivers/scsi/sd_zbc.c
++++ b/drivers/scsi/sd_zbc.c
+@@ -598,8 +598,19 @@ int sd_zbc_read_zones(struct scsi_disk *sdkp, struct queue_limits *lim,
+ 	u32 zone_blocks = 0;
+ 	int ret;
+ 
+-	if (!sd_is_zoned(sdkp))
++	if (!sd_is_zoned(sdkp)) {
++		lim->zoned = false;
+ 		return 0;
++	}
++
++	lim->zoned = true;
++
++	/*
++	 * Per ZBC and ZAC specifications, writes in sequential write required
++	 * zones of host-managed devices must be aligned to the device physical
++	 * block size.
++	 */
++	lim->zone_write_granularity = sdkp->physical_block_size;
+ 
+ 	/* READ16/WRITE16/SYNC16 is mandatory for ZBC devices */
+ 	sdkp->device->use_16_for_rw = 1;
+-- 
+2.43.0
 
-This series sits on top of the "convert the SCSI ULDs to the atomic queue
-limits API v2" and "move integrity settings to queue_limits v2" series.
-
-A git tree is available here:
-
-    git://git.infradead.org/users/hch/block.git block-limit-flags
-
-Gitweb:
-
-    http://git.infradead.org/?p=users/hch/block.git;a=shortlog;h=refs/heads/block-limit-flags
-
-Diffstat:
- Documentation/block/writeback_cache_control.rst |   67 +++++---
- arch/m68k/emu/nfblock.c                         |    1 
- arch/um/drivers/ubd_kern.c                      |    3 
- arch/xtensa/platforms/iss/simdisk.c             |    5 
- block/blk-core.c                                |    7 
- block/blk-flush.c                               |   36 ++--
- block/blk-mq-debugfs.c                          |   13 -
- block/blk-mq.c                                  |   42 +++--
- block/blk-settings.c                            |   46 ++----
- block/blk-sysfs.c                               |  118 ++++++++-------
- block/blk-wbt.c                                 |    4 
- block/blk.h                                     |    2 
- drivers/block/amiflop.c                         |    5 
- drivers/block/aoe/aoeblk.c                      |    1 
- drivers/block/ataflop.c                         |    5 
- drivers/block/brd.c                             |    6 
- drivers/block/drbd/drbd_main.c                  |    6 
- drivers/block/floppy.c                          |    3 
- drivers/block/loop.c                            |   79 +++++-----
- drivers/block/mtip32xx/mtip32xx.c               |    2 
- drivers/block/n64cart.c                         |    2 
- drivers/block/nbd.c                             |   24 +--
- drivers/block/null_blk/main.c                   |   13 -
- drivers/block/null_blk/zoned.c                  |    3 
- drivers/block/pktcdvd.c                         |    1 
- drivers/block/ps3disk.c                         |    8 -
- drivers/block/rbd.c                             |   12 -
- drivers/block/rnbd/rnbd-clt.c                   |   14 -
- drivers/block/sunvdc.c                          |    1 
- drivers/block/swim.c                            |    5 
- drivers/block/swim3.c                           |    5 
- drivers/block/ublk_drv.c                        |   21 +-
- drivers/block/virtio_blk.c                      |   37 ++--
- drivers/block/xen-blkfront.c                    |   33 +---
- drivers/block/zram/zram_drv.c                   |    6 
- drivers/cdrom/gdrom.c                           |    1 
- drivers/md/bcache/super.c                       |    9 -
- drivers/md/dm-table.c                           |  181 +++++-------------------
- drivers/md/dm-zone.c                            |    2 
- drivers/md/dm-zoned-target.c                    |    2 
- drivers/md/dm.c                                 |   13 -
- drivers/md/md.c                                 |   40 -----
- drivers/md/raid5.c                              |    6 
- drivers/mmc/core/block.c                        |   42 ++---
- drivers/mmc/core/queue.c                        |   20 +-
- drivers/mmc/core/queue.h                        |    3 
- drivers/mtd/mtd_blkdevs.c                       |    9 -
- drivers/nvdimm/btt.c                            |    4 
- drivers/nvdimm/pmem.c                           |   14 -
- drivers/nvme/host/core.c                        |   33 ++--
- drivers/nvme/host/multipath.c                   |   24 ---
- drivers/nvme/host/zns.c                         |    3 
- drivers/s390/block/dasd_genhd.c                 |    1 
- drivers/s390/block/dcssblk.c                    |    2 
- drivers/s390/block/scm_blk.c                    |    5 
- drivers/scsi/iscsi_tcp.c                        |    8 -
- drivers/scsi/scsi_lib.c                         |    5 
- drivers/scsi/sd.c                               |   60 +++----
- drivers/scsi/sd.h                               |    7 
- drivers/scsi/sd_zbc.c                           |   17 +-
- include/linux/blkdev.h                          |  119 +++++++++++----
- 61 files changed, 556 insertions(+), 710 deletions(-)
