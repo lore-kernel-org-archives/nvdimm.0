@@ -1,48 +1,48 @@
 Received: from 009.lax.mailroute.net (009.lax.mailroute.net [199.89.1.12])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5C933A27B;
-	Tue, 11 Jun 2024 19:37:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A37064D8BB;
+	Tue, 11 Jun 2024 19:38:01 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=199.89.1.12
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718134637; cv=none; b=BephpmIOtrP76/xsl4Z3Lxn7E/ZpHPot6LHRft1mku6brI0zDCfqQSH2EoAVE091z5KHfi9sTLk2rWfE4YYuDTuXz+sm/x7rk9EzyewVaq4hT34fykngUzNN8uMWFRZy913VRK4ZdWt0bo/C3cbrpjW9Z3ac+l2f37u4TnyAfe4=
+	t=1718134684; cv=none; b=ntsn5OZl6i88LsYjKJhuM0W8NI2UKzxsXQdxLF+J1IrgpC0N0F+f6a2wCvjs0XzPyu0cRCAoQqLVDVfr6k8fz41kHE6M6HFcgCXd81ByEfBgW7cZugDUPlRz/6fjby3k4UrYbACb7yI/5zF1dqhur3MKZhnvLPKWc+DyWuqC78w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718134637; c=relaxed/simple;
-	bh=/NNQk2y/aszAHt5aS3qTao60p+qxs/BoKd/BYoR91zA=;
+	s=arc-20240116; t=1718134684; c=relaxed/simple;
+	bh=tK+p4adAIoEF9E/ptCUDenQl3BY1TNXp315QKrRxFzY=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=rmvFiTT/F/t/8YPgi/A4MMYz3WgQZXFeeIBZ1a7ZZ7u53nIyksIEzaTWH51cVCV7tAxoJJXK6cFIELh2ZwGYn43R2EkBB4YTGrDKawntaaKTvtxoSfsaRoWDm/VdM/RIdUh3c8gJnBjMWBEQVWzumgCbR9zie5wUvPcEFRQ8VE0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=acm.org; spf=pass smtp.mailfrom=acm.org; dkim=pass (2048-bit key) header.d=acm.org header.i=@acm.org header.b=n4YdDdBf; arc=none smtp.client-ip=199.89.1.12
+	 In-Reply-To:Content-Type; b=u9dE2KndN/AwX4m5dZgwFPAU4r+qITMHYoeM3dxPA9gGk0pthk4bgNrHCqxNeXNKorxSXhXnJRRK8sPvm9t7qtQR0Ig5CRVfbFJrUINbIkPHETLFahZ3xRm7k2OkM7RcFTh/UMKwrPLZHltGVDW70axMmJb+4p4f4c9NDqQjiHM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=acm.org; spf=pass smtp.mailfrom=acm.org; dkim=pass (2048-bit key) header.d=acm.org header.i=@acm.org header.b=YL4MxZ10; arc=none smtp.client-ip=199.89.1.12
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=acm.org
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=acm.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=acm.org header.i=@acm.org header.b="n4YdDdBf"
+	dkim=pass (2048-bit key) header.d=acm.org header.i=@acm.org header.b="YL4MxZ10"
 Received: from localhost (localhost [127.0.0.1])
-	by 009.lax.mailroute.net (Postfix) with ESMTP id 4VzJpg3N77zlgMVP;
-	Tue, 11 Jun 2024 19:37:15 +0000 (UTC)
+	by 009.lax.mailroute.net (Postfix) with ESMTP id 4VzJqY2LNKzlgMVP;
+	Tue, 11 Jun 2024 19:38:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=acm.org; h=
 	content-transfer-encoding:content-type:content-type:in-reply-to
 	:from:from:content-language:references:subject:subject
 	:user-agent:mime-version:date:date:message-id:received:received;
-	 s=mr01; t=1718134626; x=1720726627; bh=nxeAEPoRIF1w17Vf6H50avwR
-	d47tQeq24V55mlSo6Fo=; b=n4YdDdBfOscNrfscK2NP2xV4LYi1o1AdP30LHl21
-	+IbqLgtMyNqee6SbzA50sLVTZE0Ji6k+2w0WLmPh57DienJvg5IuAQuKYp0InUsK
-	R6rrYr54yHJbztT/cndM4ZANOd0BSHTpKcctiVeFtmZFjzrLeHPbM9VtSJmKwf7X
-	Af8olT+2oDMLUTt1MIpMS3WiRglrB6WCMiAEgpmD+A4upmkHshWHc+3fJHBYgE5i
-	tD5snqlsdZGaJP09e2u2aXuuDiqbxQTmEF2zfjaEm7Jr+gWSnF6gfshEHOyMC1oC
-	wY6QiEq3x8Ed+pcVJd6N4WwEZhVXh/S1bVC6eE1yI7Gx6w==
+	 s=mr01; t=1718134673; x=1720726674; bh=0hnbQEod74zEsc3xGCFcX6S0
+	bBHUsC8JGcAKSWF8hiY=; b=YL4MxZ10FXpIpPLCE4CZCH+u/phW+zPSavUSnees
+	X3hFh+szuiEXRkWSrqQXNYIhU0UJbzi/GHx8Kl9pzwID8L7djiktSWoqSJawtcTN
+	eACQHyinxvwid5PBDKOPXHioaILwfZth5RTqz1dRgkYDlk023V89V3LY0fPlpXR0
+	ZjGrS0ATmGTxDvR88c454EcuD5z2B7TEK4AUazeGvS0OkvYK9K5aLe/SEJZB1fEB
+	WtswPKKjQnmZAIZ2btE2JJFpRK4bbK63mBG2amE83a1CL9Fd2be6YrLh9YZh7k7F
+	6DXimFz0V4Au4RPDc4bBe0TfqrqfZwLel7pBkDBg2DZJFg==
 X-Virus-Scanned: by MailRoute
 Received: from 009.lax.mailroute.net ([127.0.0.1])
  by localhost (009.lax [127.0.0.1]) (mroute_mailscanner, port 10029) with LMTP
- id I78Iw22WN8VT; Tue, 11 Jun 2024 19:37:06 +0000 (UTC)
+ id TYPL5HYORF0n; Tue, 11 Jun 2024 19:37:53 +0000 (UTC)
 Received: from [100.96.154.26] (unknown [104.132.0.90])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
 	(Authenticated sender: bvanassche@acm.org)
-	by 009.lax.mailroute.net (Postfix) with ESMTPSA id 4VzJpL0wGgzlgMVN;
-	Tue, 11 Jun 2024 19:36:57 +0000 (UTC)
-Message-ID: <1f7c1123-0f80-42a4-8252-c082ded33ca6@acm.org>
-Date: Tue, 11 Jun 2024 12:36:55 -0700
+	by 009.lax.mailroute.net (Postfix) with ESMTPSA id 4VzJqD5hVvzlgMVN;
+	Tue, 11 Jun 2024 19:37:44 +0000 (UTC)
+Message-ID: <f5a5f79e-43f5-46ae-9c11-371e8e558685@acm.org>
+Date: Tue, 11 Jun 2024 12:37:42 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -50,7 +50,7 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 11/26] block: freeze the queue in queue_attr_store
+Subject: Re: [PATCH 12/26] block: remove blk_flush_policy
 To: Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
  Richard Weinberger <richard@nod.at>,
@@ -74,16 +74,14 @@ Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
  linux-nvme@lists.infradead.org, linux-s390@vger.kernel.org,
  linux-scsi@vger.kernel.org, linux-block@vger.kernel.org
 References: <20240611051929.513387-1-hch@lst.de>
- <20240611051929.513387-12-hch@lst.de>
+ <20240611051929.513387-13-hch@lst.de>
 Content-Language: en-US
 From: Bart Van Assche <bvanassche@acm.org>
-In-Reply-To: <20240611051929.513387-12-hch@lst.de>
+In-Reply-To: <20240611051929.513387-13-hch@lst.de>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
 On 6/10/24 10:19 PM, Christoph Hellwig wrote:
-> queue_attr_store updates attributes used to control generating I/O, and
-> can cause malformed bios if changed with I/O in flight.  Freeze the queue
-> in common code instead of adding it to almost every attribute.
-
-Reviewed-by: Bart Van Assche <bvanassche@acm.org>
+> Fold blk_flush_policy into the only caller to prepare for pending changes
+> to it.
+  Reviewed-by: Bart Van Assche <bvanassche@acm.org>
