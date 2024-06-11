@@ -1,35 +1,35 @@
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7A7817D892;
-	Tue, 11 Jun 2024 05:21:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5351C17D899;
+	Tue, 11 Jun 2024 05:21:11 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718083272; cv=none; b=dFNn8FY+DMCXD2Ry5/tLj/10DOKrsUrx6YZO29ygUCMg9hJfXe/4X11VTHpigLTQVXUbJb9s/CJ/N6tKWx5kUb1pL5K8j90n0MdxwYYZ30gPja57oeNcvpCoPHL5Pqo3r9H6SXYwAglxf6xgiaNY5Aap0c8YAkt+W0a5sK8uDEc=
+	t=1718083272; cv=none; b=HelRNwBqnxuwzW+xPRi4xjJpeEAftplcAHi1AXA2PJEBoqC3N7nrHNPmCc3m4VVkAFznQnz6KA8oKr+exkCDQtGVEgsBy703rvsm7QVd/VSHuDNe/gsYBoae64noLz8fZM9S+ivDMOVqiuGan/3WVMGljU5enxYGps9KoBTAG8I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1718083272; c=relaxed/simple;
-	bh=FpARZe7L39Sbv996iw2RhHkNeRu1cgq9hUY+m3Zr+LU=;
+	bh=pSzE7POP0IbcApaWAG28mx8JR4h3Qp2KDPweIs4v+So=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=kTR1ax4cU0yeAv+h7f7N4WW7cHnGmCWT+n4qe0fgPz1DsZlvrEXX8QJfYBySpyuFtpQCyWnKtjQ1t6bhXSDRbgdpFmvT+uCT+qYZTwUKBfecVf/ax/sOgHCh9CwQuLxcYWWRfdtT89YwnBW0VKMc9cdm5HVGpvfqik+GWShZbx0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lst.de; spf=none smtp.mailfrom=bombadil.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=f1hZ2SuH; arc=none smtp.client-ip=198.137.202.133
+	 MIME-Version; b=pnmOnI6RbXX+QCX+xdDNFl0gw4t/2gcttIy81HcqqUblSMAEOe8AjIULTj/nqDBP0xlLW63DtU8l2D8zhHTu6GUz6qMPfwQwrYqC53qTiAYbAjdkngcvWh2SaG4ZpYrlNqj+GTZ/syXMcowlr4QzSx0qJUmAbHoHVP/7O63u4v8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lst.de; spf=none smtp.mailfrom=bombadil.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=4T9NMLhZ; arc=none smtp.client-ip=198.137.202.133
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lst.de
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="f1hZ2SuH"
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="4T9NMLhZ"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
 	MIME-Version:References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Sender
 	:Reply-To:Content-Type:Content-ID:Content-Description;
-	bh=MPwremY8Q7NX1Ef8RTwP3wepSQ5hhCHGmRWL/QC9GrI=; b=f1hZ2SuHKaMYNYDlKddtsMrEj4
-	HhJ0iwXM6G2h13fzU48w2Wp1cg9nk2YZ6gpAuUou9ff1GYduJZ0WfzXf3shKgk6wyYrmmiGL51jtj
-	XbNogudD9e403EfmIZRu+cHyfIbgFlIIY5jXRlKtfcYVvelaQBaiB5rariZryMc+5ShP0wImrZGUf
-	HwPzDYeZDkEqyQ9JjhzMhbUEJgoB0ykUCUe71NZZ4iM8X9lzH0xXrhhtc3ukr1Zq2/qge7T4ojgtC
-	PPW5bNUe9scd9Xqt6YR7LEPh7UJ5/vAECPRKTcBRuA2XxgnZmYKTh8weAU8h6E46qMGktD9WSYAY8
-	XOMueOlQ==;
+	bh=xY3slEHkiIq7NT2sGuMOxA8hJLcOIj4MfNseHu5TMns=; b=4T9NMLhZ85LGaZsJ9WbdPngt7y
+	Lg47NyWbOusFuIcnPlTazNjFjWXkT5yAEsdF2Tng0oqqiQUya3UrgF3lv0cr8mioMxIZ95opUklxw
+	3M1OWMNS18z5UDDHYnISdGZR4enIuBTfKqZeh9NEHC/wwn7yQffyG8jZyBMEHv7CUIPTauCM/4A4t
+	uZ54Izj2QaXtkwLI0uaSn4JJf/3BR911bsG/t7tsxTYATIA0iybKQ85jYBhiCUPleyeGd+jL60ZaI
+	wLfr7z+VuHHqSsgF7BQktz3lOGgIphJl2pF+e1sp4qBMFXL07QcuVEXmkU7DDi+7mFGg/G/7yUWm6
+	lSBsjOfg==;
 Received: from 2a02-8389-2341-5b80-cdb4-8e7d-405d-6b77.cable.dynamic.v6.surfer.at ([2a02:8389:2341:5b80:cdb4:8e7d:405d:6b77] helo=localhost)
 	by bombadil.infradead.org with esmtpsa (Exim 4.97.1 #2 (Red Hat Linux))
-	id 1sGtw4-00000007Rfx-3Hsc;
-	Tue, 11 Jun 2024 05:20:45 +0000
+	id 1sGtwA-00000007RkZ-1jS3;
+	Tue, 11 Jun 2024 05:20:58 +0000
 From: Christoph Hellwig <hch@lst.de>
 To: Jens Axboe <axboe@kernel.dk>
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
@@ -67,9 +67,9 @@ Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
 	linux-s390@vger.kernel.org,
 	linux-scsi@vger.kernel.org,
 	linux-block@vger.kernel.org
-Subject: [PATCH 24/26] block: move the pci_p2pdma flag to queue_limits
-Date: Tue, 11 Jun 2024 07:19:24 +0200
-Message-ID: <20240611051929.513387-25-hch@lst.de>
+Subject: [PATCH 26/26] block: move the bounce flag into the feature field
+Date: Tue, 11 Jun 2024 07:19:26 +0200
+Message-ID: <20240611051929.513387-27-hch@lst.de>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20240611051929.513387-1-hch@lst.de>
 References: <20240611051929.513387-1-hch@lst.de>
@@ -82,86 +82,86 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 
-Move the pci_p2pdma flag into the queue_limits feature field so that it
-can be set atomically and all I/O is frozen when changing the flag.
+Move the bounce field into the flags field to reclaim a little bit of
+space.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- block/blk-mq-debugfs.c   | 1 -
- drivers/nvme/host/core.c | 8 +++-----
- include/linux/blkdev.h   | 7 ++++---
- 3 files changed, 7 insertions(+), 9 deletions(-)
+ block/blk-settings.c    | 1 -
+ block/blk.h             | 2 +-
+ drivers/scsi/scsi_lib.c | 2 +-
+ include/linux/blkdev.h  | 6 ++++--
+ 4 files changed, 6 insertions(+), 5 deletions(-)
 
-diff --git a/block/blk-mq-debugfs.c b/block/blk-mq-debugfs.c
-index f2fd72f4414ae8..8b5a68861c119b 100644
---- a/block/blk-mq-debugfs.c
-+++ b/block/blk-mq-debugfs.c
-@@ -90,7 +90,6 @@ static const char *const blk_queue_flag_name[] = {
- 	QUEUE_FLAG_NAME(STATS),
- 	QUEUE_FLAG_NAME(REGISTERED),
- 	QUEUE_FLAG_NAME(QUIESCED),
--	QUEUE_FLAG_NAME(PCI_P2PDMA),
- 	QUEUE_FLAG_NAME(RQ_ALLOC_TIME),
- 	QUEUE_FLAG_NAME(HCTX_ACTIVE),
- 	QUEUE_FLAG_NAME(SQ_SCHED),
-diff --git a/drivers/nvme/host/core.c b/drivers/nvme/host/core.c
-index 5ecf762d7c8837..31e752e8d632cd 100644
---- a/drivers/nvme/host/core.c
-+++ b/drivers/nvme/host/core.c
-@@ -3735,6 +3735,9 @@ static void nvme_alloc_ns(struct nvme_ctrl *ctrl, struct nvme_ns_info *info)
+diff --git a/block/blk-settings.c b/block/blk-settings.c
+index 96e07f24bd9aa1..d0e9096f93ca8a 100644
+--- a/block/blk-settings.c
++++ b/block/blk-settings.c
+@@ -479,7 +479,6 @@ int blk_stack_limits(struct queue_limits *t, struct queue_limits *b,
+ 					b->max_write_zeroes_sectors);
+ 	t->max_zone_append_sectors = min(queue_limits_max_zone_append_sectors(t),
+ 					 queue_limits_max_zone_append_sectors(b));
+-	t->bounce = max(t->bounce, b->bounce);
  
- 	if (ctrl->opts && ctrl->opts->data_digest)
- 		lim.features |= BLK_FEAT_STABLE_WRITES;
-+	if (ctrl->ops->supports_pci_p2pdma &&
-+	    ctrl->ops->supports_pci_p2pdma(ctrl))
-+		lim.features |= BLK_FEAT_PCI_P2PDMA;
+ 	t->seg_boundary_mask = min_not_zero(t->seg_boundary_mask,
+ 					    b->seg_boundary_mask);
+diff --git a/block/blk.h b/block/blk.h
+index 79e8d5d4fe0caf..fa32f7fad5d7e6 100644
+--- a/block/blk.h
++++ b/block/blk.h
+@@ -394,7 +394,7 @@ struct bio *__blk_queue_bounce(struct bio *bio, struct request_queue *q);
+ static inline bool blk_queue_may_bounce(struct request_queue *q)
+ {
+ 	return IS_ENABLED(CONFIG_BOUNCE) &&
+-		q->limits.bounce == BLK_BOUNCE_HIGH &&
++		(q->limits.features & BLK_FEAT_BOUNCE_HIGH) &&
+ 		max_low_pfn >= max_pfn;
+ }
  
- 	disk = blk_mq_alloc_disk(ctrl->tagset, &lim, ns);
- 	if (IS_ERR(disk))
-@@ -3744,11 +3747,6 @@ static void nvme_alloc_ns(struct nvme_ctrl *ctrl, struct nvme_ns_info *info)
+diff --git a/drivers/scsi/scsi_lib.c b/drivers/scsi/scsi_lib.c
+index 54f771ec8cfb5e..e2f7bfb2b9e450 100644
+--- a/drivers/scsi/scsi_lib.c
++++ b/drivers/scsi/scsi_lib.c
+@@ -1986,7 +1986,7 @@ void scsi_init_limits(struct Scsi_Host *shost, struct queue_limits *lim)
+ 		shost->dma_alignment, dma_get_cache_alignment() - 1);
  
- 	ns->disk = disk;
- 	ns->queue = disk->queue;
--
--	if (ctrl->ops->supports_pci_p2pdma &&
--	    ctrl->ops->supports_pci_p2pdma(ctrl))
--		blk_queue_flag_set(QUEUE_FLAG_PCI_P2PDMA, ns->queue);
--
- 	ns->ctrl = ctrl;
- 	kref_init(&ns->kref);
+ 	if (shost->no_highmem)
+-		lim->bounce = BLK_BOUNCE_HIGH;
++		lim->features |= BLK_FEAT_BOUNCE_HIGH;
  
+ 	dma_set_seg_boundary(dev, shost->dma_boundary);
+ 	dma_set_max_seg_size(dev, shost->max_segment_size);
 diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
-index ffb7a42871b4ed..cc4f6e64e8e3f5 100644
+index d7ad25def6e50b..d1d9787e76ce73 100644
 --- a/include/linux/blkdev.h
 +++ b/include/linux/blkdev.h
-@@ -319,6 +319,9 @@ enum {
+@@ -325,6 +325,9 @@ enum {
  
- 	/* supports Zone Reset All */
- 	BLK_FEAT_ZONE_RESETALL			= (1u << 11),
+ 	/* skip this queue in blk_mq_(un)quiesce_tagset */
+ 	BLK_FEAT_SKIP_TAGSET_QUIESCE		= (1u << 13),
 +
-+	/* supports PCI(e) p2p requests */
-+	BLK_FEAT_PCI_P2PDMA			= (1u << 12),
++	/* bounce all highmem pages */
++	BLK_FEAT_BOUNCE_HIGH			= (1u << 14),
  };
  
  /*
-@@ -588,7 +591,6 @@ struct request_queue {
- #define QUEUE_FLAG_STATS	20	/* track IO start and completion times */
- #define QUEUE_FLAG_REGISTERED	22	/* queue has been registered to a disk */
- #define QUEUE_FLAG_QUIESCED	24	/* queue has been quiesced */
--#define QUEUE_FLAG_PCI_P2PDMA	25	/* device supports PCI p2p requests */
- #define QUEUE_FLAG_RQ_ALLOC_TIME 27	/* record rq->alloc_time_ns */
- #define QUEUE_FLAG_HCTX_ACTIVE	28	/* at least one blk-mq hctx is active */
- #define QUEUE_FLAG_SQ_SCHED     30	/* single queue style io dispatch */
-@@ -611,8 +613,7 @@ bool blk_queue_flag_test_and_set(unsigned int flag, struct request_queue *q);
- #define blk_queue_zone_resetall(q)	\
- 	((q)->limits.features & BLK_FEAT_ZONE_RESETALL)
- #define blk_queue_dax(q)	((q)->limits.features & BLK_FEAT_DAX)
--#define blk_queue_pci_p2pdma(q)	\
--	test_bit(QUEUE_FLAG_PCI_P2PDMA, &(q)->queue_flags)
-+#define blk_queue_pci_p2pdma(q)	((q)->limits.features & BLK_FEAT_PCI_P2PDMA)
- #ifdef CONFIG_BLK_RQ_ALLOC_TIME
- #define blk_queue_rq_alloc_time(q)	\
- 	test_bit(QUEUE_FLAG_RQ_ALLOC_TIME, &(q)->queue_flags)
+@@ -332,7 +335,7 @@ enum {
+  */
+ #define BLK_FEAT_INHERIT_MASK \
+ 	(BLK_FEAT_WRITE_CACHE | BLK_FEAT_FUA | BLK_FEAT_ROTATIONAL | \
+-	 BLK_FEAT_STABLE_WRITES | BLK_FEAT_ZONED)
++	 BLK_FEAT_STABLE_WRITES | BLK_FEAT_ZONED | BLK_FEAT_BOUNCE_HIGH)
+ 
+ /* internal flags in queue_limits.flags */
+ enum {
+@@ -352,7 +355,6 @@ enum blk_bounce {
+ struct queue_limits {
+ 	unsigned int		features;
+ 	unsigned int		flags;
+-	enum blk_bounce		bounce;
+ 	unsigned long		seg_boundary_mask;
+ 	unsigned long		virt_boundary_mask;
+ 
 -- 
 2.43.0
 
