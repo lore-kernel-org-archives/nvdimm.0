@@ -1,124 +1,75 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.16])
+Received: from verein.lst.de (verein.lst.de [213.95.11.211])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 683151F92F
-	for <nvdimm@lists.linux.dev>; Wed, 12 Jun 2024 04:47:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.16
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AAE9523769;
+	Wed, 12 Jun 2024 04:50:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.11.211
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718167661; cv=none; b=fChAsp2SEsHjy3oPsypz+6eyeMGDaoi13L5SWm/2So+mgG+dG/spsEcLr22d2Jr8TypCY8xkUafPy60liKq0n5DItS9+fYBlZw/LxRBHjLdDjl3t9Ok5mmbN2Oma901qCFX/nZYneyFW+PlVuqGkQNbznJ3SEqcWpUs+P3usk+k=
+	t=1718167833; cv=none; b=HRlT9xuTmzzGxrnsM/CC12AmwlslMtZfokEHJ16ks3tahfsLfbocV9VoRrvHREuQ6JFmzKBAhtwK0Elz5q9rz8Lt2TCALtpx7QYOFzT7MynAFjd82YdryjQwZwh+MGV0ELMrwPyzSKiakCgrkhh0FVzHLGCSbzSfwZZxB1ZbTkU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718167661; c=relaxed/simple;
-	bh=DwOaQl3v4kXfyBw+OsCGIk1eo2nvMrlf7McHTzHa+40=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=c7GuG6+7U6144UNWy4Lkluko/jqIh2LLYlpL213pbN+11I5oVxDZryhx95Wj/jA7vYVyPCLFnfpEtBEyiip/22j/0cDmkmXIrbL7qN033AH/ukrKHpo8agk9mkMO/JTApaYGiNGHMAYCYJI/aNju7gvE43lvXZB2VMYX0Dtocn0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=EKjrNjIb; arc=none smtp.client-ip=198.175.65.16
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="EKjrNjIb"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1718167661; x=1749703661;
-  h=from:date:subject:mime-version:content-transfer-encoding:
-   message-id:to:cc;
-  bh=DwOaQl3v4kXfyBw+OsCGIk1eo2nvMrlf7McHTzHa+40=;
-  b=EKjrNjIblNlrJ7SMZJ/QkQIAgxj5bp8OG6GyFAmVw/ysR0G24ySvXJWc
-   k4Sl7FOasJzgyist/CkcuQhp0E2QA7cgYjs0LjDcqIb2uJEkX6Ff99ixO
-   E2AP1KkYrD9kwiY8RRK73zW1SdGg0ENXPr5t6h6Ppyl3zh7IAOKa6zVT0
-   A9U+on1tk23ZfQI0OCqBcTXUiycptbzqlfm51+ggzJ8QyHtw9p5UNDOhd
-   pbBVIi2Ldj79Jjv1JK/CbrkWkIbDBTFCd4eZRlcc3gsRiaZiLSk5vaYz0
-   9omQwQUEbwdzTeynxzS3DYHyIjY48hwWxlt2GyH1vCBzFlkUae1mgQvNw
-   Q==;
-X-CSE-ConnectionGUID: lb3BgeCMS+K+67p6cPj4BQ==
-X-CSE-MsgGUID: Yx3q2Sw7RUekaDDmMh56sQ==
-X-IronPort-AV: E=McAfee;i="6600,9927,11100"; a="15038686"
-X-IronPort-AV: E=Sophos;i="6.08,232,1712646000"; 
-   d="scan'208";a="15038686"
-Received: from fmviesa008.fm.intel.com ([10.60.135.148])
-  by orvoesa108.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jun 2024 21:47:40 -0700
-X-CSE-ConnectionGUID: arkobFfVQEynY0OdfwYIeA==
-X-CSE-MsgGUID: Vq54Ex0LRrep1F5oIRtuhg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.08,232,1712646000"; 
-   d="scan'208";a="39630490"
-Received: from iweiny-mobl.amr.corp.intel.com (HELO localhost) ([10.213.170.70])
-  by fmviesa008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jun 2024 21:47:39 -0700
-From: Ira Weiny <ira.weiny@intel.com>
-Date: Tue, 11 Jun 2024 23:47:31 -0500
-Subject: [PATCH] testing: nvdimm: Add MODULE_DESCRIPTION() macros
+	s=arc-20240116; t=1718167833; c=relaxed/simple;
+	bh=24WVAZW1MJ2/foqmOc06hguUKkgxj8Jmo0NHu5hLLFw=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=eC2i4elVUoErhq2zMxW5vVp1ho7nvAGpppYY6AG1JRL3otG9UFfHLYCnFuKR62ITsQK81FzT/lSxwC2VtF8RZTl+yT1DG5GUBwDkqKTQqd8Znfr6JZQB9U9gSH2c4WiePzOQoNfpFZEV14Z/XcEHveY4hWxEY0aiez/tdGH2UQc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lst.de; spf=pass smtp.mailfrom=lst.de; arc=none smtp.client-ip=213.95.11.211
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lst.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lst.de
+Received: by verein.lst.de (Postfix, from userid 2407)
+	id 27E1B68BEB; Wed, 12 Jun 2024 06:50:27 +0200 (CEST)
+Date: Wed, 12 Jun 2024 06:50:26 +0200
+From: Christoph Hellwig <hch@lst.de>
+To: Damien Le Moal <dlemoal@kernel.org>
+Cc: Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Richard Weinberger <richard@nod.at>,
+	Philipp Reisner <philipp.reisner@linbit.com>,
+	Lars Ellenberg <lars.ellenberg@linbit.com>,
+	Christoph =?iso-8859-1?Q?B=F6hmwalder?= <christoph.boehmwalder@linbit.com>,
+	Josef Bacik <josef@toxicpanda.com>, Ming Lei <ming.lei@redhat.com>,
+	"Michael S. Tsirkin" <mst@redhat.com>,
+	Jason Wang <jasowang@redhat.com>,
+	Roger Pau =?iso-8859-1?Q?Monn=E9?= <roger.pau@citrix.com>,
+	Alasdair Kergon <agk@redhat.com>, Mike Snitzer <snitzer@kernel.org>,
+	Mikulas Patocka <mpatocka@redhat.com>, Song Liu <song@kernel.org>,
+	Yu Kuai <yukuai3@huawei.com>,
+	Vineeth Vijayan <vneethv@linux.ibm.com>,
+	"Martin K. Petersen" <martin.petersen@oracle.com>,
+	linux-m68k@lists.linux-m68k.org, linux-um@lists.infradead.org,
+	drbd-dev@lists.linbit.com, nbd@other.debian.org,
+	linuxppc-dev@lists.ozlabs.org, ceph-devel@vger.kernel.org,
+	virtualization@lists.linux.dev, xen-devel@lists.xenproject.org,
+	linux-bcache@vger.kernel.org, dm-devel@lists.linux.dev,
+	linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org,
+	linux-mtd@lists.infradead.org, nvdimm@lists.linux.dev,
+	linux-nvme@lists.infradead.org, linux-s390@vger.kernel.org,
+	linux-scsi@vger.kernel.org, linux-block@vger.kernel.org
+Subject: Re: [PATCH 10/26] xen-blkfront: don't disable cache flushes when
+ they fail
+Message-ID: <20240612045026.GA26653@lst.de>
+References: <20240611051929.513387-1-hch@lst.de> <20240611051929.513387-11-hch@lst.de> <fdfc024a-368a-4495-8b85-b5ab7741f6d4@kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20240611-nvdimm-test-mod-warn-v1-1-4a583be68c17@intel.com>
-X-B4-Tracking: v=1; b=H4sIAGIoaWYC/x3MQQqAIBBA0avErBvQjIyuEi1Mp5qFFhoWRHdPW
- r7F/w8kikwJhuqBSJkT76FA1hXYzYSVkF0xNKJpRSclhuzYezwpneh3h5eJAXu7aK1UJ2aloaR
- HpIXvfztO7/sBL1PC5GYAAAA=
-To: nvdimm@lists.linux.dev
-Cc: Dan Williams <dan.j.williams@intel.com>, 
- Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
- linux-kernel@vger.kernel.org, Jeff Johnson <quic_jjohnson@quicinc.com>, 
- Ira Weiny <ira.weiny@intel.com>
-X-Mailer: b4 0.13-dev-2d940
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1718167658; l=1841;
- i=ira.weiny@intel.com; s=20221211; h=from:subject:message-id;
- bh=DwOaQl3v4kXfyBw+OsCGIk1eo2nvMrlf7McHTzHa+40=;
- b=ZG57LJpHjEvng6K4xUdJD9QsKjnJk8zQ84LIS2EZlf3lc9O9OLmWe+xKxyiXGQec7tOHXhbFL
- 43sQTJ5p5T7Do5vn4Wob8GoIMKsVpGJBLWDbsw6X+G+jHO3c+JbRF0M
-X-Developer-Key: i=ira.weiny@intel.com; a=ed25519;
- pk=noldbkG+Wp1qXRrrkfY1QJpDf7QsOEthbOT7vm0PqsE=
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <fdfc024a-368a-4495-8b85-b5ab7741f6d4@kernel.org>
+User-Agent: Mutt/1.5.17 (2007-11-01)
 
-When building with W=1 the following errors are seen:
+On Tue, Jun 11, 2024 at 04:30:39PM +0900, Damien Le Moal wrote:
+> On 6/11/24 2:19 PM, Christoph Hellwig wrote:
+> > blkfront always had a robust negotiation protocol for detecting a write
+> > cache.  Stop simply disabling cache flushes when they fail as that is
+> > a grave error.
+> > 
+> > Signed-off-by: Christoph Hellwig <hch@lst.de>
+> 
+> Looks good to me but maybe mention that removal of xlvbd_flush() as well ?
+> And it feels like the "stop disabling cache flushes when they fail" part should
+> be a fix patch sent separately...
 
-WARNING: modpost: missing MODULE_DESCRIPTION() in tools/testing/nvdimm/test/nfit_test.o
-WARNING: modpost: missing MODULE_DESCRIPTION() in tools/testing/nvdimm/test/ndtest.o
-
-Add the required MODULE_DESCRIPTION() to the test platform device
-drivers.
-
-Suggested-by: Jeff Johnson <quic_jjohnson@quicinc.com>
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
----
-Jeff I'm not seeing a patch to cover these cases for the missing module
-descriptions you have been sending out.  If you have an outstanding
-patch I missed could you point me to it?  Otherwise I believe this
-cleans up the nvdimm tree.
----
- tools/testing/nvdimm/test/ndtest.c | 1 +
- tools/testing/nvdimm/test/nfit.c   | 1 +
- 2 files changed, 2 insertions(+)
-
-diff --git a/tools/testing/nvdimm/test/ndtest.c b/tools/testing/nvdimm/test/ndtest.c
-index b438f3d053ee..892e990c034a 100644
---- a/tools/testing/nvdimm/test/ndtest.c
-+++ b/tools/testing/nvdimm/test/ndtest.c
-@@ -987,5 +987,6 @@ static __exit void ndtest_exit(void)
- 
- module_init(ndtest_init);
- module_exit(ndtest_exit);
-+MODULE_DESCRIPTION("Test non-NFIT devices");
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("IBM Corporation");
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index a61df347a33d..cfd4378e2129 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -3382,5 +3382,6 @@ static __exit void nfit_test_exit(void)
- 
- module_init(nfit_test_init);
- module_exit(nfit_test_exit);
-+MODULE_DESCRIPTION("Test ACPI NFIT devices");
- MODULE_LICENSE("GPL v2");
- MODULE_AUTHOR("Intel Corporation");
-
----
-base-commit: 2df0193e62cf887f373995fb8a91068562784adc
-change-id: 20240611-nvdimm-test-mod-warn-8cf773360b37
-
-Best regards,
--- 
-Ira Weiny <ira.weiny@intel.com>
-
+I'll move the patch to the front of the series to get more attention from
+the maintainers, but otherwise the xlvbd_flush remova lis the really
+trivial part here.
