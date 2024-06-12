@@ -1,24 +1,24 @@
 Received: from verein.lst.de (verein.lst.de [213.95.11.211])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 980D628385;
-	Wed, 12 Jun 2024 04:53:02 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5484023769;
+	Wed, 12 Jun 2024 04:54:32 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.11.211
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718167983; cv=none; b=X72Gw3OZfpFUEs6Ll0SfwI5QDgXTAcZFZqVb9Ga7CQFY/ZiQ3HON5ZMFYkgzlb8aOtsnM8jFpfwggp2LNZRFS143tyg7MykN991lTtnQSvCjGDZcvk6L2Y3otr/ZV76YDS5I99UaPxk32u+swVeWYpszz4v6FZYaJARgQh8mPl4=
+	t=1718168073; cv=none; b=sDTBYLgIpFb1v3asYZtQnxc6hFDYrO68XlR2dlSkvwPP8flPfMJirvPeKv0mNrBM7gthAKxwVwt1m8A0Tfl9Pr/r7fDKpcZsOUWQZ/aYyM0hoTTm80xmFoRxoBGMJTWLkUFAN5MhYH03jKjjaRPJ36kL0Mm8ujrZW09rihNYCAc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718167983; c=relaxed/simple;
-	bh=3tIN/Y5HlYGnvHIMt6/UA43lDeC7r6tZjRz/SL4lnjs=;
+	s=arc-20240116; t=1718168073; c=relaxed/simple;
+	bh=nM+nJLfCpFZS14IN7l4cfk/lGapv97cR2EMJitjBLJg=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=lDlKe1Fbh5oMlScmB93ZNgCqKdKixWfNOIQMcrQQAwVBfB1jfJF8r5K4rOtfl2OJJ4v7TlM0EvLuu2pcyrn/DFY0ddf/6Pf89O4YMhWar2PT7SZDa/dNe61bGluREWxYfq0pKDTAQ+bSZ//EGciJKO6HdO7kEc9pulh9yVsLnPk=
+	 Content-Type:Content-Disposition:In-Reply-To; b=SCruE/Z8gCjBhDppRfLKGYGTz6hzp0yXnLdLQY/iDho1FkVB2Ue/YyuxXFwX9Pgk0fHK6wWr0sbfagDHZtijqec81BsEpfidyX5AW437vZs41s+wlXbnbeQ7xN2g3cEWjT3qf3VDCWV8V0oPLR2q/Qux0Q8sSRk84eoyDg+cbiY=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lst.de; spf=pass smtp.mailfrom=lst.de; arc=none smtp.client-ip=213.95.11.211
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lst.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lst.de
 Received: by verein.lst.de (Postfix, from userid 2407)
-	id D6EFD68BEB; Wed, 12 Jun 2024 06:52:57 +0200 (CEST)
-Date: Wed, 12 Jun 2024 06:52:57 +0200
+	id 6904768BEB; Wed, 12 Jun 2024 06:54:29 +0200 (CEST)
+Date: Wed, 12 Jun 2024 06:54:29 +0200
 From: Christoph Hellwig <hch@lst.de>
-To: Hannes Reinecke <hare@suse.de>
+To: Damien Le Moal <dlemoal@kernel.org>
 Cc: Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>,
 	Geert Uytterhoeven <geert@linux-m68k.org>,
 	Richard Weinberger <richard@nod.at>,
@@ -45,8 +45,8 @@ Cc: Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>,
 	linux-scsi@vger.kernel.org, linux-block@vger.kernel.org
 Subject: Re: [PATCH 13/26] block: move cache control settings out of
  queue->flags
-Message-ID: <20240612045257.GA26776@lst.de>
-References: <20240611051929.513387-1-hch@lst.de> <20240611051929.513387-14-hch@lst.de> <34a7b2a4-b0cb-4580-85c9-b598fd70449e@suse.de>
+Message-ID: <20240612045429.GB26776@lst.de>
+References: <20240611051929.513387-1-hch@lst.de> <20240611051929.513387-14-hch@lst.de> <d21b162a-1fd3-4fd1-a17f-f127f964bdf1@kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -55,9 +55,22 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <34a7b2a4-b0cb-4580-85c9-b598fd70449e@suse.de>
+In-Reply-To: <d21b162a-1fd3-4fd1-a17f-f127f964bdf1@kernel.org>
 User-Agent: Mutt/1.5.17 (2007-11-01)
 
-A friendly reminder that I've skipped over the full quote.  Please
-properly quote mails if you want your replies to be seen.
+On Tue, Jun 11, 2024 at 04:55:04PM +0900, Damien Le Moal wrote:
+> On 6/11/24 2:19 PM, Christoph Hellwig wrote:
+> > Move the cache control settings into the queue_limits so that they
+> > can be set atomically and all I/O is frozen when changing the
+> > flags.
+> 
+> ...so that they can be set atomically with the device queue frozen when
+> changing the flags.
+> 
+> may be better.
+
+Sure.
+
+If there was anything below I've skipped it after skipping over two
+pages of full quotes.
 
