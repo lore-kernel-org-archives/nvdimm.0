@@ -1,135 +1,69 @@
-Received: from mail-yw1-f177.google.com (mail-yw1-f177.google.com [209.85.128.177])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BC83B16C6A5
-	for <nvdimm@lists.linux.dev>; Wed, 12 Jun 2024 08:01:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.177
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E10A153BEF;
+	Wed, 12 Jun 2024 10:00:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718179285; cv=none; b=m+1YmPDVtsOzDIdmIkzGEr+WWxoG4IAeRC8817tuz8lI/pY3VqQufgYEEBiY+SGuQza7nLd04QbrsJClesdILGSSa09ENdyyNMQGMSxz6LZyoI85CtqcsRGe/yfrVsaldvGJZVBRIqWYsK72dMnNkpwUFKFtOalVnzVyi9zGOFM=
+	t=1718186443; cv=none; b=mquiluYqqQgWT4bTjqj1eGrEZSe8oxyTqHOa1Meqz9Kwp9EcQHNQwdUjs/2MXZubRLpySUV+kZ3qd93y/SL8bJ5PzFfrH619b+op58PEKrH3PXAG3tOGn4tHugZ9G3AisxG5HP2Gyp2qGqWATseS6dhV/d039TEA0rNkGUk9p7M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718179285; c=relaxed/simple;
-	bh=2cExcM3FQdKVHy7cL3IiNx2Bk/UFeUgrDgrQcqyJhl8=;
+	s=arc-20240116; t=1718186443; c=relaxed/simple;
+	bh=7LFqbV8a2eEf04HyVsqJ/oKgbTyp/2/zSarRLIBqhmQ=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=oHQk7bpP6ts8iPbVra6eNmsUW0pHVhPPTo9SBylAtsIqC7GZngcoEA4AcZeo7BuMKwXb6szCUZKxxTw2z2NyyieoxK2/3Ihnd4mnOsixAwPXXitOuMQtEIOy+F5FucoFtD+mtwBipyvlEwQJ9IYtQGJ5TQV3WMfKwr19u+yYKeI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=citrix.com; spf=pass smtp.mailfrom=cloud.com; dkim=pass (1024-bit key) header.d=citrix.com header.i=@citrix.com header.b=czvOiFW+; arc=none smtp.client-ip=209.85.128.177
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=citrix.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cloud.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=EcWLjqpE2qE0pi9O+OusiFF3di+MIZlA+fGvcfy06Dh2/rgsU+bIKhoWu+E2ZRglt3GOuTax+lqA48FXw3qNb75OZilJ5mCEKQ4VW+Ca3RB/LqO80uPl8fK6rY6N86bfpPR2R9a73bgS7qJBXm9HDS+W1BcdDaZK7DBS7BR3U4A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=kdKHnRoS; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=citrix.com header.i=@citrix.com header.b="czvOiFW+"
-Received: by mail-yw1-f177.google.com with SMTP id 00721157ae682-62fa71027b1so5142747b3.3
-        for <nvdimm@lists.linux.dev>; Wed, 12 Jun 2024 01:01:23 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=citrix.com; s=google; t=1718179283; x=1718784083; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=1PGf6HlJc1ANQenmlixWu1Sno9FA8D3ndcnX4NZVy9I=;
-        b=czvOiFW+zPmPGnRrQkQmaM46uX/B+RyxCtvdtzHNT0lycp9jGeL/bCGSQn9KkpYR0q
-         oOd0Jq2WIgLnmCOxVUIfkatoItRlsDwnC9rrUmdqS1bK6EQ7N6TjtKKGZGYMmG70TRsN
-         tFHyziE4DH/YnUxL4G82CF+SzWxnv9FBztQKs=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1718179283; x=1718784083;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=1PGf6HlJc1ANQenmlixWu1Sno9FA8D3ndcnX4NZVy9I=;
-        b=J00PS0kfvQGwH7CfNm6rjxomuL7srexQC02I5xkWgeinYtNISCJ7L1suSSiNXqiUbS
-         bcjUmyfX3I+JSq8DgtmbqIjKIyMFFJE3NZYBnlv0u/h31lhOFeqIhM8zsFrM4sMegNq/
-         y+SdoM0aTAlYXXT7M+fNpOZblbJ0tzrLjwkqRuH51Ar95KiQ0ANAzBoy5336iWUkISPQ
-         P8ofw0Q3lY28mxIXE32kEB+imDBflBI9EWxVG6KF3cP6JxH5D+Wjh8gA5sxbYrYTAv0n
-         PPZXO36z6/9j8FpvHU++aEMYMLvTYjoySgrM7WFBv/J4SHmKoTI2zwtIIuvbvZJ7MuVU
-         NcZg==
-X-Forwarded-Encrypted: i=1; AJvYcCUO6luG5FLDHF2oLuOvvCs2YWafH46fgO2Rww6i+xMheJF9+V8vGB4rVqXEMbBaT265WiwXzPkBQr1zN8AqdR4LwUDJCZ/y
-X-Gm-Message-State: AOJu0YykSJOun7+hkPI+38t170Q5XF0JpY8v7kuAdoEQ44ZccOqsHcgD
-	S2xyJFj+Uw7unmkhuwSB3vyw6PLJ9/HBUK6qATVMD+4ZLU8JeGRiy6o53IotXrA=
-X-Google-Smtp-Source: AGHT+IEk5bObzz8qCZsqdRqFNOU7a/dh67daOPgnEKJGJzh0sP06pKqPApTvT03CHGJxr8rf1zPYww==
-X-Received: by 2002:a81:b647:0:b0:61b:e62e:73f1 with SMTP id 00721157ae682-62fb8a58273mr12605907b3.3.1718179282688;
-        Wed, 12 Jun 2024 01:01:22 -0700 (PDT)
-Received: from localhost ([46.222.2.38])
-        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-6b093aff889sm6894416d6.101.2024.06.12.01.01.21
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 12 Jun 2024 01:01:22 -0700 (PDT)
-Date: Wed, 12 Jun 2024 10:01:18 +0200
-From: Roger Pau =?utf-8?B?TW9ubsOp?= <roger.pau@citrix.com>
-To: Christoph Hellwig <hch@lst.de>
-Cc: Jens Axboe <axboe@kernel.dk>, Geert Uytterhoeven <geert@linux-m68k.org>,
-	Richard Weinberger <richard@nod.at>,
-	Philipp Reisner <philipp.reisner@linbit.com>,
-	Lars Ellenberg <lars.ellenberg@linbit.com>,
-	Christoph =?utf-8?Q?B=C3=B6hmwalder?= <christoph.boehmwalder@linbit.com>,
-	Josef Bacik <josef@toxicpanda.com>, Ming Lei <ming.lei@redhat.com>,
-	"Michael S. Tsirkin" <mst@redhat.com>,
-	Jason Wang <jasowang@redhat.com>, Alasdair Kergon <agk@redhat.com>,
-	Mike Snitzer <snitzer@kernel.org>,
-	Mikulas Patocka <mpatocka@redhat.com>, Song Liu <song@kernel.org>,
-	Yu Kuai <yukuai3@huawei.com>,
-	Vineeth Vijayan <vneethv@linux.ibm.com>,
-	"Martin K. Petersen" <martin.petersen@oracle.com>,
-	linux-m68k@lists.linux-m68k.org, linux-um@lists.infradead.org,
-	drbd-dev@lists.linbit.com, nbd@other.debian.org,
-	linuxppc-dev@lists.ozlabs.org, ceph-devel@vger.kernel.org,
-	virtualization@lists.linux.dev, xen-devel@lists.xenproject.org,
-	linux-bcache@vger.kernel.org, dm-devel@lists.linux.dev,
-	linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org,
-	linux-mtd@lists.infradead.org, nvdimm@lists.linux.dev,
-	linux-nvme@lists.infradead.org, linux-s390@vger.kernel.org,
-	linux-scsi@vger.kernel.org, linux-block@vger.kernel.org
-Subject: Re: [PATCH 10/26] xen-blkfront: don't disable cache flushes when
- they fail
-Message-ID: <ZmlVziizbaboaBSn@macbook>
-References: <20240611051929.513387-1-hch@lst.de>
- <20240611051929.513387-11-hch@lst.de>
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="kdKHnRoS"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DADB2C3277B;
+	Wed, 12 Jun 2024 10:00:42 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
+	s=korg; t=1718186443;
+	bh=7LFqbV8a2eEf04HyVsqJ/oKgbTyp/2/zSarRLIBqhmQ=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=kdKHnRoS1XvxkBjEUW5CYbnJqb9mdMDAyeGMUa5SEH/jcItCRT6abOIulu1Io5Jg2
+	 67160/YLkMJCBzdDKsBJrZ0Jr/mGzLS7ONQmoIdZdL5jFSNBILuN9k+AtEFOML4mFI
+	 RLEbtwJQDeqa2oOkR6G7tM1IyDx5/kIUXiOylvrI=
+Date: Wed, 12 Jun 2024 12:00:40 +0200
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>
+Subject: Re: [PATCH] nvdimm: make nd_class constant
+Message-ID: <2024061206-unleveled-seduce-9861@gregkh>
+References: <2024061041-grandkid-coherence-19b0@gregkh>
+ <66673b8a1ec86_12552029457@dwillia2-xfh.jf.intel.com.notmuch>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20240611051929.513387-11-hch@lst.de>
+In-Reply-To: <66673b8a1ec86_12552029457@dwillia2-xfh.jf.intel.com.notmuch>
 
-On Tue, Jun 11, 2024 at 07:19:10AM +0200, Christoph Hellwig wrote:
-> blkfront always had a robust negotiation protocol for detecting a write
-> cache.  Stop simply disabling cache flushes when they fail as that is
-> a grave error.
+On Mon, Jun 10, 2024 at 10:44:42AM -0700, Dan Williams wrote:
+> Greg Kroah-Hartman wrote:
+> > Now that the driver core allows for struct class to be in read-only
+> > memory, we should make all 'class' structures declared at build time
+> > placing them into read-only memory, instead of having to be dynamically
+> > allocated at runtime.
+> 
+> Change looks good to me,
+> 
+> Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+> 
+> ...changelog grammar tripped me up though, how about:
+> 
+> "Now that the driver core allows for struct class to be in read-only
+> memory, it is possible to make all 'class' structures be declared at
+> build time. Move the class to a 'static const' declaration and register
+> it rather than dynamically create it."
 
-It's my understanding the current code attempts to cover up for the
-lack of guarantees the feature itself provides:
+That works too, want me to resubmit with this, or can I update it when I
+commit it to my tree?
 
- * feature-barrier
- *      Values:         0/1 (boolean)
- *      Default Value:  0
- *
- *      A value of "1" indicates that the backend can process requests
- *      containing the BLKIF_OP_WRITE_BARRIER request opcode.  Requests
- *      of this type may still be returned at any time with the
- *      BLKIF_RSP_EOPNOTSUPP result code.
- *
- * feature-flush-cache
- *      Values:         0/1 (boolean)
- *      Default Value:  0
- *
- *      A value of "1" indicates that the backend can process requests
- *      containing the BLKIF_OP_FLUSH_DISKCACHE request opcode.  Requests
- *      of this type may still be returned at any time with the
- *      BLKIF_RSP_EOPNOTSUPP result code.
+thanks,
 
-So even when the feature is exposed, the backend might return
-EOPNOTSUPP for the flush/barrier operations.
-
-Such failure is tied on whether the underlying blkback storage
-supports REQ_OP_WRITE with REQ_PREFLUSH operation.  blkback will
-expose "feature-barrier" and/or "feature-flush-cache" without knowing
-whether the underlying backend supports those operations, hence the
-weird fallback in blkfront.
-
-I'm unsure whether lack of REQ_PREFLUSH support is not something that
-we should worry about, it seems like it was when the code was
-introduced, but that's > 10y ago.
-
-Overall blkback should ensure that REQ_PREFLUSH is supported before
-exposing "feature-barrier" or "feature-flush-cache", as then the
-exposed features would really match what the underlying backend
-supports (rather than the commands blkback knows about).
-
-Thanks, Roger.
+greg "the changelog is the hardest part" k-h
