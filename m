@@ -1,188 +1,203 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from verein.lst.de (verein.lst.de [213.95.11.211])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82C06144D34;
-	Thu, 13 Jun 2024 13:40:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26D6813F45B;
+	Thu, 13 Jun 2024 14:05:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.11.211
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718286041; cv=none; b=YeHWvuvexFH4w5UAzC1oz4INsjh0XXtvsXVrcF/B+ySy4UPoKwJ2T3eTKXe0kmj8MmG/96fGqZlqP6Gg1+GNvw6rLzwR3BW2czUgwsaZ1pqwuKYx7ZJtz2UZ98It+3XhixB9dOjBdMgGRDsNtkn08pAc1i0F5vLaJtYNS/F0uQQ=
+	t=1718287517; cv=none; b=EZJ5VO1JTH4bEyt0l3SFMMAsVQo6FqaJltk0kiP1g7vu6bxs05AioPwyasPiAzbLrS8iw8qo9roBQyw2mJYNGkCeAn4VZxMvtka+1dWmIbgXAsedyG8lB6A9n5D47TAA2XCMNJCMW2nwufu/zqV8Cw50TRVnK0onNn/fyN4nSEw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718286041; c=relaxed/simple;
-	bh=5x2tr/c47eGH0UqX1yJcGB4nj1JF6JFSSjyLYFm56+8=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=SAJLx9SgwfTAVv+hhroQs+7PTdE2OZor0OSxTGbWi0p4paOCOwDwFXrCyuH4ej7k2YWZwxhpIXs+KrEg/WjB2BC0G8g8hwVYyVofiqRiC6y8zoW0S9zk16xsq/jmeaaj95GQ2pbn3LkB86FF3N2RRWF/aLpo4r8UJChy9f0jlZs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=hb22nKVe; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=KXEgcG1y; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=hb22nKVe; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=KXEgcG1y; arc=none smtp.client-ip=195.135.223.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="hb22nKVe";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="KXEgcG1y";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="hb22nKVe";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="KXEgcG1y"
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 73B1A37229;
-	Thu, 13 Jun 2024 13:40:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1718286037; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=iJBzu8xkHvqARXEasLdKwhnxPndyRRjGj5ylB7pzv9o=;
-	b=hb22nKVeViWDEo6mwYbFmXvGv3iDM3Ql0OTlDiQbdpWmDgBI0y99XFKs2c6uyQL7IuyZlJ
-	kKMQe6lRTA1cn53YwkdNxtpq3ZUeADuDo9H8i4iaMMg7RRMujZwHcDAYFuFmHJmd3vamB7
-	hzfKmzgZjwlXtFtaUYuIZxzYVqJwiv4=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1718286037;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=iJBzu8xkHvqARXEasLdKwhnxPndyRRjGj5ylB7pzv9o=;
-	b=KXEgcG1yv7o3tP6dKcziYgARlsIQBaKVXOueq6233SAksmG0NWdl1c3QL6mk1gKQQrQxRR
-	QMrQ9ef+OXJSohDA==
-Authentication-Results: smtp-out1.suse.de;
-	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=hb22nKVe;
-	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=KXEgcG1y
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1718286037; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=iJBzu8xkHvqARXEasLdKwhnxPndyRRjGj5ylB7pzv9o=;
-	b=hb22nKVeViWDEo6mwYbFmXvGv3iDM3Ql0OTlDiQbdpWmDgBI0y99XFKs2c6uyQL7IuyZlJ
-	kKMQe6lRTA1cn53YwkdNxtpq3ZUeADuDo9H8i4iaMMg7RRMujZwHcDAYFuFmHJmd3vamB7
-	hzfKmzgZjwlXtFtaUYuIZxzYVqJwiv4=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1718286037;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=iJBzu8xkHvqARXEasLdKwhnxPndyRRjGj5ylB7pzv9o=;
-	b=KXEgcG1yv7o3tP6dKcziYgARlsIQBaKVXOueq6233SAksmG0NWdl1c3QL6mk1gKQQrQxRR
-	QMrQ9ef+OXJSohDA==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 3E7F913A87;
-	Thu, 13 Jun 2024 13:40:37 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id 6i/gDNX2amYZPwAAD6G6ig
-	(envelope-from <hare@suse.de>); Thu, 13 Jun 2024 13:40:37 +0000
-Message-ID: <bc0d7973-1b5a-4735-ae87-0fb49f4e04b2@suse.de>
-Date: Thu, 13 Jun 2024 15:40:36 +0200
+	s=arc-20240116; t=1718287517; c=relaxed/simple;
+	bh=mWqCF/Q1ylazfgkNhXCkkB36nGt3iLW/vFBDPsVVQaQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=rK3Mwirb3K5rNlrF3rbX7FxZMFpMCgFZk4VvCPJgkLs9goBVg7wjTIWvZetIGkkcsdnVaRMHZVt3RA3wu5uBvzYRnzZ5OndA66TEG1SxjwLPvJ4LEvx4TBEK/gstJ24pxmZRt4oqzjR1g2+pCh37ixccsbqCQ17yV7KvSQZALD4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lst.de; spf=pass smtp.mailfrom=lst.de; arc=none smtp.client-ip=213.95.11.211
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lst.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lst.de
+Received: by verein.lst.de (Postfix, from userid 2407)
+	id C2B2968BEB; Thu, 13 Jun 2024 16:05:08 +0200 (CEST)
+Date: Thu, 13 Jun 2024 16:05:08 +0200
+From: Christoph Hellwig <hch@lst.de>
+To: Roger Pau =?iso-8859-1?Q?Monn=E9?= <roger.pau@citrix.com>
+Cc: Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Richard Weinberger <richard@nod.at>,
+	Philipp Reisner <philipp.reisner@linbit.com>,
+	Lars Ellenberg <lars.ellenberg@linbit.com>,
+	Christoph =?iso-8859-1?Q?B=F6hmwalder?= <christoph.boehmwalder@linbit.com>,
+	Josef Bacik <josef@toxicpanda.com>, Ming Lei <ming.lei@redhat.com>,
+	"Michael S. Tsirkin" <mst@redhat.com>,
+	Jason Wang <jasowang@redhat.com>, Alasdair Kergon <agk@redhat.com>,
+	Mike Snitzer <snitzer@kernel.org>,
+	Mikulas Patocka <mpatocka@redhat.com>, Song Liu <song@kernel.org>,
+	Yu Kuai <yukuai3@huawei.com>,
+	Vineeth Vijayan <vneethv@linux.ibm.com>,
+	"Martin K. Petersen" <martin.petersen@oracle.com>,
+	linux-m68k@lists.linux-m68k.org, linux-um@lists.infradead.org,
+	drbd-dev@lists.linbit.com, nbd@other.debian.org,
+	linuxppc-dev@lists.ozlabs.org, ceph-devel@vger.kernel.org,
+	virtualization@lists.linux.dev, xen-devel@lists.xenproject.org,
+	linux-bcache@vger.kernel.org, dm-devel@lists.linux.dev,
+	linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org,
+	linux-mtd@lists.infradead.org, nvdimm@lists.linux.dev,
+	linux-nvme@lists.infradead.org, linux-s390@vger.kernel.org,
+	linux-scsi@vger.kernel.org, linux-block@vger.kernel.org
+Subject: Re: [PATCH 10/26] xen-blkfront: don't disable cache flushes when
+ they fail
+Message-ID: <20240613140508.GA16529@lst.de>
+References: <20240611051929.513387-1-hch@lst.de> <20240611051929.513387-11-hch@lst.de> <ZmlVziizbaboaBSn@macbook> <20240612150030.GA29188@lst.de> <ZmnFH17bTV2Ot_iR@macbook>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 12/12] block: move integrity information into queue_limits
-To: Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>,
- "Martin K. Petersen" <martin.petersen@oracle.com>
-Cc: Mike Snitzer <snitzer@kernel.org>, Mikulas Patocka <mpatocka@redhat.com>,
- Song Liu <song@kernel.org>, Yu Kuai <yukuai3@huawei.com>,
- Dan Williams <dan.j.williams@intel.com>,
- Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>,
- Ira Weiny <ira.weiny@intel.com>, Keith Busch <kbusch@kernel.org>,
- Sagi Grimberg <sagi@grimberg.me>, Chaitanya Kulkarni <kch@nvidia.com>,
- linux-block@vger.kernel.org, dm-devel@lists.linux.dev,
- linux-raid@vger.kernel.org, nvdimm@lists.linux.dev,
- linux-nvme@lists.infradead.org, linux-scsi@vger.kernel.org
-References: <20240613084839.1044015-1-hch@lst.de>
- <20240613084839.1044015-13-hch@lst.de>
-Content-Language: en-US
-From: Hannes Reinecke <hare@suse.de>
-In-Reply-To: <20240613084839.1044015-13-hch@lst.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-X-Rspamd-Queue-Id: 73B1A37229
-X-Spam-Score: -4.50
-X-Spam-Level: 
-X-Spam-Flag: NO
-X-Spamd-Result: default: False [-4.50 / 50.00];
-	BAYES_HAM(-3.00)[100.00%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	NEURAL_HAM_SHORT(-0.20)[-1.000];
-	MIME_GOOD(-0.10)[text/plain];
-	XM_UA_NO_VERSION(0.01)[];
-	MX_GOOD(-0.01)[];
-	FUZZY_BLOCKED(0.00)[rspamd.com];
-	RCPT_COUNT_TWELVE(0.00)[20];
-	MID_RHS_MATCH_FROM(0.00)[];
-	MIME_TRACE(0.00)[0:+];
-	ARC_NA(0.00)[];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	RCVD_TLS_ALL(0.00)[];
-	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	FROM_EQ_ENVFROM(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	TO_DN_SOME(0.00)[];
-	RCVD_COUNT_TWO(0.00)[2];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns,suse.de:email,suse.de:dkim];
-	DNSWL_BLOCKED(0.00)[2a07:de40:b281:106:10:150:64:167:received,2a07:de40:b281:104:10:150:64:97:from];
-	DKIM_TRACE(0.00)[suse.de:+]
-X-Rspamd-Action: no action
-X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
+In-Reply-To: <ZmnFH17bTV2Ot_iR@macbook>
+User-Agent: Mutt/1.5.17 (2007-11-01)
 
-On 6/13/24 10:48, Christoph Hellwig wrote:
-> Move the integrity information into the queue limits so that it can be
-> set atomically with other queue limits, and that the sysfs changes to
-> the read_verify and write_generate flags are properly synchronized.
-> This also allows to provide a more useful helper to stack the integrity
-> fields, although it still is separate from the main stacking function
-> as not all stackable devices want to inherit the integrity settings.
-> Even with that it greatly simplifies the code in md and dm.
+On Wed, Jun 12, 2024 at 05:56:15PM +0200, Roger Pau Monn� wrote:
+> Right.  AFAICT advertising "feature-barrier" and/or
+> "feature-flush-cache" could be done based on whether blkback
+> understand those commands, not on whether the underlying storage
+> supports the equivalent of them.
 > 
-> Note that the integrity field is moved as-is into the queue limits.
-> While there are good arguments for removing the separate blk_integrity
-> structure, this would cause a lot of churn and might better be done at a
-> later time if desired.  However the integrity field in the queue_limits
-> structure is now unconditional so that various ifdefs can be avoided or
-> replaced with IS_ENABLED().  Given that tiny size of it that seems like
-> a worthwhile trade off.
+> Worst case we can print a warning message once about the underlying
+> storage failing to complete flush/barrier requests, and that data
+> integrity might not be guaranteed going forward, and not propagate the
+> error to the upper layer?
 > 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
-> ---
->   Documentation/block/data-integrity.rst |  49 +-------
->   block/blk-integrity.c                  | 124 ++-----------------
->   block/blk-settings.c                   | 118 +++++++++++++++++-
->   block/t10-pi.c                         |  12 +-
->   drivers/md/dm-core.h                   |   1 -
->   drivers/md/dm-integrity.c              |  27 ++---
->   drivers/md/dm-table.c                  | 161 +++++--------------------
->   drivers/md/md.c                        |  72 +++--------
->   drivers/md/md.h                        |   5 +-
->   drivers/md/raid0.c                     |   7 +-
->   drivers/md/raid1.c                     |  10 +-
->   drivers/md/raid10.c                    |  10 +-
->   drivers/md/raid5.c                     |   2 +-
->   drivers/nvdimm/btt.c                   |  13 +-
->   drivers/nvme/host/core.c               |  70 +++++------
->   drivers/scsi/sd.c                      |   8 +-
->   drivers/scsi/sd.h                      |  12 +-
->   drivers/scsi/sd_dif.c                  |  34 +++---
->   include/linux/blk-integrity.h          |  27 ++---
->   include/linux/blkdev.h                 |  12 +-
->   include/linux/t10-pi.h                 |  12 +-
->   21 files changed, 289 insertions(+), 497 deletions(-)
-> 
-Reviewed-by: Hannes Reinecke <hare@suse.de>
+> What would be the consequence of propagating a flush error to the
+> upper layers?
 
-Cheers,
+If you propage the error to the upper layer you will generate an
+I/O error there, which usually leads to a file system shutdown.
 
-Hannes
+> Given the description of the feature in the blkif header, I'm afraid
+> we cannot guarantee that seeing the feature exposed implies barrier or
+> flush support, since the request could fail at any time (or even from
+> the start of the disk attachment) and it would still sadly be a correct
+> implementation given the description of the options.
+
+Well, then we could do something like the patch below, which keeps
+the existing behavior, but insolates the block layer from it and
+removes the only user of blk_queue_write_cache from interrupt
+context:
+
+---
+From e6e82c769ab209a77302994c3829cf6ff7a595b8 Mon Sep 17 00:00:00 2001
+From: Christoph Hellwig <hch@lst.de>
+Date: Thu, 30 May 2024 08:58:52 +0200
+Subject: xen-blkfront: don't disable cache flushes when they fail
+
+blkfront always had a robust negotiation protocol for detecting a write
+cache.  Stop simply disabling cache flushes in the block layer as the
+flags handling is moving to the atomic queue limits API that needs
+user context to freeze the queue for that.  Instead handle the case
+of the feature flags cleared inside of blkfront.  This removes old
+debug code to check for such a mismatch which was previously impossible
+to hit, including the check for passthrough requests that blkfront
+never used to start with.
+
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ drivers/block/xen-blkfront.c | 44 +++++++++++++++++++-----------------
+ 1 file changed, 23 insertions(+), 21 deletions(-)
+
+diff --git a/drivers/block/xen-blkfront.c b/drivers/block/xen-blkfront.c
+index 9b4ec3e4908cce..e2c92d5095ff17 100644
+--- a/drivers/block/xen-blkfront.c
++++ b/drivers/block/xen-blkfront.c
+@@ -788,6 +788,14 @@ static int blkif_queue_rw_req(struct request *req, struct blkfront_ring_info *ri
+ 			 * A barrier request a superset of FUA, so we can
+ 			 * implement it the same way.  (It's also a FLUSH+FUA,
+ 			 * since it is guaranteed ordered WRT previous writes.)
++			 *
++			 * Note that can end up here with a FUA write and the
++			 * flags cleared.  This happens when the flag was
++			 * run-time disabled and raced with I/O submission in
++			 * the block layer.  We submit it as a normal write
++			 * here.  A pure flush should never end up here with
++			 * the flags cleared as they are completed earlier for
++			 * the !feature_flush case.
+ 			 */
+ 			if (info->feature_flush && info->feature_fua)
+ 				ring_req->operation =
+@@ -795,8 +803,6 @@ static int blkif_queue_rw_req(struct request *req, struct blkfront_ring_info *ri
+ 			else if (info->feature_flush)
+ 				ring_req->operation =
+ 					BLKIF_OP_FLUSH_DISKCACHE;
+-			else
+-				ring_req->operation = 0;
+ 		}
+ 		ring_req->u.rw.nr_segments = num_grant;
+ 		if (unlikely(require_extra_req)) {
+@@ -887,16 +893,6 @@ static inline void flush_requests(struct blkfront_ring_info *rinfo)
+ 		notify_remote_via_irq(rinfo->irq);
+ }
+ 
+-static inline bool blkif_request_flush_invalid(struct request *req,
+-					       struct blkfront_info *info)
+-{
+-	return (blk_rq_is_passthrough(req) ||
+-		((req_op(req) == REQ_OP_FLUSH) &&
+-		 !info->feature_flush) ||
+-		((req->cmd_flags & REQ_FUA) &&
+-		 !info->feature_fua));
+-}
+-
+ static blk_status_t blkif_queue_rq(struct blk_mq_hw_ctx *hctx,
+ 			  const struct blk_mq_queue_data *qd)
+ {
+@@ -908,23 +904,30 @@ static blk_status_t blkif_queue_rq(struct blk_mq_hw_ctx *hctx,
+ 	rinfo = get_rinfo(info, qid);
+ 	blk_mq_start_request(qd->rq);
+ 	spin_lock_irqsave(&rinfo->ring_lock, flags);
+-	if (RING_FULL(&rinfo->ring))
+-		goto out_busy;
+ 
+-	if (blkif_request_flush_invalid(qd->rq, rinfo->dev_info))
+-		goto out_err;
++	/*
++	 * Check if the backend actually supports flushes.
++	 *
++	 * While the block layer won't send us flushes if we don't claim to
++	 * support them, the Xen protocol allows the backend to revoke support
++	 * at any time.  That is of course a really bad idea and dangerous, but
++	 * has been allowed for 10+ years.  In that case we simply clear the
++	 * flags, and directly return here for an empty flush and ignore the
++	 * FUA flag later on.
++	 */
++	if (unlikely(req_op(qd->rq) == REQ_OP_FLUSH && !info->feature_flush))
++		goto out;
+ 
++	if (RING_FULL(&rinfo->ring))
++		goto out_busy;
+ 	if (blkif_queue_request(qd->rq, rinfo))
+ 		goto out_busy;
+ 
+ 	flush_requests(rinfo);
++out:
+ 	spin_unlock_irqrestore(&rinfo->ring_lock, flags);
+ 	return BLK_STS_OK;
+ 
+-out_err:
+-	spin_unlock_irqrestore(&rinfo->ring_lock, flags);
+-	return BLK_STS_IOERR;
+-
+ out_busy:
+ 	blk_mq_stop_hw_queue(hctx);
+ 	spin_unlock_irqrestore(&rinfo->ring_lock, flags);
+@@ -1627,7 +1630,6 @@ static irqreturn_t blkif_interrupt(int irq, void *dev_id)
+ 					blkif_req(req)->error = BLK_STS_OK;
+ 				info->feature_fua = 0;
+ 				info->feature_flush = 0;
+-				xlvbd_flush(info);
+ 			}
+ 			fallthrough;
+ 		case BLKIF_OP_READ:
 -- 
-Dr. Hannes Reinecke                  Kernel Storage Architect
-hare@suse.de                                +49 911 74053 688
-SUSE Software Solutions GmbH, Frankenstr. 146, 90461 Nürnberg
-HRB 36809 (AG Nürnberg), GF: I. Totev, A. McDonald, W. Knoblich
+2.43.0
 
