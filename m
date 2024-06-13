@@ -1,35 +1,35 @@
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3096213D8A6;
-	Thu, 13 Jun 2024 08:48:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 358301419AA;
+	Thu, 13 Jun 2024 08:48:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718268536; cv=none; b=PeeHSxDrm3SR0zWg5NFJ2lnWSB33Jg6uYJe+vT8q0IhN0p+bIOKmzVHOibUcthJVf2yB5Lv8oS7jhDgeRbC6okEvCbvttW67y+Yvj98ZKYYeR2+YJZcJN+kdrUBMYdAiBMkg6SH75HyhXTIa7F0xM3Hd4m6jyV9ZyyrQvEhydZ4=
+	t=1718268538; cv=none; b=opbtkWvBTefyP0Mpq6jL4LYOjFH7s1mn5zQKiWKp6mwpoNOrIuHsXFq5tvHC21yGMGNwuijoR1H6dwa1RPTnEOiICzFQ0z5gF/yQaBSEo9fMgS4des1SJ8dzJBqkuvkPn+k9ZtKbBeZwlpkdPyQZRM8OvwrwhwKjt7Vr6hrBfnA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718268536; c=relaxed/simple;
-	bh=0AmtyARSaCfpKYoEJ5CCQgZ2tTPFVkXy8IxqhQ0K9zY=;
+	s=arc-20240116; t=1718268538; c=relaxed/simple;
+	bh=+BjGuLr/gI1Gue5e119TjF+mdnq/PomOY8egq7ncYII=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=VUKCzCFf+rxdw73V2/Epk7/m68FXFKDDRT7JB7qFF16eZ+quxRher1j4KKWd/hTqaHrMSA2EBgDRdHoOwfdOp/7OPukxpP8wTh0lLL3O2m25qsM7knYRh+1TytWcZzT++0YqoDCHtH3rIiQ2ksn0dL8u9BV2xAmGUFASfV79oS0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lst.de; spf=none smtp.mailfrom=bombadil.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=ZFLy+zD1; arc=none smtp.client-ip=198.137.202.133
+	 MIME-Version; b=r19v/C6UoyhfDpFwItI7lbuPN0mDVaDr6nkfWjiKme0RIfsoS9aa/LMpRTRmUYmBGESdYPvcQZZSj/Anj2W+D5mkhWEBWojfioBqAfbd2+lNXD5pfdhU9lePlthNzwuzhP0NBZ8+kEE8Om6Qhd05wZdhodjcjL7bDtsxIqHtX0M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lst.de; spf=none smtp.mailfrom=bombadil.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=5ELtCIzd; arc=none smtp.client-ip=198.137.202.133
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lst.de
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="ZFLy+zD1"
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="5ELtCIzd"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
 	MIME-Version:References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Sender
 	:Reply-To:Content-Type:Content-ID:Content-Description;
-	bh=xt/cEzI4CksO34TKlgliy2AxvKCGUtTFve6xzQi8/jQ=; b=ZFLy+zD1SYY6PByLnylvEoMMkr
-	CLkNFUhAogQDFqJ51lVh2avS43WhEd4dQ5Hwv9E4YDGxlgnNWgm1H2qEsSef/7AeWU4hWVX5nYFbm
-	KuGM9fEcglzDSYWFda+EBVKg4B6PGc0gGUriDz3PiLn0FV7fp2EgwtKZDzoI20uF4vPLotLSmiEGe
-	6QXmlxQBZB/7aKw+J291tQOKK2H1zyfS/O6ENCxZyGItU/YG9sZQH0/4ogoNKOwa344QLaniqEjew
-	fBQXtCQb449arxK2JiyMkiq47Lap3GtX7GaWzLxvkw5YsNOiw2ioMoWMv4ityEBxYglA5nkMOtmwj
-	5eLLx/3A==;
+	bh=mKcyvM4r/2P84aZxmwMfKhF19qmlYUHCRYKugbswj8M=; b=5ELtCIzdPynKEeaB9S+3gwH71W
+	uRLgl5l6+5E3kdFTLMN0ijMGlQkr8YZCZMCPTvND2vFNh0E/0EZsOyz6cN4Z7K+F8G65VIF5Mi6Jl
+	NXcMgn046y08IE1GGU8nA/iE3A1Mm3Atpj5d9Va/2F1dVByHKHVmqZKGa1zjRWyyk7bDM4Gn2a3yd
+	pBZhbvKoYtT/j0SssDzMkg4nHdLkZd6GLSplvObAFkC9Bwn1+R9l4IUM8DJpHeVhBTLeD2Of+PJou
+	j4MChGJUw/Fiu8ukjaV4ehDnbIhUdEFGfT4LgiVbPT17KuTeWtkv45FWUZsREt9HFEpp/8ApWUkt1
+	uWMDwVhw==;
 Received: from 2a02-8389-2341-5b80-034b-6bc2-b258-c831.cable.dynamic.v6.surfer.at ([2a02:8389:2341:5b80:34b:6bc2:b258:c831] helo=localhost)
 	by bombadil.infradead.org with esmtpsa (Exim 4.97.1 #2 (Red Hat Linux))
-	id 1sHg8W-0000000Fn1R-06kc;
-	Thu, 13 Jun 2024 08:48:49 +0000
+	id 1sHg8Z-0000000Fn3n-0mAX;
+	Thu, 13 Jun 2024 08:48:51 +0000
 From: Christoph Hellwig <hch@lst.de>
 To: Jens Axboe <axboe@kernel.dk>,
 	"Martin K. Petersen" <martin.petersen@oracle.com>
@@ -50,9 +50,9 @@ Cc: Mike Snitzer <snitzer@kernel.org>,
 	nvdimm@lists.linux.dev,
 	linux-nvme@lists.infradead.org,
 	linux-scsi@vger.kernel.org
-Subject: [PATCH 02/12] md/raid0: don't free conf on raid0_run failure
-Date: Thu, 13 Jun 2024 10:48:12 +0200
-Message-ID: <20240613084839.1044015-3-hch@lst.de>
+Subject: [PATCH 03/12] md/raid1: don't free conf on raid0_run failure
+Date: Thu, 13 Jun 2024 10:48:13 +0200
+Message-ID: <20240613084839.1044015-4-hch@lst.de>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20240613084839.1044015-1-hch@lst.de>
 References: <20240613084839.1044015-1-hch@lst.de>
@@ -67,62 +67,59 @@ X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.
 
 The core md code calls the ->free method which already frees conf.
 
-Fixes: 0c031fd37f69 ("md: Move alloc/free acct bioset in to personality")
+Fixes: 07f1a6850c5d ("md/raid1: fail run raid1 array when active disk less than one")
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- drivers/md/raid0.c | 21 +++++----------------
- 1 file changed, 5 insertions(+), 16 deletions(-)
+ drivers/md/raid1.c | 14 +++-----------
+ 1 file changed, 3 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/md/raid0.c b/drivers/md/raid0.c
-index c5d4aeb68404c9..81c01347cd24e6 100644
---- a/drivers/md/raid0.c
-+++ b/drivers/md/raid0.c
-@@ -365,18 +365,13 @@ static sector_t raid0_size(struct mddev *mddev, sector_t sectors, int raid_disks
- 	return array_sectors;
+diff --git a/drivers/md/raid1.c b/drivers/md/raid1.c
+index 7b8a71ca66dde0..1f321826ef02ba 100644
+--- a/drivers/md/raid1.c
++++ b/drivers/md/raid1.c
+@@ -3204,7 +3204,6 @@ static int raid1_set_limits(struct mddev *mddev)
+ 	return queue_limits_set(mddev->gendisk->queue, &lim);
  }
  
--static void free_conf(struct mddev *mddev, struct r0conf *conf)
--{
--	kfree(conf->strip_zone);
--	kfree(conf->devlist);
--	kfree(conf);
--}
--
- static void raid0_free(struct mddev *mddev, void *priv)
+-static void raid1_free(struct mddev *mddev, void *priv);
+ static int raid1_run(struct mddev *mddev)
  {
- 	struct r0conf *conf = priv;
- 
--	free_conf(mddev, conf);
-+	kfree(conf->strip_zone);
-+	kfree(conf->devlist);
-+	kfree(conf);
- }
- 
- static int raid0_set_limits(struct mddev *mddev)
-@@ -415,7 +410,7 @@ static int raid0_run(struct mddev *mddev)
+ 	struct r1conf *conf;
+@@ -3238,7 +3237,7 @@ static int raid1_run(struct mddev *mddev)
  	if (!mddev_is_dm(mddev)) {
- 		ret = raid0_set_limits(mddev);
+ 		ret = raid1_set_limits(mddev);
  		if (ret)
--			goto out_free_conf;
+-			goto abort;
 +			return ret;
  	}
  
- 	/* calculate array device size */
-@@ -427,13 +422,7 @@ static int raid0_run(struct mddev *mddev)
+ 	mddev->degraded = 0;
+@@ -3252,8 +3251,7 @@ static int raid1_run(struct mddev *mddev)
+ 	 */
+ 	if (conf->raid_disks - mddev->degraded < 1) {
+ 		md_unregister_thread(mddev, &conf->thread);
+-		ret = -EINVAL;
+-		goto abort;
++		return -EINVAL;
+ 	}
  
- 	dump_zones(mddev);
+ 	if (conf->raid_disks - mddev->degraded == 1)
+@@ -3277,14 +3275,8 @@ static int raid1_run(struct mddev *mddev)
+ 	md_set_array_sectors(mddev, raid1_size(mddev, 0, 0));
  
--	ret = md_integrity_register(mddev);
--	if (ret)
--		goto out_free_conf;
+ 	ret = md_integrity_register(mddev);
+-	if (ret) {
++	if (ret)
+ 		md_unregister_thread(mddev, &mddev->thread);
+-		goto abort;
+-	}
 -	return 0;
--out_free_conf:
--	free_conf(mddev, conf);
--	return ret;
-+	return md_integrity_register(mddev);
+-
+-abort:
+-	raid1_free(mddev, conf);
+ 	return ret;
  }
  
- /*
 -- 
 2.43.0
 
