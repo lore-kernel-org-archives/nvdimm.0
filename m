@@ -1,35 +1,35 @@
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CC7B140383;
-	Thu, 13 Jun 2024 08:48:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3096213D8A6;
+	Thu, 13 Jun 2024 08:48:55 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718268532; cv=none; b=JL+gJxeAeVAwEK06gkGlNiiKv/ECiqHqXVrGyo1bMQwZRA4pfsphsHHIN78nRzwGnGX3aaixcQfJINZMA+gLCRX4P9tW03Dyr25lML+epBJ0V+0jtIkiWy0W/+KmQ7Kvffym4LndmPLXuJGcD0K57L0zdDrBze91kWnAKSRqzJo=
+	t=1718268536; cv=none; b=PeeHSxDrm3SR0zWg5NFJ2lnWSB33Jg6uYJe+vT8q0IhN0p+bIOKmzVHOibUcthJVf2yB5Lv8oS7jhDgeRbC6okEvCbvttW67y+Yvj98ZKYYeR2+YJZcJN+kdrUBMYdAiBMkg6SH75HyhXTIa7F0xM3Hd4m6jyV9ZyyrQvEhydZ4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718268532; c=relaxed/simple;
-	bh=yY0uNbPQOrufhgaQFeATHZ7HMCnS3ncNTc56pLNjK4I=;
+	s=arc-20240116; t=1718268536; c=relaxed/simple;
+	bh=0AmtyARSaCfpKYoEJ5CCQgZ2tTPFVkXy8IxqhQ0K9zY=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=WTv6VqO8vLACAJ2f52CqaymoOJSjke4KOfjbmcE33wVmZmW/PsHpBhrr3n+vS3BpNfr/jgfTWoFL7Kqws+yws1NunRO1R9aF3DKOJNgbePPPiPcxrEbhnr/AiEUcZrra+D3lkPf3dU0BnB7oNeAxF/XwHStN5BOM/AjStoBzGwI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lst.de; spf=none smtp.mailfrom=bombadil.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=I7LXmgpQ; arc=none smtp.client-ip=198.137.202.133
+	 MIME-Version; b=VUKCzCFf+rxdw73V2/Epk7/m68FXFKDDRT7JB7qFF16eZ+quxRher1j4KKWd/hTqaHrMSA2EBgDRdHoOwfdOp/7OPukxpP8wTh0lLL3O2m25qsM7knYRh+1TytWcZzT++0YqoDCHtH3rIiQ2ksn0dL8u9BV2xAmGUFASfV79oS0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lst.de; spf=none smtp.mailfrom=bombadil.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=ZFLy+zD1; arc=none smtp.client-ip=198.137.202.133
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lst.de
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="I7LXmgpQ"
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="ZFLy+zD1"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
 	MIME-Version:References:In-Reply-To:Message-ID:Date:Subject:Cc:To:From:Sender
 	:Reply-To:Content-Type:Content-ID:Content-Description;
-	bh=Ru6e7QlCJJG/gBR+o3ggbDTJvKsMm+SRm2m/B6Mvy6c=; b=I7LXmgpQPJq0TW6SDVCQG+b7jq
-	gGB5H/z2MbKT4p1ezib//uSwoqZDdJ2wub196VzhGlmy2nfmJyw4mG6RgRJF7mSww+BnTf0lnzyGq
-	aM1vSjmSSWZDLlH8lq58pYAQjQW34vNKg1v9NxJgv3SzbR04kw3WBv0D6qZHPJd8URhnI/99oy0/d
-	EoOEh6gQQPIXxIcW3RcHK/lqMUPE2EgWJE4TVBXm7gbRZXAjnhp/vZ6F9h4spVcQMsTG42pry/IrO
-	hMoMPs8/VeEOdBXk9FtTN7pivCxquv5pq2/Gcq/a994Bs3wX09UQO3GYMfLlOmaoS+a/EuaIlfnfe
-	6yc1coPA==;
+	bh=xt/cEzI4CksO34TKlgliy2AxvKCGUtTFve6xzQi8/jQ=; b=ZFLy+zD1SYY6PByLnylvEoMMkr
+	CLkNFUhAogQDFqJ51lVh2avS43WhEd4dQ5Hwv9E4YDGxlgnNWgm1H2qEsSef/7AeWU4hWVX5nYFbm
+	KuGM9fEcglzDSYWFda+EBVKg4B6PGc0gGUriDz3PiLn0FV7fp2EgwtKZDzoI20uF4vPLotLSmiEGe
+	6QXmlxQBZB/7aKw+J291tQOKK2H1zyfS/O6ENCxZyGItU/YG9sZQH0/4ogoNKOwa344QLaniqEjew
+	fBQXtCQb449arxK2JiyMkiq47Lap3GtX7GaWzLxvkw5YsNOiw2ioMoWMv4ityEBxYglA5nkMOtmwj
+	5eLLx/3A==;
 Received: from 2a02-8389-2341-5b80-034b-6bc2-b258-c831.cable.dynamic.v6.surfer.at ([2a02:8389:2341:5b80:34b:6bc2:b258:c831] helo=localhost)
 	by bombadil.infradead.org with esmtpsa (Exim 4.97.1 #2 (Red Hat Linux))
-	id 1sHg8S-0000000Fmzb-4BDW;
-	Thu, 13 Jun 2024 08:48:45 +0000
+	id 1sHg8W-0000000Fn1R-06kc;
+	Thu, 13 Jun 2024 08:48:49 +0000
 From: Christoph Hellwig <hch@lst.de>
 To: Jens Axboe <axboe@kernel.dk>,
 	"Martin K. Petersen" <martin.petersen@oracle.com>
@@ -50,9 +50,9 @@ Cc: Mike Snitzer <snitzer@kernel.org>,
 	nvdimm@lists.linux.dev,
 	linux-nvme@lists.infradead.org,
 	linux-scsi@vger.kernel.org
-Subject: [PATCH 01/12] block: initialize integrity buffer to zero before writing it to media
-Date: Thu, 13 Jun 2024 10:48:11 +0200
-Message-ID: <20240613084839.1044015-2-hch@lst.de>
+Subject: [PATCH 02/12] md/raid0: don't free conf on raid0_run failure
+Date: Thu, 13 Jun 2024 10:48:12 +0200
+Message-ID: <20240613084839.1044015-3-hch@lst.de>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20240613084839.1044015-1-hch@lst.de>
 References: <20240613084839.1044015-1-hch@lst.de>
@@ -65,52 +65,64 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 
-Metadata added by bio_integrity_prep is using plain kmalloc, which leads
-to random kernel memory being written media.  For PI metadata this is
-limited to the app tag that isn't used by kernel generated metadata,
-but for non-PI metadata the entire buffer leaks kernel memory.
+The core md code calls the ->free method which already frees conf.
 
-Fix this by adding the __GFP_ZERO flag to allocations for writes.
-
-Fixes: 7ba1ba12eeef ("block: Block layer data integrity support")
+Fixes: 0c031fd37f69 ("md: Move alloc/free acct bioset in to personality")
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- block/bio-integrity.c | 11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ drivers/md/raid0.c | 21 +++++----------------
+ 1 file changed, 5 insertions(+), 16 deletions(-)
 
-diff --git a/block/bio-integrity.c b/block/bio-integrity.c
-index 2e3e8e04961eae..af7f71d16114de 100644
---- a/block/bio-integrity.c
-+++ b/block/bio-integrity.c
-@@ -432,6 +432,7 @@ bool bio_integrity_prep(struct bio *bio)
- 	unsigned long start, end;
- 	unsigned int len, nr_pages;
- 	unsigned int bytes, offset, i;
-+	gfp_t gfp = GFP_NOIO;
+diff --git a/drivers/md/raid0.c b/drivers/md/raid0.c
+index c5d4aeb68404c9..81c01347cd24e6 100644
+--- a/drivers/md/raid0.c
++++ b/drivers/md/raid0.c
+@@ -365,18 +365,13 @@ static sector_t raid0_size(struct mddev *mddev, sector_t sectors, int raid_disks
+ 	return array_sectors;
+ }
  
- 	if (!bi)
- 		return true;
-@@ -454,11 +455,19 @@ bool bio_integrity_prep(struct bio *bio)
- 		if (!bi->profile->generate_fn ||
- 		    !(bi->flags & BLK_INTEGRITY_GENERATE))
- 			return true;
-+
-+		/*
-+		 * Zero the memory allocated to not leak uninitialized kernel
-+		 * memory to disk.  For PI this only affects the app tag, but
-+		 * for non-integrity metadata it affects the entire metadata
-+		 * buffer.
-+		 */
-+		gfp |= __GFP_ZERO;
+-static void free_conf(struct mddev *mddev, struct r0conf *conf)
+-{
+-	kfree(conf->strip_zone);
+-	kfree(conf->devlist);
+-	kfree(conf);
+-}
+-
+ static void raid0_free(struct mddev *mddev, void *priv)
+ {
+ 	struct r0conf *conf = priv;
+ 
+-	free_conf(mddev, conf);
++	kfree(conf->strip_zone);
++	kfree(conf->devlist);
++	kfree(conf);
+ }
+ 
+ static int raid0_set_limits(struct mddev *mddev)
+@@ -415,7 +410,7 @@ static int raid0_run(struct mddev *mddev)
+ 	if (!mddev_is_dm(mddev)) {
+ 		ret = raid0_set_limits(mddev);
+ 		if (ret)
+-			goto out_free_conf;
++			return ret;
  	}
  
- 	/* Allocate kernel buffer for protection data */
- 	len = bio_integrity_bytes(bi, bio_sectors(bio));
--	buf = kmalloc(len, GFP_NOIO);
-+	buf = kmalloc(len, gfp);
- 	if (unlikely(buf == NULL)) {
- 		printk(KERN_ERR "could not allocate integrity buffer\n");
- 		goto err_end_io;
+ 	/* calculate array device size */
+@@ -427,13 +422,7 @@ static int raid0_run(struct mddev *mddev)
+ 
+ 	dump_zones(mddev);
+ 
+-	ret = md_integrity_register(mddev);
+-	if (ret)
+-		goto out_free_conf;
+-	return 0;
+-out_free_conf:
+-	free_conf(mddev, conf);
+-	return ret;
++	return md_integrity_register(mddev);
+ }
+ 
+ /*
 -- 
 2.43.0
 
