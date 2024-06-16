@@ -1,58 +1,98 @@
-Received: from verein.lst.de (verein.lst.de [213.95.11.211])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 462F119D8B2;
-	Sat, 15 Jun 2024 05:01:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.11.211
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40B7110A19;
+	Sun, 16 Jun 2024 23:01:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718427689; cv=none; b=OAhbnwMt/cgjqhoXoSoXhv92WSq81ePFMp4EQZ6IgpTL190sWc3Ju5gavX/Fug4P5kPvYlKlM0lbILQm5ImI77lIL5UmmGg2hD9FAHT67yuuUkp51HT1iHrdffDrsYSBDPVnS4PGg0c1mzpnLrWkkKx8T0HMFaI3xaLq3srw2X0=
+	t=1718578870; cv=none; b=Mocb2AbQaHfL1fvTZr+SJZKcWYjT+k5uOHiJM7PM84a4bRIYbQR06V7xu9CeKM5GVIj36lvFgh/3FxtLOxa5dXPCweIvLRYpJ9Fk/tH6tjjzUIBCLZkRKTl5tysVxSj/aoZ+gY0R3T7Y91Qqcwuw8jQnX/3lIEnqMLKwV5psDOg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718427689; c=relaxed/simple;
-	bh=wqnpxKSvD4j/iASUgryWwC28WqjKo0vTXEi/iwMVw6g=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=LNt99Iaw40nNw9iJT+4wD0X2w1oLVTWCnH/8gvSN5Cx1XzW3Acl8o5WlLA6ADJpYQgDkkwKhcrguW4SOCqBsyXkYJGcG98d4i1u2XNVAPg+Ev7V+DEkTuX6z549Av5OO9QImVmxcmhp2HFwf/FdfpnMgAzLV0OqQE+cWXCKJWR0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lst.de; spf=pass smtp.mailfrom=lst.de; arc=none smtp.client-ip=213.95.11.211
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lst.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lst.de
-Received: by verein.lst.de (Postfix, from userid 2407)
-	id C5DAE68D07; Sat, 15 Jun 2024 07:01:21 +0200 (CEST)
-Date: Sat, 15 Jun 2024 07:01:20 +0200
-From: Christoph Hellwig <hch@lst.de>
-To: Jens Axboe <axboe@kernel.dk>
-Cc: Christoph Hellwig <hch@lst.de>,
-	"Martin K. Petersen" <martin.petersen@oracle.com>,
-	Mike Snitzer <snitzer@kernel.org>,
-	Mikulas Patocka <mpatocka@redhat.com>, Song Liu <song@kernel.org>,
-	Yu Kuai <yukuai3@huawei.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
-	Keith Busch <kbusch@kernel.org>, Sagi Grimberg <sagi@grimberg.me>,
-	Chaitanya Kulkarni <kch@nvidia.com>, linux-block@vger.kernel.org,
-	dm-devel@lists.linux.dev, linux-raid@vger.kernel.org,
-	nvdimm@lists.linux.dev, linux-nvme@lists.infradead.org,
-	linux-scsi@vger.kernel.org
-Subject: Re: move integrity settings to queue_limits v3
-Message-ID: <20240615050120.GA28819@lst.de>
-References: <20240613084839.1044015-1-hch@lst.de> <f134f09a-69df-4860-90a9-ec9ad97507b2@kernel.dk> <20240614160322.GA16649@lst.de> <af0144b5-315e-4af0-a1df-ec422f55e5be@kernel.dk> <20240614160708.GA17171@lst.de> <6c5d4295-098c-4dc2-8ad2-f747a205f689@kernel.dk> <2fb3fc18-64fb-4a12-9771-3685111fd19f@kernel.dk>
+	s=arc-20240116; t=1718578870; c=relaxed/simple;
+	bh=K48GiByJehCmQjwi20pmfnU+WsCyr4S6WxHNS+fcYIA=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=uh6pMmiFu5xqPR7Z/U1lymQeYPmCkA6GxGpBfT67r8jaQUVClVksoz0lp+nYju99c+cKHW9xhaz03bvBZhnlePOD2Tlitc4SDB4nD08kZSly4NpuSZ4js4wy35ORJjqJH0l4GEF4Ovb36l9Xuq/iNyLAmi2qiE+C3XDN8bn13NY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gczAGXT2; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gczAGXT2"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2CAA0C2BD10;
+	Sun, 16 Jun 2024 23:01:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1718578869;
+	bh=K48GiByJehCmQjwi20pmfnU+WsCyr4S6WxHNS+fcYIA=;
+	h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+	b=gczAGXT2JgNBboue0aH6XDCajaGt0Tn9T6RNwUC8NdBoTEgjtTbwpmUfCPkjFQ9wM
+	 MM968k+DIaMHgn73yxqDo9X2C3EJ5/755Y+99nXMZx497l32DWuxyKEgkUS1Mfauzi
+	 zlSFlVj6tWpctoPTJ+wOY0xCMexSj4HtxdjXI3+rZfPjj6bie6Cukz6u7sVo5A7bEU
+	 9rKTuHOjY9Tr5Ii5b3jprMmIgspdDlLslR4qSbgMPqGu86/2ypBmGpS+m4Lh9tPaWA
+	 jbUd1obFjKTKufNm0BQAftChaDznmaK4Iq8S3q+7ZRNQrBkFu3/tvjG2xwv4gQQlB4
+	 JHm9Ls++1gm6g==
+Message-ID: <5a697233-0611-459d-b889-2e0133bbb541@kernel.org>
+Date: Mon, 17 Jun 2024 08:01:04 +0900
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2fb3fc18-64fb-4a12-9771-3685111fd19f@kernel.dk>
-User-Agent: Mutt/1.5.17 (2007-11-01)
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 02/26] sd: move zone limits setup out of
+ sd_read_block_characteristics
+To: Christoph Hellwig <hch@lst.de>
+Cc: Jens Axboe <axboe@kernel.dk>, Geert Uytterhoeven <geert@linux-m68k.org>,
+ Richard Weinberger <richard@nod.at>,
+ Philipp Reisner <philipp.reisner@linbit.com>,
+ Lars Ellenberg <lars.ellenberg@linbit.com>,
+ =?UTF-8?Q?Christoph_B=C3=B6hmwalder?= <christoph.boehmwalder@linbit.com>,
+ Josef Bacik <josef@toxicpanda.com>, Ming Lei <ming.lei@redhat.com>,
+ "Michael S. Tsirkin" <mst@redhat.com>, Jason Wang <jasowang@redhat.com>,
+ =?UTF-8?Q?Roger_Pau_Monn=C3=A9?= <roger.pau@citrix.com>,
+ Alasdair Kergon <agk@redhat.com>, Mike Snitzer <snitzer@kernel.org>,
+ Mikulas Patocka <mpatocka@redhat.com>, Song Liu <song@kernel.org>,
+ Yu Kuai <yukuai3@huawei.com>, Vineeth Vijayan <vneethv@linux.ibm.com>,
+ "Martin K. Petersen" <martin.petersen@oracle.com>,
+ linux-m68k@lists.linux-m68k.org, linux-um@lists.infradead.org,
+ drbd-dev@lists.linbit.com, nbd@other.debian.org,
+ linuxppc-dev@lists.ozlabs.org, ceph-devel@vger.kernel.org,
+ virtualization@lists.linux.dev, xen-devel@lists.xenproject.org,
+ linux-bcache@vger.kernel.org, dm-devel@lists.linux.dev,
+ linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org,
+ linux-mtd@lists.infradead.org, nvdimm@lists.linux.dev,
+ linux-nvme@lists.infradead.org, linux-s390@vger.kernel.org,
+ linux-scsi@vger.kernel.org, linux-block@vger.kernel.org
+References: <20240611051929.513387-1-hch@lst.de>
+ <20240611051929.513387-3-hch@lst.de>
+ <40ca8052-6ac1-4c1b-8c39-b0a7948839f8@kernel.org>
+ <20240613093918.GA27629@lst.de>
+From: Damien Le Moal <dlemoal@kernel.org>
+Content-Language: en-US
+Organization: Western Digital Research
+In-Reply-To: <20240613093918.GA27629@lst.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Fri, Jun 14, 2024 at 10:23:33AM -0600, Jens Axboe wrote:
-> Done, both series are in for-6.11/block-limits. It's pulled into the main
-> block branch as well, but SCSI can pull it too as needed.
+On 6/13/24 18:39, Christoph Hellwig wrote:
+> On Tue, Jun 11, 2024 at 02:51:24PM +0900, Damien Le Moal wrote:
+>>> +	if (sdkp->device->type == TYPE_ZBC)
+>>
+>> Nit: use sd_is_zoned() here ?
+> 
+> Actually - is there much in even keeping sd_is_zoned now that the
+> host aware support is removed?  Just open coding the type check isn't
+> any more code, and probably easier to follow.
 
-Thanks.  Btw, both this and the md branch now have versions of the
-raid0 and raid1 use after free on failed ->run fixes.  Maybe drop them
-from for-6.11/block-limits given that they've been picked up by the
-md branch you've pulled.  They might even be 6.10 candidates given
-that they can easily be triggered (although only by root).
+Removing this helper is fine by me. There are only 2 call sites in sd.c and the
+some of 4 calls in sd_zbc.c are not really needed:
+1) The call in sd_zbc_print_zones() is not needed at all since this function is
+called only for a zoned drive from sd_zbc_revalidate_zones().
+2) The calls in sd_zbc_report_zones() and sd_zbc_cmnd_checks() are probably
+useless as these are called only for zoned drives in the first place. The checks
+would be useful only for passthrough commands, but then we do not really care
+about these and the user will get a failure anyway if it tries to do ZBC
+commands on non-ZBC drives.
+3) That leaves only the call in sd_zbc_read_zones() but that check can probably
+be moved to sd.c to conditionally call  sd_zbc_read_zones().
+
+-- 
+Damien Le Moal
+Western Digital Research
 
