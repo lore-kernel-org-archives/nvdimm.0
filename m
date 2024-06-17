@@ -1,96 +1,93 @@
-Received: from mail-qt1-f177.google.com (mail-qt1-f177.google.com [209.85.160.177])
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 38AC3190041
-	for <nvdimm@lists.linux.dev>; Mon, 17 Jun 2024 07:55:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.177
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1DD9C19047F;
+	Mon, 17 Jun 2024 10:03:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718610956; cv=none; b=ig6a5UhYWAuks7d9tAbMNnJ1pYsKqiusYvORIUv3ax2gigf3YB1i313Ffr4uXqHZWIDf1nnUixISXVSSwvdy1E2uvdskQKWPsHYAZXpeZhQ3IvP7Usm/D7tTt1wBr44cX2c1Gs0Ae4HmbnOMvOUoqHyn67ndCCgXM3D8fqHQqP4=
+	t=1718618615; cv=none; b=H1xHcdmN+qXNEG1/hg+ddceY3r20YdbHqDdNXb0XT/Y5nKOXRB7+on7VIMnxj4x1fQPjT64ysV4JtkGMuw1ZZ34dIcRFU21ZzfazC9s/xBpyne3evKCA5bSRu0C/J7KvG8Yk2Srcbcpyx6wPITWD3NdMsNzIeiaBFCVpPBIJCBg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718610956; c=relaxed/simple;
-	bh=JhFXSTpTbZnynjs4GWaWiZ25aqQJvGOYbY3MGHI2j0s=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=cX+SVXK5TR3Ik1/FRGLJCyUvQCbjjku8voir+wAzO77QNarfPkGFFpjZdziL+1Cla4vMLeXtv0UsscdzuSDrAQEhppks/cAH7E/dBW8DoSzs+7HXRPxC+lpCI6oI6A4GjdnaFZ3BnXcu7+zhYCL6w4zEuHQ1wlBGnPtI9S5Dmdk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=citrix.com; spf=pass smtp.mailfrom=cloud.com; dkim=pass (1024-bit key) header.d=citrix.com header.i=@citrix.com header.b=YcoZj8J2; arc=none smtp.client-ip=209.85.160.177
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=citrix.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=cloud.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=citrix.com header.i=@citrix.com header.b="YcoZj8J2"
-Received: by mail-qt1-f177.google.com with SMTP id d75a77b69052e-4421c014b95so20836081cf.0
-        for <nvdimm@lists.linux.dev>; Mon, 17 Jun 2024 00:55:53 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=citrix.com; s=google; t=1718610952; x=1719215752; darn=lists.linux.dev;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=6I7HjTVD0FYGpGJyzdWr9lYyHGbtAeqv6wNa85E5Tlk=;
-        b=YcoZj8J2Z2ubiO3ZJR2z79eldCfjV7v/LodIv4Zsg4KsmAiiN+0z9Sgw6PhkrzGQ/f
-         rNJ0mosassppDU8ETQ2zgcE/uNe41LNQM9GKPBbeKAXPhvVAjcJHDLHX56GAU2EEatSs
-         xzMxtVZrq4Bx4REFCRuL7cNR1YA6hDoq6f7TA=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1718610952; x=1719215752;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=6I7HjTVD0FYGpGJyzdWr9lYyHGbtAeqv6wNa85E5Tlk=;
-        b=r+WPPzCSnk6AEQPLDIG9isMeA0kwOTzCVFufmsyRmL8xWm2+7pVTQeSKsnLRVmwvq+
-         pwBMIq+kjwGBqpTcoyCD+kwx8UpuiqFjkULrCaGMLonH14NvdCY/Zc9fDh9ruoUZBTuv
-         APRa9RR92sbRUs2Ivw98W0bxzHhiRfZTJGd5EfbbMpSoQIFY2B/b5OaVDOEQ/r/jCCRN
-         Ye6nN4+Xg6JvyNRQlr1yRmsq6oyvnWGQDAqccpm23czeXhKY5nAdSVu9r/gkOgF2z3Cx
-         IHGFoO3ir+4zgr0aeG6UQZ5tYR0d3v5KVe1jrocEVvIWi6XWJ9r5BGRRZtuSpXzW2LGS
-         IWQQ==
-X-Forwarded-Encrypted: i=1; AJvYcCVcSjBHBvsHWA9SQJi++G8OHr+O7Zoff+b71tz6WNvbtOTUfsf59ISh8YMfjsHuz/PvFBInHRaN097XxdyLGIZ7e+iqU5sd
-X-Gm-Message-State: AOJu0YwpJF/16aDUXn7nkd1qgaE6GvWP9JIrIfZRQGZgKy5du0Yu4R/m
-	9CwcYm86k9et2iQXnl5vxskt6zOvwGhvVdVkwvW91MnkP86UXbghcIUqecvNy8Y=
-X-Google-Smtp-Source: AGHT+IFxBb+fxu+zFP9/mPYH5nZSCdE6S/NGqQ55TdkfvSsNQ6okiuS1Itv2iysUUW0wZGmJIGDYbg==
-X-Received: by 2002:ac8:5e11:0:b0:440:10be:3ecf with SMTP id d75a77b69052e-4417ac402c0mr199666251cf.22.1718610952095;
-        Mon, 17 Jun 2024 00:55:52 -0700 (PDT)
-Received: from localhost ([213.195.124.163])
-        by smtp.gmail.com with ESMTPSA id d75a77b69052e-441ef4eefaesm44094171cf.21.2024.06.17.00.55.51
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 17 Jun 2024 00:55:51 -0700 (PDT)
-Date: Mon, 17 Jun 2024 09:55:48 +0200
-From: Roger Pau =?utf-8?B?TW9ubsOp?= <roger.pau@citrix.com>
-To: Christoph Hellwig <hch@lst.de>
-Cc: Jens Axboe <axboe@kernel.dk>, Geert Uytterhoeven <geert@linux-m68k.org>,
-	Richard Weinberger <richard@nod.at>,
-	Philipp Reisner <philipp.reisner@linbit.com>,
-	Lars Ellenberg <lars.ellenberg@linbit.com>,
-	Christoph =?utf-8?Q?B=C3=B6hmwalder?= <christoph.boehmwalder@linbit.com>,
-	Josef Bacik <josef@toxicpanda.com>, Ming Lei <ming.lei@redhat.com>,
-	"Michael S. Tsirkin" <mst@redhat.com>,
-	Jason Wang <jasowang@redhat.com>, Alasdair Kergon <agk@redhat.com>,
-	Mike Snitzer <snitzer@kernel.org>,
-	Mikulas Patocka <mpatocka@redhat.com>, Song Liu <song@kernel.org>,
-	Yu Kuai <yukuai3@huawei.com>,
-	Vineeth Vijayan <vneethv@linux.ibm.com>,
-	"Martin K. Petersen" <martin.petersen@oracle.com>,
-	linux-m68k@lists.linux-m68k.org, linux-um@lists.infradead.org,
-	drbd-dev@lists.linbit.com, nbd@other.debian.org,
-	linuxppc-dev@lists.ozlabs.org, ceph-devel@vger.kernel.org,
-	virtualization@lists.linux.dev, xen-devel@lists.xenproject.org,
-	linux-bcache@vger.kernel.org, dm-devel@lists.linux.dev,
-	linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org,
-	linux-mtd@lists.infradead.org, nvdimm@lists.linux.dev,
-	linux-nvme@lists.infradead.org, linux-s390@vger.kernel.org,
-	linux-scsi@vger.kernel.org, linux-block@vger.kernel.org
-Subject: Re: [PATCH 01/26] xen-blkfront: don't disable cache flushes when
- they fail
-Message-ID: <Zm_sBInagtSkOZtg@macbook>
-References: <20240617060532.127975-1-hch@lst.de>
- <20240617060532.127975-2-hch@lst.de>
+	s=arc-20240116; t=1718618615; c=relaxed/simple;
+	bh=92z7pB4Bzm0tDFXo5lXRs6iigUIdyScghocPuLR6neU=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=mocwZCxW6Y4zkA9LNmbfcpzpdNH6gfC9zvRAqcxxacc7RTaZsmcTewEUs9pVpIW1wWezgRTTa36qC/eQnr6XPEcA4Om7sUL6BmMPvkCUwv9lm6KTbN4EybJ3Bv9YD3BcMg8SPUFItfyZImuYaw3XKFGAtVDbsVPlDdVtTj7Vo8g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; arc=none smtp.client-ip=195.135.223.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id 71D2B5FE68;
+	Mon, 17 Jun 2024 10:03:31 +0000 (UTC)
+Authentication-Results: smtp-out2.suse.de;
+	none
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id C1D5F139AB;
+	Mon, 17 Jun 2024 10:03:30 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id AoLhLvIJcGaVAQAAD6G6ig
+	(envelope-from <hare@suse.de>); Mon, 17 Jun 2024 10:03:30 +0000
+Message-ID: <9e1764de-0080-4b8f-a705-de4016a55f5a@suse.de>
+Date: Mon, 17 Jun 2024 12:03:30 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 01/26] xen-blkfront: don't disable cache flushes when they
+ fail
+To: Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
+ Richard Weinberger <richard@nod.at>,
+ Philipp Reisner <philipp.reisner@linbit.com>,
+ Lars Ellenberg <lars.ellenberg@linbit.com>,
+ =?UTF-8?Q?Christoph_B=C3=B6hmwalder?= <christoph.boehmwalder@linbit.com>,
+ Josef Bacik <josef@toxicpanda.com>, Ming Lei <ming.lei@redhat.com>,
+ "Michael S. Tsirkin" <mst@redhat.com>, Jason Wang <jasowang@redhat.com>,
+ =?UTF-8?Q?Roger_Pau_Monn=C3=A9?= <roger.pau@citrix.com>,
+ Alasdair Kergon <agk@redhat.com>, Mike Snitzer <snitzer@kernel.org>,
+ Mikulas Patocka <mpatocka@redhat.com>, Song Liu <song@kernel.org>,
+ Yu Kuai <yukuai3@huawei.com>, Vineeth Vijayan <vneethv@linux.ibm.com>,
+ "Martin K. Petersen" <martin.petersen@oracle.com>,
+ linux-m68k@lists.linux-m68k.org, linux-um@lists.infradead.org,
+ drbd-dev@lists.linbit.com, nbd@other.debian.org,
+ linuxppc-dev@lists.ozlabs.org, ceph-devel@vger.kernel.org,
+ virtualization@lists.linux.dev, xen-devel@lists.xenproject.org,
+ linux-bcache@vger.kernel.org, dm-devel@lists.linux.dev,
+ linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org,
+ linux-mtd@lists.infradead.org, nvdimm@lists.linux.dev,
+ linux-nvme@lists.infradead.org, linux-s390@vger.kernel.org,
+ linux-scsi@vger.kernel.org, linux-block@vger.kernel.org
+References: <20240617060532.127975-1-hch@lst.de>
+ <20240617060532.127975-2-hch@lst.de>
+Content-Language: en-US
+From: Hannes Reinecke <hare@suse.de>
 In-Reply-To: <20240617060532.127975-2-hch@lst.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Rspamd-Pre-Result: action=no action;
+	module=replies;
+	Message is reply to one we originated
+X-Spamd-Result: default: False [-4.00 / 50.00];
+	REPLY(-4.00)[]
+X-Rspamd-Queue-Id: 71D2B5FE68
+X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
+X-Rspamd-Pre-Result: action=no action;
+	module=replies;
+	Message is reply to one we originated
+X-Rspamd-Action: no action
+X-Spam-Flag: NO
+X-Spam-Score: -4.00
+X-Spam-Level: 
 
-On Mon, Jun 17, 2024 at 08:04:28AM +0200, Christoph Hellwig wrote:
+On 6/17/24 08:04, Christoph Hellwig wrote:
 > blkfront always had a robust negotiation protocol for detecting a write
 > cache.  Stop simply disabling cache flushes in the block layer as the
 > flags handling is moving to the atomic queue limits API that needs
@@ -101,7 +98,18 @@ On Mon, Jun 17, 2024 at 08:04:28AM +0200, Christoph Hellwig wrote:
 > never used to start with.
 > 
 > Signed-off-by: Christoph Hellwig <hch@lst.de>
+> ---
+>   drivers/block/xen-blkfront.c | 44 +++++++++++++++++++-----------------
+>   1 file changed, 23 insertions(+), 21 deletions(-)
+> 
+Reviewed-by: Hannes Reinecke <hare@suse.de>
 
-Acked-by: Roger Pau Monné <roger.pau@citrix.com>
+Cheers,
 
-Thanks, Roger.
+Hannes
+-- 
+Dr. Hannes Reinecke                  Kernel Storage Architect
+hare@suse.de                                +49 911 74053 688
+SUSE Software Solutions GmbH, Frankenstr. 146, 90461 Nürnberg
+HRB 36809 (AG Nürnberg), GF: I. Totev, A. McDonald, W. Knoblich
+
