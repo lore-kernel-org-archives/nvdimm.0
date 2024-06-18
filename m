@@ -1,34 +1,34 @@
 Received: from smtpout.efficios.com (smtpout.efficios.com [167.114.26.122])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A07A45C16
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 542CF46435
 	for <nvdimm@lists.linux.dev>; Tue, 18 Jun 2024 15:51:34 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=167.114.26.122
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718725896; cv=none; b=pECqqBMwpXoecuTdrh2mIY4w9L6HzJbPLBz2dLU5hQ/KTrbK6ODC8ayrFedUnb+gwMX0T/CDynMaCc+heCAIUfNGyTSjX4zkGI6WupJJLkG/G1r1hWjxYaboZvGQ4Cwj9v0E4aFEHEWFqlYMZn7n0UB7HHSxrfFghOZGgyAfhts=
+	t=1718725897; cv=none; b=ZPr45qbGjRvp65zRyhOeElYblPuXUuyOOTcC9gTb+CcTXQxCpLR79auJCKXHUGQF5xxidToyOdOIeARN2C/SFM+8IkVrnaLRAIbfR4H0FnXco1TW8FZslLaOhbSsUbQ62JE/CvOUKaTg26fNA4wbI2d7q5nDcKmCmRmJa7PkEZs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718725896; c=relaxed/simple;
-	bh=EC4aqitERxCehlbxkC0+MICQzxA9puJoMAcU63x/ppQ=;
+	s=arc-20240116; t=1718725897; c=relaxed/simple;
+	bh=jTsRXZWDrdZtdx6WmpzbW/Nftt5x+XgMG9sQFaT8uLA=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=JEuocg6d+VolNd+h+fqRDgKT8Yvk+iewlwkeAZJmYmN4FMXr0sqMP3UkxIzYu/S6X0zF8dSgsPrxTB7NyKrj5CR+/0CwPfo9PcY/KsCY9jtScwLlKI3ZwUrPx/Pd+oLqorvB2ene6IVbJpePOlGhrDRuATUgLurfN1iwuKkYJVc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com; spf=pass smtp.mailfrom=efficios.com; dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b=PbLw1o/q; arc=none smtp.client-ip=167.114.26.122
+	 MIME-Version; b=gufQfHf2uJ6pBxlkCvp527N8CvCtxoGrsBCTOC3BLMJfcZoNu+xwc7qXDjhvadbJKCX5cSEkvRl3Bv+MsksAS0j9ceCnGCex3IYHQu+upHWg0Jtkfk8AovQunN/OgI6HczY0/XHEjLdKVgelwIIt/r2Eqed6DrAqhHH4wy4Pf1c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com; spf=pass smtp.mailfrom=efficios.com; dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b=BdmTw2rV; arc=none smtp.client-ip=167.114.26.122
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=efficios.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=efficios.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b="PbLw1o/q"
+	dkim=pass (2048-bit key) header.d=efficios.com header.i=@efficios.com header.b="BdmTw2rV"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=efficios.com;
-	s=smtpout1; t=1718725286;
-	bh=EC4aqitERxCehlbxkC0+MICQzxA9puJoMAcU63x/ppQ=;
+	s=smtpout1; t=1718725285;
+	bh=jTsRXZWDrdZtdx6WmpzbW/Nftt5x+XgMG9sQFaT8uLA=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=PbLw1o/q0ac0JhAzMHAQOtpU6u6hhhphom/imkTrN1lbbDJ7bPUizbKpcFnISjWi2
-	 AjjbVwuCJxj4zv8YT6DHab0xJO0glqLjLdgCGLAjWZQ3KKWJt1cMbnpaCFxS7Kmpt/
-	 3R2g2E7F9m0QdjWiULG1fPDdjpYK2/BwuvDq6OxUUxO0odHN5O75SQfHID3Zai2uH2
-	 S76+zYWU97obK98s5lAMDZ/7ig0iE0wiDL2Y8TCFvN+8hVIHyJcNXXwXMnTZAjQDWz
-	 Wg9XUfip1k7A8LUS3y1dqY0QOZOs6xADKHlMHieGrET5DMvGEd/F6vBXCQwHLVlvTC
-	 A8Qegl7XPsMVw==
+	b=BdmTw2rVkWR9+JJqI+o4JX5VlLiPCM1FILZZebXr7UYTqaAu4ZgXN67HxRBAqLs3o
+	 uiqycDFqGX5WMcgh/bQb1YaJ+Vo1NA56c+ymHFoL809xggEiEZUBhnctZY8sLWR7fH
+	 uE+Q+8PRam0T2BSpjnZyiPCZ5b3/PZqMZLkekmC9qI5smi6e9hysqUdHJKchOWsfDl
+	 +jv5pkhTpQylxH8Bi7utC+Ag+o+T7LBRqlqdpTHDLeHeYhPbg1dWH8hPrHIeQZ5zfM
+	 SNccLW3MpIavcOg/dFWT2LbKxwTkj9/ktR/kx1qU8Z7IaTxxDMs+tYaYWMpzoX6H/f
+	 bVZR18PU4rfag==
 Received: from thinkos.internal.efficios.com (192-222-143-198.qc.cable.ebox.net [192.222.143.198])
-	by smtpout.efficios.com (Postfix) with ESMTPSA id 4W3WFL28PNz16Pn;
-	Tue, 18 Jun 2024 11:41:26 -0400 (EDT)
+	by smtpout.efficios.com (Postfix) with ESMTPSA id 4W3WFK3bDsz171G;
+	Tue, 18 Jun 2024 11:41:25 -0400 (EDT)
 From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 To: Dan Williams <dan.j.williams@intel.com>,
 	Steven Rostedt <rostedt@goodmis.org>
@@ -47,9 +47,9 @@ Cc: linux-kernel@vger.kernel.org,
 	Catalin Marinas <catalin.marinas@arm.com>,
 	Will Deacon <will@kernel.org>,
 	linux-arm-kernel@lists.infradead.org
-Subject: [RFC PATCH 3/4] arm64: Invoke pre_restart notifiers
-Date: Tue, 18 Jun 2024 11:41:56 -0400
-Message-Id: <20240618154157.334602-4-mathieu.desnoyers@efficios.com>
+Subject: [RFC PATCH 1/4] kernel/reboot: Introduce pre_restart notifiers
+Date: Tue, 18 Jun 2024 11:41:54 -0400
+Message-Id: <20240618154157.334602-2-mathieu.desnoyers@efficios.com>
 X-Mailer: git-send-email 2.39.2
 In-Reply-To: <20240618154157.334602-1-mathieu.desnoyers@efficios.com>
 References: <20240618154157.334602-1-mathieu.desnoyers@efficios.com>
@@ -61,11 +61,32 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Invoke the pre_restart notifiers after shutdown, before machine restart.
-This allows preserving pmem memory across warm reboots.
+Introduce a new pre_restart notifier chain for callbacks that need to
+be executed after the system has been made quiescent with
+syscore_shutdown(), before machine restart.
 
-Invoke the pre_restart notifiers before emergency machine restart as
-well to cover the panic() scenario.
+This pre_restart notifier chain should be invoked on machine restart and
+on emergency machine restart.
+
+The use-case for this new notifier chain is to preserve tracing data
+within pmem areas on systems where the BIOS does not clear memory across
+warm reboots.
+
+Why do we need a new notifier chain ?
+
+1) The reboot and restart_prepare notifiers are called too early in the
+   reboot sequence: they are invoked before syscore_shutdown(), which
+   leaves other CPUs actively running threads while those notifiers are
+   invoked.
+
+2) The "restart" notifier is meant to trigger the actual machine
+   restart, and is not meant to be invoked as a last step immediately
+   before restart. It is also not always used: some architecture code
+   choose to bypass this restart notifier and reboot directly from the
+   architecture code.
+
+Wiring up the architecture code to call this notifier chain is left to
+follow-up arch-specific patches.
 
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
@@ -74,26 +95,97 @@ Cc: Dave Jiang <dave.jiang@intel.com>
 Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: Steven Rostedt <rostedt@goodmis.org>
 Cc: nvdimm@lists.linux.dev
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: x86@kernel.org
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Will Deacon <will@kernel.org>
 Cc: linux-arm-kernel@lists.infradead.org
 ---
- arch/arm64/kernel/process.c | 2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/reboot.h |  4 ++++
+ kernel/reboot.c        | 51 ++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 55 insertions(+)
 
-diff --git a/arch/arm64/kernel/process.c b/arch/arm64/kernel/process.c
-index 4ae31b7af6c3..4a27397617fb 100644
---- a/arch/arm64/kernel/process.c
-+++ b/arch/arm64/kernel/process.c
-@@ -129,6 +129,8 @@ void machine_restart(char *cmd)
- 	local_irq_disable();
- 	smp_send_stop();
+diff --git a/include/linux/reboot.h b/include/linux/reboot.h
+index abcdde4df697..c7f340e81451 100644
+--- a/include/linux/reboot.h
++++ b/include/linux/reboot.h
+@@ -50,6 +50,10 @@ extern int register_restart_handler(struct notifier_block *);
+ extern int unregister_restart_handler(struct notifier_block *);
+ extern void do_kernel_restart(char *cmd);
  
-+	do_kernel_pre_restart(cmd);
++extern int register_pre_restart_handler(struct notifier_block *);
++extern int unregister_pre_restart_handler(struct notifier_block *);
++extern void do_kernel_pre_restart(char *cmd);
 +
- 	/*
- 	 * UpdateCapsule() depends on the system being reset via
- 	 * ResetSystem().
+ /*
+  * Architecture-specific implementations of sys_reboot commands.
+  */
+diff --git a/kernel/reboot.c b/kernel/reboot.c
+index 22c16e2564cc..b7287dd48d35 100644
+--- a/kernel/reboot.c
++++ b/kernel/reboot.c
+@@ -235,6 +235,57 @@ void do_kernel_restart(char *cmd)
+ 	atomic_notifier_call_chain(&restart_handler_list, reboot_mode, cmd);
+ }
+ 
++/*
++ *	Notifier list for kernel code which wants to be called immediately
++ *	before restarting the system.
++ */
++static ATOMIC_NOTIFIER_HEAD(pre_restart_handler_list);
++
++/**
++ *	register_pre_restart_handler - Register function to be called in preparation
++ *				       to reset the system
++ *	@nb: Info about handler function to be called
++ *
++ *	Registers a function with code to be called in preparation to restart
++ *	the system.
++ *
++ *	Currently always returns zero, as atomic_notifier_chain_register()
++ *	always returns zero.
++ */
++int register_pre_restart_handler(struct notifier_block *nb)
++{
++	return atomic_notifier_chain_register(&pre_restart_handler_list, nb);
++}
++EXPORT_SYMBOL(register_pre_restart_handler);
++
++/**
++ *	unregister_pre_restart_handler - Unregister previously registered
++ *					 pre-restart handler
++ *	@nb: Hook to be unregistered
++ *
++ *	Unregisters a previously registered pre-restart handler function.
++ *
++ *	Returns zero on success, or %-ENOENT on failure.
++ */
++int unregister_pre_restart_handler(struct notifier_block *nb)
++{
++	return atomic_notifier_chain_unregister(&pre_restart_handler_list, nb);
++}
++EXPORT_SYMBOL(unregister_pre_restart_handler);
++
++/**
++ *	do_kernel_pre_restart - Execute kernel pre-restart handler call chain
++ *
++ *	Calls functions registered with register_pre_restart_handler.
++ *
++ *	Expected to be called from machine_restart and
++ *	machine_emergency_restart before invoking the restart handlers.
++ */
++void do_kernel_pre_restart(char *cmd)
++{
++	atomic_notifier_call_chain(&pre_restart_handler_list, reboot_mode, cmd);
++}
++
+ void migrate_to_reboot_cpu(void)
+ {
+ 	/* The boot cpu is always logical cpu 0 */
 -- 
 2.39.2
 
