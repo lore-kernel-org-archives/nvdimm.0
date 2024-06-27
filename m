@@ -1,71 +1,71 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.18])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B3A3519AD93;
-	Thu, 27 Jun 2024 22:27:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2BA801CA9F;
+	Thu, 27 Jun 2024 23:05:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.15
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719527239; cv=none; b=YT1XbLcO8bDK7TFDG3l8QSsfye2kGfsfJs5dAmZ1Zqwz8/IhVJEudq/5J679fJNQ0VJ+mKgsMt1qhe0qDQl9l2f0M5W11HiXbbqOusOIL65BWiBBIxUcMaNkcf569gtoiN+YLIBFj9MXTWAbSkhIKH2I/LdFxu8PqMpO6KYjRkw=
+	t=1719529530; cv=none; b=apan+gG/mzFk0KDHuzHSDRu2Ve0XhLm5pPy8Ld5NXtYuZn7njAhaHGI8KXdECpX1RSyZtpDg6Dlg9UPtwyVH6gtdCnksZga5vKHFA9NbwDU23CxIXfpfG9AqGrhWcrOLmtG9khsLXBCw35b5il6riy2SnDix0Obpz8CazfDdFPo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719527239; c=relaxed/simple;
-	bh=6ZRjC23wobObDdFfd8zFQZZ9Z3PFbjqgjYHg7T/vNQU=;
+	s=arc-20240116; t=1719529530; c=relaxed/simple;
+	bh=+naB5/Q042PFFIXI5mElAZ8RiZyXqp0O9pcDtXADfas=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=a3tRlmK9locKzllgeKTYnqqAGZBEgMOyR85QBastr6v6CW3uCynoyPDvmItjonLNCKCFTjlN+j/StE7GC/wj89LjMAAcnOlLdlSeT5zf1wtqO7d9qr+eH6Sa3rnoZtx6iUhDZSDoyUCUHQbwAHyOg35pIg2Vic/w17gRILsblfw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=fdGaOk7T; arc=none smtp.client-ip=192.198.163.18
+	 Content-Type:Content-Disposition:In-Reply-To; b=GwtABzQs7lxowM46NgC3OvPNFEklxBJP7rv3m4V0RPZkK4F+CT+sS1Iff2kLSdyuXXELoSSRafiSNaaTV+u9ZACN0c1R+h3rPqJcaaW9/CmjqCE8iuAhaOSPLz0vDVqQf6AEpFaDzCF4IcRfsBGEaXpV3LPE3KD5RVyVjbJiPOg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=YxNCqxjM; arc=none smtp.client-ip=198.175.65.15
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="fdGaOk7T"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="YxNCqxjM"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1719527238; x=1751063238;
+  t=1719529528; x=1751065528;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=6ZRjC23wobObDdFfd8zFQZZ9Z3PFbjqgjYHg7T/vNQU=;
-  b=fdGaOk7TauulQ2l/YNo97fXu0aFQxvtFw3EOuRxdQa9FwvjCk054Z0xL
-   8Ti4IaU56K7y/Jk8/hKmbgRSHfNHALle0L1F7Gew5EOzceKqMEw5Jt918
-   +XJu2A8asLzmCxmSTHAW3j7KQ8RpgeR8e93LQPyEXLRRvl1eenjABYLxg
-   dUCvT6yhpjflRTQTB4kjKiozDkvNDX4gqQ/oN76MEC8bWGGz+zIGd7WY7
-   jjcwvSCgKWW6kJAVRXKdBgppMyqMIjjWIcZQwBeDynEeGwvQ5KmK/s454
-   m26I30sUUoOAsD36Adymlj3LvKsnsVpLEawraNmCm4b6ueCYyc0p1Cpde
+  bh=+naB5/Q042PFFIXI5mElAZ8RiZyXqp0O9pcDtXADfas=;
+  b=YxNCqxjMvp1TVv7e3RYGxMe58CoF8hDaViA99vtgjL3Ayb2qrcuBRkBf
+   jm9l2uCveUeuOtzn8GV5AYj7ppHnAMr6+CJNLF9otqYy4KM+AcIpW1jdz
+   Uepw/2PsytLcUf5xlF7yHjIvxJ2Bk0pz3dDficHb+HfsmYuUq+InOoK32
+   acUmlERiksdhNd8aZVzJBGyTS9mmD+dHtsAWI9ir9f0b8YKxosAGHUZbb
+   a2W4aK1Tw0CsgxKI4qCV82rO4IOAoXEMbElRoXicHa9BVblb004NC7APT
+   e0UBSZoOEjKvspZBKoUXGeJ2iaezWf31jHsct5W38yHhnH237HEOib99x
    Q==;
-X-CSE-ConnectionGUID: MZfwAaP3StChaA2Dm5qHBw==
-X-CSE-MsgGUID: /WCp4C/GSXiKAI2wy14XfA==
-X-IronPort-AV: E=McAfee;i="6700,10204,11116"; a="16369838"
+X-CSE-ConnectionGUID: /asLwZXgSIutnMKm/6h6bA==
+X-CSE-MsgGUID: BJDKJPNnQR69rtZUrV+58A==
+X-IronPort-AV: E=McAfee;i="6700,10204,11116"; a="20456939"
 X-IronPort-AV: E=Sophos;i="6.09,167,1716274800"; 
-   d="scan'208";a="16369838"
-Received: from fmviesa010.fm.intel.com ([10.60.135.150])
-  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Jun 2024 15:27:17 -0700
-X-CSE-ConnectionGUID: zkBVUXQWQjyqQHVWEEfu0Q==
-X-CSE-MsgGUID: fngSrsCqRteimFpQDSTiSw==
+   d="scan'208";a="20456939"
+Received: from fmviesa006.fm.intel.com ([10.60.135.146])
+  by orvoesa107.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Jun 2024 16:05:27 -0700
+X-CSE-ConnectionGUID: TA8xWjJQSumhP3m4MOnxKA==
+X-CSE-MsgGUID: DnUjlU0JRaaOI2HUnzZ+pw==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.09,167,1716274800"; 
-   d="scan'208";a="44625380"
+   d="scan'208";a="44384637"
 Received: from lkp-server01.sh.intel.com (HELO 68891e0c336b) ([10.239.97.150])
-  by fmviesa010.fm.intel.com with ESMTP; 27 Jun 2024 15:27:10 -0700
+  by fmviesa006.fm.intel.com with ESMTP; 27 Jun 2024 16:05:20 -0700
 Received: from kbuild by 68891e0c336b with local (Exim 4.96)
 	(envelope-from <lkp@intel.com>)
-	id 1sMxa7-000Gb0-24;
-	Thu, 27 Jun 2024 22:27:07 +0000
-Date: Fri, 28 Jun 2024 06:26:36 +0800
+	id 1sMyB4-000Gbt-16;
+	Thu, 27 Jun 2024 23:05:18 +0000
+Date: Fri, 28 Jun 2024 07:04:47 +0800
 From: kernel test robot <lkp@intel.com>
 To: Alistair Popple <apopple@nvidia.com>, dan.j.williams@intel.com,
 	vishal.l.verma@intel.com, dave.jiang@intel.com, logang@deltatee.com,
 	bhelgaas@google.com, jack@suse.cz, jgg@ziepe.ca
-Cc: llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
-	catalin.marinas@arm.com, will@kernel.org, mpe@ellerman.id.au,
-	npiggin@gmail.com, dave.hansen@linux.intel.com, ira.weiny@intel.com,
-	willy@infradead.org, djwong@kernel.org, tytso@mit.edu,
-	linmiaohe@huawei.com, david@redhat.com, peterx@redhat.com,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
-	nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org, linux-mm@kvack.org,
-	linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org,
-	jhubbard@nvidia.com
-Subject: Re: [PATCH 07/13] huge_memory: Allow mappings of PUD sized pages
-Message-ID: <202406280637.147dyRrV-lkp@intel.com>
-References: <bd332b0d3971b03152b3541f97470817c5147b51.1719386613.git-series.apopple@nvidia.com>
+Cc: oe-kbuild-all@lists.linux.dev, catalin.marinas@arm.com, will@kernel.org,
+	mpe@ellerman.id.au, npiggin@gmail.com, dave.hansen@linux.intel.com,
+	ira.weiny@intel.com, willy@infradead.org, djwong@kernel.org,
+	tytso@mit.edu, linmiaohe@huawei.com, david@redhat.com,
+	peterx@redhat.com, linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linuxppc-dev@lists.ozlabs.org, nvdimm@lists.linux.dev,
+	linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+	linux-mm@kvack.org, linux-ext4@vger.kernel.org,
+	linux-xfs@vger.kernel.org, jhubbard@nvidia.com
+Subject: Re: [PATCH 13/13] mm: Remove devmap related functions and page table
+ bits
+Message-ID: <202406280658.1pp5cW2f-lkp@intel.com>
+References: <47c26640cd85f3db2e0a2796047199bb984d1b3f.1719386613.git-series.apopple@nvidia.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -74,7 +74,7 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <bd332b0d3971b03152b3541f97470817c5147b51.1719386613.git-series.apopple@nvidia.com>
+In-Reply-To: <47c26640cd85f3db2e0a2796047199bb984d1b3f.1719386613.git-series.apopple@nvidia.com>
 
 Hi Alistair,
 
@@ -84,89 +84,54 @@ kernel test robot noticed the following build errors:
 
 url:    https://github.com/intel-lab-lkp/linux/commits/Alistair-Popple/mm-gup-c-Remove-redundant-check-for-PCI-P2PDMA-page/20240627-191709
 base:   f2661062f16b2de5d7b6a5c42a9a5c96326b8454
-patch link:    https://lore.kernel.org/r/bd332b0d3971b03152b3541f97470817c5147b51.1719386613.git-series.apopple%40nvidia.com
-patch subject: [PATCH 07/13] huge_memory: Allow mappings of PUD sized pages
-config: x86_64-allnoconfig (https://download.01.org/0day-ci/archive/20240628/202406280637.147dyRrV-lkp@intel.com/config)
-compiler: clang version 18.1.5 (https://github.com/llvm/llvm-project 617a15a9eac96088ae5e9134248d8236e34b91b1)
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20240628/202406280637.147dyRrV-lkp@intel.com/reproduce)
+patch link:    https://lore.kernel.org/r/47c26640cd85f3db2e0a2796047199bb984d1b3f.1719386613.git-series.apopple%40nvidia.com
+patch subject: [PATCH 13/13] mm: Remove devmap related functions and page table bits
+config: powerpc-allmodconfig (https://download.01.org/0day-ci/archive/20240628/202406280658.1pp5cW2f-lkp@intel.com/config)
+compiler: powerpc64-linux-gcc (GCC) 13.2.0
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20240628/202406280658.1pp5cW2f-lkp@intel.com/reproduce)
 
 If you fix the issue in a separate patch/commit (i.e. not just a new version of
 the same patch/commit), kindly add following tags
 | Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202406280637.147dyRrV-lkp@intel.com/
+| Closes: https://lore.kernel.org/oe-kbuild-all/202406280658.1pp5cW2f-lkp@intel.com/
 
 All errors (new ones prefixed by >>):
 
->> mm/rmap.c:1513:37: error: call to '__compiletime_assert_279' declared with 'error' attribute: BUILD_BUG failed
-    1513 |         __folio_add_file_rmap(folio, page, HPAGE_PUD_NR, vma, RMAP_LEVEL_PUD);
-         |                                            ^
-   include/linux/huge_mm.h:111:26: note: expanded from macro 'HPAGE_PUD_NR'
-     111 | #define HPAGE_PUD_NR (1<<HPAGE_PUD_ORDER)
-         |                          ^
-   include/linux/huge_mm.h:110:26: note: expanded from macro 'HPAGE_PUD_ORDER'
-     110 | #define HPAGE_PUD_ORDER (HPAGE_PUD_SHIFT-PAGE_SHIFT)
-         |                          ^
-   include/linux/huge_mm.h:97:28: note: expanded from macro 'HPAGE_PUD_SHIFT'
-      97 | #define HPAGE_PUD_SHIFT ({ BUILD_BUG(); 0; })
-         |                            ^
-   note: (skipping 3 expansions in backtrace; use -fmacro-backtrace-limit=0 to see all)
-   include/linux/compiler_types.h:498:2: note: expanded from macro '_compiletime_assert'
-     498 |         __compiletime_assert(condition, msg, prefix, suffix)
-         |         ^
-   include/linux/compiler_types.h:491:4: note: expanded from macro '__compiletime_assert'
-     491 |                         prefix ## suffix();                             \
-         |                         ^
-   <scratch space>:72:1: note: expanded from here
-      72 | __compiletime_assert_279
+   In file included from arch/powerpc/include/asm/book3s/64/mmu-hash.h:20,
+                    from arch/powerpc/include/asm/book3s/64/mmu.h:32,
+                    from arch/powerpc/include/asm/mmu.h:385,
+                    from arch/powerpc/include/asm/paca.h:18,
+                    from arch/powerpc/include/asm/current.h:13,
+                    from include/linux/thread_info.h:23,
+                    from include/asm-generic/preempt.h:5,
+                    from ./arch/powerpc/include/generated/asm/preempt.h:1,
+                    from include/linux/preempt.h:79,
+                    from include/linux/alloc_tag.h:11,
+                    from include/linux/rhashtable-types.h:12,
+                    from include/linux/ipc.h:7,
+                    from include/uapi/linux/sem.h:5,
+                    from include/linux/sem.h:5,
+                    from include/linux/compat.h:14,
+                    from arch/powerpc/kernel/asm-offsets.c:12:
+>> arch/powerpc/include/asm/book3s/64/pgtable.h:1371:1: error: expected identifier or '(' before '}' token
+    1371 | }
          | ^
-   mm/rmap.c:1660:35: error: call to '__compiletime_assert_280' declared with 'error' attribute: BUILD_BUG failed
-    1660 |         __folio_remove_rmap(folio, page, HPAGE_PUD_NR, vma, RMAP_LEVEL_PUD);
-         |                                          ^
-   include/linux/huge_mm.h:111:26: note: expanded from macro 'HPAGE_PUD_NR'
-     111 | #define HPAGE_PUD_NR (1<<HPAGE_PUD_ORDER)
-         |                          ^
-   include/linux/huge_mm.h:110:26: note: expanded from macro 'HPAGE_PUD_ORDER'
-     110 | #define HPAGE_PUD_ORDER (HPAGE_PUD_SHIFT-PAGE_SHIFT)
-         |                          ^
-   include/linux/huge_mm.h:97:28: note: expanded from macro 'HPAGE_PUD_SHIFT'
-      97 | #define HPAGE_PUD_SHIFT ({ BUILD_BUG(); 0; })
-         |                            ^
-   note: (skipping 3 expansions in backtrace; use -fmacro-backtrace-limit=0 to see all)
-   include/linux/compiler_types.h:498:2: note: expanded from macro '_compiletime_assert'
-     498 |         __compiletime_assert(condition, msg, prefix, suffix)
-         |         ^
-   include/linux/compiler_types.h:491:4: note: expanded from macro '__compiletime_assert'
-     491 |                         prefix ## suffix();                             \
-         |                         ^
-   <scratch space>:79:1: note: expanded from here
-      79 | __compiletime_assert_280
-         | ^
-   2 errors generated.
+   make[3]: *** [scripts/Makefile.build:117: arch/powerpc/kernel/asm-offsets.s] Error 1
+   make[3]: Target 'prepare' not remade because of errors.
+   make[2]: *** [Makefile:1208: prepare0] Error 2
+   make[2]: Target 'prepare' not remade because of errors.
+   make[1]: *** [Makefile:240: __sub-make] Error 2
+   make[1]: Target 'prepare' not remade because of errors.
+   make: *** [Makefile:240: __sub-make] Error 2
+   make: Target 'prepare' not remade because of errors.
 
 
-vim +1513 mm/rmap.c
+vim +1371 arch/powerpc/include/asm/book3s/64/pgtable.h
 
-  1498	
-  1499	/**
-  1500	 * folio_add_file_rmap_pud - add a PUD mapping to a page range of a folio
-  1501	 * @folio:	The folio to add the mapping to
-  1502	 * @page:	The first page to add
-  1503	 * @vma:	The vm area in which the mapping is added
-  1504	 *
-  1505	 * The page range of the folio is defined by [page, page + HPAGE_PUD_NR)
-  1506	 *
-  1507	 * The caller needs to hold the page table lock.
-  1508	 */
-  1509	void folio_add_file_rmap_pud(struct folio *folio, struct page *page,
-  1510			struct vm_area_struct *vma)
-  1511	{
-  1512	#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
-> 1513		__folio_add_file_rmap(folio, page, HPAGE_PUD_NR, vma, RMAP_LEVEL_PUD);
-  1514	#else
-  1515		WARN_ON_ONCE(true);
-  1516	#endif
-  1517	}
-  1518	
+953c66c2b22a30 Aneesh Kumar K.V  2016-12-12  1370  
+ebd31197931d75 Oliver O'Halloran 2017-06-28 @1371  }
+6a1ea36260f69f Aneesh Kumar K.V  2016-04-29  1372  #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ebd31197931d75 Oliver O'Halloran 2017-06-28  1373  
 
 -- 
 0-DAY CI Kernel Test Service
