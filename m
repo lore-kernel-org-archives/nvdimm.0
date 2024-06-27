@@ -1,22 +1,22 @@
 Received: from verein.lst.de (verein.lst.de [213.95.11.211])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5ECCE1A702
-	for <nvdimm@lists.linux.dev>; Thu, 27 Jun 2024 05:23:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A78E229B0
+	for <nvdimm@lists.linux.dev>; Thu, 27 Jun 2024 05:31:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.95.11.211
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719465787; cv=none; b=b1ZWFGnUxPkRsfvVkTNxmTCeDBfHvUG95qNgIRVTk9pW5Hz1DRMCVvN625p5IoOl8qNTsaiegWQ9LSPbluIsjqItlhyeMaGIpsNAIZC+AGFQ81gelL58OohJTivsaNBTah0oWCGj9VcnEsONx8aT2KoEcN5DcdFc9aXTwPb3NNc=
+	t=1719466267; cv=none; b=dcUXOyNh9XOcp5WLTN7QTK2qSloaFT1wRiYgtdelXY4vjDqzYcDIafWO5aq4O1/ZiQFkTVWW6tQc4osfQh//IS/BeZhHIdOLm2OQs87sm4eLn97oHQgzEl65mtOMPoywzwrOFvzhKePafb5uuJMv+C5QLQchZFhd8Xre8NZMC2Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719465787; c=relaxed/simple;
-	bh=FJS3XMhZZmqbpsRqFI1wxC9jK+f50RCr1O8Ebbaclhc=;
+	s=arc-20240116; t=1719466267; c=relaxed/simple;
+	bh=7/T+ZFgsryO4b5FVi1kOhQcQrGU98uElwA4aOnC32Do=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=lCohH+RiD8VDFlSsu3CH5M9LKsgzq2IDe/y2l7qcKRswQeusC3jfM3fPk3p5xkjn0HuuMvn806tNLbi/3wwVL57OnuHAWMZwV7Omv71+Fxf173HlnFCgxynF7DwFUphAPHkD/Q+9cTybUY49oeGvdTsSlP3EBEVldXjnyYw41uw=
+	 Content-Type:Content-Disposition:In-Reply-To; b=Pm93FSKcTAWSu+PDDIp76QTAldpQWToQq8UpcWeMy/k07X7DY3pFzPNVPWKzn8UOXv/XOFTJ7JKyiUt7tJWY2Z06yXuuSCN32Az/zb885S1ehqlDbaNJcJj7LguklN3g09nlxNFUTt/tdqyfwTfLPnG/owxdCHiLMq/CUDlRnGw=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lst.de; spf=pass smtp.mailfrom=lst.de; arc=none smtp.client-ip=213.95.11.211
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=lst.de
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lst.de
 Received: by verein.lst.de (Postfix, from userid 2407)
-	id 316B468AFE; Thu, 27 Jun 2024 07:22:59 +0200 (CEST)
-Date: Thu, 27 Jun 2024 07:22:59 +0200
+	id 9748A68AFE; Thu, 27 Jun 2024 07:30:59 +0200 (CEST)
+Date: Thu, 27 Jun 2024 07:30:59 +0200
 From: Christoph Hellwig <hch@lst.de>
 To: Alistair Popple <apopple@nvidia.com>
 Cc: dan.j.williams@intel.com, vishal.l.verma@intel.com,
@@ -32,9 +32,9 @@ Cc: dan.j.williams@intel.com, vishal.l.verma@intel.com,
 	linux-fsdevel@vger.kernel.org, linux-mm@kvack.org,
 	linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org,
 	jhubbard@nvidia.com, hch@lst.de, david@fromorbit.com
-Subject: Re: [PATCH 06/13] mm/memory: Add dax_insert_pfn
-Message-ID: <20240627052259.GA14837@lst.de>
-References: <cover.66009f59a7fe77320d413011386c3ae5c2ee82eb.1719386613.git-series.apopple@nvidia.com> <50013c1ee52b5bb1213571bff66780568455f54c.1719386613.git-series.apopple@nvidia.com>
+Subject: Re: [PATCH 02/13] pci/p2pdma: Don't initialise page refcount to one
+Message-ID: <20240627053059.GB14837@lst.de>
+References: <cover.66009f59a7fe77320d413011386c3ae5c2ee82eb.1719386613.git-series.apopple@nvidia.com> <c66cc5c5142813049ffdf9af75302f5064048241.1719386613.git-series.apopple@nvidia.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -43,26 +43,59 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <50013c1ee52b5bb1213571bff66780568455f54c.1719386613.git-series.apopple@nvidia.com>
+In-Reply-To: <c66cc5c5142813049ffdf9af75302f5064048241.1719386613.git-series.apopple@nvidia.com>
 User-Agent: Mutt/1.5.17 (2007-11-01)
 
-On Thu, Jun 27, 2024 at 10:54:21AM +1000, Alistair Popple wrote:
-> +extern void prep_compound_page(struct page *page, unsigned int order);
+On Thu, Jun 27, 2024 at 10:54:17AM +1000, Alistair Popple wrote:
+> The reference counts for ZONE_DEVICE private pages should be
+> initialised by the driver when the page is actually allocated by the
+> driver allocator, not when they are first created. This is currently
+> the case for MEMORY_DEVICE_PRIVATE and MEMORY_DEVICE_COHERENT pages
+> but not MEMORY_DEVICE_PCI_P2PDMA pages so fix that up.
+> 
+> Signed-off-by: Alistair Popple <apopple@nvidia.com>
+> ---
+>  drivers/pci/p2pdma.c | 2 ++
+>  mm/memremap.c        | 8 ++++----
+>  mm/mm_init.c         | 4 +++-
+>  3 files changed, 9 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
+> index 4f47a13..1e9ea32 100644
+> --- a/drivers/pci/p2pdma.c
+> +++ b/drivers/pci/p2pdma.c
+> @@ -128,6 +128,8 @@ static int p2pmem_alloc_mmap(struct file *filp, struct kobject *kobj,
+>  		goto out;
+>  	}
+>  
+> +	set_page_count(virt_to_page(kaddr), 1);
 
-No need for the extern.
+Can we have a comment here?  Without that it feels a bit too much like
+black magic when reading the code.
 
->  static int insert_page_into_pte_locked(struct vm_area_struct *vma, pte_t *pte,
-> -			unsigned long addr, struct page *page, pgprot_t prot)
-> +			unsigned long addr, struct page *page, pgprot_t prot, bool mkwrite)
+> +	if (folio->page.pgmap->type == MEMORY_DEVICE_PRIVATE ||
+> +	    folio->page.pgmap->type == MEMORY_DEVICE_COHERENT)
+> +		put_dev_pagemap(folio->page.pgmap);
+> +	else if (folio->page.pgmap->type != MEMORY_DEVICE_PCI_P2PDMA)
+>  		/*
+>  		 * Reset the refcount to 1 to prepare for handing out the page
+>  		 * again.
+>  		 */
+>  		folio_set_count(folio, 1);
 
-Overly long line.
+Where the else if evaluates to MEMORY_DEVICE_FS_DAX ||
+MEMORY_DEVICE_GENERIC.  Maybe make this a switch statement handling
+all cases of the enum to make it clear and have the compiler generate
+a warning when a new type is added without being handled here?
 
-> +	retval = insert_page_into_pte_locked(vma, pte, addr, page, prot, mkwrite);
+> @@ -1014,7 +1015,8 @@ static void __ref __init_zone_device_page(struct page *page, unsigned long pfn,
+>  	 * which will set the page count to 1 when allocating the page.
+>  	 */
+>  	if (pgmap->type == MEMORY_DEVICE_PRIVATE ||
+> +	    pgmap->type == MEMORY_DEVICE_COHERENT ||
+> +	    pgmap->type == MEMORY_DEVICE_PCI_P2PDMA)
+>  		set_page_count(page, 0);
 
-.. same here.
-
-> +vm_fault_t dax_insert_pfn(struct vm_area_struct *vma,
-> +		unsigned long addr, pfn_t pfn_t, bool write)
-
-This could probably use a kerneldoc comment.
+Similarly here a switch with explanation of what will be handled and
+what not would be nice.
 
