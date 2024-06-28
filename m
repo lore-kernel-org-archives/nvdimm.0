@@ -1,250 +1,229 @@
-Received: from NAM12-MW2-obe.outbound.protection.outlook.com (mail-mw2nam12on2040.outbound.protection.outlook.com [40.107.244.40])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.20])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FF9A17C2
-	for <nvdimm@lists.linux.dev>; Fri, 28 Jun 2024 00:21:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.244.40
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719534064; cv=fail; b=WQ9w4FNZrxTpsUfaXJGaFuf4pX7cnAdBH6hmDxVBuu80MjiHA0HuZIlxKOwONYEBVEpxmAUkaqVgO4IBMLEC2CoTnmrA40+G1rA5ld9zV5I5g0ekOQETQjTXp18rYLOkhCKLmYlYzZIJOjvvOR4osGoSnbEaA3hkUlnMKEITTQM=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719534064; c=relaxed/simple;
-	bh=JKhVgXuZnGGTZfqf9V6eGsRzwsPCXaYLts89QehUpQY=;
-	h=References:From:To:Cc:Subject:Date:In-reply-to:Message-ID:
-	 Content-Type:MIME-Version; b=UhAVazTHJuzk8M0yOvpUHuPxHoBSUZwvP2mrNkm8gyCY4vs7K6T5nEeGZoMvzfZHxnMY/caCFByrqOygJvrvAd4j1WodAzIlYpFY16GpM8V+HDnn1scP6OWL7dK5PRTZQK9ygOLEIKYMoAyK9ISiPMzZnXKAiCkAB40lo6nH1wQ=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=FK/21Njq; arc=fail smtp.client-ip=40.107.244.40
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C9891C6A4;
+	Fri, 28 Jun 2024 02:13:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.20
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1719540805; cv=none; b=ANJZUuJnI1ph1yZfwr0aFZHjH3iODC0JnZqm58nGCoftBvgHox+UlRO7UQKKbSNWihjxrELWiEBza6c1YPN3Xi540RyD2NvWCU9v3zTjx4zlWrWae9NVH0H9aRpTbs6oKyP77dc+oMi0CimQ3Yb1he2lSkV7bU2goeePwE+1QM4=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1719540805; c=relaxed/simple;
+	bh=obqsFiB7moqSeHvfW5MvPa6iwrDiRwuIwVJo+bxnyTE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=dHAeAoFLgnH+VCSKf/j6ZiL8DA2qYGddQ1OQGRgnxuuPFGMBOGbpyId/6L+W9NVU8tqQYXxxQ0jEMzFrs7LDiVOaSmnmyZMUqaN919Kci+oXZ9yLL3LQWnxmrI7uq3d4VFlknyUHEUX4gUxa9oA/6xG8fbL3+01yjNFM468yTRU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Zm16U8C0; arc=none smtp.client-ip=198.175.65.20
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="FK/21Njq"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=k5k7E0ZYJnMun/7DvdP5HHb8pQfEGOvSAzKN5T9GGNmh3veKvT9VobvTIMl4YZSfdsPGRISxuEzwhWiiIt+mADjTM0BqkIF7jkRsrJTIxdG4wTyn6p7ehF/zIO7gHEeDIoCRJMs/HYkl+pKXm3yD4aRPiUVwKA+ZoZEhSlot1QTolxX1ei0sVuh3H0NwA5hWTbLUkD/6WpK8i/C3X1gQEot7L5FYGkNUCFPeV7vgw6PJbP7iIeUkDzpin3zNgHq+sVxMDAvlFNNRZpp12CPId7qrdXw8XMdHPhioA0TmsmEVqfonsYURcP1/UdQ1BP98ihAMGHHdTBhgi5a1nX6JCw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=7D8pN258ZLVxKASTLXddLCuitWvqg6KDBo7AcedGpes=;
- b=R9X8E3my3l9avSTDSNdzathKSweqvQHpqF7tfYz+oMTtwjPK0Uqcc53ilvcvIdlWVjEyIbwyI3N4V1rt5Xgce4oLgtQh/xgTG3MM5zN9d0EKYZfb2Oa2eXT16UjaOQxu0fJHDEwdwI3x3emdM8viGmooFEW1gun6iGM+2AODDPCjdWmC8reIo2nvTj+Qr6oBx08kswZsV0ACrbgilsl+WT2p9oXngQ0+ipUZAvhhVD9CsA+tQYS35hyZCt86ecqX+Gs+qNtrx/YTHH9BGilBvDkzGf8HtFoqjgJ7pgz6fBHWBswfd+NWZk03vHkGEdFyX5suef+1CAUvucVR5jrCnw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=7D8pN258ZLVxKASTLXddLCuitWvqg6KDBo7AcedGpes=;
- b=FK/21Njq0wpB+s5vHF3MkPpvGKcAULPoY4DBsAw/OJ4JxsT8QdAWOlIQhNFCmKRoafiDW7HCf1zanPHXNSCkQKW4fZ3vROteP7ZpwAqRAowBP6sRNr8Im2A4GBNgJEeDZBIglAV63YOAT5amrqN10KuQdbhqFeaT1p6Dxm49JAakyA0X7iM5k8BbtpWqUE7/d9Djh0Jrb7zVITUBs72yZbvFGYyq2ElAKod0d+PyuLYCWTeG7QR/feObHRwakfGb9SoIs+cC3cGMpxvvv37u2Uu1JX5+7MHGWEsg32dueTPKO/u7ggZJ3M+HWUVJuVqlMeT7YFNIfgRZMqKFmv8CsA==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from DS0PR12MB7726.namprd12.prod.outlook.com (2603:10b6:8:130::6) by
- MN0PR12MB5932.namprd12.prod.outlook.com (2603:10b6:208:37f::9) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.7698.32; Fri, 28 Jun 2024 00:20:58 +0000
-Received: from DS0PR12MB7726.namprd12.prod.outlook.com
- ([fe80::953f:2f80:90c5:67fe]) by DS0PR12MB7726.namprd12.prod.outlook.com
- ([fe80::953f:2f80:90c5:67fe%6]) with mapi id 15.20.7698.025; Fri, 28 Jun 2024
- 00:20:58 +0000
-References: <cover.66009f59a7fe77320d413011386c3ae5c2ee82eb.1719386613.git-series.apopple@nvidia.com>
- <667d0da3572c_5be92947f@dwillia2-mobl3.amr.corp.intel.com.notmuch>
- <87a5j67szs.fsf@nvdebian.thelocal>
- <667dca6259bc8_57ac2946e@dwillia2-xfh.jf.intel.com.notmuch>
-User-agent: mu4e 1.10.8; emacs 29.1
-From: Alistair Popple <apopple@nvidia.com>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: vishal.l.verma@intel.com, dave.jiang@intel.com, logang@deltatee.com,
- bhelgaas@google.com, jack@suse.cz, jgg@ziepe.ca, catalin.marinas@arm.com,
- will@kernel.org, mpe@ellerman.id.au, npiggin@gmail.com,
- dave.hansen@linux.intel.com, ira.weiny@intel.com, willy@infradead.org,
- djwong@kernel.org, tytso@mit.edu, linmiaohe@huawei.com, david@redhat.com,
- peterx@redhat.com, linux-doc@vger.kernel.org,
- linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
- linuxppc-dev@lists.ozlabs.org, nvdimm@lists.linux.dev,
- linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org,
- linux-mm@kvack.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org,
- jhubbard@nvidia.com, hch@lst.de, david@fromorbit.com
-Subject: Re: [PATCH 00/13] fs/dax: Fix FS DAX page reference counts
-Date: Fri, 28 Jun 2024 10:06:42 +1000
-In-reply-to: <667dca6259bc8_57ac2946e@dwillia2-xfh.jf.intel.com.notmuch>
-Message-ID: <87a5j56hp6.fsf@nvdebian.thelocal>
-Content-Type: text/plain
-X-ClientProxiedBy: SYBPR01CA0017.ausprd01.prod.outlook.com (2603:10c6:10::29)
- To DS0PR12MB7726.namprd12.prod.outlook.com (2603:10b6:8:130::6)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Zm16U8C0"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1719540804; x=1751076804;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=obqsFiB7moqSeHvfW5MvPa6iwrDiRwuIwVJo+bxnyTE=;
+  b=Zm16U8C0MEB8XwvPsuvHlfcKt5Hhs7FECS2JvRJw+Ye+fkt9OUkS2Y+S
+   hjPprj4ViNzNxeAHSme+p7kGvQw1c1ESmqSlbn1bBxdpmH8LPfUVnZPC+
+   g/4J68kHyleV541xF/2UB3drbqe6/PgIIL0znFqh4ouuF2QE4rgUs5+6H
+   1VdIpoegqBz/dyXCt+fBd8m6R6uRcy4SKcIMcpChBF8KWU8bH4mqgPBXT
+   MfmgIPOnsalqLM1QRA43z9ndHSZPDcgDV1OLb37NWMsaC713WtqUgSACT
+   ijYRMAXYWCgaLUFHMnIukHoKKDA3SO13Vt7QzAETSa2ex02Srqe6XbRli
+   A==;
+X-CSE-ConnectionGUID: fJjbinqDReOgn1Tb8MdrFA==
+X-CSE-MsgGUID: hdEDpu4uSu24QDUyJKkZow==
+X-IronPort-AV: E=McAfee;i="6700,10204,11116"; a="16528823"
+X-IronPort-AV: E=Sophos;i="6.09,167,1716274800"; 
+   d="scan'208";a="16528823"
+Received: from orviesa006.jf.intel.com ([10.64.159.146])
+  by orvoesa112.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Jun 2024 19:13:21 -0700
+X-CSE-ConnectionGUID: pmOPOqgFR+mj/xA3+uz33w==
+X-CSE-MsgGUID: vu/s+JTeTQGDYAeESN28AA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.09,167,1716274800"; 
+   d="scan'208";a="44993946"
+Received: from lkp-server01.sh.intel.com (HELO 68891e0c336b) ([10.239.97.150])
+  by orviesa006.jf.intel.com with ESMTP; 27 Jun 2024 19:13:12 -0700
+Received: from kbuild by 68891e0c336b with local (Exim 4.96)
+	(envelope-from <lkp@intel.com>)
+	id 1sN16r-000Gic-2H;
+	Fri, 28 Jun 2024 02:13:09 +0000
+Date: Fri, 28 Jun 2024 10:12:15 +0800
+From: kernel test robot <lkp@intel.com>
+To: Alistair Popple <apopple@nvidia.com>, dan.j.williams@intel.com,
+	vishal.l.verma@intel.com, dave.jiang@intel.com, logang@deltatee.com,
+	bhelgaas@google.com, jack@suse.cz, jgg@ziepe.ca
+Cc: llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
+	catalin.marinas@arm.com, will@kernel.org, mpe@ellerman.id.au,
+	npiggin@gmail.com, dave.hansen@linux.intel.com, ira.weiny@intel.com,
+	willy@infradead.org, djwong@kernel.org, tytso@mit.edu,
+	linmiaohe@huawei.com, david@redhat.com, peterx@redhat.com,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
+	nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org, linux-mm@kvack.org,
+	linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org,
+	jhubbard@nvidia.com
+Subject: Re: [PATCH 13/13] mm: Remove devmap related functions and page table
+ bits
+Message-ID: <202406280920.VNwSTzZT-lkp@intel.com>
+References: <47c26640cd85f3db2e0a2796047199bb984d1b3f.1719386613.git-series.apopple@nvidia.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DS0PR12MB7726:EE_|MN0PR12MB5932:EE_
-X-MS-Office365-Filtering-Correlation-Id: 71a55ce1-2d6c-4f94-ebd8-08dc97082ee0
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|7416014|376014|366016;
-X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?aQb3YROYeca27SMruaogKEscX4iC7ri3shD2JM6X3VlE7PvaDYEGCddyEDGq?=
- =?us-ascii?Q?iJ/UixCAK2GSbYE9wI7SNeQghf1DdtqjadmEJzu6qnUD3yVNomfFXoeT3yMm?=
- =?us-ascii?Q?LhkRD+9gQn3VD7dA0RRFLyaCKst2QzA2SJ2Dxcd3U0jblZo7K2HxJvuQlbDQ?=
- =?us-ascii?Q?56mIAOR/HugDJMHUEjkFxLzdhJQxPOZYQ+YjGHiPNsFpAVm7Zv4y07bss+d7?=
- =?us-ascii?Q?GsgPyjIDQy/i8EI5QZMGaBVKVlXCsO//6B5u/MbDKEeYNPvcWWPc3ijfxxw/?=
- =?us-ascii?Q?fexelLCjHh5hX9jyC4X7CQS5xzq2ma/L46E5TTjpcDTVHAVi5YYiXjpH+grF?=
- =?us-ascii?Q?sXsWHpObpYoT90shF/HXuJE0qZGkYSAjzF8s6JwD7dpez/Ec4T7Fga1mEVOq?=
- =?us-ascii?Q?H6rh2IExnnU5lLTcGowxFIT9E8YWsYZdXV1L9zczrX/Rywyr7EojNU0+ILPP?=
- =?us-ascii?Q?WagVgI6bY7uk/M+j+z/XHXOZYu33uFNqXf+BqPYAZJOwuwPBD7wzVU19XVpM?=
- =?us-ascii?Q?TLvcVYCaHnBYb2IAiH9ZP7mUx7+SCB94eTmoeW1NL5LY+GjAWl+OI31eYkEo?=
- =?us-ascii?Q?1e3KhZtSNHTvEM5yoLi9m6qQsGHfhPKEpZWTUe+ogUO7+YcopRjy2xVThPof?=
- =?us-ascii?Q?QIbxm7cjJlda9HgxoDitMF4BGNyLNmezs6jDud64zvgpovSeVRkTHv/GbOG0?=
- =?us-ascii?Q?0YaWdIDVw+PxEkLhEoRaRjVc4rAaCxInKHFu+Dvafv7CAe6uCZLcn07F2MeF?=
- =?us-ascii?Q?Q+dwL/z62C8DSZO7nviQnu7P+G8OduUJbOOigGc5FMbl6Z/xOUn1JY1UYjkX?=
- =?us-ascii?Q?0ortLZXHaOQTEtCE4vQUJVw0fF22GKHTIuEspZoQa0KSzuGe/i0pmBaXiqNt?=
- =?us-ascii?Q?fHAPjptPKfPP5593N1y/8cmB58kVrXq0F/qa33LnVt9ZiNygxRzs+ZNcAu2J?=
- =?us-ascii?Q?xkjPagjBnZvFxsDZcdi5BNUrVUPHSUxT4FuXNNvA21ZK0ySuLeAk9F1qUk4q?=
- =?us-ascii?Q?Y88RG1MyjTN2FY5eIZlAg7XiA33fFhW1yQp/eqyCwrmuO8Oozkif9Mhb0+pR?=
- =?us-ascii?Q?Jm/MOwsYew1iWynSCtn+K4PaRZb5+wVPOO/SuPB0AqpB1EohspBUgZEPz/HF?=
- =?us-ascii?Q?Ab4IGOTBf298Emxb43hqUdwc+qZZF+ulpfpueHLJX0CuGFahPlLrAS73TYqD?=
- =?us-ascii?Q?JK9XcOLBUl0tkHaKOqYFuQN09V58Db7ZN9/vmY578v5qIdlU6Il8SwuqBpbV?=
- =?us-ascii?Q?pC7xbbIu91Us1BnU9ngEWSgEbTeXRHaSYvuvT5fV3M+ligVsSTvyiw+oHmP+?=
- =?us-ascii?Q?bV6gGlrilDKfR1pBzmDsTqr60zLAyH46LkN29jwSAowM4A=3D=3D?=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS0PR12MB7726.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(7416014)(376014)(366016);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?tlUDzpDl6zXbBYLIwSzA+MaPgcq3TGVBiVyK1S40YqpgrjyrirOa/8ffV1i7?=
- =?us-ascii?Q?RlXvR+5VP7iGPoI6m9i0FkNlEToJvlhIghlHroA2U+eWZt8gPI49VuxdZrFn?=
- =?us-ascii?Q?OjWsL8+IKv70qLPXxjZrG12Hn3qtHKMyZXL+Ra5UQPrEMufXwMs4gsZOLAUT?=
- =?us-ascii?Q?KTWwtzwry5vVGfU2vkcNETfQePmm+tofl6jkICbnc+mWqbOhXIFH+uwGePRt?=
- =?us-ascii?Q?cctGDdjjOT+n6kuhlI3nlCW/RP8+YtPOjTmu08L3FuL0wiSogCT01ljYsBU6?=
- =?us-ascii?Q?4KihXay08VkfwcXlFAOQCQvTJ3eS0n4mDOIKfqC7DFlEobt5yabK9zmJ89W0?=
- =?us-ascii?Q?Mv5xsgY+iiPv/wj+oOCoRKy4QL57wt9zSpTDU4cfP4MavPgpmIW8O/Jp+mSA?=
- =?us-ascii?Q?56VXhsfz1xbhJXD8fwimw7DqAkZw5PHWw5eBpX5XbM18tzJ3y1yn8TwRCMR5?=
- =?us-ascii?Q?kcGbNYD/rgY8LOohMewgdTJ/VilcXWB8MFb2/3nP5tCNAEjp9BiNh9Ab1MAf?=
- =?us-ascii?Q?aaY97YCWsXF6kuT+dv3Qn+QymLo6lcik4nXayl4l4d1/4zY9ouGP61IiWjm9?=
- =?us-ascii?Q?y8980IE+hLAJAOM5FVUqH3a8icN884zKDCwwVcO8LKmuLPbxwpHS85IqlUZK?=
- =?us-ascii?Q?8V8KIb+8ei/1ZkVFXWJzpYh1X7NMm+UjuJsazJfMp2b1Og3JhLci7oPKueLO?=
- =?us-ascii?Q?szu+p/8mD9Stg86zbS/bLX33QDolNXUvs6P2IIgIyywGz1IGh1zngzFcUMng?=
- =?us-ascii?Q?vYtzIbg4pRzMIsggexF+k5NVC7k32x+x+ypYEFEReZGbboU5vjDwdygFzMKR?=
- =?us-ascii?Q?kHESvrE7JuBib8Z34hv8f6dFNmrp591/T1vsBVgGjUxxCq2CCS0Gnkvd75K2?=
- =?us-ascii?Q?ZZmUj+QnHJiloMp6niyGJo44z4XchGpb5xbtdEvrQLUqtDwgySgDZonLg/e3?=
- =?us-ascii?Q?h45a7nC4mcntxayNIX9F1111RY0571GWqM+ethp+aS0WitnLIWj2/Jd6s38d?=
- =?us-ascii?Q?A0U2aYUexTZc//0W/gwE/q15PX0LE8eAw41JxmDBJHyrsWg8xZeuyW6/HsEW?=
- =?us-ascii?Q?wJKXH775dMBHRO/klax5KY63pGhtoQJUL/IzXAk+GXdqTe3odc0Tigv0GZxl?=
- =?us-ascii?Q?6iHrxRe+KzDyvpaIgn5seIGgUGPj/qemnz3XTHI5Xndi7ZBwZbd0ge0MkpSr?=
- =?us-ascii?Q?oqt1rIDHFdFubj4rYid3gmi9NSoVXRbySyNA0MVcDza36dOHwuAaVJFmKRfd?=
- =?us-ascii?Q?Ai9lrN+wm8Sk+vsBuxozdLknzmJCMVTQbdF1fjqFGk1C5kv/jg1jvEIhfo0b?=
- =?us-ascii?Q?iBHSFd+tFrouNAH76kDgIR5BNtT8487nMdBnd3rvRI7xF58gLnLbu3+CtjUq?=
- =?us-ascii?Q?ZO0VMfOcFkiLmguaGHo5GM5gomhrmbYEwC1NQ0dLi4FDDz5UBWWc+JyHm9k/?=
- =?us-ascii?Q?mvyT0ovXNshBlHjGhPTwppRxAtsqkzUQrnXtui5bBHyYaAGoy/Hmlzblq8Nl?=
- =?us-ascii?Q?sQZx1MFqJQFqIpShPjpYa/TSt2JbGqR+CHRc2roZDpGMG7+FYK2IBOl5xsy8?=
- =?us-ascii?Q?2/rEpocDiYOKLd/zMBAZp2lbIDZpjKuKYa4EX1Ns?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 71a55ce1-2d6c-4f94-ebd8-08dc97082ee0
-X-MS-Exchange-CrossTenant-AuthSource: DS0PR12MB7726.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 28 Jun 2024 00:20:58.4534
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: I0C/XCDJ4lCGoNMOS9y+QOYQnDdkW7EscDx1XdqOMWurdCQJh3CsyuYTm9K6IYA7G7J3ZxS4RhNpAHRgYuiRYA==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN0PR12MB5932
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <47c26640cd85f3db2e0a2796047199bb984d1b3f.1719386613.git-series.apopple@nvidia.com>
+
+Hi Alistair,
+
+kernel test robot noticed the following build errors:
+
+[auto build test ERROR on f2661062f16b2de5d7b6a5c42a9a5c96326b8454]
+
+url:    https://github.com/intel-lab-lkp/linux/commits/Alistair-Popple/mm-gup-c-Remove-redundant-check-for-PCI-P2PDMA-page/20240627-191709
+base:   f2661062f16b2de5d7b6a5c42a9a5c96326b8454
+patch link:    https://lore.kernel.org/r/47c26640cd85f3db2e0a2796047199bb984d1b3f.1719386613.git-series.apopple%40nvidia.com
+patch subject: [PATCH 13/13] mm: Remove devmap related functions and page table bits
+config: powerpc-allyesconfig (https://download.01.org/0day-ci/archive/20240628/202406280920.VNwSTzZT-lkp@intel.com/config)
+compiler: clang version 19.0.0git (https://github.com/llvm/llvm-project 326ba38a991250a8587a399a260b0f7af2c9166a)
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20240628/202406280920.VNwSTzZT-lkp@intel.com/reproduce)
+
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202406280920.VNwSTzZT-lkp@intel.com/
+
+All errors (new ones prefixed by >>):
+
+   In file included from arch/powerpc/kernel/asm-offsets.c:12:
+   In file included from include/linux/compat.h:14:
+   In file included from include/linux/sem.h:5:
+   In file included from include/uapi/linux/sem.h:5:
+   In file included from include/linux/ipc.h:7:
+   In file included from include/linux/rhashtable-types.h:12:
+   In file included from include/linux/alloc_tag.h:11:
+   In file included from include/linux/preempt.h:79:
+   In file included from ./arch/powerpc/include/generated/asm/preempt.h:1:
+   In file included from include/asm-generic/preempt.h:5:
+   In file included from include/linux/thread_info.h:23:
+   In file included from arch/powerpc/include/asm/current.h:13:
+   In file included from arch/powerpc/include/asm/paca.h:18:
+   In file included from arch/powerpc/include/asm/mmu.h:385:
+   In file included from arch/powerpc/include/asm/book3s/64/mmu.h:32:
+   In file included from arch/powerpc/include/asm/book3s/64/mmu-hash.h:20:
+>> arch/powerpc/include/asm/book3s/64/pgtable.h:1371:1: error: extraneous closing brace ('}')
+    1371 | }
+         | ^
+   In file included from arch/powerpc/kernel/asm-offsets.c:12:
+   In file included from include/linux/compat.h:17:
+   In file included from include/linux/fs.h:33:
+   In file included from include/linux/percpu-rwsem.h:7:
+   In file included from include/linux/rcuwait.h:6:
+   In file included from include/linux/sched/signal.h:6:
+   include/linux/signal.h:98:11: warning: array index 3 is past the end of the array (that has type 'unsigned long[1]') [-Warray-bounds]
+      98 |                 return (set->sig[3] | set->sig[2] |
+         |                         ^        ~
+   arch/powerpc/include/uapi/asm/signal.h:18:2: note: array 'sig' declared here
+      18 |         unsigned long sig[_NSIG_WORDS];
+         |         ^
+   In file included from arch/powerpc/kernel/asm-offsets.c:12:
+   In file included from include/linux/compat.h:17:
+   In file included from include/linux/fs.h:33:
+   In file included from include/linux/percpu-rwsem.h:7:
+   In file included from include/linux/rcuwait.h:6:
+   In file included from include/linux/sched/signal.h:6:
+   include/linux/signal.h:98:25: warning: array index 2 is past the end of the array (that has type 'unsigned long[1]') [-Warray-bounds]
+      98 |                 return (set->sig[3] | set->sig[2] |
+         |                                       ^        ~
+   arch/powerpc/include/uapi/asm/signal.h:18:2: note: array 'sig' declared here
+      18 |         unsigned long sig[_NSIG_WORDS];
+         |         ^
+   In file included from arch/powerpc/kernel/asm-offsets.c:12:
+   In file included from include/linux/compat.h:17:
+   In file included from include/linux/fs.h:33:
+   In file included from include/linux/percpu-rwsem.h:7:
+   In file included from include/linux/rcuwait.h:6:
+   In file included from include/linux/sched/signal.h:6:
+   include/linux/signal.h:99:4: warning: array index 1 is past the end of the array (that has type 'unsigned long[1]') [-Warray-bounds]
+      99 |                         set->sig[1] | set->sig[0]) == 0;
+         |                         ^        ~
+   arch/powerpc/include/uapi/asm/signal.h:18:2: note: array 'sig' declared here
+      18 |         unsigned long sig[_NSIG_WORDS];
+         |         ^
+   In file included from arch/powerpc/kernel/asm-offsets.c:12:
+   In file included from include/linux/compat.h:17:
+   In file included from include/linux/fs.h:33:
+   In file included from include/linux/percpu-rwsem.h:7:
+   In file included from include/linux/rcuwait.h:6:
+   In file included from include/linux/sched/signal.h:6:
+   include/linux/signal.h:101:11: warning: array index 1 is past the end of the array (that has type 'unsigned long[1]') [-Warray-bounds]
+     101 |                 return (set->sig[1] | set->sig[0]) == 0;
+         |                         ^        ~
+   arch/powerpc/include/uapi/asm/signal.h:18:2: note: array 'sig' declared here
+      18 |         unsigned long sig[_NSIG_WORDS];
+         |         ^
+   In file included from arch/powerpc/kernel/asm-offsets.c:12:
+   In file included from include/linux/compat.h:17:
+   In file included from include/linux/fs.h:33:
+   In file included from include/linux/percpu-rwsem.h:7:
+   In file included from include/linux/rcuwait.h:6:
+   In file included from include/linux/sched/signal.h:6:
+   include/linux/signal.h:114:11: warning: array index 3 is past the end of the array (that has type 'const unsigned long[1]') [-Warray-bounds]
+     114 |                 return  (set1->sig[3] == set2->sig[3]) &&
+         |                          ^         ~
+   arch/powerpc/include/uapi/asm/signal.h:18:2: note: array 'sig' declared here
+      18 |         unsigned long sig[_NSIG_WORDS];
+         |         ^
+   In file included from arch/powerpc/kernel/asm-offsets.c:12:
+   In file included from include/linux/compat.h:17:
+   In file included from include/linux/fs.h:33:
+   In file included from include/linux/percpu-rwsem.h:7:
+   In file included from include/linux/rcuwait.h:6:
+   In file included from include/linux/sched/signal.h:6:
+   include/linux/signal.h:114:27: warning: array index 3 is past the end of the array (that has type 'const unsigned long[1]') [-Warray-bounds]
+     114 |                 return  (set1->sig[3] == set2->sig[3]) &&
+         |                                          ^         ~
+   arch/powerpc/include/uapi/asm/signal.h:18:2: note: array 'sig' declared here
+      18 |         unsigned long sig[_NSIG_WORDS];
+         |         ^
+   In file included from arch/powerpc/kernel/asm-offsets.c:12:
+   In file included from include/linux/compat.h:17:
+   In file included from include/linux/fs.h:33:
+   In file included from include/linux/percpu-rwsem.h:7:
+   In file included from include/linux/rcuwait.h:6:
+   In file included from include/linux/sched/signal.h:6:
+   include/linux/signal.h:115:5: warning: array index 2 is past the end of the array (that has type 'const unsigned long[1]') [-Warray-bounds]
+     115 |                         (set1->sig[2] == set2->sig[2]) &&
+         |                          ^         ~
+   arch/powerpc/include/uapi/asm/signal.h:18:2: note: array 'sig' declared here
+      18 |         unsigned long sig[_NSIG_WORDS];
+         |         ^
+   In file included from arch/powerpc/kernel/asm-offsets.c:12:
+   In file included from include/linux/compat.h:17:
+   In file included from include/linux/fs.h:33:
+   In file included from include/linux/percpu-rwsem.h:7:
+   In file included from include/linux/rcuwait.h:6:
+   In file included from include/linux/sched/signal.h:6:
+   include/linux/signal.h:115:21: warning: array index 2 is past the end of the array (that has type 'const unsigned long[1]') [-Warray-bounds]
+     115 |                         (set1->sig[2] == set2->sig[2]) &&
+         |                                          ^         ~
+   arch/powerpc/include/uapi/asm/signal.h:18:2: note: array 'sig' declared here
+      18 |         unsigned long sig[_NSIG_WORDS];
+         |         ^
+   In file included from arch/powerpc/kernel/asm-offsets.c:12:
+   In file included from include/linux/compat.h:17:
 
 
-Dan Williams <dan.j.williams@intel.com> writes:
+vim +1371 arch/powerpc/include/asm/book3s/64/pgtable.h
 
-> Alistair Popple wrote:
->> 
->> Dan Williams <dan.j.williams@intel.com> writes:
->> 
->> > Alistair Popple wrote:
->> >> FS DAX pages have always maintained their own page reference counts
->> >> without following the normal rules for page reference counting. In
->> >> particular pages are considered free when the refcount hits one rather
->> >> than zero and refcounts are not added when mapping the page.
->> >> 
->> >> Tracking this requires special PTE bits (PTE_DEVMAP) and a secondary
->> >> mechanism for allowing GUP to hold references on the page (see
->> >> get_dev_pagemap). However there doesn't seem to be any reason why FS
->> >> DAX pages need their own reference counting scheme.
->> >> 
->> >> By treating the refcounts on these pages the same way as normal pages
->> >> we can remove a lot of special checks. In particular pXd_trans_huge()
->> >> becomes the same as pXd_leaf(), although I haven't made that change
->> >> here. It also frees up a valuable SW define PTE bit on architectures
->> >> that have devmap PTE bits defined.
->> >> 
->> >> It also almost certainly allows further clean-up of the devmap managed
->> >> functions, but I have left that as a future improvment.
->> >> 
->> >> This is an update to the original RFC rebased onto v6.10-rc5. Unlike
->> >> the original RFC it passes the same number of ndctl test suite
->> >> (https://github.com/pmem/ndctl) tests as my current development
->> >> environment does without these patches.
->> >
->> > Are you seeing the 'mmap.sh' test fail even without these patches?
->> 
->> No. But I also don't see it failing with these patches :)
->> 
->> For reference this is what I see on my test machine with or without:
->> 
->> [1/70] Generating version.h with a custom command
->>  1/13 ndctl:dax / daxdev-errors.sh          SKIP             0.06s   exit status 77
->>  2/13 ndctl:dax / multi-dax.sh              SKIP             0.05s   exit status 77
->>  3/13 ndctl:dax / sub-section.sh            SKIP             0.14s   exit status 77
->
-> I really need to get this test built as a service as this shows a
-> pre-req is missing, and it's not quite fair to expect submitters to put
-> it all together.
+953c66c2b22a30 Aneesh Kumar K.V  2016-12-12  1370  
+ebd31197931d75 Oliver O'Halloran 2017-06-28 @1371  }
+6a1ea36260f69f Aneesh Kumar K.V  2016-04-29  1372  #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ebd31197931d75 Oliver O'Halloran 2017-06-28  1373  
 
-Ok. I didn't dig into why this was being skipped but I might if I find
-some time. The rest of the tests seemed more relevant anyway and turned
-up enough bugs with my initial implementation to keep me busy which gave
-me some confidence.
-
-If I'm being honest though I found the whole test setup a bit of a
-pain. In particular remembering you have to manually (re)build the
-special test versions of the modules tripped me up a few times until I
-updated my build scripts. But I got there in the end.
-
->>  4/13 ndctl:dax / dax-dev                   OK               0.02s
->>  5/13 ndctl:dax / dax-ext4.sh               OK              12.97s
->>  6/13 ndctl:dax / dax-xfs.sh                OK              12.44s
->>  7/13 ndctl:dax / device-dax                OK              13.40s
->>  8/13 ndctl:dax / revoke-devmem             FAIL             0.31s   (exit status 250 or signal 122 SIGinvalid)
->> >>> TEST_PATH=/home/apopple/ndctl/build/test LD_LIBRARY_PATH=/home/apopple/ndctl/build/cxl/lib:/home/apopple/ndctl/build/daxctl/lib:/home/apopple/ndctl/build/ndctl/lib NDCTL=/home/apopple/ndctl/build/ndctl/ndctl MALLOC_PERTURB_=227 DATA_PATH=/home/apopple/ndctl/test DAXCTL=/home/apopple/ndctl/build/daxctl/daxctl /home/apopple/ndctl/build/test/revoke_devmem
->> 
->>  9/13 ndctl:dax / device-dax-fio.sh         OK              32.43s
->> 10/13 ndctl:dax / daxctl-devices.sh         SKIP             0.07s   exit status 77
->> 11/13 ndctl:dax / daxctl-create.sh          SKIP             0.04s   exit status 77
->> 12/13 ndctl:dax / dm.sh                     FAIL             0.08s   exit status 1
->> >>> MALLOC_PERTURB_=209 TEST_PATH=/home/apopple/ndctl/build/test LD_LIBRARY_PATH=/home/apopple/ndctl/build/cxl/lib:/home/apopple/ndctl/build/daxctl/lib:/home/apopple/ndctl/build/ndctl/lib NDCTL=/home/apopple/ndctl/build/ndctl/ndctl DATA_PATH=/home/apopple/ndctl/test DAXCTL=/home/apopple/ndctl/build/daxctl/daxctl /home/apopple/ndctl/test/dm.sh
->> 
->> 13/13 ndctl:dax / mmap.sh                   OK             107.57s
->
-> I need to think through why this one might false succeed, but that can
-> wait until we get this series reviewed. For now my failure is stable
-> which allows it to be bisected.
->
->> 
->> Ok:                 6   
->> Expected Fail:      0   
->> Fail:               2   
->> Unexpected Pass:    0   
->> Skipped:            5   
->> Timeout:            0   
->> 
->> I have been using QEMU for my testing. Maybe I missed some condition in
->> the unmap path though so will take another look.
->
-> I was able to bisect to:
-
-I could have guessed that one, as it's pretty much the crux of this
-series given it's the one that switches everything away from
-pXX_devmap. That means pXX_leaf/_trans_huge will start returning true
-for DAX pages.
-
-Based on your dump I'm guessing I missed some case in the
-zap_pXX_range() path. It could be helpful to narrow down which of the
-pXX paths is crashing but I will take another look there.
-
-> [PATCH 10/13] fs/dax: Properly refcount fs dax pages
->
-> ...I will prioritize that one in my review queue.
-
-Thanks!
+-- 
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
