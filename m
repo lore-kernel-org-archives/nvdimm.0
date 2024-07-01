@@ -1,33 +1,62 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f181.google.com (mail-pl1-f181.google.com [209.85.214.181])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A95FE374FA;
-	Sat, 29 Jun 2024 21:28:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89B8417BBB
+	for <nvdimm@lists.linux.dev>; Mon,  1 Jul 2024 04:24:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.181
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1719696533; cv=none; b=ZmmPN+DDth5AUs+dVA3Zy1q67VoTFIY6mqLgXd4HHgCf9QwTljhM2adx2t7uPxdkhpYtnUWkdtHxKWWaFrOykx9JocDNXDjfMO6yC+iLsXuFghAbFrIPrwa36gjMkhFPB0PLk1d6FneoxAVHahetaID1BAG+DVaoUWzZv2MbOMI=
+	t=1719807882; cv=none; b=nYWGVZzhpM6duITHH8KMKbXTaU3qGuK75yN8gIg0fmXZsChftA7/WHfabJ/nIJktNohQiWeuaIgmTUQM8/u+2aZsz73+1Ca89I2ikBY2tAU2GzE6lIEjkZcaYjKeqxyYQ3xD1ybu8NBSzWeW9quf/t81kon/l/h3yroYlcyJERU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1719696533; c=relaxed/simple;
-	bh=HtXt70x632jQVkvZVa5+viDAiEo/vLpbpyG46HWBjMw=;
-	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition:In-Reply-To; b=moRBVwhoy0/uBa4JVJZd8I9XbLatM31IwIrc27PcHBuyN3hDwIKJRgCQOLAhonAiTxO+IGqEjh9svFvk5m+cm64fLp1Xs971OLHI74lRWhy8YNv3UwfdSqLx1dmTK5eCOH1hkxTUgvb/9cRo0KxeiOhfuAfqHip7Xn5Tss+jTHE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VnqFJx5g; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1719807882; c=relaxed/simple;
+	bh=paVAf+8j2Ao8wNZ6d9H4Go6mO+YeHszO+g9YMet+gN4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=dtBdSnh0AyZjxYAiIb6ISjmTr+md5bx/hEUSsB5/dvsJi78zZvPaTvp+ZdWah2/wuWuqLwf2dqZlxPaQRqotJWJXFOn3OKA8Lm1SOZRVo3pQHakWY78IEPA5ms1Ed2WyO2v2DekDNNmKnRx2myRL5ddOE6bxV0g+wVHHvE/JpKU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fromorbit.com; spf=pass smtp.mailfrom=fromorbit.com; dkim=pass (2048-bit key) header.d=fromorbit-com.20230601.gappssmtp.com header.i=@fromorbit-com.20230601.gappssmtp.com header.b=hwqy/BjS; arc=none smtp.client-ip=209.85.214.181
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fromorbit.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fromorbit.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VnqFJx5g"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 07CE9C2BBFC;
-	Sat, 29 Jun 2024 21:28:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1719696533;
-	bh=HtXt70x632jQVkvZVa5+viDAiEo/vLpbpyG46HWBjMw=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:From;
-	b=VnqFJx5ghuBk4Ih3CVJjWYCN0/ZeQE4bA9dgueRtqlOBnEj9bpHIblRRQS9pvQOq9
-	 e1eHFjHr5+rNv2dGIMrkk3IAZlqwsKX7p+rD1r1vmjoqPl5r2aEZGCjwsQpiy3/x6B
-	 ysyxPdOQzeo0ZX9VEzv6T9NJsfU8dcWOxpkFNYAWzY/LBU0zuLZ2xf3++9jGcptCb1
-	 Xp8Voz7uHR8O3pq3w/ncYUPGbyyGG5MBfyicJ+oqDiGO1BzaG9nKTI9pT87K9/QPad
-	 WGmS2gB4YANsUc/hqolrWiMuZCznLg98Ov/R1hZ8gbO540njo89EbUIDosTqYlZeua
-	 vy2FDJBTYP9+A==
-Date: Sat, 29 Jun 2024 16:28:51 -0500
-From: Bjorn Helgaas <helgaas@kernel.org>
+	dkim=pass (2048-bit key) header.d=fromorbit-com.20230601.gappssmtp.com header.i=@fromorbit-com.20230601.gappssmtp.com header.b="hwqy/BjS"
+Received: by mail-pl1-f181.google.com with SMTP id d9443c01a7336-1fa55dbf2e7so12238625ad.2
+        for <nvdimm@lists.linux.dev>; Sun, 30 Jun 2024 21:24:40 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=fromorbit-com.20230601.gappssmtp.com; s=20230601; t=1719807880; x=1720412680; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=q8FaXxeW49XxQjIVoOOnJuKPW6Isofg2ljkc7tdAOtU=;
+        b=hwqy/BjSOZQlZkpx2esF/bkm1KeG1RoA7KLEOhqs4NlV7WN4rTos5fZObrfV9ZOs5b
+         g04RP574pIjC7oMfmuqr4LC7XBlI5AdcnxZzRhQbpULMpn9HlfPL7g37TqugfGrZl9g1
+         1H9dUzD7IVkro4TsYVwkOFhaJxO2KM6bQ5HGjIO9ToSrTGbx3o2HGof/MoSvMa4LghLD
+         4akwW3Gprip6VSbWh5115c5IvqupG2tteW11MT2S29M3VTb65TG1PR5ODjmf/nZdXmRE
+         N/rxH7D0wDi2guMDO7bGp6vChvr09bJAH+8hfTkW5PzbI+wlqFfJuUAyAkba/Rjclx3g
+         3m8Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1719807880; x=1720412680;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=q8FaXxeW49XxQjIVoOOnJuKPW6Isofg2ljkc7tdAOtU=;
+        b=Dgz8aV5Yp9M2BT/BQqpoV1zewGzAUCQpy8+u9Z+90U2CD+d/HdEQwX0GOImTT6AMXo
+         DillRyIxiYZj2+Q5ZLpQSV/xU7xZCKpT+z46mw4KlZWpOel6ipwAMuZKw9Dh/uFBHL0F
+         ogfiG5AKhszrtJTO/V+1tH4/Lc4NyiM8BujDtNAuC6RAav8I/sNVGO2pKIXS1e84iXPr
+         YamQqSLwJccgy+hO/Nn3p2iLF5lxeD7sTHayggy7mFizFxvK5vVpaQ+unj5UuJ1zRl+1
+         PIU4yt2IyCEyKDUT1CyAPIyl1i92E06/7iCGGBKiN2g0OBX0s6yrdZZmMt+wJK719BUQ
+         ipSQ==
+X-Forwarded-Encrypted: i=1; AJvYcCUTjoJJ4QjBHXrayCLFfBQPUqmRDibBXQ22zRamXEf6080urNTioDU6afrsBoWMxITS1DZn5QC858kkero9Hd1NQyU++LUT
+X-Gm-Message-State: AOJu0Yw7uBZJgIJjZsnw/gzSXeOjf/rYxsRlsFasbv55SDsQkiPuof6N
+	7nKGHJo8QNan0VZuH4tJ9ZFeqRn5wEkoJ9his4G0XWDuWEmu940UNKz3qP5b5wQ=
+X-Google-Smtp-Source: AGHT+IFKQ7mlIRHK3qLypxLI+wB6C/xuRboouR5zOv5/KrFwuLBxwDWk/1+R28Hzvt5tq0xC0UW+Zw==
+X-Received: by 2002:a17:902:d2cc:b0:1fa:2d0:f85b with SMTP id d9443c01a7336-1fadbce9d59mr26040185ad.49.1719807879574;
+        Sun, 30 Jun 2024 21:24:39 -0700 (PDT)
+Received: from dread.disaster.area (pa49-179-32-121.pa.nsw.optusnet.com.au. [49.179.32.121])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-1fac1569051sm53926215ad.215.2024.06.30.21.24.39
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 30 Jun 2024 21:24:39 -0700 (PDT)
+Received: from dave by dread.disaster.area with local (Exim 4.96)
+	(envelope-from <david@fromorbit.com>)
+	id 1sO8ai-00HWNB-2Q;
+	Mon, 01 Jul 2024 14:24:36 +1000
+Date: Mon, 1 Jul 2024 14:24:36 +1000
+From: Dave Chinner <david@fromorbit.com>
 To: Alistair Popple <apopple@nvidia.com>
 Cc: dan.j.williams@intel.com, vishal.l.verma@intel.com,
 	dave.jiang@intel.com, logang@deltatee.com, bhelgaas@google.com,
@@ -41,9 +70,10 @@ Cc: dan.j.williams@intel.com, vishal.l.verma@intel.com,
 	nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
 	linux-fsdevel@vger.kernel.org, linux-mm@kvack.org,
 	linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org,
-	jhubbard@nvidia.com, hch@lst.de, david@fromorbit.com
-Subject: Re: [PATCH 02/13] pci/p2pdma: Don't initialise page refcount to one
-Message-ID: <20240629212851.GA1484889@bhelgaas>
+	jhubbard@nvidia.com, hch@lst.de
+Subject: Re: [PATCH 00/13] fs/dax: Fix FS DAX page reference counts
+Message-ID: <ZoIvhDvzMCw28VBI@dread.disaster.area>
+References: <cover.66009f59a7fe77320d413011386c3ae5c2ee82eb.1719386613.git-series.apopple@nvidia.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -52,90 +82,40 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <c66cc5c5142813049ffdf9af75302f5064048241.1719386613.git-series.apopple@nvidia.com>
+In-Reply-To: <cover.66009f59a7fe77320d413011386c3ae5c2ee82eb.1719386613.git-series.apopple@nvidia.com>
 
-On Thu, Jun 27, 2024 at 10:54:17AM +1000, Alistair Popple wrote:
-> The reference counts for ZONE_DEVICE private pages should be
-> initialised by the driver when the page is actually allocated by the
-> driver allocator, not when they are first created. This is currently
-> the case for MEMORY_DEVICE_PRIVATE and MEMORY_DEVICE_COHERENT pages
-> but not MEMORY_DEVICE_PCI_P2PDMA pages so fix that up.
-
-If you tag the subject line with PCI, please run "git log --oneline
-drivers/pci/p2pdma.c" and make yours look like previous ones
-("PCI/P2PDMA").
-
-Also recast it to say something semantically useful about what it
-*does*, not what it *doesn't* do.  Maybe something about initializing
-the refcount where the page is allocated?  Especially since the only
-p2pdma.c change here is to "set_page_count(..., 1)", which looks like
-exactly the opposite of "don't initialize refcount to one".
-
-> Signed-off-by: Alistair Popple <apopple@nvidia.com>
-> ---
->  drivers/pci/p2pdma.c | 2 ++
->  mm/memremap.c        | 8 ++++----
->  mm/mm_init.c         | 4 +++-
->  3 files changed, 9 insertions(+), 5 deletions(-)
+On Thu, Jun 27, 2024 at 10:54:15AM +1000, Alistair Popple wrote:
+> FS DAX pages have always maintained their own page reference counts
+> without following the normal rules for page reference counting. In
+> particular pages are considered free when the refcount hits one rather
+> than zero and refcounts are not added when mapping the page.
 > 
-> diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
-> index 4f47a13..1e9ea32 100644
-> --- a/drivers/pci/p2pdma.c
-> +++ b/drivers/pci/p2pdma.c
-> @@ -128,6 +128,8 @@ static int p2pmem_alloc_mmap(struct file *filp, struct kobject *kobj,
->  		goto out;
->  	}
->  
-> +	set_page_count(virt_to_page(kaddr), 1);
-> +
->  	/*
->  	 * vm_insert_page() can sleep, so a reference is taken to mapping
->  	 * such that rcu_read_unlock() can be done before inserting the
-> diff --git a/mm/memremap.c b/mm/memremap.c
-> index 40d4547..caccbd8 100644
-> --- a/mm/memremap.c
-> +++ b/mm/memremap.c
-> @@ -488,15 +488,15 @@ void free_zone_device_folio(struct folio *folio)
->  	folio->mapping = NULL;
->  	folio->page.pgmap->ops->page_free(folio_page(folio, 0));
->  
-> -	if (folio->page.pgmap->type != MEMORY_DEVICE_PRIVATE &&
-> -	    folio->page.pgmap->type != MEMORY_DEVICE_COHERENT)
-> +	if (folio->page.pgmap->type == MEMORY_DEVICE_PRIVATE ||
-> +	    folio->page.pgmap->type == MEMORY_DEVICE_COHERENT)
-> +		put_dev_pagemap(folio->page.pgmap);
-> +	else if (folio->page.pgmap->type != MEMORY_DEVICE_PCI_P2PDMA)
->  		/*
->  		 * Reset the refcount to 1 to prepare for handing out the page
->  		 * again.
->  		 */
->  		folio_set_count(folio, 1);
-> -	else
-> -		put_dev_pagemap(folio->page.pgmap);
->  }
->  
->  void zone_device_page_init(struct page *page)
-> diff --git a/mm/mm_init.c b/mm/mm_init.c
-> index 3ec0493..b7e1599 100644
-> --- a/mm/mm_init.c
-> +++ b/mm/mm_init.c
-> @@ -6,6 +6,7 @@
->   * Author Mel Gorman <mel@csn.ul.ie>
->   *
->   */
-> +#include "linux/memremap.h"
->  #include <linux/kernel.h>
->  #include <linux/init.h>
->  #include <linux/kobject.h>
-> @@ -1014,7 +1015,8 @@ static void __ref __init_zone_device_page(struct page *page, unsigned long pfn,
->  	 * which will set the page count to 1 when allocating the page.
->  	 */
->  	if (pgmap->type == MEMORY_DEVICE_PRIVATE ||
-> -	    pgmap->type == MEMORY_DEVICE_COHERENT)
-> +	    pgmap->type == MEMORY_DEVICE_COHERENT ||
-> +	    pgmap->type == MEMORY_DEVICE_PCI_P2PDMA)
->  		set_page_count(page, 0);
->  }
->  
-> -- 
-> git-series 0.9.1
+> Tracking this requires special PTE bits (PTE_DEVMAP) and a secondary
+> mechanism for allowing GUP to hold references on the page (see
+> get_dev_pagemap). However there doesn't seem to be any reason why FS
+> DAX pages need their own reference counting scheme.
+> 
+> By treating the refcounts on these pages the same way as normal pages
+> we can remove a lot of special checks. In particular pXd_trans_huge()
+> becomes the same as pXd_leaf(), although I haven't made that change
+> here. It also frees up a valuable SW define PTE bit on architectures
+> that have devmap PTE bits defined.
+> 
+> It also almost certainly allows further clean-up of the devmap managed
+> functions, but I have left that as a future improvment.
+> 
+> This is an update to the original RFC rebased onto v6.10-rc5. Unlike
+> the original RFC it passes the same number of ndctl test suite
+> (https://github.com/pmem/ndctl) tests as my current development
+> environment does without these patches.
+
+I strongly suggest running fstests on pmem devices with '-o
+dax=always' mount options to get much more comprehensive fsdax test
+coverage. That exercises a lot of the weird mmap corner cases that
+cause problems so it would be good to actually test that nothing new
+got broken in FSDAX by this patchset.
+
+-Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
