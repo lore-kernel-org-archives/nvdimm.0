@@ -1,130 +1,130 @@
-Received: from mail-wr1-f51.google.com (mail-wr1-f51.google.com [209.85.221.51])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 21A561A4F0F;
-	Thu,  4 Jul 2024 11:11:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F06F01487D8
+	for <nvdimm@lists.linux.dev>; Fri,  5 Jul 2024 14:24:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720091482; cv=none; b=PJoaP74wnx/ZFbM4AhkojUya+HjNzwkq25Rmup69faIQKdosv9NCa160IoPwz56hqopnXw7ftgJl+VrwOcK/Tasjk7twKWmkg7YwrqLuSR9yhA32ZYkIXHue7IUMA4Zqr4PN7jS9NUY2ABeICjB2p/Fuj67RSP70RMSx3pxEOIA=
+	t=1720189462; cv=none; b=Zya8XtVGvAOLEK02+sw5R5HlzLpE7QLtnENRGelgEp0XEQUY34DK82gAkxPztP6ENYnSpYtnEG1hNRvgs0r1z/q9vpJyckcmKE6P7cH//YkSk3FuEKrSmctWJuHI7bO5ea0cOPWmftrRHXk1R/6CIkAAKaBOd3GBHZaUPtPuYu4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720091482; c=relaxed/simple;
-	bh=TwoVc/A5cvcKyYqBk85IeSoXm8WueZBsy4xxLnttTxM=;
-	h=Content-Type:Mime-Version:Subject:From:In-Reply-To:Date:Cc:
-	 Message-Id:References:To; b=tmwlqUlopYjHTOcnxa3V9+3j8EqLLbnYgx82qagPMZLyfpFxuBeT4b/djFcZQayRN9XbAO3OIG9al09zvhY24BWYjfvlsbnk/BATtaNP8UBqgVk4wONiv1uu7h3Ylgvui80xSvJ7coyAtAs0Y1bIDclyRnYsnEG/h0YvJ6WcyxM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=VfoqL7kH; arc=none smtp.client-ip=209.85.221.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1720189462; c=relaxed/simple;
+	bh=ezE9cMK85xGULq2NDfyultVM78ZkLbyifJxcFeIVVd4=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 In-Reply-To:Content-Type:Content-Disposition; b=NLkyTXT2bbHAQBWBMp5ToJZ3nNrV9DJv5seGnimp2Mua/fH6C1UHc+AXSsscWQ90mUfhLUPeQXMqjL8x3My5EfcALbXAB8MK3ciH3VPk+i/lboaoUR7jGWJZ+YXfeNQomlrOt6y/uZOC1IthSakvApPlZbzTqbVzZRGuNq7QmEI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=GomyGT6q; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="VfoqL7kH"
-Received: by mail-wr1-f51.google.com with SMTP id ffacd0b85a97d-367a2c2e41aso57604f8f.2;
-        Thu, 04 Jul 2024 04:11:20 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1720091479; x=1720696279; darn=lists.linux.dev;
-        h=to:references:message-id:content-transfer-encoding:cc:date
-         :in-reply-to:from:subject:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=qwBmB9TZGFjcG5R2+2N2tz93DvezoEGxh6PsIk8IO/w=;
-        b=VfoqL7kHS+CFzGSTNU8taQiIQZVQ8UspcjVfz8TkXTItwEphkPcuK1QaUSfm23RVkz
-         GoNu9vWReUdgwBqWnzrOwcU44jkJHYMQaoE8/+xeG8FJzDKWe4h4aN5b90FHlEZoTLzW
-         r37dBPbkdlYj1VlQ/Csohve6JzYbpoaaXdRaRCUVCutEnXI7PXkvKwbqBdmXM9TQMMQK
-         FeJ+QOpIjbIRkqqvZ9mXhwtlC8/lE0s1j/BUcAC8KENLKL6DBO/2HMrU4rhG+TetJ7Wu
-         PYTisL3/wEIVZKBRvwgvlXlo9uG6tcH2Z0ea5ASOpa6LZ5mrWdQQX38cV+nWyHtw/fKu
-         aYzQ==
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="GomyGT6q"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1720189460;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=IqBTg61cVL77faXIzfdAxULAIPGMk1ZHXjVPHmfrZtE=;
+	b=GomyGT6q4Dkoew0pCRUYAoml9aFCdZYOXIEQEjz64CtThBXoFF7Mra3soyxFZs7BYZGnr4
+	vzGyfb+mUwBbgyhfR+bveNOh3TOMIFBnkRrYodstWMD/mhDtfkrnQteBVO2+kFcUWqNqxi
+	S8ghGxK+13S2T1g7QDuve6Z+12fHe3M=
+Received: from mail-qt1-f200.google.com (mail-qt1-f200.google.com
+ [209.85.160.200]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-669-wceROuXIP0GAL3KnX7plYw-1; Fri, 05 Jul 2024 10:24:18 -0400
+X-MC-Unique: wceROuXIP0GAL3KnX7plYw-1
+Received: by mail-qt1-f200.google.com with SMTP id d75a77b69052e-44508288ad0so2542011cf.2
+        for <nvdimm@lists.linux.dev>; Fri, 05 Jul 2024 07:24:18 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1720091479; x=1720696279;
-        h=to:references:message-id:content-transfer-encoding:cc:date
-         :in-reply-to:from:subject:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=qwBmB9TZGFjcG5R2+2N2tz93DvezoEGxh6PsIk8IO/w=;
-        b=JDG/ixm2X02No3hMCxpbXKgMwaElLaeNgPdkPhyW5h5Hbypm56RJ7dNCxcfuGCnS+2
-         Fr6VY/P98dUoUGPJPDGIJ36Geu5BWNQv3FtBTpnO/VBHXCCoiQfjoIWJZk0RWQ5cDkCa
-         OosMvmuSpOjjeFy0NIfDFo1aZLVjghTOL/+KN0GUdCT6Xl2haz5Gcbtjk5rKpttHo9GU
-         vZ6uQkrFGF+zhXNJRjabLj5n8TfgXDRAbLxzWkjk/xkht5JxTjz1+FDK38MbZgppTPMg
-         Lzp8T+zr5w09n71G23VzjrQMTXsZG5HIacZQ8Y/Vr8ab9UkPSu2OaqVsvtcDzMUVYfoh
-         fAsA==
-X-Forwarded-Encrypted: i=1; AJvYcCVA9FQfYAKWcjiGACD41UhAjmvA9ypcfFwY3S/mjoylzEwZ9iXu8mnwFuWOgN9+qZQKWvqPu1N9G9vpLdpWVJCDdAa4I1P3kuUPJllYZlbR4oWB0FDUzz6gP/MGaNdI21M0Ut6SiWsur+vRW+Po8FWdlpZBJc2vQSUXLorc0DzMZQ==
-X-Gm-Message-State: AOJu0Ywa3dorlnprnBD3DZaqvoX0IYjEOf+rUrxxX/z2N+aCxzFX4aKi
-	cMYA0T2mFoDGv3a2QXvDBMRpqTCPW/HvQ/cIFnSQeaFrDXNBb8l6
-X-Google-Smtp-Source: AGHT+IFEzvL2jC2faLe/uaMvaq/UCJ26KrH1XFm9Ol6h8w0Rebt6hjx4X+gdY7pIVUfbtqQYexMuPw==
-X-Received: by 2002:a5d:5712:0:b0:367:94e7:958a with SMTP id ffacd0b85a97d-3679dd17ec1mr1153338f8f.6.1720091479417;
-        Thu, 04 Jul 2024 04:11:19 -0700 (PDT)
-Received: from [10.14.0.2] ([139.28.176.164])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-36787db4d12sm6821051f8f.110.2024.07.04.04.11.17
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 04 Jul 2024 04:11:18 -0700 (PDT)
-Content-Type: text/plain;
-	charset=us-ascii
+        d=1e100.net; s=20230601; t=1720189458; x=1720794258;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=IqBTg61cVL77faXIzfdAxULAIPGMk1ZHXjVPHmfrZtE=;
+        b=rHNC5HlvZOEGaE/2pqw9UyOYsOJOIcJOLkvmK/12C8aXagxA8x5QIwnmwD++f03bpF
+         VVd2ELuGYS+lODn+LJvoqw+iKt6LA4Ru5sK70PK+vxOSbciII9VmBROto+nF0AcAWWJh
+         P0u/fmjP1iTv0Fxpg+Ni/A4pF80F5RWzuqlrJlqL+nei8cUaG0uhTWsONOVb83xg0U/A
+         nosBiIAbjkQumIOAoRPMVI7Xe2LnDOWr+0yV8NsY0vQBWAZlYXClaDYKjd4+DXzsM8NK
+         MgceyfgJ5STkDfrTjUq8EE/VIaB/LqxgwSUCeFwIANWP4XNEquRrCaj0LtKSfCJBO3JT
+         aG9Q==
+X-Forwarded-Encrypted: i=1; AJvYcCXrHDh5HgYsnvvg+EfQc9X9w4wWEWkm8q5xBPozCfouZmoV7ufUb98GMu92+BPOEAqgaeN0RC2N0dDSicQvFmpjRxnXJ+7Z
+X-Gm-Message-State: AOJu0YzHAGkfb1iX9EPEkhqTWgSSJrkl07cI4CBZfrxPr8VSYaFfoAnJ
+	OegIZx3SpMeBh0E57JmQJFNXJXv8IfNdVXK6zD2rd35kOduGBBKy06Y9/ZgNBXzGZt6pmdnNcSR
+	ham9XPClGw5ix3HHV5SQE+9HRQirquZ6odwaB61E+Mh9vVmg8QOHcow==
+X-Received: by 2002:ac8:7c4b:0:b0:446:395a:37c9 with SMTP id d75a77b69052e-447cc1cd760mr50256951cf.4.1720189458372;
+        Fri, 05 Jul 2024 07:24:18 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IGKP4/uPX8iCeoUcNLMV3z8vBAByHvLymsXhgYIxVOYKgo8tVByPTMSYbiLBJ2KPlAF3hMSkQ==
+X-Received: by 2002:ac8:7c4b:0:b0:446:395a:37c9 with SMTP id d75a77b69052e-447cc1cd760mr50256521cf.4.1720189457935;
+        Fri, 05 Jul 2024 07:24:17 -0700 (PDT)
+Received: from x1n (pool-99-254-121-117.cpe.net.cable.rogers.com. [99.254.121.117])
+        by smtp.gmail.com with ESMTPSA id d75a77b69052e-4465149b579sm69523231cf.75.2024.07.05.07.24.15
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 05 Jul 2024 07:24:17 -0700 (PDT)
+Date: Fri, 5 Jul 2024 10:24:14 -0400
+From: Peter Xu <peterx@redhat.com>
+To: Alistair Popple <apopple@nvidia.com>
+Cc: dan.j.williams@intel.com, vishal.l.verma@intel.com,
+	dave.jiang@intel.com, logang@deltatee.com, bhelgaas@google.com,
+	jack@suse.cz, jgg@ziepe.ca, catalin.marinas@arm.com,
+	will@kernel.org, mpe@ellerman.id.au, npiggin@gmail.com,
+	dave.hansen@linux.intel.com, ira.weiny@intel.com,
+	willy@infradead.org, djwong@kernel.org, tytso@mit.edu,
+	linmiaohe@huawei.com, david@redhat.com, linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linuxppc-dev@lists.ozlabs.org, nvdimm@lists.linux.dev,
+	linux-cxl@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+	linux-mm@kvack.org, linux-ext4@vger.kernel.org,
+	linux-xfs@vger.kernel.org, jhubbard@nvidia.com, hch@lst.de,
+	david@fromorbit.com, Alex Williamson <alex.williamson@redhat.com>
+Subject: Re: [PATCH 11/13] huge_memory: Remove dead vmf_insert_pXd code
+Message-ID: <ZogCDpfSyCcjVXWH@x1n>
+References: <cover.66009f59a7fe77320d413011386c3ae5c2ee82eb.1719386613.git-series.apopple@nvidia.com>
+ <400a4584f6f628998a7093aee49d9f86c592754b.1719386613.git-series.apopple@nvidia.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-Mime-Version: 1.0 (Mac OS X Mail 13.4 \(3608.120.23.2.7\))
-Subject: Re: [PATCH 14/26] block: move the nonrot flag to queue_limits
-From: Simon Fernandez <fernandez.simon@gmail.com>
-In-Reply-To: <ZnmoANp0TgpxWuF-@kbusch-mbp.dhcp.thefacebook.com>
-Date: Thu, 4 Jul 2024 12:11:16 +0100
-Cc: Christoph Hellwig <hch@lst.de>,
- Jens Axboe <axboe@kernel.dk>,
- Geert Uytterhoeven <geert@linux-m68k.org>,
- Richard Weinberger <richard@nod.at>,
- Philipp Reisner <philipp.reisner@linbit.com>,
- Lars Ellenberg <lars.ellenberg@linbit.com>,
- =?utf-8?Q?Christoph_B=C3=B6hmwalder?= <christoph.boehmwalder@linbit.com>,
- Josef Bacik <josef@toxicpanda.com>,
- Ming Lei <ming.lei@redhat.com>,
- "Michael S. Tsirkin" <mst@redhat.com>,
- Jason Wang <jasowang@redhat.com>,
- =?utf-8?Q?Roger_Pau_Monn=C3=A9?= <roger.pau@citrix.com>,
- Alasdair Kergon <agk@redhat.com>,
- Mike Snitzer <snitzer@kernel.org>,
- Mikulas Patocka <mpatocka@redhat.com>,
- Song Liu <song@kernel.org>,
- Yu Kuai <yukuai3@huawei.com>,
- Vineeth Vijayan <vneethv@linux.ibm.com>,
- "Martin K. Petersen" <martin.petersen@oracle.com>,
- linux-m68k@lists.linux-m68k.org,
- linux-um@lists.infradead.org,
- drbd-dev@lists.linbit.com,
- nbd@other.debian.org,
- linuxppc-dev@lists.ozlabs.org,
- ceph-devel@vger.kernel.org,
- virtualization@lists.linux.dev,
- xen-devel@lists.xenproject.org,
- linux-bcache@vger.kernel.org,
- dm-devel@lists.linux.dev,
- linux-raid@vger.kernel.org,
- linux-mmc@vger.kernel.org,
- linux-mtd@lists.infradead.org,
- nvdimm@lists.linux.dev,
- linux-nvme@lists.infradead.org,
- linux-s390@vger.kernel.org,
- linux-scsi@vger.kernel.org,
- linux-block@vger.kernel.org,
- Damien Le Moal <dlemoal@kernel.org>
-Content-Transfer-Encoding: quoted-printable
-Message-Id: <78BDDF6A-1FC7-4DD7-AABF-E0B055772CBF@gmail.com>
-References: <20240617060532.127975-1-hch@lst.de>
- <20240617060532.127975-15-hch@lst.de>
- <ZnmoANp0TgpxWuF-@kbusch-mbp.dhcp.thefacebook.com>
-To: Keith Busch <kbusch@kernel.org>
-X-Mailer: Apple Mail (2.3608.120.23.2.7)
+MIME-Version: 1.0
+In-Reply-To: <400a4584f6f628998a7093aee49d9f86c592754b.1719386613.git-series.apopple@nvidia.com>
+X-Mimecast-Spam-Score: 0
+X-Mimecast-Originator: redhat.com
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-Hi folks, how can I unsubscribe from this group.?
-Thanks in advance.
-S
+Hi, Alistair,
 
-> On 24 Jun 2024, at 18:08, Keith Busch <kbusch@kernel.org> wrote:
->=20
-> On Mon, Jun 17, 2024 at 08:04:41AM +0200, Christoph Hellwig wrote:
->> -#define blk_queue_nonrot(q)	test_bit(QUEUE_FLAG_NONROT, =
-&(q)->queue_flags)
->> +#define blk_queue_nonrot(q)	((q)->limits.features & =
-BLK_FEAT_ROTATIONAL)
->=20
-> This is inverted. Should be:
->=20
-> #define blk_queue_nonrot(q)	(!((q)->limits.features & =
-BLK_FEAT_ROTATIONAL))
->=20
+On Thu, Jun 27, 2024 at 10:54:26AM +1000, Alistair Popple wrote:
+> Now that DAX is managing page reference counts the same as normal
+> pages there are no callers for vmf_insert_pXd functions so remove
+> them.
+> 
+> Signed-off-by: Alistair Popple <apopple@nvidia.com>
+> ---
+>  include/linux/huge_mm.h |   2 +-
+>  mm/huge_memory.c        | 165 +-----------------------------------------
+>  2 files changed, 167 deletions(-)
+> 
+> diff --git a/include/linux/huge_mm.h b/include/linux/huge_mm.h
+> index 9207d8e..0fb6bff 100644
+> --- a/include/linux/huge_mm.h
+> +++ b/include/linux/huge_mm.h
+> @@ -37,8 +37,6 @@ int change_huge_pmd(struct mmu_gather *tlb, struct vm_area_struct *vma,
+>  		    pmd_t *pmd, unsigned long addr, pgprot_t newprot,
+>  		    unsigned long cp_flags);
+>  
+> -vm_fault_t vmf_insert_pfn_pmd(struct vm_fault *vmf, pfn_t pfn, bool write);
+> -vm_fault_t vmf_insert_pfn_pud(struct vm_fault *vmf, pfn_t pfn, bool write);
+>  vm_fault_t dax_insert_pfn_pmd(struct vm_fault *vmf, pfn_t pfn, bool write);
+>  vm_fault_t dax_insert_pfn_pud(struct vm_fault *vmf, pfn_t pfn, bool write);
+
+There's a plan to support huge pfnmaps in VFIO, which may still make good
+use of these functions.  I think it's fine to remove them but it may mean
+we'll need to add them back when supporting pfnmaps with no memmap.
+
+Is it still possible to make the old API generic to both service the new
+dax refcount plan, but at the meantime working for pfn injections when
+there's no page struct?
+
+Thanks,
+
+-- 
+Peter Xu
 
