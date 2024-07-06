@@ -1,57 +1,56 @@
 Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A2D41C2AD
-	for <nvdimm@lists.linux.dev>; Sat,  6 Jul 2024 06:25:03 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 931531C69D
+	for <nvdimm@lists.linux.dev>; Sat,  6 Jul 2024 06:25:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720247104; cv=none; b=DeIvlKnfRrIVnhyB/OaPI8zkl3RQunfa/hy4clS7ZoP5zdhLim58NtZ+XaqRFMRZK+zyDF9lbv4u5m7lmOyd/YA+uKbKLD5qVzzVzI9nZuRUunv+HrAknxPeM73PL+MaI/EpJ6+zTg0PhxUxgXK00hBwW/QLyz/FMGgLC4+fLok=
+	t=1720247106; cv=none; b=Gfhmzq1ITzAhPmsomCxSsuiBp3EjYOl6K7mMjhktEtHUTUw5DeAE7q2Y+4m1sh17HGikMq3lyLd26tKouTXa+q2BbF2a4kQV5JKGbf1V01imd6Ze/OR7Wh0efKQx0XgtqmuCTuzl3VJOv/2OfUFnCdNCo0hpsH7zyhGKzcR/cvE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720247104; c=relaxed/simple;
-	bh=hvKg/t3CyFdt16dcyKFhlzMVaWxFkrYEOsQBvf3o8zc=;
+	s=arc-20240116; t=1720247106; c=relaxed/simple;
+	bh=EZaQR/vMZ15Damf1T/EUQAfXuo5XKQ90Ahtx/U2XHeM=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=mgpt50Iro9d27oCHZlJWqXfc0o/UmksvZ6XWngZD8LWJo0NxEC+v3QCVPfMV/zWOEWSxt52eFbBGZkZo/YEhFDMox2/NZv+qOoZ0WpARLjemNqOrDQBOfAT9P9IsBHA6b24g8KCY2rbA0AweWTSatN03RsCqJrC6Rkc9QPSvxI8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=c4OnQmWw; arc=none smtp.client-ip=192.198.163.18
+	 MIME-Version; b=SSeOR49d6r81zqMZf0f8wCdFo0fi7IRQN/Gtr7Trj3yTubLIeL+HrMHqNQ0YhfDUYrlBPS8PR9uFEerEXrI4fFBvle1LOB749LeLcntGdcxypRAbVXtAyjuTzfokmMC7svjCxqAhn/qK+9QRf7gLHYAMBoz7P4+aVDjJRaSy6kE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=OVwQJ8v9; arc=none smtp.client-ip=192.198.163.18
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="c4OnQmWw"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="OVwQJ8v9"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1720247103; x=1751783103;
+  t=1720247104; x=1751783104;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=hvKg/t3CyFdt16dcyKFhlzMVaWxFkrYEOsQBvf3o8zc=;
-  b=c4OnQmWwRUF47TySgYivOfLz2DyocQaT4nC5IMa77zCHEKu/7iY+G+xR
-   OXxkH8IB6iNgi8bvdMO9/y/XUxHI9tDXQWf9YHK8diH601W5bIeAHFv9C
-   9h6BqZSPFiun9a4Psel5dJ7M+aiZnqpt9Rew8AC6qUorjARmq9GIvZbN6
-   2g1XF+pL1JNi2F4FJkN5OO5R4YEFos2YWlP6mIXA+WXjZ2zxDhQ2UuTP1
-   InUHbDzStManKAkfrbgXDfllkTMgHoRpQ4W142b2zNB24Adm1rpo5cDpp
-   NDUr34ct9j+HOVl21anqZD0Lgj0QbtIPVxPAbLF5SqYSpXc0PTOe2usVL
-   w==;
-X-CSE-ConnectionGUID: BGSpxP8pThCnpT3fkCpplQ==
-X-CSE-MsgGUID: u507xjwERX2eucqhJe/vgg==
-X-IronPort-AV: E=McAfee;i="6700,10204,11123"; a="17166939"
+  bh=EZaQR/vMZ15Damf1T/EUQAfXuo5XKQ90Ahtx/U2XHeM=;
+  b=OVwQJ8v98UbVxjPPJixHUGGPwYOydSx8BP5bpv+BXt4EytWxXGkkhq0V
+   Z+jJUjCG60Y5HsysS9n7QQYu7g1FnUL3FkPaMzpdkARnG2Sw5c5eGzc4Q
+   BRCr4b5jyCNBvkafXzP0hVfGNLofOfUohH1HXfYx0B6B2SaCESM50xDjN
+   X7UrCI/YxtbbvNWuypDwfAVBoDgDjE3uqDgKfWNU+BeTNSsytiRnqQQ3I
+   FcuKu3KXWBgaTLOjywQzxEV5UVo5WuWanxuFMqaBtr/YEsIUERDU5YKhY
+   UYpjnyXL74wxvBVidAWd0PgPGgB6FpA0BLOcK83+tXgPlk7dsvdqtNIyZ
+   g==;
+X-CSE-ConnectionGUID: fiqKcPe0R4+BkEbMkM709g==
+X-CSE-MsgGUID: 4uj3KiPfS6yR86a8yIBCkQ==
+X-IronPort-AV: E=McAfee;i="6700,10204,11123"; a="17166942"
 X-IronPort-AV: E=Sophos;i="6.09,187,1716274800"; 
-   d="scan'208";a="17166939"
+   d="scan'208";a="17166942"
 Received: from fmviesa001.fm.intel.com ([10.60.135.141])
-  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Jul 2024 23:25:02 -0700
-X-CSE-ConnectionGUID: WzvvE/ijQqudln6JSfnsZA==
-X-CSE-MsgGUID: FPz/UGr/Rsa4ES7I/41QmQ==
+  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Jul 2024 23:25:03 -0700
+X-CSE-ConnectionGUID: P3j073hQTq27TCdeoq4uOA==
+X-CSE-MsgGUID: RSZMr83wSw6RR9DmF44aIQ==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.09,187,1716274800"; 
-   d="scan'208";a="78172519"
+   d="scan'208";a="78172525"
 Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.209.72.84])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Jul 2024 23:25:02 -0700
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Jul 2024 23:25:03 -0700
 From: alison.schofield@intel.com
 To: nvdimm@lists.linux.dev,
 	linux-cxl@vger.kernel.org
 Cc: Alison Schofield <alison.schofield@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Fan Ni <fan.ni@samsung.com>
-Subject: [ndctl PATCH v13 4/8] util/trace: add helpers to retrieve tep fields by type
-Date: Fri,  5 Jul 2024 23:24:50 -0700
-Message-Id: <b6089a98199539eca9c89f81de19cede18468408.1720241079.git.alison.schofield@intel.com>
+	Dave Jiang <dave.jiang@intel.com>
+Subject: [ndctl PATCH v13 5/8] libcxl: add interfaces for GET_POISON_LIST mailbox commands
+Date: Fri,  5 Jul 2024 23:24:51 -0700
+Message-Id: <ef5503682f5042e68f153824634a751b41d1342a.1720241079.git.alison.schofield@intel.com>
 X-Mailer: git-send-email 2.40.1
 In-Reply-To: <cover.1720241079.git.alison.schofield@intel.com>
 References: <cover.1720241079.git.alison.schofield@intel.com>
@@ -65,95 +64,124 @@ Content-Transfer-Encoding: 8bit
 
 From: Alison Schofield <alison.schofield@intel.com>
 
-Add helpers to extract the value of an event record field given the
-field name. This is useful when the user knows the name and format
-of the field and simply needs to get it. The helpers also return
-the 'type'_MAX of the type when the field is
+CXL devices maintain a list of locations that are poisoned or result
+in poison if the addresses are accessed by the host.
 
-Since this is in preparation for adding a cxl_poison private parser
-for 'cxl list --media-errors' support those specific required
-types: u8, u32, u64.
+Per the spec (CXL 3.1 8.2.9.9.4.1), the device returns the Poison
+List as a set of  Media Error Records that include the source of the
+error, the starting device physical address and length.
+
+Trigger the retrieval of the poison list by writing to the memory
+device sysfs attribute: trigger_poison_list. The CXL driver only
+offers triggering per memdev, so the trigger by region interface
+offered here is a convenience API that triggers a poison list
+retrieval for each memdev contributing to a region.
+
+int cxl_memdev_trigger_poison_list(struct cxl_memdev *memdev);
+int cxl_region_trigger_poison_list(struct cxl_region *region);
+
+The resulting poison records are logged as kernel trace events
+named 'cxl_poison'.
 
 Signed-off-by: Alison Schofield <alison.schofield@intel.com>
 Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-Reviewed-by: Fan Ni <fan.ni@samsung.com>
 ---
- util/event_trace.c | 37 +++++++++++++++++++++++++++++++++++++
- util/event_trace.h |  8 +++++++-
- 2 files changed, 44 insertions(+), 1 deletion(-)
+ cxl/lib/libcxl.c   | 53 ++++++++++++++++++++++++++++++++++++++++++++++
+ cxl/lib/libcxl.sym |  6 ++++++
+ cxl/libcxl.h       |  2 ++
+ 3 files changed, 61 insertions(+)
 
-diff --git a/util/event_trace.c b/util/event_trace.c
-index 1f5c180a030b..bde3a76adfbf 100644
---- a/util/event_trace.c
-+++ b/util/event_trace.c
-@@ -15,6 +15,43 @@
- #define _GNU_SOURCE
- #include <string.h>
+diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
+index 91eedd1c4688..63aa4ef3acdc 100644
+--- a/cxl/lib/libcxl.c
++++ b/cxl/lib/libcxl.c
+@@ -1762,6 +1762,59 @@ CXL_EXPORT int cxl_memdev_disable_invalidate(struct cxl_memdev *memdev)
+ 	return 0;
+ }
  
-+u64 trace_get_field_u64(struct tep_event *event, struct tep_record *record,
-+			const char *name)
++CXL_EXPORT int cxl_memdev_trigger_poison_list(struct cxl_memdev *memdev)
 +{
-+	unsigned long long val;
++	struct cxl_ctx *ctx = cxl_memdev_get_ctx(memdev);
++	char *path = memdev->dev_buf;
++	int len = memdev->buf_len, rc;
 +
-+	if (tep_get_field_val(NULL, event, name, record, &val, 0))
-+		return ULLONG_MAX;
++	if (snprintf(path, len, "%s/trigger_poison_list",
++		     memdev->dev_path) >= len) {
++		err(ctx, "%s: buffer too small\n",
++		    cxl_memdev_get_devname(memdev));
++		return -ENXIO;
++	}
 +
-+	return val;
++	if (access(path, F_OK) != 0) {
++		err(ctx, "%s: trigger_poison_list unsupported by device\n",
++		    cxl_memdev_get_devname(memdev));
++		return -ENXIO;
++	}
++
++	rc = sysfs_write_attr(ctx, path, "1\n");
++	if (rc < 0) {
++		err(ctx, "%s: Failed trigger_poison_list\n",
++		    cxl_memdev_get_devname(memdev));
++		return rc;
++	}
++	return 0;
 +}
 +
-+u32 trace_get_field_u32(struct tep_event *event, struct tep_record *record,
-+			const char *name)
++CXL_EXPORT int cxl_region_trigger_poison_list(struct cxl_region *region)
 +{
-+	char *val;
-+	int len;
++	struct cxl_memdev_mapping *mapping;
++	int rc;
 +
-+	val = tep_get_field_raw(NULL, event, name, record, &len, 0);
-+	if (!val)
-+		return UINT_MAX;
++	cxl_mapping_foreach(region, mapping) {
++		struct cxl_decoder *decoder;
++		struct cxl_memdev *memdev;
 +
-+	return *(u32 *)val;
++		decoder = cxl_mapping_get_decoder(mapping);
++		if (!decoder)
++			continue;
++
++		memdev = cxl_decoder_get_memdev(decoder);
++		if (!memdev)
++			continue;
++
++		rc = cxl_memdev_trigger_poison_list(memdev);
++		if (rc)
++			return rc;
++	}
++
++	return 0;
 +}
 +
-+u8 trace_get_field_u8(struct tep_event *event, struct tep_record *record,
-+		      const char *name)
-+{
-+	char *val;
-+	int len;
-+
-+	val = tep_get_field_raw(NULL, event, name, record, &len, 0);
-+	if (!val)
-+		return UCHAR_MAX;
-+
-+	return *(u8 *)val;
-+}
-+
- static struct json_object *num_to_json(void *num, int elem_size, unsigned long flags)
+ CXL_EXPORT int cxl_memdev_enable(struct cxl_memdev *memdev)
  {
- 	bool sign = flags & TEP_FIELD_IS_SIGNED;
-diff --git a/util/event_trace.h b/util/event_trace.h
-index 9c53eba7533f..4d498577a00f 100644
---- a/util/event_trace.h
-+++ b/util/event_trace.h
-@@ -5,6 +5,7 @@
+ 	struct cxl_ctx *ctx = cxl_memdev_get_ctx(memdev);
+diff --git a/cxl/lib/libcxl.sym b/cxl/lib/libcxl.sym
+index 304d7fa735d4..0c155a40ad47 100644
+--- a/cxl/lib/libcxl.sym
++++ b/cxl/lib/libcxl.sym
+@@ -282,3 +282,9 @@ global:
+ 	cxl_region_qos_class_mismatch;
+ 	cxl_port_decoders_committed;
+ } LIBCXL_6;
++
++LIBECXL_8 {
++global:
++	cxl_memdev_trigger_poison_list;
++	cxl_region_trigger_poison_list;
++} LIBCXL_7;
+diff --git a/cxl/libcxl.h b/cxl/libcxl.h
+index fc6dd0085440..0a5fd0e13cc2 100644
+--- a/cxl/libcxl.h
++++ b/cxl/libcxl.h
+@@ -468,6 +468,8 @@ enum cxl_setpartition_mode {
  
- #include <json-c/json.h>
- #include <ccan/list/list.h>
-+#include <ccan/short_types/short_types.h>
+ int cxl_cmd_partition_set_mode(struct cxl_cmd *cmd,
+ 		enum cxl_setpartition_mode mode);
++int cxl_memdev_trigger_poison_list(struct cxl_memdev *memdev);
++int cxl_region_trigger_poison_list(struct cxl_region *region);
  
- struct jlist_node {
- 	struct json_object *jobj;
-@@ -24,5 +25,10 @@ int trace_event_parse(struct tracefs_instance *inst, struct event_ctx *ectx);
- int trace_event_enable(struct tracefs_instance *inst, const char *system,
- 		       const char *event);
- int trace_event_disable(struct tracefs_instance *inst);
--
-+u8 trace_get_field_u8(struct tep_event *event, struct tep_record *record,
-+		      const char *name);
-+u32 trace_get_field_u32(struct tep_event *event, struct tep_record *record,
-+			const char *name);
-+u64 trace_get_field_u64(struct tep_event *event, struct tep_record *record,
-+			const char *name);
- #endif
+ int cxl_cmd_alert_config_set_life_used_prog_warn_threshold(struct cxl_cmd *cmd,
+ 							   int threshold);
 -- 
 2.37.3
 
