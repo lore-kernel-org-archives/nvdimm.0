@@ -1,195 +1,226 @@
-Received: from flow5-smtp.messagingengine.com (flow5-smtp.messagingengine.com [103.168.172.140])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 648651448ED;
-	Tue, 16 Jul 2024 13:08:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.140
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24FD0180A70
+	for <nvdimm@lists.linux.dev>; Wed, 17 Jul 2024 14:33:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721135307; cv=none; b=KPc72ed2HzBkKS5JfPd932ZaolXzIzlBJlQlsg7/bX3I5LKyp5hTdlwbmETFxBvlo4ZX4AMmebh4AgfPRGioGLMimevE5KzwoGrVpACnRPxEkjLnAr0HPmjiCKpcr94+83dGy8wbR5oYo3pF5UyBtI6J9it2dcwWcAgZ0lhC3NI=
+	t=1721226789; cv=none; b=a/h1EhvPstYFt+CFdNWOAgh9T5erL1jhIh/+II2XI7VI62ALS5Dnpde9kZqBhCxv8vDUujxnKQ1HFd4pgkQCXE2Eh3RQdqrJNkoMAPXtJL0CSQf8CaTE+35vKVxzCWOFnj3KYxadNsfMFo1uOz7ksP8+ByALhaSGaDEHQ7ROjVs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721135307; c=relaxed/simple;
-	bh=HDznOx5hbb1IvT1ZrtlGW6ohzdUf5QDocyHD5/dDtnU=;
-	h=MIME-Version:Message-Id:In-Reply-To:References:Date:From:To:Cc:
-	 Subject:Content-Type; b=lHk+dm3WoyYYFjMWEFH4kRsh6Avzlfw2VuP/bdEO3YDto2E/CZyXDu2Bq6UJLeiyRLiNBD+Z/gwFkDKuY3lyo2S59klexEVOuXCOSiCNejVK8mV/5ZFdRoydNC/ovRlvSbSKRNAa6y9G9Q3jutzc6EHBCwT6sH/ExbWkLRqdWPA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=flygoat.com; spf=pass smtp.mailfrom=flygoat.com; dkim=pass (2048-bit key) header.d=flygoat.com header.i=@flygoat.com header.b=LLolVvbG; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=bG2YZz3j; arc=none smtp.client-ip=103.168.172.140
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=flygoat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flygoat.com
+	s=arc-20240116; t=1721226789; c=relaxed/simple;
+	bh=CrDDYOcmyPQoZCPC1i4Y1DcAZ3+d7HcTSETFYRrG8VQ=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=VhFYzYDzwUvlVYykObiMsKZToJFM1XdixB7+C309SuQ2wGpduu8/5dc1aCV+ZdXkIZQXTgP3REoXV+MZTCNyjcn/BmOXisSCu4bECdiI3nr2Ao3e+YSWMD2z4NklBhezsYsQZcurrHAc7ggPVeTSBfQ9zX6Q3t66fRHLeso7lvY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=EEQ93nnU; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=flygoat.com header.i=@flygoat.com header.b="LLolVvbG";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="bG2YZz3j"
-Received: from compute3.internal (compute3.nyi.internal [10.202.2.43])
-	by mailflow.nyi.internal (Postfix) with ESMTP id 64DA4201196;
-	Tue, 16 Jul 2024 09:08:24 -0400 (EDT)
-Received: from imap44 ([10.202.2.94])
-  by compute3.internal (MEProxy); Tue, 16 Jul 2024 09:08:24 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=flygoat.com; h=
-	cc:cc:content-transfer-encoding:content-type:content-type:date
-	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to; s=fm3; t=1721135304;
-	 x=1721142504; bh=zt6qUa/rBAPGttY012K2IM8tuPIkZZ+7qikKmJ20XiQ=; b=
-	LLolVvbGAnfV4iXPMW7seBnQ9ucngH1f2xp7EVD2uugxg3VEjVHJlV3vHpdUCRlV
-	2Crod5dg4xilCIfTvsTZ3G0tnDSqxiqhIDMAeN6+HEFwoCEsiOOPq8SsQLa0sr/G
-	xoG+i1vuZTOZ/7p3S2bp7uGbvMcxmbyusFaykv0mTCQZsmkThpkr9v2U6Zr+crZZ
-	kmtszuZc2FnPtn2KugCODrgWHPthZIH5B7IwAoGfLtZRAwh7tq+DE3K11XSzxYk8
-	5cprDH9mBZKnOwemRYCHcIIWN9/QaaLvzr+ZwZv/QxnXkafuN22zU1FFkVBylKx6
-	A+QxZ0MIkK2YbgL8XuvmWw==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:content-type:date:date:feedback-id:feedback-id
-	:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to:x-me-proxy:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm2; t=1721135304; x=
-	1721142504; bh=zt6qUa/rBAPGttY012K2IM8tuPIkZZ+7qikKmJ20XiQ=; b=b
-	G2YZz3jWm7iHL3gXNLVUTtNcfzTahLzLjR4iyuU0CNuyM89NLOf9oZyD2C3hYAIK
-	AfDf20U8qC7CTOkBsWjWvYOHnqiWY3TigtPu5Yde99vlDGBfkJrkykgrj6MZxNRd
-	OF0b0J9NpdNZ0L4sxgIiiEOEJlRsdc3+T+nlOeUW0yb0Z8JhW7I8RkOQgEq1DoaG
-	WOeM5WdMLmGD4/DXwHMeXVIh/TuGiCjq62Cmau3SRwhwxyMut9KqZw8PI0t559X3
-	drs3XIktjiBwP0mYVx52WH2pcoTQ4U95QNutDBRpZXbx67KkVSdfOjgua4ISKpVl
-	lzZmmp3ndbV1KXYw8/6vw==
-X-ME-Sender: <xms:xXCWZt3tlPtvPdXdpaZocqjicoskk-NG9y-bvebOxJ2yaqSo-ntZSQ>
-    <xme:xXCWZkHxzyEYBpjsPnzBU2BkygS49Fm5KQ2wiZODEv68093OCfiRbDkFvgNs4ylIq
-    zNg7JKbvF4HsO-agKk>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeeftddrgeeggdehlecutefuodetggdotefrodftvf
-    curfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfghnecu
-    uegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenuc
-    fjughrpefofgggkfgjfhffhffvvefutgfgsehtqhertderreejnecuhfhrohhmpedflfhi
-    rgiguhhnucgjrghnghdfuceojhhirgiguhhnrdihrghnghesfhhlhihgohgrthdrtghomh
-    eqnecuggftrfgrthhtvghrnhepudefgeeftedugeehffdtheefgfevffelfefghefhjeeu
-    geevtefhudduvdeihefgnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrg
-    hilhhfrhhomhepjhhirgiguhhnrdihrghnghesfhhlhihgohgrthdrtghomh
-X-ME-Proxy: <xmx:xXCWZt52lvXg2r0FUCr8Pldg21ygP9uQs9__NpHOUsUBsrMqglT6BQ>
-    <xmx:xXCWZq18Zx1G13DUCBEKRxrSOCgkx2fk92PAR2EWDjXzJDjnn56Rcg>
-    <xmx:xXCWZgFI07CYIk3hv4CGlbyEsesGfT_8oHM0IC0w4mt3-qFdd2Rvsg>
-    <xmx:xXCWZr8qedzeakvaan4WKKj-eqO-aC5_umvCGYpV4BkCe0Dn1-_H4A>
-    <xmx:yHCWZiNMi5WAbUPy1KvZo5AqIJpXj9vGnZQG9x0mWda-jv_tKouiwZyc>
-Feedback-ID: ifd894703:Fastmail
-Received: by mailuser.nyi.internal (Postfix, from userid 501)
-	id 7559536A0075; Tue, 16 Jul 2024 09:08:21 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
-User-Agent: Cyrus-JMAP/3.11.0-alpha0-568-g843fbadbe-fm-20240701.003-g843fbadb
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="EEQ93nnU"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1721226787;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
+	bh=GICXT0BFVJy0QIZX9VPtiCc3OM2RPQjhgUFSA0WTx1U=;
+	b=EEQ93nnU3NjF4aNxZ7t61EzfeBmTKW7XMavSTn1Q+F+LrcvRHQKfSz1DY2JDpCRKj4QEbs
+	RQhOBJcmZnM3VPAF9PWX7fklH5PLJpJ+hpIVOXW+WfgeOvjokECSCzAMngw+I1VXJjFrvD
+	kwgaN5LZ+wns6DxmOdxOvdQhMyge2Mw=
+Received: from mail-lf1-f70.google.com (mail-lf1-f70.google.com
+ [209.85.167.70]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-132-hKt5ax2XP8aLTtX4EFuC_Q-1; Wed, 17 Jul 2024 10:33:03 -0400
+X-MC-Unique: hKt5ax2XP8aLTtX4EFuC_Q-1
+Received: by mail-lf1-f70.google.com with SMTP id 2adb3069b0e04-52e969d0198so7055926e87.2
+        for <nvdimm@lists.linux.dev>; Wed, 17 Jul 2024 07:33:03 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1721226782; x=1721831582;
+        h=content-transfer-encoding:in-reply-to:organization:autocrypt
+         :content-language:from:references:cc:to:subject:user-agent
+         :mime-version:date:message-id:x-gm-message-state:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=GICXT0BFVJy0QIZX9VPtiCc3OM2RPQjhgUFSA0WTx1U=;
+        b=lce8zUzTGAgFzGXoaypcBAwvYSRwJGwR0R2xOWF/KW2KHBM4YljWqgFLpQddYpsZfp
+         e2MpoKw7zGz44IXNPLepXH+UAh5cQ4q1wLBN+HAXvU6Rfs3jAWV+QZMRfjZIwE18IZri
+         BvPXHrzb/UT6UhTqlAvcN9I8GXAiVbYD/iCL6h1EXX7inP/OPPxkxwYfDO1V8jAtNkFb
+         7ajm93bbic+Uh6qYlcimiiXXSSH7qXMCMUTjmZLnRUg+Is7RrHdDqmPd3PQXkNT0lEk1
+         W69y9saPI+pBbbcs5Vy9Jr/eezFIoPscm0oiNhSY5jME7A4bK2f6K1xuuDqBGL1U2GNc
+         kx0g==
+X-Forwarded-Encrypted: i=1; AJvYcCXM7wYbU5zhGUYOf1vnUMsdWDITF066dz8AYKv8O7xdamf5wRHgjE1lG3VtQqOPX6yF84EafzzuS4/E21Tf0vjVk8Zld9w9
+X-Gm-Message-State: AOJu0YwhdfleV1idBceXoHpyTwi1UC6JztFoJ9PRJgutBzhpXnXoQ/89
+	jkPOULAngvJB1gcKEH1HEKbGWUZTiLk2rWmkk0KNtwbTc67n4INmw8nyoP33/jlDCkIGnru3nA/
+	hOOI2ko3OMIYca/0ogYpVEg7e+Gakf68CdHeCZyMJ7U4iGKfQvdeO1Q==
+X-Received: by 2002:a05:6512:33c5:b0:52c:ec68:6165 with SMTP id 2adb3069b0e04-52ee53cc00bmr1663782e87.33.1721226782341;
+        Wed, 17 Jul 2024 07:33:02 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IGrqpAiEHpfyNE8LzYLpjmIqAoQj/aWWnfve8BOPOkkfeVMrwCw7kn1k4etYvjz09EiWJN/XQ==
+X-Received: by 2002:a05:6512:33c5:b0:52c:ec68:6165 with SMTP id 2adb3069b0e04-52ee53cc00bmr1663731e87.33.1721226781780;
+        Wed, 17 Jul 2024 07:33:01 -0700 (PDT)
+Received: from ?IPV6:2003:cb:c714:c00:b08b:a871:ce99:dfde? (p200300cbc7140c00b08ba871ce99dfde.dip0.t-ipconnect.de. [2003:cb:c714:c00:b08b:a871:ce99:dfde])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-427c77a5804sm92385e9.16.2024.07.17.07.32.59
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 17 Jul 2024 07:33:01 -0700 (PDT)
+Message-ID: <e57eca18-b66d-4b5d-9e73-8ab22f6bc747@redhat.com>
+Date: Wed, 17 Jul 2024 16:32:59 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Message-Id: <2a2bb8b6-09ca-40c3-b6a9-d8fac7dd5208@app.fastmail.com>
-In-Reply-To: <20240716111346.3676969-4-rppt@kernel.org>
-References: <20240716111346.3676969-1-rppt@kernel.org>
- <20240716111346.3676969-4-rppt@kernel.org>
-Date: Tue, 16 Jul 2024 21:07:59 +0800
-From: "Jiaxun Yang" <jiaxun.yang@flygoat.com>
-To: "Mike Rapoport" <rppt@kernel.org>, linux-kernel@vger.kernel.org
-Cc: "Alexander Gordeev" <agordeev@linux.ibm.com>,
- "Andreas Larsson" <andreas@gaisler.com>,
- "Andrew Morton" <akpm@linux-foundation.org>,
- "Arnd Bergmann" <arnd@arndb.de>, "Borislav Petkov" <bp@alien8.de>,
- "Catalin Marinas" <catalin.marinas@arm.com>,
- "Christophe Leroy" <christophe.leroy@csgroup.eu>,
- "Dan Williams" <dan.j.williams@intel.com>,
- "Dave Hansen" <dave.hansen@linux.intel.com>,
- "David Hildenbrand" <david@redhat.com>,
- "David S . Miller" <davem@davemloft.net>,
- "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
- "Heiko Carstens" <hca@linux.ibm.com>,
- "Huacai Chen" <chenhuacai@kernel.org>, "Ingo Molnar" <mingo@redhat.com>,
- "John Paul Adrian Glaubitz" <glaubitz@physik.fu-berlin.de>,
- "Jonathan Cameron" <jonathan.cameron@huawei.com>,
- "Michael Ellerman" <mpe@ellerman.id.au>,
- "Palmer Dabbelt" <palmer@dabbelt.com>,
- "Rafael J. Wysocki" <rafael@kernel.org>, "Rob Herring" <robh@kernel.org>,
- "Thomas Bogendoerfer" <tsbogend@alpha.franken.de>,
- "Thomas Gleixner" <tglx@linutronix.de>,
- "Vasily Gorbik" <gor@linux.ibm.com>, "Will Deacon" <will@kernel.org>,
- linux-arm-kernel@lists.infradead.org, loongarch@lists.linux.dev,
- "linux-mips@vger.kernel.org" <linux-mips@vger.kernel.org>,
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 02/17] MIPS: sgi-ip27: make NODE_DATA() the same as on all
+ other architectures
+To: Mike Rapoport <rppt@kernel.org>, linux-kernel@vger.kernel.org
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>,
+ Andreas Larsson <andreas@gaisler.com>,
+ Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>,
+ Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>,
+ Christophe Leroy <christophe.leroy@csgroup.eu>,
+ Dan Williams <dan.j.williams@intel.com>,
+ Dave Hansen <dave.hansen@linux.intel.com>,
+ "David S. Miller" <davem@davemloft.net>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ Heiko Carstens <hca@linux.ibm.com>, Huacai Chen <chenhuacai@kernel.org>,
+ Ingo Molnar <mingo@redhat.com>, Jiaxun Yang <jiaxun.yang@flygoat.com>,
+ John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+ Jonathan Cameron <jonathan.cameron@huawei.com>,
+ Michael Ellerman <mpe@ellerman.id.au>, Palmer Dabbelt <palmer@dabbelt.com>,
+ "Rafael J. Wysocki" <rafael@kernel.org>, Rob Herring <robh@kernel.org>,
+ Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+ Thomas Gleixner <tglx@linutronix.de>, Vasily Gorbik <gor@linux.ibm.com>,
+ Will Deacon <will@kernel.org>, linux-arm-kernel@lists.infradead.org,
+ loongarch@lists.linux.dev, linux-mips@vger.kernel.org,
  linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
  linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
  sparclinux@vger.kernel.org, linux-acpi@vger.kernel.org,
  linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
- devicetree@vger.kernel.org, linux-arch@vger.kernel.org,
- linux-mm@kvack.org, x86@kernel.org
-Subject: Re: [PATCH 03/17] MIPS: loongson64: rename __node_data to node_data
-Content-Type: text/plain;charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+ devicetree@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org,
+ x86@kernel.org
+References: <20240716111346.3676969-1-rppt@kernel.org>
+ <20240716111346.3676969-3-rppt@kernel.org>
+From: David Hildenbrand <david@redhat.com>
+Autocrypt: addr=david@redhat.com; keydata=
+ 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
+ WNyWQQ==
+Organization: Red Hat
+In-Reply-To: <20240716111346.3676969-3-rppt@kernel.org>
+X-Mimecast-Spam-Score: 0
+X-Mimecast-Originator: redhat.com
+Content-Language: en-US
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-
-
-=E5=9C=A82024=E5=B9=B47=E6=9C=8816=E6=97=A5=E4=B8=83=E6=9C=88 =E4=B8=8B=E5=
-=8D=887:13=EF=BC=8CMike Rapoport=E5=86=99=E9=81=93=EF=BC=9A
+On 16.07.24 13:13, Mike Rapoport wrote:
 > From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
->
-> Make definition of node_data match other architectures.
-> This will allow pulling declaration of node_data to the generic mm cod=
-e in
-> the following commit.
->
+> 
+> sgi-ip27 is the only system that defines NODE_DATA() differently than
+> the rest of NUMA machines.
+> 
+> Add node_data array of struct pglist pointers that will point to
+> __node_data[node]->pglist and redefine NODE_DATA() to use node_data
+> array.
+> 
+> This will allow pulling declaration of node_data to the generic mm code
+> in the next commit.
+> 
 > Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-
-Reviewed-by: Jiaxun Yang <jiaxun.yang@flygoat.com>
-
-MIPS should go arch_numa at some point as well.
-
-Thanks
-- Jiaxun
-
 > ---
->  arch/mips/include/asm/mach-loongson64/mmzone.h | 4 ++--
->  arch/mips/loongson64/numa.c                    | 8 ++++----
->  2 files changed, 6 insertions(+), 6 deletions(-)
->
-> diff --git a/arch/mips/include/asm/mach-loongson64/mmzone.h=20
-> b/arch/mips/include/asm/mach-loongson64/mmzone.h
-> index a3d65d37b8b5..2effd5f8ed62 100644
-> --- a/arch/mips/include/asm/mach-loongson64/mmzone.h
-> +++ b/arch/mips/include/asm/mach-loongson64/mmzone.h
-> @@ -14,9 +14,9 @@
->  #define pa_to_nid(addr)  (((addr) & 0xf00000000000) >>=20
-> NODE_ADDRSPACE_SHIFT)
->  #define nid_to_addrbase(nid) ((unsigned long)(nid) <<=20
-> NODE_ADDRSPACE_SHIFT)
->=20
-> -extern struct pglist_data *__node_data[];
+>   arch/mips/include/asm/mach-ip27/mmzone.h | 5 ++++-
+>   arch/mips/sgi-ip27/ip27-memory.c         | 5 ++++-
+>   2 files changed, 8 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/mips/include/asm/mach-ip27/mmzone.h b/arch/mips/include/asm/mach-ip27/mmzone.h
+> index 08c36e50a860..629c3f290203 100644
+> --- a/arch/mips/include/asm/mach-ip27/mmzone.h
+> +++ b/arch/mips/include/asm/mach-ip27/mmzone.h
+> @@ -22,7 +22,10 @@ struct node_data {
+>   
+>   extern struct node_data *__node_data[];
+>   
+> -#define NODE_DATA(n)		(&__node_data[(n)]->pglist)
+>   #define hub_data(n)		(&__node_data[(n)]->hub)
+>   
 > +extern struct pglist_data *node_data[];
->=20
-> -#define NODE_DATA(n)		(__node_data[n])
-> +#define NODE_DATA(n)		(node_data[n])
->=20
->  extern void __init prom_init_numa_memory(void);
->=20
-> diff --git a/arch/mips/loongson64/numa.c b/arch/mips/loongson64/numa.c
-> index 68dafd6d3e25..b50ce28d2741 100644
-> --- a/arch/mips/loongson64/numa.c
-> +++ b/arch/mips/loongson64/numa.c
-> @@ -29,8 +29,8 @@
->=20
->  unsigned char __node_distances[MAX_NUMNODES][MAX_NUMNODES];
->  EXPORT_SYMBOL(__node_distances);
-> -struct pglist_data *__node_data[MAX_NUMNODES];
-> -EXPORT_SYMBOL(__node_data);
+> +
+> +#define NODE_DATA(nid)		(node_data[nid])
+> +
+>   #endif /* _ASM_MACH_MMZONE_H */
+> diff --git a/arch/mips/sgi-ip27/ip27-memory.c b/arch/mips/sgi-ip27/ip27-memory.c
+> index b8ca94cfb4fe..c30ef6958b97 100644
+> --- a/arch/mips/sgi-ip27/ip27-memory.c
+> +++ b/arch/mips/sgi-ip27/ip27-memory.c
+> @@ -34,8 +34,10 @@
+>   #define SLOT_PFNSHIFT		(SLOT_SHIFT - PAGE_SHIFT)
+>   #define PFN_NASIDSHFT		(NASID_SHFT - PAGE_SHIFT)
+>   
+> -struct node_data *__node_data[MAX_NUMNODES];
 > +struct pglist_data *node_data[MAX_NUMNODES];
 > +EXPORT_SYMBOL(node_data);
->=20
->  cpumask_t __node_cpumask[MAX_NUMNODES];
->  EXPORT_SYMBOL(__node_cpumask);
-> @@ -107,7 +107,7 @@ static void __init node_mem_init(unsigned int node)
->  	tnid =3D early_pfn_to_nid(nd_pa >> PAGE_SHIFT);
->  	if (tnid !=3D node)
->  		pr_info("NODE_DATA(%d) on node %d\n", node, tnid);
-> -	__node_data[node] =3D nd;
-> +	node_data[node] =3D nd;
->  	NODE_DATA(node)->node_start_pfn =3D start_pfn;
->  	NODE_DATA(node)->node_spanned_pages =3D end_pfn - start_pfn;
->=20
-> @@ -206,5 +206,5 @@ pg_data_t * __init arch_alloc_nodedata(int nid)
->=20
->  void arch_refresh_nodedata(int nid, pg_data_t *pgdat)
->  {
-> -	__node_data[nid] =3D pgdat;
-> +	node_data[nid] =3D pgdat;
->  }
-> --=20
-> 2.43.0
+>   
+> +struct node_data *__node_data[MAX_NUMNODES];
+>   EXPORT_SYMBOL(__node_data);
+>   
+>   static u64 gen_region_mask(void)
+> @@ -361,6 +363,7 @@ static void __init node_mem_init(nasid_t node)
+>   	 */
+>   	__node_data[node] = __va(slot_freepfn << PAGE_SHIFT);
+>   	memset(__node_data[node], 0, PAGE_SIZE);
+> +	node_data[node] = &__node_data[node]->pglist;
+>   
+>   	NODE_DATA(node)->node_start_pfn = start_pfn;
+>   	NODE_DATA(node)->node_spanned_pages = end_pfn - start_pfn;
 
---=20
-- Jiaxun
+I was assuming we could get rid of __node_data->pglist.
+
+But now I am confused where that is actually set.
+
+Anyhow
+
+Reviewed-by: David Hildenbrand <david@redhat.com>
+
+-- 
+Cheers,
+
+David / dhildenb
+
