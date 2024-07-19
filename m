@@ -1,47 +1,47 @@
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 436A113E028;
-	Fri, 19 Jul 2024 13:55:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C83F7C2E9;
+	Fri, 19 Jul 2024 14:38:56 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721397337; cv=none; b=VfpE/jNwjvrNLlNph+p1wKDsH7/Hr4e2BAFrk0WD+cgOPRqERzyYR0wUcLlN/hDowpUh+cYigcMiedKySuZQdVjAxw6NpNOw0BJwrumXr+IjGqyiBgnT9EuD/Ij+kqGnPaQCRhW2BZ28jJLCwo4E0SGR4Yd+204mZyj31lhcFSE=
+	t=1721399939; cv=none; b=aMYk2+EJO5PiFo7/61R9+vgyJz1/X+QXhPfx1D1QJsInZ+xk/bWic8ZXDzQFdt0k4lMn+BRLvTvYYNgfrm6rXboT+Gh4xKJrNwYDHkLo/BVEgnKHBimUs05BKgs0c8wGy0AiMVzNzUz69YahSmq0avQOtdVwnj/GsQF63by3tgk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721397337; c=relaxed/simple;
-	bh=ZIiXo2w77qn44BvYh54hr81RAANN7X1cK2LMz7jEDZ0=;
+	s=arc-20240116; t=1721399939; c=relaxed/simple;
+	bh=MthLwAZw/K/pHDsypzwnpxxVpjnrL/t3lpnlDB9Cp0s=;
 	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=h/2Qrz6F9K0FGOTJ/kLzFKR9xLemWf/wo3VN6zdIJ7Yx70QJza2ZVzRbybl65tjYSVOF7/MFn4X94j80XbUC6Tb5UdqK6kIbqU0fTk3CXl76crqzcFf6dNT0do0R9YuLSDeMbS1g7l7YnO4BB3NyJ6S2Ms67holQThJ4ctghW4o=
+	 MIME-Version:Content-Type; b=RTAXayoRnfvnrP6GY4wMEmz/ZEVQF44LsBF5+h74NjsKtWjbCfRApT5pcDSBtr4g/D0dZ7RN66LwwZV7EzJrXL0VPC/3T2u/YM3CWFkM8CzH7er+lhm1y87LunaEf8K6bYmo7kld1NJve2kcbUplI1mlhZOZl2G+DNvxUKLsIAk=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.186.31])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4WQWNB0hNYz6K93S;
-	Fri, 19 Jul 2024 21:53:14 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.18.186.216])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4WQXMF48rrz6JBjL;
+	Fri, 19 Jul 2024 22:37:29 +0800 (CST)
 Received: from lhrpeml500005.china.huawei.com (unknown [7.191.163.240])
-	by mail.maildlp.com (Postfix) with ESMTPS id 5FB5E140A08;
-	Fri, 19 Jul 2024 21:55:31 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id D6E9D140684;
+	Fri, 19 Jul 2024 22:38:53 +0800 (CST)
 Received: from localhost (10.203.174.77) by lhrpeml500005.china.huawei.com
  (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Fri, 19 Jul
- 2024 14:55:30 +0100
-Date: Fri, 19 Jul 2024 14:55:29 +0100
+ 2024 15:38:53 +0100
+Date: Fri, 19 Jul 2024 15:38:52 +0100
 From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-To: Mike Rapoport <rppt@kernel.org>
-CC: <linux-kernel@vger.kernel.org>, Alexander Gordeev
-	<agordeev@linux.ibm.com>, Andreas Larsson <andreas@gaisler.com>, "Andrew
- Morton" <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, "Borislav
- Petkov" <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christophe
- Leroy <christophe.leroy@csgroup.eu>, Dan Williams <dan.j.williams@intel.com>,
-	Dave Hansen <dave.hansen@linux.intel.com>, David Hildenbrand
-	<david@redhat.com>, "David S. Miller" <davem@davemloft.net>, Greg
+To: David Hildenbrand <david@redhat.com>
+CC: Mike Rapoport <rppt@kernel.org>, <linux-kernel@vger.kernel.org>,
+	"Alexander Gordeev" <agordeev@linux.ibm.com>, Andreas Larsson
+	<andreas@gaisler.com>, Andrew Morton <akpm@linux-foundation.org>, Arnd
+ Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, Catalin Marinas
+	<catalin.marinas@arm.com>, Christophe Leroy <christophe.leroy@csgroup.eu>,
+	Dan Williams <dan.j.williams@intel.com>, Dave Hansen
+	<dave.hansen@linux.intel.com>, "David S. Miller" <davem@davemloft.net>, Greg
  Kroah-Hartman <gregkh@linuxfoundation.org>, Heiko Carstens
-	<hca@linux.ibm.com>, Huacai Chen <chenhuacai@kernel.org>, Ingo Molnar
-	<mingo@redhat.com>, Jiaxun Yang <jiaxun.yang@flygoat.com>, "John Paul Adrian
- Glaubitz" <glaubitz@physik.fu-berlin.de>, Michael Ellerman
+	<hca@linux.ibm.com>, "Huacai Chen" <chenhuacai@kernel.org>, Ingo Molnar
+	<mingo@redhat.com>, Jiaxun Yang <jiaxun.yang@flygoat.com>, John Paul Adrian
+ Glaubitz <glaubitz@physik.fu-berlin.de>, Michael Ellerman
 	<mpe@ellerman.id.au>, Palmer Dabbelt <palmer@dabbelt.com>, "Rafael J.
- Wysocki" <rafael@kernel.org>, Rob Herring <robh@kernel.org>, "Thomas
- Bogendoerfer" <tsbogend@alpha.franken.de>, Thomas Gleixner
-	<tglx@linutronix.de>, Vasily Gorbik <gor@linux.ibm.com>, Will Deacon
+ Wysocki" <rafael@kernel.org>, Rob Herring <robh@kernel.org>, Thomas
+ Bogendoerfer <tsbogend@alpha.franken.de>, Thomas Gleixner
+	<tglx@linutronix.de>, "Vasily Gorbik" <gor@linux.ibm.com>, Will Deacon
 	<will@kernel.org>, <linux-arm-kernel@lists.infradead.org>,
 	<loongarch@lists.linux.dev>, <linux-mips@vger.kernel.org>,
 	<linuxppc-dev@lists.ozlabs.org>, <linux-riscv@lists.infradead.org>,
@@ -50,11 +50,13 @@ CC: <linux-kernel@vger.kernel.org>, Alexander Gordeev
 	<linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>,
 	<devicetree@vger.kernel.org>, <linux-arch@vger.kernel.org>,
 	<linux-mm@kvack.org>, <x86@kernel.org>
-Subject: Re: [PATCH 01/17] mm: move kernel/numa.c to mm/
-Message-ID: <20240719145529.00007542@Huawei.com>
-In-Reply-To: <20240716111346.3676969-2-rppt@kernel.org>
+Subject: Re: [PATCH 02/17] MIPS: sgi-ip27: make NODE_DATA() the same as on
+ all other architectures
+Message-ID: <20240719153852.00003f44@Huawei.com>
+In-Reply-To: <e57eca18-b66d-4b5d-9e73-8ab22f6bc747@redhat.com>
 References: <20240716111346.3676969-1-rppt@kernel.org>
-	<20240716111346.3676969-2-rppt@kernel.org>
+	<20240716111346.3676969-3-rppt@kernel.org>
+	<e57eca18-b66d-4b5d-9e73-8ab22f6bc747@redhat.com>
 Organization: Huawei Technologies Research and Development (UK) Ltd.
 X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
@@ -65,20 +67,109 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: lhrpeml500006.china.huawei.com (7.191.161.198) To
+X-ClientProxiedBy: lhrpeml500004.china.huawei.com (7.191.163.9) To
  lhrpeml500005.china.huawei.com (7.191.163.240)
 
-On Tue, 16 Jul 2024 14:13:30 +0300
-Mike Rapoport <rppt@kernel.org> wrote:
+On Wed, 17 Jul 2024 16:32:59 +0200
+David Hildenbrand <david@redhat.com> wrote:
 
-> From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+> On 16.07.24 13:13, Mike Rapoport wrote:
+> > From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+> > 
+> > sgi-ip27 is the only system that defines NODE_DATA() differently than
+> > the rest of NUMA machines.
+> > 
+> > Add node_data array of struct pglist pointers that will point to
+> > __node_data[node]->pglist and redefine NODE_DATA() to use node_data
+> > array.
+> > 
+> > This will allow pulling declaration of node_data to the generic mm code
+> > in the next commit.
+> > 
+> > Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+> > ---
+> >   arch/mips/include/asm/mach-ip27/mmzone.h | 5 ++++-
+> >   arch/mips/sgi-ip27/ip27-memory.c         | 5 ++++-
+> >   2 files changed, 8 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/arch/mips/include/asm/mach-ip27/mmzone.h b/arch/mips/include/asm/mach-ip27/mmzone.h
+> > index 08c36e50a860..629c3f290203 100644
+> > --- a/arch/mips/include/asm/mach-ip27/mmzone.h
+> > +++ b/arch/mips/include/asm/mach-ip27/mmzone.h
+> > @@ -22,7 +22,10 @@ struct node_data {
+> >   
+> >   extern struct node_data *__node_data[];
+> >   
+> > -#define NODE_DATA(n)		(&__node_data[(n)]->pglist)
+> >   #define hub_data(n)		(&__node_data[(n)]->hub)
+> >   
+> > +extern struct pglist_data *node_data[];
+> > +
+> > +#define NODE_DATA(nid)		(node_data[nid])
+> > +
+> >   #endif /* _ASM_MACH_MMZONE_H */
+> > diff --git a/arch/mips/sgi-ip27/ip27-memory.c b/arch/mips/sgi-ip27/ip27-memory.c
+> > index b8ca94cfb4fe..c30ef6958b97 100644
+> > --- a/arch/mips/sgi-ip27/ip27-memory.c
+> > +++ b/arch/mips/sgi-ip27/ip27-memory.c
+> > @@ -34,8 +34,10 @@
+> >   #define SLOT_PFNSHIFT		(SLOT_SHIFT - PAGE_SHIFT)
+> >   #define PFN_NASIDSHFT		(NASID_SHFT - PAGE_SHIFT)
+> >   
+> > -struct node_data *__node_data[MAX_NUMNODES];
+> > +struct pglist_data *node_data[MAX_NUMNODES];
+> > +EXPORT_SYMBOL(node_data);
+> >   
+> > +struct node_data *__node_data[MAX_NUMNODES];
+> >   EXPORT_SYMBOL(__node_data);
+> >   
+> >   static u64 gen_region_mask(void)
+> > @@ -361,6 +363,7 @@ static void __init node_mem_init(nasid_t node)
+> >   	 */
+> >   	__node_data[node] = __va(slot_freepfn << PAGE_SHIFT);
+> >   	memset(__node_data[node], 0, PAGE_SIZE);
+> > +	node_data[node] = &__node_data[node]->pglist;
+> >   
+> >   	NODE_DATA(node)->node_start_pfn = start_pfn;
+> >   	NODE_DATA(node)->node_spanned_pages = end_pfn - start_pfn;  
 > 
-> The stub functions in kernel/numa.c belong to mm/ rather than to kernel/
+> I was assuming we could get rid of __node_data->pglist.
 > 
-> Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+> But now I am confused where that is actually set.
 
-Makes sense + all arch specific implementations are in arch/*/mm not
-arch/*/kernel so this makes it more consistent with that.
+It looks nasty... Cast in arch_refresh_nodedata() takes
+incoming pg_data_t * and casts it to the local version of
+struct node_data * which I think is this one
 
-Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+struct node_data {
+	struct pglist_data pglist; (which is pg_data_t pglist)
+	struct hub_data hub;
+};
+
+https://elixir.bootlin.com/linux/v6.10/source/arch/mips/sgi-ip27/ip27-memory.c#L432
+
+Now that pg_data_t is allocated by 
+arch_alloc_nodedata() which might be fine (though types could be handled in a more
+readable fashion via some container_of() magic.
+https://elixir.bootlin.com/linux/v6.10/source/arch/mips/sgi-ip27/ip27-memory.c#L427
+
+However that call is:
+pg_data_t * __init arch_alloc_nodedata(int nid)
+{
+	return memblock_alloc(sizeof(pg_data_t), SMP_CACHE_BYTES);
+}
+
+So doesn't seem to allocate enough space to me as should be sizeof(struct node_data)
+
+Worth cleaning up whilst here?  Proper handling of types would definitely
+help.
+
+Jonathan
+
+
+> 
+> Anyhow
+> 
+> Reviewed-by: David Hildenbrand <david@redhat.com>
+> 
 
