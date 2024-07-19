@@ -1,122 +1,135 @@
-Received: from mail-io1-f47.google.com (mail-io1-f47.google.com [209.85.166.47])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from esa11.hc1455-7.c3s2.iphmx.com (esa11.hc1455-7.c3s2.iphmx.com [207.54.90.137])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F2D3145A1D
-	for <nvdimm@lists.linux.dev>; Thu, 18 Jul 2024 21:46:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.47
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3FF615D1
+	for <nvdimm@lists.linux.dev>; Fri, 19 Jul 2024 01:58:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=207.54.90.137
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721339184; cv=none; b=HBGzNrJ4IVNzDu+mkFgluLEQULMBGoqLsBjMtVRneRRw1NGsDTvVUPGhPQzbWHM/6NAEQivr4zns91l32euq0rFJrfjIWCHAg3dbundbrobLuE39jG0VnctZfufgTQM+E8KAudHqZhEeXOLYGSSfYsrDz+njMNTWaDRlfkp4IBM=
+	t=1721354343; cv=none; b=qV9uu9DTA77sG2/6GxoO+6wtbgLSuYb+V5/h0WMocoFnW2ZHYnAQIss0A/X9xsnEGSnYyvkfB9bN8LV90DQ55weddfWBzATRoUtKwP2gt998WBZ5+uP9A7ekluMMO5TJBfpH79Va7c3kPc85UzJx0Y5ieXGA57y7YIA6inrigY0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721339184; c=relaxed/simple;
-	bh=QIe/2kbFHCA11Q9TL7mLMduOjYNsGQd/Tv+tn4jIdAA=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=o88TpfJ6TvzOhFTXNB2cGN8DzahoTPDnS8VI3acMYtcIHf9Eh/t5+NkZcRZu2+35gQjtp1Toy7DPW9F45VzmopSvoQiI1i7VzJUqhbZIe3QN6mozUxPOQo7jdzZt+wDa3kaMroCAt6TQwT12t609b7pehCygmb8JhZX7bA64dv8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=sifive.com; spf=pass smtp.mailfrom=sifive.com; dkim=pass (2048-bit key) header.d=sifive.com header.i=@sifive.com header.b=CfyAxKJ/; arc=none smtp.client-ip=209.85.166.47
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=sifive.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sifive.com
+	s=arc-20240116; t=1721354343; c=relaxed/simple;
+	bh=cGDvTByA6KTed0UxScYm3+Rd0JNJ+VCZM7hXObyA1MA=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=PVT/fa6MKKkFrHPkmWk84M/o3lw3DIbJ9kZhKu/DsouKtF46gK8jLmtRxR21UrQb0e6aU+VDaUWvxFEZyfR6h8H2A/YHhF6fCJd2gGOYj99054U0+J5X8LZ7724WY2vmp/Wl2RFouseTDop2R8tWXspF1u9lJ6gFA305tYjFzlo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fujitsu.com; spf=pass smtp.mailfrom=fujitsu.com; dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b=bJ1BOdqr; arc=none smtp.client-ip=207.54.90.137
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fujitsu.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fujitsu.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=sifive.com header.i=@sifive.com header.b="CfyAxKJ/"
-Received: by mail-io1-f47.google.com with SMTP id ca18e2360f4ac-807687b6652so58428939f.0
-        for <nvdimm@lists.linux.dev>; Thu, 18 Jul 2024 14:46:22 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sifive.com; s=google; t=1721339181; x=1721943981; darn=lists.linux.dev;
-        h=content-transfer-encoding:in-reply-to:content-language:from
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=b/3KVXgmf69sNo7YCAFBU75fVyP3kLvsv8BGm2iEjzc=;
-        b=CfyAxKJ/JYzR68lxClzwM4Q6ekAa997oR0FUYvTkOUV85juOUxRrciOrsYgFoCdn6T
-         gYoIlhE9cSmYskFWSIWSzAqB9FmP8RENvI6+1wx9iDWYrMBRtWU1VmJhe+Tu1cGT+bLK
-         PUfMeRcP/dHvWc7ZPKqyBkXM37IqsYUBcEjsN+T01vOiCBNEi1LQN0yXJoopNyJxpNks
-         hN0o6G2TxVR8RX9t5VuAIV5lvoravTobU1t4nwPcZ8jvnkkmEQ0/S8WDDKAelIziana7
-         /yuHbnNs17lIoBErIDWgjKtx6VwuqmSZVeyETYy3fpiCpGSD7Rfpjq+Baue/fCEpeokz
-         uHHQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1721339181; x=1721943981;
-        h=content-transfer-encoding:in-reply-to:content-language:from
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=b/3KVXgmf69sNo7YCAFBU75fVyP3kLvsv8BGm2iEjzc=;
-        b=eZRAeSPaZL6o+hFK2IyZI7ot4L5Xd2xvyakPPhZaRj4W+GSxUM40XsLpKy9bhbCDUr
-         UajWuxJ68bke7LVuyqtO1wNZJ7NRz2bOrPfXt3tedfm71GDU3ImE2wwcVWAPxtMhYoQj
-         WgaI8zeJ096mp0GBpRCv4UrSpzpb+79BkT1f/0m589fvh/Wv8rqjpP/HfR3KzO16tj21
-         +v9OHrdinzfve+PVdAYzKWSLxlQv50mmC837Obo1HZ4I6Y6aqxB7un3SgU64wuYj2V6c
-         lXrLlh5T6dZWQMYECY8iNqPkTwljaK1vxnZYIFh/WuA+NmM5wt/MRUuZe0Y7VTgqTbU2
-         sOmQ==
-X-Forwarded-Encrypted: i=1; AJvYcCUEIpOHLqWC5BqGze9XvQQCOM0GrpkM3fjgTWWDcsFTtlJz4PnKXCg/oxJMQLwBd3ygO8N0LQ+q/4aWLDSSIsoljZDauWoz
-X-Gm-Message-State: AOJu0YyTnx3jylIENmuv3KjFPDfZAykWqpzWjyRUGsTq/KPWNiIQMN5p
-	0ObDkrbdJrqez8Xnk32g0zFBMasnson/Sv9ZdVApoDmezoPMIzSUbmefd/FHs+U=
-X-Google-Smtp-Source: AGHT+IFfmYe/UsMSfgkCsdMUFOYZdCp937Ia8bMlaDCUPuHT0PtpOJmSb9jac6FVvVir80F2WXRXbQ==
-X-Received: by 2002:a05:6602:26c7:b0:806:7f5a:1fb7 with SMTP id ca18e2360f4ac-81710605dacmr801576939f.5.1721339181354;
-        Thu, 18 Jul 2024 14:46:21 -0700 (PDT)
-Received: from [100.64.0.1] ([147.124.94.167])
-        by smtp.gmail.com with ESMTPSA id 8926c6da1cb9f-4c2342f164esm35433173.69.2024.07.18.14.46.18
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 18 Jul 2024 14:46:20 -0700 (PDT)
-Message-ID: <8b402e92-d874-4b30-9108-f521bd20d36c@sifive.com>
-Date: Thu, 18 Jul 2024 16:46:17 -0500
+	dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b="bJ1BOdqr"
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
+  d=fujitsu.com; i=@fujitsu.com; q=dns/txt; s=fj2;
+  t=1721354341; x=1752890341;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=cGDvTByA6KTed0UxScYm3+Rd0JNJ+VCZM7hXObyA1MA=;
+  b=bJ1BOdqrhfOGjJzakrkze9Z98QE6X8rwVGQJ+CQmeL45ZjyXa745Wcek
+   xrfGgoVYCR1ePP9jtEUETdG0S8IXvBR8wfB4x7OzoJKQ5SEFl4sRmBjzr
+   dWMkKTOzpizuiZ+IhOpASMePUObBC/p96P/4cdS2wHcJ91KQq4XziCuhw
+   vc2uSjsy8p/QsNJMI7j3HLy8GrSGa4Tqxl1VVHni08eU1SY/HoWwcVUDz
+   +PzpJwbdNWmKpGZuHDsveJWwK5F7BaTL2mzZDzLiuUygxOas8K9hvjfcX
+   KemtcJpvhRp18RwdUsmpBmxBhZ8108sHZPSNrTTvu1dTX0+G0PFXgEzld
+   Q==;
+X-IronPort-AV: E=McAfee;i="6700,10204,11137"; a="147249308"
+X-IronPort-AV: E=Sophos;i="6.09,219,1716217200"; 
+   d="scan'208";a="147249308"
+Received: from unknown (HELO yto-r1.gw.nic.fujitsu.com) ([218.44.52.217])
+  by esa11.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Jul 2024 10:58:52 +0900
+Received: from yto-m1.gw.nic.fujitsu.com (yto-nat-yto-m1.gw.nic.fujitsu.com [192.168.83.64])
+	by yto-r1.gw.nic.fujitsu.com (Postfix) with ESMTP id 21379DB3CD
+	for <nvdimm@lists.linux.dev>; Fri, 19 Jul 2024 10:58:49 +0900 (JST)
+Received: from kws-ab4.gw.nic.fujitsu.com (kws-ab4.gw.nic.fujitsu.com [192.51.206.22])
+	by yto-m1.gw.nic.fujitsu.com (Postfix) with ESMTP id 61AD2D1988
+	for <nvdimm@lists.linux.dev>; Fri, 19 Jul 2024 10:58:48 +0900 (JST)
+Received: from edo.cn.fujitsu.com (edo.cn.fujitsu.com [10.167.33.5])
+	by kws-ab4.gw.nic.fujitsu.com (Postfix) with ESMTP id EF1C9224979
+	for <nvdimm@lists.linux.dev>; Fri, 19 Jul 2024 10:58:47 +0900 (JST)
+Received: from localhost.localdomain (unknown [10.167.226.45])
+	by edo.cn.fujitsu.com (Postfix) with ESMTP id 736D31A000C;
+	Fri, 19 Jul 2024 09:58:47 +0800 (CST)
+From: Li Zhijian <lizhijian@fujitsu.com>
+To: nvdimm@lists.linux.dev
+Cc: dan.j.williams@intel.com,
+	vishal.l.verma@intel.com,
+	dave.jiang@intel.com,
+	ira.weiny@intel.com,
+	linux-kernel@vger.kernel.org,
+	Li Zhijian <lizhijian@fujitsu.com>
+Subject: [PATCH v2 2/2] nvdimm: Remove dead code for ENODEV checking in scan_labels()
+Date: Fri, 19 Jul 2024 09:58:36 +0800
+Message-Id: <20240719015836.1060677-2-lizhijian@fujitsu.com>
+X-Mailer: git-send-email 2.31.1
+In-Reply-To: <20240719015836.1060677-1-lizhijian@fujitsu.com>
+References: <20240719015836.1060677-1-lizhijian@fujitsu.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 13/17] mm: move numa_distance and related code from x86 to
- numa_memblks
-To: Mike Rapoport <rppt@kernel.org>, linux-kernel@vger.kernel.org
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>,
- Andreas Larsson <andreas@gaisler.com>,
- Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>,
- Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>,
- Christophe Leroy <christophe.leroy@csgroup.eu>,
- Dan Williams <dan.j.williams@intel.com>,
- Dave Hansen <dave.hansen@linux.intel.com>,
- David Hildenbrand <david@redhat.com>, "David S. Miller"
- <davem@davemloft.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- Heiko Carstens <hca@linux.ibm.com>, Huacai Chen <chenhuacai@kernel.org>,
- Ingo Molnar <mingo@redhat.com>, Jiaxun Yang <jiaxun.yang@flygoat.com>,
- John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
- Jonathan Cameron <jonathan.cameron@huawei.com>,
- Michael Ellerman <mpe@ellerman.id.au>, Palmer Dabbelt <palmer@dabbelt.com>,
- "Rafael J. Wysocki" <rafael@kernel.org>, Rob Herring <robh@kernel.org>,
- Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
- Thomas Gleixner <tglx@linutronix.de>, Vasily Gorbik <gor@linux.ibm.com>,
- Will Deacon <will@kernel.org>, linux-arm-kernel@lists.infradead.org,
- loongarch@lists.linux.dev, linux-mips@vger.kernel.org,
- linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
- linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
- sparclinux@vger.kernel.org, linux-acpi@vger.kernel.org,
- linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
- devicetree@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org,
- x86@kernel.org
-References: <20240716111346.3676969-1-rppt@kernel.org>
- <20240716111346.3676969-14-rppt@kernel.org>
-From: Samuel Holland <samuel.holland@sifive.com>
-Content-Language: en-US
-In-Reply-To: <20240716111346.3676969-14-rppt@kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-TM-AS-Product-Ver: IMSS-9.1.0.1417-9.0.0.1002-28538.002
+X-TM-AS-User-Approved-Sender: Yes
+X-TMASE-Version: IMSS-9.1.0.1417-9.0.1002-28538.002
+X-TMASE-Result: 10--6.042500-10.000000
+X-TMASE-MatchedRID: wJuAbHRzrYfH3ZCJRIiNpAXGi/7cli9jG3SoAWcU42VD0XHWdCmZPCXj
+	tnu2lwmLkPI1/ZdqoS0pVSN22QMNpsyvuTCA7wzlolVO7uyOCDXBOVz0Jwcxl6vCrG0TnfVUIb5
+	NpqK++5qbpZ8QUEHE+lcnoO4Nx+lojejKCMx4rt64u3nS+3EEDpki3iIBA3o/vy9ABIQaa1mjxY
+	yRBa/qJcFwgTvxipFa9xS3mVzWUuA4wHSyGpeEeiw2x397pFEmTHLkTUFitAOaKHuLVl3J1P0zo
+	l91xrHXEgajmqqPXvQ=
+X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
 
-On 2024-07-16 6:13 AM, Mike Rapoport wrote:
-> From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-> 
-> Move code dealing with numa_distance array from arch/x86 to
-> mm/numa_memblks.c
-> 
-> This code will be later reused by arch_numa.
-> 
-> No functional changes.
-> 
-> Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-> ---
->  arch/x86/mm/numa.c                   | 101 ---------------------------
->  arch/x86/mm/numa_internal.h          |   2 -
->  include/linux/numa_memblks.h         |   4 ++
->  {arch/x86/mm => mm}/numa_emulation.c |   0
->  mm/numa_memblks.c                    | 101 +++++++++++++++++++++++++++
->  5 files changed, 105 insertions(+), 103 deletions(-)
->  rename {arch/x86/mm => mm}/numa_emulation.c (100%)
+The only way create_namespace_pmem() returns an ENODEV code is if
+select_pmem_id(nd_region, &uuid) returns ENODEV when its 2nd parameter
+is a null pointer. However, this is impossible because &uuid is always
+valid.
 
-The numa_emulation.c rename looks like it should be part of the next commit, not
-this one.
+Furthermore, create_namespace_pmem() is the only user of
+select_pmem_id(), it's safe to remove the 'return -ENODEV' branch.
+
+Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
+---
+V2:
+  new patch.
+  It's found when I'm Reviewing/tracing the return values of create_namespace_pmem()
+---
+ drivers/nvdimm/namespace_devs.c | 9 ---------
+ 1 file changed, 9 deletions(-)
+
+diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
+index 28c9afc01dca..21020cd16117 100644
+--- a/drivers/nvdimm/namespace_devs.c
++++ b/drivers/nvdimm/namespace_devs.c
+@@ -1612,9 +1612,6 @@ static int select_pmem_id(struct nd_region *nd_region, const uuid_t *pmem_id)
+ {
+ 	int i;
+ 
+-	if (!pmem_id)
+-		return -ENODEV;
+-
+ 	for (i = 0; i < nd_region->ndr_mappings; i++) {
+ 		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
+ 		struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
+@@ -1790,9 +1787,6 @@ static struct device *create_namespace_pmem(struct nd_region *nd_region,
+ 	case -EINVAL:
+ 		dev_dbg(&nd_region->dev, "invalid label(s)\n");
+ 		break;
+-	case -ENODEV:
+-		dev_dbg(&nd_region->dev, "label not found\n");
+-		break;
+ 	default:
+ 		dev_dbg(&nd_region->dev, "unexpected err: %d\n", rc);
+ 		break;
+@@ -1974,9 +1968,6 @@ static struct device **scan_labels(struct nd_region *nd_region)
+ 			case -EAGAIN:
+ 				/* skip invalid labels */
+ 				continue;
+-			case -ENODEV:
+-				/* fallthrough to seed creation */
+-				break;
+ 			default:
+ 				goto err;
+ 			}
+-- 
+2.29.2
 
