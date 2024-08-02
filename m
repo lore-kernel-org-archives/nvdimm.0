@@ -1,30 +1,30 @@
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17AC61E2109;
-	Fri,  2 Aug 2024 11:20:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92286E57D;
+	Fri,  2 Aug 2024 14:01:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722597610; cv=none; b=BFg7ad13r1+owGuorlIUF7nrQiE/kEZOojNtPdKBecFOFxQjUyvh64fHczDPX8NXbZ+yjqpEoW1NlBPRTXIZ+0Ciuy474TQ2LRSmi0WtIYJVjsoiWbUYklavcoupcMhS0O7OJwofpzUSO+NvbOE/L82ZCRru1ceId/MjoDK/+Ck=
+	t=1722607307; cv=none; b=hxuXtVCw27FjcR26dii+/KkF9llz5V2LhebmU+G/ND4vzHZJRoDItUHicf0Esnkc90AXfMpc8hUQEsvpjkK45u7M3kIBi3YvgbwHknRJXw1W3/TqURIhKhUaFjY0gIEMyjmZMIAZTHW9S3c65s3KYs01hSfV9cvmAeiJZ0LWdgQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722597610; c=relaxed/simple;
-	bh=4xShjOftd4+pZBV2l+SeEhAEEaYdoitSomtoKS3Umuk=;
+	s=arc-20240116; t=1722607307; c=relaxed/simple;
+	bh=u3ZMg2xsS0PphcV5AO/Z+wTJuTNi8Zl3B3cTy1JUA/o=;
 	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=t/Hxi77r0Y42gHDmIu6zC9BlUsmBsCkoI+RoIbkODDsFOo3Z1plKgqaVW0JkQkhXSwbwLdGIVjWK/eLL392j6RFB4h9Nwll7ZjYyty87ceHpDWhBMFjyOBxFYtXtKNjRg44I9sku2/V6JvDIhKD/olU/kyhyPX1B4uhnc5ytoTQ=
+	 MIME-Version:Content-Type; b=jFTgXnaBJDayUeb8dTPt/Kq9BJXAUJGJ20BZ8NcfbCtPWpkPJ898/r+g34cgRRuNf6IkkkwUo8Jj8vI1yl/+QIccRtUcaWbypL5A05y/eW29TOlLX3MA95N0KYniF1mSDlIKRqRu+u7jjoMvExPzWwGejm/j/mvkB3LbQxXb+gg=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.186.31])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Wb3Ft71Q0z6K6GR;
-	Fri,  2 Aug 2024 19:17:22 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.18.186.216])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Wb6rS3QPSz6K6ln;
+	Fri,  2 Aug 2024 21:59:04 +0800 (CST)
 Received: from lhrpeml500005.china.huawei.com (unknown [7.191.163.240])
-	by mail.maildlp.com (Postfix) with ESMTPS id 653A91400D9;
-	Fri,  2 Aug 2024 19:20:01 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id 429D2140A86;
+	Fri,  2 Aug 2024 22:01:43 +0800 (CST)
 Received: from localhost (10.203.177.66) by lhrpeml500005.china.huawei.com
  (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Fri, 2 Aug
- 2024 12:20:00 +0100
-Date: Fri, 2 Aug 2024 12:19:59 +0100
+ 2024 15:01:42 +0100
+Date: Fri, 2 Aug 2024 15:01:41 +0100
 From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
 To: Mike Rapoport <rppt@kernel.org>
 CC: <linux-kernel@vger.kernel.org>, Alexander Gordeev
@@ -51,11 +51,12 @@ CC: <linux-kernel@vger.kernel.org>, Alexander Gordeev
 	<linux-s390@vger.kernel.org>, <linux-sh@vger.kernel.org>,
 	<linuxppc-dev@lists.ozlabs.org>, <loongarch@lists.linux.dev>,
 	<nvdimm@lists.linux.dev>, <sparclinux@vger.kernel.org>, <x86@kernel.org>
-Subject: Re: [PATCH v3 19/26] mm: introduce numa_emulation
-Message-ID: <20240802121959.00003c18@Huawei.com>
-In-Reply-To: <20240801060826.559858-20-rppt@kernel.org>
+Subject: Re: [PATCH v3 23/26] of, numa: return -EINVAL when no numa-node-id
+ is found
+Message-ID: <20240802150141.00002143@Huawei.com>
+In-Reply-To: <20240801060826.559858-24-rppt@kernel.org>
 References: <20240801060826.559858-1-rppt@kernel.org>
-	<20240801060826.559858-20-rppt@kernel.org>
+	<20240801060826.559858-24-rppt@kernel.org>
 Organization: Huawei Technologies Research and Development (UK) Ltd.
 X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
@@ -66,25 +67,27 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: lhrpeml500003.china.huawei.com (7.191.162.67) To
+X-ClientProxiedBy: lhrpeml500004.china.huawei.com (7.191.163.9) To
  lhrpeml500005.china.huawei.com (7.191.163.240)
 
-On Thu,  1 Aug 2024 09:08:19 +0300
+On Thu,  1 Aug 2024 09:08:23 +0300
 Mike Rapoport <rppt@kernel.org> wrote:
 
 > From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
 > 
-> Move numa_emulation codfrom arch/x86 to mm/numa_emulation.c
+> Currently of_numa_parse_memory_nodes() returns 0 if no "memory" node in
+> device tree contains "numa-node-id" property. This makes of_numa_init()
+> to return "success" despite no NUMA nodes were actually parsed and set
+> up.
 > 
-> This code will be later reused by arch_numa.
+> arch_numa workarounds this by returning an error if numa_nodes_parsed is
+> empty.
 > 
-> No functional changes.
+> numa_memblks however would WARN() in such case and since it will be used
+> by arch_numa shortly, such warning is not desirable.
+> 
+> Make sure of_numa_init() returns -EINVAL when no NUMA node information
+> was found in the device tree.
 > 
 > Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-> Tested-by: Zi Yan <ziy@nvidia.com> # for x86_64 and arm64
-I ran some basic tests on ARM with this. Seems to do the job.
 Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Tested-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-
-Works on both ACPI and dsdt boots.
-
