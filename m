@@ -1,30 +1,30 @@
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0F601DF69D;
-	Fri,  2 Aug 2024 11:12:36 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17AC61E2109;
+	Fri,  2 Aug 2024 11:20:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722597159; cv=none; b=dCWQ+LWmHapmh/v30yL3CR+aBuja2AGdYcrXXb5nXqoA0QW5Ohdp9kQTbw1fxjVAqBhDkCz26MDM4gw3W+fxd4I4kYXvx4w9cPWCC65ECfgG5Qt8eAKLLos81sXnHFiBsxFKDs3XAuhqi7trDY0RrjSsLEbtFpVxiqRxYpB+PBU=
+	t=1722597610; cv=none; b=BFg7ad13r1+owGuorlIUF7nrQiE/kEZOojNtPdKBecFOFxQjUyvh64fHczDPX8NXbZ+yjqpEoW1NlBPRTXIZ+0Ciuy474TQ2LRSmi0WtIYJVjsoiWbUYklavcoupcMhS0O7OJwofpzUSO+NvbOE/L82ZCRru1ceId/MjoDK/+Ck=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722597159; c=relaxed/simple;
-	bh=sZaRN/2lR+IgV7LzrT7WKBZTUGm5JqCUNXvVErr8xfE=;
+	s=arc-20240116; t=1722597610; c=relaxed/simple;
+	bh=4xShjOftd4+pZBV2l+SeEhAEEaYdoitSomtoKS3Umuk=;
 	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=BID2riaGEEaddvXSkR4FmoAKLADlhMSTGQnIw9Vnk6CKjq2JNMiC9lQutQVPJIpjYH2a7p0uWZg0yzD198B6ldD1F4IDGc5M4UazMIqwR1JkKgRp1+ysH5RLWQlatZu/XhP+bwIONUzLiOty0h0Hrfr9Tgze3CjH02A8VAOzPLQ=
+	 MIME-Version:Content-Type; b=t/Hxi77r0Y42gHDmIu6zC9BlUsmBsCkoI+RoIbkODDsFOo3Z1plKgqaVW0JkQkhXSwbwLdGIVjWK/eLL392j6RFB4h9Nwll7ZjYyty87ceHpDWhBMFjyOBxFYtXtKNjRg44I9sku2/V6JvDIhKD/olU/kyhyPX1B4uhnc5ytoTQ=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.186.231])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Wb35J7183z6K9Db;
-	Fri,  2 Aug 2024 19:09:56 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.18.186.31])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Wb3Ft71Q0z6K6GR;
+	Fri,  2 Aug 2024 19:17:22 +0800 (CST)
 Received: from lhrpeml500005.china.huawei.com (unknown [7.191.163.240])
-	by mail.maildlp.com (Postfix) with ESMTPS id 5BD1D140A08;
-	Fri,  2 Aug 2024 19:12:34 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id 653A91400D9;
+	Fri,  2 Aug 2024 19:20:01 +0800 (CST)
 Received: from localhost (10.203.177.66) by lhrpeml500005.china.huawei.com
  (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Fri, 2 Aug
- 2024 12:12:33 +0100
-Date: Fri, 2 Aug 2024 12:12:32 +0100
+ 2024 12:20:00 +0100
+Date: Fri, 2 Aug 2024 12:19:59 +0100
 From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
 To: Mike Rapoport <rppt@kernel.org>
 CC: <linux-kernel@vger.kernel.org>, Alexander Gordeev
@@ -51,12 +51,11 @@ CC: <linux-kernel@vger.kernel.org>, Alexander Gordeev
 	<linux-s390@vger.kernel.org>, <linux-sh@vger.kernel.org>,
 	<linuxppc-dev@lists.ozlabs.org>, <loongarch@lists.linux.dev>,
 	<nvdimm@lists.linux.dev>, <sparclinux@vger.kernel.org>, <x86@kernel.org>
-Subject: Re: [PATCH v3 22/26] mm: numa_memblks: use
- memblock_{start,end}_of_DRAM() when sanitizing meminfo
-Message-ID: <20240802121232.00005b2c@Huawei.com>
-In-Reply-To: <20240801060826.559858-23-rppt@kernel.org>
+Subject: Re: [PATCH v3 19/26] mm: introduce numa_emulation
+Message-ID: <20240802121959.00003c18@Huawei.com>
+In-Reply-To: <20240801060826.559858-20-rppt@kernel.org>
 References: <20240801060826.559858-1-rppt@kernel.org>
-	<20240801060826.559858-23-rppt@kernel.org>
+	<20240801060826.559858-20-rppt@kernel.org>
 Organization: Huawei Technologies Research and Development (UK) Ltd.
 X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
@@ -70,40 +69,22 @@ Content-Transfer-Encoding: 7bit
 X-ClientProxiedBy: lhrpeml500003.china.huawei.com (7.191.162.67) To
  lhrpeml500005.china.huawei.com (7.191.163.240)
 
-On Thu,  1 Aug 2024 09:08:22 +0300
+On Thu,  1 Aug 2024 09:08:19 +0300
 Mike Rapoport <rppt@kernel.org> wrote:
 
 > From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
 > 
-> numa_cleanup_meminfo() moves blocks outside system RAM to
-> numa_reserved_meminfo and it uses 0 and PFN_PHYS(max_pfn) to determine
-> the memory boundaries.
+> Move numa_emulation codfrom arch/x86 to mm/numa_emulation.c
 > 
-> Replace the memory range boundaries with more portable
-> memblock_start_of_DRAM() and memblock_end_of_DRAM().
+> This code will be later reused by arch_numa.
+> 
+> No functional changes.
 > 
 > Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 > Tested-by: Zi Yan <ziy@nvidia.com> # for x86_64 and arm64
-Makes sense
+I ran some basic tests on ARM with this. Seems to do the job.
 Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Tested-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 
-> ---
->  mm/numa_memblks.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/mm/numa_memblks.c b/mm/numa_memblks.c
-> index e97665a5e8ce..e4358ad92233 100644
-> --- a/mm/numa_memblks.c
-> +++ b/mm/numa_memblks.c
-> @@ -212,8 +212,8 @@ int __init numa_add_memblk(int nid, u64 start, u64 end)
->   */
->  int __init numa_cleanup_meminfo(struct numa_meminfo *mi)
->  {
-> -	const u64 low = 0;
-> -	const u64 high = PFN_PHYS(max_pfn);
-> +	const u64 low = memblock_start_of_DRAM();
-> +	const u64 high = memblock_end_of_DRAM();
->  	int i, j, k;
->  
->  	/* first, trim all entries */
+Works on both ACPI and dsdt boots.
 
