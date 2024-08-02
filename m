@@ -1,30 +1,30 @@
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B35811CB8;
-	Fri,  2 Aug 2024 15:10:00 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4826E16BE0D;
+	Fri,  2 Aug 2024 16:44:47 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722611401; cv=none; b=Xya0sg+8g0UTfAa4Ra13FOK8hH9FcIDGRq8kcnE7seoW9KKmnQWsKCvPDc0nA53Pi31B8qmWQFGYLnmFqxGp6Xethe3KDgi4dk+tP20Mw4QROrlcguwWnLQ2GF2ydTXgRuQiGKIgpYo0piCnTL6B2TydK/yB91YrdFDSbkwtchU=
+	t=1722617090; cv=none; b=SMyzWyKcHPja6E70obM0Qe2N6JnAwjhbf6tCAibYMyiD5tiTiqxbc+adkoSSO/aXNbkBlCjKIuYY8qD5Ej+NnnUqGkjyiGMWZ1rMQLA5azQoecG9aJIvAqB1CtjBq8vNKC8FrZbpT/xm66bbn3stB89MIxdeqsRYWExz644YJhA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722611401; c=relaxed/simple;
-	bh=SyUkn8fXeribmClhq4AirCvcmHkeCTePbUC5SGN/01k=;
+	s=arc-20240116; t=1722617090; c=relaxed/simple;
+	bh=NCbcoYaXRkWCPqQyDc3SvLTQKqJDdoxXXdNRp7Lxpbs=;
 	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=jrpCuWrcVUriLSlJNDoL1OrXY60mAGEj+cm0zz3h0xWBmbN815gstqFWlAEtt+PpxCqr8epcS+O4NaG3e/6aNQ5rSZkYD8BGFrl3MyXuITpEX313HD50xgflamk+zlTOsFUYwlVXqaHc+gOXCGRUWfc1iZvXwJiL+k7Cl0Unm5o=
+	 MIME-Version:Content-Type; b=px6s/ogXtn+UV5z6mSnTcxAAdDM0rMtupppEu4BTasDtx2hrePSEgtlF+cmqqpgc/Mdgze+I3CWBvUrKbp3SdRbGt+DbSbIDlNc5GJ1If5KsaObmjDId5h71qoA7SVkFgbDUnKPXlY9Dd2MhW+5tJ3JPDFNnXC0LXoLtVbB4l2E=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.186.216])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Wb8MC74Tkz6K8xd;
-	Fri,  2 Aug 2024 23:07:19 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.18.186.231])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4WbBTD2kfFz6K5YZ;
+	Sat,  3 Aug 2024 00:42:40 +0800 (CST)
 Received: from lhrpeml500005.china.huawei.com (unknown [7.191.163.240])
-	by mail.maildlp.com (Postfix) with ESMTPS id 91613140A86;
-	Fri,  2 Aug 2024 23:09:57 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id A6A811404F5;
+	Sat,  3 Aug 2024 00:44:44 +0800 (CST)
 Received: from localhost (10.203.177.66) by lhrpeml500005.china.huawei.com
  (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Fri, 2 Aug
- 2024 16:09:56 +0100
-Date: Fri, 2 Aug 2024 16:09:55 +0100
+ 2024 17:44:43 +0100
+Date: Fri, 2 Aug 2024 17:44:43 +0100
 From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
 To: Mike Rapoport <rppt@kernel.org>
 CC: <linux-kernel@vger.kernel.org>, Alexander Gordeev
@@ -51,12 +51,10 @@ CC: <linux-kernel@vger.kernel.org>, Alexander Gordeev
 	<linux-s390@vger.kernel.org>, <linux-sh@vger.kernel.org>,
 	<linuxppc-dev@lists.ozlabs.org>, <loongarch@lists.linux.dev>,
 	<nvdimm@lists.linux.dev>, <sparclinux@vger.kernel.org>, <x86@kernel.org>
-Subject: Re: [PATCH v3 26/26] docs: move numa=fake description to
- kernel-parameters.txt
-Message-ID: <20240802160955.00001093@Huawei.com>
-In-Reply-To: <20240801060826.559858-27-rppt@kernel.org>
+Subject: Re: [PATCH v3 00/26] mm: introduce numa_memblks
+Message-ID: <20240802174443.0000710c@Huawei.com>
+In-Reply-To: <20240801060826.559858-1-rppt@kernel.org>
 References: <20240801060826.559858-1-rppt@kernel.org>
-	<20240801060826.559858-27-rppt@kernel.org>
 Organization: Huawei Technologies Research and Development (UK) Ltd.
 X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
@@ -67,21 +65,39 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: lhrpeml500001.china.huawei.com (7.191.163.213) To
+X-ClientProxiedBy: lhrpeml500004.china.huawei.com (7.191.163.9) To
  lhrpeml500005.china.huawei.com (7.191.163.240)
 
-On Thu,  1 Aug 2024 09:08:26 +0300
+On Thu,  1 Aug 2024 09:08:00 +0300
 Mike Rapoport <rppt@kernel.org> wrote:
 
 > From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
 > 
-> NUMA emulation can be now enabled on arm64 and riscv in addition to x86.
+> Hi,
 > 
-> Move description of numa=fake parameters from x86 documentation of
-> admin-guide/kernel-parameters.txt
+> Following the discussion about handling of CXL fixed memory windows on
+> arm64 [1] I decided to bite the bullet and move numa_memblks from x86 to
+> the generic code so they will be available on arm64/riscv and maybe on
+> loongarch sometime later.
 > 
-> Suggested-by: Zi Yan <ziy@nvidia.com>
-> Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+> While it could be possible to use memblock to describe CXL memory windows,
+> it currently lacks notion of unpopulated memory ranges and numa_memblks
+> does implement this.
+> 
+> Another reason to make numa_memblks generic is that both arch_numa (arm64
+> and riscv) and loongarch use trimmed copy of x86 code although there is no
+> fundamental reason why the same code cannot be used on all these platforms.
+> Having numa_memblks in mm/ will make it's interaction with ACPI and FDT
+> more consistent and I believe will reduce maintenance burden.
+> 
+> And with generic numa_memblks it is (almost) straightforward to enable NUMA
+> emulation on arm64 and riscv.
 
+Tested-by: Jonathan Cameron <Jonathan.Cameron@huawei.com> #arm64 + CXL via QEMU
+With that one fix in patch 7.
+
+Feel free to figure out which patches actually got tested by that
+(or tag them all - I'll pretend I tested ip27 :)
+
+Jonathan
 
