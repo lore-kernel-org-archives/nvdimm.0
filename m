@@ -1,30 +1,30 @@
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3F881DAC77;
-	Fri,  2 Aug 2024 10:53:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4EE6146D4C;
+	Fri,  2 Aug 2024 11:08:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722595994; cv=none; b=BTIKFiszbx9qUy8h6F3gr36lIW9KGNDhF0gA581t3eAT5r16jTnJxH1z7oS6Uz9WSrpBMJuGUqSBSU2+cByK8TkplhFPyhpP9K1oFy3AGbOHtuMamgz3ND0n/7WDO3Vh9ApXQyWCtxkDo39b3AJLIIxRXB6wP/NEZBDviEoj8jU=
+	t=1722596910; cv=none; b=ivVeI7TnAyIz0bmGmv2Pgg6NJ/H5vj4qXpv2A4suuXIQcCsp5PQPt+NPvBrExHl1ac6YVD7/0FrpSpVOE0OxUQt+bc84wP4FkUylaU1r9oL2yol5v9CcnpbEuT2DeVQJbk668UPJ++5BKfbUIv3GwLyTZWtiH2M9a36ZtdwCP58=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722595994; c=relaxed/simple;
-	bh=A3e/wQVmmVlejxsbfOJzsMOgYw/ggliYt0zycmeoaAU=;
+	s=arc-20240116; t=1722596910; c=relaxed/simple;
+	bh=NLbVf8hbB+7OOaIvI793eDiaRG22aeBFEn74itW1PnM=;
 	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=JwbE1I9efksJu85esD89XRHsMytYmz7XJeL55v+SUUTS55UAXWC8Tw5fUvakhXnm4kVDUP6LrXhoEQsPvnfXkPja5l/oujYjE3NM/fM+XH8a4mOnq7b2AJgkbKJ9fpTjPCddbiSyYT5TELwAQ+cV6HMn4ruOYSLibZfLmsECQoU=
+	 MIME-Version:Content-Type; b=HbnZP+hv88T4xsNs4oq+cKvBxLtrCBQomuROfM0MbAl0F3jsWU8xsx5/XaeqKyHfzH1e04YAwc1K/LzsD5vNw5KiGHWXGSK3eTLPrrFHU/En0OrOHD3QRnPPq0IDcUXZgCVpCsgJPMxWLHPSQg2IFbrKB56UCso/jNhILZn/ZEg=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.186.31])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Wb2JN02Stz6K5nV;
-	Fri,  2 Aug 2024 18:34:28 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.18.186.231])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Wb30V2qmDz6K69d;
+	Fri,  2 Aug 2024 19:05:46 +0800 (CST)
 Received: from lhrpeml500005.china.huawei.com (unknown [7.191.163.240])
-	by mail.maildlp.com (Postfix) with ESMTPS id 90EC81400D9;
-	Fri,  2 Aug 2024 18:36:31 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id C3E0C140A08;
+	Fri,  2 Aug 2024 19:08:24 +0800 (CST)
 Received: from localhost (10.203.177.66) by lhrpeml500005.china.huawei.com
  (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Fri, 2 Aug
- 2024 11:36:30 +0100
-Date: Fri, 2 Aug 2024 11:36:29 +0100
+ 2024 12:08:23 +0100
+Date: Fri, 2 Aug 2024 12:08:22 +0100
 From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
 To: Mike Rapoport <rppt@kernel.org>
 CC: <linux-kernel@vger.kernel.org>, Alexander Gordeev
@@ -51,12 +51,11 @@ CC: <linux-kernel@vger.kernel.org>, Alexander Gordeev
 	<linux-s390@vger.kernel.org>, <linux-sh@vger.kernel.org>,
 	<linuxppc-dev@lists.ozlabs.org>, <loongarch@lists.linux.dev>,
 	<nvdimm@lists.linux.dev>, <sparclinux@vger.kernel.org>, <x86@kernel.org>
-Subject: Re: [PATCH v3 11/26] x86/numa: use get_pfn_range_for_nid to verify
- that node spans memory
-Message-ID: <20240802113629.00003069@Huawei.com>
-In-Reply-To: <20240801060826.559858-12-rppt@kernel.org>
+Subject: Re: [PATCH v3 20/26] mm: numa_memblks: introduce numa_memblks_init
+Message-ID: <20240802120822.0000214d@Huawei.com>
+In-Reply-To: <20240801060826.559858-21-rppt@kernel.org>
 References: <20240801060826.559858-1-rppt@kernel.org>
-	<20240801060826.559858-12-rppt@kernel.org>
+	<20240801060826.559858-21-rppt@kernel.org>
 Organization: Huawei Technologies Research and Development (UK) Ltd.
 X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
@@ -67,55 +66,23 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: lhrpeml500002.china.huawei.com (7.191.160.78) To
+X-ClientProxiedBy: lhrpeml500003.china.huawei.com (7.191.162.67) To
  lhrpeml500005.china.huawei.com (7.191.163.240)
 
-On Thu,  1 Aug 2024 09:08:11 +0300
+On Thu,  1 Aug 2024 09:08:20 +0300
 Mike Rapoport <rppt@kernel.org> wrote:
 
 > From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
 > 
-> Instead of looping over numa_meminfo array to detect node's start and
-> end addresses use get_pfn_range_for_init().
+> Move most of x86::numa_init() to numa_memblks so that the latter will be
+> more self-contained.
 > 
-> This is shorter and make it easier to lift numa_memblks to generic code.
+> With this numa_memblk data structures should not be exposed to the
+> architecture specific code.
 > 
 > Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 > Tested-by: Zi Yan <ziy@nvidia.com> # for x86_64 and arm64
 
-Fair enough given code a few lines up has set the node
-for all the memblocks so this should I think give the same
-effective result.
+Just code motion as expected.
 
 Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-
-> ---
->  arch/x86/mm/numa.c | 13 +++----------
->  1 file changed, 3 insertions(+), 10 deletions(-)
-> 
-> diff --git a/arch/x86/mm/numa.c b/arch/x86/mm/numa.c
-> index edfc38803779..cfe7e5477cf8 100644
-> --- a/arch/x86/mm/numa.c
-> +++ b/arch/x86/mm/numa.c
-> @@ -521,17 +521,10 @@ static int __init numa_register_memblks(struct numa_meminfo *mi)
->  
->  	/* Finally register nodes. */
->  	for_each_node_mask(nid, node_possible_map) {
-> -		u64 start = PFN_PHYS(max_pfn);
-> -		u64 end = 0;
-> +		unsigned long start_pfn, end_pfn;
->  
-> -		for (i = 0; i < mi->nr_blks; i++) {
-> -			if (nid != mi->blk[i].nid)
-> -				continue;
-> -			start = min(mi->blk[i].start, start);
-> -			end = max(mi->blk[i].end, end);
-> -		}
-> -
-> -		if (start >= end)
-> +		get_pfn_range_for_nid(nid, &start_pfn, &end_pfn);
-> +		if (start_pfn >= end_pfn)
->  			continue;
->  
->  		alloc_node_data(nid);
-
