@@ -1,37 +1,38 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A21013B2AC;
-	Mon,  5 Aug 2024 14:42:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3FD9D2C684;
+	Mon,  5 Aug 2024 17:17:39 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722868922; cv=none; b=Y9Hx8eMeKvW8DzIKFOJTpwOVXSKFXDPKMQ/aTksRKVULFaPvit0u/j2ecguhHj8G0MZbc+CkOjJDu5c2EqDa7gaJnOF16XxGYZzta+MyGYYY4pB/91H2DCwSYOk8L0ftd7uWk2bDY021/GkgUOV28p/z7KFwYrmWuC9qt5QX2SU=
+	t=1722878260; cv=none; b=I5czU5lgfJeItm1sdUPEHk75g5NILwgvGeBs60LyJCZLdAADTti/MwXJ6+fWAAv3MT9gM3NfJ8i+p0ydzC4FNuQi45dZeoIFtSipbsXmFg5PVW75IW7QVywsUYJR5g7z7rhsoehrg6HrXaj7tM3gwEnipYWCz6OK5iYkhd3V2RM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722868922; c=relaxed/simple;
-	bh=KAAzyiSgI5VUznoplq6rpjnO/fNKSFt30uf+NxUGEms=;
+	s=arc-20240116; t=1722878260; c=relaxed/simple;
+	bh=xUiHKiiFB+eGRf4/0vdH6U+v/YkOQHoLKaT521lWFxI=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ukgz8u41uaXi621pagvIzDmkDZmkWHv0MtOm5SZ8EpS1folz/kbAOjr2B4mf1/X201HVAVoN4fzTIvmZBPUyIvuWMYkn5Jv5eBdSV3pt+aGR2gP2ytRqCPS1K7MYPusfQzyp+QAKIdxNqyZgGrmyh9gK4w7PTBBUzmTbxtErWAY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=QeZVbyPB; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=D6fonsPxPoEW1w3NbypP1JGml4NY44fBfEzA9w4WOi9HJwnHAx6jpjf1iA/8hXIiLeH7vDZv0y3LkVBAJqYIuCNFQQs9dxVfYEWfrpLJHCg0D1svymfbkT1DgVSsGqMwI8lSqP64kU4tcMbR3TZAe0+PNtJenJzLXSF3sEQT53A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Z7q/lW63; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="QeZVbyPB"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4F5ADC4AF0C;
-	Mon,  5 Aug 2024 14:41:46 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Z7q/lW63"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3A951C32782;
+	Mon,  5 Aug 2024 17:17:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1722868921;
-	bh=KAAzyiSgI5VUznoplq6rpjnO/fNKSFt30uf+NxUGEms=;
+	s=k20201202; t=1722878259;
+	bh=xUiHKiiFB+eGRf4/0vdH6U+v/YkOQHoLKaT521lWFxI=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=QeZVbyPBXcN5TPefvaZdSJjjdX4y6Cq/DxczfJ+Znju3yHvNTlO4aXvamUiVWCNfm
-	 dJFw3BUgSadYOQ78s/G2NFZdYqOSMyUBf2zL4pLaMFZ2EewzmNmJ9Rhn37EaPRg84N
-	 9/e8uP7RFruygWPGM1gHiLdkGIBlGPcbSW51E1iNan8BRdokqw6NeOBGxu0KFh/Qks
-	 mRAvGlnoK48IZtmY+61J7iNsk0pg1002E708O3v+oVXriGyhI/7ytWZoPV2JtIBVsT
-	 FjMUFjm01xX837WqtfHRuVUblGy21ffay5yDOackY6gR8nnfP4nTbw6GxA72f9QZSb
-	 FucTO3UZRmE+A==
-Date: Mon, 5 Aug 2024 17:39:41 +0300
+	b=Z7q/lW639aowtINXwVebTG+OLoxrXof+zBNSeR/8WY86B+624ZIuqcPJ12uz6WAq3
+	 TOktvjQuFO3Psh/zSZk6bupzno8UjNgzGdjWYsGzuDHPa53tI5UwJrFUIiEWAMkla2
+	 aZhopzXWwqHlnm+KETHsoZ8cxcOCV/ES/RMeaNClV0U/lI74zaSa7QLz8oGGmPM5b+
+	 WVRXAQQqToAOAcGGygHFeY2KPxgU/pB39IDAe0i7d4FyqehFfReXcy3JQ8TWWNvwl/
+	 YnEvZ6i15oUR+XxxozKV+u9zlrKVedpz+W1ReJtnBjYdPuNzzekfqSWqwV+cKpPHX5
+	 XzWc8YkjVKQSQ==
+Date: Mon, 5 Aug 2024 20:15:22 +0300
 From: Mike Rapoport <rppt@kernel.org>
 To: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org,
+Cc: linux-kernel@vger.kernel.org,
 	Alexander Gordeev <agordeev@linux.ibm.com>,
 	Andreas Larsson <andreas@gaisler.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
 	Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>,
 	Catalin Marinas <catalin.marinas@arm.com>,
 	Christophe Leroy <christophe.leroy@csgroup.eu>,
@@ -62,14 +63,12 @@ Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org,
 	linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
 	linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
 	nvdimm@lists.linux.dev, sparclinux@vger.kernel.org, x86@kernel.org
-Subject: Re: [PATCH v3 07/26] mm: drop CONFIG_HAVE_ARCH_NODEDATA_EXTENSION
-Message-ID: <ZrDkLeLxQAVvZcBn@kernel.org>
+Subject: Re: [PATCH v3 09/26] arch, mm: pull out allocation of NODE_DATA to
+ generic code
+Message-ID: <ZrEIqogZ4UJJY0c2@kernel.org>
 References: <20240801060826.559858-1-rppt@kernel.org>
- <20240801060826.559858-8-rppt@kernel.org>
- <20240802104922.000051a0@Huawei.com>
- <20240803115813.809f808f1afbe9f9feaae129@linux-foundation.org>
- <Zq8sn5iD1iOmYrss@kernel.org>
- <20240804161119.00003a02@Huawei.com>
+ <20240801060826.559858-10-rppt@kernel.org>
+ <20240802105527.00005240@Huawei.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -78,155 +77,60 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20240804161119.00003a02@Huawei.com>
+In-Reply-To: <20240802105527.00005240@Huawei.com>
 
-On Sun, Aug 04, 2024 at 04:11:19PM +0100, Jonathan Cameron wrote:
-> On Sun, 4 Aug 2024 10:24:15 +0300
+On Fri, Aug 02, 2024 at 10:55:27AM +0100, Jonathan Cameron wrote:
+> On Thu,  1 Aug 2024 09:08:09 +0300
 > Mike Rapoport <rppt@kernel.org> wrote:
 > 
-> > On Sat, Aug 03, 2024 at 11:58:13AM -0700, Andrew Morton wrote:
-> > > On Fri, 2 Aug 2024 10:49:22 +0100 Jonathan Cameron <Jonathan.Cameron@Huawei.com> wrote:
-> > >   
-> > > > > --- a/mm/mm_init.c
-> > > > > +++ b/mm/mm_init.c
-> > > > > @@ -1838,11 +1838,10 @@ void __init free_area_init(unsigned long *max_zone_pfn)
-> > > > >  
-> > > > >  		if (!node_online(nid)) {
-> > > > >  			/* Allocator not initialized yet */
-> > > > > -			pgdat = arch_alloc_nodedata(nid);
-> > > > > +			pgdat = memblock_alloc(sizeof(*pgdat), SMP_CACHE_BYTES);
-> > > > >  			if (!pgdat)
-> > > > >  				panic("Cannot allocate %zuB for node %d.\n",
-> > > > >  				       sizeof(*pgdat), nid);
-> > > > > -			arch_refresh_nodedata(nid, pgdat);  
-> > > > 
-> > > > This allocates pgdat but never sets node_data[nid] to it
-> > > > and promptly leaks it on the line below. 
-> > > > 
-> > > > Just to sanity check this I spun up a qemu machine with no memory
-> > > > initially present on some nodes and it went boom as you'd expect.
-> > > > 
-> > > > I tested with addition of
-> > > > 			NODE_DATA(nid) = pgdat;
-> > > > and it all seems to work as expected.  
-> > > 
-> > > Thanks, I added that.  It blew up on x86_64 allnoconfig because
-> > > node_data[] (and hence NODE_DATA()) isn't an lvalue when CONFIG_NUMA=n.
-> > > 
-> > > I'll put some #ifdef CONFIG_NUMAs in there for now but
-> > > 
-> > > a) NODE_DATA() is upper-case. Implies "constant".  Shouldn't be assigned to.
-> > > 
-> > > b) NODE_DATA() should be non-lvalue when CONFIG_NUMA=y also.  But no,
-> > >    we insist on implementing things in cpp instead of in C.  
+> > From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
 > > 
-> > This looks like a candidate for a separate tree-wide cleanup.
-> >  
-> > > c) In fact assigning to anything which ends in "()" is nuts.  Please
-> > >    clean up my tempfix.
-> > > 
-> > > c) Mike, generally I'm wondering if there's a bunch of code here
-> > >    which isn't needed on CONFIG_NUMA=n.  Please check all of this for
-> > >    unneeded bloatiness.  
+> > Architectures that support NUMA duplicate the code that allocates
+> > NODE_DATA on the node-local memory with slight variations in reporting
+> > of the addresses where the memory was allocated.
 > > 
-> > I believe the patch addresses your concerns, just with this the commit log
-> > needs update. Instead of 
+> > Use x86 version as the basis for the generic alloc_node_data() function
+> > and call this function in architecture specific numa initialization.
 > > 
-> >     Replace the call to arch_alloc_nodedata() in free_area_init() with
-> >     memblock_alloc(), remove arch_refresh_nodedata() and cleanup
-> >     include/linux/memory_hotplug.h from the associated ifdefery.
+> > Round up node data size to SMP_CACHE_BYTES rather than to PAGE_SIZE like
+> > x86 used to do since the bootmem era when allocation granularity was
+> > PAGE_SIZE anyway.
 > > 
-> > it should be
-> > 
-> >     Replace the call to arch_alloc_nodedata() in free_area_init() with a
-> >     new helper alloc_offline_node_data(), remove arch_refresh_nodedata()
-> >     and cleanup include/linux/memory_hotplug.h from the associated
-> >     ifdefery.
-> > 
-> > I can send an updated patch if you prefer.
-> This solution looks good to me - except for a Freudian typo that means it won't
-> compile :)
-
-Right :)
-
-I'll post v4 after kbuild confirms it compiles :)
- 
-> Jonathan
+> > Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+> > Acked-by: David Hildenbrand <david@redhat.com>
+> > Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+> > Tested-by: Zi Yan <ziy@nvidia.com> # for x86_64 and arm64
 > 
-> > 
-> > diff --git a/include/linux/numa.h b/include/linux/numa.h
-> > index 3b12d8ca0afd..5a749fd67f39 100644
-> > --- a/include/linux/numa.h
-> > +++ b/include/linux/numa.h
-> > @@ -34,6 +34,7 @@ extern struct pglist_data *node_data[];
-> >  #define NODE_DATA(nid)	(node_data[nid])
-> >  
-> >  void __init alloc_node_data(int nid);
-> > +void __init alloc_offline_node_data(int nit);
-> >  
-> >  /* Generic implementation available */
-> >  int numa_nearest_node(int node, unsigned int state);
-> > @@ -62,6 +63,8 @@ static inline int phys_to_target_node(u64 start)
+> One comment unrelated to this patch set as such, just made
+> more obvious by it.
+> 
+> > diff --git a/arch/powerpc/mm/numa.c b/arch/powerpc/mm/numa.c
+> > index 0744a9a2944b..3c1da08304d0 100644
+> > --- a/arch/powerpc/mm/numa.c
+> > +++ b/arch/powerpc/mm/numa.c
+> > @@ -1093,27 +1093,9 @@ void __init dump_numa_cpu_topology(void)
+> >  static void __init setup_node_data(int nid, u64 start_pfn, u64 end_pfn)
 > >  {
-> >  	return 0;
-> >  }
-> > +
-> > +static inline void alloc_offline_node_data(int nit) {}
-> nid
-> >  #endif
-> >  
-> >  #define numa_map_to_online_node(node) numa_nearest_node(node, N_ONLINE)
-> > diff --git a/mm/mm_init.c b/mm/mm_init.c
-> > index bcc2f2dd8021..2785be04e7bb 100644
-> > --- a/mm/mm_init.c
-> > +++ b/mm/mm_init.c
-> > @@ -1836,13 +1836,8 @@ void __init free_area_init(unsigned long *max_zone_pfn)
-> >  	for_each_node(nid) {
-> >  		pg_data_t *pgdat;
-> >  
-> > -		if (!node_online(nid)) {
-> > -			/* Allocator not initialized yet */
-> > -			pgdat = memblock_alloc(sizeof(*pgdat), SMP_CACHE_BYTES);
-> > -			if (!pgdat)
-> > -				panic("Cannot allocate %zuB for node %d.\n",
-> > -				       sizeof(*pgdat), nid);
-> > -		}
-> > +		if (!node_online(nid))
-> > +			alloc_offline_node_data(nid);
-> >  
-> >  		pgdat = NODE_DATA(nid);
-> >  		free_area_init_node(nid);
-> > diff --git a/mm/numa.c b/mm/numa.c
-> > index da27eb151dc5..07e486a977c7 100644
-> > --- a/mm/numa.c
-> > +++ b/mm/numa.c
-> > @@ -34,6 +34,18 @@ void __init alloc_node_data(int nid)
-> >  	memset(NODE_DATA(nid), 0, sizeof(pg_data_t));
-> >  }
-> >  
-> > +void __init alloc_offline_node_data(int nit)
+> >  	u64 spanned_pages = end_pfn - start_pfn;
 > 
-> nid
-> 
-> > +{
-> > +	pg_data_t *pgdat;
+> Trivial, but might as well squash this local variable into the
+> single place it's used.
+ 
+
+> > -	const size_t nd_size = roundup(sizeof(pg_data_t), SMP_CACHE_BYTES);
+
+...
+
 > > +
-> > +	pgdat = memblock_alloc(sizeof(*pgdat), SMP_CACHE_BYTES);
-> > +	if (!pgdat)
-> > +		panic("Cannot allocate %zuB for node %d.\n",
-> > +		      sizeof(*pgdat), nid);
+> > +	alloc_node_data(nid);
 > > +
-> > +	node_data[nid] = pgdat;
-> > +}
-> > +
-> >  /* Stub functions: */
-> >  
-> >  #ifndef memory_add_physaddr_to_nid
-> > 
-> >  
-> > 
-> 
-> 
+> >  	NODE_DATA(nid)->node_id = nid;
+> >  	NODE_DATA(nid)->node_start_pfn = start_pfn;
+> >  	NODE_DATA(nid)->node_spanned_pages = spanned_pages;
+
+These are actually overridden later in free_area_init(), it would make
+sense to audit all arch-specific node setup functions and clean them up a
+bit.
 
 -- 
 Sincerely yours,
