@@ -1,181 +1,130 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oi1-f169.google.com (mail-oi1-f169.google.com [209.85.167.169])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 056D91D2F6D
-	for <nvdimm@lists.linux.dev>; Tue,  6 Aug 2024 13:29:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9BB440875
+	for <nvdimm@lists.linux.dev>; Tue,  6 Aug 2024 18:00:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.169
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722950950; cv=none; b=ez6bMC7zL5DbCfe10t9Mv9NJuOMXqmMoBL1y4fc8M+etp3RSQXEvivvGEYSL+9uq3y5WxOnVzln+Fk+qnEvEijUWqfd2tdY8oRHfgglmNjCsdzrOpQv/Qu0exI/xUOKaT4dmWwo9s/9K5BNaR1Sb4zpHNIxQfHx+g4gL9LRhym8=
+	t=1722967235; cv=none; b=LmaAErphxbG+2G3uW6oOvis6NrzrdfQyl69oHvJpjVVajBxvXQZdOLn+IBCupki7BHByWGVvtPWNLvZa8nVqZvFv6may/Neuqz5FatLwWDYuNHEC3KhWcP1nHO9m3aQiWRkadM6EK5EbgJ+VGMK9Xu0earpMbNJ5HPA7QtnSTkE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722950950; c=relaxed/simple;
-	bh=4NJ/yhkOnp0DgwZlQ2ar1giYsnoU0BxjF1CUE59RMzM=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=heF+57Ed6trw9g6zMzzLSHAIWj8kkLRnoyabW8SFXW9wDVpKcJVNo7FazLQ4ka6mj1M4hY6IUIrpVsyO219y65B9IDKW4F5bfoccTJMi0eIQuyI1jfr00swCmWW7ufmKLKv0PdhujA7sNR6HgEy141qmAAg5GxKqmP/SQYgBX2U=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=b/P8CMlN; arc=none smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1722967235; c=relaxed/simple;
+	bh=f2XjQVAFOMEyAF2He6DfOX7B9yvspDnOResmomHSCGY=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=iD1eBQgffz8OZMKx5asv0WvUu0Hldwg32J9Enuyt6cdYxJtl8OBUVg7rJy79DNHVpxejyU13067Jjs55Z+BErH8m6E6EvyjaYTv8gOVmiK45T4uqFWmplv3dRbGM58QxkCiDCAe5Y+Cb8EEwaKGSq4Wuxa8T5r7c+cyizZMhsBc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=soleen.com; spf=pass smtp.mailfrom=soleen.com; dkim=pass (2048-bit key) header.d=soleen-com.20230601.gappssmtp.com header.i=@soleen-com.20230601.gappssmtp.com header.b=mVCB/Ta8; arc=none smtp.client-ip=209.85.167.169
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=soleen.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=soleen.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="b/P8CMlN"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1722950946;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=mg8j1NdkC4QyJoy5NjpxqHT8Z7jh1Oox1ZezxJBmykE=;
-	b=b/P8CMlNUkpb9rwNLv+lI28z/vQPWrRCCWnyOwBfMgIkNxm4ePCGLWh4ghNzgEuvIOe+x6
-	lG7iqgLxDOgf8MYdenssMo/pC+NQvCDOOC+GqoSHxLa+WENuFj4x0jTAA7SCSFJ05jhVxH
-	e1/BZ06/JmDY/vUZnaNAvIzezJLI1sw=
-Received: from mail-lj1-f198.google.com (mail-lj1-f198.google.com
- [209.85.208.198]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-384-uTLL4x7FP2K09YEypx7ehw-1; Tue, 06 Aug 2024 09:29:04 -0400
-X-MC-Unique: uTLL4x7FP2K09YEypx7ehw-1
-Received: by mail-lj1-f198.google.com with SMTP id 38308e7fff4ca-2f01b9ae749so6990481fa.1
-        for <nvdimm@lists.linux.dev>; Tue, 06 Aug 2024 06:29:04 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=soleen-com.20230601.gappssmtp.com header.i=@soleen-com.20230601.gappssmtp.com header.b="mVCB/Ta8"
+Received: by mail-oi1-f169.google.com with SMTP id 5614622812f47-3daf0e73a5bso528975b6e.0
+        for <nvdimm@lists.linux.dev>; Tue, 06 Aug 2024 11:00:33 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=soleen-com.20230601.gappssmtp.com; s=20230601; t=1722967233; x=1723572033; darn=lists.linux.dev;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=QfBptZsetpueoOKsFuJCrA1Xpgd48fPSsjBhDKcmpWw=;
+        b=mVCB/Ta8iyQtdOaadXma905wNHnjZrcesljUt3LtmM3qLfl5WEle3vzMUVgaHzIaiY
+         GA/asCJzw262oElTXA20cww2k3nfnSXH/AmC3NsxzXfo3wdCnqX/zQ4QD+YC6w9Xi7J6
+         Rx3FZAGJsrpqotGRTsn6pgVejpNVBkj+FqPLe/ysG/rzbk3lC91TYkf/iHaXjDBEWlfQ
+         DiPG2FQNgDZqoID2Zc6HHTDdDWzNrnwTN86rKEBg38WQoROrJ8PxoUfJsMmuQusSA3r0
+         yzJsmzRqmWHMD8VRPU/k7WBYl5K9/EWh5C9kyloHvrkmejFSbWYZLdO3vY35HHsGhZtU
+         OT3Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1722950943; x=1723555743;
-        h=content-transfer-encoding:in-reply-to:organization:autocrypt
-         :content-language:from:references:cc:to:subject:user-agent
-         :mime-version:date:message-id:x-gm-message-state:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=mg8j1NdkC4QyJoy5NjpxqHT8Z7jh1Oox1ZezxJBmykE=;
-        b=cYzPnY9/hgPqMncb38SVDM5Xoknb6JVpmE0dcewuSBSuj6mwCgMICyqOw8hpjd6zc0
-         7L1uewenW08WonW3jpTVzPoioUbsQKmFpWUMpOLTvwCzvZ12jcTRaPmn2ix3QFm9JlpM
-         vMnvu3guy9AX4wMHOF+h+M2eOIOAg6GgG+h4PA1Mn1prNgIfFdKMkFIUuW6NvUXIhBoL
-         TRWrZmHwGlG4Z/0CyL1bOvEWOiwUgQfOHdDdXMOpAyDT0+xvqc7MggBtjoipPnLSIJSP
-         Ja5tRI1/fac62VFm8k70SVvEnkafriFhhkVV74Xf5DFONCVAk7dBTGj+ewuTThOJxYjk
-         tvtw==
-X-Forwarded-Encrypted: i=1; AJvYcCVBG1rd8b4OhJRvX9rP12uCZI6dKhf47uYablWfLhyBQ4IiFT2ZZ68Evz2ERGSQ+gD3V9TpGlpIl+BaQ7j4vPjQ5taWY2QF
-X-Gm-Message-State: AOJu0YyWtdtcHcv52A+H65NV9ouWGNN3nqeVxRDC1M/O4s4oydluwjF4
-	R1DjN2pWODreAHYt88gLt4mn3zaqOtrkF/N4yFvZeEpC6cGiR9og2M+frj7euWZ1ixiDPAt5iSY
-	Fj7Sv/KtDRBC6caW+NMwwdj3ExD9NupK20B48EP/A5GbDu/xuni/CjA==
-X-Received: by 2002:a2e:8696:0:b0:2ef:228a:1b86 with SMTP id 38308e7fff4ca-2f15aabd05fmr96389311fa.21.1722950943104;
-        Tue, 06 Aug 2024 06:29:03 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IEUAkkY1eODz2H49AhHbcgbZMYiCb05Jg7YJ0JX+yoRtVdCbp9tatU0EHzUBQRP+lyJ7u1OEA==
-X-Received: by 2002:a2e:8696:0:b0:2ef:228a:1b86 with SMTP id 38308e7fff4ca-2f15aabd05fmr96388601fa.21.1722950942503;
-        Tue, 06 Aug 2024 06:29:02 -0700 (PDT)
-Received: from ?IPV6:2003:cb:c73f:8500:f83c:3602:5300:88af? (p200300cbc73f8500f83c3602530088af.dip0.t-ipconnect.de. [2003:cb:c73f:8500:f83c:3602:5300:88af])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-428e6e9cd4esm180274335e9.44.2024.08.06.06.29.00
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 06 Aug 2024 06:29:02 -0700 (PDT)
-Message-ID: <87ca4550-ed4d-4373-8d4c-3f89ac03df91@redhat.com>
-Date: Tue, 6 Aug 2024 15:28:59 +0200
+        d=1e100.net; s=20230601; t=1722967233; x=1723572033;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=QfBptZsetpueoOKsFuJCrA1Xpgd48fPSsjBhDKcmpWw=;
+        b=sqogFAZWyIRquwnssor2vzdi8GPMogPhp8IHE7W2moYd8d+dYe4a0SkZMVDOuDpKYK
+         DPsJPlHx0B4M4qiHO8kqLJUZb191CFgJVou39w9f0rYIHPwMtDvjQ96jmQeiB4226NhW
+         P4q+qCx55PUmzwQ/OEV9ZicFoKuJ9Tj6OoXfbgU4pHSsWBdFzKm9m2639fvOrt7NRTad
+         6kX+GjRU1FlPpFOHoAdaEK58sma01JrM+CKF0eVaYmTukPcFoZUCnFy+htj+FYVatwue
+         W+chW/G9h4zTKtMZrgATe3DypcdpFYPuW2GmshmywOthRPPLUhgf4s7mobARq2oh8OoO
+         PY9w==
+X-Forwarded-Encrypted: i=1; AJvYcCXKBuFXxjzqNEeDx/+3+9ghQ4jvpsXAHmd06N2kZoK6z1rgOcaXHEnGClbbwsuYwtWa4bxfpvcp4ZtXkGKVItPF8GjhGjNk
+X-Gm-Message-State: AOJu0YxrRcSUmhiO/dJ6I5vj0aGMSdLUsM9P449ENDrO79jEuVpITze9
+	YVCHKfrI/z7akH1h5E/iD7MDtwyAxWTFEEI3XoqLqrRUm8TiNLvg83LQJezPL9FqRLSQGCLZeSi
+	ym7oqMKmDso9o/a/A4MPHWnHnAQbeKbnZmiNznA==
+X-Google-Smtp-Source: AGHT+IH+na8ZogFWe0lTnYO7BkcAEVsw1QVu/V+B8Fzmh/sUyWoO/L5FA9/YCLYS61YqWW8tMcQfLCj95kNJZH2NdC8=
+X-Received: by 2002:a05:6870:15d5:b0:261:1ad0:5fd1 with SMTP id
+ 586e51a60fabf-26891a96625mr20245193fac.12.1722967233054; Tue, 06 Aug 2024
+ 11:00:33 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 24/26] arch_numa: switch over to numa_memblks
-To: Mike Rapoport <rppt@kernel.org>, linux-kernel@vger.kernel.org
-Cc: Alexander Gordeev <agordeev@linux.ibm.com>,
- Andreas Larsson <andreas@gaisler.com>,
- Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>,
- Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>,
- Christophe Leroy <christophe.leroy@csgroup.eu>,
- Dan Williams <dan.j.williams@intel.com>,
- Dave Hansen <dave.hansen@linux.intel.com>,
- "David S. Miller" <davem@davemloft.net>, Davidlohr Bueso
- <dave@stgolabs.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
- Heiko Carstens <hca@linux.ibm.com>, Huacai Chen <chenhuacai@kernel.org>,
- Ingo Molnar <mingo@redhat.com>, Jiaxun Yang <jiaxun.yang@flygoat.com>,
- John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
- Jonathan Cameron <jonathan.cameron@huawei.com>,
- Jonathan Corbet <corbet@lwn.net>, Michael Ellerman <mpe@ellerman.id.au>,
- Palmer Dabbelt <palmer@dabbelt.com>, "Rafael J. Wysocki"
- <rafael@kernel.org>, Rob Herring <robh@kernel.org>,
- Samuel Holland <samuel.holland@sifive.com>,
- Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
- Thomas Gleixner <tglx@linutronix.de>, Vasily Gorbik <gor@linux.ibm.com>,
- Will Deacon <will@kernel.org>, Zi Yan <ziy@nvidia.com>,
- devicetree@vger.kernel.org, linux-acpi@vger.kernel.org,
- linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
- linux-cxl@vger.kernel.org, linux-doc@vger.kernel.org,
- linux-mips@vger.kernel.org, linux-mm@kvack.org,
- linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
- linux-sh@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
- loongarch@lists.linux.dev, nvdimm@lists.linux.dev,
- sparclinux@vger.kernel.org, x86@kernel.org
-References: <20240801060826.559858-1-rppt@kernel.org>
- <20240801060826.559858-25-rppt@kernel.org>
-From: David Hildenbrand <david@redhat.com>
-Autocrypt: addr=david@redhat.com; keydata=
- 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
- WNyWQQ==
-Organization: Red Hat
-In-Reply-To: <20240801060826.559858-25-rppt@kernel.org>
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: redhat.com
-Content-Language: en-US
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+References: <20240605222751.1406125-1-souravpanda@google.com>
+ <Zq0tPd2h6alFz8XF@aschofie-mobl2> <CA+CK2bAfgamzFos1M-6AtozEDwRPJzARJOmccfZ=uzKyJ7w=kQ@mail.gmail.com>
+ <66b15addf1a80_c144829473@dwillia2-xfh.jf.intel.com.notmuch>
+In-Reply-To: <66b15addf1a80_c144829473@dwillia2-xfh.jf.intel.com.notmuch>
+From: Pasha Tatashin <pasha.tatashin@soleen.com>
+Date: Tue, 6 Aug 2024 13:59:54 -0400
+Message-ID: <CA+CK2bC1ZsT3cuAMDAAUonys3BUxbb2JdnZXs1Ps3NbYZt5W2Q@mail.gmail.com>
+Subject: Re: [PATCH v13] mm: report per-page metadata information
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Alison Schofield <alison.schofield@intel.com>, Sourav Panda <souravpanda@google.com>, corbet@lwn.net, 
+	gregkh@linuxfoundation.org, rafael@kernel.org, akpm@linux-foundation.org, 
+	mike.kravetz@oracle.com, muchun.song@linux.dev, rppt@kernel.org, 
+	david@redhat.com, rdunlap@infradead.org, chenlinxuan@uniontech.com, 
+	yang.yang29@zte.com.cn, tomas.mudrunka@gmail.com, bhelgaas@google.com, 
+	ivan@cloudflare.com, yosryahmed@google.com, hannes@cmpxchg.org, 
+	shakeelb@google.com, kirill.shutemov@linux.intel.com, 
+	wangkefeng.wang@huawei.com, adobriyan@gmail.com, vbabka@suse.cz, 
+	Liam.Howlett@oracle.com, surenb@google.com, linux-kernel@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org, linux-doc@vger.kernel.org, linux-mm@kvack.org, 
+	willy@infradead.org, weixugc@google.com, David Rientjes <rientjes@google.com>, 
+	nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org, yi.zhang@redhat.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On 01.08.24 08:08, Mike Rapoport wrote:
-> From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-> 
-> Until now arch_numa was directly translating firmware NUMA information
-> to memblock.
-> 
-> Using numa_memblks as an intermediate step has a few advantages:
-> * alignment with more battle tested x86 implementation
-> * availability of NUMA emulation
-> * maintaining node information for not yet populated memory
-> 
-> Replace current functionality related to numa_add_memblk() and
-> __node_distance() with the implementation based on numa_memblks and add
-> functions required by numa_emulation.
-> 
-> Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-> Tested-by: Zi Yan <ziy@nvidia.com> # for x86_64 and arm64
-> ---
+On Mon, Aug 5, 2024 at 7:06=E2=80=AFPM Dan Williams <dan.j.williams@intel.c=
+om> wrote:
+>
+> Pasha Tatashin wrote:
+> [..]
+> > Thank you for the heads up. Can you please attach a full config file,
+> > also was anyone able to reproduce this problem in qemu with emulated
+> > nvdimm?
+>
+> Yes, I can reproduce the crash just by trying to reconfigure the mode of
+> a pmem namespace:
+>
+> # ndctl create-namespace -m raw -f -e namespace0.0
+>
+> ...where namespace0.0 results from:
+>
+>     memmap=3D4G!4G
+>
+> ...passed on the kernel command line.
+>
+> Kernel config here:
+>
+> https://gist.github.com/djbw/143705077103d43a735c179395d4f69a
 
-Acked-by: David Hildenbrand <david@redhat.com>
+Excellent, I was able to reproduce this problem.
 
--- 
-Cheers,
+The problem appear to be caused by this code:
 
-David / dhildenb
+Calling page_pgdat() in depopulate_section_memmap():
 
+static void depopulate_section_memmap(unsigned long pfn, unsigned long nr_p=
+ages,
+                struct vmem_altmap *altmap)
+{
+        unsigned long start =3D (unsigned long) pfn_to_page(pfn);
+        unsigned long end =3D start + nr_pages * sizeof(struct page);
+
+        mod_node_page_state(page_pgdat(pfn_to_page(pfn)), NR_MEMMAP,
+<<<< We cannot do it.
+                            -1L * (DIV_ROUND_UP(end - start, PAGE_SIZE)));
+        vmemmap_free(start, end, altmap);
+}
+
+The page_pgdat() returns NULL starting from:
+pageunmap_range()
+    remove_pfn_range_from_zone() <- page is removed from the zone.
+
+Pasha
