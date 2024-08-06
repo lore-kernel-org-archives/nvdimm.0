@@ -1,291 +1,179 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.17])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62C911547FB
-	for <nvdimm@lists.linux.dev>; Mon,  5 Aug 2024 23:18:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.17
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A60A51C9ED0
+	for <nvdimm@lists.linux.dev>; Tue,  6 Aug 2024 13:05:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722899900; cv=none; b=Sg/SICTWGLokws3RbWsjz2IAjZXnf7qNDceUJKzEw6XZNsm0kN5jP2yicwVp2lHAdEHXrXnxTzV611Bb1BVFHpqB0bSSKDRUlviR5X4Xa/4YSphj+P8PRNm7cvEznL5hAnmevpiCq9avVwmNbTyHwHUG1Tx66Z4Ap+P2mAt/oHA=
+	t=1722949517; cv=none; b=KxtegDRDdHhxaXFX/NerZK3qizJnLFZm3L+BAAGSY+BOOPIo0fE9DiMhrFSJujxRCk59NTHamZIvtr4Qw7giyKgDbQTb6FLg7bffiRDrH91nku2ghYY22mksepF/9rNxOa+9J2eDNU/Bu58+mQ1FrnUzSuLM5JU78Zm4bY2OLmk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722899900; c=relaxed/simple;
-	bh=IFGzE21ZyH//2gmVx0dwM7TDd8v+Q6ceMcKC81kje1w=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Csw6BnNPwUo7LQS6Ghwj3jFVjsG6JsOePNC25YPnR/jS2sD41B5Af353L9miU8BJ7gX8MhZAwob1KRyesQ3jYATUq51SUQr3tMK1kQ0HEpt9MrtkGfYhkk0n4nO3AXQCx5R/qdqIuaNCi4dGSFpfPE4KHQVM2qOxVyc5mV7QD50=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=VfAacJqV; arc=none smtp.client-ip=198.175.65.17
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1722949517; c=relaxed/simple;
+	bh=TP+b0YSIIsDD4y4rkrToKJh1FYgm2hkAD/y9iEnO8Ug=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=na/tts1FAYYg3mhyvvnZDwArWON2s4Zy9sdewE5wfTFgIQjmtJnaEaYle5HQq27RlmAX6OaSbESeqAhJUgY2opGtiVM3Q3901YEEG95STbibA4sM5vlNkEN8uU7g2d9evcf1fIfZ2URD84FhMLuLr9f4+6n2owbFn2tRLcBwFvI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=c3edYHbd; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="VfAacJqV"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1722899899; x=1754435899;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:content-transfer-encoding:in-reply-to;
-  bh=IFGzE21ZyH//2gmVx0dwM7TDd8v+Q6ceMcKC81kje1w=;
-  b=VfAacJqV0P+jRc15J3OlnicbHZWYJbmAAFqWIj6OAz4ZEM2v/vqHC9XI
-   SZKWQ4WlbZP3ZU00a/WN1npttz++UUxKJxX9LRekeMvQr7A1ES7OkTc0T
-   1L7VMkDPMLizwYf5zG+vfrFU/hHkBPglY4lH9DOZXlsJI6msDshBfsSL9
-   X9JUKOY6uZUSHHTOjLcl0raVCb7HdjK6F7v2h7/nNJC014vVtS1cm3Vfk
-   9SNgEpGvarxY3vWJBtWhtiKpEX2j4NfIkPi97/Mcd2119fBhYXwXu7lOp
-   9WFGJ6wNfW1IDgafrBxDDC6gCJsTbMbRiuSmXClwqZJg3KPHuQQUQuNBS
-   A==;
-X-CSE-ConnectionGUID: DDgtuEpeQUmi44v5qlA3Kw==
-X-CSE-MsgGUID: D3AxgM6HR2+MtrjzbEup2A==
-X-IronPort-AV: E=McAfee;i="6700,10204,11155"; a="21012003"
-X-IronPort-AV: E=Sophos;i="6.09,266,1716274800"; 
-   d="scan'208";a="21012003"
-Received: from fmviesa008.fm.intel.com ([10.60.135.148])
-  by orvoesa109.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Aug 2024 16:18:18 -0700
-X-CSE-ConnectionGUID: TpBiu6NtSne5XrkUYvFpxg==
-X-CSE-MsgGUID: PkPWffSyRRu33VPD7UPchw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.09,266,1716274800"; 
-   d="scan'208";a="56241077"
-Received: from aschofie-mobl2.amr.corp.intel.com (HELO aschofie-mobl2) ([10.209.75.106])
-  by fmviesa008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Aug 2024 16:18:15 -0700
-Date: Mon, 5 Aug 2024 16:18:13 -0700
-From: Alison Schofield <alison.schofield@intel.com>
-To: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Sourav Panda <souravpanda@google.com>, corbet@lwn.net,
-	gregkh@linuxfoundation.org, rafael@kernel.org,
-	akpm@linux-foundation.org, mike.kravetz@oracle.com,
-	muchun.song@linux.dev, rppt@kernel.org, david@redhat.com,
-	rdunlap@infradead.org, chenlinxuan@uniontech.com,
-	yang.yang29@zte.com.cn, tomas.mudrunka@gmail.com,
-	bhelgaas@google.com, ivan@cloudflare.com, yosryahmed@google.com,
-	hannes@cmpxchg.org, shakeelb@google.com,
-	kirill.shutemov@linux.intel.com, wangkefeng.wang@huawei.com,
-	adobriyan@gmail.com, vbabka@suse.cz, Liam.Howlett@oracle.com,
-	surenb@google.com, linux-kernel@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux-mm@kvack.org, willy@infradead.org, weixugc@google.com,
-	David Rientjes <rientjes@google.com>, nvdimm@lists.linux.dev,
-	linux-cxl@vger.kernel.org, yi.zhang@redhat.com
-Subject: Re: [PATCH v13] mm: report per-page metadata information
-Message-ID: <ZrFdtYCgmj/7xnP3@aschofie-mobl2>
-References: <20240605222751.1406125-1-souravpanda@google.com>
- <Zq0tPd2h6alFz8XF@aschofie-mobl2>
- <CA+CK2bAfgamzFos1M-6AtozEDwRPJzARJOmccfZ=uzKyJ7w=kQ@mail.gmail.com>
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="c3edYHbd"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1722949514;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
+	bh=2OksTN73HxjsIsPl77kQrWLaGS0nfyIcgwcT/pZ9bvc=;
+	b=c3edYHbdV7WIyipZhQEIEbjdrVNC5mMM0VMmF9h46fc3PAqDx39MnDqSbIKEcy77Bjhgmr
+	n74SE+zywyuIPax5RYQcdUN/PVe3Y4ozVICkRlEDvPKz67SETiS3lKpdKi+KCk2DNunrV6
+	rnSd3rEHDI54RBu6//MhEpxowOIKwU4=
+Received: from mail-ej1-f72.google.com (mail-ej1-f72.google.com
+ [209.85.218.72]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-488-Wt5JGi2rMHO1t-xVwsHJPQ-1; Tue, 06 Aug 2024 09:05:13 -0400
+X-MC-Unique: Wt5JGi2rMHO1t-xVwsHJPQ-1
+Received: by mail-ej1-f72.google.com with SMTP id a640c23a62f3a-a7d6a72ad99so36820566b.2
+        for <nvdimm@lists.linux.dev>; Tue, 06 Aug 2024 06:05:13 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1722949512; x=1723554312;
+        h=content-transfer-encoding:in-reply-to:organization:autocrypt
+         :content-language:from:references:cc:to:subject:user-agent
+         :mime-version:date:message-id:x-gm-message-state:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=2OksTN73HxjsIsPl77kQrWLaGS0nfyIcgwcT/pZ9bvc=;
+        b=DqRAMvkfqTNJ441yoofjGNXc02w/UIK7TGeexky9ZT5A0qITD8VU0OWF12jDajUQI0
+         gSkvKqLQiw3lPS18FmY/uVOrOP/Iuacjby/SyVViSu9EFntXrDZDM94tPYMQFm155nOD
+         fuUHRSknJzvi2fbt1XsqEcsUmptgIAGFwP2TDYeLDxo8WSS1k+/KyeNCCKZ5NnkvoaL3
+         b9L5qKZolS9DsmpIA1tJqxbd6562QhnMf41Z7PHTi+VhTYFvHMBYqwFH58CtF8qkZzLQ
+         Xuz5cSvmlYgcgDgQHo2hVHBe1iMDV5g3nGk9p7MuHNkwbN4mICb3nY+wFt50AQ4HV8Iu
+         XJTA==
+X-Forwarded-Encrypted: i=1; AJvYcCVvpoG2AgUHAUSD1A+IFII37M012J0xfM+c4O7cFurv0IfzjHoMm7qA4QV52fxbdOoJ3g1pcyw=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yw8HLI5W6ctPWvnXJsI/SNxraooK40eph5ZTGC2C5MSQB56+il6
+	jzuXAofC/9+sgnpB1eo5aHNG6dWl4IKPjzzdpircMLRieovlyOkDS1aGk4TTXiHLlNB1fJLAcrC
+	+D48gIIVh/y047igkmVwDHySuTbmUY7iLLTK7+rqizZKhyc7nLOmVYQ==
+X-Received: by 2002:a17:907:d92:b0:a77:deb2:8b01 with SMTP id a640c23a62f3a-a7dc4fd89c8mr1523742066b.1.1722949512286;
+        Tue, 06 Aug 2024 06:05:12 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IF4VEl7CRhNLkeZ8kGCy+77PRKCTJdFsXXGg5cULvkdg3s5MpQ0XvVjnTTjpGy7TbqbES+Rlw==
+X-Received: by 2002:a17:907:d92:b0:a77:deb2:8b01 with SMTP id a640c23a62f3a-a7dc4fd89c8mr1523733166b.1.1722949511728;
+        Tue, 06 Aug 2024 06:05:11 -0700 (PDT)
+Received: from ?IPV6:2003:cb:c73f:8500:f83c:3602:5300:88af? (p200300cbc73f8500f83c3602530088af.dip0.t-ipconnect.de. [2003:cb:c73f:8500:f83c:3602:5300:88af])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-a7dc9e8674dsm558172166b.146.2024.08.06.06.05.08
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 06 Aug 2024 06:05:11 -0700 (PDT)
+Message-ID: <df47ba66-47cc-40ec-99f2-0b030114d804@redhat.com>
+Date: Tue, 6 Aug 2024 15:05:06 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CA+CK2bAfgamzFos1M-6AtozEDwRPJzARJOmccfZ=uzKyJ7w=kQ@mail.gmail.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3 02/26] MIPS: sgi-ip27: make NODE_DATA() the same as on
+ all other architectures
+To: Mike Rapoport <rppt@kernel.org>, linux-kernel@vger.kernel.org
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>,
+ Andreas Larsson <andreas@gaisler.com>,
+ Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>,
+ Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>,
+ Christophe Leroy <christophe.leroy@csgroup.eu>,
+ Dan Williams <dan.j.williams@intel.com>,
+ Dave Hansen <dave.hansen@linux.intel.com>,
+ "David S. Miller" <davem@davemloft.net>, Davidlohr Bueso
+ <dave@stgolabs.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+ Heiko Carstens <hca@linux.ibm.com>, Huacai Chen <chenhuacai@kernel.org>,
+ Ingo Molnar <mingo@redhat.com>, Jiaxun Yang <jiaxun.yang@flygoat.com>,
+ John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+ Jonathan Cameron <jonathan.cameron@huawei.com>,
+ Jonathan Corbet <corbet@lwn.net>, Michael Ellerman <mpe@ellerman.id.au>,
+ Palmer Dabbelt <palmer@dabbelt.com>, "Rafael J. Wysocki"
+ <rafael@kernel.org>, Rob Herring <robh@kernel.org>,
+ Samuel Holland <samuel.holland@sifive.com>,
+ Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+ Thomas Gleixner <tglx@linutronix.de>, Vasily Gorbik <gor@linux.ibm.com>,
+ Will Deacon <will@kernel.org>, Zi Yan <ziy@nvidia.com>,
+ devicetree@vger.kernel.org, linux-acpi@vger.kernel.org,
+ linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+ linux-cxl@vger.kernel.org, linux-doc@vger.kernel.org,
+ linux-mips@vger.kernel.org, linux-mm@kvack.org,
+ linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+ linux-sh@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+ loongarch@lists.linux.dev, nvdimm@lists.linux.dev,
+ sparclinux@vger.kernel.org, x86@kernel.org
+References: <20240801060826.559858-1-rppt@kernel.org>
+ <20240801060826.559858-3-rppt@kernel.org>
+From: David Hildenbrand <david@redhat.com>
+Autocrypt: addr=david@redhat.com; keydata=
+ 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
+ WNyWQQ==
+Organization: Red Hat
+In-Reply-To: <20240801060826.559858-3-rppt@kernel.org>
+X-Mimecast-Spam-Score: 0
+X-Mimecast-Originator: redhat.com
+Content-Language: en-US
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Mon, Aug 05, 2024 at 02:40:48PM -0400, Pasha Tatashin wrote:
-> On Fri, Aug 2, 2024 at 3:02 PM Alison Schofield
-> <alison.schofield@intel.com> wrote:
-> >
-> > ++ nvdimm, linux-cxl, Yu Zhang
-> >
-> > On Wed, Jun 05, 2024 at 10:27:51PM +0000, Sourav Panda wrote:
-> > > Today, we do not have any observability of per-page metadata
-> > > and how much it takes away from the machine capacity. Thus,
-> > > we want to describe the amount of memory that is going towards
-> > > per-page metadata, which can vary depending on build
-> > > configuration, machine architecture, and system use.
-> > >
-> > > This patch adds 2 fields to /proc/vmstat that can used as shown
-> > > below:
-> > >
-> > > Accounting per-page metadata allocated by boot-allocator:
-> > >       /proc/vmstat:nr_memmap_boot * PAGE_SIZE
-> > >
-> > > Accounting per-page metadata allocated by buddy-allocator:
-> > >       /proc/vmstat:nr_memmap * PAGE_SIZE
-> > >
-> > > Accounting total Perpage metadata allocated on the machine:
-> > >       (/proc/vmstat:nr_memmap_boot +
-> > >        /proc/vmstat:nr_memmap) * PAGE_SIZE
-> > >
-> > > Utility for userspace:
-> > >
-> > > Observability: Describe the amount of memory overhead that is
-> > > going to per-page metadata on the system at any given time since
-> > > this overhead is not currently observable.
-> > >
-> > > Debugging: Tracking the changes or absolute value in struct pages
-> > > can help detect anomalies as they can be correlated with other
-> > > metrics in the machine (e.g., memtotal, number of huge pages,
-> > > etc).
-> > >
-> > > page_ext overheads: Some kernel features such as page_owner
-> > > page_table_check that use page_ext can be optionally enabled via
-> > > kernel parameters. Having the total per-page metadata information
-> > > helps users precisely measure impact. Furthermore, page-metadata
-> > > metrics will reflect the amount of struct pages reliquished
-> > > (or overhead reduced) when hugetlbfs pages are reserved which
-> > > will vary depending on whether hugetlb vmemmap optimization is
-> > > enabled or not.
-> > >
-> > > For background and results see:
-> > > lore.kernel.org/all/20240220214558.3377482-1-souravpanda@google.com
-> > >
-> > > Acked-by: David Rientjes <rientjes@google.com>
-> > > Signed-off-by: Sourav Panda <souravpanda@google.com>
-> > > Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-> >
-> > This patch is leading to Oops in 6.11-rc1 when CONFIG_MEMORY_HOTPLUG
-> > is enabled. Folks hitting it have had success with reverting this patch.
-> > Disabling CONFIG_MEMORY_HOTPLUG is not a long term solution.
-> >
-> > Reported here:
-> > https://lore.kernel.org/linux-cxl/CAHj4cs9Ax1=CoJkgBGP_+sNu6-6=6v=_L-ZBZY0bVLD3wUWZQg@mail.gmail.com/
+On 01.08.24 08:08, Mike Rapoport wrote:
+> From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
 > 
-> Thank you for the heads up. Can you please attach a full config file,
-> also was anyone able to reproduce this problem in qemu with emulated
-> nvdimm?
+> sgi-ip27 is the only system that defines NODE_DATA() differently than
+> the rest of NUMA machines.
 > 
-> Pasha
+> Add node_data array of struct pglist pointers that will point to
+> __node_data[node]->pglist and redefine NODE_DATA() to use node_data
+> array.
+> 
+> This will allow pulling declaration of node_data to the generic mm code
+> in the next commit.
+> 
+> Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
+> ---
 
-Hi Pasha,
+Acked-by: David Hildenbrand <david@redhat.com>
 
-This hits every time when boot with a CXL enabled kernel and the cxl-test
-module loaded.  After boot, modprobe -r cxl-test emits the TRACE appended
-below. Seems to be the same failing signature as in ndctl case above.
+-- 
+Cheers,
 
-Applying the diff below works for the cxl-test unload failure. It moves the
-state update to before freeing the page. I saw a note in the patch review
-history about this:
-	"v8:  Declined changing  placement of metrics after attempting"
-
-Hope it's as simple as this :)
-
-
-diff --git a/mm/hugetlb_vmemmap.c b/mm/hugetlb_vmemmap.c
-index 829112b0a914..39c9050f8780 100644
---- a/mm/hugetlb_vmemmap.c
-+++ b/mm/hugetlb_vmemmap.c
-@@ -188,8 +188,8 @@ static inline void free_vmemmap_page(struct page *page)
-                free_bootmem_page(page);
-                mod_node_page_state(page_pgdat(page), NR_MEMMAP_BOOT, -1);
-        } else {
--               __free_page(page);
-                mod_node_page_state(page_pgdat(page), NR_MEMMAP, -1);
-+               __free_page(page);
-        }
- }
-
-Failure trace
-[   94.158105] BUG: unable to handle page fault for address: 0000000000004200
-[   94.159953] #PF: supervisor read access in kernel mode
-[   94.161132] #PF: error_code(0x0000) - not-present page
-[   94.162300] PGD 0 P4D 0 
-[   94.162915] Oops: Oops: 0000 [#1] PREEMPT SMP PTI
-[   94.164006] CPU: 0 UID: 0 PID: 1076 Comm: modprobe Tainted: G           O     N 6.11.0-rc1 #197
-[   94.165966] Tainted: [O]=OOT_MODULE, [N]=TEST
-[   94.166973] Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 0.0.0 02/06/2015
-[   94.168768] RIP: 0010:mod_node_page_state+0x6/0x90
-[   94.169877] Code: 82 e9 ec fd ff ff 31 c9 e9 de fd ff ff 0f 1f 80 00 00 00 00 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 55 41 89 f2 89 d0 <4c> 8b 8f 00 42 00 00 83 ee 05 c1 f8 0c 83 fe 02 4f 8d 44 11 01 0f
-[   94.172849] RSP: 0018:ffffc90002a4b760 EFLAGS: 00010287
-[   94.173645] RAX: 00000000fffffe00 RBX: ffffea03c0800000 RCX: 0000000000000000
-[   94.174762] RDX: fffffffffffffe00 RSI: 000000000000002d RDI: 0000000000000000
-[   94.175862] RBP: ffffc90002a4b7b0 R08: 0000000000000000 R09: 0000000000000000
-[   94.176973] R10: 000000000000002d R11: 0000000000080000 R12: ffff888012688040
-[   94.178078] R13: 0000000000200000 R14: ffffea03c0a00000 R15: ffff88812df6ce40
-[   94.179200] FS:  00007f9d9ea91740(0000) GS:ffff888077200000(0000) knlGS:0000000000000000
-[   94.180257] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[   94.180888] CR2: 0000000000004200 CR3: 0000000129886000 CR4: 00000000000006f0
-[   94.181687] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-[   94.182487] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-[   94.183278] Call Trace:
-[   94.183572]  <TASK>
-[   94.183825]  ? show_regs+0x5f/0x70
-[   94.184217]  ? __die+0x1f/0x70
-[   94.184556]  ? page_fault_oops+0x14b/0x450
-[   94.185017]  ? mod_node_page_state+0x6/0x90
-[   94.185479]  ? search_exception_tables+0x5b/0x60
-[   94.185997]  ? fixup_exception+0x22/0x300
-[   94.186449]  ? kernelmode_fixup_or_oops.constprop.0+0x5a/0x70
-[   94.187088]  ? __bad_area_nosemaphore+0x166/0x230
-[   94.187601]  ? up_read+0x1d/0x30
-[   94.187973]  ? bad_area_nosemaphore+0x11/0x20
-[   94.188452]  ? do_user_addr_fault+0x2cb/0x6b0
-[   94.188940]  ? __pfx_do_flush_tlb_all+0x10/0x10
-[   94.189445]  ? exc_page_fault+0x6e/0x220
-[   94.189857]  ? asm_exc_page_fault+0x27/0x30
-[   94.190212]  ? mod_node_page_state+0x6/0x90
-[   94.190566]  ? section_deactivate+0x242/0x290
-[   94.190946]  sparse_remove_section+0x4d/0x70
-[   94.191312]  __remove_pages+0x59/0x90
-[   94.191623]  arch_remove_memory+0x1a/0x50
-[   94.192224]  try_remove_memory+0xe9/0x150
-[   94.192858]  remove_memory+0x1d/0x30
-[   94.193457]  dev_dax_kmem_remove+0x9d/0x140 [kmem]
-[   94.194140]  dax_bus_remove+0x1d/0x30
-[   94.194723]  device_remove+0x3e/0x70
-[   94.195283]  device_release_driver_internal+0x1ae/0x220
-[   94.195980]  device_release_driver+0xd/0x20
-[   94.196590]  bus_remove_device+0xd7/0x140
-[   94.197189]  device_del+0x15b/0x3a0
-[   94.197746]  unregister_dev_dax+0x6c/0xd0
-[   94.198335]  devm_action_release+0x10/0x20
-[   94.198945]  devres_release_all+0xa8/0xe0
-[   94.199536]  device_unbind_cleanup+0xd/0x70
-[   94.200138]  device_release_driver_internal+0x1d3/0x220
-[   94.200809]  device_release_driver+0xd/0x20
-[   94.201396]  bus_remove_device+0xd7/0x140
-[   94.201977]  device_del+0x15b/0x3a0
-[   94.202484]  device_unregister+0x12/0x60
-[   94.203044]  cxlr_dax_unregister+0x9/0x10 [cxl_core]
-[   94.203712]  devm_action_release+0x10/0x20
-[   94.204249]  devres_release_all+0xa8/0xe0
-[   94.204780]  device_unbind_cleanup+0xd/0x70
-[   94.205327]  device_release_driver_internal+0x1d3/0x220
-[   94.205960]  device_release_driver+0xd/0x20
-[   94.206485]  bus_remove_device+0xd7/0x140
-[   94.207011]  device_del+0x15b/0x3a0
-[   94.207486]  unregister_region+0x2b/0x80 [cxl_core]
-[   94.208092]  devm_action_release+0x10/0x20
-[   94.208624]  devres_release_all+0xa8/0xe0
-[   94.209130]  device_unbind_cleanup+0xd/0x70
-[   94.209666]  device_release_driver_internal+0x1d3/0x220
-[   94.210274]  device_release_driver+0xd/0x20
-[   94.210812]  bus_remove_device+0xd7/0x140
-[   94.211326]  device_del+0x15b/0x3a0
-[   94.211807]  ? __this_cpu_preempt_check+0x13/0x20
-[   94.212384]  ? lock_release+0x133/0x290
-[   94.212896]  ? __x64_sys_delete_module+0x171/0x260
-[   94.213474]  platform_device_del.part.0+0x13/0x80
-[   94.214046]  platform_device_unregister+0x1b/0x40
-[   94.214602]  cxl_test_exit+0x1a/0xcb0 [cxl_test]
-[   94.215164]  __x64_sys_delete_module+0x182/0x260
-[   94.215720]  ? __fput+0x1b5/0x2e0
-[   94.216176]  ? debug_smp_processor_id+0x17/0x20
-[   94.216735]  x64_sys_call+0xcc/0x1f30
-[   94.217206]  do_syscall_64+0x47/0x110
-[   94.217691]  entry_SYSCALL_64_after_hwframe+0x76/0x7e
-[   94.218265] RIP: 0033:0x7f9d9e3128cb
-[   94.218745] Code: 73 01 c3 48 8b 0d 55 55 0e 00 f7 d8 64 89 01 48 83 c8 ff c3 66 2e 0f 1f 84 00 00 00 00 00 90 f3 0f 1e fa b8 b0 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d 25 55 0e 00 f7 d8 64 89 01 48
-[   94.220590] RSP: 002b:00007ffd8ca73a88 EFLAGS: 00000206 ORIG_RAX: 00000000000000b0
-[   94.221403] RAX: ffffffffffffffda RBX: 0000564e9737f9f0 RCX: 00007f9d9e3128cb
-[   94.222176] RDX: 0000000000000000 RSI: 0000000000000800 RDI: 0000564e9737fa58
-[   94.222960] RBP: 0000564e9737fa58 R08: 1999999999999999 R09: 0000000000000000
-[   94.223772] R10: 00007f9d9e39dac0 R11: 0000000000000206 R12: 0000000000000001
-[   94.224538] R13: 0000000000000000 R14: 00007ffd8ca75dc8 R15: 0000564e9737f480
-[   94.225314]  </TASK>
-[   94.225721] Modules linked in: kmem device_dax dax_cxl cxl_pci cxl_mock_mem(ON) cxl_test(ON-) cxl_mem(ON) cxl_pmem(ON) cxl_port(ON) cxl_acpi(ON) cxl_mock(ON) cxl_core(ON) libnvdimm
-[   94.227422] CR2: 0000000000004200
-[   94.227977] ---[ end trace 0000000000000000 ]---
-[   94.228585] RIP: 0010:mod_node_page_state+0x6/0x90
-[   94.229523] Code: 82 e9 ec fd ff ff 31 c9 e9 de fd ff ff 0f 1f 80 00 00 00 00 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 55 41 89 f2 89 d0 <4c> 8b 8f 00 42 00 00 83 ee 05 c1 f8 0c 83 fe 02 4f 8d 44 11 01 0f
-[   94.232041] RSP: 0018:ffffc90002a4b760 EFLAGS: 00010287
-[   94.232891] RAX: 00000000fffffe00 RBX: ffffea03c0800000 RCX: 0000000000000000
-[   94.233921] RDX: fffffffffffffe00 RSI: 000000000000002d RDI: 0000000000000000
-[   94.234898] RBP: ffffc90002a4b7b0 R08: 0000000000000000 R09: 0000000000000000
-[   94.235908] R10: 000000000000002d R11: 0000000000080000 R12: ffff888012688040
-[   94.237077] R13: 0000000000200000 R14: ffffea03c0a00000 R15: ffff88812df6ce40
-[   94.237922] FS:  00007f9d9ea91740(0000) GS:ffff888077200000(0000) knlGS:0000000000000000
-[   94.238844] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[   94.239584] CR2: 0000000000004200 CR3: 0000000129886000 CR4: 00000000000006f0
-[   94.240566] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-[   94.241787] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-
-
-
+David / dhildenb
 
