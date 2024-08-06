@@ -1,66 +1,66 @@
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C181F1D0DCF
-	for <nvdimm@lists.linux.dev>; Tue,  6 Aug 2024 13:10:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 219591D0DE5
+	for <nvdimm@lists.linux.dev>; Tue,  6 Aug 2024 13:11:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722949851; cv=none; b=K12UtelWPPnnfjbQwHPj32j1f5/MtyKU8CAzbA1mzhCCQe2FirqYZ0TDDo2Yty8biLxVWCiUHJ2L4q+U1Y/dXj80Ly8fBYH60cs7CNX4X0SDfGBq1RsRDAk4JB9ACo+qKSLans0u4BVuU24LJ3nmrcQvFfXQv0updZ2VgC044fg=
+	t=1722949887; cv=none; b=TlfK+SaBiE+dXqZ4asxDbXRyYyrOhPYW1I8FnW+yt3xXcpgd96bhk78EHxNNFLLzVRu+CBJzMcmkMc7Jk1XbsXeZ85Hvyupp/dGNsZ3AUT99B0u2bnrCEBB2c4og7RG7TPX5cRv44EOXBCAZNvy1ML7AjADoNgTvuSQI6ctSMRM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722949851; c=relaxed/simple;
-	bh=Gswup74gdZDKuXydEGunFAuYoPC4FThD+hz23ueDCVU=;
+	s=arc-20240116; t=1722949887; c=relaxed/simple;
+	bh=2qPBKe4HUR9te4UsGeA/jtKHNJ4SA9QcrmiJFGY9bt8=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=n+9UhoeyvWCfjqCxW2NumRRivk51oSn/2t28ra4CTvHhffnpRETJpQBZiAfbVJlz8r5/funr/61CAXhXXbFzXfmZKPy2I99ZjwHraxQa+YNroKND2RUBLgPjgscSANzkzal+yJLK2WVJxvwFDgNDdNcoQNTCYMXy3KdSsTChHSE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=HrBwIu4e; arc=none smtp.client-ip=170.10.133.124
+	 In-Reply-To:Content-Type; b=NKMeLjo9/0WcvoLejlRLYkaUwG53a78FinMMCXVgsC3Mg105Wz5QgAfa1rcur+svEkJM9hh324Q48f5t5qIokHYzHsCxT5Pi+YYmm077t9L+aEDEcv2L3Jw/y5iCXkwgZZY7s+wMWvmUxvYJX3nxBXSB12vitlrGDTSPfU/3V5k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=Glx6qhOL; arc=none smtp.client-ip=170.10.133.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="HrBwIu4e"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Glx6qhOL"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1722949849;
+	s=mimecast20190719; t=1722949884;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=kKfhuw0mmi3GGMg/l+8v2Ox0vbzOY8peZg1zYjmYH3U=;
-	b=HrBwIu4e4DnYhcIYQ/6Z5xx0Hkxul5VY/+/5i7pfgkNIuB/Z6TzjcSaJ4RvEobQ6d6fhKQ
-	2TgazUiTnekegOJxpVQfbvAi7O7ebGlS+y5kUZ4/uyPVsxTdRdBE1KbjOuz8kJRGdYw4sa
-	UuY7qWPlcS82RAbzOgdo7vveyuOA+oA=
-Received: from mail-wm1-f69.google.com (mail-wm1-f69.google.com
- [209.85.128.69]) by relay.mimecast.com with ESMTP with STARTTLS
+	bh=HQlV1QTf5yrmSKj2WaUkEDHzu01jAFbQU1zxro8N7ZY=;
+	b=Glx6qhOL/VtG+rkHeP8CUmpAR19Fzge/mqLft/FX7SjXp7wJc5BGUD2cjWTZpf7jmI6jx4
+	zQc6JZOaoctIJGVXYzcWD3Nmi5Aru/wFqO/U/8ZKhjd9Io5p+3HgVcN1ic2p/2ErxNFPAK
+	nIKE+xnXpbqjytlLxJV+kYpiBMjBy7A=
+Received: from mail-wr1-f72.google.com (mail-wr1-f72.google.com
+ [209.85.221.72]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-512-eDsjproEPaCx5p4TKDVKmw-1; Tue, 06 Aug 2024 09:10:47 -0400
-X-MC-Unique: eDsjproEPaCx5p4TKDVKmw-1
-Received: by mail-wm1-f69.google.com with SMTP id 5b1f17b1804b1-42671a6fb9dso3709725e9.3
-        for <nvdimm@lists.linux.dev>; Tue, 06 Aug 2024 06:10:47 -0700 (PDT)
+ us-mta-320-xedlnNx9Nem25_2JKB5DyQ-1; Tue, 06 Aug 2024 09:11:22 -0400
+X-MC-Unique: xedlnNx9Nem25_2JKB5DyQ-1
+Received: by mail-wr1-f72.google.com with SMTP id ffacd0b85a97d-36bb2047c21so401477f8f.2
+        for <nvdimm@lists.linux.dev>; Tue, 06 Aug 2024 06:11:22 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1722949846; x=1723554646;
+        d=1e100.net; s=20230601; t=1722949881; x=1723554681;
         h=content-transfer-encoding:in-reply-to:organization:autocrypt
          :content-language:from:references:cc:to:subject:user-agent
          :mime-version:date:message-id:x-gm-message-state:from:to:cc:subject
          :date:message-id:reply-to;
-        bh=kKfhuw0mmi3GGMg/l+8v2Ox0vbzOY8peZg1zYjmYH3U=;
-        b=BvE1OhUjzYzRyHG9Pgs4e6omPlVX2c0W903lWjiFz8/PRY+hzi73p8eub9r8tpdsLD
-         GcEK0uQNHxl5h+B6GTZCYct6ojG6khTJB58+2T9PsfJBDO1OnaJRAMFiEgcVtD7zMJY+
-         XXlaYmuT2fzDckiy96JqN/C8lRPPzmDtFElmnuPubY+GkEflyXXS8+p2BGJWTaazDZfk
-         h4kmMWaCMpyvZZF/IRGivRyevyu7LzuO3VtLeZU7ebw4LgtCiMVZsOReT0IMPlKBTv5C
-         fsHCTqCzERBRgOtvB+wzgGNy6DZvIL1UHjz5jU5KP9GV13JaEmMl6d2cBaz0858/sRip
-         uUhg==
-X-Forwarded-Encrypted: i=1; AJvYcCV1Nhcd75W9729O33MIr+ONwb/7IHoGfp3JldvxGEVIc4acQ2Owa4GD4bYcbwpHOD01BnKYP8YTWihBhi9VwSt199eVVHoe
-X-Gm-Message-State: AOJu0YxUYxDYN7kwa1UjYZ2PyXogSWDCDPVMK3U26RW9uslwmbtCoCk7
-	7Lp5NRiOMvlwB3fFAZhutw5EchPTidGABxTf5KJJ7+mrQun/J3gybcNpjpS/zTutaoBClnA0T2V
-	Npvu3GuWqJABzeXwfzycxqErGbQAvDLZYjPcvLwp+WkeGAODlB87vNA==
-X-Received: by 2002:a05:600c:2211:b0:427:d713:a5d3 with SMTP id 5b1f17b1804b1-428e6af81f9mr97868565e9.11.1722949846556;
-        Tue, 06 Aug 2024 06:10:46 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IGleH7c0DR1VqnVw0r2AW7qu7fZ7wxkqVc0S+UNT+14H+QbPeE2XEd6xRN3HTRdiTCcf27YNw==
-X-Received: by 2002:a05:600c:2211:b0:427:d713:a5d3 with SMTP id 5b1f17b1804b1-428e6af81f9mr97867845e9.11.1722949846057;
-        Tue, 06 Aug 2024 06:10:46 -0700 (PDT)
+        bh=HQlV1QTf5yrmSKj2WaUkEDHzu01jAFbQU1zxro8N7ZY=;
+        b=jonzMeAFXFtceuyHDWbcFOCFU9PJt2K5UBWPevbI/icOomBeEvEyhVFeqYm5W3hjWj
+         i37kiQtYTZq/RRvhhOlpOGOdsLR6bmxvqUt8SmsbswY72BmDhzOxBN/kr/8uEpQdu1uw
+         3U83IhxCTIQVjLV6UjgR/Mvp0hRiiNa3KImLHWJwrnGz6wkaBLGn/6KXPCXbgl6lcrXS
+         h5eT7QZSxW0pAnenjj91/HoAbCrNryrQsHGgqEe1LhyyqIa3ItOEIvBi1yx9WY9ZTXSj
+         kJl/RlfRM4XvjvT0nEq8du9kQ8GQfoBUS/pzJHa7kMu9VDcvXcASrHqzYMfcGiwzK79P
+         kyPg==
+X-Forwarded-Encrypted: i=1; AJvYcCX1cufRFQu1CSvoMphL+zxq5AGmFCrwyauKydo8VZF6QGH8GWD264NEHu8BUWN+64efixtSqpXcYKcz0Z9SSa/Aj6fOJS5X
+X-Gm-Message-State: AOJu0YzygzGZL0xdXMERxghoe+9NLafrhXzUbUlOxqHI9LaJTggny//f
+	qtRi0ByIlaTNCeIAvMKbiOnSdVIoF3hZycxx2aQP20qTv1gSFWtrHTM9g6WZhGsk4S0vWCknTju
+	iOr47Ze0CMfY1bgESoZ6ofU7YKbgPZSg3FIZKApHdpdw7oyoPRS7xiQ==
+X-Received: by 2002:adf:f482:0:b0:368:6598:131e with SMTP id ffacd0b85a97d-36bbc1631c4mr11376659f8f.38.1722949881455;
+        Tue, 06 Aug 2024 06:11:21 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IFxv7PfX6r9ym7vZjMNbk5OBHV40+BS3nlSSsfhTt07rE2DCWR/R+xABgAqwcg21wgHPlgV4Q==
+X-Received: by 2002:adf:f482:0:b0:368:6598:131e with SMTP id ffacd0b85a97d-36bbc1631c4mr11376625f8f.38.1722949880940;
+        Tue, 06 Aug 2024 06:11:20 -0700 (PDT)
 Received: from ?IPV6:2003:cb:c73f:8500:f83c:3602:5300:88af? (p200300cbc73f8500f83c3602530088af.dip0.t-ipconnect.de. [2003:cb:c73f:8500:f83c:3602:5300:88af])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-36bbd059e44sm13047467f8f.70.2024.08.06.06.10.43
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-428ead4118fsm175803245e9.32.2024.08.06.06.11.18
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 06 Aug 2024 06:10:45 -0700 (PDT)
-Message-ID: <5d1a6f58-2f6a-4214-975d-dfc937689792@redhat.com>
-Date: Tue, 6 Aug 2024 15:10:43 +0200
+        Tue, 06 Aug 2024 06:11:20 -0700 (PDT)
+Message-ID: <82d4f4d6-eed0-4332-9302-98c24f6cabad@redhat.com>
+Date: Tue, 6 Aug 2024 15:11:17 +0200
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -68,7 +68,7 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 12/26] x86/numa: move FAKE_NODE_* defines to numa_emu
+Subject: Re: [PATCH v3 13/26] x86/numa_emu: simplify allocation of phys_dist
 To: Mike Rapoport <rppt@kernel.org>, linux-kernel@vger.kernel.org
 Cc: Alexander Gordeev <agordeev@linux.ibm.com>,
  Andreas Larsson <andreas@gaisler.com>,
@@ -99,7 +99,7 @@ Cc: Alexander Gordeev <agordeev@linux.ibm.com>,
  loongarch@lists.linux.dev, nvdimm@lists.linux.dev,
  sparclinux@vger.kernel.org, x86@kernel.org
 References: <20240801060826.559858-1-rppt@kernel.org>
- <20240801060826.559858-13-rppt@kernel.org>
+ <20240801060826.559858-14-rppt@kernel.org>
 From: David Hildenbrand <david@redhat.com>
 Autocrypt: addr=david@redhat.com; keydata=
  xsFNBFXLn5EBEAC+zYvAFJxCBY9Tr1xZgcESmxVNI/0ffzE/ZQOiHJl6mGkmA1R7/uUpiCjJ
@@ -146,7 +146,7 @@ Autocrypt: addr=david@redhat.com; keydata=
  jPrnvUsUUsjRoRNJjKKA/REq+sAnhkNPPZ/NNMjaZ5b8Tovi8C0tmxiCHaQYqj7G2rgnT0kt
  WNyWQQ==
 Organization: Red Hat
-In-Reply-To: <20240801060826.559858-13-rppt@kernel.org>
+In-Reply-To: <20240801060826.559858-14-rppt@kernel.org>
 X-Mimecast-Spam-Score: 0
 X-Mimecast-Originator: redhat.com
 Content-Language: en-US
@@ -156,9 +156,11 @@ Content-Transfer-Encoding: 7bit
 On 01.08.24 08:08, Mike Rapoport wrote:
 > From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
 > 
-> The definitions of FAKE_NODE_MIN_SIZE and FAKE_NODE_MIN_HASH_MASK are
-> only used by numa emulation code, make them local to
-> arch/x86/mm/numa_emulation.c
+> By the time numa_emulation() is called, all physical memory is already
+> mapped in the direct map and there is no need to define limits for
+> memblock allocation.
+> 
+> Replace memblock_phys_alloc_range() with memblock_alloc().
 > 
 > Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
 > Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
