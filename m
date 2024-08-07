@@ -1,153 +1,113 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.16])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A9C5762DF;
-	Wed,  7 Aug 2024 18:20:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F21642C6BB
+	for <nvdimm@lists.linux.dev>; Wed,  7 Aug 2024 18:28:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.16
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723054849; cv=none; b=UzexHyj+6+DG7Cw+bCAieqBXowPBKTUN3YqiCgcA+K7qS874GrFGccgp0Exc5VvwMbhStHR/zEPbPxwLVku0fRIaM6p8F7GfUix39ehMXHF6RpL7gT4+cCzOSkVUaUfzU96tT2Dfn3dmT8GQyccA3gWSVZDHXLb5yWqgZSATBfg=
+	t=1723055329; cv=none; b=BVy6a+NErogqfruffrkoUKkV2rMMz229emu78XOERCTHQoxmzQGTHovkWIoXiBpAVsMurgGyJof4ut2oNIxGQZiEaVEd+EvBRkn+1Y32td9Qq4soAOdwiRmBp30ChsIrcmLgTeOwQT4367bBMEoqOZ+l7Ws/sAUAX1yEE+zHP6g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723054849; c=relaxed/simple;
-	bh=iPtiZxg9mYFfVaMP/wI1h2AEAZxcZhi354BsRK7OzkQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=aSiA9tLcvFL6wUaIhRVs5gEyH9nQ+1kiyb0Ae51o3bIv00t3YqhBcz4yr2IxdcgQUAtBnnTC0Nftc7OEqP6dexE6jsuWtJbtoQL3dlffGr5KYgSyFQfFhSfuNFdryzx2lNafJFvXxzv2cnrCwOisbgjU2UbskOMlUzi/ogevkzg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=fs+rYBQU; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723055329; c=relaxed/simple;
+	bh=fjI/gs2azgUibYueaXrvSCZ2MSif5xm+KK8XD9aWQq8=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=HilcFlsUcqUf+DOicnyQN97NTp3WCAjoGjfU7KenlMivqCcjyBTQb97UgGad8QtyS51WexMU7/D0ZOcfTLSoSAGGZDRdSKsUoUIb+1HKlORnklgrEL415Zq6jDzU/6aw4xoAQQA7T/a5Qh0+4wu4VHboL3ajF907hRB430S6ZBI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=lkS7KrEa; arc=none smtp.client-ip=192.198.163.16
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fs+rYBQU"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF468C32781;
-	Wed,  7 Aug 2024 18:20:33 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1723054848;
-	bh=iPtiZxg9mYFfVaMP/wI1h2AEAZxcZhi354BsRK7OzkQ=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=fs+rYBQUVp7T/qbPiJP5M3yDB/6MQZbtGhaQKvRjA1Mevvpi2N6URXoVm6Iu+rs/H
-	 5E96EIlDL0oiovI1UalP4pGMxvee6uDYhAHWeNICYCTEurK07w5XNnYjIp7hBBtH+o
-	 BuYSL8/k1GjAORViJw9J27QcUbojhI3Ae/34xWNzZpQoCHqR1I22VHBnMk5CVvZxw6
-	 SS54CnDP9bArj1yivpeOI0pLAxkinjxlqbL5z/NWC2FfzasiBT9xJGfZMh2KPtgniu
-	 UwqU0smfhLaXdoDIRZ0Xs8jOb5KYUUdKDjJmyRdFpd/cLCPX7dVpAIbbnapWdyqlxn
-	 +oDN4u6kRqxgA==
-Date: Wed, 7 Aug 2024 21:18:24 +0300
-From: Mike Rapoport <rppt@kernel.org>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-kernel@vger.kernel.org,
-	Alexander Gordeev <agordeev@linux.ibm.com>,
-	Andreas Larsson <andreas@gaisler.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Borislav Petkov <bp@alien8.de>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Christophe Leroy <christophe.leroy@csgroup.eu>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	David Hildenbrand <david@redhat.com>,
-	"David S . Miller" <davem@davemloft.net>,
-	Davidlohr Bueso <dave@stgolabs.net>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Heiko Carstens <hca@linux.ibm.com>,
-	Huacai Chen <chenhuacai@kernel.org>, Ingo Molnar <mingo@redhat.com>,
-	Jiaxun Yang <jiaxun.yang@flygoat.com>,
-	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-	Jonathan Cameron <jonathan.cameron@huawei.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Palmer Dabbelt <palmer@dabbelt.com>,
-	"Rafael J . Wysocki" <rafael@kernel.org>,
-	Rob Herring <robh@kernel.org>,
-	Samuel Holland <samuel.holland@sifive.com>,
-	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Vasily Gorbik <gor@linux.ibm.com>, Will Deacon <will@kernel.org>,
-	Zi Yan <ziy@nvidia.com>, devicetree@vger.kernel.org,
-	linux-acpi@vger.kernel.org, Linux-Arch <linux-arch@vger.kernel.org>,
-	linux-arm-kernel@lists.infradead.org, linux-cxl@vger.kernel.org,
-	linux-doc@vger.kernel.org, linux-mips@vger.kernel.org,
-	linux-mm@kvack.org, linux-riscv@lists.infradead.org,
-	linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
-	nvdimm@lists.linux.dev, sparclinux@vger.kernel.org, x86@kernel.org
-Subject: Re: [PATCH v4 24/26] arch_numa: switch over to numa_memblks
-Message-ID: <ZrO6cExVz1He_yPn@kernel.org>
-References: <20240807064110.1003856-1-rppt@kernel.org>
- <20240807064110.1003856-25-rppt@kernel.org>
- <1befc540-8904-4c23-b0e6-e2c556fe22b9@app.fastmail.com>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="lkS7KrEa"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1723055328; x=1754591328;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=fjI/gs2azgUibYueaXrvSCZ2MSif5xm+KK8XD9aWQq8=;
+  b=lkS7KrEatIVJWXjD9OA3PXdRRw3ACCjGaVfTbzjHCiUBRY7oMf4epOm3
+   owd7B0fJJAmFLgndtr3a4FXgSFYYRivSUPYzAD0WgfjSLhEVbT5CJ1gc+
+   +Y2NO7wN/6e28+9uFKisZvEoYuj4eaHao3Fnwm0BuKWvVl5xR14mhEyiY
+   Vl5ukOQkSXsRdnr6S9qE6NodQxE/lmTa3H//xW1kzA6mOoBMZk+o7I4gq
+   2yV5v7KGlmcpZDi9X1aSI41L/r1xka/7jkLXQ3Go48FYhV2ucTJuxmFZe
+   0SDmbOtyYDz+vuOW3ozxuFoXhzq4di3+Fc41Mh/Zl+FQ+3zGzI7PKTsoo
+   g==;
+X-CSE-ConnectionGUID: 73s38jHKQfabK3SwUvju6g==
+X-CSE-MsgGUID: 2p+Q6mqtThOG4+7WhXMDUA==
+X-IronPort-AV: E=McAfee;i="6700,10204,11157"; a="12906891"
+X-IronPort-AV: E=Sophos;i="6.09,270,1716274800"; 
+   d="scan'208";a="12906891"
+Received: from orviesa001.jf.intel.com ([10.64.159.141])
+  by fmvoesa110.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Aug 2024 11:28:47 -0700
+X-CSE-ConnectionGUID: V0jK5j45RwC/oUH+NMR8YA==
+X-CSE-MsgGUID: 1m4DjI9xQOOO/HZkwVY0BA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.09,270,1716274800"; 
+   d="scan'208";a="94513854"
+Received: from eamartin-mobl1.amr.corp.intel.com (HELO [10.125.111.208]) ([10.125.111.208])
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Aug 2024 11:28:46 -0700
+Message-ID: <1b045ed5-b661-4d59-b43e-8d25cb1235ec@intel.com>
+Date: Wed, 7 Aug 2024 11:28:45 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1befc540-8904-4c23-b0e6-e2c556fe22b9@app.fastmail.com>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH] nvdimm: Use of_property_present() and
+ of_property_read_bool()
+To: "Rob Herring (Arm)" <robh@kernel.org>,
+ Dan Williams <dan.j.williams@intel.com>,
+ Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>,
+ Oliver O'Halloran <oohall@gmail.com>,
+ Srinivas Kandagatla <srinivas.kandagatla@linaro.org>
+Cc: nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org
+References: <20240731191312.1710417-26-robh@kernel.org>
+Content-Language: en-US
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <20240731191312.1710417-26-robh@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Wed, Aug 07, 2024 at 08:58:37AM +0200, Arnd Bergmann wrote:
-> On Wed, Aug 7, 2024, at 08:41, Mike Rapoport wrote:
-> > From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
-> >
-> > Until now arch_numa was directly translating firmware NUMA information
-> > to memblock.
-> 
-> I get a link time warning from this:
-> 
->     WARNING: modpost: vmlinux: section mismatch in reference: numa_set_cpumask+0x24 (section: .text.unlikely) -> early_cpu_to_node (section: .init.text)
 
-I didn't see this neither in my build tests nor in kbuild reports :/
- 
-> > @@ -142,7 +144,7 @@ void __init early_map_cpu_to_node(unsigned int cpu, int nid)
-> >  unsigned long __per_cpu_offset[NR_CPUS] __read_mostly;
-> >  EXPORT_SYMBOL(__per_cpu_offset);
-> > 
-> > -int __init early_cpu_to_node(int cpu)
-> > +int early_cpu_to_node(int cpu)
-> >  {
-> >  	return cpu_to_node_map[cpu];
-> >  }
-> 
-> early_cpu_to_node() can no longer be __init here
-> 
-> > +#endif /* CONFIG_NUMA_EMU */
-> > diff --git a/include/asm-generic/numa.h b/include/asm-generic/numa.h
-> > index c32e0cf23c90..c2b046d1fd82 100644
-> > --- a/include/asm-generic/numa.h
-> > +++ b/include/asm-generic/numa.h
-> > @@ -32,8 +32,6 @@ static inline const struct cpumask *cpumask_of_node(int node)
-> > 
-> >  void __init arch_numa_init(void);
-> >  int __init numa_add_memblk(int nodeid, u64 start, u64 end);
-> > -void __init numa_set_distance(int from, int to, int distance);
-> > -void __init numa_free_distance(void);
-> >  void __init early_map_cpu_to_node(unsigned int cpu, int nid);
-> >  int __init early_cpu_to_node(int cpu);
-> >  void numa_store_cpu_info(unsigned int cpu);
-> 
-> but is still declared as __init in the header, so it is
-> still put in that section and discarded after boot.
 
-I believe this should fix it
-
-diff --git a/include/asm-generic/numa.h b/include/asm-generic/numa.h
-index c2b046d1fd82..e063d6487f66 100644
---- a/include/asm-generic/numa.h
-+++ b/include/asm-generic/numa.h
-@@ -33,7 +33,7 @@ static inline const struct cpumask *cpumask_of_node(int node)
- void __init arch_numa_init(void);
- int __init numa_add_memblk(int nodeid, u64 start, u64 end);
- void __init early_map_cpu_to_node(unsigned int cpu, int nid);
--int __init early_cpu_to_node(int cpu);
-+int early_cpu_to_node(int cpu);
- void numa_store_cpu_info(unsigned int cpu);
- void numa_add_cpu(unsigned int cpu);
- void numa_remove_cpu(unsigned int cpu);
- 
-> I was confused by this at first, since the 'early' name
-> seems to imply that you shouldn't call it once the system
-> is up, but now you do.
-
-I agree that this is confusing, but that's what x86 does and numa_emulation
-uses.
- 
->      Arnd
+On 7/31/24 12:13 PM, Rob Herring (Arm) wrote:
+> Use of_property_present() and of_property_read_bool() to test
+> property presence and read boolean properties rather than
+> of_(find|get)_property(). This is part of a larger effort to remove
+> callers of of_find_property() and similar functions.
+> of_(find|get)_property() leak the DT struct property and data pointers
+> which is a problem for dynamically allocated nodes which may be freed.
 > 
+> Signed-off-by: Rob Herring (Arm) <robh@kernel.org>
 
--- 
-Sincerely yours,
-Mike.
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+>  drivers/nvdimm/of_pmem.c | 2 +-
+>  drivers/nvmem/layouts.c  | 2 +-
+>  2 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/nvdimm/of_pmem.c b/drivers/nvdimm/of_pmem.c
+> index 403384f25ce3..b4a1cf70e8b7 100644
+> --- a/drivers/nvdimm/of_pmem.c
+> +++ b/drivers/nvdimm/of_pmem.c
+> @@ -47,7 +47,7 @@ static int of_pmem_region_probe(struct platform_device *pdev)
+>  	}
+>  	platform_set_drvdata(pdev, priv);
+>  
+> -	is_volatile = !!of_find_property(np, "volatile", NULL);
+> +	is_volatile = of_property_read_bool(np, "volatile");
+>  	dev_dbg(&pdev->dev, "Registering %s regions from %pOF\n",
+>  			is_volatile ? "volatile" : "non-volatile",  np);
+>  
+> diff --git a/drivers/nvmem/layouts.c b/drivers/nvmem/layouts.c
+> index 77a4119efea8..65d39e19f6ec 100644
+> --- a/drivers/nvmem/layouts.c
+> +++ b/drivers/nvmem/layouts.c
+> @@ -123,7 +123,7 @@ static int nvmem_layout_bus_populate(struct nvmem_device *nvmem,
+>  	int ret;
+>  
+>  	/* Make sure it has a compatible property */
+> -	if (!of_get_property(layout_dn, "compatible", NULL)) {
+> +	if (!of_property_present(layout_dn, "compatible")) {
+>  		pr_debug("%s() - skipping %pOF, no compatible prop\n",
+>  			 __func__, layout_dn);
+>  		return 0;
