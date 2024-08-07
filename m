@@ -1,94 +1,143 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.16])
+Received: from flow7-smtp.messagingengine.com (flow7-smtp.messagingengine.com [103.168.172.142])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 56DDF1411DF
-	for <nvdimm@lists.linux.dev>; Wed,  7 Aug 2024 18:30:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.16
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C21FF13D52E;
+	Wed,  7 Aug 2024 18:53:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.142
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723055411; cv=none; b=mxNI1vG6IDZIRLeImdc5kTE0eeDqFqlYvKLo4wWnzlAWTtRZhxqh3/HJjTSJAAgUwSSxM7Xl3NJEBZ6+CL9IKHmDhz7+GYfELXApcXnX+V72yDNaFPJWo7XlCViUqoro4gGlcaX1gO/uT/FrL+dw5OQ18H+0SAeJjGq/BOXa1EY=
+	t=1723056809; cv=none; b=FAO6fv0IPE57hxrufn3OI3Le+HJcjRUPkZVcfc/JI8pChZ86NI4Xck8A9OTYxwhDv9av5177SPJPwN5GuV6iGS6c0S6jLugvpZddGh5inWieJi/ETVC5UYx2tF2LRwUZGABwImEp0cYW92cFS4++XcupEk/jSAf08J2TQawWkCc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723055411; c=relaxed/simple;
-	bh=UaQkeTO6wPD8EaFGm6lBWsF7HeTN5QeBzb3IAPZdNQ8=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=mPN4sV8K3tHFr2qOLHwsUe2UpfDEqb8XHfCQloJ0P/ETbu1dgmX3KifJqRow8X/JKVZw6OzLOHZTv18a9oH/Svmmul90u6cPf31m+1qkm2tFm+arLNTtY2rWmKNdwQTFmhfNUK2TppSYUiFqV3wzJe86tLvpRRO33HgPyH8rDsQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=EVqixrMR; arc=none smtp.client-ip=192.198.163.16
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1723056809; c=relaxed/simple;
+	bh=Ae/yFOnscB0LM68KscBwrE7D7vNdMDnnAeb+RIaDy6M=;
+	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
+	 Subject:Content-Type; b=O7YNGngTs98rc4ibxaV3sKGFYUo3oqXix71OvHenG7ylTIXx0BYb8BiAy8RzsZ5nt4f8sHXB3xxtbayOBGdhCmd29mIpaqNlEf9GPJcvn37z8/8egsMM3wQzhWOkk+4US3MkrDndwKQWs19btoqT4rMIwhasK/HwdTMhULPIiQQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de; spf=pass smtp.mailfrom=arndb.de; dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b=M+AgFKcn; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=Cbd0u4JX; arc=none smtp.client-ip=103.168.172.142
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arndb.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="EVqixrMR"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1723055409; x=1754591409;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=UaQkeTO6wPD8EaFGm6lBWsF7HeTN5QeBzb3IAPZdNQ8=;
-  b=EVqixrMRsF0RtV8+4OlFVgEZQm1NTBZRLA2HRE54OdG2ZtZiCBC43P36
-   Bunabp2hga7rMNTnYcC7/sQis/ge+TkQ4UtpA8r0u/mhWaTQ2bQbsiz9t
-   e+eGimAUA8vNWCjCmsLTujwb1CGFmL5uGtSX1VugMbCZRLsHVKpZY1YeH
-   /i1mPkU2IZg3bNQ+yDhtFGjPJ2aa9/kkJSgcIKR8SdCHqG+y3xWIWnANH
-   LwCmoKUCxVOYYOHc1Y+Xuw7lxHFEYcPt2QrCq2zV5hbzdC05RkxXK/VS1
-   6YlD6D5G56rqfIg/xVl+SzoKEmcmr0rJwbkp1pQ/WGWl3yF6GpCzHmo2E
-   Q==;
-X-CSE-ConnectionGUID: Qefnbks8SrWvBwPxYPEGbw==
-X-CSE-MsgGUID: AotFwz2ARiKFA2dXwr5a4Q==
-X-IronPort-AV: E=McAfee;i="6700,10204,11157"; a="12906939"
-X-IronPort-AV: E=Sophos;i="6.09,270,1716274800"; 
-   d="scan'208";a="12906939"
-Received: from orviesa001.jf.intel.com ([10.64.159.141])
-  by fmvoesa110.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Aug 2024 11:30:08 -0700
-X-CSE-ConnectionGUID: iGCQZM3qQsGnMi7fEvLquw==
-X-CSE-MsgGUID: 0VG0siAcTS+dUdaKenQJCQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.09,270,1716274800"; 
-   d="scan'208";a="94514292"
-Received: from eamartin-mobl1.amr.corp.intel.com (HELO [10.125.111.208]) ([10.125.111.208])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Aug 2024 11:30:07 -0700
-Message-ID: <cc8e898d-b0d2-4e18-a516-864ec6b9145d@intel.com>
-Date: Wed, 7 Aug 2024 11:30:06 -0700
+	dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b="M+AgFKcn";
+	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="Cbd0u4JX"
+Received: from compute4.internal (compute4.nyi.internal [10.202.2.44])
+	by mailflow.nyi.internal (Postfix) with ESMTP id B9FE8200F9C;
+	Wed,  7 Aug 2024 14:53:26 -0400 (EDT)
+Received: from imap51 ([10.202.2.101])
+  by compute4.internal (MEProxy); Wed, 07 Aug 2024 14:53:26 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
+	:cc:content-transfer-encoding:content-type:content-type:date
+	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:subject:subject:to:to; s=fm2; t=1723056806;
+	 x=1723064006; bh=dN92Yy3XFjXTxBQ/NKAZMCYVQAegkihc+8DVkcaUGXw=; b=
+	M+AgFKcnD/Nuugw9QWMdK0TNIorx7c9kz4u4kWeEtoBkeDVxq1i8AfEINi28F8pD
+	mqxXrgNc0hd7DLIVn8ZdgKKw1WixvvvthvoPlB32dikpdRyZeayfzxol4TWH5zV/
+	sctoPTqK+Gpjs6mQSC5g5LuM5+hqde8Awr3BiE9VBetstqH9G+Y73dGI251beJG0
+	KD/S9aRYjMWru5ducc9JFCJqHqrV4tG/Fb2biX0pP/55/wPz4yqBj2Cwo3Jic+yq
+	Ts4ZD1s3I/J9I7pooC8Z3JaExlDJaha/uLa/IoywBt1Fj2dxnikSyGwL/537oKvz
+	3Ga11kSBaDC1us7TovA9WQ==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+	messagingengine.com; h=cc:cc:content-transfer-encoding
+	:content-type:content-type:date:date:feedback-id:feedback-id
+	:from:from:in-reply-to:in-reply-to:message-id:mime-version
+	:references:reply-to:subject:subject:to:to:x-me-proxy:x-me-proxy
+	:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=1723056806; x=
+	1723064006; bh=dN92Yy3XFjXTxBQ/NKAZMCYVQAegkihc+8DVkcaUGXw=; b=C
+	bd0u4JXHiwM85jQmCceR5thBnLlVROGCSHq6uqUQH7EES4yd9w+rGDAsQiWGz/KE
+	Tx9ieCb+syV32NMwTs+deNuAAbSSJe2g2WC6Q1eWWQa6JXLDL+jX7+woQX4AVmls
+	7LKrhVy6yJsezqFhMNl/XzM0DJIJdjB2cO6q+5fT/oDBlh0O4crlMEUa9nDaj5+w
+	8Li1kDK8ZNJzdI09O84Vv3hC186LsTWkCUiEZ2/yFGg3ilPlXUGqR2TZ+rh7pN7b
+	zrQN9qvczGLLR6LFQdfP+t0gWYdb1IFiN8QXdil4RtN7+rEubC/YANNF+1Cs12kw
+	Bcw5FrUO4Qwt7abMjpS7w==
+X-ME-Sender: <xms:pcKzZnopk042s10_adxzzpGQqjjj1zN1aqGfzwY9vdXxA-HcaMU7yw>
+    <xme:pcKzZhphWvwWMwSmYbDYPH1KAUK7_qukQL58dPLkKZwJ6qZO-PD0mTILf37wC-VkJ
+    yuGeXAZyjmZouRsKac>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeeftddrledtgddufedtucetufdoteggodetrfdotf
+    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
+    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
+    cujfgurhepofggfffhvfevkfgjfhfutgfgsehtjeertdertddtnecuhfhrohhmpedftehr
+    nhguuceuvghrghhmrghnnhdfuceorghrnhgusegrrhhnuggsrdguvgeqnecuggftrfgrth
+    htvghrnhephfdthfdvtdefhedukeetgefggffhjeeggeetfefggfevudegudevledvkefh
+    vdeinecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomheprg
+    hrnhgusegrrhhnuggsrdguvgdpnhgspghrtghpthhtoheptd
+X-ME-Proxy: <xmx:pcKzZkMMEa1QCyx9DYya--xGnOf_SSr3_VdEDtu9hV8xSe9yXZqVCw>
+    <xmx:pcKzZq7W7a2W3QiuibYT4n87PxFgIhVytpph5nF0kYnO4gUYERaGxQ>
+    <xmx:pcKzZm6A0MWzdmDLhHIywLO77HSPGI_SIwlTXUWpWoknLUo6ctrjwg>
+    <xmx:pcKzZigfeNcP1X2tQ3rm8J0r0mNkRKSh21gYx64IauzFFFTIOJUQRw>
+    <xmx:psKzZuEqNacnXDRDYO1s0FZVTS1ct0wiplIuRye5vQU_o20dyn1ygN6I>
+Feedback-ID: i56a14606:Fastmail
+Received: by mailuser.nyi.internal (Postfix, from userid 501)
+	id ED628B6008D; Wed,  7 Aug 2024 14:53:24 -0400 (EDT)
+X-Mailer: MessagingEngine.com Webmail Interface
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] nvdimm/pmem: Set dax flag for all 'PFN_MAP' cases
-To: Zhihao Cheng <chengzhihao1@huawei.com>, dan.j.williams@intel.com,
- vishal.l.verma@intel.com, hch@lst.de, ira.weiny@intel.com,
- dlemoal@kernel.org, hare@suse.de, axboe@kernel.dk
-Cc: nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org
-References: <20240731122530.3334451-1-chengzhihao1@huawei.com>
-Content-Language: en-US
-From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <20240731122530.3334451-1-chengzhihao1@huawei.com>
-Content-Type: text/plain; charset=UTF-8
+Date: Wed, 07 Aug 2024 20:53:04 +0200
+From: "Arnd Bergmann" <arnd@arndb.de>
+To: "Mike Rapoport" <rppt@kernel.org>
+Cc: linux-kernel@vger.kernel.org,
+ "Alexander Gordeev" <agordeev@linux.ibm.com>,
+ "Andreas Larsson" <andreas@gaisler.com>,
+ "Andrew Morton" <akpm@linux-foundation.org>,
+ "Borislav Petkov" <bp@alien8.de>,
+ "Catalin Marinas" <catalin.marinas@arm.com>,
+ "Christophe Leroy" <christophe.leroy@csgroup.eu>,
+ "Dan Williams" <dan.j.williams@intel.com>,
+ "Dave Hansen" <dave.hansen@linux.intel.com>,
+ "David Hildenbrand" <david@redhat.com>,
+ "David S . Miller" <davem@davemloft.net>,
+ "Davidlohr Bueso" <dave@stgolabs.net>,
+ "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
+ "Heiko Carstens" <hca@linux.ibm.com>,
+ "Huacai Chen" <chenhuacai@kernel.org>, "Ingo Molnar" <mingo@redhat.com>,
+ "Jiaxun Yang" <jiaxun.yang@flygoat.com>,
+ "John Paul Adrian Glaubitz" <glaubitz@physik.fu-berlin.de>,
+ "Jonathan Cameron" <jonathan.cameron@huawei.com>,
+ "Jonathan Corbet" <corbet@lwn.net>,
+ "Michael Ellerman" <mpe@ellerman.id.au>,
+ "Palmer Dabbelt" <palmer@dabbelt.com>,
+ "Rafael J . Wysocki" <rafael@kernel.org>,
+ "Rob Herring" <robh@kernel.org>,
+ "Samuel Holland" <samuel.holland@sifive.com>,
+ "Thomas Bogendoerfer" <tsbogend@alpha.franken.de>,
+ "Thomas Gleixner" <tglx@linutronix.de>,
+ "Vasily Gorbik" <gor@linux.ibm.com>, "Will Deacon" <will@kernel.org>,
+ "Zi Yan" <ziy@nvidia.com>, devicetree@vger.kernel.org,
+ linux-acpi@vger.kernel.org, Linux-Arch <linux-arch@vger.kernel.org>,
+ linux-arm-kernel@lists.infradead.org, linux-cxl@vger.kernel.org,
+ linux-doc@vger.kernel.org, linux-mips@vger.kernel.org,
+ linux-mm@kvack.org, linux-riscv@lists.infradead.org,
+ linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+ linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
+ nvdimm@lists.linux.dev, sparclinux@vger.kernel.org, x86@kernel.org
+Message-Id: <19f7ccec-db2a-4176-b6d9-12abe0586d07@app.fastmail.com>
+In-Reply-To: <ZrO6cExVz1He_yPn@kernel.org>
+References: <20240807064110.1003856-1-rppt@kernel.org>
+ <20240807064110.1003856-25-rppt@kernel.org>
+ <1befc540-8904-4c23-b0e6-e2c556fe22b9@app.fastmail.com>
+ <ZrO6cExVz1He_yPn@kernel.org>
+Subject: Re: [PATCH v4 24/26] arch_numa: switch over to numa_memblks
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 
+On Wed, Aug 7, 2024, at 20:18, Mike Rapoport wrote:
+> On Wed, Aug 07, 2024 at 08:58:37AM +0200, Arnd Bergmann wrote:
+>> On Wed, Aug 7, 2024, at 08:41, Mike Rapoport wrote:
+>> > 
+>> >  void __init arch_numa_init(void);
+>> >  int __init numa_add_memblk(int nodeid, u64 start, u64 end);
+>> > -void __init numa_set_distance(int from, int to, int distance);
+>> > -void __init numa_free_distance(void);
+>> >  void __init early_map_cpu_to_node(unsigned int cpu, int nid);
+>> >  int __init early_cpu_to_node(int cpu);
+>> >  void numa_store_cpu_info(unsigned int cpu);
+>> 
+>> but is still declared as __init in the header, so it is
+>> still put in that section and discarded after boot.
+>
+> I believe this should fix it
 
+Yes, sorry I should have posted the patch as well, this is
+what I tested with locally.
 
-On 7/31/24 5:25 AM, Zhihao Cheng wrote:
-> The dax is only supportted on pfn type pmem devices since commit
-> f467fee48da4 ("block: move the dax flag to queue_limits"), fix it
-> by adding dax flag setting for the missed case.
-> 
-> Fixes: f467fee48da4 ("block: move the dax flag to queue_limits")
-> Signed-off-by: Zhihao Cheng <chengzhihao1@huawei.com>
-
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-> ---
->  drivers/nvdimm/pmem.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-> index 1ae8b2351654..210fb77f51ba 100644
-> --- a/drivers/nvdimm/pmem.c
-> +++ b/drivers/nvdimm/pmem.c
-> @@ -498,7 +498,7 @@ static int pmem_attach_disk(struct device *dev,
->  	}
->  	if (fua)
->  		lim.features |= BLK_FEAT_FUA;
-> -	if (is_nd_pfn(dev))
-> +	if (is_nd_pfn(dev) || pmem_should_map_pages(dev))
->  		lim.features |= BLK_FEAT_DAX;
->  
->  	if (!devm_request_mem_region(dev, res->start, resource_size(res),
+     Arnd
