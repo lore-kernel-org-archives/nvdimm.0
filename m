@@ -1,143 +1,106 @@
-Received: from flow7-smtp.messagingengine.com (flow7-smtp.messagingengine.com [103.168.172.142])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.9])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C21FF13D52E;
-	Wed,  7 Aug 2024 18:53:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.142
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B997A15099D
+	for <nvdimm@lists.linux.dev>; Thu,  8 Aug 2024 19:28:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.9
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723056809; cv=none; b=FAO6fv0IPE57hxrufn3OI3Le+HJcjRUPkZVcfc/JI8pChZ86NI4Xck8A9OTYxwhDv9av5177SPJPwN5GuV6iGS6c0S6jLugvpZddGh5inWieJi/ETVC5UYx2tF2LRwUZGABwImEp0cYW92cFS4++XcupEk/jSAf08J2TQawWkCc=
+	t=1723145298; cv=none; b=rqUjOH63iIA04wOiAHk9bPGTP0ZlnwBzYh9VnXDfwSNgTpiiyqXAxHKzyyZYO9rq9tKBgkMcVNdn9q/JdaF8LxuohqKJZ/oS04FThO/IX1t4l5AYl2fIt9kI41G4SOy1XF8GNYeh/IZql3wJ6t4roaDzQOJ5ASHcIW754md+PUs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723056809; c=relaxed/simple;
-	bh=Ae/yFOnscB0LM68KscBwrE7D7vNdMDnnAeb+RIaDy6M=;
-	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
-	 Subject:Content-Type; b=O7YNGngTs98rc4ibxaV3sKGFYUo3oqXix71OvHenG7ylTIXx0BYb8BiAy8RzsZ5nt4f8sHXB3xxtbayOBGdhCmd29mIpaqNlEf9GPJcvn37z8/8egsMM3wQzhWOkk+4US3MkrDndwKQWs19btoqT4rMIwhasK/HwdTMhULPIiQQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de; spf=pass smtp.mailfrom=arndb.de; dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b=M+AgFKcn; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=Cbd0u4JX; arc=none smtp.client-ip=103.168.172.142
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=arndb.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=arndb.de
+	s=arc-20240116; t=1723145298; c=relaxed/simple;
+	bh=n4jJYHx42+ihYMKvptonitRjvq/fNqpGn+fZGhpyzgk=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=svqQLtQlZ8Me+tyMuq6daohalHeMAjrO+QkuPbQZo2LRWrr+9jns6AfmPxNZQfP8SEYweoYOpjVd8XrlF6iWFD+EDtF7KMWEumDzByP2HQ2A0Gz94m3M4f+kvxOdRxY5jsjWHHSlJeDsB8gBVTDPd5jHndHYfnOogufx0hRKwe8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=MqaTnSNw; arc=none smtp.client-ip=192.198.163.9
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=arndb.de header.i=@arndb.de header.b="M+AgFKcn";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="Cbd0u4JX"
-Received: from compute4.internal (compute4.nyi.internal [10.202.2.44])
-	by mailflow.nyi.internal (Postfix) with ESMTP id B9FE8200F9C;
-	Wed,  7 Aug 2024 14:53:26 -0400 (EDT)
-Received: from imap51 ([10.202.2.101])
-  by compute4.internal (MEProxy); Wed, 07 Aug 2024 14:53:26 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
-	:cc:content-transfer-encoding:content-type:content-type:date
-	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to; s=fm2; t=1723056806;
-	 x=1723064006; bh=dN92Yy3XFjXTxBQ/NKAZMCYVQAegkihc+8DVkcaUGXw=; b=
-	M+AgFKcnD/Nuugw9QWMdK0TNIorx7c9kz4u4kWeEtoBkeDVxq1i8AfEINi28F8pD
-	mqxXrgNc0hd7DLIVn8ZdgKKw1WixvvvthvoPlB32dikpdRyZeayfzxol4TWH5zV/
-	sctoPTqK+Gpjs6mQSC5g5LuM5+hqde8Awr3BiE9VBetstqH9G+Y73dGI251beJG0
-	KD/S9aRYjMWru5ducc9JFCJqHqrV4tG/Fb2biX0pP/55/wPz4yqBj2Cwo3Jic+yq
-	Ts4ZD1s3I/J9I7pooC8Z3JaExlDJaha/uLa/IoywBt1Fj2dxnikSyGwL/537oKvz
-	3Ga11kSBaDC1us7TovA9WQ==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:content-type:date:date:feedback-id:feedback-id
-	:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to:x-me-proxy:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=1723056806; x=
-	1723064006; bh=dN92Yy3XFjXTxBQ/NKAZMCYVQAegkihc+8DVkcaUGXw=; b=C
-	bd0u4JXHiwM85jQmCceR5thBnLlVROGCSHq6uqUQH7EES4yd9w+rGDAsQiWGz/KE
-	Tx9ieCb+syV32NMwTs+deNuAAbSSJe2g2WC6Q1eWWQa6JXLDL+jX7+woQX4AVmls
-	7LKrhVy6yJsezqFhMNl/XzM0DJIJdjB2cO6q+5fT/oDBlh0O4crlMEUa9nDaj5+w
-	8Li1kDK8ZNJzdI09O84Vv3hC186LsTWkCUiEZ2/yFGg3ilPlXUGqR2TZ+rh7pN7b
-	zrQN9qvczGLLR6LFQdfP+t0gWYdb1IFiN8QXdil4RtN7+rEubC/YANNF+1Cs12kw
-	Bcw5FrUO4Qwt7abMjpS7w==
-X-ME-Sender: <xms:pcKzZnopk042s10_adxzzpGQqjjj1zN1aqGfzwY9vdXxA-HcaMU7yw>
-    <xme:pcKzZhphWvwWMwSmYbDYPH1KAUK7_qukQL58dPLkKZwJ6qZO-PD0mTILf37wC-VkJ
-    yuGeXAZyjmZouRsKac>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeeftddrledtgddufedtucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
-    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
-    cujfgurhepofggfffhvfevkfgjfhfutgfgsehtjeertdertddtnecuhfhrohhmpedftehr
-    nhguuceuvghrghhmrghnnhdfuceorghrnhgusegrrhhnuggsrdguvgeqnecuggftrfgrth
-    htvghrnhephfdthfdvtdefhedukeetgefggffhjeeggeetfefggfevudegudevledvkefh
-    vdeinecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomheprg
-    hrnhgusegrrhhnuggsrdguvgdpnhgspghrtghpthhtoheptd
-X-ME-Proxy: <xmx:pcKzZkMMEa1QCyx9DYya--xGnOf_SSr3_VdEDtu9hV8xSe9yXZqVCw>
-    <xmx:pcKzZq7W7a2W3QiuibYT4n87PxFgIhVytpph5nF0kYnO4gUYERaGxQ>
-    <xmx:pcKzZm6A0MWzdmDLhHIywLO77HSPGI_SIwlTXUWpWoknLUo6ctrjwg>
-    <xmx:pcKzZigfeNcP1X2tQ3rm8J0r0mNkRKSh21gYx64IauzFFFTIOJUQRw>
-    <xmx:psKzZuEqNacnXDRDYO1s0FZVTS1ct0wiplIuRye5vQU_o20dyn1ygN6I>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.nyi.internal (Postfix, from userid 501)
-	id ED628B6008D; Wed,  7 Aug 2024 14:53:24 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="MqaTnSNw"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1723145296; x=1754681296;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=n4jJYHx42+ihYMKvptonitRjvq/fNqpGn+fZGhpyzgk=;
+  b=MqaTnSNw0E3GlWGyWF43AzH2FRJKUWyQSm3+w51NjHl0RgFjvPwxahmB
+   AqLnuZ3EeW9t/3PZR66w9zQ1nacgMNVLWmzWXw3avtAA7g0DIYUvREHWv
+   mrQc4n1IoRmTviI5ul6IUDagrCjk2rfgOKm4PXV3KfrAowXgmwucjuFcx
+   eELpP/wjaZec0ZqfNPdKvFMlxp+vdANoEQjKQD1mn7XmCD6mRWyGJ61Cz
+   6ewdq6nyi500LCssflhLVZSUb06pOInp1n60KwvKQckfiVbTTWybHJYW0
+   yhqDBlp5t5a0NacW0ophUiiHcHfCp/Toz0VVGLpiAvJQrvHvKbSqrUGcF
+   w==;
+X-CSE-ConnectionGUID: qBYw+bLQQcCvP+1LJyipKA==
+X-CSE-MsgGUID: qjPucffHTj+IKCURz7XD8A==
+X-IronPort-AV: E=McAfee;i="6700,10204,11158"; a="31969525"
+X-IronPort-AV: E=Sophos;i="6.09,274,1716274800"; 
+   d="scan'208";a="31969525"
+Received: from orviesa004.jf.intel.com ([10.64.159.144])
+  by fmvoesa103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Aug 2024 12:28:15 -0700
+X-CSE-ConnectionGUID: BRNVP7mMQx2AZg9NEfyX1w==
+X-CSE-MsgGUID: 0RDtKjrPQuW2OSiKxd9Dyw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.09,274,1716274800"; 
+   d="scan'208";a="62281684"
+Received: from aschofie-mobl2.amr.corp.intel.com (HELO aschofie-mobl2) ([10.209.12.215])
+  by orviesa004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Aug 2024 12:28:14 -0700
+Date: Thu, 8 Aug 2024 12:28:10 -0700
+From: Alison Schofield <alison.schofield@intel.com>
+To: Zhihao Cheng <chengzhihao1@huawei.com>
+Cc: dan.j.williams@intel.com, vishal.l.verma@intel.com,
+	dave.jiang@intel.com, hch@lst.de, ira.weiny@intel.com,
+	dlemoal@kernel.org, hare@suse.de, axboe@kernel.dk,
+	nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] nvdimm/pmem: Set dax flag for all 'PFN_MAP' cases
+Message-ID: <ZrUcSihtUWO2FrI3@aschofie-mobl2>
+References: <20240731122530.3334451-1-chengzhihao1@huawei.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Date: Wed, 07 Aug 2024 20:53:04 +0200
-From: "Arnd Bergmann" <arnd@arndb.de>
-To: "Mike Rapoport" <rppt@kernel.org>
-Cc: linux-kernel@vger.kernel.org,
- "Alexander Gordeev" <agordeev@linux.ibm.com>,
- "Andreas Larsson" <andreas@gaisler.com>,
- "Andrew Morton" <akpm@linux-foundation.org>,
- "Borislav Petkov" <bp@alien8.de>,
- "Catalin Marinas" <catalin.marinas@arm.com>,
- "Christophe Leroy" <christophe.leroy@csgroup.eu>,
- "Dan Williams" <dan.j.williams@intel.com>,
- "Dave Hansen" <dave.hansen@linux.intel.com>,
- "David Hildenbrand" <david@redhat.com>,
- "David S . Miller" <davem@davemloft.net>,
- "Davidlohr Bueso" <dave@stgolabs.net>,
- "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
- "Heiko Carstens" <hca@linux.ibm.com>,
- "Huacai Chen" <chenhuacai@kernel.org>, "Ingo Molnar" <mingo@redhat.com>,
- "Jiaxun Yang" <jiaxun.yang@flygoat.com>,
- "John Paul Adrian Glaubitz" <glaubitz@physik.fu-berlin.de>,
- "Jonathan Cameron" <jonathan.cameron@huawei.com>,
- "Jonathan Corbet" <corbet@lwn.net>,
- "Michael Ellerman" <mpe@ellerman.id.au>,
- "Palmer Dabbelt" <palmer@dabbelt.com>,
- "Rafael J . Wysocki" <rafael@kernel.org>,
- "Rob Herring" <robh@kernel.org>,
- "Samuel Holland" <samuel.holland@sifive.com>,
- "Thomas Bogendoerfer" <tsbogend@alpha.franken.de>,
- "Thomas Gleixner" <tglx@linutronix.de>,
- "Vasily Gorbik" <gor@linux.ibm.com>, "Will Deacon" <will@kernel.org>,
- "Zi Yan" <ziy@nvidia.com>, devicetree@vger.kernel.org,
- linux-acpi@vger.kernel.org, Linux-Arch <linux-arch@vger.kernel.org>,
- linux-arm-kernel@lists.infradead.org, linux-cxl@vger.kernel.org,
- linux-doc@vger.kernel.org, linux-mips@vger.kernel.org,
- linux-mm@kvack.org, linux-riscv@lists.infradead.org,
- linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
- linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
- nvdimm@lists.linux.dev, sparclinux@vger.kernel.org, x86@kernel.org
-Message-Id: <19f7ccec-db2a-4176-b6d9-12abe0586d07@app.fastmail.com>
-In-Reply-To: <ZrO6cExVz1He_yPn@kernel.org>
-References: <20240807064110.1003856-1-rppt@kernel.org>
- <20240807064110.1003856-25-rppt@kernel.org>
- <1befc540-8904-4c23-b0e6-e2c556fe22b9@app.fastmail.com>
- <ZrO6cExVz1He_yPn@kernel.org>
-Subject: Re: [PATCH v4 24/26] arch_numa: switch over to numa_memblks
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240731122530.3334451-1-chengzhihao1@huawei.com>
 
-On Wed, Aug 7, 2024, at 20:18, Mike Rapoport wrote:
-> On Wed, Aug 07, 2024 at 08:58:37AM +0200, Arnd Bergmann wrote:
->> On Wed, Aug 7, 2024, at 08:41, Mike Rapoport wrote:
->> > 
->> >  void __init arch_numa_init(void);
->> >  int __init numa_add_memblk(int nodeid, u64 start, u64 end);
->> > -void __init numa_set_distance(int from, int to, int distance);
->> > -void __init numa_free_distance(void);
->> >  void __init early_map_cpu_to_node(unsigned int cpu, int nid);
->> >  int __init early_cpu_to_node(int cpu);
->> >  void numa_store_cpu_info(unsigned int cpu);
->> 
->> but is still declared as __init in the header, so it is
->> still put in that section and discarded after boot.
->
-> I believe this should fix it
+On Wed, Jul 31, 2024 at 08:25:30PM +0800, Zhihao Cheng wrote:
+> The dax is only supportted on pfn type pmem devices since commit
+> f467fee48da4 ("block: move the dax flag to queue_limits"), fix it
+> by adding dax flag setting for the missed case.
 
-Yes, sorry I should have posted the patch as well, this is
-what I tested with locally.
+s/supportted/supported
 
-     Arnd
+How about adding failure messages like this:
+
+Trying to mount DAX filesystem fails with this error:
+mount: : wrong fs type, bad option, bad superblock on /dev/pmem7, missing codepage or helper program, or other error.
+       dmesg(1) may have more information after failed mount system call.
+
+dmesg: EXT4-fs (pmem7): DAX unsupported by block device.
+
+
+Tested-by: Alison Schofield <alison.schofield@intel.com>
+
+> 
+> Fixes: f467fee48da4 ("block: move the dax flag to queue_limits")
+> Signed-off-by: Zhihao Cheng <chengzhihao1@huawei.com>
+> ---
+>  drivers/nvdimm/pmem.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+> index 1ae8b2351654..210fb77f51ba 100644
+> --- a/drivers/nvdimm/pmem.c
+> +++ b/drivers/nvdimm/pmem.c
+> @@ -498,7 +498,7 @@ static int pmem_attach_disk(struct device *dev,
+>  	}
+>  	if (fua)
+>  		lim.features |= BLK_FEAT_FUA;
+> -	if (is_nd_pfn(dev))
+> +	if (is_nd_pfn(dev) || pmem_should_map_pages(dev))
+>  		lim.features |= BLK_FEAT_DAX;
+>  
+>  	if (!devm_request_mem_region(dev, res->start, resource_size(res),
+> -- 
+> 2.39.2
+> 
