@@ -1,51 +1,52 @@
 Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F33EE1BDAB8
-	for <nvdimm@lists.linux.dev>; Fri, 16 Aug 2024 14:45:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C2541C7B95
+	for <nvdimm@lists.linux.dev>; Fri, 16 Aug 2024 14:45:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.19
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723819516; cv=none; b=VKwEr/6gbnAyqJEc1EiJb3+DUc0etZNf2yP8Xiq8kybH36v7j6SEta+oTpOyvLzbWGkMzkjvl+8AwD650f5/p04pCwk5jLzvLtpfz9QF9xpWlz6YsYBWyjX9ZdK19kEOZcFga+OtjiLWyx+gcv8ENkeDVlh4kqBsch24TZ8ac3s=
+	t=1723819516; cv=none; b=PyBq65q2YEc3YtxkNuwLnIPudg9pcSghl5CTXQsynAUvAoG8UFAANbPvuFnwMGcCi+anMd2TjlDNovj4KstYrlIHHIFpXqZxMhTvRvGibG5QTRwJtFrl+kWRRyn3T2ordVjBjaW+EWWYCz8Fv5p197cBXeQts5j2PS8nOuR+MwI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1723819516; c=relaxed/simple;
-	bh=6N49xetpP3/MkWvYeDtswoh6ylYnbcgKRvAxEyZXYGE=;
+	bh=rtMOyYUF7/zcviFSIemMbPTqVQ6yT71bTtts6Upb2Sg=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=dgDp+M6pYC0EnZmUzoNswhcU/mJSxBaT6+24ErvZ0kxUgEl823t1542o2NDyLMPCY+qIzIIVuGi9fmXH4umI9/wK7mxZ+ZSianFEri/CAmeUT0x45E5iDJGr5ffVoOPoxl27YzUZUF4s6QtvI0cbXGAKplERLFT+13S9r6CzWzQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=jKbSEK1U; arc=none smtp.client-ip=198.175.65.19
+	 In-Reply-To:To:Cc; b=Q+lTintbr6Nl3o47r9cinx1NR6tHR9xnDH/aHwMHfaanT7Pbg+kHGcECC1VXjtNdxYBZYwTTZ5nEBbjaBPm34vB+JVWCEOJu446B6f1lLbi8yjRqf7+OxdKvdkcEgFxTENgPFHzRP/x72AXoVR+b9xT3I5GVhy6uzppIxtujQoA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=nlQEyVH+; arc=none smtp.client-ip=198.175.65.19
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="jKbSEK1U"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="nlQEyVH+"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
   t=1723819514; x=1755355514;
   h=from:date:subject:mime-version:content-transfer-encoding:
    message-id:references:in-reply-to:to:cc;
-  bh=6N49xetpP3/MkWvYeDtswoh6ylYnbcgKRvAxEyZXYGE=;
-  b=jKbSEK1UqkVdx3zWLaFRIOQMVHO92v12y2cAQCQunpZcH2udtNy/ssu1
-   NeA8C4hyKY/VEbiWYqz6yCF+xDd3Ki6ExES/1cTuLqyJ2WT0i6hNGXzWh
-   +tWD1BC8u+3d1Ox3TRYCDDLkicw+yDrPaoA//r2AOtajkCpPTZcuE/0je
-   rttei8Uenn/AGzMSij3UUPcT4AqM1PYDwi0EyD9FTl/yeWZ90N/Z4An1x
-   HXI+zK3EaWYKd5y+OAuOfz5pBUIWwhLDsIM4VZuF1SD9tkcFWMNjs3LSo
-   08ZHH5PO0NKy49IUUr2UzDYc8saQKC0QQtelXv5pwTD7sWaWShzdD9cmm
+  bh=rtMOyYUF7/zcviFSIemMbPTqVQ6yT71bTtts6Upb2Sg=;
+  b=nlQEyVH+gJ1MMarX2Zr9fYtecxUBZl6J44af+SaMqX+KhPLj4/u/UsRf
+   rJ24UgtFvh15yOTlY5pQ5mzShUcRoMi1u+smfNy1Ve34+EheprgBDLnmd
+   iR7gmIi/IvfYOE3jsNvW8oweog3tlZTGxiZINczN4x0yY6Jx4fyRP/75+
+   HRnWDMYYVapSdwUP4ydi/nNNiHSYQlfq8t9h9TDVG2mjXZHtXG8HUjOHF
+   TCKfc0bfplAXy5gU+UAdDYHa7KdthSv/8MTg4fZr4wMcPvaF7YS52vWz5
+   aeg6fGV/bZLwmBRNYJyMcXDorokvM7V6dRRAivOwpnnToJHANxsBvOXo4
    A==;
-X-CSE-ConnectionGUID: OT8C+XcSS2aN2Zh0zoWp7w==
-X-CSE-MsgGUID: O2f5A1CCTXOlAx+Ts6yKhg==
-X-IronPort-AV: E=McAfee;i="6700,10204,11166"; a="21972993"
+X-CSE-ConnectionGUID: QR7ZIW+2SlmSXTuZrO3q8A==
+X-CSE-MsgGUID: 52AJNkI1TbWVI5x/gOnTpw==
+X-IronPort-AV: E=McAfee;i="6700,10204,11166"; a="21973053"
 X-IronPort-AV: E=Sophos;i="6.10,152,1719903600"; 
-   d="scan'208";a="21972993"
+   d="scan'208";a="21973053"
 Received: from orviesa001.jf.intel.com ([10.64.159.141])
-  by orvoesa111.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Aug 2024 07:45:00 -0700
-X-CSE-ConnectionGUID: gQRqRITCRkCa3m1I0P4m0g==
-X-CSE-MsgGUID: E5Y4lHx8QiWQPPX8TV0l3A==
+  by orvoesa111.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Aug 2024 07:45:10 -0700
+X-CSE-ConnectionGUID: 1Bqfn8g+TGyBinhHaOKWHw==
+X-CSE-MsgGUID: 5Nhr34nPSsO7hjwSL9EdSw==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.10,152,1719903600"; 
-   d="scan'208";a="97205547"
+   d="scan'208";a="97205577"
 Received: from iweiny-mobl.amr.corp.intel.com (HELO localhost) ([10.125.111.52])
-  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Aug 2024 07:44:57 -0700
-From: ira.weiny@intel.com
-Date: Fri, 16 Aug 2024 09:44:21 -0500
-Subject: [PATCH v3 13/25] cxl/region: Add sparse DAX region support
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Aug 2024 07:45:08 -0700
+From: Ira Weiny <ira.weiny@intel.com>
+Date: Fri, 16 Aug 2024 09:44:25 -0500
+Subject: [PATCH v3 17/25] cxl/core: Return endpoint decoder information
+ from region search
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -54,7 +55,7 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20240816-dcd-type2-upstream-v3-13-7c9b96cba6d7@intel.com>
+Message-Id: <20240816-dcd-type2-upstream-v3-17-7c9b96cba6d7@intel.com>
 References: <20240816-dcd-type2-upstream-v3-0-7c9b96cba6d7@intel.com>
 In-Reply-To: <20240816-dcd-type2-upstream-v3-0-7c9b96cba6d7@intel.com>
 To: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, 
@@ -74,331 +75,126 @@ Cc: Dan Williams <dan.j.williams@intel.com>,
  linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, 
  nvdimm@lists.linux.dev
 X-Mailer: b4 0.15-dev-37811
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1723819456; l=11684;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1723819456; l=4183;
  i=ira.weiny@intel.com; s=20221211; h=from:subject:message-id;
- bh=69CgosvRYCa+mLLifzOYjKXjqY/V8IHvXbDGZnOn2OE=;
- b=Q2GqNoG+ozqkqzXPAY7qa6+l5T6xdlkqipHhCHdbIbpacgWrUNtGeK25bXlXKhvZT66qr+Unl
- T0rVzfHhEpBDHXKCXt2jmz4YJ2hJyn0Z1vbHJA+HZZjeFhbTrQgG9+i
+ bh=rtMOyYUF7/zcviFSIemMbPTqVQ6yT71bTtts6Upb2Sg=;
+ b=MII9S6m9zDYb/jKIouC3sr8W1fpsyDXzsmOsbNYTo6AGvZDn++tx9KBBkR6uCtz5Aiejg+que
+ 25JqglN6AQdD65BANJbN8q1/djKKuCXpCe9x6neqMCwHtXUtZqu/9Mb
 X-Developer-Key: i=ira.weiny@intel.com; a=ed25519;
  pk=noldbkG+Wp1qXRrrkfY1QJpDf7QsOEthbOT7vm0PqsE=
 
-From: Navneet Singh <navneet.singh@intel.com>
+cxl_dpa_to_region() finds the region from a <DPA, device> tuple.
+The search involves finding the device endpoint decoder as well.
 
-Dynamic Capacity CXL regions must allow memory to be added or removed
-dynamically.  In addition to the quantity of memory available the
-location of the memory within a DC partition is dynamic based on the
-extents offered by a device.  CXL DAX regions must accommodate the
-sparseness of this memory in the management of DAX regions and devices.
+Dynamic capacity extent processing uses the endpoint decoder HPA
+information to calculate the HPA offset.  In addition, well behaved
+extents should be contained within an endpoint decoder.
 
-Introduce the concept of a sparse DAX region.  Add a create_dc_region()
-sysfs entry to create such regions.  Special case DC capable regions to
-create a 0 sized seed DAX device to maintain compatibility which
-requires a default DAX device to hold a region reference.
+Return the endpoint decoder found to be used in subsequent DCD code.
 
-Indicate 0 byte available capacity until such time that capacity is
-added.
-
-Sparse regions complicate the range mapping of dax devices.  There is no
-known use case for range mapping on sparse regions.  Avoid the
-complication by preventing range mapping of dax devices on sparse
-regions.
-
-Interleaving is deferred for now.  Add checks.
-
-Signed-off-by: Navneet Singh <navneet.singh@intel.com>
-Co-developed-by: Ira Weiny <ira.weiny@intel.com>
 Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-
 ---
-Changes:
-[Fan: use single function for dc region store]
-[djiang: avoid setting dev_size twice]
-[djbw: Check DCD support and interleave restriction on region creation]
-[iweiny: squash patch : dax/region: Prevent range mapping allocation on sparse regions]
-[iwieny: remove reviews]
-[iweiny: rebase to master]
-[iweiny: push sysfs version to 6.12]
-[iweiny: make cxled_to_mds inline]
----
- Documentation/ABI/testing/sysfs-bus-cxl | 22 ++++++++--------
- drivers/cxl/core/core.h                 | 12 +++++++++
- drivers/cxl/core/port.c                 |  1 +
- drivers/cxl/core/region.c               | 46 +++++++++++++++++++++++++++++++--
- drivers/dax/bus.c                       | 10 +++++++
- drivers/dax/bus.h                       |  1 +
- drivers/dax/cxl.c                       | 16 ++++++++++--
- 7 files changed, 93 insertions(+), 15 deletions(-)
+ drivers/cxl/core/core.h   | 6 ++++--
+ drivers/cxl/core/mbox.c   | 2 +-
+ drivers/cxl/core/memdev.c | 4 ++--
+ drivers/cxl/core/region.c | 8 +++++++-
+ 4 files changed, 14 insertions(+), 6 deletions(-)
 
-diff --git a/Documentation/ABI/testing/sysfs-bus-cxl b/Documentation/ABI/testing/sysfs-bus-cxl
-index 6227ae0ab3fc..3a5ee88e551b 100644
---- a/Documentation/ABI/testing/sysfs-bus-cxl
-+++ b/Documentation/ABI/testing/sysfs-bus-cxl
-@@ -406,20 +406,20 @@ Description:
- 		interleave_granularity).
- 
- 
--What:		/sys/bus/cxl/devices/decoderX.Y/create_{pmem,ram}_region
--Date:		May, 2022, January, 2023
--KernelVersion:	v6.0 (pmem), v6.3 (ram)
-+What:		/sys/bus/cxl/devices/decoderX.Y/create_{pmem,ram,dc}_region
-+Date:		May, 2022, January, 2023, August 2024
-+KernelVersion:	v6.0 (pmem), v6.3 (ram), v6.12 (dc)
- Contact:	linux-cxl@vger.kernel.org
- Description:
- 		(RW) Write a string in the form 'regionZ' to start the process
--		of defining a new persistent, or volatile memory region
--		(interleave-set) within the decode range bounded by root decoder
--		'decoderX.Y'. The value written must match the current value
--		returned from reading this attribute. An atomic compare exchange
--		operation is done on write to assign the requested id to a
--		region and allocate the region-id for the next creation attempt.
--		EBUSY is returned if the region name written does not match the
--		current cached value.
-+		of defining a new persistent, volatile, or Dynamic Capacity
-+		(DC) memory region (interleave-set) within the decode range
-+		bounded by root decoder 'decoderX.Y'. The value written must
-+		match the current value returned from reading this attribute.
-+		An atomic compare exchange operation is done on write to assign
-+		the requested id to a region and allocate the region-id for the
-+		next creation attempt.  EBUSY is returned if the region name
-+		written does not match the current cached value.
- 
- 
- What:		/sys/bus/cxl/devices/decoderX.Y/delete_region
 diff --git a/drivers/cxl/core/core.h b/drivers/cxl/core/core.h
-index 72a506c9dbd0..15b6cf1c19ef 100644
+index 15b6cf1c19ef..76c4153a9b2c 100644
 --- a/drivers/cxl/core/core.h
 +++ b/drivers/cxl/core/core.h
-@@ -4,15 +4,27 @@
- #ifndef __CXL_CORE_H__
- #define __CXL_CORE_H__
+@@ -39,7 +39,8 @@ void cxl_decoder_kill_region(struct cxl_endpoint_decoder *cxled);
+ int cxl_region_init(void);
+ void cxl_region_exit(void);
+ int cxl_get_poison_by_endpoint(struct cxl_port *port);
+-struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64 dpa);
++struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64 dpa,
++				     struct cxl_endpoint_decoder **cxled);
+ u64 cxl_dpa_to_hpa(struct cxl_region *cxlr, const struct cxl_memdev *cxlmd,
+ 		   u64 dpa);
  
-+#include <cxlmem.h>
-+
- extern const struct device_type cxl_nvdimm_bridge_type;
- extern const struct device_type cxl_nvdimm_type;
- extern const struct device_type cxl_pmu_type;
+@@ -50,7 +51,8 @@ static inline u64 cxl_dpa_to_hpa(struct cxl_region *cxlr,
+ 	return ULLONG_MAX;
+ }
+ static inline
+-struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64 dpa)
++struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64 dpa,
++				     struct cxl_endpoint_decoder **cxled)
+ {
+ 	return NULL;
+ }
+diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
+index 68c26c4be91a..01a447aaa1b1 100644
+--- a/drivers/cxl/core/mbox.c
++++ b/drivers/cxl/core/mbox.c
+@@ -909,7 +909,7 @@ void cxl_event_trace_record(const struct cxl_memdev *cxlmd,
+ 		guard(rwsem_read)(&cxl_dpa_rwsem);
  
- extern struct attribute_group cxl_base_attribute_group;
+ 		dpa = le64_to_cpu(evt->media_hdr.phys_addr) & CXL_DPA_MASK;
+-		cxlr = cxl_dpa_to_region(cxlmd, dpa);
++		cxlr = cxl_dpa_to_region(cxlmd, dpa, NULL);
+ 		if (cxlr)
+ 			hpa = cxl_dpa_to_hpa(cxlr, cxlmd, dpa);
  
-+static inline struct cxl_memdev_state *
-+cxled_to_mds(struct cxl_endpoint_decoder *cxled)
-+{
-+	struct cxl_memdev *cxlmd = cxled_to_memdev(cxled);
-+	struct cxl_dev_state *cxlds = cxlmd->cxlds;
-+
-+	return container_of(cxlds, struct cxl_memdev_state, cxlds);
-+}
-+
- #ifdef CONFIG_CXL_REGION
- extern struct device_attribute dev_attr_create_pmem_region;
- extern struct device_attribute dev_attr_create_ram_region;
-+extern struct device_attribute dev_attr_create_dc_region;
- extern struct device_attribute dev_attr_delete_region;
- extern struct device_attribute dev_attr_region;
- extern const struct device_type cxl_pmem_region_type;
-diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
-index 222aa0aeeef7..44e1e203173d 100644
---- a/drivers/cxl/core/port.c
-+++ b/drivers/cxl/core/port.c
-@@ -320,6 +320,7 @@ static struct attribute *cxl_decoder_root_attrs[] = {
- 	&dev_attr_qos_class.attr,
- 	SET_CXL_REGION_ATTR(create_pmem_region)
- 	SET_CXL_REGION_ATTR(create_ram_region)
-+	SET_CXL_REGION_ATTR(create_dc_region)
- 	SET_CXL_REGION_ATTR(delete_region)
- 	NULL,
- };
+diff --git a/drivers/cxl/core/memdev.c b/drivers/cxl/core/memdev.c
+index 7da1f0f5711a..12fb07fb89a6 100644
+--- a/drivers/cxl/core/memdev.c
++++ b/drivers/cxl/core/memdev.c
+@@ -323,7 +323,7 @@ int cxl_inject_poison(struct cxl_memdev *cxlmd, u64 dpa)
+ 	if (rc)
+ 		goto out;
+ 
+-	cxlr = cxl_dpa_to_region(cxlmd, dpa);
++	cxlr = cxl_dpa_to_region(cxlmd, dpa, NULL);
+ 	if (cxlr)
+ 		dev_warn_once(mds->cxlds.dev,
+ 			      "poison inject dpa:%#llx region: %s\n", dpa,
+@@ -387,7 +387,7 @@ int cxl_clear_poison(struct cxl_memdev *cxlmd, u64 dpa)
+ 	if (rc)
+ 		goto out;
+ 
+-	cxlr = cxl_dpa_to_region(cxlmd, dpa);
++	cxlr = cxl_dpa_to_region(cxlmd, dpa, NULL);
+ 	if (cxlr)
+ 		dev_warn_once(mds->cxlds.dev,
+ 			      "poison clear dpa:%#llx region: %s\n", dpa,
 diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
-index f85b26b39b2f..35c4a1f4f9bd 100644
+index 35c4a1f4f9bd..8e0884b52f84 100644
 --- a/drivers/cxl/core/region.c
 +++ b/drivers/cxl/core/region.c
-@@ -496,6 +496,11 @@ static ssize_t interleave_ways_store(struct device *dev,
- 	if (rc)
- 		return rc;
+@@ -2828,6 +2828,7 @@ int cxl_get_poison_by_endpoint(struct cxl_port *port)
+ struct cxl_dpa_to_region_context {
+ 	struct cxl_region *cxlr;
+ 	u64 dpa;
++	struct cxl_endpoint_decoder *cxled;
+ };
  
-+	if (cxlr->mode == CXL_REGION_DC && val != 1) {
-+		dev_err(dev, "Interleaving and DCD not supported\n");
-+		return -EINVAL;
-+	}
-+
- 	rc = ways_to_eiw(val, &iw);
- 	if (rc)
- 		return rc;
-@@ -2174,6 +2179,7 @@ static size_t store_targetN(struct cxl_region *cxlr, const char *buf, int pos,
- 	if (sysfs_streq(buf, "\n"))
- 		rc = detach_target(cxlr, pos);
- 	else {
-+		struct cxl_endpoint_decoder *cxled;
- 		struct device *dev;
+ static int __cxl_dpa_to_region(struct device *dev, void *arg)
+@@ -2861,11 +2862,13 @@ static int __cxl_dpa_to_region(struct device *dev, void *arg)
+ 			dev_name(dev));
  
- 		dev = bus_find_device_by_name(&cxl_bus_type, NULL, buf);
-@@ -2185,8 +2191,13 @@ static size_t store_targetN(struct cxl_region *cxlr, const char *buf, int pos,
- 			goto out;
- 		}
+ 	ctx->cxlr = cxlr;
++	ctx->cxled = cxled;
  
--		rc = attach_target(cxlr, to_cxl_endpoint_decoder(dev), pos,
--				   TASK_INTERRUPTIBLE);
-+		cxled = to_cxl_endpoint_decoder(dev);
-+		if (cxlr->mode == CXL_REGION_DC &&
-+		    !cxl_dcd_supported(cxled_to_mds(cxled))) {
-+			dev_dbg(dev, "DCD unsupported\n");
-+			return -EINVAL;
-+		}
-+		rc = attach_target(cxlr, cxled, pos, TASK_INTERRUPTIBLE);
- out:
- 		put_device(dev);
- 	}
-@@ -2534,6 +2545,7 @@ static struct cxl_region *__create_region(struct cxl_root_decoder *cxlrd,
- 	switch (mode) {
- 	case CXL_REGION_RAM:
- 	case CXL_REGION_PMEM:
-+	case CXL_REGION_DC:
- 		break;
- 	default:
- 		dev_err(&cxlrd->cxlsd.cxld.dev, "unsupported mode %s\n",
-@@ -2587,6 +2599,20 @@ static ssize_t create_ram_region_store(struct device *dev,
- }
- DEVICE_ATTR_RW(create_ram_region);
- 
-+static ssize_t create_dc_region_show(struct device *dev,
-+				     struct device_attribute *attr, char *buf)
-+{
-+	return __create_region_show(to_cxl_root_decoder(dev), buf);
-+}
-+
-+static ssize_t create_dc_region_store(struct device *dev,
-+				      struct device_attribute *attr,
-+				      const char *buf, size_t len)
-+{
-+	return create_region_store(dev, buf, len, CXL_REGION_DC);
-+}
-+DEVICE_ATTR_RW(create_dc_region);
-+
- static ssize_t region_show(struct device *dev, struct device_attribute *attr,
- 			   char *buf)
- {
-@@ -3168,6 +3194,11 @@ static int devm_cxl_add_dax_region(struct cxl_region *cxlr)
- 	struct device *dev;
- 	int rc;
- 
-+	if (cxlr->mode == CXL_REGION_DC && cxlr->params.interleave_ways != 1) {
-+		dev_err(&cxlr->dev, "Interleaving DC not supported\n");
-+		return -EINVAL;
-+	}
-+
- 	cxlr_dax = cxl_dax_region_alloc(cxlr);
- 	if (IS_ERR(cxlr_dax))
- 		return PTR_ERR(cxlr_dax);
-@@ -3260,6 +3291,16 @@ static struct cxl_region *construct_region(struct cxl_root_decoder *cxlrd,
- 		return ERR_PTR(-EINVAL);
- 
- 	mode = cxl_decoder_to_region_mode(cxled->mode);
-+	if (mode == CXL_REGION_DC) {
-+		if (!cxl_dcd_supported(cxled_to_mds(cxled))) {
-+			dev_err(&cxled->cxld.dev, "DCD unsupported\n");
-+			return ERR_PTR(-EINVAL);
-+		}
-+		if (cxled->cxld.interleave_ways != 1) {
-+			dev_err(&cxled->cxld.dev, "Interleaving and DCD not supported\n");
-+			return ERR_PTR(-EINVAL);
-+		}
-+	}
- 	do {
- 		cxlr = __create_region(cxlrd, mode,
- 				       atomic_read(&cxlrd->region_id));
-@@ -3467,6 +3508,7 @@ static int cxl_region_probe(struct device *dev)
- 	case CXL_REGION_PMEM:
- 		return devm_cxl_add_pmem_region(cxlr);
- 	case CXL_REGION_RAM:
-+	case CXL_REGION_DC:
- 		/*
- 		 * The region can not be manged by CXL if any portion of
- 		 * it is already online as 'System RAM'
-diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-index fde29e0ad68b..d8cb5195a227 100644
---- a/drivers/dax/bus.c
-+++ b/drivers/dax/bus.c
-@@ -178,6 +178,11 @@ static bool is_static(struct dax_region *dax_region)
- 	return (dax_region->res.flags & IORESOURCE_DAX_STATIC) != 0;
+ 	return 1;
  }
  
-+static bool is_sparse(struct dax_region *dax_region)
-+{
-+	return (dax_region->res.flags & IORESOURCE_DAX_SPARSE_CAP) != 0;
-+}
-+
- bool static_dev_dax(struct dev_dax *dev_dax)
+-struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64 dpa)
++struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64 dpa,
++				     struct cxl_endpoint_decoder **cxled)
  {
- 	return is_static(dev_dax->region);
-@@ -301,6 +306,9 @@ static unsigned long long dax_region_avail_size(struct dax_region *dax_region)
+ 	struct cxl_dpa_to_region_context ctx;
+ 	struct cxl_port *port;
+@@ -2877,6 +2880,9 @@ struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64 dpa)
+ 	if (port && is_cxl_endpoint(port) && cxl_num_decoders_committed(port))
+ 		device_for_each_child(&port->dev, &ctx, __cxl_dpa_to_region);
  
- 	lockdep_assert_held(&dax_region_rwsem);
- 
-+	if (is_sparse(dax_region))
-+		return 0;
++	if (cxled)
++		*cxled = ctx.cxled;
 +
- 	for_each_dax_region_resource(dax_region, res)
- 		size -= resource_size(res);
- 	return size;
-@@ -1373,6 +1381,8 @@ static umode_t dev_dax_visible(struct kobject *kobj, struct attribute *a, int n)
- 		return 0;
- 	if (a == &dev_attr_mapping.attr && is_static(dax_region))
- 		return 0;
-+	if (a == &dev_attr_mapping.attr && is_sparse(dax_region))
-+		return 0;
- 	if ((a == &dev_attr_align.attr ||
- 	     a == &dev_attr_size.attr) && is_static(dax_region))
- 		return 0444;
-diff --git a/drivers/dax/bus.h b/drivers/dax/bus.h
-index cbbf64443098..783bfeef42cc 100644
---- a/drivers/dax/bus.h
-+++ b/drivers/dax/bus.h
-@@ -13,6 +13,7 @@ struct dax_region;
- /* dax bus specific ioresource flags */
- #define IORESOURCE_DAX_STATIC BIT(0)
- #define IORESOURCE_DAX_KMEM BIT(1)
-+#define IORESOURCE_DAX_SPARSE_CAP BIT(2)
- 
- struct dax_region *alloc_dax_region(struct device *parent, int region_id,
- 		struct range *range, int target_node, unsigned int align,
-diff --git a/drivers/dax/cxl.c b/drivers/dax/cxl.c
-index 9b29e732b39a..367e86b1c22a 100644
---- a/drivers/dax/cxl.c
-+++ b/drivers/dax/cxl.c
-@@ -13,19 +13,31 @@ static int cxl_dax_region_probe(struct device *dev)
- 	struct cxl_region *cxlr = cxlr_dax->cxlr;
- 	struct dax_region *dax_region;
- 	struct dev_dax_data data;
-+	resource_size_t dev_size;
-+	unsigned long flags;
- 
- 	if (nid == NUMA_NO_NODE)
- 		nid = memory_add_physaddr_to_nid(cxlr_dax->hpa_range.start);
- 
-+	flags = IORESOURCE_DAX_KMEM;
-+	if (cxlr->mode == CXL_REGION_DC)
-+		flags |= IORESOURCE_DAX_SPARSE_CAP;
-+
- 	dax_region = alloc_dax_region(dev, cxlr->id, &cxlr_dax->hpa_range, nid,
--				      PMD_SIZE, IORESOURCE_DAX_KMEM);
-+				      PMD_SIZE, flags);
- 	if (!dax_region)
- 		return -ENOMEM;
- 
-+	if (cxlr->mode == CXL_REGION_DC)
-+		/* Add empty seed dax device */
-+		dev_size = 0;
-+	else
-+		dev_size = range_len(&cxlr_dax->hpa_range);
-+
- 	data = (struct dev_dax_data) {
- 		.dax_region = dax_region,
- 		.id = -1,
--		.size = range_len(&cxlr_dax->hpa_range),
-+		.size = dev_size,
- 		.memmap_on_memory = true,
- 	};
+ 	return ctx.cxlr;
+ }
  
 
 -- 
