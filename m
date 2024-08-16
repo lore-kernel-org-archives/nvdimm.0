@@ -1,50 +1,50 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.7])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E2FE145B2D
-	for <nvdimm@lists.linux.dev>; Fri, 16 Aug 2024 23:09:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.7
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 432711474CF
+	for <nvdimm@lists.linux.dev>; Fri, 16 Aug 2024 23:17:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.21
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723849744; cv=none; b=XQbWihEIXkP5EaZgSxFGkgbRlYTCAHmu7JvrMXjBqhwEP1A5Xn73UkmtiNmx57W5BEONz8afVuQAo1fGrUenhQ/s/5aJQekvcASHvVChb7c5I+uBld4hzYriq/Jvpd6lIw4k2aV815OZ85f4fKeRvuCVI1enf3qlYQfCAyhpHbs=
+	t=1723850225; cv=none; b=IVhtydhS4W10E1d1haaznp7RUjkB/Cn3T3b/hBCw4Z8abZPCg0dWohrbTa6CZye4+VS+cFVIKKcEe/LkWMd92DajHr0YMCGbdBgPCOJti7eZOfyeWs6DNkpaBApaNlw8sE4h+hKAgOlZib6E+xWE0liR9rP96VJe35sRYoeMOVc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723849744; c=relaxed/simple;
-	bh=7sbb3BD2a5ZN5kvN3iJ0ML+womSFRTJZ5LUxX4IOoN4=;
+	s=arc-20240116; t=1723850225; c=relaxed/simple;
+	bh=BjhcSPzeBEf/CdWo/sx979xbojPHN02o91ghPixBfqQ=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Ss4XJW1fGPt89dq8RcRnIGaFKZri0ehSgt5STs4GEfxKXrDdehTqdT6bNEgd5m1MpkarD02mAX6DRLtsDCMWLMUJoi4AiwnTA9wedbiFVX1BnO1pF243KsMYUGSSsBh3BCdsCNQ/VyE/EoFqCNkrodwDOwhM+CzSjyu0jJxvv30=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=IwEV8YrS; arc=none smtp.client-ip=192.198.163.7
+	 In-Reply-To:Content-Type; b=ULaWrZxTmGlimwq0jJ250dfcGLSmAUyjq75DAUvadeTXxWJbK7CwKNYklO67S24efE94ljWpPbfJHEwT/8yGaCtqS++/k7c6q0khNERt30gOFhuuzdmVwOCDH/29mvOX3spKM3EwG+vsZErEm01bIMZCrlWRM2bXEm3ZjYWocKw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=j/mTFMZG; arc=none smtp.client-ip=198.175.65.21
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="IwEV8YrS"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="j/mTFMZG"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1723849742; x=1755385742;
+  t=1723850224; x=1755386224;
   h=message-id:date:mime-version:subject:to:cc:references:
    from:in-reply-to:content-transfer-encoding;
-  bh=7sbb3BD2a5ZN5kvN3iJ0ML+womSFRTJZ5LUxX4IOoN4=;
-  b=IwEV8YrSBawtBQ7Axf5oudpTx5fTGc5F5M8zesVvlADMZSNrEykN7hvb
-   2ZEpL8lpSCReMLPTJ5laZJfBNHo9MEGjTUSwkns3wLiQp0Etrv6fC2sLL
-   x6DOwMiF5nXMtDW1UJe3Mz+jYMnXlmoJMVqTNpwYjijzUJZawJYdvM2f/
-   Yr5/ZzCNRK2NFgSixE0G64nXyqUK7pEx3zt1OJQBH7Ts23Y+T6zDSb9b6
-   ig9xb6LY8vjRW9IIpNUnjyaA3nBPZIoC1et7L+sAKOR/+SENxLRgKgBz9
-   C0D/DwE3DO4D7//fJXStgeW0iZwqkJMEm8BSu+YjiMDBuI9zUjaxfJj95
+  bh=BjhcSPzeBEf/CdWo/sx979xbojPHN02o91ghPixBfqQ=;
+  b=j/mTFMZGM+pbj6nqBhA9yLFF3qx30kWwc81uUS2psGQDHYFWWCtwqKJs
+   V+02gbNQOli/Q2F3NDhLX5yif3caqdL5LwNN5hFBOLHNB6ka/78ORY+ma
+   scLIGBf7o1TZzef+mAXoHb0cTvfL7rnLPP7apo7fB43ZNNp57PVMNFItc
+   Axf/lSDUvxLd2OZuUCC1dJPR+NHbVX3+a/IAuNISl9H+8+IIqC2p5oDWi
+   lTJdk04fdPKQF+qKNqTRHIq1IZ6MGPPWwOPsRL6qn7vaQ/Qxs86360HQC
+   /DaXZDOcty9uYYsuwYJoNrLmUnep+WmwmkYvxRQnquTFxkTZ6l/SQQeeh
    Q==;
-X-CSE-ConnectionGUID: KuYW82DfSSmH5Pl2oaBUDg==
-X-CSE-MsgGUID: XzV1d56pQR63FH5ULmyBlQ==
-X-IronPort-AV: E=McAfee;i="6700,10204,11166"; a="47561340"
+X-CSE-ConnectionGUID: hU6vn/3BTgqleYM684iLeA==
+X-CSE-MsgGUID: C0V4ll2BT9ypuRGWKq+d+w==
+X-IronPort-AV: E=McAfee;i="6700,10204,11166"; a="22130313"
 X-IronPort-AV: E=Sophos;i="6.10,153,1719903600"; 
-   d="scan'208";a="47561340"
-Received: from fmviesa003.fm.intel.com ([10.60.135.143])
-  by fmvoesa101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Aug 2024 16:09:01 -0700
-X-CSE-ConnectionGUID: gGwuaqc5SFuAbKccEm2IXQ==
-X-CSE-MsgGUID: koOiXlQUQFyMZHuajtrTRA==
+   d="scan'208";a="22130313"
+Received: from fmviesa006.fm.intel.com ([10.60.135.146])
+  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Aug 2024 16:17:03 -0700
+X-CSE-ConnectionGUID: 8Z81hDAeQjuXBZiyQbk+Xw==
+X-CSE-MsgGUID: H7rNfao5SK6kxxSd+9uuVg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.10,153,1719903600"; 
-   d="scan'208";a="63984626"
+   d="scan'208";a="59447719"
 Received: from unknown (HELO [10.125.111.71]) ([10.125.111.71])
-  by fmviesa003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Aug 2024 16:09:00 -0700
-Message-ID: <8eefaa52-ba46-4e9b-8695-c086e08b0498@intel.com>
-Date: Fri, 16 Aug 2024 16:08:58 -0700
+  by fmviesa006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Aug 2024 16:17:02 -0700
+Message-ID: <07f637e3-5539-4bbd-bc0f-e2b1d131640d@intel.com>
+Date: Fri, 16 Aug 2024 16:17:00 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -52,8 +52,8 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 09/25] cxl/hdm: Add dynamic capacity size support to
- endpoint decoders
+Subject: Re: [PATCH v3 10/25] cxl/port: Add endpoint decoder DC mode support
+ to sysfs
 To: ira.weiny@intel.com, Fan Ni <fan.ni@samsung.com>,
  Jonathan Cameron <Jonathan.Cameron@huawei.com>,
  Navneet Singh <navneet.singh@intel.com>, Chris Mason <clm@fb.com>,
@@ -70,10 +70,10 @@ Cc: Dan Williams <dan.j.williams@intel.com>,
  linux-cxl@vger.kernel.org, linux-kernel@vger.kernel.org,
  linux-doc@vger.kernel.org, nvdimm@lists.linux.dev
 References: <20240816-dcd-type2-upstream-v3-0-7c9b96cba6d7@intel.com>
- <20240816-dcd-type2-upstream-v3-9-7c9b96cba6d7@intel.com>
+ <20240816-dcd-type2-upstream-v3-10-7c9b96cba6d7@intel.com>
 Content-Language: en-US
 From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <20240816-dcd-type2-upstream-v3-9-7c9b96cba6d7@intel.com>
+In-Reply-To: <20240816-dcd-type2-upstream-v3-10-7c9b96cba6d7@intel.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
@@ -82,396 +82,178 @@ Content-Transfer-Encoding: 7bit
 On 8/16/24 7:44 AM, ira.weiny@intel.com wrote:
 > From: Navneet Singh <navneet.singh@intel.com>
 > 
-> To support Dynamic Capacity Devices (DCD) endpoint decoders will need to
-> map DC partitions (regions).  In addition to assigning the size of the
-> DC partition, the decoder must assign any skip value from the previous
-> decoder.  This must be done within a contiguous DPA space.
+> Endpoint decoder mode is used to represent the partition the decoder
+> points to such as ram or pmem.
 > 
-> Two complications arise with Dynamic Capacity regions which did not
-> exist with Ram and PMEM partitions.  First, gaps in the DPA space can
-> exist between and around the DC partitions.  Second, the Linux resource
-> tree does not allow a resource to be marked across existing nodes within
-> a tree.
-> 
-> For clarity, below is an example of an 60GB device with 10GB of RAM,
-> 10GB of PMEM and 10GB for each of 2 DC partitions.  The desired CXL
-> mapping is 5GB of RAM, 5GB of PMEM, and 5GB of DC1.
-> 
->      DPA RANGE
->      (dpa_res)
-> 0GB        10GB       20GB       30GB       40GB       50GB       60GB
-> |----------|----------|----------|----------|----------|----------|
-> 
-> RAM         PMEM                  DC0                   DC1
->  (ram_res)  (pmem_res)            (dc_res[0])           (dc_res[1])
-> |----------|----------|   <gap>  |----------|   <gap>  |----------|
-> 
->  RAM        PMEM                                        DC1
-> |XXXXX|----|XXXXX|----|----------|----------|----------|XXXXX-----|
-> 0GB   5GB  10GB  15GB 20GB       30GB       40GB       50GB       60GB
-> 
-> The previous skip resource between RAM and PMEM was always a child of
-> the RAM resource and fit nicely [see (S) below].  Because of this
-> simplicity this skip resource reference was not stored in any CXL state.
-> On release the skip range could be calculated based on the endpoint
-> decoders stored values.
-> 
-> Now when DC1 is being mapped 4 skip resources must be created as
-> children.  One for the PMEM resource (A), two of the parent DPA resource
-> (B,D), and one more child of the DC0 resource (C).
-> 
-> 0GB        10GB       20GB       30GB       40GB       50GB       60GB
-> |----------|----------|----------|----------|----------|----------|
->                            |                     |
-> |----------|----------|    |     |----------|    |     |----------|
->         |          |       |          |          |
->        (S)        (A)     (B)        (C)        (D)
-> 	v          v       v          v          v
-> |XXXXX|----|XXXXX|----|----------|----------|----------|XXXXX-----|
->        skip       skip  skip        skip      skip
-> 
-> Expand the calculation of DPA free space and enhance the logic to
-> support this more complex skipping.  To track the potential of multiple
-> skip resources an xarray is attached to the endpoint decoder.  The
-> existing algorithm between RAM and PMEM is consolidated within the new
-> one to streamline the code even though the result is the storage of a
-> single skip resource in the xarray.
+> Expand the mode to allow a decoder to point to a specific DC partition
+> (Region).
 > 
 > Signed-off-by: Navneet Singh <navneet.singh@intel.com>
 > Co-developed-by: Ira Weiny <ira.weiny@intel.com>
 > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
 > 
 > ---
 > Changes:
-> [Jonathan: Use an example only mapping 1/2 of DC1]
-> [iweiny: Update cover letter]
-> [iweiny: Fix 0day bugs
-> 	https://lore.kernel.org/all/202408090138.RB41yBE8-lkp@intel.com/
-> [djbw/Jonathan: allow more than 1 region per DC partition]
+> [Fan: change mode range logic]
+> [Fan: use !resource_size()]
+> [djiang: use the static mode name string array in mode_store()]
+> [Jonathan: remove rc check from mode to region index]
+> [Jonathan: clarify decoder mode 'mixed']
+> [djbw: drop cleanup patch and just follow the convention in cxl_dpa_set_mode()]
+> [fan: make dcd resource size check similar to other partitions]
+> [djbw, jonathan, fan: remove mode range check from dc_mode_to_region_index]
+> [iweiny: push sysfs versions to 6.12]
 > ---
->  drivers/cxl/core/hdm.c  | 196 ++++++++++++++++++++++++++++++++++++++++++++----
->  drivers/cxl/core/port.c |   2 +
->  drivers/cxl/cxl.h       |   2 +
->  3 files changed, 184 insertions(+), 16 deletions(-)
+>  Documentation/ABI/testing/sysfs-bus-cxl | 21 ++++++++++----------
+>  drivers/cxl/core/hdm.c                  | 10 ++++++++++
+>  drivers/cxl/core/port.c                 | 10 +++++-----
+>  drivers/cxl/cxl.h                       | 35 ++++++++++++++++++---------------
+>  4 files changed, 45 insertions(+), 31 deletions(-)
 > 
+> diff --git a/Documentation/ABI/testing/sysfs-bus-cxl b/Documentation/ABI/testing/sysfs-bus-cxl
+> index 3f5627a1210a..957717264709 100644
+> --- a/Documentation/ABI/testing/sysfs-bus-cxl
+> +++ b/Documentation/ABI/testing/sysfs-bus-cxl
+> @@ -316,23 +316,24 @@ Description:
+>  
+>  
+>  What:		/sys/bus/cxl/devices/decoderX.Y/mode
+> -Date:		May, 2022
+> -KernelVersion:	v6.0
+> +Date:		May, 2022, October 2024
+> +KernelVersion:	v6.0, v6.12 (dcY)
+>  Contact:	linux-cxl@vger.kernel.org
+>  Description:
+>  		(RW) When a CXL decoder is of devtype "cxl_decoder_endpoint" it
+>  		translates from a host physical address range, to a device local
+>  		address range. Device-local address ranges are further split
+> -		into a 'ram' (volatile memory) range and 'pmem' (persistent
+> -		memory) range. The 'mode' attribute emits one of 'ram', 'pmem',
+> -		'mixed', or 'none'. The 'mixed' indication is for error cases
+> -		when a decoder straddles the volatile/persistent partition
+> -		boundary, and 'none' indicates the decoder is not actively
+> -		decoding, or no DPA allocation policy has been set.
+> +		into a 'ram' (volatile memory) range, 'pmem' (persistent
+> +		memory) range, or Dynamic Capacity (DC) range. The 'mode'
+> +		attribute emits one of 'ram', 'pmem', 'dcY', 'mixed', or
+> +		'none'. The 'mixed' indication is for error cases when a
+> +		decoder straddles partition boundaries, and 'none' indicates
+> +		the decoder is not actively decoding, or no DPA allocation
+> +		policy has been set.
+>  
+>  		'mode' can be written, when the decoder is in the 'disabled'
+> -		state, with either 'ram' or 'pmem' to set the boundaries for the
+> -		next allocation.
+> +		state, with 'ram', 'pmem', or 'dcY' to set the boundaries for
+> +		the next allocation.
+>  
+>  
+>  What:		/sys/bus/cxl/devices/decoderX.Y/dpa_resource
 > diff --git a/drivers/cxl/core/hdm.c b/drivers/cxl/core/hdm.c
-> index 3df10517a327..b4a517c6d283 100644
+> index b4a517c6d283..ceca0b3d3e5c 100644
 > --- a/drivers/cxl/core/hdm.c
 > +++ b/drivers/cxl/core/hdm.c
-> @@ -223,6 +223,25 @@ void cxl_dpa_debug(struct seq_file *file, struct cxl_dev_state *cxlds)
->  }
->  EXPORT_SYMBOL_NS_GPL(cxl_dpa_debug, CXL);
->  
-> +static void cxl_skip_release(struct cxl_endpoint_decoder *cxled)
-> +{
-> +	struct cxl_dev_state *cxlds = cxled_to_memdev(cxled)->cxlds;
-> +	struct cxl_port *port = cxled_to_port(cxled);
-> +	struct device *dev = &port->dev;
-> +	unsigned long index;
-> +	void *entry;
-> +
-> +	xa_for_each(&cxled->skip_res, index, entry) {
-> +		struct resource *res = entry;
-> +
-> +		dev_dbg(dev, "decoder%d.%d: releasing skipped space; %pr\n",
-> +			port->id, cxled->cxld.id, res);
-> +		__release_region(&cxlds->dpa_res, res->start,
-> +				 resource_size(res));
-> +		xa_erase(&cxled->skip_res, index);
-> +	}
-> +}
-> +
->  /*
->   * Must be called in a context that synchronizes against this decoder's
->   * port ->remove() callback (like an endpoint decoder sysfs attribute)
-> @@ -233,15 +252,11 @@ static void __cxl_dpa_release(struct cxl_endpoint_decoder *cxled)
->  	struct cxl_port *port = cxled_to_port(cxled);
->  	struct cxl_dev_state *cxlds = cxlmd->cxlds;
->  	struct resource *res = cxled->dpa_res;
-> -	resource_size_t skip_start;
->  
->  	lockdep_assert_held_write(&cxl_dpa_rwsem);
->  
-> -	/* save @skip_start, before @res is released */
-> -	skip_start = res->start - cxled->skip;
->  	__release_region(&cxlds->dpa_res, res->start, resource_size(res));
-> -	if (cxled->skip)
-> -		__release_region(&cxlds->dpa_res, skip_start, cxled->skip);
-> +	cxl_skip_release(cxled);
->  	cxled->skip = 0;
->  	cxled->dpa_res = NULL;
->  	put_device(&cxled->cxld.dev);
-> @@ -268,6 +283,105 @@ static void devm_cxl_dpa_release(struct cxl_endpoint_decoder *cxled)
->  	__cxl_dpa_release(cxled);
->  }
->  
-> +static int dc_mode_to_region_index(enum cxl_decoder_mode mode)
-> +{
-> +	return mode - CXL_DECODER_DC0;
-> +}
-> +
-> +static int cxl_request_skip(struct cxl_endpoint_decoder *cxled,
-> +			    resource_size_t skip_base, resource_size_t skip_len)
-> +{
-> +	struct cxl_dev_state *cxlds = cxled_to_memdev(cxled)->cxlds;
-> +	const char *name = dev_name(&cxled->cxld.dev);
-> +	struct cxl_port *port = cxled_to_port(cxled);
-> +	struct resource *dpa_res = &cxlds->dpa_res;
-> +	struct device *dev = &port->dev;
-> +	struct resource *res;
-> +	int rc;
-> +
-> +	res = __request_region(dpa_res, skip_base, skip_len, name, 0);
-> +	if (!res)
-> +		return -EBUSY;
-> +
-> +	rc = xa_insert(&cxled->skip_res, skip_base, res, GFP_KERNEL);
-
-Maybe rename skip_res to skip_xa, given most of the vars in CXL with _res are 'struct resource' to avoid confusion. See 'dpa_res' above.
-
-> +	if (rc) {
-> +		__release_region(dpa_res, skip_base, skip_len);
-> +		return rc;
-> +	}
-> +
-> +	dev_dbg(dev, "decoder%d.%d: skipped space; %pr\n",
-> +		port->id, cxled->cxld.id, res);
-> +	return 0;
-> +}
-> +
-> +static int cxl_reserve_dpa_skip(struct cxl_endpoint_decoder *cxled,
-> +				resource_size_t base, resource_size_t skipped)
-> +{
-> +	struct cxl_memdev *cxlmd = cxled_to_memdev(cxled);
-> +	struct cxl_port *port = cxled_to_port(cxled);
-> +	struct cxl_dev_state *cxlds = cxlmd->cxlds;
-> +	resource_size_t skip_base = base - skipped;
-> +	struct device *dev = &port->dev;
-> +	resource_size_t skip_len = 0;
-> +	int rc, index;
-> +
-> +	if (resource_size(&cxlds->ram_res) && skip_base <= cxlds->ram_res.end) {
-> +		skip_len = cxlds->ram_res.end - skip_base + 1;
-> +		rc = cxl_request_skip(cxled, skip_base, skip_len);
-> +		if (rc)
-> +			return rc;
-> +		skip_base += skip_len;
-> +	}
-> +
-> +	if (skip_base == base) {
-> +		dev_dbg(dev, "skip done ram!\n");
-> +		return 0;
-> +	}
-> +
-> +	if (resource_size(&cxlds->pmem_res) &&
-> +	    skip_base <= cxlds->pmem_res.end) {
-> +		skip_len = cxlds->pmem_res.end - skip_base + 1;
-> +		rc = cxl_request_skip(cxled, skip_base, skip_len);
-> +		if (rc)
-> +			return rc;
-> +		skip_base += skip_len;
-> +	}
-
-Does 'skip_base == base' need to be checked here again before going to DCD?
-
-DJ
-
-> +
-> +	index = dc_mode_to_region_index(cxled->mode);
-> +	for (int i = 0; i <= index; i++) {
-> +		struct resource *dcr = &cxlds->dc_res[i];
-> +
-> +		if (skip_base < dcr->start) {
-> +			skip_len = dcr->start - skip_base;
-> +			rc = cxl_request_skip(cxled, skip_base, skip_len);
-> +			if (rc)
-> +				return rc;
-> +			skip_base += skip_len;
-> +		}
-> +
-> +		if (skip_base == base) {
-> +			dev_dbg(dev, "skip done DC region %d!\n", i);
-> +			break;
-> +		}
-> +
-> +		if (resource_size(dcr) && skip_base <= dcr->end) {
-> +			if (skip_base > base) {
-> +				dev_err(dev, "Skip error DC region %d; skip_base %pa; base %pa\n",
-> +					i, &skip_base, &base);
-> +				return -ENXIO;
-> +			}
-> +
-> +			skip_len = dcr->end - skip_base + 1;
-> +			rc = cxl_request_skip(cxled, skip_base, skip_len);
-> +			if (rc)
-> +				return rc;
-> +			skip_base += skip_len;
-> +		}
-> +	}
-> +
-> +	return 0;
-> +}
-> +
->  static int __cxl_dpa_reserve(struct cxl_endpoint_decoder *cxled,
->  			     resource_size_t base, resource_size_t len,
->  			     resource_size_t skipped)
-> @@ -305,13 +419,12 @@ static int __cxl_dpa_reserve(struct cxl_endpoint_decoder *cxled,
->  	}
->  
->  	if (skipped) {
-> -		res = __request_region(&cxlds->dpa_res, base - skipped, skipped,
-> -				       dev_name(&cxled->cxld.dev), 0);
-> -		if (!res) {
-> -			dev_dbg(dev,
-> -				"decoder%d.%d: failed to reserve skipped space\n",
-> -				port->id, cxled->cxld.id);
-> -			return -EBUSY;
-> +		int rc = cxl_reserve_dpa_skip(cxled, base, skipped);
-> +
-> +		if (rc) {
-> +			dev_dbg(dev, "decoder%d.%d: failed to reserve skipped space; %pa - %pa\n",
-> +				port->id, cxled->cxld.id, &base, &skipped);
-> +			return rc;
->  		}
->  	}
->  	res = __request_region(&cxlds->dpa_res, base, len,
-> @@ -319,14 +432,20 @@ static int __cxl_dpa_reserve(struct cxl_endpoint_decoder *cxled,
->  	if (!res) {
->  		dev_dbg(dev, "decoder%d.%d: failed to reserve allocation\n",
->  			port->id, cxled->cxld.id);
-> -		if (skipped)
-> -			__release_region(&cxlds->dpa_res, base - skipped,
-> -					 skipped);
-> +		cxl_skip_release(cxled);
->  		return -EBUSY;
->  	}
->  	cxled->dpa_res = res;
->  	cxled->skip = skipped;
->  
-> +	for (int mode = CXL_DECODER_DC0; mode <= CXL_DECODER_DC7; mode++) {
-> +		int index = dc_mode_to_region_index(mode);
-> +
-> +		if (resource_contains(&cxlds->dc_res[index], res)) {
-> +			cxled->mode = mode;
-> +			goto success;
-> +		}
-> +	}
->  	if (resource_contains(&cxlds->pmem_res, res))
->  		cxled->mode = CXL_DECODER_PMEM;
->  	else if (resource_contains(&cxlds->ram_res, res))
-> @@ -337,6 +456,9 @@ static int __cxl_dpa_reserve(struct cxl_endpoint_decoder *cxled,
->  		cxled->mode = CXL_DECODER_MIXED;
->  	}
->  
-> +success:
-> +	dev_dbg(dev, "decoder%d.%d: %pr mode: %d\n", port->id, cxled->cxld.id,
-> +		cxled->dpa_res, cxled->mode);
->  	port->hdm_end++;
->  	get_device(&cxled->cxld.dev);
->  	return 0;
-> @@ -466,8 +588,8 @@ int cxl_dpa_set_mode(struct cxl_endpoint_decoder *cxled,
->  
->  int cxl_dpa_alloc(struct cxl_endpoint_decoder *cxled, unsigned long long size)
->  {
-> -	struct cxl_memdev *cxlmd = cxled_to_memdev(cxled);
->  	resource_size_t free_ram_start, free_pmem_start;
-> +	struct cxl_memdev *cxlmd = cxled_to_memdev(cxled);
->  	struct cxl_port *port = cxled_to_port(cxled);
->  	struct cxl_dev_state *cxlds = cxlmd->cxlds;
->  	struct device *dev = &cxled->cxld.dev;
-> @@ -524,12 +646,54 @@ int cxl_dpa_alloc(struct cxl_endpoint_decoder *cxled, unsigned long long size)
->  		else
->  			skip_end = start - 1;
->  		skip = skip_end - skip_start + 1;
-> +	} else if (cxl_decoder_mode_is_dc(cxled->mode)) {
-> +		int dc_index = dc_mode_to_region_index(cxled->mode);
-> +
-> +		for (p = cxlds->dc_res[dc_index].child, last = NULL; p; p = p->sibling)
-> +			last = p;
-> +
-> +		if (last) {
-> +			/*
-> +			 * Some capacity in this DC partition is already allocated,
-> +			 * that allocation already handled the skip.
-> +			 */
-> +			start = last->end + 1;
-> +			skip = 0;
-> +		} else {
-> +			/* Calculate skip */
-> +			resource_size_t skip_start, skip_end;
-> +
-> +			start = cxlds->dc_res[dc_index].start;
-> +
-> +			if ((resource_size(&cxlds->pmem_res) == 0) || !cxlds->pmem_res.child)
-> +				skip_start = free_ram_start;
-> +			else
-> +				skip_start = free_pmem_start;
-> +			/*
-> +			 * If any dc region is already mapped, then that allocation
-> +			 * already handled the RAM and PMEM skip.  Check for DC region
-> +			 * skip.
-> +			 */
-> +			for (int i = dc_index - 1; i >= 0 ; i--) {
-> +				if (cxlds->dc_res[i].child) {
-> +					skip_start = cxlds->dc_res[i].child->end + 1;
-> +					break;
-> +				}
-> +			}
-> +
-> +			skip_end = start - 1;
-> +			skip = skip_end - skip_start + 1;
-> +		}
-> +		avail = cxlds->dc_res[dc_index].end - start + 1;
->  	} else {
->  		dev_dbg(dev, "mode not set\n");
->  		rc = -EINVAL;
+> @@ -551,6 +551,7 @@ int cxl_dpa_set_mode(struct cxl_endpoint_decoder *cxled,
+>  	switch (mode) {
+>  	case CXL_DECODER_RAM:
+>  	case CXL_DECODER_PMEM:
+> +	case CXL_DECODER_DC0 ... CXL_DECODER_DC7:
+>  		break;
+>  	default:
+>  		dev_dbg(dev, "unsupported mode: %d\n", mode);
+> @@ -578,6 +579,15 @@ int cxl_dpa_set_mode(struct cxl_endpoint_decoder *cxled,
 >  		goto out;
 >  	}
 >  
-> +	dev_dbg(dev, "DPA Allocation start: %pa len: %#llx Skip: %pa\n",
-> +		&start, size, &skip);
+> +	if (mode >= CXL_DECODER_DC0 && mode <= CXL_DECODER_DC7) {
+> +		rc = dc_mode_to_region_index(mode);
+> +		if (!resource_size(&cxlds->dc_res[rc])) {
+> +			dev_dbg(dev, "no available dynamic capacity\n");
+> +			rc = -ENXIO;
+> +			goto out;
+> +		}
+> +	}
 > +
->  	if (size > avail) {
->  		dev_dbg(dev, "%pa exceeds available %s capacity: %pa\n", &size,
->  			cxl_decoder_mode_name(cxled->mode), &avail);
+>  	cxled->mode = mode;
+>  	rc = 0;
+>  out:
 > diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
-> index 1d5007e3795a..8054cbaac9f6 100644
+> index 8054cbaac9f6..222aa0aeeef7 100644
 > --- a/drivers/cxl/core/port.c
 > +++ b/drivers/cxl/core/port.c
-> @@ -419,6 +419,7 @@ static void cxl_endpoint_decoder_release(struct device *dev)
->  	struct cxl_endpoint_decoder *cxled = to_cxl_endpoint_decoder(dev);
+> @@ -205,11 +205,11 @@ static ssize_t mode_store(struct device *dev, struct device_attribute *attr,
+>  	enum cxl_decoder_mode mode;
+>  	ssize_t rc;
 >  
->  	__cxl_decoder_release(&cxled->cxld);
-> +	xa_destroy(&cxled->skip_res);
->  	kfree(cxled);
->  }
+> -	if (sysfs_streq(buf, "pmem"))
+> -		mode = CXL_DECODER_PMEM;
+> -	else if (sysfs_streq(buf, "ram"))
+> -		mode = CXL_DECODER_RAM;
+> -	else
+> +	for (mode = CXL_DECODER_RAM; mode < CXL_DECODER_MIXED; mode++)
+> +		if (sysfs_streq(buf, cxl_decoder_mode_names[mode]))
+> +			break;
+> +
+> +	if (mode >= CXL_DECODER_MIXED)
+>  		return -EINVAL;
 >  
-> @@ -1899,6 +1900,7 @@ struct cxl_endpoint_decoder *cxl_endpoint_decoder_alloc(struct cxl_port *port)
->  		return ERR_PTR(-ENOMEM);
->  
->  	cxled->pos = -1;
-> +	xa_init(&cxled->skip_res);
->  	cxld = &cxled->cxld;
->  	rc = cxl_decoder_init(port, cxld);
->  	if (rc)	 {
+>  	rc = cxl_dpa_set_mode(cxled, mode);
 > diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
-> index d2674ab46f35..53b666ef4097 100644
+> index 53b666ef4097..16861c867537 100644
 > --- a/drivers/cxl/cxl.h
 > +++ b/drivers/cxl/cxl.h
-> @@ -446,6 +446,7 @@ enum cxl_decoder_state {
->   * @cxld: base cxl_decoder_object
->   * @dpa_res: actively claimed DPA span of this decoder
->   * @skip: offset into @dpa_res where @cxld.hpa_range maps
-> + * @skip_res: array of skipped resources from the previous decoder end
->   * @mode: which memory type / access-mode-partition this decoder targets
->   * @state: autodiscovery state
->   * @pos: interleave position in @cxld.region
-> @@ -454,6 +455,7 @@ struct cxl_endpoint_decoder {
->  	struct cxl_decoder cxld;
->  	struct resource *dpa_res;
->  	resource_size_t skip;
-> +	struct xarray skip_res;
->  	enum cxl_decoder_mode mode;
->  	enum cxl_decoder_state state;
->  	int pos;
+> @@ -365,6 +365,9 @@ struct cxl_decoder {
+>  /*
+>   * CXL_DECODER_DEAD prevents endpoints from being reattached to regions
+>   * while cxld_unregister() is running
+> + *
+> + * NOTE: CXL_DECODER_RAM must be second and CXL_DECODER_MIXED must be last.
+> + *	 See mode_store()
+>   */
+>  enum cxl_decoder_mode {
+>  	CXL_DECODER_NONE,
+> @@ -382,25 +385,25 @@ enum cxl_decoder_mode {
+>  	CXL_DECODER_DEAD,
+>  };
+>  
+> +static const char * const cxl_decoder_mode_names[] = {
+> +	[CXL_DECODER_NONE] = "none",
+> +	[CXL_DECODER_RAM] = "ram",
+> +	[CXL_DECODER_PMEM] = "pmem",
+> +	[CXL_DECODER_DC0] = "dc0",
+> +	[CXL_DECODER_DC1] = "dc1",
+> +	[CXL_DECODER_DC2] = "dc2",
+> +	[CXL_DECODER_DC3] = "dc3",
+> +	[CXL_DECODER_DC4] = "dc4",
+> +	[CXL_DECODER_DC5] = "dc5",
+> +	[CXL_DECODER_DC6] = "dc6",
+> +	[CXL_DECODER_DC7] = "dc7",
+> +	[CXL_DECODER_MIXED] = "mixed",
+> +};
+> +
+>  static inline const char *cxl_decoder_mode_name(enum cxl_decoder_mode mode)
+>  {
+> -	static const char * const names[] = {
+> -		[CXL_DECODER_NONE] = "none",
+> -		[CXL_DECODER_RAM] = "ram",
+> -		[CXL_DECODER_PMEM] = "pmem",
+> -		[CXL_DECODER_DC0] = "dc0",
+> -		[CXL_DECODER_DC1] = "dc1",
+> -		[CXL_DECODER_DC2] = "dc2",
+> -		[CXL_DECODER_DC3] = "dc3",
+> -		[CXL_DECODER_DC4] = "dc4",
+> -		[CXL_DECODER_DC5] = "dc5",
+> -		[CXL_DECODER_DC6] = "dc6",
+> -		[CXL_DECODER_DC7] = "dc7",
+> -		[CXL_DECODER_MIXED] = "mixed",
+> -	};
+> -
+>  	if (mode >= CXL_DECODER_NONE && mode <= CXL_DECODER_MIXED)
+> -		return names[mode];
+> +		return cxl_decoder_mode_names[mode];
+>  	return "mixed";
+>  }
+>  
 > 
