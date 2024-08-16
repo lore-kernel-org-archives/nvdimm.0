@@ -1,51 +1,51 @@
 Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.11])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 033261BF31A
-	for <nvdimm@lists.linux.dev>; Fri, 16 Aug 2024 14:44:28 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3365E1C2323
+	for <nvdimm@lists.linux.dev>; Fri, 16 Aug 2024 14:44:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.11
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723819472; cv=none; b=bmSM0Euq5DexNQtrs0mqeA1W5cOkudIeIrhVUMfrZ6SjWs3bG03AxTn94unDGYP2wcn8OOFgOc6jGaX9lWHJ6fr6ZgNae6kxTmUY03LvgsKc7LRqIKPD09YyEI1CJShuJQAxzrRQPW35HF+fdfMcM9F0Bdn+N/78+P37MWS/7iM=
+	t=1723819474; cv=none; b=sudFqOL2YReNInz/qBZsfv2Q0kitaxknjVB9fgDBdmdpTCoSsOjTm68v2s1r1Qq+CGhwhWgdJ9OlVHGmuVPfrQ0NmEA8FUN7yBzKQyDxCsy78BehEtv4ett+Pi4h+nNSZGcHMRjTtBFlToC4ptrg8MRTR308uC0KpYOwbla6ISY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723819472; c=relaxed/simple;
-	bh=5VkggrFXyoRX+xFMFtPbi/ymdAmy5/e3QrX+vM16NIA=;
+	s=arc-20240116; t=1723819474; c=relaxed/simple;
+	bh=Zo1dZh5pzHpeeydz3y04EF5edS3G2yB/CM8mLx26TMA=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=RmZS6OJPBs9Mk1bMkcENcLtQRhi6ZXRH33D1+YOVXaoEFalplyyzoSF2YvvdhqQs/ssHGaU+J4S7x8gT/VW7KEV6EtVo4Z705UPAaZ/gCJYXmBo9sitNSNp5vUENRmN6kDdONNg4cmDydIdPq/LU80BJIrACi1rHV759xM0IDRM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=jm6TUdBC; arc=none smtp.client-ip=192.198.163.11
+	 In-Reply-To:To:Cc; b=J3E2KxnnGViQvuUa09jjG4TYMORcbwjHi8ds1s8BpVPgUeiYRl4np4x3+c/zI2ljDUCBo3U5s+jg1CpfQWJDhep0+6E+zyVBytcEnzJ+YB6ofxXnEJ/KyDzFbp/JwMG8CaF/7ZPOAM6s63VqyBBInnEAfzMImHSA+kClhIdZuec=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=PvGqtNqw; arc=none smtp.client-ip=192.198.163.11
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="jm6TUdBC"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="PvGqtNqw"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1723819469; x=1755355469;
+  t=1723819473; x=1755355473;
   h=from:date:subject:mime-version:content-transfer-encoding:
    message-id:references:in-reply-to:to:cc;
-  bh=5VkggrFXyoRX+xFMFtPbi/ymdAmy5/e3QrX+vM16NIA=;
-  b=jm6TUdBC0GItp9/YQ7p1FCrXDiO/jSP4xhLXuSub6hSmdGH+RryPKAJn
-   l5zb/CnLmW+SYZdSIrtc2uZQlCxbvQT/l7pg0VhLu051gzvmIc7iHkSlW
-   +uDKpAjiR++mDpPWJhLkP7DJZsvZG9Lhhd9K7UqAoaLfbWEeI7Kg+HmlI
-   2+Ue+aJsgbrhlHUbnoGhkr/qeiswAsJmEpsuc9HS0f8aYPaJYgaOmnv7U
-   UboEB0wMb/+VrafYrDHBRJK6LnEG//r0w5cCHsOYRCl1iIPQGgFAf/qqP
-   Q4mMaMazNAaOgf2X1VdZ9wcI5wn9zdq7aQGwQ/eNaRxOy0rBt/cGIONJu
-   w==;
-X-CSE-ConnectionGUID: bP/ElOpPSgSqw4DZUM6jNg==
-X-CSE-MsgGUID: GPrkMiEBQOymbvV9B1+0yw==
-X-IronPort-AV: E=McAfee;i="6700,10204,11166"; a="32753029"
+  bh=Zo1dZh5pzHpeeydz3y04EF5edS3G2yB/CM8mLx26TMA=;
+  b=PvGqtNqwcHFnZOrYPz/M/ApEkEuiemacHtspaOaI7xpOeRg0PKIVFnBS
+   2vQGOi0iS5pJVIC3h1H1wSpbA7ZdSW5wnvAwyzqLvIjrUu0dpvjyrkpzC
+   AvKnYm6sQL258ke1dwnPmmXHFCw15D7GiQjUJOXOoyIbBHlrScxQiuczY
+   0b7dLJKv/xS/Z9v4zw3OrB13dSRIrqNI+yGBNeQ/yEUv07kO9erqF+CIt
+   ofSJwgI+JMM7q0/eAOanmpsR8kZ8YzF4ePjUTEWXxuHLCNfv4D0wCK35F
+   F0xWJ4Ik0KEJl/ZYxb00FdQtjZ+7Ojv9hJe4Vo38GX7YgZtffcuaSh2nk
+   A==;
+X-CSE-ConnectionGUID: 9Pd0TK5qRiudRZDlaKbC7A==
+X-CSE-MsgGUID: +cBsQcmHTDi7mcmUDqjDGA==
+X-IronPort-AV: E=McAfee;i="6700,10204,11166"; a="32753048"
 X-IronPort-AV: E=Sophos;i="6.10,152,1719903600"; 
-   d="scan'208";a="32753029"
+   d="scan'208";a="32753048"
 Received: from fmviesa005.fm.intel.com ([10.60.135.145])
-  by fmvoesa105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Aug 2024 07:44:28 -0700
-X-CSE-ConnectionGUID: Vg0Q0IITTIqDdX72RH4ByQ==
-X-CSE-MsgGUID: bk3/DhnPQZexI2ZGDWq3Hw==
+  by fmvoesa105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Aug 2024 07:44:31 -0700
+X-CSE-ConnectionGUID: A+k9k11cTg+775dN+jvcmQ==
+X-CSE-MsgGUID: cU+2hgLVTZyWb0vy2IeXrQ==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.10,152,1719903600"; 
-   d="scan'208";a="64086939"
+   d="scan'208";a="64086946"
 Received: from iweiny-mobl.amr.corp.intel.com (HELO localhost) ([10.125.111.52])
-  by fmviesa005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Aug 2024 07:44:27 -0700
+  by fmviesa005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Aug 2024 07:44:30 -0700
 From: Ira Weiny <ira.weiny@intel.com>
-Date: Fri, 16 Aug 2024 09:44:11 -0500
-Subject: [PATCH v3 03/25] dax: Document dax dev range tuple
+Date: Fri, 16 Aug 2024 09:44:12 -0500
+Subject: [PATCH v3 04/25] cxl/pci: Delay event buffer allocation
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -54,7 +54,7 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20240816-dcd-type2-upstream-v3-3-7c9b96cba6d7@intel.com>
+Message-Id: <20240816-dcd-type2-upstream-v3-4-7c9b96cba6d7@intel.com>
 References: <20240816-dcd-type2-upstream-v3-0-7c9b96cba6d7@intel.com>
 In-Reply-To: <20240816-dcd-type2-upstream-v3-0-7c9b96cba6d7@intel.com>
 To: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, 
@@ -74,46 +74,60 @@ Cc: Dan Williams <dan.j.williams@intel.com>,
  linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, 
  nvdimm@lists.linux.dev
 X-Mailer: b4 0.15-dev-37811
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1723819455; l=1068;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1723819455; l=1342;
  i=ira.weiny@intel.com; s=20221211; h=from:subject:message-id;
- bh=5VkggrFXyoRX+xFMFtPbi/ymdAmy5/e3QrX+vM16NIA=;
- b=dqn+/sYA0d6QfVn4nRQItm4pESDvQWH27evpeIYLF1KGTOVYPxe9VXmBocf16Ii4OmSAMPDmt
- 8uQeFUdJS+CD52Y782Ei8KPckQ5QkWDIUlj6SgNZu23+JOBJR20M1sa
+ bh=Zo1dZh5pzHpeeydz3y04EF5edS3G2yB/CM8mLx26TMA=;
+ b=lyHNdhhQchPEN4TCZSPERaIaafc1u1Lsn2DUD7pdFQA5VhnwgIqVo02pSl2kHckh8G0WbvonX
+ e/oHe5Pwb1qDk21M9b7O1JOZRcv30gG8jtJJeE4CCENw0p8xI32ir6G
 X-Developer-Key: i=ira.weiny@intel.com; a=ed25519;
  pk=noldbkG+Wp1qXRrrkfY1QJpDf7QsOEthbOT7vm0PqsE=
 
-The device DAX structure is being enhanced to track additional DCD
-information.
+The event buffer does not need to be allocated if something has failed in
+setting up event irq's.
 
-The current range tuple was not fully documented.  Document it prior to
-adding information for DC.
+In prep for adjusting event configuration for DCD events move the buffer
+allocation to the end of the event configuration.
 
-Suggested-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 
 ---
 Changes:
-[iweiny: move to start of series]
+[iweiny: keep tags for early simple patch]
+[Davidlohr, Jonathan, djiang: move to beginning of series]
+	[Dave feel free to pick this up if you like]
 ---
- drivers/dax/dax-private.h | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/cxl/pci.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/dax/dax-private.h b/drivers/dax/dax-private.h
-index 446617b73aea..ccde98c3d4e2 100644
---- a/drivers/dax/dax-private.h
-+++ b/drivers/dax/dax-private.h
-@@ -58,7 +58,10 @@ struct dax_mapping {
-  * @dev - device core
-  * @pgmap - pgmap for memmap setup / lifetime (driver owned)
-  * @nr_range: size of @ranges
-- * @ranges: resource-span + pgoff tuples for the instance
-+ * @ranges: range tuples of memory used
-+ * @pgoff: page offset
-+ * @range: resource-span
-+ * @mapping: device to assist in interrogating the range layout
-  */
- struct dev_dax {
- 	struct dax_region *region;
+diff --git a/drivers/cxl/pci.c b/drivers/cxl/pci.c
+index 4be35dc22202..3a60cd66263e 100644
+--- a/drivers/cxl/pci.c
++++ b/drivers/cxl/pci.c
+@@ -760,10 +760,6 @@ static int cxl_event_config(struct pci_host_bridge *host_bridge,
+ 		return 0;
+ 	}
+ 
+-	rc = cxl_mem_alloc_event_buf(mds);
+-	if (rc)
+-		return rc;
+-
+ 	rc = cxl_event_get_int_policy(mds, &policy);
+ 	if (rc)
+ 		return rc;
+@@ -777,6 +773,10 @@ static int cxl_event_config(struct pci_host_bridge *host_bridge,
+ 		return -EBUSY;
+ 	}
+ 
++	rc = cxl_mem_alloc_event_buf(mds);
++	if (rc)
++		return rc;
++
+ 	rc = cxl_event_irqsetup(mds);
+ 	if (rc)
+ 		return rc;
 
 -- 
 2.45.2
