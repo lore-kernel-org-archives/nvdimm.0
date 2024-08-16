@@ -1,63 +1,116 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.7])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEE6B1C37AE;
-	Fri, 16 Aug 2024 18:53:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45FDB12A177
+	for <nvdimm@lists.linux.dev>; Fri, 16 Aug 2024 20:58:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.7
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723834397; cv=none; b=EkZK63Pd55DEKuF23wVkCMRhjxHMD8g11mRYCG/xBefd/eeRvl6iOzqyjaIgIjSxrJhDSst0ixqriDt2V+Vg+9z48RRmmWYigTup9ld85em80DTnkSp4v8n83PrAMpFzO+xNAUfZOIhHHJauy1MQbGvY1hIkeIGQU/SBmDXcxsA=
+	t=1723841928; cv=none; b=qdrSDthTRT0z6ck6WHBhysh9KxuW/IE7cQIOE1XEqDVigiTcyGolzM9rQQlpMjjOwfU7LkORpSz9dJbSZMZ5AB4gzaXaDiju8EO1a2mAioJqafO0K5IpNQGhpkERFYlKy/znLw3Bm0gv3euQpEyontC0KPy/QpBGUznlYYG/BQs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723834397; c=relaxed/simple;
-	bh=z0ONeofNU8rqXJvlEzskZZ7ldw7sJ6PtHeETuOJhIf8=;
-	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=Y2hvguH+nnrr3pxY0Edf3ZRSIwmzTw/V1pbNX47SBu4NGFKPVinlLZRU/TYDmJbGr01MdWe6gI//8+Xzu4mgzxDzF9NygC0QGKImJMpxCfCbRK2XXmJ7k3vL+YSs3tOTJn9Rqgh7VEUBiWYYNU4Zk8IC37TeKqxWzKf4VSzgZbQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=m+M9sepS; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1723841928; c=relaxed/simple;
+	bh=prKEysYXyyWuDvDu9eJZ44qO6cHeJEujNjWHyFKJvT8=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=nFn7MNzNIQst6F7Tk+yZmgWPp2b/i07Kew+59CjplJe2UAiqyhLjQyBugTag1M4akc3Nw2q7rxlh1ikVo46x8cf0FBx3y5RJ4l3LM2PkSawOMz2qw4Tq17Xps5d67pRUiFuwl+Brwj713zl63nbFJmX1GFkCNhihU7Jtlfks7uo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=bakgKZfH; arc=none smtp.client-ip=192.198.163.7
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="m+M9sepS"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B396C32782;
-	Fri, 16 Aug 2024 18:53:17 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1723834397;
-	bh=z0ONeofNU8rqXJvlEzskZZ7ldw7sJ6PtHeETuOJhIf8=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-	b=m+M9sepSVsXbhsap7sT33pJ8qgt1VQoEkIK3LHgDzS6d1iwGQCs8iumOgru208MXQ
-	 Tl46gaYVGjrmAYpU/7LPM09YP6pZKS9n6AcflA3Aej9oBlVGBbp32eKiLM7p087j67
-	 h8XzTjO12SKEsSm3Bv8DHpVdPC2xRWJrVrkMcE5j9XPNqJZz3PLL+eQboqoR9SVDXB
-	 fzFt6dS64PpU+O4czv3jdmv+3b8e2WPpy7MZxPi+YmIbmjjpx4seuQBRVJNuDELlm0
-	 mV68dmARfRadvOIxlw0urrSTUfhThpYLBqFPlBRfZuibCz0HkWv3eYpCm1/YzDZ4X+
-	 uIql768pDXg6A==
-Received: from [10.30.226.235] (localhost [IPv6:::1])
-	by aws-us-west-2-korg-oddjob-rhel9-1.codeaurora.org (Postfix) with ESMTP id EB6C438232A9;
-	Fri, 16 Aug 2024 18:53:17 +0000 (UTC)
-Subject: Re: [GIT PULL] DAX for 6.11
-From: pr-tracker-bot@kernel.org
-In-Reply-To: <66bf57c7b023f_22218329410@iweiny-mobl.notmuch>
-References: <66bf57c7b023f_22218329410@iweiny-mobl.notmuch>
-X-PR-Tracked-List-Id: <nvdimm.lists.linux.dev>
-X-PR-Tracked-Message-Id: <66bf57c7b023f_22218329410@iweiny-mobl.notmuch>
-X-PR-Tracked-Remote: https://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git/ tags/libnvdimm-fixes-6.11-rc4
-X-PR-Tracked-Commit-Id: d5240fa65db071909e9d1d5adcc5fd1abc8e96fe
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: e4a55b555db6d2a006551605ef4404529e878cd2
-Message-Id: <172383439657.3603929.10117357333455532068.pr-tracker-bot@kernel.org>
-Date: Fri, 16 Aug 2024 18:53:16 +0000
-To: Ira Weiny <ira.weiny@intel.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Zhihao Cheng <chengzhihao1@huawei.com>, Christoph Hellwig <hch@lst.de>, Dave Jiang <dave.jiang@intel.com>, Alison Schofield <alison.schofield@intel.com>, nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="bakgKZfH"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1723841927; x=1755377927;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=prKEysYXyyWuDvDu9eJZ44qO6cHeJEujNjWHyFKJvT8=;
+  b=bakgKZfH3QD2r+QafOjSJ1lubuMHElZrnpDlAyEHMgR96rpgd8c2K1YZ
+   Q2i3QcG8plMHBCF7BFhOpnlf2i+rL5nG46hLpTOBGICaCCnhUpY3qN8jL
+   MWCDc4ZYRCBZCrdX9WRpdjaz6/TwgHrEqy+hph/cIfMpPWQ4D9ibb4yXJ
+   xU7dGhgyakXCqm0UScnKROKGc8yjLgFizRV9OuoX6zkz36WfVBqlZDxpY
+   QMdqMhFGuFLpEPcLad1fgOsDDG1lQzsfEXdbUFuJKEvV+bDQu06ix5AXJ
+   PdpsRx/4HoxVPZji0W4xi8RvynSl9g6kRDakKsYUH2ePi1Rw860U9yySz
+   A==;
+X-CSE-ConnectionGUID: bTuJratHSUGRzksww9IXjw==
+X-CSE-MsgGUID: Modb9i9OTZyCLF6RfSOIHw==
+X-IronPort-AV: E=McAfee;i="6700,10204,11166"; a="47552989"
+X-IronPort-AV: E=Sophos;i="6.10,152,1719903600"; 
+   d="scan'208";a="47552989"
+Received: from orviesa004.jf.intel.com ([10.64.159.144])
+  by fmvoesa101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Aug 2024 13:58:46 -0700
+X-CSE-ConnectionGUID: KyEt2O1KTnaKwGbbUPz49Q==
+X-CSE-MsgGUID: nU4SDx70T0qy2MZzNo7IIg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.10,152,1719903600"; 
+   d="scan'208";a="64730816"
+Received: from unknown (HELO [10.125.111.71]) ([10.125.111.71])
+  by orviesa004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Aug 2024 13:58:45 -0700
+Message-ID: <c39d5638-f72c-4001-85f8-0ba81661638a@intel.com>
+Date: Fri, 16 Aug 2024 13:58:44 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
+MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3 03/25] dax: Document dax dev range tuple
+To: Ira Weiny <ira.weiny@intel.com>, Fan Ni <fan.ni@samsung.com>,
+ Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+ Navneet Singh <navneet.singh@intel.com>, Chris Mason <clm@fb.com>,
+ Josef Bacik <josef@toxicpanda.com>, David Sterba <dsterba@suse.com>,
+ Petr Mladek <pmladek@suse.com>, Steven Rostedt <rostedt@goodmis.org>,
+ Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+ Rasmus Villemoes <linux@rasmusvillemoes.dk>,
+ Sergey Senozhatsky <senozhatsky@chromium.org>,
+ Jonathan Corbet <corbet@lwn.net>, Andrew Morton <akpm@linux-foundation.org>
+Cc: Dan Williams <dan.j.williams@intel.com>,
+ Davidlohr Bueso <dave@stgolabs.net>,
+ Alison Schofield <alison.schofield@intel.com>,
+ Vishal Verma <vishal.l.verma@intel.com>, linux-btrfs@vger.kernel.org,
+ linux-cxl@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-doc@vger.kernel.org, nvdimm@lists.linux.dev
+References: <20240816-dcd-type2-upstream-v3-0-7c9b96cba6d7@intel.com>
+ <20240816-dcd-type2-upstream-v3-3-7c9b96cba6d7@intel.com>
+Content-Language: en-US
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <20240816-dcd-type2-upstream-v3-3-7c9b96cba6d7@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-The pull request you sent on Fri, 16 Aug 2024 08:44:39 -0500:
 
-> https://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git/ tags/libnvdimm-fixes-6.11-rc4
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/e4a55b555db6d2a006551605ef4404529e878cd2
+On 8/16/24 7:44 AM, Ira Weiny wrote:
+> The device DAX structure is being enhanced to track additional DCD
+> information.
+> 
+> The current range tuple was not fully documented.  Document it prior to
+> adding information for DC.
+> 
+> Suggested-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+> Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 
-Thank you!
-
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+> 
+> ---
+> Changes:
+> [iweiny: move to start of series]
+> ---
+>  drivers/dax/dax-private.h | 5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/dax/dax-private.h b/drivers/dax/dax-private.h
+> index 446617b73aea..ccde98c3d4e2 100644
+> --- a/drivers/dax/dax-private.h
+> +++ b/drivers/dax/dax-private.h
+> @@ -58,7 +58,10 @@ struct dax_mapping {
+>   * @dev - device core
+>   * @pgmap - pgmap for memmap setup / lifetime (driver owned)
+>   * @nr_range: size of @ranges
+> - * @ranges: resource-span + pgoff tuples for the instance
+> + * @ranges: range tuples of memory used
+> + * @pgoff: page offset
+> + * @range: resource-span
+> + * @mapping: device to assist in interrogating the range layout
+>   */
+>  struct dev_dax {
+>  	struct dax_region *region;
+> 
