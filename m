@@ -1,50 +1,50 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.18])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.14])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 897CB143C6F
-	for <nvdimm@lists.linux.dev>; Fri, 16 Aug 2024 22:11:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.18
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EE45F143C72
+	for <nvdimm@lists.linux.dev>; Fri, 16 Aug 2024 22:14:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.14
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723846297; cv=none; b=Vik9/5bIMRUVSqqAqlEJzGpGZmkZycnwgmz7abiUNbAcqll0IHwBxwqudcnHC2xQ89m26hJ/cAft8JwW75KwzoqWM4iViccGHd1x+t0Yd+abJXhyeVuElndiauWoqM8qJlBqwS0Eb/H9/Yj09tQL1QGId0iXBYEPiBkz8ptetlM=
+	t=1723846504; cv=none; b=ttDoskAvT4/5y2P2GqFAbRqZgCq2i79EDFXb+0guJjyje36CLcx/r0v9amc/udyafCnzOEVMpcYk0q7Oyc/APH83kl8wS7uVSugSEG8481ZkK3V/z7Sv2DQOpjyDFq6O50PfZ1wmi/EkwHWKlkSgO+nPwWZ2VZobH4+pNJNeUV4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723846297; c=relaxed/simple;
-	bh=orjBv4SC56pi3lOQYSzRXAPJ+PGVeasXNG68uSqSzGA=;
+	s=arc-20240116; t=1723846504; c=relaxed/simple;
+	bh=5J1GuYUnbG2FOnw0lH0OF0aLsKFIEl0BmHGJA/QgCPA=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=E8eQWsx+rkVYBupjCO8Hi8HFNS2BpObMNHDTmMOy0NXWaKqYIkJLVXwvFuuIqqxuvtxfp2z7iIUhZE2iDyRJoV5/P4vXJVGkupXG41tN+7YS/mkgIn4lG1OwjEbz1xkN5zO3aHmXvBZYd4mRpVleUdXccXlNJVBqH/Us0Gw7ydU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=EIJwybrr; arc=none smtp.client-ip=192.198.163.18
+	 In-Reply-To:Content-Type; b=fy0BjX9DSRgaPN/5MexNw26tn2aI/AtvCTKCukmmiwgGodN0rpoXaSgW2IXcEUEC+/q+eWDdoLr/DD9Z0u+boBzgxY1tssOGVTgjurFfPsItccy4dy9SxfhHKWsGBoqKDptofH864PxQNTy4tKFlulSYLyf7VflQCj5GmzPOyW0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=JPYo0ft+; arc=none smtp.client-ip=198.175.65.14
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="EIJwybrr"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="JPYo0ft+"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1723846295; x=1755382295;
+  t=1723846500; x=1755382500;
   h=message-id:date:mime-version:subject:to:cc:references:
    from:in-reply-to:content-transfer-encoding;
-  bh=orjBv4SC56pi3lOQYSzRXAPJ+PGVeasXNG68uSqSzGA=;
-  b=EIJwybrrOyFSKSrAS2KTnKAl47u6zLxOBFq4zujVClBye1GYvIFK6LNE
-   UyGh2EiYAMk8Yty4zIdNhsCt3EOlJIXa7t02XZqmH2h1/optRfW1iEGj1
-   dst9bj2Vd7SzGr4wiQJ98bWMTeGctamej7lSc2L68HS/z/SZpkIJ8XtZC
-   GuRByxCbf1KDaozcPYSPkly4gjjRWBggfHfmlLrH4gq1pciQlrJyweJB9
-   vd7xESTdLnNx0maxSBF5tP+lu+W+qt+xWJ9nO2mOWLD8tRlNM/Ln50For
-   knUBL9y1Ip26Hs/RDtY0OT0G8CdabRL+38CTzeYHr9HSKDLoX5fYvhDsB
-   g==;
-X-CSE-ConnectionGUID: W3ZaJ36wRBSz7r1JknsvHQ==
-X-CSE-MsgGUID: NXvmYK4IRGu7nbHqtkRGXQ==
-X-IronPort-AV: E=McAfee;i="6700,10204,11166"; a="21702478"
+  bh=5J1GuYUnbG2FOnw0lH0OF0aLsKFIEl0BmHGJA/QgCPA=;
+  b=JPYo0ft+A4jV8mXz1XYAQUBPogR2Dj7pZgvLQvab0C95isylHsG5AK/l
+   wxKZfp0wkJXV7Wwr67f7LjjiwB1Clc1cZULVZv71WOlgaUapONvgeoXTW
+   wH6f3V49s83Nc6mXRYSMVKlYzQhmsd6OBjtEhAGztF7SQANSmfMoEoPK4
+   4MsQZQTovIFV5CvrDhSmigBa56LFmWn8TrxS2z1iqf766yMWeA55RoHEo
+   3PXYBTDyci+TGgOnmn91mAKlXxRyhVxwoP/VNQAByVFYHIkMS9ZpEWsLd
+   /8oLhr+xJmEA9aWwxB4JQhwNslZ+bLXUwWI4Jr3BbbGQqyr3QOR1UzRpc
+   Q==;
+X-CSE-ConnectionGUID: vzzFuho7TTWuL7PpoCBMLg==
+X-CSE-MsgGUID: mWqkyIgdRf2ELAiiN1BN/w==
+X-IronPort-AV: E=McAfee;i="6700,10204,11166"; a="25951007"
 X-IronPort-AV: E=Sophos;i="6.10,153,1719903600"; 
-   d="scan'208";a="21702478"
-Received: from fmviesa007.fm.intel.com ([10.60.135.147])
-  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Aug 2024 15:11:34 -0700
-X-CSE-ConnectionGUID: wHHZoHZvSKmyJfWLe+KzGg==
-X-CSE-MsgGUID: GwqOoWXdRCCQN2ogkbdQfg==
+   d="scan'208";a="25951007"
+Received: from orviesa002.jf.intel.com ([10.64.159.142])
+  by orvoesa106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Aug 2024 15:14:59 -0700
+X-CSE-ConnectionGUID: QmtEyer7QfW6tcMUMNur7A==
+X-CSE-MsgGUID: J0cnrZfCQ/OktFaxHpW/0A==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.10,153,1719903600"; 
-   d="scan'208";a="59490744"
+   d="scan'208";a="90527847"
 Received: from unknown (HELO [10.125.111.71]) ([10.125.111.71])
-  by fmviesa007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Aug 2024 15:11:32 -0700
-Message-ID: <62562386-fea2-4ba3-8224-db45fd4f278a@intel.com>
-Date: Fri, 16 Aug 2024 15:11:31 -0700
+  by orviesa002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Aug 2024 15:14:57 -0700
+Message-ID: <fe15b551-d22f-4d46-88e0-162cacc507a7@intel.com>
+Date: Fri, 16 Aug 2024 15:14:56 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -52,7 +52,8 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 07/25] cxl/core: Separate region mode from decoder mode
+Subject: Re: [PATCH v3 08/25] cxl/region: Add dynamic capacity decoder and
+ region modes
 To: ira.weiny@intel.com, Fan Ni <fan.ni@samsung.com>,
  Jonathan Cameron <Jonathan.Cameron@huawei.com>,
  Navneet Singh <navneet.singh@intel.com>, Chris Mason <clm@fb.com>,
@@ -69,10 +70,10 @@ Cc: Dan Williams <dan.j.williams@intel.com>,
  linux-cxl@vger.kernel.org, linux-kernel@vger.kernel.org,
  linux-doc@vger.kernel.org, nvdimm@lists.linux.dev
 References: <20240816-dcd-type2-upstream-v3-0-7c9b96cba6d7@intel.com>
- <20240816-dcd-type2-upstream-v3-7-7c9b96cba6d7@intel.com>
+ <20240816-dcd-type2-upstream-v3-8-7c9b96cba6d7@intel.com>
 Content-Language: en-US
 From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <20240816-dcd-type2-upstream-v3-7-7c9b96cba6d7@intel.com>
+In-Reply-To: <20240816-dcd-type2-upstream-v3-8-7c9b96cba6d7@intel.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
@@ -81,283 +82,113 @@ Content-Transfer-Encoding: 7bit
 On 8/16/24 7:44 AM, ira.weiny@intel.com wrote:
 > From: Navneet Singh <navneet.singh@intel.com>
 > 
-> Until now region modes and decoder modes were equivalent in that both
-> modes were either PMEM or RAM.  The addition of Dynamic
-> Capacity partitions defines up to 8 DC partitions per device.
+> One or more decoders each pointing to a Dynamic Capacity (DC) partition
+> form a CXL software region.  The region mode reflects composition of
+> that entire software region.  Decoder mode reflects a specific DC
+> partition.  DC partitions are also known as DC regions per CXL
+> specification r3.1.
 > 
-> The region mode is thus no longer equivalent to the endpoint decoder
-> mode.  IOW the endpoint decoders may have modes of DC0-DC7 while the
-> region mode is simply DC.
+> Define the new modes and helper functions required to make the
+> association between these new modes.
 > 
-> Define a new region mode enumeration which applies to regions separate
-> from the decoder mode.  Adjust the code to process these modes
-> independently.
-> 
-> There is no equal to decoder mode dead in region modes.  Avoid
-> constructing regions with decoders which have been flagged as dead.
-> 
-> Suggested-by: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+> Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+> Reviewed-by: Fan Ni <fan.ni@samsung.com>
 > Signed-off-by: Navneet Singh <navneet.singh@intel.com>
 > Co-developed-by: Ira Weiny <ira.weiny@intel.com>
 > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
 
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
 > 
 > ---
 > Changes:
-> [iweiny: rebase]
-> [Jonathan: remove dead code]
-> [Jonathan: clarify commit message]
+> [iweiny: keep tags on simple patch]
+> [Fan: s/partitions/partition/]
+> [djiang: New wording for the commit message]
+> [iweiny: reword commit message more]
 > ---
->  drivers/cxl/core/region.c | 75 ++++++++++++++++++++++++++++++++++-------------
->  drivers/cxl/cxl.h         | 26 ++++++++++++++--
->  2 files changed, 79 insertions(+), 22 deletions(-)
+>  drivers/cxl/core/region.c |  4 ++++
+>  drivers/cxl/cxl.h         | 23 +++++++++++++++++++++++
+>  2 files changed, 27 insertions(+)
 > 
 > diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
-> index 971a314b6b0e..796e5a791e44 100644
+> index 796e5a791e44..650fe33f2ed4 100644
 > --- a/drivers/cxl/core/region.c
 > +++ b/drivers/cxl/core/region.c
-> @@ -144,7 +144,7 @@ static ssize_t uuid_show(struct device *dev, struct device_attribute *attr,
->  	rc = down_read_interruptible(&cxl_region_rwsem);
->  	if (rc)
->  		return rc;
-> -	if (cxlr->mode != CXL_DECODER_PMEM)
-> +	if (cxlr->mode != CXL_REGION_PMEM)
->  		rc = sysfs_emit(buf, "\n");
->  	else
->  		rc = sysfs_emit(buf, "%pUb\n", &p->uuid);
-> @@ -457,7 +457,7 @@ static umode_t cxl_region_visible(struct kobject *kobj, struct attribute *a,
->  	 * Support tooling that expects to find a 'uuid' attribute for all
->  	 * regions regardless of mode.
->  	 */
-> -	if (a == &dev_attr_uuid.attr && cxlr->mode != CXL_DECODER_PMEM)
-> +	if (a == &dev_attr_uuid.attr && cxlr->mode != CXL_REGION_PMEM)
->  		return 0444;
->  	return a->mode;
->  }
-> @@ -620,7 +620,7 @@ static ssize_t mode_show(struct device *dev, struct device_attribute *attr,
->  {
->  	struct cxl_region *cxlr = to_cxl_region(dev);
->  
-> -	return sysfs_emit(buf, "%s\n", cxl_decoder_mode_name(cxlr->mode));
-> +	return sysfs_emit(buf, "%s\n", cxl_region_mode_name(cxlr->mode));
->  }
->  static DEVICE_ATTR_RO(mode);
->  
-> @@ -646,7 +646,7 @@ static int alloc_hpa(struct cxl_region *cxlr, resource_size_t size)
->  
->  	/* ways, granularity and uuid (if PMEM) need to be set before HPA */
->  	if (!p->interleave_ways || !p->interleave_granularity ||
-> -	    (cxlr->mode == CXL_DECODER_PMEM && uuid_is_null(&p->uuid)))
-> +	    (cxlr->mode == CXL_REGION_PMEM && uuid_is_null(&p->uuid)))
->  		return -ENXIO;
->  
->  	div64_u64_rem(size, (u64)SZ_256M * p->interleave_ways, &remainder);
-> @@ -1863,6 +1863,17 @@ static int cxl_region_sort_targets(struct cxl_region *cxlr)
->  	return rc;
->  }
->  
-> +static bool cxl_modes_compatible(enum cxl_region_mode rmode,
-> +				 enum cxl_decoder_mode dmode)
-> +{
-> +	if (rmode == CXL_REGION_RAM && dmode == CXL_DECODER_RAM)
+> @@ -1870,6 +1870,8 @@ static bool cxl_modes_compatible(enum cxl_region_mode rmode,
+>  		return true;
+>  	if (rmode == CXL_REGION_PMEM && dmode == CXL_DECODER_PMEM)
+>  		return true;
+> +	if (rmode == CXL_REGION_DC && cxl_decoder_mode_is_dc(dmode))
 > +		return true;
-> +	if (rmode == CXL_REGION_PMEM && dmode == CXL_DECODER_PMEM)
-> +		return true;
-> +
-> +	return false;
-> +}
-> +
->  static int cxl_region_attach(struct cxl_region *cxlr,
->  			     struct cxl_endpoint_decoder *cxled, int pos)
->  {
-> @@ -1882,9 +1893,11 @@ static int cxl_region_attach(struct cxl_region *cxlr,
->  		return rc;
->  	}
 >  
-> -	if (cxled->mode != cxlr->mode) {
-> -		dev_dbg(&cxlr->dev, "%s region mode: %d mismatch: %d\n",
-> -			dev_name(&cxled->cxld.dev), cxlr->mode, cxled->mode);
-> +	if (!cxl_modes_compatible(cxlr->mode, cxled->mode)) {
-> +		dev_dbg(&cxlr->dev, "%s region mode: %s mismatch decoder: %s\n",
-> +			dev_name(&cxled->cxld.dev),
-> +			cxl_region_mode_name(cxlr->mode),
-> +			cxl_decoder_mode_name(cxled->mode));
->  		return -EINVAL;
->  	}
->  
-> @@ -2447,7 +2460,7 @@ static int cxl_region_calculate_adistance(struct notifier_block *nb,
->   * devm_cxl_add_region - Adds a region to a decoder
->   * @cxlrd: root decoder
->   * @id: memregion id to create, or memregion_free() on failure
-> - * @mode: mode for the endpoint decoders of this region
-> + * @mode: mode of this region
->   * @type: select whether this is an expander or accelerator (type-2 or type-3)
->   *
->   * This is the second step of region initialization. Regions exist within an
-> @@ -2458,7 +2471,7 @@ static int cxl_region_calculate_adistance(struct notifier_block *nb,
->   */
->  static struct cxl_region *devm_cxl_add_region(struct cxl_root_decoder *cxlrd,
->  					      int id,
-> -					      enum cxl_decoder_mode mode,
-> +					      enum cxl_region_mode mode,
->  					      enum cxl_decoder_type type)
->  {
->  	struct cxl_port *port = to_cxl_port(cxlrd->cxlsd.cxld.dev.parent);
-> @@ -2512,16 +2525,17 @@ static ssize_t create_ram_region_show(struct device *dev,
+>  	return false;
 >  }
->  
->  static struct cxl_region *__create_region(struct cxl_root_decoder *cxlrd,
-> -					  enum cxl_decoder_mode mode, int id)
-> +					  enum cxl_region_mode mode, int id)
->  {
->  	int rc;
->  
->  	switch (mode) {
-> -	case CXL_DECODER_RAM:
-> -	case CXL_DECODER_PMEM:
-> +	case CXL_REGION_RAM:
-> +	case CXL_REGION_PMEM:
->  		break;
+> @@ -3239,6 +3241,8 @@ cxl_decoder_to_region_mode(enum cxl_decoder_mode mode)
+>  		return CXL_REGION_RAM;
+>  	case CXL_DECODER_PMEM:
+>  		return CXL_REGION_PMEM;
+> +	case CXL_DECODER_DC0 ... CXL_DECODER_DC7:
+> +		return CXL_REGION_DC;
+>  	case CXL_DECODER_MIXED:
 >  	default:
-> -		dev_err(&cxlrd->cxlsd.cxld.dev, "unsupported mode %d\n", mode);
-> +		dev_err(&cxlrd->cxlsd.cxld.dev, "unsupported mode %s\n",
-> +			cxl_region_mode_name(mode));
->  		return ERR_PTR(-EINVAL);
->  	}
->  
-> @@ -2549,7 +2563,7 @@ static ssize_t create_pmem_region_store(struct device *dev,
->  	if (rc != 1)
->  		return -EINVAL;
->  
-> -	cxlr = __create_region(cxlrd, CXL_DECODER_PMEM, id);
-> +	cxlr = __create_region(cxlrd, CXL_REGION_PMEM, id);
->  	if (IS_ERR(cxlr))
->  		return PTR_ERR(cxlr);
->  
-> @@ -2569,7 +2583,7 @@ static ssize_t create_ram_region_store(struct device *dev,
->  	if (rc != 1)
->  		return -EINVAL;
->  
-> -	cxlr = __create_region(cxlrd, CXL_DECODER_RAM, id);
-> +	cxlr = __create_region(cxlrd, CXL_REGION_RAM, id);
->  	if (IS_ERR(cxlr))
->  		return PTR_ERR(cxlr);
->  
-> @@ -3215,6 +3229,22 @@ static int match_region_by_range(struct device *dev, void *data)
->  	return rc;
->  }
->  
-> +static enum cxl_region_mode
-> +cxl_decoder_to_region_mode(enum cxl_decoder_mode mode)
-> +{
-> +	switch (mode) {
-> +	case CXL_DECODER_NONE:
-> +		return CXL_REGION_NONE;
-> +	case CXL_DECODER_RAM:
-> +		return CXL_REGION_RAM;
-> +	case CXL_DECODER_PMEM:
-> +		return CXL_REGION_PMEM;
-> +	case CXL_DECODER_MIXED:
-> +	default:
-> +		return CXL_REGION_MIXED;
-> +	}
-> +}
-> +
->  /* Establish an empty region covering the given HPA range */
->  static struct cxl_region *construct_region(struct cxl_root_decoder *cxlrd,
->  					   struct cxl_endpoint_decoder *cxled)
-> @@ -3223,12 +3253,17 @@ static struct cxl_region *construct_region(struct cxl_root_decoder *cxlrd,
->  	struct cxl_port *port = cxlrd_to_port(cxlrd);
->  	struct range *hpa = &cxled->cxld.hpa_range;
->  	struct cxl_region_params *p;
-> +	enum cxl_region_mode mode;
->  	struct cxl_region *cxlr;
->  	struct resource *res;
->  	int rc;
->  
-> +	if (cxled->mode == CXL_DECODER_DEAD)
-> +		return ERR_PTR(-EINVAL);
-> +
-> +	mode = cxl_decoder_to_region_mode(cxled->mode);
->  	do {
-> -		cxlr = __create_region(cxlrd, cxled->mode,
-> +		cxlr = __create_region(cxlrd, mode,
->  				       atomic_read(&cxlrd->region_id));
->  	} while (IS_ERR(cxlr) && PTR_ERR(cxlr) == -EBUSY);
->  
-> @@ -3431,9 +3466,9 @@ static int cxl_region_probe(struct device *dev)
->  		return rc;
->  
->  	switch (cxlr->mode) {
-> -	case CXL_DECODER_PMEM:
-> +	case CXL_REGION_PMEM:
->  		return devm_cxl_add_pmem_region(cxlr);
-> -	case CXL_DECODER_RAM:
-> +	case CXL_REGION_RAM:
->  		/*
->  		 * The region can not be manged by CXL if any portion of
->  		 * it is already online as 'System RAM'
-> @@ -3445,8 +3480,8 @@ static int cxl_region_probe(struct device *dev)
->  			return 0;
->  		return devm_cxl_add_dax_region(cxlr);
->  	default:
-> -		dev_dbg(&cxlr->dev, "unsupported region mode: %d\n",
-> -			cxlr->mode);
-> +		dev_dbg(&cxlr->dev, "unsupported region mode: %s\n",
-> +			cxl_region_mode_name(cxlr->mode));
->  		return -ENXIO;
->  	}
->  }
+>  		return CXL_REGION_MIXED;
 > diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
-> index 9afb407d438f..f766b2a8bf53 100644
+> index f766b2a8bf53..d2674ab46f35 100644
 > --- a/drivers/cxl/cxl.h
 > +++ b/drivers/cxl/cxl.h
-> @@ -388,6 +388,27 @@ static inline const char *cxl_decoder_mode_name(enum cxl_decoder_mode mode)
+> @@ -370,6 +370,14 @@ enum cxl_decoder_mode {
+>  	CXL_DECODER_NONE,
+>  	CXL_DECODER_RAM,
+>  	CXL_DECODER_PMEM,
+> +	CXL_DECODER_DC0,
+> +	CXL_DECODER_DC1,
+> +	CXL_DECODER_DC2,
+> +	CXL_DECODER_DC3,
+> +	CXL_DECODER_DC4,
+> +	CXL_DECODER_DC5,
+> +	CXL_DECODER_DC6,
+> +	CXL_DECODER_DC7,
+>  	CXL_DECODER_MIXED,
+>  	CXL_DECODER_DEAD,
+>  };
+> @@ -380,6 +388,14 @@ static inline const char *cxl_decoder_mode_name(enum cxl_decoder_mode mode)
+>  		[CXL_DECODER_NONE] = "none",
+>  		[CXL_DECODER_RAM] = "ram",
+>  		[CXL_DECODER_PMEM] = "pmem",
+> +		[CXL_DECODER_DC0] = "dc0",
+> +		[CXL_DECODER_DC1] = "dc1",
+> +		[CXL_DECODER_DC2] = "dc2",
+> +		[CXL_DECODER_DC3] = "dc3",
+> +		[CXL_DECODER_DC4] = "dc4",
+> +		[CXL_DECODER_DC5] = "dc5",
+> +		[CXL_DECODER_DC6] = "dc6",
+> +		[CXL_DECODER_DC7] = "dc7",
+>  		[CXL_DECODER_MIXED] = "mixed",
+>  	};
+>  
+> @@ -388,10 +404,16 @@ static inline const char *cxl_decoder_mode_name(enum cxl_decoder_mode mode)
 >  	return "mixed";
 >  }
 >  
-> +enum cxl_region_mode {
-> +	CXL_REGION_NONE,
-> +	CXL_REGION_RAM,
-> +	CXL_REGION_PMEM,
-> +	CXL_REGION_MIXED,
-> +};
-> +
-> +static inline const char *cxl_region_mode_name(enum cxl_region_mode mode)
+> +static inline bool cxl_decoder_mode_is_dc(enum cxl_decoder_mode mode)
 > +{
-> +	static const char * const names[] = {
-> +		[CXL_REGION_NONE] = "none",
-> +		[CXL_REGION_RAM] = "ram",
-> +		[CXL_REGION_PMEM] = "pmem",
-> +		[CXL_REGION_MIXED] = "mixed",
-> +	};
-> +
-> +	if (mode >= CXL_REGION_NONE && mode <= CXL_REGION_MIXED)
-> +		return names[mode];
-> +	return "mixed";
+> +	return (mode >= CXL_DECODER_DC0 && mode <= CXL_DECODER_DC7);
 > +}
 > +
->  /*
->   * Track whether this decoder is reserved for region autodiscovery, or
->   * free for userspace provisioning.
-> @@ -515,7 +536,8 @@ struct cxl_region_params {
->   * struct cxl_region - CXL region
->   * @dev: This region's device
->   * @id: This region's id. Id is globally unique across all regions
-> - * @mode: Endpoint decoder allocation / access mode
-> + * @mode: Region mode which defines which endpoint decoder modes the region is
-> + *        compatible with
->   * @type: Endpoint decoder target type
->   * @cxl_nvb: nvdimm bridge for coordinating @cxlr_pmem setup / shutdown
->   * @cxlr_pmem: (for pmem regions) cached copy of the nvdimm bridge
-> @@ -528,7 +550,7 @@ struct cxl_region_params {
->  struct cxl_region {
->  	struct device dev;
->  	int id;
-> -	enum cxl_decoder_mode mode;
-> +	enum cxl_region_mode mode;
->  	enum cxl_decoder_type type;
->  	struct cxl_nvdimm_bridge *cxl_nvb;
->  	struct cxl_pmem_region *cxlr_pmem;
+>  enum cxl_region_mode {
+>  	CXL_REGION_NONE,
+>  	CXL_REGION_RAM,
+>  	CXL_REGION_PMEM,
+> +	CXL_REGION_DC,
+>  	CXL_REGION_MIXED,
+>  };
+>  
+> @@ -401,6 +423,7 @@ static inline const char *cxl_region_mode_name(enum cxl_region_mode mode)
+>  		[CXL_REGION_NONE] = "none",
+>  		[CXL_REGION_RAM] = "ram",
+>  		[CXL_REGION_PMEM] = "pmem",
+> +		[CXL_REGION_DC] = "dc",
+>  		[CXL_REGION_MIXED] = "mixed",
+>  	};
+>  
 > 
