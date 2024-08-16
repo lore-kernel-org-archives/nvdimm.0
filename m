@@ -1,52 +1,51 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.11])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBDB41C6886
-	for <nvdimm@lists.linux.dev>; Fri, 16 Aug 2024 14:44:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.11
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F5EE5464E
+	for <nvdimm@lists.linux.dev>; Fri, 16 Aug 2024 14:45:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.19
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723819496; cv=none; b=ltrL+f4wHuyWP/uHMhcbLg++hatyxmMChmcq+dH2tcPs1k3dyU5obZbYj4eWwfvWPKq9wIuP7rAe8rx6jtdHXcfv0IiXdl+KeVLFCTaFMFBEDXEhH9qRLCmUzwVMla9TXggQva79jcw4YXb8R1myt2P0mMsCzoykuRi3xAnXT0k=
+	t=1723819510; cv=none; b=cH8Ujsfv22wklyarA01vJQaSKyKsOPlCzC4uQP72sqzdJS8OwUWQ9CiKZzy8GbvqWBAddyUppZ8hPMbqOJSPRoE0AoTSNrmDAFp93vpi/56C1geh/7+WsiDjDqa3Vk133FXQXD4G5s5iCHRklfR1uBMJiLP/qHul+bZjq1Jq+n4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723819496; c=relaxed/simple;
-	bh=EuwIZdTBxuucZWNs1IHHx7UI5yCAFWOZzZein89o/lg=;
+	s=arc-20240116; t=1723819510; c=relaxed/simple;
+	bh=CHaiWuhlK2oilB02S0vAQGpbVxQJYSALMGWJkD3RrYQ=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=ENkErrzzC0exuTh4yV4ubUaBI+sefpZWMjbrrrsU7u3PalITr8SdD4Jd55ozjcq/AucqXV4Z1i89pXLM23vJgyb3f7JaBxj2nDJAEWZtVu8SXC/cGTVrXPyf8kmjjPhr0Usgdk61lpKcHGwYD1QlFTEa+5ugY4XjOwxShdE95kA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=RecpEXiO; arc=none smtp.client-ip=192.198.163.11
+	 In-Reply-To:To:Cc; b=YBxY/NcY2PGgmqCr79Svkfx9teW0Jknqqn/b4Mh1qDVn5XL7YllvAYuZoq48WVk6+8Ovkl9iU7rGyf4YtxZ+de8/2ElJhvauZDfcmdSdD6+xlSwyv+RoSk31P6HLnv88AVqDrdWNRLt3U9CDkDAopx5OtYe/UDdv1wpqvefybLI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=BkJWXGqe; arc=none smtp.client-ip=198.175.65.19
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="RecpEXiO"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="BkJWXGqe"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1723819495; x=1755355495;
+  t=1723819509; x=1755355509;
   h=from:date:subject:mime-version:content-transfer-encoding:
    message-id:references:in-reply-to:to:cc;
-  bh=EuwIZdTBxuucZWNs1IHHx7UI5yCAFWOZzZein89o/lg=;
-  b=RecpEXiOkLhLp2SLkm9n/83tXIRGZI0usRcyWNLTdZbThlypx6ckokaI
-   CvjiXrIonKfEq3Zriv8L1eCLLi0jU58aYk3G9tfLROoNVxM+Qa51w6+BJ
-   nYCm1iO8HtCnKe1iA1c44dX9UY+LvmRFQI5GK1pUGnrhhFMScqzeBpxY/
-   xcyg4MSEcWCmI+jtgnU4Aq7PHoW8uOifsvQt9nWkoaESemlt8Ipm0QHa/
-   DTmZtX/nmKtL60hsi37ElTd7k4iV3hCl6sskpQXFA4aih1E5Uw2v9juyd
-   osBxc/X4uY2f1ud8sRsYIRj1wNHjdtlsBBEZoevioXnkHpgA6uDIL/oyx
-   A==;
-X-CSE-ConnectionGUID: 8qG2vrX0SAyz7Y5NP6/2Kw==
-X-CSE-MsgGUID: nLBqIhFOSl2Gmk2FxLfy4Q==
-X-IronPort-AV: E=McAfee;i="6700,10204,11166"; a="32753172"
+  bh=CHaiWuhlK2oilB02S0vAQGpbVxQJYSALMGWJkD3RrYQ=;
+  b=BkJWXGqegWp/8KjwBV4f/KJuFOJba7J85R3vsN2vTkwjxpld+wU3Ux9F
+   aE1HbtR5alE218Fyh9vnPet4Fc4sgBLJfbofavWfRNcHCGtUQ4JWPhccs
+   cxn/Y0wVjuNC1FgI0jv9lflzU+HAeEKETbfAgH9EOJSeQ4qQs/BWiUyDg
+   FNgXbiwwfee/l1/1FXO1dOkBUDYhiU71u6Ht6EKFAaCTtyPVJ/MQ/zLQD
+   S9wlDAHIi7eNopmbTrEN0WWaiD2n+yc7UD6brjbm/HxMvsC4kEKMg0KHM
+   VCIJikeNciE0CZ0e75BtYR3j2r94tM17tY8xGvaXBuFMJ2j1tt75lWbm9
+   w==;
+X-CSE-ConnectionGUID: XaJTz+MRSn2BOs6PQo4Kjw==
+X-CSE-MsgGUID: hqJxJJNNR12tNkHaME1U4Q==
+X-IronPort-AV: E=McAfee;i="6700,10204,11166"; a="21972976"
 X-IronPort-AV: E=Sophos;i="6.10,152,1719903600"; 
-   d="scan'208";a="32753172"
-Received: from fmviesa005.fm.intel.com ([10.60.135.145])
-  by fmvoesa105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Aug 2024 07:44:54 -0700
-X-CSE-ConnectionGUID: aPYJYDYKTzGQyYRzHFUiWw==
-X-CSE-MsgGUID: Cf9jMqDJQHqJnnVIvq6Dqg==
+   d="scan'208";a="21972976"
+Received: from orviesa001.jf.intel.com ([10.64.159.141])
+  by orvoesa111.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Aug 2024 07:44:57 -0700
+X-CSE-ConnectionGUID: xvqtfWF5T4yVq811cN2dFA==
+X-CSE-MsgGUID: 7YJZHnIcTp69lN7VOHBLsQ==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.10,152,1719903600"; 
-   d="scan'208";a="64086989"
+   d="scan'208";a="97205542"
 Received: from iweiny-mobl.amr.corp.intel.com (HELO localhost) ([10.125.111.52])
-  by fmviesa005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Aug 2024 07:44:53 -0700
-From: ira.weiny@intel.com
-Date: Fri, 16 Aug 2024 09:44:19 -0500
-Subject: [PATCH v3 11/25] cxl/mem: Expose DCD partition capabilities in
- sysfs
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Aug 2024 07:44:55 -0700
+From: Ira Weiny <ira.weiny@intel.com>
+Date: Fri, 16 Aug 2024 09:44:20 -0500
+Subject: [PATCH v3 12/25] cxl/region: Refactor common create region code
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -55,7 +54,7 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20240816-dcd-type2-upstream-v3-11-7c9b96cba6d7@intel.com>
+Message-Id: <20240816-dcd-type2-upstream-v3-12-7c9b96cba6d7@intel.com>
 References: <20240816-dcd-type2-upstream-v3-0-7c9b96cba6d7@intel.com>
 In-Reply-To: <20240816-dcd-type2-upstream-v3-0-7c9b96cba6d7@intel.com>
 To: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, 
@@ -75,181 +74,83 @@ Cc: Dan Williams <dan.j.williams@intel.com>,
  linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, 
  nvdimm@lists.linux.dev
 X-Mailer: b4 0.15-dev-37811
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1723819455; l=5476;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1723819456; l=2376;
  i=ira.weiny@intel.com; s=20221211; h=from:subject:message-id;
- bh=YPz6lE5LA4LvIZp/Ltai16uHx+vNTDp+xGMjO2PW7AM=;
- b=0Q2ijg863GOxnUfUHkzlUi/7zFYfI2RE5PFVg9JpqHbMp3FvHi9MQzgPynO2KYGjIgfWaprCn
- qliZyR43QakCM5vCZP+h37ndsafhXTLFHDV+4Pk8Ek6Q0pmot88phN/
+ bh=CHaiWuhlK2oilB02S0vAQGpbVxQJYSALMGWJkD3RrYQ=;
+ b=t80r3e+q4zsiVPP6LuC5XHt548hYyktBtBdttdKdRn1dqocwMyHcNc0p7oI9TXkpeun997XPT
+ YRq2/SvZPZqCATldNOszWTlBDQkCrJdWECJtX4xN4ULZXHjEhpM39yB
 X-Developer-Key: i=ira.weiny@intel.com; a=ed25519;
  pk=noldbkG+Wp1qXRrrkfY1QJpDf7QsOEthbOT7vm0PqsE=
 
-From: Navneet Singh <navneet.singh@intel.com>
+create_pmem_region_store() and create_ram_region_store() are identical
+with the exception of the region mode.  With the addition of DC region
+mode this would end up being 3 copies of the same code.
 
-To properly configure CXL regions on Dynamic Capacity Devices (DCD),
-user space will need to know the details of the DC partitions available.
+Refactor create_pmem_region_store() and create_ram_region_store() to use
+a single common function to be used in subsequent DC code.
 
-Expose dynamic capacity capabilities through sysfs.
-
-Signed-off-by: Navneet Singh <navneet.singh@intel.com>
-Co-developed-by: Ira Weiny <ira.weiny@intel.com>
+Suggested-by: Fan Ni <fan.ni@samsung.com>
 Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-
 ---
-Changes:
-[iweiny: remove review tags]
-[Davidlohr/Fan/Jonathan: omit 'dc' attribute directory if device is not DC]
-[Jonathan: update documentation for dc visibility]
-[Jonathan: Add a comment to DC region X attributes to ensure visibility checks work]
-[iweiny: push sysfs version to 6.12]
----
- Documentation/ABI/testing/sysfs-bus-cxl | 12 ++++
- drivers/cxl/core/memdev.c               | 97 +++++++++++++++++++++++++++++++++
- 2 files changed, 109 insertions(+)
+ drivers/cxl/core/region.c | 28 +++++++++++-----------------
+ 1 file changed, 11 insertions(+), 17 deletions(-)
 
-diff --git a/Documentation/ABI/testing/sysfs-bus-cxl b/Documentation/ABI/testing/sysfs-bus-cxl
-index 957717264709..6227ae0ab3fc 100644
---- a/Documentation/ABI/testing/sysfs-bus-cxl
-+++ b/Documentation/ABI/testing/sysfs-bus-cxl
-@@ -54,6 +54,18 @@ Description:
- 		identically named field in the Identify Memory Device Output
- 		Payload in the CXL-2.0 specification.
+diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
+index 650fe33f2ed4..f85b26b39b2f 100644
+--- a/drivers/cxl/core/region.c
++++ b/drivers/cxl/core/region.c
+@@ -2553,9 +2553,8 @@ static struct cxl_region *__create_region(struct cxl_root_decoder *cxlrd,
+ 	return devm_cxl_add_region(cxlrd, id, mode, CXL_DECODER_HOSTONLYMEM);
+ }
  
-+What:		/sys/bus/cxl/devices/memX/dc/region_count
-+		/sys/bus/cxl/devices/memX/dc/regionY_size
-+Date:		August, 2024
-+KernelVersion:	v6.12
-+Contact:	linux-cxl@vger.kernel.org
-+Description:
-+		(RO) Dynamic Capacity (DC) region information.  The dc
-+		directory is only visible on devices which support Dynamic
-+		Capacity.
-+		The region_count is the number of Dynamic Capacity (DC)
-+		partitions (regions) supported on the device.
-+		regionY_size is the size of each of those partitions.
- 
- What:		/sys/bus/cxl/devices/memX/pmem/qos_class
- Date:		May, 2023
-diff --git a/drivers/cxl/core/memdev.c b/drivers/cxl/core/memdev.c
-index 0277726afd04..7da1f0f5711a 100644
---- a/drivers/cxl/core/memdev.c
-+++ b/drivers/cxl/core/memdev.c
-@@ -101,6 +101,18 @@ static ssize_t pmem_size_show(struct device *dev, struct device_attribute *attr,
- static struct device_attribute dev_attr_pmem_size =
- 	__ATTR(size, 0444, pmem_size_show, NULL);
- 
-+static ssize_t region_count_show(struct device *dev, struct device_attribute *attr,
-+				 char *buf)
-+{
-+	struct cxl_memdev *cxlmd = to_cxl_memdev(dev);
-+	struct cxl_memdev_state *mds = to_cxl_memdev_state(cxlmd->cxlds);
-+
-+	return sysfs_emit(buf, "%d\n", mds->nr_dc_region);
-+}
-+
-+static struct device_attribute dev_attr_region_count =
-+	__ATTR(region_count, 0444, region_count_show, NULL);
-+
- static ssize_t serial_show(struct device *dev, struct device_attribute *attr,
- 			   char *buf)
+-static ssize_t create_pmem_region_store(struct device *dev,
+-					struct device_attribute *attr,
+-					const char *buf, size_t len)
++static ssize_t create_region_store(struct device *dev, const char *buf,
++				   size_t len, enum cxl_region_mode mode)
  {
-@@ -448,6 +460,90 @@ static struct attribute *cxl_memdev_security_attributes[] = {
- 	NULL,
- };
+ 	struct cxl_root_decoder *cxlrd = to_cxl_root_decoder(dev);
+ 	struct cxl_region *cxlr;
+@@ -2565,31 +2564,26 @@ static ssize_t create_pmem_region_store(struct device *dev,
+ 	if (rc != 1)
+ 		return -EINVAL;
  
-+static ssize_t show_size_regionN(struct cxl_memdev *cxlmd, char *buf, int pos)
+-	cxlr = __create_region(cxlrd, CXL_REGION_PMEM, id);
++	cxlr = __create_region(cxlrd, mode, id);
+ 	if (IS_ERR(cxlr))
+ 		return PTR_ERR(cxlr);
+ 
+ 	return len;
+ }
++
++static ssize_t create_pmem_region_store(struct device *dev,
++					struct device_attribute *attr,
++					const char *buf, size_t len)
 +{
-+	struct cxl_memdev_state *mds = to_cxl_memdev_state(cxlmd->cxlds);
-+
-+	return sysfs_emit(buf, "%#llx\n", mds->dc_region[pos].decode_len);
++	return create_region_store(dev, buf, len, CXL_REGION_PMEM);
 +}
-+
-+#define REGION_SIZE_ATTR_RO(n)						\
-+static ssize_t region##n##_size_show(struct device *dev,		\
-+				     struct device_attribute *attr,	\
-+				     char *buf)				\
-+{									\
-+	return show_size_regionN(to_cxl_memdev(dev), buf, (n));		\
-+}									\
-+static DEVICE_ATTR_RO(region##n##_size)
-+REGION_SIZE_ATTR_RO(0);
-+REGION_SIZE_ATTR_RO(1);
-+REGION_SIZE_ATTR_RO(2);
-+REGION_SIZE_ATTR_RO(3);
-+REGION_SIZE_ATTR_RO(4);
-+REGION_SIZE_ATTR_RO(5);
-+REGION_SIZE_ATTR_RO(6);
-+REGION_SIZE_ATTR_RO(7);
-+
-+/*
-+ * RegionX attributes must be listed in order and first in this array to
-+ * support the visbility checks.
-+ */
-+static struct attribute *cxl_memdev_dc_attributes[] = {
-+	&dev_attr_region0_size.attr,
-+	&dev_attr_region1_size.attr,
-+	&dev_attr_region2_size.attr,
-+	&dev_attr_region3_size.attr,
-+	&dev_attr_region4_size.attr,
-+	&dev_attr_region5_size.attr,
-+	&dev_attr_region6_size.attr,
-+	&dev_attr_region7_size.attr,
-+	&dev_attr_region_count.attr,
-+	NULL,
-+};
-+
-+static umode_t cxl_memdev_dc_attr_visible(struct kobject *kobj, struct attribute *a, int n)
-+{
-+	struct device *dev = kobj_to_dev(kobj);
-+	struct cxl_memdev *cxlmd = to_cxl_memdev(dev);
-+	struct cxl_memdev_state *mds = to_cxl_memdev_state(cxlmd->cxlds);
-+
-+	/* Not a memory device */
-+	if (!mds)
-+		return 0;
-+
-+	if (a == &dev_attr_region_count.attr)
-+		return a->mode;
-+
-+	/*
-+	 * Show only the regions supported, regionX attributes are first in the
-+	 * list
-+	 */
-+	if (n < mds->nr_dc_region)
-+		return a->mode;
-+
-+	return 0;
-+}
-+
-+static bool cxl_memdev_dc_group_visible(struct kobject *kobj)
-+{
-+	struct device *dev = kobj_to_dev(kobj);
-+	struct cxl_memdev *cxlmd = to_cxl_memdev(dev);
-+	struct cxl_memdev_state *mds = to_cxl_memdev_state(cxlmd->cxlds);
-+
-+	/* No DC regions */
-+	if (!mds || mds->nr_dc_region == 0)
-+		return false;
-+	return true;
-+}
-+
-+DEFINE_SYSFS_GROUP_VISIBLE(cxl_memdev_dc);
-+
-+static struct attribute_group cxl_memdev_dc_group = {
-+	.name = "dc",
-+	.attrs = cxl_memdev_dc_attributes,
-+	.is_visible = SYSFS_GROUP_VISIBLE(cxl_memdev_dc),
-+};
-+
- static umode_t cxl_memdev_visible(struct kobject *kobj, struct attribute *a,
- 				  int n)
+ DEVICE_ATTR_RW(create_pmem_region);
+ 
+ static ssize_t create_ram_region_store(struct device *dev,
+ 				       struct device_attribute *attr,
+ 				       const char *buf, size_t len)
  {
-@@ -528,6 +624,7 @@ static const struct attribute_group *cxl_memdev_attribute_groups[] = {
- 	&cxl_memdev_ram_attribute_group,
- 	&cxl_memdev_pmem_attribute_group,
- 	&cxl_memdev_security_attribute_group,
-+	&cxl_memdev_dc_group,
- 	NULL,
- };
+-	struct cxl_root_decoder *cxlrd = to_cxl_root_decoder(dev);
+-	struct cxl_region *cxlr;
+-	int rc, id;
+-
+-	rc = sscanf(buf, "region%d\n", &id);
+-	if (rc != 1)
+-		return -EINVAL;
+-
+-	cxlr = __create_region(cxlrd, CXL_REGION_RAM, id);
+-	if (IS_ERR(cxlr))
+-		return PTR_ERR(cxlr);
+-
+-	return len;
++	return create_region_store(dev, buf, len, CXL_REGION_RAM);
+ }
+ DEVICE_ATTR_RW(create_ram_region);
  
 
 -- 
