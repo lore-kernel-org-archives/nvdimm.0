@@ -1,215 +1,329 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.17])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.12])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA5491779B1;
-	Mon, 19 Aug 2024 21:56:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.17
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724104591; cv=fail; b=sqVimVMoyx5hZVsQNKF1RFYXESBBrhU4S6n+sThtIcezGX24qKExUwbGD+s0cixESnFdba07jdNUNmLkUDVpmoS+brb3Sf2y5zWqOdwMgUYOpKZpWk/LxwCWl8MLcX6Pw6C8oU+L36DkdfQGdsL+Dp2Ss8xWZp9nk+EsxdVlkk4=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724104591; c=relaxed/simple;
-	bh=P0KsMOg8zrDsCBw2rzaqvdN4tGZ2jyl4IuSucwjmLIE=;
-	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=q7rTz7JCAnU3wUUQ4/SY7DI+8kwiziiYkQN51WBwTH0UzQV6XUlyYU1OYq+26pXQqOPNGBXUqW5WrX3j7ae2zIPu3s/XdJiZcJNtpc9n0GuOsno3eZo6fUc9TxW1hdX02dVQ+r5e2YxlY33S+wOamDVm9RlHv85EacC5/qqdw/M=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=dtW/jlKx; arc=fail smtp.client-ip=192.198.163.17
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB5BE1D6DA5
+	for <nvdimm@lists.linux.dev>; Mon, 19 Aug 2024 22:36:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.12
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1724106965; cv=none; b=YX8sKIAH95E+cGOEyrcyfm4r3zoyFHpCJre4STeiDYAzRH+bMUOAh8QUkpft9Kqdocp4EL07/TWsHdg2h1u3ePORiPwnkiiLqU5XnVp4i+623l8oWj7ChUx0nrP9cBwx/yOBL5KcY+zx77c+xY0UZ5e7EMOCo0Cvm+T/AGQXjzI=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1724106965; c=relaxed/simple;
+	bh=sP1bPuE1jv4uIvLThNvKf7gaSiahP6wPMyH4M/kLKpM=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=Nxz6gBzPsxRaRO2Ii/sEiFSzSLNRxeeLAK/lA5uwBHTgv1ZKX+Sww3R595VsXG53M9Othul2FbKPo3pm0rWrVxRPqlnCb0MuICPr8waNWHfNbZE8SduFReuT/sIe2efzR/iWHRcXMlPbEDTCGnaPn/pWAv3rkDa3DjG+3niWeZw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=EYe2AgZ7; arc=none smtp.client-ip=198.175.65.12
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="dtW/jlKx"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="EYe2AgZ7"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1724104590; x=1755640590;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=P0KsMOg8zrDsCBw2rzaqvdN4tGZ2jyl4IuSucwjmLIE=;
-  b=dtW/jlKxmygvH7OZxyifmMj2jjIo3hatxateOdxHzN6ugO2Mg/C1fiCs
-   62N6pYxSYhw/8oeN2j4KwG8tilD5qYGymTe6K0w4/+Fos33JVDqIhMjeq
-   BOK6o4yGvqKmxVjlBZ1mAfENu6ilAwg4pkGeZs3p1gvx4VeBOB2CF1Awy
-   C2G84rd4z7VQ/CIpzvKSS4sliGAFCVBP+AoU/mLZyFxFubVZ6M44ePotF
-   +4auTVEzrhMd3lltmZH6V0N7tNf8j1Y9qpRh4ppn6M8WSozRBIhMgfa6e
-   u4XYSEbFpkdUVBMJYL1Pq05NZk0oYpkd8AuHjkxqekf7e2H78n2E7pdUk
+  t=1724106964; x=1755642964;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=sP1bPuE1jv4uIvLThNvKf7gaSiahP6wPMyH4M/kLKpM=;
+  b=EYe2AgZ729nOPFifSz1IOumhFeGHrIiXhE96TTqhIZq5w9MCxRrVSxw8
+   AJ50yDbbI0vF4eE7Jsm4WoAXFq3y715pst8leTo3kwmMENpYy2G/xNQWN
+   pNgUJr1K69T8Lx1UMSQysvbj4WyMT8V+v8NvQnjVuk1w4G+9AusrxoLie
+   cmz0I7Ejsc948CiiEoi57GlB3HisACZ+TuG5ofYtVhLclODvsOWIGV3Pg
+   hT/X1DvSm26VGM9d/WWsEA+Ll8ydSsmeTp5LTMalsElEpSB2RXqO1UuWy
+   Q3+vTI4cqip8aTWJuq5vJUL7//ptyIAb9RMZh3zvqtt+cZXGYmLnbCCGr
    Q==;
-X-CSE-ConnectionGUID: Z1U1Icf3RwylW9S5c7nkFg==
-X-CSE-MsgGUID: lNlXNK2FRJeG8zwgXD6WkQ==
-X-IronPort-AV: E=McAfee;i="6700,10204,11169"; a="22259818"
+X-CSE-ConnectionGUID: 5bK/2UyvSKqPxiXs3BVdew==
+X-CSE-MsgGUID: 7Xi0hBMUQOeDSSPXeUPLpg==
+X-IronPort-AV: E=McAfee;i="6700,10204,11169"; a="33762519"
 X-IronPort-AV: E=Sophos;i="6.10,160,1719903600"; 
-   d="scan'208";a="22259818"
-Received: from fmviesa007.fm.intel.com ([10.60.135.147])
-  by fmvoesa111.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Aug 2024 14:56:29 -0700
-X-CSE-ConnectionGUID: fUMU236qRg2f/cbzS5eimg==
-X-CSE-MsgGUID: QR/efbjbQ9CIuFwFenRDgg==
+   d="scan'208";a="33762519"
+Received: from fmviesa010.fm.intel.com ([10.60.135.150])
+  by orvoesa104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Aug 2024 15:36:04 -0700
+X-CSE-ConnectionGUID: jpTSJApcRXiXDj6wel+P3A==
+X-CSE-MsgGUID: xDN1r87mRDaIattYsUAbEA==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.10,160,1719903600"; 
-   d="scan'208";a="60206339"
-Received: from orsmsx603.amr.corp.intel.com ([10.22.229.16])
-  by fmviesa007.fm.intel.com with ESMTP/TLS/AES256-GCM-SHA384; 19 Aug 2024 14:56:29 -0700
-Received: from orsmsx610.amr.corp.intel.com (10.22.229.23) by
- ORSMSX603.amr.corp.intel.com (10.22.229.16) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.39; Mon, 19 Aug 2024 14:56:28 -0700
-Received: from orsmsx610.amr.corp.intel.com (10.22.229.23) by
- ORSMSX610.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.39; Mon, 19 Aug 2024 14:56:28 -0700
-Received: from ORSEDG601.ED.cps.intel.com (10.7.248.6) by
- orsmsx610.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.39 via Frontend Transport; Mon, 19 Aug 2024 14:56:28 -0700
-Received: from NAM04-MW2-obe.outbound.protection.outlook.com (104.47.73.168)
- by edgegateway.intel.com (134.134.137.102) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.39; Mon, 19 Aug 2024 14:56:28 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=ez7ZmMTvU8sTIM2LSadfuUc3qMkV60jE3lUxCpRrJwYVgHw54xpYNCKOAglHZgslfRbISoKfZ9ImGlC/qt1Pvsdlc0XjkP5DTXEcVHdkRPjMPVw58Te0Ct1XZqLCIpuLihp/mgWG91TU+V2VM6D+9+VlD35f9SWuo9S6kNqWmGOLE/bofG6QquRX1s7WebA2E9rBmdS8VFGntN+aPPkYaDebzKIiSJKUP68gmYwCrQDeN1tY4lXXMDEV6nseBRG1MZoJJAlLJchmdHg27c11dJRt0xXZDX4EUExR/j2X+PMndRDWYrcWR+wDdPALLOrs7ihKRr2cwwShiYK8W7myxw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=wSvb50Bsu/Q/NHBFTTXqYWvtKAfHs056eA1TYpbd5zk=;
- b=HbZw2Uo4G3XXOJOxgmyOxM2fzhC71kRLruFqiGXExJcYlyBXZSrN7x/tEfFiGAgSdzoZ0ZmjSWkV9nHRjmZTSvHcORVr1u3Jg6GC52Ovc5fHeVwUvMYOJWbADa3y4AN8PDAztryBAjQ7ZSa33uyS0/PJKF68HP8/ccVYuUJTXOAvNs4wK9PY2Dl7FEFsKTETDjNJsIiMWgYpX5aJ71Bixb4ZgoBAj7e2YBwabbE4Wddc9+YNpvXmIrLbjwP4/KwDDQdMS7HtT0ZkBPa4L75aFupyq9M1nl+CVu7NU13SRv+nu/buJkqs2xjqPUKtJ7IC49Y8FxDki5ideu9te6UoMA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from SA1PR11MB6733.namprd11.prod.outlook.com (2603:10b6:806:25c::17)
- by SJ0PR11MB4782.namprd11.prod.outlook.com (2603:10b6:a03:2df::20) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7875.21; Mon, 19 Aug
- 2024 21:56:25 +0000
-Received: from SA1PR11MB6733.namprd11.prod.outlook.com
- ([fe80::cf7d:9363:38f4:8c57]) by SA1PR11MB6733.namprd11.prod.outlook.com
- ([fe80::cf7d:9363:38f4:8c57%6]) with mapi id 15.20.7875.019; Mon, 19 Aug 2024
- 21:56:25 +0000
-Date: Mon, 19 Aug 2024 16:56:21 -0500
-From: Ira Weiny <ira.weiny@intel.com>
-To: Philip Chen <philipchen@chromium.org>, Pankaj Gupta
-	<pankaj.gupta.linux@gmail.com>, Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>,
-	Ira Weiny <ira.weiny@intel.com>
-CC: <virtualization@lists.linux.dev>, <nvdimm@lists.linux.dev>,
-	<linux-kernel@vger.kernel.org>, Philip Chen <philipchen@chromium.org>
-Subject: Re: [PATCH] virtio_pmem: Check device status before requesting flush
-Message-ID: <66c3bf85b52e3_2ddc242941@iweiny-mobl.notmuch>
-References: <20240815005704.2331005-1-philipchen@chromium.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20240815005704.2331005-1-philipchen@chromium.org>
-X-ClientProxiedBy: MW4PR03CA0155.namprd03.prod.outlook.com
- (2603:10b6:303:8d::10) To SA1PR11MB6733.namprd11.prod.outlook.com
- (2603:10b6:806:25c::17)
+   d="scan'208";a="60667139"
+Received: from mgoodin-mobl2.amr.corp.intel.com (HELO [10.125.111.235]) ([10.125.111.235])
+  by fmviesa010-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Aug 2024 15:36:01 -0700
+Message-ID: <9a2caf53-2ce5-41ef-ae43-95f097bbe193@intel.com>
+Date: Mon, 19 Aug 2024 15:35:59 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SA1PR11MB6733:EE_|SJ0PR11MB4782:EE_
-X-MS-Office365-Filtering-Correlation-Id: 8144637a-42d4-4849-f4a2-08dcc099c575
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|376014|1800799024|366016;
-X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?N/BhCdIPEcSU537gudX+X8/Ili9XMk6hffbmZvgvzpuIMC1uj0eRAvWLxSRI?=
- =?us-ascii?Q?3fNb3J/HbKtQU1e7x4x3nNv8fIc4eS+Ptr9wfnbqFdLZ9LxA21erupw4vCMZ?=
- =?us-ascii?Q?x1ujCZ7QFBwqrHo9eozrQiaJD00gWH1eTk54DLg9kh5GaSZaeyJeMr8enZ8t?=
- =?us-ascii?Q?GJAj+3PqKaownCU9Q3UXqYTqlfHx95XMu1o0KXmkPBf4hPuAFjZPDN+KIvzw?=
- =?us-ascii?Q?StYNu24iJYR/QnQIEXjI7DnASZK8s5bL518iHs4sIQSYamqsUuvpTYVODLMP?=
- =?us-ascii?Q?V0nIqyTFiJ/7SQJr+SctX/XzuoYA02NWPmQjhefPvRat85Ne3sQSVVSbspLu?=
- =?us-ascii?Q?Q+VQqbjT8n4Fr9UGdd/HC/yMZFdM0qMPWMISRGuk8ZRm2QbreOuOxBFGQDt0?=
- =?us-ascii?Q?TyATtLA0MvgA/vIXpLLW6iiQbLE+Z5SRcDcsUHM0I04kW+YBpre7DDY8bkuP?=
- =?us-ascii?Q?k0E/h1tpfGWOvc0fxfp+NYkSKRwooTv/JiVW9MGDSh0237LR1nMbotX+ldFH?=
- =?us-ascii?Q?yUAoNE6gR4qbWwXXHVyGnzn7NkkIrQApPWiB2HMo8XYQ0xQqEZ7qf9Kze4XF?=
- =?us-ascii?Q?ydxT36MvbrSL8h11Mscj/Yr1oJcQc7Q+WrJQdrT8GnXQJTsPeQeeEkPV3YYt?=
- =?us-ascii?Q?HH1m5NWehasLlHI6833Sbh7fJlqXEwln2jVgj3grAlBqw9H+R4bfyY0Z4vWF?=
- =?us-ascii?Q?zFlDH8NLaV9WayBH15i8Qp9NE5a2j4r13wY8oMiGrU5j4ZlDS6lCVkzFCbN+?=
- =?us-ascii?Q?wS2uD2amT0ddUAoXmY5ZZlGfdcL61H/WnoBRXssn+EbCVG84UCaj4LA6doU5?=
- =?us-ascii?Q?DumAGHjR0R/7QhJxSLST552/W9eef/GzPv3AlC4A/T0WXeScpHflY81YCcuD?=
- =?us-ascii?Q?MSDr4VHrVTBUDvcZ2SO82PvBQKAmsLp5jy246lTyPKy93RXMKbWSnhyxK0rW?=
- =?us-ascii?Q?t6c3nhzgwJQJqAUkFdKbnYxVGjB3/E6Jnah5lev2IbJZdCBtIB5LCz7Fn12B?=
- =?us-ascii?Q?qq2fFQ39tL81jOVT4fyK2o66HxT7c5biVosADk/MzGD8dMuNSLH3bm866qB4?=
- =?us-ascii?Q?hrkFlj4A9+m8Db7eWSP7Su02hHtOBDThEPkIwXvbQsE3923bCHK/t2kPAThl?=
- =?us-ascii?Q?GjRhfw9Q8OfC/s0QEOPtkwCWc8S5PzvRxaDqEGA+BfFfWXOlCfOYzu5OOYdZ?=
- =?us-ascii?Q?NUCaz7J1uOKZKOF6rhJa5PYzhmdnbeP1clB/HgUsKDkXhydF7ZSRFUCkp3Ni?=
- =?us-ascii?Q?6FOUGpGMmv+IND3eKWb54uSRODo1Rh4NiUICTmNNJEg9z/nX6J+R6BdJUZS9?=
- =?us-ascii?Q?Wrt/kKjYALczk79QdGvLBw2tfDadsbq+2+tDxPSN3dSYAQ=3D=3D?=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA1PR11MB6733.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(1800799024)(366016);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?iY3b+/mtlA6DF1MaulebSM2+jNNondA75nsUDX4qMVfP3INsixsvMZs7EEnP?=
- =?us-ascii?Q?ObVkedsXXh2Zl0i+vGlr6I6a5GLvnQFFd3L6bss+YSsW0RDzGnfgDTjAi8qY?=
- =?us-ascii?Q?8vRoZWSUXt2JPkS2+3LqEYtQaTaJ/wglZ41BqrAy8NLMAwVocVNe1Rd51gv8?=
- =?us-ascii?Q?9fkacdIy8Q+RE2VUxXBcThwSw3ur5tRLp9orHcRVH6h9QKfUDdyhpSTqAzuo?=
- =?us-ascii?Q?7VpIdmI5LN5jwikjj4odgDV+Lc4KDoT1dDLMS0Q8BPNAwbPNQRXFfgJlnVMx?=
- =?us-ascii?Q?kBya8DyVaCy8W56V7MJJn+tkKWIW4tj9brIJrg/sulCkjcOp/emfooqQ/V73?=
- =?us-ascii?Q?z+5EekZWIsV8oQiVSEgSAPwev4RG0JF8qK6J5bG0kOADeWWUul4Dju1XVJ6o?=
- =?us-ascii?Q?o/lYEdac2gtj6vs3QHwovnvaGMnEAk8en11Qk9IWh7Jrqgefvl3uMUJnxGfl?=
- =?us-ascii?Q?1DCTkJaaAiaPJu3DJgsA0jv6xo/cu6P1Cp04EeLFLF0W4mTgMfV7FeEjlxQF?=
- =?us-ascii?Q?iutGGI84u2Vm69r5pwcT0QHwPGgSbWab4bvli1RBHvKAMvaAymC8hFR5l1XA?=
- =?us-ascii?Q?q5vpEJRlDiHZQaajRZNff7TKY7dyrJOyCG7X/asHh7uwCszKA9rRindC0yxh?=
- =?us-ascii?Q?pk6oir9xP7FeQ4E5nv2Ldiavm7snweh9RFCyf33bYOW5cDtWKpA0xKyquGJu?=
- =?us-ascii?Q?qQtKATe2HwX1sf47LQgqt1v7msKoIEcY+dZSeypbGHMhc/rmW9kA6Kav3oK6?=
- =?us-ascii?Q?OWFbvtaBCCdl4Lf/zbozFYmsfUfJkeSkpv6Lck/GnaqPSpc9AVhinTsbWSfy?=
- =?us-ascii?Q?zHUNAPGpbWUG/FpiBR+3lL1imh2SOTI9ONyQ9dTq76l27yc3utSgyxdH+mdM?=
- =?us-ascii?Q?GearHtqSFN+gtj5cYDULMUUXlxyVAKkvhCcPu+1MHRv2NNIDf60VwG1zJWIN?=
- =?us-ascii?Q?Y59ytTzq0dUszbHFZoftecNLJqJCcrb41rneqEIOI3bnagyMqo6UIoEqln+Q?=
- =?us-ascii?Q?/tx5UiLVO44XuXMaelxDLixQOqAdF4h9ZzZvHFkIJQlvyIXhhpn/5VFGOvqp?=
- =?us-ascii?Q?7g0gO5XmIX42n2SwN/UlGUPLDAN4P9ndqQLMzxmWX6x2U5aVLdpCCzE9VPfR?=
- =?us-ascii?Q?VhdZNJOcLjba+jjnjJjGW9CStCNEpihVe2NXx1OdWZYbOzYKQxvnAVMvJNoa?=
- =?us-ascii?Q?2JqoCrhu3bgtVahpBv/UnbA3zJlhKmXH6mrQpRAJeHJ8nhI3HbPtnsSqKDhU?=
- =?us-ascii?Q?sLxF4HlSqeba8HV5IEBhN5RQkxkvjbthGf+gDs+bGIDnP8soA5z1vGUjhb1u?=
- =?us-ascii?Q?5/iowtbZ/TVbqw/dG33tdJ08EYxYeAGExQqZQaj8ictgtZxdYBjpjrwurES1?=
- =?us-ascii?Q?J2Tqr+rhc0b2fR/xBMwGnaOJ/TZ93xeBKICC7IEVMWidtcx9h1C7ipjIOvMl?=
- =?us-ascii?Q?8ZB4XGz6csuuC1W6z1G6SjsIGVPEI9GeCYvB7sf93021OrlRTuilsvG1bgfe?=
- =?us-ascii?Q?MkROtlWWnTOUOIieGZA4Ht9s2x/C9XWjAH7QKT0J/vwI1RhGVf9Mp+uioT7M?=
- =?us-ascii?Q?5aCOVO5WTflp1XiYrBoqcj1g456/EZtVGEn+E8UC?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: 8144637a-42d4-4849-f4a2-08dcc099c575
-X-MS-Exchange-CrossTenant-AuthSource: SA1PR11MB6733.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 19 Aug 2024 21:56:25.7359
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 6n9Ywyp446Zqe+ADrGlA8iU797A+6ZWMIDJlluUb4YhLTm7ZM2nQ7d8om2vIdI20ksiew336N8wHoYjK43p9cw==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ0PR11MB4782
-X-OriginatorOrg: intel.com
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v3 20/25] dax/bus: Factor out dev dax resize logic
+To: Ira Weiny <ira.weiny@intel.com>, Fan Ni <fan.ni@samsung.com>,
+ Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+ Navneet Singh <navneet.singh@intel.com>, Chris Mason <clm@fb.com>,
+ Josef Bacik <josef@toxicpanda.com>, David Sterba <dsterba@suse.com>,
+ Petr Mladek <pmladek@suse.com>, Steven Rostedt <rostedt@goodmis.org>,
+ Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+ Rasmus Villemoes <linux@rasmusvillemoes.dk>,
+ Sergey Senozhatsky <senozhatsky@chromium.org>,
+ Jonathan Corbet <corbet@lwn.net>, Andrew Morton <akpm@linux-foundation.org>
+Cc: Dan Williams <dan.j.williams@intel.com>,
+ Davidlohr Bueso <dave@stgolabs.net>,
+ Alison Schofield <alison.schofield@intel.com>,
+ Vishal Verma <vishal.l.verma@intel.com>, linux-btrfs@vger.kernel.org,
+ linux-cxl@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-doc@vger.kernel.org, nvdimm@lists.linux.dev
+References: <20240816-dcd-type2-upstream-v3-0-7c9b96cba6d7@intel.com>
+ <20240816-dcd-type2-upstream-v3-20-7c9b96cba6d7@intel.com>
+Content-Language: en-US
+From: Dave Jiang <dave.jiang@intel.com>
+In-Reply-To: <20240816-dcd-type2-upstream-v3-20-7c9b96cba6d7@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-Philip Chen wrote:
-> If a pmem device is in a bad status, the driver side could wait for
-> host ack forever in virtio_pmem_flush(), causing the system to hang.
 
-I assume this was supposed to be v2 and you resent this as a proper v2
-with a change list from v1?
 
-Ira
-
+On 8/16/24 7:44 AM, Ira Weiny wrote:
+> Dynamic Capacity regions must limit dev dax resources to those areas
+> which have extents backing real memory.  Such DAX regions are dubbed
+> 'sparse' regions.  In order to manage where memory is available four
+> alternatives were considered:
 > 
-> Signed-off-by: Philip Chen <philipchen@chromium.org>
+> 1) Create a single region resource child on region creation which
+>    reserves the entire region.  Then as extents are added punch holes in
+>    this reservation.  This requires new resource manipulation to punch
+>    the holes and still requires an additional iteration over the extent
+>    areas which may already have existing dev dax resources used.
+> 
+> 2) Maintain an ordered xarray of extents which can be queried while
+>    processing the resize logic.  The issue is that existing region->res
+>    children may artificially limit the allocation size sent to
+>    alloc_dev_dax_range().  IE the resource children can't be directly
+>    used in the resize logic to find where space in the region is.  This
+>    also poses a problem of managing the available size in 2 places.
+> 
+> 3) Maintain a separate resource tree with extents.  This option is the
+>    same as 2) but with the different data structure.  Most ideally there
+>    should be a unified representation of the resource tree not two places
+>    to look for space.
+> 
+> 4) Create region resource children for each extent.  Manage the dax dev
+>    resize logic in the same way as before but use a region child
+>    (extent) resource as the parents to find space within each extent.
+> 
+> Option 4 can leverage the existing resize algorithm to find space within
+> the extents.  It manages the available space in a singular resource tree
+> which is less complicated for finding space.
+> 
+> In preparation for this change, factor out the dev_dax_resize logic.
+> For static regions use dax_region->res as the parent to find space for
+> the dax ranges.  Future patches will use the same algorithm with
+> individual extent resources as the parent.
+> 
+> Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+
 > ---
->  drivers/nvdimm/nd_virtio.c | 9 +++++++++
->  1 file changed, 9 insertions(+)
+> Changes:
+> [iweiny: Rebase on new DAX region locking]
+> [iweiny: Reword commit message]
+> [iweiny: Drop reviews]
+> ---
+>  drivers/dax/bus.c | 129 +++++++++++++++++++++++++++++++++---------------------
+>  1 file changed, 79 insertions(+), 50 deletions(-)
 > 
-> diff --git a/drivers/nvdimm/nd_virtio.c b/drivers/nvdimm/nd_virtio.c
-> index 35c8fbbba10e..3b4d07aa8447 100644
-> --- a/drivers/nvdimm/nd_virtio.c
-> +++ b/drivers/nvdimm/nd_virtio.c
-> @@ -44,6 +44,15 @@ static int virtio_pmem_flush(struct nd_region *nd_region)
->  	unsigned long flags;
->  	int err, err1;
+> diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+> index d8cb5195a227..975860371d9f 100644
+> --- a/drivers/dax/bus.c
+> +++ b/drivers/dax/bus.c
+> @@ -844,11 +844,9 @@ static int devm_register_dax_mapping(struct dev_dax *dev_dax, int range_id)
+>  	return 0;
+>  }
 >  
-> +	/*
-> +	 * Don't bother to send the request to the device if the device is not
-> +	 * acticated.
-> +	 */
-> +	if (vdev->config->get_status(vdev) & VIRTIO_CONFIG_S_NEEDS_RESET) {
-> +		dev_info(&vdev->dev, "virtio pmem device needs a reset\n");
-> +		return -EIO;
+> -static int alloc_dev_dax_range(struct dev_dax *dev_dax, u64 start,
+> -		resource_size_t size)
+> +static int alloc_dev_dax_range(struct resource *parent, struct dev_dax *dev_dax,
+> +			       u64 start, resource_size_t size)
+>  {
+> -	struct dax_region *dax_region = dev_dax->region;
+> -	struct resource *res = &dax_region->res;
+>  	struct device *dev = &dev_dax->dev;
+>  	struct dev_dax_range *ranges;
+>  	unsigned long pgoff = 0;
+> @@ -866,14 +864,14 @@ static int alloc_dev_dax_range(struct dev_dax *dev_dax, u64 start,
+>  		return 0;
+>  	}
+>  
+> -	alloc = __request_region(res, start, size, dev_name(dev), 0);
+> +	alloc = __request_region(parent, start, size, dev_name(dev), 0);
+>  	if (!alloc)
+>  		return -ENOMEM;
+>  
+>  	ranges = krealloc(dev_dax->ranges, sizeof(*ranges)
+>  			* (dev_dax->nr_range + 1), GFP_KERNEL);
+>  	if (!ranges) {
+> -		__release_region(res, alloc->start, resource_size(alloc));
+> +		__release_region(parent, alloc->start, resource_size(alloc));
+>  		return -ENOMEM;
+>  	}
+>  
+> @@ -1026,50 +1024,45 @@ static bool adjust_ok(struct dev_dax *dev_dax, struct resource *res)
+>  	return true;
+>  }
+>  
+> -static ssize_t dev_dax_resize(struct dax_region *dax_region,
+> -		struct dev_dax *dev_dax, resource_size_t size)
+> +/**
+> + * dev_dax_resize_static - Expand the device into the unused portion of the
+> + * region. This may involve adjusting the end of an existing resource, or
+> + * allocating a new resource.
+> + *
+> + * @parent: parent resource to allocate this range in
+> + * @dev_dax: DAX device to be expanded
+> + * @to_alloc: amount of space to alloc; must be <= space available in @parent
+> + *
+> + * Return the amount of space allocated or -ERRNO on failure
+> + */
+> +static ssize_t dev_dax_resize_static(struct resource *parent,
+> +				     struct dev_dax *dev_dax,
+> +				     resource_size_t to_alloc)
+>  {
+> -	resource_size_t avail = dax_region_avail_size(dax_region), to_alloc;
+> -	resource_size_t dev_size = dev_dax_size(dev_dax);
+> -	struct resource *region_res = &dax_region->res;
+> -	struct device *dev = &dev_dax->dev;
+>  	struct resource *res, *first;
+> -	resource_size_t alloc = 0;
+>  	int rc;
+>  
+> -	if (dev->driver)
+> -		return -EBUSY;
+> -	if (size == dev_size)
+> -		return 0;
+> -	if (size > dev_size && size - dev_size > avail)
+> -		return -ENOSPC;
+> -	if (size < dev_size)
+> -		return dev_dax_shrink(dev_dax, size);
+> -
+> -	to_alloc = size - dev_size;
+> -	if (dev_WARN_ONCE(dev, !alloc_is_aligned(dev_dax, to_alloc),
+> -			"resize of %pa misaligned\n", &to_alloc))
+> -		return -ENXIO;
+> -
+> -	/*
+> -	 * Expand the device into the unused portion of the region. This
+> -	 * may involve adjusting the end of an existing resource, or
+> -	 * allocating a new resource.
+> -	 */
+> -retry:
+> -	first = region_res->child;
+> -	if (!first)
+> -		return alloc_dev_dax_range(dev_dax, dax_region->res.start, to_alloc);
+> +	first = parent->child;
+> +	if (!first) {
+> +		rc = alloc_dev_dax_range(parent, dev_dax,
+> +					   parent->start, to_alloc);
+> +		if (rc)
+> +			return rc;
+> +		return to_alloc;
 > +	}
+>  
+> -	rc = -ENOSPC;
+>  	for (res = first; res; res = res->sibling) {
+>  		struct resource *next = res->sibling;
+> +		resource_size_t alloc;
+>  
+>  		/* space at the beginning of the region */
+> -		if (res == first && res->start > dax_region->res.start) {
+> -			alloc = min(res->start - dax_region->res.start, to_alloc);
+> -			rc = alloc_dev_dax_range(dev_dax, dax_region->res.start, alloc);
+> -			break;
+> +		if (res == first && res->start > parent->start) {
+> +			alloc = min(res->start - parent->start, to_alloc);
+> +			rc = alloc_dev_dax_range(parent, dev_dax,
+> +						 parent->start, alloc);
+> +			if (rc)
+> +				return rc;
+> +			return alloc;
+>  		}
+>  
+>  		alloc = 0;
+> @@ -1078,21 +1071,55 @@ static ssize_t dev_dax_resize(struct dax_region *dax_region,
+>  			alloc = min(next->start - (res->end + 1), to_alloc);
+>  
+>  		/* space at the end of the region */
+> -		if (!alloc && !next && res->end < region_res->end)
+> -			alloc = min(region_res->end - res->end, to_alloc);
+> +		if (!alloc && !next && res->end < parent->end)
+> +			alloc = min(parent->end - res->end, to_alloc);
+>  
+>  		if (!alloc)
+>  			continue;
+>  
+>  		if (adjust_ok(dev_dax, res)) {
+>  			rc = adjust_dev_dax_range(dev_dax, res, resource_size(res) + alloc);
+> -			break;
+> +			if (rc)
+> +				return rc;
+> +			return alloc;
+>  		}
+> -		rc = alloc_dev_dax_range(dev_dax, res->end + 1, alloc);
+> -		break;
+> +		rc = alloc_dev_dax_range(parent, dev_dax, res->end + 1, alloc);
+> +		if (rc)
+> +			return rc;
+> +		return alloc;
+>  	}
+> -	if (rc)
+> -		return rc;
 > +
->  	might_sleep();
->  	req_data = kmalloc(sizeof(*req_data), GFP_KERNEL);
->  	if (!req_data)
-> -- 
-> 2.46.0.76.ge559c4bf1a-goog
+> +	/* available was already calculated and should never be an issue */
+> +	dev_WARN_ONCE(&dev_dax->dev, 1, "space not found?");
+> +	return 0;
+> +}
+> +
+> +static ssize_t dev_dax_resize(struct dax_region *dax_region,
+> +		struct dev_dax *dev_dax, resource_size_t size)
+> +{
+> +	resource_size_t avail = dax_region_avail_size(dax_region), to_alloc;
+> +	resource_size_t dev_size = dev_dax_size(dev_dax);
+> +	struct device *dev = &dev_dax->dev;
+> +	resource_size_t alloc = 0;
+> +
+> +	if (dev->driver)
+> +		return -EBUSY;
+> +	if (size == dev_size)
+> +		return 0;
+> +	if (size > dev_size && size - dev_size > avail)
+> +		return -ENOSPC;
+> +	if (size < dev_size)
+> +		return dev_dax_shrink(dev_dax, size);
+> +
+> +	to_alloc = size - dev_size;
+> +	if (dev_WARN_ONCE(dev, !alloc_is_aligned(dev_dax, to_alloc),
+> +			"resize of %pa misaligned\n", &to_alloc))
+> +		return -ENXIO;
+> +
+> +retry:
+> +	alloc = dev_dax_resize_static(&dax_region->res, dev_dax, to_alloc);
+> +	if (alloc <= 0)
+> +		return alloc;
+>  	to_alloc -= alloc;
+>  	if (to_alloc)
+>  		goto retry;
+> @@ -1198,7 +1225,8 @@ static ssize_t mapping_store(struct device *dev, struct device_attribute *attr,
+>  
+>  	to_alloc = range_len(&r);
+>  	if (alloc_is_aligned(dev_dax, to_alloc))
+> -		rc = alloc_dev_dax_range(dev_dax, r.start, to_alloc);
+> +		rc = alloc_dev_dax_range(&dax_region->res, dev_dax, r.start,
+> +					 to_alloc);
+>  	up_write(&dax_dev_rwsem);
+>  	up_write(&dax_region_rwsem);
+>  
+> @@ -1466,7 +1494,8 @@ static struct dev_dax *__devm_create_dev_dax(struct dev_dax_data *data)
+>  	device_initialize(dev);
+>  	dev_set_name(dev, "dax%d.%d", dax_region->id, dev_dax->id);
+>  
+> -	rc = alloc_dev_dax_range(dev_dax, dax_region->res.start, data->size);
+> +	rc = alloc_dev_dax_range(&dax_region->res, dev_dax, dax_region->res.start,
+> +				 data->size);
+>  	if (rc)
+>  		goto err_range;
+>  
 > 
-
-
