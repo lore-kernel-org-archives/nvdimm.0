@@ -1,50 +1,50 @@
 Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 864EF14C5A3
-	for <nvdimm@lists.linux.dev>; Tue, 20 Aug 2024 19:59:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C85C18E358;
+	Tue, 20 Aug 2024 20:01:08 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.8
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724183975; cv=none; b=YPekPaK194YiQnnFVmS5HEiG3WLA0O5mjBoIw/FKzwJ0a194awfP7AF5yz1qSCYrSvfVE6JBOyueYnUDaEv5T+Grtfj2vYAxUUidHyMirFoZIGKjE/T/9bTpWr4wlWcN8TnYMh1D81umUgjj65RuyE2zYJI2vW3woDCR2+T4TLg=
+	t=1724184069; cv=none; b=FJPdeD2hakybXr3SrdJBYSW+rujWjwHjMQrFJFWE7hYC29TuzSpwh46B1NEonmiom8n1HmH6kycskifiRZH0GYg9pdje4B6XuzsRKAasDbEmyn2TjMMgWnFNQNoaK1PDGHxYgS+WzGtCps+CHUIiaeYqS4qPu4Dc/AG391F1gKM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724183975; c=relaxed/simple;
-	bh=3oMX+jBTcy/3jvMpCmhqpUpaqzvG3Xj/4TYYqZLdm2U=;
-	h=Message-ID:Date:MIME-Version:Subject:To:References:From:
-	 In-Reply-To:Content-Type; b=B6i7Bc4nMkoOTionJRtjVJPhko/CQROT5v4qADA0srF/18sgS/hkajYWKrqbKAh2N2sNfxOE4zLQfBLF4SBnR4nzZ3+jtZ4b26k7ys6Zg6NN8OoWTj+PFu14TjSSZR0vCxLT68q3v3STOuQNyPGrD3NCT0jRfV/NQ/QRuyGbs9Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=iPhhNHvZ; arc=none smtp.client-ip=192.198.163.8
+	s=arc-20240116; t=1724184069; c=relaxed/simple;
+	bh=G3RNvrfn/rmdf00KPduS38lywE22do+er0WoH4g8YbA=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=NO9oVlaZK2PVA6IXoza0ypHIujEJKNB5Wt8HmxJ19hMeH009cx2xfY/FL6QRE8kNYFXGQoVduWpnbvAPt8xc/rqSWu8dMz86eEcqoLDmFICQu/CDBUKvD24Ikr5Ui2E+LvCV9HJKR8t/0ea5RCNcAR/ARO3/TV021wCYfoxIhh4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Jy2cD4IT; arc=none smtp.client-ip=192.198.163.8
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="iPhhNHvZ"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Jy2cD4IT"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1724183973; x=1755719973;
-  h=message-id:date:mime-version:subject:to:references:from:
-   in-reply-to:content-transfer-encoding;
-  bh=3oMX+jBTcy/3jvMpCmhqpUpaqzvG3Xj/4TYYqZLdm2U=;
-  b=iPhhNHvZ63MsSz+kwh9n3pCOIlagZrf9rWc1W/aYkyDGOFnFyCgSbUUA
-   ZJ5Bu1UNl63Ccf5AuJXaZ1GFQXw+Ol8asTCxU4NM9QrRwLHfqxK2ZTm6+
-   /qfsbUNWayrxLr4Yi6XyXOEOq4eWMQsLPcVnO1ZCgzlVd4Ap4BhHpkchW
-   ddlN+JFE9b39bE4VcHqKdtY535xYzct4d7ecpKPTAk/BmO9JkEohvFWeK
-   ocR7/OHsIN9jj1m0Aa/HOqbPJNj8gT0fYl/VwaaCXS4rueC0oJ7up9Yjl
-   Cd40QCQoVXbkCF/0YDqVNWuWrFRVFiOlO1JfnxrkM9u17QvEs6JgLHke7
-   w==;
-X-CSE-ConnectionGUID: N8JKxDXZTgqZsFW4fxalAQ==
-X-CSE-MsgGUID: bFR3+FnBQHSxsUScAS3iew==
-X-IronPort-AV: E=McAfee;i="6700,10204,11170"; a="40023865"
+  t=1724184068; x=1755720068;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=G3RNvrfn/rmdf00KPduS38lywE22do+er0WoH4g8YbA=;
+  b=Jy2cD4ITsJtMdzU/Kw7aEP+0I/KAqLBSd+TVVGAz7SuUCXYJefDetfA0
+   tvYQh9JDJVhgBUEyzstRcxjRccYLKiARFUgRdev/yVwyDUsp5dZMcTfvy
+   jHOm6SIvPC+55nKLNy7wmcEcYdg0eiBxnhgIbG6+btBhNAS+EPIJm4DXh
+   FGHbcEJzh7hLaEIVzd+9PDxCL83LK7BcjNcFZ1dKELQZrBtiIOEGjxhTP
+   na8ch89pVzNdpZX70W4RUkSUGIws8dyiKSmmJy+jqGHnqZzR1TytR1n/C
+   f8U/IXIUN1eo8H+SugR65fe9tpdVSSJv5gvJrlJa3Zt9S2VbAY6n63yTP
+   g==;
+X-CSE-ConnectionGUID: oFr0r9o1Qd+HxcfpxZJH2w==
+X-CSE-MsgGUID: c6ip3+p6SIuA6nb/rbwhWg==
+X-IronPort-AV: E=McAfee;i="6700,10204,11170"; a="40024039"
 X-IronPort-AV: E=Sophos;i="6.10,162,1719903600"; 
-   d="scan'208";a="40023865"
+   d="scan'208";a="40024039"
 Received: from fmviesa005.fm.intel.com ([10.60.135.145])
-  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Aug 2024 12:59:33 -0700
-X-CSE-ConnectionGUID: iWL6wFjFSJ2reh+CSqyM+g==
-X-CSE-MsgGUID: arQVbxPsSMCHvl+KRdcCJw==
+  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Aug 2024 13:01:08 -0700
+X-CSE-ConnectionGUID: MGtc9+LvRqKOvSc+fMRBOA==
+X-CSE-MsgGUID: 8XHodfx9TNWZxV2ZJK5PSg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.10,162,1719903600"; 
-   d="scan'208";a="65199088"
+   d="scan'208";a="65199824"
 Received: from cdpresto-mobl2.amr.corp.intel.com.amr.corp.intel.com (HELO [10.125.108.88]) ([10.125.108.88])
-  by fmviesa005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Aug 2024 12:59:32 -0700
-Message-ID: <6404b0eb-1ac9-4e96-9865-a51f5db4d3c4@intel.com>
-Date: Tue, 20 Aug 2024 12:59:31 -0700
+  by fmviesa005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Aug 2024 13:01:07 -0700
+Message-ID: <46eacc01-7b23-4f83-af3c-8c5897e44c90@intel.com>
+Date: Tue, 20 Aug 2024 13:01:06 -0700
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -52,59 +52,60 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH ndctl 2/2] libndctl.c: major and minor numbers are
- unsigned
-To: jmoyer@redhat.com, nvdimm@lists.linux.dev
-References: <20240820182705.139842-1-jmoyer@redhat.com>
- <20240820182705.139842-3-jmoyer@redhat.com>
+Subject: Re: [PATCH v2] virtio_pmem: Check device status before requesting
+ flush
+To: Philip Chen <philipchen@chromium.org>,
+ Pankaj Gupta <pankaj.gupta.linux@gmail.com>,
+ Dan Williams <dan.j.williams@intel.com>,
+ Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>
+Cc: virtualization@lists.linux.dev, nvdimm@lists.linux.dev,
+ linux-kernel@vger.kernel.org
+References: <20240820172256.903251-1-philipchen@chromium.org>
 Content-Language: en-US
 From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <20240820182705.139842-3-jmoyer@redhat.com>
+In-Reply-To: <20240820172256.903251-1-philipchen@chromium.org>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 
 
-On 8/20/24 11:26 AM, jmoyer@redhat.com wrote:
-> From: Jeff Moyer <jmoyer@redhat.com>
+On 8/20/24 10:22 AM, Philip Chen wrote:
+> If a pmem device is in a bad status, the driver side could wait for
+> host ack forever in virtio_pmem_flush(), causing the system to hang.
 > 
-> Static analysis points out that the cast of bus->major and bus->minor
-> to a signed type in the call to parent_dev_path could result in a
-> negative number.  I sincerely doubt we'll see major and minor numbers
-> that large, but let's fix it.
+> So add a status check in the beginning of virtio_pmem_flush() to return
+> early if the device is not activated.
 > 
-> Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-
+> Signed-off-by: Philip Chen <philipchen@chromium.org>
 > ---
->  ndctl/lib/libndctl.c | 7 ++++---
->  1 file changed, 4 insertions(+), 3 deletions(-)
 > 
-> diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-> index ddbdd9a..f75dbd4 100644
-> --- a/ndctl/lib/libndctl.c
-> +++ b/ndctl/lib/libndctl.c
-> @@ -710,11 +710,12 @@ NDCTL_EXPORT void ndctl_set_log_priority(struct ndctl_ctx *ctx, int priority)
->  	daxctl_set_log_priority(ctx->daxctl_ctx, priority);
->  }
+> v2:
+> - Remove change id from the patch description
+> - Add more details to the patch description
+> 
+>  drivers/nvdimm/nd_virtio.c | 9 +++++++++
+>  1 file changed, 9 insertions(+)
+> 
+> diff --git a/drivers/nvdimm/nd_virtio.c b/drivers/nvdimm/nd_virtio.c
+> index 35c8fbbba10e..97addba06539 100644
+> --- a/drivers/nvdimm/nd_virtio.c
+> +++ b/drivers/nvdimm/nd_virtio.c
+> @@ -44,6 +44,15 @@ static int virtio_pmem_flush(struct nd_region *nd_region)
+>  	unsigned long flags;
+>  	int err, err1;
 >  
-> -static char *__dev_path(char *type, int major, int minor, int parent)
-> +static char *__dev_path(char *type, unsigned int major, unsigned int minor,
-> +			int parent)
->  {
->  	char *path, *dev_path;
->  
-> -	if (asprintf(&path, "/sys/dev/%s/%d:%d%s", type, major, minor,
-> +	if (asprintf(&path, "/sys/dev/%s/%u:%u%s", type, major, minor,
->  				parent ? "/device" : "") < 0)
->  		return NULL;
->  
-> @@ -723,7 +724,7 @@ static char *__dev_path(char *type, int major, int minor, int parent)
->  	return dev_path;
->  }
->  
-> -static char *parent_dev_path(char *type, int major, int minor)
-> +static char *parent_dev_path(char *type, unsigned int major, unsigned int minor)
->  {
->          return __dev_path(type, major, minor, 1);
->  }
+> +	/*
+> +	 * Don't bother to submit the request to the device if the device is
+> +	 * not acticated.
+
+s/acticated/activated/
+
+> +	 */
+> +	if (vdev->config->get_status(vdev) & VIRTIO_CONFIG_S_NEEDS_RESET) {
+> +		dev_info(&vdev->dev, "virtio pmem device needs a reset\n");
+> +		return -EIO;
+> +	}
+> +
+>  	might_sleep();
+>  	req_data = kmalloc(sizeof(*req_data), GFP_KERNEL);
+>  	if (!req_data)
