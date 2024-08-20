@@ -1,340 +1,117 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.17])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yb1-f181.google.com (mail-yb1-f181.google.com [209.85.219.181])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 967B21849
-	for <nvdimm@lists.linux.dev>; Tue, 20 Aug 2024 00:06:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.17
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CEDB741C79
+	for <nvdimm@lists.linux.dev>; Tue, 20 Aug 2024 04:16:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.181
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724112370; cv=none; b=HDGo+rm+H9XxfykRedsuVl97wY0rNkRTuzO7VIEYqmZcRm0qBwU0XEE+BLWmVVDDWT05m2Q0WMuf2YG7Agv6vXjfMj/5V4Gi+x7nPMZ+7ez1JIAgYFJ7Eg+IqWjyw2aHeu8d/taOpO8w5cBXrKLDtJHW2cIufSFHDjk4PVNuhQQ=
+	t=1724127382; cv=none; b=giCk66QXnnJ0mkGJYSwUbIFo4bTfmCcLZqvm16H0GQK5XO4/eZhqAuNjDqgtiv0hyPhBRm+ifuWXVxS2KCYdssik7D1irQ3yZq8sZVkvTZUbSed+M2DbEFuibgwSNic5Udrg8EaadTYXyk1JXoc3VBIaay9NzV9KAioiciwIyj8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724112370; c=relaxed/simple;
-	bh=ae2jZYFsL79DtzaGkyiLmOrjE8FIgYCcbAJr/nhRgPo=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=CPiIHEfMrL0rW5w1aY68hb1GKmd0RADgYTN+O48zRxlKqjZNcNxdqFv9COXtdyXikEkifALGS2qaI+XTJj7BoWP80xqKScJwazI1OPJY54M4cOLZLVtFMadoY40M4LWlSx4CO5vF9G2eN35U6M6kcijjvmryh+LvdAOODu0By+k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=irvS5suq; arc=none smtp.client-ip=192.198.163.17
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1724127382; c=relaxed/simple;
+	bh=GAY/p2+RIFAj4DrueEbtoLyRE4CtY/yinwNuslLZZmk=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=Ea+c182WLRbkqzoDeDlNnk5AScHj2YfvRxT5qkmzsHCnhu1n7XItAO36Y81q88A6ozOA8PbTNKFkXBIeLiAa2mpzH1bXJj49J10sZofKlxvRoTR5H38Av7X2bqjYuYXZPpsMuxeIKOax4nYR7y2yJMvRPdd2kNZy0ADNDIRGy78=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=bNXXsbni; arc=none smtp.client-ip=209.85.219.181
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="irvS5suq"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1724112369; x=1755648369;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=ae2jZYFsL79DtzaGkyiLmOrjE8FIgYCcbAJr/nhRgPo=;
-  b=irvS5suq3RHll3kEIOtSOu+Ec8F9Iq83ilR5U+T324tqUGpLtG2X8HTN
-   wPnmXy53KUy+N7H4Pa4L3ItdSkZ69TxdGuTr7jUBKUdjZxGKh+Zs4Z8J+
-   c0KDVRjJCFOcH2bt/S3DTDxuTrbJ1GaryXe+6FHwWcMy6EePSc21XGqOE
-   ZSsytqU0U21L8H4vLEPz0krmNcVMc66FtnmXZuOI7v8tBnyWjjjBFA+C2
-   QqXDCHxgaTPEaxfzdvyBPQuMjNjKjcmcJc0x6l19KBiiJS9ivBt6tuiJW
-   UrUYeroplAHBmF02fLJkqBmCyUA7UiPtdO83xQntSntccKuF61FGTAYQR
-   Q==;
-X-CSE-ConnectionGUID: YoysCKL/SKWkNSxBO+R9Kw==
-X-CSE-MsgGUID: fasPPTaEQCKZLXIzgdph1A==
-X-IronPort-AV: E=McAfee;i="6700,10204,11169"; a="22269561"
-X-IronPort-AV: E=Sophos;i="6.10,160,1719903600"; 
-   d="scan'208";a="22269561"
-Received: from orviesa003.jf.intel.com ([10.64.159.143])
-  by fmvoesa111.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Aug 2024 17:06:08 -0700
-X-CSE-ConnectionGUID: VaBMIX2LT0qE3c7ZyJTKHQ==
-X-CSE-MsgGUID: xkIOu7HIR9208mV1q8CTaQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.10,160,1719903600"; 
-   d="scan'208";a="65354662"
-Received: from mgoodin-mobl2.amr.corp.intel.com (HELO [10.125.111.235]) ([10.125.111.235])
-  by ORVIESA003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Aug 2024 17:06:06 -0700
-Message-ID: <2e753a02-fc62-4b11-8a4c-e23ab1824d44@intel.com>
-Date: Mon, 19 Aug 2024 17:06:05 -0700
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="bNXXsbni"
+Received: by mail-yb1-f181.google.com with SMTP id 3f1490d57ef6-e115c8be0deso573624276.2
+        for <nvdimm@lists.linux.dev>; Mon, 19 Aug 2024 21:16:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1724127379; x=1724732179; darn=lists.linux.dev;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=srakS6qJodiTLporsDBsy+02pc55aKhjRYvyA7MFvdA=;
+        b=bNXXsbniGwQcwvmkGp5Jbw61OcVhWu1s9LJE/D/iOt96dnWqtb+yI1V44lYSxh6mCn
+         nLHfRK6Od5r8baZfdfgR7iNUUcsh69LyTr1RBCOZYnldqmK+KG7vSf/CofglMN2oq0Ot
+         l+Q3UhxenALl6sVmawxtQZg7429x9Sqt/8QrU=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1724127379; x=1724732179;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=srakS6qJodiTLporsDBsy+02pc55aKhjRYvyA7MFvdA=;
+        b=jo/5YSsTv8vz/ngi+ck2UpxxXH5SARtb/renfPpdXxoKTmqJJpNtPrQ58HEOhx3dvd
+         BDNIm8QRgQXbcHc5uEPx4tL0R0C3aVcKur6wAKRJ2OSBjn+xrHOvxH49OHmABZ9utEdm
+         dpXJcP7YXT7vwmvtRW60XVTXXjJ+WsbW0UvM2rJr/fDzpd0Y+B4LwxEjDad6iCpkojRQ
+         Z04N5dzyDDjX6mPXXOKuswqT/UqhYOwKdftg3tBpHbUErZqMPDgHqXMLmwg1RmhOfEEn
+         fPWkG8Oocf8uHC0EUl/FiMZbtyc0/c0IPyyTPf+WzIKDPpVh0tyEVtk//81UmpCMXDKp
+         ompA==
+X-Forwarded-Encrypted: i=1; AJvYcCUfMfIxlHw3ZolFMfJ8jU15EmZ5XoTaMZnUZYmtF+S3MzurWKJYhmaiIe7CaycMu4sI8Cjq6DJYgtxU7XMEERpPWLC0GdPh
+X-Gm-Message-State: AOJu0YxUMqmzeEUbbTaHs1kYxi2XfT1Iriip/oLmXdhGLXlV78WSofVA
+	9JXMTQF1ZTRKOh1yBzinZLgF4HCYvnt69QLs7wKMzuMdW6NJj9apzP31RwpGFseFBw0axlbcyu5
+	w0AqcRMt0O6/Rz4jyy7v26gFsDIvYzxZ6SFSK
+X-Google-Smtp-Source: AGHT+IEYHD2iKPECcKUGr0P+D5te+97WTsQEPEOCLu0NNZ6JYhTtWhlwpuEYA4h/4Hgf62190NgXJBrA2NJRQNfxAjw=
+X-Received: by 2002:a05:6902:91b:b0:dfd:b41f:7f5c with SMTP id
+ 3f1490d57ef6-e1180f6c94emr6027691276.4.1724127379399; Mon, 19 Aug 2024
+ 21:16:19 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 22/25] cxl/region: Read existing extents on region
- creation
-To: ira.weiny@intel.com, Fan Ni <fan.ni@samsung.com>,
- Jonathan Cameron <Jonathan.Cameron@huawei.com>,
- Navneet Singh <navneet.singh@intel.com>, Chris Mason <clm@fb.com>,
- Josef Bacik <josef@toxicpanda.com>, David Sterba <dsterba@suse.com>,
- Petr Mladek <pmladek@suse.com>, Steven Rostedt <rostedt@goodmis.org>,
- Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
- Rasmus Villemoes <linux@rasmusvillemoes.dk>,
- Sergey Senozhatsky <senozhatsky@chromium.org>,
- Jonathan Corbet <corbet@lwn.net>, Andrew Morton <akpm@linux-foundation.org>
-Cc: Dan Williams <dan.j.williams@intel.com>,
- Davidlohr Bueso <dave@stgolabs.net>,
- Alison Schofield <alison.schofield@intel.com>,
- Vishal Verma <vishal.l.verma@intel.com>, linux-btrfs@vger.kernel.org,
- linux-cxl@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-doc@vger.kernel.org, nvdimm@lists.linux.dev
-References: <20240816-dcd-type2-upstream-v3-0-7c9b96cba6d7@intel.com>
- <20240816-dcd-type2-upstream-v3-22-7c9b96cba6d7@intel.com>
-Content-Language: en-US
-From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <20240816-dcd-type2-upstream-v3-22-7c9b96cba6d7@intel.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+References: <20240815005704.2331005-1-philipchen@chromium.org> <66c3bf85b52e3_2ddc242941@iweiny-mobl.notmuch>
+In-Reply-To: <66c3bf85b52e3_2ddc242941@iweiny-mobl.notmuch>
+From: Philip Chen <philipchen@chromium.org>
+Date: Mon, 19 Aug 2024 21:16:08 -0700
+Message-ID: <CA+cxXhmg6y4xePSHO3+0V-Td4OarCS1e4qyOKUducFoETojqFw@mail.gmail.com>
+Subject: Re: [PATCH] virtio_pmem: Check device status before requesting flush
+To: Ira Weiny <ira.weiny@intel.com>
+Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>, Dan Williams <dan.j.williams@intel.com>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	virtualization@lists.linux.dev, nvdimm@lists.linux.dev, 
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-
-
-On 8/16/24 7:44 AM, ira.weiny@intel.com wrote:
-> From: Navneet Singh <navneet.singh@intel.com>
-> 
-> Dynamic capacity device extents may be left in an accepted state on a
-> device due to an unexpected host crash.  In this case it is expected
-> that the creation of a new region on top of a DC partition can read
-> those extents and surface them for continued use.
-> 
-> Once all endpoint decoders are part of a region and the region is being
-> realized a read of the devices extent list can reveal these previously
-> accepted extents.
-
-Once all endpoint decoders are part of a region and the region is being
-realized, a read of the 'devices extend list' can reveal these previously
-accepted extents.
-
-> 
-> CXL r3.1 specifies the mailbox call Get Dynamic Capacity Extent List for
-> this purpose.  The call returns all the extents for all dynamic capacity
-> partitions.  If the fabric manager is adding extents to any DCD
-> partition, the extent list for the recovered region may change.  In this
-> case the query must retry.  Upon retry the query could encounter extents
-> which were accepted on a previous list query.  Adding such extents is
-> ignored without error because they are entirely within a previous
-> accepted extent.
-> 
-> The scan for existing extents races with the dax_cxl driver.  This is
-> synchronized through the region device lock.  Extents which are found
-> after the driver has loaded will surface through the normal notification
-> path while extents seen prior to the driver are read during driver load.
-> 
-> Signed-off-by: Navneet Singh <navneet.singh@intel.com>
-> Co-developed-by: Ira Weiny <ira.weiny@intel.com>
-> Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-> 
-> ---
-> Changes:
-> [iweiny: Leverage the new add path from the event processing code such
-> 	 that the adding and surfacing of extents flows through the same
-> 	 code path for both event processing and existing extents.
-> 	 While this does validate existing extents again on start up
-> 	 this is an error recovery case / new boot scenario and should
-> 	 not cause any major issues while making the code more
-> 	 straight forward and maintainable.]
-> 
-> [iweiny: use %par]
-> [iweiny: rebase]
-> [iweiny: Move this patch later in the series such that the realization
->          of extents can go through the same path as an add event]
-> [Fan: Issue a retry if the gen number changes]
-> [djiang: s/uint64_t/u64/]
-> [djiang: update function names]
-> [Jørgen/djbw: read the generation and total count on first iteration of
->               the Get Extent List call]
-> [djbw: s/cxl_mbox_get_dc_extent_in/cxl_mbox_get_extent_in/]
-> [djbw: s/cxl_mbox_get_dc_extent_out/cxl_mbox_get_extent_out/]
-> [djbw/iweiny: s/cxl_read_dc_extents/cxl_read_extent_list]
-> ---
->  drivers/cxl/core/core.h   |   2 +
->  drivers/cxl/core/mbox.c   | 100 ++++++++++++++++++++++++++++++++++++++++++++++
->  drivers/cxl/core/region.c |  12 ++++++
->  drivers/cxl/cxlmem.h      |  21 ++++++++++
->  4 files changed, 135 insertions(+)
-> 
-> diff --git a/drivers/cxl/core/core.h b/drivers/cxl/core/core.h
-> index 8dfc97b2e0a4..9e54064a6f48 100644
-> --- a/drivers/cxl/core/core.h
-> +++ b/drivers/cxl/core/core.h
-> @@ -21,6 +21,8 @@ cxled_to_mds(struct cxl_endpoint_decoder *cxled)
->  	return container_of(cxlds, struct cxl_memdev_state, cxlds);
->  }
->  
-> +void cxl_read_extent_list(struct cxl_endpoint_decoder *cxled);
-> +
->  #ifdef CONFIG_CXL_REGION
->  extern struct device_attribute dev_attr_create_pmem_region;
->  extern struct device_attribute dev_attr_create_ram_region;
-> diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
-> index f629ad7488ac..d43ac8eabf56 100644
-> --- a/drivers/cxl/core/mbox.c
-> +++ b/drivers/cxl/core/mbox.c
-> @@ -1670,6 +1670,106 @@ int cxl_dev_dynamic_capacity_identify(struct cxl_memdev_state *mds)
->  }
->  EXPORT_SYMBOL_NS_GPL(cxl_dev_dynamic_capacity_identify, CXL);
->  
-> +/* Return -EAGAIN if the extent list changes while reading */
-> +static int __cxl_read_extent_list(struct cxl_endpoint_decoder *cxled)
-> +{
-> +	u32 current_index, total_read, total_expected, initial_gen_num;
-> +	struct cxl_memdev_state *mds = cxled_to_mds(cxled);
-> +	struct device *dev = mds->cxlds.dev;
-> +	struct cxl_mbox_cmd mbox_cmd;
-> +	u32 max_extent_count;
-> +	bool first = true;
-> +
-> +	struct cxl_mbox_get_extent_out *extents __free(kfree) =
-> +				kvmalloc(mds->payload_size, GFP_KERNEL);
-> +	if (!extents)
-> +		return -ENOMEM;
-> +
-> +	total_read = 0;
-> +	current_index = 0;
-> +	total_expected = 0;
-> +	max_extent_count = (mds->payload_size - sizeof(*extents)) /
-> +				sizeof(struct cxl_extent);
-> +	do {
-> +		struct cxl_mbox_get_extent_in get_extent;
-> +		u32 nr_returned, current_total, current_gen_num;
-> +		int rc;
-> +
-> +		get_extent = (struct cxl_mbox_get_extent_in) {
-> +			.extent_cnt = max(max_extent_count,
-> +					  total_expected - current_index),
-> +			.start_extent_index = cpu_to_le32(current_index),
-> +		};
-> +
-> +		mbox_cmd = (struct cxl_mbox_cmd) {
-> +			.opcode = CXL_MBOX_OP_GET_DC_EXTENT_LIST,
-> +			.payload_in = &get_extent,
-> +			.size_in = sizeof(get_extent),
-> +			.size_out = mds->payload_size,
-> +			.payload_out = extents,
-> +			.min_out = 1,
-> +		};
-> +
-> +		rc = cxl_internal_send_cmd(mds, &mbox_cmd);
-> +		if (rc < 0)
-> +			return rc;
-> +
-> +		/* Save initial data */
-> +		if (first) {
-> +			total_expected = le32_to_cpu(extents->total_extent_count);
-> +			initial_gen_num = le32_to_cpu(extents->generation_num);
-> +			first = false;
-> +		}
-> +
-> +		nr_returned = le32_to_cpu(extents->returned_extent_count);
-> +		total_read += nr_returned;
-> +		current_total = le32_to_cpu(extents->total_extent_count);
-> +		current_gen_num = le32_to_cpu(extents->generation_num);
-> +
-> +		dev_dbg(dev, "Got extent list %d-%d of %d generation Num:%d\n",
-> +			current_index, total_read - 1, current_total, current_gen_num);
-> +
-> +		if (current_gen_num != initial_gen_num || total_expected != current_total) {
-> +			dev_dbg(dev, "Extent list change detected; gen %u != %u : cnt %u != %u\n",
-> +				current_gen_num, initial_gen_num,
-> +				total_expected, current_total);
-> +			return -EAGAIN;
-> +		}
-> +
-> +		for (int i = 0; i < nr_returned ; i++) {
-> +			struct cxl_extent *extent = &extents->extent[i];
-> +
-> +			dev_dbg(dev, "Processing extent %d/%d\n",
-> +				current_index + i, total_expected);
-> +
-> +			rc = validate_add_extent(mds, extent);
-> +			if (rc)
-> +				continue;
-> +		}
-> +
-> +		current_index += nr_returned;
-> +	} while (total_expected > total_read);
-> +
-> +	return 0;
-> +}
-> +
-> +/**
-> + * cxl_read_extent_list() - Read existing extents
-> + * @cxled: Endpoint decoder which is part of a region
-> + *
-> + * Issue the Get Dynamic Capacity Extent List command to the device
-> + * and add existing extents if found.
-> + */
-> +void cxl_read_extent_list(struct cxl_endpoint_decoder *cxled)
-
-cxl_process_extend_list()? It seems to do read+validate+add. 
-
-> +{
-> +	int retry = 10;
-
-arbitrary retry number? maybe define it?
-
-DJ
-
-> +	int rc;
-> +
-> +	do {
-> +		rc = __cxl_read_extent_list(cxled);
-> +	} while (rc == -EAGAIN && retry--);
-> +}
-> +
->  static int add_dpa_res(struct device *dev, struct resource *parent,
->  		       struct resource *res, resource_size_t start,
->  		       resource_size_t size, const char *type)
-> diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
-> index 8c9171f914fb..885fb3004784 100644
-> --- a/drivers/cxl/core/region.c
-> +++ b/drivers/cxl/core/region.c
-> @@ -3190,6 +3190,15 @@ static int devm_cxl_add_pmem_region(struct cxl_region *cxlr)
->  	return rc;
->  }
->  
-> +static void cxlr_add_existing_extents(struct cxl_region *cxlr)
-> +{
-> +	struct cxl_region_params *p = &cxlr->params;
-> +	int i;
-> +
-> +	for (i = 0; i < p->nr_targets; i++)
-> +		cxl_read_extent_list(p->targets[i]);
-> +}
-> +
->  static void cxlr_dax_unregister(void *_cxlr_dax)
->  {
->  	struct cxl_dax_region *cxlr_dax = _cxlr_dax;
-> @@ -3227,6 +3236,9 @@ static int devm_cxl_add_dax_region(struct cxl_region *cxlr)
->  	dev_dbg(&cxlr->dev, "%s: register %s\n", dev_name(dev->parent),
->  		dev_name(dev));
->  
-> +	if (cxlr->mode == CXL_REGION_DC)
-> +		cxlr_add_existing_extents(cxlr);
-> +
->  	return devm_add_action_or_reset(&cxlr->dev, cxlr_dax_unregister,
->  					cxlr_dax);
->  err:
-> diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
-> index 3a40fe1f0be7..11c03637488d 100644
-> --- a/drivers/cxl/cxlmem.h
-> +++ b/drivers/cxl/cxlmem.h
-> @@ -624,6 +624,27 @@ struct cxl_mbox_dc_response {
->  	} __packed extent_list[];
->  } __packed;
->  
-> +/*
-> + * Get Dynamic Capacity Extent List; Input Payload
-> + * CXL rev 3.1 section 8.2.9.9.9.2; Table 8-166
-> + */
-> +struct cxl_mbox_get_extent_in {
-> +	__le32 extent_cnt;
-> +	__le32 start_extent_index;
-> +} __packed;
-> +
-> +/*
-> + * Get Dynamic Capacity Extent List; Output Payload
-> + * CXL rev 3.1 section 8.2.9.9.9.2; Table 8-167
-> + */
-> +struct cxl_mbox_get_extent_out {
-> +	__le32 returned_extent_count;
-> +	__le32 total_extent_count;
-> +	__le32 generation_num;
-> +	u8 rsvd[4];
-> +	struct cxl_extent extent[];
-> +} __packed;
-> +
->  struct cxl_mbox_get_supported_logs {
->  	__le16 entries;
->  	u8 rsvd[6];
-> 
+On Mon, Aug 19, 2024 at 2:56=E2=80=AFPM Ira Weiny <ira.weiny@intel.com> wro=
+te:
+>
+> Philip Chen wrote:
+> > If a pmem device is in a bad status, the driver side could wait for
+> > host ack forever in virtio_pmem_flush(), causing the system to hang.
+>
+> I assume this was supposed to be v2 and you resent this as a proper v2
+> with a change list from v1?
+Ah...yes, I'll fix it and re-send it as a v2 patch.
+>
+> Ira
+>
+> >
+> > Signed-off-by: Philip Chen <philipchen@chromium.org>
+> > ---
+> >  drivers/nvdimm/nd_virtio.c | 9 +++++++++
+> >  1 file changed, 9 insertions(+)
+> >
+> > diff --git a/drivers/nvdimm/nd_virtio.c b/drivers/nvdimm/nd_virtio.c
+> > index 35c8fbbba10e..3b4d07aa8447 100644
+> > --- a/drivers/nvdimm/nd_virtio.c
+> > +++ b/drivers/nvdimm/nd_virtio.c
+> > @@ -44,6 +44,15 @@ static int virtio_pmem_flush(struct nd_region *nd_re=
+gion)
+> >       unsigned long flags;
+> >       int err, err1;
+> >
+> > +     /*
+> > +      * Don't bother to send the request to the device if the device i=
+s not
+> > +      * acticated.
+> > +      */
+> > +     if (vdev->config->get_status(vdev) & VIRTIO_CONFIG_S_NEEDS_RESET)=
+ {
+> > +             dev_info(&vdev->dev, "virtio pmem device needs a reset\n"=
+);
+> > +             return -EIO;
+> > +     }
+> > +
+> >       might_sleep();
+> >       req_data =3D kmalloc(sizeof(*req_data), GFP_KERNEL);
+> >       if (!req_data)
+> > --
+> > 2.46.0.76.ge559c4bf1a-goog
+> >
+>
+>
