@@ -1,527 +1,110 @@
-Received: from mail-yw1-f182.google.com (mail-yw1-f182.google.com [209.85.128.182])
+Received: from mail-qk1-f174.google.com (mail-qk1-f174.google.com [209.85.222.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D16751B8EA8
-	for <nvdimm@lists.linux.dev>; Tue, 20 Aug 2024 17:01:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.182
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8A781BA87C
+	for <nvdimm@lists.linux.dev>; Tue, 20 Aug 2024 17:23:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724173299; cv=none; b=pUkio5rPOliaDnmeH8Fg3xUvM7FwWzTtLW9xXkJO+cNq7cmP9NOzH7fF9n/HKmH/va9gpN2JqL8zRQIA7n+3vXIZeCXeUtfbW0mYlYACYKi3UBHl/2p/KUxX+z7KtIjgxzvfBdC8VOS/472aGr0JE34Osn9cZT0I3CUbc1BZhGg=
+	t=1724174583; cv=none; b=mx7yWnQLKi+dbYgy70g+uMTHMpon9G4Azhli3AaXls64BF3+sHXUwIJU07Qa7yFW9vajjzAxHhX2OemtdDONRHM+I7cHbQfOJ7mffxYOidV+tJ+Ud2WftH00gDhp3/7r1DjhaEGK4Muh420zQxjn2fiioLAeH+XsRqO/wzdHeCk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724173299; c=relaxed/simple;
-	bh=jGzYWH169aJhROJwJ3AhnvCSJ4AmFQAOU4cONn1pyu8=;
-	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=WDnASMymlZq85UM4/xc6LFtEnN1SMPyLt2EnrzlXji/W5389tBylHoceoMrg5/xKC9Wphh4cdEEsAD8FSuppdHXr1azosCu8hE8YpciPn6mJXz763RECkY8PWS97xDfnjdXnaOpKauOJ4qEIZ32BTII//Psg3olzpBkBWlEa2BI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=F4+uxN4A; arc=none smtp.client-ip=209.85.128.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1724174583; c=relaxed/simple;
+	bh=WoePu1j9VOd2T7GWO2R+V03LjT4GKPVJ+35Dd/6RTPU=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=MGR6LeEEwkxRlQ2yRofZsqM3SZ1hkJOv7wkDvBUqaShDIPHrOd7Py9JzQhjLZoS3W5EeYPTAV1IKX8hiRlPrwv+GxO0jcfs2W8N3vWLJQRMa8l+r/ltGoo4lpdSSgnu3DHJh/Qn8Fsu5x3uS3qCc6Yfh1qGqfnDvOGCyPa79MWE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=EjCOZ/IP; arc=none smtp.client-ip=209.85.222.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="F4+uxN4A"
-Received: by mail-yw1-f182.google.com with SMTP id 00721157ae682-6b47ff8a595so33501447b3.0
-        for <nvdimm@lists.linux.dev>; Tue, 20 Aug 2024 10:01:37 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="EjCOZ/IP"
+Received: by mail-qk1-f174.google.com with SMTP id af79cd13be357-7a66b813847so55138485a.2
+        for <nvdimm@lists.linux.dev>; Tue, 20 Aug 2024 10:23:01 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1724173297; x=1724778097; darn=lists.linux.dev;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:date:from:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=dsUC1SMZAqsl5OvMw2AaOebykvq4VGqzPptFQMi+SiY=;
-        b=F4+uxN4AZgDR4/Ost5CTj9vCLPuOxC3RDvlPc4PuOzmmLZhO24rYnlE0FKkySPPG4g
-         08FCngamN/YeGcpqcPydeWm6oFiKX6v5a9cptN4bkkHGdLVEiYOUAqu0CLuMQbOWyJUm
-         h2XXE7boxxAV63bYsfDfcKtC1GnxetMScscoAKpDtzGOKGgjuDYnjLl48+nnpN+IEo+h
-         sakuNpQrirm3axgs/pzr14eWKx+drxO1bfqq/fNCPhZ4ntdTWLq7bKNwTK509vwyNYLo
-         lLey2q/CSN1s60TaeW9BtfBrnhIaNWCNi49J6/99S26LUfGU1Agu/2GVLRSAf3DwIIdT
-         kwMg==
+        d=chromium.org; s=google; t=1724174581; x=1724779381; darn=lists.linux.dev;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=nG3sk+SGqgopURDWRpSLqodBy9lchgvdy2diDegZ/Gw=;
+        b=EjCOZ/IPRXHDBh/CEWA69lfZ459gye8IXG9xm9B9kW836akv7RI51XG3iKq2ggH342
+         D9C9AuYafYCMZYdRIMBAj9KvGzq8hS6/B/iQ89kj90xKlnuDTeQTShj//3odWHnIZpwG
+         j4EH7qGlP286JLD+g4hI4c+QEML97EmpDnmkE=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1724173297; x=1724778097;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:date:from
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=dsUC1SMZAqsl5OvMw2AaOebykvq4VGqzPptFQMi+SiY=;
-        b=MUhaejNaftZn/51KTX38okW6QvNh876JV7ZnAIoXAvg0a/78TaznXy8qnUHhxJimB8
-         Q2yuMO8EiG0WGkYt04rymTvszlIuURu3p45Ui7RenpVklUrIoWGig2LKaKXAS0SLZwDJ
-         g6wQWVKwddTD4VCiMS4gXGYA9i5OoMUZGLcICLOoAh0FCUTqLBXnbjeV8UFJctWzkmut
-         LaHCJYOAtYPsZAlQ19JaFW4Ml1K19nLC9WxiAmfGkbxcxpv5TY9a1LYSGex6iVA5brjC
-         AmW9Jpi7xel4PQYer0z3P96edE37pn1puVkEyXVT540nAv0bmm/qgHQ6N34sK5tug2ww
-         r7rg==
-X-Forwarded-Encrypted: i=1; AJvYcCUWe9hN85z3n72aq1TMHkHjt6C++nvLvC7cxe2TxJ8Wlt6oQKskW+gVh7swnPQU19yAe6MGbogboKZWm6j+EEToEH9x2Alv
-X-Gm-Message-State: AOJu0YzC80H/WIsubUkkU3TaXCTwPcw1zVRTHOPP9ehnpdqaq2/dPkrJ
-	vfOQbDSbWpGBQBEyz4ucPaG9irVJUuThEjhGTddoAfcaTla9VOaU
-X-Google-Smtp-Source: AGHT+IHx7ms+21oKlOT710GIgE9Jfqq+uXaJVaGW1TZxeKA1zTSFKl/mp83ALnADr50hjInrQhc+Sg==
-X-Received: by 2002:a05:690c:60c1:b0:6be:2044:9367 with SMTP id 00721157ae682-6be20449e30mr39253997b3.15.1724173296378;
-        Tue, 20 Aug 2024 10:01:36 -0700 (PDT)
-Received: from fan ([50.205.20.42])
-        by smtp.gmail.com with ESMTPSA id 00721157ae682-6af99fa3b33sm19603897b3.49.2024.08.20.10.01.33
+        d=1e100.net; s=20230601; t=1724174581; x=1724779381;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=nG3sk+SGqgopURDWRpSLqodBy9lchgvdy2diDegZ/Gw=;
+        b=G7JEQCTpjiY+XP7mb4auuS7H4vVqN7B2MEqOJQvXZc7nWtbmDhdj/Gk55cM8Htsx1n
+         Ivj2uJhhAelgVxDHtPGB/aBP9r1LRklFsE8Z1nkccVJKi52BPEB4xWjkZLadEqo0Bvf2
+         WOWMdE7067vdvNtrWS6vyk5MD8e6KXTbQuyBulU9QxiduCI0VG+R3y95+n04UcF8xNVT
+         wd74f3sQ2x5yn7KRuZy6+VO9+AP+28lKj+D7Hbj7hKapVQvyDrWP5CmQGqcfsnZf0HkJ
+         ANUh0DXS9bgVPP/xrLL1pMsP15KgMYJQQvBQyF1QFlvOAc2MSpdNBVlXruONnRKa7kyq
+         BMaQ==
+X-Forwarded-Encrypted: i=1; AJvYcCXpiSUARoQZpjEHqxH5mWY8lef0d2Z7nVE7wR/ZOka/NHAslxrzYQx9IT43frlpqb2VXVaT3kY=@lists.linux.dev
+X-Gm-Message-State: AOJu0YzhDvRcTeZjnzRv1RInWEd2CaEtI63pEN5vDmIAqhT8tgTkUN/e
+	1qG9gBJFgCO3KnAxe3Xy36TVyijpLv07wJCS0lHzJRDrKnPg90KmwYdcY99LcA==
+X-Google-Smtp-Source: AGHT+IGLC0VAnx3ACOqPL6vui1/41GTnaKvRUKl8IQ/H2tHfiWeItGJfBZfdI5j/ZjUY1Sk7SMbEsg==
+X-Received: by 2002:a05:620a:370e:b0:79d:7ae3:4560 with SMTP id af79cd13be357-7a5069af85bmr1549222885a.55.1724174580540;
+        Tue, 20 Aug 2024 10:23:00 -0700 (PDT)
+Received: from philipchen.c.googlers.com.com (140.248.236.35.bc.googleusercontent.com. [35.236.248.140])
+        by smtp.gmail.com with ESMTPSA id af79cd13be357-7a4ff0e42e9sm545390885a.88.2024.08.20.10.23.00
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 20 Aug 2024 10:01:36 -0700 (PDT)
-From: Fan Ni <nifan.cxl@gmail.com>
-X-Google-Original-From: Fan Ni <fan.ni@samsung.com>
-Date: Tue, 20 Aug 2024 10:01:09 -0700
-To: Dave Jiang <dave.jiang@intel.com>
-Cc: ira.weiny@intel.com, Jonathan Cameron <Jonathan.Cameron@huawei.com>,
-	Navneet Singh <navneet.singh@intel.com>, Chris Mason <clm@fb.com>,
-	Josef Bacik <josef@toxicpanda.com>, David Sterba <dsterba@suse.com>,
-	Petr Mladek <pmladek@suse.com>,
-	Steven Rostedt <rostedt@goodmis.org>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Rasmus Villemoes <linux@rasmusvillemoes.dk>,
-	Sergey Senozhatsky <senozhatsky@chromium.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Andrew Morton <akpm@linux-foundation.org>,
+        Tue, 20 Aug 2024 10:23:00 -0700 (PDT)
+From: Philip Chen <philipchen@chromium.org>
+To: Pankaj Gupta <pankaj.gupta.linux@gmail.com>,
 	Dan Williams <dan.j.williams@intel.com>,
-	Davidlohr Bueso <dave@stgolabs.net>,
-	Alison Schofield <alison.schofield@intel.com>,
 	Vishal Verma <vishal.l.verma@intel.com>,
-	linux-btrfs@vger.kernel.org, linux-cxl@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
-	nvdimm@lists.linux.dev, "Li, Ming" <ming4.li@intel.com>
-Subject: Re: [PATCH v3 06/25] cxl/mem: Read dynamic capacity configuration
- from the device
-Message-ID: <ZsTL1QQgYjVdfzqj@fan>
-References: <20240816-dcd-type2-upstream-v3-0-7c9b96cba6d7@intel.com>
- <20240816-dcd-type2-upstream-v3-6-7c9b96cba6d7@intel.com>
- <1ce9afe3-6f24-4471-8a10-5f4ea503e685@intel.com>
+	Dave Jiang <dave.jiang@intel.com>,
+	Ira Weiny <ira.weiny@intel.com>
+Cc: virtualization@lists.linux.dev,
+	nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org,
+	Philip Chen <philipchen@chromium.org>
+Subject: [PATCH v2] virtio_pmem: Check device status before requesting flush
+Date: Tue, 20 Aug 2024 17:22:56 +0000
+Message-ID: <20240820172256.903251-1-philipchen@chromium.org>
+X-Mailer: git-send-email 2.46.0.184.g6999bdac58-goog
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <1ce9afe3-6f24-4471-8a10-5f4ea503e685@intel.com>
 
-On Fri, Aug 16, 2024 at 02:45:47PM -0700, Dave Jiang wrote:
-> 
-> 
-> On 8/16/24 7:44 AM, ira.weiny@intel.com wrote:
-> > From: Navneet Singh <navneet.singh@intel.com>
-> > 
-> > Devices which optionally support Dynamic Capacity (DC) are configured
-> > via mailbox commands.  CXL 3.1 requires the host to issue the Get DC
-> > Configuration command in order to properly configure DCDs.  Without the
-> > Get DC Configuration command DCD can't be supported.
-> > 
-> > Implement the DC mailbox commands as specified in CXL 3.1 section
-> > 8.2.9.9.9 (opcodes 48XXh) to read and store the DCD configuration
-> > information.  Disable DCD if DCD is not supported.  Leverage the Get DC
-> > Configuration command supported bit to indicate if DCD support.
-> > 
-> > Linux has no use for the trailing fields of the Get Dynamic Capacity
-> > Configuration Output Payload (Total number of supported extents, number
-> > of available extents, total number of supported tags, and number of
-> > available tags).  Avoid defining those fields to use the more useful
-> > dynamic C array.
-> > 
-> > Cc: "Li, Ming" <ming4.li@intel.com>
-> > Signed-off-by: Navneet Singh <navneet.singh@intel.com>
-> > Co-developed-by: Ira Weiny <ira.weiny@intel.com>
-> > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-> > 
-> > ---
-> > Changes:
-> > [Li, Ming: Fix bug in total_bytes calculation]
-> > [iweiny: update commit message]
-> > [Jonathan: fix formatting]
-> > [Jonathan: Define block line size]
-> > [Jonathan/Fan: use regions returned field instead of macro in get config]
-> > [Jørgen: Rename memdev state range variables]
-> > [Jonathan: adjust use of rc in cxl_dev_dynamic_capacity_identify()]
-> > [Jonathan: white space cleanup]
-> > [fan: make a comment about the trailing configuration output fields]
-> > ---
-> >  drivers/cxl/core/mbox.c | 171 +++++++++++++++++++++++++++++++++++++++++++++++-
-> >  drivers/cxl/cxlmem.h    |  64 +++++++++++++++++-
-> >  drivers/cxl/pci.c       |   4 ++
-> >  3 files changed, 237 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
-> > index 8eb196858abe..68c26c4be91a 100644
-> > --- a/drivers/cxl/core/mbox.c
-> > +++ b/drivers/cxl/core/mbox.c
-> > @@ -1157,7 +1157,7 @@ int cxl_dev_state_identify(struct cxl_memdev_state *mds)
-> >  	if (rc < 0)
-> >  		return rc;
-> >  
-> > -	mds->total_bytes =
-> > +	mds->static_bytes =
-> >  		le64_to_cpu(id.total_capacity) * CXL_CAPACITY_MULTIPLIER;
-> >  	mds->volatile_only_bytes =
-> >  		le64_to_cpu(id.volatile_capacity) * CXL_CAPACITY_MULTIPLIER;
-> > @@ -1264,6 +1264,159 @@ int cxl_mem_sanitize(struct cxl_memdev *cxlmd, u16 cmd)
-> >  	return rc;
-> >  }
-> >  
-> > +static int cxl_dc_save_region_info(struct cxl_memdev_state *mds, u8 index,
-> > +				   struct cxl_dc_region_config *region_config)
-> > +{
-> > +	struct cxl_dc_region_info *dcr = &mds->dc_region[index];
-> > +	struct device *dev = mds->cxlds.dev;
-> > +
-> > +	dcr->base = le64_to_cpu(region_config->region_base);
-> > +	dcr->decode_len = le64_to_cpu(region_config->region_decode_length);
-> > +	dcr->decode_len *= CXL_CAPACITY_MULTIPLIER;
-> > +	dcr->len = le64_to_cpu(region_config->region_length);
-> > +	dcr->blk_size = le64_to_cpu(region_config->region_block_size);
-> > +	dcr->dsmad_handle = le32_to_cpu(region_config->region_dsmad_handle);
-> > +	dcr->flags = region_config->flags;
-> > +	snprintf(dcr->name, CXL_DC_REGION_STRLEN, "dc%d", index);
-> > +
-> > +	/* Check regions are in increasing DPA order */
-> > +	if (index > 0) {
-> > +		struct cxl_dc_region_info *prev_dcr = &mds->dc_region[index - 1];
-> > +
-> > +		if ((prev_dcr->base + prev_dcr->decode_len) > dcr->base) {
-> > +			dev_err(dev,
-> > +				"DPA ordering violation for DC region %d and %d\n",
-> > +				index - 1, index);
-> > +			return -EINVAL;
-> > +		}
-> > +	}
-> > +
-> > +	if (!IS_ALIGNED(dcr->base, SZ_256M) ||
-> > +	    !IS_ALIGNED(dcr->base, dcr->blk_size)) {
-> > +		dev_err(dev, "DC region %d invalid base %#llx blk size %#llx\n",
-> > +			index, dcr->base, dcr->blk_size);
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	if (dcr->decode_len == 0 || dcr->len == 0 || dcr->decode_len < dcr->len ||
-> > +	    !IS_ALIGNED(dcr->len, dcr->blk_size)) {
-> > +		dev_err(dev, "DC region %d invalid length; decode %#llx len %#llx blk size %#llx\n",
-> > +			index, dcr->decode_len, dcr->len, dcr->blk_size);
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	if (dcr->blk_size == 0 || dcr->blk_size % CXL_DCD_BLOCK_LINE_SIZE ||
-> > +	    !is_power_of_2(dcr->blk_size)) {
-> > +		dev_err(dev, "DC region %d invalid block size; %#llx\n",
-> > +			index, dcr->blk_size);
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	dev_dbg(dev,
-> > +		"DC region %s base %#llx length %#llx block size %#llx\n",
-> > +		dcr->name, dcr->base, dcr->decode_len, dcr->blk_size);
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +/* Returns the number of regions in dc_resp or -ERRNO */
-> > +static int cxl_get_dc_config(struct cxl_memdev_state *mds, u8 start_region,
-> > +			     struct cxl_mbox_get_dc_config_out *dc_resp,
-> > +			     size_t dc_resp_size)
-> > +{
-> > +	struct cxl_mbox_get_dc_config_in get_dc = (struct cxl_mbox_get_dc_config_in) {
-> > +		.region_count = CXL_MAX_DC_REGION,
-> > +		.start_region_index = start_region,
-> > +	};
-> > +	struct cxl_mbox_cmd mbox_cmd = (struct cxl_mbox_cmd) {
-> > +		.opcode = CXL_MBOX_OP_GET_DC_CONFIG,
-> > +		.payload_in = &get_dc,
-> > +		.size_in = sizeof(get_dc),
-> > +		.size_out = dc_resp_size,
-> > +		.payload_out = dc_resp,
-> > +		.min_out = 1,
-> > +	};
-> > +	struct device *dev = mds->cxlds.dev;
-> > +	int rc;
-> > +
-> > +	rc = cxl_internal_send_cmd(mds, &mbox_cmd);
-> > +	if (rc < 0)
-> > +		return rc;
-> > +
-> > +	dev_dbg(dev, "Read %d/%d DC regions\n",
-> > +		dc_resp->regions_returned, dc_resp->avail_region_count);
-> > +	return dc_resp->regions_returned;
-> > +}
-> > +
-> > +/**
-> > + * cxl_dev_dynamic_capacity_identify() - Reads the dynamic capacity
-> > + *					 information from the device.
-> > + * @mds: The memory device state
-> > + *
-> > + * Read Dynamic Capacity information from the device and populate the state
-> > + * structures for later use.
-> > + *
-> > + * Return: 0 if identify was executed successfully, -ERRNO on error.
-> > + */
-> > +int cxl_dev_dynamic_capacity_identify(struct cxl_memdev_state *mds)
-> > +{
-> > +	size_t dc_resp_size = mds->payload_size;
-> > +	struct device *dev = mds->cxlds.dev;
-> > +	u8 start_region, i;
-> > +
-> > +	for (i = 0; i < CXL_MAX_DC_REGION; i++)
-> > +		snprintf(mds->dc_region[i].name, CXL_DC_REGION_STRLEN, "<nil>");
-> > +
-> > +	if (!cxl_dcd_supported(mds)) {
-> > +		dev_dbg(dev, "DCD not supported\n");
-> > +		return 0;
-> > +	}
-> 
-> This should happen before you pre-format the name string? I would assume that if DCD is not supported then the dcd name sysfs attribs would be not be visible?
-> 
-> > +
-> > +	struct cxl_mbox_get_dc_config_out *dc_resp __free(kfree) =
-> > +					kvmalloc(dc_resp_size, GFP_KERNEL);
-> > +	if (!dc_resp)
-> > +		return -ENOMEM;
-> > +
-> > +	start_region = 0;
-> > +	do {
-> > +		int rc, j;
-> > +
-> > +		rc = cxl_get_dc_config(mds, start_region, dc_resp, dc_resp_size);
-> > +		if (rc < 0) {
-> > +			dev_dbg(dev, "Failed to get DC config: %d\n", rc);
-> > +			return rc;
-> > +		}
-> > +
-> > +		mds->nr_dc_region += rc;
-> > +
-> > +		if (mds->nr_dc_region < 1 || mds->nr_dc_region > CXL_MAX_DC_REGION) {
-> > +			dev_err(dev, "Invalid num of dynamic capacity regions %d\n",
-> > +				mds->nr_dc_region);
-> > +			return -EINVAL;
-> > +		}
-> > +
-> > +		for (i = start_region, j = 0; i < mds->nr_dc_region; i++, j++) {
-> 
-> This should be 'j < mds->nr_dc_region'? Otherwise if your start region say is '3' and you have '2' DC regions, you never enter the loop. Or does that not happen? I also wonder if you need to check if 'start_region + mds->nr_dc_region > CXL_MAX_DC_REGION'.
-> 
-That can not happen, start_region was updated to the number of regions
-has returned till now (not counting the current call), while
-nr_dc_region is the total number of regions returned till now (including
-the current call) as we update it above, so start_region should never be larger
-than nr_dc_region.
+If a pmem device is in a bad status, the driver side could wait for
+host ack forever in virtio_pmem_flush(), causing the system to hang.
 
-> > +			rc = cxl_dc_save_region_info(mds, i, &dc_resp->region[j]);
-> > +			if (rc) {
-> > +				dev_dbg(dev, "Failed to save region info: %d\n", rc);
+So add a status check in the beginning of virtio_pmem_flush() to return
+early if the device is not activated.
 
-I am not sure why we sometimes use dev_err and sometimes we use dev_dbg
-here, if dcd is supported, error from getting dc configuration is an
-error to me.
+Signed-off-by: Philip Chen <philipchen@chromium.org>
+---
 
-Fan
+v2:
+- Remove change id from the patch description
+- Add more details to the patch description
 
-> > +				return rc;
-> > +			}
-> > +		}
-> > +
-> > +		start_region = mds->nr_dc_region;
-> > +
-> > +	} while (mds->nr_dc_region < dc_resp->avail_region_count);
-> > +
-> > +	mds->dynamic_bytes =
-> > +		mds->dc_region[mds->nr_dc_region - 1].base +
-> > +		mds->dc_region[mds->nr_dc_region - 1].decode_len -
-> > +		mds->dc_region[0].base;
-> > +	dev_dbg(dev, "Total dynamic range: %#llx\n", mds->dynamic_bytes);
-> > +
-> > +	return 0;
-> > +}
-> > +EXPORT_SYMBOL_NS_GPL(cxl_dev_dynamic_capacity_identify, CXL);
-> > +
-> >  static int add_dpa_res(struct device *dev, struct resource *parent,
-> >  		       struct resource *res, resource_size_t start,
-> >  		       resource_size_t size, const char *type)
-> > @@ -1294,8 +1447,15 @@ int cxl_mem_create_range_info(struct cxl_memdev_state *mds)
-> >  {
-> >  	struct cxl_dev_state *cxlds = &mds->cxlds;
-> >  	struct device *dev = cxlds->dev;
-> > +	size_t untenanted_mem;
-> >  	int rc;
-> >  
-> > +	mds->total_bytes = mds->static_bytes;
-> > +	if (mds->nr_dc_region) {
-> > +		untenanted_mem = mds->dc_region[0].base - mds->static_bytes;
-> > +		mds->total_bytes += untenanted_mem + mds->dynamic_bytes;
-> > +	}
-> > +
-> >  	if (!cxlds->media_ready) {
-> >  		cxlds->dpa_res = DEFINE_RES_MEM(0, 0);
-> >  		cxlds->ram_res = DEFINE_RES_MEM(0, 0);
-> > @@ -1305,6 +1465,15 @@ int cxl_mem_create_range_info(struct cxl_memdev_state *mds)
-> >  
-> >  	cxlds->dpa_res = DEFINE_RES_MEM(0, mds->total_bytes);
-> >  
-> > +	for (int i = 0; i < mds->nr_dc_region; i++) {
-> > +		struct cxl_dc_region_info *dcr = &mds->dc_region[i];
-> > +
-> > +		rc = add_dpa_res(dev, &cxlds->dpa_res, &cxlds->dc_res[i],
-> > +				 dcr->base, dcr->decode_len, dcr->name);
-> > +		if (rc)
-> > +			return rc;
-> > +	}
-> > +
-> >  	if (mds->partition_align_bytes == 0) {
-> >  		rc = add_dpa_res(dev, &cxlds->dpa_res, &cxlds->ram_res, 0,
-> >  				 mds->volatile_only_bytes, "ram");
-> > diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
-> > index f2f8b567e0e7..b4eb8164d05d 100644
-> > --- a/drivers/cxl/cxlmem.h
-> > +++ b/drivers/cxl/cxlmem.h
-> > @@ -402,6 +402,7 @@ enum cxl_devtype {
-> >  	CXL_DEVTYPE_CLASSMEM,
-> >  };
-> >  
-> > +#define CXL_MAX_DC_REGION 8
-> >  /**
-> >   * struct cxl_dpa_perf - DPA performance property entry
-> >   * @dpa_range: range for DPA address
-> > @@ -431,6 +432,8 @@ struct cxl_dpa_perf {
-> >   * @dpa_res: Overall DPA resource tree for the device
-> >   * @pmem_res: Active Persistent memory capacity configuration
-> >   * @ram_res: Active Volatile memory capacity configuration
-> > + * @dc_res: Active Dynamic Capacity memory configuration for each possible
-> > + *          region
-> >   * @serial: PCIe Device Serial Number
-> >   * @type: Generic Memory Class device or Vendor Specific Memory device
-> >   */
-> > @@ -445,10 +448,22 @@ struct cxl_dev_state {
-> >  	struct resource dpa_res;
-> >  	struct resource pmem_res;
-> >  	struct resource ram_res;
-> > +	struct resource dc_res[CXL_MAX_DC_REGION];
-> >  	u64 serial;
-> >  	enum cxl_devtype type;
-> >  };
-> >  
-> > +#define CXL_DC_REGION_STRLEN > +struct cxl_dc_region_info {
-> > +	u64 base;
-> > +	u64 decode_len;
-> > +	u64 len;
-> > +	u64 blk_size;
-> > +	u32 dsmad_handle;
-> > +	u8 flags;
-> > +	u8 name[CXL_DC_REGION_STRLEN];
-> > +};
-> 
-> Does this need kdoc comments?
-> 
-> 
-> > +
-> >  /**
-> >   * struct cxl_memdev_state - Generic Type-3 Memory Device Class driver data
-> >   *
-> > @@ -466,7 +481,9 @@ struct cxl_dev_state {
-> >   * @dcd_cmds: List of DCD commands implemented by memory device
-> >   * @enabled_cmds: Hardware commands found enabled in CEL.
-> >   * @exclusive_cmds: Commands that are kernel-internal only
-> > - * @total_bytes: sum of all possible capacities
-> > + * @total_bytes: length of all possible capacities
-> > + * @static_bytes: length of possible static RAM and PMEM partitions
-> > + * @dynamic_bytes: length of possible DC partitions (DC Regions)
-> 
-> Did this get added to the wrong struct comment header? 'cxl_dev_state' instead of 'cxl_memdev_state'?
-> >   * @volatile_only_bytes: hard volatile capacity
-> >   * @persistent_only_bytes: hard persistent capacity
-> >   * @partition_align_bytes: alignment size for partition-able capacity
-> > @@ -476,6 +493,8 @@ struct cxl_dev_state {
-> >   * @next_persistent_bytes: persistent capacity change pending device reset
-> >   * @ram_perf: performance data entry matched to RAM partition
-> >   * @pmem_perf: performance data entry matched to PMEM partition
-> > + * @nr_dc_region: number of DC regions implemented in the memory device
-> > + * @dc_region: array containing info about the DC regions
-> Did this get added to the wrong struct comment header? 'cxl_dev_state' instead of 'cxl_memdev_state'?
-> 
-> DJ
-> 
-> >   * @event: event log driver state
-> >   * @poison: poison driver state info
-> >   * @security: security driver state info
-> > @@ -496,6 +515,8 @@ struct cxl_memdev_state {
-> >  	DECLARE_BITMAP(enabled_cmds, CXL_MEM_COMMAND_ID_MAX);
-> >  	DECLARE_BITMAP(exclusive_cmds, CXL_MEM_COMMAND_ID_MAX);
-> >  	u64 total_bytes;
-> > +	u64 static_bytes;
-> > +	u64 dynamic_bytes;
-> >  	u64 volatile_only_bytes;
-> >  	u64 persistent_only_bytes;
-> >  	u64 partition_align_bytes;
-> > @@ -507,6 +528,9 @@ struct cxl_memdev_state {
-> >  	struct cxl_dpa_perf ram_perf;
-> >  	struct cxl_dpa_perf pmem_perf;
-> >  
-> > +	u8 nr_dc_region;
-> > +	struct cxl_dc_region_info dc_region[CXL_MAX_DC_REGION];
-> > +
-> >  	struct cxl_event_state event;
-> >  	struct cxl_poison_state poison;
-> >  	struct cxl_security_state security;
-> > @@ -709,6 +733,32 @@ struct cxl_mbox_set_partition_info {
-> >  
-> >  #define  CXL_SET_PARTITION_IMMEDIATE_FLAG	BIT(0)
-> >  
-> > +/* See CXL 3.1 Table 8-163 get dynamic capacity config Input Payload */
-> > +struct cxl_mbox_get_dc_config_in {
-> > +	u8 region_count;
-> > +	u8 start_region_index;
-> > +} __packed;
-> > +
-> > +/* See CXL 3.1 Table 8-164 get dynamic capacity config Output Payload */
-> > +struct cxl_mbox_get_dc_config_out {
-> > +	u8 avail_region_count;
-> > +	u8 regions_returned;
-> > +	u8 rsvd[6];
-> > +	/* See CXL 3.1 Table 8-165 */
-> > +	struct cxl_dc_region_config {
-> > +		__le64 region_base;
-> > +		__le64 region_decode_length;
-> > +		__le64 region_length;
-> > +		__le64 region_block_size;
-> > +		__le32 region_dsmad_handle;
-> > +		u8 flags;
-> > +		u8 rsvd[3];
-> > +	} __packed region[];
-> > +	/* Trailing fields unused */
-> > +} __packed;
-> > +#define CXL_DYNAMIC_CAPACITY_SANITIZE_ON_RELEASE_FLAG BIT(0)
-> > +#define CXL_DCD_BLOCK_LINE_SIZE 0x40
-> > +
-> >  /* Set Timestamp CXL 3.0 Spec 8.2.9.4.2 */
-> >  struct cxl_mbox_set_timestamp_in {
-> >  	__le64 timestamp;
-> > @@ -832,6 +882,7 @@ enum {
-> >  int cxl_internal_send_cmd(struct cxl_memdev_state *mds,
-> >  			  struct cxl_mbox_cmd *cmd);
-> >  int cxl_dev_state_identify(struct cxl_memdev_state *mds);
-> > +int cxl_dev_dynamic_capacity_identify(struct cxl_memdev_state *mds);
-> >  int cxl_await_media_ready(struct cxl_dev_state *cxlds);
-> >  int cxl_enumerate_cmds(struct cxl_memdev_state *mds);
-> >  int cxl_mem_create_range_info(struct cxl_memdev_state *mds);
-> > @@ -845,6 +896,17 @@ void cxl_event_trace_record(const struct cxl_memdev *cxlmd,
-> >  			    enum cxl_event_log_type type,
-> >  			    enum cxl_event_type event_type,
-> >  			    const uuid_t *uuid, union cxl_event *evt);
-> > +
-> > +static inline bool cxl_dcd_supported(struct cxl_memdev_state *mds)
-> > +{
-> > +	return test_bit(CXL_DCD_ENABLED_GET_CONFIG, mds->dcd_cmds);
-> > +}
-> > +
-> > +static inline void cxl_disable_dcd(struct cxl_memdev_state *mds)
-> > +{
-> > +	clear_bit(CXL_DCD_ENABLED_GET_CONFIG, mds->dcd_cmds);
-> > +}
-> > +
-> >  int cxl_set_timestamp(struct cxl_memdev_state *mds);
-> >  int cxl_poison_state_init(struct cxl_memdev_state *mds);
-> >  int cxl_mem_get_poison(struct cxl_memdev *cxlmd, u64 offset, u64 len,
-> > diff --git a/drivers/cxl/pci.c b/drivers/cxl/pci.c
-> > index 3a60cd66263e..f7f03599bc83 100644
-> > --- a/drivers/cxl/pci.c
-> > +++ b/drivers/cxl/pci.c
-> > @@ -874,6 +874,10 @@ static int cxl_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
-> >  	if (rc)
-> >  		return rc;
-> >  
-> > +	rc = cxl_dev_dynamic_capacity_identify(mds);
-> > +	if (rc)
-> > +		cxl_disable_dcd(mds);
-> > +
-> >  	rc = cxl_mem_create_range_info(mds);
-> >  	if (rc)
-> >  		return rc;
-> > 
+ drivers/nvdimm/nd_virtio.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/drivers/nvdimm/nd_virtio.c b/drivers/nvdimm/nd_virtio.c
+index 35c8fbbba10e..97addba06539 100644
+--- a/drivers/nvdimm/nd_virtio.c
++++ b/drivers/nvdimm/nd_virtio.c
+@@ -44,6 +44,15 @@ static int virtio_pmem_flush(struct nd_region *nd_region)
+ 	unsigned long flags;
+ 	int err, err1;
+ 
++	/*
++	 * Don't bother to submit the request to the device if the device is
++	 * not acticated.
++	 */
++	if (vdev->config->get_status(vdev) & VIRTIO_CONFIG_S_NEEDS_RESET) {
++		dev_info(&vdev->dev, "virtio pmem device needs a reset\n");
++		return -EIO;
++	}
++
+ 	might_sleep();
+ 	req_data = kmalloc(sizeof(*req_data), GFP_KERNEL);
+ 	if (!req_data)
+-- 
+2.46.0.184.g6999bdac58-goog
+
