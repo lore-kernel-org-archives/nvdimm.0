@@ -1,100 +1,115 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.20])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8057D17107F
-	for <nvdimm@lists.linux.dev>; Wed, 21 Aug 2024 21:58:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.8
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC3242B9AF
+	for <nvdimm@lists.linux.dev>; Wed, 21 Aug 2024 22:02:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.20
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724277484; cv=none; b=PXtXVAwyGf22kd7jA3nzg1mhTqCuxqz0Ye2M9dsdqhXM6jiGru7OsrZbgMrPFNbmC1+d5Dlz0xSJvCW50Y6ZOkGs8rl5dMpSRSXu1bBKG5HZkQ+p9OK9eVbsPMRH2zNcPdw+EHh1fFDwnUsH3SlATwcyApUVJhEnOmp0PtnU5ys=
+	t=1724277757; cv=none; b=UTMgcQXbpx4WreKsKLABa8FtQyaQK0hWSnPyeFHJMRV8PhlSuo3WJk/aSK9pa9vQPmjzT0w5Nc0eudtDjiHf60zjoFH29Iz/VMIIR0gWGLtng1bPlWNZWiUd9vxF9U3hlwnolLkGku3PLmO3JOv3fAmrLslMtMCJcbRiRRrGHRk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724277484; c=relaxed/simple;
-	bh=cOlACYZKtHsnvPUZM9UN9RaiV3c9s/mgV1Tu0lgqm7w=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=Pg/oYiIktK7UMaTa1aPjiNMTWzdC7MsnY/G6LOdx9u5fizb/vFJjQCCCdhZlu2ev/JQqqUvLxF7gCfEA5PWlpE7TJL+2ABEfLNBb+c8myhCTAOlHjZa1Z/EZHSKE2UWV9a9yp7j7xvUQB7R5aql5Ds5FmxmzdyqUcweuemWwlcY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=HIg5fW8e; arc=none smtp.client-ip=192.198.163.8
+	s=arc-20240116; t=1724277757; c=relaxed/simple;
+	bh=XpcIYFxdMfiXVwVMl70LjR7IwRuJQ+nY6Ji7PjxQTgc=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=ebeIG1QPF+tlaZ16Vq2eNpA6HIIPJOIkSWN6IidWaAfsLV3GBVo490zfa68i6Ix3e8o/SpFi7zQMVasviAHeOFL2U0u3kYg97I2UPmUkldRJexqACnQUMyHEHwy5CnPcNs0MbYgEggwvZBW0XNc1vGZe7xI6lz9jBHG28V8rhy4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Lf4Vfhbt; arc=none smtp.client-ip=198.175.65.20
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="HIg5fW8e"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Lf4Vfhbt"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1724277482; x=1755813482;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=cOlACYZKtHsnvPUZM9UN9RaiV3c9s/mgV1Tu0lgqm7w=;
-  b=HIg5fW8es4etlGttrFqIzUVUV6239XG7mHlmNcEmszA/+0G+0xqoaIHH
-   YnSYHRoj6RevIkgzPNCXZjVPveVHJd11UHgQxSfHw2SVgUf6T7/oT22dk
-   eKRKvqZt7AY/GssbONKmolzC5z51RNzMq56wJUnHB9di6cyIjhwi429yy
-   2Atz/ipPcQHzJ2gXDe/IEKo9PI/aOD8JBpG/kzWLB3BMvOa9hkNPPPzwL
-   zjbaqXQoHlzuUcIsRXHOXxwaQP9d+0gCYvgItVX6w2idsERps2Z3uf9iO
-   E/KyIerHvwDDmaM0k38I7+yAOODU/e/6cfAPfbwDsyUJV5mzrGR8zFriR
-   g==;
-X-CSE-ConnectionGUID: w9NlkDX9RUamFnHWdiCTlA==
-X-CSE-MsgGUID: BTlqv77JRHOUmpkqZKtfUw==
-X-IronPort-AV: E=McAfee;i="6700,10204,11171"; a="40178282"
+  t=1724277756; x=1755813756;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=XpcIYFxdMfiXVwVMl70LjR7IwRuJQ+nY6Ji7PjxQTgc=;
+  b=Lf4Vfhbt0OSGkZ1VZaOCVV6g36QaKT6LvYKYjZtQogKsCejwZnhMjS4L
+   PlK1KSrsd7kNzI9bOzYh9dAVLaQwjPz0/lbYwzs+/ggNioQS1UwRnUFAr
+   5/0yafBdeRgwEbDAfgio3Nylmvup/GLJBU7w+/RB7JKtvBOVxSchUas3e
+   FmL8nTyG7bh8XOj46UsBi5tePDUcQGwRcjTRxCGSbapmNRS8cyXmF+xvI
+   d9iiu38wyv5QI19Eg2hbLvbSftA+QXFW9n0/lNthqL31nvi5OYivCWmiE
+   DiwTiIhCRC79qAs9MFNsgDL/mmtuT2fQr4VvcBEK6C2CA3yyK+Xsgmptx
+   A==;
+X-CSE-ConnectionGUID: gsyJPkpmQ9Wbsy7wW9AZJg==
+X-CSE-MsgGUID: QT6PQK25SBahoRG9/rk/AA==
+X-IronPort-AV: E=McAfee;i="6700,10204,11171"; a="22476018"
 X-IronPort-AV: E=Sophos;i="6.10,165,1719903600"; 
-   d="scan'208";a="40178282"
-Received: from orviesa005.jf.intel.com ([10.64.159.145])
-  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Aug 2024 14:58:02 -0700
-X-CSE-ConnectionGUID: rnsB9i9hT6Wb1pAwi0Np/g==
-X-CSE-MsgGUID: K57G8qAISLeqwUOJxeLIbQ==
+   d="scan'208";a="22476018"
+Received: from orviesa002.jf.intel.com ([10.64.159.142])
+  by orvoesa112.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Aug 2024 15:02:35 -0700
+X-CSE-ConnectionGUID: sGFWKFpgQU2gXvL43iVT+g==
+X-CSE-MsgGUID: yu6Vj+vfS3uB2x+dmRhJ/w==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.10,165,1719903600"; 
-   d="scan'208";a="66109347"
-Received: from cmdeoliv-mobl.amr.corp.intel.com (HELO [10.125.108.204]) ([10.125.108.204])
-  by orviesa005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Aug 2024 14:58:01 -0700
-Message-ID: <69919815-0bb3-4364-9573-1ff61d74adfb@intel.com>
-Date: Wed, 21 Aug 2024 14:58:00 -0700
+   d="scan'208";a="91964229"
+Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.125.108.221])
+  by orviesa002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Aug 2024 15:02:35 -0700
+From: alison.schofield@intel.com
+To: Vishal Verma <vishal.l.verma@intel.com>,
+	nvdimm@lists.linux.dev
+Cc: Miroslav Suchy <mirek+github@lomenotecka.cz>
+Subject: [ndctl PATCH] ndctl.spec.in: use SPDX formula for license
+Date: Wed, 21 Aug 2024 15:02:29 -0700
+Message-ID: <20240821220232.105990-1-alison.schofield@intel.com>
+X-Mailer: git-send-email 2.46.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [ndctl PATCH] ndctl.spec.in: enable libtrace{event|fs} support
- for Fedora
-To: alison.schofield@intel.com, Vishal Verma <vishal.l.verma@intel.com>,
- nvdimm@lists.linux.dev
-Cc: Jerry James <loganjerry@gmail.com>
-References: <20240821214529.96966-1-alison.schofield@intel.com>
-Content-Language: en-US
-From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <20240821214529.96966-1-alison.schofield@intel.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
+From: Miroslav Suchy <mirek+github@lomenotecka.cz>
 
+According to SPEC v2, the operator has to be in the upper case.
 
-On 8/21/24 2:45 PM, alison.schofield@intel.com wrote:
-> From: Jerry James <loganjerry@gmail.com>
-> 
-> As noted in https://src.fedoraproject.org/rpms/ndctl/pull-request/2,
-> the expression "0%{?rhel}" evaluates to zero on Fedora, so the
-> conditional "%if 0%{?rhel} < 9" evaluates to true, since 0 is less
-> than 9. The result is that ndctl builds for Fedora lack support for
-> libtraceevent and libtracefs. Correct the expression.
-> 
-> Reposted here from github pull request:
-> https://github.com/pmem/ndctl/pull/266/
-> 
-> Signed-off-by: Jerry James <loganjerry@gmail.com>
+Reposted here from github pull request:
+https://github.com/pmem/ndctl/pull/265/
 
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-> ---
->  ndctl.spec.in | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/ndctl.spec.in b/ndctl.spec.in
-> index cb9cb6fe0b86..ea9fadc266d8 100644
-> --- a/ndctl.spec.in
-> +++ b/ndctl.spec.in
-> @@ -10,7 +10,7 @@ Requires:	LNAME%{?_isa} = %{version}-%{release}
->  Requires:	DAX_LNAME%{?_isa} = %{version}-%{release}
->  Requires:	CXL_LNAME%{?_isa} = %{version}-%{release}
->  BuildRequires:	autoconf
-> -%if 0%{?rhel} < 9
-> +%if 0%{?rhel} && 0%{?rhel} < 9
->  BuildRequires:	asciidoc
->  %define asciidoctor -Dasciidoctor=disabled
->  %define libtracefs -Dlibtracefs=disabled
+Signed-off-by: Miroslav Suchy <mirek+github@lomenotecka.cz>
+---
+ ndctl.spec.in | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/ndctl.spec.in b/ndctl.spec.in
+index ea9fadc266d8..ae9466c45192 100644
+--- a/ndctl.spec.in
++++ b/ndctl.spec.in
+@@ -2,7 +2,7 @@ Name:		ndctl
+ Version:	VERSION
+ Release:	1%{?dist}
+ Summary:	Manage "libnvdimm" subsystem devices (Non-volatile Memory)
+-License:	GPL-2.0-only and LGPL-2.1-only and CC0-1.0 and MIT
++License:	GPL-2.0-only AND LGPL-2.1-only AND CC0-1.0 AND MIT
+ Url:		https://github.com/pmem/ndctl
+ Source0:	https://github.com/pmem/%{name}/archive/v%{version}.tar.gz#/%{name}-%{version}.tar.gz
+ 
+@@ -98,7 +98,7 @@ mappings of performance / feature-differentiated memory.
+ 
+ %package -n LNAME
+ Summary:	Management library for "libnvdimm" subsystem devices (Non-volatile Memory)
+-License:	LGPL-2.1-only and CC0-1.0 and MIT
++License:	LGPL-2.1-only AND CC0-1.0 AND MIT
+ Requires:	DAX_LNAME%{?_isa} = %{version}-%{release}
+ 
+ 
+@@ -107,7 +107,7 @@ Libraries for %{name}.
+ 
+ %package -n DAX_LNAME
+ Summary:	Management library for "Device DAX" devices
+-License:	LGPL-2.1-only and CC0-1.0 and MIT
++License:	LGPL-2.1-only AND CC0-1.0 AND MIT
+ 
+ %description -n DAX_LNAME
+ Device DAX is a facility for establishing DAX mappings of performance /
+@@ -116,7 +116,7 @@ control API for these devices.
+ 
+ %package -n CXL_LNAME
+ Summary:	Management library for CXL devices
+-License:	LGPL-2.1-only and CC0-1.0 and MIT
++License:	LGPL-2.1-only AND CC0-1.0 AND MIT
+ 
+ %description -n CXL_LNAME
+ libcxl is a library for enumerating and communicating with CXL devices.
+-- 
+2.37.3
+
