@@ -1,32 +1,32 @@
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F8EF18BC0F
-	for <nvdimm@lists.linux.dev>; Fri, 23 Aug 2024 17:17:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 805B818C330
+	for <nvdimm@lists.linux.dev>; Fri, 23 Aug 2024 17:19:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724433460; cv=none; b=s4Ff6FVUe8TlKzemlsDB3dNP7lth4e4FGznzAX8Z2BVH19d5WBXC2y7q8k1NkTcZ2+kOBau6dD70R3UNXdsYabYbt5/BMlAww/ugNMDmzNL3Q+qAzYEtcUgzxCKx8AGHxW2WG/p3sMMCl2VtCOpZLy5wfdG/fQPdbdOUCiW0ZPo=
+	t=1724433548; cv=none; b=eG8nZLQbvEHKUEhHX5WJ9moz6kOEKw8jcKMTzPaxJU6l08jCVI7+j1Nk5zadqa0y3pxpUnbZWIzaQ8QLUbn/m45uIKTlKE+izzD6MSTyghNdZ5VsCE3ApRjmnFkfp7k4k25oY39nuadNSHmnFKZ52mK+2wisa1pmIZtjCTCeyL0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724433460; c=relaxed/simple;
-	bh=lCxMlrFWlPzZle8jCcnfTAfxOAP60K7Pgbx49ro+y4A=;
+	s=arc-20240116; t=1724433548; c=relaxed/simple;
+	bh=9YcnjxOmPwgsEbTMkN8O2cu3lgxmm8MAhniHGU3e9ic=;
 	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=Om+jnjKTYsyPNTyHxbckz9AMSY9d85fsbZjM+2uXMKbUBNzlYLdAgtErE/Km0k2p5DYHzAcxmYgXHBgWW5MxH30WZEJ9MEGyFCtP3MReKsMGoCGvty8o7CTxeFDUMVmjfmxsLKFBqrnbjuFc51U0l7VAWnb82vHsvTK2PVT2Evs=
+	 MIME-Version:Content-Type; b=gaUjZDjUcaNuZxxSsEbO9sBFQHhD35rdXlzFjjK9U4ls1L5UnfkKCN0VR2YsI9JbZKkyAFX5Kc8GtSi2Wf+C7L86D0eYYhiK79lfQNNgg96VxcnVu3r2A+M0RFeKrNczzZWsd9qARI32Yfd5FvBuiqaYBCqbgsYxO2Jz1SWaRqA=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.186.231])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Wr6BH29yqz6K5cY;
-	Sat, 24 Aug 2024 01:14:31 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.18.186.216])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Wr6CB5gLkz6J6xf;
+	Sat, 24 Aug 2024 01:15:18 +0800 (CST)
 Received: from lhrpeml500005.china.huawei.com (unknown [7.191.163.240])
-	by mail.maildlp.com (Postfix) with ESMTPS id 5CE3A140B33;
-	Sat, 24 Aug 2024 01:17:36 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id 778E9140447;
+	Sat, 24 Aug 2024 01:19:04 +0800 (CST)
 Received: from localhost (10.203.177.66) by lhrpeml500005.china.huawei.com
  (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Fri, 23 Aug
- 2024 18:17:35 +0100
-Date: Fri, 23 Aug 2024 18:17:34 +0100
+ 2024 18:19:03 +0100
+Date: Fri, 23 Aug 2024 18:19:03 +0100
 From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-To: Ira Weiny <ira.weiny@intel.com>
+To: <ira.weiny@intel.com>
 CC: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, "Navneet
  Singh" <navneet.singh@intel.com>, Chris Mason <clm@fb.com>, Josef Bacik
 	<josef@toxicpanda.com>, David Sterba <dsterba@suse.com>, Petr Mladek
@@ -41,12 +41,10 @@ CC: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, "Navneet
 	<linux-doc@vger.kernel.org>, <nvdimm@lists.linux.dev>
 Subject: Re: [PATCH v3 19/25] cxl/region/extent: Expose region extent
  information in sysfs
-Message-ID: <20240823181734.000022bb@Huawei.com>
-In-Reply-To: <66c7faba90d0a_1719d294b@iweiny-mobl.notmuch>
+Message-ID: <20240823181903.000064c2@Huawei.com>
+In-Reply-To: <20240816-dcd-type2-upstream-v3-19-7c9b96cba6d7@intel.com>
 References: <20240816-dcd-type2-upstream-v3-0-7c9b96cba6d7@intel.com>
 	<20240816-dcd-type2-upstream-v3-19-7c9b96cba6d7@intel.com>
-	<63cfd343-763e-4f7a-a1cc-857927a7282c@intel.com>
-	<66c7faba90d0a_1719d294b@iweiny-mobl.notmuch>
 Organization: Huawei Technologies Research and Development (UK) Ltd.
 X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
@@ -60,89 +58,27 @@ Content-Transfer-Encoding: 7bit
 X-ClientProxiedBy: lhrpeml500005.china.huawei.com (7.191.163.240) To
  lhrpeml500005.china.huawei.com (7.191.163.240)
 
-On Thu, 22 Aug 2024 21:58:02 -0500
-Ira Weiny <ira.weiny@intel.com> wrote:
+On Fri, 16 Aug 2024 09:44:27 -0500
+ira.weiny@intel.com wrote:
 
-> Dave Jiang wrote:
-> > 
-> > 
-> > On 8/16/24 7:44 AM, ira.weiny@intel.com wrote:  
-> > > From: Navneet Singh <navneet.singh@intel.com>
-> > > 
-> > > Extent information can be helpful to the user to coordinate memory usage
-> > > with the external orchestrator and FM.
-> > > 
-> > > Expose the details of region extents by creating the following
-> > > sysfs entries.
-> > > 
-> > >         /sys/bus/cxl/devices/dax_regionX/extentX.Y
-> > >         /sys/bus/cxl/devices/dax_regionX/extentX.Y/offset
-> > >         /sys/bus/cxl/devices/dax_regionX/extentX.Y/length
-> > >         /sys/bus/cxl/devices/dax_regionX/extentX.Y/tag
-> > > 
-> > > Signed-off-by: Navneet Singh <navneet.singh@intel.com>
-> > > Co-developed-by: Ira Weiny <ira.weiny@intel.com>
-> > > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-> > > 
-> > > ---
-> > > Changes:
-> > > [iweiny: split this out]
-> > > [Jonathan: add documentation for extent sysfs]
-> > > [Jonathan/djbw: s/label/tag]
-> > > [Jonathan/djbw: treat tag as uuid]
-> > > [djbw: use __ATTRIBUTE_GROUPS]
-> > > [djbw: make tag invisible if it is empty]
-> > > [djbw/iweiny: use conventional id names for extents; extentX.Y]
-> > > ---
-> > >  Documentation/ABI/testing/sysfs-bus-cxl | 13 ++++++++
-> > >  drivers/cxl/core/extent.c               | 58 +++++++++++++++++++++++++++++++++
-> > >  2 files changed, 71 insertions(+)
-> > > 
-> > > diff --git a/Documentation/ABI/testing/sysfs-bus-cxl b/Documentation/ABI/testing/sysfs-bus-cxl
-> > > index 3a5ee88e551b..e97e6a73c960 100644
-> > > --- a/Documentation/ABI/testing/sysfs-bus-cxl
-> > > +++ b/Documentation/ABI/testing/sysfs-bus-cxl
-> > > @@ -599,3 +599,16 @@ Description:
-> > >  		See Documentation/ABI/stable/sysfs-devices-node. access0 provides
-> > >  		the number to the closest initiator and access1 provides the
-> > >  		number to the closest CPU.
-> > > +
-> > > +What:		/sys/bus/cxl/devices/dax_regionX/extentX.Y/offset
-> > > +		/sys/bus/cxl/devices/dax_regionX/extentX.Y/length
-> > > +		/sys/bus/cxl/devices/dax_regionX/extentX.Y/tag  
-> > 
-> > I wonder consider an entry for each with their own descriptions, which seems to be the standard practice.  
+> From: Navneet Singh <navneet.singh@intel.com>
 > 
-> :-/  Except kind of for the access'.
+> Extent information can be helpful to the user to coordinate memory usage
+> with the external orchestrator and FM.
 > 
-> What:           /sys/bus/cxl/devices/regionZ/accessY/read_bandwidth
->                 /sys/bus/cxl/devices/regionZ/accessY/write_banwidth
+> Expose the details of region extents by creating the following
+> sysfs entries.
 > 
-> What:           /sys/bus/cxl/devices/regionZ/accessY/read_latency
->                 /sys/bus/cxl/devices/regionZ/accessY/write_latency
+>         /sys/bus/cxl/devices/dax_regionX/extentX.Y
+>         /sys/bus/cxl/devices/dax_regionX/extentX.Y/offset
+>         /sys/bus/cxl/devices/dax_regionX/extentX.Y/length
+>         /sys/bus/cxl/devices/dax_regionX/extentX.Y/tag
 > 
-> But I think you have a point.
+> Signed-off-by: Navneet Singh <navneet.singh@intel.com>
+> Co-developed-by: Ira Weiny <ira.weiny@intel.com>
+> Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+> 
+LGTM with or without the docs split.
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 
-It's a balance between complexity and repetition.
-
-E.g. https://elixir.bootlin.com/linux/v6.11-rc4/source/Documentation/ABI/testing/sysfs-bus-iio#L427
-is one of these files I know far too well. That would be a lot
-of very boring repetition and that doc is long enough without breaking them up.
-
-Here there are only 3 and a good bit of description differs so
-probably good to split up.
-
-Less so for bandwidth and latency cases.
-
-Jonathan
-
-> 
-> Ira
-> 
-> > 
-> > DJ
-> >   
-> 
-> [snip]
-> 
 
