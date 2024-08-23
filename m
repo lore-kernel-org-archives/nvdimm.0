@@ -1,32 +1,32 @@
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C304C18951F
-	for <nvdimm@lists.linux.dev>; Fri, 23 Aug 2024 16:12:05 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBDF418BBB9
+	for <nvdimm@lists.linux.dev>; Fri, 23 Aug 2024 16:14:53 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724429527; cv=none; b=tzcqPIZ2uauBypoQPQjoE17M3U+SGbuRYzuVkiObLT3IF+wYBB/fVb6V4meuNOHd2DAz1qlWfld6q7Xs8qcWVmVw+mcDOpGHL3WbiMe/BqrpDeul5or3Cs84dJwljhhQxpnHU/iC2oUaB0R3GbFEcpcNaEan/1SQjnxwwOqt7V8=
+	t=1724429696; cv=none; b=YXTRSz0PqUnQcKpD9hhQD16spPrIem9iwLFFshMO9HeMwloAuZxo8tePNDzCTh58eFV1I4MGrg6aPMjnl6ygV8Clj/qSUds/C3ufObY0a6J9KidXMhyAlMEdkMguanExmTR4BcZoImujWu3dYkcWN9WFmnvRpLn9rlKEm4px7Sk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724429527; c=relaxed/simple;
-	bh=3dYKG2DfHbW1V+iGO4dmOTBuqPn+Ps/jc7tgE6aRCXg=;
+	s=arc-20240116; t=1724429696; c=relaxed/simple;
+	bh=BxE+Xupm139zg462Cjs0vMijPCyBQD6iq3AylruF/IM=;
 	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=S82whBp0BIaK+SHSvBIrp7l2qg5MHUQwKiXIQYRM9YTZzhU+bB/P+MBHS1/jxJr56y5vf4e9kNALMAnqT7bsyU6m2OhiF2TMnX66A64+ckPfiJ/mbxsU+qlPtG3CsI0N25Zkav4ITj3gQnhm7XT6QC8lRphK1MKp2yWU19x+rHI=
+	 MIME-Version:Content-Type; b=hyKpcwUcL5V2mKaX0h8Lu4gcxeVKe9r6muFJIbXBI5NeLWEN5V27yow43uDXvqviVL5dJhvoBPyiS3437lmbpUd8rZkloByri79ZIGfJIlegZGYF+5qtV2ee5CKKdY2kPluRUL5B+/a3jzDNG/+hMrG+XEg9qhzj51eCKl+dMpg=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.186.231])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Wr4js3j79z6J6NQ;
-	Sat, 24 Aug 2024 00:08:17 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.18.186.216])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Wr4nt5mdWz6K61S;
+	Sat, 24 Aug 2024 00:11:46 +0800 (CST)
 Received: from lhrpeml500005.china.huawei.com (unknown [7.191.163.240])
-	by mail.maildlp.com (Postfix) with ESMTPS id 119C4140B38;
-	Sat, 24 Aug 2024 00:12:03 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id B97A3140A35;
+	Sat, 24 Aug 2024 00:14:51 +0800 (CST)
 Received: from localhost (10.203.177.66) by lhrpeml500005.china.huawei.com
  (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Fri, 23 Aug
- 2024 17:12:02 +0100
-Date: Fri, 23 Aug 2024 17:12:01 +0100
+ 2024 17:14:51 +0100
+Date: Fri, 23 Aug 2024 17:14:50 +0100
 From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-To: <ira.weiny@intel.com>
+To: Ira Weiny <ira.weiny@intel.com>
 CC: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, "Navneet
  Singh" <navneet.singh@intel.com>, Chris Mason <clm@fb.com>, Josef Bacik
 	<josef@toxicpanda.com>, David Sterba <dsterba@suse.com>, Petr Mladek
@@ -39,12 +39,14 @@ CC: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, "Navneet
 	<vishal.l.verma@intel.com>, <linux-btrfs@vger.kernel.org>,
 	<linux-cxl@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
 	<linux-doc@vger.kernel.org>, <nvdimm@lists.linux.dev>
-Subject: Re: [PATCH v3 10/25] cxl/port: Add endpoint decoder DC mode support
- to sysfs
-Message-ID: <20240823171201.00003f48@Huawei.com>
-In-Reply-To: <20240816-dcd-type2-upstream-v3-10-7c9b96cba6d7@intel.com>
+Subject: Re: [PATCH v3 11/25] cxl/mem: Expose DCD partition capabilities in
+ sysfs
+Message-ID: <20240823171450.00007af4@Huawei.com>
+In-Reply-To: <66c7f3d977851_1719d29424@iweiny-mobl.notmuch>
 References: <20240816-dcd-type2-upstream-v3-0-7c9b96cba6d7@intel.com>
-	<20240816-dcd-type2-upstream-v3-10-7c9b96cba6d7@intel.com>
+	<20240816-dcd-type2-upstream-v3-11-7c9b96cba6d7@intel.com>
+	<8649e30c-a43a-4096-a32f-e31bf3e71d90@intel.com>
+	<66c7f3d977851_1719d29424@iweiny-mobl.notmuch>
 Organization: Huawei Technologies Research and Development (UK) Ltd.
 X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
@@ -58,19 +60,74 @@ Content-Transfer-Encoding: 7bit
 X-ClientProxiedBy: lhrpeml100001.china.huawei.com (7.191.160.183) To
  lhrpeml500005.china.huawei.com (7.191.163.240)
 
-On Fri, 16 Aug 2024 09:44:18 -0500
-ira.weiny@intel.com wrote:
+On Thu, 22 Aug 2024 21:28:41 -0500
+Ira Weiny <ira.weiny@intel.com> wrote:
 
-> From: Navneet Singh <navneet.singh@intel.com>
+> Dave Jiang wrote:
+> > 
+> > 
+> > On 8/16/24 7:44 AM, ira.weiny@intel.com wrote:  
+> > > From: Navneet Singh <navneet.singh@intel.com>
+> > > 
+> > > To properly configure CXL regions on Dynamic Capacity Devices (DCD),
+> > > user space will need to know the details of the DC partitions available.
+> > > 
+> > > Expose dynamic capacity capabilities through sysfs.
+> > > 
+> > > Signed-off-by: Navneet Singh <navneet.singh@intel.com>
+> > > Co-developed-by: Ira Weiny <ira.weiny@intel.com>
+> > > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+> > > 
+> > > ---
+> > > Changes:
+> > > [iweiny: remove review tags]
+> > > [Davidlohr/Fan/Jonathan: omit 'dc' attribute directory if device is not DC]
+> > > [Jonathan: update documentation for dc visibility]
+> > > [Jonathan: Add a comment to DC region X attributes to ensure visibility checks work]
+> > > [iweiny: push sysfs version to 6.12]
+> > > ---
+> > >  Documentation/ABI/testing/sysfs-bus-cxl | 12 ++++
+> > >  drivers/cxl/core/memdev.c               | 97 +++++++++++++++++++++++++++++++++
+> > >  2 files changed, 109 insertions(+)
+> > > 
+> > > diff --git a/Documentation/ABI/testing/sysfs-bus-cxl b/Documentation/ABI/testing/sysfs-bus-cxl
+> > > index 957717264709..6227ae0ab3fc 100644
+> > > --- a/Documentation/ABI/testing/sysfs-bus-cxl
+> > > +++ b/Documentation/ABI/testing/sysfs-bus-cxl
+> > > @@ -54,6 +54,18 @@ Description:
+> > >  		identically named field in the Identify Memory Device Output
+> > >  		Payload in the CXL-2.0 specification.
+> > >  
+> > > +What:		/sys/bus/cxl/devices/memX/dc/region_count
+> > > +		/sys/bus/cxl/devices/memX/dc/regionY_size  
+> > 
+> > Just make it into 2 separate entries?  
 > 
-> Endpoint decoder mode is used to represent the partition the decoder
-> points to such as ram or pmem.
+> Do you mean in the docs?
+
+Assuming yes, then I think it would be cleaner as two separate entries
++ Maybe even one for the directory which can then have
+the visibility statement.
+
 > 
-> Expand the mode to allow a decoder to point to a specific DC partition
-> (Region).
+> Ira
 > 
-> Signed-off-by: Navneet Singh <navneet.singh@intel.com>
-> Co-developed-by: Ira Weiny <ira.weiny@intel.com>
-> Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+> > 
+> > DJ  
+> > > +Date:		August, 2024
+> > > +KernelVersion:	v6.12
+> > > +Contact:	linux-cxl@vger.kernel.org
+> > > +Description:
+> > > +		(RO) Dynamic Capacity (DC) region information.  The dc
+> > > +		directory is only visible on devices which support Dynamic
+> > > +		Capacity.
+> > > +		The region_count is the number of Dynamic Capacity (DC)
+> > > +		partitions (regions) supported on the device.
+> > > +		regionY_size is the size of each of those partitions.
+> > >  
+> > >  What:		/sys/bus/cxl/devices/memX/pmem/qos_class
+> > >  Date:		May, 2023  
 > 
-Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+> [snip]
+> 
+
