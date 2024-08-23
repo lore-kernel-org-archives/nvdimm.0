@@ -1,32 +1,32 @@
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18AE31586D3
-	for <nvdimm@lists.linux.dev>; Fri, 23 Aug 2024 15:29:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A89BE3BBC0
+	for <nvdimm@lists.linux.dev>; Fri, 23 Aug 2024 15:45:21 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724426967; cv=none; b=Uvhjw3GzHMKhjc87/jVRpjcgpcj1PHpaVUd6SyUD0yQgH22VEwY4PM5J/jT1adxIFAvyrzXLwIchxY/NFQPKDXXU5pLy4Einmkn7OrdNAVseDiylcnzAW/n8GibSVWNhyXMLajNvFyw+xhswSJfsp6SxzZ0FnB6BKy9/wGEPPpg=
+	t=1724427926; cv=none; b=J35nnEvZisT33MZS885LmmipAa+koQfwNobCH/+/QZz7zVrbh3zExiEdE4B3NGYI3Bkgjp3Y41M4aPHSTk0NFBNDehQi/mpeKm3kZdlc8l4f0pZzIV/mZutJq4hMpUO1B/5fd21/a6WUtA6/cnCaxN/p4zEI5AAvtjtyCneneSE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724426967; c=relaxed/simple;
-	bh=vNWE4X7Od6kSV4yDxo0oIPx0nA4irekSzmDpa0S/wGY=;
+	s=arc-20240116; t=1724427926; c=relaxed/simple;
+	bh=CzupNLRF1vQTFUxTcn/lPPkKvPVSkSGp3Lg+piaVSrA=;
 	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=ejNNAlb7b55Kr/FyTDErv4CseejJupE/aPiOXYR9RzUkJrouOQNel/DZMuxnYD2ACnPq5hItIjzsNE/t6eUR7z79pfLP8LLz3BHL+to03Mat4BmU66nE8D3BgdJ4nm26L00FA/hQ6aAP4Kn01rEYCkVbyTiAhfpn+SEma+uJj5I=
+	 MIME-Version:Content-Type; b=adau4vrYyATdJHTQLHb8vKWYhijLsebR30CtC0r9glMe9DGYtJwON+56RZRNFcELjoZxHv9cOtvMdCduHO8nYxDdysJG/XAJAred2SvdnSP+eg85u33j10DUQfJSymrfz2paJ4hb9MLRIM8NaNza4Qze3yK7rEn6ne5tFwrI5u4=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.186.216])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Wr3nK21MZz6K92Z;
-	Fri, 23 Aug 2024 23:26:13 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.18.186.31])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Wr47p1Xvcz6K5mK;
+	Fri, 23 Aug 2024 23:42:14 +0800 (CST)
 Received: from lhrpeml500005.china.huawei.com (unknown [7.191.163.240])
-	by mail.maildlp.com (Postfix) with ESMTPS id 50064140D1A;
-	Fri, 23 Aug 2024 23:29:22 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id 1A4C014065B;
+	Fri, 23 Aug 2024 23:45:19 +0800 (CST)
 Received: from localhost (10.203.177.66) by lhrpeml500005.china.huawei.com
  (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Fri, 23 Aug
- 2024 16:29:20 +0100
-Date: Fri, 23 Aug 2024 16:29:19 +0100
+ 2024 16:45:18 +0100
+Date: Fri, 23 Aug 2024 16:45:17 +0100
 From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-To: Ira Weiny <ira.weiny@intel.com>
+To: <ira.weiny@intel.com>
 CC: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, "Navneet
  Singh" <navneet.singh@intel.com>, Chris Mason <clm@fb.com>, Josef Bacik
 	<josef@toxicpanda.com>, David Sterba <dsterba@suse.com>, Petr Mladek
@@ -38,12 +38,14 @@ CC: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, "Navneet
 	Alison Schofield <alison.schofield@intel.com>, Vishal Verma
 	<vishal.l.verma@intel.com>, <linux-btrfs@vger.kernel.org>,
 	<linux-cxl@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-doc@vger.kernel.org>, <nvdimm@lists.linux.dev>
-Subject: Re: [PATCH v3 03/25] dax: Document dax dev range tuple
-Message-ID: <20240823162919.000029e5@Huawei.com>
-In-Reply-To: <20240816-dcd-type2-upstream-v3-3-7c9b96cba6d7@intel.com>
+	<linux-doc@vger.kernel.org>, <nvdimm@lists.linux.dev>, "Li, Ming"
+	<ming4.li@intel.com>
+Subject: Re: [PATCH v3 06/25] cxl/mem: Read dynamic capacity configuration
+ from the device
+Message-ID: <20240823164517.00001d11@Huawei.com>
+In-Reply-To: <20240816-dcd-type2-upstream-v3-6-7c9b96cba6d7@intel.com>
 References: <20240816-dcd-type2-upstream-v3-0-7c9b96cba6d7@intel.com>
-	<20240816-dcd-type2-upstream-v3-3-7c9b96cba6d7@intel.com>
+	<20240816-dcd-type2-upstream-v3-6-7c9b96cba6d7@intel.com>
 Organization: Huawei Technologies Research and Development (UK) Ltd.
 X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
@@ -54,50 +56,37 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: lhrpeml500004.china.huawei.com (7.191.163.9) To
+X-ClientProxiedBy: lhrpeml500002.china.huawei.com (7.191.160.78) To
  lhrpeml500005.china.huawei.com (7.191.163.240)
 
-On Fri, 16 Aug 2024 09:44:11 -0500
-Ira Weiny <ira.weiny@intel.com> wrote:
+On Fri, 16 Aug 2024 09:44:14 -0500
+ira.weiny@intel.com wrote:
 
-> The device DAX structure is being enhanced to track additional DCD
-> information.
+> From: Navneet Singh <navneet.singh@intel.com>
 > 
-> The current range tuple was not fully documented.  Document it prior to
-> adding information for DC.
+> Devices which optionally support Dynamic Capacity (DC) are configured
+> via mailbox commands.  CXL 3.1 requires the host to issue the Get DC
+> Configuration command in order to properly configure DCDs.  Without the
+> Get DC Configuration command DCD can't be supported.
 > 
-> Suggested-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+> Implement the DC mailbox commands as specified in CXL 3.1 section
+> 8.2.9.9.9 (opcodes 48XXh) to read and store the DCD configuration
+> information.  Disable DCD if DCD is not supported.  Leverage the Get DC
+> Configuration command supported bit to indicate if DCD support.
+> 
+> Linux has no use for the trailing fields of the Get Dynamic Capacity
+> Configuration Output Payload (Total number of supported extents, number
+> of available extents, total number of supported tags, and number of
+> available tags).  Avoid defining those fields to use the more useful
+> dynamic C array.
+> 
+> Cc: "Li, Ming" <ming4.li@intel.com>
+> Signed-off-by: Navneet Singh <navneet.singh@intel.com>
+> Co-developed-by: Ira Weiny <ira.weiny@intel.com>
 > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-> 
-> ---
-> Changes:
-> [iweiny: move to start of series]
-> ---
->  drivers/dax/dax-private.h | 5 ++++-
->  1 file changed, 4 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/dax/dax-private.h b/drivers/dax/dax-private.h
-> index 446617b73aea..ccde98c3d4e2 100644
-> --- a/drivers/dax/dax-private.h
-> +++ b/drivers/dax/dax-private.h
-> @@ -58,7 +58,10 @@ struct dax_mapping {
->   * @dev - device core
->   * @pgmap - pgmap for memmap setup / lifetime (driver owned)
->   * @nr_range: size of @ranges
-> - * @ranges: resource-span + pgoff tuples for the instance
-> + * @ranges: range tuples of memory used
-> + * @pgoff: page offset
-> + * @range: resource-span
-> + * @mapping: device to assist in interrogating the range layout
-I think the kernel doc format for this should be
-@ranges.pgoff: etc
-https://docs.kernel.org/doc-guide/kernel-doc.html#nested-structs-unions
+LGTM
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+If you can get rid of the <nil> thing even better.
 
-Though not quite sure what happens for pointers to structures, maybe
-this is correct as it stands?
 
->   */
->  struct dev_dax {
->  	struct dax_region *region;
-> 
 
