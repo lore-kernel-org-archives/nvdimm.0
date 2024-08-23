@@ -1,147 +1,103 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4E901CD3D
-	for <nvdimm@lists.linux.dev>; Fri, 23 Aug 2024 14:58:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.21
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18AE31586D3
+	for <nvdimm@lists.linux.dev>; Fri, 23 Aug 2024 15:29:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724425101; cv=none; b=NRshCV6hDiSfMh4AVfuV9S/b/WCoemuJHUcHPUGhmTgZr4c+/x42Bo9R41BycQkINqwExf3/sy+xdoBmfSdJ4pfVgEEThTavgNVkJAfia7rfAgGw7wvdKfrM1nSUA7KvXV0sAi01vOqKT1/Ec6tEnQfpdhC5qi1Xr5RZesurWK0=
+	t=1724426967; cv=none; b=Uvhjw3GzHMKhjc87/jVRpjcgpcj1PHpaVUd6SyUD0yQgH22VEwY4PM5J/jT1adxIFAvyrzXLwIchxY/NFQPKDXXU5pLy4Einmkn7OrdNAVseDiylcnzAW/n8GibSVWNhyXMLajNvFyw+xhswSJfsp6SxzZ0FnB6BKy9/wGEPPpg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724425101; c=relaxed/simple;
-	bh=RIJ5IMLUqYoUq4w2rKXmJ74g66XrLOMkScgxzSKyVKg=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=FgdDyUn6Dia7QCHtF2e1l8tP4gj4AxjGIGnN54/W65sjmg78ZEDJz40mrOEkLt7E6ttTgXLBfU4yyM9TRIEnA+XNifdRmAaRTNl549F0MmuDl8PMKZkTfqCJ9VWnnCJQnXIMZ/eOUFY+Y66ScSmlCIBltnfP1xns8p4zLGj1qB8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=lQ/y7QTe; arc=none smtp.client-ip=198.175.65.21
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="lQ/y7QTe"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1724425100; x=1755961100;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=RIJ5IMLUqYoUq4w2rKXmJ74g66XrLOMkScgxzSKyVKg=;
-  b=lQ/y7QTeRM2aZo7/WzqgjR9igD9SajGlBZNL9ZhHSYDqTayVSdWa9hDy
-   Ouhhjoc3eTLsJg7GmIut29fAQlbYYBhuMmYqqqfgo7NA/hunlr54BPRNO
-   ohZFs5gOVQz8Pp6NkIn6zPQe7qeKMHxlVsEj7l4iABUsGV8WXZgMR4WVs
-   tzF3CtJ28l0zC9w6Bkr0foRStqXUkDyrb26aOmyktiGwv7mYIbqLTbKvy
-   FlwaOf0155ebX2YY62g14WEPNFByIOuk/zNx4EJ0QZ0J3NlcoEfo/csSb
-   bFPsFxVkZb23cz2ImIHfHPYw64txQtmsrBof8n+PRbzgtd28B+7d7JsGr
-   g==;
-X-CSE-ConnectionGUID: q9sbkBqBTdC09C0gxmCRnA==
-X-CSE-MsgGUID: QI0hlodBQTuCKZVEVcuzZg==
-X-IronPort-AV: E=McAfee;i="6700,10204,11172"; a="22862812"
-X-IronPort-AV: E=Sophos;i="6.10,170,1719903600"; 
-   d="scan'208";a="22862812"
-Received: from fmviesa009.fm.intel.com ([10.60.135.149])
-  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Aug 2024 07:58:19 -0700
-X-CSE-ConnectionGUID: bNjA9O0OSZmslLXYetSkMA==
-X-CSE-MsgGUID: rBapzcb8TcuJ5Q1s3IeObw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.10,170,1719903600"; 
-   d="scan'208";a="61839719"
-Received: from mgoodin-mobl2.amr.corp.intel.com (HELO [10.125.109.176]) ([10.125.109.176])
-  by fmviesa009-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Aug 2024 07:58:16 -0700
-Message-ID: <9f5b072c-59eb-40c0-a121-1ac06f9c38d7@intel.com>
-Date: Fri, 23 Aug 2024 07:58:15 -0700
+	s=arc-20240116; t=1724426967; c=relaxed/simple;
+	bh=vNWE4X7Od6kSV4yDxo0oIPx0nA4irekSzmDpa0S/wGY=;
+	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=ejNNAlb7b55Kr/FyTDErv4CseejJupE/aPiOXYR9RzUkJrouOQNel/DZMuxnYD2ACnPq5hItIjzsNE/t6eUR7z79pfLP8LLz3BHL+to03Mat4BmU66nE8D3BgdJ4nm26L00FA/hQ6aAP4Kn01rEYCkVbyTiAhfpn+SEma+uJj5I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.18.186.216])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Wr3nK21MZz6K92Z;
+	Fri, 23 Aug 2024 23:26:13 +0800 (CST)
+Received: from lhrpeml500005.china.huawei.com (unknown [7.191.163.240])
+	by mail.maildlp.com (Postfix) with ESMTPS id 50064140D1A;
+	Fri, 23 Aug 2024 23:29:22 +0800 (CST)
+Received: from localhost (10.203.177.66) by lhrpeml500005.china.huawei.com
+ (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Fri, 23 Aug
+ 2024 16:29:20 +0100
+Date: Fri, 23 Aug 2024 16:29:19 +0100
+From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+To: Ira Weiny <ira.weiny@intel.com>
+CC: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, "Navneet
+ Singh" <navneet.singh@intel.com>, Chris Mason <clm@fb.com>, Josef Bacik
+	<josef@toxicpanda.com>, David Sterba <dsterba@suse.com>, Petr Mladek
+	<pmladek@suse.com>, Steven Rostedt <rostedt@goodmis.org>, Andy Shevchenko
+	<andriy.shevchenko@linux.intel.com>, Rasmus Villemoes
+	<linux@rasmusvillemoes.dk>, Sergey Senozhatsky <senozhatsky@chromium.org>,
+	Jonathan Corbet <corbet@lwn.net>, Andrew Morton <akpm@linux-foundation.org>,
+	Dan Williams <dan.j.williams@intel.com>, Davidlohr Bueso <dave@stgolabs.net>,
+	Alison Schofield <alison.schofield@intel.com>, Vishal Verma
+	<vishal.l.verma@intel.com>, <linux-btrfs@vger.kernel.org>,
+	<linux-cxl@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-doc@vger.kernel.org>, <nvdimm@lists.linux.dev>
+Subject: Re: [PATCH v3 03/25] dax: Document dax dev range tuple
+Message-ID: <20240823162919.000029e5@Huawei.com>
+In-Reply-To: <20240816-dcd-type2-upstream-v3-3-7c9b96cba6d7@intel.com>
+References: <20240816-dcd-type2-upstream-v3-0-7c9b96cba6d7@intel.com>
+	<20240816-dcd-type2-upstream-v3-3-7c9b96cba6d7@intel.com>
+Organization: Huawei Technologies Research and Development (UK) Ltd.
+X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v3 11/25] cxl/mem: Expose DCD partition capabilities in
- sysfs
-To: Ira Weiny <ira.weiny@intel.com>, Fan Ni <fan.ni@samsung.com>,
- Jonathan Cameron <Jonathan.Cameron@huawei.com>,
- Navneet Singh <navneet.singh@intel.com>, Chris Mason <clm@fb.com>,
- Josef Bacik <josef@toxicpanda.com>, David Sterba <dsterba@suse.com>,
- Petr Mladek <pmladek@suse.com>, Steven Rostedt <rostedt@goodmis.org>,
- Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
- Rasmus Villemoes <linux@rasmusvillemoes.dk>,
- Sergey Senozhatsky <senozhatsky@chromium.org>,
- Jonathan Corbet <corbet@lwn.net>, Andrew Morton <akpm@linux-foundation.org>
-Cc: Dan Williams <dan.j.williams@intel.com>,
- Davidlohr Bueso <dave@stgolabs.net>,
- Alison Schofield <alison.schofield@intel.com>,
- Vishal Verma <vishal.l.verma@intel.com>, linux-btrfs@vger.kernel.org,
- linux-cxl@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-doc@vger.kernel.org, nvdimm@lists.linux.dev
-References: <20240816-dcd-type2-upstream-v3-0-7c9b96cba6d7@intel.com>
- <20240816-dcd-type2-upstream-v3-11-7c9b96cba6d7@intel.com>
- <8649e30c-a43a-4096-a32f-e31bf3e71d90@intel.com>
- <66c7f3d977851_1719d29424@iweiny-mobl.notmuch>
-Content-Language: en-US
-From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <66c7f3d977851_1719d29424@iweiny-mobl.notmuch>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: lhrpeml500004.china.huawei.com (7.191.163.9) To
+ lhrpeml500005.china.huawei.com (7.191.163.240)
 
+On Fri, 16 Aug 2024 09:44:11 -0500
+Ira Weiny <ira.weiny@intel.com> wrote:
 
+> The device DAX structure is being enhanced to track additional DCD
+> information.
+> 
+> The current range tuple was not fully documented.  Document it prior to
+> adding information for DC.
+> 
+> Suggested-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+> Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+> 
+> ---
+> Changes:
+> [iweiny: move to start of series]
+> ---
+>  drivers/dax/dax-private.h | 5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/dax/dax-private.h b/drivers/dax/dax-private.h
+> index 446617b73aea..ccde98c3d4e2 100644
+> --- a/drivers/dax/dax-private.h
+> +++ b/drivers/dax/dax-private.h
+> @@ -58,7 +58,10 @@ struct dax_mapping {
+>   * @dev - device core
+>   * @pgmap - pgmap for memmap setup / lifetime (driver owned)
+>   * @nr_range: size of @ranges
+> - * @ranges: resource-span + pgoff tuples for the instance
+> + * @ranges: range tuples of memory used
+> + * @pgoff: page offset
+> + * @range: resource-span
+> + * @mapping: device to assist in interrogating the range layout
+I think the kernel doc format for this should be
+@ranges.pgoff: etc
+https://docs.kernel.org/doc-guide/kernel-doc.html#nested-structs-unions
 
-On 8/22/24 7:28 PM, Ira Weiny wrote:
-> Dave Jiang wrote:
->>
->>
->> On 8/16/24 7:44 AM, ira.weiny@intel.com wrote:
->>> From: Navneet Singh <navneet.singh@intel.com>
->>>
->>> To properly configure CXL regions on Dynamic Capacity Devices (DCD),
->>> user space will need to know the details of the DC partitions available.
->>>
->>> Expose dynamic capacity capabilities through sysfs.
->>>
->>> Signed-off-by: Navneet Singh <navneet.singh@intel.com>
->>> Co-developed-by: Ira Weiny <ira.weiny@intel.com>
->>> Signed-off-by: Ira Weiny <ira.weiny@intel.com>
->>>
->>> ---
->>> Changes:
->>> [iweiny: remove review tags]
->>> [Davidlohr/Fan/Jonathan: omit 'dc' attribute directory if device is not DC]
->>> [Jonathan: update documentation for dc visibility]
->>> [Jonathan: Add a comment to DC region X attributes to ensure visibility checks work]
->>> [iweiny: push sysfs version to 6.12]
->>> ---
->>>  Documentation/ABI/testing/sysfs-bus-cxl | 12 ++++
->>>  drivers/cxl/core/memdev.c               | 97 +++++++++++++++++++++++++++++++++
->>>  2 files changed, 109 insertions(+)
->>>
->>> diff --git a/Documentation/ABI/testing/sysfs-bus-cxl b/Documentation/ABI/testing/sysfs-bus-cxl
->>> index 957717264709..6227ae0ab3fc 100644
->>> --- a/Documentation/ABI/testing/sysfs-bus-cxl
->>> +++ b/Documentation/ABI/testing/sysfs-bus-cxl
->>> @@ -54,6 +54,18 @@ Description:
->>>  		identically named field in the Identify Memory Device Output
->>>  		Payload in the CXL-2.0 specification.
->>>  
->>> +What:		/sys/bus/cxl/devices/memX/dc/region_count
->>> +		/sys/bus/cxl/devices/memX/dc/regionY_size
->>
->> Just make it into 2 separate entries?
-> 
-> Do you mean in the docs?
+Though not quite sure what happens for pointers to structures, maybe
+this is correct as it stands?
 
-Yes. Here you are combining all the sysfs entries into 1. I'm suggesting unique block per each sysfs entry with their own description. 
+>   */
+>  struct dev_dax {
+>  	struct dax_region *region;
 > 
-> Ira
-> 
->>
->> DJ
->>> +Date:		August, 2024
->>> +KernelVersion:	v6.12
->>> +Contact:	linux-cxl@vger.kernel.org
->>> +Description:
->>> +		(RO) Dynamic Capacity (DC) region information.  The dc
->>> +		directory is only visible on devices which support Dynamic
->>> +		Capacity.
->>> +		The region_count is the number of Dynamic Capacity (DC)
->>> +		partitions (regions) supported on the device.
->>> +		regionY_size is the size of each of those partitions.
->>>  
->>>  What:		/sys/bus/cxl/devices/memX/pmem/qos_class
->>>  Date:		May, 2023
-> 
-> [snip]
+
