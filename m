@@ -1,30 +1,30 @@
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42A4B1885AF
-	for <nvdimm@lists.linux.dev>; Fri, 23 Aug 2024 15:47:27 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 940DC188A25
+	for <nvdimm@lists.linux.dev>; Fri, 23 Aug 2024 16:09:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724428049; cv=none; b=L0Bl5RBtKL6UFvfyJZXvdZxh56tx4NGZ8gZZa44PRuePTj+xqT3rJjFrmvC+pMovtSInAUwJiogpDADbLfNplIT8cnKqpVydme0wFXFsggockpjGlQ7+u7spYkSuf6wFLdKOVNsZyPzQhpeSdI/ktJjwxlY2gXfObJtC4T+YOQk=
+	t=1724429371; cv=none; b=akCGJEt7vutkKQkBibL5vJf03mrFVqqMvOzhuHn3HPCvu6H2Iqg7yT+iGRv5AKhAmhj9Pyl1wLQbmQ6uiwR73QBSpeFYfsiqZ6oNpTGMjEFtyG/981VnHn8ruK04/QJM3WsduswJx3zfpelaI2glO97bbiqgYasAfZX8nxNbDxE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724428049; c=relaxed/simple;
-	bh=V/owDL8egmTxcLHGKdF3ja2ZvI9vqOqZUvFPUVgYIPo=;
+	s=arc-20240116; t=1724429371; c=relaxed/simple;
+	bh=CbAQlyU8fku3VCWy5333UtRcY2DrWTawVuVsOfKJuII=;
 	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=q3j+QE4qJQGFxlfQ8l3fee8LozCM4iDU9rjcFPuy3lR35IbugxCyHKv6bHdyOpYJeruXPgHtqeO6LY30zK1Mk8x/xkoU5PSE91epY4WfyWivUahcXlJMmrB6Ex5WVGeosN4iqd58Gpn2zfV/8SoPm/CYeuZOK1gV00+OO+XBZdo=
+	 MIME-Version:Content-Type; b=sT7LawLwZHY7P/wFaRRP3QGNxxML/jL+CCKQo19+sZYYC28d0qDjlzDepy+79mDgNwadfiMQLerggl1/5J7E/CcQeS3rDqUCEijg0AwYliCrzUl7vs/9iaX/74f+C/lRFjP8tgiDpP5EU8C/yFcEI54Vxsrg+n9Ht/evLHWEQNw=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.186.31])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Wr49R4P30z6J673;
-	Fri, 23 Aug 2024 23:43:39 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.18.186.216])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Wr4gX4g02z6K97G;
+	Sat, 24 Aug 2024 00:06:16 +0800 (CST)
 Received: from lhrpeml500005.china.huawei.com (unknown [7.191.163.240])
-	by mail.maildlp.com (Postfix) with ESMTPS id 19E7014065B;
-	Fri, 23 Aug 2024 23:47:25 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id B415B140C72;
+	Sat, 24 Aug 2024 00:09:25 +0800 (CST)
 Received: from localhost (10.203.177.66) by lhrpeml500005.china.huawei.com
  (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Fri, 23 Aug
- 2024 16:47:24 +0100
-Date: Fri, 23 Aug 2024 16:47:23 +0100
+ 2024 17:09:25 +0100
+Date: Fri, 23 Aug 2024 17:09:24 +0100
 From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
 To: <ira.weiny@intel.com>
 CC: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, "Navneet
@@ -39,12 +39,12 @@ CC: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, "Navneet
 	<vishal.l.verma@intel.com>, <linux-btrfs@vger.kernel.org>,
 	<linux-cxl@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
 	<linux-doc@vger.kernel.org>, <nvdimm@lists.linux.dev>
-Subject: Re: [PATCH v3 07/25] cxl/core: Separate region mode from decoder
- mode
-Message-ID: <20240823164723.00003560@Huawei.com>
-In-Reply-To: <20240816-dcd-type2-upstream-v3-7-7c9b96cba6d7@intel.com>
+Subject: Re: [PATCH v3 09/25] cxl/hdm: Add dynamic capacity size support to
+ endpoint decoders
+Message-ID: <20240823170924.00002456@Huawei.com>
+In-Reply-To: <20240816-dcd-type2-upstream-v3-9-7c9b96cba6d7@intel.com>
 References: <20240816-dcd-type2-upstream-v3-0-7c9b96cba6d7@intel.com>
-	<20240816-dcd-type2-upstream-v3-7-7c9b96cba6d7@intel.com>
+	<20240816-dcd-type2-upstream-v3-9-7c9b96cba6d7@intel.com>
 Organization: Huawei Technologies Research and Development (UK) Ltd.
 X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
@@ -55,31 +55,138 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: lhrpeml500002.china.huawei.com (7.191.160.78) To
+X-ClientProxiedBy: lhrpeml100001.china.huawei.com (7.191.160.183) To
  lhrpeml500005.china.huawei.com (7.191.163.240)
 
-On Fri, 16 Aug 2024 09:44:15 -0500
+On Fri, 16 Aug 2024 09:44:17 -0500
 ira.weiny@intel.com wrote:
 
 > From: Navneet Singh <navneet.singh@intel.com>
 > 
-> Until now region modes and decoder modes were equivalent in that both
-> modes were either PMEM or RAM.  The addition of Dynamic
-> Capacity partitions defines up to 8 DC partitions per device.
+> To support Dynamic Capacity Devices (DCD) endpoint decoders will need to
+> map DC partitions (regions).  In addition to assigning the size of the
+> DC partition, the decoder must assign any skip value from the previous
+> decoder.  This must be done within a contiguous DPA space.
 > 
-> The region mode is thus no longer equivalent to the endpoint decoder
-> mode.  IOW the endpoint decoders may have modes of DC0-DC7 while the
-> region mode is simply DC.
+> Two complications arise with Dynamic Capacity regions which did not
+> exist with Ram and PMEM partitions.  First, gaps in the DPA space can
+> exist between and around the DC partitions.  Second, the Linux resource
+> tree does not allow a resource to be marked across existing nodes within
+> a tree.
 > 
-> Define a new region mode enumeration which applies to regions separate
-> from the decoder mode.  Adjust the code to process these modes
-> independently.
+> For clarity, below is an example of an 60GB device with 10GB of RAM,
+> 10GB of PMEM and 10GB for each of 2 DC partitions.  The desired CXL
+> mapping is 5GB of RAM, 5GB of PMEM, and 5GB of DC1.
 > 
-> There is no equal to decoder mode dead in region modes.  Avoid
-> constructing regions with decoders which have been flagged as dead.
+>      DPA RANGE
+>      (dpa_res)
+> 0GB        10GB       20GB       30GB       40GB       50GB       60GB
+> |----------|----------|----------|----------|----------|----------|
 > 
-> Suggested-by: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+> RAM         PMEM                  DC0                   DC1
+>  (ram_res)  (pmem_res)            (dc_res[0])           (dc_res[1])
+> |----------|----------|   <gap>  |----------|   <gap>  |----------|
+> 
+>  RAM        PMEM                                        DC1
+> |XXXXX|----|XXXXX|----|----------|----------|----------|XXXXX-----|
+> 0GB   5GB  10GB  15GB 20GB       30GB       40GB       50GB       60GB
+> 
+> The previous skip resource between RAM and PMEM was always a child of
+> the RAM resource and fit nicely [see (S) below].  Because of this
+> simplicity this skip resource reference was not stored in any CXL state.
+> On release the skip range could be calculated based on the endpoint
+> decoders stored values.
+> 
+> Now when DC1 is being mapped 4 skip resources must be created as
+> children.  One for the PMEM resource (A), two of the parent DPA resource
+> (B,D), and one more child of the DC0 resource (C).
+> 
+> 0GB        10GB       20GB       30GB       40GB       50GB       60GB
+> |----------|----------|----------|----------|----------|----------|
+>                            |                     |
+> |----------|----------|    |     |----------|    |     |----------|
+>         |          |       |          |          |
+>        (S)        (A)     (B)        (C)        (D)
+> 	v          v       v          v          v
+> |XXXXX|----|XXXXX|----|----------|----------|----------|XXXXX-----|
+>        skip       skip  skip        skip      skip
+> 
+> Expand the calculation of DPA free space and enhance the logic to
+> support this more complex skipping.  To track the potential of multiple
+> skip resources an xarray is attached to the endpoint decoder.  The
+> existing algorithm between RAM and PMEM is consolidated within the new
+> one to streamline the code even though the result is the storage of a
+> single skip resource in the xarray.
+> 
 > Signed-off-by: Navneet Singh <navneet.singh@intel.com>
 > Co-developed-by: Ira Weiny <ira.weiny@intel.com>
 > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+> 
+One query below + request to add a comment on it for when I've
+again completely forgotten how this works.
+
+Also a grumpy reviewer comment.
+
+> +static int cxl_reserve_dpa_skip(struct cxl_endpoint_decoder *cxled,
+> +				resource_size_t base, resource_size_t skipped)
+> +{
+> +	struct cxl_memdev *cxlmd = cxled_to_memdev(cxled);
+> +	struct cxl_port *port = cxled_to_port(cxled);
+> +	struct cxl_dev_state *cxlds = cxlmd->cxlds;
+> +	resource_size_t skip_base = base - skipped;
+> +	struct device *dev = &port->dev;
+> +	resource_size_t skip_len = 0;
+> +	int rc, index;
+> +
+
+> +	index = dc_mode_to_region_index(cxled->mode);
+> +	for (int i = 0; i <= index; i++) {
+
+I'm not sure why this is <= so maybe a comment?
+
+> +		struct resource *dcr = &cxlds->dc_res[i];
+> +
+> +		if (skip_base < dcr->start) {
+> +			skip_len = dcr->start - skip_base;
+> +			rc = cxl_request_skip(cxled, skip_base, skip_len);
+> +			if (rc)
+> +				return rc;
+> +			skip_base += skip_len;
+> +		}
+> +
+> +		if (skip_base == base) {
+> +			dev_dbg(dev, "skip done DC region %d!\n", i);
+> +			break;
+> +		}
+> +
+> +		if (resource_size(dcr) && skip_base <= dcr->end) {
+> +			if (skip_base > base) {
+> +				dev_err(dev, "Skip error DC region %d; skip_base %pa; base %pa\n",
+> +					i, &skip_base, &base);
+> +				return -ENXIO;
+> +			}
+> +
+> +			skip_len = dcr->end - skip_base + 1;
+> +			rc = cxl_request_skip(cxled, skip_base, skip_len);
+> +			if (rc)
+> +				return rc;
+> +			skip_base += skip_len;
+> +		}
+> +	}
+> +
+> +	return 0;
+> +}
+
+> @@ -466,8 +588,8 @@ int cxl_dpa_set_mode(struct cxl_endpoint_decoder *cxled,
+>  
+>  int cxl_dpa_alloc(struct cxl_endpoint_decoder *cxled, unsigned long long size)
+>  {
+> -	struct cxl_memdev *cxlmd = cxled_to_memdev(cxled);
+>  	resource_size_t free_ram_start, free_pmem_start;
+> +	struct cxl_memdev *cxlmd = cxled_to_memdev(cxled);
+
+Patch noise.  Put it back where it was! (assuming I haven't failed to spot the difference)
+
+>  	struct cxl_port *port = cxled_to_port(cxled);
+>  	struct cxl_dev_state *cxlds = cxlmd->cxlds;
+>  	struct device *dev = &cxled->cxld.dev;
