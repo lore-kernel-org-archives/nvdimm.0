@@ -1,65 +1,65 @@
-Received: from mail-lj1-f171.google.com (mail-lj1-f171.google.com [209.85.208.171])
+Received: from mail-lf1-f52.google.com (mail-lf1-f52.google.com [209.85.167.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3754917E01F
-	for <nvdimm@lists.linux.dev>; Mon, 26 Aug 2024 13:17:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.171
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69BF917C9BE
+	for <nvdimm@lists.linux.dev>; Mon, 26 Aug 2024 13:23:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724678252; cv=none; b=hlJGWGfL8uRHnCdVr6RWblZuj9KCO8a7wmNQ96SkDEOZsfVydH8ASmo5A6gG107qErYiTRAuAJbpNtIU5uDyrfS4sanBPkEmJrQfYAJGHiXXUZ37YExZfkMcoL3PsqNSZCYJzf4Xh5HjoDxTZPOeDmvfbSeqjRkSp2w6xl9t84w=
+	t=1724678636; cv=none; b=rnqhl/ryh6jCtfA2uJckRcEo1W7mkd+Cs3CU4lt7FPaVM6r+6hzAUVcsFAuZR5maNpWX40/zDW4tUzjIhczpptmoLGNgqh3NZY4Zk7trK0Jz+M87DiNnvtGei5vDdG/nup2XVK3t6pPoWWch2Rtp5d0WIezubLA53FEKW8kX7UI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724678252; c=relaxed/simple;
-	bh=JSH8SqpNQbSt6NhrXIE9u7Eh0AndPutbj+FZ/nav9j8=;
+	s=arc-20240116; t=1724678636; c=relaxed/simple;
+	bh=jeztrx2wemey1pVY0c62bFmR4t/EoPdY6f0cjjxFm3E=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Q52xCp8y8auS7tgZqsS+EWyVakBEqFPZUxu7RMj23JxkO8xD1Lo6T58P77q2UYRa2VXqykY4L0b26wdebpnoRSMRgsboRtqJmy2kaY53VsJSYmBSUxv1tcYwuhA2gML2YF3uwCh46gF2HM+kFPWOGvol5KL/X0iYDDx6a7Mkhss=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=JhcJalK9; arc=none smtp.client-ip=209.85.208.171
+	 Content-Type:Content-Disposition:In-Reply-To; b=VHdqFhMxQgLg1YDBoYdYh8TMKa+w9xplzmXRK01aOJmfQuMZYkIJbRqnEeMHiKkFXSrzsrMEKteZvAnyygHJ5mIIJRKvTxnVSX6Os//t4b0vw8hQrH0DPYmVQSx7H0iVouuG8S4Oxciejd9eLv5Vl74OrlWMuQhOOGuMKmxj4Dg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=Ek7ixGbj; arc=none smtp.client-ip=209.85.167.52
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="JhcJalK9"
-Received: by mail-lj1-f171.google.com with SMTP id 38308e7fff4ca-2f3f0bdbcd9so47896361fa.1
-        for <nvdimm@lists.linux.dev>; Mon, 26 Aug 2024 06:17:29 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="Ek7ixGbj"
+Received: by mail-lf1-f52.google.com with SMTP id 2adb3069b0e04-53349ee42a9so5060861e87.3
+        for <nvdimm@lists.linux.dev>; Mon, 26 Aug 2024 06:23:54 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=suse.com; s=google; t=1724678248; x=1725283048; darn=lists.linux.dev;
+        d=suse.com; s=google; t=1724678632; x=1725283432; darn=lists.linux.dev;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=sAQ6M5i9O8EydHcTNPBCvK0jtmZ3cgr0b0dzil6s4RI=;
-        b=JhcJalK90RfVeL+EMq1lGFUN0oL4qGg+6W0oIKJSFpyfo2WYweDStlqGVnM6BFW61U
-         R9z0t8FRJ9Kp2YRhtZUvKwVdDj50HO0QeGIFDJIJxsVsCxksE31fs+WQPVCVZItarw7D
-         sqjOt6aMK7HTohy/UJqi6qqANQMJAKu4zZP4OJ2o7OT0xPFP/O+52FDFHpGgdf95Ut7P
-         gsRMLKcCcXaXhmC70yx+Cvr16cBMtRw5Xvk6Zjf+a2Iu2Sb1uVr3iNmXwDiMoMl8q2BM
-         hdl7Pmr5VJCEqMaziCnJjImGrXmwimcCWEE/1LugbIJb3ut8Whp+WJ8TKka5NUoWLwoN
-         kYDw==
+        bh=IQCe7McW9E8hf61lrcG6VB7x1ye3Lq6gKShLHGG32KE=;
+        b=Ek7ixGbjbRc+yee+5w2jSqnj0hM8DJX21jN2cNEXWdR223Z7uRNGK7I3zyfCx4UmA/
+         wmmg1+P9A8KbCiMhm302kuZpq8+41wylrsiIVxjK1mMl0J3dQCOSqPiY+cSN/Pjp+yLo
+         jFq4vr2GxMQ4UM53NubrfkQfeMxgRIkSKuoxTn2fMvwEWg9YRQX+UkzmyYAurSgOgtJN
+         aH7cinmEXPdy/ie2QspWQIooIeSO341qLA34NxZXB5P1XaXShYbOTzOSehqzHLnpliON
+         yIv/Dv/HmlaYQqDBD+aHLXFWgMXADQ337J8Rz5iPIkVzWBxaZczawGMQJ6NSpiMtAA+S
+         kD8Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1724678248; x=1725283048;
+        d=1e100.net; s=20230601; t=1724678632; x=1725283432;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=sAQ6M5i9O8EydHcTNPBCvK0jtmZ3cgr0b0dzil6s4RI=;
-        b=mX8DQDtBpUQBoGqH6z/MN81x64BzUUWTU4FI8GL1qG+z33ofvyWqDRBhbEDiNUm6zU
-         JCXOmfwixCLyGYsykSc1T2LuTOqqg2/Nlf5YTHT6HS6qi4E+SGnaMxrjOEEafBKVpCHf
-         HJZqRGW342h3lCdTO9xNnqx6qsoTgHYmwykArNWtKdLVqCoHPg2V4m5aZdO7ZNNE7EMX
-         T4MdvB14ayCpV6ZBEKjhOFxH9SvFU0dkYF4/ETSt+2vAepRggwO7xbtBRU8JJwsFPCgF
-         /TMXD4QtH6yTEOW2q92We+D6Hl342tzg97UOCYt+65V5r5boit6d6hGzhVCYnnpLHVvM
-         v4AA==
-X-Forwarded-Encrypted: i=1; AJvYcCWypA/d791ICxsXzYuXMSxfSX3ImMHXARR7LWtTPs6kgHwTqYBtzxc04GLsdqOlT8IZPwryxmY=@lists.linux.dev
-X-Gm-Message-State: AOJu0YzNTQe5KotNiqhODa4sPT8FL2VvhcfE+hZo/kB9EWPzT3dPPZY3
-	XajLp9tRAbw+bOLe7XjOr7MXTgnSccvuA2oXv+AYcjXscGH5VMie5EO/tJh8LhQ=
-X-Google-Smtp-Source: AGHT+IF23h3rP35OdQrEVkqc47eRF5yl1OaSv9GaxlcrSNP3KudzCHntUQv44MhoMobTuNvYO7e7Lw==
-X-Received: by 2002:a2e:71a:0:b0:2ec:637a:c212 with SMTP id 38308e7fff4ca-2f4f493a108mr65127501fa.39.1724678248005;
-        Mon, 26 Aug 2024 06:17:28 -0700 (PDT)
+        bh=IQCe7McW9E8hf61lrcG6VB7x1ye3Lq6gKShLHGG32KE=;
+        b=QAH8KM1o0RXIeLcolPULNlCS/8Stz+KkJXeCWkMWqc7yiFXAY4LU46jGH6jYTL274t
+         86AsHkByOdQI3dfRx8DBFgHuedLqj4KyC0gdarH9ySYbXY4M/3vdtTM+KAJXoeeQO7ng
+         XiUjcKvAjGmvN++KMH7DYIcH9n4u2uDwTkOuHqL4ll1SFBYdgM1UBhAreCyjKOOrBz9q
+         +GIQ+slD9F3+zbcnouTjBk/NdUVYy8skd/dkEezfK2S7C+f1a/NfPkTK62VpvhEj6j3o
+         nvtykDjlGV0UeEs6E/xLR9sdBaBJ2u2oqBw7Hti85R8HyiAzk7naRUsjIQ7sQYzo1JQN
+         x8VA==
+X-Forwarded-Encrypted: i=1; AJvYcCUlL8MtZfzFPx+Oho04xchOovu1DViq4pkzXIEvlao6UzrV59ijx4LL3hpqkAngpKtVL3nSotA=@lists.linux.dev
+X-Gm-Message-State: AOJu0YzAJc0yZflvNZtw7S7kNWRqkOos7AdIc2zcjCRaPn/P3IH0SIsM
+	efyOMsQY331+5W3Ylx/SLBmJSM7WvAG5RoCUPQGUhJzQ03srz5csi+X4CHmKyVU=
+X-Google-Smtp-Source: AGHT+IHb9h8+cB84cqvegDS1MyMJPEFI1QyTGHUhHtl3xRFQzxT2+gqbftjjzsxNnZRT1RRhuK0Sgg==
+X-Received: by 2002:a05:6512:3d24:b0:533:44a3:21b9 with SMTP id 2adb3069b0e04-534387681d2mr6366176e87.1.1724678632351;
+        Mon, 26 Aug 2024 06:23:52 -0700 (PDT)
 Received: from pathway.suse.cz ([193.86.92.181])
-        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-5c044ddc6basm5590989a12.12.2024.08.26.06.17.27
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-a868f436330sm665305066b.112.2024.08.26.06.23.51
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 26 Aug 2024 06:17:27 -0700 (PDT)
-Date: Mon, 26 Aug 2024 15:17:26 +0200
+        Mon, 26 Aug 2024 06:23:52 -0700 (PDT)
+Date: Mon, 26 Aug 2024 15:23:50 +0200
 From: Petr Mladek <pmladek@suse.com>
-To: Ira Weiny <ira.weiny@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>,
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Ira Weiny <ira.weiny@intel.com>, Dave Jiang <dave.jiang@intel.com>,
+	Fan Ni <fan.ni@samsung.com>,
 	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
 	Navneet Singh <navneet.singh@intel.com>, Chris Mason <clm@fb.com>,
 	Josef Bacik <josef@toxicpanda.com>, David Sterba <dsterba@suse.com>,
 	Steven Rostedt <rostedt@goodmis.org>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
 	Rasmus Villemoes <linux@rasmusvillemoes.dk>,
 	Sergey Senozhatsky <senozhatsky@chromium.org>,
 	Jonathan Corbet <corbet@lwn.net>,
@@ -72,11 +72,12 @@ Cc: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>,
 	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
 	nvdimm@lists.linux.dev
 Subject: Re: [PATCH v3 02/25] printk: Add print format (%par) for struct range
-Message-ID: <ZsyAZsDeWLNvSec9@pathway.suse.cz>
+Message-ID: <ZsyB5rqhaZ-oRwny@pathway.suse.cz>
 References: <20240816-dcd-type2-upstream-v3-0-7c9b96cba6d7@intel.com>
  <20240816-dcd-type2-upstream-v3-2-7c9b96cba6d7@intel.com>
  <ZsSjdjzRSG87alk5@pathway.suse.cz>
  <66c77b1c5c65c_1719d2940@iweiny-mobl.notmuch>
+ <Zsd_EctNZ80fuKMu@smile.fi.intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -85,64 +86,42 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <66c77b1c5c65c_1719d2940@iweiny-mobl.notmuch>
+In-Reply-To: <Zsd_EctNZ80fuKMu@smile.fi.intel.com>
 
-On Thu 2024-08-22 12:53:32, Ira Weiny wrote:
-> Petr Mladek wrote:
-> > On Fri 2024-08-16 09:44:10, Ira Weiny wrote:
-> > > The use of struct range in the CXL subsystem is growing.  In particular,
-> > > the addition of Dynamic Capacity devices uses struct range in a number
-> > > of places which are reported in debug and error messages.
-> > > 
-> > > To wit requiring the printing of the start/end fields in each print
-> > > became cumbersome.  Dan Williams mentions in [1] that it might be time
-> > > to have a print specifier for struct range similar to struct resource
-> > > 
-> > > A few alternatives were considered including '%pn' for 'print raNge' but
-> > > %par follows that struct range is most often used to store a range of
-> > > physical addresses.  So use '%par' for 'print address range'.
-> > > 
-> > > diff --git a/lib/vsprintf.c b/lib/vsprintf.c
-> > > index 2d71b1115916..c132178fac07 100644
-> > > --- a/lib/vsprintf.c
-> > > +++ b/lib/vsprintf.c
-> > > @@ -1140,6 +1140,39 @@ char *resource_string(char *buf, char *end, struct resource *res,
-> > >  	return string_nocheck(buf, end, sym, spec);
-> > >  }
-> > >  
-> > > +static noinline_for_stack
-> > > +char *range_string(char *buf, char *end, const struct range *range,
-> > > +		      struct printf_spec spec, const char *fmt)
-> > > +{
-> > > +#define RANGE_PRINTK_SIZE		16
-> > > +#define RANGE_DECODED_BUF_SIZE		((2 * sizeof(struct range)) + 4)
-> > > +#define RANGE_PRINT_BUF_SIZE		sizeof("[range - ]")
-
-[...]
-
-> > > +	static const struct printf_spec range_spec = {
-> > > +		.base = 16,
-> > > +		.field_width = RANGE_PRINTK_SIZE,
+On Thu 2024-08-22 21:10:25, Andy Shevchenko wrote:
+> On Thu, Aug 22, 2024 at 12:53:32PM -0500, Ira Weiny wrote:
+> > Petr Mladek wrote:
+> > > On Fri 2024-08-16 09:44:10, Ira Weiny wrote:
 > 
-> However, my testing indicates this needs to be.
+> ...
 > 
->                 .field_width = 18, /* 2 (0x) + 2 * 8 (bytes) */
+> > > > +	%par	[range 0x60000000-0x6fffffff] or
+> > > 
+> > > It seems that it is always 64-bit. It prints:
+> > > 
+> > > struct range {
+> > > 	u64   start;
+> > > 	u64   end;
+> > > };
+> > 
+> > Indeed.  Thanks I should not have just copied/pasted.
+> 
+> With that said, I'm not sure the %pa is a good placeholder for this ('a' stands
+> to "address" AFAIU). Perhaps this should go somewhere under %pr/%pR?
 
-Makes sense. Great catch!
+The r/R in %pr/%pR actually stands for "resource".
 
-> ... to properly zero pad the value.  Does that make sense?
->
-> > > +		.precision = -1,
-> > > +		.flags = SPECIAL | SMALL | ZEROPAD,
-> > > +	};
-> > > +
-> > > +	*p++ = '[';
-> > > +	p = string_nocheck(p, pend, "range ", str_spec);
-> > > +	p = number(p, pend, range->start, range_spec);
-> > > +	*p++ = '-';
-> > > +	p = number(p, pend, range->end, range_spec);
-> > > +	*p++ = ']';
-> > > +	*p = '\0';
+But "%ra" really looks like a better choice than "%par". Both
+"resource"  and "range" starts with 'r'. Also the struct resource
+is printed as a range of values.
+
+> > > > +		[range 0x0000000060000000-0x000000006fffffff]
+> > > > +
+> > > > +For printing struct range.  A variation of printing a physical address is to
+> > > > +print the value of struct range which are often used to hold a physical address
+> > > > +range.
+> > > > +
+> > > > +Passed by reference.
 
 Best Regards,
 Petr
