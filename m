@@ -1,59 +1,55 @@
-Received: from mail-lf1-f52.google.com (mail-lf1-f52.google.com [209.85.167.52])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.17])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69BF917C9BE
-	for <nvdimm@lists.linux.dev>; Mon, 26 Aug 2024 13:23:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39A3353373
+	for <nvdimm@lists.linux.dev>; Mon, 26 Aug 2024 13:24:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.17
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724678636; cv=none; b=rnqhl/ryh6jCtfA2uJckRcEo1W7mkd+Cs3CU4lt7FPaVM6r+6hzAUVcsFAuZR5maNpWX40/zDW4tUzjIhczpptmoLGNgqh3NZY4Zk7trK0Jz+M87DiNnvtGei5vDdG/nup2XVK3t6pPoWWch2Rtp5d0WIezubLA53FEKW8kX7UI=
+	t=1724678680; cv=none; b=mFQixAmw65czEkeJScPGWzha0d+czCBsrUs19ytGP4I7LNWsz33ZNSgfAT5+xwmOdRUjnAckYHy6wRzW12FuBbGre0k2yC59Iw+kjmCIBxUj8iiToT77TKFf7Is4zFEcTOKrS7qIZcFKnuLx4sxDWS4alsGJ1on74HJtW0DhhaE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724678636; c=relaxed/simple;
-	bh=jeztrx2wemey1pVY0c62bFmR4t/EoPdY6f0cjjxFm3E=;
+	s=arc-20240116; t=1724678680; c=relaxed/simple;
+	bh=xfEqhEDpmWF2aBmxxyu37rCNaOAJ77ma15Jwxkgm6Q4=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=VHdqFhMxQgLg1YDBoYdYh8TMKa+w9xplzmXRK01aOJmfQuMZYkIJbRqnEeMHiKkFXSrzsrMEKteZvAnyygHJ5mIIJRKvTxnVSX6Os//t4b0vw8hQrH0DPYmVQSx7H0iVouuG8S4Oxciejd9eLv5Vl74OrlWMuQhOOGuMKmxj4Dg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com; spf=pass smtp.mailfrom=suse.com; dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b=Ek7ixGbj; arc=none smtp.client-ip=209.85.167.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=suse.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=AZ4qiQjvjk1HTYhuGGnIQmMwcUZ8DCgXJln0BKziPHf1C/eVQQjBpZ4aNDGMMZFNV+Mp5RYxH4ecKtLTGlDbOhtKRGEQ40nQVGVpCq3ZUfZJv48mPBTRwlAEyn3gGMcRv+eECngW4y5qFC9FovLrYw8SWsJlaJEibmLbWOTAtJI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=ky9zwDdo; arc=none smtp.client-ip=198.175.65.17
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=suse.com header.i=@suse.com header.b="Ek7ixGbj"
-Received: by mail-lf1-f52.google.com with SMTP id 2adb3069b0e04-53349ee42a9so5060861e87.3
-        for <nvdimm@lists.linux.dev>; Mon, 26 Aug 2024 06:23:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=suse.com; s=google; t=1724678632; x=1725283432; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=IQCe7McW9E8hf61lrcG6VB7x1ye3Lq6gKShLHGG32KE=;
-        b=Ek7ixGbjbRc+yee+5w2jSqnj0hM8DJX21jN2cNEXWdR223Z7uRNGK7I3zyfCx4UmA/
-         wmmg1+P9A8KbCiMhm302kuZpq8+41wylrsiIVxjK1mMl0J3dQCOSqPiY+cSN/Pjp+yLo
-         jFq4vr2GxMQ4UM53NubrfkQfeMxgRIkSKuoxTn2fMvwEWg9YRQX+UkzmyYAurSgOgtJN
-         aH7cinmEXPdy/ie2QspWQIooIeSO341qLA34NxZXB5P1XaXShYbOTzOSehqzHLnpliON
-         yIv/Dv/HmlaYQqDBD+aHLXFWgMXADQ337J8Rz5iPIkVzWBxaZczawGMQJ6NSpiMtAA+S
-         kD8Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1724678632; x=1725283432;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=IQCe7McW9E8hf61lrcG6VB7x1ye3Lq6gKShLHGG32KE=;
-        b=QAH8KM1o0RXIeLcolPULNlCS/8Stz+KkJXeCWkMWqc7yiFXAY4LU46jGH6jYTL274t
-         86AsHkByOdQI3dfRx8DBFgHuedLqj4KyC0gdarH9ySYbXY4M/3vdtTM+KAJXoeeQO7ng
-         XiUjcKvAjGmvN++KMH7DYIcH9n4u2uDwTkOuHqL4ll1SFBYdgM1UBhAreCyjKOOrBz9q
-         +GIQ+slD9F3+zbcnouTjBk/NdUVYy8skd/dkEezfK2S7C+f1a/NfPkTK62VpvhEj6j3o
-         nvtykDjlGV0UeEs6E/xLR9sdBaBJ2u2oqBw7Hti85R8HyiAzk7naRUsjIQ7sQYzo1JQN
-         x8VA==
-X-Forwarded-Encrypted: i=1; AJvYcCUlL8MtZfzFPx+Oho04xchOovu1DViq4pkzXIEvlao6UzrV59ijx4LL3hpqkAngpKtVL3nSotA=@lists.linux.dev
-X-Gm-Message-State: AOJu0YzAJc0yZflvNZtw7S7kNWRqkOos7AdIc2zcjCRaPn/P3IH0SIsM
-	efyOMsQY331+5W3Ylx/SLBmJSM7WvAG5RoCUPQGUhJzQ03srz5csi+X4CHmKyVU=
-X-Google-Smtp-Source: AGHT+IHb9h8+cB84cqvegDS1MyMJPEFI1QyTGHUhHtl3xRFQzxT2+gqbftjjzsxNnZRT1RRhuK0Sgg==
-X-Received: by 2002:a05:6512:3d24:b0:533:44a3:21b9 with SMTP id 2adb3069b0e04-534387681d2mr6366176e87.1.1724678632351;
-        Mon, 26 Aug 2024 06:23:52 -0700 (PDT)
-Received: from pathway.suse.cz ([193.86.92.181])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-a868f436330sm665305066b.112.2024.08.26.06.23.51
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 26 Aug 2024 06:23:52 -0700 (PDT)
-Date: Mon, 26 Aug 2024 15:23:50 +0200
-From: Petr Mladek <pmladek@suse.com>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="ky9zwDdo"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1724678678; x=1756214678;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=xfEqhEDpmWF2aBmxxyu37rCNaOAJ77ma15Jwxkgm6Q4=;
+  b=ky9zwDdoe2dfXGbrov2pnwf+/Y7vfkIR943MtSs567GaJWtGyjkx09Wk
+   gy4vIXhHPwlyjVfqqFzY8ht9ImGecmFJlg1dS6zT6ctTwqN0a4/exPXqE
+   pM5OigC+3bFJsIn52grvfaVk2pqcdTRJDhfXqNh4sAJVJjJOk8Oy59X6m
+   SXtzrc/zv77BQl2OLVYSTkRVvnEKd0+i4/vFSEi/jvJAktY3e+8IvTDIi
+   lKlyb7a3d01ujELxia1O6eqJzwAK2P37qxiTbAppdGFlrR1yVlM/qNn0Y
+   eyK3suBDCb00wKP9OmWbKBVpulBBmJSacGfN31rD+FsN+w3WZk00UgGFg
+   w==;
+X-CSE-ConnectionGUID: LY5FwTigTE+/wFQwodbOgA==
+X-CSE-MsgGUID: XRzVpceZQKGCkui2dSWWyw==
+X-IronPort-AV: E=McAfee;i="6700,10204,11176"; a="23281415"
+X-IronPort-AV: E=Sophos;i="6.10,177,1719903600"; 
+   d="scan'208";a="23281415"
+Received: from orviesa009.jf.intel.com ([10.64.159.149])
+  by orvoesa109.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Aug 2024 06:24:37 -0700
+X-CSE-ConnectionGUID: xQeijwBhS+6GvIOEaDqo4g==
+X-CSE-MsgGUID: 1VWYcWNxQfGomDPvu7kDqg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.10,177,1719903600"; 
+   d="scan'208";a="62479751"
+Received: from smile.fi.intel.com ([10.237.72.54])
+  by orviesa009.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Aug 2024 06:24:33 -0700
+Received: from andy by smile.fi.intel.com with local (Exim 4.98)
+	(envelope-from <andriy.shevchenko@linux.intel.com>)
+	id 1siZht-00000001wVd-0PJg;
+	Mon, 26 Aug 2024 16:24:29 +0300
+Date: Mon, 26 Aug 2024 16:24:28 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Petr Mladek <pmladek@suse.com>
 Cc: Ira Weiny <ira.weiny@intel.com>, Dave Jiang <dave.jiang@intel.com>,
 	Fan Ni <fan.ni@samsung.com>,
 	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
@@ -72,12 +68,12 @@ Cc: Ira Weiny <ira.weiny@intel.com>, Dave Jiang <dave.jiang@intel.com>,
 	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
 	nvdimm@lists.linux.dev
 Subject: Re: [PATCH v3 02/25] printk: Add print format (%par) for struct range
-Message-ID: <ZsyB5rqhaZ-oRwny@pathway.suse.cz>
+Message-ID: <ZsyCDP-AJqH02zJk@smile.fi.intel.com>
 References: <20240816-dcd-type2-upstream-v3-0-7c9b96cba6d7@intel.com>
  <20240816-dcd-type2-upstream-v3-2-7c9b96cba6d7@intel.com>
  <ZsSjdjzRSG87alk5@pathway.suse.cz>
  <66c77b1c5c65c_1719d2940@iweiny-mobl.notmuch>
- <Zsd_EctNZ80fuKMu@smile.fi.intel.com>
+ <ZsyAZsDeWLNvSec9@pathway.suse.cz>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -86,42 +82,37 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <Zsd_EctNZ80fuKMu@smile.fi.intel.com>
+In-Reply-To: <ZsyAZsDeWLNvSec9@pathway.suse.cz>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 
-On Thu 2024-08-22 21:10:25, Andy Shevchenko wrote:
-> On Thu, Aug 22, 2024 at 12:53:32PM -0500, Ira Weiny wrote:
+On Mon, Aug 26, 2024 at 03:17:26PM +0200, Petr Mladek wrote:
+> On Thu 2024-08-22 12:53:32, Ira Weiny wrote:
 > > Petr Mladek wrote:
 > > > On Fri 2024-08-16 09:44:10, Ira Weiny wrote:
-> 
-> ...
-> 
-> > > > +	%par	[range 0x60000000-0x6fffffff] or
-> > > 
-> > > It seems that it is always 64-bit. It prints:
-> > > 
-> > > struct range {
-> > > 	u64   start;
-> > > 	u64   end;
-> > > };
+
+[...]
+
+> > > > +	static const struct printf_spec range_spec = {
+> > > > +		.base = 16,
+> > > > +		.field_width = RANGE_PRINTK_SIZE,
 > > 
-> > Indeed.  Thanks I should not have just copied/pasted.
+> > However, my testing indicates this needs to be.
+> > 
+> >                 .field_width = 18, /* 2 (0x) + 2 * 8 (bytes) */
 > 
-> With that said, I'm not sure the %pa is a good placeholder for this ('a' stands
-> to "address" AFAIU). Perhaps this should go somewhere under %pr/%pR?
+> Makes sense. Great catch!
 
-The r/R in %pr/%pR actually stands for "resource".
+Which effectively means usage of special_hex_number().
+But again, consider to unite this with %pR/r implementation(s).
 
-But "%ra" really looks like a better choice than "%par". Both
-"resource"  and "range" starts with 'r'. Also the struct resource
-is printed as a range of values.
+> > ... to properly zero pad the value.  Does that make sense?
+> >
+> > > > +		.precision = -1,
+> > > > +		.flags = SPECIAL | SMALL | ZEROPAD,
+> > > > +	};
 
-> > > > +		[range 0x0000000060000000-0x000000006fffffff]
-> > > > +
-> > > > +For printing struct range.  A variation of printing a physical address is to
-> > > > +print the value of struct range which are often used to hold a physical address
-> > > > +range.
-> > > > +
-> > > > +Passed by reference.
+-- 
+With Best Regards,
+Andy Shevchenko
 
-Best Regards,
-Petr
+
