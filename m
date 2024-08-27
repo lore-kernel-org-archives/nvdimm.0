@@ -1,172 +1,138 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58188158DD0;
-	Tue, 27 Aug 2024 08:55:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A8071A0B10
+	for <nvdimm@lists.linux.dev>; Tue, 27 Aug 2024 12:08:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724748945; cv=none; b=bLyEsNYT8WeLcukQ5W+0k58/kim9tIPhGIssieGFgBjDgndmcdCVx+ZBvjqA2+dosRdy8ryr1CoFfr3Qb3xKHtab7WuLBYb5dgto36HhoxjfgYTAhFkXjcRKuLGnU3wrLcS1RzSy1RVxoKfUC0LtlEak2epeUdHnzCC3T84a5oY=
+	t=1724760516; cv=none; b=pQ1A3ZJTgNnkCyTYpU7+HaJPAawMMokj1GbYSiIkFSmrwN4OMZMfZLZ6n4cEks9uttEcHLXLe/bP/6e9cRjddTJPXeaIFIK+UyphK4DAn+DL/jViSQdSQ0Kz9Zm39o48G0H+If3weu9s5iKY8acGmA63vWIjkOzCVkdznYx/UGU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724748945; c=relaxed/simple;
-	bh=WLyDwKrTLwxUKO9wLuHMkEx2eqbtMQG2RDk7GrJYDXs=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=oW+yXMNYQLA8jsdJv8q+4imlY13EYHDB43Pi/YHEqiPG0tfwost9HmHi9gToLX3rOliQ49yvvdc1sLeVJnek25rOgrvDA3/hH5iYjH1dJ+jRDb4w9I2hLG/S6S47Z+71FPe/IJmHo0mt47b7lYNGEiVVzOXnRRgo84P4UjHV6aw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=DusVZnZ7; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="DusVZnZ7"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E362BC8B7A5;
-	Tue, 27 Aug 2024 08:55:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1724748944;
-	bh=WLyDwKrTLwxUKO9wLuHMkEx2eqbtMQG2RDk7GrJYDXs=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=DusVZnZ7wV2iULh/1avLL75JPrhMhQlBqoECiJtic0bUtwgwuIxQeD5hzgO3OPkyS
-	 dpl+eK1bBgzJJ35WOwwwbfdgq1YQrY2eHAEWUAKnv8OixY+PRJYPtQH9Uh4KDOOHgD
-	 2/VI5iJPwBhdC5LsFDFX73FW+2wIcx/umVi6Bv43EvELDrk40xPn4mIuDGkezsnKRA
-	 xbs+ZNNQqQDTYUIePAvIqd1K0l/VrmBAarQw0NUQwiKK+jAlMR+ifUUyK+I6EB0ATl
-	 0IqZzSdRMeIajz+pVDlkeyPLq3GoGX7ttE4pCEa3ZuqwGkXktl0F6ooJc0ev3A8Yxa
-	 2+SfAAZCXhU+Q==
-Date: Tue, 27 Aug 2024 11:52:55 +0300
-From: Mike Rapoport <rppt@kernel.org>
-To: Bruno Faccini <bfaccini@nvidia.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Alexander Gordeev <agordeev@linux.ibm.com>,
-	Andreas Larsson <andreas@gaisler.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>,
-	Catalin Marinas <catalin.marinas@arm.com>,
-	Christophe Leroy <christophe.leroy@csgroup.eu>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	David Hildenbrand <david@redhat.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Davidlohr Bueso <dave@stgolabs.net>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Heiko Carstens <hca@linux.ibm.com>,
-	Huacai Chen <chenhuacai@kernel.org>, Ingo Molnar <mingo@redhat.com>,
-	Jiaxun Yang <jiaxun.yang@flygoat.com>,
-	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-	Jonathan Cameron <jonathan.cameron@huawei.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Palmer Dabbelt <palmer@dabbelt.com>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Rob Herring <robh@kernel.org>,
-	Samuel Holland <samuel.holland@sifive.com>,
-	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Vasily Gorbik <gor@linux.ibm.com>, Will Deacon <will@kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	"linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-	"linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>,
-	"linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>,
-	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>,
-	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
-	"linux-mips@vger.kernel.org" <linux-mips@vger.kernel.org>,
-	"linux-mm@kvack.org" <linux-mm@kvack.org>,
-	"linux-riscv@lists.infradead.org" <linux-riscv@lists.infradead.org>,
-	"linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>,
-	"linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>,
-	"linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>,
-	"loongarch@lists.linux.dev" <loongarch@lists.linux.dev>,
-	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
-	"sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>,
-	"x86@kernel.org" <x86@kernel.org>, Zi Yan <ziy@nvidia.com>
-Subject: Re: [PATCH v4 24/26] arch_numa: switch over to numa_memblks
-Message-ID: <Zs2T5wkSYO9MGcab@kernel.org>
-References: <MW4PR12MB72616723E1A090E315681FF6A38B2@MW4PR12MB7261.namprd12.prod.outlook.com>
+	s=arc-20240116; t=1724760516; c=relaxed/simple;
+	bh=52M/8BWHhEzkUmRkv6Kdv6Vqv/i/kvJFaeCUvFN1u34=;
+	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=bbjTpMLVAG+NT2XsxeBuW4CD4vWDeQPIkqOb7nMHCdbtm4NsuaCOaNdXnIfEzn8wiwK+K+WRo6IDsqjGRsLzlinqEGTd5G42e2cQuVotehgv9uzQDus1/lftOKZgEtflogk0w18wM/VwZuanGB+eSrEQBGUOhNhMmefq01hj6Q4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.18.186.231])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4WtR7c3s8Bz6DBfS;
+	Tue, 27 Aug 2024 20:05:16 +0800 (CST)
+Received: from lhrpeml500005.china.huawei.com (unknown [7.191.163.240])
+	by mail.maildlp.com (Postfix) with ESMTPS id 3E3121400D4;
+	Tue, 27 Aug 2024 20:08:31 +0800 (CST)
+Received: from localhost (10.203.177.66) by lhrpeml500005.china.huawei.com
+ (7.191.163.240) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Tue, 27 Aug
+ 2024 13:08:30 +0100
+Date: Tue, 27 Aug 2024 13:08:29 +0100
+From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+To: Fan Ni <nifan.cxl@gmail.com>
+CC: <ira.weiny@intel.com>, Dave Jiang <dave.jiang@intel.com>, Navneet Singh
+	<navneet.singh@intel.com>, Chris Mason <clm@fb.com>, Josef Bacik
+	<josef@toxicpanda.com>, David Sterba <dsterba@suse.com>, Petr Mladek
+	<pmladek@suse.com>, Steven Rostedt <rostedt@goodmis.org>, Andy Shevchenko
+	<andriy.shevchenko@linux.intel.com>, Rasmus Villemoes
+	<linux@rasmusvillemoes.dk>, Sergey Senozhatsky <senozhatsky@chromium.org>,
+	Jonathan Corbet <corbet@lwn.net>, Andrew Morton <akpm@linux-foundation.org>,
+	Dan Williams <dan.j.williams@intel.com>, Davidlohr Bueso <dave@stgolabs.net>,
+	Alison Schofield <alison.schofield@intel.com>, Vishal Verma
+	<vishal.l.verma@intel.com>, <linux-btrfs@vger.kernel.org>,
+	<linux-cxl@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-doc@vger.kernel.org>, <nvdimm@lists.linux.dev>
+Subject: Re: [PATCH v3 18/25] cxl/extent: Process DCD events and realize
+ region extents
+Message-ID: <20240827130829.00004660@Huawei.com>
+In-Reply-To: <Zsj_8IckEFpwmA5L@fan>
+References: <20240816-dcd-type2-upstream-v3-0-7c9b96cba6d7@intel.com>
+	<20240816-dcd-type2-upstream-v3-18-7c9b96cba6d7@intel.com>
+	<Zsj_8IckEFpwmA5L@fan>
+Organization: Huawei Technologies Research and Development (UK) Ltd.
+X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <MW4PR12MB72616723E1A090E315681FF6A38B2@MW4PR12MB7261.namprd12.prod.outlook.com>
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: lhrpeml500005.china.huawei.com (7.191.163.240) To
+ lhrpeml500005.china.huawei.com (7.191.163.240)
 
-Hi,
+On Fri, 23 Aug 2024 14:32:32 -0700
+Fan Ni <nifan.cxl@gmail.com> wrote:
 
-On Mon, Aug 26, 2024 at 06:17:22PM +0000, Bruno Faccini wrote:
-> > On 7 Aug 2024, at 2:41, Mike Rapoport wrote:
+> On Fri, Aug 16, 2024 at 09:44:26AM -0500, ira.weiny@intel.com wrote:
+> > From: Navneet Singh <navneet.singh@intel.com>
 > > 
-> > From: "Mike Rapoport (Microsoft)" <rppt@kernel.org>
+> > A dynamic capacity device (DCD) sends events to signal the host for
+> > changes in the availability of Dynamic Capacity (DC) memory.  These
+> > events contain extents describing a DPA range and meta data for memory
+> > to be added or removed.  Events may be sent from the device at any time.
 > > 
-> > Until now arch_numa was directly translating firmware NUMA information
-> > to memblock.
+> > Three types of events can be signaled, Add, Release, and Force Release.
 > > 
-> > Using numa_memblks as an intermediate step has a few advantages:
-> > * alignment with more battle tested x86 implementation
-> > * availability of NUMA emulation
-> > * maintaining node information for not yet populated memory
+> > On add, the host may accept or reject the memory being offered.  If no
+> > region exists, or the extent is invalid, the extent should be rejected.
+> > Add extent events may be grouped by a 'more' bit which indicates those
+> > extents should be processed as a group.
 > > 
-> > Adjust a few places in numa_memblks to compile with 32-bit phys_addr_t
-> > and replace current functionality related to numa_add_memblk() and
-> > __node_distance() in arch_numa with the implementation based on
-> > numa_memblks and add functions required by numa_emulation.
+> > On remove, the host can delay the response until the host is safely not
+> > using the memory.  If no region exists the release can be sent
+> > immediately.  The host may also release extents (or partial extents) at
+> > any time.  Thus the 'more' bit grouping of release events is of less
+> > value and can be ignored in favor of sending multiple release capacity
+> > responses for groups of release events.
 > > 
-> > Signed-off-by: Mike Rapoport (Microsoft) <rppt@kernel.org>
-> > Tested-by: Zi Yan <ziy@nvidia.com> # for x86_64 and arm64
-> > Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-> > Tested-by: Jonathan Cameron <Jonathan.Cameron@huawei.com> [arm64 + CXL via
-> > QEMU]
-> > Acked-by: Dan Williams <dan.j.williams@intel.com>
-> > Acked-by: David Hildenbrand <david@redhat.com>
-> > ---
-> >   drivers/base/Kconfig       |   1 +
-> >   drivers/base/arch_numa.c   | 201 +++++++++++--------------------------
-> >   include/asm-generic/numa.h |   6 +-
-> >   mm/numa_memblks.c          |  17 ++--
-> >   4 files changed, 75 insertions(+), 150 deletions(-)
-> >  
-> > <snip>
+> > Force removal is intended as a mechanism between the FM and the device
+> > and intended only when the host is unresponsive, out of sync, or
+> > otherwise broken.  Purposely ignore force removal events.
 > > 
-> > +
-> > +u64 __init numa_emu_dma_end(void)
-> > +{
-> > +             return PFN_PHYS(memblock_start_of_DRAM() + SZ_4G);
-> > +}
-> > +
+> > Regions are made up of one or more devices which may be surfacing memory
+> > to the host.  Once all devices in a region have surfaced an extent the
+> > region can expose a corresponding extent for the user to consume.
+> > Without interleaving a device extent forms a 1:1 relationship with the
+> > region extent.  Immediately surface a region extent upon getting a
+> > device extent.
+> > 
+> > Per the specification the device is allowed to offer or remove extents
+> > at any time.  However, anticipated use cases can expect extents to be
+> > offered, accepted, and removed in well defined chunks.
+> > 
+> > Simplify extent tracking with the following restrictions.
+> > 
+> > 	1) Flag for removal any extent which overlaps a requested
+> > 	   release range.
+> > 	2) Refuse the offer of extents which overlap already accepted
+> > 	   memory ranges.
+> > 	3) Accept again a range which has already been accepted by the
+> > 	   host.  (It is likely the device has an error because it
+> > 	   should already know that this range was accepted.  But from
+> > 	   the host point of view it is safe to acknowledge that
+> > 	   acceptance again.)
+> > 
+> > Management of the region extent devices must be synchronized with
+> > potential uses of the memory within the DAX layer.  Create region extent
+> > devices as children of the cxl_dax_region device such that the DAX
+> > region driver can co-drive them and synchronize with the DAX layer.
+> > Synchronization and management is handled in a subsequent patch.
+> > 
+> > Process DCD events and create region devices.
+> > 
+> > Signed-off-by: Navneet Singh <navneet.singh@intel.com>
+> > Co-developed-by: Ira Weiny <ira.weiny@intel.com>
+> > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+> >   
 > 
-> PFN_PHYS() translation is unnecessary here, as
-> memblock_start_of_DRAM() + SZ_4G is already a
-> memory size.
+> One minor change inline.
+Hi Fan,
+
+Crop please.  I scanned past it 3 times when scrolling without noticing
+what you'd actually commented on.
+
+> > +/* See CXL 3.0 8.2.9.2.1.5 */  
 > 
-> This should fix it:
->  
-> diff --git a/drivers/base/arch_numa.c b/drivers/base/arch_numa.c
-> index 8d49893c0e94..e18701676426 100644
-> --- a/drivers/base/arch_numa.c
-> +++ b/drivers/base/arch_numa.c
-> @@ -346,7 +346,7 @@ void __init numa_emu_update_cpu_to_node(int
-> *emu_nid_to_phys,
+> Update the reference to reflect CXL 3.1.
 > 
-> u64 __init numa_emu_dma_end(void)
-> {
-> -              return PFN_PHYS(memblock_start_of_DRAM() + SZ_4G);
-> +             return memblock_start_of_DRAM() + SZ_4G;
-> }
+> Fan
 > 
-> void debug_cpumask_set_cpu(unsigned int cpu, int node, bool enable)
-
-Right, I've missed that. Thanks for the fix!
-
-Andrew, can you please apply this (with fixed formatting)
-
-diff --git a/drivers/base/arch_numa.c b/drivers/base/arch_numa.c
-index 8d49893c0e94..e18701676426 100644
---- a/drivers/base/arch_numa.c
-+++ b/drivers/base/arch_numa.c
-@@ -346,7 +346,7 @@ void __init numa_emu_update_cpu_to_node(int *emu_nid_to_phys,
- 
- u64 __init numa_emu_dma_end(void)
- {
--	return PFN_PHYS(memblock_start_of_DRAM() + SZ_4G);
-+	return memblock_start_of_DRAM() + SZ_4G;
- }
- 
- void debug_cpumask_set_cpu(unsigned int cpu, int node, bool enable)
-
--- 
-Sincerely yours,
-Mike.
