@@ -1,55 +1,55 @@
 Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6AF4A13B287
-	for <nvdimm@lists.linux.dev>; Wed, 28 Aug 2024 03:14:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E52CF131BDD
+	for <nvdimm@lists.linux.dev>; Wed, 28 Aug 2024 03:14:18 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.21
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724814860; cv=none; b=HBoYRUfkdowwgTCXuSacbliSB9qTYmSxsOtm90fwH6ZQxFIiUeI5wcjHnW/G92DSDtyXtQYWX5ZMZgAHRXmFbr3FxHPCBHLYPU0U26WYkHvUHQdr7PHX1dY5IEqiXkEtptOOtiQ3Ds0vz1HBO7cExT+1EWZSQbF+LirlJ989T3w=
+	t=1724814861; cv=none; b=UbJ28m6peF3NGk69svHaYtAu7zPbz+tGKtifmYLlJMeHgunvFpu1usDv16KIcG4Xv3C+IJcA22eBy8Bl74tYocu4DOW6Pza9sQNT5m1uKqC7IfuGgr4QtQ2hlBN7HWl1T6SvQuDas270gDIte4a9tFW/Qw0TN5d3nr+pY/oicNs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724814860; c=relaxed/simple;
-	bh=s4GwAVKYhS6ciRiQ39FpVVGU3l4wRUq32sUyXRjbYNA=;
+	s=arc-20240116; t=1724814861; c=relaxed/simple;
+	bh=1YC0DcpLKh3UqoWFLYJHhTbYFCzPEfdvDjHStTeZdCA=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=hefuJAU92faFoRvca2ynp39TW2hc7z0RVxu9GorTnbc2UoUEqti1NRpUWXZ126UO7eff45a13Pl/TyPMpPDiMo/iZRPfx26AkM4QEFUP2VxEK4NypeWfRZ63r/7DEWale7n6zuWjEAfJBvH+6H6Edrp4tluyXSTmYHBZTaxqP6M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=HssX1XcA; arc=none smtp.client-ip=198.175.65.21
+	 MIME-Version; b=HIY1MRhJQc8cRDT5hGbwkjZmW3uIjYb74Al4+axz7ValtNEgRbJtAiCeMA3NZFudpFpORvxajdRlVDLhifelxiRH2XL88AUx8w+q6SW8t0PLDLN/6ZXwbasSy3c5XyhlmPz1zOTP4C7uSxS/fJurEVEdnZZzNufhfi8j7GtAqkA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=T3eokiv5; arc=none smtp.client-ip=198.175.65.21
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="HssX1XcA"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="T3eokiv5"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1724814860; x=1756350860;
+  t=1724814859; x=1756350859;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=s4GwAVKYhS6ciRiQ39FpVVGU3l4wRUq32sUyXRjbYNA=;
-  b=HssX1XcA3iDsAzA2xYtevEZKARJuW7dShER2F5cl5VwBiKkJE/dc1d76
-   kcWvd6wJgGXLg30xMkxogY4Jaw+tZAC5ekVR/jS7Z2ldE4OHTfFjc8hNN
-   zyLQisgzOnnXG0KZgqryyWwBvdnZW8xlZDPXc37LiR3U3gs7K9ucxdhKv
-   o20Qkys8Wu7bDMpsUQMM0tRd/IZ4Gq5RDUeklt4VexibhfeUn1NDV2z/7
-   stMxA9Q2wuFbuswnjP49ZYi9OVSO0TOX/7WtYlvkEkx9Fkz6MLAWvxeRL
-   eW1sSurV3IRwheo0ryhtfeGSWhc9qAnr/mRDhzRIUkTGuQkbchDmpsLz/
+  bh=1YC0DcpLKh3UqoWFLYJHhTbYFCzPEfdvDjHStTeZdCA=;
+  b=T3eokiv5usk+udQLdFvN3t/s4zJfOoyQcQIpdvvpf5zrBAnglU/IFEKg
+   HCN1Ppua1PHQ5objXxQjop757H0AB1LYG9hX4RO4GcXvoCsNbrOkq5rdg
+   HLvCM8PgGoI2GNQ4lQHBbcCqZInPzQHTbROptNORKgjFUy45YgPb3r/UN
+   iGTyC2XjCajt4YaA/lZjqhC61QT5Z6SGM9dyYkDXfm71SNmnf/EFu4qpe
+   U3YB/j7tI4Dl5hNQRGNtlHKYdsgVG9f0m85Yb3IuWK17NlMEaBANq10ln
+   iGVboiKBhBisYsM8PkVxuWoRHzSAbdaMTMtvzixxgzEKFIuA+lhaiyLRF
    g==;
-X-CSE-ConnectionGUID: 3EFeY+kpSkO9b9ESp2/GTQ==
-X-CSE-MsgGUID: VWdzZ5gtRCyz21aY5rqKkg==
-X-IronPort-AV: E=McAfee;i="6700,10204,11177"; a="23285730"
+X-CSE-ConnectionGUID: eBJ9kmGmRj2ziO4F54G6hQ==
+X-CSE-MsgGUID: sLW+kLfpT4Sx/3Ix00+Bmg==
+X-IronPort-AV: E=McAfee;i="6700,10204,11177"; a="23285728"
 X-IronPort-AV: E=Sophos;i="6.10,181,1719903600"; 
-   d="scan'208";a="23285730"
+   d="scan'208";a="23285728"
 Received: from orviesa009.jf.intel.com ([10.64.159.149])
-  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Aug 2024 20:14:19 -0700
-X-CSE-ConnectionGUID: drH3/R3rSwmgAX3KvUxLkQ==
-X-CSE-MsgGUID: kk4j1yfPTbOAy/t+aNBq+g==
+  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Aug 2024 20:14:18 -0700
+X-CSE-ConnectionGUID: fnq0qw7HR9SGxDUP4GGAoQ==
+X-CSE-MsgGUID: 3DxqvrJOTKW7729mUFCO3A==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.10,181,1719903600"; 
-   d="scan'208";a="63039286"
+   d="scan'208";a="63039282"
 Received: from aschofie-mobl2.amr.corp.intel.com (HELO localhost) ([10.125.111.50])
-  by orviesa009-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Aug 2024 20:14:19 -0700
+  by orviesa009-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Aug 2024 20:14:18 -0700
 From: alison.schofield@intel.com
 To: nvdimm@lists.linux.dev
 Cc: Alison Schofield <alison.schofield@intel.com>,
 	linux-cxl@vger.kernel.org
-Subject: [ndctl PATCH 2/2] test/daxctl-create.sh: use CXL DAX regions instead of efi_fake_mem
-Date: Tue, 27 Aug 2024 20:14:05 -0700
-Message-ID: <519161e23a43e530dbcffac203ecbbb897aa5342.1724813664.git.alison.schofield@intel.com>
+Subject: [ndctl PATCH 1/2] test/daxctl-create.sh: use bash math syntax to find available size
+Date: Tue, 27 Aug 2024 20:14:04 -0700
+Message-ID: <865e28870eb8c072c2e368362a6d86fc4fb9cb61.1724813664.git.alison.schofield@intel.com>
 X-Mailer: git-send-email 2.46.0
 In-Reply-To: <cover.1724813664.git.alison.schofield@intel.com>
 References: <cover.1724813664.git.alison.schofield@intel.com>
@@ -63,61 +63,34 @@ Content-Transfer-Encoding: 8bit
 
 From: Alison Schofield <alison.schofield@intel.com>
 
-This test tries to use DAX regions created from efi_fake_mem devices.
-A recent kernel change removed efi_fake_mem support causing this test
-to SKIP because no DAX regions can be found.
+The check for 1GB of available space in a DAX region always returned
+true due to being wrapped inside a [[ ... ]] test, even when space
+wasn't available. That caused set size to fail.
 
-Alas, a new source of DAX regions is available: CXL. Use that now.
-Other than selecting a different region provider, the functionality
-of the test remains the same.
+Update to use bash arithmetic evaluation instead.
+
+This issue likely went unnoticed because users allocated >= 1GB of
+efi_fake_mem. This fix is part of the transition to use CXL regions
+in this test as efi_fake_mem support is being removed from the kernel.
 
 Signed-off-by: Alison Schofield <alison.schofield@intel.com>
 ---
- test/daxctl-create.sh | 18 +++++++-----------
- 1 file changed, 7 insertions(+), 11 deletions(-)
+ test/daxctl-create.sh | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/test/daxctl-create.sh b/test/daxctl-create.sh
-index d968e7bedd82..1ef70f2ff186 100755
+index c093cb9e306a..d968e7bedd82 100755
 --- a/test/daxctl-create.sh
 +++ b/test/daxctl-create.sh
-@@ -7,6 +7,9 @@ rc=77
+@@ -363,7 +363,7 @@ daxctl_test6()
  
- trap 'cleanup $LINENO' ERR
- 
-+modprobe -r cxl_test
-+modprobe cxl_test
-+
- cleanup()
- {
- 	printf "Error at line %d\n" "$1"
-@@ -18,18 +21,10 @@ find_testdev()
- {
- 	local rc=77
- 
--	# The hmem driver is needed to change the device mode, only
--	# kernels >= v5.6 might have it available. Skip if not.
--	if ! modinfo dax_hmem; then
--		# check if dax_hmem is builtin
--		if [ ! -d "/sys/module/device_hmem" ]; then
--			printf "Unable to find hmem module\n"
--			exit $rc
--		fi
--	fi
-+	# find a victim region provided by cxl_test
-+	bus="$("$CXL" list -b "$CXL_TEST_BUS" | jq -r '.[] | .bus')"
-+	region_id="$("$DAXCTL" list -R | jq -r ".[] | select(.path | contains(\"$bus\")) | .id")"
- 
--	# find a victim region provided by dax_hmem
--	region_id="$("$DAXCTL" list -R | jq -r '.[] | select(.path | contains("hmem")) | .id')"
- 	if [[ ! "$region_id" ]]; then
- 		printf "Unable to find a victim region\n"
- 		exit "$rc"
-@@ -413,4 +408,5 @@ daxctl_test5
- daxctl_test6
- daxctl_test7
- reset_dev
-+modprobe -r cxl_test
- exit 0
+ 	# Use 2M by default or 1G if supported
+ 	align=2097152
+-	if [[ $((available >= 1073741824 )) ]]; then
++	if (( available >= 1073741824 )); then
+ 		align=1073741824
+ 		size=$align
+ 	fi
 -- 
 2.37.3
 
