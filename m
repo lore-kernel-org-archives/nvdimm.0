@@ -1,98 +1,88 @@
-Received: from mx0b-00082601.pphosted.com (mx0b-00082601.pphosted.com [67.231.153.30])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from msa.smtpout.orange.fr (smtp-83.smtpout.orange.fr [80.12.242.83])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A05F91BF7FB
-	for <nvdimm@lists.linux.dev>; Fri, 30 Aug 2024 20:43:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=67.231.153.30
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F1C7D3CF7E
+	for <nvdimm@lists.linux.dev>; Sun,  1 Sep 2024 15:17:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=80.12.242.83
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725050586; cv=none; b=tPND3KwaT6201iZ7WG4iB7fTbAoyIJroDQJsOqjRChGxRIy/zQ8nutqIHvFygF/ovHE3wZGv/XQjeDpDWVqUV26mFvZ8E5A1VuknqcjeN3KI6y5L+dsiHH9DgKgKJOuFTlyWtfZOEXvqjHoJa1XNBeljEmkiADZYRY2vLStcRLQ=
+	t=1725203847; cv=none; b=O8zHNSzKcB6Ap7loppq2aQnceX4sl33GfoRReSWFXmeECCNTvbQ4JFB5ufCd2TLFyiWFBID9OOFEN/iFs/AqGgBhNhpiRXXNCbH1kyoeGyYq/YBoS63o8tDu+amTA2Ay7OPHXI4LHabSfUDTTV/X5nB67POQuXL4BVG276W68AU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725050586; c=relaxed/simple;
-	bh=+1VIhFdEh9c242JHRFnObt/6ZXQk1sqCwVGogTTonSg=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=nFJStvJeySmOyUU4KSssftazyEAmjMS9SLxT6dnPUCZ+nFyEUHBjyD62TjmgHXeeMfEb4cz/DYPIR7TqFmJT4toZqZ79yKzcfzk+MlfGP/xIh6uNaJI2MWrdj+oh6zq7dGntaN5wXY3foq4B9kZ5AJjJlpVSPCZlQfCrgVaLByY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com; spf=pass smtp.mailfrom=meta.com; dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.b=gvGjnuh3; arc=none smtp.client-ip=67.231.153.30
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=meta.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=meta.com
+	s=arc-20240116; t=1725203847; c=relaxed/simple;
+	bh=+oifxVqYLcNvH3TFN5BAAGfli+t14t1naa2f/ObStAg=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=Khogsa/xAc7AEwDxVbUxX1PVQuIuispcjev8N02heBJUDAIdnCBQV/mUX8t+eaxQisoPZzyl+Za1zS+dsl05OweaqD8bkMcB41HQhX39ctvo6aKbY9S5tDxs0x/EwFVYl8H8icb4nPmaXW+5XYshOYbWbDRWzuLQwdZoya+upZs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=wanadoo.fr; spf=pass smtp.mailfrom=wanadoo.fr; dkim=pass (2048-bit key) header.d=wanadoo.fr header.i=@wanadoo.fr header.b=lEXqHMKr; arc=none smtp.client-ip=80.12.242.83
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=wanadoo.fr
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=wanadoo.fr
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=meta.com header.i=@meta.com header.b="gvGjnuh3"
-Received: from pps.filterd (m0109331.ppops.net [127.0.0.1])
-	by mx0a-00082601.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 47UIDfV4009275
-	for <nvdimm@lists.linux.dev>; Fri, 30 Aug 2024 13:43:03 -0700
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=meta.com; h=from
-	:to:cc:subject:date:message-id:mime-version
-	:content-transfer-encoding:content-type; s=s2048-2021-q4; bh=OAV
-	M1yu813YBKUroR3wfSWo/eZFI6dS9uwU/EGRFpVU=; b=gvGjnuh3fHLAFc07T9M
-	BuPzQzz91R8IBc/BHheZIomXhoiMVeQjPL1QOEFOUdDMMVwmpX+87ZgUgtbtTF61
-	LZ8MD2GidelaoiKu1obIohIK6X6/KoA8e4a6V5wZ5Zraj/YldsG4/xumqZDLiQuH
-	brcs1Snz0+undJIDPR1OsZhYolDcp5M0Yuuq/Sxffl3QrI53HDMi7Scz1sQrEbTl
-	9igGEMhOghUF74u1D8rSIfg3YBMCqE/XGGdsuHoRH7HHecdtZm373Is2wGkXMKWl
-	KmDkgjzgN2zWJCaEcnPBafbv+5GOjWfLlbIY9bI31Dc7ykbbLIcpcUYr2cL6o9Gp
-	2SA==
-Received: from maileast.thefacebook.com ([163.114.130.16])
-	by mx0a-00082601.pphosted.com (PPS) with ESMTPS id 41ap64ksk6-2
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT)
-	for <nvdimm@lists.linux.dev>; Fri, 30 Aug 2024 13:43:03 -0700 (PDT)
-Received: from twshared34253.17.frc2.facebook.com (2620:10d:c0a8:1b::2d) by
- mail.thefacebook.com (2620:10d:c0a9:6f::237c) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.2.1544.11; Fri, 30 Aug 2024 20:43:02 +0000
-Received: by devbig638.nha1.facebook.com (Postfix, from userid 544533)
-	id 1E962126FFBBC; Fri, 30 Aug 2024 13:42:56 -0700 (PDT)
-From: Keith Busch <kbusch@meta.com>
-To: <dan.j.williams@intel.com>, <vishal.l.verma@intel.com>,
-        <dave.jiang@intel.com>, <nvdimm@lists.linux.dev>
-CC: Keith Busch <kbusch@kernel.org>
-Subject: [PATCH] btt: fix block integrity
-Date: Fri, 30 Aug 2024 13:42:55 -0700
-Message-ID: <20240830204255.4130362-1-kbusch@meta.com>
-X-Mailer: git-send-email 2.43.5
+	dkim=pass (2048-bit key) header.d=wanadoo.fr header.i=@wanadoo.fr header.b="lEXqHMKr"
+Received: from fedora.home ([90.11.132.44])
+	by smtp.orange.fr with ESMTPA
+	id kmKIsidNBCul1kmKIssdEm; Sun, 01 Sep 2024 17:17:16 +0200
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=wanadoo.fr;
+	s=t20230301; t=1725203836;
+	bh=yMZLdMo/JqwLkmyPxql8GWXtKMmhtxUaz8IUp+tEwGw=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version;
+	b=lEXqHMKrvk3EmUMskjBe4akGxwLbP0rxLetnREdXUjVchWkcVt+83IY6Di9th7+/W
+	 hmdKIN1km+D8RNlUTl+s6bKTWzkFDHdJ/XUSYg0X9FNkryptbUV1hK0gCBqDwKOZyQ
+	 UcgGwWi2EUyAEbncUgpZeePcvOzXZi6gpFJq/h3dJEGxzD/+K7pKiA1sNy7AIDHyNm
+	 lJL8lP/ogPji4OfRZ5ufIj4fz5zCjrF/VH0fcbBTPeuy0sNHDrdeTCeEozw6SIjV6h
+	 0opMTXGzRDc4FmZTv4E3+6fgmErNWl1LawAN5I5hLMkrYL9Mgmmzv4r3XloyK5QMnv
+	 8ElmmS7NxMoFw==
+X-ME-Helo: fedora.home
+X-ME-Auth: Y2hyaXN0b3BoZS5qYWlsbGV0QHdhbmFkb28uZnI=
+X-ME-Date: Sun, 01 Sep 2024 17:17:16 +0200
+X-ME-IP: 90.11.132.44
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+To: Dan Williams <dan.j.williams@intel.com>,
+	Matthew Wilcox <willy@infradead.org>,
+	Jan Kara <jack@suse.cz>
+Cc: linux-kernel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org,
+	Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
+	linux-fsdevel@vger.kernel.org,
+	nvdimm@lists.linux.dev
+Subject: [PATCH] dax: Remove an unused field in struct dax_operations
+Date: Sun,  1 Sep 2024 17:17:09 +0200
+Message-ID: <56b92b722ca0a6fd1387c871a6ec01bcb9bd525e.1725203804.git.christophe.jaillet@wanadoo.fr>
+X-Mailer: git-send-email 2.46.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-X-FB-Internal: Safe
-Content-Type: text/plain
-X-Proofpoint-GUID: 73eSoF8TO7EBJpg5HKrXLUyDAknGf9bS
-X-Proofpoint-ORIG-GUID: 73eSoF8TO7EBJpg5HKrXLUyDAknGf9bS
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1039,Hydra:6.0.680,FMLib:17.12.28.16
- definitions=2024-08-30_10,2024-08-30_01,2024-05-17_01
+Content-Transfer-Encoding: 8bit
 
-From: Keith Busch <kbusch@kernel.org>
+.dax_supported() was apparently removed by commit 7b0800d00dae ("dax:
+remove dax_capable") on 2021-11.
 
-bip is NULL before bio_integrity_prep().
+Remove the now unused function pointer from the struct dax_operations.
 
-Signed-off-by: Keith Busch <kbusch@kernel.org>
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
 ---
- drivers/nvdimm/btt.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Slightly compile tested only, but "git grep dax_supported" now returns
+nothing.
+---
+ include/linux/dax.h | 6 ------
+ 1 file changed, 6 deletions(-)
 
-diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-index 423dcd1909061..13594fb712186 100644
---- a/drivers/nvdimm/btt.c
-+++ b/drivers/nvdimm/btt.c
-@@ -1435,8 +1435,8 @@ static int btt_do_bvec(struct btt *btt, struct bio_=
-integrity_payload *bip,
-=20
- static void btt_submit_bio(struct bio *bio)
- {
--	struct bio_integrity_payload *bip =3D bio_integrity(bio);
- 	struct btt *btt =3D bio->bi_bdev->bd_disk->private_data;
-+	struct bio_integrity_payload *bip;
- 	struct bvec_iter iter;
- 	unsigned long start;
- 	struct bio_vec bvec;
-@@ -1445,6 +1445,7 @@ static void btt_submit_bio(struct bio *bio)
-=20
- 	if (!bio_integrity_prep(bio))
- 		return;
-+	bip =3D bio_integrity(bio);
-=20
- 	do_acct =3D blk_queue_io_stat(bio->bi_bdev->bd_disk->queue);
- 	if (do_acct)
---=20
-2.43.5
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index 9d3e3327af4c..df41a0017b31 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -27,12 +27,6 @@ struct dax_operations {
+ 	 */
+ 	long (*direct_access)(struct dax_device *, pgoff_t, long,
+ 			enum dax_access_mode, void **, pfn_t *);
+-	/*
+-	 * Validate whether this device is usable as an fsdax backing
+-	 * device.
+-	 */
+-	bool (*dax_supported)(struct dax_device *, struct block_device *, int,
+-			sector_t, sector_t);
+ 	/* zero_page_range: required operation. Zero page range   */
+ 	int (*zero_page_range)(struct dax_device *, pgoff_t, size_t);
+ 	/*
+-- 
+2.46.0
 
