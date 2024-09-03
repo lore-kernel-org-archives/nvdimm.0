@@ -1,101 +1,106 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.11])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 864F918786D
-	for <nvdimm@lists.linux.dev>; Tue,  3 Sep 2024 15:47:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.11
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2ABCD18CBEE
+	for <nvdimm@lists.linux.dev>; Tue,  3 Sep 2024 19:17:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725378471; cv=none; b=t8C+KT/pMMBeu5gLNMWBbutl+1m0RmXs9GYHyTU7zhGKllQzRkPH+mU3MQhK9gQ91zr9WcL+KeSZtaGz/eGoCjjWpdlUm9isQu++2uLr/oQjY+N65GIlJSZM3JqzBbMshpp23g/wPCtMUN0Y/hztZhJQGtB3yxZJWK2IkeMOqyw=
+	t=1725391069; cv=none; b=WcHkeXJ3BWrBwOLUUeITmszgL68SHNWe3RCPiuJNykWSHyL4nkN9wWfRttKwWhwFNo0ezlQemM7mfmXzEACOu7yUdfEFwz6Gjyy0CSLaYIN1TzBfFV1AjnIBEYBkXuI/8dXazyHUJ8jiDNz5d2vJXHmkPeI1rLeIfH0VJJJ8Om8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725378471; c=relaxed/simple;
-	bh=5b5+4ZvlfS76WJAfoz8GXYo80fEeKIddB8cgkbxXhRI=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=eRNPXzqqpvY7JcNL3APdsSjz6ZB4yB0yi53Xhr0g+arg6sNu2wXzJV2VSTLodiyxMO/uZQd+x23oDl67QVZpCRxwR4lbWhqQ3XeQxSPM/APpwf0RTYtKErRjR1NFzlEC8VDxV1YBp00D0KBp/vqtxAtR9bWIqUl+As/0LwQvlt8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=MoWhxYIY; arc=none smtp.client-ip=192.198.163.11
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1725391069; c=relaxed/simple;
+	bh=kNDVDagqIyJUR6yMgqE36mAL/l1EP0M2wYM/1b1fUJo=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=UctO12GF6EUS0FKCjuWDaNE9LSJNaYGyFUfH8IYQN4Hgdz4f0GTrmhZq9FL+07lYyl0cpAKpriRuIhNqmErOPnuH/2+Dhf4l1FDZIgYUxQWQxbrRTr49E0Mr8jAMBLSfzvWWJzmD8es7WtzB08YcAiVCcYYnHR5bIGA0Hn+ocAQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JONtaC0j; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="MoWhxYIY"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1725378470; x=1756914470;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=5b5+4ZvlfS76WJAfoz8GXYo80fEeKIddB8cgkbxXhRI=;
-  b=MoWhxYIYRxSxpzIgfb1qmPYzHVHj+mrrnnXO3Px9MD+TAfiWlyf5YXxT
-   QRqXQY+se5rMG8bEBCzDcg5No4F7l1Qnhs59HFuv/lpLEebituCGOuSTp
-   KEoRelL33LpBkU1jC3TQgTGx7oSv5inSb63/KRR/mKiZqZkhU1upAome6
-   ehLDjRUyoXtV91XOYuzEdhGkjbFfcd0SDX1oX8Vv4pGArL9XFrvNZXIda
-   bfJO5z6/CJLIjAL5rNnQDZgAcsyvYPYNeaijJTR0gZsKrx8nnEYMXCjQ5
-   KD+ExsX6rWoCRhlF4km2r1e5X8edPjt4uIH12B8PdsXp2TFjbQSmvj0QA
-   A==;
-X-CSE-ConnectionGUID: tAwBGvYYRkykuQ3u+7g9Jw==
-X-CSE-MsgGUID: XdKHRFpWSBqhNcGte3veAw==
-X-IronPort-AV: E=McAfee;i="6700,10204,11184"; a="34596966"
-X-IronPort-AV: E=Sophos;i="6.10,199,1719903600"; 
-   d="scan'208";a="34596966"
-Received: from fmviesa003.fm.intel.com ([10.60.135.143])
-  by fmvoesa105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Sep 2024 08:47:50 -0700
-X-CSE-ConnectionGUID: gRXETiJIQXWhA9yahEnL3Q==
-X-CSE-MsgGUID: Iiz9KAvWR4yM3vzYZq7b9Q==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.10,199,1719903600"; 
-   d="scan'208";a="69102987"
-Received: from iherna2-mobl4.amr.corp.intel.com (HELO [10.125.109.10]) ([10.125.109.10])
-  by fmviesa003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Sep 2024 08:47:49 -0700
-Message-ID: <588f9c7c-3c67-474f-a364-927d57bec130@intel.com>
-Date: Tue, 3 Sep 2024 08:47:48 -0700
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JONtaC0j"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F06BC4CEC5
+	for <nvdimm@lists.linux.dev>; Tue,  3 Sep 2024 19:17:47 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1725391068;
+	bh=kNDVDagqIyJUR6yMgqE36mAL/l1EP0M2wYM/1b1fUJo=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=JONtaC0javzhMrIEvm5G8wK6W0iGst58Gx/rUSTizbQ7zkGqhc92K9nmV9tJPn4+U
+	 hg2AyzQimPGEN0mn4wZJI0UvpNLUpjJ9x/502u4xlw+dQgBIuV9LBDD1hOklfMWM97
+	 iGMBgw4etPRYXjeYEPrEX2w3Y9/p3noB5KOKdzGqlk30uGx8CcRn++bvR/NeOTi089
+	 t6fNGQ3swQFSM0PlLnPOROifXab8GBAsojJS2M+MjyAbj4glYYOgRRQ5r6MNp5ViQQ
+	 Z0renG6uqgKXRoLiGHny8jeljttYhX0DiF+/CuFDfJpTUhsz5mcGx2HzwePIgwmDOh
+	 1wQk0KlPUtlpg==
+Received: by mail-lj1-f179.google.com with SMTP id 38308e7fff4ca-2f3f0bdbcd9so66977331fa.1
+        for <nvdimm@lists.linux.dev>; Tue, 03 Sep 2024 12:17:47 -0700 (PDT)
+X-Gm-Message-State: AOJu0YxdersHXmlQsHgxvNmCV5Q1HoMt5MhdIB8m5IWr1fU0Fh2S+ult
+	7bdU9A+v6ZHCxvN2qP5g21ruQyZ3+DGogo0bpVoAL/HMSOy/y9TBbXEyzu1T9bqGPXU7Q4gXdfE
+	P24qv2avzlPyx0wWASERJ+8B4Dg==
+X-Google-Smtp-Source: AGHT+IGmrptwa9msLQUlQ1DEWIkWxsXnOS/2hU5mBSL42INWPkCCj9BFmS8VKk8qPYlR1d8v1BAIAPmETQG3Ch6X1Jo=
+X-Received: by 2002:a2e:a7c1:0:b0:2ef:2ef5:ae98 with SMTP id
+ 38308e7fff4ca-2f651e11020mr772341fa.34.1725391066018; Tue, 03 Sep 2024
+ 12:17:46 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] btt: fix block integrity
-To: Keith Busch <kbusch@meta.com>, dan.j.williams@intel.com,
- vishal.l.verma@intel.com, nvdimm@lists.linux.dev
-Cc: Keith Busch <kbusch@kernel.org>
-References: <20240830204255.4130362-1-kbusch@meta.com>
-Content-Language: en-US
-From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <20240830204255.4130362-1-kbusch@meta.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+References: <20240731191312.1710417-26-robh@kernel.org>
+In-Reply-To: <20240731191312.1710417-26-robh@kernel.org>
+From: Rob Herring <robh@kernel.org>
+Date: Tue, 3 Sep 2024 14:17:33 -0500
+X-Gmail-Original-Message-ID: <CAL_JsqKC5S_-vJjdYEsoFHAQiQvymVDE4_moy5g_p7YEfAmDLA@mail.gmail.com>
+Message-ID: <CAL_JsqKC5S_-vJjdYEsoFHAQiQvymVDE4_moy5g_p7YEfAmDLA@mail.gmail.com>
+Subject: Re: [PATCH] nvdimm: Use of_property_present() and of_property_read_bool()
+To: Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, 
+	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>, 
+	"Oliver O'Halloran" <oohall@gmail.com>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>
+Cc: nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-
-
-On 8/30/24 1:42 PM, Keith Busch wrote:
-> From: Keith Busch <kbusch@kernel.org>
-> 
-> bip is NULL before bio_integrity_prep().
-> 
-> Signed-off-by: Keith Busch <kbusch@kernel.org>
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-
+On Wed, Jul 31, 2024 at 2:14=E2=80=AFPM Rob Herring (Arm) <robh@kernel.org>=
+ wrote:
+>
+> Use of_property_present() and of_property_read_bool() to test
+> property presence and read boolean properties rather than
+> of_(find|get)_property(). This is part of a larger effort to remove
+> callers of of_find_property() and similar functions.
+> of_(find|get)_property() leak the DT struct property and data pointers
+> which is a problem for dynamically allocated nodes which may be freed.
+>
+> Signed-off-by: Rob Herring (Arm) <robh@kernel.org>
 > ---
->  drivers/nvdimm/btt.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-> index 423dcd1909061..13594fb712186 100644
-> --- a/drivers/nvdimm/btt.c
-> +++ b/drivers/nvdimm/btt.c
-> @@ -1435,8 +1435,8 @@ static int btt_do_bvec(struct btt *btt, struct bio_integrity_payload *bip,
->  
->  static void btt_submit_bio(struct bio *bio)
->  {
-> -	struct bio_integrity_payload *bip = bio_integrity(bio);
->  	struct btt *btt = bio->bi_bdev->bd_disk->private_data;
-> +	struct bio_integrity_payload *bip;
->  	struct bvec_iter iter;
->  	unsigned long start;
->  	struct bio_vec bvec;
-> @@ -1445,6 +1445,7 @@ static void btt_submit_bio(struct bio *bio)
->  
->  	if (!bio_integrity_prep(bio))
->  		return;
-> +	bip = bio_integrity(bio);
->  
->  	do_acct = blk_queue_io_stat(bio->bi_bdev->bd_disk->queue);
->  	if (do_acct)
+>  drivers/nvdimm/of_pmem.c | 2 +-
+>  drivers/nvmem/layouts.c  | 2 +-
+>  2 files changed, 2 insertions(+), 2 deletions(-)
+
+Ping
+
+> diff --git a/drivers/nvdimm/of_pmem.c b/drivers/nvdimm/of_pmem.c
+> index 403384f25ce3..b4a1cf70e8b7 100644
+> --- a/drivers/nvdimm/of_pmem.c
+> +++ b/drivers/nvdimm/of_pmem.c
+> @@ -47,7 +47,7 @@ static int of_pmem_region_probe(struct platform_device =
+*pdev)
+>         }
+>         platform_set_drvdata(pdev, priv);
+>
+> -       is_volatile =3D !!of_find_property(np, "volatile", NULL);
+> +       is_volatile =3D of_property_read_bool(np, "volatile");
+>         dev_dbg(&pdev->dev, "Registering %s regions from %pOF\n",
+>                         is_volatile ? "volatile" : "non-volatile",  np);
+>
+> diff --git a/drivers/nvmem/layouts.c b/drivers/nvmem/layouts.c
+> index 77a4119efea8..65d39e19f6ec 100644
+> --- a/drivers/nvmem/layouts.c
+> +++ b/drivers/nvmem/layouts.c
+> @@ -123,7 +123,7 @@ static int nvmem_layout_bus_populate(struct nvmem_dev=
+ice *nvmem,
+>         int ret;
+>
+>         /* Make sure it has a compatible property */
+> -       if (!of_get_property(layout_dn, "compatible", NULL)) {
+> +       if (!of_property_present(layout_dn, "compatible")) {
+>                 pr_debug("%s() - skipping %pOF, no compatible prop\n",
+>                          __func__, layout_dn);
+>                 return 0;
+> --
+> 2.43.0
+>
