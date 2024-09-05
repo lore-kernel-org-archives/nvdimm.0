@@ -1,267 +1,195 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.13])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f176.google.com (mail-pl1-f176.google.com [209.85.214.176])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 154DA1E00AE;
-	Wed,  4 Sep 2024 17:53:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=198.175.65.13
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725472441; cv=fail; b=kyWKeVhJMyC49Nl1MuWNE3lGFIyQl+n7oPDrai5HtFtqjRF/RH9uAuABQJSFkfl9at905IahXnoVjcy+kGWNrFRp1bSoF3h190F4n7W7j9mNdH2WNjfPxA+f8KDKl2P9UsXVcfdf2erh2VPELI3iVXgs49MnB8eEpWQrTORufWk=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725472441; c=relaxed/simple;
-	bh=tE2Ay/6P2WxICF+joI8865g5WurcFnYpM/eGIKY9TfM=;
-	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=mFY6GfoLyYdEmVDZdc+g8+XKhkKhHdqjkdc+D9SeeZexc4uKwHgm+S97+AHLKeFvQkWk55q8dAoQNkEZ6G9FXdzdITZmo7Ty8gHRRBWdOgtxsWvh96g1zKIVJwYVbk+PL/zKu+rzPfVCf9hOAdk+2Brs2KeS/Mw5X1ee4PK2z1M=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=UNdwU3mA; arc=fail smtp.client-ip=198.175.65.13
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3ED44400
+	for <nvdimm@lists.linux.dev>; Thu,  5 Sep 2024 19:30:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.176
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1725564639; cv=none; b=nD2Vv4JVOLSjNOTYaWDgwh2zVs1uBQBqmwtwYs0KMUFESRhfgbeWC6a1dnwmut+1ogPabqRi4QsyIsBAWq98mHxoXwYYWcABx1rgd5Tna4vKjGCzqYR0istY0kzf4IbEw9gGXoBgPSvTiVEf4i1kyvlTNlwHOd5q1ibFFouk+tc=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1725564639; c=relaxed/simple;
+	bh=edz1Y8cPH7nK/wkJBWl60AZ/9Ibna25B5YaZsnfzETQ=;
+	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=iDaRZt9A6igEOQjD6Zc1ei7IwpSpUZp51o4AIu/SdKiBDI9w6kxcXpiQjHmWFqFb1asezRmW5N4WhDjTdfzwwYEF7dj6lSnGwO7jslSPFGaBwMCWKBE4D5xnOaWOjQcUJfANqExJCJhqum+4WVdyU7VjVXrhE/uUL8bYQPSDk2M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Dd34fHNJ; arc=none smtp.client-ip=209.85.214.176
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="UNdwU3mA"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1725472441; x=1757008441;
-  h=date:from:to:cc:subject:message-id:references:
-   content-transfer-encoding:in-reply-to:mime-version;
-  bh=tE2Ay/6P2WxICF+joI8865g5WurcFnYpM/eGIKY9TfM=;
-  b=UNdwU3mASiKXCsArpq7k5Kzj1Uy2610XrSrUu7GK5tJ8/luFyp8j/26n
-   /xheF/ZZPlmYRrJCRHFEtSwAb9cnNzJn0wY/prkzzYKM6crETgX/uUBig
-   3B2rtrmdh2nkQkLtZ05VcezBopOTf4Jpo2HJnlAOoktCGRYmHtcrnaYWA
-   0puwI2BuOKY82f0nXgQvv/asEzM319ic+AAhGm0tWNIAFRoX3HgVOXV/9
-   cOefo1/6qrIg7ZxxfCwva+f25Vjhnn/GFzo35j3yZTXFfsdqzkBqKX7ga
-   1oi8i2HZcKbWxWjMKvp5WbaxQ/QFP4UvYQeXJsKX1mc8MgPicLGlnv7nH
-   Q==;
-X-CSE-ConnectionGUID: 6w4coy+qT9ieiN4FdPP9Lw==
-X-CSE-MsgGUID: OMaiOoz0SkyUe6RJK2i2LA==
-X-IronPort-AV: E=McAfee;i="6700,10204,11185"; a="35311592"
-X-IronPort-AV: E=Sophos;i="6.10,202,1719903600"; 
-   d="scan'208";a="35311592"
-Received: from fmviesa006.fm.intel.com ([10.60.135.146])
-  by orvoesa105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Sep 2024 10:54:00 -0700
-X-CSE-ConnectionGUID: J5nxRWV8RryvIhK8Bn1syg==
-X-CSE-MsgGUID: 4MbvWWxqR+OzYQH1TCFNKA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.10,202,1719903600"; 
-   d="scan'208";a="64996687"
-Received: from fmsmsx602.amr.corp.intel.com ([10.18.126.82])
-  by fmviesa006.fm.intel.com with ESMTP/TLS/AES256-GCM-SHA384; 04 Sep 2024 10:53:59 -0700
-Received: from fmsmsx603.amr.corp.intel.com (10.18.126.83) by
- fmsmsx602.amr.corp.intel.com (10.18.126.82) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.39; Wed, 4 Sep 2024 10:53:58 -0700
-Received: from fmsedg602.ED.cps.intel.com (10.1.192.136) by
- fmsmsx603.amr.corp.intel.com (10.18.126.83) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.39 via Frontend Transport; Wed, 4 Sep 2024 10:53:58 -0700
-Received: from NAM10-BN7-obe.outbound.protection.outlook.com (104.47.70.47) by
- edgegateway.intel.com (192.55.55.71) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.39; Wed, 4 Sep 2024 10:53:58 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=gfhe+UgAMQothV0qq/hb/1+R8reiQj9+xBf+uv5jdFwgFEhpW0DCY8U6nCdsbBr6rtkm/bc5UikVj0F/6lr9FqSaLyyxvbspfn42Rekcu5Pl8TVOq+xfPRK8+uAwu8bPYLfOOiGgSWIFx9r7pBsxG1Op52P6JVnLMxIjohd/Q9pKgJBHcpA+nOoP76GUvwaDXIeSXIxWATXimaOLkarQNZ5UCv7uDBhu5BSJvd3XGgUAowLrlBhcC4KqqtltjESDN7CC/rRHv5XSfLgHXCj+Yjf7gjvXf/y7oOc351rYWs/Z5vtRQVISUGZzFJ7Gl5TVvYcQKqjL/L1YbU049UIa0Q==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=mNsTQPNSKai79SkpZq6/GRvBaWbEJ62g65NwHjOR2C0=;
- b=NNxSholT7sDWYyWjaW3Otdi77UWMyEORJUAYhwOCIUUs6rQ0gbhydZD4UYPRozHLKePYw0at9veZF3tF8cinc0C/DCmbw96ppR201Wo/kp8thi3z9qRlZlacYtFGWY1wj0O6PW84NLY2Bwdzggl8spfu7GQyPDCUNcIZvhLtmsTgeM3b7z8muyjT+Mu0tB0j2Hm2ylF3QALsufgdORtPOgHsax7ntU2/Gph1xUlfpo6I+8Ki8GSClzzVS4oVVjD46ol9kFoR6QkhVFavYkoNC6uCZCAnY+JkceFDA3nnIBOpYSjFzjL3DxmQFcYI8rchk7ENCC+tu2EvpFGNjlEUvA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from SA1PR11MB6733.namprd11.prod.outlook.com (2603:10b6:806:25c::17)
- by DM4PR11MB8227.namprd11.prod.outlook.com (2603:10b6:8:184::10) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7918.25; Wed, 4 Sep
- 2024 17:53:56 +0000
-Received: from SA1PR11MB6733.namprd11.prod.outlook.com
- ([fe80::cf7d:9363:38f4:8c57]) by SA1PR11MB6733.namprd11.prod.outlook.com
- ([fe80::cf7d:9363:38f4:8c57%6]) with mapi id 15.20.7918.024; Wed, 4 Sep 2024
- 17:53:56 +0000
-Date: Wed, 4 Sep 2024 12:53:50 -0500
-From: Ira Weiny <ira.weiny@intel.com>
-To: Philip Chen <philipchen@chromium.org>, Pankaj Gupta
-	<pankaj.gupta.linux@gmail.com>, Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>,
-	Ira Weiny <ira.weiny@intel.com>
-CC: <virtualization@lists.linux.dev>, <nvdimm@lists.linux.dev>,
-	<linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] virtio_pmem: Add freeze/restore callbacks
-Message-ID: <66d89eaeb0a4b_1e9158294e1@iweiny-mobl.notmuch>
-References: <20240815004617.2325269-1-philipchen@chromium.org>
- <CA+cxXhneUKWr+VGOjmOtWERA53WGcubjWBuFbVBBuJhNhSoBcQ@mail.gmail.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CA+cxXhneUKWr+VGOjmOtWERA53WGcubjWBuFbVBBuJhNhSoBcQ@mail.gmail.com>
-X-ClientProxiedBy: MW4PR03CA0145.namprd03.prod.outlook.com
- (2603:10b6:303:8c::30) To SA1PR11MB6733.namprd11.prod.outlook.com
- (2603:10b6:806:25c::17)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Dd34fHNJ"
+Received: by mail-pl1-f176.google.com with SMTP id d9443c01a7336-204d391f53bso12282595ad.2
+        for <nvdimm@lists.linux.dev>; Thu, 05 Sep 2024 12:30:37 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1725564637; x=1726169437; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=MbrEFO3D2q7bIKaAwLKYWbNKa6L/7Ep2zWdh3jV7Rr4=;
+        b=Dd34fHNJD7oU8lbLopBaKufOlnzwA1U4TVn1+OTJhu9T5/Hx7LTyZGHtJrDKMBYMsP
+         HCCDw9Axmbv341LYw4TMzQceJAh0OkUz62Me8hRCHwx80/1Aitm0qi4CNY0z4gxRegzY
+         hm64TLYSC+/cvDuzm5u7QXrZtfoyzP7L9FTRZTNmygbkNyKLcvqmxQHTk8O5mdvmEwVt
+         A9XwwwVTVWr91Dlkbeb2aa4Zjal6zQ28xiFh5XP6LK+4lqUFIbXBurpldUs08ATfXlEa
+         YE0lDrWpJ2lnYEQyLu3zpA+a7VpSbXH39WXwNWYaQTOfDf1jGmQ+2ETeLFCO//Xmy/T7
+         hmtQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1725564637; x=1726169437;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=MbrEFO3D2q7bIKaAwLKYWbNKa6L/7Ep2zWdh3jV7Rr4=;
+        b=aoYygwhWP3odvCPKtFWGI2NboyiZkYIqiW1O9w4E36Da7+oZZ2vznvUiAAlxe/o3Y6
+         lkkHWb13TaVk1e1PU/HDZNV88WJL8sx72FvYaONHw5zgPw7u7jvHvXH3fz4Og078H508
+         pAwL6TBPls1TnauTHYeSNy12DMIAvFDBq3DpHW5FtyVrTga+XRdeGpZ2Y/ZcaoasdbhE
+         Vv7QZbfSZAsQ4oH3cR3n3/4sQmAZfx+/ZxoMNuRu3RWCDFlJHmnvY7NwIv1AearwbpHu
+         22MSCfYTlCWDDQhydkm5lq/BuBToatUjtu43A22Ov8g53/TT8TPaqF6E/tszS9uhTVRk
+         OvHA==
+X-Forwarded-Encrypted: i=1; AJvYcCULKxWAbureYn0f2orARThjTRDftTwo6deB0EeEHbUM/i9LC02NNwAlMm8qqVM91xpG2J5nKcA=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yw1ML6ypHnHRnLiqOj9yL8TPRvVJ+nUvbdhjcL+BbEZ/qUQKI1F
+	RAxlALAXLzahHbgJjs/7V8Hfh5XJCof/yzSs+lOE7f9N6nC2C4HG
+X-Google-Smtp-Source: AGHT+IEXZGO8hCMMHsv0PnNONyTrag4Qx3WBh3WvRsXRhE+inBwlwGH8ekc0KBbwTXHDLfyibHm8iQ==
+X-Received: by 2002:a17:902:cec9:b0:206:8c37:bcd0 with SMTP id d9443c01a7336-206f052e090mr1367825ad.27.1725564636900;
+        Thu, 05 Sep 2024 12:30:36 -0700 (PDT)
+Received: from leg ([2601:646:8f03:9fee:1d73:7db5:2b4a:dfdd])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-206ae952bd4sm31818995ad.113.2024.09.05.12.30.34
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 05 Sep 2024 12:30:35 -0700 (PDT)
+From: Fan Ni <nifan.cxl@gmail.com>
+X-Google-Original-From: Fan Ni <fan.ni@samsung.com>
+Date: Thu, 5 Sep 2024 12:30:20 -0700
+To: ira.weiny@intel.com
+Cc: Dave Jiang <dave.jiang@intel.com>,
+	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+	Navneet Singh <navneet.singh@intel.com>, Chris Mason <clm@fb.com>,
+	Josef Bacik <josef@toxicpanda.com>, David Sterba <dsterba@suse.com>,
+	Petr Mladek <pmladek@suse.com>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Rasmus Villemoes <linux@rasmusvillemoes.dk>,
+	Sergey Senozhatsky <senozhatsky@chromium.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Davidlohr Bueso <dave@stgolabs.net>,
+	Alison Schofield <alison.schofield@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	linux-btrfs@vger.kernel.org, linux-cxl@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
+	nvdimm@lists.linux.dev
+Subject: Re: [PATCH v3 18/25] cxl/extent: Process DCD events and realize
+ region extents
+Message-ID: <ZtoGzNhrCOPvrnGV@leg>
+References: <20240816-dcd-type2-upstream-v3-0-7c9b96cba6d7@intel.com>
+ <20240816-dcd-type2-upstream-v3-18-7c9b96cba6d7@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SA1PR11MB6733:EE_|DM4PR11MB8227:EE_
-X-MS-Office365-Filtering-Correlation-Id: a496a43f-a760-41d4-abfb-08dccd0a8bbb
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|1800799024|376014;
-X-Microsoft-Antispam-Message-Info: =?utf-8?B?WnV1R0ZyTjhZRHJDaFlmTVB4TVhKMVhMSDIwdWxEUUJGOEZLc2tPbGJ4a2Z5?=
- =?utf-8?B?VVJhMVNGUTVnaEVDR2pSbzYveUxvSTE4R0pMcUY5VXViWkt6azBlMEo5SUNm?=
- =?utf-8?B?UkJVcUpmRUJpMUo3eVNlTVkvcFo3VmcrMEZsMyszQk12aUtRR0p2bFZxeEM5?=
- =?utf-8?B?dUlNNnh2MmdVaWlRcWlUQm1LWTZjS05TMDBka25VRS9oMHdpL0ttM29LRnZC?=
- =?utf-8?B?NExzd1VESVAwSnpiVHRRei93THorTjczVkFlUWJpb1JVOWpvaFo4WVRHaklx?=
- =?utf-8?B?MEhvNlBSemY4WnNCRUVxcyt2MmorTktCZjFoMjFad3Zub1laaDZYV2c2U2xs?=
- =?utf-8?B?L3hGWWRhMWpaVElsUjdOdU1tUXUrajAxcncxb3Bxa1pKSTV6Q2IyTWJwTi9j?=
- =?utf-8?B?SkJ0NHdsYThBcEQ2aGsvdEQ5QUZjd0Z3dytUVzFkTTRrUzRpSzhGYnVRV3dI?=
- =?utf-8?B?Z1ZDK3RhWm5FU01vOEJUcGRBUnZIUVU2aVRJeTBxQ2VvaW1abXlJWmRseFBQ?=
- =?utf-8?B?WEdNVDZETUQwUWd4UWl5eDFGekNWYXo5UnNwNXpEWkRjR1JFSzZPVlVQRTJN?=
- =?utf-8?B?U0lnc2dBYUNxK0JJdW5DL0s0R1JRMVlHM1ZISmtVOFo2QnpiTStZMWxjN1NJ?=
- =?utf-8?B?eXUvVEJrK04rUEZUZFlDbHBsZy9wOXdGdTd5bTc5QUMrelM1S1VISEZYOElD?=
- =?utf-8?B?K0VHKzhYZFJIMVJ5WWNUUTdDTUZCcmQwK002WjFIeTR1VUJBcjVCTzlJZnhO?=
- =?utf-8?B?b3VLVGlBRC85RC93QUx2NDZML2E0Q2NzWk53ZVNWbFcrbi9KbU1UaXI4UVIr?=
- =?utf-8?B?TU5XQlJFMnpBRUd4TnZXTTVJcnFGVXAvbHYzWWwrWURBdUxka2Y1c25IRjc0?=
- =?utf-8?B?UzR5ZVZkRlBXcmlFemVJWEwzQ3ExSnF5c1g3K0tTMTE3STVhaGVBN0t2OUY2?=
- =?utf-8?B?eU5iWkpxd2lGVEFwZXMwa0NqMTN0Vkd4Yk9XYTlUK3ZqNWE5VmZiK0NuZm9E?=
- =?utf-8?B?Mm53Mjk2eEtJRFVxeS81ZE1qR2dMdWVZMWh6Myt6dWc3TFZnZTZxcW1kS1Bj?=
- =?utf-8?B?dGZyQzBxV09YSjNpR1pDemY1bjJsVW1GUHUxSmpZZlFaY1Q3L1dheUQvZHRE?=
- =?utf-8?B?ZTBoVnlJUlg1SVFOM0RSZkorb3BSU0oxVnZkQ1lxU0pjTGlrQTIyRnI3QVVE?=
- =?utf-8?B?SGpoQ0NXdDRmclhOS2dpTk9qeXUzblo0YW50Z3lrQ3pVNWtNenp0UGh4b05u?=
- =?utf-8?B?aWhmeXlYVHRaTnEyckt5dlo3UHhtU2ZsTWFqR1JybmxQejh1MTAvMlJyQUZL?=
- =?utf-8?B?S2drZGJ5M3BhTVBVME12UTBHRS94Z1N1QnhqR3FGNlRPK3FSRWk2eHQxalox?=
- =?utf-8?B?VW1VdGw0TjlHdHgzc2RWRlg2VmQ1SUN0SEFKUnZaY3BDb3RLa0VQdzZjbFgx?=
- =?utf-8?B?TjFQZEg3R0F0NkQxUkRNOVJtWnJrOHVVUkxiaEVGUDJaTllaK1NGeFJKaFZB?=
- =?utf-8?B?YkxmYlFlUzY4QkRxY0NQaUdhSGZRcGtTVGdWS0U4b0VCWVZsNjV5WE1xM1gx?=
- =?utf-8?B?dnFZVVR1dGJuR1RqT1lnNFlxM3NXU0ovUTA5RU5PdE5oNmNjZDFWYitzVXpP?=
- =?utf-8?B?V2U2OWJOREJwZ243dmlrSGRBbytvcjFKcjVOeGRwd2U0WEZ4ZmlpbDVYdzJu?=
- =?utf-8?B?SXMvaGF3UDBrWkJsSE9sZ2djQWx2UGNnN2E0bU5tUzI3R0IrczVncitXZzhG?=
- =?utf-8?B?Vi9lR053eU9vV2JkQml6Q3Fid25VaXpqRkNuc3Njc1RSaHhVZkdyL0xVb2pI?=
- =?utf-8?Q?Vjl1xpjzhLsmxFCSBTg9GVhEIvfMeIT0Tke4o=3D?=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA1PR11MB6733.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(1800799024)(376014);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?eExVMW0zK3RIaGx1Ymh5NHZTU0V4SktKTjZtNnFJTUdhdjBHODBzU0grV2l1?=
- =?utf-8?B?dmtUN2E5elRNUWt6Z1E3N21MK0xTQmtwYVl2SmVRRU5mdDVueDVqSlFmQy9F?=
- =?utf-8?B?Sm5EdHMzdGpjRnF2VUFva0hYd3puell2dCthaXNDQXZGWHI5bEdMVW15SDZp?=
- =?utf-8?B?OGdUZVFkVzdISDY3YU1mR2h5ODZvV0g4ejJVWjVrclZJdXVUNUozbG5sNWZL?=
- =?utf-8?B?a3NPK2JnYVNFcEN4T2Y2clV1S0dVMUdqOFgwYnJidFlyYm4vcXdkcHFQOFNy?=
- =?utf-8?B?d09KUUt4cmxJY0RxYkNYa2IwSFd3dVFPTjBFSlBCZWlMNkl1dGRYSWZYQWVT?=
- =?utf-8?B?djRSMjFtOThodVY0OEMybUw0LzZvS1ZXVjEyNVprQjdxYUN4V0pDcnBobmJW?=
- =?utf-8?B?REp1aTV5M0FBMU9NSDlLcU9NMjBwZDdtbzQwalRIbG52MUk0VHBKS0VlRzky?=
- =?utf-8?B?SnNYUDdHb0UwVytybm9CcnFQYlpWWDFKMFZ5S2pIZzdsd3ZNY3grUlRQeTV2?=
- =?utf-8?B?RDhIYU9rUDJRUS9tb25mMzU2blBiVVpLVzRCamlkU0xKeUlNVWJVRHVxbkF5?=
- =?utf-8?B?dGphaUVmTURYNUpvbVpkREJhbFd0bVZDQ3pRdVRTSUF1NzNURzZoMm5uSW45?=
- =?utf-8?B?MXBWbHN2UmhNVjB6ZlpWN3NFTFZTRzEyYVcwWWJjWXlaNTdtUHpqa3hHN3Vk?=
- =?utf-8?B?YlBkcTQzUkorcjMybGk0NUU5M215MERxQkZxQndyM29zS1JzeXZqQy9JQWJv?=
- =?utf-8?B?bHR2SWRGYTNyRGJWbXRmMktnTHJVZUs1VTFvS0NQbHI1MWVDMEVoS0dob21h?=
- =?utf-8?B?bzhhT1FNYzJiSFJyUWovNEVWSGxIWW84eGZSRkNiWkJUcmprYkJvcGJIcXBp?=
- =?utf-8?B?RGs0OUFkK1NudDhGVlB0KzFxUGtvckhGcEdUdkdkeWFoVFZnV0o0Z01ZZE1B?=
- =?utf-8?B?bEtYOUExQmcvbmZRRndQcG9TRlhtL0FyRnRqUDdCOC96R2NxdDhOVmY5SFdW?=
- =?utf-8?B?b043WXNyZE91RkNQQ3crT0FjcWdxbzRva2xjUVNwdlc2cDdFSWlwSXdRQ2ZD?=
- =?utf-8?B?eExQSVFISVJQVVZCSXZ1Y1lMVXVyTUhtMEZsblYvdTdFZHNvdnQ0anZUbGk2?=
- =?utf-8?B?SGFIbXoyWjJjODcrWmhJbk1pYTluOVRlYXFGZ1NIeHhjdHo3UjkvMkRWYjdE?=
- =?utf-8?B?MCtsWGR1N0tQaUFLTmRhVlQvYndoNEpFUEpyWmljTTcxSko2SmR0d3g2Q1Ro?=
- =?utf-8?B?RnhIZ0VFZS9GTVVsYTlkVCtIcU0zM0cyV0pod0JzOEJFSkR5emxRMjZHcHpw?=
- =?utf-8?B?K0RScTY2MlZpbWsrNHk1Tjl1UXU3bFk3ZFZDb3FzVWZta1hrd2ozeEVacDRY?=
- =?utf-8?B?YWoyamZvTWY3Y3VaUWJIZkJ6QVo3YWtRZWlveHhkcVlsbUVZanJnYjNldzYx?=
- =?utf-8?B?eWI3emwxVjliWksxQzhDK3d6Vi9GSnNRTmhuVnRRU2xYSCt2MEdncFkzS0dz?=
- =?utf-8?B?RmVUbWpaR3Q4TGQ2NC9lWTNCRUwxM05zZFVzMmFYaWQ3cHN5Qk9ZV09vaUo0?=
- =?utf-8?B?T2NkU1RRSCtSbUF6TVFlSTdOazRueDdleXRuUVlXNlltZTlIamhhZVZ6d2Nx?=
- =?utf-8?B?d3lwU3JPQXVMUDdreVBJQkZEb0ZLZjhOWVZ4RnB2ZHQ5RDRyRnREaktMTjYy?=
- =?utf-8?B?OXhHVWdkT1R5a2hoU3E1YmRMamozUW1Tcit4czg1RitveWNxSldsdHJUazgw?=
- =?utf-8?B?eC9acHBQNTNGNDQwMHA5QTRQYjdCN1JLUjZKeTF0TVREK2hXZndtczNQTzNB?=
- =?utf-8?B?Q2VhWU9Qa0JVWURJUTlsUzNkTktVdy9uQkc1bit4b3orR29ZU2RHem9mMm01?=
- =?utf-8?B?bUNBa3R1QitRZ0hhazZqS3RXaE5jQmJBNDIrVSttcUhUb1M1Qis3Q3BPd1Br?=
- =?utf-8?B?S2p2Mk9xMzBBbUl1QVdqaXdDRDBBM0QwTk1ZUTU4T09XZkNmeHRkVDdQQlBr?=
- =?utf-8?B?dUlMM2JYdlB0QnlxZFlzbzErZzBRdm1DVVJUSUord0ZZWUp5eGtRSU90NDZ4?=
- =?utf-8?B?Wmx5RW9jcTczVFVmRjdJTStCOEtxZnMreHJIUG0rNytqQ1NPYitMSFhoVC9k?=
- =?utf-8?Q?LHBF8Ow1DFCyAXhTb/Xls8Hlo?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: a496a43f-a760-41d4-abfb-08dccd0a8bbb
-X-MS-Exchange-CrossTenant-AuthSource: SA1PR11MB6733.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 04 Sep 2024 17:53:56.2086
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 5FPzTiQscLLHxNIRPKOUTPa2NebAJX50mW+YugIK6oylbC498fBRdpc8x8+Tr88sMYGBhdofx1pBy7037VMpoA==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM4PR11MB8227
-X-OriginatorOrg: intel.com
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20240816-dcd-type2-upstream-v3-18-7c9b96cba6d7@intel.com>
 
-Philip Chen wrote:
-> Hi maintainers,
+On Fri, Aug 16, 2024 at 09:44:26AM -0500, ira.weiny@intel.com wrote:
+> From: Navneet Singh <navneet.singh@intel.com>
 > 
-> Can anyone let me know if this patch makes sense?
-> Any comment/feedback is appreciated.
-> Thanks in advance!
-
-I'm not an expert on virtio but the code looks ok on the surface.  I've
-discussed this with Dan a bit and virtio-pmem is not heavily tested.
-
-Based on our discussion [1] I wonder if there is a way we can recreate this
-with QEMU to incorporate into our testing?
-
-Ira
-
-[1] https://lore.kernel.org/lkml/CA+cxXhnb2i5O7_BiOfKLth5Zwp5T62d6F6c39vnuT53cUkU_uw@mail.gmail.com/
-
+> A dynamic capacity device (DCD) sends events to signal the host for
+> changes in the availability of Dynamic Capacity (DC) memory.  These
+> events contain extents describing a DPA range and meta data for memory
+> to be added or removed.  Events may be sent from the device at any time.
 > 
-> On Wed, Aug 14, 2024 at 5:46 PM Philip Chen <philipchen@chromium.org> wrote:
-> >
-> > Add basic freeze/restore PM callbacks to support hibernation (S4):
-> > - On freeze, delete vq and quiesce the device to prepare for
-> >   snapshotting.
-> > - On restore, re-init vq and mark DRIVER_OK.
-> >
-> > Signed-off-by: Philip Chen <philipchen@chromium.org>
-> > ---
-> >  drivers/nvdimm/virtio_pmem.c | 24 ++++++++++++++++++++++++
-> >  1 file changed, 24 insertions(+)
-> >
-> > diff --git a/drivers/nvdimm/virtio_pmem.c b/drivers/nvdimm/virtio_pmem.c
-> > index c9b97aeabf85..2396d19ce549 100644
-> > --- a/drivers/nvdimm/virtio_pmem.c
-> > +++ b/drivers/nvdimm/virtio_pmem.c
-> > @@ -143,6 +143,28 @@ static void virtio_pmem_remove(struct virtio_device *vdev)
-> >         virtio_reset_device(vdev);
-> >  }
-> >
-> > +static int virtio_pmem_freeze(struct virtio_device *vdev)
-> > +{
-> > +       vdev->config->del_vqs(vdev);
-> > +       virtio_reset_device(vdev);
-> > +
-> > +       return 0;
-> > +}
-> > +
-> > +static int virtio_pmem_restore(struct virtio_device *vdev)
-> > +{
-> > +       int ret;
-> > +
-> > +       ret = init_vq(vdev->priv);
-> > +       if (ret) {
-> > +               dev_err(&vdev->dev, "failed to initialize virtio pmem's vq\n");
-> > +               return ret;
-> > +       }
-> > +       virtio_device_ready(vdev);
-> > +
-> > +       return 0;
-> > +}
-> > +
-> >  static unsigned int features[] = {
-> >         VIRTIO_PMEM_F_SHMEM_REGION,
-> >  };
-> > @@ -155,6 +177,8 @@ static struct virtio_driver virtio_pmem_driver = {
-> >         .validate               = virtio_pmem_validate,
-> >         .probe                  = virtio_pmem_probe,
-> >         .remove                 = virtio_pmem_remove,
-> > +       .freeze                 = virtio_pmem_freeze,
-> > +       .restore                = virtio_pmem_restore,
-> >  };
-> >
-> >  module_virtio_driver(virtio_pmem_driver);
-> > --
-> > 2.46.0.76.ge559c4bf1a-goog
-> >
+> Three types of events can be signaled, Add, Release, and Force Release.
+> 
+> On add, the host may accept or reject the memory being offered.  If no
+> region exists, or the extent is invalid, the extent should be rejected.
+> Add extent events may be grouped by a 'more' bit which indicates those
+> extents should be processed as a group.
+> 
+> On remove, the host can delay the response until the host is safely not
+> using the memory.  If no region exists the release can be sent
+> immediately.  The host may also release extents (or partial extents) at
+> any time.  Thus the 'more' bit grouping of release events is of less
+> value and can be ignored in favor of sending multiple release capacity
+> responses for groups of release events.
+> 
+> Force removal is intended as a mechanism between the FM and the device
+> and intended only when the host is unresponsive, out of sync, or
+> otherwise broken.  Purposely ignore force removal events.
+> 
+> Regions are made up of one or more devices which may be surfacing memory
+> to the host.  Once all devices in a region have surfaced an extent the
+> region can expose a corresponding extent for the user to consume.
+> Without interleaving a device extent forms a 1:1 relationship with the
+> region extent.  Immediately surface a region extent upon getting a
+> device extent.
+> 
+> Per the specification the device is allowed to offer or remove extents
+> at any time.  However, anticipated use cases can expect extents to be
+> offered, accepted, and removed in well defined chunks.
+> 
+> Simplify extent tracking with the following restrictions.
+> 
+> 	1) Flag for removal any extent which overlaps a requested
+> 	   release range.
+> 	2) Refuse the offer of extents which overlap already accepted
+> 	   memory ranges.
+> 	3) Accept again a range which has already been accepted by the
+> 	   host.  (It is likely the device has an error because it
+> 	   should already know that this range was accepted.  But from
+> 	   the host point of view it is safe to acknowledge that
+> 	   acceptance again.)
+> 
+> Management of the region extent devices must be synchronized with
+> potential uses of the memory within the DAX layer.  Create region extent
+> devices as children of the cxl_dax_region device such that the DAX
+> region driver can co-drive them and synchronize with the DAX layer.
+> Synchronization and management is handled in a subsequent patch.
+> 
+> Process DCD events and create region devices.
+> 
+> Signed-off-by: Navneet Singh <navneet.singh@intel.com>
+> Co-developed-by: Ira Weiny <ira.weiny@intel.com>
+> Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+> 
+One more minor inline.
+> +static int cxl_validate_extent(struct cxl_memdev_state *mds,
+> +			       struct cxl_extent *extent)
+> +{
+> +	u64 start = le64_to_cpu(extent->start_dpa);
+> +	u64 length = le64_to_cpu(extent->length);
+> +	struct device *dev = mds->cxlds.dev;
+> +
+> +	struct range ext_range = (struct range){
+> +		.start = start,
+> +		.end = start + length - 1,
+> +	};
+> +
+> +	if (le16_to_cpu(extent->shared_extn_seq) != 0) {
+> +		dev_err_ratelimited(dev,
+> +				    "DC extent DPA %par (%*phC) can not be shared\n",
+> +				    &ext_range.start, CXL_EXTENT_TAG_LEN,
+> +				    extent->tag);
+> +		return -ENXIO;
+> +	}
+> +
+> +	/* Extents must not cross DC region boundary's */
+> +	for (int i = 0; i < mds->nr_dc_region; i++) {
+> +		struct cxl_dc_region_info *dcr = &mds->dc_region[i];
+> +		struct range region_range = (struct range) {
+> +			.start = dcr->base,
+> +			.end = dcr->base + dcr->decode_len - 1,
+> +		};
+> +
+> +		if (range_contains(&region_range, &ext_range)) {
+> +			dev_dbg(dev, "DC extent DPA %par (DCR:%d:%#llx)(%*phC)\n",
+> +				&ext_range, i, start - dcr->base,
+> +				CXL_EXTENT_TAG_LEN, extent->tag);
+> +			return 0;
+> +		}
+> +	}
 
+For extent validation, we may need to ensure its size is not 0 based on the spec.
+Noted that during testing, do not see issue for the case as 0-sized
+extents will be rejected when trying to add even though it passes the
+validation.
 
+Fan
+ 
