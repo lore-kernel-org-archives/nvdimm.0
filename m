@@ -1,115 +1,511 @@
-Received: from mail-ua1-f46.google.com (mail-ua1-f46.google.com [209.85.222.46])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.17])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E46B1B3F22;
-	Mon,  9 Sep 2024 13:27:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.46
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725888423; cv=none; b=BxkyOb5lKW3nrXk6vV7pmQ0XQ4HcikyVE1SODCIR02Hz8ZZwQTReOP4rBVEH9ZZjeJLVEJRceeTt3nRUa7ZdMOU9uj5Cs7j7eYGHXxrJwkYCS47h8VmKYMefaHAT8AJc5d0R6vDtUqNyXEoVCf+XFx4KdcJ6qv33VeHFHzxXF+0=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725888423; c=relaxed/simple;
-	bh=8NPuVW4r6t7ooWB4l704lARcRv+pYm5pldQ/0JNS5Ko=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=mx9YU7sq//HfiMWighroQmo3EE5AxUQpD6+Jr1XDRTgtWWtz5UpxEUvwvSNNjVvbiY1LiX4OlmGzSHJrDj/iT4CZ8CwTQiqW+tcdCGJki+HBosE/Fj5S3vUQTJGj8DFHwvldmoyGe71p39t/i8pVOLN9QmwApcARt/ECj8deFKw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=gSbXlP8z; arc=none smtp.client-ip=209.85.222.46
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7900C1BA892
+	for <nvdimm@lists.linux.dev>; Mon,  9 Sep 2024 13:57:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.17
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1725890278; cv=fail; b=TgBTeZ8ZX3SvYpJ39dGE9aFDJ79Le6QY4rLs04KY07zecaSgufXBKc59i0dKpviGhrx1uYSh1aVFL+1zxeNaJgGSgmivzHsMCNCFKhUV72Qg+bzcxTUXLAB2R3lY30ExA4Y2hQ+S4lZ3S9MDIE7ExZ/laNaax9PThn471FkLJlE=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1725890278; c=relaxed/simple;
+	bh=RCTTar3aSAjajpcBLywr3PI2OIqPlmw7KMDYlUI8oHY=;
+	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=oRRp0LoLbX8n7gWg/GQFiDZSEDjPEmiJrljg1b2wuBdLrdkoHluD46xIcsnx5EwxVFGU9OxFrqLK4X5AqYDAxKcrHvUUe2we9uYhn8fOZ5naZflaMGZSWOC+bQQOSece973vSI6Lmgrhad+XnjbDbJ3COFIsJ8abZaQkoCzy8YA=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=QRnb0Vje; arc=fail smtp.client-ip=192.198.163.17
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="gSbXlP8z"
-Received: by mail-ua1-f46.google.com with SMTP id a1e0cc1a2514c-846c4ec2694so1322884241.2;
-        Mon, 09 Sep 2024 06:27:02 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1725888421; x=1726493221; darn=lists.linux.dev;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=RK2owrGqF5BPDXOzMjhXIFhBXeulK+IBCn+O/obzMo0=;
-        b=gSbXlP8zKq6jaiqBGMbSBR/xpRxNAN4myoHhcnt1MoTCqTYRkPJi0wx/pz0atjCNfv
-         uiLMSK6/zBBhS4VCQ9HgWIbNb5T/IBlg9fV7iCzPQpct2wvl2MY/lhF05F+r+6FrqvW+
-         i+P8rIZXWLzuvS1LAUHxFoERSYzf3xi8XgcJvNBxO/DYfMB5tTKU9NH880+W7FJsOdF7
-         XlLgDXfFAVneeV91wRLTDy5kPtDQcWIuACJKS45UZG1h5Lj4lRYGtbN4hqd9CiBFTCf9
-         AM6qABDfEkt5FanFrW+A7VW5rYvvoPZR0uXy88V0cCGY90EEazdyUcGu976Bg2RHm2Sz
-         jFtQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1725888421; x=1726493221;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=RK2owrGqF5BPDXOzMjhXIFhBXeulK+IBCn+O/obzMo0=;
-        b=JLzbfQCz23YtC7Hckb2Zf4aWSNm10W1/rfOT5PnSz5ZC6kuLlGZKPtVuszH7FFw4Mo
-         nIN9OWSvOsyy49PHEgN0wtgp0aGGUL11eZEHWaPj8+aV3fIPGY1KwgIt7DMnqIP8W20o
-         0cIcU9KNqmN2V60vIp+h/MhiT5ck4/lkN+WMLSBANfZOtBGXFHCetBKW6lcHczj0cWPE
-         dWbEku4wJPFaj3ZOh15SaCQkKuu0okBHAPTY+NOgj8I2DxPVlzTL6YI7Gto0TK5eXYUl
-         Lgsf7ergzyCKY4oabAoIzFnhWxLCLEXS/m9CUeoPx38r138C4rhv7sBSmRECUgqf9toI
-         JbTg==
-X-Forwarded-Encrypted: i=1; AJvYcCU86HmgmDtMaqd9mEo/3A8KpBUDbxGyqoS5yBhFJ+XUhiYRg8zSd3HEyNtAC6zglzUJmgT2PNNuBQ/ZbI8oRzw=@lists.linux.dev, AJvYcCUNmVziZ5T4atqIN7Y9DxwJhCzLwOPDYZe/NPas5t325YIMaKeTDma1qiE5sAeG+SIzql5gL80=@lists.linux.dev
-X-Gm-Message-State: AOJu0YwSSTbU4lHBt5Ae8XthH/2vjhq34kzf/+1hAnw+fF/ILCF+YEFW
-	pNWpuh544MkOrPQhGeld3giOjVVkZ6k9AsYIFlkRsnv6tSn4Za+bnkgcs9ZRM9MlCRHqsBOpQPy
-	i9zjkF1TCwL5SN7gN47j4esZSF24=
-X-Google-Smtp-Source: AGHT+IFdN7CQlNG7Z4/pzQWiLsu0EFgNsMpPnKQE23XgLfB9rnTVGgJTc10xs6B0LLchx5XDjp3+ymefBefd4ATKd3M=
-X-Received: by 2002:a05:6122:3104:b0:4f5:1978:d226 with SMTP id
- 71dfb90a1353d-50207ebf230mr10711341e0c.3.1725888421147; Mon, 09 Sep 2024
- 06:27:01 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="QRnb0Vje"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1725890277; x=1757426277;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=RCTTar3aSAjajpcBLywr3PI2OIqPlmw7KMDYlUI8oHY=;
+  b=QRnb0VjesSK/dHoZLFjnf3DwLX28FNvm8H8sVQSekmKvGuCk8bOqgcjg
+   zp2/Xa0irqk3qvAkG3Q7DI+oT3PsrX/eu6vQEUuhBIRFjfXJmkGudCFzN
+   fjwihxDsMAtwdTCslfCFXdiTihP64WQjNZ0pcQnqSZB4MKMxvhBKEYAHY
+   wv2/Z/k1hLIVD8nFhfw1st2xTbjmiDJmfuY0VJwLxojpCzzgumZpRz9dG
+   4zise6sTG3QorzD8SFGBVwrTc3v1xCRdaqJ4RHfZX5ShkZeqeRd+nYiRT
+   qQxtRBxstCOXB8PGJ3prN6BqxC1r7BfEnjPUbHXGHLcDI5jfOUKdSbi+c
+   Q==;
+X-CSE-ConnectionGUID: 0M6Z7RlGQi6SgfrvgfV+sw==
+X-CSE-MsgGUID: pGW/Hfh7Q6iw6eEwamONYg==
+X-IronPort-AV: E=McAfee;i="6700,10204,11190"; a="24462754"
+X-IronPort-AV: E=Sophos;i="6.10,214,1719903600"; 
+   d="scan'208";a="24462754"
+Received: from orviesa009.jf.intel.com ([10.64.159.149])
+  by fmvoesa111.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Sep 2024 06:57:56 -0700
+X-CSE-ConnectionGUID: EHwlwArsSLW5lt8KXVemcA==
+X-CSE-MsgGUID: D+440NSHS3GeFzvA1uwC5g==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.10,214,1719903600"; 
+   d="scan'208";a="66652938"
+Received: from orsmsx602.amr.corp.intel.com ([10.22.229.15])
+  by orviesa009.jf.intel.com with ESMTP/TLS/AES256-GCM-SHA384; 09 Sep 2024 06:57:56 -0700
+Received: from orsmsx611.amr.corp.intel.com (10.22.229.24) by
+ ORSMSX602.amr.corp.intel.com (10.22.229.15) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.39; Mon, 9 Sep 2024 06:57:55 -0700
+Received: from orsmsx612.amr.corp.intel.com (10.22.229.25) by
+ ORSMSX611.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.39; Mon, 9 Sep 2024 06:57:54 -0700
+Received: from ORSEDG602.ED.cps.intel.com (10.7.248.7) by
+ orsmsx612.amr.corp.intel.com (10.22.229.25) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.39 via Frontend Transport; Mon, 9 Sep 2024 06:57:54 -0700
+Received: from NAM10-BN7-obe.outbound.protection.outlook.com (104.47.70.49) by
+ edgegateway.intel.com (134.134.137.103) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.39; Mon, 9 Sep 2024 06:57:54 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=VC3ySgNMCiD8wLKgFvYSuTfO2EAxN6LZfghSdyEEjZijomHclxSbeVfp557+zLp2POscb36GYL+DyHYdjSdoiU9vLZXM0oH1j1G0aF6V2ZKW82C+V1SIcpjI12dcQaPICww6UzEl6DB1xDN59nWlWia4GoNzh/eA2KTpSpfL2L2E1zv44VVuqKFTybYOolv17Lbr7HfcdCRYR5IgCsCVGChe2KF+vRq6V2qTd7+AUP3R6bC0UDNYgksaO83N0dmgXVgGHCR5rs0pIsvK8p256qKMmcMwQVnauDfYxlvjKGfDockpOnPNYt3D5gh5XBiqAWkY/AsWnndeHqPhHF8w4A==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=dveML4ViEM/Zfv7SXV/GT2+Em8xwREmpd7Ne0XoKpeo=;
+ b=pMnaV46lKO+vvH/bik3FQ5GDNIDsClJ2CXGga2NWnVEn8U9XkPkMhrocz15UmygOsulD7CsdUvV+VzHX4qsyo5CA22J4040tI00ibv4+jorUKnbScjPR5wktv/XahVmOj0uuBNO3SGibOk2MJHUjhivGU0E0QNLjnTJ/NPqoNacb4DWCHokWr5iAgdBzsVI1mU0oprhXr02U/T2t74Tn7aMs6MXJmyxBhnVRpIhJPTvkyO5CC5iDgI5uFGxURhb3ROw2FhyoINkPAN4WkEVWJClV2TnHhnTFKe0nYr0UY1om2suZhS1ZGJ7DRACmVfiyO/6vfgeFOT9vWGRxTP99dQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from SA1PR11MB6733.namprd11.prod.outlook.com (2603:10b6:806:25c::17)
+ by MW3PR11MB4587.namprd11.prod.outlook.com (2603:10b6:303:58::7) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.7918.28; Mon, 9 Sep
+ 2024 13:57:51 +0000
+Received: from SA1PR11MB6733.namprd11.prod.outlook.com
+ ([fe80::cf7d:9363:38f4:8c57]) by SA1PR11MB6733.namprd11.prod.outlook.com
+ ([fe80::cf7d:9363:38f4:8c57%6]) with mapi id 15.20.7939.017; Mon, 9 Sep 2024
+ 13:57:51 +0000
+Date: Mon, 9 Sep 2024 08:57:42 -0500
+From: Ira Weiny <ira.weiny@intel.com>
+To: Jonathan Cameron <Jonathan.Cameron@huawei.com>, Ira Weiny
+	<ira.weiny@intel.com>
+CC: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, "Navneet
+ Singh" <navneet.singh@intel.com>, Chris Mason <clm@fb.com>, Josef Bacik
+	<josef@toxicpanda.com>, David Sterba <dsterba@suse.com>, Petr Mladek
+	<pmladek@suse.com>, Steven Rostedt <rostedt@goodmis.org>, Andy Shevchenko
+	<andriy.shevchenko@linux.intel.com>, Rasmus Villemoes
+	<linux@rasmusvillemoes.dk>, Sergey Senozhatsky <senozhatsky@chromium.org>,
+	Jonathan Corbet <corbet@lwn.net>, Andrew Morton <akpm@linux-foundation.org>,
+	Dan Williams <dan.j.williams@intel.com>, Davidlohr Bueso <dave@stgolabs.net>,
+	Alison Schofield <alison.schofield@intel.com>, Vishal Verma
+	<vishal.l.verma@intel.com>, <linux-btrfs@vger.kernel.org>,
+	<linux-cxl@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-doc@vger.kernel.org>, <nvdimm@lists.linux.dev>
+Subject: Re: [PATCH v3 24/25] tools/testing/cxl: Make event logs dynamic
+Message-ID: <66defed6b37c2_f937b29469@iweiny-mobl.notmuch>
+References: <20240816-dcd-type2-upstream-v3-0-7c9b96cba6d7@intel.com>
+ <20240816-dcd-type2-upstream-v3-24-7c9b96cba6d7@intel.com>
+ <20240827153204.00002bff@Huawei.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20240827153204.00002bff@Huawei.com>
+X-ClientProxiedBy: MW4PR04CA0285.namprd04.prod.outlook.com
+ (2603:10b6:303:89::20) To SA1PR11MB6733.namprd11.prod.outlook.com
+ (2603:10b6:806:25c::17)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20240826215313.2673566-1-philipchen@chromium.org>
-In-Reply-To: <20240826215313.2673566-1-philipchen@chromium.org>
-From: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
-Date: Mon, 9 Sep 2024 15:26:49 +0200
-Message-ID: <CAM9Jb+jRL9f-JH1WNx0m-ua=FX+ksr7SjUR46pGUG9W+7yj3Ng@mail.gmail.com>
-Subject: Re: [PATCH v3] virtio_pmem: Check device status before requesting flush
-To: Philip Chen <philipchen@chromium.org>
-Cc: Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, 
-	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>, 
-	virtualization@lists.linux.dev, nvdimm@lists.linux.dev, 
-	linux-kernel@vger.kernel.org, "Michael S . Tsirkin" <mst@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: SA1PR11MB6733:EE_|MW3PR11MB4587:EE_
+X-MS-Office365-Filtering-Correlation-Id: a2bbc3ce-56d7-4c6e-909c-08dcd0d764af
+X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|7416014|376014|366016|1800799024;
+X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?K9YVyBgcuQMMh2InX3r4t6I32K39dH2P0WFblJEfGOuSyhdkfwQ3PVmz8XhY?=
+ =?us-ascii?Q?OJAhY9NT+PRBumhqAYzpN9tXuHmLINEDsNbRpLyDNuDeKkrVvr2Rj4PUi7ky?=
+ =?us-ascii?Q?ak4TLSuhYlyZGq/LkpuPs6eklxlc3K/mXmVV+dJloD7foMMIx+Bw2YrIJzVN?=
+ =?us-ascii?Q?qdVoEpl/vCBGxrgN3FbFA2hEOBV22T0gWvcf1Ky1rncpjJiKnsEYdlu5mWbN?=
+ =?us-ascii?Q?RtANN5KJu09xzhnZnmG+ZqVHRumf97AOg6gyCID77bcCXjANi9JcLlf4NKZp?=
+ =?us-ascii?Q?PASyJMUDDibOzU2Fqe4+KBi8aIY6V9n4zLITfGnY+wsSDwcD9dH72VR4YTAz?=
+ =?us-ascii?Q?w1EIDvdHnEos9DBQ2LnUfI/iOHD6tC9xsS0agMbG57IBiFme7wfr6sbXVlpG?=
+ =?us-ascii?Q?++TYa/M+1Jz7CLymO3KR3bTYJZ3GabsFQ/NGxC2XPbFY00IjjcKAqS7qbZHb?=
+ =?us-ascii?Q?hXb2OsEybljrbfHQFCFUX0Nbw1n/zPV4VumQn3DkrxQosfX8L45Q5o4Yz+f0?=
+ =?us-ascii?Q?E9BCNd0gW1OPH3rX11WAOAc8DZBUYwSlsz40anX+GyoZXrC7Wg9U+BiVxKG2?=
+ =?us-ascii?Q?fgG305FlwWjed+kJoj1K9jbbbD1X/IjYBPKxeXW9i9uRosRxhAl7P4C7g5Tu?=
+ =?us-ascii?Q?qxVR834Fs5K+fR4XBkgUpDX5bZqRNEPDReZOdkDKeh5Db9E32+5CGZAK8bni?=
+ =?us-ascii?Q?pXtbAyoN5FJDkv5rbcI38fDGWvOclU/totBIFdK4QIX5iY8uDtsktBe+bRXn?=
+ =?us-ascii?Q?4vqoMLj7jc8mr3AlUj1KG10FVcwoRY3X4SBfodV7/vbPpZKwtZOp6c3SM4Va?=
+ =?us-ascii?Q?jRwBel118fIj5dO1y6E2ftQt8EbSP9JcMU5L7n0shnAMv1EnpKPTxgy/q1cH?=
+ =?us-ascii?Q?tRgGaq5OwDzg78OnUnxVGv8ehnzyyydxPY6BH13jR7Bda3gTFlqNhDEOX2Kf?=
+ =?us-ascii?Q?mWzqzTulT/z1oSODl7n2AEykpLqPzKkLu4TzueMMrHJSCMT80KLkOIRQK6OS?=
+ =?us-ascii?Q?Im6hC3uDEceq8Y3rNKyhj3Rouyo+WvJqBfMbFP7GJNEbzOXhsGv0PCROYQFy?=
+ =?us-ascii?Q?hxfi7v2sdJ7Q1h0LY8DmVBFiQxH2nkNHjEZleXTZCGpk4rrG3PZBfhYOQy1E?=
+ =?us-ascii?Q?51BwPkq56sKZ49WRo4XccQc0+MB8vFrMw+YLTZyWL4pMfFhX6VTB35rIMuvt?=
+ =?us-ascii?Q?Ed1WPE9UXL3d2q8SuGHKUSqiSkvONGuFQhVenQ92HHmO/Q738OseS2b1eNhL?=
+ =?us-ascii?Q?rFqQWe8H6dkmAhoXZ/mcwc3r7dYx+ysZ29hRNjDX5zswVk3+kFJT83qs3nvX?=
+ =?us-ascii?Q?5sjbt6H4UrNs7/MqXyWCbD4dtIvWRQpuY1QGIQGz66NDUw=3D=3D?=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA1PR11MB6733.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(7416014)(376014)(366016)(1800799024);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?GG4lYsUqU+gAt9pjSsTcAmgt85w0LRNYzghoIZXw7S6kV/NT14duhOTDC/NW?=
+ =?us-ascii?Q?hoC+K0tAOT5RNrfH+Du/QlQ5LarHGWC4FoL6vD+FhOOvUeRCRpCoEBiHYx02?=
+ =?us-ascii?Q?rE1jjH5ng9L5DGLMr6zKrM6++HCEVIspD4cvHIbggrDeRXiZ1H+xQqiWApEn?=
+ =?us-ascii?Q?hSZYd7bhIWhk/50PULMNrQONjRVfy8aBUb4ZyqP/5cMWxxvlkzrR1tKuJexm?=
+ =?us-ascii?Q?CG2n0gqmUyxduuyxwQNSJS+8ewpMd1RB+m9ZgeMU3kxqdCh3/h/g+1GYXp/w?=
+ =?us-ascii?Q?XtmJyvKPHcs7Bk5IdxrkL/sb4p7zoOc97teY9FSHgGGkP0i2VYUeCyKRG+fT?=
+ =?us-ascii?Q?K5avsPP8f/NltRDHijh1j/sxYEGH/UF1+19j2dBIK6kq3UaoYoSDomQo8Xl2?=
+ =?us-ascii?Q?xlmOBb+XprntHTcE7QiB480DE7Ydo3vyhvjbiiZsHv2UnQTDU1rbO0zRv3en?=
+ =?us-ascii?Q?ICGJ4FSYxT6kADEVvXgp+XNKRcpwDmZDkRWk4U4uUOaX5dKZ5E9TQI5p9RMw?=
+ =?us-ascii?Q?ST19aTNrYhly9JJLtX7LcMKIPFDBr7dh710gfJ/3Lw0wdLoo2nCwHrov6r/k?=
+ =?us-ascii?Q?4CIN2NDaz+6OjdcdFcz1JdTNxDF9fYDZGukamh64UgbHRCWYuk2x+KWqrH3O?=
+ =?us-ascii?Q?NCJeR/yjR6nQywrNgkSwBQeyhfmKni+j2CR7UVoJdA+I7mjVfmMbY+iTQp4z?=
+ =?us-ascii?Q?0S7HDPk14vwIyLcm0kp82/hWI1QiNb2hu1gqyQSeRLlsEAm4WdFexKu9zCsM?=
+ =?us-ascii?Q?Co/hCbLEb9rSIfuqdLVx6RwgyKIEx67fVCXxNPZskrJqiAw75Evh3jDizPMI?=
+ =?us-ascii?Q?qxIfHkvZRqucPFp5fSvk52lss3daUkw7dpkSlkNCbS/IMtqzwizT/O2EIWRC?=
+ =?us-ascii?Q?gkN1yiAc6ixksy3R9hbikA/qzcIZ80UG8Mq/rz3jKC/asNpk+snKsdPtoxEC?=
+ =?us-ascii?Q?d/jg1h5+FK+b7cBse5WDGcPIKxCgCga7VphpTIMvVzxfUV6HmHy/W+8HhckX?=
+ =?us-ascii?Q?KsPf7yka6ZJ3DeyOJHMkZqStb/uJiBHtvM2ZQEXfggkxY+uZj9Z7tWEjx5jp?=
+ =?us-ascii?Q?SWHpzFQscKg5uHV+XeGkSP0dQrdCnOkeyOrLOnZ8uWoOVVnyC3dcCgV2YCUO?=
+ =?us-ascii?Q?1Ze8lF7rbc9sjPWk/WXLL7p/LOGQOSb//Ftr3hpNCBsqyV6KKsJvawZSWsdJ?=
+ =?us-ascii?Q?6eC87pwdAMhDf7If/hyGiXtqdCyoA2UB3DMWmCY0FJ0Qfq/kgg34vG/+kawA?=
+ =?us-ascii?Q?FX3/HtrtGaYX90JoleeODKzJ4iWn8o4fEhDIdOm+J+yiV3oPBryRJGeZpDWD?=
+ =?us-ascii?Q?raFczH8RxogUHSeCh1gBVP5wYwFx3t+vrVFTC+FDJlwbw6Ym5ENxtkOlUlOd?=
+ =?us-ascii?Q?6FvRWx0JT+S8wReX9QYoPhxOroZ8stz0bZxntNz6oUx5dr8Ii8n28x35qOFW?=
+ =?us-ascii?Q?yGneklNx3PBnvhX9r+JBcdFRi8cJHygIYUcAuQwKvolbJSuRhO9pzrimNirJ?=
+ =?us-ascii?Q?hqa06nHjh3wg7PRnh68Ob9vFmBkIkqVZ+e/8JksVZ1d3qBVWDttfOlfMGNB3?=
+ =?us-ascii?Q?rvsXW1+qYP+43CMUelmhj4I/Cz0Tkm+V4d4BVTVh?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: a2bbc3ce-56d7-4c6e-909c-08dcd0d764af
+X-MS-Exchange-CrossTenant-AuthSource: SA1PR11MB6733.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 09 Sep 2024 13:57:50.9455
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: Ap8t+KHDTTR1XCKC1P7cD/D0MG5E7gFXDx7hs7z32oNY3QF99o9zeUGDmigmeGefIVjujTdICWGeMgEFptwdGA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW3PR11MB4587
+X-OriginatorOrg: intel.com
 
-+CC MST
+Jonathan Cameron wrote:
+> On Fri, 16 Aug 2024 09:44:32 -0500
+> Ira Weiny <ira.weiny@intel.com> wrote:
+> 
+> > The test event logs were created as static arrays as an easy way to mock
+> > events.  Dynamic Capacity Device (DCD) test support requires events be
+> > generated dynamically when extents are created or destroyed.
+> > 
+> > Modify the event log storage to be dynamically allocated.  Reuse the
+> > static event data to create the dynamic events in the new logs without
+> > inventing complex event injection for the previous tests.  Simplify the
+> > processing of the logs by using the event log array index as the handle.
+> > Add a lock to manage concurrency required when user space is allowed to
+> > control DCD extents
+> > 
+> > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+> Probably make sense to spinkle some guard() magic in here
+> to avoid all the places where you goto end of function to release the lock
 
-> If a pmem device is in a bad status, the driver side could wait for
-> host ack forever in virtio_pmem_flush(), causing the system to hang.
->
-> So add a status check in the beginning of virtio_pmem_flush() to return
-> early if the device is not activated.
->
-> Signed-off-by: Philip Chen <philipchen@chromium.org>
+Yes.  Sorry this patch did not get as much self-review as it should have.
 
-Looks good to me.
+> > 
+> > ---
+> > Changes:
+> > [iweiny: rebase]
+> > ---
+> >  tools/testing/cxl/test/mem.c | 278 ++++++++++++++++++++++++++-----------------
+> >  1 file changed, 171 insertions(+), 107 deletions(-)
+> > 
+> > diff --git a/tools/testing/cxl/test/mem.c b/tools/testing/cxl/test/mem.c
+> > index 129f179b0ac5..674fc7f086cd 100644
+> > --- a/tools/testing/cxl/test/mem.c
+> > +++ b/tools/testing/cxl/test/mem.c
+> > @@ -125,18 +125,27 @@ static struct {
+> >  
+> >  #define PASS_TRY_LIMIT 3
+> >  
+> > -#define CXL_TEST_EVENT_CNT_MAX 15
+> > +#define CXL_TEST_EVENT_CNT_MAX 17
+> 
+> Seems you added a couple more. Don't do that in a patch
+> just changing allocation approach.
+> 
+> I could find 1 but not sure where other one came from!
 
-Acked-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com
+I wasn't sure either.  see below...
 
-> ---
-> v3:
-> - Fix a typo in the comment (s/acticated/activated/)
->
-> v2:
-> - Remove change id from the patch description
-> - Add more details to the patch description
->
->  drivers/nvdimm/nd_virtio.c | 9 +++++++++
->  1 file changed, 9 insertions(+)
->
-> diff --git a/drivers/nvdimm/nd_virtio.c b/drivers/nvdimm/nd_virtio.c
-> index 35c8fbbba10e..f55d60922b87 100644
-> --- a/drivers/nvdimm/nd_virtio.c
-> +++ b/drivers/nvdimm/nd_virtio.c
-> @@ -44,6 +44,15 @@ static int virtio_pmem_flush(struct nd_region *nd_region)
->         unsigned long flags;
->         int err, err1;
->
-> +       /*
-> +        * Don't bother to submit the request to the device if the device is
-> +        * not activated.
-> +        */
-> +       if (vdev->config->get_status(vdev) & VIRTIO_CONFIG_S_NEEDS_RESET) {
-> +               dev_info(&vdev->dev, "virtio pmem device needs a reset\n");
-> +               return -EIO;
-> +       }
-> +
->         might_sleep();
->         req_data = kmalloc(sizeof(*req_data), GFP_KERNEL);
->         if (!req_data)
+
+[snip]
+
+> > @@ -233,8 +254,8 @@ static int mock_get_event(struct device *dev, struct cxl_mbox_cmd *cmd)
+> >  {
+> >  	struct cxl_get_event_payload *pl;
+> >  	struct mock_event_log *log;
+> > -	u16 nr_overflow;
+> >  	u8 log_type;
+> > +	u16 handle;
+> >  	int i;
+> >  
+> >  	if (cmd->size_in != sizeof(log_type))
+> > @@ -254,29 +275,39 @@ static int mock_get_event(struct device *dev, struct cxl_mbox_cmd *cmd)
+> >  	memset(cmd->payload_out, 0, struct_size(pl, records, 0));
+> >  
+> >  	log = event_find_log(dev, log_type);
+> > -	if (!log || event_log_empty(log))
+> > +	if (!log)
+> >  		return 0;
+> >  
+> >  	pl = cmd->payload_out;
+> >  
+> > -	for (i = 0; i < ret_limit && !event_log_empty(log); i++) {
+> > -		memcpy(&pl->records[i], event_get_current(log),
+> > -		       sizeof(pl->records[i]));
+> > -		pl->records[i].event.generic.hdr.handle =
+> > -				event_get_cur_event_handle(log);
+> > -		log->cur_idx++;
+> > +	read_lock(&log->lock);
+> > +
+> > +	handle = log->cur_handle;
+> > +	dev_dbg(dev, "Get log %d handle %u next %u\n",
+> > +		log_type, handle, log->next_handle);
+> > +	for (i = 0;
+> > +	     i < ret_limit && handle != log->next_handle;
+> As below, maybe combine 2 lines above into 1.
+
+Ok. done.
+
+> 
+> 
+> > +	     i++, event_inc_handle(&handle)) {
+> > +		struct cxl_event_record_raw *cur;
+> > +
+> > +		cur = log->events[handle];
+> > +		dev_dbg(dev, "Sending event log %d handle %d idx %u\n",
+> > +			log_type, le16_to_cpu(cur->event.generic.hdr.handle),
+> > +			handle);
+> > +		memcpy(&pl->records[i], cur, sizeof(pl->records[i]));
+> > +		pl->records[i].event.generic.hdr.handle = cpu_to_le16(handle);
+> >  	}
+> >  
+> >  	cmd->size_out = struct_size(pl, records, i);
+> >  	pl->record_count = cpu_to_le16(i);
+> > -	if (!event_log_empty(log))
+> > +	if (log->nr_events > i)
+> >  		pl->flags |= CXL_GET_EVENT_FLAG_MORE_RECORDS;
+> >  
+> >  	if (log->nr_overflow) {
+> >  		u64 ns;
+> >  
+> >  		pl->flags |= CXL_GET_EVENT_FLAG_OVERFLOW;
+> > -		pl->overflow_err_count = cpu_to_le16(nr_overflow);
+> > +		pl->overflow_err_count = cpu_to_le16(log->nr_overflow);
+> >  		ns = ktime_get_real_ns();
+> >  		ns -= 5000000000; /* 5s ago */
+> >  		pl->first_overflow_timestamp = cpu_to_le64(ns);
+> > @@ -285,16 +316,17 @@ static int mock_get_event(struct device *dev, struct cxl_mbox_cmd *cmd)
+> >  		pl->last_overflow_timestamp = cpu_to_le64(ns);
+> >  	}
+> >  
+> > +	read_unlock(&log->lock);
+> Another one maybe for guard()
+
+done.
+
+> 
+> >  	return 0;
+> >  }
+> >  
+> >  static int mock_clear_event(struct device *dev, struct cxl_mbox_cmd *cmd)
+> >  {
+> >  	struct cxl_mbox_clear_event_payload *pl = cmd->payload_in;
+> > -	struct mock_event_log *log;
+> >  	u8 log_type = pl->event_log;
+> > +	struct mock_event_log *log;
+> > +	int nr, rc = 0;
+> >  	u16 handle;
+> > -	int nr;
+> >  
+> >  	if (log_type >= CXL_EVENT_TYPE_MAX)
+> >  		return -EINVAL;
+> > @@ -303,24 +335,23 @@ static int mock_clear_event(struct device *dev, struct cxl_mbox_cmd *cmd)
+> >  	if (!log)
+> >  		return 0; /* No mock data in this log */
+> >  
+> > -	/*
+> > -	 * This check is technically not invalid per the specification AFAICS.
+> > -	 * (The host could 'guess' handles and clear them in order).
+> > -	 * However, this is not good behavior for the host so test it.
+> > -	 */
+> > -	if (log->clear_idx + pl->nr_recs > log->cur_idx) {
+> > -		dev_err(dev,
+> > -			"Attempting to clear more events than returned!\n");
+> > -		return -EINVAL;
+> > -	}
+> > +	write_lock(&log->lock);
+> Use a guard()?
+
+done.
+
+> >  
+> >  	/* Check handle order prior to clearing events */
+> > -	for (nr = 0, handle = event_get_clear_handle(log);
+> > -	     nr < pl->nr_recs;
+> > -	     nr++, handle++) {
+> > +	handle = log->cur_handle;
+> > +	for (nr = 0;
+> > +	     nr < pl->nr_recs && handle != log->next_handle;
+> 
+> I'd combine the two lines above.
+
+Ok. done.
+
+> 
+> > +	     nr++, event_inc_handle(&handle)) {
+> > +
+> > +		dev_dbg(dev, "Checking clear of %d handle %u plhandle %u\n",
+> > +			log_type, handle,
+> > +			le16_to_cpu(pl->handles[nr]));
+> > +
+> >  		if (handle != le16_to_cpu(pl->handles[nr])) {
+> > -			dev_err(dev, "Clearing events out of order\n");
+> > -			return -EINVAL;
+> > +			dev_err(dev, "Clearing events out of order %u %u\n",
+> > +				handle, le16_to_cpu(pl->handles[nr]));
+> > +			rc = -EINVAL;
+> > +			goto unlock;
+> >  		}
+> >  	}
+> >  
+> > @@ -328,25 +359,12 @@ static int mock_clear_event(struct device *dev, struct cxl_mbox_cmd *cmd)
+> >  		log->nr_overflow = 0;
+> >  
+> >  	/* Clear events */
+> > -	log->clear_idx += pl->nr_recs;
+> > -	return 0;
+> > -}
+> 
+> >  
+> >  struct cxl_event_record_raw maint_needed = {
+> > @@ -475,8 +493,27 @@ static int mock_set_timestamp(struct cxl_dev_state *cxlds,
+> >  	return 0;
+> >  }
+> >  
+> 
+> > +static void cxl_mock_add_event_logs(struct cxl_mockmem_data *mdata)
+> >  {
+> > +	struct mock_event_store *mes = &mdata->mes;
+> > +	struct device *dev = mdata->mds->cxlds.dev;
+> > +
+> >  	put_unaligned_le16(CXL_GMER_VALID_CHANNEL | CXL_GMER_VALID_RANK,
+> >  			   &gen_media.rec.media_hdr.validity_flags);
+> >  
+> > @@ -484,43 +521,60 @@ static void cxl_mock_add_event_logs(struct mock_event_store *mes)
+> >  			   CXL_DER_VALID_BANK | CXL_DER_VALID_COLUMN,
+> >  			   &dram.rec.media_hdr.validity_flags);
+> >  
+> > -	mes_add_event(mes, CXL_EVENT_TYPE_INFO, &maint_needed);
+> > -	mes_add_event(mes, CXL_EVENT_TYPE_INFO,
+> > +	dev_dbg(dev, "Generating fake event logs %d\n",
+> > +		CXL_EVENT_TYPE_INFO);
+> > +	add_event_from_static(mdata, CXL_EVENT_TYPE_INFO, &maint_needed);
+> > +	add_event_from_static(mdata, CXL_EVENT_TYPE_INFO,
+> >  		      (struct cxl_event_record_raw *)&gen_media);
+> > -	mes_add_event(mes, CXL_EVENT_TYPE_INFO,
+> > +	add_event_from_static(mdata, CXL_EVENT_TYPE_INFO,
+> >  		      (struct cxl_event_record_raw *)&mem_module);
+> >  	mes->ev_status |= CXLDEV_EVENT_STATUS_INFO;
+> >  
+> > -	mes_add_event(mes, CXL_EVENT_TYPE_FAIL, &maint_needed);
+> > -	mes_add_event(mes, CXL_EVENT_TYPE_FAIL, &hardware_replace);
+> > -	mes_add_event(mes, CXL_EVENT_TYPE_FAIL,
+> > +	dev_dbg(dev, "Generating fake event logs %d\n",
+> > +		CXL_EVENT_TYPE_FAIL);
+> > +	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL, &maint_needed);
+> > +	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL,
+> > +		      (struct cxl_event_record_raw *)&mem_module);
+> 
+> So this one is new?  I can't spot the other one...
+
+Its coming back to me now.  The cxl-events.sh test relied on an expected number
+of each type of event (Including an overflow count) which were completely
+fabricated previous to this patch.
+
+	num_overflow_expected=1
+	num_fatal_expected=2
+	num_failure_expected=16
+	num_info_expected=3
+
+To maintain backwards compatibility this new code needed to preserve those
+counts.  The buffers and number of entries were adjusted to make the output
+match.  However now the logs need to actually over flow to create the overflow
+error.  Furthermore, the handles are the array entries.  cxl-events.sh passes
+before and after this patch.
+
+That said, my math was wrong.  A max of 16 with 16+ entries added to the
+failure log should result in the counts above.  I added a couple extra to the
+overflow though.
+
+Good catch on this.  I basically hacked it to match and moved on.  I've cleaned
+it up for the next version.
+
+> 
+> 
+> > +	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL, &hardware_replace);
+> > +	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL,
+> >  		      (struct cxl_event_record_raw *)&dram);
+> > -	mes_add_event(mes, CXL_EVENT_TYPE_FAIL,
+> > +	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL,
+> >  		      (struct cxl_event_record_raw *)&gen_media);
+> > -	mes_add_event(mes, CXL_EVENT_TYPE_FAIL,
+> > +	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL,
+> >  		      (struct cxl_event_record_raw *)&mem_module);
+> > -	mes_add_event(mes, CXL_EVENT_TYPE_FAIL, &hardware_replace);
+> > -	mes_add_event(mes, CXL_EVENT_TYPE_FAIL,
+> > +	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL, &hardware_replace);
+> > +	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL,
+> >  		      (struct cxl_event_record_raw *)&dram);
+> >  	/* Overflow this log */
+> > -	mes_add_event(mes, CXL_EVENT_TYPE_FAIL, &hardware_replace);
+> > -	mes_add_event(mes, CXL_EVENT_TYPE_FAIL, &hardware_replace);
+> > -	mes_add_event(mes, CXL_EVENT_TYPE_FAIL, &hardware_replace);
+> > -	mes_add_event(mes, CXL_EVENT_TYPE_FAIL, &hardware_replace);
+> > -	mes_add_event(mes, CXL_EVENT_TYPE_FAIL, &hardware_replace);
+> > -	mes_add_event(mes, CXL_EVENT_TYPE_FAIL, &hardware_replace);
+> > -	mes_add_event(mes, CXL_EVENT_TYPE_FAIL, &hardware_replace);
+> > -	mes_add_event(mes, CXL_EVENT_TYPE_FAIL, &hardware_replace);
+> > -	mes_add_event(mes, CXL_EVENT_TYPE_FAIL, &hardware_replace);
+> > -	mes_add_event(mes, CXL_EVENT_TYPE_FAIL, &hardware_replace);
+> > +	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL, &hardware_replace);
+> > +	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL, &hardware_replace);
+> > +	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL, &hardware_replace);
+> > +	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL, &hardware_replace);
+> > +	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL, &hardware_replace);
+> > +	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL, &hardware_replace);
+> > +	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL, &hardware_replace);
+> > +	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL, &hardware_replace);
+> > +	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL, &hardware_replace);
+> > +	add_event_from_static(mdata, CXL_EVENT_TYPE_FAIL, &hardware_replace);
+> >  	mes->ev_status |= CXLDEV_EVENT_STATUS_FAIL;
+> >  
+> > -	mes_add_event(mes, CXL_EVENT_TYPE_FATAL, &hardware_replace);
+> > -	mes_add_event(mes, CXL_EVENT_TYPE_FATAL,
+> > +	dev_dbg(dev, "Generating fake event logs %d\n",
+> > +		CXL_EVENT_TYPE_FATAL);
+> The dev_dbg() fine but not really part of making it dynamic, so adds
+> a bit of noise. Maybe not worth splitting out though.
+
+It's just debugging that we are indeed adding these to the now dynamic list.  I
+added a print for each type.  I've added even more debugging with the clean up.
+
+I'm going to leave it in for now because it is part of ensuring the dynamic
+events work.
+
+Thanks,
+Ira
+
+> > +	add_event_from_static(mdata, CXL_EVENT_TYPE_FATAL, &hardware_replace);
+> > +	add_event_from_static(mdata, CXL_EVENT_TYPE_FATAL,
+> >  		      (struct cxl_event_record_raw *)&dram);
+> >  	mes->ev_status |= CXLDEV_EVENT_STATUS_FATAL;
+> >  }
+> 
+> 
+
+
