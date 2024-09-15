@@ -1,139 +1,140 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-il1-f198.google.com (mail-il1-f198.google.com [209.85.166.198])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2AE331A724B;
-	Thu, 12 Sep 2024 12:56:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.9
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C21074414
+	for <nvdimm@lists.linux.dev>; Sun, 15 Sep 2024 02:58:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.198
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726145767; cv=none; b=MaQATg+93F7+t2UrEM5UDyop9qhgjfZs7VO++nN/D6aL6ubN5ovDQvhiprw3SiFvU1XswAngmSlXIQH+X/KAzoHNFBE0oBAa7DW0KFQN9+7tF7Xm+xY9Bw8UhgmpMdIh20WpY0KgSQEOgPSoOmRu85kb9h75KV+SLm4ixUS6spA=
+	t=1726369107; cv=none; b=HcW7McSHd5uD+PeYq9cv2JXXdSrO1Ql1FpTz8ZHoD+/H3uLBArKGlurgJqOD7/md7I2gOFSbtBRiLQpqLNqLX1fgO4MWsvLyAImMY/CBolz28M6LAKwx6y+3G3ye28Gz3Bv+/Z3aKEes3z1U7mi30j/AyOzLpmOdoPKM3RtAlck=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726145767; c=relaxed/simple;
-	bh=dGAeN13W305HmHWI3EX/D8HuXsJ0/ArD+TPGFFRkJWc=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=q0qC9o5J55MjQzG8L/FueGY5XB5Ln8jtGV0+DKYAHlx1pouYes3IAPcZ4qzxol4vN/8HLPGiXEvyHBVH9EQAbOqLMVzrROldj2zdBp5V0tTGhazyWVc3jHGK9/ijnYyXh3zPuKRPxZA8EUcMJcgXl2oGYbAKoHtrRYxL1+LR364=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=O26BmLT1; arc=none smtp.client-ip=198.175.65.9
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="O26BmLT1"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1726145766; x=1757681766;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=dGAeN13W305HmHWI3EX/D8HuXsJ0/ArD+TPGFFRkJWc=;
-  b=O26BmLT11xQkPEg2j4iiQfRO7P7eCpOxFubEKLYhufoK32MpIotRlFT/
-   gc1nBMeXC33LtKqV1Ga5U6daDXD631sV99KaeNRBJ/7Qyaelnv4yV/Hug
-   DZyhkdjgF4NgIh7DEPnF2VHfKdEb37UPMqMbDy+0ciU/mnk4zqTa3dI0W
-   LNInF5GVtgD7gm1jjFniX23yyaefPCCFPrkXPMjKRWvB12LNvEEFIS5F5
-   6GarpdUBdOcpT1a0ORXCv7IvxAGou7R7ilDKPsftKQVDZWTXEOvDQIqsY
-   QPsHbpvuIdM84dIhLFxQVkvbJed5kZ9RGdtsmVQttWm3tV+TkZ+/BNf59
-   Q==;
-X-CSE-ConnectionGUID: /Qiy/jaiQvGBhtnAZK06FA==
-X-CSE-MsgGUID: MEY0NhDSQi2w9Qmfl6I6jw==
-X-IronPort-AV: E=McAfee;i="6700,10204,11192"; a="47506310"
-X-IronPort-AV: E=Sophos;i="6.10,223,1719903600"; 
-   d="scan'208";a="47506310"
-Received: from fmviesa001.fm.intel.com ([10.60.135.141])
-  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Sep 2024 05:56:06 -0700
-X-CSE-ConnectionGUID: WI5ZxRdPS1OSvF46W9f0Ng==
-X-CSE-MsgGUID: 42Lg1Wh1Q/6X9fgClrychQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.10,223,1719903600"; 
-   d="scan'208";a="98523065"
-Received: from lkp-server01.sh.intel.com (HELO 53e96f405c61) ([10.239.97.150])
-  by fmviesa001.fm.intel.com with ESMTP; 12 Sep 2024 05:56:00 -0700
-Received: from kbuild by 53e96f405c61 with local (Exim 4.96)
-	(envelope-from <lkp@intel.com>)
-	id 1sojMb-0005Ay-0r;
-	Thu, 12 Sep 2024 12:55:57 +0000
-Date: Thu, 12 Sep 2024 20:55:23 +0800
-From: kernel test robot <lkp@intel.com>
-To: Alistair Popple <apopple@nvidia.com>, dan.j.williams@intel.com,
-	linux-mm@kvack.org
-Cc: oe-kbuild-all@lists.linux.dev, Alistair Popple <apopple@nvidia.com>,
-	vishal.l.verma@intel.com, dave.jiang@intel.com, logang@deltatee.com,
-	bhelgaas@google.com, jack@suse.cz, jgg@ziepe.ca,
-	catalin.marinas@arm.com, will@kernel.org, mpe@ellerman.id.au,
-	npiggin@gmail.com, dave.hansen@linux.intel.com, ira.weiny@intel.com,
-	willy@infradead.org, djwong@kernel.org, tytso@mit.edu,
-	linmiaohe@huawei.com, david@redhat.com, peterx@redhat.com,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
-	nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org,
-	linux-xfs@vger.kernel.org
-Subject: Re: [PATCH 12/12] mm: Remove devmap related functions and page table
- bits
-Message-ID: <202409122016.5i2hNKRU-lkp@intel.com>
-References: <39b1a78aa16ebe5db1c4b723e44fbdd217d302ac.1725941415.git-series.apopple@nvidia.com>
+	s=arc-20240116; t=1726369107; c=relaxed/simple;
+	bh=z+UqE0U/RSUElanrubdF3dIn6xXTrATxDHndfWc1KTA=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=MD1w0b6vfWNgBTsfUNtqVjPYuXoJ9rRbwJK1/B+ApyQxk4erjdwDGoaPS/5g0lePLJP5O1gCcRQAp3DgWY3zQXuHtcvHCSUqkT+NMInBMPrWKhwH+EN/VNZShWHqmFMZAd3T9TvZnu1RoFtG/Ngq/FBXDiMVJDfrhfKpz3k9IDI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.198
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-il1-f198.google.com with SMTP id e9e14a558f8ab-39f510b3f81so84563805ab.0
+        for <nvdimm@lists.linux.dev>; Sat, 14 Sep 2024 19:58:25 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1726369105; x=1726973905;
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=hjLUsKGeoVoPKJ3al0/Nz3RmDdv0R6NiXx4KuJWRwHc=;
+        b=Usp/yTta76FU5zoQ2npR+xNxW9metvMei0AKrlpnjrTJTc3Uant2YWkcep3aFMd6c+
+         pJhYzVygwr64K7vfrZo0eufMEGCd/KpVBKCuZosfp2kncXQv44oRvV6UIP4xn8xJVZjL
+         WvsBgE/LDPw2rldaIYUwkxNxeb0NpV7hljzlbDiAyPxFXYxz3Fn6dJFOtz2hRsi4RvV4
+         e2UX7hNWcRGsnLyponB5iXdrSknm1Qf+hbsG1sPhYiooJP3Cf1zXg7+ab28K0q2HvUuo
+         JSSw1B9AVc4hyikG2TQhxUp4UDXzmDLYyZrh3/ht81H0k0ZHZgBqRQXWAl8U8Y/56PNr
+         s7Rw==
+X-Forwarded-Encrypted: i=1; AJvYcCUOkXviYNh12iv0xKYZ8G6JhfrVx6I7H/abXCo3TPCAmA2EE8Wugzq0nK44vq5jrIU0CzDEO8c=@lists.linux.dev
+X-Gm-Message-State: AOJu0YyCQoTj1d9hyr9Ic+aGwVi0ZuXq6DoC+Tvx30K8wSef6BPaku7V
+	LM4PH8UEQivkwBVOXNt2qS3Lc061+5m6Pyy/nmVC6PV6wMoHnXSXP5op7G+fKw58906HTVVzMdK
+	9/M8ImxUPxWGFnjdzjYDsmYRb0ZFApjHgKpREywejytTQZPpWugW6iXc=
+X-Google-Smtp-Source: AGHT+IESevztk4HmfitvDcTuYMhISYTTN0df7RIpThqtZPTssyZEyA3esCJB2Wm5A9txuzZtra60G1M7IJe02e6OwMyuB5UPqmPD
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <39b1a78aa16ebe5db1c4b723e44fbdd217d302ac.1725941415.git-series.apopple@nvidia.com>
+X-Received: by 2002:a05:6e02:505:b0:3a0:9c04:8047 with SMTP id
+ e9e14a558f8ab-3a09c048195mr14619655ab.6.1726369104872; Sat, 14 Sep 2024
+ 19:58:24 -0700 (PDT)
+Date: Sat, 14 Sep 2024 19:58:24 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <0000000000003f5a0c06221fa127@google.com>
+Subject: [syzbot] [acpi?] [nvdimm?] WARNING in to_nfit_bus_uuid
+From: syzbot <syzbot+c80d8dc0d9fa81a3cd8c@syzkaller.appspotmail.com>
+To: dan.j.williams@intel.com, dave.jiang@intel.com, ira.weiny@intel.com, 
+	lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	nvdimm@lists.linux.dev, rafael@kernel.org, syzkaller-bugs@googlegroups.com, 
+	vishal.l.verma@intel.com
+Content-Type: text/plain; charset="UTF-8"
 
-Hi Alistair,
+Hello,
 
-kernel test robot noticed the following build errors:
+syzbot found the following issue on:
 
-[auto build test ERROR on 6f1833b8208c3b9e59eff10792667b6639365146]
+HEAD commit:    8d8d276ba2fb Merge tag 'trace-v6.11-rc6' of git://git.kern..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=17987f29980000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=61d235cb8d15001c
+dashboard link: https://syzkaller.appspot.com/bug?extid=c80d8dc0d9fa81a3cd8c
+compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=10be6797980000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=13386100580000
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Alistair-Popple/mm-gup-c-Remove-redundant-check-for-PCI-P2PDMA-page/20240910-121806
-base:   6f1833b8208c3b9e59eff10792667b6639365146
-patch link:    https://lore.kernel.org/r/39b1a78aa16ebe5db1c4b723e44fbdd217d302ac.1725941415.git-series.apopple%40nvidia.com
-patch subject: [PATCH 12/12] mm: Remove devmap related functions and page table bits
-config: powerpc-allmodconfig (https://download.01.org/0day-ci/archive/20240912/202409122016.5i2hNKRU-lkp@intel.com/config)
-compiler: powerpc64-linux-gcc (GCC) 14.1.0
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20240912/202409122016.5i2hNKRU-lkp@intel.com/reproduce)
+Downloadable assets:
+disk image (non-bootable): https://storage.googleapis.com/syzbot-assets/7bc7510fe41f/non_bootable_disk-8d8d276b.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/d23708af23a4/vmlinux-8d8d276b.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/1aed2837c105/bzImage-8d8d276b.xz
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202409122016.5i2hNKRU-lkp@intel.com/
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+c80d8dc0d9fa81a3cd8c@syzkaller.appspotmail.com
 
-All errors (new ones prefixed by >>):
+------------[ cut here ]------------
+only secondary bus families can be translated
+WARNING: CPU: 0 PID: 15821 at drivers/acpi/nfit/core.c:80 to_nfit_bus_uuid+0x6f/0x90 drivers/acpi/nfit/core.c:79
+Modules linked in:
+CPU: 0 UID: 0 PID: 15821 Comm: syz-executor579 Not tainted 6.11.0-rc7-syzkaller-00020-g8d8d276ba2fb #0
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.3-debian-1.16.3-2~bpo12+1 04/01/2014
+RIP: 0010:to_nfit_bus_uuid+0x6f/0x90 drivers/acpi/nfit/core.c:79
+Code: 01 75 0d e8 23 74 76 fc 31 c0 5b c3 cc cc cc cc e8 16 74 76 fc c6 05 4d 34 e5 0a 01 90 48 c7 c7 40 92 6a 8c e8 32 98 38 fc 90 <0f> 0b 90 90 eb d8 e8 f6 73 76 fc 48 c7 c7 40 9d 0e 8f 48 89 de e8
+RSP: 0018:ffffc9000b6cfa90 EFLAGS: 00010246
+RAX: 48f74db0fdd0b300 RBX: 0000000000000000 RCX: ffff88801e0e8000
+RDX: 0000000000000000 RSI: 0000000000000001 RDI: 0000000000000000
+RBP: ffffc9000b6cfc90 R08: ffffffff8155b372 R09: 1ffff11003fc519a
+R10: dffffc0000000000 R11: ffffed1003fc519b R12: ffff88801df22000
+R13: 000000000000000a R14: ffffc9000b6cfc20 R15: 1ffff920016d9f6c
+FS:  00007fb39f5416c0(0000) GS:ffff88801fe00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007fb39f546d30 CR3: 00000000377e2000 CR4: 0000000000350ef0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ acpi_nfit_ctl+0x8a9/0x24a0 drivers/acpi/nfit/core.c:489
+ __nd_ioctl drivers/nvdimm/bus.c:1186 [inline]
+ nd_ioctl+0x184d/0x1fe0 drivers/nvdimm/bus.c:1264
+ vfs_ioctl fs/ioctl.c:51 [inline]
+ __do_sys_ioctl fs/ioctl.c:907 [inline]
+ __se_sys_ioctl+0xfc/0x170 fs/ioctl.c:893
+ do_syscall_x64 arch/x86/entry/common.c:52 [inline]
+ do_syscall_64+0xf3/0x230 arch/x86/entry/common.c:83
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+RIP: 0033:0x7fb39f590b29
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 a1 1d 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007fb39f541228 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 0000000000000001 RCX: 00007fb39f590b29
+RDX: 0000000020000180 RSI: 00000000c008640a RDI: 0000000000000003
+RBP: 00007fb39f6143c8 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007fb39f6143c0
+R13: 63646e2f7665642f R14: 00007ffd8b32c140 R15: 00007ffd8b32c228
+ </TASK>
 
-   In file included from arch/powerpc/include/asm/book3s/64/mmu-hash.h:20,
-                    from arch/powerpc/include/asm/book3s/64/mmu.h:32,
-                    from arch/powerpc/include/asm/mmu.h:377,
-                    from arch/powerpc/include/asm/paca.h:18,
-                    from arch/powerpc/include/asm/current.h:13,
-                    from include/linux/thread_info.h:23,
-                    from include/asm-generic/preempt.h:5,
-                    from ./arch/powerpc/include/generated/asm/preempt.h:1,
-                    from include/linux/preempt.h:79,
-                    from include/linux/alloc_tag.h:11,
-                    from include/linux/rhashtable-types.h:12,
-                    from include/linux/ipc.h:7,
-                    from include/uapi/linux/sem.h:5,
-                    from include/linux/sem.h:5,
-                    from include/linux/compat.h:14,
-                    from arch/powerpc/kernel/asm-offsets.c:12:
->> arch/powerpc/include/asm/book3s/64/pgtable.h:1390:1: error: expected identifier or '(' before '}' token
-    1390 | }
-         | ^
-   make[3]: *** [scripts/Makefile.build:117: arch/powerpc/kernel/asm-offsets.s] Error 1
-   make[3]: Target 'prepare' not remade because of errors.
-   make[2]: *** [Makefile:1193: prepare0] Error 2
-   make[2]: Target 'prepare' not remade because of errors.
-   make[1]: *** [Makefile:224: __sub-make] Error 2
-   make[1]: Target 'prepare' not remade because of errors.
-   make: *** [Makefile:224: __sub-make] Error 2
-   make: Target 'prepare' not remade because of errors.
 
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
 
-vim +1390 arch/powerpc/include/asm/book3s/64/pgtable.h
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
 
-953c66c2b22a30 Aneesh Kumar K.V  2016-12-12  1389  
-ebd31197931d75 Oliver O'Halloran 2017-06-28 @1390  }
-6a1ea36260f69f Aneesh Kumar K.V  2016-04-29  1391  #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
-ebd31197931d75 Oliver O'Halloran 2017-06-28  1392  
+If the report is already addressed, let syzbot know by replying with:
+#syz fix: exact-commit-title
 
--- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+If you want syzbot to run the reproducer, reply with:
+#syz test: git://repo/address.git branch-or-commit-hash
+If you attach or paste a git patch, syzbot will apply it before testing.
+
+If you want to overwrite report's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
+
+If the report is a duplicate of another one, reply with:
+#syz dup: exact-subject-of-another-report
+
+If you want to undo deduplication, reply with:
+#syz undup
