@@ -1,207 +1,118 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.17])
+Received: from poodle.tulip.relay.mailchannels.net (poodle.tulip.relay.mailchannels.net [23.83.218.249])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 39C55185B74
-	for <nvdimm@lists.linux.dev>; Mon, 30 Sep 2024 22:26:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.17
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C831185B78
+	for <nvdimm@lists.linux.dev>; Mon, 30 Sep 2024 23:00:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=23.83.218.249
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727735205; cv=fail; b=Xncz4AJByabF0K+yj8XkKFOemDvjLYE+bMG1NN1jZZ+OTNIDHs8exUt7bnwudb3ccvq5PbgE/WndiYC/SgfM9YVk00ygCCYJ3YAo0w23gasIb3sXAAiVe8ZlBmpJaWfejVxcOnAPrGDAE8Oo4w80ZnOkJleqeieawa/QHy3Xj3A=
+	t=1727737231; cv=fail; b=qbKADtavk53FoCF5stv+mV5R0+54mPid0hr5UIEgMZwZGPRPF/WNzwyHmb6mpBC7mql22QyKNKsa7fo8DSCGhQuhIXCjll7MWUSfVPL2TlLKf9olXTeahLB+1to9aS8NGtbN6tlWuWg1NWwpE/+hshQBPzDFdyYZtkG5Gf1E020=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727735205; c=relaxed/simple;
-	bh=KlR+Wmyg8/z+BmmRW06xwQMxho2hll3Q9g31ZN+AmPo=;
-	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=H+EUBU79sNc0qdJgMRCXK3BmO7g6kJ2lvf6nYcpZyGxobvKUFSCdIGFXIG8kt+6riqJD8geDwjyNEoDgSTbcesnwZElyVoIklYkTGdOqrUZo0a4LVwjbhlD40quGWK3bNfb6DFOpOtP49Qn4LbUMfKT4NvKrSTXFo7cdp9XjDV4=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=dY19to2L; arc=fail smtp.client-ip=192.198.163.17
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1727737231; c=relaxed/simple;
+	bh=KGQa5lwA0CQtpO3ICzPVu3rf6sS/+2ak6kzxmj4+Z7Y=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=IJYCPDtVO7QFPbMiO6X9LX/me0sTbv21gb9IeEJu9jVw9Pz5Y5QnwKd1SbaHr5F/RD2LlnW5MB5qFZsHhoOWzyw3ycAeCql9rJFY2LgQdRu9XXlCzR0reDIUwZ/HSAav86qwZ7YvYUBsr+lcYB6KKmqx1IH0Qaec+ZMxgPy1NWc=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=stgolabs.net; spf=pass smtp.mailfrom=stgolabs.net; dkim=pass (2048-bit key) header.d=stgolabs.net header.i=@stgolabs.net header.b=AXP9ciQm; arc=fail smtp.client-ip=23.83.218.249
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=stgolabs.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=stgolabs.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="dY19to2L"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1727735204; x=1759271204;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=KlR+Wmyg8/z+BmmRW06xwQMxho2hll3Q9g31ZN+AmPo=;
-  b=dY19to2L+NCgRBXsatIcETdY2/L8c5WQ4Rfh1k0uJv1Z4bB2bFzBGkmI
-   zbKD3w4ucsmV+a18USg2lHRnapQM0CBpc8VmFk4t+DBnk4wVdqejC0ilH
-   2uFJXM60iRaYRtcSWqOJFH3V6gLe0GM9Dncf78QMsv3MYKlHZTS6mrgJm
-   z6VLywvAnLTRCESTARY9PsCiKKmK4xgjnY5lgpfcb8LoNQOBE1L2lkaDY
-   zR5gDtfQsdW4lfv2uTLV2/TPIZ3SBrTv7oIRk1GAe5o7gZTFlI7T8xBau
-   o/XJc7rxPaOIzRQtxQlScFQOhTfGz2yEK4270zPwYOq+iznZeFJretNGG
-   Q==;
-X-CSE-ConnectionGUID: X0BuPu2OTrGS9IMoqmbf6w==
-X-CSE-MsgGUID: yB/wtLKhQJO5TEMIHwWhLQ==
-X-IronPort-AV: E=McAfee;i="6700,10204,11211"; a="26731198"
-X-IronPort-AV: E=Sophos;i="6.11,166,1725346800"; 
-   d="scan'208";a="26731198"
-Received: from fmviesa001.fm.intel.com ([10.60.135.141])
-  by fmvoesa111.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Sep 2024 15:26:42 -0700
-X-CSE-ConnectionGUID: 1k5LqLn5TLGNMv8Wauuq9g==
-X-CSE-MsgGUID: Ia17OWQLTT6LrHTkM2QxdA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.11,166,1725346800"; 
-   d="scan'208";a="104231022"
-Received: from orsmsx603.amr.corp.intel.com ([10.22.229.16])
-  by fmviesa001.fm.intel.com with ESMTP/TLS/AES256-GCM-SHA384; 30 Sep 2024 15:26:42 -0700
-Received: from orsmsx611.amr.corp.intel.com (10.22.229.24) by
- ORSMSX603.amr.corp.intel.com (10.22.229.16) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.39; Mon, 30 Sep 2024 15:26:42 -0700
-Received: from orsmsx601.amr.corp.intel.com (10.22.229.14) by
- ORSMSX611.amr.corp.intel.com (10.22.229.24) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.39; Mon, 30 Sep 2024 15:26:41 -0700
-Received: from orsedg603.ED.cps.intel.com (10.7.248.4) by
- orsmsx601.amr.corp.intel.com (10.22.229.14) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.39 via Frontend Transport; Mon, 30 Sep 2024 15:26:41 -0700
-Received: from NAM02-BN1-obe.outbound.protection.outlook.com (104.47.51.43) by
- edgegateway.intel.com (134.134.137.100) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.39; Mon, 30 Sep 2024 15:26:41 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=TAU6rBQGbYfbcxge1TIwo8mEhD3bPzLk7UKKtTGf44SvAoDkNYcJS3+WsVV/IfGWqT6MjmtCXgORXRO4gBcylC77m7eEHqEp7xfwzGnO9FV3rLO6061HG2iXL5t9XMO0t4xKZhWZgA7ezSHbd8Njq8/wPU37sJKI7Bz5IvJc5eBReHl+42A7+HrOYeJl8Q5BnWayh1nwDYpRTTYcT3sF1c6nBzuG8hcq2R7PMsPkA4BezU6PVBshn1jdcF6kOGXqxSXbTYT5PrlMNOlF/mVzN16V3MBKFSPEW/fXF3j7hZ5NLo1dwraFZ8kewGP0nvFT8hWv7BJQVSGu+XSqy58fZg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=RD0uTDAmiBZTNIPfc8gcXcZRVhgytPWuxh9Y8LSXgSI=;
- b=u8wxJOHHX/lwoLm/29UkTWm9iA6+DWXUr0TVeI7PcHTVC6kt5I07PtYH+rfB5ZrvLElTdvp/PZvM7pyspZab60SoxylmFLZ/ik0wbk1QaiByR0E6y9KPWdQQrCSqHWaeOj9b+ZJ8xnbyiB3/6XyiTNO/Q4WTBLolE03ApiPdjvzudZGFsrj7Vh7Vzv9fTmxpiE1rGGAP8D0NWUddUfM2Ls0Dmoy35wS74rwprcJ/0P9zojLA28wb/9d6ey1uEz1svaRzs+s3iXAu5z64zeE3cZWOf1LszK8fLMR7DpiQlre/BoSBC+8a1KkuTW7tVDtgAa/Jk7fTrGCjLrf7IElqRA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from SA1PR11MB6733.namprd11.prod.outlook.com (2603:10b6:806:25c::17)
- by PH7PR11MB7717.namprd11.prod.outlook.com (2603:10b6:510:2b8::8) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8005.26; Mon, 30 Sep
- 2024 22:26:39 +0000
-Received: from SA1PR11MB6733.namprd11.prod.outlook.com
- ([fe80::cf7d:9363:38f4:8c57]) by SA1PR11MB6733.namprd11.prod.outlook.com
- ([fe80::cf7d:9363:38f4:8c57%3]) with mapi id 15.20.8005.024; Mon, 30 Sep 2024
- 22:26:38 +0000
-Date: Mon, 30 Sep 2024 17:26:34 -0500
-From: Ira Weiny <ira.weiny@intel.com>
-To: Julia Lawall <Julia.Lawall@inria.fr>, Dan Williams
-	<dan.j.williams@intel.com>
-CC: <kernel-janitors@vger.kernel.org>, Vishal Verma
-	<vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, Ira Weiny
-	<ira.weiny@intel.com>, <nvdimm@lists.linux.dev>,
-	<linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH 05/35] libnvdimm: Reorganize kerneldoc parameter names
-Message-ID: <66fb259a15b42_a31f2294e5@iweiny-mobl.notmuch>
-References: <20240930112121.95324-1-Julia.Lawall@inria.fr>
- <20240930112121.95324-6-Julia.Lawall@inria.fr>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20240930112121.95324-6-Julia.Lawall@inria.fr>
-X-ClientProxiedBy: MW4PR04CA0172.namprd04.prod.outlook.com
- (2603:10b6:303:85::27) To SA1PR11MB6733.namprd11.prod.outlook.com
- (2603:10b6:806:25c::17)
+	dkim=pass (2048-bit key) header.d=stgolabs.net header.i=@stgolabs.net header.b="AXP9ciQm"
+X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
+Received: from relay.mailchannels.net (localhost [127.0.0.1])
+	by relay.mailchannels.net (Postfix) with ESMTP id 9DE3D163FD9;
+	Mon, 30 Sep 2024 21:41:01 +0000 (UTC)
+Received: from pdx1-sub0-mail-a244.dreamhost.com (100-99-145-32.trex-nlb.outbound.svc.cluster.local [100.99.145.32])
+	(Authenticated sender: dreamhost)
+	by relay.mailchannels.net (Postfix) with ESMTPA id 36B221640C0;
+	Mon, 30 Sep 2024 21:41:01 +0000 (UTC)
+ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1727732461; a=rsa-sha256;
+	cv=none;
+	b=bBGaeKzoz+76+3M42BDwGGaxwdm92yOnu8h1sSyaldwXstSGEtvNrDtBj6LrXnC4I4qReY
+	ZdFe5XEy46uiO7BYs+hea7zfXlsn4Fbx5LGByt3YtURDwkPmBRXcraSLS+5fG2IwQ2lRdG
+	2S1wUwCQC2NrBdjNRNayAJxQ8XPg5bYWVm7BZ2JvcdzJEpeEY52/Tc+UZSdWKVWZM+M2I9
+	qbcHvEeuV6a527R9G78SRUPE2ZVjPMNHPpVLdM6ABHx+8eN6FrRH2c2TOHzM43nDo26lCk
+	Rs7pIQRJtI/2ERce+6TW8RrmVx0Ah3xfXaAr3KDac/66NUgmLlpTnXamUiZ31Q==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=mailchannels.net;
+	s=arc-2022; t=1727732461;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references:dkim-signature;
+	bh=lIdkrqI+cq4xAtYGgNrIChsgwaZla+y553BzB6wMkVM=;
+	b=Sj9RptH9POwyd6VqZECa5+I/FHcSCM/f+Kd/cPHEFDPJSbTuwCpJgTLtlTdv935WRweMnT
+	S3Yu/dzVLqOxjbqSFX8I55F+fFdWE5hDe2hm2mcskQ905hgVk1RVnGyusTuXVZE8jEELSS
+	jPkgdc99BbSw4+Gb7l++euDpzfB3v/7Pl6zTn5RSXOMu9y4wTb+Ex8xjCcuHdpIPDJw+C7
+	LE6eQfCEPwsh37LIis5yRQFLS1z8ol5jV5WyCjlIRGErSwgoEAQrEKzwcbiQ2cPOfB8cFw
+	xcgqRd1N//D07rvdqfP+ul4jDnkqjOzCH0ZYcSTXyKRuyJ60bPkwrJ4wSRF8iA==
+ARC-Authentication-Results: i=1;
+	rspamd-657f47799c-zn9dx;
+	auth=pass smtp.auth=dreamhost smtp.mailfrom=dave@stgolabs.net
+X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
+X-MC-Relay: Neutral
+X-MailChannels-SenderId: dreamhost|x-authsender|dave@stgolabs.net
+X-MailChannels-Auth-Id: dreamhost
+X-Zesty-Cooing: 7f33fdac763de419_1727732461461_1316246610
+X-MC-Loop-Signature: 1727732461461:167932956
+X-MC-Ingress-Time: 1727732461460
+Received: from pdx1-sub0-mail-a244.dreamhost.com (pop.dreamhost.com
+ [64.90.62.162])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
+	by 100.99.145.32 (trex/7.0.2);
+	Mon, 30 Sep 2024 21:41:01 +0000
+Received: from offworld (unknown [104.36.31.106])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange ECDHE (P-256) server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	(Authenticated sender: dave@stgolabs.net)
+	by pdx1-sub0-mail-a244.dreamhost.com (Postfix) with ESMTPSA id 4XHZJD3B3lz5Z;
+	Mon, 30 Sep 2024 14:41:00 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=stgolabs.net;
+	s=dreamhost; t=1727732461;
+	bh=UNJQohW8Zsni2T4+DfIQDy74rbrJsCFmu6epjouBvf4=;
+	h=Date:From:To:Cc:Subject:Content-Type;
+	b=AXP9ciQm5e5NVzOgO6pth+7WwL7y7BQTfZOyg2qIr1Kb5X2UmXObx9aD2Ms0VAhvV
+	 1nwp9Vd1iwHygUMAxCzwXWibVFE4W1Y36mShgMpAUBbSk0Mfig8cG9qTqHNDEjLOWk
+	 0jzPUbYbrMm7hrvOG9nLTZKgHzXnpqKvg+4eajAg8YtU71/+x/G3cOO2ynPONsCcYQ
+	 MJQjoxtKg/euvPnYA428Ahff6Zret7l7jNbFMMzOJBtaoskIFKv7yIe8sPaa4JNOpM
+	 ObddNgkRCryhGFwtx7kAa5D8fNU2tHL3vcmhfm/gzyB9pIn2SFddvOOxYMz9Psz0pK
+	 22kThuS6RnKtw==
+Date: Mon, 30 Sep 2024 14:39:33 -0700
+From: Davidlohr Bueso <dave@stgolabs.net>
+To: Alison Schofield <alison.schofield@intel.com>
+Cc: vishal.l.verma@intel.com, y-goto@fujitsu.com, dave.jiang@intel.com, 
+	dan.j.williams@intel.com, linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
+Subject: Re: [PATCH -ndctl] cxl/memdev: Introduce sanitize-memdev
+ functionality
+Message-ID: <ngnoxz6w6q3y6korof6mepzvw2jyx4trlii7zon5jcoafobbfp@4z5ld55qgvqy>
+References: <20240928211643.140264-1-dave@stgolabs.net>
+ <ZvrhusA7So_u51W_@aschofie-mobl2.lan>
+ <f6ybfabcft5wcpx2wuoxf3qgwset3h4nhngn5c4jk6ssudl5gj@o2ssocnihy6t>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SA1PR11MB6733:EE_|PH7PR11MB7717:EE_
-X-MS-Office365-Filtering-Correlation-Id: e0fa2c9f-6b34-4c32-e20e-08dce19ef38b
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|366016|376014;
-X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?8+kX66ZBACv4pUchMdcN4mPJWHjrjKTegKtBH1Em4aG1m/UKEcpj7KbcLG51?=
- =?us-ascii?Q?3x3L3h39xAJaXD4LIwiSXVWti3kqAa+R/xVU93E2Rq7st/9UbxqXXmDFC7Km?=
- =?us-ascii?Q?Qd1B4helccxM3/3T1IhUeBbIvSDFRh9KtInJiLwUmFe3vT6AGwQtQgwCF+bV?=
- =?us-ascii?Q?Ie8My2jfMqNM3cdtzl8B93jEmEQ4+m3Sne10WJ7RhORm/wW3+QfGQkjohorc?=
- =?us-ascii?Q?RbvETmon8KIg0iiw8ADMQ+ywCQbXOLD193SFxY62IEtNNMj8xrwl5jlSnvvF?=
- =?us-ascii?Q?M3OzO7mjjAFJy4EMdpjOOzfEKghuM/DfDVh5ouVMdh26PugXSfuzsAWYf5u0?=
- =?us-ascii?Q?sCUr4m3gpy8Z7gF2lqGNZ4GPbZCjlLo5UO5Bt2UTP2OVQELQtHJyP6cannf4?=
- =?us-ascii?Q?5wWp9dVBSn6Bl+MoTpGmH5WhOoGItlYhUYHVPVJu/MyA7pGwk31PTdXs0Lh8?=
- =?us-ascii?Q?nIqW70gCuX78KhajddDsdaitTl8uyXHn8QlOTo/qsXJJMS00/zmik9dh28tX?=
- =?us-ascii?Q?vSI6yPxD1N3Dgj6/C/FSHJNq03OR2pSeRs+2sd7s0XGFutdOOvrEsEh3KmYE?=
- =?us-ascii?Q?Y7+wKJLkhkPK3Sft9WcxjVQen6MOLmyJXTJb+az1WDZY7LPTWjGybxiKHjt9?=
- =?us-ascii?Q?B2O5EbFEaXQaVUSdj/VsNDemegGPXmPfRTNP2h60cfF2TIIAElr7WVpShSof?=
- =?us-ascii?Q?C3Q3iTqBhEVByIi0ZVZNhoJ8bGgE4r7R0SEMkDZfccYPnWhH3hhDreYJTlDW?=
- =?us-ascii?Q?4+dcMYL57TyY6i7cUxLFBs7lTT5fEQ68YbganK8FJn2T0hZmOzpeqUPb5ZZa?=
- =?us-ascii?Q?LGL2I2DhMrlwiuz8h8EkX6lUvA/kOaSa4Kmwob97Nru2dEh/sbbd+24iTQhr?=
- =?us-ascii?Q?8Z7NRrIlqttxW4GBu3752UR8fGXvDe1As3GJchJDFIKD2EfwYCcWQtlcdzcL?=
- =?us-ascii?Q?clvSB5/4pIJXzax+3lIFQEc4yJT2kY6ywu5P2o1smZs+Vh2ZnPS+ucL/m7QR?=
- =?us-ascii?Q?8RYTLO3anmrG45Hyu8HNucg3joo495sMJ96lNBMHKIWNs1qkUPbsgRz88+Ql?=
- =?us-ascii?Q?Y9VcF27S6ZWZWULliPoeWrEVsw5X4AJFqplsPpT3rNreSbXAVw3LuBwtLwvx?=
- =?us-ascii?Q?NqmLTT424RMIpzDhNS1/WdWdesSRP4VEafEdBhXyqPBBxgeeVVf8Q4lNEIO1?=
- =?us-ascii?Q?9cfdZ072GhVOOijpjh+jXPGWDrQUhg2ng7nIRvtgaZd2DPObmUoRPDdXVqRD?=
- =?us-ascii?Q?WJ0iAFsLiR5zTdB8tNY4NfAkjZoYXl+R1vGRoW9MhA=3D=3D?=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA1PR11MB6733.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(376014);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?iPokEG73IAkPqt8Vdo9zOsjvFHAwYOTY4q8MV2P5IyKKjSuECMcBlYGh+Vbd?=
- =?us-ascii?Q?vRYWdZkI8EGzHtEV05UyZ4esTgR9Ng94REE/fGGogD7mE4W2C+v0EhfHM82Z?=
- =?us-ascii?Q?AIxDPBuV75IS+3rl/1QTx2BAlxv8nRyMjxxcxmHb0jMRPOHofsvy+7V88nr4?=
- =?us-ascii?Q?Ib+PMB9sJo9jdqOuonPzjAvR8LwFuHNMAIM0tq2TV8uznOMU9VkGlTc7VK3z?=
- =?us-ascii?Q?8vnC3ceXJ65uMVFfn/8TNkthYdSP9u8n2UhLMfH53L1i8eRafzmsB1a+sQkB?=
- =?us-ascii?Q?zdUnOM0DqB91RsucURyOQzVSJruCI3rOiQUNJxMS8SVJ4bv6GM6jTpPhEUqx?=
- =?us-ascii?Q?k4jJbxE0te4oJZjeu9EKXrE34cVHsZi/iWwBzjvhdDzJz2akQELldhedzMkV?=
- =?us-ascii?Q?KaTEx/9Vh3zq40Rpqf0K9xTNbx9pLJJ7+Y3reKcnxIIbYcl1s7F0kb6TQCki?=
- =?us-ascii?Q?Nru2KKvkNEDiCdRcv3vtz9kad7NbOUTnku61nJ8KIY2Ydhlfw+NtGBC0lcx1?=
- =?us-ascii?Q?PCRvPU9GysjX1EkeColHkT45GAI8V6RmpGJyIAf47215sxNvjh/MXo/Ao8PR?=
- =?us-ascii?Q?NT5cwX2eHN3884mB4n8CoHvRINEaJQwoKRE1WWJtQfINK/u4XSsL9T4GHn4d?=
- =?us-ascii?Q?Ej7166qUYE5h4OiV9rv2DSp4wcfr9sK3iQn+UyR368E3B6C//oPyIZaQi4Y9?=
- =?us-ascii?Q?0mj4Jp8I9MT2f+n5m6CTyo5iOYpyHKbsG2oxLNPe5uZA2YpA3aTawQx9u1pE?=
- =?us-ascii?Q?OneSz3hGWKF4GWwzihuCRjiBrv7KagAfKJf0bMmQtjDnCm3btScrbTfv3z+m?=
- =?us-ascii?Q?bRNctrfyjaxruYn2ecmiDGTHOeg+G9VO+BFZ20ZdmJ2PPK6S7+qt+n+BjMrg?=
- =?us-ascii?Q?ZqvWR1U/32mAuqHZUZ+aK3hKlJDhac7TL3BHSPah5aWlfNPwrMBbIZUB28lq?=
- =?us-ascii?Q?LO4YK6M21Fx5NTAjo77zZOnItyoRUeWd1BwHFbScKNXrluoe0r9oqdUoEgsz?=
- =?us-ascii?Q?AeBxfdmbpp6GV7RH000mdGE1E7Ymj6TWUVNu2RFBXjsW8a48SPjc8sgOtQGF?=
- =?us-ascii?Q?8tc2+moACx+vMoRAhxWFMwMyRMSCyNsQuGU0tGO0B+xCTi/feXalL7itePh0?=
- =?us-ascii?Q?QrpIatCt4Voev9tvnj49lotkbdM8ETCKl+U0hbQ6aQ1Dsxh2Eml/0ykbIFm3?=
- =?us-ascii?Q?yuX2DLzVF01U/TPrXMqhjSNJHnLtUx3AuhDphiFNnP2qGqbNxCzNDGCYPxOn?=
- =?us-ascii?Q?+qWLkwdhyn4aBmPs22uVP52+RK/EZ7I/oqX13MtTxkwgyUCPFW8wPDtjtJY6?=
- =?us-ascii?Q?4uKjLDufgLD9dk499j+Z2R6brMb6WdBDPbe12C766/5S0sRu5qQBsbs/bunp?=
- =?us-ascii?Q?9tfGdiJTMAsVWcmmKgsyvkpogeWjH4Ee9pIBCw2nqjTyUVr7JP0VPDOIoLM1?=
- =?us-ascii?Q?b0lLtPe2QJ+KjonWDjk0q6a9YCseKVdNPx+stxgnulWryd4eXssSXZ1vgLhc?=
- =?us-ascii?Q?VsAG00pz/B5jDNObZj33kd4i9WmglfGdJv35RUNCAX4lO1JNhUT0CSPN6XsJ?=
- =?us-ascii?Q?ngcrqdLGAycA+57QuUdVwOeeSvDy3aUra1RBDzs2?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: e0fa2c9f-6b34-4c32-e20e-08dce19ef38b
-X-MS-Exchange-CrossTenant-AuthSource: SA1PR11MB6733.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 30 Sep 2024 22:26:38.9118
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: l6O4foQ6YkoBgoRt+oyQvHE4lCfhsRtijBRyzL/UNHUMjZhK2ADtgZfRU2tc3087AplyCw3W+TDx7k6tLM5XaQ==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR11MB7717
-X-OriginatorOrg: intel.com
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Disposition: inline
+In-Reply-To: <f6ybfabcft5wcpx2wuoxf3qgwset3h4nhngn5c4jk6ssudl5gj@o2ssocnihy6t>
+User-Agent: NeoMutt/20240425
 
-Julia Lawall wrote:
-> Reorganize kerneldoc parameter names to match the parameter
-> order in the function header.
-> 
-> Problems identified using Coccinelle.
-> 
-> Signed-off-by: Julia Lawall <Julia.Lawall@inria.fr>
+On Mon, 30 Sep 2024, Davidlohr Bueso wrote:\n
 
-Acked-by: Ira Weiny <ira.weiny@intel.com>
+>     cxl sanitize-memdev -e mem0 <-- secure erase
+>     cxl sanitize-memdev mem0 <-- sanitize
 
-> 
-> ---
->  drivers/nvdimm/dimm_devs.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-> index 21498d461fde..8c35502638e2 100644
-> --- a/drivers/nvdimm/dimm_devs.c
-> +++ b/drivers/nvdimm/dimm_devs.c
-> @@ -767,8 +767,8 @@ resource_size_t nd_pmem_max_contiguous_dpa(struct nd_region *nd_region,
->  
->  /**
->   * nd_pmem_available_dpa - for the given dimm+region account unallocated dpa
-> - * @nd_mapping: container of dpa-resource-root + labels
->   * @nd_region: constrain available space check to this reference region
-> + * @nd_mapping: container of dpa-resource-root + labels
->   *
->   * Validate that a PMEM label, if present, aligns with the start of an
->   * interleave set.
-> 
+Not related to this patch (I will post v2), but just for future reference, and
+perhaps someone has thoughts. Whenever the kernel supports Media Operation
+(4402h in 3.1), I see this utility expanding to something like:
 
+       cxl sanitize-memdev --zero A1-A2 [B1-B2 C1-C2] <-- zero-out ranges
+       cxl sanitize-memdev --zero mem0 <-- internally use all the mem0 range
+       cxl sanitize-memdev A1-A2 [B1-B2 C1-C2] <-- sanitize ranges
+       cxl sanitize-memdev -e A1-A2 [B1-B2 C1-C2] <-- error
 
+... and perhaps the kernel would need a security/zero as well as a
+security/{sanitize_range,zero_range} set of files.
+
+Of course the underlying memdev for the specified ranges would still need to be
+offline entirely, just as is now.
