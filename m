@@ -1,118 +1,129 @@
-Received: from poodle.tulip.relay.mailchannels.net (poodle.tulip.relay.mailchannels.net [23.83.218.249])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-oa1-f48.google.com (mail-oa1-f48.google.com [209.85.160.48])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4C831185B78
-	for <nvdimm@lists.linux.dev>; Mon, 30 Sep 2024 23:00:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=23.83.218.249
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727737231; cv=fail; b=qbKADtavk53FoCF5stv+mV5R0+54mPid0hr5UIEgMZwZGPRPF/WNzwyHmb6mpBC7mql22QyKNKsa7fo8DSCGhQuhIXCjll7MWUSfVPL2TlLKf9olXTeahLB+1to9aS8NGtbN6tlWuWg1NWwpE/+hshQBPzDFdyYZtkG5Gf1E020=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727737231; c=relaxed/simple;
-	bh=KGQa5lwA0CQtpO3ICzPVu3rf6sS/+2ak6kzxmj4+Z7Y=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=IJYCPDtVO7QFPbMiO6X9LX/me0sTbv21gb9IeEJu9jVw9Pz5Y5QnwKd1SbaHr5F/RD2LlnW5MB5qFZsHhoOWzyw3ycAeCql9rJFY2LgQdRu9XXlCzR0reDIUwZ/HSAav86qwZ7YvYUBsr+lcYB6KKmqx1IH0Qaec+ZMxgPy1NWc=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=stgolabs.net; spf=pass smtp.mailfrom=stgolabs.net; dkim=pass (2048-bit key) header.d=stgolabs.net header.i=@stgolabs.net header.b=AXP9ciQm; arc=fail smtp.client-ip=23.83.218.249
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=stgolabs.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=stgolabs.net
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1CF0C1BCA1E;
+	Tue,  1 Oct 2024 07:41:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.48
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1727768499; cv=none; b=Q3r9txU6MLvvnvOYcXn+kv6RwLbnj344GdHObIg4Y44z4nqtX0YR/s4b49bGCYKmQ3dZH+h0f1JJjq206wNOrv3aPtaF94JOqLI0XnViwSb9DyMrTVyFeMGgUY/w/YUKHvjdOUYX2ZXIN/3tLQbe75fMPYYcuMYzj2OGKNBexOs=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1727768499; c=relaxed/simple;
+	bh=b0YzsZhvYXssxBMzqiFoT5LHPrufg6+4tnZIEdL5YLI=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=WEgzhYv/BVZdwTOZMQKP6CfZwaKVnJMtmRTmUuOwtkaKzYkxNNU4EFJUGG3Na2PVN/dqXyylmg2Hc3DUm/Xxp1SEXlf6hFjzCE/YUSz548AkmpOeTN5qN7RDTieny//Tr507Ka3ChfXWl66xov5Mupb1DMRU9yvXopeWgVrGbiU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=mpv8SfC8; arc=none smtp.client-ip=209.85.160.48
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=stgolabs.net header.i=@stgolabs.net header.b="AXP9ciQm"
-X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
-Received: from relay.mailchannels.net (localhost [127.0.0.1])
-	by relay.mailchannels.net (Postfix) with ESMTP id 9DE3D163FD9;
-	Mon, 30 Sep 2024 21:41:01 +0000 (UTC)
-Received: from pdx1-sub0-mail-a244.dreamhost.com (100-99-145-32.trex-nlb.outbound.svc.cluster.local [100.99.145.32])
-	(Authenticated sender: dreamhost)
-	by relay.mailchannels.net (Postfix) with ESMTPA id 36B221640C0;
-	Mon, 30 Sep 2024 21:41:01 +0000 (UTC)
-ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1727732461; a=rsa-sha256;
-	cv=none;
-	b=bBGaeKzoz+76+3M42BDwGGaxwdm92yOnu8h1sSyaldwXstSGEtvNrDtBj6LrXnC4I4qReY
-	ZdFe5XEy46uiO7BYs+hea7zfXlsn4Fbx5LGByt3YtURDwkPmBRXcraSLS+5fG2IwQ2lRdG
-	2S1wUwCQC2NrBdjNRNayAJxQ8XPg5bYWVm7BZ2JvcdzJEpeEY52/Tc+UZSdWKVWZM+M2I9
-	qbcHvEeuV6a527R9G78SRUPE2ZVjPMNHPpVLdM6ABHx+8eN6FrRH2c2TOHzM43nDo26lCk
-	Rs7pIQRJtI/2ERce+6TW8RrmVx0Ah3xfXaAr3KDac/66NUgmLlpTnXamUiZ31Q==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
- d=mailchannels.net;
-	s=arc-2022; t=1727732461;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references:dkim-signature;
-	bh=lIdkrqI+cq4xAtYGgNrIChsgwaZla+y553BzB6wMkVM=;
-	b=Sj9RptH9POwyd6VqZECa5+I/FHcSCM/f+Kd/cPHEFDPJSbTuwCpJgTLtlTdv935WRweMnT
-	S3Yu/dzVLqOxjbqSFX8I55F+fFdWE5hDe2hm2mcskQ905hgVk1RVnGyusTuXVZE8jEELSS
-	jPkgdc99BbSw4+Gb7l++euDpzfB3v/7Pl6zTn5RSXOMu9y4wTb+Ex8xjCcuHdpIPDJw+C7
-	LE6eQfCEPwsh37LIis5yRQFLS1z8ol5jV5WyCjlIRGErSwgoEAQrEKzwcbiQ2cPOfB8cFw
-	xcgqRd1N//D07rvdqfP+ul4jDnkqjOzCH0ZYcSTXyKRuyJ60bPkwrJ4wSRF8iA==
-ARC-Authentication-Results: i=1;
-	rspamd-657f47799c-zn9dx;
-	auth=pass smtp.auth=dreamhost smtp.mailfrom=dave@stgolabs.net
-X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
-X-MC-Relay: Neutral
-X-MailChannels-SenderId: dreamhost|x-authsender|dave@stgolabs.net
-X-MailChannels-Auth-Id: dreamhost
-X-Zesty-Cooing: 7f33fdac763de419_1727732461461_1316246610
-X-MC-Loop-Signature: 1727732461461:167932956
-X-MC-Ingress-Time: 1727732461460
-Received: from pdx1-sub0-mail-a244.dreamhost.com (pop.dreamhost.com
- [64.90.62.162])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
-	by 100.99.145.32 (trex/7.0.2);
-	Mon, 30 Sep 2024 21:41:01 +0000
-Received: from offworld (unknown [104.36.31.106])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (P-256) server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	(Authenticated sender: dave@stgolabs.net)
-	by pdx1-sub0-mail-a244.dreamhost.com (Postfix) with ESMTPSA id 4XHZJD3B3lz5Z;
-	Mon, 30 Sep 2024 14:41:00 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=stgolabs.net;
-	s=dreamhost; t=1727732461;
-	bh=UNJQohW8Zsni2T4+DfIQDy74rbrJsCFmu6epjouBvf4=;
-	h=Date:From:To:Cc:Subject:Content-Type;
-	b=AXP9ciQm5e5NVzOgO6pth+7WwL7y7BQTfZOyg2qIr1Kb5X2UmXObx9aD2Ms0VAhvV
-	 1nwp9Vd1iwHygUMAxCzwXWibVFE4W1Y36mShgMpAUBbSk0Mfig8cG9qTqHNDEjLOWk
-	 0jzPUbYbrMm7hrvOG9nLTZKgHzXnpqKvg+4eajAg8YtU71/+x/G3cOO2ynPONsCcYQ
-	 MJQjoxtKg/euvPnYA428Ahff6Zret7l7jNbFMMzOJBtaoskIFKv7yIe8sPaa4JNOpM
-	 ObddNgkRCryhGFwtx7kAa5D8fNU2tHL3vcmhfm/gzyB9pIn2SFddvOOxYMz9Psz0pK
-	 22kThuS6RnKtw==
-Date: Mon, 30 Sep 2024 14:39:33 -0700
-From: Davidlohr Bueso <dave@stgolabs.net>
-To: Alison Schofield <alison.schofield@intel.com>
-Cc: vishal.l.verma@intel.com, y-goto@fujitsu.com, dave.jiang@intel.com, 
-	dan.j.williams@intel.com, linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev
-Subject: Re: [PATCH -ndctl] cxl/memdev: Introduce sanitize-memdev
- functionality
-Message-ID: <ngnoxz6w6q3y6korof6mepzvw2jyx4trlii7zon5jcoafobbfp@4z5ld55qgvqy>
-References: <20240928211643.140264-1-dave@stgolabs.net>
- <ZvrhusA7So_u51W_@aschofie-mobl2.lan>
- <f6ybfabcft5wcpx2wuoxf3qgwset3h4nhngn5c4jk6ssudl5gj@o2ssocnihy6t>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mpv8SfC8"
+Received: by mail-oa1-f48.google.com with SMTP id 586e51a60fabf-2870bd5e1f7so1947061fac.3;
+        Tue, 01 Oct 2024 00:41:37 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1727768497; x=1728373297; darn=lists.linux.dev;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=oHlEJnCwtC4GK/FLR1DihFu50Li6dMLU4mXd60RMGqA=;
+        b=mpv8SfC8BpMh6JmLhl6KBWWzte38Eh98CSlKItlEUO5fzIRSXZEOCOTMyJAzwuECEh
+         +NlHqzlirKD6IJVnSc412UGzBL6tc8BACty7zw8DtV8eA81loIP4s9IKoPM3ojy/Ub9C
+         LFNCAgKdAIFPRaPoNXzFr1SMlmuEqOry2X5wGkj5SrPA9oyghpxgLfSz7n17a0bISEIz
+         /GVLVV7nO/e3k/d+ZJcIsANnkQp25vqwWBz15Xp9lgiba9KgPwQBhvQIsb/NwJICyvvV
+         ZfSOWD7hXW9whiAycAmU16lBDROAQtkfX9AzYYjpcBuB+6rtbhkTQ6y4YpA/qmxMoBDc
+         CDzg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1727768497; x=1728373297;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=oHlEJnCwtC4GK/FLR1DihFu50Li6dMLU4mXd60RMGqA=;
+        b=jmYNOboGaMN96KGpG73ApJZDHBs+JFTbSFmfTflvqaopdukKi0v8wqrU3ZiUkIMqbl
+         9yvgLv11wRMpGWDrhZ49+yvZDzgCZOSkka9rYPTDW+3k4WeP/ombysePImoJBhsqd538
+         yDKqL9vzJw/FmaukjYVAc+eTYwTPndVFgbDjgHfLzebiGZvKkbVMMtrI+ookcmEZje/Q
+         yLyZmwu1yUUHB2mkNbeKpbxsuI/D8BQ9smNV1ZV54Vu2YCN7//dTuhP4nHxVUCgsrkS9
+         zK+JClAcgJYJR0Ryeb00yE4qaK1qm38QFdIDC9qZv/YsdJ0RWHepLG3zeKDwV69RKZVu
+         vJeg==
+X-Forwarded-Encrypted: i=1; AJvYcCW4amciyY5RCW/pWT5LAfkfgr022b4kOUJocqsiz8pLntarqWhKd3uJ11z3uFRDuiArxkLHYRk=@lists.linux.dev, AJvYcCWXHrSRVbo0ZXXyMQNGxJiaFgZUrcV2xcdC2diNkx1lgLYxfX24kJNQ2BFQxr84O5KSWhAai7Nnb7F1iWrg1XE=@lists.linux.dev
+X-Gm-Message-State: AOJu0YyA1e9ysa8C9GuiNnVxWZcXUtt86OHhblQ0zSHJqVJxY/9L2wya
+	4eV9TpoihWnPPoVEKwj570y0m+FNlWSa7caO/SG/4rCpFRL5TfsqybFqTJ/HPI7dsMSefssOQVw
+	MYQX0DdTMaa9IW+gQNJXEEkSqtVA=
+X-Google-Smtp-Source: AGHT+IHtULieLwI/4SPEpV2EAh51zgTtQVq2eiZn2mnR0oWpvNiQi5cQqFGqhvDuXz6yt1UnDDzC0f1A/6EcRjj9PQQ=
+X-Received: by 2002:a05:6870:3044:b0:27b:55e1:71e2 with SMTP id
+ 586e51a60fabf-28710ab1b40mr8144762fac.23.1727768496894; Tue, 01 Oct 2024
+ 00:41:36 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
-In-Reply-To: <f6ybfabcft5wcpx2wuoxf3qgwset3h4nhngn5c4jk6ssudl5gj@o2ssocnihy6t>
-User-Agent: NeoMutt/20240425
+References: <20240926075700.10122-1-shenlichuan@vivo.com>
+In-Reply-To: <20240926075700.10122-1-shenlichuan@vivo.com>
+From: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Date: Tue, 1 Oct 2024 09:41:25 +0200
+Message-ID: <CAM9Jb+hCVEN_c1gLd8M0FUH+9i3vdmgCC4B-T7Lsy+XFejMsTw@mail.gmail.com>
+Subject: Re: [PATCH v1] nvdimm: Correct some typos in comments
+To: Shen Lichuan <shenlichuan@vivo.com>
+Cc: dan.j.williams@intel.com, vishal.l.verma@intel.com, dave.jiang@intel.com, 
+	ira.weiny@intel.com, nvdimm@lists.linux.dev, virtualization@lists.linux.dev, 
+	linux-kernel@vger.kernel.org, opensource.kernel@vivo.com
+Content-Type: text/plain; charset="UTF-8"
 
-On Mon, 30 Sep 2024, Davidlohr Bueso wrote:\n
+> Fixed some confusing typos that were currently identified with codespell,
+> the details are as follows:
+>
+> -in the code comments:
+> drivers/nvdimm/nd_virtio.c:100: repsonse ==> response
+> drivers/nvdimm/pfn_devs.c:542: namepace ==> namespace
+> drivers/nvdimm/pmem.c:319: reenable ==> re-enable
+>
+> Signed-off-by: Shen Lichuan <shenlichuan@vivo.com>
 
->     cxl sanitize-memdev -e mem0 <-- secure erase
->     cxl sanitize-memdev mem0 <-- sanitize
+Reviewed-by: Pankaj Gupta <pankaj.gupta@amd.com>
 
-Not related to this patch (I will post v2), but just for future reference, and
-perhaps someone has thoughts. Whenever the kernel supports Media Operation
-(4402h in 3.1), I see this utility expanding to something like:
-
-       cxl sanitize-memdev --zero A1-A2 [B1-B2 C1-C2] <-- zero-out ranges
-       cxl sanitize-memdev --zero mem0 <-- internally use all the mem0 range
-       cxl sanitize-memdev A1-A2 [B1-B2 C1-C2] <-- sanitize ranges
-       cxl sanitize-memdev -e A1-A2 [B1-B2 C1-C2] <-- error
-
-... and perhaps the kernel would need a security/zero as well as a
-security/{sanitize_range,zero_range} set of files.
-
-Of course the underlying memdev for the specified ranges would still need to be
-offline entirely, just as is now.
+> ---
+>  drivers/nvdimm/nd_virtio.c | 2 +-
+>  drivers/nvdimm/pfn_devs.c  | 2 +-
+>  drivers/nvdimm/pmem.c      | 2 +-
+>  3 files changed, 3 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/nvdimm/nd_virtio.c b/drivers/nvdimm/nd_virtio.c
+> index f55d60922b87..c3f07be4aa22 100644
+> --- a/drivers/nvdimm/nd_virtio.c
+> +++ b/drivers/nvdimm/nd_virtio.c
+> @@ -97,7 +97,7 @@ static int virtio_pmem_flush(struct nd_region *nd_region)
+>                 dev_info(&vdev->dev, "failed to send command to virtio pmem device\n");
+>                 err = -EIO;
+>         } else {
+> -               /* A host repsonse results in "host_ack" getting called */
+> +               /* A host response results in "host_ack" getting called */
+>                 wait_event(req_data->host_acked, req_data->done);
+>                 err = le32_to_cpu(req_data->resp.ret);
+>         }
+> diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
+> index 586348125b61..cfdfe0eaa512 100644
+> --- a/drivers/nvdimm/pfn_devs.c
+> +++ b/drivers/nvdimm/pfn_devs.c
+> @@ -539,7 +539,7 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
+>
+>         if (!nd_pfn->uuid) {
+>                 /*
+> -                * When probing a namepace via nd_pfn_probe() the uuid
+> +                * When probing a namespace via nd_pfn_probe() the uuid
+>                  * is NULL (see: nd_pfn_devinit()) we init settings from
+>                  * pfn_sb
+>                  */
+> diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+> index 210fb77f51ba..d81faa9d89c9 100644
+> --- a/drivers/nvdimm/pmem.c
+> +++ b/drivers/nvdimm/pmem.c
+> @@ -316,7 +316,7 @@ static long pmem_dax_direct_access(struct dax_device *dax_dev,
+>   * range, filesystem turns the normal pwrite to a dax_recovery_write.
+>   *
+>   * The recovery write consists of clearing media poison, clearing page
+> - * HWPoison bit, reenable page-wide read-write permission, flush the
+> + * HWPoison bit, re-enable page-wide read-write permission, flush the
+>   * caches and finally write.  A competing pread thread will be held
+>   * off during the recovery process since data read back might not be
+>   * valid, and this is achieved by clearing the badblock records after
+> --
+> 2.17.1
+>
