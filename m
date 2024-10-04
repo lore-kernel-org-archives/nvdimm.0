@@ -1,148 +1,100 @@
-Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A40961A08BD
-	for <nvdimm@lists.linux.dev>; Tue,  1 Oct 2024 10:44:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.158.5
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 70AE41E8845;
+	Fri,  4 Oct 2024 18:20:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727779446; cv=none; b=rnyiWDEku4GhbncnI0TxnYNmvnBOebvuiIMr5ufz6snb7O9gVEOUZLWcnancra2liEuKhZPC5f2tzzqvu6my+NUFZevYGHmgEJMYwPPLqj5kx5ZGIVyDJm3tmw7yBW158bbPXyg9DOLIAc8K+6RgE4lMYeyo3nV0gqR0zVcIsjE=
+	t=1728066025; cv=none; b=NVlh+Z319cQYwUI100QBK4oLrRqq2heAAVbPCYRebPpjFI7Qz6WFI4Ue9BsNN6eUwqqVDBggRFnQvoNb1dFqfUJsP8kZJv0Tfzk0za9nvkr6RGRfN80NMDJ3kbPo/mrp3coshlkLxL4DE751yzNAAPUvBgMldjDB40XXuFBnpmo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727779446; c=relaxed/simple;
-	bh=R4W9StWya2ct3GHl8Bmf6USziiauPBQvJXVwXG/ZQr4=;
-	h=Date:From:To:Cc:Subject:Message-ID:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=tpiPImFWCixZdH4SeXbHmHrzs7P7ixlPWGWyWGdmxNTapN3WM1L6KTFmiVatGsspqJ2r9+sY5jAajSwOAAqCn54bQARvTsEKq9U4R6tzAFW5999PyGf8sXuvSmFVR+phhTME+ZxVNy4a9/Tj2Y5C2FsvQiw4mOeKX0XeBVrbgno=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=pBxk9Pfm; arc=none smtp.client-ip=148.163.158.5
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
+	s=arc-20240116; t=1728066025; c=relaxed/simple;
+	bh=31Eu63po/GTps1UbVQw+dXkrvrYK47lQDftGwjhtYQ8=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=BAeLV1MM+5jW5H2neztOXjwQ7srT8QUGxbcmyn+0VygT6npy3MB9qSh2J6kp0AsTEMGI3oQ6D63t+E5Dz4g6Ywyxq/znEZTtiTvXQAFm6La0zOb3N0THHrBZvIZJqk78aLV7NvAZFkE90ZaBDBXbjG1P9GMcDwE9a1LSw4YpA/8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VN6WageN; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="pBxk9Pfm"
-Received: from pps.filterd (m0360072.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.18.1.2/8.18.1.2) with ESMTP id 4918rlWA024393;
-	Tue, 1 Oct 2024 10:43:19 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=date
-	:from:to:cc:subject:message-id:in-reply-to:references
-	:content-type:content-transfer-encoding:mime-version; s=pp1; bh=
-	EbBiI8fSH5VnllJ71ly5Ye4ZTPDlUiVslkZDSkOv6TM=; b=pBxk9Pfm6EsDfF8Q
-	iqUeM1FnmtgX53pJ0O39C77AAcD1MIdHs8EzC5/ri4wCzexHaBfbeu3XYa1MNuhr
-	eJrsmHuxPqK6cm0vGct98JM4U0+BUpFDBIcM75UI2ScI5N02e5xkS/ZCRMd7H282
-	0Azl1ZgHYpCgJ3MZcAcj0rOj98AnwTvyYi5mze3SorxyYhOkaYp2FtXLOXNJcI52
-	vEg06YOiEqDQ16vL/o7a57SNphNSGtYUIFyzUt0oHvIjsnMTnIidLPO3Lj1/hyEz
-	LsPSeSPcRqZNO/wijZXbh9gF2+zp3bNZDbNFs7t3r9v9lstbldRgfcOJYDlRXbAa
-	2FQ1xA==
-Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 420ckngyg5-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 01 Oct 2024 10:43:19 +0000 (GMT)
-Received: from m0360072.ppops.net (m0360072.ppops.net [127.0.0.1])
-	by pps.reinject (8.18.0.8/8.18.0.8) with ESMTP id 491Adrbv020483;
-	Tue, 1 Oct 2024 10:43:18 GMT
-Received: from ppma11.dal12v.mail.ibm.com (db.9e.1632.ip4.static.sl-reverse.com [50.22.158.219])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 420ckngyfy-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 01 Oct 2024 10:43:18 +0000 (GMT)
-Received: from pps.filterd (ppma11.dal12v.mail.ibm.com [127.0.0.1])
-	by ppma11.dal12v.mail.ibm.com (8.18.1.2/8.18.1.2) with ESMTP id 491AViee002356;
-	Tue, 1 Oct 2024 10:43:17 GMT
-Received: from smtprelay04.fra02v.mail.ibm.com ([9.218.2.228])
-	by ppma11.dal12v.mail.ibm.com (PPS) with ESMTPS id 41xxu13f3a-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 01 Oct 2024 10:43:17 +0000
-Received: from smtpav06.fra02v.mail.ibm.com (smtpav06.fra02v.mail.ibm.com [10.20.54.105])
-	by smtprelay04.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 491AhD4A18284834
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 1 Oct 2024 10:43:13 GMT
-Received: from smtpav06.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 6B84420049;
-	Tue,  1 Oct 2024 10:43:13 +0000 (GMT)
-Received: from smtpav06.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 8521C20040;
-	Tue,  1 Oct 2024 10:43:11 +0000 (GMT)
-Received: from thinkpad-T15 (unknown [9.171.59.94])
-	by smtpav06.fra02v.mail.ibm.com (Postfix) with SMTP;
-	Tue,  1 Oct 2024 10:43:11 +0000 (GMT)
-Date: Tue, 1 Oct 2024 12:43:09 +0200
-From: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Alistair Popple <apopple@nvidia.com>, <linux-mm@kvack.org>,
-        <vishal.l.verma@intel.com>, <dave.jiang@intel.com>,
-        <logang@deltatee.com>, <bhelgaas@google.com>, <jack@suse.cz>,
-        <jgg@ziepe.ca>, <catalin.marinas@arm.com>, <will@kernel.org>,
-        <mpe@ellerman.id.au>, <npiggin@gmail.com>,
-        <dave.hansen@linux.intel.com>, <ira.weiny@intel.com>,
-        <willy@infradead.org>, <djwong@kernel.org>, <tytso@mit.edu>,
-        <linmiaohe@huawei.com>, <david@redhat.com>, <peterx@redhat.com>,
-        <linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linuxppc-dev@lists.ozlabs.org>, <nvdimm@lists.linux.dev>,
-        <linux-cxl@vger.kernel.org>, <linux-fsdevel@vger.kernel.org>,
-        <linux-ext4@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
-        <jhubbard@nvidia.com>, <hch@lst.de>, <david@fromorbit.com>,
-        <hca@linux.ibm.com>, <gor@linux.ibm.com>, <agordeev@linux.ibm.com>,
-        <borntraeger@linux.ibm.com>, <svens@linux.ibm.com>,
-        <linux-s390@vger.kernel.org>
-Subject: Re: [PATCH 05/12] mm/memory: Add dax_insert_pfn
-Message-ID: <20241001124309.782004b8@thinkpad-T15>
-In-Reply-To: <66ef75e59c7ea_109b5294d1@dwillia2-mobl3.amr.corp.intel.com.notmuch>
-References: <cover.9f0e45d52f5cff58807831b6b867084d0b14b61c.1725941415.git-series.apopple@nvidia.com>
-	<110d5b177d793ab17ea5d1210606cb7dd0f82493.1725941415.git-series.apopple@nvidia.com>
-	<66ef75e59c7ea_109b5294d1@dwillia2-mobl3.amr.corp.intel.com.notmuch>
-X-Mailer: Claws Mail 4.3.0 (GTK 3.24.43; x86_64-redhat-linux-gnu)
-Content-Type: text/plain; charset=US-ASCII
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: mLp8W3ZTWJaathMCFPKloMnlrxlln_bF
-X-Proofpoint-ORIG-GUID: 5FfpjjtfUKsGqxfrBWkGoY0YounV3Quc
-Content-Transfer-Encoding: 7bit
-X-Proofpoint-UnRewURL: 0 URL was un-rewritten
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VN6WageN"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0ECCCC4CECE;
+	Fri,  4 Oct 2024 18:20:23 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1728066025;
+	bh=31Eu63po/GTps1UbVQw+dXkrvrYK47lQDftGwjhtYQ8=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=VN6WageNOMCQ2jKiSrqFm5wL33VkHsdw66u6PWkmw1xrbquxid+UBGLlyZhOPHjhX
+	 hcmxzKo40PxCK0uhaVK0MGWu10q4Qh1CheXCsaa3KIxpbhsv5eMNC+KDkKaiRVj0jU
+	 Xl93vQnssdWeGgIjXsu5xXDy2vI0YfjaBt0wlB9UEq+/JLk28S7yd0MbCE3m1B9zoW
+	 IBHQk2Ono6CmQcBkM1X9tMKE7RuWKBmuvj3GaM91F/c0vujosZx8CJJL3j+3Dj+kdn
+	 80+u0eLaW6EU7tkdBYyyJjH4/AjYImnZ/UAGumRtL2ja9QdWtZWR1Cuhe7/6TFlWji
+	 362kl4Udk5/fg==
+From: Sasha Levin <sashal@kernel.org>
+To: linux-kernel@vger.kernel.org,
+	stable@vger.kernel.org
+Cc: Philip Chen <philipchen@chromium.org>,
+	"Michael S . Tsirkin" <mst@redhat.com>,
+	Sasha Levin <sashal@kernel.org>,
+	dan.j.williams@intel.com,
+	vishal.l.verma@intel.com,
+	dave.jiang@intel.com,
+	ira.weiny@intel.com,
+	pankaj.gupta.linux@gmail.com,
+	nvdimm@lists.linux.dev,
+	virtualization@lists.linux.dev
+Subject: [PATCH AUTOSEL 6.11 61/76] virtio_pmem: Check device status before requesting flush
+Date: Fri,  4 Oct 2024 14:17:18 -0400
+Message-ID: <20241004181828.3669209-61-sashal@kernel.org>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20241004181828.3669209-1-sashal@kernel.org>
+References: <20241004181828.3669209-1-sashal@kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1051,Hydra:6.0.680,FMLib:17.12.62.30
- definitions=2024-10-01_07,2024-09-30_01,2024-09-30_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 bulkscore=0 mlxlogscore=928
- mlxscore=0 priorityscore=1501 clxscore=1011 spamscore=0 lowpriorityscore=0
- adultscore=0 impostorscore=0 phishscore=0 suspectscore=0 malwarescore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.19.0-2408220000
- definitions=main-2410010066
+X-stable: review
+X-Patchwork-Hint: Ignore
+X-stable-base: Linux 6.11.2
+Content-Transfer-Encoding: 8bit
 
-On Sun, 22 Sep 2024 03:41:57 +0200
-Dan Williams <dan.j.williams@intel.com> wrote:
+From: Philip Chen <philipchen@chromium.org>
 
-> [ add s390 folks to comment on CONFIG_FS_DAX_LIMITED ]
+[ Upstream commit e25fbcd97cf52c3c9824d44b5c56c19673c3dd50 ]
 
-[...]
+If a pmem device is in a bad status, the driver side could wait for
+host ack forever in virtio_pmem_flush(), causing the system to hang.
 
-> > @@ -2516,6 +2545,44 @@ static vm_fault_t __vm_insert_mixed(struct vm_area_struct *vma,
-> >  	return VM_FAULT_NOPAGE;
-> >  }
-> >  
-> > +vm_fault_t dax_insert_pfn(struct vm_fault *vmf, pfn_t pfn_t, bool write)
-> > +{
-> > +	struct vm_area_struct *vma = vmf->vma;
-> > +	pgprot_t pgprot = vma->vm_page_prot;
-> > +	unsigned long pfn = pfn_t_to_pfn(pfn_t);
-> > +	struct page *page = pfn_to_page(pfn);  
-> 
-> The problem here is that we stubbornly have __dcssblk_direct_access() to
-> worry about. That is the only dax driver that does not return
-> pfn_valid() pfns.
-> 
-> In fact, it looks like __dcssblk_direct_access() is the only thing
-> standing in the way of the removal of pfn_t.
-> 
-> It turns out it has been 3 years since the last time the question of
-> bringing s390 fully into the ZONE_DEVICE regime was raised:
-> 
-> https://lore.kernel.org/all/20210820210318.187742e8@thinkpad/
-> 
-> Given that this series removes PTE_DEVMAP which was a stumbling block,
-> would it be feasible to remove CONFIG_FS_DAX_LIMITED for a few kernel
-> cycles until someone from the s390 side can circle back to add full
-> ZONE_DEVICE support?
+So add a status check in the beginning of virtio_pmem_flush() to return
+early if the device is not activated.
 
-Yes, see also my reply to your "dcssblk: Mark DAX broken" patch.
-Thanks Alistair for your effort, making ZONE_DEVICE usable w/o extra
-PTE bit!
+Signed-off-by: Philip Chen <philipchen@chromium.org>
+Message-Id: <20240826215313.2673566-1-philipchen@chromium.org>
+Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+Acked-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/nvdimm/nd_virtio.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/drivers/nvdimm/nd_virtio.c b/drivers/nvdimm/nd_virtio.c
+index 35c8fbbba10ed..f55d60922b87d 100644
+--- a/drivers/nvdimm/nd_virtio.c
++++ b/drivers/nvdimm/nd_virtio.c
+@@ -44,6 +44,15 @@ static int virtio_pmem_flush(struct nd_region *nd_region)
+ 	unsigned long flags;
+ 	int err, err1;
+ 
++	/*
++	 * Don't bother to submit the request to the device if the device is
++	 * not activated.
++	 */
++	if (vdev->config->get_status(vdev) & VIRTIO_CONFIG_S_NEEDS_RESET) {
++		dev_info(&vdev->dev, "virtio pmem device needs a reset\n");
++		return -EIO;
++	}
++
+ 	might_sleep();
+ 	req_data = kmalloc(sizeof(*req_data), GFP_KERNEL);
+ 	if (!req_data)
+-- 
+2.43.0
+
