@@ -1,51 +1,51 @@
 Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 118501DF74C
-	for <nvdimm@lists.linux.dev>; Mon,  7 Oct 2024 23:17:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE6B11DFD9C
+	for <nvdimm@lists.linux.dev>; Mon,  7 Oct 2024 23:17:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.8
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728343042; cv=none; b=Y9jS5HryBaYczkWNp8iEKPYsSGG7skprzAkI/T8qZAgW3QS3Pyii/i/ycTn/oFr/ZlmcNxSo4kwRKPNtEDeEKBkaux2gG+6xIope3ZkABPEGs6msFMsoIOLCt/Jo3KrJB6t5zyl+fqGynPI6SytGZ3dcHTLmnGbglUClRXB07dw=
+	t=1728343044; cv=none; b=eEWiQ63FgbjjTkCj2W2tBqOgylACEQ494ZS9PUhc04dDxYu8Ba16gB6BAq4iWcJREphax6V70QhUoTFqqOcmaW+pGSe+6UeDh7Xq5MjvWYdxkJobtB6uyDaVIJocX4rKqeSwvgtew1+Jt7irJIxCG84SxmU3261nh5a8sjFa0wc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728343042; c=relaxed/simple;
-	bh=a7P5nO5cSdDmDIIU4tst7KdrJHzGJmLTZ3j+IN/QY/4=;
+	s=arc-20240116; t=1728343044; c=relaxed/simple;
+	bh=nbmlR3m/1dxZRKIaG1X2yqXOWQA7D/Qm2/wWl8k/BY8=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=t+rnFk+3QEFz3hYv0y9r10oadDOkKPmFvPipOAmx2UVc9WqRbS3RuX5aIO8ac3swNKxm147YWX0sxz6fuOR+LYIoOP8FrL+bb1Eroi42NnuBpPaufj0NNd5XMKePYdLvQMKtkessmOnVdnBadh+HpcQIZZoCfgZpntNqB+uAqkw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=mRIl//d+; arc=none smtp.client-ip=192.198.163.8
+	 In-Reply-To:To:Cc; b=E//DQaULI/XmLRb1K5jRISalPet4caGyz0tSXkr+2sOLEwO0F2PKRbTgQq/I+tdt96wgeGEa0zs2NK4bPbKfj1N2jRJI3rYUq0znQVm1b+kLlRV/Z8zDzMsc3ztE3KcfwnvPTSabAnt/URQmBCXO5KXDanahuHwGed+TpDbQQeY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=ET6rJMPC; arc=none smtp.client-ip=192.198.163.8
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="mRIl//d+"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="ET6rJMPC"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1728343040; x=1759879040;
+  t=1728343043; x=1759879043;
   h=from:date:subject:mime-version:content-transfer-encoding:
    message-id:references:in-reply-to:to:cc;
-  bh=a7P5nO5cSdDmDIIU4tst7KdrJHzGJmLTZ3j+IN/QY/4=;
-  b=mRIl//d+6tEMDm+S90Q9/kffk4B0jwor4iFAPwETKuyRNXqfaQBXXsfM
-   hE9ei8XMDCIL13zRv7hNQtFIfH8Y/Q1lLOxXkdHgviCHOr71f+hoHuhRt
-   gHv8ErChzPMPzJV2n3uOqNfmIXoTkqw6hpQwO+HeJTFxgLklhOjAr2xpE
-   dCl8zItivrCh+M4XTQwS8sqO4UI29v+lRedzHePMC6OHtybgfBCNXsZlc
-   dvE0rQpoioAUtfh4PMCyt/KU+Ihicvxu7Pjmb1oOc/UykYTotiiC5cE/m
-   8HTY2TRkdWoeYq4UcwVzfUh3vEZ24oFL3dKpU7l8j+AVqVjoXnr3UAXg0
-   w==;
-X-CSE-ConnectionGUID: JIF0LRp5QOGnMQsvHB3Gjw==
-X-CSE-MsgGUID: Wo5X0vvnTW2gm7oMQWl8og==
-X-IronPort-AV: E=McAfee;i="6700,10204,11218"; a="45036957"
+  bh=nbmlR3m/1dxZRKIaG1X2yqXOWQA7D/Qm2/wWl8k/BY8=;
+  b=ET6rJMPCmnfPm9snm4fUXH4qaFep9v+R2NEGe8OvK0YJuQasNYoGKogL
+   R1WTv/ugTymLEHGuThVdnsTVTG4uQBWeHQghHxLDMqtKUAal4NOSGTOd9
+   DcsmGaQqX8YhXE//GUuSycU2+Fq4PGFgYX/KRIH4C6P2FLR0sNbHoRoSR
+   bNdxgGRyTBFIMuNMl88aI4PZPr3xiVeqKY9j+qH1zT1yBNRU2U2kwLgiK
+   3XtgUNKcDdoyEEFtHp5MS6TE/J4SjG/eT12Ite82z209kXnERAur18L0m
+   g2RS3voobaLaYv73tQ1F64lJz8kjhz+VcJc8/6q7bYz5CqlRJVuDP+tkl
+   Q==;
+X-CSE-ConnectionGUID: 35nMbpOTTYqaCNDbRjqi9A==
+X-CSE-MsgGUID: iCsXW5otTYufrq/1udmrAg==
+X-IronPort-AV: E=McAfee;i="6700,10204,11218"; a="45036992"
 X-IronPort-AV: E=Sophos;i="6.11,185,1725346800"; 
-   d="scan'208";a="45036957"
+   d="scan'208";a="45036992"
 Received: from fmviesa007.fm.intel.com ([10.60.135.147])
-  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Oct 2024 16:17:01 -0700
-X-CSE-ConnectionGUID: RokVkcrSQOOGplOtGsUfDQ==
-X-CSE-MsgGUID: vNpGsvgbT/GtA3SRwW+oiw==
+  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Oct 2024 16:17:10 -0700
+X-CSE-ConnectionGUID: sHXGOXjFQVa+uDfTF3vkow==
+X-CSE-MsgGUID: 3Wo8bTU1T6Kue4N4QUlEjA==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.11,185,1725346800"; 
-   d="scan'208";a="75309151"
+   d="scan'208";a="75309213"
 Received: from ldmartin-desk2.corp.intel.com (HELO localhost) ([10.125.110.112])
-  by fmviesa007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Oct 2024 16:16:59 -0700
+  by fmviesa007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Oct 2024 16:17:08 -0700
 From: ira.weiny@intel.com
-Date: Mon, 07 Oct 2024 18:16:22 -0500
-Subject: [PATCH v4 16/28] cxl/region: Add sparse DAX region support
+Date: Mon, 07 Oct 2024 18:16:25 -0500
+Subject: [PATCH v4 19/28] cxl/mem: Configure dynamic capacity interrupts
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -54,7 +54,7 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20241007-dcd-type2-upstream-v4-16-c261ee6eeded@intel.com>
+Message-Id: <20241007-dcd-type2-upstream-v4-19-c261ee6eeded@intel.com>
 References: <20241007-dcd-type2-upstream-v4-0-c261ee6eeded@intel.com>
 In-Reply-To: <20241007-dcd-type2-upstream-v4-0-c261ee6eeded@intel.com>
 To: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, 
@@ -69,36 +69,27 @@ Cc: Dan Williams <dan.j.williams@intel.com>,
  linux-doc@vger.kernel.org, nvdimm@lists.linux.dev, 
  linux-kernel@vger.kernel.org
 X-Mailer: b4 0.15-dev-37811
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1728342968; l=11684;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1728342968; l=5357;
  i=ira.weiny@intel.com; s=20221211; h=from:subject:message-id;
- bh=PTH2uac0Yk8MXGYUjFuBn85YZFTTAjd4l1H2KkW19ro=;
- b=PM+KJE9evZxfN52Cp+h0Wg57ROPfS/0E5XJlaHJ9Xt1BjCLxU1V0j//e0Y/NKkM5PSbtWUv+y
- yjo7ER2v2F/Av58nUpa8Aw0XmNAi53/QZPMsTRW+gPWUgOQ77Dd1dHX
+ bh=Eew5uMTIVjbji9OsLBSh/pYxpB1Na7fle6NKI2rD/X4=;
+ b=kulb4Kktx95NEKXN+PknfviKMrsiLiGtlNe6u8ygSaplB+WJFlpAHeu6ejVVHVtRRaKqtbn62
+ dCZTq5u7cEMDfDPvSpgDRd0HVcqGPNxlFUV/wR7SouZGkFF+MAkpAuh
 X-Developer-Key: i=ira.weiny@intel.com; a=ed25519;
  pk=noldbkG+Wp1qXRrrkfY1QJpDf7QsOEthbOT7vm0PqsE=
 
 From: Navneet Singh <navneet.singh@intel.com>
 
-Dynamic Capacity CXL regions must allow memory to be added or removed
-dynamically.  In addition to the quantity of memory available the
-location of the memory within a DC partition is dynamic based on the
-extents offered by a device.  CXL DAX regions must accommodate the
-sparseness of this memory in the management of DAX regions and devices.
+Dynamic Capacity Devices (DCD) support extent change notifications
+through the event log mechanism.  The interrupt mailbox commands were
+extended in CXL 3.1 to support these notifications.  Firmware can't
+configure DCD events to be FW controlled but can retain control of
+memory events.
 
-Introduce the concept of a sparse DAX region.  Add a create_dc_region()
-sysfs entry to create such regions.  Special case DC capable regions to
-create a 0 sized seed DAX device to maintain compatibility which
-requires a default DAX device to hold a region reference.
+Configure DCD event log interrupts on devices supporting dynamic
+capacity.  Disable DCD if interrupts are not supported.
 
-Indicate 0 byte available capacity until such time that capacity is
-added.
-
-Sparse regions complicate the range mapping of dax devices.  There is no
-known use case for range mapping on sparse regions.  Avoid the
-complication by preventing range mapping of dax devices on sparse
-regions.
-
-Interleaving is deferred for now.  Add checks.
+Care is taken to preserve the interrupt policy set by the FW if FW first
+has been selected by the BIOS.
 
 Signed-off-by: Navneet Singh <navneet.singh@intel.com>
 Co-developed-by: Ira Weiny <ira.weiny@intel.com>
@@ -106,294 +97,162 @@ Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 
 ---
 Changes:
-[Fan: use single function for dc region store]
-[djiang: avoid setting dev_size twice]
-[djbw: Check DCD support and interleave restriction on region creation]
-[iweiny: squash patch : dax/region: Prevent range mapping allocation on sparse regions]
-[iwieny: remove reviews]
-[iweiny: rebase to master]
-[iweiny: push sysfs version to 6.12]
-[iweiny: make cxled_to_mds inline]
+[iweiny: rebase on 6.12]
 ---
- Documentation/ABI/testing/sysfs-bus-cxl | 22 ++++++++--------
- drivers/cxl/core/core.h                 | 12 +++++++++
- drivers/cxl/core/port.c                 |  1 +
- drivers/cxl/core/region.c               | 46 +++++++++++++++++++++++++++++++--
- drivers/dax/bus.c                       | 10 +++++++
- drivers/dax/bus.h                       |  1 +
- drivers/dax/cxl.c                       | 16 ++++++++++--
- 7 files changed, 93 insertions(+), 15 deletions(-)
+ drivers/cxl/cxlmem.h |  2 ++
+ drivers/cxl/pci.c    | 72 +++++++++++++++++++++++++++++++++++++++++++---------
+ 2 files changed, 62 insertions(+), 12 deletions(-)
 
-diff --git a/Documentation/ABI/testing/sysfs-bus-cxl b/Documentation/ABI/testing/sysfs-bus-cxl
-index 661dab99183f..b63ab622515f 100644
---- a/Documentation/ABI/testing/sysfs-bus-cxl
-+++ b/Documentation/ABI/testing/sysfs-bus-cxl
-@@ -439,20 +439,20 @@ Description:
- 		interleave_granularity).
+diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
+index c3b889a586d8..2d2a1884a174 100644
+--- a/drivers/cxl/cxlmem.h
++++ b/drivers/cxl/cxlmem.h
+@@ -226,7 +226,9 @@ struct cxl_event_interrupt_policy {
+ 	u8 warn_settings;
+ 	u8 failure_settings;
+ 	u8 fatal_settings;
++	u8 dcd_settings;
+ } __packed;
++#define CXL_EVENT_INT_POLICY_BASE_SIZE 4 /* info, warn, failure, fatal */
  
- 
--What:		/sys/bus/cxl/devices/decoderX.Y/create_{pmem,ram}_region
--Date:		May, 2022, January, 2023
--KernelVersion:	v6.0 (pmem), v6.3 (ram)
-+What:		/sys/bus/cxl/devices/decoderX.Y/create_{pmem,ram,dc}_region
-+Date:		May, 2022, January, 2023, August 2024
-+KernelVersion:	v6.0 (pmem), v6.3 (ram), v6.12 (dc)
- Contact:	linux-cxl@vger.kernel.org
- Description:
- 		(RW) Write a string in the form 'regionZ' to start the process
--		of defining a new persistent, or volatile memory region
--		(interleave-set) within the decode range bounded by root decoder
--		'decoderX.Y'. The value written must match the current value
--		returned from reading this attribute. An atomic compare exchange
--		operation is done on write to assign the requested id to a
--		region and allocate the region-id for the next creation attempt.
--		EBUSY is returned if the region name written does not match the
--		current cached value.
-+		of defining a new persistent, volatile, or Dynamic Capacity
-+		(DC) memory region (interleave-set) within the decode range
-+		bounded by root decoder 'decoderX.Y'. The value written must
-+		match the current value returned from reading this attribute.
-+		An atomic compare exchange operation is done on write to assign
-+		the requested id to a region and allocate the region-id for the
-+		next creation attempt.  EBUSY is returned if the region name
-+		written does not match the current cached value.
- 
- 
- What:		/sys/bus/cxl/devices/decoderX.Y/delete_region
-diff --git a/drivers/cxl/core/core.h b/drivers/cxl/core/core.h
-index 0c62b4069ba0..5d6fe7ab0a78 100644
---- a/drivers/cxl/core/core.h
-+++ b/drivers/cxl/core/core.h
-@@ -4,15 +4,27 @@
- #ifndef __CXL_CORE_H__
- #define __CXL_CORE_H__
- 
-+#include <cxlmem.h>
-+
- extern const struct device_type cxl_nvdimm_bridge_type;
- extern const struct device_type cxl_nvdimm_type;
- extern const struct device_type cxl_pmu_type;
- 
- extern struct attribute_group cxl_base_attribute_group;
- 
-+static inline struct cxl_memdev_state *
-+cxled_to_mds(struct cxl_endpoint_decoder *cxled)
-+{
-+	struct cxl_memdev *cxlmd = cxled_to_memdev(cxled);
-+	struct cxl_dev_state *cxlds = cxlmd->cxlds;
-+
-+	return container_of(cxlds, struct cxl_memdev_state, cxlds);
-+}
-+
- #ifdef CONFIG_CXL_REGION
- extern struct device_attribute dev_attr_create_pmem_region;
- extern struct device_attribute dev_attr_create_ram_region;
-+extern struct device_attribute dev_attr_create_dc_region;
- extern struct device_attribute dev_attr_delete_region;
- extern struct device_attribute dev_attr_region;
- extern const struct device_type cxl_pmem_region_type;
-diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
-index 23b4f266a83a..fefa592e9159 100644
---- a/drivers/cxl/core/port.c
-+++ b/drivers/cxl/core/port.c
-@@ -320,6 +320,7 @@ static struct attribute *cxl_decoder_root_attrs[] = {
- 	&dev_attr_qos_class.attr,
- 	SET_CXL_REGION_ATTR(create_pmem_region)
- 	SET_CXL_REGION_ATTR(create_ram_region)
-+	SET_CXL_REGION_ATTR(create_dc_region)
- 	SET_CXL_REGION_ATTR(delete_region)
- 	NULL,
- };
-diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
-index 2ca6148d108c..34a6f447e75b 100644
---- a/drivers/cxl/core/region.c
-+++ b/drivers/cxl/core/region.c
-@@ -496,6 +496,11 @@ static ssize_t interleave_ways_store(struct device *dev,
- 	if (rc)
- 		return rc;
- 
-+	if (cxlr->mode == CXL_REGION_DC && val != 1) {
-+		dev_err(dev, "Interleaving and DCD not supported\n");
-+		return -EINVAL;
-+	}
-+
- 	rc = ways_to_eiw(val, &iw);
- 	if (rc)
- 		return rc;
-@@ -2176,6 +2181,7 @@ static size_t store_targetN(struct cxl_region *cxlr, const char *buf, int pos,
- 	if (sysfs_streq(buf, "\n"))
- 		rc = detach_target(cxlr, pos);
- 	else {
-+		struct cxl_endpoint_decoder *cxled;
- 		struct device *dev;
- 
- 		dev = bus_find_device_by_name(&cxl_bus_type, NULL, buf);
-@@ -2187,8 +2193,13 @@ static size_t store_targetN(struct cxl_region *cxlr, const char *buf, int pos,
- 			goto out;
- 		}
- 
--		rc = attach_target(cxlr, to_cxl_endpoint_decoder(dev), pos,
--				   TASK_INTERRUPTIBLE);
-+		cxled = to_cxl_endpoint_decoder(dev);
-+		if (cxlr->mode == CXL_REGION_DC &&
-+		    !cxl_dcd_supported(cxled_to_mds(cxled))) {
-+			dev_dbg(dev, "DCD unsupported\n");
-+			return -EINVAL;
-+		}
-+		rc = attach_target(cxlr, cxled, pos, TASK_INTERRUPTIBLE);
- out:
- 		put_device(dev);
- 	}
-@@ -2533,6 +2544,7 @@ static struct cxl_region *__create_region(struct cxl_root_decoder *cxlrd,
- 	switch (mode) {
- 	case CXL_REGION_RAM:
- 	case CXL_REGION_PMEM:
-+	case CXL_REGION_DC:
- 		break;
- 	default:
- 		dev_err(&cxlrd->cxlsd.cxld.dev, "unsupported mode %s\n",
-@@ -2586,6 +2598,20 @@ static ssize_t create_ram_region_store(struct device *dev,
+ /**
+  * struct cxl_event_state - Event log driver state
+diff --git a/drivers/cxl/pci.c b/drivers/cxl/pci.c
+index c6042db0653d..2ba059d313c2 100644
+--- a/drivers/cxl/pci.c
++++ b/drivers/cxl/pci.c
+@@ -672,23 +672,34 @@ static int cxl_event_get_int_policy(struct cxl_memdev_state *mds,
  }
- DEVICE_ATTR_RW(create_ram_region);
  
-+static ssize_t create_dc_region_show(struct device *dev,
-+				     struct device_attribute *attr, char *buf)
-+{
-+	return __create_region_show(to_cxl_root_decoder(dev), buf);
-+}
-+
-+static ssize_t create_dc_region_store(struct device *dev,
-+				      struct device_attribute *attr,
-+				      const char *buf, size_t len)
-+{
-+	return create_region_store(dev, buf, len, CXL_REGION_DC);
-+}
-+DEVICE_ATTR_RW(create_dc_region);
-+
- static ssize_t region_show(struct device *dev, struct device_attribute *attr,
- 			   char *buf)
+ static int cxl_event_config_msgnums(struct cxl_memdev_state *mds,
+-				    struct cxl_event_interrupt_policy *policy)
++				    struct cxl_event_interrupt_policy *policy,
++				    bool native_cxl)
  {
-@@ -3168,6 +3194,11 @@ static int devm_cxl_add_dax_region(struct cxl_region *cxlr)
- 	struct device *dev;
+ 	struct cxl_mailbox *cxl_mbox = &mds->cxlds.cxl_mbox;
++	size_t size_in = CXL_EVENT_INT_POLICY_BASE_SIZE;
+ 	struct cxl_mbox_cmd mbox_cmd;
  	int rc;
  
-+	if (cxlr->mode == CXL_REGION_DC && cxlr->params.interleave_ways != 1) {
-+		dev_err(&cxlr->dev, "Interleaving DC not supported\n");
-+		return -EINVAL;
+-	*policy = (struct cxl_event_interrupt_policy) {
+-		.info_settings = CXL_INT_MSI_MSIX,
+-		.warn_settings = CXL_INT_MSI_MSIX,
+-		.failure_settings = CXL_INT_MSI_MSIX,
+-		.fatal_settings = CXL_INT_MSI_MSIX,
+-	};
++	/* memory event policy is left if FW has control */
++	if (native_cxl) {
++		*policy = (struct cxl_event_interrupt_policy) {
++			.info_settings = CXL_INT_MSI_MSIX,
++			.warn_settings = CXL_INT_MSI_MSIX,
++			.failure_settings = CXL_INT_MSI_MSIX,
++			.fatal_settings = CXL_INT_MSI_MSIX,
++			.dcd_settings = 0,
++		};
 +	}
 +
- 	cxlr_dax = cxl_dax_region_alloc(cxlr);
- 	if (IS_ERR(cxlr_dax))
- 		return PTR_ERR(cxlr_dax);
-@@ -3260,6 +3291,16 @@ static struct cxl_region *construct_region(struct cxl_root_decoder *cxlrd,
- 		return ERR_PTR(-EINVAL);
- 
- 	mode = cxl_decoder_to_region_mode(cxled->mode);
-+	if (mode == CXL_REGION_DC) {
-+		if (!cxl_dcd_supported(cxled_to_mds(cxled))) {
-+			dev_err(&cxled->cxld.dev, "DCD unsupported\n");
-+			return ERR_PTR(-EINVAL);
-+		}
-+		if (cxled->cxld.interleave_ways != 1) {
-+			dev_err(&cxled->cxld.dev, "Interleaving and DCD not supported\n");
-+			return ERR_PTR(-EINVAL);
-+		}
++	if (cxl_dcd_supported(mds)) {
++		policy->dcd_settings = CXL_INT_MSI_MSIX;
++		size_in += sizeof(policy->dcd_settings);
 +	}
- 	do {
- 		cxlr = __create_region(cxlrd, mode,
- 				       atomic_read(&cxlrd->region_id));
-@@ -3467,6 +3508,7 @@ static int cxl_region_probe(struct device *dev)
- 	case CXL_REGION_PMEM:
- 		return devm_cxl_add_pmem_region(cxlr);
- 	case CXL_REGION_RAM:
-+	case CXL_REGION_DC:
- 		/*
- 		 * The region can not be manged by CXL if any portion of
- 		 * it is already online as 'System RAM'
-diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-index fde29e0ad68b..d8cb5195a227 100644
---- a/drivers/dax/bus.c
-+++ b/drivers/dax/bus.c
-@@ -178,6 +178,11 @@ static bool is_static(struct dax_region *dax_region)
- 	return (dax_region->res.flags & IORESOURCE_DAX_STATIC) != 0;
+ 
+ 	mbox_cmd = (struct cxl_mbox_cmd) {
+ 		.opcode = CXL_MBOX_OP_SET_EVT_INT_POLICY,
+ 		.payload_in = policy,
+-		.size_in = sizeof(*policy),
++		.size_in = size_in,
+ 	};
+ 
+ 	rc = cxl_internal_send_cmd(cxl_mbox, &mbox_cmd);
+@@ -735,6 +746,31 @@ static int cxl_event_irqsetup(struct cxl_memdev_state *mds,
+ 	return 0;
  }
  
-+static bool is_sparse(struct dax_region *dax_region)
++static int cxl_irqsetup(struct cxl_memdev_state *mds,
++			struct cxl_event_interrupt_policy *policy,
++			bool native_cxl)
 +{
-+	return (dax_region->res.flags & IORESOURCE_DAX_SPARSE_CAP) != 0;
++	struct cxl_dev_state *cxlds = &mds->cxlds;
++	int rc;
++
++	if (native_cxl) {
++		rc = cxl_event_irqsetup(mds, policy);
++		if (rc)
++			return rc;
++	}
++
++	if (cxl_dcd_supported(mds)) {
++		rc = cxl_event_req_irq(cxlds, policy->dcd_settings);
++		if (rc) {
++			dev_err(cxlds->dev, "Failed to get interrupt for DCD event log\n");
++			cxl_disable_dcd(mds);
++			return rc;
++		}
++	}
++
++	return 0;
 +}
 +
- bool static_dev_dax(struct dev_dax *dev_dax)
+ static bool cxl_event_int_is_fw(u8 setting)
  {
- 	return is_static(dev_dax->region);
-@@ -301,6 +306,9 @@ static unsigned long long dax_region_avail_size(struct dax_region *dax_region)
+ 	u8 mode = FIELD_GET(CXLDEV_EVENT_INT_MODE_MASK, setting);
+@@ -761,17 +797,25 @@ static int cxl_event_config(struct pci_host_bridge *host_bridge,
+ 			    struct cxl_memdev_state *mds, bool irq_avail)
+ {
+ 	struct cxl_event_interrupt_policy policy = { 0 };
++	bool native_cxl = host_bridge->native_cxl_error;
+ 	int rc;
  
- 	lockdep_assert_held(&dax_region_rwsem);
- 
-+	if (is_sparse(dax_region))
-+		return 0;
-+
- 	for_each_dax_region_resource(dax_region, res)
- 		size -= resource_size(res);
- 	return size;
-@@ -1373,6 +1381,8 @@ static umode_t dev_dax_visible(struct kobject *kobj, struct attribute *a, int n)
+ 	/*
+ 	 * When BIOS maintains CXL error reporting control, it will process
+ 	 * event records.  Only one agent can do so.
++	 *
++	 * If BIOS has control of events and DCD is not supported skip event
++	 * configuration.
+ 	 */
+-	if (!host_bridge->native_cxl_error)
++	if (!native_cxl && !cxl_dcd_supported(mds))
  		return 0;
- 	if (a == &dev_attr_mapping.attr && is_static(dax_region))
+ 
+ 	if (!irq_avail) {
+ 		dev_info(mds->cxlds.dev, "No interrupt support, disable event processing.\n");
++		if (cxl_dcd_supported(mds)) {
++			dev_info(mds->cxlds.dev, "DCD requires interrupts, disable DCD\n");
++			cxl_disable_dcd(mds);
++		}
  		return 0;
-+	if (a == &dev_attr_mapping.attr && is_sparse(dax_region))
-+		return 0;
- 	if ((a == &dev_attr_align.attr ||
- 	     a == &dev_attr_size.attr) && is_static(dax_region))
- 		return 0444;
-diff --git a/drivers/dax/bus.h b/drivers/dax/bus.h
-index cbbf64443098..783bfeef42cc 100644
---- a/drivers/dax/bus.h
-+++ b/drivers/dax/bus.h
-@@ -13,6 +13,7 @@ struct dax_region;
- /* dax bus specific ioresource flags */
- #define IORESOURCE_DAX_STATIC BIT(0)
- #define IORESOURCE_DAX_KMEM BIT(1)
-+#define IORESOURCE_DAX_SPARSE_CAP BIT(2)
+ 	}
  
- struct dax_region *alloc_dax_region(struct device *parent, int region_id,
- 		struct range *range, int target_node, unsigned int align,
-diff --git a/drivers/dax/cxl.c b/drivers/dax/cxl.c
-index 9b29e732b39a..367e86b1c22a 100644
---- a/drivers/dax/cxl.c
-+++ b/drivers/dax/cxl.c
-@@ -13,19 +13,31 @@ static int cxl_dax_region_probe(struct device *dev)
- 	struct cxl_region *cxlr = cxlr_dax->cxlr;
- 	struct dax_region *dax_region;
- 	struct dev_dax_data data;
-+	resource_size_t dev_size;
-+	unsigned long flags;
+@@ -779,10 +823,10 @@ static int cxl_event_config(struct pci_host_bridge *host_bridge,
+ 	if (rc)
+ 		return rc;
  
- 	if (nid == NUMA_NO_NODE)
- 		nid = memory_add_physaddr_to_nid(cxlr_dax->hpa_range.start);
+-	if (!cxl_event_validate_mem_policy(mds, &policy))
++	if (native_cxl && !cxl_event_validate_mem_policy(mds, &policy))
+ 		return -EBUSY;
  
-+	flags = IORESOURCE_DAX_KMEM;
-+	if (cxlr->mode == CXL_REGION_DC)
-+		flags |= IORESOURCE_DAX_SPARSE_CAP;
+-	rc = cxl_event_config_msgnums(mds, &policy);
++	rc = cxl_event_config_msgnums(mds, &policy, native_cxl);
+ 	if (rc)
+ 		return rc;
+ 
+@@ -790,12 +834,16 @@ static int cxl_event_config(struct pci_host_bridge *host_bridge,
+ 	if (rc)
+ 		return rc;
+ 
+-	rc = cxl_event_irqsetup(mds, &policy);
++	rc = cxl_irqsetup(mds, &policy, native_cxl);
+ 	if (rc)
+ 		return rc;
+ 
+ 	cxl_mem_get_event_records(mds, CXLDEV_EVENT_STATUS_ALL);
+ 
++	dev_dbg(mds->cxlds.dev, "Event config : %s DCD %s\n",
++		native_cxl ? "OS" : "BIOS",
++		cxl_dcd_supported(mds) ? "supported" : "not supported");
 +
- 	dax_region = alloc_dax_region(dev, cxlr->id, &cxlr_dax->hpa_range, nid,
--				      PMD_SIZE, IORESOURCE_DAX_KMEM);
-+				      PMD_SIZE, flags);
- 	if (!dax_region)
- 		return -ENOMEM;
- 
-+	if (cxlr->mode == CXL_REGION_DC)
-+		/* Add empty seed dax device */
-+		dev_size = 0;
-+	else
-+		dev_size = range_len(&cxlr_dax->hpa_range);
-+
- 	data = (struct dev_dax_data) {
- 		.dax_region = dax_region,
- 		.id = -1,
--		.size = range_len(&cxlr_dax->hpa_range),
-+		.size = dev_size,
- 		.memmap_on_memory = true,
- 	};
+ 	return 0;
+ }
  
 
 -- 
