@@ -1,51 +1,52 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA76E1DE8AF
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA3B51DE8B1
 	for <nvdimm@lists.linux.dev>; Mon,  7 Oct 2024 23:17:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.8
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728343035; cv=none; b=fX9O5A4dW2m2ZKdjRDPf49dRg6wyqz574z1IcL6oRjG0hkhwdPLHWE1BdrpZn67Rdx2sR+PtgBRvli8vGsMFU41gva0vc/EhV5TeU1bx71O6Io7k6glqgCl07f4S0NfcLozxBT+FsvqaBrxjxOOz7jZew9CQj9+5mmWDf3xUXnE=
+	t=1728343035; cv=none; b=JplPN0sokR2khQuM/CPauCMOG58RwFzUy9h80FdjhqCNYXXaQHwbXrudjXOSe1H8efE/eTwmtuYytqYQC/wTa7sBziFl2yI4D+bBE+VO6onY1HrdsojDNl08OSLiMx2KJNIhZvzWa2WDIy01ffS8WoUxgyiwdzrE8Hno5XcNads=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1728343035; c=relaxed/simple;
-	bh=oySoVzqba1kb9G76fXV+2nmWRG0tWG+HBET/md+uTvc=;
+	bh=7Aziv7pKJRTmg8ztGr51uqBKOZLkS3Ovx05kHI1NfI8=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=hwqdkWWAFyJwY1y6d8RMECzXFD8/NEpUSnZINKjZEf3vSeLN2q+QKaOy8dSODT0ZSb3dqi0WKSVW5sXX4kNbES1hirkiYthZwU2vryX4Vt6X3NeveTBoINOSNxywJGeMoywqNt0yCtlzpseMacTUoozp07rW6e5KiUeFyO9o8sg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=U74nBX1G; arc=none smtp.client-ip=192.198.163.8
+	 In-Reply-To:To:Cc; b=VWbStPoVnCZJ4ZIPwZmpbXV7d4NHPACrLvdfynRHGNeEBInWktA3qJi5vO7H0gOInlkDh/oZ04jpD16sXlk0hlvKalmZZyhJVAueJWxjEZsp9w9/fVyD7+7IHl9HkUEKAfrFCCkHbUoGObh1d23XQCui3YGbg4XLjymdstwSsRg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=czjCQj1G; arc=none smtp.client-ip=192.198.163.18
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="U74nBX1G"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="czjCQj1G"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
   t=1728343034; x=1759879034;
   h=from:date:subject:mime-version:content-transfer-encoding:
    message-id:references:in-reply-to:to:cc;
-  bh=oySoVzqba1kb9G76fXV+2nmWRG0tWG+HBET/md+uTvc=;
-  b=U74nBX1G9Ogc7401fFQI5oRLkO4Y0HNl4v9xF7+Ny4ENDtB0GTPWcLgD
-   wQRYzTm/Uh3X+WZ0qDpZSG1VMBAguMI1QlabVsa9RooGoHDlxLZ4ElzTo
-   Gh5zPSgWpQUaA9yqUynFPWxPj7yZG/OLEEzRp4Db2pq2LttSgWHmNvGCf
-   OPgBLwZq+13VDsOK9SCHtnylLrx9diGoyMPJEV+XrOnok4chpYFWXp2WY
-   MnUlI+6e1Jla597cgd/Km9eCJg1MSMtmr5XzP8yj3A7vT2PBY6SkhfMGE
-   eO1On9Dk/Q1cpOKHFuuIdosLOXjqTb1TM0/hthg0WFo3eG6i3honWR3hK
-   Q==;
-X-CSE-ConnectionGUID: SLe9wR8RQw64oNKuywK2ng==
-X-CSE-MsgGUID: fn7CcAkSRnKy/QiRM/MHug==
-X-IronPort-AV: E=McAfee;i="6700,10204,11218"; a="45036944"
+  bh=7Aziv7pKJRTmg8ztGr51uqBKOZLkS3Ovx05kHI1NfI8=;
+  b=czjCQj1GOJbmfr0RMhg6yDVezvZbuHNngxSoC4uMFOtxKJtjpnEMZxQz
+   Pmd+tEdjXNK4kooOxREUSBnJekXOR302esA7FKzwCSQmxrOn7ethWLuqZ
+   xJ/z/dIScF7XwRNAcC+m1QKdjPS4G7TFkC2zDuyboJIk44fhy8kPPibCe
+   MmZybkQUaPvwtcdE5B2WpV4uf5JbA9SCTlal7eMo8i4YjP5SXDw7/sqBq
+   u02MJ165PgFNICd2FCgQLl8M6CsB15npHV666xBbY/fMzAjzgPaVt5uNB
+   R2JKXgpavARpH4+KV7Lxrzj3ZWPieC51qNU8lTFOGdyzke2cW7QB1J4QF
+   g==;
+X-CSE-ConnectionGUID: MWn96dl/Ro+Ti77v0I1+QQ==
+X-CSE-MsgGUID: 41cBsLX0TZaCWab1cMmFtg==
+X-IronPort-AV: E=McAfee;i="6700,10204,11218"; a="26972655"
 X-IronPort-AV: E=Sophos;i="6.11,185,1725346800"; 
-   d="scan'208";a="45036944"
-Received: from fmviesa007.fm.intel.com ([10.60.135.147])
-  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Oct 2024 16:16:59 -0700
-X-CSE-ConnectionGUID: WmluaNqnTeayYzBqIuVj8A==
-X-CSE-MsgGUID: 4w1wFf9OS1qPcGB5Q7OgiQ==
+   d="scan'208";a="26972655"
+Received: from fmviesa010.fm.intel.com ([10.60.135.150])
+  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Oct 2024 16:17:13 -0700
+X-CSE-ConnectionGUID: gFddk6zdTf6EusCUOxhxzg==
+X-CSE-MsgGUID: mH1R8XMDRxSCUiUSk9ogqA==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.11,185,1725346800"; 
-   d="scan'208";a="75309139"
+   d="scan'208";a="76001797"
 Received: from ldmartin-desk2.corp.intel.com (HELO localhost) ([10.125.110.112])
-  by fmviesa007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Oct 2024 16:16:56 -0700
+  by fmviesa010-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Oct 2024 16:17:11 -0700
 From: Ira Weiny <ira.weiny@intel.com>
-Date: Mon, 07 Oct 2024 18:16:21 -0500
-Subject: [PATCH v4 15/28] cxl/region: Refactor common create region code
+Date: Mon, 07 Oct 2024 18:16:26 -0500
+Subject: [PATCH v4 20/28] cxl/core: Return endpoint decoder information
+ from region search
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -54,7 +55,7 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20241007-dcd-type2-upstream-v4-15-c261ee6eeded@intel.com>
+Message-Id: <20241007-dcd-type2-upstream-v4-20-c261ee6eeded@intel.com>
 References: <20241007-dcd-type2-upstream-v4-0-c261ee6eeded@intel.com>
 In-Reply-To: <20241007-dcd-type2-upstream-v4-0-c261ee6eeded@intel.com>
 To: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, 
@@ -69,83 +70,126 @@ Cc: Dan Williams <dan.j.williams@intel.com>,
  linux-doc@vger.kernel.org, nvdimm@lists.linux.dev, 
  linux-kernel@vger.kernel.org
 X-Mailer: b4 0.15-dev-37811
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1728342968; l=2376;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1728342968; l=4183;
  i=ira.weiny@intel.com; s=20221211; h=from:subject:message-id;
- bh=oySoVzqba1kb9G76fXV+2nmWRG0tWG+HBET/md+uTvc=;
- b=Z9mzbCT9+x9RtElP9/Bu7froCWyfuXRo5gKK5TR3S46FklNREcvIIDcGPomGxXia55hZhPFth
- sNOsavotjsKCE0u9gV/VLwCRbfbHJUivG4IdGLzO2hKEFW+gE5xJKIb
+ bh=7Aziv7pKJRTmg8ztGr51uqBKOZLkS3Ovx05kHI1NfI8=;
+ b=SYNH12WQME42J8YnWeQicXrhArlCiFX55UMTAAJi173NdrqSnWdS/6CTkv14avXanX0Md/Ocu
+ Fh94O08hItGDKpHTuRoP0lGQlxnvKwAaFR8JXlJsj+/R1XtrsFvlB+N
 X-Developer-Key: i=ira.weiny@intel.com; a=ed25519;
  pk=noldbkG+Wp1qXRrrkfY1QJpDf7QsOEthbOT7vm0PqsE=
 
-create_pmem_region_store() and create_ram_region_store() are identical
-with the exception of the region mode.  With the addition of DC region
-mode this would end up being 3 copies of the same code.
+cxl_dpa_to_region() finds the region from a <DPA, device> tuple.
+The search involves finding the device endpoint decoder as well.
 
-Refactor create_pmem_region_store() and create_ram_region_store() to use
-a single common function to be used in subsequent DC code.
+Dynamic capacity extent processing uses the endpoint decoder HPA
+information to calculate the HPA offset.  In addition, well behaved
+extents should be contained within an endpoint decoder.
 
-Suggested-by: Fan Ni <fan.ni@samsung.com>
+Return the endpoint decoder found to be used in subsequent DCD code.
+
 Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 ---
- drivers/cxl/core/region.c | 28 +++++++++++-----------------
- 1 file changed, 11 insertions(+), 17 deletions(-)
+ drivers/cxl/core/core.h   | 6 ++++--
+ drivers/cxl/core/mbox.c   | 2 +-
+ drivers/cxl/core/memdev.c | 4 ++--
+ drivers/cxl/core/region.c | 8 +++++++-
+ 4 files changed, 14 insertions(+), 6 deletions(-)
 
+diff --git a/drivers/cxl/core/core.h b/drivers/cxl/core/core.h
+index 5d6fe7ab0a78..94ee06cfbdca 100644
+--- a/drivers/cxl/core/core.h
++++ b/drivers/cxl/core/core.h
+@@ -39,7 +39,8 @@ void cxl_decoder_kill_region(struct cxl_endpoint_decoder *cxled);
+ int cxl_region_init(void);
+ void cxl_region_exit(void);
+ int cxl_get_poison_by_endpoint(struct cxl_port *port);
+-struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64 dpa);
++struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64 dpa,
++				     struct cxl_endpoint_decoder **cxled);
+ u64 cxl_dpa_to_hpa(struct cxl_region *cxlr, const struct cxl_memdev *cxlmd,
+ 		   u64 dpa);
+ 
+@@ -50,7 +51,8 @@ static inline u64 cxl_dpa_to_hpa(struct cxl_region *cxlr,
+ 	return ULLONG_MAX;
+ }
+ static inline
+-struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64 dpa)
++struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64 dpa,
++				     struct cxl_endpoint_decoder **cxled)
+ {
+ 	return NULL;
+ }
+diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
+index 3ba465823564..584d7d282a97 100644
+--- a/drivers/cxl/core/mbox.c
++++ b/drivers/cxl/core/mbox.c
+@@ -916,7 +916,7 @@ void cxl_event_trace_record(const struct cxl_memdev *cxlmd,
+ 		guard(rwsem_read)(&cxl_dpa_rwsem);
+ 
+ 		dpa = le64_to_cpu(evt->media_hdr.phys_addr) & CXL_DPA_MASK;
+-		cxlr = cxl_dpa_to_region(cxlmd, dpa);
++		cxlr = cxl_dpa_to_region(cxlmd, dpa, NULL);
+ 		if (cxlr)
+ 			hpa = cxl_dpa_to_hpa(cxlr, cxlmd, dpa);
+ 
+diff --git a/drivers/cxl/core/memdev.c b/drivers/cxl/core/memdev.c
+index 2565b10a769c..31872c03006b 100644
+--- a/drivers/cxl/core/memdev.c
++++ b/drivers/cxl/core/memdev.c
+@@ -313,7 +313,7 @@ int cxl_inject_poison(struct cxl_memdev *cxlmd, u64 dpa)
+ 	if (rc)
+ 		goto out;
+ 
+-	cxlr = cxl_dpa_to_region(cxlmd, dpa);
++	cxlr = cxl_dpa_to_region(cxlmd, dpa, NULL);
+ 	if (cxlr)
+ 		dev_warn_once(cxl_mbox->host,
+ 			      "poison inject dpa:%#llx region: %s\n", dpa,
+@@ -377,7 +377,7 @@ int cxl_clear_poison(struct cxl_memdev *cxlmd, u64 dpa)
+ 	if (rc)
+ 		goto out;
+ 
+-	cxlr = cxl_dpa_to_region(cxlmd, dpa);
++	cxlr = cxl_dpa_to_region(cxlmd, dpa, NULL);
+ 	if (cxlr)
+ 		dev_warn_once(cxl_mbox->host,
+ 			      "poison clear dpa:%#llx region: %s\n", dpa,
 diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
-index ab00203f285a..2ca6148d108c 100644
+index 34a6f447e75b..a0c181cc33e4 100644
 --- a/drivers/cxl/core/region.c
 +++ b/drivers/cxl/core/region.c
-@@ -2552,9 +2552,8 @@ static struct cxl_region *__create_region(struct cxl_root_decoder *cxlrd,
- 	return devm_cxl_add_region(cxlrd, id, mode, CXL_DECODER_HOSTONLYMEM);
- }
- 
--static ssize_t create_pmem_region_store(struct device *dev,
--					struct device_attribute *attr,
--					const char *buf, size_t len)
-+static ssize_t create_region_store(struct device *dev, const char *buf,
-+				   size_t len, enum cxl_region_mode mode)
- {
- 	struct cxl_root_decoder *cxlrd = to_cxl_root_decoder(dev);
+@@ -2827,6 +2827,7 @@ int cxl_get_poison_by_endpoint(struct cxl_port *port)
+ struct cxl_dpa_to_region_context {
  	struct cxl_region *cxlr;
-@@ -2564,31 +2563,26 @@ static ssize_t create_pmem_region_store(struct device *dev,
- 	if (rc != 1)
- 		return -EINVAL;
+ 	u64 dpa;
++	struct cxl_endpoint_decoder *cxled;
+ };
  
--	cxlr = __create_region(cxlrd, CXL_REGION_PMEM, id);
-+	cxlr = __create_region(cxlrd, mode, id);
- 	if (IS_ERR(cxlr))
- 		return PTR_ERR(cxlr);
+ static int __cxl_dpa_to_region(struct device *dev, void *arg)
+@@ -2860,11 +2861,13 @@ static int __cxl_dpa_to_region(struct device *dev, void *arg)
+ 			dev_name(dev));
  
- 	return len;
+ 	ctx->cxlr = cxlr;
++	ctx->cxled = cxled;
+ 
+ 	return 1;
  }
-+
-+static ssize_t create_pmem_region_store(struct device *dev,
-+					struct device_attribute *attr,
-+					const char *buf, size_t len)
-+{
-+	return create_region_store(dev, buf, len, CXL_REGION_PMEM);
-+}
- DEVICE_ATTR_RW(create_pmem_region);
  
- static ssize_t create_ram_region_store(struct device *dev,
- 				       struct device_attribute *attr,
- 				       const char *buf, size_t len)
+-struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64 dpa)
++struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64 dpa,
++				     struct cxl_endpoint_decoder **cxled)
  {
--	struct cxl_root_decoder *cxlrd = to_cxl_root_decoder(dev);
--	struct cxl_region *cxlr;
--	int rc, id;
--
--	rc = sscanf(buf, "region%d\n", &id);
--	if (rc != 1)
--		return -EINVAL;
--
--	cxlr = __create_region(cxlrd, CXL_REGION_RAM, id);
--	if (IS_ERR(cxlr))
--		return PTR_ERR(cxlr);
--
--	return len;
-+	return create_region_store(dev, buf, len, CXL_REGION_RAM);
+ 	struct cxl_dpa_to_region_context ctx;
+ 	struct cxl_port *port;
+@@ -2876,6 +2879,9 @@ struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64 dpa)
+ 	if (port && is_cxl_endpoint(port) && cxl_num_decoders_committed(port))
+ 		device_for_each_child(&port->dev, &ctx, __cxl_dpa_to_region);
+ 
++	if (cxled)
++		*cxled = ctx.cxled;
++
+ 	return ctx.cxlr;
  }
- DEVICE_ATTR_RW(create_ram_region);
  
 
 -- 
