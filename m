@@ -1,78 +1,52 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A647F1E0E03
-	for <nvdimm@lists.linux.dev>; Tue,  8 Oct 2024 16:10:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60F301E0DBD
+	for <nvdimm@lists.linux.dev>; Tue,  8 Oct 2024 16:36:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728403841; cv=none; b=CNQmR4ruL5fKiy1UBTuUf06nQ6zgLPrEscOXJlOSgxtPISMr6SWfuCnC+A5aaMSG/YjZMYH3GlbXTkAdwSp8U+9IFcqanYmFxNRi4kHW4B+9n9hRdun2+Z9Xg09/fsV+iXrphFcmJY2UvnhtTI2XgtpiKWtLXTI49hhGvJdRYBA=
+	t=1728405368; cv=none; b=gv8EY77xY7nCqEN5ghFkV1YZ+p01n3t6qR5aOEGdE9sJl8dt1bpqrrF/3OqOyOL8YNJ23Thtvh0edonuhGZNQq+JRcfmj3nX0CWYyh4H7nBUhQVlEBX4lTR2npF3GNv/Vl0a+3IMuFWhFxmeFv85nSnbXDwW8vKQXtW/KkDo0Hk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728403841; c=relaxed/simple;
-	bh=gctuw2elVipMW4NLdMwRY4b4B2lcHzupRXgkVDRPJwU=;
+	s=arc-20240116; t=1728405368; c=relaxed/simple;
+	bh=oZcQukqGx5bUQm6yXcjn2BsYy0HPcJMlVrzSQquwZDI=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=WjQ381Icuth01syWexUQYAkqZZK3LWrSA5HPUpiQhlF4f8K38MK23mMRK5DSfTpU85jMzwrO8cXq05+POEFYZDpWm8AT06J+kf0YEgE+ScwX3S17/2A/dLVAXkoLOp+iPcSDZAyHNka63fZjdwKUpwMSNRSOicGhLohAOQHZjs0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz; spf=pass smtp.mailfrom=suse.cz; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=0+X2TMDJ; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=yJ4bs5dI; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=0+X2TMDJ; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=yJ4bs5dI; arc=none smtp.client-ip=195.135.223.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
+	 Content-Type:Content-Disposition:In-Reply-To; b=Z3tztvLn2XqcXukVM/CXEBVhQeG1ocfMindx/BgUsJ5F3sf7flxdiYb0OPl6kpSF46rspwH6fE8H8ApyQBI+Y1WfnWExEOdjF5mvXEysW7yberwYBziSeeMTd059GvjLmQU/bbmgYGRKAvhWDODmbq8Xv+wsFOxOz9wgu3qKh6Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=none smtp.mailfrom=linux.intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=RSOUAmHI; arc=none smtp.client-ip=198.175.65.18
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux.intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="0+X2TMDJ";
-	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="yJ4bs5dI";
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="0+X2TMDJ";
-	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="yJ4bs5dI"
-Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id DF2291FB64;
-	Tue,  8 Oct 2024 16:10:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1728403837;
-	h=from:from:reply-to:reply-to:date:date:message-id:message-id:to:to:
-	 cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=iNr0uQOXBSHoSllotYSzKawgJJkcCx9f7HtFzhtE5PE=;
-	b=0+X2TMDJz0L4ZF+3dLYsK8Bw2Cx9t5eCpdmeNSV5mDOcanZw2U+HP475/d4QpmHRwtW0j2
-	B+xA1GG27WQhcC1Yh+6KXGmykvvjhRbGdgxVWw6jtMFh9aj/q8kDk7fY02Nl6lACpomE/4
-	aALUlbv4spxajR7fJv4rxtFOPe2BiVs=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1728403837;
-	h=from:from:reply-to:reply-to:date:date:message-id:message-id:to:to:
-	 cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=iNr0uQOXBSHoSllotYSzKawgJJkcCx9f7HtFzhtE5PE=;
-	b=yJ4bs5dIlDh0Kx92XjV5ODzXW92Ebd8QThgXuoOvDL2cN15CfX8iUKJACbwUV3JRI4T3cV
-	XrFTCyAIQYoTIAAA==
-Authentication-Results: smtp-out2.suse.de;
-	none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1728403837;
-	h=from:from:reply-to:reply-to:date:date:message-id:message-id:to:to:
-	 cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=iNr0uQOXBSHoSllotYSzKawgJJkcCx9f7HtFzhtE5PE=;
-	b=0+X2TMDJz0L4ZF+3dLYsK8Bw2Cx9t5eCpdmeNSV5mDOcanZw2U+HP475/d4QpmHRwtW0j2
-	B+xA1GG27WQhcC1Yh+6KXGmykvvjhRbGdgxVWw6jtMFh9aj/q8kDk7fY02Nl6lACpomE/4
-	aALUlbv4spxajR7fJv4rxtFOPe2BiVs=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1728403837;
-	h=from:from:reply-to:reply-to:date:date:message-id:message-id:to:to:
-	 cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=iNr0uQOXBSHoSllotYSzKawgJJkcCx9f7HtFzhtE5PE=;
-	b=yJ4bs5dIlDh0Kx92XjV5ODzXW92Ebd8QThgXuoOvDL2cN15CfX8iUKJACbwUV3JRI4T3cV
-	XrFTCyAIQYoTIAAA==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id B539A1340C;
-	Tue,  8 Oct 2024 16:10:37 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id M48ILH1ZBWf2QgAAD6G6ig
-	(envelope-from <dsterba@suse.cz>); Tue, 08 Oct 2024 16:10:37 +0000
-Date: Tue, 8 Oct 2024 18:10:32 +0200
-From: David Sterba <dsterba@suse.cz>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="RSOUAmHI"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1728405367; x=1759941367;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=oZcQukqGx5bUQm6yXcjn2BsYy0HPcJMlVrzSQquwZDI=;
+  b=RSOUAmHI5nTeUeKt8OmsF0cfS/UEx1lgozrl6Vo7DaLOfSiR1B7wLuM6
+   CruhzKiGCGgLHXdB5ctYOvTSrlTVhC4EZRPcaqwXdjYJzd4zkSFS/0s26
+   ZQWJY5FOqd4723l0eaCcHJICQMWKwpWz9zx35zpdnwHA40bm5D0fHBccv
+   SjUAAWzYAVKy9sIUteA7OWx3FBxC7pQNxE4zbJ+xkIzMD3CXyxbqKQMgA
+   Tp/rf+QEL9hJngZcVdFBdQPVU45VzLAjfUVBho0TIkc6BUVll71vKiiYM
+   Ng5nLAqaNbrvRWcfZQtMG/GgBzU/fhukuJSfPZyqmWHW3nbIrvERnsNId
+   A==;
+X-CSE-ConnectionGUID: 2fnfmXBxReWlvb+NZvjZZA==
+X-CSE-MsgGUID: x6f/ooH8S7GRAdIzvMLItw==
+X-IronPort-AV: E=McAfee;i="6700,10204,11219"; a="27752795"
+X-IronPort-AV: E=Sophos;i="6.11,187,1725346800"; 
+   d="scan'208";a="27752795"
+Received: from fmviesa008.fm.intel.com ([10.60.135.148])
+  by orvoesa110.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Oct 2024 09:35:08 -0700
+X-CSE-ConnectionGUID: exbY07Q4S4ywNqgKJVohvg==
+X-CSE-MsgGUID: TeIMBjbkQ5SrMCPO3QSHbQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.11,187,1725346800"; 
+   d="scan'208";a="75998570"
+Received: from black.fi.intel.com ([10.237.72.28])
+  by fmviesa008.fm.intel.com with ESMTP; 08 Oct 2024 09:35:03 -0700
+Received: by black.fi.intel.com (Postfix, from userid 1003)
+	id 98EB220F; Tue, 08 Oct 2024 19:35:02 +0300 (EEST)
+Date: Tue, 8 Oct 2024 19:35:02 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To: Ira Weiny <ira.weiny@intel.com>
 Cc: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>,
 	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
@@ -85,14 +59,15 @@ Cc: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>,
 	Vishal Verma <vishal.l.verma@intel.com>,
 	linux-btrfs@vger.kernel.org, linux-cxl@vger.kernel.org,
 	linux-doc@vger.kernel.org, nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org, Chris Mason <clm@fb.com>,
-	Josef Bacik <josef@toxicpanda.com>, David Sterba <dsterba@suse.com>,
-	Johannes Thumshirn <johannes.thumshirn@wdc.com>
-Subject: Re: [PATCH v4 04/28] range: Add range_overlaps()
-Message-ID: <20241008161032.GB1609@twin.jikos.cz>
-Reply-To: dsterba@suse.cz
+	linux-kernel@vger.kernel.org, Petr Mladek <pmladek@suse.com>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Rasmus Villemoes <linux@rasmusvillemoes.dk>,
+	Sergey Senozhatsky <senozhatsky@chromium.org>
+Subject: Re: [PATCH v4 01/28] test printk: Add very basic struct resource
+ tests
+Message-ID: <ZwVfNpg3yuLx3W6F@black.fi.intel.com>
 References: <20241007-dcd-type2-upstream-v4-0-c261ee6eeded@intel.com>
- <20241007-dcd-type2-upstream-v4-4-c261ee6eeded@intel.com>
+ <20241007-dcd-type2-upstream-v4-1-c261ee6eeded@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -101,42 +76,21 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20241007-dcd-type2-upstream-v4-4-c261ee6eeded@intel.com>
-User-Agent: Mutt/1.5.23.1-rc1 (2014-03-12)
-X-Spam-Score: -4.00
-X-Spamd-Result: default: False [-4.00 / 50.00];
-	BAYES_HAM(-3.00)[99.99%];
-	NEURAL_HAM_LONG(-1.00)[-1.000];
-	HAS_REPLYTO(0.30)[dsterba@suse.cz];
-	NEURAL_HAM_SHORT(-0.20)[-0.996];
-	MIME_GOOD(-0.10)[text/plain];
-	RCVD_VIA_SMTP_AUTH(0.00)[];
-	ARC_NA(0.00)[];
-	RCPT_COUNT_TWELVE(0.00)[20];
-	MIME_TRACE(0.00)[0:+];
-	TO_DN_SOME(0.00)[];
-	RCVD_TLS_ALL(0.00)[];
-	DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
-	TO_MATCH_ENVRCPT_ALL(0.00)[];
-	FROM_EQ_ENVFROM(0.00)[];
-	FROM_HAS_DN(0.00)[];
-	FUZZY_BLOCKED(0.00)[rspamd.com];
-	REPLYTO_ADDR_EQ_FROM(0.00)[];
-	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo];
-	RCVD_COUNT_TWO(0.00)[2];
-	REPLYTO_DOM_NEQ_TO_DOM(0.00)[]
-X-Spam-Flag: NO
-X-Spam-Level: 
+In-Reply-To: <20241007-dcd-type2-upstream-v4-1-c261ee6eeded@intel.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 
-On Mon, Oct 07, 2024 at 06:16:10PM -0500, Ira Weiny wrote:
-> --- a/include/linux/range.h
-> +++ b/include/linux/range.h
-> +/* True if any part of r1 overlaps r2 */
-> +static inline bool range_overlaps(struct range *r1, struct range *r2)
+On Mon, Oct 07, 2024 at 06:16:07PM -0500, Ira Weiny wrote:
+> The printk tests for struct resource were stubbed out.  struct range
+> printing will leverage the struct resource implementation.
+> 
+> To prevent regression add some basic sanity tests for struct resource.
 
-I've noticed only now, you can constify the arguments, but this applise
-to other range_* functions so that can be done later in one go.
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-> +{
-> +	return r1->start <= r2->end && r1->end >= r2->start;
-> +}
+Good we start having them!
+
+-- 
+With Best Regards,
+Andy Shevchenko
+
+
