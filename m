@@ -1,53 +1,80 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.10])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2ED475466B
-	for <nvdimm@lists.linux.dev>; Wed,  9 Oct 2024 14:46:28 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.10
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ECF151F4709
+	for <nvdimm@lists.linux.dev>; Wed,  9 Oct 2024 15:36:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728485190; cv=none; b=my9ibOiENj3Z+eIYpc/9A3nU2oWv/STbFshs0slPoabxdcgZUPqj0qxDZafd8ChytdxTPagp7Z5FcBPXnNAIZZYafVvVyYxHO9vfzfr8kif7cz9a5crKqTZ1XvK92HV1kF/fCXrytzZIJB4Lz/Nkagf/WLnqvTUbNNdoE4YNMN0=
+	t=1728488216; cv=none; b=XS5syaOprURnOmAhYIt0OY8SH4dU2JxZnx70u/PDPLt+qlviKM07mvfcybJYvEkf7b5IWwiqOcYZJ2e4iWTIqDPcqJutDRVbkv75irKoQOoRmdinQE5Os7HUvDQ/Q1pyeQDjHrfEsiE/DZhBIM2OZ8jpA3VjzRtJxqsbt2S1Ty4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728485190; c=relaxed/simple;
-	bh=xXD0CGxWWzLTAw/TXApXZkvVnSpZBuc19McI4xF2HPE=;
+	s=arc-20240116; t=1728488216; c=relaxed/simple;
+	bh=yrWK9guy4QSl6qtQfqv509X0npMUw4ahN/8mznSDu3I=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=plwXkkm+SiF1XSB6w7ApXy9xBt/3PZto+dhR5lpH5mKQOEdkBvMjNDerItiC26F84E30XlZHSJ4AE61sxuTrk5r69QhVwFDCb+d/9QKjJ26tYNhmuYRY65Vkwqco8hqyxuBrrL25c35SNUjVOj1p/Jau8rsubEcgK2sRwmKQU90=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=n/uGmT0Z; arc=none smtp.client-ip=198.175.65.10
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	 Content-Type:Content-Disposition:In-Reply-To; b=ha+ws1jJDaT3jXa+HkCAfIAvrwqFA6/25kl8m1J0jDH8fwgqsPGJ4FfzYWx5Sc+Hp/yojQWLukNSaKUDtOMtmX3VORYyakcv7fkusj0d64ke8d8yf2rHRGprAO1Le67ClTsOZKosJvbFumzl3uk7w9wmIanl84DTfmzmHDcaZUU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz; spf=pass smtp.mailfrom=suse.cz; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=XooOIQ2F; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=Eq3LJeDc; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=XooOIQ2F; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=Eq3LJeDc; arc=none smtp.client-ip=195.135.223.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="n/uGmT0Z"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1728485189; x=1760021189;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=xXD0CGxWWzLTAw/TXApXZkvVnSpZBuc19McI4xF2HPE=;
-  b=n/uGmT0Zz2vHm/9KBfuqprqmB90YGYP77EzztxEol4weJVGApEobYyXD
-   s4kzNm1+cl40ibp3kVuTAvuVsHLKibP5I2L+gaqU1+kZTbm7R0/6gb10k
-   8IexRY49x9L0bG7nZE7sZYbxPj29+dMgp3H2PWb59xpViL5pa5HUnS7bw
-   sMAE5G24JkJJ0IksH6xMiD6xvxLUu1K1pqr1yuoswkSIcm/nJwvKzAzxy
-   Vek4os0faE1Q0KLaiLdkpfpMqPWd4swbWdTbusROlk6p18nAUPv8s32Th
-   Ez/9s0vRNwLsQ2Zp4HfcMsxwX8nm8Oer2lNndjUj4LQnnCqhVCsgjpDhT
-   A==;
-X-CSE-ConnectionGUID: gsAhZlIETk6ZLcbcX0oNPQ==
-X-CSE-MsgGUID: g9fj6sE4TNGmSsZvSWt1Yg==
-X-IronPort-AV: E=McAfee;i="6700,10204,11220"; a="45259094"
-X-IronPort-AV: E=Sophos;i="6.11,190,1725346800"; 
-   d="scan'208";a="45259094"
-Received: from fmviesa002.fm.intel.com ([10.60.135.142])
-  by orvoesa102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Oct 2024 07:46:28 -0700
-X-CSE-ConnectionGUID: AJQomrpJQ2WqZ2mRP+8BlA==
-X-CSE-MsgGUID: nNhaAVk2TEuOKbqR/zLgWg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.11,190,1725346800"; 
-   d="scan'208";a="99606822"
-Received: from black.fi.intel.com ([10.237.72.28])
-  by fmviesa002.fm.intel.com with ESMTP; 09 Oct 2024 07:46:24 -0700
-Received: by black.fi.intel.com (Postfix, from userid 1003)
-	id EFE8B807; Wed, 09 Oct 2024 17:46:22 +0300 (EEST)
-Date: Wed, 9 Oct 2024 17:46:22 +0300
-From: Andy Shevchenko <andriy.shevchenko@intel.com>
-To: David Sterba <dsterba@suse.cz>
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="XooOIQ2F";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="Eq3LJeDc";
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="XooOIQ2F";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="Eq3LJeDc"
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id 328ED1F896;
+	Wed,  9 Oct 2024 15:36:45 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1728488205;
+	h=from:from:reply-to:reply-to:date:date:message-id:message-id:to:to:
+	 cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=cNjL0RSe+pEK01YoJ4LcI5i4jyH5jOdUOpsxh2f8Gbg=;
+	b=XooOIQ2FTDzKMFmK04SgigiPIsBbMhZyOs0u4xZ//UFBYiD530ZmZGd87NOhyjqaFn3MaK
+	f8bQeLiDXy02satFUGVLpi297p1cGN2gqZBIONIR8vwwGY/zWDGfEztuv9zREq6KRuH1rc
+	UFoJjh/B9ziBuMaNfTwPomaJjSCajQM=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1728488205;
+	h=from:from:reply-to:reply-to:date:date:message-id:message-id:to:to:
+	 cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=cNjL0RSe+pEK01YoJ4LcI5i4jyH5jOdUOpsxh2f8Gbg=;
+	b=Eq3LJeDcLQ5edAAhku6R8PeobEF4P8P/b7qZAm889pwHEQeHvX5tnx6+B44A7tBJpxJwXB
+	CX79zOcInd2504BQ==
+Authentication-Results: smtp-out2.suse.de;
+	dkim=pass header.d=suse.cz header.s=susede2_rsa header.b=XooOIQ2F;
+	dkim=pass header.d=suse.cz header.s=susede2_ed25519 header.b=Eq3LJeDc
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1728488205;
+	h=from:from:reply-to:reply-to:date:date:message-id:message-id:to:to:
+	 cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=cNjL0RSe+pEK01YoJ4LcI5i4jyH5jOdUOpsxh2f8Gbg=;
+	b=XooOIQ2FTDzKMFmK04SgigiPIsBbMhZyOs0u4xZ//UFBYiD530ZmZGd87NOhyjqaFn3MaK
+	f8bQeLiDXy02satFUGVLpi297p1cGN2gqZBIONIR8vwwGY/zWDGfEztuv9zREq6KRuH1rc
+	UFoJjh/B9ziBuMaNfTwPomaJjSCajQM=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1728488205;
+	h=from:from:reply-to:reply-to:date:date:message-id:message-id:to:to:
+	 cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=cNjL0RSe+pEK01YoJ4LcI5i4jyH5jOdUOpsxh2f8Gbg=;
+	b=Eq3LJeDcLQ5edAAhku6R8PeobEF4P8P/b7qZAm889pwHEQeHvX5tnx6+B44A7tBJpxJwXB
+	CX79zOcInd2504BQ==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 0B07813A58;
+	Wed,  9 Oct 2024 15:36:45 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id 3ciBAg2jBmf5WgAAD6G6ig
+	(envelope-from <dsterba@suse.cz>); Wed, 09 Oct 2024 15:36:45 +0000
+Date: Wed, 9 Oct 2024 17:36:42 +0200
+From: David Sterba <dsterba@suse.cz>
+To: Andy Shevchenko <andriy.shevchenko@intel.com>
 Cc: Ira Weiny <ira.weiny@intel.com>, Dave Jiang <dave.jiang@intel.com>,
 	Fan Ni <fan.ni@samsung.com>,
 	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
@@ -64,7 +91,8 @@ Cc: Ira Weiny <ira.weiny@intel.com>, Dave Jiang <dave.jiang@intel.com>,
 	Josef Bacik <josef@toxicpanda.com>, David Sterba <dsterba@suse.com>,
 	Johannes Thumshirn <johannes.thumshirn@wdc.com>
 Subject: Re: [PATCH v4 04/28] range: Add range_overlaps()
-Message-ID: <ZwaXPm5WrzLVoUuw@black.fi.intel.com>
+Message-ID: <20241009153641.GK1609@suse.cz>
+Reply-To: dsterba@suse.cz
 References: <20241007-dcd-type2-upstream-v4-0-c261ee6eeded@intel.com>
  <20241007-dcd-type2-upstream-v4-4-c261ee6eeded@intel.com>
  <20241008161032.GB1609@twin.jikos.cz>
@@ -78,29 +106,64 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 In-Reply-To: <ZwaW9gXuh_JzqRfh@black.fi.intel.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+User-Agent: Mutt/1.5.23.1-rc1 (2014-03-12)
+X-Rspamd-Queue-Id: 328ED1F896
+X-Spam-Level: 
+X-Spamd-Result: default: False [-4.21 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	HAS_REPLYTO(0.30)[dsterba@suse.cz];
+	R_DKIM_ALLOW(-0.20)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	MX_GOOD(-0.01)[];
+	DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
+	ARC_NA(0.00)[];
+	MIME_TRACE(0.00)[0:+];
+	FUZZY_BLOCKED(0.00)[rspamd.com];
+	TO_DN_SOME(0.00)[];
+	RCPT_COUNT_TWELVE(0.00)[21];
+	FROM_HAS_DN(0.00)[];
+	RCVD_TLS_ALL(0.00)[];
+	REPLYTO_DOM_NEQ_TO_DOM(0.00)[];
+	REPLYTO_ADDR_EQ_FROM(0.00)[];
+	FROM_EQ_ENVFROM(0.00)[];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	RCVD_COUNT_TWO(0.00)[2];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	MID_RHS_MATCH_FROM(0.00)[];
+	DKIM_TRACE(0.00)[suse.cz:+];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,imap1.dmz-prg2.suse.org:rdns]
+X-Rspamd-Server: rspamd2.dmz-prg2.suse.org
+X-Rspamd-Action: no action
+X-Spam-Score: -4.21
+X-Spam-Flag: NO
 
 On Wed, Oct 09, 2024 at 05:45:10PM +0300, Andy Shevchenko wrote:
 > On Tue, Oct 08, 2024 at 06:10:32PM +0200, David Sterba wrote:
 > > On Mon, Oct 07, 2024 at 06:16:10PM -0500, Ira Weiny wrote:
-
-...
-
+> 
+> ...
+> 
 > > > +static inline bool range_overlaps(struct range *r1, struct range *r2)
 > > 
 > > I've noticed only now, you can constify the arguments, but this applise
 > > to other range_* functions so that can be done later in one go.
 > 
 > Frankly you may add the same to each new API being added to the file and
-> the "one go" will never happen. So, I support your first part with
+> the "one go" will never happen.
+
+Yeah, but it's a minor issue for a 28 patchset, I don't know if there
+are some other major things still to do so that a v5 is expected.
+
+If anybody is interested, reviewing APIs and interfaces with focus on
+some data structure and const is relatively easy, compile test is
+typically enough. The hard part is to find the missing ones. There's no
+compiler aid thad I'd know of (-Wsuggest-attribute=const is not for
+parameters), so it's been reading a file top-down for me.
+
+> So, I support your first part with
 > constifying, but I think it would be rather done now to start that "one
 > go" to happen.
 
-Alternatively there is should be the patch _in this series_ to make it
-happen before extending an API. I leave the choice to Ira.
-
--- 
-With Best Regards,
-Andy Shevchenko
-
-
+Agreed, one patch on top is probably the least intrusive way.
