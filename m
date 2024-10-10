@@ -1,32 +1,32 @@
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E52C1C8FDB
-	for <nvdimm@lists.linux.dev>; Thu, 10 Oct 2024 13:18:30 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30CA51C9EBA
+	for <nvdimm@lists.linux.dev>; Thu, 10 Oct 2024 13:46:25 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728566312; cv=none; b=fCFPtkVGtT0dqsdYv6ktW2rx0vW7ivnNclrJUSRPkIV1nPe6X9ooYmtFky1CEl9XMUB5lBz90IgAtGzIhZrMoqQ4yCKsQyZe1RJZ64oO1PBmFL8/VjsAyM8ha9ioh7KWQ4VchdRirHJabuvTC0KP60+UoiJOe5F53Dlu0aELKf4=
+	t=1728567988; cv=none; b=IpujBp+GXe+1p9ICc+7FPv+4xNUl06LfkDdGJgbpumTHUIFcjRprCuD4HQUrEbv61Y79tlQAbRimicmt1pM+F9FIPKebx4GAiSHqxsgD4JgJd+62lKjkZp7GzIDqt+IohgNJ4hdEM+DlNfqVz4yKWIwJrgrQRMD4fRvqEfaPAj0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728566312; c=relaxed/simple;
-	bh=3P18k/5s2T2XN83f+l8l3JR3wPxdW5ngjbiPxFBvjaA=;
+	s=arc-20240116; t=1728567988; c=relaxed/simple;
+	bh=tduX1cVH5cRmQ/zb5Aub7C4XL6iKaXBAoe6tGLPwXWE=;
 	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=cy2kChD83eNcWdqstmnaw5/jIi87qq6VZzhiozUFih+NkzyLZBOtKc2jYKxD5XOHOtYNJ1ghfPwnfzE8XSNWE5O/NT2D1cQQvOV3HLXpXGSTfhm4Y8NGDRDeJTAXnhZeIp9f7rknPJ/uBc69gQWq2J3SdQFrzIZ/m8szOVmKFuA=
+	 MIME-Version:Content-Type; b=cka/qe31PQl37u6kPPJbnuCo1/ucf/OeCHIvViFeohLrRRcmq5tRom2/fuWkZIu+/M+WH2SbffOzJYjaQPX6nJu8LPeWGkSHnAQSq+kOFvSQJmmK6u/8h5zxete5VI31zk27n83AGjGL+1iq3qM4HeXsIQqTSPi1MR8HuYgTGoU=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.186.31])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4XPVZl2rx8z6LDJY;
-	Thu, 10 Oct 2024 21:14:07 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.18.186.231])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4XPWBz1K6Hz6LDG5;
+	Thu, 10 Oct 2024 21:42:03 +0800 (CST)
 Received: from frapeml500008.china.huawei.com (unknown [7.182.85.71])
-	by mail.maildlp.com (Postfix) with ESMTPS id 2174914011A;
-	Thu, 10 Oct 2024 21:18:28 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id 06F93140AE5;
+	Thu, 10 Oct 2024 21:46:24 +0800 (CST)
 Received: from localhost (10.203.177.66) by frapeml500008.china.huawei.com
  (7.182.85.71) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Thu, 10 Oct
- 2024 15:18:27 +0200
-Date: Thu, 10 Oct 2024 14:18:26 +0100
+ 2024 15:46:23 +0200
+Date: Thu, 10 Oct 2024 14:46:22 +0100
 From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-To: Ira Weiny <ira.weiny@intel.com>
+To: <ira.weiny@intel.com>
 CC: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, "Navneet
  Singh" <navneet.singh@intel.com>, Jonathan Corbet <corbet@lwn.net>, "Andrew
  Morton" <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>,
@@ -35,11 +35,11 @@ CC: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, "Navneet
 	<linux-btrfs@vger.kernel.org>, <linux-cxl@vger.kernel.org>,
 	<linux-doc@vger.kernel.org>, <nvdimm@lists.linux.dev>,
 	<linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v4 15/28] cxl/region: Refactor common create region code
-Message-ID: <20241010141826.0000796e@Huawei.com>
-In-Reply-To: <20241007-dcd-type2-upstream-v4-15-c261ee6eeded@intel.com>
+Subject: Re: [PATCH v4 16/28] cxl/region: Add sparse DAX region support
+Message-ID: <20241010144622.00000afe@Huawei.com>
+In-Reply-To: <20241007-dcd-type2-upstream-v4-16-c261ee6eeded@intel.com>
 References: <20241007-dcd-type2-upstream-v4-0-c261ee6eeded@intel.com>
-	<20241007-dcd-type2-upstream-v4-15-c261ee6eeded@intel.com>
+	<20241007-dcd-type2-upstream-v4-16-c261ee6eeded@intel.com>
 Organization: Huawei Technologies Research and Development (UK) Ltd.
 X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
@@ -50,72 +50,39 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: lhrpeml100004.china.huawei.com (7.191.162.219) To
+X-ClientProxiedBy: lhrpeml500003.china.huawei.com (7.191.162.67) To
  frapeml500008.china.huawei.com (7.182.85.71)
 
-On Mon, 07 Oct 2024 18:16:21 -0500
-Ira Weiny <ira.weiny@intel.com> wrote:
+On Mon, 07 Oct 2024 18:16:22 -0500
+ira.weiny@intel.com wrote:
 
-> create_pmem_region_store() and create_ram_region_store() are identical
-> with the exception of the region mode.  With the addition of DC region
-> mode this would end up being 3 copies of the same code.
+> From: Navneet Singh <navneet.singh@intel.com>
 > 
-> Refactor create_pmem_region_store() and create_ram_region_store() to use
-> a single common function to be used in subsequent DC code.
+> Dynamic Capacity CXL regions must allow memory to be added or removed
+> dynamically.  In addition to the quantity of memory available the
+> location of the memory within a DC partition is dynamic based on the
+> extents offered by a device.  CXL DAX regions must accommodate the
+> sparseness of this memory in the management of DAX regions and devices.
 > 
-> Suggested-by: Fan Ni <fan.ni@samsung.com>
+> Introduce the concept of a sparse DAX region.  Add a create_dc_region()
+> sysfs entry to create such regions.  Special case DC capable regions to
+> create a 0 sized seed DAX device to maintain compatibility which
+> requires a default DAX device to hold a region reference.
+> 
+> Indicate 0 byte available capacity until such time that capacity is
+> added.
+> 
+> Sparse regions complicate the range mapping of dax devices.  There is no
+> known use case for range mapping on sparse regions.  Avoid the
+> complication by preventing range mapping of dax devices on sparse
+> regions.
+> 
+> Interleaving is deferred for now.  Add checks.
+> 
+> Signed-off-by: Navneet Singh <navneet.singh@intel.com>
+> Co-developed-by: Ira Weiny <ira.weiny@intel.com>
 > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-Nice.
+Looks fine to me, though the DAX bit is not an area I know enough about.
+
 Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-
-Is it worth dragging out cleanup like this to the start of the series so
-Dave can queue it up as 'good to have whatever' and reduce this set
-a bit?
-
-Jonathan
-
-> ---
->  drivers/cxl/core/region.c | 28 +++++++++++-----------------
->  1 file changed, 11 insertions(+), 17 deletions(-)
-> 
-> diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
-> index ab00203f285a..2ca6148d108c 100644
-> --- a/drivers/cxl/core/region.c
-> +++ b/drivers/cxl/core/region.c
-> @@ -2552,9 +2552,8 @@ static struct cxl_region *__create_region(struct cxl_root_decoder *cxlrd,
->  	return devm_cxl_add_region(cxlrd, id, mode, CXL_DECODER_HOSTONLYMEM);
->  }
->  
-
-> +
-> +static ssize_t create_pmem_region_store(struct device *dev,
-> +					struct device_attribute *attr,
-> +					const char *buf, size_t len)
-> +{
-> +	return create_region_store(dev, buf, len, CXL_REGION_PMEM);
-> +}
->  DEVICE_ATTR_RW(create_pmem_region);
->  
->  static ssize_t create_ram_region_store(struct device *dev,
->  				       struct device_attribute *attr,
->  				       const char *buf, size_t len)
->  {
-> -	struct cxl_root_decoder *cxlrd = to_cxl_root_decoder(dev);
-> -	struct cxl_region *cxlr;
-> -	int rc, id;
-> -
-> -	rc = sscanf(buf, "region%d\n", &id);
-> -	if (rc != 1)
-> -		return -EINVAL;
-> -
-> -	cxlr = __create_region(cxlrd, CXL_REGION_RAM, id);
-> -	if (IS_ERR(cxlr))
-> -		return PTR_ERR(cxlr);
-> -
-> -	return len;
-> +	return create_region_store(dev, buf, len, CXL_REGION_RAM);
->  }
->  DEVICE_ATTR_RW(create_ram_region);
->  
-> 
 
