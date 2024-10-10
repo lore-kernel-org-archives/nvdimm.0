@@ -1,32 +1,32 @@
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D5AE81C57AC;
-	Thu, 10 Oct 2024 12:51:18 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2DAA1BCA0E
+	for <nvdimm@lists.linux.dev>; Thu, 10 Oct 2024 13:04:30 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728564681; cv=none; b=M9IxCZr19B3RIfQuUb9QXzXDyg5aPCqW1WR87MsaRhI4wEks7cFmEHB84akHh/i1kKKV90Ij3nd4teDDimvQlO0zt3mHCmIxJFLJtrVa9Bo1xElJ9zGm3AHALKLhaKNDhn/MlI5KJqMNhBNYhkK7bu9QO4mYSvRTswOaTab/1Nw=
+	t=1728565474; cv=none; b=BA47pk6muXXkIDqIJcY/HouyUIkN0C5kOCszmxg0DmifYrM3PSx97OmZp/ivIT6mWzLg/y3CB9Rh+PsP9H9hCAAjWL+dAv+ozjqusPnD+r/H+eJL51KO0OHkF2KjtMBxokt59D6woKSSIMk8+hO/FK5NK3uQiaCHQTH5AH0/Z94=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728564681; c=relaxed/simple;
-	bh=kuek4LvQty7bWRHjQpDSPPA/0p7libjuJtkPrGUM6ZA=;
+	s=arc-20240116; t=1728565474; c=relaxed/simple;
+	bh=xNDPLFjPVTy44G3E4OlkbyEJ+ZZUYrEtH8G7TV760w4=;
 	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=XfeiyqxZAbxOFC5vnjZr8vAtwAmBGqZPOoredMYkTNMjBVuL4hCxyfRGOeu1AF+wanThzWalHmjeUUaain2zB5ARxTdaGL8v8gGxs2gziZKv3WLj5dLxuptf6H66/dPnj30M6dHXGEezTlOR5lj1zD10NTha0tIhG8e7ciinWqg=
+	 MIME-Version:Content-Type; b=nhVBumBJuMBe7AbB/6+jt9PbajK/NTlcw8jGJBQKZtSFTnWgY2yh9tDw72miYkxMds3MGgsUdPQ0Dg1LLX9+mLm9AG0pt6Ev3nfLo0FurNaSd3Bqt/FHi+jX/I6ENcGaoRWZTIbAkm2j5LPWUM8Zht20b2Xp85l+IjNRIuoxuuE=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
 Received: from mail.maildlp.com (unknown [172.18.186.216])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4XPV2q1smPz6K6yr;
-	Thu, 10 Oct 2024 20:49:55 +0800 (CST)
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4XPVGb4TxLz6LDGs;
+	Thu, 10 Oct 2024 21:00:07 +0800 (CST)
 Received: from frapeml500008.china.huawei.com (unknown [7.182.85.71])
-	by mail.maildlp.com (Postfix) with ESMTPS id 2B02B1400D9;
-	Thu, 10 Oct 2024 20:51:16 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id 692D7140A36;
+	Thu, 10 Oct 2024 21:04:28 +0800 (CST)
 Received: from localhost (10.203.177.66) by frapeml500008.china.huawei.com
  (7.182.85.71) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Thu, 10 Oct
- 2024 14:51:15 +0200
-Date: Thu, 10 Oct 2024 13:51:13 +0100
+ 2024 15:04:27 +0200
+Date: Thu, 10 Oct 2024 14:04:26 +0100
 From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-To: Ira Weiny <ira.weiny@intel.com>
+To: <ira.weiny@intel.com>
 CC: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, "Navneet
  Singh" <navneet.singh@intel.com>, Jonathan Corbet <corbet@lwn.net>, "Andrew
  Morton" <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>,
@@ -34,15 +34,13 @@ CC: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, "Navneet
 	<alison.schofield@intel.com>, Vishal Verma <vishal.l.verma@intel.com>,
 	<linux-btrfs@vger.kernel.org>, <linux-cxl@vger.kernel.org>,
 	<linux-doc@vger.kernel.org>, <nvdimm@lists.linux.dev>,
-	<linux-kernel@vger.kernel.org>, Robert Moore <robert.moore@intel.com>,
-	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown
-	<lenb@kernel.org>, <linux-acpi@vger.kernel.org>,
-	<acpica-devel@lists.linux.dev>
-Subject: Re: [PATCH v4 12/28] cxl/cdat: Gather DSMAS data for DCD regions
-Message-ID: <20241010135113.00001135@Huawei.com>
-In-Reply-To: <20241007-dcd-type2-upstream-v4-12-c261ee6eeded@intel.com>
+	<linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v4 13/28] cxl/mem: Expose DCD partition capabilities in
+ sysfs
+Message-ID: <20241010140426.000065aa@Huawei.com>
+In-Reply-To: <20241007-dcd-type2-upstream-v4-13-c261ee6eeded@intel.com>
 References: <20241007-dcd-type2-upstream-v4-0-c261ee6eeded@intel.com>
-	<20241007-dcd-type2-upstream-v4-12-c261ee6eeded@intel.com>
+	<20241007-dcd-type2-upstream-v4-13-c261ee6eeded@intel.com>
 Organization: Huawei Technologies Research and Development (UK) Ltd.
 X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
@@ -53,60 +51,228 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: lhrpeml500004.china.huawei.com (7.191.163.9) To
+X-ClientProxiedBy: lhrpeml100004.china.huawei.com (7.191.162.219) To
  frapeml500008.china.huawei.com (7.182.85.71)
 
-On Mon, 07 Oct 2024 18:16:18 -0500
-Ira Weiny <ira.weiny@intel.com> wrote:
+On Mon, 07 Oct 2024 18:16:19 -0500
+ira.weiny@intel.com wrote:
 
-> Additional DCD region (partition) information is contained in the DSMAS
-> CDAT tables, including performance, read only, and shareable attributes.
+> From: Navneet Singh <navneet.singh@intel.com>
 > 
-> Match DCD partitions with DSMAS tables and store the meta data.
+> To properly configure CXL regions on Dynamic Capacity Devices (DCD),
+> user space will need to know the details of the DC partitions available.
 > 
-> To: Robert Moore <robert.moore@intel.com>
-> To: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> To: Len Brown <lenb@kernel.org>
-> Cc: linux-acpi@vger.kernel.org
-> Cc: acpica-devel@lists.linux.dev
+> Expose dynamic capacity capabilities through sysfs.
+> 
+> Signed-off-by: Navneet Singh <navneet.singh@intel.com>
+> Co-developed-by: Ira Weiny <ira.weiny@intel.com>
 > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-One trivial comment from me.
-As Rafael has raised, the ACPICA dependency in here is
-going to be the blocker :(
+Some trivial stuff inline that I'm not that bothered about either way.
 
+Subject to answering Fan's query
 Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 
-> +static void update_dcd_perf(struct cxl_dev_state *cxlds,
-> +			    struct dsmas_entry *dent)
+> 
+> ---
+> Changes:
+> [iweiny: Change .../memX/dc/* to .../memX/dcY/*]
+> [iweiny: add read only and shareable attributes from DSMAS]
+> [djiang: Split sysfs docs]
+> [iweiny: Adjust sysfs doc dates]
+> [iweiny: Add qos details]
+> ---
+>  Documentation/ABI/testing/sysfs-bus-cxl |  45 ++++++++++++
+>  drivers/cxl/core/memdev.c               | 126 ++++++++++++++++++++++++++++++++
+>  2 files changed, 171 insertions(+)
+> 
+> diff --git a/Documentation/ABI/testing/sysfs-bus-cxl b/Documentation/ABI/testing/sysfs-bus-cxl
+> index 3f5627a1210a..b865eefdb74c 100644
+> --- a/Documentation/ABI/testing/sysfs-bus-cxl
+> +++ b/Documentation/ABI/testing/sysfs-bus-cxl
+> @@ -54,6 +54,51 @@ Description:
+>  		identically named field in the Identify Memory Device Output
+>  		Payload in the CXL-2.0 specification.
+>  
+> +What:		/sys/bus/cxl/devices/memX/dcY/size
+> +Date:		December, 2024
+> +KernelVersion:	v6.13
+> +Contact:	linux-cxl@vger.kernel.org
+> +Description:
+> +		(RO) Dynamic Capacity (DC) region information.  Devices only
+> +		export dcY if DCD partition Y is supported.
+> +		dcY/size is the size of each of those partitions.
+> +
+> +What:		/sys/bus/cxl/devices/memX/dcY/read_only
+> +Date:		December, 2024
+> +KernelVersion:	v6.13
+> +Contact:	linux-cxl@vger.kernel.org
+> +Description:
+> +		(RO) Dynamic Capacity (DC) region information.  Devices only
+> +		export dcY if DCD partition Y is supported.
+> +		dcY/read_only indicates true if the region is exported
+> +		read_only from the device.
+> +
+> +What:		/sys/bus/cxl/devices/memX/dcY/shareable
+> +Date:		December, 2024
+> +KernelVersion:	v6.13
+> +Contact:	linux-cxl@vger.kernel.org
+> +Description:
+> +		(RO) Dynamic Capacity (DC) region information.  Devices only
+> +		export dcY if DCD partition Y is supported.
+> +		dcY/shareable indicates true if the region is exported
+> +		shareable from the device.
+> +
+> +What:		/sys/bus/cxl/devices/memX/dcY/qos_class
+> +Date:		December, 2024
+> +KernelVersion:	v6.13
+> +Contact:	linux-cxl@vger.kernel.org
+> +Description:
+> +		(RO) Dynamic Capacity (DC) region information.  Devices only
+> +		export dcY if DCD partition Y is supported.  
+
+You can document sysfs directories I think, e.g.
+https://elixir.bootlin.com/linux/v6.12-rc2/source/Documentation/ABI/stable/sysfs-devices-node#L32
+so maybe
+
+What:			/sys/bus/cxl/device/memX/dcY
+Date:		December, 2024
+KernelVersion:	v6.13
+Contact:	linux-cxl@vger.kernel.org
+Description: 
+		Directory containing Dynamic Capacity (DC) region information.
+                Devices only export dcY if DCD partition Y is supported.
+
+What:		/sys/bus/cxl/devices/memX/dcY/qos_class
+Date:		December, 2024
+KernelVersion:	v6.13
+Contact:	linux-cxl@vger.kernel.org
+Description:
+		For CXL host...
+
+To avoid the repetition of first bit of docs?
+
+> +		platforms that support "QoS Telemmetry" this attribute conveys
+> +		a comma delimited list of platform specific cookies that
+> +		identifies a QoS performance class for the persistent partition
+> +		of the CXL mem device. These class-ids can be compared against
+> +		a similar "qos_class" published for a root decoder. While it is
+> +		not required that the endpoints map their local memory-class to
+> +		a matching platform class, mismatches are not recommended and
+> +		there are platform specific performance related side-effects
+> +		that may result. First class-id is displayed.
+>  
+>  What:		/sys/bus/cxl/devices/memX/pmem/qos_class
+>  Date:		May, 2023
+
+
+> +static ssize_t show_shareable_dcN(struct cxl_memdev *cxlmd, char *buf, int pos)
 > +{
-> +	struct cxl_memdev_state *mds = to_cxl_memdev_state(cxlds);
-> +	struct device *dev = cxlds->dev;
+> +	struct cxl_memdev_state *mds = to_cxl_memdev_state(cxlmd->cxlds);
 > +
-> +	for (int i = 0; i < mds->nr_dc_region; i++) {
-> +		/* CXL defines a u32 handle while cdat defines u8, ignore upper bits */
+> +	return sysfs_emit(buf, "%s\n",
+> +			  str_false_true(mds->dc_region[pos].shareable));
 
-CDAT
+Fan has already raised that these seem backwards.
 
-> +		u8 dc_handle = mds->dc_region[i].dsmad_handle & 0xff;
-> +
-> +		if (resource_size(&cxlds->dc_res[i])) {
-> +			struct range dc_range = {
-> +				.start = cxlds->dc_res[i].start,
-> +				.end = cxlds->dc_res[i].end,
-> +			};
-> +
-> +			if (range_contains(&dent->dpa_range, &dc_range)) {
-> +				if (dent->handle != dc_handle)
-> +					dev_warn(dev, "DC Region/DSMAS mis-matched handle/range; region %pra (%u); dsmas %pra (%u)\n"
-> +						      "   setting DC region attributes regardless\n",
-> +						&dent->dpa_range, dent->handle,
-> +						&dc_range, dc_handle);
-> +
-> +				mds->dc_region[i].shareable = dent->shareable;
-> +				mds->dc_region[i].read_only = dent->read_only;
-> +				update_perf_entry(dev, dent, &mds->dc_perf[i]);
-> +			}
-> +		}
-> +	}
 > +}
+> +
+> +static ssize_t show_qos_class_dcN(struct cxl_memdev *cxlmd, char *buf, int pos)
+> +{
+> +	struct cxl_memdev_state *mds = to_cxl_memdev_state(cxlmd->cxlds);
+> +
+> +	return sysfs_emit(buf, "%d\n", mds->dc_perf[pos].qos_class);
+> +}
+> +
+> +#define CXL_MEMDEV_DC_ATTR_GROUP(n)						\
+> +static ssize_t dc##n##_size_show(struct device *dev,				\
+> +				 struct device_attribute *attr,			\
+> +				 char *buf)					\
+> +{										\
+> +	return show_size_dcN(to_cxl_memdev(dev), buf, (n));			\
+> +}										\
+> +struct device_attribute dc##n##_size = {					\
+> +	.attr	= { .name = "size", .mode = 0444 },				\
+> +	.show	= dc##n##_size_show,						\
+> +};										\
+> +static ssize_t dc##n##_read_only_show(struct device *dev,			\
+> +				      struct device_attribute *attr,		\
+> +				      char *buf)				\
+> +{										\
+> +	return show_read_only_dcN(to_cxl_memdev(dev), buf, (n));		\
+> +}										\
+> +struct device_attribute dc##n##_read_only = {					\
+> +	.attr	= { .name = "read_only", .mode = 0444 },			\
+> +	.show	= dc##n##_read_only_show,					\
+> +};										\
+> +static ssize_t dc##n##_shareable_show(struct device *dev,			\
+> +				     struct device_attribute *attr,		\
+> +				     char *buf)					\
+> +{										\
+> +	return show_shareable_dcN(to_cxl_memdev(dev), buf, (n));		\
+> +}										\
+> +struct device_attribute dc##n##_shareable = {					\
+> +	.attr	= { .name = "shareable", .mode = 0444 },			\
+> +	.show	= dc##n##_shareable_show,					\
+> +};										\
+> +static ssize_t dc##n##_qos_class_show(struct device *dev,			\
+> +				      struct device_attribute *attr,		\
+> +				      char *buf)				\
+> +{										\
+> +	return show_qos_class_dcN(to_cxl_memdev(dev), buf, (n));		\
+> +}										\
+> +struct device_attribute dc##n##_qos_class = {					\
+> +	.attr	= { .name = "qos_class", .mode = 0444 },			\
+> +	.show	= dc##n##_qos_class_show,					\
+> +};										\
+> +static struct attribute *cxl_memdev_dc##n##_attributes[] = {			\
+> +	&dc##n##_size.attr,							\
+> +	&dc##n##_read_only.attr,						\
+> +	&dc##n##_shareable.attr,						\
+> +	&dc##n##_qos_class.attr,						\
+> +	NULL,									\
+
+No comma needed on terminator.
+
+> +};										\
+> +static umode_t cxl_memdev_dc##n##_attr_visible(struct kobject *kobj,		\
+> +					       struct attribute *a,		\
+> +					       int pos)				\
+> +{										\
+> +	struct device *dev = kobj_to_dev(kobj);					\
+> +	struct cxl_memdev *cxlmd = to_cxl_memdev(dev);				\
+> +	struct cxl_memdev_state *mds = to_cxl_memdev_state(cxlmd->cxlds);	\
+> +										\
+> +	/* Not a memory device */						\
+> +	if (!mds)								\
+	if (!to_cxl_memdev_state(cxlmd->cxlds))
+		return 0;
+
+I dislike long macros so if we can shave them down that is always good!
+
+We do have precedence in hdm.c for just checking the type directly so maybe
+	if (cxlmd->cxlds->type != CXL_DEVTYPE_CLASSMEM)
+
+but the above is also fine as compiler should be able to figure out it
+doesn't need to do the second half of the inline.
+
+
+> +		return 0;							\
+> +	return a->mode;								\
+> +}										\
+> +static umode_t cxl_memdev_dc##n##_group_visible(struct kobject *kobj)		\
+> +{										\
+> +	struct device *dev = kobj_to_dev(kobj);					\
+> +	struct cxl_memdev *cxlmd = to_cxl_memdev(dev);				\
+> +	struct cxl_memdev_state *mds = to_cxl_memdev_state(cxlmd->cxlds);	\
+> +										\
+> +	/* Not a memory device or partition not supported */			\
+> +	if (!mds || n >= mds->nr_dc_region)					\
+> +		return false;							\
+> +	return true;								\
+
+	/* Memory device and partition is supported */
+	return mds && n < mds->nr_dc_region;
+
+> +}										\
+>
 
