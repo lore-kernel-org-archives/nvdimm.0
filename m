@@ -1,32 +1,32 @@
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0885E1C9DD3
-	for <nvdimm@lists.linux.dev>; Thu, 10 Oct 2024 13:49:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C19671CDFDD
+	for <nvdimm@lists.linux.dev>; Thu, 10 Oct 2024 14:15:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728568172; cv=none; b=sFaBQHHgkf1Z28uwJw25MmfIZ5bCsFm+2Y13aWnC8rTtnEgp1zA+9SzRMnlvchMg8KOxeLIsH19/ZVjoYNQvkjd+o0nm/+WAQas/s6z+daHDAo9JzK6oy7SMvaFmnue3aAgmdaZjQkk8UefZwv3TAxKwMZEklZDcTGqE07P1f38=
+	t=1728569722; cv=none; b=p/wN7WIUQdAs2gHRr+hXY5RKntiLeAzjhayyiWLPdVXuOiNVZcnqziB45l5jClFSJj1agApVUl3JzMWFxKZzsdJm5dTUkQGc6y+DaRQXJ/uwdDxIXH4ThZBObNh7cPVrP+tgS2JPPk3Fv4koYB6NYkGf+CElH4Lv0/WRQiYxH+Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728568172; c=relaxed/simple;
-	bh=nBqSAYCspXG50WnbQUQ6A0JibPo+98HLRl/jVeDw7mY=;
+	s=arc-20240116; t=1728569722; c=relaxed/simple;
+	bh=nEH18siuFStux35L9J5U0l/9WlbYkdBj5AVCDkC4Bio=;
 	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=taV9JqPbafMLUMpdDGZV9Cqeh0iPdun0eo9bxKGc0Dm103D/7Nitim75VvvtM3vgUGjuOLds0H389lXCipHaEULQ6H+yieiiAm525R28bOJk0kBc3PWM7NK3qPuzdazNazdkjTTs+PP2oGyMRsi0bWX3MbKDt0bYNjP7jPQlPDk=
+	 MIME-Version:Content-Type; b=WPQ0RF+BqSj5rglHVAL2Ghfa7xCHwJ6Q+GoesKEhxV66H4z4NF+CX2x7iPjJy0LhGxkS1i/Qkb+AqX+nhytgmGA0R97qvdD3SkREpjdmbLRUexZn5z1MM2HeToqAb36kAVg89sqY+DPvcS7EPrnO6bzn+oekbyoC39OLZsISJV0=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.186.231])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4XPWGW03txz6LDJf;
-	Thu, 10 Oct 2024 21:45:07 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.18.186.216])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4XPWrK4cbwz6J7tH;
+	Thu, 10 Oct 2024 22:10:57 +0800 (CST)
 Received: from frapeml500008.china.huawei.com (unknown [7.182.85.71])
-	by mail.maildlp.com (Postfix) with ESMTPS id D1559140AE5;
-	Thu, 10 Oct 2024 21:49:27 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id 7FE94140A78;
+	Thu, 10 Oct 2024 22:15:18 +0800 (CST)
 Received: from localhost (10.203.177.66) by frapeml500008.china.huawei.com
  (7.182.85.71) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Thu, 10 Oct
- 2024 15:49:27 +0200
-Date: Thu, 10 Oct 2024 14:49:25 +0100
+ 2024 16:15:17 +0200
+Date: Thu, 10 Oct 2024 15:15:16 +0100
 From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-To: Ira Weiny <ira.weiny@intel.com>
+To: <ira.weiny@intel.com>
 CC: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, "Navneet
  Singh" <navneet.singh@intel.com>, Jonathan Corbet <corbet@lwn.net>, "Andrew
  Morton" <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>,
@@ -35,12 +35,11 @@ CC: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, "Navneet
 	<linux-btrfs@vger.kernel.org>, <linux-cxl@vger.kernel.org>,
 	<linux-doc@vger.kernel.org>, <nvdimm@lists.linux.dev>,
 	<linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v4 17/28] cxl/events: Split event msgnum configuration
- from irq setup
-Message-ID: <20241010144925.00006c2b@Huawei.com>
-In-Reply-To: <20241007-dcd-type2-upstream-v4-17-c261ee6eeded@intel.com>
+Subject: Re: [PATCH v4 19/28] cxl/mem: Configure dynamic capacity interrupts
+Message-ID: <20241010151516.00001156@Huawei.com>
+In-Reply-To: <20241007-dcd-type2-upstream-v4-19-c261ee6eeded@intel.com>
 References: <20241007-dcd-type2-upstream-v4-0-c261ee6eeded@intel.com>
-	<20241007-dcd-type2-upstream-v4-17-c261ee6eeded@intel.com>
+	<20241007-dcd-type2-upstream-v4-19-c261ee6eeded@intel.com>
 Organization: Huawei Technologies Research and Development (UK) Ltd.
 X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
@@ -51,103 +50,34 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: lhrpeml500003.china.huawei.com (7.191.162.67) To
+X-ClientProxiedBy: lhrpeml100004.china.huawei.com (7.191.162.219) To
  frapeml500008.china.huawei.com (7.182.85.71)
 
-On Mon, 07 Oct 2024 18:16:23 -0500
-Ira Weiny <ira.weiny@intel.com> wrote:
+On Mon, 07 Oct 2024 18:16:25 -0500
+ira.weiny@intel.com wrote:
 
-> Dynamic Capacity Devices (DCD) require event interrupts to process
-> memory addition or removal.  BIOS may have control over non-DCD event
-> processing.  DCD interrupt configuration needs to be separate from
-> memory event interrupt configuration.
+> From: Navneet Singh <navneet.singh@intel.com>
 > 
-> Split cxl_event_config_msgnums() from irq setup in preparation for
-> separate DCD interrupts configuration.
+> Dynamic Capacity Devices (DCD) support extent change notifications
+> through the event log mechanism.  The interrupt mailbox commands were
+> extended in CXL 3.1 to support these notifications.  Firmware can't
+> configure DCD events to be FW controlled but can retain control of
+> memory events.
 > 
+> Configure DCD event log interrupts on devices supporting dynamic
+> capacity.  Disable DCD if interrupts are not supported.
+> 
+> Care is taken to preserve the interrupt policy set by the FW if FW first
+> has been selected by the BIOS.
+> 
+> Signed-off-by: Navneet Singh <navneet.singh@intel.com>
+> Co-developed-by: Ira Weiny <ira.weiny@intel.com>
 > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-Trivial comment inline
+Ah. I was wondering why policy needed to be initialize to zero outside
+this call.  Maybe moving it in here with a memset() would be cleaner.
+
+Either way
 Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 
 
-> ---
->  drivers/cxl/pci.c | 24 ++++++++++++------------
->  1 file changed, 12 insertions(+), 12 deletions(-)
-> 
-> diff --git a/drivers/cxl/pci.c b/drivers/cxl/pci.c
-> index fc5ab74448cc..29a863331bec 100644
-> --- a/drivers/cxl/pci.c
-> +++ b/drivers/cxl/pci.c
-> @@ -702,35 +702,31 @@ static int cxl_event_config_msgnums(struct cxl_memdev_state *mds,
->  	return cxl_event_get_int_policy(mds, policy);
->  }
->  
-> -static int cxl_event_irqsetup(struct cxl_memdev_state *mds)
-> +static int cxl_event_irqsetup(struct cxl_memdev_state *mds,
-> +			      struct cxl_event_interrupt_policy *policy)
->  {
->  	struct cxl_dev_state *cxlds = &mds->cxlds;
-> -	struct cxl_event_interrupt_policy policy;
->  	int rc;
->  
-> -	rc = cxl_event_config_msgnums(mds, &policy);
-> -	if (rc)
-> -		return rc;
-> -
-> -	rc = cxl_event_req_irq(cxlds, policy.info_settings);
-> +	rc = cxl_event_req_irq(cxlds, policy->info_settings);
->  	if (rc) {
->  		dev_err(cxlds->dev, "Failed to get interrupt for event Info log\n");
->  		return rc;
-
-At somepoint maybe dev_err_probe() is appropriate in here.
-
->  	}
->  
-> -	rc = cxl_event_req_irq(cxlds, policy.warn_settings);
-> +	rc = cxl_event_req_irq(cxlds, policy->warn_settings);
->  	if (rc) {
->  		dev_err(cxlds->dev, "Failed to get interrupt for event Warn log\n");
->  		return rc;
->  	}
->  
-> -	rc = cxl_event_req_irq(cxlds, policy.failure_settings);
-> +	rc = cxl_event_req_irq(cxlds, policy->failure_settings);
->  	if (rc) {
->  		dev_err(cxlds->dev, "Failed to get interrupt for event Failure log\n");
->  		return rc;
->  	}
->  
-> -	rc = cxl_event_req_irq(cxlds, policy.fatal_settings);
-> +	rc = cxl_event_req_irq(cxlds, policy->fatal_settings);
->  	if (rc) {
->  		dev_err(cxlds->dev, "Failed to get interrupt for event Fatal log\n");
->  		return rc;
-> @@ -749,7 +745,7 @@ static bool cxl_event_int_is_fw(u8 setting)
->  static int cxl_event_config(struct pci_host_bridge *host_bridge,
->  			    struct cxl_memdev_state *mds, bool irq_avail)
->  {
-> -	struct cxl_event_interrupt_policy policy;
-> +	struct cxl_event_interrupt_policy policy = { 0 };
->  	int rc;
->  
->  	/*
-> @@ -777,11 +773,15 @@ static int cxl_event_config(struct pci_host_bridge *host_bridge,
->  		return -EBUSY;
->  	}
->  
-> +	rc = cxl_event_config_msgnums(mds, &policy);
-> +	if (rc)
-> +		return rc;
-> +
->  	rc = cxl_mem_alloc_event_buf(mds);
->  	if (rc)
->  		return rc;
->  
-> -	rc = cxl_event_irqsetup(mds);
-> +	rc = cxl_event_irqsetup(mds, &policy);
->  	if (rc)
->  		return rc;
->  
-> 
 
