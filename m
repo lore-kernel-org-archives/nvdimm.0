@@ -1,46 +1,48 @@
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F11CD1CBEB1
-	for <nvdimm@lists.linux.dev>; Thu, 10 Oct 2024 14:21:19 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1AB331CC8B3
+	for <nvdimm@lists.linux.dev>; Thu, 10 Oct 2024 14:50:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728570081; cv=none; b=UpNdp13CLfdH2HLTboy8GK3CBlxUZ08F6bb42FCDp+8OBmH2h+vzJ1VfVYCCsr3QVgoDAMKW+Xu3UKpyBFFLESRgjwQm71qpV2zjD046nc33MMM9DoAQyDslI/JvSNmT4DaC8ETfJb+pJFczLnzhHJncZZH0AfCQmslp8RyUK8E=
+	t=1728571824; cv=none; b=S3b/Gemxh2/rwJNKmsvJhwC4TiIyKUHK2EjAy2QR+vk0KIRpPwfD1qS0U3QRIRgMxdlHDVylM+0oLRyeTZDcCeNq42Cqw/ic66uzFEQ8YPmAk1KjypUj5bVIS41HYxyi3Bd6PVUV+lPDFD0jdDcH5WXPgEOYQnaSIVWCm23NKjU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728570081; c=relaxed/simple;
-	bh=vQcroqrfXxjJH/WrgCFcllXXIoax+Vpt+UI+OK0sYyg=;
+	s=arc-20240116; t=1728571824; c=relaxed/simple;
+	bh=zTZrKpc3++acJH71wcSToxcmBGqF9xoved3uUzneqK0=;
 	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=BYvV5RaBf71HooEAeXsIFrnSkC3Vu0GBnUGFo2RaLxQZSjpZIjfPbWJKmj3GfbdVcpm1D2ntJllu4uhCkI0BAZTSvKi+te1QjXqYfTwi4rnS5ctYTjuSKrvuxX8UfaCNtWX6lVJROT4UD/tPxzw1clyQD8sQSakgLJVQE+SRt20=
+	 MIME-Version:Content-Type; b=cyEmrCL5xXK3AZ3mgGXujkr3mu/sdi718AW+mp6lX6Spf1KdkPOaeF+DdehKAOecfpZzMkaJQK4vNL6dTF2qPtzRKuKv5m3hnvnOUYHh+jJ1FR1HASVptaXwJGwvBqqeUs2Kq85tkMBVhJRyGp5Hjpz3+w93cSbxNS944r9eV7I=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.186.231])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4XPX2h4Hf6z6K6Jk;
-	Thu, 10 Oct 2024 22:19:56 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.18.186.216])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4XPXh76qqKz6J6Lx;
+	Thu, 10 Oct 2024 22:48:55 +0800 (CST)
 Received: from frapeml500008.china.huawei.com (unknown [7.182.85.71])
-	by mail.maildlp.com (Postfix) with ESMTPS id AEBD0140B3C;
-	Thu, 10 Oct 2024 22:21:17 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id 2257D140A78;
+	Thu, 10 Oct 2024 22:50:17 +0800 (CST)
 Received: from localhost (10.203.177.66) by frapeml500008.china.huawei.com
  (7.182.85.71) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Thu, 10 Oct
- 2024 16:21:17 +0200
-Date: Thu, 10 Oct 2024 15:21:15 +0100
+ 2024 16:50:15 +0200
+Date: Thu, 10 Oct 2024 15:50:14 +0100
 From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
 To: Ira Weiny <ira.weiny@intel.com>
-CC: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, "Navneet
- Singh" <navneet.singh@intel.com>, Jonathan Corbet <corbet@lwn.net>, "Andrew
- Morton" <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>,
-	Davidlohr Bueso <dave@stgolabs.net>, "Alison Schofield"
-	<alison.schofield@intel.com>, Vishal Verma <vishal.l.verma@intel.com>,
-	<linux-btrfs@vger.kernel.org>, <linux-cxl@vger.kernel.org>,
-	<linux-doc@vger.kernel.org>, <nvdimm@lists.linux.dev>,
-	<linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v4 20/28] cxl/core: Return endpoint decoder information
- from region search
-Message-ID: <20241010152115.000041b1@Huawei.com>
-In-Reply-To: <20241007-dcd-type2-upstream-v4-20-c261ee6eeded@intel.com>
+CC: "Li, Ming4" <ming4.li@intel.com>, Dave Jiang <dave.jiang@intel.com>, "Fan
+ Ni" <fan.ni@samsung.com>, Navneet Singh <navneet.singh@intel.com>, "Jonathan
+ Corbet" <corbet@lwn.net>, Andrew Morton <akpm@linux-foundation.org>, "Dan
+ Williams" <dan.j.williams@intel.com>, Davidlohr Bueso <dave@stgolabs.net>,
+	Alison Schofield <alison.schofield@intel.com>, Vishal Verma
+	<vishal.l.verma@intel.com>, <linux-btrfs@vger.kernel.org>,
+	<linux-cxl@vger.kernel.org>, <linux-doc@vger.kernel.org>,
+	<nvdimm@lists.linux.dev>, <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v4 21/28] cxl/extent: Process DCD events and realize
+ region extents
+Message-ID: <20241010155014.00004bdd@Huawei.com>
+In-Reply-To: <6706de3530f5c_40429294b8@iweiny-mobl.notmuch>
 References: <20241007-dcd-type2-upstream-v4-0-c261ee6eeded@intel.com>
-	<20241007-dcd-type2-upstream-v4-20-c261ee6eeded@intel.com>
+	<20241007-dcd-type2-upstream-v4-21-c261ee6eeded@intel.com>
+	<4337ddd9-312b-4fb7-9597-81e8b00d57cb@intel.com>
+	<6706de3530f5c_40429294b8@iweiny-mobl.notmuch>
 Organization: Huawei Technologies Research and Development (UK) Ltd.
 X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
@@ -51,21 +53,166 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: lhrpeml100004.china.huawei.com (7.191.162.219) To
+X-ClientProxiedBy: lhrpeml100006.china.huawei.com (7.191.160.224) To
  frapeml500008.china.huawei.com (7.182.85.71)
 
-On Mon, 07 Oct 2024 18:16:26 -0500
+On Wed, 9 Oct 2024 14:49:09 -0500
 Ira Weiny <ira.weiny@intel.com> wrote:
 
-> cxl_dpa_to_region() finds the region from a <DPA, device> tuple.
-> The search involves finding the device endpoint decoder as well.
+> Li, Ming4 wrote:
+> > On 10/8/2024 7:16 AM, ira.weiny@intel.com wrote:  
+> > > From: Navneet Singh <navneet.singh@intel.com>
+> > >  
 > 
-> Dynamic capacity extent processing uses the endpoint decoder HPA
-> information to calculate the HPA offset.  In addition, well behaved
-> extents should be contained within an endpoint decoder.
+> [snip]
 > 
-> Return the endpoint decoder found to be used in subsequent DCD code.
+> > >
+> > > Signed-off-by: Navneet Singh <navneet.singh@intel.com>
+> > > Co-developed-by: Ira Weiny <ira.weiny@intel.com>
+> > > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+> > >  
+> > Hi Ira,
+> > 
+> > I guess you missed my comments for V3, I comment it again for this patch.  
 > 
-> Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+> Apologies.  Yes I totally missed your reply.  :-(
+> 
+> >   
+> > > +static bool extents_contain(struct cxl_dax_region *cxlr_dax,
+> > > +			    struct cxl_endpoint_decoder *cxled,
+> > > +			    struct range *new_range)
+> > > +{
+> > > +	struct device *extent_device;
+> > > +	struct match_data md = {
+> > > +		.cxled = cxled,
+> > > +		.new_range = new_range,
+> > > +	};
+> > > +
+> > > +	extent_device = device_find_child(&cxlr_dax->dev, &md, match_contains);
+> > > +	if (!extent_device)
+> > > +		return false;
+> > > +
+> > > +	put_device(extent_device);  
+> > could use __free(put_device) to drop this 'put_device(extent_device)'  
+> 
+> Yep.
+> 
+> > > +	return true;
+> > > +}  
+> > [...]  
+> > > +static bool extents_overlap(struct cxl_dax_region *cxlr_dax,
+> > > +			    struct cxl_endpoint_decoder *cxled,
+> > > +			    struct range *new_range)
+> > > +{
+> > > +	struct device *extent_device;
+> > > +	struct match_data md = {
+> > > +		.cxled = cxled,
+> > > +		.new_range = new_range,
+> > > +	};
+> > > +
+> > > +	extent_device = device_find_child(&cxlr_dax->dev, &md, match_overlaps);
+> > > +	if (!extent_device)
+> > > +		return false;
+> > > +
+> > > +	put_device(extent_device);  
+> > Same as above.  
+> 
+> Done.
+> 
+> > > +	return true;
+> > > +}
+> > > +  
+> > [...]  
+> > > +static int cxl_send_dc_response(struct cxl_memdev_state *mds, int opcode,
+> > > +				struct xarray *extent_array, int cnt)
+> > > +{
+> > > +	struct cxl_mailbox *cxl_mbox = &mds->cxlds.cxl_mbox;
+> > > +	struct cxl_mbox_dc_response *p;
+> > > +	struct cxl_mbox_cmd mbox_cmd;
+> > > +	struct cxl_extent *extent;
+> > > +	unsigned long index;
+> > > +	u32 pl_index;
+> > > +	int rc;
+> > > +
+> > > +	size_t pl_size = struct_size(p, extent_list, cnt);
+> > > +	u32 max_extents = cnt;
+> > > +
+> > > +	/* May have to use more bit on response. */
+> > > +	if (pl_size > cxl_mbox->payload_size) {
+> > > +		max_extents = (cxl_mbox->payload_size - sizeof(*p)) /
+> > > +			      sizeof(struct updated_extent_list);
+> > > +		pl_size = struct_size(p, extent_list, max_extents);
+> > > +	}
+> > > +
+> > > +	struct cxl_mbox_dc_response *response __free(kfree) =
+> > > +						kzalloc(pl_size, GFP_KERNEL);
+> > > +	if (!response)
+> > > +		return -ENOMEM;
+> > > +
+> > > +	pl_index = 0;
+> > > +	xa_for_each(extent_array, index, extent) {
+> > > +
+> > > +		response->extent_list[pl_index].dpa_start = extent->start_dpa;
+> > > +		response->extent_list[pl_index].length = extent->length;
+> > > +		pl_index++;
+> > > +		response->extent_list_size = cpu_to_le32(pl_index);
+> > > +
+> > > +		if (pl_index == max_extents) {
+> > > +			mbox_cmd = (struct cxl_mbox_cmd) {
+> > > +				.opcode = opcode,
+> > > +				.size_in = struct_size(response, extent_list,
+> > > +						       pl_index),
+> > > +				.payload_in = response,
+> > > +			};
+> > > +
+> > > +			response->flags = 0;
+> > > +			if (pl_index < cnt)
+> > > +				response->flags &= CXL_DCD_EVENT_MORE;  
+> > 
+> > It should be 'response->flags |= CXL_DCD_EVENT_MORE' here.  
+> 
+> Ah yea.  Good catch.
+> 
+> > 
+> > Another issue is if 'cnt' is N times bigger than 'max_extents'(e,g. cnt=20, max_extents=10). all responses will be sent in this xa_for_each(), and CXL_DCD_EVENT_MORE will be set in the last response but it should not be set in these cases.
+> >   
+> 
+> Ah yes.  cnt must be decremented.  As I looked at the patch just now the
+> 
+> 	if (cnt == 0 || pl_index)
+> 
+> ... seemed very wrong to me.  That change masked this bug.
+> 
+> This should fix it:
+> 
+> diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
+> index d66beec687a0..99200274dea8 100644
+> --- a/drivers/cxl/core/mbox.c
+> +++ b/drivers/cxl/core/mbox.c
+> @@ -1119,10 +1119,11 @@ static int cxl_send_dc_response(struct cxl_memdev_state *mds, int opcode,
+>                         if (rc)
+>                                 return rc;
+>                         pl_index = 0;
+> +                       cnt -= pl_index;
+>                 }
+>         }
+>  
+> -       if (cnt == 0 || pl_index) {
 
-Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+I thought this cnt == 0 check was to deal with the no valid
+extents case where an empty reply is needed.
+
+
+> +       if (pl_index) {
+>                 mbox_cmd = (struct cxl_mbox_cmd) {
+>                         .opcode = opcode,
+>                         .size_in = struct_size(response, extent_list,
+> 
+> 
+> Thank you, and sorry again for missing your feedback.
+> 
+> Ira
+> 
+> [snip]
+> 
+
