@@ -1,132 +1,164 @@
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f172.google.com (mail-pf1-f172.google.com [209.85.210.172])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8AB81CCB5E
-	for <nvdimm@lists.linux.dev>; Thu, 10 Oct 2024 15:58:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 086921CDFC3
+	for <nvdimm@lists.linux.dev>; Thu, 10 Oct 2024 16:27:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728575891; cv=none; b=VUDuF2rWJv/AA/ptCGK/Ag0o23cotlf6o4EmjCAOlmmzLnV/cxOAcIXTwDcH8qN/3IMDyhB7tEf30bZLEhqWVp9cvhXLq8by7xBm6w5eWWOOWwMxWFuhBW8Y/epysMSqIeFM95Z+gt/rnTfppUYLXsZQUEkOnYjeGXEKOiOSFTQ=
+	t=1728577649; cv=none; b=qZ980dJvJr/2RsQg3ykBMdUBl5psAXNpv698bYERHVgfXZInxpP8BJYoGlmN+tR0IK+MnmB6q2E4D68vOGjfksd+0/DAYq1ZQGbJI8XmxLgCemvGrI4ufRl1H0Qr6PSPqIM9TG1XzeV7CgSDabWH8x6/WEB8S3vHCZobF59geuU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728575891; c=relaxed/simple;
-	bh=linrfMuZIcX2ctx+ttIzMvMROoVAvMRa7N7PgX7xi6w=;
-	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=vEHgD4AojyuM+7pCfdbmhpOWKq/eTTzs2fAB5//17uST+flKydPzxmc0WZeXohRgmIqRPc9yxcsLgrBKqni7cKb/zOU9v80+60jYs+8LsfkDKVgMgNv0IkFdn217dzWRopXxDyy3NAaGL1cGg/6P/Clx2xZrv5iJRhjxsUf66Cc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.186.231])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4XPZ6x6qC5z67n0t;
-	Thu, 10 Oct 2024 23:53:45 +0800 (CST)
-Received: from frapeml500008.china.huawei.com (unknown [7.182.85.71])
-	by mail.maildlp.com (Postfix) with ESMTPS id E4F93140B3C;
-	Thu, 10 Oct 2024 23:58:06 +0800 (CST)
-Received: from localhost (10.203.177.66) by frapeml500008.china.huawei.com
- (7.182.85.71) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Thu, 10 Oct
- 2024 17:58:06 +0200
-Date: Thu, 10 Oct 2024 16:58:04 +0100
-From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+	s=arc-20240116; t=1728577649; c=relaxed/simple;
+	bh=EezNVeA2uyxOZbiJHcAoytd4T0u9uCuZE27/ZijVLTA=;
+	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=axRx52cq4mvMxCWYTRkhcW4P+8MD9rxtyY6WWNrDmpLtNiF6IE6dvrYFZQpH1YPWqL4oPUnV7SS5rIEnPeM3iT9nTh4RBwrk4uULBH9Pix5uS06KYcRgrAr2PxgjuorPyqiJFjr86Sdt1Mv7Xg9VY2sJxKHtiq/QILYYWKHwr60=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=LxGAvPj2; arc=none smtp.client-ip=209.85.210.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="LxGAvPj2"
+Received: by mail-pf1-f172.google.com with SMTP id d2e1a72fcca58-71e02249621so924196b3a.1
+        for <nvdimm@lists.linux.dev>; Thu, 10 Oct 2024 09:27:25 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1728577645; x=1729182445; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=fSLzl5yBihgiBmsYyY0ZLdSXzjCf12rYeXArERj6rDI=;
+        b=LxGAvPj2M+9+sgpQah9kQzaeTA3nIppULiZqGEpjAlsL4Puwkp+F7YN8IrTa1EJhRm
+         3lTdTkXC7YY9FGznhJcZCB0drl693HEkbpwAaxpWCTsPA53QxkKXqCC2ZwTUel7EnRYG
+         5OuoTvTKiDUplX0utRV+88RmWFFbdQjK6MRhcfQZWY1IcRsDNLQvyBjHmCRMXSIG7df1
+         k1/AzqgB/LMf3s7lEOkFnxY/YfDqK+Wb24cZj+l5kqAqQazuF5DS8mf3AwffbMAqDbXl
+         wS9jfnaWFP+7IXQQdOiNJn3nUlGSQ5hr9EMNQzDZ9WFajT0ncuFC0nn44au6LL8oCkIm
+         G8oQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1728577645; x=1729182445;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=fSLzl5yBihgiBmsYyY0ZLdSXzjCf12rYeXArERj6rDI=;
+        b=jCPm0eniO36FPIMyCA/ajeekXvWvnZ2rU8H4uHqKqHkBek0pyemAvGyxwEwlukAlj7
+         1ohHYjadOXpx9UEB9euUWfgDU7VVNzM+rlqiMuW4aH1lzryZBhQ5sdulqhCW0AgwH6fx
+         /AumaJfSA+tly9L1IYk6XjOwj+fBB54VFenwsItwoak6yyeHC5DU1lpzd3fSeKs+K8qb
+         H7CIp0jnOpM5DPtEJ7aKfCzJf6X3hqfJJZmZ0dhaZVCtugL7FNYVjU2jToiT6AIuwQKX
+         k+b6zNTjVB1PAkoh/B5t/dQBB87zQVANicpZbiHLHNUhs/U1L0CnWZYZsSs5bTjQmo1c
+         2Jjw==
+X-Forwarded-Encrypted: i=1; AJvYcCU8QEApPw95LyhoKqtcRMj5/MGDxUPT/zdGSjer+lCcu/fe32A7dxW3FfKdMgFMOrtnJXw7xp8=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yy2dqhdqiv9wsxXZwuBeOaSlb/Q2V6XZP//cww9tfO/qXzhgrka
+	GsIluokGKY8M5HMlRi9kdyhSvYIubRzW4gW1We0qJaQ0+EcRP/Pl
+X-Google-Smtp-Source: AGHT+IGIsf4f/iQQgXnwF0falPkwr2nFCnUFSLBEZqjJbFXQB+jGFOTfXuGfIuYojsJ2HGj2GIYvYg==
+X-Received: by 2002:a05:6a00:2e9e:b0:71e:2d2:1de4 with SMTP id d2e1a72fcca58-71e1db6485emr10418466b3a.3.1728577645027;
+        Thu, 10 Oct 2024 09:27:25 -0700 (PDT)
+Received: from fan ([2601:646:8f03:9fee:c165:c800:4280:d79b])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-71e2aaba3a7sm1200121b3a.169.2024.10.10.09.27.23
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 10 Oct 2024 09:27:24 -0700 (PDT)
+From: Fan Ni <nifan.cxl@gmail.com>
+X-Google-Original-From: Fan Ni <fan.ni@samsung.com>
+Date: Thu, 10 Oct 2024 09:27:03 -0700
 To: Ira Weiny <ira.weiny@intel.com>
-CC: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, "Navneet
- Singh" <navneet.singh@intel.com>, Jonathan Corbet <corbet@lwn.net>, "Andrew
- Morton" <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>,
-	Davidlohr Bueso <dave@stgolabs.net>, "Alison Schofield"
-	<alison.schofield@intel.com>, Vishal Verma <vishal.l.verma@intel.com>,
-	<linux-btrfs@vger.kernel.org>, <linux-cxl@vger.kernel.org>,
-	<linux-doc@vger.kernel.org>, <nvdimm@lists.linux.dev>,
-	<linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v4 28/28] tools/testing/cxl: Add DC Regions to mock mem
- data
-Message-ID: <20241010165804.00005391@Huawei.com>
-In-Reply-To: <20241007-dcd-type2-upstream-v4-28-c261ee6eeded@intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>,
+	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+	Navneet Singh <navneet.singh@intel.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Davidlohr Bueso <dave@stgolabs.net>,
+	Alison Schofield <alison.schofield@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	linux-btrfs@vger.kernel.org, linux-cxl@vger.kernel.org,
+	linux-doc@vger.kernel.org, nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v4 15/28] cxl/region: Refactor common create region code
+Message-ID: <ZwgAV81DSbpW7Ezd@fan>
 References: <20241007-dcd-type2-upstream-v4-0-c261ee6eeded@intel.com>
-	<20241007-dcd-type2-upstream-v4-28-c261ee6eeded@intel.com>
-Organization: Huawei Technologies Research and Development (UK) Ltd.
-X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
+ <20241007-dcd-type2-upstream-v4-15-c261ee6eeded@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: lhrpeml500002.china.huawei.com (7.191.160.78) To
- frapeml500008.china.huawei.com (7.182.85.71)
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20241007-dcd-type2-upstream-v4-15-c261ee6eeded@intel.com>
 
-On Mon, 07 Oct 2024 18:16:34 -0500
-Ira Weiny <ira.weiny@intel.com> wrote:
-
-> cxl_test provides a good way to ensure quick smoke and regression
-> testing.  The complexity of Dynamic Capacity (DC) extent processing as
-> well as the complexity of the new sparse DAX regions can mostly be
-> tested through cxl_test.  This includes management of sparse regions and
-> DAX devices on those regions; the management of extent device lifetimes;
-> and the processing of DCD events.
+On Mon, Oct 07, 2024 at 06:16:21PM -0500, Ira Weiny wrote:
+> create_pmem_region_store() and create_ram_region_store() are identical
+> with the exception of the region mode.  With the addition of DC region
+> mode this would end up being 3 copies of the same code.
 > 
-> The only missing functionality from this test is actual interrupt
-> processing.
+> Refactor create_pmem_region_store() and create_ram_region_store() to use
+> a single common function to be used in subsequent DC code.
 > 
-> Mock memory devices can easily mock DC information and manage fake
-> extent data.
-> 
-> Define mock_dc_region information within the mock memory data.  Add
-> sysfs entries on the mock device to inject and delete extents.
-> 
-> The inject format is <start>:<length>:<tag>:<more_flag>
-> The delete format is <start>:<length>
-> 
-> Directly call the event irq callback to simulate irqs to process the
-> test extents.
-> 
-> Add DC mailbox commands to the CEL and implement those commands.
-> 
+> Suggested-by: Fan Ni <fan.ni@samsung.com>
 > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+> ---
 
-Superficial review only.
+Reviewed-by: Fan Ni <fan.ni@samsung.com>
 
-Looks fine to me but I've been reviewing too long today to be at all sure
-I'd spot if it was wrong in a subtle way.  So no tag for now.
-
-> +static void dc_delete_extent(struct device *dev, unsigned long long start,
-> +			     unsigned long long length)
-> +{
-> +	struct cxl_mockmem_data *mdata = dev_get_drvdata(dev);
-> +	unsigned long long end = start + length;
-> +	struct cxl_extent_data *ext;
-> +	unsigned long index;
-> +
-> +	dev_dbg(dev, "Deleting extent at %#llx len:%#llx\n", start, length);
-> +
-> +	guard(mutex)(&mdata->ext_lock);
-> +	xa_for_each(&mdata->dc_extents, index, ext) {
-> +		u64 extent_end = ext->dpa_start + ext->length;
-> +
-> +		/*
-> +		 * Any extent which 'touches' the released delete range will be
-> +		 * removed.
-> +		 */
-> +		if ((start <= ext->dpa_start && ext->dpa_start < end) ||
-> +		    (start <= extent_end && extent_end < end)) {
-Really trivial but no {} for single line statement
-
-> +			xa_erase(&mdata->dc_extents, ext->dpa_start);
-> +		}
-> +	}
-> +
-> +	/*
-> +	 * If the extent was accepted let it be for the host to drop
-> +	 * later.
-> +	 */
-> +}
-
-> @@ -1703,14 +2146,261 @@ static ssize_t sanitize_timeout_store(struct device *dev,
->  
->  	return count;
+>  drivers/cxl/core/region.c | 28 +++++++++++-----------------
+>  1 file changed, 11 insertions(+), 17 deletions(-)
+> 
+> diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
+> index ab00203f285a..2ca6148d108c 100644
+> --- a/drivers/cxl/core/region.c
+> +++ b/drivers/cxl/core/region.c
+> @@ -2552,9 +2552,8 @@ static struct cxl_region *__create_region(struct cxl_root_decoder *cxlrd,
+>  	return devm_cxl_add_region(cxlrd, id, mode, CXL_DECODER_HOSTONLYMEM);
 >  }
-> -
-Noise.
-
->  static DEVICE_ATTR_RW(sanitize_timeout);
 >  
+> -static ssize_t create_pmem_region_store(struct device *dev,
+> -					struct device_attribute *attr,
+> -					const char *buf, size_t len)
+> +static ssize_t create_region_store(struct device *dev, const char *buf,
+> +				   size_t len, enum cxl_region_mode mode)
+>  {
+>  	struct cxl_root_decoder *cxlrd = to_cxl_root_decoder(dev);
+>  	struct cxl_region *cxlr;
+> @@ -2564,31 +2563,26 @@ static ssize_t create_pmem_region_store(struct device *dev,
+>  	if (rc != 1)
+>  		return -EINVAL;
+>  
+> -	cxlr = __create_region(cxlrd, CXL_REGION_PMEM, id);
+> +	cxlr = __create_region(cxlrd, mode, id);
+>  	if (IS_ERR(cxlr))
+>  		return PTR_ERR(cxlr);
+>  
+>  	return len;
+>  }
+> +
+> +static ssize_t create_pmem_region_store(struct device *dev,
+> +					struct device_attribute *attr,
+> +					const char *buf, size_t len)
+> +{
+> +	return create_region_store(dev, buf, len, CXL_REGION_PMEM);
+> +}
+>  DEVICE_ATTR_RW(create_pmem_region);
+>  
+>  static ssize_t create_ram_region_store(struct device *dev,
+>  				       struct device_attribute *attr,
+>  				       const char *buf, size_t len)
+>  {
+> -	struct cxl_root_decoder *cxlrd = to_cxl_root_decoder(dev);
+> -	struct cxl_region *cxlr;
+> -	int rc, id;
+> -
+> -	rc = sscanf(buf, "region%d\n", &id);
+> -	if (rc != 1)
+> -		return -EINVAL;
+> -
+> -	cxlr = __create_region(cxlrd, CXL_REGION_RAM, id);
+> -	if (IS_ERR(cxlr))
+> -		return PTR_ERR(cxlr);
+> -
+> -	return len;
+> +	return create_region_store(dev, buf, len, CXL_REGION_RAM);
+>  }
+>  DEVICE_ATTR_RW(create_ram_region);
+>  
+> 
+> -- 
+> 2.46.0
+> 
 
+-- 
+Fan Ni
