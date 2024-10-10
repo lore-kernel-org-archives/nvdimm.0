@@ -1,60 +1,60 @@
-Received: from mail-pl1-f181.google.com (mail-pl1-f181.google.com [209.85.214.181])
+Received: from mail-pj1-f54.google.com (mail-pj1-f54.google.com [209.85.216.54])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50D221EABD3
-	for <nvdimm@lists.linux.dev>; Thu, 10 Oct 2024 18:25:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.181
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C78F01E9064
+	for <nvdimm@lists.linux.dev>; Thu, 10 Oct 2024 18:30:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.216.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728584720; cv=none; b=Gh3oZBehENB6RLck2zENqoltsyfCwnnNl880Tzb1hxoDqNgvJ2cUru7FO/RWz0VBkUaI2G2m6uZbtYvK33hcVakQGgQbEnNaHj6t1VLeHMQKV9vqaxGzqFBVMeKgm5b4W2t4NDKGTXHDOBCq0cC0BsVA4z+XRDJCzzi+sYx2WUU=
+	t=1728585002; cv=none; b=XBKFGd5HI4x/xQ4p8l6Yh74iO4RhCq0EWRYw6x25j60BbqK/K3VmecGBAByGsguoe2ZdPR7xncaXU94Q5td9LzaCP9l1srJWKfdgmbn1Kq8rly++9Mul+Zo6naScHBCibqMrmDIJQ69w3Cb4HoRzsRQTZNEy22zkLZn6kXjDXg0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728584720; c=relaxed/simple;
-	bh=2rGxLzL4a1zBXPkYNtUom2nw03PtlluwPsJOr68+WtY=;
+	s=arc-20240116; t=1728585002; c=relaxed/simple;
+	bh=ATlE5iF1D+i8hM107h56WYkiC3V5Vr7ynZaWhizuKOg=;
 	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=f0A1CGvShOsh5fw/E/BJxq6wuHUt6oILMHHQaP4exUyZzZt/6uhsUk0hK5iMYCLtzrpJEM+kEAazk0cFR776kmf3YSy8GD8xAgZrT6m8e/0xSEqsjHm+WFZv9x4hFlu33dS8XuTvLGozsZMSEZ3ErINAlMDV2Fu6xuP7Ej16wqs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=On9DKox4; arc=none smtp.client-ip=209.85.214.181
+	 Content-Type:Content-Disposition:In-Reply-To; b=FiCbQEx9P9p5AQuu8MkXBAqQCAde3jUwtz52n8vBZ7FORpqYRuZyAt7u50ZMNGFOCaTSeizYXyvjl08sATmRA37GAWRYyie/NR14fwB9G9d79OmGiIVBPgVg2I+6cy7Nuuj6umsl/cN9LMmbtraaViWE/mj+sceZV5Nwf1BlcZY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=N5OF0Tex; arc=none smtp.client-ip=209.85.216.54
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="On9DKox4"
-Received: by mail-pl1-f181.google.com with SMTP id d9443c01a7336-20b90ab6c19so12398575ad.0
-        for <nvdimm@lists.linux.dev>; Thu, 10 Oct 2024 11:25:18 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="N5OF0Tex"
+Received: by mail-pj1-f54.google.com with SMTP id 98e67ed59e1d1-2e2b549799eso975652a91.3
+        for <nvdimm@lists.linux.dev>; Thu, 10 Oct 2024 11:30:00 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1728584717; x=1729189517; darn=lists.linux.dev;
+        d=gmail.com; s=20230601; t=1728585000; x=1729189800; darn=lists.linux.dev;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:date:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=FCZKAEGut2Fz9y7VqNxcbBwx+dx2pjvlA/aSvDU2Nhg=;
-        b=On9DKox4K8Swh88+n2I6R/ISPB+x1g5pXzJ+wnswu0+Qx/3vVCtNWVMn2fJ+aUUQ7s
-         XWeu8xRfYaInfXQh5/hhRPYZZUfVu5vVcvTwd3RnMd/am36slKlTX3LEXECWcx6Plo4A
-         b6AzGLXsC0BK+3igKsnApjcjoYoT+biHPRtmERPoCkxkiLbQtQeMjMnxhjUbRHeyUMgR
-         It6aEE2FmmDH2cQfVlgFu6Fi+4wEWKhsV8sTaEqSj9ercd+I/e14Bj8McbNkWMp4BN1C
-         FMhB6srf5IxdLL/Y0eT/nV48TFSt5ecMdOs60llSZ3/WOSuEG8MEdu7jT35Qkxh78WpC
-         vXMQ==
+        bh=YimOy7qc5N+LKT23Y0mjrXB82RJNkHep3WQxQZ801rM=;
+        b=N5OF0TexLPh2DaVxHJnR/BYpBqQXSWTaRbCZnNyIRre5D/FRVT4t86HdXoCxGRLCj2
+         6UdDe20J2tyneMhssQP6uresAi7i/linxL2pNbvTYyVsCdqrTsYbwWMiEaajIYZrxWdN
+         RrW5VYpFv5i4V8jI8i2/X8TPDn7mMJISGjJJuV3yKYee5N6Sb/c6fTqkzhTBAnCqvmeP
+         3xJnmj9y1ZnFkqzY8bbgpXEjajc+eVXBeZJiwql4spAdeytjIBlN6xo9Z9XECfWIa1r+
+         glTY8DnTlockObDhjCD0H65VEh++5otiOBgdI8VKb898YmP/cxHlhKLDeNsHMPitSD+1
+         yklA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1728584717; x=1729189517;
+        d=1e100.net; s=20230601; t=1728585000; x=1729189800;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:date:from:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=FCZKAEGut2Fz9y7VqNxcbBwx+dx2pjvlA/aSvDU2Nhg=;
-        b=Qwk6QzPmsKK+8FBqdPc07k8dv7BQFF50a3LYWloBoX32ZDJAbGGvf2TZ8mfXrdkZB8
-         AEaa3BefRLXVcBLDnjLaiLq1/KQM1wp1yNCGfMGc9jpHz4uB16evewoAoRa1ZP7yTcCc
-         w6viZcsv5VWAlXx3jrPC3BJPL3WeJPLghYfZ4kQRKlG9YWWRNBQfmSL9YQxeWQBd3IBZ
-         iRAQ7+hJ4eJijUVduG0BBPF4dRvUZ4drrO+nFG+4h9aBNAffVtkKX+iWhNjjODPuLw5+
-         lJNNHhqDD+VohiHgabiaUFZV3pcutv0KNtU4w5EwQMPngxIq4hqrefHNNBfp6ds06KVu
-         St6w==
-X-Forwarded-Encrypted: i=1; AJvYcCULRcKAuiYXzx97IhQ4Zhx1ceSzkzCdFXrSOFOWXbUC8cqDxJSyTJETlq9KktIguXKFvvtQC6o=@lists.linux.dev
-X-Gm-Message-State: AOJu0YzCyT9xsuvWBF+CR6FIFX4CIHV8gKjJ4kewii3OFUSorgBc9APl
-	pjGLw124OBIZoVKlpgDCpw01hOWhCPUpZrluMfARzzDSpO+jUhbm
-X-Google-Smtp-Source: AGHT+IHc42Q5P+w1wk3Fgq7/XkeeKpbIEIscynXSdbvC3/s2GAAsoEzVIy0pSdpH3PtVv2yfyyf8lA==
-X-Received: by 2002:a17:902:d548:b0:20b:8325:5a1e with SMTP id d9443c01a7336-20c9d905c2fmr7134325ad.36.1728584717333;
-        Thu, 10 Oct 2024 11:25:17 -0700 (PDT)
+        bh=YimOy7qc5N+LKT23Y0mjrXB82RJNkHep3WQxQZ801rM=;
+        b=XeHUhM+KfOoptuBCBG7uipTipszM4gnFZi6zGDyy/GbiKz0B/0QmETYaA1nI3Nxkoy
+         1+5V/QbjX7wZJyg1yBM1mpESKpFnbvC0wEibu8kI/WloW23HzAj2j32G2TmIRwp8OrSR
+         KFHjevKh8rAd5tTGjMcIM0JQqUCSyBqDS/56WBdVrUAl2e8MlmgQSnATjEkpiOS/cUGq
+         OmDe7kyl/XzxQxpIFuuJylDxWfTvPoU0+G6lg05Hl+kWPmJXYTOR0c+W3HTyTktjzmh0
+         B3KI8I3udQRzdYznIbohTG3cCgwOsvdPSLC3eoqmUFd700CNASuumXYseuxuB5qgQolY
+         N6Ag==
+X-Forwarded-Encrypted: i=1; AJvYcCUupfSSNJjoByw+ywxrRVkriOAmHeqVCbmOa/7hSDrt3EITY/ohDK4Yjpx3fn99y5xAhODCgtw=@lists.linux.dev
+X-Gm-Message-State: AOJu0YwGrAkVCq2n/askFMfRrv6m7NHnXkJkbuOKZNuBGYP3usD4Z0ru
+	dZDSQcYwhwvwI4MKPxYEv9WJ50FnPLx/o3McNov4hhyVTPzDuBMa
+X-Google-Smtp-Source: AGHT+IGZrKnj1WJs8nsWKq4t5Jq9tMpObwNCDHwnSBub3/8G7+C0G8eVp4m92pO5SYGehe8jLGH2yg==
+X-Received: by 2002:a17:90a:fd0a:b0:2e2:b211:a4da with SMTP id 98e67ed59e1d1-2e2f0a710fcmr118697a91.14.1728585000069;
+        Thu, 10 Oct 2024 11:30:00 -0700 (PDT)
 Received: from fan ([2601:646:8f03:9fee:c165:c800:4280:d79b])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-20c8c0eb470sm12140735ad.126.2024.10.10.11.25.15
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-2e2d5f0a4edsm1662161a91.31.2024.10.10.11.29.57
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 10 Oct 2024 11:25:17 -0700 (PDT)
+        Thu, 10 Oct 2024 11:29:59 -0700 (PDT)
 From: Fan Ni <nifan.cxl@gmail.com>
 X-Google-Original-From: Fan Ni <fan.ni@samsung.com>
-Date: Thu, 10 Oct 2024 11:25:13 -0700
-To: ira.weiny@intel.com
+Date: Thu, 10 Oct 2024 11:29:56 -0700
+To: Ira Weiny <ira.weiny@intel.com>
 Cc: Dave Jiang <dave.jiang@intel.com>,
 	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
 	Navneet Singh <navneet.singh@intel.com>,
@@ -67,10 +67,11 @@ Cc: Dave Jiang <dave.jiang@intel.com>,
 	linux-btrfs@vger.kernel.org, linux-cxl@vger.kernel.org,
 	linux-doc@vger.kernel.org, nvdimm@lists.linux.dev,
 	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v4 19/28] cxl/mem: Configure dynamic capacity interrupts
-Message-ID: <ZwgcCRTl3x2H8Ze5@fan>
+Subject: Re: [PATCH v4 20/28] cxl/core: Return endpoint decoder information
+ from region search
+Message-ID: <ZwgdJC8bSxfJuRuR@fan>
 References: <20241007-dcd-type2-upstream-v4-0-c261ee6eeded@intel.com>
- <20241007-dcd-type2-upstream-v4-19-c261ee6eeded@intel.com>
+ <20241007-dcd-type2-upstream-v4-20-c261ee6eeded@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -79,191 +80,123 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20241007-dcd-type2-upstream-v4-19-c261ee6eeded@intel.com>
+In-Reply-To: <20241007-dcd-type2-upstream-v4-20-c261ee6eeded@intel.com>
 
-On Mon, Oct 07, 2024 at 06:16:25PM -0500, ira.weiny@intel.com wrote:
-> From: Navneet Singh <navneet.singh@intel.com>
+On Mon, Oct 07, 2024 at 06:16:26PM -0500, Ira Weiny wrote:
+> cxl_dpa_to_region() finds the region from a <DPA, device> tuple.
+> The search involves finding the device endpoint decoder as well.
 > 
-> Dynamic Capacity Devices (DCD) support extent change notifications
-> through the event log mechanism.  The interrupt mailbox commands were
-> extended in CXL 3.1 to support these notifications.  Firmware can't
-> configure DCD events to be FW controlled but can retain control of
-> memory events.
+> Dynamic capacity extent processing uses the endpoint decoder HPA
+> information to calculate the HPA offset.  In addition, well behaved
+> extents should be contained within an endpoint decoder.
 > 
-> Configure DCD event log interrupts on devices supporting dynamic
-> capacity.  Disable DCD if interrupts are not supported.
+> Return the endpoint decoder found to be used in subsequent DCD code.
 > 
-> Care is taken to preserve the interrupt policy set by the FW if FW first
-> has been selected by the BIOS.
-> 
-> Signed-off-by: Navneet Singh <navneet.singh@intel.com>
-> Co-developed-by: Ira Weiny <ira.weiny@intel.com>
 > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-> 
+
+Reviewed-by: Fan Ni <fan.ni@samsung.com>
+
 > ---
-> Changes:
-> [iweiny: rebase on 6.12]
-> ---
->  drivers/cxl/cxlmem.h |  2 ++
->  drivers/cxl/pci.c    | 72 +++++++++++++++++++++++++++++++++++++++++++---------
->  2 files changed, 62 insertions(+), 12 deletions(-)
+>  drivers/cxl/core/core.h   | 6 ++++--
+>  drivers/cxl/core/mbox.c   | 2 +-
+>  drivers/cxl/core/memdev.c | 4 ++--
+>  drivers/cxl/core/region.c | 8 +++++++-
+>  4 files changed, 14 insertions(+), 6 deletions(-)
 > 
-> diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
-> index c3b889a586d8..2d2a1884a174 100644
-> --- a/drivers/cxl/cxlmem.h
-> +++ b/drivers/cxl/cxlmem.h
-> @@ -226,7 +226,9 @@ struct cxl_event_interrupt_policy {
->  	u8 warn_settings;
->  	u8 failure_settings;
->  	u8 fatal_settings;
-> +	u8 dcd_settings;
->  } __packed;
-> +#define CXL_EVENT_INT_POLICY_BASE_SIZE 4 /* info, warn, failure, fatal */
+> diff --git a/drivers/cxl/core/core.h b/drivers/cxl/core/core.h
+> index 5d6fe7ab0a78..94ee06cfbdca 100644
+> --- a/drivers/cxl/core/core.h
+> +++ b/drivers/cxl/core/core.h
+> @@ -39,7 +39,8 @@ void cxl_decoder_kill_region(struct cxl_endpoint_decoder *cxled);
+>  int cxl_region_init(void);
+>  void cxl_region_exit(void);
+>  int cxl_get_poison_by_endpoint(struct cxl_port *port);
+> -struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64 dpa);
+> +struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64 dpa,
+> +				     struct cxl_endpoint_decoder **cxled);
+>  u64 cxl_dpa_to_hpa(struct cxl_region *cxlr, const struct cxl_memdev *cxlmd,
+>  		   u64 dpa);
 >  
->  /**
->   * struct cxl_event_state - Event log driver state
-> diff --git a/drivers/cxl/pci.c b/drivers/cxl/pci.c
-> index c6042db0653d..2ba059d313c2 100644
-> --- a/drivers/cxl/pci.c
-> +++ b/drivers/cxl/pci.c
-> @@ -672,23 +672,34 @@ static int cxl_event_get_int_policy(struct cxl_memdev_state *mds,
+> @@ -50,7 +51,8 @@ static inline u64 cxl_dpa_to_hpa(struct cxl_region *cxlr,
+>  	return ULLONG_MAX;
+>  }
+>  static inline
+> -struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64 dpa)
+> +struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64 dpa,
+> +				     struct cxl_endpoint_decoder **cxled)
+>  {
+>  	return NULL;
+>  }
+> diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
+> index 3ba465823564..584d7d282a97 100644
+> --- a/drivers/cxl/core/mbox.c
+> +++ b/drivers/cxl/core/mbox.c
+> @@ -916,7 +916,7 @@ void cxl_event_trace_record(const struct cxl_memdev *cxlmd,
+>  		guard(rwsem_read)(&cxl_dpa_rwsem);
+>  
+>  		dpa = le64_to_cpu(evt->media_hdr.phys_addr) & CXL_DPA_MASK;
+> -		cxlr = cxl_dpa_to_region(cxlmd, dpa);
+> +		cxlr = cxl_dpa_to_region(cxlmd, dpa, NULL);
+>  		if (cxlr)
+>  			hpa = cxl_dpa_to_hpa(cxlr, cxlmd, dpa);
+>  
+> diff --git a/drivers/cxl/core/memdev.c b/drivers/cxl/core/memdev.c
+> index 2565b10a769c..31872c03006b 100644
+> --- a/drivers/cxl/core/memdev.c
+> +++ b/drivers/cxl/core/memdev.c
+> @@ -313,7 +313,7 @@ int cxl_inject_poison(struct cxl_memdev *cxlmd, u64 dpa)
+>  	if (rc)
+>  		goto out;
+>  
+> -	cxlr = cxl_dpa_to_region(cxlmd, dpa);
+> +	cxlr = cxl_dpa_to_region(cxlmd, dpa, NULL);
+>  	if (cxlr)
+>  		dev_warn_once(cxl_mbox->host,
+>  			      "poison inject dpa:%#llx region: %s\n", dpa,
+> @@ -377,7 +377,7 @@ int cxl_clear_poison(struct cxl_memdev *cxlmd, u64 dpa)
+>  	if (rc)
+>  		goto out;
+>  
+> -	cxlr = cxl_dpa_to_region(cxlmd, dpa);
+> +	cxlr = cxl_dpa_to_region(cxlmd, dpa, NULL);
+>  	if (cxlr)
+>  		dev_warn_once(cxl_mbox->host,
+>  			      "poison clear dpa:%#llx region: %s\n", dpa,
+> diff --git a/drivers/cxl/core/region.c b/drivers/cxl/core/region.c
+> index 34a6f447e75b..a0c181cc33e4 100644
+> --- a/drivers/cxl/core/region.c
+> +++ b/drivers/cxl/core/region.c
+> @@ -2827,6 +2827,7 @@ int cxl_get_poison_by_endpoint(struct cxl_port *port)
+>  struct cxl_dpa_to_region_context {
+>  	struct cxl_region *cxlr;
+>  	u64 dpa;
+> +	struct cxl_endpoint_decoder *cxled;
+>  };
+>  
+>  static int __cxl_dpa_to_region(struct device *dev, void *arg)
+> @@ -2860,11 +2861,13 @@ static int __cxl_dpa_to_region(struct device *dev, void *arg)
+>  			dev_name(dev));
+>  
+>  	ctx->cxlr = cxlr;
+> +	ctx->cxled = cxled;
+>  
+>  	return 1;
 >  }
 >  
->  static int cxl_event_config_msgnums(struct cxl_memdev_state *mds,
-> -				    struct cxl_event_interrupt_policy *policy)
-> +				    struct cxl_event_interrupt_policy *policy,
-> +				    bool native_cxl)
+> -struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64 dpa)
+> +struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64 dpa,
+> +				     struct cxl_endpoint_decoder **cxled)
 >  {
->  	struct cxl_mailbox *cxl_mbox = &mds->cxlds.cxl_mbox;
-> +	size_t size_in = CXL_EVENT_INT_POLICY_BASE_SIZE;
->  	struct cxl_mbox_cmd mbox_cmd;
->  	int rc;
+>  	struct cxl_dpa_to_region_context ctx;
+>  	struct cxl_port *port;
+> @@ -2876,6 +2879,9 @@ struct cxl_region *cxl_dpa_to_region(const struct cxl_memdev *cxlmd, u64 dpa)
+>  	if (port && is_cxl_endpoint(port) && cxl_num_decoders_committed(port))
+>  		device_for_each_child(&port->dev, &ctx, __cxl_dpa_to_region);
 >  
-> -	*policy = (struct cxl_event_interrupt_policy) {
-> -		.info_settings = CXL_INT_MSI_MSIX,
-> -		.warn_settings = CXL_INT_MSI_MSIX,
-> -		.failure_settings = CXL_INT_MSI_MSIX,
-> -		.fatal_settings = CXL_INT_MSI_MSIX,
-> -	};
-> +	/* memory event policy is left if FW has control */
-> +	if (native_cxl) {
-> +		*policy = (struct cxl_event_interrupt_policy) {
-> +			.info_settings = CXL_INT_MSI_MSIX,
-> +			.warn_settings = CXL_INT_MSI_MSIX,
-> +			.failure_settings = CXL_INT_MSI_MSIX,
-> +			.fatal_settings = CXL_INT_MSI_MSIX,
-> +			.dcd_settings = 0,
-> +		};
-> +	}
+> +	if (cxled)
+> +		*cxled = ctx.cxled;
 > +
-> +	if (cxl_dcd_supported(mds)) {
-> +		policy->dcd_settings = CXL_INT_MSI_MSIX;
-> +		size_in += sizeof(policy->dcd_settings);
-> +	}
->  
->  	mbox_cmd = (struct cxl_mbox_cmd) {
->  		.opcode = CXL_MBOX_OP_SET_EVT_INT_POLICY,
->  		.payload_in = policy,
-> -		.size_in = sizeof(*policy),
-> +		.size_in = size_in,
->  	};
->  
->  	rc = cxl_internal_send_cmd(cxl_mbox, &mbox_cmd);
-> @@ -735,6 +746,31 @@ static int cxl_event_irqsetup(struct cxl_memdev_state *mds,
->  	return 0;
->  }
->  
-> +static int cxl_irqsetup(struct cxl_memdev_state *mds,
-> +			struct cxl_event_interrupt_policy *policy,
-> +			bool native_cxl)
-> +{
-> +	struct cxl_dev_state *cxlds = &mds->cxlds;
-> +	int rc;
-> +
-> +	if (native_cxl) {
-> +		rc = cxl_event_irqsetup(mds, policy);
-> +		if (rc)
-> +			return rc;
-> +	}
-> +
-> +	if (cxl_dcd_supported(mds)) {
-> +		rc = cxl_event_req_irq(cxlds, policy->dcd_settings);
-> +		if (rc) {
-> +			dev_err(cxlds->dev, "Failed to get interrupt for DCD event log\n");
-> +			cxl_disable_dcd(mds);
-> +			return rc;
-
-If the device has both static and dynamic capacity, return an error code
-here will cause cxl_event_config() return early, and
-cxl_mem_get_event_records() will not be called, will it be an issue?
-
-Fan
-
-> +		}
-> +	}
-> +
-> +	return 0;
-> +}
-> +
->  static bool cxl_event_int_is_fw(u8 setting)
->  {
->  	u8 mode = FIELD_GET(CXLDEV_EVENT_INT_MODE_MASK, setting);
-> @@ -761,17 +797,25 @@ static int cxl_event_config(struct pci_host_bridge *host_bridge,
->  			    struct cxl_memdev_state *mds, bool irq_avail)
->  {
->  	struct cxl_event_interrupt_policy policy = { 0 };
-> +	bool native_cxl = host_bridge->native_cxl_error;
->  	int rc;
->  
->  	/*
->  	 * When BIOS maintains CXL error reporting control, it will process
->  	 * event records.  Only one agent can do so.
-> +	 *
-> +	 * If BIOS has control of events and DCD is not supported skip event
-> +	 * configuration.
->  	 */
-> -	if (!host_bridge->native_cxl_error)
-> +	if (!native_cxl && !cxl_dcd_supported(mds))
->  		return 0;
->  
->  	if (!irq_avail) {
->  		dev_info(mds->cxlds.dev, "No interrupt support, disable event processing.\n");
-> +		if (cxl_dcd_supported(mds)) {
-> +			dev_info(mds->cxlds.dev, "DCD requires interrupts, disable DCD\n");
-> +			cxl_disable_dcd(mds);
-> +		}
->  		return 0;
->  	}
->  
-> @@ -779,10 +823,10 @@ static int cxl_event_config(struct pci_host_bridge *host_bridge,
->  	if (rc)
->  		return rc;
->  
-> -	if (!cxl_event_validate_mem_policy(mds, &policy))
-> +	if (native_cxl && !cxl_event_validate_mem_policy(mds, &policy))
->  		return -EBUSY;
->  
-> -	rc = cxl_event_config_msgnums(mds, &policy);
-> +	rc = cxl_event_config_msgnums(mds, &policy, native_cxl);
->  	if (rc)
->  		return rc;
->  
-> @@ -790,12 +834,16 @@ static int cxl_event_config(struct pci_host_bridge *host_bridge,
->  	if (rc)
->  		return rc;
->  
-> -	rc = cxl_event_irqsetup(mds, &policy);
-> +	rc = cxl_irqsetup(mds, &policy, native_cxl);
->  	if (rc)
->  		return rc;
->  
->  	cxl_mem_get_event_records(mds, CXLDEV_EVENT_STATUS_ALL);
->  
-> +	dev_dbg(mds->cxlds.dev, "Event config : %s DCD %s\n",
-> +		native_cxl ? "OS" : "BIOS",
-> +		cxl_dcd_supported(mds) ? "supported" : "not supported");
-> +
->  	return 0;
+>  	return ctx.cxlr;
 >  }
 >  
 > 
