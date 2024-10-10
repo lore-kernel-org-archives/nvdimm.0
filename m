@@ -1,205 +1,315 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.14])
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6F2351CBEBB
-	for <nvdimm@lists.linux.dev>; Thu, 10 Oct 2024 15:24:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.14
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728573885; cv=fail; b=Tu1xElQHvnICYHJB2ya/dW5qtGvfc46UI7U+NOGsoadNvpy5tmsh05L1UeoJoOixzZypvw8R0/FcFKJGj9fuUa4a31Kp5gx85NAK5EgTc6DXznlhS4Xj6qpjjYWdvIUzuiz/GoQPeN3KGDHggEEE0mcIREvqJXXF9ly0Yw+JqSs=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728573885; c=relaxed/simple;
-	bh=dNfuRLp04WYH0sy9yqHBqXBD8n/DG64vx+JFGSeB+zk=;
-	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=BrHoPGdU04RiHtGz2M+G5hq3KumNjwiTHvtnXO+yY4Pgy+e4D2VioB/WIXyxtRNEXCA6byBRgAZxa4a11Q9AOw/zh891FyHnSe0BPPeW0HjOrklBkf0EmQyGcWtQDOhY8kUEmOlomC76rRHDgmRpx7xEA/jzPW2THw0E1JmrzqA=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=hYd30onX; arc=fail smtp.client-ip=192.198.163.14
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="hYd30onX"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1728573883; x=1760109883;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=dNfuRLp04WYH0sy9yqHBqXBD8n/DG64vx+JFGSeB+zk=;
-  b=hYd30onXluUsI47jpr9ZHpZycEdkj/aDHM4rBHm86NojX1No7cwzIgKz
-   Bakw6TTR3yY7/qhLW14CEmC/q5LZ5ffPVgba83Vg+NilolUw1uMGg6guX
-   lleQ/4VWD3rcisCQE8LAEG8z7MKhP+rOD8eUYuAFh+LHndF6wjC4yFesB
-   m8TbuRZqSPJbAC//px6LHdy+gtDAy79sqPADrdxqFBXLJCztsqW9mIvex
-   PHpolGMtzNV2jmAfO6/ocjkIV8OSoL8bf0t3SPQwBkYO3aaDSZLOu80Uy
-   +3JnURQbqi70O9KznQRfd+AWV1mq3Ybx/7tWPetVOw4whZlgOnVPm0DmI
-   Q==;
-X-CSE-ConnectionGUID: MRSfqgUsQm+h3VJQKJivzw==
-X-CSE-MsgGUID: wCyAoUEUQ1Op1kY2sZK76g==
-X-IronPort-AV: E=McAfee;i="6700,10204,11220"; a="28096412"
-X-IronPort-AV: E=Sophos;i="6.11,193,1725346800"; 
-   d="scan'208";a="28096412"
-Received: from fmviesa010.fm.intel.com ([10.60.135.150])
-  by fmvoesa108.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Oct 2024 08:24:42 -0700
-X-CSE-ConnectionGUID: hiqGGdEiQ5ORoH9yb2+B6g==
-X-CSE-MsgGUID: VrJcWKWcQZKCadpzf3s/Sg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.11,193,1725346800"; 
-   d="scan'208";a="76943260"
-Received: from orsmsx601.amr.corp.intel.com ([10.22.229.14])
-  by fmviesa010.fm.intel.com with ESMTP/TLS/AES256-GCM-SHA384; 10 Oct 2024 08:24:42 -0700
-Received: from orsmsx610.amr.corp.intel.com (10.22.229.23) by
- ORSMSX601.amr.corp.intel.com (10.22.229.14) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.39; Thu, 10 Oct 2024 08:24:42 -0700
-Received: from orsmsx610.amr.corp.intel.com (10.22.229.23) by
- ORSMSX610.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.39; Thu, 10 Oct 2024 08:24:41 -0700
-Received: from orsedg603.ED.cps.intel.com (10.7.248.4) by
- orsmsx610.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.39 via Frontend Transport; Thu, 10 Oct 2024 08:24:41 -0700
-Received: from NAM11-BN8-obe.outbound.protection.outlook.com (104.47.58.171)
- by edgegateway.intel.com (134.134.137.100) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.39; Thu, 10 Oct 2024 08:24:41 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=YlJAKbm+eMHueCLa/lb/GK3eSi4VISp7U2ikaCAKdUDMuXI6fzaTonrlRMoh9aVJe/j53OTLYvKl+c2uIXx+Nw+l5yZJelcD7mnS9rJVMpPwj+JPsBPVKfemwM7V0MLqxkCYBTO8BhKt6FCg8RNCu/nkJoxvxqiHC3+MgIzkNASzDT9A/VQS1GlZGHwfz6Pntq3OuuOEI9tIvooVQbirzJXXyXPNebYrMv6OisnDMlDRaLgypzaY/5vLiDj6SqDSYzghIp09k3ZDc5YNuEAOhr96WoABbjptjJqlsgrm1hnWqmZx4FOVTIwh/u5hVXOF/ixCNiZ9RpU0Tq1xA8tEkw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=mBWl3h2Ai2FkSQtsmZmlM72Ljt3W+0vQ3Tf1Z7fZIag=;
- b=NQPBwtkdXOFeZ3mXIS3Gsg5Oc1w3L4zgOw7/OS10LPb7LLKprElwmgp38jF0rlBvpZypkVPbIcprBRF/XrYBJyH4GEQUHBUz5FWlBC+kBBf08mS2hhDTusdRMl6QooJdhNJh8kT0YBNfgPOeE4VnSUYezFuIoPfTgLPFjYWYQDmq2kulYGHvVjFes2z5x53OexD4SDfR898UIW7b98USmza4FMV9swLtyga9CbCTN0nf+lZYD0sDk+BtQJgu1+U2A6Z2H+UApr9GmDK2O8sjNmpjbXZlXx2+euLtKNHluSnv3ruyXzgwEROPypbcL5Cx51rc2QSSaC/uiFwbymxbcQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from SA1PR11MB6733.namprd11.prod.outlook.com (2603:10b6:806:25c::17)
- by PH7PR11MB8276.namprd11.prod.outlook.com (2603:10b6:510:1af::5) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8048.18; Thu, 10 Oct
- 2024 15:24:38 +0000
-Received: from SA1PR11MB6733.namprd11.prod.outlook.com
- ([fe80::cf7d:9363:38f4:8c57]) by SA1PR11MB6733.namprd11.prod.outlook.com
- ([fe80::cf7d:9363:38f4:8c57%3]) with mapi id 15.20.8026.020; Thu, 10 Oct 2024
- 15:24:38 +0000
-Date: Thu, 10 Oct 2024 10:24:31 -0500
-From: Ira Weiny <ira.weiny@intel.com>
-To: David Sterba <dsterba@suse.cz>, Ira Weiny <ira.weiny@intel.com>
-CC: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, "Jonathan
- Cameron" <Jonathan.Cameron@huawei.com>, Navneet Singh
-	<navneet.singh@intel.com>, Jonathan Corbet <corbet@lwn.net>, Andrew Morton
-	<akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>,
-	Davidlohr Bueso <dave@stgolabs.net>, Alison Schofield
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A0131CC176
+	for <nvdimm@lists.linux.dev>; Thu, 10 Oct 2024 15:27:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1728574073; cv=none; b=Hxn7tSkPMEt228LIpIcC+CmFXFclcII3DnOvWmkKpqKQFi0Xui2fVLrC1Gnw/GMpD0eoSz4hJiojrmTrgoGDy6Jib/xwXnF5BmrIJB1DiV/ll/35LdbwBJfVK9lFWYQmhmtFdfEfR/hg2QOSghsLavfv7zkpwWFnDPC0835PXPo=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1728574073; c=relaxed/simple;
+	bh=SNVe+TdvAayhuxSjhFCoU0u7zIY9O6cAdSoJx16is/E=;
+	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=u3YtgziYS18AE2abfxlz82FAar/AZb5mP1cjjk7SohCykpbWB2tfxpEBCvKI6MH7Ab1+mbHe8BPHwNOUlBYLmVtnMqNsITI4hlbtv2nkvrDjU5ZiAl6j2RbGnkTVGAEthDLBR9IHJAa3ZEC6csf82afqORJxuQ4Eah+jWqhAES0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.18.186.216])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4XPYRy2q5Jz6J7sj;
+	Thu, 10 Oct 2024 23:23:26 +0800 (CST)
+Received: from frapeml500008.china.huawei.com (unknown [7.182.85.71])
+	by mail.maildlp.com (Postfix) with ESMTPS id 510E4140A78;
+	Thu, 10 Oct 2024 23:27:47 +0800 (CST)
+Received: from localhost (10.203.177.66) by frapeml500008.china.huawei.com
+ (7.182.85.71) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Thu, 10 Oct
+ 2024 17:27:46 +0200
+Date: Thu, 10 Oct 2024 16:27:45 +0100
+From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+To: <ira.weiny@intel.com>
+CC: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, "Navneet
+ Singh" <navneet.singh@intel.com>, Jonathan Corbet <corbet@lwn.net>, "Andrew
+ Morton" <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>,
+	Davidlohr Bueso <dave@stgolabs.net>, "Alison Schofield"
 	<alison.schofield@intel.com>, Vishal Verma <vishal.l.verma@intel.com>,
 	<linux-btrfs@vger.kernel.org>, <linux-cxl@vger.kernel.org>,
 	<linux-doc@vger.kernel.org>, <nvdimm@lists.linux.dev>,
-	<linux-kernel@vger.kernel.org>, Chris Mason <clm@fb.com>, Josef Bacik
-	<josef@toxicpanda.com>, David Sterba <dsterba@suse.com>, Johannes Thumshirn
-	<johannes.thumshirn@wdc.com>
-Subject: Re: [PATCH v4 04/28] range: Add range_overlaps()
-Message-ID: <6707f1afa8a2_404292943c@iweiny-mobl.notmuch>
+	<linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v4 24/28] dax/region: Create resources on sparse DAX
+ regions
+Message-ID: <20241010162745.00007b31@Huawei.com>
+In-Reply-To: <20241007-dcd-type2-upstream-v4-24-c261ee6eeded@intel.com>
 References: <20241007-dcd-type2-upstream-v4-0-c261ee6eeded@intel.com>
- <20241007-dcd-type2-upstream-v4-4-c261ee6eeded@intel.com>
- <20241008161032.GB1609@twin.jikos.cz>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20241008161032.GB1609@twin.jikos.cz>
-X-ClientProxiedBy: MW4PR03CA0186.namprd03.prod.outlook.com
- (2603:10b6:303:b8::11) To SA1PR11MB6733.namprd11.prod.outlook.com
- (2603:10b6:806:25c::17)
+	<20241007-dcd-type2-upstream-v4-24-c261ee6eeded@intel.com>
+Organization: Huawei Technologies Research and Development (UK) Ltd.
+X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SA1PR11MB6733:EE_|PH7PR11MB8276:EE_
-X-MS-Office365-Filtering-Correlation-Id: 607dba49-ab97-449a-4ae8-08dce93fa782
-X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|366016|376014|7416014|1800799024;
-X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?SoxVcrHZarI8lgQMthlHTLbvyskjU0gLVLRTplNOImMTUHrdPh8MGjmrdkIZ?=
- =?us-ascii?Q?uFdb9w3WaM43Xxph6ExYsLbyVZIRHo0lBgrv5nio1sjjoCB+33hN1MjpqMJD?=
- =?us-ascii?Q?WtILjhnpsMd9kUokpsGgXjfwGHRCy9R+cDt+DcK2ikDq3O7BnTQKvcg1aKI+?=
- =?us-ascii?Q?qM05GprPri3iCK8CmH0NPS7YtuAiyyc6PP9HIAxLe9HsUhKjkuk+TdbqONVG?=
- =?us-ascii?Q?ivREB2d1DweCKGqUSJ2h3/odYutKzHY0YgNdKv0u1FK4Lz6lgLbm3tI/hN4P?=
- =?us-ascii?Q?UeQJ3YiH5dIeDV6K2qe+wlVg8ik/Y8Tsxh3LOfRgHHnyNyangk2UBH+vjSeP?=
- =?us-ascii?Q?fDClDXwEWUq9mEUuT40PnXvGqnGSBh7Ef9NW955adbBXtPiNzmUntE0s0RQM?=
- =?us-ascii?Q?Q2a+371xyy4wrBBc+24Kbvl7UW9VDGA+dZnrppOkKnllx83wigjSAsTa9cbE?=
- =?us-ascii?Q?nfgkgz4WcYYKcVhdja2PbcphxvO/TlvtM6Vfd3D6f5lgTtWFhnHHTVWH/OR2?=
- =?us-ascii?Q?c6iHZWec8lsPmUgZp6dM2jS1QjXIn/43zDEmG9jnDU/Pg5uNc1+lKVq5l4iz?=
- =?us-ascii?Q?C4SRF3UlACWCJQpJIMG8XfGc/odh6Qugn5ixAnTOTS7cLcAPlDZ2h2jNzGxU?=
- =?us-ascii?Q?aMmIIZqid7M2a+1IY6VekoruxXAJkG7RdBR3aU0nbOJyt1Sbpq5IzD7tBKwT?=
- =?us-ascii?Q?zMNC7dPXH96MYi71Z/SM+LjmkctTwhrJcNbnC3PQEbaFCxxbo3+GB20Dubbn?=
- =?us-ascii?Q?EqZKUCUhsnC/RTrBsjNLLQRH65fDfehrj4v/eGWjO+/M47u3E6oD8MQBQOzc?=
- =?us-ascii?Q?y7JQOfxObuyJ1Hlxvjkqd43+DJ+lzIdU5l3Kry21DBbrMWi/Q7sP4kcJsJ8M?=
- =?us-ascii?Q?YDjMpI7MQauZucQ1NVQXVKrt0eZ6BNXiq+yr8qIKwJ9OnDCvy16qNpebgEN+?=
- =?us-ascii?Q?B2bQ5rHbM6L/L+cEvMnY7R5dN+hpbsO9CenOBlnNogQsAHh1jKIpX9xfKEez?=
- =?us-ascii?Q?0tbh2HK3P9wFUJZHdrS7ok/ESdr7ap2E1o+v1Tu09rQWO/guW0MTC/qmM+Q+?=
- =?us-ascii?Q?02+ySftmYNmLhFG0XxT6l/lLC3Fy3Ckmea4xnOHOs18aQhtsYPyZq1eveRjf?=
- =?us-ascii?Q?28z2jQ/zY1dh74SYy7siNL6UgWG1quShq1UhHYE8D8L70ADXiOS9Nz8gLZCL?=
- =?us-ascii?Q?UBp6qALjgOlcSy3BNi/i3FSRdAHWa3K7vJ5e7FvKEoUELiDuZBrkoHOJEpho?=
- =?us-ascii?Q?Cxr2CT4SZg0aEXZBzgi1MizsrjpeBAOHIGejACnkFA=3D=3D?=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA1PR11MB6733.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(366016)(376014)(7416014)(1800799024);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?AqVGPcjZlbl66xevpeB5MIzhZNuiryFG41+7GRX2ntFmge/JBOpCZBOXkYNp?=
- =?us-ascii?Q?HcED1Zy4bRyTq67TPmSlzPfEW4/54tLQanNMWUSZlqXFxkBtMa3wok7Pv4pD?=
- =?us-ascii?Q?zuwpugQ0rN5t2N/0Ww4LSFe66XLSvpPbqA4eCqs0G+yuvX91zaRNNroL0UHU?=
- =?us-ascii?Q?gEQfpBZMIgjTqlh6DMEO661w634ugePT+RRkkibLyU1B13zVxfmfXdvPOPH7?=
- =?us-ascii?Q?nUlx0l/s6In18mUBQzIlZJ5AiHdX6kT7VDGj98w/zu7GzFU8PxYYVuxdWrWR?=
- =?us-ascii?Q?hJlbpWBiNY697TchwNRlDnR8WvQrhXq/uMaXKsLxMGhiGyz0Q/KAVvlLpMlF?=
- =?us-ascii?Q?RB0TNBhg4lSWRaseVgoZ5BUxFW+xke9xUJ2ZMtJNaXzSJKDSHYwyhLOtSVmZ?=
- =?us-ascii?Q?3iO3uIihiPTRsNx3pE51djPA+ss1gzRY1wwoRTulvl9n845+GWJj4VfqcqNH?=
- =?us-ascii?Q?bHC/t/XS2g+cJ1BqzksDZmiNDMMVQt8hKU4otPZ+8Z3xGTdV19n073j1Ias2?=
- =?us-ascii?Q?LSt8jYi3F+qa69OyOhU7uffrje+NeMUXF5ZjjYv99/kUq26q2jo9UvdUbiHk?=
- =?us-ascii?Q?HhTM6M1AzDsAwdwQbq7kUqBQlBq6wLLthB8sWNTaNLTObaCRIN1EZCYPUqd4?=
- =?us-ascii?Q?nZcF2KHCeeezw25dlD0F3M0kXpQ2yURPRwF1U3P2fJPOEMLZEARu4ftTLJ4N?=
- =?us-ascii?Q?janQyAIvQMfwoqDcGonl2YgLNbY5uIbJ98+eWEoS3WzuveW3v1UZN/V+o/AX?=
- =?us-ascii?Q?tkOlFI+vd/5L+/c13FwYoXrPAJjvlCecNZ7+a8OVbMPQpddYd70jPkNPHWeh?=
- =?us-ascii?Q?baUREGQmWGEx3LcNSDcjBRDCk9Jo5SjsTEWxPu5m8MLYHFGGcFDt07xJiaGN?=
- =?us-ascii?Q?qBDsguz6P71wo7fRnXFabrgXRcqESrLTXVpPDtCjE6Iurqi2Lo98UWD6/LwY?=
- =?us-ascii?Q?VoU0zIoU42h4byKvJI4F2rekaD2I+jTNiOBktW6lcRYYuJzty7CYG3vz+loe?=
- =?us-ascii?Q?IKaysfVVzfO1FqIAG5rIRSaD3VJF4GbjBBqB5khEX4q3zygnjW21h8HiCTHo?=
- =?us-ascii?Q?L2TCHdXT9pwKjci81mCLH7Kd1FSVe5D+5tGZbp1KX99IMlmo2I1/meAnzMP8?=
- =?us-ascii?Q?TUMJosbt10dJA67v64N+Q90yhtxmUirRxaOFlSwURyAShLaOAbKYcslWVdEP?=
- =?us-ascii?Q?C+W+egjLDPUZ0T9Y05PdEYxoBDcQOfKxSVCoDOfKnnkIu6GQrBm+Hu19Q3C/?=
- =?us-ascii?Q?s41X3qvR37/wzQe+8LFIoF/1ULGwM48L7Aolq5T32vdAbepwteISnDiCkPEd?=
- =?us-ascii?Q?qzGqgFqXZ2IWWwKwJoXjeb4jb4IARlznOymoUxfTFsbvRLSctiEpzAOXYfOl?=
- =?us-ascii?Q?kGlHRqA7Xlu9mqJjQXivU+ecpTmvxTubY+XsBp9cqpQ5akIlo8aTsOCe4nIb?=
- =?us-ascii?Q?VVNDUKR3G9c5Q5zt87KvxZrJtkO8tosPoC4xG88L/jlfIly/i2V4g3U4pBDC?=
- =?us-ascii?Q?anq3M5yPEPHgcMWNoO7tGLMGEIdxbxhJr/yTKx86jnxKU7GW7DFNj0S7bsJJ?=
- =?us-ascii?Q?KzSOWCIQzimVbJKcpPw4fulBIPo0pepO+aFtE20r?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: 607dba49-ab97-449a-4ae8-08dce93fa782
-X-MS-Exchange-CrossTenant-AuthSource: SA1PR11MB6733.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 Oct 2024 15:24:38.3634
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: NfhoJZXGKb856o1T34biPjhcVfiQ4lPwkcCjohThcji7t2EPAgsHQKsBhUj6j2hPu2T7qTycGKTeCL3v6DV8AA==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH7PR11MB8276
-X-OriginatorOrg: intel.com
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: lhrpeml500002.china.huawei.com (7.191.160.78) To
+ frapeml500008.china.huawei.com (7.182.85.71)
 
-David Sterba wrote:
-> On Mon, Oct 07, 2024 at 06:16:10PM -0500, Ira Weiny wrote:
-> > --- a/include/linux/range.h
->> +++ b/include/linux/range.h
-> > +/* True if any part of r1 overlaps r2 */
-> > +static inline bool range_overlaps(struct range *r1, struct range *r2)
+On Mon, 07 Oct 2024 18:16:30 -0500
+ira.weiny@intel.com wrote:
+
+> From: Navneet Singh <navneet.singh@intel.com>
 > 
-> I've noticed only now, you can constify the arguments, but this applise
-> to other range_* functions so that can be done later in one go.
-
-Looks like there will be a v5.  I'll do a separate cleanup patch for
-range_contains() and change this one.
-
-Thanks!
-Ira
-
+> DAX regions which map dynamic capacity partitions require that memory be
+> allowed to come and go.  Recall sparse regions were created for this
+> purpose.  Now that extents can be realized within DAX regions the DAX
+> region driver can start tracking sub-resource information.
 > 
-> > +{
-> > +	return r1->start <= r2->end && r1->end >= r2->start;
-> > +}
+> The tight relationship between DAX region operations and extent
+> operations require memory changes to be controlled synchronously with
+> the user of the region.  Synchronize through the dax_region_rwsem and by
+> having the region driver drive both the region device as well as the
+> extent sub-devices.
+> 
+> Recall requests to remove extents can happen at any time and that a host
+> is not obligated to release the memory until it is not being used.  If
+> an extent is not used allow a release response.
+> 
+> The DAX layer has no need for the details of the CXL memory extent
+> devices.  Expose extents to the DAX layer as device children of the DAX
+> region device.  A single callback from the driver aids the DAX layer to
+> determine if the child device is an extent.  The DAX layer also
+> registers a devres function to automatically clean up when the device is
+> removed from the region.
+> 
+> There is a race between extents being surfaced and the dax_cxl driver
+> being loaded.  The driver must therefore scan for any existing extents
+> while still under the device lock.
+> 
+> Respond to extent notifications.  Manage the DAX region resource tree
+> based on the extents lifetime.  Return the status of remove
+> notifications to lower layers such that it can manage the hardware
+> appropriately.
+> 
+> Signed-off-by: Navneet Singh <navneet.singh@intel.com>
+> Co-developed-by: Ira Weiny <ira.weiny@intel.com>
+> Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+> 
+More somewhat superficial review from me.
+Needs DAX expert reviewers.
 
+Jonathan
+
+> ---
+>  drivers/cxl/core/extent.c |  74 ++++++++++++--
+>  drivers/cxl/cxl.h         |   6 ++
+>  drivers/dax/bus.c         | 243 +++++++++++++++++++++++++++++++++++++++++-----
+>  drivers/dax/bus.h         |   3 +-
+>  drivers/dax/cxl.c         |  62 +++++++++++-
+>  drivers/dax/dax-private.h |  42 ++++++++
+>  drivers/dax/hmem/hmem.c   |   2 +-
+>  drivers/dax/pmem.c        |   2 +-
+>  8 files changed, 396 insertions(+), 38 deletions(-)
+> 
+> diff --git a/drivers/cxl/core/extent.c b/drivers/cxl/core/extent.c
+> index a1eb6e8e4f1a..75fb73ce2185 100644
+> --- a/drivers/cxl/core/extent.c
+> +++ b/drivers/cxl/core/extent.c
+> @@ -270,20 +270,65 @@ static void calc_hpa_range(struct cxl_endpoint_decoder *cxled,
+>  	hpa_range->end = hpa_range->start + range_len(dpa_range) - 1;
+>  }
+>  
+> +static int cxlr_notify_extent(struct cxl_region *cxlr, enum dc_event event,
+> +			      struct region_extent *region_extent)
+> +{
+> +	struct device *dev = &cxlr->cxlr_dax->dev;
+> +	struct cxl_notify_data notify_data;
+> +	struct cxl_driver *driver;
+> +
+> +	dev_dbg(dev, "Trying notify: type %d HPA %pra\n",
+> +		event, &region_extent->hpa_range);
+> +
+> +	guard(device)(dev);
+> +
+> +	/*
+> +	 * The lack of a driver indicates a notification has failed.  No user
+> +	 * space coordiantion was possible.
+spell check.
+coordination
+
+> +	 */
+> +	if (!dev->driver)
+> +		return 0;
+> +	driver = to_cxl_drv(dev->driver);
+> +	if (!driver->notify)
+> +		return 0;
+> +
+> +	notify_data = (struct cxl_notify_data) {
+> +		.event = event,
+> +		.region_extent = region_extent,
+> +	};
+> +
+> +	dev_dbg(dev, "Notify: type %d HPA %pra\n",
+> +		event, &region_extent->hpa_range);
+> +	return driver->notify(dev, &notify_data);
+> +}
+
+> diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+> index f0e3f8c787df..4e19d18369de 100644
+> --- a/drivers/dax/bus.c
+> +++ b/drivers/dax/bus.c
+> @@ -183,6 +183,86 @@ static bool is_sparse(struct dax_region *dax_region)
+>  	return (dax_region->res.flags & IORESOURCE_DAX_SPARSE_CAP) != 0;
+>  }
+
+> +
+> +int dax_region_add_resource(struct dax_region *dax_region,
+> +			    struct device *device,
+> +			    resource_size_t start, resource_size_t length)
+> +{
+> +	struct resource *new_resource;
+> +	int rc;
+> +
+> +	struct dax_resource *dax_resource __free(kfree) =
+> +				kzalloc(sizeof(*dax_resource), GFP_KERNEL);
+> +	if (!dax_resource)
+> +		return -ENOMEM;
+> +
+> +	guard(rwsem_write)(&dax_region_rwsem);
+> +
+> +	dev_dbg(dax_region->dev, "DAX region resource %pr\n", &dax_region->res);
+> +	new_resource = __request_region(&dax_region->res, start, length, "extent", 0);
+> +	if (!new_resource) {
+> +		dev_err(dax_region->dev, "Failed to add region s:%pa l:%pa\n",
+> +			&start, &length);
+> +		return -ENOSPC;
+> +	}
+> +
+> +	dev_dbg(dax_region->dev, "add resource %pr\n", new_resource);
+> +	dax_resource->region = dax_region;
+> +	dax_resource->res = new_resource;
+> +	dev_set_drvdata(device, dax_resource);
+> +	rc = devm_add_action_or_reset(device, dax_release_resource,
+> +				      no_free_ptr(dax_resource));
+> +	/*  On error; ensure driver data is cleared under semaphore */
+
+It's not used in the dax_release_resource callback (that I can
+immediately spot) so could you just not set it until after
+this has succeeded?
+
+> +	if (rc)
+> +		dev_set_drvdata(device, NULL);
+i.e. move
+	dev_set_drvdata(device, dax_resource);
+to here.
+
+> +	return rc;
+> +}
+> +EXPORT_SYMBOL_GPL(dax_region_add_resource);
+Adding quite a few exports. Is it time to namespace DAX exports?
+Perhaps a follow up series.
+
+
+
+>  bool static_dev_dax(struct dev_dax *dev_dax)
+>  {
+>  	return is_static(dev_dax->region);
+> @@ -296,19 +376,44 @@ static ssize_t region_align_show(struct device *dev,
+>  static struct device_attribute dev_attr_region_align =
+>  		__ATTR(align, 0400, region_align_show, NULL);
+>  
+> +#define for_each_child_resource(extent, res) \
+> +	for (res = (extent)->child; res; res = res->sibling)
+> +
+Extent naming in here is a little off for a general sounding macro.
+Maybe for_each_child_resource(parent, res) or something like that?
+
+Seem generally useful. Maybe move to resource.h?
+
+> @@ -1494,8 +1679,14 @@ static struct dev_dax *__devm_create_dev_dax(struct dev_dax_data *data)
+>  	device_initialize(dev);
+>  	dev_set_name(dev, "dax%d.%d", dax_region->id, dev_dax->id);
+>  
+> +	if (is_sparse(dax_region) && data->size) {
+> +		dev_err(parent, "Sparse DAX region devices must be created initially with 0 size");
+> +		rc = -EINVAL;
+> +		goto err_id;
+
+Right label?  This code doesn't have side effects and the next error path is goto err_range
+Looks like you fail to reverse the alloc_dev_dax_id() in this error path.
+
+> +	}
+> +
+>  	rc = alloc_dev_dax_range(&dax_region->res, dev_dax, dax_region->res.start,
+> -				 data->size);
+> +				 data->size, NULL);
+>  	if (rc)
+>  		goto err_range;
+>  
+> diff --git a/drivers/dax/bus.h b/drivers/dax/bus.h
+> index 783bfeef42cc..ae5029ea6047 100644
+> --- a/drivers/dax/bus.h
+> +++ b/drivers/dax/bus.h
+> @@ -9,6 +9,7 @@ struct dev_dax;
+>  struct resource;
+>  struct dax_device;
+>  struct dax_region;
+> +struct dax_sparse_ops;
+>  
+>  /* dax bus specific ioresource flags */
+>  #define IORESOURCE_DAX_STATIC BIT(0)
+> @@ -17,7 +18,7 @@ struct dax_region;
+>  
+>  struct dax_region *alloc_dax_region(struct device *parent, int region_id,
+>  		struct range *range, int target_node, unsigned int align,
+> -		unsigned long flags);
+> +		unsigned long flags, struct dax_sparse_ops *sparse_ops);
+>  
+>  struct dev_dax_data {
+>  	struct dax_region *dax_region;
+> diff --git a/drivers/dax/cxl.c b/drivers/dax/cxl.c
+> index 367e86b1c22a..df979ea2cb59 100644
+> --- a/drivers/dax/cxl.c
+> +++ b/drivers/dax/cxl.c
+> @@ -5,6 +5,58 @@
+>  
+>  #include "../cxl/cxl.h"
+>  #include "bus.h"
+> +#include "dax-private.h"
+> +
+> +static int __cxl_dax_add_resource(struct dax_region *dax_region,
+> +				  struct region_extent *region_extent)
+> +{
+> +	resource_size_t start, length;
+> +	struct device *dev;
+> +
+> +	dev = &region_extent->dev;
+Might as well do
+	struct device *dev = &region_extent->dev;
+
+
+> +	start = dax_region->res.start + region_extent->hpa_range.start;
+> +	length = range_len(&region_extent->hpa_range);
+> +	return dax_region_add_resource(dax_region, dev, start, length);
+> +}
+
+
+> diff --git a/drivers/dax/dax-private.h b/drivers/dax/dax-private.h
+> index ccde98c3d4e2..e3866115243e 100644
+> --- a/drivers/dax/dax-private.h
+> +++ b/drivers/dax/dax-private.h
+...
+
+> +/*
+> + * Similar to run_dax() dax_region_{add,rm}_resource() and dax_avail_size() are
+> + * exported but are not intended to be generic operations outside the dax
+> + * subsystem.  They are only generic between the dax layer and the dax drivers.
+> + */
+> +int dax_region_add_resource(struct dax_region *dax_region, struct device *dev,
+> +			    resource_size_t start, resource_size_t length);
+> +int dax_region_rm_resource(struct dax_region *dax_region,
+> +			   struct device *dev);
+> +resource_size_t dax_avail_size(struct resource *dax_resource);
+> +
+> +typedef int (*match_cb)(struct device *dev, resource_size_t *size_avail);
+Why is this here?
 
