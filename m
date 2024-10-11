@@ -1,88 +1,154 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BACD207A36;
-	Fri, 11 Oct 2024 09:18:11 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.137.202.133
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D34320B1F3
+	for <nvdimm@lists.linux.dev>; Fri, 11 Oct 2024 09:59:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728638294; cv=none; b=YWxkfmRwekJaJVudJ0lDyYtoZc15Z6505ud+mf8McbKQJRAp5Bt03Lrnd1RxTAJu0CZjkwsyCcegKvvdMGzKNNNZYT231LwZIqljbTXZZMCDSk5xUQED/s2ffv6KOimQJBlA5jGZQgQQ+C6/Kfaher4SKcf+t1EZkgtvjbmwzLU=
+	t=1728640751; cv=none; b=SOSJjXfYtsYKGF4MmrtKqd+JV1/NmIjW4cYFpli1AS5j/DlEec4CnQ/nPqtp3NnSSzNrmFqDpfnz45gBWS8zCF05bokVw+cJk5o3XK0LPeYRWqDWuW7PYRyxRZp0M2WgT4SYce2JxxLZrVJ312qGr127yH3Fbpclg2dekjcSp3E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728638294; c=relaxed/simple;
-	bh=m2Llmirs7gZ+YvRTkAP1OLo1mBvaOWjgJWGJGgqeTJ4=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=F4i9BqM9qB/KYYMyBY2QUq81ufoOKlg9g1b9dnavRSb7h9Sz0gLzPpUTv7JLGlHM6+9OcOjGoUjLRad7DesVQD2My8XHXWa+5fJI4QOPOxZskABsv7PCoCzjCimH3S1+4npiBEWpk7HW9V3winIRDojBkbMWfvTsJUSyFKCC+zc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=Quf8GJzg; arc=none smtp.client-ip=198.137.202.133
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=bombadil.srs.infradead.org
+	s=arc-20240116; t=1728640751; c=relaxed/simple;
+	bh=5gafY4ZT7avuy7Y1VqEpCA311SEKnqvcV+aZVGStUgg=;
+	h=From:Content-Type:Mime-Version:Subject:Message-Id:Date:To; b=UfMCS21p8qHNSRCL4HlVHoafBsBcWh8FQCx1V8kapgFc2nTsnoawyjPuDpctnvjEC2U4tQJeEZh4jHroAkn6uhgl5t976G9rKjTR2mgdyKKRtgnplfoWxMusq4eqEkTpWo+kRxEu63vKIm++dW/3RUkW4q5kkooHqkS/rU0YAZk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=b6vI41Ym; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=0VjNHFwi; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=b6vI41Ym; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=0VjNHFwi; arc=none smtp.client-ip=195.135.223.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="Quf8GJzg"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
-	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=lU4r4tbL0K3+5Mx7gnspEYb/vcINY3gT5cXeOgb5F4w=; b=Quf8GJzgeSqTUbUf2AO61bq2LU
-	Vf+sqE1ISUAtcou7pFQzSVWv9InCaQKBoNd0afkNiv10L1mfVdLAfuZqdRMl/eVzwvg1LIjnPSgRK
-	bKGLaoP6oKtAZ0+iIW2SuFuA9IX5rlhBRy2PApzCAuKxL5P39veXhGyuBZikJB5HCpCMvAy/RPwhk
-	x+iQBynF6YG1b170b2ADWCDkmbV+l3SIixwMM+ABeReVdPFfffqfyxC8IpG4uEF7f5C0GB0e8yg9O
-	ROhve62AuLOSgCtv0FBgCduv+2YocVTwKa+gGZ5aSE9GPjg+5J5xpstuLLxyrAoBK+jWMzLm2wGew
-	PN1kCL1w==;
-Received: from hch by bombadil.infradead.org with local (Exim 4.98 #2 (Red Hat Linux))
-	id 1szBmb-0000000FnpU-3CEE;
-	Fri, 11 Oct 2024 09:18:01 +0000
-Date: Fri, 11 Oct 2024 02:18:01 -0700
-From: Christoph Hellwig <hch@infradead.org>
-To: Qun-Wei Lin <qun-wei.lin@mediatek.com>
-Cc: Jens Axboe <axboe@kernel.dk>, Minchan Kim <minchan@kernel.org>,
-	Sergey Senozhatsky <senozhatsky@chromium.org>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>,
-	"Huang, Ying" <ying.huang@intel.com>, Chris Li <chrisl@kernel.org>,
-	Ryan Roberts <ryan.roberts@arm.com>,
-	David Hildenbrand <david@redhat.com>,
-	Kairui Song <kasong@tencent.com>,
-	"Matthew Wilcox (Oracle)" <willy@infradead.org>,
-	Dan Schatzberg <schatzberg.dan@gmail.com>,
-	Barry Song <baohua@kernel.org>, linux-block@vger.kernel.org,
-	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
-	linux-mm@kvack.org, linux-arm-kernel@lists.infradead.org,
-	linux-mediatek@lists.infradead.org,
-	Casper Li <casper.li@mediatek.com>,
-	Chinwen Chang <chinwen.chang@mediatek.com>,
-	Andrew Yang <andrew.yang@mediatek.com>,
-	John Hsu <john.hsu@mediatek.com>, wsd_upstream@mediatek.com
-Subject: Re: [PATCH] mm: Split BLK_FEAT_SYNCHRONOUS and SWP_SYNCHRONOUS_IO
- into separate read and write flags
-Message-ID: <ZwjtSe8zL3WO32h5@infradead.org>
-References: <20241011091133.28173-1-qun-wei.lin@mediatek.com>
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="b6vI41Ym";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="0VjNHFwi";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="b6vI41Ym";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="0VjNHFwi"
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id 23D611FF72
+	for <nvdimm@lists.linux.dev>; Fri, 11 Oct 2024 09:59:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1728640748; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=5gafY4ZT7avuy7Y1VqEpCA311SEKnqvcV+aZVGStUgg=;
+	b=b6vI41YmSM0jvS7R0CRmy9Nib++PwnCm2PXfMA/cHvhkOvltnRN/oR+88YD3kxLZJWYdGr
+	81ETddyaAIrSWAPosqYVfKOFihR7k1lU43AvWBcQWF0iibdGoNR4fFw0P0KgiYwI2xXKP1
+	+DANreBVdUiBkfR0Lx93R2EtYboWsZM=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1728640748;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=5gafY4ZT7avuy7Y1VqEpCA311SEKnqvcV+aZVGStUgg=;
+	b=0VjNHFwiW3xno0NHeef4ktjfKjOU0UGpQKDvEKF7FbX0pGw3EkQJA3D43uJN3oV3oSkAXq
+	jZivsilTvhcB/WAQ==
+Authentication-Results: smtp-out2.suse.de;
+	dkim=pass header.d=suse.de header.s=susede2_rsa header.b=b6vI41Ym;
+	dkim=pass header.d=suse.de header.s=susede2_ed25519 header.b=0VjNHFwi
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1728640748; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=5gafY4ZT7avuy7Y1VqEpCA311SEKnqvcV+aZVGStUgg=;
+	b=b6vI41YmSM0jvS7R0CRmy9Nib++PwnCm2PXfMA/cHvhkOvltnRN/oR+88YD3kxLZJWYdGr
+	81ETddyaAIrSWAPosqYVfKOFihR7k1lU43AvWBcQWF0iibdGoNR4fFw0P0KgiYwI2xXKP1
+	+DANreBVdUiBkfR0Lx93R2EtYboWsZM=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1728640748;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=5gafY4ZT7avuy7Y1VqEpCA311SEKnqvcV+aZVGStUgg=;
+	b=0VjNHFwiW3xno0NHeef4ktjfKjOU0UGpQKDvEKF7FbX0pGw3EkQJA3D43uJN3oV3oSkAXq
+	jZivsilTvhcB/WAQ==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 8F3C31370C
+	for <nvdimm@lists.linux.dev>; Fri, 11 Oct 2024 09:59:07 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id zNYUE+v2CGcMOQAAD6G6ig
+	(envelope-from <colyli@suse.de>)
+	for <nvdimm@lists.linux.dev>; Fri, 11 Oct 2024 09:59:07 +0000
+From: Coly Li <colyli@suse.de>
+Content-Type: text/plain;
+	charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20241011091133.28173-1-qun-wei.lin@mediatek.com>
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
+Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3776.700.51\))
+Subject: Removing a misleading warning message?
+Message-Id: <15237B14-B55B-4737-9A98-D76AEDB4AEAD@suse.de>
+Date: Fri, 11 Oct 2024 17:58:52 +0800
+To: nvdimm@lists.linux.dev
+X-Mailer: Apple Mail (2.3776.700.51)
+X-Rspamd-Queue-Id: 23D611FF72
+X-Spam-Score: -2.67
+X-Rspamd-Action: no action
+X-Spamd-Result: default: False [-2.67 / 50.00];
+	BAYES_HAM(-2.16)[96.00%];
+	SUBJECT_ENDS_QUESTION(1.00)[];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	R_DKIM_ALLOW(-0.20)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	MX_GOOD(-0.01)[];
+	DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	FUZZY_BLOCKED(0.00)[rspamd.com];
+	RBL_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	MIME_TRACE(0.00)[0:+];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	RCPT_COUNT_ONE(0.00)[1];
+	ARC_NA(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	DKIM_TRACE(0.00)[suse.de:+];
+	SPAMHAUS_XBL(0.00)[2a07:de40:b281:104:10:150:64:97:from];
+	TO_DN_NONE(0.00)[];
+	RCVD_COUNT_TWO(0.00)[2];
+	FROM_EQ_ENVFROM(0.00)[];
+	RCVD_TLS_ALL(0.00)[];
+	PREVIOUSLY_DELIVERED(0.00)[nvdimm@lists.linux.dev];
+	RECEIVED_SPAMHAUS_BLOCKED_OPENRESOLVER(0.00)[2a07:de40:b281:106:10:150:64:167:received];
+	MID_RHS_MATCH_FROM(0.00)[];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	APPLE_MAILER_COMMON(0.00)[];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:rdns,imap1.dmz-prg2.suse.org:helo,suse.de:mid,suse.de:dkim]
+X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
+X-Spam-Flag: NO
+X-Spam-Level: 
 
-On Fri, Oct 11, 2024 at 05:11:33PM +0800, Qun-Wei Lin wrote:
-> This patch splits the BLK_FEAT_SYNCHRONOUS feature flag into two
-> separate flags: BLK_FEAT_READ_SYNCHRONOUS and
-> BLK_FEAT_WRITE_SYNCHRONOUS. Similarly, the SWP_SYNCHRONOUS_IO flag is
-> split into SWP_READ_SYNCHRONOUS_IO and SWP_WRITE_SYNCHRONOUS_IO.
-> 
-> These changes are motivated by the need to better accommodate certain
-> swap devices that support synchronous read operations but asynchronous write
-> operations.
-> 
-> The existing BLK_FEAT_SYNCHRONOUS and SWP_SYNCHRONOUS_IO flags are not
-> sufficient for these devices, as they enforce synchronous behavior for
-> both read and write operations.
+Hi list,
 
-You're still failing to provide a user.  Without that it is dead in
-the water from the very beginning.
+Recently I have a report for a warning message from CXL subsystem,
+[ 48.142342] cxl_port port2: Couldn't locate the CXL.cache and CXL.mem =
+capability array header.
+[ 48.144690] cxl_port port3: Couldn't locate the CXL.cache and CXL.mem =
+capability array header.
+[ 48.144704] cxl_port port3: HDM decoder capability not found
+[ 48.144850] cxl_port port4: Couldn't locate the CXL.cache and CXL.mem =
+capability array header.
+[ 48.144859] cxl_port port4: HDM decoder capability not found
+[ 48.170374] cxl_port port6: Couldn't locate the CXL.cache and CXL.mem =
+capability array header.
+[ 48.172893] cxl_port port7: Couldn't locate the CXL.cache and CXL.mem =
+capability array header.
+[ 48.174689] cxl_port port7: HDM decoder capability not found
+[ 48.175091] cxl_port port8: Couldn't locate the CXL.cache and CXL.mem =
+capability array header.
+[ 48.175105] cxl_port port8: HDM decoder capability not found
 
+After checking the source code I realize this is not a real bug, just a =
+warning message that expected device was not detected.
+But from the above warning information itself, users/customers are =
+worried there is something wrong (IMHO indeed not).
+
+Is there any chance that we can improve the code logic that only =
+printing out the warning message when it is really a problem to be =
+noticed?=20
+
+Thanks in advance.
+
+Coly Li=20=
