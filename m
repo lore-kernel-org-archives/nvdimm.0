@@ -1,400 +1,261 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.18])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f171.google.com (mail-pf1-f171.google.com [209.85.210.171])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9BB2A19E97F
-	for <nvdimm@lists.linux.dev>; Fri, 11 Oct 2024 16:55:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=198.175.65.18
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728665706; cv=fail; b=lwgVM62y66M96SCHA0O0xwN9F5PZt8RMDZUOmSd+aIjYt0k679DP1wKskLVWa4ChP41Ign5GSZHAyze1upldChmZFQlVn4jKOzN6z7LUA2AlUs+CQyLjjdwqFA5qxpvGh7WgBjZtcNg12Uo+tb+I8SRNV25heqHGqjpjS9DuZpc=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728665706; c=relaxed/simple;
-	bh=bCV10SJEPWlmfU+AFR+v5vZIkB5mH88cxFIO+uRj1hs=;
-	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
-	 Content-Disposition:In-Reply-To:MIME-Version; b=RhQIaaPhs4VSqQLrQKdPCfIfeempE5/cWoPuKcafUU2xCJsMmiXWk2YdjCpHnxPMuMTw1ecTaP+EBHpOcXyB33gtswnNML0EpcTxsDt/ezjdLTRCm+XdaGqy+Fq++laoskKcd0idJtyGhuRwukAUTfpWxxNk8XEYIGl+drlrF1Q=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=A0WkMtkL; arc=fail smtp.client-ip=198.175.65.18
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87E3E1C9EAC
+	for <nvdimm@lists.linux.dev>; Fri, 11 Oct 2024 19:14:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.171
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1728674092; cv=none; b=RK8+i7v74pd1I05TjevO0sJygNCvMMRieHjzHdi7abwbyhTVYkrHfn21D+1XdSEjt6cV94WzhxIYlcr6Es82hu2wSmac0jjL1bMQ+xbdupVejzIJ7uUXYlu5VxfspDRkp/cgW7HzPqSpgIS6+zUsQ7YX2mQ/39XE+ZU7r4dc8Dc=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1728674092; c=relaxed/simple;
+	bh=aQRSA1yeJHJ4TV/I8uMqgU5sOulw5Aa610ReT/Pi0PE=;
+	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=h+Fncn5q9R9CyfmoHa36VwXfo4skzKs/xI3vfMELOb9BwS7SuykN1T4d3GR2aThSNLxP7Afz6T99QEt8zxKpC3775iGNMWjuzYUaRLhwYmW6EjtVrbm/VryzZ5R8Ws9zfTbmxW2p1VIx0h6giD2rWffPF+HwxEfVY1qS2ti7nbE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=NyKr2cPA; arc=none smtp.client-ip=209.85.210.171
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="A0WkMtkL"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1728665705; x=1760201705;
-  h=date:from:to:cc:subject:message-id:references:
-   in-reply-to:mime-version;
-  bh=bCV10SJEPWlmfU+AFR+v5vZIkB5mH88cxFIO+uRj1hs=;
-  b=A0WkMtkLbVMEJxqAhDOGMym3h2QMmBd0h9P/3gEU5KQ7OmpvY0fqjN1T
-   G7BzJiZTh4O5UlS1zoVgWH5W/bDjBGakNUTyzuCoo/j4omiX4mlEHmkgb
-   CdLXYr4JD6Q/9rpAlMpxwZk2aZfkN/1wTqDzsgVknabEV7e1fAVvTmbrs
-   7ETdBi5O7fWZEViZ/zRiV/aLEeQasqNuukJrMjLyUbWCUFMAIsycQB+WT
-   HOD4U6TR7KrzrI+6QE8KaKBT5JzXQNkjTkXXigNhVAHNyWIt8za923UeM
-   j18r5aaVCizTt5QkpV0kJkynRVYENttmMr1IGXDMmpas7FCnZQRnDmYCx
-   g==;
-X-CSE-ConnectionGUID: TbIEzyRkSvSUJxay4OEwGQ==
-X-CSE-MsgGUID: /flu7EdwTIK3yT0JvC+sOw==
-X-IronPort-AV: E=McAfee;i="6700,10204,11222"; a="28200841"
-X-IronPort-AV: E=Sophos;i="6.11,196,1725346800"; 
-   d="scan'208";a="28200841"
-Received: from orviesa003.jf.intel.com ([10.64.159.143])
-  by orvoesa110.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Oct 2024 09:55:04 -0700
-X-CSE-ConnectionGUID: TjVyBPytR++6bDuPOnc7sg==
-X-CSE-MsgGUID: 54r3lsHuTCqjctd33egRmA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.11,196,1725346800"; 
-   d="scan'208";a="81782702"
-Received: from fmsmsx603.amr.corp.intel.com ([10.18.126.83])
-  by orviesa003.jf.intel.com with ESMTP/TLS/AES256-GCM-SHA384; 11 Oct 2024 09:55:04 -0700
-Received: from fmsmsx611.amr.corp.intel.com (10.18.126.91) by
- fmsmsx603.amr.corp.intel.com (10.18.126.83) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.39; Fri, 11 Oct 2024 09:55:03 -0700
-Received: from fmsmsx610.amr.corp.intel.com (10.18.126.90) by
- fmsmsx611.amr.corp.intel.com (10.18.126.91) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.39; Fri, 11 Oct 2024 09:55:02 -0700
-Received: from fmsedg602.ED.cps.intel.com (10.1.192.136) by
- fmsmsx610.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2507.39 via Frontend Transport; Fri, 11 Oct 2024 09:55:02 -0700
-Received: from NAM11-DM6-obe.outbound.protection.outlook.com (104.47.57.177)
- by edgegateway.intel.com (192.55.55.71) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2507.39; Fri, 11 Oct 2024 09:55:02 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=hnlXuZDArh5Qdi9e6bb+IS7PcaiWTz1NyWtqXx4AUCW6BxdCQHmf3j6AikwMkwJmZyaTBcNLJOrXEmVZbksqv6yWAWQiNPc3jOKV4BfAKM+8xZyj4hOZ3BTe4QncMVGENCKKEAgsdiQPjwTfZu3Tn3avVdxUeqim/2JsIx4LySZswYZrYH53FkeIP/fJePXlUgn2GI+2yZ9/eZAnYvfFodIqdHeN9FGwLeK35xVHIQNxt2f0cglwGbumRj23wHmzXdeVUOTBfpbNrlo2A9jYc3hjP1ywjPNQ+2QSrSLgrrvp7B+TFqrpC9uvOuAtkd3uiiiQjvN5OsRjzM456KR5SA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=0fghwayEcyPEUg9otDeExe1rVWi8nlwGwNfDBp1WDxo=;
- b=NqZOtX0AFFjf05QHfgqcLJ+B0B38dSu4PA4LmpWodYWn6RTxXaWcbJr1QVGYhixpb6mIC69FBltNeEgC79Klh1azf52oBVExY47DwG/cOfwMqKTsgYJU9RvhNAdxLCRzhdiXBfzShduRg4NKIl72FUWmJ4vHxUVXnMlRRhzztcwQbXJpOMsjkuPTGICS6LERrV/eGRaHwzCJ936Ma3ZGBqnEXjgEAO9nSQ0BmwXTbm75FM6+yt8CopQNwZRImqkFeI+BAZbkbS33wlIDcOCz3yMW5CMw8hjr7oAcZepSn5Wl4drtTqDBgadv1XHrmDwjg++DjcAV86AHQwYtMWcsqw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=intel.com;
-Received: from SA1PR11MB6733.namprd11.prod.outlook.com (2603:10b6:806:25c::17)
- by SA1PR11MB6846.namprd11.prod.outlook.com (2603:10b6:806:2b0::6) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8048.18; Fri, 11 Oct
- 2024 16:54:57 +0000
-Received: from SA1PR11MB6733.namprd11.prod.outlook.com
- ([fe80::cf7d:9363:38f4:8c57]) by SA1PR11MB6733.namprd11.prod.outlook.com
- ([fe80::cf7d:9363:38f4:8c57%3]) with mapi id 15.20.8048.018; Fri, 11 Oct 2024
- 16:54:57 +0000
-Date: Fri, 11 Oct 2024 11:54:50 -0500
-From: Ira Weiny <ira.weiny@intel.com>
-To: Rasmus Villemoes <linux@rasmusvillemoes.dk>, Ira Weiny
-	<ira.weiny@intel.com>
-CC: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, "Jonathan
- Cameron" <Jonathan.Cameron@huawei.com>, Navneet Singh
-	<navneet.singh@intel.com>, Jonathan Corbet <corbet@lwn.net>, Andrew Morton
-	<akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>,
-	Davidlohr Bueso <dave@stgolabs.net>, Alison Schofield
-	<alison.schofield@intel.com>, Vishal Verma <vishal.l.verma@intel.com>,
-	<linux-btrfs@vger.kernel.org>, <linux-cxl@vger.kernel.org>,
-	<linux-doc@vger.kernel.org>, <nvdimm@lists.linux.dev>,
-	<linux-kernel@vger.kernel.org>, Petr Mladek <pmladek@suse.com>, "Steven
- Rostedt" <rostedt@goodmis.org>, Andy Shevchenko
-	<andriy.shevchenko@linux.intel.com>, Rasmus Villemoes
-	<linux@rasmusvillemoes.dk>, Sergey Senozhatsky <senozhatsky@chromium.org>
-Subject: Re: [PATCH v4 02/28] printk: Add print format (%pra) for struct range
-Message-ID: <6709585a8b9e6_9710f294bc@iweiny-mobl.notmuch>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="NyKr2cPA"
+Received: by mail-pf1-f171.google.com with SMTP id d2e1a72fcca58-71e427e29c7so491575b3a.3
+        for <nvdimm@lists.linux.dev>; Fri, 11 Oct 2024 12:14:50 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1728674090; x=1729278890; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=9RwrXc2bfBcpRHPltvXo1MSSyTQE/O8f245siaXgKRY=;
+        b=NyKr2cPAYBSMxsW0vZeDehohSZpB+UQ+IvZuY52VNTWm5n0XITMJn4zaW8wTkQo7KS
+         NJXOhjJavV6nXWjn/sIiE5OVbE0vo92UgQjZyyYLM8/7N+SfGyxwhdGj1ElqIgn9xOFK
+         HpJ2jrYY5thRw0BceMQAcrVjlYrMksHsTtJwFsU8EpLztLYjdCSZH32IlamXGvBLxPTR
+         u7NE9Kr+5QBpT39kWlCHxdeFiT19SIeU/cI5qQDH+ZvXQqdIj2eDLStzq8Xm4Q48PMlW
+         f+DE8D12hVguJcvOY3C7gNxUFXPYQpQ3IiUuT9C49j+dsbmsauv9EO0f6n5FFG2SlzRC
+         lFsw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1728674090; x=1729278890;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=9RwrXc2bfBcpRHPltvXo1MSSyTQE/O8f245siaXgKRY=;
+        b=jNTBd/AqbuVzOON8xdL9d/rm8i7uSFwlPcr6XkeHJp+nCGDUm8ZC/scWppaUEEh/rG
+         y8J1735FqumWf/I5Dxqwj1DzXOXUMadHuCeTMda1mSWrp8d1fMOTU3C5lSxBiAAXTX/r
+         p7gKY4y5LrP13JSu4VD4p++4SjU4pZ6vPOg6qMITj0P/j51fEJh5Tw83SG6pIVuQdLQf
+         B4WiQZSMCll36YBXelVY5TkFOVVpLKm1KtxI5WS4BLMFvU0mymof6szTeidGJS4vFYUD
+         ihSGuFkyulhSDzqCqmH4MQA20eb9vhrSuGbLd/pg4jAW3xCKDzYdsayABYC/TI+8fHMa
+         CzVg==
+X-Forwarded-Encrypted: i=1; AJvYcCVdmpKsfDKzDtI8wAkKHdeQ6J7H9UBI165QurIYxMIxPIYhR4bbSk6FOkv9n8/rkmIVunRlJ6U=@lists.linux.dev
+X-Gm-Message-State: AOJu0YyH9DY5zGG+4Ok76GDfdfBF506c66oO58wtL49UC0K7vGFbT0cX
+	Waj6VCpQcEqwD+GRj9hKr80vmcs0M8BR+23fQmgxAV1tJlTzvD0o
+X-Google-Smtp-Source: AGHT+IGVCV+SFYfjW4RcGOZJynL6OplbrhtCwww1MFkvESFVXDS6nOzvMGaek+UcLI4OxxU65Gaiug==
+X-Received: by 2002:aa7:8890:0:b0:71d:e93e:f542 with SMTP id d2e1a72fcca58-71e4c1cfdffmr870472b3a.21.1728674089661;
+        Fri, 11 Oct 2024 12:14:49 -0700 (PDT)
+Received: from fan ([2601:646:8f03:9fee:fa84:fdda:e412:45e])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-71e48e54f46sm643539b3a.57.2024.10.11.12.14.48
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 11 Oct 2024 12:14:49 -0700 (PDT)
+From: Fan Ni <nifan.cxl@gmail.com>
+X-Google-Original-From: Fan Ni <fan.ni@samsung.com>
+Date: Fri, 11 Oct 2024 12:14:26 -0700
+To: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Ira Weiny <ira.weiny@intel.com>, "Li, Ming4" <ming4.li@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Navneet Singh <navneet.singh@intel.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Davidlohr Bueso <dave@stgolabs.net>,
+	Alison Schofield <alison.schofield@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	linux-btrfs@vger.kernel.org, linux-cxl@vger.kernel.org,
+	linux-doc@vger.kernel.org, nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v4 21/28] cxl/extent: Process DCD events and realize
+ region extents
+Message-ID: <Zwl5Esr7uV8EpxMP@fan>
 References: <20241007-dcd-type2-upstream-v4-0-c261ee6eeded@intel.com>
- <20241007-dcd-type2-upstream-v4-2-c261ee6eeded@intel.com>
- <871q0p5rq1.fsf@prevas.dk>
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <871q0p5rq1.fsf@prevas.dk>
-X-ClientProxiedBy: MW4PR03CA0133.namprd03.prod.outlook.com
- (2603:10b6:303:8c::18) To SA1PR11MB6733.namprd11.prod.outlook.com
- (2603:10b6:806:25c::17)
+ <20241007-dcd-type2-upstream-v4-21-c261ee6eeded@intel.com>
+ <4337ddd9-312b-4fb7-9597-81e8b00d57cb@intel.com>
+ <6706de3530f5c_40429294b8@iweiny-mobl.notmuch>
+ <20241010155014.00004bdd@Huawei.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SA1PR11MB6733:EE_|SA1PR11MB6846:EE_
-X-MS-Office365-Filtering-Correlation-Id: 5495b024-2d1b-46d9-5b00-08dcea156fed
-X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|376014|366016|7416014|1800799024;
-X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?6gILLQJ+O+vHgiwGNFakTteYN22mWV/qn0XF1AUXJAHghr9eeYfDIcpjr3s/?=
- =?us-ascii?Q?9jefIYMfDyw6JTPl4Uko2NL3iS0YmH23M4U5jQiNYTtSmOJMsxkDHMLAgZKA?=
- =?us-ascii?Q?bVb9D4CmdshWdsUCDRYMm8oZf6f6aBqK+pgAHNxEr45AmZnnVvoMzFw7FnQ2?=
- =?us-ascii?Q?OY7iHoSI5P9JC2RmmMhdsPraDAFw0mHrj+F0fuZ4VpjotQxpmw6Kt0cdvAus?=
- =?us-ascii?Q?C7Qe+XLfBnpihprYKr9uuW1HkE5IXIhhhzcDIAaSyi6u0orhhy/+4oCqp00G?=
- =?us-ascii?Q?Nzv7+HsKPrsPNzLe91ym7d5ZXhYeyhU/kjtYc2a3vib6bN/ptZxgfSKiwZvw?=
- =?us-ascii?Q?/vZkXdwzB2B7hcRl75+40MeIIBlu0pWWEZZhPqjjEhOvXRPVoWdF+wH0L62S?=
- =?us-ascii?Q?9AC10lWB7CVJzwMb579Vzgdbrh33At6PzCA6kxtyIoFGQyClx3Tv2Wvf1uyR?=
- =?us-ascii?Q?oqJ24M3OA7MTo7GEkS2oYSJ9oF/3eF536ii+nnzG6xUK8aFxKq0twmvwyYal?=
- =?us-ascii?Q?ISO3JfR5X2BSkObBWGTQlcSFAjwYDrZsI7VPakrMD5RregbrrZdPD3celdZj?=
- =?us-ascii?Q?r4Tmt8E8x0FvMqvBY7TZrwMTZW2sgWj5NNLYecCj6T2SfZitju1E7tMEa01c?=
- =?us-ascii?Q?y93JIiTul6ErXuBs/AHznWOpMQj/a1bui5kJd3x4gBJ3UV6N7ltJWpVszpoD?=
- =?us-ascii?Q?XpPNYLy+uPGY0wNkxLpCdQzanHHj9c5nqtfA+i2r+blEEZHfjRnlWBG3+JjZ?=
- =?us-ascii?Q?L+XhjrMl/J+GoceOEzhrfVp0id/ruyvymL79jr9jObfm3e5/t/KAWv5u29S6?=
- =?us-ascii?Q?bqrjXgLGVavMVNYuZG2ySVqEn6I/A6W8MB2gY3HkbMvJ9TSB0uxB/O2HzI7n?=
- =?us-ascii?Q?h+VMURk5gFkwUSvTfJ1I1hOqsTEe4imyfsF5abVi4Jm+tma/lj6EskSoQssx?=
- =?us-ascii?Q?nsT2J55oYE0yfubzEsRHh/GNX83rAjhRp+Q7/x4KGhV8lNM02z5netVRocwq?=
- =?us-ascii?Q?RiJyiNHbkoMFgrCRwboT7Xp7mpRsyNcekhVnvKE/K2GLf1DmQyc0uCo67X+6?=
- =?us-ascii?Q?0S+uVnO3gzkHJHT+cs4WxZGATtS6swA/gDtd2I3BI/guxu92GgbcfudLx+3j?=
- =?us-ascii?Q?BDwefRSoS3wHCSvN+bYwI0P8wbzk0AHzKxZGkNVF61DctukK/LpRDWI0PU7B?=
- =?us-ascii?Q?jhKu0dYhSTwlH6UbmbacD4abzvqfl7Yn+BUnnaERK6bOu+pq6XirZu3Buanp?=
- =?us-ascii?Q?LRGdK0dXrtAFj4WJqA5uKnK9bsp96z3kOEGIRlXsEg=3D=3D?=
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA1PR11MB6733.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(376014)(366016)(7416014)(1800799024);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?FSnd2YfASxR0hNp8hHTy0lFYzg36kTWe5XRh4mmuoKZ+bY4KGlKKYuHcQ44c?=
- =?us-ascii?Q?CDJM9uf1c1kNiTF2MtKnWq18lVAdOefpqfiQY25v8N6jJWtrThkr/f0TghrK?=
- =?us-ascii?Q?4up5HulCof445zlub6Hos62QkNal6gyBEO/mwkZq0bjKGMZG8CzjyhDleOJa?=
- =?us-ascii?Q?dxd1sYtx0TwhYIobID1alR9hoOcmWLXPQA60BwMFY08PM0YhLZjZmzDPj4f1?=
- =?us-ascii?Q?KPbAephFONpp4UW2s6MNsK0wAs2kzMwLKLA8+r7Es4iWNqrcN+LuHDgaGil6?=
- =?us-ascii?Q?kp/vULjm+H9F1O1fXgxJ1MUzzA1UrYwMlRD2z5V1/0iAqz2ETeqpCbmdI2qM?=
- =?us-ascii?Q?NolwxdW1ohp0bi4OEKlL8EKCkDyebdSWEn+5ykOWXa8EJYkNgtuENYjOXv3z?=
- =?us-ascii?Q?n56fACm/DJLv8m8k5BmmLGHQhTAW5Mh9qgmcsOy78uNMCBnhVBgRMjVK/7m9?=
- =?us-ascii?Q?fM98r+5ajO4Vfni2x7yW6YWeqTKNVqlleX3hDsumaBRf5mwK39lNjrr0Ypl2?=
- =?us-ascii?Q?gCwoHqKGRdePv57c2N19O6HgX7OoGRHHHqCmI87eSZsVavywrjR0xnQXXF03?=
- =?us-ascii?Q?YKfcxmS13UGR3mmlQ1ivCf6phXR+J4SaBFzGQgvZD8VHdE8rB/0W6si83RME?=
- =?us-ascii?Q?Az+6vs2/sLckV5t1okH7M3vdgHZXtOHmw0PnKLf+R6v25fdTx7zTSo8Ywkah?=
- =?us-ascii?Q?khBVOyhYaPAwXFJ2Cva1O4UJjpLcJyJ+Isn6wvsbh1gOL6GcrndhDQ1O6OHr?=
- =?us-ascii?Q?TRuJ6lj3hayHWjwARWL15K6EZLLSEPEbaKSpuU7ceFRYJumIZU/RosPD95k6?=
- =?us-ascii?Q?0yofyRTAzAvqLyuoHWJyS2JHunCgFFwSnPIJARr0Uq9fqqlTHi6IJfqfe1Mv?=
- =?us-ascii?Q?UZZGHjj3QfkgS9oApl/omF5l6Br+5M3D3VLv8CdWxwVuRRiBwSaRcvs58pv6?=
- =?us-ascii?Q?AIBuuU3b/32Mixozn30no+H0CMlw0wUPLiAYW8LGSwH7ecHnhrVc6RydlVxN?=
- =?us-ascii?Q?nFkGSU95uEiGyMwBCYC3FkbmGa7X5gopoVFLiiPg5tZ2FOWl0X2TOhWLqOAs?=
- =?us-ascii?Q?XTIef2lmtEHK/mWY63SjzFY16O0ecQ9HU1NDAJewpCKGi4qA1cZffny//mYa?=
- =?us-ascii?Q?w5N1DUWp14g2y3fUuncJm4bqmiVi/ggPWOiS6PlxSOmwb8kYqwxp55pgH9xa?=
- =?us-ascii?Q?M8URyrA2lkxI/cnk/d6mnX7bxwcyy3m2zgEGX10jFeiNcvkMSXK157Uz04Sg?=
- =?us-ascii?Q?RRfa0KH2aMFM8UnrP2CvZ7qjy6sQnGz4TkZ8HqHicWyX7bt3YknEQ59ANElL?=
- =?us-ascii?Q?/V7f0QoD0dQgrrt1e+W3c4zncawOQpM5/58MuHz6ejv0Wpw97KBeqFIyN1kX?=
- =?us-ascii?Q?d45zO03xIUttd7EaZjhbUM5iU1XI/gjCsFkBH2goi/xyhazBM79RyI6FC/2S?=
- =?us-ascii?Q?oPCQo0uw4gDbWSat2Eg/6CaK9/TTt6t2enK54T7pocspfQtMoDSsF4MjqxUx?=
- =?us-ascii?Q?T+w803bQe49UGYLOMVqZdUl/f0aSso47QxrFmQEgm0VfRbaLaaTr+kRUEKRN?=
- =?us-ascii?Q?hUUEuVpSsgZXohILaTpCBV4+xcM85+I99//h2pe4?=
-X-MS-Exchange-CrossTenant-Network-Message-Id: 5495b024-2d1b-46d9-5b00-08dcea156fed
-X-MS-Exchange-CrossTenant-AuthSource: SA1PR11MB6733.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 11 Oct 2024 16:54:57.5497
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: We0kEMAF3sUcoqz2htWPWnYPDKDnErn2JC75Wm8a602EFApkbeVXZWOumRHkxzV8rPa6LntBZaVFub3/1hVZdg==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SA1PR11MB6846
-X-OriginatorOrg: intel.com
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20241010155014.00004bdd@Huawei.com>
 
-Rasmus Villemoes wrote:
-> Ira Weiny <ira.weiny@intel.com> writes:
+On Thu, Oct 10, 2024 at 03:50:14PM +0100, Jonathan Cameron wrote:
+> On Wed, 9 Oct 2024 14:49:09 -0500
+> Ira Weiny <ira.weiny@intel.com> wrote:
 > 
-> > ---
-> >  Documentation/core-api/printk-formats.rst | 13 ++++++++
-> >  lib/test_printf.c                         | 26 +++++++++++++++
-> >  lib/vsprintf.c                            | 55 +++++++++++++++++++++++++++----
-> >  3 files changed, 88 insertions(+), 6 deletions(-)
-> >
-> > diff --git a/Documentation/core-api/printk-formats.rst b/Documentation/core-api/printk-formats.rst
-> > index 14e093da3ccd..03b102fc60bb 100644
-> > --- a/Documentation/core-api/printk-formats.rst
-> > +++ b/Documentation/core-api/printk-formats.rst
-> > @@ -231,6 +231,19 @@ width of the CPU data path.
+> > Li, Ming4 wrote:
+> > > On 10/8/2024 7:16 AM, ira.weiny@intel.com wrote:  
+> > > > From: Navneet Singh <navneet.singh@intel.com>
+> > > >  
+> > 
+> > [snip]
+> > 
+> > > >
+> > > > Signed-off-by: Navneet Singh <navneet.singh@intel.com>
+> > > > Co-developed-by: Ira Weiny <ira.weiny@intel.com>
+> > > > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+> > > >  
+> > > Hi Ira,
+> > > 
+> > > I guess you missed my comments for V3, I comment it again for this patch.  
+> > 
+> > Apologies.  Yes I totally missed your reply.  :-(
+> > 
+> > >   
+> > > > +static bool extents_contain(struct cxl_dax_region *cxlr_dax,
+> > > > +			    struct cxl_endpoint_decoder *cxled,
+> > > > +			    struct range *new_range)
+> > > > +{
+> > > > +	struct device *extent_device;
+> > > > +	struct match_data md = {
+> > > > +		.cxled = cxled,
+> > > > +		.new_range = new_range,
+> > > > +	};
+> > > > +
+> > > > +	extent_device = device_find_child(&cxlr_dax->dev, &md, match_contains);
+> > > > +	if (!extent_device)
+> > > > +		return false;
+> > > > +
+> > > > +	put_device(extent_device);  
+> > > could use __free(put_device) to drop this 'put_device(extent_device)'  
+> > 
+> > Yep.
+> > 
+> > > > +	return true;
+> > > > +}  
+> > > [...]  
+> > > > +static bool extents_overlap(struct cxl_dax_region *cxlr_dax,
+> > > > +			    struct cxl_endpoint_decoder *cxled,
+> > > > +			    struct range *new_range)
+> > > > +{
+> > > > +	struct device *extent_device;
+> > > > +	struct match_data md = {
+> > > > +		.cxled = cxled,
+> > > > +		.new_range = new_range,
+> > > > +	};
+> > > > +
+> > > > +	extent_device = device_find_child(&cxlr_dax->dev, &md, match_overlaps);
+> > > > +	if (!extent_device)
+> > > > +		return false;
+> > > > +
+> > > > +	put_device(extent_device);  
+> > > Same as above.  
+> > 
+> > Done.
+> > 
+> > > > +	return true;
+> > > > +}
+> > > > +  
+> > > [...]  
+> > > > +static int cxl_send_dc_response(struct cxl_memdev_state *mds, int opcode,
+> > > > +				struct xarray *extent_array, int cnt)
+> > > > +{
+> > > > +	struct cxl_mailbox *cxl_mbox = &mds->cxlds.cxl_mbox;
+> > > > +	struct cxl_mbox_dc_response *p;
+> > > > +	struct cxl_mbox_cmd mbox_cmd;
+> > > > +	struct cxl_extent *extent;
+> > > > +	unsigned long index;
+> > > > +	u32 pl_index;
+> > > > +	int rc;
+> > > > +
+> > > > +	size_t pl_size = struct_size(p, extent_list, cnt);
+> > > > +	u32 max_extents = cnt;
+> > > > +
+> > > > +	/* May have to use more bit on response. */
+> > > > +	if (pl_size > cxl_mbox->payload_size) {
+> > > > +		max_extents = (cxl_mbox->payload_size - sizeof(*p)) /
+> > > > +			      sizeof(struct updated_extent_list);
+> > > > +		pl_size = struct_size(p, extent_list, max_extents);
+> > > > +	}
+> > > > +
+> > > > +	struct cxl_mbox_dc_response *response __free(kfree) =
+> > > > +						kzalloc(pl_size, GFP_KERNEL);
+> > > > +	if (!response)
+> > > > +		return -ENOMEM;
+> > > > +
+> > > > +	pl_index = 0;
+> > > > +	xa_for_each(extent_array, index, extent) {
+> > > > +
+> > > > +		response->extent_list[pl_index].dpa_start = extent->start_dpa;
+> > > > +		response->extent_list[pl_index].length = extent->length;
+> > > > +		pl_index++;
+> > > > +		response->extent_list_size = cpu_to_le32(pl_index);
+> > > > +
+> > > > +		if (pl_index == max_extents) {
+> > > > +			mbox_cmd = (struct cxl_mbox_cmd) {
+> > > > +				.opcode = opcode,
+> > > > +				.size_in = struct_size(response, extent_list,
+> > > > +						       pl_index),
+> > > > +				.payload_in = response,
+> > > > +			};
+> > > > +
+> > > > +			response->flags = 0;
+> > > > +			if (pl_index < cnt)
+> > > > +				response->flags &= CXL_DCD_EVENT_MORE;  
+> > > 
+> > > It should be 'response->flags |= CXL_DCD_EVENT_MORE' here.  
+> > 
+> > Ah yea.  Good catch.
+> > 
+> > > 
+> > > Another issue is if 'cnt' is N times bigger than 'max_extents'(e,g. cnt=20, max_extents=10). all responses will be sent in this xa_for_each(), and CXL_DCD_EVENT_MORE will be set in the last response but it should not be set in these cases.
+> > >   
+> > 
+> > Ah yes.  cnt must be decremented.  As I looked at the patch just now the
+> > 
+> > 	if (cnt == 0 || pl_index)
+> > 
+> > ... seemed very wrong to me.  That change masked this bug.
+> > 
+> > This should fix it:
+> > 
+> > diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
+> > index d66beec687a0..99200274dea8 100644
+> > --- a/drivers/cxl/core/mbox.c
+> > +++ b/drivers/cxl/core/mbox.c
+> > @@ -1119,10 +1119,11 @@ static int cxl_send_dc_response(struct cxl_memdev_state *mds, int opcode,
+> >                         if (rc)
+> >                                 return rc;
+> >                         pl_index = 0;
+> > +                       cnt -= pl_index;
+> >                 }
+> >         }
 > >  
-> >  Passed by reference.
-> >  
-> > +Struct Range
-> > +------------
+> > -       if (cnt == 0 || pl_index) {
 > 
-> Probably neither of those words should be capitalized.
+> I thought this cnt == 0 check was to deal with the no valid
+> extents case where an empty reply is needed.
 
-I was following the format of the header of struct resource
+Agreed. Based on current code logic, there are two cases that cnt == 0:
+1. no extent is accepted so cnt is passed as 0;
+2. cnt was decreased to 0 and response has already been sent.
 
-	Struct Resources
-	----------------
+For case 1, we still need to send a response with zero extents;
+For case 2, we do not need to handle.
 
-I can change it but I was trying to be consistent here.
-
-[snip]
-
-> > +static void __init
-> > +struct_range(void)
-> > +{
-> > +	struct range test_range = {
-> > +		.start = 0xc0ffee00ba5eba11,
-> > +		.end = 0xc0ffee00ba5eba11,
-> > +	};
-> > +
-> > +	test("[range 0xc0ffee00ba5eba11]", "%pra", &test_range);
-> > +
-> > +	test_range = (struct range) {
-> > +		.start = 0xc0ffee,
-> > +		.end = 0xba5eba11,
-> > +	};
-> > +	test("[range 0x0000000000c0ffee-0x00000000ba5eba11]",
-> > +	     "%pra", &test_range);
-> > +
-> > +	test_range = (struct range) {
-> > +		.start = 0xba5eba11,
-> > +		.end = 0xc0ffee,
-> > +	};
-> > +	test("[range 0x00000000ba5eba11-0x0000000000c0ffee]",
-> > +	     "%pra", &test_range);
-> > +}
-> > +
-> 
-> Thanks for including tests!
-> 
-> Rather than the struct assignments, I think it's easier to read if you
-> just do
-
-I'm using Andy's suggestion of DEFINE_RANGE()
-
-> 
->   struct range r;
-> 
->   r.start = 0xc0ffee00ba5eba11;
->   r.end   = r.start;
->   ...
-> 
->   r.start = 0xc0ffee;
->   r.end   = 0xba5eba11;
->   ...
-> 
-> which saves two lines per test and for the first one makes it more
-> obvious that the start and end values are identical.
-> 
-> >  static void __init
-> >  addr(void)
-> >  {
-> > @@ -807,6 +832,7 @@ test_pointer(void)
-> >  	symbol_ptr();
-> >  	kernel_ptr();
-> >  	struct_resource();
-> > +	struct_range();
-> >  	addr();
-> >  	escaped_str();
-> >  	hex_string();
-> > diff --git a/lib/vsprintf.c b/lib/vsprintf.c
-> > index 09f022ba1c05..f8f5ed8f4d39 100644
-> > --- a/lib/vsprintf.c
-> > +++ b/lib/vsprintf.c
-> > @@ -1039,6 +1039,19 @@ static const struct printf_spec default_dec04_spec = {
-> >  	.flags = ZEROPAD,
-> >  };
-> >  
-> > +static noinline_for_stack
-> > +char *hex_range(char *buf, char *end, u64 start_val, u64 end_val,
-> > +		struct printf_spec spec)
-> > +{
-> > +	buf = number(buf, end, start_val, spec);
-> > +	if (start_val != end_val) {
-> > +		if (buf < end)
-> > +			*buf++ = '-';
-> 
-> No. Either all your callers pass a (probably stack-allocated) buffer
-> which is guaranteed to be big enough, in which case you don't need the
-> "if (buf < end)", or if some callers may "print" directly to the buffer
-> passed to vsnprintf(), the buf++ must still be done unconditionally in
-> order that vsnprintf(NULL, 0, ...) [used by fx kasprintf] can accurately
-> determine how large the output string would be.
-> 
-> So, either
-> 
->   *buf++ = '-'
-> 
-> or
-> 
->   if (buf < end)
->     *buf = '-';
->   buf++;
-> 
-> Please don't mix the two. 
-
-Ah ok yea fixed building on Andy's comment.
-
-diff --git a/lib/vsprintf.c b/lib/vsprintf.c
-index a7b5e4618f6a..7aa47f7d9d5b 100644
---- a/lib/vsprintf.c
-+++ b/lib/vsprintf.c
-@@ -1048,7 +1048,8 @@ char *hex_range(char *buf, char *end, u64 start_val, u64 end_val,
-                return buf;
-
-        if (buf < end)
--               *buf++ = '-';
-+               *buf = '-';
-+       ++buf;
-        return number(buf, end, end_val, spec);
- }
+Fan
 
 > 
 > 
+> > +       if (pl_index) {
+> >                 mbox_cmd = (struct cxl_mbox_cmd) {
+> >                         .opcode = opcode,
+> >                         .size_in = struct_size(response, extent_list,
+> > 
+> > 
+> > Thank you, and sorry again for missing your feedback.
+> > 
+> > Ira
+> > 
+> > [snip]
+> > 
 > 
-> > +		buf = number(buf, end, end_val, spec);
-> > +	}
-> > +	return buf;
-> > +}
-> > +
-> >  static noinline_for_stack
-> >  char *resource_string(char *buf, char *end, struct resource *res,
-> >  		      struct printf_spec spec, const char *fmt)
-> > @@ -1115,11 +1128,7 @@ char *resource_string(char *buf, char *end, struct resource *res,
-> >  		p = string_nocheck(p, pend, "size ", str_spec);
-> >  		p = number(p, pend, resource_size(res), *specp);
-> >  	} else {
-> > -		p = number(p, pend, res->start, *specp);
-> > -		if (res->start != res->end) {
-> > -			*p++ = '-';
-> > -			p = number(p, pend, res->end, *specp);
-> > -		}
-> > +		p = hex_range(p, pend, res->start, res->end, *specp);
-> >  	}
-> >  	if (decode) {
-> >  		if (res->flags & IORESOURCE_MEM_64)
-> > @@ -1140,6 +1149,34 @@ char *resource_string(char *buf, char *end, struct resource *res,
-> >  	return string_nocheck(buf, end, sym, spec);
-> >  }
-> >  
-> > +static noinline_for_stack
-> > +char *range_string(char *buf, char *end, const struct range *range,
-> > +		   struct printf_spec spec, const char *fmt)
-> > +{
-> > +#define RANGE_DECODED_BUF_SIZE		((2 * sizeof(struct range)) + 4)
-> > +#define RANGE_PRINT_BUF_SIZE		sizeof("[range -]")
-> > +	char sym[RANGE_DECODED_BUF_SIZE + RANGE_PRINT_BUF_SIZE];
-> 
-> I don't think these names or the split in two constants helps
-> convincing that's the right amount. I have to think quite a bit to see
-> that 2*sizeof is because struct range has two u64 and we're printing in
-> hex so four-bits-per-char and probably the +4 are for two time "0x".
 
-Yea.
-
-> 
-> Why not just size the buffer directly using an "example" string?
-> 
->   char sym[sizeof("[range 0x0123456789abcdef-0x0123456789abcdef]")]
-
-Ok that is simpler.
-
-> 
-> > +	char *p = sym, *pend = sym + sizeof(sym);
-> > +
-> > +	struct printf_spec range_spec = {
-> > +		.field_width = 2 + 2 * sizeof(range->start), /* 0x + 2 * 8 */
-> > +		.flags = SPECIAL | SMALL | ZEROPAD,
-> > +		.base = 16,
-> > +		.precision = -1,
-> > +	};
-> > +
-> > +	if (check_pointer(&buf, end, range, spec))
-> > +		return buf;
-> > +
-> > +	*p++ = '[';
-> > +	p = string_nocheck(p, pend, "range ", default_str_spec);
-> 
-> We really should have mempcpy or stpcpy. I don't see the point of using
-> string_nocheck here, or not including the [ in the string copy (however
-> it's done). But yeah, without stpcpy() that's a bit awkward. 
-
-Added '[' to the string.  The prevalent use of string_nocheck() seems
-reasonable to me but it is pretty heavyweight for this case.
-
-Ira
+-- 
+Fan Ni
