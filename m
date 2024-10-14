@@ -1,362 +1,238 @@
-Received: from NAM02-BN1-obe.outbound.protection.outlook.com (mail-bn1nam02on2045.outbound.protection.outlook.com [40.107.212.45])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yb1-f178.google.com (mail-yb1-f178.google.com [209.85.219.178])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F046513C9A2
-	for <nvdimm@lists.linux.dev>; Mon, 14 Oct 2024 07:46:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=40.107.212.45
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728892021; cv=fail; b=EfD/1EbBe+AZVv1ddtOF2/7zDDuAABI3xMHV3v6MR+HdBXXW0bd2/0spveS+po1iUMHB/VhO5zGmf9OVWiHz6VR0SEtwRFnYYsC/IZvRWyKg3tyg28bjbSLbX4y3svmi5Xw0aCXhfYT4oA5ZU50+VMxxO10atTOP8syYEIhgBEw=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728892021; c=relaxed/simple;
-	bh=NmCvruAVE/PiTTOUuNYwaW1yd5V8DfKZv4kDdWwUqCM=;
-	h=References:From:To:Cc:Subject:Date:In-reply-to:Message-ID:
-	 Content-Type:MIME-Version; b=Q2FRZUeBcQlYk3zIrPuBVhLI3xXqNlqFj3BE6Ofn2nJrJ19CwvDjTa/5ArVYUhJ6pFdjE+eeaffXWCjZLMrdrzzKZfT796XaD8LZ7B3aI3fgJfR+MttlTEhELZG7gjuUK8yQ6Jk/eSekk+770VtcZaKXrly9BZtDa/OV0LUoW+g=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com; spf=fail smtp.mailfrom=nvidia.com; dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b=nShLYgG6; arc=fail smtp.client-ip=40.107.212.45
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nvidia.com
-Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=nvidia.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B71D94B5AE
+	for <nvdimm@lists.linux.dev>; Mon, 14 Oct 2024 16:08:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.178
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1728922136; cv=none; b=Hql7p9LtBzvI78BCLZgT4IuAGq8yuPt9vG6oyYmjZ3duVor7G0WQ5+HkjqWO/pQSQpO0jx6syog3W7cjzBw0xILum0ZO/PeG4rtGEHbb/Z8Bx6K1u2kXyXyVuqGEt4VrDqLJa2/R+B/Zoia9TwDnwIV5YLhLcHOnmmcH2urpgwI=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1728922136; c=relaxed/simple;
+	bh=x0Gv6XhjavAOSlOmdm7MSOUPup2hPLoqFbL2brwshzI=;
+	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=LgS7Pqrmb2lHbxJrFYei1153YuswbpMTumyBUuwAmF94X+D8dPjpVGui3lf+wSyZwcHbO2SsVyHKrWlNBV8D3MgcADbGkVkei8T6jc6tdeShKqCTO0/u3bJu9zzR+E7JqK3AyWA+R42Ap5oUn5K/u1nbb5h0L9lvHLxm4LpqAi4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=c8CctsKV; arc=none smtp.client-ip=209.85.219.178
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=Nvidia.com header.i=@Nvidia.com header.b="nShLYgG6"
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
- b=oWz+/nIdJHQwHzWzeFrkzNve7fFYjrT2P9I0mxvaurgYFUV3rwXFQDOSnOpqQXwkKg5eQggp84wjJXBfyu8Iah1ZpG+xwe2SxPA3mUiL+RcDW6uQieuXlHuDfAOqP4RPcaW2gc072/ANedGIkwKRLEiFhvOEkPpjhJyXZy18FBgmW0cSo1r+Y9VnZ4nKPlnUezbtUbIAy1KCOBB3TikIuxmNsNPNDYZoP7hxLHFEL1luC9Ae8dnxX0h7y41eZRg4swNT8DHS0eW2BIyIuOKnYlku+arslphqlh7npOaGNtKiAs2iaQKw3PgfWzt3xHpttIcfeHQHVFUVxAu8d2jIAA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector10001;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=fG428I2IEAHjeIBi4w4pYsub/aNR1xBe4gWd9nPAWYw=;
- b=oP7xZ3NIdhi4TBzBQ2hgfaGLxRNtWQMnPfbXgINGL4ykWILZXkQm3QwzswlwfoUg3ST7bfpWhp/XIjs9vGXwdeJwdeYWAFApsjWC/djOokbr3vDjiVbfeOVsNAUXAIx6vq/8BR/59XiZsiL6uz6umgxPhGQ0ufPUTmY5msS3lDaUtDIX4/Bxp8Nq9ENG5W/ip7xDtGyjH13g9Fx8KJotxYupF2hY928qH6vAs+/9iLGLSvf8sas/gKco+Dqz6KoCpq43OwPF1RHXhQqG1vQEttlnVwkbF2ardE0YV6pUHht3ospUDMNV1skt9eYPr9JKp2h5/T8FkStd/QFtGoemMQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=fG428I2IEAHjeIBi4w4pYsub/aNR1xBe4gWd9nPAWYw=;
- b=nShLYgG6QcH3h+DXw2skGXcINEVaE10KsfwDcBXq5l0cswcAaqlRWtMR5qVGfTGsFLxjBLEAMhoD5jYCqWbW8Mjiyz0potcm1QCfg1Sy7ODvjtrcl3tjtwPe0Xe/KoheGrzK8A2FEpRDmRKiHtELQRfIul7QJrX9aSUd4Alygx+mo4azMCpPef63qxtHRnB1CAbgTx2TKybuSYREAHjsQu8g2Yavhk5Zg1w2oBIOkqivFy0t5eHeQlod4ZojlKXJG+YKNuAxlbB+CVCUpbosQ/CgMSlvEV8PSWOdYZpL2TMSFRHTflmBp3nn2wxuoZ1ZY8ZSoFhAEZyFYv3yeaDfxw==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from DS0PR12MB7726.namprd12.prod.outlook.com (2603:10b6:8:130::6) by
- SN7PR12MB6838.namprd12.prod.outlook.com (2603:10b6:806:266::18) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8048.26; Mon, 14 Oct
- 2024 07:46:55 +0000
-Received: from DS0PR12MB7726.namprd12.prod.outlook.com
- ([fe80::953f:2f80:90c5:67fe]) by DS0PR12MB7726.namprd12.prod.outlook.com
- ([fe80::953f:2f80:90c5:67fe%3]) with mapi id 15.20.8048.020; Mon, 14 Oct 2024
- 07:46:55 +0000
-References: <cover.9f0e45d52f5cff58807831b6b867084d0b14b61c.1725941415.git-series.apopple@nvidia.com>
- <64f1664980bed3da01b771afdfc4056825b61277.1725941415.git-series.apopple@nvidia.com>
- <66f65ba5be661_964f229415@dwillia2-xfh.jf.intel.com.notmuch>
-User-agent: mu4e 1.10.8; emacs 29.1
-From: Alistair Popple <apopple@nvidia.com>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-mm@kvack.org, vishal.l.verma@intel.com, dave.jiang@intel.com,
- logang@deltatee.com, bhelgaas@google.com, jack@suse.cz, jgg@ziepe.ca,
- catalin.marinas@arm.com, will@kernel.org, mpe@ellerman.id.au,
- npiggin@gmail.com, dave.hansen@linux.intel.com, ira.weiny@intel.com,
- willy@infradead.org, djwong@kernel.org, tytso@mit.edu,
- linmiaohe@huawei.com, david@redhat.com, peterx@redhat.com,
- linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
- nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org,
- linux-fsdevel@vger.kernel.org, linux-ext4@vger.kernel.org,
- linux-xfs@vger.kernel.org, jhubbard@nvidia.com, hch@lst.de,
- david@fromorbit.com
-Subject: Re: [PATCH 09/12] mm: Update vm_normal_page() callers to accept FS
- DAX pages
-Date: Mon, 14 Oct 2024 18:16:15 +1100
-In-reply-to: <66f65ba5be661_964f229415@dwillia2-xfh.jf.intel.com.notmuch>
-Message-ID: <87y12rm8id.fsf@nvdebian.thelocal>
-Content-Type: text/plain
-X-ClientProxiedBy: SY5P282CA0188.AUSP282.PROD.OUTLOOK.COM
- (2603:10c6:10:249::25) To DS0PR12MB7726.namprd12.prod.outlook.com
- (2603:10b6:8:130::6)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="c8CctsKV"
+Received: by mail-yb1-f178.google.com with SMTP id 3f1490d57ef6-e2923d5b87aso2483945276.3
+        for <nvdimm@lists.linux.dev>; Mon, 14 Oct 2024 09:08:54 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1728922134; x=1729526934; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=X5RyIxaiFAqgyn7YTV3vu3eof3ewxJ3wbFaOqcBHMmY=;
+        b=c8CctsKVXy4oSXexWu7ZZJFd76VE+HdtoIm0smCvAuAQdDtHA/h0csXJk0ntZFZTXy
+         1qtsTEjko+BsExeeU6eYEsLynUnP0DOI4FPRuyJOpoBzFw17K/5CwWF/yUkaALuXwpn2
+         ACmA6G2CZkX6w2oeeVaN1c9UHn02J0KgzkJOKEt9BueBS56FcYpdK8hsXAuatOWXCqJF
+         QLWqIN9HBfdDr3EPuBrPVI/fALYK+O/pbQH9NQxV++57DFN/SdSB4ErJ4X+mokoPRR77
+         HpNLR4bVf0NJJM/W3SVlSxzCoana0ExsstskyiDSt9gEFEvDquLnnWZgntwtJuz6XTVw
+         3GuA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1728922134; x=1729526934;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=X5RyIxaiFAqgyn7YTV3vu3eof3ewxJ3wbFaOqcBHMmY=;
+        b=T6o4gRA2d3vgRvUdaO+PVbeNrUR0N1k5Bg1/z/3PWswI9i28IuIz9ycxDKqJsv9Gi/
+         ZLOzQnUoDWTzWh/m9qVq2kkE+YmBgLHYJt3scobnq15dHo+LpeWzXuj0LfVXnX/06G5a
+         HSsmOWSLqEDqS6QBIxtepB89Q+ijrJr6vcuSIudo8Rv2I0hZ+8bLUYlZ1rvRWZiRzO/G
+         SP99Z8PxWpAXwBf0iJ76ZDGGxmRFCBoC2lmEMMdMk4uSBX8H6bwKOx5yht5oM0uRffX5
+         xNCYIBqJb4aG1Fzz2Kd8KkphxzEPW2a+2PA0hmH+k1TZnLI8Y1T1SXoiI8HI1pNdHO0b
+         kuGg==
+X-Forwarded-Encrypted: i=1; AJvYcCXRyL6xRbeUVk6lgB1b1CZAU2XaZzImMP2waTiHg7pHDsXmD6JJ6HXlYhPnX3nvbUDanwQ4oQg=@lists.linux.dev
+X-Gm-Message-State: AOJu0YzzuFWd4/iPlllZ4M8D5YkWjItXNqgL3y0IY3t7Rev6kCV64dOC
+	N6sGbZc3aPDnP2v1KwMB+1jR+zJ5uPJnQ1sJ0fW2sgonCtqz34SU
+X-Google-Smtp-Source: AGHT+IFm3nS/SkhhLDoqifUygslM34yLooMncY8URtqtXHAS6QEz7pQyx7s+F1mpZz8WPolBXsfnOg==
+X-Received: by 2002:a05:6902:1104:b0:e25:abb9:c71b with SMTP id 3f1490d57ef6-e2919defaaemr7976293276.39.1728922133703;
+        Mon, 14 Oct 2024 09:08:53 -0700 (PDT)
+Received: from fan ([50.205.20.42])
+        by smtp.gmail.com with ESMTPSA id 3f1490d57ef6-e290edff83esm2512650276.16.2024.10.14.09.08.52
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 14 Oct 2024 09:08:53 -0700 (PDT)
+From: Fan Ni <nifan.cxl@gmail.com>
+X-Google-Original-From: Fan Ni <fan.ni@samsung.com>
+Date: Mon, 14 Oct 2024 09:08:36 -0700
+To: ira.weiny@intel.com
+Cc: Dave Jiang <dave.jiang@intel.com>,
+	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+	Navneet Singh <navneet.singh@intel.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Davidlohr Bueso <dave@stgolabs.net>,
+	Alison Schofield <alison.schofield@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	linux-btrfs@vger.kernel.org, linux-cxl@vger.kernel.org,
+	linux-doc@vger.kernel.org, nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v4 22/28] cxl/region/extent: Expose region extent
+ information in sysfs
+Message-ID: <Zw1CBOBEzHm1sHaH@fan>
+References: <20241007-dcd-type2-upstream-v4-0-c261ee6eeded@intel.com>
+ <20241007-dcd-type2-upstream-v4-22-c261ee6eeded@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DS0PR12MB7726:EE_|SN7PR12MB6838:EE_
-X-MS-Office365-Filtering-Correlation-Id: 0eb60bc8-70ed-417f-984e-08dcec245f70
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|376014|7416014|366016;
-X-Microsoft-Antispam-Message-Info:
-	=?us-ascii?Q?ov/MQa110yAAxbSjJsIxOvE9JvCEhcF/AT4n5LK/IKC19eY+/CVchSNt5RV0?=
- =?us-ascii?Q?Wl9zTcpgtPwHhj2u81ZyZYbo0mcCj3ECvEIg5mGqj3bykOCXfpBzZfJEeNyc?=
- =?us-ascii?Q?y2jbTjt7fwez5K8zT2wsQvXTvrhAH1PasvAVx+Yp60rDkbHGYZjEdM/ZU0qK?=
- =?us-ascii?Q?tSyuxMON4j4lwmuPcF/dqeB/ugjrPXgbOhrw7PfhRiXe0ZC+mBNyTl77tqPJ?=
- =?us-ascii?Q?orLFmKtNQKoCLX76w3KE9IMRgQqTZNfzWgfCUX0PQHp6YUsBB+WxjJnVtif9?=
- =?us-ascii?Q?qKzNFTG2gSPS/OywXw7pSaMYNOazMSIsKRzGpZgBlHedK2WnyW4jfZJBAWps?=
- =?us-ascii?Q?yEDMDfLHa1T5kxs0x5lS0SxjepcYFNpM+0pJNfnzCUwz95ZMQEuBFjUeR3We?=
- =?us-ascii?Q?195Irdz2tsKE5bWE9Ml1LXlqmZeElJg6pKu3RurzmN13x9WRyVxbIeOA14NG?=
- =?us-ascii?Q?S9P5kEKSErI2XJOKbipbpoJrdTR484hvDMIQRhndLMFCq8mkLVo0cs4AoiLU?=
- =?us-ascii?Q?eLrUvi/fYwNl2XN65PGOCn54KAQjnGrPp3RyQQ6IxIYET7SbdYsUyRxsk9rR?=
- =?us-ascii?Q?LVJp9gFV9uwznQnmhoXcedU4A2ZbQNgoMASRG0FTpirjirLgXaiY7jkMeGmy?=
- =?us-ascii?Q?P+3SubtKn43MOBc3uHCj7E0kuVL3smT3Oum69Xmr+HKypNQHHzIf/UTyp0mA?=
- =?us-ascii?Q?mHS98vqnzEkzlyr6/UYOa37disSusZN9IvniDN3qWaTioIPEK5do4pT8fT9h?=
- =?us-ascii?Q?nikJbU1qBWlHXB5YdjCKcpCcTT5h9+2EcGBqkM7Md9wZ+tAfo31a1S4MZzvQ?=
- =?us-ascii?Q?FWKIHviHHFeaZVbYZNiBamZEc3dLS9CoPNHfyw5AU/XRA4ZVeFz8U1Z4sivH?=
- =?us-ascii?Q?fXhHX6FGu560g1Yr+0HB/VONOwcN77JpmgoOVkLadKOlClC4IIDP8su/KVEG?=
- =?us-ascii?Q?ehoKFHg0L8ZQwt6h1PPpf+W9aa78mgfFwRX+TEF4x09C+M9PZOePZA4vveUH?=
- =?us-ascii?Q?NWnCnVsBTV8a/59waRcZ6WftKAHoYHSYNe/bUPFalazRnNC53qVJCOd/lWp9?=
- =?us-ascii?Q?PCAARMGqNpdMH75lASWiTR/2BguMeLuo+Pk0aD6tJ1RzCNEDzrNEXu3omeGh?=
- =?us-ascii?Q?zLLFFxXFcBnx+aw9nErarqPmb3OdrWvLiL5wHGlV4xOMKxZlDS5VBdXXCjYq?=
- =?us-ascii?Q?ZjtlMDhr8qI0cynejSziY1PHguUjmFArGL9rStwritlbS87QaP4jg9o07NIt?=
- =?us-ascii?Q?ceurCiVir5+3N3VDkjhaWlmTVtI6voBOAu0PR9bEjg=3D=3D?=
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS0PR12MB7726.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(376014)(7416014)(366016);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?gKxYob0HCFwdeU2sQXDKVBCEbMHOJjua/GZr+Qk6UsHVToBGTdpTrsxOZPLT?=
- =?us-ascii?Q?AjlHPGUeaR9qt0wz0TVKoh16Uk+UPgQvX7leXbrto0qBP39xWoKKWgxDPuEX?=
- =?us-ascii?Q?uZ0DB+ZdBhNbxSnBWc10s1OZoMSOmINum2vwNy94cIySRUzFi5CUQvI+K7pf?=
- =?us-ascii?Q?jSA08Rc/4Mn11twMlYGMniGThhRYPuP/5z1f0H4KZczXb26xz0jASL+xemui?=
- =?us-ascii?Q?vbsxyHopVUQ/OsrQ4+C8zPCDTUElQsJGtjA/c/66g5xid3/pTeqbsDKqhINy?=
- =?us-ascii?Q?411Me8arV4oC6czG2QSDNbhyBuP4LXr44Alve+ELsjtzyBYLoghrsYCgBa+n?=
- =?us-ascii?Q?1pv2YGFkrFfGQg66djHiWlESs0g2M+Q/MJ+qsl1+kauuhEqxme+AvZVvlCXQ?=
- =?us-ascii?Q?vfo4ltRkN3MhOzWn/+d9XiZK8/NyNE+UeeMJeM7tcFEvBWc5VPfECiE1q8np?=
- =?us-ascii?Q?0yX+s709FuJiXhGRSpFm+SadYWAlh/BbE6WyZeyXpaNxsNJkR4WUpz2tAbxj?=
- =?us-ascii?Q?RgKsmdJ9PW2zhOSO8zVGY9iTEASwcyOqxksQCF2fD+/Sxk+JwmkdwUJziy5I?=
- =?us-ascii?Q?yi4qGU5dDE7W46iSMeiVolxqthqcxc2telDteLVBDSCTRxRiZhPEb/+2nzI3?=
- =?us-ascii?Q?vtlwC9F5NJp3MUSEKaNDsvZWrnJu3wmi9vP8IoPznYkh5pNjholmUKRLSuI3?=
- =?us-ascii?Q?ntWNHowTb3gVMOMecfxWIwKpdISQN6tWtVYKItp6T1t6CL0uetdUgCRsNzry?=
- =?us-ascii?Q?f+I43ff+lmHK1B003p9L/+XSVuHIxnYruoZq8khLdpMGPI8eEIL22Z3BaSE6?=
- =?us-ascii?Q?aibQfLbzmjvi4Z27H8KEe6tnStGU2qJhziawAjxKtah7Y0kfD17FlmCPpJCK?=
- =?us-ascii?Q?RD2pSu8NGd9zj8tMJyES2jSV5DISQh6O120EeYaZKkcZUXKONCRCdo5vugy5?=
- =?us-ascii?Q?K7DQ/d4XkKaCI+bTLyDDFg0a79rhek4VNcFquvuW16lXKswovdpaU0DxEwhq?=
- =?us-ascii?Q?eb4/k4bHXGEBLYcMN1YS1C+HsKwyRxnbxD9a3lHKwlSSf/efPWmJHvV0tGw3?=
- =?us-ascii?Q?ez5iYiDUDRqJ2LNXIpl/XJq06xIkyNRvUm4kJS6ZCR3ixhfCmAEBK9imwS+L?=
- =?us-ascii?Q?yS2/6/byTB1afgWoTBbSJMtqwrN3ZY5ffNguXq5r8p7AfdOjMm4RUNTwY8uH?=
- =?us-ascii?Q?429yMlAbfrfFjG/SHjpYmL7AjrfxdzHQhR67i1CXNGH1SK4RoOeiejttYs2C?=
- =?us-ascii?Q?VZfdEfzIN5ON2Zwum52ArNuc1j1kac6x2lqgnLu98f476AnRCPSKvwNaimQx?=
- =?us-ascii?Q?MjnLtqFFeaHTV2Kevtpg72Ghi367v5iPQc7bMfteAaGeup5sGpulg4tcTE+p?=
- =?us-ascii?Q?mzvnDsErT10PS/6j66fF3XGvn0bcIW5UsykX/b/5sfFGPKpl+zNomwwm9l40?=
- =?us-ascii?Q?IsZIMSF/rr4id11wASwKKPvfu1LS3X/nIQZyS/uMbfKlksdN/IgRQv/Wkj7b?=
- =?us-ascii?Q?9Bi6zhKm9udGBmr+XMdzVEFbLmz876NTkr2CRji/dOA1VeCdY6+sS4UJtWxw?=
- =?us-ascii?Q?n8O1Ddn6oZh5oVKzRTZdxsvrh8U+r1lwfJyZJSOT?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 0eb60bc8-70ed-417f-984e-08dcec245f70
-X-MS-Exchange-CrossTenant-AuthSource: DS0PR12MB7726.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 14 Oct 2024 07:46:55.0375
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: QSb+pDjmX6fDAwnQdPfY4UUrgxspuAvbwRm/dHo4iGXniNcyYtJ5WoasH1xAvEnQmilcL/uUrkMg8ilN2HtEPQ==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN7PR12MB6838
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20241007-dcd-type2-upstream-v4-22-c261ee6eeded@intel.com>
 
+On Mon, Oct 07, 2024 at 06:16:28PM -0500, ira.weiny@intel.com wrote:
+> From: Navneet Singh <navneet.singh@intel.com>
+> 
+> Extent information can be helpful to the user to coordinate memory usage
+> with the external orchestrator and FM.
+> 
+> Expose the details of region extents by creating the following
+> sysfs entries.
+> 
+>         /sys/bus/cxl/devices/dax_regionX/extentX.Y
+>         /sys/bus/cxl/devices/dax_regionX/extentX.Y/offset
+>         /sys/bus/cxl/devices/dax_regionX/extentX.Y/length
+>         /sys/bus/cxl/devices/dax_regionX/extentX.Y/tag
+> 
+> Signed-off-by: Navneet Singh <navneet.singh@intel.com>
+> Co-developed-by: Ira Weiny <ira.weiny@intel.com>
+> Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+> 
 
-Dan Williams <dan.j.williams@intel.com> writes:
+Reviewed-by: Fan Ni <fan.ni@samsung.com>
+Tested-by: Fan Ni <fan.ni@samsung.com>
 
-> Alistair Popple wrote:
->> Currently if a PTE points to a FS DAX page vm_normal_page() will
->> return NULL as these have their own special refcounting scheme. A
->> future change will allow FS DAX pages to be refcounted the same as any
->> other normal page.
->> 
->> Therefore vm_normal_page() will start returning FS DAX pages. To avoid
->> any change in behaviour callers that don't expect FS DAX pages will
->> need to explicitly check for this. As vm_normal_page() can already
->> return ZONE_DEVICE pages most callers already include a check for any
->> ZONE_DEVICE page.
->> 
->> However some callers don't, so add explicit checks where required.
->
-> I would expect justification for each of these conversions, and
-> hopefully with fsdax returning fully formed folios there is less need to
-> sprinkle these checks around.
->
-> At a minimum I think this patch needs to be broken up by file touched.
+> ---
+> Changes:
+> [djiang: Split sysfs docs up]
+> [iweiny: Adjust sysfs docs dates]
+> ---
+>  Documentation/ABI/testing/sysfs-bus-cxl | 32 ++++++++++++++++++
+>  drivers/cxl/core/extent.c               | 58 +++++++++++++++++++++++++++++++++
+>  2 files changed, 90 insertions(+)
+> 
+> diff --git a/Documentation/ABI/testing/sysfs-bus-cxl b/Documentation/ABI/testing/sysfs-bus-cxl
+> index b63ab622515f..64918180a3c9 100644
+> --- a/Documentation/ABI/testing/sysfs-bus-cxl
+> +++ b/Documentation/ABI/testing/sysfs-bus-cxl
+> @@ -632,3 +632,35 @@ Description:
+>  		See Documentation/ABI/stable/sysfs-devices-node. access0 provides
+>  		the number to the closest initiator and access1 provides the
+>  		number to the closest CPU.
+> +
+> +What:		/sys/bus/cxl/devices/dax_regionX/extentX.Y/offset
+> +Date:		December, 2024
+> +KernelVersion:	v6.13
+> +Contact:	linux-cxl@vger.kernel.org
+> +Description:
+> +		(RO) [For Dynamic Capacity regions only] Users can use the
+> +		extent information to create DAX devices on specific extents.
+> +		This is done by creating and destroying DAX devices in specific
+> +		sequences and looking at the mappings created.  Extent offset
+> +		within the region.
+> +
+> +What:		/sys/bus/cxl/devices/dax_regionX/extentX.Y/length
+> +Date:		December, 2024
+> +KernelVersion:	v6.13
+> +Contact:	linux-cxl@vger.kernel.org
+> +Description:
+> +		(RO) [For Dynamic Capacity regions only] Users can use the
+> +		extent information to create DAX devices on specific extents.
+> +		This is done by creating and destroying DAX devices in specific
+> +		sequences and looking at the mappings created.  Extent length
+> +		within the region.
+> +
+> +What:		/sys/bus/cxl/devices/dax_regionX/extentX.Y/tag
+> +Date:		December, 2024
+> +KernelVersion:	v6.13
+> +Contact:	linux-cxl@vger.kernel.org
+> +Description:
+> +		(RO) [For Dynamic Capacity regions only] Users can use the
+> +		extent information to create DAX devices on specific extents.
+> +		This is done by creating and destroying DAX devices in specific
+> +		sequences and looking at the mappings created.  Extent tag.
+> diff --git a/drivers/cxl/core/extent.c b/drivers/cxl/core/extent.c
+> index 69a7614ba6a9..a1eb6e8e4f1a 100644
+> --- a/drivers/cxl/core/extent.c
+> +++ b/drivers/cxl/core/extent.c
+> @@ -6,6 +6,63 @@
+>  
+>  #include "core.h"
+>  
+> +static ssize_t offset_show(struct device *dev, struct device_attribute *attr,
+> +			   char *buf)
+> +{
+> +	struct region_extent *region_extent = to_region_extent(dev);
+> +
+> +	return sysfs_emit(buf, "%#llx\n", region_extent->hpa_range.start);
+> +}
+> +static DEVICE_ATTR_RO(offset);
+> +
+> +static ssize_t length_show(struct device *dev, struct device_attribute *attr,
+> +			   char *buf)
+> +{
+> +	struct region_extent *region_extent = to_region_extent(dev);
+> +	u64 length = range_len(&region_extent->hpa_range);
+> +
+> +	return sysfs_emit(buf, "%#llx\n", length);
+> +}
+> +static DEVICE_ATTR_RO(length);
+> +
+> +static ssize_t tag_show(struct device *dev, struct device_attribute *attr,
+> +			char *buf)
+> +{
+> +	struct region_extent *region_extent = to_region_extent(dev);
+> +
+> +	return sysfs_emit(buf, "%pUb\n", &region_extent->tag);
+> +}
+> +static DEVICE_ATTR_RO(tag);
+> +
+> +static struct attribute *region_extent_attrs[] = {
+> +	&dev_attr_offset.attr,
+> +	&dev_attr_length.attr,
+> +	&dev_attr_tag.attr,
+> +	NULL,
+> +};
+> +
+> +static uuid_t empty_tag = { 0 };
+> +
+> +static umode_t region_extent_visible(struct kobject *kobj,
+> +				     struct attribute *a, int n)
+> +{
+> +	struct device *dev = kobj_to_dev(kobj);
+> +	struct region_extent *region_extent = to_region_extent(dev);
+> +
+> +	if (a == &dev_attr_tag.attr &&
+> +	    uuid_equal(&region_extent->tag, &empty_tag))
+> +		return 0;
+> +
+> +	return a->mode;
+> +}
+> +
+> +static const struct attribute_group region_extent_attribute_group = {
+> +	.attrs = region_extent_attrs,
+> +	.is_visible = region_extent_visible,
+> +};
+> +
+> +__ATTRIBUTE_GROUPS(region_extent_attribute);
+> +
+>  static void cxled_release_extent(struct cxl_endpoint_decoder *cxled,
+>  				 struct cxled_extent *ed_extent)
+>  {
+> @@ -44,6 +101,7 @@ static void region_extent_release(struct device *dev)
+>  static const struct device_type region_extent_type = {
+>  	.name = "extent",
+>  	.release = region_extent_release,
+> +	.groups = region_extent_attribute_groups,
+>  };
+>  
+>  bool is_region_extent(struct device *dev)
+> 
+> -- 
+> 2.46.0
+> 
 
-Good idea.
-
->> Signed-off-by: Alistair Popple <apopple@nvidia.com>
->> ---
->>  arch/x86/mm/pat/memtype.c |  4 +++-
->>  fs/proc/task_mmu.c        | 16 ++++++++++++----
->>  mm/memcontrol-v1.c        |  2 +-
->>  3 files changed, 16 insertions(+), 6 deletions(-)
->> 
->> diff --git a/arch/x86/mm/pat/memtype.c b/arch/x86/mm/pat/memtype.c
->> index 1fa0bf6..eb84593 100644
->> --- a/arch/x86/mm/pat/memtype.c
->> +++ b/arch/x86/mm/pat/memtype.c
->> @@ -951,6 +951,7 @@ static void free_pfn_range(u64 paddr, unsigned long size)
->>  static int follow_phys(struct vm_area_struct *vma, unsigned long *prot,
->>  		resource_size_t *phys)
->>  {
->> +	struct folio *folio;
->>  	pte_t *ptep, pte;
->>  	spinlock_t *ptl;
->>  
->> @@ -960,7 +961,8 @@ static int follow_phys(struct vm_area_struct *vma, unsigned long *prot,
->>  	pte = ptep_get(ptep);
->>  
->>  	/* Never return PFNs of anon folios in COW mappings. */
->> -	if (vm_normal_folio(vma, vma->vm_start, pte)) {
->> +	folio = vm_normal_folio(vma, vma->vm_start, pte);
->> +	if (folio || (folio && !folio_is_device_dax(folio))) {
->
-> ...for example, I do not immediately see why follow_phys() would need to
-> be careful with fsdax pages?
-
-The intent was to maintain the original behaviour as much as
-possible, partly to reduce the chance of unintended bugs/consequences
-and partly to maintain my sanity by not having to dig too deeply into
-all the callers.
-
-I see I got this a little bit wrong though - it only filters FSDAX pages
-and not device DAX (my intent was to filter both).
-
-> ...but I do see why copy_page_range() (which calls follow_phys() through
-> track_pfn_copy()) might care. It just turns out that vma_needs_copy(),
-> afaics, bypasses dax MAP_SHARED mappings.
->
-> So this touch of memtype.c looks like it can be dropped.
-
-Ok. Although it feels safer to leave it (along with a check for device
-DAX). Someone can always remove it in future if they really do want DAX
-pages but this is all x86 specific so will take your guidance here.
-
->>  		pte_unmap_unlock(ptep, ptl);
->>  		return -EINVAL;
->>  	}
->> diff --git a/fs/proc/task_mmu.c b/fs/proc/task_mmu.c
->> index 5f171ad..456b010 100644
->> --- a/fs/proc/task_mmu.c
->> +++ b/fs/proc/task_mmu.c
->> @@ -816,6 +816,8 @@ static void smaps_pte_entry(pte_t *pte, unsigned long addr,
->>  
->>  	if (pte_present(ptent)) {
->>  		page = vm_normal_page(vma, addr, ptent);
->> +		if (page && is_device_dax_page(page))
->> +			page = NULL;
->>  		young = pte_young(ptent);
->>  		dirty = pte_dirty(ptent);
->>  		present = true;
->> @@ -864,6 +866,8 @@ static void smaps_pmd_entry(pmd_t *pmd, unsigned long addr,
->>  
->>  	if (pmd_present(*pmd)) {
->>  		page = vm_normal_page_pmd(vma, addr, *pmd);
->> +		if (page && is_device_dax_page(page))
->> +			page = NULL;
->>  		present = true;
->>  	} else if (unlikely(thp_migration_supported() && is_swap_pmd(*pmd))) {
->>  		swp_entry_t entry = pmd_to_swp_entry(*pmd);
->
-> The above can be replaced with a catch like
->
->    if (folio_test_device(folio))
-> 	return;
->
-> ...in smaps_account() since ZONE_DEVICE pages are not suitable to
-> account as they do not reflect any memory pressure on the system memory
-> pool.
-
-Sounds good.
-
->> @@ -1385,7 +1389,7 @@ static inline bool pte_is_pinned(struct vm_area_struct *vma, unsigned long addr,
->>  	if (likely(!test_bit(MMF_HAS_PINNED, &vma->vm_mm->flags)))
->>  		return false;
->>  	folio = vm_normal_folio(vma, addr, pte);
->> -	if (!folio)
->> +	if (!folio || folio_is_device_dax(folio))
->>  		return false;
->>  	return folio_maybe_dma_pinned(folio);
->
-> The whole point of ZONE_DEVICE is to account for DMA so I see no reason
-> for pte_is_pinned() to special case dax. The caller of pte_is_pinned()
-> is doing it for soft_dirty reasons, and I believe soft_dirty is already
-> disabled for vma_is_dax(). I assume MEMORY_DEVICE_PRIVATE also does not
-> support soft-dirty, so I expect all ZONE_DEVICE already opt-out of this.
-
-Actually soft-dirty is theoretically supported on DEVICE_PRIVATE pages
-in the sense that the soft-dirty bits are copied around. Whether or not
-it actually works is a different question though, I've certainly never
-tried it.
-
-Again, was just trying to maintain previous behaviour but can drop this
-check.
-
->>  }
->> @@ -1710,6 +1714,8 @@ static pagemap_entry_t pte_to_pagemap_entry(struct pagemapread *pm,
->>  			frame = pte_pfn(pte);
->>  		flags |= PM_PRESENT;
->>  		page = vm_normal_page(vma, addr, pte);
->> +		if (page && is_device_dax_page(page))
->> +			page = NULL;
->>  		if (pte_soft_dirty(pte))
->>  			flags |= PM_SOFT_DIRTY;
->>  		if (pte_uffd_wp(pte))
->> @@ -2096,7 +2102,8 @@ static unsigned long pagemap_page_category(struct pagemap_scan_private *p,
->>  
->>  		if (p->masks_of_interest & PAGE_IS_FILE) {
->>  			page = vm_normal_page(vma, addr, pte);
->> -			if (page && !PageAnon(page))
->> +			if (page && !PageAnon(page) &&
->> +			    !is_device_dax_page(page))
->>  				categories |= PAGE_IS_FILE;
->>  		}
->>  
->> @@ -2158,7 +2165,8 @@ static unsigned long pagemap_thp_category(struct pagemap_scan_private *p,
->>  
->>  		if (p->masks_of_interest & PAGE_IS_FILE) {
->>  			page = vm_normal_page_pmd(vma, addr, pmd);
->> -			if (page && !PageAnon(page))
->> +			if (page && !PageAnon(page) &&
->> +			    !is_device_dax_page(page))
->>  				categories |= PAGE_IS_FILE;
->>  		}
->>  
->> @@ -2919,7 +2927,7 @@ static struct page *can_gather_numa_stats_pmd(pmd_t pmd,
->>  		return NULL;
->>  
->>  	page = vm_normal_page_pmd(vma, addr, pmd);
->> -	if (!page)
->> +	if (!page || is_device_dax_page(page))
->>  		return NULL;
->
-> I am not immediately seeing a reason to block pagemap_read() from
-> interrogating dax-backed virtual mappings. I think these protections can
-> be dropped.
-
-Ok.
-
->>  
->>  	if (PageReserved(page))
->> diff --git a/mm/memcontrol-v1.c b/mm/memcontrol-v1.c
->> index b37c0d8..e16053c 100644
->> --- a/mm/memcontrol-v1.c
->> +++ b/mm/memcontrol-v1.c
->> @@ -667,7 +667,7 @@ static struct page *mc_handle_present_pte(struct vm_area_struct *vma,
->>  {
->>  	struct page *page = vm_normal_page(vma, addr, ptent);
->>  
->> -	if (!page)
->> +	if (!page || is_device_dax_page(page))
->>  		return NULL;
->>  	if (PageAnon(page)) {
->>  		if (!(mc.flags & MOVE_ANON))
->
-> I think this better handled with something like this to disable all
-> memcg accounting for ZONE_DEVICE pages:
-
-Ok, thanks for the review.
-
-> diff --git a/mm/memcontrol-v1.c b/mm/memcontrol-v1.c
-> index b37c0d870816..cfc43e8c59fe 100644
-> --- a/mm/memcontrol-v1.c
-> +++ b/mm/memcontrol-v1.c
-> @@ -940,8 +940,7 @@ static enum mc_target_type get_mctgt_type(struct vm_area_struct *vma,
->                  */
->                 if (folio_memcg(folio) == mc.from) {
->                         ret = MC_TARGET_PAGE;
-> -                       if (folio_is_device_private(folio) ||
-> -                           folio_is_device_coherent(folio))
-> +                       if (folio_is_device(folio))
->                                 ret = MC_TARGET_DEVICE;
->                         if (target)
->                                 target->folio = folio;
-
+-- 
+Fan Ni
