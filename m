@@ -1,120 +1,149 @@
-Received: from esa4.hc1455-7.c3s2.iphmx.com (esa4.hc1455-7.c3s2.iphmx.com [68.232.139.117])
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 868931714B4
-	for <nvdimm@lists.linux.dev>; Wed, 16 Oct 2024 05:20:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=68.232.139.117
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA84E21018D
+	for <nvdimm@lists.linux.dev>; Wed, 16 Oct 2024 15:48:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729056017; cv=none; b=Ras2y5jdoIdLVSOin8M7ZL9SCE69MBJm8Y1mqGn48iq2lcJW738DiMS58V3pr2HFYan7mLEDZaYNd5g0SUDZ6Plj/q8TRAQjChBQL30HFev/a3ZuQAZvPI2zqt9zNIOU9SRa43YDgKQ1oYJGp+/uz+jIDwj0hoS2eFioQ25uuJI=
+	t=1729093714; cv=none; b=cgW9gloN7mMRnu3/97iZ6gbC3YHU5Js2dVOSafu3UuNOTDVintI9TqKzBeWbcP1hMqLqdVZ+UYUq/OvJ7DdJcFvWsenX7nPXO+iNUlTajJ7KLmdfbgKzp83hSs7U46Ha3oh4m63NZ1J4RPTtFFn8HvRVWZsAVJdznVX1g69EdrM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729056017; c=relaxed/simple;
-	bh=US0KrVY0H253GsJ/oNTaz94B+uCAfaIggGiaDG52g3Y=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=PL7F9GIICYttKmlb641UAZwdkeoAqDaO7jhIbZE347uf8KofPhX84vEITxRhTbxUWxfEHgrvo0WvfOIEwK7+mz8FvnbfHhPuRfTZPs9LZTviGZEtNfzIwlg6I+glZtjjK1wVlOnhTFGoX8995QwNA2Fp4/Qhq9aghw69jW68EQs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fujitsu.com; spf=pass smtp.mailfrom=fujitsu.com; dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b=mBtYE4ty; arc=none smtp.client-ip=68.232.139.117
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fujitsu.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fujitsu.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b="mBtYE4ty"
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
-  d=fujitsu.com; i=@fujitsu.com; q=dns/txt; s=fj2;
-  t=1729056015; x=1760592015;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=US0KrVY0H253GsJ/oNTaz94B+uCAfaIggGiaDG52g3Y=;
-  b=mBtYE4tyyRVPh407xYTv0P5jTBqAyP6VvPteFqlHhi4FEfMBBfPnb3Xy
-   pjvdLlJBn1x2mfJGRfvowYXzVCm9olsNeYSYkJwU5v1ujOygckeBEOdIi
-   oNoB54wsFNsmMv2yTjMzxupLqyAjKlB+9SyI3GFmNMsb5WNNi59pt7KB+
-   hKc5DDXB7iqmickfe92iET7frFP8WMTfntaUTsiMu6a1JYJ0Sguoml9Tg
-   VIFXKD8gN05OpFVG0KPhLbNu2V092pgFKNsrvdvHuJ1ITJoqr1zwCIHSM
-   e3kzvV8c+iS7no6/0HPrSP0MdtcyVdugDCNt4/DRVPooEKZLFaOZjf7aR
-   A==;
-X-CSE-ConnectionGUID: I8mMrxENSi+fw6IBmznUCw==
-X-CSE-MsgGUID: bjqHr0rBTreJvQGEJCsL/A==
-X-IronPort-AV: E=McAfee;i="6700,10204,11225"; a="177093677"
-X-IronPort-AV: E=Sophos;i="6.11,207,1725289200"; 
-   d="scan'208";a="177093677"
-Received: from unknown (HELO oym-r3.gw.nic.fujitsu.com) ([210.162.30.91])
-  by esa4.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Oct 2024 14:20:06 +0900
-Received: from oym-m4.gw.nic.fujitsu.com (oym-nat-oym-m4.gw.nic.fujitsu.com [192.168.87.61])
-	by oym-r3.gw.nic.fujitsu.com (Postfix) with ESMTP id 43063CA1E1
-	for <nvdimm@lists.linux.dev>; Wed, 16 Oct 2024 14:20:04 +0900 (JST)
-Received: from kws-ab3.gw.nic.fujitsu.com (kws-ab3.gw.nic.fujitsu.com [192.51.206.21])
-	by oym-m4.gw.nic.fujitsu.com (Postfix) with ESMTP id 83C7ED5C40
-	for <nvdimm@lists.linux.dev>; Wed, 16 Oct 2024 14:20:03 +0900 (JST)
-Received: from edo.cn.fujitsu.com (edo.cn.fujitsu.com [10.167.33.5])
-	by kws-ab3.gw.nic.fujitsu.com (Postfix) with ESMTP id 16D2320050191
-	for <nvdimm@lists.linux.dev>; Wed, 16 Oct 2024 14:20:03 +0900 (JST)
-Received: from iaas-rdma.. (unknown [10.167.135.44])
-	by edo.cn.fujitsu.com (Postfix) with ESMTP id 831A91A000B;
-	Wed, 16 Oct 2024 13:20:02 +0800 (CST)
-From: Li Zhijian <lizhijian@fujitsu.com>
-To: nvdimm@lists.linux.dev
-Cc: linux-cxl@vger.kernel.org,
-	Li Zhijian <lizhijian@fujitsu.com>
-Subject: [ndctl PATCH v2] test/monitor.sh: Fix 2 bash syntax errors
-Date: Wed, 16 Oct 2024 13:20:42 +0800
-Message-ID: <20241016052042.1138320-1-lizhijian@fujitsu.com>
-X-Mailer: git-send-email 2.44.0
+	s=arc-20240116; t=1729093714; c=relaxed/simple;
+	bh=SOQ2c8KSJM+2PRLcOjVRDsewAuvHhY5x/hPLOZ0bp58=;
+	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=Bvwe6OR2u57Mo8wdZF9lAvKl9UTJQBgkavmw7hYFZpkSMTYS4EHFnJKDkndraYUwxp917T0rydYdNB5mXSmsoifCq2K0BIvOcDpSKeeuT3fdNoimUmBvvH4L6/GHV3IieUXNieZwYogHfNHggCjEcfryTB9Y2oYSy2+1NmW86/8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.18.186.231])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4XTFjL5h0sz6D8cB;
+	Wed, 16 Oct 2024 23:47:50 +0800 (CST)
+Received: from frapeml500008.china.huawei.com (unknown [7.182.85.71])
+	by mail.maildlp.com (Postfix) with ESMTPS id 72483140A71;
+	Wed, 16 Oct 2024 23:48:28 +0800 (CST)
+Received: from localhost (10.203.177.66) by frapeml500008.china.huawei.com
+ (7.182.85.71) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Wed, 16 Oct
+ 2024 17:48:27 +0200
+Date: Wed, 16 Oct 2024 16:48:26 +0100
+From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+To: Ira Weiny <ira.weiny@intel.com>
+CC: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, "Navneet
+ Singh" <navneet.singh@intel.com>, Jonathan Corbet <corbet@lwn.net>, "Andrew
+ Morton" <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>,
+	Davidlohr Bueso <dave@stgolabs.net>, "Alison Schofield"
+	<alison.schofield@intel.com>, Vishal Verma <vishal.l.verma@intel.com>,
+	<linux-btrfs@vger.kernel.org>, <linux-cxl@vger.kernel.org>,
+	<linux-doc@vger.kernel.org>, <nvdimm@lists.linux.dev>,
+	<linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v4 05/28] dax: Document dax dev range tuple
+Message-ID: <20241016164826.000068e9@Huawei.com>
+In-Reply-To: <67098d5a946b8_9710f29462@iweiny-mobl.notmuch>
+References: <20241007-dcd-type2-upstream-v4-0-c261ee6eeded@intel.com>
+	<20241007-dcd-type2-upstream-v4-5-c261ee6eeded@intel.com>
+	<20241009134201.000011b4@Huawei.com>
+	<67098d5a946b8_9710f29462@iweiny-mobl.notmuch>
+Organization: Huawei Technologies Research and Development (UK) Ltd.
+X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-TM-AS-Product-Ver: IMSS-9.1.0.1417-9.0.0.1002-28734.005
-X-TM-AS-User-Approved-Sender: Yes
-X-TMASE-Version: IMSS-9.1.0.1417-9.0.1002-28734.005
-X-TMASE-Result: 10-0.278600-10.000000
-X-TMASE-MatchedRID: gjTnMpchYR/CS1NeCvs3qIdlc1JaOB1TqMXw4YFVmwiWMZBmiy+fzzl3
-	2fTh8s1mPs0ZDS8itpdeWwXKQGp3JCcNcfWMW/afw4LlAWtyEiXBOVz0Jwcxl6vCrG0TnfVUaUX
-	s6FguVy23nQMqHp+dH2MemTaDph9uqMLr8w1TE6ieAiCmPx4NwBnUJ0Ek6yhjxEHRux+uk8hxKp
-	vEGAbTDmXUYAnSw7hChR4K5GmDTtRelnaq7H5DTFp+ztYfZqvoDLWp4mjyrgt8nqY8dd6X+OQBp
-	EbE4HbrBmfMMLI1tsvn2PiK2+nx41uMG6V02+QySir3tZId0WN+6klq53W5kJ9Gzq4huQVX
-X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: lhrpeml500002.china.huawei.com (7.191.160.78) To
+ frapeml500008.china.huawei.com (7.182.85.71)
 
-$ grep -w line build/meson-logs/testlog.txt
-test/monitor.sh: line 99: [: too many arguments
-test/monitor.sh: line 99: [: nmem0: binary operator expected
-test/monitor.sh: line 149: 40.0: syntax error: invalid arithmetic operator (error token is ".0")
+On Fri, 11 Oct 2024 15:40:58 -0500
+Ira Weiny <ira.weiny@intel.com> wrote:
 
-- monitor_dimms could be a string with multiple *spaces*, like: "nmem0 nmem1 nmem2"
-- inject_value is a float value, like 40.0, which need to be converted to
-  integer before operation: $((inject_value + 1))
+> Jonathan Cameron wrote:
+> > On Mon, 07 Oct 2024 18:16:11 -0500
+> > Ira Weiny <ira.weiny@intel.com> wrote:
+> >   
+> > > The device DAX structure is being enhanced to track additional DCD
+> > > information.
+> > > 
+> > > The current range tuple was not fully documented.  Document it prior to
+> > > adding information for DC.
+> > > 
+> > > Suggested-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+> > > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+> > >   
+> > Isn't this a nested struct?
+> > https://docs.kernel.org/doc-guide/kernel-doc.html#nested-structs-unions
+> > 
+> > I'm not quite sure how we document when it's a nested pointer to a
+> > a structure.  Is it the same as for a 'normal' nested struct?  
+> 
+> In this case I think it best to document the struct and just document the
+> reference.  See below.
+> 
+> >     
+> > > ---
+> > > Changes:
+> > > [iweiny: move to start of series]
+> > > ---
+> > >  drivers/dax/dax-private.h | 5 ++++-
+> > >  1 file changed, 4 insertions(+), 1 deletion(-)
+> > > 
+> > > diff --git a/drivers/dax/dax-private.h b/drivers/dax/dax-private.h
+> > > index 446617b73aea..ccde98c3d4e2 100644
+> > > --- a/drivers/dax/dax-private.h
+> > > +++ b/drivers/dax/dax-private.h
+> > > @@ -58,7 +58,10 @@ struct dax_mapping {
+> > >   * @dev - device core
+> > >   * @pgmap - pgmap for memmap setup / lifetime (driver owned)
+> > >   * @nr_range: size of @ranges
+> > > - * @ranges: resource-span + pgoff tuples for the instance
+> > > + * @ranges: range tuples of memory used
+> > > + * @pgoff: page offset  
+> >       @ranges.pgoff?
+> > etc  
+> 
+> Ok yea.
+> 
+> As for the pointer to a structure.  I think the best thing to do is simply
+> document that structure.
+> 
+> Something like this building on this patch:
+> 
+> 
+> diff --git a/drivers/dax/dax-private.h b/drivers/dax/dax-private.h
+> index ccde98c3d4e2..b9816c933575 100644
+> --- a/drivers/dax/dax-private.h
+> +++ b/drivers/dax/dax-private.h
+> @@ -40,6 +40,12 @@ struct dax_region {
+>         struct device *youngest;
+>  };
+>  
+> +/**
+> + * struct dax_mapping - device to display mapping range attributes
+> + * @dev: device representing this range
+> + * @range_id: index within dev_dax ranges array
+> + * @id: ida of this mapping
+> + */
+>  struct dax_mapping {
+>         struct device dev;
+>         int range_id;
+> @@ -59,9 +65,9 @@ struct dax_mapping {
+>   * @pgmap - pgmap for memmap setup / lifetime (driver owned)
+>   * @nr_range: size of @ranges
+>   * @ranges: range tuples of memory used
+> - * @pgoff: page offset
+> - * @range: resource-span
+> - * @mapping: device to assist in interrogating the range layout
+> + * @ranges.pgoff: page offset
+> + * @ranges.range: resource-span
+> + * @ranges.mapping: reference to the dax_mapping for this range
 
-Some features have not been really verified due to these errors
+Maybe just pull out definition of struct dev_dax_range?
+Avoids this confusion and no particularly obvious reason why it
+is embedded in the definition of dev_dax.
 
-Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
----
-V1:
- V1 has a mistake which overts to integer too late.
- Move the conversion forward before the operation
----
- test/monitor.sh | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/test/monitor.sh b/test/monitor.sh
-index c5beb2c..7809a7c 100755
---- a/test/monitor.sh
-+++ b/test/monitor.sh
-@@ -96,7 +96,7 @@ test_filter_region()
- 	while [ $i -lt $count ]; do
- 		monitor_region=$($NDCTL list -R -b $smart_supported_bus | jq -r .[$i].dev)
- 		monitor_dimms=$(get_monitor_dimm "-r $monitor_region")
--		[ ! -z $monitor_dimms ] && break
-+		[ ! -z "$monitor_dimms" ] && break
- 		i=$((i + 1))
- 	done
- 	start_monitor "-r $monitor_region"
-@@ -146,6 +146,7 @@ test_filter_dimmevent()
- 	stop_monitor
- 
- 	inject_value=$($NDCTL list -H -d $monitor_dimms | jq -r .[]."health"."temperature_threshold")
-+	inject_value=${inject_value%.*}
- 	inject_value=$((inject_value + 1))
- 	start_monitor "-d $monitor_dimms -D dimm-media-temperature"
- 	inject_smart "-m $inject_value"
--- 
-2.44.0
+>   */
+>  struct dev_dax {
+>         struct dax_region *region;
+> 
 
