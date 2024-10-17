@@ -1,88 +1,117 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.17])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.9])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 540641DA61E
-	for <nvdimm@lists.linux.dev>; Thu, 17 Oct 2024 14:56:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.17
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D83D11DED7F
+	for <nvdimm@lists.linux.dev>; Thu, 17 Oct 2024 15:57:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.9
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729176968; cv=none; b=m/j304pcaHhkNbZyv5reZCFuMQph2UXvBq3IB+415drB1ncade+QNVySJIffrTJ+rtTZTMKa3zkkxo+on/fkH5Boz6k0CRl1ui7d2vHyQy6XAR4Gvs9dnXaPZWWTYGML4NCMOu9mslX68abgUmD/5zRbsqclkBFwaaAPs3rb/84=
+	t=1729180651; cv=none; b=UtpACyt6Lcpol65/GW/Gouz7TNor8CmpBg8OzTT+hsxUqj7USyxDSDQE1ibCiMHk0uKuRlFtFo/Dh4wsV/K2dWAJ6ancOrhPlN3eGCZD1bGRIsE+EuEtx/DYgRE7oJ1p93rWSAIdrbgp3s6tJym+rVusaxU3TmEFcwfIzhrA7yA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729176968; c=relaxed/simple;
-	bh=sXnb38zc/mtA8QeZhnfLZMYsnErtLg/u2GutMOZk/5Y=;
+	s=arc-20240116; t=1729180651; c=relaxed/simple;
+	bh=4VAPn3WRq+YsCLUuVV3qydyX7oiYljVWbatJUVu2hY0=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=UT1epuyU/Nx+SmWjGaP3fYAYyQiLC6AstTfWHKU75ySIkw5QdfZZ0hgYOLHVZNLbRTLXHbyPEpaf+WUZ1m8DbUqipJwM0iwgcTU+jGPgDh5No3eT/c3X4XHA6wdFbhQSn0zdLlXuaVC2iVGSE6vaLe9XzcWzKzmBKGAMyXVu4sI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=BXt7RN4y; arc=none smtp.client-ip=192.198.163.17
+	 Content-Type:Content-Disposition:In-Reply-To; b=SZHX9uXdGO7S/5ykO1DkL7T4RLC8wudHZzEF8+jLlXUMUdSM82fJveHXVxWAnq0EvAks1vsIou68DFEz8OtL77m9dGsIsICO0jvNmaeXv5SgPGvca8rPcANsMRDCnjEiobT21tqyfdZ/ha96kCRZmEGu0aAnbB+QW39bPNuox0Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=jl/QxkVu; arc=none smtp.client-ip=198.175.65.9
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="BXt7RN4y"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="jl/QxkVu"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1729176966; x=1760712966;
+  t=1729180646; x=1760716646;
   h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=sXnb38zc/mtA8QeZhnfLZMYsnErtLg/u2GutMOZk/5Y=;
-  b=BXt7RN4y7XEf+Kt95wWSH1YSohv6v+mcMXrbUE9/+MYsfJrdsPvcr/X+
-   yOhGcGlURi9DJYPzaEXV9GbewyEui8qMBIzFXRVoN6R2xxqdFwuc26dB6
-   qezaUal5MWcEjtL+OE1p89JI+gQYmevBtE5tdPlsHNGBZyZFQdNDpB92m
-   5NZVqXklqD8wU2JesLqe1v/IeII/uNWPU5MiclBEAINd7rPr0cc7hZk+2
-   USfmFi9J7abfoPCSlBI38CdoeW6smtxRJKEhPXCswf4E8L5BM4G65ZdlM
-   EgYjRirO+tFhpcultr5EwJI9C0vC6s0ZU9xUYLGCWpfnVJmidezKX81B7
-   g==;
-X-CSE-ConnectionGUID: +VSCTPYRRH6a0joZF+WAJQ==
-X-CSE-MsgGUID: A4eZ0MOAQK+MvuYbELAM1g==
-X-IronPort-AV: E=McAfee;i="6700,10204,11228"; a="28548669"
-X-IronPort-AV: E=Sophos;i="6.11,211,1725346800"; 
-   d="scan'208";a="28548669"
-Received: from fmviesa009.fm.intel.com ([10.60.135.149])
-  by fmvoesa111.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Oct 2024 07:56:06 -0700
-X-CSE-ConnectionGUID: xjH6tqqPTDa6qQqdvyW8Dw==
-X-CSE-MsgGUID: nCwDGZymTo+LghLxgdhiJA==
+   mime-version:content-transfer-encoding:in-reply-to;
+  bh=4VAPn3WRq+YsCLUuVV3qydyX7oiYljVWbatJUVu2hY0=;
+  b=jl/QxkVurthIysTMezYdDjaNaSAtp+KmzZ567l8aS/Geq4q8c03D2mqL
+   Dtixb0qmTJsfKdde1MK7GFjcIdkNizD6pqtSDdRebom/W1DyJ+at8YyWs
+   +BZdTX58bQWe3zBZUjxLsadwOgctgo12fqetd4iDB/sY0mzjETu3IQeJf
+   FH5GzQLZRvjvhfXnDuDUgjMti4+kaZ6wnYSOaXY5cdfCIGamUkbCn9DJu
+   gsBz3GxNgSmh6toC3tLg5WYUnatWYBfjSoT2tt+5TJkSwgNJbnqwO+Sie
+   Eulra3HdGLmU+RATXwfqilBQm42HKEZku8H0WME38CbEIt1M2GSw2fp8c
+   w==;
+X-CSE-ConnectionGUID: A+hqoM9HTxmBibgZ5qFCNQ==
+X-CSE-MsgGUID: NrebWmRoQmeiLYe/IhxT/A==
+X-IronPort-AV: E=McAfee;i="6700,10204,11222"; a="51218773"
+X-IronPort-AV: E=Sophos;i="6.11,199,1725346800"; 
+   d="scan'208";a="51218773"
+Received: from orviesa005.jf.intel.com ([10.64.159.145])
+  by orvoesa101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Oct 2024 08:57:26 -0700
+X-CSE-ConnectionGUID: mGP8n+ZBS06j2arMO3fHTA==
+X-CSE-MsgGUID: 137syKEsSCiJoTD2yTbm5w==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.11,211,1725346800"; 
-   d="scan'208";a="78597431"
+   d="scan'208";a="83352394"
 Received: from aschofie-mobl2.amr.corp.intel.com (HELO aschofie-mobl2.lan) ([10.125.109.53])
-  by fmviesa009-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Oct 2024 07:56:06 -0700
-Date: Thu, 17 Oct 2024 07:56:03 -0700
+  by orviesa005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Oct 2024 08:57:25 -0700
+Date: Thu, 17 Oct 2024 08:57:23 -0700
 From: Alison Schofield <alison.schofield@intel.com>
-To: Coly Li <colyli@suse.de>
-Cc: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
-Subject: Re: Removing a misleading warning message?
-Message-ID: <ZxElg0RC_S1TY2cd@aschofie-mobl2.lan>
-References: <15237B14-B55B-4737-9A98-D76AEDB4AEAD@suse.de>
+To: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Cc: "lizhijian@fujitsu.com" <lizhijian@fujitsu.com>,
+	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
+	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>
+Subject: Re: [ndctl PATCH v2] test/monitor.sh: Fix 2 bash syntax errors
+Message-ID: <ZxEz405SSzBN22AG@aschofie-mobl2.lan>
+References: <20241016052042.1138320-1-lizhijian@fujitsu.com>
+ <92fec0671d491ce6eecc075233cc0e09ddea52e8.camel@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <15237B14-B55B-4737-9A98-D76AEDB4AEAD@suse.de>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <92fec0671d491ce6eecc075233cc0e09ddea52e8.camel@intel.com>
 
+On Wed, Oct 16, 2024 at 10:45:48PM +0000, Vishal Verma wrote:
+> On Wed, 2024-10-16 at 13:20 +0800, Li Zhijian wrote:
+> > $ grep -w line build/meson-logs/testlog.txt
+> > test/monitor.sh: line 99: [: too many arguments
+> > test/monitor.sh: line 99: [: nmem0: binary operator expected
+> > test/monitor.sh: line 149: 40.0: syntax error: invalid arithmetic operator (error token is ".0")
+> > 
+> > - monitor_dimms could be a string with multiple *spaces*, like: "nmem0 nmem1 nmem2"
+> > - inject_value is a float value, like 40.0, which need to be converted to
+> >   integer before operation: $((inject_value + 1))
+> > 
+> > Some features have not been really verified due to these errors
+> > 
+> > Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
+> > ---
+> > V1:
+> >  V1 has a mistake which overts to integer too late.
+> >  Move the conversion forward before the operation
+> > ---
+> >  test/monitor.sh | 3 ++-
+> >  1 file changed, 2 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/test/monitor.sh b/test/monitor.sh
+> > index c5beb2c..7809a7c 100755
+> > --- a/test/monitor.sh
+> > +++ b/test/monitor.sh
+> > @@ -96,7 +96,7 @@ test_filter_region()
+> >  	while [ $i -lt $count ]; do
+> >  		monitor_region=$($NDCTL list -R -b $smart_supported_bus | jq -r .[$i].dev)
+> >  		monitor_dimms=$(get_monitor_dimm "-r $monitor_region")
+> > -		[ ! -z $monitor_dimms ] && break
+> > +		[ ! -z "$monitor_dimms" ] && break
+> 
+> [ ! -z "..." ] is a bit of a double negative, while we are changing
+> this, I'd suggest cleaning up a bit more such as:
+> 
+>    if [[ "$monitor_dimms" ]]; then
+>    	break
+>    fi
+> 
+> Other than that looks good,
+> 
+> Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
 
-+ linux-cxl mailing list
+BTW - I second Vishal's suggestion here.
+Shellcheck is catching bad syntax but may not be suggesting the
+best syntax as an alternative. 
 
-On Fri, Oct 11, 2024 at 05:58:52PM +0800, Coly Li wrote:
-> Hi list,
-> 
-> Recently I have a report for a warning message from CXL subsystem,
-> [ 48.142342] cxl_port port2: Couldn't locate the CXL.cache and CXL.mem capability array header.
-> [ 48.144690] cxl_port port3: Couldn't locate the CXL.cache and CXL.mem capability array header.
-> [ 48.144704] cxl_port port3: HDM decoder capability not found
-> [ 48.144850] cxl_port port4: Couldn't locate the CXL.cache and CXL.mem capability array header.
-> [ 48.144859] cxl_port port4: HDM decoder capability not found
-> [ 48.170374] cxl_port port6: Couldn't locate the CXL.cache and CXL.mem capability array header.
-> [ 48.172893] cxl_port port7: Couldn't locate the CXL.cache and CXL.mem capability array header.
-> [ 48.174689] cxl_port port7: HDM decoder capability not found
-> [ 48.175091] cxl_port port8: Couldn't locate the CXL.cache and CXL.mem capability array header.
-> [ 48.175105] cxl_port port8: HDM decoder capability not found
-> 
-> After checking the source code I realize this is not a real bug, just a warning message that expected device was not detected.
-> But from the above warning information itself, users/customers are worried there is something wrong (IMHO indeed not).
-> 
-> Is there any chance that we can improve the code logic that only printing out the warning message when it is really a problem to be noticed? 
-> 
-> Thanks in advance.
-> 
-> Coly Li 
+--Alison
+
+snip
