@@ -1,48 +1,39 @@
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC4FD18C92E
-	for <nvdimm@lists.linux.dev>; Fri, 18 Oct 2024 09:09:13 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4F13201105
+	for <nvdimm@lists.linux.dev>; Fri, 18 Oct 2024 10:22:14 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729242556; cv=none; b=H+XJ7vDxXJ5qyDVin2R98JUcGQ1UHEB1boApbZiMXgyTkCn8lWIVhAOW1jxiwaRvA1z36+bw0zBNDmiFMjrwIGukdMeKwLI0hi5ytFObFpeJcFBWIHC/7OuLUVGx/jhQi2V1HSrsl+X/lxDqJTJDUpM2mOZZtqP3kDY5IIEYkbk=
+	t=1729246937; cv=none; b=TNYeuRnn6KvOCoGDKGx4/Wdz9ULkeJV7Hv+XpcybdDGd4LRb7OB4AVqrTejfeHaRk3t5VJRJJ6m8RqfG4aHBkEKLoQG+XepBFGZdZSdrSOH3x0Iy+SOvetWHHrkWJ8QPTwuy5CHltLidTYRfzivEjcYUCRV+CrqAERRUgFik8+M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729242556; c=relaxed/simple;
-	bh=zq5IqV+uN//63mIFv4C0Jcw3ezylJ76s+LvLJwbSsMM=;
+	s=arc-20240116; t=1729246937; c=relaxed/simple;
+	bh=hA134TEANHPZgfEeupic1B+HCLw3uNQGD74SOm3zUv0=;
 	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=LHqV2JtVXiGj7EUS7+wwG+T+wOLA0onJln3x7hsjsbY3N24lHUJQUgt0jQdzyWEJmz92/RO4ByMaOcW/5IB8l3JKGfhNWPD6B5WfZWW3yw1gg7zBYi4hLgXnFmbLdXS0UdLubbzjOAY/EtuRkvAf27kWjgCuoM7rMpuetC6Mvyg=
+	 MIME-Version:Content-Type; b=hbJ3MX5qv8lGhEita1deYUc0tdDqpzuFRPpRMw8BBiDhUWK1hqpGtYTyomjnADHmJnaLdCcfpkUX7x94rjR0XDGK/oYSdaUvWGmg45P5X4qVIhDuEAUQ9qUG6cq80WEShxe7zdDT2MN6pxj5M0fZbMwJclwNxmkarnFfDIDkn6o=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.186.216])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4XVJld0RxZz6JBBn;
-	Fri, 18 Oct 2024 17:08:29 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.18.186.31])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4XVLMs4B9Zz6JBH3;
+	Fri, 18 Oct 2024 18:21:29 +0800 (CST)
 Received: from frapeml500008.china.huawei.com (unknown [7.182.85.71])
-	by mail.maildlp.com (Postfix) with ESMTPS id B5BA8140B67;
-	Fri, 18 Oct 2024 17:09:11 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id 3D352140556;
+	Fri, 18 Oct 2024 18:22:12 +0800 (CST)
 Received: from localhost (10.203.177.66) by frapeml500008.china.huawei.com
  (7.182.85.71) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Fri, 18 Oct
- 2024 11:09:11 +0200
-Date: Fri, 18 Oct 2024 10:09:09 +0100
+ 2024 12:22:11 +0200
+Date: Fri, 18 Oct 2024 11:22:10 +0100
 From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-To: Ira Weiny <ira.weiny@intel.com>
-CC: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, "Navneet
- Singh" <navneet.singh@intel.com>, Jonathan Corbet <corbet@lwn.net>, "Andrew
- Morton" <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>,
-	Davidlohr Bueso <dave@stgolabs.net>, "Alison Schofield"
-	<alison.schofield@intel.com>, Vishal Verma <vishal.l.verma@intel.com>,
-	<linux-btrfs@vger.kernel.org>, <linux-cxl@vger.kernel.org>,
-	<linux-doc@vger.kernel.org>, <nvdimm@lists.linux.dev>,
-	<linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v4 21/28] cxl/extent: Process DCD events and realize
- region extents
-Message-ID: <20241018100909.00001ec2@Huawei.com>
-In-Reply-To: <6711842d88fa_2cee2946a@iweiny-mobl.notmuch>
-References: <20241007-dcd-type2-upstream-v4-0-c261ee6eeded@intel.com>
-	<20241007-dcd-type2-upstream-v4-21-c261ee6eeded@intel.com>
-	<20241010155821.00005079@Huawei.com>
-	<6711842d88fa_2cee2946a@iweiny-mobl.notmuch>
+To: Alison Schofield <alison.schofield@intel.com>
+CC: Coly Li <colyli@suse.de>, <nvdimm@lists.linux.dev>,
+	<linux-cxl@vger.kernel.org>, "Bowman, Terry" <kibowman@amd.com>
+Subject: Re: Removing a misleading warning message?
+Message-ID: <20241018112210.00004179@Huawei.com>
+In-Reply-To: <ZxElg0RC_S1TY2cd@aschofie-mobl2.lan>
+References: <15237B14-B55B-4737-9A98-D76AEDB4AEAD@suse.de>
+	<ZxElg0RC_S1TY2cd@aschofie-mobl2.lan>
 Organization: Huawei Technologies Research and Development (UK) Ltd.
 X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
@@ -53,92 +44,50 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: lhrpeml100005.china.huawei.com (7.191.160.25) To
+X-ClientProxiedBy: lhrpeml100002.china.huawei.com (7.191.160.241) To
  frapeml500008.china.huawei.com (7.182.85.71)
 
-On Thu, 17 Oct 2024 16:39:57 -0500
-Ira Weiny <ira.weiny@intel.com> wrote:
+On Thu, 17 Oct 2024 07:56:03 -0700
+Alison Schofield <alison.schofield@intel.com> wrote:
 
-> Jonathan Cameron wrote:
-> > On Mon, 07 Oct 2024 18:16:27 -0500
-> > ira.weiny@intel.com wrote:
-> >   
-> > > From: Navneet Singh <navneet.singh@intel.com>
-> > > 
-> > > A dynamic capacity device (DCD) sends events to signal the host for
-> > > changes in the availability of Dynamic Capacity (DC) memory.  These
-> > > events contain extents describing a DPA range and meta data for memory
-> > > to be added or removed.  Events may be sent from the device at any time.
-> > > 
-> > > Three types of events can be signaled, Add, Release, and Force Release.
-> > > 
-> > > On add, the host may accept or reject the memory being offered.  If no
-> > > region exists, or the extent is invalid, the extent should be rejected.
-> > > Add extent events may be grouped by a 'more' bit which indicates those
-> > > extents should be processed as a group.
-> > > 
-> > > On remove, the host can delay the response until the host is safely not
-> > > using the memory.  If no region exists the release can be sent
-> > > immediately.  The host may also release extents (or partial extents) at
-> > > any time.  Thus the 'more' bit grouping of release events is of less
-> > > value and can be ignored in favor of sending multiple release capacity
-> > > responses for groups of release events.  
+> + linux-cxl mailing list
+> 
+> On Fri, Oct 11, 2024 at 05:58:52PM +0800, Coly Li wrote:
+> > Hi list,
 > > 
-> > True today - I think that would be an error for shared extents
-> > though as they need to be released in one go.  We can deal with
-> > that when it matters.  
+> > Recently I have a report for a warning message from CXL subsystem,
+> > [ 48.142342] cxl_port port2: Couldn't locate the CXL.cache and CXL.mem capability array header.
+> > [ 48.144690] cxl_port port3: Couldn't locate the CXL.cache and CXL.mem capability array header.
+> > [ 48.144704] cxl_port port3: HDM decoder capability not found
+> > [ 48.144850] cxl_port port4: Couldn't locate the CXL.cache and CXL.mem capability array header.
+> > [ 48.144859] cxl_port port4: HDM decoder capability not found
+> > [ 48.170374] cxl_port port6: Couldn't locate the CXL.cache and CXL.mem capability array header.
+> > [ 48.172893] cxl_port port7: Couldn't locate the CXL.cache and CXL.mem capability array header.
+> > [ 48.174689] cxl_port port7: HDM decoder capability not found
+> > [ 48.175091] cxl_port port8: Couldn't locate the CXL.cache and CXL.mem capability array header.
+> > [ 48.175105] cxl_port port8: HDM decoder capability not found
 > > 
-> > 
-> > Mind you patch seems to try to handle more bit anyway, so maybe just
-> > remove that discussion from this description?  
-> 
-> It only handles more bit response on ADD because on RELEASE the count is always
-> 1.
-> 
-> 
-> +       if (cxl_send_dc_response(mds, CXL_MBOX_OP_RELEASE_DC, &extent_list, 1)) 
-> +               dev_dbg(dev, "Failed to release [range 0x%016llx-0x%016llx]\n", 
-> +                       range->start, range->end);                              
-> 
-> 
-> For shared; a flag will need to be added to the extents and additional logic to
-> group these extents for checking use etc.  
-> 
-> I agree, we need to handle that later on and get this basic support in.  For
-> now I think my comments are correct WRT the sending of release responses.
-> 
-> > > 
-> > > Simplify extent tracking with the following restrictions.
-> > > 
-> > > 	1) Flag for removal any extent which overlaps a requested
-> > > 	   release range.
-> > > 	2) Refuse the offer of extents which overlap already accepted
-> > > 	   memory ranges.
-> > > 	3) Accept again a range which has already been accepted by the
-> > > 	   host.  Eating duplicates serves three purposes.  First, this
-> > > 	   simplifies the code if the device should get out of sync with
-> > > 	   the host.   
-> > 
-> > Maybe scream about this a little.  AFAIK that happening is a device
-> > bug.  
-> 
-> Agreed but because of the 2nd purpose this is difficult to scream about because
-> this situation can come up in normal operation.  Here is the scenario:
-> 
-> 1) Device has 2 DCD partitions active, A and B
-> 2) Host crashes
-> 3) Region X is created on A
-> 4) Region Y is created on B
-> 5) Region Y scans for extents
-> 6) Region X surfaces a new extent while Y is scanning
-> 7) Gen number changes due to new extent in X
-> 8) Region Y rescans for existing extents and sees duplicates.
-> 
-> These duplicates need to be ignored without signaling an error.
-Hmm. If we can know that path is the trigger (should be able to
-as it's a scan after a gen number change), can we just muffle the
-screams on that path? (Halloween is close, the analogies will get
-ever worse :)
+> > After checking the source code I realize this is not a real bug, just a warning message that expected device was not detected.
 
-Jonathan
+I'd like to understand a little more about the hardware.
+Superficially this looks to be a screaming about non spec compliant (i.e. broken) ports.
+
+Are these on a switch or all root ports?  What is connected to the ports?
+
+Understanding what exactly is going on may affect how this is suppressed (which seems
+reasonable to do if this is production hardware).
+
+There have been a few mentions of 'late' register validity on specific root ports. Maybe
+that is going on here? +CC Terry.
+
+Jonathan 
+
+> > But from the above warning information itself, users/customers are worried there is something wrong (IMHO indeed not).
+> > 
+> > Is there any chance that we can improve the code logic that only printing out the warning message when it is really a problem to be noticed? 
+> > 
+> > Thanks in advance.
+> > 
+> > Coly Li   
+> 
 
