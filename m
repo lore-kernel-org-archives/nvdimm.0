@@ -1,106 +1,291 @@
-Received: from esa2.hc1455-7.c3s2.iphmx.com (esa2.hc1455-7.c3s2.iphmx.com [207.54.90.48])
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00D7C5103F
-	for <nvdimm@lists.linux.dev>; Fri, 18 Oct 2024 01:30:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=207.54.90.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED24018E76B
+	for <nvdimm@lists.linux.dev>; Fri, 18 Oct 2024 09:03:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729215055; cv=none; b=RtVHiyIsvmPOXenGHv6seHJz69RadK3qgzg3mIEi6SqOfaFUOLMPG3cf8E+6FfmniBf0ekopwH7Mr0NSqYk8TLJWVobTd5QSmj3yNv9XWEXz9nh/tHgRjaq6PSye8R5ytoO/W0PE9SfDZLkS90Y8EH8/CeRc8OgAZcFu490vais=
+	t=1729242195; cv=none; b=Pe5PPM6glP11oNLaHaEONOovxBko4nPFxHXs+HEyn6OZrSS6BZNFvKQQQcUASmmy5KLeVoa2sSfFeXvehnwrZsmoK6dHKeGf80U5ksQDUrntkl+f29iLEOX+1h7Dvelbv/vR1Yw0MFSe/ix7Xa63kJkXPci617aXzvdgna0VXZ4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729215055; c=relaxed/simple;
-	bh=+bBjc/9A+Ua5H7HXqJ8S16MXO9zhPZKhjHJsC2Pwv6k=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=mioh8r+w5u2cbt8QdQmMZDe7IgUgDoTx8ashro+XL0+JDQv2g+wBeZ/HknFZ+kBagRpqfZTPrAdipslqBu+pns0zL2pO2NjkxkswzC440Q3I8ztLoxuewQrRy6/GEu9VMu8DGscGRUbb2VR8kwfOZqL8wCiclHQkYHyLKJt8VPA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fujitsu.com; spf=pass smtp.mailfrom=fujitsu.com; dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b=GfdyJg/8; arc=none smtp.client-ip=207.54.90.48
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=fujitsu.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fujitsu.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fujitsu.com header.i=@fujitsu.com header.b="GfdyJg/8"
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
-  d=fujitsu.com; i=@fujitsu.com; q=dns/txt; s=fj2;
-  t=1729215054; x=1760751054;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=+bBjc/9A+Ua5H7HXqJ8S16MXO9zhPZKhjHJsC2Pwv6k=;
-  b=GfdyJg/8I9fvZxDYj5hxp0zA3+JnoQ+L81BuPEGi3UoiBPvvtAUML4yk
-   9kvyHCpUm8KI2by+P0yovdJdZhGvkCZZB9C+thedR05DTAZTeFnNpfcYF
-   8SXfSPeoSoL3YPSkl/kdVWZ4hYcQ9cDFZqPOBTmPAFvY7jkSNVl+hpCH6
-   xjJUtD/R4FH0syc6ogA3CyxjkjR6RLUSb5pW08V42Mbv9ZtN8pkDZ+Frw
-   Wy0Kp6Mt0h29nDaeWsfXZZZD5xGs7W1x0/A6HL0xdbCrnZoDnlGmznzu7
-   RTRgQYx9sxBYM53e+4pKz4YUtWU7XuzEOBMGI0w/rizoOB/Oas30Nvvps
-   Q==;
-X-CSE-ConnectionGUID: UJzV/hc5TNyQxD3Bokc9Jg==
-X-CSE-MsgGUID: +wGhB/zZRE2qtVHMAkEFGw==
-X-IronPort-AV: E=McAfee;i="6700,10204,11228"; a="177181817"
-X-IronPort-AV: E=Sophos;i="6.11,212,1725289200"; 
-   d="scan'208";a="177181817"
-Received: from unknown (HELO oym-r1.gw.nic.fujitsu.com) ([210.162.30.89])
-  by esa2.hc1455-7.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Oct 2024 10:29:43 +0900
-Received: from oym-m3.gw.nic.fujitsu.com (oym-nat-oym-m3.gw.nic.fujitsu.com [192.168.87.60])
-	by oym-r1.gw.nic.fujitsu.com (Postfix) with ESMTP id 53C61CC14C
-	for <nvdimm@lists.linux.dev>; Fri, 18 Oct 2024 10:29:40 +0900 (JST)
-Received: from kws-ab3.gw.nic.fujitsu.com (kws-ab3.gw.nic.fujitsu.com [192.51.206.21])
-	by oym-m3.gw.nic.fujitsu.com (Postfix) with ESMTP id 7EA6FD73A6
-	for <nvdimm@lists.linux.dev>; Fri, 18 Oct 2024 10:29:39 +0900 (JST)
-Received: from edo.cn.fujitsu.com (edo.cn.fujitsu.com [10.167.33.5])
-	by kws-ab3.gw.nic.fujitsu.com (Postfix) with ESMTP id 0D12220050186
-	for <nvdimm@lists.linux.dev>; Fri, 18 Oct 2024 10:29:39 +0900 (JST)
-Received: from iaas-rdma.. (unknown [10.167.135.44])
-	by edo.cn.fujitsu.com (Postfix) with ESMTP id 811741A000B;
-	Fri, 18 Oct 2024 09:29:38 +0800 (CST)
-From: Li Zhijian <lizhijian@fujitsu.com>
-To: nvdimm@lists.linux.dev
-Cc: linux-cxl@vger.kernel.org,
-	Li Zhijian <lizhijian@fujitsu.com>
-Subject: [ndctl PATCH v3 1/2] test/monitor.sh convert float to integer before increment
-Date: Fri, 18 Oct 2024 09:30:19 +0800
-Message-ID: <20241018013020.2523845-1-lizhijian@fujitsu.com>
-X-Mailer: git-send-email 2.44.0
+	s=arc-20240116; t=1729242195; c=relaxed/simple;
+	bh=7nnWLfvroPjQ3WSiLUmBIOWohRKgJsHdFTrjyFHfjxA=;
+	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=Ae/PNii/UMjffZE1stMFk/rnBcD9WpeY7MEFme4HpUp96YvdLjtgBwTbcm3LgFz9zb07UJk8CvsAimrtTBpjAECMGFirEqI4wgRnn9KJPAg3Pr8zEUIF1m2qP5jlqGGuawJJ4puNMkSZ9hrqD+HeTHM73tV1TgvP/VClahiytC4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.18.186.216])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4XVJbR06lDz6K6YX;
+	Fri, 18 Oct 2024 17:01:23 +0800 (CST)
+Received: from frapeml500008.china.huawei.com (unknown [7.182.85.71])
+	by mail.maildlp.com (Postfix) with ESMTPS id C6075140CF4;
+	Fri, 18 Oct 2024 17:03:09 +0800 (CST)
+Received: from localhost (10.203.177.66) by frapeml500008.china.huawei.com
+ (7.182.85.71) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Fri, 18 Oct
+ 2024 11:03:09 +0200
+Date: Fri, 18 Oct 2024 10:03:07 +0100
+From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+To: Ira Weiny <ira.weiny@intel.com>
+CC: "Li, Ming4" <ming4.li@intel.com>, Dave Jiang <dave.jiang@intel.com>, "Fan
+ Ni" <fan.ni@samsung.com>, Navneet Singh <navneet.singh@intel.com>, "Jonathan
+ Corbet" <corbet@lwn.net>, Andrew Morton <akpm@linux-foundation.org>, "Dan
+ Williams" <dan.j.williams@intel.com>, Davidlohr Bueso <dave@stgolabs.net>,
+	Alison Schofield <alison.schofield@intel.com>, Vishal Verma
+	<vishal.l.verma@intel.com>, <linux-btrfs@vger.kernel.org>,
+	<linux-cxl@vger.kernel.org>, <linux-doc@vger.kernel.org>,
+	<nvdimm@lists.linux.dev>, <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v4 21/28] cxl/extent: Process DCD events and realize
+ region extents
+Message-ID: <20241018100307.000008a9@Huawei.com>
+In-Reply-To: <67117e57479b3_2cee2942d@iweiny-mobl.notmuch>
+References: <20241007-dcd-type2-upstream-v4-0-c261ee6eeded@intel.com>
+	<20241007-dcd-type2-upstream-v4-21-c261ee6eeded@intel.com>
+	<4337ddd9-312b-4fb7-9597-81e8b00d57cb@intel.com>
+	<6706de3530f5c_40429294b8@iweiny-mobl.notmuch>
+	<20241010155014.00004bdd@Huawei.com>
+	<67117e57479b3_2cee2942d@iweiny-mobl.notmuch>
+Organization: Huawei Technologies Research and Development (UK) Ltd.
+X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-TM-AS-Product-Ver: IMSS-9.1.0.1417-9.0.0.1002-28738.003
-X-TM-AS-User-Approved-Sender: Yes
-X-TMASE-Version: IMSS-9.1.0.1417-9.0.1002-28738.003
-X-TMASE-Result: 10--2.069100-10.000000
-X-TMASE-MatchedRID: 3VvmmxedNeKHYSb76u64f1hRyidsElYkGEGBUNvh8GASkNsdBvOYg2Uo
-	D5JLGXzAnC7F+qVaTtq9Q4CDyJILGS7SL1WWCs3qEXjPIvKd74BMkOX0UoduueyufIOcfWGpo8W
-	MkQWv6iUoTQl7wNH8Pg1fA1QHegDv3QfwsVk0UbvqwGfCk7KUswyi9UGnfc1kmVyPCbGrMTNYtm
-	ygm+pbSYfEC2MAyNF/GZ/CA/4y894kJ8AODzlrRdx2pRgSEDDgM0G0VS1whvBTK7SumpFvNiHJp
-	2UYVccqxOB8J0pRLhyJxKSZiwBX6QtRTXOqKmFVftwZ3X11IV0=
-X-TMASE-SNAP-Result: 1.821001.0001-0-1-22:0,33:0,34:0-0
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: lhrpeml100005.china.huawei.com (7.191.160.25) To
+ frapeml500008.china.huawei.com (7.182.85.71)
 
-The test log reported:
-test/monitor.sh: line 149: 40.0: syntax error: invalid arithmetic operator (error token is ".0")
+On Thu, 17 Oct 2024 16:15:03 -0500
+Ira Weiny <ira.weiny@intel.com> wrote:
 
-It does stop the test prematurely. We never run the temperature
-inject test case of test_filter_dimmevent() because of the inability
-to increment the float.
+> Jonathan Cameron wrote:
+> > On Wed, 9 Oct 2024 14:49:09 -0500
+> > Ira Weiny <ira.weiny@intel.com> wrote:
+> >   
+> > > Li, Ming4 wrote:  
+> > > > On 10/8/2024 7:16 AM, ira.weiny@intel.com wrote:    
+> > > > > From: Navneet Singh <navneet.singh@intel.com>
+> > > > >    
+> 
+> [snip]
+> 
+> > >   
+> > > > > +static int cxl_send_dc_response(struct cxl_memdev_state *mds, int opcode,
+> > > > > +				struct xarray *extent_array, int cnt)
+> > > > > +{
+> > > > > +	struct cxl_mailbox *cxl_mbox = &mds->cxlds.cxl_mbox;
+> > > > > +	struct cxl_mbox_dc_response *p;
+> > > > > +	struct cxl_mbox_cmd mbox_cmd;
+> > > > > +	struct cxl_extent *extent;
+> > > > > +	unsigned long index;
+> > > > > +	u32 pl_index;
+> > > > > +	int rc;
+> > > > > +
+> > > > > +	size_t pl_size = struct_size(p, extent_list, cnt);
+> > > > > +	u32 max_extents = cnt;
+> > > > > +
+> > > > > +	/* May have to use more bit on response. */
+> > > > > +	if (pl_size > cxl_mbox->payload_size) {
+> > > > > +		max_extents = (cxl_mbox->payload_size - sizeof(*p)) /
+> > > > > +			      sizeof(struct updated_extent_list);
+> > > > > +		pl_size = struct_size(p, extent_list, max_extents);
+> > > > > +	}
+> > > > > +
+> > > > > +	struct cxl_mbox_dc_response *response __free(kfree) =
+> > > > > +						kzalloc(pl_size, GFP_KERNEL);
+> > > > > +	if (!response)
+> > > > > +		return -ENOMEM;
+> > > > > +
+> > > > > +	pl_index = 0;
+> > > > > +	xa_for_each(extent_array, index, extent) {
+> > > > > +
+> > > > > +		response->extent_list[pl_index].dpa_start = extent->start_dpa;
+> > > > > +		response->extent_list[pl_index].length = extent->length;
+> > > > > +		pl_index++;
+> > > > > +		response->extent_list_size = cpu_to_le32(pl_index);
+> > > > > +
+> > > > > +		if (pl_index == max_extents) {
+> > > > > +			mbox_cmd = (struct cxl_mbox_cmd) {
+> > > > > +				.opcode = opcode,
+> > > > > +				.size_in = struct_size(response, extent_list,
+> > > > > +						       pl_index),
+> > > > > +				.payload_in = response,
+> > > > > +			};
+> > > > > +
+> > > > > +			response->flags = 0;
+> > > > > +			if (pl_index < cnt)
+> > > > > +				response->flags &= CXL_DCD_EVENT_MORE;    
+> > > > 
+> > > > It should be 'response->flags |= CXL_DCD_EVENT_MORE' here.    
+> > > 
+> > > Ah yea.  Good catch.
+> > >   
+> > > > 
+> > > > Another issue is if 'cnt' is N times bigger than 'max_extents'(e,g. cnt=20, max_extents=10). all responses will be sent in this xa_for_each(), and CXL_DCD_EVENT_MORE will be set in the last response but it should not be set in these cases.
+> > > >     
+> > > 
+> > > Ah yes.  cnt must be decremented.  As I looked at the patch just now the
+> > > 
+> > > 	if (cnt == 0 || pl_index)
+> > > 
+> > > ... seemed very wrong to me.  That change masked this bug.
+> > > 
+> > > This should fix it:
+> > > 
+> > > diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
+> > > index d66beec687a0..99200274dea8 100644
+> > > --- a/drivers/cxl/core/mbox.c
+> > > +++ b/drivers/cxl/core/mbox.c
+> > > @@ -1119,10 +1119,11 @@ static int cxl_send_dc_response(struct cxl_memdev_state *mds, int opcode,
+> > >                         if (rc)
+> > >                                 return rc;
+> > >                         pl_index = 0;
+> > > +                       cnt -= pl_index;
+> > >                 }
+> > >         }
+> > >  
+> > > -       if (cnt == 0 || pl_index) {  
+> > 
+> > I thought this cnt == 0 check was to deal with the no valid
+> > extents case where an empty reply is needed.  
+> 
+> Yes but the bug found by Ming needs to be handled too.  I see Fan is also
+> questioning this code.
+> 
+> So...  for clarity among all of us here is the new function.  I'm not thrilled
+> with the use of a goto but I think it is ok here.
 
-Signed-off-by: Li Zhijian <lizhijian@fujitsu.com>
----
-V3:
-  split as a separate patch
----
- test/monitor.sh | 1 +
- 1 file changed, 1 insertion(+)
+Easy enough to avoid and I don't think it hurts readability much to do so.
 
-diff --git a/test/monitor.sh b/test/monitor.sh
-index c5beb2c..7049b36 100755
---- a/test/monitor.sh
-+++ b/test/monitor.sh
-@@ -146,6 +146,7 @@ test_filter_dimmevent()
- 	stop_monitor
- 
- 	inject_value=$($NDCTL list -H -d $monitor_dimms | jq -r .[]."health"."temperature_threshold")
-+	inject_value=${inject_value%.*}
- 	inject_value=$((inject_value + 1))
- 	start_monitor "-d $monitor_dimms -D dimm-media-temperature"
- 	inject_smart "-m $inject_value"
--- 
-2.44.0
+Your code should work though.
+
+> 
+> Ira
+> 
+> static int cxl_send_dc_response(struct cxl_memdev_state *mds, int opcode,      
+>                                struct xarray *extent_array, int cnt)           
+> {                                                                              
+>        struct cxl_mailbox *cxl_mbox = &mds->cxlds.cxl_mbox;                    
+>        struct cxl_mbox_dc_response *p;                                         
+>        struct cxl_mbox_cmd mbox_cmd;                                           
+>        struct cxl_extent *extent;                                              
+>        unsigned long index;                                                    
+>        u32 pl_index;                                                           
+>        int rc;                                                                 
+>                                                                                
+>        size_t pl_size = struct_size(p, extent_list, cnt);                      
+>        u32 max_extents = cnt;                                              
+>                                                                                
+>        /* May have to use more bit on response. */                             
+>        if (pl_size > cxl_mbox->payload_size) {                                 
+>                max_extents = (cxl_mbox->payload_size - sizeof(*p)) /           
+>                              sizeof(struct updated_extent_list);               
+>                pl_size = struct_size(p, extent_list, max_extents);
+             
+>        }                                                                       
+>                                                                                
+>        struct cxl_mbox_dc_response *response __free(kfree) =                   
+>                                                kzalloc(pl_size, GFP_KERNEL);   
+>        if (!response)                                                          
+>                return -ENOMEM;                                                 
+>                                                                                
+>        pl_index = 0;                                                           
+>        if (cnt == 0)                                                           
+>                goto send_zero_accepted;
+>        xa_for_each(extent_array, index, extent) {                              
+>                response->extent_list[pl_index].dpa_start = extent->start_dpa;  
+>                response->extent_list[pl_index].length = extent->length;        
+>                pl_index++;                                                     
+>                response->extent_list_size = cpu_to_le32(pl_index);    
+
+Why set this here - to me makes more sense to set it only once but I can
+see the logic either way.
+         
+>   
+>                if (pl_index == max_extents) {                                  
+>                        mbox_cmd = (struct cxl_mbox_cmd) {                      
+>                                .opcode = opcode,                               
+>                                .size_in = struct_size(response, extent_list,   
+>                                                       pl_index),               
+>                                .payload_in = response,                         
+>                        };                                                      
+>                                                                                
+>                        response->flags = 0;                                    
+>                        if (pl_index < cnt)                                     
+>                                response->flags &= CXL_DCD_EVENT_MORE;          
+>                                                                                
+>                        rc = cxl_internal_send_cmd(cxl_mbox, &mbox_cmd);        
+>                        if (rc)                                                 
+>                                return rc;                                      
+>                        cnt -= pl_index;                                        
+>                        pl_index = 0;                                          
+>                }                                                               
+>        }                                                                       
+>                                                                                
+>        if (!pl_index)                                                          
+>                return 0;                                                       
+>                                                                                
+> send_zero_accepted:                                                            
+>        mbox_cmd = (struct cxl_mbox_cmd) {                                      
+>                .opcode = opcode,                                               
+>                .size_in = struct_size(response, extent_list,                   
+>                                       pl_index),                               
+>                .payload_in = response,                                         
+>        };                                                                      
+>                                                                                
+>        response->flags = 0;                                                    
+>        return cxl_internal_send_cmd(cxl_mbox, &mbox_cmd);                      
+> }                
+
+
+Alternative form for what you have...
+                                                              
+	if (cnt != 0) { /* Something to send */
+                 xa_for_each(extent_array, index, extent) {
+			response->extent_list[pl_index].dpa_start = extent->start_dpa;
+			response->extent_list[pl_index].length = extent->length;
+			pl_index++;
+			response->extent_list_size = cpu_to_le32(pl_index);                 
+			if (pl_index != max_extents) /* Space for more? */
+				continue;
+
+			/* Send what we have */
+			response->flags = 0; 
+			if (pl_index < cnt)                                     
+				response->flags &= CXL_DCD_EVENT_MORE;
+			
+			mbox_cmd = (struct cxl_mbox_cmd) {                      
+				.opcode = opcode,                               
+				.size_in = struct_size(response, extent_list,   
+						       pl_index),               
+				.payload_in = response,                         
+			};
+
+			rc = cxl_internal_send_cmd(cxl_mbox, &mbox_cmd);        
+			if (rc)                                                 
+				return rc;                                      
+			cnt -= pl_index;                                        
+			pl_index = 0;
+		}
+		if (!pl_index)
+			return 0;
+	}
+
+	/* Catch left overs + send if zero length */
+	response->flags = 0;
+	mbox_cmd = (struct cxl_mbox_cmd) {                                      
+		.opcode = opcode,                                               
+		.size_in = struct_size(response, extent_list, pl_index),                               
+		.payload_in = response,                                         
+	};                                                                      
+                                                                                                                                    
+	return cxl_internal_send_cmd(cxl_mbox, &mbox_cmd);                      
+}
+
+                                                
+
+> 
 
