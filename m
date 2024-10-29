@@ -1,51 +1,52 @@
 Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.11])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9A19420B201
-	for <nvdimm@lists.linux.dev>; Tue, 29 Oct 2024 20:35:45 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2D539208224
+	for <nvdimm@lists.linux.dev>; Tue, 29 Oct 2024 20:35:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.11
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730234147; cv=none; b=YEGU/CEXWCYSMC84RaieyIS0xvPUjzM9Y8ugQJdmjSZb9FHDfKoqE+UJv0XKjY+ShZqGdZlKjDrUgKK6RBBowAntfb2tOUHltQSPk4Xy1pc2fs3TYUuHMpQnwADXlYdjx//bH01d8blEZQpuZQsdqEQvECOtNH2YWIcwky9AsdM=
+	t=1730234151; cv=none; b=URYosGBCKcCZFzzPJKILYdVAMsCaFxdL73L+I2KcpytA0lfgJIBAREAyGMkWGp8iSYpqv95xbu2MI9G8WgElA5Eux1lN+9B4E06MRQGjhShJgaA0WARXf3r5Cbks58r7LuxsXsXKKHvTYuIJwOC6K5L9uTAhCr94tJau3vaQYRs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730234147; c=relaxed/simple;
-	bh=CYwRoUDKYuiHtI74hcjgmD3QstdlBLdXXftrJLGB3R0=;
+	s=arc-20240116; t=1730234151; c=relaxed/simple;
+	bh=lEJdW0Ygrx9GRwy2/nzdpfgA35lo+JrftZEIMp/SVbI=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=BduDeMe+9i8c3PjPnVjGyr9u+0CghHbXTSENEpUCVwCfvaiOdA+XJDH2NQJybs4zkVcLKm7h4msh3L12VFPoin5TSc39C8n1SO8GUoJdZ4al04B3RRg0CM2gpNFeFhlcCH9vilAW2VopsdWC8u1hqKXDaDl+rvJqdO0iz0dh4uI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=buQQBovR; arc=none smtp.client-ip=192.198.163.11
+	 In-Reply-To:To:Cc; b=RAAXmEnGv34EPl4ErdB5yAKYr4d+2Mj4LyeWxuze62BOPlpAaKc6h2ZVaLRAN0sjXzv9luV4pupLLKQBA1vHiVNh2fqOkVL6NgkqdDr3KSSCh6mazT7NX+p3T9A72cPTJsSQTcKmbcpm6TqI/qsI78GVsQLYjez0ROXUQBnLUZw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Vu0zVGIO; arc=none smtp.client-ip=192.198.163.11
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="buQQBovR"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Vu0zVGIO"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1730234146; x=1761770146;
+  t=1730234149; x=1761770149;
   h=from:date:subject:mime-version:content-transfer-encoding:
    message-id:references:in-reply-to:to:cc;
-  bh=CYwRoUDKYuiHtI74hcjgmD3QstdlBLdXXftrJLGB3R0=;
-  b=buQQBovReGvvWFQ5cYnBgYsl0SbHLjW+fDovMcJ+v29Lx96JhgJ14Eur
-   YelJpPSm2obunsiB/aGpxhRoBH23rVGODaWgbkO3yy2oUwV1JTiFYxxd8
-   COaXZIbj3089Vw14ADVK3CGB5J0hOL6RN+/74QRUmJM++4952oHvONnqC
-   +XMAeLw/O/Dw9laF0nChFFYxA46C39oEp2/uIfkBDk0FjKYI7fAw+5cL9
-   d3tVdH5OASsCL0hlr07zgJaLTWM1HR3mOraVA0c1Q0UcOL6/3C6QAP5kJ
-   X1M7Y63sFJG8n0YtjaUYqx4HBSZaNDKnMg/aEEH9sT20wX8w3pvAtXE+D
-   w==;
-X-CSE-ConnectionGUID: USCZtmcsTUOoA0dF4lXYxQ==
-X-CSE-MsgGUID: hQiEYy5eROiSN3MTNi8/NQ==
-X-IronPort-AV: E=McAfee;i="6700,10204,11240"; a="40485474"
+  bh=lEJdW0Ygrx9GRwy2/nzdpfgA35lo+JrftZEIMp/SVbI=;
+  b=Vu0zVGIOu1i3DrmAxs3xlMR3BMY3XxDms9wXQgWIxYRaSS8DkzNf17Px
+   w4WxZ4zTk1WH01HfLFaIgL/XchxXpiLy9WoWTZ1GVZLM0AbBna7aapYU8
+   kb/x7tWULPffrPM2i8dJHuUuJ0G5O/BoE/qR6S2ebIhu5SG8Rd56+EFti
+   ZtBp+lvQrk98FMNCW/fMGKO+bdOWPWqmVs2kfjsjmO6Qa00ehbql8mJxB
+   RMEn1DNSSG44u2g91V/8n6LTR84PHJeTDkqWe8x+WuYS8YqbuKZIJ/XyR
+   zEL5WEPxKQQttQAqWF33K5L0kyI6UUKpLGHQUItSdMbt6mH/JtfKYvm2q
+   A==;
+X-CSE-ConnectionGUID: AcAKbJ82RludjCU9WPa9Pw==
+X-CSE-MsgGUID: l3xIFvH8Sli73U8QDGy8ZQ==
+X-IronPort-AV: E=McAfee;i="6700,10204,11240"; a="40485486"
 X-IronPort-AV: E=Sophos;i="6.11,243,1725346800"; 
-   d="scan'208";a="40485474"
+   d="scan'208";a="40485486"
 Received: from fmviesa008.fm.intel.com ([10.60.135.148])
-  by fmvoesa105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Oct 2024 13:35:45 -0700
-X-CSE-ConnectionGUID: aAZPV5cRQ/KueSg2kSFgoQ==
-X-CSE-MsgGUID: MGH53Mf/RR2Hr29X/92oOQ==
+  by fmvoesa105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Oct 2024 13:35:48 -0700
+X-CSE-ConnectionGUID: XvGB0VBwTRGxa/CCd7dIxA==
+X-CSE-MsgGUID: k6DWd0ZWQMO2j4FPnJUwtw==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.11,243,1725346800"; 
-   d="scan'208";a="82185321"
+   d="scan'208";a="82185334"
 Received: from ldmartin-desk2.corp.intel.com (HELO localhost) ([10.125.108.77])
-  by fmviesa008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Oct 2024 13:35:43 -0700
-From: Ira Weiny <ira.weiny@intel.com>
-Date: Tue, 29 Oct 2024 15:34:47 -0500
-Subject: [PATCH v5 12/27] cxl/cdat: Gather DSMAS data for DCD regions
+  by fmviesa008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Oct 2024 13:35:46 -0700
+From: ira.weiny@intel.com
+Date: Tue, 29 Oct 2024 15:34:48 -0500
+Subject: [PATCH v5 13/27] cxl/mem: Expose DCD partition capabilities in
+ sysfs
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -54,7 +55,7 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20241029-dcd-type2-upstream-v5-12-8739cb67c374@intel.com>
+Message-Id: <20241029-dcd-type2-upstream-v5-13-8739cb67c374@intel.com>
 References: <20241029-dcd-type2-upstream-v5-0-8739cb67c374@intel.com>
 In-Reply-To: <20241029-dcd-type2-upstream-v5-0-8739cb67c374@intel.com>
 To: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, 
@@ -68,138 +69,240 @@ Cc: Dan Williams <dan.j.williams@intel.com>,
  linux-cxl@vger.kernel.org, linux-doc@vger.kernel.org, 
  nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org
 X-Mailer: b4 0.15-dev-2a633
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1730234086; l=4704;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1730234086; l=8446;
  i=ira.weiny@intel.com; s=20221211; h=from:subject:message-id;
- bh=CYwRoUDKYuiHtI74hcjgmD3QstdlBLdXXftrJLGB3R0=;
- b=JvnpRW4RUqrQhBWJnN4p+Y6j3rGgsRB3FzwOXXzegP+DVVX7jGKZMgRS0JFMOdhbueVzpWF0j
- 4/qzWinwiYqC2Tb62k8+V53RqrMOSstIdiB9JaRL3XKTicipyIrCen4
+ bh=ZwbtMWDmEoyXzsmrWVPmRQ4t8Fr2WPPGgA5XxSb/NKM=;
+ b=lwJf0ReqSOcGSfbrxB3h0+se8lRxTwDXCMbNRvv9wyUMpNQADJn2ibnRXvEcKtkquM91TAz7G
+ C22GjWW5cM2CeW/uNo6UWVhD64iQvsHKvATNLtBqh/wPVCXrK4THagK
 X-Developer-Key: i=ira.weiny@intel.com; a=ed25519;
  pk=noldbkG+Wp1qXRrrkfY1QJpDf7QsOEthbOT7vm0PqsE=
 
-Additional DCD region (partition) information is contained in the DSMAS
-CDAT tables, including performance, read only, and shareable attributes.
+From: Navneet Singh <navneet.singh@intel.com>
 
-Match DCD partitions with DSMAS tables and store the meta data.
+To properly configure CXL regions on Dynamic Capacity Devices (DCD),
+user space will need to know the details of the DC partitions available.
 
+Expose dynamic capacity capabilities through sysfs.
+
+Signed-off-by: Navneet Singh <navneet.singh@intel.com>
 Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Co-developed-by: Ira Weiny <ira.weiny@intel.com>
 Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 ---
 Changes:
-[Fan: remove unwanted blank line]
-[Rafael: Split out acpi change]
-[iweiny: remove %pra use]
-[Jonathan: s/cdat/CDAT/]
+[Fan: Use proper str_false_true() call]
+[Jonathan: minor cleanups]
+[Bagas: Clean up documentation language]
 ---
- drivers/cxl/core/cdat.c | 39 +++++++++++++++++++++++++++++++++++++++
- drivers/cxl/core/mbox.c |  2 ++
- drivers/cxl/cxlmem.h    |  3 +++
- 3 files changed, 44 insertions(+)
+ Documentation/ABI/testing/sysfs-bus-cxl |  45 ++++++++++++
+ drivers/cxl/core/memdev.c               | 124 ++++++++++++++++++++++++++++++++
+ 2 files changed, 169 insertions(+)
 
-diff --git a/drivers/cxl/core/cdat.c b/drivers/cxl/core/cdat.c
-index b5d30c5bf1e20725d13b4397a7ba90662bcd8766..7cd7734a3b0f0b742ee6e63973d12fb3e83ac332 100644
---- a/drivers/cxl/core/cdat.c
-+++ b/drivers/cxl/core/cdat.c
-@@ -17,6 +17,8 @@ struct dsmas_entry {
- 	struct access_coordinate cdat_coord[ACCESS_COORDINATE_MAX];
- 	int entries;
- 	int qos_class;
-+	bool shareable;
-+	bool read_only;
+diff --git a/Documentation/ABI/testing/sysfs-bus-cxl b/Documentation/ABI/testing/sysfs-bus-cxl
+index 3f5627a1210a16aca7c18d17131a56491048a0c2..ff3ae83477f0876c0ee2d3955d27a11fa9d16d83 100644
+--- a/Documentation/ABI/testing/sysfs-bus-cxl
++++ b/Documentation/ABI/testing/sysfs-bus-cxl
+@@ -54,6 +54,51 @@ Description:
+ 		identically named field in the Identify Memory Device Output
+ 		Payload in the CXL-2.0 specification.
+ 
++What:		/sys/bus/cxl/devices/memX/dcY/size
++Date:		December, 2024
++KernelVersion:	v6.13
++Contact:	linux-cxl@vger.kernel.org
++Description:
++		(RO) Dynamic Capacity (DC) region information.  Devices only
++		export dcY if DCD partition Y is supported.
++		dcY/size is the size of each of those partitions.
++
++What:		/sys/bus/cxl/devices/memX/dcY/read_only
++Date:		December, 2024
++KernelVersion:	v6.13
++Contact:	linux-cxl@vger.kernel.org
++Description:
++		(RO) Dynamic Capacity (DC) region information.  Devices only
++		export dcY if DCD partition Y is supported.
++		dcY/read_only indicates true if the region is exported
++		read_only from the device.
++
++What:		/sys/bus/cxl/devices/memX/dcY/shareable
++Date:		December, 2024
++KernelVersion:	v6.13
++Contact:	linux-cxl@vger.kernel.org
++Description:
++		(RO) Dynamic Capacity (DC) region information.  Devices only
++		export dcY if DCD partition Y is supported.
++		dcY/shareable indicates true if the region is exported
++		shareable from the device.
++
++What:		/sys/bus/cxl/devices/memX/dcY/qos_class
++Date:		December, 2024
++KernelVersion:	v6.13
++Contact:	linux-cxl@vger.kernel.org
++Description:
++		(RO) Dynamic Capacity (DC) region information.  Devices only
++		export dcY if DCD partition Y is supported.  For CXL host
++		platforms that support "QoS Telemmetry" this attribute conveys
++		a comma delimited list of platform specific cookies that
++		identifies a QoS performance class for the persistent partition
++		of the CXL mem device. These class-ids can be compared against
++		a similar "qos_class" published for a root decoder. While it is
++		not required that the endpoints map their local memory-class to
++		a matching platform class, mismatches are not recommended as
++		there are platform specific performance related side-effects
++		that may result. First class-id is displayed.
+ 
+ What:		/sys/bus/cxl/devices/memX/pmem/qos_class
+ Date:		May, 2023
+diff --git a/drivers/cxl/core/memdev.c b/drivers/cxl/core/memdev.c
+index 84fefb76dafabc22e6e1a12397381b3f18eea7c5..857a9dd88b20291116d20b9c0bbe9e7961f4491f 100644
+--- a/drivers/cxl/core/memdev.c
++++ b/drivers/cxl/core/memdev.c
+@@ -2,6 +2,7 @@
+ /* Copyright(c) 2020 Intel Corporation. */
+ 
+ #include <linux/io-64-nonatomic-lo-hi.h>
++#include <linux/string_choices.h>
+ #include <linux/firmware.h>
+ #include <linux/device.h>
+ #include <linux/slab.h>
+@@ -449,6 +450,121 @@ static struct attribute *cxl_memdev_security_attributes[] = {
+ 	NULL,
  };
  
- static u32 cdat_normalize(u16 entry, u64 base, u8 type)
-@@ -74,6 +76,8 @@ static int cdat_dsmas_handler(union acpi_subtable_headers *header, void *arg,
- 		return -ENOMEM;
- 
- 	dent->handle = dsmas->dsmad_handle;
-+	dent->shareable = dsmas->flags & ACPI_CDAT_DSMAS_SHAREABLE;
-+	dent->read_only = dsmas->flags & ACPI_CDAT_DSMAS_READ_ONLY;
- 	dent->dpa_range.start = le64_to_cpu((__force __le64)dsmas->dpa_base_address);
- 	dent->dpa_range.end = le64_to_cpu((__force __le64)dsmas->dpa_base_address) +
- 			      le64_to_cpu((__force __le64)dsmas->dpa_length) - 1;
-@@ -255,6 +259,39 @@ static void update_perf_entry(struct device *dev, struct dsmas_entry *dent,
- 		dent->coord[ACCESS_COORDINATE_CPU].write_latency);
- }
- 
-+static void update_dcd_perf(struct cxl_dev_state *cxlds,
-+			    struct dsmas_entry *dent)
++static ssize_t show_size_dcN(struct cxl_memdev *cxlmd, char *buf, int pos)
 +{
-+	struct cxl_memdev_state *mds = to_cxl_memdev_state(cxlds);
-+	struct device *dev = cxlds->dev;
++	struct cxl_memdev_state *mds = to_cxl_memdev_state(cxlmd->cxlds);
 +
-+	for (int i = 0; i < mds->nr_dc_region; i++) {
-+		/* CXL defines a u32 handle while CDAT defines u8, ignore upper bits */
-+		u8 dc_handle = mds->dc_region[i].dsmad_handle & 0xff;
-+
-+		if (resource_size(&cxlds->dc_res[i])) {
-+			struct range dc_range = {
-+				.start = cxlds->dc_res[i].start,
-+				.end = cxlds->dc_res[i].end,
-+			};
-+
-+			if (range_contains(&dent->dpa_range, &dc_range)) {
-+				if (dent->handle != dc_handle)
-+					dev_warn(dev, "DC Region/DSMAS mis-matched handle/range; region [range 0x%016llx-0x%016llx] (%u); dsmas [range 0x%016llx-0x%016llx] (%u)\n"
-+						      "   setting DC region attributes regardless\n",
-+						dent->dpa_range.start, dent->dpa_range.end,
-+						dent->handle,
-+						dc_range.start, dc_range.end,
-+						dc_handle);
-+
-+				mds->dc_region[i].shareable = dent->shareable;
-+				mds->dc_region[i].read_only = dent->read_only;
-+				update_perf_entry(dev, dent, &mds->dc_perf[i]);
-+			}
-+		}
-+	}
++	return sysfs_emit(buf, "%#llx\n", mds->dc_region[pos].decode_len);
 +}
 +
- static void cxl_memdev_set_qos_class(struct cxl_dev_state *cxlds,
- 				     struct xarray *dsmas_xa)
++static ssize_t show_read_only_dcN(struct cxl_memdev *cxlmd, char *buf, int pos)
++{
++	struct cxl_memdev_state *mds = to_cxl_memdev_state(cxlmd->cxlds);
++
++	return sysfs_emit(buf, "%s\n",
++			  str_true_false(mds->dc_region[pos].read_only));
++}
++
++static ssize_t show_shareable_dcN(struct cxl_memdev *cxlmd, char *buf, int pos)
++{
++	struct cxl_memdev_state *mds = to_cxl_memdev_state(cxlmd->cxlds);
++
++	return sysfs_emit(buf, "%s\n",
++			  str_true_false(mds->dc_region[pos].shareable));
++}
++
++static ssize_t show_qos_class_dcN(struct cxl_memdev *cxlmd, char *buf, int pos)
++{
++	struct cxl_memdev_state *mds = to_cxl_memdev_state(cxlmd->cxlds);
++
++	return sysfs_emit(buf, "%d\n", mds->dc_perf[pos].qos_class);
++}
++
++#define CXL_MEMDEV_DC_ATTR_GROUP(n)						\
++static ssize_t dc##n##_size_show(struct device *dev,				\
++				 struct device_attribute *attr,			\
++				 char *buf)					\
++{										\
++	return show_size_dcN(to_cxl_memdev(dev), buf, (n));			\
++}										\
++struct device_attribute dc##n##_size = {					\
++	.attr	= { .name = "size", .mode = 0444 },				\
++	.show	= dc##n##_size_show,						\
++};										\
++static ssize_t dc##n##_read_only_show(struct device *dev,			\
++				      struct device_attribute *attr,		\
++				      char *buf)				\
++{										\
++	return show_read_only_dcN(to_cxl_memdev(dev), buf, (n));		\
++}										\
++struct device_attribute dc##n##_read_only = {					\
++	.attr	= { .name = "read_only", .mode = 0444 },			\
++	.show	= dc##n##_read_only_show,					\
++};										\
++static ssize_t dc##n##_shareable_show(struct device *dev,			\
++				     struct device_attribute *attr,		\
++				     char *buf)					\
++{										\
++	return show_shareable_dcN(to_cxl_memdev(dev), buf, (n));		\
++}										\
++struct device_attribute dc##n##_shareable = {					\
++	.attr	= { .name = "shareable", .mode = 0444 },			\
++	.show	= dc##n##_shareable_show,					\
++};										\
++static ssize_t dc##n##_qos_class_show(struct device *dev,			\
++				      struct device_attribute *attr,		\
++				      char *buf)				\
++{										\
++	return show_qos_class_dcN(to_cxl_memdev(dev), buf, (n));		\
++}										\
++struct device_attribute dc##n##_qos_class = {					\
++	.attr	= { .name = "qos_class", .mode = 0444 },			\
++	.show	= dc##n##_qos_class_show,					\
++};										\
++static struct attribute *cxl_memdev_dc##n##_attributes[] = {			\
++	&dc##n##_size.attr,							\
++	&dc##n##_read_only.attr,						\
++	&dc##n##_shareable.attr,						\
++	&dc##n##_qos_class.attr,						\
++	NULL									\
++};										\
++static umode_t cxl_memdev_dc##n##_attr_visible(struct kobject *kobj,		\
++					       struct attribute *a,		\
++					       int pos)				\
++{										\
++	struct device *dev = kobj_to_dev(kobj);					\
++	struct cxl_memdev *cxlmd = to_cxl_memdev(dev);				\
++	struct cxl_memdev_state *mds = to_cxl_memdev_state(cxlmd->cxlds);	\
++										\
++	/* Not a memory device */						\
++	if (!mds)								\
++		return 0;							\
++	return a->mode;								\
++}										\
++static umode_t cxl_memdev_dc##n##_group_visible(struct kobject *kobj)		\
++{										\
++	struct device *dev = kobj_to_dev(kobj);					\
++	struct cxl_memdev *cxlmd = to_cxl_memdev(dev);				\
++	struct cxl_memdev_state *mds = to_cxl_memdev_state(cxlmd->cxlds);	\
++										\
++	/* Not a memory device or partition not supported */			\
++	return mds && n < mds->nr_dc_region;					\
++}										\
++DEFINE_SYSFS_GROUP_VISIBLE(cxl_memdev_dc##n);					\
++static struct attribute_group cxl_memdev_dc##n##_group = {			\
++	.name = "dc"#n,								\
++	.attrs = cxl_memdev_dc##n##_attributes,					\
++	.is_visible = SYSFS_GROUP_VISIBLE(cxl_memdev_dc##n),			\
++}
++CXL_MEMDEV_DC_ATTR_GROUP(0);
++CXL_MEMDEV_DC_ATTR_GROUP(1);
++CXL_MEMDEV_DC_ATTR_GROUP(2);
++CXL_MEMDEV_DC_ATTR_GROUP(3);
++CXL_MEMDEV_DC_ATTR_GROUP(4);
++CXL_MEMDEV_DC_ATTR_GROUP(5);
++CXL_MEMDEV_DC_ATTR_GROUP(6);
++CXL_MEMDEV_DC_ATTR_GROUP(7);
++
+ static umode_t cxl_memdev_visible(struct kobject *kobj, struct attribute *a,
+ 				  int n)
  {
-@@ -278,6 +315,8 @@ static void cxl_memdev_set_qos_class(struct cxl_dev_state *cxlds,
- 		else if (resource_size(&cxlds->pmem_res) &&
- 			 range_contains(&pmem_range, &dent->dpa_range))
- 			update_perf_entry(dev, dent, &mds->pmem_perf);
-+		else if (cxl_dcd_supported(mds))
-+			update_dcd_perf(cxlds, dent);
- 		else
- 			dev_dbg(dev, "no partition for dsmas dpa: %#llx\n",
- 				dent->dpa_range.start);
-diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
-index 2c9a9af3dde3a294cde628880066b514b870029f..a4b5cb61b4e6f9b17e3e3e0cce356b0ac9f960d0 100644
---- a/drivers/cxl/core/mbox.c
-+++ b/drivers/cxl/core/mbox.c
-@@ -1649,6 +1649,8 @@ struct cxl_memdev_state *cxl_memdev_state_create(struct device *dev)
- 	mds->cxlds.type = CXL_DEVTYPE_CLASSMEM;
- 	mds->ram_perf.qos_class = CXL_QOS_CLASS_INVALID;
- 	mds->pmem_perf.qos_class = CXL_QOS_CLASS_INVALID;
-+	for (int i = 0; i < CXL_MAX_DC_REGION; i++)
-+		mds->dc_perf[i].qos_class = CXL_QOS_CLASS_INVALID;
- 
- 	return mds;
- }
-diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
-index 2fb93269ab4359dd12dfb912ded30654e2340be0..204f7bd9197bd1a02de44ef56a345811d2107ab4 100644
---- a/drivers/cxl/cxlmem.h
-+++ b/drivers/cxl/cxlmem.h
-@@ -466,6 +466,8 @@ struct cxl_dc_region_info {
- 	u64 blk_size;
- 	u32 dsmad_handle;
- 	u8 flags;
-+	bool shareable;
-+	bool read_only;
- 	u8 name[CXL_DC_REGION_STRLEN];
+@@ -525,6 +641,14 @@ static struct attribute_group cxl_memdev_security_attribute_group = {
  };
  
-@@ -533,6 +535,7 @@ struct cxl_memdev_state {
- 
- 	u8 nr_dc_region;
- 	struct cxl_dc_region_info dc_region[CXL_MAX_DC_REGION];
-+	struct cxl_dpa_perf dc_perf[CXL_MAX_DC_REGION];
- 
- 	struct cxl_event_state event;
- 	struct cxl_poison_state poison;
+ static const struct attribute_group *cxl_memdev_attribute_groups[] = {
++	&cxl_memdev_dc0_group,
++	&cxl_memdev_dc1_group,
++	&cxl_memdev_dc2_group,
++	&cxl_memdev_dc3_group,
++	&cxl_memdev_dc4_group,
++	&cxl_memdev_dc5_group,
++	&cxl_memdev_dc6_group,
++	&cxl_memdev_dc7_group,
+ 	&cxl_memdev_attribute_group,
+ 	&cxl_memdev_ram_attribute_group,
+ 	&cxl_memdev_pmem_attribute_group,
 
 -- 
 2.47.0
