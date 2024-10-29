@@ -1,51 +1,51 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.21])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.11])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9A2D20896C
-	for <nvdimm@lists.linux.dev>; Tue, 29 Oct 2024 20:35:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.21
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6351820899B
+	for <nvdimm@lists.linux.dev>; Tue, 29 Oct 2024 20:35:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.11
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730234118; cv=none; b=OcsxQ3j9VGF98Hr3c67a8eNI3x2a6H2j+EtYICRDASAjn68Ipz+Cj4P5EBjVuDC2f8OqDFfF2+TJeuuGN94BWc+40CZn9mh6UfAsnEpkRjZav/dPEz3iBJRb4idAwurOiWFLvwPPVAxZx91FTJyOghXwQHiHHlCJD9DK8hP9UNI=
+	t=1730234122; cv=none; b=ASe0wLsVPsuZhtigw29VwgrWE722iZiEZ+0Fqgg7DHGJDk7Lq8/fDql1FzBC8DocF8BlRlIum9zcyXltYEynxeZW8yIriQGF/++sRW7Ixp7/ObmIWdjKXFINbdoQARX4tnlgiWsMbp9Smzp/vp87UrvHGu6Xvqw9dgiXmWpNfDk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730234118; c=relaxed/simple;
-	bh=BVvQA0Wr2Feq0YcwEbv2GBXCYGRxu2UFOhLc7doL7LE=;
+	s=arc-20240116; t=1730234122; c=relaxed/simple;
+	bh=yaZyopWtPUuaRe9FVFZEkwznEj/+EDfTkZP0uEn0RuE=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=q5F5Zab912l3Nhj5Lqgyz+YMszGk0MhoT6aIJ6kwLzTJ9sCaDzQMzJTupYDFkc2oYiiNs/T35t26J2cR3f6Y7JtlygPq7hp5ac5uMc6erFnA5gDxUWnbu522FEIrG5FCETGvjSWpTv8QX2Mh0ZzgRMudlISkvxG1CcAn15Byoe0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Qkum2Di1; arc=none smtp.client-ip=198.175.65.21
+	 In-Reply-To:To:Cc; b=h1DyJ+CsZ0ri1x9AYL5ecrFsLGEC836NvG1dUIbxbPvPlPVEdj7UNpvD31qGAU2H97i5LgYFgTonLGx6d+J+uILnN4wltODa8WaeiMQxlSl/NVUv8kJUibk8cXnzMOuNxm762kjitlo42xrjCkX6bu2Vq6ULSOhsXAcmJyliOeE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=lymZp8Uw; arc=none smtp.client-ip=192.198.163.11
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Qkum2Di1"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="lymZp8Uw"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1730234117; x=1761770117;
+  t=1730234120; x=1761770120;
   h=from:date:subject:mime-version:content-transfer-encoding:
    message-id:references:in-reply-to:to:cc;
-  bh=BVvQA0Wr2Feq0YcwEbv2GBXCYGRxu2UFOhLc7doL7LE=;
-  b=Qkum2Di1wq2DP5LnZjFuUs6lrPG3GH2ZuMnPgT22spH5yKwFR2rM/VHR
-   mYg1bSVgUGPjZFTl+PO3hrPJBZd467qJR5F49wznokzvawukMG410ZeT6
-   ynmabLsx53Odut6FftDeOSobeKyLkFYgHIBXtqmqZnfZsk1SboEPZpz0k
-   sdV4XzqAqf4N/zPQK7YbF/HVyoRXZgrYZCpReBwxWPDNpZu1++dETXbRJ
-   hGcHtJu25lO+/Y+VMp0JkQo/TrVn756bnEsFvjqbnGQnhysExvMT2QXUM
-   1Ny2EWCRaWEuDuNEJg14dWwHqbGIbNiDZencEhaUxD+6e9PpLXKLE22IX
-   g==;
-X-CSE-ConnectionGUID: PCCtGs0gSpGLgqxbA1RIlA==
-X-CSE-MsgGUID: FMzwl03XQSGwjePYq3AMiQ==
-X-IronPort-AV: E=McAfee;i="6700,10204,11222"; a="29865485"
-X-IronPort-AV: E=Sophos;i="6.11,199,1725346800"; 
-   d="scan'208";a="29865485"
-Received: from fmviesa007.fm.intel.com ([10.60.135.147])
-  by orvoesa113.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Oct 2024 13:35:16 -0700
-X-CSE-ConnectionGUID: GKi77yszSsWXnxrP4tXokw==
-X-CSE-MsgGUID: zgmNxCB6S4S5fJnMqEjANw==
+  bh=yaZyopWtPUuaRe9FVFZEkwznEj/+EDfTkZP0uEn0RuE=;
+  b=lymZp8UwUdXwKdBjCMHzsxHWMTfh7Y0Dbpa5VviQ03M2M7fnngYJlQy+
+   6ij22q0i5g8ertLFaT+lwJcgQFR+8t2MxkmieTxSOwjS7QEZuiaw66Jyb
+   yKP0701zW+HCtc3i7vfzY7dILQRr2+254Dql01R4rem7a7VdAdWO95jU4
+   6RUS36IHvcmavRzqKWCbzPqJUuw98mUOHZRsvLaVS8jhSRqbkuo+yBGcr
+   YqcltTHGQmRT2ojMCPxDOeo6FfHvelai4uLZiQqETyNznvB6tGH8MpdvE
+   UXsuftLIQqWcx2VHearm4Ysi729NDCVSUF7+s7VqicSYE6wgMyLL57SOU
+   w==;
+X-CSE-ConnectionGUID: KfgPJUMpSXSTHM/iNaWKEQ==
+X-CSE-MsgGUID: o4ID0469TsGgt54Dx08Iww==
+X-IronPort-AV: E=McAfee;i="6700,10204,11240"; a="40485346"
+X-IronPort-AV: E=Sophos;i="6.11,243,1725346800"; 
+   d="scan'208";a="40485346"
+Received: from fmviesa008.fm.intel.com ([10.60.135.148])
+  by fmvoesa105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Oct 2024 13:35:20 -0700
+X-CSE-ConnectionGUID: 7gf1irCCR7auevX7X95eYA==
+X-CSE-MsgGUID: bwGhjWs1TYWInWBrL7plIw==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.11,243,1725346800"; 
-   d="scan'208";a="81712138"
+   d="scan'208";a="82185194"
 Received: from ldmartin-desk2.corp.intel.com (HELO localhost) ([10.125.108.77])
-  by fmviesa007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Oct 2024 13:35:15 -0700
+  by fmviesa008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Oct 2024 13:35:18 -0700
 From: Ira Weiny <ira.weiny@intel.com>
-Date: Tue, 29 Oct 2024 15:34:38 -0500
-Subject: [PATCH v5 03/27] dax: Document struct dev_dax_range
+Date: Tue, 29 Oct 2024 15:34:39 -0500
+Subject: [PATCH v5 04/27] cxl/pci: Delay event buffer allocation
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -54,7 +54,7 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20241029-dcd-type2-upstream-v5-3-8739cb67c374@intel.com>
+Message-Id: <20241029-dcd-type2-upstream-v5-4-8739cb67c374@intel.com>
 References: <20241029-dcd-type2-upstream-v5-0-8739cb67c374@intel.com>
 In-Reply-To: <20241029-dcd-type2-upstream-v5-0-8739cb67c374@intel.com>
 To: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, 
@@ -66,92 +66,64 @@ Cc: Dan Williams <dan.j.williams@intel.com>,
  Alison Schofield <alison.schofield@intel.com>, 
  Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>, 
  linux-cxl@vger.kernel.org, linux-doc@vger.kernel.org, 
- nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org
+ nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org, 
+ Li Ming <ming4.li@intel.com>
 X-Mailer: b4 0.15-dev-2a633
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1730234086; l=2342;
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1730234086; l=1481;
  i=ira.weiny@intel.com; s=20221211; h=from:subject:message-id;
- bh=BVvQA0Wr2Feq0YcwEbv2GBXCYGRxu2UFOhLc7doL7LE=;
- b=j9JJ6cxqQGkVide+rb/rIC6Ht/pxZO5U3vJrBgtX01VodUfkmkKl7YD6/xp7Fvb71nHditg6s
- Ov0isqwUEviAUACXwg9dQOgk3uIVqteTsCBYTzZkdyrjLe5oYm57Ik2
+ bh=yaZyopWtPUuaRe9FVFZEkwznEj/+EDfTkZP0uEn0RuE=;
+ b=TYUOn+JFYR1KB0eaeCBP3T68FPokqboL6hbpKFYqCES/egSn89YRb4s28Pu7qGVGjf9zdMzb7
+ iV1umvkJw2ZBxTb5x8m6wet2nfNpA8dh4LeQZ42DXmJBNdd1ZkV/YWM
 X-Developer-Key: i=ira.weiny@intel.com; a=ed25519;
  pk=noldbkG+Wp1qXRrrkfY1QJpDf7QsOEthbOT7vm0PqsE=
 
-The device DAX structure is being enhanced to track additional DCD
-information.  Specifically the range tuple needs additional parameters.
-The current range tuple is not fully documented and is large enough to
-warrant its own definition.
+The event buffer does not need to be allocated if something has failed in
+setting up event irq's.
 
-Separate the struct dax_dev_range definition and document it prior to
-adding information for DC.
+In prep for adjusting event configuration for DCD events move the buffer
+allocation to the end of the event configuration.
 
-Suggested-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
 Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Reviewed-by: Fan Ni <fan.ni@samsung.com>
+Reviewed-by: Li Ming <ming4.li@intel.com>
 Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-
 ---
 Changes:
-[Jonathan: break out the dax_dev_range structure]
+[iweiny: keep tags for early simple patch]
+[Davidlohr, Jonathan, djiang: move to beginning of series]
+	[Dave feel free to pick this up if you like]
 ---
- drivers/dax/dax-private.h | 26 ++++++++++++++++++++------
- 1 file changed, 20 insertions(+), 6 deletions(-)
+ drivers/cxl/pci.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/dax/dax-private.h b/drivers/dax/dax-private.h
-index 446617b73aeab2e6f5a2ec3ca4c3f740e1b3e719..0867115aeef2e1b2d4c88b5c38b6648a404b1060 100644
---- a/drivers/dax/dax-private.h
-+++ b/drivers/dax/dax-private.h
-@@ -40,12 +40,30 @@ struct dax_region {
- 	struct device *youngest;
- };
+diff --git a/drivers/cxl/pci.c b/drivers/cxl/pci.c
+index 188412d45e0d266b19f7401a1cdc51ed6fb0ea0a..295779c433b2a2e377995b53a70ff2a3158b0a8e 100644
+--- a/drivers/cxl/pci.c
++++ b/drivers/cxl/pci.c
+@@ -764,10 +764,6 @@ static int cxl_event_config(struct pci_host_bridge *host_bridge,
+ 		return 0;
+ 	}
  
-+/**
-+ * struct dax_mapping - device to display mapping range attributes
-+ * @dev: device representing this range
-+ * @range_id: index within dev_dax ranges array
-+ * @id: ida of this mapping
-+ */
- struct dax_mapping {
- 	struct device dev;
- 	int range_id;
- 	int id;
- };
+-	rc = cxl_mem_alloc_event_buf(mds);
+-	if (rc)
+-		return rc;
+-
+ 	rc = cxl_event_get_int_policy(mds, &policy);
+ 	if (rc)
+ 		return rc;
+@@ -781,6 +777,10 @@ static int cxl_event_config(struct pci_host_bridge *host_bridge,
+ 		return -EBUSY;
+ 	}
  
-+/**
-+ * struct dev_dax_range - tuple represenging a range of memory used by dev_dax
-+ * @pgoff: page offset
-+ * @range: resource-span
-+ * @mapping: reference to the dax_mapping for this range
-+ */
-+struct dev_dax_range {
-+	unsigned long pgoff;
-+	struct range range;
-+	struct dax_mapping *mapping;
-+};
++	rc = cxl_mem_alloc_event_buf(mds);
++	if (rc)
++		return rc;
 +
- /**
-  * struct dev_dax - instance data for a subdivision of a dax region, and
-  * data while the device is activated in the driver.
-@@ -58,7 +76,7 @@ struct dax_mapping {
-  * @dev - device core
-  * @pgmap - pgmap for memmap setup / lifetime (driver owned)
-  * @nr_range: size of @ranges
-- * @ranges: resource-span + pgoff tuples for the instance
-+ * @ranges: range tuples of memory used
-  */
- struct dev_dax {
- 	struct dax_region *region;
-@@ -72,11 +90,7 @@ struct dev_dax {
- 	struct dev_pagemap *pgmap;
- 	bool memmap_on_memory;
- 	int nr_range;
--	struct dev_dax_range {
--		unsigned long pgoff;
--		struct range range;
--		struct dax_mapping *mapping;
--	} *ranges;
-+	struct dev_dax_range *ranges;
- };
- 
- /*
+ 	rc = cxl_event_irqsetup(mds);
+ 	if (rc)
+ 		return rc;
 
 -- 
 2.47.0
