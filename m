@@ -1,204 +1,121 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.12])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.11])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C24491BD9F4
-	for <nvdimm@lists.linux.dev>; Wed, 30 Oct 2024 18:32:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.12
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7A7A1CF287
+	for <nvdimm@lists.linux.dev>; Wed, 30 Oct 2024 21:55:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.11
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730313161; cv=none; b=AOdeIL5lI6gA6soAF1fFm62b6vE7Z3iN6WOgGJZSBa8mwMj+a2JaKpICYAfxydXiTpk1EsX9AdMyHIoahNhrChhPYdQRHffd+OdI0kQwmJJ9mAfqz827hTg3gHv+PWL7rsAGCN4Iz8qVOLu86jDHLvU4I5HdK1f6Eawi+bdC1as=
+	t=1730325308; cv=none; b=Iwi77elnLW5D15ALQnLGYzZ6ONVlqU8W+sB7N1I6z6eicHt6uZ6FJXJFJRHzfN14+Pjc1XGx9ojMdS9GOuMXvO9IrIYhgpGIAypouE8Q02odAMtpicc5r8KXjZYVb2R/YgJXsKTyf0C6jssI8+ZD3JQhOYJ8rmwHIM0dyrVhJL8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730313161; c=relaxed/simple;
-	bh=uKySPkrqXDPgs4yTMKdKB4kcwXEilJC0jwyaMkNRQAU=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=RnZ8nfQMtQUwSutNOHJMe4Ag0tfpdiKitNCchmLutQIMsIkH/Nf69xO/h3e7gL2r9ZS32G4/+LtYGcqyTLT173g0px3BpG6LQ2km4R/M0Jnb4V1ESDnpIqgbEB4e/AlPX6uBJDGs1sOW2FwIBDdrzqmzHnP+rzuuPmfLYzNK0sA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=X9Ca4nDo; arc=none smtp.client-ip=192.198.163.12
+	s=arc-20240116; t=1730325308; c=relaxed/simple;
+	bh=qugSii8g9iMUqaRG1pVF9b91pxsQWMjuGRw75hgVnEA=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=P0Kj3niaoUnS3GEAxOG2KDE+osLQEusFWDunsJm952iOtly4DfjtwRc3+0+/HkQm+ESw3L9gHnEBQMOoOqynHVJSUKuhvPhsTY+5mUTCXvVnykTJ2WEdedGHkgA18M1wtVkcxWxQWIGF83SnD/baYlxrzD/yjF9Do28k1x8au10=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=hqLbWawn; arc=none smtp.client-ip=192.198.163.11
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="X9Ca4nDo"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="hqLbWawn"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1730313159; x=1761849159;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=uKySPkrqXDPgs4yTMKdKB4kcwXEilJC0jwyaMkNRQAU=;
-  b=X9Ca4nDorTllTaqjPwiqhs4WgK7+AJFmxvhDYovEPmJKbE0uFTXTqleM
-   Y5GDSd1aEes0QLCEjKhbvQFhi+zwJLlmWNUAi1Txaxvpl7nwCVmBoaZMC
-   4oJuerRRwJri8Z7pDuo/Sl95Lm9KTebyxDQXV0RTCGjWlJNdOEdDYpm/L
-   2jpG8Ol2XVh6nAlf96cK7W4/u1OVtxl8oB6b1949XVsopZ5xqv1lHOLSL
-   smeq1PGQX/EsItI2HDbKqWcr4sjyrDTpiPV9rIfLYTn1ZtGkow8Zs90nZ
-   JJZI9q50/tOhH8wtt2rMbjjMOjnNn3MjCoI5tVcEfsmzD2vnoiI2Se/FQ
-   A==;
-X-CSE-ConnectionGUID: 2GHE4z7QTn2a6fcToVQ8DQ==
-X-CSE-MsgGUID: RauSTEahQOaKQnw+GC7oJQ==
-X-IronPort-AV: E=McAfee;i="6700,10204,11241"; a="33961094"
-X-IronPort-AV: E=Sophos;i="6.11,245,1725346800"; 
-   d="scan'208";a="33961094"
-Received: from fmviesa010.fm.intel.com ([10.60.135.150])
-  by fmvoesa106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Oct 2024 11:32:38 -0700
-X-CSE-ConnectionGUID: uudTCmFsSOyE84T1m6xWag==
-X-CSE-MsgGUID: t/KE/7CBSrqMJdAtcmEXnA==
+  t=1730325306; x=1761861306;
+  h=from:subject:date:message-id:mime-version:
+   content-transfer-encoding:to:cc;
+  bh=qugSii8g9iMUqaRG1pVF9b91pxsQWMjuGRw75hgVnEA=;
+  b=hqLbWawnlNgbIqwbQm5rkc7HQu48HpgdV6FuxkPkasXaXsvdk/IpHd7K
+   /i41R0pGqpwQxt6eRr8RspQ11yJDZh0tKaLREUYxtIlwb7GzwdURj720v
+   IBBEHlXaYecQtmOelwDxjl03W2be4oHR3WwBzs9B335ZN+8P8q/EVq80I
+   pGU78/HO4gxQRGL4OF8MNVxfXWmh8y0ePjMeGaYYG9oxB35dB94xiz0Vn
+   Pedg9ASYmdHmoVdzr6y+0oQRZInqazxj7HzMs25UDrEUDnkoLz/X4ox+1
+   Qv3GeulH6Rv63nBJLHDJ5Nr6AVR29ANXnwbnHay8afAXg6owZQHjXh+ha
+   g==;
+X-CSE-ConnectionGUID: GUZeLeanRXKABbHn3UWN3g==
+X-CSE-MsgGUID: /7d0qBIFQVi16YxZF/nEtQ==
+X-IronPort-AV: E=McAfee;i="6700,10204,11241"; a="40620509"
+X-IronPort-AV: E=Sophos;i="6.11,246,1725346800"; 
+   d="scan'208";a="40620509"
+Received: from orviesa001.jf.intel.com ([10.64.159.141])
+  by fmvoesa105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Oct 2024 14:55:05 -0700
+X-CSE-ConnectionGUID: oE6suvT4QcCGe50C6jqgbw==
+X-CSE-MsgGUID: yhUy9KWqSk6VsDpXI6FSWA==
 X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.11,245,1725346800"; 
-   d="scan'208";a="82711049"
-Received: from nnlnb-sb-019.ccr.corp.intel.com (HELO [10.125.108.160]) ([10.125.108.160])
-  by fmviesa010-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Oct 2024 11:32:37 -0700
-Message-ID: <64b7b0f9-d9e1-4458-8149-9ccbf78e1c27@intel.com>
-Date: Wed, 30 Oct 2024 11:32:35 -0700
+X-IronPort-AV: E=Sophos;i="6.11,246,1725346800"; 
+   d="scan'208";a="119899950"
+Received: from msatwood-mobl.amr.corp.intel.com (HELO localhost) ([10.125.108.161])
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Oct 2024 14:55:04 -0700
+From: Ira Weiny <ira.weiny@intel.com>
+Subject: [ndctl PATCH 0/6] ndctl: DCD additions
+Date: Wed, 30 Oct 2024 16:54:43 -0500
+Message-Id: <20241030-dcd-region2-v1-0-04600ba2b48e@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v5 12/27] cxl/cdat: Gather DSMAS data for DCD regions
-To: Ira Weiny <ira.weiny@intel.com>, Fan Ni <fan.ni@samsung.com>,
- Jonathan Cameron <Jonathan.Cameron@huawei.com>,
- Navneet Singh <navneet.singh@intel.com>, Jonathan Corbet <corbet@lwn.net>,
- Andrew Morton <akpm@linux-foundation.org>
-Cc: Dan Williams <dan.j.williams@intel.com>,
- Davidlohr Bueso <dave@stgolabs.net>,
- Alison Schofield <alison.schofield@intel.com>,
- Vishal Verma <vishal.l.verma@intel.com>, linux-cxl@vger.kernel.org,
- linux-doc@vger.kernel.org, nvdimm@lists.linux.dev,
- linux-kernel@vger.kernel.org
-References: <20241029-dcd-type2-upstream-v5-0-8739cb67c374@intel.com>
- <20241029-dcd-type2-upstream-v5-12-8739cb67c374@intel.com>
-Content-Language: en-US
-From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <20241029-dcd-type2-upstream-v5-12-8739cb67c374@intel.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIACOrImcC/x2MQQqAIBAAvyJ7TlDzUH0lOpS72l4sVohA/HvSc
+ WBmKhQSpgKLqiD0cOErd7CDgnDuOZFm7AzOOG/NaDQG1EKpa047NNbPdEwUEXpxC0V+/9u6tfY
+ BjlfXLl0AAAA=
+X-Change-ID: 20241030-dcd-region2-2d0149eb8efd
+To: Alison Schofield <alison.schofield@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>, 
+ Jonathan Cameron <jonathan.cameron@Huawei.com>, Fan Ni <fan.ni@samsung.com>, 
+ Navneet Singh <navneet.singh@intel.com>, 
+ Dan Williams <dan.j.williams@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+ linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev, 
+ Ira Weiny <ira.weiny@intel.com>, Sushant1 Kumar <sushant1.kumar@intel.com>
+X-Mailer: b4 0.15-dev-2a633
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1730325302; l=1746;
+ i=ira.weiny@intel.com; s=20221211; h=from:subject:message-id;
+ bh=qugSii8g9iMUqaRG1pVF9b91pxsQWMjuGRw75hgVnEA=;
+ b=KZ+HtGlK66DgionStdtkdrCUCFgXvl7vm+lTEJ48cpRvmk9OozbNQiItsR99zk5P1GAFWzsb6
+ ROT8HUjqyBACsOhYjw9G5uOnI85JC60/xhhxajO+m7ryAeHAI5388Sg
+X-Developer-Key: i=ira.weiny@intel.com; a=ed25519;
+ pk=noldbkG+Wp1qXRrrkfY1QJpDf7QsOEthbOT7vm0PqsE=
 
+CXL Dynamic Capacity Device (DCD) support is close to landing in the
+upstream kernel.  cxl cli requires some modifications to best interact
+with those devices.  This includes creating and viewing details of DCD
+regions.  cxl-testing is also valuable in regression testing the kernel
+interfaces.
 
+Add preliminary patches with some fixes.  Update cxl cli with DCD
+support and add cxl-testing.
 
-On 10/29/24 1:34 PM, Ira Weiny wrote:
-> Additional DCD region (partition) information is contained in the DSMAS
-> CDAT tables, including performance, read only, and shareable attributes.
-> 
-> Match DCD partitions with DSMAS tables and store the meta data.
-> 
-> Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-> Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+---
+Ira Weiny (5):
+      ndctl/cxl-events: Don't fail test until event counts are reported
+      ndctl/cxl/region: Report max size for region creation
+      ndctl: Separate region mode from decoder mode
+      ndctl/cxl: Add extent output to region query
+      ndctl/cxl/test: Add Dynamic Capacity tests
 
-> ---
-> Changes:
-> [Fan: remove unwanted blank line]
-> [Rafael: Split out acpi change]
-> [iweiny: remove %pra use]
-> [Jonathan: s/cdat/CDAT/]
-> ---
->  drivers/cxl/core/cdat.c | 39 +++++++++++++++++++++++++++++++++++++++
->  drivers/cxl/core/mbox.c |  2 ++
->  drivers/cxl/cxlmem.h    |  3 +++
->  3 files changed, 44 insertions(+)
-> 
-> diff --git a/drivers/cxl/core/cdat.c b/drivers/cxl/core/cdat.c
-> index b5d30c5bf1e20725d13b4397a7ba90662bcd8766..7cd7734a3b0f0b742ee6e63973d12fb3e83ac332 100644
-> --- a/drivers/cxl/core/cdat.c
-> +++ b/drivers/cxl/core/cdat.c
-> @@ -17,6 +17,8 @@ struct dsmas_entry {
->  	struct access_coordinate cdat_coord[ACCESS_COORDINATE_MAX];
->  	int entries;
->  	int qos_class;
-> +	bool shareable;
-> +	bool read_only;
->  };
->  
->  static u32 cdat_normalize(u16 entry, u64 base, u8 type)
-> @@ -74,6 +76,8 @@ static int cdat_dsmas_handler(union acpi_subtable_headers *header, void *arg,
->  		return -ENOMEM;
->  
->  	dent->handle = dsmas->dsmad_handle;
-> +	dent->shareable = dsmas->flags & ACPI_CDAT_DSMAS_SHAREABLE;
-> +	dent->read_only = dsmas->flags & ACPI_CDAT_DSMAS_READ_ONLY;
->  	dent->dpa_range.start = le64_to_cpu((__force __le64)dsmas->dpa_base_address);
->  	dent->dpa_range.end = le64_to_cpu((__force __le64)dsmas->dpa_base_address) +
->  			      le64_to_cpu((__force __le64)dsmas->dpa_length) - 1;
-> @@ -255,6 +259,39 @@ static void update_perf_entry(struct device *dev, struct dsmas_entry *dent,
->  		dent->coord[ACCESS_COORDINATE_CPU].write_latency);
->  }
->  
-> +static void update_dcd_perf(struct cxl_dev_state *cxlds,
-> +			    struct dsmas_entry *dent)
-> +{
-> +	struct cxl_memdev_state *mds = to_cxl_memdev_state(cxlds);
-> +	struct device *dev = cxlds->dev;
-> +
-> +	for (int i = 0; i < mds->nr_dc_region; i++) {
-> +		/* CXL defines a u32 handle while CDAT defines u8, ignore upper bits */
-> +		u8 dc_handle = mds->dc_region[i].dsmad_handle & 0xff;
-> +
-> +		if (resource_size(&cxlds->dc_res[i])) {
-> +			struct range dc_range = {
-> +				.start = cxlds->dc_res[i].start,
-> +				.end = cxlds->dc_res[i].end,
-> +			};
-> +
-> +			if (range_contains(&dent->dpa_range, &dc_range)) {
-> +				if (dent->handle != dc_handle)
-> +					dev_warn(dev, "DC Region/DSMAS mis-matched handle/range; region [range 0x%016llx-0x%016llx] (%u); dsmas [range 0x%016llx-0x%016llx] (%u)\n"
-> +						      "   setting DC region attributes regardless\n",
-> +						dent->dpa_range.start, dent->dpa_range.end,
-> +						dent->handle,
-> +						dc_range.start, dc_range.end,
-> +						dc_handle);
-> +
-> +				mds->dc_region[i].shareable = dent->shareable;
-> +				mds->dc_region[i].read_only = dent->read_only;
-> +				update_perf_entry(dev, dent, &mds->dc_perf[i]);
-> +			}
-> +		}
-> +	}
-> +}
-> +
->  static void cxl_memdev_set_qos_class(struct cxl_dev_state *cxlds,
->  				     struct xarray *dsmas_xa)
->  {
-> @@ -278,6 +315,8 @@ static void cxl_memdev_set_qos_class(struct cxl_dev_state *cxlds,
->  		else if (resource_size(&cxlds->pmem_res) &&
->  			 range_contains(&pmem_range, &dent->dpa_range))
->  			update_perf_entry(dev, dent, &mds->pmem_perf);
-> +		else if (cxl_dcd_supported(mds))
-> +			update_dcd_perf(cxlds, dent);
->  		else
->  			dev_dbg(dev, "no partition for dsmas dpa: %#llx\n",
->  				dent->dpa_range.start);
-> diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
-> index 2c9a9af3dde3a294cde628880066b514b870029f..a4b5cb61b4e6f9b17e3e3e0cce356b0ac9f960d0 100644
-> --- a/drivers/cxl/core/mbox.c
-> +++ b/drivers/cxl/core/mbox.c
-> @@ -1649,6 +1649,8 @@ struct cxl_memdev_state *cxl_memdev_state_create(struct device *dev)
->  	mds->cxlds.type = CXL_DEVTYPE_CLASSMEM;
->  	mds->ram_perf.qos_class = CXL_QOS_CLASS_INVALID;
->  	mds->pmem_perf.qos_class = CXL_QOS_CLASS_INVALID;
-> +	for (int i = 0; i < CXL_MAX_DC_REGION; i++)
-> +		mds->dc_perf[i].qos_class = CXL_QOS_CLASS_INVALID;
->  
->  	return mds;
->  }
-> diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
-> index 2fb93269ab4359dd12dfb912ded30654e2340be0..204f7bd9197bd1a02de44ef56a345811d2107ab4 100644
-> --- a/drivers/cxl/cxlmem.h
-> +++ b/drivers/cxl/cxlmem.h
-> @@ -466,6 +466,8 @@ struct cxl_dc_region_info {
->  	u64 blk_size;
->  	u32 dsmad_handle;
->  	u8 flags;
-> +	bool shareable;
-> +	bool read_only;
->  	u8 name[CXL_DC_REGION_STRLEN];
->  };
->  
-> @@ -533,6 +535,7 @@ struct cxl_memdev_state {
->  
->  	u8 nr_dc_region;
->  	struct cxl_dc_region_info dc_region[CXL_MAX_DC_REGION];
-> +	struct cxl_dpa_perf dc_perf[CXL_MAX_DC_REGION];
->  
->  	struct cxl_event_state event;
->  	struct cxl_poison_state poison;
-> 
+Navneet Singh (1):
+      cxl/region: Add creation of Dynamic capacity regions
+
+ Documentation/cxl/cxl-list.txt |   4 +
+ cxl/filter.h                   |   3 +
+ cxl/json.c                     |  79 ++++-
+ cxl/json.h                     |   3 +
+ cxl/lib/libcxl.c               | 248 +++++++++++++++-
+ cxl/lib/libcxl.sym             |   9 +
+ cxl/lib/private.h              |  19 +-
+ cxl/libcxl.h                   |  99 ++++++-
+ cxl/list.c                     |   3 +
+ cxl/memdev.c                   |   7 +-
+ cxl/region.c                   |  53 +++-
+ test/cxl-dcd.sh                | 656 +++++++++++++++++++++++++++++++++++++++++
+ test/cxl-events.sh             |   8 +-
+ test/meson.build               |   2 +
+ util/json.h                    |   1 +
+ 15 files changed, 1173 insertions(+), 21 deletions(-)
+---
+base-commit: 04815e5f8b87e02a4fb5a61aeebaa5cad25a15c3
+change-id: 20241030-dcd-region2-2d0149eb8efd
+
+Best regards,
+-- 
+Ira Weiny <ira.weiny@intel.com>
 
