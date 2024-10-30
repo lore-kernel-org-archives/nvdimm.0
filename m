@@ -1,30 +1,30 @@
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4135F1F4730
-	for <nvdimm@lists.linux.dev>; Wed, 30 Oct 2024 14:32:37 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 90B221EABA4
+	for <nvdimm@lists.linux.dev>; Wed, 30 Oct 2024 14:44:20 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730298760; cv=none; b=nfDCYKHB2DhnNW7+XR8zHasz/0gPqzuES8HizMTMkg/uA8NDIAfG2+Xe5Ak182ka8cShaNMU5q5E1H+JhWXGdhq25gdnPsnb3glkxemwAUgEMzj0/ItHP16mykuUVj4Yg2htwyQeWng+EfCh5Ju3poOxMAO+BUYAPfOYzRNe1zk=
+	t=1730299463; cv=none; b=Fx+Vah5xEY4nhbvaeV8W3S2vW2IwCZ2rTJsA/VFgyIpKNkt/A9L1KLNk4aimv3++RC/Deyq6cowBJy+q0adlE6wlGHamKZAKUpII7l7ilJfNviG+p5JVZzwOg0WFOhBQbOl8vU0pdn2t/BsQQc4kpvMVdPN17ZMyV+f2HgYyDhI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730298760; c=relaxed/simple;
-	bh=v3iv01fkiGERUMvGlov6KCBtyaQUwrAGSlj+FhqRSrQ=;
+	s=arc-20240116; t=1730299463; c=relaxed/simple;
+	bh=F2p1CIBhsgGPCFP7JP4hFpvJnWXOIzEKAIw73T3SjtE=;
 	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=l+58vWepbuszHu1xD25pNS/UkvfTxb9f2YEqqMd1Sa5oH0+9dv6E76ciuvSFEUbOG9GyVhr3zuoiwNFC4FU4b/fF5RNNdmJRmwowkLDO6DlV/gyDve5gqYNBXcFAAUg+wd7gMFYSV0xPauNT1IVZBXdX2div6JWSyctGBU+MxUY=
+	 MIME-Version:Content-Type; b=WEjVIVbZPhE57850+A+NmTpDPDhmJE/EOrG7Z2ji/30rACiD7f04RM5yYLvYQWqID17tnTX8Jzo7NgoFIBTnNbOVnqD2sgG1n31GeJVa5g8Qp239znh/wV6sxSfB2dQJ7B9BCw4+pRvlds6EYWwNGMYbksAIgdKMD6BerklHMZ8=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
 Received: from mail.maildlp.com (unknown [172.18.186.31])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4XdqLX3xMcz6HJcw;
-	Wed, 30 Oct 2024 22:31:16 +0800 (CST)
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4XdqWs0Gy4z6GDsD;
+	Wed, 30 Oct 2024 22:39:21 +0800 (CST)
 Received: from frapeml500008.china.huawei.com (unknown [7.182.85.71])
-	by mail.maildlp.com (Postfix) with ESMTPS id CC49B1401F3;
-	Wed, 30 Oct 2024 22:32:34 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id 44F3C140498;
+	Wed, 30 Oct 2024 22:44:12 +0800 (CST)
 Received: from localhost (10.203.177.66) by frapeml500008.china.huawei.com
  (7.182.85.71) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Wed, 30 Oct
- 2024 15:32:34 +0100
-Date: Wed, 30 Oct 2024 14:32:32 +0000
+ 2024 15:44:11 +0100
+Date: Wed, 30 Oct 2024 14:44:10 +0000
 From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
 To: <ira.weiny@intel.com>
 CC: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, "Navneet
@@ -34,12 +34,12 @@ CC: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, "Navneet
 	<alison.schofield@intel.com>, Vishal Verma <vishal.l.verma@intel.com>,
 	<linux-cxl@vger.kernel.org>, <linux-doc@vger.kernel.org>,
 	<nvdimm@lists.linux.dev>, <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v5 20/27] cxl/extent: Process DCD events and realize
- region extents
-Message-ID: <20241030143232.000013b8@Huawei.com>
-In-Reply-To: <20241029-dcd-type2-upstream-v5-20-8739cb67c374@intel.com>
+Subject: Re: [PATCH v5 23/27] dax/region: Create resources on sparse DAX
+ regions
+Message-ID: <20241030144410.00001be7@Huawei.com>
+In-Reply-To: <20241029-dcd-type2-upstream-v5-23-8739cb67c374@intel.com>
 References: <20241029-dcd-type2-upstream-v5-0-8739cb67c374@intel.com>
-	<20241029-dcd-type2-upstream-v5-20-8739cb67c374@intel.com>
+	<20241029-dcd-type2-upstream-v5-23-8739cb67c374@intel.com>
 Organization: Huawei Technologies Research and Development (UK) Ltd.
 X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
@@ -50,122 +50,82 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: lhrpeml100006.china.huawei.com (7.191.160.224) To
+X-ClientProxiedBy: lhrpeml100011.china.huawei.com (7.191.174.247) To
  frapeml500008.china.huawei.com (7.182.85.71)
 
-A few minor things inline from a fresh read.
+On Tue, 29 Oct 2024 15:34:58 -0500
+ira.weiny@intel.com wrote:
 
-Other than maybe a missing header, the others are all trivial
-and you can make your own minds up.
+> From: Navneet Singh <navneet.singh@intel.com>
+> 
+> DAX regions which map dynamic capacity partitions require that memory be
+> allowed to come and go.  Recall sparse regions were created for this
+> purpose.  Now that extents can be realized within DAX regions the DAX
+> region driver can start tracking sub-resource information.
+> 
+> The tight relationship between DAX region operations and extent
+> operations require memory changes to be controlled synchronously with
+> the user of the region.  Synchronize through the dax_region_rwsem and by
+> having the region driver drive both the region device as well as the
+> extent sub-devices.
+> 
+> Recall requests to remove extents can happen at any time and that a host
+> is not obligated to release the memory until it is not being used.  If
+> an extent is not used allow a release response.
+> 
+> When extents are eligible for release.  No mappings exist but data may
+> reside in caches not yet written to the device.  Call
+> cxl_region_invalidate_memregion() to write back data to the device prior
+> to signaling the release complete.  This is inefficient but is the best
+> we can do at the moment and should occur infrequently with sufficiently
+> large extents and work loads.
+> 
+> The DAX layer has no need for the details of the CXL memory extent
+> devices.  Expose extents to the DAX layer as device children of the DAX
+> region device.  A single callback from the driver aids the DAX layer to
+> determine if the child device is an extent.  The DAX layer also
+> registers a devres function to automatically clean up when the device is
+> removed from the region.
+> 
+> There is a race between extents being surfaced and the dax_cxl driver
+> being loaded.  The driver must therefore scan for any existing extents
+> while still under the device lock.
+> 
+> Respond to extent notifications.  Manage the DAX region resource tree
+> based on the extents lifetime.  Return the status of remove
+> notifications to lower layers such that it can manage the hardware
+> appropriately.
+> 
+> Signed-off-by: Navneet Singh <navneet.singh@intel.com>
+> Co-developed-by: Ira Weiny <ira.weiny@intel.com>
+> Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+One typo spotted.
 
-Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huwei.com>
+Otherwise seems fine to me but not an area I know well yet!
 
->  #endif /* __CXL_CORE_H__ */
-> diff --git a/drivers/cxl/core/extent.c b/drivers/cxl/core/extent.c
-> new file mode 100644
-> index 0000000000000000000000000000000000000000..315aa46252c15dcefe175da87522505f8ecf537c
-> --- /dev/null
-> +++ b/drivers/cxl/core/extent.c
-> @@ -0,0 +1,372 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +/*  Copyright(c) 2024 Intel Corporation. All rights reserved. */
-> +
-> +#include <linux/device.h>
-> +#include <cxl.h>
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 
+> diff --git a/drivers/dax/dax-private.h b/drivers/dax/dax-private.h
+> index 0867115aeef2e1b2d4c88b5c38b6648a404b1060..8ebbc4808c3509ff17ac3af045505dc42c003fb0 100644
+> --- a/drivers/dax/dax-private.h
+> +++ b/drivers/dax/dax-private.h
 
-> +static bool extents_contain(struct cxl_dax_region *cxlr_dax,
-> +			    struct cxl_endpoint_decoder *cxled,
-> +			    struct range *new_range)
-> +{
-> +	struct match_data md = {
-> +		.cxled = cxled,
-> +		.new_range = new_range,
-> +	};
-> +
-> +	struct device *extent_device __free(put_device)
-> +			= device_find_child(&cxlr_dax->dev, &md, match_contains);
-> +	if (!extent_device)
-> +		return false;
-> +
-> +	return true;
-trivial but could do.
+> +/**
+> + * struct dax_resource - For sparse regions; an active resource
+> + * @region: dax_region this resources is in
+> + * @res: resource
+> + * @use_cnt: count the number of uses of this resource
+> + *
+> + * Changes to the dax_reigon and the dax_resources within it are protected by
+dax_region
 
-	return extent_device != NULL;
+> + * dax_region_rwsem
+> + *
+> + * dax_resource's are not intended to be used outside the dax layer.
+> + */
+> +struct dax_resource {
+> +	struct dax_region *region;
+> +	struct resource *res;
+> +	unsigned int use_cnt;
+> +};
 
-> +}
-
-> +static bool extents_overlap(struct cxl_dax_region *cxlr_dax,
-> +			    struct cxl_endpoint_decoder *cxled,
-> +			    struct range *new_range)
-> +{
-> +	struct match_data md = {
-> +		.cxled = cxled,
-> +		.new_range = new_range,
-> +	};
-> +
-> +	struct device *extent_device __free(put_device)
-> +			= device_find_child(&cxlr_dax->dev, &md, match_overlaps);
-> +	if (!extent_device)
-> +		return false;
-> +
-> +	return true;
-As above.
-
-> +}
-
-> +static int cxlr_rm_extent(struct device *dev, void *data)
-> +{
-> +	struct region_extent *region_extent = to_region_extent(dev);
-> +	struct range *region_hpa_range = data;
-> +
-> +	if (!region_extent)
-> +		return 0;
-> +
-> +	/*
-> +	 * Any extent which 'touches' the released range is removed.
-
-Maybe single line comment syntax is fine here.
-
-> +	 */
-> +	if (range_overlaps(region_hpa_range, &region_extent->hpa_range)) {
-> +		dev_dbg(dev, "Remove region extent HPA [range 0x%016llx-0x%016llx]\n",
-> +			region_extent->hpa_range.start, region_extent->hpa_range.end);
-> +		region_rm_extent(region_extent);
-> +	}
-> +	return 0;
-> +}
-
-
-> +/* Callers are expected to ensure cxled has been attached to a region */
-> +int cxl_add_extent(struct cxl_memdev_state *mds, struct cxl_extent *extent)
-> +{
-> +	u64 start_dpa = le64_to_cpu(extent->start_dpa);
-> +	struct cxl_memdev *cxlmd = mds->cxlds.cxlmd;
-> +	struct cxl_endpoint_decoder *cxled;
-> +	struct range ed_range, ext_range;
-> +	struct cxl_dax_region *cxlr_dax;
-> +	struct cxled_extent *ed_extent;
-> +	struct cxl_region *cxlr;
-> +	struct device *dev;
-> +
-> +	ext_range = (struct range) {
-> +		.start = start_dpa,
-> +		.end = start_dpa + le64_to_cpu(extent->length) - 1,
-> +	};
-> +
->
-
-
-> diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
-> index 16e06b59d7f04762ca73a81740b0d6b2487301af..85b30a74a6fa5de1dd99c08c8318edd204e3e19d 100644
-> --- a/drivers/cxl/cxlmem.h
-> +++ b/drivers/cxl/cxlmem.h
-
-Is the xarray header included in here already?
-If not it should be.
-
-> @@ -506,6 +506,7 @@ static inline struct cxl_dev_state *mbox_to_cxlds(struct cxl_mailbox *cxl_mbox)
->   * @pmem_perf: performance data entry matched to PMEM partition
->   * @nr_dc_region: number of DC regions implemented in the memory device
->   * @dc_region: array containing info about the DC regions
