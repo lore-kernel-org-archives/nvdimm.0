@@ -1,113 +1,116 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.10])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f170.google.com (mail-pl1-f170.google.com [209.85.214.170])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A0B2D1BCA0A;
-	Thu, 31 Oct 2024 15:55:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.10
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 919471A08BC
+	for <nvdimm@lists.linux.dev>; Thu, 31 Oct 2024 16:00:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.170
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730390108; cv=none; b=KjOogm4u1IM8+rZrwCB7C0lztqEo7eWJD/jp++pDLmRi6vskK10CTYLxDFfRyBVDSuA9BDm9LmtuBycftjuCodaUD3QJ/k8ZBLe9VfNGrQ2GGyu7bYg5/Mu2cApHffYETkbJDXpSFngxuLDO5VucAaRDW/JlLMAh8+9E7SkFFYw=
+	t=1730390444; cv=none; b=G8T2M2u1eXH79sL3crgoYqQbcWtZQtvn1RT9D5Zu8VhHqyTmxC8FoLCJR7Vey/i14ib1f/8TivR3ofuWxiiyzmMmwNcIsWzHifVslxGtCQo6i7+4418nAh0Br2OGq9G38A0l4+8NYjteX+iKARMNuMukAaS2/8JkSp5PCkaAnzU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730390108; c=relaxed/simple;
-	bh=wlV3Rx5aKG704hWG8gNKyyb0F+JFaerl7qBcn2lQewo=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=gmcmsJx2g1vFj0COJ7V8U6UNP+mWz/g/Uxdf/rgtgdrMG/akDH+L0pkscZHR7Lob3+GQoh2eVxvAWLNW2GWiNXIKwTqnOUYSY7aeApyFxfcwbQmrlbpZVhS1M02KahpZ3gM+sZouBm//Rt+Pd+gSuFgzfhEnVORCOzYTpwJuX54=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=nRcYbMDw; arc=none smtp.client-ip=192.198.163.10
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1730390444; c=relaxed/simple;
+	bh=tzGE177RLHryW3K1wOEfN8lfRCPGCZu9JmmGUyvowHc=;
+	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=eXSrCaM3GAqSNxZMTw4lfYTS4BJUuQQmCnNXYEJw+t/ksSkNKxicTgZrSPvdSjjx2TUDXNfpBxaU7JdA6pAKbDSEHd2t65WbvkwSnHv4FoxevfL9ice3sr7jq5vop2mVs3EZKT4+7YHqUmkfNoMxMJVFNQQKj96MjZZelvVCT/8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=KnPZIDOn; arc=none smtp.client-ip=209.85.214.170
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="nRcYbMDw"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1730390107; x=1761926107;
-  h=message-id:date:mime-version:subject:to:cc:references:
-   from:in-reply-to:content-transfer-encoding;
-  bh=wlV3Rx5aKG704hWG8gNKyyb0F+JFaerl7qBcn2lQewo=;
-  b=nRcYbMDwUR7Qbx+yF4Lbw2VGRNVejdqKMYgmD8z4tj29yGH75A7KKsyQ
-   BbazPfyLqRwheHd1T32Bwv6w+kxpFeBsRGDEbgNhm+wB1Z4stXFy2nX0Q
-   mFfpJNzH0TIm1xKbySfRHsPYi2i0Nyb/9WnBk7NcYTYfAxFxOJ0d4Dfss
-   Gmi7kH9fWtgLgyRVohftGGPzLNJG68Nv57QfUnUqYpGXYahgTDa/6fQrE
-   roXCHv8shxpH1TeVGsQrJ3A3U1FPPGSrA3MbeI2kQlZbhengbAWkutza9
-   PoBG6jJ2qIm6F2l2HZMXlu9+yN0EaTqxk4KjypZEE7PYPRmawMULP5Jqi
-   g==;
-X-CSE-ConnectionGUID: mIjEm3i3S9iLTZa5qnpJ2Q==
-X-CSE-MsgGUID: Xe7ap1R3RfGwCWjuk+VZmg==
-X-IronPort-AV: E=McAfee;i="6700,10204,11242"; a="41507964"
-X-IronPort-AV: E=Sophos;i="6.11,247,1725346800"; 
-   d="scan'208";a="41507964"
-Received: from orviesa009.jf.intel.com ([10.64.159.149])
-  by fmvoesa104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Oct 2024 08:55:06 -0700
-X-CSE-ConnectionGUID: rSnazU4oRDish+4AbsdK9A==
-X-CSE-MsgGUID: xHNWbduNRwO9xzz1Nz+KAQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.11,247,1725346800"; 
-   d="scan'208";a="82571183"
-Received: from dwoodwor-mobl2.amr.corp.intel.com (HELO [10.125.108.232]) ([10.125.108.232])
-  by orviesa009-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Oct 2024 08:55:04 -0700
-Message-ID: <880d28c7-7284-41b2-88dc-12498b473a86@intel.com>
-Date: Thu, 31 Oct 2024 08:55:03 -0700
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KnPZIDOn"
+Received: by mail-pl1-f170.google.com with SMTP id d9443c01a7336-20c805a0753so10589025ad.0
+        for <nvdimm@lists.linux.dev>; Thu, 31 Oct 2024 09:00:42 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1730390442; x=1730995242; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=uGOII5KIoNBsInbqpRl52akNzPjgV4X/atjPgk2L0S0=;
+        b=KnPZIDOn567rwgxT7IkEq3349KC0MgtRbHI33i+0OYQSRHL6lvn6Q3YJ0mBtyuYEMK
+         TEcyouZtoPiMsB4B9bgyLnsjNtAdyEJ7Q50d/H8dRapVHBYWIw7sjYQgkCrmOfTAdntp
+         z77RDYt8AoVVNNep00xG7pEMkDoufk5gJBa/x2dDLth5Y+GVuLJMlYv7xBcenkOH7set
+         XNcMLxq9w2yXYuiM3fR11MAOZNNe/49dzNsohljQtxRQEF9dpSQ1Job0kYUODOOmImmn
+         jFPV9tM+WDvSeJhxD1f66suXmO6oBYgj56Bnuh+Sf8hVSr1U7qROXheyfegkJTfhCWeo
+         RT7w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1730390442; x=1730995242;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:date:from:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=uGOII5KIoNBsInbqpRl52akNzPjgV4X/atjPgk2L0S0=;
+        b=CqtvMn9G5R4wqpynstqIme1TJnnMET1VNTP6LKs4ahhp0n2yuQigLXaqL/tRHiW1bW
+         kfl9f4r65JoUguAg+CVECy2ziyaNoYsbIuTV48+PVIY/7zEwhbuCfr29DaKVYwU7EhR0
+         SLKSAsqDC16GTRm/nTjsSFvBDpDv5xXPmZdE2qv3oCkJGaMxzY6gx6zA4Mo8Ai4NK3KG
+         abyAiIDW6NaTRegwWQo94cK/llPjSngO0cDRwmiDQVVpacWbnosSuMnZxxJdR8EB0+K7
+         hTk2B0H6cG3Hw7eeMNIi3SI64VN41JAng2daESxOeJWnslpmc7GXRcLeklX/eUuoBzk4
+         DbAQ==
+X-Forwarded-Encrypted: i=1; AJvYcCUMipQolWCkTvfiKRjiDMvZfcAt8Uzobxjq35QtwW3AIE5RUczmlP6h2+7J70/TJ60iqVuJHlE=@lists.linux.dev
+X-Gm-Message-State: AOJu0Yz6lX0TXVlYyLc6MOqJtCiKXaI4EMz1YoZE8rylUzzZDG8opF/k
+	p43Vw38C4IDnvkKBfV1ykO9yqeq7fzKBIVqc2I/hl1gv7aiGie35
+X-Google-Smtp-Source: AGHT+IEZxzYcoAhXfDOCE5PcQurxLpXSUsNhIhkZfiGW5USQnME/GkuMHGv05NbuLGuW13HRjlUd8Q==
+X-Received: by 2002:a17:903:1108:b0:20c:e262:2580 with SMTP id d9443c01a7336-210c6c3ffb6mr216530145ad.44.1730390441822;
+        Thu, 31 Oct 2024 09:00:41 -0700 (PDT)
+Received: from fan ([2601:646:8f03:9fee:1a14:7759:606e:c90])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-211057c083fsm10264155ad.187.2024.10.31.09.00.39
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 31 Oct 2024 09:00:41 -0700 (PDT)
+From: Fan Ni <nifan.cxl@gmail.com>
+X-Google-Original-From: Fan Ni <fan.ni@samsung.com>
+Date: Thu, 31 Oct 2024 09:00:22 -0700
+To: Davidlohr Bueso <dave@stgolabs.net>
+Cc: ira.weiny@intel.com, Dave Jiang <dave.jiang@intel.com>,
+	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+	Navneet Singh <navneet.singh@intel.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Alison Schofield <alison.schofield@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>, linux-cxl@vger.kernel.org,
+	linux-doc@vger.kernel.org, nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org, Kees Cook <kees@kernel.org>,
+	"Gustavo A. R. Silva" <gustavoars@kernel.org>,
+	linux-hardening@vger.kernel.org
+Subject: Re: [PATCH v5 08/27] cxl/mem: Read dynamic capacity configuration
+ from the device
+Message-ID: <ZyOplknEK6XkqE1Y@fan>
+References: <20241029-dcd-type2-upstream-v5-0-8739cb67c374@intel.com>
+ <20241029-dcd-type2-upstream-v5-8-8739cb67c374@intel.com>
+ <20241031013441.tsuqkrbqbhwsv2ui@offworld>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH v5 00/27] DCD: Add support for Dynamic Capacity Devices
- (DCD)
-To: Jonathan Cameron <Jonathan.Cameron@Huawei.com>,
- Ira Weiny <ira.weiny@intel.com>
-Cc: Fan Ni <fan.ni@samsung.com>, Navneet Singh <navneet.singh@intel.com>,
- Jonathan Corbet <corbet@lwn.net>, Andrew Morton <akpm@linux-foundation.org>,
- Dan Williams <dan.j.williams@intel.com>, Davidlohr Bueso
- <dave@stgolabs.net>, Alison Schofield <alison.schofield@intel.com>,
- Vishal Verma <vishal.l.verma@intel.com>, linux-cxl@vger.kernel.org,
- linux-doc@vger.kernel.org, nvdimm@lists.linux.dev,
- linux-kernel@vger.kernel.org, Chris Mason <clm@fb.com>,
- Josef Bacik <josef@toxicpanda.com>, David Sterba <dsterba@suse.com>,
- linux-btrfs@vger.kernel.org, Johannes Thumshirn
- <johannes.thumshirn@wdc.com>, Robert Moore <robert.moore@intel.com>,
- Len Brown <lenb@kernel.org>, "Rafael J. Wysocki"
- <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org,
- acpica-devel@lists.linux.dev, Li Ming <ming4.li@intel.com>,
- Kees Cook <kees@kernel.org>, "Gustavo A. R. Silva" <gustavoars@kernel.org>,
- linux-hardening@vger.kernel.org
-References: <20241029-dcd-type2-upstream-v5-0-8739cb67c374@intel.com>
- <20241030144841.00006746@Huawei.com>
-Content-Language: en-US
-From: Dave Jiang <dave.jiang@intel.com>
-In-Reply-To: <20241030144841.00006746@Huawei.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20241031013441.tsuqkrbqbhwsv2ui@offworld>
 
-
-
-On 10/30/24 7:48 AM, Jonathan Cameron wrote:
-> On Tue, 29 Oct 2024 15:34:35 -0500
-> Ira Weiny <ira.weiny@intel.com> wrote:
+On Wed, Oct 30, 2024 at 06:34:41PM -0700, Davidlohr Bueso wrote:
+> On Tue, 29 Oct 2024, ira.weiny@intel.com wrote:
 > 
->> A git tree of this series can be found here:
->>
->> 	https://github.com/weiny2/linux-kernel/tree/dcd-v4-2024-10-29
->>
->> Series info
->> ===========
->>
->> This series has 4 parts:
->>
->> Patch 1: Add core range_overlaps() function
->> Patch 2-6: CXL clean up/prelim patches
->> Patch 7-25: Core DCD support
->> Patch 26-27: cxl_test support
+> > +/* See CXL 3.1 Table 8-164 get dynamic capacity config Output Payload */
+> > +struct cxl_mbox_get_dc_config_out {
+> > +	u8 avail_region_count;
+> > +	u8 regions_returned;
+> > +	u8 rsvd[6];
+> > +	/* See CXL 3.1 Table 8-165 */
+> > +	struct cxl_dc_region_config {
+> > +		__le64 region_base;
+> > +		__le64 region_decode_length;
+> > +		__le64 region_length;
+> > +		__le64 region_block_size;
+> > +		__le32 region_dsmad_handle;
+> > +		u8 flags;
+> > +		u8 rsvd[3];
+> > +	} __packed region[] __counted_by(regions_retunred);
+> > +	/* Trailing fields unused */
+> > +} __packed;
+> > +#define CXL_DYNAMIC_CAPACITY_SANITIZE_ON_RELEASE_FLAG BIT(0)
 > 
-> Other than a few trivial comments and that one build bot reported
-> issue all looks good to me. Nice work Ira, Navneet etc.
-> 
-> Maybe optimistic to hit 6.13, but I'd love it if it did.
-> If not, Dave, how about shaving a few off the front so at least
-> there is less to remember for v6 onwards :)
+> Fan, is this something qemu wants to support?
+Currently in Qemu the flag is not used, from emulation perspective, I do
+not see a good reaon to support it for now. Maybe we will need to support it
+later when we consider security?
 
-I'd like to take it for 6.13. Just seeing if Dan has any last minute complaints :) We should be able to take 1-6 at least.
+Fan
 
-> 
-> Jonathan
-
+-- 
+Fan Ni
