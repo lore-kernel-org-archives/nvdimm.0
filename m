@@ -1,485 +1,341 @@
-Received: from mail-pf1-f181.google.com (mail-pf1-f181.google.com [209.85.210.181])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.12])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93E49142E9F
-	for <nvdimm@lists.linux.dev>; Thu, 31 Oct 2024 18:49:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.181
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730400568; cv=none; b=ey65DZlRgIXTs7MmY0e+jeu3dd94BzDTX8fldrvzBc/J5xXdzmkv/RUZD9QLWkp/ElL+dVoGRmSgdZ2VYMCvHmLFyAhu9HCRV3+ao+QFvLUh6nCRvP78voeKDh0NLLLDnyqpWhr2MNl5IoJ/XnpfK+qa357W3cvYMFkRoBSc4kk=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730400568; c=relaxed/simple;
-	bh=eaG5/Gp7mEHyBJ437eTrTI4J7tRR21qxdhYzFrTuP1M=;
-	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=fFYnwjGoo2iE3F+RxCSx+znU4hC4cgs1YOhRSBvX5URvJKBHjpwQG9zngt4Om9jWCbGUDb+r9E73oLPx9O0Er1hRnOzykGUIRhHmPqgOBgFBK5DRU2UGUNoF5Lsf+DE3nD8FkIzbK+rvlD0F0FyZEE7mACBLlr+tZtRqWeqi+30=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=XLPua00h; arc=none smtp.client-ip=209.85.210.181
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F65F1CF28E
+	for <nvdimm@lists.linux.dev>; Thu, 31 Oct 2024 22:11:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=192.198.163.12
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1730412679; cv=fail; b=Fj639WgTTfM5VmNyqIlDdVfU1BQySNYNBdW18+LNRZMMATlQGRklEQ8FU8fDpr2nOBkg8EEqWiWPq6wMxWMGEFIMCP2r/W5ocGwQ0dXbRBlDvCpgqIX+55vNO1ILQBacQ1Ror/2179appNCwitI/dM70dtA4HD5Ukor9k49w2TQ=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1730412679; c=relaxed/simple;
+	bh=n0/RG2i8Eb2+DKXMv5Nh6G7l89vvFDbfrbgpjfnPyk0=;
+	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=ZxVMdk8IIK2pui8fO4Mf6aCaEMeNHoEoaQTFvmkhUZa78/8lDND3jHsyl16UNUwPpOo/D8OMX46oQPEDpkdumZImb8uI7ELx7LgoAwSmvy0Xur9p7eYoPTXNkITFDfV3CGDia3rPooa1hYKPQ4ceaJIjHuCsZe48yAVXhwAvbN4=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=XQWqtRhp; arc=fail smtp.client-ip=192.198.163.12
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="XLPua00h"
-Received: by mail-pf1-f181.google.com with SMTP id d2e1a72fcca58-71e4244fdc6so1017045b3a.0
-        for <nvdimm@lists.linux.dev>; Thu, 31 Oct 2024 11:49:24 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1730400564; x=1731005364; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:date:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=v8b0sEcnrW5uY+7E6wxl3hd/Zr92MdiwfNYhu6ZlLBs=;
-        b=XLPua00hwfWTunFADXszNh2Wp/Ba8xhaCFmSF7X3A6scF5eK4zsAtCFvIeC0p5sMEn
-         DCPAISlu0022P157y6RWXor8ILEXvBuZ/O4h5WgIUGzWJrHbrlfQw2FNMh8IUB9VP9r6
-         Tsr0E23Esj3DEzdqWnT28u7AQ5PXWMljwrDQf69tT6XqJJJB3GjXLc3iL9dFksQszZRH
-         V458ri2oAtuX7bG6wZt0LlF39X94QIl2dPiC37K/PFDs2e9K8DZVNoCpAad0jC/JbI2U
-         +koTuH8/x7OZJIvhza2a86xTdH4qNiDpHbqbJxQGwAd+XBGOrQ2WTEciv7lgPJLvb161
-         Ezxg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1730400564; x=1731005364;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:date:from:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=v8b0sEcnrW5uY+7E6wxl3hd/Zr92MdiwfNYhu6ZlLBs=;
-        b=ielWkUWLZ+11ksAqhmKfivfsyDh7COyVWjyMcFpveaygvBRkvdho6nSNQyFnNu5Vf4
-         /HGdI3JtkUUrbsf85ydr76MB0VWOWpbxRNqwV+W4z5Bxl/diFSN6iCB7eZjiV9gdmgSs
-         txGvpKRn65hjgwUuI4iSDds7h3v35z9yCxf6WRT7Ez3LEeIOis95gZ1pZkGFEEju3x+s
-         R3R2jhzTcdl8KPOM0h7uy+VfP38GciQO8aOFEnoPJfgvtabd4s43wPucx6sC/s/XhBYw
-         hWMDW7c/xB91bXm848SMWfFJIOWwQQosDfWeBKCTfUOgrjxBbwmCaoBdTcF4J9Nl2v5o
-         ShsQ==
-X-Forwarded-Encrypted: i=1; AJvYcCVb4ZfDgeQvZGynam7veyG/n4wUl/11VYKaGMR451knfy8xv+sjO/5mYFHVEXW64tcN6ZCRZa0=@lists.linux.dev
-X-Gm-Message-State: AOJu0Ywde3C94QNOdYLms7mINaWK226mbYoqMiOnwx71qiG7S+D64wON
-	ehkaiLXG14yQWHkf9sqUWheRBxgplbzaA+W1aGPbzhELu4udsY0FHO+JgQ==
-X-Google-Smtp-Source: AGHT+IHVv9r7MKJjUSsXG/y+mCb5Wf82Y7SeUs0z/eAYp9wCqrgQe4bdoe5/bhoTRFKbfUlmM4a89g==
-X-Received: by 2002:a05:6a21:1690:b0:1d9:1783:6a2d with SMTP id adf61e73a8af0-1dba5343d25mr735638637.13.1730400562748;
-        Thu, 31 Oct 2024 11:49:22 -0700 (PDT)
-Received: from fan ([2601:646:8f03:9fee:1a14:7759:606e:c90])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-720c6a39a53sm742254b3a.178.2024.10.31.11.49.21
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 31 Oct 2024 11:49:22 -0700 (PDT)
-From: Fan Ni <nifan.cxl@gmail.com>
-X-Google-Original-From: Fan Ni <fan.ni@samsung.com>
-Date: Thu, 31 Oct 2024 11:49:19 -0700
-To: Ira Weiny <ira.weiny@intel.com>
-Cc: Alison Schofield <alison.schofield@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Jonathan Cameron <jonathan.cameron@huawei.com>,
-	Navneet Singh <navneet.singh@intel.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>, linux-cxl@vger.kernel.org,
-	nvdimm@lists.linux.dev
-Subject: Re: [ndctl PATCH 5/6] ndctl/cxl: Add extent output to region query
-Message-ID: <ZyPRL5kfoh6G37tw@fan>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="XQWqtRhp"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1730412673; x=1761948673;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=n0/RG2i8Eb2+DKXMv5Nh6G7l89vvFDbfrbgpjfnPyk0=;
+  b=XQWqtRhptus/tkfYgjtFwTI+LNqsnnFr+m+GHuTRwlAXtwU1jo7F+4IV
+   U4L0vq+Fd2Rd9wkrFKETWtAQNXhaBm/Q9REJVp2SbSWb2TExCwNLMC5iF
+   5R1xMZUauelvO6TkMXjHmeJGC6ILtIeiKwDbKUmQzkUGJvvY33CORk1/7
+   vUJ6B4sv6OKvdhWySycBg8PoPr2JYtzS3sSamfK8E/ejl/e9FxiKMlplS
+   0aojj16eb5iB78QDdIXW2gWM7ac75zNvITKjDyErWJu/OWCT/QIqpvVtU
+   +vLQq/yEpN10Qg1dPZo1ueA+RGjK7OWHqj42JKX5OvlJRUZsF0fjASAto
+   Q==;
+X-CSE-ConnectionGUID: yts1zXvKScCVeuBMpshEJw==
+X-CSE-MsgGUID: BOlYJqu0QdaBH8AAaONMuQ==
+X-IronPort-AV: E=McAfee;i="6700,10204,11242"; a="34111241"
+X-IronPort-AV: E=Sophos;i="6.11,247,1725346800"; 
+   d="scan'208";a="34111241"
+Received: from fmviesa009.fm.intel.com ([10.60.135.149])
+  by fmvoesa106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Oct 2024 15:11:13 -0700
+X-CSE-ConnectionGUID: v+I/ZYF2QySqPXjljMBXCA==
+X-CSE-MsgGUID: YRDqvmzCTiC7lJ3aolsk9A==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.11,247,1725346800"; 
+   d="scan'208";a="82875243"
+Received: from orsmsx602.amr.corp.intel.com ([10.22.229.15])
+  by fmviesa009.fm.intel.com with ESMTP/TLS/AES256-GCM-SHA384; 31 Oct 2024 15:11:12 -0700
+Received: from orsmsx601.amr.corp.intel.com (10.22.229.14) by
+ ORSMSX602.amr.corp.intel.com (10.22.229.15) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.39; Thu, 31 Oct 2024 15:11:12 -0700
+Received: from orsedg603.ED.cps.intel.com (10.7.248.4) by
+ orsmsx601.amr.corp.intel.com (10.22.229.14) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.39 via Frontend Transport; Thu, 31 Oct 2024 15:11:12 -0700
+Received: from NAM02-BN1-obe.outbound.protection.outlook.com (104.47.51.41) by
+ edgegateway.intel.com (134.134.137.100) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.39; Thu, 31 Oct 2024 15:11:11 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=EQ/rhIADJOl6wwJZBnSfqtlgK4Te7TZAOm3Ya/ONiTTYK++7nOiYhwkEc9BjD4LHFftguyho9NQlgX3lyCaYEh5sei8vuIHO2buRBoPEj/NlRisvRyvGoX+MYYKs2YBksw9ZN+5u0yqAcWcBjIcd+KAHExOfo2GT425BhVqIQxbFHLD7w8mlDlGXedOCn80qYPSkdT+UHtkj4DjNMDfdHSMYzG67I0EKGNUdUPPF0M1PzcNj8UKcwTjjmH7PUzSU8NrtO5yDh0t+PYJy/5RJMtNJYp57hxdqLOLstk2w5aZLYfKz9NFuAdjbrjsNDiCZ257JY/OJx/nxRr5QRXuiyw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=EbM3d9/pj6wbYDK97T7wIsFybx3nzrd2+ZxKrl3qHTQ=;
+ b=mfNysBYX1y7RoqCpTeBwvD6desEVy4ZbIsyQixkCqFe06uu4lJOP8u4peYRfxCHJaF2WiDa35zRB0QteX9YEsgiLEhia+wGbqDqLBiwo8YFrr9WEYnCTSoxo2u3mRb+vHGFZoVojbb4xwmOfVntJFQPCeobH8O8zZ5eHnknQzkg0j+y51gsqm8ugEMD6iiWDmNCMhboSQdMpWKNGyPuvIgOxhwYpgDXm/7Gi0AK0ExyQzGPPlCz3scVg+JUDeBiFDXbU65R4fRtcYDxGn80V18Zr90TSTK+ogoklXhA/D/ld/Q/5N7P/m+7QG3oEzNOIaJS679rjsKl7DM0gcLoS3Q==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from SA1PR11MB6733.namprd11.prod.outlook.com (2603:10b6:806:25c::17)
+ by DS7PR11MB7805.namprd11.prod.outlook.com (2603:10b6:8:ea::15) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8093.27; Thu, 31 Oct
+ 2024 22:11:08 +0000
+Received: from SA1PR11MB6733.namprd11.prod.outlook.com
+ ([fe80::cf7d:9363:38f4:8c57]) by SA1PR11MB6733.namprd11.prod.outlook.com
+ ([fe80::cf7d:9363:38f4:8c57%3]) with mapi id 15.20.8093.027; Thu, 31 Oct 2024
+ 22:11:08 +0000
+Date: Thu, 31 Oct 2024 17:11:04 -0500
+From: Ira Weiny <ira.weiny@intel.com>
+To: Fan Ni <nifan.cxl@gmail.com>, <ira.weiny@intel.com>
+CC: Alison Schofield <alison.schofield@intel.com>, Vishal Verma
+	<vishal.l.verma@intel.com>, Jonathan Cameron <jonathan.cameron@huawei.com>,
+	Navneet Singh <navneet.singh@intel.com>, Dan Williams
+	<dan.j.williams@intel.com>, Dave Jiang <dave.jiang@intel.com>,
+	<linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>, Sushant1 Kumar
+	<sushant1.kumar@intel.com>
+Subject: Re: [ndctl PATCH 4/6] cxl/region: Add creation of Dynamic capacity
+ regions
+Message-ID: <6724007843a17_8a67029496@iweiny-mobl.notmuch>
 References: <20241030-dcd-region2-v1-0-04600ba2b48e@intel.com>
- <20241030-dcd-region2-v1-5-04600ba2b48e@intel.com>
+ <20241030-dcd-region2-v1-4-04600ba2b48e@intel.com>
+ <ZyPPPycLXADj2Lvb@fan>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <ZyPPPycLXADj2Lvb@fan>
+X-ClientProxiedBy: MW3PR05CA0028.namprd05.prod.outlook.com
+ (2603:10b6:303:2b::33) To SA1PR11MB6733.namprd11.prod.outlook.com
+ (2603:10b6:806:25c::17)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20241030-dcd-region2-v1-5-04600ba2b48e@intel.com>
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: SA1PR11MB6733:EE_|DS7PR11MB7805:EE_
+X-MS-Office365-Filtering-Correlation-Id: c559b0dc-927b-4f6d-d331-08dcf9f8ebec
+X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|1800799024|366016|376014;
+X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?Sl2Im4fD4CfbRzOtTnNYjrIJ4Sszs4Sw54+U4i1I7FeFm+D9n27dU3/3KFec?=
+ =?us-ascii?Q?IU4tPGhttAvKU3hoX5dOC9jenzMn8wH4/XzlL8SgNSc4a4kuIFujrXJKJMhK?=
+ =?us-ascii?Q?y0L7RP+LrzBbyIjhwuw/hKt+Un9skcSMDdOyr7mnXh+TQLMPVss+M4mMMpYU?=
+ =?us-ascii?Q?OGrk/SbB2LTFTPqar3PkzyqAf/fpefOuAXSustr6F+JGtDxAKuTdaW5vAayP?=
+ =?us-ascii?Q?IcrpUxlHkl5Uok6rqkPiKZ8vc5qqVoyyqGYwiDq8RHxFofYUlpS094EO8/b2?=
+ =?us-ascii?Q?jj/Qrs3hPZCEwdXISbnI72/a2dYKXJKw3Q2ZseNPAsFoT7A8JdeyLDoSCU5F?=
+ =?us-ascii?Q?ILUQ3PIeeSNOAyKUjBsDxJMKujXZ8of1jLZgQy6CkuFjDTU2P1rcyy7qv4g5?=
+ =?us-ascii?Q?+sCAcrkr/V1W/Yc2yeSZRAfrHa/R+XaV+Z5w9ShvJBolO1o2AxGoxTNn5DNd?=
+ =?us-ascii?Q?I5dnTCaBXEMO9H75UBL1TS+jtIfrX7IG3Lng60bGxQ40oBX+sRQpPWbkXXmU?=
+ =?us-ascii?Q?dViZaSYQ1RvvTsdO7/IGTfF4/UmRQ/mkmOfLtP2LVXtwZcQLzgQm4tjOCWTj?=
+ =?us-ascii?Q?s0BOmXBNs08jVZMXwRbC8xwXag2Wwt6EpOvEFaRC86bEnZjdjfv1C7tcmJ74?=
+ =?us-ascii?Q?StXp/J6Ig5UsZ2l9JexSz7D87L5tOGt7EFSImzh0tOE81Ksd+ZmH4ZjNLsY6?=
+ =?us-ascii?Q?qRJXzj2D2UZnuKGjMsHkiogfJ3FIg56xY5IJtz0aHbDG9srf/1joWKmM61pn?=
+ =?us-ascii?Q?xjXhPSzPApiVMQ5BQnUMrCaQKXabNPoLxmr9hhWEBA3Qj4+HduVQ6xqTBv6C?=
+ =?us-ascii?Q?l6aSG4tEbb6/h2Wlr5DDT2H7EXjlynKBzbFfJD7e+PXctdvNv9pW/CistnZS?=
+ =?us-ascii?Q?UW8HKhsKjzDmVfYJ2seTEfGGj/JRa9UEwfn+T85Ma4kRHvVW6t7YHfe8HTsB?=
+ =?us-ascii?Q?IpDsAZNJw1vK2T/Js3wzKQsz36Lvswnm+t1qceOnj6U2YX4svKYdZzUKmQuO?=
+ =?us-ascii?Q?ld5UezdM7ek7rLL11N1+ZdXMCrzIAEINuKZAjGV+9qxZ6DgVp8PSeGejk69T?=
+ =?us-ascii?Q?mG+tnFHhiMQHlp93957tGGOQBT5jlkOLAmLsd9wODg+nl3IwaIYiLV4Vhnlj?=
+ =?us-ascii?Q?EIPafprh5W5xUtos5nHhI3DhxjCLfzUayQKvdV+FD9W+rj3dnxy9XmQI9B0q?=
+ =?us-ascii?Q?3riO29e3qApTjEo8tR2+riAB6wW4Mk/g1JMM2IWc7ffvQNAtZ/StSztAH8ot?=
+ =?us-ascii?Q?ymmNbb+87+oOPu59O23KRCe4A11JLM6dUNkglTeC+OwS0mFDEv3n4aZDaR3s?=
+ =?us-ascii?Q?qbU=3D?=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA1PR11MB6733.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(366016)(376014);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?XmOUQ16YJyIABeKTwbKnMpQWkwDZXbG0DdlCGX9yuI+nU2ErEZ9sKI15JhaE?=
+ =?us-ascii?Q?8K3me1ey2KSQaOBooRht6noDz8+AwjUUYQyFIJRvBmmcSapBD43UXUfX1D4b?=
+ =?us-ascii?Q?1RYeWoTyRBBFqqT8PZ5sRiG0Xkp1LUzjkMTDAghPJSaAT1zng3gej3gcbVQC?=
+ =?us-ascii?Q?yf3PW3OcvZ0Hu8YfA7NoEEMk26KsMc9FR2M6BN16oZWpiyzQ90Y9//V2lRQF?=
+ =?us-ascii?Q?qfjl/e8TUdFjlWIZMAoQoDmrZRbKaBhd6Z1x/QuAmcjeHSMNvmQQ1qPKfDuE?=
+ =?us-ascii?Q?wk2QpBURV9woM79u+4fVE9m+7AaJerJomFmTbflu+bZYx/dcPN4ThAnbF4nC?=
+ =?us-ascii?Q?+0DnYXFr/gRpn5AC95/QK31eLj4Jlpo26CTplYjeYT4vyLVmTJFgq81beYFV?=
+ =?us-ascii?Q?cctfvj4zbgdnO3AMT0Z3a7uJn6/YRGMuEqnPYp/rLpOKuIF8iMcJAbag050z?=
+ =?us-ascii?Q?zLo47nYPKlxe4l96gbyvS/oOoj0AxF+pvb1rJZ1uhQH4IHuS9iKK7O+OwTW5?=
+ =?us-ascii?Q?sl9uEdfEEJ13bGFbRkzY28jGBPUQcWk5aBj6tO4hJT42Q0tc5J1lVtVEwG+b?=
+ =?us-ascii?Q?835qei2Vr/On1cql/vzDCnvttlA8FH0F87eji38QMEbgJtNT+Gr3FssKGtpD?=
+ =?us-ascii?Q?RYMPQFylDNXu/UcdHytlISJKj9D9lWHllvMkXlDEVsl9NBz4VL+388xkb8hs?=
+ =?us-ascii?Q?A8Or/oxkrex8BKA/1xjV67WJyRQBOpqz/qLqGXnxkL3xYgd5+J2PfKss8yNL?=
+ =?us-ascii?Q?b484c6YM16AuOPzn53/2OG0qJ4gv08ZWYkG1dl939v+d4PyAydA0IGUia7nq?=
+ =?us-ascii?Q?peBHFOPXWHRZe+AAtBoFl2b4ZGFBJXRc7f4O5yKDA1jnypoKe2Sv6viLFYfU?=
+ =?us-ascii?Q?stR5XKPbrmSBWFWb7HNgSrJvPyOYQSTAfhUEUL4/aDLdyQ/hPMy9qTUC1FH1?=
+ =?us-ascii?Q?m56CMTzVAfxZQGGosmrU/QBG13mNMfOEDkg7+PqdThBT0OHRajP9GyLcVMCB?=
+ =?us-ascii?Q?DxD1j1bNxhtSlMv1RNB6sxGEqd9rwzAI+Xuo0pBI++jNZ9NDxZMsIWPI12OX?=
+ =?us-ascii?Q?oPEcspQFrRLpwmX0rEN2K4agUujfMcpwPpWgJdJ8nvZl3mxF6U0GFl7GS7jN?=
+ =?us-ascii?Q?jEyhesWHsricZkdJdb9q+1iN3XPAK+o+j/1Dn/QgBmwE0AgEFk2hzIRbvfgl?=
+ =?us-ascii?Q?CC2xkvburVdrlMP1nnu9XW9EDkEqKN4FlJPWDTP+r9N7HzQgcXpEbN7reC4+?=
+ =?us-ascii?Q?rDXw609l6pt2ZZONZsZC+GF/v+FGzBJJ6mindghR6ubQKG+9uwkmCfaqNmrb?=
+ =?us-ascii?Q?DPoJijjtaAzHuztMR1fGvvPU1LiBhf/H5Poo+9YAQlTswn/HL6qOzehFlPWq?=
+ =?us-ascii?Q?yujKlol/+q5IzrF6dn7I6TMmD3tQNOtgEvifPeGgNL+wD69xn8Sf4YJurkQt?=
+ =?us-ascii?Q?wKEdoHt1BBdJTf+IuZXDuBZd/LANIAWyUVyB3c8x44QFztcJ4QIGZ5W0XrsS?=
+ =?us-ascii?Q?tt0d3fghC/yojXrvEJ0vfjBASctHmHTh8lWYZzqvngvQ+vmGgazUxVAYwM2m?=
+ =?us-ascii?Q?vHEvm7yG73MKULvBhFOngyTooJj9tMIWksTiMMd6?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: c559b0dc-927b-4f6d-d331-08dcf9f8ebec
+X-MS-Exchange-CrossTenant-AuthSource: SA1PR11MB6733.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 31 Oct 2024 22:11:08.6968
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: GQp7RI14FdPq0j5UJTXJWFlL+rzZqSIr1j3yN4wt5SLnkifKmJmJ/b7on2ZN4ry1VKvizF3kWHCp6UYwb33asA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DS7PR11MB7805
+X-OriginatorOrg: intel.com
 
-On Wed, Oct 30, 2024 at 04:54:48PM -0500, Ira Weiny wrote:
-> DCD regions have 0 or more extents.  The ability to list those and their
-> properties is useful to end users.
+Fan Ni wrote:
+> On Wed, Oct 30, 2024 at 04:54:47PM -0500, ira.weiny@intel.com wrote:
+> > From: Navneet Singh <navneet.singh@intel.com>
+> > 
+> > CXL Dynamic Capacity Devices (DCDs) optionally support dynamic capacity
+> > with up to eight partitions (Regions) (dc0-dc7).  CXL regions can now be
+> > spare and defined as dynamic capacity (dc).
+> > 
+> > Add support for DCD devices.  Query for DCD capabilities.  Add the
+> > ability to add DC partitions to a CXL DC region.
+> > 
+> > Signed-off-by: Navneet Singh <navneet.singh@intel.com>
+> > Co-authored-by: Sushant1 Kumar <sushant1.kumar@intel.com>
+> > Signed-off-by: Sushant1 Kumar <sushant1.kumar@intel.com>
+> > Co-authored-by: Ira Weiny <ira.weiny@intel.com>
+> > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+> > 
+> > ---
+> > Changes:
+> > [iweiny: adjust to new sysfs interface.]
+> > [iweiny: Rebase to latest pending]
+> > [iweiny: Adjust DCD region code to new upstream sysfs entries]
+> > [iweiny: Ensure backwards compatibility for non-DC kernels]
+> > [iweiny: fixup help message to show DC type]
+> > [iweiny: don't double declare decoder mode is dc]
+> > [iweiny: simplify __reserve_dpa() with decoder mode to index]
+> > [iweiny: Adjust to the new region mode]
+> > ---
+> >  cxl/json.c         | 26 +++++++++++++++
+> >  cxl/lib/libcxl.c   | 95 +++++++++++++++++++++++++++++++++++++++++++++++++++++-
+> >  cxl/lib/libcxl.sym |  3 ++
+> >  cxl/lib/private.h  |  6 +++-
+> >  cxl/libcxl.h       | 55 +++++++++++++++++++++++++++++--
+> >  cxl/memdev.c       |  7 +++-
+> >  cxl/region.c       | 49 ++++++++++++++++++++++++++--
+> >  7 files changed, 234 insertions(+), 7 deletions(-)
+> > 
+> > diff --git a/cxl/json.c b/cxl/json.c
+> > index dcd3cc28393faf7e8adf299a857531ecdeaac50a..4276b9678d7e03eaf2aec581a08450f2a0b857f2 100644
+> > --- a/cxl/json.c
+> > +++ b/cxl/json.c
+> > @@ -754,10 +754,12 @@ err_free:
+> >  	return jpoison;
+> >  }
+> >  
+> > +#define DC_SIZE_NAME_LEN 64
+> >  struct json_object *util_cxl_memdev_to_json(struct cxl_memdev *memdev,
+> >  		unsigned long flags)
+> >  {
+> >  	const char *devname = cxl_memdev_get_devname(memdev);
+> > +	char size_name[DC_SIZE_NAME_LEN];
+> >  	struct json_object *jdev, *jobj;
+> >  	unsigned long long serial, size;
+> >  	const char *fw_version;
+> > @@ -800,6 +802,17 @@ struct json_object *util_cxl_memdev_to_json(struct cxl_memdev *memdev,
+> >  		}
+> >  	}
+> >  
+> > +	for (int index; index < MAX_NUM_DC_REGIONS; index++) {
 > 
-> Add extent output to region queries.
-> 
-> Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-> ---
-The output looks good to me.
+> index is not initialized.
+> Should be index = 0;
 
-Tested-by: Fan Ni <fan.ni@samsung.com>
+Thanks for the review!
 
->  Documentation/cxl/cxl-list.txt |   4 ++
->  cxl/filter.h                   |   3 +
->  cxl/json.c                     |  47 ++++++++++++++
->  cxl/json.h                     |   3 +
->  cxl/lib/libcxl.c               | 138 +++++++++++++++++++++++++++++++++++++++++
->  cxl/lib/libcxl.sym             |   5 ++
->  cxl/lib/private.h              |  11 ++++
->  cxl/libcxl.h                   |  11 ++++
->  cxl/list.c                     |   3 +
->  util/json.h                    |   1 +
->  10 files changed, 226 insertions(+)
+Good catch.  I'll fix up.
+
 > 
-> diff --git a/Documentation/cxl/cxl-list.txt b/Documentation/cxl/cxl-list.txt
-> index 9a9911e7dd9bba561c6202784017db1bb4b9f4bd..71fd313cfec2509c79f8ad1e0f64857d0d804c13 100644
-> --- a/Documentation/cxl/cxl-list.txt
-> +++ b/Documentation/cxl/cxl-list.txt
-> @@ -411,6 +411,10 @@ OPTIONS
->  }
->  ----
->  
-> +-N::
-> +--extents::
-> +	Extend Dynamic Capacity region listings extent information.
-> +
->  -r::
->  --region::
->  	Specify CXL region device name(s), or device id(s), to filter the listing.
-> diff --git a/cxl/filter.h b/cxl/filter.h
-> index 956a46e0c7a9f05abf696cce97a365164e95e50d..a31b80c87ccac407bd4ff98b302a23b33cbe413c 100644
-> --- a/cxl/filter.h
-> +++ b/cxl/filter.h
-> @@ -31,6 +31,7 @@ struct cxl_filter_params {
->  	bool alert_config;
->  	bool dax;
->  	bool media_errors;
-> +	bool extents;
->  	int verbose;
->  	struct log_ctx ctx;
->  };
-> @@ -91,6 +92,8 @@ static inline unsigned long cxl_filter_to_flags(struct cxl_filter_params *param)
->  		flags |= UTIL_JSON_DAX | UTIL_JSON_DAX_DEVS;
->  	if (param->media_errors)
->  		flags |= UTIL_JSON_MEDIA_ERRORS;
-> +	if (param->extents)
-> +		flags |= UTIL_JSON_EXTENTS;
->  	return flags;
->  }
->  
-> diff --git a/cxl/json.c b/cxl/json.c
-> index 4276b9678d7e03eaf2aec581a08450f2a0b857f2..9708ecd340d8c337a548909474ab2763ff3125da 100644
-> --- a/cxl/json.c
-> +++ b/cxl/json.c
-> @@ -1170,6 +1170,50 @@ void util_cxl_mappings_append_json(struct json_object *jregion,
->  	json_object_object_add(jregion, "mappings", jmappings);
->  }
->  
-> +void util_cxl_extents_append_json(struct json_object *jregion,
-> +				  struct cxl_region *region,
-> +				  unsigned long flags)
-> +{
-> +	struct json_object *jextents;
-> +	struct cxl_region_extent *extent;
-> +
-> +	jextents = json_object_new_array();
-> +	if (!jextents)
-> +		return;
-> +
-> +	cxl_extent_foreach(region, extent) {
-> +		struct json_object *jextent, *jobj;
-> +		unsigned long long val;
-> +		char tag_str[40];
-> +		uuid_t tag;
-> +
-> +		jextent = json_object_new_object();
-> +		if (!jextent)
-> +			continue;
-> +
-> +		val = cxl_extent_get_offset(extent);
-> +		jobj = util_json_object_hex(val, flags);
-> +		if (jobj)
-> +			json_object_object_add(jextent, "offset", jobj);
-> +
-> +		val = cxl_extent_get_length(extent);
-> +		jobj = util_json_object_size(val, flags);
-> +		if (jobj)
-> +			json_object_object_add(jextent, "length", jobj);
-> +
-> +		cxl_extent_get_tag(extent, tag);
-> +		uuid_unparse(tag, tag_str);
-> +		jobj = json_object_new_string(tag_str);
-> +		if (jobj)
-> +			json_object_object_add(jextent, "tag", jobj);
-> +
-> +		json_object_array_add(jextents, jextent);
-> +		json_object_set_userdata(jextent, extent, NULL);
-> +	}
-> +
-> +	json_object_object_add(jregion, "extents", jextents);
-> +}
-> +
->  struct json_object *util_cxl_region_to_json(struct cxl_region *region,
->  					     unsigned long flags)
->  {
-> @@ -1256,6 +1300,9 @@ struct json_object *util_cxl_region_to_json(struct cxl_region *region,
->  		}
->  	}
->  
-> +	if (flags & UTIL_JSON_EXTENTS)
-> +		util_cxl_extents_append_json(jregion, region, flags);
-> +
->  	if (cxl_region_qos_class_mismatch(region)) {
->  		jobj = json_object_new_boolean(true);
->  		if (jobj)
-> diff --git a/cxl/json.h b/cxl/json.h
-> index eb7572be4106baf0469ba9243a9a767d07df8882..f9c07ab41a337838b75ffee4486f6c48ddc99863 100644
-> --- a/cxl/json.h
-> +++ b/cxl/json.h
-> @@ -20,6 +20,9 @@ struct json_object *util_cxl_region_to_json(struct cxl_region *region,
->  void util_cxl_mappings_append_json(struct json_object *jregion,
->  				  struct cxl_region *region,
->  				  unsigned long flags);
-> +void util_cxl_extents_append_json(struct json_object *jregion,
-> +				  struct cxl_region *region,
-> +				  unsigned long flags);
->  void util_cxl_targets_append_json(struct json_object *jdecoder,
->  				  struct cxl_decoder *decoder,
->  				  const char *ident, const char *serial,
-> diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
-> index 4caa2d02313bf71960971c4eaa67fa42cea08d55..8ebb100df0c6078630bbe45fbed270709dfb4a5f 100644
-> --- a/cxl/lib/libcxl.c
-> +++ b/cxl/lib/libcxl.c
-> @@ -568,6 +568,7 @@ static void *add_cxl_region(void *parent, int id, const char *cxlregion_base)
->  	region->ctx = ctx;
->  	region->decoder = decoder;
->  	list_head_init(&region->mappings);
-> +	list_head_init(&region->extents);
->  
->  	region->dev_path = strdup(cxlregion_base);
->  	if (!region->dev_path)
-> @@ -1178,6 +1179,143 @@ cxl_mapping_get_next(struct cxl_memdev_mapping *mapping)
->  	return list_next(&region->mappings, mapping, list);
->  }
->  
-> +static void cxl_extents_init(struct cxl_region *region)
-> +{
-> +	const char *devname = cxl_region_get_devname(region);
-> +	struct cxl_ctx *ctx = cxl_region_get_ctx(region);
-> +	char *extent_path, *dax_region_path;
-> +	struct dirent *de;
-> +	DIR *dir = NULL;
-> +
-> +	if (region->extents_init)
-> +		return;
-> +	region->extents_init = 1;
-> +
-> +	dbg(ctx, "Checking extents: %s\n", region->dev_path);
-> +
-> +	dax_region_path = calloc(1, strlen(region->dev_path) + 64);
-> +	if (!dax_region_path) {
-> +		err(ctx, "%s: allocation failure\n", devname);
-> +		return;
-> +	}
-> +
-> +	extent_path = calloc(1, strlen(region->dev_path) + 100);
-> +	if (!extent_path) {
-> +		err(ctx, "%s: allocation failure\n", devname);
-> +		free(dax_region_path);
-> +		return;
-> +	}
-> +
-> +	sprintf(dax_region_path, "%s/dax_region%d",
-> +		region->dev_path, region->id);
-> +	dir = opendir(dax_region_path);
-> +	if (!dir) {
-> +		err(ctx, "no extents found: %s\n", dax_region_path);
-> +		free(extent_path);
-> +		free(dax_region_path);
-> +		return;
-> +	}
-> +
-> +	while ((de = readdir(dir)) != NULL) {
-> +		struct cxl_region_extent *extent;
-> +		char buf[SYSFS_ATTR_SIZE];
-> +		u64 offset, length;
-> +		int id, region_id;
-> +
-> +		if (sscanf(de->d_name, "extent%d.%d", &region_id, &id) != 2)
-> +			continue;
-> +
-> +		sprintf(extent_path, "%s/extent%d.%d/offset",
-> +			dax_region_path, region_id, id);
-> +		if (sysfs_read_attr(ctx, extent_path, buf) < 0) {
-> +			err(ctx, "%s: failed to read extent%d.%d/offset\n",
-> +				devname, region_id, id);
-> +			continue;
-> +		}
-> +
-> +		offset = strtoull(buf, NULL, 0);
-> +		if (offset == ERANGE) {
-> +			err(ctx, "%s extent%d.%d: failed to read offset\n",
-> +				devname, region_id, id);
-> +			continue;
-> +		}
-> +
-> +		sprintf(extent_path, "%s/extent%d.%d/length",
-> +			dax_region_path, region_id, id);
-> +		if (sysfs_read_attr(ctx, extent_path, buf) < 0) {
-> +			err(ctx, "%s: failed to read extent%d.%d/length\n",
-> +				devname, region_id, id);
-> +			continue;
-> +		}
-> +
-> +		length = strtoull(buf, NULL, 0);
-> +		if (length == ERANGE) {
-> +			err(ctx, "%s extent%d.%d: failed to read length\n",
-> +				devname, region_id, id);
-> +			continue;
-> +		}
-> +
-> +		sprintf(extent_path, "%s/extent%d.%d/tag",
-> +			dax_region_path, region_id, id);
-> +		buf[0] = '\0';
-> +		if (sysfs_read_attr(ctx, extent_path, buf) != 0)
-> +			dbg(ctx, "%s extent%d.%d: failed to read tag\n",
-> +				devname, region_id, id);
-> +
-> +		extent = calloc(1, sizeof(*extent));
-> +		if (!extent) {
-> +			err(ctx, "%s extent%d.%d: allocation failure\n",
-> +				devname, region_id, id);
-> +			continue;
-> +		}
-> +		if (strlen(buf) && uuid_parse(buf, extent->tag) < 0)
-> +			err(ctx, "%s:%s\n", extent_path, buf);
-> +		extent->region = region;
-> +		extent->offset = offset;
-> +		extent->length = length;
-> +
-> +		list_node_init(&extent->list);
-> +		list_add(&region->extents, &extent->list);
-> +	}
-> +	free(dax_region_path);
-> +	free(extent_path);
-> +	closedir(dir);
-> +}
-> +
-> +CXL_EXPORT struct cxl_region_extent *
-> +cxl_extent_get_first(struct cxl_region *region)
-> +{
-> +	cxl_extents_init(region);
-> +
-> +	return list_top(&region->extents, struct cxl_region_extent, list);
-> +}
-> +
-> +CXL_EXPORT struct cxl_region_extent *
-> +cxl_extent_get_next(struct cxl_region_extent *extent)
-> +{
-> +	struct cxl_region *region = extent->region;
-> +
-> +	return list_next(&region->extents, extent, list);
-> +}
-> +
-> +CXL_EXPORT unsigned long long
-> +cxl_extent_get_offset(struct cxl_region_extent *extent)
-> +{
-> +	return extent->offset;
-> +}
-> +
-> +CXL_EXPORT unsigned long long
-> +cxl_extent_get_length(struct cxl_region_extent *extent)
-> +{
-> +	return extent->length;
-> +}
-> +
-> +CXL_EXPORT void
-> +cxl_extent_get_tag(struct cxl_region_extent *extent, uuid_t tag)
-> +{
-> +	memcpy(tag, extent->tag, sizeof(uuid_t));
-> +}
-> +
->  CXL_EXPORT struct cxl_decoder *
->  cxl_mapping_get_decoder(struct cxl_memdev_mapping *mapping)
->  {
-> diff --git a/cxl/lib/libcxl.sym b/cxl/lib/libcxl.sym
-> index 351da7512e05080d847fd87740488d613462dbc9..37c3531115c73cdb69b96fa47bc88bbbb901f085 100644
-> --- a/cxl/lib/libcxl.sym
-> +++ b/cxl/lib/libcxl.sym
-> @@ -291,4 +291,9 @@ global:
->  	cxl_memdev_trigger_poison_list;
->  	cxl_region_trigger_poison_list;
->  	cxl_region_get_region_mode;
-> +	cxl_extent_get_first;
-> +	cxl_extent_get_next;
-> +	cxl_extent_get_offset;
-> +	cxl_extent_get_length;
-> +	cxl_extent_get_tag;
->  } LIBCXL_7;
-> diff --git a/cxl/lib/private.h b/cxl/lib/private.h
-> index 10abfa63dfc759b1589f9f039da1b920f8eb605e..5b50b3f778a66a2266d6d5ee69e2a72cdad54a70 100644
-> --- a/cxl/lib/private.h
-> +++ b/cxl/lib/private.h
-> @@ -164,6 +164,7 @@ struct cxl_region {
->  	struct cxl_decoder *decoder;
->  	struct list_node list;
->  	int mappings_init;
-> +	int extents_init;
->  	struct cxl_ctx *ctx;
->  	void *dev_buf;
->  	size_t buf_len;
-> @@ -179,6 +180,7 @@ struct cxl_region {
->  	struct daxctl_region *dax_region;
->  	struct kmod_module *module;
->  	struct list_head mappings;
-> +	struct list_head extents;
->  };
->  
->  struct cxl_memdev_mapping {
-> @@ -188,6 +190,15 @@ struct cxl_memdev_mapping {
->  	struct list_node list;
->  };
->  
-> +#define CXL_REGION_EXTENT_TAG 0x10
-> +struct cxl_region_extent {
-> +	struct cxl_region *region;
-> +	u64 offset;
-> +	u64 length;
-> +	uuid_t tag;
-> +	struct list_node list;
-> +};
-> +
->  enum cxl_cmd_query_status {
->  	CXL_CMD_QUERY_NOT_RUN = 0,
->  	CXL_CMD_QUERY_OK,
-> diff --git a/cxl/libcxl.h b/cxl/libcxl.h
-> index 17ed682548b970d57f016942badc76dce61bdeaf..b7c85a67224c86d17a41376c147364e1f88db080 100644
-> --- a/cxl/libcxl.h
-> +++ b/cxl/libcxl.h
-> @@ -448,6 +448,17 @@ unsigned int cxl_mapping_get_position(struct cxl_memdev_mapping *mapping);
->               mapping != NULL; \
->               mapping = cxl_mapping_get_next(mapping))
->  
-> +struct cxl_region_extent;
-> +struct cxl_region_extent *cxl_extent_get_first(struct cxl_region *region);
-> +struct cxl_region_extent *cxl_extent_get_next(struct cxl_region_extent *extent);
-> +#define cxl_extent_foreach(region, extent) \
-> +        for (extent = cxl_extent_get_first(region); \
-> +             extent != NULL; \
-> +             extent = cxl_extent_get_next(extent))
-> +unsigned long long cxl_extent_get_offset(struct cxl_region_extent *extent);
-> +unsigned long long cxl_extent_get_length(struct cxl_region_extent *extent);
-> +void cxl_extent_get_tag(struct cxl_region_extent *extent, uuid_t tag);
-> +
->  struct cxl_cmd;
->  const char *cxl_cmd_get_devname(struct cxl_cmd *cmd);
->  struct cxl_cmd *cxl_cmd_new_raw(struct cxl_memdev *memdev, int opcode);
-> diff --git a/cxl/list.c b/cxl/list.c
-> index 0b25d78248d5f4f529fd2c2e073e43895c722568..47d135166212b87449f960e94ee75657f7040ca9 100644
-> --- a/cxl/list.c
-> +++ b/cxl/list.c
-> @@ -59,6 +59,8 @@ static const struct option options[] = {
->  		    "include alert configuration information"),
->  	OPT_BOOLEAN('L', "media-errors", &param.media_errors,
->  		    "include media-error information "),
-> +	OPT_BOOLEAN('N', "extents", &param.extents,
-> +		    "include extent information (Dynamic Capacity regions only)"),
->  	OPT_INCR('v', "verbose", &param.verbose, "increase output detail"),
->  #ifdef ENABLE_DEBUG
->  	OPT_BOOLEAN(0, "debug", &debug, "debug list walk"),
-> @@ -135,6 +137,7 @@ int cmd_list(int argc, const char **argv, struct cxl_ctx *ctx)
->  		param.decoders = true;
->  		param.targets = true;
->  		param.regions = true;
-> +		param.extents = true;
->  		/*fallthrough*/
->  	case 0:
->  		break;
-> diff --git a/util/json.h b/util/json.h
-> index 560f845c6753ee176f7c64b4310fe1f9b1ce6d39..79ae3240e7ce151be75f6666fcaba0ba90aba7fc 100644
-> --- a/util/json.h
-> +++ b/util/json.h
-> @@ -21,6 +21,7 @@ enum util_json_flags {
->  	UTIL_JSON_TARGETS	= (1 << 11),
->  	UTIL_JSON_PARTITION	= (1 << 12),
->  	UTIL_JSON_ALERT_CONFIG	= (1 << 13),
-> +	UTIL_JSON_EXTENTS	= (1 << 14),
->  };
->  
->  void util_display_json_array(FILE *f_out, struct json_object *jarray,
+> Also, the "cxl list" looks like below, the size of each DC region is
+> attached to each DCD device, that seems not quite aligned with what
+> "_size" means for pmem/ram. Should we have a separate option for "cxl
+> list" to show DC region info??
+
+I'm not sure I follow.  The pmem/ram sizes show the size of the partitions on
+the memdev.  This is the same for each DC partition.
+
+Are you looking for the available size after some extents are available?
+
+In that case I think you are looking for the dax information details which
+comes after creating a region and using the -X option.
+
+17:02:42 > ./build/cxl/cxl list -r 8 -X
+[
+  {
+    "region":"region8",
+    "resource":1031597457408,
+    "size":536870912,
+    "type":"dc",
+    "interleave_ways":1,
+    "interleave_granularity":256,
+    "decode_state":"commit",
+    "daxregion":{
+      "id":8,
+      "size":536870912,
+      "available_size":134217728,
+      "align":2097152
+    }
+  }
+]
+
+
+This shows an available size which can further be dissected with the new
+--extents (-N) option added in patch 5/6.
+
+17:04:32 > ./build/cxl/cxl list -r 8 -X -N
+[
+  {
+    "region":"region8",
+    "resource":1031597457408,
+    "size":536870912,
+    "type":"dc",
+    "interleave_ways":1,
+    "interleave_granularity":256,
+    "decode_state":"commit",
+    "daxregion":{
+      "id":8,
+      "size":536870912,
+      "available_size":134217728,
+      "align":2097152
+    },
+    "extents":[
+      {
+        "offset":268435456,
+        "length":67108864,
+        "tag":"00000000-0000-0000-0000-000000000000"
+      },
+      {
+        "offset":134217728,
+        "length":67108864,
+        "tag":"00000000-0000-0000-0000-000000000000"
+      }
+    ]
+  }
+]
+
+
+Does this give you the information you are looking for?  Or am I missing
+something in your question?
+
+Ira
+
 > 
-> -- 
-> 2.47.0
+> Fan
+> 
+> ----------
+>   {
+>         "memdev":"mem1",
+>         "dc0_size":"2.00 GiB (2.15 GB)",
+>         "dc1_size":"2.00 GiB (2.15 GB)",
+>         "serial":"0xf02",
+>         "host":"0000:11:00.0",
+>         "firmware_version":"BWFW VERSION 00"
+>       },
+>       {
+>         "memdev":"mem3",
+>         "dc0_size":"2.00 GiB (2.15 GB)",
+>         "dc1_size":"2.00 GiB (2.15 GB)",
+>         "serial":"0xf03",
+>         "host":"0000:12:00.0",
+>         "firmware_version":"BWFW VERSION 00"
+>       },
+> ----------
 > 
 
--- 
-Fan Ni
+[snip]
