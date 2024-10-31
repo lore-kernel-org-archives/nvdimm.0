@@ -1,83 +1,83 @@
-Received: from toucan.tulip.relay.mailchannels.net (toucan.tulip.relay.mailchannels.net [23.83.218.254])
+Received: from frog.ash.relay.mailchannels.net (frog.ash.relay.mailchannels.net [23.83.222.63])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87721360
-	for <nvdimm@lists.linux.dev>; Thu, 31 Oct 2024 00:31:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=23.83.218.254
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6BE671BC20
+	for <nvdimm@lists.linux.dev>; Thu, 31 Oct 2024 00:43:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=23.83.222.63
 ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730334702; cv=pass; b=PvXc2BdB5w5dRIwYVbxkNxLD1RX8MUmcrlweW0R+Q9UphtCrRlEksq6a1lWxZdEJXc5fBbGRErccOgDPO2QltlwNnp6wcWjL74MY83YBMTs2i98RA7vBpcOYqugfiRlEmhC6CdCxo/wBtMHVkp8Ybk9bh0AaeR2mbnlqqNwaLmY=
+	t=1730335392; cv=pass; b=mzbCAq9zMLjHK09LhwsCLGK6DIP1dgERixSAfugSJhjr98KFBbj5LpQt/L97ISoTEJA5uxKfmweKAr/4l9J/R++omw118nVLg3n5Yr8iKHnFojqQ+RKQA2uvGAS4b8hxvJp6PXtgAJ/kM7KrRlnhxAszmdDGdZ2CyKgTCgisvGU=
 ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730334702; c=relaxed/simple;
-	bh=S93jTs0T/Pz6vwp0A5bpRuNy7QZZyewYmfCPIEckU5A=;
+	s=arc-20240116; t=1730335392; c=relaxed/simple;
+	bh=WTl87RQkqlww/DZ/h7NLYjUuHdj+O5o9Q+Ag4BktaTQ=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=DKj5a1MpC/6sXCIAr8gv1csp/0E2l/oXmvZu7Agnba9MeznYgB7aWY3Zi3XWP/afNIMqvHuVLOe2BaAnB8Ua/jG6CkJSDW4uDkYneig+oFJtWVa0FRXTAbICzROiyPQg7vgXB6fV8weLnH7V+n+T2fffV/J8g1bPQSkfdIcsJT4=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=stgolabs.net; spf=pass smtp.mailfrom=stgolabs.net; dkim=pass (2048-bit key) header.d=stgolabs.net header.i=@stgolabs.net header.b=alroabwX; arc=pass smtp.client-ip=23.83.218.254
+	 Content-Type:Content-Disposition:In-Reply-To; b=K+C8wW0G81IiEWQgScUjcy1KsATfsN5BAwikRbiyYZtvnxg8Mx7PU1CGOhMksLw/RQpGkMQcWa5oo0yDOHJovpZU2hf1A0UeAZTPft/f85WtrU79WhUsw8bw6UgbOGTTPcFlXplJYyZ5F7xvgm9iKPSlqyRRyFsSZF5EUZPPBsY=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=stgolabs.net; spf=pass smtp.mailfrom=stgolabs.net; dkim=pass (2048-bit key) header.d=stgolabs.net header.i=@stgolabs.net header.b=qICge/9E; arc=pass smtp.client-ip=23.83.222.63
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=stgolabs.net
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=stgolabs.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=stgolabs.net header.i=@stgolabs.net header.b="alroabwX"
+	dkim=pass (2048-bit key) header.d=stgolabs.net header.i=@stgolabs.net header.b="qICge/9E"
 X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
 Received: from relay.mailchannels.net (localhost [127.0.0.1])
-	by relay.mailchannels.net (Postfix) with ESMTP id 7F41A8444A8;
-	Thu, 31 Oct 2024 00:16:11 +0000 (UTC)
-Received: from pdx1-sub0-mail-a201.dreamhost.com (trex-10.trex.outbound.svc.cluster.local [100.103.28.225])
+	by relay.mailchannels.net (Postfix) with ESMTP id 35E38820457;
+	Thu, 31 Oct 2024 00:24:27 +0000 (UTC)
+Received: from pdx1-sub0-mail-a201.dreamhost.com (trex-2.trex.outbound.svc.cluster.local [100.103.135.51])
 	(Authenticated sender: dreamhost)
-	by relay.mailchannels.net (Postfix) with ESMTPA id E2ACE844796;
-	Thu, 31 Oct 2024 00:16:10 +0000 (UTC)
-ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1730333771; a=rsa-sha256;
+	by relay.mailchannels.net (Postfix) with ESMTPA id 9FF0C82045F;
+	Thu, 31 Oct 2024 00:24:26 +0000 (UTC)
+ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1730334266; a=rsa-sha256;
 	cv=none;
-	b=jSyUmiGmwl5BVFmugR62fdfwTfnLTdNnYLV58x8SktxY8JyX4Qh73kSkVTCGRbRE8nKEHC
-	OtjDoKMJcUqx/3O6PMjpYEHgkKVuPBd3+BskJnwHu3lz1ZbIwQyTH4+kNWPup7/suIECz9
-	27Iv2ZSrLKN1m7c/dj3jaG2XFUVQJabLHlpHJ9IQjGedQCOHCzzfygS8cFFNn9NjsDySLT
-	+r1wsYhXcGdqIdnsK8TVMvXkEjvrXwbyrMfJnmg77FeaGY/DPlvxWFzh+Ke3duQivxccUj
-	r6hJBktnzelCBMiOzZNCr6soUiAV/lMDpO4mjIV/M3amYabStXDUw+Zabga2fA==
+	b=7eY8oWzwGOZvFx4gHG7kckh9Wt3nnJDBb+weuR/rbwkZOMejersBC9AuKJV1WKhaKqmVOE
+	rMi7CXEqc0KlHc5M6QP2yPGeVYhCwYzla1EwYIZkl0RODq8YYJF4haLnTvS6I8UHwX1lQm
+	q/l2U5vVAJXAlzJeHSmEOBlz+yviT85WpFKel2q+ye/0n1tMsRZnZGi15WVFuoCMqY2bsz
+	F71bJ8Hkw9kaOJe+HQMTXUIiR5kBcrynJK9r2dfRqU/ir0OkUD94jeHqOqx1Yu0tBDkXFm
+	y5rRtaFNMdZmi5LgaAbGRwg5uEmNj1Gqj77sYJhQgsyCWkQRyPekulM4LlXMBw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
  d=mailchannels.net;
-	s=arc-2022; t=1730333771;
+	s=arc-2022; t=1730334266;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references:dkim-signature;
-	bh=S93jTs0T/Pz6vwp0A5bpRuNy7QZZyewYmfCPIEckU5A=;
-	b=NiBqEyBlq0zc6EHHdIGI6O0bOBAGkWy5SuXnY8qVcN39LuFniQGq7BIvK8Coy0+mHdrVd6
-	2xHLb6xD2jw4XA0Xt6jXS/RFdpHIA8EAiOsDBUiwUly7Ggic5BREUWRJDLEP1reKpYXydC
-	wsSCphQraZXk0qKWV0aYKVn1f3qtH5wkqiqR/2I8dbmdDKsJseGCiX9EuZIYVyAe5Cs0lM
-	h9ydKT0d8eh/3+L2YlNVb6Myq78oWN9g7WYl+Ht97iBqkC5Yv1PMgI8Zqt31eYI+aKzocF
-	BO9k/pxMsgMsrBEnk3eM28rUl9NrOvkFD2UOmig6vqY2KfHkaLm/EcrbvyTtIQ==
+	bh=CuXlpIw0PJXm36Lz6ZyNwU9vLZ39FakjoxZxnkGPBe8=;
+	b=KHg0+Xdgxgwg3lzoNZexY1CUE4S84vtpzWYDpyVHk5ueRxt9tNKEko/QKCD4iPBIOTyhTZ
+	kTJGgbgfPhEVeWFlQvCLZcrAj+GFarYWDh/742Zmr8AhmitYcP9ECxsDQjyK4H1xp2Qx5c
+	hj1X3OkzqbAhVEKXdVRRfkg9E/q3/DeLJn8DtbAN7KjkiBGVnscCVIA4LBTVMucU/2pJrD
+	FSSyKTG4fqSXY/V/nergpCxuB0CT4eRhoTdi0Ml4br4hv3fU+nuG48SWHorZ+rYcHP/fzp
+	fytsdWAjD1M53TuUT/ZDFFC8VxTzpuW7NFr4m9woNA5+Y9uuL8Q4YJ+tirPIXw==
 ARC-Authentication-Results: i=1;
-	rspamd-65cf4487d9-9nv87;
+	rspamd-77cfccfb8-nfplw;
 	auth=pass smtp.auth=dreamhost smtp.mailfrom=dave@stgolabs.net
 X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
 X-MC-Relay: Neutral
 X-MailChannels-SenderId: dreamhost|x-authsender|dave@stgolabs.net
 X-MailChannels-Auth-Id: dreamhost
-X-Cold-Print: 7f661b066fcffcc3_1730333771339_2064918239
-X-MC-Loop-Signature: 1730333771339:793382286
-X-MC-Ingress-Time: 1730333771339
+X-Bottle-Imminent: 360d44ef2cea4da7_1730334267004_1979216034
+X-MC-Loop-Signature: 1730334267004:410076141
+X-MC-Ingress-Time: 1730334267004
 Received: from pdx1-sub0-mail-a201.dreamhost.com (pop.dreamhost.com
  [64.90.62.162])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
-	by 100.103.28.225 (trex/7.0.2);
-	Thu, 31 Oct 2024 00:16:11 +0000
+	by 100.103.135.51 (trex/7.0.2);
+	Thu, 31 Oct 2024 00:24:27 +0000
 Received: from offworld (ip72-199-50-187.sd.sd.cox.net [72.199.50.187])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange ECDHE (P-256) server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
 	(Authenticated sender: dave@stgolabs.net)
-	by pdx1-sub0-mail-a201.dreamhost.com (Postfix) with ESMTPSA id 4Xf4KP58K1z76;
-	Wed, 30 Oct 2024 17:16:09 -0700 (PDT)
+	by pdx1-sub0-mail-a201.dreamhost.com (Postfix) with ESMTPSA id 4Xf4Vx13whz2P;
+	Wed, 30 Oct 2024 17:24:25 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=stgolabs.net;
-	s=dreamhost; t=1730333770;
-	bh=S93jTs0T/Pz6vwp0A5bpRuNy7QZZyewYmfCPIEckU5A=;
+	s=dreamhost; t=1730334266;
+	bh=CuXlpIw0PJXm36Lz6ZyNwU9vLZ39FakjoxZxnkGPBe8=;
 	h=Date:From:To:Cc:Subject:Content-Type;
-	b=alroabwX7ltwrthsa2X/P4eC6LcOuDEvjDugX/zmyx5hSmk/KYeANKElaBrQ62zDF
-	 ZBc9y7rhbY0GUWOmUWQbscp6noUBFGemoRKEqNpfuL4jRu0mq59d2s2ST0qRQ1JOzv
-	 7cXfeDr6UIl4SnUHhVVz0FavqyudJ8rRunExEEZITT1x+rT4DuhaUWOGCeHGfx9ULu
-	 NXUBgpzCywq1NXcE/dtS9OpWw1zvCw604ZhpvDEltvYsyptZJClK7IER08r73Mj0oc
-	 OigvZEq1z5XWO9RjXDaAy5EHFnkdLA6lR6JOHMIUAfD/IA2qCJ+YVr6XtpJ5ZB8uy/
-	 otw0TlbEGpeBg==
-Date: Wed, 30 Oct 2024 17:16:06 -0700
+	b=qICge/9EGh1sCgjvu7Le9UN2Qg9MwAXZQ7t3F9WmJXBDrg5A4OntS2Gnz/mTB95PK
+	 sj+wYiXX4eWZLOMIvsbQPpNUxvau1dwiGjRMwNU1nTWfvkh2wftH34KF8v4jEe1+VL
+	 anHN52vVOsozgGduDVunzlYLUWSboCicy3e/tc7ENecFvKQvMARuoO+kklSlVfW87s
+	 kk4z6IZmCTj3idicHhZGhwN9WfKhjTfGMbt349s6AZ+XgebJM4+sMEghmx25VHS41I
+	 rmRS58xzqam2jX3oZ/1Z9BJamTyX6kGFW+SK6NU3Tg1cfcP1pNu1ZKY6shCUd9uaMw
+	 VecWxriZkradw==
+Date: Wed, 30 Oct 2024 17:24:22 -0700
 From: Davidlohr Bueso <dave@stgolabs.net>
-To: Ira Weiny <ira.weiny@intel.com>
+To: ira.weiny@intel.com
 Cc: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>,
 	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
 	Navneet Singh <navneet.singh@intel.com>,
@@ -87,11 +87,14 @@ Cc: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>,
 	Alison Schofield <alison.schofield@intel.com>,
 	Vishal Verma <vishal.l.verma@intel.com>, linux-cxl@vger.kernel.org,
 	linux-doc@vger.kernel.org, nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v5 05/27] cxl/hdm: Use guard() in cxl_dpa_set_mode()
-Message-ID: <20241031001606.6notvdsajoebalhd@offworld>
+	linux-kernel@vger.kernel.org, Kees Cook <kees@kernel.org>,
+	"Gustavo A. R. Silva" <gustavoars@kernel.org>,
+	linux-hardening@vger.kernel.org
+Subject: Re: [PATCH v5 08/27] cxl/mem: Read dynamic capacity configuration
+ from the device
+Message-ID: <20241031002422.cu53abpaimetzrdx@offworld>
 References: <20241029-dcd-type2-upstream-v5-0-8739cb67c374@intel.com>
- <20241029-dcd-type2-upstream-v5-5-8739cb67c374@intel.com>
+ <20241029-dcd-type2-upstream-v5-8-8739cb67c374@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -100,17 +103,17 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Disposition: inline
-In-Reply-To: <20241029-dcd-type2-upstream-v5-5-8739cb67c374@intel.com>
+In-Reply-To: <20241029-dcd-type2-upstream-v5-8-8739cb67c374@intel.com>
 User-Agent: NeoMutt/20220429
 
-On Tue, 29 Oct 2024, Ira Weiny wrote:
+On Tue, 29 Oct 2024, ira.weiny@intel.com wrote:
 
->Additional DCD functionality is being added to this call which will be
->simplified by the use of guard() with the cxl_dpa_rwsem.
->
->Convert the function to use guard() prior to adding DCD functionality.
->
->Suggested-by: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
->Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+>Linux has no use for the trailing fields of the Get Dynamic Capacity
+>Configuration Output Payload (Total number of supported extents, number
+>of available extents, total number of supported tags, and number of
+>available tags).  Avoid defining those fields to use the more useful
+>dynamic C array.
 
-Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
+More of a general question, if anyone knows: why does the spec define
+the fields in that order, and not put the region config structure(s)
+at the end, as with all other cmds, afaik.
