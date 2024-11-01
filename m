@@ -1,255 +1,87 @@
-Received: from mail-pl1-f177.google.com (mail-pl1-f177.google.com [209.85.214.177])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18C7E13D8AC
-	for <nvdimm@lists.linux.dev>; Thu, 31 Oct 2024 22:49:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.177
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB57A19C569
+	for <nvdimm@lists.linux.dev>; Fri,  1 Nov 2024 12:08:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730414961; cv=none; b=btme/GjGwKdOtf0ht4lfU+eOcqmten5lbahzSXAmM4Du33SAoTSb+T16Koy2o6nk6yHuUeQfT8rmMGknpBEYaPq0BnVE9bdJpvGVuL0QwKO0v4Yc7ESTq1vFA6mP8gWGrbE4O7Vo5W98IahAQ47UVO1CZ98WH9E0xEEq/h91C/g=
+	t=1730462886; cv=none; b=KyfsJ+F14V6RGBkznkv3pMpX9QBSdIFxKgsBsMO44rRm4RdaIrPxn4GK/kuEjycus0+g/L8eE71BbP421RVSnczFjXh2YNUbxWnrKGHa9m57nwVeEBnfe1jfU15LJVTqROMTUd24u/dui78581tzfEuXOQbsg6hREOg5jOms6R0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730414961; c=relaxed/simple;
-	bh=ZUWUbVd6vlMjhWzeaLEbi5tYuDL0DufaZoWUS1ZvNR0=;
-	h=From:Date:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=a28Etrp9cw08IaC7+GKSHMR2LL+yxPLRxMdM+Q41zgiizus0WA/tolc1xIXho+G4HU5XlBippfMZOuYqy8HmOdvTN15Y0GO2Xi5ohdpUHNIk8Rna0i30qcByfm3cU9oIzBCxJw/h4XkJkejkBTG43x7XkrnHtYt5xIAYuxmFbBI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=jxIwaXxG; arc=none smtp.client-ip=209.85.214.177
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jxIwaXxG"
-Received: by mail-pl1-f177.google.com with SMTP id d9443c01a7336-20c803787abso11458145ad.0
-        for <nvdimm@lists.linux.dev>; Thu, 31 Oct 2024 15:49:15 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1730414955; x=1731019755; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:date:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=b1qqiuqn4sWIJMyrU31AqAANpEwVjAPAmZe9LE6azyk=;
-        b=jxIwaXxGa0WmVaQEwPBBT5kC0fMqtST+7JdrjUNEo/nDr7BWhMhhqThVIe+Y7WoY2P
-         4+xy8C45JswoAZ4DgTRDYrwiXnoYMbob5t45gtGtlVnboVx2+9KstCWqP2fN34ASdH1S
-         sH+zliFi/yY+2T2F6jzu+LjgmyoBxqaRi7K0P9nYN8HMumEpHWLLRpW2g8leYwJYYURw
-         yvd532ZaypaLzDAUPKj00Gf/PzDBmN9XCfmNdOunmhTrT85lXIRQpGAz0fps6Vr3/rXY
-         f3JVmtB85J5zmqRT7rF1lI9aYOAUI/HqdXn5qhuk6wkcOVc/eqVG5Yp/tC0W7+qsc8t1
-         vbAg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1730414955; x=1731019755;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:date:from:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=b1qqiuqn4sWIJMyrU31AqAANpEwVjAPAmZe9LE6azyk=;
-        b=M4qdvyPW/BC6c+PBqmJOnfaTxPYhZcW9r5epX+7VHTFL6BpzfUM2MtF9S3YDNCJS29
-         dvdzw0UKdXD+xgX4IoJPXfsOhIkonEb9ruYIr98P72gyzUdYycSShgUcqqAOlqKayqz8
-         YDZsRJYCLj58aSvqWdkjAHlFQf/GXLsr3iuXjTEgnuU55eQ0FxuiyoM33dAKXDR2M1Ya
-         IbThIzRbucjfXUzVFyB4cEbXTSE8PBjV93jPxg9tke0bBpesoSM9FPqnhus6Ac8dUMFO
-         Jr2+JfKNCPr3FG8BwO27bNdodvEDGtyFV3WZRK22xVS2lSBv09GXwWfptDfRx0WYBWrL
-         UPaw==
-X-Forwarded-Encrypted: i=1; AJvYcCWRBwJ2pgSuW7RIBRq8YUk+P6vfbhzr5laTpMv3kvnDzqYN1WQKYcrZrRYC6ur191I5VHrjWcE=@lists.linux.dev
-X-Gm-Message-State: AOJu0Yx264qX0+7pp9etxGShd2eodqdF9Ky9tRwdcQGkCsDNL22lDVnA
-	umNgF9JkQJ5eyvhJsyCOFOjcrvj/+zClSSOJzZeF6xvMEUFq0HjJ
-X-Google-Smtp-Source: AGHT+IHKgqMa5mer2tolVlSeJmdHhm33dAbayczaLFP558NHquPOEyrIUMSHyZlpb5e+FWBzKsEFgQ==
-X-Received: by 2002:a17:902:e84a:b0:20c:da7c:6e8c with SMTP id d9443c01a7336-21119390d4bmr26487925ad.3.1730414955309;
-        Thu, 31 Oct 2024 15:49:15 -0700 (PDT)
-Received: from fan ([2601:646:8f03:9fee:1a14:7759:606e:c90])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-211057c1615sm13246825ad.185.2024.10.31.15.49.14
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 31 Oct 2024 15:49:14 -0700 (PDT)
-From: Fan Ni <nifan.cxl@gmail.com>
-X-Google-Original-From: Fan Ni <fan.ni@samsung.com>
-Date: Thu, 31 Oct 2024 15:48:58 -0700
+	s=arc-20240116; t=1730462886; c=relaxed/simple;
+	bh=/4kZC+ZCOEXnxMgCCkREutWG+jRk6O0PFIWcBSF/p8g=;
+	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=Wcr4WItb/CbT4jWidsAhebKro2YNYZnWZW+goPlZXOvtMqo9QwshStIViKT/v2y2UFJDG1u1FU/5m5IsXzolSOHbXVh0RBRMaAii2i8Q6rBmNE8wj+sNycT0Pn/e1TfHg6X0+oSTwWo55aWGQwYn0cv6hr9mL1ysKFIUWg4x7TM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.18.186.231])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Xfzyc6hTmz6LD4F;
+	Fri,  1 Nov 2024 20:03:04 +0800 (CST)
+Received: from frapeml500008.china.huawei.com (unknown [7.182.85.71])
+	by mail.maildlp.com (Postfix) with ESMTPS id E957B140B3C;
+	Fri,  1 Nov 2024 20:07:58 +0800 (CST)
+Received: from localhost (10.203.177.66) by frapeml500008.china.huawei.com
+ (7.182.85.71) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Fri, 1 Nov
+ 2024 13:07:58 +0100
+Date: Fri, 1 Nov 2024 12:07:56 +0000
+From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
 To: Ira Weiny <ira.weiny@intel.com>
-Cc: Fan Ni <nifan.cxl@gmail.com>,
-	Alison Schofield <alison.schofield@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Jonathan Cameron <jonathan.cameron@huawei.com>,
-	Navneet Singh <navneet.singh@intel.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>, linux-cxl@vger.kernel.org,
-	nvdimm@lists.linux.dev, Sushant1 Kumar <sushant1.kumar@intel.com>
-Subject: Re: [ndctl PATCH 4/6] cxl/region: Add creation of Dynamic capacity
- regions
-Message-ID: <ZyQJWoPqJRTM2iF1@fan>
-References: <20241030-dcd-region2-v1-0-04600ba2b48e@intel.com>
- <20241030-dcd-region2-v1-4-04600ba2b48e@intel.com>
- <ZyPPPycLXADj2Lvb@fan>
- <6724007843a17_8a67029496@iweiny-mobl.notmuch>
+CC: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, "Navneet
+ Singh" <navneet.singh@intel.com>, Jonathan Corbet <corbet@lwn.net>, "Andrew
+ Morton" <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>,
+	Davidlohr Bueso <dave@stgolabs.net>, "Alison Schofield"
+	<alison.schofield@intel.com>, Vishal Verma <vishal.l.verma@intel.com>,
+	<linux-cxl@vger.kernel.org>, <linux-doc@vger.kernel.org>,
+	<nvdimm@lists.linux.dev>, <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v5 20/27] cxl/extent: Process DCD events and realize
+ region extents
+Message-ID: <20241101120756.00002abe@Huawei.com>
+In-Reply-To: <672260877ccb7_483142942f@iweiny-mobl.notmuch>
+References: <20241029-dcd-type2-upstream-v5-0-8739cb67c374@intel.com>
+	<20241029-dcd-type2-upstream-v5-20-8739cb67c374@intel.com>
+	<20241030143232.000013b8@Huawei.com>
+	<672260877ccb7_483142942f@iweiny-mobl.notmuch>
+Organization: Huawei Technologies Research and Development (UK) Ltd.
+X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <6724007843a17_8a67029496@iweiny-mobl.notmuch>
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: lhrpeml500009.china.huawei.com (7.191.174.84) To
+ frapeml500008.china.huawei.com (7.182.85.71)
 
-On Thu, Oct 31, 2024 at 05:11:04PM -0500, Ira Weiny wrote:
-> Fan Ni wrote:
-> > On Wed, Oct 30, 2024 at 04:54:47PM -0500, ira.weiny@intel.com wrote:
-> > > From: Navneet Singh <navneet.singh@intel.com>
-> > > 
-> > > CXL Dynamic Capacity Devices (DCDs) optionally support dynamic capacity
-> > > with up to eight partitions (Regions) (dc0-dc7).  CXL regions can now be
-> > > spare and defined as dynamic capacity (dc).
-> > > 
-> > > Add support for DCD devices.  Query for DCD capabilities.  Add the
-> > > ability to add DC partitions to a CXL DC region.
-> > > 
-> > > Signed-off-by: Navneet Singh <navneet.singh@intel.com>
-> > > Co-authored-by: Sushant1 Kumar <sushant1.kumar@intel.com>
-> > > Signed-off-by: Sushant1 Kumar <sushant1.kumar@intel.com>
-> > > Co-authored-by: Ira Weiny <ira.weiny@intel.com>
-> > > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-> > > 
-> > > ---
-> > > Changes:
-> > > [iweiny: adjust to new sysfs interface.]
-> > > [iweiny: Rebase to latest pending]
-> > > [iweiny: Adjust DCD region code to new upstream sysfs entries]
-> > > [iweiny: Ensure backwards compatibility for non-DC kernels]
-> > > [iweiny: fixup help message to show DC type]
-> > > [iweiny: don't double declare decoder mode is dc]
-> > > [iweiny: simplify __reserve_dpa() with decoder mode to index]
-> > > [iweiny: Adjust to the new region mode]
-> > > ---
-> > >  cxl/json.c         | 26 +++++++++++++++
-> > >  cxl/lib/libcxl.c   | 95 +++++++++++++++++++++++++++++++++++++++++++++++++++++-
-> > >  cxl/lib/libcxl.sym |  3 ++
-> > >  cxl/lib/private.h  |  6 +++-
-> > >  cxl/libcxl.h       | 55 +++++++++++++++++++++++++++++--
-> > >  cxl/memdev.c       |  7 +++-
-> > >  cxl/region.c       | 49 ++++++++++++++++++++++++++--
-> > >  7 files changed, 234 insertions(+), 7 deletions(-)
-> > > 
-> > > diff --git a/cxl/json.c b/cxl/json.c
-> > > index dcd3cc28393faf7e8adf299a857531ecdeaac50a..4276b9678d7e03eaf2aec581a08450f2a0b857f2 100644
-> > > --- a/cxl/json.c
-> > > +++ b/cxl/json.c
-> > > @@ -754,10 +754,12 @@ err_free:
-> > >  	return jpoison;
-> > >  }
-> > >  
-> > > +#define DC_SIZE_NAME_LEN 64
-> > >  struct json_object *util_cxl_memdev_to_json(struct cxl_memdev *memdev,
-> > >  		unsigned long flags)
-> > >  {
-> > >  	const char *devname = cxl_memdev_get_devname(memdev);
-> > > +	char size_name[DC_SIZE_NAME_LEN];
-> > >  	struct json_object *jdev, *jobj;
-> > >  	unsigned long long serial, size;
-> > >  	const char *fw_version;
-> > > @@ -800,6 +802,17 @@ struct json_object *util_cxl_memdev_to_json(struct cxl_memdev *memdev,
-> > >  		}
-> > >  	}
-> > >  
-> > > +	for (int index; index < MAX_NUM_DC_REGIONS; index++) {
+
+> 
+> > > diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
+> > > index 16e06b59d7f04762ca73a81740b0d6b2487301af..85b30a74a6fa5de1dd99c08c8318edd204e3e19d 100644
+> > > --- a/drivers/cxl/cxlmem.h
+> > > +++ b/drivers/cxl/cxlmem.h  
 > > 
-> > index is not initialized.
-> > Should be index = 0;
+> > Is the xarray header included in here already?
+> > If not it should be.  
 > 
-> Thanks for the review!
+> Looking around we have been lax in this behavior.  cxl.h does not explicitly
+> include xarray.h either.  I agree they both should after this.
 > 
-> Good catch.  I'll fix up.
-> 
-> > 
-> > Also, the "cxl list" looks like below, the size of each DC region is
-> > attached to each DCD device, that seems not quite aligned with what
-> > "_size" means for pmem/ram. Should we have a separate option for "cxl
-> > list" to show DC region info??
-> 
-> I'm not sure I follow.  The pmem/ram sizes show the size of the partitions on
-> the memdev.  This is the same for each DC partition.
-> 
-> Are you looking for the available size after some extents are available?
-> 
-> In that case I think you are looking for the dax information details which
-> comes after creating a region and using the -X option.
-> 
-> 17:02:42 > ./build/cxl/cxl list -r 8 -X
-> [
->   {
->     "region":"region8",
->     "resource":1031597457408,
->     "size":536870912,
->     "type":"dc",
->     "interleave_ways":1,
->     "interleave_granularity":256,
->     "decode_state":"commit",
->     "daxregion":{
->       "id":8,
->       "size":536870912,
->       "available_size":134217728,
->       "align":2097152
->     }
->   }
-> ]
-> 
-> 
-> This shows an available size which can further be dissected with the new
-> --extents (-N) option added in patch 5/6.
-> 
-> 17:04:32 > ./build/cxl/cxl list -r 8 -X -N
-> [
->   {
->     "region":"region8",
->     "resource":1031597457408,
->     "size":536870912,
->     "type":"dc",
->     "interleave_ways":1,
->     "interleave_granularity":256,
->     "decode_state":"commit",
->     "daxregion":{
->       "id":8,
->       "size":536870912,
->       "available_size":134217728,
->       "align":2097152
->     },
->     "extents":[
->       {
->         "offset":268435456,
->         "length":67108864,
->         "tag":"00000000-0000-0000-0000-000000000000"
->       },
->       {
->         "offset":134217728,
->         "length":67108864,
->         "tag":"00000000-0000-0000-0000-000000000000"
->       }
->     ]
->   }
-> ]
-> 
-> 
-> Does this give you the information you are looking for?  Or am I missing
-> something in your question?
+> Let me send a follow on patch to add it.
+
+Works for me.
+
+J
 > 
 > Ira
-I was looking for something like the "-N" option provides, so I think we
-are good.
-
-Fan
 > 
-> > 
-> > Fan
-> > 
-> > ----------
-> >   {
-> >         "memdev":"mem1",
-> >         "dc0_size":"2.00 GiB (2.15 GB)",
-> >         "dc1_size":"2.00 GiB (2.15 GB)",
-> >         "serial":"0xf02",
-> >         "host":"0000:11:00.0",
-> >         "firmware_version":"BWFW VERSION 00"
-> >       },
-> >       {
-> >         "memdev":"mem3",
-> >         "dc0_size":"2.00 GiB (2.15 GB)",
-> >         "dc1_size":"2.00 GiB (2.15 GB)",
-> >         "serial":"0xf03",
-> >         "host":"0000:12:00.0",
-> >         "firmware_version":"BWFW VERSION 00"
-> >       },
-> > ----------
-> > 
+> >   
+> > > @@ -506,6 +506,7 @@ static inline struct cxl_dev_state *mbox_to_cxlds(struct cxl_mailbox *cxl_mbox)
+> > >   * @pmem_perf: performance data entry matched to PMEM partition
+> > >   * @nr_dc_region: number of DC regions implemented in the memory device
+> > >   * @dc_region: array containing info about the DC regions  
 > 
-> [snip]
+> 
+> 
 
--- 
-Fan Ni
