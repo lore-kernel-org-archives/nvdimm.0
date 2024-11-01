@@ -1,87 +1,105 @@
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+Received: from mail.marcansoft.com (marcansoft.com [212.63.210.85])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB57A19C569
-	for <nvdimm@lists.linux.dev>; Fri,  1 Nov 2024 12:08:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=185.176.79.56
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7BA117BECA;
+	Fri,  1 Nov 2024 12:22:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.63.210.85
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730462886; cv=none; b=KyfsJ+F14V6RGBkznkv3pMpX9QBSdIFxKgsBsMO44rRm4RdaIrPxn4GK/kuEjycus0+g/L8eE71BbP421RVSnczFjXh2YNUbxWnrKGHa9m57nwVeEBnfe1jfU15LJVTqROMTUd24u/dui78581tzfEuXOQbsg6hREOg5jOms6R0=
+	t=1730463773; cv=none; b=nCQIgwacfHZZP+vYX1SiyX/OJaZ9FcsekkTsDrOsnUg8yl6QEFtUKjk6CKBvmRw9PdauNjAKm1POM1Eq3xo/1IbgHs74Q6Wx399h1MkHqrOd9hkHQyZEN+iCzgu/vpY8vYPttj62vc70aZaEgmaM0rtXb2boRHANzgzPz3gwZkE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730462886; c=relaxed/simple;
-	bh=/4kZC+ZCOEXnxMgCCkREutWG+jRk6O0PFIWcBSF/p8g=;
-	h=Date:From:To:CC:Subject:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=Wcr4WItb/CbT4jWidsAhebKro2YNYZnWZW+goPlZXOvtMqo9QwshStIViKT/v2y2UFJDG1u1FU/5m5IsXzolSOHbXVh0RBRMaAii2i8Q6rBmNE8wj+sNycT0Pn/e1TfHg6X0+oSTwWo55aWGQwYn0cv6hr9mL1ysKFIUWg4x7TM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=185.176.79.56
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=Huawei.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.18.186.231])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Xfzyc6hTmz6LD4F;
-	Fri,  1 Nov 2024 20:03:04 +0800 (CST)
-Received: from frapeml500008.china.huawei.com (unknown [7.182.85.71])
-	by mail.maildlp.com (Postfix) with ESMTPS id E957B140B3C;
-	Fri,  1 Nov 2024 20:07:58 +0800 (CST)
-Received: from localhost (10.203.177.66) by frapeml500008.china.huawei.com
- (7.182.85.71) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Fri, 1 Nov
- 2024 13:07:58 +0100
-Date: Fri, 1 Nov 2024 12:07:56 +0000
-From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-To: Ira Weiny <ira.weiny@intel.com>
-CC: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, "Navneet
- Singh" <navneet.singh@intel.com>, Jonathan Corbet <corbet@lwn.net>, "Andrew
- Morton" <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>,
-	Davidlohr Bueso <dave@stgolabs.net>, "Alison Schofield"
-	<alison.schofield@intel.com>, Vishal Verma <vishal.l.verma@intel.com>,
-	<linux-cxl@vger.kernel.org>, <linux-doc@vger.kernel.org>,
-	<nvdimm@lists.linux.dev>, <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v5 20/27] cxl/extent: Process DCD events and realize
- region extents
-Message-ID: <20241101120756.00002abe@Huawei.com>
-In-Reply-To: <672260877ccb7_483142942f@iweiny-mobl.notmuch>
-References: <20241029-dcd-type2-upstream-v5-0-8739cb67c374@intel.com>
-	<20241029-dcd-type2-upstream-v5-20-8739cb67c374@intel.com>
-	<20241030143232.000013b8@Huawei.com>
-	<672260877ccb7_483142942f@iweiny-mobl.notmuch>
-Organization: Huawei Technologies Research and Development (UK) Ltd.
-X-Mailer: Claws Mail 4.1.0 (GTK 3.24.33; x86_64-w64-mingw32)
+	s=arc-20240116; t=1730463773; c=relaxed/simple;
+	bh=/TA+HIVRRCw8dKJUti+Jl47C1Bz15V0Orwm12b4BAQo=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=BVp+8FM5ZcqrD6SgVjauqetrjHcNe2fjs/T3JjMUQGk7zMnlrsZv97w7Q2eR+OfzowVmfUPED5p9R+yvsJ2MyX89qzYun7sv4yYJhbH0LZsSl5AV0GbGm/GFhxnpWLl+xsFWczKmzBNSEBujJJGrvGmuPJla98ZQ+yRGKZYVdR8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=asahilina.net; spf=pass smtp.mailfrom=asahilina.net; dkim=pass (2048-bit key) header.d=asahilina.net header.i=@asahilina.net header.b=xNoiSdfS; arc=none smtp.client-ip=212.63.210.85
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=asahilina.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=asahilina.net
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=asahilina.net header.i=@asahilina.net header.b="xNoiSdfS"
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	(Authenticated sender: sendonly@marcansoft.com)
+	by mail.marcansoft.com (Postfix) with ESMTPSA id 0025F432AE;
+	Fri,  1 Nov 2024 12:22:47 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=asahilina.net;
+	s=default; t=1730463768;
+	bh=/TA+HIVRRCw8dKJUti+Jl47C1Bz15V0Orwm12b4BAQo=;
+	h=From:Date:Subject:To:Cc;
+	b=xNoiSdfS611jDnBHnoMcOBL5g9pU7Hl804x7mbaxffwGon4vQUVIfWf0f7zhxFKMo
+	 fyhJ5KLUy5siPpuOYs17FeECUzvgzfo4oIM9iyj0ViDVirwvZQUkrA17MyzmJXeTD2
+	 dmu7p+ExDLVOHgdEKNh7x0eCYWudlP8A0em5V+qaxSLN+ZLji3jHz54tisc4Tjf/2p
+	 Cn+rs1gFwvYCaz/+MnVh9nTGYlhpdOBiP17NdALfj4xPnvdr8Tg0V+pBQ1dC03/rfS
+	 Lj+ueaf2BNjR+fVuCLRtfYreV3k2TK/TtGNkIwYZXglkw8hTWxHtkH29cFoa1QuWP3
+	 u61x5um0uKguA==
+From: Asahi Lina <lina@asahilina.net>
+Date: Fri, 01 Nov 2024 21:22:31 +0900
+Subject: [PATCH] dax: Allow block size > PAGE_SIZE
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: lhrpeml500009.china.huawei.com (7.191.174.84) To
- frapeml500008.china.huawei.com (7.182.85.71)
+Message-Id: <20241101-dax-page-size-v1-1-eedbd0c6b08f@asahilina.net>
+X-B4-Tracking: v=1; b=H4sIAAbIJGcC/x2MQQqAIBAAvyJ7TnBTKPpKdNDcai8mCiGJf086z
+ sBMhUyJKcMiKiR6OPMdOuAgYL9sOEmy7wyjGg2iQultkdF2n/klOWuLatLOEDroTUx0cPl/69b
+ aB5XInvBfAAAA
+X-Change-ID: 20241101-dax-page-size-83a1073b4e1b
+To: Dan Williams <dan.j.williams@intel.com>, 
+ Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
+ Alexander Viro <viro@zeniv.linux.org.uk>, 
+ Christian Brauner <brauner@kernel.org>
+Cc: Sergio Lopez Pascual <slp@redhat.com>, linux-fsdevel@vger.kernel.org, 
+ nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org, asahi@lists.linux.dev, 
+ Asahi Lina <lina@asahilina.net>
+X-Mailer: b4 0.14.2
+X-Developer-Signature: v=1; a=ed25519-sha256; t=1730463767; l=1369;
+ i=lina@asahilina.net; s=20240902; h=from:subject:message-id;
+ bh=/TA+HIVRRCw8dKJUti+Jl47C1Bz15V0Orwm12b4BAQo=;
+ b=sme8DUTSaze8Opt4hubzoO/tMB7K2MMTGXJNmRMpSSZwtZbnDp236oTHUIuMtt0wgQmzowHlX
+ 0ZM9LKYWCV6CcgFSXnPTS8pR4ZWkuJQwC/gZWnNoAcAfqUUxKU671+O
+X-Developer-Key: i=lina@asahilina.net; a=ed25519;
+ pk=tpv7cWfUnHNw5jwf6h4t0gGgglt3/xcwlfs0+A/uUu8=
 
+For virtio-dax, the file/FS blocksize is irrelevant. FUSE always uses
+large DAX blocks (2MiB), which will work with all host page sizes. Since
+we are mapping files into the DAX window on the host, the underlying
+block size of the filesystem and its block device (if any) are
+meaningless.
 
-> 
-> > > diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
-> > > index 16e06b59d7f04762ca73a81740b0d6b2487301af..85b30a74a6fa5de1dd99c08c8318edd204e3e19d 100644
-> > > --- a/drivers/cxl/cxlmem.h
-> > > +++ b/drivers/cxl/cxlmem.h  
-> > 
-> > Is the xarray header included in here already?
-> > If not it should be.  
-> 
-> Looking around we have been lax in this behavior.  cxl.h does not explicitly
-> include xarray.h either.  I agree they both should after this.
-> 
-> Let me send a follow on patch to add it.
+For real devices with DAX, the only requirement should be that the FS
+block size is *at least* as large as PAGE_SIZE, to ensure that at least
+whole pages can be mapped out of the device contiguously.
 
-Works for me.
+Fixes warning when using virtio-dax on a 4K guest with a 16K host,
+backed by tmpfs (which sets blksz == PAGE_SIZE on the host).
 
-J
-> 
-> Ira
-> 
-> >   
-> > > @@ -506,6 +506,7 @@ static inline struct cxl_dev_state *mbox_to_cxlds(struct cxl_mailbox *cxl_mbox)
-> > >   * @pmem_perf: performance data entry matched to PMEM partition
-> > >   * @nr_dc_region: number of DC regions implemented in the memory device
-> > >   * @dc_region: array containing info about the DC regions  
-> 
-> 
-> 
+Signed-off-by: Asahi Lina <lina@asahilina.net>
+---
+ fs/dax.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/fs/dax.c b/fs/dax.c
+index c62acd2812f8d4981aaba82acfeaf972f555362a..406fb75bdbe9d17a6e4bf3d4cb92683e90f05910 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -1032,7 +1032,7 @@ int dax_writeback_mapping_range(struct address_space *mapping,
+ 	int ret = 0;
+ 	unsigned int scanned = 0;
+ 
+-	if (WARN_ON_ONCE(inode->i_blkbits != PAGE_SHIFT))
++	if (WARN_ON_ONCE(inode->i_blkbits < PAGE_SHIFT))
+ 		return -EIO;
+ 
+ 	if (mapping_empty(mapping) || wbc->sync_mode != WB_SYNC_ALL)
+
+---
+base-commit: 81983758430957d9a5cb3333fe324fd70cf63e7e
+change-id: 20241101-dax-page-size-83a1073b4e1b
+
+Cheers,
+~~ Lina
 
