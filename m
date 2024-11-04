@@ -1,127 +1,223 @@
-Received: from silver.cherry.relay.mailchannels.net (silver.cherry.relay.mailchannels.net [23.83.223.166])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f171.google.com (mail-pl1-f171.google.com [209.85.214.171])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B39E61C07C3
-	for <nvdimm@lists.linux.dev>; Mon,  4 Nov 2024 17:10:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=23.83.223.166
-ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730740211; cv=pass; b=TmzcL2PXNPUMEM9r4VV48PoNqntGxFRObYu6FCOSQn6wWIzU8Yx2ayKHTKVua0lsgcS0/siPZOMuMQ3V9xoYR2CX9g5BB2flIyOSw7ZcdTcTfDelHykcDF/JnG2DtuLuLH32e22e1xvGuMU7139XzOLSpP11c/oxfhheitfTQ0o=
-ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730740211; c=relaxed/simple;
-	bh=Frw8kbtAjBVVCciXSX1r8i47gxNY6wwNd2Hun+4Z/ho=;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88A731C32E2
+	for <nvdimm@lists.linux.dev>; Mon,  4 Nov 2024 22:16:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.171
+ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1730758606; cv=none; b=ODLOCGRmrS3BOlgsJayixOKxhB2MLLxcKyETBDi3OYWQ5UW14OVDmPpbV0Y8LDy+BzVHUH4xUHebU48wkqscAroL9as+SEAUo14VQpv0Hg/AxJpjvZ+KSGafwpmMX9hkJlDhbPI1Jv3asUFpSr3a7ynFUxhGxSR4O157sQ34ig8=
+ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1730758606; c=relaxed/simple;
+	bh=KspYLPaVUiBiulhfcb/F9ddte9kdJsUyFpLrtdXID7k=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=pNR0q0cKXaPpmPk28ngEQM10tJZcbxXJVx+ygc+WawsDu87zncJcTdOCaWcB1Ni1vYuEXbipynLjpyjwiMPVabyGbm6OR3sqxmIdKenDKPtHbaD/CGbO4bKdbukTalVGVhbRSdgNmDM1+rE8d9dUObbYORUzZ159fLWyeq4r1J8=
-ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=stgolabs.net; spf=pass smtp.mailfrom=stgolabs.net; dkim=pass (2048-bit key) header.d=stgolabs.net header.i=@stgolabs.net header.b=cLFkz6ds; arc=pass smtp.client-ip=23.83.223.166
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=stgolabs.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=stgolabs.net
+	 Content-Type:Content-Disposition:In-Reply-To; b=RWthWRl6xtyyAFOJmGGyXQnbkUgeo+5uPBLJ3FSDK0wCc78o+fYIVSVVKYquuuwCZLgAkI6EA09gyj9lMeFkh7O7P6oMeOYqsIvZS21z4IYS2SJMyKPs+Vn2gu5LaRCkXUoeLBaHPXWZ+andBOwguh1A6zOe0efCMjJTUghIPYw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fromorbit.com; spf=pass smtp.mailfrom=fromorbit.com; dkim=pass (2048-bit key) header.d=fromorbit-com.20230601.gappssmtp.com header.i=@fromorbit-com.20230601.gappssmtp.com header.b=rKYwT6iG; arc=none smtp.client-ip=209.85.214.171
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fromorbit.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fromorbit.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=stgolabs.net header.i=@stgolabs.net header.b="cLFkz6ds"
-X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
-Received: from relay.mailchannels.net (localhost [127.0.0.1])
-	by relay.mailchannels.net (Postfix) with ESMTP id 9BCF5C40C1;
-	Mon,  4 Nov 2024 17:10:02 +0000 (UTC)
-Received: from pdx1-sub0-mail-a258.dreamhost.com (100-101-211-194.trex-nlb.outbound.svc.cluster.local [100.101.211.194])
-	(Authenticated sender: dreamhost)
-	by relay.mailchannels.net (Postfix) with ESMTPA id 11A6EC5C46;
-	Mon,  4 Nov 2024 17:10:02 +0000 (UTC)
-ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1730740202; a=rsa-sha256;
-	cv=none;
-	b=jUkeV484MmCPZs/erbZ9d3nDS1wFv8nQNTjm/iJbIvuKvCdLCF/+e9ZhpBlVGJg2VXm1Hm
-	kTNX6F0h0OMT/AAuSuKZKwcL8jeB0A+xaMdfbFo9XrQqqp4vsMJhmYEzwx/0ej7pMPFG9+
-	csaHQq2CwdFcjhoUJVVWHejCC/TXArL7DRFRk837VE/RQvv3GqYGxNMug7zyUnb5ItVTrG
-	nxGA+NxtSFIZ3qgNibcqfezNEqG1WB463YpNBodknB6YBDzjH0OiEJXti4bmZY5+wZwzM6
-	Up1OmOGh26L0PlZLvi4iVATwhH8wvIPSm5bKWHiyHYGhMRG0LCaxjgU1VIuwwA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
- d=mailchannels.net;
-	s=arc-2022; t=1730740202;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references:dkim-signature;
-	bh=djeiyArVI2uFrm3uwF32I+TnLqOcCdOJyErXRw8sf90=;
-	b=h625JFI/Hzg7GDPVBvGfKVPBPQRutobeArZAUUDN6s+sh8bIldFVyGrIZPDKHW2HNldMBs
-	HS/dQpnDKJjJ6qIegGkTBxyVp8oDgKLUfxjgHcd9LbJLNP9zlG3nRkQDqo7a1tYtqux5S1
-	XtKSeKbPF4i8rKHZX/KoeOh2g2dClEq7YYN1mdbiltcm6zAIcdFfTnw6apZAMuL88f5rAo
-	UOOuwPwffEBkWTFuWyUgonSUZmoxD9cWTmrK95lBRLKYnFJ089IoMw94km/MZRp+ue1foI
-	vlgMhwzm0MyL/wG2hU8Ce9TdUzyjsG/VNBiZ5o8UY7r7jeigVX+Wupkl79JCpg==
-ARC-Authentication-Results: i=1;
-	rspamd-57ff586b7f-9lkcj;
-	auth=pass smtp.auth=dreamhost smtp.mailfrom=dave@stgolabs.net
-X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
-X-MC-Relay: Neutral
-X-MailChannels-SenderId: dreamhost|x-authsender|dave@stgolabs.net
-X-MailChannels-Auth-Id: dreamhost
-X-Suffer-Share: 50c4f2063b14fee1_1730740202439_5728283
-X-MC-Loop-Signature: 1730740202439:3750142550
-X-MC-Ingress-Time: 1730740202439
-Received: from pdx1-sub0-mail-a258.dreamhost.com (pop.dreamhost.com
- [64.90.62.162])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
-	by 100.101.211.194 (trex/7.0.2);
-	Mon, 04 Nov 2024 17:10:02 +0000
-Received: from offworld (ip72-199-50-187.sd.sd.cox.net [72.199.50.187])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (P-256) server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	(Authenticated sender: dave@stgolabs.net)
-	by pdx1-sub0-mail-a258.dreamhost.com (Postfix) with ESMTPSA id 4XhydN5ZFdz7f;
-	Mon,  4 Nov 2024 09:10:00 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=stgolabs.net;
-	s=dreamhost; t=1730740201;
-	bh=djeiyArVI2uFrm3uwF32I+TnLqOcCdOJyErXRw8sf90=;
-	h=Date:From:To:Cc:Subject:Content-Type;
-	b=cLFkz6ds+WpTY5zg9wuuYvEd/NO/U3juHAI5RX5rIUR4sj7kLz3KjqBx5vgMqVoUv
-	 imO+VG9fMNwr1Z/3IAdZ7BdHrtr+M/rdYLJOcokuDvYLUO+szwMd8SlUwBfMc5nVU+
-	 3vqAdJJkOy9LibgPqcPx//DOhhwwdbjdJlkfhWM0YLrF7V9JFCLmRWk+kIGoEgmmQw
-	 tnNNEen2ZQyFSSdb1z5FsuOlWbp5ESuRkjwNefzdzyR/JsEzqJrPA+Hr1acZTugVMK
-	 bAjLPTDf7nCdgzIIwE0b04Kby1c4/D+0pXL5uTEd3msj9QK5se4nMkOy2Pr2sf+7Og
-	 bxWIBCsqYNQtw==
-Date: Mon, 4 Nov 2024 09:09:57 -0800
-From: Davidlohr Bueso <dave@stgolabs.net>
-To: ira.weiny@intel.com
-Cc: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>,
-	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
-	Navneet Singh <navneet.singh@intel.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Alison Schofield <alison.schofield@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>, linux-cxl@vger.kernel.org,
-	linux-doc@vger.kernel.org, nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org, Kees Cook <kees@kernel.org>,
-	"Gustavo A. R. Silva" <gustavoars@kernel.org>,
-	linux-hardening@vger.kernel.org
-Subject: Re: [PATCH v5 08/27] cxl/mem: Read dynamic capacity configuration
- from the device
-Message-ID: <20241104170957.2vxxpnjwvmaiwrt3@offworld>
-References: <20241029-dcd-type2-upstream-v5-0-8739cb67c374@intel.com>
- <20241029-dcd-type2-upstream-v5-8-8739cb67c374@intel.com>
+	dkim=pass (2048-bit key) header.d=fromorbit-com.20230601.gappssmtp.com header.i=@fromorbit-com.20230601.gappssmtp.com header.b="rKYwT6iG"
+Received: by mail-pl1-f171.google.com with SMTP id d9443c01a7336-20cb47387ceso45173405ad.1
+        for <nvdimm@lists.linux.dev>; Mon, 04 Nov 2024 14:16:44 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=fromorbit-com.20230601.gappssmtp.com; s=20230601; t=1730758604; x=1731363404; darn=lists.linux.dev;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=wx+CQscmonr+En4OMi1iBJFsPpXGN7GSbg6rvgqJS3g=;
+        b=rKYwT6iG/yiyI+fxwW1rBg+TLDcU9l05ha7Tx0l6qAW3nTWnbPOkNtD6riDuyUb3FJ
+         DO4hVA7xbswVzdngY46T1vTzY/b62RqcMNOyMEIvSi3DGwXpKcSFfXIMl0f5IoA+4z+Q
+         C7Xu2rFT8t6DlU3zfaC8rMnBew988IgnFxCidxwHwhFzi53AVp3rjrFBrT95xtjy5Gqc
+         0c2E4CwMIfpnGtSrPdiX5ornnlHyTaqe+gX2gsLxaU6oent1E5apMwfYuvMN5KO6qlsc
+         qze5ZO6Z+c813IWFMdXnjmYBJznvDPeeyVIZpqBXEGAGgc7ZBEXWesP/KdKRXBkgzZ43
+         Ru+A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1730758604; x=1731363404;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=wx+CQscmonr+En4OMi1iBJFsPpXGN7GSbg6rvgqJS3g=;
+        b=E7T5CRKAeLaOHWhijT6ZrDd81h2HLqH4eXwTiDi4EotZpDGKHhtGMzCpC9DN6zAk88
+         quMef564FxJ11pnxzYUqRGfmEJyJ6M6E+M6NFiRdrUfGjTDgZZ0wDxV9/Wohrx5KlNHl
+         MdnXO1d1RMFZhEuH+DiSck0hU9WnEQud8l7LEjlnF0GSUIPmH0q2TMwG/4iYZTwwp0el
+         ZO9LFVbCp6dXpNkb9c0j+TAlZ8FFfF9JT3PYNHJROo85BpC4Gcz7FmHxy/GGnzFK+dwl
+         uOR12pjWW0eINiAmbsCnnVVy4irWgndx0as5i04TKB7eR3z0P6wN7X85isY+KUPlsL+u
+         /eCA==
+X-Forwarded-Encrypted: i=1; AJvYcCVpiKo1PfbsY5iCXzNc8G/kGYG+F6ow8mHAF1iqx5K2khNJdTWPOANz7KpPErf+XP/xo02UPPg=@lists.linux.dev
+X-Gm-Message-State: AOJu0YxNGlAlRUIxtteYc2eUUijsTIeHNeuo3NHQK/gxXAAzN9tM76hm
+	CMhmFLgPCqKlaVk6uxZg8MAQ3iVbR5Uia4ifMbaEaJBay8XGWr5L287d/p4edBI=
+X-Google-Smtp-Source: AGHT+IH/GmFwfz/KLQqwABZCJIOJSQdacBDN9n3cToWkKGuNB5vkYCzMkd096fPZfHkRC1ZU+KBkfQ==
+X-Received: by 2002:a17:902:e80c:b0:20b:b93f:300a with SMTP id d9443c01a7336-210c6872dabmr463716335ad.7.1730758603626;
+        Mon, 04 Nov 2024 14:16:43 -0800 (PST)
+Received: from dread.disaster.area (pa49-186-86-168.pa.vic.optusnet.com.au. [49.186.86.168])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-21105708681sm65856185ad.89.2024.11.04.14.16.43
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 04 Nov 2024 14:16:43 -0800 (PST)
+Received: from dave by dread.disaster.area with local (Exim 4.96)
+	(envelope-from <david@fromorbit.com>)
+	id 1t85NI-00AE83-1f;
+	Tue, 05 Nov 2024 09:16:40 +1100
+Date: Tue, 5 Nov 2024 09:16:40 +1100
+From: Dave Chinner <david@fromorbit.com>
+To: Asahi Lina <lina@asahilina.net>
+Cc: Jan Kara <jack@suse.cz>, Dan Williams <dan.j.williams@intel.com>,
+	Matthew Wilcox <willy@infradead.org>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>,
+	Sergio Lopez Pascual <slp@redhat.com>,
+	linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org, asahi@lists.linux.dev
+Subject: Re: [PATCH] dax: Allow block size > PAGE_SIZE
+Message-ID: <ZylHyD7Z+ApaiS5g@dread.disaster.area>
+References: <20241101-dax-page-size-v1-1-eedbd0c6b08f@asahilina.net>
+ <20241104105711.mqk4of6frmsllarn@quack3>
+ <7f0c0a15-8847-4266-974e-c3567df1c25a@asahilina.net>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20241029-dcd-type2-upstream-v5-8-8739cb67c374@intel.com>
-User-Agent: NeoMutt/20220429
+In-Reply-To: <7f0c0a15-8847-4266-974e-c3567df1c25a@asahilina.net>
 
-On Tue, 29 Oct 2024, ira.weiny@intel.com wrote:
+On Tue, Nov 05, 2024 at 12:31:22AM +0900, Asahi Lina wrote:
+> 
+> 
+> On 11/4/24 7:57 PM, Jan Kara wrote:
+> > On Fri 01-11-24 21:22:31, Asahi Lina wrote:
+> >> For virtio-dax, the file/FS blocksize is irrelevant. FUSE always uses
+> >> large DAX blocks (2MiB), which will work with all host page sizes. Since
+> >> we are mapping files into the DAX window on the host, the underlying
+> >> block size of the filesystem and its block device (if any) are
+> >> meaningless.
+> >>
+> >> For real devices with DAX, the only requirement should be that the FS
+> >> block size is *at least* as large as PAGE_SIZE, to ensure that at least
+> >> whole pages can be mapped out of the device contiguously.
+> >>
+> >> Fixes warning when using virtio-dax on a 4K guest with a 16K host,
+> >> backed by tmpfs (which sets blksz == PAGE_SIZE on the host).
+> >>
+> >> Signed-off-by: Asahi Lina <lina@asahilina.net>
+> >> ---
+> >>  fs/dax.c | 2 +-
+> >>  1 file changed, 1 insertion(+), 1 deletion(-)
+> > 
+> > Well, I don't quite understand how just relaxing the check is enough. I
+> > guess it may work with virtiofs (I don't know enough about virtiofs to
+> > really tell either way) but for ordinary DAX filesystem it would be
+> > seriously wrong if DAX was used with blocksize > pagesize as multiple
+> > mapping entries could be pointing to the same PFN which is going to have
+> > weird results.
+> 
+> Isn't that generally possible by just mapping the same file multiple
+> times? Why would that be an issue?
 
->+/* See CXL 3.1 Table 8-164 get dynamic capacity config Output Payload */
->+struct cxl_mbox_get_dc_config_out {
->+	u8 avail_region_count;
->+	u8 regions_returned;
->+	u8 rsvd[6];
->+	/* See CXL 3.1 Table 8-165 */
->+	struct cxl_dc_region_config {
->+		__le64 region_base;
->+		__le64 region_decode_length;
->+		__le64 region_length;
->+		__le64 region_block_size;
->+		__le32 region_dsmad_handle;
->+		u8 flags;
->+		u8 rsvd[3];
->+	} __packed region[] __counted_by(regions_retunred);
+I think what Jan is talking about having multiple inode->i_mapping
+entries point to the same pfn, not multiple vm mapped regions
+pointing at the same file offset....
 
-s/retunred/returned
+> Of course having a block size smaller than the page size is never going
+> to work because you would not be able to map single blocks out of files
+> directly. But I don't see why a larger block size would cause any
+> issues. You'd just use several pages to map a single filesystem block.
+
+If only it were that simple.....
+
+> For example, if the block size is 16K and the page size is 4K, then a
+> single file block would be DAX mapped as four contiguous 4K pages in
+> both physical and virtual memory.
+
+Up until 6.12, filesystems on linux did not support block size >
+page size. This was a constraint of the page cache implementation
+being based around the xarray indexing being tightly tied to
+PAGE_SIZE granularity indexing. Folios and large folio support
+provided the infrastructure to allow indexing to increase to order-N
+based index granularity. It's only taken 20 years to get a solution
+to this problem merged, but it's finally there now.
+
+Unfortunately, the DAX infrastructure is independent of the page
+cache but is also tightly tied to PAGE_SIZE based inode->i_mapping
+index granularity. In a way, this is even more fundamental than the
+page cache issues we had to solve. That's because we don't have
+folios with their own locks and size tracking. In DAX, we use the
+inode->i_mapping xarray entry for a given file offset to -serialise
+access to the backing pfn- via lock bits held in the xarray entry.
+We also encode the size of the dax entry in bits held in the xarray
+entry.
+
+The filesystem needs to track dirty state with filesystem block
+granularity. Operations on filesystem blocks (e.g. partial writes,
+page faults) need to be co-ordinated across the entire filesystem
+block. This means we have to be able to lock a single filesystem
+block whilst we are doing instantiation, sub-block zeroing, etc.
+
+Large folio support in the page cache provided this "single tracking
+object for a > PAGE_SIZE range" support needed to allow fsb >
+page_size in filesystems. The large folio spans the entire
+filesystem block, providing a single serialisation and state
+tracking for all the page cache operations needing to be done on
+that filesystem block.
+
+The DAX infrastructure needs the same changes for fsb > page size
+support. We have a limited number bits we can use for DAX entry
+state:
+
+/*
+ * DAX pagecache entries use XArray value entries so they can't be mistaken
+ * for pages.  We use one bit for locking, one bit for the entry size (PMD)
+ * and two more to tell us if the entry is a zero page or an empty entry that
+ * is just used for locking.  In total four special bits.
+ *
+ * If the PMD bit isn't set the entry has size PAGE_SIZE, and if the ZERO_PAGE
+ * and EMPTY bits aren't set the entry is a normal DAX entry with a filesystem
+ * block allocation.
+ */
+#define DAX_SHIFT       (4)
+#define DAX_LOCKED      (1UL << 0)
+#define DAX_PMD         (1UL << 1)
+#define DAX_ZERO_PAGE   (1UL << 2)
+#define DAX_EMPTY       (1UL << 3)
+
+I *think* that we have at most PAGE_SHIFT worth of bits we can
+use because we only store the pfn part of the pfn_t in the dax
+entry. There are PAGE_SHIFT high bits in the pfn_t that hold
+pfn state that we mask out.
+
+Hence I think we can easily steal another 3 bits for storing an
+order - orders 0-4 are needed (3 bits) for up to 64kB on 4kB
+PAGE_SIZE - so I think this is a solvable problem. There's a lot
+more to it than "just use several pages to map to a single
+filesystem block", though.....
+
+> > If virtiofs can actually map 4k subpages out of 16k page on
+> > host (and generally perform 4k granular tracking etc.), it would seem more
+> > appropriate if virtiofs actually exposed the filesystem 4k block size instead
+> > of 16k blocksize? Or am I missing something?
+> 
+> virtiofs itself on the guest does 2MiB mappings into the SHM region, and
+> then the guest is free to map blocks out of those mappings. So as long
+> as the guest page size is less than 2MiB, it doesn't matter, since all
+> files will be aligned in physical memory to that block size. It behaves
+> as if the filesystem block size is 2MiB from the point of view of the
+> guest regardless of the actual block size. For example, if the host page
+> size is 16K, the guest will request a 2MiB mapping of a file, which the
+> VMM will satisfy by mmapping 128 16K pages from its page cache (at
+> arbitrary physical memory addresses) into guest "physical" memory as one
+> contiguous block. Then the guest will see the whole 2MiB mapping as
+> contiguous, even though it isn't in physical RAM, and it can use any
+> page granularity it wants (that is supported by the architecture) to map
+> it to a userland process.
+
+Clearly I'm missing something important because, from this
+description, I honestly don't know which mapping is actually using
+DAX.
+
+Can you draw out the virtofs stack from userspace in the guest down
+to storage in the host so dumb people like myself know exactly where
+what is being directly accessed and how?
+
+-Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
