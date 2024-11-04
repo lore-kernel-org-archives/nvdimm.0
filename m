@@ -1,146 +1,127 @@
-Received: from mail.marcansoft.com (marcansoft.com [212.63.210.85])
+Received: from silver.cherry.relay.mailchannels.net (silver.cherry.relay.mailchannels.net [23.83.223.166])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 512151C07C2;
-	Mon,  4 Nov 2024 15:31:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.63.210.85
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730734298; cv=none; b=fOIwqBebIXu3CQ9i4LjWrFXMMsFrot26wOSzNDfY27sf2jmS3WSyt1oeK3nUPsVQ7I07+hHw44jR+ArnkN3yqpk+53sSdm40H3K8nEZab8MAOVEt5cBNBJdRKA0w6DSyQCtJJEnNppS4nCT+Au27G2lK37eXnbefzPA9+U+Sbe4=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730734298; c=relaxed/simple;
-	bh=KvWORfAAduulvHOi0GqFEH2kCQ/zjWYELxtQcI9MPq8=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=DmV+JF/Bd8bCCHxcZVCstDOaoVW/1xgvtY61kQDvtcIHwT27MTkcfVPW8espKKf7AWwK+IlYViNVmUoHVWSTJtIAzCuEHUmREpOTAgfS9JezTrRGK3sz5lYQl5VpAtut4WPN/IloCG/ZxBF2MrwK2ljpiAD0u1CyAfInUQ5oeDQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=asahilina.net; spf=pass smtp.mailfrom=asahilina.net; dkim=pass (2048-bit key) header.d=asahilina.net header.i=@asahilina.net header.b=ZWWgIc7N; arc=none smtp.client-ip=212.63.210.85
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=asahilina.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=asahilina.net
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B39E61C07C3
+	for <nvdimm@lists.linux.dev>; Mon,  4 Nov 2024 17:10:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=pass smtp.client-ip=23.83.223.166
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1730740211; cv=pass; b=TmzcL2PXNPUMEM9r4VV48PoNqntGxFRObYu6FCOSQn6wWIzU8Yx2ayKHTKVua0lsgcS0/siPZOMuMQ3V9xoYR2CX9g5BB2flIyOSw7ZcdTcTfDelHykcDF/JnG2DtuLuLH32e22e1xvGuMU7139XzOLSpP11c/oxfhheitfTQ0o=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1730740211; c=relaxed/simple;
+	bh=Frw8kbtAjBVVCciXSX1r8i47gxNY6wwNd2Hun+4Z/ho=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=pNR0q0cKXaPpmPk28ngEQM10tJZcbxXJVx+ygc+WawsDu87zncJcTdOCaWcB1Ni1vYuEXbipynLjpyjwiMPVabyGbm6OR3sqxmIdKenDKPtHbaD/CGbO4bKdbukTalVGVhbRSdgNmDM1+rE8d9dUObbYORUzZ159fLWyeq4r1J8=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=stgolabs.net; spf=pass smtp.mailfrom=stgolabs.net; dkim=pass (2048-bit key) header.d=stgolabs.net header.i=@stgolabs.net header.b=cLFkz6ds; arc=pass smtp.client-ip=23.83.223.166
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=stgolabs.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=stgolabs.net
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=asahilina.net header.i=@asahilina.net header.b="ZWWgIc7N"
-Received: from [127.0.0.1] (localhost [127.0.0.1])
+	dkim=pass (2048-bit key) header.d=stgolabs.net header.i=@stgolabs.net header.b="cLFkz6ds"
+X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
+Received: from relay.mailchannels.net (localhost [127.0.0.1])
+	by relay.mailchannels.net (Postfix) with ESMTP id 9BCF5C40C1;
+	Mon,  4 Nov 2024 17:10:02 +0000 (UTC)
+Received: from pdx1-sub0-mail-a258.dreamhost.com (100-101-211-194.trex-nlb.outbound.svc.cluster.local [100.101.211.194])
+	(Authenticated sender: dreamhost)
+	by relay.mailchannels.net (Postfix) with ESMTPA id 11A6EC5C46;
+	Mon,  4 Nov 2024 17:10:02 +0000 (UTC)
+ARC-Seal: i=1; s=arc-2022; d=mailchannels.net; t=1730740202; a=rsa-sha256;
+	cv=none;
+	b=jUkeV484MmCPZs/erbZ9d3nDS1wFv8nQNTjm/iJbIvuKvCdLCF/+e9ZhpBlVGJg2VXm1Hm
+	kTNX6F0h0OMT/AAuSuKZKwcL8jeB0A+xaMdfbFo9XrQqqp4vsMJhmYEzwx/0ej7pMPFG9+
+	csaHQq2CwdFcjhoUJVVWHejCC/TXArL7DRFRk837VE/RQvv3GqYGxNMug7zyUnb5ItVTrG
+	nxGA+NxtSFIZ3qgNibcqfezNEqG1WB463YpNBodknB6YBDzjH0OiEJXti4bmZY5+wZwzM6
+	Up1OmOGh26L0PlZLvi4iVATwhH8wvIPSm5bKWHiyHYGhMRG0LCaxjgU1VIuwwA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=mailchannels.net;
+	s=arc-2022; t=1730740202;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references:dkim-signature;
+	bh=djeiyArVI2uFrm3uwF32I+TnLqOcCdOJyErXRw8sf90=;
+	b=h625JFI/Hzg7GDPVBvGfKVPBPQRutobeArZAUUDN6s+sh8bIldFVyGrIZPDKHW2HNldMBs
+	HS/dQpnDKJjJ6qIegGkTBxyVp8oDgKLUfxjgHcd9LbJLNP9zlG3nRkQDqo7a1tYtqux5S1
+	XtKSeKbPF4i8rKHZX/KoeOh2g2dClEq7YYN1mdbiltcm6zAIcdFfTnw6apZAMuL88f5rAo
+	UOOuwPwffEBkWTFuWyUgonSUZmoxD9cWTmrK95lBRLKYnFJ089IoMw94km/MZRp+ue1foI
+	vlgMhwzm0MyL/wG2hU8Ce9TdUzyjsG/VNBiZ5o8UY7r7jeigVX+Wupkl79JCpg==
+ARC-Authentication-Results: i=1;
+	rspamd-57ff586b7f-9lkcj;
+	auth=pass smtp.auth=dreamhost smtp.mailfrom=dave@stgolabs.net
+X-Sender-Id: dreamhost|x-authsender|dave@stgolabs.net
+X-MC-Relay: Neutral
+X-MailChannels-SenderId: dreamhost|x-authsender|dave@stgolabs.net
+X-MailChannels-Auth-Id: dreamhost
+X-Suffer-Share: 50c4f2063b14fee1_1730740202439_5728283
+X-MC-Loop-Signature: 1730740202439:3750142550
+X-MC-Ingress-Time: 1730740202439
+Received: from pdx1-sub0-mail-a258.dreamhost.com (pop.dreamhost.com
+ [64.90.62.162])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384)
+	by 100.101.211.194 (trex/7.0.2);
+	Mon, 04 Nov 2024 17:10:02 +0000
+Received: from offworld (ip72-199-50-187.sd.sd.cox.net [72.199.50.187])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	 key-exchange ECDHE (P-256) server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
-	(Authenticated sender: lina@asahilina.net)
-	by mail.marcansoft.com (Postfix) with ESMTPSA id 4BB8C43584;
-	Mon,  4 Nov 2024 15:31:24 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=asahilina.net;
-	s=default; t=1730734285;
-	bh=KvWORfAAduulvHOi0GqFEH2kCQ/zjWYELxtQcI9MPq8=;
-	h=Date:Subject:To:Cc:References:From:In-Reply-To;
-	b=ZWWgIc7NB3PXUSzkvEcsJ4jGgKT0AFCzpWryG2zkSBS7gQPM2u8jhB2YdGSGm6GnP
-	 Q9F2klvCzvMU9a9qX6sLNEGmCD8FF8U3nAhRdSdP/LMlecZivQVE09F04jCrrZhWpy
-	 v+k/a2m3s5vEHoNheVAPDjJ9snTkOJ71RmBRC1LMHnKA1oNu/1X5Q0y7SWhHNKwOL3
-	 CbDehLERPeIpFcaIQxMYtVgUMVieRBHPioNWuS8Al/Sq/0bFGyUj+5g66kL46xPiwU
-	 NR26KsoEST5ZfGLeq7uGFuWtrlPpYIVt8bD0lGtGHyGj9+4nc+fG63rbVwYCvQDGjS
-	 sl2Y3wrS5nFmA==
-Message-ID: <7f0c0a15-8847-4266-974e-c3567df1c25a@asahilina.net>
-Date: Tue, 5 Nov 2024 00:31:22 +0900
+	(Authenticated sender: dave@stgolabs.net)
+	by pdx1-sub0-mail-a258.dreamhost.com (Postfix) with ESMTPSA id 4XhydN5ZFdz7f;
+	Mon,  4 Nov 2024 09:10:00 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=stgolabs.net;
+	s=dreamhost; t=1730740201;
+	bh=djeiyArVI2uFrm3uwF32I+TnLqOcCdOJyErXRw8sf90=;
+	h=Date:From:To:Cc:Subject:Content-Type;
+	b=cLFkz6ds+WpTY5zg9wuuYvEd/NO/U3juHAI5RX5rIUR4sj7kLz3KjqBx5vgMqVoUv
+	 imO+VG9fMNwr1Z/3IAdZ7BdHrtr+M/rdYLJOcokuDvYLUO+szwMd8SlUwBfMc5nVU+
+	 3vqAdJJkOy9LibgPqcPx//DOhhwwdbjdJlkfhWM0YLrF7V9JFCLmRWk+kIGoEgmmQw
+	 tnNNEen2ZQyFSSdb1z5FsuOlWbp5ESuRkjwNefzdzyR/JsEzqJrPA+Hr1acZTugVMK
+	 bAjLPTDf7nCdgzIIwE0b04Kby1c4/D+0pXL5uTEd3msj9QK5se4nMkOy2Pr2sf+7Og
+	 bxWIBCsqYNQtw==
+Date: Mon, 4 Nov 2024 09:09:57 -0800
+From: Davidlohr Bueso <dave@stgolabs.net>
+To: ira.weiny@intel.com
+Cc: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>,
+	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+	Navneet Singh <navneet.singh@intel.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Alison Schofield <alison.schofield@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>, linux-cxl@vger.kernel.org,
+	linux-doc@vger.kernel.org, nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org, Kees Cook <kees@kernel.org>,
+	"Gustavo A. R. Silva" <gustavoars@kernel.org>,
+	linux-hardening@vger.kernel.org
+Subject: Re: [PATCH v5 08/27] cxl/mem: Read dynamic capacity configuration
+ from the device
+Message-ID: <20241104170957.2vxxpnjwvmaiwrt3@offworld>
+References: <20241029-dcd-type2-upstream-v5-0-8739cb67c374@intel.com>
+ <20241029-dcd-type2-upstream-v5-8-8739cb67c374@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] dax: Allow block size > PAGE_SIZE
-To: Jan Kara <jack@suse.cz>
-Cc: Dan Williams <dan.j.williams@intel.com>,
- Matthew Wilcox <willy@infradead.org>,
- Alexander Viro <viro@zeniv.linux.org.uk>,
- Christian Brauner <brauner@kernel.org>, Sergio Lopez Pascual
- <slp@redhat.com>, linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
- linux-kernel@vger.kernel.org, asahi@lists.linux.dev
-References: <20241101-dax-page-size-v1-1-eedbd0c6b08f@asahilina.net>
- <20241104105711.mqk4of6frmsllarn@quack3>
-Content-Language: en-US
-From: Asahi Lina <lina@asahilina.net>
-In-Reply-To: <20241104105711.mqk4of6frmsllarn@quack3>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Disposition: inline
+In-Reply-To: <20241029-dcd-type2-upstream-v5-8-8739cb67c374@intel.com>
+User-Agent: NeoMutt/20220429
 
+On Tue, 29 Oct 2024, ira.weiny@intel.com wrote:
 
+>+/* See CXL 3.1 Table 8-164 get dynamic capacity config Output Payload */
+>+struct cxl_mbox_get_dc_config_out {
+>+	u8 avail_region_count;
+>+	u8 regions_returned;
+>+	u8 rsvd[6];
+>+	/* See CXL 3.1 Table 8-165 */
+>+	struct cxl_dc_region_config {
+>+		__le64 region_base;
+>+		__le64 region_decode_length;
+>+		__le64 region_length;
+>+		__le64 region_block_size;
+>+		__le32 region_dsmad_handle;
+>+		u8 flags;
+>+		u8 rsvd[3];
+>+	} __packed region[] __counted_by(regions_retunred);
 
-On 11/4/24 7:57 PM, Jan Kara wrote:
-> On Fri 01-11-24 21:22:31, Asahi Lina wrote:
->> For virtio-dax, the file/FS blocksize is irrelevant. FUSE always uses
->> large DAX blocks (2MiB), which will work with all host page sizes. Since
->> we are mapping files into the DAX window on the host, the underlying
->> block size of the filesystem and its block device (if any) are
->> meaningless.
->>
->> For real devices with DAX, the only requirement should be that the FS
->> block size is *at least* as large as PAGE_SIZE, to ensure that at least
->> whole pages can be mapped out of the device contiguously.
->>
->> Fixes warning when using virtio-dax on a 4K guest with a 16K host,
->> backed by tmpfs (which sets blksz == PAGE_SIZE on the host).
->>
->> Signed-off-by: Asahi Lina <lina@asahilina.net>
->> ---
->>  fs/dax.c | 2 +-
->>  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> Well, I don't quite understand how just relaxing the check is enough. I
-> guess it may work with virtiofs (I don't know enough about virtiofs to
-> really tell either way) but for ordinary DAX filesystem it would be
-> seriously wrong if DAX was used with blocksize > pagesize as multiple
-> mapping entries could be pointing to the same PFN which is going to have
-> weird results.
-
-Isn't that generally possible by just mapping the same file multiple
-times? Why would that be an issue?
-
-Of course having a block size smaller than the page size is never going
-to work because you would not be able to map single blocks out of files
-directly. But I don't see why a larger block size would cause any
-issues. You'd just use several pages to map a single filesystem block.
-For example, if the block size is 16K and the page size is 4K, then a
-single file block would be DAX mapped as four contiguous 4K pages in
-both physical and virtual memory.
-
-> If virtiofs can actually map 4k subpages out of 16k page on
-> host (and generally perform 4k granular tracking etc.), it would seem more
-> appropriate if virtiofs actually exposed the filesystem 4k block size instead
-> of 16k blocksize? Or am I missing something?
-
-virtiofs itself on the guest does 2MiB mappings into the SHM region, and
-then the guest is free to map blocks out of those mappings. So as long
-as the guest page size is less than 2MiB, it doesn't matter, since all
-files will be aligned in physical memory to that block size. It behaves
-as if the filesystem block size is 2MiB from the point of view of the
-guest regardless of the actual block size. For example, if the host page
-size is 16K, the guest will request a 2MiB mapping of a file, which the
-VMM will satisfy by mmapping 128 16K pages from its page cache (at
-arbitrary physical memory addresses) into guest "physical" memory as one
-contiguous block. Then the guest will see the whole 2MiB mapping as
-contiguous, even though it isn't in physical RAM, and it can use any
-page granularity it wants (that is supported by the architecture) to map
-it to a userland process.
-
-> 
-> 								Honza
-> 
->> diff --git a/fs/dax.c b/fs/dax.c
->> index c62acd2812f8d4981aaba82acfeaf972f555362a..406fb75bdbe9d17a6e4bf3d4cb92683e90f05910 100644
->> --- a/fs/dax.c
->> +++ b/fs/dax.c
->> @@ -1032,7 +1032,7 @@ int dax_writeback_mapping_range(struct address_space *mapping,
->>  	int ret = 0;
->>  	unsigned int scanned = 0;
->>  
->> -	if (WARN_ON_ONCE(inode->i_blkbits != PAGE_SHIFT))
->> +	if (WARN_ON_ONCE(inode->i_blkbits < PAGE_SHIFT))
->>  		return -EIO;
->>  
->>  	if (mapping_empty(mapping) || wbc->sync_mode != WB_SYNC_ALL)
->>
->> ---
->> base-commit: 81983758430957d9a5cb3333fe324fd70cf63e7e
->> change-id: 20241101-dax-page-size-83a1073b4e1b
->>
->> Cheers,
->> ~~ Lina
->>
-
-~~ Lina
-
+s/retunred/returned
