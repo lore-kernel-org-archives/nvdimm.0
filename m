@@ -1,105 +1,174 @@
-Received: from mail.marcansoft.com (marcansoft.com [212.63.210.85])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D7BA117BECA;
-	Fri,  1 Nov 2024 12:22:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.63.210.85
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B14B31C4A28;
+	Mon,  4 Nov 2024 10:57:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730463773; cv=none; b=nCQIgwacfHZZP+vYX1SiyX/OJaZ9FcsekkTsDrOsnUg8yl6QEFtUKjk6CKBvmRw9PdauNjAKm1POM1Eq3xo/1IbgHs74Q6Wx399h1MkHqrOd9hkHQyZEN+iCzgu/vpY8vYPttj62vc70aZaEgmaM0rtXb2boRHANzgzPz3gwZkE=
+	t=1730717835; cv=none; b=qBPAo3tKbPfeMnNox6XQxW2ZbcQk1YFV+LbStDLX3yuIP1+8P4h1gmPZwe7GsAr6GgTiwyHFFiAm2Euw2huTkQGMvXzX4cg8sCmOY9+DmDJ3P7JVcPlLp4s0f7y6LGp4sz6hE/zwGP1dtMUO/WdR4iXYq7YrM78mtoQ6ymkmKhg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730463773; c=relaxed/simple;
-	bh=/TA+HIVRRCw8dKJUti+Jl47C1Bz15V0Orwm12b4BAQo=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=BVp+8FM5ZcqrD6SgVjauqetrjHcNe2fjs/T3JjMUQGk7zMnlrsZv97w7Q2eR+OfzowVmfUPED5p9R+yvsJ2MyX89qzYun7sv4yYJhbH0LZsSl5AV0GbGm/GFhxnpWLl+xsFWczKmzBNSEBujJJGrvGmuPJla98ZQ+yRGKZYVdR8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=asahilina.net; spf=pass smtp.mailfrom=asahilina.net; dkim=pass (2048-bit key) header.d=asahilina.net header.i=@asahilina.net header.b=xNoiSdfS; arc=none smtp.client-ip=212.63.210.85
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=asahilina.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=asahilina.net
+	s=arc-20240116; t=1730717835; c=relaxed/simple;
+	bh=UPzlo2d9vGTBJpHoau13kgCUyWgH1napUQb+/vB/Dcc=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=OoP58j4lHyOHb2oIMers2LTY1GBOgrCbewc3+RYI/aDYtI4dIar9Jfg7fNuPqWEwhwMUZnArYfFMHCzS7Ay37QYkdZME4qLByryb4dSQNFhntDLOi9dZRrXci3OMEZahBBB0mAu4/8/IhVw/R3plE2qbEPIWfy0GOEnJqrZLw30=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz; spf=pass smtp.mailfrom=suse.cz; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=08jLTSmG; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=Fo0ezgy4; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=08jLTSmG; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=Fo0ezgy4; arc=none smtp.client-ip=195.135.223.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=asahilina.net header.i=@asahilina.net header.b="xNoiSdfS"
-Received: from [127.0.0.1] (localhost [127.0.0.1])
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="08jLTSmG";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="Fo0ezgy4";
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="08jLTSmG";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="Fo0ezgy4"
+Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	(Authenticated sender: sendonly@marcansoft.com)
-	by mail.marcansoft.com (Postfix) with ESMTPSA id 0025F432AE;
-	Fri,  1 Nov 2024 12:22:47 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=asahilina.net;
-	s=default; t=1730463768;
-	bh=/TA+HIVRRCw8dKJUti+Jl47C1Bz15V0Orwm12b4BAQo=;
-	h=From:Date:Subject:To:Cc;
-	b=xNoiSdfS611jDnBHnoMcOBL5g9pU7Hl804x7mbaxffwGon4vQUVIfWf0f7zhxFKMo
-	 fyhJ5KLUy5siPpuOYs17FeECUzvgzfo4oIM9iyj0ViDVirwvZQUkrA17MyzmJXeTD2
-	 dmu7p+ExDLVOHgdEKNh7x0eCYWudlP8A0em5V+qaxSLN+ZLji3jHz54tisc4Tjf/2p
-	 Cn+rs1gFwvYCaz/+MnVh9nTGYlhpdOBiP17NdALfj4xPnvdr8Tg0V+pBQ1dC03/rfS
-	 Lj+ueaf2BNjR+fVuCLRtfYreV3k2TK/TtGNkIwYZXglkw8hTWxHtkH29cFoa1QuWP3
-	 u61x5um0uKguA==
-From: Asahi Lina <lina@asahilina.net>
-Date: Fri, 01 Nov 2024 21:22:31 +0900
-Subject: [PATCH] dax: Allow block size > PAGE_SIZE
+	by smtp-out2.suse.de (Postfix) with ESMTPS id C8F5F1F45F;
+	Mon,  4 Nov 2024 10:57:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1730717831; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=IYRQrdsu06X+bjARk5dkS+tv7CJXY6E5nc3x053oWO0=;
+	b=08jLTSmGyqORhZ1ZZxcaE4ZOS8tqlHEW5TeUVQrGc6Kr/1a15fJY2tyWnPX6KKr2JVOEa+
+	S3CBQ0P5ulmUUAJbmahNS0Y+aGmdU1h/1UKW7cXaPw1wwq62gWHBjPB06gzaHPAXyGqXmP
+	F7jLtX6e/B6son4umaU/bsKMvtc946Q=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1730717831;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=IYRQrdsu06X+bjARk5dkS+tv7CJXY6E5nc3x053oWO0=;
+	b=Fo0ezgy4tRYrOrY/8CD3r1r8knyd2MEdiFENBvHKadCaE/FbmB8OpSO2esg+niHceiTmpW
+	m2xPlayNP7F1vbBQ==
+Authentication-Results: smtp-out2.suse.de;
+	none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1730717831; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=IYRQrdsu06X+bjARk5dkS+tv7CJXY6E5nc3x053oWO0=;
+	b=08jLTSmGyqORhZ1ZZxcaE4ZOS8tqlHEW5TeUVQrGc6Kr/1a15fJY2tyWnPX6KKr2JVOEa+
+	S3CBQ0P5ulmUUAJbmahNS0Y+aGmdU1h/1UKW7cXaPw1wwq62gWHBjPB06gzaHPAXyGqXmP
+	F7jLtX6e/B6son4umaU/bsKMvtc946Q=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1730717831;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=IYRQrdsu06X+bjARk5dkS+tv7CJXY6E5nc3x053oWO0=;
+	b=Fo0ezgy4tRYrOrY/8CD3r1r8knyd2MEdiFENBvHKadCaE/FbmB8OpSO2esg+niHceiTmpW
+	m2xPlayNP7F1vbBQ==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id BB3D213736;
+	Mon,  4 Nov 2024 10:57:11 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id e9WvLYeoKGdCOgAAD6G6ig
+	(envelope-from <jack@suse.cz>); Mon, 04 Nov 2024 10:57:11 +0000
+Received: by quack3.suse.cz (Postfix, from userid 1000)
+	id 6A564A0AFB; Mon,  4 Nov 2024 11:57:11 +0100 (CET)
+Date: Mon, 4 Nov 2024 11:57:11 +0100
+From: Jan Kara <jack@suse.cz>
+To: Asahi Lina <lina@asahilina.net>
+Cc: Dan Williams <dan.j.williams@intel.com>,
+	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>,
+	Sergio Lopez Pascual <slp@redhat.com>,
+	linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org, asahi@lists.linux.dev
+Subject: Re: [PATCH] dax: Allow block size > PAGE_SIZE
+Message-ID: <20241104105711.mqk4of6frmsllarn@quack3>
+References: <20241101-dax-page-size-v1-1-eedbd0c6b08f@asahilina.net>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20241101-dax-page-size-v1-1-eedbd0c6b08f@asahilina.net>
-X-B4-Tracking: v=1; b=H4sIAAbIJGcC/x2MQQqAIBAAvyJ7TnBTKPpKdNDcai8mCiGJf086z
- sBMhUyJKcMiKiR6OPMdOuAgYL9sOEmy7wyjGg2iQultkdF2n/klOWuLatLOEDroTUx0cPl/69b
- aB5XInvBfAAAA
-X-Change-ID: 20241101-dax-page-size-83a1073b4e1b
-To: Dan Williams <dan.j.williams@intel.com>, 
- Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, 
- Alexander Viro <viro@zeniv.linux.org.uk>, 
- Christian Brauner <brauner@kernel.org>
-Cc: Sergio Lopez Pascual <slp@redhat.com>, linux-fsdevel@vger.kernel.org, 
- nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org, asahi@lists.linux.dev, 
- Asahi Lina <lina@asahilina.net>
-X-Mailer: b4 0.14.2
-X-Developer-Signature: v=1; a=ed25519-sha256; t=1730463767; l=1369;
- i=lina@asahilina.net; s=20240902; h=from:subject:message-id;
- bh=/TA+HIVRRCw8dKJUti+Jl47C1Bz15V0Orwm12b4BAQo=;
- b=sme8DUTSaze8Opt4hubzoO/tMB7K2MMTGXJNmRMpSSZwtZbnDp236oTHUIuMtt0wgQmzowHlX
- 0ZM9LKYWCV6CcgFSXnPTS8pR4ZWkuJQwC/gZWnNoAcAfqUUxKU671+O
-X-Developer-Key: i=lina@asahilina.net; a=ed25519;
- pk=tpv7cWfUnHNw5jwf6h4t0gGgglt3/xcwlfs0+A/uUu8=
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20241101-dax-page-size-v1-1-eedbd0c6b08f@asahilina.net>
+X-Spam-Level: 
+X-Spamd-Result: default: False [-3.80 / 50.00];
+	BAYES_HAM(-3.00)[100.00%];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	MID_RHS_NOT_FQDN(0.50)[];
+	NEURAL_HAM_SHORT(-0.20)[-0.996];
+	MIME_GOOD(-0.10)[text/plain];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	ARC_NA(0.00)[];
+	MISSING_XM_UA(0.00)[];
+	MIME_TRACE(0.00)[0:+];
+	RCPT_COUNT_SEVEN(0.00)[11];
+	RCVD_COUNT_THREE(0.00)[3];
+	FROM_HAS_DN(0.00)[];
+	DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
+	FROM_EQ_ENVFROM(0.00)[];
+	TO_DN_SOME(0.00)[];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	FUZZY_BLOCKED(0.00)[rspamd.com];
+	RCVD_TLS_LAST(0.00)[];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,suse.com:email]
+X-Spam-Score: -3.80
+X-Spam-Flag: NO
 
-For virtio-dax, the file/FS blocksize is irrelevant. FUSE always uses
-large DAX blocks (2MiB), which will work with all host page sizes. Since
-we are mapping files into the DAX window on the host, the underlying
-block size of the filesystem and its block device (if any) are
-meaningless.
+On Fri 01-11-24 21:22:31, Asahi Lina wrote:
+> For virtio-dax, the file/FS blocksize is irrelevant. FUSE always uses
+> large DAX blocks (2MiB), which will work with all host page sizes. Since
+> we are mapping files into the DAX window on the host, the underlying
+> block size of the filesystem and its block device (if any) are
+> meaningless.
+> 
+> For real devices with DAX, the only requirement should be that the FS
+> block size is *at least* as large as PAGE_SIZE, to ensure that at least
+> whole pages can be mapped out of the device contiguously.
+> 
+> Fixes warning when using virtio-dax on a 4K guest with a 16K host,
+> backed by tmpfs (which sets blksz == PAGE_SIZE on the host).
+> 
+> Signed-off-by: Asahi Lina <lina@asahilina.net>
+> ---
+>  fs/dax.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 
-For real devices with DAX, the only requirement should be that the FS
-block size is *at least* as large as PAGE_SIZE, to ensure that at least
-whole pages can be mapped out of the device contiguously.
+Well, I don't quite understand how just relaxing the check is enough. I
+guess it may work with virtiofs (I don't know enough about virtiofs to
+really tell either way) but for ordinary DAX filesystem it would be
+seriously wrong if DAX was used with blocksize > pagesize as multiple
+mapping entries could be pointing to the same PFN which is going to have
+weird results. If virtiofs can actually map 4k subpages out of 16k page on
+host (and generally perform 4k granular tracking etc.), it would seem more
+appropriate if virtiofs actually exposed the filesystem 4k block size instead
+of 16k blocksize? Or am I missing something?
 
-Fixes warning when using virtio-dax on a 4K guest with a 16K host,
-backed by tmpfs (which sets blksz == PAGE_SIZE on the host).
+								Honza
 
-Signed-off-by: Asahi Lina <lina@asahilina.net>
----
- fs/dax.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/fs/dax.c b/fs/dax.c
-index c62acd2812f8d4981aaba82acfeaf972f555362a..406fb75bdbe9d17a6e4bf3d4cb92683e90f05910 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1032,7 +1032,7 @@ int dax_writeback_mapping_range(struct address_space *mapping,
- 	int ret = 0;
- 	unsigned int scanned = 0;
- 
--	if (WARN_ON_ONCE(inode->i_blkbits != PAGE_SHIFT))
-+	if (WARN_ON_ONCE(inode->i_blkbits < PAGE_SHIFT))
- 		return -EIO;
- 
- 	if (mapping_empty(mapping) || wbc->sync_mode != WB_SYNC_ALL)
-
----
-base-commit: 81983758430957d9a5cb3333fe324fd70cf63e7e
-change-id: 20241101-dax-page-size-83a1073b4e1b
-
-Cheers,
-~~ Lina
-
+> diff --git a/fs/dax.c b/fs/dax.c
+> index c62acd2812f8d4981aaba82acfeaf972f555362a..406fb75bdbe9d17a6e4bf3d4cb92683e90f05910 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -1032,7 +1032,7 @@ int dax_writeback_mapping_range(struct address_space *mapping,
+>  	int ret = 0;
+>  	unsigned int scanned = 0;
+>  
+> -	if (WARN_ON_ONCE(inode->i_blkbits != PAGE_SHIFT))
+> +	if (WARN_ON_ONCE(inode->i_blkbits < PAGE_SHIFT))
+>  		return -EIO;
+>  
+>  	if (mapping_empty(mapping) || wbc->sync_mode != WB_SYNC_ALL)
+> 
+> ---
+> base-commit: 81983758430957d9a5cb3333fe324fd70cf63e7e
+> change-id: 20241101-dax-page-size-83a1073b4e1b
+> 
+> Cheers,
+> ~~ Lina
+> 
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
