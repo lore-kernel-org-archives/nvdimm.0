@@ -1,223 +1,205 @@
-Received: from mail-pl1-f171.google.com (mail-pl1-f171.google.com [209.85.214.171])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.12])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88A731C32E2
-	for <nvdimm@lists.linux.dev>; Mon,  4 Nov 2024 22:16:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.171
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730758606; cv=none; b=ODLOCGRmrS3BOlgsJayixOKxhB2MLLxcKyETBDi3OYWQ5UW14OVDmPpbV0Y8LDy+BzVHUH4xUHebU48wkqscAroL9as+SEAUo14VQpv0Hg/AxJpjvZ+KSGafwpmMX9hkJlDhbPI1Jv3asUFpSr3a7ynFUxhGxSR4O157sQ34ig8=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730758606; c=relaxed/simple;
-	bh=KspYLPaVUiBiulhfcb/F9ddte9kdJsUyFpLrtdXID7k=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=RWthWRl6xtyyAFOJmGGyXQnbkUgeo+5uPBLJ3FSDK0wCc78o+fYIVSVVKYquuuwCZLgAkI6EA09gyj9lMeFkh7O7P6oMeOYqsIvZS21z4IYS2SJMyKPs+Vn2gu5LaRCkXUoeLBaHPXWZ+andBOwguh1A6zOe0efCMjJTUghIPYw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fromorbit.com; spf=pass smtp.mailfrom=fromorbit.com; dkim=pass (2048-bit key) header.d=fromorbit-com.20230601.gappssmtp.com header.i=@fromorbit-com.20230601.gappssmtp.com header.b=rKYwT6iG; arc=none smtp.client-ip=209.85.214.171
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=fromorbit.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=fromorbit.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6AAEC3BB22
+	for <nvdimm@lists.linux.dev>; Tue,  5 Nov 2024 01:53:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=198.175.65.12
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1730771629; cv=fail; b=U5pNmVtXpZ8W11MqwSdRUiF0EfQS3KoBYltiomwqevexpEiIEIalrx2feuittoFqZHAIWSqL9TSBaUmLFDkH1Q2uMLn92QqU5FF3CIo0eiv+vwcJGud3LWPIaR3nZSqhbo0BkfyGzroLZYeMYxNquGGfS7ecD/QjPiJrxzh3oHw=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1730771629; c=relaxed/simple;
+	bh=r6+a2Oz3qhIEkUNA8Sy5qqemWYw9GB/Dk2A315niMKI=;
+	h=Date:From:To:CC:Subject:Message-ID:References:Content-Type:
+	 Content-Disposition:In-Reply-To:MIME-Version; b=Cy2oUwtuo+uw5mHTq1m0bWdqxYpCwhglklo0yMUbWbYAB3akjtaLj0gdhZ4R14S+H5haBA3+85ELT3HPhY2ZPzvUrhyQ+ijTmVTgu7hHfFfskBQ15P3jGH9B1bWGA5ncvvKyl3tzXmo/XxrXgdL/NRdA9ZKiKhxnx5DXRQ4K0V4=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=P9DBOaPC; arc=fail smtp.client-ip=198.175.65.12
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=fromorbit-com.20230601.gappssmtp.com header.i=@fromorbit-com.20230601.gappssmtp.com header.b="rKYwT6iG"
-Received: by mail-pl1-f171.google.com with SMTP id d9443c01a7336-20cb47387ceso45173405ad.1
-        for <nvdimm@lists.linux.dev>; Mon, 04 Nov 2024 14:16:44 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=fromorbit-com.20230601.gappssmtp.com; s=20230601; t=1730758604; x=1731363404; darn=lists.linux.dev;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=wx+CQscmonr+En4OMi1iBJFsPpXGN7GSbg6rvgqJS3g=;
-        b=rKYwT6iG/yiyI+fxwW1rBg+TLDcU9l05ha7Tx0l6qAW3nTWnbPOkNtD6riDuyUb3FJ
-         DO4hVA7xbswVzdngY46T1vTzY/b62RqcMNOyMEIvSi3DGwXpKcSFfXIMl0f5IoA+4z+Q
-         C7Xu2rFT8t6DlU3zfaC8rMnBew988IgnFxCidxwHwhFzi53AVp3rjrFBrT95xtjy5Gqc
-         0c2E4CwMIfpnGtSrPdiX5ornnlHyTaqe+gX2gsLxaU6oent1E5apMwfYuvMN5KO6qlsc
-         qze5ZO6Z+c813IWFMdXnjmYBJznvDPeeyVIZpqBXEGAGgc7ZBEXWesP/KdKRXBkgzZ43
-         Ru+A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1730758604; x=1731363404;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=wx+CQscmonr+En4OMi1iBJFsPpXGN7GSbg6rvgqJS3g=;
-        b=E7T5CRKAeLaOHWhijT6ZrDd81h2HLqH4eXwTiDi4EotZpDGKHhtGMzCpC9DN6zAk88
-         quMef564FxJ11pnxzYUqRGfmEJyJ6M6E+M6NFiRdrUfGjTDgZZ0wDxV9/Wohrx5KlNHl
-         MdnXO1d1RMFZhEuH+DiSck0hU9WnEQud8l7LEjlnF0GSUIPmH0q2TMwG/4iYZTwwp0el
-         ZO9LFVbCp6dXpNkb9c0j+TAlZ8FFfF9JT3PYNHJROo85BpC4Gcz7FmHxy/GGnzFK+dwl
-         uOR12pjWW0eINiAmbsCnnVVy4irWgndx0as5i04TKB7eR3z0P6wN7X85isY+KUPlsL+u
-         /eCA==
-X-Forwarded-Encrypted: i=1; AJvYcCVpiKo1PfbsY5iCXzNc8G/kGYG+F6ow8mHAF1iqx5K2khNJdTWPOANz7KpPErf+XP/xo02UPPg=@lists.linux.dev
-X-Gm-Message-State: AOJu0YxNGlAlRUIxtteYc2eUUijsTIeHNeuo3NHQK/gxXAAzN9tM76hm
-	CMhmFLgPCqKlaVk6uxZg8MAQ3iVbR5Uia4ifMbaEaJBay8XGWr5L287d/p4edBI=
-X-Google-Smtp-Source: AGHT+IH/GmFwfz/KLQqwABZCJIOJSQdacBDN9n3cToWkKGuNB5vkYCzMkd096fPZfHkRC1ZU+KBkfQ==
-X-Received: by 2002:a17:902:e80c:b0:20b:b93f:300a with SMTP id d9443c01a7336-210c6872dabmr463716335ad.7.1730758603626;
-        Mon, 04 Nov 2024 14:16:43 -0800 (PST)
-Received: from dread.disaster.area (pa49-186-86-168.pa.vic.optusnet.com.au. [49.186.86.168])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-21105708681sm65856185ad.89.2024.11.04.14.16.43
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 04 Nov 2024 14:16:43 -0800 (PST)
-Received: from dave by dread.disaster.area with local (Exim 4.96)
-	(envelope-from <david@fromorbit.com>)
-	id 1t85NI-00AE83-1f;
-	Tue, 05 Nov 2024 09:16:40 +1100
-Date: Tue, 5 Nov 2024 09:16:40 +1100
-From: Dave Chinner <david@fromorbit.com>
-To: Asahi Lina <lina@asahilina.net>
-Cc: Jan Kara <jack@suse.cz>, Dan Williams <dan.j.williams@intel.com>,
-	Matthew Wilcox <willy@infradead.org>,
-	Alexander Viro <viro@zeniv.linux.org.uk>,
-	Christian Brauner <brauner@kernel.org>,
-	Sergio Lopez Pascual <slp@redhat.com>,
-	linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org, asahi@lists.linux.dev
-Subject: Re: [PATCH] dax: Allow block size > PAGE_SIZE
-Message-ID: <ZylHyD7Z+ApaiS5g@dread.disaster.area>
-References: <20241101-dax-page-size-v1-1-eedbd0c6b08f@asahilina.net>
- <20241104105711.mqk4of6frmsllarn@quack3>
- <7f0c0a15-8847-4266-974e-c3567df1c25a@asahilina.net>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="P9DBOaPC"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1730771627; x=1762307627;
+  h=date:from:to:cc:subject:message-id:references:
+   in-reply-to:mime-version;
+  bh=r6+a2Oz3qhIEkUNA8Sy5qqemWYw9GB/Dk2A315niMKI=;
+  b=P9DBOaPCTgIUNgGaH78XWN/Gm8GDWUT6JVq70oJM74XRtvwW+/BEpwMI
+   uTJpF0kd4ogl/1wpFr0JG7vooYMgxQ4nQ+FTNoEziTPJ4GsWDLp/De3AL
+   /VOGqtwgYgVwS6L6FNxf3itOAAxw/R7Byr1qh85jwP1WfBgBFRHxKL8Q5
+   KirDHDXUM0aGbhkJEOpXXm3QHFjAxYEhZRbPaR2cniqLY8maL1NgXYYLz
+   z3fG81I1RKEemXabML0Gt9H+xDnVFaEbH2NsgHwjF3cb+q+CLbyans1ax
+   VDh0ULgVFH8Y4Yc8psRLcGmSz4YkPBrvnbeZxApJTlEpEacm/amhRtWht
+   g==;
+X-CSE-ConnectionGUID: anNZDssYSmW4BfcnWGXk3Q==
+X-CSE-MsgGUID: X3+yjPfzQ1CVX1oP5UOC1Q==
+X-IronPort-AV: E=McAfee;i="6700,10204,11246"; a="41889070"
+X-IronPort-AV: E=Sophos;i="6.11,258,1725346800"; 
+   d="scan'208";a="41889070"
+Received: from orviesa008.jf.intel.com ([10.64.159.148])
+  by orvoesa104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Nov 2024 17:53:47 -0800
+X-CSE-ConnectionGUID: fiRANsaYQz+RKMmZia2NBg==
+X-CSE-MsgGUID: Jq5mPsA8R7m3L5Z7GvUHGQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.11,258,1725346800"; 
+   d="scan'208";a="84649013"
+Received: from fmsmsx602.amr.corp.intel.com ([10.18.126.82])
+  by orviesa008.jf.intel.com with ESMTP/TLS/AES256-GCM-SHA384; 04 Nov 2024 17:53:47 -0800
+Received: from fmsmsx603.amr.corp.intel.com (10.18.126.83) by
+ fmsmsx602.amr.corp.intel.com (10.18.126.82) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.39; Mon, 4 Nov 2024 17:53:46 -0800
+Received: from fmsedg602.ED.cps.intel.com (10.1.192.136) by
+ fmsmsx603.amr.corp.intel.com (10.18.126.83) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.39 via Frontend Transport; Mon, 4 Nov 2024 17:53:46 -0800
+Received: from NAM12-MW2-obe.outbound.protection.outlook.com (104.47.66.45) by
+ edgegateway.intel.com (192.55.55.71) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2507.39; Mon, 4 Nov 2024 17:53:46 -0800
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=eYelxfFUmZxuxHStRLrlMvbR0OjZqB8/pi/mAF8Vq+Rsm4X+YoYc2Y85ZQzBmzAjCs0PEEqAK7M7zNev5LgQewcjHTDXJxRA9xUANe0ovR5rN2SsLucwG9LWD3SyUsbqrWY2Z05spPoNOamyWI72eNftZfuRDothwWq/9GVQKQwCGdweAhMiDZACirMKehoiMbEJMnhyjWQvYZZsDDs17Zs1hiYKmTi39WuZV6RlIt9KJati27mP1sJFU0LFO/xfGuG6WQg5p3XFKq3NpjCN2nG6yDA8UW5pAhkqIlpqUtDFuPi83oyXOYoFiCT7Cd+oXdw3Z+mM0el36G52Eswuyw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=ViksTvV+fpIIGyyQb297wQIAsGa5KiBQazC1Mld4XNk=;
+ b=pZq4xJffS1rzPy52xeDhp29vBb6qBmtbBHSoqft7GvR1MJSLWMBtWyfqxZSyPQpBCn+PMMljyH7/ybYjQWhehv9fh3Wl2D1fGUELsVYfuKFlbfazN+LS24qtP72SjkqQeFDqPp3JTxJUsT1GOD1fbqkIFJGCaUyR6TOZATrepRHDQMdzQCq7UIQ3AHdosRJWbIWFqAYwOjiuDcuGP/2RznKQSuug7uKv3hBimRvOmYJttRkJV2N1Z7OclYlDN9wTdE6N9XXIMrL13w5BEh19+vD4N9iBJ1BvxWk69ar32unuXwezxTKtUODnqtsELEaTmwR/PDt3woSHIKxqTZxkag==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+Received: from SA1PR11MB6733.namprd11.prod.outlook.com (2603:10b6:806:25c::17)
+ by IA1PR11MB6322.namprd11.prod.outlook.com (2603:10b6:208:38a::13) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8114.30; Tue, 5 Nov
+ 2024 01:53:44 +0000
+Received: from SA1PR11MB6733.namprd11.prod.outlook.com
+ ([fe80::cf7d:9363:38f4:8c57]) by SA1PR11MB6733.namprd11.prod.outlook.com
+ ([fe80::cf7d:9363:38f4:8c57%3]) with mapi id 15.20.8114.028; Tue, 5 Nov 2024
+ 01:53:42 +0000
+Date: Mon, 4 Nov 2024 19:53:32 -0600
+From: Ira Weiny <ira.weiny@intel.com>
+To: Davidlohr Bueso <dave@stgolabs.net>, <ira.weiny@intel.com>
+CC: Dave Jiang <dave.jiang@intel.com>, Fan Ni <fan.ni@samsung.com>, "Jonathan
+ Cameron" <Jonathan.Cameron@huawei.com>, Navneet Singh
+	<navneet.singh@intel.com>, Jonathan Corbet <corbet@lwn.net>, Andrew Morton
+	<akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, "Alison
+ Schofield" <alison.schofield@intel.com>, Vishal Verma
+	<vishal.l.verma@intel.com>, <linux-cxl@vger.kernel.org>,
+	<linux-doc@vger.kernel.org>, <nvdimm@lists.linux.dev>,
+	<linux-kernel@vger.kernel.org>, Kees Cook <kees@kernel.org>, "Gustavo A. R.
+ Silva" <gustavoars@kernel.org>, <linux-hardening@vger.kernel.org>
+Subject: Re: [PATCH v5 08/27] cxl/mem: Read dynamic capacity configuration
+ from the device
+Message-ID: <67297a9c20e69_146e6529477@iweiny-mobl.notmuch>
+References: <20241029-dcd-type2-upstream-v5-0-8739cb67c374@intel.com>
+ <20241029-dcd-type2-upstream-v5-8-8739cb67c374@intel.com>
+ <20241104170957.2vxxpnjwvmaiwrt3@offworld>
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20241104170957.2vxxpnjwvmaiwrt3@offworld>
+X-ClientProxiedBy: MW4PR04CA0197.namprd04.prod.outlook.com
+ (2603:10b6:303:86::22) To SA1PR11MB6733.namprd11.prod.outlook.com
+ (2603:10b6:806:25c::17)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <7f0c0a15-8847-4266-974e-c3567df1c25a@asahilina.net>
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: SA1PR11MB6733:EE_|IA1PR11MB6322:EE_
+X-MS-Office365-Filtering-Correlation-Id: 77b1ad25-68bb-4fa5-fe8d-08dcfd3cad0d
+X-LD-Processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;ARA:13230040|7416014|376014|1800799024|366016;
+X-Microsoft-Antispam-Message-Info: =?us-ascii?Q?kM0SIfjyCUX2rKDNFF3S/2yjKpXxVMZ9qFCQnk6w/SChpb9I3RbWiHg0YXmQ?=
+ =?us-ascii?Q?WXD1b7s9MxQaT8jr8oxl2a6GqtAF4PAHt9izFiSopzHIOGLpQTtcBeUfD1s9?=
+ =?us-ascii?Q?j4McmEE8bFkrKcmp91iJU3UAGcDiAede1yyanV1iNmY8/Krg1jcnvY4Bvu47?=
+ =?us-ascii?Q?xJefwZyxd1y1muJc4xoZY2m8kHTA+k8xzyQzlQiFAMAiqNfd5eOE2BWEVRjh?=
+ =?us-ascii?Q?Wzb8+J1mC6JyPk4E4jyLAe4cef79Eg+DSj5pmpoJp8pBBu5hShntyAKLo878?=
+ =?us-ascii?Q?dJ4cbWTbcLzRb1w9eln0LXWCN2InuXxIg8ZfW++5fnHMsqMvAbgj8hUcgaND?=
+ =?us-ascii?Q?Tqf9eMBiDVEKb37GxuZtN/sUSqs4D8C1uv2BqPL29hF7tpkevt9mPL7ncU8F?=
+ =?us-ascii?Q?qUyCWtlJ/zMlwyb8qTj4BhgJWF5+xoxUxPOhgnG69T4Nw6wMDcACKHoLkUOS?=
+ =?us-ascii?Q?C3JcjNaWcI9qD63Wk/PEP7iGvZZecJy/PSvXJ4k+noZaT6NDyLF8MpjD0lSt?=
+ =?us-ascii?Q?VKtE0itDPLHK4xc9QvcoVDg0j4B3j8oRPcW5LCUzoKVUYsRMJ3cdEl4Hw/A/?=
+ =?us-ascii?Q?uYezBqqkChTqKVVvqI27K/eqJAKuycc24XwV6x5X7y+SYDZP911TxaMhtwpz?=
+ =?us-ascii?Q?cJ3t/VHh8G1Pq3xWLr5HWOEgWIlHdwxsBbydC9gC2awML/AGZxp2TaJQ6gAB?=
+ =?us-ascii?Q?iaWwKJgffVbiG6z4vdFooMB97A9oyNcAueLHlHFG24Z61ndZYzFUzRhlp8wY?=
+ =?us-ascii?Q?j3ueHByzE/IIkJrnSzve5utC55HpxFqLCViawR0jvFBlw1j1sbAaCz52evnG?=
+ =?us-ascii?Q?5ydZhLDc7BBKw6+kxcPrNxqWSPxYd0f0r7ZzTjOxbuIyvUvCtYcieuEugbd7?=
+ =?us-ascii?Q?hqIgffKBRYEh0r9O1Imnh4QIlafhE0mOT+rHjpezBeF28eVLc16wLaOFCZuL?=
+ =?us-ascii?Q?uQcx2iyARQcU0Gj65tfbaPPm3ZsNQpAVV7Pk4nU1yxayxpTR37GJ0XSJUmMO?=
+ =?us-ascii?Q?5lrDxh9XaNbecGIVAT1hNjQjYy3w9JNqMYSbuzgWc1wW989eMxAPf/VKVImW?=
+ =?us-ascii?Q?XHWfoba1lf22WMZMg6E78aNyk6SoO4mhnt/Ivf6veIkRw/NdhpRmQJtgtSC7?=
+ =?us-ascii?Q?jVtytHrOHwrzfiSw6w8FyVZIu3A/RlHrOiS2AsWb3VJYEsoB4QSadR4/7V99?=
+ =?us-ascii?Q?4kbSz+K/AUfNKZCwoaBQKBxAU0KDEtszlF67OYL0r0BQBEK0XzfHgVgoPK9+?=
+ =?us-ascii?Q?gR85sGyQuFb0Dn+Snvar5vDJU0dkzorLrRV4hpfhkqBTq4yiek6WgV+vgeK3?=
+ =?us-ascii?Q?A0Q=3D?=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SA1PR11MB6733.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(7416014)(376014)(1800799024)(366016);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?FHhG8Uht/xJYMV362gUD7TXd7GjzREeKO7tLBlXfukwFsSdgQSU526cwnzw6?=
+ =?us-ascii?Q?f9P1KgFUaXGeUnUGw6Vle08QVA8GfPVr3zG7f6cyXXdp7BKRjFsm6IM1+Tjr?=
+ =?us-ascii?Q?4zTNbi1XiwUtZA1//sshz3YFsgCaJGtlAd8n/yClWisY5AfvHMP6OMfqlP6n?=
+ =?us-ascii?Q?GgD+HUR8n5N7XAzI7q4fPbiDhtxHj2jmtpQerxnSht8grCT39Il8eoyADCAF?=
+ =?us-ascii?Q?HXcXpkEYqmlAscL5SND3F+aes78g1ZFzYnc4GGMVPe2xK9pk9NUHc94Tx9ng?=
+ =?us-ascii?Q?BsCG4nXa1rd81oy/qo893d21bObxqMThdJXY5CB2/8eKs4TjUqSwgfct0Ez/?=
+ =?us-ascii?Q?BCQ+h4OXzDuInL4Whj2NeChrlIDQLaO58GfY2tDxUpVqSCLAlkUHmtx0bQsT?=
+ =?us-ascii?Q?cF6VCno7lyKnIBIDTallcQM2UGp2DOsao9EheQNswK36DIB2nmrOm9Khq7bm?=
+ =?us-ascii?Q?Y2jZTp8AxbLDePsc1hbetEF5rvUXDN9aO6oMfhxrUG4/k8m/9DnK9FQotxZ0?=
+ =?us-ascii?Q?emfTnI+2Si4LM5Ej4G4F0ZSVXZwQJ5ZfnnGlCWhVjwdGp3zcUpOrCFoMat7D?=
+ =?us-ascii?Q?GyumL1B6nx52OKzGbWVrui2H7jHj93kftbO1oCxAlh5PmByUF5cRsCe6vGJt?=
+ =?us-ascii?Q?G+BYKQnsCfXnAbyZ4ObYJ+y+rPkBt4VCVjm7EIDGbtDf8D6WWcdNjM8OEok7?=
+ =?us-ascii?Q?oPSVLIWBXEdAr4mWHP/ygIS8dE+WvNiT6EIUlswkSWeAr057rz5ZKtzJPwyZ?=
+ =?us-ascii?Q?HrlyR94BfIq+/cQvB1HEiOHk5TWz/+LjHVmhGNKpcVBSE0CmgVXMFkzpjtew?=
+ =?us-ascii?Q?SAgG+AtYgyQWiSHLrz+bAAJU1JEOjAJgiBt8rraqLpTTMWqNdi++Of4IhKqo?=
+ =?us-ascii?Q?8OHz7MbBt/1eQwf87hgtiDQ/6QhIIqC8TkEEuF2DuNhhaE7NDXHeQDt6S23D?=
+ =?us-ascii?Q?lV07YzwChnf29H6KaMxuPcnY5jkg1MLHkxU56OdfyOPI37+L4q70ZTxrdUFq?=
+ =?us-ascii?Q?1rJD+y2llWmEavsDyMQeDl19PP8fCug4frHkwjS2frb1DGsCfd+barNtt+4u?=
+ =?us-ascii?Q?7EXA/rKjMFWLfuhSgOg/8iaRGoqZtJX3cxxLjEpRT91ovlHtul6AY6tlzWTq?=
+ =?us-ascii?Q?YlGChN7/RssXBuHoavZ2rkkrW4ne5/fk66HgJkfAplR7eyZ2zc3KeX10nBr7?=
+ =?us-ascii?Q?Q4+keDVpJOKqxVG2f9YF7UbnWFD6NQQP62ADCdM2RDm21+ldKcY1BOzfM8VN?=
+ =?us-ascii?Q?p44H2YpeXOJj50b/4JP/2aLeE9ki94nQOdeyztJKl2erVKq9eZacj90QAR6J?=
+ =?us-ascii?Q?HebFNgzQkMczcBEcpz4UtJ8UBi36qJ7QjK4MIkSCOAU65N8rH6/0S65Wl8rq?=
+ =?us-ascii?Q?iHsiEhDJdvR+vcNlprg3NF3OLFJ6EQhuhpZT9dkzzKxwj7vvPlRL5cQ8cCKJ?=
+ =?us-ascii?Q?1E3R+1LKcpTu6xW18S3xGCNZtrxWnGWnVgIH8/MHWBUFv8+PjyKrXhfSIovh?=
+ =?us-ascii?Q?N1PWMYgKZvmVP9s0sf1CuHNm4rjfSgGo2iVuQQJYK3MOrNwEFK2c2Mf4vokT?=
+ =?us-ascii?Q?m31/nVQr4MGD9O2KtNTevK8QcT/xo1BJZMfJb+q5?=
+X-MS-Exchange-CrossTenant-Network-Message-Id: 77b1ad25-68bb-4fa5-fe8d-08dcfd3cad0d
+X-MS-Exchange-CrossTenant-AuthSource: SA1PR11MB6733.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 05 Nov 2024 01:53:42.4561
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: 9RUqy4zpNxeUhCjTfrCVn34BgGAHuVk3zIzpi5w9fsB+LmX7KtoMn1qISxe7fL5ZjXmiJKwCqoC6mzcwoJ/tLg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR11MB6322
+X-OriginatorOrg: intel.com
 
-On Tue, Nov 05, 2024 at 12:31:22AM +0900, Asahi Lina wrote:
+Davidlohr Bueso wrote:
+> On Tue, 29 Oct 2024, ira.weiny@intel.com wrote:
 > 
+> >+/* See CXL 3.1 Table 8-164 get dynamic capacity config Output Payload */
+> >+struct cxl_mbox_get_dc_config_out {
+> >+	u8 avail_region_count;
+> >+	u8 regions_returned;
+> >+	u8 rsvd[6];
+> >+	/* See CXL 3.1 Table 8-165 */
+> >+	struct cxl_dc_region_config {
+> >+		__le64 region_base;
+> >+		__le64 region_decode_length;
+> >+		__le64 region_length;
+> >+		__le64 region_block_size;
+> >+		__le32 region_dsmad_handle;
+> >+		u8 flags;
+> >+		u8 rsvd[3];
+> >+	} __packed region[] __counted_by(regions_retunred);
 > 
-> On 11/4/24 7:57 PM, Jan Kara wrote:
-> > On Fri 01-11-24 21:22:31, Asahi Lina wrote:
-> >> For virtio-dax, the file/FS blocksize is irrelevant. FUSE always uses
-> >> large DAX blocks (2MiB), which will work with all host page sizes. Since
-> >> we are mapping files into the DAX window on the host, the underlying
-> >> block size of the filesystem and its block device (if any) are
-> >> meaningless.
-> >>
-> >> For real devices with DAX, the only requirement should be that the FS
-> >> block size is *at least* as large as PAGE_SIZE, to ensure that at least
-> >> whole pages can be mapped out of the device contiguously.
-> >>
-> >> Fixes warning when using virtio-dax on a 4K guest with a 16K host,
-> >> backed by tmpfs (which sets blksz == PAGE_SIZE on the host).
-> >>
-> >> Signed-off-by: Asahi Lina <lina@asahilina.net>
-> >> ---
-> >>  fs/dax.c | 2 +-
-> >>  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > Well, I don't quite understand how just relaxing the check is enough. I
-> > guess it may work with virtiofs (I don't know enough about virtiofs to
-> > really tell either way) but for ordinary DAX filesystem it would be
-> > seriously wrong if DAX was used with blocksize > pagesize as multiple
-> > mapping entries could be pointing to the same PFN which is going to have
-> > weird results.
-> 
-> Isn't that generally possible by just mapping the same file multiple
-> times? Why would that be an issue?
+> s/retunred/returned
 
-I think what Jan is talking about having multiple inode->i_mapping
-entries point to the same pfn, not multiple vm mapped regions
-pointing at the same file offset....
+Thanks.
 
-> Of course having a block size smaller than the page size is never going
-> to work because you would not be able to map single blocks out of files
-> directly. But I don't see why a larger block size would cause any
-> issues. You'd just use several pages to map a single filesystem block.
+The bots caught that too since my compiler was too old to test it.
 
-If only it were that simple.....
-
-> For example, if the block size is 16K and the page size is 4K, then a
-> single file block would be DAX mapped as four contiguous 4K pages in
-> both physical and virtual memory.
-
-Up until 6.12, filesystems on linux did not support block size >
-page size. This was a constraint of the page cache implementation
-being based around the xarray indexing being tightly tied to
-PAGE_SIZE granularity indexing. Folios and large folio support
-provided the infrastructure to allow indexing to increase to order-N
-based index granularity. It's only taken 20 years to get a solution
-to this problem merged, but it's finally there now.
-
-Unfortunately, the DAX infrastructure is independent of the page
-cache but is also tightly tied to PAGE_SIZE based inode->i_mapping
-index granularity. In a way, this is even more fundamental than the
-page cache issues we had to solve. That's because we don't have
-folios with their own locks and size tracking. In DAX, we use the
-inode->i_mapping xarray entry for a given file offset to -serialise
-access to the backing pfn- via lock bits held in the xarray entry.
-We also encode the size of the dax entry in bits held in the xarray
-entry.
-
-The filesystem needs to track dirty state with filesystem block
-granularity. Operations on filesystem blocks (e.g. partial writes,
-page faults) need to be co-ordinated across the entire filesystem
-block. This means we have to be able to lock a single filesystem
-block whilst we are doing instantiation, sub-block zeroing, etc.
-
-Large folio support in the page cache provided this "single tracking
-object for a > PAGE_SIZE range" support needed to allow fsb >
-page_size in filesystems. The large folio spans the entire
-filesystem block, providing a single serialisation and state
-tracking for all the page cache operations needing to be done on
-that filesystem block.
-
-The DAX infrastructure needs the same changes for fsb > page size
-support. We have a limited number bits we can use for DAX entry
-state:
-
-/*
- * DAX pagecache entries use XArray value entries so they can't be mistaken
- * for pages.  We use one bit for locking, one bit for the entry size (PMD)
- * and two more to tell us if the entry is a zero page or an empty entry that
- * is just used for locking.  In total four special bits.
- *
- * If the PMD bit isn't set the entry has size PAGE_SIZE, and if the ZERO_PAGE
- * and EMPTY bits aren't set the entry is a normal DAX entry with a filesystem
- * block allocation.
- */
-#define DAX_SHIFT       (4)
-#define DAX_LOCKED      (1UL << 0)
-#define DAX_PMD         (1UL << 1)
-#define DAX_ZERO_PAGE   (1UL << 2)
-#define DAX_EMPTY       (1UL << 3)
-
-I *think* that we have at most PAGE_SHIFT worth of bits we can
-use because we only store the pfn part of the pfn_t in the dax
-entry. There are PAGE_SHIFT high bits in the pfn_t that hold
-pfn state that we mask out.
-
-Hence I think we can easily steal another 3 bits for storing an
-order - orders 0-4 are needed (3 bits) for up to 64kB on 4kB
-PAGE_SIZE - so I think this is a solvable problem. There's a lot
-more to it than "just use several pages to map to a single
-filesystem block", though.....
-
-> > If virtiofs can actually map 4k subpages out of 16k page on
-> > host (and generally perform 4k granular tracking etc.), it would seem more
-> > appropriate if virtiofs actually exposed the filesystem 4k block size instead
-> > of 16k blocksize? Or am I missing something?
-> 
-> virtiofs itself on the guest does 2MiB mappings into the SHM region, and
-> then the guest is free to map blocks out of those mappings. So as long
-> as the guest page size is less than 2MiB, it doesn't matter, since all
-> files will be aligned in physical memory to that block size. It behaves
-> as if the filesystem block size is 2MiB from the point of view of the
-> guest regardless of the actual block size. For example, if the host page
-> size is 16K, the guest will request a 2MiB mapping of a file, which the
-> VMM will satisfy by mmapping 128 16K pages from its page cache (at
-> arbitrary physical memory addresses) into guest "physical" memory as one
-> contiguous block. Then the guest will see the whole 2MiB mapping as
-> contiguous, even though it isn't in physical RAM, and it can use any
-> page granularity it wants (that is supported by the architecture) to map
-> it to a userland process.
-
-Clearly I'm missing something important because, from this
-description, I honestly don't know which mapping is actually using
-DAX.
-
-Can you draw out the virtofs stack from userspace in the guest down
-to storage in the host so dumb people like myself know exactly where
-what is being directly accessed and how?
-
--Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+Ira
